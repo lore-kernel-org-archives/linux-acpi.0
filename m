@@ -1,145 +1,34 @@
-From: Bjorn Helgaas <bhelgaas@google.com>
-Subject: Re: [PATCH v9 2/3] aerdrv: Enhanced AER logging
-Date: Fri, 4 Jan 2013 15:07:52 -0700
-Message-ID: <CAErSpo75yJoSQqDw2opddfdTMKF5=5kAUw6JgnckvFp5VF85Sg@mail.gmail.com>
-References: <20130103223401.10751.1838.stgit@grignak.americas.hpqcorp.net> <20130103223408.10751.17677.stgit@grignak.americas.hpqcorp.net>
+From: "Luck, Tony" <tony.luck@intel.com>
+Subject: RE: [PATCH v9 3/3] aerdrv: Cleanup log output for AER
+Date: Fri, 4 Jan 2013 22:22:09 +0000
+Message-ID: <3908561D78D1C84285E8C5FCA982C28F1C9750EE@ORSMSX108.amr.corp.intel.com>
+References: <20130103223401.10751.1838.stgit@grignak.americas.hpqcorp.net>
+ <20130103223415.10751.17744.stgit@grignak.americas.hpqcorp.net>
+ <CAErSpo5LV5QApKqVVV7FdpjdFFZ9=+8JJfaDtDqJ2AzFpxM+HA@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-pci-owner@vger.kernel.org>
-In-Reply-To: <20130103223408.10751.17677.stgit@grignak.americas.hpqcorp.net>
+In-Reply-To: <CAErSpo5LV5QApKqVVV7FdpjdFFZ9=+8JJfaDtDqJ2AzFpxM+HA@mail.gmail.com>
+Content-Language: en-US
 Sender: linux-pci-owner@vger.kernel.org
-To: Lance Ortiz <lance.ortiz@hp.com>
-Cc: lance_ortiz@hotmail.com, jiang.liu@huawei.com, tony.luck@intel.com, bp@alien8.de, rostedt@goodmis.org, mchehab@redhat.com, linux-acpi@vger.kernel.org, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org
+To: Bjorn Helgaas <bhelgaas@google.com>, Lance Ortiz <lance.ortiz@hp.com>
+Cc: "lance_ortiz@hotmail.com" <lance_ortiz@hotmail.com>, "jiang.liu@huawei.com" <jiang.liu@huawei.com>, "bp@alien8.de" <bp@alien8.de>, "rostedt@goodmis.org" <rostedt@goodmis.org>, "mchehab@redhat.com" <mchehab@redhat.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On Thu, Jan 3, 2013 at 3:34 PM, Lance Ortiz <lance.ortiz@hp.com> wrote:
-> This patch will provide a more reliable and easy way for user-space
-> applications to have access to AER logs rather than reading them from the
-> message buffer. It also provides a way to notify user-space when an AER
-> event occurs.
->
-> The aer driver is updated to generate a trace event of function 'aer_event'
-> when a PCIe error is reported over the AER interface.  The trace event was
-> added to both the interrupt based aer path and the firmware first path.
->
-> v1-v2 fix compile errors in ifdefs.
-> v2-v3 Update to new location of trace header. Update print to remove
-> warning.
-> v3-v4 Reworked logic when getting ready to call cper_print_aer
-> v6-v7 Change print from pr_info to pr_err if !dev
-> v7-v8 Add pfx argument back into call to cper_print_aer()
->
-> Signed-off-by: Lance Ortiz <lance.ortiz@hp.com>
-> Acked-by: Mauro Carvalho Chehab <mchehab@redhat.com>
-> Acked-by: Tony Luck <tony.luck@intel.com>
+I sent a "please pull" to Ingo/Peter/Thomas about an hour ago ... if they
+push back (or ignore) we can fold your ack and nit-picks into another
+version.
 
-Acked-by: Bjorn Helgaas <bhelgaas@google.com>
+> s/elimiating/eliminating/ above.
+Ugh ... nobody spotted this one ("many eyes" really does work!)
 
-> ---
->
->  drivers/acpi/apei/cper.c               |   19 ++++++++++++++++---
->  drivers/pci/pcie/aer/aerdrv_errprint.c |    9 ++++++++-
->  include/linux/aer.h                    |    4 ++--
->  3 files changed, 26 insertions(+), 6 deletions(-)
->
-> diff --git a/drivers/acpi/apei/cper.c b/drivers/acpi/apei/cper.c
-> index e6defd8..1e5d8a4 100644
-> --- a/drivers/acpi/apei/cper.c
-> +++ b/drivers/acpi/apei/cper.c
-> @@ -29,6 +29,7 @@
->  #include <linux/time.h>
->  #include <linux/cper.h>
->  #include <linux/acpi.h>
-> +#include <linux/pci.h>
->  #include <linux/aer.h>
->
->  /*
-> @@ -249,6 +250,10 @@ static const char *cper_pcie_port_type_strs[] = {
->  static void cper_print_pcie(const char *pfx, const struct cper_sec_pcie *pcie,
->                             const struct acpi_hest_generic_data *gdata)
->  {
-> +#ifdef CONFIG_ACPI_APEI_PCIEAER
-> +       struct pci_dev *dev;
-> +#endif
-> +
->         if (pcie->validation_bits & CPER_PCIE_VALID_PORT_TYPE)
->                 printk("%s""port_type: %d, %s\n", pfx, pcie->port_type,
->                        pcie->port_type < ARRAY_SIZE(cper_pcie_port_type_strs) ?
-> @@ -281,10 +286,18 @@ static void cper_print_pcie(const char *pfx, const struct cper_sec_pcie *pcie,
->         "%s""bridge: secondary_status: 0x%04x, control: 0x%04x\n",
->         pfx, pcie->bridge.secondary_status, pcie->bridge.control);
->  #ifdef CONFIG_ACPI_APEI_PCIEAER
-> -       if (pcie->validation_bits & CPER_PCIE_VALID_AER_INFO) {
-> -               struct aer_capability_regs *aer_regs = (void *)pcie->aer_info;
-> -               cper_print_aer(pfx, gdata->error_severity, aer_regs);
-> +       dev = pci_get_domain_bus_and_slot(pcie->device_id.segment,
-> +                       pcie->device_id.bus, pcie->device_id.function);
-> +       if (!dev) {
-> +               pr_err("PCI AER Cannot get PCI device %04x:%02x:%02x.%d\n",
-> +                       pcie->device_id.segment, pcie->device_id.bus,
-> +                       pcie->device_id.slot, pcie->device_id.function);
-> +               return;
->         }
-> +       if (pcie->validation_bits & CPER_PCIE_VALID_AER_INFO)
-> +               cper_print_aer(pfx, dev, gdata->error_severity,
-> +                               (struct aer_capability_regs *) pcie->aer_info);
-> +       pci_dev_put(dev);
->  #endif
->  }
->
-> diff --git a/drivers/pci/pcie/aer/aerdrv_errprint.c b/drivers/pci/pcie/aer/aerdrv_errprint.c
-> index 3ea5173..d3e5fc5 100644
-> --- a/drivers/pci/pcie/aer/aerdrv_errprint.c
-> +++ b/drivers/pci/pcie/aer/aerdrv_errprint.c
-> @@ -23,6 +23,9 @@
->
->  #include "aerdrv.h"
->
-> +#define CREATE_TRACE_POINTS
-> +#include <trace/events/ras.h>
-> +
->  #define AER_AGENT_RECEIVER             0
->  #define AER_AGENT_REQUESTER            1
->  #define AER_AGENT_COMPLETER            2
-> @@ -194,6 +197,8 @@ void aer_print_error(struct pci_dev *dev, struct aer_err_info *info)
->         if (info->id && info->error_dev_num > 1 && info->id == id)
->                 printk("%s""  Error of this Agent(%04x) is reported first\n",
->                         prefix, id);
-> +       trace_aer_event(dev_name(&dev->dev), (info->status & ~info->mask),
-> +                       info->severity);
->  }
->
->  void aer_print_port_info(struct pci_dev *dev, struct aer_err_info *info)
-> @@ -217,7 +222,7 @@ int cper_severity_to_aer(int cper_severity)
->  }
->  EXPORT_SYMBOL_GPL(cper_severity_to_aer);
->
-> -void cper_print_aer(const char *prefix, int cper_severity,
-> +void cper_print_aer(const char *prefix, struct pci_dev *dev, int cper_severity,
->                     struct aer_capability_regs *aer)
->  {
->         int aer_severity, layer, agent, status_strs_size, tlp_header_valid = 0;
-> @@ -259,5 +264,7 @@ void cper_print_aer(const char *prefix, int cper_severity,
->                         *(tlp + 8), *(tlp + 15), *(tlp + 14),
->                         *(tlp + 13), *(tlp + 12));
->         }
-> +       trace_aer_event(dev_name(&dev->dev), (status & ~mask),
-> +                       aer_severity);
->  }
->  #endif
-> diff --git a/include/linux/aer.h b/include/linux/aer.h
-> index 544abdb..ec10e1b 100644
-> --- a/include/linux/aer.h
-> +++ b/include/linux/aer.h
-> @@ -49,8 +49,8 @@ static inline int pci_cleanup_aer_uncorrect_error_status(struct pci_dev *dev)
->  }
->  #endif
->
-> -extern void cper_print_aer(const char *prefix, int cper_severity,
-> -                          struct aer_capability_regs *aer);
-> +extern void cper_print_aer(const char *prefix, struct pci_dev *dev,
-> +                          int cper_severity, struct aer_capability_regs *aer);
->  extern int cper_severity_to_aer(int cper_severity);
->  extern void aer_recover_queue(int domain, unsigned int bus, unsigned int devfn,
->                               int severity);
->
+> I remove the "v1-v2" notes when I merge patches because I don't think
+> they're useful any more.  But if Tony applies these, he can use his
+> judgment.
+
+Yes - I do too.  In fact it is easier on the maintainer if this sort of meta-commentary
+goes *after* the "---" in the patch. Then it is available for review (where it is
+most helpful), but tools will automatically drop it when applying the patch.
+
+-Tony
