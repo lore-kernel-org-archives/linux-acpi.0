@@ -1,15 +1,15 @@
 From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: [PATCH 3/6] ACPI / PM: Common string representations of device power states
-Date: Fri, 04 Jan 2013 23:02:18 +0100
-Message-ID: <5284267.VuqCP1J6ZC@vostro.rjw.lan>
+Subject: [PATCH 2/6] ACPI / PM: More visible function for retrieving device power states
+Date: Fri, 04 Jan 2013 23:01:32 +0100
+Message-ID: <2444054.uT8tz0M77e@vostro.rjw.lan>
 References: <2311196.icSMDvAsYg@vostro.rjw.lan>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7Bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from hydra.sisk.pl ([212.160.235.94]:60464 "EHLO hydra.sisk.pl"
+Received: from hydra.sisk.pl ([212.160.235.94]:60467 "EHLO hydra.sisk.pl"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754865Ab3ADV6y (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	id S1754934Ab3ADV6y (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
 	Fri, 4 Jan 2013 16:58:54 -0500
 In-Reply-To: <2311196.icSMDvAsYg@vostro.rjw.lan>
 Sender: linux-acpi-owner@vger.kernel.org
@@ -19,78 +19,59 @@ Cc: LKML <linux-kernel@vger.kernel.org>, Len Brown <lenb@kernel.org>, Lv Zheng <
 
 From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 
-The function returning string representations of ACPI device power
-states, state_string((), is now static, because it is only used
-internally in drivers/acpi/bus.c.  However, it will be used outside
-of that file going forward, so rename it to
-acpi_power_state_string(), add a kerneldoc comment to it and add its
-header to acpi_bus.h.
+The function used for retrieving ACPI device power states,
+__acpi_bus_get_power(), is now static, because it is only used
+internally in drivers/acpi/bus.c.  However, it will be used
+outside of that file going forward, so rename it to
+acpi_device_get_power(), in analogy with acpi_device_set_power(),
+add a kerneldoc comment to it and add its header to acpi_bus.h.
 
 Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 ---
- drivers/acpi/bus.c      |   18 ++++++++++++------
+ drivers/acpi/bus.c      |   15 ++++++++++++---
  include/acpi/acpi_bus.h |    1 +
- 2 files changed, 13 insertions(+), 6 deletions(-)
+ 2 files changed, 13 insertions(+), 3 deletions(-)
 
 Index: linux/drivers/acpi/bus.c
 ===================================================================
 --- linux.orig/drivers/acpi/bus.c
 +++ linux/drivers/acpi/bus.c
-@@ -182,7 +182,11 @@ EXPORT_SYMBOL(acpi_bus_get_private_data)
-                                  Power Management
-    -------------------------------------------------------------------------- */
- 
--static const char *state_string(int state)
-+/**
-+ * acpi_power_state_string - String representation of ACPI device power state.
-+ * @state: ACPI device power state to return the string representation of.
-+ */
-+const char *acpi_power_state_string(int state)
- {
- 	switch (state) {
- 	case ACPI_STATE_D0:
-@@ -260,7 +264,7 @@ int acpi_device_get_power(struct acpi_de
- 
-  out:
- 	ACPI_DEBUG_PRINT((ACPI_DB_INFO, "Device [%s] power state is %s\n",
--			  device->pnp.bus_id, state_string(*state)));
-+			  device->pnp.bus_id, acpi_power_state_string(*state)));
- 
- 	return 0;
+@@ -200,7 +200,16 @@ static const char *state_string(int stat
+ 	}
  }
-@@ -288,13 +292,13 @@ int acpi_device_set_power(struct acpi_de
  
- 	if (state == device->power.state) {
- 		ACPI_DEBUG_PRINT((ACPI_DB_INFO, "Device is already at %s\n",
--				  state_string(state)));
-+				  acpi_power_state_string(state)));
- 		return 0;
- 	}
+-static int __acpi_bus_get_power(struct acpi_device *device, int *state)
++/**
++ * acpi_device_get_power - Get power state of an ACPI device.
++ * @device: Device to get the power state of.
++ * @state: Place to store the power state of the device.
++ *
++ * This function does not update the device's power.state field, but it may
++ * update its parent's power.state field (when the parent's power state is
++ * unknown and the device's power state turns out to be D0).
++ */
++int acpi_device_get_power(struct acpi_device *device, int *state)
+ {
+ 	int result = ACPI_STATE_UNKNOWN;
  
- 	if (!device->power.states[state].flags.valid) {
- 		printk(KERN_WARNING PREFIX "Device does not support %s\n",
--		       state_string(state));
-+		       acpi_power_state_string(state));
- 		return -ENODEV;
- 	}
- 	if (device->parent && (state < device->parent->power.state)) {
-@@ -362,12 +366,14 @@ int acpi_device_set_power(struct acpi_de
+@@ -397,7 +406,7 @@ int acpi_bus_init_power(struct acpi_devi
+ 
+ 	device->power.state = ACPI_STATE_UNKNOWN;
+ 
+-	result = __acpi_bus_get_power(device, &state);
++	result = acpi_device_get_power(device, &state);
  	if (result)
- 		printk(KERN_WARNING PREFIX
- 			      "Device [%s] failed to transition to %s\n",
--			      device->pnp.bus_id, state_string(state));
-+			      device->pnp.bus_id,
-+			      acpi_power_state_string(state));
- 	else {
- 		device->power.state = state;
- 		ACPI_DEBUG_PRINT((ACPI_DB_INFO,
- 				  "Device [%s] transitioned to %s\n",
--				  device->pnp.bus_id, state_string(state)));
-+				  device->pnp.bus_id,
-+				  acpi_power_state_string(state)));
- 	}
+ 		return result;
  
- 	return result;
+@@ -421,7 +430,7 @@ int acpi_bus_update_power(acpi_handle ha
+ 	if (result)
+ 		return result;
+ 
+-	result = __acpi_bus_get_power(device, &state);
++	result = acpi_device_get_power(device, &state);
+ 	if (result)
+ 		return result;
+ 
 Index: linux/include/acpi/acpi_bus.h
 ===================================================================
 --- linux.orig/include/acpi/acpi_bus.h
@@ -99,8 +80,8 @@ Index: linux/include/acpi/acpi_bus.h
  				       unsigned long long *sta);
  int acpi_bus_get_status(struct acpi_device *device);
  int acpi_bus_set_power(acpi_handle handle, int state);
-+const char *acpi_power_state_string(int state);
- int acpi_device_get_power(struct acpi_device *device, int *state);
++int acpi_device_get_power(struct acpi_device *device, int *state);
  int acpi_device_set_power(struct acpi_device *device, int state);
  int acpi_bus_update_power(acpi_handle handle, int *state_p);
+ bool acpi_bus_power_manageable(acpi_handle handle);
 
