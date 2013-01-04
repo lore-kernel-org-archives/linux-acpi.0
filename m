@@ -1,203 +1,226 @@
 From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: [PATCH 10/12] ACPI / scan: Consolidate extraction of power resources lists
-Date: Fri, 04 Jan 2013 01:08:42 +0100
-Message-ID: <2939343.yy8nX2pUPY@vostro.rjw.lan>
+Subject: [PATCH 4/12]  ACPI: Drop power resources driver
+Date: Fri, 04 Jan 2013 01:03:51 +0100
+Message-ID: <7004074.B04ltYkyn5@vostro.rjw.lan>
 References: <1418767.4KIZOTK1lk@vostro.rjw.lan>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7Bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from hydra.sisk.pl ([212.160.235.94]:59164 "EHLO hydra.sisk.pl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753811Ab3ADAHF (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 3 Jan 2013 19:07:05 -0500
+Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <1418767.4KIZOTK1lk@vostro.rjw.lan>
-Sender: linux-acpi-owner@vger.kernel.org
-List-Id: linux-acpi@vger.kernel.org
+Sender: linux-kernel-owner@vger.kernel.org
 To: ACPI Devel Maling List <linux-acpi@vger.kernel.org>
 Cc: LKML <linux-kernel@vger.kernel.org>
+List-Id: linux-acpi@vger.kernel.org
 
 From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 
-The lists of ACPI power resources are currently extracted in two
-different ways, one for wakeup power resources and one for power
-resources that device power states depend on.  There is no reason
-why it should be done differently in those two cases, so introduce
-a common routine for extracting power resources lists from data
-returned by AML, acpi_extract_power_resources(), and make the
-namespace scanning code use it for both wakeup and device power
-states power resources.
+The ACPI power resources driver is not very useful, because the only
+thing it really does is to restore the state of the power resources
+that were "on" before system suspend or hibernation, but that may be
+achieved in a different way.
+
+Drop the ACPI power resources driver entirely and add
+acpi_resume_power_resources() that will walk the list of all
+registered power resources during system resume and turn on the ones
+that were "on" before the preceding system suspend or hibernation.
 
 Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 ---
- drivers/acpi/internal.h |    4 ++-
- drivers/acpi/power.c    |   32 +++++++++++++++++++++++++++++-
- drivers/acpi/scan.c     |   51 +++++++++++++++++++-----------------------------
- 3 files changed, 55 insertions(+), 32 deletions(-)
+ drivers/acpi/power.c |   91 ++++++++++++++++++---------------------------------
+ drivers/acpi/scan.c  |    1 
+ drivers/acpi/sleep.c |    2 +
+ drivers/acpi/sleep.h |    2 +
+ 4 files changed, 37 insertions(+), 59 deletions(-)
 
-Index: linux/drivers/acpi/scan.c
-===================================================================
---- linux.orig/drivers/acpi/scan.c
-+++ linux/drivers/acpi/scan.c
-@@ -904,7 +904,6 @@ acpi_bus_extract_wakeup_device_power_pac
- 	union acpi_object *package = NULL;
- 	union acpi_object *element = NULL;
- 	acpi_status status;
--	int i = 0;
- 
- 	if (!wakeup)
- 		return AE_BAD_PARAMETER;
-@@ -957,18 +956,9 @@ acpi_bus_extract_wakeup_device_power_pac
- 	}
- 	wakeup->sleep_state = element->integer.value;
- 
--	for (i = 2; i < package->package.count; i++) {
--		acpi_handle rhandle;
--
--		element = &(package->package.elements[i]);
--		if (element->type != ACPI_TYPE_LOCAL_REFERENCE) {
--			status = AE_BAD_DATA;
--			goto out;
--		}
--		rhandle = element->reference.handle;
--		acpi_add_power_resource(rhandle);
--		acpi_power_resources_list_add(rhandle, &wakeup->resources);
--	}
-+	status = acpi_extract_power_resources(package, 2, &wakeup->resources);
-+	if (ACPI_FAILURE(status))
-+		goto out;
- 
- 	acpi_setup_gpe_for_wake(handle, wakeup->gpe_device, wakeup->gpe_number);
- 
-@@ -1025,7 +1015,6 @@ static void acpi_bus_get_wakeup_device_f
- 	status = acpi_bus_extract_wakeup_device_power_package(device->handle,
- 							      &device->wakeup);
- 	if (ACPI_FAILURE(status)) {
--		acpi_power_resources_list_free(&device->wakeup.resources);
- 		ACPI_EXCEPTION((AE_INFO, status, "Extracting _PRW package"));
- 		return;
- 	}
-@@ -1048,30 +1037,32 @@ static void acpi_bus_get_wakeup_device_f
- static void acpi_bus_init_power_state(struct acpi_device *device, int state)
- {
- 	struct acpi_device_power_state *ps = &device->power.states[state];
--	char object_name[5] = { '_', 'P', 'R', '0' + state, '\0' };
--	struct acpi_handle_list resources;
-+	char pathname[5] = { '_', 'P', 'R', '0' + state, '\0' };
-+	struct acpi_buffer buffer = { ACPI_ALLOCATE_BUFFER, NULL };
- 	acpi_handle handle;
- 	acpi_status status;
- 
- 	INIT_LIST_HEAD(&ps->resources);
- 
--	/* Evaluate "_PRx" to se if power resources are referenced */
--	acpi_evaluate_reference(device->handle, object_name, NULL, &resources);
--	if (resources.count) {
--		int j;
--
--		device->power.flags.power_resources = 1;
--		for (j = 0; j < resources.count; j++) {
--			acpi_handle rhandle = resources.handles[j];
--
--			acpi_add_power_resource(rhandle);
--			acpi_power_resources_list_add(rhandle, &ps->resources);
-+	/* Evaluate "_PRx" to get referenced power resources */
-+	status = acpi_evaluate_object(device->handle, pathname, NULL, &buffer);
-+	if (ACPI_SUCCESS(status)) {
-+		union acpi_object *package = buffer.pointer;
-+
-+		if (buffer.length && package
-+		    && package->type == ACPI_TYPE_PACKAGE
-+		    && package->package.count) {
-+			status = acpi_extract_power_resources(package, 0,
-+							      &ps->resources);
-+			if (ACPI_SUCCESS(status))
-+				device->power.flags.power_resources = 1;
- 		}
-+		ACPI_FREE(buffer.pointer);
- 	}
- 
- 	/* Evaluate "_PSx" to see if we can do explicit sets */
--	object_name[2] = 'S';
--	status = acpi_get_handle(device->handle, object_name, &handle);
-+	pathname[2] = 'S';
-+	status = acpi_get_handle(device->handle, pathname, &handle);
- 	if (ACPI_SUCCESS(status))
- 		ps->flags.explicit_set = 1;
- 
-@@ -1079,7 +1070,7 @@ static void acpi_bus_init_power_state(st
- 	 * State is valid if there are means to put the device into it.
- 	 * D3hot is only valid if _PR3 present.
- 	 */
--	if (resources.count
-+	if (!list_empty(&ps->resources)
- 	    || (ps->flags.explicit_set && state < ACPI_STATE_D3_HOT)) {
- 		ps->flags.valid = 1;
- 		ps->flags.os_accessible = 1;
-Index: linux/drivers/acpi/internal.h
-===================================================================
---- linux.orig/drivers/acpi/internal.h
-+++ linux/drivers/acpi/internal.h
-@@ -50,8 +50,10 @@ void acpi_free_ids(struct acpi_device *d
-                                   Power Resource
-    -------------------------------------------------------------------------- */
- int acpi_power_init(void);
--void acpi_power_resources_list_add(acpi_handle handle, struct list_head *list);
- void acpi_power_resources_list_free(struct list_head *list);
-+acpi_status acpi_extract_power_resources(union acpi_object *package,
-+					 unsigned int start,
-+					 struct list_head *list);
- void acpi_add_power_resource(acpi_handle handle);
- void acpi_power_add_remove_device(struct acpi_device *adev, bool add);
- int acpi_device_sleep_wake(struct acpi_device *dev,
 Index: linux/drivers/acpi/power.c
 ===================================================================
 --- linux.orig/drivers/acpi/power.c
 +++ linux/drivers/acpi/power.c
-@@ -97,7 +97,8 @@ struct acpi_power_resource *acpi_power_g
- 	return container_of(device, struct acpi_power_resource, device);
+@@ -58,27 +58,6 @@ ACPI_MODULE_NAME("power");
+ #define ACPI_POWER_RESOURCE_STATE_ON	0x01
+ #define ACPI_POWER_RESOURCE_STATE_UNKNOWN 0xFF
+ 
+-static inline int acpi_power_add(struct acpi_device *device) { return 0; }
+-
+-static const struct acpi_device_id power_device_ids[] = {
+-	{ACPI_POWER_HID, 0},
+-	{"", 0},
+-};
+-MODULE_DEVICE_TABLE(acpi, power_device_ids);
+-
+-#ifdef CONFIG_PM_SLEEP
+-static int acpi_power_resume(struct device *dev);
+-#endif
+-static SIMPLE_DEV_PM_OPS(acpi_power_pm, NULL, acpi_power_resume);
+-
+-static struct acpi_driver acpi_power_driver = {
+-	.name = "power",
+-	.class = ACPI_POWER_CLASS,
+-	.ids = power_device_ids,
+-	.ops.add = acpi_power_add,
+-	.drv.pm = &acpi_power_pm,
+-};
+-
+ struct acpi_power_dependent_device {
+ 	struct list_head node;
+ 	struct acpi_device *adev;
+@@ -87,6 +66,7 @@ struct acpi_power_dependent_device {
+ 
+ struct acpi_power_resource {
+ 	struct acpi_device device;
++	struct list_head list_node;
+ 	struct list_head dependent;
+ 	char *name;
+ 	u32 system_level;
+@@ -95,7 +75,8 @@ struct acpi_power_resource {
+ 	struct mutex resource_lock;
+ };
+ 
+-static struct list_head acpi_power_resource_list;
++static LIST_HEAD(acpi_power_resource_list);
++static DEFINE_MUTEX(power_resource_list_lock);
+ 
+ /* --------------------------------------------------------------------------
+                              Power Resource Management
+@@ -643,8 +624,13 @@ static void acpi_release_power_resource(
+ 	struct acpi_device *device = to_acpi_device(dev);
+ 	struct acpi_power_resource *resource;
+ 
+-	acpi_free_ids(device);
+ 	resource = container_of(device, struct acpi_power_resource, device);
++
++	mutex_lock(&power_resource_list_lock);
++	list_del(&resource->list_node);
++	mutex_unlock(&power_resource_list_lock);
++
++	acpi_free_ids(device);
+ 	kfree(resource);
  }
  
--void acpi_power_resources_list_add(acpi_handle handle, struct list_head *list)
-+static void acpi_power_resources_list_add(acpi_handle handle,
-+					  struct list_head *list)
- {
- 	struct acpi_power_resource *resource = acpi_power_get_context(handle);
- 	struct acpi_power_resource_entry *entry;
-@@ -132,6 +133,35 @@ void acpi_power_resources_list_free(stru
- 	}
- }
+@@ -677,14 +663,14 @@ void acpi_add_power_resource(acpi_handle
+ 	/* Evalute the object to get the system level and resource order. */
+ 	status = acpi_evaluate_object(handle, NULL, NULL, &buffer);
+ 	if (ACPI_FAILURE(status))
+-		goto out;
++		goto err;
  
-+acpi_status acpi_extract_power_resources(union acpi_object *package,
-+					 unsigned int start,
-+					 struct list_head *list)
-+{
-+	acpi_status status = AE_OK;
-+	unsigned int i;
-+
-+	for (i = start; i < package->package.count; i++) {
-+		union acpi_object *element = &package->package.elements[i];
-+		acpi_handle rhandle;
-+
-+		if (element->type != ACPI_TYPE_LOCAL_REFERENCE) {
-+			status = AE_BAD_DATA;
-+			break;
-+		}
-+		rhandle = element->reference.handle;
-+		if (!rhandle) {
-+			status = AE_NULL_ENTRY;
-+			break;
-+		}
-+		acpi_add_power_resource(rhandle);
-+		acpi_power_resources_list_add(rhandle, list);
-+	}
-+	if (ACPI_FAILURE(status))
-+		acpi_power_resources_list_free(list);
-+
-+	return status;
+ 	resource->system_level = acpi_object.power_resource.system_level;
+ 	resource->order = acpi_object.power_resource.resource_order;
+ 
+ 	result = acpi_power_get_state(handle, &state);
+ 	if (result)
+-		goto out;
++		goto err;
+ 
+ 	switch (state) {
+ 	case ACPI_POWER_RESOURCE_STATE_ON:
+@@ -702,51 +688,40 @@ void acpi_add_power_resource(acpi_handle
+ 
+ 	device->flags.match_driver = true;
+ 	result = acpi_device_register(device, acpi_release_power_resource);
+-
+- out:
+ 	if (result)
+-		acpi_release_power_resource(&device->dev);
++		goto err;
+ 
++	mutex_lock(&power_resource_list_lock);
++	list_add(&resource->list_node, &acpi_power_resource_list);
++	mutex_unlock(&power_resource_list_lock);
+ 	return;
+-}
+ 
+-/* --------------------------------------------------------------------------
+-                                Driver Interface
+-   -------------------------------------------------------------------------- */
++ err:
++	acpi_release_power_resource(&device->dev);
 +}
-+
- static int acpi_power_get_state(acpi_handle handle, int *state)
+ 
+-#ifdef CONFIG_PM_SLEEP
+-static int acpi_power_resume(struct device *dev)
++#ifdef CONFIG_ACPI_SLEEP
++void acpi_resume_power_resources(void)
  {
- 	acpi_status status = AE_OK;
-
+-	int result = 0, state;
+-	struct acpi_device *device;
+ 	struct acpi_power_resource *resource;
+ 
+-	if (!dev)
+-		return -EINVAL;
+-
+-	device = to_acpi_device(dev);
+-	resource = acpi_driver_data(device);
+-	if (!resource)
+-		return -EINVAL;
++	mutex_lock(&power_resource_list_lock);
+ 
+-	mutex_lock(&resource->resource_lock);
++	list_for_each_entry(resource, &acpi_power_resource_list, list_node) {
++		int result, state;
+ 
+-	result = acpi_power_get_state(device->handle, &state);
+-	if (result)
+-		goto unlock;
++		mutex_lock(&resource->resource_lock);
+ 
+-	if (state == ACPI_POWER_RESOURCE_STATE_OFF && resource->ref_count)
+-		result = __acpi_power_on(resource);
++		result = acpi_power_get_state(resource->device.handle, &state);
++		if (!result && state == ACPI_POWER_RESOURCE_STATE_OFF
++		    && resource->ref_count) {
++			dev_info(&resource->device.dev, "Turning ON\n");
++			__acpi_power_on(resource);
++		}
+ 
+- unlock:
+-	mutex_unlock(&resource->resource_lock);
++		mutex_unlock(&resource->resource_lock);
++	}
+ 
+-	return result;
++	mutex_unlock(&power_resource_list_lock);
+ }
+ #endif
+-
+-int __init acpi_power_init(void)
+-{
+-	INIT_LIST_HEAD(&acpi_power_resource_list);
+-	return acpi_bus_register_driver(&acpi_power_driver);
+-}
+Index: linux/drivers/acpi/sleep.c
+===================================================================
+--- linux.orig/drivers/acpi/sleep.c
++++ linux/drivers/acpi/sleep.c
+@@ -386,6 +386,8 @@ static void acpi_pm_finish(void)
+ 
+ 	acpi_target_sleep_state = ACPI_STATE_S0;
+ 
++	acpi_resume_power_resources();
++
+ 	/* If we were woken with the fixed power button, provide a small
+ 	 * hint to userspace in the form of a wakeup event on the fixed power
+ 	 * button device (if it can be found).
+Index: linux/drivers/acpi/sleep.h
+===================================================================
+--- linux.orig/drivers/acpi/sleep.h
++++ linux/drivers/acpi/sleep.h
+@@ -6,3 +6,5 @@ extern void acpi_disable_wakeup_devices(
+ 
+ extern struct list_head acpi_wakeup_device_list;
+ extern struct mutex acpi_device_lock;
++
++extern void acpi_resume_power_resources(void);
+Index: linux/drivers/acpi/scan.c
+===================================================================
+--- linux.orig/drivers/acpi/scan.c
++++ linux/drivers/acpi/scan.c
+@@ -1670,7 +1670,6 @@ int __init acpi_scan_init(void)
+ 		printk(KERN_ERR PREFIX "Could not register bus type\n");
+ 	}
+ 
+-	acpi_power_init();
+ 	acpi_pci_root_init();
+ 
+ 	/*
