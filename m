@@ -1,108 +1,119 @@
 From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: [Alternative 2][PATCH] ACPI / PCI: Set root bridge ACPI handle in advance
-Date: Fri, 04 Jan 2013 12:38:35 +0100
-Message-ID: <1832392.tD5dEjQMy4@vostro.rjw.lan>
-References: <1558789.gX8cmBgyDV@vostro.rjw.lan> <113112384.JZ1gZKlJRa@vostro.rjw.lan> <20130104010038.GA11155@google.com>
+Subject: Re: [Update][PATCH] ACPI: Rework acpi_get_child() to be more efficient
+Date: Fri, 04 Jan 2013 22:38:51 +0100
+Message-ID: <6591808.qVVzyd5JNI@vostro.rjw.lan>
+References: <1644954.gUaZqebo61@vostro.rjw.lan> <14285317.C5USrgceVP@vostro.rjw.lan>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7Bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from hydra.sisk.pl ([212.160.235.94]:59787 "EHLO hydra.sisk.pl"
+Received: from hydra.sisk.pl ([212.160.235.94]:60441 "EHLO hydra.sisk.pl"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753801Ab3ADLc7 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 4 Jan 2013 06:32:59 -0500
-In-Reply-To: <20130104010038.GA11155@google.com>
+	id S1755074Ab3ADVdP (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 4 Jan 2013 16:33:15 -0500
+In-Reply-To: <14285317.C5USrgceVP@vostro.rjw.lan>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Bjorn Helgaas <bhelgaas@google.com>
-Cc: "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, LKML <linux-kernel@vger.kernel.org>, Tony Luck <tony.luck@intel.com>, "H. Peter Anvin" <hpa@zytor.com>, Yinghai Lu <yinghai@kernel.org>, Jiang Liu <liuj97@gmail.com>, Myron Stowe <myron.stowe@redhat.com>
+To: ACPI Devel Maling List <linux-acpi@vger.kernel.org>
+Cc: LKML <linux-kernel@vger.kernel.org>, Len Brown <lenb@kernel.org>
 
-On Thursday, January 03, 2013 06:00:38 PM Bjorn Helgaas wrote:
-> On Thu, Jan 03, 2013 at 11:56:55PM +0100, Rafael J. Wysocki wrote:
+On Wednesday, December 26, 2012 11:42:49 PM Rafael J. Wysocki wrote:
+> From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+> Subject: ACPI: Rework acpi_get_child() to be more efficient
 > 
-> > OK, I now have sent no less than three working version of the patch that fixes
-> > the current code which _is_ insane.  You haven't even responded to the last
-> > one, but for the first two the reason why you didn't like them was something
-> > similar to "it may conflict with some future changes I'm planning".  Well,
-> > that might be used to reject prety much any change and I'm not considering it
-> > as a good enough reason for blocking a fix.  Sorry about that.
+> Observe that acpi_get_child() doesn't need to use the helper
+> struct acpi_find_child structure and change it to work without it.
+> Also, using acpi_get_object_info() to get the output of _ADR for the
+> given device is overkill, because that function does much more than
+> just evaluating _ADR (let alone the additional memory allocation
+> done by it).
 > 
-> I think your memory is faulty.  My response to the first
-> (https://lkml.org/lkml/2012/12/20/407) was "Thanks for cleaning this up, I
-> have an interface concern, here's an outline of a possible alternative."
+> Moreover, acpi_get_child() doesn't need to loop any more once it has
+> found a matching handle, so make it stop in that case.  To prevent
+> the results from changing, make it use do_acpi_find_child() as
+> a post-order callback.
 > 
-> My response to the second (https://lkml.org/lkml/2012/12/26/72) was "I like
-> this much better, Acked-by: Bjorn Helgaas."  Then Yinghai noticed the issue
-> with non-ACPI host bridges, and you abandoned that approach.
+> Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+> ---
+> 
+> The difference from the previous version is the replacement of
+> acpi_get_object_info() with the direct execution of _ADR, which is
+> more straightforward.
 
-I thought it was helpelss, but I was clearly wrong.  I should have spent more
-time on figuring out why it failed, so thank for taking the time to do that.
-
-> I took a few days of vacation, then spent the better part of yesterday
-> exploring the reasons why x86 and ia64 don't use the "parent" argument when
-> several other arches do, and worked up a patch
-> (https://lkml.org/lkml/2013/1/2/285).  It turned out to have a fatal flaw,
-> but was done in good faith.
-
-I know.
-
-> It's true I haven't responded to the third one, posted about 12 hours ago.
-
-Oh, that's a simple patch. ;-)
-
-But you're right, I should be more patient.  Sorry about that.
-
-> I still like the approach of the second patch.  What would you think
-> of the following incremental change to it?
-
-I'm fine with it.
-
-> I did reproduce Yinghai's
-> issue with non-ACPI host bridges, and this change resolves it for me.
-
-If you don't mind, I'll fold the patch below into
-
-https://patchwork.kernel.org/patch/1910181/
-
-and post the complete patch.
+There seem to be no objections, most likely due to the holiday period
+that has just ended, but if there are still none, I'm going to push this
+for v3.9.
 
 Thanks,
 Rafael
 
 
-> diff -u b/arch/x86/pci/acpi.c b/arch/x86/pci/acpi.c
-> --- b/arch/x86/pci/acpi.c
-> +++ b/arch/x86/pci/acpi.c
-> @@ -522,6 +522,7 @@
->  	sd = &info->sd;
->  	sd->domain = domain;
->  	sd->node = node;
-> +	sd->acpi_handle = device->handle;
->  	/*
->  	 * Maybe the desired pci bus has been already scanned. In such case
->  	 * it is unnecessary to scan the pci bus with the given domain,busnum.
-> @@ -596,9 +597,8 @@
->  int pcibios_root_bridge_prepare(struct pci_host_bridge *bridge)
->  {
->  	struct pci_sysdata *sd = bridge->bus->sysdata;
-> -	struct pci_root_info *info = container_of(sd, struct pci_root_info, sd);
->  
-> -	ACPI_HANDLE_SET(&bridge->dev, info->bridge->handle);
-> +	ACPI_HANDLE_SET(&bridge->dev, sd->acpi_handle);
->  	return 0;
+> ---
+>  drivers/acpi/glue.c |   33 ++++++++++++---------------------
+>  1 file changed, 12 insertions(+), 21 deletions(-)
+> 
+> Index: linux/drivers/acpi/glue.c
+> ===================================================================
+> --- linux.orig/drivers/acpi/glue.c
+> +++ linux/drivers/acpi/glue.c
+> @@ -93,40 +93,31 @@ static int acpi_find_bridge_device(struc
+>  	return ret;
 >  }
 >  
-> --- a/arch/x86/include/asm/pci.h
-> +++ b/arch/x86/include/asm/pci.h
-> @@ -14,6 +14,7 @@
->  struct pci_sysdata {
->  	int		domain;		/* PCI domain */
->  	int		node;		/* NUMA node */
-> +	void		*acpi_handle;
->  #ifdef CONFIG_X86_64
->  	void		*iommu;		/* IOMMU private data */
->  #endif
+> -/* Get device's handler per its address under its parent */
+> -struct acpi_find_child {
+> -	acpi_handle handle;
+> -	u64 address;
+> -};
+> -
+> -static acpi_status
+> -do_acpi_find_child(acpi_handle handle, u32 lvl, void *context, void **rv)
+> +static acpi_status do_acpi_find_child(acpi_handle handle, u32 lvl_not_used,
+> +				      void *addr_p, void **ret_p)
+>  {
+> +	unsigned long long addr;
+>  	acpi_status status;
+> -	struct acpi_device_info *info;
+> -	struct acpi_find_child *find = context;
+>  
+> -	status = acpi_get_object_info(handle, &info);
+> -	if (ACPI_SUCCESS(status)) {
+> -		if ((info->address == find->address)
+> -			&& (info->valid & ACPI_VALID_ADR))
+> -			find->handle = handle;
+> -		kfree(info);
+> +	status = acpi_evaluate_integer(handle, METHOD_NAME__ADR, NULL, &addr);
+> +	if (ACPI_SUCCESS(status) && addr == *((u64 *)addr_p)) {
+> +		*ret_p = handle;
+> +		return AE_CTRL_TERMINATE;
+>  	}
+>  	return AE_OK;
+>  }
+>  
+>  acpi_handle acpi_get_child(acpi_handle parent, u64 address)
+>  {
+> -	struct acpi_find_child find = { NULL, address };
+> +	void *ret = NULL;
+>  
+>  	if (!parent)
+>  		return NULL;
+> -	acpi_walk_namespace(ACPI_TYPE_DEVICE, parent,
+> -			    1, do_acpi_find_child, NULL, &find, NULL);
+> -	return find.handle;
+> -}
+>  
+> +	acpi_walk_namespace(ACPI_TYPE_DEVICE, parent, 1, NULL,
+> +			    do_acpi_find_child, &address, &ret);
+> +	return (acpi_handle)ret;
+> +}
+>  EXPORT_SYMBOL(acpi_get_child);
+>  
+>  static int acpi_bind_one(struct device *dev, acpi_handle handle)
 > 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 -- 
 I speak only for myself.
 Rafael J. Wysocki, Intel Open Source Technology Center.
