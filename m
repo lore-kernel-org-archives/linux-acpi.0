@@ -1,31 +1,47 @@
-From: Yinghai Lu <yinghai@kernel.org>
-Subject: acpi debug changes cause compiling error
-Date: Fri, 4 Jan 2013 14:53:24 -0800
-Message-ID: <CAE9FiQWgjfHBHfaqHecJcB_NRa3dC0sm=Vug7FZkA=-jCv=j0Q@mail.gmail.com>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: Re: acpi debug changes cause compiling error
+Date: Sat, 05 Jan 2013 00:40:54 +0100
+Message-ID: <2786753.tv5GFuENqq@vostro.rjw.lan>
+References: <CAE9FiQWgjfHBHfaqHecJcB_NRa3dC0sm=Vug7FZkA=-jCv=j0Q@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252
+Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-bk0-f48.google.com ([209.85.214.48]:59991 "EHLO
-	mail-bk0-f48.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754749Ab3ADWx0 convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 4 Jan 2013 17:53:26 -0500
-Received: by mail-bk0-f48.google.com with SMTP id jc3so7438165bkc.21
-        for <linux-acpi@vger.kernel.org>; Fri, 04 Jan 2013 14:53:24 -0800 (PST)
+Received: from hydra.sisk.pl ([212.160.235.94]:60534 "EHLO hydra.sisk.pl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754963Ab3ADXfR convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 4 Jan 2013 18:35:17 -0500
+In-Reply-To: <CAE9FiQWgjfHBHfaqHecJcB_NRa3dC0sm=Vug7FZkA=-jCv=j0Q@mail.gmail.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@sisk.pl>
+To: Yinghai Lu <yinghai@kernel.org>
 Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>
 
-drivers/acpi/processor_driver.c: In function =91acpi_processor_get_info=
-=92:
-drivers/acpi/processor_driver.c:351:2: error: =91else=92 without a prev=
-ious =91if=92
-drivers/acpi/processor_driver.c: In function =91is_processor_present=92=
-:
-drivers/acpi/processor_driver.c:674:2: error: =91else=92 without a prev=
-ious =91if=92
-make[1]: *** [drivers/acpi/processor_driver.o] Error 1
+On Friday, January 04, 2013 02:53:24 PM Yinghai Lu wrote:
+> drivers/acpi/processor_driver.c: In function =E2=80=98acpi_processor_=
+get_info=E2=80=99:
+> drivers/acpi/processor_driver.c:351:2: error: =E2=80=98else=E2=80=99 =
+without a previous =E2=80=98if=E2=80=99
+> drivers/acpi/processor_driver.c: In function =E2=80=98is_processor_pr=
+esent=E2=80=99:
+> drivers/acpi/processor_driver.c:674:2: error: =E2=80=98else=E2=80=99 =
+without a previous =E2=80=98if=E2=80=99
+> make[1]: *** [drivers/acpi/processor_driver.o] Error 1
+
+I'm not sure what changes you mean and what .config you're trying to bu=
+ild.
+
+I don't get those errors from my .configs, and they haven't been report=
+ed by
+people who build linux-next too.
+
+Thanks,
+Rafael
+
+
+--=20
+I speak only for myself.
+Rafael J. Wysocki, Intel Open Source Technology Center.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
 n
