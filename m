@@ -1,142 +1,100 @@
 From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: [PATCH] PCI / ACPI: Rework ACPI device nodes lookup for the PCI bus type
-Date: Fri, 04 Jan 2013 00:44:16 +0100
-Message-ID: <3156987.mALXjkBy5R@vostro.rjw.lan>
-References: <16168955.038G1kVfN2@vostro.rjw.lan> <3120864.cIRxUXEpl4@vostro.rjw.lan> <CAErSpo43PYdDLiRFeqjADiZ5w76jNXxJ8dNcffvw7=6dYZ9UHg@mail.gmail.com>
+Subject: [PATCH 12/12] ACPI: Use system level attribute of wakeup power resources
+Date: Fri, 04 Jan 2013 01:10:18 +0100
+Message-ID: <4222987.iOLcPTWjtZ@vostro.rjw.lan>
+References: <1418767.4KIZOTK1lk@vostro.rjw.lan>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7Bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from hydra.sisk.pl ([212.160.235.94]:59121 "EHLO hydra.sisk.pl"
+Received: from hydra.sisk.pl ([212.160.235.94]:59162 "EHLO hydra.sisk.pl"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753575Ab3ACXik (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 3 Jan 2013 18:38:40 -0500
-In-Reply-To: <CAErSpo43PYdDLiRFeqjADiZ5w76jNXxJ8dNcffvw7=6dYZ9UHg@mail.gmail.com>
+	id S1753797Ab3ADAHD (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 3 Jan 2013 19:07:03 -0500
+In-Reply-To: <1418767.4KIZOTK1lk@vostro.rjw.lan>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Bjorn Helgaas <bhelgaas@google.com>
-Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Len Brown <lenb@kernel.org>, LKML <linux-kernel@vger.kernel.org>, Peter Wu <lekensteyn@gmail.com>
+To: ACPI Devel Maling List <linux-acpi@vger.kernel.org>
+Cc: LKML <linux-kernel@vger.kernel.org>
 
-On Thursday, January 03, 2013 04:00:55 PM Bjorn Helgaas wrote:
-> On Thu, Jan 3, 2013 at 3:38 PM, Rafael J. Wysocki <rjw@sisk.pl> wrote:
-> > On Thursday, January 03, 2013 02:44:32 PM Bjorn Helgaas wrote:
-> >> On Thu, Jan 3, 2013 at 1:17 PM, Rafael J. Wysocki <rjw@sisk.pl> wrote:
-> >> > On Thursday, January 03, 2013 08:16:26 AM Bjorn Helgaas wrote:
-> >> >> On Fri, Dec 28, 2012 at 2:29 PM, Rafael J. Wysocki <rjw@sisk.pl> wrote:
-> >> >> > From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
-> >> >> >
-> >> >> > As the kernel Bugzilla report #42696 indicates, it generally is not
-> >> >> > sufficient to use _ADR to get an ACPI device node corresponding to
-> >> >> > the given PCI device, because there may be multiple objects with
-> >> >> > matching _ADR in the ACPI namespace (this probably is against the
-> >> >> > spec, but it evidently happens in practice).
-> >> >>
-> >> >> I don't see anything in sec 6.1.1 (_ADR) that precludes having
-> >> >> multiple objects that contain the same _ADR. Do you have any other
-> >> >> pointers?
-> >> >
-> >> > Section 6.1 implicitly means that.  It says that for PCI devices _ADR
-> >> > must be present to identify which device is represented by the given
-> >> > ACPI node.  Next, Section 6.1.1 says that the parent bus should be inferred
-> >> > from the location of the _ADR object's device package in the ACPI namespace,
-> >> > so clearly, if that's under the PCI root bridge ACPI node, the _ADR
-> >> > corresponds to a PCI device's bus address.
-> >>
-> >> I agree that for namespace Devices below a PCI host bridge, the _ADR
-> >> value and its position in the hierarchy is required to be sufficient
-> >> to identify a PCI device and function (or the set of all functions on
-> >> a device #).
-> >>
-> >> > Then, Table 6-139 specifies the format of _ADR for PCI devices as being
-> >> > euqivalent to devfn, which means that if two nodes with the same _ADR are
-> >> > present in one scope (under one parent), then it is impossible to distinguish
-> >> > between them and that's against Section 6.1.
-> >>
-> >> This is the bit I don't understand.  Where's the requirement that we
-> >> be able to distinguish between two namespace nodes with the same _ADR?
-> >
-> > According to the spec we can't (if they are under the same parent) and that's
-> > the whole problem.
-> 
-> It's only a problem if you make the assumptions Linux does.  I can
-> imagine a system with different assumptions.  For example, an OS could
-> start with PCI device X and ask "please run any _PS0 method that
-> matches X."  In that case, you don't care how many objects have an
-> _ADR that matches X; you merely find *any* matching object that
-> contains _PS0.
+From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 
-Well, except when there are multiple matching objects having _PS0.
-Which actually happens in the failing case in bug #42696.
+The system level attribute of ACPI power resources is the lowest
+system sleep level (S0, S2 etc.) in which the given resource can be
+"on" (ACPI 5.0, Section 7.1).  On the other hand, wakeup power
+resources have to be "on" for devices depending on them to be able to
+signal wakeup.  Therefore devices cannot wake up the system from
+sleep states higher than the minimum of the system level attributes
+of their wakeup power resources.
 
-Our assumptions work pretty well on other systems and I don't quite see the
-reason to change them entirely.
+Use the wakeup power resources' system level values to get the
+deepest system sleep state (highest system sleep level) the given
+device can wake up the system from.
 
-Moreover, Section 19.5.30 of the spec says that "Device object [...] represents
-either a bus or a device or any other similar hardware".  That implies that if
-there are two objects with the same _ADR matching the same single devfn of a
-PCI device, that will mean that there are _two_ different PCI devices under the
-same parent that have the same devfn.  In that case PCI config space accesses
-wouldn't work for those devices, though.
+Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+---
+ drivers/acpi/internal.h |    1 +
+ drivers/acpi/power.c    |   14 ++++++++++++++
+ drivers/acpi/scan.c     |   11 +++++++++++
+ 3 files changed, 26 insertions(+)
 
-> >> Linux assumes we can start from a PCI device and identify a single
-> >> related ACPI namespace node, e.g., in acpi_pci_find_device().  But all
-> >> I see in the spec is a requirement that we can start from an ACPI
-> >> namespace node and find a PCI device.  So I'm not sure
-> >> acpi_pci_find_device() is based on a valid assumption.
-> >
-> > I think it is.
-> >
-> > Suppose that we have two namespace nodes with the same _ADR under one parent
-> > (PCI bridge ACPI node) and they both contain things like _PS0 and _PS3.  Which
-> > one of these are we supposed to use for the power management of the
-> > corresponding PCI device?  Because they both would point to the same device,
-> > right?
-> 
-> That's a good question.  It's more complicated if two objects supply
-> the same method.
+Index: linux/drivers/acpi/internal.h
+===================================================================
+--- linux.orig/drivers/acpi/internal.h
++++ linux/drivers/acpi/internal.h
+@@ -55,6 +55,7 @@ int acpi_extract_power_resources(union a
+ 				 struct list_head *list);
+ int acpi_add_power_resource(acpi_handle handle);
+ void acpi_power_add_remove_device(struct acpi_device *adev, bool add);
++int acpi_power_min_system_level(struct list_head *list);
+ int acpi_device_sleep_wake(struct acpi_device *dev,
+                            int enable, int sleep_state, int dev_state);
+ int acpi_power_get_inferred_state(struct acpi_device *device, int *state);
+Index: linux/drivers/acpi/power.c
+===================================================================
+--- linux.orig/drivers/acpi/power.c
++++ linux/drivers/acpi/power.c
+@@ -429,6 +429,20 @@ void acpi_power_add_remove_device(struct
+ 	}
+ }
+ 
++int acpi_power_min_system_level(struct list_head *list)
++{
++	struct acpi_power_resource_entry *entry;
++	int system_level = 5;
++
++	list_for_each_entry(entry, list, node) {
++		struct acpi_power_resource *resource = entry->resource;
++
++		if (system_level > resource->system_level)
++			system_level = resource->system_level;
++	}
++	return system_level;
++}
++
+ /* --------------------------------------------------------------------------
+                              Device Power Management
+    -------------------------------------------------------------------------- */
+Index: linux/drivers/acpi/scan.c
+===================================================================
+--- linux.orig/drivers/acpi/scan.c
++++ linux/drivers/acpi/scan.c
+@@ -954,6 +954,17 @@ static int acpi_bus_extract_wakeup_devic
+ 	if (err)
+ 		goto out;
+ 
++	if (!list_empty(&wakeup->resources)) {
++		int sleep_state;
++
++		sleep_state = acpi_power_min_system_level(&wakeup->resources);
++		if (sleep_state < wakeup->sleep_state) {
++			acpi_handle_warn(handle, "Overriding _PRW sleep state "
++					 "(S%d) by S%d from power resources\n",
++				 	 (int)wakeup->sleep_state, sleep_state);
++			wakeup->sleep_state = sleep_state;
++		}
++	}
+ 	acpi_setup_gpe_for_wake(handle, wakeup->gpe_device, wakeup->gpe_number);
+ 
+  out:
 
-Well it is and they do.
-
-> >> Let's say we want to provide _SUN and _UID.  _SUN is a slot number
-> >> that may apply to several PCI functions, while _UID probably refers to
-> >> a single PCI function.  Is it legal to provide two namespace objects,
-> >> one with _ADR 0x0003ffff and _SUN, and another with _ADR 0x00030000
-> >> and _UID?
-> >
-> > I don't think it is valid to do that.
-> 
-> Is there something in the spec that says you can't?  I can imagine a
-> BIOS writer doing that, and I don't know how I could convince him that
-> it's illegal.
-
-Well, OK.
-
-> It would be really interesting to try some of these scenarios on
-> Windows with qemu.
-
-That's interesting theoretically, but doesn't directly relate to the case at
-hand.  The case at hand is that for a given PCI device we want to find the ACPI
-namespace node that can be used for things like power management, if one
-exists.  While it may be valid to specify _ADR of type 0x0003ffff for some
-namespace nodes, I don't really think it is valid to specify two objects with
-the same _ADR matching a specific devfn that both provide the same methods
-(like _PSx or _CRS).
-
-And the question we need to answer is not "I have a namespace node, so which
-device it represents?", but "I have a device, so which namespace node provides
-methods I'm supposed to use for it?"
-
-So I think we make the right assumptions, but there are broken BIOSes that
-don't follow them and I'm trying to find out how to handle them without
-blacklisting etc.
-
-Questioning the validity of everything we're doing doesn't really help, mind
-you.
-
-Thanks,
-Rafael
-
-
--- 
-I speak only for myself.
-Rafael J. Wysocki, Intel Open Source Technology Center.
