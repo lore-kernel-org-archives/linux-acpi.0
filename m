@@ -1,49 +1,171 @@
 From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: acpi debug changes cause compiling error
-Date: Sat, 05 Jan 2013 00:40:54 +0100
-Message-ID: <2786753.tv5GFuENqq@vostro.rjw.lan>
-References: <CAE9FiQWgjfHBHfaqHecJcB_NRa3dC0sm=Vug7FZkA=-jCv=j0Q@mail.gmail.com>
+Subject: Re: [PATCH] PNPACPI: Use _CRS buffer directly as _SRS template
+Date: Sat, 05 Jan 2013 00:41:51 +0100
+Message-ID: <1963960.AngdCon6AO@vostro.rjw.lan>
+References: <20130104223810.4806.72475.stgit@bhelgaas.mtv.corp.google.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7Bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from hydra.sisk.pl ([212.160.235.94]:60534 "EHLO hydra.sisk.pl"
+Received: from hydra.sisk.pl ([212.160.235.94]:60538 "EHLO hydra.sisk.pl"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754963Ab3ADXfR convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 4 Jan 2013 18:35:17 -0500
-In-Reply-To: <CAE9FiQWgjfHBHfaqHecJcB_NRa3dC0sm=Vug7FZkA=-jCv=j0Q@mail.gmail.com>
+	id S1754749Ab3ADXgO (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 4 Jan 2013 18:36:14 -0500
+In-Reply-To: <20130104223810.4806.72475.stgit@bhelgaas.mtv.corp.google.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Yinghai Lu <yinghai@kernel.org>
-Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>
+To: Bjorn Helgaas <bhelgaas@google.com>
+Cc: Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org
 
-On Friday, January 04, 2013 02:53:24 PM Yinghai Lu wrote:
-> drivers/acpi/processor_driver.c: In function =E2=80=98acpi_processor_=
-get_info=E2=80=99:
-> drivers/acpi/processor_driver.c:351:2: error: =E2=80=98else=E2=80=99 =
-without a previous =E2=80=98if=E2=80=99
-> drivers/acpi/processor_driver.c: In function =E2=80=98is_processor_pr=
-esent=E2=80=99:
-> drivers/acpi/processor_driver.c:674:2: error: =E2=80=98else=E2=80=99 =
-without a previous =E2=80=98if=E2=80=99
-> make[1]: *** [drivers/acpi/processor_driver.o] Error 1
+On Friday, January 04, 2013 03:38:10 PM Bjorn Helgaas wrote:
+> Previously we went to a lot of trouble to count the supported descriptors
+> in _CRS, allocate a new buffer, copy the descriptor types to the new
+> buffer, and encode resources into the new buffer.  This will fail if _CRS
+> contains a descriptor type we don't support, even if we don't need to
+> change that descriptor.
+> 
+> I think it's simpler and more correct to just use the buffer returned from
+> _CRS directly, as suggested by the ACPI spec rev 5.0, sec 6.2.15.
 
-I'm not sure what changes you mean and what .config you're trying to bu=
-ild.
+Yes, I've been thinking about a similar change.
 
-I don't get those errors from my .configs, and they haven't been report=
-ed by
-people who build linux-next too.
+I'll take this for v3.9.
 
 Thanks,
 Rafael
 
 
---=20
+> Signed-off-by: Bjorn Helgaas <bhelgaas@google.com>
+> ---
+>  drivers/pnp/pnpacpi/core.c     |   10 +++--
+>  drivers/pnp/pnpacpi/rsparser.c |   85 ----------------------------------------
+>  2 files changed, 6 insertions(+), 89 deletions(-)
+> 
+> diff --git a/drivers/pnp/pnpacpi/core.c b/drivers/pnp/pnpacpi/core.c
+> index 72e822e..701e00e 100644
+> --- a/drivers/pnp/pnpacpi/core.c
+> +++ b/drivers/pnp/pnpacpi/core.c
+> @@ -84,7 +84,8 @@ static int pnpacpi_set_resources(struct pnp_dev *dev)
+>  {
+>  	struct acpi_device *acpi_dev;
+>  	acpi_handle handle;
+> -	struct acpi_buffer buffer;
+> +	struct acpi_buffer buffer = {ACPI_ALLOCATE_BUFFER, NULL};
+> +	acpi_status status;
+>  	int ret;
+>  
+>  	pnp_dbg(&dev->dev, "set resources\n");
+> @@ -98,9 +99,10 @@ static int pnpacpi_set_resources(struct pnp_dev *dev)
+>  	if (WARN_ON_ONCE(acpi_dev != dev->data))
+>  		dev->data = acpi_dev;
+>  
+> -	ret = pnpacpi_build_resource_template(dev, &buffer);
+> -	if (ret)
+> -		return ret;
+> +	status = acpi_evaluate_object(handle, METHOD_NAME__CRS, NULL, &buffer);
+> +	if (ACPI_FAILURE(status))
+> +		return -EINVAL;
+> +
+>  	ret = pnpacpi_encode_resources(dev, &buffer);
+>  	if (ret) {
+>  		kfree(buffer.pointer);
+> diff --git a/drivers/pnp/pnpacpi/rsparser.c b/drivers/pnp/pnpacpi/rsparser.c
+> index b8f4ea7..629710a 100644
+> --- a/drivers/pnp/pnpacpi/rsparser.c
+> +++ b/drivers/pnp/pnpacpi/rsparser.c
+> @@ -553,91 +553,6 @@ int __init pnpacpi_parse_resource_option_data(struct pnp_dev *dev)
+>  	return 0;
+>  }
+>  
+> -static int pnpacpi_supported_resource(struct acpi_resource *res)
+> -{
+> -	switch (res->type) {
+> -	case ACPI_RESOURCE_TYPE_IRQ:
+> -	case ACPI_RESOURCE_TYPE_DMA:
+> -	case ACPI_RESOURCE_TYPE_IO:
+> -	case ACPI_RESOURCE_TYPE_FIXED_IO:
+> -	case ACPI_RESOURCE_TYPE_MEMORY24:
+> -	case ACPI_RESOURCE_TYPE_MEMORY32:
+> -	case ACPI_RESOURCE_TYPE_FIXED_MEMORY32:
+> -	case ACPI_RESOURCE_TYPE_ADDRESS16:
+> -	case ACPI_RESOURCE_TYPE_ADDRESS32:
+> -	case ACPI_RESOURCE_TYPE_ADDRESS64:
+> -	case ACPI_RESOURCE_TYPE_EXTENDED_ADDRESS64:
+> -	case ACPI_RESOURCE_TYPE_EXTENDED_IRQ:
+> -		return 1;
+> -	}
+> -	return 0;
+> -}
+> -
+> -/*
+> - * Set resource
+> - */
+> -static acpi_status pnpacpi_count_resources(struct acpi_resource *res,
+> -					   void *data)
+> -{
+> -	int *res_cnt = data;
+> -
+> -	if (pnpacpi_supported_resource(res))
+> -		(*res_cnt)++;
+> -	return AE_OK;
+> -}
+> -
+> -static acpi_status pnpacpi_type_resources(struct acpi_resource *res, void *data)
+> -{
+> -	struct acpi_resource **resource = data;
+> -
+> -	if (pnpacpi_supported_resource(res)) {
+> -		(*resource)->type = res->type;
+> -		(*resource)->length = sizeof(struct acpi_resource);
+> -		if (res->type == ACPI_RESOURCE_TYPE_IRQ)
+> -			(*resource)->data.irq.descriptor_length =
+> -					res->data.irq.descriptor_length;
+> -		(*resource)++;
+> -	}
+> -
+> -	return AE_OK;
+> -}
+> -
+> -int pnpacpi_build_resource_template(struct pnp_dev *dev,
+> -				    struct acpi_buffer *buffer)
+> -{
+> -	struct acpi_device *acpi_dev = dev->data;
+> -	acpi_handle handle = acpi_dev->handle;
+> -	struct acpi_resource *resource;
+> -	int res_cnt = 0;
+> -	acpi_status status;
+> -
+> -	status = acpi_walk_resources(handle, METHOD_NAME__CRS,
+> -				     pnpacpi_count_resources, &res_cnt);
+> -	if (ACPI_FAILURE(status)) {
+> -		dev_err(&dev->dev, "can't evaluate _CRS: %d\n", status);
+> -		return -EINVAL;
+> -	}
+> -	if (!res_cnt)
+> -		return -EINVAL;
+> -	buffer->length = sizeof(struct acpi_resource) * (res_cnt + 1) + 1;
+> -	buffer->pointer = kzalloc(buffer->length - 1, GFP_KERNEL);
+> -	if (!buffer->pointer)
+> -		return -ENOMEM;
+> -
+> -	resource = (struct acpi_resource *)buffer->pointer;
+> -	status = acpi_walk_resources(handle, METHOD_NAME__CRS,
+> -				     pnpacpi_type_resources, &resource);
+> -	if (ACPI_FAILURE(status)) {
+> -		kfree(buffer->pointer);
+> -		dev_err(&dev->dev, "can't evaluate _CRS: %d\n", status);
+> -		return -EINVAL;
+> -	}
+> -	/* resource will pointer the end resource now */
+> -	resource->type = ACPI_RESOURCE_TYPE_END_TAG;
+> -
+> -	return 0;
+> -}
+> -
+>  static void pnpacpi_encode_irq(struct pnp_dev *dev,
+>  			       struct acpi_resource *resource,
+>  			       struct resource *p)
+> 
+-- 
 I speak only for myself.
 Rafael J. Wysocki, Intel Open Source Technology Center.
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
