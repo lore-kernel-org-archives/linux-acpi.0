@@ -1,16 +1,16 @@
 From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: [PATCH 11/12] ACPI: Take power resource initialization errors into account
-Date: Fri, 04 Jan 2013 01:09:28 +0100
-Message-ID: <1384429.2N9kZZfmJU@vostro.rjw.lan>
+Subject: [PATCH 2/12] ACPI / scan: More straightforward preparation of ACPI device objects
+Date: Fri, 04 Jan 2013 01:02:23 +0100
+Message-ID: <2122008.mrpYzIx2o3@vostro.rjw.lan>
 References: <1418767.4KIZOTK1lk@vostro.rjw.lan>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7Bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from hydra.sisk.pl ([212.160.235.94]:59163 "EHLO hydra.sisk.pl"
+Received: from hydra.sisk.pl ([212.160.235.94]:59166 "EHLO hydra.sisk.pl"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753802Ab3ADAHE (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 3 Jan 2013 19:07:04 -0500
+	id S1754353Ab3ADAHK (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 3 Jan 2013 19:07:10 -0500
 In-Reply-To: <1418767.4KIZOTK1lk@vostro.rjw.lan>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
@@ -19,304 +19,320 @@ Cc: LKML <linux-kernel@vger.kernel.org>
 
 From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 
-Some ACPI power resource initialization errors, like memory
-allocation errors, are not taken into account appropriately in some
-cases, which may lead to a device having an incomplete list of power
-resources that one of its power states depends on, for one example.
+Simplify the code preparing struct acpi_device objects for
+registration by removing useless code, moving different pieces of
+code into the functions they belong to and making a couple of int
+functions always returning 0 void.
 
-Rework the power resource initialization and namespace scanning code
-so that power resource initialization errors are treated more
-seriously.
+This also fixes a possible memory leak in ACPI device registration
+error code path by making acpi_device_register() detach data from
+device->handle if device_register() fails and prepares the scanning
+code for special-casing ACPI power resources (next patch).
 
 Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 ---
- drivers/acpi/internal.h |    7 ++---
- drivers/acpi/power.c    |   44 +++++++++++++++++++++----------------
- drivers/acpi/scan.c     |   57 +++++++++++++++++++++---------------------------
- 3 files changed, 53 insertions(+), 55 deletions(-)
+ drivers/acpi/scan.c |  184 ++++++++++++++++++----------------------------------
+ 1 file changed, 64 insertions(+), 120 deletions(-)
 
-Index: linux/drivers/acpi/internal.h
-===================================================================
---- linux.orig/drivers/acpi/internal.h
-+++ linux/drivers/acpi/internal.h
-@@ -51,10 +51,9 @@ void acpi_free_ids(struct acpi_device *d
-    -------------------------------------------------------------------------- */
- int acpi_power_init(void);
- void acpi_power_resources_list_free(struct list_head *list);
--acpi_status acpi_extract_power_resources(union acpi_object *package,
--					 unsigned int start,
--					 struct list_head *list);
--void acpi_add_power_resource(acpi_handle handle);
-+int acpi_extract_power_resources(union acpi_object *package, unsigned int start,
-+				 struct list_head *list);
-+int acpi_add_power_resource(acpi_handle handle);
- void acpi_power_add_remove_device(struct acpi_device *adev, bool add);
- int acpi_device_sleep_wake(struct acpi_device *dev,
-                            int enable, int sleep_state, int dev_state);
-Index: linux/drivers/acpi/power.c
-===================================================================
---- linux.orig/drivers/acpi/power.c
-+++ linux/drivers/acpi/power.c
-@@ -97,18 +97,18 @@ struct acpi_power_resource *acpi_power_g
- 	return container_of(device, struct acpi_power_resource, device);
- }
- 
--static void acpi_power_resources_list_add(acpi_handle handle,
--					  struct list_head *list)
-+static int acpi_power_resources_list_add(acpi_handle handle,
-+					 struct list_head *list)
- {
- 	struct acpi_power_resource *resource = acpi_power_get_context(handle);
- 	struct acpi_power_resource_entry *entry;
- 
- 	if (!resource || !list)
--		return;
-+		return -EINVAL;
- 
- 	entry = kzalloc(sizeof(*entry), GFP_KERNEL);
- 	if (!entry)
--		return;
-+		return -ENOMEM;
- 
- 	entry->resource = resource;
- 	if (!list_empty(list)) {
-@@ -117,10 +117,11 @@ static void acpi_power_resources_list_ad
- 		list_for_each_entry(e, list, node)
- 			if (e->resource->order > resource->order) {
- 				list_add_tail(&entry->node, &e->node);
--				return;
-+				return 0;
- 			}
- 	}
- 	list_add_tail(&entry->node, list);
-+	return 0;
- }
- 
- void acpi_power_resources_list_free(struct list_head *list)
-@@ -133,33 +134,37 @@ void acpi_power_resources_list_free(stru
- 	}
- }
- 
--acpi_status acpi_extract_power_resources(union acpi_object *package,
--					 unsigned int start,
--					 struct list_head *list)
-+int acpi_extract_power_resources(union acpi_object *package, unsigned int start,
-+				 struct list_head *list)
- {
--	acpi_status status = AE_OK;
- 	unsigned int i;
-+	int err = 0;
- 
- 	for (i = start; i < package->package.count; i++) {
- 		union acpi_object *element = &package->package.elements[i];
- 		acpi_handle rhandle;
- 
- 		if (element->type != ACPI_TYPE_LOCAL_REFERENCE) {
--			status = AE_BAD_DATA;
-+			err = -ENODATA;
- 			break;
- 		}
- 		rhandle = element->reference.handle;
- 		if (!rhandle) {
--			status = AE_NULL_ENTRY;
-+			err = -ENODEV;
- 			break;
- 		}
--		acpi_add_power_resource(rhandle);
--		acpi_power_resources_list_add(rhandle, list);
-+		err = acpi_add_power_resource(rhandle);
-+		if (err)
-+			break;
-+
-+		err = acpi_power_resources_list_add(rhandle, list);
-+		if (err)
-+			break;
- 	}
--	if (ACPI_FAILURE(status))
-+	if (err)
- 		acpi_power_resources_list_free(list);
- 
--	return status;
-+	return err;
- }
- 
- static int acpi_power_get_state(acpi_handle handle, int *state)
-@@ -662,7 +667,7 @@ static void acpi_release_power_resource(
- 	kfree(resource);
- }
- 
--void acpi_add_power_resource(acpi_handle handle)
-+int acpi_add_power_resource(acpi_handle handle)
- {
- 	struct acpi_power_resource *resource;
- 	struct acpi_device *device = NULL;
-@@ -673,11 +678,11 @@ void acpi_add_power_resource(acpi_handle
- 
- 	acpi_bus_get_device(handle, &device);
- 	if (device)
--		return;
-+		return 0;
- 
- 	resource = kzalloc(sizeof(*resource), GFP_KERNEL);
- 	if (!resource)
--		return;
-+		return -ENOMEM;
- 
- 	device = &resource->device;
- 	acpi_init_device_object(device, handle, ACPI_BUS_TYPE_POWER,
-@@ -712,10 +717,11 @@ void acpi_add_power_resource(acpi_handle
- 	mutex_lock(&power_resource_list_lock);
- 	list_add(&resource->list_node, &acpi_power_resource_list);
- 	mutex_unlock(&power_resource_list_lock);
--	return;
-+	return 0;
- 
-  err:
- 	acpi_release_power_resource(&device->dev);
-+	return result;
- }
- 
- #ifdef CONFIG_ACPI_SLEEP
 Index: linux/drivers/acpi/scan.c
 ===================================================================
 --- linux.orig/drivers/acpi/scan.c
 +++ linux/drivers/acpi/scan.c
-@@ -896,17 +896,17 @@ void acpi_bus_data_handler(acpi_handle h
+@@ -478,6 +478,7 @@ static void acpi_free_ids(struct acpi_de
+ 		kfree(id->id);
+ 		kfree(id);
+ 	}
++	kfree(device->pnp.unique_id);
+ }
+ 
+ static void acpi_device_release(struct device *dev)
+@@ -485,7 +486,6 @@ static void acpi_device_release(struct d
+ 	struct acpi_device *acpi_dev = to_acpi_device(dev);
+ 
+ 	acpi_free_ids(acpi_dev);
+-	kfree(acpi_dev->pnp.unique_id);
+ 	kfree(acpi_dev);
+ }
+ 
+@@ -629,6 +629,18 @@ static int acpi_device_register(struct a
+ 	struct acpi_device_bus_id *acpi_device_bus_id, *new_bus_id;
+ 	int found = 0;
+ 
++	if (device->handle) {
++		acpi_status status;
++
++		status = acpi_attach_data(device->handle, acpi_bus_data_handler,
++					  device);
++		if (ACPI_FAILURE(status)) {
++			acpi_handle_err(device->handle,
++					"Unable to attach device data\n");
++			return -ENODEV;
++		}
++	}
++
+ 	/*
+ 	 * Linkage
+ 	 * -------
+@@ -643,8 +655,9 @@ static int acpi_device_register(struct a
+ 
+ 	new_bus_id = kzalloc(sizeof(struct acpi_device_bus_id), GFP_KERNEL);
+ 	if (!new_bus_id) {
+-		printk(KERN_ERR PREFIX "Memory allocation error\n");
+-		return -ENOMEM;
++		pr_err(PREFIX "Memory allocation error\n");
++		result = -ENOMEM;
++		goto err_detach;
+ 	}
+ 
+ 	mutex_lock(&acpi_device_lock);
+@@ -683,7 +696,7 @@ static int acpi_device_register(struct a
+ 	result = device_register(&device->dev);
+ 	if (result) {
+ 		dev_err(&device->dev, "Error registering device\n");
+-		goto end;
++		goto err;
+ 	}
+ 
+ 	result = acpi_device_setup_files(device);
+@@ -693,12 +706,16 @@ static int acpi_device_register(struct a
+ 
+ 	device->removal_type = ACPI_BUS_REMOVAL_NORMAL;
+ 	return 0;
+-end:
++
++ err:
+ 	mutex_lock(&acpi_device_lock);
+ 	if (device->parent)
+ 		list_del(&device->node);
+ 	list_del(&device->wakeup_list);
+ 	mutex_unlock(&acpi_device_lock);
++
++ err_detach:
++	acpi_detach_data(device->handle, acpi_bus_data_handler);
+ 	return result;
+ }
+ 
+@@ -863,12 +880,6 @@ void acpi_bus_data_handler(acpi_handle h
  	return;
  }
  
--static acpi_status
--acpi_bus_extract_wakeup_device_power_package(acpi_handle handle,
--					     struct acpi_device_wakeup *wakeup)
-+static int acpi_bus_extract_wakeup_device_power_package(acpi_handle handle,
-+					struct acpi_device_wakeup *wakeup)
- {
- 	struct acpi_buffer buffer = { ACPI_ALLOCATE_BUFFER, NULL };
- 	union acpi_object *package = NULL;
- 	union acpi_object *element = NULL;
- 	acpi_status status;
-+	int err = -ENODATA;
- 
- 	if (!wakeup)
--		return AE_BAD_PARAMETER;
-+		return -EINVAL;
- 
- 	INIT_LIST_HEAD(&wakeup->resources);
- 
-@@ -914,29 +914,25 @@ acpi_bus_extract_wakeup_device_power_pac
- 	status = acpi_evaluate_object(handle, "_PRW", NULL, &buffer);
- 	if (ACPI_FAILURE(status)) {
- 		ACPI_EXCEPTION((AE_INFO, status, "Evaluating _PRW"));
--		return status;
-+		return err;
- 	}
- 
- 	package = (union acpi_object *)buffer.pointer;
- 
--	if (!package || (package->package.count < 2)) {
--		status = AE_BAD_DATA;
-+	if (!package || package->package.count < 2)
- 		goto out;
--	}
- 
- 	element = &(package->package.elements[0]);
--	if (!element) {
--		status = AE_BAD_DATA;
-+	if (!element)
- 		goto out;
--	}
-+
- 	if (element->type == ACPI_TYPE_PACKAGE) {
- 		if ((element->package.count < 2) ||
- 		    (element->package.elements[0].type !=
- 		     ACPI_TYPE_LOCAL_REFERENCE)
--		    || (element->package.elements[1].type != ACPI_TYPE_INTEGER)) {
--			status = AE_BAD_DATA;
-+		    || (element->package.elements[1].type != ACPI_TYPE_INTEGER))
- 			goto out;
--		}
-+
- 		wakeup->gpe_device =
- 		    element->package.elements[0].reference.handle;
- 		wakeup->gpe_number =
-@@ -945,27 +941,24 @@ acpi_bus_extract_wakeup_device_power_pac
- 		wakeup->gpe_device = NULL;
- 		wakeup->gpe_number = element->integer.value;
- 	} else {
--		status = AE_BAD_DATA;
- 		goto out;
- 	}
- 
- 	element = &(package->package.elements[1]);
--	if (element->type != ACPI_TYPE_INTEGER) {
--		status = AE_BAD_DATA;
-+	if (element->type != ACPI_TYPE_INTEGER)
- 		goto out;
--	}
-+
- 	wakeup->sleep_state = element->integer.value;
- 
--	status = acpi_extract_power_resources(package, 2, &wakeup->resources);
--	if (ACPI_FAILURE(status))
-+	err = acpi_extract_power_resources(package, 2, &wakeup->resources);
-+	if (err)
- 		goto out;
- 
- 	acpi_setup_gpe_for_wake(handle, wakeup->gpe_device, wakeup->gpe_number);
- 
-  out:
- 	kfree(buffer.pointer);
+-static int acpi_bus_get_perf_flags(struct acpi_device *device)
+-{
+-	device->performance.state = ACPI_STATE_UNKNOWN;
+-	return 0;
+-}
 -
--	return status;
-+	return err;
+ static acpi_status
+ acpi_bus_extract_wakeup_device_power_package(acpi_handle handle,
+ 					     struct acpi_device_wakeup *wakeup)
+@@ -1019,12 +1030,25 @@ static void acpi_bus_get_wakeup_device_f
+ 
+ static void acpi_bus_add_power_resource(acpi_handle handle);
+ 
+-static int acpi_bus_get_power_flags(struct acpi_device *device)
++static void acpi_bus_get_power_flags(struct acpi_device *device)
+ {
+ 	acpi_status status = 0;
+ 	acpi_handle handle = NULL;
+ 	u32 i = 0;
+ 
++	/* Power resources cannot be power manageable. */
++	if (device->device_type == ACPI_BUS_TYPE_POWER)
++		return;
++
++	/* Presence of _PS0|_PR0 indicates 'power manageable' */
++	status = acpi_get_handle(device->handle, "_PS0", &handle);
++	if (ACPI_FAILURE(status)) {
++		status = acpi_get_handle(device->handle, "_PR0", &handle);
++		if (ACPI_FAILURE(status))
++			return;
++	}
++
++	device->flags.power_manageable = 1;
+ 
+ 	/*
+ 	 * Power Management Flags
+@@ -1090,16 +1114,13 @@ static int acpi_bus_get_power_flags(stru
+ 		device->power.states[ACPI_STATE_D3_COLD].flags.os_accessible = 1;
+ 
+ 	acpi_bus_init_power(device);
+-
+-	return 0;
  }
  
- static void acpi_bus_set_run_wake_flags(struct acpi_device *device)
-@@ -1005,17 +998,17 @@ static void acpi_bus_get_wakeup_device_f
+-static int acpi_bus_get_flags(struct acpi_device *device)
++static void acpi_bus_get_flags(struct acpi_device *device)
  {
- 	acpi_handle temp;
- 	acpi_status status = 0;
--	int psw_error;
-+	int err;
+ 	acpi_status status = AE_OK;
+ 	acpi_handle temp = NULL;
  
- 	/* Presence of _PRW indicates wake capable */
- 	status = acpi_get_handle(device->handle, "_PRW", &temp);
- 	if (ACPI_FAILURE(status))
- 		return;
+-
+ 	/* Presence of _STA indicates 'dynamic_status' */
+ 	status = acpi_get_handle(device->handle, "_STA", &temp);
+ 	if (ACPI_SUCCESS(status))
+@@ -1119,21 +1140,6 @@ static int acpi_bus_get_flags(struct acp
+ 		if (ACPI_SUCCESS(status))
+ 			device->flags.ejectable = 1;
+ 	}
+-
+-	/* Power resources cannot be power manageable. */
+-	if (device->device_type == ACPI_BUS_TYPE_POWER)
+-		return 0;
+-
+-	/* Presence of _PS0|_PR0 indicates 'power manageable' */
+-	status = acpi_get_handle(device->handle, "_PS0", &temp);
+-	if (ACPI_FAILURE(status))
+-		status = acpi_get_handle(device->handle, "_PR0", &temp);
+-	if (ACPI_SUCCESS(status))
+-		device->flags.power_manageable = 1;
+-
+-	/* TBD: Performance management */
+-
+-	return 0;
+ }
  
--	status = acpi_bus_extract_wakeup_device_power_package(device->handle,
--							      &device->wakeup);
--	if (ACPI_FAILURE(status)) {
--		ACPI_EXCEPTION((AE_INFO, status, "Extracting _PRW package"));
-+	err = acpi_bus_extract_wakeup_device_power_package(device->handle,
-+							   &device->wakeup);
-+	if (err) {
-+		dev_err(&device->dev, "_PRW evaluation error: %d\n", err);
- 		return;
+ static void acpi_device_get_busid(struct acpi_device *device)
+@@ -1358,29 +1364,6 @@ static void acpi_device_set_id(struct ac
+ 	}
+ }
+ 
+-static int acpi_device_set_context(struct acpi_device *device)
+-{
+-	acpi_status status;
+-
+-	/*
+-	 * Context
+-	 * -------
+-	 * Attach this 'struct acpi_device' to the ACPI object.  This makes
+-	 * resolutions from handle->device very efficient.  Fixed hardware
+-	 * devices have no handles, so we skip them.
+-	 */
+-	if (!device->handle)
+-		return 0;
+-
+-	status = acpi_attach_data(device->handle,
+-				  acpi_bus_data_handler, device);
+-	if (ACPI_SUCCESS(status))
+-		return 0;
+-
+-	printk(KERN_ERR PREFIX "Error attaching device data\n");
+-	return -ENODEV;
+-}
+-
+ static int acpi_bus_remove(struct acpi_device *dev, int rmdevice)
+ {
+ 	if (!dev)
+@@ -1397,6 +1380,20 @@ static int acpi_bus_remove(struct acpi_d
+ 	return 0;
+ }
+ 
++static void acpi_init_device_object(struct acpi_device *device,
++				     acpi_handle handle,
++				     int type, unsigned long long sta)
++{
++	INIT_LIST_HEAD(&device->pnp.ids);
++	device->device_type = type;
++	device->handle = handle;
++	device->parent = acpi_bus_get_parent(handle);
++	STRUCT_TO_INT(device->status) = sta;
++	acpi_device_get_busid(device);
++	acpi_device_set_id(device);
++	acpi_bus_get_flags(device);
++}
++
+ static int acpi_add_single_object(struct acpi_device **child,
+ 				  acpi_handle handle, int type,
+ 				  unsigned long long sta, bool match_driver)
+@@ -1411,78 +1408,25 @@ static int acpi_add_single_object(struct
+ 		return -ENOMEM;
  	}
  
-@@ -1028,8 +1021,8 @@ static void acpi_bus_get_wakeup_device_f
- 	 * So it is necessary to call _DSW object first. Only when it is not
- 	 * present will the _PSW object used.
- 	 */
--	psw_error = acpi_device_sleep_wake(device, 0, 0, 0);
--	if (psw_error)
-+	err = acpi_device_sleep_wake(device, 0, 0, 0);
-+	if (err)
- 		ACPI_DEBUG_PRINT((ACPI_DB_INFO,
- 				"error in _DSW or _PSW evaluation\n"));
+-	INIT_LIST_HEAD(&device->pnp.ids);
+-	device->device_type = type;
+-	device->handle = handle;
+-	device->parent = acpi_bus_get_parent(handle);
+-	STRUCT_TO_INT(device->status) = sta;
+-
+-	acpi_device_get_busid(device);
+-
+-	/*
+-	 * Flags
+-	 * -----
+-	 * Note that we only look for object handles -- cannot evaluate objects
+-	 * until we know the device is present and properly initialized.
+-	 */
+-	result = acpi_bus_get_flags(device);
+-	if (result)
+-		goto end;
+-
+-	/*
+-	 * Initialize Device
+-	 * -----------------
+-	 * TBD: Synch with Core's enumeration/initialization process.
+-	 */
+-	acpi_device_set_id(device);
+-
+-	/*
+-	 * Power Management
+-	 * ----------------
+-	 */
+-	if (device->flags.power_manageable) {
+-		result = acpi_bus_get_power_flags(device);
+-		if (result)
+-			goto end;
+-	}
+-
+-	/*
+-	 * Wakeup device management
+-	 *-----------------------
+-	 */
++	acpi_init_device_object(device, handle, type, sta);
++	acpi_bus_get_power_flags(device);
+ 	acpi_bus_get_wakeup_device_flags(device);
+ 
+-	/*
+-	 * Performance Management
+-	 * ----------------------
+-	 */
+-	if (device->flags.performance_manageable) {
+-		result = acpi_bus_get_perf_flags(device);
+-		if (result)
+-			goto end;
+-	}
+-
+-	if ((result = acpi_device_set_context(device)))
+-		goto end;
+-
+ 	device->flags.match_driver = match_driver;
+ 	result = acpi_device_register(device);
+-
+-end:
+-	if (!result) {
+-		acpi_power_add_remove_device(device, true);
+-		acpi_get_name(handle, ACPI_FULL_PATHNAME, &buffer);
+-		ACPI_DEBUG_PRINT((ACPI_DB_INFO,
+-			"Adding %s [%s] parent %s\n", dev_name(&device->dev),
+-			 (char *) buffer.pointer,
+-			 device->parent ? dev_name(&device->parent->dev) :
+-					  "(null)"));
+-		kfree(buffer.pointer);
+-		*child = device;
+-	} else
++	if (result) {
+ 		acpi_device_release(&device->dev);
++		return result;
++	}
+ 
+-	return result;
++	acpi_power_add_remove_device(device, true);
++	acpi_get_name(handle, ACPI_FULL_PATHNAME, &buffer);
++	ACPI_DEBUG_PRINT((ACPI_DB_INFO, "Added %s [%s] parent %s\n",
++		dev_name(&device->dev), (char *) buffer.pointer,
++		device->parent ? dev_name(&device->parent->dev) : "(null)"));
++	kfree(buffer.pointer);
++	*child = device;
++	return 0;
  }
-@@ -1052,9 +1045,9 @@ static void acpi_bus_init_power_state(st
- 		if (buffer.length && package
- 		    && package->type == ACPI_TYPE_PACKAGE
- 		    && package->package.count) {
--			status = acpi_extract_power_resources(package, 0,
--							      &ps->resources);
--			if (ACPI_SUCCESS(status))
-+			int err = acpi_extract_power_resources(package, 0,
-+							       &ps->resources);
-+			if (!err)
- 				device->power.flags.power_resources = 1;
- 		}
- 		ACPI_FREE(buffer.pointer);
+ 
+ #define ACPI_STA_DEFAULT (ACPI_STA_DEVICE_PRESENT | ACPI_STA_DEVICE_ENABLED | \
 
