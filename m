@@ -1,34 +1,49 @@
-From: "Luck, Tony" <tony.luck@intel.com>
-Subject: RE: [PATCH v9 3/3] aerdrv: Cleanup log output for AER
-Date: Fri, 4 Jan 2013 22:22:09 +0000
-Message-ID: <3908561D78D1C84285E8C5FCA982C28F1C9750EE@ORSMSX108.amr.corp.intel.com>
-References: <20130103223401.10751.1838.stgit@grignak.americas.hpqcorp.net>
- <20130103223415.10751.17744.stgit@grignak.americas.hpqcorp.net>
- <CAErSpo5LV5QApKqVVV7FdpjdFFZ9=+8JJfaDtDqJ2AzFpxM+HA@mail.gmail.com>
+From: Bjorn Helgaas <bhelgaas@google.com>
+Subject: [PATCH] ACPICA: Add newlines to hwvalid debug output
+Date: Fri, 04 Jan 2013 15:24:28 -0700
+Message-ID: <20130104222428.10275.2683.stgit@bhelgaas.mtv.corp.google.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-pci-owner@vger.kernel.org>
-In-Reply-To: <CAErSpo5LV5QApKqVVV7FdpjdFFZ9=+8JJfaDtDqJ2AzFpxM+HA@mail.gmail.com>
-Content-Language: en-US
-Sender: linux-pci-owner@vger.kernel.org
-To: Bjorn Helgaas <bhelgaas@google.com>, Lance Ortiz <lance.ortiz@hp.com>
-Cc: "lance_ortiz@hotmail.com" <lance_ortiz@hotmail.com>, "jiang.liu@huawei.com" <jiang.liu@huawei.com>, "bp@alien8.de" <bp@alien8.de>, "rostedt@goodmis.org" <rostedt@goodmis.org>, "mchehab@redhat.com" <mchehab@redhat.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-ea0-f202.google.com ([209.85.215.202]:44226 "EHLO
+	mail-ea0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754865Ab3ADWYa (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 4 Jan 2013 17:24:30 -0500
+Received: by mail-ea0-f202.google.com with SMTP id j12so1057761eaa.5
+        for <linux-acpi@vger.kernel.org>; Fri, 04 Jan 2013 14:24:29 -0800 (PST)
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@sisk.pl>, Len Brown <lenb@kernel.org>
+Cc: linux-acpi@vger.kernel.org, Bob Moore <robert.moore@intel.com>, Lv Zheng <lv.zheng@intel.com>
 
-I sent a "please pull" to Ingo/Peter/Thomas about an hour ago ... if they
-push back (or ignore) we can fold your ack and nit-picks into another
-version.
+Add newlines to avoid run-on debug output.
 
-> s/elimiating/eliminating/ above.
-Ugh ... nobody spotted this one ("many eyes" really does work!)
+Signed-off-by: Bjorn Helgaas <bhelgaas@google.com>
+---
+ drivers/acpi/acpica/hwvalid.c |    4 ++--
+ 1 files changed, 2 insertions(+), 2 deletions(-)
 
-> I remove the "v1-v2" notes when I merge patches because I don't think
-> they're useful any more.  But if Tony applies these, he can use his
-> judgment.
+diff --git a/drivers/acpi/acpica/hwvalid.c b/drivers/acpi/acpica/hwvalid.c
+index b6aae58..04ab4a2 100644
+--- a/drivers/acpi/acpica/hwvalid.c
++++ b/drivers/acpi/acpica/hwvalid.c
+@@ -142,7 +142,7 @@ acpi_hw_validate_io_request(acpi_io_address address, u32 bit_width)
+ 	byte_width = ACPI_DIV_8(bit_width);
+ 	last_address = address + byte_width - 1;
+ 
+-	ACPI_DEBUG_PRINT((ACPI_DB_IO, "Address %p LastAddress %p Length %X",
++	ACPI_DEBUG_PRINT((ACPI_DB_IO, "Address %p LastAddress %p Length %X\n",
+ 			  ACPI_CAST_PTR(void, address), ACPI_CAST_PTR(void,
+ 								      last_address),
+ 			  byte_width));
+@@ -181,7 +181,7 @@ acpi_hw_validate_io_request(acpi_io_address address, u32 bit_width)
+ 
+ 			if (acpi_gbl_osi_data >= port_info->osi_dependency) {
+ 				ACPI_DEBUG_PRINT((ACPI_DB_IO,
+-						  "Denied AML access to port 0x%p/%X (%s 0x%.4X-0x%.4X)",
++						  "Denied AML access to port 0x%p/%X (%s 0x%.4X-0x%.4X)\n",
+ 						  ACPI_CAST_PTR(void, address),
+ 						  byte_width, port_info->name,
+ 						  port_info->start,
 
-Yes - I do too.  In fact it is easier on the maintainer if this sort of meta-commentary
-goes *after* the "---" in the patch. Then it is available for review (where it is
-most helpful), but tools will automatically drop it when applying the patch.
-
--Tony
