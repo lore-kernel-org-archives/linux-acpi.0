@@ -1,43 +1,108 @@
-From: Aaron Lu <aaron.lu@intel.com>
-Subject: Re: [PATCH v9 06/10] ata: zpodd: check zero power ready status
-Date: Fri, 04 Jan 2013 09:04:04 +0800
-Message-ID: <50E62A84.2070702@intel.com>
-References: <1353906191.2523.25.camel@dabdike> <21511277.LLinyDpbAK@vostro.rjw.lan> <20121128013928.GB15971@htj.dyndns.org> <1354092969.2276.49.camel@dabdike> <20121203081321.GA9990@mint-spring.sh.intel.com> <1354523143.2307.2.camel@dabdike.int.hansenpartnership.com> <20121203162323.GB19802@htj.dyndns.org> <50D2AB1D.9050602@intel.com> <20121225171723.GI10220@mtj.dyndns.org> <50DA55F6.8080706@intel.com> <20121228211635.GB3062@mtj.dyndns.org>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: Re: [Alternative 2][PATCH] ACPI / PCI: Set root bridge ACPI handle in advance
+Date: Fri, 04 Jan 2013 12:38:35 +0100
+Message-ID: <1832392.tD5dEjQMy4@vostro.rjw.lan>
+References: <1558789.gX8cmBgyDV@vostro.rjw.lan> <113112384.JZ1gZKlJRa@vostro.rjw.lan> <20130104010038.GA11155@google.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-pm-owner@vger.kernel.org>
-In-Reply-To: <20121228211635.GB3062@mtj.dyndns.org>
-Sender: linux-pm-owner@vger.kernel.org
-To: Tejun Heo <tj@kernel.org>
-Cc: James Bottomley <James.Bottomley@HansenPartnership.com>, "Rafael J. Wysocki" <rjw@sisk.pl>, linux-pm@vger.kernel.org, Jeff Garzik <jgarzik@pobox.com>, Alan Stern <stern@rowland.harvard.edu>, Jeff Wu <jeff.wu@amd.com>, Aaron Lu <aaron.lwe@gmail.com>, linux-ide@vger.kernel.org, linux-scsi@vger.kernel.org, linux-acpi@vger.kernel.org
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7Bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from hydra.sisk.pl ([212.160.235.94]:59787 "EHLO hydra.sisk.pl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753801Ab3ADLc7 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 4 Jan 2013 06:32:59 -0500
+In-Reply-To: <20130104010038.GA11155@google.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Bjorn Helgaas <bhelgaas@google.com>
+Cc: "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, LKML <linux-kernel@vger.kernel.org>, Tony Luck <tony.luck@intel.com>, "H. Peter Anvin" <hpa@zytor.com>, Yinghai Lu <yinghai@kernel.org>, Jiang Liu <liuj97@gmail.com>, Myron Stowe <myron.stowe@redhat.com>
 
-On 12/29/2012 05:16 AM, Tejun Heo wrote:
-> Hello,
+On Thursday, January 03, 2013 06:00:38 PM Bjorn Helgaas wrote:
+> On Thu, Jan 03, 2013 at 11:56:55PM +0100, Rafael J. Wysocki wrote:
 > 
-> On Wed, Dec 26, 2012 at 09:42:14AM +0800, Aaron Lu wrote:
->>> This is really a round-about way to find out the matching device and
->>> it wouldn't work if the disk device nests deeper.  Doesn't really look
->>> like a good idea to me.
->>
->> I don't quite understand the 'disk device nests deeper' case, can you
->> please elaborate? My understanding is, as long as the disk's part0
->> device has a parent, this function should work. For LLDs want to take
+> > OK, I now have sent no less than three working version of the patch that fixes
+> > the current code which _is_ insane.  You haven't even responded to the last
+> > one, but for the first two the reason why you didn't like them was something
+> > similar to "it may conflict with some future changes I'm planning".  Well,
+> > that might be used to reject prety much any change and I'm not considering it
+> > as a good enough reason for blocking a fix.  Sorry about that.
 > 
-> Hmmm, maybe I misread but it looked like it wouldn't work if there are
-> intermediate nodes between the parent device and part0.  It might not
-> happen for sata but I don't think it's a good idea to assume that the
-> part0 and hardware device are connected directly.
+> I think your memory is faulty.  My response to the first
+> (https://lkml.org/lkml/2012/12/20/407) was "Thanks for cleaning this up, I
+> have an interface concern, here's an outline of a possible alternative."
 > 
-> In general, it's a quite roundabout way to do it.  Let's just push it
-> through SCSI.  That's how everything else is routed after all.  It's
-> confusing to do this one differently.
+> My response to the second (https://lkml.org/lkml/2012/12/26/72) was "I like
+> this much better, Acked-by: Bjorn Helgaas."  Then Yinghai noticed the issue
+> with non-ACPI host bridges, and you abandoned that approach.
 
-OK, thanks for the suggestion.
-I'll prepare v11 using the previous demonstrated way(adding the
-event_driven flag to scsi_device) to silence the poll.
+I thought it was helpelss, but I was clearly wrong.  I should have spent more
+time on figuring out why it failed, so thank for taking the time to do that.
 
-Best regards,
-Aaron
+> I took a few days of vacation, then spent the better part of yesterday
+> exploring the reasons why x86 and ia64 don't use the "parent" argument when
+> several other arches do, and worked up a patch
+> (https://lkml.org/lkml/2013/1/2/285).  It turned out to have a fatal flaw,
+> but was done in good faith.
 
+I know.
+
+> It's true I haven't responded to the third one, posted about 12 hours ago.
+
+Oh, that's a simple patch. ;-)
+
+But you're right, I should be more patient.  Sorry about that.
+
+> I still like the approach of the second patch.  What would you think
+> of the following incremental change to it?
+
+I'm fine with it.
+
+> I did reproduce Yinghai's
+> issue with non-ACPI host bridges, and this change resolves it for me.
+
+If you don't mind, I'll fold the patch below into
+
+https://patchwork.kernel.org/patch/1910181/
+
+and post the complete patch.
+
+Thanks,
+Rafael
+
+
+> diff -u b/arch/x86/pci/acpi.c b/arch/x86/pci/acpi.c
+> --- b/arch/x86/pci/acpi.c
+> +++ b/arch/x86/pci/acpi.c
+> @@ -522,6 +522,7 @@
+>  	sd = &info->sd;
+>  	sd->domain = domain;
+>  	sd->node = node;
+> +	sd->acpi_handle = device->handle;
+>  	/*
+>  	 * Maybe the desired pci bus has been already scanned. In such case
+>  	 * it is unnecessary to scan the pci bus with the given domain,busnum.
+> @@ -596,9 +597,8 @@
+>  int pcibios_root_bridge_prepare(struct pci_host_bridge *bridge)
+>  {
+>  	struct pci_sysdata *sd = bridge->bus->sysdata;
+> -	struct pci_root_info *info = container_of(sd, struct pci_root_info, sd);
+>  
+> -	ACPI_HANDLE_SET(&bridge->dev, info->bridge->handle);
+> +	ACPI_HANDLE_SET(&bridge->dev, sd->acpi_handle);
+>  	return 0;
+>  }
+>  
+> --- a/arch/x86/include/asm/pci.h
+> +++ b/arch/x86/include/asm/pci.h
+> @@ -14,6 +14,7 @@
+>  struct pci_sysdata {
+>  	int		domain;		/* PCI domain */
+>  	int		node;		/* NUMA node */
+> +	void		*acpi_handle;
+>  #ifdef CONFIG_X86_64
+>  	void		*iommu;		/* IOMMU private data */
+>  #endif
+> 
+-- 
+I speak only for myself.
+Rafael J. Wysocki, Intel Open Source Technology Center.
