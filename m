@@ -1,60 +1,52 @@
 From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: [PATCH] ACPICA: Add newlines to hwvalid debug output
-Date: Sat, 05 Jan 2013 00:42:39 +0100
-Message-ID: <1553024.9jVC34qo6B@vostro.rjw.lan>
-References: <20130104222428.10275.2683.stgit@bhelgaas.mtv.corp.google.com>
+Subject: Re: acpi debug changes cause compiling error
+Date: Sat, 05 Jan 2013 00:44:55 +0100
+Message-ID: <1407526.xTNjCIHAER@vostro.rjw.lan>
+References: <CAE9FiQWgjfHBHfaqHecJcB_NRa3dC0sm=Vug7FZkA=-jCv=j0Q@mail.gmail.com> <2786753.tv5GFuENqq@vostro.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from hydra.sisk.pl ([212.160.235.94]:60542 "EHLO hydra.sisk.pl"
+Received: from hydra.sisk.pl ([212.160.235.94]:60545 "EHLO hydra.sisk.pl"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754749Ab3ADXhC (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 4 Jan 2013 18:37:02 -0500
-In-Reply-To: <20130104222428.10275.2683.stgit@bhelgaas.mtv.corp.google.com>
+	id S1754963Ab3ADXjR convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 4 Jan 2013 18:39:17 -0500
+In-Reply-To: <2786753.tv5GFuENqq@vostro.rjw.lan>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Bjorn Helgaas <bhelgaas@google.com>, Bob Moore <robert.moore@intel.com>
-Cc: Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, Lv Zheng <lv.zheng@intel.com>
+To: Yinghai Lu <yinghai@kernel.org>
+Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>
 
-On Friday, January 04, 2013 03:24:28 PM Bjorn Helgaas wrote:
-> Add newlines to avoid run-on debug output.
+On Saturday, January 05, 2013 12:40:54 AM Rafael J. Wysocki wrote:
+> On Friday, January 04, 2013 02:53:24 PM Yinghai Lu wrote:
+> > drivers/acpi/processor_driver.c: In function =E2=80=98acpi_processo=
+r_get_info=E2=80=99:
+> > drivers/acpi/processor_driver.c:351:2: error: =E2=80=98else=E2=80=99=
+ without a previous =E2=80=98if=E2=80=99
+> > drivers/acpi/processor_driver.c: In function =E2=80=98is_processor_=
+present=E2=80=99:
+> > drivers/acpi/processor_driver.c:674:2: error: =E2=80=98else=E2=80=99=
+ without a previous =E2=80=98if=E2=80=99
+> > make[1]: *** [drivers/acpi/processor_driver.o] Error 1
+>=20
+> I'm not sure what changes you mean and what .config you're trying to =
+build.
+>=20
+> I don't get those errors from my .configs, and they haven't been repo=
+rted by
+> people who build linux-next too.
 
-This has to go through ACPICA upstream.
+Sorry, I've just got a report.  Dropping the failing commit.
 
-Bob, can you take it, please?
-
+Thanks,
 Rafael
 
 
-> Signed-off-by: Bjorn Helgaas <bhelgaas@google.com>
-> ---
->  drivers/acpi/acpica/hwvalid.c |    4 ++--
->  1 files changed, 2 insertions(+), 2 deletions(-)
-> 
-> diff --git a/drivers/acpi/acpica/hwvalid.c b/drivers/acpi/acpica/hwvalid.c
-> index b6aae58..04ab4a2 100644
-> --- a/drivers/acpi/acpica/hwvalid.c
-> +++ b/drivers/acpi/acpica/hwvalid.c
-> @@ -142,7 +142,7 @@ acpi_hw_validate_io_request(acpi_io_address address, u32 bit_width)
->  	byte_width = ACPI_DIV_8(bit_width);
->  	last_address = address + byte_width - 1;
->  
-> -	ACPI_DEBUG_PRINT((ACPI_DB_IO, "Address %p LastAddress %p Length %X",
-> +	ACPI_DEBUG_PRINT((ACPI_DB_IO, "Address %p LastAddress %p Length %X\n",
->  			  ACPI_CAST_PTR(void, address), ACPI_CAST_PTR(void,
->  								      last_address),
->  			  byte_width));
-> @@ -181,7 +181,7 @@ acpi_hw_validate_io_request(acpi_io_address address, u32 bit_width)
->  
->  			if (acpi_gbl_osi_data >= port_info->osi_dependency) {
->  				ACPI_DEBUG_PRINT((ACPI_DB_IO,
-> -						  "Denied AML access to port 0x%p/%X (%s 0x%.4X-0x%.4X)",
-> +						  "Denied AML access to port 0x%p/%X (%s 0x%.4X-0x%.4X)\n",
->  						  ACPI_CAST_PTR(void, address),
->  						  byte_width, port_info->name,
->  						  port_info->start,
-> 
--- 
+--=20
 I speak only for myself.
 Rafael J. Wysocki, Intel Open Source Technology Center.
+--
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
