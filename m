@@ -1,189 +1,80 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: [PATCH 7/12] ACPI / PM: Take order attribute of wakeup power resources into account
-Date: Fri, 04 Jan 2013 01:06:18 +0100
-Message-ID: <2549581.i2np0zGKZs@vostro.rjw.lan>
-References: <1418767.4KIZOTK1lk@vostro.rjw.lan>
+From: Bjorn Helgaas <bhelgaas@google.com>
+Subject: Re: [Alternative 2][PATCH] ACPI / PCI: Set root bridge ACPI handle
+ in advance
+Date: Thu, 3 Jan 2013 18:00:38 -0700
+Message-ID: <20130104010038.GA11155@google.com>
+References: <1558789.gX8cmBgyDV@vostro.rjw.lan>
+ <1635295.TkbrarASZn@vostro.rjw.lan>
+ <CAErSpo7QFKm=teLDBqCUueZwVHZKbA+pfNhrVc-_hK8PmwK2JQ@mail.gmail.com>
+ <113112384.JZ1gZKlJRa@vostro.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7Bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1418767.4KIZOTK1lk@vostro.rjw.lan>
-Sender: linux-kernel-owner@vger.kernel.org
-To: ACPI Devel Maling List <linux-acpi@vger.kernel.org>
-Cc: LKML <linux-kernel@vger.kernel.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-pci-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <113112384.JZ1gZKlJRa@vostro.rjw.lan>
+Sender: linux-pci-owner@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, LKML <linux-kernel@vger.kernel.org>, Tony Luck <tony.luck@intel.com>, "H. Peter Anvin" <hpa@zytor.com>, Yinghai Lu <yinghai@kernel.org>, Jiang Liu <liuj97@gmail.com>, Myron Stowe <myron.stowe@redhat.com>
 List-Id: linux-acpi@vger.kernel.org
 
-From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+On Thu, Jan 03, 2013 at 11:56:55PM +0100, Rafael J. Wysocki wrote:
 
-ACPI power resources have an order attribute that should be taken
-into account when turning them on and off, but it is not used now.
+> OK, I now have sent no less than three working version of the patch that fixes
+> the current code which _is_ insane.  You haven't even responded to the last
+> one, but for the first two the reason why you didn't like them was something
+> similar to "it may conflict with some future changes I'm planning".  Well,
+> that might be used to reject prety much any change and I'm not considering it
+> as a good enough reason for blocking a fix.  Sorry about that.
 
-Modify the power resources management code to preserve the
-spec-compliant ordering of wakeup power resources.
+I think your memory is faulty.  My response to the first
+(https://lkml.org/lkml/2012/12/20/407) was "Thanks for cleaning this up, I
+have an interface concern, here's an outline of a possible alternative."
 
-Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
----
- drivers/acpi/power.c    |   44 ++++++++++++++++----------------------------
- drivers/acpi/scan.c     |   24 ++++++++++++++----------
- include/acpi/acpi_bus.h |    2 +-
- 3 files changed, 31 insertions(+), 39 deletions(-)
+My response to the second (https://lkml.org/lkml/2012/12/26/72) was "I like
+this much better, Acked-by: Bjorn Helgaas."  Then Yinghai noticed the issue
+with non-ACPI host bridges, and you abandoned that approach.
 
-Index: linux/include/acpi/acpi_bus.h
-===================================================================
---- linux.orig/include/acpi/acpi_bus.h
-+++ linux/include/acpi/acpi_bus.h
-@@ -244,7 +244,7 @@ struct acpi_device_wakeup {
- 	acpi_handle gpe_device;
- 	u64 gpe_number;
- 	u64 sleep_state;
--	struct acpi_handle_list resources;
-+	struct list_head resources;
- 	struct acpi_device_wakeup_flags flags;
- 	int prepare_count;
- };
-Index: linux/drivers/acpi/scan.c
-===================================================================
---- linux.orig/drivers/acpi/scan.c
-+++ linux/drivers/acpi/scan.c
-@@ -485,6 +485,7 @@ static void acpi_free_power_resources_li
+I took a few days of vacation, then spent the better part of yesterday
+exploring the reasons why x86 and ia64 don't use the "parent" argument when
+several other arches do, and worked up a patch
+(https://lkml.org/lkml/2013/1/2/285).  It turned out to have a fatal flaw,
+but was done in good faith.
+
+It's true I haven't responded to the third one, posted about 12 hours ago.
+
+I still like the approach of the second patch.  What would you think
+of the following incremental change to it?  I did reproduce Yinghai's
+issue with non-ACPI host bridges, and this change resolves it for me.
+
+diff -u b/arch/x86/pci/acpi.c b/arch/x86/pci/acpi.c
+--- b/arch/x86/pci/acpi.c
++++ b/arch/x86/pci/acpi.c
+@@ -522,6 +522,7 @@
+ 	sd = &info->sd;
+ 	sd->domain = domain;
+ 	sd->node = node;
++	sd->acpi_handle = device->handle;
+ 	/*
+ 	 * Maybe the desired pci bus has been already scanned. In such case
+ 	 * it is unnecessary to scan the pci bus with the given domain,busnum.
+@@ -596,9 +597,8 @@
+ int pcibios_root_bridge_prepare(struct pci_host_bridge *bridge)
  {
- 	int i;
+ 	struct pci_sysdata *sd = bridge->bus->sysdata;
+-	struct pci_root_info *info = container_of(sd, struct pci_root_info, sd);
  
-+	acpi_power_resources_list_free(&device->wakeup.resources);
- 	if (!device->flags.power_manageable)
- 		return;
+-	ACPI_HANDLE_SET(&bridge->dev, info->bridge->handle);
++	ACPI_HANDLE_SET(&bridge->dev, sd->acpi_handle);
+ 	return 0;
+ }
  
-@@ -908,6 +909,8 @@ acpi_bus_extract_wakeup_device_power_pac
- 	if (!wakeup)
- 		return AE_BAD_PARAMETER;
- 
-+	INIT_LIST_HEAD(&wakeup->resources);
-+
- 	/* _PRW */
- 	status = acpi_evaluate_object(handle, "_PRW", NULL, &buffer);
- 	if (ACPI_FAILURE(status)) {
-@@ -954,19 +957,17 @@ acpi_bus_extract_wakeup_device_power_pac
- 	}
- 	wakeup->sleep_state = element->integer.value;
- 
--	if ((package->package.count - 2) > ACPI_MAX_HANDLES) {
--		status = AE_NO_MEMORY;
--		goto out;
--	}
--	wakeup->resources.count = package->package.count - 2;
--	for (i = 0; i < wakeup->resources.count; i++) {
--		element = &(package->package.elements[i + 2]);
-+	for (i = 2; i < package->package.count; i++) {
-+		acpi_handle rhandle;
-+
-+		element = &(package->package.elements[i]);
- 		if (element->type != ACPI_TYPE_LOCAL_REFERENCE) {
- 			status = AE_BAD_DATA;
- 			goto out;
- 		}
--
--		wakeup->resources.handles[i] = element->reference.handle;
-+		rhandle = element->reference.handle;
-+		acpi_add_power_resource(rhandle);
-+		acpi_power_resources_list_add(rhandle, &wakeup->resources);
- 	}
- 
- 	acpi_setup_gpe_for_wake(handle, wakeup->gpe_device, wakeup->gpe_number);
-@@ -1024,6 +1025,7 @@ static void acpi_bus_get_wakeup_device_f
- 	status = acpi_bus_extract_wakeup_device_power_package(device->handle,
- 							      &device->wakeup);
- 	if (ACPI_FAILURE(status)) {
-+		acpi_power_resources_list_free(&device->wakeup.resources);
- 		ACPI_EXCEPTION((AE_INFO, status, "Extracting _PRW package"));
- 		return;
- 	}
-@@ -1513,9 +1515,11 @@ static acpi_status acpi_bus_check_add(ac
- 		acpi_handle temp;
- 
- 		status = acpi_get_handle(handle, "_PRW", &temp);
--		if (ACPI_SUCCESS(status))
-+		if (ACPI_SUCCESS(status)) {
- 			acpi_bus_extract_wakeup_device_power_package(handle,
- 								     &wakeup);
-+			acpi_power_resources_list_free(&wakeup.resources);
-+		}
- 		return AE_CTRL_DEPTH;
- 	}
- 
-Index: linux/drivers/acpi/power.c
-===================================================================
---- linux.orig/drivers/acpi/power.c
-+++ linux/drivers/acpi/power.c
-@@ -469,7 +469,7 @@ int acpi_device_sleep_wake(struct acpi_d
-  */
- int acpi_enable_wakeup_device_power(struct acpi_device *dev, int sleep_state)
- {
--	int i, err = 0;
-+	int err = 0;
- 
- 	if (!dev || !dev->wakeup.flags.valid)
- 		return -EINVAL;
-@@ -479,24 +479,17 @@ int acpi_enable_wakeup_device_power(stru
- 	if (dev->wakeup.prepare_count++)
- 		goto out;
- 
--	/* Open power resource */
--	for (i = 0; i < dev->wakeup.resources.count; i++) {
--		int ret = acpi_power_on(dev->wakeup.resources.handles[i]);
--		if (ret) {
--			printk(KERN_ERR PREFIX "Transition power state\n");
--			dev->wakeup.flags.valid = 0;
--			err = -ENODEV;
--			goto err_out;
--		}
-+	err = acpi_power_on_list(&dev->wakeup.resources);
-+	if (err) {
-+		dev_err(&dev->dev, "Cannot turn wakeup power resources on\n");
-+		dev->wakeup.flags.valid = 0;
-+	} else {
-+		/*
-+		 * Passing 3 as the third argument below means the device may be
-+		 * put into arbitrary power state afterward.
-+		 */
-+		err = acpi_device_sleep_wake(dev, 1, sleep_state, 3);
- 	}
--
--	/*
--	 * Passing 3 as the third argument below means the device may be placed
--	 * in arbitrary power state afterwards.
--	 */
--	err = acpi_device_sleep_wake(dev, 1, sleep_state, 3);
--
-- err_out:
- 	if (err)
- 		dev->wakeup.prepare_count = 0;
- 
-@@ -513,7 +506,7 @@ int acpi_enable_wakeup_device_power(stru
-  */
- int acpi_disable_wakeup_device_power(struct acpi_device *dev)
- {
--	int i, err = 0;
-+	int err = 0;
- 
- 	if (!dev || !dev->wakeup.flags.valid)
- 		return -EINVAL;
-@@ -534,15 +527,10 @@ int acpi_disable_wakeup_device_power(str
- 	if (err)
- 		goto out;
- 
--	/* Close power resource */
--	for (i = 0; i < dev->wakeup.resources.count; i++) {
--		int ret = acpi_power_off(dev->wakeup.resources.handles[i]);
--		if (ret) {
--			printk(KERN_ERR PREFIX "Transition power state\n");
--			dev->wakeup.flags.valid = 0;
--			err = -ENODEV;
--			goto out;
--		}
-+	err = acpi_power_off_list(&dev->wakeup.resources);
-+	if (err) {
-+		dev_err(&dev->dev, "Cannot turn wakeup power resources off\n");
-+		dev->wakeup.flags.valid = 0;
- 	}
- 
-  out:
+--- a/arch/x86/include/asm/pci.h
++++ b/arch/x86/include/asm/pci.h
+@@ -14,6 +14,7 @@
+ struct pci_sysdata {
+ 	int		domain;		/* PCI domain */
+ 	int		node;		/* NUMA node */
++	void		*acpi_handle;
+ #ifdef CONFIG_X86_64
+ 	void		*iommu;		/* IOMMU private data */
+ #endif
