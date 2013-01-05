@@ -1,93 +1,96 @@
-From: "Zheng, Lv" <lv.zheng@intel.com>
-Subject: RE: [PATCH 1/6] ACPI / PM: Change the way power transitions to
- D3cold are carried out
-Date: Sat, 5 Jan 2013 02:37:35 +0000
-Message-ID: <1AE640813FDE7649BE1B193DEA596E88BDD5F8@SHSMSX101.ccr.corp.intel.com>
-References: <2311196.icSMDvAsYg@vostro.rjw.lan>
- <3421785.2lTFog1i8W@vostro.rjw.lan>
+From: Sedat Dilek <sedat.dilek@gmail.com>
+Subject: Re: [PATCH 0/6] ACPI / PM: ACPI power management update
+Date: Sat, 5 Jan 2013 10:31:11 +0100
+Message-ID: <CA+icZUUMTfbAj81NVkP9dJjacp+SYAN+=Fo1EM6+5sjfgTo42g@mail.gmail.com>
+Reply-To: sedat.dilek@gmail.com
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga02.intel.com ([134.134.136.20]:26348 "EHLO mga02.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755568Ab3AECho (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 4 Jan 2013 21:37:44 -0500
-In-Reply-To: <3421785.2lTFog1i8W@vostro.rjw.lan>
-Content-Language: en-US
+Received: from mail-qc0-f180.google.com ([209.85.216.180]:39136 "EHLO
+	mail-qc0-f180.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755336Ab3AEJbN (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sat, 5 Jan 2013 04:31:13 -0500
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@sisk.pl>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>
-Cc: LKML <linux-kernel@vger.kernel.org>, Len Brown <lenb@kernel.org>, "Huang, Ying" <ying.huang@intel.com>, "Cheng, Anton" <anton.cheng@intel.com>, "Palanisamy, Kanda K" <kanda.k.palanisamy@intel.com>, "Gough, Robert" <robert.gough@intel.com>, "Weyhing, Linda" <linda.weyhing@intel.com>, "Kalowsky, Daniel" <daniel.kalowsky@intel.com>
+To: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: LKML <linux-kernel@vger.kernel.org>, Linux ACPI <linux-acpi@vger.kernel.org>
 
-VGhhbmtzIGZvciB5b3VyIHBhdGNoLCBpdCBtaWdodCBiZSB1c2VmdWwgYXNfUFIzIG9mZiBtZXRo
-b2Qgb2YgSTJDIGhvc3RzIGFuZCB0YXJnZXRzIG1pZ2h0IGJlIGRpZmZlcmVudCBmcm9tIHRoZWly
-IF9QUjAgb2ZmIG1ldGhvZCwgQUNQSSBCSU9TIG1heSBpbXBsZW1lbnQgcHJvdGVjdGlvbiBpbiB0
-aGUgX1BSMyBvZmYgbWV0aG9kIGluIG9yZGVyIG5vdCB0byBicmVhayB0aGUgdHJhbnNhY3Rpb25z
-IGR1cmluZyB0aGUgcG93ZXJpbmcgb2ZmIHByb2Nlc3M6DQpBcyBJMkMgaXMgd2lyZWQtQU5EIGxv
-Z2ljIGJ1cywgaWYgYSBkZXZpY2Ugd2lsbCBiZSBMT1cgb24gU0RBIG9yIFNDTCBkdXJpbmcgdGhl
-IHBvd2VyaW5nIG9mZiBwcm9jZXNzLCBpdCB3aWxsIHB1bGwgdGhlIGJ1cyBmcm9tIEhJR0ggdG8g
-TE9XIHdoaWNoIG1heSBicmVhayB0aGUgY3VycmVudCB0cmFuc2FjdGlvbiBvbiB0aGUgYnVzIHRo
-YXQgdGFyZ2V0ZWQgdG8gYW5vdGhlciBzbGF2ZSBkZXZpY2UuDQoNCkkganVzdCB3b25kZXIgb25l
-IG1vcmUgdGhpbmcgd2hpY2ggaXMgbm90IHJlbGF0ZWQgdG8gdGhlIEFDUEkgQklPUy4NCklmIGJ1
-c3NlcyBsaWtlIEkyQyBoYXZlIHN1Y2ggIm5vbi1ob3RwbHVnZ2FibGUiIG5hdHVyZSwgd2UgbmVl
-ZCB0byBjdXQgcG93ZXIgb2Ygc2luZ2xlIHRhcmdldCBkZXZpY2Ugb25seSB3aGVuIHRoZXJlIGFy
-ZSBub3QgYW55IHRyYW5zYWN0aW9ucyB2aXNpYmxlIGluIHRoZSBzYW1lIHNlZ21lbnQuDQoNCkhv
-dyBjb3VsZCBhbiBlcXVpdmFsZW50IHNvbHV0aW9uIGJlIGltcGxlbWVudGVkIGluIHRoZSBMaW51
-eCBrZXJuZWwgZm9yIEkyQyBidXNzZXM/DQpJdCBjb3VsZCBiZSB1c2VmdWwgZm9yIHRob3NlIHBs
-YXRmb3JtcyB3aXRob3V0IHN1Y2ggZmlybXdhcmUgZGVwbG95ZWQgdG8gcHJvdGVjdCB0aGUgT1Mu
-DQoNCkl0IHNlZW1zIHdlIG1heSBuZWVkIHRvIHJlZGVzaWduIGFjcGlfZGV2aWNlX3NldF9wb3dl
-ci9hY3BpX2RldmljZV9wb3dlcl9zdGF0ZSB0byBtZWV0IHRoZSBmb2xsb3dpbmcgcmVxdWlyZW1l
-bnRzOg0KMS4gc3VzcGVuZC9yZXN1bWUgLT4gT25lIGZ1bmN0aW9uIGNhbiBiZSB1c2VkIHRvIHN3
-aXRjaCBkZXZpY2UgcG93ZXIgc3RhdGUgZnJvbSAwIHRvIDMgb3IgMyB0byAwLg0KMi4gcG93ZXJv
-ZmYgLT4gT25lIGZ1bmN0aW9uIGNhbiBiZSB1c2VkIHRvIGN1dCBkZXZpY2UgcG93ZXIgY3VycmVu
-dGx5IGFwcGxpZWQuDQpBbmQgd2UgbWF5IG5lZWQgbmV3IGludGVyZmFjZSBpbiB0aGUgcG93ZXIg
-Y29yZSBhcyAicG93ZXJvZmYiIChtYXliZSBhbHNvIHBvd2Vyb24pIG9yIGxpa2V3aXNlIGZvciBw
-bGF0Zm9ybV9zdXNwZW5kL2hpYmVybmF0ZV9vcHMuDQoNClRoZW4gSTJDIGluIHRoZSBrZXJuZWwg
-Y2FuIGFsc28gaW1wbGVtZW50IGEgc29sdXRpb24gcHV0dGluZyBhbGwgb2YgdGhlIGRldmljZXMg
-KHRoZSBtYXN0ZXJzIGFuZCBhbGwgb2YgdGhlaXIgc2xhdmVzKSBpbiBvbmUgc2VnbWVudCAod2hl
-cmUgdGhlcmUgaXMgd2lyZWQtQU5EIGxvZ2ljKSBpbnRvIEQzIChzdXNwZW5kIGFsbCBub24taG90
-cGx1Z2dhYmxlIGRldmljZXMgaW4gb25lIHNlZ21lbnQpLCBhbmQgInBvd2Vyb2ZmIiBvbmUgb2Yg
-dGhlbSB3aGVuIHRoZXJlIGFyZSBub3QgYW55IHRyYW5zYWN0aW9ucyB2aXNpYmxlIG9uIHRoZSBi
-dXMuDQoNClRoYW5rcyBhbmQgYmVzdCByZWdhcmRzDQotTHYNCg0KPiAtLS0tLU9yaWdpbmFsIE1l
-c3NhZ2UtLS0tLQ0KPiBGcm9tOiBSYWZhZWwgSi4gV3lzb2NraSBbbWFpbHRvOnJqd0BzaXNrLnBs
-XQ0KPiBTZW50OiBTYXR1cmRheSwgSmFudWFyeSAwNSwgMjAxMyA2OjAwIEFNDQo+IFRvOiBBQ1BJ
-IERldmVsIE1hbGluZyBMaXN0DQo+IENjOiBMS01MOyBMZW4gQnJvd247IFpoZW5nLCBMdjsgSHVh
-bmcsIFlpbmcNCj4gU3ViamVjdDogW1BBVENIIDEvNl0gQUNQSSAvIFBNOiBDaGFuZ2UgdGhlIHdh
-eSBwb3dlciB0cmFuc2l0aW9ucyB0byBEM2NvbGQNCj4gYXJlIGNhcnJpZWQgb3V0DQo+IA0KPiBG
-cm9tOiBSYWZhZWwgSi4gV3lzb2NraSA8cmFmYWVsLmoud3lzb2NraUBpbnRlbC5jb20+DQo+IA0K
-PiBEdXJpbmcgcG93ZXIgdHJhbnNpdGlvbnMgaW50byBEM2NvbGQgZnJvbSBhbnkgc2hhbGxvd2Vy
-IHBvd2VyIHN0YXRlcyB3ZSBhcmUNCj4gc3VwcG9zZWQgdG8gdHJhbnNpdGlvbiB0aGUgZGV2aWNl
-IGludG8gRDNob3QgYW5kIHJlbW92ZSBwb3dlciBmcm9tIGl0DQo+IGFmdGVyd2FyZCwgYnV0IHRo
-ZSBjdXJyZW50IGNvZGUgaW4gYWNwaV9kZXZpY2Vfc2V0X3Bvd2VyKCkgZG9lc24ndCB3b3JrIHRo
-aXMNCj4gd2F5Lg0KPiANCj4gQXQgdGhlIHNhbWUgdGltZSwgdGhvdWdoLCB3ZSBuZWVkIHRvIGJl
-IGNhcmVmdWwgZW5vdWdoIHRvIHByZXNlcnZlDQo+IGJhY2t3YXJkcyBjb21wYXRpYmlsaXR5IGZv
-ciBzeXN0ZW1zIHRoYXQgZG9uJ3QgZGlzdGluZ3Vpc2ggYmV0d2VlbiBEM2hvdCBhbmQNCj4gRDNj
-b2xkIChlLmcuIGRlc2lnbmVkIGJlZm9yZSBBQ1BJIDQpLg0KPiANCj4gTW9kaWZ5IGFjcGlfZGV2
-aWNlX3NldF9wb3dlcigpIHNvIHRoYXQgaXQgd29ya3MgaW4gYWNjb3JkYW5jZSB3aXRoIHRoZQ0K
-PiBleHBlY3RhdGlvbnMgaW4gYm90aCBjYXNlcy4NCj4gDQo+IFNpZ25lZC1vZmYtYnk6IFJhZmFl
-bCBKLiBXeXNvY2tpIDxyYWZhZWwuai53eXNvY2tpQGludGVsLmNvbT4NCj4gLS0tDQo+ICBkcml2
-ZXJzL2FjcGkvYnVzLmMgfCAgIDEyICsrKysrKysrKystLQ0KPiAgMSBmaWxlIGNoYW5nZWQsIDEw
-IGluc2VydGlvbnMoKyksIDIgZGVsZXRpb25zKC0pDQo+IA0KPiBJbmRleDogbGludXgvZHJpdmVy
-cy9hY3BpL2J1cy5jDQo+ID09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09
-PT09PT09PT09PT09PT09PT09PT09PT0NCj4gPT09DQo+IC0tLSBsaW51eC5vcmlnL2RyaXZlcnMv
-YWNwaS9idXMuYw0KPiArKysgbGludXgvZHJpdmVycy9hY3BpL2J1cy5jDQo+IEBAIC0yNzAsNiAr
-MjcwLDcgQEAgaW50IGFjcGlfZGV2aWNlX3NldF9wb3dlcihzdHJ1Y3QgYWNwaV9kZQ0KPiAgCWlu
-dCByZXN1bHQgPSAwOw0KPiAgCWFjcGlfc3RhdHVzIHN0YXR1cyA9IEFFX09LOw0KPiAgCWNoYXIg
-b2JqZWN0X25hbWVbNV0gPSB7ICdfJywgJ1AnLCAnUycsICcwJyArIHN0YXRlLCAnXDAnIH07DQo+
-ICsJYm9vbCBjdXRfcG93ZXIgPSBmYWxzZTsNCj4gDQo+ICAJaWYgKCFkZXZpY2UgfHwgKHN0YXRl
-IDwgQUNQSV9TVEFURV9EMCkgfHwgKHN0YXRlID4gQUNQSV9TVEFURV9EM19DT0xEKSkNCj4gIAkJ
-cmV0dXJuIC1FSU5WQUw7DQo+IEBAIC0yOTQsOSArMjk1LDEzIEBAIGludCBhY3BpX2RldmljZV9z
-ZXRfcG93ZXIoc3RydWN0IGFjcGlfZGUNCj4gIAkJcmV0dXJuIC1FTk9ERVY7DQo+ICAJfQ0KPiAN
-Cj4gLQkvKiBGb3IgRDNjb2xkIHdlIHNob3VsZCBleGVjdXRlIF9QUzMsIG5vdCBfUFM0LiAqLw0K
-PiAtCWlmIChzdGF0ZSA9PSBBQ1BJX1NUQVRFX0QzX0NPTEQpDQo+ICsJLyogRm9yIEQzY29sZCB3
-ZSBzaG91bGQgZmlyc3QgdHJhbnNpdGlvbiBpbnRvIEQzaG90LiAqLw0KPiArCWlmIChzdGF0ZSA9
-PSBBQ1BJX1NUQVRFX0QzX0NPTEQNCj4gKwkgICAgJiYNCj4gZGV2aWNlLT5wb3dlci5zdGF0ZXNb
-QUNQSV9TVEFURV9EM19DT0xEXS5mbGFncy5vc19hY2Nlc3NpYmxlKSB7DQo+ICsJCXN0YXRlID0g
-QUNQSV9TVEFURV9EM19IT1Q7DQo+ICAJCW9iamVjdF9uYW1lWzNdID0gJzMnOw0KPiArCQljdXRf
-cG93ZXIgPSB0cnVlOw0KPiArCX0NCj4gDQo+ICAJLyoNCj4gIAkgKiBUcmFuc2l0aW9uIFBvd2Vy
-DQo+IEBAIC0zNDEsNiArMzQ2LDkgQEAgaW50IGFjcGlfZGV2aWNlX3NldF9wb3dlcihzdHJ1Y3Qg
-YWNwaV9kZQ0KPiAgCQl9DQo+ICAJfQ0KPiANCj4gKwlpZiAoY3V0X3Bvd2VyKQ0KPiArCQlyZXN1
-bHQgPSBhY3BpX3Bvd2VyX3RyYW5zaXRpb24oZGV2aWNlLCBBQ1BJX1NUQVRFX0QzX0NPTEQpOw0K
-PiArDQo+ICAgICAgICBlbmQ6DQo+ICAJaWYgKHJlc3VsdCkNCj4gIAkJcHJpbnRrKEtFUk5fV0FS
-TklORyBQUkVGSVgNCg0K
+Hi Rafael,
+
+against which Linux-kernel version is your patchset?
+Linux v3.8-rc2?
+Mambo number 5 [1] aka patch 5/6 does not apply cleanly.
+
+Regards,
+- Sedat -
+
+[1] http://www.youtube.com/watch?v=QQ4Ht5xfD5E
+
+P.S.: GIT AM and APPLY sessions
+
+GIT AM...
+
+wearefam@fambox:~/src/linux-kernel/linux$ git checkout Linux-v3.8-rc2
+Already on 'Linux-v3.8-rc2'
+wearefam@fambox:~/src/linux-kernel/linux$
+wearefam@fambox:~/src/linux-kernel/linux$
+wearefam@fambox:~/src/linux-kernel/linux$ GIT_BRANCH="acpi-pm-fixes" ;
+git branch $GIT_BRANCH && git checkout $GIT_BRANCH
+Switched to branch 'acpi-pm-fixes'
+wearefam@fambox:~/src/linux-kernel/linux$
+wearefam@fambox:~/src/linux-kernel/linux$ git am
+../patches/acpi-pm-fixes/1-6-ACPI-PM-Change-the-way-power-transitions-to-D3cold-are-carried-out.patch
+Applying: ACPI / PM: Change the way power transitions to D3cold are carried out
+wearefam@fambox:~/src/linux-kernel/linux$
+wearefam@fambox:~/src/linux-kernel/linux$ git am
+../patches/acpi-pm-fixes/2-6-ACPI-PM-More-visible-function-for-retrieving-device-power-states.patch
+Applying: ACPI / PM: More visible function for retrieving device power states
+wearefam@fambox:~/src/linux-kernel/linux$
+wearefam@fambox:~/src/linux-kernel/linux$ git am
+../patches/acpi-pm-fixes/3-6-ACPI-PM-Common-string-representations-of-device-power-states.patch
+Applying: ACPI / PM: Common string representations of device power states
+wearefam@fambox:~/src/linux-kernel/linux$
+wearefam@fambox:~/src/linux-kernel/linux$ git am
+../patches/acpi-pm-fixes/4-6-ACPI-PM-Export-power-states-of-ACPI-devices-via-sysfs.patch
+Applying: ACPI / PM: Export power states of ACPI devices via sysfs
+wearefam@fambox:~/src/linux-kernel/linux$
+wearefam@fambox:~/src/linux-kernel/linux$ git am
+../patches/acpi-pm-fixes/5-6-ACPI-PM-Move-device-power-management-functions-to-device_pm.c.patch
+Applying: ACPI / PM: Move device power management functions to device_pm.c
+error: patch failed: include/acpi/acpi_bus.h:333
+error: include/acpi/acpi_bus.h: patch does not apply
+Patch failed at 0001 ACPI / PM: Move device power management functions
+to device_pm.c
+When you have resolved this problem run "git am --resolved".
+If you would prefer to skip this patch, instead run "git am --skip".
+To restore the original branch and stop patching run "git am --abort".
+
+Same with GIT APPLY...
+
+[...]
+wearefam@fambox:~/src/linux-kernel/linux$ git apply --check --verbose
+../patches/acpi-pm-fixes/5*
+Checking patch drivers/acpi/device_pm.c...
+Checking patch include/acpi/acpi_bus.h...
+error: while searching for:
+acpi_status acpi_bus_get_status_handle(acpi_handle handle,
+                                       unsigned long long *sta);
+int acpi_bus_get_status(struct acpi_device *device);
+int acpi_bus_set_power(acpi_handle handle, int state);
+const char *acpi_power_state_string(int state);
+int acpi_device_get_power(struct acpi_device *device, int *state);
+int acpi_device_set_power(struct acpi_device *device, int state);
+int acpi_bus_update_power(acpi_handle handle, int *state_p);
+bool acpi_bus_power_manageable(acpi_handle handle);
+bool acpi_bus_can_wakeup(acpi_handle handle);
+#ifdef CONFIG_ACPI_PROC_EVENT
+int acpi_bus_generate_proc_event(struct acpi_device *device, u8 type, int data);
+int acpi_bus_generate_proc_event4(const char *class, const char *bid,
+u8 type, int data);
+
+error: patch failed: include/acpi/acpi_bus.h:333
+error: include/acpi/acpi_bus.h: patch does not apply
+Checking patch drivers/acpi/internal.h...
+Hunk #1 succeeded at 43 (offset -18 lines).
+Checking patch drivers/acpi/bus.c...
+- EOT-
