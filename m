@@ -1,90 +1,39 @@
-From: Aaron Lu <aaron.lu@intel.com>
-Subject: [PATCH v11 8/9] libata: no poll when ODD is powered off
-Date: Sun,  6 Jan 2013 10:48:28 +0800
-Message-ID: <1357440509-28108-9-git-send-email-aaron.lu@intel.com>
-References: <1357440509-28108-1-git-send-email-aaron.lu@intel.com>
-Return-path: <linux-pm-owner@vger.kernel.org>
-In-Reply-To: <1357440509-28108-1-git-send-email-aaron.lu@intel.com>
-Sender: linux-pm-owner@vger.kernel.org
-To: Jeff Garzik <jgarzik@pobox.com>, James Bottomley <James.Bottomley@hansenpartnership.com>, "Rafael J. Wysocki" <rjw@sisk.pl>, Alan Stern <stern@rowland.harvard.edu>, Tejun Heo <tj@kernel.org>
-Cc: Aaron Lu <aaron.lwe@gmail.com>, Jeff Wu <jeff.wu@amd.com>, linux-ide@vger.kernel.org, linux-pm@vger.kernel.org, linux-scsi@vger.kernel.org, linux-acpi@vger.kernel.org, Aaron Lu <aaron.lu@intel.com>
+From: "Alexander E. Patrakov" <patrakov@gmail.com>
+Subject: Excessive power consumption on Sony VAIO VPCZ23A4R
+Date: Sun, 6 Jan 2013 18:07:53 +0600
+Message-ID: <CAN_LGv1fZraYbH7LCUwS8L=KsX9vsr8NK7hG+64s51TwPG4mRw@mail.gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-qc0-f174.google.com ([209.85.216.174]:51886 "EHLO
+	mail-qc0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751823Ab3AFMHy (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sun, 6 Jan 2013 07:07:54 -0500
+Received: by mail-qc0-f174.google.com with SMTP id o22so10878035qcr.33
+        for <linux-acpi@vger.kernel.org>; Sun, 06 Jan 2013 04:07:53 -0800 (PST)
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: linux-acpi@vger.kernel.org
 
-When the ODD is powered off, any action the user did to the ODD that
-would generate a media event will trigger an ACPI interrupt, so the
-poll for media event is no longer necessary. And the poll will also
-cause a runtime status change, which will stop the ODD from staying in
-powered off state, so the poll should better be stopped.
+Hello.
 
-But since we don't have access to the gendisk structure in LLDs, here
-comes the event_driven flag for scsi device. This flag serves as a
-capability of the device, conveyed by the LLDs to upper layer. It is set
-when LLDs know that this device will no longer generate any media
-related events, so that the check_events can simply return 0 without
-bothering the device, effectively silence the poll.
+I have a Sony VAIO VPCZ23A4R laptop. In Windows 7, it has a battery
+life of 7 hours (but now I have only Gentoo Linux on my SSD). In
+Gentoo Linux (with kernel 3.7.1), the battery lasts only 4-5 hours. I
+guessed that the problem can be related to ASPM, and booted the laptop
+with the "pcie_aspm=force" kernel parameter. Result:
 
-Signed-off-by: Aaron Lu <aaron.lu@intel.com>
----
- drivers/ata/libata-zpodd.c | 8 ++++++++
- drivers/scsi/sr.c          | 6 +++++-
- include/scsi/scsi_device.h | 1 +
- 3 files changed, 14 insertions(+), 1 deletion(-)
+[    0.709517] \_SB_.PCI0:_OSC invalid UUID
+[    0.709518] _OSC request data:1 1f 1f
+[    0.709523]  pci0000:00: ACPI _OSC support notification failed,
+disabling PCIe ASPM
+[    0.709524]  pci0000:00: Unable to request _OSC control (_OSC
+support mask: 0x08)
 
-diff --git a/drivers/ata/libata-zpodd.c b/drivers/ata/libata-zpodd.c
-index 3c39987..5843a18 100644
---- a/drivers/ata/libata-zpodd.c
-+++ b/drivers/ata/libata-zpodd.c
-@@ -177,6 +177,13 @@ void zpodd_pre_poweroff(struct ata_device *dev)
- {
- 	struct zpodd *zpodd = dev->zpodd;
- 
-+	/*
-+	 * Silence the media change poll, as we will be notified when
-+	 * user wants to use the ODD so there is no meaning to poll
-+	 * it when it is powered off
-+	 */
-+	dev->sdev->event_driven = true;
-+
- 	zpodd->powered_off = true;
- 	device_set_run_wake(&dev->sdev->sdev_gendev, true);
- 	acpi_pm_device_run_wake(&dev->sdev->sdev_gendev, true);
-@@ -209,6 +216,7 @@ void zpodd_post_resume(struct ata_device *dev)
- 
- 	zpodd->last_ready = 0;
- 	zpodd->zp_ready = false;
-+	dev->sdev->event_driven = false;
- }
- 
- static void zpodd_wake_dev(acpi_handle handle, u32 event, void *context)
-diff --git a/drivers/scsi/sr.c b/drivers/scsi/sr.c
-index 4d1a610..b034274 100644
---- a/drivers/scsi/sr.c
-+++ b/drivers/scsi/sr.c
-@@ -594,7 +594,11 @@ static unsigned int sr_block_check_events(struct gendisk *disk,
- 					  unsigned int clearing)
- {
- 	struct scsi_cd *cd = scsi_cd(disk);
--	return cdrom_check_events(&cd->cdi, clearing);
-+
-+	if (!cd->device->event_driven)
-+		return cdrom_check_events(&cd->cdi, clearing);
-+	else
-+		return 0;
- }
- 
- static int sr_block_revalidate_disk(struct gendisk *disk)
-diff --git a/include/scsi/scsi_device.h b/include/scsi/scsi_device.h
-index e65c62e..1756151 100644
---- a/include/scsi/scsi_device.h
-+++ b/include/scsi/scsi_device.h
-@@ -160,6 +160,7 @@ struct scsi_device {
- 	unsigned can_power_off:1; /* Device supports runtime power off */
- 	unsigned wce_default_on:1;	/* Cache is ON by default */
- 	unsigned no_dif:1;	/* T10 PI (DIF) should be disabled */
-+	unsigned event_driven:1; /* No need to poll the device */
- 
- 	DECLARE_BITMAP(supported_events, SDEV_EVT_MAXBITS); /* supported events */
- 	struct list_head event_list;	/* asserted events */
+acpidump output is available at
+https://bugs.freedesktop.org/attachment.cgi?id=65558
+
+What else do I need to send you in order to debug and eliminate the problem?
+
 -- 
-1.7.11.7
-
+Alexander E. Patrakov
