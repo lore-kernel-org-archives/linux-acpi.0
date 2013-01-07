@@ -1,170 +1,88 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: [GIT PULL] ACPI and power management fixes for v3.8-rc3
-Date: Tue, 08 Jan 2013 00:53:14 +0100
-Message-ID: <1839593.9xn3VhCMTU@vostro.rjw.lan>
+From: Bjorn Helgaas <bhelgaas@google.com>
+Subject: Re: [PATCH 0/8] PCI, ACPI, x86: Reserve fw allocated resource for
+ hot-add root bus
+Date: Mon, 7 Jan 2013 16:49:41 -0700
+Message-ID: <CAErSpo5Z57asEXbfesOjXMEPj4WM3YMbzQH3s-v_NBrnPNmuVQ@mail.gmail.com>
+References: <20121030040237.GA10472@google.com> <1352003971-22278-1-git-send-email-yinghai@kernel.org>
+ <CAE9FiQUn=bcgOLFzBwsBT1-O1poRNy9qYTb0w9EAya3_inKqAw@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from hydra.sisk.pl ([212.160.235.94]:34436 "EHLO hydra.sisk.pl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753100Ab3AGXrd convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 7 Jan 2013 18:47:33 -0500
+Received: from mail-la0-f53.google.com ([209.85.215.53]:35984 "EHLO
+	mail-la0-f53.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752724Ab3AGXuF (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 7 Jan 2013 18:50:05 -0500
+Received: by mail-la0-f53.google.com with SMTP id fn20so17642680lab.12
+        for <linux-acpi@vger.kernel.org>; Mon, 07 Jan 2013 15:50:03 -0800 (PST)
+In-Reply-To: <CAE9FiQUn=bcgOLFzBwsBT1-O1poRNy9qYTb0w9EAya3_inKqAw@mail.gmail.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: Len Brown <lenb@kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>, Linux PM list <linux-pm@vger.kernel.org>
+To: Yinghai Lu <yinghai@kernel.org>
+Cc: "Rafael J. Wysocki" <rjw@sisk.pl>, Len Brown <lenb@kernel.org>, Taku Izumi <izumi.taku@jp.fujitsu.com>, Jiang Liu <jiang.liu@huawei.com>, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, David Howells <dhowells@redhat.com>, Michal Simek <monstr@monstr.eu>, Koichi Yasutake <yasutake.koichi@jp.panasonic.com>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Paul Mackerras <paulus@samba.org>
 
-Hi Linus,
+[+cc David, Michal, Koichi, Ben, Paul]
 
-Please pull from the git repository at
+On Fri, Dec 7, 2012 at 12:15 AM, Yinghai Lu <yinghai@kernel.org> wrote:
+> On Sat, Nov 3, 2012 at 9:39 PM, Yinghai Lu <yinghai@kernel.org> wrote:
+>> For root bus hot add, fw could assign some resource for the devices for
+>> that root bus before notifying os via acpi, we should check and use those
+>> resources at first just like we do for booting path.
+>>
+>> At first, we need to refactor x86 pci pcibios_allocate related functions
+>> for booting path to take bus as parameter.
+>>
+>> After that, we could use the survey function for hot add root bus.
+>>
+>> based on pci/yinghai-for-pci-root-bus-hotplug
+>>
+>> could get from
+>>         git://git.kernel.org/pub/scm/linux/kernel/git/yinghai/linux-yinghai.git for-pci-survey-resources
+>>
+>> Yinghai Lu (8):
+>>   PCI, x86: Separate out pcibios_allocate_bridge_resources()
+>>   PCI, x86: Separate out pcibios_allocate_dev_resources()
+>>   PCI, x86: Let pcibios_allocate_bus_resources() take bus instead
+>>   PCI, x86: Separate out rom resource claim
+>>   PCI, x86: Add pcibios_fw_addr_done
+>>   PCI, x86: Remove __init for hw/fw allocated functions
+>>   PCI, x86: Claim FW allocated resources in hot add path.
+>>   PCI, ACPI: reserve fw allocated resource for hot added root bus
+>>
+>>  arch/x86/pci/i386.c     |  185 +++++++++++++++++++++++++++++++----------------
+>>  drivers/acpi/pci_root.c |    4 +-
+>>  drivers/pci/bus.c       |    2 +
+>>  include/linux/pci.h     |    1 +
+>>  4 files changed, 127 insertions(+), 65 deletions(-)
+>>
+>
+> Bjorn,
+>
+> Can you queue those 8 patches for v3.9 in pci tree?
+>
+> So I  could resend out other pci root hotplug patches.
 
-  git://git.kernel.org/pub/scm/linux/kernel/git/rafael/linux-pm.git pm+=
-acpi-for-3.8-rc3
+I'm really sorry that it's taken me so long to get to these.
 
-to receive ACPI and power management fixes for v3.8-rc3 with top-most c=
-ommit
-f67ffa95836b31be5d8fe336aee3bfc6412c5696
+I applied these to my pci/yinghai-survey-resources branch.  I
+re-ordered the last two and reworked some of the changelogs.
 
-  Merge branch 'pm-sleep'
+In general these look good.  My main concern is that they only touch
+x86, without touching the similar code in frv, microblaze, mn10300,
+and powerpc.
 
-on top of commit d1c3ed669a2d452cacfb48c2d171a1f364dae2ed
+This code (pcibios_resource_survey(), pcibios_assign_resources(),
+pcibios_allocate_resources(), pcibios_allocate_bus_resources()) was
+obviously copied from x86 originally, and I'd like to preserve the
+similarity between them.  It would be even better to refactor it so
+it's actually *shared*, but I don't think that's a requirement right
+now.
 
-  Linux 3.8-rc2
+If we allow it to diverge now, it will make it harder to refactor and
+harder to notice when bug fixes should be applied to all of them.  For
+example, looking at pcibios_allocate_resources(), commit 575939cf5
+added some SR-IOV support to x86.  Should similar code be added for
+frv, microblaze, mn10300, and powerpc?
 
-Included are:
+Anybody else have thoughts on this?
 
-* Removal of some ACPICA code that the kernel will never use from Lv Zh=
-eng.
-
-* APEI fix for erst_dbg_read() return value when persistent store is em=
-pty
-  initially from Adrian Huang.
-
-* Removal of some unnecessary code from ACPI memory hotplug driver from
-  Liu Jinsong.
-
-* ACPI power management fixes preventing useless messages from being pr=
-inted
-  and correcting acpi_bus_get_device() result check.
-
-* ACPI debug code fix to prevent some debug messages from being printed
-  with levels greater than KERN_DEBUG from Joe Perches.
-
-* ACPI namespace scanning code fix to make system bus device nodes (lik=
-e _SB)
-  get the right names (-stable material).
-
-* PNP resources handling fixes from Witold Szczeponik.
-
-* cpuidle fix for a recent regression stalling boot on systems with gre=
-at
-  numbers (like hundreds) of CPUs from Daniel Lezcano.
-
-* cpuidle fixes (one of them being -stable material) from Sivaram Nair.
-
-* intel_idle debug message fix from Youquan Song.
-
-* cpufreq build regression fix from Larry Finger.
-
-* cpufreq fix for an obscure initialization race related to statistics =
-from
-  Konstantin Khlebnikov.
-
-* cpufreq change disabling the Longhaul driver by default (which appare=
-ntly
-  is hopless to debug and fix) from Rafa=C5=82 Bilski.
-
-* PM core fix preventing device suspend errors from happening during sy=
-stem
-  suspend due to obscure race conditions (-stable material).
-
-* PM QoS local variable name cleanup.
-
-Thanks!
-
-
- Documentation/power/runtime_pm.txt |   9 +-
- drivers/acpi/acpi_memhotplug.c     |  18 --
- drivers/acpi/acpica/Makefile       |   2 +-
- drivers/acpi/acpica/utclib.c       | 749 -----------------------------=
-----------------
- drivers/acpi/apei/erst-dbg.c       |  11 +-
- drivers/acpi/device_pm.c           |   3 +-
- drivers/acpi/glue.c                |   9 +-
- drivers/acpi/power.c               |  11 +-
- drivers/acpi/scan.c                |   2 +-
- drivers/base/power/main.c          |   9 +-
- drivers/base/power/qos.c           |  10 +-
- drivers/cpufreq/Kconfig            |   5 +
- drivers/cpufreq/Makefile           |   5 +-
- drivers/cpufreq/cpufreq_stats.c    |  11 +-
- drivers/cpufreq/longhaul.c         |  10 +-
- drivers/cpuidle/coupled.c          |   2 +-
- drivers/cpuidle/cpuidle.c          |   2 +-
- drivers/cpuidle/driver.c           |   8 +-
- drivers/cpuidle/governors/menu.c   |   2 +-
- drivers/idle/intel_idle.c          |   2 +-
- drivers/pnp/interface.c            | 105 ++++---
- drivers/pnp/manager.c              |  25 +-
- 22 files changed, 154 insertions(+), 856 deletions(-)
-
----------------
-
-Adrian Huang (1):
-      ACPI / APEI: Fix the returned value in erst_dbg_read
-
-Daniel Lezcano (1):
-      cpuidle: fix lock contention in the idle path
-
-Joe Perches (1):
-      ACPI / glue: Update DBG macro to include KERN_DEBUG
-
-Konstantin Khlebnikov (1):
-      cpufreq / stats: fix race between stats allocation and first usag=
-e
-
-Larry Finger (1):
-      cpufreq / governor: Fix problem with cpufreq_ondemand or cpufreq_=
-conservative
-
-Liu Jinsong (1):
-      ACPI / memhotplug: remove redundant logic of acpi memory hotadd
-
-Lv Zheng (1):
-      ACPICA: Remove useless mini-C library.
-
-Rafael J. Wysocki (5):
-      ACPI / PM: Do not apply ACPI_SUCCESS() to acpi_bus_get_device() r=
-esult
-      ACPI / power: Remove useless message from device registering rout=
-ine
-      ACPI / scan: Do not use dummy HID for system bus ACPI nodes
-      PM / QoS: Rename local variable in dev_pm_qos_add_ancestor_reques=
-t()
-      PM: Move disabling/enabling runtime PM to late suspend/early resu=
-me
-
-Rafa=C5=82 Bilski (1):
-      cpufreq / Longhaul: Disable driver by default
-
-Sivaram Nair (2):
-      cpuidle: Fix finding state with min power_usage
-      cpuidle / coupled: fix ready counter decrement
-
-Witold Szczeponik (2):
-      PNP: Simplify setting of resources
-      PNP: Handle IORESOURCE_BITS in resource allocation
-
-Youquan Song (1):
-      intel_idle: pr_debug information need separated
-
-
---=20
-I speak only for myself.
-Rafael J. Wysocki, Intel Open Source Technology Center.
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Bjorn
