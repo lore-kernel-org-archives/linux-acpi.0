@@ -1,83 +1,33 @@
-From: Toshi Kani <toshi.kani@hp.com>
-Subject: Re: [PATCH] ACPI / scan: Treat power resources in a special way
-Date: Mon, 07 Jan 2013 10:16:59 -0700
-Message-ID: <1357579019.2153.2.camel@misato.fc.hp.com>
-References: <1565436.cOJ1sW4X70@vostro.rjw.lan>
+From: Tejun Heo <tj@kernel.org>
+Subject: Re: [PATCH v11 2/9] libata: Add CONFIG_SATA_ZPODD
+Date: Mon, 7 Jan 2013 10:06:43 -0800
+Message-ID: <20130107180643.GO3926@htj.dyndns.org>
+References: <1357440509-28108-1-git-send-email-aaron.lu@intel.com>
+ <1357440509-28108-3-git-send-email-aaron.lu@intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from g5t0008.atlanta.hp.com ([15.192.0.45]:37030 "EHLO
-	g5t0008.atlanta.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753662Ab3AGR0k (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 7 Jan 2013 12:26:40 -0500
-In-Reply-To: <1565436.cOJ1sW4X70@vostro.rjw.lan>
+Received: from mail-pb0-f52.google.com ([209.85.160.52]:53933 "EHLO
+	mail-pb0-f52.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751980Ab3AGSGt (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 7 Jan 2013 13:06:49 -0500
+Content-Disposition: inline
+In-Reply-To: <1357440509-28108-3-git-send-email-aaron.lu@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>, Bjorn Helgaas <bhelgaas@google.com>, Yinghai Lu <yinghai@kernel.org>, Jiang Liu <liuj97@gmail.com>
+To: Aaron Lu <aaron.lu@intel.com>
+Cc: Jeff Garzik <jgarzik@pobox.com>, James Bottomley <James.Bottomley@hansenpartnership.com>, "Rafael J. Wysocki" <rjw@sisk.pl>, Alan Stern <stern@rowland.harvard.edu>, Aaron Lu <aaron.lwe@gmail.com>, Jeff Wu <jeff.wu@amd.com>, linux-ide@vger.kernel.org, linux-pm@vger.kernel.org, linux-scsi@vger.kernel.org, linux-acpi@vger.kernel.org
 
-On Mon, 2012-12-31 at 00:46 +0000, Rafael J. Wysocki wrote:
-> From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+On Sun, Jan 06, 2013 at 10:48:22AM +0800, Aaron Lu wrote:
+> Added a new config CONFIG_SATA_ZPODD, which is used to support
+> SATA based zero power ODD(ZPODD), and depends on ATA_ACPI.
 > 
-> Commit 1d57433 (ACPI: Separate adding ACPI device objects from
-> probing ACPI drivers) introduced an ACPI power resources management
+> Signed-off-by: Aaron Lu <aaron.lu@intel.com>
 
-I am seeing a different commit id for this.
+Maybe just fold this into the next patch?  It's rather unconventional
+to introduce the config option and makefile changes by themselves.
 
-commit 805d410fb0dbd65e1a57a810858fa2491e75822d
-Author: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
-Date:   Fri Dec 21 00:36:39 2012 +0100
+Thanks.
 
-    ACPI: Separate adding ACPI device objects from probing ACPI drivers
-
-> regression, because it didn't ensure that the power resources
-> driver bind to the struct acpi_device objects corresponding
-> to power resources as soon as they were created.  As a result,
-> ACPI power management routines may attempt to access power resource
-> objects before they are ready to use.
-> 
-> To fix this problem, tell the acpi_add_single_object() in
-> acpi_bus_check_add() to probe the driver for objects of type
-> ACPI_BUS_TYPE_POWER.  This fix has been verified to work on
-> HP nx6325 where the problem was first observed.
-> 
-> Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
-
-The change looks good.
-
-Acked-by: Toshi Kani <toshi.kani@hp.com>
-
-Thanks,
--Toshi
-
-> ---
-> 
-> The commit mentioned in the changelog is in linux-next only for now, but
-> it's likely to go upstream in this form anyway and the fix on top of the
-> whole ACPI scan series is trivial.
-> 
-> Thanks,
-> Rafael
-> 
-> ---
->  drivers/acpi/scan.c |    3 ++-
->  1 file changed, 2 insertions(+), 1 deletion(-)
-> 
-> Index: linux/drivers/acpi/scan.c
-> ===================================================================
-> --- linux.orig/drivers/acpi/scan.c
-> +++ linux/drivers/acpi/scan.c
-> @@ -1606,7 +1606,8 @@ static acpi_status acpi_bus_check_add(ac
->  		return AE_CTRL_DEPTH;
->  	}
->  
-> -	acpi_add_single_object(&device, handle, type, sta, false);
-> +	acpi_add_single_object(&device, handle, type, sta,
-> +			       type == ACPI_BUS_TYPE_POWER);
->  	if (!device)
->  		return AE_CTRL_DEPTH;
->  
-> 
-
-
+-- 
+tejun
