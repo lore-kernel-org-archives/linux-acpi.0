@@ -1,94 +1,55 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: [PATCH] ACPI / scan: Treat power resources in a special way
-Date: Mon, 07 Jan 2013 22:02:59 +0100
-Message-ID: <1458998.lg5S0BfPCV@vostro.rjw.lan>
-References: <1565436.cOJ1sW4X70@vostro.rjw.lan> <1357579019.2153.2.camel@misato.fc.hp.com>
+From: "Moore, Robert" <robert.moore@intel.com>
+Subject: RE: [PATCH] ACPICA: Add newlines to hwvalid debug output
+Date: Mon, 7 Jan 2013 21:06:03 +0000
+Message-ID: <94F2FBAB4432B54E8AACC7DFDE6C92E346BF78A1@ORSMSX101.amr.corp.intel.com>
+References: <20130104222428.10275.2683.stgit@bhelgaas.mtv.corp.google.com>
+ <1553024.9jVC34qo6B@vostro.rjw.lan>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7Bit
+Content-Transfer-Encoding: base64
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from hydra.sisk.pl ([212.160.235.94]:34336 "EHLO hydra.sisk.pl"
+Received: from mga03.intel.com ([143.182.124.21]:7665 "EHLO mga03.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755658Ab3AGU5R (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 7 Jan 2013 15:57:17 -0500
-In-Reply-To: <1357579019.2153.2.camel@misato.fc.hp.com>
+	id S1755743Ab3AGVGN (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 7 Jan 2013 16:06:13 -0500
+In-Reply-To: <1553024.9jVC34qo6B@vostro.rjw.lan>
+Content-Language: en-US
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Toshi Kani <toshi.kani@hp.com>
-Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>, Bjorn Helgaas <bhelgaas@google.com>, Yinghai Lu <yinghai@kernel.org>, Jiang Liu <liuj97@gmail.com>
+To: "Rafael J. Wysocki" <rjw@sisk.pl>, Bjorn Helgaas <bhelgaas@google.com>
+Cc: Len Brown <lenb@kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "Zheng, Lv" <lv.zheng@intel.com>
 
-On Monday, January 07, 2013 10:16:59 AM Toshi Kani wrote:
-> On Mon, 2012-12-31 at 00:46 +0000, Rafael J. Wysocki wrote:
-> > From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
-> > 
-> > Commit 1d57433 (ACPI: Separate adding ACPI device objects from
-> > probing ACPI drivers) introduced an ACPI power resources management
-> 
-> I am seeing a different commit id for this.
-> 
-> commit 805d410fb0dbd65e1a57a810858fa2491e75822d
-> Author: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
-> Date:   Fri Dec 21 00:36:39 2012 +0100
-> 
->     ACPI: Separate adding ACPI device objects from probing ACPI drivers
-> 
-
-My bad, sorry.
-
-I rebased the branch without modifying the changelog of this patch.  It should
-be fixed now, but please note that the acpi-scan branch has changed.
-
-> > regression, because it didn't ensure that the power resources
-> > driver bind to the struct acpi_device objects corresponding
-> > to power resources as soon as they were created.  As a result,
-> > ACPI power management routines may attempt to access power resource
-> > objects before they are ready to use.
-> > 
-> > To fix this problem, tell the acpi_add_single_object() in
-> > acpi_bus_check_add() to probe the driver for objects of type
-> > ACPI_BUS_TYPE_POWER.  This fix has been verified to work on
-> > HP nx6325 where the problem was first observed.
-> > 
-> > Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
-> 
-> The change looks good.
-> 
-> Acked-by: Toshi Kani <toshi.kani@hp.com>
-
-Thanks a lot,
-Rafael
-
-
-> > ---
-> > 
-> > The commit mentioned in the changelog is in linux-next only for now, but
-> > it's likely to go upstream in this form anyway and the fix on top of the
-> > whole ACPI scan series is trivial.
-> > 
-> > Thanks,
-> > Rafael
-> > 
-> > ---
-> >  drivers/acpi/scan.c |    3 ++-
-> >  1 file changed, 2 insertions(+), 1 deletion(-)
-> > 
-> > Index: linux/drivers/acpi/scan.c
-> > ===================================================================
-> > --- linux.orig/drivers/acpi/scan.c
-> > +++ linux/drivers/acpi/scan.c
-> > @@ -1606,7 +1606,8 @@ static acpi_status acpi_bus_check_add(ac
-> >  		return AE_CTRL_DEPTH;
-> >  	}
-> >  
-> > -	acpi_add_single_object(&device, handle, type, sta, false);
-> > +	acpi_add_single_object(&device, handle, type, sta,
-> > +			       type == ACPI_BUS_TYPE_POWER);
-> >  	if (!device)
-> >  		return AE_CTRL_DEPTH;
-> >  
-> > 
-> 
-> 
--- 
-I speak only for myself.
-Rafael J. Wysocki, Intel Open Source Technology Center.
+WWVzLg0KDQoNCj4gLS0tLS1PcmlnaW5hbCBNZXNzYWdlLS0tLS0NCj4gRnJvbTogUmFmYWVsIEou
+IFd5c29ja2kgW21haWx0bzpyandAc2lzay5wbF0NCj4gU2VudDogRnJpZGF5LCBKYW51YXJ5IDA0
+LCAyMDEzIDM6NDMgUE0NCj4gVG86IEJqb3JuIEhlbGdhYXM7IE1vb3JlLCBSb2JlcnQNCj4gQ2M6
+IExlbiBCcm93bjsgbGludXgtYWNwaUB2Z2VyLmtlcm5lbC5vcmc7IFpoZW5nLCBMdg0KPiBTdWJq
+ZWN0OiBSZTogW1BBVENIXSBBQ1BJQ0E6IEFkZCBuZXdsaW5lcyB0byBod3ZhbGlkIGRlYnVnIG91
+dHB1dA0KPiANCj4gT24gRnJpZGF5LCBKYW51YXJ5IDA0LCAyMDEzIDAzOjI0OjI4IFBNIEJqb3Ju
+IEhlbGdhYXMgd3JvdGU6DQo+ID4gQWRkIG5ld2xpbmVzIHRvIGF2b2lkIHJ1bi1vbiBkZWJ1ZyBv
+dXRwdXQuDQo+IA0KPiBUaGlzIGhhcyB0byBnbyB0aHJvdWdoIEFDUElDQSB1cHN0cmVhbS4NCj4g
+DQo+IEJvYiwgY2FuIHlvdSB0YWtlIGl0LCBwbGVhc2U/DQo+IA0KPiBSYWZhZWwNCj4gDQo+IA0K
+PiA+IFNpZ25lZC1vZmYtYnk6IEJqb3JuIEhlbGdhYXMgPGJoZWxnYWFzQGdvb2dsZS5jb20+DQo+
+ID4gLS0tDQo+ID4gIGRyaXZlcnMvYWNwaS9hY3BpY2EvaHd2YWxpZC5jIHwgICAgNCArKy0tDQo+
+ID4gIDEgZmlsZXMgY2hhbmdlZCwgMiBpbnNlcnRpb25zKCspLCAyIGRlbGV0aW9ucygtKQ0KPiA+
+DQo+ID4gZGlmZiAtLWdpdCBhL2RyaXZlcnMvYWNwaS9hY3BpY2EvaHd2YWxpZC5jDQo+ID4gYi9k
+cml2ZXJzL2FjcGkvYWNwaWNhL2h3dmFsaWQuYyBpbmRleCBiNmFhZTU4Li4wNGFiNGEyIDEwMDY0
+NA0KPiA+IC0tLSBhL2RyaXZlcnMvYWNwaS9hY3BpY2EvaHd2YWxpZC5jDQo+ID4gKysrIGIvZHJp
+dmVycy9hY3BpL2FjcGljYS9od3ZhbGlkLmMNCj4gPiBAQCAtMTQyLDcgKzE0Miw3IEBAIGFjcGlf
+aHdfdmFsaWRhdGVfaW9fcmVxdWVzdChhY3BpX2lvX2FkZHJlc3MgYWRkcmVzcywNCj4gdTMyIGJp
+dF93aWR0aCkNCj4gPiAgCWJ5dGVfd2lkdGggPSBBQ1BJX0RJVl84KGJpdF93aWR0aCk7DQo+ID4g
+IAlsYXN0X2FkZHJlc3MgPSBhZGRyZXNzICsgYnl0ZV93aWR0aCAtIDE7DQo+ID4NCj4gPiAtCUFD
+UElfREVCVUdfUFJJTlQoKEFDUElfREJfSU8sICJBZGRyZXNzICVwIExhc3RBZGRyZXNzICVwIExl
+bmd0aCAlWCIsDQo+ID4gKwlBQ1BJX0RFQlVHX1BSSU5UKChBQ1BJX0RCX0lPLCAiQWRkcmVzcyAl
+cCBMYXN0QWRkcmVzcyAlcCBMZW5ndGgNCj4gPiArJVhcbiIsDQo+ID4gIAkJCSAgQUNQSV9DQVNU
+X1BUUih2b2lkLCBhZGRyZXNzKSwgQUNQSV9DQVNUX1BUUih2b2lkLA0KPiA+ICAJCQkJCQkJCSAg
+ICAgIGxhc3RfYWRkcmVzcyksDQo+ID4gIAkJCSAgYnl0ZV93aWR0aCkpOw0KPiA+IEBAIC0xODEs
+NyArMTgxLDcgQEAgYWNwaV9od192YWxpZGF0ZV9pb19yZXF1ZXN0KGFjcGlfaW9fYWRkcmVzcw0K
+PiA+IGFkZHJlc3MsIHUzMiBiaXRfd2lkdGgpDQo+ID4NCj4gPiAgCQkJaWYgKGFjcGlfZ2JsX29z
+aV9kYXRhID49IHBvcnRfaW5mby0+b3NpX2RlcGVuZGVuY3kpIHsNCj4gPiAgCQkJCUFDUElfREVC
+VUdfUFJJTlQoKEFDUElfREJfSU8sDQo+ID4gLQkJCQkJCSAgIkRlbmllZCBBTUwgYWNjZXNzIHRv
+IHBvcnQgMHglcC8lWA0KPiAoJXMgMHglLjRYLTB4JS40WCkiLA0KPiA+ICsJCQkJCQkgICJEZW5p
+ZWQgQU1MIGFjY2VzcyB0byBwb3J0IDB4JXAvJVgNCj4gKCVzIDB4JS40WC0weCUuNFgpXG4iLA0K
+PiA+ICAJCQkJCQkgIEFDUElfQ0FTVF9QVFIodm9pZCwgYWRkcmVzcyksDQo+ID4gIAkJCQkJCSAg
+Ynl0ZV93aWR0aCwgcG9ydF9pbmZvLT5uYW1lLA0KPiA+ICAJCQkJCQkgIHBvcnRfaW5mby0+c3Rh
+cnQsDQo+ID4NCj4gLS0NCj4gSSBzcGVhayBvbmx5IGZvciBteXNlbGYuDQo+IFJhZmFlbCBKLiBX
+eXNvY2tpLCBJbnRlbCBPcGVuIFNvdXJjZSBUZWNobm9sb2d5IENlbnRlci4NCg==
