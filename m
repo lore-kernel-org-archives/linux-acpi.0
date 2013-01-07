@@ -1,65 +1,54 @@
-From: Aaron Lu <aaron.lu@intel.com>
-Subject: Re: [PATCH v11 9/9] libata: do not suspend port if normal ODD is
- attached
-Date: Mon, 07 Jan 2013 09:09:41 +0800
-Message-ID: <50EA2055.1030600@intel.com>
-References: <1357440509-28108-1-git-send-email-aaron.lu@intel.com> <1357440509-28108-10-git-send-email-aaron.lu@intel.com> <50E98B7C.7030908@mvista.com>
+From: Kamezawa Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Subject: Re: [PATCH v5 14/14] memory-hotplug: free node_data when a node is
+ offlined
+Date: Mon, 07 Jan 2013 14:30:37 +0900
+Message-ID: <50EA5D7D.7000703@jp.fujitsu.com>
+References: <1356350964-13437-1-git-send-email-tangchen@cn.fujitsu.com> <1356350964-13437-15-git-send-email-tangchen@cn.fujitsu.com> <50DA7533.6060407@jp.fujitsu.com> <50DC3C26.6060308@cn.fujitsu.com> <50DCE7C0.8070407@jp.fujitsu.com> <50DFD8F4.7040301@cn.fujitsu.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=ISO-2022-JP
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-pm-owner@vger.kernel.org>
-In-Reply-To: <50E98B7C.7030908@mvista.com>
-Sender: linux-pm-owner@vger.kernel.org
-To: Sergei Shtylyov <sshtylyov@mvista.com>
-Cc: Jeff Garzik <jgarzik@pobox.com>, James Bottomley <James.Bottomley@hansenpartnership.com>, "Rafael J. Wysocki" <rjw@sisk.pl>, Alan Stern <stern@rowland.harvard.edu>, Tejun Heo <tj@kernel.org>, Aaron Lu <aaron.lwe@gmail.com>, Jeff Wu <jeff.wu@amd.com>, linux-ide@vger.kernel.org, linux-pm@vger.kernel.org, linux-scsi@vger.kernel.org, linux-acpi@vger.kernel.org
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from fgwmail5.fujitsu.co.jp ([192.51.44.35]:56859 "EHLO
+	fgwmail5.fujitsu.co.jp" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750776Ab3AGFbd (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 7 Jan 2013 00:31:33 -0500
+In-Reply-To: <50DFD8F4.7040301@cn.fujitsu.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Wen Congyang <wency@cn.fujitsu.com>
+Cc: Tang Chen <tangchen@cn.fujitsu.com>, akpm@linux-foundation.org, rientjes@google.com, liuj97@gmail.com, len.brown@intel.com, benh@kernel.crashing.org, paulus@samba.org, cl@linux.com, minchan.kim@gmail.com, kosaki.motohiro@jp.fujitsu.com, isimatu.yasuaki@jp.fujitsu.com, wujianguo@huawei.com, hpa@zytor.com, linfeng@cn.fujitsu.com, laijs@cn.fujitsu.com, mgorman@suse.de, yinghai@kernel.org, x86@kernel.org, linux-mm@kvack.org, linux-kernel@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, linux-acpi@vger.kernel.org, linux-s390@vger.kernel.org, linux-sh@vger.kernel.org, linux-ia64@vger.kernel.org, cmetcalf@tilera.com, sparclinux@vger.kernel.org
 
-Hi Sergei,
-
-Thanks for reviewing, will update in next revision.
-
--Aaron
-
-On 01/06/2013 10:34 PM, Sergei Shtylyov wrote:
-> Hello.
-> 
-> On 06-01-2013 6:48, Aaron Lu wrote:
-> 
->> For ODDs, the upper layer will poll for media change every a few
->> seconds, which will make it enter and leave suspend state very
->> oftern. And as each suspend will also cause a hard/soft reset,
-> 
->     s/oftern/often/
-> 
->> the gain of runtime suspend is very little while the ODD may
->> mis-function after constantly being reset. So the idle callback
->> here will not proceed to suspend if a non-ZPODD capable ODD is
->> attached to the port.
-> 
->> Signed-off-by: Aaron Lu <aaron.lu@intel.com>
->> ---
->>   drivers/ata/libata-core.c | 19 +++++++++++++++++++
->>   1 file changed, 19 insertions(+)
-> 
->> diff --git a/drivers/ata/libata-core.c b/drivers/ata/libata-core.c
->> index 65a362e..f664a90 100644
->> --- a/drivers/ata/libata-core.c
->> +++ b/drivers/ata/libata-core.c
->> @@ -5408,8 +5408,27 @@ static int ata_port_resume(struct device *dev)
->>   	return rc;
->>   }
+(2012/12/30 15:02), Wen Congyang wrote:
+> At 12/28/2012 08:28 AM, Kamezawa Hiroyuki Wrote:
+>> (2012/12/27 21:16), Wen Congyang wrote:
+>>> At 12/26/2012 11:55 AM, Kamezawa Hiroyuki Wrote:
+>>>> (2012/12/24 21:09), Tang Chen wrote:
+>>>>> From: Wen Congyang <wency@cn.fujitsu.com>
+>>>>>
+>>>>> We call hotadd_new_pgdat() to allocate memory to store node_data. So we
+>>>>> should free it when removing a node.
+>>>>>
+>>>>> Signed-off-by: Wen Congyang <wency@cn.fujitsu.com>
+>>>>
+>>>> I'm sorry but is it safe to remove pgdat ? All zone cache and zonelists are
+>>>> properly cleared/rebuilded in synchronous way ? and No threads are visinting
+>>>> zone in vmscan.c ?
+>>>
+>>> We have rebuilt zonelists when a zone has no memory after offlining some pages.
+>>>
 >>
->> +/*
->> + * For ODDs, the upper layer will poll for media change every a few seconds,
->> + * which will make it enter and leave suspend state every a few seconds. And
+>> How do you guarantee that the address of pgdat/zone is not on stack of any kernel
+>> threads or other kernel objects without reference counting or other syncing method ?
 > 
->     Article is not needed before "few". (Same comment to the changelog.)
+> No way to guarentee this. But, the kernel should not use the address of pgdat/zone when
+> it is offlined.
 > 
->> + * as each suspend will cause a hard/soft reset, the gain of runtime suspend
->> + * is very little and the ODD may mis-function after constantly being reset.
+> Hmm, what about this: reuse the memory when the node is onlined again?
 > 
->     s/mis-function/malfunction/ perhaps? (Same in the changelog.)
-> 
-> MBR, Sergei
-> 
+
+That's the only way which we can go now. Please don't free it.
+
+Thanks,
+-Kame
+
 
