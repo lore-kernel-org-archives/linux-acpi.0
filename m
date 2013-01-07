@@ -1,31 +1,83 @@
-From: "Alexander E. Patrakov" <patrakov@gmail.com>
-Subject: Re: Excessive power consumption on Sony VAIO VPCZ23A4R
-Date: Mon, 7 Jan 2013 17:04:18 +0600
-Message-ID: <CAN_LGv34UJoHN7um_h1SFBuxpnjVuGqt452EJE4DEZKhhQPRMg@mail.gmail.com>
-References: <CAN_LGv1fZraYbH7LCUwS8L=KsX9vsr8NK7hG+64s51TwPG4mRw@mail.gmail.com>
-	<1939348.oLSthUfcvW@vostro.rjw.lan>
+From: Toshi Kani <toshi.kani@hp.com>
+Subject: Re: [PATCH] ACPI / scan: Treat power resources in a special way
+Date: Mon, 07 Jan 2013 10:16:59 -0700
+Message-ID: <1357579019.2153.2.camel@misato.fc.hp.com>
+References: <1565436.cOJ1sW4X70@vostro.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-qc0-f174.google.com ([209.85.216.174]:60753 "EHLO
-	mail-qc0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751808Ab3AGLET (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 7 Jan 2013 06:04:19 -0500
-Received: by mail-qc0-f174.google.com with SMTP id o22so12089218qcr.19
-        for <linux-acpi@vger.kernel.org>; Mon, 07 Jan 2013 03:04:19 -0800 (PST)
-In-Reply-To: <1939348.oLSthUfcvW@vostro.rjw.lan>
+Received: from g5t0008.atlanta.hp.com ([15.192.0.45]:37030 "EHLO
+	g5t0008.atlanta.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753662Ab3AGR0k (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 7 Jan 2013 12:26:40 -0500
+In-Reply-To: <1565436.cOJ1sW4X70@vostro.rjw.lan>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: linux-acpi@vger.kernel.org
+Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>, Bjorn Helgaas <bhelgaas@google.com>, Yinghai Lu <yinghai@kernel.org>, Jiang Liu <liuj97@gmail.com>
 
-2013/1/6 Rafael J. Wysocki <rjw@sisk.pl>:
-> Most likely that's not the case.  I suppose that the graphics power management
-> is more aggressive on Windows and that depends on the graphics driver.
+On Mon, 2012-12-31 at 00:46 +0000, Rafael J. Wysocki wrote:
+> From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+> 
+> Commit 1d57433 (ACPI: Separate adding ACPI device objects from
+> probing ACPI drivers) introduced an ACPI power resources management
 
-I have enabled rc6pp by adding the i915.i915_enable_rc6=7 option.
-Powertop now says that rc6pp is used, but the effect on power
-consumption is not noticeable,
+I am seeing a different commit id for this.
 
--- 
-Alexander E. Patrakov
+commit 805d410fb0dbd65e1a57a810858fa2491e75822d
+Author: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+Date:   Fri Dec 21 00:36:39 2012 +0100
+
+    ACPI: Separate adding ACPI device objects from probing ACPI drivers
+
+> regression, because it didn't ensure that the power resources
+> driver bind to the struct acpi_device objects corresponding
+> to power resources as soon as they were created.  As a result,
+> ACPI power management routines may attempt to access power resource
+> objects before they are ready to use.
+> 
+> To fix this problem, tell the acpi_add_single_object() in
+> acpi_bus_check_add() to probe the driver for objects of type
+> ACPI_BUS_TYPE_POWER.  This fix has been verified to work on
+> HP nx6325 where the problem was first observed.
+> 
+> Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+
+The change looks good.
+
+Acked-by: Toshi Kani <toshi.kani@hp.com>
+
+Thanks,
+-Toshi
+
+> ---
+> 
+> The commit mentioned in the changelog is in linux-next only for now, but
+> it's likely to go upstream in this form anyway and the fix on top of the
+> whole ACPI scan series is trivial.
+> 
+> Thanks,
+> Rafael
+> 
+> ---
+>  drivers/acpi/scan.c |    3 ++-
+>  1 file changed, 2 insertions(+), 1 deletion(-)
+> 
+> Index: linux/drivers/acpi/scan.c
+> ===================================================================
+> --- linux.orig/drivers/acpi/scan.c
+> +++ linux/drivers/acpi/scan.c
+> @@ -1606,7 +1606,8 @@ static acpi_status acpi_bus_check_add(ac
+>  		return AE_CTRL_DEPTH;
+>  	}
+>  
+> -	acpi_add_single_object(&device, handle, type, sta, false);
+> +	acpi_add_single_object(&device, handle, type, sta,
+> +			       type == ACPI_BUS_TYPE_POWER);
+>  	if (!device)
+>  		return AE_CTRL_DEPTH;
+>  
+> 
+
+
