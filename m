@@ -1,32 +1,94 @@
-From: Tejun Heo <tj@kernel.org>
-Subject: Re: [PATCH v11 0/9] ZPODD Patches
-Date: Mon, 7 Jan 2013 10:49:28 -0800
-Message-ID: <20130107184928.GV3926@htj.dyndns.org>
-References: <1357440509-28108-1-git-send-email-aaron.lu@intel.com>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: Re: [PATCH] ACPI / scan: Treat power resources in a special way
+Date: Mon, 07 Jan 2013 22:02:59 +0100
+Message-ID: <1458998.lg5S0BfPCV@vostro.rjw.lan>
+References: <1565436.cOJ1sW4X70@vostro.rjw.lan> <1357579019.2153.2.camel@misato.fc.hp.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-pm-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <1357440509-28108-1-git-send-email-aaron.lu@intel.com>
-Sender: linux-pm-owner@vger.kernel.org
-To: Aaron Lu <aaron.lu@intel.com>
-Cc: Jeff Garzik <jgarzik@pobox.com>, James Bottomley <James.Bottomley@hansenpartnership.com>, "Rafael J. Wysocki" <rjw@sisk.pl>, Alan Stern <stern@rowland.harvard.edu>, Aaron Lu <aaron.lwe@gmail.com>, Jeff Wu <jeff.wu@amd.com>, linux-ide@vger.kernel.org, linux-pm@vger.kernel.org, linux-scsi@vger.kernel.org, linux-acpi@vger.kernel.org
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7Bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from hydra.sisk.pl ([212.160.235.94]:34336 "EHLO hydra.sisk.pl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755658Ab3AGU5R (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 7 Jan 2013 15:57:17 -0500
+In-Reply-To: <1357579019.2153.2.camel@misato.fc.hp.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Toshi Kani <toshi.kani@hp.com>
+Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>, Bjorn Helgaas <bhelgaas@google.com>, Yinghai Lu <yinghai@kernel.org>, Jiang Liu <liuj97@gmail.com>
 
-Hello, Aaron.
+On Monday, January 07, 2013 10:16:59 AM Toshi Kani wrote:
+> On Mon, 2012-12-31 at 00:46 +0000, Rafael J. Wysocki wrote:
+> > From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+> > 
+> > Commit 1d57433 (ACPI: Separate adding ACPI device objects from
+> > probing ACPI drivers) introduced an ACPI power resources management
+> 
+> I am seeing a different commit id for this.
+> 
+> commit 805d410fb0dbd65e1a57a810858fa2491e75822d
+> Author: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+> Date:   Fri Dec 21 00:36:39 2012 +0100
+> 
+>     ACPI: Separate adding ACPI device objects from probing ACPI drivers
+> 
 
-On Sun, Jan 06, 2013 at 10:48:20AM +0800, Aaron Lu wrote:
-> v11:
-> Introduce event_driven flag in scsi_device to silence the media event
-> poll after ODD is powered off;
-> Removed ata layer PM QOS control, instead, simply limit ACPI state to
-> D3_HOT when choosing state;
-> Make the power off delay a module param named zpodd_poweroff_delay,
-> defaults to 30 seconds.
+My bad, sorry.
 
-Other than the nitpicks.  The series generally looks good to me.
+I rebased the branch without modifying the changelog of this patch.  It should
+be fixed now, but please note that the acpi-scan branch has changed.
 
-Thanks a lot!
+> > regression, because it didn't ensure that the power resources
+> > driver bind to the struct acpi_device objects corresponding
+> > to power resources as soon as they were created.  As a result,
+> > ACPI power management routines may attempt to access power resource
+> > objects before they are ready to use.
+> > 
+> > To fix this problem, tell the acpi_add_single_object() in
+> > acpi_bus_check_add() to probe the driver for objects of type
+> > ACPI_BUS_TYPE_POWER.  This fix has been verified to work on
+> > HP nx6325 where the problem was first observed.
+> > 
+> > Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+> 
+> The change looks good.
+> 
+> Acked-by: Toshi Kani <toshi.kani@hp.com>
 
+Thanks a lot,
+Rafael
+
+
+> > ---
+> > 
+> > The commit mentioned in the changelog is in linux-next only for now, but
+> > it's likely to go upstream in this form anyway and the fix on top of the
+> > whole ACPI scan series is trivial.
+> > 
+> > Thanks,
+> > Rafael
+> > 
+> > ---
+> >  drivers/acpi/scan.c |    3 ++-
+> >  1 file changed, 2 insertions(+), 1 deletion(-)
+> > 
+> > Index: linux/drivers/acpi/scan.c
+> > ===================================================================
+> > --- linux.orig/drivers/acpi/scan.c
+> > +++ linux/drivers/acpi/scan.c
+> > @@ -1606,7 +1606,8 @@ static acpi_status acpi_bus_check_add(ac
+> >  		return AE_CTRL_DEPTH;
+> >  	}
+> >  
+> > -	acpi_add_single_object(&device, handle, type, sta, false);
+> > +	acpi_add_single_object(&device, handle, type, sta,
+> > +			       type == ACPI_BUS_TYPE_POWER);
+> >  	if (!device)
+> >  		return AE_CTRL_DEPTH;
+> >  
+> > 
+> 
+> 
 -- 
-tejun
+I speak only for myself.
+Rafael J. Wysocki, Intel Open Source Technology Center.
