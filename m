@@ -1,73 +1,126 @@
-From: Aaron Lu <aaron.lu@intel.com>
-Subject: Re: [PATCH v11 6/9] libata: handle power transition of ODD
-Date: Tue, 08 Jan 2013 17:09:48 +0800
-Message-ID: <50EBE25C.30504@intel.com>
-References: <1357440509-28108-1-git-send-email-aaron.lu@intel.com> <1357440509-28108-7-git-send-email-aaron.lu@intel.com> <20130107184245.GS3926@htj.dyndns.org>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga09.intel.com ([134.134.136.24]:26405 "EHLO mga09.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752899Ab3AHJJK (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 8 Jan 2013 04:09:10 -0500
-In-Reply-To: <20130107184245.GS3926@htj.dyndns.org>
-Sender: linux-acpi-owner@vger.kernel.org
+From: Mika Westerberg <mika.westerberg@linux.intel.com>
+Subject: [PATCH] HID: i2c-hid: add ACPI support
+Date: Tue,  8 Jan 2013 15:05:32 +0200
+Message-ID: <1357650332-30031-1-git-send-email-mika.westerberg@linux.intel.com>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: linux-input@vger.kernel.org
+Cc: Jiri Kosina <jkosina@suse.cz>, Benjamin Tissoires <benjamin.tissoires@gmail.com>, Jean Delvare <khali@linux-fr.org>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Mika Westerberg <mika.westerberg@linux.intel.com>
 List-Id: linux-acpi@vger.kernel.org
-To: Tejun Heo <tj@kernel.org>
-Cc: Jeff Garzik <jgarzik@pobox.com>, James Bottomley <James.Bottomley@hansenpartnership.com>, "Rafael J. Wysocki" <rjw@sisk.pl>, Alan Stern <stern@rowland.harvard.edu>, Aaron Lu <aaron.lwe@gmail.com>, Jeff Wu <jeff.wu@amd.com>, linux-ide@vger.kernel.org, linux-pm@vger.kernel.org, linux-scsi@vger.kernel.org, linux-acpi@vger.kernel.org
 
-On 01/08/2013 02:42 AM, Tejun Heo wrote:
-> On Sun, Jan 06, 2013 at 10:48:26AM +0800, Aaron Lu wrote:
->> +bool zpodd_zpready(struct ata_device *dev)
->> +{
->> +	struct zpodd *zpodd = dev->zpodd;
->> +	return zpodd->zp_ready;
->> +}
->> +
->> +void zpodd_pre_poweroff(struct ata_device *dev)
->> +{
->> +	struct zpodd *zpodd = dev->zpodd;
->> +
->> +	zpodd->powered_off = true;
->> +	device_set_run_wake(&dev->sdev->sdev_gendev, true);
->> +	acpi_pm_device_run_wake(&dev->sdev->sdev_gendev, true);
->> +}
->> +
->> +void zpodd_pre_poweron(struct ata_device *dev)
->> +{
->> +	struct zpodd *zpodd = dev->zpodd;
->> +
->> +	if (zpodd->powered_off) {
->> +		acpi_pm_device_run_wake(&dev->sdev->sdev_gendev, false);
->> +		device_set_run_wake(&dev->sdev->sdev_gendev, false);
->> +	}
->> +}
->> +
->> +void zpodd_post_resume(struct ata_device *dev)
->> +{
->> +	struct zpodd *zpodd = dev->zpodd;
->> +
->> +	if (!zpodd->powered_off)
->> +		return;
->> +
->> +	zpodd->powered_off = false;
->> +
->> +	if (zpodd->from_notify) {
->> +		zpodd->from_notify = false;
->> +		if (zpodd->drawer)
->> +			eject_tray(dev);
->> +	}
->> +
->> +	zpodd->last_ready = 0;
->> +	zpodd->zp_ready = false;
->> +}
-> 
-> I would really appreciate some comments at least on functions visible
-> outside zpodd.c.  Please add proper function comments explaining what
-> they're doing to achieve what.
+The HID over I2C protocol specification states that when the device is
+enumerated from ACPI the HID descriptor address can be obtained by
+executing "_DSM" for the device with function 1. Enable this.
 
-Will add them in next version, thanks.
+Signed-off-by: Mika Westerberg <mika.westerberg@linux.intel.com>
+---
+ drivers/hid/i2c-hid/i2c-hid.c |   73 +++++++++++++++++++++++++++++++++++++++--
+ 1 file changed, 71 insertions(+), 2 deletions(-)
 
--Aaron
-
+diff --git a/drivers/hid/i2c-hid/i2c-hid.c b/drivers/hid/i2c-hid/i2c-hid.c
+index 9ef22244..b2eebb6 100644
+--- a/drivers/hid/i2c-hid/i2c-hid.c
++++ b/drivers/hid/i2c-hid/i2c-hid.c
+@@ -34,6 +34,7 @@
+ #include <linux/kernel.h>
+ #include <linux/hid.h>
+ #include <linux/mutex.h>
++#include <linux/acpi.h>
+ 
+ #include <linux/i2c/i2c-hid.h>
+ 
+@@ -810,6 +811,70 @@ static int __devinit i2c_hid_fetch_hid_descriptor(struct i2c_hid *ihid)
+ 	return 0;
+ }
+ 
++#ifdef CONFIG_ACPI
++static struct i2c_hid_platform_data *
++i2c_hid_acpi_pdata(struct i2c_client *client)
++{
++	static u8 i2c_hid_guid[] = {
++		0xF7, 0xF6, 0xDF, 0x3C, 0x67, 0x42, 0x55, 0x45,
++		0xAD, 0x05, 0xB3, 0x0A, 0x3D, 0x89, 0x38, 0xDE,
++	};
++	struct acpi_buffer buf = { ACPI_ALLOCATE_BUFFER, NULL };
++	struct i2c_hid_platform_data *pdata = NULL;
++	union acpi_object params[4], *obj;
++	struct acpi_object_list input;
++	struct acpi_device *adev;
++	acpi_handle handle;
++
++	handle = ACPI_HANDLE(&client->dev);
++	if (!handle || acpi_bus_get_device(handle, &adev))
++		return NULL;
++
++	input.count = ARRAY_SIZE(params);
++	input.pointer = params;
++
++	params[0].type = ACPI_TYPE_BUFFER;
++	params[0].buffer.length = sizeof(i2c_hid_guid);
++	params[0].buffer.pointer = i2c_hid_guid;
++	params[1].type = ACPI_TYPE_INTEGER;
++	params[1].integer.value = 1;
++	params[2].type = ACPI_TYPE_INTEGER;
++	params[2].integer.value = 1; /* HID function */
++	params[3].type = ACPI_TYPE_INTEGER;
++	params[3].integer.value = 0;
++
++	if (ACPI_FAILURE(acpi_evaluate_object(handle, "_DSM", &input, &buf)))
++		return NULL;
++
++	obj = (union acpi_object *)buf.pointer;
++	if (obj->type != ACPI_TYPE_INTEGER)
++		goto fail;
++
++	pdata = devm_kzalloc(&client->dev, sizeof(*pdata), GFP_KERNEL);
++	if (!pdata)
++		goto fail;
++
++	pdata->hid_descriptor_address = obj->integer.value;
++
++fail:
++	kfree(buf.pointer);
++	return pdata;
++}
++
++static struct acpi_device_id i2c_hid_acpi_match[] = {
++	{"ACPI0C50", 0 },
++	{"PNP0C50", 0 },
++	{ },
++};
++MODULE_DEVICE_TABLE(acpi, i2c_hid_acpi_match);
++#else
++static inline struct i2c_hid_platform_data *
++i2c_hid_acpi_pdata(struct i2c_client *client)
++{
++	return NULL;
++}
++#endif
++
+ static int __devinit i2c_hid_probe(struct i2c_client *client,
+ 		const struct i2c_device_id *dev_id)
+ {
+@@ -822,8 +887,11 @@ static int __devinit i2c_hid_probe(struct i2c_client *client,
+ 	dbg_hid("HID probe called for i2c 0x%02x\n", client->addr);
+ 
+ 	if (!platform_data) {
+-		dev_err(&client->dev, "HID register address not provided\n");
+-		return -EINVAL;
++		platform_data = i2c_hid_acpi_pdata(client);
++		if (!platform_data) {
++			dev_err(&client->dev, "HID register address not provided\n");
++			return -EINVAL;
++		}
+ 	}
+ 
+ 	if (!client->irq) {
+@@ -964,6 +1032,7 @@ static struct i2c_driver i2c_hid_driver = {
+ 		.name	= "i2c_hid",
+ 		.owner	= THIS_MODULE,
+ 		.pm	= &i2c_hid_pm,
++		.acpi_match_table = ACPI_PTR(i2c_hid_acpi_match),
+ 	},
+ 
+ 	.probe		= i2c_hid_probe,
+-- 
+1.7.10.4
