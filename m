@@ -1,145 +1,125 @@
-From: Mika Westerberg <mika.westerberg@linux.intel.com>
-Subject: Re: [PATCH] HID: i2c-hid: add ACPI support
-Date: Wed, 9 Jan 2013 11:28:17 +0200
-Message-ID: <20130109092817.GP13897@intel.com>
-References: <1357650332-30031-1-git-send-email-mika.westerberg@linux.intel.com>
- <CAN+gG=HzJaOwPfymx5JST1+r9QxfqU5D-gN8i95aVDkqQ=ot8Q@mail.gmail.com>
- <20130108180958.GL13897@intel.com>
- <CAN+gG=FGv=VJ=6Db_s7p_7XJQi3=FJXDfqeE1AVPtFznHnWQ0Q@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-input-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <CAN+gG=FGv=VJ=6Db_s7p_7XJQi3=FJXDfqeE1AVPtFznHnWQ0Q@mail.gmail.com>
-Sender: linux-input-owner@vger.kernel.org
-To: Benjamin Tissoires <benjamin.tissoires@gmail.com>
-Cc: linux-input@vger.kernel.org, Jiri Kosina <jkosina@suse.cz>, Jean Delvare <khali@linux-fr.org>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
+From: Tang Chen <tangchen@cn.fujitsu.com>
+Subject: [PATCH v6 07/15] memory-hotplug: move pgdat_resize_lock into sparse_remove_one_section()
+Date: Wed, 9 Jan 2013 17:32:31 +0800
+Message-ID: <1357723959-5416-8-git-send-email-tangchen@cn.fujitsu.com>
+References: <1357723959-5416-1-git-send-email-tangchen@cn.fujitsu.com>
+Return-path: <owner-linux-mm@kvack.org>
+In-Reply-To: <1357723959-5416-1-git-send-email-tangchen@cn.fujitsu.com>
+Sender: owner-linux-mm@kvack.org
+To: akpm@linux-foundation.org, rientjes@google.com, len.brown@intel.com, benh@kernel.crashing.org, paulus@samba.org, cl@linux.com, minchan.kim@gmail.com, kosaki.motohiro@jp.fujitsu.com, isimatu.yasuaki@jp.fujitsu.com, wujianguo@huawei.com, wency@cn.fujitsu.com, tangchen@cn.fujitsu.com, hpa@zytor.com, linfeng@cn.fujitsu.com, laijs@cn.fujitsu.com, mgorman@suse.de, yinghai@kernel.org, glommer@parallels.com
+Cc: x86@kernel.org, linux-mm@kvack.org, linux-kernel@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, linux-acpi@vger.kernel.org, linux-s390@vger.kernel.org, linux-sh@vger.kernel.org, linux-ia64@vger.kernel.org, cmetcalf@tilera.com, sparclinux@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Tue, Jan 08, 2013 at 10:55:59PM +0100, Benjamin Tissoires wrote:
-> On Tue, Jan 8, 2013 at 7:09 PM, Mika Westerberg
-> <mika.westerberg@linux.intel.com> wrote:
-> > On Tue, Jan 08, 2013 at 02:51:53PM +0100, Benjamin Tissoires wrote:
-> >> Hi Mika,
-> >>
-> >> On Tue, Jan 8, 2013 at 2:05 PM, Mika Westerberg
-> >> <mika.westerberg@linux.intel.com> wrote:
-> >> > The HID over I2C protocol specification states that when the device is
-> >> > enumerated from ACPI the HID descriptor address can be obtained by
-> >> > executing "_DSM" for the device with function 1. Enable this.
-> >>
-> >> Hehe, funny thing, I worked on the very same patch last Friday. I was
-> >> not able to send it upstream as I still don't have an ACPI 5 enabled
-> >> device...
-> >> So thanks for submitting (and testing) this!
-> >>
-> >> Before the review, I just have a quick question. All the HID/i2c
-> >> devices I saw so far present a reset line (through a GPIO). Does the
-> >> shipped device you have present this line, and if yes, how this meld
-> >> with the code (i.e. should we take this into account).
-> >
-> > Yes, there is either one or two GPIO lines. But there are also devices that
-> > don't have any GPIO lines.
-> 
-> Ouch. But if they don't have any GPIO, how can they manage to send
-> information? If they are using polling, then this will require some
-> more work in i2c-hid :(
+In __remove_section(), we locked pgdat_resize_lock when calling
+sparse_remove_one_section(). This lock will disable irq. But we don't need
+to lock the whole function. If we do some work to free pagetables in
+free_section_usemap(), we need to call flush_tlb_all(), which need
+irq enabled. Otherwise the WARN_ON_ONCE() in smp_call_function_many()
+will be triggered.
 
-Well they don't have GPIO resources because their interrupt is directly
-routed to the ioapic and exposed as an Interrupt resource.
+If we lock the whole sparse_remove_one_section(), then we come to this call trace:
 
-> >
-> > We probably should take this into account. I'm not too familiar with HID
-> > drivers but what if we set the hid->dev.acpi_node and let the actual HID
-> > driver to deal with the GPIO?
-> 
-> Well, HID is a communication layer between the device and the kernel
-> in order to make it agnostic of the transport layer (usb, bt or i2c).
-> Even if some drivers do some transport tuning, I don't think it's a
-> good idea to ask HID drivers to do transport handling such as setting
-> up GPIOs.
+[  454.796248] ------------[ cut here ]------------
+[  454.851408] WARNING: at kernel/smp.c:461 smp_call_function_many+0xbd/0x260()
+[  454.935620] Hardware name: PRIMEQUEST 1800E
+......
+[  455.652201] Call Trace:
+[  455.681391]  [<ffffffff8106e73f>] warn_slowpath_common+0x7f/0xc0
+[  455.753151]  [<ffffffff810560a0>] ? leave_mm+0x50/0x50
+[  455.814527]  [<ffffffff8106e79a>] warn_slowpath_null+0x1a/0x20
+[  455.884208]  [<ffffffff810e7a9d>] smp_call_function_many+0xbd/0x260
+[  455.959082]  [<ffffffff810e7ecb>] smp_call_function+0x3b/0x50
+[  456.027722]  [<ffffffff810560a0>] ? leave_mm+0x50/0x50
+[  456.089098]  [<ffffffff810e7f4b>] on_each_cpu+0x3b/0xc0
+[  456.151512]  [<ffffffff81055f0c>] flush_tlb_all+0x1c/0x20
+[  456.216004]  [<ffffffff8104f8de>] remove_pagetable+0x14e/0x1d0
+[  456.285683]  [<ffffffff8104f978>] vmemmap_free+0x18/0x20
+[  456.349139]  [<ffffffff811b8797>] sparse_remove_one_section+0xf7/0x100
+[  456.427126]  [<ffffffff811c5fc2>] __remove_section+0xa2/0xb0
+[  456.494726]  [<ffffffff811c6070>] __remove_pages+0xa0/0xd0
+[  456.560258]  [<ffffffff81669c7b>] arch_remove_memory+0x6b/0xc0
+[  456.629937]  [<ffffffff8166ad28>] remove_memory+0xb8/0xf0
+[  456.694431]  [<ffffffff813e686f>] acpi_memory_device_remove+0x53/0x96
+[  456.771379]  [<ffffffff813b33c4>] acpi_device_remove+0x90/0xb2
+[  456.841059]  [<ffffffff8144b02c>] __device_release_driver+0x7c/0xf0
+[  456.915928]  [<ffffffff8144b1af>] device_release_driver+0x2f/0x50
+[  456.988719]  [<ffffffff813b4476>] acpi_bus_remove+0x32/0x6d
+[  457.055285]  [<ffffffff813b4542>] acpi_bus_trim+0x91/0x102
+[  457.120814]  [<ffffffff813b463b>] acpi_bus_hot_remove_device+0x88/0x16b
+[  457.199840]  [<ffffffff813afda7>] acpi_os_execute_deferred+0x27/0x34
+[  457.275756]  [<ffffffff81091ece>] process_one_work+0x20e/0x5c0
+[  457.345434]  [<ffffffff81091e5f>] ? process_one_work+0x19f/0x5c0
+[  457.417190]  [<ffffffff813afd80>] ? acpi_os_wait_events_complete+0x23/0x23
+[  457.499332]  [<ffffffff81093f6e>] worker_thread+0x12e/0x370
+[  457.565896]  [<ffffffff81093e40>] ? manage_workers+0x180/0x180
+[  457.635574]  [<ffffffff8109a09e>] kthread+0xee/0x100
+[  457.694871]  [<ffffffff810dfaf9>] ? __lock_release+0x129/0x190
+[  457.764552]  [<ffffffff81099fb0>] ? __init_kthread_worker+0x70/0x70
+[  457.839427]  [<ffffffff81690aac>] ret_from_fork+0x7c/0xb0
+[  457.903914]  [<ffffffff81099fb0>] ? __init_kthread_worker+0x70/0x70
+[  457.978784] ---[ end trace 25e85300f542aa01 ]---
 
-If they have reset GPIO or something like that, how else we should we
-handle this if not in the driver? The i2c-hid core doesn't know for what
-purpose a given GPIO line is.
+Signed-off-by: Tang Chen <tangchen@cn.fujitsu.com>
+Signed-off-by: Lai Jiangshan <laijs@cn.fujitsu.com>
+Signed-off-by: Wen Congyang <wency@cn.fujitsu.com>
+Acked-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+---
+ mm/memory_hotplug.c |    4 ----
+ mm/sparse.c         |    5 ++++-
+ 2 files changed, 4 insertions(+), 5 deletions(-)
 
-i2c-hid core can handle the GPIO interrupt if client->irq is not set (by
-converting the GPIO into interrupt number and passing it to the hid
-driver). I didn't implement that because we have the client->irq already
-set so I can't test this.
+diff --git a/mm/memory_hotplug.c b/mm/memory_hotplug.c
+index 0682d2a..674e791 100644
+--- a/mm/memory_hotplug.c
++++ b/mm/memory_hotplug.c
+@@ -442,8 +442,6 @@ static int __remove_section(struct zone *zone, struct mem_section *ms)
+ #else
+ static int __remove_section(struct zone *zone, struct mem_section *ms)
+ {
+-	unsigned long flags;
+-	struct pglist_data *pgdat = zone->zone_pgdat;
+ 	int ret = -EINVAL;
+ 
+ 	if (!valid_section(ms))
+@@ -453,9 +451,7 @@ static int __remove_section(struct zone *zone, struct mem_section *ms)
+ 	if (ret)
+ 		return ret;
+ 
+-	pgdat_resize_lock(pgdat, &flags);
+ 	sparse_remove_one_section(zone, ms);
+-	pgdat_resize_unlock(pgdat, &flags);
+ 	return 0;
+ }
+ #endif
+diff --git a/mm/sparse.c b/mm/sparse.c
+index aadbb2a..05ca73a 100644
+--- a/mm/sparse.c
++++ b/mm/sparse.c
+@@ -796,8 +796,10 @@ static inline void clear_hwpoisoned_pages(struct page *memmap, int nr_pages)
+ void sparse_remove_one_section(struct zone *zone, struct mem_section *ms)
+ {
+ 	struct page *memmap = NULL;
+-	unsigned long *usemap = NULL;
++	unsigned long *usemap = NULL, flags;
++	struct pglist_data *pgdat = zone->zone_pgdat;
+ 
++	pgdat_resize_lock(pgdat, &flags);
+ 	if (ms->section_mem_map) {
+ 		usemap = ms->pageblock_flags;
+ 		memmap = sparse_decode_mem_map(ms->section_mem_map,
+@@ -805,6 +807,7 @@ void sparse_remove_one_section(struct zone *zone, struct mem_section *ms)
+ 		ms->section_mem_map = 0;
+ 		ms->pageblock_flags = NULL;
+ 	}
++	pgdat_resize_unlock(pgdat, &flags);
+ 
+ 	clear_hwpoisoned_pages(memmap, PAGES_PER_SECTION);
+ 	free_section_usemap(memmap, usemap);
+-- 
+1.7.1
 
-> The closest thing which is already in the kernel tree is the handling
-> of device specific quirks in usbhid. We may be forced to do such a
-> thing if the DSDT is not explicit enough to guess the right behavior
-> (how to trigger the reset line, etc..)
-> 
-> Also, I missed one point in my previous review:
-> 
-> >
-> >> Please note that I can only compare this to my patch, based on the
-> >> DSDT example Microsoft gave in its spec. So sorry if I'm asking
-> >> useless things, but I like to understand... :)
-> >> Here are a few comments:
-> >>
-> >> >
-> >> > Signed-off-by: Mika Westerberg <mika.westerberg@linux.intel.com>
-> >> > ---
-> >> >  drivers/hid/i2c-hid/i2c-hid.c |   73 +++++++++++++++++++++++++++++++++++++++--
-> >> >  1 file changed, 71 insertions(+), 2 deletions(-)
-> >> >
-> >> > diff --git a/drivers/hid/i2c-hid/i2c-hid.c b/drivers/hid/i2c-hid/i2c-hid.c
-> >> > index 9ef22244..b2eebb6 100644
->  (...snipped...)
-> 
-> >> > +
-> >> > +       pdata = devm_kzalloc(&client->dev, sizeof(*pdata), GFP_KERNEL);
-> 
-> Here, I don't think mixing devm_* and regular allocations is a good thing.
-> I know it's a pain, but at the time I wrote the driver, the input
-> layer was not devm-ized, so I was not able to use devm allocs. Now it
-> should be feasible, but I didn't found the time to do it.
-> So I'm afraid, this allocation must use a regular kwalloc and it
-> should be freed somewhere later, until we devm-ize the whole module.
-
-Good point.
-
-I was thinking to embed the platform data in the i2c_hid structure so that
-it gets allocated at the same time as ihid and then we can handle setting
-the platform data like:
-
-	if (!platform_data) {
-		ret = i2c_hid_acpi_pdata(client, &ihid->pdata);
-		/* handle error */
-	} else {
-		ihid->pdata = *platform_data;	
-	}
-
-Does that sound feasible to you?
-
-> >> > +       if (!pdata)
-> >> > +               goto fail;
-> >>
-> 
-> (...snipped...)
-> >> >         if (!platform_data) {
-> >> > -               dev_err(&client->dev, "HID register address not provided\n");
-> >> > -               return -EINVAL;
-> >> > +               platform_data = i2c_hid_acpi_pdata(client);
-> >> > +               if (!platform_data) {
-> >> > +                       dev_err(&client->dev, "HID register address not provided\n");
-> >>
-> >> You may have a line with more than 80 characters here (it's difficult
-> >> to guess thanks to my gmail client converting tabs into spaces...
-> >> grrr)
-> >
-> > Shouldn't be as checkpatch.pl didn't complain but I'll re-check.
-> 
-> It's strange if it didn't complained: I count 61 chars for the
-> dev_err() message + 3 tabs * 8 chars => 85 chars in total...
-
-You are right, it is over 85 chars.
-
-I've learned that checkpatch.pl doesn't complain if the line is longer than
-80 chars, if it contains quoted string.
-
-I'll fix it up.
+--
+To unsubscribe, send a message with 'unsubscribe linux-mm' in
+the body to majordomo@kvack.org.  For more info on Linux MM,
+see: http://www.linux-mm.org/ .
+Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
