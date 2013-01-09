@@ -1,64 +1,45 @@
-From: Davidlohr Bueso <davidlohr.bueso@hp.com>
-Subject: Re: [PATCH] ACPI: SRAT: report non-volatile memory in debug
-Date: Tue, 08 Jan 2013 16:29:35 -0800
-Message-ID: <1357691375.1890.16.camel@buesod1.americas.hpqcorp.net>
-References: <1357690556.1890.13.camel@buesod1.americas.hpqcorp.net>
-	 <1692605.TGpS6mF86Q@vostro.rjw.lan>
+From: Toshi Kani <toshi.kani@hp.com>
+Subject: enabled and failed flags in acpi_memory_info
+Date: Tue, 08 Jan 2013 18:04:32 -0700
+Message-ID: <1357693472.14145.42.camel@misato.fc.hp.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from g1t0029.austin.hp.com ([15.216.28.36]:43747 "EHLO
-	g1t0029.austin.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755019Ab3AIA3h (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 8 Jan 2013 19:29:37 -0500
-In-Reply-To: <1692605.TGpS6mF86Q@vostro.rjw.lan>
+Received: from g4t0016.houston.hp.com ([15.201.24.19]:8489 "EHLO
+	g4t0016.houston.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755945Ab3AIBOO (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 8 Jan 2013 20:14:14 -0500
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+To: wency@cn.fujitsu.com
+Cc: isimatu.yasuaki@jp.fujitsu.com, linux-acpi@vger.kernel.org
 
-On Wed, 2013-01-09 at 01:34 +0100, Rafael J. Wysocki wrote:
-> On Tuesday, January 08, 2013 04:15:56 PM Davidlohr Bueso wrote:
-> > Just as with the other memory affinity flags, report
-> > non-volatile memory with ACPI debug.
-> 
-> Looks kind of good, but ->
-> 
-> > Signed-off-by: Davidlohr Bueso <davidlohr.bueso@hp.com>
-> > ---
-> >  drivers/acpi/numa.c | 4 +++-
-> >  1 file changed, 3 insertions(+), 1 deletion(-)
-> > 
-> > diff --git a/drivers/acpi/numa.c b/drivers/acpi/numa.c
-> > index cb31298..68077ac 100644
-> > --- a/drivers/acpi/numa.c
-> > +++ b/drivers/acpi/numa.c
-> > @@ -116,12 +116,14 @@ acpi_table_print_srat_entry(struct acpi_subtable_header *header)
-> >  			struct acpi_srat_mem_affinity *p =
-> >  			    (struct acpi_srat_mem_affinity *)header;
-> >  			ACPI_DEBUG_PRINT((ACPI_DB_INFO,
-> > -					  "SRAT Memory (0x%lx length 0x%lx) in proximity domain %d %s%s\n",
-> > +					  "SRAT Memory (0x%lx length 0x%lx) in proximity domain %d %s%s%s\n",
-> >  					  (unsigned long)p->base_address,
-> >  					  (unsigned long)p->length,
-> >  					  p->proximity_domain,
-> >  					  (p->flags & ACPI_SRAT_MEM_ENABLED)?
-> >  					  "enabled" : "disabled",
-> > +					  (p->flags & ACPI_SRAT_MEM_NON_VOLATILE)?
-> > +					  " non-volatile" : "",
-> 
-> -> why did you put non-volatile before hot-pluggable?
+Hi Wen,
 
-No particular reason. Should I send a v2 with non-volatile at the end?
+I have a question about the change you made in commit 65479472 in
+acpi_memhotplug.c.  This change seems to require that
+acpi_memory_enable_device() calls add_memory() to add all memory ranges
+represented by memory device objects at boot-time, and keep the results
+be used for hot-remove.  
 
-> 
-> >  					  (p->flags & ACPI_SRAT_MEM_HOT_PLUGGABLE)?
-> >  					  " hot-pluggable" : ""));
-> >  		}
-> 
-> Rafael
-> 
-> 
+If I understand it right, this add_memory() call fails with EEXIST at
+boot-time since all memory ranges should have been added from EFI memory
+table (or e820) already.  This results all memory ranges be marked as !
+enabled & !failed.  I think this means that we cannot hot-delete any
+memory ranges presented at boot-time since acpi_memory_remove_memory()
+only calls remove_memory() when the enabled flag is set.  Is that
+correct?  If so, why do we need such restriction?
 
+In addition, as part of RFC patchset of proposed hotplug framework below
+(well, this is why I am wondering this... :), I simply called
+add_memory() and remove_memory() for the ranges requested for hot-add /
+hot-delete.  It does not call add_memory() at boot-time and set the
+enabled & failed flags.  But it does not eject memory when
+remove_memory() failed, either.  Do you see any problems with this
+approach? 
+https://lkml.org/lkml/2012/12/12/457
+
+Thanks,
+-Toshi
 
