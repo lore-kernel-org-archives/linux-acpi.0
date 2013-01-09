@@ -1,43 +1,44 @@
-From: Bjorn Helgaas <bhelgaas@google.com>
+From: Yinghai Lu <yinghai@kernel.org>
 Subject: Re: [PATCH 0/8] PCI, ACPI, x86: Reserve fw allocated resource for
  hot-add root bus
-Date: Wed, 9 Jan 2013 11:39:28 -0700
-Message-ID: <CAErSpo6qX3ih9DXLqxqJw141OAeTFu0YfSih6LyD0sd2gS-Vyg@mail.gmail.com>
-References: <20121030040237.GA10472@google.com> <1352003971-22278-1-git-send-email-yinghai@kernel.org>
- <CAE9FiQUn=bcgOLFzBwsBT1-O1poRNy9qYTb0w9EAya3_inKqAw@mail.gmail.com>
- <CAErSpo5Z57asEXbfesOjXMEPj4WM3YMbzQH3s-v_NBrnPNmuVQ@mail.gmail.com>
- <CAErSpo4LS7ShCbeOm1s9ob1MjPfUSWn9J96UHRBP6van54swQA@mail.gmail.com>
- <CAE9FiQV5x1S1BNHrXq0wMRDx7PD5BoCh3fOnq2vS_AOAGL8Rrw@mail.gmail.com>
- <CAErSpo5vEb=63jGsqfau1G=f54oqq17pc3ZzcpzhL7hQrtYhng@mail.gmail.com> <CAE9FiQUxxjZmd3C33_ujSeL1EjcKHHSoGusQwfBD+Zd=cwCDZA@mail.gmail.com>
+Date: Wed, 9 Jan 2013 11:01:39 -0800
+Message-ID: <CAE9FiQWm6=1JXA7EB-a0aqgTFQ5ZeCxz_gAU+ABUce1Ovn1Siw@mail.gmail.com>
+References: <20121030040237.GA10472@google.com>
+	<1352003971-22278-1-git-send-email-yinghai@kernel.org>
+	<CAE9FiQUn=bcgOLFzBwsBT1-O1poRNy9qYTb0w9EAya3_inKqAw@mail.gmail.com>
+	<CAErSpo5Z57asEXbfesOjXMEPj4WM3YMbzQH3s-v_NBrnPNmuVQ@mail.gmail.com>
+	<CAErSpo4LS7ShCbeOm1s9ob1MjPfUSWn9J96UHRBP6van54swQA@mail.gmail.com>
+	<CAE9FiQV5x1S1BNHrXq0wMRDx7PD5BoCh3fOnq2vS_AOAGL8Rrw@mail.gmail.com>
+	<CAErSpo5vEb=63jGsqfau1G=f54oqq17pc3ZzcpzhL7hQrtYhng@mail.gmail.com>
+	<CAE9FiQUxxjZmd3C33_ujSeL1EjcKHHSoGusQwfBD+Zd=cwCDZA@mail.gmail.com>
+	<CAErSpo6qX3ih9DXLqxqJw141OAeTFu0YfSih6LyD0sd2gS-Vyg@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-pci-owner@vger.kernel.org>
-In-Reply-To: <CAE9FiQUxxjZmd3C33_ujSeL1EjcKHHSoGusQwfBD+Zd=cwCDZA@mail.gmail.com>
+In-Reply-To: <CAErSpo6qX3ih9DXLqxqJw141OAeTFu0YfSih6LyD0sd2gS-Vyg@mail.gmail.com>
 Sender: linux-pci-owner@vger.kernel.org
-To: Yinghai Lu <yinghai@kernel.org>
-Cc: "Rafael J. Wysocki" <rjw@sisk.pl>, Len Brown <lenb@kernel.org>, Taku Izumi <izumi.taku@jp.fujitsu.com>, Jiang Liu <jiang.liu@huawei.com>, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, David Howells <dhowells@redhat.com>, Michal Simek <monstr@monstr.eu>, Koichi Yasutake <yasutake.koichi@jp.panasonic.com>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Paul Mackerras <paulus@samba.org>
+To: Bjorn Helgaas <bhelgaas@google.com>, "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: Len Brown <lenb@kernel.org>, Taku Izumi <izumi.taku@jp.fujitsu.com>, Jiang Liu <jiang.liu@huawei.com>, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, David Howells <dhowells@redhat.com>, Michal Simek <monstr@monstr.eu>, Koichi Yasutake <yasutake.koichi@jp.panasonic.com>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Paul Mackerras <paulus@samba.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On Wed, Jan 9, 2013 at 10:53 AM, Yinghai Lu <yinghai@kernel.org> wrote:
-> On Wed, Jan 9, 2013 at 9:35 AM, Bjorn Helgaas <bhelgaas@google.com> wrote:
->>> I don't know, that could be separated patcheset after we conclude
->>> pci root bus hotplug support.
->>
->> The main reason I review patches before merging them is to identify
->> issues that we can fix before they affect everybody.  It makes my life
->> a lot easier if I don't have to keep track of pending unaddressed
->> review comments.  Is there an advantage to waiting and doing this work
->> later?
->>
->>>>> In general these look good.  My main concern is that they only touch
->>>>> x86, without touching the similar code in frv, microblaze, mn10300,
->>>>> and powerpc.
+On Wed, Jan 9, 2013 at 10:39 AM, Bjorn Helgaas <bhelgaas@google.com> wrote:
+>> the reason why we need to change those codes for x86, we want to make it support
+>> pci root bus hotplug. So it would be reasonable for us to align other
+>> platform to x86
+>> changes after pci root bus hotplug change is completely done.
 >
-> the reason why we need to change those codes for x86, we want to make it support
-> pci root bus hotplug. So it would be reasonable for us to align other
-> platform to x86
-> changes after pci root bus hotplug change is completely done.
+> OK, I opened https://bugzilla.kernel.org/show_bug.cgi?id=52531 as a
+> way to keep track of this consistency issue and merged
+> pci/yinghai-survey-resources to my -next branch.
 
-OK, I opened https://bugzilla.kernel.org/show_bug.cgi?id=52531 as a
-way to keep track of this consistency issue and merged
-pci/yinghai-survey-resources to my -next branch.
+Thanks a lot. will send other pci root bus hotplug out.
+
+question: now Rafael's tree has acpi-scan branch and it touches pci-root.c.
+
+so is it ok for me to base patches on your pci/next and his pm/acpi-scan?
+how?
+can you two have some arrangement like you pulling Rafael's branch?
+
+Thanks
+
+Yinghai
