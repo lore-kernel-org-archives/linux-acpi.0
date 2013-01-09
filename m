@@ -1,33 +1,68 @@
-From: Adrian Byszuk <adrian.byszuk@gmail.com>
-Subject: Backlight control doesn't work on Dell Vostro 3560
-Date: Wed, 09 Jan 2013 17:42:18 +0100
-Message-ID: <50ED9DEA.2040803@gmail.com>
+From: Bjorn Helgaas <bhelgaas@google.com>
+Subject: Re: [PATCH 0/8] PCI, ACPI, x86: Reserve fw allocated resource for
+ hot-add root bus
+Date: Wed, 9 Jan 2013 10:35:48 -0700
+Message-ID: <CAErSpo5vEb=63jGsqfau1G=f54oqq17pc3ZzcpzhL7hQrtYhng@mail.gmail.com>
+References: <20121030040237.GA10472@google.com> <1352003971-22278-1-git-send-email-yinghai@kernel.org>
+ <CAE9FiQUn=bcgOLFzBwsBT1-O1poRNy9qYTb0w9EAya3_inKqAw@mail.gmail.com>
+ <CAErSpo5Z57asEXbfesOjXMEPj4WM3YMbzQH3s-v_NBrnPNmuVQ@mail.gmail.com>
+ <CAErSpo4LS7ShCbeOm1s9ob1MjPfUSWn9J96UHRBP6van54swQA@mail.gmail.com> <CAE9FiQV5x1S1BNHrXq0wMRDx7PD5BoCh3fOnq2vS_AOAGL8Rrw@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-lb0-f172.google.com ([209.85.217.172]:50505 "EHLO
-	mail-lb0-f172.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932136Ab3AIQmV (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 9 Jan 2013 11:42:21 -0500
-Received: by mail-lb0-f172.google.com with SMTP id y2so1217061lbk.31
-        for <linux-acpi@vger.kernel.org>; Wed, 09 Jan 2013 08:42:20 -0800 (PST)
-Sender: linux-acpi-owner@vger.kernel.org
+Return-path: <linux-pci-owner@vger.kernel.org>
+In-Reply-To: <CAE9FiQV5x1S1BNHrXq0wMRDx7PD5BoCh3fOnq2vS_AOAGL8Rrw@mail.gmail.com>
+Sender: linux-pci-owner@vger.kernel.org
+To: Yinghai Lu <yinghai@kernel.org>
+Cc: "Rafael J. Wysocki" <rjw@sisk.pl>, Len Brown <lenb@kernel.org>, Taku Izumi <izumi.taku@jp.fujitsu.com>, Jiang Liu <jiang.liu@huawei.com>, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, David Howells <dhowells@redhat.com>, Michal Simek <monstr@monstr.eu>, Koichi Yasutake <yasutake.koichi@jp.panasonic.com>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Paul Mackerras <paulus@samba.org>
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org
 
-Hello,
+On Tue, Jan 8, 2013 at 11:27 AM, Yinghai Lu <yinghai@kernel.org> wrote:
+> On Tue, Jan 8, 2013 at 9:57 AM, Bjorn Helgaas <bhelgaas@google.com> wrote:
+>>> I'm really sorry that it's taken me so long to get to these.
+>>>
+>>> I applied these to my pci/yinghai-survey-resources branch.  I
+>>> re-ordered the last two and reworked some of the changelogs.
+>>
+>> To be clear about this, the pci/yinghai-survey-resources branch I
+>> mentioned is a staging branch that just gets build test coverage.  I
+>> don't plan to actually merge this or put it into -next until the
+>> questions below are resolved.
+>>
+>> My inclination, until I'm persuaded otherwise, is to wait for patches
+>> that preserve the similarities among these architectures.
+>
+> I don't know, that could be separated patcheset after we conclude
+> pci root bus hotplug support.
 
-I want to report a bug (propably regression) - controlling the LCD
-backlight through Fn+F4/F5 keys doesn't work.
-This is almost certainly the same issue that was mentioned in this
-thread: http://www.spinics.net/lists/linux-acpi/msg40404.html
+The main reason I review patches before merging them is to identify
+issues that we can fix before they affect everybody.  It makes my life
+a lot easier if I don't have to keep track of pending unaddressed
+review comments.  Is there an advantage to waiting and doing this work
+later?
 
-I can confirm it worked on vanilla 3.6.8 and debian 3.2 kernels.
-It doesn't work on 3.7 or 3.8-rc kernels.
-
-If I should provide any new information not present in the mentioned
-thread (or repost it), please tell me to do so.
-
-Thanks,
-Adrian
+>>> In general these look good.  My main concern is that they only touch
+>>> x86, without touching the similar code in frv, microblaze, mn10300,
+>>> and powerpc.
+>>>
+>>> This code (pcibios_resource_survey(), pcibios_assign_resources(),
+>>> pcibios_allocate_resources(), pcibios_allocate_bus_resources()) was
+>>> obviously copied from x86 originally, and I'd like to preserve the
+>>> similarity between them.  It would be even better to refactor it so
+>>> it's actually *shared*, but I don't think that's a requirement right
+>>> now.
+>
+> yes, should be moved to drivers/pci
+>
+>>>
+>>> If we allow it to diverge now, it will make it harder to refactor and
+>>> harder to notice when bug fixes should be applied to all of them.  For
+>>> example, looking at pcibios_allocate_resources(), commit 575939cf5
+>>> added some SR-IOV support to x86.  Should similar code be added for
+>>> frv, microblaze, mn10300, and powerpc?
+>
+> should be treated the same.
+>
+>>>
+>>> Anybody else have thoughts on this?
+>>>
+>>> Bjorn
