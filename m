@@ -1,211 +1,81 @@
-From: Aaron Lu <aaron.lu@intel.com>
-Subject: [PATCH v12 3/9] libata: move acpi notification code to zpodd
-Date: Thu, 10 Jan 2013 17:24:24 +0800
-Message-ID: <1357809870-18816-4-git-send-email-aaron.lu@intel.com>
-References: <1357809870-18816-1-git-send-email-aaron.lu@intel.com>
-Return-path: <linux-scsi-owner@vger.kernel.org>
-In-Reply-To: <1357809870-18816-1-git-send-email-aaron.lu@intel.com>
-Sender: linux-scsi-owner@vger.kernel.org
-To: Jeff Garzik <jgarzik@pobox.com>, James Bottomley <James.Bottomley@hansenpartnership.com>, "Rafael J. Wysocki" <rjw@sisk.pl>, Alan Stern <stern@rowland.harvard.edu>, Tejun Heo <tj@kernel.org>
-Cc: Aaron Lu <aaron.lwe@gmail.com>, Jeff Wu <jeff.wu@amd.com>, linux-ide@vger.kernel.org, linux-pm@vger.kernel.org, linux-scsi@vger.kernel.org, linux-acpi@vger.kernel.org, Aaron Lu <aaron.lu@intel.com>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: Re: [PATCH 0/8] PCI, ACPI, x86: Reserve fw allocated resource for hot-add root bus
+Date: Thu, 10 Jan 2013 14:07:19 +0100
+Message-ID: <18607840.Is41JcgqAR@vostro.rjw.lan>
+References: <20121030040237.GA10472@google.com> <5274779.gJQ3WSr6QB@vostro.rjw.lan> <CAErSpo7QBNzaMKOGpkrPxop+WN+RMAoeOBUPiFDi9HFyH+UoOQ@mail.gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7Bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from hydra.sisk.pl ([212.160.235.94]:36745 "EHLO hydra.sisk.pl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753491Ab3AJNBh (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 10 Jan 2013 08:01:37 -0500
+In-Reply-To: <CAErSpo7QBNzaMKOGpkrPxop+WN+RMAoeOBUPiFDi9HFyH+UoOQ@mail.gmail.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Bjorn Helgaas <bhelgaas@google.com>
+Cc: Yinghai Lu <yinghai@kernel.org>, Len Brown <lenb@kernel.org>, Taku Izumi <izumi.taku@jp.fujitsu.com>, Jiang Liu <jiang.liu@huawei.com>, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, David Howells <dhowells@redhat.com>, Michal Simek <monstr@monstr.eu>, Koichi Yasutake <yasutake.koichi@jp.panasonic.com>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Paul Mackerras <paulus@samba.org>
 
-Since the ata acpi notification code introduced in commit
-3bd46600a7a7e938c54df8cdbac9910668c7dfb0 is solely for ZPODD, and we
-now have a dedicated place for it, move these code there.
+On Wednesday, January 09, 2013 05:34:32 PM Bjorn Helgaas wrote:
+> On Wed, Jan 9, 2013 at 1:10 PM, Rafael J. Wysocki <rjw@sisk.pl> wrote:
+> > On Wednesday, January 09, 2013 11:01:39 AM Yinghai Lu wrote:
+> >> On Wed, Jan 9, 2013 at 10:39 AM, Bjorn Helgaas <bhelgaas@google.com> wrote:
+> >> >> the reason why we need to change those codes for x86, we want to make it support
+> >> >> pci root bus hotplug. So it would be reasonable for us to align other
+> >> >> platform to x86
+> >> >> changes after pci root bus hotplug change is completely done.
+> >> >
+> >> > OK, I opened https://bugzilla.kernel.org/show_bug.cgi?id=52531 as a
+> >> > way to keep track of this consistency issue and merged
+> >> > pci/yinghai-survey-resources to my -next branch.
+> >>
+> >> Thanks a lot. will send other pci root bus hotplug out.
+> >>
+> >> question: now Rafael's tree has acpi-scan branch and it touches pci-root.c.
+> >>
+> >> so is it ok for me to base patches on your pci/next and his pm/acpi-scan?
+> >> how?
+> >> can you two have some arrangement like you pulling Rafael's branch?
+> >
+> > My acpi-scan branch is not going to be rebased going forward, so it can be
+> > pulled from safely if that helps.
+> 
+> I'm happy to do that, but it is outside the scope of my limited git
+> experience.  My guess is that I should do this (doing the pull into a
+> branch which I later merge into my -next branch):
+> 
+>   $ git checkout -b pci/yinghai-survey-resources+acpi-scan
+> pci/yinghai-survey-resources
+>   $ git pull --no-ff --log
+> git://git.kernel.org/pub/scm/linux/kernel/git/rafael/linux-pm.git
+> acpi-scan
+>   $ vi drivers/acpi/pci_root.c    # resolve conflicts
+>   $ git add drivers/acpi/pci_root.c
+>   $ git commit
+> 
+>   $ git checkout next
+>   $ git merge --no-ff --log pci/yinghai-survey-resources+acpi-scan
+> 
+> Is that reasonable?
 
-And the ata_acpi_add_pm_notifier code is changed a little bit in that it
-is now invoked when scsi device is not bound with ACPI yet, so the way
-to get the acpi handle is different with the previous version. And the
-ata_acpi_add/remove_pm_notifier is also simplified a little bit in that
-it doesn't check if the acpi_device for the handle exists or not as the
-odd_can_poweroff function already checked that.
+Yes, it looks reasonable.
 
-Signed-off-by: Aaron Lu <aaron.lu@intel.com>
----
- drivers/ata/libata-acpi.c  | 71 ----------------------------------------------
- drivers/ata/libata-zpodd.c | 34 ++++++++++++++++++++++
- 2 files changed, 34 insertions(+), 71 deletions(-)
+> This won't cause issues when both Rafael and I ask Linus to pull from our
+> trees later?
 
-diff --git a/drivers/ata/libata-acpi.c b/drivers/ata/libata-acpi.c
-index ef01ac0..446b4e7 100644
---- a/drivers/ata/libata-acpi.c
-+++ b/drivers/ata/libata-acpi.c
-@@ -974,57 +974,6 @@ void ata_acpi_on_disable(struct ata_device *dev)
- 	ata_acpi_clear_gtf(dev);
- }
- 
--static void ata_acpi_wake_dev(acpi_handle handle, u32 event, void *context)
--{
--	struct ata_device *ata_dev = context;
--
--	if (event == ACPI_NOTIFY_DEVICE_WAKE && ata_dev &&
--			pm_runtime_suspended(&ata_dev->sdev->sdev_gendev))
--		scsi_autopm_get_device(ata_dev->sdev);
--}
--
--static void ata_acpi_add_pm_notifier(struct ata_device *dev)
--{
--	struct acpi_device *acpi_dev;
--	acpi_handle handle;
--	acpi_status status;
--
--	handle = ata_dev_acpi_handle(dev);
--	if (!handle)
--		return;
--
--	status = acpi_bus_get_device(handle, &acpi_dev);
--	if (ACPI_FAILURE(status))
--		return;
--
--	if (dev->sdev->can_power_off) {
--		acpi_install_notify_handler(handle, ACPI_SYSTEM_NOTIFY,
--			ata_acpi_wake_dev, dev);
--		device_set_run_wake(&dev->sdev->sdev_gendev, true);
--	}
--}
--
--static void ata_acpi_remove_pm_notifier(struct ata_device *dev)
--{
--	struct acpi_device *acpi_dev;
--	acpi_handle handle;
--	acpi_status status;
--
--	handle = ata_dev_acpi_handle(dev);
--	if (!handle)
--		return;
--
--	status = acpi_bus_get_device(handle, &acpi_dev);
--	if (ACPI_FAILURE(status))
--		return;
--
--	if (dev->sdev->can_power_off) {
--		device_set_run_wake(&dev->sdev->sdev_gendev, false);
--		acpi_remove_notify_handler(handle, ACPI_SYSTEM_NOTIFY,
--			ata_acpi_wake_dev);
--	}
--}
--
- static void ata_acpi_register_power_resource(struct ata_device *dev)
- {
- 	struct scsi_device *sdev = dev->sdev;
-@@ -1057,13 +1006,11 @@ static void ata_acpi_unregister_power_resource(struct ata_device *dev)
- 
- void ata_acpi_bind(struct ata_device *dev)
- {
--	ata_acpi_add_pm_notifier(dev);
- 	ata_acpi_register_power_resource(dev);
- }
- 
- void ata_acpi_unbind(struct ata_device *dev)
- {
--	ata_acpi_remove_pm_notifier(dev);
- 	ata_acpi_unregister_power_resource(dev);
- }
- 
-@@ -1105,9 +1052,6 @@ static int ata_acpi_bind_device(struct ata_port *ap, struct scsi_device *sdev,
- 				acpi_handle *handle)
- {
- 	struct ata_device *ata_dev;
--	acpi_status status;
--	struct acpi_device *acpi_dev;
--	struct acpi_device_power_state *states;
- 
- 	if (ap->flags & ATA_FLAG_ACPI_SATA) {
- 		if (!sata_pmp_attached(ap))
-@@ -1124,21 +1068,6 @@ static int ata_acpi_bind_device(struct ata_port *ap, struct scsi_device *sdev,
- 	if (!*handle)
- 		return -ENODEV;
- 
--	status = acpi_bus_get_device(*handle, &acpi_dev);
--	if (ACPI_FAILURE(status))
--		return 0;
--
--	/*
--	 * If firmware has _PS3 or _PR3 for this device,
--	 * and this ata ODD device support device attention,
--	 * it means this device can be powered off
--	 */
--	states = acpi_dev->power.states;
--	if ((states[ACPI_STATE_D3_HOT].flags.valid ||
--			states[ACPI_STATE_D3_COLD].flags.explicit_set) &&
--			ata_dev->flags & ATA_DFLAG_DA)
--		sdev->can_power_off = 1;
--
- 	return 0;
- }
- 
-diff --git a/drivers/ata/libata-zpodd.c b/drivers/ata/libata-zpodd.c
-index 27eed2f..9a0d90d 100644
---- a/drivers/ata/libata-zpodd.c
-+++ b/drivers/ata/libata-zpodd.c
-@@ -1,5 +1,7 @@
- #include <linux/libata.h>
- #include <linux/cdrom.h>
-+#include <linux/pm_runtime.h>
-+#include <scsi/scsi_device.h>
- 
- #include "libata.h"
- 
-@@ -12,6 +14,10 @@ enum odd_mech_type {
- struct zpodd {
- 	enum odd_mech_type	mech_type; /* init during probe, RO afterwards */
- 	struct ata_device	*dev;
-+
-+	/* The following fields are synchronized by PM core. */
-+	bool			from_notify; /* resumed as a result of
-+					      * acpi wake notification */
- };
- 
- /* Per the spec, only slot type and drawer type ODD can be supported */
-@@ -68,6 +74,32 @@ static bool odd_can_poweroff(struct ata_device *ata_dev)
- 	return acpi_device_can_poweroff(acpi_dev);
- }
- 
-+static void zpodd_wake_dev(acpi_handle handle, u32 event, void *context)
-+{
-+	struct ata_device *ata_dev = context;
-+	struct zpodd *zpodd = ata_dev->zpodd;
-+	struct device *dev = &ata_dev->sdev->sdev_gendev;
-+
-+	if (event == ACPI_NOTIFY_DEVICE_WAKE && ata_dev &&
-+			pm_runtime_suspended(dev)) {
-+		zpodd->from_notify = true;
-+		pm_runtime_resume(dev);
-+	}
-+}
-+
-+static void ata_acpi_add_pm_notifier(struct ata_device *dev)
-+{
-+	acpi_handle handle = ata_dev_acpi_handle(dev);
-+	acpi_install_notify_handler(handle, ACPI_SYSTEM_NOTIFY,
-+				    zpodd_wake_dev, dev);
-+}
-+
-+static void ata_acpi_remove_pm_notifier(struct ata_device *dev)
-+{
-+	acpi_handle handle = DEVICE_ACPI_HANDLE(&dev->sdev->sdev_gendev);
-+	acpi_remove_notify_handler(handle, ACPI_SYSTEM_NOTIFY, zpodd_wake_dev);
-+}
-+
- void zpodd_init(struct ata_device *dev)
- {
- 	enum odd_mech_type mech_type;
-@@ -89,12 +121,14 @@ void zpodd_init(struct ata_device *dev)
- 
- 	zpodd->mech_type = mech_type;
- 
-+	ata_acpi_add_pm_notifier(dev);
- 	zpodd->dev = dev;
- 	dev->zpodd = zpodd;
- }
- 
- void zpodd_exit(struct ata_device *dev)
- {
-+	ata_acpi_remove_pm_notifier(dev);
- 	kfree(dev->zpodd);
- 	dev->zpodd = NULL;
- }
+No, it won't, as long as I don't rebase the original acpi-scan branch (which
+I'm not going to do) and you don't rebase your
+pci/yinghai-survey-resources+acpi-scan branch going forward.
+
+The pull makes your tree contain the same commits (i.e. commit IDs along with
+the data) that are in my acpi-scan branch, so when Linus merges them together,
+git will notice that the commits are the same.
+
+Thanks,
+Rafael
+
+
 -- 
-1.7.11.7
-
+I speak only for myself.
+Rafael J. Wysocki, Intel Open Source Technology Center.
