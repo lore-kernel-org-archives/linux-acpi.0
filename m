@@ -1,30 +1,143 @@
-From: Kamezawa Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Subject: Re: [PATCH v6 00/15] memory-hotplug: hot-remove physical memory
-Date: Thu, 10 Jan 2013 17:39:54 +0900
-Message-ID: <50EE7E5A.9090402@jp.fujitsu.com>
-References: <1357723959-5416-1-git-send-email-tangchen@cn.fujitsu.com> <20130109142314.1ce04a96.akpm@linux-foundation.org> <50EE24A4.8020601@cn.fujitsu.com> <50EE6A48.7060307@parallels.com> <50EE6E50.3040609@jp.fujitsu.com> <50EE73DE.30208@parallels.com> <50EE7A6B.7020005@jp.fujitsu.com> <50EE7D75.8080100@parallels.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-ia64-owner@vger.kernel.org>
-In-Reply-To: <50EE7D75.8080100@parallels.com>
-Sender: linux-ia64-owner@vger.kernel.org
-To: Glauber Costa <glommer@parallels.com>
-Cc: Tang Chen <tangchen@cn.fujitsu.com>, Andrew Morton <akpm@linux-foundation.org>, rientjes@google.com, len.brown@intel.com, benh@kernel.crashing.org, paulus@samba.org, cl@linux.com, minchan.kim@gmail.com, kosaki.motohiro@jp.fujitsu.com, isimatu.yasuaki@jp.fujitsu.com, wujianguo@huawei.com, wency@cn.fujitsu.com, hpa@zytor.com, linfeng@cn.fujitsu.com, laijs@cn.fujitsu.com, mgorman@suse.de, yinghai@kernel.org, x86@kernel.org, linux-mm@kvack.org, linux-kernel@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, linux-acpi@vger.kernel.org, linux-s390@vger.kernel.org, linux-sh@vger.kernel.org, linux-ia64@vger.kernel.org, cmetcalf@tilera.com, sparclinux@vger.kernel.org
+From: Aaron Lu <aaron.lu@intel.com>
+Subject: [PATCH v12 1/9] scsi: sr: support runtime pm
+Date: Thu, 10 Jan 2013 17:24:22 +0800
+Message-ID: <1357809870-18816-2-git-send-email-aaron.lu@intel.com>
+References: <1357809870-18816-1-git-send-email-aaron.lu@intel.com>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mga09.intel.com ([134.134.136.24]:21188 "EHLO mga09.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750871Ab3AJJYM (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 10 Jan 2013 04:24:12 -0500
+In-Reply-To: <1357809870-18816-1-git-send-email-aaron.lu@intel.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Jeff Garzik <jgarzik@pobox.com>, James Bottomley <James.Bottomley@hansenpartnership.com>, "Rafael J. Wysocki" <rjw@sisk.pl>, Alan Stern <stern@rowland.harvard.edu>, Tejun Heo <tj@kernel.org>
+Cc: Aaron Lu <aaron.lwe@gmail.com>, Jeff Wu <jeff.wu@amd.com>, linux-ide@vger.kernel.org, linux-pm@vger.kernel.org, linux-scsi@vger.kernel.org, linux-acpi@vger.kernel.org, Aaron Lu <aaron.lu@intel.com>
 
-(2013/01/10 17:36), Glauber Costa wrote:
-  
->> BTW, shrink_slab() is now node/zone aware ? If not, fixing that first will
->> be better direction I guess.
->>
-> It is not upstream, but there are patches for this that I am already
-> using in my private tree.
->
+This patch adds runtime pm support for sr.
 
-Oh, I see. If it's merged, it's worth add "shrink_slab() if ZONE_NORMAL"
-code.
+It did this by increasing the runtime usage_count of the device when:
+- its block device is opened;
+- the events checking is to run.
 
-Thanks,
--Kame
+And decreasing the runtime usage_count of the device when:
+- its block device is closed;
+- After the events checking is done.
+
+The idea is discussed in this mail thread:
+http://thread.gmane.org/gmane.linux.acpi.devel/55243/focus=52703
+
+Signed-off-by: Aaron Lu <aaron.lu@intel.com>
+---
+ drivers/scsi/sr.c | 30 +++++++++++++++++++++++++-----
+ 1 file changed, 25 insertions(+), 5 deletions(-)
+
+diff --git a/drivers/scsi/sr.c b/drivers/scsi/sr.c
+index 5fc97d2..4d1a610 100644
+--- a/drivers/scsi/sr.c
++++ b/drivers/scsi/sr.c
+@@ -45,6 +45,7 @@
+ #include <linux/blkdev.h>
+ #include <linux/mutex.h>
+ #include <linux/slab.h>
++#include <linux/pm_runtime.h>
+ #include <asm/uaccess.h>
+ 
+ #include <scsi/scsi.h>
+@@ -146,7 +147,8 @@ static inline struct scsi_cd *scsi_cd_get(struct gendisk *disk)
+ 	kref_get(&cd->kref);
+ 	if (scsi_device_get(cd->device))
+ 		goto out_put;
+-	goto out;
++	if (!scsi_autopm_get_device(cd->device))
++		goto out;
+ 
+  out_put:
+ 	kref_put(&cd->kref, sr_kref_release);
+@@ -162,6 +164,7 @@ static void scsi_cd_put(struct scsi_cd *cd)
+ 
+ 	mutex_lock(&sr_ref_mutex);
+ 	kref_put(&cd->kref, sr_kref_release);
++	scsi_autopm_put_device(sdev);
+ 	scsi_device_put(sdev);
+ 	mutex_unlock(&sr_ref_mutex);
+ }
+@@ -211,7 +214,7 @@ static unsigned int sr_check_events(struct cdrom_device_info *cdi,
+ 				    unsigned int clearing, int slot)
+ {
+ 	struct scsi_cd *cd = cdi->handle;
+-	bool last_present;
++	bool last_present = cd->media_present;
+ 	struct scsi_sense_hdr sshdr;
+ 	unsigned int events;
+ 	int ret;
+@@ -220,6 +223,8 @@ static unsigned int sr_check_events(struct cdrom_device_info *cdi,
+ 	if (CDSL_CURRENT != slot)
+ 		return 0;
+ 
++	scsi_autopm_get_device(cd->device);
++
+ 	events = sr_get_events(cd->device);
+ 	cd->get_event_changed |= events & DISK_EVENT_MEDIA_CHANGE;
+ 
+@@ -246,10 +251,9 @@ static unsigned int sr_check_events(struct cdrom_device_info *cdi,
+ 	}
+ 
+ 	if (!(clearing & DISK_EVENT_MEDIA_CHANGE))
+-		return events;
++		goto out;
+ do_tur:
+ 	/* let's see whether the media is there with TUR */
+-	last_present = cd->media_present;
+ 	ret = scsi_test_unit_ready(cd->device, SR_TIMEOUT, MAX_RETRIES, &sshdr);
+ 
+ 	/*
+@@ -270,7 +274,7 @@ do_tur:
+ 	}
+ 
+ 	if (cd->ignore_get_event)
+-		return events;
++		goto out;
+ 
+ 	/* check whether GET_EVENT is reporting spurious MEDIA_CHANGE */
+ 	if (!cd->tur_changed) {
+@@ -287,6 +291,18 @@ do_tur:
+ 	cd->tur_changed = false;
+ 	cd->get_event_changed = false;
+ 
++out:
++	/*
++	 * If there is no medium detected or the medium has been there
++	 * since last poll, try to suspend the device. Otherwise, keep
++	 * it active for one more poll interval so that if user space
++	 * application opens the block device, we can avoid a runtime
++	 * status change.
++	 */
++	pm_runtime_put_noidle(&cd->device->sdev_gendev);
++	if (!cd->media_present || last_present)
++		pm_runtime_suspend(&cd->device->sdev_gendev);
++
+ 	return events;
+ }
+ 
+@@ -718,6 +734,8 @@ static int sr_probe(struct device *dev)
+ 
+ 	sdev_printk(KERN_DEBUG, sdev,
+ 		    "Attached scsi CD-ROM %s\n", cd->cdi.name);
++	scsi_autopm_put_device(cd->device);
++
+ 	return 0;
+ 
+ fail_put:
+@@ -965,6 +983,8 @@ static int sr_remove(struct device *dev)
+ {
+ 	struct scsi_cd *cd = dev_get_drvdata(dev);
+ 
++	scsi_autopm_get_device(cd->device);
++
+ 	blk_queue_prep_rq(cd->device->request_queue, scsi_prep_fn);
+ 	del_gendisk(cd->disk);
+ 
+-- 
+1.7.11.7
 
