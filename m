@@ -1,42 +1,34 @@
-From: Srinivas Pandruvada <srinivas.pandruvada@linux.intel.com>
-Subject: [PATCH] acpi thermal: Use mode to enable/disable kernel thermal processing
-Date: Thu, 10 Jan 2013 08:11:31 -0800
-Message-ID: <1357834291-12943-1-git-send-email-srinivas.pandruvada@linux.intel.com>
+From: Davidlohr Bueso <davidlohr.bueso@hp.com>
+Subject: srat: harsh hot-pluggable memory check?
+Date: Thu, 10 Jan 2013 11:41:47 -0800
+Message-ID: <1357846907.7523.17.camel@buesod1.americas.hpqcorp.net>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga09.intel.com ([134.134.136.24]:52409 "EHLO mga09.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753247Ab3AJQJN (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 10 Jan 2013 11:09:13 -0500
+Received: from g6t0184.atlanta.hp.com ([15.193.32.61]:29951 "EHLO
+	g6t0184.atlanta.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754053Ab3AJTlv (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 10 Jan 2013 14:41:51 -0500
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: linux-acpi@vger.kernel.org
-Cc: Srinivas Pandruvada <srinivas.pandruvada@linux.intel.com>
+Cc: Andi Kleen <andi@firstfloor.org>, zeus@gnu.org, linux-kernel@vger.kernel.org
 
-As per documentation, "mode" sysfs interface should be able to
-enable/disable thermal processing in kernel, so that user side
-is able to take more control.
-Currently acpi thermal driver is not following this setting.
+When parsing the memory affinity mappings in arch/x86/mm/srat.c:
+acpi_numa_memory_affinity_init() I'm wondering if the hot-pluggable check is too harsh, 
+as we consider an error if the hot-pluggable bit is set and CONFIG_MEMORY_HOTPLUG is not.
 
-Signed-off-by: Srinivas Pandruvada <srinivas.pandruvada@linux.intel.com>
----
- drivers/acpi/thermal.c | 4 ++++
- 1 file changed, 4 insertions(+)
+Based on the ACPI specs (v5):
 
-diff --git a/drivers/acpi/thermal.c b/drivers/acpi/thermal.c
-index 506fbd4..70036c8 100644
---- a/drivers/acpi/thermal.c
-+++ b/drivers/acpi/thermal.c
-@@ -531,6 +531,10 @@ static void acpi_thermal_check(void *data)
- {
- 	struct acpi_thermal *tz = data;
- 
-+	if (!tz->tz_enabled) {
-+		pr_warn("thermal zone is disabled \n");
-+		return;
-+	}
- 	thermal_zone_device_update(tz->thermal_zone);
- }
- 
--- 
-1.7.11.7
+"If the Enabled bit is set and the Hot Pluggable bit is also set. The
+system hardware supports hot-add and hot-remove of this memory
+region."
+
+This only mentions that the system supports hot-plugging, and IMHO if the
+user decides not to use CONFIG_MEMORY_HOTPLUG, it shouldn't be considered an error.
+Therefore would it be ok to drop the check? Or am I missing something?
+
+Thanks,
+Davidlohr
 
