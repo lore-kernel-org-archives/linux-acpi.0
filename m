@@ -1,34 +1,34 @@
-From: Tejun Heo <tj@kernel.org>
-Subject: Re: [PATCH v12 8/9] libata: do not suspend port if normal ODD is
- attached
-Date: Thu, 10 Jan 2013 11:57:55 -0800
-Message-ID: <20130110195755.GM20454@htj.dyndns.org>
-References: <1357809870-18816-1-git-send-email-aaron.lu@intel.com>
- <1357809870-18816-9-git-send-email-aaron.lu@intel.com>
+From: Andi Kleen <andi@firstfloor.org>
+Subject: Re: srat: harsh hot-pluggable memory check?
+Date: Thu, 10 Jan 2013 21:02:23 +0100
+Message-ID: <20130110200223.GH30577@one.firstfloor.org>
+References: <1357846907.7523.17.camel@buesod1.americas.hpqcorp.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-pm-owner@vger.kernel.org>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from one.firstfloor.org ([213.235.205.2]:37853 "EHLO
+	one.firstfloor.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754598Ab3AJUC2 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 10 Jan 2013 15:02:28 -0500
 Content-Disposition: inline
-In-Reply-To: <1357809870-18816-9-git-send-email-aaron.lu@intel.com>
-Sender: linux-pm-owner@vger.kernel.org
-To: Aaron Lu <aaron.lu@intel.com>
-Cc: Jeff Garzik <jgarzik@pobox.com>, James Bottomley <James.Bottomley@hansenpartnership.com>, "Rafael J. Wysocki" <rjw@sisk.pl>, Alan Stern <stern@rowland.harvard.edu>, Aaron Lu <aaron.lwe@gmail.com>, Jeff Wu <jeff.wu@amd.com>, linux-ide@vger.kernel.org, linux-pm@vger.kernel.org, linux-scsi@vger.kernel.org, linux-acpi@vger.kernel.org
+In-Reply-To: <1357846907.7523.17.camel@buesod1.americas.hpqcorp.net>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Davidlohr Bueso <davidlohr.bueso@hp.com>
+Cc: linux-acpi@vger.kernel.org, Andi Kleen <andi@firstfloor.org>, zeus@gnu.org, linux-kernel@vger.kernel.org
 
-On Thu, Jan 10, 2013 at 05:24:29PM +0800, Aaron Lu wrote:
-> For ODDs, the upper layer will poll for media change every few
-> seconds, which will make it enter and leave suspend state very
-> often. And as each suspend will also cause a hard/soft reset,
-> the gain of runtime suspend is very little while the ODD may
-> malfunction after constantly being reset. So the idle callback
-> here will not proceed to suspend if a non-ZPODD capable ODD is
-> attached to the port.
-> 
-> Signed-off-by: Aaron Lu <aaron.lu@intel.com>
+> This only mentions that the system supports hot-plugging, and IMHO if the
+> user decides not to use CONFIG_MEMORY_HOTPLUG, it shouldn't be considered an error.
+> Therefore would it be ok to drop the check? Or am I missing something?
 
-Acked-by: Tejun Heo <tj@kernel.org>
+The very strict checks were originally implemented because various early
+BIOS had largely fictional SRATs, and trusting them blindly caused
+boot failures or a lot of wasted memory for unnecessary hotplug zones. 
+The wasted memory was mainly a problem with the old memory hotplug
+implementation that pre-allocated memmaps, that's not a problem anymore.
+However there may be still some other failure cases.
 
-Thanks.
+-Andi
 
 -- 
-tejun
+ak@linux.intel.com -- Speaking for myself only.
