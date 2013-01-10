@@ -1,59 +1,62 @@
-From: Bjorn Helgaas <bhelgaas@google.com>
-Subject: Re: [PATCH 0/8] PCI, ACPI, x86: Reserve fw allocated resource for
- hot-add root bus
-Date: Wed, 9 Jan 2013 17:34:32 -0700
-Message-ID: <CAErSpo7QBNzaMKOGpkrPxop+WN+RMAoeOBUPiFDi9HFyH+UoOQ@mail.gmail.com>
-References: <20121030040237.GA10472@google.com> <CAErSpo6qX3ih9DXLqxqJw141OAeTFu0YfSih6LyD0sd2gS-Vyg@mail.gmail.com>
- <CAE9FiQWm6=1JXA7EB-a0aqgTFQ5ZeCxz_gAU+ABUce1Ovn1Siw@mail.gmail.com> <5274779.gJQ3WSr6QB@vostro.rjw.lan>
+From: Tang Chen <tangchen@cn.fujitsu.com>
+Subject: Re: [PATCH v5 01/14] memory-hotplug: try to offline the memory twice
+ to avoid dependence
+Date: Thu, 10 Jan 2013 09:38:10 +0800
+Message-ID: <50EE1B82.4090601@cn.fujitsu.com>
+References: <1356350964-13437-1-git-send-email-tangchen@cn.fujitsu.com> <1356350964-13437-2-git-send-email-tangchen@cn.fujitsu.com> <50D96543.6010903@parallels.com> <50DFD7F7.5090408@cn.fujitsu.com> <50ED8834.1090804@parallels.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <5274779.gJQ3WSr6QB@vostro.rjw.lan>
-Sender: linux-kernel-owner@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: Yinghai Lu <yinghai@kernel.org>, Len Brown <lenb@kernel.org>, Taku Izumi <izumi.taku@jp.fujitsu.com>, Jiang Liu <jiang.liu@huawei.com>, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, David Howells <dhowells@redhat.com>, Michal Simek <monstr@monstr.eu>, Koichi Yasutake <yasutake.koichi@jp.panasonic.com>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Paul Mackerras <paulus@samba.org>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from cn.fujitsu.com ([222.73.24.84]:6780 "EHLO song.cn.fujitsu.com"
+	rhost-flags-OK-FAIL-OK-OK) by vger.kernel.org with ESMTP
+	id S932106Ab3AJCAN (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 9 Jan 2013 21:00:13 -0500
+In-Reply-To: <50ED8834.1090804@parallels.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Glauber Costa <glommer@parallels.com>
+Cc: Wen Congyang <wency@cn.fujitsu.com>, akpm@linux-foundation.org, rientjes@google.com, liuj97@gmail.com, len.brown@intel.com, benh@kernel.crashing.org, paulus@samba.org, cl@linux.com, minchan.kim@gmail.com, kosaki.motohiro@jp.fujitsu.com, isimatu.yasuaki@jp.fujitsu.com, wujianguo@huawei.com, hpa@zytor.com, linfeng@cn.fujitsu.com, laijs@cn.fujitsu.com, mgorman@suse.de, yinghai@kernel.org, x86@kernel.org, linux-mm@kvack.org, linux-kernel@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, linux-acpi@vger.kernel.org, linux-s390@vger.kernel.org, linux-sh@vger.kernel.org, linux-ia64@vger.kernel.org, cmetcalf@tilera.com, sparclinux@vger.kernel.org, KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 
-On Wed, Jan 9, 2013 at 1:10 PM, Rafael J. Wysocki <rjw@sisk.pl> wrote:
-> On Wednesday, January 09, 2013 11:01:39 AM Yinghai Lu wrote:
->> On Wed, Jan 9, 2013 at 10:39 AM, Bjorn Helgaas <bhelgaas@google.com> wrote:
->> >> the reason why we need to change those codes for x86, we want to make it support
->> >> pci root bus hotplug. So it would be reasonable for us to align other
->> >> platform to x86
->> >> changes after pci root bus hotplug change is completely done.
->> >
->> > OK, I opened https://bugzilla.kernel.org/show_bug.cgi?id=52531 as a
->> > way to keep track of this consistency issue and merged
->> > pci/yinghai-survey-resources to my -next branch.
+Hi Glauber,
+
+On 01/09/2013 11:09 PM, Glauber Costa wrote:
 >>
->> Thanks a lot. will send other pci root bus hotplug out.
+>> We try to make all page_cgroup allocations local to the node they are describing
+>> now. If the memory is the first memory onlined in this node, we will allocate
+>> it from the other node.
 >>
->> question: now Rafael's tree has acpi-scan branch and it touches pci-root.c.
+>> For example, node1 has 4 memory blocks: 8-11, and we online it from 8 to 11
+>> 1. memory block 8, page_cgroup allocations are in the other nodes
+>> 2. memory block 9, page_cgroup allocations are in memory block 8
 >>
->> so is it ok for me to base patches on your pci/next and his pm/acpi-scan?
->> how?
->> can you two have some arrangement like you pulling Rafael's branch?
+>> So we should offline memory block 9 first. But we don't know in which order
+>> the user online the memory block.
+>>
+>> I think we can modify memcg like this:
+>> allocate the memory from the memory block they are describing
+>>
+>> I am not sure it is OK to do so.
 >
-> My acpi-scan branch is not going to be rebased going forward, so it can be
-> pulled from safely if that helps.
+> I don't see a reason why not.
 
-I'm happy to do that, but it is outside the scope of my limited git
-experience.  My guess is that I should do this (doing the pull into a
-branch which I later merge into my -next branch):
+I'm not sure, but if we do this, we could bring in a fragment for each
+memory block (a memory section, 128MB, right?). Is this a problem when
+we use large page (such as 1GB page) ?
 
-  $ git checkout -b pci/yinghai-survey-resources+acpi-scan
-pci/yinghai-survey-resources
-  $ git pull --no-ff --log
-git://git.kernel.org/pub/scm/linux/kernel/git/rafael/linux-pm.git
-acpi-scan
-  $ vi drivers/acpi/pci_root.c    # resolve conflicts
-  $ git add drivers/acpi/pci_root.c
-  $ git commit
+Even if not, will these fragments make any bad effects ?
 
-  $ git checkout next
-  $ git merge --no-ff --log pci/yinghai-survey-resources+acpi-scan
+Thank. :)
 
-Is that reasonable?  This won't cause issues when both Rafael and I
-ask Linus to pull from our trees later?
+>
+> You would have to tweak a bit the lookup function for page_cgroup, but
+> assuming you will always have the pfns and limits, it should be easy to do.
+>
+> I think the only tricky part is that today we have a single
+> node_page_cgroup, and we would of course have to have one per memory
+> block. My assumption is that the number of memory blocks is limited and
+> likely not very big. So even a static array would do.
+>
+> Kamezawa, do you have any input in here?
+>
 
-Bjorn
