@@ -1,49 +1,47 @@
-From: Yinghai Lu <yinghai@kernel.org>
-Subject: Re: [Alternative][PATCH] ACPI / PCI: Set root bridge ACPI handle in
- advance, v2
-Date: Thu, 10 Jan 2013 14:54:00 -0800
-Message-ID: <CAE9FiQXmOyWYhkc2fbjBvUqBFh7Ktf5E9X6Z8x0HguUdm8+mRw@mail.gmail.com>
-References: <1558789.gX8cmBgyDV@vostro.rjw.lan>
-	<16795012.QL1jNHE7JM@vostro.rjw.lan>
-	<CAErSpo473rZOBERaMJV74rfGZXSuBdiPtX=mXmcLmO=CRB4P_g@mail.gmail.com>
-	<1910593.f2RrgAtJJO@vostro.rjw.lan>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: Re: [Alternative][PATCH] ACPI / PCI: Set root bridge ACPI handle in advance, v2
+Date: Fri, 11 Jan 2013 00:40:30 +0100
+Message-ID: <3595317.Eh4AyqPa3o@vostro.rjw.lan>
+References: <1558789.gX8cmBgyDV@vostro.rjw.lan> <1910593.f2RrgAtJJO@vostro.rjw.lan> <CAE9FiQXmOyWYhkc2fbjBvUqBFh7Ktf5E9X6Z8x0HguUdm8+mRw@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-bk0-f46.google.com ([209.85.214.46]:36919 "EHLO
-	mail-bk0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753538Ab3AJWyD (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 10 Jan 2013 17:54:03 -0500
-In-Reply-To: <1910593.f2RrgAtJJO@vostro.rjw.lan>
-Sender: linux-acpi-owner@vger.kernel.org
-List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@sisk.pl>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7Bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <CAE9FiQXmOyWYhkc2fbjBvUqBFh7Ktf5E9X6Z8x0HguUdm8+mRw@mail.gmail.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Yinghai Lu <yinghai@kernel.org>
 Cc: Bjorn Helgaas <bhelgaas@google.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, LKML <linux-kernel@vger.kernel.org>, Tony Luck <tony.luck@intel.com>, "H. Peter Anvin" <hpa@zytor.com>, Jiang Liu <liuj97@gmail.com>, Myron Stowe <myron.stowe@redhat.com>
+List-Id: linux-acpi@vger.kernel.org
 
-On Wed, Jan 9, 2013 at 3:06 PM, Rafael J. Wysocki <rjw@sisk.pl> wrote:
+On Thursday, January 10, 2013 02:54:00 PM Yinghai Lu wrote:
+> On Wed, Jan 9, 2013 at 3:06 PM, Rafael J. Wysocki <rjw@sisk.pl> wrote:
+> 
+>  > arch/ia64/pci/pci.c        |    8 ++++++++
+>  > arch/x86/include/asm/pci.h |    3 +++
+>  >  arch/x86/pci/acpi.c        |    9 +++++++++
+>  > drivers/acpi/pci_root.c    |   18 ------------------
+>  > drivers/pci/pci-acpi.c     |   19 -------------------
+>  >  drivers/pci/probe.c        |   16 ++++++++++++++++
+>  >  include/acpi/acpi_bus.h    |    1 -
+>  >  include/linux/pci.h        |    2 ++
+>  >  8 files changed, 38 insertions(+), 38 deletions
+> ...
+> > I'll wait for comments from the others, if any, and put it into my acpi-scan
+> > branch after a couple of days.  It doesn't need to be there technically, but
+> > it's kind of related.
+> 
+> looks like you put it into acpi-scan-next instead.
+> 
+> and it does touch pci code.
+> 
+> can you put it in to acpi-scan ? so Bjorn could pull it again to pci/next.
 
- > arch/ia64/pci/pci.c        |    8 ++++++++
- > arch/x86/include/asm/pci.h |    3 +++
- >  arch/x86/pci/acpi.c        |    9 +++++++++
- > drivers/acpi/pci_root.c    |   18 ------------------
- > drivers/pci/pci-acpi.c     |   19 -------------------
- >  drivers/pci/probe.c        |   16 ++++++++++++++++
- >  include/acpi/acpi_bus.h    |    1 -
- >  include/linux/pci.h        |    2 ++
- >  8 files changed, 38 insertions(+), 38 deletions
-...
-> I'll wait for comments from the others, if any, and put it into my acpi-scan
-> branch after a couple of days.  It doesn't need to be there technically, but
-> it's kind of related.
+I will tomorrow.
 
-looks like you put it into acpi-scan-next instead.
+Thanks,
+Rafael
 
-and it does touch pci code.
 
-can you put it in to acpi-scan ? so Bjorn could pull it again to pci/next.
-
-I like to rebase my patches on top of pci/next.
-
-Thanks
-
-Yinghai
+-- 
+I speak only for myself.
+Rafael J. Wysocki, Intel Open Source Technology Center.
