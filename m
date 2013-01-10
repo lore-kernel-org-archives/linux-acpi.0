@@ -1,135 +1,59 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: [Alternative][PATCH] ACPI / PCI: Set root bridge ACPI handle in advance, v2
-Date: Thu, 10 Jan 2013 01:05:24 +0100
-Message-ID: <9771783.0zXIGEmDYn@vostro.rjw.lan>
-References: <1558789.gX8cmBgyDV@vostro.rjw.lan> <1910593.f2RrgAtJJO@vostro.rjw.lan> <CAE9FiQW4t17=gYC1dnyCVJUQ3rvV491uiA5U1ZjLWjraM=g9rQ@mail.gmail.com>
+From: Bjorn Helgaas <bhelgaas@google.com>
+Subject: Re: [PATCH 0/8] PCI, ACPI, x86: Reserve fw allocated resource for
+ hot-add root bus
+Date: Wed, 9 Jan 2013 17:34:32 -0700
+Message-ID: <CAErSpo7QBNzaMKOGpkrPxop+WN+RMAoeOBUPiFDi9HFyH+UoOQ@mail.gmail.com>
+References: <20121030040237.GA10472@google.com> <CAErSpo6qX3ih9DXLqxqJw141OAeTFu0YfSih6LyD0sd2gS-Vyg@mail.gmail.com>
+ <CAE9FiQWm6=1JXA7EB-a0aqgTFQ5ZeCxz_gAU+ABUce1Ovn1Siw@mail.gmail.com> <5274779.gJQ3WSr6QB@vostro.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7Bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from hydra.sisk.pl ([212.160.235.94]:36244 "EHLO hydra.sisk.pl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932118Ab3AIX7m (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 9 Jan 2013 18:59:42 -0500
-In-Reply-To: <CAE9FiQW4t17=gYC1dnyCVJUQ3rvV491uiA5U1ZjLWjraM=g9rQ@mail.gmail.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <5274779.gJQ3WSr6QB@vostro.rjw.lan>
+Sender: linux-kernel-owner@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: Yinghai Lu <yinghai@kernel.org>, Len Brown <lenb@kernel.org>, Taku Izumi <izumi.taku@jp.fujitsu.com>, Jiang Liu <jiang.liu@huawei.com>, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, David Howells <dhowells@redhat.com>, Michal Simek <monstr@monstr.eu>, Koichi Yasutake <yasutake.koichi@jp.panasonic.com>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Paul Mackerras <paulus@samba.org>
 List-Id: linux-acpi@vger.kernel.org
-To: Yinghai Lu <yinghai@kernel.org>
-Cc: Bjorn Helgaas <bhelgaas@google.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, LKML <linux-kernel@vger.kernel.org>, Tony Luck <tony.luck@intel.com>, "H. Peter Anvin" <hpa@zytor.com>, Jiang Liu <liuj97@gmail.com>, Myron Stowe <myron.stowe@redhat.com>
 
-On Wednesday, January 09, 2013 03:27:29 PM Yinghai Lu wrote:
-> On Wed, Jan 9, 2013 at 3:06 PM, Rafael J. Wysocki <rjw@sisk.pl> wrote:
-> > On Wednesday, January 09, 2013 03:16:59 PM Bjorn Helgaas wrote:
-> >> On Wed, Jan 9, 2013 at 2:33 PM, Rafael J. Wysocki <rjw@sisk.pl> wrote:
-> >> > From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
-> >> >
-> >> > The ACPI handles of PCI root bridges need to be known to
-> >> > acpi_bind_one(), so that it can create the appropriate
-> >> > "firmware_node" and "physical_node" files for them, but currently
-> >> > the way it gets to know those handles is not exactly straightforward
-> >> > (to put it lightly).
-> >> >
-> >> > This is how it works, roughly:
-> >> >
-> >> >   1. acpi_bus_scan() finds the handle of a PCI root bridge,
-> >> >      creates a struct acpi_device object for it and passes that
-> >> >      object to acpi_pci_root_add().
-> >> >
-> >> >   2. acpi_pci_root_add() creates a struct acpi_pci_root object,
-> >> >      populates its "device" field with its argument's address
-> >> >      (device->handle is the ACPI handle found in step 1).
-> >> >
-> >> >   3. The struct acpi_pci_root object created in step 2 is passed
-> >> >      to pci_acpi_scan_root() and used to get resources that are
-> >> >      passed to pci_create_root_bus().
-> >> >
-> >> >   4. pci_create_root_bus() creates a struct pci_host_bridge object
-> >> >      and passes its "dev" member to device_register().
-> >> >
-> >> >   5. platform_notify(), which for systems with ACPI is set to
-> >> >      acpi_platform_notify(), is called.
-> >> >
-> >> > So far, so good.  Now it starts to be "interesting".
-> >> >
-> >> >   6. acpi_find_bridge_device() is used to find the ACPI handle of
-> >> >      the given device (which is the PCI root bridge) and executes
-> >> >      acpi_pci_find_root_bridge(), among other things, for the
-> >> >      given device object.
-> >> >
-> >> >   7. acpi_pci_find_root_bridge() uses the name (sic!) of the given
-> >> >      device object to extract the segment and bus numbers of the PCI
-> >> >      root bridge and passes them to acpi_get_pci_rootbridge_handle().
-> >> >
-> >> >   8. acpi_get_pci_rootbridge_handle() browses the list of ACPI PCI
-> >> >      root bridges and finds the one that matches the given segment
-> >> >      and bus numbers.  Its handle is then used to initialize the
-> >> >      ACPI handle of the PCI root bridge's device object by
-> >> >      acpi_bind_one().  However, this is *exactly* the ACPI handle we
-> >> >      started with in step 1.
-> >> >
-> >> > Needless to say, this is quite embarassing, but it may be avoided
-> >> > thanks to commit f3fd0c8 (ACPI: Allow ACPI handles of devices to be
-> >> > initialized in advance), which makes it possible to initialize the
-> >> > ACPI handle of a device before passing it to device_register().
-> >> >
-> >> > Accordingly, add a new __weak routine, pcibios_root_bridge_prepare(),
-> >> > defaulting to an empty implementation that can be replaced by the
-> >> > interested architecutres (x86 and ia64 at the moment) with functions
-> >> > that will set the root bridge's ACPI handle before its dev member is
-> >> > passed to device_register().  Make both x86 and ia64 provide such
-> >> > implementations of pcibios_root_bridge_prepare() and remove
-> >> > acpi_pci_find_root_bridge() and acpi_get_pci_rootbridge_handle() that
-> >> > aren't necessary any more.
-> >> >
-> >> > Included is a fix for breakage on systems with non-ACPI PCI host
-> >> > bridges from Bjorn Helgaas.
-> >> >
-> >> > Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
-> >>
-> >> Looks good to me!
-> >>
-> >> Acked-by: Bjorn Helgaas <bhelgaas@google.com>
-> >
-> > Thanks!
-> >
-> > I'll wait for comments from the others, if any, and put it into my acpi-scan
-> > branch after a couple of days.  It doesn't need to be there technically, but
-> > it's kind of related.
-> 
-> I tested it with acpi-scan and pci-root-bus-hotplug patchset, and it works well.
-> so
-> Acked-by: Yinghai Lu <yinghai@kernel.org>
+On Wed, Jan 9, 2013 at 1:10 PM, Rafael J. Wysocki <rjw@sisk.pl> wrote:
+> On Wednesday, January 09, 2013 11:01:39 AM Yinghai Lu wrote:
+>> On Wed, Jan 9, 2013 at 10:39 AM, Bjorn Helgaas <bhelgaas@google.com> wrote:
+>> >> the reason why we need to change those codes for x86, we want to make it support
+>> >> pci root bus hotplug. So it would be reasonable for us to align other
+>> >> platform to x86
+>> >> changes after pci root bus hotplug change is completely done.
+>> >
+>> > OK, I opened https://bugzilla.kernel.org/show_bug.cgi?id=52531 as a
+>> > way to keep track of this consistency issue and merged
+>> > pci/yinghai-survey-resources to my -next branch.
+>>
+>> Thanks a lot. will send other pci root bus hotplug out.
+>>
+>> question: now Rafael's tree has acpi-scan branch and it touches pci-root.c.
+>>
+>> so is it ok for me to base patches on your pci/next and his pm/acpi-scan?
+>> how?
+>> can you two have some arrangement like you pulling Rafael's branch?
+>
+> My acpi-scan branch is not going to be rebased going forward, so it can be
+> pulled from safely if that helps.
 
-Thanks!
+I'm happy to do that, but it is outside the scope of my limited git
+experience.  My guess is that I should do this (doing the pull into a
+branch which I later merge into my -next branch):
 
-> BTW, found one left over of change about ->acpi_handle==> ACPI_HANDLE..
+  $ git checkout -b pci/yinghai-survey-resources+acpi-scan
+pci/yinghai-survey-resources
+  $ git pull --no-ff --log
+git://git.kernel.org/pub/scm/linux/kernel/git/rafael/linux-pm.git
+acpi-scan
+  $ vi drivers/acpi/pci_root.c    # resolve conflicts
+  $ git add drivers/acpi/pci_root.c
+  $ git commit
 
-Can you please submit that patch with a proper changelog?
+  $ git checkout next
+  $ git merge --no-ff --log pci/yinghai-survey-resources+acpi-scan
 
-It is a mainline bug now (and a build regression for that matter), so I'd like to
-push the fix to Linus for v3.8-rc4.
+Is that reasonable?  This won't cause issues when both Rafael and I
+ask Linus to pull from our trees later?
 
-> Index: linux-2.6/drivers/acpi/glue.c
-> ===================================================================
-> --- linux-2.6.orig/drivers/acpi/glue.c
-> +++ linux-2.6/drivers/acpi/glue.c
-> @@ -311,7 +311,7 @@ static int acpi_platform_notify(struct d
->         if (!ret) {
->                 struct acpi_buffer buffer = { ACPI_ALLOCATE_BUFFER, NULL };
-> 
-> -               acpi_get_name(dev->acpi_handle, ACPI_FULL_PATHNAME, &buffer);
-> +               acpi_get_name(ACPI_HANDLE(dev), ACPI_FULL_PATHNAME, &buffer);
->                 DBG("Device %s -> %s\n", dev_name(dev), (char *)buffer.pointer);
->                 kfree(buffer.pointer);
->         } else
-> 
-> 
-> otherwise will get compiling error when enable acpi glue debug.
-
-Thanks,
-Rafael
-
-
--- 
-I speak only for myself.
-Rafael J. Wysocki, Intel Open Source Technology Center.
+Bjorn
