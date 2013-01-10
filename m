@@ -1,34 +1,49 @@
-From: Andi Kleen <andi@firstfloor.org>
-Subject: Re: srat: harsh hot-pluggable memory check?
-Date: Thu, 10 Jan 2013 21:02:23 +0100
-Message-ID: <20130110200223.GH30577@one.firstfloor.org>
-References: <1357846907.7523.17.camel@buesod1.americas.hpqcorp.net>
+From: Yinghai Lu <yinghai@kernel.org>
+Subject: Re: [Alternative][PATCH] ACPI / PCI: Set root bridge ACPI handle in
+ advance, v2
+Date: Thu, 10 Jan 2013 14:54:00 -0800
+Message-ID: <CAE9FiQXmOyWYhkc2fbjBvUqBFh7Ktf5E9X6Z8x0HguUdm8+mRw@mail.gmail.com>
+References: <1558789.gX8cmBgyDV@vostro.rjw.lan>
+	<16795012.QL1jNHE7JM@vostro.rjw.lan>
+	<CAErSpo473rZOBERaMJV74rfGZXSuBdiPtX=mXmcLmO=CRB4P_g@mail.gmail.com>
+	<1910593.f2RrgAtJJO@vostro.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from one.firstfloor.org ([213.235.205.2]:37853 "EHLO
-	one.firstfloor.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754598Ab3AJUC2 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 10 Jan 2013 15:02:28 -0500
-Content-Disposition: inline
-In-Reply-To: <1357846907.7523.17.camel@buesod1.americas.hpqcorp.net>
+Received: from mail-bk0-f46.google.com ([209.85.214.46]:36919 "EHLO
+	mail-bk0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753538Ab3AJWyD (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 10 Jan 2013 17:54:03 -0500
+In-Reply-To: <1910593.f2RrgAtJJO@vostro.rjw.lan>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Davidlohr Bueso <davidlohr.bueso@hp.com>
-Cc: linux-acpi@vger.kernel.org, Andi Kleen <andi@firstfloor.org>, zeus@gnu.org, linux-kernel@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: Bjorn Helgaas <bhelgaas@google.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, LKML <linux-kernel@vger.kernel.org>, Tony Luck <tony.luck@intel.com>, "H. Peter Anvin" <hpa@zytor.com>, Jiang Liu <liuj97@gmail.com>, Myron Stowe <myron.stowe@redhat.com>
 
-> This only mentions that the system supports hot-plugging, and IMHO if the
-> user decides not to use CONFIG_MEMORY_HOTPLUG, it shouldn't be considered an error.
-> Therefore would it be ok to drop the check? Or am I missing something?
+On Wed, Jan 9, 2013 at 3:06 PM, Rafael J. Wysocki <rjw@sisk.pl> wrote:
 
-The very strict checks were originally implemented because various early
-BIOS had largely fictional SRATs, and trusting them blindly caused
-boot failures or a lot of wasted memory for unnecessary hotplug zones. 
-The wasted memory was mainly a problem with the old memory hotplug
-implementation that pre-allocated memmaps, that's not a problem anymore.
-However there may be still some other failure cases.
+ > arch/ia64/pci/pci.c        |    8 ++++++++
+ > arch/x86/include/asm/pci.h |    3 +++
+ >  arch/x86/pci/acpi.c        |    9 +++++++++
+ > drivers/acpi/pci_root.c    |   18 ------------------
+ > drivers/pci/pci-acpi.c     |   19 -------------------
+ >  drivers/pci/probe.c        |   16 ++++++++++++++++
+ >  include/acpi/acpi_bus.h    |    1 -
+ >  include/linux/pci.h        |    2 ++
+ >  8 files changed, 38 insertions(+), 38 deletions
+...
+> I'll wait for comments from the others, if any, and put it into my acpi-scan
+> branch after a couple of days.  It doesn't need to be there technically, but
+> it's kind of related.
 
--Andi
+looks like you put it into acpi-scan-next instead.
 
--- 
-ak@linux.intel.com -- Speaking for myself only.
+and it does touch pci code.
+
+can you put it in to acpi-scan ? so Bjorn could pull it again to pci/next.
+
+I like to rebase my patches on top of pci/next.
+
+Thanks
+
+Yinghai
