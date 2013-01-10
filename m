@@ -1,34 +1,38 @@
-From: Davidlohr Bueso <davidlohr.bueso@hp.com>
-Subject: srat: harsh hot-pluggable memory check?
-Date: Thu, 10 Jan 2013 11:41:47 -0800
-Message-ID: <1357846907.7523.17.camel@buesod1.americas.hpqcorp.net>
+From: Tejun Heo <tj@kernel.org>
+Subject: Re: [PATCH v12 2/9] libata: identify and init ZPODD devices
+Date: Thu, 10 Jan 2013 11:47:27 -0800
+Message-ID: <20130110194727.GG20454@htj.dyndns.org>
+References: <1357809870-18816-1-git-send-email-aaron.lu@intel.com>
+ <1357809870-18816-3-git-send-email-aaron.lu@intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from g6t0184.atlanta.hp.com ([15.193.32.61]:29951 "EHLO
-	g6t0184.atlanta.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754053Ab3AJTlv (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 10 Jan 2013 14:41:51 -0500
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-scsi-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <1357809870-18816-3-git-send-email-aaron.lu@intel.com>
+Sender: linux-scsi-owner@vger.kernel.org
+To: Aaron Lu <aaron.lu@intel.com>
+Cc: Jeff Garzik <jgarzik@pobox.com>, James Bottomley <James.Bottomley@hansenpartnership.com>, "Rafael J. Wysocki" <rjw@sisk.pl>, Alan Stern <stern@rowland.harvard.edu>, Aaron Lu <aaron.lwe@gmail.com>, Jeff Wu <jeff.wu@amd.com>, linux-ide@vger.kernel.org, linux-pm@vger.kernel.org, linux-scsi@vger.kernel.org, linux-acpi@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org
-Cc: Andi Kleen <andi@firstfloor.org>, zeus@gnu.org, linux-kernel@vger.kernel.org
 
-When parsing the memory affinity mappings in arch/x86/mm/srat.c:
-acpi_numa_memory_affinity_init() I'm wondering if the hot-pluggable check is too harsh, 
-as we consider an error if the hot-pluggable bit is set and CONFIG_MEMORY_HOTPLUG is not.
+On Thu, Jan 10, 2013 at 05:24:23PM +0800, Aaron Lu wrote:
+> The ODD can be enabled for ZPODD if the following three conditions are
+> satisfied:
+> 1 The ODD supports device attention;
+> 2 The platform can runtime power off the ODD through ACPI;
+> 3 The ODD is either slot type or drawer type.
+> For such ODDs, zpodd_init is called and a new structure is allocated for
+> it to store ZPODD related stuffs.
+> 
+> And the zpodd_dev_enabled function is used to test if ZPODD is currently
+> enabled for this ODD.
+> 
+> A new config CONFIG_SATA_ZPODD is added to selectively build ZPODD code.
+> 
+> Signed-off-by: Aaron Lu <aaron.lu@intel.com>
 
-Based on the ACPI specs (v5):
+Acked-by: Tejun Heo <tj@kernel.org>
 
-"If the Enabled bit is set and the Hot Pluggable bit is also set. The
-system hardware supports hot-add and hot-remove of this memory
-region."
+Thanks.
 
-This only mentions that the system supports hot-plugging, and IMHO if the
-user decides not to use CONFIG_MEMORY_HOTPLUG, it shouldn't be considered an error.
-Therefore would it be ok to drop the check? Or am I missing something?
-
-Thanks,
-Davidlohr
-
+-- 
+tejun
