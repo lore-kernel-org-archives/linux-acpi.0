@@ -1,68 +1,43 @@
 From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: [PATCH 0/12] ACPI: Rework the handling of power resources
-Date: Fri, 11 Jan 2013 22:57:33 +0100
-Message-ID: <16771896.0qvD1a7278@vostro.rjw.lan>
-References: <1418767.4KIZOTK1lk@vostro.rjw.lan>
+Subject: Re: [PATCH 0/6] ACPI / PM: ACPI power management update
+Date: Fri, 11 Jan 2013 22:59:02 +0100
+Message-ID: <1522746.siPuD1toxr@vostro.rjw.lan>
+References: <2311196.icSMDvAsYg@vostro.rjw.lan>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7Bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from hydra.sisk.pl ([212.160.235.94]:38184 "EHLO hydra.sisk.pl"
+Received: from hydra.sisk.pl ([212.160.235.94]:38187 "EHLO hydra.sisk.pl"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754594Ab3AKVvq (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 11 Jan 2013 16:51:46 -0500
-In-Reply-To: <1418767.4KIZOTK1lk@vostro.rjw.lan>
+	id S1754799Ab3AKVxP (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 11 Jan 2013 16:53:15 -0500
+In-Reply-To: <2311196.icSMDvAsYg@vostro.rjw.lan>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: ACPI Devel Maling List <linux-acpi@vger.kernel.org>
-Cc: LKML <linux-kernel@vger.kernel.org>
+Cc: LKML <linux-kernel@vger.kernel.org>, Len Brown <lenb@kernel.org>, Lv Zheng <lv.zheng@intel.com>, Huang Ying <ying.huang@intel.com>
 
-On Friday, January 04, 2013 12:16:48 AM Rafael J. Wysocki wrote:
+On Friday, January 04, 2013 10:58:41 PM Rafael J. Wysocki wrote:
 > Hi All,
 > 
-> There are some problems with our handling of ACPI power resources that have
-> accumulated over time or have never been addressed.
+> There are a few changes of the ACPI power management code I've gathered
+> over the last few weeks.  Some of them are just cleanups etc., but some
+> fix (potential) problems and/or add new functionality.
 > 
-> First of all, the interface represented by
-> acpi_power_resource_[un]register_device() doesn't really work as it should,
-> so it needs to be redesigned (details in the changelog of patch [1/12]).
+> [1/6] - Rework power states changing so that we put devices into D3hot
+>         (if available) before removing power from them entirely.
+> [2/6] - Rename __acpi_bus_get_power() (for future use).
+> [3/6] - Rename state_string() (in bus.c, for future use).
+> [4/6] - Export the (current) power states of ACPI devices via sysfs.
+> [5/6] - Move device power management functions from bus.c to device_pm.c.
+> [6/6] - (Unrelated to the above) Get rid of some ugly #ifdefs in sleep.c.
 > 
-> Second, power resources really have to be treated in a special way by the
-> ACPI namespace scanning code, because they may need to be ready to use as
-> soon as they are discovered.  Moreover, the are represented by struct
-> acpi_device objects, so that they appear in sysfs along with "regular" ACPI
-> device nodes, they really don't represent devices, so they need special
-> configuration treatment in some cases.  This special casing is obnoxiously
-> present in scan.c, but if we accept the fact that power resources really are
-> a special case, things can be simplified quite a bit (patch [3/12] with some
-> preparations in [2/12]).
+> All of them except for [1/6] have been posted already and no one has had any
+> comments.
 > 
-> If the above changes are made, then it turns out that the entire
-> acpi_power_driver structure is not necessary any more and we don't need the
-> device power states of power resources for anything (patches [4-5/12]).
-> 
-> Moreover, ACPI power resources are supposed to be ordered.  Namely, they have
-> an attribute defining the order in which they are supposed to turned on and
-> off.  Currently, though, we don't take that attribute into accound, although
-> we obviously should do that.  After the previous changes that may be
-> implemented at a relatively low cost (patch [6-7/12]).
-> 
-> Patches [8-9/12] move code around and clean it up in preparation for patch
-> [10/12], which consolidates the way in which power resources lists are
-> extracted from the output of _PRW and _PR[0-3].
-> 
-> Patch [11/12] improves the handling of power resource initialization errors
-> and patch [12/12] causes the system level attribute of wakeup power resources
-> to be taken into account during device setup.
-> 
-> All patches are on top of the git branch at:
-> 
-> git://git.kernel.org/pub/scm/linux/kernel/git/rafael/linux-pm.git linux-next
-> 
-> Tested on HP nx6325 (and other boxes where ACPI power resources aren't used).
+> Please review.
 
-There has been a week without a single comment, so I gather the thing is
-not controversial at all.  I'll put it into linux-next for v3.9, then.
+OK, I don't see any objections, so I'm taking it into linux-next for v3.9.
 
 Thanks,
 Rafael
