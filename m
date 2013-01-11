@@ -1,63 +1,51 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: [Alternative][PATCH] ACPI / PCI: Set root bridge ACPI handle in advance, v2
-Date: Fri, 11 Jan 2013 13:27:51 +0100
-Message-ID: <2117635.fU9qB3jgKg@vostro.rjw.lan>
-References: <1558789.gX8cmBgyDV@vostro.rjw.lan> <CAE9FiQXmOyWYhkc2fbjBvUqBFh7Ktf5E9X6Z8x0HguUdm8+mRw@mail.gmail.com> <3595317.Eh4AyqPa3o@vostro.rjw.lan>
+From: Tejun Heo <tj@kernel.org>
+Subject: Re: [PATCH v12 7/9] libata: scsi: no poll when ODD is powered off
+Date: Fri, 11 Jan 2013 10:44:57 -0800
+Message-ID: <20130111184457.GQ20454@htj.dyndns.org>
+References: <1357809870-18816-1-git-send-email-aaron.lu@intel.com>
+ <1357809870-18816-8-git-send-email-aaron.lu@intel.com>
+ <20130110195610.GL20454@htj.dyndns.org>
+ <20130111021110.GB26270@aaronlu.sh.intel.com>
+ <20130111021701.GA2513@mtj.dyndns.org>
+ <20130111031626.GA26613@aaronlu.sh.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from hydra.sisk.pl ([212.160.235.94]:37725 "EHLO hydra.sisk.pl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754019Ab3AKMWF (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 11 Jan 2013 07:22:05 -0500
-In-Reply-To: <3595317.Eh4AyqPa3o@vostro.rjw.lan>
+Received: from mail-pb0-f44.google.com ([209.85.160.44]:39255 "EHLO
+	mail-pb0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754776Ab3AKSpD (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 11 Jan 2013 13:45:03 -0500
+Content-Disposition: inline
+In-Reply-To: <20130111031626.GA26613@aaronlu.sh.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Yinghai Lu <yinghai@kernel.org>, Bjorn Helgaas <bhelgaas@google.com>
-Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, LKML <linux-kernel@vger.kernel.org>, Tony Luck <tony.luck@intel.com>, "H. Peter Anvin" <hpa@zytor.com>, Jiang Liu <liuj97@gmail.com>, Myron Stowe <myron.stowe@redhat.com>
+To: Aaron Lu <aaron.lu@intel.com>
+Cc: Jeff Garzik <jgarzik@pobox.com>, James Bottomley <James.Bottomley@hansenpartnership.com>, "Rafael J. Wysocki" <rjw@sisk.pl>, Alan Stern <stern@rowland.harvard.edu>, Aaron Lu <aaron.lwe@gmail.com>, Jeff Wu <jeff.wu@amd.com>, linux-ide@vger.kernel.org, linux-pm@vger.kernel.org, linux-scsi@vger.kernel.org, linux-acpi@vger.kernel.org
 
-On Friday, January 11, 2013 12:40:30 AM Rafael J. Wysocki wrote:
-> On Thursday, January 10, 2013 02:54:00 PM Yinghai Lu wrote:
-> > On Wed, Jan 9, 2013 at 3:06 PM, Rafael J. Wysocki <rjw@sisk.pl> wrote:
-> > 
-> >  > arch/ia64/pci/pci.c        |    8 ++++++++
-> >  > arch/x86/include/asm/pci.h |    3 +++
-> >  >  arch/x86/pci/acpi.c        |    9 +++++++++
-> >  > drivers/acpi/pci_root.c    |   18 ------------------
-> >  > drivers/pci/pci-acpi.c     |   19 -------------------
-> >  >  drivers/pci/probe.c        |   16 ++++++++++++++++
-> >  >  include/acpi/acpi_bus.h    |    1 -
-> >  >  include/linux/pci.h        |    2 ++
-> >  >  8 files changed, 38 insertions(+), 38 deletions
-> > ...
-> > > I'll wait for comments from the others, if any, and put it into my acpi-scan
-> > > branch after a couple of days.  It doesn't need to be there technically, but
-> > > it's kind of related.
-> > 
-> > looks like you put it into acpi-scan-next instead.
-> > 
-> > and it does touch pci code.
-> > 
-> > can you put it in to acpi-scan ? so Bjorn could pull it again to pci/next.
+Hello,
+
+On Fri, Jan 11, 2013 at 11:16:26AM +0800, Aaron Lu wrote:
+> OK, will make it atomic in next version, thanks for the advice.
 > 
-> I will tomorrow.
+> Perhaps I can add two scsi helper functions in scsi_lib.c like:
+> 
+> void sdev_disable_disk_events(struct scsi_device *sdev)
+> {
+> 	atomic_inc(&sdev->disk_events_disable_depth);
+> }
+> 
+> void sdev_enable_disk_events(struct scsi_device *sdev)
+> {
+> 	if (WARN_ON_ONCE(atomic_read(&sdev->disk_events_disable_depth) <= 0))
+> 		return;
+> 	atomic_dec(&sdev->disk_events_disable_depth);
+> }
+> 
+> And call them in ATA layer. Do you like this?
 
-There is a problem with this, because the acpi-scan branch is based on v3.8-rc2
-that doesn't the contain __devinit removal in arch/ia64/pci/pci.c which conflicts
-with the version of the $subject patch I have in linux-next.  If I put this
-patch into acpi-scan and Bjorn pulls from it, he will need to resolve that
-conflict going forward and I will have to resolve it too, so we'll end up with
-two merge commits resolving the same conflict.
+Sounds good to me.  James, how does the series look to you?
 
-For this reason, I think it would be better if Bjorn took the $subject patch
-directly to his tree, so I've dropped it from my linux-next branch.
-
-Bjorn, can you please apply https://patchwork.kernel.org/patch/1956491/ directly?
-
-Rafael
-
+Thanks!
 
 -- 
-I speak only for myself.
-Rafael J. Wysocki, Intel Open Source Technology Center.
+tejun
