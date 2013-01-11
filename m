@@ -1,92 +1,135 @@
 From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: [RFC PATCH v2 02/12] ACPI: Add sys_hotplug.h for system device hotplug framework
-Date: Fri, 11 Jan 2013 22:25:18 +0100
-Message-ID: <2024927.lMzqqbDSpI@vostro.rjw.lan>
-References: <1357861230-29549-1-git-send-email-toshi.kani@hp.com> <1357861230-29549-3-git-send-email-toshi.kani@hp.com>
+Subject: Re: [Alternative][PATCH] ACPI / PCI: Set root bridge ACPI handle in advance, v2
+Date: Fri, 11 Jan 2013 22:53:31 +0100
+Message-ID: <4001131.iQGP87KxgR@vostro.rjw.lan>
+References: <1558789.gX8cmBgyDV@vostro.rjw.lan> <CAE9FiQW4t17=gYC1dnyCVJUQ3rvV491uiA5U1ZjLWjraM=g9rQ@mail.gmail.com> <9771783.0zXIGEmDYn@vostro.rjw.lan>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7Bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from hydra.sisk.pl ([212.160.235.94]:38145 "EHLO hydra.sisk.pl"
+Received: from hydra.sisk.pl ([212.160.235.94]:38177 "EHLO hydra.sisk.pl"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753537Ab3AKVTb (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 11 Jan 2013 16:19:31 -0500
-In-Reply-To: <1357861230-29549-3-git-send-email-toshi.kani@hp.com>
+	id S1754610Ab3AKVrp (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 11 Jan 2013 16:47:45 -0500
+In-Reply-To: <9771783.0zXIGEmDYn@vostro.rjw.lan>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Toshi Kani <toshi.kani@hp.com>
-Cc: lenb@kernel.org, gregkh@linuxfoundation.org, akpm@linux-foundation.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linux-mm@kvack.org, linuxppc-dev@lists.ozlabs.org, linux-s390@vger.kernel.org, bhelgaas@google.com, isimatu.yasuaki@jp.fujitsu.com, jiang.liu@huawei.com, wency@cn.fujitsu.com, guohanjun@huawei.com, yinghai@kernel.org, srivatsa.bhat@linux.vnet.ibm.com
+To: Yinghai Lu <yinghai@kernel.org>
+Cc: Bjorn Helgaas <bhelgaas@google.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, LKML <linux-kernel@vger.kernel.org>, Tony Luck <tony.luck@intel.com>, "H. Peter Anvin" <hpa@zytor.com>, Jiang Liu <liuj97@gmail.com>, Myron Stowe <myron.stowe@redhat.com>
 
-On Thursday, January 10, 2013 04:40:20 PM Toshi Kani wrote:
-> Added include/acpi/sys_hotplug.h, which is ACPI-specific system
-> device hotplug header and defines the order values of ACPI-specific
-> handlers.
+On Thursday, January 10, 2013 01:05:24 AM Rafael J. Wysocki wrote:
+> On Wednesday, January 09, 2013 03:27:29 PM Yinghai Lu wrote:
+> > On Wed, Jan 9, 2013 at 3:06 PM, Rafael J. Wysocki <rjw@sisk.pl> wrote:
+> > > On Wednesday, January 09, 2013 03:16:59 PM Bjorn Helgaas wrote:
+> > >> On Wed, Jan 9, 2013 at 2:33 PM, Rafael J. Wysocki <rjw@sisk.pl> wrote:
+> > >> > From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+> > >> >
+> > >> > The ACPI handles of PCI root bridges need to be known to
+> > >> > acpi_bind_one(), so that it can create the appropriate
+> > >> > "firmware_node" and "physical_node" files for them, but currently
+> > >> > the way it gets to know those handles is not exactly straightforward
+> > >> > (to put it lightly).
+> > >> >
+> > >> > This is how it works, roughly:
+> > >> >
+> > >> >   1. acpi_bus_scan() finds the handle of a PCI root bridge,
+> > >> >      creates a struct acpi_device object for it and passes that
+> > >> >      object to acpi_pci_root_add().
+> > >> >
+> > >> >   2. acpi_pci_root_add() creates a struct acpi_pci_root object,
+> > >> >      populates its "device" field with its argument's address
+> > >> >      (device->handle is the ACPI handle found in step 1).
+> > >> >
+> > >> >   3. The struct acpi_pci_root object created in step 2 is passed
+> > >> >      to pci_acpi_scan_root() and used to get resources that are
+> > >> >      passed to pci_create_root_bus().
+> > >> >
+> > >> >   4. pci_create_root_bus() creates a struct pci_host_bridge object
+> > >> >      and passes its "dev" member to device_register().
+> > >> >
+> > >> >   5. platform_notify(), which for systems with ACPI is set to
+> > >> >      acpi_platform_notify(), is called.
+> > >> >
+> > >> > So far, so good.  Now it starts to be "interesting".
+> > >> >
+> > >> >   6. acpi_find_bridge_device() is used to find the ACPI handle of
+> > >> >      the given device (which is the PCI root bridge) and executes
+> > >> >      acpi_pci_find_root_bridge(), among other things, for the
+> > >> >      given device object.
+> > >> >
+> > >> >   7. acpi_pci_find_root_bridge() uses the name (sic!) of the given
+> > >> >      device object to extract the segment and bus numbers of the PCI
+> > >> >      root bridge and passes them to acpi_get_pci_rootbridge_handle().
+> > >> >
+> > >> >   8. acpi_get_pci_rootbridge_handle() browses the list of ACPI PCI
+> > >> >      root bridges and finds the one that matches the given segment
+> > >> >      and bus numbers.  Its handle is then used to initialize the
+> > >> >      ACPI handle of the PCI root bridge's device object by
+> > >> >      acpi_bind_one().  However, this is *exactly* the ACPI handle we
+> > >> >      started with in step 1.
+> > >> >
+> > >> > Needless to say, this is quite embarassing, but it may be avoided
+> > >> > thanks to commit f3fd0c8 (ACPI: Allow ACPI handles of devices to be
+> > >> > initialized in advance), which makes it possible to initialize the
+> > >> > ACPI handle of a device before passing it to device_register().
+> > >> >
+> > >> > Accordingly, add a new __weak routine, pcibios_root_bridge_prepare(),
+> > >> > defaulting to an empty implementation that can be replaced by the
+> > >> > interested architecutres (x86 and ia64 at the moment) with functions
+> > >> > that will set the root bridge's ACPI handle before its dev member is
+> > >> > passed to device_register().  Make both x86 and ia64 provide such
+> > >> > implementations of pcibios_root_bridge_prepare() and remove
+> > >> > acpi_pci_find_root_bridge() and acpi_get_pci_rootbridge_handle() that
+> > >> > aren't necessary any more.
+> > >> >
+> > >> > Included is a fix for breakage on systems with non-ACPI PCI host
+> > >> > bridges from Bjorn Helgaas.
+> > >> >
+> > >> > Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+> > >>
+> > >> Looks good to me!
+> > >>
+> > >> Acked-by: Bjorn Helgaas <bhelgaas@google.com>
+> > >
+> > > Thanks!
+> > >
+> > > I'll wait for comments from the others, if any, and put it into my acpi-scan
+> > > branch after a couple of days.  It doesn't need to be there technically, but
+> > > it's kind of related.
+> > 
+> > I tested it with acpi-scan and pci-root-bus-hotplug patchset, and it works well.
+> > so
+> > Acked-by: Yinghai Lu <yinghai@kernel.org>
 > 
-> Signed-off-by: Toshi Kani <toshi.kani@hp.com>
-> ---
->  include/acpi/sys_hotplug.h |   48 ++++++++++++++++++++++++++++++++++++++++++++
->  1 file changed, 48 insertions(+)
->  create mode 100644 include/acpi/sys_hotplug.h
+> Thanks!
 > 
-> diff --git a/include/acpi/sys_hotplug.h b/include/acpi/sys_hotplug.h
-> new file mode 100644
-> index 0000000..ad80f61
-> --- /dev/null
-> +++ b/include/acpi/sys_hotplug.h
-> @@ -0,0 +1,48 @@
-> +/*
-> + * sys_hotplug.h - ACPI System device hot-plug framework
-> + *
-> + * Copyright (C) 2012 Hewlett-Packard Development Company, L.P.
-> + *	Toshi Kani <toshi.kani@hp.com>
-> + *
-> + * This program is free software; you can redistribute it and/or modify
-> + * it under the terms of the GNU General Public License version 2 as
-> + * published by the Free Software Foundation.
-> + */
-> +
-> +#ifndef _ACPI_SYS_HOTPLUG_H
-> +#define _ACPI_SYS_HOTPLUG_H
-> +
-> +#include <linux/list.h>
-> +#include <linux/device.h>
-> +#include <linux/sys_hotplug.h>
-> +
-> +/*
-> + * System device hot-plug operation proceeds in the following order.
-> + *   Validate phase -> Execute phase -> Commit phase
-> + *
-> + * The order values below define the calling sequence of ACPI-specific
-> + * handlers for each phase in ascending order.  The order value of
-> + * platform-neutral handlers are defined in <linux/sys_hotplug.h>.
-> + */
-> +
-> +/* Add Validate order values */
-> +#define SHP_ACPI_BUS_ADD_VALIDATE_ORDER		0	/* must be first */
-> +
-> +/* Add Execute order values */
-> +#define SHP_ACPI_BUS_ADD_EXECUTE_ORDER		10
-> +#define SHP_ACPI_RES_ADD_EXECUTE_ORDER		20
-> +
-> +/* Add Commit order values */
-> +#define SHP_ACPI_BUS_ADD_COMMIT_ORDER		10
-> +
-> +/* Delete Validate order values */
-> +#define SHP_ACPI_BUS_DEL_VALIDATE_ORDER		0	/* must be first */
-> +#define SHP_ACPI_RES_DEL_VALIDATE_ORDER		10
-> +
-> +/* Delete Execute order values */
-> +#define SHP_ACPI_BUS_DEL_EXECUTE_ORDER		100
-> +
-> +/* Delete Commit order values */
-> +#define SHP_ACPI_BUS_DEL_COMMIT_ORDER		100
-> +
-> +#endif	/* _ACPI_SYS_HOTPLUG_H */
-> --
+> > BTW, found one left over of change about ->acpi_handle==> ACPI_HANDLE..
+> 
+> Can you please submit that patch with a proper changelog?
+> 
+> It is a mainline bug now (and a build regression for that matter), so I'd like to
+> push the fix to Linus for v3.8-rc4.
 
-Why did you use the particular values above?
+May I have your sign-off for the patch below at least?
 
 Rafael
+
+
+> > Index: linux-2.6/drivers/acpi/glue.c
+> > ===================================================================
+> > --- linux-2.6.orig/drivers/acpi/glue.c
+> > +++ linux-2.6/drivers/acpi/glue.c
+> > @@ -311,7 +311,7 @@ static int acpi_platform_notify(struct d
+> >         if (!ret) {
+> >                 struct acpi_buffer buffer = { ACPI_ALLOCATE_BUFFER, NULL };
+> > 
+> > -               acpi_get_name(dev->acpi_handle, ACPI_FULL_PATHNAME, &buffer);
+> > +               acpi_get_name(ACPI_HANDLE(dev), ACPI_FULL_PATHNAME, &buffer);
+> >                 DBG("Device %s -> %s\n", dev_name(dev), (char *)buffer.pointer);
+> >                 kfree(buffer.pointer);
+> >         } else
+> > 
+> > 
 
 
 -- 
