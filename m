@@ -1,81 +1,78 @@
 From: Yinghai Lu <yinghai@kernel.org>
-Subject: [PATCH v8 01/22] PCI, acpiphp: Add is_hotplug_bridge detection
-Date: Fri, 11 Jan 2013 14:40:28 -0800
-Message-ID: <1357944049-29620-2-git-send-email-yinghai@kernel.org>
-References: <1357944049-29620-1-git-send-email-yinghai@kernel.org>
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from userp1040.oracle.com ([156.151.31.81]:22776 "EHLO
-	userp1040.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755733Ab3AKWlJ (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 11 Jan 2013 17:41:09 -0500
-In-Reply-To: <1357944049-29620-1-git-send-email-yinghai@kernel.org>
-Sender: linux-acpi-owner@vger.kernel.org
-List-Id: linux-acpi@vger.kernel.org
+Subject: [PATCH v8 00/22] PCI, ACPI: pci root bus hotplug support / pci match_driver
+Date: Fri, 11 Jan 2013 14:40:27 -0800
+Message-ID: <1357944049-29620-1-git-send-email-yinghai@kernel.org>
+Return-path: <linux-pci-owner@vger.kernel.org>
+Sender: linux-pci-owner@vger.kernel.org
 To: Bjorn Helgaas <bhelgaas@google.com>, "Rafael J. Wysocki" <rjw@sisk.pl>, Len Brown <lenb@kernel.org>, Taku Izumi <izumi.taku@jp.fujitsu.com>, Jiang Liu <jiang.liu@huawei.com>
 Cc: linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Yinghai Lu <yinghai@kernel.org>
+List-Id: linux-acpi@vger.kernel.org
 
-When system support hotplug bridge with children hotplug slots, we need
-to make sure that parent bridge get preallocated resource so later when
-device is plugged into children slot, those children devices will get
-resource allocated.
+It includes
+1. preparing patches for pci root bus hotadd/hotremove support
+2. move root bus hotadd from acpiphp to pci_root.c
+3. add hot-remove support
+4. clean up hotadd/remove with common functions
+5. add acpi_hp_work to be shared with acpiphp and root-bus hotplug
+6. add match_driver to add pci device to device tree early but
+   not attach driver for hotplug path.
 
-We do not meet this problem, because for pcie hotplug card, when acpiphp
-is used, pci_scan_bridge will set that for us when detect hotplug bit in
-slot cap.
+based on pci/next
 
-Reported-and-tested-by: Jason Baron <jbaron@redhat.com>
-Signed-off-by: Yinghai Lu <yinghai@kernel.org>
-Acked-by: Jason Baron <jbaron@redhat.com>
----
- drivers/pci/hotplug/acpiphp_glue.c |   27 ++++++++++++++++++++++++++-
- 1 file changed, 26 insertions(+), 1 deletion(-)
+could get from
+        git://git.kernel.org/pub/scm/linux/kernel/git/yinghai/linux-yinghai.git for-pci-root-bus-hotplug
 
-diff --git a/drivers/pci/hotplug/acpiphp_glue.c b/drivers/pci/hotplug/acpiphp_glue.c
-index 91b5ad8..1e5c5df 100644
---- a/drivers/pci/hotplug/acpiphp_glue.c
-+++ b/drivers/pci/hotplug/acpiphp_glue.c
-@@ -797,6 +797,29 @@ static void acpiphp_set_acpi_region(struct acpiphp_slot *slot)
- 	}
- }
- 
-+static void check_hotplug_bridge(struct acpiphp_slot *slot, struct pci_dev *dev)
-+{
-+	struct acpiphp_func *func;
-+
-+	if (!dev->subordinate)
-+		return;
-+
-+	/* quirk, or pcie could set it already */
-+	if (dev->is_hotplug_bridge)
-+		return;
-+
-+	if (PCI_SLOT(dev->devfn) != slot->device)
-+		return;
-+
-+	list_for_each_entry(func, &slot->funcs, sibling) {
-+		if (PCI_FUNC(dev->devfn) == func->function) {
-+			/* check if this bridge has ejectable slots */
-+			if ((detect_ejectable_slots(func->handle) > 0))
-+				dev->is_hotplug_bridge = 1;
-+			break;
-+		}
-+	}
-+}
- /**
-  * enable_device - enable, configure a slot
-  * @slot: slot to be enabled
-@@ -831,8 +854,10 @@ static int __ref enable_device(struct acpiphp_slot *slot)
- 			if (dev->hdr_type == PCI_HEADER_TYPE_BRIDGE ||
- 			    dev->hdr_type == PCI_HEADER_TYPE_CARDBUS) {
- 				max = pci_scan_bridge(bus, dev, max, pass);
--				if (pass && dev->subordinate)
-+				if (pass && dev->subordinate) {
-+					check_hotplug_bridge(slot, dev);
- 					pci_bus_size_bridges(dev->subordinate);
-+				}
- 			}
- 		}
- 	}
+After this patchset, will send out
+	 for_each_host_bridge support
+	 for_each_dev_addon_res
+
+Jiang Liu (4):
+  PCI: Fix a device reference count leakage issue in pci_dev_present()
+  PCI: make PCI device create/destroy logic symmetric
+  PCI: split registration of PCI bus devices into two stages
+  PCI: correctly detect ACPI PCI host bridge objects
+
+Tang Chen (2):
+  ACPI: Introduce a new acpi handle to determine HID match.
+  PCI, ACPI: debug print for installation of acpi root bridge's notifier
+
+Yinghai Lu (16):
+  PCI, acpiphp: Add is_hotplug_bridge detection
+  PCI: Add root bus children dev's res to fail list
+  PCI: Set dev_node early for pci_dev
+  ACPI: Separate acpi_bus_trim to support two steps.
+  PCI, acpiphp: Separate out hot-add support of pci host bridge
+  PCI, ACPI: Add pci_root_hp hot removal notification support.
+  PCI, ACPI: remove acpi_root_bridge in pci_root_hp
+  ACPI: update ej_event interface to take acpi_device
+  ACPI, PCI: Simplify handle_root_bridge_removal()
+  PCI, acpiphp: Don't bailout even no slots found yet.
+  PCI, ACPI: Add alloc_acpi_hp_work()
+  PCI, acpiphp: Use acpi_hp_work
+  PCI, pci_root_hp: Use acpi_hp_work
+  PCI, ACPI: Make kacpi_hotplug_wq static
+  PCI: add match_driver in struct pci_dev
+  PCI: move device_add out of pci_bus_add_device()
+
+ drivers/acpi/acpi_memhotplug.c     |    2 +-
+ drivers/acpi/osl.c                 |   24 ++++-
+ drivers/acpi/pci_root.c            |  180 ++++++++++++++++++++++++++++++++++++
+ drivers/acpi/processor_driver.c    |    2 +-
+ drivers/acpi/scan.c                |   52 ++++++++---
+ drivers/pci/bus.c                  |   57 +++---------
+ drivers/pci/hotplug/acpiphp.h      |    1 -
+ drivers/pci/hotplug/acpiphp_core.c |   23 +----
+ drivers/pci/hotplug/acpiphp_glue.c |  150 ++++++++++--------------------
+ drivers/pci/iov.c                  |    7 --
+ drivers/pci/pci-driver.c           |    6 +-
+ drivers/pci/probe.c                |   40 ++++++--
+ drivers/pci/remove.c               |   14 +--
+ drivers/pci/search.c               |   10 +-
+ drivers/pci/setup-bus.c            |    2 +-
+ include/acpi/acpi_bus.h            |    4 +-
+ include/acpi/acpiosxf.h            |    9 +-
+ include/linux/pci.h                |    1 +
+ 18 files changed, 365 insertions(+), 219 deletions(-)
+
 -- 
 1.7.10.4
-
