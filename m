@@ -1,189 +1,53 @@
-From: Lv Zheng <lv.zheng@intel.com>
-Subject: [PATCH 3/3] ACPICA: Add new statistics interface.
-Date: Fri, 11 Jan 2013 07:30:16 +0000 (UTC)
-Message-ID: <f8cf178a2669e901fb4915dd431d7c860b35b952.1357982088.git.lv.zheng@intel.com>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: Re: [PATCH 0/3] ACPICA: Missing patches for 20121220 release.
+Date: Fri, 11 Jan 2013 13:20:50 +0100
+Message-ID: <8440009.ekzx4iWl3E@vostro.rjw.lan>
 References: <cover.1356668530.git.lv.zheng@intel.com> <cover.1357982088.git.lv.zheng@intel.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7Bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga11.intel.com ([192.55.52.93]:52154 "EHLO mga11.intel.com"
+Received: from hydra.sisk.pl ([212.160.235.94]:37714 "EHLO hydra.sisk.pl"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753401Ab3AKHaP (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 11 Jan 2013 02:30:15 -0500
-Date: Sat, 12 Jan 2013 23:29:54 +0800
+	id S1752409Ab3AKMPE (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 11 Jan 2013 07:15:04 -0500
 In-Reply-To: <cover.1357982088.git.lv.zheng@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Rafael J Wysocki <rafael.j.wysocki@intel.com>, Len Brown <len.brown@intel.com>, Rafael J Wysocki <rjw@sisk.pl>
-Cc: linux-acpi@vger.kernel.org, Lv Zheng <lv.zheng@intel.com>
+To: Lv Zheng <lv.zheng@intel.com>
+Cc: linux-acpi@vger.kernel.org, Len Brown <lenb@kernel.org>, "Moore, Robert" <robert.moore@intel.com>
 
-This patch decreases 123 lines of 20121114 divergence.diff.
+On Saturday, January 12, 2013 11:28:50 PM Lv Zheng wrote:
+> This patch set is based on the ACPICA 20121220 release currently can be
+> found in the linux-next branch of linux-pm tree.
+> This patch set has stayed in the acpica-201212 branch of the ACPICA
+> release test tree for one days.
+> The source code differences between Linux and ACPICA can be summarized as
+> follows:
+> 1. 1963 Lines (70.0 Kbytes) before applying the patch set;
+> 2. 1796 Lines (64.8 Kbytes) after applying the patch set.
+> 
+> Please review.
+> 
+> Bob Moore (1):
+>   ACPICA: Source restructuring: split large files into 8 new files.
+> 
+> Lv Zheng (2):
+>   ACPICA: Cleanup table handler naming conflicts.
+>   ACPICA: Add new statistics interface.
 
-This patch ports new counters and statistics interface to Linux as such
-enhancement has already been implemented in ACPICA. This patch can also
-reduce the source code differences between Linux and ACPICA.
+OK, applied.
 
-Signed-off-by: Lv Zheng <lv.zheng@intel.com>
----
-Divergences fixing result:
-  Before applying: 1919 Lines, 68.3 Kbytes
-  After applying: 1796 Lines, 64.3 Kbytes
----
- drivers/acpi/acpica/acglobal.h |    2 ++
- drivers/acpi/acpica/dsmethod.c |    1 +
- drivers/acpi/acpica/evsci.c    |    1 +
- drivers/acpi/acpica/utglobal.c |   11 +++++++++++
- drivers/acpi/acpica/utxface.c  |   38 ++++++++++++++++++++++++++++++++++++++
- include/acpi/acpixf.h          |    2 ++
- include/acpi/actypes.h         |   10 ++++++++++
- 7 files changed, 65 insertions(+)
+I took [1/3] directly from my mailbox, because it looks like vger didn't allow
+it to go to the list.
 
-diff --git a/drivers/acpi/acpica/acglobal.h b/drivers/acpi/acpica/acglobal.h
-index 585d364..e7ebb0b 100644
---- a/drivers/acpi/acpica/acglobal.h
-+++ b/drivers/acpi/acpica/acglobal.h
-@@ -393,7 +393,9 @@ extern u32 acpi_gbl_nesting_level;
- 
- /* Event counters */
- 
-+ACPI_EXTERN u32 acpi_method_count;
- ACPI_EXTERN u32 acpi_gpe_count;
-+ACPI_EXTERN u32 acpi_sci_count;
- ACPI_EXTERN u32 acpi_fixed_event_count[ACPI_NUM_FIXED_EVENTS];
- 
- /* Support for dynamic control method tracing mechanism */
-diff --git a/drivers/acpi/acpica/dsmethod.c b/drivers/acpi/acpica/dsmethod.c
-index 4e5873a..7fed60c 100644
---- a/drivers/acpi/acpica/dsmethod.c
-+++ b/drivers/acpi/acpica/dsmethod.c
-@@ -292,6 +292,7 @@ acpi_ds_begin_method_execution(struct acpi_namespace_node *method_node,
- 	 * reentered one more time (even if it is the same thread)
- 	 */
- 	obj_desc->method.thread_count++;
-+	acpi_method_count++;
- 	return_ACPI_STATUS(status);
- 
-       cleanup:
-diff --git a/drivers/acpi/acpica/evsci.c b/drivers/acpi/acpica/evsci.c
-index 6c90f15..2f93ac5 100644
---- a/drivers/acpi/acpica/evsci.c
-+++ b/drivers/acpi/acpica/evsci.c
-@@ -89,6 +89,7 @@ static u32 ACPI_SYSTEM_XFACE acpi_ev_sci_xrupt_handler(void *context)
- 	 */
- 	interrupt_handled |= acpi_ev_gpe_detect(gpe_xrupt_list);
- 
-+	acpi_sci_count++;
- 	return_VALUE(interrupt_handled);
- }
- 
-diff --git a/drivers/acpi/acpica/utglobal.c b/drivers/acpi/acpica/utglobal.c
-index 7b4dd21..82caa42 100644
---- a/drivers/acpi/acpica/utglobal.c
-+++ b/drivers/acpi/acpica/utglobal.c
-@@ -289,6 +289,16 @@ acpi_status acpi_ut_init_globals(void)
- 
- 	acpi_gbl_owner_id_mask[ACPI_NUM_OWNERID_MASKS - 1] = 0x80000000;
- 
-+	/* Event counters */
-+
-+	acpi_method_count = 0;
-+	acpi_sci_count = 0;
-+	acpi_gpe_count = 0;
-+
-+	for (i = 0; i < ACPI_NUM_FIXED_EVENTS; i++) {
-+		acpi_fixed_event_count[i] = 0;
-+	}
-+
- #if (!ACPI_REDUCED_HARDWARE)
- 
- 	/* GPE support */
-@@ -378,4 +388,5 @@ acpi_status acpi_ut_init_globals(void)
- ACPI_EXPORT_SYMBOL(acpi_gbl_FADT)
- ACPI_EXPORT_SYMBOL(acpi_dbg_level)
- ACPI_EXPORT_SYMBOL(acpi_dbg_layer)
-+    ACPI_EXPORT_SYMBOL(acpi_gpe_count)
- ACPI_EXPORT_SYMBOL(acpi_current_gpe_count)
-diff --git a/drivers/acpi/acpica/utxface.c b/drivers/acpi/acpica/utxface.c
-index cb85a7b..f1f0bb5 100644
---- a/drivers/acpi/acpica/utxface.c
-+++ b/drivers/acpi/acpica/utxface.c
-@@ -207,6 +207,44 @@ acpi_status acpi_get_system_info(struct acpi_buffer * out_buffer)
- 
- ACPI_EXPORT_SYMBOL(acpi_get_system_info)
- 
-+/*******************************************************************************
-+ *
-+ * FUNCTION:    acpi_get_statistics
-+ *
-+ * PARAMETERS:  stats           - Where the statistics are returned
-+ *
-+ * RETURN:      status          - the status of the call
-+ *
-+ * DESCRIPTION: Get the contents of the various system counters
-+ *
-+ ******************************************************************************/
-+acpi_status acpi_get_statistics(struct acpi_statistics *stats)
-+{
-+	ACPI_FUNCTION_TRACE(acpi_get_statistics);
-+
-+	/* Parameter validation */
-+
-+	if (!stats) {
-+		return_ACPI_STATUS(AE_BAD_PARAMETER);
-+	}
-+
-+	/* Various interrupt-based event counters */
-+
-+	stats->sci_count = acpi_sci_count;
-+	stats->gpe_count = acpi_gpe_count;
-+
-+	ACPI_MEMCPY(stats->fixed_event_count, acpi_fixed_event_count,
-+		    sizeof(acpi_fixed_event_count));
-+
-+	/* Other counters */
-+
-+	stats->method_count = acpi_method_count;
-+
-+	return_ACPI_STATUS(AE_OK);
-+}
-+
-+ACPI_EXPORT_SYMBOL(acpi_get_statistics)
-+
- /*****************************************************************************
-  *
-  * FUNCTION:    acpi_install_initialization_handler
-diff --git a/include/acpi/acpixf.h b/include/acpi/acpixf.h
-index d8b2ea6..110bc23 100644
---- a/include/acpi/acpixf.h
-+++ b/include/acpi/acpixf.h
-@@ -137,6 +137,8 @@ acpi_status acpi_subsystem_status(void);
- acpi_status acpi_get_system_info(struct acpi_buffer *ret_buffer);
- #endif
- 
-+acpi_status acpi_get_statistics(struct acpi_statistics *stats);
-+
- const char *acpi_format_exception(acpi_status exception);
- 
- acpi_status acpi_purge_cached_objects(void);
-diff --git a/include/acpi/actypes.h b/include/acpi/actypes.h
-index 3d4e09c..46e6624 100644
---- a/include/acpi/actypes.h
-+++ b/include/acpi/actypes.h
-@@ -933,6 +933,16 @@ struct acpi_system_info {
- 	u32 debug_layer;
- };
- 
-+/*
-+ * System statistics returned by acpi_get_statistics()
-+ */
-+struct acpi_statistics {
-+	u32 sci_count;
-+	u32 gpe_count;
-+	u32 fixed_event_count[ACPI_NUM_FIXED_EVENTS];
-+	u32 method_count;
-+};
-+
- /* Table Event Types */
- 
- #define ACPI_TABLE_EVENT_LOAD           0x0
+Please check the ACPICA material in the linux-next branch of my tree and if
+there's anything more you'd like to go into v3.9, please let me know.
+
+Thanks,
+Rafael
+
+
 -- 
-1.7.10
-
+I speak only for myself.
+Rafael J. Wysocki, Intel Open Source Technology Center.
