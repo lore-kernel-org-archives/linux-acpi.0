@@ -1,221 +1,103 @@
-From: Toshi Kani <toshi.kani@hp.com>
-Subject: [RFC PATCH v2 12/12] ACPI: Update sysfs eject for hotplug framework
-Date: Thu, 10 Jan 2013 16:40:30 -0700
-Message-ID: <1357861230-29549-13-git-send-email-toshi.kani@hp.com>
-References: <1357861230-29549-1-git-send-email-toshi.kani@hp.com>
-Return-path: <owner-linux-mm@kvack.org>
-In-Reply-To: <1357861230-29549-1-git-send-email-toshi.kani@hp.com>
-Sender: owner-linux-mm@kvack.org
-To: rjw@sisk.pl, lenb@kernel.org, gregkh@linuxfoundation.org, akpm@linux-foundation.org
-Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linux-mm@kvack.org, linuxppc-dev@lists.ozlabs.org, linux-s390@vger.kernel.org, bhelgaas@google.com, isimatu.yasuaki@jp.fujitsu.com, jiang.liu@huawei.com, wency@cn.fujitsu.com, guohanjun@huawei.com, yinghai@kernel.org, srivatsa.bhat@linux.vnet.ibm.com, Toshi Kani <toshi.kani@hp.com>
+From: Aaron Lu <aaron.lu@intel.com>
+Subject: Re: [PATCH v12 4/9] libata: check zero power ready status for ZPODD
+Date: Fri, 11 Jan 2013 10:00:59 +0800
+Message-ID: <20130111020059.GA26270@aaronlu.sh.intel.com>
+References: <1357809870-18816-1-git-send-email-aaron.lu@intel.com>
+ <1357809870-18816-5-git-send-email-aaron.lu@intel.com>
+ <20130110195231.GI20454@htj.dyndns.org>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-ide-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20130110195231.GI20454@htj.dyndns.org>
+Sender: linux-ide-owner@vger.kernel.org
+To: Tejun Heo <tj@kernel.org>
+Cc: Jeff Garzik <jgarzik@pobox.com>, James Bottomley <James.Bottomley@hansenpartnership.com>, "Rafael J. Wysocki" <rjw@sisk.pl>, Alan Stern <stern@rowland.harvard.edu>, Aaron Lu <aaron.lwe@gmail.com>, Jeff Wu <jeff.wu@amd.com>, linux-ide@vger.kernel.org, linux-pm@vger.kernel.org, linux-scsi@vger.kernel.org, linux-acpi@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-Changed acpi_eject_store() to request a hot-delete operation by
-calling shp_submit_req().  It no longer initiates a hot-delete
-operation by calling acpi_bus_hot_remove_device().
+Hi Tejun,
 
-Deleted acpi_bus_hot_remove_device() since it no longer has any
-caller and should not be called for hot-delete.
+On Thu, Jan 10, 2013 at 11:52:31AM -0800, Tejun Heo wrote:
+> Hello, Aaron.
+> 
+> On Thu, Jan 10, 2013 at 05:24:25PM +0800, Aaron Lu wrote:
+> > +/*
+> > + * Update the zpodd->zp_ready field. This field will only be set
+> > + * if the ODD has stayed in ZP ready state for zpodd_poweroff_delay
+> > + * time, and will be used to decide if power off is allowed. If it
+> > + * is set, it will be cleared during resume from powered off state.
+> > + */
+> > +void zpodd_on_suspend(struct ata_device *dev)
+> > +{
+> > +	struct zpodd *zpodd = dev->zpodd;
+> > +	unsigned long expires;
+> > +
+> > +	if (!zpready(dev)) {
+> > +		zpodd->zp_sampled = false;
+> > +		return;
+> > +	}
+> > +
+> > +	if (!zpodd->zp_sampled) {
+> > +		zpodd->zp_sampled = true;
+> > +		zpodd->last_ready = jiffies;
+> > +		return;
+> 
+> Is the above return necessary?  Can't we just fall through and always
+> check the actual condition?
 
-Deleted eject_pending bit from acpi_device_flags since the ACPI
-container driver no longer sets it for hot-delete, and sysfs
-eject no longer checks it in acpi_bus_hot_remove_device().
+The zpready(dev) function will check the actual condition by issuing a
+TUR and check the returned sense code. And the zp_sampled serves as an
+indication if this is the first time we sensed the ODD in ZP ready
+status.
 
-Signed-off-by: Toshi Kani <toshi.kani@hp.com>
----
- drivers/acpi/scan.c     |  122 ++++++++---------------------------------------
- include/acpi/acpi_bus.h |    4 --
- 2 files changed, 23 insertions(+), 103 deletions(-)
+The zpodd_on_suspend works like this:
 
-diff --git a/drivers/acpi/scan.c b/drivers/acpi/scan.c
-index c88be6c..5e47b49 100644
---- a/drivers/acpi/scan.c
-+++ b/drivers/acpi/scan.c
-@@ -13,6 +13,7 @@
- #include <linux/nls.h>
- 
- #include <acpi/acpi_drivers.h>
-+#include <acpi/sys_hotplug.h>
- 
- #include "internal.h"
- 
-@@ -105,85 +106,6 @@ acpi_device_modalias_show(struct device *dev, struct device_attribute *attr, cha
- }
- static DEVICE_ATTR(modalias, 0444, acpi_device_modalias_show, NULL);
- 
--/**
-- * acpi_bus_hot_remove_device: hot-remove a device and its children
-- * @context: struct acpi_eject_event pointer (freed in this func)
-- *
-- * Hot-remove a device and its children. This function frees up the
-- * memory space passed by arg context, so that the caller may call
-- * this function asynchronously through acpi_os_hotplug_execute().
-- */
--void acpi_bus_hot_remove_device(void *context)
--{
--	struct acpi_eject_event *ej_event = (struct acpi_eject_event *) context;
--	struct acpi_device *device;
--	acpi_handle handle = ej_event->handle;
--	acpi_handle temp;
--	struct acpi_object_list arg_list;
--	union acpi_object arg;
--	acpi_status status = AE_OK;
--	u32 ost_code = ACPI_OST_SC_NON_SPECIFIC_FAILURE; /* default */
--
--	if (acpi_bus_get_device(handle, &device))
--		goto err_out;
--
--	if (!device)
--		goto err_out;
--
--	ACPI_DEBUG_PRINT((ACPI_DB_INFO,
--		"Hot-removing device %s...\n", dev_name(&device->dev)));
--
--	if (acpi_bus_trim(device, 1)) {
--		printk(KERN_ERR PREFIX
--				"Removing device failed\n");
--		goto err_out;
--	}
--
--	/* device has been freed */
--	device = NULL;
--
--	/* power off device */
--	status = acpi_evaluate_object(handle, "_PS3", NULL, NULL);
--	if (ACPI_FAILURE(status) && status != AE_NOT_FOUND)
--		printk(KERN_WARNING PREFIX
--				"Power-off device failed\n");
--
--	if (ACPI_SUCCESS(acpi_get_handle(handle, "_LCK", &temp))) {
--		arg_list.count = 1;
--		arg_list.pointer = &arg;
--		arg.type = ACPI_TYPE_INTEGER;
--		arg.integer.value = 0;
--		acpi_evaluate_object(handle, "_LCK", &arg_list, NULL);
--	}
--
--	arg_list.count = 1;
--	arg_list.pointer = &arg;
--	arg.type = ACPI_TYPE_INTEGER;
--	arg.integer.value = 1;
--
--	/*
--	 * TBD: _EJD support.
--	 */
--	status = acpi_evaluate_object(handle, "_EJ0", &arg_list, NULL);
--	if (ACPI_FAILURE(status)) {
--		if (status != AE_NOT_FOUND)
--			printk(KERN_WARNING PREFIX
--					"Eject device failed\n");
--		goto err_out;
--	}
--
--	kfree(context);
--	return;
--
--err_out:
--	/* Inform firmware the hot-remove operation has completed w/ error */
--	(void) acpi_evaluate_hotplug_ost(handle,
--				ej_event->event, ost_code, NULL);
--	kfree(context);
--	return;
--}
--EXPORT_SYMBOL(acpi_bus_hot_remove_device);
--
- static ssize_t
- acpi_eject_store(struct device *d, struct device_attribute *attr,
- 		const char *buf, size_t count)
-@@ -192,44 +114,44 @@ acpi_eject_store(struct device *d, struct device_attribute *attr,
- 	acpi_status status;
- 	acpi_object_type type = 0;
- 	struct acpi_device *acpi_device = to_acpi_device(d);
--	struct acpi_eject_event *ej_event;
-+	struct shp_request *shp_req;
- 
- 	if ((!count) || (buf[0] != '1')) {
- 		return -EINVAL;
- 	}
- #ifndef FORCE_EJECT
- 	if (acpi_device->driver == NULL) {
--		ret = -ENODEV;
--		goto err;
-+		return -ENODEV;
- 	}
- #endif
- 	status = acpi_get_type(acpi_device->handle, &type);
- 	if (ACPI_FAILURE(status) || (!acpi_device->flags.ejectable)) {
--		ret = -ENODEV;
--		goto err;
-+		return -ENODEV;
- 	}
- 
--	ej_event = kmalloc(sizeof(*ej_event), GFP_KERNEL);
--	if (!ej_event) {
--		ret = -ENOMEM;
-+	shp_req = shp_alloc_request(SHP_HOTPLUG_DEL);
-+	if (!shp_req)
-+		return -ENOMEM;
-+
-+	shp_req->handle = (void *) acpi_device->handle;
-+
-+	/* event originated from user */
-+	shp_req->event = ACPI_OST_EC_OSPM_EJECT;
-+	(void) acpi_evaluate_hotplug_ost(shp_req->handle,
-+			shp_req->event, ACPI_OST_SC_EJECT_IN_PROGRESS, NULL);
-+
-+	if (shp_submit_req(shp_req)) {
-+		kfree(shp_req);
- 		goto err;
- 	}
- 
--	ej_event->handle = acpi_device->handle;
--	if (acpi_device->flags.eject_pending) {
--		/* event originated from ACPI eject notification */
--		ej_event->event = ACPI_NOTIFY_EJECT_REQUEST;
--		acpi_device->flags.eject_pending = 0;
--	} else {
--		/* event originated from user */
--		ej_event->event = ACPI_OST_EC_OSPM_EJECT;
--		(void) acpi_evaluate_hotplug_ost(ej_event->handle,
--			ej_event->event, ACPI_OST_SC_EJECT_IN_PROGRESS, NULL);
--	}
-+	return ret;
- 
--	acpi_os_hotplug_execute(acpi_bus_hot_remove_device, (void *)ej_event);
- err:
--	return ret;
-+	/* Inform firmware that the hotplug operation completed w/ error */
-+	(void) acpi_evaluate_hotplug_ost(shp_req->handle,
-+			shp_req->event, ACPI_OST_SC_NON_SPECIFIC_FAILURE, NULL);
-+	return -EINVAL;
- }
- 
- static DEVICE_ATTR(eject, 0200, NULL, acpi_eject_store);
-diff --git a/include/acpi/acpi_bus.h b/include/acpi/acpi_bus.h
-index 6bf002e..ccbfef3 100644
---- a/include/acpi/acpi_bus.h
-+++ b/include/acpi/acpi_bus.h
-@@ -151,8 +151,7 @@ struct acpi_device_flags {
- 	u32 suprise_removal_ok:1;
- 	u32 power_manageable:1;
- 	u32 performance_manageable:1;
--	u32 eject_pending:1;
--	u32 reserved:24;
-+	u32 reserved:25;
- };
- 
- /* File System */
-@@ -362,7 +361,6 @@ int acpi_bus_register_driver(struct acpi_driver *driver);
- void acpi_bus_unregister_driver(struct acpi_driver *driver);
- int acpi_bus_add(struct acpi_device **child, struct acpi_device *parent,
- 		 acpi_handle handle, int type);
--void acpi_bus_hot_remove_device(void *context);
- int acpi_bus_trim(struct acpi_device *start, int rmdevice);
- int acpi_bus_start(struct acpi_device *device);
- acpi_status acpi_bus_get_ejd(acpi_handle handle, acpi_handle * ejd);
+check ZP ready status by calling zpready(dev)
+  if not, clear zp_sampled and zp_ready
+  return
 
---
-To unsubscribe, send a message with 'unsubscribe linux-mm' in
-the body to majordomo@kvack.org.  For more info on Linux MM,
-see: http://www.linux-mm.org/ .
-Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
+ODD is ZP ready
+
+check if this is the first time we sensed it is ZP ready
+  if not, set the zp_sampled flag and record timestamp
+  return
+
+This is not the first time we sensed ZP ready for the ODD
+
+check if the ODD has been in this state long enough
+  if not, return
+
+The ODD has been in ZP ready state long enough
+  set the zp_ready flag, the zpodd_zpready will use that flag
+
+Done.
+
+Does this work flow look OK?
+
+BTW, I just realized I mistakenly removed the clear of zp_ready in v12
+when zpready(dev) returns false, I thought it is not necessary since
+each time we set that flag, the ODD will be powered off and the flag
+will always be cleared during resume time in post_poweron. But when
+qos_no_poweroff is set, this is not the case and can cause problem when
+ODD is not in ZP ready state and user cleared the qos_no_poweroff flag.
+I'll add a comment for this in next version to avoid making this mistake
+again in the future...
+
+Thanks,
+Aaron
+
+> 
+> > +	}
+> > +
+> > +	expires = zpodd->last_ready +
+> > +		  msecs_to_jiffies(zpodd_poweroff_delay * 1000);
+> > +	if (time_before(jiffies, expires))
+> > +		return;
+> > +
+> > +	zpodd->zp_ready = true;
+> > +}
+> 
+> Thanks.
+> 
+> -- 
+> tejun
