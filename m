@@ -1,34 +1,48 @@
 From: Yinghai Lu <yinghai@kernel.org>
-Subject: [PATCH v8 03/22] PCI: Set dev_node early for pci_dev
-Date: Fri, 11 Jan 2013 14:40:30 -0800
-Message-ID: <1357944049-29620-4-git-send-email-yinghai@kernel.org>
-References: <1357944049-29620-1-git-send-email-yinghai@kernel.org>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1357944049-29620-1-git-send-email-yinghai@kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Bjorn Helgaas <bhelgaas@google.com>, "Rafael J. Wysocki" <rjw@sisk.pl>, Len Brown <lenb@kernel.org>, Taku Izumi <izumi.taku@jp.fujitsu.com>, Jiang Liu <jiang.liu@huawei.com>
-Cc: linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Yinghai Lu <yinghai@kernel.org>
+Subject: Re: [Alternative][PATCH] ACPI / PCI: Set root bridge ACPI handle in
+ advance, v2
+Date: Fri, 11 Jan 2013 15:01:22 -0800
+Message-ID: <CAE9FiQW-3TJx0WGLGz7g4m+Tsryn73u-n_Ka6jbHGM0oDUmxhw@mail.gmail.com>
+References: <1558789.gX8cmBgyDV@vostro.rjw.lan>
+	<CAE9FiQW4t17=gYC1dnyCVJUQ3rvV491uiA5U1ZjLWjraM=g9rQ@mail.gmail.com>
+	<9771783.0zXIGEmDYn@vostro.rjw.lan>
+	<4001131.iQGP87KxgR@vostro.rjw.lan>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-bk0-f52.google.com ([209.85.214.52]:60865 "EHLO
+	mail-bk0-f52.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755620Ab3AKXBY (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 11 Jan 2013 18:01:24 -0500
+In-Reply-To: <4001131.iQGP87KxgR@vostro.rjw.lan>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: Bjorn Helgaas <bhelgaas@google.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, LKML <linux-kernel@vger.kernel.org>, Tony Luck <tony.luck@intel.com>, "H. Peter Anvin" <hpa@zytor.com>, Jiang Liu <liuj97@gmail.com>, Myron Stowe <myron.stowe@redhat.com>
 
-Otherwise irq_desc for pci bridge with hot-added ioapic can not be on
-local node.
+On Fri, Jan 11, 2013 at 1:53 PM, Rafael J. Wysocki <rjw@sisk.pl> wrote:
+> May I have your sign-off for the patch below at least?
+
+Yes. please.
 
 Signed-off-by: Yinghai Lu <yinghai@kernel.org>
----
- drivers/pci/probe.c |    1 +
- 1 file changed, 1 insertion(+)
 
-diff --git a/drivers/pci/probe.c b/drivers/pci/probe.c
-index 2dcd22d..b97dea5 100644
---- a/drivers/pci/probe.c
-+++ b/drivers/pci/probe.c
-@@ -1300,6 +1300,7 @@ void pci_device_add(struct pci_dev *dev, struct pci_bus *bus)
- 	dev->dev.release = pci_release_dev;
- 	pci_dev_get(dev);
- 
-+	set_dev_node(&dev->dev, pcibus_to_node(bus));
- 	dev->dev.dma_mask = &dev->dma_mask;
- 	dev->dev.dma_parms = &dev->dma_parms;
- 	dev->dev.coherent_dma_mask = 0xffffffffull;
--- 
-1.7.10.4
+>
+>
+> Rafael
+>
+>
+>> > Index: linux-2.6/drivers/acpi/glue.c
+>> > ===================================================================
+>> > --- linux-2.6.orig/drivers/acpi/glue.c
+>> > +++ linux-2.6/drivers/acpi/glue.c
+>> > @@ -311,7 +311,7 @@ static int acpi_platform_notify(struct d
+>> >         if (!ret) {
+>> >                 struct acpi_buffer buffer = { ACPI_ALLOCATE_BUFFER, NULL };
+>> >
+>> > -               acpi_get_name(dev->acpi_handle, ACPI_FULL_PATHNAME, &buffer);
+>> > +               acpi_get_name(ACPI_HANDLE(dev), ACPI_FULL_PATHNAME, &buffer);
+>> >                 DBG("Device %s -> %s\n", dev_name(dev), (char *)buffer.pointer);
+>> >                 kfree(buffer.pointer);
+>> >         } else
+>> >
