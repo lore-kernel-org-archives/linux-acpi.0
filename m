@@ -1,191 +1,189 @@
 From: Lv Zheng <lv.zheng@intel.com>
-Subject: [PATCH 2/3] ACPICA: Cleanup table handler naming conflicts.
-Date: Fri, 11 Jan 2013 07:29:54 +0000 (UTC)
-Message-ID: <7eb271f678434d6da767a3a78726240af521de64.1357982088.git.lv.zheng@intel.com>
+Subject: [PATCH 3/3] ACPICA: Add new statistics interface.
+Date: Fri, 11 Jan 2013 07:30:16 +0000 (UTC)
+Message-ID: <f8cf178a2669e901fb4915dd431d7c860b35b952.1357982088.git.lv.zheng@intel.com>
 References: <cover.1356668530.git.lv.zheng@intel.com> <cover.1357982088.git.lv.zheng@intel.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga03.intel.com ([143.182.124.21]:13299 "EHLO mga03.intel.com"
+Received: from mga11.intel.com ([192.55.52.93]:52154 "EHLO mga11.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753669Ab3AKH3v (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 11 Jan 2013 02:29:51 -0500
-Date: Sat, 12 Jan 2013 23:29:38 +0800
+	id S1753401Ab3AKHaP (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 11 Jan 2013 02:30:15 -0500
+Date: Sat, 12 Jan 2013 23:29:54 +0800
 In-Reply-To: <cover.1357982088.git.lv.zheng@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: Rafael J Wysocki <rafael.j.wysocki@intel.com>, Len Brown <len.brown@intel.com>, Rafael J Wysocki <rjw@sisk.pl>
 Cc: linux-acpi@vger.kernel.org, Lv Zheng <lv.zheng@intel.com>
 
-This is a cosmetic patch only. Comparison of the resulting binary showed
-only line number differences.
+This patch decreases 123 lines of 20121114 divergence.diff.
 
-This patch does not affect the generation of the Linux binary.
-This patch decreases 44 lines of 20121114 divergence.diff.
-
-There are naming conflicts between Linux and ACPICA on table handlers. This
-patch cleans up this conflicts to reduce the source code diff between Linux
-and ACPICA.
+This patch ports new counters and statistics interface to Linux as such
+enhancement has already been implemented in ACPICA. This patch can also
+reduce the source code differences between Linux and ACPICA.
 
 Signed-off-by: Lv Zheng <lv.zheng@intel.com>
 ---
-Binary comparision result:
-  None
----
 Divergences fixing result:
-  Before applying: 1963 Lines, 70.0 Kbytes
-  After applying: 1919 Lines, 68.3 Kbytes
+  Before applying: 1919 Lines, 68.3 Kbytes
+  After applying: 1796 Lines, 64.3 Kbytes
 ---
- drivers/acpi/acpica/acglobal.h |    2 +-
- drivers/acpi/acpica/tbxface.c  |    4 ++--
- drivers/acpi/numa.c            |    2 +-
- drivers/acpi/tables.c          |    6 +++---
- include/acpi/acpixf.h          |    4 ++--
- include/acpi/actypes.h         |    2 +-
- include/linux/acpi.h           |   15 ++++++++++-----
- 7 files changed, 20 insertions(+), 15 deletions(-)
+ drivers/acpi/acpica/acglobal.h |    2 ++
+ drivers/acpi/acpica/dsmethod.c |    1 +
+ drivers/acpi/acpica/evsci.c    |    1 +
+ drivers/acpi/acpica/utglobal.c |   11 +++++++++++
+ drivers/acpi/acpica/utxface.c  |   38 ++++++++++++++++++++++++++++++++++++++
+ include/acpi/acpixf.h          |    2 ++
+ include/acpi/actypes.h         |   10 ++++++++++
+ 7 files changed, 65 insertions(+)
 
 diff --git a/drivers/acpi/acpica/acglobal.h b/drivers/acpi/acpica/acglobal.h
-index 864806e..585d364 100644
+index 585d364..e7ebb0b 100644
 --- a/drivers/acpi/acpica/acglobal.h
 +++ b/drivers/acpi/acpica/acglobal.h
-@@ -252,7 +252,7 @@ ACPI_EXTERN acpi_cache_t *acpi_gbl_operand_cache;
- ACPI_EXTERN struct acpi_global_notify_handler acpi_gbl_global_notify[2];
- ACPI_EXTERN acpi_exception_handler acpi_gbl_exception_handler;
- ACPI_EXTERN acpi_init_handler acpi_gbl_init_handler;
--ACPI_EXTERN acpi_tbl_handler acpi_gbl_table_handler;
-+ACPI_EXTERN acpi_table_handler acpi_gbl_table_handler;
- ACPI_EXTERN void *acpi_gbl_table_handler_context;
- ACPI_EXTERN struct acpi_walk_state *acpi_gbl_breakpoint_walk;
- ACPI_EXTERN acpi_interface_handler acpi_gbl_interface_handler;
-diff --git a/drivers/acpi/acpica/tbxface.c b/drivers/acpi/acpica/tbxface.c
-index d102fe7..2115f22 100644
---- a/drivers/acpi/acpica/tbxface.c
-+++ b/drivers/acpi/acpica/tbxface.c
-@@ -436,7 +436,7 @@ ACPI_EXPORT_SYMBOL(acpi_get_table_by_index)
+@@ -393,7 +393,9 @@ extern u32 acpi_gbl_nesting_level;
+ 
+ /* Event counters */
+ 
++ACPI_EXTERN u32 acpi_method_count;
+ ACPI_EXTERN u32 acpi_gpe_count;
++ACPI_EXTERN u32 acpi_sci_count;
+ ACPI_EXTERN u32 acpi_fixed_event_count[ACPI_NUM_FIXED_EVENTS];
+ 
+ /* Support for dynamic control method tracing mechanism */
+diff --git a/drivers/acpi/acpica/dsmethod.c b/drivers/acpi/acpica/dsmethod.c
+index 4e5873a..7fed60c 100644
+--- a/drivers/acpi/acpica/dsmethod.c
++++ b/drivers/acpi/acpica/dsmethod.c
+@@ -292,6 +292,7 @@ acpi_ds_begin_method_execution(struct acpi_namespace_node *method_node,
+ 	 * reentered one more time (even if it is the same thread)
+ 	 */
+ 	obj_desc->method.thread_count++;
++	acpi_method_count++;
+ 	return_ACPI_STATUS(status);
+ 
+       cleanup:
+diff --git a/drivers/acpi/acpica/evsci.c b/drivers/acpi/acpica/evsci.c
+index 6c90f15..2f93ac5 100644
+--- a/drivers/acpi/acpica/evsci.c
++++ b/drivers/acpi/acpica/evsci.c
+@@ -89,6 +89,7 @@ static u32 ACPI_SYSTEM_XFACE acpi_ev_sci_xrupt_handler(void *context)
+ 	 */
+ 	interrupt_handled |= acpi_ev_gpe_detect(gpe_xrupt_list);
+ 
++	acpi_sci_count++;
+ 	return_VALUE(interrupt_handled);
+ }
+ 
+diff --git a/drivers/acpi/acpica/utglobal.c b/drivers/acpi/acpica/utglobal.c
+index 7b4dd21..82caa42 100644
+--- a/drivers/acpi/acpica/utglobal.c
++++ b/drivers/acpi/acpica/utglobal.c
+@@ -289,6 +289,16 @@ acpi_status acpi_ut_init_globals(void)
+ 
+ 	acpi_gbl_owner_id_mask[ACPI_NUM_OWNERID_MASKS - 1] = 0x80000000;
+ 
++	/* Event counters */
++
++	acpi_method_count = 0;
++	acpi_sci_count = 0;
++	acpi_gpe_count = 0;
++
++	for (i = 0; i < ACPI_NUM_FIXED_EVENTS; i++) {
++		acpi_fixed_event_count[i] = 0;
++	}
++
+ #if (!ACPI_REDUCED_HARDWARE)
+ 
+ 	/* GPE support */
+@@ -378,4 +388,5 @@ acpi_status acpi_ut_init_globals(void)
+ ACPI_EXPORT_SYMBOL(acpi_gbl_FADT)
+ ACPI_EXPORT_SYMBOL(acpi_dbg_level)
+ ACPI_EXPORT_SYMBOL(acpi_dbg_layer)
++    ACPI_EXPORT_SYMBOL(acpi_gpe_count)
+ ACPI_EXPORT_SYMBOL(acpi_current_gpe_count)
+diff --git a/drivers/acpi/acpica/utxface.c b/drivers/acpi/acpica/utxface.c
+index cb85a7b..f1f0bb5 100644
+--- a/drivers/acpi/acpica/utxface.c
++++ b/drivers/acpi/acpica/utxface.c
+@@ -207,6 +207,44 @@ acpi_status acpi_get_system_info(struct acpi_buffer * out_buffer)
+ 
+ ACPI_EXPORT_SYMBOL(acpi_get_system_info)
+ 
++/*******************************************************************************
++ *
++ * FUNCTION:    acpi_get_statistics
++ *
++ * PARAMETERS:  stats           - Where the statistics are returned
++ *
++ * RETURN:      status          - the status of the call
++ *
++ * DESCRIPTION: Get the contents of the various system counters
++ *
++ ******************************************************************************/
++acpi_status acpi_get_statistics(struct acpi_statistics *stats)
++{
++	ACPI_FUNCTION_TRACE(acpi_get_statistics);
++
++	/* Parameter validation */
++
++	if (!stats) {
++		return_ACPI_STATUS(AE_BAD_PARAMETER);
++	}
++
++	/* Various interrupt-based event counters */
++
++	stats->sci_count = acpi_sci_count;
++	stats->gpe_count = acpi_gpe_count;
++
++	ACPI_MEMCPY(stats->fixed_event_count, acpi_fixed_event_count,
++		    sizeof(acpi_fixed_event_count));
++
++	/* Other counters */
++
++	stats->method_count = acpi_method_count;
++
++	return_ACPI_STATUS(AE_OK);
++}
++
++ACPI_EXPORT_SYMBOL(acpi_get_statistics)
++
+ /*****************************************************************************
   *
-  ******************************************************************************/
- acpi_status
--acpi_install_table_handler(acpi_tbl_handler handler, void *context)
-+acpi_install_table_handler(acpi_table_handler handler, void *context)
- {
- 	acpi_status status;
- 
-@@ -482,7 +482,7 @@ ACPI_EXPORT_SYMBOL(acpi_install_table_handler)
-  * DESCRIPTION: Remove table event handler
-  *
-  ******************************************************************************/
--acpi_status acpi_remove_table_handler(acpi_tbl_handler handler)
-+acpi_status acpi_remove_table_handler(acpi_table_handler handler)
- {
- 	acpi_status status;
- 
-diff --git a/drivers/acpi/numa.c b/drivers/acpi/numa.c
-index cb31298..5ddbc65 100644
---- a/drivers/acpi/numa.c
-+++ b/drivers/acpi/numa.c
-@@ -273,7 +273,7 @@ static int __init acpi_parse_srat(struct acpi_table_header *table)
- 
- static int __init
- acpi_table_parse_srat(enum acpi_srat_type id,
--		      acpi_table_entry_handler handler, unsigned int max_entries)
-+		      acpi_tbl_entry_handler handler, unsigned int max_entries)
- {
- 	return acpi_table_parse_entries(ACPI_SIG_SRAT,
- 					    sizeof(struct acpi_table_srat), id,
-diff --git a/drivers/acpi/tables.c b/drivers/acpi/tables.c
-index 2572d97..d67a1fe 100644
---- a/drivers/acpi/tables.c
-+++ b/drivers/acpi/tables.c
-@@ -204,7 +204,7 @@ int __init
- acpi_table_parse_entries(char *id,
- 			     unsigned long table_size,
- 			     int entry_id,
--			     acpi_table_entry_handler handler,
-+			     acpi_tbl_entry_handler handler,
- 			     unsigned int max_entries)
- {
- 	struct acpi_table_header *table_header = NULL;
-@@ -269,7 +269,7 @@ err:
- 
- int __init
- acpi_table_parse_madt(enum acpi_madt_type id,
--		      acpi_table_entry_handler handler, unsigned int max_entries)
-+		      acpi_tbl_entry_handler handler, unsigned int max_entries)
- {
- 	return acpi_table_parse_entries(ACPI_SIG_MADT,
- 					    sizeof(struct acpi_table_madt), id,
-@@ -285,7 +285,7 @@ acpi_table_parse_madt(enum acpi_madt_type id,
-  * Scan the ACPI System Descriptor Table (STD) for a table matching @id,
-  * run @handler on it.  Return 0 if table found, return on if not.
-  */
--int __init acpi_table_parse(char *id, acpi_table_handler handler)
-+int __init acpi_table_parse(char *id, acpi_tbl_table_handler handler)
- {
- 	struct acpi_table_header *table = NULL;
- 	acpi_size tbl_size;
+  * FUNCTION:    acpi_install_initialization_handler
 diff --git a/include/acpi/acpixf.h b/include/acpi/acpixf.h
-index b86364d..d8b2ea6 100644
+index d8b2ea6..110bc23 100644
 --- a/include/acpi/acpixf.h
 +++ b/include/acpi/acpixf.h
-@@ -197,9 +197,9 @@ acpi_status
- acpi_get_table_by_index(u32 table_index, struct acpi_table_header **out_table);
+@@ -137,6 +137,8 @@ acpi_status acpi_subsystem_status(void);
+ acpi_status acpi_get_system_info(struct acpi_buffer *ret_buffer);
+ #endif
  
- acpi_status
--acpi_install_table_handler(acpi_tbl_handler handler, void *context);
-+acpi_install_table_handler(acpi_table_handler handler, void *context);
++acpi_status acpi_get_statistics(struct acpi_statistics *stats);
++
+ const char *acpi_format_exception(acpi_status exception);
  
--acpi_status acpi_remove_table_handler(acpi_tbl_handler handler);
-+acpi_status acpi_remove_table_handler(acpi_table_handler handler);
- 
- /*
-  * Namespace and name interfaces
+ acpi_status acpi_purge_cached_objects(void);
 diff --git a/include/acpi/actypes.h b/include/acpi/actypes.h
-index cd89810..3d4e09c 100644
+index 3d4e09c..46e6624 100644
 --- a/include/acpi/actypes.h
 +++ b/include/acpi/actypes.h
-@@ -984,7 +984,7 @@ acpi_status(*acpi_exception_handler) (acpi_status aml_status,
- /* Table Event handler (Load, load_table, etc.) and types */
+@@ -933,6 +933,16 @@ struct acpi_system_info {
+ 	u32 debug_layer;
+ };
  
- typedef
--acpi_status(*acpi_tbl_handler) (u32 event, void *table, void *context);
-+acpi_status(*acpi_table_handler) (u32 event, void *table, void *context);
++/*
++ * System statistics returned by acpi_get_statistics()
++ */
++struct acpi_statistics {
++	u32 sci_count;
++	u32 gpe_count;
++	u32 fixed_event_count[ACPI_NUM_FIXED_EVENTS];
++	u32 method_count;
++};
++
+ /* Table Event Types */
  
- #define ACPI_TABLE_LOAD             0x0
- #define ACPI_TABLE_UNLOAD           0x1
-diff --git a/include/linux/acpi.h b/include/linux/acpi.h
-index 8c1d6f2..1e33ea0 100644
---- a/include/linux/acpi.h
-+++ b/include/linux/acpi.h
-@@ -74,9 +74,10 @@ enum acpi_address_range_id {
- 
- /* Table Handlers */
- 
--typedef int (*acpi_table_handler) (struct acpi_table_header *table);
-+typedef int (*acpi_tbl_table_handler)(struct acpi_table_header *table);
- 
--typedef int (*acpi_table_entry_handler) (struct acpi_subtable_header *header, const unsigned long end);
-+typedef int (*acpi_tbl_entry_handler)(struct acpi_subtable_header *header,
-+				      const unsigned long end);
- 
- #ifdef CONFIG_ACPI_INITRD_TABLE_OVERRIDE
- void acpi_initrd_override(void *data, size_t size);
-@@ -95,10 +96,14 @@ int acpi_mps_check (void);
- int acpi_numa_init (void);
- 
- int acpi_table_init (void);
--int acpi_table_parse (char *id, acpi_table_handler handler);
-+int acpi_table_parse(char *id, acpi_tbl_table_handler handler);
- int __init acpi_table_parse_entries(char *id, unsigned long table_size,
--	int entry_id, acpi_table_entry_handler handler, unsigned int max_entries);
--int acpi_table_parse_madt (enum acpi_madt_type id, acpi_table_entry_handler handler, unsigned int max_entries);
-+				    int entry_id,
-+				    acpi_tbl_entry_handler handler,
-+				    unsigned int max_entries);
-+int acpi_table_parse_madt(enum acpi_madt_type id,
-+			  acpi_tbl_entry_handler handler,
-+			  unsigned int max_entries);
- int acpi_parse_mcfg (struct acpi_table_header *header);
- void acpi_table_print_madt_entry (struct acpi_subtable_header *madt);
- 
+ #define ACPI_TABLE_EVENT_LOAD           0x0
 -- 
 1.7.10
 
