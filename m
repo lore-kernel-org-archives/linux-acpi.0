@@ -1,135 +1,71 @@
 From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: [Alternative][PATCH] ACPI / PCI: Set root bridge ACPI handle in advance, v2
-Date: Fri, 11 Jan 2013 22:53:31 +0100
-Message-ID: <4001131.iQGP87KxgR@vostro.rjw.lan>
-References: <1558789.gX8cmBgyDV@vostro.rjw.lan> <CAE9FiQW4t17=gYC1dnyCVJUQ3rvV491uiA5U1ZjLWjraM=g9rQ@mail.gmail.com> <9771783.0zXIGEmDYn@vostro.rjw.lan>
+Subject: Re: [PATCH 0/12] ACPI: Rework the handling of power resources
+Date: Fri, 11 Jan 2013 22:57:33 +0100
+Message-ID: <16771896.0qvD1a7278@vostro.rjw.lan>
+References: <1418767.4KIZOTK1lk@vostro.rjw.lan>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7Bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from hydra.sisk.pl ([212.160.235.94]:38177 "EHLO hydra.sisk.pl"
+Received: from hydra.sisk.pl ([212.160.235.94]:38184 "EHLO hydra.sisk.pl"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754610Ab3AKVrp (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 11 Jan 2013 16:47:45 -0500
-In-Reply-To: <9771783.0zXIGEmDYn@vostro.rjw.lan>
+	id S1754594Ab3AKVvq (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 11 Jan 2013 16:51:46 -0500
+In-Reply-To: <1418767.4KIZOTK1lk@vostro.rjw.lan>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Yinghai Lu <yinghai@kernel.org>
-Cc: Bjorn Helgaas <bhelgaas@google.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, LKML <linux-kernel@vger.kernel.org>, Tony Luck <tony.luck@intel.com>, "H. Peter Anvin" <hpa@zytor.com>, Jiang Liu <liuj97@gmail.com>, Myron Stowe <myron.stowe@redhat.com>
+To: ACPI Devel Maling List <linux-acpi@vger.kernel.org>
+Cc: LKML <linux-kernel@vger.kernel.org>
 
-On Thursday, January 10, 2013 01:05:24 AM Rafael J. Wysocki wrote:
-> On Wednesday, January 09, 2013 03:27:29 PM Yinghai Lu wrote:
-> > On Wed, Jan 9, 2013 at 3:06 PM, Rafael J. Wysocki <rjw@sisk.pl> wrote:
-> > > On Wednesday, January 09, 2013 03:16:59 PM Bjorn Helgaas wrote:
-> > >> On Wed, Jan 9, 2013 at 2:33 PM, Rafael J. Wysocki <rjw@sisk.pl> wrote:
-> > >> > From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
-> > >> >
-> > >> > The ACPI handles of PCI root bridges need to be known to
-> > >> > acpi_bind_one(), so that it can create the appropriate
-> > >> > "firmware_node" and "physical_node" files for them, but currently
-> > >> > the way it gets to know those handles is not exactly straightforward
-> > >> > (to put it lightly).
-> > >> >
-> > >> > This is how it works, roughly:
-> > >> >
-> > >> >   1. acpi_bus_scan() finds the handle of a PCI root bridge,
-> > >> >      creates a struct acpi_device object for it and passes that
-> > >> >      object to acpi_pci_root_add().
-> > >> >
-> > >> >   2. acpi_pci_root_add() creates a struct acpi_pci_root object,
-> > >> >      populates its "device" field with its argument's address
-> > >> >      (device->handle is the ACPI handle found in step 1).
-> > >> >
-> > >> >   3. The struct acpi_pci_root object created in step 2 is passed
-> > >> >      to pci_acpi_scan_root() and used to get resources that are
-> > >> >      passed to pci_create_root_bus().
-> > >> >
-> > >> >   4. pci_create_root_bus() creates a struct pci_host_bridge object
-> > >> >      and passes its "dev" member to device_register().
-> > >> >
-> > >> >   5. platform_notify(), which for systems with ACPI is set to
-> > >> >      acpi_platform_notify(), is called.
-> > >> >
-> > >> > So far, so good.  Now it starts to be "interesting".
-> > >> >
-> > >> >   6. acpi_find_bridge_device() is used to find the ACPI handle of
-> > >> >      the given device (which is the PCI root bridge) and executes
-> > >> >      acpi_pci_find_root_bridge(), among other things, for the
-> > >> >      given device object.
-> > >> >
-> > >> >   7. acpi_pci_find_root_bridge() uses the name (sic!) of the given
-> > >> >      device object to extract the segment and bus numbers of the PCI
-> > >> >      root bridge and passes them to acpi_get_pci_rootbridge_handle().
-> > >> >
-> > >> >   8. acpi_get_pci_rootbridge_handle() browses the list of ACPI PCI
-> > >> >      root bridges and finds the one that matches the given segment
-> > >> >      and bus numbers.  Its handle is then used to initialize the
-> > >> >      ACPI handle of the PCI root bridge's device object by
-> > >> >      acpi_bind_one().  However, this is *exactly* the ACPI handle we
-> > >> >      started with in step 1.
-> > >> >
-> > >> > Needless to say, this is quite embarassing, but it may be avoided
-> > >> > thanks to commit f3fd0c8 (ACPI: Allow ACPI handles of devices to be
-> > >> > initialized in advance), which makes it possible to initialize the
-> > >> > ACPI handle of a device before passing it to device_register().
-> > >> >
-> > >> > Accordingly, add a new __weak routine, pcibios_root_bridge_prepare(),
-> > >> > defaulting to an empty implementation that can be replaced by the
-> > >> > interested architecutres (x86 and ia64 at the moment) with functions
-> > >> > that will set the root bridge's ACPI handle before its dev member is
-> > >> > passed to device_register().  Make both x86 and ia64 provide such
-> > >> > implementations of pcibios_root_bridge_prepare() and remove
-> > >> > acpi_pci_find_root_bridge() and acpi_get_pci_rootbridge_handle() that
-> > >> > aren't necessary any more.
-> > >> >
-> > >> > Included is a fix for breakage on systems with non-ACPI PCI host
-> > >> > bridges from Bjorn Helgaas.
-> > >> >
-> > >> > Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
-> > >>
-> > >> Looks good to me!
-> > >>
-> > >> Acked-by: Bjorn Helgaas <bhelgaas@google.com>
-> > >
-> > > Thanks!
-> > >
-> > > I'll wait for comments from the others, if any, and put it into my acpi-scan
-> > > branch after a couple of days.  It doesn't need to be there technically, but
-> > > it's kind of related.
-> > 
-> > I tested it with acpi-scan and pci-root-bus-hotplug patchset, and it works well.
-> > so
-> > Acked-by: Yinghai Lu <yinghai@kernel.org>
+On Friday, January 04, 2013 12:16:48 AM Rafael J. Wysocki wrote:
+> Hi All,
 > 
-> Thanks!
+> There are some problems with our handling of ACPI power resources that have
+> accumulated over time or have never been addressed.
 > 
-> > BTW, found one left over of change about ->acpi_handle==> ACPI_HANDLE..
+> First of all, the interface represented by
+> acpi_power_resource_[un]register_device() doesn't really work as it should,
+> so it needs to be redesigned (details in the changelog of patch [1/12]).
 > 
-> Can you please submit that patch with a proper changelog?
+> Second, power resources really have to be treated in a special way by the
+> ACPI namespace scanning code, because they may need to be ready to use as
+> soon as they are discovered.  Moreover, the are represented by struct
+> acpi_device objects, so that they appear in sysfs along with "regular" ACPI
+> device nodes, they really don't represent devices, so they need special
+> configuration treatment in some cases.  This special casing is obnoxiously
+> present in scan.c, but if we accept the fact that power resources really are
+> a special case, things can be simplified quite a bit (patch [3/12] with some
+> preparations in [2/12]).
 > 
-> It is a mainline bug now (and a build regression for that matter), so I'd like to
-> push the fix to Linus for v3.8-rc4.
+> If the above changes are made, then it turns out that the entire
+> acpi_power_driver structure is not necessary any more and we don't need the
+> device power states of power resources for anything (patches [4-5/12]).
+> 
+> Moreover, ACPI power resources are supposed to be ordered.  Namely, they have
+> an attribute defining the order in which they are supposed to turned on and
+> off.  Currently, though, we don't take that attribute into accound, although
+> we obviously should do that.  After the previous changes that may be
+> implemented at a relatively low cost (patch [6-7/12]).
+> 
+> Patches [8-9/12] move code around and clean it up in preparation for patch
+> [10/12], which consolidates the way in which power resources lists are
+> extracted from the output of _PRW and _PR[0-3].
+> 
+> Patch [11/12] improves the handling of power resource initialization errors
+> and patch [12/12] causes the system level attribute of wakeup power resources
+> to be taken into account during device setup.
+> 
+> All patches are on top of the git branch at:
+> 
+> git://git.kernel.org/pub/scm/linux/kernel/git/rafael/linux-pm.git linux-next
+> 
+> Tested on HP nx6325 (and other boxes where ACPI power resources aren't used).
 
-May I have your sign-off for the patch below at least?
+There has been a week without a single comment, so I gather the thing is
+not controversial at all.  I'll put it into linux-next for v3.9, then.
 
+Thanks,
 Rafael
-
-
-> > Index: linux-2.6/drivers/acpi/glue.c
-> > ===================================================================
-> > --- linux-2.6.orig/drivers/acpi/glue.c
-> > +++ linux-2.6/drivers/acpi/glue.c
-> > @@ -311,7 +311,7 @@ static int acpi_platform_notify(struct d
-> >         if (!ret) {
-> >                 struct acpi_buffer buffer = { ACPI_ALLOCATE_BUFFER, NULL };
-> > 
-> > -               acpi_get_name(dev->acpi_handle, ACPI_FULL_PATHNAME, &buffer);
-> > +               acpi_get_name(ACPI_HANDLE(dev), ACPI_FULL_PATHNAME, &buffer);
-> >                 DBG("Device %s -> %s\n", dev_name(dev), (char *)buffer.pointer);
-> >                 kfree(buffer.pointer);
-> >         } else
-> > 
-> > 
 
 
 -- 
