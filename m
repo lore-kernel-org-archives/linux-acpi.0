@@ -1,48 +1,77 @@
-From: Yinghai Lu <yinghai@kernel.org>
-Subject: Re: [Alternative][PATCH] ACPI / PCI: Set root bridge ACPI handle in
- advance, v2
-Date: Fri, 11 Jan 2013 15:01:22 -0800
-Message-ID: <CAE9FiQW-3TJx0WGLGz7g4m+Tsryn73u-n_Ka6jbHGM0oDUmxhw@mail.gmail.com>
-References: <1558789.gX8cmBgyDV@vostro.rjw.lan>
-	<CAE9FiQW4t17=gYC1dnyCVJUQ3rvV491uiA5U1ZjLWjraM=g9rQ@mail.gmail.com>
-	<9771783.0zXIGEmDYn@vostro.rjw.lan>
-	<4001131.iQGP87KxgR@vostro.rjw.lan>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: Re: [PATCH v8 00/22] PCI, ACPI: pci root bus hotplug support / pci match_driver
+Date: Sat, 12 Jan 2013 22:35:01 +0100
+Message-ID: <1754034.2pZM4AiYYe@vostro.rjw.lan>
+References: <1357944049-29620-1-git-send-email-yinghai@kernel.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7Bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-bk0-f52.google.com ([209.85.214.52]:60865 "EHLO
-	mail-bk0-f52.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755620Ab3AKXBY (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 11 Jan 2013 18:01:24 -0500
-In-Reply-To: <4001131.iQGP87KxgR@vostro.rjw.lan>
+Received: from hydra.sisk.pl ([212.160.235.94]:39056 "EHLO hydra.sisk.pl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753950Ab3ALV3O (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Sat, 12 Jan 2013 16:29:14 -0500
+In-Reply-To: <1357944049-29620-1-git-send-email-yinghai@kernel.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: Bjorn Helgaas <bhelgaas@google.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, LKML <linux-kernel@vger.kernel.org>, Tony Luck <tony.luck@intel.com>, "H. Peter Anvin" <hpa@zytor.com>, Jiang Liu <liuj97@gmail.com>, Myron Stowe <myron.stowe@redhat.com>
+To: Yinghai Lu <yinghai@kernel.org>
+Cc: Bjorn Helgaas <bhelgaas@google.com>, Len Brown <lenb@kernel.org>, Taku Izumi <izumi.taku@jp.fujitsu.com>, Jiang Liu <jiang.liu@huawei.com>, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
 
-On Fri, Jan 11, 2013 at 1:53 PM, Rafael J. Wysocki <rjw@sisk.pl> wrote:
-> May I have your sign-off for the patch below at least?
+On Friday, January 11, 2013 02:40:27 PM Yinghai Lu wrote:
+> It includes
+> 1. preparing patches for pci root bus hotadd/hotremove support
+> 2. move root bus hotadd from acpiphp to pci_root.c
+> 3. add hot-remove support
+> 4. clean up hotadd/remove with common functions
+> 5. add acpi_hp_work to be shared with acpiphp and root-bus hotplug
+> 6. add match_driver to add pci device to device tree early but
+>    not attach driver for hotplug path.
+> 
+> based on pci/next
+> 
+> could get from
+>         git://git.kernel.org/pub/scm/linux/kernel/git/yinghai/linux-yinghai.git for-pci-root-bus-hotplug
+> 
+> After this patchset, will send out
+> 	 for_each_host_bridge support
+> 	 for_each_dev_addon_res
+> 
+> Jiang Liu (4):
+>   PCI: Fix a device reference count leakage issue in pci_dev_present()
+>   PCI: make PCI device create/destroy logic symmetric
+>   PCI: split registration of PCI bus devices into two stages
+>   PCI: correctly detect ACPI PCI host bridge objects
+> 
+> Tang Chen (2):
+>   ACPI: Introduce a new acpi handle to determine HID match.
+>   PCI, ACPI: debug print for installation of acpi root bridge's notifier
+> 
+> Yinghai Lu (16):
+>   PCI, acpiphp: Add is_hotplug_bridge detection
+>   PCI: Add root bus children dev's res to fail list
+>   PCI: Set dev_node early for pci_dev
+>   ACPI: Separate acpi_bus_trim to support two steps.
+>   PCI, acpiphp: Separate out hot-add support of pci host bridge
+>   PCI, ACPI: Add pci_root_hp hot removal notification support.
+>   PCI, ACPI: remove acpi_root_bridge in pci_root_hp
+>   ACPI: update ej_event interface to take acpi_device
+>   ACPI, PCI: Simplify handle_root_bridge_removal()
+>   PCI, acpiphp: Don't bailout even no slots found yet.
+>   PCI, ACPI: Add alloc_acpi_hp_work()
+>   PCI, acpiphp: Use acpi_hp_work
+>   PCI, pci_root_hp: Use acpi_hp_work
+>   PCI, ACPI: Make kacpi_hotplug_wq static
+>   PCI: add match_driver in struct pci_dev
+>   PCI: move device_add out of pci_bus_add_device()
 
-Yes. please.
+It looks good overall, but I have a few questions and comments.
 
-Signed-off-by: Yinghai Lu <yinghai@kernel.org>
+I'll reply to the individual patches where applicable.
 
->
->
-> Rafael
->
->
->> > Index: linux-2.6/drivers/acpi/glue.c
->> > ===================================================================
->> > --- linux-2.6.orig/drivers/acpi/glue.c
->> > +++ linux-2.6/drivers/acpi/glue.c
->> > @@ -311,7 +311,7 @@ static int acpi_platform_notify(struct d
->> >         if (!ret) {
->> >                 struct acpi_buffer buffer = { ACPI_ALLOCATE_BUFFER, NULL };
->> >
->> > -               acpi_get_name(dev->acpi_handle, ACPI_FULL_PATHNAME, &buffer);
->> > +               acpi_get_name(ACPI_HANDLE(dev), ACPI_FULL_PATHNAME, &buffer);
->> >                 DBG("Device %s -> %s\n", dev_name(dev), (char *)buffer.pointer);
->> >                 kfree(buffer.pointer);
->> >         } else
->> >
+Thanks,
+Rafael
+
+
+-- 
+I speak only for myself.
+Rafael J. Wysocki, Intel Open Source Technology Center.
