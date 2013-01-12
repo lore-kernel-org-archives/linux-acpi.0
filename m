@@ -1,46 +1,60 @@
 From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: [PATCH v8 03/22] PCI: Set dev_node early for pci_dev
-Date: Sat, 12 Jan 2013 22:38:35 +0100
-Message-ID: <1734275.u3W5EUlAAy@vostro.rjw.lan>
-References: <1357944049-29620-1-git-send-email-yinghai@kernel.org> <1357944049-29620-4-git-send-email-yinghai@kernel.org>
+Subject: Re: [PATCH v8 04/22] PCI: Fix a device reference count leakage issue in pci_dev_present()
+Date: Sat, 12 Jan 2013 22:39:14 +0100
+Message-ID: <3629201.dfk0t3lWhY@vostro.rjw.lan>
+References: <1357944049-29620-1-git-send-email-yinghai@kernel.org> <1357944049-29620-5-git-send-email-yinghai@kernel.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7Bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from hydra.sisk.pl ([212.160.235.94]:39075 "EHLO hydra.sisk.pl"
+Received: from hydra.sisk.pl ([212.160.235.94]:39079 "EHLO hydra.sisk.pl"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753960Ab3ALVcq (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Sat, 12 Jan 2013 16:32:46 -0500
-In-Reply-To: <1357944049-29620-4-git-send-email-yinghai@kernel.org>
+	id S1753960Ab3ALVd0 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Sat, 12 Jan 2013 16:33:26 -0500
+In-Reply-To: <1357944049-29620-5-git-send-email-yinghai@kernel.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: Yinghai Lu <yinghai@kernel.org>
 Cc: Bjorn Helgaas <bhelgaas@google.com>, Len Brown <lenb@kernel.org>, Taku Izumi <izumi.taku@jp.fujitsu.com>, Jiang Liu <jiang.liu@huawei.com>, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
 
-On Friday, January 11, 2013 02:40:30 PM Yinghai Lu wrote:
-> Otherwise irq_desc for pci bridge with hot-added ioapic can not be on
-> local node.
+On Friday, January 11, 2013 02:40:31 PM Yinghai Lu wrote:
+> From: Jiang Liu <jiang.liu@huawei.com>
 > 
-> Signed-off-by: Yinghai Lu <yinghai@kernel.org>
+> Function pci_get_dev_by_id() will hold a reference count on the pci device
+> returned, so pci_dev_present() should release the corresponding reference
+> count to avoid memory leakage.
+> 
+> Signed-off-by: Jiang Liu <jiang.liu@huawei.com>
 
 Acked-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 
 > ---
->  drivers/pci/probe.c |    1 +
->  1 file changed, 1 insertion(+)
+>  drivers/pci/search.c |   10 +++++-----
+>  1 file changed, 5 insertions(+), 5 deletions(-)
 > 
-> diff --git a/drivers/pci/probe.c b/drivers/pci/probe.c
-> index 2dcd22d..b97dea5 100644
-> --- a/drivers/pci/probe.c
-> +++ b/drivers/pci/probe.c
-> @@ -1300,6 +1300,7 @@ void pci_device_add(struct pci_dev *dev, struct pci_bus *bus)
->  	dev->dev.release = pci_release_dev;
->  	pci_dev_get(dev);
->  
-> +	set_dev_node(&dev->dev, pcibus_to_node(bus));
->  	dev->dev.dma_mask = &dev->dma_mask;
->  	dev->dev.dma_parms = &dev->dma_parms;
->  	dev->dev.coherent_dma_mask = 0xffffffffull;
+> diff --git a/drivers/pci/search.c b/drivers/pci/search.c
+> index bf969ba..d0627fa 100644
+> --- a/drivers/pci/search.c
+> +++ b/drivers/pci/search.c
+> @@ -319,13 +319,13 @@ int pci_dev_present(const struct pci_device_id *ids)
+>  	WARN_ON(in_interrupt());
+>  	while (ids->vendor || ids->subvendor || ids->class_mask) {
+>  		found = pci_get_dev_by_id(ids, NULL);
+> -		if (found)
+> -			goto exit;
+> +		if (found) {
+> +			pci_dev_put(found);
+> +			return 1;
+> +		}
+>  		ids++;
+>  	}
+> -exit:
+> -	if (found)
+> -		return 1;
+> +
+>  	return 0;
+>  }
+>  EXPORT_SYMBOL(pci_dev_present);
 > 
 -- 
 I speak only for myself.
