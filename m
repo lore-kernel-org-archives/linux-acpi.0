@@ -1,213 +1,97 @@
-From: Sedat Dilek <sedat.dilek@gmail.com>
+From: Daniel Lezcano <daniel.lezcano@linaro.org>
 Subject: Re: [PATCH] cpuidle: fix new C-states not functional after AC disconnect
-Date: Sun, 13 Jan 2013 21:36:44 +0100
-Message-ID: <CA+icZUUUjQTVunewhv+wEsrvyD4FsG9riHa8MRrZdMufyttA4w@mail.gmail.com>
-References: <CA+icZUXCObXMqVMNLFL58fZCBzo8dv+mqa7Ue_+jVfAdaYG45A@mail.gmail.com>
-Reply-To: sedat.dilek@gmail.com
+Date: Sun, 13 Jan 2013 21:44:41 +0100
+Message-ID: <50F31CB9.4010905@linaro.org>
+References: <CA+icZUXCObXMqVMNLFL58fZCBzo8dv+mqa7Ue_+jVfAdaYG45A@mail.gmail.com> <CA+icZUUUjQTVunewhv+wEsrvyD4FsG9riHa8MRrZdMufyttA4w@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary=047d7b6777009c3de904d3317c50
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-qa0-f42.google.com ([209.85.216.42]:54364 "EHLO
-	mail-qa0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755303Ab3AMUgp (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sun, 13 Jan 2013 15:36:45 -0500
-In-Reply-To: <CA+icZUXCObXMqVMNLFL58fZCBzo8dv+mqa7Ue_+jVfAdaYG45A@mail.gmail.com>
+Received: from mail-ee0-f44.google.com ([74.125.83.44]:35925 "EHLO
+	mail-ee0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756121Ab3AMUoo (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sun, 13 Jan 2013 15:44:44 -0500
+Received: by mail-ee0-f44.google.com with SMTP id l10so1707405eei.31
+        for <linux-acpi@vger.kernel.org>; Sun, 13 Jan 2013 12:44:42 -0800 (PST)
+In-Reply-To: <CA+icZUUUjQTVunewhv+wEsrvyD4FsG9riHa8MRrZdMufyttA4w@mail.gmail.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Thomas Schlichter <thomas.schlichter@web.de>
-Cc: Linux PM List <linux-pm@lists.linux-foundation.org>, LKML <linux-kernel@vger.kernel.org>, daniel.lezcano@linaro.org, Linux ACPI <linux-acpi@vger.kernel.org>
+To: sedat.dilek@gmail.com
+Cc: Thomas Schlichter <thomas.schlichter@web.de>, Linux PM List <linux-pm@lists.linux-foundation.org>, LKML <linux-kernel@vger.kernel.org>, Linux ACPI <linux-acpi@vger.kernel.org>
 
---047d7b6777009c3de904d3317c50
-Content-Type: text/plain; charset=UTF-8
+On 01/13/2013 09:36 PM, Sedat Dilek wrote:
+> 0001: Refreshed 1-2 as v3 against Linux v3.8-rc3.
+> 0002: v2 of 2-2 applied cleanly after 1-2 was refreshed!
 
-0001: Refreshed 1-2 as v3 against Linux v3.8-rc3.
-0002: v2 of 2-2 applied cleanly after 1-2 was refreshed!
+Hi Sedat,
 
-Have fun!
+for the moment, you should use only the 1/2 because 2/2 (which is an
+optimization) is wrong.
 
-- Sedat -
+Regards.
 
-On Sun, Jan 13, 2013 at 8:30 PM, Sedat Dilek <sedat.dilek@gmail.com> wrote:
-> Hi Thomas,
->
-> I read your original LKML posting in [1].
->
-> [ QUOTE ]
-> Currently, Daniel Lezcano seems to be working on an intrusive change of not
-> using the power_usage value at all for choosing a C-state:
->
-> [4] https://lkml.org/lkml/2012/12/14/155
->
-> As I could not find any of these patches in any git trees to be merged for
-> 3.8...
-> [ /QUOTE ]
->
-> You can find the patches at LKML ([2] and [3]) or patchwork ([4] and [5]).
->
-> As a Linux-Next "customer" I know about Daniel's work for-next [5] but
-> I did not found any other GIT repository of him.
-> Striving through Daniel's other GIT repos I found idlestat [6] and
-> powerdebug [7] tools which I want to test.
-> ( So, thank you for your email! )
->
+  -- Daniel
+
 > Have fun!
->
-> Regards,
+>=20
 > - Sedat -
->
-> [0] http://marc.info/?l=linux-acpi&m=135808048905350&w=2
-> [1] https://lkml.org/lkml/2012/12/14/153
-> [2] https://lkml.org/lkml/2012/12/14/149
-> [3] https://patchwork.kernel.org/patch/1878691/
-> [4] https://patchwork.kernel.org/patch/1878701/
-> [5] http://git.linaro.org/gitweb?p=people/dlezcano/cpuidle-next.git
-> [6] http://git.linaro.org/gitweb?p=people/dlezcano/idlestat.git;a=summary
-> [7] http://git.linaro.org/gitweb?p=people/dlezcano/powerdebug.git;a=summary
+>=20
+> On Sun, Jan 13, 2013 at 8:30 PM, Sedat Dilek <sedat.dilek@gmail.com> =
+wrote:
+>> Hi Thomas,
+>>
+>> I read your original LKML posting in [1].
+>>
+>> [ QUOTE ]
+>> Currently, Daniel Lezcano seems to be working on an intrusive change=
+ of not
+>> using the power_usage value at all for choosing a C-state:
+>>
+>> [4] https://lkml.org/lkml/2012/12/14/155
+>>
+>> As I could not find any of these patches in any git trees to be merg=
+ed for
+>> 3.8...
+>> [ /QUOTE ]
+>>
+>> You can find the patches at LKML ([2] and [3]) or patchwork ([4] and=
+ [5]).
+>>
+>> As a Linux-Next "customer" I know about Daniel's work for-next [5] b=
+ut
+>> I did not found any other GIT repository of him.
+>> Striving through Daniel's other GIT repos I found idlestat [6] and
+>> powerdebug [7] tools which I want to test.
+>> ( So, thank you for your email! )
+>>
+>> Have fun!
+>>
+>> Regards,
+>> - Sedat -
+>>
+>> [0] http://marc.info/?l=3Dlinux-acpi&m=3D135808048905350&w=3D2
+>> [1] https://lkml.org/lkml/2012/12/14/153
+>> [2] https://lkml.org/lkml/2012/12/14/149
+>> [3] https://patchwork.kernel.org/patch/1878691/
+>> [4] https://patchwork.kernel.org/patch/1878701/
+>> [5] http://git.linaro.org/gitweb?p=3Dpeople/dlezcano/cpuidle-next.gi=
+t
+>> [6] http://git.linaro.org/gitweb?p=3Dpeople/dlezcano/idlestat.git;a=3D=
+summary
+>> [7] http://git.linaro.org/gitweb?p=3Dpeople/dlezcano/powerdebug.git;=
+a=3Dsummary
 
---047d7b6777009c3de904d3317c50
-Content-Type: application/octet-stream;
-	name="0001-cpuidle-remove-the-power_specified-field-in-the-driv.patch"
-Content-Disposition: attachment;
-	filename="0001-cpuidle-remove-the-power_specified-field-in-the-driv.patch"
-Content-Transfer-Encoding: base64
-X-Attachment-Id: f_hbwn8qj60
 
-RnJvbSBhZmQ3MWE2ZjVlMTFkMDc0MDUzZmI5ZGQ2ODdmZjJjZTE5NzY3ZTZiIE1vbiBTZXAgMTcg
-MDA6MDA6MDAgMjAwMQpGcm9tOiBTZWRhdCBEaWxlayA8c2VkYXQuZGlsZWtAZ21haWwuY29tPgpE
-YXRlOiBTdW4sIDEzIEphbiAyMDEzIDIxOjE3OjQxICswMTAwClN1YmplY3Q6IFtQQVRDSCAxLzJd
-IGNwdWlkbGUgLSByZW1vdmUgdGhlIHBvd2VyX3NwZWNpZmllZCBmaWVsZCBpbiB0aGUgZHJpdmVy
-CgpGcm9tOiBEYW5pZWwgTGV6Y2FubyA8ZGFuaWVsLmxlemNhbm9AbGluYXJvLm9yZz4KClRoaXMg
-cGF0Y2ggZm9sbG93cyB0aGUgZGlzY3Vzc2lvbiBhYm91dCByZWluaXRpYWxpemluZyB0aGUgcG93
-ZXIgdXNhZ2UKd2hlbiBhIEMtc3RhdGUgaXMgYWRkZWQvcmVtb3ZlZC4KCiBodHRwczovL2xrbWwu
-b3JnL2xrbWwvMjAxMi8xMC8xNi81MTgKCldlIHJlYWxpemVkIHRoZSBwb3dlciB1c2FnZSBmaWVs
-ZCBpcyBuZXZlciBmaWxsZWQgYW5kIHdoZW4gaXQgaXMKZmlsbGVkIGZvciB0ZWdyYSwgdGhlIHBv
-d2VyX3NwZWNpZmllZCBmbGFnIGlzIG5vdCBzZXQgbWFraW5nIGFsbCB0aGVzZQp2YWx1ZXMgdG8g
-YmUgcmVzZXR0ZWQgd2hlbiB0aGUgZHJpdmVyIGlzIGluaXRpYWxpemVkIHdpdGggdGhlIHNldF9w
-b3dlcl9zdGF0ZQpmdW5jdGlvbi4KCkp1bGl1cyBhbmQgSSBmZWVsIHRoaXMgaXMgb3Zlci1lbmdp
-bmVlcmVkIGFuZCB0aGUgcG93ZXJfc3BlY2lmaWVkCmZsYWcgY291bGQgYmUgc2ltcGx5IHJlbW92
-ZWQgYW5kIGNvbnRpbnVlIGFzc3VtaW5nIHRoZSBzdGF0ZXMgYXJlCmJhY2t3YXJkIHNvcnRlZC4K
-ClRoZSBtZW51IGdvdmVybm9yIHNlbGVjdCBmdW5jdGlvbiBpcyBzaW1wbGlmaWVkIGFzIHRoZSBw
-b3dlciBpcyBvcmRlcmVkLgpBY3R1YWxseSB0aGUgY29uZGl0aW9uIGlzIGFsd2F5cyB0cnVlIHdp
-dGggdGhlIGN1cnJlbnQgY29kZS4KClRoZSBjcHVpZGxlX3BsYXlfZGVhZCBmdW5jdGlvbiBpcyBh
-bHNvIHNpbXBsaWZpZWQgYnkgZG9pbmcgYSByZXZlcnNlIGxvb2t1cApvbiB0aGUgYXJyYXkuCgpU
-aGUgc2V0X3Bvd2VyX3N0YXRlcyBmdW5jdGlvbiBpcyByZW1vdmVkIGFzIGl0IGRvZXMgbm8gbWFr
-ZSBzZW5zZSBhbnltb3JlLgoKQXMgYSBjb25zZXF1ZW5jZSwgdGhpcyBwYXRjaCBmaXggYWxzbyB0
-aGUgYnVnIHdoZXJlIG9uIHRoZSBkeW5hbWljIEMtc3RhdGUKc3lzdGVtLCB0aGUgcG93ZXIgZmll
-bGRzIGlzIG5vdCBpbml0aWFsaXplZC4KClNpZ25lZC1vZmYtYnk6IERhbmllbCBMZXpjYW5vIDxk
-YW5pZWwubGV6Y2Fub0BsaW5hcm8ub3JnPgpDYzogSnVsaXVzIFdlcm5lciA8andlcm5lckBjaHJv
-bWl1bS5vcmc+CgpbIGRpbGVrczogdjM6IFJlZnJlc2hlZCBvcmlnaW5hbCBwYXRjaCBhZ2FpbnN0
-IExpbnV4IHYzLjgtcmMzLiBdCi0tLQogZHJpdmVycy9jcHVpZGxlL2NwdWlkbGUuYyAgICAgICAg
-fCAgIDE3ICsrKystLS0tLS0tLS0tLS0tCiBkcml2ZXJzL2NwdWlkbGUvZHJpdmVyLmMgICAgICAg
-ICB8ICAgMjUgLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLQogZHJpdmVycy9jcHVpZGxlL2dvdmVy
-bm9ycy9tZW51LmMgfCAgICA4ICsrLS0tLS0tCiBpbmNsdWRlL2xpbnV4L2NwdWlkbGUuaCAgICAg
-ICAgICB8ICAgIDIgKy0KIDQgZmlsZXMgY2hhbmdlZCwgNyBpbnNlcnRpb25zKCspLCA0NSBkZWxl
-dGlvbnMoLSkKCmRpZmYgLS1naXQgYS9kcml2ZXJzL2NwdWlkbGUvY3B1aWRsZS5jIGIvZHJpdmVy
-cy9jcHVpZGxlL2NwdWlkbGUuYwppbmRleCBmYjRhN2RkLi5lMWY2ODYwIDEwMDY0NAotLS0gYS9k
-cml2ZXJzL2NwdWlkbGUvY3B1aWRsZS5jCisrKyBiL2RyaXZlcnMvY3B1aWRsZS9jcHVpZGxlLmMK
-QEAgLTY5LDI0ICs2OSwxNSBAQCBpbnQgY3B1aWRsZV9wbGF5X2RlYWQodm9pZCkKIHsKIAlzdHJ1
-Y3QgY3B1aWRsZV9kZXZpY2UgKmRldiA9IF9fdGhpc19jcHVfcmVhZChjcHVpZGxlX2RldmljZXMp
-OwogCXN0cnVjdCBjcHVpZGxlX2RyaXZlciAqZHJ2ID0gY3B1aWRsZV9nZXRfY3B1X2RyaXZlcihk
-ZXYpOwotCWludCBpLCBkZWFkX3N0YXRlID0gLTE7Ci0JaW50IHBvd2VyX3VzYWdlID0gSU5UX01B
-WDsKKwlpbnQgaTsKIAogCWlmICghZHJ2KQogCQlyZXR1cm4gLUVOT0RFVjsKIAogCS8qIEZpbmQg
-bG93ZXN0LXBvd2VyIHN0YXRlIHRoYXQgc3VwcG9ydHMgbG9uZy10ZXJtIGlkbGUgKi8KLQlmb3Ig
-KGkgPSBDUFVJRExFX0RSSVZFUl9TVEFURV9TVEFSVDsgaSA8IGRydi0+c3RhdGVfY291bnQ7IGkr
-KykgewotCQlzdHJ1Y3QgY3B1aWRsZV9zdGF0ZSAqcyA9ICZkcnYtPnN0YXRlc1tpXTsKLQotCQlp
-ZiAocy0+cG93ZXJfdXNhZ2UgPCBwb3dlcl91c2FnZSAmJiBzLT5lbnRlcl9kZWFkKSB7Ci0JCQlw
-b3dlcl91c2FnZSA9IHMtPnBvd2VyX3VzYWdlOwotCQkJZGVhZF9zdGF0ZSA9IGk7Ci0JCX0KLQl9
-Ci0KLQlpZiAoZGVhZF9zdGF0ZSAhPSAtMSkKLQkJcmV0dXJuIGRydi0+c3RhdGVzW2RlYWRfc3Rh
-dGVdLmVudGVyX2RlYWQoZGV2LCBkZWFkX3N0YXRlKTsKKwlmb3IgKGkgPSBkcnYtPnN0YXRlX2Nv
-dW50IC0gMTsgaSA+PSBDUFVJRExFX0RSSVZFUl9TVEFURV9TVEFSVDsgaS0tKQorCQlpZiAoZHJ2
-LT5zdGF0ZXNbaV0uZW50ZXJfZGVhZCkKKwkJCXJldHVybiBkcnYtPnN0YXRlc1tpXS5lbnRlcl9k
-ZWFkKGRldiwgaSk7CiAKIAlyZXR1cm4gLUVOT0RFVjsKIH0KZGlmZiAtLWdpdCBhL2RyaXZlcnMv
-Y3B1aWRsZS9kcml2ZXIuYyBiL2RyaXZlcnMvY3B1aWRsZS9kcml2ZXIuYwppbmRleCBjMmIyODFh
-Li40MjJjN2I2IDEwMDY0NAotLS0gYS9kcml2ZXJzL2NwdWlkbGUvZHJpdmVyLmMKKysrIGIvZHJp
-dmVycy9jcHVpZGxlL2RyaXZlci5jCkBAIC0xOSwzNCArMTksOSBAQCBERUZJTkVfU1BJTkxPQ0so
-Y3B1aWRsZV9kcml2ZXJfbG9jayk7CiBzdGF0aWMgdm9pZCBfX2NwdWlkbGVfc2V0X2NwdV9kcml2
-ZXIoc3RydWN0IGNwdWlkbGVfZHJpdmVyICpkcnYsIGludCBjcHUpOwogc3RhdGljIHN0cnVjdCBj
-cHVpZGxlX2RyaXZlciAqIF9fY3B1aWRsZV9nZXRfY3B1X2RyaXZlcihpbnQgY3B1KTsKIAotc3Rh
-dGljIHZvaWQgc2V0X3Bvd2VyX3N0YXRlcyhzdHJ1Y3QgY3B1aWRsZV9kcml2ZXIgKmRydikKLXsK
-LQlpbnQgaTsKLQotCS8qCi0JICogY3B1aWRsZSBkcml2ZXIgc2hvdWxkIHNldCB0aGUgZHJ2LT5w
-b3dlcl9zcGVjaWZpZWQgYml0Ci0JICogYmVmb3JlIHJlZ2lzdGVyaW5nIGlmIHRoZSBkcml2ZXIg
-cHJvdmlkZXMKLQkgKiBwb3dlcl91c2FnZSBudW1iZXJzLgotCSAqCi0JICogSWYgcG93ZXJfc3Bl
-Y2lmaWVkIGlzIG5vdCBzZXQsCi0JICogd2UgZmlsbCBpbiBwb3dlcl91c2FnZSB3aXRoIGRlY3Jl
-YXNpbmcgdmFsdWVzIGFzIHRoZQotCSAqIGNwdWlkbGUgY29kZSBoYXMgYW4gaW1wbGljaXQgYXNz
-dW1wdGlvbiB0aGF0IHN0YXRlIENuCi0JICogdXNlcyBsZXNzIHBvd2VyIHRoYW4gQyhuLTEpLgot
-CSAqCi0JICogV2l0aCBDT05GSUdfQVJDSF9IQVNfQ1BVX1JFTEFYLCBDMCBpcyBhbHJlYWR5IGFz
-c2lnbmVkCi0JICogYW4gcG93ZXIgdmFsdWUgb2YgLTEuICBTbyB3ZSB1c2UgLTIsIC0zLCBldGMs
-IGZvciBvdGhlcgotCSAqIGMtc3RhdGVzLgotCSAqLwotCWZvciAoaSA9IENQVUlETEVfRFJJVkVS
-X1NUQVRFX1NUQVJUOyBpIDwgZHJ2LT5zdGF0ZV9jb3VudDsgaSsrKQotCQlkcnYtPnN0YXRlc1tp
-XS5wb3dlcl91c2FnZSA9IC0xIC0gaTsKLX0KLQogc3RhdGljIHZvaWQgX19jcHVpZGxlX2RyaXZl
-cl9pbml0KHN0cnVjdCBjcHVpZGxlX2RyaXZlciAqZHJ2KQogewogCWRydi0+cmVmY250ID0gMDsK
-LQotCWlmICghZHJ2LT5wb3dlcl9zcGVjaWZpZWQpCi0JCXNldF9wb3dlcl9zdGF0ZXMoZHJ2KTsK
-IH0KIAogc3RhdGljIGludCBfX2NwdWlkbGVfcmVnaXN0ZXJfZHJpdmVyKHN0cnVjdCBjcHVpZGxl
-X2RyaXZlciAqZHJ2LCBpbnQgY3B1KQpkaWZmIC0tZ2l0IGEvZHJpdmVycy9jcHVpZGxlL2dvdmVy
-bm9ycy9tZW51LmMgYi9kcml2ZXJzL2NwdWlkbGUvZ292ZXJub3JzL21lbnUuYwppbmRleCAyMGVh
-MzNhLi5mZTM0M2EwIDEwMDY0NAotLS0gYS9kcml2ZXJzL2NwdWlkbGUvZ292ZXJub3JzL21lbnUu
-YworKysgYi9kcml2ZXJzL2NwdWlkbGUvZ292ZXJub3JzL21lbnUuYwpAQCAtMzEyLDcgKzMxMiw2
-IEBAIHN0YXRpYyBpbnQgbWVudV9zZWxlY3Qoc3RydWN0IGNwdWlkbGVfZHJpdmVyICpkcnYsIHN0
-cnVjdCBjcHVpZGxlX2RldmljZSAqZGV2KQogewogCXN0cnVjdCBtZW51X2RldmljZSAqZGF0YSA9
-ICZfX2dldF9jcHVfdmFyKG1lbnVfZGV2aWNlcyk7CiAJaW50IGxhdGVuY3lfcmVxID0gcG1fcW9z
-X3JlcXVlc3QoUE1fUU9TX0NQVV9ETUFfTEFURU5DWSk7Ci0JaW50IHBvd2VyX3VzYWdlID0gSU5U
-X01BWDsKIAlpbnQgaTsKIAlpbnQgbXVsdGlwbGllcjsKIAlzdHJ1Y3QgdGltZXNwZWMgdDsKQEAg
-LTM4MywxMSArMzgyLDggQEAgc3RhdGljIGludCBtZW51X3NlbGVjdChzdHJ1Y3QgY3B1aWRsZV9k
-cml2ZXIgKmRydiwgc3RydWN0IGNwdWlkbGVfZGV2aWNlICpkZXYpCiAJCWlmIChzLT5leGl0X2xh
-dGVuY3kgKiBtdWx0aXBsaWVyID4gZGF0YS0+cHJlZGljdGVkX3VzKQogCQkJY29udGludWU7CiAK
-LQkJaWYgKHMtPnBvd2VyX3VzYWdlIDwgcG93ZXJfdXNhZ2UpIHsKLQkJCXBvd2VyX3VzYWdlID0g
-cy0+cG93ZXJfdXNhZ2U7Ci0JCQlkYXRhLT5sYXN0X3N0YXRlX2lkeCA9IGk7Ci0JCQlkYXRhLT5l
-eGl0X3VzID0gcy0+ZXhpdF9sYXRlbmN5OwotCQl9CisJCWRhdGEtPmxhc3Rfc3RhdGVfaWR4ID0g
-aTsKKwkJZGF0YS0+ZXhpdF91cyA9IHMtPmV4aXRfbGF0ZW5jeTsKIAl9CiAKIAkvKiBub3QgZGVl
-cGVzdCBDLXN0YXRlIGNob3NlbiBmb3IgbG93IHByZWRpY3RlZCByZXNpZGVuY3kgKi8KZGlmZiAt
-LWdpdCBhL2luY2x1ZGUvbGludXgvY3B1aWRsZS5oIGIvaW5jbHVkZS9saW51eC9jcHVpZGxlLmgK
-aW5kZXggMzcxMWIzNC4uMjRjZDEwMyAxMDA2NDQKLS0tIGEvaW5jbHVkZS9saW51eC9jcHVpZGxl
-LmgKKysrIGIvaW5jbHVkZS9saW51eC9jcHVpZGxlLmgKQEAgLTEyNiw5ICsxMjYsOSBAQCBzdHJ1
-Y3QgY3B1aWRsZV9kcml2ZXIgewogCXN0cnVjdCBtb2R1bGUgCQkqb3duZXI7CiAJaW50ICAgICAg
-ICAgICAgICAgICAgICAgcmVmY250OwogCi0JdW5zaWduZWQgaW50CQlwb3dlcl9zcGVjaWZpZWQ6
-MTsKIAkvKiBzZXQgdG8gMSB0byB1c2UgdGhlIGNvcmUgY3B1aWRsZSB0aW1lIGtlZXBpbmcgKGZv
-ciBhbGwgc3RhdGVzKS4gKi8KIAl1bnNpZ25lZCBpbnQJCWVuX2NvcmVfdGtfaXJxZW46MTsKKwkv
-KiBzdGF0ZXMgYXJyYXkgbXVzdCBiZSBvcmRlcmVkIGluIGRlY3JlYXNpbmcgcG93ZXIgY29uc3Vt
-cHRpb24gKi8KIAlzdHJ1Y3QgY3B1aWRsZV9zdGF0ZQlzdGF0ZXNbQ1BVSURMRV9TVEFURV9NQVhd
-OwogCWludAkJCXN0YXRlX2NvdW50OwogCWludAkJCXNhZmVfc3RhdGVfaW5kZXg7Ci0tIAoxLjcu
-OS41Cgo=
---047d7b6777009c3de904d3317c50
-Content-Type: application/octet-stream;
-	name="0002-cpuidle-optimize-the-select-function-for-the-menu-go.patch"
-Content-Disposition: attachment;
-	filename="0002-cpuidle-optimize-the-select-function-for-the-menu-go.patch"
-Content-Transfer-Encoding: base64
-X-Attachment-Id: f_hbwn8ze21
+--=20
+ <http://www.linaro.org/> Linaro.org =E2=94=82 Open source software for=
+ ARM SoCs
 
-RnJvbSA1YTUyMzk1YWY5ZjMwYWFkZDVhODE4MTNmZDlhNjlkZDNhYjJkZjhmIE1vbiBTZXAgMTcg
-MDA6MDA6MDAgMjAwMQpGcm9tOiBEYW5pZWwgTGV6Y2FubyA8ZGFuaWVsLmxlemNhbm9AbGluYXJv
-Lm9yZz4KRGF0ZTogRnJpLCAxNCBEZWMgMjAxMiAxMzo1NzozNSArMDAwMApTdWJqZWN0OiBbUEFU
-Q0ggMi8yXSBjcHVpZGxlIC0gb3B0aW1pemUgdGhlIHNlbGVjdCBmdW5jdGlvbiBmb3IgdGhlICdt
-ZW51JwogZ292ZXJub3IKCkFzIHRoZSBwb3dlciBpcyBiYWNrd2FyZCBzb3J0ZWQgaW4gdGhlIHN0
-YXRlcyBhcnJheSBhbmQgd2UgYXJlIGxvb2tpbmcgZm9yCnRoZSBzdGF0ZSBjb25zdW1pbmcgdGhl
-IGxpdHRsZSBwb3dlciBhcyBwb3NzaWJsZSwgaW5zdGVhZCBvZiBsb29raW5nIGZyb20KdGhlIGJl
-Z2lubmluZyBvZiB0aGUgYXJyYXksIHdlIGxvb2sgZnJvbSB0aGUgZW5kLiBUaGF0IHNob3VsZCBz
-YXZlIHVzIHNvbWUKaXRlcmF0aW9ucyBpbiB0aGUgbG9vcCBlYWNoIHRpbWUgd2Ugc2VsZWN0IGEg
-c3RhdGUgYXQgaWRsZSB0aW1lLgoKU2lnbmVkLW9mZi1ieTogRGFuaWVsIExlemNhbm8gPGRhbmll
-bC5sZXpjYW5vQGxpbmFyby5vcmc+Ci0tLQogZHJpdmVycy9jcHVpZGxlL2dvdmVybm9ycy9tZW51
-LmMgfCAgIDEyICsrKysrKy0tLS0tLQogMSBmaWxlIGNoYW5nZWQsIDYgaW5zZXJ0aW9ucygrKSwg
-NiBkZWxldGlvbnMoLSkKCmRpZmYgLS1naXQgYS9kcml2ZXJzL2NwdWlkbGUvZ292ZXJub3JzL21l
-bnUuYyBiL2RyaXZlcnMvY3B1aWRsZS9nb3Zlcm5vcnMvbWVudS5jCmluZGV4IGZlMzQzYTAuLjA1
-Yjg5OTggMTAwNjQ0Ci0tLSBhL2RyaXZlcnMvY3B1aWRsZS9nb3Zlcm5vcnMvbWVudS5jCisrKyBi
-L2RyaXZlcnMvY3B1aWRsZS9nb3Zlcm5vcnMvbWVudS5jCkBAIC0zNjcsMjQgKzM2NywyNCBAQCBz
-dGF0aWMgaW50IG1lbnVfc2VsZWN0KHN0cnVjdCBjcHVpZGxlX2RyaXZlciAqZHJ2LCBzdHJ1Y3Qg
-Y3B1aWRsZV9kZXZpY2UgKmRldikKIAkgKiBGaW5kIHRoZSBpZGxlIHN0YXRlIHdpdGggdGhlIGxv
-d2VzdCBwb3dlciB3aGlsZSBzYXRpc2Z5aW5nCiAJICogb3VyIGNvbnN0cmFpbnRzLgogCSAqLwot
-CWZvciAoaSA9IENQVUlETEVfRFJJVkVSX1NUQVRFX1NUQVJUOyBpIDwgZHJ2LT5zdGF0ZV9jb3Vu
-dDsgaSsrKSB7CisJZm9yIChpID0gZHJ2LT5zdGF0ZV9jb3VudCAtIDE7IGkgPj0gQ1BVSURMRV9E
-UklWRVJfU1RBVEVfU1RBUlQ7IGktLSkgewogCQlzdHJ1Y3QgY3B1aWRsZV9zdGF0ZSAqcyA9ICZk
-cnYtPnN0YXRlc1tpXTsKIAkJc3RydWN0IGNwdWlkbGVfc3RhdGVfdXNhZ2UgKnN1ID0gJmRldi0+
-c3RhdGVzX3VzYWdlW2ldOwogCiAJCWlmIChzLT5kaXNhYmxlZCB8fCBzdS0+ZGlzYWJsZSkKIAkJ
-CWNvbnRpbnVlOwotCQlpZiAocy0+dGFyZ2V0X3Jlc2lkZW5jeSA+IGRhdGEtPnByZWRpY3RlZF91
-cykgewotCQkJbG93X3ByZWRpY3RlZCA9IDE7Ci0JCQljb250aW51ZTsKLQkJfQogCQlpZiAocy0+
-ZXhpdF9sYXRlbmN5ID4gbGF0ZW5jeV9yZXEpCiAJCQljb250aW51ZTsKKwkJaWYgKHMtPnRhcmdl
-dF9yZXNpZGVuY3kgPiBkYXRhLT5wcmVkaWN0ZWRfdXMpCisJCQljb250aW51ZTsKIAkJaWYgKHMt
-PmV4aXRfbGF0ZW5jeSAqIG11bHRpcGxpZXIgPiBkYXRhLT5wcmVkaWN0ZWRfdXMpCiAJCQljb250
-aW51ZTsKIAorCQlsb3dfcHJlZGljdGVkID0gaSAtIENQVUlETEVfRFJJVkVSX1NUQVRFX1NUQVJU
-OwogCQlkYXRhLT5sYXN0X3N0YXRlX2lkeCA9IGk7CiAJCWRhdGEtPmV4aXRfdXMgPSBzLT5leGl0
-X2xhdGVuY3k7Ci0JfQorCQlicmVhazsKKyAgICAgICB9CiAKIAkvKiBub3QgZGVlcGVzdCBDLXN0
-YXRlIGNob3NlbiBmb3IgbG93IHByZWRpY3RlZCByZXNpZGVuY3kgKi8KIAlpZiAobG93X3ByZWRp
-Y3RlZCkgewotLSAKMS43LjkuNQoK
---047d7b6777009c3de904d3317c50--
+=46ollow Linaro:  <http://www.facebook.com/pages/Linaro> Facebook |
+<http://twitter.com/#!/linaroorg> Twitter |
+<http://www.linaro.org/linaro-blog/> Blog
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
