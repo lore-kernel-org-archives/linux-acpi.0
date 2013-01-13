@@ -1,268 +1,129 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: [PATCH v8 22/22] PCI: move device_add out of pci_bus_add_device()
-Date: Sun, 13 Jan 2013 00:54:16 +0100
-Message-ID: <1620774.KjdX6JUoJy@vostro.rjw.lan>
-References: <1357944049-29620-1-git-send-email-yinghai@kernel.org> <1357944049-29620-23-git-send-email-yinghai@kernel.org>
+From: Thomas Schlichter <thomas.schlichter@web.de>
+Subject: [PATCH] cpuidle: fix new C-states not functional after AC disconnect
+Date: Sun, 13 Jan 2013 13:34:41 +0100
+Message-ID: <2099093.cPXO6Nhn9v@netbook>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
+Content-Type: multipart/mixed; boundary="nextPart1794952.WA51hkzRQo"
 Content-Transfer-Encoding: 7Bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from hydra.sisk.pl ([212.160.235.94]:39229 "EHLO hydra.sisk.pl"
+Received: from mout.web.de ([212.227.15.3]:59411 "EHLO mout.web.de"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751104Ab3ALXs2 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Sat, 12 Jan 2013 18:48:28 -0500
-In-Reply-To: <1357944049-29620-23-git-send-email-yinghai@kernel.org>
+	id S1754722Ab3AMMer (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Sun, 13 Jan 2013 07:34:47 -0500
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Yinghai Lu <yinghai@kernel.org>
-Cc: Bjorn Helgaas <bhelgaas@google.com>, Len Brown <lenb@kernel.org>, Taku Izumi <izumi.taku@jp.fujitsu.com>, Jiang Liu <jiang.liu@huawei.com>, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
+To: Len Brown <lenb@kernel.org>, "Rafael J. Wysocki" <rjw@sisk.pl>, Daniel Lezcano <daniel.lezcano@linaro.org>, Linus Torvalds <torvalds@linux-foundation.org>
+Cc: Peter De Schrijver <pdeschrijver@nvidia.com>, Andreas =?ISO-8859-1?Q?M=FCller?= <goo@stapelspeicher.org>, Julius Werner <jwerner@chromium.org>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 
-On Friday, January 11, 2013 02:40:49 PM Yinghai Lu wrote:
-> Move out device registering out of pci_bus_add_devices, so we could
-> put new created pci devices in device tree early.
-> 
-> new pci_bus_add_devices will do the device_attach work to load pci drivers
-> instead.
+This is a multi-part message in MIME format.
 
-I wonder what problem it solves?
+--nextPart1794952.WA51hkzRQo
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 
-> Signed-off-by: Yinghai Lu <yinghai@kernel.org>
-> ---
->  drivers/pci/bus.c   |   47 +++--------------------------------------------
->  drivers/pci/iov.c   |    7 -------
->  drivers/pci/probe.c |   34 +++++++++++++++++++++++++++-------
->  3 files changed, 30 insertions(+), 58 deletions(-)
-> 
-> diff --git a/drivers/pci/bus.c b/drivers/pci/bus.c
-> index 1f5916a..0a55845 100644
-> --- a/drivers/pci/bus.c
-> +++ b/drivers/pci/bus.c
-> @@ -178,22 +178,9 @@ static void pci_bus_attach_device(struct pci_dev *dev)
->   */
->  int pci_bus_add_device(struct pci_dev *dev)
->  {
-> -	int retval;
-> -
-> -	pci_fixup_device(pci_fixup_final, dev);
-> -
-> -	retval = pcibios_add_device(dev);
-> -	if (retval)
-> -		return retval;
-> -
-> -	retval = device_add(&dev->dev);
-> -	if (retval)
-> -		return retval;
-> -
->  	pci_bus_attach_device(dev);
->  	dev->is_added = 1;
-> -	pci_proc_attach_device(dev);
-> -	pci_create_sysfs_dev_files(dev);
-> +
->  	return 0;
->  }
->  
-> @@ -205,21 +192,9 @@ int pci_bus_add_device(struct pci_dev *dev)
->   */
->  int pci_bus_add_child(struct pci_bus *bus)
->  {
-> -	int retval;
-> -
-> -	if (bus->bridge)
-> -		bus->dev.parent = bus->bridge;
-> -
-> -	retval = device_add(&bus->dev);
-> -	if (retval)
-> -		return retval;
-> -
->  	bus->is_added = 1;
->  
-> -	/* Create legacy_io and legacy_mem files for this bus */
-> -	pci_create_legacy_files(bus);
-> -
-> -	return retval;
-> +	return 0;
->  }
->  
->  /**
-> @@ -245,36 +220,20 @@ void pci_bus_add_devices(const struct pci_bus *bus)
->  		if (dev->is_added)
->  			continue;
->  		retval = pci_bus_add_device(dev);
-> -		if (retval)
-> -			dev_err(&dev->dev, "Error adding device, continuing\n");
->  	}
->  
->  	list_for_each_entry(dev, &bus->devices, bus_list) {
->  		BUG_ON(!dev->is_added);
->  
->  		child = dev->subordinate;
-> -		/*
-> -		 * If there is an unattached subordinate bus, attach
-> -		 * it and then scan for unattached PCI devices.
-> -		 */
-> +
->  		if (!child)
->  			continue;
-> -		if (list_empty(&child->node)) {
-> -			down_write(&pci_bus_sem);
-> -			list_add_tail(&child->node, &dev->bus->children);
-> -			up_write(&pci_bus_sem);
-> -		}
->  		pci_bus_add_devices(child);
->  
-> -		/*
-> -		 * register the bus with sysfs as the parent is now
-> -		 * properly registered.
-> -		 */
->  		if (child->is_added)
->  			continue;
->  		retval = pci_bus_add_child(child);
-> -		if (retval)
-> -			dev_err(&dev->dev, "Error adding bus, continuing\n");
->  	}
->  }
->  
-> diff --git a/drivers/pci/iov.c b/drivers/pci/iov.c
-> index bafd2bb..dbad72e 100644
-> --- a/drivers/pci/iov.c
-> +++ b/drivers/pci/iov.c
-> @@ -48,12 +48,7 @@ static struct pci_bus *virtfn_add_bus(struct pci_bus *bus, int busnr)
->  		return NULL;
->  
->  	pci_bus_insert_busn_res(child, busnr, busnr);
-> -	child->dev.parent = bus->bridge;
->  	rc = pci_bus_add_child(child);
-> -	if (rc) {
-> -		pci_remove_bus(child);
-> -		return NULL;
-> -	}
->  
->  	return child;
->  }
-> @@ -123,8 +118,6 @@ static int virtfn_add(struct pci_dev *dev, int id, int reset)
->  	virtfn->is_virtfn = 1;
->  
->  	rc = pci_bus_add_device(virtfn);
-> -	if (rc)
-> -		goto failed1;
->  	sprintf(buf, "virtfn%u", id);
->  	rc = sysfs_create_link(&dev->dev.kobj, &virtfn->dev.kobj, buf);
->  	if (rc)
-> diff --git a/drivers/pci/probe.c b/drivers/pci/probe.c
-> index dc4fde3..84c92a0 100644
-> --- a/drivers/pci/probe.c
-> +++ b/drivers/pci/probe.c
-> @@ -623,6 +623,7 @@ static struct pci_bus *pci_alloc_child_bus(struct pci_bus *parent,
->  {
->  	struct pci_bus *child;
->  	int i;
-> +	int ret;
->  
->  	/*
->  	 * Allocate a new bus, and inherit stuff from the parent..
-> @@ -637,8 +638,7 @@ static struct pci_bus *pci_alloc_child_bus(struct pci_bus *parent,
->  	child->bus_flags = parent->bus_flags;
->  
->  	/* initialize some portions of the bus device, but don't register it
-> -	 * now as the parent is not properly set up yet.  This device will get
-> -	 * registered later in pci_bus_add_devices()
-> +	 * now as the parent is not properly set up yet.
->  	 */
->  	child->dev.class = &pcibus_class;
->  	dev_set_name(&child->dev, "%04x:%02x", pci_domain_nr(child), busnr);
-> @@ -652,11 +652,14 @@ static struct pci_bus *pci_alloc_child_bus(struct pci_bus *parent,
->  	child->primary = parent->busn_res.start;
->  	child->busn_res.end = 0xff;
->  
-> -	if (!bridge)
-> -		return child;
-> +	if (!bridge) {
-> +		child->dev.parent = parent->bridge;
-> +		goto add_dev;
-> +	}
->  
->  	child->self = bridge;
->  	child->bridge = get_device(&bridge->dev);
-> +	child->dev.parent = child->bridge;
->  	pci_set_bus_of_node(child);
->  	pci_set_bus_speed(child);
->  
-> @@ -667,6 +670,13 @@ static struct pci_bus *pci_alloc_child_bus(struct pci_bus *parent,
->  	}
->  	bridge->subordinate = child;
->  
-> +add_dev:
-> +	ret = device_add(&child->dev);
-> +	WARN_ON(ret < 0);
-> +
-> +	/* Create legacy_io and legacy_mem files for this bus */
-> +	pci_create_legacy_files(child);
-> +
->  	return child;
->  }
->  
-> @@ -1297,6 +1307,8 @@ static void pci_init_capabilities(struct pci_dev *dev)
->  
->  void pci_device_add(struct pci_dev *dev, struct pci_bus *bus)
->  {
-> +	int ret;
-> +
->  	device_initialize(&dev->dev);
->  	dev->dev.release = pci_release_dev;
->  
-> @@ -1327,6 +1339,16 @@ void pci_device_add(struct pci_dev *dev, struct pci_bus *bus)
->  	down_write(&pci_bus_sem);
->  	list_add_tail(&dev->bus_list, &bus->devices);
->  	up_write(&pci_bus_sem);
-> +
-> +	pci_fixup_device(pci_fixup_final, dev);
-> +        ret = pcibios_add_device(dev);
+Hi,
 
-Broken whitespace?
+there is a long-standing regression about new C-states not working after 
+disconnecting AC power from a laptop if the cpuidle driver "acpi-idle" is 
+used. It was reported here:
 
-> +	WARN_ON(ret < 0);
-> +	/* notifier could use pci capabilities */
-> +	ret = device_add(&dev->dev);
-> +	WARN_ON(ret < 0);
+[1] https://bugzilla.kernel.org/show_bug.cgi?id=42870  (March 5th 2012)
+[2] https://bugzilla.kernel.org/show_bug.cgi?id=43349  (June 7th 2012)
+[3] https://lkml.org/lkml/2012/10/16/518   (October 19th 2012)
 
-These WARN_ON() things make me kind of nervous.
+In [1] Andreas proposed a patch that initialized the missing power_usage 
+values from within acpi_idle in the same way as cpuidle does.
+In [2] I proposed a patch to use the power values provided by ACPI to 
+initialize the power_usage variables.
+In [3] Julius proposed a patch to call the initialization function 
+set_power_states()  not only once, but always when the C-states change.
 
-> +
-> +	pci_proc_attach_device(dev);
-> +	pci_create_sysfs_dev_files(dev);
->  }
->  
->  struct pci_dev *__ref pci_scan_single_device(struct pci_bus *bus, int devfn)
-> @@ -1645,13 +1667,13 @@ struct pci_bus *pci_create_root_bus(struct device *parent, int bus,
->  	char bus_addr[64];
->  	char *fmt;
->  
-> -
->  	b = pci_alloc_bus();
->  	if (!b)
->  		return NULL;
->  
->  	b->sysdata = sysdata;
->  	b->ops = ops;
-> +	b->number = b->busn_res.start = bus;
->  	b2 = pci_find_bus(pci_domain_nr(b), bus);
->  	if (b2) {
->  		/* If we already got to this bus through a different bridge, ignore it */
-> @@ -1687,8 +1709,6 @@ struct pci_bus *pci_create_root_bus(struct device *parent, int bus,
->  	/* Create legacy_io and legacy_mem files for this bus */
->  	pci_create_legacy_files(b);
->  
-> -	b->number = b->busn_res.start = bus;
-> -
->  	if (parent)
->  		dev_info(parent, "PCI host bridge to bus %s\n", dev_name(&b->dev));
->  	else
-> 
+Currently, Daniel Lezcano seems to be working on an intrusive change of not 
+using the power_usage value at all for choosing a C-state:
 
-Thanks,
-Rafael
+[4] https://lkml.org/lkml/2012/12/14/155
 
+As I could not find any of these patches in any git trees to be merged for 
+3.8, I propose an other, least intrusive patch for the time being. It is 
+attached an initializes _all_ power_usage values in the first place.
 
+As this is a real power consumption regression since 3.2, I really ask you to 
+apply anything and push it to stable, too!
+
+Kind regards,
+Thomas Schlichter
+--nextPart1794952.WA51hkzRQo
+Content-Disposition: inline; filename="0001-Get-power-info-before-updating-the-C-states.patch"
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/x-patch; charset="utf-8"; name="0001-Get-power-info-before-updating-the-C-states.patch"
+
+>From 5296fec02cfadf10daf6395ad6b55075381b2439 Mon Sep 17 00:00:00 2001
+From: Thomas Schlichter <thomas.schlichter@web.de>
+Date: Sun, 2 Sep 2012 14:35:34 +0200
+Subject: [PATCH 1/2] Get power info before updating the C-states
+
+acpi_processor_get_power_info() has to be called before
+acpi_processor_setup_cpuidle_states() to have the latest
+information available. This fixes the missing C-state information
+after AC-->DC transition.
+
+Signed-off-by: Thomas Schlichter <thomas.schlichter@web.de>
+---
+ drivers/acpi/processor_idle.c |    1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/drivers/acpi/processor_idle.c b/drivers/acpi/processor_idle.c
+index f1a5da4..17ed60b 100644
+--- a/drivers/acpi/processor_idle.c
++++ b/drivers/acpi/processor_idle.c
+@@ -1149,6 +1149,7 @@ int acpi_processor_cst_has_changed(struct acpi_processor *pr)
+ 		}
+ 
+ 		/* Populate Updated C-state information */
++		acpi_processor_get_power_info(pr);
+ 		acpi_processor_setup_cpuidle_states(pr);
+ 
+ 		/* Enable all cpuidle devices */
 -- 
-I speak only for myself.
-Rafael J. Wysocki, Intel Open Source Technology Center.
+1.7.10.4
+
+--nextPart1794952.WA51hkzRQo
+Content-Disposition: inline; filename="0002-cpuidle-Initialize-power_usage-for-all-C-states.patch"
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/x-patch; charset="utf-8"; name="0002-cpuidle-Initialize-power_usage-for-all-C-states.patch"
+
+>From 5c635b3530d4f9b41811f7dde12e0d6f5f7dcc54 Mon Sep 17 00:00:00 2001
+From: Thomas Schlichter <thomas.schlichter@web.de>
+Date: Sat, 12 Jan 2013 15:30:43 +0100
+Subject: [PATCH 2/2] cpuidle: Initialize power_usage for all C-states
+
+By now, only the power_usage values of currently available C-states are
+initialized in the function set_power_states(). But if the number of C-states
+increases later (e.g. when using acpi_idle and unplugging the AC power from the
+laptop) the power_usage values of the new C-states stay uninitialized.
+
+Fix this by initializing all CPUIDLE_STATE_MAX C-stages in the first place.
+
+Signed-off-by: Thomas Schlichter <thomas.schlichter@web.de>
+---
+ drivers/cpuidle/driver.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/drivers/cpuidle/driver.c b/drivers/cpuidle/driver.c
+index c2b281a..960d98d 100644
+--- a/drivers/cpuidle/driver.c
++++ b/drivers/cpuidle/driver.c
+@@ -37,7 +37,7 @@ static void set_power_states(struct cpuidle_driver *drv)
+ 	 * an power value of -1.  So we use -2, -3, etc, for other
+ 	 * c-states.
+ 	 */
+-	for (i = CPUIDLE_DRIVER_STATE_START; i < drv->state_count; i++)
++	for (i = CPUIDLE_DRIVER_STATE_START; i < CPUIDLE_STATE_MAX; i++)
+ 		drv->states[i].power_usage = -1 - i;
+ }
+ 
+-- 
+1.7.10.4
+
+--nextPart1794952.WA51hkzRQo--
+
