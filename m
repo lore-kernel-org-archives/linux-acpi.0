@@ -1,7 +1,7 @@
 From: Mika Westerberg <mika.westerberg@linux.intel.com>
-Subject: [PATCH 3/3] ACPI: create Lynxpoint clocks if LPSS devices are found during scan
-Date: Mon, 14 Jan 2013 16:46:28 +0200
-Message-ID: <1358174788-24439-4-git-send-email-mika.westerberg@linux.intel.com>
+Subject: [PATCH 2/3] clk: x86: add support for Lynxpoint LPSS clocks
+Date: Mon, 14 Jan 2013 16:46:27 +0200
+Message-ID: <1358174788-24439-3-git-send-email-mika.westerberg@linux.intel.com>
 References: <1358174788-24439-1-git-send-email-mika.westerberg@linux.intel.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <1358174788-24439-1-git-send-email-mika.westerberg@linux.intel.com>
@@ -10,93 +10,291 @@ To: linux-kernel@vger.kernel.org
 Cc: Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, x86@kernel.org, Len Brown <lenb@kernel.org>, "Rafael J. Wysocki" <rjw@sisk.pl>, Mike Turquette <mturquette@linaro.org>, Arnd Bergmann <arnd@arndb.de>, Linus Walleij <linus.walleij@linaro.org>, Mark Brown <broonie@opensource.wolfsonmicro.com>, Heikki Krogerus <heikki.krogerus@linux.intel.com>, linux-acpi@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-Since we don't want to create the Lynxpoint LPSS clock tree on a machines
-where no LPSS exists at all we look for the Lynxpoint device ACPI HIDs
-during ACPI namespace scan and if a known device is seen we assume that it
-is safe to create the LPSS clocks.
+Intel Lynxpoint Low Power Subsystem hosts peripherals like UART, I2C and
+SPI controllers. For most of these there is a configuration register that
+allows software to enable and disable the functional clock. Disabling the
+clock while the peripheral is not used saves power.
 
-Therefore we allow init function to be passed via acpi_platform_device_ids[]
-table which is called whenever the corresponding device is found.
+In order to take advantage of this we add a new clock gate of type
+'lpss_gate' that just re-uses the ordinary clk_gate but in addition is able
+to enumerate the base address register of the device using ACPI.
 
+We then create a clock tree that models the Lynxpoint LPSS clocks using
+these gates and fixed clocks so that we can pass clock rate to the drivers
+as well.
+
+Signed-off-by: Heikki Krogerus <heikki.krogerus@linux.intel.com>
 Signed-off-by: Mika Westerberg <mika.westerberg@linux.intel.com>
 ---
- drivers/acpi/scan.c |   36 +++++++++++++++++++++++++++---------
- 1 file changed, 27 insertions(+), 9 deletions(-)
+ drivers/clk/Makefile       |    1 +
+ drivers/clk/x86/Makefile   |    2 +
+ drivers/clk/x86/clk-lpss.c |   99 ++++++++++++++++++++++++++++++++++++++++++++
+ drivers/clk/x86/clk-lpss.h |   36 ++++++++++++++++
+ drivers/clk/x86/clk-lpt.c  |   86 ++++++++++++++++++++++++++++++++++++++
+ 5 files changed, 224 insertions(+)
+ create mode 100644 drivers/clk/x86/Makefile
+ create mode 100644 drivers/clk/x86/clk-lpss.c
+ create mode 100644 drivers/clk/x86/clk-lpss.h
+ create mode 100644 drivers/clk/x86/clk-lpt.c
 
-diff --git a/drivers/acpi/scan.c b/drivers/acpi/scan.c
-index 6a12702..8d9965e 100644
---- a/drivers/acpi/scan.c
-+++ b/drivers/acpi/scan.c
-@@ -11,6 +11,7 @@
- #include <linux/kthread.h>
- #include <linux/dmi.h>
- #include <linux/nls.h>
-+#include <linux/platform_device.h>
+diff --git a/drivers/clk/Makefile b/drivers/clk/Makefile
+index ee90e87..ee11460 100644
+--- a/drivers/clk/Makefile
++++ b/drivers/clk/Makefile
+@@ -22,6 +22,7 @@ obj-$(CONFIG_ARCH_U8500)	+= ux500/
+ obj-$(CONFIG_ARCH_VT8500)	+= clk-vt8500.o
+ obj-$(CONFIG_ARCH_SUNXI)	+= clk-sunxi.o
+ obj-$(CONFIG_ARCH_ZYNQ)		+= clk-zynq.o
++obj-$(CONFIG_X86)		+= x86/
  
- #include <acpi/acpi_drivers.h>
- 
-@@ -29,6 +30,15 @@ extern struct acpi_device *acpi_root;
- 
- static const char *dummy_hid = "device";
- 
-+static void lpt_lpss_init_once(void)
-+{
-+	static struct platform_device *pdev;
+ # Chip specific
+ obj-$(CONFIG_COMMON_CLK_WM831X) += clk-wm831x.o
+diff --git a/drivers/clk/x86/Makefile b/drivers/clk/x86/Makefile
+new file mode 100644
+index 0000000..9ca9c83
+--- /dev/null
++++ b/drivers/clk/x86/Makefile
+@@ -0,0 +1,2 @@
++obj-$(CONFIG_ACPI)		+= clk-lpss.o
++obj-y				+= clk-lpt.o
+diff --git a/drivers/clk/x86/clk-lpss.c b/drivers/clk/x86/clk-lpss.c
+new file mode 100644
+index 0000000..b5e229f
+--- /dev/null
++++ b/drivers/clk/x86/clk-lpss.c
+@@ -0,0 +1,99 @@
++/*
++ * Intel Low Power Subsystem clocks.
++ *
++ * Copyright (C) 2013, Intel Corporation
++ * Authors: Mika Westerberg <mika.westerberg@linux.intel.com>
++ *	    Heikki Krogerus <heikki.krogerus@linux.intel.com>
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2 as
++ * published by the Free Software Foundation.
++ */
 +
-+	/* Lynxpoint LPSS clocks */
-+	if (!pdev)
-+		pdev = platform_device_register_simple("clk-lpt", -1, NULL, 0);
++#include <linux/acpi.h>
++#include <linux/clk.h>
++#include <linux/clk-provider.h>
++#include <linux/err.h>
++#include <linux/io.h>
++#include <linux/module.h>
++
++static int clk_lpss_is_mmio_resource(struct acpi_resource *res, void *data)
++{
++	struct resource r;
++	return !acpi_dev_resource_memory(res, &r);
 +}
 +
- /*
-  * The following ACPI IDs are known to be suitable for representing as
-  * platform devices.
-@@ -38,14 +48,14 @@ static const struct acpi_device_id acpi_platform_device_ids[] = {
- 	{ "PNP0D40" },
- 
- 	/* Haswell LPSS devices */
--	{ "INT33C0", 0 },
--	{ "INT33C1", 0 },
--	{ "INT33C2", 0 },
--	{ "INT33C3", 0 },
--	{ "INT33C4", 0 },
--	{ "INT33C5", 0 },
--	{ "INT33C6", 0 },
--	{ "INT33C7", 0 },
-+	{ "INT33C0", (kernel_ulong_t)lpt_lpss_init_once },
-+	{ "INT33C1", (kernel_ulong_t)lpt_lpss_init_once },
-+	{ "INT33C2", (kernel_ulong_t)lpt_lpss_init_once },
-+	{ "INT33C3", (kernel_ulong_t)lpt_lpss_init_once },
-+	{ "INT33C4", (kernel_ulong_t)lpt_lpss_init_once },
-+	{ "INT33C5", (kernel_ulong_t)lpt_lpss_init_once },
-+	{ "INT33C6", (kernel_ulong_t)lpt_lpss_init_once },
-+	{ "INT33C7", (kernel_ulong_t)lpt_lpss_init_once },
- 
- 	{ }
- };
-@@ -1580,6 +1590,7 @@ static acpi_status acpi_bus_check_add(acpi_handle handle, u32 lvl_not_used,
- static acpi_status acpi_bus_device_attach(acpi_handle handle, u32 lvl_not_used,
- 					  void *not_used, void **ret_not_used)
- {
-+	const struct acpi_device_id *id;
- 	acpi_status status = AE_OK;
- 	struct acpi_device *device;
- 	unsigned long long sta_not_used;
-@@ -1595,7 +1606,14 @@ static acpi_status acpi_bus_device_attach(acpi_handle handle, u32 lvl_not_used,
- 	if (acpi_bus_get_device(handle, &device))
- 		return AE_CTRL_DEPTH;
- 
--	if (!acpi_match_device_ids(device, acpi_platform_device_ids)) {
-+	id = __acpi_match_device(device, acpi_platform_device_ids);
-+	if (id) {
-+		void (*init)(void) = (void (*)(void))id->driver_data;
++static acpi_status clk_lpss_find_mmio(acpi_handle handle, u32 level,
++				      void *data, void **retval)
++{
++	struct resource_list_entry *rentry;
++	struct list_head resource_list;
++	struct acpi_device *adev;
++	const char *uid = data;
++	int ret;
 +
-+		/* Run any initialization if required */
-+		if (init)
-+			init();
++	if (acpi_bus_get_device(handle, &adev))
++		return AE_OK;
 +
- 		/* This is a known good platform device. */
- 		acpi_create_platform_device(device);
- 	} else if (device_attach(&device->dev) < 0) {
++	if (uid) {
++		if (!adev->pnp.unique_id)
++			return AE_OK;
++		if (strcmp(uid, adev->pnp.unique_id))
++			return AE_OK;
++	}
++
++	INIT_LIST_HEAD(&resource_list);
++	ret = acpi_dev_get_resources(adev, &resource_list,
++				     clk_lpss_is_mmio_resource, NULL);
++	if (ret < 0)
++		return AE_NO_MEMORY;
++
++	list_for_each_entry(rentry, &resource_list, node)
++		if (resource_type(&rentry->res) == IORESOURCE_MEM) {
++			*(struct resource *)retval = rentry->res;
++			break;
++		}
++
++	acpi_dev_free_resource_list(&resource_list);
++	return AE_OK;
++}
++
++/**
++ * clk_register_lpss_gate - register LPSS clock gate
++ * @name: name of this clock gate
++ * @parent_name: parent clock name
++ * @hid: ACPI _HID of the device
++ * @uid: ACPI _UID of the device (optional)
++ * @offset: LPSS PRV_CLOCK_PARAMS offset
++ *
++ * Creates and registers LPSS clock gate.
++ */
++struct clk *clk_register_lpss_gate(const char *name, const char *parent_name,
++				   const char *hid, const char *uid,
++				   unsigned offset)
++{
++	struct resource res = { };
++	void __iomem *mmio_base;
++	acpi_status status;
++	struct clk *clk;
++
++	/*
++	 * First try to look the device and its mmio resource from the
++	 * ACPI namespace.
++	 */
++	status = acpi_get_devices(hid, clk_lpss_find_mmio, (void *)uid,
++				  (void **)&res);
++	if (ACPI_FAILURE(status) || !res.start)
++		return ERR_PTR(-ENODEV);
++
++	mmio_base = ioremap(res.start, resource_size(&res));
++	if (!mmio_base)
++		return ERR_PTR(-ENOMEM);
++
++	clk = clk_register_gate(NULL, name, parent_name, 0, mmio_base + offset,
++				0, 0, NULL);
++	if (IS_ERR(clk))
++		iounmap(mmio_base);
++
++	return clk;
++}
+diff --git a/drivers/clk/x86/clk-lpss.h b/drivers/clk/x86/clk-lpss.h
+new file mode 100644
+index 0000000..e9460f4
+--- /dev/null
++++ b/drivers/clk/x86/clk-lpss.h
+@@ -0,0 +1,36 @@
++/*
++ * Intel Low Power Subsystem clock.
++ *
++ * Copyright (C) 2013, Intel Corporation
++ * Authors: Mika Westerberg <mika.westerberg@linux.intel.com>
++ *	    Heikki Krogerus <heikki.krogerus@linux.intel.com>
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2 as
++ * published by the Free Software Foundation.
++ */
++
++#ifndef __CLK_LPSS_H
++#define __CLK_LPSS_H
++
++#include <linux/err.h>
++#include <linux/errno.h>
++#include <linux/clk.h>
++
++#ifdef CONFIG_ACPI
++extern struct clk *clk_register_lpss_gate(const char *name,
++					  const char *parent_name,
++					  const char *hid, const char *uid,
++					  unsigned offset);
++#else
++static inline struct clk *clk_register_lpss_gate(const char *name,
++						 const char *parent_name,
++						 const char *hid,
++						 const char *uid,
++						 unsigned offset)
++{
++	return ERR_PTR(-ENODEV);
++}
++#endif
++
++#endif /* __CLK_LPSS_H */
+diff --git a/drivers/clk/x86/clk-lpt.c b/drivers/clk/x86/clk-lpt.c
+new file mode 100644
+index 0000000..81298ae
+--- /dev/null
++++ b/drivers/clk/x86/clk-lpt.c
+@@ -0,0 +1,86 @@
++/*
++ * Intel Lynxpoint LPSS clocks.
++ *
++ * Copyright (C) 2013, Intel Corporation
++ * Authors: Mika Westerberg <mika.westerberg@linux.intel.com>
++ *	    Heikki Krogerus <heikki.krogerus@linux.intel.com>
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2 as
++ * published by the Free Software Foundation.
++ */
++
++#include <linux/acpi.h>
++#include <linux/clk.h>
++#include <linux/clkdev.h>
++#include <linux/clk-provider.h>
++#include <linux/err.h>
++#include <linux/module.h>
++#include <linux/platform_device.h>
++
++#include "clk-lpss.h"
++
++#define PRV_CLOCK_PARAMS 0x800
++
++static int lpt_clk_probe(struct platform_device *pdev)
++{
++	struct clk *clk;
++
++	/* LPSS free running clock */
++	clk = clk_register_fixed_rate(&pdev->dev, "lpss_clk", NULL, CLK_IS_ROOT,
++				      100000000);
++	if (IS_ERR(clk))
++		return PTR_ERR(clk);
++
++	/* Shared DMA clock */
++	clk_register_clkdev(clk, "hclk", "INTL9C60.0.auto");
++
++	/* SPI clocks */
++	clk = clk_register_lpss_gate("spi0_clk", "lpss_clk", "INT33C0", NULL,
++				     PRV_CLOCK_PARAMS);
++	if (!IS_ERR(clk))
++		clk_register_clkdev(clk, NULL, "INT33C0:00");
++
++	clk = clk_register_lpss_gate("spi1_clk", "lpss_clk", "INT33C1", NULL,
++				     PRV_CLOCK_PARAMS);
++	if (!IS_ERR(clk))
++		clk_register_clkdev(clk, NULL, "INT33C1:00");
++
++	/* I2C clocks */
++	clk = clk_register_lpss_gate("i2c0_clk", "lpss_clk", "INT33C2", NULL,
++				     PRV_CLOCK_PARAMS);
++	if (!IS_ERR(clk))
++		clk_register_clkdev(clk, NULL, "INT33C2:00");
++
++	clk = clk_register_lpss_gate("i2c1_clk", "lpss_clk", "INT33C3", NULL,
++				     PRV_CLOCK_PARAMS);
++	if (!IS_ERR(clk))
++		clk_register_clkdev(clk, NULL, "INT33C3:00");
++
++	/* UART clocks */
++	clk = clk_register_lpss_gate("uart0_clk", "lpss_clk", "INT33C4", NULL,
++				     PRV_CLOCK_PARAMS);
++	if (!IS_ERR(clk))
++		clk_register_clkdev(clk, NULL, "INT33C4:00");
++
++	clk = clk_register_lpss_gate("uart1_clk", "lpss_clk", "INT33C5", NULL,
++				     PRV_CLOCK_PARAMS);
++	if (!IS_ERR(clk))
++		clk_register_clkdev(clk, NULL, "INT33C5:00");
++
++	return 0;
++}
++
++static struct platform_driver lpt_clk_driver = {
++	.driver = {
++		.name = "clk-lpt",
++		.owner = THIS_MODULE,
++	},
++	.probe = lpt_clk_probe,
++};
++
++static int __init lpt_clk_init(void)
++{
++	return platform_driver_register(&lpt_clk_driver);
++}
++arch_initcall(lpt_clk_init);
 -- 
 1.7.10.4
