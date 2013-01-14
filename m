@@ -1,55 +1,107 @@
-From: Toshi Kani <toshi.kani@hp.com>
-Subject: Re: enabled and failed flags in acpi_memory_info
-Date: Mon, 14 Jan 2013 14:06:57 -0700
-Message-ID: <1358197617.14145.92.camel@misato.fc.hp.com>
-References: <1357693472.14145.42.camel@misato.fc.hp.com>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: [PATCH 5/5] ACPI / scan: Add second pass to acpi_bus_trim()
+Date: Mon, 14 Jan 2013 22:39:06 +0100
+Message-ID: <9393976.KUs5xrSxYx@vostro.rjw.lan>
+References: <3885603.ydrrB7OEKf@vostro.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7Bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from g1t0028.austin.hp.com ([15.216.28.35]:33186 "EHLO
-	g1t0028.austin.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756503Ab3ANVQp (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 14 Jan 2013 16:16:45 -0500
-In-Reply-To: <1357693472.14145.42.camel@misato.fc.hp.com>
+Received: from hydra.sisk.pl ([212.160.235.94]:40722 "EHLO hydra.sisk.pl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1757192Ab3ANVdc (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 14 Jan 2013 16:33:32 -0500
+In-Reply-To: <3885603.ydrrB7OEKf@vostro.rjw.lan>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: wency@cn.fujitsu.com
-Cc: isimatu.yasuaki@jp.fujitsu.com, linux-acpi@vger.kernel.org
+To: ACPI Devel Maling List <linux-acpi@vger.kernel.org>
+Cc: Bjorn Helgaas <bhelgaas@google.com>, LKML <linux-kernel@vger.kernel.org>, Toshi Kani <toshi.kani@hp.com>, Yinghai Lu <yinghai@kernel.org>, Jiang Liu <jiang.liu@huawei.com>, Taku Izumi <izumi.taku@jp.fujitsu.com>
 
-Wen, Yasuaki, any thoughts on this?
+From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 
-Thanks,
--Toshi
+Make acpi_bus_trim() work in analogy with acpi_bus_scan() and carry
+out two passes such that ACPI drivers will be detached from device
+nodes being removed in the first pass and the device nodes themselves
+will be removed in the second pass.
 
+For this purpose split the driver unregistration out of
+acpi_bus_remove() into a new routine, acpi_bus_device_detach(), that
+will be executed by acpi_bus_trim() in the additional first pass as
+a post-order callback.
 
-On Tue, 2013-01-08 at 18:04 -0700, Toshi Kani wrote:
-> Hi Wen,
-> 
-> I have a question about the change you made in commit 65479472 in
-> acpi_memhotplug.c.  This change seems to require that
-> acpi_memory_enable_device() calls add_memory() to add all memory ranges
-> represented by memory device objects at boot-time, and keep the results
-> be used for hot-remove.  
-> 
-> If I understand it right, this add_memory() call fails with EEXIST at
-> boot-time since all memory ranges should have been added from EFI memory
-> table (or e820) already.  This results all memory ranges be marked as !
-> enabled & !failed.  I think this means that we cannot hot-delete any
-> memory ranges presented at boot-time since acpi_memory_remove_memory()
-> only calls remove_memory() when the enabled flag is set.  Is that
-> correct?  If so, why do we need such restriction?
-> 
-> In addition, as part of RFC patchset of proposed hotplug framework below
-> (well, this is why I am wondering this... :), I simply called
-> add_memory() and remove_memory() for the ranges requested for hot-add /
-> hot-delete.  It does not call add_memory() at boot-time and set the
-> enabled & failed flags.  But it does not eject memory when
-> remove_memory() failed, either.  Do you see any problems with this
-> approach? 
-> https://lkml.org/lkml/2012/12/12/457
-> 
-> Thanks,
-> -Toshi
+This is necessary, because some ACPI drivers' .remove() routines
+unregister struct device objects associated with the ACPI device
+nodes being removed and that needs to happen while the ACPI
+device nodes are still around (for example, in case they need to be
+used for power management or similar things at that time).
 
+Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+---
+ drivers/acpi/scan.c |   44 ++++++++++++++++++++++++++++----------------
+ 1 file changed, 28 insertions(+), 16 deletions(-)
+
+Index: linux-pm/drivers/acpi/scan.c
+===================================================================
+--- linux-pm.orig/drivers/acpi/scan.c
++++ linux-pm/drivers/acpi/scan.c
+@@ -1425,22 +1425,6 @@ static void acpi_device_set_id(struct ac
+ 	}
+ }
+ 
+-static acpi_status acpi_bus_remove(acpi_handle handle, u32 lvl_not_used,
+-				   void *not_used, void **ret_not_used)
+-{
+-	struct acpi_device *dev = NULL;
+-
+-	if (acpi_bus_get_device(handle, &dev))
+-		return AE_OK;
+-
+-	dev->removal_type = ACPI_BUS_REMOVAL_EJECT;
+-	device_release_driver(&dev->dev);
+-
+-	acpi_device_unregister(dev);
+-
+-	return AE_OK;
+-}
+-
+ void acpi_init_device_object(struct acpi_device *device, acpi_handle handle,
+ 			     int type, unsigned long long sta)
+ {
+@@ -1647,8 +1631,36 @@ int acpi_bus_add(acpi_handle handle)
+ }
+ EXPORT_SYMBOL(acpi_bus_add);
+ 
++static acpi_status acpi_bus_device_detach(acpi_handle handle, u32 lvl_not_used,
++					  void *not_used, void **ret_not_used)
++{
++	struct acpi_device *device = NULL;
++
++	if (!acpi_bus_get_device(handle, &device)) {
++		device->removal_type = ACPI_BUS_REMOVAL_EJECT;
++		device_release_driver(&device->dev);
++	}
++	return AE_OK;
++}
++
++static acpi_status acpi_bus_remove(acpi_handle handle, u32 lvl_not_used,
++				   void *not_used, void **ret_not_used)
++{
++	struct acpi_device *device = NULL;
++
++	if (!acpi_bus_get_device(handle, &device))
++		acpi_device_unregister(device);
++
++	return AE_OK;
++}
++
+ int acpi_bus_trim(struct acpi_device *start)
+ {
++	/* Detach all ACPI drivers from the device nodes being removed. */
++	acpi_walk_namespace(ACPI_TYPE_ANY, start->handle, ACPI_UINT32_MAX, NULL,
++			    acpi_bus_device_detach, NULL, NULL);
++	acpi_bus_device_detach(start->handle, 0, NULL, NULL);
++	/* Remove the device nodes. */
+ 	acpi_walk_namespace(ACPI_TYPE_ANY, start->handle, ACPI_UINT32_MAX, NULL,
+ 			    acpi_bus_remove, NULL, NULL);
+ 	acpi_bus_remove(start->handle, 0, NULL, NULL);
 
