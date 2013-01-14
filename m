@@ -1,57 +1,66 @@
-From: Mika Westerberg <mika.westerberg@linux.intel.com>
-Subject: [PATCH 0/3] x86: enable common clk and add support for Lynxpoint clocks
-Date: Mon, 14 Jan 2013 16:46:25 +0200
-Message-ID: <1358174788-24439-1-git-send-email-mika.westerberg@linux.intel.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: linux-kernel@vger.kernel.org
-Cc: Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, x86@kernel.org, Len Brown <lenb@kernel.org>, "Rafael J. Wysocki" <rjw@sisk.pl>, Mike Turquette <mturquette@linaro.org>, Arnd Bergmann <arnd@arndb.de>, Linus Walleij <linus.walleij@linaro.org>, Mark Brown <broonie@opensource.wolfsonmicro.com>, Heikki Krogerus <heikki.krogerus@linux.intel.com>, linux-acpi@vger.kernel.org
+From: Toshi Kani <toshi.kani@hp.com>
+Subject: Re: [RFC PATCH v2 01/12] Add sys_hotplug.h for system device
+ hotplug framework
+Date: Mon, 14 Jan 2013 08:33:48 -0700
+Message-ID: <1358177628.14145.49.camel@misato.fc.hp.com>
+References: <1357861230-29549-1-git-send-email-toshi.kani@hp.com>
+	 <1357861230-29549-2-git-send-email-toshi.kani@hp.com>
+	 <5036592.TuXAnGzk4M@vostro.rjw.lan>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
+Return-path: <owner-linux-mm@kvack.org>
+In-Reply-To: <5036592.TuXAnGzk4M@vostro.rjw.lan>
+Sender: owner-linux-mm@kvack.org
+To: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: lenb@kernel.org, gregkh@linuxfoundation.org, akpm@linux-foundation.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linux-mm@kvack.org, linuxppc-dev@lists.ozlabs.org, linux-s390@vger.kernel.org, bhelgaas@google.com, isimatu.yasuaki@jp.fujitsu.com, jiang.liu@huawei.com, wency@cn.fujitsu.com, guohanjun@huawei.com, yinghai@kernel.org, srivatsa.bhat@linux.vnet.ibm.com
 List-Id: linux-acpi@vger.kernel.org
 
-Hi all,
+On Fri, 2013-01-11 at 22:23 +0100, Rafael J. Wysocki wrote:
+> On Thursday, January 10, 2013 04:40:19 PM Toshi Kani wrote:
+> > Added include/linux/sys_hotplug.h, which defines the system device
+> > hotplug framework interfaces used by the framework itself and
+> > handlers.
+> > 
+> > The order values define the calling sequence of handlers.  For add
+> > execute, the ordering is ACPI->MEM->CPU.  Memory is onlined before
+> > CPU so that threads on new CPUs can start using their local memory.
+> > The ordering of the delete execute is symmetric to the add execute.
+> > 
+> > struct shp_request defines a hot-plug request information.  The
+> > device resource information is managed with a list so that a single
+> > request may target to multiple devices.
+> > 
+ :
+> > +
+> > +struct shp_device {
+> > +	struct list_head	list;
+> > +	struct device		*device;
+> > +	enum shp_class		class;
+> > +	union shp_dev_info	info;
+> > +};
+> > +
+> > +/*
+> > + * Hot-plug request
+> > + */
+> > +struct shp_request {
+> > +	/* common info */
+> > +	enum shp_operation	operation;	/* operation */
+> > +
+> > +	/* hot-plug event info: only valid for hot-plug operations */
+> > +	void			*handle;	/* FW handle */
+> 
+> What's the role of handle here?
 
-The discussion that lead to this patch series starts from the below thread:
+On ACPI-based platforms, the handle keeps a notified ACPI handle when a
+hot-plug request is made.  ACPI bus handlers, acpi_add_execute() /
+acpi_del_execute(), then scans / trims ACPI devices from the handle.
 
-	http://thread.gmane.org/gmane.linux.kernel/1417691
+Thanks,
+-Toshi
 
-In summary, there is no point in adding a special case code to the drivers
-in order to pass them a fixed clock rate, but instead x86 should just
-enable common clk subsystem and take advantage of it.
-
-This has been proposed before by Mark Brown but for some reason it has not
-merged into x86 tree.
-
-This series tries to do the same but in this time we have real users for
-the clk API.
-
-[1/3] Enables the common clk framework on x86
-[2/3] Adds Intel Lynxpoint Low Power Subsystem specific clocks as platform
-      driver.
-[3/3] Creates the platform device for the LPSS clocks driver if we find out
-      that the Lynxpoint LPSS devices are available.
-
-This series is based on Rafael's linux-pm/linux-next branch because there
-is a dependency to the ACPI scan rework by Rafael.
-
-Please review.
-
-Mika Westerberg (3):
-  x86: enable common clk on x86
-  clk: x86: add support for Lynxpoint LPSS clocks
-  ACPI: create Lynxpoint clocks if LPSS devices are found during scan
-
- arch/x86/Kconfig           |    1 +
- drivers/acpi/scan.c        |   36 ++++++++++++----
- drivers/clk/Makefile       |    1 +
- drivers/clk/x86/Makefile   |    2 +
- drivers/clk/x86/clk-lpss.c |   99 ++++++++++++++++++++++++++++++++++++++++++++
- drivers/clk/x86/clk-lpss.h |   36 ++++++++++++++++
- drivers/clk/x86/clk-lpt.c  |   86 ++++++++++++++++++++++++++++++++++++++
- 7 files changed, 252 insertions(+), 9 deletions(-)
- create mode 100644 drivers/clk/x86/Makefile
- create mode 100644 drivers/clk/x86/clk-lpss.c
- create mode 100644 drivers/clk/x86/clk-lpss.h
- create mode 100644 drivers/clk/x86/clk-lpt.c
-
--- 
-1.7.10.4
+--
+To unsubscribe, send a message with 'unsubscribe linux-mm' in
+the body to majordomo@kvack.org.  For more info on Linux MM,
+see: http://www.linux-mm.org/ .
+Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
