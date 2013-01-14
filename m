@@ -1,123 +1,38 @@
-From: Toshi Kani <toshi.kani@hp.com>
-Subject: Re: [RFC PATCH v2 02/12] ACPI: Add sys_hotplug.h for system device
- hotplug framework
-Date: Mon, 14 Jan 2013 12:29:00 -0700
-Message-ID: <1358191740.14145.90.camel@misato.fc.hp.com>
-References: <1357861230-29549-1-git-send-email-toshi.kani@hp.com>
-	 <3236298.SULt2IKQv6@vostro.rjw.lan>
-	 <1358188929.14145.69.camel@misato.fc.hp.com>
-	 <4116384.4pypaK248y@vostro.rjw.lan> <20130114192134.GA24215@kroah.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
+From: Mika Westerberg <mika.westerberg@linux.intel.com>
+Subject: [PATCH] ACPI / PM: remove leading whitespace from #ifdef
+Date: Mon, 14 Jan 2013 22:13:37 +0200
+Message-ID: <1358194417-10477-1-git-send-email-mika.westerberg@linux.intel.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from g4t0017.houston.hp.com ([15.201.24.20]:44456 "EHLO
-	g4t0017.houston.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758509Ab3ANTiw (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 14 Jan 2013 14:38:52 -0500
-In-Reply-To: <20130114192134.GA24215@kroah.com>
+Received: from mga09.intel.com ([134.134.136.24]:59143 "EHLO mga09.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1758047Ab3ANUM7 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 14 Jan 2013 15:12:59 -0500
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Greg KH <gregkh@linuxfoundation.org>
-Cc: "Rafael J. Wysocki" <rjw@sisk.pl>, lenb@kernel.org, akpm@linux-foundation.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linux-mm@kvack.org, linuxppc-dev@lists.ozlabs.org, linux-s390@vger.kernel.org, bhelgaas@google.com, isimatu.yasuaki@jp.fujitsu.com, jiang.liu@huawei.com, wency@cn.fujitsu.com, guohanjun@huawei.com, yinghai@kernel.org, srivatsa.bhat@linux.vnet.ibm.com
+To: linux-acpi@vger.kernel.org
+Cc: "Rafael J. Wysocki" <rjw@sisk.pl>, Mika Westerberg <mika.westerberg@linux.intel.com>
 
-On Mon, 2013-01-14 at 11:21 -0800, Greg KH wrote:
-> On Mon, Jan 14, 2013 at 08:07:35PM +0100, Rafael J. Wysocki wrote:
-> > On Monday, January 14, 2013 11:42:09 AM Toshi Kani wrote:
-> > > On Mon, 2013-01-14 at 19:47 +0100, Rafael J. Wysocki wrote:
-> > > > On Monday, January 14, 2013 08:53:53 AM Toshi Kani wrote:
-> > > > > On Fri, 2013-01-11 at 22:25 +0100, Rafael J. Wysocki wrote:
-> > > > > > On Thursday, January 10, 2013 04:40:20 PM Toshi Kani wrote:
-> > > > > > > Added include/acpi/sys_hotplug.h, which is ACPI-specific system
-> > > > > > > device hotplug header and defines the order values of ACPI-specific
-> > > > > > > handlers.
-> > > > > > > 
-> > > > > > > Signed-off-by: Toshi Kani <toshi.kani@hp.com>
-> > > > > > > ---
-> > > > > > >  include/acpi/sys_hotplug.h |   48 ++++++++++++++++++++++++++++++++++++++++++++
-> > > > > > >  1 file changed, 48 insertions(+)
-> > > > > > >  create mode 100644 include/acpi/sys_hotplug.h
-> > > > > > > 
-> > > > > > > diff --git a/include/acpi/sys_hotplug.h b/include/acpi/sys_hotplug.h
-> > > > > > > new file mode 100644
-> > > > > > > index 0000000..ad80f61
-> > > > > > > --- /dev/null
-> > > > > > > +++ b/include/acpi/sys_hotplug.h
-> > > > > > > @@ -0,0 +1,48 @@
-> > > > > > > +/*
-> > > > > > > + * sys_hotplug.h - ACPI System device hot-plug framework
-> > > > > > > + *
-> > > > > > > + * Copyright (C) 2012 Hewlett-Packard Development Company, L.P.
-> > > > > > > + *	Toshi Kani <toshi.kani@hp.com>
-> > > > > > > + *
-> > > > > > > + * This program is free software; you can redistribute it and/or modify
-> > > > > > > + * it under the terms of the GNU General Public License version 2 as
-> > > > > > > + * published by the Free Software Foundation.
-> > > > > > > + */
-> > > > > > > +
-> > > > > > > +#ifndef _ACPI_SYS_HOTPLUG_H
-> > > > > > > +#define _ACPI_SYS_HOTPLUG_H
-> > > > > > > +
-> > > > > > > +#include <linux/list.h>
-> > > > > > > +#include <linux/device.h>
-> > > > > > > +#include <linux/sys_hotplug.h>
-> > > > > > > +
-> > > > > > > +/*
-> > > > > > > + * System device hot-plug operation proceeds in the following order.
-> > > > > > > + *   Validate phase -> Execute phase -> Commit phase
-> > > > > > > + *
-> > > > > > > + * The order values below define the calling sequence of ACPI-specific
-> > > > > > > + * handlers for each phase in ascending order.  The order value of
-> > > > > > > + * platform-neutral handlers are defined in <linux/sys_hotplug.h>.
-> > > > > > > + */
-> > > > > > > +
-> > > > > > > +/* Add Validate order values */
-> > > > > > > +#define SHP_ACPI_BUS_ADD_VALIDATE_ORDER		0	/* must be first */
-> > > > > > > +
-> > > > > > > +/* Add Execute order values */
-> > > > > > > +#define SHP_ACPI_BUS_ADD_EXECUTE_ORDER		10
-> > > > > > > +#define SHP_ACPI_RES_ADD_EXECUTE_ORDER		20
-> > > > > > > +
-> > > > > > > +/* Add Commit order values */
-> > > > > > > +#define SHP_ACPI_BUS_ADD_COMMIT_ORDER		10
-> > > > > > > +
-> > > > > > > +/* Delete Validate order values */
-> > > > > > > +#define SHP_ACPI_BUS_DEL_VALIDATE_ORDER		0	/* must be first */
-> > > > > > > +#define SHP_ACPI_RES_DEL_VALIDATE_ORDER		10
-> > > > > > > +
-> > > > > > > +/* Delete Execute order values */
-> > > > > > > +#define SHP_ACPI_BUS_DEL_EXECUTE_ORDER		100
-> > > > > > > +
-> > > > > > > +/* Delete Commit order values */
-> > > > > > > +#define SHP_ACPI_BUS_DEL_COMMIT_ORDER		100
-> > > > > > > +
-> > > > > > > +#endif	/* _ACPI_SYS_HOTPLUG_H */
-> > > > > > > --
-> > > > > > 
-> > > > > > Why did you use the particular values above?
-> > > > > 
-> > > > > The ordering values above are used to define the relative order among
-> > > > > handlers.  For instance, the 100 for SHP_ACPI_BUS_DEL_EXECUTE_ORDER can
-> > > > > potentially be 21 since it is still larger than 20 for
-> > > > > SHP_MEM_DEL_EXECUTE_ORDER defined in linux/sys_hotplug.h.  I picked 100
-> > > > > so that more platform-neutral handlers can be added in between 20 and
-> > > > > 100 in future.
-> > > > 
-> > > > I thought so, but I don't think it's a good idea to add gaps like this.
-> > > 
-> > > OK, I will use an equal gap of 10 for all values.  So, the 100 in the
-> > > above example will be changed to 30.  
-> > 
-> > I wonder why you want to have those gaps at all.
-> > 
-> > Anyway, this is just a small detail and it doesn't mean I don't have more
-> > comments.  I just need some more time to get the big picture idea of how this
-> > is supposed to work and perhaps Greg will have some remarks too.
-> 
-> Yes, give me a few days to catch up on other patches before I get the
-> chance to review these.
+It is there probably due to an accident, get rid of it so that the format
+is consistent across the file.
 
-That's great!  Thanks Greg!
--Toshi
+Signed-off-by: Mika Westerberg <mika.westerberg@linux.intel.com>
+---
+ drivers/acpi/device_pm.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
+diff --git a/drivers/acpi/device_pm.c b/drivers/acpi/device_pm.c
+index 8bca746..43116cd 100644
+--- a/drivers/acpi/device_pm.c
++++ b/drivers/acpi/device_pm.c
+@@ -592,7 +592,7 @@ static inline void acpi_wakeup_device(acpi_handle handle, u32 event,
+ 				      void *context) {}
+ #endif /* CONFIG_PM_RUNTIME */
+ 
+- #ifdef CONFIG_PM_SLEEP
++#ifdef CONFIG_PM_SLEEP
+ /**
+  * __acpi_device_sleep_wake - Enable or disable device to wake up the system.
+  * @dev: Device to enable/desible to wake up the system.
+-- 
+1.7.10.4
 
