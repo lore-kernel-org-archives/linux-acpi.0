@@ -1,128 +1,94 @@
-From: Yinghai Lu <yinghai@kernel.org>
-Subject: Re: [PATCH v8 09/22] PCI, ACPI: Add pci_root_hp hot removal
- notification support.
-Date: Mon, 14 Jan 2013 22:45:02 -0800
-Message-ID: <CAE9FiQUdXWxrM9Mk4rPG4fb5DKEP46Oa84219y8KC+kOaLB67w@mail.gmail.com>
-References: <1357944049-29620-1-git-send-email-yinghai@kernel.org>
-	<1357944049-29620-10-git-send-email-yinghai@kernel.org>
-	<2032314.LPbgrOarU3@vostro.rjw.lan>
+From: Yijing Wang <wangyijing@huawei.com>
+Subject: Re: [PATCH v8 01/22] PCI, acpiphp: Add is_hotplug_bridge detection
+Date: Tue, 15 Jan 2013 14:45:56 +0800
+Message-ID: <50F4FB24.80200@huawei.com>
+References: <1357944049-29620-1-git-send-email-yinghai@kernel.org> <1357944049-29620-2-git-send-email-yinghai@kernel.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <2032314.LPbgrOarU3@vostro.rjw.lan>
-Sender: linux-kernel-owner@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: Bjorn Helgaas <bhelgaas@google.com>, Len Brown <lenb@kernel.org>, Taku Izumi <izumi.taku@jp.fujitsu.com>, Jiang Liu <jiang.liu@huawei.com>, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
+Content-Type: text/plain; charset="ISO-8859-1"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from szxga01-in.huawei.com ([119.145.14.64]:64772 "EHLO
+	szxga01-in.huawei.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755368Ab3AOGqz (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 15 Jan 2013 01:46:55 -0500
+In-Reply-To: <1357944049-29620-2-git-send-email-yinghai@kernel.org>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Yinghai Lu <yinghai@kernel.org>
+Cc: Bjorn Helgaas <bhelgaas@google.com>, "Rafael J. Wysocki" <rjw@sisk.pl>, Len Brown <lenb@kernel.org>, Taku Izumi <izumi.taku@jp.fujitsu.com>, Jiang Liu <jiang.liu@huawei.com>, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
 
-On Sat, Jan 12, 2013 at 3:26 PM, Rafael J. Wysocki <rjw@sisk.pl> wrote:
-> On Friday, January 11, 2013 02:40:36 PM Yinghai Lu wrote:
->> Add missing hot_remove support for root device.
->>
->> How to test it?
->> Find out root bus number to acpi root name mapping from dmesg or /sys
->>
->>   echo "\_SB.PCIB 3" > /sys/kernel/debug/acpi/sci_notify
->> to remove root bus
->>
->> -v2: separate stop and remove, so it will be safe for comingi
->>       acpi_pci_bind_notify() changes.
->>
->> Signed-off-by: Yinghai Lu <yinghai@kernel.org>
->> Cc: Len Brown <lenb@kernel.org>
->> Cc: linux-acpi@vger.kernel.org
->> ---
->>  drivers/acpi/pci_root.c |   67 +++++++++++++++++++++++++++++++++++++++++++++++
->>  1 file changed, 67 insertions(+)
->>
->> diff --git a/drivers/acpi/pci_root.c b/drivers/acpi/pci_root.c
->> index 5c1f462c..5ae36d8 100644
->> --- a/drivers/acpi/pci_root.c
->> +++ b/drivers/acpi/pci_root.c
->> @@ -740,6 +740,12 @@ static void add_acpi_root_bridge(acpi_handle handle)
->>       list_add(&bridge->list, &acpi_root_bridge_list);
->>  }
->>
->> +static void remove_acpi_root_bridge(struct acpi_root_bridge *bridge)
->> +{
->> +     list_del(&bridge->list);
->> +     kfree(bridge);
->> +}
->> +
->>  struct acpi_root_hp_work {
->>       struct work_struct work;
->>       acpi_handle handle;
->> @@ -800,6 +806,61 @@ static void handle_root_bridge_insertion(acpi_handle handle)
->>               printk(KERN_ERR "cannot add bridge to acpi list\n");
->>  }
->>
->> +static int acpi_root_evaluate_object(acpi_handle handle, char *cmd, int val)
->> +{
->> +     acpi_status status;
->> +     struct acpi_object_list arg_list;
->> +     union acpi_object arg;
->> +
->> +     arg_list.count = 1;
->> +     arg_list.pointer = &arg;
->> +     arg.type = ACPI_TYPE_INTEGER;
->> +     arg.integer.value = val;
->> +
->> +     status = acpi_evaluate_object(handle, cmd, &arg_list, NULL);
->> +     if (ACPI_FAILURE(status)) {
->> +             pr_warn("%s: %s to %d failed\n",
->> +                              __func__, cmd, val);
->> +             return -1;
->
-> Please use a meaningful error code.
->
->> +     }
->> +
->> +     return 0;
->> +}
->> +
->> +static void handle_root_bridge_removal(acpi_handle handle,
->> +              struct acpi_root_bridge *bridge)
->> +{
->> +     u32 flags = 0;
->> +     struct acpi_device *device;
->> +
->> +     if (bridge) {
->> +             flags = bridge->flags;
->> +             remove_acpi_root_bridge(bridge);
->> +     }
->> +
->> +     if (!acpi_bus_get_device(handle, &device)) {
->> +             int ret_val;
->> +
->> +             /* remove pci devices at first */
->> +             ret_val = acpi_bus_trim(device, 0);
->> +             printk(KERN_DEBUG "acpi_bus_trim stop return %x\n", ret_val);
->> +
->> +             /* remove acpi devices */
->> +             ret_val = acpi_bus_trim(device, 1);
->> +             printk(KERN_DEBUG "acpi_bus_trim remove return %x\n", ret_val);
->
-> First of all, I don't agree with the way acpi_bus_trim() is used here, as
-> I said in the previous message.
->
-> Second, this code duplicates the code you're adding on [08/22] almost exactly.
-> Please put it into a one separate function instead of duplicating it like this.
->
->> +     }
->> +
->> +     if (flags & ROOT_BRIDGE_HAS_PS3) {
->> +             acpi_status status;
->> +
->> +             status = acpi_evaluate_object(handle, "_PS3", NULL, NULL);
->> +             if (ACPI_FAILURE(status))
->> +                     pr_warn("%s: _PS3 failed\n", __func__);
->
-> No, please.  acpi_device_set_power() is for that.
->
->> +     }
->> +     if (flags & ROOT_BRIDGE_HAS_EJ0)
->> +             acpi_root_evaluate_object(handle, "_EJ0", 1);
->
-> That seems to duplicate some code from scan.c.
+On 2013/1/12 6:40, Yinghai Lu wrote:
+> When system support hotplug bridge with children hotplug slots, we need
+> to make sure that parent bridge get preallocated resource so later when
+> device is plugged into children slot, those children devices will get
+> resource allocated.
+> 
+> We do not meet this problem, because for pcie hotplug card, when acpiphp
+> is used, pci_scan_bridge will set that for us when detect hotplug bit in
+> slot cap.
+> 
+> Reported-and-tested-by: Jason Baron <jbaron@redhat.com>
+> Signed-off-by: Yinghai Lu <yinghai@kernel.org>
+> Acked-by: Jason Baron <jbaron@redhat.com>
+> ---
+>  drivers/pci/hotplug/acpiphp_glue.c |   27 ++++++++++++++++++++++++++-
+>  1 file changed, 26 insertions(+), 1 deletion(-)
+> 
+> diff --git a/drivers/pci/hotplug/acpiphp_glue.c b/drivers/pci/hotplug/acpiphp_glue.c
+> index 91b5ad8..1e5c5df 100644
+> --- a/drivers/pci/hotplug/acpiphp_glue.c
+> +++ b/drivers/pci/hotplug/acpiphp_glue.c
+> @@ -797,6 +797,29 @@ static void acpiphp_set_acpi_region(struct acpiphp_slot *slot)
+>  	}
+>  }
+>  
+> +static void check_hotplug_bridge(struct acpiphp_slot *slot, struct pci_dev *dev)
+> +{
+> +	struct acpiphp_func *func;
+> +
+> +	if (!dev->subordinate)
+> +		return;
+> +
+> +	/* quirk, or pcie could set it already */
+> +	if (dev->is_hotplug_bridge)
+> +		return;
+> +
+> +	if (PCI_SLOT(dev->devfn) != slot->device)
+> +		return;
+> +
+> +	list_for_each_entry(func, &slot->funcs, sibling) {
+> +		if (PCI_FUNC(dev->devfn) == func->function) {
+> +			/* check if this bridge has ejectable slots */
+> +			if ((detect_ejectable_slots(func->handle) > 0))
+> +				dev->is_hotplug_bridge = 1;
+> +			break;
 
-yes, will address in the following patch.
+Hi Yinghai,
+   Need to put the "break" in parentheses of "if"? If the first func which device number == dev->devfn has't ejectable slot,
+don't check the rest funcs whether have ejectable slots?
+
+> +		}
+> +	}
+> +}
+>  /**
+>   * enable_device - enable, configure a slot
+>   * @slot: slot to be enabled
+> @@ -831,8 +854,10 @@ static int __ref enable_device(struct acpiphp_slot *slot)
+>  			if (dev->hdr_type == PCI_HEADER_TYPE_BRIDGE ||
+>  			    dev->hdr_type == PCI_HEADER_TYPE_CARDBUS) {
+>  				max = pci_scan_bridge(bus, dev, max, pass);
+> -				if (pass && dev->subordinate)
+> +				if (pass && dev->subordinate) {
+> +					check_hotplug_bridge(slot, dev);
+>  					pci_bus_size_bridges(dev->subordinate);
+> +				}
+>  			}
+>  		}
+>  	}
+> 
+
+
+-- 
+Thanks!
+Yijing
+
