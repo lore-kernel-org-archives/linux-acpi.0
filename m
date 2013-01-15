@@ -1,70 +1,121 @@
-From: Julian Calaby <julian.calaby@gmail.com>
-Subject: Re: [BUG Fix Patch 1/6] Bug fix: Hold spinlock across find|remove
- /sys/firmware/memmap/X operation.
-Date: Wed, 16 Jan 2013 09:26:49 +1100
-Message-ID: <CAGRGNgWCdvWhp=9+PDRbC9bK100BdBv9kpcsqoM-J6ipq22Szw@mail.gmail.com>
-References: <1358247267-18089-1-git-send-email-tangchen@cn.fujitsu.com> <1358247267-18089-2-git-send-email-tangchen@cn.fujitsu.com>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: Re: [PATCH 1/2] ACPI: intel-idle: Don't register CPU notifier if we are not running.
+Date: Tue, 15 Jan 2013 23:33:28 +0100
+Message-ID: <3054986.Zvqovl9UBj@vostro.rjw.lan>
+References: <1358288604-24620-1-git-send-email-konrad.wilk@oracle.com> <1358288604-24620-2-git-send-email-konrad.wilk@oracle.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-la0-f54.google.com ([209.85.215.54]:40946 "EHLO
-	mail-la0-f54.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752370Ab3AOW1M (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 15 Jan 2013 17:27:12 -0500
-In-Reply-To: <1358247267-18089-2-git-send-email-tangchen@cn.fujitsu.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7Bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1358288604-24620-2-git-send-email-konrad.wilk@oracle.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
+Cc: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, konrad@kernel.org, xen-devel@lists.xensource.com, stable@vger.kernel.org, Daniel Lezcano <daniel.lezcano@linaro.org>, "Srivatsa S. Bhat" <srivatsa.bhat@linux.vnet.ibm.com>, Len Brown <len.brown@intel.com>, Len Brown <lenb@kernel.org>
 List-Id: linux-acpi@vger.kernel.org
-To: Tang Chen <tangchen@cn.fujitsu.com>
-Cc: akpm@linux-foundation.org, rientjes@google.com, len.brown@intel.com, benh@kernel.crashing.org, paulus@samba.org, cl@linux.com, minchan.kim@gmail.com, kosaki.motohiro@jp.fujitsu.com, isimatu.yasuaki@jp.fujitsu.com, wujianguo@huawei.com, wency@cn.fujitsu.com, hpa@zytor.com, linfeng@cn.fujitsu.com, laijs@cn.fujitsu.com, mgorman@suse.de, yinghai@kernel.org, glommer@parallels.com, jiang.liu@huawei.com, x86@kernel.org, linux-mm@kvack.org, linux-kernel@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, linux-acpi@vger.kernel.org, linux-s390@vger.kernel.org, linux-sh@vger.kernel.org, linux-ia64@vger.kernel.org, cmetcalf@tilera.com, sparclinux@vger.kernel.org
 
-Hi Tang,
+On Tuesday, January 15, 2013 05:23:23 PM Konrad Rzeszutek Wilk wrote:
+> The 'intel_idle_probe' probes the CPU and sets the CPU notifier.
+> But if later on during the module initialization we fail (say
+> in cpuidle_register_driver) we stop loading but we neglected
+> to unregister the CPU notifier. This means that during CPU
+> hotplug events the system will fail:
 
-One minor point.
+This really is for Len, but it appears to be obviously correct, so I'll
+take it as a v3.8 fix if Len doesn't object.
 
-On Tue, Jan 15, 2013 at 9:54 PM, Tang Chen <tangchen@cn.fujitsu.com> wrote:
-> It is unsafe to return an entry pointer and release the map_entries_lock. So we should
-> not hold the map_entries_lock separately in firmware_map_find_entry() and
-> firmware_map_remove_entry(). Hold the map_entries_lock across find and remove
-> /sys/firmware/memmap/X operation.
->
-> And also, users of these two functions need to be careful to hold the lock when using
-> these two functions.
->
-> The suggestion is from Andrew Morton <akpm@linux-foundation.org>
->
-> Signed-off-by: Tang Chen <tangchen@cn.fujitsu.com>
+I suppose we need that in -stable too?
+
+Rafael
+
+
+> calling  intel_idle_init+0x0/0x326 @ 1
+> intel_idle: MWAIT substates: 0x1120
+> intel_idle: v0.4 model 0x2A
+> intel_idle: lapic_timer_reliable_states 0xffffffff
+> intel_idle: intel_idle yielding to none
+> initcall intel_idle_init+0x0/0x326 returned -19 after 14 usecs
+> 
+> ... some time later, offlining and onlining a CPU:
+> 
+> cpu 3 spinlock event irq 62
+> BUG: unable to ] __cpuidle_register_device+0x1c/0x120
+> PGD 99b8b067 PUD 99b95067 PMD 0
+> Oops: 0000 [#1] SMP
+> Modules linked in: xen_evtchn nouveau mxm_wmi wmi radeon ttm i915 fbcon tileblit font atl1c bitblit softcursor drm_kms_helper video xen_blkfront xen_netfront fb_sys_fops sysimgblt sysfillrect syscopyarea xenfs xen_privcmd mperf
+> CPU 0
+> Pid: 2302, comm: udevd Not tainted 3.8.0-rc3upstream-00249-g09ad159 #1 MSI MS-7680/H61M-P23 (MS-7680)
+> RIP: e030:[<ffffffff814d956c>]  [<ffffffff814d956c>] __cpuidle_register_device+0x1c/0x120
+> RSP: e02b:ffff88009dacfcb8  EFLAGS: 00010286
+> RAX: 0000000000000000 RBX: ffff880105380000 RCX: 000000000000001c
+> RDX: 0000000000000000 RSI: 0000000000000055 RDI: ffff880105380000
+> RBP: ffff88009dacfce8 R08: ffffffff81a4f048 R09: 0000000000000008
+> R10: 0000000000000008 R11: 0000000000000000 R12: ffff880105380000
+> R13: 00000000ffffffdd R14: 0000000000000000 R15: ffffffff81a523d0
+> FS:  00007f37bd83b7a0(0000) GS:ffff880105200000(0000) knlGS:0000000000000000
+> CS:  e033 DS: 0000 ES: 0000 CR0: 0000000080050033
+> CR2: 0000000000000008 CR3: 00000000a09ea000 CR4: 0000000000042660
+> DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
+> DR3: 0000000000000000 DR6: 00000000ffff0ff0 DR7: 0000000000000400
+> Process udevd (pid: 2302, threadinfo ffff88009dace000, task ffff88009afb47f0)
+> Stack:
+>  ffffffff8107f2d0 ffffffff810c2fb7 ffff88009dacfce8 00000000ffffffea
+>  ffff880105380000 00000000ffffffdd ffff88009dacfd08 ffffffff814d9882
+>  0000000000000003 ffff880105380000 ffff88009dacfd28 ffffffff81340afd
+> Call Trace:
+>  [<ffffffff8107f2d0>] ? collect_cpu_info_local+0x30/0x30
+>  [<ffffffff810c2fb7>] ? __might_sleep+0xe7/0x100
+>  [<ffffffff814d9882>] cpuidle_register_device+0x32/0x70
+>  [<ffffffff81340afd>] intel_idle_cpu_init+0xad/0x110
+>  [<ffffffff81340bc8>] cpu_hotplug_notify+0x68/0x80
+>  [<ffffffff8166023d>] notifier_call_chain+0x4d/0x70
+>  [<ffffffff810bc369>] __raw_notifier_call_chain+0x9/0x10
+>  [<ffffffff81094a4b>] __cpu_notify+0x1b/0x30
+>  [<ffffffff81652cf7>] _cpu_up+0x103/0x14b
+>  [<ffffffff81652e18>] cpu_up+0xd9/0xec
+>  [<ffffffff8164a254>] store_online+0x94/0xd0
+>  [<ffffffff814122fb>] dev_attr_store+0x1b/0x20
+>  [<ffffffff81216404>] sysfs_write_file+0xf4/0x170
+>  [<ffffffff811a1024>] vfs_write+0xb4/0x130
+>  [<ffffffff811a17ea>] sys_write+0x5a/0xa0
+>  [<ffffffff816643a9>] system_call_fastpath+0x16/0x1b
+> Code: 03 18 00 c9 c3 66 2e 0f 1f 84 00 00 00 00 00 55 48 89 e5 48 83 ec 30 48 89 5d e8 4c 89 65 f0 48 89 fb 4c 89 6d f8 e8 84 08 00 00 <48> 8b 78 08 49 89 c4 e8 f8 7f c1 ff 89 c2 b8 ea ff ff ff 84 d2
+> RIP  [<ffffffff814d956c>] __cpuidle_register_device+0x1c/0x120
+>  RSP <ffff88009dacfcb8>
+> 
+> This patch fixes it by moving the CPU notifier registration
+> as the last item to be done by the module.
+> 
+> Cc: stable@vger.kernel.org # for 3.6 and above
+> Cc: Daniel Lezcano <daniel.lezcano@linaro.org>
+> Cc: Srivatsa S. Bhat <srivatsa.bhat@linux.vnet.ibm.com>
+> Cc: Rafael J. Wysocki <rjw@sisk.pl>
+> Signed-off-by: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
 > ---
->  drivers/firmware/memmap.c |   25 +++++++++++++++++--------
->  1 files changed, 17 insertions(+), 8 deletions(-)
->
-> diff --git a/drivers/firmware/memmap.c b/drivers/firmware/memmap.c
-> index 4211da5..940c4e9 100644
-> --- a/drivers/firmware/memmap.c
-> +++ b/drivers/firmware/memmap.c
-> @@ -188,23 +188,28 @@ static inline void remove_sysfs_fw_map_entry(struct firmware_map_entry *entry)
+>  drivers/idle/intel_idle.c | 3 +--
+>  1 file changed, 1 insertion(+), 2 deletions(-)
+> 
+> diff --git a/drivers/idle/intel_idle.c b/drivers/idle/intel_idle.c
+> index 4ba384f..2df9414 100644
+> --- a/drivers/idle/intel_idle.c
+> +++ b/drivers/idle/intel_idle.c
+> @@ -448,8 +448,6 @@ static int intel_idle_probe(void)
+>  	else
+>  		on_each_cpu(__setup_broadcast_timer, (void *)true, 1);
+>  
+> -	register_cpu_notifier(&cpu_hotplug_notifier);
+> -
+>  	pr_debug(PREFIX "v" INTEL_IDLE_VERSION
+>  		" model 0x%X\n", boot_cpu_data.x86_model);
+>  
+> @@ -612,6 +610,7 @@ static int __init intel_idle_init(void)
+>  			return retval;
+>  		}
+>  	}
+> +	register_cpu_notifier(&cpu_hotplug_notifier);
+>  
+>  	return 0;
 >  }
->
->  /*
-> - * Search memmap entry
-> + * firmware_map_find_entry: Search memmap entry.
-> + * @start: Start of the memory range.
-> + * @end:   End of the memory range (exclusive).
-> + * @type:  Type of the memory range.
-> + *
-> + * This function is to find the memmap entey of a given memory range.
-> + * The caller must hold map_entries_lock, and must not release the lock
-> + * until the processing of the returned entry has completed.
-> + *
-> + * Return pointer to the entry to be found on success, or NULL on failure.
-
-Why not make this completely kernel-doc compliant as you're already
-re-writing the comment?
-
-Thanks,
-
+> 
 -- 
-Julian Calaby
-
-Email: julian.calaby@gmail.com
-Profile: http://www.google.com/profiles/julian.calaby/
-.Plan: http://sites.google.com/site/juliancalaby/
+I speak only for myself.
+Rafael J. Wysocki, Intel Open Source Technology Center.
