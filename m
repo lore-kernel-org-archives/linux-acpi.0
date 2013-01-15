@@ -1,49 +1,36 @@
-From: Mika Westerberg <mika.westerberg@linux.intel.com>
-Subject: Re: [PATCH 0/3] x86: enable common clk and add support for Lynxpoint
- clocks
-Date: Tue, 15 Jan 2013 07:27:23 +0200
-Message-ID: <20130115052723.GM13897@intel.com>
-References: <1358174788-24439-1-git-send-email-mika.westerberg@linux.intel.com>
+From: Yinghai Lu <yinghai@kernel.org>
+Subject: Re: [PATCH v8 02/22] PCI: Add root bus children dev's res to fail list
+Date: Mon, 14 Jan 2013 22:23:47 -0800
+Message-ID: <CAE9FiQU6+E+Tx4LTwZwAxX2cMQuoLPA5Cee8Lo0OaWgPQfixMQ@mail.gmail.com>
+References: <1357944049-29620-1-git-send-email-yinghai@kernel.org>
+	<1357944049-29620-3-git-send-email-yinghai@kernel.org>
+	<6423213.ATyOvMNh1o@vostro.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga01.intel.com ([192.55.52.88]:20736 "EHLO mga01.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750758Ab3AOFXz (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 15 Jan 2013 00:23:55 -0500
-Content-Disposition: inline
-In-Reply-To: <1358174788-24439-1-git-send-email-mika.westerberg@linux.intel.com>
+Received: from mail-bk0-f51.google.com ([209.85.214.51]:35801 "EHLO
+	mail-bk0-f51.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750872Ab3AOGXt (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 15 Jan 2013 01:23:49 -0500
+In-Reply-To: <6423213.ATyOvMNh1o@vostro.rjw.lan>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-kernel@vger.kernel.org
-Cc: Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, x86@kernel.org, Len Brown <lenb@kernel.org>, "Rafael J. Wysocki" <rjw@sisk.pl>, Mike Turquette <mturquette@linaro.org>, Arnd Bergmann <arnd@arndb.de>, Linus Walleij <linus.walleij@linaro.org>, Mark Brown <broonie@opensource.wolfsonmicro.com>, Heikki Krogerus <heikki.krogerus@linux.intel.com>, linux-acpi@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: Bjorn Helgaas <bhelgaas@google.com>, Len Brown <lenb@kernel.org>, Taku Izumi <izumi.taku@jp.fujitsu.com>, Jiang Liu <jiang.liu@huawei.com>, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
 
-On Mon, Jan 14, 2013 at 04:46:25PM +0200, Mika Westerberg wrote:
-> Hi all,
-> 
-> The discussion that lead to this patch series starts from the below thread:
-> 
-> 	http://thread.gmane.org/gmane.linux.kernel/1417691
-> 
-> In summary, there is no point in adding a special case code to the drivers
-> in order to pass them a fixed clock rate, but instead x86 should just
-> enable common clk subsystem and take advantage of it.
-> 
-> This has been proposed before by Mark Brown but for some reason it has not
-> merged into x86 tree.
-> 
-> This series tries to do the same but in this time we have real users for
-> the clk API.
-> 
-> [1/3] Enables the common clk framework on x86
-> [2/3] Adds Intel Lynxpoint Low Power Subsystem specific clocks as platform
->       driver.
-> [3/3] Creates the platform device for the LPSS clocks driver if we find out
->       that the Lynxpoint LPSS devices are available.
-> 
-> This series is based on Rafael's linux-pm/linux-next branch because there
-> is a dependency to the ACPI scan rework by Rafael.
+On Sat, Jan 12, 2013 at 1:37 PM, Rafael J. Wysocki <rjw@sisk.pl> wrote:
+> On Friday, January 11, 2013 02:40:29 PM Yinghai Lu wrote:
+>> We can stop trying according to try number now and do not need to use
+>> root_bus checking as stop sign anymore.
+>>
+>> In extreme case we could need to reallocate resource for device just
+>> under root bus.
+>
+> Well, the above says that we _can_ do the change, but it doesn't explain why it
+> is needed.  So what's the reason why we need to do that?
 
-I meant that they apply on top of 3.8-rcX but in order to patch [2/3] to
-work it needs to have the ACPI scan rework patches. Otherwise it is not
-able to find the base addresses of the devices.
+In extreme case we could need to reallocate resource for device just
+under root bus.
+
+otherwise, those devices just under root bus will not be assigned
+resources again.
