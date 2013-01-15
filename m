@@ -1,47 +1,55 @@
 From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: [PATCH 0/5] remove some unnecessary newline from error messages
-Date: Tue, 15 Jan 2013 23:27:03 +0100
-Message-ID: <1410204.blb3EQMqHJ@vostro.rjw.lan>
-References: <1354189996-14431-1-git-send-email-colin.king@canonical.com>
+Subject: Re: [PATCH 4/5] ACPICA: GPE support: remove unnecessary newline from error messages
+Date: Tue, 15 Jan 2013 23:28:33 +0100
+Message-ID: <2225709.xIUb3ZBS1U@vostro.rjw.lan>
+References: <1354189996-14431-1-git-send-email-colin.king@canonical.com> <1354189996-14431-5-git-send-email-colin.king@canonical.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7Bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1354189996-14431-1-git-send-email-colin.king@canonical.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Colin King <colin.king@canonical.com>
-Cc: Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from hydra.sisk.pl ([212.160.235.94]:41463 "EHLO hydra.sisk.pl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754976Ab3AOWWl (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 15 Jan 2013 17:22:41 -0500
+In-Reply-To: <1354189996-14431-5-git-send-email-colin.king@canonical.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: "Moore, Robert" <robert.moore@intel.com>
+Cc: Colin King <colin.king@canonical.com>, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org
 
-On Thursday, November 29, 2012 11:53:11 AM Colin King wrote:
-> From: Colin Ian King <colin.king@canonical.com>
-> 
-> The ACPI_EXCEPTION and ACPI_ERROR macros already emit a newline after
-> the message, so remove the unnecessary newlines from a bunch of messages.
-> 
-> Colin Ian King (5):
->   ACPI dock: remove unnecessary newline from exception message
->   ACPI video: remove unnecessary newline from error messages
->   ACPI sysfs: remove unnecessary newline from exception
->   ACPICA: GPE support: remove unnecessary newline from error messages
->   ACPI thermal: remove unnecessary newline from exception message
-> 
->  drivers/acpi/acpica/hwgpe.c | 2 +-
->  drivers/acpi/dock.c         | 2 +-
->  drivers/acpi/sysfs.c        | 2 +-
->  drivers/acpi/thermal.c      | 2 +-
->  drivers/acpi/video.c        | 4 ++--
->  5 files changed, 6 insertions(+), 6 deletions(-)
+Hi Bob,
 
-I don't seem to have received patch [1/5] (dock).
-
-Patches [2-3/5] and [5/5] have been taken into linux-pm/linux-next for v3.9,
-but [4/5] needs to go through ACPICA upstream.
+This appears to be upstream ACPICA material.
 
 Thanks,
 Rafael
 
 
+On Thursday, November 29, 2012 11:53:15 AM Colin King wrote:
+> From: Colin Ian King <colin.king@canonical.com>
+> 
+> ACPI_ERROR() already appends a newline, so there is no
+> need for the error messages to include one too.
+> 
+> Signed-off-by: Colin Ian King <colin.king@canonical.com>
+> ---
+>  drivers/acpi/acpica/hwgpe.c | 2 +-
+>  1 file changed, 1 insertion(+), 1 deletion(-)
+> 
+> diff --git a/drivers/acpi/acpica/hwgpe.c b/drivers/acpi/acpica/hwgpe.c
+> index db40765..610ed72 100644
+> --- a/drivers/acpi/acpica/hwgpe.c
+> +++ b/drivers/acpi/acpica/hwgpe.c
+> @@ -134,7 +134,7 @@ acpi_hw_low_set_gpe(struct acpi_gpe_event_info *gpe_event_info, u32 action)
+>  		break;
+>  
+>  	default:
+> -		ACPI_ERROR((AE_INFO, "Invalid GPE Action, %u\n", action));
+> +		ACPI_ERROR((AE_INFO, "Invalid GPE Action, %u", action));
+>  		return (AE_BAD_PARAMETER);
+>  	}
+>  
+> 
 -- 
 I speak only for myself.
 Rafael J. Wysocki, Intel Open Source Technology Center.
