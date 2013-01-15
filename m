@@ -1,54 +1,51 @@
 From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: [PATCH 0/5] ACPI: Rework acpi_bus_trim()
-Date: Tue, 15 Jan 2013 00:51 +0100
-Message-ID: <2049836.kZAJsepFIG@vostro.rjw.lan>
-References: <3885603.ydrrB7OEKf@vostro.rjw.lan> <CAE9FiQUbQVdxDxD68ktZhFuJYs861-aFEXjTOgee1ueEous2eQ@mail.gmail.com>
+Subject: Re: [PATCH] ACPI / PM: remove leading whitespace from #ifdef
+Date: Tue, 15 Jan 2013 01:04:39 +0100
+Message-ID: <5272741.Mx404yLOW6@vostro.rjw.lan>
+References: <1358194417-10477-1-git-send-email-mika.westerberg@linux.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7Bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from hydra.sisk.pl ([212.160.235.94]:40815 "EHLO hydra.sisk.pl"
+Received: from hydra.sisk.pl ([212.160.235.94]:40823 "EHLO hydra.sisk.pl"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1757089Ab3ANXpK (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 14 Jan 2013 18:45:10 -0500
-In-Reply-To: <CAE9FiQUbQVdxDxD68ktZhFuJYs861-aFEXjTOgee1ueEous2eQ@mail.gmail.com>
+	id S1757180Ab3ANX6t (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 14 Jan 2013 18:58:49 -0500
+In-Reply-To: <1358194417-10477-1-git-send-email-mika.westerberg@linux.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Yinghai Lu <yinghai@kernel.org>
-Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Bjorn Helgaas <bhelgaas@google.com>, LKML <linux-kernel@vger.kernel.org>, Toshi Kani <toshi.kani@hp.com>, Jiang Liu <jiang.liu@huawei.com>, Taku Izumi <izumi.taku@jp.fujitsu.com>
+To: Mika Westerberg <mika.westerberg@linux.intel.com>
+Cc: linux-acpi@vger.kernel.org
 
-On Monday, January 14, 2013 02:21:38 PM Yinghai Lu wrote:
-> On Mon, Jan 14, 2013 at 1:33 PM, Rafael J. Wysocki <rjw@sisk.pl> wrote:
-> > The next three patches actually rework acpi_bus_trim() in three steps:
-> >
-> > [3/5] Drop the second argument of acpi_bus_trim() (all callers pass 1 in there
-> >       anyway.
-> > [4/5] Reimplement acpi_bus_trim() using acpi_walk_namespace().
-> > [3/5] Make acpi_bus_trim() carry out two passes as described above.
-> >
-> > I'm aware of the fact that this will conflict with the patches that Yinghai
-> > posted a few days ago, but in my opinion the changes here are prerequisite for
-> > the Yinghai's patchset.
-> 
-> Sure, I will drop my change to acpi_bus_trim() and update one
-> reference accordingly.
-> 
-> Acked-by: for those 5 patches.
+On Monday, January 14, 2013 10:13:37 PM Mika Westerberg wrote:
+> It is there probably due to an accident, get rid of it so that the format
+> is consistent across the file.
 
-Thanks!
-
-> So you will put those patches in acpi-scan, and Bjorn will pull that
-> again to pci tree?
-
-I'm going to put them into acpi-scan some time later this week, but I'd like
-them to go through linux-next first to catch teething problems, if any.
-
-I can't speak for Bjorn, though.  I suppose he will pull them if you ask him to.
+Applied.
 
 Thanks,
 Rafael
 
 
+> Signed-off-by: Mika Westerberg <mika.westerberg@linux.intel.com>
+> ---
+>  drivers/acpi/device_pm.c |    2 +-
+>  1 file changed, 1 insertion(+), 1 deletion(-)
+> 
+> diff --git a/drivers/acpi/device_pm.c b/drivers/acpi/device_pm.c
+> index 8bca746..43116cd 100644
+> --- a/drivers/acpi/device_pm.c
+> +++ b/drivers/acpi/device_pm.c
+> @@ -592,7 +592,7 @@ static inline void acpi_wakeup_device(acpi_handle handle, u32 event,
+>  				      void *context) {}
+>  #endif /* CONFIG_PM_RUNTIME */
+>  
+> - #ifdef CONFIG_PM_SLEEP
+> +#ifdef CONFIG_PM_SLEEP
+>  /**
+>   * __acpi_device_sleep_wake - Enable or disable device to wake up the system.
+>   * @dev: Device to enable/desible to wake up the system.
+> 
 -- 
 I speak only for myself.
 Rafael J. Wysocki, Intel Open Source Technology Center.
