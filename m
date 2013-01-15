@@ -1,53 +1,36 @@
-From: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
-Subject: Re: [PATCH 0/5] ACPI: Rework acpi_bus_trim()
-Date: Tue, 15 Jan 2013 09:38:20 +0900
-Message-ID: <50F4A4FC.3070904@jp.fujitsu.com>
-References: <3885603.ydrrB7OEKf@vostro.rjw.lan>
+From: Mark Brown <broonie@opensource.wolfsonmicro.com>
+Subject: Re: [PATCH 2/3] clk: x86: add support for Lynxpoint LPSS clocks
+Date: Tue, 15 Jan 2013 12:11:19 +0900
+Message-ID: <20130115031118.GC5701@opensource.wolfsonmicro.com>
+References: <1358174788-24439-1-git-send-email-mika.westerberg@linux.intel.com>
+ <1358174788-24439-3-git-send-email-mika.westerberg@linux.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from fgwmail6.fujitsu.co.jp ([192.51.44.36]:56536 "EHLO
-	fgwmail6.fujitsu.co.jp" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756107Ab3AOAiy (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 14 Jan 2013 19:38:54 -0500
-In-Reply-To: <3885603.ydrrB7OEKf@vostro.rjw.lan>
+Received: from opensource.wolfsonmicro.com ([80.75.67.52]:53362 "EHLO
+	opensource.wolfsonmicro.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751206Ab3AODLf (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 14 Jan 2013 22:11:35 -0500
+Content-Disposition: inline
+In-Reply-To: <1358174788-24439-3-git-send-email-mika.westerberg@linux.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Bjorn Helgaas <bhelgaas@google.com>, LKML <linux-kernel@vger.kernel.org>, Toshi Kani <toshi.kani@hp.com>, Yinghai Lu <yinghai@kernel.org>, Jiang Liu <jiang.liu@huawei.com>, Taku Izumi <izumi.taku@jp.fujitsu.com>
+To: Mika Westerberg <mika.westerberg@linux.intel.com>
+Cc: linux-kernel@vger.kernel.org, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, x86@kernel.org, Len Brown <lenb@kernel.org>, "Rafael J. Wysocki" <rjw@sisk.pl>, Mike Turquette <mturquette@linaro.org>, Arnd Bergmann <arnd@arndb.de>, Linus Walleij <linus.walleij@linaro.org>, Heikki Krogerus <heikki.krogerus@linux.intel.com>, linux-acpi@vger.kernel.org
 
-2013/01/15 6:33, Rafael J. Wysocki wrote:
-> Hi All,
->
-> This series of patches changes the way acpi_bus_trim() works so that,
-> eventually, it walks the namespace twice detaching (ACPI) drivers from
-> device nodes being removed in the first pass and removing the device
-> nodes in the second pass.
->
-> The first two patches are just cleanups removing unused stuff:
->
+On Mon, Jan 14, 2013 at 04:46:27PM +0200, Mika Westerberg wrote:
+> Intel Lynxpoint Low Power Subsystem hosts peripherals like UART, I2C and
+> SPI controllers. For most of these there is a configuration register that
+> allows software to enable and disable the functional clock. Disabling the
+> clock while the peripheral is not used saves power.
+> 
+> In order to take advantage of this we add a new clock gate of type
+> 'lpss_gate' that just re-uses the ordinary clk_gate but in addition is able
+> to enumerate the base address register of the device using ACPI.
+> 
+> We then create a clock tree that models the Lynxpoint LPSS clocks using
+> these gates and fixed clocks so that we can pass clock rate to the drivers
+> as well.
 
-> [1/5] Remove the ops field from struct acpi_device (unrelated to the rest).
-> [2/5] Drop the second argument of acpi_device_unregister().
->
-> The next three patches actually rework acpi_bus_trim() in three steps:
->
-> [3/5] Drop the second argument of acpi_bus_trim() (all callers pass 1 in there
->        anyway.
-> [4/5] Reimplement acpi_bus_trim() using acpi_walk_namespace().
-> [3/5] Make acpi_bus_trim() carry out two passes as described above.
-
-Acked-by: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
-
->
-> I'm aware of the fact that this will conflict with the patches that Yinghai
-> posted a few days ago, but in my opinion the changes here are prerequisite for
-> the Yinghai's patchset.
->
-> Thanks,
-> Rafael
->
->
-
-
+Reviewed-by: Mark Brown <broonie@opensource.wolfsonmicro.com>
