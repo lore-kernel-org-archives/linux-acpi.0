@@ -1,29 +1,47 @@
-From: Yinghai Lu <yinghai@kernel.org>
-Subject: Re: [PATCH v8 08/22] PCI, acpiphp: Separate out hot-add support of
- pci host bridge
-Date: Tue, 15 Jan 2013 14:04:34 -0800
-Message-ID: <CAE9FiQXS1kX=FS_2Fq_q7Nvcacr6xfQpKP0t12ndm-_chq+aEA@mail.gmail.com>
-References: <1357944049-29620-1-git-send-email-yinghai@kernel.org>
-	<CAE9FiQX6q-tbQuq_0mc0kBFC-bb0zKRDyg=aGLkrAeh5Y7FkYg@mail.gmail.com>
-	<CAE9FiQWCg9ZF8mXF-fMKUhOXF=EDeS07BWKvUSDxWUxikrQu4w@mail.gmail.com>
-	<2763397.yFrgeYvBXr@vostro.rjw.lan>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: Re: [PATCH 0/5] remove some unnecessary newline from error messages
+Date: Tue, 15 Jan 2013 23:27:03 +0100
+Message-ID: <1410204.blb3EQMqHJ@vostro.rjw.lan>
+References: <1354189996-14431-1-git-send-email-colin.king@canonical.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <linux-pci-owner@vger.kernel.org>
-In-Reply-To: <2763397.yFrgeYvBXr@vostro.rjw.lan>
-Sender: linux-pci-owner@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: Bjorn Helgaas <bhelgaas@google.com>, Len Brown <lenb@kernel.org>, Taku Izumi <izumi.taku@jp.fujitsu.com>, Jiang Liu <jiang.liu@huawei.com>, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7Bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1354189996-14431-1-git-send-email-colin.king@canonical.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Colin King <colin.king@canonical.com>
+Cc: Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Tue, Jan 15, 2013 at 2:00 PM, Rafael J. Wysocki <rjw@sisk.pl> wrote:
-> Do I understand correctly that you're asking whether to merge the attached
-> patches together, so as to obtain one combined patch?
->
-> If so, yes, I'd like that to be done.
+On Thursday, November 29, 2012 11:53:11 AM Colin King wrote:
+> From: Colin Ian King <colin.king@canonical.com>
+> 
+> The ACPI_EXCEPTION and ACPI_ERROR macros already emit a newline after
+> the message, so remove the unnecessary newlines from a bunch of messages.
+> 
+> Colin Ian King (5):
+>   ACPI dock: remove unnecessary newline from exception message
+>   ACPI video: remove unnecessary newline from error messages
+>   ACPI sysfs: remove unnecessary newline from exception
+>   ACPICA: GPE support: remove unnecessary newline from error messages
+>   ACPI thermal: remove unnecessary newline from exception message
+> 
+>  drivers/acpi/acpica/hwgpe.c | 2 +-
+>  drivers/acpi/dock.c         | 2 +-
+>  drivers/acpi/sysfs.c        | 2 +-
+>  drivers/acpi/thermal.c      | 2 +-
+>  drivers/acpi/video.c        | 4 ++--
+>  5 files changed, 6 insertions(+), 6 deletions(-)
 
-good, will merge them for easy review.
+I don't seem to have received patch [1/5] (dock).
 
-Thanks
+Patches [2-3/5] and [5/5] have been taken into linux-pm/linux-next for v3.9,
+but [4/5] needs to go through ACPICA upstream.
 
-Yinghai
+Thanks,
+Rafael
+
+
+-- 
+I speak only for myself.
+Rafael J. Wysocki, Intel Open Source Technology Center.
