@@ -1,36 +1,46 @@
 From: Yinghai Lu <yinghai@kernel.org>
-Subject: Re: [PATCH v8 02/22] PCI: Add root bus children dev's res to fail list
-Date: Mon, 14 Jan 2013 22:23:47 -0800
-Message-ID: <CAE9FiQU6+E+Tx4LTwZwAxX2cMQuoLPA5Cee8Lo0OaWgPQfixMQ@mail.gmail.com>
+Subject: Re: [PATCH v8 06/22] PCI: split registration of PCI bus devices into
+ two stages
+Date: Mon, 14 Jan 2013 22:29:48 -0800
+Message-ID: <CAE9FiQVdnys7+bXhHCW6CXYkA9TrKf52Kww60_QhmZke3rYwoA@mail.gmail.com>
 References: <1357944049-29620-1-git-send-email-yinghai@kernel.org>
-	<1357944049-29620-3-git-send-email-yinghai@kernel.org>
-	<6423213.ATyOvMNh1o@vostro.rjw.lan>
+	<1357944049-29620-7-git-send-email-yinghai@kernel.org>
+	<3931059.ZcnvRQRmKT@vostro.rjw.lan>
+	<50F2D1FA.6000000@gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-bk0-f51.google.com ([209.85.214.51]:35801 "EHLO
-	mail-bk0-f51.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750872Ab3AOGXt (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 15 Jan 2013 01:23:49 -0500
-In-Reply-To: <6423213.ATyOvMNh1o@vostro.rjw.lan>
+Received: from mail-bk0-f42.google.com ([209.85.214.42]:43880 "EHLO
+	mail-bk0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755946Ab3AOG3v (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 15 Jan 2013 01:29:51 -0500
+In-Reply-To: <50F2D1FA.6000000@gmail.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: Bjorn Helgaas <bhelgaas@google.com>, Len Brown <lenb@kernel.org>, Taku Izumi <izumi.taku@jp.fujitsu.com>, Jiang Liu <jiang.liu@huawei.com>, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
+To: Jiang Liu <liuj97@gmail.com>
+Cc: "Rafael J. Wysocki" <rjw@sisk.pl>, Bjorn Helgaas <bhelgaas@google.com>, Len Brown <lenb@kernel.org>, Taku Izumi <izumi.taku@jp.fujitsu.com>, Jiang Liu <jiang.liu@huawei.com>, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
 
-On Sat, Jan 12, 2013 at 1:37 PM, Rafael J. Wysocki <rjw@sisk.pl> wrote:
-> On Friday, January 11, 2013 02:40:29 PM Yinghai Lu wrote:
->> We can stop trying according to try number now and do not need to use
->> root_bus checking as stop sign anymore.
+On Sun, Jan 13, 2013 at 7:25 AM, Jiang Liu <liuj97@gmail.com> wrote:
+> On 01/13/2013 06:34 AM, Rafael J. Wysocki wrote:
+>> On Friday, January 11, 2013 02:40:33 PM Yinghai Lu wrote:
+>>> From: Jiang Liu <jiang.liu@huawei.com>
+>>>
+>>> When handling BUS_NOTIFY_ADD_DEVICE event for a PCI bridge device,
+>>> the notification handler can't hold reference count to the new PCI bus
+>>> because the device object for the new bus (pci_dev->subordinate->dev)
+>>> hasn't been initialized yet.
 >>
->> In extreme case we could need to reallocate resource for device just
->> under root bus.
->
-> Well, the above says that we _can_ do the change, but it doesn't explain why it
-> is needed.  So what's the reason why we need to do that?
+>> It doesn't look like BUS_NOTIFY_ADD_DEVICE is used by the PCI bus type
+>> in the mainline.
+>>
+>> Is it in linux-next?
+>>
+>> If not, then I don't see why we need this patch.
+> Hi Rafael,
+>         Originally it's a preparation patch for pci_slot/acpiphp/pci_bind
+> related fixups. With recent work from you to remove bind/unbind from struct
+> acpi_bus_type, we have no dependency on this patch anymore.
 
-In extreme case we could need to reallocate resource for device just
-under root bus.
+ok, will drop this one.
 
-otherwise, those devices just under root bus will not be assigned
-resources again.
+Yinghai
