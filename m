@@ -1,34 +1,26 @@
 From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: [PATCH v8 17/22] PCI, ACPI: Add alloc_acpi_hp_work()
-Date: Tue, 15 Jan 2013 12:27:04 +0100
-Message-ID: <5134894.kiC8yZAa7S@vostro.rjw.lan>
-References: <1357944049-29620-1-git-send-email-yinghai@kernel.org> <3988288.MTBNr2Bzqb@vostro.rjw.lan> <CAE9FiQU_jokR9b2+G7P77aUfxsE6H1HFtO3k5XjqxyD2JZPpFQ@mail.gmail.com>
+Subject: [Announcement] bleeding-edge branch in the linux-pm.git tree
+Date: Tue, 15 Jan 2013 13:56:08 +0100
+Message-ID: <2326680.Vrrx3pVGgt@vostro.rjw.lan>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7Bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from hydra.sisk.pl ([212.160.235.94]:41170 "EHLO hydra.sisk.pl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751636Ab3AOLVM (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 15 Jan 2013 06:21:12 -0500
-In-Reply-To: <CAE9FiQU_jokR9b2+G7P77aUfxsE6H1HFtO3k5XjqxyD2JZPpFQ@mail.gmail.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Return-path: <linux-pm-owner@vger.kernel.org>
+Sender: linux-pm-owner@vger.kernel.org
+To: Linux PM list <linux-pm@vger.kernel.org>
+Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Stephen Rothwell <sfr@canb.auug.org.au>
 List-Id: linux-acpi@vger.kernel.org
-To: Yinghai Lu <yinghai@kernel.org>
-Cc: Bjorn Helgaas <bhelgaas@google.com>, Len Brown <lenb@kernel.org>, Taku Izumi <izumi.taku@jp.fujitsu.com>, Jiang Liu <jiang.liu@huawei.com>, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
 
-On Monday, January 14, 2013 10:59:28 PM Yinghai Lu wrote:
-> On Sat, Jan 12, 2013 at 3:45 PM, Rafael J. Wysocki <rjw@sisk.pl> wrote:
-> > On Friday, January 11, 2013 02:40:44 PM Yinghai Lu wrote:
-> >> Will use it with acpiphp and pci_root_hp events handling
-> >
-> > I think it would be better if you folded patches [17-20/22] together.
-> 
-> just want to make move/split more simple. so could separate out old
-> code in acpiphp is
-> moved at first, then apply change etc.
+Hi All,
 
-Well, OK.
+There is a new branch called bleeding-edge in the linux-pm.git tree that
+all new material targeted at linux-next will first go into for build testing,
+mostly to stop bothering Stephen with build breakages in linux-pm/linux-next.
+
+If someone's willing to try the bleeding-edge stuff, you're welcome, but please
+note that most likely it's going to be rebased daily (or even most often than
+that, depending on how many patches there are for me to process at the given
+time).
 
 Thanks,
 Rafael
