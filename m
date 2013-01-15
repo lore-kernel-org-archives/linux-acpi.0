@@ -1,94 +1,134 @@
-From: Yijing Wang <wangyijing@huawei.com>
-Subject: Re: [PATCH v8 01/22] PCI, acpiphp: Add is_hotplug_bridge detection
-Date: Tue, 15 Jan 2013 14:45:56 +0800
-Message-ID: <50F4FB24.80200@huawei.com>
-References: <1357944049-29620-1-git-send-email-yinghai@kernel.org> <1357944049-29620-2-git-send-email-yinghai@kernel.org>
+From: Yinghai Lu <yinghai@kernel.org>
+Subject: Re: [PATCH v8 14/22] ACPI: update ej_event interface to take acpi_device
+Date: Mon, 14 Jan 2013 22:55:49 -0800
+Message-ID: <CAE9FiQUb7d2Sud6gGkqW+aJ-rVi2nUF=nGK6_Afzf8VE7K-dDw@mail.gmail.com>
+References: <1357944049-29620-1-git-send-email-yinghai@kernel.org>
+	<1357944049-29620-15-git-send-email-yinghai@kernel.org>
+	<1908840.G1WFmde11m@vostro.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from szxga01-in.huawei.com ([119.145.14.64]:64772 "EHLO
-	szxga01-in.huawei.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755368Ab3AOGqz (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 15 Jan 2013 01:46:55 -0500
-In-Reply-To: <1357944049-29620-2-git-send-email-yinghai@kernel.org>
+Received: from mail-bk0-f47.google.com ([209.85.214.47]:63697 "EHLO
+	mail-bk0-f47.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755930Ab3AOGzv (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 15 Jan 2013 01:55:51 -0500
+In-Reply-To: <1908840.G1WFmde11m@vostro.rjw.lan>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Yinghai Lu <yinghai@kernel.org>
-Cc: Bjorn Helgaas <bhelgaas@google.com>, "Rafael J. Wysocki" <rjw@sisk.pl>, Len Brown <lenb@kernel.org>, Taku Izumi <izumi.taku@jp.fujitsu.com>, Jiang Liu <jiang.liu@huawei.com>, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: Bjorn Helgaas <bhelgaas@google.com>, Len Brown <lenb@kernel.org>, Taku Izumi <izumi.taku@jp.fujitsu.com>, Jiang Liu <jiang.liu@huawei.com>, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
 
-On 2013/1/12 6:40, Yinghai Lu wrote:
-> When system support hotplug bridge with children hotplug slots, we need
-> to make sure that parent bridge get preallocated resource so later when
-> device is plugged into children slot, those children devices will get
-> resource allocated.
-> 
-> We do not meet this problem, because for pcie hotplug card, when acpiphp
-> is used, pci_scan_bridge will set that for us when detect hotplug bit in
-> slot cap.
-> 
-> Reported-and-tested-by: Jason Baron <jbaron@redhat.com>
-> Signed-off-by: Yinghai Lu <yinghai@kernel.org>
-> Acked-by: Jason Baron <jbaron@redhat.com>
-> ---
->  drivers/pci/hotplug/acpiphp_glue.c |   27 ++++++++++++++++++++++++++-
->  1 file changed, 26 insertions(+), 1 deletion(-)
-> 
-> diff --git a/drivers/pci/hotplug/acpiphp_glue.c b/drivers/pci/hotplug/acpiphp_glue.c
-> index 91b5ad8..1e5c5df 100644
-> --- a/drivers/pci/hotplug/acpiphp_glue.c
-> +++ b/drivers/pci/hotplug/acpiphp_glue.c
-> @@ -797,6 +797,29 @@ static void acpiphp_set_acpi_region(struct acpiphp_slot *slot)
->  	}
->  }
->  
-> +static void check_hotplug_bridge(struct acpiphp_slot *slot, struct pci_dev *dev)
-> +{
-> +	struct acpiphp_func *func;
-> +
-> +	if (!dev->subordinate)
-> +		return;
-> +
-> +	/* quirk, or pcie could set it already */
-> +	if (dev->is_hotplug_bridge)
-> +		return;
-> +
-> +	if (PCI_SLOT(dev->devfn) != slot->device)
-> +		return;
-> +
-> +	list_for_each_entry(func, &slot->funcs, sibling) {
-> +		if (PCI_FUNC(dev->devfn) == func->function) {
-> +			/* check if this bridge has ejectable slots */
-> +			if ((detect_ejectable_slots(func->handle) > 0))
-> +				dev->is_hotplug_bridge = 1;
-> +			break;
+On Sat, Jan 12, 2013 at 3:40 PM, Rafael J. Wysocki <rjw@sisk.pl> wrote:
+> On Friday, January 11, 2013 02:40:41 PM Yinghai Lu wrote:
+>> Should use acpi_device pointer directly instead of use handle and
+>> get the device pointer again later.
+>
+> Looks good.
+>
+> I can take this one right now if you want.
 
-Hi Yinghai,
-   Need to put the "break" in parentheses of "if"? If the first func which device number == dev->devfn has't ejectable slot,
-don't check the rest funcs whether have ejectable slots?
+yes, in acpi-scan branch?
 
-> +		}
-> +	}
-> +}
->  /**
->   * enable_device - enable, configure a slot
->   * @slot: slot to be enabled
-> @@ -831,8 +854,10 @@ static int __ref enable_device(struct acpiphp_slot *slot)
->  			if (dev->hdr_type == PCI_HEADER_TYPE_BRIDGE ||
->  			    dev->hdr_type == PCI_HEADER_TYPE_CARDBUS) {
->  				max = pci_scan_bridge(bus, dev, max, pass);
-> -				if (pass && dev->subordinate)
-> +				if (pass && dev->subordinate) {
-> +					check_hotplug_bridge(slot, dev);
->  					pci_bus_size_bridges(dev->subordinate);
-> +				}
->  			}
->  		}
->  	}
-> 
+othewise i can not base on pci/next again.
 
-
--- 
-Thanks!
-Yijing
-
+>
+> Thanks,
+> Rafael
+>
+>
+>> Signed-off-by: Yinghai Lu <yinghai@kernel.org>
+>> ---
+>>  drivers/acpi/acpi_memhotplug.c  |    2 +-
+>>  drivers/acpi/processor_driver.c |    2 +-
+>>  drivers/acpi/scan.c             |   14 ++++----------
+>>  include/acpi/acpi_bus.h         |    2 +-
+>>  4 files changed, 7 insertions(+), 13 deletions(-)
+>>
+>> diff --git a/drivers/acpi/acpi_memhotplug.c b/drivers/acpi/acpi_memhotplug.c
+>> index 327ab44..eaddb7a 100644
+>> --- a/drivers/acpi/acpi_memhotplug.c
+>> +++ b/drivers/acpi/acpi_memhotplug.c
+>> @@ -361,7 +361,7 @@ static void acpi_memory_device_notify(acpi_handle handle, u32 event, void *data)
+>>                       break;
+>>               }
+>>
+>> -             ej_event->handle = handle;
+>> +             ej_event->device = device;
+>>               ej_event->event = ACPI_NOTIFY_EJECT_REQUEST;
+>>               acpi_os_hotplug_execute(acpi_bus_hot_remove_device,
+>>                                       (void *)ej_event);
+>> diff --git a/drivers/acpi/processor_driver.c b/drivers/acpi/processor_driver.c
+>> index 0777663..a24ee43 100644
+>> --- a/drivers/acpi/processor_driver.c
+>> +++ b/drivers/acpi/processor_driver.c
+>> @@ -733,7 +733,7 @@ static void acpi_processor_hotplug_notify(acpi_handle handle,
+>>                       break;
+>>               }
+>>
+>> -             ej_event->handle = handle;
+>> +             ej_event->device = device;
+>>               ej_event->event = ACPI_NOTIFY_EJECT_REQUEST;
+>>               acpi_os_hotplug_execute(acpi_bus_hot_remove_device,
+>>                                       (void *)ej_event);
+>> diff --git a/drivers/acpi/scan.c b/drivers/acpi/scan.c
+>> index 8883539..f4c6305 100644
+>> --- a/drivers/acpi/scan.c
+>> +++ b/drivers/acpi/scan.c
+>> @@ -116,20 +116,14 @@ static DEVICE_ATTR(modalias, 0444, acpi_device_modalias_show, NULL);
+>>  void acpi_bus_hot_remove_device(void *context)
+>>  {
+>>       struct acpi_eject_event *ej_event = (struct acpi_eject_event *) context;
+>> -     struct acpi_device *device;
+>> -     acpi_handle handle = ej_event->handle;
+>> +     struct acpi_device *device = ej_event->device;
+>> +     acpi_handle handle = device->handle;
+>>       acpi_handle temp;
+>>       struct acpi_object_list arg_list;
+>>       union acpi_object arg;
+>>       acpi_status status = AE_OK;
+>>       u32 ost_code = ACPI_OST_SC_NON_SPECIFIC_FAILURE; /* default */
+>>
+>> -     if (acpi_bus_get_device(handle, &device))
+>> -             goto err_out;
+>> -
+>> -     if (!device)
+>> -             goto err_out;
+>> -
+>>       ACPI_DEBUG_PRINT((ACPI_DB_INFO,
+>>               "Hot-removing device %s...\n", dev_name(&device->dev)));
+>>
+>> @@ -215,7 +209,7 @@ acpi_eject_store(struct device *d, struct device_attribute *attr,
+>>               goto err;
+>>       }
+>>
+>> -     ej_event->handle = acpi_device->handle;
+>> +     ej_event->device = acpi_device;
+>>       if (acpi_device->flags.eject_pending) {
+>>               /* event originated from ACPI eject notification */
+>>               ej_event->event = ACPI_NOTIFY_EJECT_REQUEST;
+>> @@ -223,7 +217,7 @@ acpi_eject_store(struct device *d, struct device_attribute *attr,
+>>       } else {
+>>               /* event originated from user */
+>>               ej_event->event = ACPI_OST_EC_OSPM_EJECT;
+>> -             (void) acpi_evaluate_hotplug_ost(ej_event->handle,
+>> +             (void) acpi_evaluate_hotplug_ost(acpi_device->handle,
+>>                       ej_event->event, ACPI_OST_SC_EJECT_IN_PROGRESS, NULL);
+>>       }
+>>
+>> diff --git a/include/acpi/acpi_bus.h b/include/acpi/acpi_bus.h
+>> index 2246ba9..181ff2d 100644
+>> --- a/include/acpi/acpi_bus.h
+>> +++ b/include/acpi/acpi_bus.h
+>> @@ -309,7 +309,7 @@ struct acpi_bus_event {
+>>  };
+>>
+>>  struct acpi_eject_event {
+>> -     acpi_handle     handle;
+>> +     struct acpi_device      *device;
+>>       u32             event;
+>>  };
+>>
+>>
+> --
+> I speak only for myself.
+> Rafael J. Wysocki, Intel Open Source Technology Center.
