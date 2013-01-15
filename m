@@ -1,86 +1,70 @@
-From: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
-Subject: [PATCH 2/2] ACPI / cpuidle: Fix NULL pointer issues when cpuidle is disabled
-Date: Tue, 15 Jan 2013 17:23:24 -0500
-Message-ID: <1358288604-24620-3-git-send-email-konrad.wilk@oracle.com>
-References: <1358288604-24620-1-git-send-email-konrad.wilk@oracle.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1358288604-24620-1-git-send-email-konrad.wilk@oracle.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: rjw@sisk.pl, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
-Cc: konrad@kernel.org, xen-devel@lists.xensource.com, Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
+From: Julian Calaby <julian.calaby@gmail.com>
+Subject: Re: [BUG Fix Patch 1/6] Bug fix: Hold spinlock across find|remove
+ /sys/firmware/memmap/X operation.
+Date: Wed, 16 Jan 2013 09:26:49 +1100
+Message-ID: <CAGRGNgWCdvWhp=9+PDRbC9bK100BdBv9kpcsqoM-J6ipq22Szw@mail.gmail.com>
+References: <1358247267-18089-1-git-send-email-tangchen@cn.fujitsu.com> <1358247267-18089-2-git-send-email-tangchen@cn.fujitsu.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-la0-f54.google.com ([209.85.215.54]:40946 "EHLO
+	mail-la0-f54.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752370Ab3AOW1M (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 15 Jan 2013 17:27:12 -0500
+In-Reply-To: <1358247267-18089-2-git-send-email-tangchen@cn.fujitsu.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Tang Chen <tangchen@cn.fujitsu.com>
+Cc: akpm@linux-foundation.org, rientjes@google.com, len.brown@intel.com, benh@kernel.crashing.org, paulus@samba.org, cl@linux.com, minchan.kim@gmail.com, kosaki.motohiro@jp.fujitsu.com, isimatu.yasuaki@jp.fujitsu.com, wujianguo@huawei.com, wency@cn.fujitsu.com, hpa@zytor.com, linfeng@cn.fujitsu.com, laijs@cn.fujitsu.com, mgorman@suse.de, yinghai@kernel.org, glommer@parallels.com, jiang.liu@huawei.com, x86@kernel.org, linux-mm@kvack.org, linux-kernel@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, linux-acpi@vger.kernel.org, linux-s390@vger.kernel.org, linux-sh@vger.kernel.org, linux-ia64@vger.kernel.org, cmetcalf@tilera.com, sparclinux@vger.kernel.org
 
-If cpuidle is disabled, that means the:
+Hi Tang,
 
-	per_cpu(acpi_cpuidle_device, pr->id)
+One minor point.
 
-is set to NULL as the acpi_processor_power_init ends up failing at
+On Tue, Jan 15, 2013 at 9:54 PM, Tang Chen <tangchen@cn.fujitsu.com> wrote:
+> It is unsafe to return an entry pointer and release the map_entries_lock. So we should
+> not hold the map_entries_lock separately in firmware_map_find_entry() and
+> firmware_map_remove_entry(). Hold the map_entries_lock across find and remove
+> /sys/firmware/memmap/X operation.
+>
+> And also, users of these two functions need to be careful to hold the lock when using
+> these two functions.
+>
+> The suggestion is from Andrew Morton <akpm@linux-foundation.org>
+>
+> Signed-off-by: Tang Chen <tangchen@cn.fujitsu.com>
+> ---
+>  drivers/firmware/memmap.c |   25 +++++++++++++++++--------
+>  1 files changed, 17 insertions(+), 8 deletions(-)
+>
+> diff --git a/drivers/firmware/memmap.c b/drivers/firmware/memmap.c
+> index 4211da5..940c4e9 100644
+> --- a/drivers/firmware/memmap.c
+> +++ b/drivers/firmware/memmap.c
+> @@ -188,23 +188,28 @@ static inline void remove_sysfs_fw_map_entry(struct firmware_map_entry *entry)
+>  }
+>
+>  /*
+> - * Search memmap entry
+> + * firmware_map_find_entry: Search memmap entry.
+> + * @start: Start of the memory range.
+> + * @end:   End of the memory range (exclusive).
+> + * @type:  Type of the memory range.
+> + *
+> + * This function is to find the memmap entey of a given memory range.
+> + * The caller must hold map_entries_lock, and must not release the lock
+> + * until the processing of the returned entry has completed.
+> + *
+> + * Return pointer to the entry to be found on success, or NULL on failure.
 
-	 retval = cpuidle_register_driver(&acpi_idle_driver)
+Why not make this completely kernel-doc compliant as you're already
+re-writing the comment?
 
-(in acpi_processor_power_init) and never sets the per_cpu idle
-device. So when acpi_processor_hotplug on CPU online notification tries
-to reference said device it crashes:
+Thanks,
 
-cpu 3 spinlock event irq 62
-BUG: unable to handle kernel NULL pointer dereference at 0000000000000004
-IP: [<ffffffff81381013>] acpi_processor_setup_cpuidle_cx+0x3f/0x105
-PGD a259b067 PUD ab38b067 PMD 0
-Oops: 0002 [#1] SMP
-odules linked in: dm_multipath dm_mod xen_evtchn iscsi_boot_sysfs iscsi_tcp libiscsi_tcp libiscsi scsi_transport_iscsi libcrc32c crc32c nouveau mxm_wmi wmi radeon ttm sg sr_mod sd_mod cdrom ata_generic ata_piix libata crc32c_intel scsi_mod atl1c i915 fbcon tileblit font bitblit softcursor drm_kms_helper video xen_blkfront xen_netfront fb_sys_fops sysimgblt sysfillrect syscopyarea xenfs xen_privcmd mperf
-CPU 1
-Pid: 3047, comm: bash Not tainted 3.8.0-rc3upstream-00250-g165c029 #1 MSI MS-7680/H61M-P23 (MS-7680)
-RIP: e030:[<ffffffff81381013>]  [<ffffffff81381013>] acpi_processor_setup_cpuidle_cx+0x3f/0x105
-RSP: e02b:ffff88001742dca8  EFLAGS: 00010202
-RAX: 0000000000010be9 RBX: ffff8800a0a61800 RCX: ffff880105380000
-RDX: 0000000000000003 RSI: 0000000000000200 RDI: ffff8800a0a61800
-RBP: ffff88001742dce8 R08: ffffffff81812360 R09: 0000000000000200
-R10: aaaaaaaaaaaaaaaa R11: 0000000000000001 R12: ffff8800a0a61800
-R13: 00000000ffffff01 R14: 0000000000000000 R15: ffffffff81a907a0
-FS:  00007fd6942f7700(0000) GS:ffff880105280000(0000) knlGS:0000000000000000
-CS:  e033 DS: 0000 ES: 0000 CR0: 0000000080050033
-CR2: 0000000000000004 CR3: 00000000a6773000 CR4: 0000000000042660
-DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
-DR3: 0000000000000000 DR6: 00000000ffff0ff0 DR7: 0000000000000400
-Process bash (pid: 3047, threadinfo ffff88001742c000, task ffff880017944000)
-Stack:
- 0000000000000150 ffff880100f59e00 ffff88001742dcd8 ffff8800a0a61800
- 0000000000000000 00000000ffffff01 0000000000000000 ffffffff81a907a0
- ffff88001742dd18 ffffffff813815b1 ffff88001742dd08 ffffffff810ae336
-Call Trace:
- [<ffffffff813815b1>] acpi_processor_hotplug+0x7c/0x9f
- [<ffffffff810ae336>] ? schedule_delayed_work_on+0x16/0x20
- [<ffffffff8137ee8f>] acpi_cpu_soft_notify+0x90/0xca
- [<ffffffff8166023d>] notifier_call_chain+0x4d/0x70
- [<ffffffff810bc369>] __raw_notifier_call_chain+0x9/0x10
- [<ffffffff81094a4b>] __cpu_notify+0x1b/0x30
- [<ffffffff81652cf7>] _cpu_up+0x103/0x14b
- [<ffffffff81652e18>] cpu_up+0xd9/0xec
- [<ffffffff8164a254>] store_online+0x94/0xd0
- [<ffffffff814122fb>] dev_attr_store+0x1b/0x20
- [<ffffffff81216404>] sysfs_write_file+0xf4/0x170
-
-This patch fixes it.
-
-Cc: Rafael J. Wysocki <rjw@sisk.pl>
-Signed-off-by: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
----
- drivers/acpi/processor_idle.c | 3 +++
- 1 file changed, 3 insertions(+)
-
-diff --git a/drivers/acpi/processor_idle.c b/drivers/acpi/processor_idle.c
-index f1a5da4..fea6f8d 100644
---- a/drivers/acpi/processor_idle.c
-+++ b/drivers/acpi/processor_idle.c
-@@ -958,6 +958,9 @@ static int acpi_processor_setup_cpuidle_cx(struct acpi_processor *pr)
- 		return -EINVAL;
- 	}
- 
-+	if (!dev)
-+		return -EINVAL;
-+
- 	dev->cpu = pr->id;
- 
- 	if (max_cstate == 0)
 -- 
-1.8.0.2
+Julian Calaby
+
+Email: julian.calaby@gmail.com
+Profile: http://www.google.com/profiles/julian.calaby/
+.Plan: http://sites.google.com/site/juliancalaby/
