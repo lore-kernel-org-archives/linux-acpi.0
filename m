@@ -1,40 +1,48 @@
 From: Yinghai Lu <yinghai@kernel.org>
-Subject: Re: [PATCH v8 02/22] PCI: Add root bus children dev's res to fail list
-Date: Tue, 15 Jan 2013 07:44:21 -0800
-Message-ID: <CAE9FiQV1pvteSymLp=pHi=fNjHcfGe+TA84s2Ob9Tfne54fOmg@mail.gmail.com>
+Subject: Re: [PATCH v8 22/22] PCI: move device_add out of pci_bus_add_device()
+Date: Tue, 15 Jan 2013 07:45:04 -0800
+Message-ID: <CAE9FiQVYUZorCAJ5GzxvQb4cdtzEpptwfGP6Cbi0wTfH1G0sSw@mail.gmail.com>
 References: <1357944049-29620-1-git-send-email-yinghai@kernel.org>
-	<6423213.ATyOvMNh1o@vostro.rjw.lan>
-	<CAE9FiQU6+E+Tx4LTwZwAxX2cMQuoLPA5Cee8Lo0OaWgPQfixMQ@mail.gmail.com>
-	<5313709.Qx2p1IPKbV@vostro.rjw.lan>
+	<1620774.KjdX6JUoJy@vostro.rjw.lan>
+	<CAE9FiQVrUkMTP8yFcXVgq3SW9tv6r0WBxfHbV=yT0vYbO=zmFQ@mail.gmail.com>
+	<4095307.lo3tHnmrev@vostro.rjw.lan>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <linux-pci-owner@vger.kernel.org>
-In-Reply-To: <5313709.Qx2p1IPKbV@vostro.rjw.lan>
-Sender: linux-pci-owner@vger.kernel.org
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-bk0-f44.google.com ([209.85.214.44]:61339 "EHLO
+	mail-bk0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754772Ab3AOPpG (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 15 Jan 2013 10:45:06 -0500
+In-Reply-To: <4095307.lo3tHnmrev@vostro.rjw.lan>
+Sender: linux-acpi-owner@vger.kernel.org
+List-Id: linux-acpi@vger.kernel.org
 To: "Rafael J. Wysocki" <rjw@sisk.pl>
 Cc: Bjorn Helgaas <bhelgaas@google.com>, Len Brown <lenb@kernel.org>, Taku Izumi <izumi.taku@jp.fujitsu.com>, Jiang Liu <jiang.liu@huawei.com>, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
-List-Id: linux-acpi@vger.kernel.org
 
-On Tue, Jan 15, 2013 at 3:21 AM, Rafael J. Wysocki <rjw@sisk.pl> wrote:
-> On Monday, January 14, 2013 10:23:47 PM Yinghai Lu wrote:
->> On Sat, Jan 12, 2013 at 1:37 PM, Rafael J. Wysocki <rjw@sisk.pl> wrote:
->> > On Friday, January 11, 2013 02:40:29 PM Yinghai Lu wrote:
->> >> We can stop trying according to try number now and do not need to use
->> >> root_bus checking as stop sign anymore.
+On Tue, Jan 15, 2013 at 3:19 AM, Rafael J. Wysocki <rjw@sisk.pl> wrote:
+> On Monday, January 14, 2013 11:10:36 PM Yinghai Lu wrote:
+>> On Sat, Jan 12, 2013 at 3:54 PM, Rafael J. Wysocki <rjw@sisk.pl> wrote:
+>> >> Move out device registering out of pci_bus_add_devices, so we could
+>> >> put new created pci devices in device tree early.
 >> >>
->> >> In extreme case we could need to reallocate resource for device just
->> >> under root bus.
+>> >> new pci_bus_add_devices will do the device_attach work to load pci drivers
+>> >> instead.
 >> >
->> > Well, the above says that we _can_ do the change, but it doesn't explain why it
->> > is needed.  So what's the reason why we need to do that?
+>> > I wonder what problem it solves?
 >>
->> In extreme case we could need to reallocate resource for device just
->> under root bus.
+>> we want to put created pci device in the device tree as soon as possible.
+>> so for_pci_dev will not miss them.
 >>
->> otherwise, those devices just under root bus will not be assigned
->> resources again.
+>> but at that time, we can not load driver for them yet. need to after
+>> pci_assign_unsigned_resources etc to make sure all pci devices get
+>> resource allocated at first.
+>>
+>> so only move adding to device tree early, and leave loading driver on
+>> the old places.
 >
-> IOW, our current code will not cover the case when we hot plug a host bridge
-> and need to reassign resources for devices integrated into it?
+> I see, thanks.
+>
+> Perhaps you can put that explanation into the changelog? It would help people
+> to understand the reason for the change in the future.
 
-yes. in extreme case if _CRS range is not big enough.
+ok
