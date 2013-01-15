@@ -1,97 +1,221 @@
 From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: [PATCH 2/2] ACPI / cpuidle: Fix NULL pointer issues when cpuidle is disabled
-Date: Tue, 15 Jan 2013 23:45:08 +0100
-Message-ID: <6440043.2WKgQ0tYWV@vostro.rjw.lan>
-References: <1358288604-24620-1-git-send-email-konrad.wilk@oracle.com> <1358288604-24620-3-git-send-email-konrad.wilk@oracle.com>
+Subject: Re: [PATCH] ACPI: add support for CSRT table
+Date: Wed, 16 Jan 2013 00:35:56 +0100
+Message-ID: <2369015.SBxXlM67PJ@vostro.rjw.lan>
+References: <1358157111-26510-1-git-send-email-mika.westerberg@linux.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7Bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1358288604-24620-3-git-send-email-konrad.wilk@oracle.com>
+In-Reply-To: <1358157111-26510-1-git-send-email-mika.westerberg@linux.intel.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
-Cc: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, konrad@kernel.org, xen-devel@lists.xensource.com
+To: Mika Westerberg <mika.westerberg@linux.intel.com>
+Cc: linux-acpi@vger.kernel.org, Len Brown <lenb@kernel.org>, linux-kernel@vger.kernel.org, Andy Shevchenko <andriy.shevchenko@linux.intel.com>
 List-Id: linux-acpi@vger.kernel.org
 
-On Tuesday, January 15, 2013 05:23:24 PM Konrad Rzeszutek Wilk wrote:
-> If cpuidle is disabled, that means the:
+On Monday, January 14, 2013 11:51:51 AM Mika Westerberg wrote:
+> Core System Resources Table (CSRT) is a proprietary ACPI table that
+> contains resources for certain devices that are not found in the DSDT
+> table. Typically a shared DMA controller might be found here.
 > 
-> 	per_cpu(acpi_cpuidle_device, pr->id)
+> This patch adds support for this table. We go through all entries in the
+> table and make platform devices of them. The resources from the table are
+> passed with the platform device.
 > 
-> is set to NULL as the acpi_processor_power_init ends up failing at
-> 
-> 	 retval = cpuidle_register_driver(&acpi_idle_driver)
-> 
-> (in acpi_processor_power_init) and never sets the per_cpu idle
-> device. So when acpi_processor_hotplug on CPU online notification tries
-> to reference said device it crashes:
-> 
-> cpu 3 spinlock event irq 62
-> BUG: unable to handle kernel NULL pointer dereference at 0000000000000004
-> IP: [<ffffffff81381013>] acpi_processor_setup_cpuidle_cx+0x3f/0x105
-> PGD a259b067 PUD ab38b067 PMD 0
-> Oops: 0002 [#1] SMP
-> odules linked in: dm_multipath dm_mod xen_evtchn iscsi_boot_sysfs iscsi_tcp libiscsi_tcp libiscsi scsi_transport_iscsi libcrc32c crc32c nouveau mxm_wmi wmi radeon ttm sg sr_mod sd_mod cdrom ata_generic ata_piix libata crc32c_intel scsi_mod atl1c i915 fbcon tileblit font bitblit softcursor drm_kms_helper video xen_blkfront xen_netfront fb_sys_fops sysimgblt sysfillrect syscopyarea xenfs xen_privcmd mperf
-> CPU 1
-> Pid: 3047, comm: bash Not tainted 3.8.0-rc3upstream-00250-g165c029 #1 MSI MS-7680/H61M-P23 (MS-7680)
-> RIP: e030:[<ffffffff81381013>]  [<ffffffff81381013>] acpi_processor_setup_cpuidle_cx+0x3f/0x105
-> RSP: e02b:ffff88001742dca8  EFLAGS: 00010202
-> RAX: 0000000000010be9 RBX: ffff8800a0a61800 RCX: ffff880105380000
-> RDX: 0000000000000003 RSI: 0000000000000200 RDI: ffff8800a0a61800
-> RBP: ffff88001742dce8 R08: ffffffff81812360 R09: 0000000000000200
-> R10: aaaaaaaaaaaaaaaa R11: 0000000000000001 R12: ffff8800a0a61800
-> R13: 00000000ffffff01 R14: 0000000000000000 R15: ffffffff81a907a0
-> FS:  00007fd6942f7700(0000) GS:ffff880105280000(0000) knlGS:0000000000000000
-> CS:  e033 DS: 0000 ES: 0000 CR0: 0000000080050033
-> CR2: 0000000000000004 CR3: 00000000a6773000 CR4: 0000000000042660
-> DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
-> DR3: 0000000000000000 DR6: 00000000ffff0ff0 DR7: 0000000000000400
-> Process bash (pid: 3047, threadinfo ffff88001742c000, task ffff880017944000)
-> Stack:
->  0000000000000150 ffff880100f59e00 ffff88001742dcd8 ffff8800a0a61800
->  0000000000000000 00000000ffffff01 0000000000000000 ffffffff81a907a0
->  ffff88001742dd18 ffffffff813815b1 ffff88001742dd08 ffffffff810ae336
-> Call Trace:
->  [<ffffffff813815b1>] acpi_processor_hotplug+0x7c/0x9f
->  [<ffffffff810ae336>] ? schedule_delayed_work_on+0x16/0x20
->  [<ffffffff8137ee8f>] acpi_cpu_soft_notify+0x90/0xca
->  [<ffffffff8166023d>] notifier_call_chain+0x4d/0x70
->  [<ffffffff810bc369>] __raw_notifier_call_chain+0x9/0x10
->  [<ffffffff81094a4b>] __cpu_notify+0x1b/0x30
->  [<ffffffff81652cf7>] _cpu_up+0x103/0x14b
->  [<ffffffff81652e18>] cpu_up+0xd9/0xec
->  [<ffffffff8164a254>] store_online+0x94/0xd0
->  [<ffffffff814122fb>] dev_attr_store+0x1b/0x20
->  [<ffffffff81216404>] sysfs_write_file+0xf4/0x170
-> 
-> This patch fixes it.
+> There is one special resource in the table and it is the DMA request line
+> base and number of request lines. This information might be needed by the
+> DMA controller driver as it needs to map the ACPI DMA request line number
+> to the actual request line understood by the hardware. This range is passed
+> as IORESOURCE_DMA resource.
 
-This appears to be -stable material too.  Which -stable kernels should it
-be applied to?
+I have a question: Who's going to bind to those platform devices created
+by the code in this patch and how exactly this is going to happen?
 
 Rafael
 
 
-> Cc: Rafael J. Wysocki <rjw@sisk.pl>
-> Signed-off-by: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
+> Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+> Signed-off-by: Mika Westerberg <mika.westerberg@linux.intel.com>
 > ---
->  drivers/acpi/processor_idle.c | 3 +++
->  1 file changed, 3 insertions(+)
+>  drivers/acpi/Makefile |    1 +
+>  drivers/acpi/csrt.c   |  156 +++++++++++++++++++++++++++++++++++++++++++++++++
+>  2 files changed, 157 insertions(+)
+>  create mode 100644 drivers/acpi/csrt.c
 > 
-> diff --git a/drivers/acpi/processor_idle.c b/drivers/acpi/processor_idle.c
-> index f1a5da4..fea6f8d 100644
-> --- a/drivers/acpi/processor_idle.c
-> +++ b/drivers/acpi/processor_idle.c
-> @@ -958,6 +958,9 @@ static int acpi_processor_setup_cpuidle_cx(struct acpi_processor *pr)
->  		return -EINVAL;
->  	}
->  
-> +	if (!dev)
-> +		return -EINVAL;
+> diff --git a/drivers/acpi/Makefile b/drivers/acpi/Makefile
+> index 4ee2e75..474fcfe 100644
+> --- a/drivers/acpi/Makefile
+> +++ b/drivers/acpi/Makefile
+> @@ -38,6 +38,7 @@ acpi-y				+= processor_core.o
+>  acpi-y				+= ec.o
+>  acpi-$(CONFIG_ACPI_DOCK)	+= dock.o
+>  acpi-y				+= pci_root.o pci_link.o pci_irq.o
+> +acpi-y				+= csrt.o
+>  acpi-y				+= acpi_platform.o
+>  acpi-y				+= power.o
+>  acpi-y				+= event.o
+> diff --git a/drivers/acpi/csrt.c b/drivers/acpi/csrt.c
+> new file mode 100644
+> index 0000000..94665f9
+> --- /dev/null
+> +++ b/drivers/acpi/csrt.c
+> @@ -0,0 +1,156 @@
+> +/*
+> + * Support for Core System Resources Table (CSRT)
+> + *
+> + * Copyright (C) 2013, Intel Corporation
+> + * Authors: Mika Westerberg <mika.westerberg@linux.intel.com>
+> + *	    Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+> + *
+> + * This program is free software; you can redistribute it and/or modify
+> + * it under the terms of the GNU General Public License version 2 as
+> + * published by the Free Software Foundation.
+> + */
 > +
->  	dev->cpu = pr->id;
->  
->  	if (max_cstate == 0)
+> +#define pr_fmt(fmt) "ACPI: CSRT: " fmt
+> +
+> +#include <linux/acpi.h>
+> +#include <linux/device.h>
+> +#include <linux/kernel.h>
+> +#include <linux/module.h>
+> +#include <linux/platform_device.h>
+> +#include <linux/sizes.h>
+> +
+> +ACPI_MODULE_NAME("CSRT");
+> +
+> +static int __init acpi_csrt_parse_shared_info(struct platform_device *pdev,
+> +					      const struct acpi_csrt_group *grp)
+> +{
+> +	const struct acpi_csrt_shared_info *si;
+> +	struct resource res[3];
+> +	size_t nres;
+> +	int ret;
+> +
+> +	memset(res, 0, sizeof(res));
+> +	nres = 0;
+> +
+> +	si = (const struct acpi_csrt_shared_info *)&grp[1];
+> +	if (!si->mmio_base_high && si->mmio_base_low) {
+> +		/*
+> +		 * There is no size of the memory resource in shared_info
+> +		 * so we assume that it is 4k here.
+> +		 */
+> +		res[nres].start = (resource_size_t)si->mmio_base_high << 32
+> +				| si->mmio_base_low;
+> +		res[nres].end = res[0].start + SZ_4K - 1;
+> +		res[nres++].flags = IORESOURCE_MEM;
+> +	}
+> +
+> +	if (si->gsi_interrupt) {
+> +		int irq = acpi_register_gsi(NULL, si->gsi_interrupt,
+> +					    si->interrupt_mode,
+> +					    si->interrupt_polarity);
+> +		res[nres].start = irq;
+> +		res[nres].end = irq;
+> +		res[nres++].flags = IORESOURCE_IRQ;
+> +	}
+> +
+> +	if (si->base_request_line || si->num_handshake_signals) {
+> +		/*
+> +		 * We pass the driver a DMA resource describing the range
+> +		 * of request lines the device supports.
+> +		 */
+> +		res[nres].start = si->base_request_line;
+> +		res[nres].end = res[nres].start + si->num_handshake_signals - 1;
+> +		res[nres++].flags = IORESOURCE_DMA;
+> +	}
+> +
+> +	ret = platform_device_add_resources(pdev, res, nres);
+> +	if (ret) {
+> +		if (si->gsi_interrupt)
+> +			acpi_unregister_gsi(si->gsi_interrupt);
+> +		return ret;
+> +	}
+> +
+> +	return 0;
+> +}
+> +
+> +static int __init
+> +acpi_csrt_parse_resource_group(const struct acpi_csrt_group *grp)
+> +{
+> +	struct platform_device *pdev;
+> +	char vendor[5], name[16];
+> +	int ret, i;
+> +
+> +	vendor[0] = grp->vendor_id;
+> +	vendor[1] = grp->vendor_id >> 8;
+> +	vendor[2] = grp->vendor_id >> 16;
+> +	vendor[3] = grp->vendor_id >> 24;
+> +	vendor[4] = '\0';
+> +
+> +	if (grp->shared_info_length != sizeof(struct acpi_csrt_shared_info))
+> +		return -ENODEV;
+> +
+> +	snprintf(name, sizeof(name), "%s%04X", vendor, grp->device_id);
+> +	pdev = platform_device_alloc(name, PLATFORM_DEVID_AUTO);
+> +	if (!pdev)
+> +		return -ENOMEM;
+> +
+> +	/* Add resources based on the shared info */
+> +	ret = acpi_csrt_parse_shared_info(pdev, grp);
+> +	if (ret)
+> +		goto fail;
+> +
+> +	ret = platform_device_add(pdev);
+> +	if (ret)
+> +		goto fail;
+> +
+> +	for (i = 0; i < pdev->num_resources; i++)
+> +		dev_dbg(&pdev->dev, "%pR\n", &pdev->resource[i]);
+> +
+> +	return 0;
+> +
+> +fail:
+> +	platform_device_put(pdev);
+> +	return ret;
+> +}
+> +
+> +/*
+> + * CSRT or Core System Resources Table is a proprietary ACPI table
+> + * introduced by Microsoft. This table can contain devices that are not in
+> + * the system DSDT table. In particular DMA controllers might be described
+> + * here.
+> + *
+> + * We present these devices as normal platform devices that don't have ACPI
+> + * IDs or handle. The platform device name will be something like
+> + * <VENDOR><DEVID>.<n>.auto for example: INTL9C06.0.auto.
+> + */
+> +static int __init acpi_csrt_init(void)
+> +{
+> +	struct acpi_csrt_group *grp, *end;
+> +	struct acpi_table_csrt *csrt;
+> +	acpi_status status;
+> +	int ret;
+> +
+> +	status = acpi_get_table(ACPI_SIG_CSRT, 0,
+> +				(struct acpi_table_header **)&csrt);
+> +	if (ACPI_FAILURE(status)) {
+> +		if (status == AE_NOT_FOUND)
+> +			return -ENOENT;
+> +		return -EINVAL;
+> +	}
+> +
+> +	pr_debug("parsing CSRT table for devices\n");
+> +
+> +	grp = (struct acpi_csrt_group *)(csrt + 1);
+> +	end = (struct acpi_csrt_group *)((void *)csrt + csrt->header.length);
+> +
+> +	while (grp < end) {
+> +		ret = acpi_csrt_parse_resource_group(grp);
+> +		if (ret)
+> +			return ret;
+> +
+> +		grp = (struct acpi_csrt_group *)((void *)grp + grp->length);
+> +	}
+> +
+> +	return 0;
+> +}
+> +subsys_initcall(acpi_csrt_init);
 > 
 -- 
 I speak only for myself.
