@@ -1,58 +1,51 @@
-From: Tang Chen <tangchen@cn.fujitsu.com>
-Subject: [BUG Fix Patch 3/6] Bug fix: Do not free direct mapping pages twice.
-Date: Tue, 15 Jan 2013 18:54:24 +0800
-Message-ID: <1358247267-18089-4-git-send-email-tangchen@cn.fujitsu.com>
-References: <1358247267-18089-1-git-send-email-tangchen@cn.fujitsu.com>
-Return-path: <owner-linux-mm@kvack.org>
-In-Reply-To: <1358247267-18089-1-git-send-email-tangchen@cn.fujitsu.com>
-Sender: owner-linux-mm@kvack.org
-To: akpm@linux-foundation.org, rientjes@google.com, len.brown@intel.com, benh@kernel.crashing.org, paulus@samba.org, cl@linux.com, minchan.kim@gmail.com, kosaki.motohiro@jp.fujitsu.com, isimatu.yasuaki@jp.fujitsu.com, wujianguo@huawei.com, wency@cn.fujitsu.com, tangchen@cn.fujitsu.com, hpa@zytor.com, linfeng@cn.fujitsu.com, laijs@cn.fujitsu.com, mgorman@suse.de, yinghai@kernel.org, glommer@parallels.com, jiang.liu@huawei.com
-Cc: x86@kernel.org, linux-mm@kvack.org, linux-kernel@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, linux-acpi@vger.kernel.org, linux-s390@vger.kernel.org, linux-sh@vger.kernel.org, linux-ia64@vger.kernel.org, cmetcalf@tilera.com, sparclinux@vger.kernel.org
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: Re: [PATCH v8 22/22] PCI: move device_add out of pci_bus_add_device()
+Date: Tue, 15 Jan 2013 12:19:57 +0100
+Message-ID: <4095307.lo3tHnmrev@vostro.rjw.lan>
+References: <1357944049-29620-1-git-send-email-yinghai@kernel.org> <1620774.KjdX6JUoJy@vostro.rjw.lan> <CAE9FiQVrUkMTP8yFcXVgq3SW9tv6r0WBxfHbV=yT0vYbO=zmFQ@mail.gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7Bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from hydra.sisk.pl ([212.160.235.94]:41145 "EHLO hydra.sisk.pl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750892Ab3AOLOH (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 15 Jan 2013 06:14:07 -0500
+In-Reply-To: <CAE9FiQVrUkMTP8yFcXVgq3SW9tv6r0WBxfHbV=yT0vYbO=zmFQ@mail.gmail.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Yinghai Lu <yinghai@kernel.org>
+Cc: Bjorn Helgaas <bhelgaas@google.com>, Len Brown <lenb@kernel.org>, Taku Izumi <izumi.taku@jp.fujitsu.com>, Jiang Liu <jiang.liu@huawei.com>, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
 
-Direct mapped pages were freed when they were offlined, or they were
-not allocated. So we only need to free vmemmap pages, no need to free
-direct mapped pages.
+On Monday, January 14, 2013 11:10:36 PM Yinghai Lu wrote:
+> On Sat, Jan 12, 2013 at 3:54 PM, Rafael J. Wysocki <rjw@sisk.pl> wrote:
+> >> Move out device registering out of pci_bus_add_devices, so we could
+> >> put new created pci devices in device tree early.
+> >>
+> >> new pci_bus_add_devices will do the device_attach work to load pci drivers
+> >> instead.
+> >
+> > I wonder what problem it solves?
+> 
+> we want to put created pci device in the device tree as soon as possible.
+> so for_pci_dev will not miss them.
+> 
+> but at that time, we can not load driver for them yet. need to after
+> pci_assign_unsigned_resources etc to make sure all pci devices get
+> resource allocated at first.
+> 
+> so only move adding to device tree early, and leave loading driver on
+> the old places.
 
-Signed-off-by: Tang Chen <tangchen@cn.fujitsu.com>
----
- arch/x86/mm/init_64.c |    9 +++++++--
- 1 files changed, 7 insertions(+), 2 deletions(-)
+I see, thanks.
 
-diff --git a/arch/x86/mm/init_64.c b/arch/x86/mm/init_64.c
-index 368cc3f..e77d312 100644
---- a/arch/x86/mm/init_64.c
-+++ b/arch/x86/mm/init_64.c
-@@ -804,6 +804,10 @@ remove_pte_table(pte_t *pte_start, unsigned long addr, unsigned long end,
- 
- 		if (IS_ALIGNED(addr, PAGE_SIZE) &&
- 		    IS_ALIGNED(next, PAGE_SIZE)) {
-+			/*
-+			 * Do not free direct mapping pages since they were
-+			 * freed when offlining.
-+			 */
- 			if (!direct)
- 				free_pagetable(pte_page(*pte), 0);
- 
-@@ -819,10 +823,11 @@ remove_pte_table(pte_t *pte_start, unsigned long addr, unsigned long end,
- 			 * remove the page when it is wholly filled with 0xFD.
- 			 */
- 			memset((void *)addr, PAGE_INUSE, next - addr);
--			page_addr = page_address(pte_page(*pte));
- 
-+			page_addr = page_address(pte_page(*pte));
- 			if (!memchr_inv(page_addr, PAGE_INUSE, PAGE_SIZE)) {
--				free_pagetable(pte_page(*pte), 0);
-+				if (!direct)
-+					free_pagetable(pte_page(*pte), 0);
- 
- 				spin_lock(&init_mm.page_table_lock);
- 				pte_clear(&init_mm, addr, pte);
+Perhaps you can put that explanation into the changelog? It would help people
+to understand the reason for the change in the future.
+
+Thanks,
+Rafael
+
+
 -- 
-1.7.1
-
---
-To unsubscribe, send a message with 'unsubscribe linux-mm' in
-the body to majordomo@kvack.org.  For more info on Linux MM,
-see: http://www.linux-mm.org/ .
-Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
+I speak only for myself.
+Rafael J. Wysocki, Intel Open Source Technology Center.
