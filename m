@@ -1,117 +1,49 @@
-From: "Srivatsa S. Bhat" <srivatsa.bhat@linux.vnet.ibm.com>
-Subject: Re: [PATCH 1/2] ACPI: intel-idle: Don't register CPU notifier if
- we are not running.
-Date: Wed, 16 Jan 2013 13:40:43 +0530
-Message-ID: <50F66083.7090600@linux.vnet.ibm.com>
-References: <1358288604-24620-1-git-send-email-konrad.wilk@oracle.com> <1358288604-24620-2-git-send-email-konrad.wilk@oracle.com>
+From: Lans Zhang <jia.zhang@windriver.com>
+Subject: [PATCH] ACPI, APEI: Fixup incorrect 64-bit access width firmware bug
+Date: Wed, 16 Jan 2013 17:03:29 +0800
+Message-ID: <1358327009-14625-1-git-send-email-jia.zhang@windriver.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Return-path: <stable-owner@vger.kernel.org>
-In-Reply-To: <1358288604-24620-2-git-send-email-konrad.wilk@oracle.com>
-Sender: stable-owner@vger.kernel.org
-To: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
-Cc: rjw@sisk.pl, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, konrad@kernel.org, xen-devel@lists.xensource.com, stable@vger.kernel.org, Daniel Lezcano <daniel.lezcano@linaro.org>
+Content-Type: text/plain
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail.windriver.com ([147.11.1.11]:58715 "EHLO
+	mail.windriver.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932185Ab3APJD2 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 16 Jan 2013 04:03:28 -0500
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: len.brown@intel.com
+Cc: linux-acpi@vger.kernel.org
 
-On 01/16/2013 03:53 AM, Konrad Rzeszutek Wilk wrote:
-> The 'intel_idle_probe' probes the CPU and sets the CPU notifier.
-> But if later on during the module initialization we fail (say
-> in cpuidle_register_driver) we stop loading but we neglected
-> to unregister the CPU notifier. This means that during CPU
-> hotplug events the system will fail:
-> 
-> calling  intel_idle_init+0x0/0x326 @ 1
-> intel_idle: MWAIT substates: 0x1120
-> intel_idle: v0.4 model 0x2A
-> intel_idle: lapic_timer_reliable_states 0xffffffff
-> intel_idle: intel_idle yielding to none
-> initcall intel_idle_init+0x0/0x326 returned -19 after 14 usecs
-> 
-> ... some time later, offlining and onlining a CPU:
-> 
-> cpu 3 spinlock event irq 62
-> BUG: unable to ] __cpuidle_register_device+0x1c/0x120
-> PGD 99b8b067 PUD 99b95067 PMD 0
-> Oops: 0000 [#1] SMP
-> Modules linked in: xen_evtchn nouveau mxm_wmi wmi radeon ttm i915 fbcon tileblit font atl1c bitblit softcursor drm_kms_helper video xen_blkfront xen_netfront fb_sys_fops sysimgblt sysfillrect syscopyarea xenfs xen_privcmd mperf
-> CPU 0
-> Pid: 2302, comm: udevd Not tainted 3.8.0-rc3upstream-00249-g09ad159 #1 MSI MS-7680/H61M-P23 (MS-7680)
-> RIP: e030:[<ffffffff814d956c>]  [<ffffffff814d956c>] __cpuidle_register_device+0x1c/0x120
-> RSP: e02b:ffff88009dacfcb8  EFLAGS: 00010286
-> RAX: 0000000000000000 RBX: ffff880105380000 RCX: 000000000000001c
-> RDX: 0000000000000000 RSI: 0000000000000055 RDI: ffff880105380000
-> RBP: ffff88009dacfce8 R08: ffffffff81a4f048 R09: 0000000000000008
-> R10: 0000000000000008 R11: 0000000000000000 R12: ffff880105380000
-> R13: 00000000ffffffdd R14: 0000000000000000 R15: ffffffff81a523d0
-> FS:  00007f37bd83b7a0(0000) GS:ffff880105200000(0000) knlGS:0000000000000000
-> CS:  e033 DS: 0000 ES: 0000 CR0: 0000000080050033
-> CR2: 0000000000000008 CR3: 00000000a09ea000 CR4: 0000000000042660
-> DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
-> DR3: 0000000000000000 DR6: 00000000ffff0ff0 DR7: 0000000000000400
-> Process udevd (pid: 2302, threadinfo ffff88009dace000, task ffff88009afb47f0)
-> Stack:
->  ffffffff8107f2d0 ffffffff810c2fb7 ffff88009dacfce8 00000000ffffffea
->  ffff880105380000 00000000ffffffdd ffff88009dacfd08 ffffffff814d9882
->  0000000000000003 ffff880105380000 ffff88009dacfd28 ffffffff81340afd
-> Call Trace:
->  [<ffffffff8107f2d0>] ? collect_cpu_info_local+0x30/0x30
->  [<ffffffff810c2fb7>] ? __might_sleep+0xe7/0x100
->  [<ffffffff814d9882>] cpuidle_register_device+0x32/0x70
->  [<ffffffff81340afd>] intel_idle_cpu_init+0xad/0x110
->  [<ffffffff81340bc8>] cpu_hotplug_notify+0x68/0x80
->  [<ffffffff8166023d>] notifier_call_chain+0x4d/0x70
->  [<ffffffff810bc369>] __raw_notifier_call_chain+0x9/0x10
->  [<ffffffff81094a4b>] __cpu_notify+0x1b/0x30
->  [<ffffffff81652cf7>] _cpu_up+0x103/0x14b
->  [<ffffffff81652e18>] cpu_up+0xd9/0xec
->  [<ffffffff8164a254>] store_online+0x94/0xd0
->  [<ffffffff814122fb>] dev_attr_store+0x1b/0x20
->  [<ffffffff81216404>] sysfs_write_file+0xf4/0x170
->  [<ffffffff811a1024>] vfs_write+0xb4/0x130
->  [<ffffffff811a17ea>] sys_write+0x5a/0xa0
->  [<ffffffff816643a9>] system_call_fastpath+0x16/0x1b
-> Code: 03 18 00 c9 c3 66 2e 0f 1f 84 00 00 00 00 00 55 48 89 e5 48 83 ec 30 48 89 5d e8 4c 89 65 f0 48 89 fb 4c 89 6d f8 e8 84 08 00 00 <48> 8b 78 08 49 89 c4 e8 f8 7f c1 ff 89 c2 b8 ea ff ff ff 84 d2
-> RIP  [<ffffffff814d956c>] __cpuidle_register_device+0x1c/0x120
->  RSP <ffff88009dacfcb8>
-> 
-> This patch fixes it by moving the CPU notifier registration
-> as the last item to be done by the module.
-> 
-> Cc: stable@vger.kernel.org # for 3.6 and above
-> Cc: Daniel Lezcano <daniel.lezcano@linaro.org>
-> Cc: Srivatsa S. Bhat <srivatsa.bhat@linux.vnet.ibm.com>
-> Cc: Rafael J. Wysocki <rjw@sisk.pl>
-> Signed-off-by: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
-> ---
+The bit width check was introduced by 15afae60 (ACPI, APEI: Fix
+incorrect APEI register bit width check and usage), and a fixup
+for incorrect 32-bit width memory address was given by f712c71
+(ACPI, APEI: Fixup common access width firmware bug). Now there
+is a similar symptom:
 
-Reviewed-by: Srivatsa S. Bhat <srivatsa.bhat@linux.vnet.ibm.com>
+[Firmware Bug]: APEI: Invalid bit width + offset in GAR [0x12345000/64/0/3/0]
 
-Regards,
-Srivatsa S. Bhat
+Another bogus BIOS reports an incorrect 64-bit width in trigger table.
+Thus, apply to a similar workaround for 64-bit width memory address.
 
->  drivers/idle/intel_idle.c | 3 +--
->  1 file changed, 1 insertion(+), 2 deletions(-)
-> 
-> diff --git a/drivers/idle/intel_idle.c b/drivers/idle/intel_idle.c
-> index 4ba384f..2df9414 100644
-> --- a/drivers/idle/intel_idle.c
-> +++ b/drivers/idle/intel_idle.c
-> @@ -448,8 +448,6 @@ static int intel_idle_probe(void)
->  	else
->  		on_each_cpu(__setup_broadcast_timer, (void *)true, 1);
-> 
-> -	register_cpu_notifier(&cpu_hotplug_notifier);
-> -
->  	pr_debug(PREFIX "v" INTEL_IDLE_VERSION
->  		" model 0x%X\n", boot_cpu_data.x86_model);
-> 
-> @@ -612,6 +610,7 @@ static int __init intel_idle_init(void)
->  			return retval;
->  		}
->  	}
-> +	register_cpu_notifier(&cpu_hotplug_notifier);
-> 
->  	return 0;
->  }
-> 
+Signed-off-by: Lans Zhang <jia.zhang@windriver.com>
+---
+ drivers/acpi/apei/apei-base.c |    3 +++
+ 1 files changed, 3 insertions(+), 0 deletions(-)
+
+diff --git a/drivers/acpi/apei/apei-base.c b/drivers/acpi/apei/apei-base.c
+index 00a7836..46f80e2 100644
+--- a/drivers/acpi/apei/apei-base.c
++++ b/drivers/acpi/apei/apei-base.c
+@@ -590,6 +590,9 @@ static int apei_check_gar(struct acpi_generic_address *reg, u64 *paddr,
+ 	if (bit_width == 32 && bit_offset == 0 && (*paddr & 0x03) == 0 &&
+ 	    *access_bit_width < 32)
+ 		*access_bit_width = 32;
++	else if (bit_width == 64 && bit_offset == 0 && (*paddr & 0x07) == 0 &&
++	    *access_bit_width < 64)
++		*access_bit_width = 64;
+ 
+ 	if ((bit_width + bit_offset) > *access_bit_width) {
+ 		pr_warning(FW_BUG APEI_PFX
+-- 
+1.7.8.110.g4cb5d
+
