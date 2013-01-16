@@ -1,61 +1,128 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: [PATCH] ACPI, APEI: Fixup incorrect 64-bit access width firmware bug
-Date: Wed, 16 Jan 2013 23:54:54 +0100
-Message-ID: <2313122.XO7091fHrU@vostro.rjw.lan>
-References: <1358327009-14625-1-git-send-email-jia.zhang@windriver.com>
+From: Lance Ortiz <lance.ortiz@hp.com>
+Subject: [PATCH v10 1/3] aerdrv: Trace Event for AER
+Date: Wed, 16 Jan 2013 16:51:02 -0700
+Message-ID: <20130116235102.16015.77379.stgit@grignak.americas.hpqcorp.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7Bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from hydra.sisk.pl ([212.160.235.94]:42245 "EHLO hydra.sisk.pl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1758087Ab3APWtB (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 16 Jan 2013 17:49:01 -0500
-In-Reply-To: <1358327009-14625-1-git-send-email-jia.zhang@windriver.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-pci-owner@vger.kernel.org>
+Sender: linux-pci-owner@vger.kernel.org
+To: bhelgaas@google.com, lance_ortiz@hotmail.com, jiang.liu@huawei.com, tony.luck@intel.com, bp@alien8.de, rostedt@goodmis.org, mchehab@redhat.com, linux-acpi@vger.kernel.org, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Lans Zhang <jia.zhang@windriver.com>
-Cc: len.brown@intel.com, linux-acpi@vger.kernel.org, Myron Stowe <mstowe@redhat.com>, Huang Ying <ying.huang@intel.com>, Gary Hade <garyhade@us.ibm.com>
 
-On Wednesday, January 16, 2013 05:03:29 PM Lans Zhang wrote:
-> The bit width check was introduced by 15afae60 (ACPI, APEI: Fix
-> incorrect APEI register bit width check and usage), and a fixup
-> for incorrect 32-bit width memory address was given by f712c71
-> (ACPI, APEI: Fixup common access width firmware bug). Now there
-> is a similar symptom:
-> 
-> [Firmware Bug]: APEI: Invalid bit width + offset in GAR [0x12345000/64/0/3/0]
-> 
-> Another bogus BIOS reports an incorrect 64-bit width in trigger table.
-> Thus, apply to a similar workaround for 64-bit width memory address.
+This header file will define a new trace event that will be triggered when
+a AER event occurs.  The following data will be provided to the trace
+event.
 
-This makes sense to me, but I'd like more people to have a look at it (Myron,
-Ying, Gary CCed).
+char * dev_name - The name of the slot where the device resides
+                  ([domain:]bus:device.function).
 
-Thanks,
-Rafael
+u32 status - Either the correctable or uncorrectable register
+             indicating what error or errors have been see.
 
+u8 severity - error severity 0:NONFATAL 1:FATAL 2:CORRECTED
 
-> Signed-off-by: Lans Zhang <jia.zhang@windriver.com>
-> ---
->  drivers/acpi/apei/apei-base.c |    3 +++
->  1 files changed, 3 insertions(+), 0 deletions(-)
-> 
-> diff --git a/drivers/acpi/apei/apei-base.c b/drivers/acpi/apei/apei-base.c
-> index 00a7836..46f80e2 100644
-> --- a/drivers/acpi/apei/apei-base.c
-> +++ b/drivers/acpi/apei/apei-base.c
-> @@ -590,6 +590,9 @@ static int apei_check_gar(struct acpi_generic_address *reg, u64 *paddr,
->  	if (bit_width == 32 && bit_offset == 0 && (*paddr & 0x03) == 0 &&
->  	    *access_bit_width < 32)
->  		*access_bit_width = 32;
-> +	else if (bit_width == 64 && bit_offset == 0 && (*paddr & 0x07) == 0 &&
-> +	    *access_bit_width < 64)
-> +		*access_bit_width = 64;
->  
->  	if ((bit_width + bit_offset) > *access_bit_width) {
->  		pr_warning(FW_BUG APEI_PFX
-> 
--- 
-I speak only for myself.
-Rafael J. Wysocki, Intel Open Source Technology Center.
+The trace event will also provide a trace string that may look like:
+
+"0000:05:00.0 PCIe Bus Error:severity=Uncorrected (Non-Fatal), Poisoned
+TLP"
+
+v1-v2 Move header from include/ras/aer_event.h to
+include/trace/events/ras.h
+v3-v4 Cleaned up comments and commit header
+v4-v5 More cleanup remove () from if statement in print.
+      Renamed string define to be more specific.
+v5-v6 change TRACE_SYSTEM define to be ras and not aer.
+
+Signed-off-by: Lance Ortiz <lance.ortiz@hp.com>
+Acked-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+Acked-by: Tony Luck <tony.luck@intel.com>
+---
+
+ include/trace/events/ras.h |   77 ++++++++++++++++++++++++++++++++++++++++++++
+ 1 files changed, 77 insertions(+), 0 deletions(-)
+ create mode 100644 include/trace/events/ras.h
+
+diff --git a/include/trace/events/ras.h b/include/trace/events/ras.h
+new file mode 100644
+index 0000000..88b8783
+--- /dev/null
++++ b/include/trace/events/ras.h
+@@ -0,0 +1,77 @@
++#undef TRACE_SYSTEM
++#define TRACE_SYSTEM ras
++
++#if !defined(_TRACE_AER_H) || defined(TRACE_HEADER_MULTI_READ)
++#define _TRACE_AER_H
++
++#include <linux/tracepoint.h>
++#include <linux/edac.h>
++
++
++/*
++ * PCIe AER Trace event
++ *
++ * These events are generated when hardware detects a corrected or
++ * uncorrected event on a PCIe device. The event report has
++ * the following structure:
++ *
++ * char * dev_name -	The name of the slot where the device resides
++ *			([domain:]bus:device.function).
++ * u32 status -		Either the correctable or uncorrectable register
++ *			indicating what error or errors have been seen
++ * u8 severity -	error severity 0:NONFATAL 1:FATAL 2:CORRECTED
++ */
++
++#define aer_correctable_errors		\
++	{BIT(0),	"Receiver Error"},		\
++	{BIT(6),	"Bad TLP"},			\
++	{BIT(7),	"Bad DLLP"},			\
++	{BIT(8),	"RELAY_NUM Rollover"},		\
++	{BIT(12),	"Replay Timer Timeout"},	\
++	{BIT(13),	"Advisory Non-Fatal"}
++
++#define aer_uncorrectable_errors		\
++	{BIT(4),	"Data Link Protocol"},		\
++	{BIT(12),	"Poisoned TLP"},		\
++	{BIT(13),	"Flow Control Protocol"},	\
++	{BIT(14),	"Completion Timeout"},		\
++	{BIT(15),	"Completer Abort"},		\
++	{BIT(16),	"Unexpected Completion"},	\
++	{BIT(17),	"Receiver Overflow"},		\
++	{BIT(18),	"Malformed TLP"},		\
++	{BIT(19),	"ECRC"},			\
++	{BIT(20),	"Unsupported Request"}
++
++TRACE_EVENT(aer_event,
++	TP_PROTO(const char *dev_name,
++		 const u32 status,
++		 const u8 severity),
++
++	TP_ARGS(dev_name, status, severity),
++
++	TP_STRUCT__entry(
++		__string(	dev_name,	dev_name	)
++		__field(	u32,		status		)
++		__field(	u8,		severity	)
++	),
++
++	TP_fast_assign(
++		__assign_str(dev_name, dev_name);
++		__entry->status		= status;
++		__entry->severity	= severity;
++	),
++
++	TP_printk("%s PCIe Bus Error: severity=%s, %s\n",
++		__get_str(dev_name),
++		__entry->severity == HW_EVENT_ERR_CORRECTED ? "Corrected" :
++			__entry->severity == HW_EVENT_ERR_FATAL ?
++			"Fatal" : "Uncorrected",
++		__entry->severity == HW_EVENT_ERR_CORRECTED ?
++		__print_flags(__entry->status, "|", aer_correctable_errors) :
++		__print_flags(__entry->status, "|", aer_uncorrectable_errors))
++);
++
++#endif /* _TRACE_AER_H */
++
++/* This part must be outside protection */
++#include <trace/define_trace.h>
