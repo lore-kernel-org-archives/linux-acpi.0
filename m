@@ -1,49 +1,101 @@
 From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: [PATCH] ACPI: check zero length in acpi_rs_get_aml_length
-Date: Wed, 16 Jan 2013 14:49:32 +0100
-Message-ID: <3526578.G50o11JbOu@vostro.rjw.lan>
-References: <1358334928-9736-1-git-send-email-jslaby@suse.cz>
+Subject: Re: -next: no resume from suspend
+Date: Wed, 16 Jan 2013 15:00:52 +0100
+Message-ID: <1383787.8I6fLLmNxl@vostro.rjw.lan>
+References: <50F3D9E8.6040802@suse.cz> <16191961.j5ydKsJ3d3@vostro.rjw.lan> <50F68443.3040900@suse.cz>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7Bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1358334928-9736-1-git-send-email-jslaby@suse.cz>
+In-Reply-To: <50F68443.3040900@suse.cz>
 Sender: linux-kernel-owner@vger.kernel.org
 To: Jiri Slaby <jslaby@suse.cz>
-Cc: lenb@kernel.org, linux-acpi@vger.kernel.org, jirislaby@gmail.com, linux-kernel@vger.kernel.org, "Moore, Robert" <robert.moore@intel.com>
+Cc: Linux PM mailing list <linux-pm@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
 
-Hi,
-
-On Wednesday, January 16, 2013 12:15:28 PM Jiri Slaby wrote:
-> There is a bug somewhere in the code that does not set the resource
-> length. This makes the loop in acpi_rs_get_aml_length to loop forever.
-> So it is a good thing to have the check even if the bug is fixed.
-
-This needs to go through ACPICA upstream (Bob CCed).
-
-> Signed-off-by: Jiri Slaby <jslaby@suse.cz>
-> ---
->  drivers/acpi/acpica/rscalc.c | 3 ++-
->  1 file changed, 2 insertions(+), 1 deletion(-)
+On Wednesday, January 16, 2013 11:43:15 AM Jiri Slaby wrote:
+> On 01/14/2013 01:56 PM, Rafael J. Wysocki wrote:
+> > On Monday, January 14, 2013 11:11:52 AM Jiri Slaby wrote:
+> >> Hi,
+> >>
+> >> since friday's -next (the last known to be working is the last monday's)
+> >> I cannot resume from suspend. The last thing I see with
+> >> no_console_suspend is:
+> >> i915: No ACPI video bus found
+> >>
+> >> But I used to see the message always, so this is no difference. Any idea
+> >> before I start bisecting?
+> > 
+> > Well, what's the next message you normally see with no_console_suspend?
 > 
-> diff --git a/drivers/acpi/acpica/rscalc.c b/drivers/acpi/acpica/rscalc.c
-> index da178b4..c128f2e 100644
-> --- a/drivers/acpi/acpica/rscalc.c
-> +++ b/drivers/acpi/acpica/rscalc.c
-> @@ -198,7 +198,8 @@ acpi_rs_get_aml_length(struct acpi_resource * resource, acpi_size * size_needed)
->  
->  		/* Validate the descriptor type */
->  
-> -		if (resource->type > ACPI_RESOURCE_TYPE_MAX) {
-> +		if (resource->type > ACPI_RESOURCE_TYPE_MAX ||
-> +				WARN_ON(!resource->length)) {
+> As I wrote in the other message, the kernel is spinning in
+> acpi_rs_get_aml_length. There are weird resources in the list. For
+> serial 00:05 there is resource with type and length equal to 0 and for
+> parport_pc 00:06 there is resource type 58196295 with length of
+> 134284152. See:
+> acpi_rs_get_aml_length: ffff8801b9f7b380 type=3 len=16
+> acpi_rs_get_aml_length: ffff8801b9f7b390 type=0 len=0
+> acpi_rs_get_aml_length: BAD ffff8801b9f7b390 type=0 len=0
+> serial 00:05: activation failed
+> dpm_run_callback(): pnp_bus_resume+0x0/0x80 returns -5
+> PM: Device 00:05 failed to resume: error -5
+> acpi_rs_get_aml_length: ffff8801b9f7b680 type=3 len=24
+> acpi_rs_get_aml_length: ffff8801b9f7b698 type=58196295 len=134284152
+> parport_pc 00:06: activation failed
+> dpm_run_callback(): pnp_bus_resume+0x0/0x80 returns -5
+> PM: Device 00:06 failed to resume: error -5
+> 
+> if (!length)
+>   return error;
+> 
+> makes it resume again with the errors above...
+> 
+> This was 3.8.0-rc3-next-20130114. Going to test 20130116 as there are
+> these patches:
+> 616979e memory-hotplug: remove sysfs file of node
+> a41a27d ACPI / PM: remove leading whitespace from #ifdef
+> ace2342 ACPI / PM: Consolidate suspend-specific and hibernate-specific code
+> 27a5fb8 ACPI / PM: Move device power management functions to device_pm.c
+> 717a5d1 ACPI / PM: Export power states of ACPI devices via sysfs
+> ee8f808 ACPI / PM: Common string representations of device power states
+> 44fed9b ACPI / PM: More visible function for retrieving device power states
+> 81ed027 ACPI / PM: Change the way power transitions to D3cold are
+> carried out
+> 113542c ACPI: Use system level attribute of wakeup power resources
+> c6fdf80 ACPI: Take power resource initialization errors into account
+> b6568e5 ACPI / scan: Consolidate extraction of power resources lists
+> 8a0a4d6 ACPI / scan: Remove unnecessary initialization of local variables
+> 5c24aa4 ACPI / scan: Move power state initialization to a separate routine
+> 59e8500 ACPI / PM: Take order attribute of wakeup power resources into
+> account
+> f369253 ACPI / PM: Take order attribute of power resources into account
+> 3170b40 ACPI: Do not use device power states of power resources
+> 17ece8c ACPI: Drop power resources driver
+> 5e4cd24 ACPI / scan: Treat power resources in a special way
+> 5b32520 ACPI / scan: More straightforward preparation of ACPI device objects
+> 5a62e76 ACPI / PM: Rework the handling of devices depending on power
+> resources
+> 5993c46 ACPI: update ej_event interface to take acpi_device
+> 05404d8 ACPI / scan: Add second pass to acpi_bus_trim()
+> cecdb19 ACPI / scan: Change the implementation of acpi_bus_trim()
+> ae28179 ACPI / scan: Drop the second argument of acpi_bus_trim()
+> b17b537 ACPI / scan: Drop the second argument of acpi_device_unregister()
+> a412a11 ACPI / glue: Fix build with ACPI_GLUE_DEBUG set
+> abe9921 ACPI / scan: Fix check of device_attach() return value.
+> e92a79b ACPI thermal: remove unnecessary newline from exception message
+> 2b16c77 ACPI sysfs: remove unnecessary newline from exception
+> f1f37cb ACPI video: remove unnecessary newline from error messages
+> b43e106 ACPICA: Cleanup table handler naming conflicts.
+> 42f8fb7 ACPICA: Source restructuring: split large files into 8 new files.
 
-So this cannot be a WARN_ON().
+None of the ACPI patches above has anything to do with resources.
 
->  			return_ACPI_STATUS(AE_AML_INVALID_RESOURCE_TYPE);
->  		}
->  
+There are two things you can try.  First, revert all of the ACPICA patches
+and see if that helps.  Second, if that doesn't help, try to revert things in
+the PCI tree (alternatively, you can try the PCI tree alone).
+
+I have tested suspend/resume with the ACPI (including ACPICA) patches applied,
+but I haven't tested the PCI tree.
 
 Thanks,
 Rafael
