@@ -1,161 +1,227 @@
-From: Lance Ortiz <lance.ortiz@hp.com>
-Subject: [PATCH v10 3/3] aerdrv: Cleanup log output for AER
-Date: Wed, 16 Jan 2013 16:51:16 -0700
-Message-ID: <20130116235116.16015.62519.stgit@grignak.americas.hpqcorp.net>
-References: <20130116235102.16015.77379.stgit@grignak.americas.hpqcorp.net>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: Re: [PATCH] ACPI: add a dummy ACPI RTC driver to handle BIOS's accesses to registers delcared in OperationRegion.
+Date: Thu, 17 Jan 2013 00:02:47 +0100
+Message-ID: <50321061.2YEVZHDA81@vostro.rjw.lan>
+References: <1358306125-8104-1-git-send-email-alex.hung@canonical.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 7Bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from g5t0006.atlanta.hp.com ([15.192.0.43]:43265 "EHLO
-	g5t0006.atlanta.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757691Ab3APW4q (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 16 Jan 2013 17:56:46 -0500
-In-Reply-To: <20130116235102.16015.77379.stgit@grignak.americas.hpqcorp.net>
+Received: from hydra.sisk.pl ([212.160.235.94]:42272 "EHLO hydra.sisk.pl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1757691Ab3APW4y (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 16 Jan 2013 17:56:54 -0500
+In-Reply-To: <1358306125-8104-1-git-send-email-alex.hung@canonical.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: bhelgaas@google.com, lance_ortiz@hotmail.com, jiang.liu@huawei.com, tony.luck@intel.com, bp@alien8.de, rostedt@goodmis.org, mchehab@redhat.com, linux-acpi@vger.kernel.org, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org
+To: Alex Hung <alex.hung@canonical.com>, "Moore, Robert" <robert.moore@intel.com>
+Cc: lenb@kernel.org, linux-acpi@vger.kernel.org
 
-These changes make cper_print_aer more consistent with aer_print_error
-and clean things up by eliminating the use of the prefix variable and
-replacing it with dev_printk.
+On Wednesday, January 16, 2013 11:15:25 AM Alex Hung wrote:
+> This is to fix acpica returns an error and terminate AML execution as
+> soon as BIOS tries to access ACPI's RTC registers.
+> 
+> BugLink: http://launchpad.net/bugs/1065066
 
-v3-v4 remove agent id stuff and kept print the same to avoid
-compatibility issues
-v7-v8 Updated to use dev_printk instated of prefix. Changed
-log levels to KERN_ERR as per Mauro's suggestion.
-v8-v9 Changed dev_printk to dev_err since all log levels are KERN_ERR.
+Can you please describe the problem in more detail in the changelog itself?
+Providing a link to the bug report doesn't explain why you think this fix
+is the best possible one.  Which quite frankly I'm not sure of.
 
-Signed-off-by: Lance Ortiz <lance.ortiz@hp.com>
-Acked-by: Tony Luck <tony.luck@intel.com>
-Acked-by: Bjorn Helgaas <bhelgaas@google.com>
----
+> Signed-off-by: Alex Hung <alex.hung@canonical.com>
+> ---
+>  drivers/acpi/Kconfig    |    9 +++
+>  drivers/acpi/Makefile   |    1 +
+>  drivers/acpi/acpi_rtc.c |  140 +++++++++++++++++++++++++++++++++++++++++++++++
+>  3 files changed, 150 insertions(+)
+>  create mode 100644 drivers/acpi/acpi_rtc.c
+> 
+> diff --git a/drivers/acpi/Kconfig b/drivers/acpi/Kconfig
+> index 38c5078..fb90397 100644
+> --- a/drivers/acpi/Kconfig
+> +++ b/drivers/acpi/Kconfig
+> @@ -181,6 +181,15 @@ config ACPI_DOCK
+>  	  This driver supports ACPI-controlled docking stations and removable
+>  	  drive bays such as the IBM Ultrabay and the Dell Module Bay.
+>  
+> +config ACPI_RTC
+> +	tristate "RTC"
+> +	default m
+> +	help
+> +	  This driver supports an ACPI RTC device. It enables BIOS to read and
+> +	  to write ACPI RTC registers declared in an OperationRegion with
+> +	  RegionSpace as SYSTEMCMOS. This is required if BIOS needs to access
+> +	  RTC registers during run-time such as a number of HP laptops.
+> +
+>  config ACPI_I2C
+>  	def_tristate I2C
+>  	depends on I2C
+> diff --git a/drivers/acpi/Makefile b/drivers/acpi/Makefile
+> index 2a4502b..383c62b 100644
+> --- a/drivers/acpi/Makefile
+> +++ b/drivers/acpi/Makefile
+> @@ -71,6 +71,7 @@ obj-$(CONFIG_ACPI_EC_DEBUGFS)	+= ec_sys.o
+>  obj-$(CONFIG_ACPI_CUSTOM_METHOD)+= custom_method.o
+>  obj-$(CONFIG_ACPI_BGRT)		+= bgrt.o
+>  obj-$(CONFIG_ACPI_I2C)		+= acpi_i2c.o
+> +obj-$(CONFIG_ACPI_RTC)          += acpi_rtc.o
+>  
+>  # processor has its own "processor." module_param namespace
+>  processor-y			:= processor_driver.o processor_throttling.o
+> diff --git a/drivers/acpi/acpi_rtc.c b/drivers/acpi/acpi_rtc.c
+> new file mode 100644
+> index 0000000..0ddcfc8
+> --- /dev/null
+> +++ b/drivers/acpi/acpi_rtc.c
+> @@ -0,0 +1,140 @@
+> +/*
+> + *  acpi_rtc - ACPI RTC Driver
+> + *
+> + *  Copyright (C) 2013 Alex Hung <alex.hung@canonical.com>
+> + *
+> + * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+> + *
+> + *  This program is free software; you can redistribute it and/or modify
+> + *  it under the terms of the GNU General Public License as published by
+> + *  the Free Software Foundation; either version 2 of the License, or (at
+> + *  your option) any later version.
+> + *
+> + *  This program is distributed in the hope that it will be useful, but
+> + *  WITHOUT ANY WARRANTY; without even the implied warranty of
+> + *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+> + *  General Public License for more details.
+> + *
+> + *  You should have received a copy of the GNU General Public License along
+> + *  with this program; if not, write to the Free Software Foundation, Inc.,
+> + *  59 Temple Place, Suite 330, Boston, MA 02111-1307 USA.
+> + *
+> + * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+> + */
+> +
+> +#include <linux/kernel.h>
+> +#include <linux/module.h>
+> +#include <linux/init.h>
+> +#include <linux/pci.h>
+> +#include <linux/acpi.h>
+> +#include <acpi/acpi_bus.h>
+> +#include <acpi/acpi_drivers.h>
+> +#include <linux/miscdevice.h>
+> +
+> +#define pr_fmt(fmt) "acpi_rtc: " fmt
+> +
+> +MODULE_LICENSE("GPL");
+> +MODULE_ALIAS("acpi*:PNP0B00:*");
+> +
+> +static const struct acpi_device_id rtc_device_ids[] = {
+> +	{"PNP0B00", 0},
+> +	{"", 0},
+> +};
+> +
+> +static acpi_status acpi_acpi_handle_locate_callback(acpi_handle handle,
+> +			u32 level, void *context, void **return_value)
+> +{
+> +	struct acpi_device *dev = context;
+> +	dev->handle = handle;
+> +
+> +	return AE_CTRL_TERMINATE;
+> +}
+> +
+> +static acpi_status
+> +acpi_rtc_space_handler(u32 function, acpi_physical_address address,
+> +		      u32 bits, u64 *value64,
+> +		      void *handler_context, void *region_context)
+> +{
+> +	return AE_OK;
+> +}
+> +
+> +static int rtc_install_handlers(struct acpi_device *rtc_dev)
+> +{
+> +	acpi_status status;
+> +	status = acpi_install_address_space_handler(rtc_dev->handle,
+> +						    ACPI_ADR_SPACE_CMOS,
+> +						    &acpi_rtc_space_handler,
+> +						    NULL, rtc_dev);
+> +	if (ACPI_FAILURE(status)) {
+> +		pr_info("Fail to install ACPI RTC handler\n");
+> +		return AE_ERROR;
+> +	}
+> +
+> +	return 0;
+> +}
+> +
+> +static int acpi_rtc_add(struct acpi_device *device)
+> +{
+> +	int ret;
+> +	acpi_status status;
+> +	acpi_handle rtc_dev;
+> +
+> +	status = acpi_get_devices(rtc_device_ids[0].id,
+> +				  acpi_acpi_handle_locate_callback,
+> +				  &rtc_dev, &rtc_dev);
+> +	if (!ACPI_SUCCESS(status))
+> +		return AE_NOT_FOUND;
+> +
+> +	ret = rtc_install_handlers((struct acpi_device *) &rtc_dev);
+> +
+> +	return ret;
+> +}
+> +
+> +static int acpi_rtc_remove(struct acpi_device *device, int type)
+> +{
+> +	acpi_status status;
+> +	status = acpi_remove_address_space_handler(device->handle,
+> +						   ACPI_ADR_SPACE_CMOS,
+> +						   &acpi_rtc_space_handler);
+> +	if (!ACPI_SUCCESS(status))
+> +		return AE_ERROR;
+> +
+> +	return AE_OK;
+> +}
+> +
+> +static struct acpi_driver acpi_rtc_driver = {
+> +	.name = "rtc",
+> +	.class = "ACPI_RTC_CLASS",
+> +	.ids = rtc_device_ids,
+> +	.ops = {
+> +		.add = acpi_rtc_add,
+> +		.remove = acpi_rtc_remove,
+> +		},
+> +};
+> +
+> +static int __init rtc_init(void)
+> +{
+> +	int err;
+> +
+> +	pr_info("Initializing ACPI RTC module\n");
+> +	err = acpi_bus_register_driver(&acpi_rtc_driver);
+> +	if (err) {
+> +		pr_err("Unable to register acpi driver.\n");
+> +		goto error_acpi_register;
+> +	}
+> +
+> +	return 0;
+> +
+> +error_acpi_register:
+> +
+> +	return err;
+> +}
+> +
+> +static void __exit rtc_exit(void)
+> +{
+> +	pr_info("Exiting ACPI RTC module\n");
+> +	acpi_bus_unregister_driver(&acpi_rtc_driver);
+> +}
+> +
+> +module_init(rtc_init);
+> +module_exit(rtc_exit);
 
- drivers/pci/pcie/aer/aerdrv_errprint.c |   54 +++++++++++++++-----------------
- 1 files changed, 26 insertions(+), 28 deletions(-)
+So all it does is to install an empty address space handler for the CMOS
+address space, right?
 
-diff --git a/drivers/pci/pcie/aer/aerdrv_errprint.c b/drivers/pci/pcie/aer/aerdrv_errprint.c
-index d3e5fc5..5ab1425 100644
---- a/drivers/pci/pcie/aer/aerdrv_errprint.c
-+++ b/drivers/pci/pcie/aer/aerdrv_errprint.c
-@@ -124,12 +124,11 @@ static const char *aer_agent_string[] = {
- 	"Transmitter ID"
- };
- 
--static void __aer_print_error(const char *prefix,
-+static void __aer_print_error(struct pci_dev *dev,
- 			      struct aer_err_info *info)
- {
- 	int i, status;
- 	const char *errmsg = NULL;
--
- 	status = (info->status & ~info->mask);
- 
- 	for (i = 0; i < 32; i++) {
-@@ -144,26 +143,22 @@ static void __aer_print_error(const char *prefix,
- 				aer_uncorrectable_error_string[i] : NULL;
- 
- 		if (errmsg)
--			printk("%s""   [%2d] %-22s%s\n", prefix, i, errmsg,
-+			dev_err(&dev->dev, "   [%2d] %-22s%s\n", i, errmsg,
- 				info->first_error == i ? " (First)" : "");
- 		else
--			printk("%s""   [%2d] Unknown Error Bit%s\n", prefix, i,
--				info->first_error == i ? " (First)" : "");
-+			dev_err(&dev->dev, "   [%2d] Unknown Error Bit%s\n",
-+				i, info->first_error == i ? " (First)" : "");
- 	}
- }
- 
- void aer_print_error(struct pci_dev *dev, struct aer_err_info *info)
- {
- 	int id = ((dev->bus->number << 8) | dev->devfn);
--	char prefix[44];
--
--	snprintf(prefix, sizeof(prefix), "%s%s %s: ",
--		 (info->severity == AER_CORRECTABLE) ? KERN_WARNING : KERN_ERR,
--		 dev_driver_string(&dev->dev), dev_name(&dev->dev));
- 
- 	if (info->status == 0) {
--		printk("%s""PCIe Bus Error: severity=%s, type=Unaccessible, "
--			"id=%04x(Unregistered Agent ID)\n", prefix,
-+		dev_err(&dev->dev,
-+			"PCIe Bus Error: severity=%s, type=Unaccessible, "
-+			"id=%04x(Unregistered Agent ID)\n",
- 			aer_error_severity_string[info->severity], id);
- 	} else {
- 		int layer, agent;
-@@ -171,22 +166,24 @@ void aer_print_error(struct pci_dev *dev, struct aer_err_info *info)
- 		layer = AER_GET_LAYER_ERROR(info->severity, info->status);
- 		agent = AER_GET_AGENT(info->severity, info->status);
- 
--		printk("%s""PCIe Bus Error: severity=%s, type=%s, id=%04x(%s)\n",
--			prefix, aer_error_severity_string[info->severity],
-+		dev_err(&dev->dev,
-+			"PCIe Bus Error: severity=%s, type=%s, id=%04x(%s)\n",
-+			aer_error_severity_string[info->severity],
- 			aer_error_layer[layer], id, aer_agent_string[agent]);
- 
--		printk("%s""  device [%04x:%04x] error status/mask=%08x/%08x\n",
--			prefix, dev->vendor, dev->device,
-+		dev_err(&dev->dev,
-+			"  device [%04x:%04x] error status/mask=%08x/%08x\n",
-+			dev->vendor, dev->device,
- 			info->status, info->mask);
- 
--		__aer_print_error(prefix, info);
-+		__aer_print_error(dev, info);
- 
- 		if (info->tlp_header_valid) {
- 			unsigned char *tlp = (unsigned char *) &info->tlp;
--			printk("%s""  TLP Header:"
-+			dev_err(&dev->dev, "  TLP Header:"
- 				" %02x%02x%02x%02x %02x%02x%02x%02x"
- 				" %02x%02x%02x%02x %02x%02x%02x%02x\n",
--				prefix, *(tlp + 3), *(tlp + 2), *(tlp + 1), *tlp,
-+				*(tlp + 3), *(tlp + 2), *(tlp + 1), *tlp,
- 				*(tlp + 7), *(tlp + 6), *(tlp + 5), *(tlp + 4),
- 				*(tlp + 11), *(tlp + 10), *(tlp + 9),
- 				*(tlp + 8), *(tlp + 15), *(tlp + 14),
-@@ -195,8 +192,9 @@ void aer_print_error(struct pci_dev *dev, struct aer_err_info *info)
- 	}
- 
- 	if (info->id && info->error_dev_num > 1 && info->id == id)
--		printk("%s""  Error of this Agent(%04x) is reported first\n",
--			prefix, id);
-+		dev_err(&dev->dev,
-+			   "  Error of this Agent(%04x) is reported first\n",
-+			id);
- 	trace_aer_event(dev_name(&dev->dev), (info->status & ~info->mask),
- 			info->severity);
- }
-@@ -244,21 +242,21 @@ void cper_print_aer(const char *prefix, struct pci_dev *dev, int cper_severity,
- 	}
- 	layer = AER_GET_LAYER_ERROR(aer_severity, status);
- 	agent = AER_GET_AGENT(aer_severity, status);
--	printk("%s""aer_status: 0x%08x, aer_mask: 0x%08x\n",
--	       prefix, status, mask);
-+	dev_err(&dev->dev, "aer_status: 0x%08x, aer_mask: 0x%08x\n",
-+	       status, mask);
- 	cper_print_bits(prefix, status, status_strs, status_strs_size);
--	printk("%s""aer_layer=%s, aer_agent=%s\n", prefix,
-+	dev_err(&dev->dev, "aer_layer=%s, aer_agent=%s\n",
- 	       aer_error_layer[layer], aer_agent_string[agent]);
- 	if (aer_severity != AER_CORRECTABLE)
--		printk("%s""aer_uncor_severity: 0x%08x\n",
--		       prefix, aer->uncor_severity);
-+		dev_err(&dev->dev, "aer_uncor_severity: 0x%08x\n",
-+		       aer->uncor_severity);
- 	if (tlp_header_valid) {
- 		const unsigned char *tlp;
- 		tlp = (const unsigned char *)&aer->header_log;
--		printk("%s""aer_tlp_header:"
-+		dev_err(&dev->dev, "aer_tlp_header:"
- 			" %02x%02x%02x%02x %02x%02x%02x%02x"
- 			" %02x%02x%02x%02x %02x%02x%02x%02x\n",
--			prefix, *(tlp + 3), *(tlp + 2), *(tlp + 1), *tlp,
-+			*(tlp + 3), *(tlp + 2), *(tlp + 1), *tlp,
- 			*(tlp + 7), *(tlp + 6), *(tlp + 5), *(tlp + 4),
- 			*(tlp + 11), *(tlp + 10), *(tlp + 9),
- 			*(tlp + 8), *(tlp + 15), *(tlp + 14),
+Bob, I wonder what you think about that?
 
+Rafael
+
+
+-- 
+I speak only for myself.
+Rafael J. Wysocki, Intel Open Source Technology Center.
