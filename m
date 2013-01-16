@@ -1,36 +1,66 @@
 From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: [PATCH v8 14/22] ACPI: update ej_event interface to take acpi_device
-Date: Wed, 16 Jan 2013 22:48:03 +0100
-Message-ID: <2332793.JffINKpypu@vostro.rjw.lan>
-References: <1357944049-29620-1-git-send-email-yinghai@kernel.org> <2146678.ZYzAqhqxN1@vostro.rjw.lan> <CAE9FiQW8bNs3_nV1QbDMFwxCwEy2a-1x2vi=FQ9raCYpbmnu4Q@mail.gmail.com>
+Subject: [GIT PULL] ACPI and power management fixes for v3.8-rc4
+Date: Wed, 16 Jan 2013 23:16:55 +0100
+Message-ID: <1747840.rmW3APh7MT@vostro.rjw.lan>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7Bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <CAE9FiQW8bNs3_nV1QbDMFwxCwEy2a-1x2vi=FQ9raCYpbmnu4Q@mail.gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Yinghai Lu <yinghai@kernel.org>
-Cc: Bjorn Helgaas <bhelgaas@google.com>, Len Brown <lenb@kernel.org>, Taku Izumi <izumi.taku@jp.fujitsu.com>, Jiang Liu <jiang.liu@huawei.com>, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from hydra.sisk.pl ([212.160.235.94]:42155 "EHLO hydra.sisk.pl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1757245Ab3APWLB (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 16 Jan 2013 17:11:01 -0500
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>, Linux PM list <linux-pm@vger.kernel.org>
 
-On Wednesday, January 16, 2013 11:37:40 AM Yinghai Lu wrote:
-> On Wed, Jan 16, 2013 at 6:05 AM, Rafael J. Wysocki <rjw@sisk.pl> wrote:
-> >
-> > acpi_power_transition() has to check if the device is power-manageable, since
-> > otherwise the power resources lists will not be initialized.  It should be
-> > fixed now.
-> 
-> yes, it works now with pm/linux-next.
+Hi Linus,
 
-Cool, thanks for testing!
+Please pull from the git repository at
 
-> will resend updated patchset after new acpi-scan get into pci/next.
+  git://git.kernel.org/pub/scm/linux/kernel/git/rafael/linux-pm.git pm+acpi-for-3.8-rc4
 
-I'll put the new patches into acpi-scan tomorrow.  After that it's up to Bjorn
-to decide when to pull them.
+to receive ACPI and power management fixes for v3.8-rc4 with top-most commit
+8aef33a7cf40ca9da188e8578b2abe7267a38c52
 
-Thanks,
-Rafael
+  cpuidle: remove the power_specified field in the driver
+
+on top of commit 9931faca02c604c22335f5a935a501bb2ace6e20
+
+  Linux 3.8-rc3
+
+Included are:
+
+* cpuidle regression fix related to the initialization of state kobjects
+  from Krzysztof Mazur.
+
+* cpuidle fix removing some not very useful code and making some user-visible
+  problems go away at the same time.  From Daniel Lezcano.
+
+* ACPI build fix from Yinghai Lu.
+
+Thanks!
+
+
+ drivers/acpi/glue.c              |  2 +-
+ drivers/cpuidle/cpuidle.c        | 17 ++++-------------
+ drivers/cpuidle/driver.c         | 25 -------------------------
+ drivers/cpuidle/governors/menu.c |  8 ++------
+ drivers/cpuidle/sysfs.c          |  2 +-
+ include/linux/cpuidle.h          |  2 +-
+ 6 files changed, 9 insertions(+), 47 deletions(-)
+
+---------------
+
+Daniel Lezcano (1):
+      cpuidle: remove the power_specified field in the driver
+
+Krzysztof Mazur (1):
+      cpuidle: fix number of initialized/destroyed states
+
+Yinghai Lu (1):
+      ACPI / glue: Fix build with ACPI_GLUE_DEBUG set
 
 
 -- 
