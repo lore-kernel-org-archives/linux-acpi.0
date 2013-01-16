@@ -1,83 +1,207 @@
-From: Yinghai Lu <yinghai@kernel.org>
-Subject: Re: [PATCH v8 22/22] PCI: move device_add out of pci_bus_add_device()
-Date: Tue, 15 Jan 2013 18:41:18 -0800
-Message-ID: <CAE9FiQVg5xJka9V_Aim4yzmC3PL9cx8wReV12-nPacPJXff5ZA@mail.gmail.com>
-References: <1357944049-29620-1-git-send-email-yinghai@kernel.org>
-	<1357944049-29620-23-git-send-email-yinghai@kernel.org>
-	<50F6108B.6070204@huawei.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+From: Alex Hung <alex.hung@canonical.com>
+Subject: [PATCH] ACPI: add a dummy ACPI RTC driver to handle BIOS's accesses to registers delcared in OperationRegion.
+Date: Wed, 16 Jan 2013 11:15:25 +0800
+Message-ID: <1358306125-8104-1-git-send-email-alex.hung@canonical.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-bk0-f42.google.com ([209.85.214.42]:46349 "EHLO
-	mail-bk0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757282Ab3APClU (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 15 Jan 2013 21:41:20 -0500
-In-Reply-To: <50F6108B.6070204@huawei.com>
+Received: from youngberry.canonical.com ([91.189.89.112]:60840 "EHLO
+	youngberry.canonical.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756859Ab3APDPf (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 15 Jan 2013 22:15:35 -0500
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Yijing Wang <wangyijing@huawei.com>
-Cc: Bjorn Helgaas <bhelgaas@google.com>, "Rafael J. Wysocki" <rjw@sisk.pl>, Len Brown <lenb@kernel.org>, Taku Izumi <izumi.taku@jp.fujitsu.com>, Jiang Liu <jiang.liu@huawei.com>, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
+To: alex.hung@canonical.com, lenb@kernel.org, rjw@sisk.pl, linux-acpi@vger.kernel.org
 
-On Tue, Jan 15, 2013 at 6:29 PM, Yijing Wang <wangyijing@huawei.com> wrote:
-> On 2013/1/12 6:40, Yinghai Lu wrote:
->> Move out device registering out of pci_bus_add_devices, so we could
->> put new created pci devices in device tree early.
->>
->> new pci_bus_add_devices will do the device_attach work to load pci drivers
->> instead.
->>
->> Signed-off-by: Yinghai Lu <yinghai@kernel.org>
->> ---
->>  drivers/pci/bus.c   |   47 +++--------------------------------------------
->>  drivers/pci/iov.c   |    7 -------
->>  drivers/pci/probe.c |   34 +++++++++++++++++++++++++++-------
->>  3 files changed, 30 insertions(+), 58 deletions(-)
->>
->> diff --git a/drivers/pci/bus.c b/drivers/pci/bus.c
->> index 1f5916a..0a55845 100644
->> --- a/drivers/pci/bus.c
->> +++ b/drivers/pci/bus.c
->> @@ -178,22 +178,9 @@ static void pci_bus_attach_device(struct pci_dev *dev)
->>   */
->>  int pci_bus_add_device(struct pci_dev *dev)
->>  {
->> -     int retval;
->> -
->> -     pci_fixup_device(pci_fixup_final, dev);
->> -
->> -     retval = pcibios_add_device(dev);
->> -     if (retval)
->> -             return retval;
->> -
->> -     retval = device_add(&dev->dev);
->> -     if (retval)
->> -             return retval;
->> -
->>       pci_bus_attach_device(dev);
->>       dev->is_added = 1;
->> -     pci_proc_attach_device(dev);
->> -     pci_create_sysfs_dev_files(dev);
->> +
->>       return 0;
->>  }
->
->
-> Hi Yinghai,
->    Should change pci_bus_add_device() function to void return now? So some unnecessary ret check can remove.
->
+This is to fix acpica returns an error and terminate AML execution as
+soon as BIOS tries to access ACPI's RTC registers.
 
-yeah, maybe later. this patch is already some kind of big now.
+BugLink: http://launchpad.net/bugs/1065066
 
-also there is outside caller...
+Signed-off-by: Alex Hung <alex.hung@canonical.com>
+---
+ drivers/acpi/Kconfig    |    9 +++
+ drivers/acpi/Makefile   |    1 +
+ drivers/acpi/acpi_rtc.c |  140 +++++++++++++++++++++++++++++++++++++++++++++++
+ 3 files changed, 150 insertions(+)
+ create mode 100644 drivers/acpi/acpi_rtc.c
 
-drivers/edac/i82875p_edac.c:            err = pci_bus_add_device(dev);
-drivers/platform/x86/asus-wmi.c:                                if
-(pci_bus_add_device(dev))
-drivers/platform/x86/eeepc-laptop.c:                            if
-(pci_bus_add_device(dev))
+diff --git a/drivers/acpi/Kconfig b/drivers/acpi/Kconfig
+index 38c5078..fb90397 100644
+--- a/drivers/acpi/Kconfig
++++ b/drivers/acpi/Kconfig
+@@ -181,6 +181,15 @@ config ACPI_DOCK
+ 	  This driver supports ACPI-controlled docking stations and removable
+ 	  drive bays such as the IBM Ultrabay and the Dell Module Bay.
+ 
++config ACPI_RTC
++	tristate "RTC"
++	default m
++	help
++	  This driver supports an ACPI RTC device. It enables BIOS to read and
++	  to write ACPI RTC registers declared in an OperationRegion with
++	  RegionSpace as SYSTEMCMOS. This is required if BIOS needs to access
++	  RTC registers during run-time such as a number of HP laptops.
++
+ config ACPI_I2C
+ 	def_tristate I2C
+ 	depends on I2C
+diff --git a/drivers/acpi/Makefile b/drivers/acpi/Makefile
+index 2a4502b..383c62b 100644
+--- a/drivers/acpi/Makefile
++++ b/drivers/acpi/Makefile
+@@ -71,6 +71,7 @@ obj-$(CONFIG_ACPI_EC_DEBUGFS)	+= ec_sys.o
+ obj-$(CONFIG_ACPI_CUSTOM_METHOD)+= custom_method.o
+ obj-$(CONFIG_ACPI_BGRT)		+= bgrt.o
+ obj-$(CONFIG_ACPI_I2C)		+= acpi_i2c.o
++obj-$(CONFIG_ACPI_RTC)          += acpi_rtc.o
+ 
+ # processor has its own "processor." module_param namespace
+ processor-y			:= processor_driver.o processor_throttling.o
+diff --git a/drivers/acpi/acpi_rtc.c b/drivers/acpi/acpi_rtc.c
+new file mode 100644
+index 0000000..0ddcfc8
+--- /dev/null
++++ b/drivers/acpi/acpi_rtc.c
+@@ -0,0 +1,140 @@
++/*
++ *  acpi_rtc - ACPI RTC Driver
++ *
++ *  Copyright (C) 2013 Alex Hung <alex.hung@canonical.com>
++ *
++ * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
++ *
++ *  This program is free software; you can redistribute it and/or modify
++ *  it under the terms of the GNU General Public License as published by
++ *  the Free Software Foundation; either version 2 of the License, or (at
++ *  your option) any later version.
++ *
++ *  This program is distributed in the hope that it will be useful, but
++ *  WITHOUT ANY WARRANTY; without even the implied warranty of
++ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
++ *  General Public License for more details.
++ *
++ *  You should have received a copy of the GNU General Public License along
++ *  with this program; if not, write to the Free Software Foundation, Inc.,
++ *  59 Temple Place, Suite 330, Boston, MA 02111-1307 USA.
++ *
++ * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
++ */
++
++#include <linux/kernel.h>
++#include <linux/module.h>
++#include <linux/init.h>
++#include <linux/pci.h>
++#include <linux/acpi.h>
++#include <acpi/acpi_bus.h>
++#include <acpi/acpi_drivers.h>
++#include <linux/miscdevice.h>
++
++#define pr_fmt(fmt) "acpi_rtc: " fmt
++
++MODULE_LICENSE("GPL");
++MODULE_ALIAS("acpi*:PNP0B00:*");
++
++static const struct acpi_device_id rtc_device_ids[] = {
++	{"PNP0B00", 0},
++	{"", 0},
++};
++
++static acpi_status acpi_acpi_handle_locate_callback(acpi_handle handle,
++			u32 level, void *context, void **return_value)
++{
++	struct acpi_device *dev = context;
++	dev->handle = handle;
++
++	return AE_CTRL_TERMINATE;
++}
++
++static acpi_status
++acpi_rtc_space_handler(u32 function, acpi_physical_address address,
++		      u32 bits, u64 *value64,
++		      void *handler_context, void *region_context)
++{
++	return AE_OK;
++}
++
++static int rtc_install_handlers(struct acpi_device *rtc_dev)
++{
++	acpi_status status;
++	status = acpi_install_address_space_handler(rtc_dev->handle,
++						    ACPI_ADR_SPACE_CMOS,
++						    &acpi_rtc_space_handler,
++						    NULL, rtc_dev);
++	if (ACPI_FAILURE(status)) {
++		pr_info("Fail to install ACPI RTC handler\n");
++		return AE_ERROR;
++	}
++
++	return 0;
++}
++
++static int acpi_rtc_add(struct acpi_device *device)
++{
++	int ret;
++	acpi_status status;
++	acpi_handle rtc_dev;
++
++	status = acpi_get_devices(rtc_device_ids[0].id,
++				  acpi_acpi_handle_locate_callback,
++				  &rtc_dev, &rtc_dev);
++	if (!ACPI_SUCCESS(status))
++		return AE_NOT_FOUND;
++
++	ret = rtc_install_handlers((struct acpi_device *) &rtc_dev);
++
++	return ret;
++}
++
++static int acpi_rtc_remove(struct acpi_device *device, int type)
++{
++	acpi_status status;
++	status = acpi_remove_address_space_handler(device->handle,
++						   ACPI_ADR_SPACE_CMOS,
++						   &acpi_rtc_space_handler);
++	if (!ACPI_SUCCESS(status))
++		return AE_ERROR;
++
++	return AE_OK;
++}
++
++static struct acpi_driver acpi_rtc_driver = {
++	.name = "rtc",
++	.class = "ACPI_RTC_CLASS",
++	.ids = rtc_device_ids,
++	.ops = {
++		.add = acpi_rtc_add,
++		.remove = acpi_rtc_remove,
++		},
++};
++
++static int __init rtc_init(void)
++{
++	int err;
++
++	pr_info("Initializing ACPI RTC module\n");
++	err = acpi_bus_register_driver(&acpi_rtc_driver);
++	if (err) {
++		pr_err("Unable to register acpi driver.\n");
++		goto error_acpi_register;
++	}
++
++	return 0;
++
++error_acpi_register:
++
++	return err;
++}
++
++static void __exit rtc_exit(void)
++{
++	pr_info("Exiting ACPI RTC module\n");
++	acpi_bus_unregister_driver(&acpi_rtc_driver);
++}
++
++module_init(rtc_init);
++module_exit(rtc_exit);
+-- 
+1.7.9.5
 
-so let change that later.
-
-Thanks
-
-Yinghai
