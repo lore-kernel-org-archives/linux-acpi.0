@@ -1,58 +1,54 @@
 From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: [PATCH 1/3] x86: enable common clk on x86
-Date: Wed, 16 Jan 2013 00:59:17 +0100
-Message-ID: <1474259.FsoB54Sm0k@vostro.rjw.lan>
-References: <1358174788-24439-1-git-send-email-mika.westerberg@linux.intel.com> <1358174788-24439-2-git-send-email-mika.westerberg@linux.intel.com>
+Subject: Re: [PATCH v8 14/22] ACPI: update ej_event interface to take acpi_device
+Date: Wed, 16 Jan 2013 01:22:35 +0100
+Message-ID: <3905799.Wx2ixLIOL7@vostro.rjw.lan>
+References: <1357944049-29620-1-git-send-email-yinghai@kernel.org> <CAE9FiQW-efB2s1gdmVTy8k9NLSayAxfkTFvtzQhzL6MFBFSoWQ@mail.gmail.com> <2102023.Itn3WlmlaN@vostro.rjw.lan>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7Bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1358174788-24439-2-git-send-email-mika.westerberg@linux.intel.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Mika Westerberg <mika.westerberg@linux.intel.com>
-Cc: linux-kernel@vger.kernel.org, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, x86@kernel.org, Len Brown <lenb@kernel.org>, Mike Turquette <mturquette@linaro.org>, Arnd Bergmann <arnd@arndb.de>, Linus Walleij <linus.walleij@linaro.org>, Mark Brown <broonie@opensource.wolfsonmicro.com>, Heikki Krogerus <heikki.krogerus@linux.intel.com>, linux-acpi@vger.kernel.org
+Return-path: <linux-pci-owner@vger.kernel.org>
+In-Reply-To: <2102023.Itn3WlmlaN@vostro.rjw.lan>
+Sender: linux-pci-owner@vger.kernel.org
+To: Yinghai Lu <yinghai@kernel.org>
+Cc: Bjorn Helgaas <bhelgaas@google.com>, Len Brown <lenb@kernel.org>, Taku Izumi <izumi.taku@jp.fujitsu.com>, Jiang Liu <jiang.liu@huawei.com>, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Monday, January 14, 2013 04:46:26 PM Mika Westerberg wrote:
-> We are starting to see traditional SoC peripherals also in the x86 world,
-> things like UART, I2C and SPI controllers that might already have a working
-> device driver. These drivers typically take advantage of the Linux clk
-> framework to control and retrieve information about the peripheral clock.
+On Wednesday, January 16, 2013 12:55:20 AM Rafael J. Wysocki wrote:
+> On Tuesday, January 15, 2013 03:43:17 PM Yinghai Lu wrote:
+> > On Tue, Jan 15, 2013 at 3:26 AM, Rafael J. Wysocki <rjw@sisk.pl> wrote:
+> > > On Monday, January 14, 2013 10:55:49 PM Yinghai Lu wrote:
+[...]
+> > 
+> > 
+> > looks like:
+> > 
+> > acpi_device_release+0x30
+> > 0xffffffff81536e2f is in acpi_device_release (drivers/acpi/scan.c:524).
+> > 519	static void acpi_free_power_resources_lists(struct acpi_device *device)
+> > 520	{
+> > 521		int i;
+> > 522	
+> > 523		acpi_power_resources_list_free(&device->wakeup.resources);
+> > 524		if (!device->flags.power_manageable)
+> > 525			return;
+> > 526	
+> > 527		for (i = ACPI_STATE_D0; i <= ACPI_STATE_D3_HOT; i++) {
+> > 528			struct acpi_device_power_state *ps = &device->power.states[i];
+> > 
+> > wakeup.resources has problem?
 > 
-> There hasn't been a standard way on x86 to pass the clock rate from
-> whatever configuration system is used to the driver, but instead different
-> variations have emerged, like adding this information to the platform data.
+> Yes, it seems to.
 > 
-> In order to use the standard Linux way we enable the common clk subsystem
-> also on x86. This allows us to re-use the drivers with little or no
-> modification wrt. clock API usage.
-> 
-> This patch was originally proposed by Mark Brown.
+> Thanks for the report, looking into it.
 
-Are there any side effects of selecting COMMON_CLK by an arch and if so then
-what are they?
+Found a bug, fixed it and updated the tree (device->flags.wakeup.valid should
+be checked before the acpi_power_resources_list_free(&device->wakeup.resources),
+otherwise the list may not be initialized).
 
+Thanks,
 Rafael
 
 
-> Signed-off-by: Mika Westerberg <mika.westerberg@linux.intel.com>
-> ---
->  arch/x86/Kconfig |    1 +
->  1 file changed, 1 insertion(+)
-> 
-> diff --git a/arch/x86/Kconfig b/arch/x86/Kconfig
-> index 79795af..decda04 100644
-> --- a/arch/x86/Kconfig
-> +++ b/arch/x86/Kconfig
-> @@ -114,6 +114,7 @@ config X86
->  	select MODULES_USE_ELF_RELA if X86_64
->  	select CLONE_BACKWARDS if X86_32
->  	select GENERIC_SIGALTSTACK
-> +	select COMMON_CLK
->  
->  config INSTRUCTION_DECODER
->  	def_bool y
-> 
 -- 
 I speak only for myself.
 Rafael J. Wysocki, Intel Open Source Technology Center.
