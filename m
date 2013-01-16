@@ -1,101 +1,121 @@
 From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: -next: no resume from suspend
-Date: Wed, 16 Jan 2013 15:00:52 +0100
-Message-ID: <1383787.8I6fLLmNxl@vostro.rjw.lan>
-References: <50F3D9E8.6040802@suse.cz> <16191961.j5ydKsJ3d3@vostro.rjw.lan> <50F68443.3040900@suse.cz>
+Subject: Re: [PATCH v8 14/22] ACPI: update ej_event interface to take acpi_device
+Date: Wed, 16 Jan 2013 15:05:46 +0100
+Message-ID: <2146678.ZYzAqhqxN1@vostro.rjw.lan>
+References: <1357944049-29620-1-git-send-email-yinghai@kernel.org> <3905799.Wx2ixLIOL7@vostro.rjw.lan> <CAE9FiQUivk3d0L8UENMBgoqeaC3pGAg=mobjsRupHFhH0VGp7Q@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7Bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <50F68443.3040900@suse.cz>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Jiri Slaby <jslaby@suse.cz>
-Cc: Linux PM mailing list <linux-pm@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>
+Return-path: <linux-pci-owner@vger.kernel.org>
+In-Reply-To: <CAE9FiQUivk3d0L8UENMBgoqeaC3pGAg=mobjsRupHFhH0VGp7Q@mail.gmail.com>
+Sender: linux-pci-owner@vger.kernel.org
+To: Yinghai Lu <yinghai@kernel.org>
+Cc: Bjorn Helgaas <bhelgaas@google.com>, Len Brown <lenb@kernel.org>, Taku Izumi <izumi.taku@jp.fujitsu.com>, Jiang Liu <jiang.liu@huawei.com>, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Wednesday, January 16, 2013 11:43:15 AM Jiri Slaby wrote:
-> On 01/14/2013 01:56 PM, Rafael J. Wysocki wrote:
-> > On Monday, January 14, 2013 11:11:52 AM Jiri Slaby wrote:
-> >> Hi,
+On Tuesday, January 15, 2013 04:36:19 PM Yinghai Lu wrote:
+> On Tue, Jan 15, 2013 at 4:22 PM, Rafael J. Wysocki <rjw@sisk.pl> wrote:
+> > On Wednesday, January 16, 2013 12:55:20 AM Rafael J. Wysocki wrote:
+> >> On Tuesday, January 15, 2013 03:43:17 PM Yinghai Lu wrote:
+> >> > On Tue, Jan 15, 2013 at 3:26 AM, Rafael J. Wysocki <rjw@sisk.pl> wrote:
+> >> > > On Monday, January 14, 2013 10:55:49 PM Yinghai Lu wrote:
+> > [...]
+> >> >
+> >> >
+> >> > looks like:
+> >> >
+> >> > acpi_device_release+0x30
+> >> > 0xffffffff81536e2f is in acpi_device_release (drivers/acpi/scan.c:524).
+> >> > 519 static void acpi_free_power_resources_lists(struct acpi_device *device)
+> >> > 520 {
+> >> > 521         int i;
+> >> > 522
+> >> > 523         acpi_power_resources_list_free(&device->wakeup.resources);
+> >> > 524         if (!device->flags.power_manageable)
+> >> > 525                 return;
+> >> > 526
+> >> > 527         for (i = ACPI_STATE_D0; i <= ACPI_STATE_D3_HOT; i++) {
+> >> > 528                 struct acpi_device_power_state *ps = &device->power.states[i];
+> >> >
+> >> > wakeup.resources has problem?
 > >>
-> >> since friday's -next (the last known to be working is the last monday's)
-> >> I cannot resume from suspend. The last thing I see with
-> >> no_console_suspend is:
-> >> i915: No ACPI video bus found
+> >> Yes, it seems to.
 > >>
-> >> But I used to see the message always, so this is no difference. Any idea
-> >> before I start bisecting?
-> > 
-> > Well, what's the next message you normally see with no_console_suspend?
+> >> Thanks for the report, looking into it.
+> >
+> > Found a bug, fixed it and updated the tree (device->flags.wakeup.valid should
+> > be checked before the acpi_power_resources_list_free(&device->wakeup.resources),
+> > otherwise the list may not be initialized).
+> >
 > 
-> As I wrote in the other message, the kernel is spinning in
-> acpi_rs_get_aml_length. There are weird resources in the list. For
-> serial 00:05 there is resource with type and length equal to 0 and for
-> parport_pc 00:06 there is resource type 58196295 with length of
-> 134284152. See:
-> acpi_rs_get_aml_length: ffff8801b9f7b380 type=3 len=16
-> acpi_rs_get_aml_length: ffff8801b9f7b390 type=0 len=0
-> acpi_rs_get_aml_length: BAD ffff8801b9f7b390 type=0 len=0
-> serial 00:05: activation failed
-> dpm_run_callback(): pnp_bus_resume+0x0/0x80 returns -5
-> PM: Device 00:05 failed to resume: error -5
-> acpi_rs_get_aml_length: ffff8801b9f7b680 type=3 len=24
-> acpi_rs_get_aml_length: ffff8801b9f7b698 type=58196295 len=134284152
-> parport_pc 00:06: activation failed
-> dpm_run_callback(): pnp_bus_resume+0x0/0x80 returns -5
-> PM: Device 00:06 failed to resume: error -5
-> 
-> if (!length)
->   return error;
-> 
-> makes it resume again with the errors above...
-> 
-> This was 3.8.0-rc3-next-20130114. Going to test 20130116 as there are
-> these patches:
-> 616979e memory-hotplug: remove sysfs file of node
-> a41a27d ACPI / PM: remove leading whitespace from #ifdef
-> ace2342 ACPI / PM: Consolidate suspend-specific and hibernate-specific code
-> 27a5fb8 ACPI / PM: Move device power management functions to device_pm.c
-> 717a5d1 ACPI / PM: Export power states of ACPI devices via sysfs
-> ee8f808 ACPI / PM: Common string representations of device power states
-> 44fed9b ACPI / PM: More visible function for retrieving device power states
-> 81ed027 ACPI / PM: Change the way power transitions to D3cold are
-> carried out
-> 113542c ACPI: Use system level attribute of wakeup power resources
-> c6fdf80 ACPI: Take power resource initialization errors into account
-> b6568e5 ACPI / scan: Consolidate extraction of power resources lists
-> 8a0a4d6 ACPI / scan: Remove unnecessary initialization of local variables
-> 5c24aa4 ACPI / scan: Move power state initialization to a separate routine
-> 59e8500 ACPI / PM: Take order attribute of wakeup power resources into
-> account
-> f369253 ACPI / PM: Take order attribute of power resources into account
-> 3170b40 ACPI: Do not use device power states of power resources
-> 17ece8c ACPI: Drop power resources driver
-> 5e4cd24 ACPI / scan: Treat power resources in a special way
-> 5b32520 ACPI / scan: More straightforward preparation of ACPI device objects
-> 5a62e76 ACPI / PM: Rework the handling of devices depending on power
-> resources
-> 5993c46 ACPI: update ej_event interface to take acpi_device
-> 05404d8 ACPI / scan: Add second pass to acpi_bus_trim()
-> cecdb19 ACPI / scan: Change the implementation of acpi_bus_trim()
-> ae28179 ACPI / scan: Drop the second argument of acpi_bus_trim()
-> b17b537 ACPI / scan: Drop the second argument of acpi_device_unregister()
-> a412a11 ACPI / glue: Fix build with ACPI_GLUE_DEBUG set
-> abe9921 ACPI / scan: Fix check of device_attach() return value.
-> e92a79b ACPI thermal: remove unnecessary newline from exception message
-> 2b16c77 ACPI sysfs: remove unnecessary newline from exception
-> f1f37cb ACPI video: remove unnecessary newline from error messages
-> b43e106 ACPICA: Cleanup table handler naming conflicts.
-> 42f8fb7 ACPICA: Source restructuring: split large files into 8 new files.
+> still have problems:
 
-None of the ACPI patches above has anything to do with resources.
+My bad, sorry about that.
 
-There are two things you can try.  First, revert all of the ACPICA patches
-and see if that helps.  Second, if that doesn't help, try to revert things in
-the PCI tree (alternatively, you can try the PCI tree alone).
+> [   63.971903] BUG: unable to handle kernel NULL pointer dereference
+> at 0000000000000010
+> [   63.972708] IP: [<ffffffff8153bf53>] acpi_power_off_list+0x19/0x53
+> [   63.972708] PGD 0
+> [   63.972708] Oops: 0000 [#1] SMP
+> [   63.972708] Modules linked in:
+> [   63.972708] CPU 0
+> [   63.972708] Pid: 4, comm: kworker/0:0 Not tainted
+> 3.8.0-rc3-yh-00703-g5955587-dirty #1132 Bochs Bochs
+> [   63.972708] RIP: 0010:[<ffffffff8153bf53>]  [<ffffffff8153bf53>]
+> acpi_power_off_list+0x19/0x53
+> [   63.972708] RSP: 0018:ffff8801964bba78  EFLAGS: 00010203
+> [   63.972708] RAX: 0000000000000000 RBX: 0000000000000000 RCX: 00000001810000e5
+> [   63.972708] RDX: 00000001810000e6 RSI: 0000000000000004 RDI: ffff8801965de8e0
+> [   63.972708] RBP: ffff8801964bba98 R08: 0000000000000002 R09: ffff8801993d64b0
+> [   63.972708] R10: 0000000000000000 R11: 0000000000000001 R12: ffff8801965de8e0
+> [   63.972708] R13: 0000000000000001 R14: 0000000000000000 R15: ffff880196466528
+> [   63.972708] FS:  0000000000000000(0000) GS:ffff880199200000(0000)
+> knlGS:0000000000000000
+> [   63.972708] CS:  0010 DS: 0000 ES: 0000 CR0: 000000008005003b
+> [   63.972708] CR2: 0000000000000010 CR3: 000000017f10a000 CR4: 00000000000006f0
+> [   63.972708] DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
+> [   63.972708] DR3: 0000000000000000 DR6: 00000000ffff0ff0 DR7: 0000000000000400
+> [   63.972708] Process kworker/0:0 (pid: 4, threadinfo
+> ffff8801964ba000, task ffff880196580000)
+> [   63.972708] Stack:
+> [   63.972708]  ffff8801965de800 0000000000000004 ffff8801965de800
+> 0000000000000001
+> [   63.972708]  ffff8801964bbab8 ffffffff8153c65e ffff8801965de800
+> ffff8801965de9d0
+> [   63.972708]  ffff8801964bbae8 ffffffff815367fa ffff8801964bbb08
+> 0000000000000001
+> [   63.972708] Call Trace:
+> [   63.972708]  [<ffffffff8153c65e>] acpi_power_transition+0x6c/0x98
+> [   63.972708]  [<ffffffff815367fa>] acpi_device_unregister+0x16f/0x177
+> [   63.972708]  [<ffffffff8153682d>] acpi_bus_remove+0x2b/0x2f
+> [   63.972708]  [<ffffffff815601cc>] acpi_ns_walk_namespace+0x114/0x250
+> [   63.972708]  [<ffffffff81536802>] ? acpi_device_unregister+0x177/0x177
+> [   63.972708]  [<ffffffff81536802>] ? acpi_device_unregister+0x177/0x177
+> [   63.972708]  [<ffffffff815607cd>] acpi_walk_namespace+0xee/0x137
+> [   63.972708]  [<ffffffff81536921>] acpi_bus_trim+0x64/0x7c
+> [   63.972708]  [<ffffffff815369b2>] acpi_bus_hot_remove_device+0x79/0x16d
+> [   63.972708]  [<ffffffff81196dc2>] ? kmem_cache_alloc_trace+0x42/0x150
+> [   63.972708]  [<ffffffff81539c20>] _handle_hotplug_event_root+0x108/0x149
+> [   63.972708]  [<ffffffff810a8b20>] ? process_one_work+0x270/0x560
+> [   63.972708]  [<ffffffff810a8b8d>] process_one_work+0x2dd/0x560
+> [   63.972708]  [<ffffffff810a8b20>] ? process_one_work+0x270/0x560
+> [   63.972708]  [<ffffffff810a9679>] ? worker_thread+0x59/0x3a0
+> [   63.972708]  [<ffffffff81539b18>] ? acpi_pci_find_root+0x3f/0x3f
+> [   63.972708]  [<ffffffff810a989a>] worker_thread+0x27a/0x3a0
+> [   63.972708]  [<ffffffff810e9f4d>] ? trace_hardirqs_on+0xd/0x10
+> [   63.972708]  [<ffffffff810a9620>] ? manage_workers+0x280/0x280
+> [   63.972708]  [<ffffffff810af088>] kthread+0xe8/0xf0
+> [   63.972708]  [<ffffffff810aefa0>] ? __init_kthread_worker+0x70/0x70
+> [   63.972708]  [<ffffffff8216d61c>] ret_from_fork+0x7c/0xb0
+> [   63.972708]  [<ffffffff810aefa0>] ? __init_kthread_worker+0x70/0x70
+> [   63.972708] Code: 08 4c 39 e3 75 ee 41 5a 5b 41 5c 44 89 e8 41 5d
+> 5d c3 0f 1f 44 00 00 55 48 89 e5 41 55 41 54 53 41 54 49 89 fc 48 8b
+> 5f 08 eb 14 <48> 8b 7b 10 e8 22 fd ff ff 85 c0 41 89 c5 75 17 48 8b 5b
+> 08 4c
 
-I have tested suspend/resume with the ACPI (including ACPICA) patches applied,
-but I haven't tested the PCI tree.
+acpi_power_transition() has to check if the device is power-manageable, since
+otherwise the power resources lists will not be initialized.  It should be
+fixed now.
 
 Thanks,
 Rafael
