@@ -1,111 +1,65 @@
-From: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
-Subject: Re: [PATCH 2/2] ACPI / cpuidle: Fix NULL pointer issues when cpuidle
- is disabled
-Date: Tue, 15 Jan 2013 23:42:04 -0500
-Message-ID: <20130116044204.GA20668@phenom.dumpdata.com>
-References: <1358288604-24620-1-git-send-email-konrad.wilk@oracle.com>
- <1358288604-24620-3-git-send-email-konrad.wilk@oracle.com>
- <6440043.2WKgQ0tYWV@vostro.rjw.lan>
+From: Mika Westerberg <mika.westerberg@linux.intel.com>
+Subject: Re: [PATCH 1/3] x86: enable common clk on x86
+Date: Wed, 16 Jan 2013 07:20:54 +0200
+Message-ID: <20130116052054.GT13897@intel.com>
+References: <1358174788-24439-1-git-send-email-mika.westerberg@linux.intel.com>
+ <1358174788-24439-2-git-send-email-mika.westerberg@linux.intel.com>
+ <1474259.FsoB54Sm0k@vostro.rjw.lan>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from aserp1040.oracle.com ([141.146.126.69]:18071 "EHLO
-	aserp1040.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758173Ab3APEmS (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 15 Jan 2013 23:42:18 -0500
+Received: from mga09.intel.com ([134.134.136.24]:43905 "EHLO mga09.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750831Ab3APFR0 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 16 Jan 2013 00:17:26 -0500
 Content-Disposition: inline
-In-Reply-To: <6440043.2WKgQ0tYWV@vostro.rjw.lan>
+In-Reply-To: <1474259.FsoB54Sm0k@vostro.rjw.lan>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, konrad@kernel.org, xen-devel@lists.xensource.com
+Cc: linux-kernel@vger.kernel.org, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, x86@kernel.org, Len Brown <lenb@kernel.org>, Mike Turquette <mturquette@linaro.org>, Arnd Bergmann <arnd@arndb.de>, Linus Walleij <linus.walleij@linaro.org>, Mark Brown <broonie@opensource.wolfsonmicro.com>, Heikki Krogerus <heikki.krogerus@linux.intel.com>, linux-acpi@vger.kernel.org
 
-On Tue, Jan 15, 2013 at 11:45:08PM +0100, Rafael J. Wysocki wrote:
-> On Tuesday, January 15, 2013 05:23:24 PM Konrad Rzeszutek Wilk wrote:
-> > If cpuidle is disabled, that means the:
+On Wed, Jan 16, 2013 at 12:59:17AM +0100, Rafael J. Wysocki wrote:
+> On Monday, January 14, 2013 04:46:26 PM Mika Westerberg wrote:
+> > We are starting to see traditional SoC peripherals also in the x86 world,
+> > things like UART, I2C and SPI controllers that might already have a working
+> > device driver. These drivers typically take advantage of the Linux clk
+> > framework to control and retrieve information about the peripheral clock.
 > > 
-> > 	per_cpu(acpi_cpuidle_device, pr->id)
+> > There hasn't been a standard way on x86 to pass the clock rate from
+> > whatever configuration system is used to the driver, but instead different
+> > variations have emerged, like adding this information to the platform data.
 > > 
-> > is set to NULL as the acpi_processor_power_init ends up failing at
+> > In order to use the standard Linux way we enable the common clk subsystem
+> > also on x86. This allows us to re-use the drivers with little or no
+> > modification wrt. clock API usage.
 > > 
-> > 	 retval = cpuidle_register_driver(&acpi_idle_driver)
-> > 
-> > (in acpi_processor_power_init) and never sets the per_cpu idle
-> > device. So when acpi_processor_hotplug on CPU online notification tries
-> > to reference said device it crashes:
-> > 
-> > cpu 3 spinlock event irq 62
-> > BUG: unable to handle kernel NULL pointer dereference at 0000000000000004
-> > IP: [<ffffffff81381013>] acpi_processor_setup_cpuidle_cx+0x3f/0x105
-> > PGD a259b067 PUD ab38b067 PMD 0
-> > Oops: 0002 [#1] SMP
-> > odules linked in: dm_multipath dm_mod xen_evtchn iscsi_boot_sysfs iscsi_tcp libiscsi_tcp libiscsi scsi_transport_iscsi libcrc32c crc32c nouveau mxm_wmi wmi radeon ttm sg sr_mod sd_mod cdrom ata_generic ata_piix libata crc32c_intel scsi_mod atl1c i915 fbcon tileblit font bitblit softcursor drm_kms_helper video xen_blkfront xen_netfront fb_sys_fops sysimgblt sysfillrect syscopyarea xenfs xen_privcmd mperf
-> > CPU 1
-> > Pid: 3047, comm: bash Not tainted 3.8.0-rc3upstream-00250-g165c029 #1 MSI MS-7680/H61M-P23 (MS-7680)
-> > RIP: e030:[<ffffffff81381013>]  [<ffffffff81381013>] acpi_processor_setup_cpuidle_cx+0x3f/0x105
-> > RSP: e02b:ffff88001742dca8  EFLAGS: 00010202
-> > RAX: 0000000000010be9 RBX: ffff8800a0a61800 RCX: ffff880105380000
-> > RDX: 0000000000000003 RSI: 0000000000000200 RDI: ffff8800a0a61800
-> > RBP: ffff88001742dce8 R08: ffffffff81812360 R09: 0000000000000200
-> > R10: aaaaaaaaaaaaaaaa R11: 0000000000000001 R12: ffff8800a0a61800
-> > R13: 00000000ffffff01 R14: 0000000000000000 R15: ffffffff81a907a0
-> > FS:  00007fd6942f7700(0000) GS:ffff880105280000(0000) knlGS:0000000000000000
-> > CS:  e033 DS: 0000 ES: 0000 CR0: 0000000080050033
-> > CR2: 0000000000000004 CR3: 00000000a6773000 CR4: 0000000000042660
-> > DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
-> > DR3: 0000000000000000 DR6: 00000000ffff0ff0 DR7: 0000000000000400
-> > Process bash (pid: 3047, threadinfo ffff88001742c000, task ffff880017944000)
-> > Stack:
-> >  0000000000000150 ffff880100f59e00 ffff88001742dcd8 ffff8800a0a61800
-> >  0000000000000000 00000000ffffff01 0000000000000000 ffffffff81a907a0
-> >  ffff88001742dd18 ffffffff813815b1 ffff88001742dd08 ffffffff810ae336
-> > Call Trace:
-> >  [<ffffffff813815b1>] acpi_processor_hotplug+0x7c/0x9f
-> >  [<ffffffff810ae336>] ? schedule_delayed_work_on+0x16/0x20
-> >  [<ffffffff8137ee8f>] acpi_cpu_soft_notify+0x90/0xca
-> >  [<ffffffff8166023d>] notifier_call_chain+0x4d/0x70
-> >  [<ffffffff810bc369>] __raw_notifier_call_chain+0x9/0x10
-> >  [<ffffffff81094a4b>] __cpu_notify+0x1b/0x30
-> >  [<ffffffff81652cf7>] _cpu_up+0x103/0x14b
-> >  [<ffffffff81652e18>] cpu_up+0xd9/0xec
-> >  [<ffffffff8164a254>] store_online+0x94/0xd0
-> >  [<ffffffff814122fb>] dev_attr_store+0x1b/0x20
-> >  [<ffffffff81216404>] sysfs_write_file+0xf4/0x170
-> > 
-> > This patch fixes it.
+> > This patch was originally proposed by Mark Brown.
 > 
-> This appears to be -stable material too.  Which -stable kernels should it
-> be applied to?
+> Are there any side effects of selecting COMMON_CLK by an arch and if so then
+> what are they?
 
-Oh, 3.1 and onward. I am basing that on 62027aea since that allowed
-subsystem to disable the cpuidle API.
+Selecting COMMON_CLK also selects HAVE_CLK, so drivers that are dependent
+on that option become available when you run make config.
 
-Thanks!
-> 
-> Rafael
-> 
-> 
-> > Cc: Rafael J. Wysocki <rjw@sisk.pl>
-> > Signed-off-by: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
-> > ---
-> >  drivers/acpi/processor_idle.c | 3 +++
-> >  1 file changed, 3 insertions(+)
-> > 
-> > diff --git a/drivers/acpi/processor_idle.c b/drivers/acpi/processor_idle.c
-> > index f1a5da4..fea6f8d 100644
-> > --- a/drivers/acpi/processor_idle.c
-> > +++ b/drivers/acpi/processor_idle.c
-> > @@ -958,6 +958,9 @@ static int acpi_processor_setup_cpuidle_cx(struct acpi_processor *pr)
-> >  		return -EINVAL;
-> >  	}
-> >  
-> > +	if (!dev)
-> > +		return -EINVAL;
-> > +
-> >  	dev->cpu = pr->id;
-> >  
-> >  	if (max_cstate == 0)
-> > 
-> -- 
-> I speak only for myself.
-> Rafael J. Wysocki, Intel Open Source Technology Center.
+It also makes clk_get() and friends to return errors if the clock is not
+found (instead of returning NULL as in case with !HAVE_CLK). This means
+that if there is a driver that counted on the stubbed out clocks on x86 it
+will fail to get the clock after this patch. However, the patch that adds
+the stub functions was merged only lately:
+
+	commit 93abe8e4b13ae9a0428ce940a8a03ac72a7626f1
+	Author: Viresh Kumar <viresh.kumar@st.com>
+	Date:   Mon Jul 30 14:39:27 2012 -0700
+
+	    clk: add non CONFIG_HAVE_CLK routines
+	    
+	    Many drivers are shared between architectures that may or may not have
+	    HAVE_CLK selected for them.  To remove compilation errors for them we
+	    enclose clk_*() calls in these drivers within #ifdef CONFIG_HAVE_CLK,
+	    #endif.
+	    
+	    This patch removes the need of these CONFIG_HAVE_CLK statements, by
+	    introducing dummy routines when HAVE_CLK is not selected by platforms.
+	    So, definition of these routines will always be available.  These calls
+	    will return error for platforms that don't select HAVE_CLK.
