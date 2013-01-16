@@ -1,78 +1,63 @@
 From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: [PATCH 1/3] x86: enable common clk on x86
-Date: Wed, 16 Jan 2013 16:01:20 +0100
-Message-ID: <28908583.J70dQJd3BK@vostro.rjw.lan>
-References: <1358174788-24439-1-git-send-email-mika.westerberg@linux.intel.com> <1474259.FsoB54Sm0k@vostro.rjw.lan> <20130116052054.GT13897@intel.com>
+Subject: Re: [PATCH] ACPI: add support for CSRT table
+Date: Wed, 16 Jan 2013 16:05:13 +0100
+Message-ID: <52251733.O8Fi4oih4J@vostro.rjw.lan>
+References: <1358157111-26510-1-git-send-email-mika.westerberg@linux.intel.com> <2369015.SBxXlM67PJ@vostro.rjw.lan> <20130116044216.GP13897@intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7Bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from hydra.sisk.pl ([212.160.235.94]:41927 "EHLO hydra.sisk.pl"
+Received: from hydra.sisk.pl ([212.160.235.94]:41931 "EHLO hydra.sisk.pl"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750963Ab3APOzb (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 16 Jan 2013 09:55:31 -0500
-In-Reply-To: <20130116052054.GT13897@intel.com>
+	id S1753149Ab3APO7T (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 16 Jan 2013 09:59:19 -0500
+In-Reply-To: <20130116044216.GP13897@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Mika Westerberg <mika.westerberg@linux.intel.com>, "H. Peter Anvin" <hpa@zytor.com>
-Cc: linux-kernel@vger.kernel.org, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, x86@kernel.org, Len Brown <lenb@kernel.org>, Mike Turquette <mturquette@linaro.org>, Arnd Bergmann <arnd@arndb.de>, Linus Walleij <linus.walleij@linaro.org>, Mark Brown <broonie@opensource.wolfsonmicro.com>, Heikki Krogerus <heikki.krogerus@linux.intel.com>, linux-acpi@vger.kernel.org
+To: Mika Westerberg <mika.westerberg@linux.intel.com>
+Cc: linux-acpi@vger.kernel.org, Len Brown <lenb@kernel.org>, linux-kernel@vger.kernel.org, Andy Shevchenko <andriy.shevchenko@linux.intel.com>
 
-On Wednesday, January 16, 2013 07:20:54 AM Mika Westerberg wrote:
-> On Wed, Jan 16, 2013 at 12:59:17AM +0100, Rafael J. Wysocki wrote:
-> > On Monday, January 14, 2013 04:46:26 PM Mika Westerberg wrote:
-> > > We are starting to see traditional SoC peripherals also in the x86 world,
-> > > things like UART, I2C and SPI controllers that might already have a working
-> > > device driver. These drivers typically take advantage of the Linux clk
-> > > framework to control and retrieve information about the peripheral clock.
+On Wednesday, January 16, 2013 06:42:16 AM Mika Westerberg wrote:
+> On Wed, Jan 16, 2013 at 12:35:56AM +0100, Rafael J. Wysocki wrote:
+> > On Monday, January 14, 2013 11:51:51 AM Mika Westerberg wrote:
+> > > Core System Resources Table (CSRT) is a proprietary ACPI table that
+> > > contains resources for certain devices that are not found in the DSDT
+> > > table. Typically a shared DMA controller might be found here.
 > > > 
-> > > There hasn't been a standard way on x86 to pass the clock rate from
-> > > whatever configuration system is used to the driver, but instead different
-> > > variations have emerged, like adding this information to the platform data.
+> > > This patch adds support for this table. We go through all entries in the
+> > > table and make platform devices of them. The resources from the table are
+> > > passed with the platform device.
 > > > 
-> > > In order to use the standard Linux way we enable the common clk subsystem
-> > > also on x86. This allows us to re-use the drivers with little or no
-> > > modification wrt. clock API usage.
-> > > 
-> > > This patch was originally proposed by Mark Brown.
+> > > There is one special resource in the table and it is the DMA request line
+> > > base and number of request lines. This information might be needed by the
+> > > DMA controller driver as it needs to map the ACPI DMA request line number
+> > > to the actual request line understood by the hardware. This range is passed
+> > > as IORESOURCE_DMA resource.
 > > 
-> > Are there any side effects of selecting COMMON_CLK by an arch and if so then
-> > what are they?
+> > I have a question: Who's going to bind to those platform devices created
+> > by the code in this patch and how exactly this is going to happen?
 > 
-> Selecting COMMON_CLK also selects HAVE_CLK, so drivers that are dependent
-> on that option become available when you run make config.
-
-Well, that's not very nice.  Do you know how many of them there are?
-
-Distros often build all drivers available regardless of whether or not they
-are going to be used and it would be kind of wasteful for them to build drivers
-that aren't even going to work.
-
-> It also makes clk_get() and friends to return errors if the clock is not
-> found (instead of returning NULL as in case with !HAVE_CLK). This means
-> that if there is a driver that counted on the stubbed out clocks on x86 it
-> will fail to get the clock after this patch. However, the patch that adds
-> the stub functions was merged only lately:
+> Typically it is the DMA driver (but not limited to that). It is supposed to
+> work so that either the driver name (in the platform driver struct) matches
+> the device name in the CSRT or like with the dw_dmac case we do something
+> like:
 > 
-> 	commit 93abe8e4b13ae9a0428ce940a8a03ac72a7626f1
-> 	Author: Viresh Kumar <viresh.kumar@st.com>
-> 	Date:   Mon Jul 30 14:39:27 2012 -0700
+> /* The platform device created is "INTL9C60.0.auto" */
 > 
-> 	    clk: add non CONFIG_HAVE_CLK routines
-> 	    
-> 	    Many drivers are shared between architectures that may or may not have
-> 	    HAVE_CLK selected for them.  To remove compilation errors for them we
-> 	    enclose clk_*() calls in these drivers within #ifdef CONFIG_HAVE_CLK,
-> 	    #endif.
-> 	    
-> 	    This patch removes the need of these CONFIG_HAVE_CLK statements, by
-> 	    introducing dummy routines when HAVE_CLK is not selected by platforms.
-> 	    So, definition of these routines will always be available.  These calls
-> 	    will return error for platforms that don't select HAVE_CLK.
-> --
+> static const struct platform_device_id dw_dma_ids[] = {
+>         { "INTL9C60", 0 },
+> 	{ }
+> }
+> 
+> static struct platform_driver dw_driver = {
+> 	...
+> 	.id_table = dw_dma_ids,
+> };
 
-That should be fine, then.
+OK, that's fine by me.  Will apply.
 
-Peter, what do you think?
+Do you want it to go to any particular branch (eg. along with the acpi-scan
+changes)?
 
 Rafael
 
