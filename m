@@ -1,76 +1,61 @@
-From: Jiri Slaby <jslaby@suse.cz>
-Subject: Re: -next: no resume from suspend
-Date: Wed, 16 Jan 2013 23:48:32 +0100
-Message-ID: <50F72E40.5040903@suse.cz>
-References: <50F3D9E8.6040802@suse.cz> <16191961.j5ydKsJ3d3@vostro.rjw.lan> <50F68443.3040900@suse.cz> <1383787.8I6fLLmNxl@vostro.rjw.lan>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: Re: [PATCH] ACPI, APEI: Fixup incorrect 64-bit access width firmware bug
+Date: Wed, 16 Jan 2013 23:54:54 +0100
+Message-ID: <2313122.XO7091fHrU@vostro.rjw.lan>
+References: <1358327009-14625-1-git-send-email-jia.zhang@windriver.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-pm-owner@vger.kernel.org>
-In-Reply-To: <1383787.8I6fLLmNxl@vostro.rjw.lan>
-Sender: linux-pm-owner@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: Linux PM mailing list <linux-pm@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Bjorn Helgaas <bhelgaas@google.com>, "Moore, Robert" <robert.moore@intel.com>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7Bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from hydra.sisk.pl ([212.160.235.94]:42245 "EHLO hydra.sisk.pl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1758087Ab3APWtB (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 16 Jan 2013 17:49:01 -0500
+In-Reply-To: <1358327009-14625-1-git-send-email-jia.zhang@windriver.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Lans Zhang <jia.zhang@windriver.com>
+Cc: len.brown@intel.com, linux-acpi@vger.kernel.org, Myron Stowe <mstowe@redhat.com>, Huang Ying <ying.huang@intel.com>, Gary Hade <garyhade@us.ibm.com>
 
-On 01/16/2013 03:00 PM, Rafael J. Wysocki wrote:
-> On Wednesday, January 16, 2013 11:43:15 AM Jiri Slaby wrote:
->> On 01/14/2013 01:56 PM, Rafael J. Wysocki wrote:
->>> On Monday, January 14, 2013 11:11:52 AM Jiri Slaby wrote:
->>>> Hi,
->>>>
->>>> since friday's -next (the last known to be working is the last monday's)
->>>> I cannot resume from suspend. The last thing I see with
->>>> no_console_suspend is:
->>>> i915: No ACPI video bus found
->>>>
->>>> But I used to see the message always, so this is no difference. Any idea
->>>> before I start bisecting?
->>>
->>> Well, what's the next message you normally see with no_console_suspend?
->>
->> As I wrote in the other message, the kernel is spinning in
->> acpi_rs_get_aml_length. There are weird resources in the list. For
->> serial 00:05 there is resource with type and length equal to 0 and for
->> parport_pc 00:06 there is resource type 58196295 with length of
->> 134284152. See:
->> acpi_rs_get_aml_length: ffff8801b9f7b380 type=3 len=16
->> acpi_rs_get_aml_length: ffff8801b9f7b390 type=0 len=0
->> acpi_rs_get_aml_length: BAD ffff8801b9f7b390 type=0 len=0
->> serial 00:05: activation failed
->> dpm_run_callback(): pnp_bus_resume+0x0/0x80 returns -5
->> PM: Device 00:05 failed to resume: error -5
->> acpi_rs_get_aml_length: ffff8801b9f7b680 type=3 len=24
->> acpi_rs_get_aml_length: ffff8801b9f7b698 type=58196295 len=134284152
->> parport_pc 00:06: activation failed
->> dpm_run_callback(): pnp_bus_resume+0x0/0x80 returns -5
->> PM: Device 00:06 failed to resume: error -5
->>
->> if (!length)
->>   return error;
->>
->> makes it resume again with the errors above...
->>
->> This was 3.8.0-rc3-next-20130114. 
+On Wednesday, January 16, 2013 05:03:29 PM Lans Zhang wrote:
+> The bit width check was introduced by 15afae60 (ACPI, APEI: Fix
+> incorrect APEI register bit width check and usage), and a fixup
+> for incorrect 32-bit width memory address was given by f712c71
+> (ACPI, APEI: Fixup common access width firmware bug). Now there
+> is a similar symptom:
 > 
-> There are two things you can try.  First, revert all of the ACPICA patches
-> and see if that helps.  Second, if that doesn't help, try to revert things in
-> the PCI tree (alternatively, you can try the PCI tree alone).
+> [Firmware Bug]: APEI: Invalid bit width + offset in GAR [0x12345000/64/0/3/0]
 > 
-> I have tested suspend/resume with the ACPI (including ACPICA) patches applied,
-> but I haven't tested the PCI tree.
+> Another bogus BIOS reports an incorrect 64-bit width in trigger table.
+> Thus, apply to a similar workaround for 64-bit width memory address.
 
-I bisected that. It is caused by the following commit:
-commit 2a3ab82714043580505634ff5b9a743ff4237376
-Author: Bjorn Helgaas <bhelgaas@google.com>
-Date:   Fri Jan 4 22:38:10 2013 +0000
+This makes sense to me, but I'd like more people to have a look at it (Myron,
+Ying, Gary CCed).
 
-    PNPACPI: Use _CRS buffer directly as _SRS template
+Thanks,
+Rafael
 
-Acpidump is here if you are interested:
-http://www.fi.muni.cz/~xslaby/sklad/adump
 
-thanks,
+> Signed-off-by: Lans Zhang <jia.zhang@windriver.com>
+> ---
+>  drivers/acpi/apei/apei-base.c |    3 +++
+>  1 files changed, 3 insertions(+), 0 deletions(-)
+> 
+> diff --git a/drivers/acpi/apei/apei-base.c b/drivers/acpi/apei/apei-base.c
+> index 00a7836..46f80e2 100644
+> --- a/drivers/acpi/apei/apei-base.c
+> +++ b/drivers/acpi/apei/apei-base.c
+> @@ -590,6 +590,9 @@ static int apei_check_gar(struct acpi_generic_address *reg, u64 *paddr,
+>  	if (bit_width == 32 && bit_offset == 0 && (*paddr & 0x03) == 0 &&
+>  	    *access_bit_width < 32)
+>  		*access_bit_width = 32;
+> +	else if (bit_width == 64 && bit_offset == 0 && (*paddr & 0x07) == 0 &&
+> +	    *access_bit_width < 64)
+> +		*access_bit_width = 64;
+>  
+>  	if ((bit_width + bit_offset) > *access_bit_width) {
+>  		pr_warning(FW_BUG APEI_PFX
+> 
 -- 
-js
-suse labs
+I speak only for myself.
+Rafael J. Wysocki, Intel Open Source Technology Center.
