@@ -1,248 +1,255 @@
 From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: [PATCH v2] ACPI: add support for CSRT table
-Date: Thu, 17 Jan 2013 00:27:32 +0100
-Message-ID: <1414072.uJWlZ7TPsD@vostro.rjw.lan>
-References: <1358157111-26510-1-git-send-email-mika.westerberg@linux.intel.com> <1358352823-6018-1-git-send-email-mika.westerberg@linux.intel.com>
+Subject: Re: [RFC PATCH v2 00/12] System device hot-plug framework
+Date: Thu, 17 Jan 2013 01:50:39 +0100
+Message-ID: <2389744.NKfBmfO9at@vostro.rjw.lan>
+References: <1357861230-29549-1-git-send-email-toshi.kani@hp.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7Bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from hydra.sisk.pl ([212.160.235.94]:42307 "EHLO hydra.sisk.pl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755063Ab3APXVk (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 16 Jan 2013 18:21:40 -0500
-In-Reply-To: <1358352823-6018-1-git-send-email-mika.westerberg@linux.intel.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Return-path: <owner-linux-mm@kvack.org>
+In-Reply-To: <1357861230-29549-1-git-send-email-toshi.kani@hp.com>
+Sender: owner-linux-mm@kvack.org
+To: Toshi Kani <toshi.kani@hp.com>
+Cc: lenb@kernel.org, gregkh@linuxfoundation.org, akpm@linux-foundation.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linux-mm@kvack.org, linuxppc-dev@lists.ozlabs.org, linux-s390@vger.kernel.org, bhelgaas@google.com, isimatu.yasuaki@jp.fujitsu.com, jiang.liu@huawei.com, wency@cn.fujitsu.com, guohanjun@huawei.com, yinghai@kernel.org, srivatsa.bhat@linux.vnet.ibm.com
 List-Id: linux-acpi@vger.kernel.org
-To: Mika Westerberg <mika.westerberg@linux.intel.com>
-Cc: linux-acpi@vger.kernel.org, Len Brown <lenb@kernel.org>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, linux-kernel@vger.kernel.org
 
-On Wednesday, January 16, 2013 06:13:43 PM Mika Westerberg wrote:
-> Core System Resources Table (CSRT) is a proprietary ACPI table that
-> contains resources for certain devices that are not found in the DSDT
-> table. Typically a shared DMA controller might be found here.
+On Thursday, January 10, 2013 04:40:18 PM Toshi Kani wrote:
+> This patchset is a prototype of proposed system device hot-plug framework
+> for design review.  Unlike other hot-plug environments, such as USB and
+> PCI, there is no common framework for system device hot-plug [1].
+> Therefore, this patchset is designed to provide a common framework for
+> hot-plugging and online/offline operations of system devices, such as CPU,
+> Memory and Node.  While this patchset only supports ACPI-based hot-plug
+> operations, the framework itself is designed to be platform-neural and
+> can support other FW architectures as necessary.
 > 
-> This patch adds support for this table. We go through all entries in the
-> table and make platform devices of them. The resources from the table are
-> passed with the platform device.
+> This patchset is based on Linus's tree (3.8-rc3).
 > 
-> There is one special resource in the table and it is the DMA request line
-> base and number of request lines. This information might be needed by the
-> DMA controller driver as it needs to map the ACPI DMA request line number
-> to the actual request line understood by the hardware. This range is passed
-> as IORESOURCE_DMA resource.
+> I have seen a few stability issues with 3.8-rc3 in my testing and will
+> look into their solutions.
 > 
-> Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-> Signed-off-by: Mika Westerberg <mika.westerberg@linux.intel.com>
-> ---
-> We got a report that compiling this as 32-bit gives the following warning:
+> [1] System device hot-plug frameworks for ppc and s390 are implemented
+>     for specific platforms and products.
 > 
->     drivers/acpi/csrt.c:42:5: warning: left shift count >= width of type [enabled by default]
 > 
-> Since all the CSRT tables we've seen are limited to 32-bit physical
-> addresses anyway (and the LPSS itself is 32-bit only) we fix this by only
-> using the low part of the MMIO address for now.
+> Background: System Device Initialization
+> ========================================
+> System devices, such as CPU and memory, must be initialized during early
+> boot sequence as they are the essential components to provide low-level
+> services, ex. scheduling, memory allocation and interrupts, which are
+> the foundations of the kernel services.  start_kernel() and kernel_init()
+> manage the boot-up sequence to initialize system devices and low-level
+> services in pre-defined order as shown below. 
 > 
-> Sorry about the mess.
+>   start_kernel()
+>     boot_cpu_init()          // init cpu0
+>     setup_arch()
+>       efi_init()             // init EFI memory map
+>       initmem_init()         // init NUMA
+>       x86_init.paging.pagetable_init() // init page table
+>       acpi_boot_init()       // parse ACPI MADT table
+>         :
+>   kernel_init()
+>     kernel_init_freeable()
+>       smp_init()             // init other CPUs
+>         :
+>       do_basic_setup()
+>         driver_init()
+>           cpu_dev_init()     // build system/cpu tree
+>           memory_dev_init()  // build system/memory tree
+>         do_initcalls()
+>           acpi_init()        // build ACPI device tree
+> 
+> Note that drivers are initialized at the end of the boot sequence as they
+> depend on the kernel services from system devices.  Hence, while system
+> devices may be exposed to sysfs with their pseudo drivers, their
+> initialization may not be fully integrated into the driver structures.  
+> 
+> Overview of the System Device Hot-plug Framework
+> ================================================
+> Similar to the boot-up sequence, the system device hot-plug framework
+> provides a sequencer that calls all registered handlers in pre-defined
+> order for hot-add and hot-delete of system devices.  It allows any modules
+> initializing system devices in the boot-up sequence to participate in
+> the hot-plug operations as well.  In high-level, there are two types of
+> handlers, 1) FW-dependent (ex. ACPI) handlers that enumerate or eject
+> system devices, and 2) system device (ex. CPU, Memory) management handlers
+> that online or offline the enumerated system devices.  Online/offline
+> operations are sub-set of hot-add/delete operations.  The ordering of the
+> handlers are symmetric between hot-add (online) and hot-delete (offline)
+> operations.
+> 
+>         hot-add    online
+>            |    ^    :    ^
+>   HW Enum/ |    |    :    :
+>     Eject  |    |    :    :
+>            |    |    :    :
+>   Online/  |    |    |    |
+>   Offline  |    |    |    |
+>            V    |    V    |
+>              hot-del   offline
+> 
+> The handlers may not call other handlers directly to exceed their role.
+> Therefore, the role of the handlers in their modules remains consistent
+> with their role at the boot-up sequence.  For instance, the ACPI module
+> may not perform online or offline of system devices.
+> 
+> System Device Hot-plug Operation
+> ================================
+> 
+> Serialized Startup
+> ------------------
+> The framework provides an interface (hp_submit_req) to request a hot-plug
+> operation.  All requests are queued to and run on a single work queue.
+> The framework assures that there is only a single hot-plug or online/
+> offline operation running at a time.  A single request may however target
+> to multiple devices.  This makes the execution context of handlers to be
+> consistent with the boot-up sequence and enables code sharing.
+> 
+> Phased Execution
+> ----------------
+> The framework proceeds hot-plug and online/offline operations in the 
+> following three phases.  The modules can register their handlers to each
+> phase.  The framework also initiates a roll-back operation if any hander
+> failed in the validate or execute phase.
+> 
+> 1) Validate Phase - Handlers validate if they support a given request
+> without making any changes to target device(s).  They check any known
+> restrictions and/or prerequisite conditions to their modules, and fail
+> an unsupported request before making any changes.  For instance, the
+> memory module may check if a hot-remove request is targeted to movable
+> ranges.
+> 
+> 2) Execute Phase - Handlers make requested change within the scope that
+> its roll-back is possible in case of a failure.  Execute handlers must
+> implement their roll-back procedures.
+> 
+> 3) Commit Phase - Handlers make the final change that cannot be rolled-back.
+> For instance, the ACPI module invokes _EJ0 for a hot-remove operation.
+> 
+> System Device Management Modules
+> ================================
+> 
+> CPU Handlers
+> ------------
+> CPU handlers are provided by the CPU driver in drivers/base/cpu.c, and
+> perform CPU online/offline procedures when CPU device(s) is added or
+> deleted during an operation.
+> 
+> Memory Handlers
+> ---------------
+> Memory handlers are provided by the memory module in mm/memory_hotplug.c,
+> and perform Memory online/offline procedure when memory device(s) is
+> added or deleted during an operation.
+> 
+> FW-dependent Modules
+> ====================
+> 
+> ACPI Bus Handlers
+> -----------------
+> ACPI bus handlers are provided by the ACPI core in drivers/acpi/bus.c,
+> and construct/destruct acpi_device object(s) during a hot-plug operation.
+> 
+> ACPI Resource Handlers
+> ----------------------
+> ACPI resource handlers are provided by the ACPI core in
+> drivers/acpi/hp_resource.c, and set device resource information to
+> a request during a hot-plug operation.  This device resource information
+> is then consumed by the system device management modules for their
+> online/offline procedure.
+> 
+> ACPI Drivers
+> ------------
+> ACPI drivers are called from the ACPI core during a hot-plug operation
+> through the following interfaces.  ACPI drivers are not called from the
+> framework directly, and remain internal to the ACPI core.  ACPI drivers
+> may not initiate online/offline of a device.
+> 
+> .add - Construct device-specific information to a given acpi_device.
+> Called at boot, hot-add and sysfs bind.
+> 
+> .remove - Destruct device-specific information to a given acpi_device.
+> Called at hot-remove and sysfs unbind.
+> 
+> .resource - Set device-specific resource information to a given hot-plug
+> request.  Called at hot-add and hot-remove.
 
-No biggie.
+At this point I'd like to clearly understand how the code is supposed to work.
 
-I was about to apply this, but I started to wonder ->
+>From what I can say at the moment it all boils down to having two (ordered)
+lists of notifiers (shp_add_list, shp_del_list) that can be added to or removed
+from with shp_register_handler() and shp_unregister_handler(), respectively
+(BTW, the abbreviation "hdr" makes me think about a "header" rather than a
+"handler", but maybe that's just me :-)), and a workqueue for requests (why do
+we need a separate workqueue for that?).
 
-> 
->  drivers/acpi/Makefile |    1 +
->  drivers/acpi/csrt.c   |  160 +++++++++++++++++++++++++++++++++++++++++++++++++
->  2 files changed, 161 insertions(+)
->  create mode 100644 drivers/acpi/csrt.c
-> 
-> diff --git a/drivers/acpi/Makefile b/drivers/acpi/Makefile
-> index 4ee2e75..474fcfe 100644
-> --- a/drivers/acpi/Makefile
-> +++ b/drivers/acpi/Makefile
-> @@ -38,6 +38,7 @@ acpi-y				+= processor_core.o
->  acpi-y				+= ec.o
->  acpi-$(CONFIG_ACPI_DOCK)	+= dock.o
->  acpi-y				+= pci_root.o pci_link.o pci_irq.o
-> +acpi-y				+= csrt.o
->  acpi-y				+= acpi_platform.o
->  acpi-y				+= power.o
->  acpi-y				+= event.o
-> diff --git a/drivers/acpi/csrt.c b/drivers/acpi/csrt.c
-> new file mode 100644
-> index 0000000..fe69587
-> --- /dev/null
-> +++ b/drivers/acpi/csrt.c
-> @@ -0,0 +1,160 @@
-> +/*
-> + * Support for Core System Resources Table (CSRT)
-> + *
-> + * Copyright (C) 2013, Intel Corporation
-> + * Authors: Mika Westerberg <mika.westerberg@linux.intel.com>
-> + *	    Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-> + *
-> + * This program is free software; you can redistribute it and/or modify
-> + * it under the terms of the GNU General Public License version 2 as
-> + * published by the Free Software Foundation.
-> + */
-> +
-> +#define pr_fmt(fmt) "ACPI: CSRT: " fmt
-> +
-> +#include <linux/acpi.h>
-> +#include <linux/device.h>
-> +#include <linux/kernel.h>
-> +#include <linux/module.h>
-> +#include <linux/platform_device.h>
-> +#include <linux/sizes.h>
-> +
-> +ACPI_MODULE_NAME("CSRT");
-> +
-> +static int __init acpi_csrt_parse_shared_info(struct platform_device *pdev,
-> +					      const struct acpi_csrt_group *grp)
-> +{
-> +	const struct acpi_csrt_shared_info *si;
-> +	struct resource res[3];
-> +	size_t nres;
-> +	int ret;
-> +
-> +	memset(res, 0, sizeof(res));
-> +	nres = 0;
-> +
-> +	si = (const struct acpi_csrt_shared_info *)&grp[1];
-> +	/*
-> +	 * The peripherals that are listed on CSRT typically support only
-> +	 * 32-bit addresses so we only use the low part of MMIO base for
-> +	 * now.
-> +	 */
-> +	if (!si->mmio_base_high && si->mmio_base_low) {
-> +		/*
-> +		 * There is no size of the memory resource in shared_info
-> +		 * so we assume that it is 4k here.
-> +		 */
-> +		res[nres].start = si->mmio_base_low;
-> +		res[nres].end = res[0].start + SZ_4K - 1;
-> +		res[nres++].flags = IORESOURCE_MEM;
-> +	}
-> +
-> +	if (si->gsi_interrupt) {
-> +		int irq = acpi_register_gsi(NULL, si->gsi_interrupt,
-> +					    si->interrupt_mode,
-> +					    si->interrupt_polarity);
-> +		res[nres].start = irq;
-> +		res[nres].end = irq;
-> +		res[nres++].flags = IORESOURCE_IRQ;
-> +	}
-> +
-> +	if (si->base_request_line || si->num_handshake_signals) {
-> +		/*
-> +		 * We pass the driver a DMA resource describing the range
-> +		 * of request lines the device supports.
-> +		 */
-> +		res[nres].start = si->base_request_line;
-> +		res[nres].end = res[nres].start + si->num_handshake_signals - 1;
-> +		res[nres++].flags = IORESOURCE_DMA;
-> +	}
-> +
-> +	ret = platform_device_add_resources(pdev, res, nres);
-> +	if (ret) {
-> +		if (si->gsi_interrupt)
-> +			acpi_unregister_gsi(si->gsi_interrupt);
-> +		return ret;
-> +	}
-> +
-> +	return 0;
-> +}
-> +
-> +static int __init
-> +acpi_csrt_parse_resource_group(const struct acpi_csrt_group *grp)
-> +{
-> +	struct platform_device *pdev;
-> +	char vendor[5], name[16];
-> +	int ret, i;
-> +
-> +	vendor[0] = grp->vendor_id;
-> +	vendor[1] = grp->vendor_id >> 8;
-> +	vendor[2] = grp->vendor_id >> 16;
-> +	vendor[3] = grp->vendor_id >> 24;
-> +	vendor[4] = '\0';
-> +
-> +	if (grp->shared_info_length != sizeof(struct acpi_csrt_shared_info))
-> +		return -ENODEV;
-> +
-> +	snprintf(name, sizeof(name), "%s%04X", vendor, grp->device_id);
-> +	pdev = platform_device_alloc(name, PLATFORM_DEVID_AUTO);
-> +	if (!pdev)
-> +		return -ENOMEM;
-> +
-> +	/* Add resources based on the shared info */
-> +	ret = acpi_csrt_parse_shared_info(pdev, grp);
-> +	if (ret)
-> +		goto fail;
-> +
-> +	ret = platform_device_add(pdev);
-> +	if (ret)
-> +		goto fail;
-> +
-> +	for (i = 0; i < pdev->num_resources; i++)
-> +		dev_dbg(&pdev->dev, "%pR\n", &pdev->resource[i]);
-> +
-> +	return 0;
-> +
-> +fail:
-> +	platform_device_put(pdev);
-> +	return ret;
-> +}
-> +
-> +/*
-> + * CSRT or Core System Resources Table is a proprietary ACPI table
-> + * introduced by Microsoft. This table can contain devices that are not in
-> + * the system DSDT table. In particular DMA controllers might be described
-> + * here.
-> + *
-> + * We present these devices as normal platform devices that don't have ACPI
-> + * IDs or handle. The platform device name will be something like
-> + * <VENDOR><DEVID>.<n>.auto for example: INTL9C06.0.auto.
-> + */
-> +static int __init acpi_csrt_init(void)
-> +{
-> +	struct acpi_csrt_group *grp, *end;
-> +	struct acpi_table_csrt *csrt;
-> +	acpi_status status;
-> +	int ret;
-> +
-> +	status = acpi_get_table(ACPI_SIG_CSRT, 0,
-> +				(struct acpi_table_header **)&csrt);
-> +	if (ACPI_FAILURE(status)) {
-> +		if (status == AE_NOT_FOUND)
-> +			return -ENOENT;
-> +		return -EINVAL;
-> +	}
-> +
-> +	pr_debug("parsing CSRT table for devices\n");
-> +
-> +	grp = (struct acpi_csrt_group *)(csrt + 1);
-> +	end = (struct acpi_csrt_group *)((void *)csrt + csrt->header.length);
-> +
-> +	while (grp < end) {
-> +		ret = acpi_csrt_parse_resource_group(grp);
-> +		if (ret)
-> +			return ret;
-> +
-> +		grp = (struct acpi_csrt_group *)((void *)grp + grp->length);
-> +	}
-> +
-> +	return 0;
-> +}
-> +subsys_initcall(acpi_csrt_init);
+Whoever needs to carry out a hotplug operation is supposed to prepare a request
+and then put it into the workqueue with shp_submit_request().  The framework
+will then execute all of the notifier callbacks from the appropriate notifier
+list (depending on whether the operation is a hot-add or a hot-remove).  If any
+of those callbacks returns an error code and it is not too late (the order of
+the failing notifier is not too high), the already executed notifier callbacks
+will be run again with the "rollback" argument set to 1 (why not to use bool?)
+to indicate that they are supposed to bring things back to the initial state.
+Error codes returned in that stage only cause messages to be printed.
 
--> Do we really need a separate initcall for that?  And what if ACPI is
-disabled?
+Is the description above correct?
 
-Perhaps it would be better to call acpi_csrt_init() directly from
-acpi_init() (or from acpi_scan_init() whichever is more suitable)?
+If so, it looks like subsystems are supposed to register notifiers (handlers)
+for hotplug/hot-remove operations of the devices they handle.  They are
+supposed to use predefined order values to indicate what kinds of devices
+those are.  Then, hopefully, if they do everything correctly, and the
+initiator of a hotplug/hot-remove operation prepares the request correctly,
+the callbacks will be executed in the right order, they will find their
+devices in the list attached to the request object and they will do what's
+necessary with them.
 
+Am I still on the right track?
+
+If that's the case, I have a few questions.
+
+(1) Why is this limited to system devices?
+
+(2) What's the guarantee that the ordering of hot-removal (for example) of CPU
+    cores with respect to memory and host bridges will always be the same?
+    What if the CPU cores themselves need to be hot-removed in a specific
+    order?
+
+(3) What's the guarantee that the ordering of shp_add_list and shp_del_list
+    will be in agreement with the ordering of the device hierarchy?
+
+(4) Why do you think that the ordering of hot-plug operations needs to be
+    independent of the device herarchy ordering?
+
+(5) Why do you think it's a good idea to require every callback routine to
+    browse the entire list of devices attached to the request object?  Wouldn't
+    it be more convenient if they were called only for the types of devices
+    they have declared to handle?  [That would reduce some code duplication,
+    for example.]
+
+(6) Why is it convenient to use order values (priorities) of notifiers to
+    indicate both the ordering with respect to the other notifiers and the
+    "level" (e.g. whether or not rollback is possible) at the same time?  Those
+    things appear to be conceptually distinct.
+
+(7) Why callbacks used for "add" operations still need to check if the
+    operation type is "add" (cpu_add_execute() does that for example)?
+
+(8) What problems *exactly* this is supposed to address?  Can you give a few
+    examples, please?
+
+I guess I'll have more questions going forward.
+
+Thanks,
 Rafael
 
 
 -- 
 I speak only for myself.
 Rafael J. Wysocki, Intel Open Source Technology Center.
+
+--
+To unsubscribe, send a message with 'unsubscribe linux-mm' in
+the body to majordomo@kvack.org.  For more info on Linux MM,
+see: http://www.linux-mm.org/ .
+Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
