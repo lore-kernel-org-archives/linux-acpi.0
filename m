@@ -1,51 +1,23 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: [PATCH] ACPI: fix obsolete comments
-Date: Thu, 17 Jan 2013 14:35:58 +0100
-Message-ID: <2165732.ArCGEtvVHK@vostro.rjw.lan>
-References: <1358390867.20319.0.camel@rzhang1-mobl4>
+From: "Luck, Tony" <tony.luck@intel.com>
+Subject: RE: [PATCH v10 3/3] aerdrv: Cleanup log output for AER
+Date: Thu, 17 Jan 2013 17:21:26 +0000
+Message-ID: <3908561D78D1C84285E8C5FCA982C28F1C986E72@ORSMSX108.amr.corp.intel.com>
+References: <20130116235102.16015.77379.stgit@grignak.americas.hpqcorp.net>
+ <20130116235116.16015.62519.stgit@grignak.americas.hpqcorp.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7Bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from hydra.sisk.pl ([212.160.235.94]:43339 "EHLO hydra.sisk.pl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751907Ab3AQNaE (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 17 Jan 2013 08:30:04 -0500
-In-Reply-To: <1358390867.20319.0.camel@rzhang1-mobl4>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Transfer-Encoding: base64
+Return-path: <linux-pci-owner@vger.kernel.org>
+In-Reply-To: <20130116235116.16015.62519.stgit@grignak.americas.hpqcorp.net>
+Content-Language: en-US
+Sender: linux-pci-owner@vger.kernel.org
+To: Lance Ortiz <lance.ortiz@hp.com>, "bhelgaas@google.com" <bhelgaas@google.com>, "lance_ortiz@hotmail.com" <lance_ortiz@hotmail.com>, "jiang.liu@huawei.com" <jiang.liu@huawei.com>, "bp@alien8.de" <bp@alien8.de>, "rostedt@goodmis.org" <rostedt@goodmis.org>, "mchehab@redhat.com" <mchehab@redhat.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
-To: Zhang Rui <rui.zhang@intel.com>
-Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>
 
-On Thursday, January 17, 2013 10:47:47 AM Zhang Rui wrote:
-> From 60d772572f78d78fbf4430a77599532826b55a12 Mon Sep 17 00:00:00 2001
-> From: Zhang Rui <rui.zhang@intel.com>
-> Date: Wed, 16 Jan 2013 20:01:01 +0800
-> Subject: [PATCH] ACPI: fix obsolete comments
-
-I'm going to apply this (with a slightly different subject and changelog).
-
-Thanks,
-Rafael
-
-
-> Signed-off-by: Zhang Rui <rui.zhang@intel.com>
-> ---
->  drivers/acpi/custom_method.c |    2 +-
->  1 file changed, 1 insertion(+), 1 deletion(-)
-> 
-> diff --git a/drivers/acpi/custom_method.c b/drivers/acpi/custom_method.c
-> index 5d42c24..6adfc70 100644
-> --- a/drivers/acpi/custom_method.c
-> +++ b/drivers/acpi/custom_method.c
-> @@ -1,5 +1,5 @@
->  /*
-> - * debugfs.c - ACPI debugfs interface to userspace.
-> + * custom_method.c - debugfs interface for customizing ACPI control method
->   */
->  
->  #include <linux/init.h>
-> 
--- 
-I speak only for myself.
-Rafael J. Wysocki, Intel Open Source Technology Center.
+PiBUaGVzZSBjaGFuZ2VzIG1ha2UgY3Blcl9wcmludF9hZXIgbW9yZSBjb25zaXN0ZW50IHdpdGgg
+YWVyX3ByaW50X2Vycm9yDQo+IGFuZCBjbGVhbiB0aGluZ3MgdXAgYnkgZWxpbWluYXRpbmcgdGhl
+IHVzZSBvZiB0aGUgcHJlZml4IHZhcmlhYmxlIGFuZA0KPiByZXBsYWNpbmcgaXQgd2l0aCBkZXZf
+cHJpbnRrLg0KDQpBcHBsaWVkIHYxMCBzZXJpZXMgYW5kIHB1dCBpdCBpbnRvIG15ICJuZXh0IiBi
+cmFuY2ggc28gbGludXgtbmV4dCB3aWxsDQpncmFiIGl0IG9uIHRoZSBuZXh0IGN5Y2xlLiAgV2ls
+bCB0cnkgdG8gaW50ZXJlc3QgdGhlICJ0aXAiIG1haW50YWluZXJzIGluDQpwdWxsaW5nIGFnYWlu
+IGluIGEgZmV3IGRheXMuDQoNCi1Ub255DQo=
