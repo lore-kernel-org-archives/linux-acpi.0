@@ -1,246 +1,81 @@
-From: Mika Westerberg <mika.westerberg@linux.intel.com>
-Subject: [PATCH v3] ACPI: add support for CSRT table
-Date: Thu, 17 Jan 2013 11:59:33 +0200
-Message-ID: <1358416773-32404-1-git-send-email-mika.westerberg@linux.intel.com>
+From: Tom Gundersen <teg@jklm.no>
+Subject: Re: [arch-general] powernow-k8 fails to load with linux 3.7.2
+Date: Thu, 17 Jan 2013 11:34:22 +0100
+Message-ID: <CAG-2HqVm+=pcd5hNtPqtbQYseDRZhi=hFaji6+xs8+26V2HW+A@mail.gmail.com>
+References: <20130115224755.085aa6b7@bluemoon> <20130116131725.4e590c34@bluemoon>
+ <CAG-2HqWBVf=RWXExeFgxYdPTzPfQYZnt-3ZKzULTwdP9+-5mVQ@mail.gmail.com>
+ <1448223.sdUJnNSRz4@vostro.rjw.lan> <20130116231728.GA10204@x1.alien8.de>
+ <20130116181600.4c48ee3b@bluemoon> <20130117094648.GD30700@pd.tnic>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga14.intel.com ([143.182.124.37]:6353 "EHLO mga14.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1759416Ab3AQJ6d (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 17 Jan 2013 04:58:33 -0500
+Received: from mail-oa0-f43.google.com ([209.85.219.43]:47748 "EHLO
+	mail-oa0-f43.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1759494Ab3AQKem (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 17 Jan 2013 05:34:42 -0500
+Received: by mail-oa0-f43.google.com with SMTP id k1so2448863oag.16
+        for <linux-acpi@vger.kernel.org>; Thu, 17 Jan 2013 02:34:42 -0800 (PST)
+In-Reply-To: <20130117094648.GD30700@pd.tnic>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org
-Cc: "Rafael J. Wysocki" <rjw@sisk.pl>, Len Brown <lenb@kernel.org>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Mika Westerberg <mika.westerberg@linux.intel.com>, linux-kernel@vger.kernel.org
+To: Borislav Petkov <bp@alien8.de>
+Cc: Leonid Isaev <lisaev@umail.iu.edu>, "Rafael J. Wysocki" <rjw@sisk.pl>, =?UTF-8?Q?Andr=C3=A9_Przywara?= <andre@andrep.de>, Matthew Garrett <mjg@redhat.com>, cpufreq@vger.kernel.org, linux-acpi@vger.kernel.org
 
-Core System Resources Table (CSRT) is a proprietary ACPI table that
-contains resources for certain devices that are not found in the DSDT
-table. Typically a shared DMA controller might be found here.
+On Thu, Jan 17, 2013 at 10:46 AM, Borislav Petkov <bp@alien8.de> wrote:
+> On Wed, Jan 16, 2013 at 06:16:00PM -0600, Leonid Isaev wrote:
+>> > [ fixup Andre's address. ]
+>> >
+>> > On Wed, Jan 16, 2013 at 11:33:21PM +0100, Rafael J. Wysocki wrote:
+>> > > > down the frequancy, but is accompanied by an info-level kernel message
+>> > > > "acpi-cpufreq: overriding BIOS provided _PSD data".
+>> >
+>> > That just says that BIOS has crappy data and we're using our own.
+>>
+>> OK. Yes, my BIOS is broken, so I thought it was the reason why autoloading does
+>> not work.
+>
+> Hmm, come to think of it, we're issuing this message on SMP on *all*
+> AMDs with HW_PSTATE. Andre, remind me again why we're doing this? We're
+> basically saying that we're overriding ACPI data but we still read it
+> out from acpi_perf_data and use *that* data to prepare the frequencies
+> table. What am I missing?
+>
+>> To be more precise: "modprobe powernow-k8" returns a "no such device" error,
+>
+> That's correct - we say ENODEV on your CPU which supports hardware
+> P-states and hand off to acpi-cpufreq which has that functionality now.
+>
+>> but in kernel logs I see that acpi-cpufreq is indeed loaded:
+>> -------
+>> Jan 15 22:42:19 metal-0 kernel: [  534.003995] acpi-cpufreq: overriding BIOS
+>> provided _PSD data
+>> Jan 15 22:42:32 metal-0 kernel: [  547.122695] powernow-k8: this CPU is not
+>> supported anymore, using acpi-cpufreq instead.
+>> Jan 15 22:42:45 metal-0 kernel: [  559.623068] powernow-k8: this CPU is not
+>> supported anymore, using acpi-cpufreq instead.
+>> -------
+>> (the CPU in question is phenom II x4 955). However, this is only after I
+>> attempt to _manually_ load powernow-k8 (the timestamps in [...] are ~6 mins
+>> after boot is completed). So the above-mentioned handoff seems to work, but
+>> please find attached my kernel config.
+>
+> Ok, this is maybe the issue. What used to load powernow-k8 on your
+> distro before? Because basically it's enough if some script did
+> 'modprobe powernow-k8' for the handoff to just work.
+>
+> But, we also have the CPU autoprobing deal:
+>
+> http://git.kernel.org/?p=linux/kernel/git/torvalds/linux-2.6.git;a=commit;h=644e9cbbe3fc032cc92d0936057e166a994dc246
 
-This patch adds support for this table. We go through all entries in the
-table and make platform devices of them. The resources from the table are
-passed with the platform device.
+Arch relies entirely on the CPU autoprobing, there are no scripts
+modprobing things at boot.
 
-There is one special resource in the table and it is the DMA request line
-base and number of request lines. This information might be needed by the
-DMA controller driver as it needs to map the ACPI DMA request line number
-to the actual request line understood by the hardware. This range is passed
-as IORESOURCE_DMA resource.
+> so, *actually*, powernow-k8 should be loaded by default. I dunno, maybe
+> upgrade udev on your distro?
 
-Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Signed-off-by: Mika Westerberg <mika.westerberg@linux.intel.com>
----
-Changes to v2:
-	- instead of initcall we call acpi_csrt_init() directly from
-	  acpi_scan_init.
+Assuming Leonid's system is up-to-date, Arch ships the most recent
+udev version (197).
 
- drivers/acpi/Makefile   |    1 +
- drivers/acpi/csrt.c     |  159 +++++++++++++++++++++++++++++++++++++++++++++++
- drivers/acpi/internal.h |    1 +
- drivers/acpi/scan.c     |    1 +
- 4 files changed, 162 insertions(+)
- create mode 100644 drivers/acpi/csrt.c
+Cheers,
 
-diff --git a/drivers/acpi/Makefile b/drivers/acpi/Makefile
-index 4ee2e75..474fcfe 100644
---- a/drivers/acpi/Makefile
-+++ b/drivers/acpi/Makefile
-@@ -38,6 +38,7 @@ acpi-y				+= processor_core.o
- acpi-y				+= ec.o
- acpi-$(CONFIG_ACPI_DOCK)	+= dock.o
- acpi-y				+= pci_root.o pci_link.o pci_irq.o
-+acpi-y				+= csrt.o
- acpi-y				+= acpi_platform.o
- acpi-y				+= power.o
- acpi-y				+= event.o
-diff --git a/drivers/acpi/csrt.c b/drivers/acpi/csrt.c
-new file mode 100644
-index 0000000..5c15a91
---- /dev/null
-+++ b/drivers/acpi/csrt.c
-@@ -0,0 +1,159 @@
-+/*
-+ * Support for Core System Resources Table (CSRT)
-+ *
-+ * Copyright (C) 2013, Intel Corporation
-+ * Authors: Mika Westerberg <mika.westerberg@linux.intel.com>
-+ *	    Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License version 2 as
-+ * published by the Free Software Foundation.
-+ */
-+
-+#define pr_fmt(fmt) "ACPI: CSRT: " fmt
-+
-+#include <linux/acpi.h>
-+#include <linux/device.h>
-+#include <linux/kernel.h>
-+#include <linux/module.h>
-+#include <linux/platform_device.h>
-+#include <linux/sizes.h>
-+
-+ACPI_MODULE_NAME("CSRT");
-+
-+static int __init acpi_csrt_parse_shared_info(struct platform_device *pdev,
-+					      const struct acpi_csrt_group *grp)
-+{
-+	const struct acpi_csrt_shared_info *si;
-+	struct resource res[3];
-+	size_t nres;
-+	int ret;
-+
-+	memset(res, 0, sizeof(res));
-+	nres = 0;
-+
-+	si = (const struct acpi_csrt_shared_info *)&grp[1];
-+	/*
-+	 * The peripherals that are listed on CSRT typically support only
-+	 * 32-bit addresses so we only use the low part of MMIO base for
-+	 * now.
-+	 */
-+	if (!si->mmio_base_high && si->mmio_base_low) {
-+		/*
-+		 * There is no size of the memory resource in shared_info
-+		 * so we assume that it is 4k here.
-+		 */
-+		res[nres].start = si->mmio_base_low;
-+		res[nres].end = res[0].start + SZ_4K - 1;
-+		res[nres++].flags = IORESOURCE_MEM;
-+	}
-+
-+	if (si->gsi_interrupt) {
-+		int irq = acpi_register_gsi(NULL, si->gsi_interrupt,
-+					    si->interrupt_mode,
-+					    si->interrupt_polarity);
-+		res[nres].start = irq;
-+		res[nres].end = irq;
-+		res[nres++].flags = IORESOURCE_IRQ;
-+	}
-+
-+	if (si->base_request_line || si->num_handshake_signals) {
-+		/*
-+		 * We pass the driver a DMA resource describing the range
-+		 * of request lines the device supports.
-+		 */
-+		res[nres].start = si->base_request_line;
-+		res[nres].end = res[nres].start + si->num_handshake_signals - 1;
-+		res[nres++].flags = IORESOURCE_DMA;
-+	}
-+
-+	ret = platform_device_add_resources(pdev, res, nres);
-+	if (ret) {
-+		if (si->gsi_interrupt)
-+			acpi_unregister_gsi(si->gsi_interrupt);
-+		return ret;
-+	}
-+
-+	return 0;
-+}
-+
-+static int __init
-+acpi_csrt_parse_resource_group(const struct acpi_csrt_group *grp)
-+{
-+	struct platform_device *pdev;
-+	char vendor[5], name[16];
-+	int ret, i;
-+
-+	vendor[0] = grp->vendor_id;
-+	vendor[1] = grp->vendor_id >> 8;
-+	vendor[2] = grp->vendor_id >> 16;
-+	vendor[3] = grp->vendor_id >> 24;
-+	vendor[4] = '\0';
-+
-+	if (grp->shared_info_length != sizeof(struct acpi_csrt_shared_info))
-+		return -ENODEV;
-+
-+	snprintf(name, sizeof(name), "%s%04X", vendor, grp->device_id);
-+	pdev = platform_device_alloc(name, PLATFORM_DEVID_AUTO);
-+	if (!pdev)
-+		return -ENOMEM;
-+
-+	/* Add resources based on the shared info */
-+	ret = acpi_csrt_parse_shared_info(pdev, grp);
-+	if (ret)
-+		goto fail;
-+
-+	ret = platform_device_add(pdev);
-+	if (ret)
-+		goto fail;
-+
-+	for (i = 0; i < pdev->num_resources; i++)
-+		dev_dbg(&pdev->dev, "%pR\n", &pdev->resource[i]);
-+
-+	return 0;
-+
-+fail:
-+	platform_device_put(pdev);
-+	return ret;
-+}
-+
-+/*
-+ * CSRT or Core System Resources Table is a proprietary ACPI table
-+ * introduced by Microsoft. This table can contain devices that are not in
-+ * the system DSDT table. In particular DMA controllers might be described
-+ * here.
-+ *
-+ * We present these devices as normal platform devices that don't have ACPI
-+ * IDs or handle. The platform device name will be something like
-+ * <VENDOR><DEVID>.<n>.auto for example: INTL9C06.0.auto.
-+ */
-+void __init acpi_csrt_init(void)
-+{
-+	struct acpi_csrt_group *grp, *end;
-+	struct acpi_table_csrt *csrt;
-+	acpi_status status;
-+	int ret;
-+
-+	status = acpi_get_table(ACPI_SIG_CSRT, 0,
-+				(struct acpi_table_header **)&csrt);
-+	if (ACPI_FAILURE(status)) {
-+		if (status != AE_NOT_FOUND)
-+			pr_warn("failed to get the CSRT table\n");
-+		return;
-+	}
-+
-+	pr_debug("parsing CSRT table for devices\n");
-+
-+	grp = (struct acpi_csrt_group *)(csrt + 1);
-+	end = (struct acpi_csrt_group *)((void *)csrt + csrt->header.length);
-+
-+	while (grp < end) {
-+		ret = acpi_csrt_parse_resource_group(grp);
-+		if (ret) {
-+			pr_warn("error in parsing resource group: %d\n", ret);
-+			return;
-+		}
-+
-+		grp = (struct acpi_csrt_group *)((void *)grp + grp->length);
-+	}
-+}
-diff --git a/drivers/acpi/internal.h b/drivers/acpi/internal.h
-index 1f004f3..1d6b392 100644
---- a/drivers/acpi/internal.h
-+++ b/drivers/acpi/internal.h
-@@ -26,6 +26,7 @@
- int init_acpi_device_notify(void);
- int acpi_scan_init(void);
- int acpi_sysfs_init(void);
-+void acpi_csrt_init(void);
- 
- #ifdef CONFIG_DEBUG_FS
- extern struct dentry *acpi_debugfs_dir;
-diff --git a/drivers/acpi/scan.c b/drivers/acpi/scan.c
-index 6a12702..7705f8f 100644
---- a/drivers/acpi/scan.c
-+++ b/drivers/acpi/scan.c
-@@ -1737,6 +1737,7 @@ int __init acpi_scan_init(void)
- 	}
- 
- 	acpi_pci_root_init();
-+	acpi_csrt_init();
- 
- 	/*
- 	 * Enumerate devices in the ACPI namespace.
--- 
-1.7.10.4
-
+Tom
