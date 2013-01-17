@@ -1,94 +1,75 @@
-From: Gary Hade <garyhade@us.ibm.com>
-Subject: Re: [PATCH] ACPI, APEI: Fixup incorrect 64-bit access width firmware
- bug
-Date: Thu, 17 Jan 2013 14:27:54 -0800
-Message-ID: <20130117222754.GA32229@us.ibm.com>
-References: <1358327009-14625-1-git-send-email-jia.zhang@windriver.com>
- <2313122.XO7091fHrU@vostro.rjw.lan>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: Re: [PATCH 1/3] x86: enable common clk on x86
+Date: Thu, 17 Jan 2013 23:38:25 +0100
+Message-ID: <2235088.IlKyunT6NE@vostro.rjw.lan>
+References: <1358174788-24439-1-git-send-email-mika.westerberg@linux.intel.com> <28908583.J70dQJd3BK@vostro.rjw.lan> <20130116152807.GF2239@intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7Bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from e9.ny.us.ibm.com ([32.97.182.139]:55585 "EHLO e9.ny.us.ibm.com"
+Received: from hydra.sisk.pl ([212.160.235.94]:43971 "EHLO hydra.sisk.pl"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750790Ab3AQW2D (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 17 Jan 2013 17:28:03 -0500
-Received: from /spool/local
-	by e9.ny.us.ibm.com with IBM ESMTP SMTP Gateway: Authorized Use Only! Violators will be prosecuted
-	for <linux-acpi@vger.kernel.org> from <garyhade@us.ibm.com>;
-	Thu, 17 Jan 2013 17:28:02 -0500
-Received: from d01relay02.pok.ibm.com (d01relay02.pok.ibm.com [9.56.227.234])
-	by d01dlp02.pok.ibm.com (Postfix) with ESMTP id E5CEE6E803A
-	for <linux-acpi@vger.kernel.org>; Thu, 17 Jan 2013 17:27:56 -0500 (EST)
-Received: from d01av02.pok.ibm.com (d01av02.pok.ibm.com [9.56.224.216])
-	by d01relay02.pok.ibm.com (8.13.8/8.13.8/NCO v10.0) with ESMTP id r0HMRwm7299042
-	for <linux-acpi@vger.kernel.org>; Thu, 17 Jan 2013 17:27:58 -0500
-Received: from d01av02.pok.ibm.com (loopback [127.0.0.1])
-	by d01av02.pok.ibm.com (8.14.4/8.13.1/NCO v10.0 AVout) with ESMTP id r0HMRvgX022702
-	for <linux-acpi@vger.kernel.org>; Thu, 17 Jan 2013 20:27:57 -0200
-Content-Disposition: inline
-In-Reply-To: <2313122.XO7091fHrU@vostro.rjw.lan>
+	id S1753825Ab3AQWcc (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 17 Jan 2013 17:32:32 -0500
+In-Reply-To: <20130116152807.GF2239@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: Lans Zhang <jia.zhang@windriver.com>, len.brown@intel.com, linux-acpi@vger.kernel.org, Myron Stowe <mstowe@redhat.com>, Huang Ying <ying.huang@intel.com>, Gary Hade <garyhade@us.ibm.com>, Jean Delvare <jdelvare@suse.de>
+To: Mika Westerberg <mika.westerberg@linux.intel.com>
+Cc: "H. Peter Anvin" <hpa@zytor.com>, linux-kernel@vger.kernel.org, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, x86@kernel.org, Len Brown <lenb@kernel.org>, Mike Turquette <mturquette@linaro.org>, Arnd Bergmann <arnd@arndb.de>, Linus Walleij <linus.walleij@linaro.org>, Mark Brown <broonie@opensource.wolfsonmicro.com>, Heikki Krogerus <heikki.krogerus@linux.intel.com>, linux-acpi@vger.kernel.org
 
-On Wed, Jan 16, 2013 at 11:54:54PM +0100, Rafael J. Wysocki wrote:
-> On Wednesday, January 16, 2013 05:03:29 PM Lans Zhang wrote:
-> > The bit width check was introduced by 15afae60 (ACPI, APEI: Fix
-> > incorrect APEI register bit width check and usage), and a fixup
-> > for incorrect 32-bit width memory address was given by f712c71
-> > (ACPI, APEI: Fixup common access width firmware bug). Now there
-> > is a similar symptom:
+On Wednesday, January 16, 2013 05:28:07 PM Mika Westerberg wrote:
+> On Wed, Jan 16, 2013 at 04:01:20PM +0100, Rafael J. Wysocki wrote:
+> > On Wednesday, January 16, 2013 07:20:54 AM Mika Westerberg wrote:
+> > > On Wed, Jan 16, 2013 at 12:59:17AM +0100, Rafael J. Wysocki wrote:
+> > > > On Monday, January 14, 2013 04:46:26 PM Mika Westerberg wrote:
+> > > > > We are starting to see traditional SoC peripherals also in the x86 world,
+> > > > > things like UART, I2C and SPI controllers that might already have a working
+> > > > > device driver. These drivers typically take advantage of the Linux clk
+> > > > > framework to control and retrieve information about the peripheral clock.
+> > > > > 
+> > > > > There hasn't been a standard way on x86 to pass the clock rate from
+> > > > > whatever configuration system is used to the driver, but instead different
+> > > > > variations have emerged, like adding this information to the platform data.
+> > > > > 
+> > > > > In order to use the standard Linux way we enable the common clk subsystem
+> > > > > also on x86. This allows us to re-use the drivers with little or no
+> > > > > modification wrt. clock API usage.
+> > > > > 
+> > > > > This patch was originally proposed by Mark Brown.
+> > > > 
+> > > > Are there any side effects of selecting COMMON_CLK by an arch and if so then
+> > > > what are they?
+> > > 
+> > > Selecting COMMON_CLK also selects HAVE_CLK, so drivers that are dependent
+> > > on that option become available when you run make config.
 > > 
-> > [Firmware Bug]: APEI: Invalid bit width + offset in GAR [0x12345000/64/0/3/0]
-> > 
-> > Another bogus BIOS reports an incorrect 64-bit width in trigger table.
-> > Thus, apply to a similar workaround for 64-bit width memory address.
+> > Well, that's not very nice.  Do you know how many of them there are?
 > 
-> This makes sense to me, but I'd like more people to have a look at it (Myron,
-> Ying, Gary CCed).
+> There are few. I tried how many I get on my config and there were 9 new
+> questions with 'make oldconfig'.
 > 
-> Thanks,
-> Rafael
+> Grepping (if I did it correctly) reveals:
 > 
+> % git grep 'depends .*HAVE_CLK' -- '*/Kconfig' | wc -l
+> 27
 > 
-> > Signed-off-by: Lans Zhang <jia.zhang@windriver.com>
-> > ---
-> >  drivers/acpi/apei/apei-base.c |    3 +++
-> >  1 files changed, 3 insertions(+), 0 deletions(-)
-> > 
-> > diff --git a/drivers/acpi/apei/apei-base.c b/drivers/acpi/apei/apei-base.c
-> > index 00a7836..46f80e2 100644
-> > --- a/drivers/acpi/apei/apei-base.c
-> > +++ b/drivers/acpi/apei/apei-base.c
-> > @@ -590,6 +590,9 @@ static int apei_check_gar(struct acpi_generic_address *reg, u64 *paddr,
-> >  	if (bit_width == 32 && bit_offset == 0 && (*paddr & 0x03) == 0 &&
-> >  	    *access_bit_width < 32)
-> >  		*access_bit_width = 32;
-> > +	else if (bit_width == 64 && bit_offset == 0 && (*paddr & 0x07) == 0 &&
-> > +	    *access_bit_width < 64)
-> > +		*access_bit_width = 64;
-> >  
-> >  	if ((bit_width + bit_offset) > *access_bit_width) {
-> >  		pr_warning(FW_BUG APEI_PFX
-> > 
-> -- 
-> I speak only for myself.
-> Rafael J. Wysocki, Intel Open Source Technology Center.
+> > Distros often build all drivers available regardless of whether or not they
+> > are going to be used and it would be kind of wasteful for them to build drivers
+> > that aren't even going to work.
 > 
+> If a driver depends only on HAVE_CLK and doesn't work everywhere, there is
+> a problem in that particular driver and its Kconfig options (some
+> dependencies are missing). These drivers should be fixed.
 
-This looks reasonable to me.
-Acked-by: Gary Hade <garyhade@us.ibm.com>
+Well, on a second thought it might be better to add a new Kconfig option for
+x86, say CONFIG_INTEL_LPSS ("Intel LPSS Support") that will select COMMON_CLK
+and depend on ACPI.  This way we'll only compile the clocks stuff when
+explicitly requested (although distros will probably set that to 'y' anyway).
 
-Copying Jean Delvare who authored the 32-bit fixup.
+Thanks,
+Rafael
 
-Gary
 
 -- 
-Gary Hade
-System x Enablement
-IBM Linux Technology Center
-503-578-4503  IBM T/L: 775-4503
-garyhade@us.ibm.com
-http://www.ibm.com/linux/ltc
-
+I speak only for myself.
+Rafael J. Wysocki, Intel Open Source Technology Center.
