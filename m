@@ -1,43 +1,35 @@
-From: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
-Subject: Re: [PATCH] fixes to ACPI subsystem which assumes cpuidle is always
- enabled.
-Date: Fri, 18 Jan 2013 10:12:19 -0500
-Message-ID: <20130118151219.GI9214@phenom.dumpdata.com>
-References: <1358288604-24620-1-git-send-email-konrad.wilk@oracle.com>
- <1449747.HgoeXlbhzH@vostro.rjw.lan>
+From: Matthew Garrett <matthew.garrett@nebula.com>
+Subject: Re: [arch-general] powernow-k8 fails to load with linux 3.7.2
+Date: Fri, 18 Jan 2013 15:17:04 +0000
+Message-ID: <E99CBA9F97C3D149AA6B19ED2E277C9B0193997E@BY2PRD0510MB365.namprd05.prod.outlook.com>
+References: <20130115224755.085aa6b7@bluemoon>
+	 <20130116131725.4e590c34@bluemoon>
+	 <CAG-2HqWBVf=RWXExeFgxYdPTzPfQYZnt-3ZKzULTwdP9+-5mVQ@mail.gmail.com>
+	 <1448223.sdUJnNSRz4@vostro.rjw.lan> <20130116231728.GA10204@x1.alien8.de>
+	 <20130116181600.4c48ee3b@bluemoon> <20130117094648.GD30700@pd.tnic>
+	 <20130117194044.7a18a29d@bluemoon> <20130118113717.GA6808@pd.tnic>
+	 <20130118133233.4521ddb6@hydra>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from aserp1040.oracle.com ([141.146.126.69]:50153 "EHLO
-	aserp1040.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753602Ab3ARPMa (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 18 Jan 2013 10:12:30 -0500
-Content-Disposition: inline
-In-Reply-To: <1449747.HgoeXlbhzH@vostro.rjw.lan>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <cpufreq-owner@vger.kernel.org>
+In-Reply-To: <20130118133233.4521ddb6@hydra>
+Content-Language: en-US
+Content-ID: <5B1A88226FFAB64A93C452A50C865E91@namprd05.prod.outlook.com>
+Sender: cpufreq-owner@vger.kernel.org
+To: =?utf-8?B?QW5kcsOpIFByenl3YXJh?= <andre@andrep.de>
+Cc: Borislav Petkov <bp@alien8.de>, Leonid Isaev <lisaev@umail.iu.edu>, "Rafael J. Wysocki" <rjw@sisk.pl>, Tom Gundersen <teg@jklm.no>, "cpufreq@vger.kernel.org" <cpufreq@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, konrad@kernel.org, xen-devel@lists.xensource.com
 
-On Wed, Jan 16, 2013 at 11:49:00PM +0100, Rafael J. Wysocki wrote:
-> On Tuesday, January 15, 2013 05:23:22 PM Konrad Rzeszutek Wilk wrote:
-> > Attached are two patches to the ACPI subsystem and the cpuidle drivers.
-> > 
-> > The fixes are to deal with the case when cpuidle_disabled returns true
-> > and we try to hotplug CPUs on/off. 
-> > 
-> >  drivers/acpi/processor_idle.c | 3 +++
-> >  drivers/idle/intel_idle.c     | 3 +--
-> >  2 files changed, 4 insertions(+), 2 deletions(-)
-> 
-> Both patches applied.
+Q2FuIHlvdSB0cnkgdGhpcyAoZW50aXJlbHkgdW50ZXN0ZWQpIHBhdGNoPw0KDQpkaWZmIC0tZ2l0
+IGEvZHJpdmVycy9jcHVmcmVxL2FjcGktY3B1ZnJlcS5jDQpiL2RyaXZlcnMvY3B1ZnJlcS9hY3Bp
+LWNwdWZyZXEuYw0KaW5kZXggMGQwNDhmNi4uN2IwZDQ5ZCAxMDA2NDQNCi0tLSBhL2RyaXZlcnMv
+Y3B1ZnJlcS9hY3BpLWNwdWZyZXEuYw0KKysrIGIvZHJpdmVycy9jcHVmcmVxL2FjcGktY3B1ZnJl
+cS5jDQpAQCAtMTAzMCw0ICsxMDMwLDExIEBAIE1PRFVMRV9QQVJNX0RFU0MoYWNwaV9wc3RhdGVf
+c3RyaWN0LA0KIGxhdGVfaW5pdGNhbGwoYWNwaV9jcHVmcmVxX2luaXQpOw0KIG1vZHVsZV9leGl0
+KGFjcGlfY3B1ZnJlcV9leGl0KTsNCiANCitzdGF0aWMgY29uc3Qgc3RydWN0IHg4Nl9jcHVfaWQg
+YWNwaV9jcHVmcmVxX2lkc1tdID0gew0KKwlYODZfRkVBVFVSRV9NQVRDSChYODZfRkVBVFVSRV9B
+Q1BJKSwNCisJWDg2X0ZFQVRVUkVfTUFUQ0goWDg2X0ZFQVRVUkVfSFdfUFNUQVRFKSwNCisJe30N
+Cit9Ow0KK01PRFVMRV9ERVZJQ0VfVEFCTEUoeDg2Y3B1LCBhY3BpX2NwdWZyZXFfaWRzKTsNCisN
+CiBNT0RVTEVfQUxJQVMoImFjcGkiKTsNCg0K
 
-Thanks!
-> 
-> Thanks,
-> Rafael
-> 
-> 
-> -- 
-> I speak only for myself.
-> Rafael J. Wysocki, Intel Open Source Technology Center.
