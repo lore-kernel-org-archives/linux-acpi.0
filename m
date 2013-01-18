@@ -1,136 +1,35 @@
 From: Yinghai Lu <yinghai@kernel.org>
-Subject: Re: [PATCH] ACPI / scan: Fold acpi_bus_scan() into acpi_bus_add()
-Date: Fri, 18 Jan 2013 09:47:21 -0800
-Message-ID: <CAE9FiQXU_KQfoND=rQDczB65jxKYxWpnnQT4pSW296sUscG8HA@mail.gmail.com>
-References: <6681740.NxX6Su8EKC@vostro.rjw.lan>
+Subject: Re: [RFC PATCH v5 7/8] PCI/PCIe: add "pci=nopciehp" to disable PCIe
+ native hotplug
+Date: Fri, 18 Jan 2013 09:50:59 -0800
+Message-ID: <CAE9FiQU6K1M=rbnhPLsAkhK5dZw8CAoQzAi=YLjtz722jCix-w@mail.gmail.com>
+References: <1358525267-14268-1-git-send-email-jiang.liu@huawei.com>
+	<1358525267-14268-8-git-send-email-jiang.liu@huawei.com>
+	<CAErSpo6E0SrY8_JOU6pmrCt9opfKe_jJ6b0E0daNAbpX5KtFuQ@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-ie0-f182.google.com ([209.85.223.182]:40459 "EHLO
-	mail-ie0-f182.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751555Ab3ARRrW (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 18 Jan 2013 12:47:22 -0500
-In-Reply-To: <6681740.NxX6Su8EKC@vostro.rjw.lan>
+Received: from mail-ie0-f172.google.com ([209.85.223.172]:38210 "EHLO
+	mail-ie0-f172.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751542Ab3ARRvA (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 18 Jan 2013 12:51:00 -0500
+In-Reply-To: <CAErSpo6E0SrY8_JOU6pmrCt9opfKe_jJ6b0E0daNAbpX5KtFuQ@mail.gmail.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>, "Moore, Robert" <robert.moore@intel.com>, Bjorn Helgaas <bhelgaas@google.com>
+To: Bjorn Helgaas <bhelgaas@google.com>
+Cc: Jiang Liu <liuj97@gmail.com>, "Rafael J . Wysocki" <rjw@sisk.pl>, Jiang Liu <jiang.liu@huawei.com>, Kenji Kaneshige <kaneshige.kenji@jp.fujitsu.com>, Yijing Wang <wangyijing@huawei.com>, linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Toshi Kani <toshi.kani@hp.com>, Myron Stowe <myron.stowe@redhat.com>
 
-On Fri, Jan 18, 2013 at 4:35 AM, Rafael J. Wysocki <rjw@sisk.pl> wrote:
-> From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
->
-> The only difference between acpi_bus_scan() into acpi_bus_add() is
-> the invocation of acpi_update_all_gpes() in the latter which in fact
-> is unnecessary, because acpi_update_all_gpes() has already been
-> called by acpi_scan_init() and the way it is implemented causes the
-> next invocations of it to do nothing.
->
-> For this reason, drop the acpi_update_all_gpes() call from
-> acpi_bus_add() and fold acpi_bus_scan() into it.  Additionally,
-> rename acpi_bus_scan_fixed() to acpi_bus_add_fixed(), because
-> acpi_bus_scan() is not present any more, and rearrange the code
-> in acpi_scan_init() slightly.
->
-> Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
-> ---
->  drivers/acpi/scan.c |   52 +++++++++++++++++++++-------------------------------
->  1 file changed, 21 insertions(+), 31 deletions(-)
->
-> Index: linux-pm/drivers/acpi/scan.c
-> ===================================================================
-> --- linux-pm.orig/drivers/acpi/scan.c
-> +++ linux-pm/drivers/acpi/scan.c
-> @@ -1584,24 +1584,6 @@ static acpi_status acpi_bus_device_attac
->         return status;
->  }
->
-> -static int acpi_bus_scan(acpi_handle handle)
-> -{
-> -       void *device = NULL;
-> -
-> -       if (ACPI_SUCCESS(acpi_bus_check_add(handle, 0, NULL, &device)))
-> -               acpi_walk_namespace(ACPI_TYPE_ANY, handle, ACPI_UINT32_MAX,
-> -                                   acpi_bus_check_add, NULL, NULL, &device);
-> -
-> -       if (!device)
-> -               return -ENODEV;
-> -
-> -       if (ACPI_SUCCESS(acpi_bus_device_attach(handle, 0, NULL, NULL)))
-> -               acpi_walk_namespace(ACPI_TYPE_ANY, handle, ACPI_UINT32_MAX,
-> -                                   acpi_bus_device_attach, NULL, NULL, NULL);
-> -
-> -       return 0;
-> -}
-> -
->  /**
->   * acpi_bus_add - Add ACPI device node objects in a given namespace scope.
->   * @handle: Root of the namespace scope to scan.
-> @@ -1616,13 +1598,19 @@ static int acpi_bus_scan(acpi_handle han
->   */
->  int acpi_bus_add(acpi_handle handle)
+On Fri, Jan 18, 2013 at 9:35 AM, Bjorn Helgaas <bhelgaas@google.com> wrote:
+> If you want "pci=nopciehp" as a way for users to deal with this
+> problem by forcing the use of acpiphp, I object.  Windows manages to
+> make these slots work without having users do anything special, so we
+> should be able to do it, too.
 
-looks like scan is good name.
+Agreed.
 
-scan = add + attach better than
-add = add + attach?
+We need to think that more.
 
->  {
-> -       int err;
-> +       void *device = NULL;
-> +
-> +       if (ACPI_SUCCESS(acpi_bus_check_add(handle, 0, NULL, &device)))
-> +               acpi_walk_namespace(ACPI_TYPE_ANY, handle, ACPI_UINT32_MAX,
-> +                                   acpi_bus_check_add, NULL, NULL, &device);
-> +
-> +       if (!device)
-> +               return -ENODEV;
->
-> -       err = acpi_bus_scan(handle);
-> -       if (err)
-> -               return err;
-> +       if (ACPI_SUCCESS(acpi_bus_device_attach(handle, 0, NULL, NULL)))
-> +               acpi_walk_namespace(ACPI_TYPE_ANY, handle, ACPI_UINT32_MAX,
-> +                                   acpi_bus_device_attach, NULL, NULL, NULL);
->
-> -       acpi_update_all_gpes();
->         return 0;
->  }
->  EXPORT_SYMBOL(acpi_bus_add);
-> @@ -1670,7 +1658,7 @@ int acpi_bus_trim(struct acpi_device *st
->  }
->  EXPORT_SYMBOL_GPL(acpi_bus_trim);
->
-> -static int acpi_bus_scan_fixed(void)
-> +static int acpi_bus_add_fixed(void)
->  {
->         int result = 0;
->         struct acpi_device *device = NULL;
-> @@ -1709,18 +1697,20 @@ int __init acpi_scan_init(void)
->         /*
->          * Enumerate devices in the ACPI namespace.
->          */
-> -       result = acpi_bus_scan(ACPI_ROOT_OBJECT);
-> +       result = acpi_bus_add(ACPI_ROOT_OBJECT);
->         if (result)
->                 return result;
->
->         result = acpi_bus_get_device(ACPI_ROOT_OBJECT, &acpi_root);
-> -       if (!result)
-> -               result = acpi_bus_scan_fixed();
-> -
->         if (result)
-> +               return result;
-> +
-> +       result = acpi_bus_add_fixed();
-> +       if (result) {
->                 acpi_device_unregister(acpi_root);
-> -       else
-> -               acpi_update_all_gpes();
-> +               return result;
-> +       }
->
-> -       return result;
-> +       acpi_update_all_gpes();
-> +       return 0;
->  }
->
+I think that we should fix acpiphp, and should follow first come and
+first serve for acpiphp and pciehp.
+
+Yinghai
