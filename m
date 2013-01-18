@@ -1,123 +1,37 @@
 From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: [PATCH] ACPI / scan: Fold acpi_bus_scan() into acpi_bus_add()
-Date: Fri, 18 Jan 2013 13:35:11 +0100
-Message-ID: <6681740.NxX6Su8EKC@vostro.rjw.lan>
+Subject: [PATCH] ACPI / PM: Remove obsolete comment in power.c
+Date: Fri, 18 Jan 2013 13:36:44 +0100
+Message-ID: <1750752.GpUDbSLOP5@vostro.rjw.lan>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7Bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
 Sender: linux-kernel-owner@vger.kernel.org
 To: ACPI Devel Maling List <linux-acpi@vger.kernel.org>
-Cc: LKML <linux-kernel@vger.kernel.org>, "Moore, Robert" <robert.moore@intel.com>, Bjorn Helgaas <bhelgaas@google.com>, Yinghai Lu <yinghai@kernel.org>
+Cc: LKML <linux-kernel@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
 
 From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 
-The only difference between acpi_bus_scan() into acpi_bus_add() is
-the invocation of acpi_update_all_gpes() in the latter which in fact
-is unnecessary, because acpi_update_all_gpes() has already been
-called by acpi_scan_init() and the way it is implemented causes the
-next invocations of it to do nothing.
-
-For this reason, drop the acpi_update_all_gpes() call from
-acpi_bus_add() and fold acpi_bus_scan() into it.  Additionally,
-rename acpi_bus_scan_fixed() to acpi_bus_add_fixed(), because
-acpi_bus_scan() is not present any more, and rearrange the code
-in acpi_scan_init() slightly.
+The TBD comment in power.c saying that power resources must be
+ordered is obsolete, because power resources acually are ordered now,
+so remove it.
 
 Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 ---
- drivers/acpi/scan.c |   52 +++++++++++++++++++++-------------------------------
- 1 file changed, 21 insertions(+), 31 deletions(-)
+ drivers/acpi/power.c |    2 --
+ 1 file changed, 2 deletions(-)
 
-Index: linux-pm/drivers/acpi/scan.c
+Index: linux-pm/drivers/acpi/power.c
 ===================================================================
---- linux-pm.orig/drivers/acpi/scan.c
-+++ linux-pm/drivers/acpi/scan.c
-@@ -1584,24 +1584,6 @@ static acpi_status acpi_bus_device_attac
- 	return status;
- }
+--- linux-pm.orig/drivers/acpi/power.c
++++ linux-pm/drivers/acpi/power.c
+@@ -645,8 +645,6 @@ int acpi_power_transition(struct acpi_de
+ 	    || (device->power.state > ACPI_STATE_D3_COLD))
+ 		return -ENODEV;
  
--static int acpi_bus_scan(acpi_handle handle)
--{
--	void *device = NULL;
+-	/* TBD: Resources must be ordered. */
 -
--	if (ACPI_SUCCESS(acpi_bus_check_add(handle, 0, NULL, &device)))
--		acpi_walk_namespace(ACPI_TYPE_ANY, handle, ACPI_UINT32_MAX,
--				    acpi_bus_check_add, NULL, NULL, &device);
--
--	if (!device)
--		return -ENODEV;
--
--	if (ACPI_SUCCESS(acpi_bus_device_attach(handle, 0, NULL, NULL)))
--		acpi_walk_namespace(ACPI_TYPE_ANY, handle, ACPI_UINT32_MAX,
--				    acpi_bus_device_attach, NULL, NULL, NULL);
--
--	return 0;
--}
--
- /**
-  * acpi_bus_add - Add ACPI device node objects in a given namespace scope.
-  * @handle: Root of the namespace scope to scan.
-@@ -1616,13 +1598,19 @@ static int acpi_bus_scan(acpi_handle han
-  */
- int acpi_bus_add(acpi_handle handle)
- {
--	int err;
-+	void *device = NULL;
-+
-+	if (ACPI_SUCCESS(acpi_bus_check_add(handle, 0, NULL, &device)))
-+		acpi_walk_namespace(ACPI_TYPE_ANY, handle, ACPI_UINT32_MAX,
-+				    acpi_bus_check_add, NULL, NULL, &device);
-+
-+	if (!device)
-+		return -ENODEV;
- 
--	err = acpi_bus_scan(handle);
--	if (err)
--		return err;
-+	if (ACPI_SUCCESS(acpi_bus_device_attach(handle, 0, NULL, NULL)))
-+		acpi_walk_namespace(ACPI_TYPE_ANY, handle, ACPI_UINT32_MAX,
-+				    acpi_bus_device_attach, NULL, NULL, NULL);
- 
--	acpi_update_all_gpes();
- 	return 0;
- }
- EXPORT_SYMBOL(acpi_bus_add);
-@@ -1670,7 +1658,7 @@ int acpi_bus_trim(struct acpi_device *st
- }
- EXPORT_SYMBOL_GPL(acpi_bus_trim);
- 
--static int acpi_bus_scan_fixed(void)
-+static int acpi_bus_add_fixed(void)
- {
- 	int result = 0;
- 	struct acpi_device *device = NULL;
-@@ -1709,18 +1697,20 @@ int __init acpi_scan_init(void)
  	/*
- 	 * Enumerate devices in the ACPI namespace.
- 	 */
--	result = acpi_bus_scan(ACPI_ROOT_OBJECT);
-+	result = acpi_bus_add(ACPI_ROOT_OBJECT);
- 	if (result)
- 		return result;
- 
- 	result = acpi_bus_get_device(ACPI_ROOT_OBJECT, &acpi_root);
--	if (!result)
--		result = acpi_bus_scan_fixed();
--
- 	if (result)
-+		return result;
-+
-+	result = acpi_bus_add_fixed();
-+	if (result) {
- 		acpi_device_unregister(acpi_root);
--	else
--		acpi_update_all_gpes();
-+		return result;
-+	}
- 
--	return result;
-+	acpi_update_all_gpes();
-+	return 0;
- }
+ 	 * First we reference all power resources required in the target list
+ 	 * (e.g. so the device doesn't lose power while transitioning).  Then,
