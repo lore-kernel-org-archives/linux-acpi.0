@@ -1,96 +1,179 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: linux-next: Tree for Jan 18 [ BROKEN suspend: jbd2|acpi|pm? ]
-Date: Fri, 18 Jan 2013 23:20:28 +0100
-Message-ID: <6973144.kJtd4z8pn4@vostro.rjw.lan>
-References: <CA+icZUW-mfMtNSY-d-=0WpX=fRBqoNx5jcX3S8x4tvGdvUc+8g@mail.gmail.com>
+From: Thomas Schlichter <thomas.schlichter@web.de>
+Subject: Re: [PATCH] cpuidle: fix new C-states not functional after AC disconnect
+Date: Fri, 18 Jan 2013 23:24:22 +0100
+Message-ID: <2839069.gCgKnczmus@netbook>
+References: <2099093.cPXO6Nhn9v@netbook> <11530988.U26HMGnFLa@vostro.rjw.lan> <1755809.pcSThauESZ@netbook>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
+Content-Type: multipart/mixed; boundary="nextPart2155860.WxWkS2UFC8"
 Content-Transfer-Encoding: 7Bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from hydra.sisk.pl ([212.160.235.94]:45893 "EHLO hydra.sisk.pl"
+Received: from mout.web.de ([212.227.17.12]:57559 "EHLO mout.web.de"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751574Ab3ARWOd (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 18 Jan 2013 17:14:33 -0500
-In-Reply-To: <CA+icZUW-mfMtNSY-d-=0WpX=fRBqoNx5jcX3S8x4tvGdvUc+8g@mail.gmail.com>
+	id S1751092Ab3ARWYg (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 18 Jan 2013 17:24:36 -0500
+In-Reply-To: <1755809.pcSThauESZ@netbook>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: sedat.dilek@gmail.com
-Cc: Stephen Rothwell <sfr@canb.auug.org.au>, linux-next@vger.kernel.org, linux-kernel@vger.kernel.org, Theodore Ts'o <tytso@mit.edu>, linux-fsdevel <linux-fsdevel@vger.kernel.org>, Linux PM List <linux-pm@lists.linux-foundation.org>, Linux ACPI <linux-acpi@vger.kernel.org>
+To: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: Daniel Lezcano <daniel.lezcano@linaro.org>, Len Brown <lenb@kernel.org>, Linus Torvalds <torvalds@linux-foundation.org>, Peter De Schrijver <pdeschrijver@nvidia.com>, Andreas =?ISO-8859-1?Q?M=FCller?= <goo@stapelspeicher.org>, Julius Werner <jwerner@chromium.org>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 
-On Friday, January 18, 2013 11:11:07 PM Sedat Dilek wrote:
-> On Fri, Jan 18, 2013 at 5:37 AM, Stephen Rothwell <sfr@canb.auug.org.au> wrote:
-> > Hi all,
-> >
-> > Changes since 20130117:
-> >
-> > Undropped tree: samung
-> >
-> > The powerpc tree still had a build failure.
-> >
-> > The driver-core tree gained a build failure for which I applied a merge
-> > fix patch.
-> >
-> > The gpio-lw tree gained a build failure so I used the version from
-> > next-20130117.
-> >
-> > The samsung tree lost the majority of its conflicts but gained more
-> > against the arm-soc and slave-dma tree.
-> >
-> > ----------------------------------------------------------------------------
-> >
+This is a multi-part message in MIME format.
+
+--nextPart2155860.WxWkS2UFC8
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
+
+Dear Rafael,
+
+I just recognized that I did not really describe the problem that my patch 
+fixes. Therefore I attached the output of following command after disconnecting 
+the AC power without and with my patch:
+
+  grep -r "" /sys/devices/system/cpu/cpu0/cpuidle/
+
+One can clearly see that some information is missing and the C3 state is not 
+used.
+
+Kind regards,
+  Thomas
+
+Am Freitag, 18. Januar 2013, 21:34:29 schrieb Thomas Schlichter:
+> Dear Rafael,
 > 
-> From my dmesg diff-file:
+> thank you for applying Daniel's patch. I tested 3.8-rc4 and found that one
+> patch ist still missing to fix the problem of not usable C-state after
+> disconnect. I had it attached with my last e-mail as patch 1. For your
+> conveniency, I have attached it here again.
 > 
-> +[  288.730849] PM: Syncing filesystems ... done.
-> +[  294.050498] Freezing user space processes ... (elapsed 0.04 seconds) done.
-> +[  294.097024] Freezing remaining freezable tasks ...
-> +[  314.098849] Freezing of tasks failed after 20.01 seconds (1 tasks
-> refusing to freeze, wq_busy=0):
-> +[  314.098862] jbd2/loop0-8    D ffffffff8180d780     0   297      2 0x00000000
-> +[  314.098865]  ffff880117ec5b68 0000000000000046 ffff880117ec5b08
-> ffffffff81044c29
-> +[  314.098868]  ffff88011829dc80 ffff880117ec5fd8 ffff880117ec5fd8
-> ffff880117ec5fd8
-> +[  314.098871]  ffff880119b34560 ffff88011829dc80 ffff880117ec5b68
-> ffff88011fad4738
-> +[  314.098873] Call Trace:
-> +[  314.098881]  [<ffffffff81044c29>] ? default_spin_lock_flags+0x9/0x10
-> +[  314.098885]  [<ffffffff811c63e0>] ? __wait_on_buffer+0x30/0x30
-> +[  314.098888]  [<ffffffff816b4b59>] schedule+0x29/0x70
-> +[  314.098890]  [<ffffffff816b4c2f>] io_schedule+0x8f/0xd0
-> +[  314.098892]  [<ffffffff811c63ee>] sleep_on_buffer+0xe/0x20
-> +[  314.098896]  [<ffffffff816b342f>] __wait_on_bit+0x5f/0x90
-> +[  314.098898]  [<ffffffff811c5aa1>] ? submit_bh+0x121/0x1e0
-> +[  314.098900]  [<ffffffff811c63e0>] ? __wait_on_buffer+0x30/0x30
-> +[  314.098903]  [<ffffffff816b34dc>] out_of_line_wait_on_bit+0x7c/0x90
-> +[  314.098906]  [<ffffffff8107eb00>] ? autoremove_wake_function+0x40/0x40
-> +[  314.098909]  [<ffffffff811c63de>] __wait_on_buffer+0x2e/0x30
-> +[  314.098913]  [<ffffffff8128a6a1>]
-> jbd2_journal_commit_transaction+0x1791/0x1960
-> +[  314.098917]  [<ffffffff8109269d>] ? sched_clock_cpu+0xbd/0x110
-> +[  314.098920]  [<ffffffff8107eac0>] ? add_wait_queue+0x60/0x60
-> +[  314.098923]  [<ffffffff81069fbf>] ? try_to_del_timer_sync+0x4f/0x70
-> +[  314.098925]  [<ffffffff8128e4e8>] kjournald2+0xb8/0x240
-> +[  314.098927]  [<ffffffff8107eac0>] ? add_wait_queue+0x60/0x60
-> +[  314.098929]  [<ffffffff8128e430>] ? commit_timeout+0x10/0x10
-> +[  314.098931]  [<ffffffff8107ded0>] kthread+0xc0/0xd0
-> +[  314.098933]  [<ffffffff8107de10>] ? flush_kthread_worker+0xb0/0xb0
-> +[  314.098936]  [<ffffffff816be52c>] ret_from_fork+0x7c/0xb0
-> +[  314.098938]  [<ffffffff8107de10>] ? flush_kthread_worker+0xb0/0xb0
-> +[  314.098969]
-> +[  314.098970] Restarting kernel threads ... done.
-> +[  314.099052] Restarting tasks ... done.
+> With that patch the problem is fixed for me. So please consider applying
+> this, too.
 > 
-> Please, have a lot at it.
+> Kind regards,
+>   Thomas
+> 
+> Am Sonntag, 13. Januar 2013, 21:04:45 schrieb Rafael J. Wysocki:
+> > On Sunday, January 13, 2013 03:41:34 PM Daniel Lezcano wrote:
+> > > On 01/13/2013 01:34 PM, Thomas Schlichter wrote:
+> > > > Hi,
+> > > > 
+> > > > there is a long-standing regression about new C-states not working
+> > > > after
+> > > > disconnecting AC power from a laptop if the cpuidle driver "acpi-idle"
+> > > > is
+> > > > used. It was reported here:
+> > > > 
+> > > > [1] https://bugzilla.kernel.org/show_bug.cgi?id=42870  (March 5th
+> > > > 2012)
+> > > > [2] https://bugzilla.kernel.org/show_bug.cgi?id=43349  (June 7th 2012)
+> > > > [3] https://lkml.org/lkml/2012/10/16/518   (October 19th 2012)
+> > > > 
+> > > > In [1] Andreas proposed a patch that initialized the missing
+> > > > power_usage
+> > > > values from within acpi_idle in the same way as cpuidle does.
+> > > > In [2] I proposed a patch to use the power values provided by ACPI to
+> > > > initialize the power_usage variables.
+> > > > In [3] Julius proposed a patch to call the initialization function
+> > > > set_power_states()  not only once, but always when the C-states
+> > > > change.
+> > > > 
+> > > > Currently, Daniel Lezcano seems to be working on an intrusive change
+> > > > of
+> > > > not
+> > > > using the power_usage value at all for choosing a C-state:
+> > > > 
+> > > > [4] https://lkml.org/lkml/2012/12/14/155
+> > > > 
+> > > > As I could not find any of these patches in any git trees to be merged
+> > > > for
+> > > > 3.8, I propose an other, least intrusive patch for the time being. It
+> > > > is
+> > > > attached an initializes _all_ power_usage values in the first place.
+> > > > 
+> > > > As this is a real power consumption regression since 3.2, I really ask
+> > > > you to apply anything and push it to stable, too!
+> > > 
+> > > Rafael, is possible to apply the patch [1/2] I previously sent ?
+> > > 
+> > > https://patchwork.kernel.org/patch/1878691/
+> > 
+> > I need to talk about this with Len.  That should happen tomorrow if
+> > everything goes well.
+> > 
+> > > So we get this bug fixed.
+> > > 
+> > > I will resend the patch [2/2] as soon as possible.
+> > 
+> > OK
+> > 
+> > Thanks,
+> > Rafael
+--nextPart2155860.WxWkS2UFC8
+Content-Disposition: inline; filename="cpuidle_3.8-rc4.txt"
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="UTF-8"; name="cpuidle_3.8-rc4.txt"
 
-This is a freezer failure while freezing kernel threads, so I don't think it's
-related to ACPI or PM directly.
+/sys/devices/system/cpu/cpu0/cpuidle/state0/desc:CPUIDLE CORE POLL IDLE
+/sys/devices/system/cpu/cpu0/cpuidle/state0/name:POLL
+/sys/devices/system/cpu/cpu0/cpuidle/state0/time:0
+/sys/devices/system/cpu/cpu0/cpuidle/state0/disable:0
+/sys/devices/system/cpu/cpu0/cpuidle/state0/power:4294967295
+/sys/devices/system/cpu/cpu0/cpuidle/state0/usage:0
+/sys/devices/system/cpu/cpu0/cpuidle/state0/latency:0
+/sys/devices/system/cpu/cpu0/cpuidle/state1/desc:ACPI HLT
+/sys/devices/system/cpu/cpu0/cpuidle/state1/name:C1
+/sys/devices/system/cpu/cpu0/cpuidle/state1/time:147579
+/sys/devices/system/cpu/cpu0/cpuidle/state1/disable:0
+/sys/devices/system/cpu/cpu0/cpuidle/state1/power:0
+/sys/devices/system/cpu/cpu0/cpuidle/state1/usage:42
+/sys/devices/system/cpu/cpu0/cpuidle/state1/latency:1
+/sys/devices/system/cpu/cpu0/cpuidle/state2/desc:ACPI IOPORT 0x4014
+/sys/devices/system/cpu/cpu0/cpuidle/state2/name:C2
+/sys/devices/system/cpu/cpu0/cpuidle/state2/time:36250374
+/sys/devices/system/cpu/cpu0/cpuidle/state2/disable:0
+/sys/devices/system/cpu/cpu0/cpuidle/state2/power:0
+/sys/devices/system/cpu/cpu0/cpuidle/state2/usage:2867
+/sys/devices/system/cpu/cpu0/cpuidle/state2/latency:1
+/sys/devices/system/cpu/cpu0/cpuidle/state3/desc:<null>
+/sys/devices/system/cpu/cpu0/cpuidle/state3/name:<null>
+/sys/devices/system/cpu/cpu0/cpuidle/state3/time:0
+/sys/devices/system/cpu/cpu0/cpuidle/state3/disable:0
+/sys/devices/system/cpu/cpu0/cpuidle/state3/power:0
+/sys/devices/system/cpu/cpu0/cpuidle/state3/usage:0
+/sys/devices/system/cpu/cpu0/cpuidle/state3/latency:0
 
-Does it happen on every suspend?
+--nextPart2155860.WxWkS2UFC8
+Content-Disposition: inline; filename="cpuidle_3.8-rc4_patched.txt"
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="UTF-8"; name="cpuidle_3.8-rc4_patched.txt"
 
-Rafael
+/sys/devices/system/cpu/cpu0/cpuidle/state0/desc:CPUIDLE CORE POLL IDLE
+/sys/devices/system/cpu/cpu0/cpuidle/state0/name:POLL
+/sys/devices/system/cpu/cpu0/cpuidle/state0/time:0
+/sys/devices/system/cpu/cpu0/cpuidle/state0/disable:0
+/sys/devices/system/cpu/cpu0/cpuidle/state0/power:4294967295
+/sys/devices/system/cpu/cpu0/cpuidle/state0/usage:0
+/sys/devices/system/cpu/cpu0/cpuidle/state0/latency:0
+/sys/devices/system/cpu/cpu0/cpuidle/state1/desc:ACPI HLT
+/sys/devices/system/cpu/cpu0/cpuidle/state1/name:C1
+/sys/devices/system/cpu/cpu0/cpuidle/state1/time:4644
+/sys/devices/system/cpu/cpu0/cpuidle/state1/disable:0
+/sys/devices/system/cpu/cpu0/cpuidle/state1/power:0
+/sys/devices/system/cpu/cpu0/cpuidle/state1/usage:35
+/sys/devices/system/cpu/cpu0/cpuidle/state1/latency:1
+/sys/devices/system/cpu/cpu0/cpuidle/state2/desc:ACPI IOPORT 0x4014
+/sys/devices/system/cpu/cpu0/cpuidle/state2/name:C2
+/sys/devices/system/cpu/cpu0/cpuidle/state2/time:44430
+/sys/devices/system/cpu/cpu0/cpuidle/state2/disable:0
+/sys/devices/system/cpu/cpu0/cpuidle/state2/power:0
+/sys/devices/system/cpu/cpu0/cpuidle/state2/usage:52
+/sys/devices/system/cpu/cpu0/cpuidle/state2/latency:1
+/sys/devices/system/cpu/cpu0/cpuidle/state3/desc:ACPI IOPORT 0x4016
+/sys/devices/system/cpu/cpu0/cpuidle/state3/name:C3
+/sys/devices/system/cpu/cpu0/cpuidle/state3/time:25798363
+/sys/devices/system/cpu/cpu0/cpuidle/state3/disable:0
+/sys/devices/system/cpu/cpu0/cpuidle/state3/power:0
+/sys/devices/system/cpu/cpu0/cpuidle/state3/usage:1826
+/sys/devices/system/cpu/cpu0/cpuidle/state3/latency:146
 
+--nextPart2155860.WxWkS2UFC8--
 
--- 
-I speak only for myself.
-Rafael J. Wysocki, Intel Open Source Technology Center.
