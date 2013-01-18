@@ -1,35 +1,126 @@
-From: Yinghai Lu <yinghai@kernel.org>
-Subject: Re: [RFC PATCH v5 7/8] PCI/PCIe: add "pci=nopciehp" to disable PCIe
- native hotplug
-Date: Fri, 18 Jan 2013 09:50:59 -0800
-Message-ID: <CAE9FiQU6K1M=rbnhPLsAkhK5dZw8CAoQzAi=YLjtz722jCix-w@mail.gmail.com>
-References: <1358525267-14268-1-git-send-email-jiang.liu@huawei.com>
-	<1358525267-14268-8-git-send-email-jiang.liu@huawei.com>
-	<CAErSpo6E0SrY8_JOU6pmrCt9opfKe_jJ6b0E0daNAbpX5KtFuQ@mail.gmail.com>
+From: Thomas Schlichter <thomas.schlichter@web.de>
+Subject: Re: [PATCH] cpuidle: fix new C-states not functional after AC disconnect
+Date: Fri, 18 Jan 2013 21:34:29 +0100
+Message-ID: <1755809.pcSThauESZ@netbook>
+References: <2099093.cPXO6Nhn9v@netbook> <50F2C79E.5000302@linaro.org> <11530988.U26HMGnFLa@vostro.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: multipart/mixed; boundary="nextPart1437426.ZqIx6kOOZB"
+Content-Transfer-Encoding: 7Bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-ie0-f172.google.com ([209.85.223.172]:38210 "EHLO
-	mail-ie0-f172.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751542Ab3ARRvA (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 18 Jan 2013 12:51:00 -0500
-In-Reply-To: <CAErSpo6E0SrY8_JOU6pmrCt9opfKe_jJ6b0E0daNAbpX5KtFuQ@mail.gmail.com>
+Received: from mout.web.de ([212.227.17.11]:59227 "EHLO mout.web.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750761Ab3ARUfH (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 18 Jan 2013 15:35:07 -0500
+In-Reply-To: <11530988.U26HMGnFLa@vostro.rjw.lan>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Bjorn Helgaas <bhelgaas@google.com>
-Cc: Jiang Liu <liuj97@gmail.com>, "Rafael J . Wysocki" <rjw@sisk.pl>, Jiang Liu <jiang.liu@huawei.com>, Kenji Kaneshige <kaneshige.kenji@jp.fujitsu.com>, Yijing Wang <wangyijing@huawei.com>, linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Toshi Kani <toshi.kani@hp.com>, Myron Stowe <myron.stowe@redhat.com>
+To: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: Daniel Lezcano <daniel.lezcano@linaro.org>, Len Brown <lenb@kernel.org>, Linus Torvalds <torvalds@linux-foundation.org>, Peter De Schrijver <pdeschrijver@nvidia.com>, Andreas =?ISO-8859-1?Q?M=FCller?= <goo@stapelspeicher.org>, Julius Werner <jwerner@chromium.org>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 
-On Fri, Jan 18, 2013 at 9:35 AM, Bjorn Helgaas <bhelgaas@google.com> wrote:
-> If you want "pci=nopciehp" as a way for users to deal with this
-> problem by forcing the use of acpiphp, I object.  Windows manages to
-> make these slots work without having users do anything special, so we
-> should be able to do it, too.
+This is a multi-part message in MIME format.
 
-Agreed.
+--nextPart1437426.ZqIx6kOOZB
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 
-We need to think that more.
+Dear Rafael,
 
-I think that we should fix acpiphp, and should follow first come and
-first serve for acpiphp and pciehp.
+thank you for applying Daniel's patch. I tested 3.8-rc4 and found that one 
+patch ist still missing to fix the problem of not usable C-state after 
+disconnect. I had it attached with my last e-mail as patch 1. For your 
+conveniency, I have attached it here again.
 
-Yinghai
+With that patch the problem is fixed for me. So please consider applying this, 
+too.
+
+Kind regards,
+  Thomas
+
+Am Sonntag, 13. Januar 2013, 21:04:45 schrieb Rafael J. Wysocki:
+> On Sunday, January 13, 2013 03:41:34 PM Daniel Lezcano wrote:
+> > On 01/13/2013 01:34 PM, Thomas Schlichter wrote:
+> > > Hi,
+> > > 
+> > > there is a long-standing regression about new C-states not working after
+> > > disconnecting AC power from a laptop if the cpuidle driver "acpi-idle"
+> > > is
+> > > used. It was reported here:
+> > > 
+> > > [1] https://bugzilla.kernel.org/show_bug.cgi?id=42870  (March 5th 2012)
+> > > [2] https://bugzilla.kernel.org/show_bug.cgi?id=43349  (June 7th 2012)
+> > > [3] https://lkml.org/lkml/2012/10/16/518   (October 19th 2012)
+> > > 
+> > > In [1] Andreas proposed a patch that initialized the missing power_usage
+> > > values from within acpi_idle in the same way as cpuidle does.
+> > > In [2] I proposed a patch to use the power values provided by ACPI to
+> > > initialize the power_usage variables.
+> > > In [3] Julius proposed a patch to call the initialization function
+> > > set_power_states()  not only once, but always when the C-states change.
+> > > 
+> > > Currently, Daniel Lezcano seems to be working on an intrusive change of
+> > > not
+> > > using the power_usage value at all for choosing a C-state:
+> > > 
+> > > [4] https://lkml.org/lkml/2012/12/14/155
+> > > 
+> > > As I could not find any of these patches in any git trees to be merged
+> > > for
+> > > 3.8, I propose an other, least intrusive patch for the time being. It is
+> > > attached an initializes _all_ power_usage values in the first place.
+> > > 
+> > > As this is a real power consumption regression since 3.2, I really ask
+> > > you to apply anything and push it to stable, too!
+> > 
+> > Rafael, is possible to apply the patch [1/2] I previously sent ?
+> > 
+> > https://patchwork.kernel.org/patch/1878691/
+> 
+> I need to talk about this with Len.  That should happen tomorrow if
+> everything goes well.
+> 
+> > So we get this bug fixed.
+> > 
+> > I will resend the patch [2/2] as soon as possible.
+> 
+> OK
+> 
+> Thanks,
+> Rafael
+--nextPart1437426.ZqIx6kOOZB
+Content-Disposition: inline; filename="0001-Get-power-info-before-updating-the-C-states.patch"
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/x-patch; charset="UTF-8"; name="0001-Get-power-info-before-updating-the-C-states.patch"
+
+>From fc300f4fefff59fe1029bf7852ea32d957145821 Mon Sep 17 00:00:00 2001
+From: Thomas Schlichter <thomas.schlichter@web.de>
+Date: Sun, 2 Sep 2012 14:35:34 +0200
+Subject: [PATCH] Get power info before updating the C-states
+
+acpi_processor_get_power_info() has to be called before
+acpi_processor_setup_cpuidle_states() to have the latest
+information available. This fixes the missing C-state information
+after AC-->DC transition.
+
+Signed-off-by: Thomas Schlichter <thomas.schlichter@web.de>
+---
+ drivers/acpi/processor_idle.c |    1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/drivers/acpi/processor_idle.c b/drivers/acpi/processor_idle.c
+index f1a5da4..17ed60b 100644
+--- a/drivers/acpi/processor_idle.c
++++ b/drivers/acpi/processor_idle.c
+@@ -1149,6 +1149,7 @@ int acpi_processor_cst_has_changed(struct acpi_processor *pr)
+ 		}
+ 
+ 		/* Populate Updated C-state information */
++		acpi_processor_get_power_info(pr);
+ 		acpi_processor_setup_cpuidle_states(pr);
+ 
+ 		/* Enable all cpuidle devices */
+-- 
+1.7.10.4
+
+
+--nextPart1437426.ZqIx6kOOZB--
+
