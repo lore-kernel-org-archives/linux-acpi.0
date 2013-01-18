@@ -1,320 +1,250 @@
 From: Yinghai Lu <yinghai@kernel.org>
-Subject: [PATCH v9 07/11] PCI, acpiphp: Move and enhance hotplug support of pci host bridge
-Date: Thu, 17 Jan 2013 23:53:18 -0800
-Message-ID: <1358495602-22867-8-git-send-email-yinghai@kernel.org>
+Subject: [PATCH v9 11/11] PCI: Put pci dev to device tree as early as possible
+Date: Thu, 17 Jan 2013 23:53:22 -0800
+Message-ID: <1358495602-22867-12-git-send-email-yinghai@kernel.org>
 References: <1358495602-22867-1-git-send-email-yinghai@kernel.org>
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Return-path: <linux-pci-owner@vger.kernel.org>
 In-Reply-To: <1358495602-22867-1-git-send-email-yinghai@kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
+Sender: linux-pci-owner@vger.kernel.org
 To: Bjorn Helgaas <bhelgaas@google.com>, "Rafael J. Wysocki" <rjw@sisk.pl>, Len Brown <lenb@kernel.org>, Taku Izumi <izumi.taku@jp.fujitsu.com>, Jiang Liu <jiang.liu@huawei.com>
 Cc: linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Yinghai Lu <yinghai@kernel.org>
 List-Id: linux-acpi@vger.kernel.org
 
-We have partial hot-add support in acpiphp driver, and it is confusing.
+We want to put created pci device in the device tree as soon as possible.
+- just after we find it and create pci_dev struct for it.
+so for_pci_dev iteration will not miss them.
 
-Move host bridge hot-add support to pci_root.c, and keep acpiphp simple,
-also add hot-remove support in pci_root.c.
+But at that time, we can not load driver for them yet. Need to be after
+pci_assign_unsigned_resources() etc to make sure all pci devices get
+resource allocated at first.
 
-How to test it: if sci_emu patch is applied,
-
-Find out root bus number to acpi root name mapping from dmesg or /sys
-
-  echo "\_SB.PCIB 3" > /sys/kernel/debug/acpi/sci_notify
-to remove root bus
-
-  echo "\_SB.PCIB 1" > /sys/kernel/debug/acpi/sci_notify
-to add back root bus
-
--v2: put back pci_root_hp change in one patch
--v3: add pcibios_resource_survey_bus() calling
--v4: remove not needed code with remove_bridge
--v5: put back support for acpiphp support for slots just on root bus.
--v6: change some functions to *_p2p_* to make it more clean.
--v7: split hot_added change out.
--v8: Move to pci_root.c instead of adding another file requested by Bjorn.
--v9: Fold three following patches into this one for easy review:
-	a: Add missing hot_remove support for root device.
-	b: Tang Chen noticed that hotplug through container will not update
-	   acpi_root_bridge list. After closely checking, we don't need
-	   that for struct for tracking and could use acpi_pci_root directly.
-	c: Tang Chen found handle_root_bridge_removal is very similiar to
-	   acpi_bus_hot_remove_device().  Change to handle_root_bridge_removal
-	   to use acpi_bus_hot_remove_device.
+Move out device registering out of pci_bus_add_devices, and
+new pci_bus_add_devices() will do the device_attach work to load pci drivers
 
 Signed-off-by: Yinghai Lu <yinghai@kernel.org>
 ---
- drivers/acpi/pci_root.c            |  139 ++++++++++++++++++++++++++++++++++++
- drivers/pci/hotplug/acpiphp_glue.c |   59 ++++-----------
- 2 files changed, 154 insertions(+), 44 deletions(-)
+ drivers/pci/bus.c   |   47 +++--------------------------------------------
+ drivers/pci/iov.c   |    7 -------
+ drivers/pci/probe.c |   34 +++++++++++++++++++++++++++-------
+ 3 files changed, 30 insertions(+), 58 deletions(-)
 
-diff --git a/drivers/acpi/pci_root.c b/drivers/acpi/pci_root.c
-index bf5108a..3ce5d80 100644
---- a/drivers/acpi/pci_root.c
-+++ b/drivers/acpi/pci_root.c
-@@ -655,3 +655,142 @@ int __init acpi_pci_root_init(void)
- 
- 	return 0;
- }
-+
-+/* Support root bridge hotplug */
-+
-+static void handle_root_bridge_insertion(acpi_handle handle)
-+{
-+	struct acpi_device *device, *pdevice;
-+	acpi_handle phandle;
-+	int ret_val;
-+
-+	acpi_get_parent(handle, &phandle);
-+	if (acpi_bus_get_device(phandle, &pdevice)) {
-+		printk(KERN_DEBUG "no parent device, assuming NULL\n");
-+		pdevice = NULL;
-+	}
-+	if (!acpi_bus_get_device(handle, &device)) {
-+		/* check if  pci root_bus is removed */
-+		struct acpi_pci_root *root = acpi_driver_data(device);
-+		if (pci_find_bus(root->segment, root->secondary.start))
-+			return;
-+
-+		printk(KERN_DEBUG "bus exists... trim\n");
-+		/* this shouldn't be in here, so remove
-+		 * the bus then re-add it...
-+		 */
-+		ret_val = acpi_bus_trim(device);
-+		printk(KERN_DEBUG "acpi_bus_trim return %x\n", ret_val);
-+	}
-+	if (acpi_bus_add(handle))
-+		printk(KERN_ERR "cannot add bridge to acpi list\n");
-+}
-+
-+static void handle_root_bridge_removal(struct acpi_device *device)
-+{
-+	struct acpi_eject_event *ej_event;
-+
-+	ej_event = kmalloc(sizeof(*ej_event), GFP_KERNEL);
-+	if (!ej_event)
-+		return;
-+
-+	ej_event->device = device;
-+	ej_event->event = ACPI_NOTIFY_EJECT_REQUEST;
-+
-+	acpi_bus_hot_remove_device(ej_event);
-+}
-+
-+static void _handle_hotplug_event_root(struct work_struct *work)
-+{
-+	struct acpi_pci_root *root;
-+	char objname[64];
-+	struct acpi_buffer buffer = { .length = sizeof(objname),
-+				      .pointer = objname };
-+	struct acpi_hp_work *hp_work;
-+	acpi_handle handle;
-+	u32 type;
-+
-+	hp_work = container_of(work, struct acpi_hp_work, work);
-+	handle = hp_work->handle;
-+	type = hp_work->type;
-+
-+	root = acpi_pci_find_root(handle);
-+
-+	acpi_get_name(handle, ACPI_FULL_PATHNAME, &buffer);
-+
-+	switch (type) {
-+	case ACPI_NOTIFY_BUS_CHECK:
-+		/* bus enumerate */
-+		printk(KERN_DEBUG "%s: Bus check notify on %s\n", __func__,
-+				 objname);
-+		if (!root)
-+			handle_root_bridge_insertion(handle);
-+
-+		break;
-+
-+	case ACPI_NOTIFY_DEVICE_CHECK:
-+		/* device check */
-+		printk(KERN_DEBUG "%s: Device check notify on %s\n", __func__,
-+				 objname);
-+		if (!root)
-+			handle_root_bridge_insertion(handle);
-+		break;
-+
-+	case ACPI_NOTIFY_EJECT_REQUEST:
-+		/* request device eject */
-+		printk(KERN_DEBUG "%s: Device eject notify on %s\n", __func__,
-+				 objname);
-+		if (root)
-+			handle_root_bridge_removal(root->device);
-+		break;
-+	default:
-+		printk(KERN_WARNING "notify_handler: unknown event type 0x%x for %s\n",
-+				 type, objname);
-+		break;
-+	}
-+
-+	kfree(hp_work); /* allocated in handle_hotplug_event_bridge */
-+}
-+
-+static void handle_hotplug_event_root(acpi_handle handle, u32 type,
-+					void *context)
-+{
-+	alloc_acpi_hp_work(handle, type, context,
-+				_handle_hotplug_event_root);
-+}
-+
-+static acpi_status __init
-+find_root_bridges(acpi_handle handle, u32 lvl, void *context, void **rv)
-+{
-+	char objname[64];
-+	struct acpi_buffer buffer = { .length = sizeof(objname),
-+				      .pointer = objname };
-+	int *count = (int *)context;
-+
-+	if (!acpi_is_root_bridge(handle))
-+		return AE_OK;
-+
-+	(*count)++;
-+
-+	acpi_get_name(handle, ACPI_FULL_PATHNAME, &buffer);
-+
-+	acpi_install_notify_handler(handle, ACPI_SYSTEM_NOTIFY,
-+				handle_hotplug_event_root, NULL);
-+	printk(KERN_DEBUG "acpi root: %s notify handler installed\n", objname);
-+
-+	return AE_OK;
-+}
-+
-+static int __init acpi_pci_root_hp_init(void)
-+{
-+	int num = 0;
-+
-+	acpi_walk_namespace(ACPI_TYPE_DEVICE, ACPI_ROOT_OBJECT,
-+		ACPI_UINT32_MAX, find_root_bridges, NULL, &num, NULL);
-+
-+	printk(KERN_DEBUG "Found %d acpi root devices\n", num);
-+
-+	return 0;
-+}
-+
-+subsys_initcall(acpi_pci_root_hp_init);
-diff --git a/drivers/pci/hotplug/acpiphp_glue.c b/drivers/pci/hotplug/acpiphp_glue.c
-index 55e03b6..45917a5 100644
---- a/drivers/pci/hotplug/acpiphp_glue.c
-+++ b/drivers/pci/hotplug/acpiphp_glue.c
-@@ -543,10 +543,13 @@ static void cleanup_bridge(struct acpiphp_bridge *bridge)
- 	acpi_status status;
- 	acpi_handle handle = bridge->handle;
- 
--	status = acpi_remove_notify_handler(handle, ACPI_SYSTEM_NOTIFY,
-+	if (bridge->type != BRIDGE_TYPE_HOST) {
-+		status = acpi_remove_notify_handler(handle,
-+					    ACPI_SYSTEM_NOTIFY,
- 					    handle_hotplug_event_bridge);
--	if (ACPI_FAILURE(status))
--		err("failed to remove notify handler\n");
-+		if (ACPI_FAILURE(status))
-+			err("failed to remove notify handler\n");
-+	}
- 
- 	if ((bridge->type != BRIDGE_TYPE_HOST) &&
- 	    ((bridge->flags & BRIDGE_HAS_EJ0) && bridge->func)) {
-@@ -630,9 +633,6 @@ static void remove_bridge(struct acpi_pci_root *root)
- 	bridge = acpiphp_handle_to_bridge(handle);
- 	if (bridge)
- 		cleanup_bridge(bridge);
--	else
--		acpi_remove_notify_handler(handle, ACPI_SYSTEM_NOTIFY,
--					   handle_hotplug_event_bridge);
- }
- 
- static int power_on_slot(struct acpiphp_slot *slot)
-@@ -1123,18 +1123,12 @@ static void acpiphp_sanitize_bus(struct pci_bus *bus)
- }
- 
- /* Program resources in newly inserted bridge */
--static int acpiphp_configure_bridge (acpi_handle handle)
-+static int acpiphp_configure_p2p_bridge(acpi_handle handle)
- {
--	struct pci_bus *bus;
-+	struct pci_dev *pdev = acpi_get_pci_dev(handle);
-+	struct pci_bus *bus = pdev->subordinate;
- 
--	if (acpi_is_root_bridge(handle)) {
--		struct acpi_pci_root *root = acpi_pci_find_root(handle);
--		bus = root->bus;
--	} else {
--		struct pci_dev *pdev = acpi_get_pci_dev(handle);
--		bus = pdev->subordinate;
--		pci_dev_put(pdev);
--	}
-+	pci_dev_put(pdev);
- 
- 	pci_bus_size_bridges(bus);
- 	pci_bus_assign_resources(bus);
-@@ -1144,7 +1138,7 @@ static int acpiphp_configure_bridge (acpi_handle handle)
- 	return 0;
- }
- 
--static void handle_bridge_insertion(acpi_handle handle, u32 type)
-+static void handle_p2p_bridge_insertion(acpi_handle handle, u32 type)
- {
- 	struct acpi_device *device;
- 
-@@ -1162,8 +1156,8 @@ static void handle_bridge_insertion(acpi_handle handle, u32 type)
- 		err("ACPI device object missing\n");
- 		return;
- 	}
--	if (!acpiphp_configure_bridge(handle))
--		add_bridge(handle);
-+	if (!acpiphp_configure_p2p_bridge(handle))
-+		add_p2p_bridge(handle);
- 	else
- 		err("cannot configure and start bridge\n");
- 
-@@ -1221,7 +1215,7 @@ static void _handle_hotplug_event_bridge(struct work_struct *work)
- 
- 	if (acpi_bus_get_device(handle, &device)) {
- 		/* This bridge must have just been physically inserted */
--		handle_bridge_insertion(handle, type);
-+		handle_p2p_bridge_insertion(handle, type);
- 		goto out;
- 	}
- 
-@@ -1396,21 +1390,6 @@ static void handle_hotplug_event_func(acpi_handle handle, u32 type,
- 	alloc_acpi_hp_work(handle, type, context, _handle_hotplug_event_func);
- }
- 
--static acpi_status
--find_root_bridges(acpi_handle handle, u32 lvl, void *context, void **rv)
--{
--	int *count = (int *)context;
--
--	if (!acpi_is_root_bridge(handle))
--		return AE_OK;
--
--	(*count)++;
--	acpi_install_notify_handler(handle, ACPI_SYSTEM_NOTIFY,
--				    handle_hotplug_event_bridge, NULL);
--
--	return AE_OK ;
--}
--
- static struct acpi_pci_driver acpi_pci_hp_driver = {
- 	.add =		add_bridge,
- 	.remove =	remove_bridge,
-@@ -1421,15 +1400,7 @@ static struct acpi_pci_driver acpi_pci_hp_driver = {
+diff --git a/drivers/pci/bus.c b/drivers/pci/bus.c
+index 18c1c6d..0a55845 100644
+--- a/drivers/pci/bus.c
++++ b/drivers/pci/bus.c
+@@ -178,22 +178,9 @@ static void pci_bus_attach_device(struct pci_dev *dev)
   */
- int __init acpiphp_glue_init(void)
+ int pci_bus_add_device(struct pci_dev *dev)
  {
--	int num = 0;
+-	int retval;
 -
--	acpi_walk_namespace(ACPI_TYPE_DEVICE, ACPI_ROOT_OBJECT,
--			ACPI_UINT32_MAX, find_root_bridges, NULL, &num, NULL);
+-	pci_fixup_device(pci_fixup_final, dev);
 -
--	if (num <= 0)
--		return -1;
--	else
--		acpi_pci_register_driver(&acpi_pci_hp_driver);
-+	acpi_pci_register_driver(&acpi_pci_hp_driver);
- 
+-	retval = pcibios_add_device(dev);
+-	if (retval)
+-		return retval;
+-
+-	retval = device_add(&dev->dev);
+-	if (retval)
+-		return retval;
+-
+ 	pci_bus_attach_device(dev);
+ 	dev->is_added = 1;
+-	pci_proc_attach_device(dev);
+-	pci_create_sysfs_dev_files(dev);
++
  	return 0;
  }
+ 
+@@ -205,21 +192,9 @@ int pci_bus_add_device(struct pci_dev *dev)
+  */
+ int pci_bus_add_child(struct pci_bus *bus)
+ {
+-	int retval;
+-
+-	if (bus->bridge)
+-		bus->dev.parent = bus->bridge;
+-
+-	retval = device_register(&bus->dev);
+-	if (retval)
+-		return retval;
+-
+ 	bus->is_added = 1;
+ 
+-	/* Create legacy_io and legacy_mem files for this bus */
+-	pci_create_legacy_files(bus);
+-
+-	return retval;
++	return 0;
+ }
+ 
+ /**
+@@ -245,36 +220,20 @@ void pci_bus_add_devices(const struct pci_bus *bus)
+ 		if (dev->is_added)
+ 			continue;
+ 		retval = pci_bus_add_device(dev);
+-		if (retval)
+-			dev_err(&dev->dev, "Error adding device, continuing\n");
+ 	}
+ 
+ 	list_for_each_entry(dev, &bus->devices, bus_list) {
+ 		BUG_ON(!dev->is_added);
+ 
+ 		child = dev->subordinate;
+-		/*
+-		 * If there is an unattached subordinate bus, attach
+-		 * it and then scan for unattached PCI devices.
+-		 */
++
+ 		if (!child)
+ 			continue;
+-		if (list_empty(&child->node)) {
+-			down_write(&pci_bus_sem);
+-			list_add_tail(&child->node, &dev->bus->children);
+-			up_write(&pci_bus_sem);
+-		}
+ 		pci_bus_add_devices(child);
+ 
+-		/*
+-		 * register the bus with sysfs as the parent is now
+-		 * properly registered.
+-		 */
+ 		if (child->is_added)
+ 			continue;
+ 		retval = pci_bus_add_child(child);
+-		if (retval)
+-			dev_err(&dev->dev, "Error adding bus, continuing\n");
+ 	}
+ }
+ 
+diff --git a/drivers/pci/iov.c b/drivers/pci/iov.c
+index bafd2bb..dbad72e 100644
+--- a/drivers/pci/iov.c
++++ b/drivers/pci/iov.c
+@@ -48,12 +48,7 @@ static struct pci_bus *virtfn_add_bus(struct pci_bus *bus, int busnr)
+ 		return NULL;
+ 
+ 	pci_bus_insert_busn_res(child, busnr, busnr);
+-	child->dev.parent = bus->bridge;
+ 	rc = pci_bus_add_child(child);
+-	if (rc) {
+-		pci_remove_bus(child);
+-		return NULL;
+-	}
+ 
+ 	return child;
+ }
+@@ -123,8 +118,6 @@ static int virtfn_add(struct pci_dev *dev, int id, int reset)
+ 	virtfn->is_virtfn = 1;
+ 
+ 	rc = pci_bus_add_device(virtfn);
+-	if (rc)
+-		goto failed1;
+ 	sprintf(buf, "virtfn%u", id);
+ 	rc = sysfs_create_link(&dev->dev.kobj, &virtfn->dev.kobj, buf);
+ 	if (rc)
+diff --git a/drivers/pci/probe.c b/drivers/pci/probe.c
+index 9588207..6392dac 100644
+--- a/drivers/pci/probe.c
++++ b/drivers/pci/probe.c
+@@ -623,6 +623,7 @@ static struct pci_bus *pci_alloc_child_bus(struct pci_bus *parent,
+ {
+ 	struct pci_bus *child;
+ 	int i;
++	int ret;
+ 
+ 	/*
+ 	 * Allocate a new bus, and inherit stuff from the parent..
+@@ -637,8 +638,7 @@ static struct pci_bus *pci_alloc_child_bus(struct pci_bus *parent,
+ 	child->bus_flags = parent->bus_flags;
+ 
+ 	/* initialize some portions of the bus device, but don't register it
+-	 * now as the parent is not properly set up yet.  This device will get
+-	 * registered later in pci_bus_add_devices()
++	 * now as the parent is not properly set up yet.
+ 	 */
+ 	child->dev.class = &pcibus_class;
+ 	dev_set_name(&child->dev, "%04x:%02x", pci_domain_nr(child), busnr);
+@@ -651,11 +651,14 @@ static struct pci_bus *pci_alloc_child_bus(struct pci_bus *parent,
+ 	child->primary = parent->busn_res.start;
+ 	child->busn_res.end = 0xff;
+ 
+-	if (!bridge)
+-		return child;
++	if (!bridge) {
++		child->dev.parent = parent->bridge;
++		goto add_dev;
++	}
+ 
+ 	child->self = bridge;
+ 	child->bridge = get_device(&bridge->dev);
++	child->dev.parent = child->bridge;
+ 	pci_set_bus_of_node(child);
+ 	pci_set_bus_speed(child);
+ 
+@@ -666,6 +669,13 @@ static struct pci_bus *pci_alloc_child_bus(struct pci_bus *parent,
+ 	}
+ 	bridge->subordinate = child;
+ 
++add_dev:
++	ret = device_register(&child->dev);
++	WARN_ON(ret < 0);
++
++	/* Create legacy_io and legacy_mem files for this bus */
++	pci_create_legacy_files(child);
++
+ 	return child;
+ }
+ 
+@@ -1296,6 +1306,8 @@ static void pci_init_capabilities(struct pci_dev *dev)
+ 
+ void pci_device_add(struct pci_dev *dev, struct pci_bus *bus)
+ {
++	int ret;
++
+ 	device_initialize(&dev->dev);
+ 	dev->dev.release = pci_release_dev;
+ 
+@@ -1326,6 +1338,16 @@ void pci_device_add(struct pci_dev *dev, struct pci_bus *bus)
+ 	down_write(&pci_bus_sem);
+ 	list_add_tail(&dev->bus_list, &bus->devices);
+ 	up_write(&pci_bus_sem);
++
++	pci_fixup_device(pci_fixup_final, dev);
++	ret = pcibios_add_device(dev);
++	WARN_ON(ret < 0);
++	/* notifier could use pci capabilities */
++	ret = device_add(&dev->dev);
++	WARN_ON(ret < 0);
++
++	pci_proc_attach_device(dev);
++	pci_create_sysfs_dev_files(dev);
+ }
+ 
+ struct pci_dev *__ref pci_scan_single_device(struct pci_bus *bus, int devfn)
+@@ -1656,13 +1678,13 @@ struct pci_bus *pci_create_root_bus(struct device *parent, int bus,
+ 	char bus_addr[64];
+ 	char *fmt;
+ 
+-
+ 	b = pci_alloc_bus();
+ 	if (!b)
+ 		return NULL;
+ 
+ 	b->sysdata = sysdata;
+ 	b->ops = ops;
++	b->number = b->busn_res.start = bus;
+ 	b2 = pci_find_bus(pci_domain_nr(b), bus);
+ 	if (b2) {
+ 		/* If we already got to this bus through a different bridge, ignore it */
+@@ -1701,8 +1723,6 @@ struct pci_bus *pci_create_root_bus(struct device *parent, int bus,
+ 	/* Create legacy_io and legacy_mem files for this bus */
+ 	pci_create_legacy_files(b);
+ 
+-	b->number = b->busn_res.start = bus;
+-
+ 	if (parent)
+ 		dev_info(parent, "PCI host bridge to bus %s\n", dev_name(&b->dev));
+ 	else
 -- 
 1.7.10.4
