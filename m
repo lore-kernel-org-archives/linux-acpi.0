@@ -1,56 +1,81 @@
 From: Jiang Liu <liuj97@gmail.com>
-Subject: [RFC PATCH v5 8/8] PCI/PCIe: only claim PME from firmware when CONFIG_PCIE_PME is enabled
-Date: Sat, 19 Jan 2013 00:07:46 +0800
-Message-ID: <1358525267-14268-9-git-send-email-jiang.liu@huawei.com>
+Subject: [RFC PATCH v5 1/8] PCI: make PCI device create/destroy logic symmetric
+Date: Sat, 19 Jan 2013 00:07:39 +0800
+Message-ID: <1358525267-14268-2-git-send-email-jiang.liu@huawei.com>
 References: <1358525267-14268-1-git-send-email-jiang.liu@huawei.com>
-Return-path: <linux-pci-owner@vger.kernel.org>
+Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <1358525267-14268-1-git-send-email-jiang.liu@huawei.com>
-Sender: linux-pci-owner@vger.kernel.org
+Sender: linux-kernel-owner@vger.kernel.org
 To: "Rafael J . Wysocki" <rjw@sisk.pl>, Bjorn Helgaas <bhelgaas@google.com>
 Cc: Jiang Liu <jiang.liu@huawei.com>, Yinghai Lu <yinghai@kernel.org>, Kenji Kaneshige <kaneshige.kenji@jp.fujitsu.com>, Yijing Wang <wangyijing@huawei.com>, Jiang Liu <liuj97@gmail.com>, linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Toshi Kani <toshi.kani@hp.com>, Myron Stowe <myron.stowe@redhat.com>
 List-Id: linux-acpi@vger.kernel.org
 
-If CONFIG_PCIE_PME is not defined, system should avoid claiming PME from
-firmware so firmware could still manage PME events for those devices.
-Also don't create PCIe port device for PME service if CONFIG_PCIE_PME
-is not defined.
+According to device model documentation, the way to create/destroy PCI
+devices should be symmetric.
+
+/**
+ * device_del - delete device from system.
+ * @dev: device.
+ *
+ * This is the first part of the device unregistration
+ * sequence. This removes the device from the lists we control
+ * from here, has it removed from the other driver model
+ * subsystems it was added to in device_add(), and removes it
+ * from the kobject hierarchy.
+ *
+ * NOTE: this should be called manually _iff_ device_add() was
+ * also called manually.
+ */
+
+The rule is to either use
+1) device_register()/device_unregister()
+or
+2) device_initialize()/device_add()/device_del()/put_device().
+
+So change PCI core logic to follow the rule and get rid of the redundant
+pci_dev_get()/pci_dev_put() pair.
 
 Signed-off-by: Jiang Liu <jiang.liu@huawei.com>
+Acked-by: Bjorn Helgaas <bhelgaas@google.com>
+Reviewed-by: Yinghai Lu <yinghai@kernel.org>
 ---
- drivers/acpi/pci_root.c         |    5 +++--
- drivers/pci/pcie/portdrv_core.c |    4 +++-
- 2 files changed, 6 insertions(+), 3 deletions(-)
+ drivers/pci/probe.c  |    1 -
+ drivers/pci/remove.c |    4 ++--
+ 2 files changed, 2 insertions(+), 3 deletions(-)
 
-diff --git a/drivers/acpi/pci_root.c b/drivers/acpi/pci_root.c
-index c37eedb..7f7e464 100644
---- a/drivers/acpi/pci_root.c
-+++ b/drivers/acpi/pci_root.c
-@@ -550,8 +550,9 @@ static int __devinit acpi_pci_root_add(struct acpi_device *device)
+diff --git a/drivers/pci/probe.c b/drivers/pci/probe.c
+index 4f7f963..ec5d28f 100644
+--- a/drivers/pci/probe.c
++++ b/drivers/pci/probe.c
+@@ -1294,7 +1294,6 @@ void pci_device_add(struct pci_dev *dev, struct pci_bus *bus)
+ {
+ 	device_initialize(&dev->dev);
+ 	dev->dev.release = pci_release_dev;
+-	pci_dev_get(dev);
  
- 	if (!pcie_ports_disabled
- 	    && (flags & ACPI_PCIE_REQ_SUPPORT) == ACPI_PCIE_REQ_SUPPORT) {
--		flags = OSC_PCI_EXPRESS_CAP_STRUCTURE_CONTROL
--			| OSC_PCI_EXPRESS_PME_CONTROL;
-+		flags = OSC_PCI_EXPRESS_CAP_STRUCTURE_CONTROL;
-+		if (IS_ENABLED(CONFIG_PCIE_PME))
-+			flags |= OSC_PCI_EXPRESS_PME_CONTROL;
- 		if (!pcie_native_hotplug_disabled)
- 			flags |= OSC_PCI_EXPRESS_NATIVE_HP_CONTROL;
+ 	dev->dev.dma_mask = &dev->dma_mask;
+ 	dev->dev.dma_parms = &dev->dma_parms;
+diff --git a/drivers/pci/remove.c b/drivers/pci/remove.c
+index 513972f..10693f5 100644
+--- a/drivers/pci/remove.c
++++ b/drivers/pci/remove.c
+@@ -22,7 +22,7 @@ static void pci_stop_dev(struct pci_dev *dev)
+ 	if (dev->is_added) {
+ 		pci_proc_detach_device(dev);
+ 		pci_remove_sysfs_dev_files(dev);
+-		device_unregister(&dev->dev);
++		device_del(&dev->dev);
+ 		dev->is_added = 0;
+ 	}
  
-diff --git a/drivers/pci/pcie/portdrv_core.c b/drivers/pci/pcie/portdrv_core.c
-index e7e1679..7e6546f 100644
---- a/drivers/pci/pcie/portdrv_core.c
-+++ b/drivers/pci/pcie/portdrv_core.c
-@@ -263,7 +263,9 @@ static int get_port_device_capability(struct pci_dev *dev)
+@@ -37,7 +37,7 @@ static void pci_destroy_dev(struct pci_dev *dev)
+ 	up_write(&pci_bus_sem);
  
- 	err = pcie_port_platform_notify(dev, &cap_mask);
- 	if (!pcie_ports_auto) {
--		cap_mask = PCIE_PORT_SERVICE_PME | PCIE_PORT_SERVICE_VC;
-+		cap_mask = PCIE_PORT_SERVICE_VC;
-+		if (IS_ENABLED(CONFIG_PCIE_PME))
-+			cap_mask |= PCIE_PORT_SERVICE_PME;
- 		if (!pcie_native_hotplug_disabled)
- 			cap_mask |= PCIE_PORT_SERVICE_HP;
- 		if (pci_aer_available())
+ 	pci_free_resources(dev);
+-	pci_dev_put(dev);
++	put_device(&dev->dev);
+ }
+ 
+ void pci_remove_bus(struct pci_bus *bus)
 -- 
 1.7.9.5
