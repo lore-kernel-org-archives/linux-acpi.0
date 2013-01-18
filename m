@@ -1,94 +1,107 @@
-From: Jiang Liu <liuj97@gmail.com>
-Subject: [RFC PATCH v5 2/8] PCI: split registration of PCI bus devices into two stages
-Date: Sat, 19 Jan 2013 00:07:40 +0800
-Message-ID: <1358525267-14268-3-git-send-email-jiang.liu@huawei.com>
-References: <1358525267-14268-1-git-send-email-jiang.liu@huawei.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1358525267-14268-1-git-send-email-jiang.liu@huawei.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: "Rafael J . Wysocki" <rjw@sisk.pl>, Bjorn Helgaas <bhelgaas@google.com>
-Cc: Jiang Liu <jiang.liu@huawei.com>, Yinghai Lu <yinghai@kernel.org>, Kenji Kaneshige <kaneshige.kenji@jp.fujitsu.com>, Yijing Wang <wangyijing@huawei.com>, Jiang Liu <liuj97@gmail.com>, linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Toshi Kani <toshi.kani@hp.com>, Myron Stowe <myron.stowe@redhat.com>
+From: Leonid Isaev <lisaev@umail.iu.edu>
+Subject: Re: [arch-general] powernow-k8 fails to load with linux 3.7.2
+Date: Fri, 18 Jan 2013 10:59:39 -0600
+Message-ID: <20130118105939.5a8788d6@bluemoon>
+References: <20130115224755.085aa6b7@bluemoon>
+	<20130116131725.4e590c34@bluemoon>
+	<CAG-2HqWBVf=RWXExeFgxYdPTzPfQYZnt-3ZKzULTwdP9+-5mVQ@mail.gmail.com>
+	<1448223.sdUJnNSRz4@vostro.rjw.lan>
+	<20130116231728.GA10204@x1.alien8.de>
+	<20130116181600.4c48ee3b@bluemoon>
+	<20130117094648.GD30700@pd.tnic>
+	<20130117194044.7a18a29d@bluemoon>
+	<20130118113717.GA6808@pd.tnic>
+Mime-Version: 1.0
+Content-Type: multipart/signed; micalg=PGP-SHA1;
+ boundary="Sig_/c7s4YR5i42AO2c+sUEWGiq."; protocol="application/pgp-signature"
+Return-path: <cpufreq-owner@vger.kernel.org>
+In-Reply-To: <20130118113717.GA6808@pd.tnic>
+Sender: cpufreq-owner@vger.kernel.org
+To: Borislav Petkov <bp@alien8.de>
+Cc: "Rafael J. Wysocki" <rjw@sisk.pl>, Tom Gundersen <teg@jklm.no>, =?UTF-8?B?QW5kcsOp?= Przywara <andre@andrep.de>, Matthew Garrett <mjg@redhat.com>, cpufreq@vger.kernel.org, linux-acpi@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-When handling BUS_NOTIFY_ADD_DEVICE event for a PCI bridge device,
-the notification handler can't hold reference count to the new PCI bus
-because the device object for the new bus (pci_dev->subordinate->dev)
-hasn't been initialized yet.
+--Sig_/c7s4YR5i42AO2c+sUEWGiq.
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: quoted-printable
 
-Split the registration of PCI bus device into two stages as below,
-so that the event handler could hold reference count to the new PCI bus
-when handling BUS_NOTIFY_ADD_DEVICE event.
+On Fri, 18 Jan 2013 12:37:17 +0100
+Borislav Petkov <bp@alien8.de> wrote:
 
-1) device_initialize(&pci_dev->dev)
-2) device_initialize(&pci_dev->subordinate->dev)
-3) notify BUS_NOTIFY_ADD_DEVICE event for pci_dev
-4) device_add(&pci_dev->dev)
-5) device_add(&pci_dev->subordinate->dev)
+> On Thu, Jan 17, 2013 at 07:40:44PM -0600, Leonid Isaev wrote:
+> > Arrh, modprobe still does not exit cleanly with this...
+>=20
+> As I said already above:
+>=20
+> >> That's correct - we say ENODEV on your CPU which supports hardware
+> >> P-states and hand off to acpi-cpufreq which has that functionality
+> >> now.
+>=20
+> It is supposed to work that way: we return an error from the powernow-k8
+> init function so that it doesn't load but hand off to acpi-cpufreq so
+> that it gets loaded instead.
+>=20
+> > > But, we also have the CPU autoprobing deal:
+> > >=20
+> > > http://git.kernel.org/?p=3Dlinux/kernel/git/torvalds/linux-2.6.git;a=
+=3Dcommit;h=3D644e9cbbe3fc032cc92d0936057e166a994dc246
+> > >=20
+> > > so, *actually*, powernow-k8 should be loaded by default. I dunno, may=
+be
+> > > upgrade udev on your distro?
+> >=20
+> > Udev 196 and 197 + linux <=3D 3.6.11 yield correct CPU autoprobing. How=
+ever,
+> > udev 197 + linux 3.7.2 do not. I haven't tested udev 196 with 3.7.2 tho=
+ugh,
+> > but it does not look like a udev issue.
+>=20
+> Hmm, I'll bet this has something to do with the fact that HW_PSTATE is
+> in another CPUID function on AMD than on Intel and udev doesn't see that
+> bit to load acpi-cpufreq automatically.
+>=20
+> Before I go and install archlinux here, where can I get the udev sources
+> which are in your archlinux installation to stare at them a little? :)
+> Especially the cpu autoprobing part which supposedly uses the cpuid
+> kernel driver.
 
-Signed-off-by: Jiang Liu <jiang.liu@huawei.com>
-Signed-off-by: Yinghai Lu <yinghai@kernel.org>
-Acked-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
----
- drivers/pci/bus.c    |    2 +-
- drivers/pci/probe.c  |    4 +++-
- drivers/pci/remove.c |   10 +++++-----
- 3 files changed, 9 insertions(+), 7 deletions(-)
+They are vanilla systemd-197
+(http://www.freedesktop.org/software/systemd/systemd-197.tar.xz) with only 1
+dbus-related patch
+(https://projects.archlinux.org/svntogit/packages.git/tree/trunk?h=3Dpackag=
+es/systemd).
 
-diff --git a/drivers/pci/bus.c b/drivers/pci/bus.c
-index a543746..4c843cd 100644
---- a/drivers/pci/bus.c
-+++ b/drivers/pci/bus.c
-@@ -193,7 +193,7 @@ int pci_bus_add_child(struct pci_bus *bus)
- 	if (bus->bridge)
- 		bus->dev.parent = bus->bridge;
- 
--	retval = device_register(&bus->dev);
-+	retval = device_add(&bus->dev);
- 	if (retval)
- 		return retval;
- 
-diff --git a/drivers/pci/probe.c b/drivers/pci/probe.c
-index ec5d28f..adb77c6 100644
---- a/drivers/pci/probe.c
-+++ b/drivers/pci/probe.c
-@@ -639,6 +639,7 @@ static struct pci_bus *pci_alloc_child_bus(struct pci_bus *parent,
- 	 */
- 	child->dev.class = &pcibus_class;
- 	dev_set_name(&child->dev, "%04x:%02x", pci_domain_nr(child), busnr);
-+	device_initialize(&child->dev);
- 
- 	/*
- 	 * Set up the primary, secondary and subordinate
-@@ -1673,7 +1674,8 @@ struct pci_bus *pci_create_root_bus(struct device *parent, int bus,
- 	b->dev.class = &pcibus_class;
- 	b->dev.parent = b->bridge;
- 	dev_set_name(&b->dev, "%04x:%02x", pci_domain_nr(b), bus);
--	error = device_register(&b->dev);
-+	device_initialize(&b->dev);
-+	error = device_add(&b->dev);
- 	if (error)
- 		goto class_dev_reg_err;
- 
-diff --git a/drivers/pci/remove.c b/drivers/pci/remove.c
-index 10693f5..0d03026 100644
---- a/drivers/pci/remove.c
-+++ b/drivers/pci/remove.c
-@@ -48,11 +48,11 @@ void pci_remove_bus(struct pci_bus *bus)
- 	list_del(&bus->node);
- 	pci_bus_release_busn_res(bus);
- 	up_write(&pci_bus_sem);
--	if (!bus->is_added)
--		return;
--
--	pci_remove_legacy_files(bus);
--	device_unregister(&bus->dev);
-+	if (bus->is_added) {
-+		pci_remove_legacy_files(bus);
-+		device_del(&bus->dev);
-+	}
-+	put_device(&bus->dev);
- }
- EXPORT_SYMBOL(pci_remove_bus);
- 
--- 
-1.7.9.5
+>=20
+> > I don't know if it matters, but I also have AMD microcode "0x10000c8",
+> > albeit it didn't cause problems with 3.6.11...
+>=20
+> Nah, microcode doesn't have anything to do with it.
+>=20
+> Thanks.
+>=20
+
+Thanks,
+L.
+
+--=20
+Leonid Isaev
+GnuPG key: 0x164B5A6D
+Fingerprint: C0DF 20D0 C075 C3F1 E1BE  775A A7AE F6CB 164B 5A6D
+
+--Sig_/c7s4YR5i42AO2c+sUEWGiq.
+Content-Type: application/pgp-signature; name=signature.asc
+Content-Disposition: attachment; filename=signature.asc
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2.0.19 (GNU/Linux)
+
+iQEcBAEBAgAGBQJQ+X+BAAoJEKeu9ssWS1ptBpQH+wfP8mjy+3HOaZd01ffz0iaQ
+iG4hdUpPVHiBdPJykEe8mQr2yomOpExRVrI6UMmCdU+1z68z5uYHf/qc5GNkQjwM
+vpby65yM7JEQDFpYVvM/tIMhjoz9hHw6JYvNFzE8iXPNX7v7PRKk0Cd/tKRQfBMX
+rBETionID8SaVSEuqPe3MT5QF4f7hN3imWajmvzCHPtHg1Ixwm9mXCCdD2zmbGkU
+vL6SkquSSBklGpV4Co64RDjWo5P7EHgoFVMEcdoaL8FCIPK9qDQZ2bp3Nbhr6mxQ
+4piKOZAwIrWOWGq4Nx1iHXKBNPgsqIDo/Gk6r6FyUuAHKeFtBbpoV108rCpuBPA=
+=Sxs8
+-----END PGP SIGNATURE-----
+
+--Sig_/c7s4YR5i42AO2c+sUEWGiq.--
