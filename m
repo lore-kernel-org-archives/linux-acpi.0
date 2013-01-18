@@ -1,43 +1,40 @@
 From: "Rafael J. Wysocki" <rjw@sisk.pl>
 Subject: Re: [RFC PATCH v5 7/8] PCI/PCIe: add "pci=nopciehp" to disable PCIe native hotplug
-Date: Fri, 18 Jan 2013 23:01:16 +0100
-Message-ID: <1576807.oaVfmTuWNZ@vostro.rjw.lan>
-References: <1358525267-14268-1-git-send-email-jiang.liu@huawei.com> <1358525267-14268-8-git-send-email-jiang.liu@huawei.com> <CAErSpo6E0SrY8_JOU6pmrCt9opfKe_jJ6b0E0daNAbpX5KtFuQ@mail.gmail.com>
+Date: Fri, 18 Jan 2013 23:08:07 +0100
+Message-ID: <1449960.YISN9L5GZD@vostro.rjw.lan>
+References: <1358525267-14268-1-git-send-email-jiang.liu@huawei.com> <CAErSpo6E0SrY8_JOU6pmrCt9opfKe_jJ6b0E0daNAbpX5KtFuQ@mail.gmail.com> <CAE9FiQU6K1M=rbnhPLsAkhK5dZw8CAoQzAi=YLjtz722jCix-w@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7Bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from hydra.sisk.pl ([212.160.235.94]:45821 "EHLO hydra.sisk.pl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751092Ab3ARVzW (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 18 Jan 2013 16:55:22 -0500
-In-Reply-To: <CAErSpo6E0SrY8_JOU6pmrCt9opfKe_jJ6b0E0daNAbpX5KtFuQ@mail.gmail.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Return-path: <linux-pci-owner@vger.kernel.org>
+In-Reply-To: <CAE9FiQU6K1M=rbnhPLsAkhK5dZw8CAoQzAi=YLjtz722jCix-w@mail.gmail.com>
+Sender: linux-pci-owner@vger.kernel.org
+To: Yinghai Lu <yinghai@kernel.org>
+Cc: Bjorn Helgaas <bhelgaas@google.com>, Jiang Liu <liuj97@gmail.com>, Jiang Liu <jiang.liu@huawei.com>, Kenji Kaneshige <kaneshige.kenji@jp.fujitsu.com>, Yijing Wang <wangyijing@huawei.com>, linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Toshi Kani <toshi.kani@hp.com>, Myron Stowe <myron.stowe@redhat.com>
 List-Id: linux-acpi@vger.kernel.org
-To: Bjorn Helgaas <bhelgaas@google.com>
-Cc: Jiang Liu <liuj97@gmail.com>, Jiang Liu <jiang.liu@huawei.com>, Yinghai Lu <yinghai@kernel.org>, Kenji Kaneshige <kaneshige.kenji@jp.fujitsu.com>, Yijing Wang <wangyijing@huawei.com>, linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Toshi Kani <toshi.kani@hp.com>, Myron Stowe <myron.stowe@redhat.com>
 
-On Friday, January 18, 2013 10:35:46 AM Bjorn Helgaas wrote:
-> On Fri, Jan 18, 2013 at 9:07 AM, Jiang Liu <liuj97@gmail.com> wrote:
-> > If user specifies "pci=nopciehp" on kernel boot command line, OSPM
-> > won't claim PCIe native hotplug service from firmware and no PCIe
-> > port devices will be created for PCIe native hotplug service.
+On Friday, January 18, 2013 09:50:59 AM Yinghai Lu wrote:
+> On Fri, Jan 18, 2013 at 9:35 AM, Bjorn Helgaas <bhelgaas@google.com> wrote:
+> > If you want "pci=nopciehp" as a way for users to deal with this
+> > problem by forcing the use of acpiphp, I object.  Windows manages to
+> > make these slots work without having users do anything special, so we
+> > should be able to do it, too.
 > 
-> Why do we need this option?
+> Agreed.
 > 
-> If I understand correctly, there are machines where it *looks* like we
-> should use pciehp, but pciehp doesn't work because we don't get the
-> interrupts we expect.  On those machines, we have to use acpiphp
-> instead.  It seems like many Dell XPS laptops have this issue with
-> ExpressCard slots, e.g.,
-> https://bugzilla.kernel.org/show_bug.cgi?id=40802 .
+> We need to think that more.
 > 
-> If you want "pci=nopciehp" as a way for users to deal with this
-> problem by forcing the use of acpiphp, I object.  Windows manages to
-> make these slots work without having users do anything special, so we
-> should be able to do it, too.
+> I think that we should fix acpiphp, and should follow first come and
+> first serve for acpiphp and pciehp.
 
-And one can use pcie_ports=compat to work around these problems anyway.
+That would introduce regressions for some users, though.
+
+I actually think we should merge acpiphp with pciehp and make one driver that
+can use both types of signalling.  There would be a problem with getting
+notifications for the same event from both sources, but that doesn't seem to
+be unsolvable.
+
+And I don't think that that one combined driver should be modular.
 
 Thanks,
 Rafael
