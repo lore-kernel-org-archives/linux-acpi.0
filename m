@@ -1,76 +1,67 @@
-From: =?ISO-8859-1?Q?Andr=E9?= Przywara <andre@andrep.de>
-Subject: Re: [arch-general] powernow-k8 fails to load with linux 3.7.2
-Date: Fri, 18 Jan 2013 13:32:33 +0100
-Message-ID: <20130118133233.4521ddb6@hydra>
-References: <20130115224755.085aa6b7@bluemoon>
-	<20130116131725.4e590c34@bluemoon>
-	<CAG-2HqWBVf=RWXExeFgxYdPTzPfQYZnt-3ZKzULTwdP9+-5mVQ@mail.gmail.com>
-	<1448223.sdUJnNSRz4@vostro.rjw.lan>
-	<20130116231728.GA10204@x1.alien8.de>
-	<20130116181600.4c48ee3b@bluemoon>
-	<20130117094648.GD30700@pd.tnic>
-	<20130117194044.7a18a29d@bluemoon>
-	<20130118113717.GA6808@pd.tnic>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+From: Mika Westerberg <mika.westerberg@linux.intel.com>
+Subject: [PATCH v2 0/3] x86: enable common clk and add support for Lynxpoint clocks
+Date: Fri, 18 Jan 2013 15:45:58 +0200
+Message-ID: <1358516761-20981-1-git-send-email-mika.westerberg@linux.intel.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail.andrep.de ([217.160.17.100]:58294 "EHLO mail.andrep.de"
+Received: from mga09.intel.com ([134.134.136.24]:48262 "EHLO mga09.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755766Ab3ARMmh (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 18 Jan 2013 07:42:37 -0500
-In-Reply-To: <20130118113717.GA6808@pd.tnic>
+	id S1751187Ab3ARNpB (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 18 Jan 2013 08:45:01 -0500
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Borislav Petkov <bp@alien8.de>
-Cc: Leonid Isaev <lisaev@umail.iu.edu>, "Rafael J. Wysocki" <rjw@sisk.pl>, Tom Gundersen <teg@jklm.no>, Matthew Garrett <matthew.garrett@nebula.com>, cpufreq@vger.kernel.org, linux-acpi@vger.kernel.org
+To: linux-kernel@vger.kernel.org
+Cc: Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, x86@kernel.org, Len Brown <lenb@kernel.org>, "Rafael J. Wysocki" <rjw@sisk.pl>, Mike Turquette <mturquette@linaro.org>, Arnd Bergmann <arnd@arndb.de>, Linus Walleij <linus.walleij@linaro.org>, Mark Brown <broonie@opensource.wolfsonmicro.com>, Heikki Krogerus <heikki.krogerus@linux.intel.com>, Mika Westerberg <mika.westerberg@linux.intel.com>, linux-acpi@vger.kernel.org
 
-On Fri, 18 Jan 2013 12:37:17 +0100
-Borislav Petkov <bp@alien8.de> wrote:
+This is second iteration of the series. First revision is available here:
 
-(updating Matthew's email as per MAINTAINERS)
+	https://lkml.org/lkml/2013/1/14/213
 
-> On Thu, Jan 17, 2013 at 07:40:44PM -0600, Leonid Isaev wrote:
-> > Arrh, modprobe still does not exit cleanly with this...
-> 
-> As I said already above:
-> 
-> >> That's correct - we say ENODEV on your CPU which supports hardware
-> >> P-states and hand off to acpi-cpufreq which has that functionality
-> >> now.
-> 
-> It is supposed to work that way: we return an error from the
-> powernow-k8 init function so that it doesn't load but hand off to
-> acpi-cpufreq so that it gets loaded instead.
-> 
-> > > But, we also have the CPU autoprobing deal:
-> > > 
-> > > http://git.kernel.org/?p=linux/kernel/git/torvalds/linux-2.6.git;a=commit;h=644e9cbbe3fc032cc92d0936057e166a994dc246
-> > > 
-> > > so, *actually*, powernow-k8 should be loaded by default. I dunno,
-> > > maybe upgrade udev on your distro?
-> > 
-> > Udev 196 and 197 + linux <= 3.6.11 yield correct CPU autoprobing.
-> > However, udev 197 + linux 3.7.2 do not. I haven't tested udev 196
-> > with 3.7.2 though, but it does not look like a udev issue.
-> 
-> Hmm, I'll bet this has something to do with the fact that HW_PSTATE is
-> in another CPUID function on AMD than on Intel and udev doesn't see
-> that bit to load acpi-cpufreq automatically.
+Idea is to let the LPSS peripheral drivers to use common clk framework to
+get clock rate or enable/disable the functional clock. The discussion
+started in this thread:
 
-But the acpi-cpufreq does not export it's dependency on some CPUID
-flags, since it is an _ACPI_ module. Shouldn't the load be triggered
-while parsing the ACPI tree instead?
+	http://thread.gmane.org/gmane.linux.kernel/1417691
 
-$ /sbin/modinfo drivers/cpufreq/acpi-cpufreq.ko | grep alias
-alias:          acpi
+In summary, there is no point in adding a special case code to the drivers
+in order to pass them a fixed clock rate, but instead x86 should just
+enable common clk subsystem and take advantage of it.
 
-$ /sbin/modinfo drivers/cpufreq/powernow-k8.ko | grep alias
-alias:          x86cpu:vendor:0002:family:000F:model:*:feature:*
+We try to address that in this series. Instead of enabling the common clk
+framework by default we place it under CONFIG_X86_INTEL_LPSS config option.
+This option then selects what is necessary to support the LPSS peripheral
+drivers.
 
-How does ArchLinux loads acpi-cpufreq on Intel CPUs? It should now be
-the same mechanism on AMD. Or does it have acpi-cpufreq somehow
-hard-coded in the scripts for GenuineIntel?
+We then create the Lynxpoint clock tree and populate it accordingly.
 
-Regards,
-Andre.
+Changes to previous version:
+	- add config option CONFIG_X86_INTEL_LPSS
+	- pass flags to acpi_create_platform_device() instead of calling
+	  function in drivers/acpi/scan.c
+	- create the clock platform devices in drivers/acpi/acpi_platform.c
+
+Please review.
+
+Mika Westerberg (3):
+  x86: add support for Intel Low Power Subsystem
+  clk: x86: add support for Lynxpoint LPSS clocks
+  ACPI / platform: create LPSS clocks if Lynxpoint devices are found
+    during scan
+
+ arch/x86/Kconfig             |   10 +++++
+ drivers/acpi/acpi_platform.c |   25 ++++++++++-
+ drivers/acpi/internal.h      |    6 ++-
+ drivers/acpi/scan.c          |   22 +++++-----
+ drivers/clk/Makefile         |    1 +
+ drivers/clk/x86/Makefile     |    2 +
+ drivers/clk/x86/clk-lpss.c   |   99 ++++++++++++++++++++++++++++++++++++++++++
+ drivers/clk/x86/clk-lpss.h   |   36 +++++++++++++++
+ drivers/clk/x86/clk-lpt.c    |   86 ++++++++++++++++++++++++++++++++++++
+ 9 files changed, 275 insertions(+), 12 deletions(-)
+ create mode 100644 drivers/clk/x86/Makefile
+ create mode 100644 drivers/clk/x86/clk-lpss.c
+ create mode 100644 drivers/clk/x86/clk-lpss.h
+ create mode 100644 drivers/clk/x86/clk-lpt.c
+
+-- 
+1.7.10.4
+
