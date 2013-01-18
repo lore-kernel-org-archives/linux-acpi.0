@@ -1,55 +1,77 @@
 From: Yinghai Lu <yinghai@kernel.org>
-Subject: [PATCH v9 04/11] PCI: Fix a device reference count leakage issue in pci_dev_present()
-Date: Thu, 17 Jan 2013 23:53:15 -0800
-Message-ID: <1358495602-22867-5-git-send-email-yinghai@kernel.org>
+Subject: [PATCH v9 01/11] PCI, acpiphp: Add is_hotplug_bridge detection
+Date: Thu, 17 Jan 2013 23:53:12 -0800
+Message-ID: <1358495602-22867-2-git-send-email-yinghai@kernel.org>
 References: <1358495602-22867-1-git-send-email-yinghai@kernel.org>
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from userp1040.oracle.com ([156.151.31.81]:17807 "EHLO
-	userp1040.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751010Ab3ARHxj (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 18 Jan 2013 02:53:39 -0500
+Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <1358495602-22867-1-git-send-email-yinghai@kernel.org>
-Sender: linux-acpi-owner@vger.kernel.org
-List-Id: linux-acpi@vger.kernel.org
+Sender: linux-kernel-owner@vger.kernel.org
 To: Bjorn Helgaas <bhelgaas@google.com>, "Rafael J. Wysocki" <rjw@sisk.pl>, Len Brown <lenb@kernel.org>, Taku Izumi <izumi.taku@jp.fujitsu.com>, Jiang Liu <jiang.liu@huawei.com>
 Cc: linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Yinghai Lu <yinghai@kernel.org>
+List-Id: linux-acpi@vger.kernel.org
 
-From: Jiang Liu <jiang.liu@huawei.com>
+When system support hotplug bridge with children hotplug slots, we need
+to make sure that parent bridge get preallocated resource so later when
+device is plugged into children slot, those children devices will get
+resource allocated.
 
-Function pci_get_dev_by_id() will hold a reference count on the pci device
-returned, so pci_dev_present() should release the corresponding reference
-count to avoid memory leakage.
+We do not meet this problem, because for pcie hotplug card, when acpiphp
+is used, pci_scan_bridge will set that for us when detect hotplug bit in
+slot cap.
 
-Signed-off-by: Jiang Liu <jiang.liu@huawei.com>
-Acked-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+Reported-and-tested-by: Jason Baron <jbaron@redhat.com>
 Signed-off-by: Yinghai Lu <yinghai@kernel.org>
+Acked-by: Jason Baron <jbaron@redhat.com>
+Acked-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 ---
- drivers/pci/search.c |   10 +++++-----
- 1 file changed, 5 insertions(+), 5 deletions(-)
+ drivers/pci/hotplug/acpiphp_glue.c |   27 ++++++++++++++++++++++++++-
+ 1 file changed, 26 insertions(+), 1 deletion(-)
 
-diff --git a/drivers/pci/search.c b/drivers/pci/search.c
-index bf969ba..d0627fa 100644
---- a/drivers/pci/search.c
-+++ b/drivers/pci/search.c
-@@ -319,13 +319,13 @@ int pci_dev_present(const struct pci_device_id *ids)
- 	WARN_ON(in_interrupt());
- 	while (ids->vendor || ids->subvendor || ids->class_mask) {
- 		found = pci_get_dev_by_id(ids, NULL);
--		if (found)
--			goto exit;
-+		if (found) {
-+			pci_dev_put(found);
-+			return 1;
-+		}
- 		ids++;
+diff --git a/drivers/pci/hotplug/acpiphp_glue.c b/drivers/pci/hotplug/acpiphp_glue.c
+index 22006f2..79db296 100644
+--- a/drivers/pci/hotplug/acpiphp_glue.c
++++ b/drivers/pci/hotplug/acpiphp_glue.c
+@@ -797,6 +797,29 @@ static void acpiphp_set_acpi_region(struct acpiphp_slot *slot)
  	}
--exit:
--	if (found)
--		return 1;
-+
- 	return 0;
  }
- EXPORT_SYMBOL(pci_dev_present);
+ 
++static void check_hotplug_bridge(struct acpiphp_slot *slot, struct pci_dev *dev)
++{
++	struct acpiphp_func *func;
++
++	if (!dev->subordinate)
++		return;
++
++	/* quirk, or pcie could set it already */
++	if (dev->is_hotplug_bridge)
++		return;
++
++	if (PCI_SLOT(dev->devfn) != slot->device)
++		return;
++
++	list_for_each_entry(func, &slot->funcs, sibling) {
++		if (PCI_FUNC(dev->devfn) == func->function) {
++			/* check if this bridge has ejectable slots */
++			if ((detect_ejectable_slots(func->handle) > 0))
++				dev->is_hotplug_bridge = 1;
++			break;
++		}
++	}
++}
+ /**
+  * enable_device - enable, configure a slot
+  * @slot: slot to be enabled
+@@ -831,8 +854,10 @@ static int __ref enable_device(struct acpiphp_slot *slot)
+ 			if (dev->hdr_type == PCI_HEADER_TYPE_BRIDGE ||
+ 			    dev->hdr_type == PCI_HEADER_TYPE_CARDBUS) {
+ 				max = pci_scan_bridge(bus, dev, max, pass);
+-				if (pass && dev->subordinate)
++				if (pass && dev->subordinate) {
++					check_hotplug_bridge(slot, dev);
+ 					pci_bus_size_bridges(dev->subordinate);
++				}
+ 			}
+ 		}
+ 	}
 -- 
 1.7.10.4
-
