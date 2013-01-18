@@ -1,49 +1,68 @@
-From: Jiri Kosina <jkosina@suse.cz>
-Subject: Re: [PATCH v2] HID: i2c-hid: add ACPI support
-Date: Fri, 18 Jan 2013 11:42:03 +0100 (CET)
-Message-ID: <alpine.LNX.2.00.1301181141400.8266@pobox.suse.cz>
-References: <1357742588-11366-1-git-send-email-mika.westerberg@linux.intel.com> <CAN+gG=GrrEdgrCLXvO=xJ6SNeKgHFRobq6RSAfLMfesKkJcijA@mail.gmail.com> <alpine.LNX.2.00.1301091551580.12134@pobox.suse.cz>
- <CAN+gG=GBYbCxrOKk2S1n9K2e68Rbxvt4CuoV40NJiE9LDNR=Zw@mail.gmail.com>
+From: Borislav Petkov <bp@alien8.de>
+Subject: Re: [arch-general] powernow-k8 fails to load with linux 3.7.2
+Date: Fri, 18 Jan 2013 12:37:17 +0100
+Message-ID: <20130118113717.GA6808@pd.tnic>
+References: <20130115224755.085aa6b7@bluemoon>
+ <20130116131725.4e590c34@bluemoon>
+ <CAG-2HqWBVf=RWXExeFgxYdPTzPfQYZnt-3ZKzULTwdP9+-5mVQ@mail.gmail.com>
+ <1448223.sdUJnNSRz4@vostro.rjw.lan>
+ <20130116231728.GA10204@x1.alien8.de>
+ <20130116181600.4c48ee3b@bluemoon>
+ <20130117094648.GD30700@pd.tnic>
+ <20130117194044.7a18a29d@bluemoon>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Return-path: <linux-input-owner@vger.kernel.org>
-In-Reply-To: <CAN+gG=GBYbCxrOKk2S1n9K2e68Rbxvt4CuoV40NJiE9LDNR=Zw@mail.gmail.com>
-Sender: linux-input-owner@vger.kernel.org
-To: Benjamin Tissoires <benjamin.tissoires@gmail.com>
-Cc: Mika Westerberg <mika.westerberg@linux.intel.com>, linux-input@vger.kernel.org, Jean Delvare <khali@linux-fr.org>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
+Content-Type: text/plain; charset=utf-8
+Return-path: <cpufreq-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20130117194044.7a18a29d@bluemoon>
+Sender: cpufreq-owner@vger.kernel.org
+To: Leonid Isaev <lisaev@umail.iu.edu>
+Cc: "Rafael J. Wysocki" <rjw@sisk.pl>, Tom Gundersen <teg@jklm.no>, =?utf-8?B?QW5kcsOp?= Przywara <andre@andrep.de>, Matthew Garrett <mjg@redhat.com>, cpufreq@vger.kernel.org, linux-acpi@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Thu, 17 Jan 2013, Benjamin Tissoires wrote:
+On Thu, Jan 17, 2013 at 07:40:44PM -0600, Leonid Isaev wrote:
+> Arrh, modprobe still does not exit cleanly with this...
 
-> >> > The HID over I2C protocol specification states that when the device is
-> >> > enumerated from ACPI the HID descriptor address can be obtained by
-> >> > executing "_DSM" for the device with function 1. Enable this.
-> >> >
-> >> > Signed-off-by: Mika Westerberg <mika.westerberg@linux.intel.com>
-> >>
-> >> I'm eager to test it (hopefully next week).
-> >>
-> >> Reviewed-by: Benjamin Tissoires <benjamin.tissoires@redhat.com>
-> >
-> > Perfect. I will wait for your Tested-by: as well before applying to public
-> > git tree.
-> 
-> Hi Jiri,
-> 
-> well, we tried yesterday to make all those things working, but the
-> Haswell platform I was able to have access was not very cooperative.
-> So I wasn't able to test the whole autodetection mechanism through
-> ACPI (I even not managed to communicate with the various HID over i2c
-> devices that were available to test).
-> 
-> However, Mika managed to test this ACPI stuff, and he is able to
-> retrieve the HID descriptor address. Given that, I think it's safe to
-> include it right now. There will still be the last point with the
-> gpios, but it will come when someone get access to a device presenting
-> this feature.
+As I said already above:
 
-Thanks a lot for the update. I have now applied Mika's patch.
+>> That's correct - we say ENODEV on your CPU which supports hardware
+>> P-states and hand off to acpi-cpufreq which has that functionality
+>> now.
+
+It is supposed to work that way: we return an error from the powernow-k8
+init function so that it doesn't load but hand off to acpi-cpufreq so
+that it gets loaded instead.
+
+> > But, we also have the CPU autoprobing deal:
+> > 
+> > http://git.kernel.org/?p=linux/kernel/git/torvalds/linux-2.6.git;a=commit;h=644e9cbbe3fc032cc92d0936057e166a994dc246
+> > 
+> > so, *actually*, powernow-k8 should be loaded by default. I dunno, maybe
+> > upgrade udev on your distro?
+> 
+> Udev 196 and 197 + linux <= 3.6.11 yield correct CPU autoprobing. However,
+> udev 197 + linux 3.7.2 do not. I haven't tested udev 196 with 3.7.2 though,
+> but it does not look like a udev issue.
+
+Hmm, I'll bet this has something to do with the fact that HW_PSTATE is
+in another CPUID function on AMD than on Intel and udev doesn't see that
+bit to load acpi-cpufreq automatically.
+
+Before I go and install archlinux here, where can I get the udev sources
+which are in your archlinux installation to stare at them a little? :)
+Especially the cpu autoprobing part which supposedly uses the cpuid
+kernel driver.
+
+> I don't know if it matters, but I also have AMD microcode "0x10000c8",
+> albeit it didn't cause problems with 3.6.11...
+
+Nah, microcode doesn't have anything to do with it.
+
+Thanks.
 
 -- 
-Jiri Kosina
-SUSE Labs
+Regards/Gruss,
+    Boris.
+
+Sent from a fat crate under my desk. Formatting is fine.
+--
