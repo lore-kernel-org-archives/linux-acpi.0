@@ -1,55 +1,64 @@
-From: Aaron Lu <aaron.lu@intel.com>
-Subject: Re: [PATCH v13 1/9] scsi: sr: support runtime pm
-Date: Fri, 18 Jan 2013 15:42:40 +0800
-Message-ID: <20130118074240.GA6861@aaronlu.sh.intel.com>
-References: <1358351148.2384.34.camel@dabdike.int.hansenpartnership.com>
- <Pine.LNX.4.44L0.1301161127540.1704-100000@iolanthe.rowland.org>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-ide-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <Pine.LNX.4.44L0.1301161127540.1704-100000@iolanthe.rowland.org>
-Sender: linux-ide-owner@vger.kernel.org
-To: Alan Stern <stern@rowland.harvard.edu>
-Cc: James Bottomley <James.Bottomley@HansenPartnership.com>, Jeff Garzik <jgarzik@pobox.com>, "Rafael J. Wysocki" <rjw@sisk.pl>, Tejun Heo <tj@kernel.org>, Aaron Lu <aaron.lwe@gmail.com>, Jeff Wu <jeff.wu@amd.com>, linux-ide@vger.kernel.org, linux-pm@vger.kernel.org, linux-scsi@vger.kernel.org, linux-acpi@vger.kernel.org
+From: Yinghai Lu <yinghai@kernel.org>
+Subject: [PATCH v9 00/11] PCI, ACPI: pci root bus hotplug support / pci match_driver
+Date: Thu, 17 Jan 2013 23:53:11 -0800
+Message-ID: <1358495602-22867-1-git-send-email-yinghai@kernel.org>
+Return-path: <linux-pci-owner@vger.kernel.org>
+Sender: linux-pci-owner@vger.kernel.org
+To: Bjorn Helgaas <bhelgaas@google.com>, "Rafael J. Wysocki" <rjw@sisk.pl>, Len Brown <lenb@kernel.org>, Taku Izumi <izumi.taku@jp.fujitsu.com>, Jiang Liu <jiang.liu@huawei.com>
+Cc: linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Yinghai Lu <yinghai@kernel.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On Wed, Jan 16, 2013 at 11:31:31AM -0500, Alan Stern wrote:
-> On Wed, 16 Jan 2013, James Bottomley wrote:
-> 
-> > On Tue, 2013-01-15 at 17:20 +0800, Aaron Lu wrote:
-> > > This patch adds runtime pm support for sr.
-> > > 
-> > > It did this by increasing the runtime usage_count of the device when:
-> > > - its block device is opened;
-> > > - the events checking is to run.
-> > > 
-> > > And decreasing the runtime usage_count of the device when:
-> > > - its block device is closed;
-> > > - After the events checking is done.
-> > > 
-> > > The idea is discussed in this mail thread:
-> > > http://thread.gmane.org/gmane.linux.acpi.devel/55243/focus=52703
-> > > 
-> > > Signed-off-by: Aaron Lu <aaron.lu@intel.com>
-> > 
-> > I'd like an ack from Alan Stern as well, please, but with that, you can
-> > add my acked-by.
-> 
-> Aaron, have you checked whether this patch works okay when you play a
-> track on an audio-only CD on the computer?  The block interface looks 
-> okay but I'm not sure about the cdrom_device interface.
+It includes
+1. preparing patches for pci root bus hotadd/hotremove support
+2. move root bus hotadd from acpiphp to pci_root.c
+3. add hot-remove support
+4. add acpi_hp_work to be shared with acpiphp and root-bus hotplug
+5. add match_driver to add pci device to device tree early but
+   not attach driver for hotplug path.
 
-Just verified it works OK with the whole patchset applied using 2 audio
-CDs.
+based on pci/next + pm/acpi-scan
 
-After the ODD has been put into zero power state, insert an audio cd.
-ODD will be resumed, gvfs will automatically mount the disc, and a
-dialog titled "Audio Disc" asks me what to do. Press OK, the rhythmbox
-application will get started. Press the Play button of rhythmbox, songs
-will start to play, and runtime_usage is 2. Eject the disc, the ODD will
-be put to zero power state some time later.
+could get from
+        git://git.kernel.org/pub/scm/linux/kernel/git/yinghai/linux-yinghai.git for-pci-root-bus-hotplug
 
-Thanks,
-Aaron
+-v9: merges several patches together for easy review, requested by Rafael.
 
+After this patchset, will send out
+         for_each_host_bridge support
+         for_each_dev_addon_res
+
+Jiang Liu (2):
+  PCI: Fix a device reference count leakage issue in pci_dev_present()
+  PCI: make PCI device create/destroy logic symmetric
+
+Tang Chen (1):
+  PCI, ACPI: debug print for installation of acpi root bridge's notifier
+
+Yinghai Lu (8):
+  PCI, acpiphp: Add is_hotplug_bridge detection
+  PCI: Add root bus children dev's res to fail list
+  PCI: Set dev_node early for pci_dev
+  PCI, ACPI, acpiphp: Rename alloc_acpiphp_hp_work() to alloc_acpi_hp_work
+  PCI, acpiphp: Move and enhance hotplug support of pci host bridge
+  PCI, acpiphp: Don't bailout even no slots found yet.
+  PCI: Add match_driver in struct pci_dev
+  PCI: Put pci dev to device tree as early as possible
+
+ drivers/acpi/osl.c                 |   24 +++++-
+ drivers/acpi/pci_root.c            |  145 ++++++++++++++++++++++++++++++++++
+ drivers/pci/bus.c                  |   57 ++++----------
+ drivers/pci/hotplug/acpiphp.h      |    1 -
+ drivers/pci/hotplug/acpiphp_core.c |   23 +-----
+ drivers/pci/hotplug/acpiphp_glue.c |  150 +++++++++++-------------------------
+ drivers/pci/iov.c                  |    7 --
+ drivers/pci/pci-driver.c           |    6 +-
+ drivers/pci/probe.c                |   36 +++++++--
+ drivers/pci/remove.c               |    4 +-
+ drivers/pci/search.c               |   10 +--
+ drivers/pci/setup-bus.c            |    2 +-
+ include/acpi/acpiosxf.h            |    9 ++-
+ include/linux/pci.h                |    1 +
+ 14 files changed, 279 insertions(+), 196 deletions(-)
+
+-- 
+1.7.10.4
