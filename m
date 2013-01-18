@@ -1,129 +1,125 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: [PATCH 3/3] ACPI: create Lynxpoint clocks if LPSS devices are found during scan
-Date: Fri, 18 Jan 2013 00:07:16 +0100
-Message-ID: <2120845.xiQTdAgPNJ@vostro.rjw.lan>
-References: <1358174788-24439-1-git-send-email-mika.westerberg@linux.intel.com> <1358174788-24439-4-git-send-email-mika.westerberg@linux.intel.com>
+From: Leonid Isaev <lisaev@umail.iu.edu>
+Subject: Re: [arch-general] powernow-k8 fails to load with linux 3.7.2
+Date: Thu, 17 Jan 2013 19:27:21 -0600
+Message-ID: <20130117192721.084408ad@bluemoon>
+References: <20130115224755.085aa6b7@bluemoon>
+	<20130116131725.4e590c34@bluemoon>
+	<CAG-2HqWBVf=RWXExeFgxYdPTzPfQYZnt-3ZKzULTwdP9+-5mVQ@mail.gmail.com>
+	<1448223.sdUJnNSRz4@vostro.rjw.lan>
+	<20130116231728.GA10204@x1.alien8.de>
+	<20130116181600.4c48ee3b@bluemoon>
+	<20130117094648.GD30700@pd.tnic>
+	<CAG-2HqVm+=pcd5hNtPqtbQYseDRZhi=hFaji6+xs8+26V2HW+A@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7Bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from hydra.sisk.pl ([212.160.235.94]:43996 "EHLO hydra.sisk.pl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752120Ab3AQXBX (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 17 Jan 2013 18:01:23 -0500
-In-Reply-To: <1358174788-24439-4-git-send-email-mika.westerberg@linux.intel.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: multipart/signed; micalg=PGP-SHA1;
+ boundary="Sig_/cyb3_n3BJJ.OUw3np.swRUZ"; protocol="application/pgp-signature"
+Return-path: <cpufreq-owner@vger.kernel.org>
+In-Reply-To: <CAG-2HqVm+=pcd5hNtPqtbQYseDRZhi=hFaji6+xs8+26V2HW+A@mail.gmail.com>
+Sender: cpufreq-owner@vger.kernel.org
+To: Tom Gundersen <teg@jklm.no>
+Cc: Borislav Petkov <bp@alien8.de>, "Rafael J. Wysocki" <rjw@sisk.pl>, =?UTF-8?B?QW5kcsOp?= Przywara <andre@andrep.de>, Matthew Garrett <mjg@redhat.com>, cpufreq@vger.kernel.org, linux-acpi@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Mika Westerberg <mika.westerberg@linux.intel.com>
-Cc: linux-kernel@vger.kernel.org, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, x86@kernel.org, Len Brown <lenb@kernel.org>, Mike Turquette <mturquette@linaro.org>, Arnd Bergmann <arnd@arndb.de>, Linus Walleij <linus.walleij@linaro.org>, Mark Brown <broonie@opensource.wolfsonmicro.com>, Heikki Krogerus <heikki.krogerus@linux.intel.com>, linux-acpi@vger.kernel.org
 
-On Monday, January 14, 2013 04:46:28 PM Mika Westerberg wrote:
-> Since we don't want to create the Lynxpoint LPSS clock tree on a machines
-> where no LPSS exists at all we look for the Lynxpoint device ACPI HIDs
-> during ACPI namespace scan and if a known device is seen we assume that it
-> is safe to create the LPSS clocks.
-> 
-> Therefore we allow init function to be passed via acpi_platform_device_ids[]
-> table which is called whenever the corresponding device is found.
-> 
-> Signed-off-by: Mika Westerberg <mika.westerberg@linux.intel.com>
-> ---
->  drivers/acpi/scan.c |   36 +++++++++++++++++++++++++++---------
->  1 file changed, 27 insertions(+), 9 deletions(-)
-> 
-> diff --git a/drivers/acpi/scan.c b/drivers/acpi/scan.c
-> index 6a12702..8d9965e 100644
-> --- a/drivers/acpi/scan.c
-> +++ b/drivers/acpi/scan.c
-> @@ -11,6 +11,7 @@
->  #include <linux/kthread.h>
->  #include <linux/dmi.h>
->  #include <linux/nls.h>
-> +#include <linux/platform_device.h>
->  
->  #include <acpi/acpi_drivers.h>
->  
-> @@ -29,6 +30,15 @@ extern struct acpi_device *acpi_root;
->  
->  static const char *dummy_hid = "device";
->  
-> +static void lpt_lpss_init_once(void)
-> +{
-> +	static struct platform_device *pdev;
-> +
-> +	/* Lynxpoint LPSS clocks */
-> +	if (!pdev)
-> +		pdev = platform_device_register_simple("clk-lpt", -1, NULL, 0);
-> +}
-> +
->  /*
->   * The following ACPI IDs are known to be suitable for representing as
->   * platform devices.
-> @@ -38,14 +48,14 @@ static const struct acpi_device_id acpi_platform_device_ids[] = {
->  	{ "PNP0D40" },
->  
->  	/* Haswell LPSS devices */
-> -	{ "INT33C0", 0 },
-> -	{ "INT33C1", 0 },
-> -	{ "INT33C2", 0 },
-> -	{ "INT33C3", 0 },
-> -	{ "INT33C4", 0 },
-> -	{ "INT33C5", 0 },
-> -	{ "INT33C6", 0 },
-> -	{ "INT33C7", 0 },
-> +	{ "INT33C0", (kernel_ulong_t)lpt_lpss_init_once },
-> +	{ "INT33C1", (kernel_ulong_t)lpt_lpss_init_once },
-> +	{ "INT33C2", (kernel_ulong_t)lpt_lpss_init_once },
-> +	{ "INT33C3", (kernel_ulong_t)lpt_lpss_init_once },
-> +	{ "INT33C4", (kernel_ulong_t)lpt_lpss_init_once },
-> +	{ "INT33C5", (kernel_ulong_t)lpt_lpss_init_once },
-> +	{ "INT33C6", (kernel_ulong_t)lpt_lpss_init_once },
-> +	{ "INT33C7", (kernel_ulong_t)lpt_lpss_init_once },
->  
->  	{ }
->  };
-> @@ -1580,6 +1590,7 @@ static acpi_status acpi_bus_check_add(acpi_handle handle, u32 lvl_not_used,
->  static acpi_status acpi_bus_device_attach(acpi_handle handle, u32 lvl_not_used,
->  					  void *not_used, void **ret_not_used)
->  {
-> +	const struct acpi_device_id *id;
->  	acpi_status status = AE_OK;
->  	struct acpi_device *device;
->  	unsigned long long sta_not_used;
-> @@ -1595,7 +1606,14 @@ static acpi_status acpi_bus_device_attach(acpi_handle handle, u32 lvl_not_used,
->  	if (acpi_bus_get_device(handle, &device))
->  		return AE_CTRL_DEPTH;
->  
-> -	if (!acpi_match_device_ids(device, acpi_platform_device_ids)) {
-> +	id = __acpi_match_device(device, acpi_platform_device_ids);
-> +	if (id) {
-> +		void (*init)(void) = (void (*)(void))id->driver_data;
-> +
-> +		/* Run any initialization if required */
-> +		if (init)
-> +			init();
-> +
+--Sig_/cyb3_n3BJJ.OUw3np.swRUZ
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: quoted-printable
 
-I'd prefer this to be done by acpi_create_platform_device() and you can add
-an extra arg to it for this purpose.
+Sorry for a late reply...
 
-Moreover the driver_data need not be a function pointer.  I actually think it
-should consist of a number of flags that may be set or unset and the 0 bit
-could be ACPI_PLATFORM_CLK or something like this.  Then, if that is set in
-its (new) second arg, acpi_create_platform_device() will do the
-platform_device_register_simple("clk-lpt", ...), if not done already.
+On Thu, 17 Jan 2013 11:34:22 +0100
+Tom Gundersen <teg@jklm.no> wrote:
 
-And yes, we may need those flags for other stuff.
+> On Thu, Jan 17, 2013 at 10:46 AM, Borislav Petkov <bp@alien8.de> wrote:
+> > On Wed, Jan 16, 2013 at 06:16:00PM -0600, Leonid Isaev wrote:
+> >> > [ fixup Andre's address. ]
+> >> >
+> >> > On Wed, Jan 16, 2013 at 11:33:21PM +0100, Rafael J. Wysocki wrote:
+> >> > > > down the frequancy, but is accompanied by an info-level kernel
+> >> > > > message "acpi-cpufreq: overriding BIOS provided _PSD data".
+> >> >
+> >> > That just says that BIOS has crappy data and we're using our own.
+> >>
+> >> OK. Yes, my BIOS is broken, so I thought it was the reason why
+> >> autoloading does not work.
+> >
+> > Hmm, come to think of it, we're issuing this message on SMP on *all*
+> > AMDs with HW_PSTATE. Andre, remind me again why we're doing this? We're
+> > basically saying that we're overriding ACPI data but we still read it
+> > out from acpi_perf_data and use *that* data to prepare the frequencies
+> > table. What am I missing?
+> >
+> >> To be more precise: "modprobe powernow-k8" returns a "no such device"
+> >> error,
+> >
+> > That's correct - we say ENODEV on your CPU which supports hardware
+> > P-states and hand off to acpi-cpufreq which has that functionality now.
+> >
+> >> but in kernel logs I see that acpi-cpufreq is indeed loaded:
+> >> -------
+> >> Jan 15 22:42:19 metal-0 kernel: [  534.003995] acpi-cpufreq: overriding
+> >> BIOS provided _PSD data
+> >> Jan 15 22:42:32 metal-0 kernel: [  547.122695] powernow-k8: this CPU is
+> >> not supported anymore, using acpi-cpufreq instead.
+> >> Jan 15 22:42:45 metal-0 kernel: [  559.623068] powernow-k8: this CPU is
+> >> not supported anymore, using acpi-cpufreq instead.
+> >> -------
+> >> (the CPU in question is phenom II x4 955). However, this is only after=
+ I
+> >> attempt to _manually_ load powernow-k8 (the timestamps in [...] are ~6
+> >> mins after boot is completed). So the above-mentioned handoff seems to
+> >> work, but please find attached my kernel config.
+> >
+> > Ok, this is maybe the issue. What used to load powernow-k8 on your
+> > distro before? Because basically it's enough if some script did
+> > 'modprobe powernow-k8' for the handoff to just work.
+> >
+> > But, we also have the CPU autoprobing deal:
+> >
+> > http://git.kernel.org/?p=3Dlinux/kernel/git/torvalds/linux-2.6.git;a=3D=
+commit;h=3D644e9cbbe3fc032cc92d0936057e166a994dc246
+>=20
+> Arch relies entirely on the CPU autoprobing, there are no scripts
+> modprobing things at boot.
 
->  		/* This is a known good platform device. */
->  		acpi_create_platform_device(device);
->  	} else if (device_attach(&device->dev) < 0) {
-> 
+That's right, processor drivers used to be automatically loaded alongside
+with kvm and kvm_amd. Now, only the KVM stuff is loaded.
 
-Thanks,
-Rafael
+>=20
+> > so, *actually*, powernow-k8 should be loaded by default. I dunno, maybe
+> > upgrade udev on your distro?
+>=20
+> Assuming Leonid's system is up-to-date, Arch ships the most recent
+> udev version (197).
 
+Yes, the system is fully updated running systemd/udev 197.
 
--- 
-I speak only for myself.
-Rafael J. Wysocki, Intel Open Source Technology Center.
+>=20
+> Cheers,
+>=20
+> Tom
+
+Thank you,
+L.
+
+--=20
+Leonid Isaev
+GnuPG key: 0x164B5A6D
+Fingerprint: C0DF 20D0 C075 C3F1 E1BE  775A A7AE F6CB 164B 5A6D
+
+--Sig_/cyb3_n3BJJ.OUw3np.swRUZ
+Content-Type: application/pgp-signature; name=signature.asc
+Content-Disposition: attachment; filename=signature.asc
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2.0.19 (GNU/Linux)
+
+iQEcBAEBAgAGBQJQ+KUDAAoJEKeu9ssWS1ptvqYH/iycOJosExWEcL7UQuHaWSWq
+X8owKvRW2JsFFpGdy5uD10EqSEz8WJ9ByRSwUdHT715ayZ6bG1dGMh11v5QWWhRG
+00RyEcZB+DaCrHIT5+LqcaElKzDqNsdD0RumTGUC0r+20GPrEFGHR16AOIslzFLA
+gRfvGLrAKTsVWqhHWqDnRK/wgapp1XJRUanEqkFw7mTfVD7uDj09bkbGbTEDuklX
+ZZn83WTWsGX508WaZYhKn77zP5NlNiZDvUEs1C/c8fCTekgRHeauywpnUqRC724y
+ciX5wuBf0UqOHpjzmrYXNKoqo2x6a8hXowHv22EkDkI80094KESWaEDapNa6tEw=
+=ZvcL
+-----END PGP SIGNATURE-----
+
+--Sig_/cyb3_n3BJJ.OUw3np.swRUZ--
