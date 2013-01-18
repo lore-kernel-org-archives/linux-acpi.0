@@ -1,68 +1,123 @@
-From: Borislav Petkov <bp@alien8.de>
-Subject: Re: [arch-general] powernow-k8 fails to load with linux 3.7.2
-Date: Fri, 18 Jan 2013 12:37:17 +0100
-Message-ID: <20130118113717.GA6808@pd.tnic>
-References: <20130115224755.085aa6b7@bluemoon>
- <20130116131725.4e590c34@bluemoon>
- <CAG-2HqWBVf=RWXExeFgxYdPTzPfQYZnt-3ZKzULTwdP9+-5mVQ@mail.gmail.com>
- <1448223.sdUJnNSRz4@vostro.rjw.lan>
- <20130116231728.GA10204@x1.alien8.de>
- <20130116181600.4c48ee3b@bluemoon>
- <20130117094648.GD30700@pd.tnic>
- <20130117194044.7a18a29d@bluemoon>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: [PATCH] ACPI / scan: Fold acpi_bus_scan() into acpi_bus_add()
+Date: Fri, 18 Jan 2013 13:35:11 +0100
+Message-ID: <6681740.NxX6Su8EKC@vostro.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Return-path: <cpufreq-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20130117194044.7a18a29d@bluemoon>
-Sender: cpufreq-owner@vger.kernel.org
-To: Leonid Isaev <lisaev@umail.iu.edu>
-Cc: "Rafael J. Wysocki" <rjw@sisk.pl>, Tom Gundersen <teg@jklm.no>, =?utf-8?B?QW5kcsOp?= Przywara <andre@andrep.de>, Matthew Garrett <mjg@redhat.com>, cpufreq@vger.kernel.org, linux-acpi@vger.kernel.org
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7Bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: ACPI Devel Maling List <linux-acpi@vger.kernel.org>
+Cc: LKML <linux-kernel@vger.kernel.org>, "Moore, Robert" <robert.moore@intel.com>, Bjorn Helgaas <bhelgaas@google.com>, Yinghai Lu <yinghai@kernel.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On Thu, Jan 17, 2013 at 07:40:44PM -0600, Leonid Isaev wrote:
-> Arrh, modprobe still does not exit cleanly with this...
+From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 
-As I said already above:
+The only difference between acpi_bus_scan() into acpi_bus_add() is
+the invocation of acpi_update_all_gpes() in the latter which in fact
+is unnecessary, because acpi_update_all_gpes() has already been
+called by acpi_scan_init() and the way it is implemented causes the
+next invocations of it to do nothing.
 
->> That's correct - we say ENODEV on your CPU which supports hardware
->> P-states and hand off to acpi-cpufreq which has that functionality
->> now.
+For this reason, drop the acpi_update_all_gpes() call from
+acpi_bus_add() and fold acpi_bus_scan() into it.  Additionally,
+rename acpi_bus_scan_fixed() to acpi_bus_add_fixed(), because
+acpi_bus_scan() is not present any more, and rearrange the code
+in acpi_scan_init() slightly.
 
-It is supposed to work that way: we return an error from the powernow-k8
-init function so that it doesn't load but hand off to acpi-cpufreq so
-that it gets loaded instead.
+Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+---
+ drivers/acpi/scan.c |   52 +++++++++++++++++++++-------------------------------
+ 1 file changed, 21 insertions(+), 31 deletions(-)
 
-> > But, we also have the CPU autoprobing deal:
-> > 
-> > http://git.kernel.org/?p=linux/kernel/git/torvalds/linux-2.6.git;a=commit;h=644e9cbbe3fc032cc92d0936057e166a994dc246
-> > 
-> > so, *actually*, powernow-k8 should be loaded by default. I dunno, maybe
-> > upgrade udev on your distro?
-> 
-> Udev 196 and 197 + linux <= 3.6.11 yield correct CPU autoprobing. However,
-> udev 197 + linux 3.7.2 do not. I haven't tested udev 196 with 3.7.2 though,
-> but it does not look like a udev issue.
-
-Hmm, I'll bet this has something to do with the fact that HW_PSTATE is
-in another CPUID function on AMD than on Intel and udev doesn't see that
-bit to load acpi-cpufreq automatically.
-
-Before I go and install archlinux here, where can I get the udev sources
-which are in your archlinux installation to stare at them a little? :)
-Especially the cpu autoprobing part which supposedly uses the cpuid
-kernel driver.
-
-> I don't know if it matters, but I also have AMD microcode "0x10000c8",
-> albeit it didn't cause problems with 3.6.11...
-
-Nah, microcode doesn't have anything to do with it.
-
-Thanks.
-
--- 
-Regards/Gruss,
-    Boris.
-
-Sent from a fat crate under my desk. Formatting is fine.
---
+Index: linux-pm/drivers/acpi/scan.c
+===================================================================
+--- linux-pm.orig/drivers/acpi/scan.c
++++ linux-pm/drivers/acpi/scan.c
+@@ -1584,24 +1584,6 @@ static acpi_status acpi_bus_device_attac
+ 	return status;
+ }
+ 
+-static int acpi_bus_scan(acpi_handle handle)
+-{
+-	void *device = NULL;
+-
+-	if (ACPI_SUCCESS(acpi_bus_check_add(handle, 0, NULL, &device)))
+-		acpi_walk_namespace(ACPI_TYPE_ANY, handle, ACPI_UINT32_MAX,
+-				    acpi_bus_check_add, NULL, NULL, &device);
+-
+-	if (!device)
+-		return -ENODEV;
+-
+-	if (ACPI_SUCCESS(acpi_bus_device_attach(handle, 0, NULL, NULL)))
+-		acpi_walk_namespace(ACPI_TYPE_ANY, handle, ACPI_UINT32_MAX,
+-				    acpi_bus_device_attach, NULL, NULL, NULL);
+-
+-	return 0;
+-}
+-
+ /**
+  * acpi_bus_add - Add ACPI device node objects in a given namespace scope.
+  * @handle: Root of the namespace scope to scan.
+@@ -1616,13 +1598,19 @@ static int acpi_bus_scan(acpi_handle han
+  */
+ int acpi_bus_add(acpi_handle handle)
+ {
+-	int err;
++	void *device = NULL;
++
++	if (ACPI_SUCCESS(acpi_bus_check_add(handle, 0, NULL, &device)))
++		acpi_walk_namespace(ACPI_TYPE_ANY, handle, ACPI_UINT32_MAX,
++				    acpi_bus_check_add, NULL, NULL, &device);
++
++	if (!device)
++		return -ENODEV;
+ 
+-	err = acpi_bus_scan(handle);
+-	if (err)
+-		return err;
++	if (ACPI_SUCCESS(acpi_bus_device_attach(handle, 0, NULL, NULL)))
++		acpi_walk_namespace(ACPI_TYPE_ANY, handle, ACPI_UINT32_MAX,
++				    acpi_bus_device_attach, NULL, NULL, NULL);
+ 
+-	acpi_update_all_gpes();
+ 	return 0;
+ }
+ EXPORT_SYMBOL(acpi_bus_add);
+@@ -1670,7 +1658,7 @@ int acpi_bus_trim(struct acpi_device *st
+ }
+ EXPORT_SYMBOL_GPL(acpi_bus_trim);
+ 
+-static int acpi_bus_scan_fixed(void)
++static int acpi_bus_add_fixed(void)
+ {
+ 	int result = 0;
+ 	struct acpi_device *device = NULL;
+@@ -1709,18 +1697,20 @@ int __init acpi_scan_init(void)
+ 	/*
+ 	 * Enumerate devices in the ACPI namespace.
+ 	 */
+-	result = acpi_bus_scan(ACPI_ROOT_OBJECT);
++	result = acpi_bus_add(ACPI_ROOT_OBJECT);
+ 	if (result)
+ 		return result;
+ 
+ 	result = acpi_bus_get_device(ACPI_ROOT_OBJECT, &acpi_root);
+-	if (!result)
+-		result = acpi_bus_scan_fixed();
+-
+ 	if (result)
++		return result;
++
++	result = acpi_bus_add_fixed();
++	if (result) {
+ 		acpi_device_unregister(acpi_root);
+-	else
+-		acpi_update_all_gpes();
++		return result;
++	}
+ 
+-	return result;
++	acpi_update_all_gpes();
++	return 0;
+ }
