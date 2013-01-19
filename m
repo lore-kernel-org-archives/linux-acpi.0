@@ -1,57 +1,94 @@
-From: Alan Stern <stern@rowland.harvard.edu>
-Subject: Re: [PATCH v13 1/9] scsi: sr: support runtime pm
-Date: Sat, 19 Jan 2013 13:46:15 -0500 (EST)
-Message-ID: <Pine.LNX.4.44L0.1301191312050.13032-100000@netrider.rowland.org>
-References: <50FA5F67.4080102@intel.com>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: [Update][PATCH] ACPI / PM: Export power states of ACPI devices via sysfs
+Date: Sat, 19 Jan 2013 21:53:32 +0100
+Message-ID: <1982172.z1FZmGBJNL@vostro.rjw.lan>
+References: <2311196.icSMDvAsYg@vostro.rjw.lan> <6722291.GNv0dQuq4j@vostro.rjw.lan>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Return-path: <linux-pm-owner@vger.kernel.org>
-In-Reply-To: <50FA5F67.4080102@intel.com>
-Sender: linux-pm-owner@vger.kernel.org
-To: Aaron Lu <aaron.lu@intel.com>
-Cc: Oliver Neukum <oneukum@suse.de>, James Bottomley <James.Bottomley@HansenPartnership.com>, Jeff Garzik <jgarzik@pobox.com>, "Rafael J. Wysocki" <rjw@sisk.pl>, Tejun Heo <tj@kernel.org>, Aaron Lu <aaron.lwe@gmail.com>, Jeff Wu <jeff.wu@amd.com>, linux-ide@vger.kernel.org, linux-pm@vger.kernel.org, linux-scsi@vger.kernel.org, linux-acpi@vger.kernel.org
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7Bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from hydra.sisk.pl ([212.160.235.94]:47199 "EHLO hydra.sisk.pl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750898Ab3ASUrh (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Sat, 19 Jan 2013 15:47:37 -0500
+In-Reply-To: <6722291.GNv0dQuq4j@vostro.rjw.lan>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: ACPI Devel Maling List <linux-acpi@vger.kernel.org>
+Cc: LKML <linux-kernel@vger.kernel.org>, Len Brown <lenb@kernel.org>, "Kristen C. Accardi" <kristen.c.accardi@intel.com>
 
-On Sat, 19 Jan 2013, Aaron Lu wrote:
+From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+Subject: ACPI / PM: Export power states of ACPI devices via sysfs
 
-> > What happens if you're not running a desktop graphical environment, so
-> > gvfs doesn't mount the disc?  Basically, I'm worried that the drive may
-> > remain suspended after sr_open() returns.
-> 
-> Tried on my notebook with a normal ODD, using mplayer under console
-> mode, no GUI environment running, works fine.
-> 
-> The usage count will be incremented by the app, and get decreased
-> only when it exits. So the ODD will not be in runtime suspended state
-> when the app is running.
+Make it possible to retrieve the current power state of a device with
+ACPI power management from user space via sysfs by adding a new
+attribute power_state to the sysfs directory associated with the
+struct acpi_device object representing the device's ACPI node.
 
-You missed my point.  What happens when sr_open() gets called?  It 
-doesn't try to resume the device.  Will we run into trouble then?
+Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+---
 
-> > What happens if you use a program other than rhythmbox?  There are (or
-> > used to be) programs which would issue the PLAY AUDIO command and then
-> > exit.  The drive would continue playing even while the device file was
-> 
-> Then we indeed have a problem. But I didn't find any such app in
-> Fedora's repo or by searching the internet.
+I've changed my mind here.  It looks like it's more convenient to put the
+power_state attribute directly into the ACPI device node's directory in sysfs
+rather than into its power subdirectory.
 
-http://rpm.pbone.net/index.php3/stat/4/idpl/2392183/dir/redhat_5.x/com/cdp-0.33-10.i386.rpm.html
+Thanks,
+Rafael
 
-> > closed.  Do we want to drop support for that kind of behavior?
-> 
-> I don't think we should drop such support.
-> And the safest way to avoid such break is we refine the suspend
-> condition for ODD, and using what ZPODD defined condition isn't that
-> bad to me:
-> - for tray type, no media inside and tray close;
-> - for slot type, no media inside.
-> While whether tray is closed or not may not be that important, but at
-> least we should make sure there is no media inside.
-> 
-> Thoughts?
+---
+ Documentation/ABI/testing/sysfs-devices-power |   13 +++++++++++++
+ drivers/acpi/scan.c                           |   25 ++++++++++++++++++++++++-
+ 2 files changed, 37 insertions(+), 1 deletion(-)
 
-That sounds reasonable to me, at least as a first step.  If people want 
-their CD drive to suspend, they can eject the disc.
-
-Alan Stern
+Index: linux-pm/drivers/acpi/scan.c
+===================================================================
+--- linux-pm.orig/drivers/acpi/scan.c
++++ linux-pm/drivers/acpi/scan.c
+@@ -184,6 +184,19 @@ err_out:
+ }
+ EXPORT_SYMBOL(acpi_bus_hot_remove_device);
+ 
++static ssize_t power_state_show(struct device *dev,
++				struct device_attribute *attr, char *buf)
++{
++	struct acpi_device *adev = to_acpi_device(dev);
++	int state;
++	int ret;
++
++	ret = acpi_device_get_power(adev, &state);
++	return ret ? ret : sprintf(buf, "%s\n", acpi_power_state_string(state));
++}
++
++static DEVICE_ATTR(power_state, 0444, power_state_show, NULL);
++
+ static ssize_t
+ acpi_eject_store(struct device *d, struct device_attribute *attr,
+ 		const char *buf, size_t count)
+@@ -375,8 +388,15 @@ static int acpi_device_setup_files(struc
+          * hot-removal function from userland.
+          */
+ 	status = acpi_get_handle(dev->handle, "_EJ0", &temp);
+-	if (ACPI_SUCCESS(status))
++	if (ACPI_SUCCESS(status)) {
+ 		result = device_create_file(&dev->dev, &dev_attr_eject);
++		if (result)
++			goto end;
++	}
++
++	if (dev->flags.power_manageable)
++		result = device_create_file(&dev->dev, &dev_attr_power_state);
++
+ end:
+ 	return result;
+ }
+@@ -386,6 +406,9 @@ static void acpi_device_remove_files(str
+ 	acpi_status status;
+ 	acpi_handle temp;
+ 
++	if (dev->flags.power_manageable)
++		device_remove_file(&dev->dev, &dev_attr_power_state);
++
+ 	/*
+ 	 * If device has _STR, remove 'description' file
+ 	 */
 
