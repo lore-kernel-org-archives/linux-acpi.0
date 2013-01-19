@@ -1,70 +1,69 @@
-From: Aaron Lu <aaron.lu@intel.com>
-Subject: Re: [PATCH v13 1/9] scsi: sr: support runtime pm
-Date: Sat, 19 Jan 2013 16:55:03 +0800
-Message-ID: <50FA5F67.4080102@intel.com>
-References: <Pine.LNX.4.44L0.1301181017070.1988-100000@iolanthe.rowland.org>
+From: Borislav Petkov <bp@alien8.de>
+Subject: Re: [arch-general] powernow-k8 fails to load with linux 3.7.2
+Date: Sat, 19 Jan 2013 13:08:14 +0100
+Message-ID: <20130119120814.GA4026@pd.tnic>
+References: <20130116131725.4e590c34@bluemoon>
+ <CAG-2HqWBVf=RWXExeFgxYdPTzPfQYZnt-3ZKzULTwdP9+-5mVQ@mail.gmail.com>
+ <1448223.sdUJnNSRz4@vostro.rjw.lan>
+ <20130116231728.GA10204@x1.alien8.de>
+ <20130116181600.4c48ee3b@bluemoon>
+ <20130117094648.GD30700@pd.tnic>
+ <20130117194044.7a18a29d@bluemoon>
+ <20130118113717.GA6808@pd.tnic>
+ <20130118133233.4521ddb6@hydra>
+ <E99CBA9F97C3D149AA6B19ED2E277C9B0193997E@BY2PRD0510MB365.namprd05.prod.outlook.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-pm-owner@vger.kernel.org>
-In-Reply-To: <Pine.LNX.4.44L0.1301181017070.1988-100000@iolanthe.rowland.org>
-Sender: linux-pm-owner@vger.kernel.org
-To: Alan Stern <stern@rowland.harvard.edu>, Oliver Neukum <oneukum@suse.de>
-Cc: James Bottomley <James.Bottomley@HansenPartnership.com>, Jeff Garzik <jgarzik@pobox.com>, "Rafael J. Wysocki" <rjw@sisk.pl>, Tejun Heo <tj@kernel.org>, Aaron Lu <aaron.lwe@gmail.com>, Jeff Wu <jeff.wu@amd.com>, linux-ide@vger.kernel.org, linux-pm@vger.kernel.org, linux-scsi@vger.kernel.org, linux-acpi@vger.kernel.org
+Content-Type: text/plain; charset=utf-8
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail.skyhub.de ([78.46.96.112]:41533 "EHLO mail.skyhub.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751933Ab3ASMIW (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Sat, 19 Jan 2013 07:08:22 -0500
+Content-Disposition: inline
+In-Reply-To: <E99CBA9F97C3D149AA6B19ED2E277C9B0193997E@BY2PRD0510MB365.namprd05.prod.outlook.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Matthew Garrett <matthew.garrett@nebula.com>, Leonid Isaev <lisaev@umail.iu.edu>
+Cc: =?utf-8?B?QW5kcsOp?= Przywara <andre@andrep.de>, "Rafael J. Wysocki" <rjw@sisk.pl>, Tom Gundersen <teg@jklm.no>, "cpufreq@vger.kernel.org" <cpufreq@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
 
-On 01/18/2013 11:24 PM, Alan Stern wrote:
-> On Fri, 18 Jan 2013, Aaron Lu wrote:
->
->>> Aaron, have you checked whether this patch works okay when you play a
->>> track on an audio-only CD on the computer?  The block interface looks
->>> okay but I'm not sure about the cdrom_device interface.
->>
->> Just verified it works OK with the whole patchset applied using 2 audio
->> CDs.
->>
->> After the ODD has been put into zero power state, insert an audio cd.
->> ODD will be resumed, gvfs will automatically mount the disc, and a
->> dialog titled "Audio Disc" asks me what to do. Press OK, the rhythmbox
->> application will get started. Press the Play button of rhythmbox, songs
->> will start to play, and runtime_usage is 2. Eject the disc, the ODD will
->> be put to zero power state some time later.
->
-> What happens if you use a non-ZP drive?
->
-> What happens if you're not running a desktop graphical environment, so
-> gvfs doesn't mount the disc?  Basically, I'm worried that the drive may
-> remain suspended after sr_open() returns.
+On Fri, Jan 18, 2013 at 03:17:04PM +0000, Matthew Garrett wrote:
+> Can you try this (entirely untested) patch?
+> 
+> diff --git a/drivers/cpufreq/acpi-cpufreq.c
+> b/drivers/cpufreq/acpi-cpufreq.c
+> index 0d048f6..7b0d49d 100644
+> --- a/drivers/cpufreq/acpi-cpufreq.c
+> +++ b/drivers/cpufreq/acpi-cpufreq.c
+> @@ -1030,4 +1030,11 @@ MODULE_PARM_DESC(acpi_pstate_strict,
+>  late_initcall(acpi_cpufreq_init);
+>  module_exit(acpi_cpufreq_exit);
+>  
+> +static const struct x86_cpu_id acpi_cpufreq_ids[] = {
+> +	X86_FEATURE_MATCH(X86_FEATURE_ACPI),
+> +	X86_FEATURE_MATCH(X86_FEATURE_HW_PSTATE),
+> +	{}
+> +};
+> +MODULE_DEVICE_TABLE(x86cpu, acpi_cpufreq_ids);
+> +
+>  MODULE_ALIAS("acpi");
 
-Tried on my notebook with a normal ODD, using mplayer under console
-mode, no GUI environment running, works fine.
+Leonid, can you try Matthew's patch?
 
-The usage count will be incremented by the app, and get decreased
-only when it exits. So the ODD will not be in runtime suspended state
-when the app is running.
+This is adding the additional cpufreatures aliases:
 
->
-> What happens if you use a program other than rhythmbox?  There are (or
-> used to be) programs which would issue the PLAY AUDIO command and then
-> exit.  The drive would continue playing even while the device file was
+alias:          x86cpu:vendor:*:family:*:model:*:feature:*00E8*
+alias:          x86cpu:vendor:*:family:*:model:*:feature:*0016*
 
-Then we indeed have a problem. But I didn't find any such app in
-Fedora's repo or by searching the internet. But of course such apps can
-exist since the Mount Fuji spec defined such a command.
+and since powernow-k8 used to load on 3.6-stable, it probably happened
+because the 0xe8 feature and since 3.7 moved it to acpi-cpufreq, this
+patch should actually fix it.
 
-> closed.  Do we want to drop support for that kind of behavior?
+Thanks.
 
-I don't think we should drop such support.
-And the safest way to avoid such break is we refine the suspend
-condition for ODD, and using what ZPODD defined condition isn't that
-bad to me:
-- for tray type, no media inside and tray close;
-- for slot type, no media inside.
-While whether tray is closed or not may not be that important, but at
-least we should make sure there is no media inside.
+-- 
+Regards/Gruss,
+    Boris.
 
-Thoughts?
-
-Thanks,
-Aaron
+Sent from a fat crate under my desk. Formatting is fine.
+--
 
