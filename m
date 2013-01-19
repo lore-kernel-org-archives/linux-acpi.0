@@ -1,70 +1,57 @@
-From: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Subject: Re: [RFC PATCH v5 7/8] PCI/PCIe: add "pci=nopciehp" to disable PCIe
- native hotplug
-Date: Sat, 19 Jan 2013 06:51:47 -0800
-Message-ID: <20130119145147.GB2491@kroah.com>
-References: <1358525267-14268-1-git-send-email-jiang.liu@huawei.com>
- <1358525267-14268-8-git-send-email-jiang.liu@huawei.com>
- <CAErSpo6E0SrY8_JOU6pmrCt9opfKe_jJ6b0E0daNAbpX5KtFuQ@mail.gmail.com>
- <50F9FD48.20509@gmail.com>
+From: Alan Stern <stern@rowland.harvard.edu>
+Subject: Re: [PATCH v13 1/9] scsi: sr: support runtime pm
+Date: Sat, 19 Jan 2013 13:46:15 -0500 (EST)
+Message-ID: <Pine.LNX.4.44L0.1301191312050.13032-100000@netrider.rowland.org>
+References: <50FA5F67.4080102@intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.19.201]:39558 "EHLO mail.kernel.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751120Ab3ASOuf (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Sat, 19 Jan 2013 09:50:35 -0500
-Content-Disposition: inline
-In-Reply-To: <50F9FD48.20509@gmail.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Return-path: <linux-pm-owner@vger.kernel.org>
+In-Reply-To: <50FA5F67.4080102@intel.com>
+Sender: linux-pm-owner@vger.kernel.org
+To: Aaron Lu <aaron.lu@intel.com>
+Cc: Oliver Neukum <oneukum@suse.de>, James Bottomley <James.Bottomley@HansenPartnership.com>, Jeff Garzik <jgarzik@pobox.com>, "Rafael J. Wysocki" <rjw@sisk.pl>, Tejun Heo <tj@kernel.org>, Aaron Lu <aaron.lwe@gmail.com>, Jeff Wu <jeff.wu@amd.com>, linux-ide@vger.kernel.org, linux-pm@vger.kernel.org, linux-scsi@vger.kernel.org, linux-acpi@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Yijing Wang <wangyijing0307@gmail.com>
-Cc: Bjorn Helgaas <bhelgaas@google.com>, Jiang Liu <liuj97@gmail.com>, "Rafael J . Wysocki" <rjw@sisk.pl>, Jiang Liu <jiang.liu@huawei.com>, Yinghai Lu <yinghai@kernel.org>, Kenji Kaneshige <kaneshige.kenji@jp.fujitsu.com>, Yijing Wang <wangyijing@huawei.com>, linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Toshi Kani <toshi.kani@hp.com>, Myron Stowe <myron.stowe@redhat.com>
 
-On Sat, Jan 19, 2013 at 09:56:24AM +0800, Yijing Wang wrote:
-> =E4=BA=8E 2013-01-19 1:35, Bjorn Helgaas =E5=86=99=E9=81=93:
-> > On Fri, Jan 18, 2013 at 9:07 AM, Jiang Liu <liuj97@gmail.com> wrote=
-:
-> >> If user specifies "pci=3Dnopciehp" on kernel boot command line, OS=
-PM
-> >> won't claim PCIe native hotplug service from firmware and no PCIe
-> >> port devices will be created for PCIe native hotplug service.
-> >=20
-> > Why do we need this option?
-> >=20
-> > If I understand correctly, there are machines where it *looks* like=
- we
-> > should use pciehp, but pciehp doesn't work because we don't get the
-> > interrupts we expect.  On those machines, we have to use acpiphp
-> > instead.  It seems like many Dell XPS laptops have this issue with
-> > ExpressCard slots, e.g.,
-> > https://bugzilla.kernel.org/show_bug.cgi?id=3D40802 .
->=20
-> What about use modprobe pciehp pciehp_poll_mode=3D1?
-> If just cannot receive the interrupt, maybe this module parameter wil=
-l fix it.
+On Sat, 19 Jan 2013, Aaron Lu wrote:
 
-You can't add a new option that you now force hardware that was working
-with a different module to now define and use.  It needs to be
-"automatic".
+> > What happens if you're not running a desktop graphical environment, so
+> > gvfs doesn't mount the disc?  Basically, I'm worried that the drive may
+> > remain suspended after sr_open() returns.
+> 
+> Tried on my notebook with a normal ODD, using mplayer under console
+> mode, no GUI environment running, works fine.
+> 
+> The usage count will be incremented by the app, and get decreased
+> only when it exits. So the ODD will not be in runtime suspended state
+> when the app is running.
 
-> > If you want "pci=3Dnopciehp" as a way for users to deal with this
-> > problem by forcing the use of acpiphp, I object.  Windows manages t=
-o
-> > make these slots work without having users do anything special, so =
-we
-> > should be able to do it, too.
->=20
-> In fact, pcie native hotplug may not be implemented perfectly,
+You missed my point.  What happens when sr_open() gets called?  It 
+doesn't try to resume the device.  Will we run into trouble then?
 
-Oh, we know that is true, it's the problem here.  Fixing BIOSes would b=
-e
-nice, but we can't do that :(
+> > What happens if you use a program other than rhythmbox?  There are (or
+> > used to be) programs which would issue the PLAY AUDIO command and then
+> > exit.  The drive would continue playing even while the device file was
+> 
+> Then we indeed have a problem. But I didn't find any such app in
+> Fedora's repo or by searching the internet.
 
-greg k-h
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+http://rpm.pbone.net/index.php3/stat/4/idpl/2392183/dir/redhat_5.x/com/cdp-0.33-10.i386.rpm.html
+
+> > closed.  Do we want to drop support for that kind of behavior?
+> 
+> I don't think we should drop such support.
+> And the safest way to avoid such break is we refine the suspend
+> condition for ODD, and using what ZPODD defined condition isn't that
+> bad to me:
+> - for tray type, no media inside and tray close;
+> - for slot type, no media inside.
+> While whether tray is closed or not may not be that important, but at
+> least we should make sure there is no media inside.
+> 
+> Thoughts?
+
+That sounds reasonable to me, at least as a first step.  If people want 
+their CD drive to suspend, they can eject the disc.
+
+Alan Stern
+
