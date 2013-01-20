@@ -1,94 +1,44 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: [Update][PATCH] ACPI / PM: Export power states of ACPI devices via sysfs
-Date: Sat, 19 Jan 2013 21:53:32 +0100
-Message-ID: <1982172.z1FZmGBJNL@vostro.rjw.lan>
-References: <2311196.icSMDvAsYg@vostro.rjw.lan> <6722291.GNv0dQuq4j@vostro.rjw.lan>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7Bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from hydra.sisk.pl ([212.160.235.94]:47199 "EHLO hydra.sisk.pl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750898Ab3ASUrh (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Sat, 19 Jan 2013 15:47:37 -0500
-In-Reply-To: <6722291.GNv0dQuq4j@vostro.rjw.lan>
-Sender: linux-acpi-owner@vger.kernel.org
+From: Borislav Petkov <bp@alien8.de>
+Subject: [PATCH 1/6] powernow-k8: Add a kconfig dependency on acpi-cpufreq
+Date: Sun, 20 Jan 2013 11:24:25 +0100
+Message-ID: <1358677470-17394-2-git-send-email-bp@alien8.de>
+References: <1358677470-17394-1-git-send-email-bp@alien8.de>
+Return-path: <cpufreq-owner@vger.kernel.org>
+In-Reply-To: <1358677470-17394-1-git-send-email-bp@alien8.de>
+Sender: cpufreq-owner@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: =?UTF-8?q?Andr=C3=A9=20Przywara?= <andre@andrep.de>, Leonid Isaev <lisaev@umail.iu.edu>, Tom Gundersen <teg@jklm.no>, cpufreq@vger.kernel.org, linux-acpi@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>, Borislav Petkov <bp@suse.de>
 List-Id: linux-acpi@vger.kernel.org
-To: ACPI Devel Maling List <linux-acpi@vger.kernel.org>
-Cc: LKML <linux-kernel@vger.kernel.org>, Len Brown <lenb@kernel.org>, "Kristen C. Accardi" <kristen.c.accardi@intel.com>
 
-From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
-Subject: ACPI / PM: Export power states of ACPI devices via sysfs
+From: Borislav Petkov <bp@suse.de>
 
-Make it possible to retrieve the current power state of a device with
-ACPI power management from user space via sysfs by adding a new
-attribute power_state to the sysfs directory associated with the
-struct acpi_device object representing the device's ACPI node.
+Andreas reports in https://bugzilla.kernel.org/show_bug.cgi?id=51741
+that with his Gentoo config, acpi-cpufreq wasn't enabled and powernow-k8
+couldn't handoff properly to acpi-cpufreq leading to running without
+P-state support (i.e., cores are constantly in P0).
 
-Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+To alleaviate that, we need to make powernow-k8 depend on acpi-cpufreq
+so that acpi-cpufreq is always present.
+
+Reported-by: Andreas <linuxuser330250@gmx.net>
+Signed-off-by: Borislav Petkov <bp@suse.de>
 ---
+ drivers/cpufreq/Kconfig.x86 | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-I've changed my mind here.  It looks like it's more convenient to put the
-power_state attribute directly into the ACPI device node's directory in sysfs
-rather than into its power subdirectory.
-
-Thanks,
-Rafael
-
----
- Documentation/ABI/testing/sysfs-devices-power |   13 +++++++++++++
- drivers/acpi/scan.c                           |   25 ++++++++++++++++++++++++-
- 2 files changed, 37 insertions(+), 1 deletion(-)
-
-Index: linux-pm/drivers/acpi/scan.c
-===================================================================
---- linux-pm.orig/drivers/acpi/scan.c
-+++ linux-pm/drivers/acpi/scan.c
-@@ -184,6 +184,19 @@ err_out:
- }
- EXPORT_SYMBOL(acpi_bus_hot_remove_device);
- 
-+static ssize_t power_state_show(struct device *dev,
-+				struct device_attribute *attr, char *buf)
-+{
-+	struct acpi_device *adev = to_acpi_device(dev);
-+	int state;
-+	int ret;
-+
-+	ret = acpi_device_get_power(adev, &state);
-+	return ret ? ret : sprintf(buf, "%s\n", acpi_power_state_string(state));
-+}
-+
-+static DEVICE_ATTR(power_state, 0444, power_state_show, NULL);
-+
- static ssize_t
- acpi_eject_store(struct device *d, struct device_attribute *attr,
- 		const char *buf, size_t count)
-@@ -375,8 +388,15 @@ static int acpi_device_setup_files(struc
-          * hot-removal function from userland.
-          */
- 	status = acpi_get_handle(dev->handle, "_EJ0", &temp);
--	if (ACPI_SUCCESS(status))
-+	if (ACPI_SUCCESS(status)) {
- 		result = device_create_file(&dev->dev, &dev_attr_eject);
-+		if (result)
-+			goto end;
-+	}
-+
-+	if (dev->flags.power_manageable)
-+		result = device_create_file(&dev->dev, &dev_attr_power_state);
-+
- end:
- 	return result;
- }
-@@ -386,6 +406,9 @@ static void acpi_device_remove_files(str
- 	acpi_status status;
- 	acpi_handle temp;
- 
-+	if (dev->flags.power_manageable)
-+		device_remove_file(&dev->dev, &dev_attr_power_state);
-+
- 	/*
- 	 * If device has _STR, remove 'description' file
- 	 */
+diff --git a/drivers/cpufreq/Kconfig.x86 b/drivers/cpufreq/Kconfig.x86
+index 934854ae5eb4..7227cd734042 100644
+--- a/drivers/cpufreq/Kconfig.x86
++++ b/drivers/cpufreq/Kconfig.x86
+@@ -106,7 +106,7 @@ config X86_POWERNOW_K7_ACPI
+ config X86_POWERNOW_K8
+ 	tristate "AMD Opteron/Athlon64 PowerNow!"
+ 	select CPU_FREQ_TABLE
+-	depends on ACPI && ACPI_PROCESSOR
++	depends on ACPI && ACPI_PROCESSOR && X86_ACPI_CPUFREQ
+ 	help
+ 	  This adds the CPUFreq driver for K8/early Opteron/Athlon64 processors.
+ 	  Support for K10 and newer processors is now in acpi-cpufreq.
+-- 
+1.8.1.rc3
 
