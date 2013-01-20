@@ -1,74 +1,53 @@
 From: Borislav Petkov <bp@alien8.de>
-Subject: [PATCH 6/6] powernow-k8: Cleanup init function
-Date: Sun, 20 Jan 2013 11:24:30 +0100
-Message-ID: <1358677470-17394-7-git-send-email-bp@alien8.de>
+Subject: [PATCH 2/6] acpi-cpufreq: Do not load on K8
+Date: Sun, 20 Jan 2013 11:24:26 +0100
+Message-ID: <1358677470-17394-3-git-send-email-bp@alien8.de>
 References: <1358677470-17394-1-git-send-email-bp@alien8.de>
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Return-path: <cpufreq-owner@vger.kernel.org>
 In-Reply-To: <1358677470-17394-1-git-send-email-bp@alien8.de>
-Sender: linux-kernel-owner@vger.kernel.org
+Sender: cpufreq-owner@vger.kernel.org
 To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: =?UTF-8?q?Andr=C3=A9=20Przywara?= <andre@andrep.de>, Leonid Isaev <lisaev@umail.iu.edu>, Tom Gundersen <teg@jklm.no>, cpufreq@vger.kernel.org, linux-acpi@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>, Borislav Petkov <bp@suse.de>
+Cc: =?UTF-8?q?Andr=C3=A9=20Przywara?= <andre@andrep.de>, Leonid Isaev <lisaev@umail.iu.edu>, Tom Gundersen <teg@jklm.no>, cpufreq@vger.kernel.org, linux-acpi@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>, Matthew Garrett <mjg59@srcf.ucam.org>, Borislav Petkov <bp@suse.de>
 List-Id: linux-acpi@vger.kernel.org
 
-From: Borislav Petkov <bp@suse.de>
+From: Matthew Garrett <mjg59@srcf.ucam.org>
 
-Make it hotplug-safe and cleanup formatting.
+de3ed81d746d ("[CPUFREQ] Change link order of x86 cpufreq modules")
+changed cpufreq drivers link order so that powernow-k8 gets loaded first
+due to earlier K8s having BIOS bugs.
 
+However, now that acpi-cpufreq supports both AMD and Intel CPUs with HW
+P-states, we want to load it first, so that cases where acpi-cpufreq and
+powernow-k8 are both built-in and powernow-k8 initializing first, can be
+addressed.
+
+So, make sure that even if acpi-cpufreq gets loaded first, it errors out
+on K8s and powernow-k8 can be loaded then successfully.
+
+Signed-off-by: Matthew Garrett <mjg59@srcf.ucam.org>
+Link: http://lkml.kernel.org/r/20130118162347.GA31499@srcf.ucam.org
 Signed-off-by: Borislav Petkov <bp@suse.de>
 ---
- drivers/cpufreq/powernow-k8.c | 25 ++++++++++++++-----------
- 1 file changed, 14 insertions(+), 11 deletions(-)
+ drivers/cpufreq/acpi-cpufreq.c | 6 ++++++
+ 1 file changed, 6 insertions(+)
 
-diff --git a/drivers/cpufreq/powernow-k8.c b/drivers/cpufreq/powernow-k8.c
-index 0234d0c6d68c..d13a13678b5f 100644
---- a/drivers/cpufreq/powernow-k8.c
-+++ b/drivers/cpufreq/powernow-k8.c
-@@ -1271,7 +1271,7 @@ static void __request_acpi_cpufreq(void)
- static int __cpuinit powernowk8_init(void)
- {
- 	unsigned int i, supported_cpus = 0;
--	int rv;
-+	int ret;
+diff --git a/drivers/cpufreq/acpi-cpufreq.c b/drivers/cpufreq/acpi-cpufreq.c
+index 0d048f6a2b23..31b06bbab54c 100644
+--- a/drivers/cpufreq/acpi-cpufreq.c
++++ b/drivers/cpufreq/acpi-cpufreq.c
+@@ -762,6 +762,12 @@ static int acpi_cpufreq_cpu_init(struct cpufreq_policy *policy)
  
- 	if (static_cpu_has(X86_FEATURE_HW_PSTATE)) {
- 		__request_acpi_cpufreq();
-@@ -1281,24 +1281,27 @@ static int __cpuinit powernowk8_init(void)
- 	if (!x86_match_cpu(powernow_k8_ids))
- 		return -ENODEV;
- 
-+	get_online_cpus();
- 	for_each_online_cpu(i) {
--		int rc;
--		smp_call_function_single(i, check_supported_cpu, &rc, 1);
--		if (rc == 0)
-+		smp_call_function_single(i, check_supported_cpu, &ret, 1);
-+		if (!ret)
- 			supported_cpus++;
- 	}
- 
--	if (supported_cpus != num_online_cpus())
-+	if (supported_cpus != num_online_cpus()) {
-+		put_online_cpus();
- 		return -ENODEV;
-+	}
-+	put_online_cpus();
- 
--	rv = cpufreq_register_driver(&cpufreq_amd64_driver);
-+	ret = cpufreq_register_driver(&cpufreq_amd64_driver);
-+	if (ret)
-+		return ret;
- 
--	if (!rv)
--		pr_info(PFX "Found %d %s (%d cpu cores) (" VERSION ")\n",
--			num_online_nodes(), boot_cpu_data.x86_model_id,
--			supported_cpus);
-+	pr_info(PFX "Found %d %s (%d cpu cores) (" VERSION ")\n",
-+		num_online_nodes(), boot_cpu_data.x86_model_id, supported_cpus);
- 
--	return rv;
-+	return ret;
- }
- 
- /* driver entry point for term */
+ 	switch (perf->control_register.space_id) {
+ 	case ACPI_ADR_SPACE_SYSTEM_IO:
++		if (boot_cpu_data.x86_vendor == X86_VENDOR_AMD &&
++		    boot_cpu_data.x86 == 0xf) {
++			pr_debug("AMD K8 systems must use native drivers.\n");
++			result = -ENODEV;
++			goto err_unreg;
++		}
+ 		pr_debug("SYSTEM IO addr space\n");
+ 		data->cpu_feature = SYSTEM_IO_CAPABLE;
+ 		break;
 -- 
 1.8.1.rc3
+
