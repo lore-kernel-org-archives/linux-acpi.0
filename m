@@ -1,104 +1,272 @@
 From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: [PATCH v9 10/11] PCI: Add match_driver in struct pci_dev
-Date: Mon, 21 Jan 2013 00:15:52 +0100
-Message-ID: <2129071.O9G31gJZfd@vostro.rjw.lan>
-References: <1358495602-22867-1-git-send-email-yinghai@kernel.org> <1358495602-22867-11-git-send-email-yinghai@kernel.org>
+Subject: Re: [PATCH v9 11/11] PCI: Put pci dev to device tree as early as possible
+Date: Mon, 21 Jan 2013 00:23:01 +0100
+Message-ID: <5397828.ilPjagaOIa@vostro.rjw.lan>
+References: <1358495602-22867-1-git-send-email-yinghai@kernel.org> <1358495602-22867-12-git-send-email-yinghai@kernel.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7Bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from hydra.sisk.pl ([212.160.235.94]:47814 "EHLO hydra.sisk.pl"
+Received: from hydra.sisk.pl ([212.160.235.94]:47823 "EHLO hydra.sisk.pl"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752304Ab3ATXJx (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Sun, 20 Jan 2013 18:09:53 -0500
-In-Reply-To: <1358495602-22867-11-git-send-email-yinghai@kernel.org>
+	id S1752493Ab3ATXRC (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Sun, 20 Jan 2013 18:17:02 -0500
+In-Reply-To: <1358495602-22867-12-git-send-email-yinghai@kernel.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: Yinghai Lu <yinghai@kernel.org>
 Cc: Bjorn Helgaas <bhelgaas@google.com>, Len Brown <lenb@kernel.org>, Taku Izumi <izumi.taku@jp.fujitsu.com>, Jiang Liu <jiang.liu@huawei.com>, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
 
-On Thursday, January 17, 2013 11:53:21 PM Yinghai Lu wrote:
-> with that we could move out attaching driver for pci device,
-> out of device_add for pci hot add path.
+On Thursday, January 17, 2013 11:53:22 PM Yinghai Lu wrote:
+> We want to put created pci device in the device tree as soon as possible.
+> - just after we find it and create pci_dev struct for it.
+> so for_pci_dev iteration will not miss them.
 > 
-> pci_bus_attach_device() will attach driver to pci device.
+> But at that time, we can not load driver for them yet. Need to be after
+> pci_assign_unsigned_resources() etc to make sure all pci devices get
+> resource allocated at first.
+> 
+> Move out device registering out of pci_bus_add_devices, and
+> new pci_bus_add_devices() will do the device_attach work to load pci drivers
+> 
+> Signed-off-by: Yinghai Lu <yinghai@kernel.org>
+> ---
+>  drivers/pci/bus.c   |   47 +++--------------------------------------------
+>  drivers/pci/iov.c   |    7 -------
+>  drivers/pci/probe.c |   34 +++++++++++++++++++++++++++-------
+>  3 files changed, 30 insertions(+), 58 deletions(-)
+> 
+> diff --git a/drivers/pci/bus.c b/drivers/pci/bus.c
+> index 18c1c6d..0a55845 100644
+> --- a/drivers/pci/bus.c
+> +++ b/drivers/pci/bus.c
+> @@ -178,22 +178,9 @@ static void pci_bus_attach_device(struct pci_dev *dev)
+>   */
+>  int pci_bus_add_device(struct pci_dev *dev)
+>  {
+> -	int retval;
+> -
+> -	pci_fixup_device(pci_fixup_final, dev);
+> -
+> -	retval = pcibios_add_device(dev);
+> -	if (retval)
+> -		return retval;
+> -
+> -	retval = device_add(&dev->dev);
+> -	if (retval)
+> -		return retval;
+> -
+>  	pci_bus_attach_device(dev);
+>  	dev->is_added = 1;
+> -	pci_proc_attach_device(dev);
+> -	pci_create_sysfs_dev_files(dev);
+> +
+>  	return 0;
+>  }
+>  
+> @@ -205,21 +192,9 @@ int pci_bus_add_device(struct pci_dev *dev)
+>   */
+>  int pci_bus_add_child(struct pci_bus *bus)
+>  {
+> -	int retval;
+> -
+> -	if (bus->bridge)
+> -		bus->dev.parent = bus->bridge;
+> -
+> -	retval = device_register(&bus->dev);
+> -	if (retval)
+> -		return retval;
+> -
+>  	bus->is_added = 1;
+>  
+> -	/* Create legacy_io and legacy_mem files for this bus */
+> -	pci_create_legacy_files(bus);
+> -
+> -	return retval;
+> +	return 0;
+>  }
 
-Acked-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+Well, what sense does this make to keep that function as is after removing
+almost all of the code from it?
 
-for the code, but you still aren't saying in the changelog why the change
-is needed.
+>  
+>  /**
+> @@ -245,36 +220,20 @@ void pci_bus_add_devices(const struct pci_bus *bus)
+>  		if (dev->is_added)
+>  			continue;
+>  		retval = pci_bus_add_device(dev);
+> -		if (retval)
+> -			dev_err(&dev->dev, "Error adding device, continuing\n");
+>  	}
+>  
+>  	list_for_each_entry(dev, &bus->devices, bus_list) {
+>  		BUG_ON(!dev->is_added);
+>  
+>  		child = dev->subordinate;
+> -		/*
+> -		 * If there is an unattached subordinate bus, attach
+> -		 * it and then scan for unattached PCI devices.
+> -		 */
+> +
+>  		if (!child)
+>  			continue;
+> -		if (list_empty(&child->node)) {
+> -			down_write(&pci_bus_sem);
+> -			list_add_tail(&child->node, &dev->bus->children);
+> -			up_write(&pci_bus_sem);
+> -		}
+
+This doesn't seem to have a replacement.  Why isn't it necessary any more?
+
+>  		pci_bus_add_devices(child);
+>  
+> -		/*
+> -		 * register the bus with sysfs as the parent is now
+> -		 * properly registered.
+> -		 */
+>  		if (child->is_added)
+>  			continue;
+>  		retval = pci_bus_add_child(child);
+> -		if (retval)
+> -			dev_err(&dev->dev, "Error adding bus, continuing\n");
+>  	}
+>  }
+>  
+> diff --git a/drivers/pci/iov.c b/drivers/pci/iov.c
+> index bafd2bb..dbad72e 100644
+> --- a/drivers/pci/iov.c
+> +++ b/drivers/pci/iov.c
+> @@ -48,12 +48,7 @@ static struct pci_bus *virtfn_add_bus(struct pci_bus *bus, int busnr)
+>  		return NULL;
+>  
+>  	pci_bus_insert_busn_res(child, busnr, busnr);
+> -	child->dev.parent = bus->bridge;
+>  	rc = pci_bus_add_child(child);
+> -	if (rc) {
+> -		pci_remove_bus(child);
+> -		return NULL;
+> -	}
+>  
+>  	return child;
+>  }
+> @@ -123,8 +118,6 @@ static int virtfn_add(struct pci_dev *dev, int id, int reset)
+>  	virtfn->is_virtfn = 1;
+>  
+>  	rc = pci_bus_add_device(virtfn);
+> -	if (rc)
+> -		goto failed1;
+>  	sprintf(buf, "virtfn%u", id);
+>  	rc = sysfs_create_link(&dev->dev.kobj, &virtfn->dev.kobj, buf);
+>  	if (rc)
+> diff --git a/drivers/pci/probe.c b/drivers/pci/probe.c
+> index 9588207..6392dac 100644
+> --- a/drivers/pci/probe.c
+> +++ b/drivers/pci/probe.c
+> @@ -623,6 +623,7 @@ static struct pci_bus *pci_alloc_child_bus(struct pci_bus *parent,
+>  {
+>  	struct pci_bus *child;
+>  	int i;
+> +	int ret;
+>  
+>  	/*
+>  	 * Allocate a new bus, and inherit stuff from the parent..
+> @@ -637,8 +638,7 @@ static struct pci_bus *pci_alloc_child_bus(struct pci_bus *parent,
+>  	child->bus_flags = parent->bus_flags;
+>  
+>  	/* initialize some portions of the bus device, but don't register it
+> -	 * now as the parent is not properly set up yet.  This device will get
+> -	 * registered later in pci_bus_add_devices()
+> +	 * now as the parent is not properly set up yet.
+>  	 */
+>  	child->dev.class = &pcibus_class;
+>  	dev_set_name(&child->dev, "%04x:%02x", pci_domain_nr(child), busnr);
+> @@ -651,11 +651,14 @@ static struct pci_bus *pci_alloc_child_bus(struct pci_bus *parent,
+>  	child->primary = parent->busn_res.start;
+>  	child->busn_res.end = 0xff;
+>  
+> -	if (!bridge)
+> -		return child;
+> +	if (!bridge) {
+> +		child->dev.parent = parent->bridge;
+> +		goto add_dev;
+> +	}
+>  
+>  	child->self = bridge;
+>  	child->bridge = get_device(&bridge->dev);
+> +	child->dev.parent = child->bridge;
+>  	pci_set_bus_of_node(child);
+>  	pci_set_bus_speed(child);
+>  
+> @@ -666,6 +669,13 @@ static struct pci_bus *pci_alloc_child_bus(struct pci_bus *parent,
+>  	}
+>  	bridge->subordinate = child;
+>  
+> +add_dev:
+> +	ret = device_register(&child->dev);
+> +	WARN_ON(ret < 0);
+> +
+> +	/* Create legacy_io and legacy_mem files for this bus */
+> +	pci_create_legacy_files(child);
+> +
+>  	return child;
+>  }
+>  
+> @@ -1296,6 +1306,8 @@ static void pci_init_capabilities(struct pci_dev *dev)
+>  
+>  void pci_device_add(struct pci_dev *dev, struct pci_bus *bus)
+>  {
+> +	int ret;
+> +
+>  	device_initialize(&dev->dev);
+>  	dev->dev.release = pci_release_dev;
+>  
+> @@ -1326,6 +1338,16 @@ void pci_device_add(struct pci_dev *dev, struct pci_bus *bus)
+>  	down_write(&pci_bus_sem);
+>  	list_add_tail(&dev->bus_list, &bus->devices);
+>  	up_write(&pci_bus_sem);
+> +
+> +	pci_fixup_device(pci_fixup_final, dev);
+> +	ret = pcibios_add_device(dev);
+> +	WARN_ON(ret < 0);
+> +	/* notifier could use pci capabilities */
+> +	ret = device_add(&dev->dev);
+> +	WARN_ON(ret < 0);
+> +
+> +	pci_proc_attach_device(dev);
+> +	pci_create_sysfs_dev_files(dev);
+>  }
+>  
+>  struct pci_dev *__ref pci_scan_single_device(struct pci_bus *bus, int devfn)
+> @@ -1656,13 +1678,13 @@ struct pci_bus *pci_create_root_bus(struct device *parent, int bus,
+>  	char bus_addr[64];
+>  	char *fmt;
+>  
+> -
+>  	b = pci_alloc_bus();
+>  	if (!b)
+>  		return NULL;
+>  
+>  	b->sysdata = sysdata;
+>  	b->ops = ops;
+> +	b->number = b->busn_res.start = bus;
+>  	b2 = pci_find_bus(pci_domain_nr(b), bus);
+>  	if (b2) {
+>  		/* If we already got to this bus through a different bridge, ignore it */
+> @@ -1701,8 +1723,6 @@ struct pci_bus *pci_create_root_bus(struct device *parent, int bus,
+>  	/* Create legacy_io and legacy_mem files for this bus */
+>  	pci_create_legacy_files(b);
+>  
+> -	b->number = b->busn_res.start = bus;
+> -
+>  	if (parent)
+>  		dev_info(parent, "PCI host bridge to bus %s\n", dev_name(&b->dev));
+>  	else
+> 
 
 Thanks,
 Rafael
 
 
-> Signed-off-by: Yinghai Lu <yinghai@kernel.org>
-> ---
->  drivers/pci/bus.c        |   10 ++++++++++
->  drivers/pci/pci-driver.c |    6 +++++-
->  include/linux/pci.h      |    1 +
->  3 files changed, 16 insertions(+), 1 deletion(-)
-> 
-> diff --git a/drivers/pci/bus.c b/drivers/pci/bus.c
-> index 847f3ca..18c1c6d 100644
-> --- a/drivers/pci/bus.c
-> +++ b/drivers/pci/bus.c
-> @@ -160,6 +160,15 @@ pci_bus_alloc_resource(struct pci_bus *bus, struct resource *res,
->  
->  void __weak pcibios_resource_survey_bus(struct pci_bus *bus) { }
->  
-> +static void pci_bus_attach_device(struct pci_dev *dev)
-> +{
-> +	int ret;
-> +
-> +	dev->match_driver = true;
-> +	ret = device_attach(&dev->dev);
-> +	WARN_ON(ret < 0);
-> +}
-> +
->  /**
->   * pci_bus_add_device - add a single device
->   * @dev: device to add
-> @@ -181,6 +190,7 @@ int pci_bus_add_device(struct pci_dev *dev)
->  	if (retval)
->  		return retval;
->  
-> +	pci_bus_attach_device(dev);
->  	dev->is_added = 1;
->  	pci_proc_attach_device(dev);
->  	pci_create_sysfs_dev_files(dev);
-> diff --git a/drivers/pci/pci-driver.c b/drivers/pci/pci-driver.c
-> index f79cbcd..acdcc3c 100644
-> --- a/drivers/pci/pci-driver.c
-> +++ b/drivers/pci/pci-driver.c
-> @@ -1186,9 +1186,13 @@ pci_dev_driver(const struct pci_dev *dev)
->  static int pci_bus_match(struct device *dev, struct device_driver *drv)
->  {
->  	struct pci_dev *pci_dev = to_pci_dev(dev);
-> -	struct pci_driver *pci_drv = to_pci_driver(drv);
-> +	struct pci_driver *pci_drv;
->  	const struct pci_device_id *found_id;
->  
-> +	if (!pci_dev->match_driver)
-> +		return 0;
-> +
-> +	pci_drv = to_pci_driver(drv);
->  	found_id = pci_match_device(pci_drv, pci_dev);
->  	if (found_id)
->  		return 1;
-> diff --git a/include/linux/pci.h b/include/linux/pci.h
-> index 6860f4d..e2aed11 100644
-> --- a/include/linux/pci.h
-> +++ b/include/linux/pci.h
-> @@ -286,6 +286,7 @@ struct pci_dev {
->  	unsigned int	irq;
->  	struct resource resource[DEVICE_COUNT_RESOURCE]; /* I/O and memory regions + expansion ROMs */
->  
-> +	bool match_driver;
->  	/* These fields are used by common fixups */
->  	unsigned int	transparent:1;	/* Transparent PCI bridge */
->  	unsigned int	multifunction:1;/* Part of multi-function device */
-> 
 -- 
 I speak only for myself.
 Rafael J. Wysocki, Intel Open Source Technology Center.
