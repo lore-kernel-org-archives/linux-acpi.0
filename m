@@ -1,138 +1,103 @@
 From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: [PATCH v9 09/11] PCI, acpiphp: Don't bailout even no slots found yet.
-Date: Mon, 21 Jan 2013 00:08:54 +0100
-Message-ID: <14158003.3rfOuOmdG2@vostro.rjw.lan>
-References: <1358495602-22867-1-git-send-email-yinghai@kernel.org> <1358495602-22867-10-git-send-email-yinghai@kernel.org>
+Subject: Re: [PATCH v9 10/11] PCI: Add match_driver in struct pci_dev
+Date: Mon, 21 Jan 2013 00:15:52 +0100
+Message-ID: <2129071.O9G31gJZfd@vostro.rjw.lan>
+References: <1358495602-22867-1-git-send-email-yinghai@kernel.org> <1358495602-22867-11-git-send-email-yinghai@kernel.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7Bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1358495602-22867-10-git-send-email-yinghai@kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from hydra.sisk.pl ([212.160.235.94]:47814 "EHLO hydra.sisk.pl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752304Ab3ATXJx (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Sun, 20 Jan 2013 18:09:53 -0500
+In-Reply-To: <1358495602-22867-11-git-send-email-yinghai@kernel.org>
+Sender: linux-acpi-owner@vger.kernel.org
+List-Id: linux-acpi@vger.kernel.org
 To: Yinghai Lu <yinghai@kernel.org>
 Cc: Bjorn Helgaas <bhelgaas@google.com>, Len Brown <lenb@kernel.org>, Taku Izumi <izumi.taku@jp.fujitsu.com>, Jiang Liu <jiang.liu@huawei.com>, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
-List-Id: linux-acpi@vger.kernel.org
 
-On Thursday, January 17, 2013 11:53:20 PM Yinghai Lu wrote:
-> Could have root bus hot added later and there may be slots that need acpiphp.
-
-The patch implies that acpiphp_get_num_slots() is not necessary any more,
-but the changelog above doesn't really explain why that is so.
-
-Do I guess correctly that the bridge the slots are under may not be in
-bridge_list yet at the moment and so we don't really know whether or not
-we will need acpiphp_glue going forward?
-
-If that's the case:
+On Thursday, January 17, 2013 11:53:21 PM Yinghai Lu wrote:
+> with that we could move out attaching driver for pci device,
+> out of device_add for pci hot add path.
+> 
+> pci_bus_attach_device() will attach driver to pci device.
 
 Acked-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 
-but please say something like this in the changelog:
+for the code, but you still aren't saying in the changelog why the change
+is needed.
 
-"The result returned by acpiphp_get_num_slots() is meaningless, because
- the bridge the slots are under may be added after this function has been
- called, so drop acpiphp_get_num_slots() and the code using it."
+Thanks,
+Rafael
+
 
 > Signed-off-by: Yinghai Lu <yinghai@kernel.org>
 > ---
->  drivers/pci/hotplug/acpiphp.h      |    1 -
->  drivers/pci/hotplug/acpiphp_core.c |   23 ++---------------------
->  drivers/pci/hotplug/acpiphp_glue.c |   22 ----------------------
->  3 files changed, 2 insertions(+), 44 deletions(-)
+>  drivers/pci/bus.c        |   10 ++++++++++
+>  drivers/pci/pci-driver.c |    6 +++++-
+>  include/linux/pci.h      |    1 +
+>  3 files changed, 16 insertions(+), 1 deletion(-)
 > 
-> diff --git a/drivers/pci/hotplug/acpiphp.h b/drivers/pci/hotplug/acpiphp.h
-> index a1afb5b..b3ead7a 100644
-> --- a/drivers/pci/hotplug/acpiphp.h
-> +++ b/drivers/pci/hotplug/acpiphp.h
-> @@ -193,7 +193,6 @@ extern void acpiphp_unregister_hotplug_slot(struct acpiphp_slot *slot);
->  /* acpiphp_glue.c */
->  extern int acpiphp_glue_init (void);
->  extern void acpiphp_glue_exit (void);
-> -extern int acpiphp_get_num_slots (void);
->  typedef int (*acpiphp_callback)(struct acpiphp_slot *slot, void *data);
+> diff --git a/drivers/pci/bus.c b/drivers/pci/bus.c
+> index 847f3ca..18c1c6d 100644
+> --- a/drivers/pci/bus.c
+> +++ b/drivers/pci/bus.c
+> @@ -160,6 +160,15 @@ pci_bus_alloc_resource(struct pci_bus *bus, struct resource *res,
 >  
->  extern int acpiphp_enable_slot (struct acpiphp_slot *slot);
-> diff --git a/drivers/pci/hotplug/acpiphp_core.c b/drivers/pci/hotplug/acpiphp_core.c
-> index 96316b7..c2fd309 100644
-> --- a/drivers/pci/hotplug/acpiphp_core.c
-> +++ b/drivers/pci/hotplug/acpiphp_core.c
-> @@ -50,7 +50,6 @@
->  bool acpiphp_debug;
+>  void __weak pcibios_resource_survey_bus(struct pci_bus *bus) { }
 >  
->  /* local variables */
-> -static int num_slots;
->  static struct acpiphp_attention_info *attention_info;
->  
->  #define DRIVER_VERSION	"0.5"
-> @@ -272,25 +271,6 @@ static int get_adapter_status(struct hotplug_slot *hotplug_slot, u8 *value)
->  	return 0;
->  }
->  
-> -static int __init init_acpi(void)
-> -{
-> -	int retval;
-> -
-> -	/* initialize internal data structure etc. */
-> -	retval = acpiphp_glue_init();
-> -
-> -	/* read initial number of slots */
-> -	if (!retval) {
-> -		num_slots = acpiphp_get_num_slots();
-> -		if (num_slots == 0) {
-> -			acpiphp_glue_exit();
-> -			retval = -ENODEV;
-> -		}
-> -	}
-> -
-> -	return retval;
-> -}
-> -
+> +static void pci_bus_attach_device(struct pci_dev *dev)
+> +{
+> +	int ret;
+> +
+> +	dev->match_driver = true;
+> +	ret = device_attach(&dev->dev);
+> +	WARN_ON(ret < 0);
+> +}
+> +
 >  /**
->   * release_slot - free up the memory used by a slot
->   * @hotplug_slot: slot to free
-> @@ -379,7 +359,8 @@ static int __init acpiphp_init(void)
->  		return 0;
+>   * pci_bus_add_device - add a single device
+>   * @dev: device to add
+> @@ -181,6 +190,7 @@ int pci_bus_add_device(struct pci_dev *dev)
+>  	if (retval)
+>  		return retval;
 >  
->  	/* read all the ACPI info from the system */
-> -	return init_acpi();
-> +	/* initialize internal data structure etc. */
-> +	return acpiphp_glue_init();
->  }
+> +	pci_bus_attach_device(dev);
+>  	dev->is_added = 1;
+>  	pci_proc_attach_device(dev);
+>  	pci_create_sysfs_dev_files(dev);
+> diff --git a/drivers/pci/pci-driver.c b/drivers/pci/pci-driver.c
+> index f79cbcd..acdcc3c 100644
+> --- a/drivers/pci/pci-driver.c
+> +++ b/drivers/pci/pci-driver.c
+> @@ -1186,9 +1186,13 @@ pci_dev_driver(const struct pci_dev *dev)
+>  static int pci_bus_match(struct device *dev, struct device_driver *drv)
+>  {
+>  	struct pci_dev *pci_dev = to_pci_dev(dev);
+> -	struct pci_driver *pci_drv = to_pci_driver(drv);
+> +	struct pci_driver *pci_drv;
+>  	const struct pci_device_id *found_id;
 >  
+> +	if (!pci_dev->match_driver)
+> +		return 0;
+> +
+> +	pci_drv = to_pci_driver(drv);
+>  	found_id = pci_match_device(pci_drv, pci_dev);
+>  	if (found_id)
+>  		return 1;
+> diff --git a/include/linux/pci.h b/include/linux/pci.h
+> index 6860f4d..e2aed11 100644
+> --- a/include/linux/pci.h
+> +++ b/include/linux/pci.h
+> @@ -286,6 +286,7 @@ struct pci_dev {
+>  	unsigned int	irq;
+>  	struct resource resource[DEVICE_COUNT_RESOURCE]; /* I/O and memory regions + expansion ROMs */
 >  
-> diff --git a/drivers/pci/hotplug/acpiphp_glue.c b/drivers/pci/hotplug/acpiphp_glue.c
-> index 45917a5..25d6918 100644
-> --- a/drivers/pci/hotplug/acpiphp_glue.c
-> +++ b/drivers/pci/hotplug/acpiphp_glue.c
-> @@ -1416,28 +1416,6 @@ void  acpiphp_glue_exit(void)
->  	acpi_pci_unregister_driver(&acpi_pci_hp_driver);
->  }
->  
-> -
-> -/**
-> - * acpiphp_get_num_slots - count number of slots in a system
-> - */
-> -int __init acpiphp_get_num_slots(void)
-> -{
-> -	struct acpiphp_bridge *bridge;
-> -	int num_slots = 0;
-> -
-> -	list_for_each_entry(bridge, &bridge_list, list) {
-> -		dbg("Bus %04x:%02x has %d slot%s\n",
-> -				pci_domain_nr(bridge->pci_bus),
-> -				bridge->pci_bus->number, bridge->nr_slots,
-> -				bridge->nr_slots == 1 ? "" : "s");
-> -		num_slots += bridge->nr_slots;
-> -	}
-> -
-> -	dbg("Total %d slots\n", num_slots);
-> -	return num_slots;
-> -}
-> -
-> -
->  /**
->   * acpiphp_enable_slot - power on slot
->   * @slot: ACPI PHP slot
+> +	bool match_driver;
+>  	/* These fields are used by common fixups */
+>  	unsigned int	transparent:1;	/* Transparent PCI bridge */
+>  	unsigned int	multifunction:1;/* Part of multi-function device */
 > 
 -- 
 I speak only for myself.
