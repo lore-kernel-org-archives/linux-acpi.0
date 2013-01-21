@@ -1,68 +1,45 @@
 From: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Subject: Re: [RFC][Update 2][PATCH 1/4] ACPI / PM: Export power states of
- ACPI devices via sysfs
-Date: Mon, 21 Jan 2013 12:53:05 -0800
-Message-ID: <20130121205305.GA17006@kroah.com>
+Subject: Re: [RFC][Update 2][PATCH 2/4] ACPI / PM: Expose reference count
+ values of ACPI power resources
+Date: Mon, 21 Jan 2013 12:53:57 -0800
+Message-ID: <20130121205357.GB17006@kroah.com>
 References: <3307415.pdOY6ovZLa@vostro.rjw.lan>
  <2096792.ELJ8WGVaaz@vostro.rjw.lan>
  <4247313.2G7Z3nCgM0@vostro.rjw.lan>
- <1783611.vYsnfNDZr6@vostro.rjw.lan>
+ <1618594.EyAyXTlIBb@vostro.rjw.lan>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-pb0-f45.google.com ([209.85.160.45]:45935 "EHLO
-	mail-pb0-f45.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753958Ab3AUUxK (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 21 Jan 2013 15:53:10 -0500
-Received: by mail-pb0-f45.google.com with SMTP id mc8so3532677pbc.32
-        for <linux-acpi@vger.kernel.org>; Mon, 21 Jan 2013 12:53:09 -0800 (PST)
+Received: from mail-da0-f53.google.com ([209.85.210.53]:36782 "EHLO
+	mail-da0-f53.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752631Ab3AUUyB (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 21 Jan 2013 15:54:01 -0500
+Received: by mail-da0-f53.google.com with SMTP id x6so2866876dac.12
+        for <linux-acpi@vger.kernel.org>; Mon, 21 Jan 2013 12:54:01 -0800 (PST)
 Content-Disposition: inline
-In-Reply-To: <1783611.vYsnfNDZr6@vostro.rjw.lan>
+In-Reply-To: <1618594.EyAyXTlIBb@vostro.rjw.lan>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: "Rafael J. Wysocki" <rjw@sisk.pl>
 Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>, "Kristen C. Accardi" <kristen.c.accardi@intel.com>, Len Brown <lenb@kernel.org>
 
-On Mon, Jan 21, 2013 at 02:04:32PM +0100, Rafael J. Wysocki wrote:
+On Mon, Jan 21, 2013 at 02:05:47PM +0100, Rafael J. Wysocki wrote:
 > From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 > 
-> Make it possible to retrieve the current power state of a device with
-> ACPI power management from user space via sysfs by adding a new
-> attribute power_state to the sysfs directory associated with the
-> struct acpi_device object representing the device's ACPI node.
+> Since ACPI power resources are going to be used more extensively on
+> new hardware platforms, it becomes necessary for user space (powertop
+> in particular) to observe some properties of those resources for
+> diagnostics purposes.
 > 
-> Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
-> ---
->  Documentation/ABI/testing/sysfs-devices-power_state |   21 ++++++++++++++
->  drivers/acpi/scan.c                                 |   29 +++++++++++++++++++-
->  2 files changed, 49 insertions(+), 1 deletion(-)
-> 
-> Index: linux-pm/drivers/acpi/scan.c
-> ===================================================================
-> --- linux-pm.orig/drivers/acpi/scan.c
-> +++ linux-pm/drivers/acpi/scan.c
-> @@ -178,6 +178,23 @@ err_out:
->  }
->  EXPORT_SYMBOL(acpi_bus_hot_remove_device);
->  
-> +static ssize_t power_state_show(struct device *dev,
-> +				struct device_attribute *attr, char *buf)
-> +{
-> +	struct acpi_device *adev = to_acpi_device(dev);
-> +	int state;
-> +	int ret;
-> +
-> +	ret = acpi_device_get_power(adev, &state);
-> +	if (ret)
-> +		return ret;
-> +
-> +	return sprintf(buf, "%s %s\n", acpi_power_state_string(state),
-> +		       acpi_power_state_string(adev->power.state));
-> +}
+> For this reason, export the reference counts of ACPI power resources
+> to user space by adding a new reference_count attribute to the sysfs
+> directory representing each power resource.  The value read from
+> that attribute represents the number of devices using the power
+> resource at the given time.  If that value is 0, it meas that the
+> power resource is not used and therefore it has been turned off.
 
-You are showing 2 different things here in a single sysfs file, which is
-really frowned apon.  Any chance to split this up into two different
-sysfs files instead?
+Why does userspace need to know a reference count?  Is it so that if it
+is not 0, it can work to try to lower it to 0?  Or something else?
 
 thanks,
 
