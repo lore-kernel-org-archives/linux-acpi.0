@@ -1,78 +1,108 @@
 From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: [PATCH v9 08/11] PCI, ACPI: debug print for installation of acpi root bridge's notifier
-Date: Mon, 21 Jan 2013 13:43:53 +0100
-Message-ID: <2845150.CbZVjsYMRJ@vostro.rjw.lan>
-References: <1358495602-22867-1-git-send-email-yinghai@kernel.org> <2506887.8XgRPLTxfQ@vostro.rjw.lan> <CAE9FiQXW7xkSEtxr7Wa4DQpEhdAsas7g=0bYkC+vUKp_7=Qj_A@mail.gmail.com>
+Subject: Re: [Update][PATCH] ACPI / PM: Export power states of ACPI devices via sysfs
+Date: Mon, 21 Jan 2013 13:59:05 +0100
+Message-ID: <2154175.hki2a10WqW@vostro.rjw.lan>
+References: <2311196.icSMDvAsYg@vostro.rjw.lan> <6722291.GNv0dQuq4j@vostro.rjw.lan> <1982172.z1FZmGBJNL@vostro.rjw.lan>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7Bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from hydra.sisk.pl ([212.160.235.94]:48184 "EHLO hydra.sisk.pl"
+Received: from hydra.sisk.pl ([212.160.235.94]:48195 "EHLO hydra.sisk.pl"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752015Ab3AUMhx (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 21 Jan 2013 07:37:53 -0500
-In-Reply-To: <CAE9FiQXW7xkSEtxr7Wa4DQpEhdAsas7g=0bYkC+vUKp_7=Qj_A@mail.gmail.com>
+	id S1752621Ab3AUMxG (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 21 Jan 2013 07:53:06 -0500
+In-Reply-To: <1982172.z1FZmGBJNL@vostro.rjw.lan>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Yinghai Lu <yinghai@kernel.org>
-Cc: Bjorn Helgaas <bhelgaas@google.com>, Len Brown <lenb@kernel.org>, Taku Izumi <izumi.taku@jp.fujitsu.com>, Jiang Liu <jiang.liu@huawei.com>, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Tang Chen <tangchen@cn.fujitsu.com>
+To: ACPI Devel Maling List <linux-acpi@vger.kernel.org>
+Cc: LKML <linux-kernel@vger.kernel.org>, Len Brown <lenb@kernel.org>, "Kristen C. Accardi" <kristen.c.accardi@intel.com>
 
-On Sunday, January 20, 2013 06:37:59 PM Yinghai Lu wrote:
-> On Sun, Jan 20, 2013 at 3:00 PM, Rafael J. Wysocki <rjw@sisk.pl> wrote:
-> > On Thursday, January 17, 2013 11:53:19 PM Yinghai Lu wrote:
-> >> From: Tang Chen <tangchen@cn.fujitsu.com>
-> >>
-> >> acpi_install_notify_handler() could fail. So check the exit status
-> >> and give a better debug info.
-> >>
-> >> Signed-off-by: Tang Chen <tangchen@cn.fujitsu.com>
-> >> Signed-off-by: Yinghai Lu <yinghai@kernel.org>
-> >> ---
-> >>  drivers/acpi/pci_root.c |   12 +++++++++---
-> >>  1 file changed, 9 insertions(+), 3 deletions(-)
-> >>
-> >> diff --git a/drivers/acpi/pci_root.c b/drivers/acpi/pci_root.c
-> >> index 3ce5d80..f3ceb61 100644
-> >> --- a/drivers/acpi/pci_root.c
-> >> +++ b/drivers/acpi/pci_root.c
-> >> @@ -762,6 +762,7 @@ static void handle_hotplug_event_root(acpi_handle handle, u32 type,
-> >>  static acpi_status __init
-> >>  find_root_bridges(acpi_handle handle, u32 lvl, void *context, void **rv)
-> >>  {
-> >> +     acpi_status status;
-> >>       char objname[64];
-> >>       struct acpi_buffer buffer = { .length = sizeof(objname),
-> >>                                     .pointer = objname };
-> >> @@ -774,9 +775,14 @@ find_root_bridges(acpi_handle handle, u32 lvl, void *context, void **rv)
-> >>
-> >>       acpi_get_name(handle, ACPI_FULL_PATHNAME, &buffer);
-> >>
-> >> -     acpi_install_notify_handler(handle, ACPI_SYSTEM_NOTIFY,
-> >> -                             handle_hotplug_event_root, NULL);
-> >> -     printk(KERN_DEBUG "acpi root: %s notify handler installed\n", objname);
-> >> +     status = acpi_install_notify_handler(handle, ACPI_SYSTEM_NOTIFY,
-> >> +                                     handle_hotplug_event_root, NULL);
-> >> +     if (ACPI_FAILURE(status))
-> >> +             printk(KERN_DEBUG "acpi root: %s notify handler is not installed, exit status: %u\n",
-> >
-> > Can you break that line, please?  And use pr_debug()?
+On Saturday, January 19, 2013 09:53:32 PM Rafael J. Wysocki wrote:
+> From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+> Subject: ACPI / PM: Export power states of ACPI devices via sysfs
 > 
-> Long line should be ok, and checkpatch.pl is not complaining about that.
+> Make it possible to retrieve the current power state of a device with
+> ACPI power management from user space via sysfs by adding a new
+> attribute power_state to the sysfs directory associated with the
+> struct acpi_device object representing the device's ACPI node.
 > 
-> Also keep the complete print out in one line, could make git grep find
-> that code exactly.
+> Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+> ---
 > 
-> Actually I really hate pr_debug(), that will make the generated code
-> different with DEBUG
-> defined or not. And need to end user to recompile kernel to get debug
-> output if needed.
+> I've changed my mind here.  It looks like it's more convenient to put the
+> power_state attribute directly into the ACPI device node's directory in sysfs
+> rather than into its power subdirectory.
 
-OK, whatever.
+Well, please scratch this, I'm dropping it for now.
+
+I'll send a new version shortly along with the patches that export power
+resources information.
 
 Thanks,
 Rafael
 
 
+> ---
+>  Documentation/ABI/testing/sysfs-devices-power |   13 +++++++++++++
+>  drivers/acpi/scan.c                           |   25 ++++++++++++++++++++++++-
+>  2 files changed, 37 insertions(+), 1 deletion(-)
+> 
+> Index: linux-pm/drivers/acpi/scan.c
+> ===================================================================
+> --- linux-pm.orig/drivers/acpi/scan.c
+> +++ linux-pm/drivers/acpi/scan.c
+> @@ -184,6 +184,19 @@ err_out:
+>  }
+>  EXPORT_SYMBOL(acpi_bus_hot_remove_device);
+>  
+> +static ssize_t power_state_show(struct device *dev,
+> +				struct device_attribute *attr, char *buf)
+> +{
+> +	struct acpi_device *adev = to_acpi_device(dev);
+> +	int state;
+> +	int ret;
+> +
+> +	ret = acpi_device_get_power(adev, &state);
+> +	return ret ? ret : sprintf(buf, "%s\n", acpi_power_state_string(state));
+> +}
+> +
+> +static DEVICE_ATTR(power_state, 0444, power_state_show, NULL);
+> +
+>  static ssize_t
+>  acpi_eject_store(struct device *d, struct device_attribute *attr,
+>  		const char *buf, size_t count)
+> @@ -375,8 +388,15 @@ static int acpi_device_setup_files(struc
+>           * hot-removal function from userland.
+>           */
+>  	status = acpi_get_handle(dev->handle, "_EJ0", &temp);
+> -	if (ACPI_SUCCESS(status))
+> +	if (ACPI_SUCCESS(status)) {
+>  		result = device_create_file(&dev->dev, &dev_attr_eject);
+> +		if (result)
+> +			goto end;
+> +	}
+> +
+> +	if (dev->flags.power_manageable)
+> +		result = device_create_file(&dev->dev, &dev_attr_power_state);
+> +
+>  end:
+>  	return result;
+>  }
+> @@ -386,6 +406,9 @@ static void acpi_device_remove_files(str
+>  	acpi_status status;
+>  	acpi_handle temp;
+>  
+> +	if (dev->flags.power_manageable)
+> +		device_remove_file(&dev->dev, &dev_attr_power_state);
+> +
+>  	/*
+>  	 * If device has _STR, remove 'description' file
+>  	 */
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 -- 
 I speak only for myself.
 Rafael J. Wysocki, Intel Open Source Technology Center.
