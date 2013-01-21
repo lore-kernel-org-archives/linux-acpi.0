@@ -1,65 +1,80 @@
-From: Alan Stern <stern@rowland.harvard.edu>
-Subject: Re: [RFC PATCH] scsi: sr: support runtime pm
-Date: Mon, 21 Jan 2013 11:59:06 -0500 (EST)
-Message-ID: <Pine.LNX.4.44L0.1301211157530.19920-100000@netrider.rowland.org>
-References: <20130121093707.GB11010@aaronlu.sh.intel.com>
+From: Jiang Liu <liuj97@gmail.com>
+Subject: Re: [RFC PATCH v5 8/8] PCI/PCIe: only claim PME from firmware when
+ CONFIG_PCIE_PME is enabled
+Date: Tue, 22 Jan 2013 01:06:54 +0800
+Message-ID: <50FD75AE.7000109@gmail.com>
+References: <1358525267-14268-1-git-send-email-jiang.liu@huawei.com> <1358525267-14268-9-git-send-email-jiang.liu@huawei.com> <2580359.lck5YacT35@vostro.rjw.lan>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Return-path: <linux-ide-owner@vger.kernel.org>
-In-Reply-To: <20130121093707.GB11010@aaronlu.sh.intel.com>
-Sender: linux-ide-owner@vger.kernel.org
-To: Aaron Lu <aaron.lu@intel.com>
-Cc: Oliver Neukum <oneukum@suse.de>, Julian Calaby <julian.calaby@gmail.com>, James Bottomley <James.Bottomley@HansenPartnership.com>, Jeff Garzik <jgarzik@pobox.com>, "Rafael J. Wysocki" <rjw@sisk.pl>, Tejun Heo <tj@kernel.org>, Aaron Lu <aaron.lwe@gmail.com>, Jeff Wu <jeff.wu@amd.com>, linux-ide@vger.kernel.org, linux-pm@vger.kernel.org, linux-scsi@vger.kernel.org, linux-acpi@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-pci-owner@vger.kernel.org>
+In-Reply-To: <2580359.lck5YacT35@vostro.rjw.lan>
+Sender: linux-pci-owner@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: Bjorn Helgaas <bhelgaas@google.com>, Jiang Liu <jiang.liu@huawei.com>, Yinghai Lu <yinghai@kernel.org>, Kenji Kaneshige <kaneshige.kenji@jp.fujitsu.com>, Yijing Wang <wangyijing@huawei.com>, linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Toshi Kani <toshi.kani@hp.com>, Myron Stowe <myron.stowe@redhat.com>
 List-Id: linux-acpi@vger.kernel.org
 
-On Mon, 21 Jan 2013, Aaron Lu wrote:
+On 01/21/2013 07:43 AM, Rafael J. Wysocki wrote:
+> On Saturday, January 19, 2013 12:07:46 AM Jiang Liu wrote:
+>> If CONFIG_PCIE_PME is not defined, system should avoid claiming PME from
+>> firmware so firmware could still manage PME events for those devices.
+>> Also don't create PCIe port device for PME service if CONFIG_PCIE_PME
+>> is not defined.
+> 
+> No, this isn't correct.
+> 
+> We know from experience that it is in fact necessary to request control of
+> either all PCIe native features or none of them.  Anything else leads to
+> very "interesting" failure modes on some systems.
+> 
+> I think we should just remove CONFIG_PCIE_PME instead.
+Hi Rafael,
+	Thanks for reminder, don't know these tricky things about BIOS:)
+Seems we can't easily remove CONFIG_PCIE_PME currently, so I will just
+drop this patch.
+Regards!
+Gerry
 
-> On Sat, Jan 19, 2013 at 01:46:15PM -0500, Alan Stern wrote:
-> > On Sat, 19 Jan 2013, Aaron Lu wrote:
-> > > I don't think we should drop such support.
-> > > And the safest way to avoid such break is we refine the suspend
-> > > condition for ODD, and using what ZPODD defined condition isn't that
-> > > bad to me:
-> > > - for tray type, no media inside and tray close;
-> > > - for slot type, no media inside.
-> > > While whether tray is closed or not may not be that important, but at
-> > > least we should make sure there is no media inside.
-> > > 
-> > > Thoughts?
-> > 
-> > That sounds reasonable to me, at least as a first step.  If people want 
-> > their CD drive to suspend, they can eject the disc.
 > 
-> Here is an updated patch to address the problem, please review, thanks.
+> Thanks,
+> Rafael
 > 
-> Changes to v13:
-> - Add PM get/put pair functions to all the block device operation
->   functions; Move the existing PM get/put pair functions in
->   sr_check_events to sr_block_check_events;
-> - Add sr_runtime_suspend, it will check if there is media inside and if
->   yes, avoid suspend.
 > 
-> From 378bf55810a1118ede481f45132b5c39af891d23 Mon Sep 17 00:00:00 2001
-> From: Aaron Lu <aaron.lu@intel.com>
-> Date: Wed, 26 Sep 2012 15:14:56 +0800
-> Subject: [RFC PATCH] scsi: sr: support runtime pm
-> 
-> This patch adds runtime pm support for sr.
-> 
-> It did this by increasing the runtime usage_count of the device when
-> its block device is accessed. And decreasing the runtime usage_count
-> of the device when the access is done.
-> 
-> The idea is discussed here:
-> http://thread.gmane.org/gmane.linux.acpi.devel/55243/focus=52703
-> and here:
-> http://thread.gmane.org/gmane.linux.ide/53665/focus=58836
-> 
-> Signed-off-by: Aaron Lu <aaron.lu@intel.com>
-
-This looks good now.  When you submit the patch, you might want to 
-mention the restriction about no media being present in the changelog 
-entry.
-
-Acked-by: Alan Stern <stern@rowland.harvard.edu>
-
+>> Signed-off-by: Jiang Liu <jiang.liu@huawei.com>
+>> ---
+>>  drivers/acpi/pci_root.c         |    5 +++--
+>>  drivers/pci/pcie/portdrv_core.c |    4 +++-
+>>  2 files changed, 6 insertions(+), 3 deletions(-)
+>>
+>> diff --git a/drivers/acpi/pci_root.c b/drivers/acpi/pci_root.c
+>> index c37eedb..7f7e464 100644
+>> --- a/drivers/acpi/pci_root.c
+>> +++ b/drivers/acpi/pci_root.c
+>> @@ -550,8 +550,9 @@ static int __devinit acpi_pci_root_add(struct acpi_device *device)
+>>  
+>>  	if (!pcie_ports_disabled
+>>  	    && (flags & ACPI_PCIE_REQ_SUPPORT) == ACPI_PCIE_REQ_SUPPORT) {
+>> -		flags = OSC_PCI_EXPRESS_CAP_STRUCTURE_CONTROL
+>> -			| OSC_PCI_EXPRESS_PME_CONTROL;
+>> +		flags = OSC_PCI_EXPRESS_CAP_STRUCTURE_CONTROL;
+>> +		if (IS_ENABLED(CONFIG_PCIE_PME))
+>> +			flags |= OSC_PCI_EXPRESS_PME_CONTROL;
+>>  		if (!pcie_native_hotplug_disabled)
+>>  			flags |= OSC_PCI_EXPRESS_NATIVE_HP_CONTROL;
+>>  
+>> diff --git a/drivers/pci/pcie/portdrv_core.c b/drivers/pci/pcie/portdrv_core.c
+>> index e7e1679..7e6546f 100644
+>> --- a/drivers/pci/pcie/portdrv_core.c
+>> +++ b/drivers/pci/pcie/portdrv_core.c
+>> @@ -263,7 +263,9 @@ static int get_port_device_capability(struct pci_dev *dev)
+>>  
+>>  	err = pcie_port_platform_notify(dev, &cap_mask);
+>>  	if (!pcie_ports_auto) {
+>> -		cap_mask = PCIE_PORT_SERVICE_PME | PCIE_PORT_SERVICE_VC;
+>> +		cap_mask = PCIE_PORT_SERVICE_VC;
+>> +		if (IS_ENABLED(CONFIG_PCIE_PME))
+>> +			cap_mask |= PCIE_PORT_SERVICE_PME;
+>>  		if (!pcie_native_hotplug_disabled)
+>>  			cap_mask |= PCIE_PORT_SERVICE_HP;
+>>  		if (pci_aer_available())
+>>
