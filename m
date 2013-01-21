@@ -1,48 +1,60 @@
-From: Borislav Petkov <bp@alien8.de>
-Subject: Re: [arch-general] powernow-k8 fails to load with linux 3.7.2
-Date: Mon, 21 Jan 2013 11:54:55 +0100
-Message-ID: <20130121105455.GA4823@pd.tnic>
-References: <1448223.sdUJnNSRz4@vostro.rjw.lan>
- <20130116231728.GA10204@x1.alien8.de>
- <20130116181600.4c48ee3b@bluemoon>
- <20130117094648.GD30700@pd.tnic>
- <20130117194044.7a18a29d@bluemoon>
- <20130118113717.GA6808@pd.tnic>
- <20130118133233.4521ddb6@hydra>
- <E99CBA9F97C3D149AA6B19ED2E277C9B0193997E@BY2PRD0510MB365.namprd05.prod.outlook.com>
- <20130119120814.GA4026@pd.tnic>
- <20130120231432.67351ee6@bluemoon>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: Re: [PATCH v9 10/11] PCI: Add match_driver in struct pci_dev
+Date: Mon, 21 Jan 2013 13:41:59 +0100
+Message-ID: <2498419.CI4NCxq5bO@vostro.rjw.lan>
+References: <1358495602-22867-1-git-send-email-yinghai@kernel.org> <2129071.O9G31gJZfd@vostro.rjw.lan> <CAE9FiQWaiPDpmdxm34YPoxcGVMUV+rgFqFZVBZsQy7JOaA4yXQ@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Return-path: <cpufreq-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20130120231432.67351ee6@bluemoon>
-Sender: cpufreq-owner@vger.kernel.org
-To: Leonid Isaev <lisaev@umail.iu.edu>
-Cc: Matthew Garrett <matthew.garrett@nebula.com>, =?utf-8?B?QW5kcsOp?= Przywara <andre@andrep.de>, "Rafael J. Wysocki" <rjw@sisk.pl>, Tom Gundersen <teg@jklm.no>, "cpufreq@vger.kernel.org" <cpufreq@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7Bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from hydra.sisk.pl ([212.160.235.94]:48174 "EHLO hydra.sisk.pl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752015Ab3AUMgA (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 21 Jan 2013 07:36:00 -0500
+In-Reply-To: <CAE9FiQWaiPDpmdxm34YPoxcGVMUV+rgFqFZVBZsQy7JOaA4yXQ@mail.gmail.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Yinghai Lu <yinghai@kernel.org>
+Cc: Bjorn Helgaas <bhelgaas@google.com>, Len Brown <lenb@kernel.org>, Taku Izumi <izumi.taku@jp.fujitsu.com>, Jiang Liu <jiang.liu@huawei.com>, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
 
-On Sun, Jan 20, 2013 at 11:14:32PM -0600, Leonid Isaev wrote:
-> Matthew and Borislav, thanks a lot for the patch and explanation!
->
-> I applied the above patch on top of linux 3.7.3 -- it does generate
-> the aliases and fixes the autoprobing issue, at least on my AMD
-> machine. Should we expect it in 3.7.4 or 3.8? Otherwise, I'll forward
-> it to archlinux devel ML to be possibly included in current -stable
-> kernel. Also, Borislav, this patch is not in your patch series, is it?
+On Sunday, January 20, 2013 09:22:04 PM Yinghai Lu wrote:
+> On Sun, Jan 20, 2013 at 3:15 PM, Rafael J. Wysocki <rjw@sisk.pl> wrote:
+> > On Thursday, January 17, 2013 11:53:21 PM Yinghai Lu wrote:
+> >> with that we could move out attaching driver for pci device,
+> >> out of device_add for pci hot add path.
+> >>
+> >> pci_bus_attach_device() will attach driver to pci device.
+> >
+> > Acked-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+> >
+> > for the code, but you still aren't saying in the changelog why the change
+> > is needed.
+> 
+> Thanks.
+> 
+> Please check if the changelog is good to you.
 
-Yeah, it's not.
+It's fine by me.
 
-Matthew, care to write a proper commit message with your SOB and
-Leonid's Tested-by pls?
+Thanks,
+Rafael
 
-Then Rafael could take it for 3.8 and tag it for 3.7-stable, methinks.
 
-Leonid, thanks for testing.
-
+> ---
+> Subject: [PATCH] PCI: Skip attaching driver in device_add()
+> 
+> We want to add pci device to device tree as early as possible but
+> delay attach driver in next following path.
+> 
+> To make that patch smaller, in this patch:
+> 
+> We add match_driver field in pci_dev and default vaule is false, it will
+> make pci_bus_match fail, so device_add  will skip attaching driver,
+> then pci_bus_attach_device() will set match_driver to true so
+> pci_bus_match will return true and device_attach will attach driver
+> to pci device.
+> 
+> ---
 -- 
-Regards/Gruss,
-    Boris.
-
-Sent from a fat crate under my desk. Formatting is fine.
---
+I speak only for myself.
+Rafael J. Wysocki, Intel Open Source Technology Center.
