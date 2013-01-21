@@ -1,59 +1,61 @@
-From: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Subject: Re: [RFC][Update 2][PATCH 2/4] ACPI / PM: Expose reference count
- values of ACPI power resources
-Date: Mon, 21 Jan 2013 14:33:43 -0800
-Message-ID: <20130121223343.GA12811@kroah.com>
-References: <3307415.pdOY6ovZLa@vostro.rjw.lan>
- <1618594.EyAyXTlIBb@vostro.rjw.lan>
- <20130121205357.GB17006@kroah.com>
- <9864072.snIRhummIS@vostro.rjw.lan>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: Re: [RFC][Update 2][PATCH 3/4] sysfs: Functions for adding/removing symlinks to/from attribute groups
+Date: Mon, 21 Jan 2013 23:41:35 +0100
+Message-ID: <6110949.dY5glp6Ioa@vostro.rjw.lan>
+References: <3307415.pdOY6ovZLa@vostro.rjw.lan> <7521411.VG2IjTvoWi@vostro.rjw.lan> <20130121205820.GC17006@kroah.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7Bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-da0-f52.google.com ([209.85.210.52]:46420 "EHLO
-	mail-da0-f52.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752263Ab3AUWdr (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 21 Jan 2013 17:33:47 -0500
-Received: by mail-da0-f52.google.com with SMTP id f10so2890351dak.11
-        for <linux-acpi@vger.kernel.org>; Mon, 21 Jan 2013 14:33:47 -0800 (PST)
-Content-Disposition: inline
-In-Reply-To: <9864072.snIRhummIS@vostro.rjw.lan>
+Received: from hydra.sisk.pl ([212.160.235.94]:48548 "EHLO hydra.sisk.pl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752263Ab3AUWff (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 21 Jan 2013 17:35:35 -0500
+In-Reply-To: <20130121205820.GC17006@kroah.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@sisk.pl>
+To: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>, "Kristen C. Accardi" <kristen.c.accardi@intel.com>, Len Brown <lenb@kernel.org>
 
-On Mon, Jan 21, 2013 at 11:35:51PM +0100, Rafael J. Wysocki wrote:
-> On Monday, January 21, 2013 12:53:57 PM Greg Kroah-Hartman wrote:
-> > On Mon, Jan 21, 2013 at 02:05:47PM +0100, Rafael J. Wysocki wrote:
-> > > From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
-> > > 
-> > > Since ACPI power resources are going to be used more extensively on
-> > > new hardware platforms, it becomes necessary for user space (powertop
-> > > in particular) to observe some properties of those resources for
-> > > diagnostics purposes.
-> > > 
-> > > For this reason, export the reference counts of ACPI power resources
-> > > to user space by adding a new reference_count attribute to the sysfs
-> > > directory representing each power resource.  The value read from
-> > > that attribute represents the number of devices using the power
-> > > resource at the given time.  If that value is 0, it meas that the
-> > > power resource is not used and therefore it has been turned off.
+On Monday, January 21, 2013 12:58:20 PM Greg Kroah-Hartman wrote:
+> On Mon, Jan 21, 2013 at 02:06:27PM +0100, Rafael J. Wysocki wrote:
+> > From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 > > 
-> > Why does userspace need to know a reference count?  Is it so that if it
-> > is not 0, it can work to try to lower it to 0?  Or something else?
+> > The most convenient way to expose ACPI power resources lists of a
+> > device is to put symbolic links to sysfs directories representing
+> > those resources into special attribute groups in the device's sysfs
+> > directory.  For this purpose, it is necessary to be able to add
+> > symbolic links to attribute groups.
+> > 
+> > For this reason, add sysfs helper functions for adding/removing
+> > symbolic links to/from attribute groups, sysfs_add_link_to_group()
+> > and sysfs_remove_link_from_group(), respectively.
 > 
-> Yes, this information is needed to say if (1) the power resource is in use
-> and (2) how many users there are at the moment, so that we can go and look
-> if it really has to be in use.
-> 
-> Perhaps I can just expose the "in use"/"not in use" information.  I don't
-> think it will be much less convenient, because we should scan all of the
-> possible users anyway in case they are coming and going frequently.
-> 
-> So should I do that and rename the attribute to "resource_in_use" (or something
-> similar)?
+> Those functions are fine, but why sysfs_add_link()?
 
-That makes a bit more sense to do, thanks.
+Do you mean the helper?  I couldn't invent a better name. :-)
 
-greg k-h
+Would sysfs_create_link_sd() be better?
+
+> It looks identical to sysfs_create_link(), why would you call one and not
+> the other?
+
+Because sysfs_create_link() takes a kobject as the first argument and I want
+a sysfs_dirent.
+
+> Why would anything outside of the sysfs core code ever have a pointer to a
+> sysfs_dirent?
+
+I don't see a reason and that sysfs_add_link() really is internal (it shouldn't
+be exported then, yes).
+
+I need to make a link from an attribute group under a kobject and not from the
+kobject itself, that's all.
+
+Thanks,
+Rafael
+
+
+-- 
+I speak only for myself.
+Rafael J. Wysocki, Intel Open Source Technology Center.
