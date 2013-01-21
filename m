@@ -1,134 +1,100 @@
-From: Lan Tianyu <tianyu.lan-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH v6 1/8] USB: Set usb port's DeviceRemovable according acpi information
-Date: Mon, 21 Jan 2013 22:18:00 +0800
-Message-ID: <1358777887-2656-2-git-send-email-tianyu.lan@intel.com>
+From: Lan Tianyu <tianyu.lan@intel.com>
+Subject: [PATCH v6 2/8] usb: Register usb port's acpi power resources
+Date: Mon, 21 Jan 2013 22:18:01 +0800
+Message-ID: <1358777887-2656-3-git-send-email-tianyu.lan@intel.com>
 References: <1358777887-2656-1-git-send-email-tianyu.lan@intel.com>
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1358777887-2656-1-git-send-email-tianyu.lan-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org, lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, sarah.a.sharp-VuQAYsv1563Yd54FQh9/CA@public.gmane.org, stern-nwvwT67g6+6dFdvTe/nMLpVzexx5G7lz@public.gmane.org, rjw-KKrjLPT3xs0@public.gmane.org, oneukum-l3A5Bk7waGM@public.gmane.org
-Cc: linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Lan Tianyu <tianyu.lan-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mga11.intel.com ([192.55.52.93]:50635 "EHLO mga11.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753566Ab3AUOUh (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 21 Jan 2013 09:20:37 -0500
+In-Reply-To: <1358777887-2656-1-git-send-email-tianyu.lan@intel.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: gregkh@linuxfoundation.org, lenb@kernel.org, sarah.a.sharp@linux.intel.com, stern@rowland.harvard.edu, rjw@sisk.pl, oneukum@suse.de
+Cc: linux-usb@vger.kernel.org, linux-acpi@vger.kernel.org, Lan Tianyu <tianyu.lan@intel.com>
 
-ACPI provide "_PLD" and "_UPC" aml methods to describe usb port
-visibility and connectability. This patch is to add usb_hub_adjust_DeviceRemovable()
-to adjust usb hub port's DeviceRemovable according ACPI information and invoke it in
-the rh_call_control(). When hub descriptor request is issued at first time,
-usb port device isn't created and usb port is not bound with acpi. So first
-hub descriptor request is not changed based on ACPI information. After usb
-port devices being created, call usb_hub_adjust_DeviceRemovable in the hub_configure()
-and then set hub port's DeviceRemovable according ACPI information and this also works
-for non-root hub.
+This patch is to register usb port's acpi power resources. Create
+link between usb port device and its acpi power resource.
 
-Acked-by: Alan Stern <stern-nwvwT67g6+6dFdvTe/nMLpVzexx5G7lz@public.gmane.org>
-Signed-off-by: Lan Tianyu <tianyu.lan-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Acked-by: Alan Stern <stern@rowland.harvard.edu>
+Signed-off-by: Lan Tianyu <tianyu.lan@intel.com>
 ---
- drivers/usb/core/hcd.c |    4 ++++
- drivers/usb/core/hub.c |   43 +++++++++++++++++++++++++++++++++++++++++++
- drivers/usb/core/usb.h |    3 +++
- 3 files changed, 50 insertions(+)
+ drivers/usb/core/port.c     |    3 +++
+ drivers/usb/core/usb-acpi.c |   20 ++++++++++++++++++++
+ drivers/usb/core/usb.h      |    6 ++++++
+ 3 files changed, 29 insertions(+)
 
-diff --git a/drivers/usb/core/hcd.c b/drivers/usb/core/hcd.c
-index 5f6da8b..2459896 100644
---- a/drivers/usb/core/hcd.c
-+++ b/drivers/usb/core/hcd.c
-@@ -619,6 +619,10 @@ nongeneric:
- 		status = hcd->driver->hub_control (hcd,
- 			typeReq, wValue, wIndex,
- 			tbuf, wLength);
-+
-+		if (typeReq == GetHubDescriptor)
-+			usb_hub_adjust_deviceremovable(hcd->self.root_hub,
-+				(struct usb_hub_descriptor *)tbuf);
- 		break;
- error:
- 		/* "protocol stall" on error */
-diff --git a/drivers/usb/core/hub.c b/drivers/usb/core/hub.c
-index cfdd4ee..29ca6ed 100644
---- a/drivers/usb/core/hub.c
-+++ b/drivers/usb/core/hub.c
-@@ -1513,6 +1513,8 @@ static int hub_configure(struct usb_hub *hub,
- 			dev_err(hub->intfdev,
- 				"couldn't create port%d device.\n", i + 1);
+diff --git a/drivers/usb/core/port.c b/drivers/usb/core/port.c
+index fe5959f..4dfa254 100644
+--- a/drivers/usb/core/port.c
++++ b/drivers/usb/core/port.c
+@@ -66,6 +66,7 @@ static void usb_port_device_release(struct device *dev)
+ {
+ 	struct usb_port *port_dev = to_usb_port(dev);
  
-+	usb_hub_adjust_deviceremovable(hdev, hub->descriptor);
-+
- 	hub_activate(hub, HUB_INIT);
- 	return 0;
- 
-@@ -5219,6 +5221,47 @@ usb_get_hub_port_connect_type(struct usb_device *hdev, int port1)
- 	return hub->ports[port1 - 1]->connect_type;
++	usb_acpi_unregister_power_resources(dev);
+ 	kfree(port_dev);
  }
  
-+void usb_hub_adjust_deviceremovable(struct usb_device *hdev,
-+		struct usb_hub_descriptor *desc)
+@@ -95,6 +96,8 @@ int usb_hub_create_port_device(struct usb_hub *hub, int port1)
+ 	if (retval)
+ 		goto error_register;
+ 
++	usb_acpi_register_power_resources(&port_dev->dev);
++
+ 	return 0;
+ 
+ error_register:
+diff --git a/drivers/usb/core/usb-acpi.c b/drivers/usb/core/usb-acpi.c
+index cef4252..558ab01 100644
+--- a/drivers/usb/core/usb-acpi.c
++++ b/drivers/usb/core/usb-acpi.c
+@@ -216,6 +216,26 @@ static struct acpi_bus_type usb_acpi_bus = {
+ 	.find_device = usb_acpi_find_device,
+ };
+ 
++int usb_acpi_register_power_resources(struct device *dev)
 +{
-+	enum usb_port_connect_type connect_type;
-+	int i;
++	acpi_handle port_handle = DEVICE_ACPI_HANDLE(dev);
 +
-+	if (!hub_is_superspeed(hdev)) {
-+		for (i = 1; i <= hdev->maxchild; i++) {
-+			connect_type = usb_get_hub_port_connect_type(hdev, i);
++	if (!port_handle)
++		return -ENODEV;
 +
-+			if (connect_type == USB_PORT_CONNECT_TYPE_HARD_WIRED) {
-+				u8 mask = 1 << (i%8);
-+
-+				if (!(desc->u.hs.DeviceRemovable[i/8] & mask)) {
-+					dev_dbg(&hdev->dev, "usb port%d's DeviceRemovable is changed to 1 according to platform information.\n",
-+						i);
-+					desc->u.hs.DeviceRemovable[i/8]	|= mask;
-+				}
-+			}
-+		}
-+	} else {
-+		u16 port_removable = le16_to_cpu(desc->u.ss.DeviceRemovable);
-+
-+		for (i = 1; i <= hdev->maxchild; i++) {
-+			connect_type = usb_get_hub_port_connect_type(hdev, i);
-+
-+			if (connect_type == USB_PORT_CONNECT_TYPE_HARD_WIRED) {
-+				u16 mask = 1 << i;
-+
-+				if (!(port_removable & mask)) {
-+					dev_dbg(&hdev->dev, "usb port%d's DeviceRemovable is changed to 1 according to platform information.\n",
-+						i);
-+					port_removable |= mask;
-+				}
-+			}
-+		}
-+
-+		desc->u.ss.DeviceRemovable = cpu_to_le16(port_removable);
-+	}
++	if (acpi_power_resource_register_device(dev, port_handle) < 0)
++		return -ENODEV;
++	return 0;
 +}
 +
- #ifdef CONFIG_ACPI
- /**
-  * usb_get_hub_port_acpi_handle - Get the usb port's acpi handle
++void usb_acpi_unregister_power_resources(struct device *dev)
++{
++	acpi_handle port_handle = DEVICE_ACPI_HANDLE(dev);
++
++	if (port_handle)
++		acpi_power_resource_unregister_device(dev, port_handle);
++}
++
+ int usb_acpi_register(void)
+ {
+ 	return register_acpi_bus_type(&usb_acpi_bus);
 diff --git a/drivers/usb/core/usb.h b/drivers/usb/core/usb.h
-index fb7d8fc..a7f20bd 100644
+index a7f20bd..601b044 100644
 --- a/drivers/usb/core/usb.h
 +++ b/drivers/usb/core/usb.h
-@@ -1,6 +1,7 @@
- #include <linux/pm.h>
- #include <linux/acpi.h>
- 
-+struct usb_hub_descriptor;
- struct dev_state;
- 
- /* Functions local to drivers/usb/core/ */
-@@ -182,6 +183,8 @@ extern enum usb_port_connect_type
- 	usb_get_hub_port_connect_type(struct usb_device *hdev, int port1);
- extern void usb_set_hub_port_connect_type(struct usb_device *hdev, int port1,
- 	enum usb_port_connect_type type);
-+extern void usb_hub_adjust_deviceremovable(struct usb_device *hdev,
-+		struct usb_hub_descriptor *desc);
- 
- #ifdef CONFIG_ACPI
- extern int usb_acpi_register(void);
+@@ -191,7 +191,13 @@ extern int usb_acpi_register(void);
+ extern void usb_acpi_unregister(void);
+ extern acpi_handle usb_get_hub_port_acpi_handle(struct usb_device *hdev,
+ 	int port1);
++extern int usb_acpi_register_power_resources(struct device *dev);
++extern void usb_acpi_unregister_power_resources(struct device *dev);
+ #else
+ static inline int usb_acpi_register(void) { return 0; };
+ static inline void usb_acpi_unregister(void) { };
++static inline int usb_acpi_register_power_resources(struct device *dev)
++	{ return 0; };
++static inline void usb_acpi_unregister_power_resources(struct device *dev)
++	{ };
+ #endif
 -- 
 1.7.9.5
 
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
