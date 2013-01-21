@@ -1,74 +1,33 @@
-From: Lan Tianyu <tianyu.lan@intel.com>
-Subject: [PATCH v6 7/8] usb: add usb_device_allow_power_off() and usb_device_prevent_power_off() function.
-Date: Mon, 21 Jan 2013 22:18:06 +0800
-Message-ID: <1358777887-2656-8-git-send-email-tianyu.lan@intel.com>
-References: <1358777887-2656-1-git-send-email-tianyu.lan@intel.com>
+From: Oliver Neukum <oneukum@suse.de>
+Subject: Re: [PATCH v13 1/9] scsi: sr: support runtime pm
+Date: Mon, 21 Jan 2013 15:56:43 +0100
+Message-ID: <1671780.QshOn4REzF@linux-5eaq.site>
+References: <50FA5F67.4080102@intel.com> <CAGRGNgWc2QTnY==NdMeZpw-7L3WwQfBFOwm=UZZ3Jcz+dp=h3g@mail.gmail.com> <20130121091104.GA11010@aaronlu.sh.intel.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7Bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga09.intel.com ([134.134.136.24]:34715 "EHLO mga09.intel.com"
+Received: from cantor2.suse.de ([195.135.220.15]:59925 "EHLO mx2.suse.de"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753934Ab3AUOVM (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 21 Jan 2013 09:21:12 -0500
-In-Reply-To: <1358777887-2656-1-git-send-email-tianyu.lan@intel.com>
+	id S1755279Ab3AUO4s (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 21 Jan 2013 09:56:48 -0500
+In-Reply-To: <20130121091104.GA11010@aaronlu.sh.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: gregkh@linuxfoundation.org, lenb@kernel.org, sarah.a.sharp@linux.intel.com, stern@rowland.harvard.edu, rjw@sisk.pl, oneukum@suse.de
-Cc: linux-usb@vger.kernel.org, linux-acpi@vger.kernel.org, Lan Tianyu <tianyu.lan@intel.com>
+To: Aaron Lu <aaron.lu@intel.com>
+Cc: Julian Calaby <julian.calaby@gmail.com>, Alan Stern <stern@rowland.harvard.edu>, James Bottomley <James.Bottomley@hansenpartnership.com>, Jeff Garzik <jgarzik@pobox.com>, "Rafael J. Wysocki" <rjw@sisk.pl>, Tejun Heo <tj@kernel.org>, Aaron Lu <aaron.lwe@gmail.com>, Jeff Wu <jeff.wu@amd.com>, linux-ide@vger.kernel.org, linux-pm@vger.kernel.org, linux-scsi@vger.kernel.org, linux-acpi@vger.kernel.org
 
-Some usb devices can't be resumed correctly after power off. This
-patch is to add usb_device_allow_power_off() and usb_device_prevent_power_off()
-for device's driver. Call pm_runtime_get_sync(portdev) to increase port's usage
-count and then port will not be suspended. The device will not be powered off.
+On Monday 21 January 2013 17:11:04 Aaron Lu wrote:
+> It is not easy for the OS to tell if the drive is being used or not
+> sometimes 
+> 
+> Alan has reminded me it is possible for an app to open the block device
+> file(/dev/sr0), issue a command(play audio), then close the device file.
+> From the OS' point of view, we think nobody is using it. But actually,
+> the drive is playing cd for the user, so we can't suspend the device.
 
-Acked-by: Alan Stern <stern@rowland.harvard.edu>
-Signed-off-by: Lan Tianyu <tianyu.lan@intel.com>
----
- drivers/usb/core/port.c |   28 ++++++++++++++++++++++++++++
- 1 file changed, 28 insertions(+)
+Are there drives that support ZPODD and have an audio output?
 
-diff --git a/drivers/usb/core/port.c b/drivers/usb/core/port.c
-index 0c51d24..0334d91 100644
---- a/drivers/usb/core/port.c
-+++ b/drivers/usb/core/port.c
-@@ -18,11 +18,39 @@
- 
- #include <linux/slab.h>
- #include <linux/pm_qos.h>
-+#include <linux/module.h>
- 
- #include "hub.h"
- 
- static const struct attribute_group *port_dev_group[];
- 
-+/**
-+ * usb_device_control_power_off - Allow or prohibit power off device.
-+ * @udev: target usb device
-+ * @allow: choice of allow or prohibit
-+ *
-+ * Call pm_runtime_get/put_sync(portdev) to allow or prohibit target
-+ * usb device to be powered off in the kernel. The operations of setting
-+ * true and false should be couple. The default status is allowed.
-+ */
-+int usb_device_control_power_off(struct usb_device *udev, bool allow)
-+{
-+	struct usb_port *port_dev;
-+
-+	if (!udev->parent)
-+		return -EINVAL;
-+
-+	port_dev = hdev_to_hub(udev->parent)->ports[udev->portnum - 1];
-+
-+	if (allow)
-+		pm_runtime_put_sync(&port_dev->dev);
-+	else
-+		pm_runtime_get_sync(&port_dev->dev);
-+
-+	return 0;
-+}
-+EXPORT_SYMBOL_GPL(usb_device_control_power_off);
-+
- static ssize_t show_port_connect_type(struct device *dev,
- 	struct device_attribute *attr, char *buf)
- {
--- 
-1.7.9.5
+	Regards
+		Oliver
 
