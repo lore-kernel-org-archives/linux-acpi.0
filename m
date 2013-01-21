@@ -1,8 +1,8 @@
 From: Greg KH <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>
 Subject: Re: [PATCH v6 7/8] usb: add usb_device_allow_power_off() and
  usb_device_prevent_power_off() function.
-Date: Mon, 21 Jan 2013 13:33:17 -0800
-Message-ID: <20130121213317.GD20083@kroah.com>
+Date: Mon, 21 Jan 2013 13:33:46 -0800
+Message-ID: <20130121213346.GE20083@kroah.com>
 References: <1358777887-2656-1-git-send-email-tianyu.lan@intel.com>
  <1358777887-2656-8-git-send-email-tianyu.lan@intel.com>
 Mime-Version: 1.0
@@ -20,9 +20,6 @@ On Mon, Jan 21, 2013 at 10:18:06PM +0800, Lan Tianyu wrote:
 > patch is to add usb_device_allow_power_off() and usb_device_prevent_power_off()
 > for device's driver. Call pm_runtime_get_sync(portdev) to increase port's usage
 > count and then port will not be suspended. The device will not be powered off.
-
-Please linewrap comments at the proper level (git likes 72).
-
 > 
 > Acked-by: Alan Stern <stern-nwvwT67g6+6dFdvTe/nMLpVzexx5G7lz@public.gmane.org>
 > Signed-off-by: Lan Tianyu <tianyu.lan-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
@@ -54,13 +51,26 @@ Please linewrap comments at the proper level (git likes 72).
 > + * true and false should be couple. The default status is allowed.
 > + */
 > +int usb_device_control_power_off(struct usb_device *udev, bool allow)
+> +{
+> +	struct usb_port *port_dev;
+> +
+> +	if (!udev->parent)
+> +		return -EINVAL;
+> +
+> +	port_dev = hdev_to_hub(udev->parent)->ports[udev->portnum - 1];
+> +
+> +	if (allow)
+> +		pm_runtime_put_sync(&port_dev->dev);
+> +	else
+> +		pm_runtime_get_sync(&port_dev->dev);
+> +
+> +	return 0;
+> +}
+> +EXPORT_SYMBOL_GPL(usb_device_control_power_off);
 
-Ick, again with the boolean variables.  Please don't do this, just make
-two different functions:
-	usb_device_allow_power_off()
-	usb_device_forbid_power_off()
-that makes it much easier to understand when you see the function being
-called, right?
+Oh, I don't see any code calling this function, so why did you add it?
+
+Who needs it?  Where is that code?
 
 thanks,
 
