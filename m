@@ -1,83 +1,65 @@
-From: Jiang Liu <liuj97@gmail.com>
-Subject: Re: [RFC PATCH v5 3/8] PCI: add a blocking notifier chain for PCI
- bus addition/removal
-Date: Tue, 22 Jan 2013 00:18:55 +0800
-Message-ID: <50FD6A6F.1080408@gmail.com>
-References: <1358525267-14268-1-git-send-email-jiang.liu@huawei.com> <1358525267-14268-4-git-send-email-jiang.liu@huawei.com> <3583141.yG8QGivRYt@vostro.rjw.lan>
+From: Alan Stern <stern@rowland.harvard.edu>
+Subject: Re: [RFC PATCH] scsi: sr: support runtime pm
+Date: Mon, 21 Jan 2013 11:59:06 -0500 (EST)
+Message-ID: <Pine.LNX.4.44L0.1301211157530.19920-100000@netrider.rowland.org>
+References: <20130121093707.GB11010@aaronlu.sh.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-pa0-f46.google.com ([209.85.220.46]:52561 "EHLO
-	mail-pa0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753958Ab3AUQTA (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 21 Jan 2013 11:19:00 -0500
-In-Reply-To: <3583141.yG8QGivRYt@vostro.rjw.lan>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Return-path: <linux-ide-owner@vger.kernel.org>
+In-Reply-To: <20130121093707.GB11010@aaronlu.sh.intel.com>
+Sender: linux-ide-owner@vger.kernel.org
+To: Aaron Lu <aaron.lu@intel.com>
+Cc: Oliver Neukum <oneukum@suse.de>, Julian Calaby <julian.calaby@gmail.com>, James Bottomley <James.Bottomley@HansenPartnership.com>, Jeff Garzik <jgarzik@pobox.com>, "Rafael J. Wysocki" <rjw@sisk.pl>, Tejun Heo <tj@kernel.org>, Aaron Lu <aaron.lwe@gmail.com>, Jeff Wu <jeff.wu@amd.com>, linux-ide@vger.kernel.org, linux-pm@vger.kernel.org, linux-scsi@vger.kernel.org, linux-acpi@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: Bjorn Helgaas <bhelgaas@google.com>, Jiang Liu <jiang.liu@huawei.com>, Yinghai Lu <yinghai@kernel.org>, Kenji Kaneshige <kaneshige.kenji@jp.fujitsu.com>, Yijing Wang <wangyijing@huawei.com>, linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Toshi Kani <toshi.kani@hp.com>, Myron Stowe <myron.stowe@redhat.com>
 
-On 01/21/2013 07:54 AM, Rafael J. Wysocki wrote:
-> On Saturday, January 19, 2013 12:07:41 AM Jiang Liu wrote:
->> When adding/removing a PCI bus, some other components want to be
-snip
->> +
->> +void pci_bus_call_notifier(struct pci_bus *bus, unsigned long code)
->> +{
->> +	int ret;
->> +
->> +	ret = blocking_notifier_call_chain(&pci_bus_notifier_chain,
->> +					   code, bus);
->> +	WARN_ON(ret != NOTIFY_DONE && ret != NOTIFY_OK);
-> 
-> I'm not sure if this is a good idea.  WARN_ON() is quite a heavy tool.
-Hi Rafael,
-	How about WARN_ONCE() here?
+On Mon, 21 Jan 2013, Aaron Lu wrote:
 
+> On Sat, Jan 19, 2013 at 01:46:15PM -0500, Alan Stern wrote:
+> > On Sat, 19 Jan 2013, Aaron Lu wrote:
+> > > I don't think we should drop such support.
+> > > And the safest way to avoid such break is we refine the suspend
+> > > condition for ODD, and using what ZPODD defined condition isn't that
+> > > bad to me:
+> > > - for tray type, no media inside and tray close;
+> > > - for slot type, no media inside.
+> > > While whether tray is closed or not may not be that important, but at
+> > > least we should make sure there is no media inside.
+> > > 
+> > > Thoughts?
+> > 
+> > That sounds reasonable to me, at least as a first step.  If people want 
+> > their CD drive to suspend, they can eject the disc.
 > 
->> +}
->> +
->>  void pci_add_resource_offset(struct list_head *resources, struct resource *res,
->>  			     resource_size_t offset)
->>  {
->> diff --git a/include/linux/pci.h b/include/linux/pci.h
->> index ee21795..12e5447 100644
->> --- a/include/linux/pci.h
->> +++ b/include/linux/pci.h
->> @@ -1033,6 +1033,18 @@ const struct pci_device_id *pci_match_id(const struct pci_device_id *ids,
->>  int pci_scan_bridge(struct pci_bus *bus, struct pci_dev *dev, int max,
->>  		    int pass);
->>  
->> +/*
->> + * All notifiers below get called with the target struct pci_bus *bus as
->> + * an argument.
->> + * Note: all PCI bus notifier must return success. Currently there's no
->> + * error handling if any notifier returns error code.
->> + */
->> +#define	PCI_NOTIFY_POST_BUS_ADD		0x00000001 /* PCI bus has been added */
->> +#define	PCI_NOTIFY_PRE_BUS_DEL		0x00000002 /* PCI bus will be deleted */
+> Here is an updated patch to address the problem, please review, thanks.
 > 
-> I would call them PCI_EVENT_BUS_ADDED and PCI_EVENT_BUS_REMOVE, respectively.
-Sure, will use them in next version.
+> Changes to v13:
+> - Add PM get/put pair functions to all the block device operation
+>   functions; Move the existing PM get/put pair functions in
+>   sr_check_events to sr_block_check_events;
+> - Add sr_runtime_suspend, it will check if there is media inside and if
+>   yes, avoid suspend.
+> 
+> From 378bf55810a1118ede481f45132b5c39af891d23 Mon Sep 17 00:00:00 2001
+> From: Aaron Lu <aaron.lu@intel.com>
+> Date: Wed, 26 Sep 2012 15:14:56 +0800
+> Subject: [RFC PATCH] scsi: sr: support runtime pm
+> 
+> This patch adds runtime pm support for sr.
+> 
+> It did this by increasing the runtime usage_count of the device when
+> its block device is accessed. And decreasing the runtime usage_count
+> of the device when the access is done.
+> 
+> The idea is discussed here:
+> http://thread.gmane.org/gmane.linux.acpi.devel/55243/focus=52703
+> and here:
+> http://thread.gmane.org/gmane.linux.ide/53665/focus=58836
+> 
+> Signed-off-by: Aaron Lu <aaron.lu@intel.com>
 
-> 
->> +
->> +int pci_bus_register_notifier(struct notifier_block *nb);
->> +int pci_bus_unregister_notifier(struct notifier_block *nb);
->> +
->>  void pci_walk_bus(struct pci_bus *top, int (*cb)(struct pci_dev *, void *),
->>  		  void *userdata);
->>  int pci_cfg_space_size_ext(struct pci_dev *dev);
-> 
-> Apart from the nitpicks above, looks good.
-Thanks for review!
+This looks good now.  When you submit the patch, you might want to 
+mention the restriction about no media being present in the changelog 
+entry.
 
-Regards!
-Gerry
-> 
-> Thanks,
-> Rafael
-> 
-> 
+Acked-by: Alan Stern <stern@rowland.harvard.edu>
 
