@@ -1,108 +1,231 @@
 From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: [Update][PATCH] ACPI / PM: Export power states of ACPI devices via sysfs
-Date: Mon, 21 Jan 2013 13:59:05 +0100
-Message-ID: <2154175.hki2a10WqW@vostro.rjw.lan>
-References: <2311196.icSMDvAsYg@vostro.rjw.lan> <6722291.GNv0dQuq4j@vostro.rjw.lan> <1982172.z1FZmGBJNL@vostro.rjw.lan>
+Subject: [RFC][Update 2][PATCH 4/4] ACPI / PM: Expose lists of device power resources to user space
+Date: Mon, 21 Jan 2013 14:08:16 +0100
+Message-ID: <75501802.qSzsX3NXGt@vostro.rjw.lan>
+References: <3307415.pdOY6ovZLa@vostro.rjw.lan> <2096792.ELJ8WGVaaz@vostro.rjw.lan> <4247313.2G7Z3nCgM0@vostro.rjw.lan>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7Bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from hydra.sisk.pl ([212.160.235.94]:48195 "EHLO hydra.sisk.pl"
+Received: from hydra.sisk.pl ([212.160.235.94]:48202 "EHLO hydra.sisk.pl"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752621Ab3AUMxG (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 21 Jan 2013 07:53:06 -0500
-In-Reply-To: <1982172.z1FZmGBJNL@vostro.rjw.lan>
+	id S1752909Ab3AUNCZ (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 21 Jan 2013 08:02:25 -0500
+In-Reply-To: <4247313.2G7Z3nCgM0@vostro.rjw.lan>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: ACPI Devel Maling List <linux-acpi@vger.kernel.org>
-Cc: LKML <linux-kernel@vger.kernel.org>, Len Brown <lenb@kernel.org>, "Kristen C. Accardi" <kristen.c.accardi@intel.com>
+To: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>, "Kristen C. Accardi" <kristen.c.accardi@intel.com>, Len Brown <lenb@kernel.org>
 
-On Saturday, January 19, 2013 09:53:32 PM Rafael J. Wysocki wrote:
-> From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
-> Subject: ACPI / PM: Export power states of ACPI devices via sysfs
-> 
-> Make it possible to retrieve the current power state of a device with
-> ACPI power management from user space via sysfs by adding a new
-> attribute power_state to the sysfs directory associated with the
-> struct acpi_device object representing the device's ACPI node.
-> 
-> Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
-> ---
-> 
-> I've changed my mind here.  It looks like it's more convenient to put the
-> power_state attribute directly into the ACPI device node's directory in sysfs
-> rather than into its power subdirectory.
+From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 
-Well, please scratch this, I'm dropping it for now.
+Since ACPI power resources are going to be used more extensively on
+new hardware platforms, it is necessary to allow user space (powertop
+in particular) to look at the lists of power resources corresponding
+to different power states of devices for diagnostics and control
+purposes.
 
-I'll send a new version shortly along with the patches that export power
-resources information.
+For this reason, for each power state of an ACPI device node using
+power resources create a special attribute group under the device
+node's directory in sysfs containing links to sysfs directories
+representing the power resources in that list.  The names of the
+new attribute groups are "power_resources_<state>", where <state>
+is the state name i.e. "D0", "D1", "D2", or "D3hot".
 
-Thanks,
-Rafael
+Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+---
+ Documentation/ABI/testing/sysfs-devices-power_resources_D0    |   13 +
+ Documentation/ABI/testing/sysfs-devices-power_resources_D1    |   14 +
+ Documentation/ABI/testing/sysfs-devices-power_resources_D2    |   14 +
+ Documentation/ABI/testing/sysfs-devices-power_resources_D3hot |   14 +
+ drivers/acpi/power.c                                          |   96 ++++++++--
+ 5 files changed, 138 insertions(+), 13 deletions(-)
 
+Index: linux-pm/drivers/acpi/power.c
+===================================================================
+--- linux-pm.orig/drivers/acpi/power.c
++++ linux-pm/drivers/acpi/power.c
+@@ -417,24 +417,94 @@ static void acpi_power_remove_dependent(
+ 	}
+ }
+ 
+-void acpi_power_add_remove_device(struct acpi_device *adev, bool add)
++static struct attribute *attrs[] = {
++	NULL,
++};
++
++static void acpi_power_hide_list(struct acpi_device *adev,
++				 struct acpi_device_power_state *ps,
++				 const char *group_name)
+ {
+-	if (adev->power.flags.power_resources) {
+-		struct acpi_device_power_state *ps;
+-		struct acpi_power_resource_entry *entry;
+-
+-		ps = &adev->power.states[ACPI_STATE_D0];
+-		list_for_each_entry(entry, &ps->resources, node) {
+-			struct acpi_power_resource *resource = entry->resource;
+-
+-			if (add)
+-				acpi_power_add_dependent(resource, adev);
+-			else
+-				acpi_power_remove_dependent(resource, adev);
++	struct attribute_group attr_group = {
++		.name	= group_name,
++		.attrs	= attrs,
++	};
++	struct acpi_power_resource_entry *entry;
++
++	list_for_each_entry_reverse(entry, &ps->resources, node) {
++		struct acpi_device *res_dev = &entry->resource->device;
++
++		sysfs_remove_link_from_group(&adev->dev.kobj, group_name,
++					     dev_name(&res_dev->dev));
++	}
++	sysfs_remove_group(&adev->dev.kobj, &attr_group);
++}
++
++static void acpi_power_expose_list(struct acpi_device *adev,
++				   struct acpi_device_power_state *ps,
++				   const char *group_name)
++{
++	struct attribute_group attr_group = {
++		.name	= group_name,
++		.attrs	= attrs,
++	};
++	struct acpi_power_resource_entry *entry;
++	int ret;
++
++	ret = sysfs_create_group(&adev->dev.kobj, &attr_group);
++	if (ret)
++		return;
++
++	list_for_each_entry(entry, &ps->resources, node) {
++		struct acpi_device *res_dev = &entry->resource->device;
++
++		ret = sysfs_add_link_to_group(&adev->dev.kobj, group_name,
++					      &res_dev->dev.kobj,
++					      dev_name(&res_dev->dev));
++		if (ret) {
++			acpi_power_hide_list(adev, ps, group_name);
++			break;
+ 		}
+ 	}
+ }
+ 
++void acpi_power_add_remove_device(struct acpi_device *adev, bool add)
++{
++	static const char *group_names[ACPI_D_STATE_COUNT] = {
++		[ACPI_STATE_D0] = "power_resources_D0",
++		[ACPI_STATE_D1] = "power_resources_D1",
++		[ACPI_STATE_D2] = "power_resources_D2",
++		[ACPI_STATE_D3_HOT] = "power_resources_D3hot",
++	};
++	struct acpi_device_power_state *ps;
++	struct acpi_power_resource_entry *entry;
++	int state;
++
++	if (!adev->power.flags.power_resources)
++		return;
++
++	ps = &adev->power.states[ACPI_STATE_D0];
++	list_for_each_entry(entry, &ps->resources, node) {
++		struct acpi_power_resource *resource = entry->resource;
++
++		if (add)
++			acpi_power_add_dependent(resource, adev);
++		else
++			acpi_power_remove_dependent(resource, adev);
++	}
++
++	for (state = ACPI_STATE_D0; state <= ACPI_STATE_D3_HOT; state++) {
++		ps = &adev->power.states[state];
++		if (list_empty(&ps->resources))
++			continue;
++
++		if (add)
++			acpi_power_expose_list(adev, ps, group_names[state]);
++		else
++			acpi_power_hide_list(adev, ps, group_names[state]);
++	}
++}
++
+ int acpi_power_min_system_level(struct list_head *list)
+ {
+ 	struct acpi_power_resource_entry *entry;
+Index: linux-pm/Documentation/ABI/testing/sysfs-devices-power_resources_D0
+===================================================================
+--- /dev/null
++++ linux-pm/Documentation/ABI/testing/sysfs-devices-power_resources_D0
+@@ -0,0 +1,13 @@
++What:		/sys/devices/.../power_resources_D0/
++Date:		January 2013
++Contact:	Rafael J. Wysocki <rafael.j.wysocki@intel.com>
++Description:
++		The /sys/devices/.../power_resources_D0/ directory is only
++		present for device objects representing ACPI device nodes that
++		use ACPI power resources for power management.
++
++		If present, it contains symbolic links to device directories
++		representing ACPI power resources that need to be turned on for
++		the given device node to be in ACPI power state D0.  The names
++		of the links are the same as the names of the directories they
++		point to.
+Index: linux-pm/Documentation/ABI/testing/sysfs-devices-power_resources_D1
+===================================================================
+--- /dev/null
++++ linux-pm/Documentation/ABI/testing/sysfs-devices-power_resources_D1
+@@ -0,0 +1,14 @@
++What:		/sys/devices/.../power_resources_D1/
++Date:		January 2013
++Contact:	Rafael J. Wysocki <rafael.j.wysocki@intel.com>
++Description:
++		The /sys/devices/.../power_resources_D1/ directory is only
++		present for device objects representing ACPI device nodes that
++		use ACPI power resources for power management and support ACPI
++		power state D1.
++
++		If present, it contains symbolic links to device directories
++		representing ACPI power resources that need to be turned on for
++		the given device node to be in ACPI power state D1.  The names
++		of the links are the same as the names of the directories they
++		point to.
+Index: linux-pm/Documentation/ABI/testing/sysfs-devices-power_resources_D2
+===================================================================
+--- /dev/null
++++ linux-pm/Documentation/ABI/testing/sysfs-devices-power_resources_D2
+@@ -0,0 +1,14 @@
++What:		/sys/devices/.../power_resources_D2/
++Date:		January 2013
++Contact:	Rafael J. Wysocki <rafael.j.wysocki@intel.com>
++Description:
++		The /sys/devices/.../power_resources_D2/ directory is only
++		present for device objects representing ACPI device nodes that
++		use ACPI power resources for power management and support ACPI
++		power state D2.
++
++		If present, it contains symbolic links to device directories
++		representing ACPI power resources that need to be turned on for
++		the given device node to be in ACPI power state D2.  The names
++		of the links are the same as the names of the directories they
++		point to.
+Index: linux-pm/Documentation/ABI/testing/sysfs-devices-power_resources_D3hot
+===================================================================
+--- /dev/null
++++ linux-pm/Documentation/ABI/testing/sysfs-devices-power_resources_D3hot
+@@ -0,0 +1,14 @@
++What:		/sys/devices/.../power_resources_D3hot/
++Date:		January 2013
++Contact:	Rafael J. Wysocki <rafael.j.wysocki@intel.com>
++Description:
++		The /sys/devices/.../power_resources_D3hot/ directory is only
++		present for device objects representing ACPI device nodes that
++		use ACPI power resources for power management and support ACPI
++		power state D3hot.
++
++		If present, it contains symbolic links to device directories
++		representing ACPI power resources that need to be turned on for
++		the given device node to be in ACPI power state D3hot.  The
++		names of the links are the same as the names of the directories
++		they point to.
 
-> ---
->  Documentation/ABI/testing/sysfs-devices-power |   13 +++++++++++++
->  drivers/acpi/scan.c                           |   25 ++++++++++++++++++++++++-
->  2 files changed, 37 insertions(+), 1 deletion(-)
-> 
-> Index: linux-pm/drivers/acpi/scan.c
-> ===================================================================
-> --- linux-pm.orig/drivers/acpi/scan.c
-> +++ linux-pm/drivers/acpi/scan.c
-> @@ -184,6 +184,19 @@ err_out:
->  }
->  EXPORT_SYMBOL(acpi_bus_hot_remove_device);
->  
-> +static ssize_t power_state_show(struct device *dev,
-> +				struct device_attribute *attr, char *buf)
-> +{
-> +	struct acpi_device *adev = to_acpi_device(dev);
-> +	int state;
-> +	int ret;
-> +
-> +	ret = acpi_device_get_power(adev, &state);
-> +	return ret ? ret : sprintf(buf, "%s\n", acpi_power_state_string(state));
-> +}
-> +
-> +static DEVICE_ATTR(power_state, 0444, power_state_show, NULL);
-> +
->  static ssize_t
->  acpi_eject_store(struct device *d, struct device_attribute *attr,
->  		const char *buf, size_t count)
-> @@ -375,8 +388,15 @@ static int acpi_device_setup_files(struc
->           * hot-removal function from userland.
->           */
->  	status = acpi_get_handle(dev->handle, "_EJ0", &temp);
-> -	if (ACPI_SUCCESS(status))
-> +	if (ACPI_SUCCESS(status)) {
->  		result = device_create_file(&dev->dev, &dev_attr_eject);
-> +		if (result)
-> +			goto end;
-> +	}
-> +
-> +	if (dev->flags.power_manageable)
-> +		result = device_create_file(&dev->dev, &dev_attr_power_state);
-> +
->  end:
->  	return result;
->  }
-> @@ -386,6 +406,9 @@ static void acpi_device_remove_files(str
->  	acpi_status status;
->  	acpi_handle temp;
->  
-> +	if (dev->flags.power_manageable)
-> +		device_remove_file(&dev->dev, &dev_attr_power_state);
-> +
->  	/*
->  	 * If device has _STR, remove 'description' file
->  	 */
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
--- 
-I speak only for myself.
-Rafael J. Wysocki, Intel Open Source Technology Center.
