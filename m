@@ -1,191 +1,53 @@
-From: Yinghai Lu <yinghai@kernel.org>
-Subject: [PATCH v10 06/11] PCI, ACPI, acpiphp: Rename alloc_acpiphp_hp_work() to alloc_acpi_hp_work
-Date: Mon, 21 Jan 2013 13:20:47 -0800
-Message-ID: <1358803252-20639-7-git-send-email-yinghai@kernel.org>
-References: <1358803252-20639-1-git-send-email-yinghai@kernel.org>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1358803252-20639-1-git-send-email-yinghai@kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Bjorn Helgaas <bhelgaas@google.com>, "Rafael J. Wysocki" <rjw@sisk.pl>, Len Brown <lenb@kernel.org>, Taku Izumi <izumi.taku@jp.fujitsu.com>, Jiang Liu <jiang.liu@huawei.com>
-Cc: linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Yinghai Lu <yinghai@kernel.org>
+From: Greg KH <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>
+Subject: Re: [PATCH v6 4/8] usb: add runtime pm support for usb port device
+Date: Mon, 21 Jan 2013 13:24:59 -0800
+Message-ID: <20130121212459.GA20083@kroah.com>
+References: <1358777887-2656-1-git-send-email-tianyu.lan@intel.com>
+ <1358777887-2656-5-git-send-email-tianyu.lan@intel.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <1358777887-2656-5-git-send-email-tianyu.lan-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Lan Tianyu <tianyu.lan-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, sarah.a.sharp-VuQAYsv1563Yd54FQh9/CA@public.gmane.org, stern-nwvwT67g6+6dFdvTe/nMLpVzexx5G7lz@public.gmane.org, rjw-KKrjLPT3xs0@public.gmane.org, oneukum-l3A5Bk7waGM@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Will need to use it for pci root bridge hotplug support, rename
-*acpiphp* to *acpi* and move to osc.c.
-Also make kacpi_hotplug_wq static after that.
+On Mon, Jan 21, 2013 at 10:18:03PM +0800, Lan Tianyu wrote:
+> This patch is to add runtime pm callback for usb port device.
+> Set/clear PORT_POWER feature in the resume/suspend callbak.
+> Add portnum for struct usb_port to record port number. Do
+> pm_rumtime_get_sync/put(portdev) when a device is plugged/unplugged
+> to prevent it from being powered off when it is active.
+> 
+> Acked-by: Alan Stern <stern-nwvwT67g6+6dFdvTe/nMLpVzexx5G7lz@public.gmane.org>
+> Acked-by: Rafael J. Wysocki <rafael.j.wysocki-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+> Signed-off-by: Lan Tianyu <tianyu.lan-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+> ---
+>  drivers/usb/core/hub.c  |   18 ++++++++++++++++++
+>  drivers/usb/core/hub.h  |    4 ++++
+>  drivers/usb/core/port.c |   45 +++++++++++++++++++++++++++++++++++++++++++++
+>  3 files changed, 67 insertions(+)
+> 
+> diff --git a/drivers/usb/core/hub.c b/drivers/usb/core/hub.c
+> index 29ca6ed..8c1f9a5 100644
+> --- a/drivers/usb/core/hub.c
+> +++ b/drivers/usb/core/hub.c
+> @@ -714,6 +714,18 @@ static void hub_tt_work(struct work_struct *work)
+>  	spin_unlock_irqrestore (&hub->tt.lock, flags);
+>  }
+>  
+> +int usb_hub_set_port_power(struct usb_device *hdev, int port1,
+> +		bool set)
 
--v2: Change export to _GPL, and move declaration of alloc_acpi_hp_work
-     to acpi_bus.h according to Rafael.
+As this is a new global USB function, please provide the proper
+kerneldoc comments describing what it does.
 
-Signed-off-by: Yinghai Lu <yinghai@kernel.org>
-Cc: Len Brown <lenb@kernel.org>
-Cc: linux-acpi@vger.kernel.org
----
- drivers/acpi/osl.c                 |   24 +++++++++++++++++++--
- drivers/pci/hotplug/acpiphp_glue.c |   42 ++++++------------------------------
- include/acpi/acpi_bus.h            |    9 ++++++++
- include/acpi/acpiosxf.h            |    2 --
- 4 files changed, 37 insertions(+), 40 deletions(-)
+thanks,
 
-diff --git a/drivers/acpi/osl.c b/drivers/acpi/osl.c
-index 3ff2678..59ec5f5 100644
---- a/drivers/acpi/osl.c
-+++ b/drivers/acpi/osl.c
-@@ -84,8 +84,7 @@ static acpi_osd_handler acpi_irq_handler;
- static void *acpi_irq_context;
- static struct workqueue_struct *kacpid_wq;
- static struct workqueue_struct *kacpi_notify_wq;
--struct workqueue_struct *kacpi_hotplug_wq;
--EXPORT_SYMBOL(kacpi_hotplug_wq);
-+static struct workqueue_struct *kacpi_hotplug_wq;
- 
- /*
-  * This list of permanent mappings is for memory that may be accessed from
-@@ -1778,3 +1777,24 @@ void acpi_os_set_prepare_sleep(int (*func)(u8 sleep_state,
- {
- 	__acpi_os_prepare_sleep = func;
- }
-+
-+void alloc_acpi_hp_work(acpi_handle handle, u32 type, void *context,
-+			void (*func)(struct work_struct *work))
-+{
-+	struct acpi_hp_work *hp_work;
-+	int ret;
-+
-+	hp_work = kmalloc(sizeof(*hp_work), GFP_KERNEL);
-+	if (!hp_work)
-+		return;
-+
-+	hp_work->handle = handle;
-+	hp_work->type = type;
-+	hp_work->context = context;
-+
-+	INIT_WORK(&hp_work->work, func);
-+	ret = queue_work(kacpi_hotplug_wq, &hp_work->work);
-+	if (!ret)
-+		kfree(hp_work);
-+}
-+EXPORT_SYMBOL_GPL(alloc_acpi_hp_work);
-diff --git a/drivers/pci/hotplug/acpiphp_glue.c b/drivers/pci/hotplug/acpiphp_glue.c
-index b94879d..bf338d2 100644
---- a/drivers/pci/hotplug/acpiphp_glue.c
-+++ b/drivers/pci/hotplug/acpiphp_glue.c
-@@ -1203,34 +1203,6 @@ check_sub_bridges(acpi_handle handle, u32 lvl, void *context, void **rv)
- 	return AE_OK ;
- }
- 
--struct acpiphp_hp_work {
--	struct work_struct work;
--	acpi_handle handle;
--	u32 type;
--	void *context;
--};
--
--static void alloc_acpiphp_hp_work(acpi_handle handle, u32 type,
--				  void *context,
--				  void (*func)(struct work_struct *work))
--{
--	struct acpiphp_hp_work *hp_work;
--	int ret;
--
--	hp_work = kmalloc(sizeof(*hp_work), GFP_KERNEL);
--	if (!hp_work)
--		return;
--
--	hp_work->handle = handle;
--	hp_work->type = type;
--	hp_work->context = context;
--
--	INIT_WORK(&hp_work->work, func);
--	ret = queue_work(kacpi_hotplug_wq, &hp_work->work);
--	if (!ret)
--		kfree(hp_work);
--}
--
- static void _handle_hotplug_event_bridge(struct work_struct *work)
- {
- 	struct acpiphp_bridge *bridge;
-@@ -1239,11 +1211,11 @@ static void _handle_hotplug_event_bridge(struct work_struct *work)
- 				      .pointer = objname };
- 	struct acpi_device *device;
- 	int num_sub_bridges = 0;
--	struct acpiphp_hp_work *hp_work;
-+	struct acpi_hp_work *hp_work;
- 	acpi_handle handle;
- 	u32 type;
- 
--	hp_work = container_of(work, struct acpiphp_hp_work, work);
-+	hp_work = container_of(work, struct acpi_hp_work, work);
- 	handle = hp_work->handle;
- 	type = hp_work->type;
- 
-@@ -1346,8 +1318,7 @@ static void handle_hotplug_event_bridge(acpi_handle handle, u32 type,
- 	 * For now just re-add this work to the kacpi_hotplug_wq so we
- 	 * don't deadlock on hotplug actions.
- 	 */
--	alloc_acpiphp_hp_work(handle, type, context,
--			      _handle_hotplug_event_bridge);
-+	alloc_acpi_hp_work(handle, type, context, _handle_hotplug_event_bridge);
- }
- 
- static void _handle_hotplug_event_func(struct work_struct *work)
-@@ -1356,12 +1327,12 @@ static void _handle_hotplug_event_func(struct work_struct *work)
- 	char objname[64];
- 	struct acpi_buffer buffer = { .length = sizeof(objname),
- 				      .pointer = objname };
--	struct acpiphp_hp_work *hp_work;
-+	struct acpi_hp_work *hp_work;
- 	acpi_handle handle;
- 	u32 type;
- 	void *context;
- 
--	hp_work = container_of(work, struct acpiphp_hp_work, work);
-+	hp_work = container_of(work, struct acpi_hp_work, work);
- 	handle = hp_work->handle;
- 	type = hp_work->type;
- 	context = hp_work->context;
-@@ -1422,8 +1393,7 @@ static void handle_hotplug_event_func(acpi_handle handle, u32 type,
- 	 * For now just re-add this work to the kacpi_hotplug_wq so we
- 	 * don't deadlock on hotplug actions.
- 	 */
--	alloc_acpiphp_hp_work(handle, type, context,
--			      _handle_hotplug_event_func);
-+	alloc_acpi_hp_work(handle, type, context, _handle_hotplug_event_func);
- }
- 
- static acpi_status
-diff --git a/include/acpi/acpi_bus.h b/include/acpi/acpi_bus.h
-index 526d663..5ce8d5e8 100644
---- a/include/acpi/acpi_bus.h
-+++ b/include/acpi/acpi_bus.h
-@@ -310,6 +310,15 @@ struct acpi_eject_event {
- 	u32		event;
- };
- 
-+struct acpi_hp_work {
-+	struct work_struct work;
-+	acpi_handle handle;
-+	u32 type;
-+	void *context;
-+};
-+void alloc_acpi_hp_work(acpi_handle handle, u32 type, void *context,
-+			void (*func)(struct work_struct *work));
-+
- extern struct kobject *acpi_kobj;
- extern int acpi_bus_generate_netlink_event(const char*, const char*, u8, int);
- void acpi_bus_private_data_handler(acpi_handle, void *);
-diff --git a/include/acpi/acpiosxf.h b/include/acpi/acpiosxf.h
-index 4315274..66f1fd7 100644
---- a/include/acpi/acpiosxf.h
-+++ b/include/acpi/acpiosxf.h
-@@ -193,8 +193,6 @@ void acpi_os_fixed_event_count(u32 fixed_event_number);
- /*
-  * Threads and Scheduling
-  */
--extern struct workqueue_struct *kacpi_hotplug_wq;
--
- acpi_thread_id acpi_os_get_thread_id(void);
- 
- acpi_status
--- 
-1.7.10.4
+greg k-h
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
