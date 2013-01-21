@@ -1,71 +1,134 @@
-From: Lan Tianyu <tianyu.lan@intel.com>
-Subject: [PATCH V6 0/8] usb: usb port power off mechanism and expose usb port connect type
-Date: Mon, 21 Jan 2013 22:17:59 +0800
-Message-ID: <1358777887-2656-1-git-send-email-tianyu.lan@intel.com>
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga01.intel.com ([192.55.52.88]:18570 "EHLO mga01.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752458Ab3AUOUc (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 21 Jan 2013 09:20:32 -0500
-Sender: linux-acpi-owner@vger.kernel.org
+From: Lan Tianyu <tianyu.lan-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: [PATCH v6 1/8] USB: Set usb port's DeviceRemovable according acpi information
+Date: Mon, 21 Jan 2013 22:18:00 +0800
+Message-ID: <1358777887-2656-2-git-send-email-tianyu.lan@intel.com>
+References: <1358777887-2656-1-git-send-email-tianyu.lan@intel.com>
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1358777887-2656-1-git-send-email-tianyu.lan-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org, lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, sarah.a.sharp-VuQAYsv1563Yd54FQh9/CA@public.gmane.org, stern-nwvwT67g6+6dFdvTe/nMLpVzexx5G7lz@public.gmane.org, rjw-KKrjLPT3xs0@public.gmane.org, oneukum-l3A5Bk7waGM@public.gmane.org
+Cc: linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Lan Tianyu <tianyu.lan-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
-To: gregkh@linuxfoundation.org, lenb@kernel.org
-Cc: linux-usb@vger.kernel.org, linux-acpi@vger.kernel.org, stern@rowland.harvard.edu, sarah.a.sharp@linux.intel.com
 
-Change since v1:
-       optimize the export connect type patch and adjust the DeviceRemovalbe flag
-in the rh_call_control() after GetHubDescriptor request being processed.
-       move all debounce operation to usb port's runtime resume callback(). Add
-did_runtime_put in the struct usb_port to call pm_runtime_get/put(portdev) paired.
-       using pm_runtime_get/put(portdev) to allow or prohibit device to be power
-off inside of pm qos request in the kernel side. 
+ACPI provide "_PLD" and "_UPC" aml methods to describe usb port
+visibility and connectability. This patch is to add usb_hub_adjust_DeviceRemovable()
+to adjust usb hub port's DeviceRemovable according ACPI information and invoke it in
+the rh_call_control(). When hub descriptor request is issued at first time,
+usb port device isn't created and usb port is not bound with acpi. So first
+hub descriptor request is not changed based on ACPI information. After usb
+port devices being created, call usb_hub_adjust_DeviceRemovable in the hub_configure()
+and then set hub port's DeviceRemovable according ACPI information and this also works
+for non-root hub.
 
-Change since v2:
-       Correct some link breaks. 
-       Add did_runtime_put in the usb_disconnect() before calling pm_runtime_put(portdev).
-       Provide two seperate functions usb_device_allow_power_off() and usb_device_prevent_power_off()
-instead of just one.
+Acked-by: Alan Stern <stern-nwvwT67g6+6dFdvTe/nMLpVzexx5G7lz@public.gmane.org>
+Signed-off-by: Lan Tianyu <tianyu.lan-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+---
+ drivers/usb/core/hcd.c |    4 ++++
+ drivers/usb/core/hub.c |   43 +++++++++++++++++++++++++++++++++++++++++++
+ drivers/usb/core/usb.h |    3 +++
+ 3 files changed, 50 insertions(+)
 
-Change since v3:
-	Set did_runtime_put to false in usb_disconnect() when its value is true
-	Add comment about "not enable port runtime pm if fail to expose port's pm qos." and call
-pm_runtime_set_active(portdev) unconditionally.
-	rename "usb_device_allow_prevent_power_off" with "usb_device_control_power_off"
-	Modify "be power off" to "be powered off"
-	Expose dev_pm_qos_flags() symbol in order to ensure usb core can compile as module. 
+diff --git a/drivers/usb/core/hcd.c b/drivers/usb/core/hcd.c
+index 5f6da8b..2459896 100644
+--- a/drivers/usb/core/hcd.c
++++ b/drivers/usb/core/hcd.c
+@@ -619,6 +619,10 @@ nongeneric:
+ 		status = hcd->driver->hub_control (hcd,
+ 			typeReq, wValue, wIndex,
+ 			tbuf, wLength);
++
++		if (typeReq == GetHubDescriptor)
++			usb_hub_adjust_deviceremovable(hcd->self.root_hub,
++				(struct usb_hub_descriptor *)tbuf);
+ 		break;
+ error:
+ 		/* "protocol stall" on error */
+diff --git a/drivers/usb/core/hub.c b/drivers/usb/core/hub.c
+index cfdd4ee..29ca6ed 100644
+--- a/drivers/usb/core/hub.c
++++ b/drivers/usb/core/hub.c
+@@ -1513,6 +1513,8 @@ static int hub_configure(struct usb_hub *hub,
+ 			dev_err(hub->intfdev,
+ 				"couldn't create port%d device.\n", i + 1);
+ 
++	usb_hub_adjust_deviceremovable(hdev, hub->descriptor);
++
+ 	hub_activate(hub, HUB_INIT);
+ 	return 0;
+ 
+@@ -5219,6 +5221,47 @@ usb_get_hub_port_connect_type(struct usb_device *hdev, int port1)
+ 	return hub->ports[port1 - 1]->connect_type;
+ }
+ 
++void usb_hub_adjust_deviceremovable(struct usb_device *hdev,
++		struct usb_hub_descriptor *desc)
++{
++	enum usb_port_connect_type connect_type;
++	int i;
++
++	if (!hub_is_superspeed(hdev)) {
++		for (i = 1; i <= hdev->maxchild; i++) {
++			connect_type = usb_get_hub_port_connect_type(hdev, i);
++
++			if (connect_type == USB_PORT_CONNECT_TYPE_HARD_WIRED) {
++				u8 mask = 1 << (i%8);
++
++				if (!(desc->u.hs.DeviceRemovable[i/8] & mask)) {
++					dev_dbg(&hdev->dev, "usb port%d's DeviceRemovable is changed to 1 according to platform information.\n",
++						i);
++					desc->u.hs.DeviceRemovable[i/8]	|= mask;
++				}
++			}
++		}
++	} else {
++		u16 port_removable = le16_to_cpu(desc->u.ss.DeviceRemovable);
++
++		for (i = 1; i <= hdev->maxchild; i++) {
++			connect_type = usb_get_hub_port_connect_type(hdev, i);
++
++			if (connect_type == USB_PORT_CONNECT_TYPE_HARD_WIRED) {
++				u16 mask = 1 << i;
++
++				if (!(port_removable & mask)) {
++					dev_dbg(&hdev->dev, "usb port%d's DeviceRemovable is changed to 1 according to platform information.\n",
++						i);
++					port_removable |= mask;
++				}
++			}
++		}
++
++		desc->u.ss.DeviceRemovable = cpu_to_le16(port_removable);
++	}
++}
++
+ #ifdef CONFIG_ACPI
+ /**
+  * usb_get_hub_port_acpi_handle - Get the usb port's acpi handle
+diff --git a/drivers/usb/core/usb.h b/drivers/usb/core/usb.h
+index fb7d8fc..a7f20bd 100644
+--- a/drivers/usb/core/usb.h
++++ b/drivers/usb/core/usb.h
+@@ -1,6 +1,7 @@
+ #include <linux/pm.h>
+ #include <linux/acpi.h>
+ 
++struct usb_hub_descriptor;
+ struct dev_state;
+ 
+ /* Functions local to drivers/usb/core/ */
+@@ -182,6 +183,8 @@ extern enum usb_port_connect_type
+ 	usb_get_hub_port_connect_type(struct usb_device *hdev, int port1);
+ extern void usb_set_hub_port_connect_type(struct usb_device *hdev, int port1,
+ 	enum usb_port_connect_type type);
++extern void usb_hub_adjust_deviceremovable(struct usb_device *hdev,
++		struct usb_hub_descriptor *desc);
+ 
+ #ifdef CONFIG_ACPI
+ extern int usb_acpi_register(void);
+-- 
+1.7.9.5
 
-Resend v4:
-        make patch "PM/Qos: Expose dev_pm_qos_flags symbol" as first patch to avoid compilation error during "git bisect"
-        correct some comments.
-
-Change since v4:
-	use EXPORT_SYMBOL_GPL to export dev_pm_qos_flags().
-	correct some unnecessary link breaks.	
-	Add CONFIG_USB_SUSPEND check around usb_port_runtime_resume() and usb_port_runtime_suspend()
-
-Change since v5:
-	predefine struct usb_hub_descriptor in the /driver/usb/core/usb.h instead of including "linux/usb/ch11.h"
-	move patch "PM/Qos: Expose dev_pm_qos_flags symbol" before patch "usb: add runtime pm support for usb port device"
-	 where dev_pm_qos_flags() fistly is called.
-
-
-This patchset is based on usb-next tree commit f4cc1834 "USB: storage: avoid scanning other targets for single target device"
-
-This patchset is to add usb port power off mechanism and
-merge with patchset "usb: expose DeviceRemovable to user space via sysfs attribute".
-
-Patchset "usb: expose DeviceRemovable to user space via sysfs attribute".
-http://marc.info/?l=linux-usb&m=135279430410171&w=2 with some link break corrects
-
-The main discussion about usb port power off mechanism is in the following link:
-http://marc.info/?l=linux-usb&m=134818340017208&w=2
-
-
-USB: Set usb port's DeviceRemovable according acpi information
-usb: Register usb port's acpi power resources
-PM/Qos: Expose dev_pm_qos_flags symbol
-usb: add runtime pm support for usb port device
-usb: add usb port auto power off mechanism
-usb: expose usb port's pm qos flags to user space
-usb: add usb_device_allow_power_off() and usb_device_prevent_power_off() function.
-usb: enable usb port device's async suspend.
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
