@@ -1,98 +1,85 @@
-From: Yinghai Lu <yinghai@kernel.org>
-Subject: Re: [PATCH v9 11/11] PCI: Put pci dev to device tree as early as possible
-Date: Sun, 20 Jan 2013 22:46:35 -0800
-Message-ID: <CAE9FiQWPn3YEhS40XsUckuaMJkRvd7oiiWJa+S8Lzu+ZDFjfWg@mail.gmail.com>
-References: <1358495602-22867-1-git-send-email-yinghai@kernel.org>
-	<1358495602-22867-12-git-send-email-yinghai@kernel.org>
-	<5397828.ilPjagaOIa@vostro.rjw.lan>
+From: Aaron Lu <aaron.lu@intel.com>
+Subject: Re: [PATCH v13 1/9] scsi: sr: support runtime pm
+Date: Mon, 21 Jan 2013 16:04:17 +0800
+Message-ID: <20130121080417.GA6904@aaronlu.sh.intel.com>
+References: <50FA5F67.4080102@intel.com>
+ <Pine.LNX.4.44L0.1301191312050.13032-100000@netrider.rowland.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <linux-pci-owner@vger.kernel.org>
-In-Reply-To: <5397828.ilPjagaOIa@vostro.rjw.lan>
-Sender: linux-pci-owner@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: Bjorn Helgaas <bhelgaas@google.com>, Len Brown <lenb@kernel.org>, Taku Izumi <izumi.taku@jp.fujitsu.com>, Jiang Liu <jiang.liu@huawei.com>, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mga11.intel.com ([192.55.52.93]:56466 "EHLO mga11.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752233Ab3AUIDc (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 21 Jan 2013 03:03:32 -0500
+Content-Disposition: inline
+In-Reply-To: <Pine.LNX.4.44L0.1301191312050.13032-100000@netrider.rowland.org>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Alan Stern <stern@rowland.harvard.edu>
+Cc: Oliver Neukum <oneukum@suse.de>, James Bottomley <James.Bottomley@HansenPartnership.com>, Jeff Garzik <jgarzik@pobox.com>, "Rafael J. Wysocki" <rjw@sisk.pl>, Tejun Heo <tj@kernel.org>, Aaron Lu <aaron.lwe@gmail.com>, Jeff Wu <jeff.wu@amd.com>, linux-ide@vger.kernel.org, linux-pm@vger.kernel.org, linux-scsi@vger.kernel.org, linux-acpi@vger.kernel.org
 
-On Sun, Jan 20, 2013 at 3:23 PM, Rafael J. Wysocki <rjw@sisk.pl> wrote:
-> On Thursday, January 17, 2013 11:53:22 PM Yinghai Lu wrote:
->> We want to put created pci device in the device tree as soon as possible.
->> - just after we find it and create pci_dev struct for it.
->> so for_pci_dev iteration will not miss them.
->>
->> But at that time, we can not load driver for them yet. Need to be after
->> pci_assign_unsigned_resources() etc to make sure all pci devices get
->> resource allocated at first.
->>
->> Move out device registering out of pci_bus_add_devices, and
->> new pci_bus_add_devices() will do the device_attach work to load pci drivers
->>
->> Signed-off-by: Yinghai Lu <yinghai@kernel.org>
->> ---
->>  drivers/pci/bus.c   |   47 +++--------------------------------------------
->>  drivers/pci/iov.c   |    7 -------
->>  drivers/pci/probe.c |   34 +++++++++++++++++++++++++++-------
->>  3 files changed, 30 insertions(+), 58 deletions(-)
->>
->> diff --git a/drivers/pci/bus.c b/drivers/pci/bus.c
->> index 18c1c6d..0a55845 100644
->> --- a/drivers/pci/bus.c
->> +++ b/drivers/pci/bus.c
->> @@ -178,22 +178,9 @@ static void pci_bus_attach_device(struct pci_dev *dev)
->>   */
-..
->> @@ -205,21 +192,9 @@ int pci_bus_add_device(struct pci_dev *dev)
->>   */
->>  int pci_bus_add_child(struct pci_bus *bus)
->>  {
->> -     int retval;
->> -
->> -     if (bus->bridge)
->> -             bus->dev.parent = bus->bridge;
->> -
->> -     retval = device_register(&bus->dev);
->> -     if (retval)
->> -             return retval;
->> -
->>       bus->is_added = 1;
->>
->> -     /* Create legacy_io and legacy_mem files for this bus */
->> -     pci_create_legacy_files(bus);
->> -
->> -     return retval;
->> +     return 0;
->>  }
->
-> Well, what sense does this make to keep that function as is after removing
-> almost all of the code from it?
+On Sat, Jan 19, 2013 at 01:46:15PM -0500, Alan Stern wrote:
+> On Sat, 19 Jan 2013, Aaron Lu wrote:
+> 
+> > > What happens if you're not running a desktop graphical environment, so
+> > > gvfs doesn't mount the disc?  Basically, I'm worried that the drive may
+> > > remain suspended after sr_open() returns.
+> > 
+> > Tried on my notebook with a normal ODD, using mplayer under console
+> > mode, no GUI environment running, works fine.
+> > 
+> > The usage count will be incremented by the app, and get decreased
+> > only when it exits. So the ODD will not be in runtime suspended state
+> > when the app is running.
+> 
+> You missed my point.  What happens when sr_open() gets called?  It 
+> doesn't try to resume the device.  Will we run into trouble then?
 
-ok, will remove that function.
+Oh yes, you mean the cdo->open gets called without going through sr's
+block interface.
 
-...
->>       list_for_each_entry(dev, &bus->devices, bus_list) {
->>               BUG_ON(!dev->is_added);
->>
->>               child = dev->subordinate;
->> -             /*
->> -              * If there is an unattached subordinate bus, attach
->> -              * it and then scan for unattached PCI devices.
->> -              */
->> +
->>               if (!child)
->>                       continue;
->> -             if (list_empty(&child->node)) {
->> -                     down_write(&pci_bus_sem);
->> -                     list_add_tail(&child->node, &dev->bus->children);
->> -                     up_write(&pci_bus_sem);
->> -             }
->
-> This doesn't seem to have a replacement.  Why isn't it necessary any more?
->
+I just checked the code, it looks to me the cdrom interface code is the
+code common to cdrom functionality, to be used by various underlying
+block drivers like sr, ide-cd, etc. All the code cdrom.c has provided
+requires a cdi parameter, which can only be provided by the underlying
+block driver, so I don't think those cdrom_device_ops functions will be
+called without going through the block drivers' interface.
 
-add that in changelog, so related changlog will be:
+But the functions defined in block_device_operations by sr can be called
+by other kernel components as long as they have access to the gendisk
+structure of the block device, so I'll add get/sync pair to all those
+functions(i.e. sr_block_revalidate_disk, sr_block_ioctl in addition to
+the open/release/check_events calls).
 
----
-Also remove unattached child bus handling in pci_bus_add_devices().
-Because that is not needed, child bus via pci_add_new_bus() is already
-in parent bus children list.
----
+> 
+> > > What happens if you use a program other than rhythmbox?  There are (or
+> > > used to be) programs which would issue the PLAY AUDIO command and then
+> > > exit.  The drive would continue playing even while the device file was
+> > 
+> > Then we indeed have a problem. But I didn't find any such app in
+> > Fedora's repo or by searching the internet.
+> 
+> http://rpm.pbone.net/index.php3/stat/4/idpl/2392183/dir/redhat_5.x/com/cdp-0.33-10.i386.rpm.html
+> 
+> > > closed.  Do we want to drop support for that kind of behavior?
+> > 
+> > I don't think we should drop such support.
+> > And the safest way to avoid such break is we refine the suspend
+> > condition for ODD, and using what ZPODD defined condition isn't that
+> > bad to me:
+> > - for tray type, no media inside and tray close;
+> > - for slot type, no media inside.
+> > While whether tray is closed or not may not be that important, but at
+> > least we should make sure there is no media inside.
+> > 
+> > Thoughts?
+> 
+> That sounds reasonable to me, at least as a first step.  If people want 
+> their CD drive to suspend, they can eject the disc.
+
+I'm gonna add the cd->media_present check in sr's runtime suspend
+callback, if sr thinks there is media inside, suspend will not proceed.
+
+Thanks,
+Aaron
+
