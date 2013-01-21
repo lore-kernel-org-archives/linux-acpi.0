@@ -1,73 +1,51 @@
-From: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Subject: Re: [RFC][Update 2][PATCH 1/4] ACPI / PM: Export power states of
- ACPI devices via sysfs
-Date: Mon, 21 Jan 2013 14:26:47 -0800
-Message-ID: <20130121222647.GA19759@kroah.com>
-References: <3307415.pdOY6ovZLa@vostro.rjw.lan>
- <1783611.vYsnfNDZr6@vostro.rjw.lan>
- <20130121205305.GA17006@kroah.com>
- <1549553.6X3t4kPb9k@vostro.rjw.lan>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: Re: [RFC][Update 2][PATCH 2/4] ACPI / PM: Expose reference count values of ACPI power resources
+Date: Mon, 21 Jan 2013 23:35:51 +0100
+Message-ID: <9864072.snIRhummIS@vostro.rjw.lan>
+References: <3307415.pdOY6ovZLa@vostro.rjw.lan> <1618594.EyAyXTlIBb@vostro.rjw.lan> <20130121205357.GB17006@kroah.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-da0-f42.google.com ([209.85.210.42]:58950 "EHLO
-	mail-da0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756766Ab3AUW0v (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 21 Jan 2013 17:26:51 -0500
-Received: by mail-da0-f42.google.com with SMTP id z17so2919693dal.29
-        for <linux-acpi@vger.kernel.org>; Mon, 21 Jan 2013 14:26:50 -0800 (PST)
-Content-Disposition: inline
-In-Reply-To: <1549553.6X3t4kPb9k@vostro.rjw.lan>
-Sender: linux-acpi-owner@vger.kernel.org
-List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@sisk.pl>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7Bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20130121205357.GB17006@kroah.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>, "Kristen C. Accardi" <kristen.c.accardi@intel.com>, Len Brown <lenb@kernel.org>
+List-Id: linux-acpi@vger.kernel.org
 
-On Mon, Jan 21, 2013 at 11:27:32PM +0100, Rafael J. Wysocki wrote:
-> On Monday, January 21, 2013 12:53:05 PM Greg Kroah-Hartman wrote:
-> > On Mon, Jan 21, 2013 at 02:04:32PM +0100, Rafael J. Wysocki wrote:
-> > > From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
-> > > 
-> > > Make it possible to retrieve the current power state of a device with
-> > > ACPI power management from user space via sysfs by adding a new
-> > > attribute power_state to the sysfs directory associated with the
-> > > struct acpi_device object representing the device's ACPI node.
-> > > 
-> > > Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
-> > > ---
-> > >  Documentation/ABI/testing/sysfs-devices-power_state |   21 ++++++++++++++
-> > >  drivers/acpi/scan.c                                 |   29 +++++++++++++++++++-
-> > >  2 files changed, 49 insertions(+), 1 deletion(-)
-> > > 
-> > > Index: linux-pm/drivers/acpi/scan.c
-> > > ===================================================================
-> > > --- linux-pm.orig/drivers/acpi/scan.c
-> > > +++ linux-pm/drivers/acpi/scan.c
-> > > @@ -178,6 +178,23 @@ err_out:
-> > >  }
-> > >  EXPORT_SYMBOL(acpi_bus_hot_remove_device);
-> > >  
-> > > +static ssize_t power_state_show(struct device *dev,
-> > > +				struct device_attribute *attr, char *buf)
-> > > +{
-> > > +	struct acpi_device *adev = to_acpi_device(dev);
-> > > +	int state;
-> > > +	int ret;
-> > > +
-> > > +	ret = acpi_device_get_power(adev, &state);
-> > > +	if (ret)
-> > > +		return ret;
-> > > +
-> > > +	return sprintf(buf, "%s %s\n", acpi_power_state_string(state),
-> > > +		       acpi_power_state_string(adev->power.state));
-> > > +}
+On Monday, January 21, 2013 12:53:57 PM Greg Kroah-Hartman wrote:
+> On Mon, Jan 21, 2013 at 02:05:47PM +0100, Rafael J. Wysocki wrote:
+> > From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 > > 
-> > You are showing 2 different things here in a single sysfs file, which is
-> > really frowned apon.  Any chance to split this up into two different
-> > sysfs files instead?
+> > Since ACPI power resources are going to be used more extensively on
+> > new hardware platforms, it becomes necessary for user space (powertop
+> > in particular) to observe some properties of those resources for
+> > diagnostics purposes.
+> > 
+> > For this reason, export the reference counts of ACPI power resources
+> > to user space by adding a new reference_count attribute to the sysfs
+> > directory representing each power resource.  The value read from
+> > that attribute represents the number of devices using the power
+> > resource at the given time.  If that value is 0, it meas that the
+> > power resource is not used and therefore it has been turned off.
 > 
-> Well, I can, but I'm not sure how to call the other one.  "sw_power_state"
-> perhaps?
+> Why does userspace need to know a reference count?  Is it so that if it
+> is not 0, it can work to try to lower it to 0?  Or something else?
 
-I don't know, as I'm not quite sure what it is supposed to represent :)
+Yes, this information is needed to say if (1) the power resource is in use
+and (2) how many users there are at the moment, so that we can go and look
+if it really has to be in use.
 
+Perhaps I can just expose the "in use"/"not in use" information.  I don't
+think it will be much less convenient, because we should scan all of the
+possible users anyway in case they are coming and going frequently.
+
+So should I do that and rename the attribute to "resource_in_use" (or something
+similar)?
+
+Rafael
+
+
+-- 
+I speak only for myself.
+Rafael J. Wysocki, Intel Open Source Technology Center.
