@@ -1,48 +1,65 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: [RFC][Update][PATCH 0/3] ACPI / PM: Export power resources information to user space
-Date: Mon, 21 Jan 2013 01:48:55 +0100
-Message-ID: <2096792.ELJ8WGVaaz@vostro.rjw.lan>
-References: <3307415.pdOY6ovZLa@vostro.rjw.lan>
+From: Rusty Russell <rusty@rustcorp.com.au>
+Subject: Re: [PATCH] MODSIGN: Add TAINT_NOKEY_MODULE
+Date: Mon, 21 Jan 2013 12:20:08 +1030
+Message-ID: <87a9s3wbhr.fsf@rustcorp.com.au>
+References: <20130104191205.GD27554@hansolo.jdub.homelinux.org> <87bod14x44.fsf@rustcorp.com.au> <20130107145832.GA12363@hansolo.jdub.homelinux.org> <20130115190911.GA6964@hansolo.jdub.homelinux.org> <87y5ftyf51.fsf@rustcorp.com.au> <20130116193724.GF6964@hansolo.jdub.homelinux.org> <87pq14y6bs.fsf@rustcorp.com.au> <20130117150202.GB32586@redhat.com> <8738xvxv55.fsf@rustcorp.com.au> <20130121001939.GB25509@redhat.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7Bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <3307415.pdOY6ovZLa@vostro.rjw.lan>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>, "Kristen C. Accardi" <kristen.c.accardi@intel.com>, Len Brown <lenb@kernel.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from ozlabs.org ([203.10.76.45]:55763 "EHLO ozlabs.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752550Ab3AUBxv (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Sun, 20 Jan 2013 20:53:51 -0500
+In-Reply-To: <20130121001939.GB25509@redhat.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: "Frank Ch. Eigler" <fche@redhat.com>
+Cc: Dave Jones <davej@redhat.com>, Josh Boyer <jwboyer@redhat.com>, dhowells@redhat.com, linux-kernel@vger.kernel.org, peterz@infradead.org, mingo@redhat.com, Len Brown <lenb@kernel.org>, "Rafael J. Wysocki" <rjw@sisk.pl>, linux-acpi@vger.kernel.org
 
-On Sunday, January 20, 2013 03:51:40 PM Rafael J. Wysocki wrote:
-> Hi Greg,
-> 
-> The following patch series is about exporting ACPI power resources to user
-> space that will be necessary for PM diagnostics on new platforms (powertop is
-> the target).  Still, existing systems can also benefit from that, like my
-> oldish HP nx6325 on which the patches have been tested.
-> 
-> Patch [1/3] shouldn't be really controverisal, as it only makes it possible
-> to read power resources' reference counters from user space in a quite
-> straightforward way.
-> 
-> Patch [3/3], however, exposes lists of power resources associated with
-> different power states of devices using ACPI PM as sysfs subdirectories
-> containing symbolic links and that requires some sysfs changes made by
-> patch [2/3].
-> 
-> Admittedly, my sysfs skills are limited so please let me know if those
-> changes make sense and are acceptable from your perspective.  If not, then
-> please kindly advise what I can do instead of them.
-> 
-> The patches apply on top of the current linux-next branch of the linux-pm.git
-> tree.
+"Frank Ch. Eigler" <fche@redhat.com> writes:
+> Hi -
+>
+>> [...]
+>> -	add_taint(TAINT_DIE);
+>> +	add_taint(TAINT_DIE, LOCKDEP_NOW_UNRELIABLE);
+>> [...]
+>
+> If "UNRELIABLE" a good way to describe it - not DANGEROUS or
+> COUNTERPRODUCTIVE or something, then maybe lockdep *can* produce
+> reasonable results following such a taint.  If the results are merely
+> suspect, could lockdep reports include the taint report, but otherwise
+> keep working?
 
-Refreshed with Documentation/ABI files as requested.
+git blame is your friend here:
 
-Thanks,
-Rafael
+commit 2c16e9c888985761511bd1905b00fb271169c3c0
+Author: Arjan van de Ven <arjan@linux.intel.com>
+Date:   Mon Jul 10 04:45:42 2006 -0700
+
+    [PATCH] lockdep: disable lock debugging when kernel state becomes untrusted
+    
+    Disable lockdep debugging in two situations where the integrity of the
+    kernel no longer is guaranteed: when oopsing and when hitting a
+    tainting-condition.  The goal is to not get weird lockdep traces that don't
+    make sense or are otherwise undebuggable, to not waste time.
+    
+    Lockdep assumes that the previous state it knows about is valid to operate,
+    which is why lockdep turns itself off after the first violation it reports,
+    after that point it can no longer make that assumption.
+    
+    A kernel oops means that the integrity of the kernel compromised; in
+    addition anything lockdep would report is of lesser importance than the
+    oops.
+    
+    All the tainting conditions are of similar integrity-violating nature and
+    also make debugging/diagnosing more difficult.
+    
+    Signed-off-by: Arjan van de Ven <arjan@linux.intel.com>
+    Signed-off-by: Ingo Molnar <mingo@elte.hu>
+    Signed-off-by: Andrew Morton <akpm@osdl.org>
+    Signed-off-by: Linus Torvalds <torvalds@osdl.org>
+
+Cheers,
+Rusty.
 
 
--- 
-I speak only for myself.
-Rafael J. Wysocki, Intel Open Source Technology Center.
