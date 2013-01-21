@@ -1,139 +1,71 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: [RFC][Update 2][PATCH 2/4] ACPI / PM: Expose reference count values of ACPI power resources
-Date: Mon, 21 Jan 2013 14:05:47 +0100
-Message-ID: <1618594.EyAyXTlIBb@vostro.rjw.lan>
-References: <3307415.pdOY6ovZLa@vostro.rjw.lan> <2096792.ELJ8WGVaaz@vostro.rjw.lan> <4247313.2G7Z3nCgM0@vostro.rjw.lan>
+From: Aaron Lu <aaron.lu@intel.com>
+Subject: Re: [PATCH v13 1/9] scsi: sr: support runtime pm
+Date: Mon, 21 Jan 2013 21:36:02 +0800
+Message-ID: <50FD4442.9080600@intel.com>
+References: <Pine.LNX.4.44L0.1301191312050.13032-100000@netrider.rowland.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7Bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <4247313.2G7Z3nCgM0@vostro.rjw.lan>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>, "Kristen C. Accardi" <kristen.c.accardi@intel.com>, Len Brown <lenb@kernel.org>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-pm-owner@vger.kernel.org>
+In-Reply-To: <Pine.LNX.4.44L0.1301191312050.13032-100000@netrider.rowland.org>
+Sender: linux-pm-owner@vger.kernel.org
+To: Alan Stern <stern@rowland.harvard.edu>
+Cc: Aaron Lu <aaron.lu@intel.com>, Oliver Neukum <oneukum@suse.de>, James Bottomley <James.Bottomley@HansenPartnership.com>, Jeff Garzik <jgarzik@pobox.com>, "Rafael J. Wysocki" <rjw@sisk.pl>, Tejun Heo <tj@kernel.org>, Jeff Wu <jeff.wu@amd.com>, linux-ide@vger.kernel.org, linux-pm@vger.kernel.org, linux-scsi@vger.kernel.org, linux-acpi@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+On 01/20/2013 02:46 AM, Alan Stern wrote:
+> On Sat, 19 Jan 2013, Aaron Lu wrote:
+>> Then we indeed have a problem. But I didn't find any such app in
+>> Fedora's repo or by searching the internet.
+>
+> http://rpm.pbone.net/index.php3/stat/4/idpl/2392183/dir/redhat_5.x/com/cdp-0.33-10.i386.rpm.html
 
-Since ACPI power resources are going to be used more extensively on
-new hardware platforms, it becomes necessary for user space (powertop
-in particular) to observe some properties of those resources for
-diagnostics purposes.
+Now that with the RFC PATCH, the cd drive's runtime status will always
+be active if there is disc inside, so we don't have this problem any
+more. Tested on two systems, one with a ZP-drive and the other with a
+normal one.
 
-For this reason, export the reference counts of ACPI power resources
-to user space by adding a new reference_count attribute to the sysfs
-directory representing each power resource.  The value read from
-that attribute represents the number of devices using the power
-resource at the given time.  If that value is 0, it meas that the
-power resource is not used and therefore it has been turned off.
+BTW, I can't get the above app run, as it requires an old ncurses lib.
+And compiling it is not easy...
 
-Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
----
- Documentation/ABI/testing/sysfs-devices-reference_count |   13 ++++++++
- drivers/acpi/power.c                                    |   26 +++++++++++++++-
- drivers/acpi/scan.c                                     |    3 +
- include/acpi/acpi_bus.h                                 |    1 
- 4 files changed, 42 insertions(+), 1 deletion(-)
+For an amusement, I wrote the following stupid simple app intended for
+test:
 
-Index: linux-pm/include/acpi/acpi_bus.h
-===================================================================
---- linux-pm.orig/include/acpi/acpi_bus.h
-+++ linux-pm/include/acpi/acpi_bus.h
-@@ -280,6 +280,7 @@ struct acpi_device {
- 	struct mutex physical_node_lock;
- 	DECLARE_BITMAP(physical_node_id_bitmap, ACPI_MAX_PHYSICAL_NODE);
- 	struct list_head power_dependent;
-+	void (*remove)(struct acpi_device *);
- };
- 
- static inline void *acpi_driver_data(struct acpi_device *d)
-Index: linux-pm/drivers/acpi/scan.c
-===================================================================
---- linux-pm.orig/drivers/acpi/scan.c
-+++ linux-pm/drivers/acpi/scan.c
-@@ -771,6 +771,9 @@ static void acpi_device_unregister(struc
- 
- 	acpi_power_add_remove_device(device, false);
- 	acpi_device_remove_files(device);
-+	if (device->remove)
-+		device->remove(device);
-+
- 	device_unregister(&device->dev);
- 	/*
- 	 * Drop the reference counts of all power resources the device depends
-Index: linux-pm/drivers/acpi/power.c
-===================================================================
---- linux-pm.orig/drivers/acpi/power.c
-+++ linux-pm/drivers/acpi/power.c
-@@ -87,6 +87,12 @@ static DEFINE_MUTEX(power_resource_list_
-                              Power Resource Management
-    -------------------------------------------------------------------------- */
- 
-+static inline
-+struct acpi_power_resource *to_power_resource(struct acpi_device *device)
-+{
-+	return container_of(device, struct acpi_power_resource, device);
-+}
-+
- static struct acpi_power_resource *acpi_power_get_context(acpi_handle handle)
- {
- 	struct acpi_device *device;
-@@ -94,7 +100,7 @@ static struct acpi_power_resource *acpi_
- 	if (acpi_bus_get_device(handle, &device))
- 		return NULL;
- 
--	return container_of(device, struct acpi_power_resource, device);
-+	return to_power_resource(device);
- }
- 
- static int acpi_power_resources_list_add(acpi_handle handle,
-@@ -679,6 +685,21 @@ static void acpi_release_power_resource(
- 	kfree(resource);
- }
- 
-+static ssize_t acpi_power_refcount_show(struct device *dev,
-+					struct device_attribute *attr,
-+					char *buf) {
-+	struct acpi_power_resource *resource;
-+
-+	resource = to_power_resource(to_acpi_device(dev));
-+	return sprintf(buf, "%u\n", resource->ref_count);
-+}
-+static DEVICE_ATTR(reference_count, 0444, acpi_power_refcount_show, NULL);
-+
-+static void acpi_power_sysfs_remove(struct acpi_device *device)
-+{
-+	device_remove_file(&device->dev, &dev_attr_reference_count);
-+}
-+
- int acpi_add_power_resource(acpi_handle handle)
- {
- 	struct acpi_power_resource *resource;
-@@ -726,6 +747,9 @@ int acpi_add_power_resource(acpi_handle
- 	if (result)
- 		goto err;
- 
-+	if (!device_create_file(&device->dev, &dev_attr_reference_count))
-+		device->remove = acpi_power_sysfs_remove;
-+
- 	mutex_lock(&power_resource_list_lock);
- 	list_add(&resource->list_node, &acpi_power_resource_list);
- 	mutex_unlock(&power_resource_list_lock);
-Index: linux-pm/Documentation/ABI/testing/sysfs-devices-reference_count
-===================================================================
---- /dev/null
-+++ linux-pm/Documentation/ABI/testing/sysfs-devices-reference_count
-@@ -0,0 +1,13 @@
-+What:		/sys/devices/.../reference_count
-+Date:		January 2013
-+Contact:	Rafael J. Wysocki <rafael.j.wysocki@intel.com>
-+Description:
-+		The /sys/devices/.../reference_count attribute is only present
-+		for device objects representing ACPI power resources.
-+
-+		If present, it contains the current number of devices using the
-+		ACPI power resource represented by the given device object.  If
-+		that number is 0, the power resource is currently not in use and
-+		therefore it has been turned off.
-+
-+		This attribute is read-only.
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <sys/ioctl.h>
+#include <fcntl.h>
+#include <linux/cdrom.h>
+
+int main(void)
+{
+	int ret = 0;
+	struct cdrom_msf msf = { 1, 0, 0, 2, 0, 0 };
+	int fd;
+	
+	fd = open("/dev/sr0", O_RDONLY | O_NONBLOCK);
+	if (fd == -1) {
+		perror("open");
+		return -1;
+	}
+
+	ret = ioctl(fd, CDROMPLAYMSF, &msf);
+	if (ret) {
+		perror("ioctl");
+		goto out;
+	}
+out:
+	close(fd);
+
+	return ret;
+}
+
+Insert an audio disc, make sure no app is accessing it, run the above
+app, then the app will exit and the led on the drive will be blinking
+for roughly one minute, as the app has set, but I didn't hear any sound...
+
+And the runtime status is of course active all the time, no matter if
+there is app accessing it or not as expected.
+
+Thanks,
+Aaron
