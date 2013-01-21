@@ -1,50 +1,52 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: [RFC][Update 2][PATCH 4/4] ACPI / PM: Expose lists of device power resources to user space
-Date: Mon, 21 Jan 2013 23:42:06 +0100
-Message-ID: <1897042.j2EJ9nIq6C@vostro.rjw.lan>
-References: <3307415.pdOY6ovZLa@vostro.rjw.lan> <75501802.qSzsX3NXGt@vostro.rjw.lan> <20130121205846.GD17006@kroah.com>
+From: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Subject: Re: [RFC][Update 2][PATCH 3/4] sysfs: Functions for adding/removing
+ symlinks to/from attribute groups
+Date: Mon, 21 Jan 2013 14:38:14 -0800
+Message-ID: <20130121223814.GA28518@kroah.com>
+References: <3307415.pdOY6ovZLa@vostro.rjw.lan>
+ <7521411.VG2IjTvoWi@vostro.rjw.lan>
+ <20130121205820.GC17006@kroah.com>
+ <6110949.dY5glp6Ioa@vostro.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from hydra.sisk.pl ([212.160.235.94]:48551 "EHLO hydra.sisk.pl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752365Ab3AUWgG (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 21 Jan 2013 17:36:06 -0500
-In-Reply-To: <20130121205846.GD17006@kroah.com>
+Received: from mail-da0-f54.google.com ([209.85.210.54]:53986 "EHLO
+	mail-da0-f54.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754466Ab3AUWiS (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 21 Jan 2013 17:38:18 -0500
+Received: by mail-da0-f54.google.com with SMTP id n2so2893481dad.13
+        for <linux-acpi@vger.kernel.org>; Mon, 21 Jan 2013 14:38:18 -0800 (PST)
+Content-Disposition: inline
+In-Reply-To: <6110949.dY5glp6Ioa@vostro.rjw.lan>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+To: "Rafael J. Wysocki" <rjw@sisk.pl>
 Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>, "Kristen C. Accardi" <kristen.c.accardi@intel.com>, Len Brown <lenb@kernel.org>
 
-On Monday, January 21, 2013 12:58:46 PM Greg Kroah-Hartman wrote:
-> On Mon, Jan 21, 2013 at 02:08:16PM +0100, Rafael J. Wysocki wrote:
-> > From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+On Mon, Jan 21, 2013 at 11:41:35PM +0100, Rafael J. Wysocki wrote:
+> On Monday, January 21, 2013 12:58:20 PM Greg Kroah-Hartman wrote:
+> > On Mon, Jan 21, 2013 at 02:06:27PM +0100, Rafael J. Wysocki wrote:
+> > > From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+> > > 
+> > > The most convenient way to expose ACPI power resources lists of a
+> > > device is to put symbolic links to sysfs directories representing
+> > > those resources into special attribute groups in the device's sysfs
+> > > directory.  For this purpose, it is necessary to be able to add
+> > > symbolic links to attribute groups.
+> > > 
+> > > For this reason, add sysfs helper functions for adding/removing
+> > > symbolic links to/from attribute groups, sysfs_add_link_to_group()
+> > > and sysfs_remove_link_from_group(), respectively.
 > > 
-> > Since ACPI power resources are going to be used more extensively on
-> > new hardware platforms, it is necessary to allow user space (powertop
-> > in particular) to look at the lists of power resources corresponding
-> > to different power states of devices for diagnostics and control
-> > purposes.
-> > 
-> > For this reason, for each power state of an ACPI device node using
-> > power resources create a special attribute group under the device
-> > node's directory in sysfs containing links to sysfs directories
-> > representing the power resources in that list.  The names of the
-> > new attribute groups are "power_resources_<state>", where <state>
-> > is the state name i.e. "D0", "D1", "D2", or "D3hot".
-> > 
-> > Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+> > Those functions are fine, but why sysfs_add_link()?
 > 
-> You aren't calling sysfs_add_link() here, so why did you export it in
-> the previous patch?
+> Do you mean the helper?  I couldn't invent a better name. :-)
+> 
+> Would sysfs_create_link_sd() be better?
 
-Well, unnecessarily.
+That's a bit more descriptive, yes, and don't export it and I'll have no
+objections.
 
-Thanks,
-Rafael
+thanks,
 
-
--- 
-I speak only for myself.
-Rafael J. Wysocki, Intel Open Source Technology Center.
+greg k-h
