@@ -1,291 +1,70 @@
-From: Yinghai Lu <yinghai@kernel.org>
-Subject: [PATCH -v2] x86, acpi: Handle xapic/x2apic entries in MADT at same time
-Date: Mon, 21 Jan 2013 13:39:20 -0800
-Message-ID: <1358804360-29639-1-git-send-email-yinghai@kernel.org>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: Re: [RFC][Update 2][PATCH 1/4] ACPI / PM: Export power states of ACPI devices via sysfs
+Date: Mon, 21 Jan 2013 23:27:32 +0100
+Message-ID: <1549553.6X3t4kPb9k@vostro.rjw.lan>
+References: <3307415.pdOY6ovZLa@vostro.rjw.lan> <1783611.vYsnfNDZr6@vostro.rjw.lan> <20130121205305.GA17006@kroah.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7Bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from aserp1040.oracle.com ([141.146.126.69]:17785 "EHLO
-	aserp1040.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751388Ab3AUVjz (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 21 Jan 2013 16:39:55 -0500
+Received: from hydra.sisk.pl ([212.160.235.94]:48511 "EHLO hydra.sisk.pl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752376Ab3AUWVd (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 21 Jan 2013 17:21:33 -0500
+In-Reply-To: <20130121205305.GA17006@kroah.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: Len Brown <len.brown@intel.com>, linux-acpi@vger.kernel.org, Yinghai Lu <yinghai@kernel.org>, Suresh Siddha <suresh.b.siddha@intel.com>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, Andrew Morton <akpm@linux-foundation.org>, linux-kernel@vger.kernel.org
+To: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>, "Kristen C. Accardi" <kristen.c.accardi@intel.com>, Len Brown <lenb@kernel.org>
 
-One system have mixing xapic and x2apic entries in MADT and SRAT.
-BIOS guys insist that ACPI 4.0 SPEC said so, if apic id < 255, even
-the cpus are with x2apic mode pre-enabled, still need to use xapic entries
-instead of x2apic entries.
+On Monday, January 21, 2013 12:53:05 PM Greg Kroah-Hartman wrote:
+> On Mon, Jan 21, 2013 at 02:04:32PM +0100, Rafael J. Wysocki wrote:
+> > From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+> > 
+> > Make it possible to retrieve the current power state of a device with
+> > ACPI power management from user space via sysfs by adding a new
+> > attribute power_state to the sysfs directory associated with the
+> > struct acpi_device object representing the device's ACPI node.
+> > 
+> > Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+> > ---
+> >  Documentation/ABI/testing/sysfs-devices-power_state |   21 ++++++++++++++
+> >  drivers/acpi/scan.c                                 |   29 +++++++++++++++++++-
+> >  2 files changed, 49 insertions(+), 1 deletion(-)
+> > 
+> > Index: linux-pm/drivers/acpi/scan.c
+> > ===================================================================
+> > --- linux-pm.orig/drivers/acpi/scan.c
+> > +++ linux-pm/drivers/acpi/scan.c
+> > @@ -178,6 +178,23 @@ err_out:
+> >  }
+> >  EXPORT_SYMBOL(acpi_bus_hot_remove_device);
+> >  
+> > +static ssize_t power_state_show(struct device *dev,
+> > +				struct device_attribute *attr, char *buf)
+> > +{
+> > +	struct acpi_device *adev = to_acpi_device(dev);
+> > +	int state;
+> > +	int ret;
+> > +
+> > +	ret = acpi_device_get_power(adev, &state);
+> > +	if (ret)
+> > +		return ret;
+> > +
+> > +	return sprintf(buf, "%s %s\n", acpi_power_state_string(state),
+> > +		       acpi_power_state_string(adev->power.state));
+> > +}
+> 
+> You are showing 2 different things here in a single sysfs file, which is
+> really frowned apon.  Any chance to split this up into two different
+> sysfs files instead?
 
-on 8 socket system with x2apic pre-enabled, will get out of order sequence:
-CPU0: socket0, core0, thread0.
-CPU1 - CPU 40: socket 4 - socket 7, thread 0
-CPU41 - CPU 80: socket 4 - socket 7, thread 1
-CPU81 - CPU 119: socket 0 - socket 3, thread 0
-CPU120 - CPU 159: socket 0 - socket 3, thread 1
+Well, I can, but I'm not sure how to call the other one.  "sw_power_state"
+perhaps?
 
-so max_cpus=80 will not get all thread0 now.
+Rafael
 
-Need to handle every entry in MADT at same time with xapic and x2apic.
-so we can honor sequence in MADT.
 
-We can use max_cpus= command line to use thread0 in every core,
-because recent MADT always have all thread0 at first.
-Also it could make the cpu to node mapping more sane.
-
-after patch will get
-CPU0 - CPU 79: socket 0 - socket 7, thread 0
-CPU80 - CPU 159: socket 0 - socket 7, thread 1
-
--v2: update some comments, and change to pass array pointer.
-
-Signed-off-by: Yinghai Lu <yinghai@kernel.org>
-Cc: Suresh Siddha <suresh.b.siddha@intel.com>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Ingo Molnar <mingo@redhat.com>
-Cc: "H. Peter Anvin" <hpa@zytor.com>
-Cc: Andrew Morton <akpm@linux-foundation.org>
-Cc: linux-kernel@vger.kernel.org
-
----
- arch/x86/kernel/acpi/boot.c |   30 ++++++++++++-----
- drivers/acpi/numa.c         |   16 +++++++--
- drivers/acpi/tables.c       |   75 ++++++++++++++++++++++++++++++++------------
- include/linux/acpi.h        |    9 +++++
- 4 files changed, 97 insertions(+), 33 deletions(-)
-
-Index: linux-2.6/drivers/acpi/tables.c
-===================================================================
---- linux-2.6.orig/drivers/acpi/tables.c
-+++ linux-2.6/drivers/acpi/tables.c
-@@ -199,12 +199,10 @@ void acpi_table_print_madt_entry(struct
- 	}
- }
- 
--
- int __init
--acpi_table_parse_entries(char *id,
-+acpi_table_parse_entries_array(char *id,
- 			     unsigned long table_size,
--			     int entry_id,
--			     acpi_tbl_entry_handler handler,
-+			     struct acpi_subtable_proc *proc, int proc_num,
- 			     unsigned int max_entries)
- {
- 	struct acpi_table_header *table_header = NULL;
-@@ -212,12 +210,12 @@ acpi_table_parse_entries(char *id,
- 	unsigned int count = 0;
- 	unsigned long table_end;
- 	acpi_size tbl_size;
-+	int i;
- 
--	if (acpi_disabled)
-+	if (acpi_disabled) {
-+		proc[0].count = -ENODEV;
- 		return -ENODEV;
--
--	if (!handler)
--		return -EINVAL;
-+	}
- 
- 	if (strncmp(id, ACPI_SIG_MADT, 4) == 0)
- 		acpi_get_table_with_size(id, acpi_apic_instance, &table_header, &tbl_size);
-@@ -226,6 +224,7 @@ acpi_table_parse_entries(char *id,
- 
- 	if (!table_header) {
- 		printk(KERN_WARNING PREFIX "%4.4s not present\n", id);
-+		proc[0].count = -ENODEV;
- 		return -ENODEV;
- 	}
- 
-@@ -238,33 +237,69 @@ acpi_table_parse_entries(char *id,
- 
- 	while (((unsigned long)entry) + sizeof(struct acpi_subtable_header) <
- 	       table_end) {
--		if (entry->type == entry_id
--		    && (!max_entries || count++ < max_entries))
--			if (handler(entry, table_end))
--				goto err;
-+		for (i = 0; i < proc_num; i++) {
-+			if (entry->type != proc[i].id)
-+				continue;
-+			if (max_entries && count++ >= max_entries)
-+				continue;
-+			if (proc[i].handler(entry, table_end)) {
-+				early_acpi_os_unmap_memory((char *)table_header,
-+								 tbl_size);
-+				proc[i].count = -EINVAL;
-+				return -EINVAL;
-+			}
-+			proc[i].count++;
-+			break;
-+		}
- 
- 		/*
- 		 * If entry->length is 0, break from this loop to avoid
- 		 * infinite loop.
- 		 */
- 		if (entry->length == 0) {
--			pr_err(PREFIX "[%4.4s:0x%02x] Invalid zero length\n", id, entry_id);
--			goto err;
--		}
-+			pr_err(PREFIX "[%4.4s:0x%02x ", id, proc[0].id);
-+			for (i = 1; i < proc_num; i++)
-+				printk(KERN_CONT " 0x%02x", proc[i].id);
-+			pr_err(KERN_CONT "] Invalid zero length\n");
-+			early_acpi_os_unmap_memory((char *)table_header,
-+							 tbl_size);
-+			proc[0].count = -EINVAL;
-+			return -EINVAL;
-+               }
- 
- 		entry = (struct acpi_subtable_header *)
- 		    ((unsigned long)entry + entry->length);
- 	}
- 	if (max_entries && count > max_entries) {
--		printk(KERN_WARNING PREFIX "[%4.4s:0x%02x] ignored %i entries of "
--		       "%i found\n", id, entry_id, count - max_entries, count);
-+		printk(KERN_WARNING PREFIX "[%4.4s:0x%02x ", id, proc[0].id);
-+		for (i = 1; i < proc_num; i++)
-+			printk(KERN_CONT " 0x%02x", proc[i].id);
-+		printk(KERN_CONT "] ignored %i entries of %i found\n",
-+		       count-max_entries, count);
- 	}
- 
- 	early_acpi_os_unmap_memory((char *)table_header, tbl_size);
- 	return count;
--err:
--	early_acpi_os_unmap_memory((char *)table_header, tbl_size);
--	return -EINVAL;
-+}
-+
-+int __init
-+acpi_table_parse_entries(char *id,
-+			     unsigned long table_size,
-+			     int entry_id,
-+			     acpi_tbl_entry_handler handler,
-+			     unsigned int max_entries)
-+{
-+	struct acpi_subtable_proc proc[1];
-+
-+	if (!handler)
-+		return -EINVAL;
-+
-+	memset(proc, 0, sizeof(proc));
-+	proc[0].id = entry_id;
-+	proc[0].handler = handler;
-+
-+	return acpi_table_parse_entries_array(id, table_size, proc, 1,
-+						 max_entries);
- }
- 
- int __init
-Index: linux-2.6/arch/x86/kernel/acpi/boot.c
-===================================================================
---- linux-2.6.orig/arch/x86/kernel/acpi/boot.c
-+++ linux-2.6/arch/x86/kernel/acpi/boot.c
-@@ -887,6 +887,7 @@ static int __init acpi_parse_madt_lapic_
- {
- 	int count;
- 	int x2count = 0;
-+	struct acpi_subtable_proc madt_proc[2];
- 
- 	if (!cpu_has_apic)
- 		return -ENODEV;
-@@ -911,10 +912,16 @@ static int __init acpi_parse_madt_lapic_
- 				      acpi_parse_sapic, MAX_LOCAL_APIC);
- 
- 	if (!count) {
--		x2count = acpi_table_parse_madt(ACPI_MADT_TYPE_LOCAL_X2APIC,
--					acpi_parse_x2apic, MAX_LOCAL_APIC);
--		count = acpi_table_parse_madt(ACPI_MADT_TYPE_LOCAL_APIC,
--					acpi_parse_lapic, MAX_LOCAL_APIC);
-+		memset(madt_proc, 0, sizeof(madt_proc));
-+		madt_proc[0].id = ACPI_MADT_TYPE_LOCAL_APIC;
-+		madt_proc[0].handler = acpi_parse_lapic;
-+		madt_proc[1].id = ACPI_MADT_TYPE_LOCAL_X2APIC;
-+		madt_proc[1].handler = acpi_parse_x2apic;
-+		acpi_table_parse_entries_array(ACPI_SIG_MADT,
-+					    sizeof(struct acpi_table_madt),
-+			    madt_proc, ARRAY_SIZE(madt_proc), MAX_LOCAL_APIC);
-+		count = madt_proc[0].count;
-+		x2count = madt_proc[1].count;
- 	}
- 	if (!count && !x2count) {
- 		printk(KERN_ERR PREFIX "No LAPIC entries present\n");
-@@ -926,11 +933,16 @@ static int __init acpi_parse_madt_lapic_
- 		return count;
- 	}
- 
--	x2count =
--	    acpi_table_parse_madt(ACPI_MADT_TYPE_LOCAL_X2APIC_NMI,
--				  acpi_parse_x2apic_nmi, 0);
--	count =
--	    acpi_table_parse_madt(ACPI_MADT_TYPE_LOCAL_APIC_NMI, acpi_parse_lapic_nmi, 0);
-+	memset(madt_proc, 0, sizeof(madt_proc));
-+	madt_proc[0].id = ACPI_MADT_TYPE_LOCAL_APIC_NMI;
-+	madt_proc[0].handler = acpi_parse_lapic_nmi;
-+	madt_proc[1].id = ACPI_MADT_TYPE_LOCAL_X2APIC_NMI;
-+	madt_proc[1].handler = acpi_parse_x2apic_nmi;
-+	acpi_table_parse_entries_array(ACPI_SIG_MADT,
-+				    sizeof(struct acpi_table_madt),
-+				    madt_proc, ARRAY_SIZE(madt_proc), 0);
-+	count = madt_proc[0].count;
-+	x2count = madt_proc[1].count;
- 	if (count < 0 || x2count < 0) {
- 		printk(KERN_ERR PREFIX "Error parsing LAPIC NMI entry\n");
- 		/* TBD: Cleanup to allow fallback to MPS */
-Index: linux-2.6/drivers/acpi/numa.c
-===================================================================
---- linux-2.6.orig/drivers/acpi/numa.c
-+++ linux-2.6/drivers/acpi/numa.c
-@@ -294,10 +294,18 @@ int __init acpi_numa_init(void)
- 
- 	/* SRAT: Static Resource Affinity Table */
- 	if (!acpi_table_parse(ACPI_SIG_SRAT, acpi_parse_srat)) {
--		acpi_table_parse_srat(ACPI_SRAT_TYPE_X2APIC_CPU_AFFINITY,
--				     acpi_parse_x2apic_affinity, 0);
--		acpi_table_parse_srat(ACPI_SRAT_TYPE_CPU_AFFINITY,
--				     acpi_parse_processor_affinity, 0);
-+		struct acpi_subtable_proc srat_proc[2];
-+
-+		memset(srat_proc, 0, sizeof(srat_proc));
-+		srat_proc[0].id = ACPI_SRAT_TYPE_CPU_AFFINITY;
-+		srat_proc[0].handler = acpi_parse_processor_affinity;
-+		srat_proc[1].id = ACPI_SRAT_TYPE_X2APIC_CPU_AFFINITY;
-+		srat_proc[1].handler = acpi_parse_x2apic_affinity;
-+
-+		acpi_table_parse_entries_array(ACPI_SIG_SRAT,
-+					   sizeof(struct acpi_table_srat),
-+					   srat_proc, ARRAY_SIZE(srat_proc), 0);
-+
- 		cnt = acpi_table_parse_srat(ACPI_SRAT_TYPE_MEMORY_AFFINITY,
- 					    acpi_parse_memory_affinity,
- 					    NR_NODE_MEMBLKS);
-Index: linux-2.6/include/linux/acpi.h
-===================================================================
---- linux-2.6.orig/include/linux/acpi.h
-+++ linux-2.6/include/linux/acpi.h
-@@ -87,6 +87,12 @@ static inline void acpi_initrd_override(
- }
- #endif
- 
-+struct acpi_subtable_proc {
-+	int id;
-+	acpi_tbl_entry_handler handler;
-+	int count;
-+};
-+
- char * __acpi_map_table (unsigned long phys_addr, unsigned long size);
- void __acpi_unmap_table(char *map, unsigned long size);
- int early_acpi_boot_init(void);
-@@ -97,6 +103,9 @@ int acpi_numa_init (void);
- 
- int acpi_table_init (void);
- int acpi_table_parse(char *id, acpi_tbl_table_handler handler);
-+int acpi_table_parse_entries_array(char *id, unsigned long table_size,
-+			struct acpi_subtable_proc *proc, int proc_num,
-+			unsigned int max_entries);
- int __init acpi_table_parse_entries(char *id, unsigned long table_size,
- 				    int entry_id,
- 				    acpi_tbl_entry_handler handler,
+-- 
+I speak only for myself.
+Rafael J. Wysocki, Intel Open Source Technology Center.
