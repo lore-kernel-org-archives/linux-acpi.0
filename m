@@ -1,40 +1,69 @@
-From: Jeff Garzik <jgarzik@pobox.com>
-Subject: Re: [PATCH] libata: pm: differentiate system and runtime pm for ata
- port
-Date: Mon, 21 Jan 2013 15:44:35 -0500
-Message-ID: <50FDA8B3.6090100@pobox.com>
-References: <1346143791-2995-1-git-send-email-aaron.lu@intel.com>
+From: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Subject: Re: [RFC][Update 2][PATCH 1/4] ACPI / PM: Export power states of
+ ACPI devices via sysfs
+Date: Mon, 21 Jan 2013 12:53:05 -0800
+Message-ID: <20130121205305.GA17006@kroah.com>
+References: <3307415.pdOY6ovZLa@vostro.rjw.lan>
+ <2096792.ELJ8WGVaaz@vostro.rjw.lan>
+ <4247313.2G7Z3nCgM0@vostro.rjw.lan>
+ <1783611.vYsnfNDZr6@vostro.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-ide-owner@vger.kernel.org>
-In-Reply-To: <1346143791-2995-1-git-send-email-aaron.lu@intel.com>
-Sender: linux-ide-owner@vger.kernel.org
-To: Aaron Lu <aaron.lu@intel.com>
-Cc: linux-ide@vger.kernel.org, linux-pm@vger.kernel.org, linux-acpi@vger.kernel.org, Aaron Lu <aaron.lwe@gmail.com>, Jeff Wu <jeff.wu@amd.com>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-pb0-f45.google.com ([209.85.160.45]:45935 "EHLO
+	mail-pb0-f45.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753958Ab3AUUxK (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 21 Jan 2013 15:53:10 -0500
+Received: by mail-pb0-f45.google.com with SMTP id mc8so3532677pbc.32
+        for <linux-acpi@vger.kernel.org>; Mon, 21 Jan 2013 12:53:09 -0800 (PST)
+Content-Disposition: inline
+In-Reply-To: <1783611.vYsnfNDZr6@vostro.rjw.lan>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>, "Kristen C. Accardi" <kristen.c.accardi@intel.com>, Len Brown <lenb@kernel.org>
 
-On 08/28/2012 04:49 AM, Aaron Lu wrote:
-> For sata port, only runtime pm needs to be taken care of;
-> For IDE port, only system pm needs to be taken care of.
-> Currently, we use PMSG_SUSPEND for both system suspend and runtime
-> suspend and PMSG_ON for both system resume and runtime resume.
->
-> Change this by using PMSG_AUTO_SUSPEND for runtime suspend and
-> PMSG_AUTO_RESUME for runtime resume.
->
-> The ata_acpi_set_state is modified accordingly. And the sata case and
-> pata case is seperated for easy understanding.
->
-> Signed-off-by: Aaron Lu <aaron.lu@intel.com>
+On Mon, Jan 21, 2013 at 02:04:32PM +0100, Rafael J. Wysocki wrote:
+> From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+> 
+> Make it possible to retrieve the current power state of a device with
+> ACPI power management from user space via sysfs by adding a new
+> attribute power_state to the sysfs directory associated with the
+> struct acpi_device object representing the device's ACPI node.
+> 
+> Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 > ---
->   drivers/ata/libata-acpi.c | 83 ++++++++++++++++++++++++++++++++---------------
->   drivers/ata/libata-core.c | 22 +++++++++----
->   drivers/ata/libata-eh.c   |  9 ++---
->   3 files changed, 78 insertions(+), 36 deletions(-)
+>  Documentation/ABI/testing/sysfs-devices-power_state |   21 ++++++++++++++
+>  drivers/acpi/scan.c                                 |   29 +++++++++++++++++++-
+>  2 files changed, 49 insertions(+), 1 deletion(-)
+> 
+> Index: linux-pm/drivers/acpi/scan.c
+> ===================================================================
+> --- linux-pm.orig/drivers/acpi/scan.c
+> +++ linux-pm/drivers/acpi/scan.c
+> @@ -178,6 +178,23 @@ err_out:
+>  }
+>  EXPORT_SYMBOL(acpi_bus_hot_remove_device);
+>  
+> +static ssize_t power_state_show(struct device *dev,
+> +				struct device_attribute *attr, char *buf)
+> +{
+> +	struct acpi_device *adev = to_acpi_device(dev);
+> +	int state;
+> +	int ret;
+> +
+> +	ret = acpi_device_get_power(adev, &state);
+> +	if (ret)
+> +		return ret;
+> +
+> +	return sprintf(buf, "%s %s\n", acpi_power_state_string(state),
+> +		       acpi_power_state_string(adev->power.state));
+> +}
 
+You are showing 2 different things here in a single sysfs file, which is
+really frowned apon.  Any chance to split this up into two different
+sysfs files instead?
 
-Can you rediff this on top of libata-dev.git #upstream?
+thanks,
 
-
-
+greg k-h
