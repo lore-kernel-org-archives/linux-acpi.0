@@ -1,27 +1,40 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: [PATCH 0/2] ACPI / PM: Fixes related to the D3cold power state
-Date: Tue, 22 Jan 2013 13:15:18 +0100
-Message-ID: <4115893.XLRCUukpRD@vostro.rjw.lan>
+From: Lan Tianyu <tianyu.lan@intel.com>
+Subject: Re: [PATCH v6 6/8] usb: expose usb port's pm qos flags to user space
+Date: Tue, 22 Jan 2013 21:50:04 +0800
+Message-ID: <50FE990C.8090405@intel.com>
+References: <1358777887-2656-1-git-send-email-tianyu.lan@intel.com> <1358777887-2656-7-git-send-email-tianyu.lan@intel.com> <20130121213126.GC20083@kroah.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7Bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: ACPI Devel Maling List <linux-acpi@vger.kernel.org>
-Cc: LKML <linux-kernel@vger.kernel.org>, Mika Westerberg <mika.westerberg@linux.intel.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mga09.intel.com ([134.134.136.24]:45237 "EHLO mga09.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751405Ab3AVNuI (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 22 Jan 2013 08:50:08 -0500
+In-Reply-To: <20130121213126.GC20083@kroah.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Greg KH <gregkh@linuxfoundation.org>
+Cc: lenb@kernel.org, sarah.a.sharp@linux.intel.com, stern@rowland.harvard.edu, rjw@sisk.pl, oneukum@suse.de, linux-usb@vger.kernel.org, linux-acpi@vger.kernel.org
 
-Hi All,
-
-The following two patches fix issues related to the ACPI D3cold state:
-
-[1/2] Use "D3cold" as the string representation of D3cold rather than "D3".
-[2/2] Fix final value of power.state after device transitions to D3cold.
-
-Thanks,
-Rafael
+On 2013/1/22 5:31, Greg KH wrote:
+> On Mon, Jan 21, 2013 at 10:18:05PM +0800, Lan Tianyu wrote:
+>> This patch is to expose usb port's pm qos flags(pm_qos_no_power_off,
+>> pm_qos_remote_wakeup) to user space. User can set pm_qos_no_power_off
+>> flag to prohibit the port from being powered off.
+>
+> How are they now seen by userspace?  Should a new Documentation/ABI
+> entry be created somewhere describing this?
+There are already some descriptors in the 
+Documentation/ABI/testing/sysfs-devices-power(line 208, lin223).
+>
+> thanks,
+>
+> greg k-h
+>
 
 
 -- 
-I speak only for myself.
-Rafael J. Wysocki, Intel Open Source Technology Center.
+Best Regards
+Tianyu Lan
+linux kernel enabling team
