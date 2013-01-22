@@ -1,67 +1,36 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: [PATCH 0/4] ACPI / PM: Export power information to user space
-Date: Tue, 22 Jan 2013 03:15:52 +0100
-Message-ID: <2760421.6nE3tkh92K@vostro.rjw.lan>
-References: <3307415.pdOY6ovZLa@vostro.rjw.lan> <2096792.ELJ8WGVaaz@vostro.rjw.lan> <4247313.2G7Z3nCgM0@vostro.rjw.lan>
+From: Aaron Lu <aaron.lu@intel.com>
+Subject: Re: [PATCH v13 1/9] scsi: sr: support runtime pm
+Date: Tue, 22 Jan 2013 10:25:31 +0800
+Message-ID: <20130122022531.GA20211@aaronlu.sh.intel.com>
+References: <50FA5F67.4080102@intel.com>
+ <CAGRGNgWc2QTnY==NdMeZpw-7L3WwQfBFOwm=UZZ3Jcz+dp=h3g@mail.gmail.com>
+ <20130121091104.GA11010@aaronlu.sh.intel.com>
+ <1671780.QshOn4REzF@linux-5eaq.site>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7Bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from hydra.sisk.pl ([212.160.235.94]:49004 "EHLO hydra.sisk.pl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753242Ab3AVCWg (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 21 Jan 2013 21:22:36 -0500
-In-Reply-To: <4247313.2G7Z3nCgM0@vostro.rjw.lan>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-pm-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <1671780.QshOn4REzF@linux-5eaq.site>
+Sender: linux-pm-owner@vger.kernel.org
+To: Oliver Neukum <oneukum@suse.de>
+Cc: Julian Calaby <julian.calaby@gmail.com>, Alan Stern <stern@rowland.harvard.edu>, James Bottomley <James.Bottomley@hansenpartnership.com>, Jeff Garzik <jgarzik@pobox.com>, "Rafael J. Wysocki" <rjw@sisk.pl>, Tejun Heo <tj@kernel.org>, Aaron Lu <aaron.lwe@gmail.com>, Jeff Wu <jeff.wu@amd.com>, linux-ide@vger.kernel.org, linux-pm@vger.kernel.org, linux-scsi@vger.kernel.org, linux-acpi@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>, "Kristen C. Accardi" <kristen.c.accardi@intel.com>, Len Brown <lenb@kernel.org>
 
-On Monday, January 21, 2013 02:03:03 PM Rafael J. Wysocki wrote:
-> On Monday, January 21, 2013 01:48:55 AM Rafael J. Wysocki wrote:
-> > On Sunday, January 20, 2013 03:51:40 PM Rafael J. Wysocki wrote:
-> > > Hi Greg,
-> > > 
-> > > The following patch series is about exporting ACPI power resources to user
-> > > space that will be necessary for PM diagnostics on new platforms (powertop is
-> > > the target).  Still, existing systems can also benefit from that, like my
-> > > oldish HP nx6325 on which the patches have been tested.
-> > > 
-> > > Patch [1/3] shouldn't be really controverisal, as it only makes it possible
-> > > to read power resources' reference counters from user space in a quite
-> > > straightforward way.
-> > > 
-> > > Patch [3/3], however, exposes lists of power resources associated with
-> > > different power states of devices using ACPI PM as sysfs subdirectories
-> > > containing symbolic links and that requires some sysfs changes made by
-> > > patch [2/3].
-> > > 
-> > > Admittedly, my sysfs skills are limited so please let me know if those
-> > > changes make sense and are acceptable from your perspective.  If not, then
-> > > please kindly advise what I can do instead of them.
-> > > 
-> > > The patches apply on top of the current linux-next branch of the linux-pm.git
-> > > tree.
+On Mon, Jan 21, 2013 at 03:56:43PM +0100, Oliver Neukum wrote:
+> On Monday 21 January 2013 17:11:04 Aaron Lu wrote:
+> > It is not easy for the OS to tell if the drive is being used or not
+> > sometimes 
 > > 
-> > Refreshed with Documentation/ABI files as requested.
+> > Alan has reminded me it is possible for an app to open the block device
+> > file(/dev/sr0), issue a command(play audio), then close the device file.
+> > From the OS' point of view, we think nobody is using it. But actually,
+> > the drive is playing cd for the user, so we can't suspend the device.
 > 
-> Well, that version wasn't really a good one, due to mistakes in the docs
-> mostly, so a new one follows (with better docs hopefully).
-> 
-> Besides, I thought I'd include a patch that exposes ACPI power state
-> information, because it kind of belongs to the lot.  It goes as the new [1/4].
-> 
-> [2/4] is the previous [1/3] and so on.
+> Are there drives that support ZPODD and have an audio output?
 
-Here it goes again after the changes we discussed earlier today.
-
-I think I've addressed all of the comments, but if I overlooked something,
-please let me know.
+I'm afraid I don't know, since there are so many ODD makers.
+But at least we can say, the SPEC doesn't forbid it.
 
 Thanks,
-Rafael
+Aaron
 
-
--- 
-I speak only for myself.
-Rafael J. Wysocki, Intel Open Source Technology Center.
