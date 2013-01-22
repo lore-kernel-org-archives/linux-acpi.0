@@ -1,94 +1,53 @@
 From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: [RFC][Update 2][PATCH 1/4] ACPI / PM: Export power states of ACPI devices via sysfs
-Date: Tue, 22 Jan 2013 01:48:44 +0100
-Message-ID: <10085280.Wkhjb8Frfb@vostro.rjw.lan>
-References: <3307415.pdOY6ovZLa@vostro.rjw.lan> <1534168.00CkYCbeHv@vostro.rjw.lan> <20130121230804.GA24169@kroah.com>
+Subject: [PATCH 4/4] ACPI / PM: Sanitize checks in acpi_power_on_resources()
+Date: Tue, 22 Jan 2013 03:11:32 +0100
+Message-ID: <2460397.W1PpBYs6jy@vostro.rjw.lan>
+References: <1792467.qHBR6KraFh@vostro.rjw.lan>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7Bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from hydra.sisk.pl ([212.160.235.94]:48811 "EHLO hydra.sisk.pl"
+Received: from hydra.sisk.pl ([212.160.235.94]:48951 "EHLO hydra.sisk.pl"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751706Ab3AVAmq (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 21 Jan 2013 19:42:46 -0500
-In-Reply-To: <20130121230804.GA24169@kroah.com>
+	id S1752267Ab3AVCHP (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 21 Jan 2013 21:07:15 -0500
+In-Reply-To: <1792467.qHBR6KraFh@vostro.rjw.lan>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>, "Kristen C. Accardi" <kristen.c.accardi@intel.com>, Len Brown <lenb@kernel.org>
+To: ACPI Devel Maling List <linux-acpi@vger.kernel.org>
+Cc: LKML <linux-kernel@vger.kernel.org>, Linux PM list <linux-pm@vger.kernel.org>, Lv Zheng <lv.zheng@intel.com>, Mika Westerberg <mika.westerberg@linux.intel.com>
 
-On Monday, January 21, 2013 03:08:04 PM Greg Kroah-Hartman wrote:
-> On Mon, Jan 21, 2013 at 11:59:12PM +0100, Rafael J. Wysocki wrote:
-> > On Monday, January 21, 2013 02:26:47 PM Greg Kroah-Hartman wrote:
-> > > On Mon, Jan 21, 2013 at 11:27:32PM +0100, Rafael J. Wysocki wrote:
-> > > > On Monday, January 21, 2013 12:53:05 PM Greg Kroah-Hartman wrote:
-> > > > > On Mon, Jan 21, 2013 at 02:04:32PM +0100, Rafael J. Wysocki wrote:
-> > > > > > From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
-> > > > > > 
-> > > > > > Make it possible to retrieve the current power state of a device with
-> > > > > > ACPI power management from user space via sysfs by adding a new
-> > > > > > attribute power_state to the sysfs directory associated with the
-> > > > > > struct acpi_device object representing the device's ACPI node.
-> > > > > > 
-> > > > > > Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
-> > > > > > ---
-> > > > > >  Documentation/ABI/testing/sysfs-devices-power_state |   21 ++++++++++++++
-> > > > > >  drivers/acpi/scan.c                                 |   29 +++++++++++++++++++-
-> > > > > >  2 files changed, 49 insertions(+), 1 deletion(-)
-> > > > > > 
-> > > > > > Index: linux-pm/drivers/acpi/scan.c
-> > > > > > ===================================================================
-> > > > > > --- linux-pm.orig/drivers/acpi/scan.c
-> > > > > > +++ linux-pm/drivers/acpi/scan.c
-> > > > > > @@ -178,6 +178,23 @@ err_out:
-> > > > > >  }
-> > > > > >  EXPORT_SYMBOL(acpi_bus_hot_remove_device);
-> > > > > >  
-> > > > > > +static ssize_t power_state_show(struct device *dev,
-> > > > > > +				struct device_attribute *attr, char *buf)
-> > > > > > +{
-> > > > > > +	struct acpi_device *adev = to_acpi_device(dev);
-> > > > > > +	int state;
-> > > > > > +	int ret;
-> > > > > > +
-> > > > > > +	ret = acpi_device_get_power(adev, &state);
-> > > > > > +	if (ret)
-> > > > > > +		return ret;
-> > > > > > +
-> > > > > > +	return sprintf(buf, "%s %s\n", acpi_power_state_string(state),
-> > > > > > +		       acpi_power_state_string(adev->power.state));
-> > > > > > +}
-> > > > > 
-> > > > > You are showing 2 different things here in a single sysfs file, which is
-> > > > > really frowned apon.  Any chance to split this up into two different
-> > > > > sysfs files instead?
-> > > > 
-> > > > Well, I can, but I'm not sure how to call the other one.  "sw_power_state"
-> > > > perhaps?
-> > > 
-> > > I don't know, as I'm not quite sure what it is supposed to represent :)
-> > 
-> > The first one is power state as read using _PSC or inferred from power
-> > resources on/off configuration.  That's easy.
-> > 
-> > Now, if power resources are shared between two or more devices, it is possible
-> > that one device will be in, say, D3hot from the software point of view, but its
-> > real ("physical") power state will be different, because the other devices
-> > still keep the shared resource "on".  In that case, if the "software" power
-> > state of a device is lower-power (higher-number) than its real power state,
-> > we know that that particular device doesn't prevent the shared resource from
-> > being turned off.  This is good to know, I think. :-)
-> 
-> I agree that it's good to know, just what to call it.  I think you just
-> named it with "real_power_state", right?
+From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 
-Yes, I think I'll just call them "power_state" and "real_power_state".  That
-should be clear enough.
+After the only user of acpi_power_on_resources(),
+acpi_bus_init_power(), has been changed to avoid calling it
+for state equal to ACPI_STATE_D3_COLD, it doesn't have to special
+case that state any more.
 
-Thanks,
-Rafael
+For this reason, modify the checks in acpi_power_on_resources()
+so that it returns -EINVAL for ACPI_STATE_D3_COLD as it should.
 
+Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+---
+ drivers/acpi/power.c |    5 +----
+ 1 file changed, 1 insertion(+), 4 deletions(-)
 
--- 
-I speak only for myself.
-Rafael J. Wysocki, Intel Open Source Technology Center.
+Index: linux-pm/drivers/acpi/power.c
+===================================================================
+--- linux-pm.orig/drivers/acpi/power.c
++++ linux-pm/drivers/acpi/power.c
+@@ -622,12 +622,9 @@ int acpi_power_get_inferred_state(struct
+ 
+ int acpi_power_on_resources(struct acpi_device *device, int state)
+ {
+-	if (!device || state < ACPI_STATE_D0 || state > ACPI_STATE_D3_COLD)
++	if (!device || state < ACPI_STATE_D0 || state > ACPI_STATE_D3_HOT)
+ 		return -EINVAL;
+ 
+-	if (state == ACPI_STATE_D3_COLD)
+-		return 0;
+-
+ 	return acpi_power_on_list(&device->power.states[state].resources);
+ }
+ 
+
