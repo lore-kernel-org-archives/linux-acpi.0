@@ -1,64 +1,53 @@
 From: Yinghai Lu <yinghai@kernel.org>
-Subject: Re: [PATCH v10 00/11] PCI, ACPI: pci root bus hotplug support / pci match_driver
-Date: Tue, 22 Jan 2013 14:19:56 -0800
-Message-ID: <CAE9FiQUS56KnvDCF7LUyCkNLcun+3zZ+xGiexca2ej30dRvrQg@mail.gmail.com>
-References: <1358803252-20639-1-git-send-email-yinghai@kernel.org>
-	<2072996.JYmST9orI6@vostro.rjw.lan>
+Subject: Re: [PATCH] ACPI: Drop device start operation that is not used
+Date: Tue, 22 Jan 2013 14:20:44 -0800
+Message-ID: <CAE9FiQVknKDc6WtNGB1C8eMYZQOKJD5ak5+hE1jvpaEaGGzULg@mail.gmail.com>
+References: <1518653.CUpDmbmCI3@vostro.rjw.lan>
+	<CAE9FiQV1N0hrUui1rGrs1=kFJFiuOhZ6tT-wGfK-B25it5feLQ@mail.gmail.com>
+	<4046863.eHD8RPonGC@vostro.rjw.lan>
+	<1726547.g8rCOVpa6k@vostro.rjw.lan>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-ie0-f182.google.com ([209.85.223.182]:57081 "EHLO
-	mail-ie0-f182.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752226Ab3AVWT5 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 22 Jan 2013 17:19:57 -0500
-In-Reply-To: <2072996.JYmST9orI6@vostro.rjw.lan>
+Received: from mail-ia0-f172.google.com ([209.85.210.172]:58206 "EHLO
+	mail-ia0-f172.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751812Ab3AVWUp (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 22 Jan 2013 17:20:45 -0500
+In-Reply-To: <1726547.g8rCOVpa6k@vostro.rjw.lan>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: Bjorn Helgaas <bhelgaas@google.com>, Len Brown <lenb@kernel.org>, Taku Izumi <izumi.taku@jp.fujitsu.com>, Jiang Liu <jiang.liu@huawei.com>, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
+Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>, Len Brown <lenb@kernel.org>, Matthew Garrett <mjg59@srcf.ucam.org>, Bjorn Helgaas <bhelgaas@google.com>, Toshi Kani <toshi.kani@hp.com>
 
-On Tue, Jan 22, 2013 at 2:09 PM, Rafael J. Wysocki <rjw@sisk.pl> wrote:
-> On Monday, January 21, 2013 01:20:41 PM Yinghai Lu wrote:
->> It includes
->> 1. preparing patches for pci root bus hotadd/hotremove support
->> 2. move root bus hotadd from acpiphp to pci_root.c
->> 3. add hot-remove support
->> 4. add acpi_hp_work to be shared with acpiphp and root-bus hotplug
->> 5. add match_driver to add pci device to device tree early but
->>    not attach driver for hotplug path.
->>
->> based on pci/next + pm/acpi-scan
->>
->> could get from
->>         git://git.kernel.org/pub/scm/linux/kernel/git/yinghai/linux-yinghai.git for-pci-root-bus-hotplug
->>
->> -v9: merges several patches together for easy review, requested by Rafael.
->> -v10: address comments from Rafael.
->>
->> Jiang Liu (2):
->>   PCI: Fix a device reference count leakage issue in pci_dev_present()
->>   PCI: make PCI device create/destroy logic symmetric
->>
->> Tang Chen (1):
->>   PCI, ACPI: debug print for installation of acpi root bridge's
->>     notifier
->>
->> Yinghai Lu (8):
->>   PCI, acpiphp: Add is_hotplug_bridge detection
->>   PCI: Add root bus children dev's res to fail list
->>   PCI: Set dev_node early for pci_dev
->>   PCI, ACPI, acpiphp: Rename alloc_acpiphp_hp_work() to alloc_acpi_hp_work
->>   PCI, acpiphp: Move and enhance hotplug support of pci host bridge
->>   PCI, acpiphp: Don't bailout even no slots found yet.
->>   PCI: Skip attaching driver in device_add()
->>   PCI: Put pci dev to device tree as early as possible
+On Tue, Jan 22, 2013 at 2:25 PM, Rafael J. Wysocki <rjw@sisk.pl> wrote:
+> From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 >
-> OK
+> The ACPI device start operation, acpi_op_start, is never used, so
+> drop it.
 >
-> Please feel free to add
+> Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+> ---
+>  include/acpi/acpi_bus.h |    2 --
+>  1 file changed, 2 deletions(-)
 >
-> Acked-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+> Index: linux-pm/include/acpi/acpi_bus.h
+> ===================================================================
+> --- linux-pm.orig/include/acpi/acpi_bus.h
+> +++ linux-pm/include/acpi/acpi_bus.h
+> @@ -90,13 +90,11 @@ struct acpi_device;
 >
-> to all of the patches in this series I haven't acked already.
+>  typedef int (*acpi_op_add) (struct acpi_device * device);
+>  typedef int (*acpi_op_remove) (struct acpi_device * device);
+> -typedef int (*acpi_op_start) (struct acpi_device * device);
+>  typedef void (*acpi_op_notify) (struct acpi_device * device, u32 event);
+>
+>  struct acpi_device_ops {
+>         acpi_op_add add;
+>         acpi_op_remove remove;
+> -       acpi_op_start start;
+>         acpi_op_notify notify;
+>  };
+>
+>
 
-Thanks a lot for reviewing.
+Acked-by: Yinghai Lu <yinghai@kernel.org>
