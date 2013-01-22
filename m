@@ -1,49 +1,44 @@
-From: Mika Westerberg <mika.westerberg@linux.intel.com>
-Subject: Re: [PATCH 1/4] ACPI / PM: Make acpi_bus_init_power() more robust
-Date: Tue, 22 Jan 2013 09:10:56 +0200
-Message-ID: <20130122071056.GB2239@intel.com>
-References: <1792467.qHBR6KraFh@vostro.rjw.lan>
- <24285515.9Jp3KUo9Px@vostro.rjw.lan>
+From: Aaron Lu <aaron.lu@intel.com>
+Subject: Re: [PATCH] libata: pm: differentiate system and runtime pm for ata
+ port
+Date: Tue, 22 Jan 2013 16:48:54 +0800
+Message-ID: <20130122084854.GA26256@aaronlu.sh.intel.com>
+References: <1346143791-2995-1-git-send-email-aaron.lu@intel.com>
+ <50FDA8B3.6090100@pobox.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga01.intel.com ([192.55.52.88]:36799 "EHLO mga01.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752548Ab3AVHHI (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 22 Jan 2013 02:07:08 -0500
+Return-path: <linux-ide-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <24285515.9Jp3KUo9Px@vostro.rjw.lan>
-Sender: linux-acpi-owner@vger.kernel.org
+In-Reply-To: <50FDA8B3.6090100@pobox.com>
+Sender: linux-ide-owner@vger.kernel.org
+To: Jeff Garzik <jgarzik@pobox.com>
+Cc: linux-ide@vger.kernel.org, linux-pm@vger.kernel.org, linux-acpi@vger.kernel.org, Aaron Lu <aaron.lwe@gmail.com>, Jeff Wu <jeff.wu@amd.com>
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>, Linux PM list <linux-pm@vger.kernel.org>, Lv Zheng <lv.zheng@intel.com>
 
-On Tue, Jan 22, 2013 at 03:09:01AM +0100, Rafael J. Wysocki wrote:
-> From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+On Mon, Jan 21, 2013 at 03:44:35PM -0500, Jeff Garzik wrote:
+> On 08/28/2012 04:49 AM, Aaron Lu wrote:
+> >For sata port, only runtime pm needs to be taken care of;
+> >For IDE port, only system pm needs to be taken care of.
+> >Currently, we use PMSG_SUSPEND for both system suspend and runtime
+> >suspend and PMSG_ON for both system resume and runtime resume.
+> >
+> >Change this by using PMSG_AUTO_SUSPEND for runtime suspend and
+> >PMSG_AUTO_RESUME for runtime resume.
+> >
+> >The ata_acpi_set_state is modified accordingly. And the sata case and
+> >pata case is seperated for easy understanding.
+> >
+> >Signed-off-by: Aaron Lu <aaron.lu@intel.com>
+> >---
+> >  drivers/ata/libata-acpi.c | 83 ++++++++++++++++++++++++++++++++---------------
+> >  drivers/ata/libata-core.c | 22 +++++++++----
+> >  drivers/ata/libata-eh.c   |  9 ++---
+> >  3 files changed, 78 insertions(+), 36 deletions(-)
 > 
-> The ACPI specification requires the _PSC method to be present under
-> a device object if its power state cannot be inferred from the states
-> of power resources used by it (ACPI 5, Section 7.6.2).  However, it
-> also requires that (for power states D0-D2 and D3hot) if the _PSn
-> (n = 0, 1, 2, 3) method is present under the device object, it also
-> must be executed after the power resources have been set
-> appropriately for the device to go into power state Dn (D3 means
-> D3hot in this case).  Thus it is not clear from the specification
-> whether or not the _PSn method should be executed if the initial
-> configuraion of power resources used by the device indicates power
-> state Dn and the _PSC method is not present.
 > 
-> The current implementation of acpi_bus_init_power() is based on the
-> assumption that it should not be necessary to execute _PSn in the
-> above situation, but experience shows that in fact that assumption
-> need not be satisfied.  For this reason, make acpi_bus_init_power()
-> always execute _PSn if the initial configuration of device power
-> resources indicates power state Dn.
-> 
-> Reported-by: Mika Westerberg <mika.westerberg@linux.intel.com>
+> Can you rediff this on top of libata-dev.git #upstream?
 
-You can add also,
+Sure. Will send out when it's ready, thanks.
 
-Tested-by: Mika Westerberg <mika.westerberg@linux.intel.com>
+-Aaron
 
-if you like. Thanks for fixing this.
