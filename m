@@ -1,56 +1,44 @@
-From: Jiang Liu <liuj97@gmail.com>
-Subject: Re: [RFC PATCH v5 7/8] PCI/PCIe: add "pci=nopciehp" to disable PCIe
- native hotplug
-Date: Wed, 23 Jan 2013 00:19:08 +0800
-Message-ID: <50FEBBFC.30604@gmail.com>
-References: <1358525267-14268-1-git-send-email-jiang.liu@huawei.com> <CAErSpo6E0SrY8_JOU6pmrCt9opfKe_jJ6b0E0daNAbpX5KtFuQ@mail.gmail.com> <CAE9FiQU6K1M=rbnhPLsAkhK5dZw8CAoQzAi=YLjtz722jCix-w@mail.gmail.com> <1449960.YISN9L5GZD@vostro.rjw.lan>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-pci-owner@vger.kernel.org>
-In-Reply-To: <1449960.YISN9L5GZD@vostro.rjw.lan>
-Sender: linux-pci-owner@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@sisk.pl>, Yinghai Lu <yinghai@kernel.org>
-Cc: Bjorn Helgaas <bhelgaas@google.com>, Jiang Liu <jiang.liu@huawei.com>, Kenji Kaneshige <kaneshige.kenji@jp.fujitsu.com>, Yijing Wang <wangyijing@huawei.com>, linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Toshi Kani <toshi.kani@hp.com>, Myron Stowe <myron.stowe@redhat.com>
+From: Matthew Garrett <matthew.garrett@nebula.com>
+Subject: [PATCH] Add module aliases for acpi-cpufreq
+Date: Tue, 22 Jan 2013 11:42:24 -0500
+Message-ID: <1358872944-7676-1-git-send-email-matthew.garrett@nebula.com>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from cavan.codon.org.uk ([93.93.128.6]:43233 "EHLO
+	cavan.codon.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754671Ab3AVQmn (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 22 Jan 2013 11:42:43 -0500
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: bp@alien8.de
+Cc: rjw@sisk.pl, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, cpufreq@vger.kernel.org, Matthew Garrett <matthew.garrett@nebula.com>
 
-Hi Yinghai and Rafael,
-	Thanks for your comments, seems you all don't like the proposed solution,
-Then how about this solution:
-1) keep acpiphp and pciehp as modules
-2) introduce a new interface pci_for_each_bus() to walk all PCI buses.
-3) use pci_for_each_bus()  to replace ACPI PCI subdriver for acpiphp.
-4) use PCI bus notifier chain to support PCI device and host bridge hotplug.
-5) add some quirks to handle PCIe bridges having issues with native PCIe hotplug.
+The acpi core will call request_module("acpi-cpufreq") on subsystem init,
+but this will fail if the module isn't available at that stage of boot.
+Add some module aliases to ensure that udev can load the module on Intel
+and AMD systems with the appropriate feature bits - I /think/ that this
+will also work on VIA systems, but haven't verified that.
 
-Regards!
-Gerry
+Signed-off-by: Matthew Garrett <matthew.garrett@nebula.com>
+---
+ drivers/cpufreq/acpi-cpufreq.c | 7 +++++++
+ 1 file changed, 7 insertions(+)
 
-On 01/19/2013 06:08 AM, Rafael J. Wysocki wrote:
-> On Friday, January 18, 2013 09:50:59 AM Yinghai Lu wrote:
->> On Fri, Jan 18, 2013 at 9:35 AM, Bjorn Helgaas <bhelgaas@google.com> wrote:
->>> If you want "pci=nopciehp" as a way for users to deal with this
->>> problem by forcing the use of acpiphp, I object.  Windows manages to
->>> make these slots work without having users do anything special, so we
->>> should be able to do it, too.
->>
->> Agreed.
->>
->> We need to think that more.
->>
->> I think that we should fix acpiphp, and should follow first come and
->> first serve for acpiphp and pciehp.
-> 
-> That would introduce regressions for some users, though.
-> 
-> I actually think we should merge acpiphp with pciehp and make one driver that
-> can use both types of signalling.  There would be a problem with getting
-> notifications for the same event from both sources, but that doesn't seem to
-> be unsolvable.
-> 
-> And I don't think that that one combined driver should be modular.
-> 
-> Thanks,
-> Rafael
-> 
-> 
+diff --git a/drivers/cpufreq/acpi-cpufreq.c b/drivers/cpufreq/acpi-cpufreq.c
+index 0d048f6..7b0d49d 100644
+--- a/drivers/cpufreq/acpi-cpufreq.c
++++ b/drivers/cpufreq/acpi-cpufreq.c
+@@ -1030,4 +1030,11 @@ MODULE_PARM_DESC(acpi_pstate_strict,
+ late_initcall(acpi_cpufreq_init);
+ module_exit(acpi_cpufreq_exit);
+ 
++static const struct x86_cpu_id acpi_cpufreq_ids[] = {
++	X86_FEATURE_MATCH(X86_FEATURE_ACPI),
++	X86_FEATURE_MATCH(X86_FEATURE_HW_PSTATE),
++	{}
++};
++MODULE_DEVICE_TABLE(x86cpu, acpi_cpufreq_ids);
++
+ MODULE_ALIAS("acpi");
+-- 
+1.8.0.2
+
