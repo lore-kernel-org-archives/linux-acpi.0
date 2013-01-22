@@ -1,7 +1,7 @@
 From: Tang Chen <tangchen@cn.fujitsu.com>
-Subject: [PATCH Bug fix 2/5] memory-hotplug: export the function try_offline_node()
-Date: Tue, 22 Jan 2013 19:45:53 +0800
-Message-ID: <1358855156-6126-3-git-send-email-tangchen@cn.fujitsu.com>
+Subject: [PATCH Bug fix 3/5] cpu-hotplug, memory-hotplug: try offline the node when hotremoving a cpu
+Date: Tue, 22 Jan 2013 19:45:54 +0800
+Message-ID: <1358855156-6126-4-git-send-email-tangchen@cn.fujitsu.com>
 References: <1358855156-6126-1-git-send-email-tangchen@cn.fujitsu.com>
 Return-path: <owner-linux-mm@kvack.org>
 In-Reply-To: <1358855156-6126-1-git-send-email-tangchen@cn.fujitsu.com>
@@ -12,17 +12,8 @@ List-Id: linux-acpi@vger.kernel.org
 
 From: Wen Congyang <wency@cn.fujitsu.com>
 
-The node will be offlined when all memory/cpu on the node
-have been hotremoved. So we need the function try_offline_node()
-in cpu-hotplug path.
-
-If the memory-hotplug is disabled, and cpu-hotplug is enabled
-1. no memory no the node
-   we don't online the node, and cpu's node is the nearest node.
-2. the node contains some memory
-   the node has been onlined, and cpu's node is still needed
-   to migrate the sleep task on the cpu to the same node.
-So we do nothing in try_offline_node() in this case.
+The node will be offlined when all memory/cpu on the node is hotremoved.
+So we should try offline the node when hotremoving a cpu on the node.
 
 Cc: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
 Cc: David Rientjes <rientjes@google.com>
@@ -39,51 +30,29 @@ Cc: Tang Chen <tangchen@cn.fujitsu.com>
 Signed-off-by: Wen Congyang <wency@cn.fujitsu.com>
 Signed-off-by: Tang Chen <tangchen@cn.fujitsu.com>
 ---
- include/linux/memory_hotplug.h |    2 ++
- mm/memory_hotplug.c            |    3 ++-
- 2 files changed, 4 insertions(+), 1 deletions(-)
+ drivers/acpi/processor_driver.c |    2 ++
+ 1 files changed, 2 insertions(+), 0 deletions(-)
 
-diff --git a/include/linux/memory_hotplug.h b/include/linux/memory_hotplug.h
-index 69903cc..0b2878e 100644
---- a/include/linux/memory_hotplug.h
-+++ b/include/linux/memory_hotplug.h
-@@ -193,6 +193,7 @@ extern void get_page_bootmem(unsigned long ingo, struct page *page,
+diff --git a/drivers/acpi/processor_driver.c b/drivers/acpi/processor_driver.c
+index a24ee43..81745f1 100644
+--- a/drivers/acpi/processor_driver.c
++++ b/drivers/acpi/processor_driver.c
+@@ -45,6 +45,7 @@
+ #include <linux/cpuidle.h>
+ #include <linux/slab.h>
+ #include <linux/acpi.h>
++#include <linux/memory_hotplug.h>
  
- void lock_memory_hotplug(void);
- void unlock_memory_hotplug(void);
-+extern void try_offline_node(int nid);
+ #include <asm/io.h>
+ #include <asm/cpu.h>
+@@ -641,6 +642,7 @@ static int acpi_processor_remove(struct acpi_device *device, int type)
  
- #else /* ! CONFIG_MEMORY_HOTPLUG */
- /*
-@@ -227,6 +228,7 @@ static inline void register_page_bootmem_info_node(struct pglist_data *pgdat)
+ 	per_cpu(processors, pr->id) = NULL;
+ 	per_cpu(processor_device_array, pr->id) = NULL;
++	try_offline_node(cpu_to_node(pr->id));
  
- static inline void lock_memory_hotplug(void) {}
- static inline void unlock_memory_hotplug(void) {}
-+static inline void try_offline_node(int nid) {}
- 
- #endif /* ! CONFIG_MEMORY_HOTPLUG */
- 
-diff --git a/mm/memory_hotplug.c b/mm/memory_hotplug.c
-index f0dc9ad..edd1773 100644
---- a/mm/memory_hotplug.c
-+++ b/mm/memory_hotplug.c
-@@ -1703,7 +1703,7 @@ static int check_cpu_on_node(void *data)
- }
- 
- /* offline the node if all memory sections of this node are removed */
--static void try_offline_node(int nid)
-+void try_offline_node(int nid)
- {
- 	pg_data_t *pgdat = NODE_DATA(nid);
- 	unsigned long start_pfn = pgdat->node_start_pfn;
-@@ -1759,6 +1759,7 @@ static void try_offline_node(int nid)
- 	 */
- 	memset(pgdat, 0, sizeof(*pgdat));
- }
-+EXPORT_SYMBOL(try_offline_node);
- 
- int __ref remove_memory(int nid, u64 start, u64 size)
- {
+ free:
+ 	free_cpumask_var(pr->throttling.shared_cpu_map);
 -- 
 1.7.1
 
