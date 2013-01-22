@@ -1,59 +1,55 @@
-From: Toshi Kani <toshi.kani@hp.com>
-Subject: Re: [PATCH] ACPI: Drop device start operation that is not used
-Date: Tue, 22 Jan 2013 15:14:46 -0700
-Message-ID: <1358892886.14145.355.camel@misato.fc.hp.com>
-References: <1518653.CUpDmbmCI3@vostro.rjw.lan>
-	 <CAE9FiQV1N0hrUui1rGrs1=kFJFiuOhZ6tT-wGfK-B25it5feLQ@mail.gmail.com>
-	 <4046863.eHD8RPonGC@vostro.rjw.lan> <1726547.g8rCOVpa6k@vostro.rjw.lan>
+From: Seiji Aguchi <seiji.aguchi@hds.com>
+Subject: ERST: how to avoid a dynamic memory allocation in panic case
+Date: Tue, 22 Jan 2013 23:30:08 +0000
+Message-ID: <A5ED84D3BB3A384992CBB9C77DEDA4D414A51F3D@USINDEM103.corp.hds.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from g1t0028.austin.hp.com ([15.216.28.35]:43618 "EHLO
-	g1t0028.austin.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750797Ab3AVWYn (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 22 Jan 2013 17:24:43 -0500
-In-Reply-To: <1726547.g8rCOVpa6k@vostro.rjw.lan>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Language: en-US
+Sender: linux-kernel-owner@vger.kernel.org
+To: "Huang, Ying (ying.huang@intel.com)" <ying.huang@intel.com>, "rjw@sisk.pl" <rjw@sisk.pl>
+Cc: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "H. Peter Anvin (hpa@zytor.com)" <hpa@zytor.com>, "robert.moore@intel.com" <robert.moore@intel.com>, "trenn@suse.de" <trenn@suse.de>, "myron.stowe@redhat.com" <myron.stowe@redhat.com>
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: Yinghai Lu <yinghai@kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>, Len Brown <lenb@kernel.org>, Matthew Garrett <mjg59@srcf.ucam.org>, Bjorn Helgaas <bhelgaas@google.com>
 
-On Tue, 2013-01-22 at 23:25 +0100, Rafael J. Wysocki wrote:
-> From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
-> 
-> The ACPI device start operation, acpi_op_start, is never used, so
-> drop it.
-> 
-> Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+[Issue]
 
-Acked-by: Toshi Kani <toshi.kani@hp.com>
+Current erst driver is kicked in panic case.
+On the other hand, a dynamic memory allocation seems to run in it
+with a following code path.
 
-Thanks,
--Toshi
+erst_writer -> erst_write -> __erst_write_to_storage -> many of apei_exec_run -> 
+ctx->ins_table[entry->instruction].run()
 
-> ---
->  include/acpi/acpi_bus.h |    2 --
->  1 file changed, 2 deletions(-)
-> 
-> Index: linux-pm/include/acpi/acpi_bus.h
-> ===================================================================
-> --- linux-pm.orig/include/acpi/acpi_bus.h
-> +++ linux-pm/include/acpi/acpi_bus.h
-> @@ -90,13 +90,11 @@ struct acpi_device;
->  
->  typedef int (*acpi_op_add) (struct acpi_device * device);
->  typedef int (*acpi_op_remove) (struct acpi_device * device);
-> -typedef int (*acpi_op_start) (struct acpi_device * device);
->  typedef void (*acpi_op_notify) (struct acpi_device * device, u32 event);
->  
->  struct acpi_device_ops {
->  	acpi_op_add add;
->  	acpi_op_remove remove;
-> -	acpi_op_start start;
->  	acpi_op_notify notify;
->  };
->  
-> 
+which are functions defined in erst_ins_type table i.e:
 
+apei_exec_read_register -> apei_read -> acpi_os_read_memory64 -> acpi_os_ioremap -> ioremap_cache
 
+which possibly involve IOMMU allocator.
+
+I may cause a failure of  an erst driver if the panic happens in an interrupt context.
+
+[Idea]
+
+If we can remove ioremap_cache() from acpi_os_read_memory() as follows,
+It is easy to fix this issue.
+But I'm not sure if it is feasible because I can't see the reason of tying acpi_os_ioremap()  from a git log...
+
+Any comment?
+
+<snip>
+@@ -918,10 +918,7 @@ acpi_os_read_memory(acpi_physical_address phys_addr, u64 *value, u32 width)
+ 	virt_addr = acpi_map_vaddr_lookup(phys_addr, size);
+ 	if (!virt_addr) {
+ 		rcu_read_unlock();
+-		virt_addr = acpi_os_ioremap(phys_addr, size);
+-		if (!virt_addr)
+-			return AE_BAD_ADDRESS;
+-		unmap = true;
++		return AE_BAD_ADDRESS;
+ 	}
+ 
+ 	if (!value)
+<snip>
+
+Seiji
