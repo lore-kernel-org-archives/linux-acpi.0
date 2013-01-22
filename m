@@ -1,122 +1,186 @@
 From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: [PATCH 2/4] ACPI / PM: Introduce helper for executing _PSn methods
-Date: Tue, 22 Jan 2013 03:09:46 +0100
-Message-ID: <1467956.knoMQ0FPoi@vostro.rjw.lan>
-References: <1792467.qHBR6KraFh@vostro.rjw.lan>
+Subject: [PATCH 3/4] sysfs: Functions for adding/removing symlinks to/from attribute groups
+Date: Tue, 22 Jan 2013 03:27:12 +0100
+Message-ID: <3401016.osGyQ9N4xP@vostro.rjw.lan>
+References: <3307415.pdOY6ovZLa@vostro.rjw.lan> <4247313.2G7Z3nCgM0@vostro.rjw.lan> <2760421.6nE3tkh92K@vostro.rjw.lan>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7Bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from hydra.sisk.pl ([212.160.235.94]:48958 "EHLO hydra.sisk.pl"
+Received: from hydra.sisk.pl ([212.160.235.94]:48989 "EHLO hydra.sisk.pl"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752678Ab3AVCHP (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 21 Jan 2013 21:07:15 -0500
-In-Reply-To: <1792467.qHBR6KraFh@vostro.rjw.lan>
+	id S1752900Ab3AVCWe (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 21 Jan 2013 21:22:34 -0500
+In-Reply-To: <2760421.6nE3tkh92K@vostro.rjw.lan>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: ACPI Devel Maling List <linux-acpi@vger.kernel.org>
-Cc: LKML <linux-kernel@vger.kernel.org>, Linux PM list <linux-pm@vger.kernel.org>, Lv Zheng <lv.zheng@intel.com>, Mika Westerberg <mika.westerberg@linux.intel.com>
+To: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>, "Kristen C. Accardi" <kristen.c.accardi@intel.com>, Len Brown <lenb@kernel.org>
 
 From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 
-To reduce code duplication between acpi_device_set_power() and
-acpi_bus_init_power(), introduce a new helper function for executing
-ACPI devices' _PSn (n = 0..3) methods, acpi_dev_pm_explicit_set().
+The most convenient way to expose ACPI power resources lists of a
+device is to put symbolic links to sysfs directories representing
+those resources into special attribute groups in the device's sysfs
+directory.  For this purpose, it is necessary to be able to add
+symbolic links to attribute groups.
+
+For this reason, add sysfs helper functions for adding/removing
+symbolic links to/from attribute groups, sysfs_add_link_to_group()
+and sysfs_remove_link_from_group(), respectively.
 
 Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 ---
- drivers/acpi/device_pm.c |   51 +++++++++++++++++++++--------------------------
- 1 file changed, 23 insertions(+), 28 deletions(-)
+ fs/sysfs/group.c      |   42 ++++++++++++++++++++++++++++++++++++++++++
+ fs/sysfs/symlink.c    |   45 ++++++++++++++++++++++++++++++++-------------
+ include/linux/sysfs.h |    6 ++++++
+ 3 files changed, 80 insertions(+), 13 deletions(-)
 
-Index: linux-pm/drivers/acpi/device_pm.c
+Index: linux-pm/fs/sysfs/group.c
 ===================================================================
---- linux-pm.orig/drivers/acpi/device_pm.c
-+++ linux-pm/drivers/acpi/device_pm.c
-@@ -186,6 +186,19 @@ int acpi_device_get_power(struct acpi_de
- 	return 0;
+--- linux-pm.orig/fs/sysfs/group.c
++++ linux-pm/fs/sysfs/group.c
+@@ -205,6 +205,48 @@ void sysfs_unmerge_group(struct kobject
+ }
+ EXPORT_SYMBOL_GPL(sysfs_unmerge_group);
+ 
++/**
++ * sysfs_add_link_to_group - add a symlink to an attribute group.
++ * @kobj:	The kobject containing the group.
++ * @group_name:	The name of the group.
++ * @target:	The target kobject of the symlink to create.
++ * @link_name:	The name of the symlink to create.
++ */
++int sysfs_add_link_to_group(struct kobject *kobj, const char *group_name,
++			    struct kobject *target, const char *link_name)
++{
++	struct sysfs_dirent *dir_sd;
++	int error = 0;
++
++	dir_sd = sysfs_get_dirent(kobj->sd, NULL, group_name);
++	if (!dir_sd)
++		return -ENOENT;
++
++	error = sysfs_create_link_sd(dir_sd, target, link_name);
++	sysfs_put(dir_sd);
++
++	return error;
++}
++EXPORT_SYMBOL_GPL(sysfs_add_link_to_group);
++
++/**
++ * sysfs_remove_link_from_group - remove a symlink from an attribute group.
++ * @kobj:	The kobject containing the group.
++ * @group_name:	The name of the group.
++ * @link_name:	The name of the symlink to remove.
++ */
++void sysfs_remove_link_from_group(struct kobject *kobj, const char *group_name,
++				  const char *link_name)
++{
++	struct sysfs_dirent *dir_sd;
++
++	dir_sd = sysfs_get_dirent(kobj->sd, NULL, group_name);
++	if (dir_sd) {
++		sysfs_hash_and_remove(dir_sd, NULL, link_name);
++		sysfs_put(dir_sd);
++	}
++}
++EXPORT_SYMBOL_GPL(sysfs_remove_link_from_group);
+ 
+ EXPORT_SYMBOL_GPL(sysfs_create_group);
+ EXPORT_SYMBOL_GPL(sysfs_update_group);
+Index: linux-pm/fs/sysfs/symlink.c
+===================================================================
+--- linux-pm.orig/fs/sysfs/symlink.c
++++ linux-pm/fs/sysfs/symlink.c
+@@ -21,26 +21,17 @@
+ 
+ #include "sysfs.h"
+ 
+-static int sysfs_do_create_link(struct kobject *kobj, struct kobject *target,
+-				const char *name, int warn)
++static int sysfs_do_create_link_sd(struct sysfs_dirent *parent_sd,
++				   struct kobject *target,
++				   const char *name, int warn)
+ {
+-	struct sysfs_dirent *parent_sd = NULL;
+ 	struct sysfs_dirent *target_sd = NULL;
+ 	struct sysfs_dirent *sd = NULL;
+ 	struct sysfs_addrm_cxt acxt;
+ 	enum kobj_ns_type ns_type;
+ 	int error;
+ 
+-	BUG_ON(!name);
+-
+-	if (!kobj)
+-		parent_sd = &sysfs_root;
+-	else
+-		parent_sd = kobj->sd;
+-
+-	error = -EFAULT;
+-	if (!parent_sd)
+-		goto out_put;
++	BUG_ON(!name || !parent_sd);
+ 
+ 	/* target->sd can go away beneath us but is protected with
+ 	 * sysfs_assoc_lock.  Fetch target_sd from it.
+@@ -96,6 +87,34 @@ static int sysfs_do_create_link(struct k
  }
  
-+static int acpi_dev_pm_explicit_set(struct acpi_device *adev, int state)
+ /**
++ *	sysfs_create_link_sd - create symlink to a given object.
++ *	@sd:		directory we're creating the link in.
++ *	@target:	object we're pointing to.
++ *	@name:		name of the symlink.
++ */
++int sysfs_create_link_sd(struct sysfs_dirent *sd, struct kobject *target,
++			 const char *name)
 +{
-+	if (adev->power.states[state].flags.explicit_set) {
-+		char method[5] = { '_', 'P', 'S', '0' + state, '\0' };
-+		acpi_status status;
-+
-+		status = acpi_evaluate_object(adev->handle, method, NULL, NULL);
-+		if (ACPI_FAILURE(status))
-+			return -ENODEV;
-+	}
-+	return 0;
++	return sysfs_do_create_link_sd(sd, target, name, 1);
 +}
 +
- /**
-  * acpi_device_set_power - Set power state of an ACPI device.
-  * @device: Device to set the power state of.
-@@ -197,8 +210,6 @@ int acpi_device_get_power(struct acpi_de
- int acpi_device_set_power(struct acpi_device *device, int state)
- {
- 	int result = 0;
--	acpi_status status = AE_OK;
--	char object_name[5] = { '_', 'P', 'S', '0' + state, '\0' };
- 	bool cut_power = false;
- 
- 	if (!device || (state < ACPI_STATE_D0) || (state > ACPI_STATE_D3_COLD))
-@@ -228,7 +239,6 @@ int acpi_device_set_power(struct acpi_de
- 	if (state == ACPI_STATE_D3_COLD
- 	    && device->power.states[ACPI_STATE_D3_COLD].flags.os_accessible) {
- 		state = ACPI_STATE_D3_HOT;
--		object_name[3] = '3';
- 		cut_power = true;
- 	}
- 
-@@ -251,23 +261,14 @@ int acpi_device_set_power(struct acpi_de
- 			if (result)
- 				goto end;
- 		}
--		if (device->power.states[state].flags.explicit_set) {
--			status = acpi_evaluate_object(device->handle,
--						      object_name, NULL, NULL);
--			if (ACPI_FAILURE(status)) {
--				result = -ENODEV;
--				goto end;
--			}
--		}
-+		result = acpi_dev_pm_explicit_set(device, state);
-+		if (result)
-+			goto end;
- 	} else {
--		if (device->power.states[state].flags.explicit_set) {
--			status = acpi_evaluate_object(device->handle,
--						      object_name, NULL, NULL);
--			if (ACPI_FAILURE(status)) {
--				result = -ENODEV;
--				goto end;
--			}
--		}
-+		result = acpi_dev_pm_explicit_set(device, state);
-+		if (result)
-+			goto end;
++static int sysfs_do_create_link(struct kobject *kobj, struct kobject *target,
++				const char *name, int warn)
++{
++	struct sysfs_dirent *parent_sd = NULL;
 +
- 		if (device->power.flags.power_resources) {
- 			result = acpi_power_transition(device, state);
- 			if (result)
-@@ -335,15 +336,9 @@ int acpi_bus_init_power(struct acpi_devi
- 		if (result)
- 			return result;
++	if (!kobj)
++		parent_sd = &sysfs_root;
++	else
++		parent_sd = kobj->sd;
++
++	if (!parent_sd)
++		return -EFAULT;
++
++	return sysfs_do_create_link_sd(parent_sd, target, name, warn);
++}
++
++/**
+  *	sysfs_create_link - create symlink between two objects.
+  *	@kobj:	object whose directory we're creating the link in.
+  *	@target:	object we're pointing to.
+Index: linux-pm/include/linux/sysfs.h
+===================================================================
+--- linux-pm.orig/include/linux/sysfs.h
++++ linux-pm/include/linux/sysfs.h
+@@ -154,6 +154,8 @@ int __must_check sysfs_create_bin_file(s
+ void sysfs_remove_bin_file(struct kobject *kobj,
+ 			   const struct bin_attribute *attr);
  
--		if (device->power.states[state].flags.explicit_set) {
--			char method[5] = { '_', 'P', 'S', '0' + state, '\0' };
--			acpi_status status;
--
--			status = acpi_evaluate_object(device->handle, method,
--						      NULL, NULL);
--			if (ACPI_FAILURE(status))
--				return -ENODEV;
--		}
-+		result = acpi_dev_pm_explicit_set(device, state);
-+		if (result)
-+			return result;
- 	}
- 	device->power.state = state;
- 	return 0;
++int sysfs_create_link_sd(struct sysfs_dirent *sd, struct kobject *target,
++			 const char *name);
+ int __must_check sysfs_create_link(struct kobject *kobj, struct kobject *target,
+ 				   const char *name);
+ int __must_check sysfs_create_link_nowarn(struct kobject *kobj,
+@@ -181,6 +183,10 @@ int sysfs_merge_group(struct kobject *ko
+ 		       const struct attribute_group *grp);
+ void sysfs_unmerge_group(struct kobject *kobj,
+ 		       const struct attribute_group *grp);
++int sysfs_add_link_to_group(struct kobject *kobj, const char *group_name,
++			    struct kobject *target, const char *link_name);
++void sysfs_remove_link_from_group(struct kobject *kobj, const char *group_name,
++				  const char *link_name);
+ 
+ void sysfs_notify(struct kobject *kobj, const char *dir, const char *attr);
+ void sysfs_notify_dirent(struct sysfs_dirent *sd);
 
