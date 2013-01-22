@@ -1,80 +1,54 @@
-From: Tang Chen <tangchen@cn.fujitsu.com>
-Subject: [PATCH Bug fix 2/4] Bug fix: Fix the doc format.
-Date: Tue, 22 Jan 2013 19:46:19 +0800
-Message-ID: <1358855181-6160-3-git-send-email-tangchen@cn.fujitsu.com>
-References: <1358855181-6160-1-git-send-email-tangchen@cn.fujitsu.com>
-Return-path: <owner-linux-mm@kvack.org>
-In-Reply-To: <1358855181-6160-1-git-send-email-tangchen@cn.fujitsu.com>
-Sender: owner-linux-mm@kvack.org
-To: akpm@linux-foundation.org, rientjes@google.com, len.brown@intel.com, benh@kernel.crashing.org, paulus@samba.org, cl@linux.com, minchan.kim@gmail.com, kosaki.motohiro@jp.fujitsu.com, isimatu.yasuaki@jp.fujitsu.com, wujianguo@huawei.com, wency@cn.fujitsu.com, hpa@zytor.com, linfeng@cn.fujitsu.com, laijs@cn.fujitsu.com, mgorman@suse.de, yinghai@kernel.org, glommer@parallels.com, jiang.liu@huawei.com, julian.calaby@gmail.com, sfr@canb.auug.org.au
-Cc: x86@kernel.org, linux-mm@kvack.org, linux-kernel@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, linux-acpi@vger.kernel.org
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: [PATCH 2/2] ACPI / PM: Fix device power state value after transitions to D3cold
+Date: Tue, 22 Jan 2013 13:18 +0100
+Message-ID: <3543306.ZHWZyu77Fs@vostro.rjw.lan>
+References: <4115893.XLRCUukpRD@vostro.rjw.lan>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7Bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from hydra.sisk.pl ([212.160.235.94]:49679 "EHLO hydra.sisk.pl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752264Ab3AVMMD (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 22 Jan 2013 07:12:03 -0500
+In-Reply-To: <4115893.XLRCUukpRD@vostro.rjw.lan>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: ACPI Devel Maling List <linux-acpi@vger.kernel.org>
+Cc: LKML <linux-kernel@vger.kernel.org>, Mika Westerberg <mika.westerberg@linux.intel.com>
 
-Signed-off-by: Tang Chen <tangchen@cn.fujitsu.com>
+From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+
+When a transition to the D3cold power state is requested,
+acpi_device_set_power() first carries out a transition to D3hot and
+then turns off the device's power resources.  However, it fails to
+update the device's power.state field appropriately and D3hot is
+stored in it as a result.
+
+Fix this, but make sure that the device's power.state value will be
+D3hot if its power resources cannot be turned off in the final step.
+
+Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 ---
- mm/page_alloc.c |   23 ++++++++++++++---------
- 1 files changed, 14 insertions(+), 9 deletions(-)
+ drivers/acpi/device_pm.c |    7 +++++--
+ 1 file changed, 5 insertions(+), 2 deletions(-)
 
-diff --git a/mm/page_alloc.c b/mm/page_alloc.c
-index 00037a3..cd6f8a6 100644
---- a/mm/page_alloc.c
-+++ b/mm/page_alloc.c
-@@ -4372,7 +4372,7 @@ static unsigned long __meminit zone_absent_pages_in_node(int nid,
- }
+Index: linux-pm/drivers/acpi/device_pm.c
+===================================================================
+--- linux-pm.orig/drivers/acpi/device_pm.c
++++ linux-pm/drivers/acpi/device_pm.c
+@@ -264,8 +264,11 @@ int acpi_device_set_power(struct acpi_de
+ 	if (result)
+ 		goto end;
  
- /**
-- * sanitize_zone_movable_limit - Sanitize the zone_movable_limit array.
-+ * sanitize_zone_movable_limit() - Sanitize the zone_movable_limit array.
-  *
-  * zone_movable_limit is initialized as 0. This function will try to get
-  * the first ZONE_MOVABLE pfn of each node from movablecore_map, and
-@@ -5173,9 +5173,9 @@ early_param("kernelcore", cmdline_parse_kernelcore);
- early_param("movablecore", cmdline_parse_movablecore);
+-	if (cut_power)
+-		result = acpi_power_transition(device, ACPI_STATE_D3_COLD);
++	if (cut_power) {
++		device->power.state = state;
++		state = ACPI_STATE_D3_COLD;
++		result = acpi_power_transition(device, state);
++	}
  
- /**
-- * insert_movablecore_map - Insert a memory range in to movablecore_map.map.
-- * @start_pfn: start pfn of the range
-- * @end_pfn: end pfn of the range
-+ * insert_movablecore_map() - Insert a memory range in to movablecore_map.map.
-+ * @start_pfn:	start pfn of the range
-+ * @end_pfn:	end pfn of the range
-  *
-  * This function will also merge the overlapped ranges, and sort the array
-  * by start_pfn in monotonic increasing order.
-@@ -5236,9 +5236,9 @@ static void __init insert_movablecore_map(unsigned long start_pfn,
- }
- 
- /**
-- * movablecore_map_add_region - Add a memory range into movablecore_map.
-- * @start: physical start address of range
-- * @end: physical end address of range
-+ * movablecore_map_add_region() - Add a memory range into movablecore_map.
-+ * @start:	physical start address of range
-+ * @end:	physical end address of range
-  *
-  * This function transform the physical address into pfn, and then add the
-  * range into movablecore_map by calling insert_movablecore_map().
-@@ -5265,8 +5265,13 @@ static void __init movablecore_map_add_region(u64 start, u64 size)
- }
- 
- /*
-- * movablecore_map=nn[KMG]@ss[KMG] sets the region of memory to be used as
-- * movable memory.
-+ * cmdline_parse_movablecore_map() - Parse boot option movablecore_map.
-+ * @p:	The boot option of the following format:
-+ * 	movablecore_map=nn[KMG]@ss[KMG]
-+ *
-+ * This option sets the memory range [ss, ss+nn) to be used as movable memory.
-+ *
-+ * Return: 0 on success or -EINVAL on failure.
-  */
- static int __init cmdline_parse_movablecore_map(char *p)
- {
--- 
-1.7.1
+  end:
+ 	if (result) {
 
---
-To unsubscribe, send a message with 'unsubscribe linux-mm' in
-the body to majordomo@kvack.org.  For more info on Linux MM,
-see: http://www.linux-mm.org/ .
-Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
