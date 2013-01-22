@@ -1,22 +1,18 @@
-From: Lan Tianyu <tianyu.lan@intel.com>
+From: Lan Tianyu <tianyu.lan-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Subject: Re: [PATCH v6 7/8] usb: add usb_device_allow_power_off() and usb_device_prevent_power_off()
  function.
-Date: Tue, 22 Jan 2013 21:59:12 +0800
-Message-ID: <50FE9B30.8050004@intel.com>
-References: <1358777887-2656-1-git-send-email-tianyu.lan@intel.com> <1358777887-2656-8-git-send-email-tianyu.lan@intel.com> <20130121213317.GD20083@kroah.com>
+Date: Tue, 22 Jan 2013 22:23:12 +0800
+Message-ID: <50FEA0D0.6020106@intel.com>
+References: <1358777887-2656-1-git-send-email-tianyu.lan@intel.com> <1358777887-2656-8-git-send-email-tianyu.lan@intel.com> <20130121213346.GE20083@kroah.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga01.intel.com ([192.55.52.88]:49422 "EHLO mga01.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751737Ab3AVN7R (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 22 Jan 2013 08:59:17 -0500
-In-Reply-To: <20130121213317.GD20083@kroah.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20130121213346.GE20083-U8xfFu+wG4EAvxtiuMwx3w@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Greg KH <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>
+Cc: lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, sarah.a.sharp-VuQAYsv1563Yd54FQh9/CA@public.gmane.org, stern-nwvwT67g6+6dFdvTe/nMLpVzexx5G7lz@public.gmane.org, rjw-KKrjLPT3xs0@public.gmane.org, oneukum-l3A5Bk7waGM@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
-To: Greg KH <gregkh@linuxfoundation.org>
-Cc: lenb@kernel.org, sarah.a.sharp@linux.intel.com, stern@rowland.harvard.edu, rjw@sisk.pl, oneukum@suse.de, linux-usb@vger.kernel.org, linux-acpi@vger.kernel.org
 
 On 2013/1/22 5:33, Greg KH wrote:
 > On Mon, Jan 21, 2013 at 10:18:06PM +0800, Lan Tianyu wrote:
@@ -24,12 +20,9 @@ On 2013/1/22 5:33, Greg KH wrote:
 >> patch is to add usb_device_allow_power_off() and usb_device_prevent_power_off()
 >> for device's driver. Call pm_runtime_get_sync(portdev) to increase port's usage
 >> count and then port will not be suspended. The device will not be powered off.
->
-> Please linewrap comments at the proper level (git likes 72).
->
 >>
->> Acked-by: Alan Stern <stern@rowland.harvard.edu>
->> Signed-off-by: Lan Tianyu <tianyu.lan@intel.com>
+>> Acked-by: Alan Stern <stern-nwvwT67g6+6dFdvTe/nMLpVzexx5G7lz@public.gmane.org>
+>> Signed-off-by: Lan Tianyu <tianyu.lan-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 >> ---
 >>   drivers/usb/core/port.c |   28 ++++++++++++++++++++++++++++
 >>   1 file changed, 28 insertions(+)
@@ -58,14 +51,30 @@ On 2013/1/22 5:33, Greg KH wrote:
 >> + * true and false should be couple. The default status is allowed.
 >> + */
 >> +int usb_device_control_power_off(struct usb_device *udev, bool allow)
+>> +{
+>> +	struct usb_port *port_dev;
+>> +
+>> +	if (!udev->parent)
+>> +		return -EINVAL;
+>> +
+>> +	port_dev = hdev_to_hub(udev->parent)->ports[udev->portnum - 1];
+>> +
+>> +	if (allow)
+>> +		pm_runtime_put_sync(&port_dev->dev);
+>> +	else
+>> +		pm_runtime_get_sync(&port_dev->dev);
+>> +
+>> +	return 0;
+>> +}
+>> +EXPORT_SYMBOL_GPL(usb_device_control_power_off);
 >
-> Ick, again with the boolean variables.  Please don't do this, just make
-> two different functions:
-> 	usb_device_allow_power_off()
-> 	usb_device_forbid_power_off()
-> that makes it much easier to understand when you see the function being
-> called, right?
-Ok. I will do it.
+> Oh, I don't see any code calling this function, so why did you add it?
+>
+> Who needs it?  Where is that code?
+This is provided for device driver. Some device may not be compatible 
+with the power off mechanism and driver can use these function to 
+forbid/allow it. But currently, we are not sure which kinds of device
+they are. So just provide new interfaces.
 >
 > thanks,
 >
@@ -77,3 +86,7 @@ Ok. I will do it.
 Best Regards
 Tianyu Lan
 linux kernel enabling team
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
