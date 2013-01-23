@@ -1,75 +1,88 @@
-From: "Moore, Robert" <robert.moore@intel.com>
-Subject: RE: [RFC PATCH] ACPI: Add boot option to disable auto return object
- repair
-Date: Wed, 23 Jan 2013 12:59:04 +0000
-Message-ID: <94F2FBAB4432B54E8AACC7DFDE6C92E357E552EE@ORSMSX101.amr.corp.intel.com>
-References: <59ec303219ed43c247fd5afc75de35553b9a52d5.1358954645.git.lv.zheng@intel.com>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: Re: [PATCH 4/4] ACPI / PM: Expose lists of device power resources to user space
+Date: Wed, 23 Jan 2013 15:00:21 +0100
+Message-ID: <5602050.KDl1yUI4oH@vostro.rjw.lan>
+References: <3307415.pdOY6ovZLa@vostro.rjw.lan> <4989050.jK98Xm5BOW@vostro.rjw.lan> <20130123010359.GA2024@kroah.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7Bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga09.intel.com ([134.134.136.24]:6559 "EHLO mga09.intel.com"
+Received: from hydra.sisk.pl ([212.160.235.94]:51806 "EHLO hydra.sisk.pl"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754716Ab3AWM7G convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 23 Jan 2013 07:59:06 -0500
-In-Reply-To: <59ec303219ed43c247fd5afc75de35553b9a52d5.1358954645.git.lv.zheng@intel.com>
-Content-Language: en-US
+	id S1754497Ab3AWNyU (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 23 Jan 2013 08:54:20 -0500
+In-Reply-To: <20130123010359.GA2024@kroah.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Zheng, Lv" <lv.zheng@intel.com>, "Brown, Len" <len.brown@intel.com>, "Wysocki, Rafael J" <rafael.j.wysocki@intel.com>, Rafael J Wysocki <rjw@sisk.pl>
-Cc: "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "devel@acpica.org" <devel@acpica.org>
+To: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>, "Kristen C. Accardi" <kristen.c.accardi@intel.com>, Len Brown <lenb@kernel.org>
 
-We continually make progress in this area, and we already can fix a huge number of potential issues. I would rather not allow an option to disable this unless it is absolutely necessary; I don't want this ACPICA feature to become disabled permanently in Linux.
-
-It is rather surprising how many predefined names in any given BIOS return incorrect values. What started out as ad-hoc code littered throughout ACPICA and the ACPI-related device drivers is now encapsulated in a repair module that handles hundreds of possible cases. The repair module is table-driven and causes only a very small overhead.
-
-The final goal of the detect/repair mechanism is that if a driver receives an AE_OK back from the evaluation of a predefined name (anything that starts with an underscore), it is guaranteed that the return value is something that is expected -- thus saving all of the ACPI-related device drivers from performing typechecks on the returned object.
-
-Note: The ACPICA validation/repair code was originally released in 2009.
-
-Bob
-
-
-> -----Original Message-----
-> From: Zheng, Lv
-> Sent: Tuesday, January 22, 2013 11:29 PM
-> To: Brown, Len; Wysocki, Rafael J; Rafael J Wysocki; Moore, Robert
-> Cc: linux-acpi@vger.kernel.org; devel@acpica.org; Zheng, Lv
-> Subject: [RFC PATCH] ACPI: Add boot option to disable auto return object
-> repair
+On Tuesday, January 22, 2013 05:03:59 PM Greg Kroah-Hartman wrote:
+> On Wed, Jan 23, 2013 at 01:17:47AM +0100, Rafael J. Wysocki wrote:
+> > On Wednesday, January 23, 2013 01:08:54 AM Rafael J. Wysocki wrote:
+> > > On Tuesday, January 22, 2013 03:56:24 PM Greg Kroah-Hartman wrote:
+> > > > On Tue, Jan 22, 2013 at 03:28:23AM +0100, Rafael J. Wysocki wrote:
+> > 
+> > [...]
+> > 
+> > > > Oh, and same question about racing userspace, you will have problems
+> > > > here in that the symlinks will be showing up after the device is
+> > > > created.  Perhaps, to make the whole thing easier, you just change the
+> > > > acpi core code to hold off on the notification until you get all of
+> > > > these links and files set up and then tell userspace.  That's probably
+> > > > an easier fix.
+> > > 
+> > > I suppose so.
+> > > 
+> > > How can I do that?
+> > 
+> > Should I set dev->kobj.uevent_suppress before calling device_register() and
+> > then clear it and call the kobject_uevent(&dev->kobj, KOBJ_ADD) from the ACPI
+> > core after device_register() has returned and the files have been created?
 > 
-> There is automatic return object repair mechanism implemented in ACPICA
-> which can not handle all of the issues exposed by BIOS currently. This
-> patch allow a kernel boots up without such workarounds enabled. A better
-> choice should refine the repair mechanism to allow more robust evaluation
-> result.
+> Ick, that might work, but the "traditional" way is to just do the
+> creation of the device in two steps.
 > 
-> Signed-off-by: Lv Zheng <lv.zheng@intel.com>
-> ---
->  drivers/acpi/bus.c |   12 ++++++++++++
->  1 file changed, 12 insertions(+)
-> 
-> diff --git a/drivers/acpi/bus.c b/drivers/acpi/bus.c index
-> 01708a1..e33577f 100644
-> --- a/drivers/acpi/bus.c
-> +++ b/drivers/acpi/bus.c
-> @@ -805,6 +805,18 @@ static int __init acpi_bus_init(void)  struct kobject
-> *acpi_kobj;  EXPORT_SYMBOL_GPL(acpi_kobj);
-> 
-> +static int __init acpi_disable_repair(char *s) {
-> +        printk(KERN_NOTICE PREFIX
-> +	       "ACPI: Predefined names repair disabled\n");
-> +
-> +        acpi_gbl_disable_auto_repair = TRUE;
-> +
-> +        return 1;
-> +}
-> +
-> +__setup("acpi_no_repair", acpi_disable_repair);
-> +
->  static int __init acpi_init(void)
->  {
->  	int result;
-> --
-> 1.7.10.4
+> First call device_initialize().  Then you can do what you want to the
+> device, add sysfs files, etc.  Then call device_add() which "finalizes"
+> the device in the driver core and tells userspace all about it.
 
+Well, this quite obviously doesn't work. :-)
+
+If I call acpi_device_setup_files() between device_initialize() and
+device_add(), it will trigger the BUG_ON() in sysfs_create_file(), because
+kobj->sd is still NULL at this point.
+
+> The USB core has been doing this since the beginning of time (well, since we
+> wrote the driver model) and it has worked out pretty well.
+
+I guess it does something slightly different from what I need to do, however.
+
+> Calling dev_set_uevent_suppress() would also probably work, like you
+> point out the firmware core uses this.
+
+I think I'll need to use this approach.  I think that it still will be prudent
+to call device_initialize() before dev_set_uevent_suppress(), though.
+
+I'll post a new series including this later today.
+
+> Hm, it uses this to create some sysfs files and then tell userspace about
+> them, even though it uses device_add(), that's "odd".
+
+Well, it seems to have the same problem as I do (described above).
+ 
+> Either way should be fine, you can run 'udevadm monitor' as root to
+> watch the sysfs events be sent from the kernel to make sure you have it
+> all working properly.
+
+Unfortunately, core ACPI device objects are created way too early for user
+space to be useful and I don't have any systems with ACPI-based hotplug around
+here ...
+
+Thanks,
+Rafael
+
+
+-- 
+I speak only for myself.
+Rafael J. Wysocki, Intel Open Source Technology Center.
