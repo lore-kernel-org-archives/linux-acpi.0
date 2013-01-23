@@ -1,142 +1,146 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: [Update][PATCH 3/5] ACPI / PM: Expose current status of ACPI power resources
-Date: Wed, 23 Jan 2013 19:00:10 +0100
-Message-ID: <1551140.LKaQ2sxfTJ@vostro.rjw.lan>
-References: <3307415.pdOY6ovZLa@vostro.rjw.lan> <2760421.6nE3tkh92K@vostro.rjw.lan> <1551140.kO91IOVbjI@vostro.rjw.lan>
+From: Peter Wu <lekensteyn@gmail.com>
+Subject: Re: [PATCH] PCI / ACPI: Rework ACPI device nodes lookup for the PCI bus type
+Date: Wed, 23 Jan 2013 20:00:31 +0100
+Message-ID: <4892526.yENRuuZvDT@al>
+References: <16168955.038G1kVfN2@vostro.rjw.lan> <CAErSpo43PYdDLiRFeqjADiZ5w76jNXxJ8dNcffvw7=6dYZ9UHg@mail.gmail.com> <3156987.mALXjkBy5R@vostro.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7Bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from hydra.sisk.pl ([212.160.235.94]:52136 "EHLO hydra.sisk.pl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754273Ab3AWR4V (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 23 Jan 2013 12:56:21 -0500
-In-Reply-To: <1551140.kO91IOVbjI@vostro.rjw.lan>
-Sender: linux-acpi-owner@vger.kernel.org
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <3156987.mALXjkBy5R@vostro.rjw.lan>
+Sender: linux-kernel-owner@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: Bjorn Helgaas <bhelgaas@google.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Len Brown <lenb@kernel.org>, LKML <linux-kernel@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
-To: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>, "Kristen C. Accardi" <kristen.c.accardi@intel.com>, Len Brown <lenb@kernel.org>
 
-From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+Hi,
 
-Since ACPI power resources are going to be used more extensively on
-new hardware platforms, it becomes necessary for user space (powertop
-in particular) to observe some properties of those resources for
-diagnostics purposes.
+Any progress on this one? I guess it won't make into 3.8, perhaps 3.9?
 
-For this reason, expose the current status of each ACPI power
-resource to user space via sysfs by adding a new resource_in_use
-attribute to the sysfs directory representing the given power
-resource.
+On Friday 04 January 2013 00:44:16 Rafael J. Wysocki wrote:
+> On Thursday, January 03, 2013 04:00:55 PM Bjorn Helgaas wrote:
+> > On Thu, Jan 3, 2013 at 3:38 PM, Rafael J. Wysocki <rjw@sisk.pl> wrote:
+> > > On Thursday, January 03, 2013 02:44:32 PM Bjorn Helgaas wrote:
+> > >> On Thu, Jan 3, 2013 at 1:17 PM, Rafael J. Wysocki <rjw@sisk.pl> wrote:
+> > >> > On Thursday, January 03, 2013 08:16:26 AM Bjorn Helgaas wrote:
+> > >> >> On Fri, Dec 28, 2012 at 2:29 PM, Rafael J. Wysocki <rjw@sisk.pl> 
+wrote:
+> > >> >> > From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+> > >> >> > 
+> > >> >> > As the kernel Bugzilla report #42696 indicates, it generally is
+> > >> >> > not
+> > >> >> > sufficient to use _ADR to get an ACPI device node corresponding to
+> > >> >> > the given PCI device, because there may be multiple objects with
+> > >> >> > matching _ADR in the ACPI namespace (this probably is against the
+> > >> >> > spec, but it evidently happens in practice).
+> > >> >> 
+> > >> >> I don't see anything in sec 6.1.1 (_ADR) that precludes having
+> > >> >> multiple objects that contain the same _ADR. Do you have any other
+> > >> >> pointers?
+> > >> > 
+> > >> > Section 6.1 implicitly means that.  It says that for PCI devices _ADR
+> > >> > must be present to identify which device is represented by the given
+> > >> > ACPI node.  Next, Section 6.1.1 says that the parent bus should be
+> > >> > inferred
+> > >> > from the location of the _ADR object's device package in the ACPI
+> > >> > namespace, so clearly, if that's under the PCI root bridge ACPI
+> > >> > node, the _ADR corresponds to a PCI device's bus address.
+> > >> 
+> > >> I agree that for namespace Devices below a PCI host bridge, the _ADR
+> > >> value and its position in the hierarchy is required to be sufficient
+> > >> to identify a PCI device and function (or the set of all functions on
+> > >> a device #).
+> > >> 
+> > >> > Then, Table 6-139 specifies the format of _ADR for PCI devices as
+> > >> > being
+> > >> > euqivalent to devfn, which means that if two nodes with the same _ADR
+> > >> > are
+> > >> > present in one scope (under one parent), then it is impossible to
+> > >> > distinguish between them and that's against Section 6.1.
+> > >> 
+> > >> This is the bit I don't understand.  Where's the requirement that we
+> > >> be able to distinguish between two namespace nodes with the same _ADR?
+> > > 
+> > > According to the spec we can't (if they are under the same parent) and
+> > > that's the whole problem.
+> > 
+> > It's only a problem if you make the assumptions Linux does.  I can
+> > imagine a system with different assumptions.  For example, an OS could
+> > start with PCI device X and ask "please run any _PS0 method that
+> > matches X."  In that case, you don't care how many objects have an
+> > _ADR that matches X; you merely find *any* matching object that
+> > contains _PS0.
+> 
+> Well, except when there are multiple matching objects having _PS0.
+> Which actually happens in the failing case in bug #42696.
+> 
+> Our assumptions work pretty well on other systems and I don't quite see the
+> reason to change them entirely.
+> 
+> Moreover, Section 19.5.30 of the spec says that "Device object [...]
+> represents either a bus or a device or any other similar hardware".  That
+> implies that if there are two objects with the same _ADR matching the same
+> single devfn of a PCI device, that will mean that there are _two_ different
+> PCI devices under the same parent that have the same devfn.  In that case
+> PCI config space accesses wouldn't work for those devices, though.
+> 
+> > >> Linux assumes we can start from a PCI device and identify a single
+> > >> related ACPI namespace node, e.g., in acpi_pci_find_device().  But all
+> > >> I see in the spec is a requirement that we can start from an ACPI
+> > >> namespace node and find a PCI device.  So I'm not sure
+> > >> acpi_pci_find_device() is based on a valid assumption.
+> > > 
+> > > I think it is.
+> > > 
+> > > Suppose that we have two namespace nodes with the same _ADR under one
+> > > parent (PCI bridge ACPI node) and they both contain things like _PS0
+> > > and _PS3.  Which one of these are we supposed to use for the power
+> > > management of the corresponding PCI device?  Because they both would
+> > > point to the same device, right?
+> > 
+> > That's a good question.  It's more complicated if two objects supply
+> > the same method.
+> 
+> Well it is and they do.
+> 
+> > >> Let's say we want to provide _SUN and _UID.  _SUN is a slot number
+> > >> that may apply to several PCI functions, while _UID probably refers to
+> > >> a single PCI function.  Is it legal to provide two namespace objects,
+> > >> one with _ADR 0x0003ffff and _SUN, and another with _ADR 0x00030000
+> > >> and _UID?
+> > > 
+> > > I don't think it is valid to do that.
+> > 
+> > Is there something in the spec that says you can't?  I can imagine a
+> > BIOS writer doing that, and I don't know how I could convince him that
+> > it's illegal.
+> 
+> Well, OK.
+> 
+> > It would be really interesting to try some of these scenarios on
+> > Windows with qemu.
+> 
+> That's interesting theoretically, but doesn't directly relate to the case at
+> hand.  The case at hand is that for a given PCI device we want to find the
+> ACPI namespace node that can be used for things like power management, if
+> one exists.  While it may be valid to specify _ADR of type 0x0003ffff for
+> some namespace nodes, I don't really think it is valid to specify two
+> objects with the same _ADR matching a specific devfn that both provide the
+> same methods (like _PSx or _CRS).
+> 
+> And the question we need to answer is not "I have a namespace node, so which
+> device it represents?", but "I have a device, so which namespace node
+> provides methods I'm supposed to use for it?"
+> 
+> So I think we make the right assumptions, but there are broken BIOSes that
+> don't follow them and I'm trying to find out how to handle them without
+> blacklisting etc.
+> 
+> Questioning the validity of everything we're doing doesn't really help, mind
+> you.
+> 
+> Thanks,
+> Rafael
 
-Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
-Acked-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
----
- Documentation/ABI/testing/sysfs-devices-resource_in_use |   12 +++++++
- drivers/acpi/power.c                                    |   26 +++++++++++++++-
- drivers/acpi/scan.c                                     |    3 +
- include/acpi/acpi_bus.h                                 |    1 
- 4 files changed, 41 insertions(+), 1 deletion(-)
-
-Index: linux-pm/include/acpi/acpi_bus.h
-===================================================================
---- linux-pm.orig/include/acpi/acpi_bus.h
-+++ linux-pm/include/acpi/acpi_bus.h
-@@ -278,6 +278,7 @@ struct acpi_device {
- 	struct mutex physical_node_lock;
- 	DECLARE_BITMAP(physical_node_id_bitmap, ACPI_MAX_PHYSICAL_NODE);
- 	struct list_head power_dependent;
-+	void (*remove)(struct acpi_device *);
- };
- 
- static inline void *acpi_driver_data(struct acpi_device *d)
-Index: linux-pm/drivers/acpi/scan.c
-===================================================================
---- linux-pm.orig/drivers/acpi/scan.c
-+++ linux-pm/drivers/acpi/scan.c
-@@ -790,6 +790,9 @@ static void acpi_device_unregister(struc
- 
- 	acpi_power_add_remove_device(device, false);
- 	acpi_device_remove_files(device);
-+	if (device->remove)
-+		device->remove(device);
-+
- 	device_del(&device->dev);
- 	/*
- 	 * Drop the reference counts of all power resources the device depends
-Index: linux-pm/drivers/acpi/power.c
-===================================================================
---- linux-pm.orig/drivers/acpi/power.c
-+++ linux-pm/drivers/acpi/power.c
-@@ -87,6 +87,12 @@ static DEFINE_MUTEX(power_resource_list_
-                              Power Resource Management
-    -------------------------------------------------------------------------- */
- 
-+static inline
-+struct acpi_power_resource *to_power_resource(struct acpi_device *device)
-+{
-+	return container_of(device, struct acpi_power_resource, device);
-+}
-+
- static struct acpi_power_resource *acpi_power_get_context(acpi_handle handle)
- {
- 	struct acpi_device *device;
-@@ -94,7 +100,7 @@ static struct acpi_power_resource *acpi_
- 	if (acpi_bus_get_device(handle, &device))
- 		return NULL;
- 
--	return container_of(device, struct acpi_power_resource, device);
-+	return to_power_resource(device);
- }
- 
- static int acpi_power_resources_list_add(acpi_handle handle,
-@@ -676,6 +682,21 @@ static void acpi_release_power_resource(
- 	kfree(resource);
- }
- 
-+static ssize_t acpi_power_in_use_show(struct device *dev,
-+				      struct device_attribute *attr,
-+				      char *buf) {
-+	struct acpi_power_resource *resource;
-+
-+	resource = to_power_resource(to_acpi_device(dev));
-+	return sprintf(buf, "%u\n", !!resource->ref_count);
-+}
-+static DEVICE_ATTR(resource_in_use, 0444, acpi_power_in_use_show, NULL);
-+
-+static void acpi_power_sysfs_remove(struct acpi_device *device)
-+{
-+	device_remove_file(&device->dev, &dev_attr_resource_in_use);
-+}
-+
- int acpi_add_power_resource(acpi_handle handle)
- {
- 	struct acpi_power_resource *resource;
-@@ -723,6 +744,9 @@ int acpi_add_power_resource(acpi_handle
- 	if (result)
- 		goto err;
- 
-+	if (!device_create_file(&device->dev, &dev_attr_resource_in_use))
-+		device->remove = acpi_power_sysfs_remove;
-+
- 	mutex_lock(&power_resource_list_lock);
- 	list_add(&resource->list_node, &acpi_power_resource_list);
- 	mutex_unlock(&power_resource_list_lock);
-Index: linux-pm/Documentation/ABI/testing/sysfs-devices-resource_in_use
-===================================================================
---- /dev/null
-+++ linux-pm/Documentation/ABI/testing/sysfs-devices-resource_in_use
-@@ -0,0 +1,12 @@
-+What:		/sys/devices/.../resource_in_use
-+Date:		January 2013
-+Contact:	Rafael J. Wysocki <rafael.j.wysocki@intel.com>
-+Description:
-+		The /sys/devices/.../resource_in_use attribute is only present
-+		for device objects representing ACPI power resources.
-+
-+		If present, it contains a number (0 or 1) representing the
-+		current status of the given power resource (0 means that the
-+		resource is not in use and therefore it has been turned off).
-+
-+		This attribute is read-only.
-
+Regards,
+Peter
