@@ -1,34 +1,68 @@
-From: Seiji Aguchi <seiji.aguchi@hds.com>
-Subject: RE: ERST: how to avoid a dynamic memory allocation in panic case
-Date: Wed, 23 Jan 2013 00:44:19 +0000
-Message-ID: <A5ED84D3BB3A384992CBB9C77DEDA4D414A520D4@USINDEM103.corp.hds.com>
-References: <A5ED84D3BB3A384992CBB9C77DEDA4D414A51F3D@USINDEM103.corp.hds.com>
- <1358901594.7408.85.camel@yhuang-dev>
+From: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Subject: Re: [PATCH 4/4] ACPI / PM: Expose lists of device power resources to
+ user space
+Date: Tue, 22 Jan 2013 17:03:59 -0800
+Message-ID: <20130123010359.GA2024@kroah.com>
+References: <3307415.pdOY6ovZLa@vostro.rjw.lan>
+ <20130122235624.GF694@kroah.com>
+ <4110339.gOkm8VAsyn@vostro.rjw.lan>
+ <4989050.jK98Xm5BOW@vostro.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from usindpps06.hds.com ([207.126.252.19]:35581 "EHLO
-	usindpps06.hds.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751127Ab3AWApI (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 22 Jan 2013 19:45:08 -0500
-In-Reply-To: <1358901594.7408.85.camel@yhuang-dev>
-Content-Language: en-US
+Received: from mail-pa0-f45.google.com ([209.85.220.45]:34667 "EHLO
+	mail-pa0-f45.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752504Ab3AWBED (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 22 Jan 2013 20:04:03 -0500
+Received: by mail-pa0-f45.google.com with SMTP id bg2so4407281pad.32
+        for <linux-acpi@vger.kernel.org>; Tue, 22 Jan 2013 17:04:03 -0800 (PST)
+Content-Disposition: inline
+In-Reply-To: <4989050.jK98Xm5BOW@vostro.rjw.lan>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Huang Ying <ying.huang@intel.com>
-Cc: "rjw@sisk.pl" <rjw@sisk.pl>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "H. Peter Anvin (hpa@zytor.com)" <hpa@zytor.com>, "robert.moore@intel.com" <robert.moore@intel.com>, "trenn@suse.de" <trenn@suse.de>, "myron.stowe@redhat.com" <myron.stowe@redhat.com>
+To: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>, "Kristen C. Accardi" <kristen.c.accardi@intel.com>, Len Brown <lenb@kernel.org>
 
-DQoNCj4gPiA8c25pcD4NCj4gPiBAQCAtOTE4LDEwICs5MTgsNyBAQCBhY3BpX29zX3JlYWRfbWVt
-b3J5KGFjcGlfcGh5c2ljYWxfYWRkcmVzcyBwaHlzX2FkZHIsIHU2NCAqdmFsdWUsIHUzMiB3aWR0
-aCkNCj4gPiAgCXZpcnRfYWRkciA9IGFjcGlfbWFwX3ZhZGRyX2xvb2t1cChwaHlzX2FkZHIsIHNp
-emUpOw0KPiA+ICAJaWYgKCF2aXJ0X2FkZHIpIHsNCj4gPiAgCQlyY3VfcmVhZF91bmxvY2soKTsN
-Cj4gPiAtCQl2aXJ0X2FkZHIgPSBhY3BpX29zX2lvcmVtYXAocGh5c19hZGRyLCBzaXplKTsNCj4g
-PiAtCQlpZiAoIXZpcnRfYWRkcikNCj4gPiAtCQkJcmV0dXJuIEFFX0JBRF9BRERSRVNTOw0KPiA+
-IC0JCXVubWFwID0gdHJ1ZTsNCj4gPiArCQlyZXR1cm4gQUVfQkFEX0FERFJFU1M7DQo+IA0KPiBO
-by4gIFdlIGNhbiBub3QgZG8gdGhhdC4gIEJlY2F1c2Ugc29tZSB1c2VycyByZWx5IG9uIGFjcGlf
-b3NfcmVhZF9tZW1vcnkgdG8gZG8gaW9yZW1hcCBmb3IgdGhlbS4NCg0KVGhhbmsgeW91IGZvciBn
-aXZpbmcgbWUgdGhlIGluZm9ybWF0aW9uLg0KDQo+IFRoZSBjb3JyZWN0IGZpeGluZyBzaG91bGQg
-YmUgcHJlLW1hcCB0aGUgaW8tbWVtb3J5IHRoYXQgbWF5IGJlIGFjY2Vzc2VkIGluIGVyc3QgY29k
-ZSBwYXRjaCB3aXRoIGFjcGlfbWFwKCkuDQoNCkkgd2lsbCB0YWtlIGEgbG9vayBhdCB0aGUgY29k
-ZS4NCg0KU2VpamkNCg==
+On Wed, Jan 23, 2013 at 01:17:47AM +0100, Rafael J. Wysocki wrote:
+> On Wednesday, January 23, 2013 01:08:54 AM Rafael J. Wysocki wrote:
+> > On Tuesday, January 22, 2013 03:56:24 PM Greg Kroah-Hartman wrote:
+> > > On Tue, Jan 22, 2013 at 03:28:23AM +0100, Rafael J. Wysocki wrote:
+> 
+> [...]
+> 
+> > > Oh, and same question about racing userspace, you will have problems
+> > > here in that the symlinks will be showing up after the device is
+> > > created.  Perhaps, to make the whole thing easier, you just change the
+> > > acpi core code to hold off on the notification until you get all of
+> > > these links and files set up and then tell userspace.  That's probably
+> > > an easier fix.
+> > 
+> > I suppose so.
+> > 
+> > How can I do that?
+> 
+> Should I set dev->kobj.uevent_suppress before calling device_register() and
+> then clear it and call the kobject_uevent(&dev->kobj, KOBJ_ADD) from the ACPI
+> core after device_register() has returned and the files have been created?
+
+Ick, that might work, but the "traditional" way is to just do the
+creation of the device in two steps.
+
+First call device_initialize().  Then you can do what you want to the
+device, add sysfs files, etc.  Then call device_add() which "finalizes"
+the device in the driver core and tells userspace all about it.  The USB
+core has been doing this since the beginning of time (well, since we
+wrote the driver model) and it has worked out pretty well.
+
+Calling dev_set_uevent_suppress() would also probably work, like you
+point out the firmware core uses this.  Hm, it uses this to create some
+sysfs files and then tell userspace about them, even though it uses
+device_add(), that's "odd".
+
+Either way should be fine, you can run 'udevadm monitor' as root to
+watch the sysfs events be sent from the kernel to make sure you have it
+all working properly.
+
+Hope this helps,
+
+greg k-h
