@@ -1,68 +1,64 @@
-From: Thomas Renninger <trenn@suse.de>
-Subject: Re: [Devel] [RFC PATCH] ACPI: Add boot option to disable auto return object repair
-Date: Wed, 23 Jan 2013 13:18:52 +0100
-Message-ID: <201301231318.52311.trenn@suse.de>
-References: <59ec303219ed43c247fd5afc75de35553b9a52d5.1358954645.git.lv.zheng@intel.com>
+From: Simon Jeons <simon.jeons@gmail.com>
+Subject: Re: [PATCH Bug fix 0/5] Bug fix for physical memory hot-remove.
+Date: Wed, 23 Jan 2013 06:29:31 -0600
+Message-ID: <1358944171.3351.1.camel@kernel>
+References: <1358854984-6073-1-git-send-email-tangchen@cn.fujitsu.com>
 Mime-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
+Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cantor2.suse.de ([195.135.220.15]:41725 "EHLO mx2.suse.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754723Ab3AWMTA (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 23 Jan 2013 07:19:00 -0500
-In-Reply-To: <59ec303219ed43c247fd5afc75de35553b9a52d5.1358954645.git.lv.zheng@intel.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Return-path: <owner-linux-mm@kvack.org>
+In-Reply-To: <1358854984-6073-1-git-send-email-tangchen@cn.fujitsu.com>
+Sender: owner-linux-mm@kvack.org
+To: Tang Chen <tangchen@cn.fujitsu.com>
+Cc: akpm@linux-foundation.org, rientjes@google.com, len.brown@intel.com, benh@kernel.crashing.org, paulus@samba.org, cl@linux.com, minchan.kim@gmail.com, kosaki.motohiro@jp.fujitsu.com, isimatu.yasuaki@jp.fujitsu.com, wujianguo@huawei.com, wency@cn.fujitsu.com, hpa@zytor.com, linfeng@cn.fujitsu.com, laijs@cn.fujitsu.com, mgorman@suse.de, yinghai@kernel.org, glommer@parallels.com, jiang.liu@huawei.com, julian.calaby@gmail.com, sfr@canb.auug.org.au, x86@kernel.org, linux-mm@kvack.org, linux-kernel@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, linux-acpi@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: devel@acpica.org
-Cc: Lv Zheng <lv.zheng@intel.com>, Len Brown <len.brown@intel.com>, Rafael J Wysocki <rafael.j.wysocki@intel.com>, Rafael J Wysocki <rjw@sisk.pl>, Robert Moore <robert.moore@intel.com>, linux-acpi@vger.kernel.org
 
-On Wednesday, January 23, 2013 08:29:02 AM Lv Zheng wrote:
-> There is automatic return object repair mechanism implemented in
-> ACPICA which can not handle all of the issues exposed by BIOS
-> currently. This patch allow a kernel boots up without such
-> workarounds enabled. A better choice should refine the repair
-> mechanism to allow more robust evaluation result.
+On Tue, 2013-01-22 at 19:42 +0800, Tang Chen wrote:
+> Here are some bug fix patches for physical memory hot-remove. All these
+> patches are based on the latest -mm tree.
+> git://git.kernel.org/pub/scm/linux/kernel/git/next/linux-next.git akpm
 > 
-> Signed-off-by: Lv Zheng <lv.zheng@intel.com>
-> ---
->  drivers/acpi/bus.c |   12 ++++++++++++
-
-drivers/acpi/osl.c would IMO make more sense to add this, there
-is no __setup function in bus.c yet, but in osl.c there is:
-__setup("acpi_serialize", acpi_serialize_setup);
-doing more or less the same.
-
->  1 file changed, 12 insertions(+)
+> And patch1 and patch3 are very important.
+> patch1: free compound pages when freeing memmap, otherwise the kernel
+>         will panic the next time memory is hot-added.
+> patch3: the old way of freeing pagetable pages was wrong. We should never
+>         split larger pages into small ones.
 > 
-> diff --git a/drivers/acpi/bus.c b/drivers/acpi/bus.c
-> index 01708a1..e33577f 100644
-> --- a/drivers/acpi/bus.c
-> +++ b/drivers/acpi/bus.c
-> @@ -805,6 +805,18 @@ static int __init acpi_bus_init(void)
->  struct kobject *acpi_kobj;
->  EXPORT_SYMBOL_GPL(acpi_kobj);
->  
-> +static int __init acpi_disable_repair(char *s)
-> +{
-> +        printk(KERN_NOTICE PREFIX
-pr_notice()
+> 
 
-No need to change other printk(KERN_NOTICE..., but new patches
-should make use of pr_notice.
+Hi Tang,
 
-Are there known error messages that indicate when it makes sense
-to try this out?
-How would I know I should try this boot param?
+I remember your big physical memory hot-remove patchset has already
+merged by Andrew, but where I can find it? Could you give me git tree 
+address?
 
-If there are hints when to use this, it makes sense to mention them at 
-least in the changelog (or a bug reference or similar).
+> Lai Jiangshan (1):
+>   Bug-fix: mempolicy: fix is_valid_nodemask()
+> 
+> Tang Chen (3):
+>   Bug fix: Do not split pages when freeing pagetable pages.
+>   Bug fix: Fix section mismatch problem of
+>     release_firmware_map_entry().
+>   Bug fix: Fix the doc format in drivers/firmware/memmap.c
+> 
+> Wen Congyang (1):
+>   Bug fix: consider compound pages when free memmap
+> 
+>  arch/x86/mm/init_64.c     |  148 ++++++++++++++-------------------------------
+>  drivers/firmware/memmap.c |   16 +++---
+>  mm/mempolicy.c            |   36 +++++++----
+>  mm/sparse.c               |    2 +-
+>  4 files changed, 77 insertions(+), 125 deletions(-)
+> 
+> --
+> To unsubscribe, send a message with 'unsubscribe linux-mm' in
+> the body to majordomo@kvack.org.  For more info on Linux MM,
+> see: http://www.linux-mm.org/ .
+> Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
 
-kernel parameters are typically described in
-Documentation/kernel-parameters.txt
-Not sure whether it's worth for this one (if it's intended for low level 
-ACPI debugging only and people making use of it know the drivers/acpi/*
-code and therefore know about this option it may not).
 
-   Thomas
+--
+To unsubscribe, send a message with 'unsubscribe linux-mm' in
+the body to majordomo@kvack.org.  For more info on Linux MM,
+see: http://www.linux-mm.org/ .
+Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
