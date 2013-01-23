@@ -1,52 +1,73 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: [PATCH 4/4] ACPI / PM: Expose lists of device power resources to user space
-Date: Wed, 23 Jan 2013 01:28:40 +0100
-Message-ID: <3211997.SUlOUD0HDl@vostro.rjw.lan>
-References: <3307415.pdOY6ovZLa@vostro.rjw.lan> <4110339.gOkm8VAsyn@vostro.rjw.lan> <4989050.jK98Xm5BOW@vostro.rjw.lan>
+From: Huang Ying <ying.huang@intel.com>
+Subject: Re: ERST: how to avoid a dynamic memory allocation in panic case
+Date: Wed, 23 Jan 2013 08:39:54 +0800
+Message-ID: <1358901594.7408.85.camel@yhuang-dev>
+References: <A5ED84D3BB3A384992CBB9C77DEDA4D414A51F3D@USINDEM103.corp.hds.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from hydra.sisk.pl ([212.160.235.94]:50929 "EHLO hydra.sisk.pl"
+Received: from mga11.intel.com ([192.55.52.93]:29438 "EHLO mga11.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756249Ab3AWAWl (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 22 Jan 2013 19:22:41 -0500
-In-Reply-To: <4989050.jK98Xm5BOW@vostro.rjw.lan>
+	id S1751077Ab3AWAkR (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 22 Jan 2013 19:40:17 -0500
+In-Reply-To: <A5ED84D3BB3A384992CBB9C77DEDA4D414A51F3D@USINDEM103.corp.hds.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>, "Kristen C. Accardi" <kristen.c.accardi@intel.com>, Len Brown <lenb@kernel.org>
+To: Seiji Aguchi <seiji.aguchi@hds.com>
+Cc: "rjw@sisk.pl" <rjw@sisk.pl>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "H. Peter Anvin (hpa@zytor.com)" <hpa@zytor.com>, "robert.moore@intel.com" <robert.moore@intel.com>, "trenn@suse.de" <trenn@suse.de>, "myron.stowe@redhat.com" <myron.stowe@redhat.com>
 
-On Wednesday, January 23, 2013 01:17:47 AM Rafael J. Wysocki wrote:
-> On Wednesday, January 23, 2013 01:08:54 AM Rafael J. Wysocki wrote:
-> > On Tuesday, January 22, 2013 03:56:24 PM Greg Kroah-Hartman wrote:
-> > > On Tue, Jan 22, 2013 at 03:28:23AM +0100, Rafael J. Wysocki wrote:
+On Tue, 2013-01-22 at 23:30 +0000, Seiji Aguchi wrote:
+> [Issue]
 > 
-> [...]
+> Current erst driver is kicked in panic case.
+> On the other hand, a dynamic memory allocation seems to run in it
+> with a following code path.
 > 
-> > > Oh, and same question about racing userspace, you will have problems
-> > > here in that the symlinks will be showing up after the device is
-> > > created.  Perhaps, to make the whole thing easier, you just change the
-> > > acpi core code to hold off on the notification until you get all of
-> > > these links and files set up and then tell userspace.  That's probably
-> > > an easier fix.
-> > 
-> > I suppose so.
-> > 
-> > How can I do that?
+> erst_writer -> erst_write -> __erst_write_to_storage -> many of apei_exec_run -> 
+> ctx->ins_table[entry->instruction].run()
 > 
-> Should I set dev->kobj.uevent_suppress before calling device_register() and
-> then clear it and call the kobject_uevent(&dev->kobj, KOBJ_ADD) from the ACPI
-> core after device_register() has returned and the files have been created?
+> which are functions defined in erst_ins_type table i.e:
+> 
+> apei_exec_read_register -> apei_read -> acpi_os_read_memory64 -> acpi_os_ioremap -> ioremap_cache
+> 
+> which possibly involve IOMMU allocator.
+> 
+> I may cause a failure of  an erst driver if the panic happens in an interrupt context.
+> 
+> [Idea]
+> 
+> If we can remove ioremap_cache() from acpi_os_read_memory() as follows,
+> It is easy to fix this issue.
+> But I'm not sure if it is feasible because I can't see the reason of tying acpi_os_ioremap()  from a git log...
+> 
+> Any comment?
+> 
+> <snip>
+> @@ -918,10 +918,7 @@ acpi_os_read_memory(acpi_physical_address phys_addr, u64 *value, u32 width)
+>  	virt_addr = acpi_map_vaddr_lookup(phys_addr, size);
+>  	if (!virt_addr) {
+>  		rcu_read_unlock();
+> -		virt_addr = acpi_os_ioremap(phys_addr, size);
+> -		if (!virt_addr)
+> -			return AE_BAD_ADDRESS;
+> -		unmap = true;
+> +		return AE_BAD_ADDRESS;
 
-I suppose along the lines of how firmware_class.c uses uevent_suppress?
+No.  We can not do that.  Because some users rely on acpi_os_read_memory
+to do ioremap for them.
 
-Is there any safe mechanism for adding/removing sysfs attributes after
-kobject_uevent(&dev->kobj, KOBJ_ADD) has been called for the given device?
+The correct fixing should be pre-map the io-memory that may be accessed
+in erst code patch with acpi_map().
 
-Rafael
+Best Regards,
+Huang Ying
+
+>  	}
+>  
+>  	if (!value)
+> <snip>
+> 
+> Seiji
 
 
--- 
-I speak only for myself.
-Rafael J. Wysocki, Intel Open Source Technology Center.
