@@ -1,83 +1,90 @@
 From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: [Update][PATCH 0/5] ACPI / PM: Export power information to user space
-Date: Thu, 24 Jan 2013 13:34:31 +0100
-Message-ID: <2285025.HJbzHTbVLh@vostro.rjw.lan>
-References: <3307415.pdOY6ovZLa@vostro.rjw.lan> <1551140.kO91IOVbjI@vostro.rjw.lan> <20130124003440.GD10969@kroah.com>
+Subject: [GIT PULL] ACPI and power management fixes for v3.8-rc5
+Date: Thu, 24 Jan 2013 13:57:55 +0100
+Message-ID: <4322980.ey5AOPpS2x@vostro.rjw.lan>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7Bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from hydra.sisk.pl ([212.160.235.94]:53285 "EHLO hydra.sisk.pl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754084Ab3AXM23 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 24 Jan 2013 07:28:29 -0500
-In-Reply-To: <20130124003440.GD10969@kroah.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Return-path: <linux-pm-owner@vger.kernel.org>
+Sender: linux-pm-owner@vger.kernel.org
+To: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: LKML <linux-kernel@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux PM list <linux-pm@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
-To: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>, "Kristen C. Accardi" <kristen.c.accardi@intel.com>, Len Brown <lenb@kernel.org>
 
-On Wednesday, January 23, 2013 04:34:40 PM Greg Kroah-Hartman wrote:
-> On Wed, Jan 23, 2013 at 06:56:43PM +0100, Rafael J. Wysocki wrote:
-> > On Tuesday, January 22, 2013 03:15:52 AM Rafael J. Wysocki wrote:
-> > > On Monday, January 21, 2013 02:03:03 PM Rafael J. Wysocki wrote:
-> > > > On Monday, January 21, 2013 01:48:55 AM Rafael J. Wysocki wrote:
-> > > > > On Sunday, January 20, 2013 03:51:40 PM Rafael J. Wysocki wrote:
-> > > > > > Hi Greg,
-> > > > > > 
-> > > > > > The following patch series is about exporting ACPI power resources to user
-> > > > > > space that will be necessary for PM diagnostics on new platforms (powertop is
-> > > > > > the target).  Still, existing systems can also benefit from that, like my
-> > > > > > oldish HP nx6325 on which the patches have been tested.
-> > > > > > 
-> > > > > > Patch [1/3] shouldn't be really controverisal, as it only makes it possible
-> > > > > > to read power resources' reference counters from user space in a quite
-> > > > > > straightforward way.
-> > > > > > 
-> > > > > > Patch [3/3], however, exposes lists of power resources associated with
-> > > > > > different power states of devices using ACPI PM as sysfs subdirectories
-> > > > > > containing symbolic links and that requires some sysfs changes made by
-> > > > > > patch [2/3].
-> > > > > > 
-> > > > > > Admittedly, my sysfs skills are limited so please let me know if those
-> > > > > > changes make sense and are acceptable from your perspective.  If not, then
-> > > > > > please kindly advise what I can do instead of them.
-> > > > > > 
-> > > > > > The patches apply on top of the current linux-next branch of the linux-pm.git
-> > > > > > tree.
-> > > > > 
-> > > > > Refreshed with Documentation/ABI files as requested.
-> > > > 
-> > > > Well, that version wasn't really a good one, due to mistakes in the docs
-> > > > mostly, so a new one follows (with better docs hopefully).
-> > > > 
-> > > > Besides, I thought I'd include a patch that exposes ACPI power state
-> > > > information, because it kind of belongs to the lot.  It goes as the new [1/4].
-> > > > 
-> > > > [2/4] is the previous [1/3] and so on.
-> > > 
-> > > Here it goes again after the changes we discussed earlier today.
-> > > 
-> > > I think I've addressed all of the comments, but if I overlooked something,
-> > > please let me know.
-> > 
-> > So, the following is an update containing a patch ([1/5]) that fixes the
-> > "creation of sysfs files after the device have been registered" problem.
-> > Hopefully. :-)
-> > 
-> > Patches [2-3/5] are the previous [1-2/4] and they are almost identical as
-> > before, so I added the ACKs you gave for them.  Patch [4/5] is the sysfs one
-> > with the internal function placed in the internal header.  Patch [5/5] is
-> > a rework of the one exposing the lists of power resources as directories
-> > containing symbolic links.
-> > 
-> > Please let me know if you are fine with this.
-> 
-> These all look great, thanks for fixing up the acpi device notification
-> mess, and the sysfs header file locations.  Feel free to take all of
-> these through your tree.
+Hi Linus,
 
-I will, thanks a lot for reviewing!
+Please pull from the git repository at
+
+  git://git.kernel.org/pub/scm/linux/kernel/git/rafael/linux-pm.git pm+acpi-for-3.8-rc5
+
+to receive ACPI and power management fixes for v3.8-rc5 with top-most commit
+efa17194581bdfca0986dabc178908bd7c21ba00
+
+  cpufreq: Add module aliases for acpi-cpufreq
+
+on top of commit 7d1f9aeff1ee4a20b1aeb377dd0f579fe9647619
+
+  Linux 3.8-rc4
+
+Included are:
+
+* Two cpuidle initialization fixes (both -stable material) from
+  Konrad Rzeszutek Wilk.
+
+* cpufreq regression fixes for AMD processors, mostly related to the change
+  of the default driver for newer CPUs from powernow-k8 to acpi-cpufreq.
+  From Borislav Petkov, Stefan Bader, Matthew Garrett.
+
+* ACPI cpufreq fix related to system reconfigurations such as the switch
+  from battery to AC power from Thomas Schlichter (-stable material).
+
+* cpufreq and devfreq fixes related to incorrect usage of operating
+  performance points (OPP) framework and RCU from Nishanth Menon
+  (-stable material).
+
+* APEI workaround for incorrect BIOS information from Lans Zhang.
+
+Thanks!
+ 
+
+ drivers/acpi/apei/apei-base.c    |    3 ++
+ drivers/acpi/processor_idle.c    |    4 ++
+ drivers/acpi/processor_perflib.c |    7 ++++
+ drivers/cpufreq/Kconfig.x86      |    2 +-
+ drivers/cpufreq/acpi-cpufreq.c   |    7 ++++
+ drivers/cpufreq/cpufreq-cpu0.c   |    5 +++
+ drivers/cpufreq/omap-cpufreq.c   |    3 ++
+ drivers/devfreq/devfreq.c        |    5 +++
+ drivers/devfreq/exynos4_bus.c    |   94 +++++++++++++++++++++++++++++++++-------------
+ drivers/idle/intel_idle.c        |    3 +-
+ 10 files changed, 103 insertions(+), 30 deletions(-)
+
+---------------
+
+Borislav Petkov (1):
+      powernow-k8: Add a kconfig dependency on acpi-cpufreq
+
+Konrad Rzeszutek Wilk (2):
+      intel_idle: Don't register CPU notifier if we are not running.
+      ACPI / cpuidle: Fix NULL pointer issues when cpuidle is disabled
+
+Lans Zhang (1):
+      ACPI, APEI: Fixup incorrect 64-bit access width firmware bug
+
+Matthew Garrett (1):
+      cpufreq: Add module aliases for acpi-cpufreq
+
+Nishanth Menon (4):
+      cpufreq: OMAP: use RCU locks around usage of OPP
+      cpufreq: cpufreq-cpu0: use RCU locks around usage of OPP
+      PM / devfreq: add locking documentation for recommended_opp
+      PM / devfreq: exynos4_bus: honor RCU lock usage
+
+Stefan Bader (1):
+      ACPI: Check MSR valid bit before using P-state frequencies
+
+Thomas Schlichter (1):
+      ACPI / processor: Get power info before updating the C-states
 
 
 -- 
