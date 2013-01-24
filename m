@@ -1,92 +1,137 @@
 From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: [GIT PULL] ACPI and power management fixes for v3.8-rc5
-Date: Thu, 24 Jan 2013 13:57:55 +0100
-Message-ID: <4322980.ey5AOPpS2x@vostro.rjw.lan>
+Subject: [PATCH] ACPI / scan: Make it clear that acpi_bus_trim() cannot fail
+Date: Thu, 24 Jan 2013 23:56:50 +0100
+Message-ID: <1511096.zmfmBrfdmu@vostro.rjw.lan>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7Bit
-Return-path: <linux-pm-owner@vger.kernel.org>
-Sender: linux-pm-owner@vger.kernel.org
-To: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: LKML <linux-kernel@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux PM list <linux-pm@vger.kernel.org>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from hydra.sisk.pl ([212.160.235.94]:54347 "EHLO hydra.sisk.pl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755623Ab3AXWur (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 24 Jan 2013 17:50:47 -0500
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: ACPI Devel Maling List <linux-acpi@vger.kernel.org>
+Cc: LKML <linux-kernel@vger.kernel.org>, Bjorn Helgaas <bhelgaas@google.com>, Yinghai Lu <yinghai@kernel.org>, Toshi Kani <toshi.kani@hp.com>, Jiang Liu <liuj97@gmail.com>
 
-Hi Linus,
+From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 
-Please pull from the git repository at
+Since acpi_bus_trim() cannot fail, change its definition to a void
+function, so that its callers don't check the return value in vain
+and update the callers.
 
-  git://git.kernel.org/pub/scm/linux/kernel/git/rafael/linux-pm.git pm+acpi-for-3.8-rc5
+Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+---
 
-to receive ACPI and power management fixes for v3.8-rc5 with top-most commit
-efa17194581bdfca0986dabc178908bd7c21ba00
+On top of current linux-pm.git/linux-next.
 
-  cpufreq: Add module aliases for acpi-cpufreq
+Thanks,
+Rafael
 
-on top of commit 7d1f9aeff1ee4a20b1aeb377dd0f579fe9647619
+---
+ drivers/acpi/dock.c                |    8 ++------
+ drivers/acpi/scan.c                |   12 +++---------
+ drivers/pci/hotplug/acpiphp_glue.c |   10 +++-------
+ include/acpi/acpi_bus.h            |    2 +-
+ 4 files changed, 9 insertions(+), 23 deletions(-)
 
-  Linux 3.8-rc4
-
-Included are:
-
-* Two cpuidle initialization fixes (both -stable material) from
-  Konrad Rzeszutek Wilk.
-
-* cpufreq regression fixes for AMD processors, mostly related to the change
-  of the default driver for newer CPUs from powernow-k8 to acpi-cpufreq.
-  From Borislav Petkov, Stefan Bader, Matthew Garrett.
-
-* ACPI cpufreq fix related to system reconfigurations such as the switch
-  from battery to AC power from Thomas Schlichter (-stable material).
-
-* cpufreq and devfreq fixes related to incorrect usage of operating
-  performance points (OPP) framework and RCU from Nishanth Menon
-  (-stable material).
-
-* APEI workaround for incorrect BIOS information from Lans Zhang.
-
-Thanks!
+Index: linux-pm/drivers/acpi/scan.c
+===================================================================
+--- linux-pm.orig/drivers/acpi/scan.c
++++ linux-pm/drivers/acpi/scan.c
+@@ -127,13 +127,8 @@ void acpi_bus_hot_remove_device(void *co
+ 	ACPI_DEBUG_PRINT((ACPI_DB_INFO,
+ 		"Hot-removing device %s...\n", dev_name(&device->dev)));
  
+-	if (acpi_bus_trim(device)) {
+-		printk(KERN_ERR PREFIX
+-				"Removing device failed\n");
+-		goto err_out;
+-	}
+-
+-	/* device has been freed */
++	acpi_bus_trim(device);
++	/* Device node has been released. */
+ 	device = NULL;
+ 
+ 	/* power off device */
+@@ -1656,7 +1651,7 @@ static acpi_status acpi_bus_remove(acpi_
+ 	return AE_OK;
+ }
+ 
+-int acpi_bus_trim(struct acpi_device *start)
++void acpi_bus_trim(struct acpi_device *start)
+ {
+ 	/*
+ 	 * Execute acpi_bus_device_detach() as a post-order callback to detach
+@@ -1672,7 +1667,6 @@ int acpi_bus_trim(struct acpi_device *st
+ 	acpi_walk_namespace(ACPI_TYPE_ANY, start->handle, ACPI_UINT32_MAX, NULL,
+ 			    acpi_bus_remove, NULL, NULL);
+ 	acpi_bus_remove(start->handle, 0, NULL, NULL);
+-	return 0;
+ }
+ EXPORT_SYMBOL_GPL(acpi_bus_trim);
+ 
+Index: linux-pm/include/acpi/acpi_bus.h
+===================================================================
+--- linux-pm.orig/include/acpi/acpi_bus.h
++++ linux-pm/include/acpi/acpi_bus.h
+@@ -386,7 +386,7 @@ int acpi_bus_register_driver(struct acpi
+ void acpi_bus_unregister_driver(struct acpi_driver *driver);
+ int acpi_bus_scan(acpi_handle handle);
+ void acpi_bus_hot_remove_device(void *context);
+-int acpi_bus_trim(struct acpi_device *start);
++void acpi_bus_trim(struct acpi_device *start);
+ acpi_status acpi_bus_get_ejd(acpi_handle handle, acpi_handle * ejd);
+ int acpi_match_device_ids(struct acpi_device *device,
+ 			  const struct acpi_device_id *ids);
+Index: linux-pm/drivers/acpi/dock.c
+===================================================================
+--- linux-pm.orig/drivers/acpi/dock.c
++++ linux-pm/drivers/acpi/dock.c
+@@ -336,13 +336,9 @@ static struct acpi_device * dock_create_
+ static void dock_remove_acpi_device(acpi_handle handle)
+ {
+ 	struct acpi_device *device;
+-	int ret;
+ 
+-	if (!acpi_bus_get_device(handle, &device)) {
+-		ret = acpi_bus_trim(device);
+-		if (ret)
+-			pr_debug("error removing bus, %x\n", -ret);
+-	}
++	if (!acpi_bus_get_device(handle, &device))
++		acpi_bus_trim(device);
+ }
+ 
+ /**
+Index: linux-pm/drivers/pci/hotplug/acpiphp_glue.c
+===================================================================
+--- linux-pm.orig/drivers/pci/hotplug/acpiphp_glue.c
++++ linux-pm/drivers/pci/hotplug/acpiphp_glue.c
+@@ -742,8 +742,7 @@ static int acpiphp_bus_add(struct acpiph
+ 		/* this shouldn't be in here, so remove
+ 		 * the bus then re-add it...
+ 		 */
+-		ret_val = acpi_bus_trim(device);
+-		dbg("acpi_bus_trim return %x\n", ret_val);
++		acpi_bus_trim(device);
+ 	}
+ 
+ 	ret_val = acpi_bus_scan(func->handle);
+@@ -772,11 +771,8 @@ static int acpiphp_bus_trim(acpi_handle
+ 		return retval;
+ 	}
+ 
+-	retval = acpi_bus_trim(device);
+-	if (retval)
+-		err("cannot remove from acpi list\n");
+-
+-	return retval;
++	acpi_bus_trim(device);
++	return 0;
+ }
+ 
+ static void acpiphp_set_acpi_region(struct acpiphp_slot *slot)
 
- drivers/acpi/apei/apei-base.c    |    3 ++
- drivers/acpi/processor_idle.c    |    4 ++
- drivers/acpi/processor_perflib.c |    7 ++++
- drivers/cpufreq/Kconfig.x86      |    2 +-
- drivers/cpufreq/acpi-cpufreq.c   |    7 ++++
- drivers/cpufreq/cpufreq-cpu0.c   |    5 +++
- drivers/cpufreq/omap-cpufreq.c   |    3 ++
- drivers/devfreq/devfreq.c        |    5 +++
- drivers/devfreq/exynos4_bus.c    |   94 +++++++++++++++++++++++++++++++++-------------
- drivers/idle/intel_idle.c        |    3 +-
- 10 files changed, 103 insertions(+), 30 deletions(-)
-
----------------
-
-Borislav Petkov (1):
-      powernow-k8: Add a kconfig dependency on acpi-cpufreq
-
-Konrad Rzeszutek Wilk (2):
-      intel_idle: Don't register CPU notifier if we are not running.
-      ACPI / cpuidle: Fix NULL pointer issues when cpuidle is disabled
-
-Lans Zhang (1):
-      ACPI, APEI: Fixup incorrect 64-bit access width firmware bug
-
-Matthew Garrett (1):
-      cpufreq: Add module aliases for acpi-cpufreq
-
-Nishanth Menon (4):
-      cpufreq: OMAP: use RCU locks around usage of OPP
-      cpufreq: cpufreq-cpu0: use RCU locks around usage of OPP
-      PM / devfreq: add locking documentation for recommended_opp
-      PM / devfreq: exynos4_bus: honor RCU lock usage
-
-Stefan Bader (1):
-      ACPI: Check MSR valid bit before using P-state frequencies
-
-Thomas Schlichter (1):
-      ACPI / processor: Get power info before updating the C-states
-
-
--- 
-I speak only for myself.
-Rafael J. Wysocki, Intel Open Source Technology Center.
