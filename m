@@ -1,99 +1,67 @@
-From: Simon Jeons <simon.jeons@gmail.com>
-Subject: Re: [PATCH Bug fix 0/5] Bug fix for physical memory hot-remove.
-Date: Wed, 23 Jan 2013 19:48:12 -0600
-Message-ID: <1358992092.3351.10.camel@kernel>
-References: <1358854984-6073-1-git-send-email-tangchen@cn.fujitsu.com>
-	  <1358944171.3351.1.camel@kernel> <50FFE2FC.9030401@cn.fujitsu.com>
-	 <1358987715.3351.3.camel@kernel> <51009003.5020901@cn.fujitsu.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-pa0-f45.google.com ([209.85.220.45]:42156 "EHLO
-	mail-pa0-f45.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752241Ab3AXBsY (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 23 Jan 2013 20:48:24 -0500
-In-Reply-To: <51009003.5020901@cn.fujitsu.com>
-Sender: linux-acpi-owner@vger.kernel.org
+From: Lv Zheng <lv.zheng@intel.com>
+Subject: [PATCH v5 0/2] ACPI/UART: Add ACPI 5.0 enumeration support for UART
+Date: Thu, 24 Jan 2013 18:30:11 +0800
+Message-ID: <cover.1359022955.git.lv.zheng@intel.com>
+References: <cover.1354505471.git.lv.zheng@intel.com>
+Return-path: <linux-serial-owner@vger.kernel.org>
+In-Reply-To: <cover.1354505471.git.lv.zheng@intel.com>
+Sender: linux-serial-owner@vger.kernel.org
+To: Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Alan Cox <alan@linux.intel.com>, Rafael J Wysocki <rafael.j.wysocki@intel.com>, Len Brown <len.brown@intel.com>, Mika Westerberg <mika.westerberg@linux.intel.com>
+Cc: linux-acpi@vger.kernel.org, linux-serial@vger.kernel.org, Lv Zheng <lv.zheng@intel.com>
 List-Id: linux-acpi@vger.kernel.org
-To: Tang Chen <tangchen@cn.fujitsu.com>
-Cc: akpm@linux-foundation.org, rientjes@google.com, len.brown@intel.com, benh@kernel.crashing.org, paulus@samba.org, cl@linux.com, minchan.kim@gmail.com, kosaki.motohiro@jp.fujitsu.com, isimatu.yasuaki@jp.fujitsu.com, wujianguo@huawei.com, wency@cn.fujitsu.com, hpa@zytor.com, linfeng@cn.fujitsu.com, laijs@cn.fujitsu.com, mgorman@suse.de, yinghai@kernel.org, glommer@parallels.com, jiang.liu@huawei.com, julian.calaby@gmail.com, sfr@canb.auug.org.au, x86@kernel.org, linux-mm@kvack.org, linux-kernel@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, linux-acpi@vger.kernel.org
 
-On Thu, 2013-01-24 at 09:36 +0800, Tang Chen wrote:
-> On 01/24/2013 08:35 AM, Simon Jeons wrote:
-> > On Wed, 2013-01-23 at 21:17 +0800, Tang Chen wrote:
-> >> On 01/23/2013 08:29 PM, Simon Jeons wrote:
-> >>> Hi Tang,
-> >>>
-> >>> I remember your big physical memory hot-remove patchset has already
-> >>> merged by Andrew, but where I can find it? Could you give me git tree
-> >>> address?
-> >>
-> >> Hi Simon,
-> >>
-> >> You can find all the physical memory hot-remove patches and related bugfix
-> >> patches from the following url:
-> >>
-> >> git://git.kernel.org/pub/scm/linux/kernel/git/next/linux-next.git akpm
-> >
-> > ~/linux-next$ git remote -v
-> > origin git://git.kernel.org/pub/scm/linux/kernel/git/next/linux-next.git
-> > (fetch)
-> > origin git://git.kernel.org/pub/scm/linux/kernel/git/next/linux-next.git
-> > (push)
-> > ~/linux-next$ git branch
-> > * akpm
-> >    master
-> > ~/linux-next$ wc -l mm/memory_hotplug.c
-> > 1173 mm/memory_hotplug.c
-> >
-> > I still can't find it. :(
-> 
-> Hi Simon,
-> 
-> It's weird, in my akpm git log, I can find the following commit.
-> 
-> commit deed0460e01b3968f2cf46fb94851936535b7e0d
-> Author: Tang Chen <tangchen@cn.fujitsu.com>
-> Date:   Sat Jan 19 11:07:13 2013 +1100
-> 
->      memory-hotplug: do not allocate pgdat if it was not freed when offline.
-> 
-> And there are 15 related patches following it. And above it, there are 
-> some more related bugfix
-> from me and Andrew. They are all in -mm tree.
-> 
-> This is what I did:
-> 
->    $ git remote add next 
-> http://git.kernel.org/pub/scm/linux/kernel/git/next/linux-next.git
->    $ git remote update next
->    $ git checkout -b next-akpm remotes/next/akpm
-> 
-> Please pull your tree and try again. :)
+ACPI 5.0 specification introduces enumeration support for SPB buses. This
+patch set adds the UART serial bus enumeration support to Linux using such
+mechanism.
+This patch set is based on the tty tree/tty-next branch.
 
-Got it. Thanks! :)
+History:
+v1:
+  1. Add "uart" bus subsystem.
+  2. Add physical UART target device and description
+     (uart_device/uart_board_info).
+  3. Add logical UART host adapter (klist).
+  4. Add UART target device attributes (tty_dev/tty_attrs/modem_lines).
+  5. Create tty_device<->uart_device links (host_node/target_node).
+v2.
+  1. Change UART layer related stuff to non-UART related.
+  2. Modify the order of the function parameters.
+v3:
+  1. Add comments for the uart_board_info and the uart_device.
+  2. Add platform_data/archdata support.
+  3. Add ACPI binding and test the binding (in seperate patch).
+  4. Add SERIAL_BUS kconfig item.
+v4
+  1. Convert "uart" bus into "tty_enum" bus.
+  2. Convert uart_target_device into tty_slave_device.
+  3. Convert uart_board_info into tty_board_info.
+  3. Convert kconfig item SERIAL_BUS into TTY_ENUM.
+  4. Add automatic device unregister support for slave devices.
+     The new tty_port_unregister_device is for this purpose.
+  5. Add HID/CID list support.
+  6. Convert TTY slave device name into ACPI node name.
+v5
+  1. Add missing static reported by recent kernel build test.
 
-> 
-> Thanks. :)
-> 
-> 
-> >
-> >>
-> >>
-> >> Thanks. :)
-> >>
-> >> --
-> >> To unsubscribe, send a message with 'unsubscribe linux-mm' in
-> >> the body to majordomo@kvack.org.  For more info on Linux MM,
-> >> see: http://www.linux-mm.org/ .
-> >> Don't email:<a href=mailto:"dont@kvack.org">  email@kvack.org</a>
-> >
-> >
-> > --
-> > To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
-> > the body of a message to majordomo@vger.kernel.org
-> > More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> >
+Lv Zheng (2):
+  TTY: Add TTY slave enumeration support
+  ACPI / UART: Add ACPI enumeration support for UART
 
+ drivers/acpi/Kconfig             |    6 +
+ drivers/acpi/Makefile            |    1 +
+ drivers/acpi/acpi_uart.c         |  215 +++++++++++++++++++++++
+ drivers/tty/Kconfig              |    3 +
+ drivers/tty/Makefile             |    1 +
+ drivers/tty/serial/Kconfig       |    1 +
+ drivers/tty/serial/serial_core.c |    2 +-
+ drivers/tty/tty_enum.c           |  357 ++++++++++++++++++++++++++++++++++++++
+ drivers/tty/tty_port.c           |   42 ++++-
+ include/linux/mod_devicetable.h  |    6 +
+ include/linux/tty.h              |  112 ++++++++++++
+ 11 files changed, 742 insertions(+), 4 deletions(-)
+ create mode 100644 drivers/acpi/acpi_uart.c
+ create mode 100644 drivers/tty/tty_enum.c
+
+-- 
+1.7.10
 
