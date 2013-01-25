@@ -1,58 +1,37 @@
-From: David Rientjes <rientjes@google.com>
-Subject: [patch] sysfs: Fix build when sysfs is disabled
-Date: Fri, 25 Jan 2013 12:13:59 -0800 (PST)
-Message-ID: <alpine.DEB.2.00.1301251211410.3815@chino.kir.corp.google.com>
-References: <3307415.pdOY6ovZLa@vostro.rjw.lan> <2760421.6nE3tkh92K@vostro.rjw.lan> <1551140.kO91IOVbjI@vostro.rjw.lan> <1511541.AH8DLsNQJH@vostro.rjw.lan>
+From: Jeff Garzik <jgarzik@pobox.com>
+Subject: Re: [PATCH v2 2/2] libata: PM code cleanup for ata port
+Date: Fri, 25 Jan 2013 15:34:03 -0500
+Message-ID: <5102EC3B.9040901@pobox.com>
+References: <1346143791-2995-1-git-send-email-aaron.lu@intel.com> <50FDA8B3.6090100@pobox.com> <20130125062935.GA9779@aaronlu.sh.intel.com> <510226F9.5000709@intel.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-pb0-f42.google.com ([209.85.160.42]:42989 "EHLO
-	mail-pb0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751049Ab3AYUOC (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 25 Jan 2013 15:14:02 -0500
-Received: by mail-pb0-f42.google.com with SMTP id rp2so409597pbb.15
-        for <linux-acpi@vger.kernel.org>; Fri, 25 Jan 2013 12:14:01 -0800 (PST)
-In-Reply-To: <1511541.AH8DLsNQJH@vostro.rjw.lan>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-ide-owner@vger.kernel.org>
+In-Reply-To: <510226F9.5000709@intel.com>
+Sender: linux-ide-owner@vger.kernel.org
+To: Aaron Lu <aaron.lu@intel.com>
+Cc: linux-ide@vger.kernel.org, linux-pm@vger.kernel.org, linux-acpi@vger.kernel.org, Aaron Lu <aaron.lwe@gmail.com>, Jeff Wu <jeff.wu@amd.com>, Tejun Heo <tj@kernel.org>, "Rafael J. Wysocki" <rjw@sisk.pl>
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>, "Kristen C. Accardi" <kristen.c.accardi@intel.com>, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 
-"sysfs: Functions for adding/removing symlinks to/from attribute groups" 
-causes a build failure when CONFIG_SYSFS is disabled:
+On 01/25/2013 01:32 AM, Aaron Lu wrote:
+> For system freeze, if the port is already runtime suspended, leave it
+> alone and just return. The port will be resumed on thaw before it will
+> be used.
+>
+> And since we will call get_noresume for every device during prepare
+> phase, and the port is resumed during thaw phase, it can't be in runtime
+> suspended state during the poweroff phase. So remove the
+> runtime_suspended check in poweroff callback.
+>
+> And for all suspend(freeze/suspend/poweroff/etc.), there is no need to
+> touch the device, so set no_autopsy and no_recovery for them all.
+>
+> Signed-off-by: Aaron Lu <aaron.lu@intel.com>
+> ---
+>   drivers/ata/libata-core.c | 16 ++++------------
+>   1 file changed, 4 insertions(+), 12 deletions(-)
 
-drivers/acpi/power.c: In function 'acpi_power_hide_list':
-drivers/acpi/power.c:463: error: implicit declaration of function 'sysfs_remove_link_from_group'
-drivers/acpi/power.c: In function 'acpi_power_expose_list':
-drivers/acpi/power.c:486: error: implicit declaration of function 'sysfs_add_link_to_group'
+applied 1-2
 
-We need to define empty functions for this config to avoid ifdefs in the 
-code.
 
-Signed-off-by: David Rientjes <rientjes@google.com>
----
- include/linux/sysfs.h | 12 ++++++++++++
- 1 file changed, 12 insertions(+)
 
-diff --git a/include/linux/sysfs.h b/include/linux/sysfs.h
---- a/include/linux/sysfs.h
-+++ b/include/linux/sysfs.h
-@@ -330,6 +330,18 @@ static inline void sysfs_unmerge_group(struct kobject *kobj,
- {
- }
- 
-+static inline int sysfs_add_link_to_group(struct kobject *kobj,
-+		const char *group_name, struct kobject *target,
-+		const char *link_name)
-+{
-+	return 0;
-+}
-+
-+static inline void sysfs_remove_link_from_group(struct kobject *kobj,
-+		const char *group_name, const char *link_name)
-+{
-+}
-+
- static inline void sysfs_notify(struct kobject *kobj, const char *dir,
- 				const char *attr)
- {
