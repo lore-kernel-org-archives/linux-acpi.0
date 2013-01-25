@@ -1,164 +1,83 @@
 From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: [RFC PATCH] gpiolib-acpi: Add ACPI5 event model support to gpio.
-Date: Fri, 25 Jan 2013 13:25:03 +0100
-Message-ID: <27194841.b5MO8Pt3Ve@vostro.rjw.lan>
-References: <1359114505-4473-1-git-send-email-mathias.nyman@linux.intel.com>
+Subject: Re: [PATCH v2 2/2] libata: PM code cleanup for ata port
+Date: Fri, 25 Jan 2013 13:29:10 +0100
+Message-ID: <1512636.TS44I6d7Dq@vostro.rjw.lan>
+References: <1346143791-2995-1-git-send-email-aaron.lu@intel.com> <510226F9.5000709@intel.com> <51026D90.7040309@mvista.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7Bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from hydra.sisk.pl ([212.160.235.94]:55372 "EHLO hydra.sisk.pl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756604Ab3AYMTB (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 25 Jan 2013 07:19:01 -0500
-In-Reply-To: <1359114505-4473-1-git-send-email-mathias.nyman@linux.intel.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Return-path: <linux-ide-owner@vger.kernel.org>
+In-Reply-To: <51026D90.7040309@mvista.com>
+Sender: linux-ide-owner@vger.kernel.org
+To: Sergei Shtylyov <sshtylyov@mvista.com>
+Cc: Aaron Lu <aaron.lu@intel.com>, Jeff Garzik <jgarzik@pobox.com>, linux-ide@vger.kernel.org, linux-pm@vger.kernel.org, linux-acpi@vger.kernel.org, Aaron Lu <aaron.lwe@gmail.com>, Jeff Wu <jeff.wu@amd.com>, Tejun Heo <tj@kernel.org>
 List-Id: linux-acpi@vger.kernel.org
-To: Mathias Nyman <mathias.nyman@linux.intel.com>
-Cc: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Linus <linus.walleij@linaro.org>, grant.likely@secretlab.ca, linux-acpi@vger.kernel.org, Zhang Rui <rui.zhang@intel.com>, tianyu.lan@intel.com, linux-kernel@vger.kernel.org
 
-On Friday, January 25, 2013 01:48:25 PM Mathias Nyman wrote:
-> Add ability to handle ACPI events signalled by GPIO interrupts.
+On Friday, January 25, 2013 03:33:36 PM Sergei Shtylyov wrote:
+> Hello.
 > 
-> ACPI5 platforms can use GPIO signaled ACPI events. These GPIO interrupts are
-> handled by ACPI event methods which need to be called from the GPIO
-> controller's interrupt handler. acpi_gpio_request_interrupt() finds out which
-> gpio pins have acpi event methods and assigns interrupt handlers that calls
-> the acpi event methods for those pins.
+> On 25-01-2013 10:32, Aaron Lu wrote:
 > 
-> Partially based on work by Rui Zhang <rui.zhang@intel.com>
+> > For system freeze, if the port is already runtime suspended, leave it
+> > alone and just return. The port will be resumed on thaw before it will
+> > be used.
 > 
-> Signed-off-by: Mathias Nyman <mathias.nyman@linux.intel.com>
+> > And since we will call get_noresume for every device during prepare
+> > phase, and the port is resumed during thaw phase, it can't be in runtime
+> > suspended state during the poweroff phase. So remove the
+> > runtime_suspended check in poweroff callback.
+> 
+> > And for all suspend(freeze/suspend/poweroff/etc.), there is no need to
+> > touch the device, so set no_autopsy and no_recovery for them all.
+> 
+> > Signed-off-by: Aaron Lu <aaron.lu@intel.com>
+> > ---
+> >   drivers/ata/libata-core.c | 16 ++++------------
+> >   1 file changed, 4 insertions(+), 12 deletions(-)
+> 
+> > diff --git a/drivers/ata/libata-core.c b/drivers/ata/libata-core.c
+> > index 6a5ef86..439c608 100644
+> > --- a/drivers/ata/libata-core.c
+> > +++ b/drivers/ata/libata-core.c
+> > @@ -5334,9 +5334,6 @@ static int ata_port_request_pm(struct ata_port *ap, pm_message_t mesg,
+> >
+> >   static int __ata_port_suspend_common(struct ata_port *ap, pm_message_t mesg, int *async)
+> >   {
+> > -	unsigned int ehi_flags = ATA_EHI_QUIET;
+> > -	int rc;
+> > -
+> >   	/*
+> >   	 * On some hardware, device fails to respond after spun down
+> >   	 * for suspend.  As the device won't be used before being
+> > @@ -5345,11 +5342,9 @@ static int __ata_port_suspend_common(struct ata_port *ap, pm_message_t mesg, int
+> >   	 *
+> >   	 * http://thread.gmane.org/gmane.linux.ide/46764
+> >   	 */
+> > -	if (mesg.event & PM_EVENT_SUSPEND)
+> > -		ehi_flags |= ATA_EHI_NO_AUTOPSY | ATA_EHI_NO_RECOVERY;
+> > -
+> > -	rc = ata_port_request_pm(ap, mesg, 0, ehi_flags, async);
+> > -	return rc;
+> > +	unsigned int ehi_flags = ATA_EHI_QUIET | ATA_EHI_NO_AUTOPSY |
+> > +				 ATA_EHI_NO_RECOVERY;
+> 
+>     Please keep the existing coding style and insert empty line after 
+> declarations.
+>     Wait, you don't need this variable at all...
 
-Acked-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+Well, I suppose Aaron just wanted to avoid ugly line breaks in the return
+line below and whether or not to keep the empty line in this case is a matter
+of taste IMHO.
 
-> ---
->  drivers/gpio/gpiolib-acpi.c |   80 +++++++++++++++++++++++++++++++++++++++++++
->  include/linux/acpi_gpio.h   |    4 ++
->  2 files changed, 84 insertions(+), 0 deletions(-)
-> 
-> diff --git a/drivers/gpio/gpiolib-acpi.c b/drivers/gpio/gpiolib-acpi.c
-> index cbad6e9..b6ab041 100644
-> --- a/drivers/gpio/gpiolib-acpi.c
-> +++ b/drivers/gpio/gpiolib-acpi.c
-> @@ -15,6 +15,7 @@
->  #include <linux/export.h>
->  #include <linux/acpi_gpio.h>
->  #include <linux/acpi.h>
-> +#include <linux/interrupt.h>
->  
->  static int acpi_gpiochip_find(struct gpio_chip *gc, void *data)
->  {
-> @@ -52,3 +53,82 @@ int acpi_get_gpio(char *path, int pin)
->  	return chip->base + pin;
->  }
->  EXPORT_SYMBOL_GPL(acpi_get_gpio);
-> +
-> +
-> +static irqreturn_t acpi_gpio_irq_handler(int irq, void *data)
-> +{
-> +	acpi_handle handle = data;
-> +
-> +	acpi_evaluate_object(handle, NULL, NULL, NULL);
-> +
-> +	return IRQ_HANDLED;
-> +}
-> +
-> +/**
-> + * acpi_gpio_request_interrupt() - Register isr for gpio controller ACPI events
-> + * @chip:      gpio chip representation of the gpio controller
-> + *
-> + * ACPI5 platforms can use GPIO signaled ACPI events. These GPIO interrupts are
-> + * handled by ACPI event methods which need to be called from the GPIO
-> + * controller's interrupt handler. acpi_gpio_request_interrupt finds out which
-> + * gpio pins have acpi event methods and assigns interrupt handlers that calls
-> + * the acpi event methods for those pins.
-> + */
-> +
-> +void acpi_gpio_request_interrupt(struct gpio_chip *chip)
-> +{
-> +	struct acpi_buffer buf = {ACPI_ALLOCATE_BUFFER, NULL};
-> +	struct acpi_resource *res;
-> +	acpi_handle handle, ev_handle;
-> +	acpi_status status;
-> +	unsigned int pin, irq;
-> +	char ev_name[5];
-> +
-> +	if (!chip->dev || !chip->to_irq)
-> +		return;
-> +
-> +	handle = ACPI_HANDLE(chip->dev);
-> +	if (!handle)
-> +		return;
-> +
-> +	status = acpi_get_event_resources(handle, &buf);
-> +	if (ACPI_FAILURE(status))
-> +		return;
-> +
-> +	/* If a gpio interrupt has an acpi event handler method, then
-> +	 * set up an interrupt handler that calls the acpi event handler
-> +	 */
-> +
-> +	for (res = buf.pointer;
-> +	     res && (res->type != ACPI_RESOURCE_TYPE_END_TAG);
-> +	     res = ACPI_NEXT_RESOURCE(res)) {
-> +
-> +		if (res->type != ACPI_RESOURCE_TYPE_GPIO ||
-> +		    res->data.gpio.connection_type !=
-> +		    ACPI_RESOURCE_GPIO_TYPE_INT)
-> +			continue;
-> +
-> +		pin = res->data.gpio.pin_table[0];
-> +		if (pin > chip->ngpio)
-> +			continue;
-> +
-> +		sprintf(ev_name, "_%c%02X",
-> +		res->data.gpio.triggering ? 'E' : 'L', pin);
-> +
-> +		status = acpi_get_handle(handle, ev_name, &ev_handle);
-> +		if (ACPI_FAILURE(status))
-> +			continue;
-> +
-> +		irq = chip->to_irq(chip, pin);
-> +		if (irq < 0)
-> +			continue;
-> +
-> +		/* Assume BIOS sets the triggering, so no flags */
-> +		devm_request_threaded_irq(chip->dev, irq, NULL,
-> +					  acpi_gpio_irq_handler,
-> +					  0,
-> +					  "GPIO-signaled-ACPI-event",
-> +					  ev_handle);
-> +	}
-> +}
-> +EXPORT_SYMBOL(acpi_gpio_request_interrupt);
-> diff --git a/include/linux/acpi_gpio.h b/include/linux/acpi_gpio.h
-> index 91615a3..43c541d 100644
-> --- a/include/linux/acpi_gpio.h
-> +++ b/include/linux/acpi_gpio.h
-> @@ -2,10 +2,12 @@
->  #define _LINUX_ACPI_GPIO_H_
->  
->  #include <linux/errno.h>
-> +#include <linux/gpio.h>
->  
->  #ifdef CONFIG_GPIO_ACPI
->  
->  int acpi_get_gpio(char *path, int pin);
-> +void acpi_gpio_request_interrupt(struct gpio_chip *chip);
->  
->  #else /* CONFIG_GPIO_ACPI */
->  
-> @@ -14,6 +16,8 @@ static inline int acpi_get_gpio(char *path, int pin)
->  	return -ENODEV;
->  }
->  
-> +static inline void acpi_gpio_request_interrupt(struct gpio_chip *chip) { }
-> +
->  #endif /* CONFIG_GPIO_ACPI */
->  
->  #endif /* _LINUX_ACPI_GPIO_H_ */
-> 
+In my personal opinion it would be cleaner with the empty line.
+
+> > +	return ata_port_request_pm(ap, mesg, 0, ehi_flags, async);
+> >   }
+
+Thanks,
+Rafael
+
+
 -- 
 I speak only for myself.
 Rafael J. Wysocki, Intel Open Source Technology Center.
