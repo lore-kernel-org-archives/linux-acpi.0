@@ -1,41 +1,46 @@
-From: Jeff Garzik <jgarzik@pobox.com>
-Subject: Re: [PATCH v14 1/3] scsi: sr: support runtime pm
-Date: Fri, 25 Jan 2013 15:37:28 -0500
-Message-ID: <5102ED08.2070201@pobox.com>
-References: <1358924973-18269-1-git-send-email-aaron.lu@intel.com> <1358924973-18269-2-git-send-email-aaron.lu@intel.com>
+From: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Subject: Re: [patch] sysfs: Fix build when sysfs is disabled
+Date: Fri, 25 Jan 2013 12:42:34 -0800
+Message-ID: <20130125204234.GA13245@kroah.com>
+References: <3307415.pdOY6ovZLa@vostro.rjw.lan>
+ <2760421.6nE3tkh92K@vostro.rjw.lan>
+ <1551140.kO91IOVbjI@vostro.rjw.lan>
+ <1511541.AH8DLsNQJH@vostro.rjw.lan>
+ <alpine.DEB.2.00.1301251211410.3815@chino.kir.corp.google.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-pm-owner@vger.kernel.org>
-In-Reply-To: <1358924973-18269-2-git-send-email-aaron.lu@intel.com>
-Sender: linux-pm-owner@vger.kernel.org
-To: Aaron Lu <aaron.lu@intel.com>
-Cc: James Bottomley <James.Bottomley@hansenpartnership.com>, "Rafael J. Wysocki" <rjw@sisk.pl>, Alan Stern <stern@rowland.harvard.edu>, Tejun Heo <tj@kernel.org>, Aaron Lu <aaron.lwe@gmail.com>, Jeff Wu <jeff.wu@amd.com>, linux-ide@vger.kernel.org, linux-pm@vger.kernel.org, linux-scsi@vger.kernel.org, linux-acpi@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-da0-f45.google.com ([209.85.210.45]:38877 "EHLO
+	mail-da0-f45.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751372Ab3AYUmh (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 25 Jan 2013 15:42:37 -0500
+Received: by mail-da0-f45.google.com with SMTP id w4so336992dam.4
+        for <linux-acpi@vger.kernel.org>; Fri, 25 Jan 2013 12:42:36 -0800 (PST)
+Content-Disposition: inline
+In-Reply-To: <alpine.DEB.2.00.1301251211410.3815@chino.kir.corp.google.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: David Rientjes <rientjes@google.com>
+Cc: "Rafael J. Wysocki" <rjw@sisk.pl>, "Kristen C. Accardi" <kristen.c.accardi@intel.com>, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 
-On 01/23/2013 02:09 AM, Aaron Lu wrote:
-> This patch adds runtime pm support for sr.
->
-> It did this by increasing the runtime usage_count of the device when
-> its block device is accessed. And decreasing the runtime usage_count
-> of the device when the access is done.
->
-> If there is media inside, runtime suspend is not allowed as we don't
-> always know if the ODD is being used or not.
->
-> The idea is discussed here:
-> http://thread.gmane.org/gmane.linux.acpi.devel/55243/focus=52703
-> and the restriction to check media inside is discussed here:
-> http://thread.gmane.org/gmane.linux.ide/53665/focus=58836
->
-> Signed-off-by: Aaron Lu <aaron.lu@intel.com>
-> Acked-by: Alan Stern <stern@rowland.harvard.edu>
-> Acked-by: James Bottomley <James.Bottomley@HansenPartnership.com>
+On Fri, Jan 25, 2013 at 12:13:59PM -0800, David Rientjes wrote:
+> "sysfs: Functions for adding/removing symlinks to/from attribute groups" 
+> causes a build failure when CONFIG_SYSFS is disabled:
+> 
+> drivers/acpi/power.c: In function 'acpi_power_hide_list':
+> drivers/acpi/power.c:463: error: implicit declaration of function 'sysfs_remove_link_from_group'
+> drivers/acpi/power.c: In function 'acpi_power_expose_list':
+> drivers/acpi/power.c:486: error: implicit declaration of function 'sysfs_add_link_to_group'
+> 
+> We need to define empty functions for this config to avoid ifdefs in the 
+> code.
+> 
+> Signed-off-by: David Rientjes <rientjes@google.com>
 > ---
->   drivers/scsi/sr.c | 42 +++++++++++++++++++++++++++++++++++++++---
->   1 file changed, 39 insertions(+), 3 deletions(-)
+>  include/linux/sysfs.h | 12 ++++++++++++
+>  1 file changed, 12 insertions(+)
 
-applied 1-3
+Acked-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 
-
+Rafael has to take this through his tree.
 
