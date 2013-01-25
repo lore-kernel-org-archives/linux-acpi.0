@@ -1,83 +1,67 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: [PATCH v2 2/2] libata: PM code cleanup for ata port
-Date: Fri, 25 Jan 2013 13:29:10 +0100
-Message-ID: <1512636.TS44I6d7Dq@vostro.rjw.lan>
-References: <1346143791-2995-1-git-send-email-aaron.lu@intel.com> <510226F9.5000709@intel.com> <51026D90.7040309@mvista.com>
+From: Linus Walleij <linus.walleij@linaro.org>
+Subject: Re: [RFC PATCH] gpiolib-acpi: Add ACPI5 event model support to gpio.
+Date: Fri, 25 Jan 2013 13:54:05 +0100
+Message-ID: <CACRpkdZvoacYP0rwnrcyHfKWrN67HvN5jCVom4Lx6Qd9RC0fjg@mail.gmail.com>
+References: <1359114505-4473-1-git-send-email-mathias.nyman@linux.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7Bit
-Return-path: <linux-ide-owner@vger.kernel.org>
-In-Reply-To: <51026D90.7040309@mvista.com>
-Sender: linux-ide-owner@vger.kernel.org
-To: Sergei Shtylyov <sshtylyov@mvista.com>
-Cc: Aaron Lu <aaron.lu@intel.com>, Jeff Garzik <jgarzik@pobox.com>, linux-ide@vger.kernel.org, linux-pm@vger.kernel.org, linux-acpi@vger.kernel.org, Aaron Lu <aaron.lwe@gmail.com>, Jeff Wu <jeff.wu@amd.com>, Tejun Heo <tj@kernel.org>
+Content-Type: text/plain; charset=ISO-8859-1
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-ia0-f171.google.com ([209.85.210.171]:51854 "EHLO
+	mail-ia0-f171.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755932Ab3AYMyH (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 25 Jan 2013 07:54:07 -0500
+Received: by mail-ia0-f171.google.com with SMTP id z13so556014iaz.16
+        for <linux-acpi@vger.kernel.org>; Fri, 25 Jan 2013 04:54:05 -0800 (PST)
+In-Reply-To: <1359114505-4473-1-git-send-email-mathias.nyman@linux.intel.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Mathias Nyman <mathias.nyman@linux.intel.com>
+Cc: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, grant.likely@secretlab.ca, linux-acpi@vger.kernel.org, Zhang Rui <rui.zhang@intel.com>, tianyu.lan@intel.com, linux-kernel@vger.kernel.org
 
-On Friday, January 25, 2013 03:33:36 PM Sergei Shtylyov wrote:
-> Hello.
-> 
-> On 25-01-2013 10:32, Aaron Lu wrote:
-> 
-> > For system freeze, if the port is already runtime suspended, leave it
-> > alone and just return. The port will be resumed on thaw before it will
-> > be used.
-> 
-> > And since we will call get_noresume for every device during prepare
-> > phase, and the port is resumed during thaw phase, it can't be in runtime
-> > suspended state during the poweroff phase. So remove the
-> > runtime_suspended check in poweroff callback.
-> 
-> > And for all suspend(freeze/suspend/poweroff/etc.), there is no need to
-> > touch the device, so set no_autopsy and no_recovery for them all.
-> 
-> > Signed-off-by: Aaron Lu <aaron.lu@intel.com>
-> > ---
-> >   drivers/ata/libata-core.c | 16 ++++------------
-> >   1 file changed, 4 insertions(+), 12 deletions(-)
-> 
-> > diff --git a/drivers/ata/libata-core.c b/drivers/ata/libata-core.c
-> > index 6a5ef86..439c608 100644
-> > --- a/drivers/ata/libata-core.c
-> > +++ b/drivers/ata/libata-core.c
-> > @@ -5334,9 +5334,6 @@ static int ata_port_request_pm(struct ata_port *ap, pm_message_t mesg,
-> >
-> >   static int __ata_port_suspend_common(struct ata_port *ap, pm_message_t mesg, int *async)
-> >   {
-> > -	unsigned int ehi_flags = ATA_EHI_QUIET;
-> > -	int rc;
-> > -
-> >   	/*
-> >   	 * On some hardware, device fails to respond after spun down
-> >   	 * for suspend.  As the device won't be used before being
-> > @@ -5345,11 +5342,9 @@ static int __ata_port_suspend_common(struct ata_port *ap, pm_message_t mesg, int
-> >   	 *
-> >   	 * http://thread.gmane.org/gmane.linux.ide/46764
-> >   	 */
-> > -	if (mesg.event & PM_EVENT_SUSPEND)
-> > -		ehi_flags |= ATA_EHI_NO_AUTOPSY | ATA_EHI_NO_RECOVERY;
-> > -
-> > -	rc = ata_port_request_pm(ap, mesg, 0, ehi_flags, async);
-> > -	return rc;
-> > +	unsigned int ehi_flags = ATA_EHI_QUIET | ATA_EHI_NO_AUTOPSY |
-> > +				 ATA_EHI_NO_RECOVERY;
-> 
->     Please keep the existing coding style and insert empty line after 
-> declarations.
->     Wait, you don't need this variable at all...
+On Fri, Jan 25, 2013 at 12:48 PM, Mathias Nyman
+<mathias.nyman@linux.intel.com> wrote:
 
-Well, I suppose Aaron just wanted to avoid ugly line breaks in the return
-line below and whether or not to keep the empty line in this case is a matter
-of taste IMHO.
-
-In my personal opinion it would be cleaner with the empty line.
-
-> > +	return ata_port_request_pm(ap, mesg, 0, ehi_flags, async);
-> >   }
-
-Thanks,
-Rafael
+> Add ability to handle ACPI events signalled by GPIO interrupts.
+>
+> ACPI5 platforms can use GPIO signaled ACPI events. These GPIO interrupts are
+> handled by ACPI event methods which need to be called from the GPIO
+> controller's interrupt handler. acpi_gpio_request_interrupt() finds out which
+> gpio pins have acpi event methods and assigns interrupt handlers that calls
+> the acpi event methods for those pins.
+>
+> Partially based on work by Rui Zhang <rui.zhang@intel.com>
+>
+> Signed-off-by: Mathias Nyman <mathias.nyman@linux.intel.com>
+(...)
+> +/**
+> + * acpi_gpio_request_interrupt() - Register isr for gpio controller ACPI events
+> + * @chip:      gpio chip representation of the gpio controller
 
 
--- 
-I speak only for myself.
-Rafael J. Wysocki, Intel Open Source Technology Center.
+Hm chip, controller, controller, chip chip, controller controller...
+Are we using two different names for the same thing?
+
+> + *
+> + * ACPI5 platforms can use GPIO signaled ACPI events. These GPIO interrupts are
+> + * handled by ACPI event methods which need to be called from the GPIO
+> + * controller's interrupt handler. acpi_gpio_request_interrupt finds out which
+> + * gpio pins have acpi event methods and assigns interrupt handlers that calls
+> + * the acpi event methods for those pins.
+> + */
+> +
+> +void acpi_gpio_request_interrupt(struct gpio_chip *chip)
+
+So I was like "um, what acpi requests an interrupt for a GPIO (maybe a pin)...
+
+... read read ...
+
+Aha the function should probably be named:
+acpi_gpiochip_request_interrupts()
+
+Because it just grabs all IRQs coming from that chip right?
+
+Second: why is there no mirror function *releasing* all the IRQs again?
+One-way interface?
+
+Yours,
+Linus Walleij
