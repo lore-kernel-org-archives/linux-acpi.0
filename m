@@ -1,27 +1,60 @@
-From: David Rientjes <rientjes@google.com>
-Subject: Re: [patch] sysfs: Fix build when sysfs is disabled
-Date: Fri, 25 Jan 2013 13:34:28 -0800 (PST)
-Message-ID: <alpine.DEB.2.00.1301251334090.25226@chino.kir.corp.google.com>
-References: <3307415.pdOY6ovZLa@vostro.rjw.lan> <1511541.AH8DLsNQJH@vostro.rjw.lan> <alpine.DEB.2.00.1301251211410.3815@chino.kir.corp.google.com> <2337783.BBmzZI9Lts@vostro.rjw.lan>
+From: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Subject: Re: [PATCH v5 1/2] TTY: Add TTY slave enumeration support
+Date: Fri, 25 Jan 2013 13:41:21 -0800
+Message-ID: <20130125214121.GA30924@kroah.com>
+References: <cover.1354505471.git.lv.zheng@intel.com>
+ <cover.1359022955.git.lv.zheng@intel.com>
+ <12848b50e1096dc11a193694ee248d51d45ce093.1359022955.git.lv.zheng@intel.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-pb0-f46.google.com ([209.85.160.46]:57636 "EHLO
-	mail-pb0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751878Ab3AYVea (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 25 Jan 2013 16:34:30 -0500
-Received: by mail-pb0-f46.google.com with SMTP id uo15so441431pbc.33
-        for <linux-acpi@vger.kernel.org>; Fri, 25 Jan 2013 13:34:29 -0800 (PST)
-In-Reply-To: <2337783.BBmzZI9Lts@vostro.rjw.lan>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-serial-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <12848b50e1096dc11a193694ee248d51d45ce093.1359022955.git.lv.zheng@intel.com>
+Sender: linux-serial-owner@vger.kernel.org
+To: Lv Zheng <lv.zheng@intel.com>
+Cc: Alan Cox <alan@linux.intel.com>, Rafael J Wysocki <rafael.j.wysocki@intel.com>, Len Brown <len.brown@intel.com>, Mika Westerberg <mika.westerberg@linux.intel.com>, linux-acpi@vger.kernel.org, linux-serial@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>, "Kristen C. Accardi" <kristen.c.accardi@intel.com>, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 
-On Fri, 25 Jan 2013, Rafael J. Wysocki wrote:
+On Thu, Jan 24, 2013 at 06:30:21PM +0800, Lv Zheng wrote:
+> In the recent ACPI 5.0 specification updates, firmwares are provided the
+> possibilities to enumerate the UART slave devices known to the platform
+> vendors.
+> There are the needs in Linux to utilize the benefits:
+> 1. hotplug uevent
+> 2. serial configuration
+> Currently, only serial cards on the specific bus (ex. PCMCIA) can be
+> enumerated and userspace can obtain the hotplug event of the UART target
+> devices. Linux kernel is lack of an overall enumeration mechanism for
+> UART slave devices.
 
-> Can you please send me the .config that triggered those errors?  It will be
-> useful for future build testing.
-> 
+Huh?  That's flat out not true, otherwise how would userspace be
+creating the proper /dev/tty* nodes for all tty devices?
 
-Anything with CONFIG_SYSFS disabled.
+> In order to send uevent, a device need to be a class device or a bus
+> device. This patch introduces a tty_enum bus since the enumerated slave
+> devices are expected to be physical devices.
+
+Again, tty devices are already class devices, and they send out uevents.
+You can see this today by watching the uevent stream using a tool like
+'udevadmin monitor'.
+
+> When the UART slave devices are created, userspace uevent rules can
+> pass the creation details to the userspace driver managers
+> (ex. hciattach), then the device managers can read hardware IDs and the
+> serial configurations from the exported device attributes to match and
+> configure a userspace TTY device driver.
+
+What?  We do that today, no kernel changes needed.
+
+> The created slave devices will be automatically unregistered when the
+> associated TTY ports are destructed.
+
+Again, this happens today.
+
+Or am I missing something big and major here?  How have people been
+seeing and configuring their tty devices for the last 8+ years or so
+since the 2.6.0 kernel was released with uevent support for tty devices?
+
+lost,
+
+greg k-h
