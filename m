@@ -1,61 +1,58 @@
-From: Toshi Kani <toshi.kani@hp.com>
-Subject: Re: [PATCH Bug fix 0/5] Bug fix for physical memory hot-remove.
-Date: Fri, 25 Jan 2013 11:19:37 -0700
-Message-ID: <1359137977.14145.417.camel@misato.fc.hp.com>
-References: <1358854984-6073-1-git-send-email-tangchen@cn.fujitsu.com>
+From: David Rientjes <rientjes@google.com>
+Subject: [patch] sysfs: Fix build when sysfs is disabled
+Date: Fri, 25 Jan 2013 12:13:59 -0800 (PST)
+Message-ID: <alpine.DEB.2.00.1301251211410.3815@chino.kir.corp.google.com>
+References: <3307415.pdOY6ovZLa@vostro.rjw.lan> <2760421.6nE3tkh92K@vostro.rjw.lan> <1551140.kO91IOVbjI@vostro.rjw.lan> <1511541.AH8DLsNQJH@vostro.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
-Return-path: <owner-linux-mm@kvack.org>
-In-Reply-To: <1358854984-6073-1-git-send-email-tangchen@cn.fujitsu.com>
-Sender: owner-linux-mm@kvack.org
-To: Tang Chen <tangchen@cn.fujitsu.com>
-Cc: akpm@linux-foundation.org, rientjes@google.com, len.brown@intel.com, benh@kernel.crashing.org, paulus@samba.org, cl@linux.com, minchan.kim@gmail.com, kosaki.motohiro@jp.fujitsu.com, isimatu.yasuaki@jp.fujitsu.com, wujianguo@huawei.com, wency@cn.fujitsu.com, hpa@zytor.com, linfeng@cn.fujitsu.com, laijs@cn.fujitsu.com, mgorman@suse.de, yinghai@kernel.org, glommer@parallels.com, jiang.liu@huawei.com, julian.calaby@gmail.com, sfr@canb.auug.org.au, x86@kernel.org, linux-mm@kvack.org, linux-kernel@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, linux-acpi@vger.kernel.org
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-pb0-f42.google.com ([209.85.160.42]:42989 "EHLO
+	mail-pb0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751049Ab3AYUOC (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 25 Jan 2013 15:14:02 -0500
+Received: by mail-pb0-f42.google.com with SMTP id rp2so409597pbb.15
+        for <linux-acpi@vger.kernel.org>; Fri, 25 Jan 2013 12:14:01 -0800 (PST)
+In-Reply-To: <1511541.AH8DLsNQJH@vostro.rjw.lan>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>, "Kristen C. Accardi" <kristen.c.accardi@intel.com>, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 
-On Tue, 2013-01-22 at 19:42 +0800, Tang Chen wrote:
-> Here are some bug fix patches for physical memory hot-remove. All these
-> patches are based on the latest -mm tree.
-> git://git.kernel.org/pub/scm/linux/kernel/git/next/linux-next.git akpm
-> 
-> And patch1 and patch3 are very important.
-> patch1: free compound pages when freeing memmap, otherwise the kernel
->         will panic the next time memory is hot-added.
-> patch3: the old way of freeing pagetable pages was wrong. We should never
->         split larger pages into small ones.
-> 
-> 
-> Lai Jiangshan (1):
->   Bug-fix: mempolicy: fix is_valid_nodemask()
-> 
-> Tang Chen (3):
->   Bug fix: Do not split pages when freeing pagetable pages.
->   Bug fix: Fix section mismatch problem of
->     release_firmware_map_entry().
->   Bug fix: Fix the doc format in drivers/firmware/memmap.c
-> 
-> Wen Congyang (1):
->   Bug fix: consider compound pages when free memmap
-> 
->  arch/x86/mm/init_64.c     |  148 ++++++++++++++-------------------------------
->  drivers/firmware/memmap.c |   16 +++---
->  mm/mempolicy.c            |   36 +++++++----
->  mm/sparse.c               |    2 +-
->  4 files changed, 77 insertions(+), 125 deletions(-)
+"sysfs: Functions for adding/removing symlinks to/from attribute groups" 
+causes a build failure when CONFIG_SYSFS is disabled:
 
-This patchset fixed a blocker panic I was hitting in my memory hot-plug
-testing.  Memory hotplug works fine with this patchset (for testing my
-hotplug framework patchset :).  For the series:
+drivers/acpi/power.c: In function 'acpi_power_hide_list':
+drivers/acpi/power.c:463: error: implicit declaration of function 'sysfs_remove_link_from_group'
+drivers/acpi/power.c: In function 'acpi_power_expose_list':
+drivers/acpi/power.c:486: error: implicit declaration of function 'sysfs_add_link_to_group'
 
-Tested-by: Toshi Kani <toshi.kani@hp.com>
+We need to define empty functions for this config to avoid ifdefs in the 
+code.
 
-Thanks,
--Toshi
+Signed-off-by: David Rientjes <rientjes@google.com>
+---
+ include/linux/sysfs.h | 12 ++++++++++++
+ 1 file changed, 12 insertions(+)
 
-
-
---
-To unsubscribe, send a message with 'unsubscribe linux-mm' in
-the body to majordomo@kvack.org.  For more info on Linux MM,
-see: http://www.linux-mm.org/ .
-Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
+diff --git a/include/linux/sysfs.h b/include/linux/sysfs.h
+--- a/include/linux/sysfs.h
++++ b/include/linux/sysfs.h
+@@ -330,6 +330,18 @@ static inline void sysfs_unmerge_group(struct kobject *kobj,
+ {
+ }
+ 
++static inline int sysfs_add_link_to_group(struct kobject *kobj,
++		const char *group_name, struct kobject *target,
++		const char *link_name)
++{
++	return 0;
++}
++
++static inline void sysfs_remove_link_from_group(struct kobject *kobj,
++		const char *group_name, const char *link_name)
++{
++}
++
+ static inline void sysfs_notify(struct kobject *kobj, const char *dir,
+ 				const char *attr)
+ {
