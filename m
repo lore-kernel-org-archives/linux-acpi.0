@@ -1,52 +1,27 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
+From: David Rientjes <rientjes@google.com>
 Subject: Re: [patch] sysfs: Fix build when sysfs is disabled
-Date: Fri, 25 Jan 2013 21:53:39 +0100
-Message-ID: <1511313.IITM7eMxcu@vostro.rjw.lan>
-References: <3307415.pdOY6ovZLa@vostro.rjw.lan> <alpine.DEB.2.00.1301251211410.3815@chino.kir.corp.google.com> <20130125204234.GA13245@kroah.com>
+Date: Fri, 25 Jan 2013 13:34:28 -0800 (PST)
+Message-ID: <alpine.DEB.2.00.1301251334090.25226@chino.kir.corp.google.com>
+References: <3307415.pdOY6ovZLa@vostro.rjw.lan> <1511541.AH8DLsNQJH@vostro.rjw.lan> <alpine.DEB.2.00.1301251211410.3815@chino.kir.corp.google.com> <2337783.BBmzZI9Lts@vostro.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7Bit
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from hydra.sisk.pl ([212.160.235.94]:55977 "EHLO hydra.sisk.pl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751068Ab3AYUrd (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 25 Jan 2013 15:47:33 -0500
-In-Reply-To: <20130125204234.GA13245@kroah.com>
+Received: from mail-pb0-f46.google.com ([209.85.160.46]:57636 "EHLO
+	mail-pb0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751878Ab3AYVea (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 25 Jan 2013 16:34:30 -0500
+Received: by mail-pb0-f46.google.com with SMTP id uo15so441431pbc.33
+        for <linux-acpi@vger.kernel.org>; Fri, 25 Jan 2013 13:34:29 -0800 (PST)
+In-Reply-To: <2337783.BBmzZI9Lts@vostro.rjw.lan>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc: David Rientjes <rientjes@google.com>, "Kristen C. Accardi" <kristen.c.accardi@intel.com>, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>, "Kristen C. Accardi" <kristen.c.accardi@intel.com>, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 
-On Friday, January 25, 2013 12:42:34 PM Greg Kroah-Hartman wrote:
-> On Fri, Jan 25, 2013 at 12:13:59PM -0800, David Rientjes wrote:
-> > "sysfs: Functions for adding/removing symlinks to/from attribute groups" 
-> > causes a build failure when CONFIG_SYSFS is disabled:
-> > 
-> > drivers/acpi/power.c: In function 'acpi_power_hide_list':
-> > drivers/acpi/power.c:463: error: implicit declaration of function 'sysfs_remove_link_from_group'
-> > drivers/acpi/power.c: In function 'acpi_power_expose_list':
-> > drivers/acpi/power.c:486: error: implicit declaration of function 'sysfs_add_link_to_group'
-> > 
-> > We need to define empty functions for this config to avoid ifdefs in the 
-> > code.
-> > 
-> > Signed-off-by: David Rientjes <rientjes@google.com>
-> > ---
-> >  include/linux/sysfs.h | 12 ++++++++++++
-> >  1 file changed, 12 insertions(+)
+On Fri, 25 Jan 2013, Rafael J. Wysocki wrote:
+
+> Can you please send me the .config that triggered those errors?  It will be
+> useful for future build testing.
 > 
-> Acked-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-> 
-> Rafael has to take this through his tree.
 
-Thanks for the patch and review.
-
-I will fold it into the original patch to reduce bisection pain.
-
-Thanks,
-Rafael
-
-
--- 
-I speak only for myself.
-Rafael J. Wysocki, Intel Open Source Technology Center.
+Anything with CONFIG_SYSFS disabled.
