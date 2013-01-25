@@ -1,29 +1,23 @@
-From: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
 Subject: Re: [patch] sysfs: Fix build when sysfs is disabled
-Date: Fri, 25 Jan 2013 12:42:34 -0800
-Message-ID: <20130125204234.GA13245@kroah.com>
-References: <3307415.pdOY6ovZLa@vostro.rjw.lan>
- <2760421.6nE3tkh92K@vostro.rjw.lan>
- <1551140.kO91IOVbjI@vostro.rjw.lan>
- <1511541.AH8DLsNQJH@vostro.rjw.lan>
- <alpine.DEB.2.00.1301251211410.3815@chino.kir.corp.google.com>
+Date: Fri, 25 Jan 2013 21:52:35 +0100
+Message-ID: <2337783.BBmzZI9Lts@vostro.rjw.lan>
+References: <3307415.pdOY6ovZLa@vostro.rjw.lan> <1511541.AH8DLsNQJH@vostro.rjw.lan> <alpine.DEB.2.00.1301251211410.3815@chino.kir.corp.google.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7Bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-da0-f45.google.com ([209.85.210.45]:38877 "EHLO
-	mail-da0-f45.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751372Ab3AYUmh (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 25 Jan 2013 15:42:37 -0500
-Received: by mail-da0-f45.google.com with SMTP id w4so336992dam.4
-        for <linux-acpi@vger.kernel.org>; Fri, 25 Jan 2013 12:42:36 -0800 (PST)
-Content-Disposition: inline
+Received: from hydra.sisk.pl ([212.160.235.94]:55973 "EHLO hydra.sisk.pl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751068Ab3AYUqa (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 25 Jan 2013 15:46:30 -0500
 In-Reply-To: <alpine.DEB.2.00.1301251211410.3815@chino.kir.corp.google.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: David Rientjes <rientjes@google.com>
-Cc: "Rafael J. Wysocki" <rjw@sisk.pl>, "Kristen C. Accardi" <kristen.c.accardi@intel.com>, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>, "Kristen C. Accardi" <kristen.c.accardi@intel.com>, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 
-On Fri, Jan 25, 2013 at 12:13:59PM -0800, David Rientjes wrote:
+On Friday, January 25, 2013 12:13:59 PM David Rientjes wrote:
 > "sysfs: Functions for adding/removing symlinks to/from attribute groups" 
 > causes a build failure when CONFIG_SYSFS is disabled:
 > 
@@ -34,13 +28,41 @@ On Fri, Jan 25, 2013 at 12:13:59PM -0800, David Rientjes wrote:
 > 
 > We need to define empty functions for this config to avoid ifdefs in the 
 > code.
-> 
+
+Can you please send me the .config that triggered those errors?  It will be
+useful for future build testing.
+
+Thanks,
+Rafael
+
+
 > Signed-off-by: David Rientjes <rientjes@google.com>
 > ---
 >  include/linux/sysfs.h | 12 ++++++++++++
 >  1 file changed, 12 insertions(+)
-
-Acked-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-
-Rafael has to take this through his tree.
-
+> 
+> diff --git a/include/linux/sysfs.h b/include/linux/sysfs.h
+> --- a/include/linux/sysfs.h
+> +++ b/include/linux/sysfs.h
+> @@ -330,6 +330,18 @@ static inline void sysfs_unmerge_group(struct kobject *kobj,
+>  {
+>  }
+>  
+> +static inline int sysfs_add_link_to_group(struct kobject *kobj,
+> +		const char *group_name, struct kobject *target,
+> +		const char *link_name)
+> +{
+> +	return 0;
+> +}
+> +
+> +static inline void sysfs_remove_link_from_group(struct kobject *kobj,
+> +		const char *group_name, const char *link_name)
+> +{
+> +}
+> +
+>  static inline void sysfs_notify(struct kobject *kobj, const char *dir,
+>  				const char *attr)
+>  {
+-- 
+I speak only for myself.
+Rafael J. Wysocki, Intel Open Source Technology Center.
