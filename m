@@ -1,13 +1,13 @@
 From: Lv Zheng <lv.zheng@intel.com>
-Subject: [PATCH 5/7] ACPICA: Remove some extraneous newlines in ACPI_ERROR type calls
-Date: Fri, 25 Jan 2013 13:41:16 +0800
-Message-ID: <26a72bd677c5c85f2511e90e619e903bd7cf8c98.1358825277.git.lv.zheng@intel.com>
+Subject: [PATCH 6/7] ACPICA: Update predefined info table for _MLS method
+Date: Fri, 25 Jan 2013 13:41:22 +0800
+Message-ID: <cc2cd8dd3f86fcad08e63bbeb239f7f8b5e29d4a.1358825277.git.lv.zheng@intel.com>
 References: <cover.1358825277.git.lv.zheng@intel.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
 Received: from mga02.intel.com ([134.134.136.20]:21011 "EHLO mga02.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751227Ab3AYFlb (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 25 Jan 2013 00:41:31 -0500
+	id S1751227Ab3AYFlg (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 25 Jan 2013 00:41:36 -0500
 In-Reply-To: <cover.1358825277.git.lv.zheng@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
@@ -16,57 +16,31 @@ Cc: linux-acpi@vger.kernel.org, Lv Zheng <lv.zheng@intel.com>
 
 From: Bob Moore <robert.moore@intel.com>
 
-These macros/functions automatically insert a newline, so the
-format string should not contain a newline at the end. (This allows
-these functions to add information to the end of the output line.)
+The second object for each sub-package of the _MLS method is
+defined to be a unicode Buffer object. This fixes the predefined
+table where this object was incorrectly defined as a String.
 
 Signed-off-by: Bob Moore <robert.moore@intel.com>
 Signed-off-by: Lv Zheng <lv.zheng@intel.com>
 ---
- drivers/acpi/acpica/dsobject.c |    2 +-
- drivers/acpi/acpica/dswload2.c |    2 +-
- drivers/acpi/acpica/hwgpe.c    |    2 +-
- 3 files changed, 3 insertions(+), 3 deletions(-)
+ drivers/acpi/acpica/acpredef.h |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/acpi/acpica/dsobject.c b/drivers/acpi/acpica/dsobject.c
-index 2e6288d..e20e9f8 100644
---- a/drivers/acpi/acpica/dsobject.c
-+++ b/drivers/acpi/acpica/dsobject.c
-@@ -525,7 +525,7 @@ acpi_ds_build_internal_package_obj(struct acpi_walk_state *walk_state,
- 		}
+diff --git a/drivers/acpi/acpica/acpredef.h b/drivers/acpi/acpica/acpredef.h
+index c11b66d..752cc40 100644
+--- a/drivers/acpi/acpica/acpredef.h
++++ b/drivers/acpi/acpica/acpredef.h
+@@ -345,8 +345,8 @@ static const union acpi_predefined_info predefined_names[] = {
+ 	{{"_MBM", 0, ACPI_RTYPE_PACKAGE}},	/* Fixed-length (8 Int) */
+ 	{{{ACPI_PTYPE1_FIXED, ACPI_RTYPE_INTEGER, 8, 0}, 0, 0}},
  
- 		ACPI_INFO((AE_INFO,
--			   "Actual Package length (%u) is larger than NumElements field (%u), truncated\n",
-+			   "Actual Package length (%u) is larger than NumElements field (%u), truncated",
- 			   i, element_count));
- 	} else if (i < element_count) {
- 		/*
-diff --git a/drivers/acpi/acpica/dswload2.c b/drivers/acpi/acpica/dswload2.c
-index 620a023..4407ff2 100644
---- a/drivers/acpi/acpica/dswload2.c
-+++ b/drivers/acpi/acpica/dswload2.c
-@@ -222,7 +222,7 @@ acpi_ds_load2_begin_op(struct acpi_walk_state *walk_state,
- 			 */
- 			ACPI_WARNING((AE_INFO,
- 				      "Type override - [%4.4s] had invalid type (%s) "
--				      "for Scope operator, changed to type ANY\n",
-+				      "for Scope operator, changed to type ANY",
- 				      acpi_ut_get_node_name(node),
- 				      acpi_ut_get_type_name(node->type)));
+-	{{"_MLS", 0, ACPI_RTYPE_PACKAGE}}, /* Variable-length (Pkgs) each (2 Str) */
+-			  {{{ACPI_PTYPE2, ACPI_RTYPE_STRING, 2,0}, 0,0}},
++	{{"_MLS", 0, ACPI_RTYPE_PACKAGE}},	/* Variable-length (Pkgs) each (1 Str/1 Buf) */
++	{{{ACPI_PTYPE2, ACPI_RTYPE_STRING, 1, ACPI_RTYPE_BUFFER}, 1, 0}},
  
-diff --git a/drivers/acpi/acpica/hwgpe.c b/drivers/acpi/acpica/hwgpe.c
-index d84fd83..20d02e9 100644
---- a/drivers/acpi/acpica/hwgpe.c
-+++ b/drivers/acpi/acpica/hwgpe.c
-@@ -135,7 +135,7 @@ acpi_hw_low_set_gpe(struct acpi_gpe_event_info *gpe_event_info, u32 action)
- 		break;
- 
- 	default:
--		ACPI_ERROR((AE_INFO, "Invalid GPE Action, %u\n", action));
-+		ACPI_ERROR((AE_INFO, "Invalid GPE Action, %u", action));
- 		return (AE_BAD_PARAMETER);
- 	}
- 
+ 	{{"_MSG", 1, 0}},
+ 	{{"_MSM", 4, ACPI_RTYPE_INTEGER}},
 -- 
 1.7.10
 
