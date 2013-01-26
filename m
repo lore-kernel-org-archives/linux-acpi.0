@@ -1,105 +1,140 @@
 From: Yinghai Lu <yinghai@kernel.org>
-Subject: Re: [PATCH 1/2] ACPI / scan: Make namespace scanning and trimming
- mutually exclusive
-Date: Sat, 26 Jan 2013 15:19:21 -0800
-Message-ID: <CAE9FiQV+DDb0ap=sipQjUWCdz8Qsfs2dYDVrb0FmKL4F1BjhOw@mail.gmail.com>
+Subject: Re: [PATCH 2/2] ACPI / scan: Make scanning of fixed devices follow
+ the general scheme
+Date: Sat, 26 Jan 2013 15:26:06 -0800
+Message-ID: <CAE9FiQVcYdUYbg+X+mOvz9fCVLeYM_ue7YfV6OVUyFnZs+DWMA@mail.gmail.com>
 References: <1581701.fnbebHrKch@vostro.rjw.lan>
-	<3032117.IcK9I7rYQT@vostro.rjw.lan>
+	<2664818.zPRWmg7IFi@vostro.rjw.lan>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-ia0-f169.google.com ([209.85.210.169]:40362 "EHLO
-	mail-ia0-f169.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754709Ab3AZXTX (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sat, 26 Jan 2013 18:19:23 -0500
-In-Reply-To: <3032117.IcK9I7rYQT@vostro.rjw.lan>
+Received: from mail-ie0-f173.google.com ([209.85.223.173]:56777 "EHLO
+	mail-ie0-f173.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754710Ab3AZX0H (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sat, 26 Jan 2013 18:26:07 -0500
+In-Reply-To: <2664818.zPRWmg7IFi@vostro.rjw.lan>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@sisk.pl>, Steven Newbury <steve@snewbury.org.uk>
+To: "Rafael J. Wysocki" <rjw@sisk.pl>
 Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>, Bjorn Helgaas <bhelgaas@google.com>, Jiang Liu <liuj97@gmail.com>, Toshi Kani <toshi.kani@hp.com>
 
-On Sat, Jan 26, 2013 at 2:41 PM, Rafael J. Wysocki <rjw@sisk.pl> wrote:
+On Sat, Jan 26, 2013 at 2:43 PM, Rafael J. Wysocki <rjw@sisk.pl> wrote:
 > From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 >
-> There is no guarantee that acpi_bus_scan() and acpi_bus_trim() will
-> not be run in parallel for the same scope of the ACPI namespace,
-> which may lead to a great deal of confusion, so introduce a new mutex
-> to prevent that from happening.
+> Make acpi_bus_scan_fixed() use device_attach() directly to attach
+> drivers, if any, to the fixed devices in analogy with how
+> acpi_bus_scan() works, which allows the last argument of
+> acpi_add_single_object() to be dropped and the manipulation of the
+> flags.match_driver bit to be moved to acpi_init_device_object()
+> and acpi_device_add_finalize().
+>
+> After these changes all of the functions for the initialization
+> and registration of struct acpi_device objects work in the same
+> way for all of them.
 >
 > Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
-
-Acked-by: Yinghai Lu <yinghai@kernel.org>
-
-Steven,
-
-Can you apply this one to for-pci-res-alloc to check if racing with
-docking hotplug/eject
-still happen?
-or wait one or two days after i rebase that branch.
-
-Thanks
-
-Yinghai
-
 > ---
->  drivers/acpi/scan.c |   16 ++++++++++++----
->  1 file changed, 12 insertions(+), 4 deletions(-)
+>  drivers/acpi/scan.c |   35 ++++++++++++++++++++++++-----------
+>  1 file changed, 24 insertions(+), 11 deletions(-)
 >
 > Index: linux-pm/drivers/acpi/scan.c
 > ===================================================================
 > --- linux-pm.orig/drivers/acpi/scan.c
 > +++ linux-pm/drivers/acpi/scan.c
-> @@ -52,6 +52,7 @@ static const struct acpi_device_id acpi_
+> @@ -1437,19 +1437,21 @@ void acpi_init_device_object(struct acpi
+>         acpi_device_get_busid(device);
+>         acpi_device_set_id(device);
+>         acpi_bus_get_flags(device);
+> +       device->flags.match_driver = false;
+>         device_initialize(&device->dev);
+>         dev_set_uevent_suppress(&device->dev, true);
+>  }
 >
->  static LIST_HEAD(acpi_device_list);
->  static LIST_HEAD(acpi_bus_id_list);
-> +static DEFINE_MUTEX(acpi_scan_lock);
->  DEFINE_MUTEX(acpi_device_lock);
->  LIST_HEAD(acpi_wakeup_device_list);
->
-> @@ -1612,19 +1613,22 @@ static acpi_status acpi_bus_device_attac
->  int acpi_bus_scan(acpi_handle handle)
+>  void acpi_device_add_finalize(struct acpi_device *device)
 >  {
->         void *device = NULL;
-> +       int error = 0;
-> +
-> +       mutex_lock(&acpi_scan_lock);
+> +       device->flags.match_driver = true;
+>         dev_set_uevent_suppress(&device->dev, false);
+>         kobject_uevent(&device->dev.kobj, KOBJ_ADD);
+>  }
 >
->         if (ACPI_SUCCESS(acpi_bus_check_add(handle, 0, NULL, &device)))
->                 acpi_walk_namespace(ACPI_TYPE_ANY, handle, ACPI_UINT32_MAX,
->                                     acpi_bus_check_add, NULL, NULL, &device);
+>  static int acpi_add_single_object(struct acpi_device **child,
+>                                   acpi_handle handle, int type,
+> -                                 unsigned long long sta, bool match_driver)
+> +                                 unsigned long long sta)
+>  {
+>         int result;
+>         struct acpi_device *device;
+> @@ -1465,7 +1467,6 @@ static int acpi_add_single_object(struct
+>         acpi_bus_get_power_flags(device);
+>         acpi_bus_get_wakeup_device_flags(device);
 >
+> -       device->flags.match_driver = match_driver;
+>         result = acpi_device_add(device, acpi_device_release);
+>         if (result) {
+>                 acpi_device_release(&device->dev);
+> @@ -1558,12 +1559,10 @@ static acpi_status acpi_bus_check_add(ac
+>                 return AE_CTRL_DEPTH;
+>         }
+>
+> -       acpi_add_single_object(&device, handle, type, sta, false);
+> +       acpi_add_single_object(&device, handle, type, sta);
 >         if (!device)
-> -               return -ENODEV;
+>                 return AE_CTRL_DEPTH;
+>
+> -       device->flags.match_driver = true;
 > -
-> -       if (ACPI_SUCCESS(acpi_bus_device_attach(handle, 0, NULL, NULL)))
-> +               error = -ENODEV;
-> +       else if (ACPI_SUCCESS(acpi_bus_device_attach(handle, 0, NULL, NULL)))
->                 acpi_walk_namespace(ACPI_TYPE_ANY, handle, ACPI_UINT32_MAX,
->                                     acpi_bus_device_attach, NULL, NULL, NULL);
->
-> -       return 0;
-> +       mutex_unlock(&acpi_scan_lock);
-> +       return error;
->  }
->  EXPORT_SYMBOL(acpi_bus_scan);
->
-> @@ -1653,6 +1657,8 @@ static acpi_status acpi_bus_remove(acpi_
->
->  void acpi_bus_trim(struct acpi_device *start)
+>   out:
+>         if (!*return_value)
+>                 *return_value = device;
+
+nice cleanup.
+
+Acked-by: Yinghai Lu <yinghai@kernel.org>
+
+> @@ -1681,25 +1680,39 @@ EXPORT_SYMBOL_GPL(acpi_bus_trim);
+>  static int acpi_bus_scan_fixed(void)
 >  {
-> +       mutex_lock(&acpi_scan_lock);
-> +
->         /*
->          * Execute acpi_bus_device_detach() as a post-order callback to detach
->          * all ACPI drivers from the device nodes being removed.
-> @@ -1667,6 +1673,8 @@ void acpi_bus_trim(struct acpi_device *s
->         acpi_walk_namespace(ACPI_TYPE_ANY, start->handle, ACPI_UINT32_MAX, NULL,
->                             acpi_bus_remove, NULL, NULL);
->         acpi_bus_remove(start->handle, 0, NULL, NULL);
-> +
-> +       mutex_unlock(&acpi_scan_lock);
->  }
->  EXPORT_SYMBOL_GPL(acpi_bus_trim);
+>         int result = 0;
+> -       struct acpi_device *device = NULL;
 >
+>         /*
+>          * Enumerate all fixed-feature devices.
+>          */
+> -       if ((acpi_gbl_FADT.flags & ACPI_FADT_POWER_BUTTON) == 0) {
+> +       if (!(acpi_gbl_FADT.flags & ACPI_FADT_POWER_BUTTON)) {
+> +               struct acpi_device *device = NULL;
+> +
+>                 result = acpi_add_single_object(&device, NULL,
+>                                                 ACPI_BUS_TYPE_POWER_BUTTON,
+> -                                               ACPI_STA_DEFAULT, true);
+> +                                               ACPI_STA_DEFAULT);
+> +               if (result)
+> +                       return result;
+> +
+> +               result = device_attach(&device->dev);
+> +               if (result < 0)
+> +                       return result;
+> +
+>                 device_init_wakeup(&device->dev, true);
+>         }
+>
+> -       if ((acpi_gbl_FADT.flags & ACPI_FADT_SLEEP_BUTTON) == 0) {
+> +       if (!(acpi_gbl_FADT.flags & ACPI_FADT_SLEEP_BUTTON)) {
+> +               struct acpi_device *device = NULL;
+> +
+>                 result = acpi_add_single_object(&device, NULL,
+>                                                 ACPI_BUS_TYPE_SLEEP_BUTTON,
+> -                                               ACPI_STA_DEFAULT, true);
+> +                                               ACPI_STA_DEFAULT);
+> +               if (result)
+> +                       return result;
+> +
+> +               result = device_attach(&device->dev);
+>         }
+>
+> -       return result;
+> +       return result < 0 ? result : 0;
+>  }
+>
+>  int __init acpi_scan_init(void)
 >
