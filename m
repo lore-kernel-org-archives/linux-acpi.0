@@ -1,58 +1,85 @@
-From: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Subject: Re: [PATCH v5 1/2] TTY: Add TTY slave enumeration support
-Date: Fri, 25 Jan 2013 16:21:47 -0800
-Message-ID: <20130126002147.GA5132@kroah.com>
-References: <cover.1354505471.git.lv.zheng@intel.com>
- <cover.1359022955.git.lv.zheng@intel.com>
- <12848b50e1096dc11a193694ee248d51d45ce093.1359022955.git.lv.zheng@intel.com>
- <20130125214121.GA30924@kroah.com>
- <20130126003216.1f16a705@bob.linux.org.uk>
+From: Jiang Liu <jiang.liu@huawei.com>
+Subject: Re: [PATCH v10 00/11] PCI, ACPI: pci root bus hotplug support / pci
+ match_driver
+Date: Sat, 26 Jan 2013 09:24:39 +0800
+Message-ID: <51033057.1080908@huawei.com>
+References: <1358803252-20639-1-git-send-email-yinghai@kernel.org> <2072996.JYmST9orI6@vostro.rjw.lan> <CAE9FiQUS56KnvDCF7LUyCkNLcun+3zZ+xGiexca2ej30dRvrQg@mail.gmail.com> <CAErSpo7-XabKQh_Lia9zS9i4Mm=eBV6rRw0ArjXAZBiWYx4uYA@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-da0-f46.google.com ([209.85.210.46]:41699 "EHLO
-	mail-da0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754490Ab3AZAVu (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 25 Jan 2013 19:21:50 -0500
-Received: by mail-da0-f46.google.com with SMTP id p5so403182dak.19
-        for <linux-acpi@vger.kernel.org>; Fri, 25 Jan 2013 16:21:50 -0800 (PST)
-Content-Disposition: inline
-In-Reply-To: <20130126003216.1f16a705@bob.linux.org.uk>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset="ISO-8859-1"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-pci-owner@vger.kernel.org>
+In-Reply-To: <CAErSpo7-XabKQh_Lia9zS9i4Mm=eBV6rRw0ArjXAZBiWYx4uYA@mail.gmail.com>
+Sender: linux-pci-owner@vger.kernel.org
+To: Bjorn Helgaas <bhelgaas@google.com>
+Cc: Yinghai Lu <yinghai@kernel.org>, "Rafael J. Wysocki" <rjw@sisk.pl>, Len Brown <lenb@kernel.org>, Taku Izumi <izumi.taku@jp.fujitsu.com>, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Alan Cox <alan@linux.intel.com>
-Cc: Lv Zheng <lv.zheng@intel.com>, Rafael J Wysocki <rafael.j.wysocki@intel.com>, Len Brown <len.brown@intel.com>, Mika Westerberg <mika.westerberg@linux.intel.com>, linux-acpi@vger.kernel.org, linux-serial@vger.kernel.org
 
-On Sat, Jan 26, 2013 at 12:32:16AM +0000, Alan Cox wrote:
-> > Or am I missing something big and major here?  How have people been
-> > seeing and configuring their tty devices for the last 8+ years or so
-> > since the 2.6.0 kernel was released with uevent support for tty
-> > devices?
+On 2013-1-26 8:04, Bjorn Helgaas wrote:
+> On Tue, Jan 22, 2013 at 3:19 PM, Yinghai Lu <yinghai@kernel.org> wrote:
+>> On Tue, Jan 22, 2013 at 2:09 PM, Rafael J. Wysocki <rjw@sisk.pl> wrote:
+>>> On Monday, January 21, 2013 01:20:41 PM Yinghai Lu wrote:
+>>>> It includes
+>>>> 1. preparing patches for pci root bus hotadd/hotremove support
+>>>> 2. move root bus hotadd from acpiphp to pci_root.c
+>>>> 3. add hot-remove support
+>>>> 4. add acpi_hp_work to be shared with acpiphp and root-bus hotplug
+>>>> 5. add match_driver to add pci device to device tree early but
+>>>>    not attach driver for hotplug path.
+>>>>
+>>>> based on pci/next + pm/acpi-scan
+>>>>
+>>>> could get from
+>>>>         git://git.kernel.org/pub/scm/linux/kernel/git/yinghai/linux-yinghai.git for-pci-root-bus-hotplug
+>>>>
+>>>> -v9: merges several patches together for easy review, requested by Rafael.
+>>>> -v10: address comments from Rafael.
+>>>>
+>>>> Jiang Liu (2):
+>>>>   PCI: Fix a device reference count leakage issue in pci_dev_present()
+>>>>   PCI: make PCI device create/destroy logic symmetric
+>>>>
+>>>> Tang Chen (1):
+>>>>   PCI, ACPI: debug print for installation of acpi root bridge's
+>>>>     notifier
+>>>>
+>>>> Yinghai Lu (8):
+>>>>   PCI, acpiphp: Add is_hotplug_bridge detection
+>>>>   PCI: Add root bus children dev's res to fail list
+>>>>   PCI: Set dev_node early for pci_dev
+>>>>   PCI, ACPI, acpiphp: Rename alloc_acpiphp_hp_work() to alloc_acpi_hp_work
+>>>>   PCI, acpiphp: Move and enhance hotplug support of pci host bridge
+>>>>   PCI, acpiphp: Don't bailout even no slots found yet.
+>>>>   PCI: Skip attaching driver in device_add()
+>>>>   PCI: Put pci dev to device tree as early as possible
+>>>
+>>> OK
+>>>
+>>> Please feel free to add
+>>>
+>>> Acked-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+>>>
+>>> to all of the patches in this series I haven't acked already.
 > 
-> Minor more than major. The newer ACPI tries to begin to describe what
-> is on the other end of serial busses being used for internal purposes.
+> I first pulled in
+> "git://git.kernel.org/pub/scm/linux/kernel/git/rafael/linux-pm.git
+> acpi-scan" again (to pci/acpi-scan2), added your acks, Rafael, and put
+> this series on a pci/yinghai-root-bus branch based on pci/acpi-scan2.
 > 
-> Now there are several good reasons we want to know what is on the end
-> of a port already that are not currently handled, and I have suggested
-> a port "type" attribute would be useful (eg  unknown, modem, bluetooth,
-> ax25, dcc, etc) so the kernel can help user space enumerate in user
-> friendly fashion.
-
-That's fine, just add a single attribute to the existing tty class
-device, not a whole new class, which is what this code does.
-
-> Where it gets slightly more tricky is that we are beginning to see
-> systems where the firmware is describing
+> I reworked some of the changelogs a bit, but I don't think I made any
+> code changes except that in [10/11] I just inlined the
+> pci_bus_attach_device() code rather than making a new function, since
+> it's small, there's only one caller, and I didn't think we needed any
+> more pci_* and pci_bus_* functions than we already have.
 > 
-> 	serial port (and power management)
-> 	device behind port (and power management)
+> Let me know if I messed anything up.
+Great, so I could rebase my PCI notification related work to this branch.
+I'm trying to resolve conflicts between acpi-scan and pci-root-bus-hotplug
+last night.
+
+Thanks!
+
 > 
-> so there is a power management hierarchy involved.
-
-Ick, that's going to get messy fast.  There's no hope they would switch
-to a USB connection instead for these devices, could they?  That would
-fix up most of these issues, and make the devices discoverable.
-
-thanks,
-
-greg k-h
+> Bjorn
+> 
+> .
+> 
