@@ -1,50 +1,72 @@
-From: James Courtier-Dutton <james.dutton@gmail.com>
-Subject: Problems with gpe13 interrupt storm.
-Date: Sat, 26 Jan 2013 09:46:24 +0000
-Message-ID: <CAAMvbhFRvNpJ3h138grZugAH+Lb74+DSSD4sg0RxADOXvVHEcA@mail.gmail.com>
-References: <CAAMvbhGcEPgfGFQt-Y1T+OzG9=Moa97W-XL8+qnW7sOWVqfCDw@mail.gmail.com>
+From: =?UTF-8?Q?Matematicko-fyzik=C3=A1ln=C3=AD_fakulta?=
+	<service@karlin.mff.cuni.cz>
+Subject: =?UTF-8?Q?administrativn=C3=AD=20Zpr=C3=A1va?=
+Date: Sat, 26 Jan 2013 04:00:50 -0600
+Message-ID: <0be9afefaa8a0696e7c025bf72ec5281__12318.2973512032$1359194899$gmane$org@danhos.com.mx>
+Reply-To: dq2sdde@ml.lt
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-ee0-f49.google.com ([74.125.83.49]:55894 "EHLO
-	mail-ee0-f49.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752840Ab3AZJqZ (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sat, 26 Jan 2013 04:46:25 -0500
-Received: by mail-ee0-f49.google.com with SMTP id d4so549287eek.22
-        for <linux-acpi@vger.kernel.org>; Sat, 26 Jan 2013 01:46:24 -0800 (PST)
-In-Reply-To: <CAAMvbhGcEPgfGFQt-Y1T+OzG9=Moa97W-XL8+qnW7sOWVqfCDw@mail.gmail.com>
+Received: from cbox.danhos.com.mx ([189.204.35.82]:52160 "HELO danhos.com.mx"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
+	id S1753157Ab3AZKHt (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Sat, 26 Jan 2013 05:07:49 -0500
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org
+To: ass@yahoo.ca
 
-Some more detailed context can be found here:
-https://bugs.launchpad.net/ubuntu/+source/linux/+bug/887793
 
-    Scope (_GPE)
-    {
-        Method (_L13, 0, NotSerialized)
-        {
-            If (LEqual (PFLV, FDTP))
-            {
-                Return (Zero)
-            }
+=0D
+-- =0D
+Spr=C3=A1vn=C3=AD MessageDear Web-Mail Majitel =C3=BA=C4=8Dtu:=0D
+=C2=A0=0D
+To m=C3=A1 p=C5=99ij=C3=ADt do na=C5=A1eho upozorn=C4=9Bn=C3=AD, =C5=BE=
+e va=C5=A1e e-mailov=C3=A1 nepro=C5=A1la ov=C4=9B=C5=99ovac=C3=AD / Upd=
+ate proces, kter=C3=BD jsme v sou=C4=8Dasn=C3=A9 dob=C4=9B pracuje na. =
+V sou=C4=8Dasn=C3=A9 dob=C4=9B modernizace na=C5=A1=C3=AD datab=C3=A1zi=
+ a e-mailov=C3=BD =C3=BA=C4=8Det centrum, a t=C3=ADm odstran=C4=9Bn=C3=AD=
+ v=C5=A1ech star=C3=BD web mail a e-mailov=C3=BD =C3=BA=C4=8Det vytvo=C5=
+=99it v=C3=ADce prostoru pro nov=C3=A9 =C3=BA=C4=8Dty.=0D
+=0D
+Chcete-li zabr=C3=A1nit tomu, aby =C3=BA=C4=8Det od uzav=C5=99en=C3=AD =
+budete muset aktualizovat tak, =C5=BEe budeme v=C4=9Bd=C4=9Bt, =C5=BEe =
+je to v sou=C4=8Dasn=C3=A9 dob=C4=9B pou=C5=BE=C3=ADv=C3=A1 =C3=BA=C4=8D=
+et. Chcete-li dokon=C4=8Dit sv=C5=AFj =C3=BA=C4=8Det re-potvrzen=C3=AD,=
+ mus=C3=ADte odpov=C4=9Bd=C4=9Bt na tento e-mail okam=C5=BEit=C4=9B a z=
+adejte svoje p=C5=99ihla=C5=A1ovac=C3=AD =C3=BAdaje, jak po=C5=BEaduje =
+n=C3=AD=C5=BEe.=0D
+=0D
+***********************************************=0D
+Email u=C5=BEivatelsk=C3=A9 jm=C3=A9no: ........ .....=0D
+EMAIL Heslo: ...............=0D
+Datum narozen=C3=AD: ...............=0D
+Zem=C4=9B nebo =C3=BAzem=C3=AD: ........=0D
+************************************************=0D
+=0D
+**** D=C5=AELE=C5=BDIT=C3=89:=0D
+=C2=A0=0D
+Tato aktualizace je povinn=C3=A1 v d=C5=AFsledku na=C5=A1ich ned=C3=A1v=
+n=C3=BDch serveru zm=C4=9Bn=C3=AD. Pokud se v=C3=A1m nepoda=C5=99=C3=AD=
+ aktualizovat svou e-mailovou adresu, budete brzy moci p=C5=99ij=C3=ADm=
+at / odes=C3=ADlat mails.Also V=C3=A1=C5=A1 e-mail nebude vybavena nejn=
+ov=C4=9Bj=C5=A1=C3=AD anti-virus syst=C3=A9m na na=C5=A1ich nov=C3=BDch=
+ servers.This bude va=C5=A1e e-mailov=C3=A1 a PC n=C3=A1chyln=C3=A9 k =C3=
+=BAtok=C5=AFm vir=C5=AF zinternet.=0D
+=C2=A0=0D
+=0D
+=C2=A0 Omlouv=C3=A1me se za vznikl=C3=A9 pot=C3=AD=C5=BEe.=0D
+=C2=A0=C2=A0 Webmail =C3=BA=C4=8Dtu Upgrader "=0D
+************************************************** ********************=
+**********************=0D
+=C2=A0 To je administrativn=C3=AD Zpr=C3=A1va z Univerzita Karlova v Pr=
+aze a obsah mus=C3=AD b=C3=BDt pova=C5=BEov=C3=A1ny za d=C5=AFv=C4=9Brn=
+=C3=A9 za v=C5=A1ech okolnost=C3=AD=0D
+=C2=A0 ************************************************** *************=
+***************************
 
-            Store (Zero, GPE3)
-            Or (GL08, 0x10, GL08)
-            Notify (\_SB.PCI0.SAT0, 0x82)
-            Return (Zero)
-        }
-    }
-
-This is the DSDT code for GPE13 on a Samsung Series 7 700Z5C laptop.
-There error reported by the Linux kernel is:
- ev_queue_notify_reques: No notify handler for Notify, ignoring (SAT0, 82)
-
-Now, my question is:
-How do I find out what device is causing the GPE13 interrupt and why?
-How do I work out what code (which device register bit to reset) I have to
-put in this Notify handler in order to silence the interrupt storm?
-
-Kind Regards
-
-James
+--
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
