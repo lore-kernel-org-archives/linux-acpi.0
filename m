@@ -1,59 +1,50 @@
-From: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Subject: Re: [PATCH v5 1/2] TTY: Add TTY slave enumeration support
-Date: Fri, 25 Jan 2013 19:44:18 -0800
-Message-ID: <20130126034418.GC5066@kroah.com>
-References: <cover.1354505471.git.lv.zheng@intel.com>
- <cover.1359022955.git.lv.zheng@intel.com>
- <12848b50e1096dc11a193694ee248d51d45ce093.1359022955.git.lv.zheng@intel.com>
- <20130125214544.GB30924@kroah.com>
- <1AE640813FDE7649BE1B193DEA596E88BF41DF@SHSMSX101.ccr.corp.intel.com>
+From: James Courtier-Dutton <james.dutton@gmail.com>
+Subject: Problems with gpe13 interrupt storm.
+Date: Sat, 26 Jan 2013 09:46:24 +0000
+Message-ID: <CAAMvbhFRvNpJ3h138grZugAH+Lb74+DSSD4sg0RxADOXvVHEcA@mail.gmail.com>
+References: <CAAMvbhGcEPgfGFQt-Y1T+OzG9=Moa97W-XL8+qnW7sOWVqfCDw@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.19.201]:59902 "EHLO mail.kernel.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754749Ab3AZDml (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 25 Jan 2013 22:42:41 -0500
-Content-Disposition: inline
-In-Reply-To: <1AE640813FDE7649BE1B193DEA596E88BF41DF@SHSMSX101.ccr.corp.intel.com>
+Received: from mail-ee0-f49.google.com ([74.125.83.49]:55894 "EHLO
+	mail-ee0-f49.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752840Ab3AZJqZ (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sat, 26 Jan 2013 04:46:25 -0500
+Received: by mail-ee0-f49.google.com with SMTP id d4so549287eek.22
+        for <linux-acpi@vger.kernel.org>; Sat, 26 Jan 2013 01:46:24 -0800 (PST)
+In-Reply-To: <CAAMvbhGcEPgfGFQt-Y1T+OzG9=Moa97W-XL8+qnW7sOWVqfCDw@mail.gmail.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Zheng, Lv" <lv.zheng@intel.com>
-Cc: Alan Cox <alan@linux.intel.com>, "Wysocki, Rafael J" <rafael.j.wysocki@intel.com>, "Brown, Len" <len.brown@intel.com>, Mika Westerberg <mika.westerberg@linux.intel.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-serial@vger.kernel.org" <linux-serial@vger.kernel.org>, "Jiri Slaby (jslaby@suse.cz)" <jslaby@suse.cz>, "Heikki Krogerus (heikki.krogerus@linux.intel.com)" <heikki.krogerus@linux.intel.com>
+To: linux-acpi@vger.kernel.org
 
-On Sat, Jan 26, 2013 at 03:12:07AM +0000, Zheng, Lv wrote:
-> > > +static void tty_slave_release(struct device *dev) {
-> > > +	struct tty_slave *tts = to_tty_slave(dev);
-> > > +
-> > > +	kfree(tts);
-> > > +	/* Test code to see if slave device get released */
-> > > +	BUG();
-> > > +}
-> > 
-> > You send me a patch like this and expect me to apply it when it's obvious you
-> > didn't even test it out?  That's the most _basic_ test for any dynamic type of
-> > device (add it and remove it and make sure the kernel still works.)  And
-> > obviously you didn't do it.
-> > 
-> > I need a really good reason why to take you seriously now.
-> 
-> It's actually my fault.
-> I'm lack of release testability then.
-> Now I can do this exactly.
-> According to internal reviewers' comments, it should be RFC patch to
-> see if any objections there in the community.
+Some more detailed context can be found here:
+https://bugs.launchpad.net/ubuntu/+source/linux/+bug/887793
 
-Don't put code like this in RFC code either, that shows you didn't even
-test it out, and want to waste other people's time.
+    Scope (_GPE)
+    {
+        Method (_L13, 0, NotSerialized)
+        {
+            If (LEqual (PFLV, FDTP))
+            {
+                Return (Zero)
+            }
 
-And note, I almost _never_ read RFC patches, so you aren't going to get
-a review from me for it, sorry, I have too many other things to do.
+            Store (Zero, GPE3)
+            Or (GL08, 0x10, GL08)
+            Notify (\_SB.PCI0.SAT0, 0x82)
+            Return (Zero)
+        }
+    }
 
-> I'll complete the test and refresh the patches if you think the
-> functionality is interesting and useful.  Please be noted the device
-> tree guys can also get benefit from such tty target enumeration
-> mechanism.
+This is the DSDT code for GPE13 on a Samsung Series 7 700Z5C laptop.
+There error reported by the Linux kernel is:
+ ev_queue_notify_reques: No notify handler for Notify, ignoring (SAT0, 82)
 
-No, they can use what we have today, don't reinvent the wheel.
+Now, my question is:
+How do I find out what device is causing the GPE13 interrupt and why?
+How do I work out what code (which device register bit to reset) I have to
+put in this Notify handler in order to silence the interrupt storm?
 
-greg k-h
+Kind Regards
+
+James
