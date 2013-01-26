@@ -1,62 +1,61 @@
 From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: linux-next: Tree for Jan 25 (BROKEN suspend)
-Date: Sat, 26 Jan 2013 14:25:47 +0100
-Message-ID: <1378199.89Y5N0mHyy@vostro.rjw.lan>
-References: <CA+icZUW6LBSjpqK-eQUAt7R=kXCPRjFoi=z1UijaajrVAj=fEg@mail.gmail.com>
+Subject: Re: Problems with gpe13 interrupt storm.
+Date: Sat, 26 Jan 2013 14:29:57 +0100
+Message-ID: <1906135.qKhvgoex2Z@vostro.rjw.lan>
+References: <CAAMvbhGcEPgfGFQt-Y1T+OzG9=Moa97W-XL8+qnW7sOWVqfCDw@mail.gmail.com> <CAAMvbhFRvNpJ3h138grZugAH+Lb74+DSSD4sg0RxADOXvVHEcA@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7Bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from hydra.sisk.pl ([212.160.235.94]:56429 "EHLO hydra.sisk.pl"
+Received: from hydra.sisk.pl ([212.160.235.94]:56434 "EHLO hydra.sisk.pl"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753973Ab3AZNTm (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Sat, 26 Jan 2013 08:19:42 -0500
-In-Reply-To: <CA+icZUW6LBSjpqK-eQUAt7R=kXCPRjFoi=z1UijaajrVAj=fEg@mail.gmail.com>
+	id S1751074Ab3AZNXw (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Sat, 26 Jan 2013 08:23:52 -0500
+In-Reply-To: <CAAMvbhFRvNpJ3h138grZugAH+Lb74+DSSD4sg0RxADOXvVHEcA@mail.gmail.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: sedat.dilek@gmail.com
-Cc: Stephen Rothwell <sfr@canb.auug.org.au>, linux-next@vger.kernel.org, linux-kernel@vger.kernel.org, Linux PM List <linux-pm@lists.linux-foundation.org>, Linux ACPI <linux-acpi@vger.kernel.org>, Sasha Levin <sasha.levin@oracle.com>
+To: James Courtier-Dutton <james.dutton@gmail.com>
+Cc: linux-acpi@vger.kernel.org
 
-On Saturday, January 26, 2013 12:10:32 PM Sedat Dilek wrote:
-> On Fri, Jan 25, 2013 at 6:26 AM, Stephen Rothwell <sfr@canb.auug.org.au> wrote:
-> > Hi all,
-> >
-> > Changes since 20130124:
-> >
-> > New trees: ipsec and ipsec-next
-> >
-> > The powerpc tree still had a build failure.
-> >
-> > The sound-asoc tree still had its build failure so I used the version from
-> > next-20130122.
-> >
-> > The akpm tree lost its build failure and several patches that turned up
-> > elsewhere.
-> >
-> > ----------------------------------------------------------------------------
-> >
+On Saturday, January 26, 2013 09:46:24 AM James Courtier-Dutton wrote:
+> Some more detailed context can be found here:
+> https://bugs.launchpad.net/ubuntu/+source/linux/+bug/887793
 > 
-> Unfortunately, on suspend or running the pm_test/freezer leads here to
-> a frozen machine - hard reset.
+>     Scope (_GPE)
+>     {
+>         Method (_L13, 0, NotSerialized)
+>         {
+>             If (LEqual (PFLV, FDTP))
+>             {
+>                 Return (Zero)
+>             }
 > 
-> I see 4-5 pages of call-traces but dunno how to log them in such a f-u-ed state.
-> Any hints welcome!
+>             Store (Zero, GPE3)
+>             Or (GL08, 0x10, GL08)
+>             Notify (\_SB.PCI0.SAT0, 0x82)
+>             Return (Zero)
+>         }
+>     }
 > 
-> As I saw catched with my left eye on one call-trace sth. with...
+> This is the DSDT code for GPE13 on a Samsung Series 7 700Z5C laptop.
+> There error reported by the Linux kernel is:
+>  ev_queue_notify_reques: No notify handler for Notify, ignoring (SAT0, 82)
 > 
->       kernel/watchdog.c (line #245, watchdog_overflow_callback)
-> 
-> ... I tried to revert the last two commits from Sascha (see -3 patch,
-> but no success.
-> 
-> The same with reverting all cpu-freq changes since v3.8-rc4 (see -4
-> patch) after seeing some suspicious lines on the screen.
-> 
-> Can someone confirm that suspend is BROKEN for him/her before doing
-> eventually a bisect?
+> Now, my question is:
+> How do I find out what device is causing the GPE13 interrupt and why?
 
-Can you please test the linux-next branch of the linux-pm.git tree alone?
+You can look into the ACPI tables, for example.
 
+Please file a but at bugzilla.kernel.org against ACPI and assign it to me.
+Please put the output of acpidump on your system as an attachment to the bug
+entry.
+
+> How do I work out what code (which device register bit to reset) I have to
+> put in this Notify handler in order to silence the interrupt storm?
+
+You need to find out what the cause of the Notify is first.
+
+Thanks,
 Rafael
 
 
