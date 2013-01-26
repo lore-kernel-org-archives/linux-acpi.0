@@ -1,179 +1,133 @@
 From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: linux-next: Tree for Jan 25 (BROKEN suspend)
-Date: Sat, 26 Jan 2013 22:49:11 +0100
-Message-ID: <18624541.r6CtJttOWZ@vostro.rjw.lan>
-References: <CA+icZUW6LBSjpqK-eQUAt7R=kXCPRjFoi=z1UijaajrVAj=fEg@mail.gmail.com> <CA+icZUX=XdAJjWwx8P_y31JGW3GC+tdWuFhv2Ym-0OELGWGbDQ@mail.gmail.com> <CA+icZUX31SB3+NU8uXA9LH5KOHxgeHKZLcqWNhzUVhx5onk6qA@mail.gmail.com>
+Subject: [PATCH 2/2] ACPI / scan: Make scanning of fixed devices follow the general scheme
+Date: Sat, 26 Jan 2013 23:43:50 +0100
+Message-ID: <2664818.zPRWmg7IFi@vostro.rjw.lan>
+References: <1581701.fnbebHrKch@vostro.rjw.lan>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7Bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from hydra.sisk.pl ([212.160.235.94]:56674 "EHLO hydra.sisk.pl"
+Received: from hydra.sisk.pl ([212.160.235.94]:56729 "EHLO hydra.sisk.pl"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754178Ab3AZVnG (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Sat, 26 Jan 2013 16:43:06 -0500
-In-Reply-To: <CA+icZUX31SB3+NU8uXA9LH5KOHxgeHKZLcqWNhzUVhx5onk6qA@mail.gmail.com>
+	id S1754484Ab3AZWhs (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Sat, 26 Jan 2013 17:37:48 -0500
+In-Reply-To: <1581701.fnbebHrKch@vostro.rjw.lan>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: sedat.dilek@gmail.com
-Cc: Stephen Rothwell <sfr@canb.auug.org.au>, linux-next@vger.kernel.org, linux-kernel@vger.kernel.org, Linux PM List <linux-pm@lists.linux-foundation.org>, Linux ACPI <linux-acpi@vger.kernel.org>, Sasha Levin <sasha.levin@oracle.com>
+To: ACPI Devel Maling List <linux-acpi@vger.kernel.org>
+Cc: LKML <linux-kernel@vger.kernel.org>, Bjorn Helgaas <bhelgaas@google.com>, Yinghai Lu <yinghai@kernel.org>, Jiang Liu <liuj97@gmail.com>, Toshi Kani <toshi.kani@hp.com>
 
-On Saturday, January 26, 2013 07:27:06 PM Sedat Dilek wrote:
-> On Sat, Jan 26, 2013 at 4:05 PM, Sedat Dilek <sedat.dilek@gmail.com> wrote:
-> > On Sat, Jan 26, 2013 at 3:33 PM, Sedat Dilek <sedat.dilek@gmail.com> wrote:
-> >> On Sat, Jan 26, 2013 at 2:24 PM, Sedat Dilek <sedat.dilek@gmail.com> wrote:
-> >>> On Sat, Jan 26, 2013 at 2:25 PM, Rafael J. Wysocki <rjw@sisk.pl> wrote:
-> >>>> On Saturday, January 26, 2013 12:10:32 PM Sedat Dilek wrote:
-> >>>>> On Fri, Jan 25, 2013 at 6:26 AM, Stephen Rothwell <sfr@canb.auug.org.au> wrote:
-> >>>>> > Hi all,
-> >>>>> >
-> >>>>> > Changes since 20130124:
-> >>>>> >
-> >>>>> > New trees: ipsec and ipsec-next
-> >>>>> >
-> >>>>> > The powerpc tree still had a build failure.
-> >>>>> >
-> >>>>> > The sound-asoc tree still had its build failure so I used the version from
-> >>>>> > next-20130122.
-> >>>>> >
-> >>>>> > The akpm tree lost its build failure and several patches that turned up
-> >>>>> > elsewhere.
-> >>>>> >
-> >>>>> > ----------------------------------------------------------------------------
-> >>>>> >
-> >>>>>
-> >>>>> Unfortunately, on suspend or running the pm_test/freezer leads here to
-> >>>>> a frozen machine - hard reset.
-> >>>>>
-> >>>>> I see 4-5 pages of call-traces but dunno how to log them in such a f-u-ed state.
-> >>>>> Any hints welcome!
-> >>>>>
-> >>>>> As I saw catched with my left eye on one call-trace sth. with...
-> >>>>>
-> >>>>>       kernel/watchdog.c (line #245, watchdog_overflow_callback)
-> >>>>>
-> >>>>> ... I tried to revert the last two commits from Sascha (see -3 patch,
-> >>>>> but no success.
-> >>>>>
-> >>>>> The same with reverting all cpu-freq changes since v3.8-rc4 (see -4
-> >>>>> patch) after seeing some suspicious lines on the screen.
-> >>>>>
-> >>>>> Can someone confirm that suspend is BROKEN for him/her before doing
-> >>>>> eventually a bisect?
-> >>>>
-> >>>> Can you please test the linux-next branch of the linux-pm.git tree alone?
-> >>>>
-> >>>
-> >>> That sounds like a good idea as I just reverted "cpu-hotplug,
-> >>> memory-hotplug: try offlining the node when hotremoving a cpu" [1]
-> >>> from akpm tree.
-> >>> Building... 1st with revert than trying pm-next only.
-> >>>
-> >>
-> >> Your pm-next tree is fine here.
-> >>
-> >> commit 0b9d032a2bf0a0224ef446f3d6048fdd8a5b8280
-> >> "Merge branch 'pm-cpufreq-next' into linux-next linux-next"
-> >>
-> >> Furthermore, the culprit is not between akpm-master and akpm-current
-> >> as I have seen cpu/mem hotplug and pm changes there.
-> >>
-> >> Hmm, maybe bisecting would have been faster than hunting on suspicious commits.
-> >>
-> >> - Sedat -
-> >>
-> >>> - Sedat -
-> >>>
-> >>> [1] http://git.kernel.org/?p=linux/kernel/git/next/linux-next.git;a=commitdiff;h=154cb61f36690edef68beb5fd9dc0a5027f9dbd9
-> >>>
-> >>>> Rafael
-> >>>>
-> >>>>
-> >>>> --
-> >>>> I speak only for myself.
-> >>>> Rafael J. Wysocki, Intel Open Source Technology Center.
-> >
-> > I merged on top of my Linux-v3.8-rc5 GIT branch...
-> >
-> > Sedat Dilek (8):
-> >       mei: Fix some more kernel-doc typos in hw-me.c
-> >       kbuild: deb-pkg: Try to determine distribution
-> >       kbuild: deb-pkg: Bump year in debian/copyright file
-> >       kbuild: deb-pkg: Update git repository URL in debian/copyright file
-> >       Merge tag 'next-20130124' of
-> > git://git.kernel.org/.../next/linux-next into Linux-Next-v20130124
-> >       Merge branch 'deb-pkg-fixes' into 3.8.0-rc5-next20130124-1-pmnext-generic
-> >       Merge branch 'Linux-Next-v20130124' into
-> > 3.8.0-rc5-next20130124-1-pmnext-generic
-> >       Merge branch 'pm-next' into 3.8.0-rc5-next20130124-1-pmnext-generic
-> >
-> > ...and this f-u-s the machine as well.
-> > So, the culprit seems not to get from your PM stuff.
-> >
-> > Anyway, this does not help me... but hope it's good news for you, Rafael :-)!
-> >
-> > - Sedat -
-> 
-> This tells me ZERO...
-> 
-> $ cat git-bisect-log.txt
-> git bisect start
-> # bad: [a8ae185b9edd81927bd762b89a327617e3e7a1e8] Add linux-next
-> specific files for 20130124
-> git bisect bad a8ae185b9edd81927bd762b89a327617e3e7a1e8
-> # good: [7d1f9aeff1ee4a20b1aeb377dd0f579fe9647619] Linux 3.8-rc4
-> git bisect good 7d1f9aeff1ee4a20b1aeb377dd0f579fe9647619
-> # bad: [5a4e73d60a0f01a39c602e3c2cbb2f136268f717] Merge
-> remote-tracking branch 'spi-mb/spi-next'
-> git bisect bad 5a4e73d60a0f01a39c602e3c2cbb2f136268f717
-> # good: [9b70ab49707f2db028b29664600db3fcf2221abd] Merge
-> remote-tracking branch 'slave-dma/next'
-> git bisect good 9b70ab49707f2db028b29664600db3fcf2221abd
-> # good: [97b57dc123017c4d748fdf2abdd9a9231239c437] Merge
-> remote-tracking branch 'crypto/master'
-> git bisect good 97b57dc123017c4d748fdf2abdd9a9231239c437
-> # good: [6ab8307c4b30d2414bbbc192d3b07819b2a2ec1e] 20130122/sound-asoc
-> git bisect good 6ab8307c4b30d2414bbbc192d3b07819b2a2ec1e
-> # good: [76e51c3f858996beb6de0dfd03838ec04f9c6203] Merge
-> remote-tracking branch 'mmc/mmc-next'
-> git bisect good 76e51c3f858996beb6de0dfd03838ec04f9c6203
-> # good: [25dcea3017741797805c1279d013108b220b6aea] Merge
-> remote-tracking branch 'battery/master'
-> git bisect good 25dcea3017741797805c1279d013108b220b6aea
-> # good: [c051f41da8c60f0945d295b736aa3c0331ac85bc] Merge
-> remote-tracking branch 'regulator/for-next'
-> git bisect good c051f41da8c60f0945d295b736aa3c0331ac85bc
-> # good: [6f9801536a9bea9f405971fab8abbba929138738] Merge
-> remote-tracking branch 'iommu/next'
-> git bisect good 6f9801536a9bea9f405971fab8abbba929138738
-> # good: [58e49ef6da7f434698699a20683408b2c041081d] Merge
-> remote-tracking branch 'trivial/for-next'
-> git bisect good 58e49ef6da7f434698699a20683408b2c041081d
-> # good: [33cb219590de91b65a9d0e995dbf26642d5d32e0] Merge
-> remote-tracking branch 'edac-amd/for-next'
-> git bisect good 33cb219590de91b65a9d0e995dbf26642d5d32e0
-> # good: [7a5d8ca12aece480e0fe5eda8ce4236dddf55363] spi: bitbang:
-> simplify pointer arithmetics
-> git bisect good 7a5d8ca12aece480e0fe5eda8ce4236dddf55363
-> # good: [bf2084d51182ed0fa1fcf3febd80b308d2e62b20] Merge
-> remote-tracking branch 'dt-rh/for-next'
-> git bisect good bf2084d51182ed0fa1fcf3febd80b308d2e62b20
-> # good: [f28037d2e9ee1fe34ede6211f1cce1d38d867cb8] MAINTAINERS: Add
-> myself as a backup maintainer for SPI
-> git bisect good f28037d2e9ee1fe34ede6211f1cce1d38d867cb8
-> 
-> $ cat git-bisect-view--stat.txt
-> commit 5a4e73d60a0f01a39c602e3c2cbb2f136268f717
-> Merge: bf2084d f28037d
-> Author: Stephen Rothwell <sfr@canb.auug.org.au>
-> Date:   Thu Jan 24 13:49:47 2013 +1100
-> 
->     Merge remote-tracking branch 'spi-mb/spi-next'
+From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 
-Well, perhaps try to test the spi-mb/spi-next branch alone?
+Make acpi_bus_scan_fixed() use device_attach() directly to attach
+drivers, if any, to the fixed devices in analogy with how
+acpi_bus_scan() works, which allows the last argument of
+acpi_add_single_object() to be dropped and the manipulation of the
+flags.match_driver bit to be moved to acpi_init_device_object()
+and acpi_device_add_finalize().
 
-Rafael
+After these changes all of the functions for the initialization
+and registration of struct acpi_device objects work in the same
+way for all of them.
 
+Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+---
+ drivers/acpi/scan.c |   35 ++++++++++++++++++++++++-----------
+ 1 file changed, 24 insertions(+), 11 deletions(-)
 
--- 
-I speak only for myself.
-Rafael J. Wysocki, Intel Open Source Technology Center.
+Index: linux-pm/drivers/acpi/scan.c
+===================================================================
+--- linux-pm.orig/drivers/acpi/scan.c
++++ linux-pm/drivers/acpi/scan.c
+@@ -1437,19 +1437,21 @@ void acpi_init_device_object(struct acpi
+ 	acpi_device_get_busid(device);
+ 	acpi_device_set_id(device);
+ 	acpi_bus_get_flags(device);
++	device->flags.match_driver = false;
+ 	device_initialize(&device->dev);
+ 	dev_set_uevent_suppress(&device->dev, true);
+ }
+ 
+ void acpi_device_add_finalize(struct acpi_device *device)
+ {
++	device->flags.match_driver = true;
+ 	dev_set_uevent_suppress(&device->dev, false);
+ 	kobject_uevent(&device->dev.kobj, KOBJ_ADD);
+ }
+ 
+ static int acpi_add_single_object(struct acpi_device **child,
+ 				  acpi_handle handle, int type,
+-				  unsigned long long sta, bool match_driver)
++				  unsigned long long sta)
+ {
+ 	int result;
+ 	struct acpi_device *device;
+@@ -1465,7 +1467,6 @@ static int acpi_add_single_object(struct
+ 	acpi_bus_get_power_flags(device);
+ 	acpi_bus_get_wakeup_device_flags(device);
+ 
+-	device->flags.match_driver = match_driver;
+ 	result = acpi_device_add(device, acpi_device_release);
+ 	if (result) {
+ 		acpi_device_release(&device->dev);
+@@ -1558,12 +1559,10 @@ static acpi_status acpi_bus_check_add(ac
+ 		return AE_CTRL_DEPTH;
+ 	}
+ 
+-	acpi_add_single_object(&device, handle, type, sta, false);
++	acpi_add_single_object(&device, handle, type, sta);
+ 	if (!device)
+ 		return AE_CTRL_DEPTH;
+ 
+-	device->flags.match_driver = true;
+-
+  out:
+ 	if (!*return_value)
+ 		*return_value = device;
+@@ -1681,25 +1680,39 @@ EXPORT_SYMBOL_GPL(acpi_bus_trim);
+ static int acpi_bus_scan_fixed(void)
+ {
+ 	int result = 0;
+-	struct acpi_device *device = NULL;
+ 
+ 	/*
+ 	 * Enumerate all fixed-feature devices.
+ 	 */
+-	if ((acpi_gbl_FADT.flags & ACPI_FADT_POWER_BUTTON) == 0) {
++	if (!(acpi_gbl_FADT.flags & ACPI_FADT_POWER_BUTTON)) {
++		struct acpi_device *device = NULL;
++
+ 		result = acpi_add_single_object(&device, NULL,
+ 						ACPI_BUS_TYPE_POWER_BUTTON,
+-						ACPI_STA_DEFAULT, true);
++						ACPI_STA_DEFAULT);
++		if (result)
++			return result;
++
++		result = device_attach(&device->dev);
++		if (result < 0)
++			return result;
++
+ 		device_init_wakeup(&device->dev, true);
+ 	}
+ 
+-	if ((acpi_gbl_FADT.flags & ACPI_FADT_SLEEP_BUTTON) == 0) {
++	if (!(acpi_gbl_FADT.flags & ACPI_FADT_SLEEP_BUTTON)) {
++		struct acpi_device *device = NULL;
++
+ 		result = acpi_add_single_object(&device, NULL,
+ 						ACPI_BUS_TYPE_SLEEP_BUTTON,
+-						ACPI_STA_DEFAULT, true);
++						ACPI_STA_DEFAULT);
++		if (result)
++			return result;
++
++		result = device_attach(&device->dev);
+ 	}
+ 
+-	return result;
++	return result < 0 ? result : 0;
+ }
+ 
+ int __init acpi_scan_init(void)
+
