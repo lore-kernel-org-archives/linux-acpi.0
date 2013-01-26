@@ -1,155 +1,188 @@
-From: Azat Khuzhin <dohardgopro@gmail.com>
-Subject: Re: ACPI errors with 3.7-rc3
-Date: Sun, 27 Jan 2013 01:23:17 +0400
-Message-ID: <CAAW1UO81LXbrhXOApoKYC+z7DR2Tg7dAdinXy4UsWhfWH7gdYQ@mail.gmail.com>
-References: <20121031014527.GA2984@kroah.com>
-	<20121108044715.GA12652@kroah.com>
-	<20130126122337.GA20930@linux-ahr8.site>
-	<2216175.k6K6lbz85j@vostro.rjw.lan>
-	<20130126133937.GA2795@linux-ahr8.site>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: Re: [RFC] ACPI scan handlers
+Date: Sat, 26 Jan 2013 22:46:35 +0100
+Message-ID: <2707117.gaHTJBNB2O@vostro.rjw.lan>
+References: <1873429.MS5RQDxTye@vostro.rjw.lan> <5104239E.9050406@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7Bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-ia0-f176.google.com ([209.85.210.176]:61756 "EHLO
-	mail-ia0-f176.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754257Ab3AZVXT (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sat, 26 Jan 2013 16:23:19 -0500
-In-Reply-To: <20130126133937.GA2795@linux-ahr8.site>
+Received: from hydra.sisk.pl ([212.160.235.94]:56667 "EHLO hydra.sisk.pl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754320Ab3AZVkb (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Sat, 26 Jan 2013 16:40:31 -0500
+In-Reply-To: <5104239E.9050406@gmail.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Carlos R. Mafra" <crmafra@gmail.com>
-Cc: "Rafael J. Wysocki" <rjw@sisk.pl>, "Carlos R. Mafra" <crmafra2@gmail.com>, Greg KH <gregkh@linuxfoundation.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Feng Tang <feng.tang@intel.com>, Lv Zheng <lv.zheng@intel.com>, Len Brown <lenb@kernel.org>, "Moore, Robert" <robert.moore@intel.com>
+To: Jiang Liu <liuj97@gmail.com>
+Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Bjorn Helgaas <bhelgaas@google.com>, Mika Westerberg <mika.westerberg@linux.intel.com>, Matthew Garrett <matthew.garrett@nebula.com>, Yinghai Lu <yinghai@kernel.org>, Toshi Kani <toshi.kani@hp.com>, LKML <linux-kernel@vger.kernel.org>
 
-Carlos, did you try this patch?
+On Sunday, January 27, 2013 02:42:38 AM Jiang Liu wrote:
+> On 01/24/2013 08:26 AM, Rafael J. Wysocki wrote:
+> > Hi All,
+> > 
+> > There is a considerable amount of confusion in the ACPI subsystem about what
+> > ACPI drivers are used for.  Namely, some of them are used as "normal" device
+> > drivers that bind to devices and handle them using ACPI control methods (like
+> > the fan or battery drivers), but some of them are just used for handling
+> > namespace events, such as the creation or removal of device nodes (I guess it
+> > would be fair to call that an abuse of the driver core).  These two roles are
+> > quite distinct, which is particularly visible from the confusion about the role
+> > of the .remove() callback.
+> > 
+> > For the "normal" drivers this callback is simply used to handle situations in
+> > which the driver needs to be unbound from the device, because one of them
+> > (either the device or the driver) is going away.  That operation can't really
+> > fail, it just needs to do the necessary cleanup.
+> > 
+> > However, for the namespace events handling "drivers" .remove() means that not
+> > only the device node in question, but generally also the whole subtree below it
+> > needs to be prepared for removal, which may involve deleting multiple device
+> > objects belonging to different bus types and so on and which very well may fail
+> > (for example, those devices may be used for such things like swap or they may be
+> > memory banks used by the kernel and it may not be safe to remove them at the
+> > moment etc.).  Moreover, for these things the removal of the "driver" doesn't
+> > really make sense, because it has to be there to handle the namespace events it
+> > is designed to handle or else things will go remarkably awry in some places.
+> > 
+> > To resolve all that mess I'd like to do the following, which in part is inspired
+> > by the recent Toshi Kani's hotplug framework proposal and in part is based on
+> > some discussions I had with Bjorn and others (the code references made below are
+> > based on the current contens of linux-pm.git/linux-next).
+> Hi Rafael,
+> 	Great to know that you plan to clean up these messes. We are working on
+> the same topic too.
+> 
+> > 
+> > 1) Introduce a special data type for "ACPI namespace event handlers" like:
+> > 
+> > struct acpi_scan_handler {
+> > 	const struct acpi_device_id *ids;
+> > 	struct list_head list_node;
+> > 	int (*attach)(struct acpi_device *adev);
+> > 	int (*untie)(struct acpi_device *adev);
+> > 	int (*reclaim)(struct acpi_device *adev);
+> > 	void (*detach)(struct acpi_device *adev);
+> > };
+> > 
+> >   an additional ACPI device flag:
+> > 
+> > struct acpi_device_flags {
+> > ...
+> > 	u32 untied:1;
+> > ...
+> > };
+> > 
+> >   and an additioanl field in struc acpi_device:
+> > 
+> > struct acpi_device {
+> > ...
+> > 	struct acpi_scan_handler *scan_handler;
+> > ...
+> > };
+> > 
+> >   (the roles of these things are described below).
+> > 
+> > 2) Introduce a list of struct acpi_scan_handler objects within the ACPI
+> >    subsystem such that acpi_bus_device_attach() will search that list first and
+> >    if there's a matching object (one whose ids match the device node), it will
+> >    run that object's .attach() callback.
+> > 
+> >   If that returns 1, it will mean that the handler has claimed the device node
+> >   and is now responsible for it until its .detach() callback is run.  Thus no
+> >   driver can be bound to that device node and no other handler can claim it.
+> >   Then, the device node's scan_handler field will be set to point to the handler
+> >   that's claimed it and its untied flag will be cleared.
+> > 
+> >   If .attach() returns 0, it will mean that the handler has not recognized the
+> >   device node and some other scan handlers and/or drivers may be tried for it.
+> This doesn't seem perfect. The device enumeration logic still interferes with
+> device drivers. Should we totally separate device enumeration logic from device
+> drivers?
 
-https://bugzilla.kernel.org/attachment.cgi?id=73510
+Yes, that's the ultimate plan, but we can't do that at the moment for practical
+reasons (there are many ACPI drivers already in existence and we don't want to
+introduce regressions gratuitously).
 
-On Sat, Jan 26, 2013 at 5:39 PM, Carlos R. Mafra <crmafra@gmail.com> wrote:
-> On Sat, 26 Jan 2013 at 14:23:12 +0100, Rafael J. Wysocki wrote:
->> On Saturday, January 26, 2013 12:23:37 PM Carlos R. Mafra wrote:
->> > On Thu,  8 Nov 2012 at  5:47:15 +0100, Greg KH wrote:
->> > > On Wed, Nov 07, 2012 at 10:49:40PM +0100, Rafael J. Wysocki wrote:
->> > > > On Tuesday, November 06, 2012 01:48:26 PM Greg KH wrote:
->> > > > > On Tue, Nov 06, 2012 at 04:42:24PM +0400, Azat Khuzhin wrote:
->> > > > > > I'v also have such errors on my macbook pro.
->> > > > > >
->> > > > > > $ dmesg | tail
->> > > > > > [17056.008564] ACPI Error: Method parse/execution failed
->> > > > > > [\_SB_.PCI0.LPCB.EC__.SMB0.SBRW] (Node ffff88026547ea10), AE_TIME
->> > > > > > (20120711/psparse-536)
->> > > > > > [17056.011194] ACPI Error: Method parse/execution failed
->> > > > > > [\_SB_.BAT0.UBST] (Node ffff88026547e678), AE_TIME
->> > > > > > (20120711/psparse-536)
->> > > > > > [17056.013793] ACPI Error: Method parse/execution failed
->> > > > > > [\_SB_.BAT0._BST] (Node ffff88026547e740), AE_TIME
->> > > > > > (20120711/psparse-536)
->> > > > > > [17056.016383] ACPI Exception: AE_TIME, Evaluating _BST (20120711/battery-464)
->> > > > > > [17056.511373] ACPI: EC: input buffer is not empty, aborting transaction
->> > > > > > [17056.512672] ACPI Exception: AE_TIME, Returned by Handler for
->> > > > > > [EmbeddedControl] (20120711/evregion-501)
->> > > > > > [17056.515256] ACPI Error: Method parse/execution failed
->> > > > > > [\_SB_.PCI0.LPCB.EC__.SMB0.SBRW] (Node ffff88026547ea10), AE_TIME
->> > > > > > (20120711/psparse-536)
->> > > > > > [17056.517886] ACPI Error: Method parse/execution failed
->> > > > > > [\_SB_.BAT0.UBST] (Node ffff88026547e678), AE_TIME
->> > > > > > (20120711/psparse-536)
->> > > > > > [17056.520479] ACPI Error: Method parse/execution failed
->> > > > > > [\_SB_.BAT0._BST] (Node ffff88026547e740), AE_TIME
->> > > > > > (20120711/psparse-536)
->> > > > > > [17056.523070] ACPI Exception: AE_TIME, Evaluating _BST (20120711/battery-464)
->> > > > >
->> > > > > I'm seeing this again right now.  I'm wondering if it's because I'm
->> > > > > running on battery power at the moment:
->> > > > >
->> > > > > [41694.309264] ACPI Exception: AE_TIME, Returned by Handler for [EmbeddedControl] (20120913/evregion-501)
->> > > > > [41694.309282] ACPI Error: Method parse/execution failed [\_SB_.PCI0.LPCB.EC__.SMB0.SBRW] (Node ffff88045cc64618), AE_TIME (20120913/psparse-536)
->> > > > > [41694.309300] ACPI Error: Method parse/execution failed [\_SB_.BAT0.UBST] (Node ffff88045cc64988), AE_TIME (20120913/psparse-536)
->> > > > > [41694.309310] ACPI Error: Method parse/execution failed [\_SB_.BAT0._BST] (Node ffff88045cc648c0), AE_TIME (20120913/psparse-536)
->> > > > > [41694.309324] ACPI Exception: AE_TIME, Evaluating _BST (20120913/battery-464)
->> > > > > [41694.809093] ACPI: EC: input buffer is not empty, aborting transaction
->> > > > >
->> > > > > ec_storm_threshold is still set to 8 in /sys/module/acpi/parameters/ so that's
->> > > > > not the issue here.
->> > > > >
->> > > > > > And also loadavg is too high ~ 10
->> > > > > > While there is no process that load CPU up to 100% or like that.
->> > > > > > I think that this because of processes that is done in kernel space.
->> > > > > > (basically that one who write such errors)
->> > > > > >
->> > > > > > $ uname -a
->> > > > > > Linux macbook-pro-sq 3.6.5macbook-pro-custom-v0.1 #4 SMP Sun Nov 4
->> > > > > > 12:39:03 UTC 2012 x86_64 GNU/Linux
->> > > > >
->> > > > > Ah, ok, that means it's not something new in 3.7-rc, so maybe it's just never
->> > > > > worked properly for this hardware :)
->> > > > >
->> > > > > So it's not a regression, just an ACPI issue, any ACPI developer have an idea
->> > > > > about this?
->> > > >
->> > > > Can you please send the output of acpidump from the affected machine(s)?
->> > >
->> > > # ./acpidump
->> > > ACPI tables were not found. If you know location of RSD PTR table (from dmesg, etc), supply it with either --addr or -a option
->> > >
->> > > What am I doing wrong here?
->> > >
->> > > Is there a newer version of pmtools than the one labled pmtools-20071116
->> > > that I should be using?  A link to download it would be appreciated.
->> >
->> > I'd like to ask what happened to this issue, because I'm seeing similar
->> > messages on latest 3.8-rc4 as well, and I cannot read the battery
->> > info anymore once this happens and the laptop does not suspend to RAM
->> > anymore -- it suspends fine before these messages.
->> >
->> > The laptop is a Macbook Pro with retina display and I'm using the
->> > develpoment version of openSUSE 12.3 updated as of yesterday.
->> >
->> > Here is the output from dmesg:
->> >
->> > [49367.993080] ACPI: EC: input buffer is not empty, aborting transaction
->> > [49367.993091] ACPI Exception: AE_TIME, Returned by Handler for [EmbeddedControl] (20121018/evregion-501)
->> > [49367.993112] ACPI Error: Method parse/execution failed [\_SB_.PCI0.LPCB.EC__.SMB0.SBRW] (Node ffff880264490920), AE_TIME (20121018/psparse-537)
->> > [49367.993136] ACPI Error: Method parse/execution failed [\_SB_.BAT0.UBST] (Node ffff8802644905b0), AE_TIME (20121018/psparse-537)
->> > [49367.993147] ACPI Error: Method parse/execution failed [\_SB_.BAT0._BST] (Node ffff880264490678), AE_TIME (20121018/psparse-537)
->> > [49367.993166] ACPI Exception: AE_TIME, Evaluating _BST (20121018/battery-492)
->> > [49368.491802] ACPI: EC: input buffer is not empty, aborting transaction
->> > [49368.491812] ACPI Exception: AE_TIME, Returned by Handler for [EmbeddedControl] (20121018/evregion-501)
->> > [49368.491833] ACPI Error: Method parse/execution failed [\_SB_.PCI0.LPCB.EC__.SMB0.SBRW] (Node ffff880264490920), AE_TIME (20121018/psparse-537)
->> > [49368.491857] ACPI Error: Method parse/execution failed [\_SB_.BAT0.UBST] (Node ffff8802644905b0), AE_TIME (20121018/psparse-537)
->> > [49368.491869] ACPI Error: Method parse/execution failed [\_SB_.BAT0._BST] (Node ffff880264490678), AE_TIME (20121018/psparse-537)
->> > [49368.491888] ACPI Exception: AE_TIME, Evaluating _BST (20121018/battery-492)
->> > [49372.985311] ACPI: EC: input buffer is not empty, aborting transaction
->> > [49372.985322] ACPI Exception: AE_TIME, Returned by Handler for [EmbeddedControl] (20121018/evregion-501)
->> > [49372.985344] ACPI Error: Method parse/execution failed [\_SB_.PCI0.LPCB.EC__.SMB0.SBRW] (Node ffff880264490920), AE_TIME (20121018/psparse-537)
->> > [49372.985368] ACPI Error: Method parse/execution failed [\_SB_.BAT0.UBST] (Node ffff8802644905b0), AE_TIME (20121018/psparse-537)
->> > [49372.985380] ACPI Error: Method parse/execution failed [\_SB_.BAT0._BST] (Node ffff880264490678), AE_TIME (20121018/psparse-537)
->> > [49372.985400] ACPI Exception: AE_TIME, Evaluating _BST (20121018/battery-492)
->> >
->> > Anyone has more information about this?
->>
->> Is acpidump still not working?
->
-> It works for me, I've uploaded it to
->
-> http://www.damtp.cam.ac.uk/user/crm66/acpidump-rmbp.txt
->
-> And my 'dmesg' from a freshly-booted 3.8-rc5 is here
->
-> http://www.damtp.cam.ac.uk/user/crm66/dmesg-3.8-rc5.txt
->
->> What's under /sys/firmware/acpi/tables/ ?
->
-> [mafra@linux-ahr8:~]$ ls /sys/firmware/acpi/tables/
-> APIC  DSDT      ECDT  FACS  MCFG  SSDT1   SSDT11  SSDT2  SSDT4  SSDT6  SSDT8
-> DMAR  dynamic/  FACP  HPET  SBST  SSDT10  SSDT12  SSDT3  SSDT5  SSDT7  SSDT9
->
-> I should say that sometimes it takes +3 days for this problem to appear,
-> with many successful s2ram in between, sometimes it takes less than 1 day.
-> I could not figure out a pattern.
->
-> Any other info I can provide?
+Introducing scan handlers more-or-less as described would be a step in that
+direction, though.
 
+> > 
+> >   If an error code is returned, it will mean a hard error in which case the
+> >   scanning of the namespace will have to be aborted.
+> > 
+> >   This way ACPI drivers will only be bound to device nodes that haven't been
+> >   claimed by any scan handlers.
+> > 
+> > 3) Introduce an additional function following the format of acpi_bus_trim(),
+> >    say acpi_bus_untie(), that will walk the namespace starting at the given
+> >    device node and execute the .untie() callbacks from the scan handlers of
+> >    all devices as post-order callbacks.
+> > 
+> >    If the .untie() callback for the given device node returns 0, it will mean
+> >    that it is now safe to delete that node as long as its scan handler's
+> >    .detach() callback is executed before the deletion.  In that case, the device
+> >    node's untied flag will be set.
+> > 
+> >    Otherwise (i.e. if an error code is returned), it will mean that the scan
+> >    handler has vetoed the untying and the whole operation should be reversed.
+> >    Then, acpi_bus_untie() will walk the namespace again and execute the
+> >    .reclaim() callbacks from the scan handlers of the device nodes whose untied
+> >    flags are set as pre-order callbacks.
+> > 
+> >    If .reclaim() returns 0, the device node's untied flag will be cleared, and
+> >    if an error code is returned, it will remain set.
+> > 
+> >    This will allow us to prepare the subtree below the given device node for
+> >    removal in a reversible way, if needed.  Still, though, it will be possible
+> >    to carry out a forcible removal calling acpi_bus_trim() after
+> >    acpi_bus_untie() even if that has returned an error code (or even
+> >    acpi_bus_trim() without acpi_bus_untie()).
+> > 
+> > 4) Make acpi_bus_device_detach() execute the .detach() callback from the
+> >    scan handler of the device node (if the scan handler is present) and clear
+> >    its scan_handler field along with its untied flag.  However, the untied flags
+> >    will only be cleared after executing the .detach() callbacks, so that those
+> >    callbacks can see whether or not the scan handlers have been successfully
+> >    "untied" from the device nodes.
+> > 
+> > 5) Make acpi_bus_hot_remove_device() (and other pieces of code where that is
+> >    convenient) call acpi_bus_untie() before acpi_bus_trim() and bail out
+> >    cleanly if the untying fails (i.e. is vetoed by one of the scan handlers).
+> > 
+> > That should take care of the removal problem nicely and as far as I can say
+> > the majority of the ACPI drivers used only for handling namespace events can
+> > be readily converted to struct acpi_scan_handler objects.
+> > 
+> > I wonder if anyone is seeing any major problems with this at the high level.
+> This design has some conflicts with our ongoing work to provide a system device
+> hotplug framework. I will send out the draft framework for comments soon.
+
+Well, I'd prefer it if you were more specific.  That is, please tell me what
+conflicts and why exactly.
+
+It also would be good if you looked at the Toshi Kani's latest proposal and
+said what's wrong with it from your perspective.  You'll need to do that
+anyway if you want to convince anyone that your proposal is better, so why
+don't you do that now?  Moreover, sending yet another "system devices hotplug
+framework" proposal at this point won't increase the chance that any of them
+will be accepted.  Odds are to the contrary, I'm afraid.
+
+Besides, I'm starting to think that such frameworks covering "system devices"
+only are insufficient, because nowadays it is quite difficult to say what
+devices are "system devices" in the first place and there is no reason why
+those devices should require a special framework while the other devices
+don't.  Quite frankly, it seems to me that either we need some additional
+hotplug-related handling for all devices, or we don't need anything like that
+at all.
+
+I'm seeing reasons why it may be necessary, but that will need to be discussed
+at the concept level, not within the context of any specific proposal.
+
+Thanks,
+Rafael
 
 
 -- 
-Azat Khuzhin
+I speak only for myself.
+Rafael J. Wysocki, Intel Open Source Technology Center.
