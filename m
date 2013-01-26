@@ -1,74 +1,44 @@
-From: Bjorn Helgaas <bhelgaas@google.com>
-Subject: Re: [PATCH v10 00/11] PCI, ACPI: pci root bus hotplug support / pci match_driver
-Date: Fri, 25 Jan 2013 17:04:56 -0700
-Message-ID: <CAErSpo7-XabKQh_Lia9zS9i4Mm=eBV6rRw0ArjXAZBiWYx4uYA@mail.gmail.com>
-References: <1358803252-20639-1-git-send-email-yinghai@kernel.org>
- <2072996.JYmST9orI6@vostro.rjw.lan> <CAE9FiQUS56KnvDCF7LUyCkNLcun+3zZ+xGiexca2ej30dRvrQg@mail.gmail.com>
+From: Alan Cox <alan@linux.intel.com>
+Subject: Re: [PATCH v5 1/2] TTY: Add TTY slave enumeration support
+Date: Sat, 26 Jan 2013 00:32:16 +0000
+Message-ID: <20130126003216.1f16a705@bob.linux.org.uk>
+References: <cover.1354505471.git.lv.zheng@intel.com>
+	<cover.1359022955.git.lv.zheng@intel.com>
+	<12848b50e1096dc11a193694ee248d51d45ce093.1359022955.git.lv.zheng@intel.com>
+	<20130125214121.GA30924@kroah.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <linux-pci-owner@vger.kernel.org>
-In-Reply-To: <CAE9FiQUS56KnvDCF7LUyCkNLcun+3zZ+xGiexca2ej30dRvrQg@mail.gmail.com>
-Sender: linux-pci-owner@vger.kernel.org
-To: Yinghai Lu <yinghai@kernel.org>
-Cc: "Rafael J. Wysocki" <rjw@sisk.pl>, Len Brown <lenb@kernel.org>, Taku Izumi <izumi.taku@jp.fujitsu.com>, Jiang Liu <jiang.liu@huawei.com>, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-serial-owner@vger.kernel.org>
+In-Reply-To: <20130125214121.GA30924@kroah.com>
+Sender: linux-serial-owner@vger.kernel.org
+To: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: Lv Zheng <lv.zheng@intel.com>, Rafael J Wysocki <rafael.j.wysocki@intel.com>, Len Brown <len.brown@intel.com>, Mika Westerberg <mika.westerberg@linux.intel.com>, linux-acpi@vger.kernel.org, linux-serial@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Tue, Jan 22, 2013 at 3:19 PM, Yinghai Lu <yinghai@kernel.org> wrote:
-> On Tue, Jan 22, 2013 at 2:09 PM, Rafael J. Wysocki <rjw@sisk.pl> wrote:
->> On Monday, January 21, 2013 01:20:41 PM Yinghai Lu wrote:
->>> It includes
->>> 1. preparing patches for pci root bus hotadd/hotremove support
->>> 2. move root bus hotadd from acpiphp to pci_root.c
->>> 3. add hot-remove support
->>> 4. add acpi_hp_work to be shared with acpiphp and root-bus hotplug
->>> 5. add match_driver to add pci device to device tree early but
->>>    not attach driver for hotplug path.
->>>
->>> based on pci/next + pm/acpi-scan
->>>
->>> could get from
->>>         git://git.kernel.org/pub/scm/linux/kernel/git/yinghai/linux-yinghai.git for-pci-root-bus-hotplug
->>>
->>> -v9: merges several patches together for easy review, requested by Rafael.
->>> -v10: address comments from Rafael.
->>>
->>> Jiang Liu (2):
->>>   PCI: Fix a device reference count leakage issue in pci_dev_present()
->>>   PCI: make PCI device create/destroy logic symmetric
->>>
->>> Tang Chen (1):
->>>   PCI, ACPI: debug print for installation of acpi root bridge's
->>>     notifier
->>>
->>> Yinghai Lu (8):
->>>   PCI, acpiphp: Add is_hotplug_bridge detection
->>>   PCI: Add root bus children dev's res to fail list
->>>   PCI: Set dev_node early for pci_dev
->>>   PCI, ACPI, acpiphp: Rename alloc_acpiphp_hp_work() to alloc_acpi_hp_work
->>>   PCI, acpiphp: Move and enhance hotplug support of pci host bridge
->>>   PCI, acpiphp: Don't bailout even no slots found yet.
->>>   PCI: Skip attaching driver in device_add()
->>>   PCI: Put pci dev to device tree as early as possible
->>
->> OK
->>
->> Please feel free to add
->>
->> Acked-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
->>
->> to all of the patches in this series I haven't acked already.
+> Or am I missing something big and major here?  How have people been
+> seeing and configuring their tty devices for the last 8+ years or so
+> since the 2.6.0 kernel was released with uevent support for tty
+> devices?
 
-I first pulled in
-"git://git.kernel.org/pub/scm/linux/kernel/git/rafael/linux-pm.git
-acpi-scan" again (to pci/acpi-scan2), added your acks, Rafael, and put
-this series on a pci/yinghai-root-bus branch based on pci/acpi-scan2.
+Minor more than major. The newer ACPI tries to begin to describe what
+is on the other end of serial busses being used for internal purposes.
 
-I reworked some of the changelogs a bit, but I don't think I made any
-code changes except that in [10/11] I just inlined the
-pci_bus_attach_device() code rather than making a new function, since
-it's small, there's only one caller, and I didn't think we needed any
-more pci_* and pci_bus_* functions than we already have.
+Now there are several good reasons we want to know what is on the end
+of a port already that are not currently handled, and I have suggested
+a port "type" attribute would be useful (eg  unknown, modem, bluetooth,
+ax25, dcc, etc) so the kernel can help user space enumerate in user
+friendly fashion.
 
-Let me know if I messed anything up.
+Where it gets slightly more tricky is that we are beginning to see
+systems where the firmware is describing
 
-Bjorn
+	serial port (and power management)
+	device behind port (and power management)
+
+so there is a power management hierarchy involved.
+
+But yes - these patches should have been labelled 'RFC' - the concept
+needs discussion in public not the current code drafts.
+
+Alan
