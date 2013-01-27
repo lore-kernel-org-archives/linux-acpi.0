@@ -1,161 +1,235 @@
-From: "Carlos R. Mafra" <crmafra@gmail.com>
-Subject: Re: ACPI errors with 3.7-rc3
-Date: Sun, 27 Jan 2013 12:37:06 +0000
-Message-ID: <20130127123706.GA1431@linux-ahr8.site>
-References: <20121031014527.GA2984@kroah.com>
- <20121108044715.GA12652@kroah.com>
- <20130126122337.GA20930@linux-ahr8.site>
- <2216175.k6K6lbz85j@vostro.rjw.lan>
- <20130126133937.GA2795@linux-ahr8.site>
- <CAAW1UO81LXbrhXOApoKYC+z7DR2Tg7dAdinXy4UsWhfWH7gdYQ@mail.gmail.com>
+From: Sedat Dilek <sedat.dilek@gmail.com>
+Subject: Re: linux-next: Tree for Jan 25 (BROKEN suspend)
+Date: Sun, 27 Jan 2013 14:01:50 +0100
+Message-ID: <CA+icZUX+o6kB9wXwpuJ8U49j+qHdx=DRq7p+_U1g+1fwGb-S6w@mail.gmail.com>
+References: <CA+icZUW6LBSjpqK-eQUAt7R=kXCPRjFoi=z1UijaajrVAj=fEg@mail.gmail.com>
+	<CA+icZUX=XdAJjWwx8P_y31JGW3GC+tdWuFhv2Ym-0OELGWGbDQ@mail.gmail.com>
+	<CA+icZUX31SB3+NU8uXA9LH5KOHxgeHKZLcqWNhzUVhx5onk6qA@mail.gmail.com>
+	<18624541.r6CtJttOWZ@vostro.rjw.lan>
+Reply-To: sedat.dilek@gmail.com
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <CAAW1UO81LXbrhXOApoKYC+z7DR2Tg7dAdinXy4UsWhfWH7gdYQ@mail.gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Azat Khuzhin <dohardgopro@gmail.com>
-Cc: "Rafael J. Wysocki" <rjw@sisk.pl>, "Carlos R. Mafra" <crmafra2@gmail.com>, Greg KH <gregkh@linuxfoundation.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Feng Tang <feng.tang@intel.com>, Lv Zheng <lv.zheng@intel.com>, Len Brown <lenb@kernel.org>, "Moore, Robert" <robert.moore@intel.com>
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-qc0-f171.google.com ([209.85.216.171]:47659 "EHLO
+	mail-qc0-f171.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756683Ab3A0NBw (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sun, 27 Jan 2013 08:01:52 -0500
+In-Reply-To: <18624541.r6CtJttOWZ@vostro.rjw.lan>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: Stephen Rothwell <sfr@canb.auug.org.au>, linux-next@vger.kernel.org, linux-kernel@vger.kernel.org, Linux PM List <linux-pm@lists.linux-foundation.org>, Linux ACPI <linux-acpi@vger.kernel.org>, Sasha Levin <sasha.levin@oracle.com>, Tejun Heo <tj@kernel.org>
 
-On Sun, 27 Jan 2013 at  1:23:17 +0400, Azat Khuzhin wrote:
-> Carlos, did you try this patch?
-> 
-> https://bugzilla.kernel.org/attachment.cgi?id=73510
+On Sat, Jan 26, 2013 at 10:49 PM, Rafael J. Wysocki <rjw@sisk.pl> wrote:
+> On Saturday, January 26, 2013 07:27:06 PM Sedat Dilek wrote:
+>> On Sat, Jan 26, 2013 at 4:05 PM, Sedat Dilek <sedat.dilek@gmail.com> wrote:
+>> > On Sat, Jan 26, 2013 at 3:33 PM, Sedat Dilek <sedat.dilek@gmail.com> wrote:
+>> >> On Sat, Jan 26, 2013 at 2:24 PM, Sedat Dilek <sedat.dilek@gmail.com> wrote:
+>> >>> On Sat, Jan 26, 2013 at 2:25 PM, Rafael J. Wysocki <rjw@sisk.pl> wrote:
+>> >>>> On Saturday, January 26, 2013 12:10:32 PM Sedat Dilek wrote:
+>> >>>>> On Fri, Jan 25, 2013 at 6:26 AM, Stephen Rothwell <sfr@canb.auug.org.au> wrote:
+>> >>>>> > Hi all,
+>> >>>>> >
+>> >>>>> > Changes since 20130124:
+>> >>>>> >
+>> >>>>> > New trees: ipsec and ipsec-next
+>> >>>>> >
+>> >>>>> > The powerpc tree still had a build failure.
+>> >>>>> >
+>> >>>>> > The sound-asoc tree still had its build failure so I used the version from
+>> >>>>> > next-20130122.
+>> >>>>> >
+>> >>>>> > The akpm tree lost its build failure and several patches that turned up
+>> >>>>> > elsewhere.
+>> >>>>> >
+>> >>>>> > ----------------------------------------------------------------------------
+>> >>>>> >
+>> >>>>>
+>> >>>>> Unfortunately, on suspend or running the pm_test/freezer leads here to
+>> >>>>> a frozen machine - hard reset.
+>> >>>>>
+>> >>>>> I see 4-5 pages of call-traces but dunno how to log them in such a f-u-ed state.
+>> >>>>> Any hints welcome!
+>> >>>>>
+>> >>>>> As I saw catched with my left eye on one call-trace sth. with...
+>> >>>>>
+>> >>>>>       kernel/watchdog.c (line #245, watchdog_overflow_callback)
+>> >>>>>
+>> >>>>> ... I tried to revert the last two commits from Sascha (see -3 patch,
+>> >>>>> but no success.
+>> >>>>>
+>> >>>>> The same with reverting all cpu-freq changes since v3.8-rc4 (see -4
+>> >>>>> patch) after seeing some suspicious lines on the screen.
+>> >>>>>
+>> >>>>> Can someone confirm that suspend is BROKEN for him/her before doing
+>> >>>>> eventually a bisect?
+>> >>>>
+>> >>>> Can you please test the linux-next branch of the linux-pm.git tree alone?
+>> >>>>
+>> >>>
+>> >>> That sounds like a good idea as I just reverted "cpu-hotplug,
+>> >>> memory-hotplug: try offlining the node when hotremoving a cpu" [1]
+>> >>> from akpm tree.
+>> >>> Building... 1st with revert than trying pm-next only.
+>> >>>
+>> >>
+>> >> Your pm-next tree is fine here.
+>> >>
+>> >> commit 0b9d032a2bf0a0224ef446f3d6048fdd8a5b8280
+>> >> "Merge branch 'pm-cpufreq-next' into linux-next linux-next"
+>> >>
+>> >> Furthermore, the culprit is not between akpm-master and akpm-current
+>> >> as I have seen cpu/mem hotplug and pm changes there.
+>> >>
+>> >> Hmm, maybe bisecting would have been faster than hunting on suspicious commits.
+>> >>
+>> >> - Sedat -
+>> >>
+>> >>> - Sedat -
+>> >>>
+>> >>> [1] http://git.kernel.org/?p=linux/kernel/git/next/linux-next.git;a=commitdiff;h=154cb61f36690edef68beb5fd9dc0a5027f9dbd9
+>> >>>
+>> >>>> Rafael
+>> >>>>
+>> >>>>
+>> >>>> --
+>> >>>> I speak only for myself.
+>> >>>> Rafael J. Wysocki, Intel Open Source Technology Center.
+>> >
+>> > I merged on top of my Linux-v3.8-rc5 GIT branch...
+>> >
+>> > Sedat Dilek (8):
+>> >       mei: Fix some more kernel-doc typos in hw-me.c
+>> >       kbuild: deb-pkg: Try to determine distribution
+>> >       kbuild: deb-pkg: Bump year in debian/copyright file
+>> >       kbuild: deb-pkg: Update git repository URL in debian/copyright file
+>> >       Merge tag 'next-20130124' of
+>> > git://git.kernel.org/.../next/linux-next into Linux-Next-v20130124
+>> >       Merge branch 'deb-pkg-fixes' into 3.8.0-rc5-next20130124-1-pmnext-generic
+>> >       Merge branch 'Linux-Next-v20130124' into
+>> > 3.8.0-rc5-next20130124-1-pmnext-generic
+>> >       Merge branch 'pm-next' into 3.8.0-rc5-next20130124-1-pmnext-generic
+>> >
+>> > ...and this f-u-s the machine as well.
+>> > So, the culprit seems not to get from your PM stuff.
+>> >
+>> > Anyway, this does not help me... but hope it's good news for you, Rafael :-)!
+>> >
+>> > - Sedat -
+>>
+>> This tells me ZERO...
+>>
+>> $ cat git-bisect-log.txt
+>> git bisect start
+>> # bad: [a8ae185b9edd81927bd762b89a327617e3e7a1e8] Add linux-next
+>> specific files for 20130124
+>> git bisect bad a8ae185b9edd81927bd762b89a327617e3e7a1e8
+>> # good: [7d1f9aeff1ee4a20b1aeb377dd0f579fe9647619] Linux 3.8-rc4
+>> git bisect good 7d1f9aeff1ee4a20b1aeb377dd0f579fe9647619
+>> # bad: [5a4e73d60a0f01a39c602e3c2cbb2f136268f717] Merge
+>> remote-tracking branch 'spi-mb/spi-next'
+>> git bisect bad 5a4e73d60a0f01a39c602e3c2cbb2f136268f717
+>> # good: [9b70ab49707f2db028b29664600db3fcf2221abd] Merge
+>> remote-tracking branch 'slave-dma/next'
+>> git bisect good 9b70ab49707f2db028b29664600db3fcf2221abd
+>> # good: [97b57dc123017c4d748fdf2abdd9a9231239c437] Merge
+>> remote-tracking branch 'crypto/master'
+>> git bisect good 97b57dc123017c4d748fdf2abdd9a9231239c437
+>> # good: [6ab8307c4b30d2414bbbc192d3b07819b2a2ec1e] 20130122/sound-asoc
+>> git bisect good 6ab8307c4b30d2414bbbc192d3b07819b2a2ec1e
+>> # good: [76e51c3f858996beb6de0dfd03838ec04f9c6203] Merge
+>> remote-tracking branch 'mmc/mmc-next'
+>> git bisect good 76e51c3f858996beb6de0dfd03838ec04f9c6203
+>> # good: [25dcea3017741797805c1279d013108b220b6aea] Merge
+>> remote-tracking branch 'battery/master'
+>> git bisect good 25dcea3017741797805c1279d013108b220b6aea
+>> # good: [c051f41da8c60f0945d295b736aa3c0331ac85bc] Merge
+>> remote-tracking branch 'regulator/for-next'
+>> git bisect good c051f41da8c60f0945d295b736aa3c0331ac85bc
+>> # good: [6f9801536a9bea9f405971fab8abbba929138738] Merge
+>> remote-tracking branch 'iommu/next'
+>> git bisect good 6f9801536a9bea9f405971fab8abbba929138738
+>> # good: [58e49ef6da7f434698699a20683408b2c041081d] Merge
+>> remote-tracking branch 'trivial/for-next'
+>> git bisect good 58e49ef6da7f434698699a20683408b2c041081d
+>> # good: [33cb219590de91b65a9d0e995dbf26642d5d32e0] Merge
+>> remote-tracking branch 'edac-amd/for-next'
+>> git bisect good 33cb219590de91b65a9d0e995dbf26642d5d32e0
+>> # good: [7a5d8ca12aece480e0fe5eda8ce4236dddf55363] spi: bitbang:
+>> simplify pointer arithmetics
+>> git bisect good 7a5d8ca12aece480e0fe5eda8ce4236dddf55363
+>> # good: [bf2084d51182ed0fa1fcf3febd80b308d2e62b20] Merge
+>> remote-tracking branch 'dt-rh/for-next'
+>> git bisect good bf2084d51182ed0fa1fcf3febd80b308d2e62b20
+>> # good: [f28037d2e9ee1fe34ede6211f1cce1d38d867cb8] MAINTAINERS: Add
+>> myself as a backup maintainer for SPI
+>> git bisect good f28037d2e9ee1fe34ede6211f1cce1d38d867cb8
+>>
+>> $ cat git-bisect-view--stat.txt
+>> commit 5a4e73d60a0f01a39c602e3c2cbb2f136268f717
+>> Merge: bf2084d f28037d
+>> Author: Stephen Rothwell <sfr@canb.auug.org.au>
+>> Date:   Thu Jan 24 13:49:47 2013 +1100
+>>
+>>     Merge remote-tracking branch 'spi-mb/spi-next'
+>
+> Well, perhaps try to test the spi-mb/spi-next branch alone?
+>
 
-I started to test it now and I will try to have an uptime of
-more than 7 days in order to have a veridict.
+Hi,
 
-[ The problem is that I started to encounter a dvb-related issue
-  which requires me to reboot after trying to watch tv, so let's wee
-  what happens. ]
+I have reseted to the commit-id of spi-mb/spi-next in my local
+Linux-Next-v20130124 GIT repo... which was fine.
 
-> On Sat, Jan 26, 2013 at 5:39 PM, Carlos R. Mafra <crmafra@gmail.com> wrote:
-> > On Sat, 26 Jan 2013 at 14:23:12 +0100, Rafael J. Wysocki wrote:
-> >> On Saturday, January 26, 2013 12:23:37 PM Carlos R. Mafra wrote:
-> >> > On Thu,  8 Nov 2012 at  5:47:15 +0100, Greg KH wrote:
-> >> > > On Wed, Nov 07, 2012 at 10:49:40PM +0100, Rafael J. Wysocki wrote:
-> >> > > > On Tuesday, November 06, 2012 01:48:26 PM Greg KH wrote:
-> >> > > > > On Tue, Nov 06, 2012 at 04:42:24PM +0400, Azat Khuzhin wrote:
-> >> > > > > > I'v also have such errors on my macbook pro.
-> >> > > > > >
-> >> > > > > > $ dmesg | tail
-> >> > > > > > [17056.008564] ACPI Error: Method parse/execution failed
-> >> > > > > > [\_SB_.PCI0.LPCB.EC__.SMB0.SBRW] (Node ffff88026547ea10), AE_TIME
-> >> > > > > > (20120711/psparse-536)
-> >> > > > > > [17056.011194] ACPI Error: Method parse/execution failed
-> >> > > > > > [\_SB_.BAT0.UBST] (Node ffff88026547e678), AE_TIME
-> >> > > > > > (20120711/psparse-536)
-> >> > > > > > [17056.013793] ACPI Error: Method parse/execution failed
-> >> > > > > > [\_SB_.BAT0._BST] (Node ffff88026547e740), AE_TIME
-> >> > > > > > (20120711/psparse-536)
-> >> > > > > > [17056.016383] ACPI Exception: AE_TIME, Evaluating _BST (20120711/battery-464)
-> >> > > > > > [17056.511373] ACPI: EC: input buffer is not empty, aborting transaction
-> >> > > > > > [17056.512672] ACPI Exception: AE_TIME, Returned by Handler for
-> >> > > > > > [EmbeddedControl] (20120711/evregion-501)
-> >> > > > > > [17056.515256] ACPI Error: Method parse/execution failed
-> >> > > > > > [\_SB_.PCI0.LPCB.EC__.SMB0.SBRW] (Node ffff88026547ea10), AE_TIME
-> >> > > > > > (20120711/psparse-536)
-> >> > > > > > [17056.517886] ACPI Error: Method parse/execution failed
-> >> > > > > > [\_SB_.BAT0.UBST] (Node ffff88026547e678), AE_TIME
-> >> > > > > > (20120711/psparse-536)
-> >> > > > > > [17056.520479] ACPI Error: Method parse/execution failed
-> >> > > > > > [\_SB_.BAT0._BST] (Node ffff88026547e740), AE_TIME
-> >> > > > > > (20120711/psparse-536)
-> >> > > > > > [17056.523070] ACPI Exception: AE_TIME, Evaluating _BST (20120711/battery-464)
-> >> > > > >
-> >> > > > > I'm seeing this again right now.  I'm wondering if it's because I'm
-> >> > > > > running on battery power at the moment:
-> >> > > > >
-> >> > > > > [41694.309264] ACPI Exception: AE_TIME, Returned by Handler for [EmbeddedControl] (20120913/evregion-501)
-> >> > > > > [41694.309282] ACPI Error: Method parse/execution failed [\_SB_.PCI0.LPCB.EC__.SMB0.SBRW] (Node ffff88045cc64618), AE_TIME (20120913/psparse-536)
-> >> > > > > [41694.309300] ACPI Error: Method parse/execution failed [\_SB_.BAT0.UBST] (Node ffff88045cc64988), AE_TIME (20120913/psparse-536)
-> >> > > > > [41694.309310] ACPI Error: Method parse/execution failed [\_SB_.BAT0._BST] (Node ffff88045cc648c0), AE_TIME (20120913/psparse-536)
-> >> > > > > [41694.309324] ACPI Exception: AE_TIME, Evaluating _BST (20120913/battery-464)
-> >> > > > > [41694.809093] ACPI: EC: input buffer is not empty, aborting transaction
-> >> > > > >
-> >> > > > > ec_storm_threshold is still set to 8 in /sys/module/acpi/parameters/ so that's
-> >> > > > > not the issue here.
-> >> > > > >
-> >> > > > > > And also loadavg is too high ~ 10
-> >> > > > > > While there is no process that load CPU up to 100% or like that.
-> >> > > > > > I think that this because of processes that is done in kernel space.
-> >> > > > > > (basically that one who write such errors)
-> >> > > > > >
-> >> > > > > > $ uname -a
-> >> > > > > > Linux macbook-pro-sq 3.6.5macbook-pro-custom-v0.1 #4 SMP Sun Nov 4
-> >> > > > > > 12:39:03 UTC 2012 x86_64 GNU/Linux
-> >> > > > >
-> >> > > > > Ah, ok, that means it's not something new in 3.7-rc, so maybe it's just never
-> >> > > > > worked properly for this hardware :)
-> >> > > > >
-> >> > > > > So it's not a regression, just an ACPI issue, any ACPI developer have an idea
-> >> > > > > about this?
-> >> > > >
-> >> > > > Can you please send the output of acpidump from the affected machine(s)?
-> >> > >
-> >> > > # ./acpidump
-> >> > > ACPI tables were not found. If you know location of RSD PTR table (from dmesg, etc), supply it with either --addr or -a option
-> >> > >
-> >> > > What am I doing wrong here?
-> >> > >
-> >> > > Is there a newer version of pmtools than the one labled pmtools-20071116
-> >> > > that I should be using?  A link to download it would be appreciated.
-> >> >
-> >> > I'd like to ask what happened to this issue, because I'm seeing similar
-> >> > messages on latest 3.8-rc4 as well, and I cannot read the battery
-> >> > info anymore once this happens and the laptop does not suspend to RAM
-> >> > anymore -- it suspends fine before these messages.
-> >> >
-> >> > The laptop is a Macbook Pro with retina display and I'm using the
-> >> > develpoment version of openSUSE 12.3 updated as of yesterday.
-> >> >
-> >> > Here is the output from dmesg:
-> >> >
-> >> > [49367.993080] ACPI: EC: input buffer is not empty, aborting transaction
-> >> > [49367.993091] ACPI Exception: AE_TIME, Returned by Handler for [EmbeddedControl] (20121018/evregion-501)
-> >> > [49367.993112] ACPI Error: Method parse/execution failed [\_SB_.PCI0.LPCB.EC__.SMB0.SBRW] (Node ffff880264490920), AE_TIME (20121018/psparse-537)
-> >> > [49367.993136] ACPI Error: Method parse/execution failed [\_SB_.BAT0.UBST] (Node ffff8802644905b0), AE_TIME (20121018/psparse-537)
-> >> > [49367.993147] ACPI Error: Method parse/execution failed [\_SB_.BAT0._BST] (Node ffff880264490678), AE_TIME (20121018/psparse-537)
-> >> > [49367.993166] ACPI Exception: AE_TIME, Evaluating _BST (20121018/battery-492)
-> >> > [49368.491802] ACPI: EC: input buffer is not empty, aborting transaction
-> >> > [49368.491812] ACPI Exception: AE_TIME, Returned by Handler for [EmbeddedControl] (20121018/evregion-501)
-> >> > [49368.491833] ACPI Error: Method parse/execution failed [\_SB_.PCI0.LPCB.EC__.SMB0.SBRW] (Node ffff880264490920), AE_TIME (20121018/psparse-537)
-> >> > [49368.491857] ACPI Error: Method parse/execution failed [\_SB_.BAT0.UBST] (Node ffff8802644905b0), AE_TIME (20121018/psparse-537)
-> >> > [49368.491869] ACPI Error: Method parse/execution failed [\_SB_.BAT0._BST] (Node ffff880264490678), AE_TIME (20121018/psparse-537)
-> >> > [49368.491888] ACPI Exception: AE_TIME, Evaluating _BST (20121018/battery-492)
-> >> > [49372.985311] ACPI: EC: input buffer is not empty, aborting transaction
-> >> > [49372.985322] ACPI Exception: AE_TIME, Returned by Handler for [EmbeddedControl] (20121018/evregion-501)
-> >> > [49372.985344] ACPI Error: Method parse/execution failed [\_SB_.PCI0.LPCB.EC__.SMB0.SBRW] (Node ffff880264490920), AE_TIME (20121018/psparse-537)
-> >> > [49372.985368] ACPI Error: Method parse/execution failed [\_SB_.BAT0.UBST] (Node ffff8802644905b0), AE_TIME (20121018/psparse-537)
-> >> > [49372.985380] ACPI Error: Method parse/execution failed [\_SB_.BAT0._BST] (Node ffff880264490678), AE_TIME (20121018/psparse-537)
-> >> > [49372.985400] ACPI Exception: AE_TIME, Evaluating _BST (20121018/battery-492)
-> >> >
-> >> > Anyone has more information about this?
-> >>
-> >> Is acpidump still not working?
-> >
-> > It works for me, I've uploaded it to
-> >
-> > http://www.damtp.cam.ac.uk/user/crm66/acpidump-rmbp.txt
-> >
-> > And my 'dmesg' from a freshly-booted 3.8-rc5 is here
-> >
-> > http://www.damtp.cam.ac.uk/user/crm66/dmesg-3.8-rc5.txt
-> >
-> >> What's under /sys/firmware/acpi/tables/ ?
-> >
-> > [mafra@linux-ahr8:~]$ ls /sys/firmware/acpi/tables/
-> > APIC  DSDT      ECDT  FACS  MCFG  SSDT1   SSDT11  SSDT2  SSDT4  SSDT6  SSDT8
-> > DMAR  dynamic/  FACP  HPET  SBST  SSDT10  SSDT12  SSDT3  SSDT5  SSDT7  SSDT9
-> >
-> > I should say that sometimes it takes +3 days for this problem to appear,
-> > with many successful s2ram in between, sometimes it takes less than 1 day.
-> > I could not figure out a pattern.
-> >
-> > Any other info I can provide?
-> 
-> 
-> 
-> -- 
-> Azat Khuzhin
+After 3 git-bisect sessions gave me no clear culprit, I changed my
+strategy to "braino-bisecting"...
+
+BAD: next-20130124
+BAD: up to akpm-master
+BAD: up to akpm-current
+BAD: up to for-3.9-async-next <--- ErrMsgs on the screen
+
+GOOD: v3.8-rc4
+GOOD: up to spi-mb/spi-next <--- "Result" from 1st git-bisect session
+GOOD: up to bluetooth-master <--- ErrMsgs on the screen
+
+TESTING: perf-urgent-for-mingo (Merge before for-3.9-async-next) <--- Good?
+
+Then I remembered a lot of "async" warnings in my call-traces on the screen.
+
+After seeing "wq-async-next" (for-3.9-async-next) is BAD, I checked
+Tejun's workqueues (wq) GIT repository.
+
+The Next/Trees file in Linux-Next lists for the responsible GIT repo
+and branch for wq:
+
+workqueues     git
+git://git.kernel.org/pub/scm/linux/kernel/git/tj/wq.git#for-next
+
+I am testing now with a pending patch in Tejun's for-3.9-async GIT branch:
+
+commit a0327ff0eda915be623658babacef706099c11a8
+"async: initialise list heads to fix crash"
+
+...and YES this fixes here PM-suspend and resume is fine, again.
+
+OK, that bisecting ruined a bit my weekend and showed me again you
+cannot really bisect Linux-Next.
+Sometimes, it is better not to trust the tools blindly and do a
+bisect-on-suspicion.
+Anyway... cultprit found... patch found... applied... all GOOD now.
+( If I had waited for next Monday's next-20130127 I would not have
+seen what caused the trouble. ).
+
+Happy rest-weekend,
+- Sedat -
+
+[0] http://git.kernel.org/?p=linux/kernel/git/tj/wq.git;a=summary
+[1] http://git.kernel.org/?p=linux/kernel/git/tj/wq.git;a=commit;h=a0327ff0eda915be623658babacef706099c11a8
+
+> Rafael
+>
+>
+> --
+> I speak only for myself.
+> Rafael J. Wysocki, Intel Open Source Technology Center.
