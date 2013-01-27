@@ -1,58 +1,44 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: [PATCH] ACPI: Fix /proc/acpi/wakeup for devices w/o bus or parent
-Date: Sun, 27 Jan 2013 23:46:25 +0100
-Message-ID: <1577239.v3IDhcnSN4@vostro.rjw.lan>
-References: <51053713.6090804@gmail.com>
+From: Daniel Vetter <daniel@ffwll.ch>
+Subject: Re: [Intel-gfx] [RFC PATCH 3/3] i915: ignore lid open event when resuming
+Date: Mon, 28 Jan 2013 00:21:24 +0100
+Message-ID: <CAKMK7uH5D9-LAj7FPKuAhgQZk=1vsjzzX8jfJ2sw8krDUFaQ=w@mail.gmail.com>
+References: <1359300060-2967-1-git-send-email-rui.zhang@intel.com>
+	<1359300060-2967-3-git-send-email-rui.zhang@intel.com>
+	<CAKMK7uF4u-3XFogzdQQCBqA2Q61D1s3PhVF7BOT90d88TkqT0g@mail.gmail.com>
+	<1927528.ZDbEpScRU3@vostro.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7Bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from hydra.sisk.pl ([212.160.235.94]:57380 "EHLO hydra.sisk.pl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755199Ab3A0WkR (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Sun, 27 Jan 2013 17:40:17 -0500
-In-Reply-To: <51053713.6090804@gmail.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Return-path: <linux-pm-owner@vger.kernel.org>
+In-Reply-To: <1927528.ZDbEpScRU3@vostro.rjw.lan>
+Sender: linux-pm-owner@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: Zhang Rui <rui.zhang@intel.com>, linux-kernel@vger.kernel.org, linux-pm@vger.kernel.org, linux-acpi@vger.kernel.org, intel-gfx@lists.freedesktop.org, lenb@kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Andreas Fleig <andreasfleig@gmail.com>
-Cc: linux-acpi@vger.kernel.org
 
-On Sunday, January 27, 2013 03:17:55 PM Andreas Fleig wrote:
-> Fix /proc/acpi/wakeup for devices without bus or parent
-> 
-> This patch fixes printing the wakeup status for devices without a bus
-> or parent, such as laptop lid switches and sleep buttons. These devices
-> have an empty physical_node_list, because acpi_bind_one is never run
-> for them.
-> 
-> Signed-off-by: Andreas Fleig <andreasfleig@gmail.com>
+On Sun, Jan 27, 2013 at 11:21 PM, Rafael J. Wysocki <rjw@sisk.pl> wrote:
+>> Given that this essentially requires users to manually set this module
+>> option to make stuff work I don't like this.
+>>
+>> I see a few possible options:
+>> - plug the races between all the different parts - I've never really
+>> understood why acpi sends us events before the resume code has
+>> completed ...
+>
+> This particular one may be a result of patch [2/3] in the series,
+> actually, because that patch makes SCI work over the whole cycle.
+>
+>> If that's indeed intentional, we could delay the
+>> handling a bit until at least the i915 resume code completed.
+>
+> I would do that for now at least if possible.  It shouldn't hurt anyway.
 
-OK, I'm going to take this (but I'm going to fix white space while applying it).
-
-Thanks,
-Rafael
-
-
-> ---
-> diff --git a/drivers/acpi/proc.c b/drivers/acpi/proc.c
-> index 27adb09..3623ea8 100644
-> --- a/drivers/acpi/proc.c
-> +++ b/drivers/acpi/proc.c
-> @@ -314,7 +314,8 @@ acpi_system_wakeup_device_seq_show(struct seq_file 
-> *seq, void *offset)
->   		if (!dev->physical_node_count)
->   			seq_printf(seq, "%c%-8s\n",
->   				dev->wakeup.flags.run_wake ?
-> -				'*' : ' ', "disabled");
-> +				'*' : ' ', device_may_wakeup(&dev->dev) ?
-> +				"enabled" : "disabled");
->   		else {
->   			struct device *ldev;
->   			list_for_each_entry(entry, &dev->physical_node_list,
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Since I lack a bit clue about how the pm stuff works exactly: Is there
+a ready-made helper for that kind of synchronization, where a notifier
+callback can be called from a different device's resume callbacks,
+which is someplace completely unrelated in the device-tree? Or any
+anti-patterns to avoid?
+-Daniel
 -- 
-I speak only for myself.
-Rafael J. Wysocki, Intel Open Source Technology Center.
+Daniel Vetter
+Software Engineer, Intel Corporation
++41 (0) 79 365 57 48 - http://blog.ffwll.ch
