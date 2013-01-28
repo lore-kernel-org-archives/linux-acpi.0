@@ -1,65 +1,36 @@
-From: Lan Tianyu <tianyu.lan@intel.com>
-Subject: [PATCH] PM/CORE: Fix using sizeof without parenthesis in the sysfs.c
-Date: Mon, 28 Jan 2013 16:31:49 +0800
-Message-ID: <1359361909-28793-1-git-send-email-tianyu.lan@intel.com>
-Return-path: <linux-pm-owner@vger.kernel.org>
-Sender: linux-pm-owner@vger.kernel.org
-To: rjw@sisk.pl
-Cc: Lan Tianyu <tianyu.lan@intel.com>, linux-pm@vger.kernel.org, linux-acpi@vger.kernel.org
+From: James Courtier-Dutton <james.dutton@gmail.com>
+Subject: Re: [PATCH] PM/CORE: Fix using sizeof without parenthesis in the sysfs.c
+Date: Mon, 28 Jan 2013 09:03:28 +0000
+Message-ID: <CAAMvbhEx69V026n4uhyPrq2aOXcx_vR1PQ-1-k2245JvSXQ=6A@mail.gmail.com>
+References: <1359361909-28793-1-git-send-email-tianyu.lan@intel.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-ea0-f176.google.com ([209.85.215.176]:49001 "EHLO
+	mail-ea0-f176.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751060Ab3A1JDa (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 28 Jan 2013 04:03:30 -0500
+In-Reply-To: <1359361909-28793-1-git-send-email-tianyu.lan@intel.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Lan Tianyu <tianyu.lan@intel.com>
+Cc: rjw@sisk.pl, linux-pm@vger.kernel.org, linux-acpi@vger.kernel.org
 
-Kernel style uses parenthesis around sizeof. Commit 66c80b60
-has already added such check in the scripts/checkpatch.pl.
+On 28 January 2013 08:31, Lan Tianyu <tianyu.lan@intel.com> wrote:
+> -       if (len == sizeof ctrl_auto - 1 && strncmp(buf, ctrl_auto, len) == 0)
+> +       if (len == sizeof(ctrl_auto - 1) && strncmp(buf, ctrl_auto, len) == 0)
 
-Signed-off-by: Lan Tianyu <tianyu.lan@intel.com>
----
- drivers/base/power/sysfs.c |   16 ++++++++--------
- 1 file changed, 8 insertions(+), 8 deletions(-)
+This looks wrong to me.
+sizeof ctrl_auto - 1
+is not the same value as
+sizeof(ctrl_auto - 1)
+because sizeof(x) is normally the same as sizeof(x - 1), unless sizeof
+x and sizeof 1 are different.
+Consider that is maybe should be:
+if (len == (sizeof(ctrl_auto) - 1)) && strncmp(buf, ctrl_auto, len) == 0)
 
-diff --git a/drivers/base/power/sysfs.c b/drivers/base/power/sysfs.c
-index 50d16e3..f089b80 100644
---- a/drivers/base/power/sysfs.c
-+++ b/drivers/base/power/sysfs.c
-@@ -119,9 +119,9 @@ static ssize_t control_store(struct device * dev, struct device_attribute *attr,
- 	if (cp)
- 		len = cp - buf;
- 	device_lock(dev);
--	if (len == sizeof ctrl_auto - 1 && strncmp(buf, ctrl_auto, len) == 0)
-+	if (len == sizeof(ctrl_auto - 1) && strncmp(buf, ctrl_auto, len) == 0)
- 		pm_runtime_allow(dev);
--	else if (len == sizeof ctrl_on - 1 && strncmp(buf, ctrl_on, len) == 0)
-+	else if (len == sizeof(ctrl_on - 1) && strncmp(buf, ctrl_on, len) == 0)
- 		pm_runtime_forbid(dev);
- 	else
- 		n = -EINVAL;
-@@ -321,11 +321,11 @@ wake_store(struct device * dev, struct device_attribute *attr,
- 	cp = memchr(buf, '\n', n);
- 	if (cp)
- 		len = cp - buf;
--	if (len == sizeof enabled - 1
--			&& strncmp(buf, enabled, sizeof enabled - 1) == 0)
-+	if (len == sizeof(enabled - 1)
-+			&& strncmp(buf, enabled, sizeof(enabled - 1)) == 0)
- 		device_set_wakeup_enable(dev, 1);
--	else if (len == sizeof disabled - 1
--			&& strncmp(buf, disabled, sizeof disabled - 1) == 0)
-+	else if (len == sizeof(disabled - 1)
-+			&& strncmp(buf, disabled, sizeof(disabled - 1)) == 0)
- 		device_set_wakeup_enable(dev, 0);
- 	else
- 		return -EINVAL;
-@@ -546,9 +546,9 @@ static ssize_t async_store(struct device *dev, struct device_attribute *attr,
- 	cp = memchr(buf, '\n', n);
- 	if (cp)
- 		len = cp - buf;
--	if (len == sizeof enabled - 1 && strncmp(buf, enabled, len) == 0)
-+	if (len == sizeof(enabled - 1) && strncmp(buf, enabled, len) == 0)
- 		device_enable_async_suspend(dev);
--	else if (len == sizeof disabled - 1 && strncmp(buf, disabled, len) == 0)
-+	else if (len == sizeof(disabled - 1) && strncmp(buf, disabled, len) == 0)
- 		device_disable_async_suspend(dev);
- 	else
- 		return -EINVAL;
--- 
-1.7.10.4
+I a not sure what the correct answer is for this particular bit of
+code, because I have not looked at it in detail,I just wanted to point
+out that the brackets might be in the wrong place here.
 
+James
