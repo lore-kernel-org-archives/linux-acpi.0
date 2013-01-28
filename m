@@ -1,40 +1,83 @@
-From: Tejun Heo <tj@kernel.org>
-Subject: Re: linux-next: Tree for Jan 25 (BROKEN suspend)
-Date: Mon, 28 Jan 2013 11:28:07 -0800
-Message-ID: <20130128192807.GF22465@mtj.dyndns.org>
-References: <CA+icZUW6LBSjpqK-eQUAt7R=kXCPRjFoi=z1UijaajrVAj=fEg@mail.gmail.com>
- <CA+icZUX=XdAJjWwx8P_y31JGW3GC+tdWuFhv2Ym-0OELGWGbDQ@mail.gmail.com>
- <CA+icZUX31SB3+NU8uXA9LH5KOHxgeHKZLcqWNhzUVhx5onk6qA@mail.gmail.com>
- <18624541.r6CtJttOWZ@vostro.rjw.lan>
- <CA+icZUX+o6kB9wXwpuJ8U49j+qHdx=DRq7p+_U1g+1fwGb-S6w@mail.gmail.com>
+From: Bjorn Helgaas <bhelgaas@google.com>
+Subject: Re: [RFC PATCH v5 0/8] introduce PCI bus notifier chain to get rid of
+ the ACPI PCI subdriver interfaces
+Date: Mon, 28 Jan 2013 13:56:33 -0700
+Message-ID: <CAErSpo6M-c3diVEUpUESgL=2PenxHYkW1eb=OGBdxxWwkge-Bw@mail.gmail.com>
+References: <1358525267-14268-1-git-send-email-jiang.liu@huawei.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-qa0-f47.google.com ([209.85.216.47]:60729 "EHLO
-	mail-qa0-f47.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751977Ab3A1T2M (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 28 Jan 2013 14:28:12 -0500
-Content-Disposition: inline
-In-Reply-To: <CA+icZUX+o6kB9wXwpuJ8U49j+qHdx=DRq7p+_U1g+1fwGb-S6w@mail.gmail.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Return-path: <linux-pci-owner@vger.kernel.org>
+In-Reply-To: <1358525267-14268-1-git-send-email-jiang.liu@huawei.com>
+Sender: linux-pci-owner@vger.kernel.org
+To: Jiang Liu <liuj97@gmail.com>
+Cc: "Rafael J . Wysocki" <rjw@sisk.pl>, Jiang Liu <jiang.liu@huawei.com>, Yinghai Lu <yinghai@kernel.org>, Kenji Kaneshige <kaneshige.kenji@jp.fujitsu.com>, Yijing Wang <wangyijing@huawei.com>, linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Toshi Kani <toshi.kani@hp.com>, Myron Stowe <myron.stowe@redhat.com>
 List-Id: linux-acpi@vger.kernel.org
-To: Sedat Dilek <sedat.dilek@gmail.com>
-Cc: "Rafael J. Wysocki" <rjw@sisk.pl>, Stephen Rothwell <sfr@canb.auug.org.au>, linux-next@vger.kernel.org, linux-kernel@vger.kernel.org, Linux PM List <linux-pm@lists.linux-foundation.org>, Linux ACPI <linux-acpi@vger.kernel.org>, Sasha Levin <sasha.levin@oracle.com>
 
-Hello, guys.
+On Fri, Jan 18, 2013 at 9:07 AM, Jiang Liu <liuj97@gmail.com> wrote:
+> This is an RFC patchset to address review comments in thread at:
+> https://patchwork.kernel.org/patch/1946851/. The patch just pasts
+> compilation. If no objection to the new implementation, I will
+> go on to modify acpiphp driver and conduct tests.
+>
+> The main changes from V4 to V5 includes:
+> 1) introduce a dedicated notifier chain for PCI buses
+> 2) change pci_slot as built-in driver
+> 3) unify the way to create/destroy PCI slots
+> 4) introduce a kernel option to disable PCIe native hotplug
+>
+> TODO:
+> 1) change acpiphp as built-in and unify the way to create/destroy ACPI
+>    based hotplug slots.
+> 2) change other ACPI PCI subdriver in Yinghai's root bridge hotplug series
+>    to use the PCI bus notifier chain.
+> 3) Remove the ACPI PCI subdriver interface eventaully.
+>
+> Jiang Liu (8):
+>   PCI: make PCI device create/destroy logic symmetric
+>   PCI: split registration of PCI bus devices into two stages
+>   PCI: add a blocking notifier chain for PCI bus addition/removal
+>   ACPI, PCI: avoid building pci_slot as module
+>   PCI, ACPI: hook PCI bus notifications to create/destroy PCI slots
+>   pci_slot: replace printk(KERN_xxx) with pr_xxx()
+>   PCI/PCIe: add "pci=nopciehp" to disable PCIe native hotplug
+>   PCI/PCIe: only claim PME from firmware when CONFIG_PCIE_PME is
+>     enabled
+>
+>  Documentation/kernel-parameters.txt |    2 +
+>  drivers/acpi/Kconfig                |    5 +-
+>  drivers/acpi/internal.h             |    5 +
+>  drivers/acpi/pci_root.c             |    8 +-
+>  drivers/acpi/pci_slot.c             |  217 ++++++++++-------------------------
+>  drivers/acpi/scan.c                 |    1 +
+>  drivers/pci/bus.c                   |   26 ++++-
+>  drivers/pci/pci.c                   |    2 +
+>  drivers/pci/pci.h                   |    1 +
+>  drivers/pci/pcie/portdrv_core.c     |    7 +-
+>  drivers/pci/pcie/portdrv_pci.c      |    3 +
+>  drivers/pci/probe.c                 |    7 +-
+>  drivers/pci/remove.c                |   15 +--
+>  include/linux/pci.h                 |   21 ++++
+>  14 files changed, 142 insertions(+), 178 deletions(-)
 
-On Sun, Jan 27, 2013 at 02:01:50PM +0100, Sedat Dilek wrote:
-> OK, that bisecting ruined a bit my weekend and showed me again you
-> cannot really bisect Linux-Next.
-> Sometimes, it is better not to trust the tools blindly and do a
-> bisect-on-suspicion.
-> Anyway... cultprit found... patch found... applied... all GOOD now.
-> ( If I had waited for next Monday's next-20130127 I would not have
-> seen what caused the trouble. ).
+I think the problem we're trying to solve is that we don't initialize
+hot-added devices, correctly, e.g., we don't set up AER, we don't
+update acpi/pci_slot stuff, we probably don't set up PME etc.  We also
+have similar issues like IOMMU init on powerpc.
 
-Yeah, my usual test setup didn't have async tasks w/o domain so I
-failed to notice the breakage.  Sorry about the trouble guys and lots
-of thanks to Sedat for the firefighting over the weekend.  :)
+Notifier chains seem like an unnecessarily complicated way to deal
+with this.  They're great for communicating between modules that stay
+at arm's length from each other.  But that's not the case here --
+everything is PCI and is quite closely coupled.  I think AER, PME,
+slot, etc., should  be initialized directly in pci_device_add() or
+somewhere nearby.
 
--- 
-tejun
+This might sound a bit radical because it implies some fairly
+far-reaching changes.  It means this code can't be a module (the only
+one that can be built as a module today is pciehp, and I think
+everybody agrees that we should make it static as soon as we can
+figure out the acpiphp/pciehp issue).  I think it also means the
+pcieportdrv concept is of dubious value, since all the services should
+be known at build-time and we probably don't need a registration
+interface for them.
+
+Bjorn
