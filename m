@@ -1,68 +1,65 @@
-From: Daniel Vetter <daniel@ffwll.ch>
-Subject: Re: [Intel-gfx] [RFC PATCH 3/3] i915: ignore lid open event when resuming
-Date: Mon, 28 Jan 2013 09:31:54 +0100
-Message-ID: <CAKMK7uFWqtcnvkExz2_+0Vm+6pSREhRJ1szpHi2_CEmmHL6Nzg@mail.gmail.com>
-References: <1359300060-2967-1-git-send-email-rui.zhang@intel.com>
-	<1359300060-2967-3-git-send-email-rui.zhang@intel.com>
-	<CAKMK7uF4u-3XFogzdQQCBqA2Q61D1s3PhVF7BOT90d88TkqT0g@mail.gmail.com>
-	<1359340583.2249.14.camel@rzhang1-mobl4>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-bk0-f54.google.com ([209.85.214.54]:59971 "EHLO
-	mail-bk0-f54.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754205Ab3A1Ib4 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 28 Jan 2013 03:31:56 -0500
-Received: by mail-bk0-f54.google.com with SMTP id w5so1163454bku.27
-        for <linux-acpi@vger.kernel.org>; Mon, 28 Jan 2013 00:31:54 -0800 (PST)
-In-Reply-To: <1359340583.2249.14.camel@rzhang1-mobl4>
-Sender: linux-acpi-owner@vger.kernel.org
+From: Lan Tianyu <tianyu.lan@intel.com>
+Subject: [PATCH] PM/CORE: Fix using sizeof without parenthesis in the sysfs.c
+Date: Mon, 28 Jan 2013 16:31:49 +0800
+Message-ID: <1359361909-28793-1-git-send-email-tianyu.lan@intel.com>
+Return-path: <linux-pm-owner@vger.kernel.org>
+Sender: linux-pm-owner@vger.kernel.org
+To: rjw@sisk.pl
+Cc: Lan Tianyu <tianyu.lan@intel.com>, linux-pm@vger.kernel.org, linux-acpi@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Zhang Rui <rui.zhang@intel.com>
-Cc: linux-kernel@vger.kernel.org, linux-pm@vger.kernel.org, linux-acpi@vger.kernel.org, intel-gfx@lists.freedesktop.org, rjw@sisk.pl, lenb@kernel.org
 
-On Mon, Jan 28, 2013 at 3:36 AM, Zhang Rui <rui.zhang@intel.com> wrote:
->> Given that this essentially requires users to manually set this module
->> option to make stuff work I don't like this.
->>
-> sorry, I do not understand.
-> this patch just disables modeset_on_lid during suspend.
+Kernel style uses parenthesis around sizeof. Commit 66c80b60
+has already added such check in the scripts/checkpatch.pl.
 
-Pardon me, the misunderstanding is on my side - I've mixed up
-dev_priv->modeset_on_lid with the corresponding module option.
+Signed-off-by: Lan Tianyu <tianyu.lan@intel.com>
+---
+ drivers/base/power/sysfs.c |   16 ++++++++--------
+ 1 file changed, 8 insertions(+), 8 deletions(-)
 
-Is my understanding correct that only with the new SCI pm state this
-can happen, since that still allows acpi events to be processed (and
-so our lid_notifier being called?
-
->> I see a few possible options:
->> - plug the races between all the different parts - I've never really
->> understood why acpi sends us events before the resume code has
->> completed ... If that's indeed intentional, we could delay the
->> handling a bit until at least the i915 resume code completed.
->
-> IMO, the real question is that, during a suspend/resume cycle, if we
-> need to take care of the lid open event or not.
-> To me, the answer is no, because when resuming from STR, i915 is not
-> aware of such an event, and the i915 resume code works well, right?
-> so I do not think it is a problem to ignore the lid event for another
-> lightweight suspend state, which is introduced in Patch 1/3 in this
-> series.
->
->> - Judging from the diff context you're not on the latest 3.8-rc
->> codebase - we've applied a few fixes to this lid hack recently. Please
->> retest on a kernel with
->>
-> the patch is based on 3.8.0-rc3, which already includes the commit
-> below.
-> And yes, the problem still exists.
-
-Ok, I think I see the issue now. But I suspect that we need some
-additional locking to make this solid, since currently
-dev_priv->modeset_on_lid updates can race with our lid notifier
-handler. Let me think about this a bit more.
--Daniel
+diff --git a/drivers/base/power/sysfs.c b/drivers/base/power/sysfs.c
+index 50d16e3..f089b80 100644
+--- a/drivers/base/power/sysfs.c
++++ b/drivers/base/power/sysfs.c
+@@ -119,9 +119,9 @@ static ssize_t control_store(struct device * dev, struct device_attribute *attr,
+ 	if (cp)
+ 		len = cp - buf;
+ 	device_lock(dev);
+-	if (len == sizeof ctrl_auto - 1 && strncmp(buf, ctrl_auto, len) == 0)
++	if (len == sizeof(ctrl_auto - 1) && strncmp(buf, ctrl_auto, len) == 0)
+ 		pm_runtime_allow(dev);
+-	else if (len == sizeof ctrl_on - 1 && strncmp(buf, ctrl_on, len) == 0)
++	else if (len == sizeof(ctrl_on - 1) && strncmp(buf, ctrl_on, len) == 0)
+ 		pm_runtime_forbid(dev);
+ 	else
+ 		n = -EINVAL;
+@@ -321,11 +321,11 @@ wake_store(struct device * dev, struct device_attribute *attr,
+ 	cp = memchr(buf, '\n', n);
+ 	if (cp)
+ 		len = cp - buf;
+-	if (len == sizeof enabled - 1
+-			&& strncmp(buf, enabled, sizeof enabled - 1) == 0)
++	if (len == sizeof(enabled - 1)
++			&& strncmp(buf, enabled, sizeof(enabled - 1)) == 0)
+ 		device_set_wakeup_enable(dev, 1);
+-	else if (len == sizeof disabled - 1
+-			&& strncmp(buf, disabled, sizeof disabled - 1) == 0)
++	else if (len == sizeof(disabled - 1)
++			&& strncmp(buf, disabled, sizeof(disabled - 1)) == 0)
+ 		device_set_wakeup_enable(dev, 0);
+ 	else
+ 		return -EINVAL;
+@@ -546,9 +546,9 @@ static ssize_t async_store(struct device *dev, struct device_attribute *attr,
+ 	cp = memchr(buf, '\n', n);
+ 	if (cp)
+ 		len = cp - buf;
+-	if (len == sizeof enabled - 1 && strncmp(buf, enabled, len) == 0)
++	if (len == sizeof(enabled - 1) && strncmp(buf, enabled, len) == 0)
+ 		device_enable_async_suspend(dev);
+-	else if (len == sizeof disabled - 1 && strncmp(buf, disabled, len) == 0)
++	else if (len == sizeof(disabled - 1) && strncmp(buf, disabled, len) == 0)
+ 		device_disable_async_suspend(dev);
+ 	else
+ 		return -EINVAL;
 -- 
-Daniel Vetter
-Software Engineer, Intel Corporation
-+41 (0) 79 365 57 48 - http://blog.ffwll.ch
+1.7.10.4
+
