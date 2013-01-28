@@ -1,67 +1,49 @@
-From: Tang Chen <tangchen@cn.fujitsu.com>
-Subject: Re: [PATCH Bug fix 0/5] Bug fix for physical memory hot-remove.
-Date: Mon, 28 Jan 2013 09:22:16 +0800
-Message-ID: <5105D2C8.1000807@cn.fujitsu.com>
-References: <1358854984-6073-1-git-send-email-tangchen@cn.fujitsu.com> <1359137977.14145.417.camel@misato.fc.hp.com>
+From: Aaron Lu <aaron.lu@intel.com>
+Subject: Re: [PATCH v14 1/3] scsi: sr: support runtime pm
+Date: Mon, 28 Jan 2013 09:36:14 +0800
+Message-ID: <20130128013614.GA26742@aaronlu.sh.intel.com>
+References: <1358924973-18269-1-git-send-email-aaron.lu@intel.com>
+ <1358924973-18269-2-git-send-email-aaron.lu@intel.com>
+ <5102ED08.2070201@pobox.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cn.fujitsu.com ([222.73.24.84]:3465 "EHLO song.cn.fujitsu.com"
-	rhost-flags-OK-FAIL-OK-OK) by vger.kernel.org with ESMTP
-	id S1756930Ab3A1BXG (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Sun, 27 Jan 2013 20:23:06 -0500
-In-Reply-To: <1359137977.14145.417.camel@misato.fc.hp.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-pm-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <5102ED08.2070201@pobox.com>
+Sender: linux-pm-owner@vger.kernel.org
+To: Jeff Garzik <jgarzik@pobox.com>, Alan Stern <stern@rowland.harvard.edu>, Tejun Heo <tj@kernel.org>
+Cc: James Bottomley <James.Bottomley@hansenpartnership.com>, "Rafael J. Wysocki" <rjw@sisk.pl>, Aaron Lu <aaron.lwe@gmail.com>, Jeff Wu <jeff.wu@amd.com>, linux-ide@vger.kernel.org, linux-pm@vger.kernel.org, linux-scsi@vger.kernel.org, linux-acpi@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Toshi Kani <toshi.kani@hp.com>
-Cc: akpm@linux-foundation.org, rientjes@google.com, len.brown@intel.com, benh@kernel.crashing.org, paulus@samba.org, cl@linux.com, minchan.kim@gmail.com, kosaki.motohiro@jp.fujitsu.com, isimatu.yasuaki@jp.fujitsu.com, wujianguo@huawei.com, wency@cn.fujitsu.com, hpa@zytor.com, linfeng@cn.fujitsu.com, laijs@cn.fujitsu.com, mgorman@suse.de, yinghai@kernel.org, glommer@parallels.com, jiang.liu@huawei.com, julian.calaby@gmail.com, sfr@canb.auug.org.au, x86@kernel.org, linux-mm@kvack.org, linux-kernel@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, linux-acpi@vger.kernel.org
 
-On 01/26/2013 02:19 AM, Toshi Kani wrote:
-> On Tue, 2013-01-22 at 19:42 +0800, Tang Chen wrote:
->> Here are some bug fix patches for physical memory hot-remove. All these
->> patches are based on the latest -mm tree.
->> git://git.kernel.org/pub/scm/linux/kernel/git/next/linux-next.git akpm
->>
->> And patch1 and patch3 are very important.
->> patch1: free compound pages when freeing memmap, otherwise the kernel
->>          will panic the next time memory is hot-added.
->> patch3: the old way of freeing pagetable pages was wrong. We should never
->>          split larger pages into small ones.
->>
->>
->> Lai Jiangshan (1):
->>    Bug-fix: mempolicy: fix is_valid_nodemask()
->>
->> Tang Chen (3):
->>    Bug fix: Do not split pages when freeing pagetable pages.
->>    Bug fix: Fix section mismatch problem of
->>      release_firmware_map_entry().
->>    Bug fix: Fix the doc format in drivers/firmware/memmap.c
->>
->> Wen Congyang (1):
->>    Bug fix: consider compound pages when free memmap
->>
->>   arch/x86/mm/init_64.c     |  148 ++++++++++++++-------------------------------
->>   drivers/firmware/memmap.c |   16 +++---
->>   mm/mempolicy.c            |   36 +++++++----
->>   mm/sparse.c               |    2 +-
->>   4 files changed, 77 insertions(+), 125 deletions(-)
->
-> This patchset fixed a blocker panic I was hitting in my memory hot-plug
-> testing.  Memory hotplug works fine with this patchset (for testing my
-> hotplug framework patchset :).  For the series:
+On Fri, Jan 25, 2013 at 03:37:28PM -0500, Jeff Garzik wrote:
+> On 01/23/2013 02:09 AM, Aaron Lu wrote:
+> >This patch adds runtime pm support for sr.
+> >
+> >It did this by increasing the runtime usage_count of the device when
+> >its block device is accessed. And decreasing the runtime usage_count
+> >of the device when the access is done.
+> >
+> >If there is media inside, runtime suspend is not allowed as we don't
+> >always know if the ODD is being used or not.
+> >
+> >The idea is discussed here:
+> >http://thread.gmane.org/gmane.linux.acpi.devel/55243/focus=52703
+> >and the restriction to check media inside is discussed here:
+> >http://thread.gmane.org/gmane.linux.ide/53665/focus=58836
+> >
+> >Signed-off-by: Aaron Lu <aaron.lu@intel.com>
+> >Acked-by: Alan Stern <stern@rowland.harvard.edu>
+> >Acked-by: James Bottomley <James.Bottomley@HansenPartnership.com>
+> >---
+> >  drivers/scsi/sr.c | 42 +++++++++++++++++++++++++++++++++++++++---
+> >  1 file changed, 39 insertions(+), 3 deletions(-)
+> 
+> applied 1-3
 
-Hi Toshi-san,
+Now that the whole patchset is queued, I would like to thank all of you,
+especially Alan Stern and Tejun Heo, for your kind help, without that I
+would not be able to make it.
 
-Thank you for testing. :)
+Thanks and best regards,
+Aaron
 
->
-> Tested-by: Toshi Kani<toshi.kani@hp.com>
->
-> Thanks,
-> -Toshi
->
->
->
->
