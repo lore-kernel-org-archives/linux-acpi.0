@@ -1,84 +1,88 @@
-From: Viresh Kumar <viresh.kumar@linaro.org>
-Subject: Re: [PATCH 4/6] cpufreq: Add a get_current_driver helper
-Date: Mon, 28 Jan 2013 15:22:13 +0530
-Message-ID: <CAKohpo=F5R7oG_xEopChLMqGo6umH0zqnknv_NJKA_TKDaSgjw@mail.gmail.com>
-References: <1358677470-17394-1-git-send-email-bp@alien8.de>
-	<1358677470-17394-5-git-send-email-bp@alien8.de>
-	<CAOh2x==qf057z2vmADd6+thaXXVxEh1GZO-sKHRDyosqTfMdng@mail.gmail.com>
-	<20130128094957.GA6109@pd.tnic>
+From: Zhang Rui <rui.zhang@intel.com>
+Subject: Re: [Intel-gfx] [RFC PATCH 3/3] i915: ignore lid open event when
+ resuming
+Date: Mon, 28 Jan 2013 18:06:38 +0800
+Message-ID: <1359367598.2089.18.camel@rzhang1-mobl4>
+References: <1359300060-2967-1-git-send-email-rui.zhang@intel.com>
+	 <1359300060-2967-3-git-send-email-rui.zhang@intel.com>
+	 <CAKMK7uF4u-3XFogzdQQCBqA2Q61D1s3PhVF7BOT90d88TkqT0g@mail.gmail.com>
+	 <1359340583.2249.14.camel@rzhang1-mobl4>
+	 <CAKMK7uFWqtcnvkExz2_+0Vm+6pSREhRJ1szpHi2_CEmmHL6Nzg@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <cpufreq-owner@vger.kernel.org>
-In-Reply-To: <20130128094957.GA6109@pd.tnic>
-Sender: cpufreq-owner@vger.kernel.org
-To: Borislav Petkov <bp@alien8.de>, Viresh Kumar <viresh.kumar@linaro.org>, "Rafael J. Wysocki" <rjw@sisk.pl>, =?ISO-8859-1?Q?Andr=E9_Przywara?= <andre@andrep.de>, Leonid Isaev <lisaev@umail.iu.edu>, Tom Gundersen <teg@jklm.no>, cpufreq@vger.kernel.org, linux-acpi@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>, Borislav Petkov <bp@suse.de>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-pm-owner@vger.kernel.org>
+In-Reply-To: <CAKMK7uFWqtcnvkExz2_+0Vm+6pSREhRJ1szpHi2_CEmmHL6Nzg@mail.gmail.com>
+Sender: linux-pm-owner@vger.kernel.org
+To: Daniel Vetter <daniel@ffwll.ch>
+Cc: linux-kernel@vger.kernel.org, linux-pm@vger.kernel.org, linux-acpi@vger.kernel.org, intel-gfx@lists.freedesktop.org, rjw@sisk.pl, lenb@kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-On 28 January 2013 15:19, Borislav Petkov <bp@alien8.de> wrote:
-> Which one would you suggest: CPUFREQ DRIVER INTERFACE?
+On Mon, 2013-01-28 at 09:31 +0100, Daniel Vetter wrote:
+> On Mon, Jan 28, 2013 at 3:36 AM, Zhang Rui <rui.zhang@intel.com> wrote:
+> >> Given that this essentially requires users to manually set this module
+> >> option to make stuff work I don't like this.
+> >>
+> > sorry, I do not understand.
+> > this patch just disables modeset_on_lid during suspend.
+> 
+> Pardon me, the misunderstanding is on my side - I've mixed up
+> dev_priv->modeset_on_lid with the corresponding module option.
+> 
+> Is my understanding correct that only with the new SCI pm state this
+> can happen, since that still allows acpi events to be processed (and
+> so our lid_notifier being called?
+> 
+yep.
 
-Yes.
+> >> I see a few possible options:
+> >> - plug the races between all the different parts - I've never really
+> >> understood why acpi sends us events before the resume code has
+> >> completed ... If that's indeed intentional, we could delay the
+> >> handling a bit until at least the i915 resume code completed.
+> >
+> > IMO, the real question is that, during a suspend/resume cycle, if we
+> > need to take care of the lid open event or not.
+> > To me, the answer is no, because when resuming from STR, i915 is not
+> > aware of such an event, and the i915 resume code works well, right?
+> > so I do not think it is a problem to ignore the lid event for another
+> > lightweight suspend state, which is introduced in Patch 1/3 in this
+> > series.
+> >
+> >> - Judging from the diff context you're not on the latest 3.8-rc
+> >> codebase - we've applied a few fixes to this lid hack recently. Please
+> >> retest on a kernel with
+> >>
+> > the patch is based on 3.8.0-rc3, which already includes the commit
+> > below.
+> > And yes, the problem still exists.
+> 
+> Ok, I think I see the issue now. But I suspect that we need some
+> additional locking to make this solid, since currently
+> dev_priv->modeset_on_lid updates can race with our lid notifier
+> handler. Let me think about this a bit more.
 
-> Btw, this function type splitting looks kinda silly to me. In that same
-> section there are two which clearly don't belong there:
->
-> struct cpufreq_policy *cpufreq_cpu_get(unsigned int cpu);
-> void   cpufreq_cpu_put(struct cpufreq_policy *data);
->
-> since they don't have anything to do with freq_table. And since they
-> return cpufreq_policy, they should be maybe called:
->
-> cpufreq_get_cpu_policy
-> cpufreq_put_cpu_policy
->
-> or something more expressive, pertaining to what they actually do. But
-> they actually get/put the module (inc/dec the module's refcount) *and*
-> return the cpufreq_policy... whatever, I don't care that much so see
-> below.
+hmm,
+with this patch, intel_lid_notify() will return immediately if
+modeset_on_lid is set to -1. So the only problem in my mind is that we
+got a lid open event during i915_suspend().
 
-Agree.
+Say,
+lid is opened -> i915_lid_notify() is invoked (modeset_on_lid is 1 at
+this time) -> i915_suspend() set modeset_on_lid to -1, just before
+intel_modeset_setup_hw_state() being invoked in i915_lid_notify() ->
+intel_modeset_setup_hw_state() breaks the system.
 
-> --
-> From 830eb9ebc715d329229772d11332c50dfd1d9330 Mon Sep 17 00:00:00 2001
-> From: Borislav Petkov <bp@suse.de>
-> Date: Mon, 28 Jan 2013 10:38:33 +0100
-> Subject: [PATCH] cpufreq: Sort function prototypes properly
->
-> Move function prototypes to a place where they logically fit better.
->
-> Signed-off-by: Borislav Petkov <bp@suse.de>
-> ---
->  include/linux/cpufreq.h | 6 +++---
->  1 file changed, 3 insertions(+), 3 deletions(-)
->
-> diff --git a/include/linux/cpufreq.h b/include/linux/cpufreq.h
-> index a018da2d2a7c..f33ace57adb6 100644
-> --- a/include/linux/cpufreq.h
-> +++ b/include/linux/cpufreq.h
-> @@ -308,6 +308,9 @@ __ATTR(_name, 0444, show_##_name, NULL)
->  static struct global_attr _name =              \
->  __ATTR(_name, 0644, show_##_name, store_##_name)
->
-> +struct cpufreq_policy *cpufreq_cpu_get(unsigned int cpu);
-> +void   cpufreq_cpu_put(struct cpufreq_policy *data);
-> +const char *cpufreq_get_current_driver(void);
->
->  /*********************************************************************
->   *                        CPUFREQ 2.6. INTERFACE                     *
-> @@ -397,8 +400,6 @@ int cpufreq_frequency_table_target(struct cpufreq_policy *policy,
->
->  /* the following 3 funtions are for cpufreq core use only */
->  struct cpufreq_frequency_table *cpufreq_frequency_get_table(unsigned int cpu);
-> -struct cpufreq_policy *cpufreq_cpu_get(unsigned int cpu);
-> -void   cpufreq_cpu_put(struct cpufreq_policy *data);
->
->  /* the following are really really optional */
->  extern struct freq_attr cpufreq_freq_attr_scaling_available_freqs;
-> @@ -407,5 +408,4 @@ void cpufreq_frequency_table_get_attr(struct cpufreq_frequency_table *table,
->                                       unsigned int cpu);
->
->  void cpufreq_frequency_table_put_attr(unsigned int cpu);
-> -extern const char *cpufreq_get_current_driver(void);
->  #endif /* _LINUX_CPUFREQ_H */
+but my first question would be is this (lid open on suspend) possible in
+real world?
+If the answer is yes, then my second question is that, this problem
+exists for STR as well because SCI is still valid at this time when
+suspending to memory, have we seen such issues for STR before?
 
-Acked-by: Viresh Kumar <viresh.kumar@linaro.org>
+Anyway, if the current code does not break STR, this patch should be
+enough for the new suspend state.
+what do you think?
+
+thanks,
+rui
+
