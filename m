@@ -1,83 +1,122 @@
 From: Bjorn Helgaas <bhelgaas@google.com>
-Subject: Re: [RFC PATCH v5 0/8] introduce PCI bus notifier chain to get rid of
- the ACPI PCI subdriver interfaces
-Date: Mon, 28 Jan 2013 13:56:33 -0700
-Message-ID: <CAErSpo6M-c3diVEUpUESgL=2PenxHYkW1eb=OGBdxxWwkge-Bw@mail.gmail.com>
+Subject: Re: [RFC PATCH v5 4/8] ACPI, PCI: avoid building pci_slot as module
+Date: Mon, 28 Jan 2013 14:09:22 -0700
+Message-ID: <CAErSpo4fbNzFaBxH+eKD+BKVgghyCJEYLDMzc6_gdxABAPe3QQ@mail.gmail.com>
 References: <1358525267-14268-1-git-send-email-jiang.liu@huawei.com>
+ <1358525267-14268-5-git-send-email-jiang.liu@huawei.com> <3500982.MUDp6kKU3R@vostro.rjw.lan>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-pci-owner@vger.kernel.org>
-In-Reply-To: <1358525267-14268-1-git-send-email-jiang.liu@huawei.com>
+In-Reply-To: <3500982.MUDp6kKU3R@vostro.rjw.lan>
 Sender: linux-pci-owner@vger.kernel.org
-To: Jiang Liu <liuj97@gmail.com>
-Cc: "Rafael J . Wysocki" <rjw@sisk.pl>, Jiang Liu <jiang.liu@huawei.com>, Yinghai Lu <yinghai@kernel.org>, Kenji Kaneshige <kaneshige.kenji@jp.fujitsu.com>, Yijing Wang <wangyijing@huawei.com>, linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Toshi Kani <toshi.kani@hp.com>, Myron Stowe <myron.stowe@redhat.com>
+To: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: Jiang Liu <liuj97@gmail.com>, Jiang Liu <jiang.liu@huawei.com>, Yinghai Lu <yinghai@kernel.org>, Kenji Kaneshige <kaneshige.kenji@jp.fujitsu.com>, Yijing Wang <wangyijing@huawei.com>, linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Toshi Kani <toshi.kani@hp.com>, Myron Stowe <myron.stowe@redhat.com>
 List-Id: linux-acpi@vger.kernel.org
 
-On Fri, Jan 18, 2013 at 9:07 AM, Jiang Liu <liuj97@gmail.com> wrote:
-> This is an RFC patchset to address review comments in thread at:
-> https://patchwork.kernel.org/patch/1946851/. The patch just pasts
-> compilation. If no objection to the new implementation, I will
-> go on to modify acpiphp driver and conduct tests.
+On Sun, Jan 20, 2013 at 5:01 PM, Rafael J. Wysocki <rjw@sisk.pl> wrote:
+> On Saturday, January 19, 2013 12:07:42 AM Jiang Liu wrote:
+>> As discussed in thread at https://patchwork.kernel.org/patch/1946851/,
+>> there's no value in supporting CONFIG_ACPI_PCI_SLOT=m any more.
+>> So change Kconfig and code to only support building pci_slot as
+>> built-in driver.
+>>
+>> Signed-off-by: Jiang Liu <jiang.liu@huawei.com>
 >
-> The main changes from V4 to V5 includes:
-> 1) introduce a dedicated notifier chain for PCI buses
-> 2) change pci_slot as built-in driver
-> 3) unify the way to create/destroy PCI slots
-> 4) introduce a kernel option to disable PCIe native hotplug
->
-> TODO:
-> 1) change acpiphp as built-in and unify the way to create/destroy ACPI
->    based hotplug slots.
-> 2) change other ACPI PCI subdriver in Yinghai's root bridge hotplug series
->    to use the PCI bus notifier chain.
-> 3) Remove the ACPI PCI subdriver interface eventaully.
->
-> Jiang Liu (8):
->   PCI: make PCI device create/destroy logic symmetric
->   PCI: split registration of PCI bus devices into two stages
->   PCI: add a blocking notifier chain for PCI bus addition/removal
->   ACPI, PCI: avoid building pci_slot as module
->   PCI, ACPI: hook PCI bus notifications to create/destroy PCI slots
->   pci_slot: replace printk(KERN_xxx) with pr_xxx()
->   PCI/PCIe: add "pci=nopciehp" to disable PCIe native hotplug
->   PCI/PCIe: only claim PME from firmware when CONFIG_PCIE_PME is
->     enabled
->
->  Documentation/kernel-parameters.txt |    2 +
->  drivers/acpi/Kconfig                |    5 +-
->  drivers/acpi/internal.h             |    5 +
->  drivers/acpi/pci_root.c             |    8 +-
->  drivers/acpi/pci_slot.c             |  217 ++++++++++-------------------------
->  drivers/acpi/scan.c                 |    1 +
->  drivers/pci/bus.c                   |   26 ++++-
->  drivers/pci/pci.c                   |    2 +
->  drivers/pci/pci.h                   |    1 +
->  drivers/pci/pcie/portdrv_core.c     |    7 +-
->  drivers/pci/pcie/portdrv_pci.c      |    3 +
->  drivers/pci/probe.c                 |    7 +-
->  drivers/pci/remove.c                |   15 +--
->  include/linux/pci.h                 |   21 ++++
->  14 files changed, 142 insertions(+), 178 deletions(-)
+> Acked-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 
-I think the problem we're trying to solve is that we don't initialize
-hot-added devices, correctly, e.g., we don't set up AER, we don't
-update acpi/pci_slot stuff, we probably don't set up PME etc.  We also
-have similar issues like IOMMU init on powerpc.
+Acked-by: Bjorn Helgaas <bhelgaas@google.com>
 
-Notifier chains seem like an unnecessarily complicated way to deal
-with this.  They're great for communicating between modules that stay
-at arm's length from each other.  But that's not the case here --
-everything is PCI and is quite closely coupled.  I think AER, PME,
-slot, etc., should  be initialized directly in pci_device_add() or
-somewhere nearby.
+I think we should eventually get rid of acpi_pci_register_driver() and
+do this initialization directly from acpi_pci_root_add().  But
+removing the module option here is a good first step.
 
-This might sound a bit radical because it implies some fairly
-far-reaching changes.  It means this code can't be a module (the only
-one that can be built as a module today is pciehp, and I think
-everybody agrees that we should make it static as soon as we can
-figure out the acpiphp/pciehp issue).  I think it also means the
-pcieportdrv concept is of dubious value, since all the services should
-be known at build-time and we probably don't need a registration
-interface for them.
+Rafael, do you want to apply this (and [6/8]) via your tree?  If not,
+I can take it.
 
-Bjorn
+>> ---
+>>  drivers/acpi/Kconfig    |    5 +----
+>>  drivers/acpi/internal.h |    5 +++++
+>>  drivers/acpi/pci_slot.c |   13 +------------
+>>  drivers/acpi/scan.c     |    1 +
+>>  4 files changed, 8 insertions(+), 16 deletions(-)
+>>
+>> diff --git a/drivers/acpi/Kconfig b/drivers/acpi/Kconfig
+>> index 0300bf6..7efd0d0 100644
+>> --- a/drivers/acpi/Kconfig
+>> +++ b/drivers/acpi/Kconfig
+>> @@ -299,7 +299,7 @@ config ACPI_DEBUG_FUNC_TRACE
+>>         is about half of the penalty and is rarely useful.
+>>
+>>  config ACPI_PCI_SLOT
+>> -     tristate "PCI slot detection driver"
+>> +     bool "PCI slot detection driver"
+>>       depends on SYSFS
+>>       default n
+>>       help
+>> @@ -308,9 +308,6 @@ config ACPI_PCI_SLOT
+>>         i.e., segment/bus/device/function tuples, with physical slots in
+>>         the system.  If you are unsure, say N.
+>>
+>> -       To compile this driver as a module, choose M here:
+>> -       the module will be called pci_slot.
+>> -
+>>  config X86_PM_TIMER
+>>       bool "Power Management Timer Support" if EXPERT
+>>       depends on X86
+>> diff --git a/drivers/acpi/internal.h b/drivers/acpi/internal.h
+>> index e050254..7374cfc 100644
+>> --- a/drivers/acpi/internal.h
+>> +++ b/drivers/acpi/internal.h
+>> @@ -67,6 +67,11 @@ struct acpi_ec {
+>>
+>>  extern struct acpi_ec *first_ec;
+>>
+>> +#ifdef       CONFIG_ACPI_PCI_SLOT
+>> +void acpi_pci_slot_init(void);
+>> +#else
+>> +static inline void acpi_pci_slot_init(void) { }
+>> +#endif
+>>  int acpi_pci_root_init(void);
+>>  int acpi_ec_init(void);
+>>  int acpi_ec_ecdt_probe(void);
+>> diff --git a/drivers/acpi/pci_slot.c b/drivers/acpi/pci_slot.c
+>> index d22585f..a7d7e77 100644
+>> --- a/drivers/acpi/pci_slot.c
+>> +++ b/drivers/acpi/pci_slot.c
+>> @@ -330,19 +330,8 @@ static struct dmi_system_id acpi_pci_slot_dmi_table[] __initdata = {
+>>       {}
+>>  };
+>>
+>> -static int __init
+>> -acpi_pci_slot_init(void)
+>> +void __init acpi_pci_slot_init(void)
+>>  {
+>>       dmi_check_system(acpi_pci_slot_dmi_table);
+>>       acpi_pci_register_driver(&acpi_pci_slot_driver);
+>> -     return 0;
+>>  }
+>> -
+>> -static void __exit
+>> -acpi_pci_slot_exit(void)
+>> -{
+>> -     acpi_pci_unregister_driver(&acpi_pci_slot_driver);
+>> -}
+>> -
+>> -module_init(acpi_pci_slot_init);
+>> -module_exit(acpi_pci_slot_exit);
+>> diff --git a/drivers/acpi/scan.c b/drivers/acpi/scan.c
+>> index f8a0d0f..cb964ac 100644
+>> --- a/drivers/acpi/scan.c
+>> +++ b/drivers/acpi/scan.c
+>> @@ -1732,6 +1732,7 @@ int __init acpi_scan_init(void)
+>>
+>>       acpi_power_init();
+>>       acpi_pci_root_init();
+>> +     acpi_pci_slot_init();
+>>
+>>       /*
+>>        * Enumerate devices in the ACPI namespace.
+>>
+> --
+> I speak only for myself.
+> Rafael J. Wysocki, Intel Open Source Technology Center.
