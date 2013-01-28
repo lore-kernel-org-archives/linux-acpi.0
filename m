@@ -1,72 +1,75 @@
-From: Bjorn Helgaas <bhelgaas@google.com>
-Subject: Re: [RFC PATCH v5 4/8] ACPI, PCI: avoid building pci_slot as module
-Date: Mon, 28 Jan 2013 15:14:11 -0700
-Message-ID: <CAErSpo7vHXdh=ogvfZnxx9gqgiifWGa=XzS+ZKjXFFOPue4TTw@mail.gmail.com>
-References: <1358525267-14268-1-git-send-email-jiang.liu@huawei.com>
- <1358525267-14268-5-git-send-email-jiang.liu@huawei.com> <3500982.MUDp6kKU3R@vostro.rjw.lan>
- <CAErSpo4fbNzFaBxH+eKD+BKVgghyCJEYLDMzc6_gdxABAPe3QQ@mail.gmail.com>
- <CAE9FiQVM4+Wirpb3_D0Zxi4r1p9SAMi4ZrNYr=-eas-C6pKJYA@mail.gmail.com>
- <CAErSpo7WbbzZ8cKfLvuE331ofWir2vswUnYaxVLBBYGFowedXQ@mail.gmail.com> <CAE9FiQXkrYubkgbbOXmrEXvGZBZXMZ6sh8kGTpF1_=tD3OMPJw@mail.gmail.com>
+From: Sedat Dilek <sedat.dilek@gmail.com>
+Subject: Re: linux-next: Tree for Jan 25 (BROKEN suspend)
+Date: Mon, 28 Jan 2013 23:18:51 +0100
+Message-ID: <CA+icZUU-Nd=bjivSZ62iFm3qWSLy-_SyfMcA+xNB9-3oxOwYBA@mail.gmail.com>
+References: <CA+icZUW6LBSjpqK-eQUAt7R=kXCPRjFoi=z1UijaajrVAj=fEg@mail.gmail.com>
+	<CA+icZUX=XdAJjWwx8P_y31JGW3GC+tdWuFhv2Ym-0OELGWGbDQ@mail.gmail.com>
+	<CA+icZUX31SB3+NU8uXA9LH5KOHxgeHKZLcqWNhzUVhx5onk6qA@mail.gmail.com>
+	<18624541.r6CtJttOWZ@vostro.rjw.lan>
+	<CA+icZUX+o6kB9wXwpuJ8U49j+qHdx=DRq7p+_U1g+1fwGb-S6w@mail.gmail.com>
+	<20130128192807.GF22465@mtj.dyndns.org>
+	<CA+icZUUHFFB6j-igX-Ec+6ZT2yvGakRd+HNVru1VUAxPXby_Lg@mail.gmail.com>
+	<20130128220844.GO22465@mtj.dyndns.org>
+Reply-To: sedat.dilek@gmail.com
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-vc0-f175.google.com ([209.85.220.175]:52343 "EHLO
-	mail-vc0-f175.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754890Ab3A1WOc (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 28 Jan 2013 17:14:32 -0500
-Received: by mail-vc0-f175.google.com with SMTP id fw7so2208593vcb.34
-        for <linux-acpi@vger.kernel.org>; Mon, 28 Jan 2013 14:14:31 -0800 (PST)
-In-Reply-To: <CAE9FiQXkrYubkgbbOXmrEXvGZBZXMZ6sh8kGTpF1_=tD3OMPJw@mail.gmail.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-next-owner@vger.kernel.org>
+In-Reply-To: <20130128220844.GO22465@mtj.dyndns.org>
+Sender: linux-next-owner@vger.kernel.org
+To: Tejun Heo <tj@kernel.org>
+Cc: "Rafael J. Wysocki" <rjw@sisk.pl>, Stephen Rothwell <sfr@canb.auug.org.au>, linux-next@vger.kernel.org, linux-kernel@vger.kernel.org, Linux PM List <linux-pm@lists.linux-foundation.org>, Linux ACPI <linux-acpi@vger.kernel.org>, Sasha Levin <sasha.levin@oracle.com>, James Hogan <james.hogan@imgtec.com>
 List-Id: linux-acpi@vger.kernel.org
-To: Yinghai Lu <yinghai@kernel.org>
-Cc: "Rafael J. Wysocki" <rjw@sisk.pl>, Jiang Liu <liuj97@gmail.com>, Jiang Liu <jiang.liu@huawei.com>, Kenji Kaneshige <kaneshige.kenji@jp.fujitsu.com>, Yijing Wang <wangyijing@huawei.com>, linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Toshi Kani <toshi.kani@hp.com>, Myron Stowe <myron.stowe@redhat.com>
 
-On Mon, Jan 28, 2013 at 3:00 PM, Yinghai Lu <yinghai@kernel.org> wrote:
-> On Mon, Jan 28, 2013 at 1:52 PM, Bjorn Helgaas <bhelgaas@google.com> wrote:
->> On Mon, Jan 28, 2013 at 2:29 PM, Yinghai Lu <yinghai@kernel.org> wrote:
-> ...
->>> If bios have messed up slot name or idx, we will get strange 1-1....
->>> other crazy name.
->>>
->>> if you really need to put it as built-in, may need to some command
->>> line that user could switch it off.
+On Mon, Jan 28, 2013 at 11:08 PM, Tejun Heo <tj@kernel.org> wrote:
+> Hello, Sedat.
+>
+> On Mon, Jan 28, 2013 at 11:06:11PM +0100, Sedat Dilek wrote:
+>> 1. People should sent their patches concerning especially Linux-Next
+>> fixes not only to LKML but also to <linux-next@vger.kernel.org> (if
+>> this is not known, pointing to James).
 >>
->> It would save us all a lot of time if you gave an example and worked
->> through the scenario where this is a problem.
+>> 2. These patches for Linux-Next should contain a "-next" in their
+>> subject-line (use 'git format-patch --subject-prefix="PATCH -next"
+>> ...').
 >>
->> We already have the choice of having pci_slot built-in, so if there's
->> a bug in that config, we already have the bug.  This patch merely
->> removes a config where the bug might be covered up.
+>> Of course, I should have checked the MLs... but for me it was not
+>> clear what was the root cause (which subsystem to blame)... I had only
+>> some suspicions.
 >
+> Yeah, there was no way for you guys to easily discover that the
+> problem has already been identified and fix pending.  I'll definitely
+> try to cc linux-next cc'd on patches which fix problems in -next.
 >
-> for distribution, current it is with module, so user could blacklist
-> in module.conf
+> Thanks a lot!
 >
-> Now with built-in or not, distribution will have it built-in, and user
-> have no chance to
-> disable it.
 
-CONFIG_ACPI_PCI_SLOT=y in RHEL6, so evidently they have this problem.
+Hi Tejun,
 
-Asking users to edit module.conf by hand is not a solution, just like
-asking users to boot with a command line option is not a solution.
-That sort of stuff is fine for a hobbyist OS intended only for techie
-geeks.  It's not fine for Linux.
+BTW, I am reading MLs mostly offline!
+That means I cannot grep for search-patterns I like (here: LKML).
+Offline-reading also means, you get replies a lot of later.
 
-If you would give a concrete example of the ACPI namespace info and
-device config, hotplug sequence, etc., required to show the problem,
-we could have a useful discussion about ways to fix it.  But if all
-you have is FUD about "this might break and users won't have the
-ability to edit modules.conf," that doesn't help me see why this patch
-is a bad idea.
+NO, I am not planning to flood my INBOX with postings from LKML :-).
 
->> I don't know why "adding a command line switch" appeals to you as the
->> solution to every problem.  As far as I'm concerned that's not a
->> solution to ANY problem.  It might be a band-aid to enable users to
->> limp along while we figure out a correct solution, but it's certainly
->> not a resolution.
->
-> Looks like you want to remove command line support, right ?
->
-> Yinghai
+I highly suggest to send -next patches also to LKML.
+Patchwork-service [1] makes it easy to get them in mbox-format for
+easy application.
+
+FYI: I am subscribed to linux-next ML and some other "smaller" linux-* MLs.
+
+I dunno why Linux-Next hasn't join patchwork-service.
+Stephen?
+
+Also think of multiple postings of patches for the same issue :-).
+...and lame and/or disappeared maintainers.
+
+For a more better world...
+
+- Sedat -
+
+[1] marc.info/?l=linux-kernel
+[2] http://marc.info/?l=linux-next
+[3] https://patchwork.kernel.org/project/LKML/list/
+
+> --
+> tejun
