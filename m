@@ -1,189 +1,155 @@
-From: Zhang Rui <rui.zhang@intel.com>
-Subject: Re: [Intel-gfx] [RFC PATCH 3/3] i915: ignore lid open event when
- resuming
-Date: Mon, 28 Jan 2013 10:36:23 +0800
-Message-ID: <1359340583.2249.14.camel@rzhang1-mobl4>
-References: <1359300060-2967-1-git-send-email-rui.zhang@intel.com>
-	 <1359300060-2967-3-git-send-email-rui.zhang@intel.com>
-	 <CAKMK7uF4u-3XFogzdQQCBqA2Q61D1s3PhVF7BOT90d88TkqT0g@mail.gmail.com>
+From: "Zheng, Lv" <lv.zheng@intel.com>
+Subject: RE: [PATCH v5 1/2] TTY: Add TTY slave enumeration support
+Date: Mon, 28 Jan 2013 02:58:00 +0000
+Message-ID: <1AE640813FDE7649BE1B193DEA596E88BF46D2@SHSMSX101.ccr.corp.intel.com>
+References: <cover.1354505471.git.lv.zheng@intel.com>
+ <cover.1359022955.git.lv.zheng@intel.com>
+ <12848b50e1096dc11a193694ee248d51d45ce093.1359022955.git.lv.zheng@intel.com>
+ <20130125214121.GA30924@kroah.com>
+ <1AE640813FDE7649BE1B193DEA596E88BF41C7@SHSMSX101.ccr.corp.intel.com>
+ <20130126034232.GB5066@kroah.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga11.intel.com ([192.55.52.93]:17346 "EHLO mga11.intel.com"
+Received: from mga11.intel.com ([192.55.52.93]:13950 "EHLO mga11.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751705Ab3A1Cg2 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Sun, 27 Jan 2013 21:36:28 -0500
-In-Reply-To: <CAKMK7uF4u-3XFogzdQQCBqA2Q61D1s3PhVF7BOT90d88TkqT0g@mail.gmail.com>
+	id S1751056Ab3A1C6F convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sun, 27 Jan 2013 21:58:05 -0500
+In-Reply-To: <20130126034232.GB5066@kroah.com>
+Content-Language: en-US
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Daniel Vetter <daniel@ffwll.ch>
-Cc: linux-kernel@vger.kernel.org, linux-pm@vger.kernel.org, linux-acpi@vger.kernel.org, intel-gfx@lists.freedesktop.org, rjw@sisk.pl, lenb@kernel.org
+To: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: Alan Cox <alan@linux.intel.com>, "Wysocki, Rafael J" <rafael.j.wysocki@intel.com>, "Brown, Len" <len.brown@intel.com>, Mika Westerberg <mika.westerberg@linux.intel.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-serial@vger.kernel.org" <linux-serial@vger.kernel.org>, "Jiri Slaby (jslaby@suse.cz)" <jslaby@suse.cz>, "Heikki Krogerus (heikki.krogerus@linux.intel.com)" <heikki.krogerus@linux.intel.com>
 
-On Sun, 2013-01-27 at 16:45 +0100, Daniel Vetter wrote:
-> On Sun, Jan 27, 2013 at 4:21 PM, Zhang Rui <rui.zhang@intel.com> wrote:
-> > i915 driver needs to do modeset when
-> > 1. system resumes from sleep
-> > 2. lid is opened
-> >
-> > In PM_SUSPEND_MEM state, all the GPEs are cleared when system resumes,
-> > thus it is the i915_resume code does the modeset rather than intel_lid_notify().
-> >
-> > In PM_SUSPEND_FREEZE state, system is still resposive to the lid events.
-> > 1. When we close the lid in Freeze state, intel_lid_notify() sets modeset_on_lid.
-> > 2. When we reopen the lid, intel_lid_notify() will do a modeset,
-> >    before the system is resumed.
-> >
-> > here is the error log,
-> >
-> > [92146.548074] WARNING: at drivers/gpu/drm/i915/intel_display.c:1028 intel_wait_for_pipe_off+0x184/0x190 [i915]()
-> > [92146.548076] Hardware name: VGN-Z540N
-> > [92146.548078] pipe_off wait timed out
-> > [92146.548167] Modules linked in: hid_generic usbhid hid snd_hda_codec_realtek snd_hda_intel snd_hda_codec parport_pc snd_hwdep ppdev snd_pcm_oss i915 snd_mixer_oss snd_pcm arc4 iwldvm snd_seq_dummy mac80211 snd_seq_oss snd_seq_midi fbcon tileblit font bitblit softcursor drm_kms_helper snd_rawmidi snd_seq_midi_event coretemp drm snd_seq kvm btusb bluetooth snd_timer iwlwifi pcmcia tpm_infineon i2c_algo_bit joydev snd_seq_device intel_agp cfg80211 snd intel_gtt yenta_socket pcmcia_rsrc sony_laptop agpgart microcode psmouse tpm_tis serio_raw mxm_wmi soundcore snd_page_alloc tpm acpi_cpufreq lpc_ich pcmcia_core tpm_bios mperf processor lp parport firewire_ohci firewire_core crc_itu_t sdhci_pci sdhci thermal e1000e
-> > [92146.548173] Pid: 4304, comm: kworker/0:0 Tainted: G        W    3.8.0-rc3-s0i3-v3-test+ #9
-> > [92146.548175] Call Trace:
-> > [92146.548189]  [<c10378e2>] warn_slowpath_common+0x72/0xa0
-> > [92146.548227]  [<f86398b4>] ? intel_wait_for_pipe_off+0x184/0x190 [i915]
-> > [92146.548263]  [<f86398b4>] ? intel_wait_for_pipe_off+0x184/0x190 [i915]
-> > [92146.548270]  [<c10379b3>] warn_slowpath_fmt+0x33/0x40
-> > [92146.548307]  [<f86398b4>] intel_wait_for_pipe_off+0x184/0x190 [i915]
-> > [92146.548344]  [<f86399c2>] intel_disable_pipe+0x102/0x190 [i915]
-> > [92146.548380]  [<f8639ea4>] ? intel_disable_plane+0x64/0x80 [i915]
-> > [92146.548417]  [<f8639f7c>] i9xx_crtc_disable+0xbc/0x150 [i915]
-> > [92146.548456]  [<f863ebee>] intel_crtc_update_dpms+0x5e/0x90 [i915]
-> > [92146.548493]  [<f86437cf>] intel_modeset_setup_hw_state+0x42f/0x8f0 [i915]
-> > [92146.548535]  [<f8645b0b>] intel_lid_notify+0x9b/0xc0 [i915]
-> > [92146.548543]  [<c15610d3>] notifier_call_chain+0x43/0x60
-> > [92146.548550]  [<c105d1e1>] __blocking_notifier_call_chain+0x41/0x80
-> > [92146.548556]  [<c105d23f>] blocking_notifier_call_chain+0x1f/0x30
-> > [92146.548563]  [<c131a684>] acpi_lid_send_state+0x78/0xa4
-> > [92146.548569]  [<c131aa9e>] acpi_button_notify+0x3b/0xf1
-> > [92146.548577]  [<c12df56a>] ? acpi_os_execute+0x17/0x19
-> > [92146.548582]  [<c12e591a>] ? acpi_ec_sync_query+0xa5/0xbc
-> > [92146.548589]  [<c12e2b82>] acpi_device_notify+0x16/0x18
-> > [92146.548595]  [<c12f4904>] acpi_ev_notify_dispatch+0x38/0x4f
-> > [92146.548600]  [<c12df0e8>] acpi_os_execute_deferred+0x20/0x2b
-> > [92146.548607]  [<c1051208>] process_one_work+0x128/0x3f0
-> > [92146.548613]  [<c1564f73>] ? common_interrupt+0x33/0x38
-> > [92146.548618]  [<c104f8c0>] ? wake_up_worker+0x30/0x30
-> > [92146.548624]  [<c12df0c8>] ? acpi_os_wait_events_complete+0x1e/0x1e
-> > [92146.548629]  [<c10524f9>] worker_thread+0x119/0x3b0
-> > [92146.548634]  [<c10523e0>] ? manage_workers+0x240/0x240
-> > [92146.548640]  [<c1056e84>] kthread+0x94/0xa0
-> > [92146.548647]  [<c1060000>] ? ftrace_raw_output_sched_stat_runtime+0x70/0xf0
-> > [92146.548652]  [<c15649b7>] ret_from_kernel_thread+0x1b/0x28
-> > [92146.548658]  [<c1056df0>] ? kthread_create_on_node+0xc0/0xc0
-> >
-> > so I'd like to use tristate for modeset_on_lid instead of bool.
-> > -1: ingore all the lid events.
-> > 0:  do not do modeset when there is a lid-open event.
-> > 1:  do modeset when there is a lid-open event.
-> > In this way, only device resume code will do modeset in a suspend/resume cycle.
-> >
-> > Signed-off-by: Zhang Rui <rui.zhang@intel.com>
-> 
-> Given that this essentially requires users to manually set this module
-> option to make stuff work I don't like this.
-> 
-sorry, I do not understand.
-this patch just disables modeset_on_lid during suspend.
+Hi, Greg
 
-> I see a few possible options:
-> - plug the races between all the different parts - I've never really
-> understood why acpi sends us events before the resume code has
-> completed ... If that's indeed intentional, we could delay the
-> handling a bit until at least the i915 resume code completed.
+Thanks for the comments.
+How I wished so much that I can have you opinion earlier because I have some design aspects need to be discussed with the driver core and PM core designers.
 
-IMO, the real question is that, during a suspend/resume cycle, if we
-need to take care of the lid open event or not.
-To me, the answer is no, because when resuming from STR, i915 is not
-aware of such an event, and the i915 resume code works well, right?
-so I do not think it is a problem to ignore the lid event for another
-lightweight suspend state, which is introduced in Patch 1/3 in this
-series.
+> > Considering a more complex scenario:
+> > There are two or more target devices under the ttyS0 and can be selected by
+> some external GPIOs.
+> > Actually, BIOS will do this putting many test devices under the ttyS0.
+> > The step 3 then can never be put ahead of step 2.
 
-> - Judging from the diff context you're not on the latest 3.8-rc
-> codebase - we've applied a few fixes to this lid hack recently. Please
-> retest on a kernel with
-> 
-the patch is based on 3.8.0-rc3, which already includes the commit
-below.
-And yes, the problem still exists.
+What about this DSDT, this is what we actually can obtain from some real BIOS.
+How can a single ttyS0 attribute file enumerate so many slave devices under single UART:
+            Device (UA00)
+            {
+                Device (BTH0)
+                {
+                    Method (_CRS, 0, NotSerialized)  // _CRS: Current Resource Settings
+                    {
+                        Name (UBUF, ResourceTemplate ()
+                        {
+                            UartSerialBus (...)
+                        })
+                        Return (UBUF)
+                    }
+                }
 
-thanks,
-rui
-> commit 45e2b5f640b3766da3eda48f6c35f088155c06f3
-> Author: Daniel Vetter <daniel.vetter@ffwll.ch>
-> Date:   Fri Nov 23 18:16:34 2012 +0100
-> 
->     drm/i915: force restore on lid open
-> 
-> - This lid hack is only required since a few moronic BIOS
-> implementations touch the display hw state behind our backs. On
-> platforms with OpRegion support this shouldn't be the case any longer
-> (which means pretty much everything shipped in the last few years), so
-> we could conditionalize this hack on that (e.g. check out the existing
-> dev_priv->opregion.header check in the i915_resume function in
-> i915_drv.c in drm-next).
-> 
-> Yours, Daniel
-> 
-> > ---
-> >  drivers/gpu/drm/i915/i915_drv.c   |    4 ++--
-> >  drivers/gpu/drm/i915/i915_drv.h   |    2 +-
-> >  drivers/gpu/drm/i915/intel_lvds.c |    2 ++
-> >  3 files changed, 5 insertions(+), 3 deletions(-)
-> >
-> > diff --git a/drivers/gpu/drm/i915/i915_drv.c b/drivers/gpu/drm/i915/i915_drv.c
-> > index 1172658..d7613cb 100644
-> > --- a/drivers/gpu/drm/i915/i915_drv.c
-> > +++ b/drivers/gpu/drm/i915/i915_drv.c
-> > @@ -492,8 +492,8 @@ static int i915_drm_freeze(struct drm_device *dev)
-> >
-> >         intel_opregion_fini(dev);
-> >
-> > -       /* Modeset on resume, not lid events */
-> > -       dev_priv->modeset_on_lid = 0;
-> > +       /* Modeset on resume, ignore lid events */
-> > +       dev_priv->modeset_on_lid = -1;
-> >
-> >         console_lock();
-> >         intel_fbdev_set_suspend(dev, 1);
-> > diff --git a/drivers/gpu/drm/i915/i915_drv.h b/drivers/gpu/drm/i915/i915_drv.h
-> > index ed30595..3fec498 100644
-> > --- a/drivers/gpu/drm/i915/i915_drv.h
-> > +++ b/drivers/gpu/drm/i915/i915_drv.h
-> > @@ -748,7 +748,7 @@ typedef struct drm_i915_private {
-> >         unsigned long quirks;
-> >
-> >         /* Register state */
-> > -       bool modeset_on_lid;
-> > +       int modeset_on_lid;     /* -1: invalid, 0: no modeset, 1: do modeset */
-> >
-> >         struct {
-> >                 /** Bridge to intel-gtt-ko */
-> > diff --git a/drivers/gpu/drm/i915/intel_lvds.c b/drivers/gpu/drm/i915/intel_lvds.c
-> > index 17aee74..4ddae6d 100644
-> > --- a/drivers/gpu/drm/i915/intel_lvds.c
-> > +++ b/drivers/gpu/drm/i915/intel_lvds.c
-> > @@ -512,6 +512,8 @@ static int intel_lid_notify(struct notifier_block *nb, unsigned long val,
-> >         if (dev->switch_power_state != DRM_SWITCH_POWER_ON)
-> >                 return NOTIFY_OK;
-> >
-> > +       if (dev_priv->modeset_on_lid == -1)
-> > +               return NOTIFY_OK;
-> >         /*
-> >          * check and update the status of LVDS connector after receiving
-> >          * the LID nofication event.
-> > --
-> > 1.7.9.5
-> >
-> > _______________________________________________
-> > Intel-gfx mailing list
-> > Intel-gfx@lists.freedesktop.org
-> > http://lists.freedesktop.org/mailman/listinfo/intel-gfx
-> 
-> 
-> 
+                Device (GPS0)
+                {
+                    Method (_CRS, 0, NotSerialized)  // _CRS: Current Resource Settings
+                    {
+                        Name (UBUF, ResourceTemplate ()
+                        {
+                            UartSerialBus (...)
+                        })
+                        Return (UBUF)
+                    }
+                }
 
+                Device (SER0)
+                {
+                    Method (_CRS, 0, NotSerialized)  // _CRS: Current Resource Settings
+                    {
+                        Name (UBUF, ResourceTemplate ()
+                        {
+                            UartSerialBus (...)
+                        })
+                        Return (UBUF)
+                    }
+                }
 
+                Device (SER1)
+                {
+                    Method (_CRS, 0, NotSerialized)  // _CRS: Current Resource Settings
+                    {
+                        Name (UBUF, ResourceTemplate ()
+                        {
+                            UartSerialBus (...)
+                        })
+                        Return (UBUF)
+                    }
+                }
+            }
+
+This DSDT is compatible with recent ACPI 5.0 updates on the new functionality - UART serial enumeration.
+
+> > (It might be implemented using some exist kernel mechanisms like the
+> > SCSI contribute container devices...)
+> 
+> No, don't look at SCSI for sysfs ideas or driver core usage, it's a mess and is
+> wrong in places.  Look at how USB and PCI do it if you are curious how to
+> implement a bus.
+
+Yes, I can see this.
+I've completed a driver model investigation prior to authorizing this patch set.
+IMO, there are many driver models existed in the kernel:
+1. bus driver model: where the subsystem is a bus, IMO, hardware related PM operations should only be enabled on such devices.
+2. user driver model: there are devt(s) associated to such devices and the subsystem is a class
+3. transport driver model: the SCSI hacks where SCSI happens to be a bus thus ATA has to be a transport class
+And so on (system driver model, net driver model)...
+IMO, a PM friendly device driver hierarchy should:
+1. implement hardware related PM operations on bus devices.
+2. other devices should call APIs exported by the functionality of the bus to inc/dec PM refcnts where the bus devices resident.
+Thus, tty class device is not suitable for enabling hardware related PM operations that might appear in the slave devices.
+
+If you've monitored this series of patch set, you'll find the v2 patches.
+Here is the links:
+http://marc.info/?l=linux-serial&m=135467950218063&w=2
+http://marc.info/?l=linux-serial&m=135467951018065&w=2
+http://marc.info/?l=linux-serial&m=135467951818068&w=2
+http://marc.info/?l=linux-serial&m=135467953118073&w=2
+http://marc.info/?l=linux-serial&m=135467953218074&w=2
+
+I actually followed the following existing kernel facilities to implement my target: ACPI 5.0 UART enumeration:
+1. following the usb-serial-bus, implemented the serial-bus and created target devices below the serial-bus.
+2. following the ACPI 5.0 I2C enumeration, implemented the UART enumeration.
+
+According to Alan's comments, implementing tty_enum bus can help to extend this benefit to other serial drivers which do not relies on the serial layer (CONFIG_SERIAL_CORE).
+
+Considering the analogy to the SPI bus layer:
+Platform bus device / pci bus device
+  |
+Spi master device (this is also a class device and can be easily converted to a devt device)
+  |
+Spi slave device (spi bus device)
+The PM call chains will call the APIs exported by the SPI cores which will:
+1. inc/dec PM refcnts implemented in the spi bus device drivers for spi slaves and
+2. inc/dec PM refcnts implemented in the pdev/pci bus device drivers for spi masters.
+
+This hierarchy looks reasonable if we convert it into a Windows compatible driver model:
+Platform bus device / pci bus device (PDOs)
+  |
+Spi master device (FDOs)
+  |
+Spi slave device (PDOs)
+
+Thus, I accepted the suggestion, moving the uart target device from uart layer.
+This has been done in the v3-v4 revisions.
+And I don't see any objections in the community, thus I converted the v4 into v5, removing the RFC marks.
+Now the hierarchy will look like:
+Platform bus device / pci bus device (PDOs)
+  |
+Tty communication device (FDOs)
+  |
+tty slave device (PDOs, the new tty_enum bus device)
+
+Which one do you think is better? V2 or V5 (I have completed the test and now I have the V6 ones, I can send them out if you think the tty_enum bus is better than the serial_bus).
+
+Thanks and best regards
+-Lv
