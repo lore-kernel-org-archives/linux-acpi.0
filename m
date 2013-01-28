@@ -1,222 +1,234 @@
 From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: [PATCH v3 04/22] PCI, ACPI: Update comments for find_bridge in acpi_bus_type
-Date: Mon, 28 Jan 2013 13:37:38 +0100
-Message-ID: <2939505.XFBQEEobh8@vostro.rjw.lan>
-References: <CAE9FiQXHG01NjnYNDbC-KEpbcvY-q4pBe97CxTOGS7W4vZQBYQ@mail.gmail.com> <2327246.IIyGppobQo@vostro.rjw.lan> <CAE9FiQVLJoTtsoRHiR7zFUdfzZzZh0srwY03bFecSQQkmCmrzA@mail.gmail.com>
+Subject: [PATCH 4/4] ACPI / platform: Use struct acpi_scan_handler for creating devices
+Date: Mon, 28 Jan 2013 14:01:14 +0100
+Message-ID: <1540645.4oLGJ3spZ3@vostro.rjw.lan>
+References: <1873429.MS5RQDxTye@vostro.rjw.lan> <4311642.nDd2RCVeDc@vostro.rjw.lan>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7Bit
-Return-path: <linux-pci-owner@vger.kernel.org>
-In-Reply-To: <CAE9FiQVLJoTtsoRHiR7zFUdfzZzZh0srwY03bFecSQQkmCmrzA@mail.gmail.com>
-Sender: linux-pci-owner@vger.kernel.org
-To: Yinghai Lu <yinghai@kernel.org>
-Cc: Bjorn Helgaas <bhelgaas@google.com>, Jiang Liu <jiang.liu@huawei.com>, Taku Izumi <izumi.taku@jp.fujitsu.com>, Toshi Kani <toshi.kani@hp.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, linux-pci@vger.kernel.org, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, Jeff Garzik <jgarzik@pobox.com>, Tejun Heo <tj@kernel.org>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from hydra.sisk.pl ([212.160.235.94]:57752 "EHLO hydra.sisk.pl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753058Ab3A1Mzq (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 28 Jan 2013 07:55:46 -0500
+In-Reply-To: <4311642.nDd2RCVeDc@vostro.rjw.lan>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: ACPI Devel Maling List <linux-acpi@vger.kernel.org>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Bjorn Helgaas <bhelgaas@google.com>, Mika Westerberg <mika.westerberg@linux.intel.com>, Matthew Garrett <matthew.garrett@nebula.com>, Yinghai Lu <yinghai@kernel.org>, Jiang Liu <liuj97@gmail.com>, Toshi Kani <toshi.kani@hp.com>, LKML <linux-kernel@vger.kernel.org>
 
-On Sunday, January 27, 2013 05:00:38 PM Yinghai Lu wrote:
-> On Sun, Jan 27, 2013 at 2:32 PM, Rafael J. Wysocki <rjw@sisk.pl> wrote:
-> > On Sunday, January 27, 2013 11:23:31 AM Yinghai Lu wrote:
-> >> only device that does not have bus_type, will go to that path...
-> >
-> > While I agree that the comment doesn't make sense any more, I also think that
-> > changing the comment alone is not sufficient, because what USB does with
-> > .find_bridge() is really disgusting to me and USB is the only real user of it
-> > (SATA just pretends to be one).
-> 
-> agree. that is really like hack for usb.
-> 
-> >
-> > So, instead of this change, I'd prefer to apply the appended patch some time
-> > in the second part of the 3.9 merge window, after integrating all of the
-> > ACPI and PCI changes already queued up.
-> 
-> Good, I will drop patch 4 but will keep patch3 about libata part with
-> ack from  Jeff Garzik.
+From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 
-OK
+Currently, the ACPI namespace scanning code creates platform device
+objects for ACPI device nodes whose IDs match the contents of the
+acpi_platform_device_ids[] table.  However, this adds a superfluous
+special case into acpi_bus_device_attach() and makes it more
+difficult to follow than it has to be.  It also will make it more
+difficult to implement removal code for those platform device objects
+in the future.
 
-> > ---
-> > From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
-> > Subject: ACPI / glue: Drop .find_bridge() callback from struct acpi_bus_type
-> >
-> > After PCI has stopped using the .find_bridge() callback in
-> > struct acpi_bus_type, the only remaining users of it are SATA and
-> > USB.  However, SATA only pretends to be a user, because it points
-> > that callback to a stub always returning -ENODEV, and USB uses it
-> > incorrectly, because as a result of the way it is used by USB every
-> > device in the system that doesn't have a bus type or parent is
-> > passed to usb_acpi_find_device() for inspection.
-> >
-> > What USB actually needs, though, is to call usb_acpi_find_device()
-> > for USB ports that don't have a bus type defined, but have
-> > usb_port_device_type as their device type.
-> >
-> > To fix that add a device type field to struct acpi_bus_type and
-> > make acpi_get_bus_type() compare it with the device type fields of
-> > the device objects it inspects in addition to checking their bus
-> > types.  Next, make USB set the new type field in usb_acpi_bus to
-> > point to usb_port_device_type and stop abusing the .find_bridge()
-> > callback.
-> >
-> > In addition to that drop the SATA's dummy .find_bridge() callback,
-> > and remove .find_bridge(), which is not used any more, from struct
-> > acpi_bus_type entirely.
-> >
-> > Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
-> > ---
-> >  drivers/acpi/glue.c         |   39 ++++++---------------------------------
-> >  drivers/ata/libata-acpi.c   |    6 ------
-> >  drivers/usb/core/usb-acpi.c |    2 +-
-> >  include/acpi/acpi_bus.h     |    4 +---
-> >  4 files changed, 8 insertions(+), 43 deletions(-)
-> >
-> > Index: linux-pm/drivers/acpi/glue.c
-> > ===================================================================
-> > --- linux-pm.orig/drivers/acpi/glue.c
-> > +++ linux-pm/drivers/acpi/glue.c
-> > @@ -64,16 +64,17 @@ int unregister_acpi_bus_type(struct acpi
-> >  }
-> >  EXPORT_SYMBOL_GPL(unregister_acpi_bus_type);
-> >
-> > -static struct acpi_bus_type *acpi_get_bus_type(struct bus_type *type)
-> > +static struct acpi_bus_type *acpi_get_bus_type(struct device *dev)
-> >  {
-> >         struct acpi_bus_type *tmp, *ret = NULL;
-> >
-> > -       if (!type)
-> > +       if (!dev->bus && !dev->type)
-> >                 return NULL;
-> >
-> >         down_read(&bus_type_sem);
-> >         list_for_each_entry(tmp, &bus_type_list, list) {
-> > -               if (tmp->bus == type) {
-> > +               if ((tmp->bus && tmp->bus == dev->bus)
-> > +                   || (tmp->type && tmp->type == dev->type)) {
-> >                         ret = tmp;
-> >                         break;
-> >                 }
-> > @@ -82,22 +83,6 @@ static struct acpi_bus_type *acpi_get_bu
-> >         return ret;
-> >  }
-> >
-> > -static int acpi_find_bridge_device(struct device *dev, acpi_handle * handle)
-> > -{
-> > -       struct acpi_bus_type *tmp;
-> > -       int ret = -ENODEV;
-> > -
-> > -       down_read(&bus_type_sem);
-> > -       list_for_each_entry(tmp, &bus_type_list, list) {
-> > -               if (tmp->find_bridge && !tmp->find_bridge(dev, handle)) {
-> > -                       ret = 0;
-> > -                       break;
-> > -               }
-> > -       }
-> > -       up_read(&bus_type_sem);
-> > -       return ret;
-> > -}
-> > -
-> >  static acpi_status do_acpi_find_child(acpi_handle handle, u32 lvl_not_used,
-> >                                       void *addr_p, void **ret_p)
-> >  {
-> > @@ -261,22 +246,11 @@ err:
-> >
-> >  static int acpi_platform_notify(struct device *dev)
-> >  {
-> > -       struct acpi_bus_type *type;
-> > +       struct acpi_bus_type *type = acpi_get_bus_type(dev);
-> >         acpi_handle handle;
-> >         int ret;
-> >
-> >         ret = acpi_bind_one(dev, NULL);
-> > -       if (ret && (!dev->bus || !dev->parent)) {
-> > -               /* bridge devices genernally haven't bus or parent */
-> > -               ret = acpi_find_bridge_device(dev, &handle);
-> > -               if (!ret) {
-> > -                       ret = acpi_bind_one(dev, handle);
-> > -                       if (ret)
-> > -                               goto out;
-> > -               }
-> > -       }
-> > -
-> > -       type = acpi_get_bus_type(dev->bus);
-> >         if (ret) {
-> >                 if (!type || !type->find_device) {
-> >                         DBG("No ACPI bus support for %s\n", dev_name(dev));
-> > @@ -293,7 +267,6 @@ static int acpi_platform_notify(struct d
-> >                 if (ret)
-> >                         goto out;
-> >         }
-> > -
-> >         if (type && type->setup)
-> >                 type->setup(dev);
-> >
-> > @@ -316,7 +289,7 @@ static int acpi_platform_notify_remove(s
-> >  {
-> >         struct acpi_bus_type *type;
-> >
-> > -       type = acpi_get_bus_type(dev->bus);
-> > +       type = acpi_get_bus_type(dev);
-> >         if (type && type->cleanup)
-> >                 type->cleanup(dev);
-> >
-> > Index: linux-pm/include/acpi/acpi_bus.h
-> > ===================================================================
-> > --- linux-pm.orig/include/acpi/acpi_bus.h
-> > +++ linux-pm/include/acpi/acpi_bus.h
-> > @@ -412,10 +412,8 @@ void acpi_remove_dir(struct acpi_device
-> >  struct acpi_bus_type {
-> >         struct list_head list;
-> >         struct bus_type *bus;
-> > -       /* For general devices under the bus */
-> > +       struct device_type *type;
-> >         int (*find_device) (struct device *, acpi_handle *);
-> > -       /* For bridges, such as PCI root bridge, IDE controller */
-> > -       int (*find_bridge) (struct device *, acpi_handle *);
-> >         void (*setup)(struct device *);
-> >         void (*cleanup)(struct device *);
-> >  };
-> > Index: linux-pm/drivers/ata/libata-acpi.c
-> > ===================================================================
-> > --- linux-pm.orig/drivers/ata/libata-acpi.c
-> > +++ linux-pm/drivers/ata/libata-acpi.c
-> > @@ -1167,13 +1167,7 @@ static int ata_acpi_find_device(struct d
-> >                 return -ENODEV;
-> >  }
-> >
-> > -static int ata_acpi_find_dummy(struct device *dev, acpi_handle *handle)
-> > -{
-> > -       return -ENODEV;
-> > -}
-> > -
-> >  static struct acpi_bus_type ata_acpi_bus = {
-> > -       .find_bridge = ata_acpi_find_dummy,
-> >         .find_device = ata_acpi_find_device,
-> >  };
-> >
-> > Index: linux-pm/drivers/usb/core/usb-acpi.c
-> > ===================================================================
-> > --- linux-pm.orig/drivers/usb/core/usb-acpi.c
-> > +++ linux-pm/drivers/usb/core/usb-acpi.c
-> > @@ -212,7 +212,7 @@ static int usb_acpi_find_device(struct d
-> >
-> >  static struct acpi_bus_type usb_acpi_bus = {
-> >         .bus = &usb_bus_type,
-> > -       .find_bridge = usb_acpi_find_device,
-> > +       .type = &usb_port_device_type,
-> >         .find_device = usb_acpi_find_device,
-> >  };
-> 
-> Can we add one acpi_bus_type for port directly?
+For the above reasons, introduce a struct acpi_scan_handler object
+for creating platform devices and move the code related to that from
+acpi_bus_device_attach() to the .attach() callback of that object.
+Also move the acpi_platform_device_ids[] table to acpi_platform.c.
 
-We could, but then we'd trade one extra check in usb_acpi_find_device() for
-one extra item in bus_type_list that would be checked for every invocation of
-acpi_platform_notify() and acpi_platform_notify().  I'm not sure if that's a
-good deal. :-)
+Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+---
+ drivers/acpi/acpi_platform.c |   55 +++++++++++++++++++++++++++++++++++--------
+ drivers/acpi/internal.h      |    7 -----
+ drivers/acpi/scan.c          |   30 -----------------------
+ 3 files changed, 47 insertions(+), 45 deletions(-)
 
-Thanks,
-Rafael
+Index: test/drivers/acpi/acpi_platform.c
+===================================================================
+--- test.orig/drivers/acpi/acpi_platform.c
++++ test/drivers/acpi/acpi_platform.c
+@@ -22,6 +22,30 @@
+ 
+ ACPI_MODULE_NAME("platform");
+ 
++/* Flags for acpi_create_platform_device */
++#define ACPI_PLATFORM_CLK	BIT(0)
++
++/*
++ * The following ACPI IDs are known to be suitable for representing as
++ * platform devices.
++ */
++static const struct acpi_device_id acpi_platform_device_ids[] = {
++
++	{ "PNP0D40" },
++
++	/* Haswell LPSS devices */
++	{ "INT33C0", ACPI_PLATFORM_CLK },
++	{ "INT33C1", ACPI_PLATFORM_CLK },
++	{ "INT33C2", ACPI_PLATFORM_CLK },
++	{ "INT33C3", ACPI_PLATFORM_CLK },
++	{ "INT33C4", ACPI_PLATFORM_CLK },
++	{ "INT33C5", ACPI_PLATFORM_CLK },
++	{ "INT33C6", ACPI_PLATFORM_CLK },
++	{ "INT33C7", ACPI_PLATFORM_CLK },
++
++	{ }
++};
++
+ static int acpi_create_platform_clks(struct acpi_device *adev)
+ {
+ 	static struct platform_device *pdev;
+@@ -39,8 +63,7 @@ static int acpi_create_platform_clks(str
+ /**
+  * acpi_create_platform_device - Create platform device for ACPI device node
+  * @adev: ACPI device node to create a platform device for.
+- * @flags: ACPI_PLATFORM_* flags that affect the creation of the platform
+- *	   devices.
++ * @id: ACPI device ID used to match @adev.
+  *
+  * Check if the given @adev can be represented as a platform device and, if
+  * that's the case, create and register a platform device, populate its common
+@@ -48,9 +71,10 @@ static int acpi_create_platform_clks(str
+  *
+  * Name of the platform device will be the same as @adev's.
+  */
+-struct platform_device *acpi_create_platform_device(struct acpi_device *adev,
+-						    unsigned long flags)
++static int acpi_create_platform_device(struct acpi_device *adev,
++				       const struct acpi_device_id *id)
+ {
++	unsigned long flags = id->driver_data;
+ 	struct platform_device *pdev = NULL;
+ 	struct acpi_device *acpi_parent;
+ 	struct platform_device_info pdevinfo;
+@@ -59,25 +83,26 @@ struct platform_device *acpi_create_plat
+ 	struct resource *resources;
+ 	int count;
+ 
+-	if ((flags & ACPI_PLATFORM_CLK) && acpi_create_platform_clks(adev)) {
++	if (flags & ACPI_PLATFORM_CLK) {
++		int ret = acpi_create_platform_clks(adev);
+ 		dev_err(&adev->dev, "failed to create clocks\n");
+-		return NULL;
++		return ret;
+ 	}
+ 
+ 	/* If the ACPI node already has a physical device attached, skip it. */
+ 	if (adev->physical_node_count)
+-		return NULL;
++		return 0;
+ 
+ 	INIT_LIST_HEAD(&resource_list);
+ 	count = acpi_dev_get_resources(adev, &resource_list, NULL, NULL);
+ 	if (count <= 0)
+-		return NULL;
++		return 0;
+ 
+ 	resources = kmalloc(count * sizeof(struct resource), GFP_KERNEL);
+ 	if (!resources) {
+ 		dev_err(&adev->dev, "No memory for resources\n");
+ 		acpi_dev_free_resource_list(&resource_list);
+-		return NULL;
++		return -ENOMEM;
+ 	}
+ 	count = 0;
+ 	list_for_each_entry(rentry, &resource_list, node)
+@@ -123,5 +148,15 @@ struct platform_device *acpi_create_plat
+ 	}
+ 
+ 	kfree(resources);
+-	return pdev;
++	return 1;
++}
++
++static struct acpi_scan_handler platform_handler = {
++	.ids = acpi_platform_device_ids,
++	.attach = acpi_create_platform_device,
++};
++
++void __init acpi_platform_init(void)
++{
++	acpi_scan_add_handler(&platform_handler);
+ }
+Index: test/drivers/acpi/internal.h
+===================================================================
+--- test.orig/drivers/acpi/internal.h
++++ test/drivers/acpi/internal.h
+@@ -27,6 +27,7 @@ int init_acpi_device_notify(void);
+ int acpi_scan_init(void);
+ void acpi_pci_root_init(void);
+ void acpi_pci_link_init(void);
++void acpi_platform_init(void);
+ int acpi_sysfs_init(void);
+ void acpi_csrt_init(void);
+ 
+@@ -119,10 +120,4 @@ static inline void suspend_nvs_restore(v
+   -------------------------------------------------------------------------- */
+ struct platform_device;
+ 
+-/* Flags for acpi_create_platform_device */
+-#define ACPI_PLATFORM_CLK	BIT(0)
+-
+-struct platform_device *acpi_create_platform_device(struct acpi_device *adev,
+-						    unsigned long flags);
+-
+ #endif /* _ACPI_INTERNAL_H_ */
+Index: test/drivers/acpi/scan.c
+===================================================================
+--- test.orig/drivers/acpi/scan.c
++++ test/drivers/acpi/scan.c
+@@ -29,27 +29,6 @@ extern struct acpi_device *acpi_root;
+ 
+ static const char *dummy_hid = "device";
+ 
+-/*
+- * The following ACPI IDs are known to be suitable for representing as
+- * platform devices.
+- */
+-static const struct acpi_device_id acpi_platform_device_ids[] = {
+-
+-	{ "PNP0D40" },
+-
+-	/* Haswell LPSS devices */
+-	{ "INT33C0", ACPI_PLATFORM_CLK },
+-	{ "INT33C1", ACPI_PLATFORM_CLK },
+-	{ "INT33C2", ACPI_PLATFORM_CLK },
+-	{ "INT33C3", ACPI_PLATFORM_CLK },
+-	{ "INT33C4", ACPI_PLATFORM_CLK },
+-	{ "INT33C5", ACPI_PLATFORM_CLK },
+-	{ "INT33C6", ACPI_PLATFORM_CLK },
+-	{ "INT33C7", ACPI_PLATFORM_CLK },
+-
+-	{ }
+-};
+-
+ static LIST_HEAD(acpi_device_list);
+ static LIST_HEAD(acpi_bus_id_list);
+ static DEFINE_MUTEX(acpi_scan_lock);
+@@ -1606,7 +1585,6 @@ static int acpi_scan_attach_handler(stru
+ static acpi_status acpi_bus_device_attach(acpi_handle handle, u32 lvl_not_used,
+ 					  void *not_used, void **ret_not_used)
+ {
+-	const struct acpi_device_id *id;
+ 	struct acpi_device *device;
+ 	unsigned long long sta_not_used;
+ 	int ret;
+@@ -1621,13 +1599,6 @@ static acpi_status acpi_bus_device_attac
+ 	if (acpi_bus_get_device(handle, &device))
+ 		return AE_CTRL_DEPTH;
+ 
+-	id = __acpi_match_device(device, acpi_platform_device_ids);
+-	if (id) {
+-		/* This is a known good platform device. */
+-		acpi_create_platform_device(device, id->driver_data);
+-		return AE_OK;
+-	}
+-
+ 	ret = acpi_scan_attach_handler(device);
+ 	if (ret)
+ 		return ret > 0 ? AE_OK : AE_CTRL_DEPTH;
+@@ -1775,6 +1746,7 @@ int __init acpi_scan_init(void)
+ 
+ 	acpi_pci_root_init();
+ 	acpi_pci_link_init();
++	acpi_platform_init();
+ 	acpi_csrt_init();
+ 
+ 	/*
 
-
--- 
-I speak only for myself.
-Rafael J. Wysocki, Intel Open Source Technology Center.
