@@ -1,50 +1,78 @@
-From: Lan Tianyu <tianyu.lan@intel.com>
-Subject: [PATCH 2/2] ACPI/Sleep: use init_nvs_nosave_s3() for Sony Vaio VPCCW29FX and VPCEB1S1E  callback in the non-nvs blacklist
-Date: Mon, 28 Jan 2013 15:47:05 +0800
-Message-ID: <1359359225-28223-2-git-send-email-tianyu.lan@intel.com>
-References: <1359359225-28223-1-git-send-email-tianyu.lan@intel.com>
+From: Michal Hocko <mhocko@suse.cz>
+Subject: Re: [PATCH Bug fix 0/5] Bug fix for physical memory hot-remove.
+Date: Mon, 28 Jan 2013 09:15:40 +0100
+Message-ID: <20130128081529.GA14241@dhcp22.suse.cz>
+References: <1358854984-6073-1-git-send-email-tangchen@cn.fujitsu.com>
+ <1358944171.3351.1.camel@kernel>
+ <20130125131740.GA1615@dhcp22.suse.cz>
+ <5105D57D.3050900@cn.fujitsu.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga09.intel.com ([134.134.136.24]:44081 "EHLO mga09.intel.com"
+Received: from cantor2.suse.de ([195.135.220.15]:45863 "EHLO mx2.suse.de"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753263Ab3A1HtT (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 28 Jan 2013 02:49:19 -0500
-In-Reply-To: <1359359225-28223-1-git-send-email-tianyu.lan@intel.com>
+	id S1754160Ab3A1IPs (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 28 Jan 2013 03:15:48 -0500
+Content-Disposition: inline
+In-Reply-To: <5105D57D.3050900@cn.fujitsu.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: rjw@sisk.pl
-Cc: Lan Tianyu <tianyu.lan@intel.com>, stern@rowland.harvard.edu, swilmet@gnome.org, linux-pm@vger.kernel.org, linux-acpi@vger.kernel.org
+To: Tang Chen <tangchen@cn.fujitsu.com>
+Cc: Simon Jeons <simon.jeons@gmail.com>, akpm@linux-foundation.org, rientjes@google.com, len.brown@intel.com, benh@kernel.crashing.org, paulus@samba.org, cl@linux.com, minchan.kim@gmail.com, kosaki.motohiro@jp.fujitsu.com, isimatu.yasuaki@jp.fujitsu.com, wujianguo@huawei.com, wency@cn.fujitsu.com, hpa@zytor.com, linfeng@cn.fujitsu.com, laijs@cn.fujitsu.com, mgorman@suse.de, yinghai@kernel.org, glommer@parallels.com, jiang.liu@huawei.com, julian.calaby@gmail.com, sfr@canb.auug.org.au, x86@kernel.org, linux-mm@kvack.org, linux-kernel@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, linux-acpi@vger.kernel.org
 
-Sony Vaio VPCCW29FX and VPCEB1S1E just need to ban saving
-nvs during s3 rather than both s3 and s4. So this patch is
-to set their callbacks to be init_nvs_nosave_s3().
+On Mon 28-01-13 09:33:49, Tang Chen wrote:
+> On 01/25/2013 09:17 PM, Michal Hocko wrote:
+> >On Wed 23-01-13 06:29:31, Simon Jeons wrote:
+> >>On Tue, 2013-01-22 at 19:42 +0800, Tang Chen wrote:
+> >>>Here are some bug fix patches for physical memory hot-remove. All these
+> >>>patches are based on the latest -mm tree.
+> >>>git://git.kernel.org/pub/scm/linux/kernel/git/next/linux-next.git akpm
+> >>>
+> >>>And patch1 and patch3 are very important.
+> >>>patch1: free compound pages when freeing memmap, otherwise the kernel
+> >>>         will panic the next time memory is hot-added.
+> >>>patch3: the old way of freeing pagetable pages was wrong. We should never
+> >>>         split larger pages into small ones.
+> >>>
+> >>>
+> >>
+> >>Hi Tang,
+> >>
+> >>I remember your big physical memory hot-remove patchset has already
+> >>merged by Andrew, but where I can find it? Could you give me git tree
+> >>address?
+> >
+> >Andrew tree is also mirrored into a git tree.
+> >http://git.kernel.org/?p=linux/kernel/git/mhocko/mm.git;a=summary
+> >
+> >It contains only Memory management patches on top of the last major
+> >release (since-.X.Y branch).
+> 
+> Hi Michal,
+> 
+> I'm not sure I got your meaning. :)
 
-Signed-off-by: Lan Tianyu <tianyu.lan@intel.com>
----
- drivers/acpi/sleep.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+Well, the mirror tree gets updated when Andrew releases mmotm and quite
+often even when mmots is released.
+All patches in the mm section are applied.
 
-diff --git a/drivers/acpi/sleep.c b/drivers/acpi/sleep.c
-index 405b962..ee33a9a 100644
---- a/drivers/acpi/sleep.c
-+++ b/drivers/acpi/sleep.c
-@@ -230,7 +230,7 @@ static struct dmi_system_id __initdata acpisleep_dmi_table[] = {
- 		},
- 	},
- 	{
--	.callback = init_nvs_nosave,
-+	.callback = init_nvs_nosave_s3,
- 	.ident = "Sony Vaio VPCCW29FX",
- 	.matches = {
- 		DMI_MATCH(DMI_SYS_VENDOR, "Sony Corporation"),
-@@ -270,7 +270,7 @@ static struct dmi_system_id __initdata acpisleep_dmi_table[] = {
- 		},
- 	},
- 	{
--	.callback = init_nvs_nosave,
-+	.callback = init_nvs_nosave_s3,
- 	.ident = "Sony Vaio VPCEB1S1E",
- 	.matches = {
- 		DMI_MATCH(DMI_SYS_VENDOR, "Sony Corporation"),
+> In http://git.kernel.org/pub/scm/linux/kernel/git/next/linux-next.git akpm,
+> I can find the following commit.
+> 
+> commit deed0460e01b3968f2cf46fb94851936535b7e0d
+> Author: Tang Chen <tangchen@cn.fujitsu.com>
+> Date:   Sat Jan 19 11:07:13 2013 +1100
+> 
+>     memory-hotplug: do not allocate pgdat if it was not freed when
+> offline.
+> 
+> 
+> This is one of memory hot-remove patches. Please try to update the
+> mirror tree,
+> and try to find the above commit.
+
+That one is in my mirror tree as f48bf999 (memory-hotplug: do not
+allocate pdgat if it was not freed when offline.).
 -- 
-1.7.10.4
-
+Michal Hocko
+SUSE Labs
