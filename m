@@ -1,52 +1,73 @@
-From: "Zheng, Lv" <lv.zheng@intel.com>
-Subject: RE: [PATCH v5 1/2] TTY: Add TTY slave enumeration support
-Date: Mon, 28 Jan 2013 03:02:42 +0000
-Message-ID: <1AE640813FDE7649BE1B193DEA596E88BF46ED@SHSMSX101.ccr.corp.intel.com>
-References: <cover.1354505471.git.lv.zheng@intel.com>
- <cover.1359022955.git.lv.zheng@intel.com>
- <12848b50e1096dc11a193694ee248d51d45ce093.1359022955.git.lv.zheng@intel.com>
- <20130125214544.GB30924@kroah.com>
- <1AE640813FDE7649BE1B193DEA596E88BF41DF@SHSMSX101.ccr.corp.intel.com>
- <20130126034418.GC5066@kroah.com>
+From: Viresh Kumar <viresh.kumar@linaro.org>
+Subject: Re: [PATCH 4/6] cpufreq: Add a get_current_driver helper
+Date: Mon, 28 Jan 2013 10:07:10 +0530
+Message-ID: <CAOh2x==qf057z2vmADd6+thaXXVxEh1GZO-sKHRDyosqTfMdng@mail.gmail.com>
+References: <1358677470-17394-1-git-send-email-bp@alien8.de>
+	<1358677470-17394-5-git-send-email-bp@alien8.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga09.intel.com ([134.134.136.24]:10366 "EHLO mga09.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751056Ab3A1DCr convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sun, 27 Jan 2013 22:02:47 -0500
-In-Reply-To: <20130126034418.GC5066@kroah.com>
-Content-Language: en-US
+Received: from mail-vc0-f173.google.com ([209.85.220.173]:35337 "EHLO
+	mail-vc0-f173.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753547Ab3A1EhL (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sun, 27 Jan 2013 23:37:11 -0500
+In-Reply-To: <1358677470-17394-5-git-send-email-bp@alien8.de>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc: Alan Cox <alan@linux.intel.com>, "Wysocki, Rafael J" <rafael.j.wysocki@intel.com>, "Brown, Len" <len.brown@intel.com>, Mika Westerberg <mika.westerberg@linux.intel.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-serial@vger.kernel.org" <linux-serial@vger.kernel.org>, "Jiri Slaby (jslaby@suse.cz)" <jslaby@suse.cz>, "Heikki Krogerus (heikki.krogerus@linux.intel.com)" <heikki.krogerus@linux.intel.com>
+To: Borislav Petkov <bp@alien8.de>
+Cc: "Rafael J. Wysocki" <rjw@sisk.pl>, =?ISO-8859-1?Q?Andr=E9_Przywara?= <andre@andrep.de>, Leonid Isaev <lisaev@umail.iu.edu>, Tom Gundersen <teg@jklm.no>, cpufreq@vger.kernel.org, linux-acpi@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>, Borislav Petkov <bp@suse.de>
 
-Hi,
+On Sun, Jan 20, 2013 at 3:54 PM, Borislav Petkov <bp@alien8.de> wrote:
+> From: Borislav Petkov <bp@suse.de>
+>
+> Add a helper function to return cpufreq_driver->name.
+>
+> Signed-off-by: Borislav Petkov <bp@suse.de>
+> ---
+>  drivers/cpufreq/cpufreq.c | 14 ++++++++++++++
+>  include/linux/cpufreq.h   |  1 +
+>  2 files changed, 15 insertions(+)
+>
+> diff --git a/drivers/cpufreq/cpufreq.c b/drivers/cpufreq/cpufreq.c
+> index 1f93dbd72355..6ed3c1377caf 100644
+> --- a/drivers/cpufreq/cpufreq.c
+> +++ b/drivers/cpufreq/cpufreq.c
+> @@ -1386,6 +1386,20 @@ static struct syscore_ops cpufreq_syscore_ops = {
+>         .resume         = cpufreq_bp_resume,
+>  };
+>
+> +/**
+> + *     cpufreq_get_current_driver - return current driver's name
+> + *
+> + *     Return the name string of the currently loaded cpufreq driver
+> + *     or NULL, if none.
+> + */
+> +const char *cpufreq_get_current_driver(void)
+> +{
+> +       if (cpufreq_driver)
+> +               return cpufreq_driver->name;
+> +
+> +       return NULL;
+> +}
+> +EXPORT_SYMBOL_GPL(cpufreq_get_current_driver);
+>
+>  /*********************************************************************
+>   *                     NOTIFIER LISTS INTERFACE                      *
+> diff --git a/include/linux/cpufreq.h b/include/linux/cpufreq.h
+> index a55b88eaf96a..a018da2d2a7c 100644
+> --- a/include/linux/cpufreq.h
+> +++ b/include/linux/cpufreq.h
+> @@ -407,4 +407,5 @@ void cpufreq_frequency_table_get_attr(struct cpufreq_frequency_table *table,
+>                                       unsigned int cpu);
+>
+>  void cpufreq_frequency_table_put_attr(unsigned int cpu);
+> +extern const char *cpufreq_get_current_driver(void);
 
-> > It's actually my fault.
-> > I'm lack of release testability then.
-> > Now I can do this exactly.
-> > According to internal reviewers' comments, it should be RFC patch to
-> > see if any objections there in the community.
-> 
-> Don't put code like this in RFC code either, that shows you didn't even test it
-> out, and want to waste other people's time.
-> 
-> And note, I almost _never_ read RFC patches, so you aren't going to get a
-> review from me for it, sorry, I have too many other things to do.
+Two minor things here:
+- You placed the routine at bad place. This place is meant for
+freq_table helpers.
+- And you really don't need extern for function prototypes.
 
-It's my great pleasure to have you taking a look at my patches.
+And after fixing these, feel free to add
 
-> > I'll complete the test and refresh the patches if you think the
-> > functionality is interesting and useful.  Please be noted the device
-> > tree guys can also get benefit from such tty target enumeration
-> > mechanism.
-> 
-> No, they can use what we have today, don't reinvent the wheel.
-
-According to my previous reply, I'm not trying to reinvent the wheel but trying to fix some gaps in UART slave device enumeration which is introduced in the recent ACPI 5.0 spec updates.
-
-Thanks and best regards
--Lv
+Acked-by: Viresh Kumar <viresh.kumar@linaro.org>
