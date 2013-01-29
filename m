@@ -1,177 +1,113 @@
-From: Toshi Kani <toshi.kani@hp.com>
-Subject: Re: [PATCH 1/4] ACPI / scan: Introduce struct acpi_scan_handler
-Date: Tue, 29 Jan 2013 07:50:43 -0700
-Message-ID: <1359471043.15120.38.camel@misato.fc.hp.com>
-References: <1873429.MS5RQDxTye@vostro.rjw.lan>
-	 <1408351.aVGQgvLeMo@vostro.rjw.lan>
-	 <1359426939.15120.34.camel@misato.fc.hp.com>
-	 <31634722.1LgzRDeVay@vostro.rjw.lan>
+From: Steven Newbury <steve@snewbury.org.uk>
+Subject: Re: [PATCH 1/2] ACPI / scan: Make namespace scanning and trimming
+ mutually exclusive
+Date: Tue, 29 Jan 2013 13:59:37 +0000
+Message-ID: <1359467977.8924.0.camel@infinity>
+References: <1581701.fnbebHrKch@vostro.rjw.lan>
+	 <3032117.IcK9I7rYQT@vostro.rjw.lan>
+	 <CAE9FiQV+DDb0ap=sipQjUWCdz8Qsfs2dYDVrb0FmKL4F1BjhOw@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from g4t0016.houston.hp.com ([15.201.24.19]:41265 "EHLO
-	g4t0016.houston.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756642Ab3A2PC7 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 29 Jan 2013 10:02:59 -0500
-In-Reply-To: <31634722.1LgzRDeVay@vostro.rjw.lan>
+Received: from queueout02-winn.ispmail.ntl.com ([81.103.221.56]:47232 "EHLO
+	queueout02-winn.ispmail.ntl.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1756600Ab3A2P3V (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 29 Jan 2013 10:29:21 -0500
+In-Reply-To: <CAE9FiQV+DDb0ap=sipQjUWCdz8Qsfs2dYDVrb0FmKL4F1BjhOw@mail.gmail.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Bjorn Helgaas <bhelgaas@google.com>, Mika Westerberg <mika.westerberg@linux.intel.com>, Matthew Garrett <matthew.garrett@nebula.com>, Yinghai Lu <yinghai@kernel.org>, Jiang Liu <liuj97@gmail.com>, LKML <linux-kernel@vger.kernel.org>
+To: Yinghai Lu <yinghai@kernel.org>
+Cc: "Rafael J. Wysocki" <rjw@sisk.pl>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>, Bjorn Helgaas <bhelgaas@google.com>, Jiang Liu <liuj97@gmail.com>, Toshi Kani <toshi.kani@hp.com>
 
-On Tue, 2013-01-29 at 12:28 +0100, Rafael J. Wysocki wrote:
-> On Monday, January 28, 2013 07:35:39 PM Toshi Kani wrote:
-> > On Mon, 2013-01-28 at 13:59 +0100, Rafael J. Wysocki wrote:
-> > > From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
-> > > 
-> > > Introduce struct acpi_scan_handler for representing objects that
-> > > will do configuration tasks depending on ACPI device nodes'
-> > > hardware IDs (HIDs).
-> > > 
-> > > Currently, those tasks are done either directly by the ACPI namespace
-> > > scanning code or by ACPI device drivers designed specifically for
-> > > this purpose.  None of the above is desirable, however, because
-> > > doing that directly in the namespace scanning code makes that code
-> > > overly complicated and difficult to follow and doing that in
-> > > "special" device drivers leads to a great deal of confusion about
-> > > their role and to confusing interactions with the driver core (for
-> > > example, sysfs directories are created for those drivers, but they
-> > > are completely unnecessary and only increase the kernel's memory
-> > > footprint in vain).
-> > > 
-> > > Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
-> > > ---
-> > >  Documentation/acpi/scan_handlers.txt |   77 +++++++++++++++++++++++++++++++++++
-> > >  drivers/acpi/scan.c                  |   60 ++++++++++++++++++++++++---
-> > >  include/acpi/acpi_bus.h              |   14 ++++++
-> > >  3 files changed, 144 insertions(+), 7 deletions(-)
-> > > 
-> > > Index: test/include/acpi/acpi_bus.h
-> > > ===================================================================
-> > > --- test.orig/include/acpi/acpi_bus.h
-> > > +++ test/include/acpi/acpi_bus.h
-> > > @@ -84,6 +84,18 @@ struct acpi_driver;
-> > >  struct acpi_device;
-> > >  
-> > >  /*
-> > > + * ACPI Scan Handler
-> > > + * -----------------
-> > > + */
-> > > +
-> > > +struct acpi_scan_handler {
-> > > +	const struct acpi_device_id *ids;
-> > > +	struct list_head list_node;
-> > > +	int (*attach)(struct acpi_device *dev, const struct acpi_device_id *id);
-> > > +	void (*detach)(struct acpi_device *dev);
-> > > +};
-> > > +
-> > > +/*
-> > >   * ACPI Driver
-> > >   * -----------
-> > >   */
-> > > @@ -269,6 +281,7 @@ struct acpi_device {
-> > >  	struct acpi_device_wakeup wakeup;
-> > >  	struct acpi_device_perf performance;
-> > >  	struct acpi_device_dir dir;
-> > > +	struct acpi_scan_handler *handler;
-> > >  	struct acpi_driver *driver;
-> > >  	void *driver_data;
-> > >  	struct device dev;
-> > > @@ -382,6 +395,7 @@ int acpi_bus_receive_event(struct acpi_b
-> > >  static inline int acpi_bus_generate_proc_event(struct acpi_device *device, u8 type, int data)
-> > >  	{ return 0; }
-> > >  #endif
-> > > +int acpi_scan_add_handler(struct acpi_scan_handler *handler);
-> > >  int acpi_bus_register_driver(struct acpi_driver *driver);
-> > >  void acpi_bus_unregister_driver(struct acpi_driver *driver);
-> > >  int acpi_bus_scan(acpi_handle handle);
-> > > Index: test/drivers/acpi/scan.c
-> > > ===================================================================
-> > > --- test.orig/drivers/acpi/scan.c
-> > > +++ test/drivers/acpi/scan.c
-> > > @@ -53,6 +53,7 @@ static const struct acpi_device_id acpi_
-> > >  static LIST_HEAD(acpi_device_list);
-> > >  static LIST_HEAD(acpi_bus_id_list);
-> > >  static DEFINE_MUTEX(acpi_scan_lock);
-> > > +static LIST_HEAD(acpi_scan_handlers_list);
-> > >  DEFINE_MUTEX(acpi_device_lock);
-> > >  LIST_HEAD(acpi_wakeup_device_list);
-> > >  
-> > > @@ -62,6 +63,15 @@ struct acpi_device_bus_id{
-> > >  	struct list_head node;
-> > >  };
-> > >  
-> > > +int acpi_scan_add_handler(struct acpi_scan_handler *handler)
-> > > +{
-> > > +	if (!handler || !handler->attach)
-> > > +		return -EINVAL;
-> > > +
-> > > +	list_add_tail(&handler->list_node, &acpi_scan_handlers_list);
-> > > +	return 0;
-> > > +}
-> > > +
-> > >  /*
-> > >   * Creates hid/cid(s) string needed for modalias and uevent
-> > >   * e.g. on a device with hid:IBM0001 and cid:ACPI0001 you get:
-> > > @@ -1570,20 +1580,42 @@ static acpi_status acpi_bus_check_add(ac
-> > >  	return AE_OK;
-> > >  }
-> > >  
-> > > +static int acpi_scan_attach_handler(struct acpi_device *device)
-> > > +{
-> > > +	struct acpi_scan_handler *handler;
-> > > +	int ret = 0;
-> > > +
-> > > +	list_for_each_entry(handler, &acpi_scan_handlers_list, list_node) {
-> > > +		const struct acpi_device_id *id;
-> > > +
-> > > +		id = __acpi_match_device(device, handler->ids);
-> > > +		if (!id)
-> > > +			continue;
-> > > +
-> > > +		ret = handler->attach(device, id);
-> > > +		if (ret > 0) {
-> > > +			device->handler = handler;
-> > > +			break;
-> > > +		} else if (ret < 0) {
-> > > +			break;
-> > > +		}
-> > > +	}
-> > > +	return ret;
-> > > +}
-> > 
-> > Now that we have full control over the attach logic, it would be great
-> > if we can update it to match with the ACPI spec -- HID has priority over
-> > CIDs, and CIDs are also listed in their priority.  For example, Device-X
-> > has HID and CID.  In this case, this Device-X should be attached to
-> > Handler-A since it supports HID.  The current logic simply chooses a
-> > handler whichever registered before.  
-> > 
-> > Device-X: HID PNPID-A, CID PNPID-B
-> > Handler-A: PNPID-A
-> > Handler-B: PNPID-B
-> > 
-> > So, the attach logic should be something like:
-> > 
-> > list_for_each_entry(hwid, acpi_device->pnp.ids,) {
-> > 	list_for_each_entry(,&acpi_scan_handlers_list,)
-> > 		check if this handler supports a given hwid
-> > }
+On Sat, 2013-01-26 at 15:19 -0800, Yinghai Lu wrote:
+> On Sat, Jan 26, 2013 at 2:41 PM, Rafael J. Wysocki <rjw@sisk.pl> wrote:
+> > From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+> >
+> > There is no guarantee that acpi_bus_scan() and acpi_bus_trim() will
+> > not be run in parallel for the same scope of the ACPI namespace,
+> > which may lead to a great deal of confusion, so introduce a new mutex
+> > to prevent that from happening.
+> >
+> > Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 > 
-> OK, I see the problem, but I think it's better to address it in a separate
-> patch on top of the current series.
+> Acked-by: Yinghai Lu <yinghai@kernel.org>
+> 
+> Steven,
+> 
+> Can you apply this one to for-pci-res-alloc to check if racing with
+> docking hotplug/eject
+> still happen?
+> or wait one or two days after i rebase that branch.
+> 
+Still get the corrupt acpi_handle.
 
-I agree.
+> Thanks
+> 
+> Yinghai
+> 
+> > ---
+> >  drivers/acpi/scan.c |   16 ++++++++++++----
+> >  1 file changed, 12 insertions(+), 4 deletions(-)
+> >
+> > Index: linux-pm/drivers/acpi/scan.c
+> > ===================================================================
+> > --- linux-pm.orig/drivers/acpi/scan.c
+> > +++ linux-pm/drivers/acpi/scan.c
+> > @@ -52,6 +52,7 @@ static const struct acpi_device_id acpi_
+> >
+> >  static LIST_HEAD(acpi_device_list);
+> >  static LIST_HEAD(acpi_bus_id_list);
+> > +static DEFINE_MUTEX(acpi_scan_lock);
+> >  DEFINE_MUTEX(acpi_device_lock);
+> >  LIST_HEAD(acpi_wakeup_device_list);
+> >
+> > @@ -1612,19 +1613,22 @@ static acpi_status acpi_bus_device_attac
+> >  int acpi_bus_scan(acpi_handle handle)
+> >  {
+> >         void *device = NULL;
+> > +       int error = 0;
+> > +
+> > +       mutex_lock(&acpi_scan_lock);
+> >
+> >         if (ACPI_SUCCESS(acpi_bus_check_add(handle, 0, NULL, &device)))
+> >                 acpi_walk_namespace(ACPI_TYPE_ANY, handle, ACPI_UINT32_MAX,
+> >                                     acpi_bus_check_add, NULL, NULL, &device);
+> >
+> >         if (!device)
+> > -               return -ENODEV;
+> > -
+> > -       if (ACPI_SUCCESS(acpi_bus_device_attach(handle, 0, NULL, NULL)))
+> > +               error = -ENODEV;
+> > +       else if (ACPI_SUCCESS(acpi_bus_device_attach(handle, 0, NULL, NULL)))
+> >                 acpi_walk_namespace(ACPI_TYPE_ANY, handle, ACPI_UINT32_MAX,
+> >                                     acpi_bus_device_attach, NULL, NULL, NULL);
+> >
+> > -       return 0;
+> > +       mutex_unlock(&acpi_scan_lock);
+> > +       return error;
+> >  }
+> >  EXPORT_SYMBOL(acpi_bus_scan);
+> >
+> > @@ -1653,6 +1657,8 @@ static acpi_status acpi_bus_remove(acpi_
+> >
+> >  void acpi_bus_trim(struct acpi_device *start)
+> >  {
+> > +       mutex_lock(&acpi_scan_lock);
+> > +
+> >         /*
+> >          * Execute acpi_bus_device_detach() as a post-order callback to detach
+> >          * all ACPI drivers from the device nodes being removed.
+> > @@ -1667,6 +1673,8 @@ void acpi_bus_trim(struct acpi_device *s
+> >         acpi_walk_namespace(ACPI_TYPE_ANY, start->handle, ACPI_UINT32_MAX, NULL,
+> >                             acpi_bus_remove, NULL, NULL);
+> >         acpi_bus_remove(start->handle, 0, NULL, NULL);
+> > +
+> > +       mutex_unlock(&acpi_scan_lock);
+> >  }
+> >  EXPORT_SYMBOL_GPL(acpi_bus_trim);
+> >
+> >
 
-> I'm not sure what approach is best, though.  Do you think there should be two
-> passes the first of which will check HIDs only and the second one will check
-> CIDs?  Or do you have something different in mind?
-
-HID and CIDs are already listed in their priority order in
-acpi_device->pnp.ids.  So, the single pass like I described above should
-work.
-
-Thanks,
--Toshi
 
