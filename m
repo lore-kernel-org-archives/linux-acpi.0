@@ -1,103 +1,135 @@
 From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: [PATCH 0/4] ACPI scan handlers
-Date: Tue, 29 Jan 2013 01:38:39 +0100
-Message-ID: <2339953.KGL8ga1dug@vostro.rjw.lan>
-References: <1873429.MS5RQDxTye@vostro.rjw.lan> <4311642.nDd2RCVeDc@vostro.rjw.lan> <CAE9FiQWz=KJLBVjon4QLm-VwxxvJYh284YhAy_Saya2weUtLaw@mail.gmail.com>
+Subject: Re: [RFC PATCH v5 4/8] ACPI, PCI: avoid building pci_slot as module
+Date: Tue, 29 Jan 2013 02:00:17 +0100
+Message-ID: <2666102.mmN6fgRYNJ@vostro.rjw.lan>
+References: <1358525267-14268-1-git-send-email-jiang.liu@huawei.com> <3500982.MUDp6kKU3R@vostro.rjw.lan> <CAErSpo4fbNzFaBxH+eKD+BKVgghyCJEYLDMzc6_gdxABAPe3QQ@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7Bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from hydra.sisk.pl ([212.160.235.94]:58067 "EHLO hydra.sisk.pl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751646Ab3A2Aca (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 28 Jan 2013 19:32:30 -0500
-In-Reply-To: <CAE9FiQWz=KJLBVjon4QLm-VwxxvJYh284YhAy_Saya2weUtLaw@mail.gmail.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Return-path: <linux-pci-owner@vger.kernel.org>
+In-Reply-To: <CAErSpo4fbNzFaBxH+eKD+BKVgghyCJEYLDMzc6_gdxABAPe3QQ@mail.gmail.com>
+Sender: linux-pci-owner@vger.kernel.org
+To: Bjorn Helgaas <bhelgaas@google.com>
+Cc: Jiang Liu <liuj97@gmail.com>, Jiang Liu <jiang.liu@huawei.com>, Yinghai Lu <yinghai@kernel.org>, Kenji Kaneshige <kaneshige.kenji@jp.fujitsu.com>, Yijing Wang <wangyijing@huawei.com>, linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Toshi Kani <toshi.kani@hp.com>, Myron Stowe <myron.stowe@redhat.com>
 List-Id: linux-acpi@vger.kernel.org
-To: Yinghai Lu <yinghai@kernel.org>
-Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Bjorn Helgaas <bhelgaas@google.com>, Mika Westerberg <mika.westerberg@linux.intel.com>, Matthew Garrett <matthew.garrett@nebula.com>, Jiang Liu <liuj97@gmail.com>, Toshi Kani <toshi.kani@hp.com>, LKML <linux-kernel@vger.kernel.org>
 
-On Monday, January 28, 2013 01:54:30 PM Yinghai Lu wrote:
-> On Mon, Jan 28, 2013 at 4:58 AM, Rafael J. Wysocki <rjw@sisk.pl> wrote:
-> > On Thursday, January 24, 2013 01:26:56 AM Rafael J. Wysocki wrote:
-> >> Hi All,
+On Monday, January 28, 2013 02:09:22 PM Bjorn Helgaas wrote:
+> On Sun, Jan 20, 2013 at 5:01 PM, Rafael J. Wysocki <rjw@sisk.pl> wrote:
+> > On Saturday, January 19, 2013 12:07:42 AM Jiang Liu wrote:
+> >> As discussed in thread at https://patchwork.kernel.org/patch/1946851/,
+> >> there's no value in supporting CONFIG_ACPI_PCI_SLOT=m any more.
+> >> So change Kconfig and code to only support building pci_slot as
+> >> built-in driver.
 > >>
-> >> There is a considerable amount of confusion in the ACPI subsystem about what
-> >> ACPI drivers are used for.  Namely, some of them are used as "normal" device
-> >> drivers that bind to devices and handle them using ACPI control methods (like
-> >> the fan or battery drivers), but some of them are just used for handling
-> >> namespace events, such as the creation or removal of device nodes (I guess it
-> >> would be fair to call that an abuse of the driver core).  These two roles are
-> >> quite distinct, which is particularly visible from the confusion about the role
-> >> of the .remove() callback.
-> >>
-> >> For the "normal" drivers this callback is simply used to handle situations in
-> >> which the driver needs to be unbound from the device, because one of them
-> >> (either the device or the driver) is going away.  That operation can't really
-> >> fail, it just needs to do the necessary cleanup.
-> >>
-> >> However, for the namespace events handling "drivers" .remove() means that not
-> >> only the device node in question, but generally also the whole subtree below it
-> >> needs to be prepared for removal, which may involve deleting multiple device
-> >> objects belonging to different bus types and so on and which very well may fail
-> >> (for example, those devices may be used for such things like swap or they may be
-> >> memory banks used by the kernel and it may not be safe to remove them at the
-> >> moment etc.).  Moreover, for these things the removal of the "driver" doesn't
-> >> really make sense, because it has to be there to handle the namespace events it
-> >> is designed to handle or else things will go remarkably awry in some places.
-> >>
-> >> To resolve all that mess I'd like to do the following, which in part is inspired
-> >> by the recent Toshi Kani's hotplug framework proposal and in part is based on
-> >> some discussions I had with Bjorn and others (the code references made below are
-> >> based on the current contens of linux-pm.git/linux-next).
-> >>
-> >> 1) Introduce a special data type for "ACPI namespace event handlers" like:
-> >>
-> >> struct acpi_scan_handler {
-> >>       const struct acpi_device_id *ids;
-> >>       struct list_head list_node;
-> >>       int (*attach)(struct acpi_device *adev);
-> >>       int (*untie)(struct acpi_device *adev);
-> >>       int (*reclaim)(struct acpi_device *adev);
-> >>       void (*detach)(struct acpi_device *adev);
-> >> };
+> >> Signed-off-by: Jiang Liu <jiang.liu@huawei.com>
 > >
-> > After some reconsideration I think that the "untie" and "reclaim" things won't
-> > be really useful at this level.  This means that I only need ACPI scan handlers
-> > to do .attach() and .detach() and all of that becomes really simple, so I don't
-> > see reason to wait with that change.
-> >
-> > The following patches introduce ACPI scan handlers and make some use of them.
-> >
-> > [1/4] Introduce struct acpi_scan_handler for configuration tasks depending on
-> >       device IDs.
-> >
-> > [2/4] Make ACPI PCI root driver use struct acpi_scan_handler.
-> >
-> > [3/4] Make ACPI PCI IRQ link driver use struct acpi_scan_handler.
-> >
-> > [4/4] Use struct acpi_scan_handler for creating platform devices enumerated via ACPI.
+> > Acked-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 > 
-> Good, esp you move away hard code in scan.c for platform devices.
+> Acked-by: Bjorn Helgaas <bhelgaas@google.com>
 > 
-> Test with pci root bus hotplug, and it works well.
+> I think we should eventually get rid of acpi_pci_register_driver() and
+> do this initialization directly from acpi_pci_root_add().  But
+> removing the module option here is a good first step.
 > 
-> So for all 4,
-> 
-> Acked-by: Yinghai Lu <yinghai@kernel.org>
+> Rafael, do you want to apply this (and [6/8]) via your tree?  If not,
+> I can take it.
 
-Thanks for the review!
+I will, thanks.
 
-> It will have some merging conflicts change in drivers/acpi/internel.h
-> in pci/next for pci root bus hotplug support.
-> But it should be very simple to solve it.
-
-Yes, it shouldn't be too difficult to resolve them.
-
-Thanks,
 Rafael
 
 
+> >> ---
+> >>  drivers/acpi/Kconfig    |    5 +----
+> >>  drivers/acpi/internal.h |    5 +++++
+> >>  drivers/acpi/pci_slot.c |   13 +------------
+> >>  drivers/acpi/scan.c     |    1 +
+> >>  4 files changed, 8 insertions(+), 16 deletions(-)
+> >>
+> >> diff --git a/drivers/acpi/Kconfig b/drivers/acpi/Kconfig
+> >> index 0300bf6..7efd0d0 100644
+> >> --- a/drivers/acpi/Kconfig
+> >> +++ b/drivers/acpi/Kconfig
+> >> @@ -299,7 +299,7 @@ config ACPI_DEBUG_FUNC_TRACE
+> >>         is about half of the penalty and is rarely useful.
+> >>
+> >>  config ACPI_PCI_SLOT
+> >> -     tristate "PCI slot detection driver"
+> >> +     bool "PCI slot detection driver"
+> >>       depends on SYSFS
+> >>       default n
+> >>       help
+> >> @@ -308,9 +308,6 @@ config ACPI_PCI_SLOT
+> >>         i.e., segment/bus/device/function tuples, with physical slots in
+> >>         the system.  If you are unsure, say N.
+> >>
+> >> -       To compile this driver as a module, choose M here:
+> >> -       the module will be called pci_slot.
+> >> -
+> >>  config X86_PM_TIMER
+> >>       bool "Power Management Timer Support" if EXPERT
+> >>       depends on X86
+> >> diff --git a/drivers/acpi/internal.h b/drivers/acpi/internal.h
+> >> index e050254..7374cfc 100644
+> >> --- a/drivers/acpi/internal.h
+> >> +++ b/drivers/acpi/internal.h
+> >> @@ -67,6 +67,11 @@ struct acpi_ec {
+> >>
+> >>  extern struct acpi_ec *first_ec;
+> >>
+> >> +#ifdef       CONFIG_ACPI_PCI_SLOT
+> >> +void acpi_pci_slot_init(void);
+> >> +#else
+> >> +static inline void acpi_pci_slot_init(void) { }
+> >> +#endif
+> >>  int acpi_pci_root_init(void);
+> >>  int acpi_ec_init(void);
+> >>  int acpi_ec_ecdt_probe(void);
+> >> diff --git a/drivers/acpi/pci_slot.c b/drivers/acpi/pci_slot.c
+> >> index d22585f..a7d7e77 100644
+> >> --- a/drivers/acpi/pci_slot.c
+> >> +++ b/drivers/acpi/pci_slot.c
+> >> @@ -330,19 +330,8 @@ static struct dmi_system_id acpi_pci_slot_dmi_table[] __initdata = {
+> >>       {}
+> >>  };
+> >>
+> >> -static int __init
+> >> -acpi_pci_slot_init(void)
+> >> +void __init acpi_pci_slot_init(void)
+> >>  {
+> >>       dmi_check_system(acpi_pci_slot_dmi_table);
+> >>       acpi_pci_register_driver(&acpi_pci_slot_driver);
+> >> -     return 0;
+> >>  }
+> >> -
+> >> -static void __exit
+> >> -acpi_pci_slot_exit(void)
+> >> -{
+> >> -     acpi_pci_unregister_driver(&acpi_pci_slot_driver);
+> >> -}
+> >> -
+> >> -module_init(acpi_pci_slot_init);
+> >> -module_exit(acpi_pci_slot_exit);
+> >> diff --git a/drivers/acpi/scan.c b/drivers/acpi/scan.c
+> >> index f8a0d0f..cb964ac 100644
+> >> --- a/drivers/acpi/scan.c
+> >> +++ b/drivers/acpi/scan.c
+> >> @@ -1732,6 +1732,7 @@ int __init acpi_scan_init(void)
+> >>
+> >>       acpi_power_init();
+> >>       acpi_pci_root_init();
+> >> +     acpi_pci_slot_init();
+> >>
+> >>       /*
+> >>        * Enumerate devices in the ACPI namespace.
+> >>
+> > --
+> > I speak only for myself.
+> > Rafael J. Wysocki, Intel Open Source Technology Center.
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 -- 
 I speak only for myself.
 Rafael J. Wysocki, Intel Open Source Technology Center.
