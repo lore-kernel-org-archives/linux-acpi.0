@@ -1,354 +1,222 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: [Update][PATCH 4/4] ACPI / platform: Use struct acpi_scan_handler for creating devices
-Date: Tue, 29 Jan 2013 13:30:29 +0100
-Message-ID: <1571295.NIttSVHKlb@vostro.rjw.lan>
-References: <1873429.MS5RQDxTye@vostro.rjw.lan> <510731FC.9040402@jp.fujitsu.com> <1626323.c4yXjdNWq0@vostro.rjw.lan>
+From: Simon Jeons <simon.jeons@gmail.com>
+Subject: Re: [PATCH v6 00/15] memory-hotplug: hot-remove physical memory
+Date: Tue, 29 Jan 2013 06:52:53 -0600
+Message-ID: <1359463973.1624.15.camel@kernel>
+References: <1357723959-5416-1-git-send-email-tangchen@cn.fujitsu.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7Bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from hydra.sisk.pl ([212.160.235.94]:58546 "EHLO hydra.sisk.pl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755480Ab3A2MYV (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 29 Jan 2013 07:24:21 -0500
-In-Reply-To: <1626323.c4yXjdNWq0@vostro.rjw.lan>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
+Return-path: <owner-linux-mm@kvack.org>
+In-Reply-To: <1357723959-5416-1-git-send-email-tangchen@cn.fujitsu.com>
+Sender: owner-linux-mm@kvack.org
+To: Tang Chen <tangchen@cn.fujitsu.com>
+Cc: akpm@linux-foundation.org, rientjes@google.com, len.brown@intel.com, benh@kernel.crashing.org, paulus@samba.org, cl@linux.com, minchan.kim@gmail.com, kosaki.motohiro@jp.fujitsu.com, isimatu.yasuaki@jp.fujitsu.com, wujianguo@huawei.com, wency@cn.fujitsu.com, hpa@zytor.com, linfeng@cn.fujitsu.com, laijs@cn.fujitsu.com, mgorman@suse.de, yinghai@kernel.org, glommer@parallels.com, x86@kernel.org, linux-mm@kvack.org, linux-kernel@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, linux-acpi@vger.kernel.org, linux-s390@vger.kernel.org, linux-sh@vger.kernel.org, linux-ia64@vger.kernel.org, cmetcalf@tilera.com, sparclinux@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
-Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Bjorn Helgaas <bhelgaas@google.com>, Mika Westerberg <mika.westerberg@linux.intel.com>, Matthew Garrett <matthew.garrett@nebula.com>, Yinghai Lu <yinghai@kernel.org>, Jiang Liu <liuj97@gmail.com>, Toshi Kani <toshi.kani@hp.com>, LKML <linux-kernel@vger.kernel.org>
 
-On Tuesday, January 29, 2013 12:36:35 PM Rafael J. Wysocki wrote:
-> On Tuesday, January 29, 2013 11:20:44 AM Yasuaki Ishimatsu wrote:
-> > Hi Rafael,
-> > 
-> > 2013/01/28 22:01, Rafael J. Wysocki wrote:
-> > > From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
-> > >
-> > > Currently, the ACPI namespace scanning code creates platform device
-> > > objects for ACPI device nodes whose IDs match the contents of the
-> > > acpi_platform_device_ids[] table.  However, this adds a superfluous
-> > > special case into acpi_bus_device_attach() and makes it more
-> > > difficult to follow than it has to be.  It also will make it more
-> > > difficult to implement removal code for those platform device objects
-> > > in the future.
-> > >
-> > > For the above reasons, introduce a struct acpi_scan_handler object
-> > > for creating platform devices and move the code related to that from
-> > > acpi_bus_device_attach() to the .attach() callback of that object.
-> > > Also move the acpi_platform_device_ids[] table to acpi_platform.c.
-> > >
-> > > Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
-> > > ---
-> > >   drivers/acpi/acpi_platform.c |   55 +++++++++++++++++++++++++++++++++++--------
-> > >   drivers/acpi/internal.h      |    7 -----
-> > >   drivers/acpi/scan.c          |   30 -----------------------
-> > >   3 files changed, 47 insertions(+), 45 deletions(-)
-> > >
-> > > Index: test/drivers/acpi/acpi_platform.c
-> > > ===================================================================
-> > > --- test.orig/drivers/acpi/acpi_platform.c
-> > > +++ test/drivers/acpi/acpi_platform.c
-> > > @@ -22,6 +22,30 @@
-> > >
-> > >   ACPI_MODULE_NAME("platform");
-> > >
-> > > +/* Flags for acpi_create_platform_device */
-> > > +#define ACPI_PLATFORM_CLK	BIT(0)
-> > > +
-> > > +/*
-> > > + * The following ACPI IDs are known to be suitable for representing as
-> > > + * platform devices.
-> > > + */
-> > > +static const struct acpi_device_id acpi_platform_device_ids[] = {
-> > > +
-> > > +	{ "PNP0D40" },
-> > > +
-> > > +	/* Haswell LPSS devices */
-> > > +	{ "INT33C0", ACPI_PLATFORM_CLK },
-> > > +	{ "INT33C1", ACPI_PLATFORM_CLK },
-> > > +	{ "INT33C2", ACPI_PLATFORM_CLK },
-> > > +	{ "INT33C3", ACPI_PLATFORM_CLK },
-> > > +	{ "INT33C4", ACPI_PLATFORM_CLK },
-> > > +	{ "INT33C5", ACPI_PLATFORM_CLK },
-> > > +	{ "INT33C6", ACPI_PLATFORM_CLK },
-> > > +	{ "INT33C7", ACPI_PLATFORM_CLK },
-> > > +
-> > > +	{ }
-> > > +};
-> > > +
-> > >   static int acpi_create_platform_clks(struct acpi_device *adev)
-> > >   {
-> > >   	static struct platform_device *pdev;
-> > > @@ -39,8 +63,7 @@ static int acpi_create_platform_clks(str
-> > >   /**
-> > >    * acpi_create_platform_device - Create platform device for ACPI device node
-> > >    * @adev: ACPI device node to create a platform device for.
-> > > - * @flags: ACPI_PLATFORM_* flags that affect the creation of the platform
-> > > - *	   devices.
-> > > + * @id: ACPI device ID used to match @adev.
-> > >    *
-> > >    * Check if the given @adev can be represented as a platform device and, if
-> > >    * that's the case, create and register a platform device, populate its common
-> > > @@ -48,9 +71,10 @@ static int acpi_create_platform_clks(str
-> > >    *
-> > >    * Name of the platform device will be the same as @adev's.
-> > >    */
-> > > -struct platform_device *acpi_create_platform_device(struct acpi_device *adev,
-> > > -						    unsigned long flags)
-> > > +static int acpi_create_platform_device(struct acpi_device *adev,
-> > > +				       const struct acpi_device_id *id)
-> > >   {
-> > > +	unsigned long flags = id->driver_data;
-> > >   	struct platform_device *pdev = NULL;
-> > >   	struct acpi_device *acpi_parent;
-> > >   	struct platform_device_info pdevinfo;
-> > > @@ -59,25 +83,26 @@ struct platform_device *acpi_create_plat
-> > >   	struct resource *resources;
-> > >   	int count;
-> > >
-> > 
-> > > -	if ((flags & ACPI_PLATFORM_CLK) && acpi_create_platform_clks(adev)) {
-> > > +	if (flags & ACPI_PLATFORM_CLK) {
-> > > +		int ret = acpi_create_platform_clks(adev);
-> > >   		dev_err(&adev->dev, "failed to create clocks\n");
-> > > -		return NULL;
-> > > +		return ret;
-> > >   	}
-> > 
-> > If (flag & ACPI_PLATFORM_CLK) is true, the acpi_create_platform_device()
-> > always retruns with dev_err() messages. Why?
+Hi Tang,
+
+On Wed, 2013-01-09 at 17:32 +0800, Tang Chen wrote:
+> Here is the physical memory hot-remove patch-set based on 3.8rc-2.
+
+Some questions ask you, not has relationship with this patchset, but is
+memory hotplug stuff.
+
+1. In function node_states_check_changes_online:
+
+comments:
+* If we don't have HIGHMEM nor movable node,
+* node_states[N_NORMAL_MEMORY] contains nodes which have zones of
+* 0...ZONE_MOVABLE, set zone_last to ZONE_MOVABLE.
+
+How to understand it? Why we don't have HIGHMEM nor movable node and
+node_staes[N_NORMAL_MEMORY] contains 0...ZONE_MOVABLE, IIUC,
+N_NORMAL_MEMORY only means the node has regular memory.
+
+* If we don't have movable node, node_states[N_NORMAL_MEMORY]
+* contains nodes which have zones of 0...ZONE_MOVABLE,
+* set zone_last to ZONE_MOVABLE.
+
+How to understand?
+
+2. In function move_pfn_range_left, why end <= z2->zone_start_pfn is not
+correct? The comments said that must include/overlap, why?
+
+3. In function online_pages, the normal case(w/o online_kenrel,
+online_movable), why not check if the new zone is overlap with adjacent
+zones?
+
+4. Could you summarize the difference implementation between hot-add and
+logic-add, hot-remove and logic-remove?   
+
+
 > 
-> Ah.  By mistake. :-)
+> This patch-set aims to implement physical memory hot-removing.
 > 
-> Thanks for poiting this out!
+> The patches can free/remove the following things:
+> 
+>   - /sys/firmware/memmap/X/{end, start, type} : [PATCH 4/15]
+>   - memmap of sparse-vmemmap                  : [PATCH 6,7,8,10/15]
+>   - page table of removed memory              : [RFC PATCH 7,8,10/15]
+>   - node and related sysfs files              : [RFC PATCH 13-15/15]
+> 
+> 
+> Existing problem:
+> If CONFIG_MEMCG is selected, we will allocate memory to store page cgroup
+> when we online pages.
+> 
+> For example: there is a memory device on node 1. The address range
+> is [1G, 1.5G). You will find 4 new directories memory8, memory9, memory10,
+> and memory11 under the directory /sys/devices/system/memory/.
+> 
+> If CONFIG_MEMCG is selected, when we online memory8, the memory stored page
+> cgroup is not provided by this memory device. But when we online memory9, the
+> memory stored page cgroup may be provided by memory8. So we can't offline
+> memory8 now. We should offline the memory in the reversed order.
+> 
+> When the memory device is hotremoved, we will auto offline memory provided
+> by this memory device. But we don't know which memory is onlined first, so
+> offlining memory may fail.
+> 
+> In patch1, we provide a solution which is not good enough:
+> Iterate twice to offline the memory.
+> 1st iterate: offline every non primary memory block.
+> 2nd iterate: offline primary (i.e. first added) memory block.
+> 
+> And a new idea from Wen Congyang <wency@cn.fujitsu.com> is:
+> allocate the memory from the memory block they are describing.
+> 
+> But we are not sure if it is OK to do so because there is not existing API
+> to do so, and we need to move page_cgroup memory allocation from MEM_GOING_ONLINE
+> to MEM_ONLINE. And also, it may interfere the hugepage.
+> 
+> 
+> 
+> How to test this patchset?
+> 1. apply this patchset and build the kernel. MEMORY_HOTPLUG, MEMORY_HOTREMOVE,
+>    ACPI_HOTPLUG_MEMORY must be selected.
+> 2. load the module acpi_memhotplug
+> 3. hotplug the memory device(it depends on your hardware)
+>    You will see the memory device under the directory /sys/bus/acpi/devices/.
+>    Its name is PNP0C80:XX.
+> 4. online/offline pages provided by this memory device
+>    You can write online/offline to /sys/devices/system/memory/memoryX/state to
+>    online/offline pages provided by this memory device
+> 5. hotremove the memory device
+>    You can hotremove the memory device by the hardware, or writing 1 to
+>    /sys/bus/acpi/devices/PNP0C80:XX/eject.
 
-Updated patch is appended.
+Is there a similar knode to hot-add the memory device?
 
-Thanks,
-Rafael
-
----
-From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
-Subject: ACPI / platform: Use struct acpi_scan_handler for creating devices
-
-Currently, the ACPI namespace scanning code creates platform device
-objects for ACPI device nodes whose IDs match the contents of the
-acpi_platform_device_ids[] table.  However, this adds a superfluous
-special case into acpi_bus_device_attach() and makes it more
-difficult to follow than it has to be.  It also will make it more
-difficult to implement removal code for those platform device objects
-in the future.
-
-For the above reasons, introduce a struct acpi_scan_handler object
-for creating platform devices and move the code related to that from
-acpi_bus_device_attach() to the .attach() callback of that object.
-Also move the acpi_platform_device_ids[] table to acpi_platform.c.
-
-Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
----
- drivers/acpi/acpi_platform.c |   59 ++++++++++++++++++++++++++++++++++---------
- drivers/acpi/internal.h      |    7 -----
- drivers/acpi/scan.c          |   30 ---------------------
- 3 files changed, 50 insertions(+), 46 deletions(-)
-
-Index: test/drivers/acpi/acpi_platform.c
-===================================================================
---- test.orig/drivers/acpi/acpi_platform.c
-+++ test/drivers/acpi/acpi_platform.c
-@@ -22,6 +22,30 @@
- 
- ACPI_MODULE_NAME("platform");
- 
-+/* Flags for acpi_create_platform_device */
-+#define ACPI_PLATFORM_CLK	BIT(0)
-+
-+/*
-+ * The following ACPI IDs are known to be suitable for representing as
-+ * platform devices.
-+ */
-+static const struct acpi_device_id acpi_platform_device_ids[] = {
-+
-+	{ "PNP0D40" },
-+
-+	/* Haswell LPSS devices */
-+	{ "INT33C0", ACPI_PLATFORM_CLK },
-+	{ "INT33C1", ACPI_PLATFORM_CLK },
-+	{ "INT33C2", ACPI_PLATFORM_CLK },
-+	{ "INT33C3", ACPI_PLATFORM_CLK },
-+	{ "INT33C4", ACPI_PLATFORM_CLK },
-+	{ "INT33C5", ACPI_PLATFORM_CLK },
-+	{ "INT33C6", ACPI_PLATFORM_CLK },
-+	{ "INT33C7", ACPI_PLATFORM_CLK },
-+
-+	{ }
-+};
-+
- static int acpi_create_platform_clks(struct acpi_device *adev)
- {
- 	static struct platform_device *pdev;
-@@ -39,8 +63,7 @@ static int acpi_create_platform_clks(str
- /**
-  * acpi_create_platform_device - Create platform device for ACPI device node
-  * @adev: ACPI device node to create a platform device for.
-- * @flags: ACPI_PLATFORM_* flags that affect the creation of the platform
-- *	   devices.
-+ * @id: ACPI device ID used to match @adev.
-  *
-  * Check if the given @adev can be represented as a platform device and, if
-  * that's the case, create and register a platform device, populate its common
-@@ -48,9 +71,10 @@ static int acpi_create_platform_clks(str
-  *
-  * Name of the platform device will be the same as @adev's.
-  */
--struct platform_device *acpi_create_platform_device(struct acpi_device *adev,
--						    unsigned long flags)
-+static int acpi_create_platform_device(struct acpi_device *adev,
-+				       const struct acpi_device_id *id)
- {
-+	unsigned long flags = id->driver_data;
- 	struct platform_device *pdev = NULL;
- 	struct acpi_device *acpi_parent;
- 	struct platform_device_info pdevinfo;
-@@ -59,25 +83,28 @@ struct platform_device *acpi_create_plat
- 	struct resource *resources;
- 	int count;
- 
--	if ((flags & ACPI_PLATFORM_CLK) && acpi_create_platform_clks(adev)) {
--		dev_err(&adev->dev, "failed to create clocks\n");
--		return NULL;
-+	if (flags & ACPI_PLATFORM_CLK) {
-+		int ret = acpi_create_platform_clks(adev);
-+		if (ret) {
-+			dev_err(&adev->dev, "failed to create clocks\n");
-+			return ret;
-+		}
- 	}
- 
- 	/* If the ACPI node already has a physical device attached, skip it. */
- 	if (adev->physical_node_count)
--		return NULL;
-+		return 0;
- 
- 	INIT_LIST_HEAD(&resource_list);
- 	count = acpi_dev_get_resources(adev, &resource_list, NULL, NULL);
- 	if (count <= 0)
--		return NULL;
-+		return 0;
- 
- 	resources = kmalloc(count * sizeof(struct resource), GFP_KERNEL);
- 	if (!resources) {
- 		dev_err(&adev->dev, "No memory for resources\n");
- 		acpi_dev_free_resource_list(&resource_list);
--		return NULL;
-+		return -ENOMEM;
- 	}
- 	count = 0;
- 	list_for_each_entry(rentry, &resource_list, node)
-@@ -123,5 +150,15 @@ struct platform_device *acpi_create_plat
- 	}
- 
- 	kfree(resources);
--	return pdev;
-+	return 1;
-+}
-+
-+static struct acpi_scan_handler platform_handler = {
-+	.ids = acpi_platform_device_ids,
-+	.attach = acpi_create_platform_device,
-+};
-+
-+void __init acpi_platform_init(void)
-+{
-+	acpi_scan_add_handler(&platform_handler);
- }
-Index: test/drivers/acpi/internal.h
-===================================================================
---- test.orig/drivers/acpi/internal.h
-+++ test/drivers/acpi/internal.h
-@@ -27,6 +27,7 @@ int init_acpi_device_notify(void);
- int acpi_scan_init(void);
- void acpi_pci_root_init(void);
- void acpi_pci_link_init(void);
-+void acpi_platform_init(void);
- int acpi_sysfs_init(void);
- void acpi_csrt_init(void);
- 
-@@ -119,10 +120,4 @@ static inline void suspend_nvs_restore(v
-   -------------------------------------------------------------------------- */
- struct platform_device;
- 
--/* Flags for acpi_create_platform_device */
--#define ACPI_PLATFORM_CLK	BIT(0)
--
--struct platform_device *acpi_create_platform_device(struct acpi_device *adev,
--						    unsigned long flags);
--
- #endif /* _ACPI_INTERNAL_H_ */
-Index: test/drivers/acpi/scan.c
-===================================================================
---- test.orig/drivers/acpi/scan.c
-+++ test/drivers/acpi/scan.c
-@@ -29,27 +29,6 @@ extern struct acpi_device *acpi_root;
- 
- static const char *dummy_hid = "device";
- 
--/*
-- * The following ACPI IDs are known to be suitable for representing as
-- * platform devices.
-- */
--static const struct acpi_device_id acpi_platform_device_ids[] = {
--
--	{ "PNP0D40" },
--
--	/* Haswell LPSS devices */
--	{ "INT33C0", ACPI_PLATFORM_CLK },
--	{ "INT33C1", ACPI_PLATFORM_CLK },
--	{ "INT33C2", ACPI_PLATFORM_CLK },
--	{ "INT33C3", ACPI_PLATFORM_CLK },
--	{ "INT33C4", ACPI_PLATFORM_CLK },
--	{ "INT33C5", ACPI_PLATFORM_CLK },
--	{ "INT33C6", ACPI_PLATFORM_CLK },
--	{ "INT33C7", ACPI_PLATFORM_CLK },
--
--	{ }
--};
--
- static LIST_HEAD(acpi_device_list);
- static LIST_HEAD(acpi_bus_id_list);
- static DEFINE_MUTEX(acpi_scan_lock);
-@@ -1606,7 +1585,6 @@ static int acpi_scan_attach_handler(stru
- static acpi_status acpi_bus_device_attach(acpi_handle handle, u32 lvl_not_used,
- 					  void *not_used, void **ret_not_used)
- {
--	const struct acpi_device_id *id;
- 	struct acpi_device *device;
- 	unsigned long long sta_not_used;
- 	int ret;
-@@ -1621,13 +1599,6 @@ static acpi_status acpi_bus_device_attac
- 	if (acpi_bus_get_device(handle, &device))
- 		return AE_CTRL_DEPTH;
- 
--	id = __acpi_match_device(device, acpi_platform_device_ids);
--	if (id) {
--		/* This is a known good platform device. */
--		acpi_create_platform_device(device, id->driver_data);
--		return AE_OK;
--	}
--
- 	ret = acpi_scan_attach_handler(device);
- 	if (ret)
- 		return ret > 0 ? AE_OK : AE_CTRL_DEPTH;
-@@ -1775,6 +1746,7 @@ int __init acpi_scan_init(void)
- 
- 	acpi_pci_root_init();
- 	acpi_pci_link_init();
-+	acpi_platform_init();
- 	acpi_csrt_init();
- 
- 	/*
+> 
+> 
+> Note: if the memory provided by the memory device is used by the kernel, it
+> can't be offlined. It is not a bug.
+> 
+> 
+> Changelogs from v5 to v6:
+>  Patch3: Add some more comments to explain memory hot-remove.
+>  Patch4: Remove bootmem member in struct firmware_map_entry.
+>  Patch6: Repeatedly register bootmem pages when using hugepage.
+>  Patch8: Repeatedly free bootmem pages when using hugepage.
+>  Patch14: Don't free pgdat when offlining a node, just reset it to 0.
+>  Patch15: New patch, pgdat is not freed in patch14, so don't allocate a new
+>           one when online a node.
+> 
+> Changelogs from v4 to v5:
+>  Patch7: new patch, move pgdat_resize_lock into sparse_remove_one_section() to
+>          avoid disabling irq because we need flush tlb when free pagetables.
+>  Patch8: new patch, pick up some common APIs that are used to free direct mapping
+>          and vmemmap pagetables.
+>  Patch9: free direct mapping pagetables on x86_64 arch.
+>  Patch10: free vmemmap pagetables.
+>  Patch11: since freeing memmap with vmemmap has been implemented, the config
+>           macro CONFIG_SPARSEMEM_VMEMMAP when defining __remove_section() is
+>           no longer needed.
+>  Patch13: no need to modify acpi_memory_disable_device() since it was removed,
+>           and add nid parameter when calling remove_memory().
+> 
+> Changelogs from v3 to v4:
+>  Patch7: remove unused codes.
+>  Patch8: fix nr_pages that is passed to free_map_bootmem()
+> 
+> Changelogs from v2 to v3:
+>  Patch9: call sync_global_pgds() if pgd is changed
+>  Patch10: fix a problem int the patch
+> 
+> Changelogs from v1 to v2:
+>  Patch1: new patch, offline memory twice. 1st iterate: offline every non primary
+>          memory block. 2nd iterate: offline primary (i.e. first added) memory
+>          block.
+> 
+>  Patch3: new patch, no logical change, just remove reduntant codes.
+> 
+>  Patch9: merge the patch from wujianguo into this patch. flush tlb on all cpu
+>          after the pagetable is changed.
+> 
+>  Patch12: new patch, free node_data when a node is offlined.
+> 
+> 
+> Tang Chen (6):
+>   memory-hotplug: move pgdat_resize_lock into
+>     sparse_remove_one_section()
+>   memory-hotplug: remove page table of x86_64 architecture
+>   memory-hotplug: remove memmap of sparse-vmemmap
+>   memory-hotplug: Integrated __remove_section() of
+>     CONFIG_SPARSEMEM_VMEMMAP.
+>   memory-hotplug: remove sysfs file of node
+>   memory-hotplug: Do not allocate pdgat if it was not freed when
+>     offline.
+> 
+> Wen Congyang (5):
+>   memory-hotplug: try to offline the memory twice to avoid dependence
+>   memory-hotplug: remove redundant codes
+>   memory-hotplug: introduce new function arch_remove_memory() for
+>     removing page table depends on architecture
+>   memory-hotplug: Common APIs to support page tables hot-remove
+>   memory-hotplug: free node_data when a node is offlined
+> 
+> Yasuaki Ishimatsu (4):
+>   memory-hotplug: check whether all memory blocks are offlined or not
+>     when removing memory
+>   memory-hotplug: remove /sys/firmware/memmap/X sysfs
+>   memory-hotplug: implement register_page_bootmem_info_section of
+>     sparse-vmemmap
+>   memory-hotplug: memory_hotplug: clear zone when removing the memory
+> 
+>  arch/arm64/mm/mmu.c                  |    3 +
+>  arch/ia64/mm/discontig.c             |   10 +
+>  arch/ia64/mm/init.c                  |   18 ++
+>  arch/powerpc/mm/init_64.c            |   10 +
+>  arch/powerpc/mm/mem.c                |   12 +
+>  arch/s390/mm/init.c                  |   12 +
+>  arch/s390/mm/vmem.c                  |   10 +
+>  arch/sh/mm/init.c                    |   17 ++
+>  arch/sparc/mm/init_64.c              |   10 +
+>  arch/tile/mm/init.c                  |    8 +
+>  arch/x86/include/asm/pgtable_types.h |    1 +
+>  arch/x86/mm/init_32.c                |   12 +
+>  arch/x86/mm/init_64.c                |  390 +++++++++++++++++++++++++++++
+>  arch/x86/mm/pageattr.c               |   47 ++--
+>  drivers/acpi/acpi_memhotplug.c       |    8 +-
+>  drivers/base/memory.c                |    6 +
+>  drivers/firmware/memmap.c            |   96 +++++++-
+>  include/linux/bootmem.h              |    1 +
+>  include/linux/firmware-map.h         |    6 +
+>  include/linux/memory_hotplug.h       |   15 +-
+>  include/linux/mm.h                   |    4 +-
+>  mm/memory_hotplug.c                  |  459 +++++++++++++++++++++++++++++++---
+>  mm/sparse.c                          |    8 +-
+>  23 files changed, 1094 insertions(+), 69 deletions(-)
+> 
+> --
+> To unsubscribe, send a message with 'unsubscribe linux-mm' in
+> the body to majordomo@kvack.org.  For more info on Linux MM,
+> see: http://www.linux-mm.org/ .
+> Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
 
 
-
--- 
-I speak only for myself.
-Rafael J. Wysocki, Intel Open Source Technology Center.
+--
+To unsubscribe, send a message with 'unsubscribe linux-mm' in
+the body to majordomo@kvack.org.  For more info on Linux MM,
+see: http://www.linux-mm.org/ .
+Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
