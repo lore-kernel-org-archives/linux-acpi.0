@@ -1,223 +1,358 @@
-From: Toshi Kani <toshi.kani@hp.com>
-Subject: Re: [PATCH 1/4] ACPI / scan: Introduce struct acpi_scan_handler
-Date: Tue, 29 Jan 2013 16:27:28 -0700
-Message-ID: <1359502048.15120.75.camel@misato.fc.hp.com>
-References: <1873429.MS5RQDxTye@vostro.rjw.lan>
-	 <12270898.1ejuD0aCLg@vostro.rjw.lan>
-	 <1359500230.15120.58.camel@misato.fc.hp.com>
-	 <3143588.b2lxVgXVDr@vostro.rjw.lan>
+From: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
+Subject: Re: [Update][PATCH 4/4] ACPI / platform: Use struct acpi_scan_handler
+ for creating devices
+Date: Wed, 30 Jan 2013 08:51:01 +0900
+Message-ID: <51086065.8040100@jp.fujitsu.com>
+References: <1873429.MS5RQDxTye@vostro.rjw.lan> <510731FC.9040402@jp.fujitsu.com> <1626323.c4yXjdNWq0@vostro.rjw.lan> <1571295.NIttSVHKlb@vostro.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset="UTF-8"; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from g4t0015.houston.hp.com ([15.201.24.18]:5443 "EHLO
-	g4t0015.houston.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751067Ab3A2Xhb (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 29 Jan 2013 18:37:31 -0500
-In-Reply-To: <3143588.b2lxVgXVDr@vostro.rjw.lan>
+Received: from fgwmail6.fujitsu.co.jp ([192.51.44.36]:55303 "EHLO
+	fgwmail6.fujitsu.co.jp" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751560Ab3A2Xvk (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 29 Jan 2013 18:51:40 -0500
+In-Reply-To: <1571295.NIttSVHKlb@vostro.rjw.lan>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Bjorn Helgaas <bhelgaas@google.com>, Mika Westerberg <mika.westerberg@linux.intel.com>, Matthew Garrett <matthew.garrett@nebula.com>, Yinghai Lu <yinghai@kernel.org>, Jiang Liu <liuj97@gmail.com>, LKML <linux-kernel@vger.kernel.org>
+Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Bjorn Helgaas <bhelgaas@google.com>, Mika Westerberg <mika.westerberg@linux.intel.com>, Matthew Garrett <matthew.garrett@nebula.com>, Yinghai Lu <yinghai@kernel.org>, Jiang Liu <liuj97@gmail.com>, Toshi Kani <toshi.kani@hp.com>, LKML <linux-kernel@vger.kernel.org>
 
-On Wed, 2013-01-30 at 00:19 +0100, Rafael J. Wysocki wrote:
-> On Tuesday, January 29, 2013 03:57:10 PM Toshi Kani wrote:
-> > On Tue, 2013-01-29 at 22:32 +0100, Rafael J. Wysocki wrote:
-> > > On Tuesday, January 29, 2013 07:50:43 AM Toshi Kani wrote:
-> > > > On Tue, 2013-01-29 at 12:28 +0100, Rafael J. Wysocki wrote:
-> > > > > On Monday, January 28, 2013 07:35:39 PM Toshi Kani wrote:
-> > > > > > On Mon, 2013-01-28 at 13:59 +0100, Rafael J. Wysocki wrote:
-> > > > > > > From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
-> > > > > > > 
-> > > > > > > Introduce struct acpi_scan_handler for representing objects that
-> > > > > > > will do configuration tasks depending on ACPI device nodes'
-> > > > > > > hardware IDs (HIDs).
-> > > > > > > 
-> > > > > > > Currently, those tasks are done either directly by the ACPI namespace
-> > > > > > > scanning code or by ACPI device drivers designed specifically for
-> > > > > > > this purpose.  None of the above is desirable, however, because
-> > > > > > > doing that directly in the namespace scanning code makes that code
-> > > > > > > overly complicated and difficult to follow and doing that in
-> > > > > > > "special" device drivers leads to a great deal of confusion about
-> > > > > > > their role and to confusing interactions with the driver core (for
-> > > > > > > example, sysfs directories are created for those drivers, but they
-> > > > > > > are completely unnecessary and only increase the kernel's memory
-> > > > > > > footprint in vain).
-> > > > > > > 
-> > > > > > > Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
-> > > > > > > ---
-> > > > > > >  Documentation/acpi/scan_handlers.txt |   77 +++++++++++++++++++++++++++++++++++
-> > > > > > >  drivers/acpi/scan.c                  |   60 ++++++++++++++++++++++++---
-> > > > > > >  include/acpi/acpi_bus.h              |   14 ++++++
-> > > > > > >  3 files changed, 144 insertions(+), 7 deletions(-)
-> > > > > > > 
-> > > > > > > Index: test/include/acpi/acpi_bus.h
-> > > > > > > ===================================================================
-> > > > > > > --- test.orig/include/acpi/acpi_bus.h
-> > > > > > > +++ test/include/acpi/acpi_bus.h
-> > > > > > > @@ -84,6 +84,18 @@ struct acpi_driver;
-> > > > > > >  struct acpi_device;
-> > > > > > >  
-> > > > > > >  /*
-> > > > > > > + * ACPI Scan Handler
-> > > > > > > + * -----------------
-> > > > > > > + */
-> > > > > > > +
-> > > > > > > +struct acpi_scan_handler {
-> > > > > > > +	const struct acpi_device_id *ids;
-> > > > > > > +	struct list_head list_node;
-> > > > > > > +	int (*attach)(struct acpi_device *dev, const struct acpi_device_id *id);
-> > > > > > > +	void (*detach)(struct acpi_device *dev);
-> > > > > > > +};
-> > > > > > > +
-> > > > > > > +/*
-> > > > > > >   * ACPI Driver
-> > > > > > >   * -----------
-> > > > > > >   */
-> > > > > > > @@ -269,6 +281,7 @@ struct acpi_device {
-> > > > > > >  	struct acpi_device_wakeup wakeup;
-> > > > > > >  	struct acpi_device_perf performance;
-> > > > > > >  	struct acpi_device_dir dir;
-> > > > > > > +	struct acpi_scan_handler *handler;
-> > > > > > >  	struct acpi_driver *driver;
-> > > > > > >  	void *driver_data;
-> > > > > > >  	struct device dev;
-> > > > > > > @@ -382,6 +395,7 @@ int acpi_bus_receive_event(struct acpi_b
-> > > > > > >  static inline int acpi_bus_generate_proc_event(struct acpi_device *device, u8 type, int data)
-> > > > > > >  	{ return 0; }
-> > > > > > >  #endif
-> > > > > > > +int acpi_scan_add_handler(struct acpi_scan_handler *handler);
-> > > > > > >  int acpi_bus_register_driver(struct acpi_driver *driver);
-> > > > > > >  void acpi_bus_unregister_driver(struct acpi_driver *driver);
-> > > > > > >  int acpi_bus_scan(acpi_handle handle);
-> > > > > > > Index: test/drivers/acpi/scan.c
-> > > > > > > ===================================================================
-> > > > > > > --- test.orig/drivers/acpi/scan.c
-> > > > > > > +++ test/drivers/acpi/scan.c
-> > > > > > > @@ -53,6 +53,7 @@ static const struct acpi_device_id acpi_
-> > > > > > >  static LIST_HEAD(acpi_device_list);
-> > > > > > >  static LIST_HEAD(acpi_bus_id_list);
-> > > > > > >  static DEFINE_MUTEX(acpi_scan_lock);
-> > > > > > > +static LIST_HEAD(acpi_scan_handlers_list);
-> > > > > > >  DEFINE_MUTEX(acpi_device_lock);
-> > > > > > >  LIST_HEAD(acpi_wakeup_device_list);
-> > > > > > >  
-> > > > > > > @@ -62,6 +63,15 @@ struct acpi_device_bus_id{
-> > > > > > >  	struct list_head node;
-> > > > > > >  };
-> > > > > > >  
-> > > > > > > +int acpi_scan_add_handler(struct acpi_scan_handler *handler)
-> > > > > > > +{
-> > > > > > > +	if (!handler || !handler->attach)
-> > > > > > > +		return -EINVAL;
-> > > > > > > +
-> > > > > > > +	list_add_tail(&handler->list_node, &acpi_scan_handlers_list);
-> > > > > > > +	return 0;
-> > > > > > > +}
-> > > > > > > +
-> > > > > > >  /*
-> > > > > > >   * Creates hid/cid(s) string needed for modalias and uevent
-> > > > > > >   * e.g. on a device with hid:IBM0001 and cid:ACPI0001 you get:
-> > > > > > > @@ -1570,20 +1580,42 @@ static acpi_status acpi_bus_check_add(ac
-> > > > > > >  	return AE_OK;
-> > > > > > >  }
-> > > > > > >  
-> > > > > > > +static int acpi_scan_attach_handler(struct acpi_device *device)
-> > > > > > > +{
-> > > > > > > +	struct acpi_scan_handler *handler;
-> > > > > > > +	int ret = 0;
-> > > > > > > +
-> > > > > > > +	list_for_each_entry(handler, &acpi_scan_handlers_list, list_node) {
-> > > > > > > +		const struct acpi_device_id *id;
-> > > > > > > +
-> > > > > > > +		id = __acpi_match_device(device, handler->ids);
-> > > > > > > +		if (!id)
-> > > > > > > +			continue;
-> > > > > > > +
-> > > > > > > +		ret = handler->attach(device, id);
-> > > > > > > +		if (ret > 0) {
-> > > > > > > +			device->handler = handler;
-> > > > > > > +			break;
-> > > > > > > +		} else if (ret < 0) {
-> > > > > > > +			break;
-> > > > > > > +		}
-> > > > > > > +	}
-> > > > > > > +	return ret;
-> > > > > > > +}
-> > > > > > 
-> > > > > > Now that we have full control over the attach logic, it would be great
-> > > > > > if we can update it to match with the ACPI spec -- HID has priority over
-> > > > > > CIDs, and CIDs are also listed in their priority.  For example, Device-X
-> > > > > > has HID and CID.  In this case, this Device-X should be attached to
-> > > > > > Handler-A since it supports HID.  The current logic simply chooses a
-> > > > > > handler whichever registered before.  
-> > > > > > 
-> > > > > > Device-X: HID PNPID-A, CID PNPID-B
-> > > > > > Handler-A: PNPID-A
-> > > > > > Handler-B: PNPID-B
-> > > > > > 
-> > > > > > So, the attach logic should be something like:
-> > > > > > 
-> > > > > > list_for_each_entry(hwid, acpi_device->pnp.ids,) {
-> > > > > > 	list_for_each_entry(,&acpi_scan_handlers_list,)
-> > > > > > 		check if this handler supports a given hwid
-> > > > > > }
-> > > > > 
-> > > > > OK, I see the problem, but I think it's better to address it in a separate
-> > > > > patch on top of the current series.
-> > > > 
-> > > > I agree.
-> > > > 
-> > > > > I'm not sure what approach is best, though.  Do you think there should be two
-> > > > > passes the first of which will check HIDs only and the second one will check
-> > > > > CIDs?  Or do you have something different in mind?
-> > > > 
-> > > > HID and CIDs are already listed in their priority order in
-> > > > acpi_device->pnp.ids.  So, the single pass like I described above should
-> > > > work.
-> > > 
-> > > Well, I'm not sure if I understand you correctly.
-> > > 
-> > > The device is given and we need to find a handler for it.  So, it looks like
-> > > we first should check if any handler matches the HID.  This has to be a pass
-> > > through all handlers.  If there's no match, we need to check if any handler
-> > > matches any of the device IDs.  That will be the second pass, won't it?
-> > 
-> > acpi_device->pnp.ids has a list of HID->CID[0]->CID[1]..CID[n] since
-> > acpi_device_set_id() checks HID before CIDs.  So, the first pass is to
-> > check with the first entry of pnp.ids.  If no handler is found, then
-> > check the second entry, and so on.
-> 
-> I'd prefer to check HID and then all CIDs at once in accordance with the
-> following rule:
-> 1) Use the first handler that matches HID exactly.  If there's none:
-> 2) Use the first handler compatible with the given device.
+2013/01/29 21:30, Rafael J. Wysocki wrote:
+> On Tuesday, January 29, 2013 12:36:35 PM Rafael J. Wysocki wrote:
+>> On Tuesday, January 29, 2013 11:20:44 AM Yasuaki Ishimatsu wrote:
+>>> Hi Rafael,
+>>>
+>>> 2013/01/28 22:01, Rafael J. Wysocki wrote:
+>>>> From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+>>>>
+>>>> Currently, the ACPI namespace scanning code creates platform device
+>>>> objects for ACPI device nodes whose IDs match the contents of the
+>>>> acpi_platform_device_ids[] table.  However, this adds a superfluous
+>>>> special case into acpi_bus_device_attach() and makes it more
+>>>> difficult to follow than it has to be.  It also will make it more
+>>>> difficult to implement removal code for those platform device objects
+>>>> in the future.
+>>>>
+>>>> For the above reasons, introduce a struct acpi_scan_handler object
+>>>> for creating platform devices and move the code related to that from
+>>>> acpi_bus_device_attach() to the .attach() callback of that object.
+>>>> Also move the acpi_platform_device_ids[] table to acpi_platform.c.
+>>>>
+>>>> Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+>>>> ---
+>>>>    drivers/acpi/acpi_platform.c |   55 +++++++++++++++++++++++++++++++++++--------
+>>>>    drivers/acpi/internal.h      |    7 -----
+>>>>    drivers/acpi/scan.c          |   30 -----------------------
+>>>>    3 files changed, 47 insertions(+), 45 deletions(-)
+>>>>
+>>>> Index: test/drivers/acpi/acpi_platform.c
+>>>> ===================================================================
+>>>> --- test.orig/drivers/acpi/acpi_platform.c
+>>>> +++ test/drivers/acpi/acpi_platform.c
+>>>> @@ -22,6 +22,30 @@
+>>>>
+>>>>    ACPI_MODULE_NAME("platform");
+>>>>
+>>>> +/* Flags for acpi_create_platform_device */
+>>>> +#define ACPI_PLATFORM_CLK	BIT(0)
+>>>> +
+>>>> +/*
+>>>> + * The following ACPI IDs are known to be suitable for representing as
+>>>> + * platform devices.
+>>>> + */
+>>>> +static const struct acpi_device_id acpi_platform_device_ids[] = {
+>>>> +
+>>>> +	{ "PNP0D40" },
+>>>> +
+>>>> +	/* Haswell LPSS devices */
+>>>> +	{ "INT33C0", ACPI_PLATFORM_CLK },
+>>>> +	{ "INT33C1", ACPI_PLATFORM_CLK },
+>>>> +	{ "INT33C2", ACPI_PLATFORM_CLK },
+>>>> +	{ "INT33C3", ACPI_PLATFORM_CLK },
+>>>> +	{ "INT33C4", ACPI_PLATFORM_CLK },
+>>>> +	{ "INT33C5", ACPI_PLATFORM_CLK },
+>>>> +	{ "INT33C6", ACPI_PLATFORM_CLK },
+>>>> +	{ "INT33C7", ACPI_PLATFORM_CLK },
+>>>> +
+>>>> +	{ }
+>>>> +};
+>>>> +
+>>>>    static int acpi_create_platform_clks(struct acpi_device *adev)
+>>>>    {
+>>>>    	static struct platform_device *pdev;
+>>>> @@ -39,8 +63,7 @@ static int acpi_create_platform_clks(str
+>>>>    /**
+>>>>     * acpi_create_platform_device - Create platform device for ACPI device node
+>>>>     * @adev: ACPI device node to create a platform device for.
+>>>> - * @flags: ACPI_PLATFORM_* flags that affect the creation of the platform
+>>>> - *	   devices.
+>>>> + * @id: ACPI device ID used to match @adev.
+>>>>     *
+>>>>     * Check if the given @adev can be represented as a platform device and, if
+>>>>     * that's the case, create and register a platform device, populate its common
+>>>> @@ -48,9 +71,10 @@ static int acpi_create_platform_clks(str
+>>>>     *
+>>>>     * Name of the platform device will be the same as @adev's.
+>>>>     */
+>>>> -struct platform_device *acpi_create_platform_device(struct acpi_device *adev,
+>>>> -						    unsigned long flags)
+>>>> +static int acpi_create_platform_device(struct acpi_device *adev,
+>>>> +				       const struct acpi_device_id *id)
+>>>>    {
+>>>> +	unsigned long flags = id->driver_data;
+>>>>    	struct platform_device *pdev = NULL;
+>>>>    	struct acpi_device *acpi_parent;
+>>>>    	struct platform_device_info pdevinfo;
+>>>> @@ -59,25 +83,26 @@ struct platform_device *acpi_create_plat
+>>>>    	struct resource *resources;
+>>>>    	int count;
+>>>>
+>>>
+>>>> -	if ((flags & ACPI_PLATFORM_CLK) && acpi_create_platform_clks(adev)) {
+>>>> +	if (flags & ACPI_PLATFORM_CLK) {
+>>>> +		int ret = acpi_create_platform_clks(adev);
+>>>>    		dev_err(&adev->dev, "failed to create clocks\n");
+>>>> -		return NULL;
+>>>> +		return ret;
+>>>>    	}
+>>>
+>>> If (flag & ACPI_PLATFORM_CLK) is true, the acpi_create_platform_device()
+>>> always retruns with dev_err() messages. Why?
+>>
+>> Ah.  By mistake. :-)
+>>
+>> Thanks for poiting this out!
+>
+> Updated patch is appended.
+>
+> Thanks,
+> Rafael
+>
+> ---
+> From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+> Subject: ACPI / platform: Use struct acpi_scan_handler for creating devices
+>
+> Currently, the ACPI namespace scanning code creates platform device
+> objects for ACPI device nodes whose IDs match the contents of the
+> acpi_platform_device_ids[] table.  However, this adds a superfluous
+> special case into acpi_bus_device_attach() and makes it more
+> difficult to follow than it has to be.  It also will make it more
+> difficult to implement removal code for those platform device objects
+> in the future.
+>
+> For the above reasons, introduce a struct acpi_scan_handler object
+> for creating platform devices and move the code related to that from
+> acpi_bus_device_attach() to the .attach() callback of that object.
+> Also move the acpi_platform_device_ids[] table to acpi_platform.c.
+>
+> Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+> ---
 
-What do you mean by all CIDs at once?  CIDs also have priority when
-there are multiple CIDs.  That is, CID[0] takes priority over CID[1].
-So, going down the pnp.ids list handles the ordering correctly.
+Acked-by: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
 
+>   drivers/acpi/acpi_platform.c |   59 ++++++++++++++++++++++++++++++++++---------
+>   drivers/acpi/internal.h      |    7 -----
+>   drivers/acpi/scan.c          |   30 ---------------------
+>   3 files changed, 50 insertions(+), 46 deletions(-)
+>
+> Index: test/drivers/acpi/acpi_platform.c
+> ===================================================================
+> --- test.orig/drivers/acpi/acpi_platform.c
+> +++ test/drivers/acpi/acpi_platform.c
+> @@ -22,6 +22,30 @@
+>
+>   ACPI_MODULE_NAME("platform");
+>
+> +/* Flags for acpi_create_platform_device */
+> +#define ACPI_PLATFORM_CLK	BIT(0)
+> +
+> +/*
+> + * The following ACPI IDs are known to be suitable for representing as
+> + * platform devices.
+> + */
+> +static const struct acpi_device_id acpi_platform_device_ids[] = {
+> +
+> +	{ "PNP0D40" },
+> +
+> +	/* Haswell LPSS devices */
+> +	{ "INT33C0", ACPI_PLATFORM_CLK },
+> +	{ "INT33C1", ACPI_PLATFORM_CLK },
+> +	{ "INT33C2", ACPI_PLATFORM_CLK },
+> +	{ "INT33C3", ACPI_PLATFORM_CLK },
+> +	{ "INT33C4", ACPI_PLATFORM_CLK },
+> +	{ "INT33C5", ACPI_PLATFORM_CLK },
+> +	{ "INT33C6", ACPI_PLATFORM_CLK },
+> +	{ "INT33C7", ACPI_PLATFORM_CLK },
+> +
+> +	{ }
+> +};
+> +
+>   static int acpi_create_platform_clks(struct acpi_device *adev)
+>   {
+>   	static struct platform_device *pdev;
+> @@ -39,8 +63,7 @@ static int acpi_create_platform_clks(str
+>   /**
+>    * acpi_create_platform_device - Create platform device for ACPI device node
+>    * @adev: ACPI device node to create a platform device for.
+> - * @flags: ACPI_PLATFORM_* flags that affect the creation of the platform
+> - *	   devices.
+> + * @id: ACPI device ID used to match @adev.
+>    *
+>    * Check if the given @adev can be represented as a platform device and, if
+>    * that's the case, create and register a platform device, populate its common
+> @@ -48,9 +71,10 @@ static int acpi_create_platform_clks(str
+>    *
+>    * Name of the platform device will be the same as @adev's.
+>    */
+> -struct platform_device *acpi_create_platform_device(struct acpi_device *adev,
+> -						    unsigned long flags)
+> +static int acpi_create_platform_device(struct acpi_device *adev,
+> +				       const struct acpi_device_id *id)
+>   {
+> +	unsigned long flags = id->driver_data;
+>   	struct platform_device *pdev = NULL;
+>   	struct acpi_device *acpi_parent;
+>   	struct platform_device_info pdevinfo;
+> @@ -59,25 +83,28 @@ struct platform_device *acpi_create_plat
+>   	struct resource *resources;
+>   	int count;
+>
+> -	if ((flags & ACPI_PLATFORM_CLK) && acpi_create_platform_clks(adev)) {
+> -		dev_err(&adev->dev, "failed to create clocks\n");
+> -		return NULL;
+> +	if (flags & ACPI_PLATFORM_CLK) {
+> +		int ret = acpi_create_platform_clks(adev);
+> +		if (ret) {
+> +			dev_err(&adev->dev, "failed to create clocks\n");
+> +			return ret;
+> +		}
+>   	}
+>
+>   	/* If the ACPI node already has a physical device attached, skip it. */
+>   	if (adev->physical_node_count)
+> -		return NULL;
+> +		return 0;
+>
+>   	INIT_LIST_HEAD(&resource_list);
+>   	count = acpi_dev_get_resources(adev, &resource_list, NULL, NULL);
+>   	if (count <= 0)
+> -		return NULL;
+> +		return 0;
+>
+>   	resources = kmalloc(count * sizeof(struct resource), GFP_KERNEL);
+>   	if (!resources) {
+>   		dev_err(&adev->dev, "No memory for resources\n");
+>   		acpi_dev_free_resource_list(&resource_list);
+> -		return NULL;
+> +		return -ENOMEM;
+>   	}
+>   	count = 0;
+>   	list_for_each_entry(rentry, &resource_list, node)
+> @@ -123,5 +150,15 @@ struct platform_device *acpi_create_plat
+>   	}
+>
+>   	kfree(resources);
+> -	return pdev;
+> +	return 1;
+> +}
+> +
+> +static struct acpi_scan_handler platform_handler = {
+> +	.ids = acpi_platform_device_ids,
+> +	.attach = acpi_create_platform_device,
+> +};
+> +
+> +void __init acpi_platform_init(void)
+> +{
+> +	acpi_scan_add_handler(&platform_handler);
+>   }
+> Index: test/drivers/acpi/internal.h
+> ===================================================================
+> --- test.orig/drivers/acpi/internal.h
+> +++ test/drivers/acpi/internal.h
+> @@ -27,6 +27,7 @@ int init_acpi_device_notify(void);
+>   int acpi_scan_init(void);
+>   void acpi_pci_root_init(void);
+>   void acpi_pci_link_init(void);
+> +void acpi_platform_init(void);
+>   int acpi_sysfs_init(void);
+>   void acpi_csrt_init(void);
+>
+> @@ -119,10 +120,4 @@ static inline void suspend_nvs_restore(v
+>     -------------------------------------------------------------------------- */
+>   struct platform_device;
+>
+> -/* Flags for acpi_create_platform_device */
+> -#define ACPI_PLATFORM_CLK	BIT(0)
+> -
+> -struct platform_device *acpi_create_platform_device(struct acpi_device *adev,
+> -						    unsigned long flags);
+> -
+>   #endif /* _ACPI_INTERNAL_H_ */
+> Index: test/drivers/acpi/scan.c
+> ===================================================================
+> --- test.orig/drivers/acpi/scan.c
+> +++ test/drivers/acpi/scan.c
+> @@ -29,27 +29,6 @@ extern struct acpi_device *acpi_root;
+>
+>   static const char *dummy_hid = "device";
+>
+> -/*
+> - * The following ACPI IDs are known to be suitable for representing as
+> - * platform devices.
+> - */
+> -static const struct acpi_device_id acpi_platform_device_ids[] = {
+> -
+> -	{ "PNP0D40" },
+> -
+> -	/* Haswell LPSS devices */
+> -	{ "INT33C0", ACPI_PLATFORM_CLK },
+> -	{ "INT33C1", ACPI_PLATFORM_CLK },
+> -	{ "INT33C2", ACPI_PLATFORM_CLK },
+> -	{ "INT33C3", ACPI_PLATFORM_CLK },
+> -	{ "INT33C4", ACPI_PLATFORM_CLK },
+> -	{ "INT33C5", ACPI_PLATFORM_CLK },
+> -	{ "INT33C6", ACPI_PLATFORM_CLK },
+> -	{ "INT33C7", ACPI_PLATFORM_CLK },
+> -
+> -	{ }
+> -};
+> -
+>   static LIST_HEAD(acpi_device_list);
+>   static LIST_HEAD(acpi_bus_id_list);
+>   static DEFINE_MUTEX(acpi_scan_lock);
+> @@ -1606,7 +1585,6 @@ static int acpi_scan_attach_handler(stru
+>   static acpi_status acpi_bus_device_attach(acpi_handle handle, u32 lvl_not_used,
+>   					  void *not_used, void **ret_not_used)
+>   {
+> -	const struct acpi_device_id *id;
+>   	struct acpi_device *device;
+>   	unsigned long long sta_not_used;
+>   	int ret;
+> @@ -1621,13 +1599,6 @@ static acpi_status acpi_bus_device_attac
+>   	if (acpi_bus_get_device(handle, &device))
+>   		return AE_CTRL_DEPTH;
+>
+> -	id = __acpi_match_device(device, acpi_platform_device_ids);
+> -	if (id) {
+> -		/* This is a known good platform device. */
+> -		acpi_create_platform_device(device, id->driver_data);
+> -		return AE_OK;
+> -	}
+> -
+>   	ret = acpi_scan_attach_handler(device);
+>   	if (ret)
+>   		return ret > 0 ? AE_OK : AE_CTRL_DEPTH;
+> @@ -1775,6 +1746,7 @@ int __init acpi_scan_init(void)
+>
+>   	acpi_pci_root_init();
+>   	acpi_pci_link_init();
+> +	acpi_platform_init();
+>   	acpi_csrt_init();
+>
+>   	/*
+>
+>
+>
 
-> > > The difficulty is that the first item in pnp.ids need not be *the* HID.
-> > > It only will be the HID if ACPI_VALID_HID is set in the device info in
-> > > acpi_device_set_id().  So perhaps we need to add a hid_valid bit in
-> > > device->flags and only do the "HID pass" if that is set?
-> > 
-> > I do not think such bit is necessary for this.  _HID is required (unless
-> > it has _ADR), but _CID is optional.  So, the valid cases are that a
-> > device object has HID only, has both HID and CID(s), or has none of them
-> > (i.e. _ADR device).  If there is a device with CID only, this is a FW
-> > bug and we just have to check with CID then.
-> 
-> In addition to that there's a number of objects that we assign artificial HIDs.
-> I think we should treat them as CIDs rather than as real HIDs in this regard.
-
-When an object does not support the _HID/_CID combination, it means that
-this type of objects can only support a single characteristic, which is
-the same as a device object with HID only.  Therefore, an artificial ID
-should be considered as an HID.
-
-
-Thanks,
--Toshi
 
