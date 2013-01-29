@@ -1,79 +1,32 @@
-From: Huang Ying <ying.huang@intel.com>
-Subject: [PATCH 3/4] PCI/PM: Set pci_dev->set_d3cold in pci_set_power_state
-Date: Tue, 29 Jan 2013 12:34:17 +0800
-Message-ID: <1359434058-15918-4-git-send-email-ying.huang@intel.com>
-References: <1359434058-15918-1-git-send-email-ying.huang@intel.com>
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga02.intel.com ([134.134.136.20]:20512 "EHLO mga02.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753961Ab3A2Eec (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 28 Jan 2013 23:34:32 -0500
-In-Reply-To: <1359434058-15918-1-git-send-email-ying.huang@intel.com>
-Sender: linux-acpi-owner@vger.kernel.org
-List-Id: linux-acpi@vger.kernel.org
+From: Matthew Garrett <mjg59@srcf.ucam.org>
+Subject: Re: [RFC PATCH v5 4/8] ACPI, PCI: avoid building pci_slot as module
+Date: Tue, 29 Jan 2013 04:36:17 +0000
+Message-ID: <20130129043617.GA14395@srcf.ucam.org>
+References: <1358525267-14268-1-git-send-email-jiang.liu@huawei.com>
+ <1358525267-14268-5-git-send-email-jiang.liu@huawei.com>
+ <3500982.MUDp6kKU3R@vostro.rjw.lan>
+ <CAErSpo4fbNzFaBxH+eKD+BKVgghyCJEYLDMzc6_gdxABAPe3QQ@mail.gmail.com>
+ <CAE9FiQVM4+Wirpb3_D0Zxi4r1p9SAMi4ZrNYr=-eas-C6pKJYA@mail.gmail.com>
+ <CAErSpo7WbbzZ8cKfLvuE331ofWir2vswUnYaxVLBBYGFowedXQ@mail.gmail.com>
+ <CAE9FiQXkrYubkgbbOXmrEXvGZBZXMZ6sh8kGTpF1_=tD3OMPJw@mail.gmail.com>
+ <CAErSpo7vHXdh=ogvfZnxx9gqgiifWGa=XzS+ZKjXFFOPue4TTw@mail.gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-pci-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <CAErSpo7vHXdh=ogvfZnxx9gqgiifWGa=XzS+ZKjXFFOPue4TTw@mail.gmail.com>
+Sender: linux-pci-owner@vger.kernel.org
 To: Bjorn Helgaas <bhelgaas@google.com>
-Cc: linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, linux-pm@vger.kernel.org, linux-acpi@vger.kernel.org, "Rafael J. Wysocki" <rjw@sisk.pl>, Huang Ying <ying.huang@intel.com>
+Cc: Yinghai Lu <yinghai@kernel.org>, "Rafael J. Wysocki" <rjw@sisk.pl>, Jiang Liu <liuj97@gmail.com>, Jiang Liu <jiang.liu@huawei.com>, Kenji Kaneshige <kaneshige.kenji@jp.fujitsu.com>, Yijing Wang <wangyijing@huawei.com>, linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Toshi Kani <toshi.kani@hp.com>, Myron Stowe <myron.stowe@redhat.com>
+List-Id: linux-acpi@vger.kernel.org
 
-Because now pci_dev->set_d3cold is only used after
-pci_set_power_state(, PCI_D3cold) and before pci_set_power_state(,
-PCI_D0).  And we will use pci_dev->set_d3cold for D3cold support
-during system suspend too, but now pci_dev->set_d3cold is set only in
-runtime power management code path now.
+On Mon, Jan 28, 2013 at 03:14:11PM -0700, Bjorn Helgaas wrote:
 
-Signed-off-by: Huang Ying <ying.huang@intel.com>
----
- drivers/pci/pci-driver.c |    2 --
- drivers/pci/pci.c        |   12 +++++++-----
- 2 files changed, 7 insertions(+), 7 deletions(-)
+> CONFIG_ACPI_PCI_SLOT=y in RHEL6, so evidently they have this problem.
 
---- a/drivers/pci/pci-driver.c
-+++ b/drivers/pci/pci-driver.c
-@@ -1036,8 +1036,6 @@ static int pci_pm_runtime_resume(struct
- 
- 	rc = pm->runtime_resume(dev);
- 
--	pci_dev->set_d3cold = false;
--
- 	return rc;
- }
- 
---- a/drivers/pci/pci.c
-+++ b/drivers/pci/pci.c
-@@ -775,6 +775,9 @@ int pci_set_power_state(struct pci_dev *
- 	if (dev->current_state == state)
- 		return 0;
- 
-+	if (state == PCI_D3cold)
-+		dev->set_d3cold = true;
-+
- 	__pci_start_power_transition(dev, state);
- 
- 	/* This device is quirked not to be put into D3, so
-@@ -798,6 +801,9 @@ int pci_set_power_state(struct pci_dev *
- 	if (!error && dev->bus->self)
- 		pcie_aspm_powersave_config_link(dev->bus->self);
- 
-+	if (error || state != PCI_D3cold)
-+		dev->set_d3cold = false;
-+
- 	return error;
- }
- 
-@@ -1833,16 +1839,12 @@ int pci_finish_runtime_suspend(struct pc
- 	if (target_state == PCI_POWER_ERROR)
- 		return -EIO;
- 
--	dev->set_d3cold = target_state == PCI_D3cold;
--
- 	__pci_enable_wake(dev, target_state, true, pci_dev_run_wake(dev));
- 
- 	error = pci_set_power_state(dev, target_state);
- 
--	if (error) {
-+	if (error)
- 		__pci_enable_wake(dev, target_state, true, false);
--		dev->set_d3cold = false;
--	}
- 
- 	return error;
- }
+I'm not aware of anyone ever filing any bugs against it, either, though 
+Myron would have a better idea. What's the worst case outcome of someone 
+ending up with an incorrect slot number?
+
+-- 
+Matthew Garrett | mjg59@srcf.ucam.org
