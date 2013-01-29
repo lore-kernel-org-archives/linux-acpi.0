@@ -1,470 +1,177 @@
-From: Simon Jeons <simon.jeons@gmail.com>
-Subject: Re: [PATCH v6 08/15] memory-hotplug: Common APIs to support page
- tables hot-remove
-Date: Tue, 29 Jan 2013 07:04:54 -0600
-Message-ID: <1359464694.1624.18.camel@kernel>
-References: <1357723959-5416-1-git-send-email-tangchen@cn.fujitsu.com>
-	 <1357723959-5416-9-git-send-email-tangchen@cn.fujitsu.com>
+From: Toshi Kani <toshi.kani@hp.com>
+Subject: Re: [PATCH 1/4] ACPI / scan: Introduce struct acpi_scan_handler
+Date: Tue, 29 Jan 2013 07:50:43 -0700
+Message-ID: <1359471043.15120.38.camel@misato.fc.hp.com>
+References: <1873429.MS5RQDxTye@vostro.rjw.lan>
+	 <1408351.aVGQgvLeMo@vostro.rjw.lan>
+	 <1359426939.15120.34.camel@misato.fc.hp.com>
+	 <31634722.1LgzRDeVay@vostro.rjw.lan>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 7bit
-Return-path: <owner-linux-mm@kvack.org>
-In-Reply-To: <1357723959-5416-9-git-send-email-tangchen@cn.fujitsu.com>
-Sender: owner-linux-mm@kvack.org
-To: Tang Chen <tangchen@cn.fujitsu.com>
-Cc: akpm@linux-foundation.org, rientjes@google.com, len.brown@intel.com, benh@kernel.crashing.org, paulus@samba.org, cl@linux.com, minchan.kim@gmail.com, kosaki.motohiro@jp.fujitsu.com, isimatu.yasuaki@jp.fujitsu.com, wujianguo@huawei.com, wency@cn.fujitsu.com, hpa@zytor.com, linfeng@cn.fujitsu.com, laijs@cn.fujitsu.com, mgorman@suse.de, yinghai@kernel.org, glommer@parallels.com, x86@kernel.org, linux-mm@kvack.org, linux-kernel@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, linux-acpi@vger.kernel.org, linux-s390@vger.kernel.org, linux-sh@vger.kernel.org, linux-ia64@vger.kernel.org, cmetcalf@tilera.com, sparclinux@vger.kernel.org
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from g4t0016.houston.hp.com ([15.201.24.19]:41265 "EHLO
+	g4t0016.houston.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756642Ab3A2PC7 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 29 Jan 2013 10:02:59 -0500
+In-Reply-To: <31634722.1LgzRDeVay@vostro.rjw.lan>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Bjorn Helgaas <bhelgaas@google.com>, Mika Westerberg <mika.westerberg@linux.intel.com>, Matthew Garrett <matthew.garrett@nebula.com>, Yinghai Lu <yinghai@kernel.org>, Jiang Liu <liuj97@gmail.com>, LKML <linux-kernel@vger.kernel.org>
 
-Hi Tang,
-On Wed, 2013-01-09 at 17:32 +0800, Tang Chen wrote:
-> From: Wen Congyang <wency@cn.fujitsu.com>
+On Tue, 2013-01-29 at 12:28 +0100, Rafael J. Wysocki wrote:
+> On Monday, January 28, 2013 07:35:39 PM Toshi Kani wrote:
+> > On Mon, 2013-01-28 at 13:59 +0100, Rafael J. Wysocki wrote:
+> > > From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+> > > 
+> > > Introduce struct acpi_scan_handler for representing objects that
+> > > will do configuration tasks depending on ACPI device nodes'
+> > > hardware IDs (HIDs).
+> > > 
+> > > Currently, those tasks are done either directly by the ACPI namespace
+> > > scanning code or by ACPI device drivers designed specifically for
+> > > this purpose.  None of the above is desirable, however, because
+> > > doing that directly in the namespace scanning code makes that code
+> > > overly complicated and difficult to follow and doing that in
+> > > "special" device drivers leads to a great deal of confusion about
+> > > their role and to confusing interactions with the driver core (for
+> > > example, sysfs directories are created for those drivers, but they
+> > > are completely unnecessary and only increase the kernel's memory
+> > > footprint in vain).
+> > > 
+> > > Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+> > > ---
+> > >  Documentation/acpi/scan_handlers.txt |   77 +++++++++++++++++++++++++++++++++++
+> > >  drivers/acpi/scan.c                  |   60 ++++++++++++++++++++++++---
+> > >  include/acpi/acpi_bus.h              |   14 ++++++
+> > >  3 files changed, 144 insertions(+), 7 deletions(-)
+> > > 
+> > > Index: test/include/acpi/acpi_bus.h
+> > > ===================================================================
+> > > --- test.orig/include/acpi/acpi_bus.h
+> > > +++ test/include/acpi/acpi_bus.h
+> > > @@ -84,6 +84,18 @@ struct acpi_driver;
+> > >  struct acpi_device;
+> > >  
+> > >  /*
+> > > + * ACPI Scan Handler
+> > > + * -----------------
+> > > + */
+> > > +
+> > > +struct acpi_scan_handler {
+> > > +	const struct acpi_device_id *ids;
+> > > +	struct list_head list_node;
+> > > +	int (*attach)(struct acpi_device *dev, const struct acpi_device_id *id);
+> > > +	void (*detach)(struct acpi_device *dev);
+> > > +};
+> > > +
+> > > +/*
+> > >   * ACPI Driver
+> > >   * -----------
+> > >   */
+> > > @@ -269,6 +281,7 @@ struct acpi_device {
+> > >  	struct acpi_device_wakeup wakeup;
+> > >  	struct acpi_device_perf performance;
+> > >  	struct acpi_device_dir dir;
+> > > +	struct acpi_scan_handler *handler;
+> > >  	struct acpi_driver *driver;
+> > >  	void *driver_data;
+> > >  	struct device dev;
+> > > @@ -382,6 +395,7 @@ int acpi_bus_receive_event(struct acpi_b
+> > >  static inline int acpi_bus_generate_proc_event(struct acpi_device *device, u8 type, int data)
+> > >  	{ return 0; }
+> > >  #endif
+> > > +int acpi_scan_add_handler(struct acpi_scan_handler *handler);
+> > >  int acpi_bus_register_driver(struct acpi_driver *driver);
+> > >  void acpi_bus_unregister_driver(struct acpi_driver *driver);
+> > >  int acpi_bus_scan(acpi_handle handle);
+> > > Index: test/drivers/acpi/scan.c
+> > > ===================================================================
+> > > --- test.orig/drivers/acpi/scan.c
+> > > +++ test/drivers/acpi/scan.c
+> > > @@ -53,6 +53,7 @@ static const struct acpi_device_id acpi_
+> > >  static LIST_HEAD(acpi_device_list);
+> > >  static LIST_HEAD(acpi_bus_id_list);
+> > >  static DEFINE_MUTEX(acpi_scan_lock);
+> > > +static LIST_HEAD(acpi_scan_handlers_list);
+> > >  DEFINE_MUTEX(acpi_device_lock);
+> > >  LIST_HEAD(acpi_wakeup_device_list);
+> > >  
+> > > @@ -62,6 +63,15 @@ struct acpi_device_bus_id{
+> > >  	struct list_head node;
+> > >  };
+> > >  
+> > > +int acpi_scan_add_handler(struct acpi_scan_handler *handler)
+> > > +{
+> > > +	if (!handler || !handler->attach)
+> > > +		return -EINVAL;
+> > > +
+> > > +	list_add_tail(&handler->list_node, &acpi_scan_handlers_list);
+> > > +	return 0;
+> > > +}
+> > > +
+> > >  /*
+> > >   * Creates hid/cid(s) string needed for modalias and uevent
+> > >   * e.g. on a device with hid:IBM0001 and cid:ACPI0001 you get:
+> > > @@ -1570,20 +1580,42 @@ static acpi_status acpi_bus_check_add(ac
+> > >  	return AE_OK;
+> > >  }
+> > >  
+> > > +static int acpi_scan_attach_handler(struct acpi_device *device)
+> > > +{
+> > > +	struct acpi_scan_handler *handler;
+> > > +	int ret = 0;
+> > > +
+> > > +	list_for_each_entry(handler, &acpi_scan_handlers_list, list_node) {
+> > > +		const struct acpi_device_id *id;
+> > > +
+> > > +		id = __acpi_match_device(device, handler->ids);
+> > > +		if (!id)
+> > > +			continue;
+> > > +
+> > > +		ret = handler->attach(device, id);
+> > > +		if (ret > 0) {
+> > > +			device->handler = handler;
+> > > +			break;
+> > > +		} else if (ret < 0) {
+> > > +			break;
+> > > +		}
+> > > +	}
+> > > +	return ret;
+> > > +}
+> > 
+> > Now that we have full control over the attach logic, it would be great
+> > if we can update it to match with the ACPI spec -- HID has priority over
+> > CIDs, and CIDs are also listed in their priority.  For example, Device-X
+> > has HID and CID.  In this case, this Device-X should be attached to
+> > Handler-A since it supports HID.  The current logic simply chooses a
+> > handler whichever registered before.  
+> > 
+> > Device-X: HID PNPID-A, CID PNPID-B
+> > Handler-A: PNPID-A
+> > Handler-B: PNPID-B
+> > 
+> > So, the attach logic should be something like:
+> > 
+> > list_for_each_entry(hwid, acpi_device->pnp.ids,) {
+> > 	list_for_each_entry(,&acpi_scan_handlers_list,)
+> > 		check if this handler supports a given hwid
+> > }
 > 
-> When memory is removed, the corresponding pagetables should alse be removed.
-> This patch introduces some common APIs to support vmemmap pagetable and x86_64
-> architecture pagetable removing.
+> OK, I see the problem, but I think it's better to address it in a separate
+> patch on top of the current series.
 
-Why don't need to build_all_zonelists like online_pages does during
-hot-add path(add_memory)?
+I agree.
 
-> 
-> All pages of virtual mapping in removed memory cannot be freedi if some pages
-> used as PGD/PUD includes not only removed memory but also other memory. So the
-> patch uses the following way to check whether page can be freed or not.
-> 
->  1. When removing memory, the page structs of the revmoved memory are filled
->     with 0FD.
->  2. All page structs are filled with 0xFD on PT/PMD, PT/PMD can be cleared.
->     In this case, the page used as PT/PMD can be freed.
-> 
-> Signed-off-by: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
-> Signed-off-by: Jianguo Wu <wujianguo@huawei.com>
-> Signed-off-by: Wen Congyang <wency@cn.fujitsu.com>
-> Signed-off-by: Tang Chen <tangchen@cn.fujitsu.com>
-> ---
->  arch/x86/include/asm/pgtable_types.h |    1 +
->  arch/x86/mm/init_64.c                |  299 ++++++++++++++++++++++++++++++++++
->  arch/x86/mm/pageattr.c               |   47 +++---
->  include/linux/bootmem.h              |    1 +
->  4 files changed, 326 insertions(+), 22 deletions(-)
-> 
-> diff --git a/arch/x86/include/asm/pgtable_types.h b/arch/x86/include/asm/pgtable_types.h
-> index 3c32db8..4b6fd2a 100644
-> --- a/arch/x86/include/asm/pgtable_types.h
-> +++ b/arch/x86/include/asm/pgtable_types.h
-> @@ -352,6 +352,7 @@ static inline void update_page_count(int level, unsigned long pages) { }
->   * as a pte too.
->   */
->  extern pte_t *lookup_address(unsigned long address, unsigned int *level);
-> +extern int __split_large_page(pte_t *kpte, unsigned long address, pte_t *pbase);
->  
->  #endif	/* !__ASSEMBLY__ */
->  
-> diff --git a/arch/x86/mm/init_64.c b/arch/x86/mm/init_64.c
-> index 9ac1723..fe01116 100644
-> --- a/arch/x86/mm/init_64.c
-> +++ b/arch/x86/mm/init_64.c
-> @@ -682,6 +682,305 @@ int arch_add_memory(int nid, u64 start, u64 size)
->  }
->  EXPORT_SYMBOL_GPL(arch_add_memory);
->  
-> +#define PAGE_INUSE 0xFD
-> +
-> +static void __meminit free_pagetable(struct page *page, int order)
-> +{
-> +	struct zone *zone;
-> +	bool bootmem = false;
-> +	unsigned long magic;
-> +	unsigned int nr_pages = 1 << order;
-> +
-> +	/* bootmem page has reserved flag */
-> +	if (PageReserved(page)) {
-> +		__ClearPageReserved(page);
-> +		bootmem = true;
-> +
-> +		magic = (unsigned long)page->lru.next;
-> +		if (magic == SECTION_INFO || magic == MIX_SECTION_INFO) {
-> +			while (nr_pages--)
-> +				put_page_bootmem(page++);
-> +		} else
-> +			__free_pages_bootmem(page, order);
-> +	} else
-> +		free_pages((unsigned long)page_address(page), order);
-> +
-> +	/*
-> +	 * SECTION_INFO pages and MIX_SECTION_INFO pages
-> +	 * are all allocated by bootmem.
-> +	 */
-> +	if (bootmem) {
-> +		zone = page_zone(page);
-> +		zone_span_writelock(zone);
-> +		zone->present_pages += nr_pages;
-> +		zone_span_writeunlock(zone);
-> +		totalram_pages += nr_pages;
-> +	}
-> +}
-> +
-> +static void __meminit free_pte_table(pte_t *pte_start, pmd_t *pmd)
-> +{
-> +	pte_t *pte;
-> +	int i;
-> +
-> +	for (i = 0; i < PTRS_PER_PTE; i++) {
-> +		pte = pte_start + i;
-> +		if (pte_val(*pte))
-> +			return;
-> +	}
-> +
-> +	/* free a pte talbe */
-> +	free_pagetable(pmd_page(*pmd), 0);
-> +	spin_lock(&init_mm.page_table_lock);
-> +	pmd_clear(pmd);
-> +	spin_unlock(&init_mm.page_table_lock);
-> +}
-> +
-> +static void __meminit free_pmd_table(pmd_t *pmd_start, pud_t *pud)
-> +{
-> +	pmd_t *pmd;
-> +	int i;
-> +
-> +	for (i = 0; i < PTRS_PER_PMD; i++) {
-> +		pmd = pmd_start + i;
-> +		if (pmd_val(*pmd))
-> +			return;
-> +	}
-> +
-> +	/* free a pmd talbe */
-> +	free_pagetable(pud_page(*pud), 0);
-> +	spin_lock(&init_mm.page_table_lock);
-> +	pud_clear(pud);
-> +	spin_unlock(&init_mm.page_table_lock);
-> +}
-> +
-> +/* Return true if pgd is changed, otherwise return false. */
-> +static bool __meminit free_pud_table(pud_t *pud_start, pgd_t *pgd)
-> +{
-> +	pud_t *pud;
-> +	int i;
-> +
-> +	for (i = 0; i < PTRS_PER_PUD; i++) {
-> +		pud = pud_start + i;
-> +		if (pud_val(*pud))
-> +			return false;
-> +	}
-> +
-> +	/* free a pud table */
-> +	free_pagetable(pgd_page(*pgd), 0);
-> +	spin_lock(&init_mm.page_table_lock);
-> +	pgd_clear(pgd);
-> +	spin_unlock(&init_mm.page_table_lock);
-> +
-> +	return true;
-> +}
-> +
-> +static void __meminit
-> +remove_pte_table(pte_t *pte_start, unsigned long addr, unsigned long end,
-> +		 bool direct)
-> +{
-> +	unsigned long next, pages = 0;
-> +	pte_t *pte;
-> +	void *page_addr;
-> +	phys_addr_t phys_addr;
-> +
-> +	pte = pte_start + pte_index(addr);
-> +	for (; addr < end; addr = next, pte++) {
-> +		next = (addr + PAGE_SIZE) & PAGE_MASK;
-> +		if (next > end)
-> +			next = end;
-> +
-> +		if (!pte_present(*pte))
-> +			continue;
-> +
-> +		/*
-> +		 * We mapped [0,1G) memory as identity mapping when
-> +		 * initializing, in arch/x86/kernel/head_64.S. These
-> +		 * pagetables cannot be removed.
-> +		 */
-> +		phys_addr = pte_val(*pte) + (addr & PAGE_MASK);
-> +		if (phys_addr < (phys_addr_t)0x40000000)
-> +			return;
-> +
-> +		if (IS_ALIGNED(addr, PAGE_SIZE) &&
-> +		    IS_ALIGNED(next, PAGE_SIZE)) {
-> +			if (!direct) {
-> +				free_pagetable(pte_page(*pte), 0);
-> +				pages++;
-> +			}
-> +
-> +			spin_lock(&init_mm.page_table_lock);
-> +			pte_clear(&init_mm, addr, pte);
-> +			spin_unlock(&init_mm.page_table_lock);
-> +		} else {
-> +			/*
-> +			 * If we are not removing the whole page, it means
-> +			 * other ptes in this page are being used and we canot
-> +			 * remove them. So fill the unused ptes with 0xFD, and
-> +			 * remove the page when it is wholly filled with 0xFD.
-> +			 */
-> +			memset((void *)addr, PAGE_INUSE, next - addr);
-> +			page_addr = page_address(pte_page(*pte));
-> +
-> +			if (!memchr_inv(page_addr, PAGE_INUSE, PAGE_SIZE)) {
-> +				free_pagetable(pte_page(*pte), 0);
-> +				pages++;
-> +
-> +				spin_lock(&init_mm.page_table_lock);
-> +				pte_clear(&init_mm, addr, pte);
-> +				spin_unlock(&init_mm.page_table_lock);
-> +			}
-> +		}
-> +	}
-> +
-> +	/* Call free_pte_table() in remove_pmd_table(). */
-> +	flush_tlb_all();
-> +	if (direct)
-> +		update_page_count(PG_LEVEL_4K, -pages);
-> +}
-> +
-> +static void __meminit
-> +remove_pmd_table(pmd_t *pmd_start, unsigned long addr, unsigned long end,
-> +		 bool direct)
-> +{
-> +	unsigned long pte_phys, next, pages = 0;
-> +	pte_t *pte_base;
-> +	pmd_t *pmd;
-> +
-> +	pmd = pmd_start + pmd_index(addr);
-> +	for (; addr < end; addr = next, pmd++) {
-> +		next = pmd_addr_end(addr, end);
-> +
-> +		if (!pmd_present(*pmd))
-> +			continue;
-> +
-> +		if (pmd_large(*pmd)) {
-> +			if (IS_ALIGNED(addr, PMD_SIZE) &&
-> +			    IS_ALIGNED(next, PMD_SIZE)) {
-> +				if (!direct) {
-> +					free_pagetable(pmd_page(*pmd),
-> +						       get_order(PMD_SIZE));
-> +					pages++;
-> +				}
-> +
-> +				spin_lock(&init_mm.page_table_lock);
-> +				pmd_clear(pmd);
-> +				spin_unlock(&init_mm.page_table_lock);
-> +				continue;
-> +			}
-> +
-> +			/*
-> +			 * We use 2M page, but we need to remove part of them,
-> +			 * so split 2M page to 4K page.
-> +			 */
-> +			pte_base = (pte_t *)alloc_low_page(&pte_phys);
-> +			BUG_ON(!pte_base);
-> +			__split_large_page((pte_t *)pmd, addr,
-> +					   (pte_t *)pte_base);
-> +
-> +			spin_lock(&init_mm.page_table_lock);
-> +			pmd_populate_kernel(&init_mm, pmd, __va(pte_phys));
-> +			spin_unlock(&init_mm.page_table_lock);
-> +
-> +			flush_tlb_all();
-> +		}
-> +
-> +		pte_base = (pte_t *)map_low_page((pte_t *)pmd_page_vaddr(*pmd));
-> +		remove_pte_table(pte_base, addr, next, direct);
-> +		free_pte_table(pte_base, pmd);
-> +		unmap_low_page(pte_base);
-> +	}
-> +
-> +	/* Call free_pmd_table() in remove_pud_table(). */
-> +	if (direct)
-> +		update_page_count(PG_LEVEL_2M, -pages);
-> +}
-> +
-> +static void __meminit
-> +remove_pud_table(pud_t *pud_start, unsigned long addr, unsigned long end,
-> +		 bool direct)
-> +{
-> +	unsigned long pmd_phys, next, pages = 0;
-> +	pmd_t *pmd_base;
-> +	pud_t *pud;
-> +
-> +	pud = pud_start + pud_index(addr);
-> +	for (; addr < end; addr = next, pud++) {
-> +		next = pud_addr_end(addr, end);
-> +
-> +		if (!pud_present(*pud))
-> +			continue;
-> +
-> +		if (pud_large(*pud)) {
-> +			if (IS_ALIGNED(addr, PUD_SIZE) &&
-> +			    IS_ALIGNED(next, PUD_SIZE)) {
-> +				if (!direct) {
-> +					free_pagetable(pud_page(*pud),
-> +						       get_order(PUD_SIZE));
-> +					pages++;
-> +				}
-> +
-> +				spin_lock(&init_mm.page_table_lock);
-> +				pud_clear(pud);
-> +				spin_unlock(&init_mm.page_table_lock);
-> +				continue;
-> +			}
-> +
-> +			/*
-> +			 * We use 1G page, but we need to remove part of them,
-> +			 * so split 1G page to 2M page.
-> +			 */
-> +			pmd_base = (pmd_t *)alloc_low_page(&pmd_phys);
-> +			BUG_ON(!pmd_base);
-> +			__split_large_page((pte_t *)pud, addr,
-> +					   (pte_t *)pmd_base);
-> +
-> +			spin_lock(&init_mm.page_table_lock);
-> +			pud_populate(&init_mm, pud, __va(pmd_phys));
-> +			spin_unlock(&init_mm.page_table_lock);
-> +
-> +			flush_tlb_all();
-> +		}
-> +
-> +		pmd_base = (pmd_t *)map_low_page((pmd_t *)pud_page_vaddr(*pud));
-> +		remove_pmd_table(pmd_base, addr, next, direct);
-> +		free_pmd_table(pmd_base, pud);
-> +		unmap_low_page(pmd_base);
-> +	}
-> +
-> +	if (direct)
-> +		update_page_count(PG_LEVEL_1G, -pages);
-> +}
-> +
-> +/* start and end are both virtual address. */
-> +static void __meminit
-> +remove_pagetable(unsigned long start, unsigned long end, bool direct)
-> +{
-> +	unsigned long next;
-> +	pgd_t *pgd;
-> +	pud_t *pud;
-> +	bool pgd_changed = false;
-> +
-> +	for (; start < end; start = next) {
-> +		pgd = pgd_offset_k(start);
-> +		if (!pgd_present(*pgd))
-> +			continue;
-> +
-> +		next = pgd_addr_end(start, end);
-> +
-> +		pud = (pud_t *)map_low_page((pud_t *)pgd_page_vaddr(*pgd));
-> +		remove_pud_table(pud, start, next, direct);
-> +		if (free_pud_table(pud, pgd))
-> +			pgd_changed = true;
-> +		unmap_low_page(pud);
-> +	}
-> +
-> +	if (pgd_changed)
-> +		sync_global_pgds(start, end - 1);
-> +
-> +	flush_tlb_all();
-> +}
-> +
->  #ifdef CONFIG_MEMORY_HOTREMOVE
->  int __ref arch_remove_memory(u64 start, u64 size)
->  {
-> diff --git a/arch/x86/mm/pageattr.c b/arch/x86/mm/pageattr.c
-> index a718e0d..7dcb6f9 100644
-> --- a/arch/x86/mm/pageattr.c
-> +++ b/arch/x86/mm/pageattr.c
-> @@ -501,21 +501,13 @@ out_unlock:
->  	return do_split;
->  }
->  
-> -static int split_large_page(pte_t *kpte, unsigned long address)
-> +int __split_large_page(pte_t *kpte, unsigned long address, pte_t *pbase)
->  {
->  	unsigned long pfn, pfninc = 1;
->  	unsigned int i, level;
-> -	pte_t *pbase, *tmp;
-> +	pte_t *tmp;
->  	pgprot_t ref_prot;
-> -	struct page *base;
-> -
-> -	if (!debug_pagealloc)
-> -		spin_unlock(&cpa_lock);
-> -	base = alloc_pages(GFP_KERNEL | __GFP_NOTRACK, 0);
-> -	if (!debug_pagealloc)
-> -		spin_lock(&cpa_lock);
-> -	if (!base)
-> -		return -ENOMEM;
-> +	struct page *base = virt_to_page(pbase);
->  
->  	spin_lock(&pgd_lock);
->  	/*
-> @@ -523,10 +515,11 @@ static int split_large_page(pte_t *kpte, unsigned long address)
->  	 * up for us already:
->  	 */
->  	tmp = lookup_address(address, &level);
-> -	if (tmp != kpte)
-> -		goto out_unlock;
-> +	if (tmp != kpte) {
-> +		spin_unlock(&pgd_lock);
-> +		return 1;
-> +	}
->  
-> -	pbase = (pte_t *)page_address(base);
->  	paravirt_alloc_pte(&init_mm, page_to_pfn(base));
->  	ref_prot = pte_pgprot(pte_clrhuge(*kpte));
->  	/*
-> @@ -579,17 +572,27 @@ static int split_large_page(pte_t *kpte, unsigned long address)
->  	 * going on.
->  	 */
->  	__flush_tlb_all();
-> +	spin_unlock(&pgd_lock);
->  
-> -	base = NULL;
-> +	return 0;
-> +}
->  
-> -out_unlock:
-> -	/*
-> -	 * If we dropped out via the lookup_address check under
-> -	 * pgd_lock then stick the page back into the pool:
-> -	 */
-> -	if (base)
-> +static int split_large_page(pte_t *kpte, unsigned long address)
-> +{
-> +	pte_t *pbase;
-> +	struct page *base;
-> +
-> +	if (!debug_pagealloc)
-> +		spin_unlock(&cpa_lock);
-> +	base = alloc_pages(GFP_KERNEL | __GFP_NOTRACK, 0);
-> +	if (!debug_pagealloc)
-> +		spin_lock(&cpa_lock);
-> +	if (!base)
-> +		return -ENOMEM;
-> +
-> +	pbase = (pte_t *)page_address(base);
-> +	if (__split_large_page(kpte, address, pbase))
->  		__free_page(base);
-> -	spin_unlock(&pgd_lock);
->  
->  	return 0;
->  }
-> diff --git a/include/linux/bootmem.h b/include/linux/bootmem.h
-> index 3f778c2..190ff06 100644
-> --- a/include/linux/bootmem.h
-> +++ b/include/linux/bootmem.h
-> @@ -53,6 +53,7 @@ extern void free_bootmem_node(pg_data_t *pgdat,
->  			      unsigned long size);
->  extern void free_bootmem(unsigned long physaddr, unsigned long size);
->  extern void free_bootmem_late(unsigned long physaddr, unsigned long size);
-> +extern void __free_pages_bootmem(struct page *page, unsigned int order);
->  
->  /*
->   * Flags for reserve_bootmem (also if CONFIG_HAVE_ARCH_BOOTMEM_NODE,
+> I'm not sure what approach is best, though.  Do you think there should be two
+> passes the first of which will check HIDs only and the second one will check
+> CIDs?  Or do you have something different in mind?
 
+HID and CIDs are already listed in their priority order in
+acpi_device->pnp.ids.  So, the single pass like I described above should
+work.
 
---
-To unsubscribe, send a message with 'unsubscribe linux-mm' in
-the body to majordomo@kvack.org.  For more info on Linux MM,
-see: http://www.linux-mm.org/ .
-Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
+Thanks,
+-Toshi
+
