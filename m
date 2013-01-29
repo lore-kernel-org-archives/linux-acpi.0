@@ -1,51 +1,99 @@
-From: Yinghai Lu <yinghai@kernel.org>
-Subject: Re: [RFC PATCH v5 4/8] ACPI, PCI: avoid building pci_slot as module
-Date: Mon, 28 Jan 2013 14:58:15 -0800
-Message-ID: <CAE9FiQU84OSQrQJEGAQTDzVv8kGCi+fmgM8+ycoMXMUfHsNe-g@mail.gmail.com>
-References: <1358525267-14268-1-git-send-email-jiang.liu@huawei.com>
-	<1358525267-14268-5-git-send-email-jiang.liu@huawei.com>
-	<3500982.MUDp6kKU3R@vostro.rjw.lan>
-	<CAErSpo4fbNzFaBxH+eKD+BKVgghyCJEYLDMzc6_gdxABAPe3QQ@mail.gmail.com>
-	<CAE9FiQVM4+Wirpb3_D0Zxi4r1p9SAMi4ZrNYr=-eas-C6pKJYA@mail.gmail.com>
-	<CAErSpo7WbbzZ8cKfLvuE331ofWir2vswUnYaxVLBBYGFowedXQ@mail.gmail.com>
-	<CAE9FiQXkrYubkgbbOXmrEXvGZBZXMZ6sh8kGTpF1_=tD3OMPJw@mail.gmail.com>
-	<CAErSpo7vHXdh=ogvfZnxx9gqgiifWGa=XzS+ZKjXFFOPue4TTw@mail.gmail.com>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: Re: [RFC PATCH v5 0/8] introduce PCI bus notifier chain to get rid of the ACPI PCI subdriver interfaces
+Date: Tue, 29 Jan 2013 01:34:29 +0100
+Message-ID: <1598719.tGLtx5aHMZ@vostro.rjw.lan>
+References: <1358525267-14268-1-git-send-email-jiang.liu@huawei.com> <CAErSpo6M-c3diVEUpUESgL=2PenxHYkW1eb=OGBdxxWwkge-Bw@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-ie0-f176.google.com ([209.85.223.176]:54813 "EHLO
-	mail-ie0-f176.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750977Ab3A1W6P (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 28 Jan 2013 17:58:15 -0500
-In-Reply-To: <CAErSpo7vHXdh=ogvfZnxx9gqgiifWGa=XzS+ZKjXFFOPue4TTw@mail.gmail.com>
-Sender: linux-acpi-owner@vger.kernel.org
-List-Id: linux-acpi@vger.kernel.org
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7Bit
+Return-path: <linux-pci-owner@vger.kernel.org>
+In-Reply-To: <CAErSpo6M-c3diVEUpUESgL=2PenxHYkW1eb=OGBdxxWwkge-Bw@mail.gmail.com>
+Sender: linux-pci-owner@vger.kernel.org
 To: Bjorn Helgaas <bhelgaas@google.com>
-Cc: "Rafael J. Wysocki" <rjw@sisk.pl>, Jiang Liu <liuj97@gmail.com>, Jiang Liu <jiang.liu@huawei.com>, Kenji Kaneshige <kaneshige.kenji@jp.fujitsu.com>, Yijing Wang <wangyijing@huawei.com>, linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Toshi Kani <toshi.kani@hp.com>, Myron Stowe <myron.stowe@redhat.com>
+Cc: Jiang Liu <liuj97@gmail.com>, Jiang Liu <jiang.liu@huawei.com>, Yinghai Lu <yinghai@kernel.org>, Kenji Kaneshige <kaneshige.kenji@jp.fujitsu.com>, Yijing Wang <wangyijing@huawei.com>, linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Toshi Kani <toshi.kani@hp.com>, Myron Stowe <myron.stowe@redhat.com>
+List-Id: linux-acpi@vger.kernel.org
 
-On Mon, Jan 28, 2013 at 2:14 PM, Bjorn Helgaas <bhelgaas@google.com> wrote:
->
-> CONFIG_ACPI_PCI_SLOT=y in RHEL6, so evidently they have this problem.
+On Monday, January 28, 2013 01:56:33 PM Bjorn Helgaas wrote:
+> On Fri, Jan 18, 2013 at 9:07 AM, Jiang Liu <liuj97@gmail.com> wrote:
+> > This is an RFC patchset to address review comments in thread at:
+> > https://patchwork.kernel.org/patch/1946851/. The patch just pasts
+> > compilation. If no objection to the new implementation, I will
+> > go on to modify acpiphp driver and conduct tests.
+> >
+> > The main changes from V4 to V5 includes:
+> > 1) introduce a dedicated notifier chain for PCI buses
+> > 2) change pci_slot as built-in driver
+> > 3) unify the way to create/destroy PCI slots
+> > 4) introduce a kernel option to disable PCIe native hotplug
+> >
+> > TODO:
+> > 1) change acpiphp as built-in and unify the way to create/destroy ACPI
+> >    based hotplug slots.
+> > 2) change other ACPI PCI subdriver in Yinghai's root bridge hotplug series
+> >    to use the PCI bus notifier chain.
+> > 3) Remove the ACPI PCI subdriver interface eventaully.
+> >
+> > Jiang Liu (8):
+> >   PCI: make PCI device create/destroy logic symmetric
+> >   PCI: split registration of PCI bus devices into two stages
+> >   PCI: add a blocking notifier chain for PCI bus addition/removal
+> >   ACPI, PCI: avoid building pci_slot as module
+> >   PCI, ACPI: hook PCI bus notifications to create/destroy PCI slots
+> >   pci_slot: replace printk(KERN_xxx) with pr_xxx()
+> >   PCI/PCIe: add "pci=nopciehp" to disable PCIe native hotplug
+> >   PCI/PCIe: only claim PME from firmware when CONFIG_PCIE_PME is
+> >     enabled
+> >
+> >  Documentation/kernel-parameters.txt |    2 +
+> >  drivers/acpi/Kconfig                |    5 +-
+> >  drivers/acpi/internal.h             |    5 +
+> >  drivers/acpi/pci_root.c             |    8 +-
+> >  drivers/acpi/pci_slot.c             |  217 ++++++++++-------------------------
+> >  drivers/acpi/scan.c                 |    1 +
+> >  drivers/pci/bus.c                   |   26 ++++-
+> >  drivers/pci/pci.c                   |    2 +
+> >  drivers/pci/pci.h                   |    1 +
+> >  drivers/pci/pcie/portdrv_core.c     |    7 +-
+> >  drivers/pci/pcie/portdrv_pci.c      |    3 +
+> >  drivers/pci/probe.c                 |    7 +-
+> >  drivers/pci/remove.c                |   15 +--
+> >  include/linux/pci.h                 |   21 ++++
+> >  14 files changed, 142 insertions(+), 178 deletions(-)
+> 
+> I think the problem we're trying to solve is that we don't initialize
+> hot-added devices, correctly, e.g., we don't set up AER, we don't
+> update acpi/pci_slot stuff, we probably don't set up PME etc.  We also
+> have similar issues like IOMMU init on powerpc.
+> 
+> Notifier chains seem like an unnecessarily complicated way to deal
+> with this.  They're great for communicating between modules that stay
+> at arm's length from each other.  But that's not the case here --
+> everything is PCI and is quite closely coupled.  I think AER, PME,
+> slot, etc., should  be initialized directly in pci_device_add() or
+> somewhere nearby.
 
-oh, I only checked opensuse that has that set to m.
+I agree.
 
->
-> Asking users to edit module.conf by hand is not a solution, just like
-> asking users to boot with a command line option is not a solution.
-> That sort of stuff is fine for a hobbyist OS intended only for techie
-> geeks.  It's not fine for Linux.
+> This might sound a bit radical because it implies some fairly
+> far-reaching changes.  It means this code can't be a module (the only
+> one that can be built as a module today is pciehp, and I think
+> everybody agrees that we should make it static as soon as we can
+> figure out the acpiphp/pciehp issue).  I think it also means the
+> pcieportdrv concept is of dubious value, since all the services should
+> be known at build-time and we probably don't need a registration
+> interface for them.
 
-not sure. add something in command line or conf files.
-but recompile kernel is another story.
+It is of dubious value regardless.  It just adds complexity for no gain.
+Moreover, these things are in fact not mutually independent.
 
->
-> If you would give a concrete example of the ACPI namespace info and
-> device config, hotplug sequence, etc., required to show the problem,
-> we could have a useful discussion about ways to fix it.  But if all
-> you have is FUD about "this might break and users won't have the
-> ability to edit modules.conf," that doesn't help me see why this patch
-> is a bad idea.
+I've had a lot of headaches trying to work around that when I was working
+on PME support and later on _OSC for root bridges.  Let's just take that
+stuff away once and for good. :-)
 
-Never mind, We should save your bandwidth to more patches.
+Thanks,
+Rafael
 
-Yinghai
+
+-- 
+I speak only for myself.
+Rafael J. Wysocki, Intel Open Source Technology Center.
