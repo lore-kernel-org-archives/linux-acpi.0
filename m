@@ -1,41 +1,56 @@
-From: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Subject: Re: [PATCH v5 1/2] TTY: Add TTY slave enumeration support
-Date: Tue, 29 Jan 2013 23:46:03 -0500
-Message-ID: <20130130044603.GC30002@kroah.com>
-References: <cover.1354505471.git.lv.zheng@intel.com>
- <cover.1359022955.git.lv.zheng@intel.com>
- <12848b50e1096dc11a193694ee248d51d45ce093.1359022955.git.lv.zheng@intel.com>
- <20130125214121.GA30924@kroah.com>
- <1AE640813FDE7649BE1B193DEA596E88BF41C7@SHSMSX101.ccr.corp.intel.com>
- <20130126034232.GB5066@kroah.com>
- <1AE640813FDE7649BE1B193DEA596E88BF46D2@SHSMSX101.ccr.corp.intel.com>
+From: Greg KH <gregkh@linuxfoundation.org>
+Subject: Re: [RFC PATCH v2 03/12] drivers/base: Add system device hotplug
+ framework
+Date: Tue, 29 Jan 2013 23:54:37 -0500
+Message-ID: <20130130045437.GG30002@kroah.com>
+References: <1357861230-29549-1-git-send-email-toshi.kani@hp.com>
+ <1357861230-29549-4-git-send-email-toshi.kani@hp.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-serial-owner@vger.kernel.org>
+Return-path: <owner-linux-mm@kvack.org>
 Content-Disposition: inline
-In-Reply-To: <1AE640813FDE7649BE1B193DEA596E88BF46D2@SHSMSX101.ccr.corp.intel.com>
-Sender: linux-serial-owner@vger.kernel.org
-To: "Zheng, Lv" <lv.zheng@intel.com>
-Cc: Alan Cox <alan@linux.intel.com>, "Wysocki, Rafael J" <rafael.j.wysocki@intel.com>, "Brown, Len" <len.brown@intel.com>, Mika Westerberg <mika.westerberg@linux.intel.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-serial@vger.kernel.org" <linux-serial@vger.kernel.org>, "Jiri Slaby (jslaby@suse.cz)" <jslaby@suse.cz>, "Heikki Krogerus (heikki.krogerus@linux.intel.com)" <heikki.krogerus@linux.intel.com>
+In-Reply-To: <1357861230-29549-4-git-send-email-toshi.kani@hp.com>
+Sender: owner-linux-mm@kvack.org
+To: Toshi Kani <toshi.kani@hp.com>
+Cc: rjw@sisk.pl, lenb@kernel.org, akpm@linux-foundation.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linux-mm@kvack.org, linuxppc-dev@lists.ozlabs.org, linux-s390@vger.kernel.org, bhelgaas@google.com, isimatu.yasuaki@jp.fujitsu.com, jiang.liu@huawei.com, wency@cn.fujitsu.com, guohanjun@huawei.com, yinghai@kernel.org, srivatsa.bhat@linux.vnet.ibm.com
 List-Id: linux-acpi@vger.kernel.org
 
-On Mon, Jan 28, 2013 at 02:58:00AM +0000, Zheng, Lv wrote:
-> Which one do you think is better? V2 or V5 (I have completed the test
-> and now I have the V6 ones, I can send them out if you think the
-> tty_enum bus is better than the serial_bus).
+On Thu, Jan 10, 2013 at 04:40:21PM -0700, Toshi Kani wrote:
+> Added sys_hotplug.c, which is the system device hotplug framework code.
+> 
+> shp_register_handler() allows modules to register their hotplug handlers
+> to the framework.  shp_submit_req() provides the interface to submit
+> a hotplug or online/offline request of system devices.  The request is
+> then put into hp_workqueue.  shp_start_req() calls all registered handlers
+> in ascending order for each phase.  If any handler failed in validate or
+> execute phase, shp_start_req() initiates its rollback procedure.
+> 
+> Signed-off-by: Toshi Kani <toshi.kani@hp.com>
+> ---
+>  drivers/base/Makefile      |    1 
+>  drivers/base/sys_hotplug.c |  313 ++++++++++++++++++++++++++++++++++++++++++++
+>  2 files changed, 314 insertions(+)
+>  create mode 100644 drivers/base/sys_hotplug.c
+> 
+> diff --git a/drivers/base/Makefile b/drivers/base/Makefile
+> index 5aa2d70..2e9b2f1 100644
+> --- a/drivers/base/Makefile
+> +++ b/drivers/base/Makefile
+> @@ -21,6 +21,7 @@ endif
+>  obj-$(CONFIG_SYS_HYPERVISOR) += hypervisor.o
+>  obj-$(CONFIG_REGMAP)	+= regmap/
+>  obj-$(CONFIG_SOC_BUS) += soc.o
+> +obj-y			+= sys_hotplug.o
 
-I don't know, if you have a patch set you want to have reviewed, please
-send it, I don't have the time to dig through the links you sent me to
-old patch versions, nor should you ever expect someone to do that.
+No option to select this for systems that don't need it?  If not, then
+put it up higher with all of the other code for the core.
 
-But whatever you send, it better not contain a duplicate of the existing
-tty class code, like your last patchset did, that's not going to be
-acceptable at all for the reasons I said.
-
-Again, take advantage of your Intel internal Linux kernel developers for
-the proper review of your code, and test it!   Your last patch set
-showed that this obviously did not happen, and I'm not going to look at
-anything further from you until you get a signed-off-by by at least one
-of them first (preferably more than one.)
+thanks,
 
 greg k-h
+
+--
+To unsubscribe, send a message with 'unsubscribe linux-mm' in
+the body to majordomo@kvack.org.  For more info on Linux MM,
+see: http://www.linux-mm.org/ .
+Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
