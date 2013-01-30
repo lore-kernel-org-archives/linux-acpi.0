@@ -1,33 +1,42 @@
 From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: [PATCH 0/2] ACPI / scan: Fix and cleanup related to acpi_bus_get_device()
-Date: Wed, 30 Jan 2013 23:02:06 +0100
-Message-ID: <1451967.YMyGeCCNtu@vostro.rjw.lan>
+Subject: [PATCH 1/2] ACPI / scan: Fix acpi_bus_get_device() check in acpi_match_device()
+Date: Wed, 30 Jan 2013 23:03:07 +0100
+Message-ID: <6099377.PFvsxPeyib@vostro.rjw.lan>
+References: <1451967.YMyGeCCNtu@vostro.rjw.lan>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7Bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from hydra.sisk.pl ([212.160.235.94]:34421 "EHLO hydra.sisk.pl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1757075Ab3A3V6A (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 30 Jan 2013 16:58:00 -0500
-Sender: linux-acpi-owner@vger.kernel.org
-List-Id: linux-acpi@vger.kernel.org
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1451967.YMyGeCCNtu@vostro.rjw.lan>
+Sender: linux-kernel-owner@vger.kernel.org
 To: ACPI Devel Maling List <linux-acpi@vger.kernel.org>
 Cc: LKML <linux-kernel@vger.kernel.org>, Mika Westerberg <mika.westerberg@linux.intel.com>, Yinghai Lu <yinghai@kernel.org>, Toshi Kani <toshi.kani@hp.com>
+List-Id: linux-acpi@vger.kernel.org
 
-Hi All,
+From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 
-One fix and one cleanup related to acpi_bus_get_device() follow:
+Since acpi_bus_get_device() returns int and not acpi_status, change
+acpi_match_device() so that it doesn't apply ACPI_FAILURE() to the
+return value of acpi_bus_get_device().
 
-[1/2] Fix acpi_bus_get_device() check in acpi_match_device()
-[2/2] Clean up acpi_bus_get_parent()
+Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+---
+ drivers/acpi/scan.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-On top of linux-pm/linux-next.
-
-Thanks,
-Rafael
-
-
--- 
-I speak only for myself.
-Rafael J. Wysocki, Intel Open Source Technology Center.
+Index: linux-pm/drivers/acpi/scan.c
+===================================================================
+--- linux-pm.orig/drivers/acpi/scan.c
++++ linux-pm/drivers/acpi/scan.c
+@@ -491,9 +491,9 @@ const struct acpi_device_id *acpi_match_
+ 					       const struct device *dev)
+ {
+ 	struct acpi_device *adev;
++	acpi_handle handle = ACPI_HANDLE(dev);
+ 
+-	if (!ids || !ACPI_HANDLE(dev)
+-	    || ACPI_FAILURE(acpi_bus_get_device(ACPI_HANDLE(dev), &adev)))
++	if (!ids || !handle || acpi_bus_get_device(handle, &adev))
+ 		return NULL;
+ 
+ 	return __acpi_match_device(adev, ids);
