@@ -1,89 +1,83 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: [PATCH 0/4] ACPI scan handlers
-Date: Wed, 30 Jan 2013 14:36:22 +0100
-Message-ID: <2835860.8PoYodXXnK@vostro.rjw.lan>
-References: <1873429.MS5RQDxTye@vostro.rjw.lan> <4311642.nDd2RCVeDc@vostro.rjw.lan> <1359511110.15120.77.camel@misato.fc.hp.com>
+From: Peter Wu <lekensteyn@gmail.com>
+Subject: Re: [PATCH] ACPI / PM: Add check preventing transitioning to non-D0 state from D3.
+Date: Wed, 30 Jan 2013 18:53:46 +0100
+Message-ID: <4595012.aPT9n2OZdk@al>
+References: <e4ec829902580af84cddbba6e98ef54b33052b85.1352953283.git.lv.zheng@intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7Bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from hydra.sisk.pl ([212.160.235.94]:32907 "EHLO hydra.sisk.pl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754387Ab3A3NaM (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 30 Jan 2013 08:30:12 -0500
-In-Reply-To: <1359511110.15120.77.camel@misato.fc.hp.com>
+Received: from mail-wi0-f176.google.com ([209.85.212.176]:54823 "EHLO
+	mail-wi0-f176.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751573Ab3A3Rxu (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 30 Jan 2013 12:53:50 -0500
+Received: by mail-wi0-f176.google.com with SMTP id hm14so2871961wib.3
+        for <linux-acpi@vger.kernel.org>; Wed, 30 Jan 2013 09:53:49 -0800 (PST)
+In-Reply-To: <e4ec829902580af84cddbba6e98ef54b33052b85.1352953283.git.lv.zheng@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Toshi Kani <toshi.kani@hp.com>
-Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Bjorn Helgaas <bhelgaas@google.com>, Mika Westerberg <mika.westerberg@linux.intel.com>, Matthew Garrett <matthew.garrett@nebula.com>, Yinghai Lu <yinghai@kernel.org>, Jiang Liu <liuj97@gmail.com>, LKML <linux-kernel@vger.kernel.org>
+To: Lv Zheng <lv.zheng@intel.com>
+Cc: Len Brown <len.brown@intel.com>, Rafael J Wysocki <rafael.j.wysocki@intel.com>, linux-acpi@vger.kernel.org
 
-On Tuesday, January 29, 2013 06:58:30 PM Toshi Kani wrote:
-> On Mon, 2013-01-28 at 13:58 +0100, Rafael J. Wysocki wrote:
-> > On Thursday, January 24, 2013 01:26:56 AM Rafael J. Wysocki wrote:
-> > > Hi All,
-> > > 
-> > > There is a considerable amount of confusion in the ACPI subsystem about what
-> > > ACPI drivers are used for.  Namely, some of them are used as "normal" device
-> > > drivers that bind to devices and handle them using ACPI control methods (like
-> > > the fan or battery drivers), but some of them are just used for handling
-> > > namespace events, such as the creation or removal of device nodes (I guess it
-> > > would be fair to call that an abuse of the driver core).  These two roles are
-> > > quite distinct, which is particularly visible from the confusion about the role
-> > > of the .remove() callback.
-> > > 
-> > > For the "normal" drivers this callback is simply used to handle situations in
-> > > which the driver needs to be unbound from the device, because one of them
-> > > (either the device or the driver) is going away.  That operation can't really
-> > > fail, it just needs to do the necessary cleanup.
-> > > 
-> > > However, for the namespace events handling "drivers" .remove() means that not
-> > > only the device node in question, but generally also the whole subtree below it
-> > > needs to be prepared for removal, which may involve deleting multiple device
-> > > objects belonging to different bus types and so on and which very well may fail
-> > > (for example, those devices may be used for such things like swap or they may be
-> > > memory banks used by the kernel and it may not be safe to remove them at the
-> > > moment etc.).  Moreover, for these things the removal of the "driver" doesn't
-> > > really make sense, because it has to be there to handle the namespace events it
-> > > is designed to handle or else things will go remarkably awry in some places.
-> > > 
-> > > To resolve all that mess I'd like to do the following, which in part is inspired
-> > > by the recent Toshi Kani's hotplug framework proposal and in part is based on
-> > > some discussions I had with Bjorn and others (the code references made below are
-> > > based on the current contens of linux-pm.git/linux-next).
-> > > 
-> > > 1) Introduce a special data type for "ACPI namespace event handlers" like:
-> > > 
-> > > struct acpi_scan_handler {
-> > > 	const struct acpi_device_id *ids;
-> > > 	struct list_head list_node;
-> > > 	int (*attach)(struct acpi_device *adev);
-> > > 	int (*untie)(struct acpi_device *adev);
-> > > 	int (*reclaim)(struct acpi_device *adev);
-> > > 	void (*detach)(struct acpi_device *adev);
-> > > };
-> > 
-> > After some reconsideration I think that the "untie" and "reclaim" things won't
-> > be really useful at this level.  This means that I only need ACPI scan handlers
-> > to do .attach() and .detach() and all of that becomes really simple, so I don't
-> > see reason to wait with that change.
-> > 
-> > The following patches introduce ACPI scan handlers and make some use of them.
-> > 
-> > [1/4] Introduce struct acpi_scan_handler for configuration tasks depending on
-> >       device IDs.
-> > 
-> > [2/4] Make ACPI PCI root driver use struct acpi_scan_handler.
-> > 
-> > [3/4] Make ACPI PCI IRQ link driver use struct acpi_scan_handler.
-> > 
-> > [4/4] Use struct acpi_scan_handler for creating platform devices enumerated via ACPI.
+Hi Lv Zheng,
+
+I encounter a regression with your patch (Linux 3.8-rc5). On my Nvidia Optimus 
+laptop, I use the bbswitch[1] kernel module to trigger a _PS3 ACPI method call 
+to turn the video card off.
+
+After this patch, I got the following in my kernel log:
+
+    pci 0000:01:00.0: Refused to change power state, currently in D0
+    ACPI: Cannot transition to non-D0 state from D3
+    bbswitch: Succesfully loaded. Discrete card 0000:01:00.0 is on
+
+The expected output would be "Discrete card 0000:01:00.0 is  off". Printing the 
+contents of (acpi_device) device->power.state shows FF (ACPI_STATE_UNKNOWN). 
+Should this condition be excluded from your check or is my hacky module 
+outdated?
+
+I currently workaround this issue by checking for ACPI_STATE_UNKNOWN. If that 
+is the value, I assume on (overwrite device->power.state with ACPI_STATE_D0). 
+Then I call pci_set_power_state(pci_dev, PCI_D3cold).
+
+Regards,
+Peter
+
+ [1]: https://github.com/Bumblebee-Project/bbswitch
+
+On Thursday 15 November 2012 12:25:01 Lv Zheng wrote:
+> No power transitioning from D3 state to a non-D0 state is allowed.
+> This patch also cleans up device power updating code in the
+> acpi_device_set_power() as it should already been updated in the
+> acpi_power_transition().
 > 
-> For the series:
+> Signed-off-by: Lv Zheng <lv.zheng@intel.com>
+> ---
+>  drivers/acpi/bus.c |    7 ++++++-
+>  1 file changed, 6 insertions(+), 1 deletion(-)
 > 
-> Acked-by: Toshi Kani <toshi.kani@hp.com>
-
-Thanks!
-
--- 
-I speak only for myself.
-Rafael J. Wysocki, Intel Open Source Technology Center.
+> diff --git a/drivers/acpi/bus.c b/drivers/acpi/bus.c
+> index 07a20ee..12c1b51 100644
+> --- a/drivers/acpi/bus.c
+> +++ b/drivers/acpi/bus.c
+> @@ -293,6 +293,12 @@ int acpi_device_set_power(struct acpi_device *device,
+> int state) " state than parent\n");
+>  		return -ENODEV;
+>  	}
+> +	if (device->parent->power.state >= ACPI_STATE_D3_HOT &&
+> +	    state != ACPI_STATE_D0) {
+> +		printk(KERN_WARNING PREFIX
+> +			      "Cannot transition to non-D0 state from D3\n");
+> +		return -ENODEV;
+> +	}
+> 
+>  	/* For D3cold we should execute _PS3, not _PS4. */
+>  	if (state == ACPI_STATE_D3_COLD)
+> @@ -341,7 +347,6 @@ int acpi_device_set_power(struct acpi_device *device,
+> int state) "Device [%s] failed to transition to %s\n",
+>  			      device->pnp.bus_id, state_string(state));
+>  	else {
+> -		device->power.state = state;
+>  		ACPI_DEBUG_PRINT((ACPI_DB_INFO,
+>  				  "Device [%s] transitioned to %s\n",
+>  				  device->pnp.bus_id, state_string(state)));
