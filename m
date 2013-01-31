@@ -1,72 +1,93 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: [Resend][PATCH] ACPI / PM: Do not power manage devices in unknown initial states
-Date: Thu, 31 Jan 2013 23:32:40 +0100
-Message-ID: <3676077.i6vcpp7Nrn@vostro.rjw.lan>
+From: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
+Subject: Re: [RESEND PATCH 1/4] ACPI/PM: Fix acpi_bus_get_device() check in
+ drivers/acpi/device_pm.c
+Date: Fri, 1 Feb 2013 08:43:09 +0900
+Message-ID: <510B018D.4050800@jp.fujitsu.com>
+References: <1451967.YMyGeCCNtu@vostro.rjw.lan> <5109E189.7040105@jp.fujitsu.com> <5109E366.4090703@jp.fujitsu.com> <3199804.hxRfeorGhh@vostro.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="UTF-8"; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from hydra.sisk.pl ([212.160.235.94]:37258 "EHLO hydra.sisk.pl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754839Ab3AaW02 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 31 Jan 2013 17:26:28 -0500
+Received: from fgwmail5.fujitsu.co.jp ([192.51.44.35]:33859 "EHLO
+	fgwmail5.fujitsu.co.jp" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751570Ab3AaXoE (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 31 Jan 2013 18:44:04 -0500
+In-Reply-To: <3199804.hxRfeorGhh@vostro.rjw.lan>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: ACPI Devel Maling List <linux-acpi@vger.kernel.org>
-Cc: LKML <linux-kernel@vger.kernel.org>, Len Brown <lenb@kernel.org>, Mika Westerberg <mika.westerberg@linux.intel.com>, Peter Wu <lekensteyn@gmail.com>
+To: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>, Mika Westerberg <mika.westerberg@linux.intel.com>, Yinghai Lu <yinghai@kernel.org>, Toshi Kani <toshi.kani@hp.com>
 
-From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+Hi Rafael,
 
-In general, for ACPI device power management to work, the initial
-power states of devices must be known (otherwise, we wouldn't be able
-to keep track of power resources, for example).  Hence, if it is
-impossible to determine the initial ACPI power states of some
-devices, they can't be regarded as power-manageable using ACPI.
+2013/02/01 5:21, Rafael J. Wysocki wrote:
+> On Thursday, January 31, 2013 12:22:14 PM Yasuaki Ishimatsu wrote:
+>> I fogot to change subject. So I resend a patch.
+>
+> I have applied patches [1-3/4] to my bleeding-edge branch,
 
-For this reason, modify acpi_bus_get_power_flags() to clear the
-power_manageable flag if acpi_bus_init_power() fails and add some
-extra fallback code to acpi_bus_init_power() to cover broken
-BIOSes that provide _PS0/_PS3 without _PSC for some devices.
+Thanks.
 
-Verified to work on my HP nx6325 that has this problem.
+> but please note that
+> something (probably your MUA) added a space in front of every line originally
+> starting with a space.
 
-Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
----
- drivers/acpi/device_pm.c |    6 ++++++
- drivers/acpi/scan.c      |    5 ++++-
- 2 files changed, 10 insertions(+), 1 deletion(-)
+I apologize for bothering you.
 
-Index: linux-pm/drivers/acpi/device_pm.c
-===================================================================
---- linux-pm.orig/drivers/acpi/device_pm.c
-+++ linux-pm/drivers/acpi/device_pm.c
-@@ -330,6 +330,12 @@ int acpi_bus_init_power(struct acpi_devi
- 		result = acpi_dev_pm_explicit_set(device, state);
- 		if (result)
- 			return result;
-+	} else if (state == ACPI_STATE_UNKNOWN) {
-+		/* No power resources and missing _PSC? Try to force D0. */
-+		state = ACPI_STATE_D0;
-+		result = acpi_dev_pm_explicit_set(device, state);
-+		if (result)
-+			return result;
- 	}
- 	device->power.state = state;
- 	return 0;
-Index: linux-pm/drivers/acpi/scan.c
-===================================================================
---- linux-pm.orig/drivers/acpi/scan.c
-+++ linux-pm/drivers/acpi/scan.c
-@@ -1175,7 +1175,10 @@ static void acpi_bus_get_power_flags(str
- 			device->power.flags.power_resources)
- 		device->power.states[ACPI_STATE_D3_COLD].flags.os_accessible = 1;
- 
--	acpi_bus_init_power(device);
-+	if (acpi_bus_init_power(device)) {
-+		acpi_free_power_resources_lists(device);
-+		device->flags.power_manageable = 0;
-+	}
- }
- 
- static void acpi_bus_get_flags(struct acpi_device *device)
+Thanks,
+Yasuaki Ishimatsu
+
+>
+> Thanks,
+> Rafael
+>
+>
+>> ---
+>> acpi_bus_get_device() returns int not acpi_status.
+>>
+>> The patch change not to apply ACPI_FAILURE() to the return value of
+>> acpi_bus_get_device().
+>>
+>> Signed-off-by: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
+>> ---
+>>    drivers/acpi/device_pm.c |    6 +++---
+>>    1 file changed, 3 insertions(+), 3 deletions(-)
+>>
+>> Index: linux-pm/drivers/acpi/device_pm.c
+>> ===================================================================
+>> --- linux-pm.orig/drivers/acpi/device_pm.c	2013-01-31 11:04:30.000000000 +0900
+>> +++ linux-pm/drivers/acpi/device_pm.c	2013-01-31 11:28:51.366849592 +0900
+>> @@ -213,7 +213,7 @@ int acpi_pm_device_sleep_state(struct de
+>>    	acpi_handle handle = DEVICE_ACPI_HANDLE(dev);
+>>    	struct acpi_device *adev;
+>>
+>> -	if (!handle || ACPI_FAILURE(acpi_bus_get_device(handle, &adev))) {
+>> +	if (!handle || acpi_bus_get_device(handle, &adev)) {
+>>    		dev_dbg(dev, "ACPI handle without context in %s!\n", __func__);
+>>    		return -ENODEV;
+>>    	}
+>> @@ -290,7 +290,7 @@ int acpi_pm_device_run_wake(struct devic
+>>    		return -EINVAL;
+>>
+>>    	handle = DEVICE_ACPI_HANDLE(phys_dev);
+>> -	if (!handle || ACPI_FAILURE(acpi_bus_get_device(handle, &adev))) {
+>> +	if (!handle || acpi_bus_get_device(handle, &adev)) {
+>>    		dev_dbg(phys_dev, "ACPI handle without context in %s!\n",
+>>    			__func__);
+>>    		return -ENODEV;
+>> @@ -334,7 +334,7 @@ int acpi_pm_device_sleep_wake(struct dev
+>>    		return -EINVAL;
+>>
+>>    	handle = DEVICE_ACPI_HANDLE(dev);
+>> -	if (!handle || ACPI_FAILURE(acpi_bus_get_device(handle, &adev))) {
+>> +	if (!handle || acpi_bus_get_device(handle, &adev)) {
+>>    		dev_dbg(dev, "ACPI handle without context in %s!\n", __func__);
+>>    		return -ENODEV;
+>>    	}
+>>
+>> --
+>> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
+>> the body of a message to majordomo@vger.kernel.org
+>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
 
