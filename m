@@ -1,46 +1,69 @@
 From: Yinghai Lu <yinghai@kernel.org>
-Subject: Re: [PATCH 1/2] ACPI / scan: Fix acpi_bus_get_device() check in acpi_match_device()
-Date: Thu, 31 Jan 2013 10:38:17 -0800
-Message-ID: <CAE9FiQXPaMCSyH72qqu-NvPbPkeUbQq5Dcb_SdKz6SEiSmdR7Q@mail.gmail.com>
+Subject: Re: [PATCH 2/2] ACPI / scan: Clean up acpi_bus_get_parent()
+Date: Thu, 31 Jan 2013 10:43:46 -0800
+Message-ID: <CAE9FiQWiOAdDC15g+y1JRc7_tG=EzVckdNPYYJpWsftJAkEZsg@mail.gmail.com>
 References: <1451967.YMyGeCCNtu@vostro.rjw.lan>
-	<6099377.PFvsxPeyib@vostro.rjw.lan>
+	<7667918.svVNymu9rt@vostro.rjw.lan>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <6099377.PFvsxPeyib@vostro.rjw.lan>
+In-Reply-To: <7667918.svVNymu9rt@vostro.rjw.lan>
 Sender: linux-kernel-owner@vger.kernel.org
 To: "Rafael J. Wysocki" <rjw@sisk.pl>
 Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>, Mika Westerberg <mika.westerberg@linux.intel.com>, Toshi Kani <toshi.kani@hp.com>
 List-Id: linux-acpi@vger.kernel.org
 
-On Wed, Jan 30, 2013 at 2:03 PM, Rafael J. Wysocki <rjw@sisk.pl> wrote:
+On Wed, Jan 30, 2013 at 2:04 PM, Rafael J. Wysocki <rjw@sisk.pl> wrote:
 > From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 >
-> Since acpi_bus_get_device() returns int and not acpi_status, change
-> acpi_match_device() so that it doesn't apply ACPI_FAILURE() to the
-> return value of acpi_bus_get_device().
+> Make acpi_bus_get_parent() more straightforward and remove an
+> unnecessary local variable ret from it.
 >
 > Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 > ---
->  drivers/acpi/scan.c |    4 ++--
->  1 file changed, 2 insertions(+), 2 deletions(-)
+>  drivers/acpi/scan.c |   16 +++++-----------
+>  1 file changed, 5 insertions(+), 11 deletions(-)
 >
-> Index: linux-pm/drivers/acpi/scan.c
+> Index: test/drivers/acpi/scan.c
 > ===================================================================
-> --- linux-pm.orig/drivers/acpi/scan.c
-> +++ linux-pm/drivers/acpi/scan.c
-> @@ -491,9 +491,9 @@ const struct acpi_device_id *acpi_match_
->                                                const struct device *dev)
+> --- test.orig/drivers/acpi/scan.c
+> +++ test/drivers/acpi/scan.c
+> @@ -871,29 +871,23 @@ EXPORT_SYMBOL(acpi_bus_unregister_driver
+>     -------------------------------------------------------------------------- */
+>  static struct acpi_device *acpi_bus_get_parent(acpi_handle handle)
 >  {
->         struct acpi_device *adev;
-> +       acpi_handle handle = ACPI_HANDLE(dev);
+> +       struct acpi_device *device = NULL;
+>         acpi_status status;
+> -       int ret;
+> -       struct acpi_device *device;
 >
-> -       if (!ids || !ACPI_HANDLE(dev)
-> -           || ACPI_FAILURE(acpi_bus_get_device(ACPI_HANDLE(dev), &adev)))
-> +       if (!ids || !handle || acpi_bus_get_device(handle, &adev))
->                 return NULL;
+>         /*
+>          * Fixed hardware devices do not appear in the namespace and do not
+>          * have handles, but we fabricate acpi_devices for them, so we have
+>          * to deal with them specially.
+>          */
+> -       if (handle == NULL)
+> +       if (!handle)
+>                 return acpi_root;
 >
->         return __acpi_match_device(adev, ids);
->
+>         do {
+>                 status = acpi_get_parent(handle, &handle);
+> -               if (status == AE_NULL_ENTRY)
+> -                       return NULL;
+>                 if (ACPI_FAILURE(status))
+> -                       return acpi_root;
+> -
+> -               ret = acpi_bus_get_device(handle, &device);
+> -               if (ret == 0)
+> -                       return device;
+> -       } while (1);
+> +                       return status == AE_NULL_ENTRY ? NULL : acpi_root;
+> +       } while (acpi_bus_get_device(handle, &device));
+> +       return device;
+>  }
 
 Acked-by: Yinghai Lu <yinghai@kernel.org>
+
+>
+>  acpi_status
+>
