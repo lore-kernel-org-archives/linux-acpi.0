@@ -1,23 +1,46 @@
-From: Mona Hamadi <p.sociali@cassinadepecchi.gov.it>
-Subject: Good Evening
-Date: Thu, 31 Jan 2013 18:28:08 +0100 (CET)
-Message-ID: <8b632eae-bbc2-4b0e-8e26-97c5f4fab434@posta>
-Reply-To: Mona Hamadi <monasmich@yahoo.com>
+From: Yinghai Lu <yinghai@kernel.org>
+Subject: Re: [PATCH 1/2] ACPI / scan: Fix acpi_bus_get_device() check in acpi_match_device()
+Date: Thu, 31 Jan 2013 10:38:17 -0800
+Message-ID: <CAE9FiQXPaMCSyH72qqu-NvPbPkeUbQq5Dcb_SdKz6SEiSmdR7Q@mail.gmail.com>
+References: <1451967.YMyGeCCNtu@vostro.rjw.lan>
+	<6099377.PFvsxPeyib@vostro.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from vps3.3ssrl.eu ([94.23.71.74]:47772 "EHLO vps3.3ssrl.eu"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751818Ab3AaRuH (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 31 Jan 2013 12:50:07 -0500
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <6099377.PFvsxPeyib@vostro.rjw.lan>
+Sender: linux-kernel-owner@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>, Mika Westerberg <mika.westerberg@linux.intel.com>, Toshi Kani <toshi.kani@hp.com>
 List-Id: linux-acpi@vger.kernel.org
 
+On Wed, Jan 30, 2013 at 2:03 PM, Rafael J. Wysocki <rjw@sisk.pl> wrote:
+> From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+>
+> Since acpi_bus_get_device() returns int and not acpi_status, change
+> acpi_match_device() so that it doesn't apply ACPI_FAILURE() to the
+> return value of acpi_bus_get_device().
+>
+> Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+> ---
+>  drivers/acpi/scan.c |    4 ++--
+>  1 file changed, 2 insertions(+), 2 deletions(-)
+>
+> Index: linux-pm/drivers/acpi/scan.c
+> ===================================================================
+> --- linux-pm.orig/drivers/acpi/scan.c
+> +++ linux-pm/drivers/acpi/scan.c
+> @@ -491,9 +491,9 @@ const struct acpi_device_id *acpi_match_
+>                                                const struct device *dev)
+>  {
+>         struct acpi_device *adev;
+> +       acpi_handle handle = ACPI_HANDLE(dev);
+>
+> -       if (!ids || !ACPI_HANDLE(dev)
+> -           || ACPI_FAILURE(acpi_bus_get_device(ACPI_HANDLE(dev), &adev)))
+> +       if (!ids || !handle || acpi_bus_get_device(handle, &adev))
+>                 return NULL;
+>
+>         return __acpi_match_device(adev, ids);
+>
 
-
-Hello Dear,
-
-How are you? my name is Ms. Mona Hamadi, i was going  through your country's Business/Staff directory on net, when i saw your email address,which  i really got interested in knowing you more as a friend,if you wouldn't mind,i will appreciate if we can know ourselves more better,as i have something important to discuss with you. You can contact me back so that i will tell you more about myself and  more reasons why i contacted you. Thanks
-
-Mona.
+Acked-by: Yinghai Lu <yinghai@kernel.org>
