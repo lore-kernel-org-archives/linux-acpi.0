@@ -1,100 +1,40 @@
-From: Simon Jeons <simon.jeons@gmail.com>
-Subject: Re: [PATCH v6 00/15] memory-hotplug: hot-remove physical memory
-Date: Thu, 31 Jan 2013 04:38:25 -0600
-Message-ID: <1359628705.2048.5.camel@kernel>
-References: <1357723959-5416-1-git-send-email-tangchen@cn.fujitsu.com>
-	    <1359463973.1624.15.camel@kernel> <5108F2B3.3090506@cn.fujitsu.com>
-	   <1359595344.1557.13.camel@kernel> <5109E59F.5080104@cn.fujitsu.com>
-	  <1359613162.1587.0.camel@kernel> <510A18FA.2010107@cn.fujitsu.com>
-	 <1359622123.1391.19.camel@kernel> <510A3CE6.202@cn.fujitsu.com>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: Re: [PATCH] cpuidle: fix new C-states not functional after AC disconnect
+Date: Thu, 31 Jan 2013 14:21:14 +0100
+Message-ID: <67986406.QGl4nxEmBZ@vostro.rjw.lan>
+References: <2099093.cPXO6Nhn9v@netbook> <11530988.U26HMGnFLa@vostro.rjw.lan> <CAODwPW9-dNRpKhhskbxU7Cva_1Y_dfCEN6cKt7pviWdeXoW7eg@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
-Return-path: <owner-linux-mm@kvack.org>
-In-Reply-To: <510A3CE6.202@cn.fujitsu.com>
-Sender: owner-linux-mm@kvack.org
-To: Tang Chen <tangchen@cn.fujitsu.com>
-Cc: akpm@linux-foundation.org, rientjes@google.com, len.brown@intel.com, benh@kernel.crashing.org, paulus@samba.org, cl@linux.com, minchan.kim@gmail.com, kosaki.motohiro@jp.fujitsu.com, isimatu.yasuaki@jp.fujitsu.com, wujianguo@huawei.com, wency@cn.fujitsu.com, hpa@zytor.com, linfeng@cn.fujitsu.com, laijs@cn.fujitsu.com, mgorman@suse.de, yinghai@kernel.org, glommer@parallels.com, x86@kernel.org, linux-mm@kvack.org, linux-kernel@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, linux-acpi@vger.kernel.org, linux-s390@vger.kernel.org, linux-sh@vger.kernel.org, linux-ia64@vger.kernel.org, cmetcalf@tilera.com, sparclinux@vger.kernel.org
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7Bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from hydra.sisk.pl ([212.160.235.94]:36149 "EHLO hydra.sisk.pl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754677Ab3AaNPD (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 31 Jan 2013 08:15:03 -0500
+In-Reply-To: <CAODwPW9-dNRpKhhskbxU7Cva_1Y_dfCEN6cKt7pviWdeXoW7eg@mail.gmail.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Julius Werner <jwerner@chromium.org>
+Cc: Daniel Lezcano <daniel.lezcano@linaro.org>, Thomas Schlichter <thomas.schlichter@web.de>, Len Brown <lenb@kernel.org>, Linus Torvalds <torvalds@linux-foundation.org>, Peter De Schrijver <pdeschrijver@nvidia.com>, Andreas =?ISO-8859-1?Q?M=FCller?= <goo@stapelspeicher.org>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 
-Hi Tang,
-On Thu, 2013-01-31 at 17:44 +0800, Tang Chen wrote:
-> Hi Simon,
-> 
-> On 01/31/2013 04:48 PM, Simon Jeons wrote:
-> > Hi Tang,
-> > On Thu, 2013-01-31 at 15:10 +0800, Tang Chen wrote:
+On Wednesday, January 30, 2013 07:52:30 PM Julius Werner wrote:
+> >> Rafael, is possible to apply the patch [1/2] I previously sent ?
+> >>
+> >> https://patchwork.kernel.org/patch/1878691/
 > >
-> > 1. IIUC, there is a button on machine which supports hot-remove memory,
-> > then what's the difference between press button and echo to /sys?
+> > I need to talk about this with Len.  That should happen tomorrow if everything
+> > goes well.
 > 
-> No important difference, I think. Since I don't have the machine you are
-> saying, I cannot surely answer you. :)
-> AFAIK, pressing the button means trigger the hotplug from hardware, sysfs
-> is just another entrance. At last, they will run into the same code.
+> Hi Rafael,
 > 
-> > 2. Since kernel memory is linear mapping(I mean direct mapping part),
-> > why can't put kernel direct mapping memory into one memory device, and
-> > other memory into the other devices?
-> 
-> We cannot do that because in that way, we will lose NUMA performance.
-> 
-> If you know NUMA, you will understand the following example:
-> 
-> node0:                    node1:
->     cpu0~cpu15                cpu16~cpu31
->     memory0~memory511         memory512~memory1023
-> 
-> cpu16~cpu31 access memory16~memory1023 much faster than memory0~memory511.
-> If we set direct mapping area in node0, and movable area in node1, then
-> the kernel code running on cpu16~cpu31 will have to access 
-> memory0~memory511.
-> This is a terrible performance down.
+> Have you made a decision on picking up Daniel's first change yet? I
+> think it really is the cleanest way to solve this problem.
 
-So if config NUMA, kernel memory will not be linear mapping anymore? For
-example, 
+Yes, it should be in 3.8-rc already, isn't it there?
 
-Node 0  Node 1 
-
-0 ~ 10G 11G~14G
-
-kernel memory only at Node 0? Can part of kernel memory also at Node 1?
-
-How big is kernel direct mapping memory in x86_64? Is there max limit?
-It seems that only around 896MB on x86_32. 
-
-> 
-> >As you know x86_64 don't need
-> > highmem, IIUC, all kernel memory will linear mapping in this case. Is my
-> > idea available? If is correct, x86_32 can't implement in the same way
-> > since highmem(kmap/kmap_atomic/vmalloc) can map any address, so it's
-> > hard to focus kernel memory on single memory device.
-> 
-> Sorry, I'm not quite familiar with x86_32 box.
-> 
-> > 3. In current implementation, if memory hotplug just need memory
-> > subsystem and ACPI codes support? Or also needs firmware take part in?
-> > Hope you can explain in details, thanks in advance. :)
-> 
-> We need firmware take part in, such as SRAT in ACPI BIOS, or the firmware
-> based memory migration mentioned by Liu Jiang.
-
-Is there any material about firmware based memory migration?
-
-> 
-> So far, I only know this. :)
-> 
-> > 4. What's the status of memory hotplug? Apart from can't remove kernel
-> > memory, other things are fully implementation?
-> 
-> I think the main job is done for now. And there are still bugs to fix.
-> And this functionality is not stable.
-> 
-> Thanks. :)
+Rafael
 
 
---
-To unsubscribe, send a message with 'unsubscribe linux-mm' in
-the body to majordomo@kvack.org.  For more info on Linux MM,
-see: http://www.linux-mm.org/ .
-Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
+-- 
+I speak only for myself.
+Rafael J. Wysocki, Intel Open Source Technology Center.
