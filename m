@@ -1,61 +1,59 @@
-From: Toshi Kani <toshi.kani@hp.com>
-Subject: Re: [RFC PATCH v2 03/12] drivers/base: Add system device hotplug
- framework
-Date: Wed, 30 Jan 2013 18:48:55 -0700
-Message-ID: <1359596935.15120.110.camel@misato.fc.hp.com>
-References: <1357861230-29549-1-git-send-email-toshi.kani@hp.com>
-	 <1357861230-29549-4-git-send-email-toshi.kani@hp.com>
-	 <20130130045437.GG30002@kroah.com>
+From: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
+Subject: Re: [PATCH 1/2] ACPI / scan: Fix acpi_bus_get_device() check in acpi_match_device()
+Date: Thu, 31 Jan 2013 12:04:39 +0900
+Message-ID: <5109DF47.30305@jp.fujitsu.com>
+References: <1451967.YMyGeCCNtu@vostro.rjw.lan> <6099377.PFvsxPeyib@vostro.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset="UTF-8"; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <owner-linux-mm@kvack.org>
-In-Reply-To: <20130130045437.GG30002@kroah.com>
-Sender: owner-linux-mm@kvack.org
-To: Greg KH <gregkh@linuxfoundation.org>
-Cc: rjw@sisk.pl, lenb@kernel.org, akpm@linux-foundation.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linux-mm@kvack.org, linuxppc-dev@lists.ozlabs.org, linux-s390@vger.kernel.org, bhelgaas@google.com, isimatu.yasuaki@jp.fujitsu.com, jiang.liu@huawei.com, wency@cn.fujitsu.com, guohanjun@huawei.com, yinghai@kernel.org, srivatsa.bhat@linux.vnet.ibm.com
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from fgwmail5.fujitsu.co.jp ([192.51.44.35]:45683 "EHLO
+	fgwmail5.fujitsu.co.jp" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753300Ab3AaDF2 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 30 Jan 2013 22:05:28 -0500
+In-Reply-To: <6099377.PFvsxPeyib@vostro.rjw.lan>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>, Mika Westerberg <mika.westerberg@linux.intel.com>, Yinghai Lu <yinghai@kernel.org>, Toshi Kani <toshi.kani@hp.com>
 
-On Tue, 2013-01-29 at 23:54 -0500, Greg KH wrote:
-> On Thu, Jan 10, 2013 at 04:40:21PM -0700, Toshi Kani wrote:
-> > Added sys_hotplug.c, which is the system device hotplug framework code.
-> > 
-> > shp_register_handler() allows modules to register their hotplug handlers
-> > to the framework.  shp_submit_req() provides the interface to submit
-> > a hotplug or online/offline request of system devices.  The request is
-> > then put into hp_workqueue.  shp_start_req() calls all registered handlers
-> > in ascending order for each phase.  If any handler failed in validate or
-> > execute phase, shp_start_req() initiates its rollback procedure.
-> > 
-> > Signed-off-by: Toshi Kani <toshi.kani@hp.com>
-> > ---
-> >  drivers/base/Makefile      |    1 
-> >  drivers/base/sys_hotplug.c |  313 ++++++++++++++++++++++++++++++++++++++++++++
-> >  2 files changed, 314 insertions(+)
-> >  create mode 100644 drivers/base/sys_hotplug.c
-> > 
-> > diff --git a/drivers/base/Makefile b/drivers/base/Makefile
-> > index 5aa2d70..2e9b2f1 100644
-> > --- a/drivers/base/Makefile
-> > +++ b/drivers/base/Makefile
-> > @@ -21,6 +21,7 @@ endif
-> >  obj-$(CONFIG_SYS_HYPERVISOR) += hypervisor.o
-> >  obj-$(CONFIG_REGMAP)	+= regmap/
-> >  obj-$(CONFIG_SOC_BUS) += soc.o
-> > +obj-y			+= sys_hotplug.o
-> 
-> No option to select this for systems that don't need it?  If not, then
-> put it up higher with all of the other code for the core.
+2013/01/31 7:03, Rafael J. Wysocki wrote:
+> From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+>
+> Since acpi_bus_get_device() returns int and not acpi_status, change
+> acpi_match_device() so that it doesn't apply ACPI_FAILURE() to the
+> return value of acpi_bus_get_device().
+>
+> Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+> ---
 
-It used to have CONFIG_HOTPLUG, but I removed it as you suggested.  Yes,
-I will put it up higher.  
+I have no objection.
+Acked-by: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
 
-Thanks,
--Toshi
+>   drivers/acpi/scan.c |    4 ++--
+>   1 file changed, 2 insertions(+), 2 deletions(-)
+>
+> Index: linux-pm/drivers/acpi/scan.c
+> ===================================================================
+> --- linux-pm.orig/drivers/acpi/scan.c
+> +++ linux-pm/drivers/acpi/scan.c
+> @@ -491,9 +491,9 @@ const struct acpi_device_id *acpi_match_
+>   					       const struct device *dev)
+>   {
+>   	struct acpi_device *adev;
+> +	acpi_handle handle = ACPI_HANDLE(dev);
+>
+> -	if (!ids || !ACPI_HANDLE(dev)
+> -	    || ACPI_FAILURE(acpi_bus_get_device(ACPI_HANDLE(dev), &adev)))
+> +	if (!ids || !handle || acpi_bus_get_device(handle, &adev))
+>   		return NULL;
+>
+>   	return __acpi_match_device(adev, ids);
+>
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>
 
 
---
-To unsubscribe, send a message with 'unsubscribe linux-mm' in
-the body to majordomo@kvack.org.  For more info on Linux MM,
-see: http://www.linux-mm.org/ .
-Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
