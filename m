@@ -1,118 +1,72 @@
 From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: [RFC PATCH v2 01/12] Add sys_hotplug.h for system device hotplug framework
-Date: Thu, 31 Jan 2013 21:54:51 +0100
-Message-ID: <9860755.q4y3PrCFZx@vostro.rjw.lan>
-References: <1357861230-29549-1-git-send-email-toshi.kani@hp.com> <20130130045830.GH30002@kroah.com> <1359601065.15120.156.camel@misato.fc.hp.com>
+Subject: [Resend][PATCH] ACPI / PM: Do not power manage devices in unknown initial states
+Date: Thu, 31 Jan 2013 23:32:40 +0100
+Message-ID: <3676077.i6vcpp7Nrn@vostro.rjw.lan>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7Bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from hydra.sisk.pl ([212.160.235.94]:37016 "EHLO hydra.sisk.pl"
+Received: from hydra.sisk.pl ([212.160.235.94]:37258 "EHLO hydra.sisk.pl"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751339Ab3AaUsm (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 31 Jan 2013 15:48:42 -0500
-In-Reply-To: <1359601065.15120.156.camel@misato.fc.hp.com>
+	id S1754839Ab3AaW02 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 31 Jan 2013 17:26:28 -0500
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Toshi Kani <toshi.kani@hp.com>
-Cc: Greg KH <gregkh@linuxfoundation.org>, lenb@kernel.org, akpm@linux-foundation.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linux-mm@kvack.org, linuxppc-dev@lists.ozlabs.org, linux-s390@vger.kernel.org, bhelgaas@google.com, isimatu.yasuaki@jp.fujitsu.com, jiang.liu@huawei.com, wency@cn.fujitsu.com, guohanjun@huawei.com, yinghai@kernel.org, srivatsa.bhat@linux.vnet.ibm.com
+To: ACPI Devel Maling List <linux-acpi@vger.kernel.org>
+Cc: LKML <linux-kernel@vger.kernel.org>, Len Brown <lenb@kernel.org>, Mika Westerberg <mika.westerberg@linux.intel.com>, Peter Wu <lekensteyn@gmail.com>
 
-On Wednesday, January 30, 2013 07:57:45 PM Toshi Kani wrote:
-> On Tue, 2013-01-29 at 23:58 -0500, Greg KH wrote:
-> > On Thu, Jan 10, 2013 at 04:40:19PM -0700, Toshi Kani wrote:
-> > > +/*
-> > > + * Hot-plug device information
-> > > + */
-> > 
-> > Again, stop it with the "generic" hotplug term here, and everywhere
-> > else.  You are doing a very _specific_ type of hotplug devices, so spell
-> > it out.  We've worked hard to hotplug _everything_ in Linux, you are
-> > going to confuse a lot of people with this type of terms.
-> 
-> Agreed.  I will clarify in all places.
-> 
-> > > +union shp_dev_info {
-> > > +	struct shp_cpu {
-> > > +		u32		cpu_id;
-> > > +	} cpu;
-> > 
-> > What is this?  Why not point to the system device for the cpu?
-> 
-> This info is used to on-line a new CPU and create its system/cpu device.
-> In other word, a system/cpu device is created as a result of CPU
-> hotplug.
-> 
-> > > +	struct shp_memory {
-> > > +		int		node;
-> > > +		u64		start_addr;
-> > > +		u64		length;
-> > > +	} mem;
-> > 
-> > Same here, why not point to the system device?
-> 
-> Same as above.
-> 
-> > > +	struct shp_hostbridge {
-> > > +	} hb;
-> > > +
-> > > +	struct shp_node {
-> > > +	} node;
-> > 
-> > What happened here with these?  Empty structures?  Huh?
-> 
-> They are place holders for now.  PCI bridge hot-plug and node hot-plug
-> are still very much work in progress, so I have not integrated them into
-> this framework yet.
-> 
-> > > +};
-> > > +
-> > > +struct shp_device {
-> > > +	struct list_head	list;
-> > > +	struct device		*device;
-> > 
-> > No, make it a "real" device, embed the device into it.
-> 
-> This device pointer is used to send KOBJ_ONLINE/OFFLINE event during CPU
-> online/offline operation in order to maintain the current behavior.  CPU
-> online/offline operation only changes the state of CPU, so its
-> system/cpu device continues to be present before and after an operation.
-> (Whereas, CPU hot-add/delete operation creates or removes a system/cpu
-> device.)  So, this "*device" needs to be a pointer to reference an
-> existing device that is to be on-lined/off-lined.
-> 
-> > But, again, I'm going to ask why you aren't using the existing cpu /
-> > memory / bridge / node devices that we have in the kernel.  Please use
-> > them, or give me a _really_ good reason why they will not work.
-> 
-> We cannot use the existing system devices or ACPI devices here.  During
-> hot-plug, ACPI handler sets this shp_device info, so that cpu and memory
-> handlers (drivers/cpu.c and mm/memory_hotplug.c) can obtain their target
-> device information in a platform-neutral way.  During hot-add, we first
-> creates an ACPI device node (i.e. device under /sys/bus/acpi/devices),
-> but platform-neutral modules cannot use them as they are ACPI-specific.
+From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 
-But suppose we're smart and have ACPI scan handlers that will create
-"physical" device nodes for those devices during the ACPI namespace scan.
-Then, the platform-neutral nodes will be able to bind to those "physical"
-nodes.  Moreover, it should be possible to get a hierarchy of device objects
-this way that will reflect all of the dependencies we need to take into
-account during hot-add and hot-remove operations.  That may not be what we
-have today, but I don't see any *fundamental* obstacles preventing us from
-using this approach.
+In general, for ACPI device power management to work, the initial
+power states of devices must be known (otherwise, we wouldn't be able
+to keep track of power resources, for example).  Hence, if it is
+impossible to determine the initial ACPI power states of some
+devices, they can't be regarded as power-manageable using ACPI.
 
-This is already done for PCI host bridges and platform devices and I don't
-see why we can't do that for the other types of devices too.
+For this reason, modify acpi_bus_get_power_flags() to clear the
+power_manageable flag if acpi_bus_init_power() fails and add some
+extra fallback code to acpi_bus_init_power() to cover broken
+BIOSes that provide _PS0/_PS3 without _PSC for some devices.
 
-The only missing piece I see is a way to handle the "eject" problem, i.e.
-when we try do eject a device at the top of a subtree and need to tear down
-the entire subtree below it, but if that's going to lead to a system crash,
-for example, we want to cancel the eject.  It seems to me that we'll need some
-help from the driver core here.
+Verified to work on my HP nx6325 that has this problem.
 
-Thanks,
-Rafael
+Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+---
+ drivers/acpi/device_pm.c |    6 ++++++
+ drivers/acpi/scan.c      |    5 ++++-
+ 2 files changed, 10 insertions(+), 1 deletion(-)
 
+Index: linux-pm/drivers/acpi/device_pm.c
+===================================================================
+--- linux-pm.orig/drivers/acpi/device_pm.c
++++ linux-pm/drivers/acpi/device_pm.c
+@@ -330,6 +330,12 @@ int acpi_bus_init_power(struct acpi_devi
+ 		result = acpi_dev_pm_explicit_set(device, state);
+ 		if (result)
+ 			return result;
++	} else if (state == ACPI_STATE_UNKNOWN) {
++		/* No power resources and missing _PSC? Try to force D0. */
++		state = ACPI_STATE_D0;
++		result = acpi_dev_pm_explicit_set(device, state);
++		if (result)
++			return result;
+ 	}
+ 	device->power.state = state;
+ 	return 0;
+Index: linux-pm/drivers/acpi/scan.c
+===================================================================
+--- linux-pm.orig/drivers/acpi/scan.c
++++ linux-pm/drivers/acpi/scan.c
+@@ -1175,7 +1175,10 @@ static void acpi_bus_get_power_flags(str
+ 			device->power.flags.power_resources)
+ 		device->power.states[ACPI_STATE_D3_COLD].flags.os_accessible = 1;
+ 
+-	acpi_bus_init_power(device);
++	if (acpi_bus_init_power(device)) {
++		acpi_free_power_resources_lists(device);
++		device->flags.power_manageable = 0;
++	}
+ }
+ 
+ static void acpi_bus_get_flags(struct acpi_device *device)
 
--- 
-I speak only for myself.
-Rafael J. Wysocki, Intel Open Source Technology Center.
