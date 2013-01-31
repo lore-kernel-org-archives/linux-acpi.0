@@ -1,16 +1,16 @@
 From: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
 Subject: Re: [PATCH 0/4] Fix acpi_bus_get_device() check
-Date: Thu, 31 Jan 2013 12:15:19 +0900
-Message-ID: <5109E1C7.5020702@jp.fujitsu.com>
+Date: Thu, 31 Jan 2013 12:16:44 +0900
+Message-ID: <5109E21C.4010904@jp.fujitsu.com>
 References: <1451967.YMyGeCCNtu@vostro.rjw.lan> <6099377.PFvsxPeyib@vostro.rjw.lan> <5109E11A.5030400@jp.fujitsu.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from fgwmail5.fujitsu.co.jp ([192.51.44.35]:58016 "EHLO
+Received: from fgwmail5.fujitsu.co.jp ([192.51.44.35]:58063 "EHLO
 	fgwmail5.fujitsu.co.jp" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756523Ab3AaDPk (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 30 Jan 2013 22:15:40 -0500
+	with ESMTP id S1756796Ab3AaDRF (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 30 Jan 2013 22:17:05 -0500
 In-Reply-To: <5109E11A.5030400@jp.fujitsu.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
@@ -18,25 +18,61 @@ To: "Rafael J. Wysocki" <rjw@sisk.pl>, ACPI Devel Maling List <linux-acpi@vger.k
 
 acpi_bus_get_device() returns int not acpi_status.
 
-The patch change not to apply ACPI_SUCCESS() to the return value of
+The patch change not to apply ACPI_FAILURE() to the return value of
 acpi_bus_get_device().
 
 Signed-off-by: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
 ---
-  drivers/acpi/dock.c |    2 +-
-  1 file changed, 1 insertion(+), 1 deletion(-)
+  drivers/pnp/pnpacpi/core.c |   10 +++++-----
+  1 file changed, 5 insertions(+), 5 deletions(-)
 
-Index: linux-pm/drivers/acpi/dock.c
+Index: linux-pm/drivers/pnp/pnpacpi/core.c
 ===================================================================
---- linux-pm.orig/drivers/acpi/dock.c	2013-01-31 11:39:40.574849906 +0900
-+++ linux-pm/drivers/acpi/dock.c	2013-01-31 11:50:11.329850213 +0900
-@@ -836,7 +836,7 @@ static ssize_t show_docked(struct device
+--- linux-pm.orig/drivers/pnp/pnpacpi/core.c	2013-01-31 11:04:43.000000000 +0900
++++ linux-pm/drivers/pnp/pnpacpi/core.c	2013-01-31 11:38:47.659849883 +0900
+@@ -90,7 +90,7 @@ static int pnpacpi_set_resources(struct
+  	pnp_dbg(&dev->dev, "set resources\n");
   
-  	struct dock_station *dock_station = dev->platform_data;
+  	handle = DEVICE_ACPI_HANDLE(&dev->dev);
+-	if (!handle || ACPI_FAILURE(acpi_bus_get_device(handle, &acpi_dev))) {
++	if (!handle || acpi_bus_get_device(handle, &acpi_dev)) {
+  		dev_dbg(&dev->dev, "ACPI device not found in %s!\n", __func__);
+  		return -ENODEV;
+  	}
+@@ -123,7 +123,7 @@ static int pnpacpi_disable_resources(str
+  	dev_dbg(&dev->dev, "disable resources\n");
   
--	if (ACPI_SUCCESS(acpi_bus_get_device(dock_station->handle, &tmp)))
-+	if (!acpi_bus_get_device(dock_station->handle, &tmp))
-  		return snprintf(buf, PAGE_SIZE, "1\n");
-  	return snprintf(buf, PAGE_SIZE, "0\n");
-  }
+  	handle = DEVICE_ACPI_HANDLE(&dev->dev);
+-	if (!handle || ACPI_FAILURE(acpi_bus_get_device(handle, &acpi_dev))) {
++	if (!handle || acpi_bus_get_device(handle, &acpi_dev)) {
+  		dev_dbg(&dev->dev, "ACPI device not found in %s!\n", __func__);
+  		return 0;
+  	}
+@@ -145,7 +145,7 @@ static bool pnpacpi_can_wakeup(struct pn
+  	acpi_handle handle;
+  
+  	handle = DEVICE_ACPI_HANDLE(&dev->dev);
+-	if (!handle || ACPI_FAILURE(acpi_bus_get_device(handle, &acpi_dev))) {
++	if (!handle || acpi_bus_get_device(handle, &acpi_dev)) {
+  		dev_dbg(&dev->dev, "ACPI device not found in %s!\n", __func__);
+  		return false;
+  	}
+@@ -160,7 +160,7 @@ static int pnpacpi_suspend(struct pnp_de
+  	int error = 0;
+  
+  	handle = DEVICE_ACPI_HANDLE(&dev->dev);
+-	if (!handle || ACPI_FAILURE(acpi_bus_get_device(handle, &acpi_dev))) {
++	if (!handle || acpi_bus_get_device(handle, &acpi_dev)) {
+  		dev_dbg(&dev->dev, "ACPI device not found in %s!\n", __func__);
+  		return 0;
+  	}
+@@ -197,7 +197,7 @@ static int pnpacpi_resume(struct pnp_dev
+  	acpi_handle handle = DEVICE_ACPI_HANDLE(&dev->dev);
+  	int error = 0;
+  
+-	if (!handle || ACPI_FAILURE(acpi_bus_get_device(handle, &acpi_dev))) {
++	if (!handle || acpi_bus_get_device(handle, &acpi_dev)) {
+  		dev_dbg(&dev->dev, "ACPI device not found in %s!\n", __func__);
+  		return -ENODEV;
+  	}
 
