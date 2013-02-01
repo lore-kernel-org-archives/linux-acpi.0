@@ -1,48 +1,91 @@
 From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: [Resend][PATCH] ACPI / PM: Do not power manage devices in unknown initial states
-Date: Fri, 01 Feb 2013 22:44:55 +0100
-Message-ID: <6427459.8Ia2IB77g6@vostro.rjw.lan>
-References: <3676077.i6vcpp7Nrn@vostro.rjw.lan> <2135454.ENo8eA9AXp@al>
+Subject: Re: [RFC PATCH v2 01/12] Add sys_hotplug.h for system device hotplug framework
+Date: Fri, 01 Feb 2013 23:12:59 +0100
+Message-ID: <1987042.JQv02Zsfg5@vostro.rjw.lan>
+References: <1357861230-29549-1-git-send-email-toshi.kani@hp.com> <9860755.q4y3PrCFZx@vostro.rjw.lan> <20130201072312.GB1180@kroah.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7Bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from hydra.sisk.pl ([212.160.235.94]:40901 "EHLO hydra.sisk.pl"
+Received: from hydra.sisk.pl ([212.160.235.94]:40991 "EHLO hydra.sisk.pl"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1757562Ab3BAVin (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 1 Feb 2013 16:38:43 -0500
-In-Reply-To: <2135454.ENo8eA9AXp@al>
+	id S1757791Ab3BAWGs (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 1 Feb 2013 17:06:48 -0500
+In-Reply-To: <20130201072312.GB1180@kroah.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Peter Wu <lekensteyn@gmail.com>
-Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>, Len Brown <lenb@kernel.org>, Mika Westerberg <mika.westerberg@linux.intel.com>
+To: Greg KH <gregkh@linuxfoundation.org>
+Cc: Toshi Kani <toshi.kani@hp.com>, lenb@kernel.org, akpm@linux-foundation.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linux-mm@kvack.org, linuxppc-dev@lists.ozlabs.org, linux-s390@vger.kernel.org, bhelgaas@google.com, isimatu.yasuaki@jp.fujitsu.com, jiang.liu@huawei.com, wency@cn.fujitsu.com, guohanjun@huawei.com, yinghai@kernel.org, srivatsa.bhat@linux.vnet.ibm.com
 
-On Friday, February 01, 2013 07:23:52 PM Peter Wu wrote:
-> On Thursday 31 January 2013 23:32:40 Rafael J. Wysocki wrote:
-> > In general, for ACPI device power management to work, the initial
-> > power states of devices must be known (otherwise, we wouldn't be able
-> > to keep track of power resources, for example).  Hence, if it is
-> > impossible to determine the initial ACPI power states of some
-> > devices, they can't be regarded as power-manageable using ACPI.
+On Friday, February 01, 2013 08:23:12 AM Greg KH wrote:
+> On Thu, Jan 31, 2013 at 09:54:51PM +0100, Rafael J. Wysocki wrote:
+> > > > But, again, I'm going to ask why you aren't using the existing cpu /
+> > > > memory / bridge / node devices that we have in the kernel.  Please use
+> > > > them, or give me a _really_ good reason why they will not work.
+> > > 
+> > > We cannot use the existing system devices or ACPI devices here.  During
+> > > hot-plug, ACPI handler sets this shp_device info, so that cpu and memory
+> > > handlers (drivers/cpu.c and mm/memory_hotplug.c) can obtain their target
+> > > device information in a platform-neutral way.  During hot-add, we first
+> > > creates an ACPI device node (i.e. device under /sys/bus/acpi/devices),
+> > > but platform-neutral modules cannot use them as they are ACPI-specific.
 > > 
-> > For this reason, modify acpi_bus_get_power_flags() to clear the
-> > power_manageable flag if acpi_bus_init_power() fails and add some
-> > extra fallback code to acpi_bus_init_power() to cover broken
-> > BIOSes that provide _PS0/_PS3 without _PSC for some devices.
-> > 
-> > Verified to work on my HP nx6325 that has this problem.
-> > 
-> > Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+> > But suppose we're smart and have ACPI scan handlers that will create
+> > "physical" device nodes for those devices during the ACPI namespace scan.
+> > Then, the platform-neutral nodes will be able to bind to those "physical"
+> > nodes.  Moreover, it should be possible to get a hierarchy of device objects
+> > this way that will reflect all of the dependencies we need to take into
+> > account during hot-add and hot-remove operations.  That may not be what we
+> > have today, but I don't see any *fundamental* obstacles preventing us from
+> > using this approach.
 > 
-> Tested-by: Peter Wu <lekensteyn@gmail.com>
+> I would _much_ rather see that be the solution here as I think it is the
+> proper one.
 > 
-> I applied it on top of branch linux-next of repo linux-pm.
+> > This is already done for PCI host bridges and platform devices and I don't
+> > see why we can't do that for the other types of devices too.
 > 
-> Fixes the issue I had with bbswitch in Linux 3.8. Can a backport patch be made 
-> available for 3.8?
+> I agree.
+> 
+> > The only missing piece I see is a way to handle the "eject" problem, i.e.
+> > when we try do eject a device at the top of a subtree and need to tear down
+> > the entire subtree below it, but if that's going to lead to a system crash,
+> > for example, we want to cancel the eject.  It seems to me that we'll need some
+> > help from the driver core here.
+> 
+> I say do what we always have done here, if the user asked us to tear
+> something down, let it happen as they are the ones that know best :)
+> 
+> Seriously, I guess this gets back to the "fail disconnect" idea that the
+> ACPI developers keep harping on.  I thought we already resolved this
+> properly by having them implement it in their bus code, no reason the
+> same thing couldn't happen here, right?
 
-Yes, after this commit enters the mainline.  Please ping me some time around
-3.9-rc1.
+Not really. :-)  We haven't ever resolved that particular issue I'm afraid.
+
+> I don't think the core needs to do anything special, but if so, I'll be glad
+> to review it.
+
+OK, so this is the use case.  We have "eject" defined for something like
+a container with a number of CPU cores, PCI host bridge, and a memory
+controller under it.  And a few pretty much arbitrary I/O devices as a bonus.
+
+Now, there's a button on the system case labeled as "Eject" and if that button
+is pressed, we're supposed to _try_ to eject all of those things at once.  We
+are allowed to fail that request, though, if that's problematic for some
+reason, but we're supposed to let the BIOS know about that.
+
+Do you seriously think that if that button is pressed, we should just proceed
+with removing all that stuff no matter what?  That'd be kind of like Russian
+roulette for whoever pressed that button, because s/he could only press it and
+wait for the system to either crash or not.  Or maybe to crash a bit later
+because of some delayed stuff that would hit one of those devices that had just
+gone.  Surely not a situation any admin of a high-availability system would
+like to be in. :-)
+
+Quite frankly, I have no idea how that can be addressed in a single bus type,
+let alone ACPI (which is not even a proper bus type, just something pretending
+to be one).
 
 Thanks,
 Rafael
