@@ -1,135 +1,113 @@
-From: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
-Subject: Re: [UPDATE][PATCH 4/4] GPU/i915: Fix acpi_bus_get_device() check
- in drivers/gpu/drm/i915/intel_opregion.c
-Date: Fri, 1 Feb 2013 10:14:20 +0900
-Message-ID: <510B16EC.7030903@jp.fujitsu.com>
-References: <1451967.YMyGeCCNtu@vostro.rjw.lan> <6099377.PFvsxPeyib@vostro.rjw.lan> <5109E11A.5030400@jp.fujitsu.com> <5109E2AF.2000107@jp.fujitsu.com> <5109E49E.1070005@jp.fujitsu.com> <20130131100330.GE5885@phenom.ffwll.local> <510B1168.2080401@jp.fujitsu.com> <510B1200.3000509@jp.fujitsu.com>
+From: Jianguo Wu <wujianguo@huawei.com>
+Subject: Re: [PATCH v6 00/15] memory-hotplug: hot-remove physical memory
+Date: Fri, 1 Feb 2013 09:32:59 +0800
+Message-ID: <510B1B4B.5080207@huawei.com>
+References: <1357723959-5416-1-git-send-email-tangchen@cn.fujitsu.com>     <1359463973.1624.15.camel@kernel> <5108F2B3.3090506@cn.fujitsu.com>    <1359595344.1557.13.camel@kernel> <5109E59F.5080104@cn.fujitsu.com>   <1359613162.1587.0.camel@kernel> <510A18FA.2010107@cn.fujitsu.com>  <1359622123.1391.19.camel@kernel> <510A3CE6.202@cn.fujitsu.com> <1359628705.2048.5.camel@kernel>
 Mime-Version: 1.0
-Content-Type: multipart/mixed;
-	boundary="------------010205060905060301060303"
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from fgwmail6.fujitsu.co.jp ([192.51.44.36]:42632 "EHLO
-	fgwmail6.fujitsu.co.jp" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752835Ab3BABOt (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 31 Jan 2013 20:14:49 -0500
-In-Reply-To: <510B1200.3000509@jp.fujitsu.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
+Return-path: <owner-linux-mm@kvack.org>
+In-Reply-To: <1359628705.2048.5.camel@kernel>
+Sender: owner-linux-mm@kvack.org
+To: Simon Jeons <simon.jeons@gmail.com>
+Cc: Tang Chen <tangchen@cn.fujitsu.com>, akpm@linux-foundation.org, rientjes@google.com, len.brown@intel.com, benh@kernel.crashing.org, paulus@samba.org, cl@linux.com, minchan.kim@gmail.com, kosaki.motohiro@jp.fujitsu.com, isimatu.yasuaki@jp.fujitsu.com, wency@cn.fujitsu.com, hpa@zytor.com, linfeng@cn.fujitsu.com, laijs@cn.fujitsu.com, mgorman@suse.de, yinghai@kernel.org, glommer@parallels.com, x86@kernel.org, linux-mm@kvack.org, linux-kernel@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, linux-acpi@vger.kernel.org, linux-s390@vger.kernel.org, linux-sh@vger.kernel.org, linux-ia64@vger.kernel.org, cmetcalf@tilera.com, sparclinux@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: daniel@ffwll.ch
-Cc: "Rafael J. Wysocki" <rjw@sisk.pl>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>, Mika Westerberg <mika.westerberg@linux.intel.com>, Yinghai Lu <yinghai@kernel.org>, Toshi Kani <toshi.kani@hp.com>, dri-devel@lists.freedesktop.org
 
---------------010205060905060301060303
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
-Content-Transfer-Encoding: 7bit
+On 2013/1/31 18:38, Simon Jeons wrote:
 
-2013/02/01 9:53, Yasuaki Ishimatsu wrote:
-> 2013/02/01 9:50, Yasuaki Ishimatsu wrote:
->> 2013/01/31 19:03, Daniel Vetter wrote:
->>> On Thu, Jan 31, 2013 at 12:27:26PM +0900, Yasuaki Ishimatsu wrote:
->>>> I forgot to change subject. So I resend a patch.
->>>>
->>>> ---
->>>> acpi_bus_get_device() returns int not acpi_status.
->>>>
->>>> The patch change not to apply ACPI_FAILURE() to the return value of
->>>> acpi_bus_get_device().
->>>>
->>>> Signed-off-by: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
+> Hi Tang,
+> On Thu, 2013-01-31 at 17:44 +0800, Tang Chen wrote:
+>> Hi Simon,
+>>
+>> On 01/31/2013 04:48 PM, Simon Jeons wrote:
+>>> Hi Tang,
+>>> On Thu, 2013-01-31 at 15:10 +0800, Tang Chen wrote:
 >>>
->>> I've tried to apply this to drm-intel-next-queued, but git am didn't
->>> really like your patch - it failed to apply. Can you please rebase to the
->>> drm-intel-next-queued branch from
->>>
->>> git://people.freedesktop.org/~danvet/drm-intel
->>>
->>> and please resubmit the patch, preferrably formatted with git
->>> format-patch?
+>>> 1. IIUC, there is a button on machine which supports hot-remove memory,
+>>> then what's the difference between press button and echo to /sys?
 >>
->> My mailer added a space in the patch. I updated the patch.
->> How abot it?
+>> No important difference, I think. Since I don't have the machine you are
+>> saying, I cannot surely answer you. :)
+>> AFAIK, pressing the button means trigger the hotplug from hardware, sysfs
+>> is just another entrance. At last, they will run into the same code.
 >>
->> ---
->> acpi_bus_get_device() returns int not acpi_status.
+>>> 2. Since kernel memory is linear mapping(I mean direct mapping part),
+>>> why can't put kernel direct mapping memory into one memory device, and
+>>> other memory into the other devices?
 >>
->> The patch change not to apply ACPI_FAILURE() to the return value of
->> acpi_bus_get_device().
+>> We cannot do that because in that way, we will lose NUMA performance.
 >>
->> Signed-off-by: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
->> ---
->>   drivers/gpu/drm/i915/intel_opregion.c |    2 +-
->>   1 files changed, 1 insertions(+), 1 deletions(-)
+>> If you know NUMA, you will understand the following example:
 >>
->> diff --git a/drivers/gpu/drm/i915/intel_opregion.c b/drivers/gpu/drm/i915/intel_opregion.c
->> index 7741c22..4d33874 100644
->> --- a/drivers/gpu/drm/i915/intel_opregion.c
->> +++ b/drivers/gpu/drm/i915/intel_opregion.c
->> @@ -347,7 +347,7 @@ static void intel_didl_outputs(struct drm_device *dev)
->>       int i = 0;
+>> node0:                    node1:
+>>     cpu0~cpu15                cpu16~cpu31
+>>     memory0~memory511         memory512~memory1023
 >>
->>       handle = DEVICE_ACPI_HANDLE(&dev->pdev->dev);
->> -    if (!handle || ACPI_FAILURE(acpi_bus_get_device(handle, &acpi_dev)))
->> +    if (!handle || acpi_bus_get_device(handle, &acpi_dev))
->>           return;
->>
->>       if (acpi_is_video_device(acpi_dev))
->>
->
-> Oops. My mailer added a space again...
-> I'll check my mailer again.
+>> cpu16~cpu31 access memory16~memory1023 much faster than memory0~memory511.
+>> If we set direct mapping area in node0, and movable area in node1, then
+>> the kernel code running on cpu16~cpu31 will have to access 
+>> memory0~memory511.
+>> This is a terrible performance down.
+> 
+> So if config NUMA, kernel memory will not be linear mapping anymore? For
+> example, 
+> 
+> Node 0  Node 1 
+> 
+> 0 ~ 10G 11G~14G
+> 
+> kernel memory only at Node 0? Can part of kernel memory also at Node 1?
+> 
+> How big is kernel direct mapping memory in x86_64? Is there max limit?
 
-I do not understand why space was added to the patch.
-So I attached the patch. Please check it.
 
-Thanks,
-Yasuaki Ishimatsu
+Max kernel direct mapping memory in x86_64 is 64TB.
 
->
-> Thanks,
-> Yasuaki Ishimatsu
->
->> --
->> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
->> the body of a message to majordomo@vger.kernel.org
->> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->
->
+> It seems that only around 896MB on x86_32. 
+> 
+>>
+>>> As you know x86_64 don't need
+>>> highmem, IIUC, all kernel memory will linear mapping in this case. Is my
+>>> idea available? If is correct, x86_32 can't implement in the same way
+>>> since highmem(kmap/kmap_atomic/vmalloc) can map any address, so it's
+>>> hard to focus kernel memory on single memory device.
+>>
+>> Sorry, I'm not quite familiar with x86_32 box.
+>>
+>>> 3. In current implementation, if memory hotplug just need memory
+>>> subsystem and ACPI codes support? Or also needs firmware take part in?
+>>> Hope you can explain in details, thanks in advance. :)
+>>
+>> We need firmware take part in, such as SRAT in ACPI BIOS, or the firmware
+>> based memory migration mentioned by Liu Jiang.
+> 
+> Is there any material about firmware based memory migration?
+> 
+>>
+>> So far, I only know this. :)
+>>
+>>> 4. What's the status of memory hotplug? Apart from can't remove kernel
+>>> memory, other things are fully implementation?
+>>
+>> I think the main job is done for now. And there are still bugs to fix.
+>> And this functionality is not stable.
+>>
+>> Thanks. :)
+> 
+> 
 > --
-> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> To unsubscribe, send a message with 'unsubscribe linux-mm' in
+> the body to majordomo@kvack.org.  For more info on Linux MM,
+> see: http://www.linux-mm.org/ .
+> Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
+> 
+> .
+> 
 
 
---------------010205060905060301060303
-Content-Type: text/x-patch;
-	name="0001-RESEND-PATCH-4-4-GPU-i915-Fix-acpi_bus_get_device-ch.patch"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: attachment;
-	filename*0="0001-RESEND-PATCH-4-4-GPU-i915-Fix-acpi_bus_get_device-ch.pa";
-	filename*1="tch"
 
-acpi_bus_get_device() returns int not acpi_status.
-
-The patch change not to apply ACPI_FAILURE() to the return value of
-acpi_bus_get_device().
-
-Signed-off-by: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
----
- drivers/gpu/drm/i915/intel_opregion.c |    2 +-
- 1 files changed, 1 insertions(+), 1 deletions(-)
-
-diff --git a/drivers/gpu/drm/i915/intel_opregion.c b/drivers/gpu/drm/i915/intel_opregion.c
-index 7741c22..4d33874 100644
---- a/drivers/gpu/drm/i915/intel_opregion.c
-+++ b/drivers/gpu/drm/i915/intel_opregion.c
-@@ -347,7 +347,7 @@ static void intel_didl_outputs(struct drm_device *dev)
- 	int i = 0;
- 
- 	handle = DEVICE_ACPI_HANDLE(&dev->pdev->dev);
--	if (!handle || ACPI_FAILURE(acpi_bus_get_device(handle, &acpi_dev)))
-+	if (!handle || acpi_bus_get_device(handle, &acpi_dev))
- 		return;
- 
- 	if (acpi_is_video_device(acpi_dev))
-
-
---------------010205060905060301060303--
+--
+To unsubscribe, send a message with 'unsubscribe linux-mm' in
+the body to majordomo@kvack.org.  For more info on Linux MM,
+see: http://www.linux-mm.org/ .
+Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
