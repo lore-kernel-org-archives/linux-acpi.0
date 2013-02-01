@@ -1,112 +1,142 @@
-From: Greg KH <gregkh@linuxfoundation.org>
-Subject: Re: [RFC PATCH v2 01/12] Add sys_hotplug.h for system device hotplug
- framework
-Date: Fri, 1 Feb 2013 08:30:10 +0100
-Message-ID: <20130201073010.GC1180@kroah.com>
-References: <1357861230-29549-1-git-send-email-toshi.kani@hp.com>
- <20130130045830.GH30002@kroah.com>
- <1359601065.15120.156.camel@misato.fc.hp.com>
- <9860755.q4y3PrCFZx@vostro.rjw.lan>
- <1359682338.15120.209.camel@misato.fc.hp.com>
+From: Daniel Vetter <daniel@ffwll.ch>
+Subject: Re: [UPDATE][PATCH 4/4] GPU/i915: Fix acpi_bus_get_device() check in
+ drivers/gpu/drm/i915/intel_opregion.c
+Date: Fri, 1 Feb 2013 11:03:17 +0100
+Message-ID: <20130201100317.GG5885@phenom.ffwll.local>
+References: <1451967.YMyGeCCNtu@vostro.rjw.lan>
+ <6099377.PFvsxPeyib@vostro.rjw.lan>
+ <5109E11A.5030400@jp.fujitsu.com>
+ <5109E2AF.2000107@jp.fujitsu.com>
+ <5109E49E.1070005@jp.fujitsu.com>
+ <20130131100330.GE5885@phenom.ffwll.local>
+ <510B1168.2080401@jp.fujitsu.com>
+ <510B1200.3000509@jp.fujitsu.com>
+ <510B16EC.7030903@jp.fujitsu.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.19.201]:33266 "EHLO mail.kernel.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751444Ab3BAH2L (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 1 Feb 2013 02:28:11 -0500
+Received: from mail-wi0-f180.google.com ([209.85.212.180]:47652 "EHLO
+	mail-wi0-f180.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756283Ab3BAKBJ (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 1 Feb 2013 05:01:09 -0500
+Received: by mail-wi0-f180.google.com with SMTP id hj13so366676wib.13
+        for <linux-acpi@vger.kernel.org>; Fri, 01 Feb 2013 02:01:07 -0800 (PST)
 Content-Disposition: inline
-In-Reply-To: <1359682338.15120.209.camel@misato.fc.hp.com>
+In-Reply-To: <510B16EC.7030903@jp.fujitsu.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Toshi Kani <toshi.kani@hp.com>
-Cc: "Rafael J. Wysocki" <rjw@sisk.pl>, lenb@kernel.org, akpm@linux-foundation.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linux-mm@kvack.org, linuxppc-dev@lists.ozlabs.org, linux-s390@vger.kernel.org, bhelgaas@google.com, isimatu.yasuaki@jp.fujitsu.com, jiang.liu@huawei.com, wency@cn.fujitsu.com, guohanjun@huawei.com, yinghai@kernel.org, srivatsa.bhat@linux.vnet.ibm.com
+To: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
+Cc: daniel@ffwll.ch, "Rafael J. Wysocki" <rjw@sisk.pl>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>, Mika Westerberg <mika.westerberg@linux.intel.com>, Yinghai Lu <yinghai@kernel.org>, Toshi Kani <toshi.kani@hp.com>, dri-devel@lists.freedesktop.org
 
-On Thu, Jan 31, 2013 at 06:32:18PM -0700, Toshi Kani wrote:
- > This is already done for PCI host bridges and platform devices and I don't
-> > see why we can't do that for the other types of devices too.
-> > 
-> > The only missing piece I see is a way to handle the "eject" problem, i.e.
-> > when we try do eject a device at the top of a subtree and need to tear down
-> > the entire subtree below it, but if that's going to lead to a system crash,
-> > for example, we want to cancel the eject.  It seems to me that we'll need some
-> > help from the driver core here.
+On Fri, Feb 01, 2013 at 10:14:20AM +0900, Yasuaki Ishimatsu wrote:
+> 2013/02/01 9:53, Yasuaki Ishimatsu wrote:
+> >2013/02/01 9:50, Yasuaki Ishimatsu wrote:
+> >>2013/01/31 19:03, Daniel Vetter wrote:
+> >>>On Thu, Jan 31, 2013 at 12:27:26PM +0900, Yasuaki Ishimatsu wrote:
+> >>>>I forgot to change subject. So I resend a patch.
+> >>>>
+> >>>>---
+> >>>>acpi_bus_get_device() returns int not acpi_status.
+> >>>>
+> >>>>The patch change not to apply ACPI_FAILURE() to the return value of
+> >>>>acpi_bus_get_device().
+> >>>>
+> >>>>Signed-off-by: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
+> >>>
+> >>>I've tried to apply this to drm-intel-next-queued, but git am didn't
+> >>>really like your patch - it failed to apply. Can you please rebase to the
+> >>>drm-intel-next-queued branch from
+> >>>
+> >>>git://people.freedesktop.org/~danvet/drm-intel
+> >>>
+> >>>and please resubmit the patch, preferrably formatted with git
+> >>>format-patch?
+> >>
+> >>My mailer added a space in the patch. I updated the patch.
+> >>How abot it?
+> >>
+> >>---
+> >>acpi_bus_get_device() returns int not acpi_status.
+> >>
+> >>The patch change not to apply ACPI_FAILURE() to the return value of
+> >>acpi_bus_get_device().
+> >>
+> >>Signed-off-by: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
+> >>---
+> >>  drivers/gpu/drm/i915/intel_opregion.c |    2 +-
+> >>  1 files changed, 1 insertions(+), 1 deletions(-)
+> >>
+> >>diff --git a/drivers/gpu/drm/i915/intel_opregion.c b/drivers/gpu/drm/i915/intel_opregion.c
+> >>index 7741c22..4d33874 100644
+> >>--- a/drivers/gpu/drm/i915/intel_opregion.c
+> >>+++ b/drivers/gpu/drm/i915/intel_opregion.c
+> >>@@ -347,7 +347,7 @@ static void intel_didl_outputs(struct drm_device *dev)
+> >>      int i = 0;
+> >>
+> >>      handle = DEVICE_ACPI_HANDLE(&dev->pdev->dev);
+> >>-    if (!handle || ACPI_FAILURE(acpi_bus_get_device(handle, &acpi_dev)))
+> >>+    if (!handle || acpi_bus_get_device(handle, &acpi_dev))
+> >>          return;
+> >>
+> >>      if (acpi_is_video_device(acpi_dev))
+> >>
+> >
+> >Oops. My mailer added a space again...
+> >I'll check my mailer again.
 > 
-> There are three different approaches suggested for system device
-> hot-plug:
->  A. Proceed within system device bus scan.
->  B. Proceed within ACPI bus scan.
->  C. Proceed with a sequence (as a mini-boot).
+> I do not understand why space was added to the patch.
+> So I attached the patch. Please check it.
+
+Yeah, worked this time. Queued for -next, thanks for the patch.
+-Daniel
+
 > 
-> Option A uses system devices as tokens, option B uses acpi devices as
-> tokens, and option C uses resource tables as tokens, for their handlers.
+> Thanks,
+> Yasuaki Ishimatsu
 > 
-> Here is summary of key questions & answers so far.  I hope this
-> clarifies why I am suggesting option 3.
+> >
+> >Thanks,
+> >Yasuaki Ishimatsu
+> >
+> >>--
+> >>To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
+> >>the body of a message to majordomo@vger.kernel.org
+> >>More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> >
+> >
+> >--
+> >To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
+> >the body of a message to majordomo@vger.kernel.org
+> >More majordomo info at  http://vger.kernel.org/majordomo-info.html
 > 
-> 1. What are the system devices?
-> System devices provide system-wide core computing resources, which are
-> essential to compose a computer system.  System devices are not
-> connected to any particular standard buses.
 
-Not a problem, lots of devices are not connected to any "particular
-standard busses".  All this means is that system devices are connected
-to the "system" bus, nothing more.
+> acpi_bus_get_device() returns int not acpi_status.
+> 
+> The patch change not to apply ACPI_FAILURE() to the return value of
+> acpi_bus_get_device().
+> 
+> Signed-off-by: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
+> ---
+>  drivers/gpu/drm/i915/intel_opregion.c |    2 +-
+>  1 files changed, 1 insertions(+), 1 deletions(-)
+> 
+> diff --git a/drivers/gpu/drm/i915/intel_opregion.c b/drivers/gpu/drm/i915/intel_opregion.c
+> index 7741c22..4d33874 100644
+> --- a/drivers/gpu/drm/i915/intel_opregion.c
+> +++ b/drivers/gpu/drm/i915/intel_opregion.c
+> @@ -347,7 +347,7 @@ static void intel_didl_outputs(struct drm_device *dev)
+>  	int i = 0;
+>  
+>  	handle = DEVICE_ACPI_HANDLE(&dev->pdev->dev);
+> -	if (!handle || ACPI_FAILURE(acpi_bus_get_device(handle, &acpi_dev)))
+> +	if (!handle || acpi_bus_get_device(handle, &acpi_dev))
+>  		return;
+>  
+>  	if (acpi_is_video_device(acpi_dev))
+> 
 
-> 2. Why are the system devices special?
-> The system devices are initialized during early boot-time, by multiple
-> subsystems, from the boot-up sequence, in pre-defined order.  They
-> provide low-level services to enable other subsystems to come up.
 
-Sorry, no, that doesn't mean they are special, nothing here is unique
-for the point of view of the driver model from any other device or bus.
-
-> 3. Why can't initialize the system devices from the driver structure at
-> boot?
-> The driver structure is initialized at the end of the boot sequence and
-> requires the low-level services from the system devices initialized
-> beforehand.
-
-Wait, what "driver structure"?  If you need to initialize the driver
-core earlier, then do so.  Or, even better, just wait until enough of
-the system has come up and then go initialize all of the devices you
-have found so far as part of your boot process.
-
-None of the above things you have stated seem to have anything to do
-with your proposed patch, so I don't understand why you have mentioned
-them...
-
-> 4. Why do we need a new common framework?
-> Sysfs CPU and memory on-lining/off-lining are performed within the CPU
-> and memory modules.  They are common code and do not depend on ACPI.
-> Therefore, a new common framework is necessary to integrate both
-> on-lining/off-lining operation and hot-plugging operation of system
-> devices into a single framework.
-
-{sigh}
-
-Removing and adding devices and handling hotplug operations is what the
-driver core was written for, almost 10 years ago.  To somehow think that
-your devices are "special" just because they don't use ACPI is odd,
-because the driver core itself has nothing to do with ACPI.  Don't get
-the current mix of x86 system code tied into ACPI confused with an
-driver core issues here please.
-
-> 5. Why can't do everything with ACPI bus scan?
-> Software dependency among system devices may not be dictated by the ACPI
-> hierarchy.  For instance, memory should be initialized before CPUs (i.e.
-> a new cpu may need its local memory), but such ordering cannot be
-> guaranteed by the ACPI hierarchy.  Also, as described in 4,
-> online/offline operations are independent from ACPI.  
-
-That's fine, the driver core is independant from ACPI.  I don't care how
-you do the scaning of your devices, but I do care about you creating new
-driver core pieces that duplicate the existing functionality of what we
-have today.
-
-In short, I like Rafael's proposal better, and I fail to see how
-anything you have stated here would matter in how this is implemented. :)
-
-thanks,
-
-greg k-h
+-- 
+Daniel Vetter
+Software Engineer, Intel Corporation
++41 (0) 79 365 57 48 - http://blog.ffwll.ch
