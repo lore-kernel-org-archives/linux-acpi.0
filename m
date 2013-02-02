@@ -1,80 +1,75 @@
-From: Steven Newbury <steve@snewbury.org.uk>
-Subject: Re: [PATCH 1/2] ACPI / scan: Make namespace scanning and trimming
-	mutually exclusive
-Date: Sat, 02 Feb 2013 20:28:01 +0000
-Message-ID: <1359836881.2356.2.camel@Nokia-N900>
-References: <1581701.fnbebHrKch@vostro.rjw.lan>
-	 <CAE9FiQV+DDb0ap=sipQjUWCdz8Qsfs2dYDVrb0FmKL4F1BjhOw@mail.gmail.com>
-	 <1359806321.30277.3.camel@infinity>  <1750337.zfO6ANFbLh@vostro.rjw.lan>
-Reply-To: Steven Newbury <steve@snewbury.org.uk>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: [PATCH?] Move ACPI device nodes under /sys/firmware/acpi (was: Re: [RFC PATCH v2 01/12] Add sys_hotplug.h for system device hotplug framework)
+Date: Sat, 02 Feb 2013 23:18:20 +0100
+Message-ID: <2806030.VWUMy6F7lm@vostro.rjw.lan>
+References: <1357861230-29549-1-git-send-email-toshi.kani@hp.com> <20130202145801.GB1434@kroah.com> <1810611.i6Sc4oLaux@vostro.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mtaout01-winn.ispmail.ntl.com ([81.103.221.47]:32647 "EHLO
-	mtaout01-winn.ispmail.ntl.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752172Ab3BBUZR (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sat, 2 Feb 2013 15:25:17 -0500
-In-Reply-To: <1750337.zfO6ANFbLh@vostro.rjw.lan>
-Content-ID: <1359836880.2356.1.camel@Nokia-N900>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7Bit
+Return-path: <owner-linux-mm@kvack.org>
+In-Reply-To: <1810611.i6Sc4oLaux@vostro.rjw.lan>
+Sender: owner-linux-mm@kvack.org
+To: Greg KH <gregkh@linuxfoundation.org>
+Cc: Toshi Kani <toshi.kani@hp.com>, lenb@kernel.org, akpm@linux-foundation.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linux-mm@kvack.org, linuxppc-dev@lists.ozlabs.org, linux-s390@vger.kernel.org, bhelgaas@google.com, isimatu.yasuaki@jp.fujitsu.com, jiang.liu@huawei.com, wency@cn.fujitsu.com, guohanjun@huawei.com, yinghai@kernel.org, srivatsa.bhat@linux.vnet.ibm.com
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: Yinghai Lu <yinghai@kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>, Bjorn Helgaas <bhelgaas@google.com>, Jiang Liu <liuj97@gmail.com>, Toshi Kani <toshi.kani@hp.com>
 
-On Sat,=C2=A0  2 Feb 2013, 20:18:28 GMT, Rafael J. Wysocki <rjw@sisk.pl=
-> wrote:
+On Saturday, February 02, 2013 09:15:37 PM Rafael J. Wysocki wrote:
+> On Saturday, February 02, 2013 03:58:01 PM Greg KH wrote:
+[...]
+> 
+> > I know it's more complicated with these types of devices, and I think we
+> > are getting closer to the correct solution, I just don't want to ever
+> > see duplicate devices in the driver model for the same physical device.
+> 
+> Do you mean two things based on struct device for the same hardware component?
+> That's been happening already pretty much forever for every PCI device known
+> to the ACPI layer, for PNP and many others.  However, those ACPI things are (or
+> rather should be, but we're going to clean that up) only for convenience (to be
+> able to see the namespace structure and related things in sysfs).  So the stuff
+> under /sys/devices/LNXSYSTM\:00/ is not "real".  In my view it shouldn't even
+> be under /sys/devices/ (/sys/firmware/acpi/ seems to be a better place for it),
+> but that may be difficult to change without breaking user space (maybe we can
+> just symlink it from /sys/devices/ or something).  And the ACPI bus type
+> shouldn't even exist in my opinion.
 
-> On Saturday, February 02, 2013 11:58:41 AM Steven Newbury wrote:
-> > On Sat, 2013-01-26 at 15:19 -0800, Yinghai Lu wrote:
-> > > On Sat, Jan 26, 2013 at 2:41 PM, Rafael J. Wysocki <rjw@sisk.pl>
-> > > wrote:
-> > > > From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
-> > > >=20
-> > > > There is no guarantee that acpi_bus_scan() and acpi_bus_trim() =
-will
-> > > > not be run in parallel for the same scope of the ACPI namespace=
-,
-> > > > which may lead to a great deal of confusion, so introduce a new
-> > > > mutex to prevent that from happening.
-> > > >=20
-> > > > Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
-> > >=20
-> > > Acked-by: Yinghai Lu <yinghai@kernel.org>
-> > >=20
-> > > Steven,
-> > >=20
-> > > Can you apply this one to for-pci-res-alloc to check if racing wi=
-th
-> > > docking hotplug/eject
-> > > still happen?
-> > > or wait one or two days after i rebase that branch.
-> >=20
-> > Tried merging with linux-pm/bleeding-edge, same behaviour:
-> >=20
-> > [ 3589.013578] ACPI: \_SB_.PCI0.PCIE.GDCK: undocking
-> > [ 3589.585356] vgaarb: device changed decodes:
-> > PCI:0000:00:02.0,olddecodes=3Dnone,decodes=3Dio+mem:owns=3Dnone [
-> > 3589.585422] ACPI: Delete PCI Interrupt Routing Table for 0000:04 [
-> > 3589.585426] pci 0000:03:08.0: Oops, 'acpi_handle' corrupt [
-> > 3589.585446] pci_bus 0000:04: busn_res: [bus 04] is released
-> >=20
-> > 03:08.0 PCI bridge: PLX Technology, Inc. PEX8112 x1 Lane PCI
-> > Express-to-PCI Bridge (rev aa)
-> > 04:00.0 VGA compatible controller: Advanced Micro Devices [AMD] nee=
- ATI
-> > Manhattan [Mobility Radeon HD 5430 Series]
-> > 04:00.1 Audio device: Advanced Micro Devices [AMD] nee ATI Cedar HD=
-MI
-> > Audio [Radeon HD 5400/6300 Series]
->=20
-> That's because of a bug in the dock code I believe.
->=20
-> If you're willing to test patches, I can try to cook up something to
-> debug/fix this.
-Sure, I'm always willing to test patches.
+Well, well.
+
+In fact, the appended patch moves the whole ACPI device nodes tree under
+/sys/firmware/acpi/ and I'm not seeing any negative consequences of that on my
+test box (events work and so on).  User space is quite new on it, though, and
+the patch is hackish.
+
+Still ...
+
+
+---
+Prototype, no sign-off
+---
+ drivers/acpi/scan.c |    2 ++
+ 1 file changed, 2 insertions(+)
+
+Index: linux-pm/drivers/acpi/scan.c
+===================================================================
+--- linux-pm.orig/drivers/acpi/scan.c
++++ linux-pm/drivers/acpi/scan.c
+@@ -1443,6 +1443,8 @@ void acpi_init_device_object(struct acpi
+ 	device->flags.match_driver = false;
+ 	device_initialize(&device->dev);
+ 	dev_set_uevent_suppress(&device->dev, true);
++	if (handle == ACPI_ROOT_OBJECT)
++		device->dev.kobj.parent = acpi_kobj;
+ }
+ 
+ void acpi_device_add_finalize(struct acpi_device *device)
+
+
+
+-- 
+I speak only for myself.
+Rafael J. Wysocki, Intel Open Source Technology Center.
+
 --
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+To unsubscribe, send a message with 'unsubscribe linux-mm' in
+the body to majordomo@kvack.org.  For more info on Linux MM,
+see: http://www.linux-mm.org/ .
+Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
