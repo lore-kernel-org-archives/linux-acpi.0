@@ -1,165 +1,116 @@
-From: Toshi Kani <toshi.kani@hp.com>
-Subject: Re: [RFC PATCH v2 01/12] Add sys_hotplug.h for system device
- hotplug framework
-Date: Fri, 01 Feb 2013 16:12:50 -0700
-Message-ID: <1359760370.23410.4.camel@misato.fc.hp.com>
-References: <1357861230-29549-1-git-send-email-toshi.kani@hp.com>
-	 <20130201073010.GC1180@kroah.com>
-	 <1359751210.15120.278.camel@misato.fc.hp.com>
-	 <2370118.yuaZBuKn6n@vostro.rjw.lan>
+From: Steven Newbury <steve@snewbury.org.uk>
+Subject: Re: [PATCH 1/2] ACPI / scan: Make namespace scanning and trimming
+ mutually exclusive
+Date: Sat, 02 Feb 2013 11:58:41 +0000
+Message-ID: <1359806321.30277.3.camel@infinity>
+References: <1581701.fnbebHrKch@vostro.rjw.lan>
+	 <3032117.IcK9I7rYQT@vostro.rjw.lan>
+	 <CAE9FiQV+DDb0ap=sipQjUWCdz8Qsfs2dYDVrb0FmKL4F1BjhOw@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from g6t0184.atlanta.hp.com ([15.193.32.61]:44448 "EHLO
-	g6t0184.atlanta.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758010Ab3BAXW7 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 1 Feb 2013 18:22:59 -0500
-In-Reply-To: <2370118.yuaZBuKn6n@vostro.rjw.lan>
-Sender: linux-acpi-owner@vger.kernel.org
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <CAE9FiQV+DDb0ap=sipQjUWCdz8Qsfs2dYDVrb0FmKL4F1BjhOw@mail.gmail.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Yinghai Lu <yinghai@kernel.org>
+Cc: "Rafael J. Wysocki" <rjw@sisk.pl>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>, Bjorn Helgaas <bhelgaas@google.com>, Jiang Liu <liuj97@gmail.com>, Toshi Kani <toshi.kani@hp.com>
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: Greg KH <gregkh@linuxfoundation.org>, "lenb@kernel.org" <lenb@kernel.org>, "akpm@linux-foundation.org" <akpm@linux-foundation.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-mm@kvack.org" <linux-mm@kvack.org>, "linuxppc-dev@lists.ozlabs.org" <linuxppc-dev@lists.ozlabs.org>, "linux-s390@vger.kernel.org" <linux-s390@vger.kernel.org>, "bhelgaas@google.com" <bhelgaas@google.com>, "isimatu.yasuaki@jp.fujitsu.com" <isimatu.yasuaki@jp.fujitsu.com>, "jiang.liu@huawei.com" <jiang.liu@huawei.com>, "wency@cn.fujitsu.com" <wency@cn.fujitsu.com>, "guohanjun@huawei.com" <guohanjun@huawei.com>, "yinghai@kernel.org" <yinghai@kernel.org>, "srivatsa.bhat@linux.vnet.ibm.com" <srivatsa.bhat@linux.vnet.ibm.com>
 
-On Fri, 2013-02-01 at 23:21 +0100, Rafael J. Wysocki wrote:
-> On Friday, February 01, 2013 01:40:10 PM Toshi Kani wrote:
-> > On Fri, 2013-02-01 at 07:30 +0000, Greg KH wrote:
-> > > On Thu, Jan 31, 2013 at 06:32:18PM -0700, Toshi Kani wrote:
-> > >  > This is already done for PCI host bridges and platform devices and I don't
-> > > > > see why we can't do that for the other types of devices too.
-> > > > > 
-> > > > > The only missing piece I see is a way to handle the "eject" problem, i.e.
-> > > > > when we try do eject a device at the top of a subtree and need to tear down
-> > > > > the entire subtree below it, but if that's going to lead to a system crash,
-> > > > > for example, we want to cancel the eject.  It seems to me that we'll need some
-> > > > > help from the driver core here.
-> > > > 
-> > > > There are three different approaches suggested for system device
-> > > > hot-plug:
-> > > >  A. Proceed within system device bus scan.
-> > > >  B. Proceed within ACPI bus scan.
-> > > >  C. Proceed with a sequence (as a mini-boot).
-> > > > 
-> > > > Option A uses system devices as tokens, option B uses acpi devices as
-> > > > tokens, and option C uses resource tables as tokens, for their handlers.
-> > > > 
-> > > > Here is summary of key questions & answers so far.  I hope this
-> > > > clarifies why I am suggesting option 3.
-> > > > 
-> > > > 1. What are the system devices?
-> > > > System devices provide system-wide core computing resources, which are
-> > > > essential to compose a computer system.  System devices are not
-> > > > connected to any particular standard buses.
-> > > 
-> > > Not a problem, lots of devices are not connected to any "particular
-> > > standard busses".  All this means is that system devices are connected
-> > > to the "system" bus, nothing more.
-> > 
-> > Can you give me a few examples of other devices that support hotplug and
-> > are not connected to any particular buses?  I will investigate them to
-> > see how they are managed to support hotplug.
-> > 
-> > > > 2. Why are the system devices special?
-> > > > The system devices are initialized during early boot-time, by multiple
-> > > > subsystems, from the boot-up sequence, in pre-defined order.  They
-> > > > provide low-level services to enable other subsystems to come up.
-> > > 
-> > > Sorry, no, that doesn't mean they are special, nothing here is unique
-> > > for the point of view of the driver model from any other device or bus.
-> > 
-> > I think system devices are unique in a sense that they are initialized
-> > before drivers run.
-> > 
-> > > > 3. Why can't initialize the system devices from the driver structure at
-> > > > boot?
-> > > > The driver structure is initialized at the end of the boot sequence and
-> > > > requires the low-level services from the system devices initialized
-> > > > beforehand.
-> > > 
-> > > Wait, what "driver structure"?  
-> > 
-> > Sorry it was not clear.  cpu_dev_init() and memory_dev_init() are called
-> > from driver_init() at the end of the boot sequence, and initialize
-> > system/cpu and system/memory devices.  I assume they are the system bus
-> > you are referring with option A.
-> > 
-> > > If you need to initialize the driver
-> > > core earlier, then do so.  Or, even better, just wait until enough of
-> > > the system has come up and then go initialize all of the devices you
-> > > have found so far as part of your boot process.
-> > 
-> > They are pseudo drivers that provide sysfs entry points of cpu and
-> > memory.  They do not actually initialize cpu and memory.  I do not think
-> > initializing cpu and memory fits into the driver model either, since
-> > drivers should run after cpu and memory are initialized.
-> > 
-> > > None of the above things you have stated seem to have anything to do
-> > > with your proposed patch, so I don't understand why you have mentioned
-> > > them...
-> > 
-> > You suggested option A before, which uses system bus scan to initialize
-> > all system devices at boot time as well as hot-plug.  I tried to say
-> > that this option would not be doable.
-> > 
-> > > > 4. Why do we need a new common framework?
-> > > > Sysfs CPU and memory on-lining/off-lining are performed within the CPU
-> > > > and memory modules.  They are common code and do not depend on ACPI.
-> > > > Therefore, a new common framework is necessary to integrate both
-> > > > on-lining/off-lining operation and hot-plugging operation of system
-> > > > devices into a single framework.
-> > > 
-> > > {sigh}
-> > > 
-> > > Removing and adding devices and handling hotplug operations is what the
-> > > driver core was written for, almost 10 years ago.  To somehow think that
-> > > your devices are "special" just because they don't use ACPI is odd,
-> > > because the driver core itself has nothing to do with ACPI.  Don't get
-> > > the current mix of x86 system code tied into ACPI confused with an
-> > > driver core issues here please.
-> > 
-> > CPU online/offline operation is performed within the CPU module.  Memory
-> > online/offline operation is performed within the memory module.  CPU and
-> > memory hotplug operations are performed within ACPI.  While they deal
-> > with the same set of devices, they operate independently and are not
-> > managed under a same framework.
-> > 
-> > I agree with you that not using ACPI is perfectly fine.  My point is
-> > that ACPI framework won't be able to manage operations that do not use
-> > ACPI.
-> > 
-> > > > 5. Why can't do everything with ACPI bus scan?
-> > > > Software dependency among system devices may not be dictated by the ACPI
-> > > > hierarchy.  For instance, memory should be initialized before CPUs (i.e.
-> > > > a new cpu may need its local memory), but such ordering cannot be
-> > > > guaranteed by the ACPI hierarchy.  Also, as described in 4,
-> > > > online/offline operations are independent from ACPI.  
-> > > 
-> > > That's fine, the driver core is independant from ACPI.  I don't care how
-> > > you do the scaning of your devices, but I do care about you creating new
-> > > driver core pieces that duplicate the existing functionality of what we
-> > > have today.
-> > >
-> > > In short, I like Rafael's proposal better, and I fail to see how
-> > > anything you have stated here would matter in how this is implemented. :)
-> > 
-> > Doing everything within ACPI means we can only manage ACPI hotplug
-> > operations, not online/offline operations.  But I understand that you
-> > concern about adding a new framework with option C.  It is good to know
-> > that you are fine with option B. :)  So, I will step back, and think
-> > about what we can do within ACPI.
+On Sat, 2013-01-26 at 15:19 -0800, Yinghai Lu wrote:
+> On Sat, Jan 26, 2013 at 2:41 PM, Rafael J. Wysocki <rjw@sisk.pl> wrote:
+> > From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+> >
+> > There is no guarantee that acpi_bus_scan() and acpi_bus_trim() will
+> > not be run in parallel for the same scope of the ACPI namespace,
+> > which may lead to a great deal of confusion, so introduce a new mutex
+> > to prevent that from happening.
+> >
+> > Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 > 
-> Not much, because ACPI only knows about a subset of devices that may be
-> involved in that, and a limited one for that matter.  For one example,
-> anything connected through PCI and not having a corresponding ACPI object (i.e.
-> pretty much every add-in card in existence) will be unknown to ACPI.  And
-> say one of these things is a SATA controller with a number of disks under it
-> and so on.  ACPI won't even know that it exists.  Moreover, PCI won't know
-> that those disks exist.  Etc.
+> Acked-by: Yinghai Lu <yinghai@kernel.org>
+> 
+> Steven,
+> 
+> Can you apply this one to for-pci-res-alloc to check if racing with
+> docking hotplug/eject
+> still happen?
+> or wait one or two days after i rebase that branch.
 
-Agreed.  Thanks for bringing I/Os into the picture.  I did not mention
-them since they have not supported in this patchset, but we certainly
-need to consider them into the design.
+Tried merging with linux-pm/bleeding-edge, same behaviour:
 
-Thanks,
--Toshi
+[ 3589.013578] ACPI: \_SB_.PCI0.PCIE.GDCK: undocking
+[ 3589.585356] vgaarb: device changed decodes: PCI:0000:00:02.0,olddecodes=none,decodes=io+mem:owns=none
+[ 3589.585422] ACPI: Delete PCI Interrupt Routing Table for 0000:04
+[ 3589.585426] pci 0000:03:08.0: Oops, 'acpi_handle' corrupt
+[ 3589.585446] pci_bus 0000:04: busn_res: [bus 04] is released
 
+03:08.0 PCI bridge: PLX Technology, Inc. PEX8112 x1 Lane PCI
+Express-to-PCI Bridge (rev aa)
+04:00.0 VGA compatible controller: Advanced Micro Devices [AMD] nee ATI
+Manhattan [Mobility Radeon HD 5430 Series]
+04:00.1 Audio device: Advanced Micro Devices [AMD] nee ATI Cedar HDMI
+Audio [Radeon HD 5400/6300 Series]
+
+
+> > ---
+> >  drivers/acpi/scan.c |   16 ++++++++++++----
+> >  1 file changed, 12 insertions(+), 4 deletions(-)
+> >
+> > Index: linux-pm/drivers/acpi/scan.c
+> > ===================================================================
+> > --- linux-pm.orig/drivers/acpi/scan.c
+> > +++ linux-pm/drivers/acpi/scan.c
+> > @@ -52,6 +52,7 @@ static const struct acpi_device_id acpi_
+> >
+> >  static LIST_HEAD(acpi_device_list);
+> >  static LIST_HEAD(acpi_bus_id_list);
+> > +static DEFINE_MUTEX(acpi_scan_lock);
+> >  DEFINE_MUTEX(acpi_device_lock);
+> >  LIST_HEAD(acpi_wakeup_device_list);
+> >
+> > @@ -1612,19 +1613,22 @@ static acpi_status acpi_bus_device_attac
+> >  int acpi_bus_scan(acpi_handle handle)
+> >  {
+> >         void *device = NULL;
+> > +       int error = 0;
+> > +
+> > +       mutex_lock(&acpi_scan_lock);
+> >
+> >         if (ACPI_SUCCESS(acpi_bus_check_add(handle, 0, NULL, &device)))
+> >                 acpi_walk_namespace(ACPI_TYPE_ANY, handle, ACPI_UINT32_MAX,
+> >                                     acpi_bus_check_add, NULL, NULL, &device);
+> >
+> >         if (!device)
+> > -               return -ENODEV;
+> > -
+> > -       if (ACPI_SUCCESS(acpi_bus_device_attach(handle, 0, NULL, NULL)))
+> > +               error = -ENODEV;
+> > +       else if (ACPI_SUCCESS(acpi_bus_device_attach(handle, 0, NULL, NULL)))
+> >                 acpi_walk_namespace(ACPI_TYPE_ANY, handle, ACPI_UINT32_MAX,
+> >                                     acpi_bus_device_attach, NULL, NULL, NULL);
+> >
+> > -       return 0;
+> > +       mutex_unlock(&acpi_scan_lock);
+> > +       return error;
+> >  }
+> >  EXPORT_SYMBOL(acpi_bus_scan);
+> >
+> > @@ -1653,6 +1657,8 @@ static acpi_status acpi_bus_remove(acpi_
+> >
+> >  void acpi_bus_trim(struct acpi_device *start)
+> >  {
+> > +       mutex_lock(&acpi_scan_lock);
+> > +
+> >         /*
+> >          * Execute acpi_bus_device_detach() as a post-order callback to detach
+> >          * all ACPI drivers from the device nodes being removed.
+> > @@ -1667,6 +1673,8 @@ void acpi_bus_trim(struct acpi_device *s
+> >         acpi_walk_namespace(ACPI_TYPE_ANY, start->handle, ACPI_UINT32_MAX, NULL,
+> >                             acpi_bus_remove, NULL, NULL);
+> >         acpi_bus_remove(start->handle, 0, NULL, NULL);
+> > +
+> > +       mutex_unlock(&acpi_scan_lock);
+> >  }
+> >  EXPORT_SYMBOL_GPL(acpi_bus_trim);
+> >
+> >
