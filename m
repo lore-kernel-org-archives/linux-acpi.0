@@ -1,116 +1,108 @@
-From: Steven Newbury <steve@snewbury.org.uk>
-Subject: Re: [PATCH 1/2] ACPI / scan: Make namespace scanning and trimming
- mutually exclusive
-Date: Sat, 02 Feb 2013 11:58:41 +0000
-Message-ID: <1359806321.30277.3.camel@infinity>
-References: <1581701.fnbebHrKch@vostro.rjw.lan>
-	 <3032117.IcK9I7rYQT@vostro.rjw.lan>
-	 <CAE9FiQV+DDb0ap=sipQjUWCdz8Qsfs2dYDVrb0FmKL4F1BjhOw@mail.gmail.com>
+From: Greg KH <gregkh@linuxfoundation.org>
+Subject: Re: [RFC PATCH v2 01/12] Add sys_hotplug.h for system device hotplug
+ framework
+Date: Sat, 2 Feb 2013 15:58:01 +0100
+Message-ID: <20130202145801.GB1434@kroah.com>
+References: <1357861230-29549-1-git-send-email-toshi.kani@hp.com>
+ <9860755.q4y3PrCFZx@vostro.rjw.lan>
+ <20130201072312.GB1180@kroah.com>
+ <1987042.JQv02Zsfg5@vostro.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <CAE9FiQV+DDb0ap=sipQjUWCdz8Qsfs2dYDVrb0FmKL4F1BjhOw@mail.gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Yinghai Lu <yinghai@kernel.org>
-Cc: "Rafael J. Wysocki" <rjw@sisk.pl>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>, Bjorn Helgaas <bhelgaas@google.com>, Jiang Liu <liuj97@gmail.com>, Toshi Kani <toshi.kani@hp.com>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail.kernel.org ([198.145.19.201]:44491 "EHLO mail.kernel.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754235Ab3BBO4v (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Sat, 2 Feb 2013 09:56:51 -0500
+Content-Disposition: inline
+In-Reply-To: <1987042.JQv02Zsfg5@vostro.rjw.lan>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: Toshi Kani <toshi.kani@hp.com>, lenb@kernel.org, akpm@linux-foundation.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linux-mm@kvack.org, linuxppc-dev@lists.ozlabs.org, linux-s390@vger.kernel.org, bhelgaas@google.com, isimatu.yasuaki@jp.fujitsu.com, jiang.liu@huawei.com, wency@cn.fujitsu.com, guohanjun@huawei.com, yinghai@kernel.org, srivatsa.bhat@linux.vnet.ibm.com
 
-On Sat, 2013-01-26 at 15:19 -0800, Yinghai Lu wrote:
-> On Sat, Jan 26, 2013 at 2:41 PM, Rafael J. Wysocki <rjw@sisk.pl> wrote:
-> > From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
-> >
-> > There is no guarantee that acpi_bus_scan() and acpi_bus_trim() will
-> > not be run in parallel for the same scope of the ACPI namespace,
-> > which may lead to a great deal of confusion, so introduce a new mutex
-> > to prevent that from happening.
-> >
-> > Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+On Fri, Feb 01, 2013 at 11:12:59PM +0100, Rafael J. Wysocki wrote:
+> On Friday, February 01, 2013 08:23:12 AM Greg KH wrote:
+> > On Thu, Jan 31, 2013 at 09:54:51PM +0100, Rafael J. Wysocki wrote:
+> > > > > But, again, I'm going to ask why you aren't using the existing cpu /
+> > > > > memory / bridge / node devices that we have in the kernel.  Please use
+> > > > > them, or give me a _really_ good reason why they will not work.
+> > > > 
+> > > > We cannot use the existing system devices or ACPI devices here.  During
+> > > > hot-plug, ACPI handler sets this shp_device info, so that cpu and memory
+> > > > handlers (drivers/cpu.c and mm/memory_hotplug.c) can obtain their target
+> > > > device information in a platform-neutral way.  During hot-add, we first
+> > > > creates an ACPI device node (i.e. device under /sys/bus/acpi/devices),
+> > > > but platform-neutral modules cannot use them as they are ACPI-specific.
+> > > 
+> > > But suppose we're smart and have ACPI scan handlers that will create
+> > > "physical" device nodes for those devices during the ACPI namespace scan.
+> > > Then, the platform-neutral nodes will be able to bind to those "physical"
+> > > nodes.  Moreover, it should be possible to get a hierarchy of device objects
+> > > this way that will reflect all of the dependencies we need to take into
+> > > account during hot-add and hot-remove operations.  That may not be what we
+> > > have today, but I don't see any *fundamental* obstacles preventing us from
+> > > using this approach.
+> > 
+> > I would _much_ rather see that be the solution here as I think it is the
+> > proper one.
+> > 
+> > > This is already done for PCI host bridges and platform devices and I don't
+> > > see why we can't do that for the other types of devices too.
+> > 
+> > I agree.
+> > 
+> > > The only missing piece I see is a way to handle the "eject" problem, i.e.
+> > > when we try do eject a device at the top of a subtree and need to tear down
+> > > the entire subtree below it, but if that's going to lead to a system crash,
+> > > for example, we want to cancel the eject.  It seems to me that we'll need some
+> > > help from the driver core here.
+> > 
+> > I say do what we always have done here, if the user asked us to tear
+> > something down, let it happen as they are the ones that know best :)
+> > 
+> > Seriously, I guess this gets back to the "fail disconnect" idea that the
+> > ACPI developers keep harping on.  I thought we already resolved this
+> > properly by having them implement it in their bus code, no reason the
+> > same thing couldn't happen here, right?
 > 
-> Acked-by: Yinghai Lu <yinghai@kernel.org>
+> Not really. :-)  We haven't ever resolved that particular issue I'm afraid.
+
+Ah, I didn't realize that.
+
+> > I don't think the core needs to do anything special, but if so, I'll be glad
+> > to review it.
 > 
-> Steven,
+> OK, so this is the use case.  We have "eject" defined for something like
+> a container with a number of CPU cores, PCI host bridge, and a memory
+> controller under it.  And a few pretty much arbitrary I/O devices as a bonus.
 > 
-> Can you apply this one to for-pci-res-alloc to check if racing with
-> docking hotplug/eject
-> still happen?
-> or wait one or two days after i rebase that branch.
+> Now, there's a button on the system case labeled as "Eject" and if that button
+> is pressed, we're supposed to _try_ to eject all of those things at once.  We
+> are allowed to fail that request, though, if that's problematic for some
+> reason, but we're supposed to let the BIOS know about that.
+> 
+> Do you seriously think that if that button is pressed, we should just proceed
+> with removing all that stuff no matter what?  That'd be kind of like Russian
+> roulette for whoever pressed that button, because s/he could only press it and
+> wait for the system to either crash or not.  Or maybe to crash a bit later
+> because of some delayed stuff that would hit one of those devices that had just
+> gone.  Surely not a situation any admin of a high-availability system would
+> like to be in. :-)
+> 
+> Quite frankly, I have no idea how that can be addressed in a single bus type,
+> let alone ACPI (which is not even a proper bus type, just something pretending
+> to be one).
 
-Tried merging with linux-pm/bleeding-edge, same behaviour:
+You don't have it as a single bus type, you have a controller somewhere,
+off of the bus being destroyed, that handles sending remove events to
+the device and tearing everything down.  PCI does this from the very
+beginning.
 
-[ 3589.013578] ACPI: \_SB_.PCI0.PCIE.GDCK: undocking
-[ 3589.585356] vgaarb: device changed decodes: PCI:0000:00:02.0,olddecodes=none,decodes=io+mem:owns=none
-[ 3589.585422] ACPI: Delete PCI Interrupt Routing Table for 0000:04
-[ 3589.585426] pci 0000:03:08.0: Oops, 'acpi_handle' corrupt
-[ 3589.585446] pci_bus 0000:04: busn_res: [bus 04] is released
+I know it's more complicated with these types of devices, and I think we
+are getting closer to the correct solution, I just don't want to ever
+see duplicate devices in the driver model for the same physical device.
 
-03:08.0 PCI bridge: PLX Technology, Inc. PEX8112 x1 Lane PCI
-Express-to-PCI Bridge (rev aa)
-04:00.0 VGA compatible controller: Advanced Micro Devices [AMD] nee ATI
-Manhattan [Mobility Radeon HD 5430 Series]
-04:00.1 Audio device: Advanced Micro Devices [AMD] nee ATI Cedar HDMI
-Audio [Radeon HD 5400/6300 Series]
+thanks,
 
-
-> > ---
-> >  drivers/acpi/scan.c |   16 ++++++++++++----
-> >  1 file changed, 12 insertions(+), 4 deletions(-)
-> >
-> > Index: linux-pm/drivers/acpi/scan.c
-> > ===================================================================
-> > --- linux-pm.orig/drivers/acpi/scan.c
-> > +++ linux-pm/drivers/acpi/scan.c
-> > @@ -52,6 +52,7 @@ static const struct acpi_device_id acpi_
-> >
-> >  static LIST_HEAD(acpi_device_list);
-> >  static LIST_HEAD(acpi_bus_id_list);
-> > +static DEFINE_MUTEX(acpi_scan_lock);
-> >  DEFINE_MUTEX(acpi_device_lock);
-> >  LIST_HEAD(acpi_wakeup_device_list);
-> >
-> > @@ -1612,19 +1613,22 @@ static acpi_status acpi_bus_device_attac
-> >  int acpi_bus_scan(acpi_handle handle)
-> >  {
-> >         void *device = NULL;
-> > +       int error = 0;
-> > +
-> > +       mutex_lock(&acpi_scan_lock);
-> >
-> >         if (ACPI_SUCCESS(acpi_bus_check_add(handle, 0, NULL, &device)))
-> >                 acpi_walk_namespace(ACPI_TYPE_ANY, handle, ACPI_UINT32_MAX,
-> >                                     acpi_bus_check_add, NULL, NULL, &device);
-> >
-> >         if (!device)
-> > -               return -ENODEV;
-> > -
-> > -       if (ACPI_SUCCESS(acpi_bus_device_attach(handle, 0, NULL, NULL)))
-> > +               error = -ENODEV;
-> > +       else if (ACPI_SUCCESS(acpi_bus_device_attach(handle, 0, NULL, NULL)))
-> >                 acpi_walk_namespace(ACPI_TYPE_ANY, handle, ACPI_UINT32_MAX,
-> >                                     acpi_bus_device_attach, NULL, NULL, NULL);
-> >
-> > -       return 0;
-> > +       mutex_unlock(&acpi_scan_lock);
-> > +       return error;
-> >  }
-> >  EXPORT_SYMBOL(acpi_bus_scan);
-> >
-> > @@ -1653,6 +1657,8 @@ static acpi_status acpi_bus_remove(acpi_
-> >
-> >  void acpi_bus_trim(struct acpi_device *start)
-> >  {
-> > +       mutex_lock(&acpi_scan_lock);
-> > +
-> >         /*
-> >          * Execute acpi_bus_device_detach() as a post-order callback to detach
-> >          * all ACPI drivers from the device nodes being removed.
-> > @@ -1667,6 +1673,8 @@ void acpi_bus_trim(struct acpi_device *s
-> >         acpi_walk_namespace(ACPI_TYPE_ANY, start->handle, ACPI_UINT32_MAX, NULL,
-> >                             acpi_bus_remove, NULL, NULL);
-> >         acpi_bus_remove(start->handle, 0, NULL, NULL);
-> > +
-> > +       mutex_unlock(&acpi_scan_lock);
-> >  }
-> >  EXPORT_SYMBOL_GPL(acpi_bus_trim);
-> >
-> >
+greg k-h
