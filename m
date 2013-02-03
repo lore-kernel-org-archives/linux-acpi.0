@@ -1,78 +1,94 @@
 From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: [PATCH 1/2] ACPI / scan: Make namespace scanning and trimming mutually exclusive
-Date: Sat, 02 Feb 2013 23:27:45 +0100
-Message-ID: <1430430.JxL0tEIfZd@vostro.rjw.lan>
-References: <1581701.fnbebHrKch@vostro.rjw.lan> <1750337.zfO6ANFbLh@vostro.rjw.lan> <1359836881.2356.2.camel@Nokia-N900>
+Subject: [PATCH] ACPI / scan: Follow priorities of IDs when matching scan handlers
+Date: Sun, 03 Feb 2013 01:52:56 +0100
+Message-ID: <2566718.DLPxb38Yi2@vostro.rjw.lan>
+References: <1873429.MS5RQDxTye@vostro.rjw.lan> <1359502048.15120.75.camel@misato.fc.hp.com> <25678789.biaFkG0HMW@vostro.rjw.lan>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7Bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from hydra.sisk.pl ([212.160.235.94]:49644 "EHLO hydra.sisk.pl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751486Ab3BBWVa (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Sat, 2 Feb 2013 17:21:30 -0500
-In-Reply-To: <1359836881.2356.2.camel@Nokia-N900>
-Sender: linux-acpi-owner@vger.kernel.org
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <25678789.biaFkG0HMW@vostro.rjw.lan>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Toshi Kani <toshi.kani@hp.com>
+Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Bjorn Helgaas <bhelgaas@google.com>, Mika Westerberg <mika.westerberg@linux.intel.com>, Matthew Garrett <matthew.garrett@nebula.com>, Yinghai Lu <yinghai@kernel.org>, Jiang Liu <liuj97@gmail.com>, LKML <linux-kernel@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
-To: Steven Newbury <steve@snewbury.org.uk>
-Cc: Yinghai Lu <yinghai@kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>, Bjorn Helgaas <bhelgaas@google.com>, Jiang Liu <liuj97@gmail.com>, Toshi Kani <toshi.kani@hp.com>
 
-On Saturday, February 02, 2013 08:28:01 PM Steven Newbury wrote:
-> On Sat,   2 Feb 2013, 20:18:28 GMT, Rafael J. Wysocki <rjw@sisk.pl> wrote:
-> 
-> > On Saturday, February 02, 2013 11:58:41 AM Steven Newbury wrote:
-> > > On Sat, 2013-01-26 at 15:19 -0800, Yinghai Lu wrote:
-> > > > On Sat, Jan 26, 2013 at 2:41 PM, Rafael J. Wysocki <rjw@sisk.pl>
-> > > > wrote:
-> > > > > From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
-> > > > > 
-> > > > > There is no guarantee that acpi_bus_scan() and acpi_bus_trim() will
-> > > > > not be run in parallel for the same scope of the ACPI namespace,
-> > > > > which may lead to a great deal of confusion, so introduce a new
-> > > > > mutex to prevent that from happening.
-> > > > > 
-> > > > > Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
-> > > > 
-> > > > Acked-by: Yinghai Lu <yinghai@kernel.org>
-> > > > 
-> > > > Steven,
-> > > > 
-> > > > Can you apply this one to for-pci-res-alloc to check if racing with
-> > > > docking hotplug/eject
-> > > > still happen?
-> > > > or wait one or two days after i rebase that branch.
-> > > 
-> > > Tried merging with linux-pm/bleeding-edge, same behaviour:
-> > > 
-> > > [ 3589.013578] ACPI: \_SB_.PCI0.PCIE.GDCK: undocking
-> > > [ 3589.585356] vgaarb: device changed decodes:
-> > > PCI:0000:00:02.0,olddecodes=none,decodes=io+mem:owns=none [
-> > > 3589.585422] ACPI: Delete PCI Interrupt Routing Table for 0000:04 [
-> > > 3589.585426] pci 0000:03:08.0: Oops, 'acpi_handle' corrupt [
-> > > 3589.585446] pci_bus 0000:04: busn_res: [bus 04] is released
-> > > 
-> > > 03:08.0 PCI bridge: PLX Technology, Inc. PEX8112 x1 Lane PCI
-> > > Express-to-PCI Bridge (rev aa)
-> > > 04:00.0 VGA compatible controller: Advanced Micro Devices [AMD] nee ATI
-> > > Manhattan [Mobility Radeon HD 5430 Series]
-> > > 04:00.1 Audio device: Advanced Micro Devices [AMD] nee ATI Cedar HDMI
-> > > Audio [Radeon HD 5400/6300 Series]
-> > 
-> > That's because of a bug in the dock code I believe.
-> > 
-> > If you're willing to test patches, I can try to cook up something to
-> > debug/fix this.
-> Sure, I'm always willing to test patches.
+From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 
-Can you please test this one in addition to the $subject one:
+The IDs of ACPI device nodes stored in their pnp.ids member arrays
+are sorted by decreasing priority (i.e. the highest-priority ID is
+the first entry).  This means that when matching scan handlers to
+device nodes, the namespace scanning code should walk the list of
+scan handlers for each device node ID instead of walking the list
+of device node IDs for each handler (the latter causes the first
+handler matching any of the device node IDs to be chosen, although
+there may be another handler matching an ID of a higher priority
+which should be preferred).  Make the code follow this observation.
 
-https://patchwork.kernel.org/patch/2068621/
+This change has been suggested and justified by Toshi Kani.
 
-and see if that helps?
+Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+---
+ drivers/acpi/scan.c |   42 +++++++++++++++++++++++++++++-------------
+ 1 file changed, 29 insertions(+), 13 deletions(-)
 
-Rafael
-
-
--- 
-I speak only for myself.
-Rafael J. Wysocki, Intel Open Source Technology Center.
+Index: test/drivers/acpi/scan.c
+===================================================================
+--- test.orig/drivers/acpi/scan.c
++++ test/drivers/acpi/scan.c
+@@ -1556,26 +1556,42 @@ static acpi_status acpi_bus_check_add(ac
+ 	return AE_OK;
+ }
+ 
+-static int acpi_scan_attach_handler(struct acpi_device *device)
++static int acpi_scan_do_attach_handler(struct acpi_device *device, char *id)
+ {
+ 	struct acpi_scan_handler *handler;
+-	int ret = 0;
+ 
+ 	list_for_each_entry(handler, &acpi_scan_handlers_list, list_node) {
+-		const struct acpi_device_id *id;
++		const struct acpi_device_id *devid;
+ 
+-		id = __acpi_match_device(device, handler->ids);
+-		if (!id)
+-			continue;
+-
+-		ret = handler->attach(device, id);
+-		if (ret > 0) {
+-			device->handler = handler;
+-			break;
+-		} else if (ret < 0) {
+-			break;
++		for (devid = handler->ids; devid->id[0]; devid++) {
++			int ret;
++
++			if (strcmp((char *)devid->id, id))
++				continue;
++
++			ret = handler->attach(device, devid);
++			if (ret > 0) {
++				device->handler = handler;
++				return ret;
++			} else if (ret < 0) {
++				return ret;
++			}
+ 		}
+ 	}
++	return 0;
++}
++
++static int acpi_scan_attach_handler(struct acpi_device *device)
++{
++	struct acpi_hardware_id *hwid;
++	int ret = 0;
++
++	list_for_each_entry(hwid, &device->pnp.ids, list) {
++		ret = acpi_scan_do_attach_handler(device, hwid->id);
++		if (ret)
++			break;
++
++	}
+ 	return ret;
+ }
+ 
