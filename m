@@ -1,105 +1,79 @@
-From: Yinghai Lu <yinghai@kernel.org>
-Subject: Re: [PATCH] ACPI / scan: Follow priorities of IDs when matching scan handlers
-Date: Sat, 2 Feb 2013 20:54:46 -0800
-Message-ID: <CAE9FiQWbRyTqYnM7StWSv8=7+hGhPnCDPRb=-Oe5wfnefHAv+A@mail.gmail.com>
-References: <1873429.MS5RQDxTye@vostro.rjw.lan>
-	<1359502048.15120.75.camel@misato.fc.hp.com>
-	<25678789.biaFkG0HMW@vostro.rjw.lan>
-	<2566718.DLPxb38Yi2@vostro.rjw.lan>
+From: Steven Newbury <steve@snewbury.org.uk>
+Subject: Re: [PATCH 1/2] ACPI / scan: Make namespace scanning and trimming
+ mutually exclusive
+Date: Sun, 03 Feb 2013 08:45:19 +0000
+Message-ID: <1359881119.5717.15.camel@infinity>
+References: <1581701.fnbebHrKch@vostro.rjw.lan>
+	 <1750337.zfO6ANFbLh@vostro.rjw.lan> <1359836881.2356.2.camel@Nokia-N900>
+	 <1430430.JxL0tEIfZd@vostro.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <2566718.DLPxb38Yi2@vostro.rjw.lan>
-Sender: linux-kernel-owner@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: Toshi Kani <toshi.kani@hp.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Bjorn Helgaas <bhelgaas@google.com>, Mika Westerberg <mika.westerberg@linux.intel.com>, Matthew Garrett <matthew.garrett@nebula.com>, Jiang Liu <liuj97@gmail.com>, LKML <linux-kernel@vger.kernel.org>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mtaout03-winn.ispmail.ntl.com ([81.103.221.49]:9063 "EHLO
+	mtaout03-winn.ispmail.ntl.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752103Ab3BCIp3 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sun, 3 Feb 2013 03:45:29 -0500
+In-Reply-To: <1430430.JxL0tEIfZd@vostro.rjw.lan>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: Yinghai Lu <yinghai@kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>, Bjorn Helgaas <bhelgaas@google.com>, Jiang Liu <liuj97@gmail.com>, Toshi Kani <toshi.kani@hp.com>
 
-On Sat, Feb 2, 2013 at 4:52 PM, Rafael J. Wysocki <rjw@sisk.pl> wrote:
-> From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
->
-> The IDs of ACPI device nodes stored in their pnp.ids member arrays
-> are sorted by decreasing priority (i.e. the highest-priority ID is
-> the first entry).  This means that when matching scan handlers to
-> device nodes, the namespace scanning code should walk the list of
-> scan handlers for each device node ID instead of walking the list
-> of device node IDs for each handler (the latter causes the first
-> handler matching any of the device node IDs to be chosen, although
-> there may be another handler matching an ID of a higher priority
-> which should be preferred).  Make the code follow this observation.
->
-> This change has been suggested and justified by Toshi Kani.
->
-> Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
-> ---
->  drivers/acpi/scan.c |   42 +++++++++++++++++++++++++++++-------------
->  1 file changed, 29 insertions(+), 13 deletions(-)
->
-> Index: test/drivers/acpi/scan.c
-> ===================================================================
-> --- test.orig/drivers/acpi/scan.c
-> +++ test/drivers/acpi/scan.c
-> @@ -1556,26 +1556,42 @@ static acpi_status acpi_bus_check_add(ac
->         return AE_OK;
->  }
->
-> -static int acpi_scan_attach_handler(struct acpi_device *device)
-> +static int acpi_scan_do_attach_handler(struct acpi_device *device, char *id)
->  {
->         struct acpi_scan_handler *handler;
-> -       int ret = 0;
->
->         list_for_each_entry(handler, &acpi_scan_handlers_list, list_node) {
-> -               const struct acpi_device_id *id;
-> +               const struct acpi_device_id *devid;
->
-> -               id = __acpi_match_device(device, handler->ids);
-> -               if (!id)
-> -                       continue;
-> -
-> -               ret = handler->attach(device, id);
-> -               if (ret > 0) {
-> -                       device->handler = handler;
-> -                       break;
-> -               } else if (ret < 0) {
-> -                       break;
-> +               for (devid = handler->ids; devid->id[0]; devid++) {
-> +                       int ret;
-> +
-> +                       if (strcmp((char *)devid->id, id))
-> +                               continue;
-> +
-> +                       ret = handler->attach(device, devid);
-> +                       if (ret > 0) {
-> +                               device->handler = handler;
-> +                               return ret;
-> +                       } else if (ret < 0) {
-> +                               return ret;
-> +                       }
->                 }
->         }
-> +       return 0;
-> +}
-> +
-> +static int acpi_scan_attach_handler(struct acpi_device *device)
-> +{
-> +       struct acpi_hardware_id *hwid;
-> +       int ret = 0;
-> +
-> +       list_for_each_entry(hwid, &device->pnp.ids, list) {
-> +               ret = acpi_scan_do_attach_handler(device, hwid->id);
-> +               if (ret)
-> +                       break;
-> +
-> +       }
->         return ret;
->  }
->
->
+On Sat, 2013-02-02 at 23:27 +0100, Rafael J. Wysocki wrote:
+> On Saturday, February 02, 2013 08:28:01 PM Steven Newbury wrote:
+> > > > Tried merging with linux-pm/bleeding-edge, same behaviour:
+> > > > 
+> > > > [ 3589.013578] ACPI: \_SB_.PCI0.PCIE.GDCK: undocking
+> > > > [ 3589.585356] vgaarb: device changed decodes:
+> > > > PCI:0000:00:02.0,olddecodes=none,decodes=io+mem:owns=none [
+> > > > 3589.585422] ACPI: Delete PCI Interrupt Routing Table for 0000:04 [
+> > > > 3589.585426] pci 0000:03:08.0: Oops, 'acpi_handle' corrupt [
+> > > > 3589.585446] pci_bus 0000:04: busn_res: [bus 04] is released
+> > > > 
+> > > > 03:08.0 PCI bridge: PLX Technology, Inc. PEX8112 x1 Lane PCI
+> > > > Express-to-PCI Bridge (rev aa)
+> > > > 04:00.0 VGA compatible controller: Advanced Micro Devices [AMD] nee ATI
+> > > > Manhattan [Mobility Radeon HD 5430 Series]
+> > > > 04:00.1 Audio device: Advanced Micro Devices [AMD] nee ATI Cedar HDMI
+> > > > Audio [Radeon HD 5400/6300 Series]
+> > > 
+> > > That's because of a bug in the dock code I believe.
+> > > 
+> > > If you're willing to test patches, I can try to cook up something to
+> > > debug/fix this.
+> > Sure, I'm always willing to test patches.
+> 
+> Can you please test this one in addition to the $subject one:
+> 
+> https://patchwork.kernel.org/patch/2068621/
+> 
+> and see if that helps?
+No change wrt the "Oops, 'acpi_handle' corrupt".
 
-Looks like right to honor the order in pnp.ids.
+Just to be clear, this happens during the logical undock phase after
+writing to "/sys/devices/platform/dock.0/undock".
 
-so there is same problem with acpi_bus_match/acpi_match_device_ids
-that need to fixed?
+Right now I manually tear down the seat associated with the dock gfx
+card (waiting for the X server to terminate and requiring SIGSTOPing the
+gdm process to stop it respawning!) then attempt radeon module unload,
+if it succeeds I write to the undock file, otherwise I fail the undock;
+I saw there is intention to put it infrastructure to have drivers
+prepare themselves for removal on 'eject' request, that would be really
+helpful.
 
-Yinghai
+A couple of other things regarding the dock system:
+
+Making an undock/eject request with the dock eject button results in an
+ACPI 'undock' event, same ACPI event happens when the
+electrical/physical undock occurs.
+
+The IDE docks seem not to be working; maybe I need to turn on some
+debugging.  This used to work at some point.
+
+Feb  2 23:51:28 infinity kernel: ACPI: \_SB_.PCI0.IDE1.PRI_.MAST:
+docking
+Feb  2 23:51:28 infinity kernel: ACPI: \_SB_.PCI0.IDE1.PRI_.MAST: Unable
+to dock!
+
+
