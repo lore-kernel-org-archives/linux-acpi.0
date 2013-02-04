@@ -1,86 +1,61 @@
-From: Chen Gong <gong.chen@linux.intel.com>
-Subject: Re: APEI: ERST table in ACPI NVS not supported
-Date: Mon, 4 Feb 2013 04:20:18 -0500
-Message-ID: <20130204092018.GA22035@gchen.bj.intel.com>
-References: <5108100B.9040907@linux.vnet.ibm.com>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: Re: [PATCH?] Move ACPI device nodes under /sys/firmware/acpi (was: Re: [RFC PATCH v2 01/12] Add sys_hotplug.h for system device hotplug framework)
+Date: Mon, 04 Feb 2013 13:34:02 +0100
+Message-ID: <2107169.R5mOc9qh97@vostro.rjw.lan>
+References: <1357861230-29549-1-git-send-email-toshi.kani@hp.com> <2806030.VWUMy6F7lm@vostro.rjw.lan> <20130204012447.GB6433@kroah.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="VbJkn9YxBvnuCH5J"
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7Bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga03.intel.com ([143.182.124.21]:48259 "EHLO mga03.intel.com"
+Received: from hydra.sisk.pl ([212.160.235.94]:36265 "EHLO hydra.sisk.pl"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754138Ab3BDJVV (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 4 Feb 2013 04:21:21 -0500
-Content-Disposition: inline
-In-Reply-To: <5108100B.9040907@linux.vnet.ibm.com>
+	id S1754151Ab3BDM1q (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 4 Feb 2013 07:27:46 -0500
+In-Reply-To: <20130204012447.GB6433@kroah.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Max Asbock <masbock@linux.vnet.ibm.com>
-Cc: ying.huang@intel.com, linux-acpi@vger.kernel.org
+To: Greg KH <gregkh@linuxfoundation.org>
+Cc: Toshi Kani <toshi.kani@hp.com>, lenb@kernel.org, akpm@linux-foundation.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linux-mm@kvack.org, linuxppc-dev@lists.ozlabs.org, linux-s390@vger.kernel.org, bhelgaas@google.com, isimatu.yasuaki@jp.fujitsu.com, jiang.liu@huawei.com, wency@cn.fujitsu.com, guohanjun@huawei.com, yinghai@kernel.org, srivatsa.bhat@linux.vnet.ibm.com
+
+On Sunday, February 03, 2013 07:24:47 PM Greg KH wrote:
+> On Sat, Feb 02, 2013 at 11:18:20PM +0100, Rafael J. Wysocki wrote:
+> > On Saturday, February 02, 2013 09:15:37 PM Rafael J. Wysocki wrote:
+> > > On Saturday, February 02, 2013 03:58:01 PM Greg KH wrote:
+> > [...]
+> > > 
+> > > > I know it's more complicated with these types of devices, and I think we
+> > > > are getting closer to the correct solution, I just don't want to ever
+> > > > see duplicate devices in the driver model for the same physical device.
+> > > 
+> > > Do you mean two things based on struct device for the same hardware component?
+> > > That's been happening already pretty much forever for every PCI device known
+> > > to the ACPI layer, for PNP and many others.  However, those ACPI things are (or
+> > > rather should be, but we're going to clean that up) only for convenience (to be
+> > > able to see the namespace structure and related things in sysfs).  So the stuff
+> > > under /sys/devices/LNXSYSTM\:00/ is not "real".  In my view it shouldn't even
+> > > be under /sys/devices/ (/sys/firmware/acpi/ seems to be a better place for it),
+> > > but that may be difficult to change without breaking user space (maybe we can
+> > > just symlink it from /sys/devices/ or something).  And the ACPI bus type
+> > > shouldn't even exist in my opinion.
+> > 
+> > Well, well.
+> > 
+> > In fact, the appended patch moves the whole ACPI device nodes tree under
+> > /sys/firmware/acpi/ and I'm not seeing any negative consequences of that on my
+> > test box (events work and so on).  User space is quite new on it, though, and
+> > the patch is hackish.
+> 
+> Try booting a RHEL 5 image on this type of kernel, or some old Fedora
+> releases, they were sensitive to changes in sysfs.
+
+Well, I've found a machine where it causes problems to happen.
+
+I'll try to add a symlink from /sys/devices to that and see what happens then.
+
+Thanks,
+Rafael
 
 
---VbJkn9YxBvnuCH5J
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
-
-On Tue, Jan 29, 2013 at 10:08:11AM -0800, Max Asbock wrote:
-> Date: Tue, 29 Jan 2013 10:08:11 -0800
-> From: Max Asbock <masbock@linux.vnet.ibm.com>
-> To: gong.chen@linux.intel.com, ying.huang@intel.com
-> CC: linux-acpi@vger.kernel.org, masbock@linux.vnet.ibm.com
-> Subject: APEI: ERST table in ACPI NVS not supported
-> User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:10.0.12) Gecko/20130108
->  Thunderbird/10.0.12
->=20
-> Hi,
->=20
-> we have systems that declare the memory range for ERST in ACPI NVS.
-> Because ACPI NVS is marked 'busy' by e820_reserve_resources() the
-> call to request_mem_region(erst_erange.base, erst_erange.size, "APEI
-> ERST") made from erst_init() fails and we get:
-> ERST: Can not request iomem region <0x        7e91f000-0x
-> 7e920c00> for ERST.
->=20
-> I did notice that quite some effort was made to add code to avoid
-> resource conflicts between APEI and ACPI NVS. But ERST still goes
-> straight to request_mem_region() which is bound to fail. I am
-> assuming this should go through apei_resources_request() instead or
-> I am missing something?
->=20
-
-If my understanding is right, after ERST resource is requested via
-apei_resources_request and when requesting error log address range,
-you meet an NVS conflict, right?
-
-If so, NVS must be excluded. But I'm afraid if error range is
-separated into two parts thus some errors will be lost. Would you
-please paste errage address range and conflicted NVS range?
-
-> thanks,
-> Max
->=20
-
---VbJkn9YxBvnuCH5J
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.12 (GNU/Linux)
-
-iQIcBAEBAgAGBQJRD31SAAoJEI01n1+kOSLHXU4P/0JqYvbzU9c737781SleoLJO
-O+kvVRwY0LC0s67UlII1LW7qYNF8liI1n4CPn5ku2x2VTbIoJxWKONH/EUrGQYZm
-n6pGq3UagSCwCUznof1j0aQz17yodEf08bWMCGiEGRIcdo+zHc881iB4UP1qIL11
-5bMjIroujhDQuA1HOpbKZh6/Orb4AY6tihmm5VSZneOuetqTwYVEpNmMY0Kiqrae
-fHOdmdslsaHYfDj1gHkvnoDb66sYDGHQ8fcj+B8PMAa8a4FZd+JiiNEBI5aL6dqs
-VhRwV7+U9tDZvylhkW3QSbQi2iRaOSEX8qe+vXk46FwqAnNL0XgYHayehg/wO1H7
-00s59URBfve+C7ZRDulPTGSwVN7+aGupbJOlvjAncxeScCRONZyhfq51kNjjpxRe
-leObuAz+ujY+MKUh6SPcqe1dvoGcVl5li03p1DF6Zc+VLZX4/3VmmM45w7zGwP/z
-U7kmYWBvRNocRPVofIzWDfdz9/Natfbk9dny+YMOzQdoq7Rp8hzDdxQqJIbmL9v1
-jBpNccEPrJg0ztPz4rHgqEj4Wvx/gAHGKViB23SoqkRR5CjmqTWDYiqEZ/tEtMHP
-lwvfWJX4OGVFad94twuHEpruKjzFTmacy1HEA+mLSWYV8Neh3uVKXQ/VoUwhyREE
-uwlLQwKgOlYlvE60W+Ye
-=ENup
------END PGP SIGNATURE-----
-
---VbJkn9YxBvnuCH5J--
+-- 
+I speak only for myself.
+Rafael J. Wysocki, Intel Open Source Technology Center.
