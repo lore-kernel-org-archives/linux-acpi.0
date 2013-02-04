@@ -1,71 +1,107 @@
-From: Max Asbock <masbock@linux.vnet.ibm.com>
-Subject: Re: APEI: ERST table in ACPI NVS not supported
-Date: Mon, 04 Feb 2013 09:06:24 -0800
-Message-ID: <510FEA90.8060503@linux.vnet.ibm.com>
-References: <5108100B.9040907@linux.vnet.ibm.com> <20130204092018.GA22035@gchen.bj.intel.com>
+From: David Rientjes <rientjes@google.com>
+Subject: Re: [PATCH 1/5] numa: avoid export acpi_numa variable
+Date: Mon, 4 Feb 2013 11:31:50 -0800 (PST)
+Message-ID: <alpine.DEB.2.02.1302041127540.10378@chino.kir.corp.google.com>
+References: <1359967426-32629-1-git-send-email-lig.fnst@cn.fujitsu.com> <1359967426-32629-2-git-send-email-lig.fnst@cn.fujitsu.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from e9.ny.us.ibm.com ([32.97.182.139]:41447 "EHLO e9.ny.us.ibm.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753654Ab3BDRIP (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 4 Feb 2013 12:08:15 -0500
-Received: from /spool/local
-	by e9.ny.us.ibm.com with IBM ESMTP SMTP Gateway: Authorized Use Only! Violators will be prosecuted
-	for <linux-acpi@vger.kernel.org> from <masbock@linux.vnet.ibm.com>;
-	Mon, 4 Feb 2013 12:08:14 -0500
-Received: from d01relay02.pok.ibm.com (d01relay02.pok.ibm.com [9.56.227.234])
-	by d01dlp03.pok.ibm.com (Postfix) with ESMTP id 12B69C90045
-	for <linux-acpi@vger.kernel.org>; Mon,  4 Feb 2013 12:08:13 -0500 (EST)
-Received: from d03av04.boulder.ibm.com (d03av04.boulder.ibm.com [9.17.195.170])
-	by d01relay02.pok.ibm.com (8.13.8/8.13.8/NCO v10.0) with ESMTP id r14H8C91287522
-	for <linux-acpi@vger.kernel.org>; Mon, 4 Feb 2013 12:08:12 -0500
-Received: from d03av04.boulder.ibm.com (loopback [127.0.0.1])
-	by d03av04.boulder.ibm.com (8.14.4/8.13.1/NCO v10.0 AVout) with ESMTP id r14H6p81004348
-	for <linux-acpi@vger.kernel.org>; Mon, 4 Feb 2013 10:06:51 -0700
-In-Reply-To: <20130204092018.GA22035@gchen.bj.intel.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1359967426-32629-2-git-send-email-lig.fnst@cn.fujitsu.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: liguang <lig.fnst@cn.fujitsu.com>
+Cc: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, x86@kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: gong.chen@intel.com, linux-acpi@vger.kernel.org, ying.huang@intel.com, naveen.n.rao@in.ibm.com
 
-On 02/04/2013 01:20 AM, Chen Gong wrote:
-> On Tue, Jan 29, 2013 at 10:08:11AM -0800, Max Asbock wrote:
->
->
-> we have systems that declare the memory range for ERST in ACPI NVS.
-> Because ACPI NVS is marked 'busy' by e820_reserve_resources() the
-> call to request_mem_region(erst_erange.base, erst_erange.size, "APEI
-> ERST") made from erst_init() fails and we get:
-> ERST: Can not request iomem region<0x        7e91f000-0x
-> 7e920c00>  for ERST.
->
-> I did notice that quite some effort was made to add code to avoid
-> resource conflicts between APEI and ACPI NVS. But ERST still goes
-> straight to request_mem_region() which is bound to fail. I am
-> assuming this should go through apei_resources_request() instead or
-> I am missing something?
->
-> If my understanding is right, after ERST resource is requested via
-> apei_resources_request and when requesting error log address range,
-> you meet an NVS conflict, right?
->
-> If so, NVS must be excluded. But I'm afraid if error range is
-> separated into two parts thus some errors will be lost. Would you
-> please paste errage address range and conflicted NVS range?
-ACPI NVS is:
+On Mon, 4 Feb 2013, liguang wrote:
 
-[    0.000000] BIOS-e820: [mem 0x000000007e6a5000-0x000000007ebc5fff] 
-ACPI NVS
+> diff --git a/arch/x86/include/asm/acpi.h b/arch/x86/include/asm/acpi.h
+> index 0c44630..c4e0875 100644
+> --- a/arch/x86/include/asm/acpi.h
+> +++ b/arch/x86/include/asm/acpi.h
+> @@ -181,7 +181,8 @@ static inline void disable_acpi(void) { }
+>  #define ARCH_HAS_POWER_INIT	1
+>  
+>  #ifdef CONFIG_ACPI_NUMA
+> -extern int acpi_numa;
+> +extern void bad_srat(void);
+> +extern bool srat_disabled(void);
 
-ERST erange is:
+So anything that wants to disable acpi_numa, such as xen, must call a 
+function named bad_srat()?  That seems a little misnamed itself.
 
-0x7e91f000-0x7e920c00
+>  extern int x86_acpi_numa_init(void);
+>  #endif /* CONFIG_ACPI_NUMA */
+>  
+> diff --git a/arch/x86/mm/numa.c b/arch/x86/mm/numa.c
+> index 2d125be..92986d8 100644
+> --- a/arch/x86/mm/numa.c
+> +++ b/arch/x86/mm/numa.c
+> @@ -47,7 +47,7 @@ static __init int numa_setup(char *opt)
+>  #endif
+>  #ifdef CONFIG_ACPI_NUMA
+>  	if (!strncmp(opt, "noacpi", 6))
+> -		acpi_numa = -1;
+> +		bad_srat();
 
-which is a single range entirely within ACPI NVS.
+This will print an error line saying "SRAT: SRAT not used." which wasn't 
+emitted before.  I don't think that's the desire.
 
-thanks,
-Max
+>  #endif
+>  	return 0;
+>  }
+> diff --git a/arch/x86/mm/srat.c b/arch/x86/mm/srat.c
+> index 4ddf497..a837c95 100644
+> --- a/arch/x86/mm/srat.c
+> +++ b/arch/x86/mm/srat.c
+> @@ -24,22 +24,22 @@
+>  #include <asm/apic.h>
+>  #include <asm/uv/uv.h>
+>  
+> -int acpi_numa __initdata;
+> +static bool acpi_numa __initdata;
+>  
 
+You've changed this to be type bool but didn't update the existing code 
+that still does "acpi_numa = 1".
 
+>  static __init int setup_node(int pxm)
+>  {
+>  	return acpi_map_pxm_to_node(pxm);
+>  }
+>  
+> -static __init void bad_srat(void)
+> +void __init bad_srat(void)
+>  {
+>  	printk(KERN_ERR "SRAT: SRAT not used.\n");
+> -	acpi_numa = -1;
+> +	acpi_numa = false;
+>  }
+>  
+> -static __init inline int srat_disabled(void)
+> +bool __init srat_disabled(void)
+>  {
+> -	return acpi_numa < 0;
+> +	return acpi_numa;
+>  }
+>  
+>  /* Callback for SLIT parsing */
+> diff --git a/arch/x86/xen/enlighten.c b/arch/x86/xen/enlighten.c
+> index 138e566..94c8c70 100644
+> --- a/arch/x86/xen/enlighten.c
+> +++ b/arch/x86/xen/enlighten.c
+> @@ -1415,7 +1415,7 @@ asmlinkage void __init xen_start_kernel(void)
+>  	 * any NUMA information the kernel tries to get from ACPI will
+>  	 * be meaningless.  Prevent it from trying.
+>  	 */
+> -	acpi_numa = -1;
+> +	bad_srat();
 
+Same as before.  It seems like you want to introduce a new function 
+specifically to disable it:
+
+	void acpi_numa_disable(void)
+	{
+		acpi_numa = false;
+	}
+
+and then bad_srat() should call into it?
