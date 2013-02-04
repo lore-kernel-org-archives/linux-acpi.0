@@ -1,107 +1,85 @@
-From: David Rientjes <rientjes@google.com>
-Subject: Re: [PATCH 1/5] numa: avoid export acpi_numa variable
-Date: Mon, 4 Feb 2013 11:31:50 -0800 (PST)
-Message-ID: <alpine.DEB.2.02.1302041127540.10378@chino.kir.corp.google.com>
-References: <1359967426-32629-1-git-send-email-lig.fnst@cn.fujitsu.com> <1359967426-32629-2-git-send-email-lig.fnst@cn.fujitsu.com>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: Re: [RFC PATCH v2 01/12] Add sys_hotplug.h for system device hotplug framework
+Date: Mon, 04 Feb 2013 20:43:19 +0100
+Message-ID: <3771593.0Hh61SLxJL@vostro.rjw.lan>
+References: <1357861230-29549-1-git-send-email-toshi.kani@hp.com> <2048116.Qo8UgQ5hjb@vostro.rjw.lan> <1359994749.23410.113.camel@misato.fc.hp.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1359967426-32629-2-git-send-email-lig.fnst@cn.fujitsu.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: liguang <lig.fnst@cn.fujitsu.com>
-Cc: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, x86@kernel.org
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7Bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from hydra.sisk.pl ([212.160.235.94]:38941 "EHLO hydra.sisk.pl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753576Ab3BDThF (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 4 Feb 2013 14:37:05 -0500
+In-Reply-To: <1359994749.23410.113.camel@misato.fc.hp.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Toshi Kani <toshi.kani@hp.com>
+Cc: Greg KH <gregkh@linuxfoundation.org>, lenb@kernel.org, akpm@linux-foundation.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linux-mm@kvack.org, linuxppc-dev@lists.ozlabs.org, linux-s390@vger.kernel.org, bhelgaas@google.com, isimatu.yasuaki@jp.fujitsu.com, jiang.liu@huawei.com, wency@cn.fujitsu.com, guohanjun@huawei.com, yinghai@kernel.org, srivatsa.bhat@linux.vnet.ibm.com
 
-On Mon, 4 Feb 2013, liguang wrote:
+On Monday, February 04, 2013 09:19:09 AM Toshi Kani wrote:
+> On Mon, 2013-02-04 at 15:21 +0100, Rafael J. Wysocki wrote:
+> > On Monday, February 04, 2013 04:48:10 AM Greg KH wrote:
+> > > On Sun, Feb 03, 2013 at 09:44:39PM +0100, Rafael J. Wysocki wrote:
+> > > > > Yes, but those are just remove events and we can only see how destructive they
+> > > > > were after the removal.  The point is to be able to figure out whether or not
+> > > > > we *want* to do the removal in the first place.
+> > > > > 
+> > > > > Say you have a computing node which signals a hardware problem in a processor
+> > > > > package (the container with CPU cores, memory, PCI host bridge etc.).  You
+> > > > > may want to eject that package, but you don't want to kill the system this
+> > > > > way.  So if the eject is doable, it is very much desirable to do it, but if it
+> > > > > is not doable, you'd rather shut the box down and do the replacement afterward.
+> > > > > That may be costly, however (maybe weeks of computations), so it should be
+> > > > > avoided if possible, but not at the expense of crashing the box if the eject
+> > > > > doesn't work out.
+> > > > 
+> > > > It seems to me that we could handle that with the help of a new flag, say
+> > > > "no_eject", in struct device, a global mutex, and a function that will walk
+> > > > the given subtree of the device hierarchy and check if "no_eject" is set for
+> > > > any devices in there.  Plus a global "no_eject" switch, perhaps.
+> > > 
+> > > I think this will always be racy, or at worst, slow things down on
+> > > normal device operations as you will always be having to grab this flag
+> > > whenever you want to do something new.
+> > 
+> > I don't see why this particular scheme should be racy, at least I don't see any
+> > obvious races in it (although I'm not that good at races detection in general,
+> > admittedly).
+> > 
+> > Also, I don't expect that flag to be used for everything, just for things known
+> > to seriously break if forcible eject is done.  That may be not precise enough,
+> > so that's a matter of defining its purpose more precisely.
+> > 
+> > We can do something like that on the ACPI level (ie. introduce a no_eject flag
+> > in struct acpi_device and provide an iterface for the layers above ACPI to
+> > manipulate it) but then devices without ACPI namespace objects won't be
+> > covered.  That may not be a big deal, though.
+> 
+> I am afraid that bringing the device status management into the ACPI
+> level would not a good idea.  acpi_device should only reflect ACPI
+> device object information, not how its actual device is being used.
+> 
+> I like your initiative of acpi_scan_driver and I think scanning /
+> trimming of ACPI object info is what the ACPI drivers should do.
 
-> diff --git a/arch/x86/include/asm/acpi.h b/arch/x86/include/asm/acpi.h
-> index 0c44630..c4e0875 100644
-> --- a/arch/x86/include/asm/acpi.h
-> +++ b/arch/x86/include/asm/acpi.h
-> @@ -181,7 +181,8 @@ static inline void disable_acpi(void) { }
->  #define ARCH_HAS_POWER_INIT	1
->  
->  #ifdef CONFIG_ACPI_NUMA
-> -extern int acpi_numa;
-> +extern void bad_srat(void);
-> +extern bool srat_disabled(void);
+ACPI drivers, yes, but the users of ACPI already rely on information
+in struct acpi_device.  Like ACPI device power states, for example.
 
-So anything that wants to disable acpi_numa, such as xen, must call a 
-function named bad_srat()?  That seems a little misnamed itself.
+So platform_no_eject(dev) is not much different in that respect from
+platform_pci_set_power_state(pci_dev).
 
->  extern int x86_acpi_numa_init(void);
->  #endif /* CONFIG_ACPI_NUMA */
->  
-> diff --git a/arch/x86/mm/numa.c b/arch/x86/mm/numa.c
-> index 2d125be..92986d8 100644
-> --- a/arch/x86/mm/numa.c
-> +++ b/arch/x86/mm/numa.c
-> @@ -47,7 +47,7 @@ static __init int numa_setup(char *opt)
->  #endif
->  #ifdef CONFIG_ACPI_NUMA
->  	if (!strncmp(opt, "noacpi", 6))
-> -		acpi_numa = -1;
-> +		bad_srat();
+The whole "eject" concept is somewhat ACPI-specific, though, and the eject
+notifications come from ACPI, so I don't have a problem with limiting it to
+ACPI-backed devices for the time being.
 
-This will print an error line saying "SRAT: SRAT not used." which wasn't 
-emitted before.  I don't think that's the desire.
+If it turns out the be useful outside of ACPI, then we can move it up to the
+driver core.  For now I don't see a compelling reason to do that.
 
->  #endif
->  	return 0;
->  }
-> diff --git a/arch/x86/mm/srat.c b/arch/x86/mm/srat.c
-> index 4ddf497..a837c95 100644
-> --- a/arch/x86/mm/srat.c
-> +++ b/arch/x86/mm/srat.c
-> @@ -24,22 +24,22 @@
->  #include <asm/apic.h>
->  #include <asm/uv/uv.h>
->  
-> -int acpi_numa __initdata;
-> +static bool acpi_numa __initdata;
->  
+Thanks,
+Rafael
 
-You've changed this to be type bool but didn't update the existing code 
-that still does "acpi_numa = 1".
 
->  static __init int setup_node(int pxm)
->  {
->  	return acpi_map_pxm_to_node(pxm);
->  }
->  
-> -static __init void bad_srat(void)
-> +void __init bad_srat(void)
->  {
->  	printk(KERN_ERR "SRAT: SRAT not used.\n");
-> -	acpi_numa = -1;
-> +	acpi_numa = false;
->  }
->  
-> -static __init inline int srat_disabled(void)
-> +bool __init srat_disabled(void)
->  {
-> -	return acpi_numa < 0;
-> +	return acpi_numa;
->  }
->  
->  /* Callback for SLIT parsing */
-> diff --git a/arch/x86/xen/enlighten.c b/arch/x86/xen/enlighten.c
-> index 138e566..94c8c70 100644
-> --- a/arch/x86/xen/enlighten.c
-> +++ b/arch/x86/xen/enlighten.c
-> @@ -1415,7 +1415,7 @@ asmlinkage void __init xen_start_kernel(void)
->  	 * any NUMA information the kernel tries to get from ACPI will
->  	 * be meaningless.  Prevent it from trying.
->  	 */
-> -	acpi_numa = -1;
-> +	bad_srat();
-
-Same as before.  It seems like you want to introduce a new function 
-specifically to disable it:
-
-	void acpi_numa_disable(void)
-	{
-		acpi_numa = false;
-	}
-
-and then bad_srat() should call into it?
+-- 
+I speak only for myself.
+Rafael J. Wysocki, Intel Open Source Technology Center.
