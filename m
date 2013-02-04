@@ -1,98 +1,86 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: [RFC PATCH v2 01/12] Add sys_hotplug.h for system device hotplug framework
-Date: Mon, 04 Feb 2013 20:45:11 +0100
-Message-ID: <3007489.fG0fDZGHrB@vostro.rjw.lan>
-References: <1357861230-29549-1-git-send-email-toshi.kani@hp.com> <20130204124612.GA22096@kroah.com> <1359996378.23410.130.camel@misato.fc.hp.com>
+From: David Rientjes <rientjes@google.com>
+Subject: Re: [PATCH 2/5] acpi/numa: check if parsing acpi numa info disabled
+ earlier
+Date: Mon, 4 Feb 2013 11:41:57 -0800 (PST)
+Message-ID: <alpine.DEB.2.02.1302041133520.10378@chino.kir.corp.google.com>
+References: <1359967426-32629-1-git-send-email-lig.fnst@cn.fujitsu.com> <1359967426-32629-3-git-send-email-lig.fnst@cn.fujitsu.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7Bit
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from hydra.sisk.pl ([212.160.235.94]:38995 "EHLO hydra.sisk.pl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753653Ab3BDTix (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 4 Feb 2013 14:38:53 -0500
-In-Reply-To: <1359996378.23410.130.camel@misato.fc.hp.com>
+Received: from mail-pa0-f45.google.com ([209.85.220.45]:64869 "EHLO
+	mail-pa0-f45.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755765Ab3BDTmA (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 4 Feb 2013 14:42:00 -0500
+Received: by mail-pa0-f45.google.com with SMTP id kl14so849841pab.4
+        for <linux-acpi@vger.kernel.org>; Mon, 04 Feb 2013 11:42:00 -0800 (PST)
+In-Reply-To: <1359967426-32629-3-git-send-email-lig.fnst@cn.fujitsu.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Toshi Kani <toshi.kani@hp.com>
-Cc: Greg KH <gregkh@linuxfoundation.org>, "lenb@kernel.org" <lenb@kernel.org>, "akpm@linux-foundation.org" <akpm@linux-foundation.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-mm@kvack.org" <linux-mm@kvack.org>, "linuxppc-dev@lists.ozlabs.org" <linuxppc-dev@lists.ozlabs.org>, "linux-s390@vger.kernel.org" <linux-s390@vger.kernel.org>, "bhelgaas@google.com" <bhelgaas@google.com>, "isimatu.yasuaki@jp.fujitsu.com" <isimatu.yasuaki@jp.fujitsu.com>, "jiang.liu@huawei.com" <jiang.liu@huawei.com>, "wency@cn.fujitsu.com" <wency@cn.fujitsu.com>, "guohanjun@huawei.com" <guohanjun@huawei.com>, "yinghai@kernel.org" <yinghai@kernel.org>, "srivatsa.bhat@linux.vnet.ibm.com" <srivatsa.bhat@linux.vnet.ibm.com>
+To: liguang <lig.fnst@cn.fujitsu.com>
+Cc: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, x86@kernel.org
 
-On Monday, February 04, 2013 09:46:18 AM Toshi Kani wrote:
-> On Mon, 2013-02-04 at 04:46 -0800, Greg KH wrote:
-> > On Sun, Feb 03, 2013 at 05:28:09PM -0700, Toshi Kani wrote:
-> > > On Sat, 2013-02-02 at 16:01 +0100, Greg KH wrote:
-> > > > On Fri, Feb 01, 2013 at 01:40:10PM -0700, Toshi Kani wrote:
-> > > > > On Fri, 2013-02-01 at 07:30 +0000, Greg KH wrote:
-> > > > > > On Thu, Jan 31, 2013 at 06:32:18PM -0700, Toshi Kani wrote:
-> > > > > >  > This is already done for PCI host bridges and platform devices and I don't
-> > > > > > > > see why we can't do that for the other types of devices too.
-> > > > > > > > 
-> > > > > > > > The only missing piece I see is a way to handle the "eject" problem, i.e.
-> > > > > > > > when we try do eject a device at the top of a subtree and need to tear down
-> > > > > > > > the entire subtree below it, but if that's going to lead to a system crash,
-> > > > > > > > for example, we want to cancel the eject.  It seems to me that we'll need some
-> > > > > > > > help from the driver core here.
-> > > > > > > 
-> > > > > > > There are three different approaches suggested for system device
-> > > > > > > hot-plug:
-> > > > > > >  A. Proceed within system device bus scan.
-> > > > > > >  B. Proceed within ACPI bus scan.
-> > > > > > >  C. Proceed with a sequence (as a mini-boot).
-> > > > > > > 
-> > > > > > > Option A uses system devices as tokens, option B uses acpi devices as
-> > > > > > > tokens, and option C uses resource tables as tokens, for their handlers.
-> > > > > > > 
-> > > > > > > Here is summary of key questions & answers so far.  I hope this
-> > > > > > > clarifies why I am suggesting option 3.
-> > > > > > > 
-> > > > > > > 1. What are the system devices?
-> > > > > > > System devices provide system-wide core computing resources, which are
-> > > > > > > essential to compose a computer system.  System devices are not
-> > > > > > > connected to any particular standard buses.
-> > > > > > 
-> > > > > > Not a problem, lots of devices are not connected to any "particular
-> > > > > > standard busses".  All this means is that system devices are connected
-> > > > > > to the "system" bus, nothing more.
-> > > > > 
-> > > > > Can you give me a few examples of other devices that support hotplug and
-> > > > > are not connected to any particular buses?  I will investigate them to
-> > > > > see how they are managed to support hotplug.
-> > > > 
-> > > > Any device that is attached to any bus in the driver model can be
-> > > > hotunplugged from userspace by telling it to be "unbound" from the
-> > > > driver controlling it.  Try it for any platform device in your system to
-> > > > see how it happens.
-> > > 
-> > > The unbind operation, as I understand from you, is to detach a driver
-> > > from a device.  Yes, unbinding can be done for any devices.  It is
-> > > however different from hot-plug operation, which unplugs a device.
-> > 
-> > Physically, yes, but to the driver involved, and the driver core, there
-> > is no difference.  That was one of the primary goals of the driver core
-> > creation so many years ago.
-> > 
-> > > Today, the unbind operation to an ACPI cpu/memory devices causes
-> > > hot-unplug (offline) operation to them, which is one of the major issues
-> > > for us since unbind cannot fail.  This patchset addresses this issue by
-> > > making the unbind operation of ACPI cpu/memory devices to do the
-> > > unbinding only.  ACPI drivers no longer control cpu and memory as they
-> > > are supposed to be controlled by their drivers, cpu and memory modules.
-> > 
-> > I think that's the problem right there, solve that, please.
+On Mon, 4 Feb 2013, liguang wrote:
+
+> Signed-off-by: liguang <lig.fnst@cn.fujitsu.com>
+
+Because there's no changelog, I have to read the patch to figure out what 
+it's doing since the title isn't that helpful either.  Please provide a 
+description of what problem you're trying to fix or what improvement 
+you're trying to make so it's clear.
+
+> ---
+>  arch/x86/mm/srat.c  |    6 ------
+>  drivers/acpi/numa.c |    2 ++
+>  2 files changed, 2 insertions(+), 6 deletions(-)
 > 
-> We cannot eliminate the ACPI drivers since we have to scan ACPI.  But we
-> can limit the ACPI drivers to do the scanning stuff only.   This is
-> precisely the intend of this patchset.  The real stuff, removing actual
-> devices, is done by the system device drivers/modules.
+> diff --git a/arch/x86/mm/srat.c b/arch/x86/mm/srat.c
+> index a837c95..78c67bd 100644
+> --- a/arch/x86/mm/srat.c
+> +++ b/arch/x86/mm/srat.c
+> @@ -60,8 +60,6 @@ acpi_numa_x2apic_affinity_init(struct acpi_srat_x2apic_cpu_affinity *pa)
+>  	int pxm, node;
+>  	int apic_id;
+>  
+> -	if (srat_disabled())
+> -		return;
+>  	if (pa->header.length < sizeof(struct acpi_srat_x2apic_cpu_affinity)) {
+>  		bad_srat();
+>  		return;
+> @@ -100,8 +98,6 @@ acpi_numa_processor_affinity_init(struct acpi_srat_cpu_affinity *pa)
+>  	int pxm, node;
+>  	int apic_id;
+>  
+> -	if (srat_disabled())
+> -		return;
+>  	if (pa->header.length != sizeof(struct acpi_srat_cpu_affinity)) {
+>  		bad_srat();
+>  		return;
+> @@ -148,8 +144,6 @@ acpi_numa_memory_affinity_init(struct acpi_srat_mem_affinity *ma)
+>  	u64 start, end;
+>  	int node, pxm;
+>  
+> -	if (srat_disabled())
+> -		return -1;
+>  	if (ma->header.length != sizeof(struct acpi_srat_mem_affinity)) {
+>  		bad_srat();
+>  		return -1;
+> diff --git a/drivers/acpi/numa.c b/drivers/acpi/numa.c
+> index cb31298..1f51222 100644
+> --- a/drivers/acpi/numa.c
+> +++ b/drivers/acpi/numa.c
+> @@ -262,6 +262,8 @@ static int __init acpi_parse_srat(struct acpi_table_header *table)
+>  	struct acpi_table_srat *srat;
+>  	if (!table)
+>  		return -EINVAL;
+> +	if (srat_disabled())
+> +		return -EACCES;
+>  
+>  	srat = (struct acpi_table_srat *)table;
+>  	acpi_srat_revision = srat->header.revision;
 
-In case you haven't realized that yet, the $subject patchset has no future.
+Nack, this isn't helpful since SRAT is only for x86 and other 
+architectures use this code.  It would break the build on ia64 since it's 
+obviously not going to have a function called srat_disabled().
 
-Let's just talk about how we can get what we need in more general terms.
-
-Thanks,
-Rafael
-
-
--- 
-I speak only for myself.
-Rafael J. Wysocki, Intel Open Source Technology Center.
+And -EACCES would not be the appropriate return value, this has nothing to 
+do with permissions.
