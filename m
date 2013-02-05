@@ -1,73 +1,95 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: [RFC PATCH v2 01/12] Add sys_hotplug.h for system device hotplug framework
-Date: Tue, 05 Feb 2013 12:11:17 +0100
-Message-ID: <4225828.6MQHJn7Yzr@vostro.rjw.lan>
-References: <1357861230-29549-1-git-send-email-toshi.kani@hp.com> <7003418.onqVlaaHJS@vostro.rjw.lan> <20130205000447.GA21782@kroah.com>
+From: Dag Wieers <dag@wieers.com>
+Subject: ACPI capabilities on AppleTV (1st gen)
+Date: Tue, 5 Feb 2013 13:06:30 +0100 (CET)
+Message-ID: <alpine.LRH.2.02.1302051247260.2736@pikachu.3ti.be>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7Bit
+Content-Type: TEXT/PLAIN; format=flowed; charset=US-ASCII
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from hydra.sisk.pl ([212.160.235.94]:44329 "EHLO hydra.sisk.pl"
+Received: from pikachu.3ti.be ([188.40.111.73]:48476 "EHLO pikachu.3ti.be"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750985Ab3BELFC (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 5 Feb 2013 06:05:02 -0500
-In-Reply-To: <20130205000447.GA21782@kroah.com>
+	id S1751437Ab3BEMQS (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 5 Feb 2013 07:16:18 -0500
+Received: from localhost (localhost [127.0.0.1])
+	by pikachu.3ti.be (Postfix) with ESMTP id 4A9992118F
+	for <linux-acpi@vger.kernel.org>; Tue,  5 Feb 2013 13:06:31 +0100 (CET)
+Received: from pikachu.3ti.be ([127.0.0.1])
+	by localhost (pikachu.3ti.be [127.0.0.1]) (amavisd-new, port 10024)
+	with LMTP id FjsWM7+H7Y9w for <linux-acpi@vger.kernel.org>;
+	Tue,  5 Feb 2013 13:06:30 +0100 (CET)
+Received: from localhost (localhost [127.0.0.1])
+	by pikachu.3ti.be (Postfix) with ESMTP id 8CD8E2118F
+	for <linux-acpi@vger.kernel.org>; Tue,  5 Feb 2013 13:06:30 +0100 (CET)
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Greg KH <gregkh@linuxfoundation.org>
-Cc: Toshi Kani <toshi.kani@hp.com>, lenb@kernel.org, akpm@linux-foundation.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linux-mm@kvack.org, linuxppc-dev@lists.ozlabs.org, linux-s390@vger.kernel.org, bhelgaas@google.com, isimatu.yasuaki@jp.fujitsu.com, jiang.liu@huawei.com, wency@cn.fujitsu.com, guohanjun@huawei.com, yinghai@kernel.org, srivatsa.bhat@linux.vnet.ibm.com
+To: linux-acpi@vger.kernel.org
 
-On Monday, February 04, 2013 04:04:47 PM Greg KH wrote:
-> On Tue, Feb 05, 2013 at 12:52:30AM +0100, Rafael J. Wysocki wrote:
-> > You'd probably never try to hot-remove a disk before unmounting filesystems
-> > mounted from it or failing it as a RAID component and nobody sane wants the
-> > kernel to do things like that automatically when the user presses the eject
-> > button.  In my opinion we should treat memory eject, or CPU package eject, or
-> > PCI host bridge eject in exactly the same way: Don't eject if it is not
-> > prepared for ejecting in the first place.
-> 
-> Bad example, we have disks hot-removed all the time without any
-> filesystems being unmounted, and have supported this since the 2.2 days
-> (although we didn't get it "right" until 2.6.)
+Hi,
 
-I actually don't think it is really bad, because it exposes the problem nicely.
+For the OpenELEC project I am looking into what exact ACPI capabilities 
+the AppleTV (1st gen) hardware has that we can take advantage of. I am 
+specifically looking for ways to:
 
-Namely, there are two arguments that can be made here.  The first one is the
-usability argument: Users should always be allowed to do what they want,
-because it is [explicit content] annoying if software pretends to know better
-what to do than the user (it is a convenience argument too, because usually
-it's *easier* to allow users to do what they want).  The second one is the
-data integrity argument: Operations that may lead to data loss should never
-be carried out, because it is [explicit content] disappointing to lose valuable
-stuff by a stupid mistake if software allows that mistake to be made (that also
-may be costly in terms of real money).
+  - make the device consume less power and produce less heat
+  - allow it to suspend/resume (maybe triggered by WOL or IR)
 
-You seem to believe that we should always follow the usability argument, while
-Toshi seems to be thinking that (at least in the case of the "system" devices),
-the data integrity argument is more important.  They are both valid arguments,
-however, and they are in conflict, so this is a matter of balance.
+The 1st generation AppleTV device is using a stripped down Intel 
+architecture with the following devices:
 
-You're saying that in the case of disks we always follow the usability argument
-entirely.  I'm fine with that, although I suspect that some people may not be
-considering this as the right balance.
+----
+root ~ # lspci
+00:00.0 Host bridge: Intel Corporation Mobile 945GM/PM/GMS, 943/940GML and 945GT Express Memory Controller Hub (rev 03)
+00:01.0 PCI bridge: Intel Corporation Mobile 945GM/PM/GMS, 943/940GML and 945GT Express PCI Express Root Port (rev 03)
+00:07.0 Performance counters: Intel Corporation Device 27a3 (rev 03)
+00:1b.0 Audio device: Intel Corporation N10/ICH 7 Family High Definition Audio Controller (rev 02)
+00:1c.0 PCI bridge: Intel Corporation N10/ICH 7 Family PCI Express Port 1 (rev 02)
+00:1d.0 USB controller: Intel Corporation N10/ICH 7 Family USB UHCI Controller #1 (rev 02)
+00:1d.7 USB controller: Intel Corporation N10/ICH 7 Family USB2 EHCI Controller (rev 02)
+00:1e.0 PCI bridge: Intel Corporation 82801 Mobile PCI Bridge (rev e2)
+00:1f.0 ISA bridge: Intel Corporation 82801GBM (ICH7-M) LPC Interface Bridge (rev 02)
+00:1f.1 IDE interface: Intel Corporation 82801G (ICH7 Family) IDE Controller (rev 02)
+00:1f.3 SMBus: Intel Corporation N10/ICH 7 Family SMBus Controller (rev 02)
+01:00.0 VGA compatible controller: NVIDIA Corporation G72M [Quadro NVS 110M/GeForce Go 7300] (rev a1)
+02:00.0 Multimedia controller: Broadcom Corporation BCM70015 Video Decoder [Crystal HD]
+03:03.0 Ethernet controller: Realtek Semiconductor Co., Ltd. RTL-8139/8139C/8139C+ (rev 10)
+----
 
-Toshi seems to be thinking that for the hotplug of memory/CPUs/host bridges we
-should always follow the data integrity argument entirely, because the users of
-that feature value their data so much that they pretty much don't care about
-usability.  That very well may be the case, so I'm fine with that too, although
-I'm sure there are people who'll argue that this is not the right balance
-either.
+It has a custom BIOS (which requires a special bootloader, atv-bootloader). 
+The device has no buttons whatsoever and comes with an IR remote control.
 
-Now, the point is that we *can* do what Toshi is arguing for and that doesn't
-seem to be overly complicated, so my question is: Why don't we do that, at
-least to start with?  If it turns out eventually that the users care about
-usability too, after all, we can add a switch to adjust things more to their
-liking.  Still, we can very well do that later.
+It appears that the device cannot be powered off through normal 
+instructions (which somehow makes sense as there is power button) however 
+if it would have WOL capabilities (uncertain) this would be useful.
+I noticed that the device does provide a LNXPWRBN:00 entry though.
 
-Thanks,
-Rafael
+Having a way to properly power it off could be useful so that an external 
+(remote) powerswitch can be used for powering it back on.
 
+There are rumours that the device also does not have proper ACPI 
+capabilities to suspend/resume. I do find this for waking up the system:
 
+root ~ # cat /proc/acpi/wakeup
+Device  S-state   Status   Sysfs node
+PXS1      S4    *disabled  pci:0000:02:00.0
+USB1      S3    *enabled   pci:0000:00:1d.0
+USB7      S3    *enabled   pci:0000:00:1d.7
+
+Since I am not very knowledgeable about ACPI, I am looking for someone who 
+can help me with understanding the capabilities of the device (and/or 
+improving the support).
+
+The Linux kernel boot output is available from:
+
+     http://sprunge.us/GIOX
+
+I added pmtools and ACPICA tools in order to disassemble the ACPI tables, 
+and can provide you with those if needed. The DSDT table is already 
+available from:
+
+     http://sprunge.us/JPff
+
+Any help is appreciated,
 -- 
-I speak only for myself.
-Rafael J. Wysocki, Intel Open Source Technology Center.
+-- dag wieers, dag@wieers.com, http://dag.wieers.com/
+-- dagit linux solutions, info@dagit.net, http://dagit.net/
+
+[Any errors in spelling, tact or fact are transmission errors]
