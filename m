@@ -1,355 +1,338 @@
 From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: [PATCH 1/2] tools/power/acpi: Introduce ec_access.c - tool to access the Embedded Controller (EC) safely for debugging purposes
-Date: Tue, 05 Feb 2013 23:32:30 +0100
-Message-ID: <3753849.DBXiXczW98@vostro.rjw.lan>
-References: <1355591519-44664-1-git-send-email-trenn@suse.de> <1355591519-44664-2-git-send-email-trenn@suse.de>
+Subject: Re: [PATCH] tools/power/acpi: Introduce acpi_validate with manpage for easy validation of ACPI BIOS tables
+Date: Tue, 05 Feb 2013 23:35 +0100
+Message-ID: <3340595.ZHTVyZYTbQ@vostro.rjw.lan>
+References: <1355565468-26024-1-git-send-email-trenn@suse.de>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7Bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from hydra.sisk.pl ([212.160.235.94]:47797 "EHLO hydra.sisk.pl"
+Received: from hydra.sisk.pl ([212.160.235.94]:47835 "EHLO hydra.sisk.pl"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1757307Ab3BEW0N (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 5 Feb 2013 17:26:13 -0500
-In-Reply-To: <1355591519-44664-2-git-send-email-trenn@suse.de>
+	id S1757040Ab3BEW2m (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 5 Feb 2013 17:28:42 -0500
+In-Reply-To: <1355565468-26024-1-git-send-email-trenn@suse.de>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Thomas Renninger <trenn@suse.de>
-Cc: linux-acpi@vger.kernel.org, lenb@kernel.org
+To: Thomas Renninger <trenn@suse.de>, "Moore, Robert" <robert.moore@intel.com>
+Cc: linux-acpi@vger.kernel.org, devel@acpica.org, lenb@kernel.org
 
-Hi Thomas,
+Hi Bob,
 
-On Saturday, December 15, 2012 06:11:58 PM Thomas Renninger wrote:
-> This userspace tool accesses the EC through the ec_sys debug driver
-> (through /sys/kernel/debug/ec/ec0/io).
-> The EC command/data registers cannot be accessed directly, because they could
-> get accessed by the ACPI interpreter in parallel.
-> The ec_sys driver synchronizes userspace (debug) access with the ACPI
-> interpreter.
-> 
-> Makefile (tool/power/acpi/Makefile) adjustings:
->  - Introduce ec subdir
->  - Make clean and install .PHONY
-
-Can you please add a man page for this tool too?
+Can you please have a look at this and tell me what you think about it?
 
 Rafael
 
 
+On Saturday, December 15, 2012 10:57:48 AM Thomas Renninger wrote:
+> The used iasl compiler shares the same code base as the kernel.
+> Warnings or errors mostly point to bad BIOSes.
+> These errors should get reported to the BIOS vendors and may indicated that
+> acpica (kernel ACPI parts) need compatibility adjustings.
+> 
+> 
+> Why is an extra tool needed for this?
+> 
+> The dynamic ACPI Source Language (ASL) parts are located in DSDT and often
+> multiple SSDT tables. Those often have dependencies to each other and the iasl
+> compiler often cannot resolve external symbols correctly if they are not
+> passed as external tables (iasl -e option) when tables get disassembled.
+> This quickly leads to false positive errors.
+> This tool makes sure disassembling and recompilation is done correctly.
+> 
+> This tool is also made for ACPI BIOS table verification for BIOS vendors and
+> hardware certification tools for distributions.
+> Hardware which supports Linux must/should not show any warnings or errors.
+> Remarks and optimization hints in the logs can be used to further enhance
+> the ACPI BIOS code.
+> Warnings and errors mostly describe the issues in a way, so that they can
+> get passed to and used by BIOS developers to fix the problems easily.
+> 
 > Signed-off-by: Thomas Renninger <trenn@suse.de>
 > ---
->  tools/power/acpi/Makefile       |   26 +++--
->  tools/power/acpi/ec/Makefile    |   14 +++
->  tools/power/acpi/ec/ec_access.c |  238 +++++++++++++++++++++++++++++++++++++++
->  3 files changed, 270 insertions(+), 8 deletions(-)
->  create mode 100644 tools/power/acpi/ec/Makefile
->  create mode 100644 tools/power/acpi/ec/ec_access.c
+>  tools/power/acpi/acpi_validate   |  193 ++++++++++++++++++++++++++++++++++++++
+>  tools/power/acpi/acpi_validate.8 |   72 ++++++++++++++
+>  2 files changed, 265 insertions(+), 0 deletions(-)
+>  create mode 100755 tools/power/acpi/acpi_validate
+>  create mode 100644 tools/power/acpi/acpi_validate.8
 > 
-> diff --git a/tools/power/acpi/Makefile b/tools/power/acpi/Makefile
-> index 6b9cf7a..8650fd8 100644
-> --- a/tools/power/acpi/Makefile
-> +++ b/tools/power/acpi/Makefile
-> @@ -1,18 +1,28 @@
->  PROG= acpidump
-> -SRCS=	acpidump.c
-> +SRCS= acpidump.c
-> +SUBDIRS= ec
-> +
->  KERNEL_INCLUDE := ../../../include
->  CFLAGS += -Wall -Wstrict-prototypes -Wdeclaration-after-statement -Os -s -D_LINUX -DDEFINE_ALTERNATE_TYPES -I$(KERNEL_INCLUDE) 
->  
-> -all: acpidump
-> -$(PROG) : $(SRCS)
-> +all: acpidump $(SUBDIRS)
-> +$(PROG): $(SRCS)
->  	$(CC) $(CFLAGS) $(SRCS) -o $(PROG)
->  
-> -CLEANFILES= $(PROG)
-> +.PHONY: clean install $(SUBDIRS)
-> +
-> +$(SUBDIRS):
-> +	$(MAKE) -C $@
->  
-> -clean : 
-> -	rm -f $(CLEANFILES) $(patsubst %.c,%.o, $(SRCS)) *~
-> +clean:
-> +	rm -f $(PROG) $(patsubst %.c,%.o, $(SRCS)) *~
-> +	for dir in $(SUBDIRS); do \
-> +		$(MAKE) -C $$dir clean; \
-> +	done
->  
-> -install :
-> +install:
->  	install acpidump /usr/bin/acpidump
->  	install acpidump.8 /usr/share/man/man8
-> -
-> +	for dir in $(SUBDIRS); do \
-> +		$(MAKE) -C $$dir install; \
-> +	done
-> diff --git a/tools/power/acpi/ec/Makefile b/tools/power/acpi/ec/Makefile
-> new file mode 100644
-> index 0000000..abaef3a
+> diff --git a/tools/power/acpi/acpi_validate b/tools/power/acpi/acpi_validate
+> new file mode 100755
+> index 0000000..12d105b
 > --- /dev/null
-> +++ b/tools/power/acpi/ec/Makefile
-> @@ -0,0 +1,14 @@
-> +PROG= ec_access
-> +SRCS= ec_access.c
+> +++ b/tools/power/acpi/acpi_validate
+> @@ -0,0 +1,193 @@
+> +#!/bin/bash
+> +#
+> +# Copyright (c) 2012 SUSE Linux Products GmbH
+> +# Thomas Renninger <trenn@suse.de>
+> +#
+> +# This program is free software; you can redistribute it and/or modify it
+> +# under the terms and conditions of the GNU General Public License,
+> +# version 2, as published by the Free Software Foundation.
+> +#
+> +# This program is distributed in the hope it will be useful, but WITHOUT
+> +# ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+> +# FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for
+> +# more details.
+> +#
+> +# You should have received a copy of the GNU General Public License along with
+> +# this program; if not, write to the Free Software Foundation, Inc.,
+> +# 51 Franklin St - Fifth Floor, Boston, MA 02110-1301 USA.
+> +#
 > +
-> +all: ec_access
-> +$(PROG): $(SRCS)
-> +	$(CC) $(CFLAGS) $(SRCS) -o $(PROG)
+> +OUTPUT_DIR="$PWD"
+> +VERBOSE=0
+> +# Disable remarks and resource checks. The latter often/mostly generates
+> +# false positive warnings. Can be overridden via -c option
+> +COMPILE_OPTIONS="-sa -cr -vr"
+> +DISASSEMBLE_OPTIONS=""
+> +OUTPUT="/dev/null"
+> +ACPIDUMP=""
 > +
-> +.PHONY: clean install
+> +function usage()
+> +{
+> +    echo "acpi_validate [ -o output_dir ] [ -v ] [ -a acpidump ]"
+> +    echo "              [ -c compile_options ] [ -d disassemble_options ]"
+> +    echo
+> +    echo "This tool extracts, disassembles and recompiles ACPI BIOS tables."
+> +    echo "The disassembled files will be copied into the local or specified"
+> +    echo "output directory (-o option)."
+> +    echo
+> +    echo "The underlying iasl compiler verifies and may complain about"
+> +    echo "correctness of some of the BIOS tables."
+> +    echo "These can give a pointer to possible malfunction of the system."
+> +    echo
+> +    echo "If you think you found a bug in the iasl compiler or related tools,"
+> +    echo "you can ask here for help: devel@acpica.org"
+> +    echo "You may also want to ask there if you are not sure whether it really"
+> +    echo "is a BIOS bug."
+> +    echo
+> +    echo "If you are sure you found a BIOS issue, complain to your hardware vendor."
+> +    echo "The iasl compiler typically provides a description of the warning/error in a way,"
+> +    echo "so that BIOS authors can easily fix it."
+> +    echo
+> +    echo "Options"
+> +    echo "   -o output_dir: Copy tables to this directory instead of local one"
+> +    echo "   -v:          : be more verbose"
+> +    echo "   -a acpidump  : Use this acpidump file"
+> +    echo "                  instead of the tables from the local machine"
+> +    echo "   -d options   : Pass iasl disassemble options"
+> +    echo "   -c options   : Pass iasl compile options"
+> +    echo "                  will override -sa -cr -vr (default options)"
+> +    echo "   -h           : Show help"
+> +    exit 1
+> +}
 > +
-> +clean:
-> +	rm -f $(PROG) $(patsubst %.c,%.o, $(SRCS)) *~
+> +if [ "$(id -u)" != "0" ]; then
+> +   echo "This script must be run as root"
+> +   exit 1
+> +fi
 > +
-> +install:
-> +	install ec_access /usr/sbin/ec_access
-> diff --git a/tools/power/acpi/ec/ec_access.c b/tools/power/acpi/ec/ec_access.c
+> +while getopts hva:o:c:d: name ; do
+> +    case $name in
+> +        o)
+> +	    OUTPUT_DIR="$OPTARG"
+> +	    if [ ! -d "$OUTPUT_DIR" ];then
+> +		mkdir "$OUTPUT_DIR"
+> +		if [[ $? != 0 ]];then
+> +		    echo "Cannot create directory $OUTPUT_DIR"
+> +		    exit 1
+> +		fi
+> +	    elif [ ! -w "$OUTPUT_DIR" ];then
+> +		echo "Cannot write into directory $OUTPUT_DIR"
+> +		exit 1
+> +	    fi
+> +
+> +	    [[ $VERBOSE == 1 ]] && echo "Installing for architecture: $OUTPUT_DIR"
+> +	    ;;
+> +        a)
+> +	    ACPIDUMP="$OPTARG"
+> +	    if [ ! -r "$ACPIDUMP" ];then
+> +		echo "$ACPIDUMP does not exist"
+> +		exit 1
+> +	    fi
+> +	    [[ $VERBOSE == 1 ]] && echo "acpidump file: $ACPIDUMP"
+> +	    ;;
+> +        c)
+> +	    COMPILE_OPTIONS="$OPTARG"
+> +	    [[ $VERBOSE == 1 ]] && echo "Compile options: $COMPILE_OPTIONS"
+> +	    ;;
+> +        c)
+> +	    DISASSEMBLE_OPTIONS="$OPTARG"
+> +	    [[ $VERBOSE == 1 ]] && echo "Disassemble options: $DISASSEMBLE_OPTIONS"
+> +	    ;;
+> +        v)
+> +            VERBOSE=1
+> +	    OUTPUT="1"
+> +            ;;
+> +        ?)
+> +	    usage
+> +	    ;;
+> +    esac
+> +done
+> +shift $(($OPTIND -1))
+> +
+> +shopt -s nocasematch
+> +TEMP_DIR=$(mktemp -d)
+> +[[ $VERBOSE == 1 ]] && echo "Using temporary directory: $TEMP_DIR"
+> +
+> +if [ -r "$ACPIDUMP" ];then
+> +    cp "$ACPIDUMP" "$TEMP_DIR"/acpidump
+> +fi
+> +
+> +pushd "$TEMP_DIR" >/dev/null
+> +
+> +mkdir log
+> +mkdir err
+> +if [ ! -r acpidump ];then
+> +    acpidump >acpidump
+> +fi
+> +acpixtract -a acpidump >&$OUTPUT 2>&1
+> +
+> +
+> +# ACPICA changed from uppercase to lowercase, try to find both:
+> +SDTs=$(ls [SD]DST*.dat 2>/dev/null)
+> +SDTs="${SDTs}$(ls [sd]sdt*.dat 2>/dev/null)"
+> +
+> +for file in *.dat;do
+> +    table=${file/.dat/}
+> +    # Enable case insensitive pattern matching
+> +
+> +    case $file in
+> +	[DS]SDT*.dat | [sd]sdt*.dat)
+> +		# Use other [sd]sdt*.dat tables to reference possible
+> +		# external symbols. Pass the table itself for disassembling
+> +		# comma separted.
+> +		# For example you we have:
+> +		# dsdt.dat ssdt1 ssdt2.dat
+> +		# and the current table to disassemble is ssdt1.dat the
+> +		# command has to be:
+> +		# iasl -e dsdt.dat,ssdt2.dat -d ssdt1.dat
+> +
+> +		# Get rid of the table which gets disassembled
+> +		# could have leading or trailing whitespace depending whether
+> +		# it is at the end or the beginning of the list
+> +		REF_TABLE_LIST=${SDTs/[[:space:]]$file/}
+> +		REF_TABLE_LIST=${SDTs/$file[[:space:]]/}
+> +		# Convert the whitespace list into a comma separated one:
+> +		REF_TABLE_LIST=${REF_TABLE_LIST//[[:space:]]/,}
+> +		echo "stdout and stderr of $file disassembling:" >log/${table}.log
+> +		iasl $DISASSEMBLE_OPTIONS -e ${REF_TABLE_LIST} -d $file 1>>log/${table}.log 2>&1
+> +		[[ $VERBOSE == 1 ]] && echo "iasl $DISASSEMBLE_OPTIONS -e ${REF_TABLE_LIST} -d $file 1>>log/${table}.log 2>&1"
+> +		iasl $COMPILE_OPTIONS ${table}.dsl 1>>log/${table}.log 2>>err/${table}.err
+> +		[[ $VERBOSE == 1 ]] && echo "iasl $COMPILE_OPTIONS ${table}.dsl 1>>log/${table}.log 2>>err/${table}.err"
+> +		;;
+> +	*.dat)
+> +		iasl -d $file 1>log/${table}.log 2>&1
+> +		iasl -sa ${table}.dsl 1>log/${table}.log 2>err/${table}.err
+> +		;;
+> +    esac
+> +done
+> +
+> +# remove empty error files
+> +rm $(find err -size 0)
+> +ERR_TABLES=$(ls err)
+> +ERR_TABLES=${ERR_TABLES//.err/}
+> +
+> +popd >/dev/null
+> +cp -r "$TEMP_DIR"/* "$OUTPUT_DIR"
+> +
+> +if [[ $VERBOSE == 1 ]];then
+> +    echo "Temporary directory (undeleted): $TEMP_DIR"
+> +else
+> +    rm -rf "$TEMP_DIR"
+> +fi
+> +
+> +if [ "$ERR_TABLES" = "" ];then
+> +    echo "No errors or warnings detected"
+> +    exit 0
+> +else
+> +    echo "These tables have warnings or errors (details in "$OUTPUT_DIR"/err directory):"
+> +    for err in $ERR_TABLES;do
+> +	echo -n $err $'\t'
+> +	sed -n -e 's/Compilation complete. \(.* Errors, .* Warnings\).*/\1/p' "$OUTPUT_DIR"/log/$err.log
+> +    done
+> +    exit 1
+> +fi
+> diff --git a/tools/power/acpi/acpi_validate.8 b/tools/power/acpi/acpi_validate.8
 > new file mode 100644
-> index 0000000..6b8aaed
+> index 0000000..cd10694
 > --- /dev/null
-> +++ b/tools/power/acpi/ec/ec_access.c
-> @@ -0,0 +1,238 @@
-> +/*
-> + * ec_access.c
-> + *
-> + * Copyright (C) 2010 SUSE Linux Products GmbH
-> + * Author:
-> + *      Thomas Renninger <trenn@suse.de>
-> + *
-> + * This work is licensed under the terms of the GNU GPL, version 2.
-> + */
+> +++ b/tools/power/acpi/acpi_validate.8
+> @@ -0,0 +1,72 @@
+> +.TH ACPI_VALIDATE 8
+> +.SH NAME
+> +acpi_validate \- Extracts, disassembles and recompiles ACPI BIOS tables.
+> +.SH SYNOPSIS
+> +.ft B
+> +.B acpica_validate [ \-o output_dir ] [ \-a acpidump ] [ \-v ] [ \-c compile_options ] [ \-d disassemble_options ]
+> +.SH DESCRIPTION
+> +\fBacpi_validate \fP extracts, disassembles and recompiles ACPI BIOS
+> +tables. The disassembled files will be copied into the local or specified
+> +output directory (-o option).
 > +
-> +#include <fcntl.h>
-> +#include <err.h>
-> +#include <stdio.h>
-> +#include <stdlib.h>
-> +#include <libgen.h>
-> +#include <unistd.h>
-> +#include <getopt.h>
-> +#include <stdint.h>
-> +#include <sys/types.h>
-> +#include <sys/stat.h>
+> +The underlying iasl compiler verifies and may complain about correctness of
+> +some of the BIOS tables. Warnings or errors can give a pointer to possible
+> +malfunction of the system. The Linux kernel uses the same code base as the
+> +iasl interpreter which is used to validate tables.
 > +
+> +The ASL (ACPI Source Language) files (*.dsl) can get recompiled manually via
+> +\fBiasl -sa\fP and the resulting compilation (*.aml) can get passed to the
+> +kernel via the "Overriding ACPI tables via initrd" mechanism. Only use this
+> +feature if you know what you are doing. Read
+> +Documentation/acpi/initrd_table_override.txt (part of the kernel sources) for
+> +further information.
 > +
-> +#define EC_SPACE_SIZE 256
-> +#define SYSFS_PATH "/sys/kernel/debug/ec/ec0/io"
+> +If you think you found a bug in the iasl compiler or related
+> +tools, you can ask here for help: \fBdevel@acpica.org\fP
 > +
-> +/* TBD/Enhancements:
-> +   - Provide param for accessing different ECs (not supported by kernel yet)
-> +*/
+> +You may also want to ask there if you are not sure whether it really
+> +is a BIOS bug.
 > +
-> +static int read_mode = -1;
-> +static int sleep_time;
-> +static int write_byte_offset = -1;
-> +static int read_byte_offset = -1;
-> +static uint8_t write_value = -1;
+> +If you are sure you found a BIOS issue, complain to your hardware vendor. The
+> +iasl compiler typically provides a description of the warning/error in a way,
+> +so that BIOS authors can easily fix it.
 > +
-> +void usage(char progname[], int exit_status)
-> +{
-> +	printf("Usage:\n");
-> +	printf("1) %s -r [-s sleep]\n", basename(progname));
-> +	printf("2) %s -b byte_offset\n", basename(progname));
-> +	printf("3) %s -w byte_offset -v value\n\n", basename(progname));
+> +.SH OPTIONS
+> +\fB-o output_dir\fP
 > +
-> +	puts("\t-r [-s sleep]      : Dump EC registers");
-> +	puts("\t                     If sleep is given, sleep x seconds,");
-> +	puts("\t                     re-read EC registers and show changes");
-> +	puts("\t-b offset          : Read value at byte_offset (in hex)");
-> +	puts("\t-w offset -v value : Write value at byte_offset");
-> +	puts("\t-h                 : Print this help\n\n");
-> +	puts("Offsets and values are in hexadecimal number sytem.");
-> +	puts("The offset and value must be between 0 and 0xff.");
-> +	exit(exit_status);
-> +}
+> +The output directory where extracted, disassembled and
+> +recompiled tables are copied to. Compiler output is located in a log
+> +subdirectory, warnings and errors found by the compiler are located in the err
+> +directory.
+> +.PP
+> +\fB-a acpidump\fP
 > +
-> +void parse_opts(int argc, char *argv[])
-> +{
-> +	int c;
+> +Take this acpidump file instead of dumping and extracting
+> +ACPI tables from the local machine
+> +.PP
+> +\fB-v\fP
 > +
-> +	while ((c = getopt(argc, argv, "rs:b:w:v:h")) != -1) {
+> +Be more verbose
+> +.PP
+> +\fB-c options\fP
 > +
-> +		switch (c) {
-> +		case 'r':
-> +			if (read_mode != -1)
-> +				usage(argv[0], EXIT_FAILURE);
-> +			read_mode = 1;
-> +			break;
-> +		case 's':
-> +			if (read_mode != -1 && read_mode != 1)
-> +				usage(argv[0], EXIT_FAILURE);
+> +Override default iasl compile options (default -sa -cr -vr)
+> +.PP
+> +\fB-d options\fP
 > +
-> +			sleep_time = atoi(optarg);
-> +			if (sleep_time <= 0) {
-> +				sleep_time = 0;
-> +				usage(argv[0], EXIT_FAILURE);
-> +				printf("Bad sleep time: %s\n", optarg);
-> +			}
-> +			break;
-> +		case 'b':
-> +			if (read_mode != -1)
-> +				usage(argv[0], EXIT_FAILURE);
-> +			read_mode = 1;
-> +			read_byte_offset = strtoul(optarg, NULL, 16);
-> +			break;
-> +		case 'w':
-> +			if (read_mode != -1)
-> +				usage(argv[0], EXIT_FAILURE);
-> +			read_mode = 0;
-> +			write_byte_offset = strtoul(optarg, NULL, 16);
-> +			break;
-> +		case 'v':
-> +			write_value = strtoul(optarg, NULL, 16);
-> +			break;
-> +		case 'h':
-> +			usage(argv[0], EXIT_SUCCESS);
-> +		default:
-> +			fprintf(stderr, "Unknown option!\n");
-> +			usage(argv[0], EXIT_FAILURE);
-> +		}
-> +	}
-> +	if (read_mode == 0) {
-> +		if (write_byte_offset < 0 ||
-> +		    write_byte_offset >= EC_SPACE_SIZE) {
-> +			fprintf(stderr, "Wrong byte offset 0x%.2x, valid: "
-> +				"[0-0x%.2x]\n",
-> +				write_byte_offset, EC_SPACE_SIZE - 1);
-> +			usage(argv[0], EXIT_FAILURE);
-> +		}
-> +		if (write_value < 0 ||
-> +		    write_value >= 255) {
-> +			fprintf(stderr, "Wrong byte offset 0x%.2x, valid:"
-> +				"[0-0xff]\n", write_byte_offset);
-> +			usage(argv[0], EXIT_FAILURE);
-> +		}
-> +	}
-> +	if (read_mode == 1 && read_byte_offset != -1) {
-> +		if (read_byte_offset < -1 ||
-> +		    read_byte_offset >= EC_SPACE_SIZE) {
-> +			fprintf(stderr, "Wrong byte offset 0x%.2x, valid: "
-> +				"[0-0x%.2x]\n",
-> +				read_byte_offset, EC_SPACE_SIZE - 1);
-> +			usage(argv[0], EXIT_FAILURE);
-> +		}
-> +	}
-> +	/* Add additional parameter checks here */
-> +}
+> +Override default iasl disassemble options
 > +
-> +void dump_ec(int fd)
-> +{
-> +	char buf[EC_SPACE_SIZE];
-> +	char buf2[EC_SPACE_SIZE];
-> +	int byte_off, bytes_read;
+> +.SH NOTES
 > +
-> +	bytes_read = read(fd, buf, EC_SPACE_SIZE);
+> +.B "acpi_validate"
+> +must be run as root.
 > +
-> +	if (bytes_read == -1)
-> +		err(EXIT_FAILURE, "Could not read from %s\n", SYSFS_PATH);
+> +.SH REFERENCES
+> +ACPICA: https://acpica.org/
 > +
-> +	if (bytes_read != EC_SPACE_SIZE)
-> +		fprintf(stderr, "Could only read %d bytes\n", bytes_read);
+> +.SH "SEE ALSO"
+> +.BR acpidump (8)
 > +
-> +	printf("     00  01  02  03  04  05  06  07  08  09  0A  0B  0C  0D  0E  0F");
-> +	for (byte_off = 0; byte_off < bytes_read; byte_off++) {
-> +		if ((byte_off % 16) == 0)
-> +			printf("\n%.2X: ", byte_off);
-> +		printf(" %.2x ", (uint8_t)buf[byte_off]);
-> +	}
-> +	printf("\n");
-> +
-> +	if (!sleep_time)
-> +		return;
-> +
-> +	printf("\n");
-> +	lseek(fd, 0, SEEK_SET);
-> +	sleep(sleep_time);
-> +
-> +	bytes_read = read(fd, buf2, EC_SPACE_SIZE);
-> +
-> +	if (bytes_read == -1)
-> +		err(EXIT_FAILURE, "Could not read from %s\n", SYSFS_PATH);
-> +
-> +	if (bytes_read != EC_SPACE_SIZE)
-> +		fprintf(stderr, "Could only read %d bytes\n", bytes_read);
-> +
-> +	printf("     00  01  02  03  04  05  06  07  08  09  0A  0B  0C  0D  0E  0F");
-> +	for (byte_off = 0; byte_off < bytes_read; byte_off++) {
-> +		if ((byte_off % 16) == 0)
-> +			printf("\n%.2X: ", byte_off);
-> +
-> +		if (buf[byte_off] == buf2[byte_off])
-> +			printf(" %.2x ", (uint8_t)buf2[byte_off]);
-> +		else
-> +			printf("*%.2x ", (uint8_t)buf2[byte_off]);
-> +	}
-> +	printf("\n");
-> +}
-> +
-> +void read_ec_val(int fd, int byte_offset)
-> +{
-> +	uint8_t buf;
-> +	int error;
-> +
-> +	error = lseek(fd, byte_offset, SEEK_SET);
-> +	if (error != byte_offset)
-> +		err(EXIT_FAILURE, "Cannot set offset to 0x%.2x", byte_offset);
-> +
-> +	error = read(fd, &buf, 1);
-> +	if (error != 1)
-> +		err(EXIT_FAILURE, "Could not read byte 0x%.2x from %s\n",
-> +		    byte_offset, SYSFS_PATH);
-> +	printf("0x%.2x\n", buf);
-> +	return;
-> +}
-> +
-> +void write_ec_val(int fd, int byte_offset, uint8_t value)
-> +{
-> +	int error;
-> +
-> +	error = lseek(fd, byte_offset, SEEK_SET);
-> +	if (error != byte_offset)
-> +		err(EXIT_FAILURE, "Cannot set offset to 0x%.2x", byte_offset);
-> +
-> +	error = write(fd, &value, 1);
-> +	if (error != 1)
-> +		err(EXIT_FAILURE, "Cannot write value 0x%.2x to offset 0x%.2x",
-> +		    value, byte_offset);
-> +}
-> +
-> +int main(int argc, char *argv[])
-> +{
-> +	int file_mode = O_RDONLY;
-> +	int fd;
-> +
-> +	parse_opts(argc, argv);
-> +
-> +	if (read_mode == 0)
-> +		file_mode = O_WRONLY;
-> +	else if (read_mode == 1)
-> +		file_mode = O_RDONLY;
-> +	else
-> +		usage(argv[0], EXIT_FAILURE);
-> +
-> +	fd = open(SYSFS_PATH, file_mode);
-> +	if (fd == -1)
-> +		err(EXIT_FAILURE, "%s", SYSFS_PATH);
-> +
-> +	if (read_mode)
-> +		if (read_byte_offset == -1)
-> +			dump_ec(fd);
-> +		else if (read_byte_offset < 0 ||
-> +			 read_byte_offset >= EC_SPACE_SIZE)
-> +			usage(argv[0], EXIT_FAILURE);
-> +		else
-> +			read_ec_val(fd, read_byte_offset);
-> +	else
-> +		write_ec_val(fd, write_byte_offset, write_value);
-> +	close(fd);
-> +
-> +	exit(EXIT_SUCCESS);
-> +}
+> +.SH AUTHOR
+> +.nf
+> +Written by Thomas Renninger <trenn@suse.de>
 > 
 -- 
 I speak only for myself.
