@@ -1,258 +1,391 @@
-From: "Moore, Robert" <robert.moore@intel.com>
-Subject: RE: [PATCH] tools/power/acpi: Introduce acpi_validate with manpage
- for easy validation of ACPI BIOS tables
-Date: Tue, 5 Feb 2013 22:39:26 +0000
-Message-ID: <94F2FBAB4432B54E8AACC7DFDE6C92E357E58957@ORSMSX101.amr.corp.intel.com>
-References: <1355565468-26024-1-git-send-email-trenn@suse.de>
- <3340595.ZHTVyZYTbQ@vostro.rjw.lan>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: Re: [PATCH] tools/power/acpi: Introduce acpi_validate with manpage for easy validation of ACPI BIOS tables
+Date: Tue, 05 Feb 2013 23:51:24 +0100
+Message-ID: <1538657.xrTvo9UOJo@vostro.rjw.lan>
+References: <1355565468-26024-1-git-send-email-trenn@suse.de> <3340595.ZHTVyZYTbQ@vostro.rjw.lan> <94F2FBAB4432B54E8AACC7DFDE6C92E357E58957@ORSMSX101.amr.corp.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Transfer-Encoding: 7Bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga14.intel.com ([143.182.124.37]:12654 "EHLO mga14.intel.com"
+Received: from hydra.sisk.pl ([212.160.235.94]:47901 "EHLO hydra.sisk.pl"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755863Ab3BEWj3 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 5 Feb 2013 17:39:29 -0500
-In-Reply-To: <3340595.ZHTVyZYTbQ@vostro.rjw.lan>
-Content-Language: en-US
+	id S1755844Ab3BEWpG (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 5 Feb 2013 17:45:06 -0500
+In-Reply-To: <94F2FBAB4432B54E8AACC7DFDE6C92E357E58957@ORSMSX101.amr.corp.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@sisk.pl>, Thomas Renninger <trenn@suse.de>
-Cc: "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "devel@acpica.org" <devel@acpica.org>, "lenb@kernel.org" <lenb@kernel.org>
+To: "Moore, Robert" <robert.moore@intel.com>
+Cc: Thomas Renninger <trenn@suse.de>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "devel@acpica.org" <devel@acpica.org>, "lenb@kernel.org" <lenb@kernel.org>
 
-U28sIHRoaXMgdG9vbCBiYXNpY2FsbHk6DQoxKSBnZXRzIHRoZSBhY3BpIHRhYmxlcw0KMikgZGlz
-YXNzZW1ibGVzIHRoZW0gKHdpdGgga25vd2xlZGdlIG9mIG11bHRpcGxlIFNTRFRzKQ0KMykgcmVj
-b21waWxlcyB0aGVtIHdpdGggaUFTTCB0byBmaW5kIGVycm9ycy93YXJuaW5ncw0KDQpUaGUgaW1w
-b3J0YW50IHN0ZXAgaXMgKDIpLCBzaW5jZSB0aGUgRFNEVCBjYW4gb2Z0ZW4gb25seSBiZSBkaXNh
-c3NlbWJsZWQgcHJvcGVybHkgd2hlbiBpdCBoYXMga25vd2xlZGdlIGFib3V0IHRoZSBleHRlcm5h
-bHMgdGhhdCBhcmUgZGVmaW5lZCBpbiB0aGUgU1NEVChzKS4gU2ltaWxhciBmb3IgZWFjaCBvZiB0
-aGUgU1NEVHMuIA0KDQppQVNMIHByb3ZpZGVzIGEgbWVjaGFuaXNtIHRvIGluY2x1ZGUgZXh0cmEg
-dGFibGVzIGZvciBleHRlcm5hbCBzeW1ib2wgcmVzb2x1dGlvbiwgYnV0IHVzZXJzIG9mdGVuIGRv
-bid0IHVzZSBpdC4gVGhpcyBjYW4gY2F1c2UgbWFueSBkaXNhc3NlbWJsZXIgYW5kL29yIGNvbXBp
-bGVyIGVycm9ycyBiZWNhdXNlIHRoZXJlIGFyZSBjZXJ0YWluIGNvbnN0cnVjdHMgdGhhdCBjYW5u
-b3QgYmUgZGlzYXNzZW1ibGVkIHdpdGhvdXQgZXhwbGljaXQga25vd2xlZGdlIG9mIGV4dGVybmFs
-IHJlZmVyZW5jZXMuDQoNCkknbGwgZ2l2ZSBpdCBhIGdvIGFuZCBzZWUgaG93IGl0IHdvcmtzLg0K
-Qm9iDQoNCg0KDQo+IC0tLS0tT3JpZ2luYWwgTWVzc2FnZS0tLS0tDQo+IEZyb206IFJhZmFlbCBK
-LiBXeXNvY2tpIFttYWlsdG86cmp3QHNpc2sucGxdDQo+IFNlbnQ6IFR1ZXNkYXksIEZlYnJ1YXJ5
-IDA1LCAyMDEzIDI6MzUgUE0NCj4gVG86IFRob21hcyBSZW5uaW5nZXI7IE1vb3JlLCBSb2JlcnQN
-Cj4gQ2M6IGxpbnV4LWFjcGlAdmdlci5rZXJuZWwub3JnOyBkZXZlbEBhY3BpY2Eub3JnOyBsZW5i
-QGtlcm5lbC5vcmcNCj4gU3ViamVjdDogUmU6IFtQQVRDSF0gdG9vbHMvcG93ZXIvYWNwaTogSW50
-cm9kdWNlIGFjcGlfdmFsaWRhdGUgd2l0aA0KPiBtYW5wYWdlIGZvciBlYXN5IHZhbGlkYXRpb24g
-b2YgQUNQSSBCSU9TIHRhYmxlcw0KPiANCj4gSGkgQm9iLA0KPiANCj4gQ2FuIHlvdSBwbGVhc2Ug
-aGF2ZSBhIGxvb2sgYXQgdGhpcyBhbmQgdGVsbCBtZSB3aGF0IHlvdSB0aGluayBhYm91dCBpdD8N
-Cj4gDQo+IFJhZmFlbA0KPiANCj4gDQo+IE9uIFNhdHVyZGF5LCBEZWNlbWJlciAxNSwgMjAxMiAx
-MDo1Nzo0OCBBTSBUaG9tYXMgUmVubmluZ2VyIHdyb3RlOg0KPiA+IFRoZSB1c2VkIGlhc2wgY29t
-cGlsZXIgc2hhcmVzIHRoZSBzYW1lIGNvZGUgYmFzZSBhcyB0aGUga2VybmVsLg0KPiA+IFdhcm5p
-bmdzIG9yIGVycm9ycyBtb3N0bHkgcG9pbnQgdG8gYmFkIEJJT1Nlcy4NCj4gPiBUaGVzZSBlcnJv
-cnMgc2hvdWxkIGdldCByZXBvcnRlZCB0byB0aGUgQklPUyB2ZW5kb3JzIGFuZCBtYXkgaW5kaWNh
-dGVkDQo+ID4gdGhhdCBhY3BpY2EgKGtlcm5lbCBBQ1BJIHBhcnRzKSBuZWVkIGNvbXBhdGliaWxp
-dHkgYWRqdXN0aW5ncy4NCj4gPg0KPiA+DQo+ID4gV2h5IGlzIGFuIGV4dHJhIHRvb2wgbmVlZGVk
-IGZvciB0aGlzPw0KPiA+DQo+ID4gVGhlIGR5bmFtaWMgQUNQSSBTb3VyY2UgTGFuZ3VhZ2UgKEFT
-TCkgcGFydHMgYXJlIGxvY2F0ZWQgaW4gRFNEVCBhbmQNCj4gPiBvZnRlbiBtdWx0aXBsZSBTU0RU
-IHRhYmxlcy4gVGhvc2Ugb2Z0ZW4gaGF2ZSBkZXBlbmRlbmNpZXMgdG8gZWFjaA0KPiA+IG90aGVy
-IGFuZCB0aGUgaWFzbCBjb21waWxlciBvZnRlbiBjYW5ub3QgcmVzb2x2ZSBleHRlcm5hbCBzeW1i
-b2xzDQo+ID4gY29ycmVjdGx5IGlmIHRoZXkgYXJlIG5vdCBwYXNzZWQgYXMgZXh0ZXJuYWwgdGFi
-bGVzIChpYXNsIC1lIG9wdGlvbikNCj4gd2hlbiB0YWJsZXMgZ2V0IGRpc2Fzc2VtYmxlZC4NCj4g
-PiBUaGlzIHF1aWNrbHkgbGVhZHMgdG8gZmFsc2UgcG9zaXRpdmUgZXJyb3JzLg0KPiA+IFRoaXMg
-dG9vbCBtYWtlcyBzdXJlIGRpc2Fzc2VtYmxpbmcgYW5kIHJlY29tcGlsYXRpb24gaXMgZG9uZSBj
-b3JyZWN0bHkuDQo+ID4NCj4gPiBUaGlzIHRvb2wgaXMgYWxzbyBtYWRlIGZvciBBQ1BJIEJJT1Mg
-dGFibGUgdmVyaWZpY2F0aW9uIGZvciBCSU9TDQo+ID4gdmVuZG9ycyBhbmQgaGFyZHdhcmUgY2Vy
-dGlmaWNhdGlvbiB0b29scyBmb3IgZGlzdHJpYnV0aW9ucy4NCj4gPiBIYXJkd2FyZSB3aGljaCBz
-dXBwb3J0cyBMaW51eCBtdXN0L3Nob3VsZCBub3Qgc2hvdyBhbnkgd2FybmluZ3Mgb3INCj4gZXJy
-b3JzLg0KPiA+IFJlbWFya3MgYW5kIG9wdGltaXphdGlvbiBoaW50cyBpbiB0aGUgbG9ncyBjYW4g
-YmUgdXNlZCB0byBmdXJ0aGVyDQo+ID4gZW5oYW5jZSB0aGUgQUNQSSBCSU9TIGNvZGUuDQo+ID4g
-V2FybmluZ3MgYW5kIGVycm9ycyBtb3N0bHkgZGVzY3JpYmUgdGhlIGlzc3VlcyBpbiBhIHdheSwg
-c28gdGhhdCB0aGV5DQo+ID4gY2FuIGdldCBwYXNzZWQgdG8gYW5kIHVzZWQgYnkgQklPUyBkZXZl
-bG9wZXJzIHRvIGZpeCB0aGUgcHJvYmxlbXMNCj4gZWFzaWx5Lg0KPiA+DQo+ID4gU2lnbmVkLW9m
-Zi1ieTogVGhvbWFzIFJlbm5pbmdlciA8dHJlbm5Ac3VzZS5kZT4NCj4gPiAtLS0NCj4gPiAgdG9v
-bHMvcG93ZXIvYWNwaS9hY3BpX3ZhbGlkYXRlICAgfCAgMTkzDQo+ICsrKysrKysrKysrKysrKysr
-KysrKysrKysrKysrKysrKysrKysrDQo+ID4gIHRvb2xzL3Bvd2VyL2FjcGkvYWNwaV92YWxpZGF0
-ZS44IHwgICA3MiArKysrKysrKysrKysrKw0KPiA+ICAyIGZpbGVzIGNoYW5nZWQsIDI2NSBpbnNl
-cnRpb25zKCspLCAwIGRlbGV0aW9ucygtKSAgY3JlYXRlIG1vZGUNCj4gPiAxMDA3NTUgdG9vbHMv
-cG93ZXIvYWNwaS9hY3BpX3ZhbGlkYXRlICBjcmVhdGUgbW9kZSAxMDA2NDQNCj4gPiB0b29scy9w
-b3dlci9hY3BpL2FjcGlfdmFsaWRhdGUuOA0KPiA+DQo+ID4gZGlmZiAtLWdpdCBhL3Rvb2xzL3Bv
-d2VyL2FjcGkvYWNwaV92YWxpZGF0ZQ0KPiA+IGIvdG9vbHMvcG93ZXIvYWNwaS9hY3BpX3ZhbGlk
-YXRlIG5ldyBmaWxlIG1vZGUgMTAwNzU1IGluZGV4DQo+ID4gMDAwMDAwMC4uMTJkMTA1Yg0KPiA+
-IC0tLSAvZGV2L251bGwNCj4gPiArKysgYi90b29scy9wb3dlci9hY3BpL2FjcGlfdmFsaWRhdGUN
-Cj4gPiBAQCAtMCwwICsxLDE5MyBAQA0KPiA+ICsjIS9iaW4vYmFzaA0KPiA+ICsjDQo+ID4gKyMg
-Q29weXJpZ2h0IChjKSAyMDEyIFNVU0UgTGludXggUHJvZHVjdHMgR21iSCAjIFRob21hcyBSZW5u
-aW5nZXINCj4gPiArPHRyZW5uQHN1c2UuZGU+ICMgIyBUaGlzIHByb2dyYW0gaXMgZnJlZSBzb2Z0
-d2FyZTsgeW91IGNhbg0KPiA+ICtyZWRpc3RyaWJ1dGUgaXQgYW5kL29yIG1vZGlmeSBpdCAjIHVu
-ZGVyIHRoZSB0ZXJtcyBhbmQgY29uZGl0aW9ucyBvZg0KPiA+ICt0aGUgR05VIEdlbmVyYWwgUHVi
-bGljIExpY2Vuc2UsICMgdmVyc2lvbiAyLCBhcyBwdWJsaXNoZWQgYnkgdGhlIEZyZWUNCj4gPiAr
-U29mdHdhcmUgRm91bmRhdGlvbi4NCj4gPiArIw0KPiA+ICsjIFRoaXMgcHJvZ3JhbSBpcyBkaXN0
-cmlidXRlZCBpbiB0aGUgaG9wZSBpdCB3aWxsIGJlIHVzZWZ1bCwgYnV0DQo+ID4gK1dJVEhPVVQg
-IyBBTlkgV0FSUkFOVFk7IHdpdGhvdXQgZXZlbiB0aGUgaW1wbGllZCB3YXJyYW50eSBvZg0KPiA+
-ICtNRVJDSEFOVEFCSUxJVFkgb3IgIyBGSVRORVNTIEZPUiBBIFBBUlRJQ1VMQVIgUFVSUE9TRS4g
-IFNlZSB0aGUgR05VDQo+ID4gK0dlbmVyYWwgUHVibGljIExpY2Vuc2UgZm9yICMgbW9yZSBkZXRh
-aWxzLg0KPiA+ICsjDQo+ID4gKyMgWW91IHNob3VsZCBoYXZlIHJlY2VpdmVkIGEgY29weSBvZiB0
-aGUgR05VIEdlbmVyYWwgUHVibGljIExpY2Vuc2UNCj4gPiArYWxvbmcgd2l0aCAjIHRoaXMgcHJv
-Z3JhbTsgaWYgbm90LCB3cml0ZSB0byB0aGUgRnJlZSBTb2Z0d2FyZQ0KPiA+ICtGb3VuZGF0aW9u
-LCBJbmMuLCAjIDUxIEZyYW5rbGluIFN0IC0gRmlmdGggRmxvb3IsIEJvc3RvbiwgTUEgMDIxMTAt
-MTMwMQ0KPiBVU0EuDQo+ID4gKyMNCj4gPiArDQo+ID4gK09VVFBVVF9ESVI9IiRQV0QiDQo+ID4g
-K1ZFUkJPU0U9MA0KPiA+ICsjIERpc2FibGUgcmVtYXJrcyBhbmQgcmVzb3VyY2UgY2hlY2tzLiBU
-aGUgbGF0dGVyIG9mdGVuL21vc3RseQ0KPiA+ICtnZW5lcmF0ZXMgIyBmYWxzZSBwb3NpdGl2ZSB3
-YXJuaW5ncy4gQ2FuIGJlIG92ZXJyaWRkZW4gdmlhIC1jIG9wdGlvbg0KPiA+ICtDT01QSUxFX09Q
-VElPTlM9Ii1zYSAtY3IgLXZyIg0KPiA+ICtESVNBU1NFTUJMRV9PUFRJT05TPSIiDQo+ID4gK09V
-VFBVVD0iL2Rldi9udWxsIg0KPiA+ICtBQ1BJRFVNUD0iIg0KPiA+ICsNCj4gPiArZnVuY3Rpb24g
-dXNhZ2UoKQ0KPiA+ICt7DQo+ID4gKyAgICBlY2hvICJhY3BpX3ZhbGlkYXRlIFsgLW8gb3V0cHV0
-X2RpciBdIFsgLXYgXSBbIC1hIGFjcGlkdW1wIF0iDQo+ID4gKyAgICBlY2hvICIgICAgICAgICAg
-ICAgIFsgLWMgY29tcGlsZV9vcHRpb25zIF0gWyAtZCBkaXNhc3NlbWJsZV9vcHRpb25zDQo+IF0i
-DQo+ID4gKyAgICBlY2hvDQo+ID4gKyAgICBlY2hvICJUaGlzIHRvb2wgZXh0cmFjdHMsIGRpc2Fz
-c2VtYmxlcyBhbmQgcmVjb21waWxlcyBBQ1BJIEJJT1MNCj4gdGFibGVzLiINCj4gPiArICAgIGVj
-aG8gIlRoZSBkaXNhc3NlbWJsZWQgZmlsZXMgd2lsbCBiZSBjb3BpZWQgaW50byB0aGUgbG9jYWwg
-b3INCj4gc3BlY2lmaWVkIg0KPiA+ICsgICAgZWNobyAib3V0cHV0IGRpcmVjdG9yeSAoLW8gb3B0
-aW9uKS4iDQo+ID4gKyAgICBlY2hvDQo+ID4gKyAgICBlY2hvICJUaGUgdW5kZXJseWluZyBpYXNs
-IGNvbXBpbGVyIHZlcmlmaWVzIGFuZCBtYXkgY29tcGxhaW4gYWJvdXQiDQo+ID4gKyAgICBlY2hv
-ICJjb3JyZWN0bmVzcyBvZiBzb21lIG9mIHRoZSBCSU9TIHRhYmxlcy4iDQo+ID4gKyAgICBlY2hv
-ICJUaGVzZSBjYW4gZ2l2ZSBhIHBvaW50ZXIgdG8gcG9zc2libGUgbWFsZnVuY3Rpb24gb2YgdGhl
-DQo+IHN5c3RlbS4iDQo+ID4gKyAgICBlY2hvDQo+ID4gKyAgICBlY2hvICJJZiB5b3UgdGhpbmsg
-eW91IGZvdW5kIGEgYnVnIGluIHRoZSBpYXNsIGNvbXBpbGVyIG9yIHJlbGF0ZWQNCj4gdG9vbHMs
-Ig0KPiA+ICsgICAgZWNobyAieW91IGNhbiBhc2sgaGVyZSBmb3IgaGVscDogZGV2ZWxAYWNwaWNh
-Lm9yZyINCj4gPiArICAgIGVjaG8gIllvdSBtYXkgYWxzbyB3YW50IHRvIGFzayB0aGVyZSBpZiB5
-b3UgYXJlIG5vdCBzdXJlIHdoZXRoZXIgaXQNCj4gcmVhbGx5Ig0KPiA+ICsgICAgZWNobyAiaXMg
-YSBCSU9TIGJ1Zy4iDQo+ID4gKyAgICBlY2hvDQo+ID4gKyAgICBlY2hvICJJZiB5b3UgYXJlIHN1
-cmUgeW91IGZvdW5kIGEgQklPUyBpc3N1ZSwgY29tcGxhaW4gdG8geW91cg0KPiBoYXJkd2FyZSB2
-ZW5kb3IuIg0KPiA+ICsgICAgZWNobyAiVGhlIGlhc2wgY29tcGlsZXIgdHlwaWNhbGx5IHByb3Zp
-ZGVzIGEgZGVzY3JpcHRpb24gb2YgdGhlDQo+IHdhcm5pbmcvZXJyb3IgaW4gYSB3YXksIg0KPiA+
-ICsgICAgZWNobyAic28gdGhhdCBCSU9TIGF1dGhvcnMgY2FuIGVhc2lseSBmaXggaXQuIg0KPiA+
-ICsgICAgZWNobw0KPiA+ICsgICAgZWNobyAiT3B0aW9ucyINCj4gPiArICAgIGVjaG8gIiAgIC1v
-IG91dHB1dF9kaXI6IENvcHkgdGFibGVzIHRvIHRoaXMgZGlyZWN0b3J5IGluc3RlYWQgb2YNCj4g
-bG9jYWwgb25lIg0KPiA+ICsgICAgZWNobyAiICAgLXY6ICAgICAgICAgIDogYmUgbW9yZSB2ZXJi
-b3NlIg0KPiA+ICsgICAgZWNobyAiICAgLWEgYWNwaWR1bXAgIDogVXNlIHRoaXMgYWNwaWR1bXAg
-ZmlsZSINCj4gPiArICAgIGVjaG8gIiAgICAgICAgICAgICAgICAgIGluc3RlYWQgb2YgdGhlIHRh
-YmxlcyBmcm9tIHRoZSBsb2NhbA0KPiBtYWNoaW5lIg0KPiA+ICsgICAgZWNobyAiICAgLWQgb3B0
-aW9ucyAgIDogUGFzcyBpYXNsIGRpc2Fzc2VtYmxlIG9wdGlvbnMiDQo+ID4gKyAgICBlY2hvICIg
-ICAtYyBvcHRpb25zICAgOiBQYXNzIGlhc2wgY29tcGlsZSBvcHRpb25zIg0KPiA+ICsgICAgZWNo
-byAiICAgICAgICAgICAgICAgICAgd2lsbCBvdmVycmlkZSAtc2EgLWNyIC12ciAoZGVmYXVsdA0K
-PiBvcHRpb25zKSINCj4gPiArICAgIGVjaG8gIiAgIC1oICAgICAgICAgICA6IFNob3cgaGVscCIN
-Cj4gPiArICAgIGV4aXQgMQ0KPiA+ICt9DQo+ID4gKw0KPiA+ICtpZiBbICIkKGlkIC11KSIgIT0g
-IjAiIF07IHRoZW4NCj4gPiArICAgZWNobyAiVGhpcyBzY3JpcHQgbXVzdCBiZSBydW4gYXMgcm9v
-dCINCj4gPiArICAgZXhpdCAxDQo+ID4gK2ZpDQo+ID4gKw0KPiA+ICt3aGlsZSBnZXRvcHRzIGh2
-YTpvOmM6ZDogbmFtZSA7IGRvDQo+ID4gKyAgICBjYXNlICRuYW1lIGluDQo+ID4gKyAgICAgICAg
-bykNCj4gPiArCSAgICBPVVRQVVRfRElSPSIkT1BUQVJHIg0KPiA+ICsJICAgIGlmIFsgISAtZCAi
-JE9VVFBVVF9ESVIiIF07dGhlbg0KPiA+ICsJCW1rZGlyICIkT1VUUFVUX0RJUiINCj4gPiArCQlp
-ZiBbWyAkPyAhPSAwIF1dO3RoZW4NCj4gPiArCQkgICAgZWNobyAiQ2Fubm90IGNyZWF0ZSBkaXJl
-Y3RvcnkgJE9VVFBVVF9ESVIiDQo+ID4gKwkJICAgIGV4aXQgMQ0KPiA+ICsJCWZpDQo+ID4gKwkg
-ICAgZWxpZiBbICEgLXcgIiRPVVRQVVRfRElSIiBdO3RoZW4NCj4gPiArCQllY2hvICJDYW5ub3Qg
-d3JpdGUgaW50byBkaXJlY3RvcnkgJE9VVFBVVF9ESVIiDQo+ID4gKwkJZXhpdCAxDQo+ID4gKwkg
-ICAgZmkNCj4gPiArDQo+ID4gKwkgICAgW1sgJFZFUkJPU0UgPT0gMSBdXSAmJiBlY2hvICJJbnN0
-YWxsaW5nIGZvciBhcmNoaXRlY3R1cmU6DQo+ICRPVVRQVVRfRElSIg0KPiA+ICsJICAgIDs7DQo+
-ID4gKyAgICAgICAgYSkNCj4gPiArCSAgICBBQ1BJRFVNUD0iJE9QVEFSRyINCj4gPiArCSAgICBp
-ZiBbICEgLXIgIiRBQ1BJRFVNUCIgXTt0aGVuDQo+ID4gKwkJZWNobyAiJEFDUElEVU1QIGRvZXMg
-bm90IGV4aXN0Ig0KPiA+ICsJCWV4aXQgMQ0KPiA+ICsJICAgIGZpDQo+ID4gKwkgICAgW1sgJFZF
-UkJPU0UgPT0gMSBdXSAmJiBlY2hvICJhY3BpZHVtcCBmaWxlOiAkQUNQSURVTVAiDQo+ID4gKwkg
-ICAgOzsNCj4gPiArICAgICAgICBjKQ0KPiA+ICsJICAgIENPTVBJTEVfT1BUSU9OUz0iJE9QVEFS
-RyINCj4gPiArCSAgICBbWyAkVkVSQk9TRSA9PSAxIF1dICYmIGVjaG8gIkNvbXBpbGUgb3B0aW9u
-czogJENPTVBJTEVfT1BUSU9OUyINCj4gPiArCSAgICA7Ow0KPiA+ICsgICAgICAgIGMpDQo+ID4g
-KwkgICAgRElTQVNTRU1CTEVfT1BUSU9OUz0iJE9QVEFSRyINCj4gPiArCSAgICBbWyAkVkVSQk9T
-RSA9PSAxIF1dICYmIGVjaG8gIkRpc2Fzc2VtYmxlIG9wdGlvbnM6DQo+ICRESVNBU1NFTUJMRV9P
-UFRJT05TIg0KPiA+ICsJICAgIDs7DQo+ID4gKyAgICAgICAgdikNCj4gPiArICAgICAgICAgICAg
-VkVSQk9TRT0xDQo+ID4gKwkgICAgT1VUUFVUPSIxIg0KPiA+ICsgICAgICAgICAgICA7Ow0KPiA+
-ICsgICAgICAgID8pDQo+ID4gKwkgICAgdXNhZ2UNCj4gPiArCSAgICA7Ow0KPiA+ICsgICAgZXNh
-Yw0KPiA+ICtkb25lDQo+ID4gK3NoaWZ0ICQoKCRPUFRJTkQgLTEpKQ0KPiA+ICsNCj4gPiArc2hv
-cHQgLXMgbm9jYXNlbWF0Y2gNCj4gPiArVEVNUF9ESVI9JChta3RlbXAgLWQpDQo+ID4gK1tbICRW
-RVJCT1NFID09IDEgXV0gJiYgZWNobyAiVXNpbmcgdGVtcG9yYXJ5IGRpcmVjdG9yeTogJFRFTVBf
-RElSIg0KPiA+ICsNCj4gPiAraWYgWyAtciAiJEFDUElEVU1QIiBdO3RoZW4NCj4gPiArICAgIGNw
-ICIkQUNQSURVTVAiICIkVEVNUF9ESVIiL2FjcGlkdW1wIGZpDQo+ID4gKw0KPiA+ICtwdXNoZCAi
-JFRFTVBfRElSIiA+L2Rldi9udWxsDQo+ID4gKw0KPiA+ICtta2RpciBsb2cNCj4gPiArbWtkaXIg
-ZXJyDQo+ID4gK2lmIFsgISAtciBhY3BpZHVtcCBdO3RoZW4NCj4gPiArICAgIGFjcGlkdW1wID5h
-Y3BpZHVtcA0KPiA+ICtmaQ0KPiA+ICthY3BpeHRyYWN0IC1hIGFjcGlkdW1wID4mJE9VVFBVVCAy
-PiYxDQo+ID4gKw0KPiA+ICsNCj4gPiArIyBBQ1BJQ0EgY2hhbmdlZCBmcm9tIHVwcGVyY2FzZSB0
-byBsb3dlcmNhc2UsIHRyeSB0byBmaW5kIGJvdGg6DQo+ID4gK1NEVHM9JChscyBbU0RdRFNUKi5k
-YXQgMj4vZGV2L251bGwpDQo+ID4gK1NEVHM9IiR7U0RUc30kKGxzIFtzZF1zZHQqLmRhdCAyPi9k
-ZXYvbnVsbCkiDQo+ID4gKw0KPiA+ICtmb3IgZmlsZSBpbiAqLmRhdDtkbw0KPiA+ICsgICAgdGFi
-bGU9JHtmaWxlLy5kYXQvfQ0KPiA+ICsgICAgIyBFbmFibGUgY2FzZSBpbnNlbnNpdGl2ZSBwYXR0
-ZXJuIG1hdGNoaW5nDQo+ID4gKw0KPiA+ICsgICAgY2FzZSAkZmlsZSBpbg0KPiA+ICsJW0RTXVNE
-VCouZGF0IHwgW3NkXXNkdCouZGF0KQ0KPiA+ICsJCSMgVXNlIG90aGVyIFtzZF1zZHQqLmRhdCB0
-YWJsZXMgdG8gcmVmZXJlbmNlIHBvc3NpYmxlDQo+ID4gKwkJIyBleHRlcm5hbCBzeW1ib2xzLiBQ
-YXNzIHRoZSB0YWJsZSBpdHNlbGYgZm9yIGRpc2Fzc2VtYmxpbmcNCj4gPiArCQkjIGNvbW1hIHNl
-cGFydGVkLg0KPiA+ICsJCSMgRm9yIGV4YW1wbGUgeW91IHdlIGhhdmU6DQo+ID4gKwkJIyBkc2R0
-LmRhdCBzc2R0MSBzc2R0Mi5kYXQNCj4gPiArCQkjIGFuZCB0aGUgY3VycmVudCB0YWJsZSB0byBk
-aXNhc3NlbWJsZSBpcyBzc2R0MS5kYXQgdGhlDQo+ID4gKwkJIyBjb21tYW5kIGhhcyB0byBiZToN
-Cj4gPiArCQkjIGlhc2wgLWUgZHNkdC5kYXQsc3NkdDIuZGF0IC1kIHNzZHQxLmRhdA0KPiA+ICsN
-Cj4gPiArCQkjIEdldCByaWQgb2YgdGhlIHRhYmxlIHdoaWNoIGdldHMgZGlzYXNzZW1ibGVkDQo+
-ID4gKwkJIyBjb3VsZCBoYXZlIGxlYWRpbmcgb3IgdHJhaWxpbmcgd2hpdGVzcGFjZSBkZXBlbmRp
-bmcgd2hldGhlcg0KPiA+ICsJCSMgaXQgaXMgYXQgdGhlIGVuZCBvciB0aGUgYmVnaW5uaW5nIG9m
-IHRoZSBsaXN0DQo+ID4gKwkJUkVGX1RBQkxFX0xJU1Q9JHtTRFRzL1tbOnNwYWNlOl1dJGZpbGUv
-fQ0KPiA+ICsJCVJFRl9UQUJMRV9MSVNUPSR7U0RUcy8kZmlsZVtbOnNwYWNlOl1dL30NCj4gPiAr
-CQkjIENvbnZlcnQgdGhlIHdoaXRlc3BhY2UgbGlzdCBpbnRvIGEgY29tbWEgc2VwYXJhdGVkIG9u
-ZToNCj4gPiArCQlSRUZfVEFCTEVfTElTVD0ke1JFRl9UQUJMRV9MSVNULy9bWzpzcGFjZTpdXS8s
-fQ0KPiA+ICsJCWVjaG8gInN0ZG91dCBhbmQgc3RkZXJyIG9mICRmaWxlIGRpc2Fzc2VtYmxpbmc6
-Ig0KPiA+bG9nLyR7dGFibGV9LmxvZw0KPiA+ICsJCWlhc2wgJERJU0FTU0VNQkxFX09QVElPTlMg
-LWUgJHtSRUZfVEFCTEVfTElTVH0gLWQgJGZpbGUNCj4gMT4+bG9nLyR7dGFibGV9LmxvZyAyPiYx
-DQo+ID4gKwkJW1sgJFZFUkJPU0UgPT0gMSBdXSAmJiBlY2hvICJpYXNsICRESVNBU1NFTUJMRV9P
-UFRJT05TIC1lDQo+ICR7UkVGX1RBQkxFX0xJU1R9IC1kICRmaWxlIDE+PmxvZy8ke3RhYmxlfS5s
-b2cgMj4mMSINCj4gPiArCQlpYXNsICRDT01QSUxFX09QVElPTlMgJHt0YWJsZX0uZHNsIDE+Pmxv
-Zy8ke3RhYmxlfS5sb2cNCj4gMj4+ZXJyLyR7dGFibGV9LmVycg0KPiA+ICsJCVtbICRWRVJCT1NF
-ID09IDEgXV0gJiYgZWNobyAiaWFzbCAkQ09NUElMRV9PUFRJT05TDQo+ICR7dGFibGV9LmRzbCAx
-Pj5sb2cvJHt0YWJsZX0ubG9nIDI+PmVyci8ke3RhYmxlfS5lcnIiDQo+ID4gKwkJOzsNCj4gPiAr
-CSouZGF0KQ0KPiA+ICsJCWlhc2wgLWQgJGZpbGUgMT5sb2cvJHt0YWJsZX0ubG9nIDI+JjENCj4g
-PiArCQlpYXNsIC1zYSAke3RhYmxlfS5kc2wgMT5sb2cvJHt0YWJsZX0ubG9nIDI+ZXJyLyR7dGFi
-bGV9LmVycg0KPiA+ICsJCTs7DQo+ID4gKyAgICBlc2FjDQo+ID4gK2RvbmUNCj4gPiArDQo+ID4g
-KyMgcmVtb3ZlIGVtcHR5IGVycm9yIGZpbGVzDQo+ID4gK3JtICQoZmluZCBlcnIgLXNpemUgMCkN
-Cj4gPiArRVJSX1RBQkxFUz0kKGxzIGVycikNCj4gPiArRVJSX1RBQkxFUz0ke0VSUl9UQUJMRVMv
-Ly5lcnIvfQ0KPiA+ICsNCj4gPiArcG9wZCA+L2Rldi9udWxsDQo+ID4gK2NwIC1yICIkVEVNUF9E
-SVIiLyogIiRPVVRQVVRfRElSIg0KPiA+ICsNCj4gPiAraWYgW1sgJFZFUkJPU0UgPT0gMSBdXTt0
-aGVuDQo+ID4gKyAgICBlY2hvICJUZW1wb3JhcnkgZGlyZWN0b3J5ICh1bmRlbGV0ZWQpOiAkVEVN
-UF9ESVIiDQo+ID4gK2Vsc2UNCj4gPiArICAgIHJtIC1yZiAiJFRFTVBfRElSIg0KPiA+ICtmaQ0K
-PiA+ICsNCj4gPiAraWYgWyAiJEVSUl9UQUJMRVMiID0gIiIgXTt0aGVuDQo+ID4gKyAgICBlY2hv
-ICJObyBlcnJvcnMgb3Igd2FybmluZ3MgZGV0ZWN0ZWQiDQo+ID4gKyAgICBleGl0IDANCj4gPiAr
-ZWxzZQ0KPiA+ICsgICAgZWNobyAiVGhlc2UgdGFibGVzIGhhdmUgd2FybmluZ3Mgb3IgZXJyb3Jz
-IChkZXRhaWxzIGluDQo+ICIkT1VUUFVUX0RJUiIvZXJyIGRpcmVjdG9yeSk6Ig0KPiA+ICsgICAg
-Zm9yIGVyciBpbiAkRVJSX1RBQkxFUztkbw0KPiA+ICsJZWNobyAtbiAkZXJyICQnXHQnDQo+ID4g
-KwlzZWQgLW4gLWUgJ3MvQ29tcGlsYXRpb24gY29tcGxldGUuIFwoLiogRXJyb3JzLCAuKg0KPiBX
-YXJuaW5nc1wpLiovXDEvcCcgIiRPVVRQVVRfRElSIi9sb2cvJGVyci5sb2cNCj4gPiArICAgIGRv
-bmUNCj4gPiArICAgIGV4aXQgMQ0KPiA+ICtmaQ0KPiA+IGRpZmYgLS1naXQgYS90b29scy9wb3dl
-ci9hY3BpL2FjcGlfdmFsaWRhdGUuOA0KPiA+IGIvdG9vbHMvcG93ZXIvYWNwaS9hY3BpX3ZhbGlk
-YXRlLjgNCj4gPiBuZXcgZmlsZSBtb2RlIDEwMDY0NA0KPiA+IGluZGV4IDAwMDAwMDAuLmNkMTA2
-OTQNCj4gPiAtLS0gL2Rldi9udWxsDQo+ID4gKysrIGIvdG9vbHMvcG93ZXIvYWNwaS9hY3BpX3Zh
-bGlkYXRlLjgNCj4gPiBAQCAtMCwwICsxLDcyIEBADQo+ID4gKy5USCBBQ1BJX1ZBTElEQVRFIDgN
-Cj4gPiArLlNIIE5BTUUNCj4gPiArYWNwaV92YWxpZGF0ZSBcLSBFeHRyYWN0cywgZGlzYXNzZW1i
-bGVzIGFuZCByZWNvbXBpbGVzIEFDUEkgQklPUw0KPiB0YWJsZXMuDQo+ID4gKy5TSCBTWU5PUFNJ
-Uw0KPiA+ICsuZnQgQg0KPiA+ICsuQiBhY3BpY2FfdmFsaWRhdGUgWyBcLW8gb3V0cHV0X2RpciBd
-IFsgXC1hIGFjcGlkdW1wIF0gWyBcLXYgXSBbIFwtYw0KPiA+ICtjb21waWxlX29wdGlvbnMgXSBb
-IFwtZCBkaXNhc3NlbWJsZV9vcHRpb25zIF0gLlNIIERFU0NSSVBUSU9ODQo+ID4gK1xmQmFjcGlf
-dmFsaWRhdGUgXGZQIGV4dHJhY3RzLCBkaXNhc3NlbWJsZXMgYW5kIHJlY29tcGlsZXMgQUNQSSBC
-SU9TDQo+ID4gK3RhYmxlcy4gVGhlIGRpc2Fzc2VtYmxlZCBmaWxlcyB3aWxsIGJlIGNvcGllZCBp
-bnRvIHRoZSBsb2NhbCBvcg0KPiA+ICtzcGVjaWZpZWQgb3V0cHV0IGRpcmVjdG9yeSAoLW8gb3B0
-aW9uKS4NCj4gPiArDQo+ID4gK1RoZSB1bmRlcmx5aW5nIGlhc2wgY29tcGlsZXIgdmVyaWZpZXMg
-YW5kIG1heSBjb21wbGFpbiBhYm91dA0KPiA+ICtjb3JyZWN0bmVzcyBvZiBzb21lIG9mIHRoZSBC
-SU9TIHRhYmxlcy4gV2FybmluZ3Mgb3IgZXJyb3JzIGNhbiBnaXZlIGENCj4gPiArcG9pbnRlciB0
-byBwb3NzaWJsZSBtYWxmdW5jdGlvbiBvZiB0aGUgc3lzdGVtLiBUaGUgTGludXgga2VybmVsIHVz
-ZXMNCj4gPiArdGhlIHNhbWUgY29kZSBiYXNlIGFzIHRoZSBpYXNsIGludGVycHJldGVyIHdoaWNo
-IGlzIHVzZWQgdG8gdmFsaWRhdGUNCj4gdGFibGVzLg0KPiA+ICsNCj4gPiArVGhlIEFTTCAoQUNQ
-SSBTb3VyY2UgTGFuZ3VhZ2UpIGZpbGVzICgqLmRzbCkgY2FuIGdldCByZWNvbXBpbGVkDQo+ID4g
-K21hbnVhbGx5IHZpYSBcZkJpYXNsIC1zYVxmUCBhbmQgdGhlIHJlc3VsdGluZyBjb21waWxhdGlv
-biAoKi5hbWwpIGNhbg0KPiA+ICtnZXQgcGFzc2VkIHRvIHRoZSBrZXJuZWwgdmlhIHRoZSAiT3Zl
-cnJpZGluZyBBQ1BJIHRhYmxlcyB2aWEgaW5pdHJkIg0KPiA+ICttZWNoYW5pc20uIE9ubHkgdXNl
-IHRoaXMgZmVhdHVyZSBpZiB5b3Uga25vdyB3aGF0IHlvdSBhcmUgZG9pbmcuIFJlYWQNCj4gPiAr
-RG9jdW1lbnRhdGlvbi9hY3BpL2luaXRyZF90YWJsZV9vdmVycmlkZS50eHQgKHBhcnQgb2YgdGhl
-IGtlcm5lbA0KPiA+ICtzb3VyY2VzKSBmb3IgZnVydGhlciBpbmZvcm1hdGlvbi4NCj4gPiArDQo+
-ID4gK0lmIHlvdSB0aGluayB5b3UgZm91bmQgYSBidWcgaW4gdGhlIGlhc2wgY29tcGlsZXIgb3Ig
-cmVsYXRlZCB0b29scywNCj4gPiAreW91IGNhbiBhc2sgaGVyZSBmb3IgaGVscDogXGZCZGV2ZWxA
-YWNwaWNhLm9yZ1xmUA0KPiA+ICsNCj4gPiArWW91IG1heSBhbHNvIHdhbnQgdG8gYXNrIHRoZXJl
-IGlmIHlvdSBhcmUgbm90IHN1cmUgd2hldGhlciBpdCByZWFsbHkNCj4gPiAraXMgYSBCSU9TIGJ1
-Zy4NCj4gPiArDQo+ID4gK0lmIHlvdSBhcmUgc3VyZSB5b3UgZm91bmQgYSBCSU9TIGlzc3VlLCBj
-b21wbGFpbiB0byB5b3VyIGhhcmR3YXJlDQo+ID4gK3ZlbmRvci4gVGhlIGlhc2wgY29tcGlsZXIg
-dHlwaWNhbGx5IHByb3ZpZGVzIGEgZGVzY3JpcHRpb24gb2YgdGhlDQo+ID4gK3dhcm5pbmcvZXJy
-b3IgaW4gYSB3YXksIHNvIHRoYXQgQklPUyBhdXRob3JzIGNhbiBlYXNpbHkgZml4IGl0Lg0KPiA+
-ICsNCj4gPiArLlNIIE9QVElPTlMNCj4gPiArXGZCLW8gb3V0cHV0X2RpclxmUA0KPiA+ICsNCj4g
-PiArVGhlIG91dHB1dCBkaXJlY3Rvcnkgd2hlcmUgZXh0cmFjdGVkLCBkaXNhc3NlbWJsZWQgYW5k
-IHJlY29tcGlsZWQNCj4gPiArdGFibGVzIGFyZSBjb3BpZWQgdG8uIENvbXBpbGVyIG91dHB1dCBp
-cyBsb2NhdGVkIGluIGEgbG9nDQo+ID4gK3N1YmRpcmVjdG9yeSwgd2FybmluZ3MgYW5kIGVycm9y
-cyBmb3VuZCBieSB0aGUgY29tcGlsZXIgYXJlIGxvY2F0ZWQNCj4gPiAraW4gdGhlIGVyciBkaXJl
-Y3RvcnkuDQo+ID4gKy5QUA0KPiA+ICtcZkItYSBhY3BpZHVtcFxmUA0KPiA+ICsNCj4gPiArVGFr
-ZSB0aGlzIGFjcGlkdW1wIGZpbGUgaW5zdGVhZCBvZiBkdW1waW5nIGFuZCBleHRyYWN0aW5nIEFD
-UEkgdGFibGVzDQo+ID4gK2Zyb20gdGhlIGxvY2FsIG1hY2hpbmUgLlBQIFxmQi12XGZQDQo+ID4g
-Kw0KPiA+ICtCZSBtb3JlIHZlcmJvc2UNCj4gPiArLlBQDQo+ID4gK1xmQi1jIG9wdGlvbnNcZlAN
-Cj4gPiArDQo+ID4gK092ZXJyaWRlIGRlZmF1bHQgaWFzbCBjb21waWxlIG9wdGlvbnMgKGRlZmF1
-bHQgLXNhIC1jciAtdnIpIC5QUCBcZkItZA0KPiA+ICtvcHRpb25zXGZQDQo+ID4gKw0KPiA+ICtP
-dmVycmlkZSBkZWZhdWx0IGlhc2wgZGlzYXNzZW1ibGUgb3B0aW9ucw0KPiA+ICsNCj4gPiArLlNI
-IE5PVEVTDQo+ID4gKw0KPiA+ICsuQiAiYWNwaV92YWxpZGF0ZSINCj4gPiArbXVzdCBiZSBydW4g
-YXMgcm9vdC4NCj4gPiArDQo+ID4gKy5TSCBSRUZFUkVOQ0VTDQo+ID4gK0FDUElDQTogaHR0cHM6
-Ly9hY3BpY2Eub3JnLw0KPiA+ICsNCj4gPiArLlNIICJTRUUgQUxTTyINCj4gPiArLkJSIGFjcGlk
-dW1wICg4KQ0KPiA+ICsNCj4gPiArLlNIIEFVVEhPUg0KPiA+ICsubmYNCj4gPiArV3JpdHRlbiBi
-eSBUaG9tYXMgUmVubmluZ2VyIDx0cmVubkBzdXNlLmRlPg0KPiA+DQo+IC0tDQo+IEkgc3BlYWsg
-b25seSBmb3IgbXlzZWxmLg0KPiBSYWZhZWwgSi4gV3lzb2NraSwgSW50ZWwgT3BlbiBTb3VyY2Ug
-VGVjaG5vbG9neSBDZW50ZXIuDQo=
+On Tuesday, February 05, 2013 10:39:26 PM Moore, Robert wrote:
+> So, this tool basically:
+> 1) gets the acpi tables
+> 2) disassembles them (with knowledge of multiple SSDTs)
+> 3) recompiles them with iASL to find errors/warnings
+> 
+> The important step is (2), since the DSDT can often only be disassembled properly when it has knowledge about the externals that are defined in the SSDT(s). Similar for each of the SSDTs. 
+> 
+> iASL provides a mechanism to include extra tables for external symbol resolution, but users often don't use it. This can cause many disassembler and/or compiler errors because there are certain constructs that cannot be disassembled without explicit knowledge of external references.
+> 
+> I'll give it a go and see how it works.
+
+Cool, thanks!
+
+Rafael
+
+
+> > -----Original Message-----
+> > From: Rafael J. Wysocki [mailto:rjw@sisk.pl]
+> > Sent: Tuesday, February 05, 2013 2:35 PM
+> > To: Thomas Renninger; Moore, Robert
+> > Cc: linux-acpi@vger.kernel.org; devel@acpica.org; lenb@kernel.org
+> > Subject: Re: [PATCH] tools/power/acpi: Introduce acpi_validate with
+> > manpage for easy validation of ACPI BIOS tables
+> > 
+> > Hi Bob,
+> > 
+> > Can you please have a look at this and tell me what you think about it?
+> > 
+> > Rafael
+> > 
+> > 
+> > On Saturday, December 15, 2012 10:57:48 AM Thomas Renninger wrote:
+> > > The used iasl compiler shares the same code base as the kernel.
+> > > Warnings or errors mostly point to bad BIOSes.
+> > > These errors should get reported to the BIOS vendors and may indicated
+> > > that acpica (kernel ACPI parts) need compatibility adjustings.
+> > >
+> > >
+> > > Why is an extra tool needed for this?
+> > >
+> > > The dynamic ACPI Source Language (ASL) parts are located in DSDT and
+> > > often multiple SSDT tables. Those often have dependencies to each
+> > > other and the iasl compiler often cannot resolve external symbols
+> > > correctly if they are not passed as external tables (iasl -e option)
+> > when tables get disassembled.
+> > > This quickly leads to false positive errors.
+> > > This tool makes sure disassembling and recompilation is done correctly.
+> > >
+> > > This tool is also made for ACPI BIOS table verification for BIOS
+> > > vendors and hardware certification tools for distributions.
+> > > Hardware which supports Linux must/should not show any warnings or
+> > errors.
+> > > Remarks and optimization hints in the logs can be used to further
+> > > enhance the ACPI BIOS code.
+> > > Warnings and errors mostly describe the issues in a way, so that they
+> > > can get passed to and used by BIOS developers to fix the problems
+> > easily.
+> > >
+> > > Signed-off-by: Thomas Renninger <trenn@suse.de>
+> > > ---
+> > >  tools/power/acpi/acpi_validate   |  193
+> > ++++++++++++++++++++++++++++++++++++++
+> > >  tools/power/acpi/acpi_validate.8 |   72 ++++++++++++++
+> > >  2 files changed, 265 insertions(+), 0 deletions(-)  create mode
+> > > 100755 tools/power/acpi/acpi_validate  create mode 100644
+> > > tools/power/acpi/acpi_validate.8
+> > >
+> > > diff --git a/tools/power/acpi/acpi_validate
+> > > b/tools/power/acpi/acpi_validate new file mode 100755 index
+> > > 0000000..12d105b
+> > > --- /dev/null
+> > > +++ b/tools/power/acpi/acpi_validate
+> > > @@ -0,0 +1,193 @@
+> > > +#!/bin/bash
+> > > +#
+> > > +# Copyright (c) 2012 SUSE Linux Products GmbH # Thomas Renninger
+> > > +<trenn@suse.de> # # This program is free software; you can
+> > > +redistribute it and/or modify it # under the terms and conditions of
+> > > +the GNU General Public License, # version 2, as published by the Free
+> > > +Software Foundation.
+> > > +#
+> > > +# This program is distributed in the hope it will be useful, but
+> > > +WITHOUT # ANY WARRANTY; without even the implied warranty of
+> > > +MERCHANTABILITY or # FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+> > > +General Public License for # more details.
+> > > +#
+> > > +# You should have received a copy of the GNU General Public License
+> > > +along with # this program; if not, write to the Free Software
+> > > +Foundation, Inc., # 51 Franklin St - Fifth Floor, Boston, MA 02110-1301
+> > USA.
+> > > +#
+> > > +
+> > > +OUTPUT_DIR="$PWD"
+> > > +VERBOSE=0
+> > > +# Disable remarks and resource checks. The latter often/mostly
+> > > +generates # false positive warnings. Can be overridden via -c option
+> > > +COMPILE_OPTIONS="-sa -cr -vr"
+> > > +DISASSEMBLE_OPTIONS=""
+> > > +OUTPUT="/dev/null"
+> > > +ACPIDUMP=""
+> > > +
+> > > +function usage()
+> > > +{
+> > > +    echo "acpi_validate [ -o output_dir ] [ -v ] [ -a acpidump ]"
+> > > +    echo "              [ -c compile_options ] [ -d disassemble_options
+> > ]"
+> > > +    echo
+> > > +    echo "This tool extracts, disassembles and recompiles ACPI BIOS
+> > tables."
+> > > +    echo "The disassembled files will be copied into the local or
+> > specified"
+> > > +    echo "output directory (-o option)."
+> > > +    echo
+> > > +    echo "The underlying iasl compiler verifies and may complain about"
+> > > +    echo "correctness of some of the BIOS tables."
+> > > +    echo "These can give a pointer to possible malfunction of the
+> > system."
+> > > +    echo
+> > > +    echo "If you think you found a bug in the iasl compiler or related
+> > tools,"
+> > > +    echo "you can ask here for help: devel@acpica.org"
+> > > +    echo "You may also want to ask there if you are not sure whether it
+> > really"
+> > > +    echo "is a BIOS bug."
+> > > +    echo
+> > > +    echo "If you are sure you found a BIOS issue, complain to your
+> > hardware vendor."
+> > > +    echo "The iasl compiler typically provides a description of the
+> > warning/error in a way,"
+> > > +    echo "so that BIOS authors can easily fix it."
+> > > +    echo
+> > > +    echo "Options"
+> > > +    echo "   -o output_dir: Copy tables to this directory instead of
+> > local one"
+> > > +    echo "   -v:          : be more verbose"
+> > > +    echo "   -a acpidump  : Use this acpidump file"
+> > > +    echo "                  instead of the tables from the local
+> > machine"
+> > > +    echo "   -d options   : Pass iasl disassemble options"
+> > > +    echo "   -c options   : Pass iasl compile options"
+> > > +    echo "                  will override -sa -cr -vr (default
+> > options)"
+> > > +    echo "   -h           : Show help"
+> > > +    exit 1
+> > > +}
+> > > +
+> > > +if [ "$(id -u)" != "0" ]; then
+> > > +   echo "This script must be run as root"
+> > > +   exit 1
+> > > +fi
+> > > +
+> > > +while getopts hva:o:c:d: name ; do
+> > > +    case $name in
+> > > +        o)
+> > > +	    OUTPUT_DIR="$OPTARG"
+> > > +	    if [ ! -d "$OUTPUT_DIR" ];then
+> > > +		mkdir "$OUTPUT_DIR"
+> > > +		if [[ $? != 0 ]];then
+> > > +		    echo "Cannot create directory $OUTPUT_DIR"
+> > > +		    exit 1
+> > > +		fi
+> > > +	    elif [ ! -w "$OUTPUT_DIR" ];then
+> > > +		echo "Cannot write into directory $OUTPUT_DIR"
+> > > +		exit 1
+> > > +	    fi
+> > > +
+> > > +	    [[ $VERBOSE == 1 ]] && echo "Installing for architecture:
+> > $OUTPUT_DIR"
+> > > +	    ;;
+> > > +        a)
+> > > +	    ACPIDUMP="$OPTARG"
+> > > +	    if [ ! -r "$ACPIDUMP" ];then
+> > > +		echo "$ACPIDUMP does not exist"
+> > > +		exit 1
+> > > +	    fi
+> > > +	    [[ $VERBOSE == 1 ]] && echo "acpidump file: $ACPIDUMP"
+> > > +	    ;;
+> > > +        c)
+> > > +	    COMPILE_OPTIONS="$OPTARG"
+> > > +	    [[ $VERBOSE == 1 ]] && echo "Compile options: $COMPILE_OPTIONS"
+> > > +	    ;;
+> > > +        c)
+> > > +	    DISASSEMBLE_OPTIONS="$OPTARG"
+> > > +	    [[ $VERBOSE == 1 ]] && echo "Disassemble options:
+> > $DISASSEMBLE_OPTIONS"
+> > > +	    ;;
+> > > +        v)
+> > > +            VERBOSE=1
+> > > +	    OUTPUT="1"
+> > > +            ;;
+> > > +        ?)
+> > > +	    usage
+> > > +	    ;;
+> > > +    esac
+> > > +done
+> > > +shift $(($OPTIND -1))
+> > > +
+> > > +shopt -s nocasematch
+> > > +TEMP_DIR=$(mktemp -d)
+> > > +[[ $VERBOSE == 1 ]] && echo "Using temporary directory: $TEMP_DIR"
+> > > +
+> > > +if [ -r "$ACPIDUMP" ];then
+> > > +    cp "$ACPIDUMP" "$TEMP_DIR"/acpidump fi
+> > > +
+> > > +pushd "$TEMP_DIR" >/dev/null
+> > > +
+> > > +mkdir log
+> > > +mkdir err
+> > > +if [ ! -r acpidump ];then
+> > > +    acpidump >acpidump
+> > > +fi
+> > > +acpixtract -a acpidump >&$OUTPUT 2>&1
+> > > +
+> > > +
+> > > +# ACPICA changed from uppercase to lowercase, try to find both:
+> > > +SDTs=$(ls [SD]DST*.dat 2>/dev/null)
+> > > +SDTs="${SDTs}$(ls [sd]sdt*.dat 2>/dev/null)"
+> > > +
+> > > +for file in *.dat;do
+> > > +    table=${file/.dat/}
+> > > +    # Enable case insensitive pattern matching
+> > > +
+> > > +    case $file in
+> > > +	[DS]SDT*.dat | [sd]sdt*.dat)
+> > > +		# Use other [sd]sdt*.dat tables to reference possible
+> > > +		# external symbols. Pass the table itself for disassembling
+> > > +		# comma separted.
+> > > +		# For example you we have:
+> > > +		# dsdt.dat ssdt1 ssdt2.dat
+> > > +		# and the current table to disassemble is ssdt1.dat the
+> > > +		# command has to be:
+> > > +		# iasl -e dsdt.dat,ssdt2.dat -d ssdt1.dat
+> > > +
+> > > +		# Get rid of the table which gets disassembled
+> > > +		# could have leading or trailing whitespace depending whether
+> > > +		# it is at the end or the beginning of the list
+> > > +		REF_TABLE_LIST=${SDTs/[[:space:]]$file/}
+> > > +		REF_TABLE_LIST=${SDTs/$file[[:space:]]/}
+> > > +		# Convert the whitespace list into a comma separated one:
+> > > +		REF_TABLE_LIST=${REF_TABLE_LIST//[[:space:]]/,}
+> > > +		echo "stdout and stderr of $file disassembling:"
+> > >log/${table}.log
+> > > +		iasl $DISASSEMBLE_OPTIONS -e ${REF_TABLE_LIST} -d $file
+> > 1>>log/${table}.log 2>&1
+> > > +		[[ $VERBOSE == 1 ]] && echo "iasl $DISASSEMBLE_OPTIONS -e
+> > ${REF_TABLE_LIST} -d $file 1>>log/${table}.log 2>&1"
+> > > +		iasl $COMPILE_OPTIONS ${table}.dsl 1>>log/${table}.log
+> > 2>>err/${table}.err
+> > > +		[[ $VERBOSE == 1 ]] && echo "iasl $COMPILE_OPTIONS
+> > ${table}.dsl 1>>log/${table}.log 2>>err/${table}.err"
+> > > +		;;
+> > > +	*.dat)
+> > > +		iasl -d $file 1>log/${table}.log 2>&1
+> > > +		iasl -sa ${table}.dsl 1>log/${table}.log 2>err/${table}.err
+> > > +		;;
+> > > +    esac
+> > > +done
+> > > +
+> > > +# remove empty error files
+> > > +rm $(find err -size 0)
+> > > +ERR_TABLES=$(ls err)
+> > > +ERR_TABLES=${ERR_TABLES//.err/}
+> > > +
+> > > +popd >/dev/null
+> > > +cp -r "$TEMP_DIR"/* "$OUTPUT_DIR"
+> > > +
+> > > +if [[ $VERBOSE == 1 ]];then
+> > > +    echo "Temporary directory (undeleted): $TEMP_DIR"
+> > > +else
+> > > +    rm -rf "$TEMP_DIR"
+> > > +fi
+> > > +
+> > > +if [ "$ERR_TABLES" = "" ];then
+> > > +    echo "No errors or warnings detected"
+> > > +    exit 0
+> > > +else
+> > > +    echo "These tables have warnings or errors (details in
+> > "$OUTPUT_DIR"/err directory):"
+> > > +    for err in $ERR_TABLES;do
+> > > +	echo -n $err $'\t'
+> > > +	sed -n -e 's/Compilation complete. \(.* Errors, .*
+> > Warnings\).*/\1/p' "$OUTPUT_DIR"/log/$err.log
+> > > +    done
+> > > +    exit 1
+> > > +fi
+> > > diff --git a/tools/power/acpi/acpi_validate.8
+> > > b/tools/power/acpi/acpi_validate.8
+> > > new file mode 100644
+> > > index 0000000..cd10694
+> > > --- /dev/null
+> > > +++ b/tools/power/acpi/acpi_validate.8
+> > > @@ -0,0 +1,72 @@
+> > > +.TH ACPI_VALIDATE 8
+> > > +.SH NAME
+> > > +acpi_validate \- Extracts, disassembles and recompiles ACPI BIOS
+> > tables.
+> > > +.SH SYNOPSIS
+> > > +.ft B
+> > > +.B acpica_validate [ \-o output_dir ] [ \-a acpidump ] [ \-v ] [ \-c
+> > > +compile_options ] [ \-d disassemble_options ] .SH DESCRIPTION
+> > > +\fBacpi_validate \fP extracts, disassembles and recompiles ACPI BIOS
+> > > +tables. The disassembled files will be copied into the local or
+> > > +specified output directory (-o option).
+> > > +
+> > > +The underlying iasl compiler verifies and may complain about
+> > > +correctness of some of the BIOS tables. Warnings or errors can give a
+> > > +pointer to possible malfunction of the system. The Linux kernel uses
+> > > +the same code base as the iasl interpreter which is used to validate
+> > tables.
+> > > +
+> > > +The ASL (ACPI Source Language) files (*.dsl) can get recompiled
+> > > +manually via \fBiasl -sa\fP and the resulting compilation (*.aml) can
+> > > +get passed to the kernel via the "Overriding ACPI tables via initrd"
+> > > +mechanism. Only use this feature if you know what you are doing. Read
+> > > +Documentation/acpi/initrd_table_override.txt (part of the kernel
+> > > +sources) for further information.
+> > > +
+> > > +If you think you found a bug in the iasl compiler or related tools,
+> > > +you can ask here for help: \fBdevel@acpica.org\fP
+> > > +
+> > > +You may also want to ask there if you are not sure whether it really
+> > > +is a BIOS bug.
+> > > +
+> > > +If you are sure you found a BIOS issue, complain to your hardware
+> > > +vendor. The iasl compiler typically provides a description of the
+> > > +warning/error in a way, so that BIOS authors can easily fix it.
+> > > +
+> > > +.SH OPTIONS
+> > > +\fB-o output_dir\fP
+> > > +
+> > > +The output directory where extracted, disassembled and recompiled
+> > > +tables are copied to. Compiler output is located in a log
+> > > +subdirectory, warnings and errors found by the compiler are located
+> > > +in the err directory.
+> > > +.PP
+> > > +\fB-a acpidump\fP
+> > > +
+> > > +Take this acpidump file instead of dumping and extracting ACPI tables
+> > > +from the local machine .PP \fB-v\fP
+> > > +
+> > > +Be more verbose
+> > > +.PP
+> > > +\fB-c options\fP
+> > > +
+> > > +Override default iasl compile options (default -sa -cr -vr) .PP \fB-d
+> > > +options\fP
+> > > +
+> > > +Override default iasl disassemble options
+> > > +
+> > > +.SH NOTES
+> > > +
+> > > +.B "acpi_validate"
+> > > +must be run as root.
+> > > +
+> > > +.SH REFERENCES
+> > > +ACPICA: https://acpica.org/
+> > > +
+> > > +.SH "SEE ALSO"
+> > > +.BR acpidump (8)
+> > > +
+> > > +.SH AUTHOR
+> > > +.nf
+> > > +Written by Thomas Renninger <trenn@suse.de>
+> > >
+> > --
+> > I speak only for myself.
+> > Rafael J. Wysocki, Intel Open Source Technology Center.
+> 
+-- 
+I speak only for myself.
+Rafael J. Wysocki, Intel Open Source Technology Center.
