@@ -1,52 +1,127 @@
-From: liguang <lig.fnst@cn.fujitsu.com>
-Subject: [PATCH] acpi: change Makefile for srat.c building
-Date: Tue, 5 Feb 2013 13:13:47 +0800
-Message-ID: <1360041227-7831-1-git-send-email-lig.fnst@cn.fujitsu.com>
+From: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
+Subject: Re: [PATCH v2 2/4] numa: avoid export acpi_numa variable
+Date: Tue, 5 Feb 2013 14:27:52 +0900
+Message-ID: <51109858.8040000@jp.fujitsu.com>
+References: <1360031838-26898-1-git-send-email-lig.fnst@cn.fujitsu.com> <1360031838-26898-3-git-send-email-lig.fnst@cn.fujitsu.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="ISO-2022-JP"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cn.fujitsu.com ([222.73.24.84]:2463 "EHLO song.cn.fujitsu.com"
-	rhost-flags-OK-FAIL-OK-OK) by vger.kernel.org with ESMTP
-	id S1750719Ab3BEFOj (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 5 Feb 2013 00:14:39 -0500
+Received: from fgwmail6.fujitsu.co.jp ([192.51.44.36]:54366 "EHLO
+	fgwmail6.fujitsu.co.jp" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750786Ab3BEF2a (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 5 Feb 2013 00:28:30 -0500
+In-Reply-To: <1360031838-26898-3-git-send-email-lig.fnst@cn.fujitsu.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, x86@kernel.org
-Cc: rientjes@google.com, isimatu.yasuaki@jp.fujitsu.com, liguang <lig.fnst@cn.fujitsu.com>
+To: liguang <lig.fnst@cn.fujitsu.com>
+Cc: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, x86@kernel.org, rientjes@google.com
 
-this patch is an addition of the previous
-patch-set v2 acpi: do some changes for numa info,
-aimed to bring back the lost Makefile changes.
-mail-archive-address:
-http://lkml.indiana.edu/hypermail/linux/kernel/1302.0/02107.html
+2013/02/05 11:37, liguang wrote:
+> acpi_numa is used to prevent srat table
+> being parsed, seems a little miss-named,
+> if 'noacpi' was specified by cmdline and
+> CONFIG_ACPI_NUMA was enabled, acpi_numa
+> will be operated directly from everywhere
+> it needed to disable/enable numa in acpi
+> mode which was a bad thing, so, try to
+> export a fuction to get srat table
+> enable/disable info.
 
-Signed-off-by: liguang <lig.fnst@cn.fujitsu.com>
----
- arch/x86/kernel/acpi/Makefile |    1 +
- arch/x86/mm/Makefile          |    1 -
- 2 files changed, 1 insertions(+), 1 deletions(-)
+The patch is wrong.
+By the patch, acpi_numa is set to one of three values, either -1, false(0), 1.
+By this, x86_acpi_numa_init() goes wrong.
 
-diff --git a/arch/x86/kernel/acpi/Makefile b/arch/x86/kernel/acpi/Makefile
-index 163b225..e24b64d 100644
---- a/arch/x86/kernel/acpi/Makefile
-+++ b/arch/x86/kernel/acpi/Makefile
-@@ -1,5 +1,6 @@
- obj-$(CONFIG_ACPI)		+= boot.o
- obj-$(CONFIG_ACPI_SLEEP)	+= sleep.o wakeup_$(BITS).o
-+obj-$(CONFIG_ACPI_NUMA)     += srat.o
- 
- ifneq ($(CONFIG_ACPI_PROCESSOR),)
- obj-y				+= cstate.o
-diff --git a/arch/x86/mm/Makefile b/arch/x86/mm/Makefile
-index 23d8e5f..d6f3692 100644
---- a/arch/x86/mm/Makefile
-+++ b/arch/x86/mm/Makefile
-@@ -24,7 +24,6 @@ obj-$(CONFIG_MMIOTRACE_TEST)	+= testmmiotrace.o
- 
- obj-$(CONFIG_NUMA)		+= numa.o numa_$(BITS).o
- obj-$(CONFIG_AMD_NUMA)		+= amdtopology.o
--obj-$(CONFIG_ACPI_NUMA)		+= srat.o
- obj-$(CONFIG_NUMA_EMU)		+= numa_emulation.o
- 
- obj-$(CONFIG_MEMTEST)		+= memtest.o
--- 
-1.7.2.5
+How about using bool to acpi_numa?
+
+Thanks,
+Yasuaki Ishimatsu
+
+> Reviewed-by: David Rientjes <rientjes@google.com>
+> Signed-off-by: liguang <lig.fnst@cn.fujitsu.com>
+> ---
+>   arch/x86/include/asm/acpi.h |    2 +-
+>   arch/x86/kernel/acpi/srat.c |   15 ++++++++++-----
+>   arch/x86/mm/numa.c          |    2 +-
+>   arch/x86/xen/enlighten.c    |    2 +-
+>   4 files changed, 13 insertions(+), 8 deletions(-)
+> 
+> diff --git a/arch/x86/include/asm/acpi.h b/arch/x86/include/asm/acpi.h
+> index 0c44630..6b9c861 100644
+> --- a/arch/x86/include/asm/acpi.h
+> +++ b/arch/x86/include/asm/acpi.h
+> @@ -181,7 +181,7 @@ static inline void disable_acpi(void) { }
+>   #define ARCH_HAS_POWER_INIT	1
+>   
+>   #ifdef CONFIG_ACPI_NUMA
+> -extern int acpi_numa;
+> +extern void disable_acpi_numa(void);
+>   extern int x86_acpi_numa_init(void);
+>   #endif /* CONFIG_ACPI_NUMA */
+>   
+> diff --git a/arch/x86/kernel/acpi/srat.c b/arch/x86/kernel/acpi/srat.c
+> index 4ddf497..0a4d7ee 100644
+> --- a/arch/x86/kernel/acpi/srat.c
+> +++ b/arch/x86/kernel/acpi/srat.c
+> @@ -24,22 +24,27 @@
+>   #include <asm/apic.h>
+>   #include <asm/uv/uv.h>
+>   
+> -int acpi_numa __initdata;
+> +static bool acpi_numa __initdata;
+>   
+>   static __init int setup_node(int pxm)
+>   {
+>   	return acpi_map_pxm_to_node(pxm);
+>   }
+>   
+> -static __init void bad_srat(void)
+> +void __init disable_acpi_numa(void)
+> +{
+> +	acpi_numa = false;
+> +}
+> +
+> +static void __init bad_srat(void)
+>   {
+> -	printk(KERN_ERR "SRAT: SRAT not used.\n");
+>   	acpi_numa = -1;
+> +	printk(KERN_ERR "SRAT: SRAT will not be used.\n");
+>   }
+>   
+> -static __init inline int srat_disabled(void)
+> +static bool __init srat_disabled(void)
+>   {
+> -	return acpi_numa < 0;
+> +	return acpi_numa;
+>   }
+>   
+>   /* Callback for SLIT parsing */
+> diff --git a/arch/x86/mm/numa.c b/arch/x86/mm/numa.c
+> index 2d125be..870ca6b 100644
+> --- a/arch/x86/mm/numa.c
+> +++ b/arch/x86/mm/numa.c
+> @@ -47,7 +47,7 @@ static __init int numa_setup(char *opt)
+>   #endif
+>   #ifdef CONFIG_ACPI_NUMA
+>   	if (!strncmp(opt, "noacpi", 6))
+> -		acpi_numa = -1;
+> +		disable_acpi_numa();
+>   #endif
+>   	return 0;
+>   }
+> diff --git a/arch/x86/xen/enlighten.c b/arch/x86/xen/enlighten.c
+> index 138e566..a5f6353 100644
+> --- a/arch/x86/xen/enlighten.c
+> +++ b/arch/x86/xen/enlighten.c
+> @@ -1415,7 +1415,7 @@ asmlinkage void __init xen_start_kernel(void)
+>   	 * any NUMA information the kernel tries to get from ACPI will
+>   	 * be meaningless.  Prevent it from trying.
+>   	 */
+> -	acpi_numa = -1;
+> +	disable_acpi_numa();
+>   #endif
+>   
+>   	/* Don't do the full vcpu_info placement stuff until we have a
+> 
+
 
