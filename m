@@ -1,46 +1,45 @@
-From: David Rientjes <rientjes@google.com>
-Subject: Re: [PATCH v2 1/4] acpi: move x86/mm/srat.c to
- x86/kernel/acpi/srat.c
-Date: Mon, 4 Feb 2013 21:35:18 -0800 (PST)
-Message-ID: <alpine.DEB.2.02.1302042131400.31498@chino.kir.corp.google.com>
-References: <1360031838-26898-1-git-send-email-lig.fnst@cn.fujitsu.com> <1360031838-26898-2-git-send-email-lig.fnst@cn.fujitsu.com>
+From: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
+Subject: Re: [PATCH v2 3/4] acpi: add clock_domain field to acpi_srat_cpu_affinity
+Date: Tue, 5 Feb 2013 14:34:13 +0900
+Message-ID: <511099D5.1020209@jp.fujitsu.com>
+References: <1360031838-26898-1-git-send-email-lig.fnst@cn.fujitsu.com> <1360031838-26898-4-git-send-email-lig.fnst@cn.fujitsu.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-pa0-f45.google.com ([209.85.220.45]:43286 "EHLO
-	mail-pa0-f45.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751081Ab3BEFfX (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 5 Feb 2013 00:35:23 -0500
-Received: by mail-pa0-f45.google.com with SMTP id kl14so1152721pab.32
-        for <linux-acpi@vger.kernel.org>; Mon, 04 Feb 2013 21:35:21 -0800 (PST)
-In-Reply-To: <1360031838-26898-2-git-send-email-lig.fnst@cn.fujitsu.com>
-Sender: linux-acpi-owner@vger.kernel.org
-List-Id: linux-acpi@vger.kernel.org
+Content-Type: text/plain; charset="ISO-2022-JP"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1360031838-26898-4-git-send-email-lig.fnst@cn.fujitsu.com>
+Sender: linux-kernel-owner@vger.kernel.org
 To: liguang <lig.fnst@cn.fujitsu.com>
-Cc: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, x86@kernel.org
+Cc: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, x86@kernel.org, rientjes@google.com
+List-Id: linux-acpi@vger.kernel.org
 
-On Tue, 5 Feb 2013, liguang wrote:
-
-> srat table should present only on acpi domain,
-> seems mm/ is not the right place for it.
+2013/02/05 11:37, liguang wrote:
+> according to ACPI SPEC v5.0, page 152,
+> 5.2.16.1 Processor Local APIC/SAPIC Affinity Structure,
+> the last member of it is clock_domain.
 > 
-> Reviewed-by: David Rientjes <rientjes@google.com>
-
-I certainly didn't review this, please read 
-Documentation/SubmittingPatches.
-
 > Signed-off-by: liguang <lig.fnst@cn.fujitsu.com>
+> ---
 
-Couple of issues with this:
+Reviewed-by: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
 
- - it doesn't include your followup change "acpi: change Makefile for
-   srat.c building" which is required for this to build, please fold it in 
-   and repost,
+Thanks,
+Yasuaki Ishimatsu
 
- - there is whitespace damage, we use tabs for indentation in Makefiles,
-
- - you're basing your patches on Linus' tree when arch/x86/mm/srat has
-   changed in linux-next (15 insertions(+), 14 deletions(-)), please 
-   rebase this on the linux-next tree at git.kernel.org.
-
-Otherwise, looks good.
+>   include/acpi/actbl1.h |    2 +-
+>   1 files changed, 1 insertions(+), 1 deletions(-)
+> 
+> diff --git a/include/acpi/actbl1.h b/include/acpi/actbl1.h
+> index 280fc45..98031a3 100644
+> --- a/include/acpi/actbl1.h
+> +++ b/include/acpi/actbl1.h
+> @@ -922,7 +922,7 @@ struct acpi_srat_cpu_affinity {
+>   	u32 flags;
+>   	u8 local_sapic_eid;
+>   	u8 proximity_domain_hi[3];
+> -	u32 reserved;		/* Reserved, must be zero */
+> +	u32 clock_domain;
+>   };
+>   
+>   /* Flags */
+> 
