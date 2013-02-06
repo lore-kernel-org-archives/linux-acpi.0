@@ -1,132 +1,114 @@
-From: Tang Chen <tangchen@cn.fujitsu.com>
-Subject: Re: [PATCH v5 01/14] memory-hotplug: try to offline the memory twice
- to avoid dependence
-Date: Wed, 06 Feb 2013 11:07:23 +0800
-Message-ID: <5111C8EB.6090805@cn.fujitsu.com>
-References: <1356350964-13437-1-git-send-email-tangchen@cn.fujitsu.com> <1356350964-13437-2-git-send-email-tangchen@cn.fujitsu.com> <50D96543.6010903@parallels.com> <50DFD7F7.5090408@cn.fujitsu.com> <50ED8834.1090804@parallels.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <owner-linux-mm@kvack.org>
-In-Reply-To: <50ED8834.1090804@parallels.com>
-Sender: owner-linux-mm@kvack.org
-To: Glauber Costa <glommer@parallels.com>
-Cc: Wen Congyang <wency@cn.fujitsu.com>, akpm@linux-foundation.org, rientjes@google.com, liuj97@gmail.com, len.brown@intel.com, benh@kernel.crashing.org, paulus@samba.org, cl@linux.com, minchan.kim@gmail.com, kosaki.motohiro@jp.fujitsu.com, isimatu.yasuaki@jp.fujitsu.com, wujianguo@huawei.com, hpa@zytor.com, linfeng@cn.fujitsu.com, laijs@cn.fujitsu.com, mgorman@suse.de, yinghai@kernel.org, x86@kernel.org, linux-mm@kvack.org, linux-kernel@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, linux-acpi@vger.kernel.org, linux-s390@vger.kernel.org, linux-sh@vger.kernel.org, linux-ia64@vger.kernel.org, cmetcalf@tilera.com, sparclinux@vger.kernel.org, KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>, Miao Xie <miaox@cn.fujitsu.com>
+From: Lv Zheng <lv.zheng@intel.com>
+Subject: [RFC PATCH] ACPI / serial: Add UART change_pm support with ACPI power domain
+Date: Wed,  6 Feb 2013 14:26:26 +0800
+Message-ID: <69483f548e2d5476b8e1ce530e6910bfbf770d3d.1360131884.git.lv.zheng@intel.com>
+References: <cover.1354505471.git.lv.zheng@intel.com>
+Return-path: <linux-serial-owner@vger.kernel.org>
+In-Reply-To: <cover.1354505471.git.lv.zheng@intel.com>
+Sender: linux-serial-owner@vger.kernel.org
+To: Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Jiri Slaby <jslaby@suse.cz>, Alan Cox <alan@linux.intel.com>, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Len Brown <len.brown@intel.com>, Mika Westerberg <mika.westerberg@linux.intel.com>, Krogerus Heikki <heikki.krogerus@intel.com>
+Cc: linux-acpi@vger.kernel.org, linux-serial@vger.kernel.org, Lv Zheng <lv.zheng@intel.com>
 List-Id: linux-acpi@vger.kernel.org
 
-Hi Glauber, all,
+This patch enables ACPI power domain on UART user devices. With this
+patch, Linux can achieve open/close based ACPI power manageability for
+UART tty ports.
 
-An old thing I want to discuss with you. :)
+Signed-off-by: Lv Zheng <lv.zheng@intel.com>
+---
+ drivers/acpi/acpi_uart.c         |   40 ++++++++++++++++++++++++++++++++++++++
+ drivers/tty/serial/serial_core.c |    5 +++++
+ include/linux/tty.h              |    4 ++++
+ 3 files changed, 49 insertions(+)
 
-On 01/09/2013 11:09 PM, Glauber Costa wrote:
->>>> memory can't be offlined when CONFIG_MEMCG is selected.
->>>> For example: there is a memory device on node 1. The address range
->>>> is [1G, 1.5G). You will find 4 new directories memory8, memory9, memory10,
->>>> and memory11 under the directory /sys/devices/system/memory/.
->>>>
->>>> If CONFIG_MEMCG is selected, we will allocate memory to store page cgroup
->>>> when we online pages. When we online memory8, the memory stored page cgroup
->>>> is not provided by this memory device. But when we online memory9, the memory
->>>> stored page cgroup may be provided by memory8. So we can't offline memory8
->>>> now. We should offline the memory in the reversed order.
->>>>
->>>> When the memory device is hotremoved, we will auto offline memory provided
->>>> by this memory device. But we don't know which memory is onlined first, so
->>>> offlining memory may fail. In such case, iterate twice to offline the memory.
->>>> 1st iterate: offline every non primary memory block.
->>>> 2nd iterate: offline primary (i.e. first added) memory block.
->>>>
->>>> This idea is suggested by KOSAKI Motohiro.
->>>>
->>>> Signed-off-by: Wen Congyang<wency@cn.fujitsu.com>
->>>
->>> Maybe there is something here that I am missing - I admit that I came
->>> late to this one, but this really sounds like a very ugly hack, that
->>> really has no place in here.
->>>
->>> Retrying, of course, may make sense, if we have reasonable belief that
->>> we may now succeed. If this is the case, you need to document - in the
->>> code - while is that.
->>>
->>> The memcg argument, however, doesn't really cut it. Why can't we make
->>> all page_cgroup allocations local to the node they are describing? If
->>> memcg is the culprit here, we should fix it, and not retry. If there is
->>> still any benefit in retrying, then we retry being very specific about why.
->>
->> We try to make all page_cgroup allocations local to the node they are describing
->> now. If the memory is the first memory onlined in this node, we will allocate
->> it from the other node.
->>
->> For example, node1 has 4 memory blocks: 8-11, and we online it from 8 to 11
->> 1. memory block 8, page_cgroup allocations are in the other nodes
->> 2. memory block 9, page_cgroup allocations are in memory block 8
->>
->> So we should offline memory block 9 first. But we don't know in which order
->> the user online the memory block.
->>
->> I think we can modify memcg like this:
->> allocate the memory from the memory block they are describing
->>
->> I am not sure it is OK to do so.
->
-> I don't see a reason why not.
->
-> You would have to tweak a bit the lookup function for page_cgroup, but
-> assuming you will always have the pfns and limits, it should be easy to do.
->
-> I think the only tricky part is that today we have a single
-> node_page_cgroup, and we would of course have to have one per memory
-> block. My assumption is that the number of memory blocks is limited and
-> likely not very big. So even a static array would do.
->
+diff --git a/drivers/acpi/acpi_uart.c b/drivers/acpi/acpi_uart.c
+index c27fc7c..a6735b1 100644
+--- a/drivers/acpi/acpi_uart.c
++++ b/drivers/acpi/acpi_uart.c
+@@ -163,3 +163,43 @@ void acpi_uart_register_user_device(struct device *parent,
+ 	}
+ }
+ EXPORT_SYMBOL_GPL(acpi_uart_register_user_device);
++
++/**
++ * acpi_uart_user_change_pm - change pm for tty port
++ * @port: the tty port
++ * @power_on: whether or not power on the device
++ *
++ * Change PM for tty user device.
++ */
++void acpi_uart_user_change_pm(struct tty_port *port, bool power_on)
++{
++	acpi_handle handle;
++	struct acpi_device *adev;
++	struct acpi_device_physical_node *entry;
++	struct device *ldev;
++
++	BUG_ON(!port);
++	handle = ACPI_NODE_GET(port->acpi_node);
++	if (!handle)
++		return;
++	if (acpi_bus_get_device(handle, &adev))
++		return;
++	if (acpi_bus_get_status(adev) || !adev->status.present)
++		return;
++
++	list_for_each_entry(entry, &adev->physical_node_list, node) {
++		ldev = get_device(entry->dev);
++		if (!ldev)
++			continue;
++		if (ldev->class == tty_class) {
++			if (power_on)
++				acpi_dev_pm_attach(ldev, true);
++			else
++				acpi_dev_pm_detach(ldev, false);
++			put_device(ldev);
++			return;
++		}
++		put_device(ldev);
++	}
++}
++EXPORT_SYMBOL_GPL(acpi_uart_user_change_pm);
+diff --git a/drivers/tty/serial/serial_core.c b/drivers/tty/serial/serial_core.c
+index c10bb4c..6ca4a5c 100644
+--- a/drivers/tty/serial/serial_core.c
++++ b/drivers/tty/serial/serial_core.c
+@@ -1901,10 +1901,15 @@ static void uart_change_pm(struct uart_state *state,
+ 			   enum uart_pm_state pm_state)
+ {
+ 	struct uart_port *port = state->uart_port;
++	struct tty_port *tport = &state->port;
+ 
+ 	if (state->pm_state != pm_state) {
++		if (pm_state == UART_PM_STATE_ON)
++			acpi_uart_user_change_pm(tport, true);
+ 		if (port->ops->pm)
+ 			port->ops->pm(port, pm_state, state->pm_state);
++		if (pm_state == UART_PM_STATE_OFF)
++			acpi_uart_user_change_pm(tport, false);
+ 		state->pm_state = pm_state;
+ 	}
+ }
+diff --git a/include/linux/tty.h b/include/linux/tty.h
+index 5f17ab5..fbf8def 100644
+--- a/include/linux/tty.h
++++ b/include/linux/tty.h
+@@ -687,11 +687,15 @@ void acpi_uart_register_user_device(struct device *parent,
+ 		struct device *dev,
+ 		struct tty_driver *driver,
+ 		unsigned int index);
++extern void acpi_uart_user_change_pm(struct tty_port *port,
++		bool power_on);
+ #else
+ static inline void acpi_uart_register_user_device(struct device *parent,
+ 		struct device *dev,
+ 		struct tty_driver *driver,
+ 		unsigned int index) {}
++static inline void acpi_uart_user_change_pm(struct tty_port *port,
++		bool power_on) {}
+ #endif
+ 
+ #endif
+-- 
+1.7.10
 
-About the idea "allocate the memory from the memory block they are 
-describing",
-
-online_pages()
-  |-->memory_notify(MEM_GOING_ONLINE, &arg) ----------- memory of this 
-section is not in buddy yet.
-       |-->page_cgroup_callback()
-            |-->online_page_cgroup()
-                 |-->init_section_page_cgroup()
-                      |-->alloc_page_cgroup() --------- allocate 
-page_cgroup from buddy system.
-
-When onlining pages, we allocate page_cgroup from buddy. And the being 
-onlined pages are not in
-buddy yet. I think we can reserve some memory in the section for 
-page_cgroup, and return all the
-rest to the buddy.
-
-But when the system is booting,
-
-start_kernel()
-  |-->setup_arch()
-  |-->mm_init()
-  |    |-->mem_init()
-  |         |-->numa_free_all_bootmem() -------------- all the pages are 
-in buddy system.
-  |-->page_cgroup_init()
-       |-->init_section_page_cgroup()
-            |-->alloc_page_cgroup() ------------------ I don't know how 
-to reserve memory in each section.
-
-So any idea about how to deal with it when the system is booting please?
-
-
-And one more question, a memory section is 128MB in Linux. If we reserve 
-part of the them for page_cgroup,
-then anyone who wants to allocate a contiguous memory larger than 128MB, 
-it will fail, right ?
-Is it OK ?
-
-Thanks. :)
-
-
-
-
---
-To unsubscribe, send a message with 'unsubscribe linux-mm' in
-the body to majordomo@kvack.org.  For more info on Linux MM,
-see: http://www.linux-mm.org/ .
-Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
