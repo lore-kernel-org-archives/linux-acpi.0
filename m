@@ -1,36 +1,113 @@
 From: Toshi Kani <toshi.kani@hp.com>
-Subject: [PATCH 01/02] ACPI: sysfs eject support for ACPI scan handlers
-Date: Wed,  6 Feb 2013 15:50:55 -0700
-Message-ID: <1360191056-13293-2-git-send-email-toshi.kani@hp.com>
+Subject: [PATCH 02/02] ACPI: Register container drv as scan driver
+Date: Wed,  6 Feb 2013 15:50:56 -0700
+Message-ID: <1360191056-13293-3-git-send-email-toshi.kani@hp.com>
 References: <1360191056-13293-1-git-send-email-toshi.kani@hp.com>
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from g5t0006.atlanta.hp.com ([15.192.0.43]:11626 "EHLO
-	g5t0006.atlanta.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757638Ab3BFXBO (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 6 Feb 2013 18:01:14 -0500
+Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <1360191056-13293-1-git-send-email-toshi.kani@hp.com>
-Sender: linux-acpi-owner@vger.kernel.org
-List-Id: linux-acpi@vger.kernel.org
+Sender: linux-kernel-owner@vger.kernel.org
 To: rjw@sisk.pl, linux-acpi@vger.kernel.org
 Cc: gregkh@linuxfoundation.org, bhelgaas@google.com, mika.westerberg@linux.intel.com, matthew.garrett@nebula.com, yinghai@kernel.org, liuj97@gmail.com, linux-kernel@vger.kernel.org, Toshi Kani <toshi.kani@hp.com>
+List-Id: linux-acpi@vger.kernel.org
 
-Changed sysfs eject, acpi_eject_store(), to support ACPI scan handlers.
+Changed to register the ACPI container driver as an ACPI scan driver
+so that sysfs eject of container devices works.
+
+Fixed a typo in the acpi_container_init() prototype definition.
+Removed struct acpi_container, which is no longer used.
 
 Signed-off-by: Toshi Kani <toshi.kani@hp.com>
 ---
- drivers/acpi/scan.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/drivers/acpi/scan.c b/drivers/acpi/scan.c
-index cfd7a69..3ff632e 100644
---- a/drivers/acpi/scan.c
-+++ b/drivers/acpi/scan.c
-@@ -203,7 +203,7 @@ acpi_eject_store(struct device *d, struct device_attribute *attr,
- 		return -EINVAL;
- 	}
- #ifndef FORCE_EJECT
--	if (acpi_device->driver == NULL) {
-+	if (!acpi_device->driver && !acpi_device->handler) {
- 		ret = -ENODEV;
- 		goto err;
- 	}
+This patch applies on top of the patch below.
+https://lkml.org/lkml/2013/2/3/318
+
+---
+ drivers/acpi/container.c |   23 +++++++++++++++++++++++
+ drivers/acpi/internal.h  |    2 +-
+ include/acpi/container.h |    8 --------
+ 3 files changed, 24 insertions(+), 9 deletions(-)
+
+diff --git a/drivers/acpi/container.c b/drivers/acpi/container.c
+index bcde1f3..f493180 100644
+--- a/drivers/acpi/container.c
++++ b/drivers/acpi/container.c
+@@ -41,6 +41,10 @@
+ #define _COMPONENT			ACPI_CONTAINER_COMPONENT
+ ACPI_MODULE_NAME("container");
+ 
++static int container_device_attach(struct acpi_device *device,
++				const struct acpi_device_id *not_used);
++static void container_device_detach(struct acpi_device *device);
++
+ static const struct acpi_device_id container_device_ids[] = {
+ 	{"ACPI0004", 0},
+ 	{"PNP0A05", 0},
+@@ -48,6 +52,12 @@ static const struct acpi_device_id container_device_ids[] = {
+ 	{"", 0},
+ };
+ 
++static struct acpi_scan_handler container_device_handler = {
++	.ids = container_device_ids,
++	.attach = container_device_attach,
++	.detach = container_device_detach,
++};
++
+ static int is_device_present(acpi_handle handle)
+ {
+ 	acpi_handle temp;
+@@ -66,6 +76,17 @@ static int is_device_present(acpi_handle handle)
+ 	return ((sta & ACPI_STA_DEVICE_PRESENT) == ACPI_STA_DEVICE_PRESENT);
+ }
+ 
++static int container_device_attach(struct acpi_device *device,
++				const struct acpi_device_id *not_used)
++{
++	return 1;
++}
++
++static void container_device_detach(struct acpi_device *device)
++{
++	return;
++}
++
+ static void container_notify_cb(acpi_handle handle, u32 type, void *context)
+ {
+ 	struct acpi_device *device = NULL;
+@@ -167,4 +188,6 @@ void __init acpi_container_init(void)
+ 	acpi_walk_namespace(ACPI_TYPE_DEVICE, ACPI_ROOT_OBJECT, ACPI_UINT32_MAX,
+ 			    acpi_container_register_notify_handler, NULL,
+ 			    NULL, NULL);
++
++	acpi_scan_add_handler(&container_device_handler);
+ }
+diff --git a/drivers/acpi/internal.h b/drivers/acpi/internal.h
+index 78fbf26..cbc0638 100644
+--- a/drivers/acpi/internal.h
++++ b/drivers/acpi/internal.h
+@@ -40,7 +40,7 @@ void acpi_memory_hotplug_init(void);
+ #else
+ static inline void acpi_memory_hotplug_init(void) {}
+ #endif
+-#ifdef ACPI_CONTAINER
++#ifdef CONFIG_ACPI_CONTAINER
+ void acpi_container_init(void);
+ #else
+ static inline void acpi_container_init(void) {}
+diff --git a/include/acpi/container.h b/include/acpi/container.h
+index a703f14..0a464d2 100644
+--- a/include/acpi/container.h
++++ b/include/acpi/container.h
+@@ -1,12 +1,4 @@
+ #ifndef __ACPI_CONTAINER_H
+ #define __ACPI_CONTAINER_H
+ 
+-#include <linux/kernel.h>
+-
+-struct acpi_container {
+-	acpi_handle handle;
+-	unsigned long sun;
+-	int state;
+-};
+-
+ #endif				/* __ACPI_CONTAINER_H */
