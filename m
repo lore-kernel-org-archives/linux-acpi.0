@@ -1,42 +1,68 @@
-From: "Zheng, Lv" <lv.zheng@intel.com>
-Subject: RE: [RFC PATCH] ACPI / serial: Add UART change_pm support with ACPI
- power domain
-Date: Thu, 7 Feb 2013 00:38:55 +0000
-Message-ID: <1AE640813FDE7649BE1B193DEA596E88BF7086@SHSMSX101.ccr.corp.intel.com>
-References: <cover.1354505471.git.lv.zheng@intel.com>
- <69483f548e2d5476b8e1ce530e6910bfbf770d3d.1360131884.git.lv.zheng@intel.com>
- <20130206190728.GA32275@kroah.com> <14333377.SHpFl2uDhh@vostro.rjw.lan>
- <20130206213839.GB31339@kroah.com>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: Re: [PATCH 2/2] ACPI / scan: Simplify container driver
+Date: Thu, 07 Feb 2013 01:55:09 +0100
+Message-ID: <6374398.88OyYZxaMu@vostro.rjw.lan>
+References: <1873429.MS5RQDxTye@vostro.rjw.lan> <5090866.2BHgpRnuEZ@vostro.rjw.lan> <1360189938.23410.276.camel@misato.fc.hp.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7Bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga14.intel.com ([143.182.124.37]:35722 "EHLO mga14.intel.com"
+Received: from hydra.sisk.pl ([212.160.235.94]:54964 "EHLO hydra.sisk.pl"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751044Ab3BGAjH convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 6 Feb 2013 19:39:07 -0500
-In-Reply-To: <20130206213839.GB31339@kroah.com>
-Content-Language: en-US
+	id S1755269Ab3BGAsv (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 6 Feb 2013 19:48:51 -0500
+In-Reply-To: <1360189938.23410.276.camel@misato.fc.hp.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Greg Kroah-Hartman <gregkh@linuxfoundation.org>, "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: Jiri Slaby <jslaby@suse.cz>, Alan Cox <alan@linux.intel.com>, "Brown, Len" <len.brown@intel.com>, Mika Westerberg <mika.westerberg@linux.intel.com>, "Krogerus, Heikki" <heikki.krogerus@intel.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-serial@vger.kernel.org" <linux-serial@vger.kernel.org>
+To: Toshi Kani <toshi.kani@hp.com>
+Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Bjorn Helgaas <bhelgaas@google.com>, Mika Westerberg <mika.westerberg@linux.intel.com>, Matthew Garrett <matthew.garrett@nebula.com>, Yinghai Lu <yinghai@kernel.org>, Jiang Liu <liuj97@gmail.com>, LKML <linux-kernel@vger.kernel.org>
 
-> > > So you are going to be sticking acpi_* calls into common core places
-> > > all over the kernel for stuff like this?
-> > >
-> > > What's wrong with using the existing pm callbacks that are there for
-> > > all platforms to use?
-> >
-> > I think that this just hasn't been thought through sufficiently (again).
+On Wednesday, February 06, 2013 03:32:18 PM Toshi Kani wrote:
+> On Mon, 2013-02-04 at 00:47 +0100, Rafael J. Wysocki wrote:
+> > From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+> > 
+> > The only useful thing that the ACPI container driver does is to
+> > install system notify handlers for all container and module device
+> > objects it finds in the namespace.  The driver structure,
+> > acpi_container_driver, and the data structures created by its
+> > .add() callback are in fact not used by the driver, so remove
+> > them entirely.
+> > 
+> > It also makes a little sense to build that driver as a module,
+> > so make it non-modular and add its initialization to the
+> > namespace scanning code.
+> > 
+> > In addition to that, make the namespace walk callback used for
+> > installing the notify handlers more straightforward.
 > 
-> Ugh.  Ok, I now am going to just quietly drop all intel.com patches to the
-> tty/serial layer unless they have at least 2 signed-off-by: lines, one of which is
-> by someone who is "well known" to me as being sane.
+> I think the container driver needs to be registered as an ACPI scan
+> driver so that sysfs eject will continue to work for container devices,
+> such as ACPI0004:XX/eject.  Since the container driver does not support
+> ACPI eject notification (and we have been discussing how system device
+> hot-plug should work), this sysfs eject is the only way to eject a
+> container device at this point.  I will send an update patchset that
+> applies on top of this patch.
+> 
+> With the update in my patchset:
+> Reviewed-by: Toshi Kani <toshi.kani@hp.com>
 
-Sorry for the noise. Please ignore.
-It's sent by wrong typing "gitsendemail acpi-uart" instead of "gitsendemail intel-uart" where gitsendemail is my patch sending script.
-It should be reviewed internally prior to be sent to the public, collecting advices about where should be the better place to implement an open/close based PM.
+Thanks, but I'd like to (1) apply your patch from
+https://patchwork.kernel.org/patch/2108851/ first and then (2) fold your [2/2]
+into my [2/2], if you don't mind, and apply that next.
 
-Thanks
--Lv
+Moreover, I'm wondering if the #ifndef FORCE_EJECT thing in acpi_eject_store()
+actually makes sense after the recent changes to acpi_bus_trim(), because that
+can't fail now, so the eject will always be carried out.  So perhaps we can
+simply remove the acpi_device->driver check from there entirely in the first
+place?
+
+If we really want to be able to prevent ejects from happening in some cases,
+we need to implement something along the lines discussed with Greg.
+
+Thanks,
+Rafael
+
+
+-- 
+I speak only for myself.
+Rafael J. Wysocki, Intel Open Source Technology Center.
