@@ -1,64 +1,39 @@
 From: Toshi Kani <toshi.kani@hp.com>
-Subject: Re: [PATCH 2/2] ACPI / scan: Simplify container driver
-Date: Thu, 07 Feb 2013 07:38:16 -0700
-Message-ID: <1360247896.14416.11.camel@misato.fc.hp.com>
-References: <1873429.MS5RQDxTye@vostro.rjw.lan>
-	 <5090866.2BHgpRnuEZ@vostro.rjw.lan> <5113668F.9060102@jp.fujitsu.com>
-	 <7621884.ddmYGtd8MJ@vostro.rjw.lan>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
+Subject: [PATCH] ACPI: Unbind ACPI drv when probe failed
+Date: Thu,  7 Feb 2013 14:19:13 -0700
+Message-ID: <1360271953-15643-1-git-send-email-toshi.kani@hp.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from g4t0015.houston.hp.com ([15.201.24.18]:32526 "EHLO
-	g4t0015.houston.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754396Ab3BGOs2 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 7 Feb 2013 09:48:28 -0500
-In-Reply-To: <7621884.ddmYGtd8MJ@vostro.rjw.lan>
+Received: from g5t0006.atlanta.hp.com ([15.192.0.43]:21348 "EHLO
+	g5t0006.atlanta.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1161008Ab3BGVaE (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 7 Feb 2013 16:30:04 -0500
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Bjorn Helgaas <bhelgaas@google.com>, Mika Westerberg <mika.westerberg@linux.intel.com>, Matthew Garrett <matthew.garrett@nebula.com>, Yinghai Lu <yinghai@kernel.org>, Jiang Liu <liuj97@gmail.com>, LKML <linux-kernel@vger.kernel.org>
+To: rjw@sisk.pl, linux-acpi@vger.kernel.org
+Cc: linux-kernel@vger.kernel.org, isimatu.yasuaki@jp.fujitsu.com, Toshi Kani <toshi.kani@hp.com>
 
-On Thu, 2013-02-07 at 12:43 +0100, Rafael J. Wysocki wrote:
-> On Thursday, February 07, 2013 05:32:15 PM Yasuaki Ishimatsu wrote:
- :
-> > > Index: test/drivers/acpi/internal.h
-> > > ===================================================================
-> > > --- test.orig/drivers/acpi/internal.h
-> > > +++ test/drivers/acpi/internal.h
-> > > @@ -40,6 +40,11 @@ void acpi_memory_hotplug_init(void);
-> > >   #else
-> > >   static inline void acpi_memory_hotplug_init(void) {}
-> > >   #endif
-> > 
-> > > +#ifdef ACPI_CONTAINER
-> > 
-> > It should be CONFIG_ACPI_CONTAINER.
-> 
-> Totally correct.
+When acpi_device_install_notify_handler() failed in acpi_device_probe(),
+it calls acpi_drv->ops.remove() and fails the probe.  However, the ACPI
+driver is left bound to the acpi_device.  Fix it by clearing the driver
+and driver_data fields.
 
-Just FYI, this change is included in my patch 2/2 as well.
-https://patchwork.kernel.org/patch/2108881/
+Signed-off-by: Toshi Kani <toshi.kani@hp.com>
+---
+This patch is based on linux-pm.git/bleeding-edge.
+---
+ drivers/acpi/scan.c |    2 ++
+ 1 file changed, 2 insertions(+)
 
-Thanks,
--Toshi
-
-
-> > By this, acpi_container_init() do nothing. When I fix it and test the patch,
-> > the patch goes well.
-> > 
-> > If you update the patch, I'll test again.
-> 
-> This fix from Toshi Kani is necessary in addition to it, though
-> 
-> https://patchwork.kernel.org/patch/2108851/
-> 
-> because FORCE_EJECT is never set as far as I can say.
-> 
-> Thanks,
-> Rafael
-> 
-> 
-> 
-
-
+diff --git a/drivers/acpi/scan.c b/drivers/acpi/scan.c
+index d6caf1d..39659bb 100644
+--- a/drivers/acpi/scan.c
++++ b/drivers/acpi/scan.c
+@@ -627,6 +627,8 @@ static int acpi_device_probe(struct device * dev)
+ 			if (ret) {
+ 				if (acpi_drv->ops.remove)
+ 					acpi_drv->ops.remove(acpi_dev);
++				acpi_dev->driver = NULL;
++				acpi_dev->driver_data = NULL;
+ 				return ret;
+ 			}
+ 		}
