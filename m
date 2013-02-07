@@ -1,81 +1,55 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: [PATCH 2/2] ACPI / scan: Simplify container driver
-Date: Thu, 07 Feb 2013 02:32:22 +0100
-Message-ID: <2629080.ji4YWC94Sj@vostro.rjw.lan>
-References: <1873429.MS5RQDxTye@vostro.rjw.lan> <6374398.88OyYZxaMu@vostro.rjw.lan> <1360198302.23410.283.camel@misato.fc.hp.com>
+From: Tang Chen <tangchen@cn.fujitsu.com>
+Subject: Re: [PATCH v5 01/14] memory-hotplug: try to offline the memory twice
+ to avoid dependence
+Date: Thu, 07 Feb 2013 15:56:35 +0800
+Message-ID: <51135E33.4060508@cn.fujitsu.com>
+References: <1356350964-13437-1-git-send-email-tangchen@cn.fujitsu.com> <1356350964-13437-2-git-send-email-tangchen@cn.fujitsu.com> <50D96543.6010903@parallels.com> <50DFD7F7.5090408@cn.fujitsu.com> <50ED8834.1090804@parallels.com> <5111C8EB.6090805@cn.fujitsu.com> <51121FB7.1070205@cn.fujitsu.com> <51122C1D.5020002@cn.fujitsu.com> <5112679A.7080600@parallels.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7Bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from hydra.sisk.pl ([212.160.235.94]:55121 "EHLO hydra.sisk.pl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754804Ab3BGB0E (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 6 Feb 2013 20:26:04 -0500
-In-Reply-To: <1360198302.23410.283.camel@misato.fc.hp.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <owner-linux-mm@kvack.org>
+In-Reply-To: <5112679A.7080600@parallels.com>
+Sender: owner-linux-mm@kvack.org
+To: Glauber Costa <glommer@parallels.com>
+Cc: Wen Congyang <wency@cn.fujitsu.com>, akpm@linux-foundation.org, rientjes@google.com, liuj97@gmail.com, len.brown@intel.com, benh@kernel.crashing.org, paulus@samba.org, cl@linux.com, minchan.kim@gmail.com, kosaki.motohiro@jp.fujitsu.com, isimatu.yasuaki@jp.fujitsu.com, wujianguo@huawei.com, hpa@zytor.com, linfeng@cn.fujitsu.com, laijs@cn.fujitsu.com, mgorman@suse.de, yinghai@kernel.org, x86@kernel.org, linux-mm@kvack.org, linux-kernel@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, linux-acpi@vger.kernel.org, linux-s390@vger.kernel.org, linux-sh@vger.kernel.org, linux-ia64@vger.kernel.org, cmetcalf@tilera.com, sparclinux@vger.kernel.org, KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>, Miao Xie <miaox@cn.fujitsu.com>
 List-Id: linux-acpi@vger.kernel.org
-To: Toshi Kani <toshi.kani@hp.com>
-Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Bjorn Helgaas <bhelgaas@google.com>, Mika Westerberg <mika.westerberg@linux.intel.com>, Matthew Garrett <matthew.garrett@nebula.com>, Yinghai Lu <yinghai@kernel.org>, Jiang Liu <liuj97@gmail.com>, LKML <linux-kernel@vger.kernel.org>
 
-On Wednesday, February 06, 2013 05:51:42 PM Toshi Kani wrote:
-> On Thu, 2013-02-07 at 01:55 +0100, Rafael J. Wysocki wrote:
-> > On Wednesday, February 06, 2013 03:32:18 PM Toshi Kani wrote:
-> > > On Mon, 2013-02-04 at 00:47 +0100, Rafael J. Wysocki wrote:
-> > > > From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
-> > > > 
-> > > > The only useful thing that the ACPI container driver does is to
-> > > > install system notify handlers for all container and module device
-> > > > objects it finds in the namespace.  The driver structure,
-> > > > acpi_container_driver, and the data structures created by its
-> > > > .add() callback are in fact not used by the driver, so remove
-> > > > them entirely.
-> > > > 
-> > > > It also makes a little sense to build that driver as a module,
-> > > > so make it non-modular and add its initialization to the
-> > > > namespace scanning code.
-> > > > 
-> > > > In addition to that, make the namespace walk callback used for
-> > > > installing the notify handlers more straightforward.
-> > > 
-> > > I think the container driver needs to be registered as an ACPI scan
-> > > driver so that sysfs eject will continue to work for container devices,
-> > > such as ACPI0004:XX/eject.  Since the container driver does not support
-> > > ACPI eject notification (and we have been discussing how system device
-> > > hot-plug should work), this sysfs eject is the only way to eject a
-> > > container device at this point.  I will send an update patchset that
-> > > applies on top of this patch.
-> > > 
-> > > With the update in my patchset:
-> > > Reviewed-by: Toshi Kani <toshi.kani@hp.com>
-> > 
-> > Thanks, but I'd like to (1) apply your patch from
-> > https://patchwork.kernel.org/patch/2108851/ first and then (2) fold your [2/2]
-> > into my [2/2], if you don't mind, and apply that next.
-> 
-> That's fine by me.
-> 
-> > Moreover, I'm wondering if the #ifndef FORCE_EJECT thing in acpi_eject_store()
-> > actually makes sense after the recent changes to acpi_bus_trim(), because that
-> > can't fail now, so the eject will always be carried out.  So perhaps we can
-> > simply remove the acpi_device->driver check from there entirely in the first
-> > place?
-> >
-> > If we really want to be able to prevent ejects from happening in some cases,
-> > we need to implement something along the lines discussed with Greg.
-> 
-> acpi_bus_trim() cannot fail, but sysfs eject can fail.  So, I think it
-> makes sense to do some validation before calling acpi_bus_trim().  If we
-> are to implement the no_eject flag thing, that check needs to be made
-> before calling acpi_bus_trim().
+On 02/06/2013 10:24 PM, Glauber Costa wrote:
+>>>> And one more question, a memory section is 128MB in Linux. If we reserve
+>>>> part of the them for page_cgroup,
+>>>> then anyone who wants to allocate a contiguous memory larger than 128MB,
+>>>> it will fail, right ?
+>>>> Is it OK ?
+> No, it is not.
+>
+> Another take on this: Can't we free all the page_cgroup structure before
+> we actually start removing the sections ? If we do this, we would be
+> basically left with no problem at all, since when your code starts
+> running we would no longer have any page_cgroup allocated.
+>
+> All you have to guarantee is that it happens after the memory block is
+> already isolated and allocations no longer can reach it.
+>
+> What do you think ?
 
-Sure, but now the logic seems to be "if FORCE_EJECT is not set, don't eject
-devices that have no ACPI drivers", so I'm wondering what the purpose of this
-is.  It definitely isn't too obvious. :-)
+Hi Glauber,
 
-Thanks,
-Rafael
+I don't think so. We can offline some of the sections and leave the 
+reset online.
 
+For example, we store page_cgroups of memory9~11 in memory8. So when we 
+offline memory8,
+we free memory8's page_cgroup storing on other section, but we cannot 
+free the page_cgroups
+being stored in memory8 if memory9~11 are left online.
 
--- 
-I speak only for myself.
-Rafael J. Wysocki, Intel Open Source Technology Center.
+So we still need to offline memory9~11, and then offline memory8, right ?
+I think it makes no difference.
+
+Thanks. :)
+
+--
+To unsubscribe, send a message with 'unsubscribe linux-mm' in
+the body to majordomo@kvack.org.  For more info on Linux MM,
+see: http://www.linux-mm.org/ .
+Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
