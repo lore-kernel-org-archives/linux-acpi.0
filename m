@@ -1,113 +1,42 @@
-From: Toshi Kani <toshi.kani@hp.com>
-Subject: [PATCH 02/02] ACPI: Register container drv as scan driver
-Date: Wed,  6 Feb 2013 15:50:56 -0700
-Message-ID: <1360191056-13293-3-git-send-email-toshi.kani@hp.com>
-References: <1360191056-13293-1-git-send-email-toshi.kani@hp.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1360191056-13293-1-git-send-email-toshi.kani@hp.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: rjw@sisk.pl, linux-acpi@vger.kernel.org
-Cc: gregkh@linuxfoundation.org, bhelgaas@google.com, mika.westerberg@linux.intel.com, matthew.garrett@nebula.com, yinghai@kernel.org, liuj97@gmail.com, linux-kernel@vger.kernel.org, Toshi Kani <toshi.kani@hp.com>
+From: "Zheng, Lv" <lv.zheng@intel.com>
+Subject: RE: [RFC PATCH] ACPI / serial: Add UART change_pm support with ACPI
+ power domain
+Date: Thu, 7 Feb 2013 00:38:55 +0000
+Message-ID: <1AE640813FDE7649BE1B193DEA596E88BF7086@SHSMSX101.ccr.corp.intel.com>
+References: <cover.1354505471.git.lv.zheng@intel.com>
+ <69483f548e2d5476b8e1ce530e6910bfbf770d3d.1360131884.git.lv.zheng@intel.com>
+ <20130206190728.GA32275@kroah.com> <14333377.SHpFl2uDhh@vostro.rjw.lan>
+ <20130206213839.GB31339@kroah.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mga14.intel.com ([143.182.124.37]:35722 "EHLO mga14.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751044Ab3BGAjH convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 6 Feb 2013 19:39:07 -0500
+In-Reply-To: <20130206213839.GB31339@kroah.com>
+Content-Language: en-US
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Greg Kroah-Hartman <gregkh@linuxfoundation.org>, "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: Jiri Slaby <jslaby@suse.cz>, Alan Cox <alan@linux.intel.com>, "Brown, Len" <len.brown@intel.com>, Mika Westerberg <mika.westerberg@linux.intel.com>, "Krogerus, Heikki" <heikki.krogerus@intel.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-serial@vger.kernel.org" <linux-serial@vger.kernel.org>
 
-Changed to register the ACPI container driver as an ACPI scan driver
-so that sysfs eject of container devices works.
+> > > So you are going to be sticking acpi_* calls into common core places
+> > > all over the kernel for stuff like this?
+> > >
+> > > What's wrong with using the existing pm callbacks that are there for
+> > > all platforms to use?
+> >
+> > I think that this just hasn't been thought through sufficiently (again).
+> 
+> Ugh.  Ok, I now am going to just quietly drop all intel.com patches to the
+> tty/serial layer unless they have at least 2 signed-off-by: lines, one of which is
+> by someone who is "well known" to me as being sane.
 
-Fixed a typo in the acpi_container_init() prototype definition.
-Removed struct acpi_container, which is no longer used.
+Sorry for the noise. Please ignore.
+It's sent by wrong typing "gitsendemail acpi-uart" instead of "gitsendemail intel-uart" where gitsendemail is my patch sending script.
+It should be reviewed internally prior to be sent to the public, collecting advices about where should be the better place to implement an open/close based PM.
 
-Signed-off-by: Toshi Kani <toshi.kani@hp.com>
----
-
-This patch applies on top of the patch below.
-https://lkml.org/lkml/2013/2/3/318
-
----
- drivers/acpi/container.c |   23 +++++++++++++++++++++++
- drivers/acpi/internal.h  |    2 +-
- include/acpi/container.h |    8 --------
- 3 files changed, 24 insertions(+), 9 deletions(-)
-
-diff --git a/drivers/acpi/container.c b/drivers/acpi/container.c
-index bcde1f3..f493180 100644
---- a/drivers/acpi/container.c
-+++ b/drivers/acpi/container.c
-@@ -41,6 +41,10 @@
- #define _COMPONENT			ACPI_CONTAINER_COMPONENT
- ACPI_MODULE_NAME("container");
- 
-+static int container_device_attach(struct acpi_device *device,
-+				const struct acpi_device_id *not_used);
-+static void container_device_detach(struct acpi_device *device);
-+
- static const struct acpi_device_id container_device_ids[] = {
- 	{"ACPI0004", 0},
- 	{"PNP0A05", 0},
-@@ -48,6 +52,12 @@ static const struct acpi_device_id container_device_ids[] = {
- 	{"", 0},
- };
- 
-+static struct acpi_scan_handler container_device_handler = {
-+	.ids = container_device_ids,
-+	.attach = container_device_attach,
-+	.detach = container_device_detach,
-+};
-+
- static int is_device_present(acpi_handle handle)
- {
- 	acpi_handle temp;
-@@ -66,6 +76,17 @@ static int is_device_present(acpi_handle handle)
- 	return ((sta & ACPI_STA_DEVICE_PRESENT) == ACPI_STA_DEVICE_PRESENT);
- }
- 
-+static int container_device_attach(struct acpi_device *device,
-+				const struct acpi_device_id *not_used)
-+{
-+	return 1;
-+}
-+
-+static void container_device_detach(struct acpi_device *device)
-+{
-+	return;
-+}
-+
- static void container_notify_cb(acpi_handle handle, u32 type, void *context)
- {
- 	struct acpi_device *device = NULL;
-@@ -167,4 +188,6 @@ void __init acpi_container_init(void)
- 	acpi_walk_namespace(ACPI_TYPE_DEVICE, ACPI_ROOT_OBJECT, ACPI_UINT32_MAX,
- 			    acpi_container_register_notify_handler, NULL,
- 			    NULL, NULL);
-+
-+	acpi_scan_add_handler(&container_device_handler);
- }
-diff --git a/drivers/acpi/internal.h b/drivers/acpi/internal.h
-index 78fbf26..cbc0638 100644
---- a/drivers/acpi/internal.h
-+++ b/drivers/acpi/internal.h
-@@ -40,7 +40,7 @@ void acpi_memory_hotplug_init(void);
- #else
- static inline void acpi_memory_hotplug_init(void) {}
- #endif
--#ifdef ACPI_CONTAINER
-+#ifdef CONFIG_ACPI_CONTAINER
- void acpi_container_init(void);
- #else
- static inline void acpi_container_init(void) {}
-diff --git a/include/acpi/container.h b/include/acpi/container.h
-index a703f14..0a464d2 100644
---- a/include/acpi/container.h
-+++ b/include/acpi/container.h
-@@ -1,12 +1,4 @@
- #ifndef __ACPI_CONTAINER_H
- #define __ACPI_CONTAINER_H
- 
--#include <linux/kernel.h>
--
--struct acpi_container {
--	acpi_handle handle;
--	unsigned long sun;
--	int state;
--};
--
- #endif				/* __ACPI_CONTAINER_H */
+Thanks
+-Lv
