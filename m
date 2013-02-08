@@ -1,58 +1,69 @@
 From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: [PATCH] Documentation / acpi: refer to correct file for acpi_platform_device_ids[] table
-Date: Sat, 09 Feb 2013 00:14:27 +0100
-Message-ID: <38872303.yk2lQjq1aC@vostro.rjw.lan>
-References: <1360332421-32140-1-git-send-email-mika.westerberg@linux.intel.com>
+Subject: [PATCH] ACPI: Drop the container.h header file
+Date: Sat, 09 Feb 2013 00:18:01 +0100
+Message-ID: <1845543.1spGohx2XC@vostro.rjw.lan>
+References: <1873429.MS5RQDxTye@vostro.rjw.lan> <1891536.LKCrpu1upY@vostro.rjw.lan> <1435179.fU91E9qMVO@vostro.rjw.lan>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7Bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from hydra.sisk.pl ([212.160.235.94]:35524 "EHLO hydra.sisk.pl"
+Received: from hydra.sisk.pl ([212.160.235.94]:35536 "EHLO hydra.sisk.pl"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1947233Ab3BHXIG (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 8 Feb 2013 18:08:06 -0500
-In-Reply-To: <1360332421-32140-1-git-send-email-mika.westerberg@linux.intel.com>
+	id S1947176Ab3BHXLl (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 8 Feb 2013 18:11:41 -0500
+In-Reply-To: <1435179.fU91E9qMVO@vostro.rjw.lan>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Mika Westerberg <mika.westerberg@linux.intel.com>
-Cc: linux-kernel@vger.kernel.org, Rob Landley <rob@landley.net>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>
+To: ACPI Devel Maling List <linux-acpi@vger.kernel.org>
+Cc: Toshi Kani <toshi.kani@hp.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Bjorn Helgaas <bhelgaas@google.com>, Mika Westerberg <mika.westerberg@linux.intel.com>, Matthew Garrett <matthew.garrett@nebula.com>, Yinghai Lu <yinghai@kernel.org>, Jiang Liu <liuj97@gmail.com>, LKML <linux-kernel@vger.kernel.org>, Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
 
-On Friday, February 08, 2013 04:07:01 PM Mika Westerberg wrote:
-> When the ACPI platform device code was converted to the new ACPI scan
-> handler facility, the the acpi_platform_device_ids[] was moved to
-> drivers/acpi/acpi_platform.c. Update the documentation accordingly.
-> 
-> Signed-off-by: Mika Westerberg <mika.westerberg@linux.intel.com>
+From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 
-Applied.
+The include/acpi/container.h only contains a definition of a
+structure that is not used any more, so drop it entirely.
 
-When you post any patches touching ACPI, please send CCs of them to
-linux-acpi as well.
+Similar change was proposed earlier by Toshi Kani.
+
+Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+---
+
+On top of current linux-pm.git/bleeding-edge.
 
 Thanks,
 Rafael
 
+---
+ drivers/acpi/container.c |    1 -
+ include/acpi/container.h |   12 ------------
+ 2 files changed, 13 deletions(-)
 
-> ---
->  Documentation/acpi/enumeration.txt |    4 ++--
->  1 file changed, 2 insertions(+), 2 deletions(-)
-> 
-> diff --git a/Documentation/acpi/enumeration.txt b/Documentation/acpi/enumeration.txt
-> index 54469bc..94a6561 100644
-> --- a/Documentation/acpi/enumeration.txt
-> +++ b/Documentation/acpi/enumeration.txt
-> @@ -63,8 +63,8 @@ from ACPI tables.
->  Currently the kernel is not able to automatically determine from which ACPI
->  device it should make the corresponding platform device so we need to add
->  the ACPI device explicitly to acpi_platform_device_ids list defined in
-> -drivers/acpi/scan.c. This limitation is only for the platform devices, SPI
-> -and I2C devices are created automatically as described below.
-> +drivers/acpi/acpi_platform.c. This limitation is only for the platform
-> +devices, SPI and I2C devices are created automatically as described below.
->  
->  SPI serial bus support
->  ~~~~~~~~~~~~~~~~~~~~~~
-> 
--- 
-I speak only for myself.
-Rafael J. Wysocki, Intel Open Source Technology Center.
+Index: test/include/acpi/container.h
+===================================================================
+--- test.orig/include/acpi/container.h
++++ /dev/null
+@@ -1,12 +0,0 @@
+-#ifndef __ACPI_CONTAINER_H
+-#define __ACPI_CONTAINER_H
+-
+-#include <linux/kernel.h>
+-
+-struct acpi_container {
+-	acpi_handle handle;
+-	unsigned long sun;
+-	int state;
+-};
+-
+-#endif				/* __ACPI_CONTAINER_H */
+Index: test/drivers/acpi/container.c
+===================================================================
+--- test.orig/drivers/acpi/container.c
++++ test/drivers/acpi/container.c
+@@ -34,7 +34,6 @@
+ #include <linux/acpi.h>
+ #include <acpi/acpi_bus.h>
+ #include <acpi/acpi_drivers.h>
+-#include <acpi/container.h>
+ 
+ #define PREFIX "ACPI: "
+ 
+
