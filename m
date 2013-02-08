@@ -1,48 +1,103 @@
-From: Viresh Kumar <viresh.kumar@linaro.org>
-Subject: Re: [linux-pm] linux-next: Tree for Feb 8 [ smp|cpufreq: WARNING: at
+From: Sedat Dilek <sedat.dilek@gmail.com>
+Subject: Re: linux-next: Tree for Feb 8 [ smp|cpufreq: WARNING: at
  kernel/smp.c:245 smp_call_function_single ]
-Date: Fri, 8 Feb 2013 20:26:16 +0530
-Message-ID: <CAOh2x=nn24DC-jpD_UsZ2z6=5d9GmZqwowKF8X0zQQX=vZmbqQ@mail.gmail.com>
+Date: Fri, 8 Feb 2013 16:19:33 +0100
+Message-ID: <CA+icZUW+iPmoz9iFzg+LEdK9UTfgkySEE79Gdc64RSo_RWmsog@mail.gmail.com>
 References: <CA+icZUX-hh+RjEOrKABBtecmb4C-5azSmdTx6D7SLuSpcQE+kQ@mail.gmail.com>
 	<CAJd=RBDwdO+n3H4M=5W5q75q3yUVL7L2RonWnCE7sfsfW1K5ig@mail.gmail.com>
 	<CA+icZUUaFb8zvdkY2JLz5h_7CBgaTzyyTphGid+GkigV+NfVKA@mail.gmail.com>
 	<2612804.Hcyse1lRVO@vostro.rjw.lan>
-	<CAKohpom0yjSyU+OhK4vdi5R=+JsmAEw2nOsvupDOiWMYsdz3Pg@mail.gmail.com>
-	<CA+icZUUedcLAo1OkDSD7K_zgZoLvUAPNYOWAJxSPLp9J3hCKNw@mail.gmail.com>
+	<CA+icZUWQNU-z4VnVDneFmfAT=nyFB-r+9_vm2Ett1i-Rg5FMqA@mail.gmail.com>
+	<CAOh2x=nB1LpoiUjg2zDT6TvL6vM9q0D4kDG1cFZPtEnSvZc07w@mail.gmail.com>
+Reply-To: sedat.dilek@gmail.com
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-wi0-f176.google.com ([209.85.212.176]:52472 "EHLO
-	mail-wi0-f176.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758687Ab3BHO4S (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 8 Feb 2013 09:56:18 -0500
-In-Reply-To: <CA+icZUUedcLAo1OkDSD7K_zgZoLvUAPNYOWAJxSPLp9J3hCKNw@mail.gmail.com>
+Received: from mail-qe0-f54.google.com ([209.85.128.54]:40729 "EHLO
+	mail-qe0-f54.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1946062Ab3BHPTe (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 8 Feb 2013 10:19:34 -0500
+In-Reply-To: <CAOh2x=nB1LpoiUjg2zDT6TvL6vM9q0D4kDG1cFZPtEnSvZc07w@mail.gmail.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: sedat.dilek@gmail.com
-Cc: "Rafael J. Wysocki" <rjw@sisk.pl>, Stephen Rothwell <sfr@canb.auug.org.au>, x86@kernel.org, linux-kernel@vger.kernel.org, Linux ACPI <linux-acpi@vger.kernel.org>, Hillf Danton <dhillf@gmail.com>, linux-next@vger.kernel.org, Linux PM List <linux-pm@lists.linux-foundation.org>, Chuansheng Liu <chuansheng.liu@intel.com>, Ingo Molnar <mingo@redhat.com>
+To: Viresh Kumar <viresh.kumar@linaro.org>
+Cc: "Rafael J. Wysocki" <rjw@sisk.pl>, Hillf Danton <dhillf@gmail.com>, Stephen Rothwell <sfr@canb.auug.org.au>, linux-next@vger.kernel.org, linux-kernel@vger.kernel.org, Linux ACPI <linux-acpi@vger.kernel.org>, Linux PM List <linux-pm@lists.linux-foundation.org>, x86@kernel.org, Ingo Molnar <mingo@redhat.com>, Chuansheng Liu <chuansheng.liu@intel.com>
 
-On Fri, Feb 8, 2013 at 8:18 PM, Sedat Dilek <sedat.dilek@gmail.com> wrote:
-> Nah, I pulled in latest pm-next where this commit is new...
+On Fri, Feb 8, 2013 at 3:50 PM, Viresh Kumar <viresh.kumar@linaro.org> wrote:
+> On Fri, Feb 8, 2013 at 7:45 PM, Sedat Dilek <sedat.dilek@gmail.com> wrote:
+>> "...some...changes..." is not very concrete :-).
+>> Which commit(s) caused this trouble?
+>>
+>> Is current (meanwhile updated?) linux-pm.git#linux-next good (didn't
+>> check last commit-ids of your tree from Next/ dir)?
 >
-> commit 8d5666f3456f2fd4a4e5dced228475b829851e53
-> "ACPI: Unbind ACPI drv when probe failed"
+> Attached patch would fix it for you and it looks like and is going to be
+> pulled in by Rafael:
 >
-> ...building with it.
+> From: Viresh Kumar <viresh.kumar@linaro.org>
+> Date: Fri, 8 Feb 2013 10:35:31 +0530
+> Subject: [PATCH] cpufreq: Remove unnecessary locking
 >
-> Same to you, say concretely which commit is fixing what...
+> I have placed some locks intentionally around calls to driver->ops (init/exit),
+> which look to be wrong as these calls can call routines that potentially sleep.
 >
-> Pull-N-B-Happy was never my strategy... I want to understand what went
-> wrong and have stolen my time.
+> Lets remove these locks.
+>
+> Signed-off-by: Viresh Kumar <viresh.kumar@linaro.org>
 
-I don't have any pointers to broken tree and so can't point you to the culprit,
-but it was this patch:
+Tested-by: Sedat Dilek <sedat.dilek@gmail.com>
 
-http://git.linaro.org/gitweb?p=people/vireshk/linux.git;a=commit;h=e034e731f4d9d18ad0401f033f485a3096796c58
+( 0001-cpufreq-Remove-unnecessary-locking.patch fixes the issue here! )
 
-minus
+- Sedat -
 
-the patch i sent you as attachment.
-
-There were some locking introduced around init/exit of cpufreq_driver, which
-caused some drivers to break. Its fixed now in the above commit.
+> ---
+>  drivers/cpufreq/cpufreq.c | 7 -------
+>  1 file changed, 7 deletions(-)
+>
+> diff --git a/drivers/cpufreq/cpufreq.c b/drivers/cpufreq/cpufreq.c
+> index 5d8a422..04aab05 100644
+> --- a/drivers/cpufreq/cpufreq.c
+> +++ b/drivers/cpufreq/cpufreq.c
+> @@ -795,10 +795,8 @@ static int cpufreq_add_dev_interface(unsigned int cpu,
+>
+>         if (ret) {
+>                 pr_debug("setting policy failed\n");
+> -               spin_lock_irqsave(&cpufreq_driver_lock, flags);
+>                 if (driver->exit)
+>                         driver->exit(policy);
+> -               spin_unlock_irqrestore(&cpufreq_driver_lock, flags);
+>         }
+>         return ret;
+>
+> @@ -920,17 +918,14 @@ static int cpufreq_add_dev(struct device *dev,
+> struct subsys_interface *sif)
+>         init_completion(&policy->kobj_unregister);
+>         INIT_WORK(&policy->update, handle_update);
+>
+> -       spin_lock_irqsave(&cpufreq_driver_lock, flags);
+>         /* call driver. From then on the cpufreq must be able
+>          * to accept all calls to ->verify and ->setpolicy for this CPU
+>          */
+>         ret = driver->init(policy);
+>         if (ret) {
+>                 pr_debug("initialization failed\n");
+> -               spin_unlock_irqrestore(&cpufreq_driver_lock, flags);
+>                 goto err_set_policy_cpu;
+>         }
+> -       spin_unlock_irqrestore(&cpufreq_driver_lock, flags);
+>
+>         /* related cpus should atleast have policy->cpus */
+>         cpumask_or(policy->related_cpus, policy->related_cpus, policy->cpus);
+> @@ -1100,10 +1095,8 @@ static int __cpufreq_remove_dev(struct device
+> *dev, struct subsys_interface *sif
+>                 wait_for_completion(cmp);
+>                 pr_debug("wait complete\n");
+>
+> -               spin_lock_irqsave(&cpufreq_driver_lock, flags);
+>                 if (driver->exit)
+>                         driver->exit(data);
+> -               spin_unlock_irqrestore(&cpufreq_driver_lock, flags);
+>
+>                 free_cpumask_var(data->related_cpus);
+>                 free_cpumask_var(data->cpus);
