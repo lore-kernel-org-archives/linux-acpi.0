@@ -1,40 +1,56 @@
-From: Viresh Kumar <viresh.kumar@linaro.org>
-Subject: Re: [linux-pm] linux-next: Tree for Feb 8 [ smp|cpufreq: WARNING: at
- kernel/smp.c:245 smp_call_function_single ]
-Date: Fri, 8 Feb 2013 22:25:03 +0530
-Message-ID: <CAKohpo=6PDxFvmwQvb2V3Qpq2ZVtxQo-8kLwqnJpvwOjtUa7yA@mail.gmail.com>
-References: <CA+icZUX-hh+RjEOrKABBtecmb4C-5azSmdTx6D7SLuSpcQE+kQ@mail.gmail.com>
-	<CAJd=RBDwdO+n3H4M=5W5q75q3yUVL7L2RonWnCE7sfsfW1K5ig@mail.gmail.com>
-	<CA+icZUUaFb8zvdkY2JLz5h_7CBgaTzyyTphGid+GkigV+NfVKA@mail.gmail.com>
-	<2612804.Hcyse1lRVO@vostro.rjw.lan>
-	<CAKohpom0yjSyU+OhK4vdi5R=+JsmAEw2nOsvupDOiWMYsdz3Pg@mail.gmail.com>
-	<CA+icZUUedcLAo1OkDSD7K_zgZoLvUAPNYOWAJxSPLp9J3hCKNw@mail.gmail.com>
-	<CAOh2x=nn24DC-jpD_UsZ2z6=5d9GmZqwowKF8X0zQQX=vZmbqQ@mail.gmail.com>
-	<CA+icZUV=813qjoTMUQzHvUD2AChgKO60ffRtrJ2OG0uSqZf3Mw@mail.gmail.com>
-	<CA+icZUXHD9kQ0JUZ-31Oc3OWaKr7zpWfBG7L_n5kG7QQW+aUDg@mail.gmail.com>
-	<CA+icZUWo4um9s-FhF5HoN5-WbkbNDTjnGkMMRHc60GWohcrPvA@mail.gmail.com>
+From: Toshi Kani <toshi.kani@hp.com>
+Subject: Re: [PATCH 0/2] ACPI / scan: Remove useless #ifndef and simplify
+ container driver
+Date: Fri, 08 Feb 2013 09:57:18 -0700
+Message-ID: <1360342638.3869.59.camel@misato.fc.hp.com>
+References: <1873429.MS5RQDxTye@vostro.rjw.lan>
+	 <3164478.OcagzIMET0@vostro.rjw.lan> <5090866.2BHgpRnuEZ@vostro.rjw.lan>
+	 <1468930.acVuhKfKYv@vostro.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <linux-next-owner@vger.kernel.org>
-In-Reply-To: <CA+icZUWo4um9s-FhF5HoN5-WbkbNDTjnGkMMRHc60GWohcrPvA@mail.gmail.com>
-Sender: linux-next-owner@vger.kernel.org
-To: sedat.dilek@gmail.com
-Cc: "Rafael J. Wysocki" <rjw@sisk.pl>, Stephen Rothwell <sfr@canb.auug.org.au>, x86@kernel.org, linux-kernel@vger.kernel.org, Linux ACPI <linux-acpi@vger.kernel.org>, Hillf Danton <dhillf@gmail.com>, linux-next@vger.kernel.org, Linux PM List <linux-pm@lists.linux-foundation.org>, Chuansheng Liu <chuansheng.liu@intel.com>, Ingo Molnar <mingo@redhat.com>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from g1t0027.austin.hp.com ([15.216.28.34]:3983 "EHLO
+	g1t0027.austin.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1946667Ab3BHRH5 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 8 Feb 2013 12:07:57 -0500
+In-Reply-To: <1468930.acVuhKfKYv@vostro.rjw.lan>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Bjorn Helgaas <bhelgaas@google.com>, Mika Westerberg <mika.westerberg@linux.intel.com>, Matthew Garrett <matthew.garrett@nebula.com>, Yinghai Lu <yinghai@kernel.org>, Jiang Liu <liuj97@gmail.com>, LKML <linux-kernel@vger.kernel.org>, Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
 
-On 8 February 2013 22:21, Sedat Dilek <sedat.dilek@gmail.com> wrote:
->> No, it did NOT apply cleanly and I merged your tree like this.
+On Fri, 2013-02-08 at 01:24 +0100, Rafael J. Wysocki wrote:
+> On Monday, February 04, 2013 12:47:31 AM Rafael J. Wysocki wrote:
+> > From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+> > 
+> > The only useful thing that the ACPI container driver does is to
+> > install system notify handlers for all container and module device
+> > objects it finds in the namespace.  The driver structure,
+> > acpi_container_driver, and the data structures created by its
+> > .add() callback are in fact not used by the driver, so remove
+> > them entirely.
+> > 
+> > It also makes a little sense to build that driver as a module,
+> > so make it non-modular and add its initialization to the
+> > namespace scanning code.
+> > 
+> > In addition to that, make the namespace walk callback used for
+> > installing the notify handlers more straightforward.
+> 
+> As pointed out by Toshi Kani, the above changes would make acpi_eject_store()
+> fail for containers and it is the only way to eject them currently, so patch
+> [2/2] is an improved version of this (with Toshi's changes folded in).
+> 
+> Patch [1/2] is just a cleanup removing a useless #ifndef from acpi_eject_store().
 
-Patch looks fine to me.
+Thanks for the update!  They look good.  For the series:
 
->> To me it does not look like your changes from the patch you sent me
->> are included?
+Reviewed-by: Toshi Kani <toshi.kani@hp.com>
+Tested-by: Toshi Kani <toshi.kani@hp.com>
 
-Yes they do. Check most of the changes from cpufreq.c which remove
-locks around init/exit.
+BTW, did you intentionally keep the struct acpi_container definition in
+<acpi/container.h>?  I deleted that one in my patch.
 
-> Looks like I did it correct - no WARNINGs.
->
-> So, suspend-resume is good here.
+-Toshi
 
-Great!!
