@@ -1,55 +1,73 @@
-From: Yinghai Lu <yinghai@kernel.org>
-Subject: Re: [PATCH 2/2] ACPI / scan: Make container driver use struct acpi_scan_handler
-Date: Thu, 7 Feb 2013 19:32:22 -0800
-Message-ID: <CAE9FiQW6BDpSjNjbinHEkpud2QqQOqskkXca6z+Fq0fo+=pKyQ@mail.gmail.com>
-References: <1873429.MS5RQDxTye@vostro.rjw.lan>
-	<5090866.2BHgpRnuEZ@vostro.rjw.lan>
-	<1468930.acVuhKfKYv@vostro.rjw.lan>
-	<6697533.ch61jtPBiZ@vostro.rjw.lan>
+From: Sedat Dilek <sedat.dilek@gmail.com>
+Subject: Re: linux-next: Tree for Feb 8 [ smp|cpufreq: WARNING: at
+ kernel/smp.c:245 smp_call_function_single ]
+Date: Fri, 8 Feb 2013 09:46:07 +0100
+Message-ID: <CA+icZUX-hh+RjEOrKABBtecmb4C-5azSmdTx6D7SLuSpcQE+kQ@mail.gmail.com>
+Reply-To: sedat.dilek@gmail.com
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-ie0-f175.google.com ([209.85.223.175]:46308 "EHLO
-	mail-ie0-f175.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755392Ab3BHDcX (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 7 Feb 2013 22:32:23 -0500
-In-Reply-To: <6697533.ch61jtPBiZ@vostro.rjw.lan>
+Received: from mail-qc0-f182.google.com ([209.85.216.182]:61612 "EHLO
+	mail-qc0-f182.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1946061Ab3BHIqI (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 8 Feb 2013 03:46:08 -0500
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Bjorn Helgaas <bhelgaas@google.com>, Mika Westerberg <mika.westerberg@linux.intel.com>, Matthew Garrett <matthew.garrett@nebula.com>, Jiang Liu <liuj97@gmail.com>, Toshi Kani <toshi.kani@hp.com>, LKML <linux-kernel@vger.kernel.org>, Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
+To: Stephen Rothwell <sfr@canb.auug.org.au>
+Cc: linux-next@vger.kernel.org, linux-kernel@vger.kernel.org, "Rafael J. Wysocki" <rjw@sisk.pl>, Linux ACPI <linux-acpi@vger.kernel.org>, Linux PM List <linux-pm@lists.linux-foundation.org>, x86@kernel.org, Ingo Molnar <mingo@redhat.com>, Thomas Gleixner <tglx@linutronix.de>
 
-On Thu, Feb 7, 2013 at 4:27 PM, Rafael J. Wysocki <rjw@sisk.pl> wrote:
-> From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+On Fri, Feb 8, 2013 at 5:31 AM, Stephen Rothwell <sfr@canb.auug.org.au> wrote:
+> Hi all,
 >
-> Make the ACPI container driver use struct acpi_scan_handler for
-> representing the object used to initialize ACPI containers and remove
-> the ACPI driver structure used previously and the data structures
-> created by it, since in fact they were not used for any purpose.
+> Changes since 20130207:
 >
-> This simplifies the code and reduces the kernel's memory footprint by
-> avoiding the registration of a struct device_driver object with the
-> driver core and creation of its sysfs directory which is unnecessary.
+> The sound-asoc tree gained a build failure so I used the version from
+> next-20130207.
 >
-> In addition to that, make the namespace walk callback used for
-> installing the notify handlers for ACPI containers more
-> straightforward.
+> The watchdog tree gained a conflict against the mfd tree.
 >
-> This change includes fixes from Toshi Kani.
+> I applied a patch to restore some config defaults on PPC64.
 >
-> Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+> ----------------------------------------------------------------------------
+>
 
-Yes, container support should be built-in by nature.
+With today's Linux-Next I see this warning:
 
-Acked-by: Yinghai Lu <yinghai@kernel.org>
+[    0.377442] ------------[ cut here ]------------
+[    0.377452] WARNING: at kernel/smp.c:245
+smp_call_function_single+0x146/0x190()
+[    0.377455] Hardware name: 530U3BI/530U4BI/530U4BH
+[    0.377458] Modules linked in:
+[    0.377463] Pid: 1, comm: swapper/0 Not tainted
+3.8.0-rc6-next20130208-1-iniza-small #1
+[    0.377467] Call Trace:
+[    0.377473]  [<ffffffff8105a5ef>] warn_slowpath_common+0x7f/0xc0
+[    0.377479]  [<ffffffff81579130>] ? acpi_cpufreq_target+0x2c0/0x2c0
+[    0.377483]  [<ffffffff8105a64a>] warn_slowpath_null+0x1a/0x20
+[    0.377487]  [<ffffffff810bb7e6>] smp_call_function_single+0x146/0x190
+[    0.377492]  [<ffffffff81579130>] ? acpi_cpufreq_target+0x2c0/0x2c0
+[    0.377496]  [<ffffffff810bb881>] smp_call_function_any+0x51/0x100
+[    0.377500]  [<ffffffff815788c9>] get_cur_val+0x99/0x130
+[    0.377504]  [<ffffffff81579444>] ? acpi_cpufreq_cpu_init+0x2b4/0x6a0
+[    0.377508]  [<ffffffff81578db0>] get_cur_freq_on_cpu+0x60/0x80
+[    0.377512]  [<ffffffff815795a2>] acpi_cpufreq_cpu_init+0x412/0x6a0
+[    0.377517]  [<ffffffff81575bb9>] cpufreq_add_dev+0x2d9/0x4f0
+[    0.377523]  [<ffffffff81d44b22>] ? cpufreq_gov_dbs_init+0x2c/0x2c
+[    0.377528]  [<ffffffff8145d379>] subsys_interface_register+0x89/0xd0
+[    0.377533]  [<ffffffff81573dee>] cpufreq_register_driver+0x8e/0x180
+[    0.377537]  [<ffffffff81d44c18>] acpi_cpufreq_init+0xf6/0x1f8
+[    0.377542]  [<ffffffff814608e6>] ? platform_driver_register+0x46/0x50
+[    0.377547]  [<ffffffff8100206f>] do_one_initcall+0x3f/0x170
+[    0.377553]  [<ffffffff81d07029>] kernel_init_freeable+0x13e/0x1cd
+[    0.377560]  [<ffffffff81d06895>] ? do_early_param+0x86/0x86
+[    0.377565]  [<ffffffff8169cf20>] ? rest_init+0x80/0x80
+[    0.377569]  [<ffffffff8169cf2e>] kernel_init+0xe/0xf0
+[    0.377575]  [<ffffffff816c722c>] ret_from_fork+0x7c/0xb0
+[    0.377578]  [<ffffffff8169cf20>] ? rest_init+0x80/0x80
+[    0.377581] ---[ end trace c6ec8280ce20313a ]---
 
-What is the next?
+kernel/smp.c: Line #245 see [1].
 
-dock?
+- Sedat -
 
-Hope someone with access of dock that have pcie devices could help
-sorting it out...
-
-Thanks
-
-Yinghai
+[1] http://git.kernel.org/?p=linux/kernel/git/next/linux-next.git;a=blob;f=kernel/smp.c;hb=refs/tags/next-20130208#l245
