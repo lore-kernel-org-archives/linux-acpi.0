@@ -1,128 +1,304 @@
 From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: [PATCH 2/2] ACPI / scan: Simplify container driver
-Date: Thu, 07 Feb 2013 23:42:34 +0100
-Message-ID: <1619279.PL3OLF99br@vostro.rjw.lan>
-References: <1873429.MS5RQDxTye@vostro.rjw.lan> <2629080.ji4YWC94Sj@vostro.rjw.lan> <1360247527.14416.8.camel@misato.fc.hp.com>
+Subject: [PATCH 2/2] ACPI / scan: Make container driver use struct acpi_scan_handler
+Date: Fri, 08 Feb 2013 01:27:30 +0100
+Message-ID: <6697533.ch61jtPBiZ@vostro.rjw.lan>
+References: <1873429.MS5RQDxTye@vostro.rjw.lan> <5090866.2BHgpRnuEZ@vostro.rjw.lan> <1468930.acVuhKfKYv@vostro.rjw.lan>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7Bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from hydra.sisk.pl ([212.160.235.94]:59849 "EHLO hydra.sisk.pl"
+Received: from hydra.sisk.pl ([212.160.235.94]:60230 "EHLO hydra.sisk.pl"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755607Ab3BGWgO (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 7 Feb 2013 17:36:14 -0500
-In-Reply-To: <1360247527.14416.8.camel@misato.fc.hp.com>
+	id S1752210Ab3BHAVP (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 7 Feb 2013 19:21:15 -0500
+In-Reply-To: <1468930.acVuhKfKYv@vostro.rjw.lan>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Toshi Kani <toshi.kani@hp.com>
-Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Bjorn Helgaas <bhelgaas@google.com>, Mika Westerberg <mika.westerberg@linux.intel.com>, Matthew Garrett <matthew.garrett@nebula.com>, Yinghai Lu <yinghai@kernel.org>, Jiang Liu <liuj97@gmail.com>, LKML <linux-kernel@vger.kernel.org>
+To: ACPI Devel Maling List <linux-acpi@vger.kernel.org>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Bjorn Helgaas <bhelgaas@google.com>, Mika Westerberg <mika.westerberg@linux.intel.com>, Matthew Garrett <matthew.garrett@nebula.com>, Yinghai Lu <yinghai@kernel.org>, Jiang Liu <liuj97@gmail.com>, Toshi Kani <toshi.kani@hp.com>, LKML <linux-kernel@vger.kernel.org>, Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
 
-On Thursday, February 07, 2013 07:32:07 AM Toshi Kani wrote:
-> On Thu, 2013-02-07 at 02:32 +0100, Rafael J. Wysocki wrote:
-> > On Wednesday, February 06, 2013 05:51:42 PM Toshi Kani wrote:
-> > > On Thu, 2013-02-07 at 01:55 +0100, Rafael J. Wysocki wrote:
-> > > > On Wednesday, February 06, 2013 03:32:18 PM Toshi Kani wrote:
-> > > > > On Mon, 2013-02-04 at 00:47 +0100, Rafael J. Wysocki wrote:
-> > > > > > From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
-> > > > > > 
-> > > > > > The only useful thing that the ACPI container driver does is to
-> > > > > > install system notify handlers for all container and module device
-> > > > > > objects it finds in the namespace.  The driver structure,
-> > > > > > acpi_container_driver, and the data structures created by its
-> > > > > > .add() callback are in fact not used by the driver, so remove
-> > > > > > them entirely.
-> > > > > > 
-> > > > > > It also makes a little sense to build that driver as a module,
-> > > > > > so make it non-modular and add its initialization to the
-> > > > > > namespace scanning code.
-> > > > > > 
-> > > > > > In addition to that, make the namespace walk callback used for
-> > > > > > installing the notify handlers more straightforward.
-> > > > > 
-> > > > > I think the container driver needs to be registered as an ACPI scan
-> > > > > driver so that sysfs eject will continue to work for container devices,
-> > > > > such as ACPI0004:XX/eject.  Since the container driver does not support
-> > > > > ACPI eject notification (and we have been discussing how system device
-> > > > > hot-plug should work), this sysfs eject is the only way to eject a
-> > > > > container device at this point.  I will send an update patchset that
-> > > > > applies on top of this patch.
-> > > > > 
-> > > > > With the update in my patchset:
-> > > > > Reviewed-by: Toshi Kani <toshi.kani@hp.com>
-> > > > 
-> > > > Thanks, but I'd like to (1) apply your patch from
-> > > > https://patchwork.kernel.org/patch/2108851/ first and then (2) fold your [2/2]
-> > > > into my [2/2], if you don't mind, and apply that next.
-> > > 
-> > > That's fine by me.
-> > > 
-> > > > Moreover, I'm wondering if the #ifndef FORCE_EJECT thing in acpi_eject_store()
-> > > > actually makes sense after the recent changes to acpi_bus_trim(), because that
-> > > > can't fail now, so the eject will always be carried out.  So perhaps we can
-> > > > simply remove the acpi_device->driver check from there entirely in the first
-> > > > place?
-> > > >
-> > > > If we really want to be able to prevent ejects from happening in some cases,
-> > > > we need to implement something along the lines discussed with Greg.
-> > > 
-> > > acpi_bus_trim() cannot fail, but sysfs eject can fail.  So, I think it
-> > > makes sense to do some validation before calling acpi_bus_trim().  If we
-> > > are to implement the no_eject flag thing, that check needs to be made
-> > > before calling acpi_bus_trim().
-> > 
-> > Sure, but now the logic seems to be "if FORCE_EJECT is not set, don't eject
-> > devices that have no ACPI drivers", so I'm wondering what the purpose of this
-> > is.  It definitely isn't too obvious. :-)
-> 
-> The check sounds odd for container, but is necessary for CPU and memory
-> for now.  CPU and memory go online without their ACPI drivers at boot.
-> So, without this check (i.e. FORCE_EJECT is set), it simply ejects them
-> without attempting to offline when the ACPI drivers are not bound.  Of
-> course, we have the issue of a failure in offline be ignored, so this
-> offlining part needs to be moved out from acpi_bus_trim() in one way or
-> the other.
+From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 
-That was my point.
+Make the ACPI container driver use struct acpi_scan_handler for
+representing the object used to initialize ACPI containers and remove
+the ACPI driver structure used previously and the data structures
+created by it, since in fact they were not used for any purpose.
 
-I'm going to add that change for now, but I think we need to take a step back
-and talk about how we want the whole eject machinery to work, regardless of
-the offline/online problem.
+This simplifies the code and reduces the kernel's memory footprint by
+avoiding the registration of a struct device_driver object with the
+driver core and creation of its sysfs directory which is unnecessary.
 
-I think that it should work in the same way for all things that may be ejected
-or inserted.  Namely, they all should use the same notify handler, for example,
-and if we generate a uevent for one, we should do that for all of them.
-Question is how that notify handler should work and here there are two chices
-in my view: Either we'll always emit a uevent and wait for user space to start
-the eject procedure via sysfs, or we won't emit uevents at all and rely on the
-"no_eject" flag to trigger if something is not ready.  I'm basically fine with
-any of them (the "no_eject" flag may be useful even if we rely on user space
-to offline stuff before triggering the eject in my opinion), but if we're going
-to rely on user space, then there needs to be a timeout for letting the BIOS
-know that the eject has failed.
+In addition to that, make the namespace walk callback used for
+installing the notify handlers for ACPI containers more
+straightforward.
 
-[There may be a flag for the common code telling it whether to emit a uevent
-and wait for user space to trigger eject or to trigger eject by itself.]
+This change includes fixes from Toshi Kani.
 
-Next, I think there needs to be a global list of IDs for which we'll install
-hot-plug notify handlers and which we'll allow to be ejected via /sys/.../eject.
-So, if a device ID is on that list, we'll install the (common) hot-plug notify
-handler for its ACPI handle and we'll set an "eject_possible" flag in its
-struct acpi_device (when created).  That will need to be done for every scan
-of the ACPI namespace and not just once, BTW.  And we'll check the
-"eject_possible" flag in acpi_eject_store() instead of the "does it have a
-driver or scan handler" check.
+Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+---
+ drivers/acpi/Kconfig     |    2 
+ drivers/acpi/container.c |  167 ++++++++++-------------------------------------
+ drivers/acpi/internal.h  |    5 +
+ drivers/acpi/scan.c      |    1 
+ 4 files changed, 43 insertions(+), 132 deletions(-)
 
-Then, the scan handlers for hot-plug devices will be able to add their IDs to
-that global list instead of walking the namespace and installing notify handlers
-by themselves (which as I said has a problem that it's done once, while it
-should be done every time acpi_bus_scan() runs).
+Index: test/drivers/acpi/container.c
+===================================================================
+--- test.orig/drivers/acpi/container.c
++++ test/drivers/acpi/container.c
+@@ -38,42 +38,31 @@
+ 
+ #define PREFIX "ACPI: "
+ 
+-#define ACPI_CONTAINER_DEVICE_NAME	"ACPI container device"
+-#define ACPI_CONTAINER_CLASS		"container"
+-
+-#define INSTALL_NOTIFY_HANDLER		1
+-#define UNINSTALL_NOTIFY_HANDLER	2
+-
+ #define _COMPONENT			ACPI_CONTAINER_COMPONENT
+ ACPI_MODULE_NAME("container");
+ 
+-MODULE_AUTHOR("Anil S Keshavamurthy");
+-MODULE_DESCRIPTION("ACPI container driver");
+-MODULE_LICENSE("GPL");
+-
+-static int acpi_container_add(struct acpi_device *device);
+-static int acpi_container_remove(struct acpi_device *device);
+-
+ static const struct acpi_device_id container_device_ids[] = {
+ 	{"ACPI0004", 0},
+ 	{"PNP0A05", 0},
+ 	{"PNP0A06", 0},
+ 	{"", 0},
+ };
+-MODULE_DEVICE_TABLE(acpi, container_device_ids);
+ 
+-static struct acpi_driver acpi_container_driver = {
+-	.name = "container",
+-	.class = ACPI_CONTAINER_CLASS,
++static int container_device_attach(struct acpi_device *device,
++				   const struct acpi_device_id *not_used)
++{
++	/*
++	 * FIXME: This is necessary, so that acpi_eject_store() doesn't return
++	 * -ENODEV for containers.
++	 */
++	return 1;
++}
++
++static struct acpi_scan_handler container_device_handler = {
+ 	.ids = container_device_ids,
+-	.ops = {
+-		.add = acpi_container_add,
+-		.remove = acpi_container_remove,
+-		},
++	.attach = container_device_attach,
+ };
+ 
+-/*******************************************************************/
+-
+ static int is_device_present(acpi_handle handle)
+ {
+ 	acpi_handle temp;
+@@ -92,49 +81,6 @@ static int is_device_present(acpi_handle
+ 	return ((sta & ACPI_STA_DEVICE_PRESENT) == ACPI_STA_DEVICE_PRESENT);
+ }
+ 
+-static bool is_container_device(const char *hid)
+-{
+-	const struct acpi_device_id *container_id;
+-
+-	for (container_id = container_device_ids;
+-	     container_id->id[0]; container_id++) {
+-		if (!strcmp((char *)container_id->id, hid))
+-			return true;
+-	}
+-
+-	return false;
+-}
+-
+-/*******************************************************************/
+-static int acpi_container_add(struct acpi_device *device)
+-{
+-	struct acpi_container *container;
+-
+-	container = kzalloc(sizeof(struct acpi_container), GFP_KERNEL);
+-	if (!container)
+-		return -ENOMEM;
+-
+-	container->handle = device->handle;
+-	strcpy(acpi_device_name(device), ACPI_CONTAINER_DEVICE_NAME);
+-	strcpy(acpi_device_class(device), ACPI_CONTAINER_CLASS);
+-	device->driver_data = container;
+-
+-	ACPI_DEBUG_PRINT((ACPI_DB_INFO, "Device <%s> bid <%s>\n",
+-			  acpi_device_name(device), acpi_device_bid(device)));
+-
+-	return 0;
+-}
+-
+-static int acpi_container_remove(struct acpi_device *device)
+-{
+-	acpi_status status = AE_OK;
+-	struct acpi_container *pc = NULL;
+-
+-	pc = acpi_driver_data(device);
+-	kfree(pc);
+-	return status;
+-}
+-
+ static void container_notify_cb(acpi_handle handle, u32 type, void *context)
+ {
+ 	struct acpi_device *device = NULL;
+@@ -199,84 +145,43 @@ static void container_notify_cb(acpi_han
+ 	return;
+ }
+ 
+-static acpi_status
+-container_walk_namespace_cb(acpi_handle handle,
+-			    u32 lvl, void *context, void **rv)
++static bool is_container(acpi_handle handle)
+ {
+-	char *hid = NULL;
+ 	struct acpi_device_info *info;
+-	acpi_status status;
+-	int *action = context;
+-
+-	status = acpi_get_object_info(handle, &info);
+-	if (ACPI_FAILURE(status)) {
+-		return AE_OK;
+-	}
++	bool ret = false;
+ 
+-	if (info->valid & ACPI_VALID_HID)
+-		hid = info->hardware_id.string;
++	if (ACPI_FAILURE(acpi_get_object_info(handle, &info)))
++		return false;
+ 
+-	if (hid == NULL) {
+-		goto end;
+-	}
+-
+-	if (!is_container_device(hid))
+-		goto end;
++	if (info->valid & ACPI_VALID_HID) {
++		const struct acpi_device_id *id;
+ 
+-	switch (*action) {
+-	case INSTALL_NOTIFY_HANDLER:
+-		acpi_install_notify_handler(handle,
+-					    ACPI_SYSTEM_NOTIFY,
+-					    container_notify_cb, NULL);
+-		break;
+-	case UNINSTALL_NOTIFY_HANDLER:
+-		acpi_remove_notify_handler(handle,
+-					   ACPI_SYSTEM_NOTIFY,
+-					   container_notify_cb);
+-		break;
+-	default:
+-		break;
++		for (id = container_device_ids; id->id[0]; id++) {
++			ret = !strcmp((char *)id->id, info->hardware_id.string);
++			if (ret)
++				break;
++		}
+ 	}
+-
+-      end:
+ 	kfree(info);
+-
+-	return AE_OK;
++	return ret;
+ }
+ 
+-static int __init acpi_container_init(void)
++static acpi_status acpi_container_register_notify_handler(acpi_handle handle,
++							  u32 lvl, void *ctxt,
++							  void **retv)
+ {
+-	int result = 0;
+-	int action = INSTALL_NOTIFY_HANDLER;
+-
+-	result = acpi_bus_register_driver(&acpi_container_driver);
+-	if (result < 0) {
+-		return (result);
+-	}
+-
+-	/* register notify handler to every container device */
+-	acpi_walk_namespace(ACPI_TYPE_DEVICE,
+-			    ACPI_ROOT_OBJECT,
+-			    ACPI_UINT32_MAX,
+-			    container_walk_namespace_cb, NULL, &action, NULL);
++	if (is_container(handle))
++		acpi_install_notify_handler(handle, ACPI_SYSTEM_NOTIFY,
++					    container_notify_cb, NULL);
+ 
+-	return (0);
++	return AE_OK;
+ }
+ 
+-static void __exit acpi_container_exit(void)
++void __init acpi_container_init(void)
+ {
+-	int action = UNINSTALL_NOTIFY_HANDLER;
+-
+-
+-	acpi_walk_namespace(ACPI_TYPE_DEVICE,
+-			    ACPI_ROOT_OBJECT,
+-			    ACPI_UINT32_MAX,
+-			    container_walk_namespace_cb, NULL, &action, NULL);
++	acpi_walk_namespace(ACPI_TYPE_DEVICE, ACPI_ROOT_OBJECT, ACPI_UINT32_MAX,
++			    acpi_container_register_notify_handler, NULL,
++			    NULL, NULL);
+ 
+-	acpi_bus_unregister_driver(&acpi_container_driver);
+-
+-	return;
++	acpi_scan_add_handler(&container_device_handler);
+ }
+-
+-module_init(acpi_container_init);
+-module_exit(acpi_container_exit);
+Index: test/drivers/acpi/Kconfig
+===================================================================
+--- test.orig/drivers/acpi/Kconfig
++++ test/drivers/acpi/Kconfig
+@@ -334,7 +334,7 @@ config X86_PM_TIMER
+ 	  systems require this timer. 
+ 
+ config ACPI_CONTAINER
+-	tristate "Container and Module Devices (EXPERIMENTAL)"
++	bool "Container and Module Devices (EXPERIMENTAL)"
+ 	depends on EXPERIMENTAL
+ 	default (ACPI_HOTPLUG_MEMORY || ACPI_HOTPLUG_CPU || ACPI_HOTPLUG_IO)
+ 	help
+Index: test/drivers/acpi/internal.h
+===================================================================
+--- test.orig/drivers/acpi/internal.h
++++ test/drivers/acpi/internal.h
+@@ -35,6 +35,11 @@ void acpi_pci_slot_init(void);
+ #else
+ static inline void acpi_pci_slot_init(void) { }
+ #endif
++#ifdef CONFIG_ACPI_CONTAINER
++void acpi_container_init(void);
++#else
++static inline void acpi_container_init(void) {}
++#endif
+ 
+ #ifdef CONFIG_DEBUG_FS
+ extern struct dentry *acpi_debugfs_dir;
+Index: test/drivers/acpi/scan.c
+===================================================================
+--- test.orig/drivers/acpi/scan.c
++++ test/drivers/acpi/scan.c
+@@ -1762,6 +1762,7 @@ int __init acpi_scan_init(void)
+ 	acpi_pci_slot_init();
+ 	acpi_platform_init();
+ 	acpi_csrt_init();
++	acpi_container_init();
+ 
+ 	/*
+ 	 * Enumerate devices in the ACPI namespace.
 
-I wonder what you think.
-
-Thanks,
-Rafael
-
-
--- 
-I speak only for myself.
-Rafael J. Wysocki, Intel Open Source Technology Center.
