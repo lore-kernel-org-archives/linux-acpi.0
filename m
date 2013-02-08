@@ -1,66 +1,58 @@
 From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: [PATCH 0/2] ACPI / scan: Remove useless #ifndef and simplify container driver
-Date: Fri, 08 Feb 2013 23:41:21 +0100
-Message-ID: <1435179.fU91E9qMVO@vostro.rjw.lan>
-References: <1873429.MS5RQDxTye@vostro.rjw.lan> <1360342638.3869.59.camel@misato.fc.hp.com> <1891536.LKCrpu1upY@vostro.rjw.lan>
+Subject: Re: [PATCH] Documentation / acpi: refer to correct file for acpi_platform_device_ids[] table
+Date: Sat, 09 Feb 2013 00:14:27 +0100
+Message-ID: <38872303.yk2lQjq1aC@vostro.rjw.lan>
+References: <1360332421-32140-1-git-send-email-mika.westerberg@linux.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7Bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from hydra.sisk.pl ([212.160.235.94]:35474 "EHLO hydra.sisk.pl"
+Received: from hydra.sisk.pl ([212.160.235.94]:35524 "EHLO hydra.sisk.pl"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1760323Ab3BHWfB (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 8 Feb 2013 17:35:01 -0500
-In-Reply-To: <1891536.LKCrpu1upY@vostro.rjw.lan>
+	id S1947233Ab3BHXIG (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 8 Feb 2013 18:08:06 -0500
+In-Reply-To: <1360332421-32140-1-git-send-email-mika.westerberg@linux.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Toshi Kani <toshi.kani@hp.com>
-Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Bjorn Helgaas <bhelgaas@google.com>, Mika Westerberg <mika.westerberg@linux.intel.com>, Matthew Garrett <matthew.garrett@nebula.com>, Yinghai Lu <yinghai@kernel.org>, Jiang Liu <liuj97@gmail.com>, LKML <linux-kernel@vger.kernel.org>, Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
+To: Mika Westerberg <mika.westerberg@linux.intel.com>
+Cc: linux-kernel@vger.kernel.org, Rob Landley <rob@landley.net>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>
 
-On Friday, February 08, 2013 08:59:44 PM Rafael J. Wysocki wrote:
-> On Friday, February 08, 2013 09:57:18 AM Toshi Kani wrote:
-> > On Fri, 2013-02-08 at 01:24 +0100, Rafael J. Wysocki wrote:
-> > > On Monday, February 04, 2013 12:47:31 AM Rafael J. Wysocki wrote:
-> > > > From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
-> > > > 
-> > > > The only useful thing that the ACPI container driver does is to
-> > > > install system notify handlers for all container and module device
-> > > > objects it finds in the namespace.  The driver structure,
-> > > > acpi_container_driver, and the data structures created by its
-> > > > .add() callback are in fact not used by the driver, so remove
-> > > > them entirely.
-> > > > 
-> > > > It also makes a little sense to build that driver as a module,
-> > > > so make it non-modular and add its initialization to the
-> > > > namespace scanning code.
-> > > > 
-> > > > In addition to that, make the namespace walk callback used for
-> > > > installing the notify handlers more straightforward.
-> > > 
-> > > As pointed out by Toshi Kani, the above changes would make acpi_eject_store()
-> > > fail for containers and it is the only way to eject them currently, so patch
-> > > [2/2] is an improved version of this (with Toshi's changes folded in).
-> > > 
-> > > Patch [1/2] is just a cleanup removing a useless #ifndef from acpi_eject_store().
-> > 
-> > Thanks for the update!  They look good.  For the series:
-> > 
-> > Reviewed-by: Toshi Kani <toshi.kani@hp.com>
-> > Tested-by: Toshi Kani <toshi.kani@hp.com>
-> > 
-> > BTW, did you intentionally keep the struct acpi_container definition in
-> > <acpi/container.h>?  I deleted that one in my patch.
+On Friday, February 08, 2013 04:07:01 PM Mika Westerberg wrote:
+> When the ACPI platform device code was converted to the new ACPI scan
+> handler facility, the the acpi_platform_device_ids[] was moved to
+> drivers/acpi/acpi_platform.c. Update the documentation accordingly.
 > 
-> No, I overlooked that part.  I'll apply that part of your patch as a separate
-> patch on top of this one.
+> Signed-off-by: Mika Westerberg <mika.westerberg@linux.intel.com>
 
-Actually, I prefer to remove container.h entirely.  I'll post a patch for that
-shortly.
+Applied.
+
+When you post any patches touching ACPI, please send CCs of them to
+linux-acpi as well.
 
 Thanks,
 Rafael
 
 
+> ---
+>  Documentation/acpi/enumeration.txt |    4 ++--
+>  1 file changed, 2 insertions(+), 2 deletions(-)
+> 
+> diff --git a/Documentation/acpi/enumeration.txt b/Documentation/acpi/enumeration.txt
+> index 54469bc..94a6561 100644
+> --- a/Documentation/acpi/enumeration.txt
+> +++ b/Documentation/acpi/enumeration.txt
+> @@ -63,8 +63,8 @@ from ACPI tables.
+>  Currently the kernel is not able to automatically determine from which ACPI
+>  device it should make the corresponding platform device so we need to add
+>  the ACPI device explicitly to acpi_platform_device_ids list defined in
+> -drivers/acpi/scan.c. This limitation is only for the platform devices, SPI
+> -and I2C devices are created automatically as described below.
+> +drivers/acpi/acpi_platform.c. This limitation is only for the platform
+> +devices, SPI and I2C devices are created automatically as described below.
+>  
+>  SPI serial bus support
+>  ~~~~~~~~~~~~~~~~~~~~~~
+> 
 -- 
 I speak only for myself.
 Rafael J. Wysocki, Intel Open Source Technology Center.
