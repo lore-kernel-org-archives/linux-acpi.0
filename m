@@ -1,76 +1,61 @@
-From: Toshi Kani <toshi.kani@hp.com>
-Subject: Re: [PATCH 01/02] ACPI: sysfs eject support for ACPI scan handlers
-Date: Thu, 07 Feb 2013 18:25:10 -0700
-Message-ID: <1360286710.3869.53.camel@misato.fc.hp.com>
-References: <1360191056-13293-1-git-send-email-toshi.kani@hp.com>
-	  <1360191056-13293-2-git-send-email-toshi.kani@hp.com>
-	  <51144BD4.7070804@jp.fujitsu.com>
-	 <1360285813.3869.52.camel@misato.fc.hp.com>
-	 <511455D3.6020602@jp.fujitsu.com>
+From: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
+Subject: Re: [PATCH 0/2] ACPI / scan: Remove useless #ifndef and simplify
+ container driver
+Date: Fri, 8 Feb 2013 12:19:35 +0900
+Message-ID: <51146EC7.5090504@jp.fujitsu.com>
+References: <1873429.MS5RQDxTye@vostro.rjw.lan> <3164478.OcagzIMET0@vostro.rjw.lan> <5090866.2BHgpRnuEZ@vostro.rjw.lan> <1468930.acVuhKfKYv@vostro.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset="UTF-8"; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <511455D3.6020602@jp.fujitsu.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
-Cc: rjw@sisk.pl, linux-acpi@vger.kernel.org, gregkh@linuxfoundation.org, bhelgaas@google.com, mika.westerberg@linux.intel.com, matthew.garrett@nebula.com, yinghai@kernel.org, liuj97@gmail.com, linux-kernel@vger.kernel.org
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from fgwmail6.fujitsu.co.jp ([192.51.44.36]:46092 "EHLO
+	fgwmail6.fujitsu.co.jp" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758939Ab3BHDUF (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 7 Feb 2013 22:20:05 -0500
+In-Reply-To: <1468930.acVuhKfKYv@vostro.rjw.lan>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Bjorn Helgaas <bhelgaas@google.com>, Mika Westerberg <mika.westerberg@linux.intel.com>, Matthew Garrett <matthew.garrett@nebula.com>, Yinghai Lu <yinghai@kernel.org>, Jiang Liu <liuj97@gmail.com>, Toshi Kani <toshi.kani@hp.com>, LKML <linux-kernel@vger.kernel.org>
 
-On Fri, 2013-02-08 at 10:33 +0900, Yasuaki Ishimatsu wrote:
-> 2013/02/08 10:10, Toshi Kani wrote:
-> > On Fri, 2013-02-08 at 09:50 +0900, Yasuaki Ishimatsu wrote:
-> >> Hi Toshi,
-> >>
-> >> 2013/02/07 7:50, Toshi Kani wrote:
-> >>> Changed sysfs eject, acpi_eject_store(), to support ACPI scan handlers.
-> >>>
-> >>> Signed-off-by: Toshi Kani <toshi.kani@hp.com>
-> >>> ---
-> >>>    drivers/acpi/scan.c |    2 +-
-> >>>    1 file changed, 1 insertion(+), 1 deletion(-)
-> >>>
-> >>> diff --git a/drivers/acpi/scan.c b/drivers/acpi/scan.c
-> >>> index cfd7a69..3ff632e 100644
-> >>> --- a/drivers/acpi/scan.c
-> >>> +++ b/drivers/acpi/scan.c
-> >>> @@ -203,7 +203,7 @@ acpi_eject_store(struct device *d, struct device_attribute *attr,
-> >>>    		return -EINVAL;
-> >>>    	}
-> >>>    #ifndef FORCE_EJECT
-> >>
-> >>> -	if (acpi_device->driver == NULL) {
-> >>> +	if (!acpi_device->driver && !acpi_device->handler) {
-> >>
-> >> I don't understand the fix.
-> >>
-> >> The if sentence becomes true, when both acpi_device->driver and acpi_device->handler
-> >> are NULL. It means that acpi_eject_store() runs if either acpi_device->driver or
-> >> acpi_device->handler has pointer. Is it O.K.?
-> >
-> > Yes.
-> >
-> >> I think it should be if (!acpi_device->driver || !acpi_device->handler).
-> >
-> > No, the condition has to be "&&" because an acpi_device is _either_
-> > bound to an ACPI driver or an ACPI scan handler.
-> 
-> Thank you for you clarification. I understood it.
-> 
-> Acked-by: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
+Hi Rafael,
 
-Thanks Yasuaki!
--Toshi
+2013/02/08 9:24, Rafael J. Wysocki wrote:
+> On Monday, February 04, 2013 12:47:31 AM Rafael J. Wysocki wrote:
+>> From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+>>
+>> The only useful thing that the ACPI container driver does is to
+>> install system notify handlers for all container and module device
+>> objects it finds in the namespace.  The driver structure,
+>> acpi_container_driver, and the data structures created by its
+>> .add() callback are in fact not used by the driver, so remove
+>> them entirely.
+>>
+>> It also makes a little sense to build that driver as a module,
+>> so make it non-modular and add its initialization to the
+>> namespace scanning code.
+>>
+>> In addition to that, make the namespace walk callback used for
+>> installing the notify handlers more straightforward.
+>
+> As pointed out by Toshi Kani, the above changes would make acpi_eject_store()
+> fail for containers and it is the only way to eject them currently, so patch
+> [2/2] is an improved version of this (with Toshi's changes folded in).
+>
+> Patch [1/2] is just a cleanup removing a useless #ifndef from acpi_eject_store().
 
+I confimed the patch series works well.
 
-> 
+Acked-by: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
+Tested-by: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
+
+Thanks,
+Yasuaki Ishimatsu
+
+>
 > Thanks,
-> Yasuaki Ishimatsu
-> 
-> >
-> > Thanks,
-> > -Toshi
-> >
-> >
-> 
-> 
+> Rafael
+>
+>
+
+
