@@ -1,81 +1,40 @@
-From: Toshi Kani <toshi.kani@hp.com>
-Subject: Re: [PATCH] ACPI: Drop the container.h header file
-Date: Fri, 08 Feb 2013 16:27:34 -0700
-Message-ID: <1360366054.3869.60.camel@misato.fc.hp.com>
-References: <1873429.MS5RQDxTye@vostro.rjw.lan>
-	 <1891536.LKCrpu1upY@vostro.rjw.lan> <1435179.fU91E9qMVO@vostro.rjw.lan>
-	 <1845543.1spGohx2XC@vostro.rjw.lan>
+From: Mika Westerberg <mika.westerberg@linux.intel.com>
+Subject: Re: [PATCH] Documentation / acpi: refer to correct file for
+ acpi_platform_device_ids[] table
+Date: Sat, 9 Feb 2013 05:45:51 +0200
+Message-ID: <20130209034551.GS20771@intel.com>
+References: <1360332421-32140-1-git-send-email-mika.westerberg@linux.intel.com>
+ <38872303.yk2lQjq1aC@vostro.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from g1t0028.austin.hp.com ([15.216.28.35]:36447 "EHLO
-	g1t0028.austin.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1947297Ab3BHXiO (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 8 Feb 2013 18:38:14 -0500
-In-Reply-To: <1845543.1spGohx2XC@vostro.rjw.lan>
+Received: from mga02.intel.com ([134.134.136.20]:42360 "EHLO mga02.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753883Ab3BIDl7 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 8 Feb 2013 22:41:59 -0500
+Content-Disposition: inline
+In-Reply-To: <38872303.yk2lQjq1aC@vostro.rjw.lan>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Bjorn Helgaas <bhelgaas@google.com>, Mika Westerberg <mika.westerberg@linux.intel.com>, Matthew Garrett <matthew.garrett@nebula.com>, Yinghai Lu <yinghai@kernel.org>, Jiang Liu <liuj97@gmail.com>, LKML <linux-kernel@vger.kernel.org>, Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
+Cc: linux-kernel@vger.kernel.org, Rob Landley <rob@landley.net>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>
 
-On Sat, 2013-02-09 at 00:18 +0100, Rafael J. Wysocki wrote:
-> From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+On Sat, Feb 09, 2013 at 12:14:27AM +0100, Rafael J. Wysocki wrote:
+> On Friday, February 08, 2013 04:07:01 PM Mika Westerberg wrote:
+> > When the ACPI platform device code was converted to the new ACPI scan
+> > handler facility, the the acpi_platform_device_ids[] was moved to
+> > drivers/acpi/acpi_platform.c. Update the documentation accordingly.
+> > 
+> > Signed-off-by: Mika Westerberg <mika.westerberg@linux.intel.com>
 > 
-> The include/acpi/container.h only contains a definition of a
-> structure that is not used any more, so drop it entirely.
-> 
-> Similar change was proposed earlier by Toshi Kani.
-> 
-> Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+> Applied.
 
-Acked-by: Toshi Kani <toshi.kani@hp.com>
+Thanks!
 
-Thanks,
--Toshi
+> When you post any patches touching ACPI, please send CCs of them to
+> linux-acpi as well.
 
+Sure.
 
-> ---
-> 
-> On top of current linux-pm.git/bleeding-edge.
-> 
-> Thanks,
-> Rafael
-> 
-> ---
->  drivers/acpi/container.c |    1 -
->  include/acpi/container.h |   12 ------------
->  2 files changed, 13 deletions(-)
-> 
-> Index: test/include/acpi/container.h
-> ===================================================================
-> --- test.orig/include/acpi/container.h
-> +++ /dev/null
-> @@ -1,12 +0,0 @@
-> -#ifndef __ACPI_CONTAINER_H
-> -#define __ACPI_CONTAINER_H
-> -
-> -#include <linux/kernel.h>
-> -
-> -struct acpi_container {
-> -	acpi_handle handle;
-> -	unsigned long sun;
-> -	int state;
-> -};
-> -
-> -#endif				/* __ACPI_CONTAINER_H */
-> Index: test/drivers/acpi/container.c
-> ===================================================================
-> --- test.orig/drivers/acpi/container.c
-> +++ test/drivers/acpi/container.c
-> @@ -34,7 +34,6 @@
->  #include <linux/acpi.h>
->  #include <acpi/acpi_bus.h>
->  #include <acpi/acpi_drivers.h>
-> -#include <acpi/container.h>
->  
->  #define PREFIX "ACPI: "
->  
-> 
-
-
+In this case I just CC'd what get_maintainer.pl gave me and somehow it
+missed linux-acpi totally.
