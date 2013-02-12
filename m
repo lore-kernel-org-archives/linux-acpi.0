@@ -1,272 +1,244 @@
-From: Yinghai Lu <yinghai@kernel.org>
-Subject: Re: [Bisected] [-next-20130204] usb/hcd: irq 18: nobody cared
-Date: Mon, 11 Feb 2013 19:21:39 -0800
-Message-ID: <CAE9FiQUkmnV_On5+ZpH2pF4Li1HxLpkO8bp4TnYB46=pc9Safg@mail.gmail.com>
-References: <Pine.LNX.4.44L0.1302051520220.2245-100000@iolanthe.rowland.org>
-	<1360466060.3703.15.camel@thor.lan>
-	<1360506199.3461.5.camel@thor.lan>
-	<CAE9FiQX0Jzqi=Dy=r3MoU9vK7HgAf+919LvbgLygW7VH3O4=bg@mail.gmail.com>
-	<CAE9FiQX5wQ8zFzPfgmvm0BESyLVxzDRQ33XPgj+QjBZ0kxuHXg@mail.gmail.com>
-	<1360587768.3454.2.camel@thor.lan>
-	<CAE9FiQWUZ3BgLOtcGePppLzWBv-uR8L+7abditH2MNA7zZW-WA@mail.gmail.com>
-	<CAE9FiQXcgxY_vW6gjqU7Jtxc71J=sKt_2SPsN8x1O9EfDRN_0g@mail.gmail.com>
-	<CAE9FiQXnb-op9vsQJroMisDQt_-X2UpBB1R_WJ1Lifnk5pPpGg@mail.gmail.com>
-	<20130211224142.GA9782@google.com>
-	<CAE9FiQUnrc1NxL-X9Ddj-Y6jv_+EdDLKaLzY_eo3VNsSq5XpDA@mail.gmail.com>
+From: Daniel Lezcano <daniel.lezcano@linaro.org>
+Subject: Re: [PATCH v2] APM idle: register apm_cpu_idle via cpuidle
+Date: Tue, 12 Feb 2013 16:00:16 +0100
+Message-ID: <511A5900.4040607@linaro.org>
+References: <5118B776.6090604@linaro.org> <1360623789-12247-1-git-send-email-lenb@kernel.org> <17242de27db147c4f828d6089016e1f485c038fb.1360623445.git.len.brown@intel.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary=14dae93409c121a86104d57e862b
-Return-path: <linux-next-owner@vger.kernel.org>
-In-Reply-To: <CAE9FiQUnrc1NxL-X9Ddj-Y6jv_+EdDLKaLzY_eo3VNsSq5XpDA@mail.gmail.com>
-Sender: linux-next-owner@vger.kernel.org
-To: Bjorn Helgaas <bhelgaas@google.com>
-Cc: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Peter Hurley <peter@hurleysoftware.com>, Alan Stern <stern@rowland.harvard.edu>, Lan Tianyu <tianyu.lan@intel.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Jiri Kosina <jkosina@suse.cz>, linux-usb@vger.kernel.org, linux-kernel@vger.kernel.org, linux-next@vger.kernel.org, linux-acpi@vger.kernel.org, linux-pci@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-ee0-f46.google.com ([74.125.83.46]:58022 "EHLO
+	mail-ee0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1760056Ab3BLPAP (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 12 Feb 2013 10:00:15 -0500
+Received: by mail-ee0-f46.google.com with SMTP id e49so91215eek.19
+        for <linux-acpi@vger.kernel.org>; Tue, 12 Feb 2013 07:00:13 -0800 (PST)
+In-Reply-To: <17242de27db147c4f828d6089016e1f485c038fb.1360623445.git.len.brown@intel.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Len Brown <lenb@kernel.org>
+Cc: linux-acpi@vger.kernel.org, linux-pm@vger.kernel.org, linux-kernel@vger.kernel.org, Len Brown <len.brown@intel.com>, Jiri Kosina <jkosina@suse.cz>
 
---14dae93409c121a86104d57e862b
-Content-Type: text/plain; charset=ISO-8859-1
+On 02/12/2013 12:03 AM, Len Brown wrote:
+> From: Len Brown <len.brown@intel.com>
+>=20
+> Update APM to register its local idle routine with cpuidle.
+>=20
+> This allows us to stop exporting pm_idle to modules on x86.
+>=20
+> The Kconfig sub-option, APM_CPU_IDLE, now depends on on CPU_IDLE.
+>=20
+> Compile-tested only.
+>=20
+> Signed-off-by: Len Brown <len.brown@intel.com>
+> Cc: Jiri Kosina <jkosina@suse.cz>
+> ---
+> v2: updates from Daniel Lezcano's review
+> ---
+>  arch/x86/Kconfig          |  1 +
+>  arch/x86/kernel/apm_32.c  | 60 +++++++++++++++++++++++++++++--------=
+----------
+>  arch/x86/kernel/process.c |  3 ---
+>  3 files changed, 38 insertions(+), 26 deletions(-)
+>=20
+> diff --git a/arch/x86/Kconfig b/arch/x86/Kconfig
+> index 225543b..1b63586 100644
+> --- a/arch/x86/Kconfig
+> +++ b/arch/x86/Kconfig
+> @@ -1912,6 +1912,7 @@ config APM_DO_ENABLE
+>  	  this feature.
+> =20
+>  config APM_CPU_IDLE
+> +	depends on CPU_IDLE
+>  	bool "Make CPU Idle calls when idle"
+>  	---help---
+>  	  Enable calls to APM CPU Idle/CPU Busy inside the kernel's idle lo=
+op.
+> diff --git a/arch/x86/kernel/apm_32.c b/arch/x86/kernel/apm_32.c
+> index d65464e..f9f8afc 100644
+> --- a/arch/x86/kernel/apm_32.c
+> +++ b/arch/x86/kernel/apm_32.c
+> @@ -232,6 +232,7 @@
+>  #include <linux/acpi.h>
+>  #include <linux/syscore_ops.h>
+>  #include <linux/i8253.h>
+> +#include <linux/cpuidle.h>
+> =20
+>  #include <asm/uaccess.h>
+>  #include <asm/desc.h>
+> @@ -360,13 +361,38 @@ struct apm_user {
+>   * idle percentage above which bios idle calls are done
+>   */
+>  #ifdef CONFIG_APM_CPU_IDLE
+> -#warning deprecated CONFIG_APM_CPU_IDLE will be deleted in 2012
+>  #define DEFAULT_IDLE_THRESHOLD	95
+>  #else
+>  #define DEFAULT_IDLE_THRESHOLD	100
+>  #endif
+>  #define DEFAULT_IDLE_PERIOD	(100 / 3)
+> =20
+> +static int apm_cpu_idle(struct cpuidle_device *dev,
+> +			struct cpuidle_driver *drv, int index);
+> +
+> +static struct cpuidle_driver apm_idle_driver =3D {
+> +	.name =3D "apm_idle",
+> +	.owner =3D THIS_MODULE,
+> +	.en_core_tk_irqen =3D 1,
+> +	.states =3D {
+> +		{ /* entry 0 is for polling */ },
+> +		{ /* entry 1 is for APM idle */
+> +			.name =3D "APM",
+> +			.desc =3D "APM idle",
+> +			.flags =3D CPUIDLE_FLAG_TIME_VALID,
+> +			.exit_latency =3D 250,	/* WAG */
+> +			.target_residency =3D 500,	/* WAG */
+> +			.enter =3D &apm_cpu_idle
+> +		},
+> +	},
+> +	.state_count =3D 2,
+> +};
+> +
+> +static struct cpuidle_device apm_cpuidle_device =3D {
+> +	.state_count =3D 2,
+> +};
 
-On Mon, Feb 11, 2013 at 4:08 PM, Yinghai Lu <yinghai@kernel.org> wrote:
-> On Mon, Feb 11, 2013 at 2:41 PM, Bjorn Helgaas <bhelgaas@google.com> wrote:
->> [+cc linux-acpi, linux-pci]
->>
->> The _PRT describes motherboard interrupt wiring, which has nothing to
->> do with PCI bus numbers.  Our current drivers/acpi/pci_irq.c caches
->> the PCI bus number along with the _PRT, and I think that's a mistake.
->>
->> The bus number binding means acpi_pci_irq_add_prt() has to happen
->> after enumerating everything below a bridge, and it will prevent us
->> from doing any bus number reassignment for hotplug.
->>
->> I think we should remove the bus numbers from the cached _PRT (or
->> maybe even remove the _PRT caching completely).  When we enable a PCI
->> device's IRQ, we should search up the PCI device tree looking for a
->> _PRT associated with each node, and applying normal PCI bridge
->> swizzling when we don't find a _PRT.  I think this can be done without
->> using PCI bus numbers at all.
->>
->
-> Agreed, will give it try to remove the _PRT caching completely.
->
+Actually this initialization is not needed because when it is set to
+zero, the cpuidle_enable_device function will set it for us from the
+driver's state_count.
 
-Please check attached patch that removes _PRT caching.
+int cpuidle_enable_device(struct cpuidle_device *dev)
+{
+	...
+	if (!dev->state_count)
+                dev->state_count =3D drv->state_count;
+}
 
-Thanks
+It is useful to set a value when it differs from the driver's one.
 
-Yinghai
+Otherwise :
 
---14dae93409c121a86104d57e862b
-Content-Type: application/octet-stream; name="move_setup_prt_down.patch"
-Content-Disposition: attachment; filename="move_setup_prt_down.patch"
-Content-Transfer-Encoding: base64
-X-Attachment-Id: f_hd2hgtwa0
+Reviewed-by: Daniel Lezcano <daniel.lezcano@linaro.org>
 
-U3ViamVjdDogW1BBVENIXSBBQ1BJLCBQQ0k6IEdldCBQUlQgZW50cnkgZHVyaW5nIGFjcGlfcGNp
-X2VuYWJsZV9pcnEoKQoKUGV0ZXIgSHVybGV5IGZvdW5kIGlycSBub2JvZHkgY2FyZWQsIGFuZCBk
-bWVzZyBoYXMKClsgICAgOC45ODMyNDZdIHBjaSAwMDAwOjAwOjFlLjA6IGNhbid0IGRlcml2ZSBy
-b3V0aW5nIGZvciBQQ0kgSU5UIEEKWyAgICA4Ljk4MzYwMF0gc25kX2N0eGZpIDAwMDA6MDk6MDIu
-MDogUENJIElOVCBBOiBubyBHU0kgLSB1c2luZyBJU0EgSVJRIDUKCmJpc2VjdCB0bwp8IGNvbW1p
-dCA0ZjUzNTA5M2NmOGY2ZGE4Y2ZkYTdjMzZjMmMxZWNkMmU5NTg2ZWU0CnwgICAgIFBDSTogUHV0
-IHBjaV9kZXYgaW4gZGV2aWNlIHRyZWUgYXMgZWFybHkgYXMgcG9zc2libGUKCkl0IHR1cm5zIG91
-dCB3ZSBuZWVkIHRvIGNhbGwgYWNwaV9wY2lfaXJxX2FkZF9wcnQoKSBhZnRlciB0aGUgcGNpIGJy
-aWRnZXMKYXJlIHNjYW5uZWQuCgpCam9ybiBzYWlkOgogVGhlIGJ1cyBudW1iZXIgYmluZGluZyBt
-ZWFucyBhY3BpX3BjaV9pcnFfYWRkX3BydCgpIGhhcyB0byBoYXBwZW4KIGFmdGVyIGVudW1lcmF0
-aW5nIGV2ZXJ5dGhpbmcgYmVsb3cgYSBicmlkZ2UsIGFuZCBpdCB3aWxsIHByZXZlbnQgdXMKIGZy
-b20gZG9pbmcgYW55IGJ1cyBudW1iZXIgcmVhc3NpZ25tZW50IGZvciBob3RwbHVnLgoKIEkgdGhp
-bmsgd2Ugc2hvdWxkIHJlbW92ZSB0aGUgYnVzIG51bWJlcnMgZnJvbSB0aGUgY2FjaGVkIF9QUlQg
-KG9yCiBtYXliZSBldmVuIHJlbW92ZSB0aGUgX1BSVCBjYWNoaW5nIGNvbXBsZXRlbHkpLiAgV2hl
-biB3ZSBlbmFibGUgYSBQQ0kKIGRldmljZSdzIElSUSwgd2Ugc2hvdWxkIHNlYXJjaCB1cCB0aGUg
-UENJIGRldmljZSB0cmVlIGxvb2tpbmcgZm9yIGEKIF9QUlQgYXNzb2NpYXRlZCB3aXRoIGVhY2gg
-bm9kZSwgYW5kIGFwcGx5aW5nIG5vcm1hbCBQQ0kgYnJpZGdlCiBzd2l6emxpbmcgd2hlbiB3ZSBk
-b24ndCBmaW5kIGEgX1BSVC4gIEkgdGhpbmsgdGhpcyBjYW4gYmUgZG9uZSB3aXRob3V0CiB1c2lu
-ZyBQQ0kgYnVzIG51bWJlcnMgYXQgYWxsLgoKU28gaGVyZSB3ZSB0cnkgdG8gcmVtb3ZlIF9QUlQg
-Y2FjaGluZyBjb21wbGV0ZWx5LgoKUmVwb3J0ZWQtYW5kLXRlc3RlZC1ieTogUGV0ZXIgSHVybGV5
-IDxwZXRlckBodXJsZXlzb2Z0d2FyZS5jb20+ClN1Z2dlc3RlZC1ieTogQmpvcm4gSGVsZ2FhcyA8
-YmhlbGdhYXNAZ29vZ2xlLmNvbT4KU2lnbmVkLW9mZi1ieTogWWluZ2hhaSBMdSA8eWluZ2hhaUBr
-ZXJuZWwub3JnPgoKLS0tCiBkcml2ZXJzL2FjcGkvcGNpX2lycS5jICAgICAgfCAgIDk3ICsrKysr
-KysrKysrKysrKysrKy0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tCiBkcml2ZXJzL2FjcGkvcGNp
-X3Jvb3QuYyAgICAgfCAgIDE4IC0tLS0tLS0tCiBkcml2ZXJzL3BjaS9wY2ktYWNwaS5jICAgICAg
-fCAgIDI0IC0tLS0tLS0tLS0KIGluY2x1ZGUvYWNwaS9hY3BpX2RyaXZlcnMuaCB8ICAgIDUgLS0K
-IDQgZmlsZXMgY2hhbmdlZCwgNDAgaW5zZXJ0aW9ucygrKSwgMTA0IGRlbGV0aW9ucygtKQoKSW5k
-ZXg6IGxpbnV4LTIuNi9kcml2ZXJzL2FjcGkvcGNpX2lycS5jCj09PT09PT09PT09PT09PT09PT09
-PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT0KLS0tIGxpbnV4
-LTIuNi5vcmlnL2RyaXZlcnMvYWNwaS9wY2lfaXJxLmMKKysrIGxpbnV4LTIuNi9kcml2ZXJzL2Fj
-cGkvcGNpX2lycS5jCkBAIC01Myw5ICs1Myw2IEBAIHN0cnVjdCBhY3BpX3BydF9lbnRyeSB7CiAJ
-dTMyCQkJaW5kZXg7CQkvKiBHU0ksIG9yIGxpbmsgX0NSUyBpbmRleCAqLwogfTsKIAotc3RhdGlj
-IExJU1RfSEVBRChhY3BpX3BydF9saXN0KTsKLXN0YXRpYyBERUZJTkVfU1BJTkxPQ0soYWNwaV9w
-cnRfbG9jayk7Ci0KIHN0YXRpYyBpbmxpbmUgY2hhciBwaW5fbmFtZShpbnQgcGluKQogewogCXJl
-dHVybiAnQScgKyBwaW4gLSAxOwpAQCAtNjUsMjggKzYyLDYgQEAgc3RhdGljIGlubGluZSBjaGFy
-IHBpbl9uYW1lKGludCBwaW4pCiAgICAgICAgICAgICAgICAgICAgICAgICAgUENJIElSUSBSb3V0
-aW5nIFRhYmxlIChQUlQpIFN1cHBvcnQKICAgIC0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
-LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tICovCiAKLXN0YXRp
-YyBzdHJ1Y3QgYWNwaV9wcnRfZW50cnkgKmFjcGlfcGNpX2lycV9maW5kX3BydF9lbnRyeShzdHJ1
-Y3QgcGNpX2RldiAqZGV2LAotCQkJCQkJCSAgaW50IHBpbikKLXsKLQlzdHJ1Y3QgYWNwaV9wcnRf
-ZW50cnkgKmVudHJ5OwotCWludCBzZWdtZW50ID0gcGNpX2RvbWFpbl9ucihkZXYtPmJ1cyk7Ci0J
-aW50IGJ1cyA9IGRldi0+YnVzLT5udW1iZXI7Ci0JaW50IGRldmljZSA9IFBDSV9TTE9UKGRldi0+
-ZGV2Zm4pOwotCi0Jc3Bpbl9sb2NrKCZhY3BpX3BydF9sb2NrKTsKLQlsaXN0X2Zvcl9lYWNoX2Vu
-dHJ5KGVudHJ5LCAmYWNwaV9wcnRfbGlzdCwgbGlzdCkgewotCQlpZiAoKHNlZ21lbnQgPT0gZW50
-cnktPmlkLnNlZ21lbnQpCi0JCSAgICAmJiAoYnVzID09IGVudHJ5LT5pZC5idXMpCi0JCSAgICAm
-JiAoZGV2aWNlID09IGVudHJ5LT5pZC5kZXZpY2UpCi0JCSAgICAmJiAocGluID09IGVudHJ5LT5w
-aW4pKSB7Ci0JCQlzcGluX3VubG9jaygmYWNwaV9wcnRfbG9jayk7Ci0JCQlyZXR1cm4gZW50cnk7
-Ci0JCX0KLQl9Ci0Jc3Bpbl91bmxvY2soJmFjcGlfcHJ0X2xvY2spOwotCXJldHVybiBOVUxMOwot
-fQotCiAvKiBodHRwOi8vYnVnemlsbGEua2VybmVsLm9yZy9zaG93X2J1Zy5jZ2k/aWQ9NDc3MyAq
-Lwogc3RhdGljIGNvbnN0IHN0cnVjdCBkbWlfc3lzdGVtX2lkIG1lZGlvbl9tZDk1ODBbXSA9IHsK
-IAl7CkBAIC0xODQsMTEgKzE1OSwxOSBAQCBzdGF0aWMgdm9pZCBkb19wcnRfZml4dXBzKHN0cnVj
-dCBhY3BpX3ByCiAJfQogfQogCi1zdGF0aWMgaW50IGFjcGlfcGNpX2lycV9hZGRfZW50cnkoYWNw
-aV9oYW5kbGUgaGFuZGxlLCBpbnQgc2VnbWVudCwgaW50IGJ1cywKLQkJCQkgIHN0cnVjdCBhY3Bp
-X3BjaV9yb3V0aW5nX3RhYmxlICpwcnQpCitzdGF0aWMgaW50IGFjcGlfcGNpX2lycV9jaGVja19l
-bnRyeShhY3BpX2hhbmRsZSBoYW5kbGUsIHN0cnVjdCBwY2lfZGV2ICpkZXYsCisJCQkJICBpbnQg
-cGluLCBzdHJ1Y3QgYWNwaV9wY2lfcm91dGluZ190YWJsZSAqcHJ0LAorCQkJCSAgc3RydWN0IGFj
-cGlfcHJ0X2VudHJ5ICoqcHJ0X2VudHJ5KQogeworCWludCBzZWdtZW50ID0gcGNpX2RvbWFpbl9u
-cihkZXYtPmJ1cyk7CisJaW50IGJ1cyA9IGRldi0+YnVzLT5udW1iZXI7CisJaW50IGRldmljZSA9
-IFBDSV9TTE9UKGRldi0+ZGV2Zm4pOwogCXN0cnVjdCBhY3BpX3BydF9lbnRyeSAqZW50cnk7CiAK
-KwlpZiAoKChwcnQtPmFkZHJlc3MgPj4gMTYpICYgMHhmZmZmKSAhPSBkZXZpY2UgfHwKKwkgICAg
-cHJ0LT5waW4gKyAxICE9IHBpbikKKwkJcmV0dXJuIC1FTk9ERVY7CisKIAllbnRyeSA9IGt6YWxs
-b2Moc2l6ZW9mKHN0cnVjdCBhY3BpX3BydF9lbnRyeSksIEdGUF9LRVJORUwpOwogCWlmICghZW50
-cnkpCiAJCXJldHVybiAtRU5PTUVNOwpAQCAtMjM3LDI2ICsyMjAsMzMgQEAgc3RhdGljIGludCBh
-Y3BpX3BjaV9pcnFfYWRkX2VudHJ5KGFjcGlfaAogCQkJICAgICAgZW50cnktPmlkLmRldmljZSwg
-cGluX25hbWUoZW50cnktPnBpbiksCiAJCQkgICAgICBwcnQtPnNvdXJjZSwgZW50cnktPmluZGV4
-KSk7CiAKLQlzcGluX2xvY2soJmFjcGlfcHJ0X2xvY2spOwotCWxpc3RfYWRkX3RhaWwoJmVudHJ5
-LT5saXN0LCAmYWNwaV9wcnRfbGlzdCk7Ci0Jc3Bpbl91bmxvY2soJmFjcGlfcHJ0X2xvY2spOwor
-CSpwcnRfZW50cnkgPSBlbnRyeTsKIAogCXJldHVybiAwOwogfQogCi1pbnQgYWNwaV9wY2lfaXJx
-X2FkZF9wcnQoYWNwaV9oYW5kbGUgaGFuZGxlLCBpbnQgc2VnbWVudCwgaW50IGJ1cykKK3N0YXRp
-YyBpbnQgYWNwaV9wY2lfaXJxX2ZpbmRfcHJ0X2VudHJ5KHN0cnVjdCBwY2lfZGV2ICpkZXYsCisJ
-CQkgIGludCBwaW4sIHN0cnVjdCBhY3BpX3BydF9lbnRyeSAqKmVudHJ5X3B0cikKIHsKIAlhY3Bp
-X3N0YXR1cyBzdGF0dXM7CiAJc3RydWN0IGFjcGlfYnVmZmVyIGJ1ZmZlciA9IHsgQUNQSV9BTExP
-Q0FURV9CVUZGRVIsIE5VTEwgfTsKIAlzdHJ1Y3QgYWNwaV9wY2lfcm91dGluZ190YWJsZSAqZW50
-cnk7CisJYWNwaV9oYW5kbGUgaGFuZGxlOworCXN0cnVjdCBhY3BpX3BydF9lbnRyeSAqcHJ0X2Vu
-dHJ5ID0gTlVMTDsKKworCWlmIChkZXYtPmJ1cy0+YnJpZGdlKQorCQloYW5kbGUgPSBBQ1BJX0hB
-TkRMRShkZXYtPmJ1cy0+YnJpZGdlKTsKKwllbHNlCisJCXJldHVybiAtRU5PREVWOwogCiAJLyog
-J2hhbmRsZScgaXMgdGhlIF9QUlQncyBwYXJlbnQgKHJvb3QgYnJpZGdlIG9yIFBDSS1QQ0kgYnJp
-ZGdlKSAqLwogCXN0YXR1cyA9IGFjcGlfZ2V0X25hbWUoaGFuZGxlLCBBQ1BJX0ZVTExfUEFUSE5B
-TUUsICZidWZmZXIpOwogCWlmIChBQ1BJX0ZBSUxVUkUoc3RhdHVzKSkKIAkJcmV0dXJuIC1FTk9E
-RVY7CiAKLQlwcmludGsoS0VSTl9ERUJVRyAiQUNQSTogUENJIEludGVycnVwdCBSb3V0aW5nIFRh
-YmxlIFslcy5fUFJUXVxuIiwKLQkgICAgICAgKGNoYXIgKikgYnVmZmVyLnBvaW50ZXIpOworCWRl
-dl9wcmludGsoS0VSTl9ERUJVRywgJmRldi0+ZGV2LAorCQkJIkFDUEk6IFBDSSBJbnRlcnJ1cHQg
-Um91dGluZyBUYWJsZSBbJXMuX1BSVF1cbiIsCisJCSAgICAgICAoY2hhciAqKSBidWZmZXIucG9p
-bnRlcik7CiAKIAlrZnJlZShidWZmZXIucG9pbnRlcik7CiAKQEAgLTI3Myw3ICsyNjMsMTEgQEAg
-aW50IGFjcGlfcGNpX2lycV9hZGRfcHJ0KGFjcGlfaGFuZGxlIGhhbgogCiAJZW50cnkgPSBidWZm
-ZXIucG9pbnRlcjsKIAl3aGlsZSAoZW50cnkgJiYgKGVudHJ5LT5sZW5ndGggPiAwKSkgewotCQlh
-Y3BpX3BjaV9pcnFfYWRkX2VudHJ5KGhhbmRsZSwgc2VnbWVudCwgYnVzLCBlbnRyeSk7CisJCWlm
-ICghYWNwaV9wY2lfaXJxX2NoZWNrX2VudHJ5KGhhbmRsZSwgZGV2LCBwaW4sCisJCQkJCQkgZW50
-cnksICZwcnRfZW50cnkpKSB7CisJCQkqZW50cnlfcHRyID0gcHJ0X2VudHJ5OworCQkJYnJlYWs7
-CisJCX0KIAkJZW50cnkgPSAoc3RydWN0IGFjcGlfcGNpX3JvdXRpbmdfdGFibGUgKikKIAkJICAg
-ICgodW5zaWduZWQgbG9uZyllbnRyeSArIGVudHJ5LT5sZW5ndGgpOwogCX0KQEAgLTI4MiwyMyAr
-Mjc2LDYgQEAgaW50IGFjcGlfcGNpX2lycV9hZGRfcHJ0KGFjcGlfaGFuZGxlIGhhbgogCXJldHVy
-biAwOwogfQogCi12b2lkIGFjcGlfcGNpX2lycV9kZWxfcHJ0KGludCBzZWdtZW50LCBpbnQgYnVz
-KQotewotCXN0cnVjdCBhY3BpX3BydF9lbnRyeSAqZW50cnksICp0bXA7Ci0KLQlwcmludGsoS0VS
-Tl9ERUJVRwotCSAgICAgICAiQUNQSTogRGVsZXRlIFBDSSBJbnRlcnJ1cHQgUm91dGluZyBUYWJs
-ZSBmb3IgJTA0eDolMDJ4XG4iLAotCSAgICAgICBzZWdtZW50LCBidXMpOwotCXNwaW5fbG9jaygm
-YWNwaV9wcnRfbG9jayk7Ci0JbGlzdF9mb3JfZWFjaF9lbnRyeV9zYWZlKGVudHJ5LCB0bXAsICZh
-Y3BpX3BydF9saXN0LCBsaXN0KSB7Ci0JCWlmIChzZWdtZW50ID09IGVudHJ5LT5pZC5zZWdtZW50
-ICYmIGJ1cyA9PSBlbnRyeS0+aWQuYnVzKSB7Ci0JCQlsaXN0X2RlbCgmZW50cnktPmxpc3QpOwot
-CQkJa2ZyZWUoZW50cnkpOwotCQl9Ci0JfQotCXNwaW5fdW5sb2NrKCZhY3BpX3BydF9sb2NrKTsK
-LX0KLQogLyogLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
-LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0KICAgICAgICAgICAgICAgICAgICAgICAgICAgUENJ
-IEludGVycnVwdCBSb3V0aW5nIFN1cHBvcnQKICAgIC0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
-LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tICovCkBAIC0z
-NTksMTIgKzMzNiwxMyBAQCBzdGF0aWMgaW50IGFjcGlfcmVyb3V0ZV9ib290X2ludGVycnVwdChz
-CiAKIHN0YXRpYyBzdHJ1Y3QgYWNwaV9wcnRfZW50cnkgKmFjcGlfcGNpX2lycV9sb29rdXAoc3Ry
-dWN0IHBjaV9kZXYgKmRldiwgaW50IHBpbikKIHsKLQlzdHJ1Y3QgYWNwaV9wcnRfZW50cnkgKmVu
-dHJ5OworCXN0cnVjdCBhY3BpX3BydF9lbnRyeSAqZW50cnkgPSBOVUxMOwogCXN0cnVjdCBwY2lf
-ZGV2ICpicmlkZ2U7CiAJdTggYnJpZGdlX3Bpbiwgb3JpZ19waW4gPSBwaW47CisJaW50IHJldDsK
-IAotCWVudHJ5ID0gYWNwaV9wY2lfaXJxX2ZpbmRfcHJ0X2VudHJ5KGRldiwgcGluKTsKLQlpZiAo
-ZW50cnkpIHsKKwlyZXQgPSBhY3BpX3BjaV9pcnFfZmluZF9wcnRfZW50cnkoZGV2LCBwaW4sICZl
-bnRyeSk7CisJaWYgKCFyZXQgJiYgZW50cnkpIHsKICNpZmRlZiBDT05GSUdfWDg2X0lPX0FQSUMK
-IAkJYWNwaV9yZXJvdXRlX2Jvb3RfaW50ZXJydXB0KGRldiwgZW50cnkpOwogI2VuZGlmIC8qIENP
-TkZJR19YODZfSU9fQVBJQyAqLwpAQCAtMzczLDcgKzM1MSw3IEBAIHN0YXRpYyBzdHJ1Y3QgYWNw
-aV9wcnRfZW50cnkgKmFjcGlfcGNpX2kKIAkJcmV0dXJuIGVudHJ5OwogCX0KIAotCS8qIAorCS8q
-CiAJICogQXR0ZW1wdCB0byBkZXJpdmUgYW4gSVJRIGZvciB0aGlzIGRldmljZSBmcm9tIGEgcGFy
-ZW50IGJyaWRnZSdzCiAJICogUENJIGludGVycnVwdCByb3V0aW5nIGVudHJ5IChlZy4geWVudGEg
-YnJpZGdlIGFuZCBhZGQtaW4gY2FyZCBicmlkZ2UpLgogCSAqLwpAQCAtMzkzLDggKzM3MSw4IEBA
-IHN0YXRpYyBzdHJ1Y3QgYWNwaV9wcnRfZW50cnkgKmFjcGlfcGNpX2kKIAkJCXBpbiA9IGJyaWRn
-ZV9waW47CiAJCX0KIAotCQllbnRyeSA9IGFjcGlfcGNpX2lycV9maW5kX3BydF9lbnRyeShicmlk
-Z2UsIHBpbik7Ci0JCWlmIChlbnRyeSkgeworCQlyZXQgPSBhY3BpX3BjaV9pcnFfZmluZF9wcnRf
-ZW50cnkoYnJpZGdlLCBwaW4sICZlbnRyeSk7CisJCWlmICghcmV0ICYmIGVudHJ5KSB7CiAJCQlB
-Q1BJX0RFQlVHX1BSSU5UKChBQ1BJX0RCX0lORk8sCiAJCQkJCSAiRGVyaXZlZCBHU0kgZm9yICVz
-IElOVCAlYyBmcm9tICVzXG4iLAogCQkJCQkgcGNpX25hbWUoZGV2KSwgcGluX25hbWUob3JpZ19w
-aW4pLApAQCAtNDcwLDYgKzQ0OCw3IEBAIGludCBhY3BpX3BjaV9pcnFfZW5hYmxlKHN0cnVjdCBw
-Y2lfZGV2ICoKIAkJCWRldl93YXJuKCZkZXYtPmRldiwgIlBDSSBJTlQgJWM6IG5vIEdTSVxuIiwK
-IAkJCQkgcGluX25hbWUocGluKSk7CiAJCX0KKwogCQlyZXR1cm4gMDsKIAl9CiAKQEAgLTQ3Nyw2
-ICs0NTYsNyBAQCBpbnQgYWNwaV9wY2lfaXJxX2VuYWJsZShzdHJ1Y3QgcGNpX2RldiAqCiAJaWYg
-KHJjIDwgMCkgewogCQlkZXZfd2FybigmZGV2LT5kZXYsICJQQ0kgSU5UICVjOiBmYWlsZWQgdG8g
-cmVnaXN0ZXIgR1NJXG4iLAogCQkJIHBpbl9uYW1lKHBpbikpOworCQlrZnJlZShlbnRyeSk7CiAJ
-CXJldHVybiByYzsKIAl9CiAJZGV2LT5pcnEgPSByYzsKQEAgLTQ5MSw2ICs0NzEsNyBAQCBpbnQg
-YWNwaV9wY2lfaXJxX2VuYWJsZShzdHJ1Y3QgcGNpX2RldiAqCiAJCSh0cmlnZ2VyaW5nID09IEFD
-UElfTEVWRUxfU0VOU0lUSVZFKSA/ICJsZXZlbCIgOiAiZWRnZSIsCiAJCShwb2xhcml0eSA9PSBB
-Q1BJX0FDVElWRV9MT1cpID8gImxvdyIgOiAiaGlnaCIsIGRldi0+aXJxKTsKIAorCWtmcmVlKGVu
-dHJ5KTsKIAlyZXR1cm4gMDsKIH0KIApAQCAtNTEzLDYgKzQ5NCw4IEBAIHZvaWQgYWNwaV9wY2lf
-aXJxX2Rpc2FibGUoc3RydWN0IHBjaV9kZXYKIAllbHNlCiAJCWdzaSA9IGVudHJ5LT5pbmRleDsK
-IAorCWtmcmVlKGVudHJ5KTsKKwogCS8qCiAJICogVEJEOiBJdCBtaWdodCBiZSB3b3J0aCBjbGVh
-cmluZyBkZXYtPmlycSBieSBtYWdpYyBjb25zdGFudAogCSAqIChlLmcuIFBDSV9VTkRFRklORURf
-SVJRKS4KSW5kZXg6IGxpbnV4LTIuNi9kcml2ZXJzL2FjcGkvcGNpX3Jvb3QuYwo9PT09PT09PT09
-PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09
-Ci0tLSBsaW51eC0yLjYub3JpZy9kcml2ZXJzL2FjcGkvcGNpX3Jvb3QuYworKysgbGludXgtMi42
-L2RyaXZlcnMvYWNwaS9wY2lfcm9vdC5jCkBAIC00MTMsNyArNDEzLDYgQEAgc3RhdGljIGludCBh
-Y3BpX3BjaV9yb290X2FkZChzdHJ1Y3QgYWNwaQogCWFjcGlfc3RhdHVzIHN0YXR1czsKIAlpbnQg
-cmVzdWx0OwogCXN0cnVjdCBhY3BpX3BjaV9yb290ICpyb290OwotCWFjcGlfaGFuZGxlIGhhbmRs
-ZTsKIAlzdHJ1Y3QgYWNwaV9wY2lfZHJpdmVyICpkcml2ZXI7CiAJdTMyIGZsYWdzLCBiYXNlX2Zs
-YWdzOwogCWJvb2wgaXNfb3NjX2dyYW50ZWQgPSBmYWxzZTsKQEAgLTQ2OCwxNiArNDY3LDYgQEAg
-c3RhdGljIGludCBhY3BpX3BjaV9yb290X2FkZChzdHJ1Y3QgYWNwaQogCSAgICAgICBhY3BpX2Rl
-dmljZV9uYW1lKGRldmljZSksIGFjcGlfZGV2aWNlX2JpZChkZXZpY2UpLAogCSAgICAgICByb290
-LT5zZWdtZW50LCAmcm9vdC0+c2Vjb25kYXJ5KTsKIAotCS8qCi0JICogUENJIFJvdXRpbmcgVGFi
-bGUKLQkgKiAtLS0tLS0tLS0tLS0tLS0tLQotCSAqIEV2YWx1YXRlIGFuZCBwYXJzZSBfUFJULCBp
-ZiBleGlzdHMuCi0JICovCi0Jc3RhdHVzID0gYWNwaV9nZXRfaGFuZGxlKGRldmljZS0+aGFuZGxl
-LCBNRVRIT0RfTkFNRV9fUFJULCAmaGFuZGxlKTsKLQlpZiAoQUNQSV9TVUNDRVNTKHN0YXR1cykp
-Ci0JCXJlc3VsdCA9IGFjcGlfcGNpX2lycV9hZGRfcHJ0KGRldmljZS0+aGFuZGxlLCByb290LT5z
-ZWdtZW50LAotCQkJCQkgICAgICByb290LT5zZWNvbmRhcnkuc3RhcnQpOwotCiAJcm9vdC0+bWNm
-Z19hZGRyID0gYWNwaV9wY2lfcm9vdF9nZXRfbWNmZ19hZGRyKGRldmljZS0+aGFuZGxlKTsKIAog
-CS8qCkBAIC02MDIsNyArNTkxLDYgQEAgb3V0X2RlbF9yb290OgogCWxpc3RfZGVsKCZyb290LT5u
-b2RlKTsKIAltdXRleF91bmxvY2soJmFjcGlfcGNpX3Jvb3RfbG9jayk7CiAKLQlhY3BpX3BjaV9p
-cnFfZGVsX3BydChyb290LT5zZWdtZW50LCByb290LT5zZWNvbmRhcnkuc3RhcnQpOwogZW5kOgog
-CWtmcmVlKHJvb3QpOwogCXJldHVybiByZXN1bHQ7CkBAIC02MTAsOCArNTk4LDYgQEAgZW5kOgog
-CiBzdGF0aWMgdm9pZCBhY3BpX3BjaV9yb290X3JlbW92ZShzdHJ1Y3QgYWNwaV9kZXZpY2UgKmRl
-dmljZSkKIHsKLQlhY3BpX3N0YXR1cyBzdGF0dXM7Ci0JYWNwaV9oYW5kbGUgaGFuZGxlOwogCXN0
-cnVjdCBhY3BpX3BjaV9yb290ICpyb290ID0gYWNwaV9kcml2ZXJfZGF0YShkZXZpY2UpOwogCXN0
-cnVjdCBhY3BpX3BjaV9kcml2ZXIgKmRyaXZlcjsKIApAQCAtNjI2LDEwICs2MTIsNiBAQCBzdGF0
-aWMgdm9pZCBhY3BpX3BjaV9yb290X3JlbW92ZShzdHJ1Y3QKIAlkZXZpY2Vfc2V0X3J1bl93YWtl
-KHJvb3QtPmJ1cy0+YnJpZGdlLCBmYWxzZSk7CiAJcGNpX2FjcGlfcmVtb3ZlX2J1c19wbV9ub3Rp
-ZmllcihkZXZpY2UpOwogCi0Jc3RhdHVzID0gYWNwaV9nZXRfaGFuZGxlKGRldmljZS0+aGFuZGxl
-LCBNRVRIT0RfTkFNRV9fUFJULCAmaGFuZGxlKTsKLQlpZiAoQUNQSV9TVUNDRVNTKHN0YXR1cykp
-Ci0JCWFjcGlfcGNpX2lycV9kZWxfcHJ0KHJvb3QtPnNlZ21lbnQsIHJvb3QtPnNlY29uZGFyeS5z
-dGFydCk7Ci0KIAlwY2lfcmVtb3ZlX3Jvb3RfYnVzKHJvb3QtPmJ1cyk7CiAKIAltdXRleF9sb2Nr
-KCZhY3BpX3BjaV9yb290X2xvY2spOwpJbmRleDogbGludXgtMi42L2RyaXZlcnMvcGNpL3BjaS1h
-Y3BpLmMKPT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09
-PT09PT09PT09PT09PT09PQotLS0gbGludXgtMi42Lm9yaWcvZHJpdmVycy9wY2kvcGNpLWFjcGku
-YworKysgbGludXgtMi42L2RyaXZlcnMvcGNpL3BjaS1hY3BpLmMKQEAgLTMwNywyNSArMzA3LDYg
-QEAgc3RhdGljIHZvaWQgcGNpX2FjcGlfc2V0dXAoc3RydWN0IGRldmljZQogCXN0cnVjdCBwY2lf
-ZGV2ICpwY2lfZGV2ID0gdG9fcGNpX2RldihkZXYpOwogCWFjcGlfaGFuZGxlIGhhbmRsZSA9IEFD
-UElfSEFORExFKGRldik7CiAJc3RydWN0IGFjcGlfZGV2aWNlICphZGV2OwotCWFjcGlfc3RhdHVz
-IHN0YXR1czsKLQlhY3BpX2hhbmRsZSBkdW1teTsKLQotCS8qCi0JICogRXZhbHVhdGUgYW5kIHBh
-cnNlIF9QUlQsIGlmIGV4aXN0cy4gIFRoaXMgY29kZSBhbGxvd3MgcGFyc2luZyBvZgotCSAqIF9Q
-UlQgb2JqZWN0cyB3aXRoaW4gdGhlIHNjb3BlIG9mIG5vbi1icmlkZ2UgZGV2aWNlcy4gIE5vdGUg
-dGhhdAotCSAqIF9QUlRzIHdpdGhpbiB0aGUgc2NvcGUgb2YgYSBQQ0kgYnJpZGdlIGFzc3VtZSB0
-aGUgYnJpZGdlJ3MKLQkgKiBzdWJvcmRpbmF0ZSBidXMgbnVtYmVyLgotCSAqCi0JICogVEJEOiBD
-YW4gX1BSVHMgZXhpc3Qgd2l0aGluIHRoZSBzY29wZSBvZiBub24tYnJpZGdlIFBDSSBkZXZpY2Vz
-PwotCSAqLwotCXN0YXR1cyA9IGFjcGlfZ2V0X2hhbmRsZShoYW5kbGUsIE1FVEhPRF9OQU1FX19Q
-UlQsICZkdW1teSk7Ci0JaWYgKEFDUElfU1VDQ0VTUyhzdGF0dXMpKSB7Ci0JCXVuc2lnbmVkIGNo
-YXIgYnVzOwotCi0JCWJ1cyA9IHBjaV9kZXYtPnN1Ym9yZGluYXRlID8KLQkJCXBjaV9kZXYtPnN1
-Ym9yZGluYXRlLT5udW1iZXIgOiBwY2lfZGV2LT5idXMtPm51bWJlcjsKLQkJYWNwaV9wY2lfaXJx
-X2FkZF9wcnQoaGFuZGxlLCBwY2lfZG9tYWluX25yKHBjaV9kZXYtPmJ1cyksIGJ1cyk7Ci0JfQog
-CiAJaWYgKGFjcGlfYnVzX2dldF9kZXZpY2UoaGFuZGxlLCAmYWRldikgfHwgIWFkZXYtPndha2V1
-cC5mbGFncy52YWxpZCkKIAkJcmV0dXJuOwpAQCAtMzQwLDcgKzMyMSw2IEBAIHN0YXRpYyB2b2lk
-IHBjaV9hY3BpX3NldHVwKHN0cnVjdCBkZXZpY2UKIAogc3RhdGljIHZvaWQgcGNpX2FjcGlfY2xl
-YW51cChzdHJ1Y3QgZGV2aWNlICpkZXYpCiB7Ci0Jc3RydWN0IHBjaV9kZXYgKnBjaV9kZXYgPSB0
-b19wY2lfZGV2KGRldik7CiAJYWNwaV9oYW5kbGUgaGFuZGxlID0gQUNQSV9IQU5ETEUoZGV2KTsK
-IAlzdHJ1Y3QgYWNwaV9kZXZpY2UgKmFkZXY7CiAKQEAgLTM0OSwxMCArMzI5LDYgQEAgc3RhdGlj
-IHZvaWQgcGNpX2FjcGlfY2xlYW51cChzdHJ1Y3QgZGV2aQogCQlkZXZpY2Vfc2V0X3J1bl93YWtl
-KGRldiwgZmFsc2UpOwogCQlwY2lfYWNwaV9yZW1vdmVfcG1fbm90aWZpZXIoYWRldik7CiAJfQot
-Ci0JaWYgKHBjaV9kZXYtPnN1Ym9yZGluYXRlKQotCQlhY3BpX3BjaV9pcnFfZGVsX3BydChwY2lf
-ZG9tYWluX25yKHBjaV9kZXYtPmJ1cyksCi0JCQkJICAgICBwY2lfZGV2LT5zdWJvcmRpbmF0ZS0+
-bnVtYmVyKTsKIH0KIAogc3RhdGljIHN0cnVjdCBhY3BpX2J1c190eXBlIGFjcGlfcGNpX2J1cyA9
-IHsKSW5kZXg6IGxpbnV4LTIuNi9pbmNsdWRlL2FjcGkvYWNwaV9kcml2ZXJzLmgKPT09PT09PT09
-PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09
-PQotLS0gbGludXgtMi42Lm9yaWcvaW5jbHVkZS9hY3BpL2FjcGlfZHJpdmVycy5oCisrKyBsaW51
-eC0yLjYvaW5jbHVkZS9hY3BpL2FjcGlfZHJpdmVycy5oCkBAIC05MCwxMSArOTAsNiBAQCBpbnQg
-YWNwaV9wY2lfbGlua19hbGxvY2F0ZV9pcnEoYWNwaV9oYW5kCiAJCQkgICAgICAgaW50ICpwb2xh
-cml0eSwgY2hhciAqKm5hbWUpOwogaW50IGFjcGlfcGNpX2xpbmtfZnJlZV9pcnEoYWNwaV9oYW5k
-bGUgaGFuZGxlKTsKIAotLyogQUNQSSBQQ0kgSW50ZXJydXB0IFJvdXRpbmcgKHBjaV9pcnEuYykg
-Ki8KLQotaW50IGFjcGlfcGNpX2lycV9hZGRfcHJ0KGFjcGlfaGFuZGxlIGhhbmRsZSwgaW50IHNl
-Z21lbnQsIGludCBidXMpOwotdm9pZCBhY3BpX3BjaV9pcnFfZGVsX3BydChpbnQgc2VnbWVudCwg
-aW50IGJ1cyk7Ci0KIC8qIEFDUEkgUENJIERldmljZSBCaW5kaW5nIChwY2lfYmluZC5jKSAqLwog
-CiBzdHJ1Y3QgcGNpX2J1czsK
---14dae93409c121a86104d57e862b--
+
+>  /*
+>   * Local variables
+>   */
+> @@ -377,7 +403,6 @@ static struct {
+>  static int clock_slowed;
+>  static int idle_threshold __read_mostly =3D DEFAULT_IDLE_THRESHOLD;
+>  static int idle_period __read_mostly =3D DEFAULT_IDLE_PERIOD;
+> -static int set_pm_idle;
+>  static int suspends_pending;
+>  static int standbys_pending;
+>  static int ignore_sys_suspend;
+> @@ -884,8 +909,6 @@ static void apm_do_busy(void)
+>  #define IDLE_CALC_LIMIT	(HZ * 100)
+>  #define IDLE_LEAKY_MAX	16
+> =20
+> -static void (*original_pm_idle)(void) __read_mostly;
+> -
+>  /**
+>   * apm_cpu_idle		-	cpu idling for APM capable Linux
+>   *
+> @@ -894,7 +917,8 @@ static void (*original_pm_idle)(void) __read_most=
+ly;
+>   * Furthermore it calls the system default idle routine.
+>   */
+> =20
+> -static void apm_cpu_idle(void)
+> +static int apm_cpu_idle(struct cpuidle_device *dev,
+> +	struct cpuidle_driver *drv, int index)
+>  {
+>  	static int use_apm_idle; /* =3D 0 */
+>  	static unsigned int last_jiffies; /* =3D 0 */
+> @@ -904,7 +928,6 @@ static void apm_cpu_idle(void)
+>  	unsigned int jiffies_since_last_check =3D jiffies - last_jiffies;
+>  	unsigned int bucket;
+> =20
+> -	WARN_ONCE(1, "deprecated apm_cpu_idle will be deleted in 2012");
+>  recalc:
+>  	if (jiffies_since_last_check > IDLE_CALC_LIMIT) {
+>  		use_apm_idle =3D 0;
+> @@ -950,10 +973,7 @@ recalc:
+>  				break;
+>  			}
+>  		}
+> -		if (original_pm_idle)
+> -			original_pm_idle();
+> -		else
+> -			default_idle();
+> +		default_idle();
+>  		local_irq_disable();
+>  		jiffies_since_last_check =3D jiffies - last_jiffies;
+>  		if (jiffies_since_last_check > idle_period)
+> @@ -963,7 +983,7 @@ recalc:
+>  	if (apm_idle_done)
+>  		apm_do_busy();
+> =20
+> -	local_irq_enable();
+> +	return index;
+>  }
+> =20
+>  /**
+> @@ -2381,9 +2401,9 @@ static int __init apm_init(void)
+>  	if (HZ !=3D 100)
+>  		idle_period =3D (idle_period * HZ) / 100;
+>  	if (idle_threshold < 100) {
+> -		original_pm_idle =3D pm_idle;
+> -		pm_idle  =3D apm_cpu_idle;
+> -		set_pm_idle =3D 1;
+> +		if (!cpuidle_register_driver(&apm_idle_driver))
+> +			if (cpuidle_register_device(&apm_cpuidle_device))
+> +				cpuidle_unregister_driver(&apm_idle_driver);
+>  	}
+> =20
+>  	return 0;
+> @@ -2393,15 +2413,9 @@ static void __exit apm_exit(void)
+>  {
+>  	int error;
+> =20
+> -	if (set_pm_idle) {
+> -		pm_idle =3D original_pm_idle;
+> -		/*
+> -		 * We are about to unload the current idle thread pm callback
+> -		 * (pm_idle), Wait for all processors to update cached/local
+> -		 * copies of pm_idle before proceeding.
+> -		 */
+> -		kick_all_cpus_sync();
+> -	}
+> +	cpuidle_unregister_device(&apm_cpuidle_device);
+> +	cpuidle_unregister_driver(&apm_idle_driver);
+> +
+>  	if (((apm_info.bios.flags & APM_BIOS_DISENGAGED) =3D=3D 0)
+>  	    && (apm_info.connection_version > 0x0100)) {
+>  		error =3D apm_engage_power_management(APM_DEVICE_ALL, 0);
+> diff --git a/arch/x86/kernel/process.c b/arch/x86/kernel/process.c
+> index 2ed787f..f571a6e 100644
+> --- a/arch/x86/kernel/process.c
+> +++ b/arch/x86/kernel/process.c
+> @@ -272,9 +272,6 @@ EXPORT_SYMBOL(boot_option_idle_override);
+>   * Powermanagement idle function, if any..
+>   */
+>  void (*pm_idle)(void);
+> -#ifdef CONFIG_APM_MODULE
+> -EXPORT_SYMBOL(pm_idle);
+> -#endif
+> =20
+>  #ifndef CONFIG_SMP
+>  static inline void play_dead(void)
+>=20
+
+
+--=20
+ <http://www.linaro.org/> Linaro.org =E2=94=82 Open source software for=
+ ARM SoCs
+
+=46ollow Linaro:  <http://www.facebook.com/pages/Linaro> Facebook |
+<http://twitter.com/#!/linaroorg> Twitter |
+<http://www.linaro.org/linaro-blog/> Blog
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
