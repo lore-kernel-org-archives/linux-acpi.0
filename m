@@ -1,41 +1,130 @@
-From: Peter Hurley <peter@hurleysoftware.com>
-Subject: Re: [PATCH] ACPI, PCI: Get PRT entry during acpi_pci_enable_irq()
-Date: Tue, 12 Feb 2013 22:18:35 -0500
-Message-ID: <1360725515.3642.1.camel@thor.lan>
-References: <CAE9FiQUkmnV_On5+ZpH2pF4Li1HxLpkO8bp4TnYB46=pc9Safg@mail.gmail.com>
-	 <1360696283-20313-1-git-send-email-yinghai@kernel.org>
-	 <1360722010.3604.3.camel@thor.lan>
-	 <CAE9FiQUp4oKSpZ8Y-M-+n_y=mBs_t4cdKLhgG8xZSPgteZcgkQ@mail.gmail.com>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: Re: [PATCH] ACPI / PCI: Initialize PCI root drivers after PCI bus enumeration
+Date: Wed, 13 Feb 2013 13:59:52 +0100
+Message-ID: <1678811.LFvn3m6Wlp@vostro.rjw.lan>
+References: <1882094.fnYp8pBVVX@vostro.rjw.lan> <CAE9FiQXk1VhA2+qAcp8jL=TG28acePyX4SOYALiAQ0bGnLaFOA@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mailout01.c08.mtsvc.net ([205.186.168.189]:36663 "EHLO
-	mailout01.c08.mtsvc.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751539Ab3BMEVJ (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 12 Feb 2013 23:21:09 -0500
-In-Reply-To: <CAE9FiQUp4oKSpZ8Y-M-+n_y=mBs_t4cdKLhgG8xZSPgteZcgkQ@mail.gmail.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7Bit
+Return-path: <linux-pci-owner@vger.kernel.org>
+In-Reply-To: <CAE9FiQXk1VhA2+qAcp8jL=TG28acePyX4SOYALiAQ0bGnLaFOA@mail.gmail.com>
+Sender: linux-pci-owner@vger.kernel.org
+To: Yinghai Lu <yinghai@kernel.org>, Bjorn Helgaas <bhelgaas@google.com>
+Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>, Jiang Liu <liuj97@gmail.com>, Toshi Kani <toshi.kani@hp.com>, Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>, Myron Stowe <mstowe@redhat.com>, linux-pci@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Yinghai Lu <yinghai@kernel.org>
-Cc: Bjorn Helgaas <bhelgaas@google.com>, "Rafael J. Wysocki" <rjw@sisk.pl>, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 
-On Tue, 2013-02-12 at 18:42 -0800, Yinghai Lu wrote:
-> On Tue, Feb 12, 2013 at 6:20 PM, Peter Hurley <peter@hurleysoftware.com> wrote:
+On Tuesday, February 12, 2013 05:54:08 PM Yinghai Lu wrote:
+> On Tue, Feb 12, 2013 at 4:16 PM, Rafael J. Wysocki <rjw@sisk.pl> wrote:
+> > From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 > >
-> > Reported-and-tested-by: Peter Hurley <peter@hurleysoftware.com>
+> > After commit 1aeae82 (ACPI / PCI: avoid building pci_slot as module)
+> > the pci_slot driver's .add() callback routine, acpi_pci_slot_add(),
+> > is executed from within acpi_pci_root_add() before the PCI devices on
+> > the bus are enumerated and that triggers the WARN_ON() in
+> > kobject_get():
+> >
+> > WARNING: at /scratch/rafael/work/test/include/linux/kref.h:42 kobject_get+0x33/0x40()
+> > Hardware name: PORTEGE R500
+> > Modules linked in:
+> > Pid: 1, comm: swapper/0 Not tainted 3.8.0-rc7+ #160
+> > Call Trace:
+> >  [<ffffffff8103d38a>] warn_slowpath_common+0x7a/0xb0
+> >  [<ffffffff8103d3d5>] warn_slowpath_null+0x15/0x20
+> >  [<ffffffff812f99b3>] kobject_get+0x33/0x40
+> >  [<ffffffff81452b82>] get_device+0x12/0x30
+> >  [<ffffffff8138df7b>] register_slot+0x243/0x295
+> >  [<ffffffff810a7b6d>] ? trace_hardirqs_on+0xd/0x10
+> >  [<ffffffff8137b7b9>] acpi_ns_walk_namespace+0x10f/0x24a
+> >  [<ffffffff8138dd38>] ? walk_p2p_bridge+0x13b/0x13b
+> >  [<ffffffff8138dd38>] ? walk_p2p_bridge+0x13b/0x13b
+> >  [<ffffffff8137bdc3>] acpi_walk_namespace+0xe9/0x132
+> >  [<ffffffff8138dd38>] ? walk_p2p_bridge+0x13b/0x13b
+> >  [<ffffffff8138dcf5>] walk_p2p_bridge+0xf8/0x13b
+> >  [<ffffffff8134d606>] ? acpi_os_signal_semaphore+0x76/0x87
+> >  [<ffffffff8138dd38>] ? walk_p2p_bridge+0x13b/0x13b
+> >  [<ffffffff8137b7b9>] acpi_ns_walk_namespace+0x10f/0x24a
+> >  [<ffffffff8138dbfd>] ? do_sta_before_sun+0x2b/0x2b
+> >  [<ffffffff8138dbfd>] ? do_sta_before_sun+0x2b/0x2b
+> >  [<ffffffff8137bdc3>] acpi_walk_namespace+0xe9/0x132
+> >  [<ffffffff81356071>] ? acpi_pci_root_add+0x3e7/0x49a
+> >  [<ffffffff8138e07f>] acpi_pci_slot_add+0xb2/0x103
+> >  [<ffffffff8138dd38>] ? walk_p2p_bridge+0x13b/0x13b
+> >  [<ffffffff81356089>] acpi_pci_root_add+0x3ff/0x49a
+> >
+> > which means that pci_bus->dev used in register_slot() has not been
+> > registered yet at that point.
+> >
+> > To fix this use the observation that before commit 1aeae82
+> > acpi_pci_slot_add() was always run after pci_bus_add_devices()
+> > and that happened to the acpiphp's .add() callback routine too.
+> > Thus it is safe to reorder acpi_pci_root_add() to make the PCI root
+> > drivers' .add() callbacks be run after pci_bus_add_devices(), so do
+> > that.
+> >
+> > This approach was previously proposed by Myron Stowe.
+> >
+> > References: https://patchwork.kernel.org/patch/1848781/
+> > Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+> > ---
+> >
+> > The commit mentioned in the changelog above is in linux-pm.git/linux-next.
+> >
+> > Thanks,
+> > Rafael
+> >
+> > ---
+> >  drivers/acpi/pci_root.c |   13 ++++++++-----
+> >  1 file changed, 8 insertions(+), 5 deletions(-)
+> >
+> > Index: test/drivers/acpi/pci_root.c
+> > ===================================================================
+> > --- test.orig/drivers/acpi/pci_root.c
+> > +++ test/drivers/acpi/pci_root.c
+> > @@ -600,17 +600,20 @@ static int acpi_pci_root_add(struct acpi
+> >         if (system_state != SYSTEM_BOOTING)
+> >                 pci_assign_unassigned_bus_resources(root->bus);
+> >
+> > +       /* need to after hot-added ioapic is registered */
+> > +       if (system_state != SYSTEM_BOOTING)
+> > +               pci_enable_bridges(root->bus);
+> > +
+> > +       pci_bus_add_devices(root->bus);
+> > +
+> >         mutex_lock(&acpi_pci_root_lock);
+> > +
+> >         list_for_each_entry(driver, &acpi_pci_drivers, node)
+> >                 if (driver->add)
+> >                         driver->add(root);
+> > -       mutex_unlock(&acpi_pci_root_lock);
+> >
+> > -       /* need to after hot-added ioapic is registered */
+> > -       if (system_state != SYSTEM_BOOTING)
+> > -               pci_enable_bridges(root->bus);
+> > +       mutex_unlock(&acpi_pci_root_lock);
+> >
+> > -       pci_bus_add_devices(root->bus);
+> >         return 1;
+> >
+> >  out_del_root:
+> >
 > 
-> Thanks.
+> No, we don't need this after
 > 
-> > PS - I just happened to see this version on the list. Would you please
-> > cc me on any future versions?
+> | commit 4f535093cf8f6da8cfda7c36c2c1ecd2e9586ee4
+> |     PCI: Put pci_dev in device tree as early as possible
 > 
-> oh, my fault. I take it for granted that "git send-email" will pick
-> that email from
-> patch just like Cc.
+> in pci/next.
+> 
+> So we can move that Jiang's patch from your tree to Bjorn's tree?
 
-No problem. Actually, I'm sorry it took this long for me to test. I was
-stuck in an epic bisect that I eventually abandoned at the 41st test
-with it still in merge bases.
+OK, I'm dropping that patch from my tree, then (hopefully, no one has merged
+my acpi-cleanup branch yet).
+
+Bjorn, could you pick up https://patchwork.kernel.org/patch/2003771/ please?
+
+Rafael
 
 
+-- 
+I speak only for myself.
+Rafael J. Wysocki, Intel Open Source Technology Center.
