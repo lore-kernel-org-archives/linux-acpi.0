@@ -1,47 +1,58 @@
-From: Ben Jencks <ben@bjencks.net>
+From: Seth Forshee <seth.forshee@canonical.com>
 Subject: Re: [PATCH] ACPI: Disable Windows 8 compatibility for some Lenovo
  ThinkPads
-Date: Wed, 13 Feb 2013 16:09:52 -0500
-Message-ID: <511C0120.80707@bjencks.net>
-References: <1360599681-24781-1-git-send-email-seth.forshee@canonical.com> <20130211175213.GA25139@srcf.ucam.org> <20130211190617.GH13768@thinkpad-t410> <20130211190914.GA27364@srcf.ucam.org>
+Date: Wed, 13 Feb 2013 15:46:54 -0600
+Message-ID: <20130213214654.GG22867@thinkpad-t410>
+References: <1360599681-24781-1-git-send-email-seth.forshee@canonical.com>
+ <20130211175213.GA25139@srcf.ucam.org>
+ <20130211190617.GH13768@thinkpad-t410>
+ <20130211190914.GA27364@srcf.ucam.org>
+ <20130213203228.GE22867@thinkpad-t410>
+ <20130213205558.GA16559@srcf.ucam.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-vc0-f173.google.com ([209.85.220.173]:45604 "EHLO
-	mail-vc0-f173.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752010Ab3BMVJz (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 13 Feb 2013 16:09:55 -0500
-Received: by mail-vc0-f173.google.com with SMTP id fy7so1060786vcb.4
-        for <linux-acpi@vger.kernel.org>; Wed, 13 Feb 2013 13:09:55 -0800 (PST)
-In-Reply-To: <20130211190914.GA27364@srcf.ucam.org>
+Received: from youngberry.canonical.com ([91.189.89.112]:56845 "EHLO
+	youngberry.canonical.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752080Ab3BMVq7 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 13 Feb 2013 16:46:59 -0500
+Content-Disposition: inline
+In-Reply-To: <20130213205558.GA16559@srcf.ucam.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: Matthew Garrett <mjg59@srcf.ucam.org>
-Cc: Seth Forshee <seth.forshee@canonical.com>, Len Brown <lenb@kernel.org>, "Rafael J. Wysocki" <rjw@sisk.pl>, linux-acpi@vger.kernel.org, joeyli <jlee@suse.com>
+Cc: Len Brown <lenb@kernel.org>, "Rafael J. Wysocki" <rjw@sisk.pl>, linux-acpi@vger.kernel.org, Ben Jencks <ben@bjencks.net>, joeyli <jlee@suse.com>
 
-On 02/11/2013 02:09 PM, Matthew Garrett wrote:
-> On Mon, Feb 11, 2013 at 01:06:17PM -0600, Seth Forshee wrote:
->> On Mon, Feb 11, 2013 at 05:52:13PM +0000, Matthew Garrett wrote:
->>> So the problem is that userspace is writing values that don't happen to 
->>> be aligned with the values the hardware reacts to, and so nothing gets 
->>> changed?
->>
->> Yes. The values are valid according to to _BCL, but _BCM is discarding
->> any values that aren't contained in an array named BRTW. BRTW is
->> literally the object returned by _BCL returns for !Windows 2012. Here's
->> a link to the AML if you'd like to take a look.
+On Wed, Feb 13, 2013 at 08:55:58PM +0000, Matthew Garrett wrote:
+> On Wed, Feb 13, 2013 at 02:32:28PM -0600, Seth Forshee wrote:
+> > On Mon, Feb 11, 2013 at 07:09:14PM +0000, Matthew Garrett wrote:
+> > > Right. My concern here is that Windows clearly doesn't trigger the 
+> > > issue, and so there's some chance that we'll see similar issues on other 
+> > > machines. Disabling Windows 8 compatibility isn't really an option. One 
+> > > choice might be to have the ACPI video driver set all intermediate 
+> > > values if the system makes the Windows 8 OSI call?
+> > 
+> > This turns out to have some problems. The hotkeys on the x230 at least
+> > generate increase/decrease brightness notifications. In response
+> > acpi_video reads the current brightness level via _BQC and decides what
+> > the next value should be. A value adjacent to a working value is never
+> > another working value on this machine, so _BCM does nothing. The next
+> > time a notification comes _BQC returns the same value as it did the
+> > previous time. Obviously this gets us nowhere.
 > 
-> Right. My concern here is that Windows clearly doesn't trigger the 
-> issue, and so there's some chance that we'll see similar issues on other 
-> machines. Disabling Windows 8 compatibility isn't really an option. One 
-> choice might be to have the ACPI video driver set all intermediate 
-> values if the system makes the Windows 8 OSI call?
+> Nrgh. Having this logic in the kernel has always been miserable. On the 
+> other hand, having _BQC return wrong values is arguably even worse.
+> 
+> > The (untested) fix I've come up with is to use the cached value for the
+> > current brightness rather than asking the firmware. I'm assuming though
+> > that acpi_video would be using the cached values already if there wasn't
+> > a chance that their changing without its knowledge?
+> 
+> Yeah. What I'd suggest here is calling _BQC after every change, and if 
+> it returns the old value throw a firmware bug message and fall back to 
+> using a cached one.
 
-Stupid hack idea: what about trying all the levels _BCL reports and
-seeing which ones change _BQC? Then filter out any that don't really
-exist. It might make bootup look odd, seeing the backlight quickly scan
-through all brightness levels, but it's only once per boot.
-
--Ben
+After every brightness change? Maybe it would be better to just test for
+this during initialization, then set device->cap._BQC to 0 so we won't
+use it.
 
