@@ -1,64 +1,56 @@
-From: Yinghai Lu <yinghai@kernel.org>
-Subject: Re: [PATCH] ACPI / hotplug: Fix concurrency issues and memory leaks
-Date: Tue, 12 Feb 2013 17:55:26 -0800
-Message-ID: <CAE9FiQVR+0iXtYF4AcLZs5_SsOtUJp5dF5fpk0XZKTcVanoL6A@mail.gmail.com>
-References: <1837481.7dT8hTZ4MT@vostro.rjw.lan>
+From: Peter Hurley <peter@hurleysoftware.com>
+Subject: Re: [PATCH] ACPI, PCI: Get PRT entry during acpi_pci_enable_irq()
+Date: Tue, 12 Feb 2013 21:20:10 -0500
+Message-ID: <1360722010.3604.3.camel@thor.lan>
+References: <CAE9FiQUkmnV_On5+ZpH2pF4Li1HxLpkO8bp4TnYB46=pc9Safg@mail.gmail.com>
+	 <1360696283-20313-1-git-send-email-yinghai@kernel.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <linux-pci-owner@vger.kernel.org>
-In-Reply-To: <1837481.7dT8hTZ4MT@vostro.rjw.lan>
-Sender: linux-pci-owner@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>, Bjorn Helgaas <bhelgaas@google.com>, Jiang Liu <liuj97@gmail.com>, Toshi Kani <toshi.kani@hp.com>, Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>, Myron Stowe <mstowe@redhat.com>, linux-pci@vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1360696283-20313-1-git-send-email-yinghai@kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Yinghai Lu <yinghai@kernel.org>
+Cc: Bjorn Helgaas <bhelgaas@google.com>, "Rafael J. Wysocki" <rjw@sisk.pl>, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Tue, Feb 12, 2013 at 4:19 PM, Rafael J. Wysocki <rjw@sisk.pl> wrote:
-> From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
->
-> This changeset is aimed at fixing a few different but related
-> problems in the ACPI hotplug infrastructure.
->
-> First of all, since notify handlers may be run in parallel with
-> acpi_bus_scan(), acpi_bus_trim() and acpi_bus_hot_remove_device()
-> and some of them are installed for ACPI handles that have no struct
-> acpi_device objects attached (i.e. before those objects are created),
-> those notify handlers have to take acpi_scan_lock to prevent races
-> from taking place (e.g. a struct acpi_device is found to be present
-> for the given ACPI handle, but right after that it is removed by
-> acpi_bus_trim() running in parallel to the given notify handler).
-> Moreover, since some of them call acpi_bus_scan() and
-> acpi_bus_trim(), this leads to the conclusion that acpi_scan_lock
-> should be acquired by the callers of these two funtions rather by
-> these functions themselves.
->
-> For these reasons, make all notify handlers that can handle device
-> addition and eject events take acpi_scan_lock and remove the
-> acpi_scan_lock locking from acpi_bus_scan() and acpi_bus_trim().
-> Accordingly, update all of their users to make sure that they
-> are always called under acpi_scan_lock.
->
-> Furthermore, since eject operations are carried out asynchronously
-> with respect to the notify events that trigger them, with the help
-> of acpi_bus_hot_remove_device(), even if notify handlers take the
-> ACPI scan lock, it still is possible that, for example,
-> acpi_bus_trim() will run between acpi_bus_hot_remove_device() and
-> the notify handler that scheduled its execution and that
-> acpi_bus_trim() will remove the device node passed to
-> acpi_bus_hot_remove_device() for ejection.  In that case, the struct
-> acpi_device object obtained by acpi_bus_hot_remove_device() will be
-> invalid and not-so-funny things will ensue.  To protect agaist that,
-> make the users of acpi_bus_hot_remove_device() run get_device() on
-> ACPI device node objects that are about to be passed to it and make
-> acpi_bus_hot_remove_device() run put_device() on them and check if
-> their ACPI handles are not NULL (make acpi_device_unregister() clear
-> the device nodes' ACPI handles for that check to work).
->
-> Finally, observe that acpi_os_hotplug_execute() actually can fail,
-> in which case its caller ought to free memory allocated for the
-> context object to prevent leaks from happening.  It also needs to
-> run put_device() on the device node that it ran get_device() on
-> previously in that case.  Modify the code accordingly.
->
-> Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+On Tue, 2013-02-12 at 11:11 -0800, Yinghai Lu wrote:
+> Peter Hurley found "irq 18 nobody cared" with pci-next, and dmesg has
+> 
+> [    8.983246] pci 0000:00:1e.0: can't derive routing for PCI INT A
+> [    8.983600] snd_ctxfi 0000:09:02.0: PCI INT A: no GSI - using ISA IRQ 5
+> 
+> bisect to
+> | commit 4f535093cf8f6da8cfda7c36c2c1ecd2e9586ee4
+> |     PCI: Put pci_dev in device tree as early as possible
+> 
+> It turns out we need to call acpi_pci_irq_add_prt() after the pci bridges
+> are scanned.
+> 
+> Bjorn said:
+>  The bus number binding means acpi_pci_irq_add_prt() has to happen
+>  after enumerating everything below a bridge, and it will prevent us
+>  from doing any bus number reassignment for hotplug.
+> 
+>  I think we should remove the bus numbers from the cached _PRT (or
+>  maybe even remove the _PRT caching completely).  When we enable a PCI
+>  device's IRQ, we should search up the PCI device tree looking for a
+>  _PRT associated with each node, and applying normal PCI bridge
+>  swizzling when we don't find a _PRT.  I think this can be done without
+>  using PCI bus numbers at all.
+> 
+> So here we try to remove _PRT caching completely.
+> 
+> -v2: check !handle early.
+> 
+> Reported-and-tested-by: Peter Hurley <peter@hurleysoftware.com>
 
-Acked-by: Yinghai Lu <yinghai@kernel.org>
+Actually true now :)
+
+Reported-and-tested-by: Peter Hurley <peter@hurleysoftware.com>
+
+Regards and thanks again,
+Peter Hurley
+
+PS - I just happened to see this version on the list. Would you please
+cc me on any future versions?
