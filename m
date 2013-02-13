@@ -1,62 +1,134 @@
-From: Seth Forshee <seth.forshee@canonical.com>
-Subject: Re: [PATCH] ACPI: Disable Windows 8 compatibility for some Lenovo
- ThinkPads
-Date: Wed, 13 Feb 2013 14:32:28 -0600
-Message-ID: <20130213203228.GE22867@thinkpad-t410>
-References: <1360599681-24781-1-git-send-email-seth.forshee@canonical.com>
- <20130211175213.GA25139@srcf.ucam.org>
- <20130211190617.GH13768@thinkpad-t410>
- <20130211190914.GA27364@srcf.ucam.org>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: Re: [Update][PATCH] ACPI / hotplug: Fix concurrency issues and memory leaks
+Date: Wed, 13 Feb 2013 21:52:33 +0100
+Message-ID: <4594350.VXNmDOeCvt@vostro.rjw.lan>
+References: <1837481.7dT8hTZ4MT@vostro.rjw.lan> <1459286.L93riBCyLC@vostro.rjw.lan> <1360777438.3869.100.camel@misato.fc.hp.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from youngberry.canonical.com ([91.189.89.112]:56589 "EHLO
-	youngberry.canonical.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751156Ab3BMUck (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 13 Feb 2013 15:32:40 -0500
-Content-Disposition: inline
-In-Reply-To: <20130211190914.GA27364@srcf.ucam.org>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7Bit
+Return-path: <linux-pci-owner@vger.kernel.org>
+In-Reply-To: <1360777438.3869.100.camel@misato.fc.hp.com>
+Sender: linux-pci-owner@vger.kernel.org
+To: Toshi Kani <toshi.kani@hp.com>
+Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>, Bjorn Helgaas <bhelgaas@google.com>, Jiang Liu <liuj97@gmail.com>, Yinghai Lu <yinghai@kernel.org>, Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>, Myron Stowe <mstowe@redhat.com>, linux-pci@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Matthew Garrett <mjg59@srcf.ucam.org>
-Cc: Len Brown <lenb@kernel.org>, "Rafael J. Wysocki" <rjw@sisk.pl>, linux-acpi@vger.kernel.org, Ben Jencks <ben@bjencks.net>, joeyli <jlee@suse.com>
 
-On Mon, Feb 11, 2013 at 07:09:14PM +0000, Matthew Garrett wrote:
-> On Mon, Feb 11, 2013 at 01:06:17PM -0600, Seth Forshee wrote:
-> > On Mon, Feb 11, 2013 at 05:52:13PM +0000, Matthew Garrett wrote:
-> > > So the problem is that userspace is writing values that don't happen to 
-> > > be aligned with the values the hardware reacts to, and so nothing gets 
-> > > changed?
+On Wednesday, February 13, 2013 10:43:58 AM Toshi Kani wrote:
+> On Wed, 2013-02-13 at 14:16 +0100, Rafael J. Wysocki wrote:
+> > From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 > > 
-> > Yes. The values are valid according to to _BCL, but _BCM is discarding
-> > any values that aren't contained in an array named BRTW. BRTW is
-> > literally the object returned by _BCL returns for !Windows 2012. Here's
-> > a link to the AML if you'd like to take a look.
+> > This changeset is aimed at fixing a few different but related
+> > problems in the ACPI hotplug infrastructure.
+> > 
+> > First of all, since notify handlers may be run in parallel with
+> > acpi_bus_scan(), acpi_bus_trim() and acpi_bus_hot_remove_device()
+> > and some of them are installed for ACPI handles that have no struct
+> > acpi_device objects attached (i.e. before those objects are created),
+> > those notify handlers have to take acpi_scan_lock to prevent races
+> > from taking place (e.g. a struct acpi_device is found to be present
+> > for the given ACPI handle, but right after that it is removed by
+> > acpi_bus_trim() running in parallel to the given notify handler).
+> > Moreover, since some of them call acpi_bus_scan() and
+> > acpi_bus_trim(), this leads to the conclusion that acpi_scan_lock
+> > should be acquired by the callers of these two funtions rather by
+> > these functions themselves.
+> > 
+> > For these reasons, make all notify handlers that can handle device
+> > addition and eject events take acpi_scan_lock and remove the
+> > acpi_scan_lock locking from acpi_bus_scan() and acpi_bus_trim().
+> > Accordingly, update all of their users to make sure that they
+> > are always called under acpi_scan_lock.
+> > 
+> > Furthermore, since eject operations are carried out asynchronously
+> > with respect to the notify events that trigger them, with the help
+> > of acpi_bus_hot_remove_device(), even if notify handlers take the
+> > ACPI scan lock, it still is possible that, for example,
+> > acpi_bus_trim() will run between acpi_bus_hot_remove_device() and
+> > the notify handler that scheduled its execution and that
+> > acpi_bus_trim() will remove the device node passed to
+> > acpi_bus_hot_remove_device() for ejection.  In that case, the struct
+> > acpi_device object obtained by acpi_bus_hot_remove_device() will be
+> > invalid and not-so-funny things will ensue.  To protect agaist that,
+> > make the users of acpi_bus_hot_remove_device() run get_device() on
+> > ACPI device node objects that are about to be passed to it and make
+> > acpi_bus_hot_remove_device() run put_device() on them and check if
+> > their ACPI handles are not NULL (make acpi_device_unregister() clear
+> > the device nodes' ACPI handles for that check to work).
+> > 
+> > Finally, observe that acpi_os_hotplug_execute() actually can fail,
+> > in which case its caller ought to free memory allocated for the
+> > context object to prevent leaks from happening.  It also needs to
+> > run put_device() on the device node that it ran get_device() on
+> > previously in that case.  Modify the code accordingly.
 > 
-> Right. My concern here is that Windows clearly doesn't trigger the 
-> issue, and so there's some chance that we'll see similar issues on other 
-> machines. Disabling Windows 8 compatibility isn't really an option. One 
-> choice might be to have the ACPI video driver set all intermediate 
-> values if the system makes the Windows 8 OSI call?
+> I am concerned with this approach.  ACPICA calls notify handlers through
+> kacpi_notify_wq, which has the max active set to 1.  We then use
+> kacpi_hotplug_wq (which also has the max active set to 1) so that a
+> hotplug procedure does not block the notify handlers since they can be
+> used for non-hotplug events as well.
 
-This turns out to have some problems. The hotkeys on the x230 at least
-generate increase/decrease brightness notifications. In response
-acpi_video reads the current brightness level via _BQC and decides what
-the next value should be. A value adjacent to a working value is never
-another working value on this machine, so _BCM does nothing. The next
-time a notification comes _BQC returns the same value as it did the
-previous time. Obviously this gets us nowhere.
+In fact we use kacpi_hotplug_wq for a different reason.  Please read the
+comment in __acpi_os_execute() for more details.
 
-The (untested) fix I've come up with is to use the cached value for the
-current brightness rather than asking the firmware. I'm assuming though
-that acpi_video would be using the cached values already if there wasn't
-a chance that their changing without its knowledge?
+> Acquiring the scan lock in a notify handler means that a hotplug procedure
+> can block any notify events.
 
-The other issue with using the cached value is that the hotkeys on these
-machines are still going to end up cycling through 101 brightness levels
-with 85% of them leaving the brightness unchanged. When there's that
-many levels though maybe it makes sense to jump more than one level at a
-time.
+Yes, it can.
 
-Seth
+> So, I'd prefer the following approach.
+> 
+>  - Change all hot-plug procedures (i.e. both add and delete) to proceed
+> under kacpi_hotplug_wq by calling acpi_os_hotplug_execute(). This
+> serializes all hotplug procedures, and prevents blocking other notify
+> events.
 
+Yes, we can do that.  I was thinking about doing that change, but not in v3.9.
+There are simply too many notify handlers already there to do that so late in
+the cycle.  And doing that for acpiphp, for example, won't be straightforward
+at all.
+
+Please think about the $subject patch as a temporary measure until we can do
+something better (which we need to do anyway to reduce code duplication among
+other things).
+
+> (Ideally, we should also run all online/offline procedures
+> under a same work-queue, just like my RFC patchset did, but this is a
+> different topic for now.)
+
+No, I don't think it is appropriate to run online/offline from _any_
+workqueue.  In my opinion they should be run from user space.
+
+>  - Revert 5993c4670 unless this change is absolutely necessary.  From
+> the change log, it is not clear to me why this change was needed.  It
+> changed acpi_bus_hot_remove_device() to take an acpi_device, instead of
+> an acpi_handle, which introduced a race condition with acpi_device.
+> acpi_bus_hot_remove_device() should take an acpi_handle, and then obtain
+> its acpi_device from the acpi_handle since this function is serialized.
+
+I thought about that, but actually there's no guarantee that the handle
+will be valid after _EJ0 as far as I can say.  So the race condition is
+going to be there anyway and using struct acpi_device just makes it easier
+to avoid it.
+
+>  - Remove sanity checks with an acpi_device in the notify handlers,
+> which have a race condition with acpi_device.  These type-specific
+> checks will need to be removed when we have a common notify handler
+> anyway.  The notify handler can continue to check the status of ACPI
+> device object with an acpi_handle.  Type-specific sanity checks /
+> validations can be performed within a hotplug procedure, instead.
+
+Well, the sanest approach here would be to queue up a work item on
+kacpi_hotplug_wq if the event is of a "hotplug" type and let that work
+item do all checks, run acpi_bus_scan() etc.  But not in v3.9.
+
+For v3.9, the most straightforward and least intrusive change we can do
+is the $subject patch as far as I can say.  If you can suggest something
+less intrusive and more straightforward, please do.
+
+Thanks,
+Rafael
+
+
+-- 
+I speak only for myself.
+Rafael J. Wysocki, Intel Open Source Technology Center.
