@@ -1,55 +1,77 @@
-From: "Moore, Robert" <robert.moore@intel.com>
-Subject: RE: [Update][PATCH] ACPI / hotplug: Fix concurrency issues and
- memory leaks
-Date: Thu, 14 Feb 2013 20:45:14 +0000
-Message-ID: <94F2FBAB4432B54E8AACC7DFDE6C92E368CB5D05@ORSMSX101.amr.corp.intel.com>
-References: <1837481.7dT8hTZ4MT@vostro.rjw.lan>
- <5284026.QPQbFciqVT@vostro.rjw.lan>
- <94F2FBAB4432B54E8AACC7DFDE6C92E368CB39A9@ORSMSX101.amr.corp.intel.com>
- <7010893.9OBeMt5Fzh@vostro.rjw.lan>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: Re: [Update][PATCH] ACPI / hotplug: Fix concurrency issues and memory leaks
+Date: Thu, 14 Feb 2013 21:59:25 +0100
+Message-ID: <7482249.JD6lNDApdo@vostro.rjw.lan>
+References: <1837481.7dT8hTZ4MT@vostro.rjw.lan> <7010893.9OBeMt5Fzh@vostro.rjw.lan> <94F2FBAB4432B54E8AACC7DFDE6C92E368CB5D05@ORSMSX101.amr.corp.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <linux-pci-owner@vger.kernel.org>
-In-Reply-To: <7010893.9OBeMt5Fzh@vostro.rjw.lan>
-Content-Language: en-US
-Sender: linux-pci-owner@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: Toshi Kani <toshi.kani@hp.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>, Bjorn Helgaas <bhelgaas@google.com>, Jiang Liu <liuj97@gmail.com>, Yinghai Lu <yinghai@kernel.org>, Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>, Myron Stowe <mstowe@redhat.com>, "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>
+Content-Transfer-Encoding: 7Bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from hydra.sisk.pl ([212.160.235.94]:38198 "EHLO hydra.sisk.pl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S934898Ab3BNUw5 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 14 Feb 2013 15:52:57 -0500
+In-Reply-To: <94F2FBAB4432B54E8AACC7DFDE6C92E368CB5D05@ORSMSX101.amr.corp.intel.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: "Moore, Robert" <robert.moore@intel.com>
+Cc: Toshi Kani <toshi.kani@hp.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>, Bjorn Helgaas <bhelgaas@google.com>, Jiang Liu <liuj97@gmail.com>, Yinghai Lu <yinghai@kernel.org>, Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>, Myron Stowe <mstowe@redhat.com>, "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>
 
-DQoNCj4gLS0tLS1PcmlnaW5hbCBNZXNzYWdlLS0tLS0NCj4gRnJvbTogUmFmYWVsIEouIFd5c29j
-a2kgW21haWx0bzpyandAc2lzay5wbF0NCj4gU2VudDogVGh1cnNkYXksIEZlYnJ1YXJ5IDE0LCAy
-MDEzIDQ6MDQgQU0NCj4gVG86IE1vb3JlLCBSb2JlcnQNCj4gQ2M6IFRvc2hpIEthbmk7IEFDUEkg
-RGV2ZWwgTWFsaW5nIExpc3Q7IExLTUw7IEJqb3JuIEhlbGdhYXM7IEppYW5nIExpdTsNCj4gWWlu
-Z2hhaSBMdTsgWWFzdWFraSBJc2hpbWF0c3U7IE15cm9uIFN0b3dlOyBsaW51eC1wY2lAdmdlci5r
-ZXJuZWwub3JnDQo+IFN1YmplY3Q6IFJlOiBbVXBkYXRlXVtQQVRDSF0gQUNQSSAvIGhvdHBsdWc6
-IEZpeCBjb25jdXJyZW5jeSBpc3N1ZXMgYW5kDQo+IG1lbW9yeSBsZWFrcw0KPiANCj4gT24gVGh1
-cnNkYXksIEZlYnJ1YXJ5IDE0LCAyMDEzIDAyOjMxOjIyIEFNIE1vb3JlLCBSb2JlcnQgd3JvdGU6
-DQo+ID4gPiA+ID4gSSB0aG91Z2h0IGFib3V0IHRoYXQsIGJ1dCBhY3R1YWxseSB0aGVyZSdzIG5v
-IGd1YXJhbnRlZSB0aGF0IHRoZQ0KPiA+ID4gPiA+IGhhbmRsZSB3aWxsIGJlIHZhbGlkIGFmdGVy
-IF9FSjAgYXMgZmFyIGFzIEkgY2FuIHNheS4gIFNvIHRoZQ0KPiA+ID4gPiA+IHJhY2UgY29uZGl0
-aW9uIGlzIGdvaW5nIHRvIGJlIHRoZXJlIGFueXdheSBhbmQgdXNpbmcgc3RydWN0DQo+ID4gPiA+
-ID4gYWNwaV9kZXZpY2UganVzdCBtYWtlcyBpdCBlYXNpZXIgdG8gYXZvaWQgaXQuDQo+ID4gPiA+
-DQo+ID4gPiA+IEluIHRoZW9yeSwgeWVzLCBhIHN0YWxlIGhhbmRsZSBjb3VsZCBiZSBhIHByb2Js
-ZW0sIGlmIF9FSjANCj4gPiA+ID4gcGVyZm9ybXMgdW5sb2FkIHRhYmxlIGFuZCBpZiBBQ1BJQ0Eg
-ZnJlZXMgdXAgaXRzIGludGVybmFsIGRhdGENCj4gPiA+ID4gc3RydWN0dXJlIHBvaW50ZWQgYnkg
-dGhlIGhhbmRsZSBhcyBhIHJlc3VsdC4gIEJ1dCB3ZSBzaG91bGQgbm90DQo+ID4gPiA+IHNlZSBz
-dWNoIGlzc3VlIG5vdyBzaW5jZSB3ZSBkbyBub3Qgc3VwcG9ydCBkeW5hbWljIEFDUEkgbmFtZXNw
-YWNlDQo+IHlldC4NCj4gPiA+DQo+ID4gPiBJJ20gd2FpdGluZyBmb3IgaW5mb3JtYXRpb24gZnJv
-bSBCb2IgYWJvdXQgdGhhdC4gIElmIHdlIGNhbiBhc3N1bWUNCj4gPiA+IEFDUEkgaGFuZGxlcyB0
-byBiZSBhbHdheXMgdmFsaWQsIHRoYXQgd2lsbCBzaW1wbGlmeSB0aGluZ3MgcXVpdGUgYQ0KPiBi
-aXQuDQo+ID4NCj4gPiBJZiBhIHRhYmxlIGlzIHVubG9hZGVkLCBhbGwgdGhlIG5hbWVzcGFjZSBu
-b2RlcyBmb3IgdGhhdCB0YWJsZSBhcmUNCj4gPiByZW1vdmVkIGZyb20gdGhlIG5hbWVzcGFjZSwg
-YW5kIHRodXMgYW55IEFDUElfSEFORExFIHBvaW50ZXJzIGdvIHN0YWxlDQo+IGFuZCBpbnZhbGlk
-Lg0KPiANCj4gT0ssIHRoYW5rcyENCj4gDQo+IFRvIG1lIHRoaXMgbWVhbnMgdGhhdCB3ZSBjYW5u
-b3QgYXNzdW1lIGEgaGFuZGxlIHRvIHN0YXkgdmFsaWQgYmV0d2VlbiBhDQo+IG5vdGlmeSBoYW5k
-bGVyIGFuZCBhY3BpX2J1c19ob3RfcmVtb3ZlX2RldmljZSgpIHJ1biBmcm9tIGEgd29ya3F1ZXVl
-Lg0KPiANCj4gSXMgdGhlcmUgYSBtZWNoYW5pc20gaW4gQUNQSUNBIHRvIGVuc3VyZSB0aGF0IGEg
-aGFuZGxlIHdvbid0IGJlY29tZSBzdGFsZQ0KPiB3aGlsZSBhIG5vdGlmeSBoYW5kbGVyIGlzIHJ1
-bm5pbmcgZm9yIGl0IG9yIGlzIHRoZSBPUyByZXNwb25zaWJsZSBmb3INCj4gZW5zdXJpbmcgdGhh
-dA0KPiBfRUowIHdvbid0IGJlIHJ1biBpbiBwYXJhbGxlbCB3aXRoIG5vdGlmeSBoYW5kbGVycyBm
-b3IgZGV2aWNlIG9iamVjdHMNCj4gYmVpbmcgZWplY3RlZD8NCj4gDQoNCkl0IGlzIHVwIHRvIHRo
-ZSBob3N0Lg0KQm9iDQoNCg0KPiBSYWZhZWwNCj4gDQo+IA0KPiAtLQ0KPiBJIHNwZWFrIG9ubHkg
-Zm9yIG15c2VsZi4NCj4gUmFmYWVsIEouIFd5c29ja2ksIEludGVsIE9wZW4gU291cmNlIFRlY2hu
-b2xvZ3kgQ2VudGVyLg0K
+On Thursday, February 14, 2013 08:45:14 PM Moore, Robert wrote:
+> 
+> > -----Original Message-----
+> > From: Rafael J. Wysocki [mailto:rjw@sisk.pl]
+> > Sent: Thursday, February 14, 2013 4:04 AM
+> > To: Moore, Robert
+> > Cc: Toshi Kani; ACPI Devel Maling List; LKML; Bjorn Helgaas; Jiang Liu;
+> > Yinghai Lu; Yasuaki Ishimatsu; Myron Stowe; linux-pci@vger.kernel.org
+> > Subject: Re: [Update][PATCH] ACPI / hotplug: Fix concurrency issues and
+> > memory leaks
+> > 
+> > On Thursday, February 14, 2013 02:31:22 AM Moore, Robert wrote:
+> > > > > > I thought about that, but actually there's no guarantee that the
+> > > > > > handle will be valid after _EJ0 as far as I can say.  So the
+> > > > > > race condition is going to be there anyway and using struct
+> > > > > > acpi_device just makes it easier to avoid it.
+> > > > >
+> > > > > In theory, yes, a stale handle could be a problem, if _EJ0
+> > > > > performs unload table and if ACPICA frees up its internal data
+> > > > > structure pointed by the handle as a result.  But we should not
+> > > > > see such issue now since we do not support dynamic ACPI namespace
+> > yet.
+> > > >
+> > > > I'm waiting for information from Bob about that.  If we can assume
+> > > > ACPI handles to be always valid, that will simplify things quite a
+> > bit.
+> > >
+> > > If a table is unloaded, all the namespace nodes for that table are
+> > > removed from the namespace, and thus any ACPI_HANDLE pointers go stale
+> > and invalid.
+> > 
+> > OK, thanks!
+> > 
+> > To me this means that we cannot assume a handle to stay valid between a
+> > notify handler and acpi_bus_hot_remove_device() run from a workqueue.
+> > 
+> > Is there a mechanism in ACPICA to ensure that a handle won't become stale
+> > while a notify handler is running for it or is the OS responsible for
+> > ensuring that
+> > _EJ0 won't be run in parallel with notify handlers for device objects
+> > being ejected?
+> > 
+> 
+> It is up to the host.
+
+I was afraid that that might be the case. :-)
+
+So far the (Linux) host has been happily ignoring that potential problem, so
+I guess it can still be ignored for a while, although we'll need to address it
+eventually at one point.
+
+Thanks,
+Rafael
+
+
+-- 
+I speak only for myself.
+Rafael J. Wysocki, Intel Open Source Technology Center.
