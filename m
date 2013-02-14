@@ -1,87 +1,55 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: [Update][PATCH] ACPI / hotplug: Fix concurrency issues and memory leaks
-Date: Thu, 14 Feb 2013 21:17:31 +0100
-Message-ID: <8784737.LSUoM4gnSV@vostro.rjw.lan>
-References: <1837481.7dT8hTZ4MT@vostro.rjw.lan> <1459286.L93riBCyLC@vostro.rjw.lan> <CAE9FiQW344Q3t6VJYTYTCL_LOvsWFktkzf1doHKdspU-LGU2MA@mail.gmail.com>
+From: "Moore, Robert" <robert.moore@intel.com>
+Subject: RE: [Update][PATCH] ACPI / hotplug: Fix concurrency issues and
+ memory leaks
+Date: Thu, 14 Feb 2013 20:45:14 +0000
+Message-ID: <94F2FBAB4432B54E8AACC7DFDE6C92E368CB5D05@ORSMSX101.amr.corp.intel.com>
+References: <1837481.7dT8hTZ4MT@vostro.rjw.lan>
+ <5284026.QPQbFciqVT@vostro.rjw.lan>
+ <94F2FBAB4432B54E8AACC7DFDE6C92E368CB39A9@ORSMSX101.amr.corp.intel.com>
+ <7010893.9OBeMt5Fzh@vostro.rjw.lan>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7Bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from hydra.sisk.pl ([212.160.235.94]:38180 "EHLO hydra.sisk.pl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1758666Ab3BNULF (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 14 Feb 2013 15:11:05 -0500
-In-Reply-To: <CAE9FiQW344Q3t6VJYTYTCL_LOvsWFktkzf1doHKdspU-LGU2MA@mail.gmail.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Transfer-Encoding: base64
+Return-path: <linux-pci-owner@vger.kernel.org>
+In-Reply-To: <7010893.9OBeMt5Fzh@vostro.rjw.lan>
+Content-Language: en-US
+Sender: linux-pci-owner@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: Toshi Kani <toshi.kani@hp.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>, Bjorn Helgaas <bhelgaas@google.com>, Jiang Liu <liuj97@gmail.com>, Yinghai Lu <yinghai@kernel.org>, Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>, Myron Stowe <mstowe@redhat.com>, "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
-To: Yinghai Lu <yinghai@kernel.org>
-Cc: Stephen Rothwell <sfr@canb.auug.org.au>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>, Bjorn Helgaas <bhelgaas@google.com>, Jiang Liu <liuj97@gmail.com>, Toshi Kani <toshi.kani@hp.com>, Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>, Myron Stowe <mstowe@redhat.com>, linux-pci@vger.kernel.org
 
-On Thursday, February 14, 2013 12:05:43 PM Yinghai Lu wrote:
-> On Wed, Feb 13, 2013 at 5:16 AM, Rafael J. Wysocki <rjw@sisk.pl> wrote:
-> > From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
-> >
-> > This changeset is aimed at fixing a few different but related
-> > problems in the ACPI hotplug infrastructure.
-> >
-> > First of all, since notify handlers may be run in parallel with
-> > acpi_bus_scan(), acpi_bus_trim() and acpi_bus_hot_remove_device()
-> > and some of them are installed for ACPI handles that have no struct
-> > acpi_device objects attached (i.e. before those objects are created),
-> > those notify handlers have to take acpi_scan_lock to prevent races
-> > from taking place (e.g. a struct acpi_device is found to be present
-> > for the given ACPI handle, but right after that it is removed by
-> > acpi_bus_trim() running in parallel to the given notify handler).
-> > Moreover, since some of them call acpi_bus_scan() and
-> > acpi_bus_trim(), this leads to the conclusion that acpi_scan_lock
-> > should be acquired by the callers of these two funtions rather by
-> > these functions themselves.
-> >
-> > For these reasons, make all notify handlers that can handle device
-> > addition and eject events take acpi_scan_lock and remove the
-> > acpi_scan_lock locking from acpi_bus_scan() and acpi_bus_trim().
-> > Accordingly, update all of their users to make sure that they
-> > are always called under acpi_scan_lock.
-> >
-> > Furthermore, since eject operations are carried out asynchronously
-> > with respect to the notify events that trigger them, with the help
-> > of acpi_bus_hot_remove_device(), even if notify handlers take the
-> > ACPI scan lock, it still is possible that, for example,
-> > acpi_bus_trim() will run between acpi_bus_hot_remove_device() and
-> > the notify handler that scheduled its execution and that
-> > acpi_bus_trim() will remove the device node passed to
-> > acpi_bus_hot_remove_device() for ejection.  In that case, the struct
-> > acpi_device object obtained by acpi_bus_hot_remove_device() will be
-> > invalid and not-so-funny things will ensue.  To protect agaist that,
-> > make the users of acpi_bus_hot_remove_device() run get_device() on
-> > ACPI device node objects that are about to be passed to it and make
-> > acpi_bus_hot_remove_device() run put_device() on them and check if
-> > their ACPI handles are not NULL (make acpi_device_unregister() clear
-> > the device nodes' ACPI handles for that check to work).
-> >
-> > Finally, observe that acpi_os_hotplug_execute() actually can fail,
-> > in which case its caller ought to free memory allocated for the
-> > context object to prevent leaks from happening.  It also needs to
-> > run put_device() on the device node that it ran get_device() on
-> > previously in that case.  Modify the code accordingly.
-> >
-> > Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
-> > Acked-by: Yinghai Lu <yinghai@kernel.org>
-> > ---
-> >
-> > This includes fixes for two issues spotted by Yasuaki Ishimatsu.
-> >
-> 
-> this one will make pci/next and pm/linux-next conflicts
-> 
-> Please check if attached fix is right.
-
-Looks correct to me.
-
-Thanks,
-Rafael
-
-
--- 
-I speak only for myself.
-Rafael J. Wysocki, Intel Open Source Technology Center.
+DQoNCj4gLS0tLS1PcmlnaW5hbCBNZXNzYWdlLS0tLS0NCj4gRnJvbTogUmFmYWVsIEouIFd5c29j
+a2kgW21haWx0bzpyandAc2lzay5wbF0NCj4gU2VudDogVGh1cnNkYXksIEZlYnJ1YXJ5IDE0LCAy
+MDEzIDQ6MDQgQU0NCj4gVG86IE1vb3JlLCBSb2JlcnQNCj4gQ2M6IFRvc2hpIEthbmk7IEFDUEkg
+RGV2ZWwgTWFsaW5nIExpc3Q7IExLTUw7IEJqb3JuIEhlbGdhYXM7IEppYW5nIExpdTsNCj4gWWlu
+Z2hhaSBMdTsgWWFzdWFraSBJc2hpbWF0c3U7IE15cm9uIFN0b3dlOyBsaW51eC1wY2lAdmdlci5r
+ZXJuZWwub3JnDQo+IFN1YmplY3Q6IFJlOiBbVXBkYXRlXVtQQVRDSF0gQUNQSSAvIGhvdHBsdWc6
+IEZpeCBjb25jdXJyZW5jeSBpc3N1ZXMgYW5kDQo+IG1lbW9yeSBsZWFrcw0KPiANCj4gT24gVGh1
+cnNkYXksIEZlYnJ1YXJ5IDE0LCAyMDEzIDAyOjMxOjIyIEFNIE1vb3JlLCBSb2JlcnQgd3JvdGU6
+DQo+ID4gPiA+ID4gSSB0aG91Z2h0IGFib3V0IHRoYXQsIGJ1dCBhY3R1YWxseSB0aGVyZSdzIG5v
+IGd1YXJhbnRlZSB0aGF0IHRoZQ0KPiA+ID4gPiA+IGhhbmRsZSB3aWxsIGJlIHZhbGlkIGFmdGVy
+IF9FSjAgYXMgZmFyIGFzIEkgY2FuIHNheS4gIFNvIHRoZQ0KPiA+ID4gPiA+IHJhY2UgY29uZGl0
+aW9uIGlzIGdvaW5nIHRvIGJlIHRoZXJlIGFueXdheSBhbmQgdXNpbmcgc3RydWN0DQo+ID4gPiA+
+ID4gYWNwaV9kZXZpY2UganVzdCBtYWtlcyBpdCBlYXNpZXIgdG8gYXZvaWQgaXQuDQo+ID4gPiA+
+DQo+ID4gPiA+IEluIHRoZW9yeSwgeWVzLCBhIHN0YWxlIGhhbmRsZSBjb3VsZCBiZSBhIHByb2Js
+ZW0sIGlmIF9FSjANCj4gPiA+ID4gcGVyZm9ybXMgdW5sb2FkIHRhYmxlIGFuZCBpZiBBQ1BJQ0Eg
+ZnJlZXMgdXAgaXRzIGludGVybmFsIGRhdGENCj4gPiA+ID4gc3RydWN0dXJlIHBvaW50ZWQgYnkg
+dGhlIGhhbmRsZSBhcyBhIHJlc3VsdC4gIEJ1dCB3ZSBzaG91bGQgbm90DQo+ID4gPiA+IHNlZSBz
+dWNoIGlzc3VlIG5vdyBzaW5jZSB3ZSBkbyBub3Qgc3VwcG9ydCBkeW5hbWljIEFDUEkgbmFtZXNw
+YWNlDQo+IHlldC4NCj4gPiA+DQo+ID4gPiBJJ20gd2FpdGluZyBmb3IgaW5mb3JtYXRpb24gZnJv
+bSBCb2IgYWJvdXQgdGhhdC4gIElmIHdlIGNhbiBhc3N1bWUNCj4gPiA+IEFDUEkgaGFuZGxlcyB0
+byBiZSBhbHdheXMgdmFsaWQsIHRoYXQgd2lsbCBzaW1wbGlmeSB0aGluZ3MgcXVpdGUgYQ0KPiBi
+aXQuDQo+ID4NCj4gPiBJZiBhIHRhYmxlIGlzIHVubG9hZGVkLCBhbGwgdGhlIG5hbWVzcGFjZSBu
+b2RlcyBmb3IgdGhhdCB0YWJsZSBhcmUNCj4gPiByZW1vdmVkIGZyb20gdGhlIG5hbWVzcGFjZSwg
+YW5kIHRodXMgYW55IEFDUElfSEFORExFIHBvaW50ZXJzIGdvIHN0YWxlDQo+IGFuZCBpbnZhbGlk
+Lg0KPiANCj4gT0ssIHRoYW5rcyENCj4gDQo+IFRvIG1lIHRoaXMgbWVhbnMgdGhhdCB3ZSBjYW5u
+b3QgYXNzdW1lIGEgaGFuZGxlIHRvIHN0YXkgdmFsaWQgYmV0d2VlbiBhDQo+IG5vdGlmeSBoYW5k
+bGVyIGFuZCBhY3BpX2J1c19ob3RfcmVtb3ZlX2RldmljZSgpIHJ1biBmcm9tIGEgd29ya3F1ZXVl
+Lg0KPiANCj4gSXMgdGhlcmUgYSBtZWNoYW5pc20gaW4gQUNQSUNBIHRvIGVuc3VyZSB0aGF0IGEg
+aGFuZGxlIHdvbid0IGJlY29tZSBzdGFsZQ0KPiB3aGlsZSBhIG5vdGlmeSBoYW5kbGVyIGlzIHJ1
+bm5pbmcgZm9yIGl0IG9yIGlzIHRoZSBPUyByZXNwb25zaWJsZSBmb3INCj4gZW5zdXJpbmcgdGhh
+dA0KPiBfRUowIHdvbid0IGJlIHJ1biBpbiBwYXJhbGxlbCB3aXRoIG5vdGlmeSBoYW5kbGVycyBm
+b3IgZGV2aWNlIG9iamVjdHMNCj4gYmVpbmcgZWplY3RlZD8NCj4gDQoNCkl0IGlzIHVwIHRvIHRo
+ZSBob3N0Lg0KQm9iDQoNCg0KPiBSYWZhZWwNCj4gDQo+IA0KPiAtLQ0KPiBJIHNwZWFrIG9ubHkg
+Zm9yIG15c2VsZi4NCj4gUmFmYWVsIEouIFd5c29ja2ksIEludGVsIE9wZW4gU291cmNlIFRlY2hu
+b2xvZ3kgQ2VudGVyLg0K
