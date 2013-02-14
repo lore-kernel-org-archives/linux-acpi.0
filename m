@@ -1,44 +1,45 @@
 From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: [Update][PATCH] ACPI / hotplug: Fix concurrency issues and memory leaks
-Date: Thu, 14 Feb 2013 13:03:57 +0100
-Message-ID: <7010893.9OBeMt5Fzh@vostro.rjw.lan>
-References: <1837481.7dT8hTZ4MT@vostro.rjw.lan> <5284026.QPQbFciqVT@vostro.rjw.lan> <94F2FBAB4432B54E8AACC7DFDE6C92E368CB39A9@ORSMSX101.amr.corp.intel.com>
+Subject: Re: [PATCH] PCI / ACPI: Report _OSC control mask returned on failure to get control
+Date: Thu, 14 Feb 2013 13:07:02 +0100
+Message-ID: <7634687.RmnPKEe4lz@vostro.rjw.lan>
+References: <20130214011027.GA430@rhlx01.hs-esslingen.de>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7Bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <94F2FBAB4432B54E8AACC7DFDE6C92E368CB39A9@ORSMSX101.amr.corp.intel.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: "Moore, Robert" <robert.moore@intel.com>
-Cc: Toshi Kani <toshi.kani@hp.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>, Bjorn Helgaas <bhelgaas@google.com>, Jiang Liu <liuj97@gmail.com>, Yinghai Lu <yinghai@kernel.org>, Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>, Myron Stowe <mstowe@redhat.com>, "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>
+Return-path: <linux-pci-owner@vger.kernel.org>
+In-Reply-To: <20130214011027.GA430@rhlx01.hs-esslingen.de>
+Sender: linux-pci-owner@vger.kernel.org
+To: Andreas Mohr <andi@lisas.de>
+Cc: linux-pci@vger.kernel.org, ACPI Devel Mailing List <linux-acpi@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On Thursday, February 14, 2013 02:31:22 AM Moore, Robert wrote:
-> > > > I thought about that, but actually there's no guarantee that the
-> > > > handle will be valid after _EJ0 as far as I can say.  So the race
-> > > > condition is going to be there anyway and using struct acpi_device
-> > > > just makes it easier to avoid it.
-> > >
-> > > In theory, yes, a stale handle could be a problem, if _EJ0 performs
-> > > unload table and if ACPICA frees up its internal data structure
-> > > pointed by the handle as a result.  But we should not see such issue
-> > > now since we do not support dynamic ACPI namespace yet.
-> > 
-> > I'm waiting for information from Bob about that.  If we can assume ACPI
-> > handles to be always valid, that will simplify things quite a bit.
+On Thursday, February 14, 2013 02:10:27 AM Andreas Mohr wrote:
+> Hi,
 > 
-> If a table is unloaded, all the namespace nodes for that table are removed
-> from the namespace, and thus any ACPI_HANDLE pointers go stale and invalid.
+> to provide an example case, on Aspire One AOA110 v0.3310, 3.8-rc7 prints:
+> 
+> [    0.515599] ACPI Error: [CAPB] Namespace lookup failure,
+> AE_ALREADY_EXISTS (2
+> 0121018/dsfield-211)
+> [    0.515629] ACPI Error: Method parse/execution failed
+> [\_SB_.PCI0._OSC] (Node f5449680), AE_ALREADY_EXISTS
+> (20121018/psparse-537)
+> [    0.515672] ACPI: Marking method _OSC as Serialized because of
+> AE_ALREADY_EXISTS error
+> [    0.516081] ACPI Error: [CAPB] Namespace lookup failure,
+> AE_ALREADY_EXISTS (20121018/dsfield-211)
+> [    0.516107] ACPI Error: Method parse/execution failed
+> [\_SB_.PCI0._OSC] (Node f5449680), AE_ALREADY_EXISTS
+> (20121018/psparse-537)
+> [    0.516168] pci_root PNP0A08:00: ACPI _OSC support notification
+> failed, disabling PCIe ASPM
+> [    0.516179] pci_root PNP0A08:00: Unable to request _OSC control (_OSC
+> support mask: 0x08)
+> 
+> HTH,
 
-OK, thanks!
-
-To me this means that we cannot assume a handle to stay valid between
-a notify handler and acpi_bus_hot_remove_device() run from a workqueue.
-
-Is there a mechanism in ACPICA to ensure that a handle won't become stale while
-a notify handler is running for it or is the OS responsible for ensuring that
-_EJ0 won't be run in parallel with notify handlers for device objects being
-ejected?
+Unfortunately, it doesn't, because I've lost track of the whole thread in the
+meantime.  Care to give a pointer?
 
 Rafael
 
