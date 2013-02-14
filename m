@@ -1,45 +1,39 @@
-From: Andreas Mohr <andi@lisas.de>
-Subject: Re: [PATCH] PCI / ACPI: Report _OSC control mask returned on failure
- to get control
-Date: Thu, 14 Feb 2013 02:10:27 +0100
-Message-ID: <20130214011027.GA430@rhlx01.hs-esslingen.de>
-References: <201104300021.38386.rjw@sisk.pl>
+From: "Moore, Robert" <robert.moore@intel.com>
+Subject: RE: [Update][PATCH] ACPI / hotplug: Fix concurrency issues and
+ memory leaks
+Date: Thu, 14 Feb 2013 02:31:22 +0000
+Message-ID: <94F2FBAB4432B54E8AACC7DFDE6C92E368CB39A9@ORSMSX101.amr.corp.intel.com>
+References: <1837481.7dT8hTZ4MT@vostro.rjw.lan>
+ <4594350.VXNmDOeCvt@vostro.rjw.lan>
+ <1360796969.3869.146.camel@misato.fc.hp.com>
+ <5284026.QPQbFciqVT@vostro.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from rhlx01.hs-esslingen.de ([129.143.116.10]:60255 "EHLO
-	rhlx01.hs-esslingen.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753065Ab3BNBK2 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 13 Feb 2013 20:10:28 -0500
-Content-Disposition: inline
-In-Reply-To: <201104300021.38386.rjw@sisk.pl>
+Received: from mga01.intel.com ([192.55.52.88]:42088 "EHLO mga01.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750712Ab3BNCbY (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 13 Feb 2013 21:31:24 -0500
+In-Reply-To: <5284026.QPQbFciqVT@vostro.rjw.lan>
+Content-Language: en-US
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: linux-pci@vger.kernel.org, ACPI Devel Mailing List <linux-acpi@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>
+To: "Rafael J. Wysocki" <rjw@sisk.pl>, Toshi Kani <toshi.kani@hp.com>
+Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>, Bjorn Helgaas <bhelgaas@google.com>, Jiang Liu <liuj97@gmail.com>, Yinghai Lu <yinghai@kernel.org>, Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>, Myron Stowe <mstowe@redhat.com>, "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>
 
-Hi,
-
-to provide an example case, on Aspire One AOA110 v0.3310, 3.8-rc7 prints:
-
-[    0.515599] ACPI Error: [CAPB] Namespace lookup failure,
-AE_ALREADY_EXISTS (2
-0121018/dsfield-211)
-[    0.515629] ACPI Error: Method parse/execution failed
-[\_SB_.PCI0._OSC] (Node f5449680), AE_ALREADY_EXISTS
-(20121018/psparse-537)
-[    0.515672] ACPI: Marking method _OSC as Serialized because of
-AE_ALREADY_EXISTS error
-[    0.516081] ACPI Error: [CAPB] Namespace lookup failure,
-AE_ALREADY_EXISTS (20121018/dsfield-211)
-[    0.516107] ACPI Error: Method parse/execution failed
-[\_SB_.PCI0._OSC] (Node f5449680), AE_ALREADY_EXISTS
-(20121018/psparse-537)
-[    0.516168] pci_root PNP0A08:00: ACPI _OSC support notification
-failed, disabling PCIe ASPM
-[    0.516179] pci_root PNP0A08:00: Unable to request _OSC control (_OSC
-support mask: 0x08)
-
-HTH,
-
-Andreas Mohr
+PiA+ID4gSSB0aG91Z2h0IGFib3V0IHRoYXQsIGJ1dCBhY3R1YWxseSB0aGVyZSdzIG5vIGd1YXJh
+bnRlZSB0aGF0IHRoZQ0KPiA+ID4gaGFuZGxlIHdpbGwgYmUgdmFsaWQgYWZ0ZXIgX0VKMCBhcyBm
+YXIgYXMgSSBjYW4gc2F5LiAgU28gdGhlIHJhY2UNCj4gPiA+IGNvbmRpdGlvbiBpcyBnb2luZyB0
+byBiZSB0aGVyZSBhbnl3YXkgYW5kIHVzaW5nIHN0cnVjdCBhY3BpX2RldmljZQ0KPiA+ID4ganVz
+dCBtYWtlcyBpdCBlYXNpZXIgdG8gYXZvaWQgaXQuDQo+ID4NCj4gPiBJbiB0aGVvcnksIHllcywg
+YSBzdGFsZSBoYW5kbGUgY291bGQgYmUgYSBwcm9ibGVtLCBpZiBfRUowIHBlcmZvcm1zDQo+ID4g
+dW5sb2FkIHRhYmxlIGFuZCBpZiBBQ1BJQ0EgZnJlZXMgdXAgaXRzIGludGVybmFsIGRhdGEgc3Ry
+dWN0dXJlDQo+ID4gcG9pbnRlZCBieSB0aGUgaGFuZGxlIGFzIGEgcmVzdWx0LiAgQnV0IHdlIHNo
+b3VsZCBub3Qgc2VlIHN1Y2ggaXNzdWUNCj4gPiBub3cgc2luY2Ugd2UgZG8gbm90IHN1cHBvcnQg
+ZHluYW1pYyBBQ1BJIG5hbWVzcGFjZSB5ZXQuDQo+IA0KPiBJJ20gd2FpdGluZyBmb3IgaW5mb3Jt
+YXRpb24gZnJvbSBCb2IgYWJvdXQgdGhhdC4gIElmIHdlIGNhbiBhc3N1bWUgQUNQSQ0KPiBoYW5k
+bGVzIHRvIGJlIGFsd2F5cyB2YWxpZCwgdGhhdCB3aWxsIHNpbXBsaWZ5IHRoaW5ncyBxdWl0ZSBh
+IGJpdC4NCg0KSWYgYSB0YWJsZSBpcyB1bmxvYWRlZCwgYWxsIHRoZSBuYW1lc3BhY2Ugbm9kZXMg
+Zm9yIHRoYXQgdGFibGUgYXJlIHJlbW92ZWQgZnJvbSB0aGUgbmFtZXNwYWNlLCBhbmQgdGh1cyBh
+bnkgQUNQSV9IQU5ETEUgcG9pbnRlcnMgZ28gc3RhbGUgYW5kIGludmFsaWQuDQoNCkJvYg0KDQo=
