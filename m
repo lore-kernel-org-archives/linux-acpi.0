@@ -1,77 +1,82 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: [Update][PATCH] ACPI / hotplug: Fix concurrency issues and memory leaks
-Date: Thu, 14 Feb 2013 21:59:25 +0100
-Message-ID: <7482249.JD6lNDApdo@vostro.rjw.lan>
-References: <1837481.7dT8hTZ4MT@vostro.rjw.lan> <7010893.9OBeMt5Fzh@vostro.rjw.lan> <94F2FBAB4432B54E8AACC7DFDE6C92E368CB5D05@ORSMSX101.amr.corp.intel.com>
+From: "Moore, Robert" <robert.moore@intel.com>
+Subject: RE: [Update][PATCH] ACPI / hotplug: Fix concurrency issues and
+ memory leaks
+Date: Thu, 14 Feb 2013 23:45:27 +0000
+Message-ID: <94F2FBAB4432B54E8AACC7DFDE6C92E368CB5E39@ORSMSX101.amr.corp.intel.com>
+References: <1837481.7dT8hTZ4MT@vostro.rjw.lan>
+ <7010893.9OBeMt5Fzh@vostro.rjw.lan>
+ <94F2FBAB4432B54E8AACC7DFDE6C92E368CB5D05@ORSMSX101.amr.corp.intel.com>
+ <7482249.JD6lNDApdo@vostro.rjw.lan>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7Bit
+Content-Transfer-Encoding: base64
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from hydra.sisk.pl ([212.160.235.94]:38198 "EHLO hydra.sisk.pl"
+Received: from mga01.intel.com ([192.55.52.88]:8699 "EHLO mga01.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S934898Ab3BNUw5 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 14 Feb 2013 15:52:57 -0500
-In-Reply-To: <94F2FBAB4432B54E8AACC7DFDE6C92E368CB5D05@ORSMSX101.amr.corp.intel.com>
+	id S932106Ab3BNXpr (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 14 Feb 2013 18:45:47 -0500
+In-Reply-To: <7482249.JD6lNDApdo@vostro.rjw.lan>
+Content-Language: en-US
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Moore, Robert" <robert.moore@intel.com>
+To: "Rafael J. Wysocki" <rjw@sisk.pl>
 Cc: Toshi Kani <toshi.kani@hp.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>, Bjorn Helgaas <bhelgaas@google.com>, Jiang Liu <liuj97@gmail.com>, Yinghai Lu <yinghai@kernel.org>, Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>, Myron Stowe <mstowe@redhat.com>, "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>
 
-On Thursday, February 14, 2013 08:45:14 PM Moore, Robert wrote:
-> 
-> > -----Original Message-----
-> > From: Rafael J. Wysocki [mailto:rjw@sisk.pl]
-> > Sent: Thursday, February 14, 2013 4:04 AM
-> > To: Moore, Robert
-> > Cc: Toshi Kani; ACPI Devel Maling List; LKML; Bjorn Helgaas; Jiang Liu;
-> > Yinghai Lu; Yasuaki Ishimatsu; Myron Stowe; linux-pci@vger.kernel.org
-> > Subject: Re: [Update][PATCH] ACPI / hotplug: Fix concurrency issues and
-> > memory leaks
-> > 
-> > On Thursday, February 14, 2013 02:31:22 AM Moore, Robert wrote:
-> > > > > > I thought about that, but actually there's no guarantee that the
-> > > > > > handle will be valid after _EJ0 as far as I can say.  So the
-> > > > > > race condition is going to be there anyway and using struct
-> > > > > > acpi_device just makes it easier to avoid it.
-> > > > >
-> > > > > In theory, yes, a stale handle could be a problem, if _EJ0
-> > > > > performs unload table and if ACPICA frees up its internal data
-> > > > > structure pointed by the handle as a result.  But we should not
-> > > > > see such issue now since we do not support dynamic ACPI namespace
-> > yet.
-> > > >
-> > > > I'm waiting for information from Bob about that.  If we can assume
-> > > > ACPI handles to be always valid, that will simplify things quite a
-> > bit.
-> > >
-> > > If a table is unloaded, all the namespace nodes for that table are
-> > > removed from the namespace, and thus any ACPI_HANDLE pointers go stale
-> > and invalid.
-> > 
-> > OK, thanks!
-> > 
-> > To me this means that we cannot assume a handle to stay valid between a
-> > notify handler and acpi_bus_hot_remove_device() run from a workqueue.
-> > 
-> > Is there a mechanism in ACPICA to ensure that a handle won't become stale
-> > while a notify handler is running for it or is the OS responsible for
-> > ensuring that
-> > _EJ0 won't be run in parallel with notify handlers for device objects
-> > being ejected?
-> > 
-> 
-> It is up to the host.
-
-I was afraid that that might be the case. :-)
-
-So far the (Linux) host has been happily ignoring that potential problem, so
-I guess it can still be ignored for a while, although we'll need to address it
-eventually at one point.
-
-Thanks,
-Rafael
-
-
--- 
-I speak only for myself.
-Rafael J. Wysocki, Intel Open Source Technology Center.
+DQoNCj4gLS0tLS1PcmlnaW5hbCBNZXNzYWdlLS0tLS0NCj4gRnJvbTogUmFmYWVsIEouIFd5c29j
+a2kgW21haWx0bzpyandAc2lzay5wbF0NCj4gU2VudDogVGh1cnNkYXksIEZlYnJ1YXJ5IDE0LCAy
+MDEzIDEyOjU5IFBNDQo+IFRvOiBNb29yZSwgUm9iZXJ0DQo+IENjOiBUb3NoaSBLYW5pOyBBQ1BJ
+IERldmVsIE1hbGluZyBMaXN0OyBMS01MOyBCam9ybiBIZWxnYWFzOyBKaWFuZyBMaXU7DQo+IFlp
+bmdoYWkgTHU7IFlhc3Vha2kgSXNoaW1hdHN1OyBNeXJvbiBTdG93ZTsgbGludXgtcGNpQHZnZXIu
+a2VybmVsLm9yZw0KPiBTdWJqZWN0OiBSZTogW1VwZGF0ZV1bUEFUQ0hdIEFDUEkgLyBob3RwbHVn
+OiBGaXggY29uY3VycmVuY3kgaXNzdWVzIGFuZA0KPiBtZW1vcnkgbGVha3MNCj4gDQo+IE9uIFRo
+dXJzZGF5LCBGZWJydWFyeSAxNCwgMjAxMyAwODo0NToxNCBQTSBNb29yZSwgUm9iZXJ0IHdyb3Rl
+Og0KPiA+DQo+ID4gPiAtLS0tLU9yaWdpbmFsIE1lc3NhZ2UtLS0tLQ0KPiA+ID4gRnJvbTogUmFm
+YWVsIEouIFd5c29ja2kgW21haWx0bzpyandAc2lzay5wbF0NCj4gPiA+IFNlbnQ6IFRodXJzZGF5
+LCBGZWJydWFyeSAxNCwgMjAxMyA0OjA0IEFNDQo+ID4gPiBUbzogTW9vcmUsIFJvYmVydA0KPiA+
+ID4gQ2M6IFRvc2hpIEthbmk7IEFDUEkgRGV2ZWwgTWFsaW5nIExpc3Q7IExLTUw7IEJqb3JuIEhl
+bGdhYXM7IEppYW5nDQo+ID4gPiBMaXU7IFlpbmdoYWkgTHU7IFlhc3Vha2kgSXNoaW1hdHN1OyBN
+eXJvbiBTdG93ZTsNCj4gPiA+IGxpbnV4LXBjaUB2Z2VyLmtlcm5lbC5vcmcNCj4gPiA+IFN1Ympl
+Y3Q6IFJlOiBbVXBkYXRlXVtQQVRDSF0gQUNQSSAvIGhvdHBsdWc6IEZpeCBjb25jdXJyZW5jeSBp
+c3N1ZXMNCj4gPiA+IGFuZCBtZW1vcnkgbGVha3MNCj4gPiA+DQo+ID4gPiBPbiBUaHVyc2RheSwg
+RmVicnVhcnkgMTQsIDIwMTMgMDI6MzE6MjIgQU0gTW9vcmUsIFJvYmVydCB3cm90ZToNCj4gPiA+
+ID4gPiA+ID4gSSB0aG91Z2h0IGFib3V0IHRoYXQsIGJ1dCBhY3R1YWxseSB0aGVyZSdzIG5vIGd1
+YXJhbnRlZSB0aGF0DQo+ID4gPiA+ID4gPiA+IHRoZSBoYW5kbGUgd2lsbCBiZSB2YWxpZCBhZnRl
+ciBfRUowIGFzIGZhciBhcyBJIGNhbiBzYXkuICBTbw0KPiA+ID4gPiA+ID4gPiB0aGUgcmFjZSBj
+b25kaXRpb24gaXMgZ29pbmcgdG8gYmUgdGhlcmUgYW55d2F5IGFuZCB1c2luZw0KPiA+ID4gPiA+
+ID4gPiBzdHJ1Y3QgYWNwaV9kZXZpY2UganVzdCBtYWtlcyBpdCBlYXNpZXIgdG8gYXZvaWQgaXQu
+DQo+ID4gPiA+ID4gPg0KPiA+ID4gPiA+ID4gSW4gdGhlb3J5LCB5ZXMsIGEgc3RhbGUgaGFuZGxl
+IGNvdWxkIGJlIGEgcHJvYmxlbSwgaWYgX0VKMA0KPiA+ID4gPiA+ID4gcGVyZm9ybXMgdW5sb2Fk
+IHRhYmxlIGFuZCBpZiBBQ1BJQ0EgZnJlZXMgdXAgaXRzIGludGVybmFsIGRhdGENCj4gPiA+ID4g
+PiA+IHN0cnVjdHVyZSBwb2ludGVkIGJ5IHRoZSBoYW5kbGUgYXMgYSByZXN1bHQuICBCdXQgd2Ug
+c2hvdWxkDQo+ID4gPiA+ID4gPiBub3Qgc2VlIHN1Y2ggaXNzdWUgbm93IHNpbmNlIHdlIGRvIG5v
+dCBzdXBwb3J0IGR5bmFtaWMgQUNQSQ0KPiA+ID4gPiA+ID4gbmFtZXNwYWNlDQo+ID4gPiB5ZXQu
+DQo+ID4gPiA+ID4NCj4gPiA+ID4gPiBJJ20gd2FpdGluZyBmb3IgaW5mb3JtYXRpb24gZnJvbSBC
+b2IgYWJvdXQgdGhhdC4gIElmIHdlIGNhbg0KPiA+ID4gPiA+IGFzc3VtZSBBQ1BJIGhhbmRsZXMg
+dG8gYmUgYWx3YXlzIHZhbGlkLCB0aGF0IHdpbGwgc2ltcGxpZnkNCj4gPiA+ID4gPiB0aGluZ3Mg
+cXVpdGUgYQ0KPiA+ID4gYml0Lg0KPiA+ID4gPg0KPiA+ID4gPiBJZiBhIHRhYmxlIGlzIHVubG9h
+ZGVkLCBhbGwgdGhlIG5hbWVzcGFjZSBub2RlcyBmb3IgdGhhdCB0YWJsZSBhcmUNCj4gPiA+ID4g
+cmVtb3ZlZCBmcm9tIHRoZSBuYW1lc3BhY2UsIGFuZCB0aHVzIGFueSBBQ1BJX0hBTkRMRSBwb2lu
+dGVycyBnbw0KPiA+ID4gPiBzdGFsZQ0KPiA+ID4gYW5kIGludmFsaWQuDQo+ID4gPg0KPiA+ID4g
+T0ssIHRoYW5rcyENCj4gPiA+DQo+ID4gPiBUbyBtZSB0aGlzIG1lYW5zIHRoYXQgd2UgY2Fubm90
+IGFzc3VtZSBhIGhhbmRsZSB0byBzdGF5IHZhbGlkDQo+ID4gPiBiZXR3ZWVuIGEgbm90aWZ5IGhh
+bmRsZXIgYW5kIGFjcGlfYnVzX2hvdF9yZW1vdmVfZGV2aWNlKCkgcnVuIGZyb20gYQ0KPiB3b3Jr
+cXVldWUuDQo+ID4gPg0KPiA+ID4gSXMgdGhlcmUgYSBtZWNoYW5pc20gaW4gQUNQSUNBIHRvIGVu
+c3VyZSB0aGF0IGEgaGFuZGxlIHdvbid0IGJlY29tZQ0KPiA+ID4gc3RhbGUgd2hpbGUgYSBub3Rp
+ZnkgaGFuZGxlciBpcyBydW5uaW5nIGZvciBpdCBvciBpcyB0aGUgT1MNCj4gPiA+IHJlc3BvbnNp
+YmxlIGZvciBlbnN1cmluZyB0aGF0DQo+ID4gPiBfRUowIHdvbid0IGJlIHJ1biBpbiBwYXJhbGxl
+bCB3aXRoIG5vdGlmeSBoYW5kbGVycyBmb3IgZGV2aWNlDQo+ID4gPiBvYmplY3RzIGJlaW5nIGVq
+ZWN0ZWQ/DQo+ID4gPg0KPiA+DQo+ID4gSXQgaXMgdXAgdG8gdGhlIGhvc3QuDQo+IA0KPiBJIHdh
+cyBhZnJhaWQgdGhhdCB0aGF0IG1pZ2h0IGJlIHRoZSBjYXNlLiA6LSkNCj4gDQo+IFNvIGZhciB0
+aGUgKExpbnV4KSBob3N0IGhhcyBiZWVuIGhhcHBpbHkgaWdub3JpbmcgdGhhdCBwb3RlbnRpYWwg
+cHJvYmxlbSwNCj4gc28gSSBndWVzcyBpdCBjYW4gc3RpbGwgYmUgaWdub3JlZCBmb3IgYSB3aGls
+ZSwgYWx0aG91Z2ggd2UnbGwgbmVlZCB0bw0KPiBhZGRyZXNzIGl0IGV2ZW50dWFsbHkgYXQgb25l
+IHBvaW50Lg0KDQpJIHdvdWxkIHRoaW5rIGl0IHNob3VsZCBiZSBmYWlybHkgc2ltcGxlIHRvIHNl
+dHVwIGEgbWVjaGFuaXNtIHRvIGVpdGhlciB0ZWxsIHRoZSBkcml2ZXIgb3IgZm9yIHRoZSBkcml2
+ZXIgdG8gZmlndXJlIGl0IG91dCAtLSBzdWNoIHRoYXQgdGhlIGRyaXZlciBrbm93cyB0aGF0IGFs
+bCBoYW5kbGVzIGFzc29jaWF0ZWQgd2l0aCB0aGUgZGV2aWNlIGFyZSBub3cgaW52YWxpZC4gQW5v
+dGhlciB3YXkgdG8gbG9vayBhdCBpdCBpcyB0aGF0IHdoZW4gdGhlIGRldmljZSBpcyByZS1pbnN0
+YWxsZWQsIHRoZSBkcml2ZXIgc2hvdWxkIHJlaW5pdGlhbGl6ZSBzdWNoIHRoYXQgaXQgb2J0YWlu
+cyBuZXcgaGFuZGxlcyBmb3IgdGhlIGRldmljZXMgYW5kIHN1Ym9iamVjdHMgaW4gcXVlc3Rpb24u
+DQoNCkJvYg0KDQoNCg0KDQoNCg0KPiANCj4gVGhhbmtzLA0KPiBSYWZhZWwNCj4gDQo+IA0KPiAt
+LQ0KPiBJIHNwZWFrIG9ubHkgZm9yIG15c2VsZi4NCj4gUmFmYWVsIEouIFd5c29ja2ksIEludGVs
+IE9wZW4gU291cmNlIFRlY2hub2xvZ3kgQ2VudGVyLg0K
