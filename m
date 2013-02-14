@@ -1,39 +1,48 @@
-From: "Moore, Robert" <robert.moore@intel.com>
-Subject: RE: [Update][PATCH] ACPI / hotplug: Fix concurrency issues and
- memory leaks
-Date: Thu, 14 Feb 2013 02:31:22 +0000
-Message-ID: <94F2FBAB4432B54E8AACC7DFDE6C92E368CB39A9@ORSMSX101.amr.corp.intel.com>
-References: <1837481.7dT8hTZ4MT@vostro.rjw.lan>
- <4594350.VXNmDOeCvt@vostro.rjw.lan>
- <1360796969.3869.146.camel@misato.fc.hp.com>
- <5284026.QPQbFciqVT@vostro.rjw.lan>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: Re: [Update][PATCH] ACPI / hotplug: Fix concurrency issues and memory leaks
+Date: Thu, 14 Feb 2013 13:03:57 +0100
+Message-ID: <7010893.9OBeMt5Fzh@vostro.rjw.lan>
+References: <1837481.7dT8hTZ4MT@vostro.rjw.lan> <5284026.QPQbFciqVT@vostro.rjw.lan> <94F2FBAB4432B54E8AACC7DFDE6C92E368CB39A9@ORSMSX101.amr.corp.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga01.intel.com ([192.55.52.88]:42088 "EHLO mga01.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750712Ab3BNCbY (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 13 Feb 2013 21:31:24 -0500
-In-Reply-To: <5284026.QPQbFciqVT@vostro.rjw.lan>
-Content-Language: en-US
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Transfer-Encoding: 7Bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <94F2FBAB4432B54E8AACC7DFDE6C92E368CB39A9@ORSMSX101.amr.corp.intel.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: "Moore, Robert" <robert.moore@intel.com>
+Cc: Toshi Kani <toshi.kani@hp.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>, Bjorn Helgaas <bhelgaas@google.com>, Jiang Liu <liuj97@gmail.com>, Yinghai Lu <yinghai@kernel.org>, Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>, Myron Stowe <mstowe@redhat.com>, "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@sisk.pl>, Toshi Kani <toshi.kani@hp.com>
-Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>, Bjorn Helgaas <bhelgaas@google.com>, Jiang Liu <liuj97@gmail.com>, Yinghai Lu <yinghai@kernel.org>, Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>, Myron Stowe <mstowe@redhat.com>, "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>
 
-PiA+ID4gSSB0aG91Z2h0IGFib3V0IHRoYXQsIGJ1dCBhY3R1YWxseSB0aGVyZSdzIG5vIGd1YXJh
-bnRlZSB0aGF0IHRoZQ0KPiA+ID4gaGFuZGxlIHdpbGwgYmUgdmFsaWQgYWZ0ZXIgX0VKMCBhcyBm
-YXIgYXMgSSBjYW4gc2F5LiAgU28gdGhlIHJhY2UNCj4gPiA+IGNvbmRpdGlvbiBpcyBnb2luZyB0
-byBiZSB0aGVyZSBhbnl3YXkgYW5kIHVzaW5nIHN0cnVjdCBhY3BpX2RldmljZQ0KPiA+ID4ganVz
-dCBtYWtlcyBpdCBlYXNpZXIgdG8gYXZvaWQgaXQuDQo+ID4NCj4gPiBJbiB0aGVvcnksIHllcywg
-YSBzdGFsZSBoYW5kbGUgY291bGQgYmUgYSBwcm9ibGVtLCBpZiBfRUowIHBlcmZvcm1zDQo+ID4g
-dW5sb2FkIHRhYmxlIGFuZCBpZiBBQ1BJQ0EgZnJlZXMgdXAgaXRzIGludGVybmFsIGRhdGEgc3Ry
-dWN0dXJlDQo+ID4gcG9pbnRlZCBieSB0aGUgaGFuZGxlIGFzIGEgcmVzdWx0LiAgQnV0IHdlIHNo
-b3VsZCBub3Qgc2VlIHN1Y2ggaXNzdWUNCj4gPiBub3cgc2luY2Ugd2UgZG8gbm90IHN1cHBvcnQg
-ZHluYW1pYyBBQ1BJIG5hbWVzcGFjZSB5ZXQuDQo+IA0KPiBJJ20gd2FpdGluZyBmb3IgaW5mb3Jt
-YXRpb24gZnJvbSBCb2IgYWJvdXQgdGhhdC4gIElmIHdlIGNhbiBhc3N1bWUgQUNQSQ0KPiBoYW5k
-bGVzIHRvIGJlIGFsd2F5cyB2YWxpZCwgdGhhdCB3aWxsIHNpbXBsaWZ5IHRoaW5ncyBxdWl0ZSBh
-IGJpdC4NCg0KSWYgYSB0YWJsZSBpcyB1bmxvYWRlZCwgYWxsIHRoZSBuYW1lc3BhY2Ugbm9kZXMg
-Zm9yIHRoYXQgdGFibGUgYXJlIHJlbW92ZWQgZnJvbSB0aGUgbmFtZXNwYWNlLCBhbmQgdGh1cyBh
-bnkgQUNQSV9IQU5ETEUgcG9pbnRlcnMgZ28gc3RhbGUgYW5kIGludmFsaWQuDQoNCkJvYg0KDQo=
+On Thursday, February 14, 2013 02:31:22 AM Moore, Robert wrote:
+> > > > I thought about that, but actually there's no guarantee that the
+> > > > handle will be valid after _EJ0 as far as I can say.  So the race
+> > > > condition is going to be there anyway and using struct acpi_device
+> > > > just makes it easier to avoid it.
+> > >
+> > > In theory, yes, a stale handle could be a problem, if _EJ0 performs
+> > > unload table and if ACPICA frees up its internal data structure
+> > > pointed by the handle as a result.  But we should not see such issue
+> > > now since we do not support dynamic ACPI namespace yet.
+> > 
+> > I'm waiting for information from Bob about that.  If we can assume ACPI
+> > handles to be always valid, that will simplify things quite a bit.
+> 
+> If a table is unloaded, all the namespace nodes for that table are removed
+> from the namespace, and thus any ACPI_HANDLE pointers go stale and invalid.
+
+OK, thanks!
+
+To me this means that we cannot assume a handle to stay valid between
+a notify handler and acpi_bus_hot_remove_device() run from a workqueue.
+
+Is there a mechanism in ACPICA to ensure that a handle won't become stale while
+a notify handler is running for it or is the OS responsible for ensuring that
+_EJ0 won't be run in parallel with notify handlers for device objects being
+ejected?
+
+Rafael
+
+
+-- 
+I speak only for myself.
+Rafael J. Wysocki, Intel Open Source Technology Center.
