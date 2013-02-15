@@ -1,147 +1,74 @@
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-Subject: [PATCH EDAC 02/13] ghes: move structures/enum to a header file
-Date: Fri, 15 Feb 2013 10:44:50 -0200
-Message-ID: <866281753e9de609c88520ebd4880b9d5c64b5cb.1360931635.git.mchehab@redhat.com>
+From: Borislav Petkov <bp@alien8.de>
+Subject: Re: [PATCH EDAC 07/13] edac: add support for raw error reports
+Date: Fri, 15 Feb 2013 15:13:30 +0100
+Message-ID: <20130215141330.GF14387@pd.tnic>
 References: <cover.1360931635.git.mchehab@redhat.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <cover.1360931635.git.mchehab@redhat.com>
-Sender: linux-kernel-owner@vger.kernel.org
-Cc: linux-acpi@vger.kernel.org, Huang Ying <ying.huang@intel.com>, Tony Luck <tony.luck@intel.com>, Mauro Carvalho Chehab <mchehab@redhat.com>, Linux Edac Mailing List <linux-edac@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
+ <e08f797b129a50b4e1b39e8c31bff82904aea65d.1360931635.git.mchehab@redhat.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail.skyhub.de ([78.46.96.112]:45837 "EHLO mail.skyhub.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752576Ab3BOONs (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 15 Feb 2013 09:13:48 -0500
+Content-Disposition: inline
+In-Reply-To: <e08f797b129a50b4e1b39e8c31bff82904aea65d.1360931635.git.mchehab@redhat.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: linux-acpi@vger.kernel.org, Huang Ying <ying.huang@intel.com>, Tony Luck <tony.luck@intel.com>, Linux Edac Mailing List <linux-edac@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
 
-As a ghes_edac driver will need to access ghes structures, in order
-to properly handle the errors, move those structures to a separate
-header file. No functional changes.
+On Fri, Feb 15, 2013 at 10:44:55AM -0200, Mauro Carvalho Chehab wrote:
+> That allows APEI GHES driver to report errors directly, using
+> the EDAC error report API.
+> 
+> Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+> ---
+>  drivers/edac/edac_core.h |  17 ++++++++
+>  drivers/edac/edac_mc.c   | 109 ++++++++++++++++++++++++++++++++++++-----------
+>  2 files changed, 100 insertions(+), 26 deletions(-)
+> 
+> diff --git a/drivers/edac/edac_core.h b/drivers/edac/edac_core.h
+> index 23bb99f..9c5da11 100644
+> --- a/drivers/edac/edac_core.h
+> +++ b/drivers/edac/edac_core.h
+> @@ -453,6 +453,23 @@ extern struct mem_ctl_info *find_mci_by_dev(struct device *dev);
+>  extern struct mem_ctl_info *edac_mc_del_mc(struct device *dev);
+>  extern int edac_mc_find_csrow_by_page(struct mem_ctl_info *mci,
+>  				      unsigned long page);
+> +
+> +void edac_raw_mc_handle_error(const enum hw_event_mc_err_type type,
+> +			  struct mem_ctl_info *mci,
+> +			  long grain,
+> +			  const u16 error_count,
+> +			  const int top_layer,
+> +			  const int mid_layer,
+> +			  const int low_layer,
+> +			  const unsigned long page_frame_number,
+> +			  const unsigned long offset_in_page,
+> +			  const unsigned long syndrome,
+> +			  const char *msg,
+> +			  const char *location,
+> +			  const char *label,
+> +			  const char *other_detail,
+> +			  const bool enable_per_layer_report);
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
----
- drivers/acpi/apei/ghes.c | 47 ++---------------------------------------------
- include/acpi/ghes.h      | 45 +++++++++++++++++++++++++++++++++++++++++++++
- 2 files changed, 47 insertions(+), 45 deletions(-)
- create mode 100644 include/acpi/ghes.h
+The argument count of this one looks like an overkill. Maybe it would be
+nicer, cleaner to do this:
 
-diff --git a/drivers/acpi/apei/ghes.c b/drivers/acpi/apei/ghes.c
-index 7ae2750..6d0e146 100644
---- a/drivers/acpi/apei/ghes.c
-+++ b/drivers/acpi/apei/ghes.c
-@@ -48,8 +48,8 @@
- #include <linux/genalloc.h>
- #include <linux/pci.h>
- #include <linux/aer.h>
--#include <acpi/apei.h>
--#include <acpi/hed.h>
-+
-+#include <acpi/ghes.h>
- #include <asm/mce.h>
- #include <asm/tlbflush.h>
- #include <asm/nmi.h>
-@@ -84,42 +84,6 @@
- 	((struct acpi_hest_generic_status *)				\
- 	 ((struct ghes_estatus_node *)(estatus_node) + 1))
- 
--/*
-- * One struct ghes is created for each generic hardware error source.
-- * It provides the context for APEI hardware error timer/IRQ/SCI/NMI
-- * handler.
-- *
-- * estatus: memory buffer for error status block, allocated during
-- * HEST parsing.
-- */
--#define GHES_TO_CLEAR		0x0001
--#define GHES_EXITING		0x0002
--
--struct ghes {
--	struct acpi_hest_generic *generic;
--	struct acpi_hest_generic_status *estatus;
--	u64 buffer_paddr;
--	unsigned long flags;
--	union {
--		struct list_head list;
--		struct timer_list timer;
--		unsigned int irq;
--	};
--};
--
--struct ghes_estatus_node {
--	struct llist_node llnode;
--	struct acpi_hest_generic *generic;
--};
--
--struct ghes_estatus_cache {
--	u32 estatus_len;
--	atomic_t count;
--	struct acpi_hest_generic *generic;
--	unsigned long long time_in;
--	struct rcu_head rcu;
--};
--
- bool ghes_disable;
- module_param_named(disable, ghes_disable, bool, 0);
- 
-@@ -333,13 +297,6 @@ static void ghes_fini(struct ghes *ghes)
- 	apei_unmap_generic_address(&ghes->generic->error_status_address);
- }
- 
--enum {
--	GHES_SEV_NO = 0x0,
--	GHES_SEV_CORRECTED = 0x1,
--	GHES_SEV_RECOVERABLE = 0x2,
--	GHES_SEV_PANIC = 0x3,
--};
--
- static inline int ghes_severity(int severity)
- {
- 	switch (severity) {
-diff --git a/include/acpi/ghes.h b/include/acpi/ghes.h
-new file mode 100644
-index 0000000..3eb8dc4
---- /dev/null
-+++ b/include/acpi/ghes.h
-@@ -0,0 +1,45 @@
-+#include <acpi/apei.h>
-+#include <acpi/hed.h>
-+
-+/*
-+ * One struct ghes is created for each generic hardware error source.
-+ * It provides the context for APEI hardware error timer/IRQ/SCI/NMI
-+ * handler.
-+ *
-+ * estatus: memory buffer for error status block, allocated during
-+ * HEST parsing.
-+ */
-+#define GHES_TO_CLEAR		0x0001
-+#define GHES_EXITING		0x0002
-+
-+struct ghes {
-+	struct acpi_hest_generic *generic;
-+	struct acpi_hest_generic_status *estatus;
-+	u64 buffer_paddr;
-+	unsigned long flags;
-+	union {
-+		struct list_head list;
-+		struct timer_list timer;
-+		unsigned int irq;
-+	};
-+};
-+
-+struct ghes_estatus_node {
-+	struct llist_node llnode;
-+	struct acpi_hest_generic *generic;
-+};
-+
-+struct ghes_estatus_cache {
-+	u32 estatus_len;
-+	atomic_t count;
-+	struct acpi_hest_generic *generic;
-+	unsigned long long time_in;
-+	struct rcu_head rcu;
-+};
-+
-+enum {
-+	GHES_SEV_NO = 0x0,
-+	GHES_SEV_CORRECTED = 0x1,
-+	GHES_SEV_RECOVERABLE = 0x2,
-+	GHES_SEV_PANIC = 0x3,
-+};
+void __edac_handle_mc_error(const enum hw_event_mc_err_type type,
+			    struct mem_ctl_info *mci,
+			    struct error_desc *e);
+
+and struct error_desc collects all the remaining arguments.
+
+This way you can't get the arguments order wrong, forget one or
+whatever; and it would be much less stack pressure on the function
+calls.
+
 -- 
-1.8.1.2
+Regards/Gruss,
+    Boris.
+
+Sent from a fat crate under my desk. Formatting is fine.
+--
