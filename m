@@ -1,7 +1,7 @@
 From: Mauro Carvalho Chehab <mchehab@redhat.com>
-Subject: [PATCH EDAC 11/13] edac: initialize the core earlier
-Date: Fri, 15 Feb 2013 10:44:59 -0200
-Message-ID: <cbce5bcf44ee6e87d6cde94daab1dde7f9b7609a.1360931635.git.mchehab@redhat.com>
+Subject: [PATCH EDAC 10/13] edac: better report error conditions in debug mode
+Date: Fri, 15 Feb 2013 10:44:58 -0200
+Message-ID: <eabec3c83459107b7cba0b5f6e5ae425a2edad81.1360931635.git.mchehab@redhat.com>
 References: <cover.1360931635.git.mchehab@redhat.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <cover.1360931635.git.mchehab@redhat.com>
@@ -9,36 +9,39 @@ Sender: linux-kernel-owner@vger.kernel.org
 Cc: linux-acpi@vger.kernel.org, Huang Ying <ying.huang@intel.com>, Tony Luck <tony.luck@intel.com>, Mauro Carvalho Chehab <mchehab@redhat.com>, Linux Edac Mailing List <linux-edac@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
 
-In order for it to work with it builtin, the EDAC core should
-be initialized earlier, otherwise the ghes_edac driver initializes
-before edac_mc_sysfs_init() being called:
-
-...
-[    4.998373] EDAC MC0: Giving out device to 'ghes_edac.c' 'ghes_edac': DEV ghes
-...
-[    4.998373] EDAC MC1: Giving out device to 'ghes_edac.c' 'ghes_edac': DEV ghes
-[    6.519495] EDAC MC: Ver: 3.0.0
-[    6.523749] EDAC DEBUG: edac_mc_sysfs_init: device mc created
-
-The net result is that no EDAC sysfs nodes will appear.
+It is hard to find what's wrong without a proper error
+report. Improve it, in debug mode.
 
 Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
 ---
- drivers/edac/edac_module.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/edac/edac_mc_sysfs.c | 7 ++++++-
+ 1 file changed, 6 insertions(+), 1 deletion(-)
 
-diff --git a/drivers/edac/edac_module.c b/drivers/edac/edac_module.c
-index 12c951a..a66941f 100644
---- a/drivers/edac/edac_module.c
-+++ b/drivers/edac/edac_module.c
-@@ -146,7 +146,7 @@ static void __exit edac_exit(void)
- /*
-  * Inform the kernel of our entry and exit points
-  */
--module_init(edac_init);
-+subsys_initcall(edac_init);
- module_exit(edac_exit);
+diff --git a/drivers/edac/edac_mc_sysfs.c b/drivers/edac/edac_mc_sysfs.c
+index 0ca1ca7..9c58da6 100644
+--- a/drivers/edac/edac_mc_sysfs.c
++++ b/drivers/edac/edac_mc_sysfs.c
+@@ -429,8 +429,12 @@ static int edac_create_csrow_objects(struct mem_ctl_info *mci)
+ 		if (!nr_pages_per_csrow(csrow))
+ 			continue;
+ 		err = edac_create_csrow_object(mci, mci->csrows[i], i);
+-		if (err < 0)
++		if (err < 0) {
++			edac_dbg(1,
++				 "failure: create csrow objects for csrow %d\n",
++				 i);
+ 			goto error;
++		}
+ 	}
+ 	return 0;
  
- MODULE_LICENSE("GPL");
+@@ -1007,6 +1011,7 @@ int edac_create_sysfs_mci_device(struct mem_ctl_info *mci)
+ 	edac_dbg(0, "creating device %s\n", dev_name(&mci->dev));
+ 	err = device_add(&mci->dev);
+ 	if (err < 0) {
++		edac_dbg(1, "failure: create device %s\n", dev_name(&mci->dev));
+ 		bus_unregister(&mci->bus);
+ 		kfree(mci->bus.name);
+ 		return err;
 -- 
 1.8.1.2
