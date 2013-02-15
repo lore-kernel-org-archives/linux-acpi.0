@@ -1,132 +1,126 @@
-From: liguang <lig.fnst@cn.fujitsu.com>
-Subject: [PATCH v4 2/4] numa: avoid export acpi_numa variable
-Date: Fri, 15 Feb 2013 10:23:10 +0800
-Message-ID: <1360894992-14818-3-git-send-email-lig.fnst@cn.fujitsu.com>
-References: <1360894992-14818-1-git-send-email-lig.fnst@cn.fujitsu.com>
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cn.fujitsu.com ([222.73.24.84]:56122 "EHLO song.cn.fujitsu.com"
-	rhost-flags-OK-FAIL-OK-OK) by vger.kernel.org with ESMTP
-	id S932322Ab3BODMC (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 14 Feb 2013 22:12:02 -0500
-In-Reply-To: <1360894992-14818-1-git-send-email-lig.fnst@cn.fujitsu.com>
-Sender: linux-acpi-owner@vger.kernel.org
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: Re: [Update][PATCH] ACPI / hotplug: Fix concurrency issues and memory leaks
+Date: Fri, 15 Feb 2013 13:49:58 +0100
+Message-ID: <1556413.qqfoi7QgzD@vostro.rjw.lan>
+References: <1837481.7dT8hTZ4MT@vostro.rjw.lan> <1463882.MtF6rq6lDy@vostro.rjw.lan> <1360888082.3869.163.camel@misato.fc.hp.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7Bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1360888082.3869.163.camel@misato.fc.hp.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Toshi Kani <toshi.kani@hp.com>
+Cc: "Moore, Robert" <robert.moore@intel.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>, Bjorn Helgaas <bhelgaas@google.com>, Jiang Liu <liuj97@gmail.com>, Yinghai Lu <yinghai@kernel.org>, Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>, Myron Stowe <mstowe@redhat.com>, "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
-To: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, x86@kernel.org
-Cc: rientjes@google.com, isimatu.yasuaki@jp.fujitsu.com, liguang <lig.fnst@cn.fujitsu.com>
 
-acpi_numa is used to prevent srat table
-being parsed, seems a little miss-named,
-if 'noacpi' was specified by cmdline and
-CONFIG_ACPI_NUMA was enabled, acpi_numa
-will be operated directly from everywhere
-it needed to disable/enable numa in acpi
-mode which was a bad thing, so, try to
-export a fuction to get srat table
-enable/disable info.
+On Thursday, February 14, 2013 05:28:02 PM Toshi Kani wrote:
+> On Fri, 2013-02-15 at 01:23 +0100, Rafael J. Wysocki wrote:
+> > On Thursday, February 14, 2013 11:45:27 PM Moore, Robert wrote:
+> > > 
+> > > > -----Original Message-----
+> > > > From: Rafael J. Wysocki [mailto:rjw@sisk.pl]
+> > > > Sent: Thursday, February 14, 2013 12:59 PM
+> > > > To: Moore, Robert
+> > > > Cc: Toshi Kani; ACPI Devel Maling List; LKML; Bjorn Helgaas; Jiang Liu;
+> > > > Yinghai Lu; Yasuaki Ishimatsu; Myron Stowe; linux-pci@vger.kernel.org
+> > > > Subject: Re: [Update][PATCH] ACPI / hotplug: Fix concurrency issues and
+> > > > memory leaks
+> > > > 
+> > > > On Thursday, February 14, 2013 08:45:14 PM Moore, Robert wrote:
+> > > > >
+> > > > > > -----Original Message-----
+> > > > > > From: Rafael J. Wysocki [mailto:rjw@sisk.pl]
+> > > > > > Sent: Thursday, February 14, 2013 4:04 AM
+> > > > > > To: Moore, Robert
+> > > > > > Cc: Toshi Kani; ACPI Devel Maling List; LKML; Bjorn Helgaas; Jiang
+> > > > > > Liu; Yinghai Lu; Yasuaki Ishimatsu; Myron Stowe;
+> > > > > > linux-pci@vger.kernel.org
+> > > > > > Subject: Re: [Update][PATCH] ACPI / hotplug: Fix concurrency issues
+> > > > > > and memory leaks
+> > > > > >
+> > > > > > On Thursday, February 14, 2013 02:31:22 AM Moore, Robert wrote:
+> > > > > > > > > > I thought about that, but actually there's no guarantee that
+> > > > > > > > > > the handle will be valid after _EJ0 as far as I can say.  So
+> > > > > > > > > > the race condition is going to be there anyway and using
+> > > > > > > > > > struct acpi_device just makes it easier to avoid it.
+> > > > > > > > >
+> > > > > > > > > In theory, yes, a stale handle could be a problem, if _EJ0
+> > > > > > > > > performs unload table and if ACPICA frees up its internal data
+> > > > > > > > > structure pointed by the handle as a result.  But we should
+> > > > > > > > > not see such issue now since we do not support dynamic ACPI
+> > > > > > > > > namespace
+> > > > > > yet.
+> > > > > > > >
+> > > > > > > > I'm waiting for information from Bob about that.  If we can
+> > > > > > > > assume ACPI handles to be always valid, that will simplify
+> > > > > > > > things quite a
+> > > > > > bit.
+> > > > > > >
+> > > > > > > If a table is unloaded, all the namespace nodes for that table are
+> > > > > > > removed from the namespace, and thus any ACPI_HANDLE pointers go
+> > > > > > > stale
+> > > > > > and invalid.
+> > > > > >
+> > > > > > OK, thanks!
+> > > > > >
+> > > > > > To me this means that we cannot assume a handle to stay valid
+> > > > > > between a notify handler and acpi_bus_hot_remove_device() run from a
+> > > > workqueue.
+> > > > > >
+> > > > > > Is there a mechanism in ACPICA to ensure that a handle won't become
+> > > > > > stale while a notify handler is running for it or is the OS
+> > > > > > responsible for ensuring that
+> > > > > > _EJ0 won't be run in parallel with notify handlers for device
+> > > > > > objects being ejected?
+> > > > > >
+> > > > >
+> > > > > It is up to the host.
+> > > > 
+> > > > I was afraid that that might be the case. :-)
+> > > > 
+> > > > So far the (Linux) host has been happily ignoring that potential problem,
+> > > > so I guess it can still be ignored for a while, although we'll need to
+> > > > address it eventually at one point.
+> > > 
+> > > I would think it should be fairly simple to setup a mechanism to either tell
+> > > the driver or for the driver to figure it out -- such that the driver knows
+> > > that all handles associated with the device are now invalid. Another way
+> > > to look at it is that when the device is re-installed, the driver should
+> > > reinitialize such that it obtains new handles for the devices and subobjects
+> > > in question.
+> > 
+> > Unfortunately, there is quite strong assumption in our code that ACPI handles
+> > will not become stale before the device objects associated with them are
+> > removed.  For this reason, we need to know in advance which handles will
+> > become stale as a result of a table unload and remove their device objects
+> > beforehand.
+> > 
+> > Moreover, when there's a notify handler installed for a given ACPI handle
+> > and that handle becomes stale while the notify handler is running, we'll be
+> > in trouble.  To avoid that we need to ensure that table unloads and notifies
+> > will always be mutually exclusive.
+> 
+> I wonder if we can make acpi_ns_validate_handle() to actually be able to
+> verify if a given handle is valid.  This way, ACPICA can fail gracefully
+> (AE_BAD_PARAMETER) when a stable handle is passed to the interfaces.
 
-Signed-off-by: liguang <lig.fnst@cn.fujitsu.com>
----
- arch/x86/include/asm/acpi.h |    2 +-
- arch/x86/kernel/acpi/srat.c |   21 +++++++++++++--------
- arch/x86/mm/numa.c          |    2 +-
- arch/x86/xen/enlighten.c    |    2 +-
- 4 files changed, 16 insertions(+), 11 deletions(-)
+That'd be good, but to implement it, I think, it would be necessary to
+introduce some reference counting of namespace objects such that the given
+object would only be deleted after the last reference to it had been dropped.
+On table unload it would just be marked as invalid, but it would stay in
+memory as long as there were any references to it.
 
-diff --git a/arch/x86/include/asm/acpi.h b/arch/x86/include/asm/acpi.h
-index b31bf97..449e12a 100644
---- a/arch/x86/include/asm/acpi.h
-+++ b/arch/x86/include/asm/acpi.h
-@@ -177,7 +177,7 @@ static inline void disable_acpi(void) { }
- #define ARCH_HAS_POWER_INIT	1
- 
- #ifdef CONFIG_ACPI_NUMA
--extern int acpi_numa;
-+extern void disable_acpi_numa(void);
- extern int x86_acpi_numa_init(void);
- #endif /* CONFIG_ACPI_NUMA */
- 
-diff --git a/arch/x86/kernel/acpi/srat.c b/arch/x86/kernel/acpi/srat.c
-index cdd0da9..1b5b461 100644
---- a/arch/x86/kernel/acpi/srat.c
-+++ b/arch/x86/kernel/acpi/srat.c
-@@ -24,22 +24,27 @@
- #include <asm/apic.h>
- #include <asm/uv/uv.h>
- 
--int acpi_numa __initdata;
-+static bool acpi_numa __initdata;
- 
- static __init int setup_node(int pxm)
- {
- 	return acpi_map_pxm_to_node(pxm);
- }
- 
--static __init void bad_srat(void)
-+void __init disable_acpi_numa(void)
- {
--	printk(KERN_ERR "SRAT: SRAT not used.\n");
--	acpi_numa = -1;
-+	acpi_numa = false;
- }
- 
--static __init inline int srat_disabled(void)
-+static void __init bad_srat(void)
- {
--	return acpi_numa < 0;
-+	disable_acpi_numa();
-+	printk(KERN_ERR "SRAT: SRAT will not be used.\n");
-+}
-+
-+static bool __init srat_disabled(void)
-+{
-+	return acpi_numa == false;
- }
- 
- /* Callback for SLIT parsing */
-@@ -88,7 +93,7 @@ acpi_numa_x2apic_affinity_init(struct acpi_srat_x2apic_cpu_affinity *pa)
- 	}
- 	set_apicid_to_node(apic_id, node);
- 	node_set(node, numa_nodes_parsed);
--	acpi_numa = 1;
-+	acpi_numa = true;
- 	printk(KERN_INFO "SRAT: PXM %u -> APIC 0x%04x -> Node %u\n",
- 	       pxm, apic_id, node);
- }
-@@ -130,7 +135,7 @@ acpi_numa_processor_affinity_init(struct acpi_srat_cpu_affinity *pa)
- 
- 	set_apicid_to_node(apic_id, node);
- 	node_set(node, numa_nodes_parsed);
--	acpi_numa = 1;
-+	acpi_numa = true;
- 	printk(KERN_INFO "SRAT: PXM %u -> APIC 0x%02x -> Node %u\n",
- 	       pxm, apic_id, node);
- }
-diff --git a/arch/x86/mm/numa.c b/arch/x86/mm/numa.c
-index 245a4ba..1ebc907 100644
---- a/arch/x86/mm/numa.c
-+++ b/arch/x86/mm/numa.c
-@@ -47,7 +47,7 @@ static __init int numa_setup(char *opt)
- #endif
- #ifdef CONFIG_ACPI_NUMA
- 	if (!strncmp(opt, "noacpi", 6))
--		acpi_numa = -1;
-+		disable_acpi_numa();
- #endif
- 	return 0;
- }
-diff --git a/arch/x86/xen/enlighten.c b/arch/x86/xen/enlighten.c
-index 657eca9..3636bc6 100644
---- a/arch/x86/xen/enlighten.c
-+++ b/arch/x86/xen/enlighten.c
-@@ -1447,7 +1447,7 @@ asmlinkage void __init xen_start_kernel(void)
- 	 * any NUMA information the kernel tries to get from ACPI will
- 	 * be meaningless.  Prevent it from trying.
- 	 */
--	acpi_numa = -1;
-+	disable_acpi_numa();
- #endif
- 
- 	/* Don't do the full vcpu_info placement stuff until we have a
+So, for example, a notify handler would start from something like
+acpi_add_reference(handle), which would guarantee that the object pointed to by
+handle would stay in memory, and it would finish by doing
+acpi_drop_reference(handle) or a work item scheduled by it would do that.
+
+We do that for objects based on struct device and it works well.
+
+Thanks,
+Rafael
+
+
 -- 
-1.7.2.5
-
+I speak only for myself.
+Rafael J. Wysocki, Intel Open Source Technology Center.
