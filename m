@@ -1,75 +1,82 @@
 From: Mauro Carvalho Chehab <mchehab@redhat.com>
-Subject: [PATCH EDAC 06/13] ghes_edac: Allow registering more than once
-Date: Fri, 15 Feb 2013 10:44:54 -0200
-Message-ID: <743f00a375a5578041459edff2c511263f710178.1360931635.git.mchehab@redhat.com>
+Subject: [PATCH EDAC 08/13] ghes_edac: add support for reporting errors via EDAC
+Date: Fri, 15 Feb 2013 10:44:56 -0200
+Message-ID: <7f8d2d0491f2abdba43bc2a8123ae360eaeb64c2.1360931635.git.mchehab@redhat.com>
 References: <cover.1360931635.git.mchehab@redhat.com>
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:20951 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S935977Ab3BOMp2 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 15 Feb 2013 07:45:28 -0500
+Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <cover.1360931635.git.mchehab@redhat.com>
-Sender: linux-acpi-owner@vger.kernel.org
-List-Id: linux-acpi@vger.kernel.org
+Sender: linux-kernel-owner@vger.kernel.org
 Cc: linux-acpi@vger.kernel.org, Huang Ying <ying.huang@intel.com>, Tony Luck <tony.luck@intel.com>, Mauro Carvalho Chehab <mchehab@redhat.com>, Linux Edac Mailing List <linux-edac@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
+List-Id: linux-acpi@vger.kernel.org
 
-I was expecting that the GHES register call would happen only
-once, but it is registered once per-cpu. So, we need to create
-several memory controllers, one by cpu.
+Now that the EDAC core is capable of just forward the errors via
+the userspace API, add a report mechanism for the GHES errors.
 
 Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
 ---
- drivers/edac/ghes_edac.c | 17 +++++++++++++++--
- 1 file changed, 15 insertions(+), 2 deletions(-)
+ drivers/edac/ghes_edac.c | 36 +++++++++++++++++++++++++++++++++++-
+ include/linux/edac.h     |  1 +
+ 2 files changed, 36 insertions(+), 1 deletion(-)
 
 diff --git a/drivers/edac/ghes_edac.c b/drivers/edac/ghes_edac.c
-index 6952bdf..1badac6 100644
+index 1badac6..52625b5 100644
 --- a/drivers/edac/ghes_edac.c
 +++ b/drivers/edac/ghes_edac.c
-@@ -5,6 +5,9 @@
- #define GHES_PFX   "ghes_edac: "
- #define GHES_EDAC_REVISION " Ver: 1.0.0"
+@@ -9,8 +9,42 @@ static DEFINE_MUTEX(ghes_edac_lock);
+ static int ghes_edac_mc_num;
  
-+static DEFINE_MUTEX(ghes_edac_lock);
-+static int ghes_edac_mc_num;
-+
  void ghes_edac_report_mem_error(struct ghes *ghes, int sev,
-                                struct cper_sec_mem_err *mem_err)
+-                               struct cper_sec_mem_err *mem_err)
++			        struct cper_sec_mem_err *mem_err)
  {
-@@ -22,9 +25,16 @@ int ghes_edac_register(struct ghes *ghes, struct device *dev)
- 	layers[0].type = EDAC_MC_LAYER_ALL_MEM;
- 	layers[0].size = 1;
- 	layers[0].is_virt_csrow = true;
--	mci = edac_mc_alloc(0, ARRAY_SIZE(layers), layers, 0);
++	enum hw_event_mc_err_type type;
++	unsigned long page = 0, offset = 0, grain = 0;
++	char location[80];
++	char *label = "unknown";
 +
-+	/*
-+	 * We need to serialize edac_mc_alloc() and edac_mc_add_mc(),
-+	 * to avoid duplicated memory controller numbers
-+	 */
-+	mutex_lock(&ghes_edac_lock);
-+	mci = edac_mc_alloc(ghes_edac_mc_num, ARRAY_SIZE(layers), layers, 0);
- 	if (!mci) {
- 		pr_info(GHES_PFX "Can't allocate memory for EDAC data\n");
-+		mutex_unlock(&ghes_edac_lock);
- 		return -ENOMEM;
- 	}
- 
-@@ -53,11 +63,14 @@ int ghes_edac_register(struct ghes *ghes, struct device *dev)
- 	if (rc < 0) {
- 		pr_info(GHES_PFX "Can't register at EDAC core\n");
- 		edac_mc_free(mci);
--
-+		mutex_unlock(&ghes_edac_lock);
- 		return -ENODEV;
- 	}
- 
++	if (mem_err->validation_bits & CPER_MEM_VALID_PHYSICAL_ADDRESS) {
++		page = mem_err->physical_addr >> PAGE_SHIFT;
++		offset = mem_err->physical_addr & ~PAGE_MASK;
++		grain = ~(mem_err->physical_addr_mask & ~PAGE_MASK);
++	}
 +
- 	ghes->mci = mci;
-+	ghes_edac_mc_num++;
-+	mutex_unlock(&ghes_edac_lock);
- 	return 0;
++	switch(sev) {
++	case GHES_SEV_CORRECTED:
++		type = HW_EVENT_ERR_CORRECTED;
++		break;
++	case GHES_SEV_RECOVERABLE:
++		type = HW_EVENT_ERR_UNCORRECTED;
++		break;
++	case GHES_SEV_PANIC:
++		type = HW_EVENT_ERR_FATAL;
++		break;
++	default:
++	case GHES_SEV_NO:
++		type = HW_EVENT_ERR_INFO;
++	}
++
++	sprintf(location,"node:%d card:%d module:%d bank:%d device:%d row: %d column:%d bit_pos:%d",
++		mem_err->node, mem_err->card, mem_err->module,
++		mem_err->bank, mem_err->device, mem_err->row, mem_err->column,
++		mem_err->bit_pos);
++
++	edac_raw_mc_handle_error(type, ghes->mci, grain, 1, 0, 0, 0,
++				 page, offset, 0,
++				 "APEI", location, label, "", 0);
  }
- EXPORT_SYMBOL_GPL(ghes_edac_register);
+ EXPORT_SYMBOL_GPL(ghes_edac_report_mem_error);
+ 
+diff --git a/include/linux/edac.h b/include/linux/edac.h
+index 1b7744c..28232a0 100644
+--- a/include/linux/edac.h
++++ b/include/linux/edac.h
+@@ -100,6 +100,7 @@ enum hw_event_mc_err_type {
+ 	HW_EVENT_ERR_CORRECTED,
+ 	HW_EVENT_ERR_UNCORRECTED,
+ 	HW_EVENT_ERR_FATAL,
++	HW_EVENT_ERR_INFO,
+ };
+ 
+ /**
 -- 
 1.8.1.2
-
