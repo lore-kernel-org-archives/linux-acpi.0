@@ -1,63 +1,75 @@
 From: Mauro Carvalho Chehab <mchehab@redhat.com>
-Subject: [PATCH EDAC 04/13] edac: add a new memory layer type
-Date: Fri, 15 Feb 2013 10:44:52 -0200
-Message-ID: <3602d1069551396b3d5db19f0ee171594090ef7f.1360931635.git.mchehab@redhat.com>
+Subject: [PATCH EDAC 06/13] ghes_edac: Allow registering more than once
+Date: Fri, 15 Feb 2013 10:44:54 -0200
+Message-ID: <743f00a375a5578041459edff2c511263f710178.1360931635.git.mchehab@redhat.com>
 References: <cover.1360931635.git.mchehab@redhat.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:24961 "EHLO mx1.redhat.com"
+Received: from mx1.redhat.com ([209.132.183.28]:20951 "EHLO mx1.redhat.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S935912Ab3BOMpY (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 15 Feb 2013 07:45:24 -0500
+	id S935977Ab3BOMp2 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 15 Feb 2013 07:45:28 -0500
 In-Reply-To: <cover.1360931635.git.mchehab@redhat.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 Cc: linux-acpi@vger.kernel.org, Huang Ying <ying.huang@intel.com>, Tony Luck <tony.luck@intel.com>, Mauro Carvalho Chehab <mchehab@redhat.com>, Linux Edac Mailing List <linux-edac@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
 
-There are some cases where the memory controller layout is
-completely hidden. This is the case of firmware-driven error
-code, like the one provided by GHES. Add a new layer to be
-used on such memory error report mechanisms.
+I was expecting that the GHES register call would happen only
+once, but it is registered once per-cpu. So, we need to create
+several memory controllers, one by cpu.
 
 Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
 ---
- drivers/edac/edac_mc.c | 1 +
- include/linux/edac.h   | 4 ++++
- 2 files changed, 5 insertions(+)
+ drivers/edac/ghes_edac.c | 17 +++++++++++++++--
+ 1 file changed, 15 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/edac/edac_mc.c b/drivers/edac/edac_mc.c
-index 8e58b1c..8e33028 100644
---- a/drivers/edac/edac_mc.c
-+++ b/drivers/edac/edac_mc.c
-@@ -918,6 +918,7 @@ const char *edac_layer_name[] = {
- 	[EDAC_MC_LAYER_CHANNEL] = "channel",
- 	[EDAC_MC_LAYER_SLOT] = "slot",
- 	[EDAC_MC_LAYER_CHIP_SELECT] = "csrow",
-+	[EDAC_MC_LAYER_ALL_MEM] = "memory",
- };
- EXPORT_SYMBOL_GPL(edac_layer_name);
+diff --git a/drivers/edac/ghes_edac.c b/drivers/edac/ghes_edac.c
+index 6952bdf..1badac6 100644
+--- a/drivers/edac/ghes_edac.c
++++ b/drivers/edac/ghes_edac.c
+@@ -5,6 +5,9 @@
+ #define GHES_PFX   "ghes_edac: "
+ #define GHES_EDAC_REVISION " Ver: 1.0.0"
  
-diff --git a/include/linux/edac.h b/include/linux/edac.h
-index 4784213..1b7744c 100644
---- a/include/linux/edac.h
-+++ b/include/linux/edac.h
-@@ -375,6 +375,9 @@ enum scrub_type {
-  * @EDAC_MC_LAYER_CHANNEL:	memory layer is named "channel"
-  * @EDAC_MC_LAYER_SLOT:		memory layer is named "slot"
-  * @EDAC_MC_LAYER_CHIP_SELECT:	memory layer is named "chip select"
-+ * @EDAC_MC_LAYER_ALL_MEM:	memory layout is unknown. All memory is mapped
-+ *				as a single memory area. This is used when
-+ *				retrieving errors from a firmware driven driver.
-  *
-  * This enum is used by the drivers to tell edac_mc_sysfs what name should
-  * be used when describing a memory stick location.
-@@ -384,6 +387,7 @@ enum edac_mc_layer_type {
- 	EDAC_MC_LAYER_CHANNEL,
- 	EDAC_MC_LAYER_SLOT,
- 	EDAC_MC_LAYER_CHIP_SELECT,
-+	EDAC_MC_LAYER_ALL_MEM,
- };
++static DEFINE_MUTEX(ghes_edac_lock);
++static int ghes_edac_mc_num;
++
+ void ghes_edac_report_mem_error(struct ghes *ghes, int sev,
+                                struct cper_sec_mem_err *mem_err)
+ {
+@@ -22,9 +25,16 @@ int ghes_edac_register(struct ghes *ghes, struct device *dev)
+ 	layers[0].type = EDAC_MC_LAYER_ALL_MEM;
+ 	layers[0].size = 1;
+ 	layers[0].is_virt_csrow = true;
+-	mci = edac_mc_alloc(0, ARRAY_SIZE(layers), layers, 0);
++
++	/*
++	 * We need to serialize edac_mc_alloc() and edac_mc_add_mc(),
++	 * to avoid duplicated memory controller numbers
++	 */
++	mutex_lock(&ghes_edac_lock);
++	mci = edac_mc_alloc(ghes_edac_mc_num, ARRAY_SIZE(layers), layers, 0);
+ 	if (!mci) {
+ 		pr_info(GHES_PFX "Can't allocate memory for EDAC data\n");
++		mutex_unlock(&ghes_edac_lock);
+ 		return -ENOMEM;
+ 	}
  
- /**
+@@ -53,11 +63,14 @@ int ghes_edac_register(struct ghes *ghes, struct device *dev)
+ 	if (rc < 0) {
+ 		pr_info(GHES_PFX "Can't register at EDAC core\n");
+ 		edac_mc_free(mci);
+-
++		mutex_unlock(&ghes_edac_lock);
+ 		return -ENODEV;
+ 	}
+ 
++
+ 	ghes->mci = mci;
++	ghes_edac_mc_num++;
++	mutex_unlock(&ghes_edac_lock);
+ 	return 0;
+ }
+ EXPORT_SYMBOL_GPL(ghes_edac_register);
 -- 
 1.8.1.2
 
