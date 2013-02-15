@@ -1,127 +1,145 @@
 From: Mauro Carvalho Chehab <mchehab@redhat.com>
-Subject: [PATCH EDAC 00/13] Add a driver to report Firmware first errors (via GHES)
-Date: Fri, 15 Feb 2013 10:44:48 -0200
-Message-ID: <cover.1360931635.git.mchehab@redhat.com>
+Subject: [PATCH EDAC 03/13] ghes: add the needed hooks for EDAC error report
+Date: Fri, 15 Feb 2013 10:44:51 -0200
+Message-ID: <a6aaff7d219b878ca655fde3757ecd0170caec2c.1360931635.git.mchehab@redhat.com>
+References: <cover.1360931635.git.mchehab@redhat.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <cover.1360931635.git.mchehab@redhat.com>
 Sender: linux-kernel-owner@vger.kernel.org
 Cc: linux-acpi@vger.kernel.org, Huang Ying <ying.huang@intel.com>, Tony Luck <tony.luck@intel.com>, Mauro Carvalho Chehab <mchehab@redhat.com>, Linux Edac Mailing List <linux-edac@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
 
-There are currently 3 error mechanisms inside the Linux Kernel:
-edac, mcelog and ghes.
+In order to allow reporting errors via EDAC, add hooks for:
 
-Unfortunately, not all those error mechanisms will work at the same
-time, as accessing the error registers by the BIOS may interfere on
-reading them from OS.
+1) register an EDAC driver;
+2) unregister an EDAC driver;
+3) report errors via EDAC.
 
-So, all those 3 mechanisms need to be integrated, in order to avoid
-such problems.
+As the EDAC driver will need to access the ghes structure, adds it
+as one of the parameters for ghes_do_proc.
 
-This patch series adds a new EDAC driver that uses "Firmware first"
-APEI/GHES as an error report mechanism. It automatically disables
-the hardware-driven EDAC drivers when GHES is enabled, preventing
-to have both OS and BIOS to read at the very same error mechanisms.
+Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+---
+ drivers/acpi/apei/ghes.c | 17 ++++++++++++++---
+ include/acpi/ghes.h      | 27 +++++++++++++++++++++++++++
+ 2 files changed, 41 insertions(+), 3 deletions(-)
 
-It was tested on a "Lizard Head Pass" Intel machine, equipped with
-BIOS SE5C600.86B.99.99.x059.091020121352 (09/10/2012).
-
-Test results:
-
-The driver is properly binding into the EDAC core. This BIOS
-announces and sets "Firmware first" mode:
-
-[    4.537704] ghes_edac: This EDAC driver relies on BIOS to enumerate memory and get error reports.
-[    4.547644] ghes_edac: Unfortunately, not all BIOSes reflect the memory layout correctly.
-[    4.556807] ghes_edac: So, the end result of using this driver varies from vendor to vendor.
-[    4.566260] ghes_edac: If you find incorrect reports, please ask your vendor to fix its BIOS.
-[    4.575811] ghes_edac: This system has 48 DIMM sockets.
-[    4.581687] EDAC DEBUG: ghes_edac_dmidecode: DIMM0: DDR3 size = 8192 MB(ECC)
-[    4.581691] EDAC DEBUG: ghes_edac_dmidecode: 	type 24, detail 0x80, width 72(total 64)
-[    4.581695] EDAC DEBUG: ghes_edac_dmidecode: DIMM3: DDR3 size = 8192 MB(ECC)
-[    4.581698] EDAC DEBUG: ghes_edac_dmidecode: 	type 24, detail 0x80, width 72(total 64)
-[    4.581702] EDAC DEBUG: ghes_edac_dmidecode: DIMM6: DDR3 size = 8192 MB(ECC)
-[    4.581705] EDAC DEBUG: ghes_edac_dmidecode: 	type 24, detail 0x80, width 72(total 64)
-[    4.581708] EDAC DEBUG: ghes_edac_dmidecode: DIMM9: DDR3 size = 8192 MB(ECC)
-[    4.581711] EDAC DEBUG: ghes_edac_dmidecode: 	type 24, detail 0x80, width 72(total 64)
-[    4.581715] EDAC DEBUG: ghes_edac_dmidecode: DIMM12: DDR3 size = 8192 MB(ECC)
-[    4.581718] EDAC DEBUG: ghes_edac_dmidecode: 	type 24, detail 0x80, width 72(total 64)
-[    4.581722] EDAC DEBUG: ghes_edac_dmidecode: DIMM15: DDR3 size = 8192 MB(ECC)
-[    4.581724] EDAC DEBUG: ghes_edac_dmidecode: 	type 24, detail 0x80, width 72(total 64)
-[    4.581728] EDAC DEBUG: ghes_edac_dmidecode: DIMM18: DDR3 size = 8192 MB(ECC)
-[    4.581730] EDAC DEBUG: ghes_edac_dmidecode: 	type 24, detail 0x80, width 72(total 64)
-[    4.581734] EDAC DEBUG: ghes_edac_dmidecode: DIMM21: DDR3 size = 8192 MB(ECC)
-[    4.581737] EDAC DEBUG: ghes_edac_dmidecode: 	type 24, detail 0x80, width 72(total 64)
-[    4.581741] EDAC DEBUG: ghes_edac_dmidecode: DIMM24: DDR3 size = 8192 MB(ECC)
-[    4.581752] EDAC DEBUG: ghes_edac_dmidecode: 	type 24, detail 0x80, width 72(total 64)
-[    4.581756] EDAC DEBUG: ghes_edac_dmidecode: DIMM27: DDR3 size = 8192 MB(ECC)
-[    4.581759] EDAC DEBUG: ghes_edac_dmidecode: 	type 24, detail 0x80, width 72(total 64)
-[    4.581763] EDAC DEBUG: ghes_edac_dmidecode: DIMM30: DDR3 size = 8192 MB(ECC)
-[    4.581766] EDAC DEBUG: ghes_edac_dmidecode: 	type 24, detail 0x80, width 72(total 64)
-[    4.581769] EDAC DEBUG: ghes_edac_dmidecode: DIMM33: DDR3 size = 8192 MB(ECC)
-[    4.581772] EDAC DEBUG: ghes_edac_dmidecode: 	type 24, detail 0x80, width 72(total 64)
-[    4.581776] EDAC DEBUG: ghes_edac_dmidecode: DIMM36: DDR3 size = 8192 MB(ECC)
-[    4.581778] EDAC DEBUG: ghes_edac_dmidecode: 	type 24, detail 0x80, width 72(total 64)
-[    4.581782] EDAC DEBUG: ghes_edac_dmidecode: DIMM39: DDR3 size = 8192 MB(ECC)
-[    4.581784] EDAC DEBUG: ghes_edac_dmidecode: 	type 24, detail 0x80, width 72(total 64)
-[    4.581788] EDAC DEBUG: ghes_edac_dmidecode: DIMM42: DDR3 size = 8192 MB(ECC)
-[    4.581791] EDAC DEBUG: ghes_edac_dmidecode: 	type 24, detail 0x80, width 72(total 64)
-[    4.581795] EDAC DEBUG: ghes_edac_dmidecode: DIMM45: DDR3 size = 8192 MB(ECC)
-[    4.581797] EDAC DEBUG: ghes_edac_dmidecode: 	type 24, detail 0x80, width 72(total 64)
-[    4.582724] EDAC MC0: Giving out device to 'ghes_edac.c' 'ghes_edac': DEV ghes
-[    4.591145] EDAC MC1: Giving out device to 'ghes_edac.c' 'ghes_edac': DEV ghes
-[    4.599524] GHES: APEI firmware first mode is enabled by APEI bit and WHEA _OSC.
-
-However, with this BIOS, the "Firmware first" is not working. The
-errors are only seen via MCELOG error mechanism:
-
-# mcelog
-Hardware event. This is not a software error.
-MCE 0
-CPU 0 BANK 5 
-MISC 20404c4c86 ADDR 320000 
-TIME 1360931174 Fri Feb 15 07:26:14 2013
-MCG status:
-MCi status:
-Corrected error
-MCi_MISC register valid
-MCi_ADDR register valid
-MCA: MEMORY CONTROLLER RD_CHANNEL0_ERR
-Transaction: Memory read error
-STATUS 8c00004000010090 MCGSTATUS 0
-MCGCAP 1000c14 APICID 0 SOCKETID 0 
-CPUID Vendor Intel Family 6 Model 45
-Hardware event. This is not a software error.
-
-So, I was unable to test the GHES->EDAC error report method.
-
-Mauro Carvalho Chehab (13):
-  edac: lock module owner to avoid error report conflicts
-  ghes: move structures/enum to a header file
-  ghes: add the needed hooks for EDAC error report
-  edac: add a new memory layer type
-  ghes_edac: Register at EDAC core the BIOS report
-  ghes_edac: Allow registering more than once
-  edac: add support for raw error reports
-  ghes_edac: add support for reporting errors via EDAC
-  ghes_edac: do a better job of filling EDAC DIMM info
-  edac: better report error conditions in debug mode
-  edac: initialize the core earlier
-  ghes_edac.c: Don't credit the same memory dimm twice
-  ghes_edac: Improve driver's printk messages
-
- drivers/acpi/apei/ghes.c     |  64 +++------
- drivers/edac/Kconfig         |  23 ++++
- drivers/edac/Makefile        |   1 +
- drivers/edac/edac_core.h     |  17 +++
- drivers/edac/edac_mc.c       | 136 ++++++++++++++-----
- drivers/edac/edac_mc_sysfs.c |   7 +-
- drivers/edac/edac_module.c   |   2 +-
- drivers/edac/ghes_edac.c     | 313 +++++++++++++++++++++++++++++++++++++++++++
- include/acpi/ghes.h          |  72 ++++++++++
- include/linux/edac.h         |   5 +
- 10 files changed, 560 insertions(+), 80 deletions(-)
- create mode 100644 drivers/edac/ghes_edac.c
- create mode 100644 include/acpi/ghes.h
-
+diff --git a/drivers/acpi/apei/ghes.c b/drivers/acpi/apei/ghes.c
+index 6d0e146..a21d7da 100644
+--- a/drivers/acpi/apei/ghes.c
++++ b/drivers/acpi/apei/ghes.c
+@@ -409,7 +409,8 @@ static void ghes_clear_estatus(struct ghes *ghes)
+ 	ghes->flags &= ~GHES_TO_CLEAR;
+ }
+ 
+-static void ghes_do_proc(const struct acpi_hest_generic_status *estatus)
++static void ghes_do_proc(struct ghes *ghes,
++			 const struct acpi_hest_generic_status *estatus)
+ {
+ 	int sev, sec_sev;
+ 	struct acpi_hest_generic_data *gdata;
+@@ -421,6 +422,8 @@ static void ghes_do_proc(const struct acpi_hest_generic_status *estatus)
+ 				 CPER_SEC_PLATFORM_MEM)) {
+ 			struct cper_sec_mem_err *mem_err;
+ 			mem_err = (struct cper_sec_mem_err *)(gdata+1);
++			ghes_edac_report_mem_error(ghes, sev, mem_err);
++
+ #ifdef CONFIG_X86_MCE
+ 			apei_mce_report_mem_error(sev == GHES_SEV_CORRECTED,
+ 						  mem_err);
+@@ -639,7 +642,7 @@ static int ghes_proc(struct ghes *ghes)
+ 		if (ghes_print_estatus(NULL, ghes->generic, ghes->estatus))
+ 			ghes_estatus_cache_add(ghes->generic, ghes->estatus);
+ 	}
+-	ghes_do_proc(ghes->estatus);
++	ghes_do_proc(ghes, ghes->estatus);
+ out:
+ 	ghes_clear_estatus(ghes);
+ 	return 0;
+@@ -732,7 +735,7 @@ static void ghes_proc_in_irq(struct irq_work *irq_work)
+ 		estatus = GHES_ESTATUS_FROM_NODE(estatus_node);
+ 		len = apei_estatus_len(estatus);
+ 		node_len = GHES_ESTATUS_NODE_LEN(len);
+-		ghes_do_proc(estatus);
++		ghes_do_proc(estatus_node->ghes, estatus);
+ 		if (!ghes_estatus_cached(estatus)) {
+ 			generic = estatus_node->generic;
+ 			if (ghes_print_estatus(NULL, generic, estatus))
+@@ -821,6 +824,7 @@ static int ghes_notify_nmi(unsigned int cmd, struct pt_regs *regs)
+ 		estatus_node = (void *)gen_pool_alloc(ghes_estatus_pool,
+ 						      node_len);
+ 		if (estatus_node) {
++			estatus_node->ghes = ghes;
+ 			estatus_node->generic = ghes->generic;
+ 			estatus = GHES_ESTATUS_FROM_NODE(estatus_node);
+ 			memcpy(estatus, ghes->estatus, len);
+@@ -942,6 +946,10 @@ static int ghes_probe(struct platform_device *ghes_dev)
+ 	}
+ 	platform_set_drvdata(ghes_dev, ghes);
+ 
++	rc = ghes_edac_register(ghes, &ghes_dev->dev);
++	if (rc < 0)
++		goto err;
++
+ 	return 0;
+ err:
+ 	if (ghes) {
+@@ -995,6 +1003,9 @@ static int ghes_remove(struct platform_device *ghes_dev)
+ 	}
+ 
+ 	ghes_fini(ghes);
++
++	ghes_edac_unregister(ghes);
++
+ 	kfree(ghes);
+ 
+ 	platform_set_drvdata(ghes_dev, NULL);
+diff --git a/include/acpi/ghes.h b/include/acpi/ghes.h
+index 3eb8dc4..c6fef72 100644
+--- a/include/acpi/ghes.h
++++ b/include/acpi/ghes.h
+@@ -22,11 +22,14 @@ struct ghes {
+ 		struct timer_list timer;
+ 		unsigned int irq;
+ 	};
++
++	struct mem_ctl_info *mci;
+ };
+ 
+ struct ghes_estatus_node {
+ 	struct llist_node llnode;
+ 	struct acpi_hest_generic *generic;
++	struct ghes *ghes;
+ };
+ 
+ struct ghes_estatus_cache {
+@@ -43,3 +46,27 @@ enum {
+ 	GHES_SEV_RECOVERABLE = 0x2,
+ 	GHES_SEV_PANIC = 0x3,
+ };
++
++#ifdef CONFIG_EDAC_GHES
++void ghes_edac_report_mem_error(struct ghes *ghes, int sev,
++				struct cper_sec_mem_err *mem_err);
++
++int ghes_edac_register(struct ghes *ghes, struct device *dev);
++
++void ghes_edac_unregister(struct ghes *ghes);
++
++#else
++static inline void ghes_edac_report_mem_error(struct ghes *ghes, int sev,
++				       struct cper_sec_mem_err *mem_err)
++{
++}
++
++static inline int ghes_edac_register(struct ghes *ghes, struct device *dev)
++{
++	return 0;
++}
++
++static inline void ghes_edac_unregister(struct ghes *ghes)
++{
++}
++#endif
 -- 
 1.8.1.2
