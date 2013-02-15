@@ -1,126 +1,63 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: [Update][PATCH] ACPI / hotplug: Fix concurrency issues and memory leaks
-Date: Fri, 15 Feb 2013 13:49:58 +0100
-Message-ID: <1556413.qqfoi7QgzD@vostro.rjw.lan>
-References: <1837481.7dT8hTZ4MT@vostro.rjw.lan> <1463882.MtF6rq6lDy@vostro.rjw.lan> <1360888082.3869.163.camel@misato.fc.hp.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7Bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1360888082.3869.163.camel@misato.fc.hp.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Toshi Kani <toshi.kani@hp.com>
-Cc: "Moore, Robert" <robert.moore@intel.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>, Bjorn Helgaas <bhelgaas@google.com>, Jiang Liu <liuj97@gmail.com>, Yinghai Lu <yinghai@kernel.org>, Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>, Myron Stowe <mstowe@redhat.com>, "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Subject: [PATCH EDAC 04/13] edac: add a new memory layer type
+Date: Fri, 15 Feb 2013 10:44:52 -0200
+Message-ID: <3602d1069551396b3d5db19f0ee171594090ef7f.1360931635.git.mchehab@redhat.com>
+References: <cover.1360931635.git.mchehab@redhat.com>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mx1.redhat.com ([209.132.183.28]:24961 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S935912Ab3BOMpY (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 15 Feb 2013 07:45:24 -0500
+In-Reply-To: <cover.1360931635.git.mchehab@redhat.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+Cc: linux-acpi@vger.kernel.org, Huang Ying <ying.huang@intel.com>, Tony Luck <tony.luck@intel.com>, Mauro Carvalho Chehab <mchehab@redhat.com>, Linux Edac Mailing List <linux-edac@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
 
-On Thursday, February 14, 2013 05:28:02 PM Toshi Kani wrote:
-> On Fri, 2013-02-15 at 01:23 +0100, Rafael J. Wysocki wrote:
-> > On Thursday, February 14, 2013 11:45:27 PM Moore, Robert wrote:
-> > > 
-> > > > -----Original Message-----
-> > > > From: Rafael J. Wysocki [mailto:rjw@sisk.pl]
-> > > > Sent: Thursday, February 14, 2013 12:59 PM
-> > > > To: Moore, Robert
-> > > > Cc: Toshi Kani; ACPI Devel Maling List; LKML; Bjorn Helgaas; Jiang Liu;
-> > > > Yinghai Lu; Yasuaki Ishimatsu; Myron Stowe; linux-pci@vger.kernel.org
-> > > > Subject: Re: [Update][PATCH] ACPI / hotplug: Fix concurrency issues and
-> > > > memory leaks
-> > > > 
-> > > > On Thursday, February 14, 2013 08:45:14 PM Moore, Robert wrote:
-> > > > >
-> > > > > > -----Original Message-----
-> > > > > > From: Rafael J. Wysocki [mailto:rjw@sisk.pl]
-> > > > > > Sent: Thursday, February 14, 2013 4:04 AM
-> > > > > > To: Moore, Robert
-> > > > > > Cc: Toshi Kani; ACPI Devel Maling List; LKML; Bjorn Helgaas; Jiang
-> > > > > > Liu; Yinghai Lu; Yasuaki Ishimatsu; Myron Stowe;
-> > > > > > linux-pci@vger.kernel.org
-> > > > > > Subject: Re: [Update][PATCH] ACPI / hotplug: Fix concurrency issues
-> > > > > > and memory leaks
-> > > > > >
-> > > > > > On Thursday, February 14, 2013 02:31:22 AM Moore, Robert wrote:
-> > > > > > > > > > I thought about that, but actually there's no guarantee that
-> > > > > > > > > > the handle will be valid after _EJ0 as far as I can say.  So
-> > > > > > > > > > the race condition is going to be there anyway and using
-> > > > > > > > > > struct acpi_device just makes it easier to avoid it.
-> > > > > > > > >
-> > > > > > > > > In theory, yes, a stale handle could be a problem, if _EJ0
-> > > > > > > > > performs unload table and if ACPICA frees up its internal data
-> > > > > > > > > structure pointed by the handle as a result.  But we should
-> > > > > > > > > not see such issue now since we do not support dynamic ACPI
-> > > > > > > > > namespace
-> > > > > > yet.
-> > > > > > > >
-> > > > > > > > I'm waiting for information from Bob about that.  If we can
-> > > > > > > > assume ACPI handles to be always valid, that will simplify
-> > > > > > > > things quite a
-> > > > > > bit.
-> > > > > > >
-> > > > > > > If a table is unloaded, all the namespace nodes for that table are
-> > > > > > > removed from the namespace, and thus any ACPI_HANDLE pointers go
-> > > > > > > stale
-> > > > > > and invalid.
-> > > > > >
-> > > > > > OK, thanks!
-> > > > > >
-> > > > > > To me this means that we cannot assume a handle to stay valid
-> > > > > > between a notify handler and acpi_bus_hot_remove_device() run from a
-> > > > workqueue.
-> > > > > >
-> > > > > > Is there a mechanism in ACPICA to ensure that a handle won't become
-> > > > > > stale while a notify handler is running for it or is the OS
-> > > > > > responsible for ensuring that
-> > > > > > _EJ0 won't be run in parallel with notify handlers for device
-> > > > > > objects being ejected?
-> > > > > >
-> > > > >
-> > > > > It is up to the host.
-> > > > 
-> > > > I was afraid that that might be the case. :-)
-> > > > 
-> > > > So far the (Linux) host has been happily ignoring that potential problem,
-> > > > so I guess it can still be ignored for a while, although we'll need to
-> > > > address it eventually at one point.
-> > > 
-> > > I would think it should be fairly simple to setup a mechanism to either tell
-> > > the driver or for the driver to figure it out -- such that the driver knows
-> > > that all handles associated with the device are now invalid. Another way
-> > > to look at it is that when the device is re-installed, the driver should
-> > > reinitialize such that it obtains new handles for the devices and subobjects
-> > > in question.
-> > 
-> > Unfortunately, there is quite strong assumption in our code that ACPI handles
-> > will not become stale before the device objects associated with them are
-> > removed.  For this reason, we need to know in advance which handles will
-> > become stale as a result of a table unload and remove their device objects
-> > beforehand.
-> > 
-> > Moreover, when there's a notify handler installed for a given ACPI handle
-> > and that handle becomes stale while the notify handler is running, we'll be
-> > in trouble.  To avoid that we need to ensure that table unloads and notifies
-> > will always be mutually exclusive.
-> 
-> I wonder if we can make acpi_ns_validate_handle() to actually be able to
-> verify if a given handle is valid.  This way, ACPICA can fail gracefully
-> (AE_BAD_PARAMETER) when a stable handle is passed to the interfaces.
+There are some cases where the memory controller layout is
+completely hidden. This is the case of firmware-driven error
+code, like the one provided by GHES. Add a new layer to be
+used on such memory error report mechanisms.
 
-That'd be good, but to implement it, I think, it would be necessary to
-introduce some reference counting of namespace objects such that the given
-object would only be deleted after the last reference to it had been dropped.
-On table unload it would just be marked as invalid, but it would stay in
-memory as long as there were any references to it.
+Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+---
+ drivers/edac/edac_mc.c | 1 +
+ include/linux/edac.h   | 4 ++++
+ 2 files changed, 5 insertions(+)
 
-So, for example, a notify handler would start from something like
-acpi_add_reference(handle), which would guarantee that the object pointed to by
-handle would stay in memory, and it would finish by doing
-acpi_drop_reference(handle) or a work item scheduled by it would do that.
-
-We do that for objects based on struct device and it works well.
-
-Thanks,
-Rafael
-
-
+diff --git a/drivers/edac/edac_mc.c b/drivers/edac/edac_mc.c
+index 8e58b1c..8e33028 100644
+--- a/drivers/edac/edac_mc.c
++++ b/drivers/edac/edac_mc.c
+@@ -918,6 +918,7 @@ const char *edac_layer_name[] = {
+ 	[EDAC_MC_LAYER_CHANNEL] = "channel",
+ 	[EDAC_MC_LAYER_SLOT] = "slot",
+ 	[EDAC_MC_LAYER_CHIP_SELECT] = "csrow",
++	[EDAC_MC_LAYER_ALL_MEM] = "memory",
+ };
+ EXPORT_SYMBOL_GPL(edac_layer_name);
+ 
+diff --git a/include/linux/edac.h b/include/linux/edac.h
+index 4784213..1b7744c 100644
+--- a/include/linux/edac.h
++++ b/include/linux/edac.h
+@@ -375,6 +375,9 @@ enum scrub_type {
+  * @EDAC_MC_LAYER_CHANNEL:	memory layer is named "channel"
+  * @EDAC_MC_LAYER_SLOT:		memory layer is named "slot"
+  * @EDAC_MC_LAYER_CHIP_SELECT:	memory layer is named "chip select"
++ * @EDAC_MC_LAYER_ALL_MEM:	memory layout is unknown. All memory is mapped
++ *				as a single memory area. This is used when
++ *				retrieving errors from a firmware driven driver.
+  *
+  * This enum is used by the drivers to tell edac_mc_sysfs what name should
+  * be used when describing a memory stick location.
+@@ -384,6 +387,7 @@ enum edac_mc_layer_type {
+ 	EDAC_MC_LAYER_CHANNEL,
+ 	EDAC_MC_LAYER_SLOT,
+ 	EDAC_MC_LAYER_CHIP_SELECT,
++	EDAC_MC_LAYER_ALL_MEM,
+ };
+ 
+ /**
 -- 
-I speak only for myself.
-Rafael J. Wysocki, Intel Open Source Technology Center.
+1.8.1.2
+
