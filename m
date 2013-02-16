@@ -1,281 +1,361 @@
-From: PLEASE VIEW THE ATTACH FILE <barraugustine.dinga008@gmail.com>
-Subject: PLEASE VIEW THE ATTACH FILE FROM BARRISTER AUGUSTINE DINGA  (HAPPY NEW YEAR)
-Date: Sat, 16 Feb 2013 01:22:43 -0800 (PST)
-Message-ID: <1361006563.19196.YahooMailRC@web5710.biz.mail.ne1.yahoo.com>
-Reply-To: PLEASE VIEW THE ATTACH FILE
-	  <barraugustine.dinga007@rediffmail.com>
+From: Martin Mokrejs <mmokrejs@fold.natur.cuni.cz>
+Subject: linux-3.7.4: multiple thermal cpu throttling or cpu enable/disable
+ kmemleaks
+Date: Sat, 16 Feb 2013 17:37:09 +0100
+Message-ID: <511FB5B5.50003@fold.natur.cuni.cz>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="1348619509-1072251055-1361006563=:19196"
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from nm2-vm1.access.bullet.mail.mud.yahoo.com ([66.94.237.67]:38664
-	"EHLO nm2-vm1.access.bullet.mail.mud.yahoo.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752840Ab3BPJWp (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>);
-	Sat, 16 Feb 2013 04:22:45 -0500
+Received: from fold.natur.cuni.cz ([195.113.57.32]:54392 "HELO
+	fold.natur.cuni.cz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S1753521Ab3BPQhM (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sat, 16 Feb 2013 11:37:12 -0500
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Bob Moore <robert.moore@intel.com>, Len Brown <lenb@kernel.org>, "Rafael J. Wysocki" <rjw@sisk.pl>, linux-acpi@vger.kernel.org, Zhang Rui <rui.zhang@intel.com>
 
---1348619509-1072251055-1361006563=:19196
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: quoted-printable
+Hi,
+  I am running 3.7.4 kernel and sometimes enable or disable one of my two physical cores.
+I have disabled hyperthreading altogether in kernel. This is a dual-core i7 laptop processor.
+I see the lists of kmemleak reported. It looks some are triggered when a core is being disabled,
+some when it is being enabled.
 
-=0A=0A PLEASE VIEW THE ATTACH FILE
---1348619509-1072251055-1361006563=:19196
-Content-Type: application/vnd.openxmlformats-officedocument.wordprocessingml.document; name=Barrister
-Content-Transfer-Encoding: base64
-Content-Disposition: attachment; filename="Barrister Augustine Dinga (1).docx"
+Some are probably related to:
 
-UEsDBBQABgAIAAAAIQDd/JU3ZgEAACAFAAATAAgCW0NvbnRlbnRfVHlwZXNd
-LnhtbCCiBAIooAACAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
-AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
-AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
-AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
-AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
-AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
-AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
-AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
-AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
-AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
-AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
-AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAC0VMtuwjAQvFfqP0S+Vomh
-h6qqCBz6OLZIpR9g7A1Y9Uv28vr7bgJEVQtBKuUSKVnvzOzsxIPR2ppsCTFp
-70rWL3osAye90m5Wso/JS37PsoTCKWG8g5JtILHR8PpqMNkESBl1u1SyOWJ4
-4DzJOViRCh/AUaXy0Qqk1zjjQchPMQN+2+vdcekdgsMcaww2HDxBJRYGs+c1
-fd4qiWASyx63B2uukokQjJYCSSlfOvWDJd8xFNTZnElzHdINyWD8IENdOU6w
-63sja6JWkI1FxFdhSQZf+ai48nJhaYaiG+aATl9VWkLbX6OF6CWkRJ5bU7QV
-K7Tb6z+qI+HGQPp/FVvcLnrSOY4+JE57OZsf6s0rUDlZESCihnZ1x0cHRLLs
-EsPvkLvGb1KAlHfgzbN/tgcNzEnKin6JiZgaOJvvV/Ja6JMiVjB9v5j738C7
-hLT5kz7+wYz9dVF3H0gdb+634RcAAAD//wMAUEsDBBQABgAIAAAAIQAekRq3
-8wAAAE4CAAALAAgCX3JlbHMvLnJlbHMgogQCKKAAAgAAAAAAAAAAAAAAAAAA
-AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
-AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
-AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
-AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
-AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
-AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
-AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
-AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
-AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
-AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
-AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
-AAAAjJLbSgNBDIbvBd9hyH032woi0tneSKF3IusDhJnsAXcOzKTavr2jILpQ
-217m9OfLT9abg5vUO6c8Bq9hWdWg2JtgR99reG23iwdQWchbmoJnDUfOsGlu
-b9YvPJGUoTyMMaui4rOGQSQ+ImYzsKNchci+VLqQHEkJU4+RzBv1jKu6vsf0
-VwOamabaWQ1pZ+9AtcdYNl/WDl03Gn4KZu/Yy4kVyAdhb9kuYipsScZyjWop
-9SwabDDPJZ2RYqwKNuBpotX1RP9fi46FLAmhCYnP83x1nANaXg902aJ5x687
-HyFZLBZ9e/tDg7MvaD4BAAD//wMAUEsDBBQABgAIAAAAIQDWZLNR+gAAADED
-AAAcAAgBd29yZC9fcmVscy9kb2N1bWVudC54bWwucmVscyCiBAEooAABAAAA
-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
-CwDBAgAAVCkAAAAA
+[929764.309917] SMP alternatives: lockdep: fixing up alternatives
+[929764.309924] smpboot: Booting Node 0 Processor 1 APIC 0x2
+[929764.325298] microcode: CPU1 updated to revision 0x28, date = 2012-04-24
+[929764.532422] coretemp coretemp.0: TjMax is 100 degrees C
+[929810.157687] r8169 0000:05:00.0 eth0: link down
+[929810.158065] r8169 0000:05:00.0 eth0: link down
+[929811.769364] r8169 0000:05:00.0 eth0: link up
+[931461.574353] smpboot: CPU 1 is now offline
+[933114.170104] kmemleak: 5 new suspected memory leaks (see /sys/kernel/debug/kmemleak)
 
---1348619509-1072251055-1361006563=:19196--
+[1555829.753514] SMP alternatives: lockdep: fixing up alternatives
+[1555829.753518] smpboot: Booting Node 0 Processor 1 APIC 0x2
+[1555829.773872] microcode: CPU1 updated to revision 0x28, date = 2012-04-24
+[1555829.998056] coretemp coretemp.0: TjMax is 100 degrees C
+
+[1818172.504595] CPU0: Core temperature above threshold, cpu clock throttled (total events = 87)
+[1818172.504597] CPU1: Package temperature above threshold, cpu clock throttled (total events = 6140)
+[1818172.504601] CPU0: Package temperature above threshold, cpu clock throttled (total events = 6140)
+[1818172.505612] CPU0: Core temperature/speed normal
+[1818172.505613] CPU1: Package temperature/speed normal
+[1818172.505615] CPU0: Package temperature/speed normal
+[1829262.359816] CPU1: Core temperature above threshold, cpu clock throttled (total events = 6053)
+[1829262.359818] CPU0: Package temperature above threshold, cpu clock throttled (total events = 6146)
+[1829262.359821] CPU1: Package temperature above threshold, cpu clock throttled (total events = 6146)
+[1829262.360821] CPU1: Core temperature/speed normal
+[1829262.360822] CPU0: Package temperature/speed normal
+[1829262.360824] CPU1: Package temperature/speed normal
+
+[1897630.149820] smpboot: CPU 1 is now offline
+[1897987.037312] SMP alternatives: lockdep: fixing up alternatives
+[1897987.037316] smpboot: Booting Node 0 Processor 1 APIC 0x2
+[1897987.053809] microcode: CPU1 updated to revision 0x28, date = 2012-04-24
+[1897987.311928] coretemp coretemp.0: TjMax is 100 degrees C
+[1898649.802554] kmemleak: 5 new suspected memory leaks (see /sys/kernel/debug/kmemleak)
+
+
+unreferenced object 0xffff88040cec8150 (size 32):
+  comm "swapper/0", pid 1, jiffies 4294937512 (age 1908449.050s)
+  hex dump (first 32 bytes):
+    74 68 65 72 6d 61 6c 5f 74 68 72 6f 74 74 6c 65  thermal_throttle
+    00 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b a5  .kkkkkkkkkkkkkk.
+  backtrace:
+    [<ffffffff815b4aad>] kmemleak_alloc+0x21/0x3e
+    [<ffffffff81110352>] slab_post_alloc_hook+0x28/0x2a
+    [<ffffffff81113fad>] __kmalloc_track_caller+0xf1/0x104
+    [<ffffffff810f1202>] kstrdup+0x2c/0x44
+    [<ffffffff8116a2fc>] sysfs_new_dirent+0x2e/0x107
+    [<ffffffff8116a658>] create_dir+0x32/0xac
+    [<ffffffff8116a8c5>] sysfs_create_subdir+0x1a/0x1c
+    [<ffffffff8116befa>] internal_create_group+0x93/0x164
+    [<ffffffff8116bfec>] sysfs_create_group+0xe/0x10
+    [<ffffffff815cd65b>] thermal_throttle_add_dev+0x2e/0xa9
+    [<ffffffff819c8e9c>] thermal_throttle_init_device+0x4f/0x9c
+    [<ffffffff81000231>] do_one_initcall+0x7a/0x131
+    [<ffffffff815b349b>] kernel_init+0x106/0x26d
+    [<ffffffff815dd66c>] ret_from_fork+0x7c/0xb0
+    [<ffffffffffffffff>] 0xffffffffffffffff
+unreferenced object 0xffff88040bfa0930 (size 144):
+  comm "swapper/0", pid 1, jiffies 4294937512 (age 1908449.050s)
+  hex dump (first 32 bytes):
+    03 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  ................
+    00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  ................
+  backtrace:
+    [<ffffffff815b4aad>] kmemleak_alloc+0x21/0x3e
+    [<ffffffff81110352>] slab_post_alloc_hook+0x28/0x2a
+    [<ffffffff81112dc3>] kmem_cache_alloc+0xa7/0xb6
+    [<ffffffff8116a31c>] sysfs_new_dirent+0x4e/0x107
+    [<ffffffff8116a658>] create_dir+0x32/0xac
+    [<ffffffff8116a8c5>] sysfs_create_subdir+0x1a/0x1c
+    [<ffffffff8116befa>] internal_create_group+0x93/0x164
+    [<ffffffff8116bfec>] sysfs_create_group+0xe/0x10
+    [<ffffffff815cd65b>] thermal_throttle_add_dev+0x2e/0xa9
+    [<ffffffff819c8e9c>] thermal_throttle_init_device+0x4f/0x9c
+    [<ffffffff81000231>] do_one_initcall+0x7a/0x131
+    [<ffffffff815b349b>] kernel_init+0x106/0x26d
+    [<ffffffff815dd66c>] ret_from_fork+0x7c/0xb0
+    [<ffffffffffffffff>] 0xffffffffffffffff
+unreferenced object 0xffff88040bfa0888 (size 144):
+  comm "swapper/0", pid 1, jiffies 4294937512 (age 1908449.050s)
+  hex dump (first 32 bytes):
+    01 00 00 00 00 00 00 00 f8 5b 91 81 ff ff ff ff  .........[......
+    00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  ................
+  backtrace:
+    [<ffffffff815b4aad>] kmemleak_alloc+0x21/0x3e
+    [<ffffffff81110352>] slab_post_alloc_hook+0x28/0x2a
+    [<ffffffff81112dc3>] kmem_cache_alloc+0xa7/0xb6
+    [<ffffffff8116a31c>] sysfs_new_dirent+0x4e/0x107
+    [<ffffffff81169938>] sysfs_add_file_mode+0x49/0xc7
+    [<ffffffff811699c3>] sysfs_add_file+0xd/0xf
+    [<ffffffff81169a07>] sysfs_add_file_to_group+0x42/0x57
+    [<ffffffff815cd686>] thermal_throttle_add_dev+0x59/0xa9
+    [<ffffffff819c8e9c>] thermal_throttle_init_device+0x4f/0x9c
+    [<ffffffff81000231>] do_one_initcall+0x7a/0x131
+    [<ffffffff815b349b>] kernel_init+0x106/0x26d
+    [<ffffffff815dd66c>] ret_from_fork+0x7c/0xb0
+    [<ffffffffffffffff>] 0xffffffffffffffff
+unreferenced object 0xffff88040bfa0738 (size 144):
+  comm "swapper/0", pid 1, jiffies 4294937512 (age 1908449.050s)
+  hex dump (first 32 bytes):
+    01 00 00 00 00 00 00 00 28 5c 91 81 ff ff ff ff  ........(\......
+    00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  ................
+  backtrace:
+    [<ffffffff815b4aad>] kmemleak_alloc+0x21/0x3e
+    [<ffffffff81110352>] slab_post_alloc_hook+0x28/0x2a
+    [<ffffffff81112dc3>] kmem_cache_alloc+0xa7/0xb6
+    [<ffffffff8116a31c>] sysfs_new_dirent+0x4e/0x107
+    [<ffffffff81169938>] sysfs_add_file_mode+0x49/0xc7
+    [<ffffffff811699c3>] sysfs_add_file+0xd/0xf
+    [<ffffffff81169a07>] sysfs_add_file_to_group+0x42/0x57
+    [<ffffffff815cd6aa>] thermal_throttle_add_dev+0x7d/0xa9
+    [<ffffffff819c8e9c>] thermal_throttle_init_device+0x4f/0x9c
+    [<ffffffff81000231>] do_one_initcall+0x7a/0x131
+    [<ffffffff815b349b>] kernel_init+0x106/0x26d
+    [<ffffffff815dd66c>] ret_from_fork+0x7c/0xb0
+    [<ffffffffffffffff>] 0xffffffffffffffff
+unreferenced object 0xffff88040bfa07e0 (size 144):
+  comm "swapper/0", pid 1, jiffies 4294937512 (age 1908449.050s)
+  hex dump (first 32 bytes):
+    01 00 00 00 00 00 00 00 58 5c 91 81 ff ff ff ff  ........X\......
+    00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  ................
+  backtrace:
+    [<ffffffff815b4aad>] kmemleak_alloc+0x21/0x3e
+    [<ffffffff81110352>] slab_post_alloc_hook+0x28/0x2a
+    [<ffffffff81112dc3>] kmem_cache_alloc+0xa7/0xb6
+    [<ffffffff8116a31c>] sysfs_new_dirent+0x4e/0x107
+    [<ffffffff81169938>] sysfs_add_file_mode+0x49/0xc7
+    [<ffffffff811699c3>] sysfs_add_file+0xd/0xf
+    [<ffffffff81169a07>] sysfs_add_file_to_group+0x42/0x57
+    [<ffffffff815cd6ce>] thermal_throttle_add_dev+0xa1/0xa9
+    [<ffffffff819c8e9c>] thermal_throttle_init_device+0x4f/0x9c
+    [<ffffffff81000231>] do_one_initcall+0x7a/0x131
+    [<ffffffff815b349b>] kernel_init+0x106/0x26d
+    [<ffffffff815dd66c>] ret_from_fork+0x7c/0xb0
+    [<ffffffffffffffff>] 0xffffffffffffffff
+unreferenced object 0xffff8804058b17e0 (size 144):
+  comm "bash", pid 4632, jiffies 4388053386 (age 977291.910s)
+  hex dump (first 32 bytes):
+    03 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  ................
+    00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  ................
+  backtrace:
+    [<ffffffff815b4aad>] kmemleak_alloc+0x21/0x3e
+    [<ffffffff81110352>] slab_post_alloc_hook+0x28/0x2a
+    [<ffffffff81112dc3>] kmem_cache_alloc+0xa7/0xb6
+    [<ffffffff8116a31c>] sysfs_new_dirent+0x4e/0x107
+    [<ffffffff8116a658>] create_dir+0x32/0xac
+    [<ffffffff8116a8c5>] sysfs_create_subdir+0x1a/0x1c
+    [<ffffffff8116befa>] internal_create_group+0x93/0x164
+    [<ffffffff8116bfec>] sysfs_create_group+0xe/0x10
+    [<ffffffff815cd65b>] thermal_throttle_add_dev+0x2e/0xa9
+    [<ffffffff815cd72b>] thermal_throttle_cpu_callback+0x55/0xc1
+    [<ffffffff81094510>] notifier_call_chain+0x32/0x5e
+    [<ffffffff8109455b>] __raw_notifier_call_chain+0x9/0xb
+    [<ffffffff8107a4af>] __cpu_notify+0x1b/0x2d
+    [<ffffffff815cf522>] _cpu_up+0x93/0x131
+    [<ffffffff815cf60a>] cpu_up+0x4a/0x57
+    [<ffffffff815b6097>] store_online+0x56/0x84
+unreferenced object 0xffff8804058b1e70 (size 144):
+  comm "bash", pid 4632, jiffies 4388053386 (age 977291.910s)
+  hex dump (first 32 bytes):
+    01 00 00 00 00 00 00 00 f8 5b 91 81 ff ff ff ff  .........[......
+    00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  ................
+  backtrace:
+    [<ffffffff815b4aad>] kmemleak_alloc+0x21/0x3e
+    [<ffffffff81110352>] slab_post_alloc_hook+0x28/0x2a
+    [<ffffffff81112dc3>] kmem_cache_alloc+0xa7/0xb6
+    [<ffffffff8116a31c>] sysfs_new_dirent+0x4e/0x107
+    [<ffffffff81169938>] sysfs_add_file_mode+0x49/0xc7
+    [<ffffffff811699c3>] sysfs_add_file+0xd/0xf
+    [<ffffffff81169a07>] sysfs_add_file_to_group+0x42/0x57
+    [<ffffffff815cd686>] thermal_throttle_add_dev+0x59/0xa9
+    [<ffffffff815cd72b>] thermal_throttle_cpu_callback+0x55/0xc1
+    [<ffffffff81094510>] notifier_call_chain+0x32/0x5e
+    [<ffffffff8109455b>] __raw_notifier_call_chain+0x9/0xb
+    [<ffffffff8107a4af>] __cpu_notify+0x1b/0x2d
+    [<ffffffff815cf522>] _cpu_up+0x93/0x131
+    [<ffffffff815cf60a>] cpu_up+0x4a/0x57
+    [<ffffffff815b6097>] store_online+0x56/0x84
+    [<ffffffff81304137>] dev_attr_store+0x1b/0x1d
+unreferenced object 0xffff8804058b1498 (size 144):
+  comm "bash", pid 4632, jiffies 4388053386 (age 977291.910s)
+  hex dump (first 32 bytes):
+    01 00 00 00 00 00 00 00 28 5c 91 81 ff ff ff ff  ........(\......
+    00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  ................
+  backtrace:
+    [<ffffffff815b4aad>] kmemleak_alloc+0x21/0x3e
+    [<ffffffff81110352>] slab_post_alloc_hook+0x28/0x2a
+    [<ffffffff81112dc3>] kmem_cache_alloc+0xa7/0xb6
+    [<ffffffff8116a31c>] sysfs_new_dirent+0x4e/0x107
+    [<ffffffff81169938>] sysfs_add_file_mode+0x49/0xc7
+    [<ffffffff811699c3>] sysfs_add_file+0xd/0xf
+    [<ffffffff81169a07>] sysfs_add_file_to_group+0x42/0x57
+    [<ffffffff815cd6aa>] thermal_throttle_add_dev+0x7d/0xa9
+    [<ffffffff815cd72b>] thermal_throttle_cpu_callback+0x55/0xc1
+    [<ffffffff81094510>] notifier_call_chain+0x32/0x5e
+    [<ffffffff8109455b>] __raw_notifier_call_chain+0x9/0xb
+    [<ffffffff8107a4af>] __cpu_notify+0x1b/0x2d
+    [<ffffffff815cf522>] _cpu_up+0x93/0x131
+    [<ffffffff815cf60a>] cpu_up+0x4a/0x57
+    [<ffffffff815b6097>] store_online+0x56/0x84
+    [<ffffffff81304137>] dev_attr_store+0x1b/0x1d
+unreferenced object 0xffff8804058b1d20 (size 144):
+  comm "bash", pid 4632, jiffies 4388053386 (age 977291.910s)
+  hex dump (first 32 bytes):
+    01 00 00 00 00 00 00 00 58 5c 91 81 ff ff ff ff  ........X\......
+    00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  ................
+  backtrace:
+    [<ffffffff815b4aad>] kmemleak_alloc+0x21/0x3e
+    [<ffffffff81110352>] slab_post_alloc_hook+0x28/0x2a
+    [<ffffffff81112dc3>] kmem_cache_alloc+0xa7/0xb6
+    [<ffffffff8116a31c>] sysfs_new_dirent+0x4e/0x107
+    [<ffffffff81169938>] sysfs_add_file_mode+0x49/0xc7
+    [<ffffffff811699c3>] sysfs_add_file+0xd/0xf
+    [<ffffffff81169a07>] sysfs_add_file_to_group+0x42/0x57
+    [<ffffffff815cd6ce>] thermal_throttle_add_dev+0xa1/0xa9
+    [<ffffffff815cd72b>] thermal_throttle_cpu_callback+0x55/0xc1
+    [<ffffffff81094510>] notifier_call_chain+0x32/0x5e
+    [<ffffffff8109455b>] __raw_notifier_call_chain+0x9/0xb
+    [<ffffffff8107a4af>] __cpu_notify+0x1b/0x2d
+    [<ffffffff815cf522>] _cpu_up+0x93/0x131
+    [<ffffffff815cf60a>] cpu_up+0x4a/0x57
+    [<ffffffff815b6097>] store_online+0x56/0x84
+    [<ffffffff81304137>] dev_attr_store+0x1b/0x1d
+unreferenced object 0xffff880391930380 (size 32):
+  comm "bash", pid 4632, jiffies 4450753985 (age 350286.200s)
+  hex dump (first 32 bytes):
+    74 68 65 72 6d 61 6c 5f 74 68 72 6f 74 74 6c 65  thermal_throttle
+    00 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b a5  .kkkkkkkkkkkkkk.
+  backtrace:
+    [<ffffffff815b4aad>] kmemleak_alloc+0x21/0x3e
+    [<ffffffff81110352>] slab_post_alloc_hook+0x28/0x2a
+    [<ffffffff81113fad>] __kmalloc_track_caller+0xf1/0x104
+    [<ffffffff810f1202>] kstrdup+0x2c/0x44
+    [<ffffffff8116a2fc>] sysfs_new_dirent+0x2e/0x107
+    [<ffffffff8116a658>] create_dir+0x32/0xac
+    [<ffffffff8116a8c5>] sysfs_create_subdir+0x1a/0x1c
+    [<ffffffff8116befa>] internal_create_group+0x93/0x164
+    [<ffffffff8116bfec>] sysfs_create_group+0xe/0x10
+    [<ffffffff815cd65b>] thermal_throttle_add_dev+0x2e/0xa9
+    [<ffffffff815cd72b>] thermal_throttle_cpu_callback+0x55/0xc1
+    [<ffffffff81094510>] notifier_call_chain+0x32/0x5e
+    [<ffffffff8109455b>] __raw_notifier_call_chain+0x9/0xb
+    [<ffffffff8107a4af>] __cpu_notify+0x1b/0x2d
+    [<ffffffff815cf522>] _cpu_up+0x93/0x131
+    [<ffffffff815cf60a>] cpu_up+0x4a/0x57
+unreferenced object 0xffff88010b21a3f0 (size 144):
+  comm "bash", pid 4632, jiffies 4450753985 (age 350286.200s)
+  hex dump (first 32 bytes):
+    03 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  ................
+    00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  ................
+  backtrace:
+    [<ffffffff815b4aad>] kmemleak_alloc+0x21/0x3e
+    [<ffffffff81110352>] slab_post_alloc_hook+0x28/0x2a
+    [<ffffffff81112dc3>] kmem_cache_alloc+0xa7/0xb6
+    [<ffffffff8116a31c>] sysfs_new_dirent+0x4e/0x107
+    [<ffffffff8116a658>] create_dir+0x32/0xac
+    [<ffffffff8116a8c5>] sysfs_create_subdir+0x1a/0x1c
+    [<ffffffff8116befa>] internal_create_group+0x93/0x164
+    [<ffffffff8116bfec>] sysfs_create_group+0xe/0x10
+    [<ffffffff815cd65b>] thermal_throttle_add_dev+0x2e/0xa9
+    [<ffffffff815cd72b>] thermal_throttle_cpu_callback+0x55/0xc1
+    [<ffffffff81094510>] notifier_call_chain+0x32/0x5e
+    [<ffffffff8109455b>] __raw_notifier_call_chain+0x9/0xb
+    [<ffffffff8107a4af>] __cpu_notify+0x1b/0x2d
+    [<ffffffff815cf522>] _cpu_up+0x93/0x131
+    [<ffffffff815cf60a>] cpu_up+0x4a/0x57
+    [<ffffffff815b6097>] store_online+0x56/0x84
+unreferenced object 0xffff88010b21ad20 (size 144):
+  comm "bash", pid 4632, jiffies 4450753985 (age 350286.250s)
+  hex dump (first 32 bytes):
+    01 00 00 00 00 00 00 00 f8 5b 91 81 ff ff ff ff  .........[......
+    00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  ................
+  backtrace:
+    [<ffffffff815b4aad>] kmemleak_alloc+0x21/0x3e
+    [<ffffffff81110352>] slab_post_alloc_hook+0x28/0x2a
+    [<ffffffff81112dc3>] kmem_cache_alloc+0xa7/0xb6
+    [<ffffffff8116a31c>] sysfs_new_dirent+0x4e/0x107
+    [<ffffffff81169938>] sysfs_add_file_mode+0x49/0xc7
+    [<ffffffff811699c3>] sysfs_add_file+0xd/0xf
+    [<ffffffff81169a07>] sysfs_add_file_to_group+0x42/0x57
+    [<ffffffff815cd686>] thermal_throttle_add_dev+0x59/0xa9
+    [<ffffffff815cd72b>] thermal_throttle_cpu_callback+0x55/0xc1
+    [<ffffffff81094510>] notifier_call_chain+0x32/0x5e
+    [<ffffffff8109455b>] __raw_notifier_call_chain+0x9/0xb
+    [<ffffffff8107a4af>] __cpu_notify+0x1b/0x2d
+    [<ffffffff815cf522>] _cpu_up+0x93/0x131
+    [<ffffffff815cf60a>] cpu_up+0x4a/0x57
+    [<ffffffff815b6097>] store_online+0x56/0x84
+    [<ffffffff81304137>] dev_attr_store+0x1b/0x1d
+unreferenced object 0xffff88010b21aa80 (size 144):
+  comm "bash", pid 4632, jiffies 4450753985 (age 350286.250s)
+  hex dump (first 32 bytes):
+    01 00 00 00 00 00 00 00 28 5c 91 81 ff ff ff ff  ........(\......
+    00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  ................
+  backtrace:
+    [<ffffffff815b4aad>] kmemleak_alloc+0x21/0x3e
+    [<ffffffff81110352>] slab_post_alloc_hook+0x28/0x2a
+    [<ffffffff81112dc3>] kmem_cache_alloc+0xa7/0xb6
+    [<ffffffff8116a31c>] sysfs_new_dirent+0x4e/0x107
+    [<ffffffff81169938>] sysfs_add_file_mode+0x49/0xc7
+    [<ffffffff811699c3>] sysfs_add_file+0xd/0xf
+    [<ffffffff81169a07>] sysfs_add_file_to_group+0x42/0x57
+    [<ffffffff815cd6aa>] thermal_throttle_add_dev+0x7d/0xa9
+    [<ffffffff815cd72b>] thermal_throttle_cpu_callback+0x55/0xc1
+    [<ffffffff81094510>] notifier_call_chain+0x32/0x5e
+    [<ffffffff8109455b>] __raw_notifier_call_chain+0x9/0xb
+    [<ffffffff8107a4af>] __cpu_notify+0x1b/0x2d
+    [<ffffffff815cf522>] _cpu_up+0x93/0x131
+    [<ffffffff815cf60a>] cpu_up+0x4a/0x57
+    [<ffffffff815b6097>] store_online+0x56/0x84
+    [<ffffffff81304137>] dev_attr_store+0x1b/0x1d
+unreferenced object 0xffff88010b21ae70 (size 144):
+  comm "bash", pid 4632, jiffies 4450753985 (age 350286.250s)
+  hex dump (first 32 bytes):
+    01 00 00 00 00 00 00 00 58 5c 91 81 ff ff ff ff  ........X\......
+    00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  ................
+  backtrace:
+    [<ffffffff815b4aad>] kmemleak_alloc+0x21/0x3e
+    [<ffffffff81110352>] slab_post_alloc_hook+0x28/0x2a
+    [<ffffffff81112dc3>] kmem_cache_alloc+0xa7/0xb6
+    [<ffffffff8116a31c>] sysfs_new_dirent+0x4e/0x107
+    [<ffffffff81169938>] sysfs_add_file_mode+0x49/0xc7
+    [<ffffffff811699c3>] sysfs_add_file+0xd/0xf
+    [<ffffffff81169a07>] sysfs_add_file_to_group+0x42/0x57
+    [<ffffffff815cd6ce>] thermal_throttle_add_dev+0xa1/0xa9
+    [<ffffffff815cd72b>] thermal_throttle_cpu_callback+0x55/0xc1
+    [<ffffffff81094510>] notifier_call_chain+0x32/0x5e
+    [<ffffffff8109455b>] __raw_notifier_call_chain+0x9/0xb
+    [<ffffffff8107a4af>] __cpu_notify+0x1b/0x2d
+    [<ffffffff815cf522>] _cpu_up+0x93/0x131
+    [<ffffffff815cf60a>] cpu_up+0x4a/0x57
+    [<ffffffff815b6097>] store_online+0x56/0x84
+    [<ffffffff81304137>] dev_attr_store+0x1b/0x1d
+
+
+Hope this helps,
+Martin
