@@ -1,147 +1,97 @@
-From: Bjorn Helgaas <bhelgaas@google.com>
-Subject: Re: [PATCH] ACPI / PCI: Initialize PCI root drivers after PCI bus enumeration
-Date: Fri, 15 Feb 2013 18:10:23 -0700
-Message-ID: <CAErSpo6tjbppkO2o8ib+o6=-Ff8u1_VYFCjh5+C7-cb07XK8-w@mail.gmail.com>
-References: <1882094.fnYp8pBVVX@vostro.rjw.lan> <CAE9FiQXk1VhA2+qAcp8jL=TG28acePyX4SOYALiAQ0bGnLaFOA@mail.gmail.com>
- <1678811.LFvn3m6Wlp@vostro.rjw.lan>
+From: Yinghai Lu <yinghai@kernel.org>
+Subject: Re: [PATCH] ACPI, PCI: Get PRT entry during acpi_pci_enable_irq()
+Date: Fri, 15 Feb 2013 17:26:04 -0800
+Message-ID: <CAE9FiQXan3J7-m2Wgd0pVybed_BgRAiqMGofh7t+vX_6e8zh7g@mail.gmail.com>
+References: <CAE9FiQUkmnV_On5+ZpH2pF4Li1HxLpkO8bp4TnYB46=pc9Safg@mail.gmail.com>
+	<1360696283-20313-1-git-send-email-yinghai@kernel.org>
+	<5988763.6WpnEvTV2f@vostro.rjw.lan>
+	<CAE9FiQX=yLyBV3AbP43N91Tx5-ic-f5f+=_r_RBLxq1Ct32Z_Q@mail.gmail.com>
+	<CAErSpo6x2WXdbO-_qeheQKwqqJ9zze8Z9pnj-wtU0yTJEh-NJg@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-ob0-f169.google.com ([209.85.214.169]:34180 "EHLO
-	mail-ob0-f169.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750733Ab3BPBKo (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 15 Feb 2013 20:10:44 -0500
-Received: by mail-ob0-f169.google.com with SMTP id ta14so4234276obb.0
-        for <linux-acpi@vger.kernel.org>; Fri, 15 Feb 2013 17:10:43 -0800 (PST)
-In-Reply-To: <1678811.LFvn3m6Wlp@vostro.rjw.lan>
-Sender: linux-acpi-owner@vger.kernel.org
+Return-path: <linux-pci-owner@vger.kernel.org>
+In-Reply-To: <CAErSpo6x2WXdbO-_qeheQKwqqJ9zze8Z9pnj-wtU0yTJEh-NJg@mail.gmail.com>
+Sender: linux-pci-owner@vger.kernel.org
+To: Bjorn Helgaas <bhelgaas@google.com>
+Cc: "Rafael J. Wysocki" <rjw@sisk.pl>, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: Yinghai Lu <yinghai@kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>, Jiang Liu <liuj97@gmail.com>, Toshi Kani <toshi.kani@hp.com>, Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>, Myron Stowe <mstowe@redhat.com>, linux-pci@vger.kernel.org
 
-On Wed, Feb 13, 2013 at 5:59 AM, Rafael J. Wysocki <rjw@sisk.pl> wrote:
-> On Tuesday, February 12, 2013 05:54:08 PM Yinghai Lu wrote:
->> On Tue, Feb 12, 2013 at 4:16 PM, Rafael J. Wysocki <rjw@sisk.pl> wrote:
->> > From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
->> >
->> > After commit 1aeae82 (ACPI / PCI: avoid building pci_slot as module)
->> > the pci_slot driver's .add() callback routine, acpi_pci_slot_add(),
->> > is executed from within acpi_pci_root_add() before the PCI devices on
->> > the bus are enumerated and that triggers the WARN_ON() in
->> > kobject_get():
->> >
->> > WARNING: at /scratch/rafael/work/test/include/linux/kref.h:42 kobject_get+0x33/0x40()
->> > Hardware name: PORTEGE R500
->> > Modules linked in:
->> > Pid: 1, comm: swapper/0 Not tainted 3.8.0-rc7+ #160
->> > Call Trace:
->> >  [<ffffffff8103d38a>] warn_slowpath_common+0x7a/0xb0
->> >  [<ffffffff8103d3d5>] warn_slowpath_null+0x15/0x20
->> >  [<ffffffff812f99b3>] kobject_get+0x33/0x40
->> >  [<ffffffff81452b82>] get_device+0x12/0x30
->> >  [<ffffffff8138df7b>] register_slot+0x243/0x295
->> >  [<ffffffff810a7b6d>] ? trace_hardirqs_on+0xd/0x10
->> >  [<ffffffff8137b7b9>] acpi_ns_walk_namespace+0x10f/0x24a
->> >  [<ffffffff8138dd38>] ? walk_p2p_bridge+0x13b/0x13b
->> >  [<ffffffff8138dd38>] ? walk_p2p_bridge+0x13b/0x13b
->> >  [<ffffffff8137bdc3>] acpi_walk_namespace+0xe9/0x132
->> >  [<ffffffff8138dd38>] ? walk_p2p_bridge+0x13b/0x13b
->> >  [<ffffffff8138dcf5>] walk_p2p_bridge+0xf8/0x13b
->> >  [<ffffffff8134d606>] ? acpi_os_signal_semaphore+0x76/0x87
->> >  [<ffffffff8138dd38>] ? walk_p2p_bridge+0x13b/0x13b
->> >  [<ffffffff8137b7b9>] acpi_ns_walk_namespace+0x10f/0x24a
->> >  [<ffffffff8138dbfd>] ? do_sta_before_sun+0x2b/0x2b
->> >  [<ffffffff8138dbfd>] ? do_sta_before_sun+0x2b/0x2b
->> >  [<ffffffff8137bdc3>] acpi_walk_namespace+0xe9/0x132
->> >  [<ffffffff81356071>] ? acpi_pci_root_add+0x3e7/0x49a
->> >  [<ffffffff8138e07f>] acpi_pci_slot_add+0xb2/0x103
->> >  [<ffffffff8138dd38>] ? walk_p2p_bridge+0x13b/0x13b
->> >  [<ffffffff81356089>] acpi_pci_root_add+0x3ff/0x49a
->> >
->> > which means that pci_bus->dev used in register_slot() has not been
->> > registered yet at that point.
->> >
->> > To fix this use the observation that before commit 1aeae82
->> > acpi_pci_slot_add() was always run after pci_bus_add_devices()
->> > and that happened to the acpiphp's .add() callback routine too.
->> > Thus it is safe to reorder acpi_pci_root_add() to make the PCI root
->> > drivers' .add() callbacks be run after pci_bus_add_devices(), so do
->> > that.
->> >
->> > This approach was previously proposed by Myron Stowe.
->> >
->> > References: https://patchwork.kernel.org/patch/1848781/
->> > Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
->> > ---
->> >
->> > The commit mentioned in the changelog above is in linux-pm.git/linux-next.
->> >
->> > Thanks,
->> > Rafael
->> >
->> > ---
->> >  drivers/acpi/pci_root.c |   13 ++++++++-----
->> >  1 file changed, 8 insertions(+), 5 deletions(-)
->> >
->> > Index: test/drivers/acpi/pci_root.c
->> > ===================================================================
->> > --- test.orig/drivers/acpi/pci_root.c
->> > +++ test/drivers/acpi/pci_root.c
->> > @@ -600,17 +600,20 @@ static int acpi_pci_root_add(struct acpi
->> >         if (system_state != SYSTEM_BOOTING)
->> >                 pci_assign_unassigned_bus_resources(root->bus);
->> >
->> > +       /* need to after hot-added ioapic is registered */
->> > +       if (system_state != SYSTEM_BOOTING)
->> > +               pci_enable_bridges(root->bus);
->> > +
->> > +       pci_bus_add_devices(root->bus);
->> > +
->> >         mutex_lock(&acpi_pci_root_lock);
->> > +
->> >         list_for_each_entry(driver, &acpi_pci_drivers, node)
->> >                 if (driver->add)
->> >                         driver->add(root);
->> > -       mutex_unlock(&acpi_pci_root_lock);
->> >
->> > -       /* need to after hot-added ioapic is registered */
->> > -       if (system_state != SYSTEM_BOOTING)
->> > -               pci_enable_bridges(root->bus);
->> > +       mutex_unlock(&acpi_pci_root_lock);
->> >
->> > -       pci_bus_add_devices(root->bus);
->> >         return 1;
->> >
->> >  out_del_root:
->> >
+On Fri, Feb 15, 2013 at 4:39 PM, Bjorn Helgaas <bhelgaas@google.com> wrote:
+> On Thu, Feb 14, 2013 at 5:50 PM, Yinghai Lu <yinghai@kernel.org> wrote:
+>> On Tue, Feb 12, 2013 at 12:22 PM, Rafael J. Wysocki <rjw@sisk.pl> wrote:
+>>> On Tuesday, February 12, 2013 11:11:23 AM Yinghai Lu wrote:
+>>>> Peter Hurley found "irq 18 nobody cared" with pci-next, and dmesg has
+>>>>
+>>>> [    8.983246] pci 0000:00:1e.0: can't derive routing for PCI INT A
+>>>> [    8.983600] snd_ctxfi 0000:09:02.0: PCI INT A: no GSI - using ISA IRQ 5
+>>>>
+>>>> bisect to
+>>>> | commit 4f535093cf8f6da8cfda7c36c2c1ecd2e9586ee4
+>>>> |     PCI: Put pci_dev in device tree as early as possible
+>>>>
+>>>> It turns out we need to call acpi_pci_irq_add_prt() after the pci bridges
+>>>> are scanned.
+>>>>
+>>>> Bjorn said:
+>>>>  The bus number binding means acpi_pci_irq_add_prt() has to happen
+>>>>  after enumerating everything below a bridge, and it will prevent us
+>>>>  from doing any bus number reassignment for hotplug.
+>>>>
+>>>>  I think we should remove the bus numbers from the cached _PRT (or
+>>>>  maybe even remove the _PRT caching completely).  When we enable a PCI
+>>>>  device's IRQ, we should search up the PCI device tree looking for a
+>>>>  _PRT associated with each node, and applying normal PCI bridge
+>>>>  swizzling when we don't find a _PRT.  I think this can be done without
+>>>>  using PCI bus numbers at all.
+>>>>
+>>>> So here we try to remove _PRT caching completely.
+>>>>
+>>>> -v2: check !handle early.
+>>>>
+>>>> Reported-and-tested-by: Peter Hurley <peter@hurleysoftware.com>
+>>>> Suggested-by: Bjorn Helgaas <bhelgaas@google.com>
+>>>> Signed-off-by: Yinghai Lu <yinghai@kernel.org>
+>>>
+>>> Acked-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+>>>
+>>>> ---
+>>>>  drivers/acpi/pci_irq.c      |   95 +++++++++++++++++---------------------------
+>>>>  drivers/acpi/pci_root.c     |   18 --------
+>>>>  drivers/pci/pci-acpi.c      |   24 -----------
+>>>>  include/acpi/acpi_drivers.h |    5 --
+>>>>  4 files changed, 38 insertions(+), 104 deletions(-)
 >>
->> No, we don't need this after
+>> Bjorn,
 >>
->> | commit 4f535093cf8f6da8cfda7c36c2c1ecd2e9586ee4
->> |     PCI: Put pci_dev in device tree as early as possible
->>
->> in pci/next.
->>
->> So we can move that Jiang's patch from your tree to Bjorn's tree?
+>> Can you put this one into pci/next?
 >
-> OK, I'm dropping that patch from my tree, then (hopefully, no one has merged
-> my acpi-cleanup branch yet).
+> I'm not sure what this patch is based on or what the best way to merge
+> it is.  It doesn't apply cleanly to my next or
+> pci/yinghai-root-bus-hotplug branches.
+
+My fault, that is based on pci/next + pm/linux-next
+
+linux-next removed
+acpi_power_resource_(un)register_device ...
+
 >
-> Bjorn, could you pick up https://patchwork.kernel.org/patch/2003771/ please?
+> I did apply it manually on top of pci/yinghai-root-bus-hotplug to try
+> it out, but we need to tweak the messages a little bit.
+>
+> Previously we printed "ACPI: PCI Interrupt Routing Table [%s._PRT]"
+> once when loading it, which was fine.  Now we print it every time we
+> look at a _PRT, which is too much because it isn't really adding any
+> information.
+>
+> We also print "ACPI Exception: AE_NOT_FOUND, Evaluating _PRT
+> [AE_NOT_FOUND] (20121018/pci_irq-259)" if we find ACPI nodes without
+> _PRTs, which we shouldn't do, because that's a common and normal
+> situation.
 
-I applied this to my next branch for v3.9:
+Sure. Can you have separated patch to do that ?
 
-commit ab1a2e038ff2336502e95ec6492c0364a9fc70d0
-Author: Jiang Liu <liuj97@gmail.com>
-Date:   Sat Jan 19 00:07:42 2013 +0800
+Or want me to resend the patch.
 
-    ACPI / PCI: Make pci_slot built-in only, not a module
+Thanks
 
-    As discussed in thread at https://patchwork.kernel.org/patch/1946851/,
-    there's no value in supporting CONFIG_ACPI_PCI_SLOT=m any more.
-    So change Kconfig and code to only support building pci_slot as
-    built-in driver.
-
-Thanks!
-
-Bjorn
+Yinghai
