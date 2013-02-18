@@ -1,58 +1,38 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: [PATCH] ACPI / scan: Make it clear that acpi_bus_trim() cannot fail
-Date: Mon, 18 Feb 2013 14:17:02 +0100
-Message-ID: <15493777.FVIQvWOuf9@vostro.rjw.lan>
-References: <1511096.zmfmBrfdmu@vostro.rjw.lan> <20130218122549.GA4448@dhcp-192-168-178-175.profitbricks.localdomain>
+From: Jiri Kosina <jkosina@suse.cz>
+Subject: Re: [PATCH v2] APM idle: register apm_cpu_idle via cpuidle
+Date: Mon, 18 Feb 2013 14:30:34 +0100 (CET)
+Message-ID: <alpine.LNX.2.00.1302181429570.17024@pobox.suse.cz>
+References: <5118B776.6090604@linaro.org> <1360623789-12247-1-git-send-email-lenb@kernel.org> <17242de27db147c4f828d6089016e1f485c038fb.1360623445.git.len.brown@intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7Bit
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from hydra.sisk.pl ([212.160.235.94]:39395 "EHLO hydra.sisk.pl"
+Received: from cantor2.suse.de ([195.135.220.15]:57817 "EHLO mx2.suse.de"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751706Ab3BRNK2 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 18 Feb 2013 08:10:28 -0500
-In-Reply-To: <20130218122549.GA4448@dhcp-192-168-178-175.profitbricks.localdomain>
+	id S1751073Ab3BRNam (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 18 Feb 2013 08:30:42 -0500
+In-Reply-To: <17242de27db147c4f828d6089016e1f485c038fb.1360623445.git.len.brown@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Vasilis Liaskovitis <vasilis.liaskovitis@profitbricks.com>
-Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>, Bjorn Helgaas <bhelgaas@google.com>, Yinghai Lu <yinghai@kernel.org>, Toshi Kani <toshi.kani@hp.com>, Jiang Liu <liuj97@gmail.com>, wency@cn.fujitsu.com
+To: Len Brown <lenb@kernel.org>
+Cc: linux-acpi@vger.kernel.org, linux-pm@vger.kernel.org, linux-kernel@vger.kernel.org, Len Brown <len.brown@intel.com>
 
-On Monday, February 18, 2013 01:25:49 PM Vasilis Liaskovitis wrote:
-> Hi,
+On Mon, 11 Feb 2013, Len Brown wrote:
+
+> From: Len Brown <len.brown@intel.com>
 > 
-> On Thu, Jan 24, 2013 at 11:56:50PM +0100, Rafael J. Wysocki wrote:
-> > From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
-> > 
-> > Since acpi_bus_trim() cannot fail, change its definition to a void
-> > function, so that its callers don't check the return value in vain
-> > and update the callers.
+> Update APM to register its local idle routine with cpuidle.
 > 
-> I have missed a few patchsets/discussions in the last month and wanted to
-> ask a question related to this: Does the new always-succeed 2-pass
-> trim_device design guarantee safe memory hot-remove operations?
-
-I doesn't by itself.  Nor it really can, because the .remove() callbacks of
-device drivers are not allowed to fail.
-
-> Afaict if memory offline fails now, the device is ejected (_EJ0) anyways
-> causing a panic. Tested in a VM with linux-next-20130207 and
-> linux-next-20130218 by doing an SCI-eject request on a hot-plugged dimm.
+> This allows us to stop exporting pm_idle to modules on x86.
 > 
-> Are there more patches in development for safe memory hot-remove?
+> The Kconfig sub-option, APM_CPU_IDLE, now depends on on CPU_IDLE.
+> 
+> Compile-tested only.
 
-Yes, there are.  I sent a patch series yesterday introducing some safety
-measures (you can disable memory hotplug from user space or disable
-automatic ejection).  There's more to come still.
+I will test it on APM hardware and report back to you.
 
-The plan is to introduce offline/online operations for memory modules (in
-analogy with CPU core online/offline) that can be started by user space and
-memory eject will only be possible after offline (i.e. when the memory module
-is known to be not in use).
-
-Thanks,
-Rafael
-
+Do you then want me to take it through my tree, or are you going to push 
+the whole patchset as a whole?
 
 -- 
-I speak only for myself.
-Rafael J. Wysocki, Intel Open Source Technology Center.
+Jiri Kosina
+SUSE Labs
