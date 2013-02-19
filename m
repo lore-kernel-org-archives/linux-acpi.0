@@ -1,222 +1,104 @@
-From: Vasilis Liaskovitis <vasilis.liaskovitis@profitbricks.com>
-Subject: Re: [PATCH 7/7] ACPI / scan: Make memory hotplug driver use struct
- acpi_scan_handler
-Date: Tue, 19 Feb 2013 19:11:57 +0100
-Message-ID: <20130219181157.GA4366@dhcp-192-168-178-175.profitbricks.localdomain>
-References: <3260206.bhaAobGhpZ@vostro.rjw.lan>
- <2200731.3okUfey51A@vostro.rjw.lan>
+From: Bjorn Helgaas <bhelgaas@google.com>
+Subject: Re: [PATCH] ACPI, PCI: Get PRT entry during acpi_pci_enable_irq()
+Date: Tue, 19 Feb 2013 11:51:17 -0700
+Message-ID: <CAErSpo7aM7O16-i7ksa639NvSQZZoeL3F=W7qZAjmMKL___hHA@mail.gmail.com>
+References: <CAE9FiQUkmnV_On5+ZpH2pF4Li1HxLpkO8bp4TnYB46=pc9Safg@mail.gmail.com>
+ <1360696283-20313-1-git-send-email-yinghai@kernel.org> <5988763.6WpnEvTV2f@vostro.rjw.lan>
+ <CAE9FiQX=yLyBV3AbP43N91Tx5-ic-f5f+=_r_RBLxq1Ct32Z_Q@mail.gmail.com>
+ <CAErSpo6x2WXdbO-_qeheQKwqqJ9zze8Z9pnj-wtU0yTJEh-NJg@mail.gmail.com>
+ <CAE9FiQXan3J7-m2Wgd0pVybed_BgRAiqMGofh7t+vX_6e8zh7g@mail.gmail.com> <CAE9FiQWwKkGTyf-5r2T7PkFSNoqS_7-BKphCXsFSFEFrDPQAZg@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-bk0-f46.google.com ([209.85.214.46]:34356 "EHLO
-	mail-bk0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758877Ab3BSSMD (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 19 Feb 2013 13:12:03 -0500
-Received: by mail-bk0-f46.google.com with SMTP id j5so3251261bkw.19
-        for <linux-acpi@vger.kernel.org>; Tue, 19 Feb 2013 10:12:01 -0800 (PST)
-Content-Disposition: inline
-In-Reply-To: <2200731.3okUfey51A@vostro.rjw.lan>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <CAE9FiQWwKkGTyf-5r2T7PkFSNoqS_7-BKphCXsFSFEFrDPQAZg@mail.gmail.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Yinghai Lu <yinghai@kernel.org>
+Cc: "Rafael J. Wysocki" <rjw@sisk.pl>, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Bjorn Helgaas <bhelgaas@google.com>, LKML <linux-kernel@vger.kernel.org>, Yinghai Lu <yinghai@kernel.org>, Toshi Kani <toshi.kani@hp.com>, Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>, Jiang Liu <liuj97@gmail.com>
 
-Hi,
+On Fri, Feb 15, 2013 at 6:37 PM, Yinghai Lu <yinghai@kernel.org> wrote:
+> On Fri, Feb 15, 2013 at 5:26 PM, Yinghai Lu <yinghai@kernel.org> wrote:
+>> On Fri, Feb 15, 2013 at 4:39 PM, Bjorn Helgaas <bhelgaas@google.com> wrote:
+>>> On Thu, Feb 14, 2013 at 5:50 PM, Yinghai Lu <yinghai@kernel.org> wrote:
+>>>> On Tue, Feb 12, 2013 at 12:22 PM, Rafael J. Wysocki <rjw@sisk.pl> wrote:
+>>>>> On Tuesday, February 12, 2013 11:11:23 AM Yinghai Lu wrote:
+>>>>>> Peter Hurley found "irq 18 nobody cared" with pci-next, and dmesg has
+>>>>>>
+>>>>>> [    8.983246] pci 0000:00:1e.0: can't derive routing for PCI INT A
+>>>>>> [    8.983600] snd_ctxfi 0000:09:02.0: PCI INT A: no GSI - using ISA IRQ 5
+>>>>>>
+>>>>>> bisect to
+>>>>>> | commit 4f535093cf8f6da8cfda7c36c2c1ecd2e9586ee4
+>>>>>> |     PCI: Put pci_dev in device tree as early as possible
+>>>>>>
+>>>>>> It turns out we need to call acpi_pci_irq_add_prt() after the pci bridges
+>>>>>> are scanned.
+>>>>>>
+>>>>>> Bjorn said:
+>>>>>>  The bus number binding means acpi_pci_irq_add_prt() has to happen
+>>>>>>  after enumerating everything below a bridge, and it will prevent us
+>>>>>>  from doing any bus number reassignment for hotplug.
+>>>>>>
+>>>>>>  I think we should remove the bus numbers from the cached _PRT (or
+>>>>>>  maybe even remove the _PRT caching completely).  When we enable a PCI
+>>>>>>  device's IRQ, we should search up the PCI device tree looking for a
+>>>>>>  _PRT associated with each node, and applying normal PCI bridge
+>>>>>>  swizzling when we don't find a _PRT.  I think this can be done without
+>>>>>>  using PCI bus numbers at all.
+>>>>>>
+>>>>>> So here we try to remove _PRT caching completely.
+>>>>>>
+>>>>>> -v2: check !handle early.
+>>>>>>
+>>>>>> Reported-and-tested-by: Peter Hurley <peter@hurleysoftware.com>
+>>>>>> Suggested-by: Bjorn Helgaas <bhelgaas@google.com>
+>>>>>> Signed-off-by: Yinghai Lu <yinghai@kernel.org>
+>>>>>
+>>>>> Acked-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+>>>>>
+>>>>>> ---
+>>>>>>  drivers/acpi/pci_irq.c      |   95 +++++++++++++++++---------------------------
+>>>>>>  drivers/acpi/pci_root.c     |   18 --------
+>>>>>>  drivers/pci/pci-acpi.c      |   24 -----------
+>>>>>>  include/acpi/acpi_drivers.h |    5 --
+>>>>>>  4 files changed, 38 insertions(+), 104 deletions(-)
+>>>>
+>>>> Bjorn,
+>>>>
+>>>> Can you put this one into pci/next?
+>>>
+>>> I'm not sure what this patch is based on or what the best way to merge
+>>> it is.  It doesn't apply cleanly to my next or
+>>> pci/yinghai-root-bus-hotplug branches.
+>>
+>> My fault, that is based on pci/next + pm/linux-next
+>>
+>> linux-next removed
+>> acpi_power_resource_(un)register_device ...
+>>
+>>>
+>>> I did apply it manually on top of pci/yinghai-root-bus-hotplug to try
+>>> it out, but we need to tweak the messages a little bit.
+>>>
+>>> Previously we printed "ACPI: PCI Interrupt Routing Table [%s._PRT]"
+>>> once when loading it, which was fine.  Now we print it every time we
+>>> look at a _PRT, which is too much because it isn't really adding any
+>>> information.
+>>>
+>>> We also print "ACPI Exception: AE_NOT_FOUND, Evaluating _PRT
+>>> [AE_NOT_FOUND] (20121018/pci_irq-259)" if we find ACPI nodes without
+>>> _PRTs, which we shouldn't do, because that's a common and normal
+>>> situation.
+>>
+>> Sure. Can you have separated patch to do that ?
+>>
+>> Or want me to resend the patch.
+>
+> Please check attached updated version that remove print out ...
+>
+> and it could be applied cleanly on top of pci/yinghai-root-bus-hotplug
 
-On Sun, Feb 17, 2013 at 04:27:18PM +0100, Rafael J. Wysocki wrote:
-> From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
-> 
-> Make the ACPI memory hotplug driver use struct acpi_scan_handler
-> for representing the object used to set up ACPI memory hotplug
-> functionality and to remove hotplug memory ranges and data
-> structures used by the driver before unregistering ACPI device
-> nodes representing memory.  Register the new struct acpi_scan_handler
-> object with the help of acpi_scan_add_handler_with_hotplug() to allow
-> user space to manipulate the attributes of the memory hotplug
-> profile.
+Thanks, I applied this to pci/yinghai-root-bus-hotplug and merged it
+into my next branch.
 
-Let's consider an example where we want acpi memory device ejection to be safely
-handled by userspace. We do the following:
-
-echo 0 > /sys/firmware/acpi/hotplug/memory/autoeject
-echo 1 > /sys/firmware/acpi/hotplug/memory/uevents
-
-We succesfully hotplug acpi device:
-/sys/devices/LNXSYSTM:00/LNXSYSBUS:00/PNP0C80:00
-and its corresponding memblocks /sys/devices/system/memory/memoryXX are
-also successfully onlined.
-
-On an eject request, since uevents == 1, the kernel will emit KOBJ_OFFLINE for:
-/sys/devices/LNXSYSTM:00/LNXSYSBUS:00/PNP0C80:00
-
-Can userspace know which memblocks in /sys/devices/system/memory/memoryXX/
-correspond to the acpi device /sys/devices/LNXSYSTM:00/LNXSYSBUS:00/PNP0C80:00 ?
-This will be needed so that userspace tries to offline the memblocks (and only
-if successful, issue the eject operation on the acpi device). As far as I see,
-we don't create any sysfs links or files for this scenario - can userspace get
-this info somehow?
-
-/sys/devices/system/memory/memoryXX/phys_device needs to be properly implemented
-for this to work I think, see Documentation/ABI/testing/sysfs-memory
-
-The following test patch works toward that direction. Let me know if it's of
-interest or if there are better ideas /comments.
-
-From: Vasilis Liaskovitis <vasilis.liaskovitis@profitbricks.com>
-Date: Tue, 19 Feb 2013 18:36:25 +0100
-Subject: [RFC PATCH] acpi / memory-hotplug: implement phys_device
-
-In order for userspace to know which memblocks in:
-/sys/devices/system/memory/memoryXX correspond to which acpi memory devices in:
-/sys/devices/LNXSYSTM:00/LNXSYSBUS:00/PNP0C80:YY,
-/sys/devices/system/memory/memoryXX/phys_device should return a name (or index
-YY) of the memory device each memblock XX belongs to.
-
-WIth this patch, the acpi mem_hotplug driver keeps a global list of acpi memory
-devices (inserted in hotplug_order). The base memory driver checks against this
-list in arch_get_memory_phys_device to determine the zero-based index of the
-physical memory device each new memblock belongs to.
-
-For initial memory or for non-acpi/hotplug enabled systems, phys_device is
-always -1.
-
-Signed-off-by: Vasilis Liaskovitis <vasilis.liaskovitis@profitbricks.com>
----
- Documentation/ABI/testing/sysfs-devices-memory |    8 ++++++-
- drivers/acpi/acpi_memhotplug.c                 |   27 ++++++++++++++++++++++++
- drivers/base/memory.c                          |    7 +++++-
- include/linux/acpi.h                           |    2 +
- 4 files changed, 42 insertions(+), 2 deletions(-)
-
-diff --git a/Documentation/ABI/testing/sysfs-devices-memory b/Documentation/ABI/testing/sysfs-devices-memory
-index 7405de2..290c62a 100644
---- a/Documentation/ABI/testing/sysfs-devices-memory
-+++ b/Documentation/ABI/testing/sysfs-devices-memory
-@@ -27,7 +27,13 @@ Contact:	Badari Pulavarty <pbadari@us.ibm.com>
- Description:
- 		The file /sys/devices/system/memory/memoryX/phys_device
- 		is read-only and is designed to show the name of physical
--		memory device.  Implementation is currently incomplete.
-+		memory device.  Implementation is currently incomplete. In a
-+		system with CONFIG_ACPI_HOTPLUG_MEMORY=n, phys_device is always
-+	     	-1. In a system with CONFIG_ACPI_HOTPLUG_MEMORY=y, phys_device
-+		is -1 for all initial / non-hot-removable memory. For
-+	       	memory that has been hot-plugged, phys_device will return the
-+	       	zero-based index of the physical device that this memory block
-+	       	belongs to. Indices are determined by hotplug order.
- 
- What:		/sys/devices/system/memory/memoryX/phys_index
- Date:		September 2008
-diff --git a/drivers/acpi/acpi_memhotplug.c b/drivers/acpi/acpi_memhotplug.c
-index 3be9501..4154dc5 100644
---- a/drivers/acpi/acpi_memhotplug.c
-+++ b/drivers/acpi/acpi_memhotplug.c
-@@ -48,6 +48,7 @@ ACPI_MODULE_NAME("acpi_memhotplug");
- #define MEMORY_POWER_ON_STATE	1
- #define MEMORY_POWER_OFF_STATE	2
- 
-+static LIST_HEAD(acpi_mem_device_list);
- static int acpi_memory_device_add(struct acpi_device *device,
- 				  const struct acpi_device_id *not_used);
- static void acpi_memory_device_remove(struct acpi_device *device);
-@@ -81,6 +82,7 @@ struct acpi_memory_device {
- 	struct acpi_device * device;
- 	unsigned int state;	/* State of the memory device */
- 	struct list_head res_list;
-+	struct list_head mem_device_list;
- };
- 
- static acpi_status
-@@ -287,6 +289,7 @@ static int acpi_memory_device_add(struct acpi_device *device,
- 		return -ENOMEM;
- 
- 	INIT_LIST_HEAD(&mem_device->res_list);
-+	INIT_LIST_HEAD(&mem_device->mem_device_list);
- 	mem_device->device = device;
- 	sprintf(acpi_device_name(device), "%s", ACPI_MEMORY_DEVICE_NAME);
- 	sprintf(acpi_device_class(device), "%s", ACPI_MEMORY_DEVICE_CLASS);
-@@ -308,9 +311,11 @@ static int acpi_memory_device_add(struct acpi_device *device,
- 		return 0;
- 	}
- 
-+	list_add_tail(&mem_device->mem_device_list, &acpi_mem_device_list);
- 	result = acpi_memory_enable_device(mem_device);
- 	if (result) {
- 		dev_err(&device->dev, "acpi_memory_enable_device() error\n");
-+		list_del(&mem_device->mem_device_list);
- 		acpi_memory_device_free(mem_device);
- 		return -ENODEV;
- 	}
-@@ -328,9 +333,31 @@ static void acpi_memory_device_remove(struct acpi_device *device)
- 
- 	mem_device = acpi_driver_data(device);
- 	acpi_memory_remove_memory(mem_device);
-+	list_del(&mem_device->mem_device_list);
- 	acpi_memory_device_free(mem_device);
- }
- 
-+int acpi_memory_phys_device(unsigned long start_pfn)
-+{
-+	struct acpi_memory_device *mem_dev;
-+	struct acpi_memory_info *info;
-+	unsigned long start_addr = start_pfn << PAGE_SHIFT;
-+	int id = 0;
-+
-+	list_for_each_entry(mem_dev, &acpi_mem_device_list, mem_device_list) {
-+		list_for_each_entry(info, &mem_dev->res_list, list) {
-+			if ((info->start_addr <= start_addr) &&
-+				(info->start_addr + info->length > start_addr))
-+				return id;
-+		}
-+		id++;
-+	}
-+
-+	/* Memory not associated with a hot-pluggable device gets -1. For
-+	 * example, initial memory. */
-+	return -1;
-+}
-+
- void __init acpi_memory_hotplug_init(void)
- {
- 	acpi_scan_add_handler_with_hotplug(&memory_device_handler, "memory");
-diff --git a/drivers/base/memory.c b/drivers/base/memory.c
-index 8300a18..2cc98df 100644
---- a/drivers/base/memory.c
-+++ b/drivers/base/memory.c
-@@ -22,6 +22,7 @@
- #include <linux/mutex.h>
- #include <linux/stat.h>
- #include <linux/slab.h>
-+#include <linux/acpi.h>
- 
- #include <linux/atomic.h>
- #include <asm/uaccess.h>
-@@ -522,7 +523,11 @@ static inline int memory_fail_init(void)
-  */
- int __weak arch_get_memory_phys_device(unsigned long start_pfn)
- {
--	return 0;
-+#ifdef CONFIG_ACPI_HOTPLUG_MEMORY
-+	return acpi_memory_phys_device(start_pfn);
-+#else
-+	return -1;
-+#endif
- }
- 
- /*
-diff --git a/include/linux/acpi.h b/include/linux/acpi.h
-index f46cfd7..00302fc 100644
---- a/include/linux/acpi.h
-+++ b/include/linux/acpi.h
-@@ -562,6 +562,8 @@ static inline __printf(3, 4) void
- acpi_handle_printk(const char *level, void *handle, const char *fmt, ...) {}
- #endif	/* !CONFIG_ACPI */
- 
-+int acpi_memory_phys_device(unsigned long start_pfn);
-+
- /*
-  * acpi_handle_<level>: Print message with ACPI prefix and object path
-  *
--- 
-1.7.9
-
+Bjorn
