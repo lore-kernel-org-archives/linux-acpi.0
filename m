@@ -1,507 +1,828 @@
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-Subject: Re: [PATCH EDAC 07/13] edac: add support for raw error reports
-Date: Tue, 19 Feb 2013 08:56:28 -0300
-Message-ID: <20130219085628.6ebc5e99@redhat.com>
-References: <cover.1360931635.git.mchehab@redhat.com>
-	<e08f797b129a50b4e1b39e8c31bff82904aea65d.1360931635.git.mchehab@redhat.com>
-	<20130215141330.GF14387@pd.tnic>
-	<20130215132530.4f3b7dab@redhat.com>
-	<20130215154123.GH14387@pd.tnic>
-	<20130215134929.3909cfa2@redhat.com>
-	<20130215160257.GK14387@pd.tnic>
-	<20130215162029.3bcbf50a@redhat.com>
-	<20130216165748.GC27207@pd.tnic>
-	<20130217074404.05786692@redhat.com>
-	<20130218135251.GC16622@pd.tnic>
-	<20130218122429.239584aa@redhat.com>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: [GIT PULL] ACPI and power management updates for v3.9-rc1
+Date: Tue, 19 Feb 2013 13:37:02 +0100
+Message-ID: <1988009.O14bo30Y30@vostro.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7Bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:39577 "EHLO mx1.redhat.com"
+Received: from hydra.sisk.pl ([212.160.235.94]:39782 "EHLO hydra.sisk.pl"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932473Ab3BSMB5 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 19 Feb 2013 07:01:57 -0500
-In-Reply-To: <20130218122429.239584aa@redhat.com>
+	id S1754510Ab3BSMa2 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 19 Feb 2013 07:30:28 -0500
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: Borislav Petkov <bp@alien8.de>, linux-acpi@vger.kernel.org, Huang Ying <ying.huang@intel.com>, Tony Luck <tony.luck@intel.com>, Linux Edac Mailing List <linux-edac@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
+To: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>, Linux PM list <linux-pm@vger.kernel.org>, Len Brown <lenb@kernel.org>
 
-Em Mon, 18 Feb 2013 12:24:29 -0300
-Mauro Carvalho Chehab <mchehab@redhat.com> escreveu:
+Hi Linus,
 
-> Em Mon, 18 Feb 2013 14:52:51 +0100
-> Borislav Petkov <bp@alien8.de> escreveu:
-> 
-> > On Sun, Feb 17, 2013 at 07:44:04AM -0300, Mauro Carvalho Chehab wrote:
-> > > We could do it for the location. The space for label, however, depends on
-> > > how many DIMMs are in the system, as multiple dimm's may be present, and
-> > > the core will point to all possible affected DIMMs.
-> > > 
-> > > Ok, perhaps we could just allocate one big area for it (like one page), 
-> > > as this would very likely be enough for it, and change the logic to take
-> > > the buffer size into account when filling it.
-> > 
-> > Or, in the case where ->label is all dimms on the mci, you simply put
-> > "All DIMMs on MCI%d" in there and done. Simple.
-> 
-> The core does this already when it has no glue at all about where is the
-> error.
-> 
-> The core is prepared to the case where the location is only half-filled,
-> as this is a common scenario on the drivers, and important enough on
-> some memory controllers.
-> 
-> As already discussed, on most memory controllers nowadays, the memory
-> controller can't point to a single DIMM, as the error correction code
-> takes 128 bits (2 DIMMs). It is impossible for the error correction
-> code to determine on what DIMM an uncorrected error happened[1].
-> 
-> With Nehalem memory controllers, depending on the memory configuration,
-> the minimal DIMM granularity for an uncorrected error can be even worse: 
-> 4 DIMMs, if 128-bits error correction code and mirror mode are both enabled.
-> 
-> There are some border cases where the driver can simply not discover on
-> what channel or on what dimm(or csrow) inside a channel the error
-> happened. The error could be associated with some failure at the logic
-> or at the bus that communicated with the Advanced Memory Buffers on an
-> FB-DIMM memory controller, for example.
-> 
-> So, the real core's worse case scenario would be if the driver can't
-> determine on what DIMM inside a channel the error happened. As a channel
-> can have a large number of DIMMs[2] the allocated area for the label
-> should be conservative.
-> 
-> 
->  (16? Not sure what's the worse case),
-> 
-> [1] such error can even not be fatal, if that particular address is
-> unused.
-> 
-> [2] Currently, up to 8, according with:
-> 	$for i in $(git grep "layers.*size\s*=" drivers/edac|perl -ne 'print "$1 " if (m/\=\s*([A-Z][^\s]+);/);'); do echo $i; git grep $i drivers/edac; done|grep define|perl -ne 'print "$1 " if (m/define\s+[^\s]+\s(\d+)/)'
-> 	8 8 2 2 4 2 3 3 3 8 4 4 3 3 1 1 4 
-> 
-> and
-> 	$ git grep "layers.*size\s*=" drivers/edac|perl -ne 'print "$1 " if (m/\=\s*(\d+);/);'
-> 	1 1 1 1 2 2 8 4 1 1 1 1 
-> 
-> Nothing prevents that a driver would have more than 8 DIMMs per layer
-> in the future.
+Please pull from the git repository at
 
-I suspect that you'll be happy with the enclosed patch ;)
+  git://git.kernel.org/pub/scm/linux/kernel/git/rafael/linux-pm.git pm+acpi-3.9-rc1
 
-It embeds the two string buffers at the mci structure. There are space there
-for up to EDAC_MAX_LABELS at the "mci->label" string. If an error affects
-more than EDAC_MAX_LABELS, the report logic will write "any memory", just like
-what happens when the driver can't discover where the error is.
+to receive ACPI and power management updates for v3.9 with top-most commit
+10baf04e95fbf7eb6089410220a547211dd2ffa7
 
-Tested with sb_edac driver.
+  Merge branch 'release' of git://git.kernel.org/pub/scm/linux/kernel/git/lenb/linux
 
-Regards,
-Mauro
+on top of commit 836dc9e3fbbab0c30aa6e664417225f5c1fb1c39
 
-[PATCH EDAC] edac: put all arguments for the raw error handling call into a struct
+  Linux 3.8-rc7
 
-The number of arguments for edac_raw_mc_handle_error() is too big;
-put them into a structure and allocate space for it inside
-edac_mc_alloc().
+Highlights:
 
-That reduces a lot the stack usage and simplifies the raw API call.
+- Rework of the ACPI namespace scanning code.  Reduces code size and
+  complexity, removes some really ugly stuff.  Requisite for PCI host
+  bridge hotplug support queued up in the PCI tree.  From yours truly
+  with bits from Bjorn Helgaas, Jiang Liu, Mika Westerberg,
+  Toshi Kani, and Yinghai Lu.
 
-Tested with sb_edac driver and MCE error injection. Worked as expected:
+- ACPI power resources handling and ACPI device PM update.  Adds
+  missing support for power resource priorities and system levels,
+  changes device PM to follow the spec more closely, fixes bugs
+  and exposes ACPI power resources information to user space for
+  powertop etc.
 
-[  143.066100] EDAC MC0: 1 CE memory read error on CPU_SrcID#0_Channel#0_DIMM#0 (channel:0 slot:0 page:0x320 offset:0x0 grain:32 syndrome:0x0 -  area:DRAM err_code:0001:0090 socket:0 channel_mask:1 rank:0)
-[  143.086424] EDAC MC0: 1 CE memory read error on CPU_SrcID#0_Channel#0_DIMM#0 (channel:0 slot:0 page:0x320 offset:0x0 grain:32 syndrome:0x0 -  area:DRAM err_code:0001:0090 socket:0 channel_mask:1 rank:0)
-[  143.106570] EDAC MC0: 1 CE memory read error on CPU_SrcID#0_Channel#0_DIMM#0 (channel:0 slot:0 page:0x320 offset:0x0 grain:32 syndrome:0x0 -  area:DRAM err_code:0001:0090 socket:0 channel_mask:1 rank:0)
-[  143.126712] EDAC MC0: 1 CE memory read error on CPU_SrcID#0_Channel#0_DIMM#0 (channel:0 slot:0 page:0x320 offset:0x0 grain:32 syndrome:0x0 -  area:DRAM err_code:0001:0090 socket:0 channel_mask:1 rank:0)
+- ACPICA update to version 20130117.  Bug fixes, more new ACPI 5
+  features, code cleanups, new interface for walking device resource
+  lists, reduction of divergences between the kernel code and ACPICA
+  upstream.  From Bob Moore and Lv Zheng with smaller bits from
+  Aaron Lu, Chao Guan, Jesper Juhl, and Tim Gardner.
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+- Support for Intel Lynxpoint LPSS from Mika Westerberg.
 
-diff --git a/drivers/edac/edac_core.h b/drivers/edac/edac_core.h
-index 9c5da11..3c2625e 100644
---- a/drivers/edac/edac_core.h
-+++ b/drivers/edac/edac_core.h
-@@ -455,20 +455,8 @@ extern int edac_mc_find_csrow_by_page(struct mem_ctl_info *mci,
- 				      unsigned long page);
- 
- void edac_raw_mc_handle_error(const enum hw_event_mc_err_type type,
--			  struct mem_ctl_info *mci,
--			  long grain,
--			  const u16 error_count,
--			  const int top_layer,
--			  const int mid_layer,
--			  const int low_layer,
--			  const unsigned long page_frame_number,
--			  const unsigned long offset_in_page,
--			  const unsigned long syndrome,
--			  const char *msg,
--			  const char *location,
--			  const char *label,
--			  const char *other_detail,
--			  const bool enable_per_layer_report);
-+			      struct mem_ctl_info *mci,
-+			      struct edac_raw_error_desc *e);
- 
- void edac_mc_handle_error(const enum hw_event_mc_err_type type,
- 			  struct mem_ctl_info *mci,
-diff --git a/drivers/edac/edac_mc.c b/drivers/edac/edac_mc.c
-index 8fddf65..ab1ef5c 100644
---- a/drivers/edac/edac_mc.c
-+++ b/drivers/edac/edac_mc.c
-@@ -1066,78 +1067,49 @@ static void edac_ue_error(struct mem_ctl_info *mci,
- 	edac_inc_ue_error(mci, enable_per_layer_report, pos, error_count);
- }
- 
--#define OTHER_LABEL " or "
--
- /**
-  * edac_raw_mc_handle_error - reports a memory event to userspace without doing
-  *			      anything to discover the error location
-  *
-  * @type:		severity of the error (CE/UE/Fatal)
-  * @mci:		a struct mem_ctl_info pointer
-- * @grain:		error granularity
-- * @error_count:	Number of errors of the same type
-- * @top_layer:		Memory layer[0] position
-- * @mid_layer:		Memory layer[1] position
-- * @low_layer:		Memory layer[2] position
-- * @page_frame_number:	mem page where the error occurred
-- * @offset_in_page:	offset of the error inside the page
-- * @syndrome:		ECC syndrome
-- * @msg:		Message meaningful to the end users that
-- *			explains the event\
-- * @location:		location of the error, like "csrow:0 channel:1"
-- * @label:		DIMM labels for the affected memory(ies)
-- * @other_detail:	Technical details about the event that
-- *			may help hardware manufacturers and
-- *			EDAC developers to analyse the event
-- * @enable_per_layer_report: should it increment per-layer error counts?
-+ * @e:			error description
-  *
-  * This raw function is used internally by edac_mc_handle_error(). It should
-  * only be called directly when the hardware error come directly from BIOS,
-  * like in the case of APEI GHES driver.
-  */
- void edac_raw_mc_handle_error(const enum hw_event_mc_err_type type,
--			  struct mem_ctl_info *mci,
--			  long grain,
--			  const u16 error_count,
--			  const int top_layer,
--			  const int mid_layer,
--			  const int low_layer,
--			  const unsigned long page_frame_number,
--			  const unsigned long offset_in_page,
--			  const unsigned long syndrome,
--			  const char *msg,
--			  const char *location,
--			  const char *label,
--			  const char *other_detail,
--			  const bool enable_per_layer_report)
-+			      struct mem_ctl_info *mci,
-+			      struct edac_raw_error_desc *e)
- {
- 	char detail[80];
- 	u8 grain_bits;
--	int pos[EDAC_MAX_LAYERS] = { top_layer, mid_layer, low_layer };
-+	int pos[EDAC_MAX_LAYERS] = { e->top_layer, e->mid_layer, e->low_layer };
- 
- 	/* Report the error via the trace interface */
--	grain_bits = fls_long(grain) + 1;
--	trace_mc_event(type, msg, label, error_count,
--		       mci->mc_idx, top_layer, mid_layer, low_layer,
--		       PAGES_TO_MiB(page_frame_number) | offset_in_page,
--		       grain_bits, syndrome, other_detail);
-+	grain_bits = fls_long(e->grain) + 1;
-+	trace_mc_event(type, e->msg, e->label, e->error_count,
-+		       mci->mc_idx, e->top_layer, e->mid_layer, e->low_layer,
-+		       PAGES_TO_MiB(e->page_frame_number) | e->offset_in_page,
-+		       grain_bits, e->syndrome, e->other_detail);
- 
- 	/* Memory type dependent details about the error */
- 	if (type == HW_EVENT_ERR_CORRECTED) {
- 		snprintf(detail, sizeof(detail),
- 			"page:0x%lx offset:0x%lx grain:%ld syndrome:0x%lx",
--			page_frame_number, offset_in_page,
--			grain, syndrome);
--		edac_ce_error(mci, error_count, pos, msg, location, label,
--			      detail, other_detail, enable_per_layer_report,
--			      page_frame_number, offset_in_page, grain);
-+			e->page_frame_number, e->offset_in_page,
-+			e->grain, e->syndrome);
-+		edac_ce_error(mci, e->error_count, pos, e->msg, e->location, e->label,
-+			      detail, e->other_detail, e->enable_per_layer_report,
-+			      e->page_frame_number, e->offset_in_page, e->grain);
- 	} else {
- 		snprintf(detail, sizeof(detail),
- 			"page:0x%lx offset:0x%lx grain:%ld",
--			page_frame_number, offset_in_page, grain);
-+			e->page_frame_number, e->offset_in_page, e->grain);
- 
--		edac_ue_error(mci, error_count, pos, msg, location, label,
--			      detail, other_detail, enable_per_layer_report);
-+		edac_ue_error(mci, e->error_count, pos, e->msg, e->location, e->label,
-+			      detail, e->other_detail, e->enable_per_layer_report);
- 	}
- 
- 
-@@ -1174,18 +1146,26 @@ void edac_mc_handle_error(const enum hw_event_mc_err_type type,
- 			  const char *msg,
- 			  const char *other_detail)
- {
--	/* FIXME: too much for stack: move it to some pre-alocated area */
--	char location[80];
--	char label[(EDAC_MC_LABEL_LEN + 1 + sizeof(OTHER_LABEL)) * mci->tot_dimms];
- 	char *p;
- 	int row = -1, chan = -1;
- 	int pos[EDAC_MAX_LAYERS] = { top_layer, mid_layer, low_layer };
--	int i;
--	long grain;
--	bool enable_per_layer_report = false;
-+	int i, n_labels = 0;
-+	struct edac_raw_error_desc *e = &mci->error_desc;
- 
- 	edac_dbg(3, "MC%d\n", mci->mc_idx);
- 
-+	/* Fills the error report buffer */
-+	memset(e, 0, sizeof (*e));
-+	e->error_count = error_count;
-+	e->top_layer = top_layer;
-+	e->mid_layer = mid_layer;
-+	e->low_layer = low_layer;
-+	e->page_frame_number = page_frame_number;
-+	e->offset_in_page = offset_in_page;
-+	e->syndrome = syndrome;
-+	e->msg = msg;
-+	e->other_detail = other_detail;
-+
- 	/*
- 	 * Check if the event report is consistent and if the memory
- 	 * location is known. If it is known, enable_per_layer_report will be
-@@ -1208,7 +1188,7 @@ void edac_mc_handle_error(const enum hw_event_mc_err_type type,
- 			pos[i] = -1;
- 		}
- 		if (pos[i] >= 0)
--			enable_per_layer_report = true;
-+			e->enable_per_layer_report = true;
- 	}
- 
- 	/*
-@@ -1222,8 +1202,7 @@ void edac_mc_handle_error(const enum hw_event_mc_err_type type,
- 	 * where each memory belongs to a separate channel within the same
- 	 * branch.
- 	 */
--	grain = 0;
--	p = label;
-+	p = e->label;
- 	*p = '\0';
- 
- 	for (i = 0; i < mci->tot_dimms; i++) {
-@@ -1237,8 +1216,8 @@ void edac_mc_handle_error(const enum hw_event_mc_err_type type,
- 			continue;
- 
- 		/* get the max grain, over the error match range */
--		if (dimm->grain > grain)
--			grain = dimm->grain;
-+		if (dimm->grain > e->grain)
-+			e->grain = dimm->grain;
- 
- 		/*
- 		 * If the error is memory-controller wide, there's no need to
-@@ -1246,8 +1225,13 @@ void edac_mc_handle_error(const enum hw_event_mc_err_type type,
- 		 * channel/memory controller/...  may be affected.
- 		 * Also, don't show errors for empty DIMM slots.
- 		 */
--		if (enable_per_layer_report && dimm->nr_pages) {
--			if (p != label) {
-+		if (e->enable_per_layer_report && dimm->nr_pages) {
-+			if (n_labels >= EDAC_MAX_LABELS) {
-+				e->enable_per_layer_report = false;
-+				break;
-+			}
-+			n_labels++;
-+			if (p != e->label) {
- 				strcpy(p, OTHER_LABEL);
- 				p += strlen(OTHER_LABEL);
- 			}
-@@ -1274,12 +1258,12 @@ void edac_mc_handle_error(const enum hw_event_mc_err_type type,
- 		}
- 	}
- 
--	if (!enable_per_layer_report) {
--		strcpy(label, "any memory");
-+	if (!e->enable_per_layer_report) {
-+		strcpy(e->label, "any memory");
- 	} else {
- 		edac_dbg(4, "csrow/channel to increment: (%d,%d)\n", row, chan);
--		if (p == label)
--			strcpy(label, "unknown memory");
-+		if (p == e->label)
-+			strcpy(e->label, "unknown memory");
- 		if (type == HW_EVENT_ERR_CORRECTED) {
- 			if (row >= 0) {
- 				mci->csrows[row]->ce_count += error_count;
-@@ -1292,7 +1276,7 @@ void edac_mc_handle_error(const enum hw_event_mc_err_type type,
- 	}
- 
- 	/* Fill the RAM location data */
--	p = location;
-+	p = e->location;
- 
- 	for (i = 0; i < mci->n_layers; i++) {
- 		if (pos[i] < 0)
-@@ -1302,14 +1286,9 @@ void edac_mc_handle_error(const enum hw_event_mc_err_type type,
- 			     edac_layer_name[mci->layers[i].type],
- 			     pos[i]);
- 	}
--	if (p > location)
-+	if (p > e->location)
- 		*(p - 1) = '\0';
- 
--	edac_raw_mc_handle_error(type, mci, grain, error_count,
--				 top_layer, mid_layer, low_layer,
--				 page_frame_number, offset_in_page,
--				 syndrome,
--				 msg, location, label, other_detail,
--				 enable_per_layer_report);
-+	edac_raw_mc_handle_error(type, mci, e);
- }
- EXPORT_SYMBOL_GPL(edac_mc_handle_error);
-diff --git a/drivers/edac/ghes_edac.c b/drivers/edac/ghes_edac.c
-index ef54829..9d7f797 100644
---- a/drivers/edac/ghes_edac.c
-+++ b/drivers/edac/ghes_edac.c
-@@ -175,15 +175,20 @@ static void ghes_edac_dmidecode(const struct dmi_header *dh, void *arg)
- void ghes_edac_report_mem_error(struct ghes *ghes, int sev,
- 			        struct cper_sec_mem_err *mem_err)
- {
-+	struct edac_raw_error_desc *e = &ghes->mci->error_desc;
- 	enum hw_event_mc_err_type type;
--	unsigned long page = 0, offset = 0, grain = 0;
--	char location[80];
--	char *label = "unknown";
-+
-+	/* Cleans the error report buffer */
-+	memset(e, 0, sizeof (*e));
-+	e->error_count = 1;
-+	e->msg = "APEI";
-+	strcpy(e->label, "unknown");
-+	e->other_detail = "";
- 
- 	if (mem_err->validation_bits & CPER_MEM_VALID_PHYSICAL_ADDRESS) {
--		page = mem_err->physical_addr >> PAGE_SHIFT;
--		offset = mem_err->physical_addr & ~PAGE_MASK;
--		grain = ~(mem_err->physical_addr_mask & ~PAGE_MASK);
-+		e->page_frame_number = mem_err->physical_addr >> PAGE_SHIFT;
-+		e->offset_in_page = mem_err->physical_addr & ~PAGE_MASK;
-+		e->grain = ~(mem_err->physical_addr_mask & ~PAGE_MASK);
- 	}
- 
- 	switch(sev) {
-@@ -201,15 +206,14 @@ void ghes_edac_report_mem_error(struct ghes *ghes, int sev,
- 		type = HW_EVENT_ERR_INFO;
- 	}
- 
--	sprintf(location,"node:%d card:%d module:%d bank:%d device:%d row: %d column:%d bit_pos:%d",
-+	sprintf(e->location,
-+		"node:%d card:%d module:%d bank:%d device:%d row: %d column:%d bit_pos:%d",
- 		mem_err->node, mem_err->card, mem_err->module,
- 		mem_err->bank, mem_err->device, mem_err->row, mem_err->column,
- 		mem_err->bit_pos);
--	edac_dbg(3, "error at location %s\n", location);
-+	edac_dbg(3, "error at location %s\n", e->location);
- 
--	edac_raw_mc_handle_error(type, ghes->mci, grain, 1, 0, 0, 0,
--				 page, offset, 0,
--				 "APEI", location, label, "", 0);
-+	edac_raw_mc_handle_error(type, ghes->mci, e);
- }
- EXPORT_SYMBOL_GPL(ghes_edac_report_mem_error);
- 
-diff --git a/include/linux/edac.h b/include/linux/edac.h
-index bd14f5c..1cd4472 100644
---- a/include/linux/edac.h
-+++ b/include/linux/edac.h
-@@ -47,8 +47,18 @@ static inline void opstate_init(void)
- 	return;
- }
- 
-+/* Max length of a DIMM label*/
- #define EDAC_MC_LABEL_LEN	31
- 
-+/* Maximum size of the location string */
-+#define LOCATION_SIZE 80
-+
-+/* Defines the maximum number of labels that can be reported */
-+#define EDAC_MAX_LABELS		8
-+
-+/* String used to join two or more labels */
-+#define OTHER_LABEL " or "
-+
- /**
-  * enum dev_type - describe the type of memory DRAM chips used at the stick
-  * @DEV_UNKNOWN:	Can't be determined, or MC doesn't support detect it
-@@ -554,6 +564,46 @@ struct errcount_attribute_data {
- 	int layer0, layer1, layer2;
- };
- 
-+/**
-+ * edac_raw_error_desc - Raw error report structure
-+ * @grain:			minimum granularity for an error report, in bytes
-+ * @error_count:		number of errors of the same type
-+ * @top_layer:			top layer of the error (layer[0])
-+ * @mid_layer:			middle layer of the error (layer[1])
-+ * @low_layer:			low layer of the error (layer[2])
-+ * @page_frame_number:		page where the error happened
-+ * @offset_in_page:		page offset
-+ * @syndrome:			syndrome of the error (or 0 if unknown or if
-+ * 				the syndrome is not applicable)
-+ * @msg:			error message
-+ * @location:			location of the error
-+ * @label:			label of the affected DIMM(s)
-+ * @other_detail:		other driver-specific detail about the error
-+ * @enable_per_layer_report:	if false, the error affects all layers
-+ *				(typically, a memory controller error)
-+ */
-+struct edac_raw_error_desc {
-+	/*
-+	 * NOTE: everything before grain won't be cleaned by
-+	 * edac_raw_error_desc_clean()
-+	 */
-+	char location[LOCATION_SIZE];
-+	char label[(EDAC_MC_LABEL_LEN + 1 + sizeof(OTHER_LABEL)) * EDAC_MAX_LABELS];
-+	long grain;
-+
-+	/* the vars below and grain will be cleaned on every new error report */
-+	u16 error_count;
-+	int top_layer;
-+	int mid_layer;
-+	int low_layer;
-+	unsigned long page_frame_number;
-+	unsigned long offset_in_page;
-+	unsigned long syndrome;
-+	const char *msg;
-+	const char *other_detail;
-+	bool enable_per_layer_report;
-+};
-+
- /* MEMORY controller information structure
-  */
- struct mem_ctl_info {
-@@ -661,6 +711,12 @@ struct mem_ctl_info {
- 	/* work struct for this MC */
- 	struct delayed_work work;
- 
-+	/*
-+	 * Used to report an error - by being at the global struct
-+	 * makes the memory allocated by the EDAC core
-+	 */
-+	struct edac_raw_error_desc error_desc;
-+
- 	/* the internal state of this controller instance */
- 	int op_state;
- 
+- cpuidle update adding support for Intel Haswell, causing the C1
+  state to be used (along with C1E) by intel_idle and removing the
+  global definition of pm_idle.  From Len Brown.
+
+- cpuidle fixes and cleanups from Daniel Lezcano.
+
+- cpufreq fixes and cleanups.  Reduction of code duplication, locking
+  fixes, simplifications all over the place.  From Viresh Kumar and
+  Fabio Baltieri with smaller bits from Stratos Karafotis and
+  Rickard Andersson.
+
+- Intel P-states driver for Sandy Bridge processors.  Departs from
+  the cpufreq's tradition of separating governors from the low-level
+  driver code and saves energy more efficiently as a result.  From
+  Dirk Brandewie.
+
+- cpufreq driver for Marvell Kirkwood SoCs from Andrew Lunn.
+
+- cpufreq fixes related to ordering issues between acpi-cpufreq and
+  powernow-k8 from Borislav Petkov and Matthew Garrett.
+
+- cpufreq support for Calxeda Highbank processors from Mark Langsdorf
+  and Rob Herring.
+
+- cpufreq driver for the Freescale i.MX6Q SoC and cpufreq-cpu0 update
+  from Shawn Guo.
+
+- cpufreq Exynos fixes and cleanups from Jonghwan Choi, Sachin Kamat,
+  and Inderpal Singh.
+
+- Support for "lightweight suspsend" that stops the suspend sequence
+  after suspending devices and waits for a wakup interrupt at that
+  point.  The changes were relatively small and the users of
+  autosleep may find this useful.  From Zhang Rui.
+
+- Removal of the deprecated power trace API from Paul Gortmaker.
+
+Thanks!
 
 
+---------------
 
+Aaron Lu (2):
+      ACPICA: Resource manager: Add support for ACPI 5 wake bit in IRQ descriptor.
+      ACPICA: Resources: Support for ACPI 5 wake bit in ExtendedInterrupt descriptor.
+
+Andreas Fleig (1):
+      ACPI / PM: Fix /proc/acpi/wakeup for devices w/o bus or parent
+
+Andrew Lunn (1):
+      cpufreq: kirkwood: Add a cpufreq driver for Marvell Kirkwood SoCs
+
+Bjorn Helgaas (1):
+      ACPI: Remove unused struct acpi_pci_root.id member
+
+Bob Moore (36):
+      ACPICA: Performance: Remove function tracing from critical allocation functions.
+      ACPICA: Debugger: Major update for the Disassemble<method> command.
+      ACPICA: Disassembler: Add new ACPI 5 interrupt sharing flags.
+      ACPICA: Add macros to extract flag bits from resource descriptors.
+      ACPICA: AcpiGetObjectInfo: optimize exit for mutex failure.
+      ACPICA: Update version to 20121114.
+      ACPICA: Resources: New interface, AcpiWalkResourceBuffer.
+      ACPICA: Change exception code for LoadTable operator.
+      ACPICA: Eliminate some small unnecessary pathname functions.
+      ACPICA: Add root node optimization to internal get namespace node function.
+      ACPICA: Lint changes, no functional change.
+      ACPICA: Add time macros for various timer/time manipulation.
+      ACPICA: Add header file support for the ACPI 5 TPM2 ACPI table.
+      ACPICA: DEBUG_PRINT macros: Update to improve performance.
+      ACPICA: FUNCTION_TRACE macros: Check if debug is enabled up-front.
+      ACPICA: Eliminate superfluous return_UINT8 and return_UINT32 macros.
+      ACPICA: Update ACPI_IS_DEBUG_ENABLED macro.
+      ACPICA: Deploy new ACPI_IS_DEBUG_ENABLED macro in debug output code.
+      ACPICA: Merge all debug output macros into a single file, acoutput.
+      ACPICA: iASL: Finish support for CSRT table.
+      ACPICA: iASL: Finish support for the TPM2 table.
+      ACPICA: Update for non-configured ACPI_IS_DEBUG_ENABLED macro.
+      ACPICA: Namespace: Eliminate dot...dot output during initialization.
+      ACPICA: Update ACPICA initialization messages.
+      ACPICA: Interpreter: Add warning if 64-bit constant appears in 32-bit table.
+      ACPICA: Resources: Split interrupt share/wake bits into two fields.
+      ACPICA: Interpreter: Fix Store() when implicit conversion is not possible.
+      ACPICA: Update version to 20121220.
+      ACPICA: Cleanup ACPI_DEBUG_PRINT macros to fix potential build breakages.
+      ACPICA: Source restructuring: split large files into 8 new files.
+      ACPICA: Update ACPICA copyrights to 2013
+      ACPICA: AcpiGetSleepTypeData: Allow \_Sx to return either 1 or 2 integers
+      ACPICA: iASL/Disassembler: Add option to ignore NOOP opcodes/operators
+      ACPICA: Remove some extraneous newlines in ACPI_ERROR type calls
+      ACPICA: Update predefined info table for _MLS method
+      ACPICA: Update version to 20130117
+
+Borislav Petkov (5):
+      cpufreq: Make acpi-cpufreq link first
+      cpufreq: Add a get_current_driver helper
+      powernow-k8: Cleanup module request
+      powernow-k8: Cleanup init function
+      cpufreq: Sort function prototypes properly
+
+Chao Guan (1):
+      ACPICA: Performance enhancement for ACPI package objects.
+
+Colin Ian King (3):
+      ACPI video: remove unnecessary newline from error messages
+      ACPI sysfs: remove unnecessary newline from exception
+      ACPI thermal: remove unnecessary newline from exception message
+
+Daniel Lezcano (8):
+      Replace the flag by a simple global boolean in the cpuidle.c.
+      davinci: cpuidle - move code to prevent forward declaration
+      davinci: cpuidle - remove the ops
+      davinci: cpuidle - remove useless initialization
+      ACPI / idle: remove unused definition
+      ACPI / idle : remove pointless headers
+      ACPI / idle: pass the cpuidle_device parameter
+      ACPI / idle: remove usage of the statedata
+
+Davidlohr Bueso (1):
+      ACPI: SRAT: report non-volatile memory in debug
+
+Dirk Brandewie (9):
+      cpufreq: handle cpufreq being disabled for all exported function.
+      cpufreq: Retrieve current frequency from scaling drivers with internal governors
+      cpufreq: Only call cpufreq_out_of_sync() for driver that implement cpufreq_driver.target()
+      cpufreq: Do not track governor name for scaling drivers with internal governors.
+      cpufreq_stats: do not remove sysfs files if frequency table is not present
+      cpufreq/x86: Add P-state driver for sandy bridge.
+      cpufreq / intel_pstate: Fix 32 bit build
+      cpufreq / intel_pstate: Change to disallow module build
+      cpufreq / intel_pstate: Add kernel command line option disable intel_pstate.
+
+Fabio Baltieri (6):
+      cpufreq: ondemand: call dbs_check_cpu only when necessary
+      cpufreq: conservative: call dbs_check_cpu only when necessary
+      cpufreq: ondemand: use all CPUs in update_sampling_rate
+      cpufreq: governors: clean timer init and exit code
+      cpufreq: governors: implement generic policy_is_shared
+      cpufreq: governors: fix misuse of cdbs.cpu
+
+Inderpal Singh (1):
+      cpufreq: exynos: Show list of available frequencies
+
+Jesper Juhl (1):
+      ACPICA: Fix possible memory leak.
+
+Jiang Liu (2):
+      ACPI: remove unused acpi_op_bind and acpi_op_unbind
+      ACPI / PCI: pci_slot: replace printk(KERN_xxx) with pr_xxx()
+
+Jonghwan Choi (7):
+      cpufreq: exynos: Remove unused variable & IS_ERR
+      cpufreq: exynos: Check old & new frequency early
+      cpufreq: exynos: Use APLL_FREQ macro for cpu divider value
+      cpufreq: exynos: Split exynos_target function into two functions
+      cpufreq: exynos: Add missing static
+      cpufreq: exynos: Get booting freq value in exynos_cpufreq_init
+      cpufreq: exynos: Fix hang in pm handler due to frequency mismatch
+
+Joseph Salisbury (1):
+      ACPI: Add DMI entry for Sony VGN-FW41E_H
+
+Kees Cook (1):
+      drivers/pnp/pnpbios: remove depends on CONFIG_EXPERIMENTAL
+
+Len Brown (27):
+      intel_idle: stop using driver_data for static flags
+      intel_idle: support Haswell
+      tools/power turbostat: support Haswell
+      tools/power turbostat: decode MSR_IA32_POWER_CTL
+      intel_idle: remove use and definition of MWAIT_MAX_NUM_CSTATES
+      intel_idle: remove assumption of one C-state per MWAIT flag
+      xen idle: make xen-specific macro xen-specific
+      x86 idle: remove mwait_idle() and "idle=mwait" cmdline param
+      x86 idle: remove 32-bit-only "no-hlt" parameter, hlt_works_ok flag
+      cpuidle: remove vestage definition of cpuidle_state_usage.driver_data
+      intel_idle: export both C1 and C1E
+      tools/power turbostat: display SMI count by default
+      APM idle: register apm_cpu_idle via cpuidle
+      x86 idle: rename global pm_idle to static x86_idle
+      sh idle: rename global pm_idle to static sh_idle
+      sparc idle: rename pm_idle to sparc_idle
+      blackfin idle: delete pm_idle
+      ARM idle: delete pm_idle
+      ARM64 idle: delete pm_idle
+      cris idle: delete idle and pm_idle
+      ia64 idle: delete pm_idle
+      m32r idle: delete pm_idle, and other dead idle code
+      microblaze idle: delete pm_idle
+      mn10300 idle: delete pm_idle
+      openrisc idle: delete pm_idle
+      unicore32 idle: delete stray pm_idle comment
+      PM idle: remove global declaration of pm_idle
+
+Li Fei (1):
+      suspend: enable freeze timeout configuration through sys
+
+Lv Zheng (14):
+      ACPICA: Cleanup updated comments.
+      ACPICA: Update compilation environment settings.
+      ACPICA: Update codes under disabled build options.
+      ACPICA: Cleanup source to reduce differences between Linux and ACPICA.
+      ACPICA: Cleanup indentation to reduce differences between Linux and ACPICA.
+      ACPICA: Cleanup coding style to reduce differences between Linux and ACPICA.
+      ACPICA: Fix broken call depth tracing logic.
+      ACPICA: Enhance error messages.
+      ACPICA: Update initialization codes.
+      ACPICA: Enhance the ACPI_GETx and ACPI_SETx macros.
+      ACPICA: Resource Manager: update template walking with ACPI_NEXT_RESOURCE.
+      ACPICA: Cleanup PM_TIMER_FREQUENCY definition.
+      ACPICA: Cleanup table handler naming conflicts.
+      ACPICA: Update predefined info table
+
+Mark Langsdorf (3):
+      clk / highbank: Prevent glitches in non-bypass reset mode
+      cpufreq / highbank: add support for highbank cpufreq
+      PM / OPP: Export more symbols for module usage
+
+Matthew Garrett (1):
+      acpi-cpufreq: Do not load on K8
+
+Mika Westerberg (8):
+      ACPI / scan: Fix check of device_attach() return value.
+      ACPI / PM: remove leading whitespace from #ifdef
+      ACPI: add support for CSRT table
+      ACPI / platform: fix comment about the platform device name
+      x86: add support for Intel Low Power Subsystem
+      clk: x86: add support for Lynxpoint LPSS clocks
+      ACPI / platform: create LPSS clocks if Lynxpoint devices are found during scan
+      ACPI / Documentation: refer to correct file for acpi_platform_device_ids[] table
+
+Nishanth Menon (1):
+      PM / OPP: switch exported symbols to GPL variant
+
+Paul Gortmaker (1):
+      PM / tracing: remove deprecated power trace API
+
+Rafael J. Wysocki (75):
+      ACPI: Separate adding ACPI device objects from probing ACPI drivers
+      ACPI: Change the ordering of PCI root bridge driver registrarion
+      ACPI: Make acpi_bus_add() and acpi_bus_start() visibly different
+      ACPI: Reduce the usage of struct acpi_bus_ops
+      ACPI: Replace struct acpi_bus_ops with enum type
+      ACPI: Change the ordering of acpi_bus_check_add()
+      ACPI / PCI: Fold acpi_pci_root_start() into acpi_pci_root_add()
+      ACPI: Remove acpi_start_single_object() and acpi_bus_start()
+      ACPI: Remove the arguments of acpi_bus_add() that are not used
+      ACPI: Drop the second argument of acpi_bus_scan()
+      ACPI: Replace ACPI device add_type field with a match_driver flag
+      ACPI: Make acpi_bus_scan() and acpi_bus_add() take only one argument
+      ACPI: Add .setup() and .cleanup() callbacks to struct acpi_bus_type
+      ACPI / PCI: Rework the setup and cleanup of device wakeup
+      ACPI / PCI: Move the _PRT setup and cleanup code to pci-acpi.c
+      ACPI: Drop ACPI device .bind() and .unbind() callbacks
+      ACPI / scan: Treat power resources in a special way
+      ACPICA: Resource Manager: Add a pointer cast for a namespace node.
+      ACPI: Remove the ops field from struct acpi_device
+      ACPI / scan: Drop the second argument of acpi_device_unregister()
+      ACPI / scan: Drop the second argument of acpi_bus_trim()
+      ACPI / scan: Change the implementation of acpi_bus_trim()
+      ACPI / scan: Add second pass to acpi_bus_trim()
+      ACPI / PM: Rework the handling of devices depending on power resources
+      ACPI / scan: More straightforward preparation of ACPI device objects
+      ACPI / scan: Treat power resources in a special way
+      ACPI: Drop power resources driver
+      ACPI: Do not use device power states of power resources
+      ACPI / PM: Take order attribute of power resources into account
+      ACPI / PM: Take order attribute of wakeup power resources into account
+      ACPI / scan: Move power state initialization to a separate routine
+      ACPI / scan: Remove unnecessary initialization of local variables
+      ACPI / scan: Consolidate extraction of power resources lists
+      ACPI: Take power resource initialization errors into account
+      ACPI: Use system level attribute of wakeup power resources
+      ACPI / PM: Change the way power transitions to D3cold are carried out
+      ACPI / PM: More visible function for retrieving device power states
+      ACPI / PM: Common string representations of device power states
+      ACPI / scan: Drop acpi_bus_add() and use acpi_bus_scan() instead
+      ACPI / PM: Move device power management functions to device_pm.c
+      ACPI / PM: Consolidate suspend-specific and hibernate-specific code
+      ACPI / PM: Fix build for unusual combination of Kconfig options
+      ACPI / PM: Make acpi_bus_init_power() more robust
+      ACPI / PM: Introduce helper for executing _PSn methods
+      ACPI / PM: Always evaluate _PSn after setting power resources
+      ACPI / PM: Sanitize checks in acpi_power_on_resources()
+      ACPI / PM: Use string "D3cold" to represent ACPI_STATE_D3_COLD
+      ACPI / PM: Fix device power state value after transitions to D3cold
+      ACPI / scan: Prevent device add uevents from racing with user space
+      ACPI / PM: Expose power states of ACPI devices to user space
+      ACPI / PM: Expose current status of ACPI power resources
+      sysfs: Functions for adding/removing symlinks to/from attribute groups
+      ACPI / PM: Expose lists of device power resources to user space
+      ACPI / PM: Fix consistency check for power resources during resume
+      ACPI / scan: Make it clear that acpi_bus_trim() cannot fail
+      ACPI: Rework acpi_get_child() to be more efficient
+      ACPI: Remove useless type argument of driver .remove() operation
+      ACPI: Drop device start operation that is not used
+      ACPI / scan: Make namespace scanning and trimming mutually exclusive
+      ACPI / scan: Make scanning of fixed devices follow the general scheme
+      ACPI / scan: Introduce struct acpi_scan_handler
+      ACPI / PCI: Make PCI root driver use struct acpi_scan_handler
+      ACPI / PCI: Make PCI IRQ link driver use struct acpi_scan_handler
+      ACPI / platform: Use struct acpi_scan_handler for creating devices
+      ACPI / scan: Fix acpi_bus_get_device() check in acpi_match_device()
+      ACPI / scan: Clean up acpi_bus_get_parent()
+      ACPI / PM: Do not power manage devices in unknown initial states
+      ACPI / PM: Handle missing _PSC in acpi_bus_update_power()
+      ACPI / scan: Follow priorities of IDs when matching scan handlers
+      ACPI / scan: Remove useless #ifndef from acpi_eject_store()
+      ACPI / scan: Make container driver use struct acpi_scan_handler
+      ACPI: Drop the container.h header file
+      ACPI / scan: Make acpi_bus_hot_remove_device() acquire the scan lock
+      ACPI / scan: Full transition to D3cold in acpi_device_unregister()
+      ACPI / hotplug: Fix concurrency issues and memory leaks
+
+Rickard Andersson (1):
+      cpufreq: handle SW coordinated CPUs
+
+Rob Herring (2):
+      ARM: use device tree to get smp_twd clock
+      ARM / highbank: add support for pl320 IPC
+
+Sachin Kamat (2):
+      cpufreq: exynos: Fix unsigned variable being checked for negative value
+      cpufreq: exynos: Initialize return variable
+
+Shawn Guo (2):
+      cpufreq: instantiate cpufreq-cpu0 as a platform_driver
+      cpufreq: add imx6q-cpufreq driver
+
+ShuoX Liu (1):
+      PM / Runtime: Add new helper function: pm_runtime_active()
+
+Srinivas Pandruvada (1):
+      ACPI / thermal: Use mode to enable/disable kernel thermal processing
+
+Stratos Karafotis (3):
+      cpufreq: ondemand: Replace down_differential tuner with adj_up_threshold
+      cpufreq: ondemand: Fix typos in comments
+      cpufreq: conservative: Fix typos in comments
+
+Tejun Heo (2):
+      PM / Domains: don't use [delayed_]work_pending()
+      PM: don't use [delayed_]work_pending()
+
+Thomas Renninger (1):
+      ACPI tools / acpidump: must be run as root - install it into /usr/sbin
+
+Tim Gardner (1):
+      ACPICA: Fix possible memory leak in dispatcher error path.
+
+Toshi Kani (3):
+      ACPI: sysfs eject support for ACPI scan handlers
+      ACPI: Unbind ACPI drv when probe failed
+      ACPI: Remove the use of CONFIG_ACPI_CONTAINER_MODULE
+
+Viresh Kumar (23):
+      cpufreq: Manage only online cpus
+      cpufreq: Notify governors when cpus are hot-[un]plugged
+      cpufreq: Don't use cpu removed during cpufreq_driver_unregister
+      cpufreq: SPEAr: Fix sparse warning for cpufreq driver
+      cpufreq: Simplify __cpufreq_remove_dev()
+      cpufreq: Revert "cpufreq: Don't use cpu removed during cpufreq_driver_unregister"
+      cpufreq: Simplify cpufreq_add_dev()
+      cpufreq: Update Documentation for cpus and related_cpus
+      cpufreq: SPEAr: Notify all policy->cpus of frequency change
+      cpufreq: governors: Get rid of dbs_data->enable field
+      cpufreq: governors: Remove code redundancy between governors
+      cpufreq: governors: Reset tunables only for cpufreq_unregister_governor()
+      cpufreq: TEGRA: Set policy->cpus from driver->init()
+      cpufreq: Set all cpus in policy->cpus for single cluster SoCs
+      cpufreq: Remove unnecessary use of policy->shared_type
+      cpufreq: Don't remove sysfs link for policy->cpu
+      cpufreq: Don't check cpu_online(policy->cpu)
+      cpufreq / stats: Get rid of CPUFREQ_STATDEVICE_ATTR
+      cpufreq: governors: Fix WARN_ON() for multi-policy platforms
+      cpufreq: Remove unused HOTPLUG_CPU code
+      cpufreq: Create a macro for unlock_policy_rwsem{read,write}
+      cpufreq: Fix locking issues
+      cpufreq: exynos: simplify .init() for setting policy->cpus
+
+Yasuaki Ishimatsu (3):
+      ACPI / PM: Fix acpi_bus_get_device() check in drivers/acpi/device_pm.c
+      PNPACPI: Fix acpi_bus_get_device() check in drivers/pnp/pnpacpi/core.c
+      ACPI / dock: Fix acpi_bus_get_device() check in drivers/acpi/dock.c
+
+Yinghai Lu (1):
+      ACPI: update ej_event interface to take acpi_device
+
+Zhang Rui (3):
+      ACPI: fix obsolete comment in custom_method.c
+      PM: Introduce suspend state PM_SUSPEND_FREEZE
+      ACPI: enable ACPI SCI during suspend
+
+---------------
+
+ .../ABI/testing/sysfs-devices-power_resources_D0        |   13 +
+ .../ABI/testing/sysfs-devices-power_resources_D1        |   14 +
+ .../ABI/testing/sysfs-devices-power_resources_D2        |   14 +
+ .../ABI/testing/sysfs-devices-power_resources_D3hot     |   14 +
+ Documentation/ABI/testing/sysfs-devices-power_state     |   20 +
+ .../ABI/testing/sysfs-devices-real_power_state          |   23 +
+ Documentation/ABI/testing/sysfs-devices-resource_in_use |   12 +
+ Documentation/acpi/enumeration.txt                      |    4 +-
+ Documentation/acpi/scan_handlers.txt                    |   77 ++
+ Documentation/cpu-freq/cpu-drivers.txt                  |    6 +
+ Documentation/cpu-freq/user-guide.txt                   |    8 +-
+ Documentation/devicetree/bindings/arm/kirkwood.txt      |   27 +
+ Documentation/kernel-parameters.txt                     |   16 +-
+ Documentation/power/freezing-of-tasks.txt               |    5 +
+ Documentation/power/runtime_pm.txt                      |    4 +
+ Documentation/trace/events-power.txt                    |   27 +-
+ arch/arm/boot/dts/highbank.dts                          |   10 +
+ arch/arm/kernel/process.c                               |   13 +-
+ arch/arm/kernel/smp_twd.c                               |   53 +-
+ arch/arm/mach-davinci/cpuidle.c                         |   84 +-
+ arch/arm/mach-exynos/include/mach/cpufreq.h             |   19 +-
+ arch/arm/mach-highbank/Kconfig                          |    4 +
+ arch/arm/mach-omap2/pm34xx.c                            |    2 -
+ arch/arm/mach-tegra/cpu-tegra.c                         |    3 +-
+ arch/arm64/kernel/process.c                             |   13 +-
+ arch/blackfin/kernel/process.c                          |    7 -
+ arch/cris/kernel/process.c                              |   11 +-
+ arch/ia64/hp/common/aml_nfw.c                           |    2 +-
+ arch/ia64/include/asm/acpi.h                            |    4 -
+ arch/ia64/kernel/process.c                              |    3 -
+ arch/ia64/kernel/setup.c                                |    1 -
+ arch/m32r/kernel/process.c                              |   51 +-
+ arch/microblaze/kernel/process.c                        |    3 -
+ arch/mn10300/kernel/process.c                           |    7 -
+ arch/openrisc/kernel/idle.c                             |    5 -
+ arch/sh/kernel/idle.c                                   |   12 +-
+ arch/sparc/include/asm/processor_32.h                   |    1 +
+ arch/sparc/kernel/apc.c                                 |    3 +-
+ arch/sparc/kernel/leon_pmc.c                            |    5 +-
+ arch/sparc/kernel/pmc.c                                 |    3 +-
+ arch/sparc/kernel/process_32.c                          |    7 +-
+ arch/unicore32/kernel/process.c                         |    5 -
+ arch/x86/Kconfig                                        |   11 +
+ arch/x86/include/asm/acpi.h                             |    4 -
+ arch/x86/include/asm/mwait.h                            |    3 +-
+ arch/x86/include/asm/processor.h                        |   18 +-
+ arch/x86/include/uapi/asm/msr-index.h                   |    3 +
+ arch/x86/kernel/apm_32.c                                |   57 +-
+ arch/x86/kernel/cpu/bugs.c                              |   27 -
+ arch/x86/kernel/cpu/proc.c                              |    2 -
+ arch/x86/kernel/process.c                               |  122 +--
+ arch/x86/kernel/smpboot.c                               |    2 +-
+ arch/x86/platform/olpc/olpc-xo15-sci.c                  |    2 +-
+ arch/x86/xen/setup.c                                    |    5 +-
+ drivers/Kconfig                                         |    2 +
+ drivers/Makefile                                        |    1 +
+ drivers/acpi/Kconfig                                    |    2 +-
+ drivers/acpi/Makefile                                   |    3 +-
+ drivers/acpi/ac.c                                       |    4 +-
+ drivers/acpi/acpi_memhotplug.c                          |   82 +-
+ drivers/acpi/acpi_pad.c                                 |    3 +-
+ drivers/acpi/acpi_platform.c                            |   72 +-
+ drivers/acpi/acpica/Makefile                            |    8 +-
+ drivers/acpi/acpica/accommon.h                          |    3 +-
+ drivers/acpi/acpica/acdebug.h                           |   19 +-
+ drivers/acpi/acpica/acdispat.h                          |    2 +-
+ drivers/acpi/acpica/acevents.h                          |   23 +-
+ drivers/acpi/acpica/acglobal.h                          |   43 +-
+ drivers/acpi/acpica/achware.h                           |    2 +-
+ drivers/acpi/acpica/acinterp.h                          |    4 +-
+ drivers/acpi/acpica/aclocal.h                           |   47 +-
+ drivers/acpi/acpica/acmacros.h                          |  173 +---
+ drivers/acpi/acpica/acnamesp.h                          |   16 +-
+ drivers/acpi/acpica/acobject.h                          |    4 +-
+ drivers/acpi/acpica/acopcode.h                          |    2 +-
+ drivers/acpi/acpica/acparser.h                          |   27 +-
+ drivers/acpi/acpica/acpredef.h                          |   31 +-
+ drivers/acpi/acpica/acresrc.h                           |    8 +-
+ drivers/acpi/acpica/acstruct.h                          |    2 +-
+ drivers/acpi/acpica/actables.h                          |    2 +-
+ drivers/acpi/acpica/acutils.h                           |   59 +-
+ drivers/acpi/acpica/amlcode.h                           |    2 +-
+ drivers/acpi/acpica/amlresrc.h                          |    8 +-
+ drivers/acpi/acpica/dsargs.c                            |    2 +-
+ drivers/acpi/acpica/dscontrol.c                         |    2 +-
+ drivers/acpi/acpica/dsfield.c                           |    2 +-
+ drivers/acpi/acpica/dsinit.c                            |    2 +-
+ drivers/acpi/acpica/dsmethod.c                          |    8 +-
+ drivers/acpi/acpica/dsmthdat.c                          |    2 +-
+ drivers/acpi/acpica/dsobject.c                          |   20 +-
+ drivers/acpi/acpica/dsopcode.c                          |   16 +-
+ drivers/acpi/acpica/dsutils.c                           |   12 +-
+ drivers/acpi/acpica/dswexec.c                           |    6 +-
+ drivers/acpi/acpica/dswload.c                           |    7 +-
+ drivers/acpi/acpica/dswload2.c                          |    4 +-
+ drivers/acpi/acpica/dswscope.c                          |    2 +-
+ drivers/acpi/acpica/dswstate.c                          |    2 +-
+ drivers/acpi/acpica/evevent.c                           |    2 +-
+ drivers/acpi/acpica/evglock.c                           |    2 +-
+ drivers/acpi/acpica/evgpe.c                             |   14 +-
+ drivers/acpi/acpica/evgpeblk.c                          |   24 +-
+ drivers/acpi/acpica/evgpeinit.c                         |    5 +-
+ drivers/acpi/acpica/evgpeutil.c                         |    2 +-
+ drivers/acpi/acpica/evhandler.c                         |  529 ++++++++++++
+ drivers/acpi/acpica/evmisc.c                            |    2 +-
+ drivers/acpi/acpica/evregion.c                          |  584 ++------------
+ drivers/acpi/acpica/evrgnini.c                          |    2 +-
+ drivers/acpi/acpica/evsci.c                             |    6 +-
+ drivers/acpi/acpica/evxface.c                           |   36 +-
+ drivers/acpi/acpica/evxfevnt.c                          |    7 +-
+ drivers/acpi/acpica/evxfgpe.c                           |   11 +-
+ drivers/acpi/acpica/evxfregn.c                          |    2 +-
+ drivers/acpi/acpica/exconfig.c                          |   22 +-
+ drivers/acpi/acpica/exconvrt.c                          |    4 +-
+ drivers/acpi/acpica/excreate.c                          |    2 +-
+ drivers/acpi/acpica/exdebug.c                           |    2 +-
+ drivers/acpi/acpica/exdump.c                            |   21 +-
+ drivers/acpi/acpica/exfield.c                           |    2 +-
+ drivers/acpi/acpica/exfldio.c                           |    3 +-
+ drivers/acpi/acpica/exmisc.c                            |    2 +-
+ drivers/acpi/acpica/exmutex.c                           |    5 +-
+ drivers/acpi/acpica/exnames.c                           |    2 +-
+ drivers/acpi/acpica/exoparg1.c                          |   10 +-
+ drivers/acpi/acpica/exoparg2.c                          |    2 +-
+ drivers/acpi/acpica/exoparg3.c                          |    2 +-
+ drivers/acpi/acpica/exoparg6.c                          |    2 +-
+ drivers/acpi/acpica/exprep.c                            |    6 +-
+ drivers/acpi/acpica/exregion.c                          |   25 +-
+ drivers/acpi/acpica/exresnte.c                          |    2 +-
+ drivers/acpi/acpica/exresolv.c                          |    2 +-
+ drivers/acpi/acpica/exresop.c                           |    2 +-
+ drivers/acpi/acpica/exstore.c                           |   31 +-
+ drivers/acpi/acpica/exstoren.c                          |    4 +-
+ drivers/acpi/acpica/exstorob.c                          |    2 +-
+ drivers/acpi/acpica/exsystem.c                          |    2 +-
+ drivers/acpi/acpica/exutils.c                           |   24 +-
+ drivers/acpi/acpica/hwacpi.c                            |   13 +-
+ drivers/acpi/acpica/hwesleep.c                          |    3 +-
+ drivers/acpi/acpica/hwgpe.c                             |   10 +-
+ drivers/acpi/acpica/hwpci.c                             |    2 +-
+ drivers/acpi/acpica/hwregs.c                            |    8 +-
+ drivers/acpi/acpica/hwsleep.c                           |    8 +-
+ drivers/acpi/acpica/hwtimer.c                           |    9 +-
+ drivers/acpi/acpica/hwvalid.c                           |   20 +-
+ drivers/acpi/acpica/hwxface.c                           |  137 ++--
+ drivers/acpi/acpica/hwxfsleep.c                         |   13 +-
+ drivers/acpi/acpica/nsaccess.c                          |    2 +-
+ drivers/acpi/acpica/nsalloc.c                           |    2 +-
+ drivers/acpi/acpica/nsdump.c                            |   14 +-
+ drivers/acpi/acpica/nsdumpdv.c                          |    3 +-
+ drivers/acpi/acpica/nseval.c                            |    2 +-
+ drivers/acpi/acpica/nsinit.c                            |   29 +-
+ drivers/acpi/acpica/nsload.c                            |    2 +-
+ drivers/acpi/acpica/nsnames.c                           |    5 +-
+ drivers/acpi/acpica/nsobject.c                          |    2 +-
+ drivers/acpi/acpica/nsparse.c                           |    2 +-
+ drivers/acpi/acpica/nspredef.c                          |  586 +-------------
+ drivers/acpi/acpica/nsprepkg.c                          |  621 ++++++++++++++
+ drivers/acpi/acpica/nsrepair.c                          |    2 +-
+ drivers/acpi/acpica/nsrepair2.c                         |    5 +-
+ drivers/acpi/acpica/nssearch.c                          |    7 +-
+ drivers/acpi/acpica/nsutils.c                           |   88 +-
+ drivers/acpi/acpica/nswalk.c                            |    6 +-
+ drivers/acpi/acpica/nsxfeval.c                          |   19 +-
+ drivers/acpi/acpica/nsxfname.c                          |   20 +-
+ drivers/acpi/acpica/nsxfobj.c                           |    2 +-
+ drivers/acpi/acpica/psargs.c                            |    9 +-
+ drivers/acpi/acpica/psloop.c                            |  623 +--------------
+ drivers/acpi/acpica/psobject.c                          |  647 +++++++++++++++
+ drivers/acpi/acpica/psopcode.c                          |  174 +---
+ drivers/acpi/acpica/psopinfo.c                          |  223 ++++++
+ drivers/acpi/acpica/psparse.c                           |    2 +-
+ drivers/acpi/acpica/psscope.c                           |    2 +-
+ drivers/acpi/acpica/pstree.c                            |    2 +-
+ drivers/acpi/acpica/psutils.c                           |   10 +-
+ drivers/acpi/acpica/pswalk.c                            |    2 +-
+ drivers/acpi/acpica/psxface.c                           |    2 +-
+ drivers/acpi/acpica/rsaddr.c                            |    2 +-
+ drivers/acpi/acpica/rscalc.c                            |    8 +-
+ drivers/acpi/acpica/rscreate.c                          |    9 +-
+ drivers/acpi/acpica/rsdump.c                            |  424 +---------
+ drivers/acpi/acpica/rsdumpinfo.c                        |  454 +++++++++++
+ drivers/acpi/acpica/rsinfo.c                            |    2 +-
+ drivers/acpi/acpica/rsio.c                              |    2 +-
+ drivers/acpi/acpica/rsirq.c                             |   40 +-
+ drivers/acpi/acpica/rslist.c                            |    9 +-
+ drivers/acpi/acpica/rsmemory.c                          |    8 +-
+ drivers/acpi/acpica/rsmisc.c                            |   76 +-
+ drivers/acpi/acpica/rsserial.c                          |   10 +-
+ drivers/acpi/acpica/rsutils.c                           |   14 +-
+ drivers/acpi/acpica/rsxface.c                           |  107 ++-
+ drivers/acpi/acpica/tbfadt.c                            |    7 +-
+ drivers/acpi/acpica/tbfind.c                            |    2 +-
+ drivers/acpi/acpica/tbinstal.c                          |    2 +-
+ drivers/acpi/acpica/tbutils.c                           |    4 +-
+ drivers/acpi/acpica/tbxface.c                           |    7 +-
+ drivers/acpi/acpica/tbxfload.c                          |    4 +-
+ drivers/acpi/acpica/tbxfroot.c                          |    2 +-
+ drivers/acpi/acpica/utaddress.c                         |    6 +-
+ drivers/acpi/acpica/utalloc.c                           |    2 +-
+ drivers/acpi/acpica/utcache.c                           |    2 +-
+ drivers/acpi/acpica/utcopy.c                            |    6 +-
+ drivers/acpi/acpica/utdebug.c                           |  120 ++-
+ drivers/acpi/acpica/utdecode.c                          |    2 +-
+ drivers/acpi/acpica/utdelete.c                          |   70 +-
+ drivers/acpi/acpica/uteval.c                            |    4 +-
+ drivers/acpi/acpica/utexcep.c                           |    2 +-
+ drivers/acpi/acpica/utglobal.c                          |   11 +-
+ drivers/acpi/acpica/utids.c                             |    2 +-
+ drivers/acpi/acpica/utinit.c                            |    2 +-
+ drivers/acpi/acpica/utlock.c                            |   16 +-
+ drivers/acpi/acpica/utmath.c                            |    2 +-
+ drivers/acpi/acpica/utmisc.c                            |  830 ++-----------------
+ drivers/acpi/acpica/utmutex.c                           |    2 +-
+ drivers/acpi/acpica/utobject.c                          |    4 +-
+ drivers/acpi/acpica/utosi.c                             |    2 +-
+ drivers/acpi/acpica/utownerid.c                         |  218 +++++
+ drivers/acpi/acpica/utresrc.c                           |   83 +-
+ drivers/acpi/acpica/utstate.c                           |   42 +-
+ drivers/acpi/acpica/utstring.c                          |  574 +++++++++++++
+ drivers/acpi/acpica/uttrack.c                           |   18 +-
+ drivers/acpi/acpica/utxface.c                           |    6 +-
+ drivers/acpi/acpica/utxferror.c                         |    6 +-
+ drivers/acpi/acpica/utxfinit.c                          |    2 +-
+ drivers/acpi/acpica/utxfmutex.c                         |    2 +-
+ drivers/acpi/battery.c                                  |    2 +-
+ drivers/acpi/bus.c                                      |  270 -------
+ drivers/acpi/button.c                                   |    4 +-
+ drivers/acpi/container.c                                |  211 ++---
+ drivers/acpi/csrt.c                                     |  159 ++++
+ drivers/acpi/custom_method.c                            |    2 +-
+ drivers/acpi/device_pm.c                                |  359 ++++++++-
+ drivers/acpi/dock.c                                     |   44 +-
+ drivers/acpi/ec.c                                       |    2 +-
+ drivers/acpi/fan.c                                      |    4 +-
+ drivers/acpi/glue.c                                     |   85 +-
+ drivers/acpi/hed.c                                      |    2 +-
+ drivers/acpi/internal.h                                 |   31 +-
+ drivers/acpi/numa.c                                     |    8 +-
+ drivers/acpi/osl.c                                      |    2 +-
+ drivers/acpi/pci_bind.c                                 |  122 ---
+ drivers/acpi/pci_link.c                                 |   47 +-
+ drivers/acpi/pci_root.c                                 |  101 +--
+ drivers/acpi/pci_slot.c                                 |    7 +-
+ drivers/acpi/power.c                                    |  730 +++++++++--------
+ drivers/acpi/proc.c                                     |    9 +-
+ drivers/acpi/processor_driver.c                         |   62 +-
+ drivers/acpi/processor_idle.c                           |   48 +-
+ drivers/acpi/sbs.c                                      |    6 +-
+ drivers/acpi/sbshc.c                                    |    4 +-
+ drivers/acpi/scan.c                                     |  976 ++++++++++++-----------
+ drivers/acpi/sleep.c                                    |   97 ++-
+ drivers/acpi/sleep.h                                    |    2 +
+ drivers/acpi/sysfs.c                                    |    2 +-
+ drivers/acpi/tables.c                                   |    6 +-
+ drivers/acpi/thermal.c                                  |   10 +-
+ drivers/acpi/video.c                                    |    8 +-
+ drivers/ata/libata-acpi.c                               |   18 +-
+ drivers/base/power/domain.c                             |    3 +-
+ drivers/base/power/opp.c                                |   19 +-
+ drivers/base/power/wakeup.c                             |    6 +
+ drivers/char/hpet.c                                     |    2 +-
+ drivers/char/sonypi.c                                   |    2 +-
+ drivers/clk/Makefile                                    |    1 +
+ drivers/clk/clk-highbank.c                              |    2 +
+ drivers/clk/mvebu/clk-gating-ctrl.c                     |    1 +
+ drivers/clk/x86/Makefile                                |    2 +
+ drivers/clk/x86/clk-lpss.c                              |   99 +++
+ drivers/clk/x86/clk-lpss.h                              |   36 +
+ drivers/clk/x86/clk-lpt.c                               |   86 ++
+ drivers/cpufreq/Kconfig                                 |    2 +-
+ drivers/cpufreq/Kconfig.arm                             |   30 +
+ drivers/cpufreq/Kconfig.x86                             |   13 +
+ drivers/cpufreq/Makefile                                |   11 +-
+ drivers/cpufreq/acpi-cpufreq.c                          |    8 +-
+ drivers/cpufreq/cpufreq-cpu0.c                          |   42 +-
+ drivers/cpufreq/cpufreq.c                               |  460 +++++------
+ drivers/cpufreq/cpufreq_conservative.c                  |   19 +-
+ drivers/cpufreq/cpufreq_governor.c                      |  131 +--
+ drivers/cpufreq/cpufreq_governor.h                      |    6 +-
+ drivers/cpufreq/cpufreq_ondemand.c                      |   70 +-
+ drivers/cpufreq/cpufreq_stats.c                         |   49 +-
+ drivers/cpufreq/cpufreq_userspace.c                     |    2 -
+ drivers/cpufreq/db8500-cpufreq.c                        |    4 +-
+ drivers/cpufreq/exynos-cpufreq.c                        |  188 +++--
+ drivers/cpufreq/exynos4210-cpufreq.c                    |  152 +---
+ drivers/cpufreq/exynos4x12-cpufreq.c                    |  388 ++-------
+ drivers/cpufreq/exynos5250-cpufreq.c                    |  178 +----
+ drivers/cpufreq/freq_table.c                            |   15 +-
+ drivers/cpufreq/highbank-cpufreq.c                      |  120 +++
+ drivers/cpufreq/imx6q-cpufreq.c                         |  336 ++++++++
+ drivers/cpufreq/intel_pstate.c                          |  823 +++++++++++++++++++
+ drivers/cpufreq/kirkwood-cpufreq.c                      |  259 ++++++
+ drivers/cpufreq/maple-cpufreq.c                         |    2 +-
+ drivers/cpufreq/omap-cpufreq.c                          |    4 +-
+ drivers/cpufreq/powernow-k8.c                           |   46 +-
+ drivers/cpufreq/spear-cpufreq.c                         |   12 +-
+ drivers/cpuidle/cpuidle.c                               |    2 -
+ drivers/hwmon/acpi_power_meter.c                        |    2 +-
+ drivers/hwmon/asus_atk0110.c                            |    4 +-
+ drivers/i2c/busses/i2c-scmi.c                           |    2 +-
+ drivers/idle/intel_idle.c                               |  278 ++++---
+ drivers/input/misc/atlas_btns.c                         |    2 +-
+ drivers/mailbox/Kconfig                                 |   19 +
+ drivers/mailbox/Makefile                                |    1 +
+ drivers/mailbox/pl320-ipc.c                             |  199 +++++
+ drivers/pci/hotplug/acpiphp_glue.c                      |   56 +-
+ drivers/pci/hotplug/sgi_hotplug.c                       |   15 +-
+ drivers/pci/pci-acpi.c                                  |   56 +-
+ drivers/pci/pci.c                                       |   26 +-
+ drivers/pci/pci.h                                       |    5 -
+ drivers/pci/probe.c                                     |    1 -
+ drivers/platform/x86/asus-laptop.c                      |    2 +-
+ drivers/platform/x86/classmate-laptop.c                 |   10 +-
+ drivers/platform/x86/eeepc-laptop.c                     |    2 +-
+ drivers/platform/x86/fujitsu-laptop.c                   |    4 +-
+ drivers/platform/x86/fujitsu-tablet.c                   |    2 +-
+ drivers/platform/x86/hp_accel.c                         |    2 +-
+ drivers/platform/x86/ideapad-laptop.c                   |    2 +-
+ drivers/platform/x86/intel_menlow.c                     |    2 +-
+ drivers/platform/x86/panasonic-laptop.c                 |    4 +-
+ drivers/platform/x86/sony-laptop.c                      |    4 +-
+ drivers/platform/x86/topstar-laptop.c                   |    2 +-
+ drivers/platform/x86/toshiba_acpi.c                     |    4 +-
+ drivers/platform/x86/toshiba_bluetooth.c                |    4 +-
+ drivers/platform/x86/wmi.c                              |    4 +-
+ drivers/platform/x86/xo15-ebook.c                       |    2 +-
+ drivers/pnp/pnpacpi/core.c                              |   10 +-
+ drivers/pnp/pnpbios/Kconfig                             |    4 +-
+ drivers/staging/quickstart/quickstart.c                 |    2 +-
+ drivers/video/backlight/apple_bl.c                      |    2 +-
+ drivers/xen/xen-acpi-pad.c                              |    3 +-
+ fs/sysfs/group.c                                        |   42 +
+ fs/sysfs/symlink.c                                      |   45 +-
+ fs/sysfs/sysfs.h                                        |    2 +
+ include/acpi/acbuffer.h                                 |    2 +-
+ include/acpi/acconfig.h                                 |   27 +-
+ include/acpi/acexcep.h                                  |    2 +-
+ include/acpi/acnames.h                                  |    2 +-
+ include/acpi/acoutput.h                                 |  159 +++-
+ include/acpi/acpi.h                                     |    2 +-
+ include/acpi/acpi_bus.h                                 |  100 ++-
+ include/acpi/acpiosxf.h                                 |   13 +-
+ include/acpi/acpixf.h                                   |   68 +-
+ include/acpi/acrestyp.h                                 |   17 +-
+ include/acpi/actbl.h                                    |    9 +-
+ include/acpi/actbl1.h                                   |    8 +-
+ include/acpi/actbl2.h                                   |   25 +-
+ include/acpi/actbl3.h                                   |   34 +-
+ include/acpi/actypes.h                                  |   38 +-
+ include/acpi/container.h                                |   12 -
+ include/acpi/platform/acenv.h                           |  319 ++++----
+ include/acpi/platform/acgcc.h                           |    6 +-
+ include/acpi/platform/aclinux.h                         |    3 +-
+ include/linux/acpi.h                                    |   25 +-
+ include/linux/cpufreq.h                                 |   34 +-
+ include/linux/cpuidle.h                                 |   22 -
+ include/linux/freezer.h                                 |    5 +
+ include/linux/mailbox.h                                 |   17 +
+ include/linux/pm.h                                      |    1 -
+ include/linux/pm_runtime.h                              |    7 +
+ include/linux/suspend.h                                 |    6 +-
+ include/linux/sysfs.h                                   |   16 +
+ include/trace/events/power.h                            |   92 ---
+ kernel/power/autosleep.c                                |    2 +-
+ kernel/power/main.c                                     |   29 +-
+ kernel/power/process.c                                  |    4 +-
+ kernel/power/qos.c                                      |    9 +-
+ kernel/power/suspend.c                                  |   69 +-
+ kernel/trace/Kconfig                                    |   15 -
+ kernel/trace/power-traces.c                             |    3 -
+ tools/power/acpi/Makefile                               |    2 +-
+ tools/power/x86/turbostat/turbostat.8                   |   36 +-
+ tools/power/x86/turbostat/turbostat.c                   |   48 +-
+ 374 files changed, 10713 insertions(+), 8060 deletions(-)
+
+-- 
+I speak only for myself.
+Rafael J. Wysocki, Intel Open Source Technology Center.
