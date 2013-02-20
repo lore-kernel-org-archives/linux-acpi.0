@@ -1,86 +1,116 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: [PATCH 2/7] ACPI / scan: Introduce common code for ACPI-based device hotplug
-Date: Wed, 20 Feb 2013 22:17:44 +0100
-Message-ID: <5546287.WJ6IiH7Pr1@vostro.rjw.lan>
-References: <3260206.bhaAobGhpZ@vostro.rjw.lan> <2868646.oscSukR6ks@vostro.rjw.lan> <1361391814.9542.72.camel@misato.fc.hp.com>
+From: Toshi Kani <toshi.kani@hp.com>
+Subject: Re: [PATCH 7/7] ACPI / scan: Make memory hotplug driver use struct
+ acpi_scan_handler
+Date: Wed, 20 Feb 2013 14:50:12 -0700
+Message-ID: <1361397012.9542.82.camel@misato.fc.hp.com>
+References: <3260206.bhaAobGhpZ@vostro.rjw.lan>
+	 <2200731.3okUfey51A@vostro.rjw.lan>
+	 <20130219181157.GA4366@dhcp-192-168-178-175.profitbricks.localdomain>
+	 <51244494.4000603@jp.fujitsu.com>
+	 <20130220104250.GA4409@dhcp-192-168-178-175.profitbricks.localdomain>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7Bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1361391814.9542.72.camel@misato.fc.hp.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Toshi Kani <toshi.kani@hp.com>
-Cc: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Bjorn Helgaas <bhelgaas@google.com>, LKML <linux-kernel@vger.kernel.org>, Yinghai Lu <yinghai@kernel.org>, Jiang Liu <liuj97@gmail.com>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from g5t0008.atlanta.hp.com ([15.192.0.45]:4414 "EHLO
+	g5t0008.atlanta.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751896Ab3BTWBA (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 20 Feb 2013 17:01:00 -0500
+In-Reply-To: <20130220104250.GA4409@dhcp-192-168-178-175.profitbricks.localdomain>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Vasilis Liaskovitis <vasilis.liaskovitis@profitbricks.com>
+Cc: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>, "Rafael J. Wysocki" <rjw@sisk.pl>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Bjorn Helgaas <bhelgaas@google.com>, LKML <linux-kernel@vger.kernel.org>, Yinghai Lu <yinghai@kernel.org>, Jiang Liu <liuj97@gmail.com>
 
-On Wednesday, February 20, 2013 01:23:34 PM Toshi Kani wrote:
-> On Wed, 2013-02-20 at 14:23 +0100, Rafael J. Wysocki wrote:
-> > On Tuesday, February 19, 2013 03:43:08 PM Yasuaki Ishimatsu wrote:
->  :
-> > > 
-> > > > -	status = acpi_os_hotplug_execute(acpi_bus_hot_remove_device, ej_event);
-> > > > -	if (ACPI_FAILURE(status)) {
-> > > > -		put_device(&acpi_device->dev);
-> > > > -		kfree(ej_event);
-> > > > +	acpi_evaluate_hotplug_ost(acpi_device->handle, ost_source,
-> > > > +				  ACPI_OST_SC_EJECT_IN_PROGRESS, NULL);
-> > > > +	get_device(&acpi_device->dev);
-> > > > +	ret = acpi_scan_hot_remove(acpi_device);
-> > > 
-> > > Why don't you use acpi_os_hotplug_execute()? Do you have some reason?
-> > 
-> > Yes, I do.  acpi_eject_store() is run in a separate thread anyway (started by
-> > user space), so there's no need to use the workqueue for delayed execution here
-> > and we are under acpi_scan_lock anyway, so there shouldn't be any concurrency
-> > issues.
+On Wed, 2013-02-20 at 11:42 +0100, Vasilis Liaskovitis wrote:
+> Hi Yasuaki,
 > 
-> Well, there is an issue...  I just tested your patchset and hit the
-> following hang when I tried to delete a container through its sysfs
-> eject.  This thread got stuck in trying to delete the sysfs eject file
-> of the container.  I believe this is because the shell is still opening
-> this sysfs eject file.
+> On Wed, Feb 20, 2013 at 12:35:48PM +0900, Yasuaki Ishimatsu wrote:
+> > Hi Vasilis,
+> > 
+> > 2013/02/20 3:11, Vasilis Liaskovitis wrote:
+> > >Hi,
+> > >
+> > >On Sun, Feb 17, 2013 at 04:27:18PM +0100, Rafael J. Wysocki wrote:
+> > >>From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+> > >>
+> > >>Make the ACPI memory hotplug driver use struct acpi_scan_handler
+> > >>for representing the object used to set up ACPI memory hotplug
+> > >>functionality and to remove hotplug memory ranges and data
+> > >>structures used by the driver before unregistering ACPI device
+> > >>nodes representing memory.  Register the new struct acpi_scan_handler
+> > >>object with the help of acpi_scan_add_handler_with_hotplug() to allow
+> > >>user space to manipulate the attributes of the memory hotplug
+> > >>profile.
+> > >
+> > >Let's consider an example where we want acpi memory device ejection to be safely
+> > >handled by userspace. We do the following:
+> > >
+> > >echo 0 > /sys/firmware/acpi/hotplug/memory/autoeject
+> > >echo 1 > /sys/firmware/acpi/hotplug/memory/uevents
+> > >
+> > >We succesfully hotplug acpi device:
+> > >/sys/devices/LNXSYSTM:00/LNXSYSBUS:00/PNP0C80:00
+> > >and its corresponding memblocks /sys/devices/system/memory/memoryXX are
+> > >also successfully onlined.
+> > >
+> > >On an eject request, since uevents == 1, the kernel will emit KOBJ_OFFLINE for:
+> > >/sys/devices/LNXSYSTM:00/LNXSYSBUS:00/PNP0C80:00
+> > >
+> > >Can userspace know which memblocks in /sys/devices/system/memory/memoryXX/
+> > >correspond to the acpi device /sys/devices/LNXSYSTM:00/LNXSYSBUS:00/PNP0C80:00 ?
+> > >This will be needed so that userspace tries to offline the memblocks (and only
+> > >if successful, issue the eject operation on the acpi device). As far as I see,
+> > >we don't create any sysfs links or files for this scenario - can userspace get
+> > >this info somehow?
+> > 
+> > >
+> > >/sys/devices/system/memory/memoryXX/phys_device needs to be properly implemented
+> > >for this to work I think, see Documentation/ABI/testing/sysfs-memory
+> > >
+> > >The following test patch works toward that direction. Let me know if it's of
+> > >interest or if there are better ideas /comments.
+> > 
+> > How about use ../PNP0C80:00/physical_node/resources file?
+> > In my system, the file shows following information.
+> > 
+> > $ cat /sys/bus/acpi/devices/PNP0C80\:00/physical_node/resources
+> > state = active
+> > mem 0x0-0x80000000
+> > mem 0x100000000-0x800000000
+> > 
+> > It means PNP0C80:00's memory ranges are "0x0-0x7fffffff" and
+> > "0x100000000-0x7ffffffff". In x86 architecture, memory section size is
+> > 128MiB. So, if these memory range is divided by 128MiB, you can
+> > calculate memory section number as follow:
+> > 
+> > 0x0-0x7fffffff => 0x0-0x10
+> > 0x100000000-0x7ffffffff => 0x20-0xff
+> > 
+> > But there is one problem. The problem is that resources file of added memory
+> > is not created. If the problem is fixed, I think you can use the way.
+> 
+> thanks for your suggestion. Is this resources file a property of the
+> physical_node or of each acpi devices? 
+> 
+> If it's a node specific file could there be a chance that adjacent memory
+> ranges get merged? We 'd like these to not get merged.
+> 
+> I will look more into this property. I don't see it currently in my system
+> (probably because initial memory is not backed by acpi devices in my
+>  seabios/virtual machine).
 
-You're right.
+I have been thinking about this issue as well.  In case of CPUs, we have
+a sysdev link that links LNXCPU:%d to its system/cpu/cpu%d file.
 
-> PID: 1518   TASK: ffff88005f09c950  CPU: 1   COMMAND: "bash"
->  #0 [ffff88003392baf8] __schedule at ffffffff8151ba75
->  #1 [ffff88003392bb70] schedule at ffffffff8151bdc7
->  #2 [ffff88003392bb80] schedule_timeout at ffffffff8151aa55
->  #3 [ffff88003392bc00] wait_for_common at ffffffff8151bc43
->  #4 [ffff88003392bc70] wait_for_completion at ffffffff8151bd60
->  #5 [ffff88003392bc80] sysfs_addrm_finish at ffffffff811984ad
->  #6 [ffff88003392bcd0] sysfs_hash_and_remove at ffffffff81196deb
->  #7 [ffff88003392bd10] sysfs_remove_file at ffffffff81197051
->  #8 [ffff88003392bd40] device_remove_file at ffffffff81332950
->  #9 [ffff88003392bd50] acpi_device_unregister at ffffffff812a0556
-> #10 [ffff88003392bd80] acpi_bus_remove at ffffffff812a0658
-> #11 [ffff88003392bda0] acpi_bus_trim at ffffffff812a090e
-> #12 [ffff88003392bdd0] acpi_scan_hot_remove at ffffffff812a09c9
-> #13 [ffff88003392be30] acpi_eject_store at ffffffff812a0b45
-> #14 [ffff88003392be70] dev_attr_store at ffffffff81332038
-> #15 [ffff88003392be80] sysfs_write_file at ffffffff81197212
-> #16 [ffff88003392bee0] vfs_write at ffffffff8113a3cb
-> #17 [ffff88003392bf20] sys_write at ffffffff8113a5fd
-> #18 [ffff88003392bf80] system_call_fastpath at ffffffff81523759
->     RIP: 00000033a16e4950  RSP: 00007fff4a5f5368  RFLAGS: 00000206
->     RAX: 0000000000000001  RBX: ffffffff81523759  RCX: ffffffffffffffff
->     RDX: 0000000000000002  RSI: 00007f2f8a3d8000  RDI: 0000000000000001
->     RBP: 00007f2f8a3d8000   R8: 000000000000000a   R9: 00007f2f8a3c4740
->     R10: 00007f2f8a3c4740  R11: 0000000000000246  R12: 00000033a19b1260
->     R13: 0000000000000002  R14: ffff880000000000  R15: ffff88003395d680
->     ORIG_RAX: 0000000000000001  CS: 0033  SS: 002b
+/sys/bus/acpi/devices/LNXCPU:02 > ll sysdev
+lrwxrwxrwx. 1 root root 0 Feb  8 13:52 sysdev -> ../../system/cpu/cpu2
 
-Well, admittedly, I didn't think about this situation.
-
-Since the eject attribute is under the device we're going to remove, the
-removal has to be done from a different thread (e.g. workqueue).
-
-OK, I'll fix up the patch.
+So, one possible approach is to create a sysdev directory under
+PNP0C080:%d, and then create links to associated system/cpu/memory%d
+files underneath.  What do you think?
 
 Thanks,
-Rafael
+-Toshi
 
 
--- 
-I speak only for myself.
-Rafael J. Wysocki, Intel Open Source Technology Center.
