@@ -1,146 +1,387 @@
-From: Vasilis Liaskovitis <vasilis.liaskovitis@profitbricks.com>
-Subject: Re: [PATCH 7/7] ACPI / scan: Make memory hotplug driver use struct
- acpi_scan_handler
-Date: Wed, 20 Feb 2013 11:42:50 +0100
-Message-ID: <20130220104250.GA4409@dhcp-192-168-178-175.profitbricks.localdomain>
-References: <3260206.bhaAobGhpZ@vostro.rjw.lan>
- <2200731.3okUfey51A@vostro.rjw.lan>
- <20130219181157.GA4366@dhcp-192-168-178-175.profitbricks.localdomain>
- <51244494.4000603@jp.fujitsu.com>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: Re: [PATCH 2/7] ACPI / scan: Introduce common code for ACPI-based device hotplug
+Date: Wed, 20 Feb 2013 14:23:44 +0100
+Message-ID: <2868646.oscSukR6ks@vostro.rjw.lan>
+References: <3260206.bhaAobGhpZ@vostro.rjw.lan> <2540040.4NPGdn6Df0@vostro.rjw.lan> <51231EFC.5080006@jp.fujitsu.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <51244494.4000603@jp.fujitsu.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
-Cc: "Rafael J. Wysocki" <rjw@sisk.pl>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Bjorn Helgaas <bhelgaas@google.com>, LKML <linux-kernel@vger.kernel.org>, Yinghai Lu <yinghai@kernel.org>, Toshi Kani <toshi.kani@hp.com>, Jiang Liu <liuj97@gmail.com>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7Bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from hydra.sisk.pl ([212.160.235.94]:40254 "EHLO hydra.sisk.pl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S934921Ab3BTNRI (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 20 Feb 2013 08:17:08 -0500
+In-Reply-To: <51231EFC.5080006@jp.fujitsu.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
+Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Bjorn Helgaas <bhelgaas@google.com>, LKML <linux-kernel@vger.kernel.org>, Yinghai Lu <yinghai@kernel.org>, Toshi Kani <toshi.kani@hp.com>, Jiang Liu <liuj97@gmail.com>
 
-Hi Yasuaki,
-
-On Wed, Feb 20, 2013 at 12:35:48PM +0900, Yasuaki Ishimatsu wrote:
-> Hi Vasilis,
+On Tuesday, February 19, 2013 03:43:08 PM Yasuaki Ishimatsu wrote:
+> Hi Rafael,
 > 
-> 2013/02/20 3:11, Vasilis Liaskovitis wrote:
-> >Hi,
+> I have comments. Please see below.
+> 
+> 2013/02/18 0:21, Rafael J. Wysocki wrote:
+> > From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 > >
-> >On Sun, Feb 17, 2013 at 04:27:18PM +0100, Rafael J. Wysocki wrote:
-> >>From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
-> >>
-> >>Make the ACPI memory hotplug driver use struct acpi_scan_handler
-> >>for representing the object used to set up ACPI memory hotplug
-> >>functionality and to remove hotplug memory ranges and data
-> >>structures used by the driver before unregistering ACPI device
-> >>nodes representing memory.  Register the new struct acpi_scan_handler
-> >>object with the help of acpi_scan_add_handler_with_hotplug() to allow
-> >>user space to manipulate the attributes of the memory hotplug
-> >>profile.
+> > Multiple drivers handling hotplug-capable ACPI device nodes install
+> > notify handlers covering the same types of events in a very similar
+> > way.  Moreover, those handlers are installed in separate namespace
+> > walks, although that really should be done during namespace scans
+> > carried out by acpi_bus_scan().  This leads to substantial code
+> > duplication, unnecessary overhead and behavior that is hard to
+> > follow.
 > >
-> >Let's consider an example where we want acpi memory device ejection to be safely
-> >handled by userspace. We do the following:
+> > For this reason, introduce common code in drivers/acpi/scan.c for
+> > handling hotplug-related notification and carrying out device
+> > insertion and eject operations in a generic fashion, such that it
+> > may be used by all of the relevant drivers in the future.  To cover
+> > the existing differences between those drivers introduce struct
+> > acpi_hotplug_profile for representing collections of hotplug
+> > settings associated with different ACPI scan handlers that can be
+> > used by the drivers to make the common code reflect their current
+> > behavior.
 > >
-> >echo 0 > /sys/firmware/acpi/hotplug/memory/autoeject
-> >echo 1 > /sys/firmware/acpi/hotplug/memory/uevents
+> > Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+> > ---
+> >   drivers/acpi/scan.c     |  271 +++++++++++++++++++++++++++++++++++++-----------
+> >   include/acpi/acpi_bus.h |    7 +
+> >   2 files changed, 220 insertions(+), 58 deletions(-)
 > >
-> >We succesfully hotplug acpi device:
-> >/sys/devices/LNXSYSTM:00/LNXSYSBUS:00/PNP0C80:00
-> >and its corresponding memblocks /sys/devices/system/memory/memoryXX are
-> >also successfully onlined.
+> > Index: test/include/acpi/acpi_bus.h
+> > ===================================================================
+> > --- test.orig/include/acpi/acpi_bus.h
+> > +++ test/include/acpi/acpi_bus.h
+> > @@ -88,11 +88,18 @@ struct acpi_device;
+> >    * -----------------
+> >    */
 > >
-> >On an eject request, since uevents == 1, the kernel will emit KOBJ_OFFLINE for:
-> >/sys/devices/LNXSYSTM:00/LNXSYSBUS:00/PNP0C80:00
+> > +struct acpi_hotplug_profile {
+> > +	bool enabled:1;
+> > +	bool uevents:1;
+> > +	bool autoeject:1;
+> > +};
+> > +
+> >   struct acpi_scan_handler {
+> >   	const struct acpi_device_id *ids;
+> >   	struct list_head list_node;
+> >   	int (*attach)(struct acpi_device *dev, const struct acpi_device_id *id);
+> >   	void (*detach)(struct acpi_device *dev);
+> > +	struct acpi_hotplug_profile hotplug;
+> >   };
 > >
-> >Can userspace know which memblocks in /sys/devices/system/memory/memoryXX/
-> >correspond to the acpi device /sys/devices/LNXSYSTM:00/LNXSYSBUS:00/PNP0C80:00 ?
-> >This will be needed so that userspace tries to offline the memblocks (and only
-> >if successful, issue the eject operation on the acpi device). As far as I see,
-> >we don't create any sysfs links or files for this scenario - can userspace get
-> >this info somehow?
-> 
+> >   /*
+> > Index: test/drivers/acpi/scan.c
+> > ===================================================================
+> > --- test.orig/drivers/acpi/scan.c
+> > +++ test/drivers/acpi/scan.c
+> > @@ -107,32 +107,19 @@ acpi_device_modalias_show(struct device
+> >   }
+> >   static DEVICE_ATTR(modalias, 0444, acpi_device_modalias_show, NULL);
 > >
-> >/sys/devices/system/memory/memoryXX/phys_device needs to be properly implemented
-> >for this to work I think, see Documentation/ABI/testing/sysfs-memory
+> > -/**
+> > - * acpi_bus_hot_remove_device: hot-remove a device and its children
+> > - * @context: struct acpi_eject_event pointer (freed in this func)
+> > - *
+> > - * Hot-remove a device and its children. This function frees up the
+> > - * memory space passed by arg context, so that the caller may call
+> > - * this function asynchronously through acpi_os_hotplug_execute().
+> > - */
+> > -void acpi_bus_hot_remove_device(void *context)
+> > +static int acpi_scan_hot_remove(struct acpi_device *device)
+> >   {
+> > -	struct acpi_eject_event *ej_event = context;
+> > -	struct acpi_device *device = ej_event->device;
+> >   	acpi_handle handle = device->handle;
+> > -	acpi_handle temp;
+> > +	acpi_handle not_used;
+> >   	struct acpi_object_list arg_list;
+> >   	union acpi_object arg;
+> > -	acpi_status status = AE_OK;
+> > -	u32 ost_code = ACPI_OST_SC_NON_SPECIFIC_FAILURE; /* default */
+> > -
+> > -	mutex_lock(&acpi_scan_lock);
+> > +	acpi_status status;
 > >
-> >The following test patch works toward that direction. Let me know if it's of
-> >interest or if there are better ideas /comments.
+> >   	/* If there is no handle, the device node has been unregistered. */
+> > -	if (!device->handle) {
+> > +	if (!handle) {
+> >   		dev_dbg(&device->dev, "ACPI handle missing\n");
+> >   		put_device(&device->dev);
+> > -		goto out;
+> > +		return -EINVAL;
+> >   	}
+> >
+> >   	ACPI_DEBUG_PRINT((ACPI_DB_INFO,
+> > @@ -143,7 +130,7 @@ void acpi_bus_hot_remove_device(void *co
+> >   	put_device(&device->dev);
+> >   	device = NULL;
+> >
+> > -	if (ACPI_SUCCESS(acpi_get_handle(handle, "_LCK", &temp))) {
+> > +	if (ACPI_SUCCESS(acpi_get_handle(handle, "_LCK", &not_used))) {
+> >   		arg_list.count = 1;
+> >   		arg_list.pointer = &arg;
+> >   		arg.type = ACPI_TYPE_INTEGER;
+> > @@ -161,18 +148,162 @@ void acpi_bus_hot_remove_device(void *co
+> >   	 */
+> >   	status = acpi_evaluate_object(handle, "_EJ0", &arg_list, NULL);
+> >   	if (ACPI_FAILURE(status)) {
+> > -		if (status != AE_NOT_FOUND)
+> > +		if (status == AE_NOT_FOUND) {
+> > +			return -ENODEV;
+> > +		} else {
+> >   			acpi_handle_warn(handle, "Eject failed\n");
+> > +			return -EIO;
+> > +		}
+> > +	}
+> > +	return 0;
+> > +}
+> > +
+> > +static void acpi_bus_device_eject(void *context)
+> > +{
+> > +	acpi_handle handle = context;
+> > +	struct acpi_device *device = NULL;
+> > +	struct acpi_scan_handler *handler;
+> > +	u32 ost_source = ACPI_NOTIFY_EJECT_REQUEST;
+> > +	u32 ost_code = ACPI_OST_SC_NON_SPECIFIC_FAILURE;
+> > +
+> > +	mutex_lock(&acpi_scan_lock);
+> >
+> > -		/* Tell the firmware the hot-remove operation has failed. */
+> > -		acpi_evaluate_hotplug_ost(handle, ej_event->event,
+> > -					  ost_code, NULL);
+> > +	acpi_bus_get_device(handle, &device);
+> > +	if (!device)
+> > +		goto out;
+> > +
+> > +	handler = device->handler;
+> > +	if (!handler || !handler->hotplug.enabled) {
+> > +		ost_code = ACPI_OST_SC_EJECT_NOT_SUPPORTED;
+> > +		goto out;
+> >   	}
+> > +	acpi_evaluate_hotplug_ost(handle, ACPI_NOTIFY_EJECT_REQUEST,
+> > +				  ACPI_OST_SC_EJECT_IN_PROGRESS, NULL);
 > 
-> How about use ../PNP0C80:00/physical_node/resources file?
-> In my system, the file shows following information.
+> > +	if (handler->hotplug.uevents)
+> > +		kobject_uevent(&device->dev.kobj, KOBJ_OFFLINE);
+> > +
+> > +	if (handler->hotplug.autoeject) {
+> > +		int error;
+> > +
+> > +		ost_source = ACPI_OST_EC_OSPM_EJECT;
+> > +		get_device(&device->dev);
+> > +		error = acpi_scan_hot_remove(device);
+> > +		if (!error)
+> > +			ost_code = ACPI_OST_SC_SUCCESS;
+> > +	} else {
+> > +		device->flags.eject_pending = true;
+> > +		goto out_unlock;
+> > +	}
 > 
-> $ cat /sys/bus/acpi/devices/PNP0C80\:00/physical_node/resources
-> state = active
-> mem 0x0-0x80000000
-> mem 0x100000000-0x800000000
-> 
-> It means PNP0C80:00's memory ranges are "0x0-0x7fffffff" and
-> "0x100000000-0x7ffffffff". In x86 architecture, memory section size is
-> 128MiB. So, if these memory range is divided by 128MiB, you can
-> calculate memory section number as follow:
-> 
-> 0x0-0x7fffffff => 0x0-0x10
-> 0x100000000-0x7ffffffff => 0x20-0xff
-> 
-> But there is one problem. The problem is that resources file of added memory
-> is not created. If the problem is fixed, I think you can use the way.
+> I want you to change the order of uevents and autoeject.
+> When user caught OFFLINE event, user thinks devices were removed.
+> But it is not guaranteed in this code since acpi_scan_hot_remove() may
+> be running.
 
-thanks for your suggestion. Is this resources file a property of the
-physical_node or of each acpi devices? 
+Sure, I can do that.
 
-If it's a node specific file could there be a chance that adjacent memory
-ranges get merged? We 'd like these to not get merged.
+> > +
+> > + out:
+> > +	acpi_evaluate_hotplug_ost(handle, ost_source, ost_code, NULL);
+> > +
+> > + out_unlock:
+> > +	mutex_unlock(&acpi_scan_lock);
+> > +}
+> > +
+> > +static void acpi_scan_bus_device_check(acpi_handle handle, u32 ost_source)
+> > +{
+> > +	struct acpi_device *device = NULL;
+> > +	u32 ost_code = ACPI_OST_SC_NON_SPECIFIC_FAILURE;
+> > +	int error;
+> > +
+> > +	mutex_lock(&acpi_scan_lock);
+> > +
+> > +	acpi_bus_get_device(handle, &device);
+> > +	if (device) {
+> > +		dev_warn(&device->dev, "Attempt to re-insert\n");
+> > +		goto out;
+> > +	}
+> > +	acpi_evaluate_hotplug_ost(handle, ost_source,
+> > +				  ACPI_OST_SC_INSERT_IN_PROGRESS, NULL);
+> > +	ost_source = ACPI_OST_EC_OSPM_INSERTION;
+> > +	error = acpi_bus_scan(handle);
+> > +	if (error) {
+> > +		acpi_handle_warn(handle, "Namespace scan failure\n");
+> > +		goto out;
+> > +	}
+> > +	error = acpi_bus_get_device(handle, &device);
+> > +	if (error) {
+> > +		acpi_handle_warn(handle, "Missing device node object\n");
+> > +		goto out;
+> > +	}
+> > +	ost_code = ACPI_OST_SC_SUCCESS;
+> > +	if (device->handler && device->handler->hotplug.uevents)
+> > +		kobject_uevent(&device->dev.kobj, KOBJ_ONLINE);
+> >
+> >    out:
+> > +	acpi_evaluate_hotplug_ost(handle, ost_source, ost_code, NULL);
+> > +	mutex_unlock(&acpi_scan_lock);
+> > +}
+> > +
+> > +static void acpi_scan_bus_check(void *context)
+> > +{
+> > +	acpi_scan_bus_device_check((acpi_handle)context,
+> > +				   ACPI_NOTIFY_BUS_CHECK);
+> > +}
+> > +
+> > +static void acpi_scan_device_check(void *context)
+> > +{
+> > +	acpi_scan_bus_device_check((acpi_handle)context,
+> > +				   ACPI_NOTIFY_DEVICE_CHECK);
+> > +}
+> > +
+> > +static void acpi_hotplug_notify_cb(acpi_handle handle, u32 type, void *not_used)
+> > +{
+> > +	acpi_osd_exec_callback callback;
+> > +	acpi_status status;
+> > +
+> > +	switch (type) {
+> > +	case ACPI_NOTIFY_BUS_CHECK:
+> > +		acpi_handle_debug(handle, "ACPI_NOTIFY_BUS_CHECK event\n");
+> > +		callback = acpi_scan_bus_check;
+> > +		break;
+> > +	case ACPI_NOTIFY_DEVICE_CHECK:
+> > +		acpi_handle_debug(handle, "ACPI_NOTIFY_DEVICE_CHECK event\n");
+> > +		callback = acpi_scan_device_check;
+> > +		break;
+> > +	case ACPI_NOTIFY_EJECT_REQUEST:
+> > +		acpi_handle_debug(handle, "ACPI_NOTIFY_EJECT_REQUEST event\n");
+> > +		callback = acpi_bus_device_eject;
+> > +		break;
+> > +	default:
+> > +		/* non-hotplug event; possibly handled by other handler */
+> > +		return;
+> > +	}
+> > +	status = acpi_os_hotplug_execute(callback, handle);
+> > +	if (ACPI_FAILURE(status))
+> > +		acpi_evaluate_hotplug_ost(handle, type,
+> > +					  ACPI_OST_SC_NON_SPECIFIC_FAILURE,
+> > +					  NULL);
+> > +}
+> > +
+> > +/**
+> > + * acpi_bus_hot_remove_device: hot-remove a device and its children
+> > + * @context: struct acpi_eject_event pointer (freed in this func)
+> > + *
+> > + * Hot-remove a device and its children. This function frees up the
+> > + * memory space passed by arg context, so that the caller may call
+> > + * this function asynchronously through acpi_os_hotplug_execute().
+> > + */
+> > +void acpi_bus_hot_remove_device(void *context)
+> > +{
+> > +	struct acpi_eject_event *ej_event = context;
+> > +	struct acpi_device *device = ej_event->device;
+> > +	acpi_handle handle = device->handle;
+> > +	u32 ost_code = ACPI_OST_SC_SUCCESS;
+> > +	int error;
+> > +
+> > +	mutex_lock(&acpi_scan_lock);
+> > +
+> > +	error = acpi_scan_hot_remove(device);
+> > +	if (error)
+> > +		ost_code = ACPI_OST_SC_NON_SPECIFIC_FAILURE;
+> > +
+> > +	acpi_evaluate_hotplug_ost(handle, ej_event->event, ost_code, NULL);
+> > +
+> >   	mutex_unlock(&acpi_scan_lock);
+> >   	kfree(context);
+> > -	return;
+> >   }
+> >   EXPORT_SYMBOL(acpi_bus_hot_remove_device);
+> >
+> > @@ -206,50 +337,48 @@ static ssize_t
+> >   acpi_eject_store(struct device *d, struct device_attribute *attr,
+> >   		const char *buf, size_t count)
+> >   {
+> > -	int ret = count;
+> > -	acpi_status status;
+> > -	acpi_object_type type = 0;
+> >   	struct acpi_device *acpi_device = to_acpi_device(d);
+> > -	struct acpi_eject_event *ej_event;
+> > +	acpi_object_type not_used;
+> > +	acpi_status status;
+> > +	u32 ost_source;
+> > +	u32 ost_code;
+> > +	int ret;
+> >
+> > -	if ((!count) || (buf[0] != '1')) {
+> > +	if (!count || buf[0] != '1')
+> >   		return -EINVAL;
+> > -	}
+> > -	if (!acpi_device->driver && !acpi_device->handler) {
+> > -		ret = -ENODEV;
+> > -		goto err;
+> > -	}
+> > -	status = acpi_get_type(acpi_device->handle, &type);
+> > -	if (ACPI_FAILURE(status) || (!acpi_device->flags.ejectable)) {
+> > -		ret = -ENODEV;
+> > -		goto err;
+> > -	}
+> >
+> > -	ej_event = kmalloc(sizeof(*ej_event), GFP_KERNEL);
+> > -	if (!ej_event) {
+> > -		ret = -ENOMEM;
+> > -		goto err;
+> > -	}
+> > +	if ((!acpi_device->handler || !acpi_device->handler->hotplug.enabled)
+> > +	    && !acpi_device->driver)
+> > +		return -ENODEV;
+> > +
+> > +	status = acpi_get_type(acpi_device->handle, &not_used);
+> > +	if (ACPI_FAILURE(status) || !acpi_device->flags.ejectable)
+> > +		return -ENODEV;
+> > +
+> > +	mutex_lock(&acpi_scan_lock);
+> >
+> > -	get_device(&acpi_device->dev);
+> > -	ej_event->device = acpi_device;
+> >   	if (acpi_device->flags.eject_pending) {
+> > -		/* event originated from ACPI eject notification */
+> > -		ej_event->event = ACPI_NOTIFY_EJECT_REQUEST;
+> > +		/* ACPI eject notification event. */
+> > +		ost_source = ACPI_NOTIFY_EJECT_REQUEST;
+> >   		acpi_device->flags.eject_pending = 0;
+> >   	} else {
+> > -		/* event originated from user */
+> > -		ej_event->event = ACPI_OST_EC_OSPM_EJECT;
+> > -		(void) acpi_evaluate_hotplug_ost(acpi_device->handle,
+> > -			ej_event->event, ACPI_OST_SC_EJECT_IN_PROGRESS, NULL);
+> > +		/* Eject initiated by user space. */
+> > +		ost_source = ACPI_OST_EC_OSPM_EJECT;
+> >   	}
+> > -
+> 
+> > -	status = acpi_os_hotplug_execute(acpi_bus_hot_remove_device, ej_event);
+> > -	if (ACPI_FAILURE(status)) {
+> > -		put_device(&acpi_device->dev);
+> > -		kfree(ej_event);
+> > +	acpi_evaluate_hotplug_ost(acpi_device->handle, ost_source,
+> > +				  ACPI_OST_SC_EJECT_IN_PROGRESS, NULL);
+> > +	get_device(&acpi_device->dev);
+> > +	ret = acpi_scan_hot_remove(acpi_device);
+> 
+> Why don't you use acpi_os_hotplug_execute()? Do you have some reason?
 
-I will look more into this property. I don't see it currently in my system
-(probably because initial memory is not backed by acpi devices in my
- seabios/virtual machine).
+Yes, I do.  acpi_eject_store() is run in a separate thread anyway (started by
+user space), so there's no need to use the workqueue for delayed execution here
+and we are under acpi_scan_lock anyway, so there shouldn't be any concurrency
+issues.
 
-> 
-[...] 
-> >+int acpi_memory_phys_device(unsigned long start_pfn)
-> >+{
-> >+	struct acpi_memory_device *mem_dev;
-> >+	struct acpi_memory_info *info;
-> >+	unsigned long start_addr = start_pfn << PAGE_SHIFT;
-> >+	int id = 0;
-> >+
-> >+	list_for_each_entry(mem_dev, &acpi_mem_device_list, mem_device_list) {
-> >+		list_for_each_entry(info, &mem_dev->res_list, list) {
-> >+			if ((info->start_addr <= start_addr) &&
-> >+				(info->start_addr + info->length > start_addr))
-> >+				return id;
-> >+		}
-> >+		id++;
-> >+	}
-> 
-> I don't think this solve your problem.
-> 
-> When hot adding memory device in my system, consecutive index number is
-> applied to PNP0C80 as follows:
-> 
-> $ ls /sys/bus/acpi/devices/ |grep PNP0C80
-> PNP0C80:00
-> PNP0C80:01  => hot added memory device
-> PNP0C80:02  => hot added memory device
-> 
-> In this case, we can know PNP0C80:YY by memoryXX/phys_device file.
-> But if hot removing and adding the same device, index number is changed
-> as follows:
-> 
-> $ ls /sys/bus/acpi/devices/
-> PNP0C80:00
-> PNP0C80:03  => hot added memory device
-> PNP0C80:04  => hot added memory device
-> 
-> In this case, we cannot know PNP0C80:YY by memoryXX/phys_device file.
->
+Thanks,
+Rafael
 
-thanks, yes you are right. I forgot each new hotplug event will create a new
-PNP0C80:XX device where XX always increases. So the hot-add/hot-remove/hot-add
-scenario would have a problem.
-Then it would be enough to be able to return this monotonically increasing
-counter from phys_device instead of the current list iterator. Is this counter
-available somehwere in drivers/acpi/scan.c or bus.c? I 'll take a look.
 
-thanks,
-
-- Vasilis
+-- 
+I speak only for myself.
+Rafael J. Wysocki, Intel Open Source Technology Center.
