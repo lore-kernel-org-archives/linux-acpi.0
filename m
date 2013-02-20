@@ -1,101 +1,53 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: [PATCH 2/7] ACPI / scan: Introduce common code for ACPI-based device hotplug
-Date: Wed, 20 Feb 2013 14:27:30 +0100
-Message-ID: <1502998.UgYRH5gaN4@vostro.rjw.lan>
-References: <3260206.bhaAobGhpZ@vostro.rjw.lan> <51231EFC.5080006@jp.fujitsu.com> <51232557.2050302@jp.fujitsu.com>
+From: Len Brown <lenb@kernel.org>
+Subject: Re: [PATCH v2] APM idle: register apm_cpu_idle via cpuidle
+Date: Wed, 20 Feb 2013 12:48:33 -0500
+Message-ID: <51250C71.6080109@kernel.org>
+References: <5118B776.6090604@linaro.org> <1360623789-12247-1-git-send-email-lenb@kernel.org> <17242de27db147c4f828d6089016e1f485c038fb.1360623445.git.len.brown@intel.com> <alpine.LNX.2.00.1302181429570.17024@pobox.suse.cz>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from hydra.sisk.pl ([212.160.235.94]:40265 "EHLO hydra.sisk.pl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S934923Ab3BTNUy (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 20 Feb 2013 08:20:54 -0500
-In-Reply-To: <51232557.2050302@jp.fujitsu.com>
+Received: from mail-qa0-f45.google.com ([209.85.216.45]:42977 "EHLO
+	mail-qa0-f45.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932966Ab3BTRsi (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 20 Feb 2013 12:48:38 -0500
+In-Reply-To: <alpine.LNX.2.00.1302181429570.17024@pobox.suse.cz>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
-Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Bjorn Helgaas <bhelgaas@google.com>, LKML <linux-kernel@vger.kernel.org>, Yinghai Lu <yinghai@kernel.org>, Toshi Kani <toshi.kani@hp.com>, Jiang Liu <liuj97@gmail.com>
+To: Jiri Kosina <jkosina@suse.cz>
+Cc: linux-acpi@vger.kernel.org, linux-pm@vger.kernel.org, linux-kernel@vger.kernel.org, Len Brown <len.brown@intel.com>
 
-On Tuesday, February 19, 2013 04:10:15 PM Yasuaki Ishimatsu wrote:
-> 2013/02/19 15:43, Yasuaki Ishimatsu wrote:
-> > Hi Rafael,
-> >
-> > I have comments. Please see below.
-> >
-> > 2013/02/18 0:21, Rafael J. Wysocki wrote:
-> >> From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
-> >>
-> >> Multiple drivers handling hotplug-capable ACPI device nodes install
-> >> notify handlers covering the same types of events in a very similar
-> >> way.  Moreover, those handlers are installed in separate namespace
-> >> walks, although that really should be done during namespace scans
-> >> carried out by acpi_bus_scan().  This leads to substantial code
-> >> duplication, unnecessary overhead and behavior that is hard to
-> >> follow.
-> >>
-> >> For this reason, introduce common code in drivers/acpi/scan.c for
-> >> handling hotplug-related notification and carrying out device
-> >> insertion and eject operations in a generic fashion, such that it
-> >> may be used by all of the relevant drivers in the future.  To cover
-> >> the existing differences between those drivers introduce struct
-> >> acpi_hotplug_profile for representing collections of hotplug
-> >> settings associated with different ACPI scan handlers that can be
-> >> used by the drivers to make the common code reflect their current
-> >> behavior.
-> >>
-> >> Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
-> >> ---
-> >>   drivers/acpi/scan.c     |  271 +++++++++++++++++++++++++++++++++++++-----------
-> >>   include/acpi/acpi_bus.h |    7 +
-> >>   2 files changed, 220 insertions(+), 58 deletions(-)
-> >>
-[...]
+On 02/18/2013 08:30 AM, Jiri Kosina wrote:
+> On Mon, 11 Feb 2013, Len Brown wrote:
 > 
-> >> +static void acpi_scan_bus_device_check(acpi_handle handle, u32 ost_source)
-> >> +{
-> >> +    struct acpi_device *device = NULL;
-> >> +    u32 ost_code = ACPI_OST_SC_NON_SPECIFIC_FAILURE;
-> >> +    int error;
-> >> +
-> >> +    mutex_lock(&acpi_scan_lock);
-> >> +
-> >> +    acpi_bus_get_device(handle, &device);
-> >> +    if (device) {
-> >> +        dev_warn(&device->dev, "Attempt to re-insert\n");
-> >> +        goto out;
-> >> +    }
-> >> +    acpi_evaluate_hotplug_ost(handle, ost_source,
-> >> +                  ACPI_OST_SC_INSERT_IN_PROGRESS, NULL);
-> >> +    ost_source = ACPI_OST_EC_OSPM_INSERTION;
-> >> +    error = acpi_bus_scan(handle);
-> >> +    if (error) {
-> >> +        acpi_handle_warn(handle, "Namespace scan failure\n");
-> >> +        goto out;
-> >> +    }
-> >> +    error = acpi_bus_get_device(handle, &device);
-> >> +    if (error) {
-> >> +        acpi_handle_warn(handle, "Missing device node object\n");
-> >> +        goto out;
-> >> +    }
-> >> +    ost_code = ACPI_OST_SC_SUCCESS;
-> >> +    if (device->handler && device->handler->hotplug.uevents)
-> >> +        kobject_uevent(&device->dev.kobj, KOBJ_ONLINE);
-> >>
-> >>    out:
-> >> +    acpi_evaluate_hotplug_ost(handle, ost_source, ost_code, NULL);
-> >> +    mutex_unlock(&acpi_scan_lock);
-> >> +}
+>> From: Len Brown <len.brown@intel.com>
+>>
+>> Update APM to register its local idle routine with cpuidle.
+>>
+>> This allows us to stop exporting pm_idle to modules on x86.
+>>
+>> The Kconfig sub-option, APM_CPU_IDLE, now depends on on CPU_IDLE.
+>>
+>> Compile-tested only.
 > 
-> Why don't you check _STA method in acpi_scan_bus_device_check()?
-> When hot adding new device, we must check _STA method of the device.
+> I will test it on APM hardware and report back to you.
+> 
+> Do you then want me to take it through my tree, or are you going to push 
+> the whole patchset as a whole?
 
-Yes, which is going to happen in acpi_bus_scan().
+Rafael took my series as a whole into his PM tree
+and it is currently staged for a 3.9 pull.
+But if I broke your APM box, I'm standing by
+ready to fix it during the release.
 
-Thanks,
-Rafael
+Please get back to me with the test results:
+
+dmesg | grep idle
+grep . /sys/devices/system/cpu/cpu*/cpuidle/*/*
+
+would tell us if it is working or not.
+
+thanks!
+-Len Brown, Intel Open Source Technology Center
 
 
--- 
-I speak only for myself.
-Rafael J. Wysocki, Intel Open Source Technology Center.
