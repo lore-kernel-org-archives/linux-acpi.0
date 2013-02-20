@@ -1,165 +1,40 @@
-From: "Lee, Chun-Yi" <joeyli.kernel@gmail.com>
-Subject: [RESEND][PATCH] gpu: remove gma500 stub driver
-Date: Wed, 20 Feb 2013 14:32:01 +0800
-Message-ID: <1361341921-11435-1-git-send-email-jlee@suse.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: gregkh@linuxfoundation.org
-Cc: dri-devel@lists.freedesktop.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, "Lee, Chun-Yi" <jlee@suse.com>, randy.dunlap@oracle.com, trenn@suse.de, Valdis.Kletnieks@vt.edu, Dennis.Jansen@web.de, airlied@redhat.com, eric@anholt.net, alexdeucher@gmail.com, bskeggs@redhat.com, chris@chris-wilson.co.uk, Alan Cox <alan@lxorguk.ukuu.org.uk>
+From: David Rientjes <rientjes@google.com>
+Subject: Re: [PATCH v4 1/4] acpi: move x86/mm/srat.c to
+ x86/kernel/acpi/srat.c
+Date: Tue, 19 Feb 2013 23:00:08 -0800 (PST)
+Message-ID: <alpine.DEB.2.02.1302192254440.27407@chino.kir.corp.google.com>
+References: <1360894992-14818-1-git-send-email-lig.fnst@cn.fujitsu.com> <1360894992-14818-2-git-send-email-lig.fnst@cn.fujitsu.com> <alpine.DEB.2.02.1302191320410.6322@chino.kir.corp.google.com> <1361324355.7859.35.camel@liguang.fnst.cn.fujitsu.com>
+ <1361325113.7859.37.camel@liguang.fnst.cn.fujitsu.com> <alpine.DEB.2.02.1302191802490.14999@chino.kir.corp.google.com> <1361326913.7859.41.camel@liguang.fnst.cn.fujitsu.com> <1361327201.7859.44.camel@liguang.fnst.cn.fujitsu.com>
+ <alpine.DEB.2.02.1302191902470.18957@chino.kir.corp.google.com> <1361330196.7859.51.camel@liguang.fnst.cn.fujitsu.com>
+Mime-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-da0-f46.google.com ([209.85.210.46]:40219 "EHLO
+	mail-da0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756453Ab3BTHAL (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 20 Feb 2013 02:00:11 -0500
+Received: by mail-da0-f46.google.com with SMTP id p5so3399976dak.33
+        for <linux-acpi@vger.kernel.org>; Tue, 19 Feb 2013 23:00:10 -0800 (PST)
+In-Reply-To: <1361330196.7859.51.camel@liguang.fnst.cn.fujitsu.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: li guang <lig.fnst@cn.fujitsu.com>
+Cc: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, x86@kernel.org, isimatu.yasuaki@jp.fujitsu.com
 
-In v3.3, the gma500 drm driver moved from staging to drm group by
-Alan Cox's 3abcf41fb patch. the gma500 drm driver should control
-brightness well and don't need gma500 stub driver anymore.
+On Wed, 20 Feb 2013, li guang wrote:
 
-Reference:
-http://lists.freedesktop.org/archives/dri-devel/2012-May/023426.html
-http://lists.freedesktop.org/archives/dri-devel/2012-May/023467.html
+> Yes, I know there's no new changes in my patch as I said before(not
+> based on lasted), but as I try to apply my patch(1/4), it will do
+> the right work to move current srat.c from arch/x86/mm/ to
+> arch/x86/kernel/acpi/ regardless of what I based is not latest.
+> 
 
-Cc: randy.dunlap@oracle.com
-Cc: trenn@suse.de
-Cc: Valdis.Kletnieks@vt.edu
-Cc: Dennis.Jansen@web.de
-Cc: airlied@redhat.com
-Cc: eric@anholt.net
-Cc: alexdeucher@gmail.com
-Cc: bskeggs@redhat.com
-Cc: chris@chris-wilson.co.uk
-Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
-Acked-by: Matthew Garrett <mjg59@srcf.ucam.org>
-Acked-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Signed-off-by: Lee, Chun-Yi <jlee@suse.com>
----
- drivers/gpu/Makefile       |    2 +-
- drivers/gpu/stub/Kconfig   |   18 ------------
- drivers/gpu/stub/Makefile  |    1 -
- drivers/gpu/stub/poulsbo.c |   64 --------------------------------------------
- drivers/video/Kconfig      |    2 -
- 5 files changed, 1 insertions(+), 86 deletions(-)
- delete mode 100644 drivers/gpu/stub/Kconfig
- delete mode 100644 drivers/gpu/stub/Makefile
- delete mode 100644 drivers/gpu/stub/poulsbo.c
+Sorry, but that makes no sense.  Your patch cannot be used cleanly if 
+there have been subsequent changes to a hunk prior to applying it -- in 
+this case the hunk would be the entire file since you're removing it.
 
-diff --git a/drivers/gpu/Makefile b/drivers/gpu/Makefile
-index cc92778..30879df 100644
---- a/drivers/gpu/Makefile
-+++ b/drivers/gpu/Makefile
-@@ -1 +1 @@
--obj-y			+= drm/ vga/ stub/
-+obj-y			+= drm/ vga/
-diff --git a/drivers/gpu/stub/Kconfig b/drivers/gpu/stub/Kconfig
-deleted file mode 100644
-index 4199179..0000000
---- a/drivers/gpu/stub/Kconfig
-+++ /dev/null
-@@ -1,18 +0,0 @@
--config STUB_POULSBO
--	tristate "Intel GMA500 Stub Driver"
--	depends on PCI
--	depends on NET # for THERMAL
--	# Poulsbo stub depends on ACPI_VIDEO when ACPI is enabled
--	# but for select to work, need to select ACPI_VIDEO's dependencies, ick
--	select BACKLIGHT_CLASS_DEVICE if ACPI
--	select VIDEO_OUTPUT_CONTROL if ACPI
--	select INPUT if ACPI
--	select ACPI_VIDEO if ACPI
--	select THERMAL if ACPI
--	help
--	  Choose this option if you have a system that has Intel GMA500
--	  (Poulsbo) integrated graphics. If M is selected, the module will
--	  be called Poulsbo. This driver is a stub driver for Poulsbo that
--	  will call poulsbo.ko to enable the acpi backlight control sysfs
--	  entry file because there have no poulsbo native driver can support
--	  intel opregion.
-diff --git a/drivers/gpu/stub/Makefile b/drivers/gpu/stub/Makefile
-deleted file mode 100644
-index cd940cc..0000000
---- a/drivers/gpu/stub/Makefile
-+++ /dev/null
-@@ -1 +0,0 @@
--obj-$(CONFIG_STUB_POULSBO) += poulsbo.o
-diff --git a/drivers/gpu/stub/poulsbo.c b/drivers/gpu/stub/poulsbo.c
-deleted file mode 100644
-index 7edfd27..0000000
---- a/drivers/gpu/stub/poulsbo.c
-+++ /dev/null
-@@ -1,64 +0,0 @@
--/*
-- * Intel Poulsbo Stub driver
-- *
-- * Copyright (C) 2010 Novell <jlee@novell.com>
-- *
-- * This program is free software; you can redistribute it and/or modify it
-- * under the terms of the GNU General Public License version 2 as published by
-- * the Free Software Foundation.
-- *
-- */
--
--#include <linux/module.h>
--#include <linux/pci.h>
--#include <linux/acpi.h>
--#include <acpi/video.h>
--
--#define DRIVER_NAME "poulsbo"
--
--enum {
--	CHIP_PSB_8108 = 0,
--	CHIP_PSB_8109 = 1,
--};
--
--static DEFINE_PCI_DEVICE_TABLE(pciidlist) = {
--	{0x8086, 0x8108, PCI_ANY_ID, PCI_ANY_ID, 0, 0, CHIP_PSB_8108}, \
--	{0x8086, 0x8109, PCI_ANY_ID, PCI_ANY_ID, 0, 0, CHIP_PSB_8109}, \
--	{0, 0, 0}
--};
--
--static int poulsbo_probe(struct pci_dev *pdev, const struct pci_device_id *id)
--{
--	return acpi_video_register();
--}
--
--static void poulsbo_remove(struct pci_dev *pdev)
--{
--	acpi_video_unregister();
--}
--
--static struct pci_driver poulsbo_driver = {
--	.name = DRIVER_NAME,
--	.id_table = pciidlist,
--	.probe = poulsbo_probe,
--	.remove = poulsbo_remove,
--};
--
--static int __init poulsbo_init(void)
--{
--	return pci_register_driver(&poulsbo_driver);
--}
--
--static void __exit poulsbo_exit(void)
--{
--	pci_unregister_driver(&poulsbo_driver);
--}
--
--module_init(poulsbo_init);
--module_exit(poulsbo_exit);
--
--MODULE_AUTHOR("Lee, Chun-Yi <jlee@novell.com>");
--MODULE_DESCRIPTION("Poulsbo Stub Driver");
--MODULE_LICENSE("GPL");
--
--MODULE_DEVICE_TABLE(pci, pciidlist);
-diff --git a/drivers/video/Kconfig b/drivers/video/Kconfig
-index d08d799..cc99f41 100644
---- a/drivers/video/Kconfig
-+++ b/drivers/video/Kconfig
-@@ -21,8 +21,6 @@ source "drivers/gpu/vga/Kconfig"
- 
- source "drivers/gpu/drm/Kconfig"
- 
--source "drivers/gpu/stub/Kconfig"
--
- config VGASTATE
-        tristate
-        default n
--- 
-1.6.0.2
+These patches would also be pushed by the x86 maintainers, who are not 
+cc'd on this patch, and I think it would be unfair to ask them to make up 
+for your inability to generate a bleeding edge patch with linux-next.  The 
+changes already cited in this thread have been in linux-next for almost 
+two weeks, yet you refuse to rebase on top of them.
