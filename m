@@ -1,195 +1,90 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: [BUG bisected]: apei_hest_parse explosion
-Date: Fri, 22 Feb 2013 03:19:11 +0100
-Message-ID: <4867361.uTndA5QxsU@vostro.rjw.lan>
-References: <alpine.LFD.2.02.1302220002040.22263@ionos> <CAE9FiQXV43emyjjCb=D=xFLz-n6q0Eu0uQmVhAA470A=FGRhww@mail.gmail.com> <3310807.g9DvzzvEFn@vostro.rjw.lan>
+From: Joe Perches <joe@perches.com>
+Subject: [PATCH] acpi: sleep: Avoid interleaved message on errors
+Date: Thu, 21 Feb 2013 23:37:36 -0800
+Message-ID: <1361518656.1896.4.camel@joe-AO722>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="ISO-8859-1"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from hydra.sisk.pl ([212.160.235.94]:41135 "EHLO hydra.sisk.pl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753037Ab3BVCMd (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 21 Feb 2013 21:12:33 -0500
-In-Reply-To: <3310807.g9DvzzvEFn@vostro.rjw.lan>
+Received: from perches-mx.perches.com ([206.117.179.246]:52715 "EHLO
+	labridge.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1752070Ab3BVHhi (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 22 Feb 2013 02:37:38 -0500
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Yinghai Lu <yinghai@kernel.org>, Thomas Gleixner <tglx@linutronix.de>
-Cc: LKML <linux-kernel@vger.kernel.org>, Toshi Kani <toshi.kani@hp.com>, Huang Ying <ying.huang@intel.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>
+To: Len Brown <lenb@kernel.org>, "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: linux-acpi <linux-acpi@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>
 
-On Friday, February 22, 2013 02:40:58 AM Rafael J. Wysocki wrote:
-> On Thursday, February 21, 2013 05:23:19 PM Yinghai Lu wrote:
-> > On Thu, Feb 21, 2013 at 4:15 PM, Rafael J. Wysocki <rjw@sisk.pl> wrote:
-> > > On Friday, February 22, 2013 12:56:01 AM Thomas Gleixner wrote:
-> > >> Just booted linus head on one of my old kvm based testing systems and
-> > >> got the following splat:
-> > >>
-> > >> [    0.531910] BUG: unable to handle kernel NULL pointer dereference at 0000000000000024
-> > >> [    0.532173] IP: [<ffffffff812f1bd2>] apei_hest_parse+0xd2/0xf0
-> > >> [    0.532173] PGD 0
-> > >> [    0.532173] Oops: 0000 [#1] PREEMPT SMP
-> > >> [    0.532173] Modules linked in:
-> > >> [    0.532173] CPU 3
-> > >> [    0.532173] Pid: 1, comm: swapper/0 Not tainted 3.8.0+ #195 Bochs Bochs
-> > >> [    0.532173] RIP: 0010:[<ffffffff812f1bd2>]  [<ffffffff812f1bd2>] apei_hest_parse+0xd2/0xf0
-> > >> [    0.532173] RSP: 0000:ffff88021685be78  EFLAGS: 00010206
-> > >> [    0.532173] RAX: 0000000000000000 RBX: 0000000000000000 RCX: 0000000000000000
-> > >> [    0.532173] RDX: 0000000000000000 RSI: 0000000000000000 RDI: 0000000000000028
-> > >> [    0.532173] RBP: ffff88021685be98 R08: 00000000804efb06 R09: 0000000000000000
-> > >> [    0.532173] R10: 0000000000000001 R11: 0000000000000000 R12: ffffffff81af3d40
-> > >> [    0.532173] R13: ffffffff812bcb23 R14: 0000000000000000 R15: 0000000000000000
-> > >> [    0.532173] FS:  0000000000000000(0000) GS:ffff88021fcc0000(0000) knlGS:0000000000000000
-> > >> [    0.532173] CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
-> > >> [    0.532173] CR2: 0000000000000024 CR3: 0000000001a0c000 CR4: 00000000000406a0
-> > >> [    0.532173] DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
-> > >> [    0.532173] DR3: 0000000000000000 DR6: 00000000ffff0ff0 DR7: 0000000000000400
-> > >> [    0.532173] Process swapper/0 (pid: 1, threadinfo ffff88021685a000, task ffff8802168c0000)
-> > >> [    0.532173] Stack:
-> > >> [    0.532173]  00000000fffffffa ffffffff81af3d40 0000000000000000 000000001fb3f55a
-> > >> [    0.532173]  ffff88021685bea8 ffffffff812bcbe4 ffff88021685bec8 ffffffff81af3d5c
-> > >> [    0.532173]  0000000000000030 0000000000000030 ffff88021685bef8 ffffffff8100023b
-> > >> [    0.532173] Call Trace:
-> > >> [    0.532173]  [<ffffffff81af3d40>] ? pcie_portdrv_init+0x7a/0x7a
-> > >> [    0.532173]  [<ffffffff812bcbe4>] aer_acpi_firmware_first+0x20/0x30
-> > >> [    0.532173]  [<ffffffff81af3d5c>] aer_service_init+0x1c/0x35
-> > >> [    0.532173]  [<ffffffff8100023b>] do_one_initcall+0x57/0x13c
-> > >> [    0.532173]  [<ffffffff81ad2d39>] kernel_init_freeable+0x142/0x1d1
-> > >> [    0.532173]  [<ffffffff81ad254f>] ? loglevel+0x31/0x31
-> > >> [    0.532173]  [<ffffffff815a8cef>] ? rest_init+0xc3/0xc3
-> > >> [    0.532173]  [<ffffffff815a8cfd>] kernel_init+0xe/0xd6
-> > >> [    0.532173]  [<ffffffff815bc73c>] ret_from_fork+0x7c/0xb0
-> > >> [    0.532173]  [<ffffffff815a8cef>] ? rest_init+0xc3/0xc3
-> > >> [    0.532173] Code: 14 0f b7 77 02 31 c0 48 c7 c7 65 c1 83 81 e8 35 1a 2c 00 eb 23 4c 89 f6 41 ff d5 85 c0 75 1e 4c 89 e7 ff c3 48 8b 05 a6 5b 7c 00 <3b> 58 24 0f 82 5a ff ff ff 31 c0 eb 05 b8 ea ff ff ff 5b 41 5c
-> > >>
-> > >> git bisect identified the following commit:
-> > >>
-> > >> commit 92ef2a25c763338905dce8344a0584606f842920
-> > >> Author: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
-> > >> Date:   Fri Dec 21 00:36:40 2012 +0100
-> > >>
-> > >>     ACPI: Change the ordering of PCI root bridge driver registrarion
-> > >>
-> > >> A revert is impossible w/o major surgery, so I'm going to bed and let
-> > >> the involved folks think about it.
-> > >
-> > > Can you please post a dmesg boot log from v3.8 on the same system?
-> > >
-> > 
-> > looks at the code flow, acpi_hest_init() is called early correctly.
-> > 
-> > later aer_acpi_firmware_first() should not hit hest_tab is NULL, but
-> > hest_disable is not set.
-> > 
-> > could be some data corruption.. near hest_disable or hest_tab.
-> 
-> Yes, that's really odd.
-> 
-> It looks like the hest_tab memory mapping is unmapped between acpi_hest_init()
-> and aer_acpi_firmware_first(), but I have no idea what may be responsible for
-> that.
-> 
-> And the only relevant difference between now and before the commit above seems
-> to be the change of the acpi_hest_init() ordering (which now is called earlier).
+Got this dmesg log on an Acer Aspire 725.
 
-We actually don't really need to do that thing so early, I think.  It looks like
-we only need to make it available early enough for the AER driver to be able to
-use it, so I wonder if moving the acpi_hest_init() to a separate
-subsys_initcall() will work around the problem.  That is, something like the
-patch below.
+[    0.256351] ACPI: (supports S0ACPI Exception: AE_NOT_FOUND, While evaluating Sleep State [\_S1_] (20130117/hwxface-568)
+[    0.256373] ACPI Exception: AE_NOT_FOUND, While evaluating Sleep State [\_S2_] (20130117/hwxface-568)
+[    0.256391]  S3 S4 S5)
 
-But even if this helps, I will be wanting to understand what's up here.
+Avoid this interleaving error messages.
 
-Thanks,
-Rafael
-
-
+Signed-off-by: Joe Perches <joe@perches.com>
 ---
- drivers/acpi/apei/hest.c |   17 +++++++++++------
- drivers/acpi/pci_root.c  |    2 --
- include/acpi/apei.h      |    6 ------
- 3 files changed, 11 insertions(+), 14 deletions(-)
+ drivers/acpi/sleep.c | 16 +++++++++++-----
+ 1 file changed, 11 insertions(+), 5 deletions(-)
 
-Index: test/drivers/acpi/apei/hest.c
-===================================================================
---- test.orig/drivers/acpi/apei/hest.c
-+++ test/drivers/acpi/apei/hest.c
-@@ -205,7 +205,7 @@ static int __init setup_hest_disable(cha
+diff --git a/drivers/acpi/sleep.c b/drivers/acpi/sleep.c
+index 6d3a06a..2421303 100644
+--- a/drivers/acpi/sleep.c
++++ b/drivers/acpi/sleep.c
+@@ -599,7 +599,6 @@ static void acpi_sleep_suspend_setup(void)
+ 		status = acpi_get_sleep_type_data(i, &type_a, &type_b);
+ 		if (ACPI_SUCCESS(status)) {
+ 			sleep_states[i] = 1;
+-			pr_cont(" S%d", i);
+ 		}
+ 	}
  
- __setup("hest_disable", setup_hest_disable);
+@@ -742,7 +741,6 @@ static void acpi_sleep_hibernate_setup(void)
+ 	hibernation_set_ops(old_suspend_ordering ?
+ 			&acpi_hibernation_ops_old : &acpi_hibernation_ops);
+ 	sleep_states[ACPI_STATE_S4] = 1;
+-	pr_cont(KERN_CONT " S4");
+ 	if (nosigcheck)
+ 		return;
  
--void __init acpi_hest_init(void)
-+static int __init acpi_hest_init(void)
+@@ -788,6 +786,9 @@ int __init acpi_sleep_init(void)
  {
  	acpi_status status;
- 	int rc = -ENODEV;
-@@ -213,7 +213,7 @@ void __init acpi_hest_init(void)
- 
- 	if (hest_disable) {
- 		pr_info(HEST_PFX "Table parsing disabled.\n");
--		return;
-+		return 0;
- 	}
+ 	u8 type_a, type_b;
++	char supported[ACPI_S_STATE_COUNT * 3 + 1];
++	char *pos = supported;
++	int i;
  
  	if (acpi_disabled)
-@@ -221,9 +221,10 @@ void __init acpi_hest_init(void)
+ 		return 0;
+@@ -795,7 +796,6 @@ int __init acpi_sleep_init(void)
+ 	acpi_sleep_dmi_check();
  
- 	status = acpi_get_table(ACPI_SIG_HEST, 0,
- 				(struct acpi_table_header **)&hest_tab);
--	if (status == AE_NOT_FOUND)
-+	if (status == AE_NOT_FOUND) {
-+		pr_info(HEST_PFX "Table not found.\n");
- 		goto err;
--	else if (ACPI_FAILURE(status)) {
-+	} else if (ACPI_FAILURE(status)) {
- 		const char *msg = acpi_format_exception(status);
- 		pr_err(HEST_PFX "Failed to get table, %s\n", msg);
- 		rc = -EINVAL;
-@@ -240,7 +241,11 @@ void __init acpi_hest_init(void)
+ 	sleep_states[ACPI_STATE_S0] = 1;
+-	pr_info(PREFIX "(supports S0");
+ 
+ 	acpi_sleep_suspend_setup();
+ 	acpi_sleep_hibernate_setup();
+@@ -803,11 +803,17 @@ int __init acpi_sleep_init(void)
+ 	status = acpi_get_sleep_type_data(ACPI_STATE_S5, &type_a, &type_b);
+ 	if (ACPI_SUCCESS(status)) {
+ 		sleep_states[ACPI_STATE_S5] = 1;
+-		pr_cont(" S5");
+ 		pm_power_off_prepare = acpi_power_off_prepare;
+ 		pm_power_off = acpi_power_off;
  	}
- 
- 	pr_info(HEST_PFX "Table parsing has been initialized.\n");
--	return;
--err:
-+	return 0;
+-	pr_cont(")\n");
 +
-+ err:
- 	hest_disable = 1;
-+	return rc;
- }
++	supported[0] = 0;
++	for (i = 0; i < ACPI_S_STATE_COUNT; i++) {
++		if (sleep_states[i])
++			pos += sprintf(pos, " S%d", i);
++	}
++	pr_info(PREFIX "(supports%s)\n", supported);
 +
-+subsys_initcall(acpi_hest_init);
-Index: test/drivers/acpi/pci_root.c
-===================================================================
---- test.orig/drivers/acpi/pci_root.c
-+++ test/drivers/acpi/pci_root.c
-@@ -656,8 +656,6 @@ static void acpi_pci_root_remove(struct
- 
- void __init acpi_pci_root_init(void)
- {
--	acpi_hest_init();
--
- 	if (!acpi_pci_disabled) {
- 		pci_acpi_crs_quirks();
- 		acpi_scan_add_handler(&pci_root_handler);
-Index: test/include/acpi/apei.h
-===================================================================
---- test.orig/include/acpi/apei.h
-+++ test/include/acpi/apei.h
-@@ -24,12 +24,6 @@ extern bool ghes_disable;
- #define ghes_disable 1
- #endif
- 
--#ifdef CONFIG_ACPI_APEI
--void __init acpi_hest_init(void);
--#else
--static inline void acpi_hest_init(void) { return; }
--#endif
--
- typedef int (*apei_hest_func_t)(struct acpi_hest_header *hest_hdr, void *data);
- int apei_hest_parse(apei_hest_func_t func, void *data);
- 
+ 	/*
+ 	 * Register the tts_notifier to reboot notifier list so that the _TTS
+ 	 * object can also be evaluated when the system enters S5.
 
 
--- 
-I speak only for myself.
-Rafael J. Wysocki, Intel Open Source Technology Center.
