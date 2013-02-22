@@ -1,135 +1,101 @@
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-Subject: Re: [PATCH EDAC 03/13] ghes: add the needed hooks for EDAC error
- report
-Date: Fri, 22 Feb 2013 05:50:21 -0300
-Message-ID: <20130222055021.12125c03@redhat.com>
-References: <cover.1360931635.git.mchehab@redhat.com>
-	<a6aaff7d219b878ca655fde3757ecd0170caec2c.1360931635.git.mchehab@redhat.com>
-	<1361409967.7093.20.camel@yhuang-dev>
-	<20130221090428.3b36b1ea@redhat.com>
-	<1361493911.7093.37.camel@yhuang-dev>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: Re: [BUG bisected]: apei_hest_parse explosion
+Date: Fri, 22 Feb 2013 13:30:14 +0100
+Message-ID: <5350252.GArARx6b7p@vostro.rjw.lan>
+References: <alpine.LFD.2.02.1302220002040.22263@ionos> <4867361.uTndA5QxsU@vostro.rjw.lan> <alpine.LFD.2.02.1302220903000.22263@ionos>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7Bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:28107 "EHLO mx1.redhat.com"
+Received: from hydra.sisk.pl ([212.160.235.94]:41399 "EHLO hydra.sisk.pl"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753282Ab3BVJX5 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 22 Feb 2013 04:23:57 -0500
-In-Reply-To: <1361493911.7093.37.camel@yhuang-dev>
+	id S1755854Ab3BVMXf (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 22 Feb 2013 07:23:35 -0500
+In-Reply-To: <alpine.LFD.2.02.1302220903000.22263@ionos>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Huang Ying <ying.huang@intel.com>
-Cc: linux-acpi@vger.kernel.org, Tony Luck <tony.luck@intel.com>, Linux Edac Mailing List <linux-edac@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
+To: Thomas Gleixner <tglx@linutronix.de>
+Cc: Yinghai Lu <yinghai@kernel.org>, LKML <linux-kernel@vger.kernel.org>, Toshi Kani <toshi.kani@hp.com>, Huang Ying <ying.huang@intel.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>
 
-Em Fri, 22 Feb 2013 08:45:11 +0800
-Huang Ying <ying.huang@intel.com> escreveu:
-
-> On Thu, 2013-02-21 at 09:04 -0300, Mauro Carvalho Chehab wrote:
-> > Em Thu, 21 Feb 2013 09:26:07 +0800
-> > Huang Ying <ying.huang@intel.com> escreveu:
+On Friday, February 22, 2013 09:22:15 AM Thomas Gleixner wrote:
+> On Fri, 22 Feb 2013, Rafael J. Wysocki wrote:
+> > On Friday, February 22, 2013 02:40:58 AM Rafael J. Wysocki wrote:
+> > > It looks like the hest_tab memory mapping is unmapped between acpi_hest_init()
+> > > and aer_acpi_firmware_first(), but I have no idea what may be responsible for
+> > > that.
+> > > 
+> > > And the only relevant difference between now and before the commit above seems
+> > > to be the change of the acpi_hest_init() ordering (which now is called earlier).
 > > 
-
-> > There is also an advantage on taking this approach: this patch can have just
-> > the ghes changes, and will still compile fine, as CONFIG_EDAC_GHES is not
-> > defined yet. So, the patch becomes is simpler and easier to review.
+> > We actually don't really need to do that thing so early, I think.  It looks like
+> > we only need to make it available early enough for the AER driver to be able to
+> > use it, so I wonder if moving the acpi_hest_init() to a separate
+> > subsys_initcall() will work around the problem.  That is, something like the
+> > patch below.
 > 
-> Thanks for your explanation.  I agree to keep this in header file.
+> Yes, that makes the machine boot.
+
+Although for a reason I didn't think about.
+
+> > But even if this helps, I will be wanting to understand what's up here.
 > 
-> My original suggestion is that it may be better to move this from ghes.h
-> to some place like "ghes_edac.h", because these functions are
-> implemented in "ghes_edac.c" instead of ghes.c.
-> 
+> It's very simple. I have "acpi=off" on the command line. With that
+> acpi_hest_init is never called, so hest_disable is not set .....
 
-Ah! Well, I considered a separate header when writing this patch, but adding 
-another header for just 3 functions where the parameters are more related to
-ghes than with ghes_edac seemed overkill to me.
+Well, that explains things (and means that acpi=off doesn't really get much
+test coverage these days).
 
-IMO, a single comment at the header pointing to ghes_edac.c would improve it.
+> Brilliant stuff that.
 
-> >  	switch (generic->notify.type) {
-> >  	case ACPI_HEST_NOTIFY_POLLED:
-> >  		ghes->timer.function = ghes_poll_func;
-> > @@ -911,13 +920,13 @@ static int ghes_probe(struct platform_device *ghes_dev)
-> >  		if (acpi_gsi_to_irq(generic->notify.vector, &ghes->irq)) {
-> >  			pr_err(GHES_PFX "Failed to map GSI to IRQ for generic hardware error source: %d\n",
-> >  			       generic->header.source_id);
-> > -			goto err;
-> > +			goto err2;
-> >  		}
-> >  		if (request_irq(ghes->irq, ghes_irq_func,
-> >  				0, "GHES IRQ", ghes)) {
-> >  			pr_err(GHES_PFX "Failed to register IRQ for generic hardware error source: %d\n",
-> >  			       generic->header.source_id);
-> > -			goto err;
-> > +			goto err2;
-> >  		}
-> >  		break;
-> >  	case ACPI_HEST_NOTIFY_SCI:
-> > @@ -943,6 +952,8 @@ static int ghes_probe(struct platform_device *ghes_dev)
-> >  	platform_set_drvdata(ghes_dev, ghes);
-> >  
-> >  	return 0;
-> > +err2:
-> 
-> Suggest to rename it to err_edac_unreg or something like that.  Just a
-> suggestion.
+The appended patch should fix the breakage too, can you please verify?
 
-Done.
+Rafael
 
-I'm folding the enclosed patch on it.
 
-Thanks for review!
+---
+From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+Subject: ACPI / APEI: Fix crash in apei_hest_parse() for acpi=off
 
-Regards,
-Mauro
+After commit 92ef2a2 (ACPI: Change the ordering of PCI root bridge
+driver registrarion), acpi_hest_init() is never called for acpi=off
+(acpi_disabled), so hest_disable is not set, but hest_tab is NULL,
+which causes apei_hest_parse() to crash when it is called from
+aer_acpi_firmware_first().
 
-diff --git a/drivers/acpi/apei/ghes.c b/drivers/acpi/apei/ghes.c
-index 19092dc..d668a8a 100644
---- a/drivers/acpi/apei/ghes.c
-+++ b/drivers/acpi/apei/ghes.c
-@@ -920,13 +920,13 @@ static int ghes_probe(struct platform_device *ghes_dev)
- 		if (acpi_gsi_to_irq(generic->notify.vector, &ghes->irq)) {
- 			pr_err(GHES_PFX "Failed to map GSI to IRQ for generic hardware error source: %d\n",
- 			       generic->header.source_id);
--			goto err2;
-+			goto err_edac_unreg;
- 		}
- 		if (request_irq(ghes->irq, ghes_irq_func,
- 				0, "GHES IRQ", ghes)) {
- 			pr_err(GHES_PFX "Failed to register IRQ for generic hardware error source: %d\n",
- 			       generic->header.source_id);
--			goto err2;
-+			goto err_edac_unreg;
- 		}
- 		break;
- 	case ACPI_HEST_NOTIFY_SCI:
-@@ -952,7 +952,7 @@ static int ghes_probe(struct platform_device *ghes_dev)
- 	platform_set_drvdata(ghes_dev, ghes);
+Fix that by making apei_hest_parse() check if hest_tab is not NULL
+in addition to checking hest_disable.  Also remove the now useless
+acpi_disabled check from apei_hest_parse().
+
+Reported-by: Thomas Gleixner <tglx@linutronix.de>
+Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+---
+ drivers/acpi/apei/hest.c |    5 +----
+ 1 file changed, 1 insertion(+), 4 deletions(-)
+
+Index: test/drivers/acpi/apei/hest.c
+===================================================================
+--- test.orig/drivers/acpi/apei/hest.c
++++ test/drivers/acpi/apei/hest.c
+@@ -89,7 +89,7 @@ int apei_hest_parse(apei_hest_func_t fun
+ 	struct acpi_hest_header *hest_hdr;
+ 	int i, rc, len;
  
- 	return 0;
--err2:
-+err_edac_unreg:
- 	ghes_edac_unregister(ghes);
- err:
- 	if (ghes) {
-diff --git a/include/acpi/ghes.h b/include/acpi/ghes.h
-index 9015ec2..d11d952 100644
---- a/include/acpi/ghes.h
-+++ b/include/acpi/ghes.h
-@@ -45,6 +45,8 @@ enum {
- 	GHES_SEV_PANIC = 0x3,
- };
+-	if (hest_disable)
++	if (hest_disable || !hest_tab)
+ 		return -EINVAL;
  
-+/* From drivers/edac/ghes_acpi.h */
-+
- #ifdef CONFIG_EDAC_GHES
- void ghes_edac_report_mem_error(struct ghes *ghes, int sev,
- 				struct cper_sec_mem_err *mem_err);
-
-
+ 	hest_hdr = (struct acpi_hest_header *)(hest_tab + 1);
+@@ -216,9 +216,6 @@ void __init acpi_hest_init(void)
+ 		return;
+ 	}
+ 
+-	if (acpi_disabled)
+-		goto err;
+-
+ 	status = acpi_get_table(ACPI_SIG_HEST, 0,
+ 				(struct acpi_table_header **)&hest_tab);
+ 	if (status == AE_NOT_FOUND)
 
 -- 
-
-Cheers,
-Mauro
+I speak only for myself.
+Rafael J. Wysocki, Intel Open Source Technology Center.
