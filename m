@@ -1,95 +1,407 @@
-From: "Rafael J. Wysocki" <rjw-KKrjLPT3xs0@public.gmane.org>
-Subject: Re: PCI D3 wakeup failure on Lynx Point xHCI
-Date: Fri, 22 Feb 2013 01:01:05 +0100
-Message-ID: <4173055.L3bittasFp@vostro.rjw.lan>
-References: <20130221214145.GA25639@xanatos> <2088156.nL7UmaIX3H@vostro.rjw.lan> <20130221235211.GC32050@xanatos>
+From: Huang Ying <ying.huang@intel.com>
+Subject: Re: [PATCH EDAC 03/13] ghes: add the needed hooks for EDAC error
+ report
+Date: Fri, 22 Feb 2013 08:45:11 +0800
+Message-ID: <1361493911.7093.37.camel@yhuang-dev>
+References: <cover.1360931635.git.mchehab@redhat.com>
+	 <a6aaff7d219b878ca655fde3757ecd0170caec2c.1360931635.git.mchehab@redhat.com>
+	 <1361409967.7093.20.camel@yhuang-dev> <20130221090428.3b36b1ea@redhat.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7Bit
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20130221235211.GC32050@xanatos>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Sarah Sharp <sarah.a.sharp-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
-Cc: linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Huang Ying <ying.huang-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mga09.intel.com ([134.134.136.24]:46796 "EHLO mga09.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753792Ab3BVApO (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 21 Feb 2013 19:45:14 -0500
+In-Reply-To: <20130221090428.3b36b1ea@redhat.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: linux-acpi@vger.kernel.org, Tony Luck <tony.luck@intel.com>, Linux Edac Mailing List <linux-edac@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
 
-On Thursday, February 21, 2013 03:52:11 PM Sarah Sharp wrote:
-> On Thu, Feb 21, 2013 at 11:54:55PM +0100, Rafael J. Wysocki wrote:
-> > On Thursday, February 21, 2013 01:41:45 PM Sarah Sharp wrote:
-> > > Hi Rafael,
+On Thu, 2013-02-21 at 09:04 -0300, Mauro Carvalho Chehab wrote:
+> Em Thu, 21 Feb 2013 09:26:07 +0800
+> Huang Ying <ying.huang@intel.com> escreveu:
+> 
+> > Sorry for late!
+> 
+> Thanks for your comments. See my answers below.
 > > 
-> > Hi,
-> >  
-> > > I'm running into some issues with PCI D3
+> > On Fri, 2013-02-15 at 10:44 -0200, Mauro Carvalho Chehab wrote:
+> > > In order to allow reporting errors via EDAC, add hooks for:
+> > > 
+> > > 1) register an EDAC driver;
+> > > 2) unregister an EDAC driver;
+> > > 3) report errors via EDAC.
+> > > 
+> > > As the EDAC driver will need to access the ghes structure, adds it
+> > > as one of the parameters for ghes_do_proc.
+> > > 
+> > > Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+> > > ---
+> > >  drivers/acpi/apei/ghes.c | 17 ++++++++++++++---
+> > >  include/acpi/ghes.h      | 27 +++++++++++++++++++++++++++
+> > >  2 files changed, 41 insertions(+), 3 deletions(-)
+> > > 
+> > > diff --git a/drivers/acpi/apei/ghes.c b/drivers/acpi/apei/ghes.c
+> > > index 6d0e146..a21d7da 100644
+> > > --- a/drivers/acpi/apei/ghes.c
+> > > +++ b/drivers/acpi/apei/ghes.c
+> > > @@ -409,7 +409,8 @@ static void ghes_clear_estatus(struct ghes *ghes)
+> > >  	ghes->flags &= ~GHES_TO_CLEAR;
+> > >  }
+> > >  
+> > > -static void ghes_do_proc(const struct acpi_hest_generic_status *estatus)
+> > > +static void ghes_do_proc(struct ghes *ghes,
+> > > +			 const struct acpi_hest_generic_status *estatus)
+> > >  {
+> > >  	int sev, sec_sev;
+> > >  	struct acpi_hest_generic_data *gdata;
+> > > @@ -421,6 +422,8 @@ static void ghes_do_proc(const struct acpi_hest_generic_status *estatus)
+> > >  				 CPER_SEC_PLATFORM_MEM)) {
+> > >  			struct cper_sec_mem_err *mem_err;
+> > >  			mem_err = (struct cper_sec_mem_err *)(gdata+1);
+> > > +			ghes_edac_report_mem_error(ghes, sev, mem_err);
+> > > +
+> > >  #ifdef CONFIG_X86_MCE
+> > >  			apei_mce_report_mem_error(sev == GHES_SEV_CORRECTED,
+> > >  						  mem_err);
+> > > @@ -639,7 +642,7 @@ static int ghes_proc(struct ghes *ghes)
+> > >  		if (ghes_print_estatus(NULL, ghes->generic, ghes->estatus))
+> > >  			ghes_estatus_cache_add(ghes->generic, ghes->estatus);
+> > >  	}
+> > > -	ghes_do_proc(ghes->estatus);
+> > > +	ghes_do_proc(ghes, ghes->estatus);
+> > >  out:
+> > >  	ghes_clear_estatus(ghes);
+> > >  	return 0;
+> > > @@ -732,7 +735,7 @@ static void ghes_proc_in_irq(struct irq_work *irq_work)
+> > >  		estatus = GHES_ESTATUS_FROM_NODE(estatus_node);
+> > >  		len = apei_estatus_len(estatus);
+> > >  		node_len = GHES_ESTATUS_NODE_LEN(len);
+> > > -		ghes_do_proc(estatus);
+> > > +		ghes_do_proc(estatus_node->ghes, estatus);
+> > >  		if (!ghes_estatus_cached(estatus)) {
+> > >  			generic = estatus_node->generic;
+> > >  			if (ghes_print_estatus(NULL, generic, estatus))
+> > > @@ -821,6 +824,7 @@ static int ghes_notify_nmi(unsigned int cmd, struct pt_regs *regs)
+> > >  		estatus_node = (void *)gen_pool_alloc(ghes_estatus_pool,
+> > >  						      node_len);
+> > >  		if (estatus_node) {
+> > > +			estatus_node->ghes = ghes;
+> > >  			estatus_node->generic = ghes->generic;
+> > >  			estatus = GHES_ESTATUS_FROM_NODE(estatus_node);
+> > >  			memcpy(estatus, ghes->estatus, len);
+> > > @@ -942,6 +946,10 @@ static int ghes_probe(struct platform_device *ghes_dev)
+> > >  	}
+> > >  	platform_set_drvdata(ghes_dev, ghes);
+> > >  
+> > > +	rc = ghes_edac_register(ghes, &ghes_dev->dev);
+> > > +	if (rc < 0)
+> > > +		goto err;
+> > > +
 > > 
-> > Do you mean D3hot?
+> > If ghes_edac_register() failed, we need to do some cleanup such as
+> > unregister from hed etc.
+> > 
+> > Or just move ghes_edac_register() before switch?
 > 
-> I don't think this PCI device supports D3cold.  At least that's what the
-> hardware folks tell me.  However, the lspci output wasn't clear which
-> state the PCI device was in.  If I cat
-> /sys/bus/pci/devices/0000:00:14.0/d3cold_allowed, it says '1', however I
-> don't see any output in dmesg that says the device was put in D3cold.
+> Moving it to happen before the switch() looks the better. We need to unregister
+> ghes_edac if IRQ fails.
 > 
-> > In addition to that you can see if the number of ACPI interrupts (in
-> > /proc/interrupts) grows when you plug the USB device in and if so,
-> > whether or not any of the numbers in /sys/firmware/acpi/interrupts/gpe*
-> > grows at the same time.
+> > >  	return 0;
+> > >  err:
+> > >  	if (ghes) {
+> > > @@ -995,6 +1003,9 @@ static int ghes_remove(struct platform_device *ghes_dev)
+> > >  	}
+> > >  
+> > >  	ghes_fini(ghes);
+> > > +
+> > > +	ghes_edac_unregister(ghes);
+> > > +
+> > >  	kfree(ghes);
+> > >  
+> > >  	platform_set_drvdata(ghes_dev, NULL);
+> > > diff --git a/include/acpi/ghes.h b/include/acpi/ghes.h
+> > > index 3eb8dc4..c6fef72 100644
+> > > --- a/include/acpi/ghes.h
+> > > +++ b/include/acpi/ghes.h
+> > > @@ -22,11 +22,14 @@ struct ghes {
+> > >  		struct timer_list timer;
+> > >  		unsigned int irq;
+> > >  	};
+> > > +
+> > > +	struct mem_ctl_info *mci;
+> > 
+> > Why we need this?  This is not used by ghes.[hc].
 > 
-> In /proc/interrupts, the xHCI MSI line does not change when I plug in a
-> device while the PCI device is in D3:
+> This will be needed by the EDAC driver, as the EDAC core has its own main
+> struct, and such struct need to be recovered when reporting an error.
 > 
->            CPU0       CPU1       CPU2       CPU3       CPU4       CPU5       CPU6       CPU7       
->   0:         70          0          0          0          0          0          0          0  IR-IO-APIC-edge      timer
->   1:       5424          0          0          0          0          0          0          0  IR-IO-APIC-edge      i8042
->   8:          1          0          0          0          0          0          0          0  IR-IO-APIC-edge      rtc0
->   9:       1745        544          0          0          0          0          0          0  IR-IO-APIC-fasteoi   acpi
->  12:      22823          0          0          0          0          0          0          0  IR-IO-APIC-edge      i8042
->  16:       1009          0          0          0          0          0          0          0  IR-IO-APIC-fasteoi   ehci_hcd:usb3, nouveau
->  17:        299          0          0          0          0          0          0          0  IR-IO-APIC-fasteoi   snd_hda_intel
->  19:         26          0          9          0          0          0          0          0  IR-IO-APIC-fasteoi 
->  23:        956         99          0          0          0          0          0          0  IR-IO-APIC-fasteoi   ehci_hcd:usb4
->  40:          0          0          0          0          0          0          0          0  DMAR_MSI-edge      dmar0
->  41:          0          0          0          0          0          0          0          0  IR-PCI-MSI-edge      PCIe PME
->  42:          0          0          0          0          0          0          0          0  IR-PCI-MSI-edge      PCIe PME
->  43:          0          0          0          0          0          0          0          0  IR-PCI-MSI-edge      PCIe PME, pciehp
->  44:      27450          0          0          0          0          0          0          0  IR-PCI-MSI-edge      ahci
->  45:         38          0          0          0          0          0          0          0  IR-PCI-MSI-edge      xhci_hcd
->  46:       6065          0          0          0          0          0          0          0  IR-PCI-MSI-edge      eth5
->  47:         26          0          0          0          0          0          0          0  IR-PCI-MSI-edge      mei
->  48:        246          0          0         59          0          0          0          0  IR-PCI-MSI-edge      snd_hda_intel
-> NMI:         14          6         13          9          2          2          3          4   Non-maskable interrupts
-> LOC:     130457     125777      99012      92995      39437      36596      28275      30074   Local timer interrupts
-> SPU:          0          0          0          0          0          0          0          0   Spurious interrupts
-> PMI:         14          6         13          9          2          2          3          4   Performance monitoring interrupts
-> IWI:          1          1          1          1          0          0          0          0   IRQ work interrupts
-> RTR:          0          0          0          0          0          0          0          0   APIC ICR read retries
-> RES:      25303      11329       1532        782        513        432        427        350   Rescheduling interrupts
-> CAL:        542        693        748        672        762        767        803        754   Function call interrupts
-> TLB:        908        783        781        817       1087       1530       1355       1261   TLB shootdowns
-> TRM:          0          0          0          0          0          0          0          0   Thermal event interrupts
-> THR:          0          0          0          0          0          0          0          0   Threshold APIC interrupts
-> MCE:          0          0          0          0          0          0          0          0   Machine check exceptions
-> MCP:          7          7          7          7          7          7          7          7   Machine check polls
-> ERR:          0
-> MIS:          0
+> As this struct is not used by ghes, there's no need to even include the
+> include/linux/edac.h, where this is declared, as gcc will just handle it
+> as "void *" when compiling ghes.
 > 
-> However, /sys/firmware/acpi/interrupts/gpe0D changes.  The file seems to
-> indicate the GPE is enabled (it reads as "5 enabled" after some
-> hotplug tests).
+> I opted for this design as it is simpler, and costs just 8 bytes for each
+> ghes struct, and no extra code is needed.
+> 
+> However, as you're not happy with it, I'm removing it from there, and adding
+> a list at the edac driver, together with a mutex, to serialize its access,
+> associating each ghes struct with their corresponding MC struct.
+> 
+> I'll post the patch replacing patch 05/13 soon.
+> 
+> > 
+> > >  };
+> > >  
+> > >  struct ghes_estatus_node {
+> > >  	struct llist_node llnode;
+> > >  	struct acpi_hest_generic *generic;
+> > > +	struct ghes *ghes;
+> > >  };
+> > >  
+> > >  struct ghes_estatus_cache {
+> > > @@ -43,3 +46,27 @@ enum {
+> > >  	GHES_SEV_RECOVERABLE = 0x2,
+> > >  	GHES_SEV_PANIC = 0x3,
+> > >  };
+> > > +
+> > > +#ifdef CONFIG_EDAC_GHES
+> > > +void ghes_edac_report_mem_error(struct ghes *ghes, int sev,
+> > > +				struct cper_sec_mem_err *mem_err);
+> > > +
+> > > +int ghes_edac_register(struct ghes *ghes, struct device *dev);
+> > > +
+> > > +void ghes_edac_unregister(struct ghes *ghes);
+> > > +
+> > > +#else
+> > > +static inline void ghes_edac_report_mem_error(struct ghes *ghes, int sev,
+> > > +				       struct cper_sec_mem_err *mem_err)
+> > > +{
+> > > +}
+> > > +
+> > > +static inline int ghes_edac_register(struct ghes *ghes, struct device *dev)
+> > > +{
+> > > +	return 0;
+> > > +}
+> > > +
+> > > +static inline void ghes_edac_unregister(struct ghes *ghes)
+> > > +{
+> > > +}
+> > > +#endif
+> > 
+> > I think it is better to put the above declaration into module which
+> > implement these functions instead of use these functions.
+> 
+> This is due to Linux Coding Style. See Documentation/SubmittingPatches,
+> session 2, item 1:
+> 
+> 	2) #ifdefs are ugly
+> 
+> 	Code cluttered with ifdefs is difficult to read and maintain.  Don't do
+> 	it.  Instead, put your ifdefs in a header, and conditionally define
+> 	'static inline' functions, or macros, which are used in the code.
+> 	Let the compiler optimize away the "no-op" case.
+> 
+> 	Simple example, of poor code:
+> 
+> 	        dev = alloc_etherdev (sizeof(struct funky_private));
+>        	 if (!dev)
+> 	                return -ENODEV;
+> 	        #ifdef CONFIG_NET_FUNKINESS
+> 	        init_funky_net(dev);
+> 	        #endif
+> 
+> 	Cleaned-up example:
+> 
+> 	(in header)
+> 	        #ifndef CONFIG_NET_FUNKINESS
+> 	        static inline void init_funky_net (struct net_device *d) {}
+> 	        #endif
+> 
+> 	(in the code itself)
+> 	        dev = alloc_etherdev (sizeof(struct funky_private));
+> 	        if (!dev)
+> 	                return -ENODEV;
+> 	        init_funky_net(dev);
+> 
+> There is also an advantage on taking this approach: this patch can have just
+> the ghes changes, and will still compile fine, as CONFIG_EDAC_GHES is not
+> defined yet. So, the patch becomes is simpler and easier to review.
 
-It looks like the event is signaled, then.
+Thanks for your explanation.  I agree to keep this in header file.
 
-> ACPI tables are attached.
+My original suggestion is that it may be better to move this from ghes.h
+to some place like "ghes_edac.h", because these functions are
+implemented in "ghes_edac.c" instead of ghes.c.
 
-Thanks, I'll have a look at that tomorrow.
+> If I would do it otherwise, I would need to fold patch 5 to avoid breaking
+> git bisect.
+> 
+> Regards,
+> Mauro
+> 
+> Patch with the changes enclosed.
+> 
+> -
+> 
+> [PATCH EDACv2 03/13] ghes: add the needed hooks for EDAC error report
+> 
+> In order to allow reporting errors via EDAC, add hooks for:
+> 
+> 1) register an EDAC driver;
+> 2) unregister an EDAC driver;
+> 3) report errors via EDAC.
+> 
+> As the EDAC driver will need to access the ghes structure, adds it
+> as one of the parameters for ghes_do_proc.
+> 
+> Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+> 
+> diff --git a/drivers/acpi/apei/ghes.c b/drivers/acpi/apei/ghes.c
+> index 6d0e146..19092dc 100644
+> --- a/drivers/acpi/apei/ghes.c
+> +++ b/drivers/acpi/apei/ghes.c
+> @@ -409,7 +409,8 @@ static void ghes_clear_estatus(struct ghes *ghes)
+>  	ghes->flags &= ~GHES_TO_CLEAR;
+>  }
+>  
+> -static void ghes_do_proc(const struct acpi_hest_generic_status *estatus)
+> +static void ghes_do_proc(struct ghes *ghes,
+> +			 const struct acpi_hest_generic_status *estatus)
+>  {
+>  	int sev, sec_sev;
+>  	struct acpi_hest_generic_data *gdata;
+> @@ -421,6 +422,8 @@ static void ghes_do_proc(const struct acpi_hest_generic_status *estatus)
+>  				 CPER_SEC_PLATFORM_MEM)) {
+>  			struct cper_sec_mem_err *mem_err;
+>  			mem_err = (struct cper_sec_mem_err *)(gdata+1);
+> +			ghes_edac_report_mem_error(ghes, sev, mem_err);
+> +
+>  #ifdef CONFIG_X86_MCE
+>  			apei_mce_report_mem_error(sev == GHES_SEV_CORRECTED,
+>  						  mem_err);
+> @@ -639,7 +642,7 @@ static int ghes_proc(struct ghes *ghes)
+>  		if (ghes_print_estatus(NULL, ghes->generic, ghes->estatus))
+>  			ghes_estatus_cache_add(ghes->generic, ghes->estatus);
+>  	}
+> -	ghes_do_proc(ghes->estatus);
+> +	ghes_do_proc(ghes, ghes->estatus);
+>  out:
+>  	ghes_clear_estatus(ghes);
+>  	return 0;
+> @@ -732,7 +735,7 @@ static void ghes_proc_in_irq(struct irq_work *irq_work)
+>  		estatus = GHES_ESTATUS_FROM_NODE(estatus_node);
+>  		len = apei_estatus_len(estatus);
+>  		node_len = GHES_ESTATUS_NODE_LEN(len);
+> -		ghes_do_proc(estatus);
+> +		ghes_do_proc(estatus_node->ghes, estatus);
+>  		if (!ghes_estatus_cached(estatus)) {
+>  			generic = estatus_node->generic;
+>  			if (ghes_print_estatus(NULL, generic, estatus))
+> @@ -821,6 +824,7 @@ static int ghes_notify_nmi(unsigned int cmd, struct pt_regs *regs)
+>  		estatus_node = (void *)gen_pool_alloc(ghes_estatus_pool,
+>  						      node_len);
+>  		if (estatus_node) {
+> +			estatus_node->ghes = ghes;
+>  			estatus_node->generic = ghes->generic;
+>  			estatus = GHES_ESTATUS_FROM_NODE(estatus_node);
+>  			memcpy(estatus, ghes->estatus, len);
+> @@ -899,6 +903,11 @@ static int ghes_probe(struct platform_device *ghes_dev)
+>  		ghes = NULL;
+>  		goto err;
+>  	}
+> +
+> +	rc = ghes_edac_register(ghes, &ghes_dev->dev);
+> +	if (rc < 0)
+> +		goto err;
+> +
+>  	switch (generic->notify.type) {
+>  	case ACPI_HEST_NOTIFY_POLLED:
+>  		ghes->timer.function = ghes_poll_func;
+> @@ -911,13 +920,13 @@ static int ghes_probe(struct platform_device *ghes_dev)
+>  		if (acpi_gsi_to_irq(generic->notify.vector, &ghes->irq)) {
+>  			pr_err(GHES_PFX "Failed to map GSI to IRQ for generic hardware error source: %d\n",
+>  			       generic->header.source_id);
+> -			goto err;
+> +			goto err2;
+>  		}
+>  		if (request_irq(ghes->irq, ghes_irq_func,
+>  				0, "GHES IRQ", ghes)) {
+>  			pr_err(GHES_PFX "Failed to register IRQ for generic hardware error source: %d\n",
+>  			       generic->header.source_id);
+> -			goto err;
+> +			goto err2;
+>  		}
+>  		break;
+>  	case ACPI_HEST_NOTIFY_SCI:
+> @@ -943,6 +952,8 @@ static int ghes_probe(struct platform_device *ghes_dev)
+>  	platform_set_drvdata(ghes_dev, ghes);
+>  
+>  	return 0;
+> +err2:
 
-Rafael
+Suggest to rename it to err_edac_unreg or something like that.  Just a
+suggestion.
+
+Best Regards,
+Huang Ying
+
+> +	ghes_edac_unregister(ghes);
+>  err:
+>  	if (ghes) {
+>  		ghes_fini(ghes);
+> @@ -995,6 +1006,9 @@ static int ghes_remove(struct platform_device *ghes_dev)
+>  	}
+>  
+>  	ghes_fini(ghes);
+> +
+> +	ghes_edac_unregister(ghes);
+> +
+>  	kfree(ghes);
+>  
+>  	platform_set_drvdata(ghes_dev, NULL);
+> diff --git a/include/acpi/ghes.h b/include/acpi/ghes.h
+> index 3eb8dc4..9015ec2 100644
+> --- a/include/acpi/ghes.h
+> +++ b/include/acpi/ghes.h
+> @@ -27,6 +27,7 @@ struct ghes {
+>  struct ghes_estatus_node {
+>  	struct llist_node llnode;
+>  	struct acpi_hest_generic *generic;
+> +	struct ghes *ghes;
+>  };
+>  
+>  struct ghes_estatus_cache {
+> @@ -43,3 +44,27 @@ enum {
+>  	GHES_SEV_RECOVERABLE = 0x2,
+>  	GHES_SEV_PANIC = 0x3,
+>  };
+> +
+> +#ifdef CONFIG_EDAC_GHES
+> +void ghes_edac_report_mem_error(struct ghes *ghes, int sev,
+> +				struct cper_sec_mem_err *mem_err);
+> +
+> +int ghes_edac_register(struct ghes *ghes, struct device *dev);
+> +
+> +void ghes_edac_unregister(struct ghes *ghes);
+> +
+> +#else
+> +static inline void ghes_edac_report_mem_error(struct ghes *ghes, int sev,
+> +				       struct cper_sec_mem_err *mem_err)
+> +{
+> +}
+> +
+> +static inline int ghes_edac_register(struct ghes *ghes, struct device *dev)
+> +{
+> +	return 0;
+> +}
+> +
+> +static inline void ghes_edac_unregister(struct ghes *ghes)
+> +{
+> +}
+> +#endif
+> 
 
 
--- 
-I speak only for myself.
-Rafael J. Wysocki, Intel Open Source Technology Center.
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
