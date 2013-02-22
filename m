@@ -1,236 +1,219 @@
-From: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
-Subject: Re: [Update 3][PATCH 2/7] ACPI / scan: Introduce common code for
- ACPI-based device hotplug
-Date: Fri, 22 Feb 2013 17:51:28 +0900
-Message-ID: <51273190.7030106@jp.fujitsu.com>
-References: <3260206.bhaAobGhpZ@vostro.rjw.lan> <2894504.SgZF7d1Dbv@vostro.rjw.lan> <1361495541.12845.18.camel@misato.fc.hp.com> <11658900.TkhCHmg9LJ@vostro.rjw.lan>
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Subject: Re: [PATCH EDAC 03/13] ghes: add the needed hooks for EDAC error
+ report
+Date: Fri, 22 Feb 2013 05:57:55 -0300
+Message-ID: <20130222055755.22f7c5e3@redhat.com>
+References: <cover.1360931635.git.mchehab@redhat.com>
+	<a6aaff7d219b878ca655fde3757ecd0170caec2c.1360931635.git.mchehab@redhat.com>
+	<1361409967.7093.20.camel@yhuang-dev>
+	<20130221090428.3b36b1ea@redhat.com>
+	<1361493911.7093.37.camel@yhuang-dev>
+	<20130222055021.12125c03@redhat.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed;
-	boundary="------------020907090101030905020207"
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from fgwmail6.fujitsu.co.jp ([192.51.44.36]:60610 "EHLO
-	fgwmail6.fujitsu.co.jp" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756416Ab3BVIxG (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 22 Feb 2013 03:53:06 -0500
-In-Reply-To: <11658900.TkhCHmg9LJ@vostro.rjw.lan>
+Received: from mx1.redhat.com ([209.132.183.28]:61759 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755451Ab3BVI6C (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 22 Feb 2013 03:58:02 -0500
+In-Reply-To: <20130222055021.12125c03@redhat.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@sisk.pl>, Toshi Kani <toshi.kani@hp.com>
-Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Bjorn Helgaas <bhelgaas@google.com>, LKML <linux-kernel@vger.kernel.org>, Yinghai Lu <yinghai@kernel.org>, Jiang Liu <liuj97@gmail.com>
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: Huang Ying <ying.huang@intel.com>, linux-acpi@vger.kernel.org, Tony Luck <tony.luck@intel.com>, Linux Edac Mailing List <linux-edac@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
 
---------------020907090101030905020207
-Content-Type: text/plain; charset="UTF-8"; format=flowed
-Content-Transfer-Encoding: 7bit
+Em Fri, 22 Feb 2013 05:50:21 -0300
+Mauro Carvalho Chehab <mchehab@redhat.com> escreveu:
 
-2013/02/22 10:50, Rafael J. Wysocki wrote:
-> On Thursday, February 21, 2013 06:12:21 PM Toshi Kani wrote:
->> On Fri, 2013-02-22 at 00:06 +0100, Rafael J. Wysocki wrote:
->>> From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
->>>
->>> Multiple drivers handling hotplug-capable ACPI device nodes install
->>> notify handlers covering the same types of events in a very similar
->>> way.  Moreover, those handlers are installed in separate namespace
->>> walks, although that really should be done during namespace scans
->>> carried out by acpi_bus_scan().  This leads to substantial code
->>> duplication, unnecessary overhead and behavior that is hard to
->>> follow.
->>>
->>> For this reason, introduce common code in drivers/acpi/scan.c for
->>> handling hotplug-related notification and carrying out device
->>> insertion and eject operations in a generic fashion, such that it
->>> may be used by all of the relevant drivers in the future.  To cover
->>> the existing differences between those drivers introduce struct
->>> acpi_hotplug_profile for representing collections of hotplug
->>> settings associated with different ACPI scan handlers that can be
->>> used by the drivers to make the common code reflect their current
->>> behavior.
->>>
->>> Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
->>> ---
->>>
->>> This update fixes an issue pointed out by Toshi Kani (that
->>> ACPI_OST_EC_OSPM_* event source codes should not be used with _OST for events
->>> that we received a notification for from the platform firmware).
->>>
->>> Thanks,
->>> Rafael
->>>
->>> ---
->>>   drivers/acpi/scan.c     |  270 ++++++++++++++++++++++++++++++++++++++----------
->>>   include/acpi/acpi_bus.h |    7 +
->>>   2 files changed, 224 insertions(+), 53 deletions(-)
->>   :
->>> +static void acpi_bus_device_eject(void *context)
->>> +{
->>> +	acpi_handle handle = context;
->>> +	struct acpi_device *device = NULL;
->>> +	struct acpi_scan_handler *handler;
->>> +	u32 ost_code = ACPI_OST_SC_NON_SPECIFIC_FAILURE;
->>> +
->>> +	mutex_lock(&acpi_scan_lock);
->>> +
->>> +	acpi_bus_get_device(handle, &device);
->>> +	if (!device)
->>> +		goto err_out;
->>> +
->>> +	handler = device->handler;
->>> +	if (!handler || !handler->hotplug.enabled) {
->>> +		ost_code = ACPI_OST_SC_EJECT_NOT_SUPPORTED;
->>> +		goto err_out;
->>> +	}
->>> +	acpi_evaluate_hotplug_ost(handle, ACPI_NOTIFY_EJECT_REQUEST,
->>> +				  ACPI_OST_SC_EJECT_IN_PROGRESS, NULL);
->>> +	if (handler->hotplug.autoeject) {
->>> +		int error;
->>> +
->>> +		get_device(&device->dev);
->>> +		error = acpi_scan_hot_remove(device);
->>> +		if (error)
->>> +			goto err_out;
->>> +	} else {
->>> +		device->flags.eject_pending = true;
->>>   	}
->>> +	if (handler->hotplug.uevents)
->>> +		kobject_uevent(&device->dev.kobj, KOBJ_OFFLINE);
->>
->> I confirmed that the _OST issue with hot-add is fixed.  Here is a new
->> one.  When autoeject is enabled, it crashes in kobject_uevent() since
->> the device is no longer valid.
->
-> Well, this one is more difficult.
->
-> I can change the ordering so that kobject_uevent() is called before
-> acpi_scan_hot_remove(), but then user space may not know that the device is
-> being removed at the moment (which still may fail).  Still, maybe this is
-> OK, because user space will get KOBJ_REMOVE when the device actually goes
-> away anyway.
->
-> Or perhaps we can emit KOBJ_OFFLINE before acpi_scan_hot_remove() and if
-> it fails, emit KOBJ_ONLINE?
+> Em Fri, 22 Feb 2013 08:45:11 +0800
+> Huang Ying <ying.huang@intel.com> escreveu:
+> 
+> > On Thu, 2013-02-21 at 09:04 -0300, Mauro Carvalho Chehab wrote:
+> > > Em Thu, 21 Feb 2013 09:26:07 +0800
+> > > Huang Ying <ying.huang@intel.com> escreveu:
+> > > 
+> 
+> > > There is also an advantage on taking this approach: this patch can have just
+> > > the ghes changes, and will still compile fine, as CONFIG_EDAC_GHES is not
+> > > defined yet. So, the patch becomes is simpler and easier to review.
+> > 
+> > Thanks for your explanation.  I agree to keep this in header file.
+> > 
+> > My original suggestion is that it may be better to move this from ghes.h
+> > to some place like "ghes_edac.h", because these functions are
+> > implemented in "ghes_edac.c" instead of ghes.c.
+> > 
+> 
+> Ah! Well, I considered a separate header when writing this patch, but adding 
+> another header for just 3 functions where the parameters are more related to
+> ghes than with ghes_edac seemed overkill to me.
+> 
+> IMO, a single comment at the header pointing to ghes_edac.c would improve it.
+> 
+...
+> +/* From drivers/edac/ghes_acpi.h */
 
-How about following patch? My system cannot send EJECT notification.
-So I have not tested this patch.
+...with is obviously wrong.
 
-# Recently when I send a patch, tabs of the patch is changed to spaces often.
-# So I attached the patch.
+Mental note to myself: never hack too early in the morning before drinking a
+cup of coffee.
 
----
+Anyway, fixed on the patch below. Could you please ack?
 
-When hotplug.autoeject and uevents are enabled, it crashes in
-kobject_uevent() since the device is no longer valid.
-
-This patch fixes the problem.
-
-Reported-by: Toshi Kani <toshi.kani@hp.com>
-Signed-off-by: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
-
----
-  drivers/acpi/scan.c |    7 +++----
-  1 file changed, 3 insertions(+), 4 deletions(-)
-
-Index: linux-pm/drivers/acpi/scan.c
-===================================================================
---- linux-pm.orig/drivers/acpi/scan.c	2013-02-22 16:02:07.000000000 +0900
-+++ linux-pm/drivers/acpi/scan.c	2013-02-22 16:06:36.792816699 +0900
-@@ -139,9 +139,6 @@ static int acpi_scan_hot_remove(struct a
-  		"Hot-removing device %s...\n", dev_name(&device->dev)));
-  
-  	acpi_bus_trim(device);
--	/* Device node has been unregistered. */
--	put_device(&device->dev);
--	device = NULL;
-  
-  	if (ACPI_SUCCESS(acpi_get_handle(handle, "_LCK", &not_used))) {
-  		arg_list.count = 1;
-@@ -191,10 +188,10 @@ static void acpi_bus_device_eject(void *
-  	}
-  	acpi_evaluate_hotplug_ost(handle, ACPI_NOTIFY_EJECT_REQUEST,
-  				  ACPI_OST_SC_EJECT_IN_PROGRESS, NULL);
-+	get_device(&device->dev);
-  	if (handler->hotplug.autoeject) {
-  		int error;
-  
--		get_device(&device->dev);
-  		error = acpi_scan_hot_remove(device);
-  		if (error)
-  			goto err_out;
-@@ -204,6 +201,7 @@ static void acpi_bus_device_eject(void *
-  	if (handler->hotplug.uevents)
-  		kobject_uevent(&device->dev.kobj, KOBJ_OFFLINE);
-  
-+	put_device(&device->dev);
-   out:
-  	mutex_unlock(&acpi_scan_lock);
-  	return;
-@@ -312,6 +310,7 @@ void acpi_bus_hot_remove_device(void *co
-  					  ACPI_OST_SC_NON_SPECIFIC_FAILURE,
-  					  NULL);
-  
-+	put_device(&acpi_device->dev);
-  	mutex_unlock(&acpi_scan_lock);
-  	kfree(context);
-  }
+Regards,
+Mauro.
 
 
---------------020907090101030905020207
-Content-Type: text/x-patch; name="fix-panic-in-kobject_uevent.patch"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: attachment;
-	filename="fix-panic-in-kobject_uevent.patch"
+[PATCH EDAC] ghes: add the needed hooks for EDAC error report
 
-When hotplug.autoeject and uevents are enabled, it crashes in
-kobject_uevent() since the device is no longer valid.
+In order to allow reporting errors via EDAC, add hooks for:
 
-This patch fixes the problem.
+1) register an EDAC driver;
+2) unregister an EDAC driver;
+3) report errors via EDAC.
 
-Reported-by: Toshi Kani <toshi.kani@hp.com>
-Signed-off-by: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
+As the EDAC driver will need to access the ghes structure, adds it
+as one of the parameters for ghes_do_proc.
 
----
- drivers/acpi/scan.c |    7 +++----
- 1 file changed, 3 insertions(+), 4 deletions(-)
+Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
 
-Index: linux-pm/drivers/acpi/scan.c
-===================================================================
---- linux-pm.orig/drivers/acpi/scan.c	2013-02-22 16:02:07.000000000 +0900
-+++ linux-pm/drivers/acpi/scan.c	2013-02-22 16:06:36.792816699 +0900
-@@ -139,9 +139,6 @@ static int acpi_scan_hot_remove(struct a
- 		"Hot-removing device %s...\n", dev_name(&device->dev)));
- 
- 	acpi_bus_trim(device);
--	/* Device node has been unregistered. */
--	put_device(&device->dev);
--	device = NULL;
- 
- 	if (ACPI_SUCCESS(acpi_get_handle(handle, "_LCK", &not_used))) {
- 		arg_list.count = 1;
-@@ -191,10 +188,10 @@ static void acpi_bus_device_eject(void *
- 	}
- 	acpi_evaluate_hotplug_ost(handle, ACPI_NOTIFY_EJECT_REQUEST,
- 				  ACPI_OST_SC_EJECT_IN_PROGRESS, NULL);
-+	get_device(&device->dev);
- 	if (handler->hotplug.autoeject) {
- 		int error;
- 
--		get_device(&device->dev);
- 		error = acpi_scan_hot_remove(device);
- 		if (error)
- 			goto err_out;
-@@ -204,6 +201,7 @@ static void acpi_bus_device_eject(void *
- 	if (handler->hotplug.uevents)
- 		kobject_uevent(&device->dev.kobj, KOBJ_OFFLINE);
- 
-+	put_device(&device->dev);
-  out:
- 	mutex_unlock(&acpi_scan_lock);
- 	return;
-@@ -312,6 +310,7 @@ void acpi_bus_hot_remove_device(void *co
- 					  ACPI_OST_SC_NON_SPECIFIC_FAILURE,
- 					  NULL);
- 
-+	put_device(&acpi_device->dev);
- 	mutex_unlock(&acpi_scan_lock);
- 	kfree(context);
+diff --git a/drivers/acpi/apei/ghes.c b/drivers/acpi/apei/ghes.c
+index 6d0e146..d668a8a 100644
+--- a/drivers/acpi/apei/ghes.c
++++ b/drivers/acpi/apei/ghes.c
+@@ -409,7 +409,8 @@ static void ghes_clear_estatus(struct ghes *ghes)
+ 	ghes->flags &= ~GHES_TO_CLEAR;
  }
+ 
+-static void ghes_do_proc(const struct acpi_hest_generic_status *estatus)
++static void ghes_do_proc(struct ghes *ghes,
++			 const struct acpi_hest_generic_status *estatus)
+ {
+ 	int sev, sec_sev;
+ 	struct acpi_hest_generic_data *gdata;
+@@ -421,6 +422,8 @@ static void ghes_do_proc(const struct acpi_hest_generic_status *estatus)
+ 				 CPER_SEC_PLATFORM_MEM)) {
+ 			struct cper_sec_mem_err *mem_err;
+ 			mem_err = (struct cper_sec_mem_err *)(gdata+1);
++			ghes_edac_report_mem_error(ghes, sev, mem_err);
++
+ #ifdef CONFIG_X86_MCE
+ 			apei_mce_report_mem_error(sev == GHES_SEV_CORRECTED,
+ 						  mem_err);
+@@ -639,7 +642,7 @@ static int ghes_proc(struct ghes *ghes)
+ 		if (ghes_print_estatus(NULL, ghes->generic, ghes->estatus))
+ 			ghes_estatus_cache_add(ghes->generic, ghes->estatus);
+ 	}
+-	ghes_do_proc(ghes->estatus);
++	ghes_do_proc(ghes, ghes->estatus);
+ out:
+ 	ghes_clear_estatus(ghes);
+ 	return 0;
+@@ -732,7 +735,7 @@ static void ghes_proc_in_irq(struct irq_work *irq_work)
+ 		estatus = GHES_ESTATUS_FROM_NODE(estatus_node);
+ 		len = apei_estatus_len(estatus);
+ 		node_len = GHES_ESTATUS_NODE_LEN(len);
+-		ghes_do_proc(estatus);
++		ghes_do_proc(estatus_node->ghes, estatus);
+ 		if (!ghes_estatus_cached(estatus)) {
+ 			generic = estatus_node->generic;
+ 			if (ghes_print_estatus(NULL, generic, estatus))
+@@ -821,6 +824,7 @@ static int ghes_notify_nmi(unsigned int cmd, struct pt_regs *regs)
+ 		estatus_node = (void *)gen_pool_alloc(ghes_estatus_pool,
+ 						      node_len);
+ 		if (estatus_node) {
++			estatus_node->ghes = ghes;
+ 			estatus_node->generic = ghes->generic;
+ 			estatus = GHES_ESTATUS_FROM_NODE(estatus_node);
+ 			memcpy(estatus, ghes->estatus, len);
+@@ -899,6 +903,11 @@ static int ghes_probe(struct platform_device *ghes_dev)
+ 		ghes = NULL;
+ 		goto err;
+ 	}
++
++	rc = ghes_edac_register(ghes, &ghes_dev->dev);
++	if (rc < 0)
++		goto err;
++
+ 	switch (generic->notify.type) {
+ 	case ACPI_HEST_NOTIFY_POLLED:
+ 		ghes->timer.function = ghes_poll_func;
+@@ -911,13 +920,13 @@ static int ghes_probe(struct platform_device *ghes_dev)
+ 		if (acpi_gsi_to_irq(generic->notify.vector, &ghes->irq)) {
+ 			pr_err(GHES_PFX "Failed to map GSI to IRQ for generic hardware error source: %d\n",
+ 			       generic->header.source_id);
+-			goto err;
++			goto err_edac_unreg;
+ 		}
+ 		if (request_irq(ghes->irq, ghes_irq_func,
+ 				0, "GHES IRQ", ghes)) {
+ 			pr_err(GHES_PFX "Failed to register IRQ for generic hardware error source: %d\n",
+ 			       generic->header.source_id);
+-			goto err;
++			goto err_edac_unreg;
+ 		}
+ 		break;
+ 	case ACPI_HEST_NOTIFY_SCI:
+@@ -943,6 +952,8 @@ static int ghes_probe(struct platform_device *ghes_dev)
+ 	platform_set_drvdata(ghes_dev, ghes);
+ 
+ 	return 0;
++err_edac_unreg:
++	ghes_edac_unregister(ghes);
+ err:
+ 	if (ghes) {
+ 		ghes_fini(ghes);
+@@ -995,6 +1006,9 @@ static int ghes_remove(struct platform_device *ghes_dev)
+ 	}
+ 
+ 	ghes_fini(ghes);
++
++	ghes_edac_unregister(ghes);
++
+ 	kfree(ghes);
+ 
+ 	platform_set_drvdata(ghes_dev, NULL);
+diff --git a/include/acpi/ghes.h b/include/acpi/ghes.h
+index 3eb8dc4..720446c 100644
+--- a/include/acpi/ghes.h
++++ b/include/acpi/ghes.h
+@@ -27,6 +27,7 @@ struct ghes {
+ struct ghes_estatus_node {
+ 	struct llist_node llnode;
+ 	struct acpi_hest_generic *generic;
++	struct ghes *ghes;
+ };
+ 
+ struct ghes_estatus_cache {
+@@ -43,3 +44,29 @@ enum {
+ 	GHES_SEV_RECOVERABLE = 0x2,
+ 	GHES_SEV_PANIC = 0x3,
+ };
++
++/* From drivers/edac/ghes_edac.c */
++
++#ifdef CONFIG_EDAC_GHES
++void ghes_edac_report_mem_error(struct ghes *ghes, int sev,
++				struct cper_sec_mem_err *mem_err);
++
++int ghes_edac_register(struct ghes *ghes, struct device *dev);
++
++void ghes_edac_unregister(struct ghes *ghes);
++
++#else
++static inline void ghes_edac_report_mem_error(struct ghes *ghes, int sev,
++				       struct cper_sec_mem_err *mem_err)
++{
++}
++
++static inline int ghes_edac_register(struct ghes *ghes, struct device *dev)
++{
++	return 0;
++}
++
++static inline void ghes_edac_unregister(struct ghes *ghes)
++{
++}
++#endif
 
---------------020907090101030905020207--
