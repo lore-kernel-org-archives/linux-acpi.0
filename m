@@ -1,103 +1,94 @@
-From: Yinghai Lu <yinghai@kernel.org>
-Subject: Re: [BUG bisected]: apei_hest_parse explosion
-Date: Fri, 22 Feb 2013 15:46:08 -0800
-Message-ID: <CAE9FiQWFgNYRdkokWFsUB84ukfufzB6r7Tk+xxjKY+wcq2gxqA@mail.gmail.com>
-References: <alpine.LFD.2.02.1302220002040.22263@ionos>
-	<4867361.uTndA5QxsU@vostro.rjw.lan>
-	<alpine.LFD.2.02.1302220903000.22263@ionos>
-	<5350252.GArARx6b7p@vostro.rjw.lan>
+From: Fabio Baltieri <fabio.baltieri@linaro.org>
+Subject: Re: [GIT PATCH] USB patches for 3.9-rc1
+Date: Sat, 23 Feb 2013 01:10:55 +0100
+Message-ID: <20130223001055.GA1622@balto.lan>
+References: <20130222085954.GA4352@redhat.com>
+ <20130222215158.GA4723@balto.lan>
+ <20130222222304.GA19546@redhat.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-ia0-f169.google.com ([209.85.210.169]:51548 "EHLO
-	mail-ia0-f169.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756408Ab3BVXqJ (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 22 Feb 2013 18:46:09 -0500
-In-Reply-To: <5350252.GArARx6b7p@vostro.rjw.lan>
+Received: from mail-ee0-f43.google.com ([74.125.83.43]:45486 "EHLO
+	mail-ee0-f43.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758190Ab3BWALH (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 22 Feb 2013 19:11:07 -0500
+Received: by mail-ee0-f43.google.com with SMTP id c50so572872eek.30
+        for <linux-acpi@vger.kernel.org>; Fri, 22 Feb 2013 16:11:05 -0800 (PST)
+Content-Disposition: inline
+In-Reply-To: <20130222222304.GA19546@redhat.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: Thomas Gleixner <tglx@linutronix.de>, LKML <linux-kernel@vger.kernel.org>, Toshi Kani <toshi.kani@hp.com>, Huang Ying <ying.huang@intel.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>
+To: Dave Jones <davej@redhat.com>
+Cc: Greg KH <gregkh@linuxfoundation.org>, Linus Torvalds <torvalds@linux-foundation.org>, Andrew Morton <akpm@linux-foundation.org>, linux-kernel@vger.kernel.org, linux-usb@vger.kernel.org, tianyu.lan@intel.com, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, linux-acpi@vger.kernel.org
 
-On Fri, Feb 22, 2013 at 4:30 AM, Rafael J. Wysocki <rjw@sisk.pl> wrote:
-> On Friday, February 22, 2013 09:22:15 AM Thomas Gleixner wrote:
->> On Fri, 22 Feb 2013, Rafael J. Wysocki wrote:
->> > On Friday, February 22, 2013 02:40:58 AM Rafael J. Wysocki wrote:
->> > > It looks like the hest_tab memory mapping is unmapped between acpi_hest_init()
->> > > and aer_acpi_firmware_first(), but I have no idea what may be responsible for
->> > > that.
->> > >
->> > > And the only relevant difference between now and before the commit above seems
->> > > to be the change of the acpi_hest_init() ordering (which now is called earlier).
->> >
->> > We actually don't really need to do that thing so early, I think.  It looks like
->> > we only need to make it available early enough for the AER driver to be able to
->> > use it, so I wonder if moving the acpi_hest_init() to a separate
->> > subsys_initcall() will work around the problem.  That is, something like the
->> > patch below.
->>
->> Yes, that makes the machine boot.
->
-> Although for a reason I didn't think about.
->
->> > But even if this helps, I will be wanting to understand what's up here.
->>
->> It's very simple. I have "acpi=off" on the command line. With that
->> acpi_hest_init is never called, so hest_disable is not set .....
->
-> Well, that explains things (and means that acpi=off doesn't really get much
-> test coverage these days).
->
->> Brilliant stuff that.
->
-> The appended patch should fix the breakage too, can you please verify?
->
-> Rafael
->
->
-> ---
-> From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
-> Subject: ACPI / APEI: Fix crash in apei_hest_parse() for acpi=off
->
-> After commit 92ef2a2 (ACPI: Change the ordering of PCI root bridge
-> driver registrarion), acpi_hest_init() is never called for acpi=off
-> (acpi_disabled), so hest_disable is not set, but hest_tab is NULL,
-> which causes apei_hest_parse() to crash when it is called from
-> aer_acpi_firmware_first().
->
-> Fix that by making apei_hest_parse() check if hest_tab is not NULL
-> in addition to checking hest_disable.  Also remove the now useless
-> acpi_disabled check from apei_hest_parse().
->
-> Reported-by: Thomas Gleixner <tglx@linutronix.de>
-> Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
-> ---
->  drivers/acpi/apei/hest.c |    5 +----
->  1 file changed, 1 insertion(+), 4 deletions(-)
->
-> Index: test/drivers/acpi/apei/hest.c
-> ===================================================================
-> --- test.orig/drivers/acpi/apei/hest.c
-> +++ test/drivers/acpi/apei/hest.c
-> @@ -89,7 +89,7 @@ int apei_hest_parse(apei_hest_func_t fun
->         struct acpi_hest_header *hest_hdr;
->         int i, rc, len;
->
-> -       if (hest_disable)
-> +       if (hest_disable || !hest_tab)
->                 return -EINVAL;
->
->         hest_hdr = (struct acpi_hest_header *)(hest_tab + 1);
-> @@ -216,9 +216,6 @@ void __init acpi_hest_init(void)
->                 return;
->         }
->
-> -       if (acpi_disabled)
-> -               goto err;
-> -
->         status = acpi_get_table(ACPI_SIG_HEST, 0,
->                                 (struct acpi_table_header **)&hest_tab);
->         if (status == AE_NOT_FOUND)
->
+On Fri, Feb 22, 2013 at 05:23:04PM -0500, Dave Jones wrote:
+> On Fri, Feb 22, 2013 at 10:51:58PM +0100, Fabio Baltieri wrote:
+>  > On Fri, Feb 22, 2013 at 03:59:54AM -0500, Dave Jones wrote:
+>  > > On Thu, Feb 21, 2013 at 10:40:10AM -0800, Greg KH wrote:
+>  > > 
+>  > > It looks like every port on my laptop is powered down, as I can't
+>  > > even charge devices with it.
+>  > 
+>  > I have the same problem (and almost the same laptop, Thinkpad T430
+>  > here), all external USB ports without power - even the always-on one
+>  > :-).
+>  > 
+>  > The bug seems to be ACPI related, I bisected it down to this patch:
+>  > 
+>  > f95988d ACPI / scan: Treat power resources in a special way
+>  > 
+>  > In the dmesg I have some error like these:
+>  > 
+>  > ACPI: Power Resource [PUBS] (on)
+>  > ...
+>  > pci 0000:00:14.0: System wakeup disabled by ACPI
+>  > 
+>  > for the USB controllers in the broken kernel, there are some in your
+>  > dmesg too.  I'll try to come up with a fix for current mainline, but all
+>  > the acpi stuff is quite obscure to me and the patch does not revert
+>  > cleanly, maybe Rafael (in CC) has some idea!
+> 
+> Good find. I see the same thing.
+> 
+> [    0.930283] ACPI _OSC control for PCIe not granted, disabling ASPM
+> [    0.933527] pci 0000:00:14.0: System wakeup disabled by ACPI
+> [    0.935982] pci 0000:00:19.0: System wakeup disabled by ACPI
+> [    0.937898] pci 0000:00:1a.0: System wakeup disabled by ACPI
+> [    0.939835] pci 0000:00:1b.0: System wakeup disabled by ACPI
+> [    0.940700] ACPI: PCI Interrupt Routing Table [\_SB_.PCI0.EXP1._PRT]
+> [    0.942195] ACPI: PCI Interrupt Routing Table [\_SB_.PCI0.EXP2._PRT]
+> [    0.943737] ACPI: PCI Interrupt Routing Table [\_SB_.PCI0.EXP3._PRT]
+> [    0.944564] pci 0000:00:1c.2: System wakeup disabled by ACPI
+> [    0.966491] pci 0000:00:1d.0: System wakeup disabled by ACPI
+> 
+> I must have pulled in the acpi bits the same time as the usb pull,
+> because I don't recall seeing this problem before last night.
 
-Acked-by: Yinghai Lu <yinghai@kernel.org>
+Definitely.
+
+Well, this did the trick in my case:
+
+--- >8 ---
+diff --git a/drivers/acpi/power.c b/drivers/acpi/power.c
+index b820528..54175a0 100644
+--- a/drivers/acpi/power.c
++++ b/drivers/acpi/power.c
+@@ -795,7 +795,7 @@ int acpi_add_power_resource(acpi_handle handle)
+        int state, result = -ENODEV;
+ 
+        acpi_bus_get_device(handle, &device);
+-       if (device)
++       if (!device)
+                return 0;
+ 
+        resource = kzalloc(sizeof(*resource), GFP_KERNEL);
+--- >8 ---
+
+But I guess it's working as a coincidence and something else is wrong -
+I'll not even try to make a patch out of it and will leave the dirty
+work to the ACPI guys instead.
+
+Fabio
+
+-- 
+Fabio Baltieri
