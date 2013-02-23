@@ -1,68 +1,71 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
+From: Linus Torvalds <torvalds@linux-foundation.org>
 Subject: Re: [GIT PATCH] USB patches for 3.9-rc1
-Date: Sat, 23 Feb 2013 02:00:34 +0100
-Message-ID: <1705229.vSbifsr2b3@vostro.rjw.lan>
-References: <20130222085954.GA4352@redhat.com> <20130222215158.GA4723@balto.lan>
+Date: Fri, 22 Feb 2013 17:10:43 -0800
+Message-ID: <CA+55aFywBFO4F+gEmq5h05VBe4unEJLh4RckJwaWPsU67bw44w@mail.gmail.com>
+References: <20130222085954.GA4352@redhat.com>
+	<9798783.W2ijE8Yd31@vostro.rjw.lan>
+	<CA+55aFxcqczXZf7zxJ0xjDsnLMbS8uu9Jp5BDOdnR5tqf==nrA@mail.gmail.com>
+	<1451742.5dFcotgqBW@vostro.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from hydra.sisk.pl ([212.160.235.94]:41806 "EHLO hydra.sisk.pl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750997Ab3BWAx4 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 22 Feb 2013 19:53:56 -0500
-In-Reply-To: <20130222215158.GA4723@balto.lan>
+Received: from mail-ve0-f169.google.com ([209.85.128.169]:44560 "EHLO
+	mail-ve0-f169.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757172Ab3BWBKo (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 22 Feb 2013 20:10:44 -0500
+In-Reply-To: <1451742.5dFcotgqBW@vostro.rjw.lan>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Fabio Baltieri <fabio.baltieri@linaro.org>
-Cc: Dave Jones <davej@redhat.com>, Greg KH <gregkh@linuxfoundation.org>, Linus Torvalds <torvalds@linux-foundation.org>, Andrew Morton <akpm@linux-foundation.org>, linux-kernel@vger.kernel.org, linux-usb@vger.kernel.org, tianyu.lan@intel.com, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, linux-acpi@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: Fabio Baltieri <fabio.baltieri@linaro.org>, Dave Jones <davej@redhat.com>, Greg KH <gregkh@linuxfoundation.org>, Andrew Morton <akpm@linux-foundation.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, USB list <linux-usb@vger.kernel.org>, tianyu.lan@intel.com, Linux ACPI <linux-acpi@vger.kernel.org>
 
-On Friday, February 22, 2013 10:51:58 PM Fabio Baltieri wrote:
-> On Fri, Feb 22, 2013 at 03:59:54AM -0500, Dave Jones wrote:
-> > On Thu, Feb 21, 2013 at 10:40:10AM -0800, Greg KH wrote:
-> > 
-> >  > USB patches for 3.9-rc1
-> >  > 
-> >  > Here's the big USB merge for 3.9-rc1
-> >  > 
-> >  > Nothing major, lots of gadget fixes, and of course, xhci stuff.
-> > 
-> > I get no USB devices recognised when I insert them any more, which
-> > I think is pretty major.  I suspect it has something to do with this ?
-> > 
-> >  > Lan Tianyu (12):
-> >  >       usb: add runtime pm support for usb port device
-> >  >       usb: add usb port auto power off mechanism
-> > 
-> > It looks like every port on my laptop is powered down, as I can't
-> > even charge devices with it.
-> 
-> Hi Dave,
-> 
-> I have the same problem (and almost the same laptop, Thinkpad T430
-> here), all external USB ports without power - even the always-on one
-> :-).
-> 
-> The bug seems to be ACPI related, I bisected it down to this patch:
-> 
-> f95988d ACPI / scan: Treat power resources in a special way
-> 
-> In the dmesg I have some error like these:
-> 
-> ACPI: Power Resource [PUBS] (on)
-> ...
-> pci 0000:00:14.0: System wakeup disabled by ACPI
-> 
-> for the USB controllers in the broken kernel, there are some in your
-> dmesg too.  I'll try to come up with a fix for current mainline, but all
-> the acpi stuff is quite obscure to me and the patch does not revert
-> cleanly, maybe Rafael (in CC) has some idea!
+On Fri, Feb 22, 2013 at 4:48 PM, Rafael J. Wysocki <rjw@sisk.pl> wrote:
+>
+> The problem is, though, that even if bisection turns up something, it doesn't
+> automatically mean that this particular commit is the one that caused the
+> problem to happen in the first place.
 
-May I see the bisection log, BTW?
+No, I agree. I just react *very* strongly when somebody starts arguing
+against reverting.
 
-Rafael
+The fact that the commit that was bisected fixes another bug in a
+previous commit does in fact just imply that that *previous* commit
+should perhaps be reverted. Of course, I see that that is the first in
+the whole series, so I understand the pain, but even so..
 
+And looking at that commit that makes power resources be treated
+specially, that looks completely bogus. It's not what the old code did
+either, and it seems to be a total hack for the breakage that just
+happens to fix that one machine for purely random reasons, as far as I
+can tell. The ACPI_BUS_TYPE_POWER case always had match=1 before, no?
 
--- 
-I speak only for myself.
-Rafael J. Wysocki, Intel Open Source Technology Center.
+The thing that looks to have been dropped somewhere is that
+
+  .acpi_op_start = !!context,
+
+which first became
+
+  device->add_type = context ? ACPI_BUS_ADD_START : ACPI_BUS_ADD_MATCH;
+
+and then somehow that wasn't needed any more, so it became just an unconditional
+
+  device->add_type = ACPI_BUS_ADD_START;
+
+for unexplained reasons (the commit message says that the argument
+"context" wasn't used, and renames it not_used to reinforce the point,
+but doesn't explain why it can remove the use that was there).
+
+That unconditional "add_type = ACPI_BUS_ADD_START" then later becomes
+"flags.match_driver = true", which is where the whole match_driver
+thing comes in.
+
+Anyway, I don't see how magically it became about ACPI_BUS_TYPE_POWER.
+The code is not exactly obvious, though, so whatever. But that
+"context is suddenly not used" commit (e3863094c6f9: "ACPI: Drop the
+second argument of acpi_bus_scan()") looks odd.
+
+Maybe "context" was effectively always non-NULL, but it *looks* like
+that series of commits is intended to have no semantic changes, and
+that's the one that looked very dubious to me.
+
+                   Linus
