@@ -1,106 +1,125 @@
 From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: [PATCH 5/7] ACPI / hotplug: Introduce user space interface for hotplug profiles
-Date: Tue, 26 Feb 2013 00:25:48 +0100
-Message-ID: <19747824.nPmizS2ZIQ@vostro.rjw.lan>
-References: <3260206.bhaAobGhpZ@vostro.rjw.lan> <5060623.RI4NTzcn19@vostro.rjw.lan> <1361816039.12845.73.camel@misato.fc.hp.com>
+Subject: Re: [Update 4][PATCH 2/7] ACPI / scan: Introduce common code for ACPI-based device hotplug
+Date: Tue, 26 Feb 2013 00:39:50 +0100
+Message-ID: <18666371.hyHAvqrdQ6@vostro.rjw.lan>
+References: <3260206.bhaAobGhpZ@vostro.rjw.lan> <1478394.ryVNRuTre2@vostro.rjw.lan> <1361815672.12845.71.camel@misato.fc.hp.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7Bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1361816039.12845.73.camel@misato.fc.hp.com>
-Sender: linux-kernel-owner@vger.kernel.org
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from hydra.sisk.pl ([212.160.235.94]:44427 "EHLO hydra.sisk.pl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1759567Ab3BYXdH (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 25 Feb 2013 18:33:07 -0500
+In-Reply-To: <1361815672.12845.71.camel@misato.fc.hp.com>
+Sender: linux-acpi-owner@vger.kernel.org
+List-Id: linux-acpi@vger.kernel.org
 To: Toshi Kani <toshi.kani@hp.com>
 Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Bjorn Helgaas <bhelgaas@google.com>, LKML <linux-kernel@vger.kernel.org>, Yinghai Lu <yinghai@kernel.org>, Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>, Jiang Liu <liuj97@gmail.com>
-List-Id: linux-acpi@vger.kernel.org
 
-On Monday, February 25, 2013 11:13:59 AM Toshi Kani wrote:
-> On Sun, 2013-02-17 at 16:24 +0100, Rafael J. Wysocki wrote:
-> > From: Rafael J. Wysocki <rafael.j.wysocki@inel.com>
+On Monday, February 25, 2013 11:07:52 AM Toshi Kani wrote:
+> On Sat, 2013-02-23 at 22:38 +0000, Rafael J. Wysocki wrote:
+> > From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 > > 
-> > Introduce user space interface for manipulating hotplug profiles
-> > associated with ACPI scan handlers.
+> > Multiple drivers handling hotplug-capable ACPI device nodes install
+> > notify handlers covering the same types of events in a very similar
+> > way.  Moreover, those handlers are installed in separate namespace
+> > walks, although that really should be done during namespace scans
+> > carried out by acpi_bus_scan().  This leads to substantial code
+> > duplication, unnecessary overhead and behavior that is hard to
+> > follow.
 > > 
-> > The interface consists of sysfs directories under
-> > /sys/firmware/acpi/hotplug/, one for each hotplug profile, containing
-> > attributes allowing user space to manipulate the enabled, uevents,
-> > and autoeject fields of the corresponding profile.  In particular,
-> > switching the enabled attribute from 'unset' to 'set' will cause
-> > the common hotplug notify handler to be installed for all ACPI
-> > namespace objects representing devices matching the scan handler
-> > associated with the given hotplug profile (and analogously for the
-> > converse switch).
+> > For this reason, introduce common code in drivers/acpi/scan.c for
+> > handling hotplug-related notification and carrying out device
+> > insertion and eject operations in a generic fashion, such that it
+> > may be used by all of the relevant drivers in the future.  To cover
+> > the existing differences between those drivers introduce struct
+> > acpi_hotplug_profile for representing collections of hotplug
+> > settings associated with different ACPI scan handlers that can be
+> > used by the drivers to make the common code reflect their current
+> > behavior.
 > > 
-> > Drivers willing to use the new user space interface should add their
-> > ACPI scan handlers with the help of new funtion
-> > acpi_scan_add_handler_with_hotplug().
-> > 
-> > Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@inel.com>
+> > Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 > > ---
-> >  Documentation/ABI/testing/sysfs-firmware-acpi |   42 +++++++++
-> >  drivers/acpi/internal.h                       |    9 +
-> >  drivers/acpi/scan.c                           |   73 +++++++++++++++
-> >  drivers/acpi/sysfs.c                          |  120 ++++++++++++++++++++++++++
-> >  include/acpi/acpi_bus.h                       |    7 +
-> >  5 files changed, 251 insertions(+)
+> > 
+> > This update causes acpi_bus_device_eject() to only emit KOBJ_OFFLINE uevent if
+> > autoexec is unset for the given scan handler.
+> > 
+> > This will require the doc in patch [5/7] to be updated which I'm going to do if
+> > everyone is OK with the $subject patch.
+> > 
+> > Thanks,
+> > Rafael
 >  :
-> > Index: test/drivers/acpi/scan.c
-> > ===================================================================
-> > --- test.orig/drivers/acpi/scan.c
-> > +++ test/drivers/acpi/scan.c
-> > @@ -63,6 +63,19 @@ int acpi_scan_add_handler(struct acpi_sc
-> >  	return 0;
-> >  }
-> >  
-> > +int acpi_scan_add_handler_with_hotplug(struct acpi_scan_handler *handler,
-> > +				       const char *hotplug_profile_name)
+> > +
+> > +static void acpi_scan_bus_device_check(acpi_handle handle, u32 ost_source)
 > > +{
+> > +	struct acpi_device *device = NULL;
+> > +	u32 ost_code = ACPI_OST_SC_NON_SPECIFIC_FAILURE;
 > > +	int error;
 > > +
-> > +	error = acpi_scan_add_handler(handler);
-> > +	if (error)
-> > +		return error;
+> > +	mutex_lock(&acpi_scan_lock);
 > > +
-> > +	acpi_sysfs_add_hotplug_profile(&handler->hotplug, hotplug_profile_name);
-> > +	return 0;
-> > +}
-> > +
-> >  /*
-> >   * Creates hid/cid(s) string needed for modalias and uevent
-> >   * e.g. on a device with hid:IBM0001 and cid:ACPI0001 you get:
-> > @@ -1675,6 +1688,66 @@ static bool acpi_scan_handler_matching(s
-> >  	return false;
-> >  }
-> >  
-> > +static acpi_status acpi_scan_hotplug_modify(acpi_handle handle,
-> > +					    u32 lvl_not_used, void *data,
-> > +					    void **ret_not_used)
-> > +{
-> > +	struct acpi_scan_handler *handler = data;
-> > +	struct acpi_device_info *info;
-> > +	bool match = false;
-> > +
-> > +	if (ACPI_FAILURE(acpi_get_object_info(handle, &info)))
-> > +		return AE_OK;
-> > +
-> > +	if (info->valid & ACPI_VALID_HID) {
-> > +		char *idstr = info->hardware_id.string;
-> > +		match = acpi_scan_handler_matching(handler, idstr, NULL);
+> > +	acpi_bus_get_device(handle, &device);
+> > +	if (device) {
+> > +		dev_warn(&device->dev, "Attempt to re-insert\n");
+> > +		goto out;
 > > +	}
-> > +	kfree(info);
-> > +	if (!match)
-> > +		return AE_OK;
-> > +
-> > +	if (handler->hotplug.enabled)
-> > +		acpi_remove_notify_handler(handle, ACPI_SYSTEM_NOTIFY,
-> > +					   acpi_hotplug_notify_cb);
-> > +	else
-> > +		acpi_install_notify_handler(handle, ACPI_SYSTEM_NOTIFY,
-> > +					    acpi_hotplug_notify_cb, NULL);
+> > +	acpi_evaluate_hotplug_ost(handle, ost_source,
+> > +				  ACPI_OST_SC_INSERT_IN_PROGRESS, NULL);
+> > +	error = acpi_bus_scan(handle);
+> > +	if (error) {
+> > +		acpi_handle_warn(handle, "Namespace scan failure\n");
+> > +		goto out;
+> > +	}
+> > +	error = acpi_bus_get_device(handle, &device);
+> > +	if (error) {
+> > +		acpi_handle_warn(handle, "Missing device node object\n");
+> > +		goto out;
+> > +	}
+> > +	ost_code = ACPI_OST_SC_SUCCESS;
+> > +	if (device->handler && device->handler->hotplug.uevents)
+> > +		kobject_uevent(&device->dev.kobj, KOBJ_ONLINE);
 > 
-> I found that the action for "enabled" attribute is incorrect.  When
-> enabled, it should install the notify handler, and remove otherwise.
+> I confirmed that the uevent crash issue was solved.  Thinking further, I
+> wonder if we need to emit KOBJ_ONLINE here.  This behavior is asymmetric
+> since we do not emit KOBJ_OFFLINE when autoeject is set.
 
-Well, thanks for spotting this!
+Well, I put that in there only to be able to make the container driver behave
+in a backwards compatible way (which is to emit KOBJ_ONLINE at this point).
+
+If the container driver doesn't need to emit KOBJ_ONLINE at all, I agree with
+your suggestion.
+
+> The definition of ONLINE/OFFLINE event to an ACPI device object seems also
+> bogus since there is no online/offline operation to the ACPI device object
+> itself.
+> Online/offline operation is only possible to actual device, such as
+> system/cpu/cpu% and system/memory/memory%.
+
+That's correct, but I don't know what the user space expectations are
+currently.
+
+> So, I'd suggest the following changes.
+>  - Remove the "uevents" attribute.  KOBJ_ONLINE/OFFLINE are not used for
+> ACPI device objects.
+>  - Make the !autoeject case as an exception for now, and emit
+> KOBJ_OFFLINE as a way to request off-lining to user.  This uevent is
+> tied with the !autoeject case.  We can then revisit if this use-case
+> needs to be supported going forward.  If so, we may want to consider a
+> different event type.
+
+Well, what about avoiding to expose uevents and autoeject for now and
+exposing enabled only?  Drivers would still be able to set the other flags on
+init on init to enforce the backwards-compatible behavior.
+
+I agree that it would be sufficient to use one additional flag then, to start
+with, but its meaning would be something like "keep backwards compatibility
+with the old container driver", so perhaps "autoeject" is not a good name.
+
+What about "user_eject" (that won't be exposed to user space) instead?  Where,
+if set, it would meand "do not autoeject and emit KOBJ_OFFLINE/ONLINE uevents
+like the old container driver did"?
 
 Rafael
 
