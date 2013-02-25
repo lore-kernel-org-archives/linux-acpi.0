@@ -1,33 +1,110 @@
-From: David Rientjes <rientjes@google.com>
-Subject: Re: [rebased-again][PATCH 1/4] acpi: move x86/mm/srat.c to
- x86/kernel/acpi/srat.c
-Date: Mon, 25 Feb 2013 14:51:30 -0800 (PST)
-Message-ID: <alpine.DEB.2.02.1302251450160.4488@chino.kir.corp.google.com>
-References: <1361759917-5195-1-git-send-email-lig.fnst@cn.fujitsu.com> <1361759917-5195-2-git-send-email-lig.fnst@cn.fujitsu.com>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: Re: [PATCH 5/7] ACPI / hotplug: Introduce user space interface for hotplug profiles
+Date: Tue, 26 Feb 2013 00:25:48 +0100
+Message-ID: <19747824.nPmizS2ZIQ@vostro.rjw.lan>
+References: <3260206.bhaAobGhpZ@vostro.rjw.lan> <5060623.RI4NTzcn19@vostro.rjw.lan> <1361816039.12845.73.camel@misato.fc.hp.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-pa0-f42.google.com ([209.85.220.42]:37133 "EHLO
-	mail-pa0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932163Ab3BYWvc (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 25 Feb 2013 17:51:32 -0500
-Received: by mail-pa0-f42.google.com with SMTP id kq12so2019109pab.15
-        for <linux-acpi@vger.kernel.org>; Mon, 25 Feb 2013 14:51:32 -0800 (PST)
-In-Reply-To: <1361759917-5195-2-git-send-email-lig.fnst@cn.fujitsu.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7Bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1361816039.12845.73.camel@misato.fc.hp.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Toshi Kani <toshi.kani@hp.com>
+Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Bjorn Helgaas <bhelgaas@google.com>, LKML <linux-kernel@vger.kernel.org>, Yinghai Lu <yinghai@kernel.org>, Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>, Jiang Liu <liuj97@gmail.com>
 List-Id: linux-acpi@vger.kernel.org
-To: liguang <lig.fnst@cn.fujitsu.com>
-Cc: tglx@linutronix.de, hpa@zytor.com, pavel@ucw.cz, rjw@sisk.pl, lv.zheng@intel.com, jarkko.sakkinen@intel.com, dave@linux.vnet.ibm.com, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, x86@kernel.org
 
-On Mon, 25 Feb 2013, liguang wrote:
-
-> srat table should present only on acpi domain,
-> seems mm/ is not the right place for it.
+On Monday, February 25, 2013 11:13:59 AM Toshi Kani wrote:
+> On Sun, 2013-02-17 at 16:24 +0100, Rafael J. Wysocki wrote:
+> > From: Rafael J. Wysocki <rafael.j.wysocki@inel.com>
+> > 
+> > Introduce user space interface for manipulating hotplug profiles
+> > associated with ACPI scan handlers.
+> > 
+> > The interface consists of sysfs directories under
+> > /sys/firmware/acpi/hotplug/, one for each hotplug profile, containing
+> > attributes allowing user space to manipulate the enabled, uevents,
+> > and autoeject fields of the corresponding profile.  In particular,
+> > switching the enabled attribute from 'unset' to 'set' will cause
+> > the common hotplug notify handler to be installed for all ACPI
+> > namespace objects representing devices matching the scan handler
+> > associated with the given hotplug profile (and analogously for the
+> > converse switch).
+> > 
+> > Drivers willing to use the new user space interface should add their
+> > ACPI scan handlers with the help of new funtion
+> > acpi_scan_add_handler_with_hotplug().
+> > 
+> > Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@inel.com>
+> > ---
+> >  Documentation/ABI/testing/sysfs-firmware-acpi |   42 +++++++++
+> >  drivers/acpi/internal.h                       |    9 +
+> >  drivers/acpi/scan.c                           |   73 +++++++++++++++
+> >  drivers/acpi/sysfs.c                          |  120 ++++++++++++++++++++++++++
+> >  include/acpi/acpi_bus.h                       |    7 +
+> >  5 files changed, 251 insertions(+)
+>  :
+> > Index: test/drivers/acpi/scan.c
+> > ===================================================================
+> > --- test.orig/drivers/acpi/scan.c
+> > +++ test/drivers/acpi/scan.c
+> > @@ -63,6 +63,19 @@ int acpi_scan_add_handler(struct acpi_sc
+> >  	return 0;
+> >  }
+> >  
+> > +int acpi_scan_add_handler_with_hotplug(struct acpi_scan_handler *handler,
+> > +				       const char *hotplug_profile_name)
+> > +{
+> > +	int error;
+> > +
+> > +	error = acpi_scan_add_handler(handler);
+> > +	if (error)
+> > +		return error;
+> > +
+> > +	acpi_sysfs_add_hotplug_profile(&handler->hotplug, hotplug_profile_name);
+> > +	return 0;
+> > +}
+> > +
+> >  /*
+> >   * Creates hid/cid(s) string needed for modalias and uevent
+> >   * e.g. on a device with hid:IBM0001 and cid:ACPI0001 you get:
+> > @@ -1675,6 +1688,66 @@ static bool acpi_scan_handler_matching(s
+> >  	return false;
+> >  }
+> >  
+> > +static acpi_status acpi_scan_hotplug_modify(acpi_handle handle,
+> > +					    u32 lvl_not_used, void *data,
+> > +					    void **ret_not_used)
+> > +{
+> > +	struct acpi_scan_handler *handler = data;
+> > +	struct acpi_device_info *info;
+> > +	bool match = false;
+> > +
+> > +	if (ACPI_FAILURE(acpi_get_object_info(handle, &info)))
+> > +		return AE_OK;
+> > +
+> > +	if (info->valid & ACPI_VALID_HID) {
+> > +		char *idstr = info->hardware_id.string;
+> > +		match = acpi_scan_handler_matching(handler, idstr, NULL);
+> > +	}
+> > +	kfree(info);
+> > +	if (!match)
+> > +		return AE_OK;
+> > +
+> > +	if (handler->hotplug.enabled)
+> > +		acpi_remove_notify_handler(handle, ACPI_SYSTEM_NOTIFY,
+> > +					   acpi_hotplug_notify_cb);
+> > +	else
+> > +		acpi_install_notify_handler(handle, ACPI_SYSTEM_NOTIFY,
+> > +					    acpi_hotplug_notify_cb, NULL);
 > 
-> Reviewed-by: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
-> Signed-off-by: liguang <lig.fnst@cn.fujitsu.com>
+> I found that the action for "enabled" attribute is incorrect.  When
+> enabled, it should install the notify handler, and remove otherwise.
 
-You're still missing 01a178a94e8e ("acpi, memory-hotplug: support getting 
-hotplug info from SRAT") that was merged at the end of last week.  Instead 
-of continuing to rebase perhaps it would be better at this point to ask 
-the x86 maintainers to just do the patch for you?
+Well, thanks for spotting this!
+
+Rafael
+
+
+-- 
+I speak only for myself.
+Rafael J. Wysocki, Intel Open Source Technology Center.
