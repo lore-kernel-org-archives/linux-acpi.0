@@ -1,46 +1,103 @@
-From: Yinghai Lu <yinghai@kernel.org>
-Subject: Re: [PATCH 2/2] ACPI: Overriding ACPI tables via initrd only works
- with an initrd and on X86
-Date: Mon, 25 Feb 2013 12:07:39 -0800
-Message-ID: <CAE9FiQV1KetY9fENCx3D2ATc91Q6ydVrsyHHsqf8wJ8bVAvZGw@mail.gmail.com>
-References: <1361538742-67599-1-git-send-email-trenn@suse.de>
-	<1361538742-67599-3-git-send-email-trenn@suse.de>
-	<CAE9FiQXnJF_qXgG5fN7xE7t40a5yF79hksei6YgYAcmjtaNwOg@mail.gmail.com>
-	<512BC34A.9090504@zytor.com>
+From: Toshi Kani <toshi.kani@hp.com>
+Subject: Re: [PATCH] ACPI: Add sysfs links from memory device to memblocks
+Date: Mon, 25 Feb 2013 13:31:16 -0700
+Message-ID: <1361824276.12845.75.camel@misato.fc.hp.com>
+References: <1361562147-30801-1-git-send-email-toshi.kani@hp.com>
+	 <512AEDCE.6060509@jp.fujitsu.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-ie0-f181.google.com ([209.85.223.181]:61030 "EHLO
-	mail-ie0-f181.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1759656Ab3BYUHk (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 25 Feb 2013 15:07:40 -0500
-Received: by mail-ie0-f181.google.com with SMTP id 17so3511957iea.40
-        for <linux-acpi@vger.kernel.org>; Mon, 25 Feb 2013 12:07:39 -0800 (PST)
-In-Reply-To: <512BC34A.9090504@zytor.com>
+Received: from g1t0026.austin.hp.com ([15.216.28.33]:41759 "EHLO
+	g1t0026.austin.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755004Ab3BYUmL (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 25 Feb 2013 15:42:11 -0500
+In-Reply-To: <512AEDCE.6060509@jp.fujitsu.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "H. Peter Anvin" <hpa@zytor.com>
-Cc: Thomas Renninger <trenn@suse.de>, linux-acpi@vger.kernel.org, lenb@kernel.org, rjw@sisk.pl, aaron.lu@intel.com, devurandom@gmx.net
+To: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
+Cc: rjw@sisk.pl, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, vasilis.liaskovitis@profitbricks.com
 
-On Mon, Feb 25, 2013 at 12:02 PM, H. Peter Anvin <hpa@zytor.com> wrote:
-> On 02/25/2013 12:00 PM, Yinghai Lu wrote:
->>
->> Can replace max_low_pfn_mapped with max_low_pfn instead ?
->> like to see if you can put acpi tables above 4G for x86_64.
->>
->> if it does not work, you can use min(max_low_pfn<<PAGE_SHIFT,  0xffffffffUL)
->> instead.
->>
->
-> This is part of why we really need to get rid of these stupid variables
-> one and for all.  The only exception should perhaps be to mark the
-> HIGHMEM crossover point on HIGHMEM systems.
+On Mon, 2013-02-25 at 13:51 +0900, Yasuaki Ishimatsu wrote:
+> Hi Toshi,
+> 
+> 2013/02/23 4:42, Toshi Kani wrote:
+> > In order to eject a memory device object represented as "PNP0C80:%d"
+> > in sysfs, its associated memblocks (system/memory/memory%d) need to
+> > be off-lined.  However, there is no user friendly way to correlate
+> > between a memory device object and its memblocks in sysfs.
+> > 
+> > This patch creates sysfs links to memblocks under a memory device
+> > object so that a user can easily checks and manipulates its memblocks
+> > in sysfs.
+> > 
+> > For example, when PNP0C80:05 is associated with memory8 and memory9,
+> > the following two links are created under PNP0C80:05.  This allows
+> > a user to access memory8/9 directly from PNP0C80:05.
+> > 
+> >    # ll /sys/devices/LNXSYSTM:00/LNXSYBUS:00/PNP0C80:05
+> >    lrwxrwxrwx. memory8 -> ../../../system/memory/memory8
+> >    lrwxrwxrwx. memory9 -> ../../../system/memory/memory9
+> > 
+> > Signed-off-by: Toshi Kani <toshi.kani@hp.com>
+> > ---
+> > This patch applies on top of the Rafael's patch below.
+> > https://patchwork.kernel.org/patch/2153261/
+> > 
+> > ---
+> >   drivers/acpi/acpi_memhotplug.c |   54 ++++++++++++++++++++++++++++++++++++++++
+> >   1 file changed, 54 insertions(+)
+> > 
+> > diff --git a/drivers/acpi/acpi_memhotplug.c b/drivers/acpi/acpi_memhotplug.c
+> > index 3b3abbc..d6226b3 100644
+> > --- a/drivers/acpi/acpi_memhotplug.c
+> > +++ b/drivers/acpi/acpi_memhotplug.c
+> > @@ -28,6 +28,7 @@
+> >    */
+> >   
+> >   #include <linux/acpi.h>
+> > +#include <linux/memory.h>
+> >   #include <linux/memory_hotplug.h>
+> >   
+> >   #include "internal.h"
+> > @@ -168,6 +169,53 @@ static int acpi_memory_check_device(struct acpi_memory_device *mem_device)
+> >   	return 0;
+> >   }
+> >   
+> > +static void acpi_setup_mem_blk_links(struct acpi_memory_device *mem_device,
+> > +		struct acpi_memory_info *info, bool add_links)
+> > +{
+> > +	struct memory_block *mem_blk = NULL;
+> > +	struct mem_section *mem_sect;
+> > +	unsigned long start_pfn, end_pfn, pfn;
+> > +	unsigned long section_nr;
+> > +	int ret;
+> > +
+> > +	start_pfn = PFN_DOWN(info->start_addr);
+> > +	end_pfn = PFN_UP(info->start_addr + info->length-1);
+> > +
+> > +	for (pfn = start_pfn; pfn < end_pfn; pfn += PAGES_PER_SECTION) {
+> > +		section_nr = pfn_to_section_nr(pfn);
+> > +
+> > +		if (!present_section_nr(section_nr))
+> > +			continue;
+> > +
+> > +		mem_sect = __nr_to_section(section_nr);
+> > +
+> > +		/* skip if the same memblock */
+> > +		if (mem_blk)
+> > +			if ((section_nr >= mem_blk->start_section_nr) &&
+> > +			    (section_nr <= mem_blk->end_section_nr))
+> > +				continue;
+> > +
+> 
+> > +		mem_blk = find_memory_block_hinted(mem_sect, mem_blk);
+> 
+> NULL pointer check is needed.	
 
-yes, we can drop max_low_pfn_mapped at least.
+Good point!  I will update the patch to check this condition.
 
-I should drop that in for-x86-mm2 time point, but saw ThomasR is using that,
-so i dropped that patch to make the merge easy.
+Thanks!
+-Toshi
 
-Now after Thomas change to max_low_pfn, we can drop max_low_pfn_mapped.
 
-Yinghai
