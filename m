@@ -1,7 +1,7 @@
 From: Jiang Liu <liuj97@gmail.com>
-Subject: [PATCH v8 03/13] PCI/acpiphp: don't rely on function 0 in disable_device()
-Date: Tue, 26 Feb 2013 23:25:43 +0800
-Message-ID: <1361892353-14786-4-git-send-email-jiang.liu@huawei.com>
+Subject: [PATCH v8 01/13] PCI: do not check is_added flag in pci_remove_bus()
+Date: Tue, 26 Feb 2013 23:25:41 +0800
+Message-ID: <1361892353-14786-2-git-send-email-jiang.liu@huawei.com>
 References: <1361892353-14786-1-git-send-email-jiang.liu@huawei.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <1361892353-14786-1-git-send-email-jiang.liu@huawei.com>
@@ -10,15 +10,23 @@ To: Bjorn Helgaas <bhelgaas@google.com>, "Rafael J . Wysocki" <rjw@sisk.pl>
 Cc: Jiang Liu <jiang.liu@huawei.com>, Yinghai Lu <yinghai@kernel.org>, Yijing Wang <wangyijing@huawei.com>, Jiang Liu <liuj97@gmail.com>, linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Toshi Kani <toshi.kani@hp.com>, Myron Stowe <myron.stowe@redhat.com>, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>
 List-Id: linux-acpi@vger.kernel.org
 
-Currently function disable_device() detects slot state by checking
-existence of PCI device for function 0. It's unreliable because PCI
-device for function 0 may be removed through sysfs interface. If that
-happens, it will cause powering off a hotplug slot without destroying
-all PCI devices.
+The is_added flag in struct pci_bus is always set after invoking
+device_register() and pci_create_legacy_files(). The related code
+paths are:
+1) pci_create_root_bus() and pci_add_new_bus()
+	bus = pci_alloc_bus()
+	device_register(&bus->dev)
+	pci_create_legacy_file(bus)
+2.a) pci_scan_child_bus(bus)
+	set is_added flag for PCI root buses
+2.b) pci_bus_add_devices(bus)
+	set is_added flag for normal PCI buses
 
-On the other hand, it won't hurt us except wasting some computation
-power if the check is removed, because all code of disable_device()
-is self-protected. So remove the check.
+So pci_remove_bus() shouldn't use is_added flag to guard invoking of
+pci_remove_lagecy_files() and device_unregister().
+
+One more step further, now bus->is_added is only used to guard invoking
+of pcibios_fixup_bus(), so cleaup the code.
 
 Signed-off-by: Jiang Liu <jiang.liu@huawei.com>
 Signed-off-by: Yijing Wang <wangyijing@huawei.com>
@@ -28,26 +36,61 @@ Cc: Toshi Kani <toshi.kani@hp.com>
 Cc: linux-pci@vger.kernel.org
 Cc: linux-kernel@vger.kernel.org
 ---
- drivers/pci/hotplug/acpiphp_glue.c |    7 -------
- 1 file changed, 7 deletions(-)
+ drivers/pci/bus.c    |   11 ++---------
+ drivers/pci/probe.c  |    3 +--
+ drivers/pci/remove.c |    3 ---
+ 3 files changed, 3 insertions(+), 14 deletions(-)
 
-diff --git a/drivers/pci/hotplug/acpiphp_glue.c b/drivers/pci/hotplug/acpiphp_glue.c
-index 514851d8..4101c15 100644
---- a/drivers/pci/hotplug/acpiphp_glue.c
-+++ b/drivers/pci/hotplug/acpiphp_glue.c
-@@ -918,13 +918,6 @@ static int disable_device(struct acpiphp_slot *slot)
- 	struct pci_dev *pdev;
- 	struct pci_bus *bus = slot->bridge->pci_bus;
+diff --git a/drivers/pci/bus.c b/drivers/pci/bus.c
+index 8647dc6..bdc1e8b 100644
+--- a/drivers/pci/bus.c
++++ b/drivers/pci/bus.c
+@@ -206,16 +206,9 @@ void pci_bus_add_devices(const struct pci_bus *bus)
  
--	/* The slot will be enabled when func 0 is added, so check
--	   func 0 before disable the slot. */
--	pdev = pci_get_slot(bus, PCI_DEVFN(slot->device, 0));
--	if (!pdev)
--		goto err_exit;
--	pci_dev_put(pdev);
+ 	list_for_each_entry(dev, &bus->devices, bus_list) {
+ 		BUG_ON(!dev->is_added);
 -
- 	list_for_each_entry(func, &slot->funcs, sibling) {
- 		if (func->bridge) {
- 			/* cleanup p2p bridges under this P2P bridge */
+ 		child = dev->subordinate;
+-
+-		if (!child)
+-			continue;
+-		pci_bus_add_devices(child);
+-
+-		if (child->is_added)
+-			continue;
+-		child->is_added = 1;
++		if (child)
++			pci_bus_add_devices(child);
+ 	}
+ }
+ 
+diff --git a/drivers/pci/probe.c b/drivers/pci/probe.c
+index b494066..45c93b3 100644
+--- a/drivers/pci/probe.c
++++ b/drivers/pci/probe.c
+@@ -1627,8 +1627,7 @@ unsigned int pci_scan_child_bus(struct pci_bus *bus)
+ 	if (!bus->is_added) {
+ 		dev_dbg(&bus->dev, "fixups for bus\n");
+ 		pcibios_fixup_bus(bus);
+-		if (pci_is_root_bus(bus))
+-			bus->is_added = 1;
++		bus->is_added = 1;
+ 	}
+ 
+ 	for (pass=0; pass < 2; pass++)
+diff --git a/drivers/pci/remove.c b/drivers/pci/remove.c
+index fc38c48..66967e5 100644
+--- a/drivers/pci/remove.c
++++ b/drivers/pci/remove.c
+@@ -48,9 +48,6 @@ void pci_remove_bus(struct pci_bus *bus)
+ 	list_del(&bus->node);
+ 	pci_bus_release_busn_res(bus);
+ 	up_write(&pci_bus_sem);
+-	if (!bus->is_added)
+-		return;
+-
+ 	pci_remove_legacy_files(bus);
+ 	device_unregister(&bus->dev);
+ }
 -- 
 1.7.9.5
