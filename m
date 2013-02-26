@@ -1,66 +1,52 @@
-From: Jiang Liu <liuj97@gmail.com>
-Subject: [PATCH v8 04/13] ACPI/acpiphp: replace local macros with standard ACPI macros
-Date: Tue, 26 Feb 2013 23:25:44 +0800
-Message-ID: <1361892353-14786-5-git-send-email-jiang.liu@huawei.com>
-References: <1361892353-14786-1-git-send-email-jiang.liu@huawei.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1361892353-14786-1-git-send-email-jiang.liu@huawei.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Bjorn Helgaas <bhelgaas@google.com>, "Rafael J . Wysocki" <rjw@sisk.pl>
-Cc: Jiang Liu <jiang.liu@huawei.com>, Yinghai Lu <yinghai@kernel.org>, Yijing Wang <wangyijing@huawei.com>, Jiang Liu <liuj97@gmail.com>, linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Toshi Kani <toshi.kani@hp.com>, Myron Stowe <myron.stowe@redhat.com>, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>
+From: Toshi Kani <toshi.kani@hp.com>
+Subject: Re: [PATCH v2] ACPI: Add sysfs links from memory device to memblocks
+Date: Tue, 26 Feb 2013 10:16:44 -0700
+Message-ID: <1361899004.12845.96.camel@misato.fc.hp.com>
+References: <1361826130-31062-1-git-send-email-toshi.kani@hp.com>
+	 <512C4A07.40903@jp.fujitsu.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from g6t0185.atlanta.hp.com ([15.193.32.62]:8449 "EHLO
+	g6t0185.atlanta.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751223Ab3BZR1j (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 26 Feb 2013 12:27:39 -0500
+In-Reply-To: <512C4A07.40903@jp.fujitsu.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
+Cc: "rjw@sisk.pl" <rjw@sisk.pl>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "vasilis.liaskovitis@profitbricks.com" <vasilis.liaskovitis@profitbricks.com>
 
-Replace local defined macros (ACPI_STA_xxx) with standard ACPI macros
-(ACPI_STA_DEVICE_xxx).
+On Tue, 2013-02-26 at 05:37 +0000, Yasuaki Ishimatsu wrote:
+> 2013/02/26 6:02, Toshi Kani wrote:
+> > In order to eject a memory device object represented as "PNP0C80:%d"
+> > in sysfs, its associated memblocks (system/memory/memory%d) need to
+> > be off-lined.  However, there is no user friendly way to correlate
+> > between a memory device object and its memblocks in sysfs.
+> > 
+> > This patch creates sysfs links to memblocks under a memory device
+> > object so that a user can easily checks and manipulates its memblocks
+> > in sysfs.
+> > 
+> > For example, when PNP0C80:05 is associated with memory8 and memory9,
+> > the following two links are created under PNP0C80:05.  This allows
+> > a user to access memory8/9 directly from PNP0C80:05.
+> > 
+> >    # ll /sys/devices/LNXSYSTM:00/LNXSYBUS:00/PNP0C80:05
+> >    lrwxrwxrwx. memory8 -> ../../../system/memory/memory8
+> >    lrwxrwxrwx. memory9 -> ../../../system/memory/memory9
+> > 
+> > Signed-off-by: Toshi Kani <toshi.kani@hp.com>
+> > ---
+> 
+> I confirmed that the patch has no problem.
+> Feel free to add:
+> 
+> Tested-by: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
+> Acked-by: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
 
-Signed-off-by: Jiang Liu <jiang.liu@huawei.com>
-Signed-off-by: Yijing Wang <wangyijing@huawei.com>
-Cc: Yinghai Lu <yinghai@kernel.org>
-Cc: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>
-Cc: Toshi Kani <toshi.kani@hp.com>
-Cc: linux-pci@vger.kernel.org
-Cc: linux-kernel@vger.kernel.org
----
- drivers/pci/hotplug/acpiphp.h      |    4 ----
- drivers/pci/hotplug/acpiphp_glue.c |    4 ++--
- 2 files changed, 2 insertions(+), 6 deletions(-)
+Great!  Thanks Yasuaki!
+-Toshi
 
-diff --git a/drivers/pci/hotplug/acpiphp.h b/drivers/pci/hotplug/acpiphp.h
-index b70ac00..1b311f9 100644
---- a/drivers/pci/hotplug/acpiphp.h
-+++ b/drivers/pci/hotplug/acpiphp.h
-@@ -146,10 +146,6 @@ struct acpiphp_attention_info
- #define ACPI_PCI_HOST_HID		"PNP0A03"
- 
- /* ACPI _STA method value (ignore bit 4; battery present) */
--#define ACPI_STA_PRESENT		(0x00000001)
--#define ACPI_STA_ENABLED		(0x00000002)
--#define ACPI_STA_SHOW_IN_UI		(0x00000004)
--#define ACPI_STA_FUNCTIONING		(0x00000008)
- #define ACPI_STA_ALL			(0x0000000f)
- 
- /* bridge flags */
-diff --git a/drivers/pci/hotplug/acpiphp_glue.c b/drivers/pci/hotplug/acpiphp_glue.c
-index 4101c15..89e0c36 100644
---- a/drivers/pci/hotplug/acpiphp_glue.c
-+++ b/drivers/pci/hotplug/acpiphp_glue.c
-@@ -487,7 +487,7 @@ static int add_bridge(struct acpi_pci_root *root)
- 			dbg("%s: _STA evaluation failure\n", __func__);
- 			return 0;
- 		}
--		if ((tmp & ACPI_STA_FUNCTIONING) == 0)
-+		if ((tmp & ACPI_STA_DEVICE_FUNCTIONING) == 0)
- 			/* don't register this object */
- 			return 0;
- 	}
-@@ -1387,7 +1387,7 @@ u8 acpiphp_get_latch_status(struct acpiphp_slot *slot)
- 
- 	sta = get_slot_status(slot);
- 
--	return (sta & ACPI_STA_SHOW_IN_UI) ? 0 : 1;
-+	return (sta & ACPI_STA_DEVICE_UI) ? 0 : 1;
- }
- 
- 
--- 
-1.7.9.5
+
