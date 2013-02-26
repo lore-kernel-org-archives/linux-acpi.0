@@ -1,109 +1,78 @@
-From: Antyvir <virusalert@automex.pl>
-Subject: WIRUS (Worm.Mydoom.I) WYKRYTO W POCZCIE, KTORA POCHODZI
- PRAWDOPODOBNIE OD CIEBIE
-Date: Tue, 26 Feb 2013 10:37:07 +0100 (CET)
-Message-ID: <VS30991-03@automex.pl>
-References: <20130226093703.9E10CB1F65@automex.pl>
-Mime-Version: 1.0
-Content-Type: multipart/report; report-type=delivery-status;
- boundary="----------=_1361871427-30991-1"
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from automex.pl ([83.15.122.50]:35082 "EHLO automex.pl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932228Ab3BZJhL (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 26 Feb 2013 04:37:11 -0500
-Received: from localhost (serwer.automex.pl [127.0.0.1])
-	by automex.pl (Postfix) with ESMTP id D86EEB1FC2
-	for <linux-acpi@vger.kernel.org>; Tue, 26 Feb 2013 10:37:07 +0100 (CET)
-In-Reply-To: <20130226093703.9E10CB1F65@automex.pl>
-Sender: linux-acpi-owner@vger.kernel.org
+From: Jiang Liu <liuj97@gmail.com>
+Subject: [PATCH v8 00/13] Get rid of the ACPI PCI subdriver mechanism
+Date: Tue, 26 Feb 2013 23:25:40 +0800
+Message-ID: <1361892353-14786-1-git-send-email-jiang.liu@huawei.com>
+Return-path: <linux-pci-owner@vger.kernel.org>
+Sender: linux-pci-owner@vger.kernel.org
+To: Bjorn Helgaas <bhelgaas@google.com>, "Rafael J . Wysocki" <rjw@sisk.pl>
+Cc: Jiang Liu <jiang.liu@huawei.com>, Yinghai Lu <yinghai@kernel.org>, Yijing Wang <wangyijing@huawei.com>, Jiang Liu <liuj97@gmail.com>, linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Toshi Kani <toshi.kani@hp.com>, Myron Stowe <myron.stowe@redhat.com>
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org
 
-This is a multi-part message in MIME format...
+PCI, ACPI: remove ACPI PCI subdriver mechanism
 
-------------=_1361871427-30991-1
-Content-Type: text/plain; charset=iso-8859-2
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+This patch set is directly derived from two sources:
+1) '[PATCH 00/15] PCI/ACPI: Remove "pci_root" sub-driver support' at
+https://lkml.org/lkml/2012/12/7/11 from Myron Stowe
+The major goal is to resolve any potential sequencing inter-dependencies
+by converting sub-driver functionality to being only supported as
+statically built-in to the kernel as part of the "pci_root" driver
+itself.
 
-OSTRZEZENIE O WIRUSIE
+2) 'introduce PCI bus notifier chain to get rid of the ACPI PCI subdriver'
+at http://lwn.net/Articles/533547/
+The major goal is to update PCI slots(pci_slot), ACPI based PCI hotplug
+slots(acpiphp), PCIe AER(aer) etc when hot-plugging PCI devices and P2P
+bridges, and eventually get rid of the ACPI PCI subdriver interfaces.
 
-Nasz skaner wiadomosci email znalazl=20
-    wirusa: Worm.Mydoom.I
-w Twojej poczcie do nastepujacego odbiorcy:
--> darekk@automex.pl
+This patchset applies to Bjorn's pci-next branch. Patch 1-4 are minor
+fixups for 3.9-rc1. Patch 5-8 introduce two hooks into PCI core which
+will be called when creating/destroying PCI buses. Patch 9-12 replace
+ACPI PCI subdriver interfaces with the new hook mechanism for pci_slot
+and acpiphp. Patch 13 removes the ACPI PCI subdriver interfaces.
 
-Sprawdz sw=F3j system na obecnosc wirus=F3w,
-lub zapytaj swojego administratora jak to zrobic.
+v7->v8:
+	Hook directly into the PCI core to replace pci_bus notification
+	Remove ACPI PCI subdriver related code
 
-Wysylka tego maila zosta?a wstrzymana!
+Jiang Liu (10):
+  PCI: do not check is_added flag in pci_remove_bus()
+  PCI/acpiphp: don't rely on function 0 in disable_device()
+  ACPI/acpiphp: replace local macros with standard ACPI macros
+  PCI: introduce platform dependent hooks for creating/destroying PCI
+    busses
+  PCI, ACPI: prepare stub functions to handle ACPI PCI (hotplug) slots
+  PCI, IA64: implement pcibios_{add|remove}_bus() hooks
+  PCI, x86: implement pcibios_{add|remove}_bus() hooks
+  PCI, ACPI: handle PCI slot devices when creating/destroying PCI
+    busses
+  PCI/acpiphp: do not use ACPI PCI subdriver mechanism
+  PCI/acpiphp: protect acpiphp data structures from concurrent updating
 
-Uwaga! Niekt=F3re wirusy losowo wybieraja adres email nadawcy z ksiazki
-adresowej zarazonego komputera wiec komunikat ten nie oznacza w 100
-ze posiadasz zarazony system. Nalezy jednak go sprawdzic skanerem=20
-antywirusowym.
+Myron Stowe (1):
+  PCI, ACPI: remove support of ACPI PCI subdrivers
 
+Yijing Wang (2):
+  PCI/acpiphp: use list_for_each_entry_safe() in acpiphp_sanitize_bus()
+  PCI/acpiphp: use normal list to simplify implementation
 
-Dla Twojej wiadomosci i sprawdzenia poni?ej znajduja sie nagl=F3wki z
-zarazonego maila.
-------------------------- BEGIN HEADERS -----------------------------
-Received: from vger.kernel.org (unknown [27.223.15.202])
-	by automex.pl (Postfix) with ESMTP id 9E10CB1F65
-	for <darekk@automex.pl>; Tue, 26 Feb 2013 10:37:03 +0100 (CET)
-From: linux-acpi@vger.kernel.org
-To: darekk@automex.pl
-Subject: Returned mail: see transcript for details
-Date: Tue, 26 Feb 2013 17:36:20 +0800
-MIME-Version: 1.0
-Content-Type: multipart/mixed;
-	boundary=3D"----=3D_NextPart_000_0001_AB675364.CC2F214F"
-X-Priority: 3
-X-MSMail-Priority: Normal
-X-Mailer: Microsoft Outlook Express 6.00.2600.0000
-X-MIMEOLE: Produced By Microsoft MimeOLE V6.00.2600.0000
-Message-Id: <20130226093703.9E10CB1F65@automex.pl>
--------------------------- END HEADERS ------------------------------
-Antivirus program from: http://www.mks.com.pl
-__DATA__
-=20=
+ arch/ia64/pci/pci.c                |   11 +
+ arch/x86/pci/common.c              |   11 +
+ drivers/acpi/internal.h            |    5 -
+ drivers/acpi/pci_root.c            |   48 +----
+ drivers/acpi/pci_slot.c            |  177 +++-------------
+ drivers/acpi/scan.c                |    1 -
+ drivers/pci/bus.c                  |   11 +-
+ drivers/pci/hotplug/Kconfig        |    7 +-
+ drivers/pci/hotplug/acpiphp.h      |   12 +-
+ drivers/pci/hotplug/acpiphp_core.c |   23 +-
+ drivers/pci/hotplug/acpiphp_glue.c |  409 ++++++++++++------------------------
+ drivers/pci/pci-acpi.c             |   30 +++
+ drivers/pci/probe.c                |   15 +-
+ drivers/pci/remove.c               |    4 +-
+ include/linux/acpi.h               |    9 -
+ include/linux/pci-acpi.h           |   26 +++
+ include/linux/pci.h                |    2 +
+ 17 files changed, 268 insertions(+), 533 deletions(-)
 
-------------=_1361871427-30991-1
-Content-Type: message/delivery-status
-Content-Disposition: inline
-Content-Transfer-Encoding: 7bit
-Content-Description: Delivery error report
-
-Reporting-MTA: dns; automex.pl
-Received-From-MTA: smtp; automex.pl ([127.0.0.1])
-Arrival-Date: Tue, 26 Feb 2013 10:37:07 +0100 (CET)
-
-Final-Recipient: rfc822; darekk@automex.pl
-Action: failed
-Status: 5.7.1
-Diagnostic-Code: smtp; 550 5.7.1 Message content rejected, id=30991-03 - VIRUS: Worm.Mydoom.I
-Last-Attempt-Date: Tue, 26 Feb 2013 10:37:07 +0100 (CET)
-
-------------=_1361871427-30991-1
-Content-Type: text/rfc822-headers
-Content-Disposition: inline
-Content-Transfer-Encoding: 7bit
-Content-Description: Undelivered-message headers
-
-Received: from vger.kernel.org (unknown [27.223.15.202])
-	by automex.pl (Postfix) with ESMTP id 9E10CB1F65
-	for <darekk@automex.pl>; Tue, 26 Feb 2013 10:37:03 +0100 (CET)
-From: linux-acpi@vger.kernel.org
-To: darekk@automex.pl
-Subject: Returned mail: see transcript for details
-Date: Tue, 26 Feb 2013 17:36:20 +0800
-MIME-Version: 1.0
-Content-Type: multipart/mixed;
-	boundary="----=_NextPart_000_0001_AB675364.CC2F214F"
-X-Priority: 3
-X-MSMail-Priority: Normal
-X-Mailer: Microsoft Outlook Express 6.00.2600.0000
-X-MIMEOLE: Produced By Microsoft MimeOLE V6.00.2600.0000
-Message-Id: <20130226093703.9E10CB1F65@automex.pl>
-
-------------=_1361871427-30991-1--
+-- 
+1.7.9.5
