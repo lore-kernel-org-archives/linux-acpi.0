@@ -1,147 +1,39 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: [Update 4][PATCH 2/7] ACPI / scan: Introduce common code for ACPI-based device hotplug
-Date: Tue, 26 Feb 2013 04:50:31 +0100
-Message-ID: <2421338.h6e5tIe738@vostro.rjw.lan>
-References: <3260206.bhaAobGhpZ@vostro.rjw.lan> <1776709.RhhH5Yin4x@vostro.rjw.lan> <512C2EA6.40805@jp.fujitsu.com>
+From: Linus Torvalds <torvalds@linux-foundation.org>
+Subject: Re: [GIT PULL] ACPI and power management fixes for v3.9-rc1
+Date: Mon, 25 Feb 2013 21:31:45 -0800
+Message-ID: <CA+55aFyzjN_wMH+2RCEA+aNLY0Z7fn4YU7VOtTALbgngn1+vCw@mail.gmail.com>
+References: <1663657.ypAtqGpGAq@vostro.rjw.lan>
+	<1781256.mPQbtiUPYR@vostro.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from hydra.sisk.pl ([212.160.235.94]:44628 "EHLO hydra.sisk.pl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752181Ab3BZDnt (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 25 Feb 2013 22:43:49 -0500
-In-Reply-To: <512C2EA6.40805@jp.fujitsu.com>
+Received: from mail-ee0-f43.google.com ([74.125.83.43]:39978 "EHLO
+	mail-ee0-f43.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751620Ab3BZFbr (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 26 Feb 2013 00:31:47 -0500
+In-Reply-To: <1781256.mPQbtiUPYR@vostro.rjw.lan>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
-Cc: Toshi Kani <toshi.kani@hp.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Bjorn Helgaas <bhelgaas@google.com>, LKML <linux-kernel@vger.kernel.org>, Yinghai Lu <yinghai@kernel.org>, Jiang Liu <liuj97@gmail.com>
+To: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>, Linux PM list <linux-pm@vger.kernel.org>, Len Brown <lenb@kernel.org>, Fabio Baltieri <fabio.baltieri@linaro.org>, Dave Jones <davej@redhat.com>, "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>
 
-On Tuesday, February 26, 2013 12:40:22 PM Yasuaki Ishimatsu wrote:
-> 2013/02/26 12:11, Rafael J. Wysocki wrote:
-> > On Tuesday, February 26, 2013 11:02:56 AM Yasuaki Ishimatsu wrote:
-> >> 2013/02/26 10:09, Toshi Kani wrote:
-> >>> On Tue, 2013-02-26 at 09:40 +0900, Yasuaki Ishimatsu wrote:
-> >>>> 2013/02/26 8:39, Rafael J. Wysocki wrote:
-> >>>>> On Monday, February 25, 2013 11:07:52 AM Toshi Kani wrote:
-> >>>>>> On Sat, 2013-02-23 at 22:38 +0000, Rafael J. Wysocki wrote:
-> >>>>>>> From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
-> >>>>>>>
-> >>>>>>> Multiple drivers handling hotplug-capable ACPI device nodes install
-> >>>>>>> notify handlers covering the same types of events in a very similar
-> >>>>>>> way.  Moreover, those handlers are installed in separate namespace
-> >>>>>>> walks, although that really should be done during namespace scans
-> >>>>>>> carried out by acpi_bus_scan().  This leads to substantial code
-> >>>>>>> duplication, unnecessary overhead and behavior that is hard to
-> >>>>>>> follow.
-> >>>>>>>
-> >>>>>>> For this reason, introduce common code in drivers/acpi/scan.c for
-> >>>>>>> handling hotplug-related notification and carrying out device
-> >>>>>>> insertion and eject operations in a generic fashion, such that it
-> >>>>>>> may be used by all of the relevant drivers in the future.  To cover
-> >>>>>>> the existing differences between those drivers introduce struct
-> >>>>>>> acpi_hotplug_profile for representing collections of hotplug
-> >>>>>>> settings associated with different ACPI scan handlers that can be
-> >>>>>>> used by the drivers to make the common code reflect their current
-> >>>>>>> behavior.
-> >>>>>>>
-> >>>>>>> Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
-> >>>>>>> ---
-> >>>>>>>
-> >>>>>>> This update causes acpi_bus_device_eject() to only emit KOBJ_OFFLINE uevent if
-> >>>>>>> autoexec is unset for the given scan handler.
-> >>>>>>>
-> >>>>>>> This will require the doc in patch [5/7] to be updated which I'm going to do if
-> >>>>>>> everyone is OK with the $subject patch.
-> >>>>>>>
-> >>>>>>> Thanks,
-> >>>>>>> Rafael
-> >>>>>>     :
-> >>>>>>> +
-> >>>>>>> +static void acpi_scan_bus_device_check(acpi_handle handle, u32 ost_source)
-> >>>>>>> +{
-> >>>>>>> +	struct acpi_device *device = NULL;
-> >>>>>>> +	u32 ost_code = ACPI_OST_SC_NON_SPECIFIC_FAILURE;
-> >>>>>>> +	int error;
-> >>>>>>> +
-> >>>>>>> +	mutex_lock(&acpi_scan_lock);
-> >>>>>>> +
-> >>>>>>> +	acpi_bus_get_device(handle, &device);
-> >>>>>>> +	if (device) {
-> >>>>>>> +		dev_warn(&device->dev, "Attempt to re-insert\n");
-> >>>>>>> +		goto out;
-> >>>>>>> +	}
-> >>>>>>> +	acpi_evaluate_hotplug_ost(handle, ost_source,
-> >>>>>>> +				  ACPI_OST_SC_INSERT_IN_PROGRESS, NULL);
-> >>>>>>> +	error = acpi_bus_scan(handle);
-> >>>>>>> +	if (error) {
-> >>>>>>> +		acpi_handle_warn(handle, "Namespace scan failure\n");
-> >>>>>>> +		goto out;
-> >>>>>>> +	}
-> >>>>>>> +	error = acpi_bus_get_device(handle, &device);
-> >>>>>>> +	if (error) {
-> >>>>>>> +		acpi_handle_warn(handle, "Missing device node object\n");
-> >>>>>>> +		goto out;
-> >>>>>>> +	}
-> >>>>>>> +	ost_code = ACPI_OST_SC_SUCCESS;
-> >>>>>>> +	if (device->handler && device->handler->hotplug.uevents)
-> >>>>>>> +		kobject_uevent(&device->dev.kobj, KOBJ_ONLINE);
-> >>>>>>
-> >>>>
-> >>>>>> I confirmed that the uevent crash issue was solved.  Thinking further, I
-> >>>>>> wonder if we need to emit KOBJ_ONLINE here.  This behavior is asymmetric
-> >>>>>> since we do not emit KOBJ_OFFLINE when autoeject is set.
-> >>>>>
-> >>>>> Well, I put that in there only to be able to make the container driver behave
-> >>>>> in a backwards compatible way (which is to emit KOBJ_ONLINE at this point).
-> >>>>>
-> >>>>> If the container driver doesn't need to emit KOBJ_ONLINE at all, I agree with
-> >>>>> your suggestion.
-> >>>>>
-> >>>>>> The definition of ONLINE/OFFLINE event to an ACPI device object seems also
-> >>>>>> bogus since there is no online/offline operation to the ACPI device object
-> >>>>>> itself.
-> >>>>>> Online/offline operation is only possible to actual device, such as
-> >>>>>> system/cpu/cpu% and system/memory/memory%.
-> >>>>>
-> >>>>> That's correct, but I don't know what the user space expectations are
-> >>>>> currently.
-> >>>>
-> >>>> My system expects this event to be notified when hot adding container device.
-> >>>> My container device has cpu and memory. As Toshi said, these devices are
-> >>>> offline when hot adding container device. So in my system, when notifying
-> >>>> container device's KOBJ_ONLINE event, my application runs for onlining these
-> >>>> devices. If this event is not notified to user land, we cannot online these
-> >>>> devices  automatically.
-> >>>
-> >>
-> >>> Thanks for the info.  Can your application listen KOBJ_ADD to a
-> >>> container device, instead of KOBJ_ONLINE?  IOW, does it distinguish
-> >>> between ADD and ONLINE events to a container device?
-> >>
-> >> My application does not distinguish between ADD and ONLINE events
-> >> currently. But if the event is changed from ONLINE to ADD, I will
-> >> change my application.
-> >
-> > KOBJ_ADD is emitted for every struct acpi_device being registered, including
-> > container devices, by acpi_device_add_finalize().  Can your application listen
-> > to those events?
-> 
-> Ah O.K. I understood. Even if the ONLINE event disappers, my application can get
-> ADD event from acpi_device_add_finalize(). Of course, I need to change my
-> application.
-> If the ADD event of container device is notified after hot adding devices which
-> are contained into container device, there is no reason to leave ONLINE event.
+On Mon, Feb 25, 2013 at 7:17 PM, Rafael J. Wysocki <rjw@sisk.pl> wrote:
+>
+> I wonder if this went unnoticed or there's anything wrong with it or it just
+> needs to wait for some more time?
 
-If they are located below the container device in the namespace, then the
-container's ADD will happen before they are added, so if the ONLINE event is
-supposed to mean that all devices under the container have been added, we need
-to keep it as is.
+Just going through things slowly. It's merged in my tree now.
 
-Thanks,
-Rafael
+Oh, and a request: _please_ don't use unknown TLA's like OPP. This has
+become a huge problem, to the point that we have a
+"Documentation/power/opp.txt" file THAT NEVER CLEARLY STATES WHAT THE
+F*CK OPP ACTUALLY MEANS! What nice "documentation".
 
+Ok, I can look up things like this and find that it is "Operating
+Performance Points". At least in this context. But no, it's not some
+kind of generic standard, and no, it's not something people should be
+expected to know in general. Please stop doing "explanations" of
+things that use TLA's like this. And people shouldn't have to even
+wonder.
 
--- 
-I speak only for myself.
-Rafael J. Wysocki, Intel Open Source Technology Center.
+                   Linus
