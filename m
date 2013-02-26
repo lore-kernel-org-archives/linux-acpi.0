@@ -1,52 +1,41 @@
-From: Toshi Kani <toshi.kani@hp.com>
-Subject: Re: [PATCH v2] ACPI: Add sysfs links from memory device to memblocks
-Date: Tue, 26 Feb 2013 10:16:44 -0700
-Message-ID: <1361899004.12845.96.camel@misato.fc.hp.com>
-References: <1361826130-31062-1-git-send-email-toshi.kani@hp.com>
-	 <512C4A07.40903@jp.fujitsu.com>
+From: Manish <manishmj1111@gmail.com>
+Subject: WHEA Support in Linux
+Date: Tue, 26 Feb 2013 04:40:37 +0000 (UTC)
+Message-ID: <loom.20130226T053540-195@post.gmane.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from g6t0185.atlanta.hp.com ([15.193.32.62]:8449 "EHLO
-	g6t0185.atlanta.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751223Ab3BZR1j (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 26 Feb 2013 12:27:39 -0500
-In-Reply-To: <512C4A07.40903@jp.fujitsu.com>
+Received: from plane.gmane.org ([80.91.229.3]:36677 "EHLO plane.gmane.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756732Ab3BZRtq (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 26 Feb 2013 12:49:46 -0500
+Received: from list by plane.gmane.org with local (Exim 4.69)
+	(envelope-from <glad-acpi-devel@m.gmane.org>)
+	id 1UAOfD-0000BL-9q
+	for linux-acpi@vger.kernel.org; Tue, 26 Feb 2013 18:50:03 +0100
+Received: from illchn-static-203.199.198.252.vsnl.net.in ([illchn-static-203.199.198.252.vsnl.net.in])
+        by main.gmane.org with esmtp (Gmexim 0.1 (Debian))
+        id 1AlnuQ-0007hv-00
+        for <linux-acpi@vger.kernel.org>; Tue, 26 Feb 2013 18:50:03 +0100
+Received: from manishmj1111 by illchn-static-203.199.198.252.vsnl.net.in with local (Gmexim 0.1 (Debian))
+        id 1AlnuQ-0007hv-00
+        for <linux-acpi@vger.kernel.org>; Tue, 26 Feb 2013 18:50:03 +0100
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
-Cc: "rjw@sisk.pl" <rjw@sisk.pl>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "vasilis.liaskovitis@profitbricks.com" <vasilis.liaskovitis@profitbricks.com>
+To: linux-acpi@vger.kernel.org
 
-On Tue, 2013-02-26 at 05:37 +0000, Yasuaki Ishimatsu wrote:
-> 2013/02/26 6:02, Toshi Kani wrote:
-> > In order to eject a memory device object represented as "PNP0C80:%d"
-> > in sysfs, its associated memblocks (system/memory/memory%d) need to
-> > be off-lined.  However, there is no user friendly way to correlate
-> > between a memory device object and its memblocks in sysfs.
-> > 
-> > This patch creates sysfs links to memblocks under a memory device
-> > object so that a user can easily checks and manipulates its memblocks
-> > in sysfs.
-> > 
-> > For example, when PNP0C80:05 is associated with memory8 and memory9,
-> > the following two links are created under PNP0C80:05.  This allows
-> > a user to access memory8/9 directly from PNP0C80:05.
-> > 
-> >    # ll /sys/devices/LNXSYSTM:00/LNXSYBUS:00/PNP0C80:05
-> >    lrwxrwxrwx. memory8 -> ../../../system/memory/memory8
-> >    lrwxrwxrwx. memory9 -> ../../../system/memory/memory9
-> > 
-> > Signed-off-by: Toshi Kani <toshi.kani@hp.com>
-> > ---
-> 
-> I confirmed that the patch has no problem.
-> Feel free to add:
-> 
-> Tested-by: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
-> Acked-by: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
+Can anyone please help me with details regarding the support for WHEA (Windows
+Hardware Error Architecture) in Linux.
+WHEA is supported in ACPI 5.0 specification.
 
-Great!  Thanks Yasuaki!
--Toshi
+I'm getting the following message in dmesg log from RHEL:
+"ERST: Could not register with persistent Store"
+
+Can anyone please let me know the scenarios in which this message comes.
+
+Thanks,
+Manish.
+
 
 
