@@ -1,96 +1,49 @@
 From: Jiang Liu <liuj97@gmail.com>
-Subject: [PATCH v8 01/13] PCI: do not check is_added flag in pci_remove_bus()
-Date: Tue, 26 Feb 2013 23:25:41 +0800
-Message-ID: <1361892353-14786-2-git-send-email-jiang.liu@huawei.com>
+Subject: [PATCH v8 02/13] PCI/acpiphp: use list_for_each_entry_safe() in acpiphp_sanitize_bus()
+Date: Tue, 26 Feb 2013 23:25:42 +0800
+Message-ID: <1361892353-14786-3-git-send-email-jiang.liu@huawei.com>
 References: <1361892353-14786-1-git-send-email-jiang.liu@huawei.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <1361892353-14786-1-git-send-email-jiang.liu@huawei.com>
 Sender: linux-kernel-owner@vger.kernel.org
 To: Bjorn Helgaas <bhelgaas@google.com>, "Rafael J . Wysocki" <rjw@sisk.pl>
-Cc: Jiang Liu <jiang.liu@huawei.com>, Yinghai Lu <yinghai@kernel.org>, Yijing Wang <wangyijing@huawei.com>, Jiang Liu <liuj97@gmail.com>, linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Toshi Kani <toshi.kani@hp.com>, Myron Stowe <myron.stowe@redhat.com>, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>
+Cc: Yijing Wang <wangyijing@huawei.com>, Yinghai Lu <yinghai@kernel.org>, Jiang Liu <liuj97@gmail.com>, linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Toshi Kani <toshi.kani@hp.com>, Myron Stowe <myron.stowe@redhat.com>, Jiang Liu <jiang.liu@huawei.com>, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>
 List-Id: linux-acpi@vger.kernel.org
 
-The is_added flag in struct pci_bus is always set after invoking
-device_register() and pci_create_legacy_files(). The related code
-paths are:
-1) pci_create_root_bus() and pci_add_new_bus()
-	bus = pci_alloc_bus()
-	device_register(&bus->dev)
-	pci_create_legacy_file(bus)
-2.a) pci_scan_child_bus(bus)
-	set is_added flag for PCI root buses
-2.b) pci_bus_add_devices(bus)
-	set is_added flag for normal PCI buses
+From: Yijing Wang <wangyijing@huawei.com>
 
-So pci_remove_bus() shouldn't use is_added flag to guard invoking of
-pci_remove_lagecy_files() and device_unregister().
+Function acpiphp_sanitize_bus() may call pci_stop_and_remove_bus_device(),
+which in turn may remove device from bus->devices list. So walk the
+bus->devices list with list_for_each_entry_safe().
 
-One more step further, now bus->is_added is only used to guard invoking
-of pcibios_fixup_bus(), so cleaup the code.
-
-Signed-off-by: Jiang Liu <jiang.liu@huawei.com>
 Signed-off-by: Yijing Wang <wangyijing@huawei.com>
+Signed-off-by: Jiang Liu <jiang.liu@huawei.com>
 Cc: Yinghai Lu <yinghai@kernel.org>
 Cc: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>
 Cc: Toshi Kani <toshi.kani@hp.com>
 Cc: linux-pci@vger.kernel.org
 Cc: linux-kernel@vger.kernel.org
 ---
- drivers/pci/bus.c    |   11 ++---------
- drivers/pci/probe.c  |    3 +--
- drivers/pci/remove.c |    3 ---
- 3 files changed, 3 insertions(+), 14 deletions(-)
+ drivers/pci/hotplug/acpiphp_glue.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/pci/bus.c b/drivers/pci/bus.c
-index 8647dc6..bdc1e8b 100644
---- a/drivers/pci/bus.c
-+++ b/drivers/pci/bus.c
-@@ -206,16 +206,9 @@ void pci_bus_add_devices(const struct pci_bus *bus)
+diff --git a/drivers/pci/hotplug/acpiphp_glue.c b/drivers/pci/hotplug/acpiphp_glue.c
+index 4681d2c..514851d8 100644
+--- a/drivers/pci/hotplug/acpiphp_glue.c
++++ b/drivers/pci/hotplug/acpiphp_glue.c
+@@ -1086,11 +1086,11 @@ static void acpiphp_set_hpp_values(struct pci_bus *bus)
+  */
+ static void acpiphp_sanitize_bus(struct pci_bus *bus)
+ {
+-	struct pci_dev *dev;
++	struct pci_dev *dev, *tmp;
+ 	int i;
+ 	unsigned long type_mask = IORESOURCE_IO | IORESOURCE_MEM;
  
- 	list_for_each_entry(dev, &bus->devices, bus_list) {
- 		BUG_ON(!dev->is_added);
--
- 		child = dev->subordinate;
--
--		if (!child)
--			continue;
--		pci_bus_add_devices(child);
--
--		if (child->is_added)
--			continue;
--		child->is_added = 1;
-+		if (child)
-+			pci_bus_add_devices(child);
- 	}
- }
- 
-diff --git a/drivers/pci/probe.c b/drivers/pci/probe.c
-index b494066..45c93b3 100644
---- a/drivers/pci/probe.c
-+++ b/drivers/pci/probe.c
-@@ -1627,8 +1627,7 @@ unsigned int pci_scan_child_bus(struct pci_bus *bus)
- 	if (!bus->is_added) {
- 		dev_dbg(&bus->dev, "fixups for bus\n");
- 		pcibios_fixup_bus(bus);
--		if (pci_is_root_bus(bus))
--			bus->is_added = 1;
-+		bus->is_added = 1;
- 	}
- 
- 	for (pass=0; pass < 2; pass++)
-diff --git a/drivers/pci/remove.c b/drivers/pci/remove.c
-index fc38c48..66967e5 100644
---- a/drivers/pci/remove.c
-+++ b/drivers/pci/remove.c
-@@ -48,9 +48,6 @@ void pci_remove_bus(struct pci_bus *bus)
- 	list_del(&bus->node);
- 	pci_bus_release_busn_res(bus);
- 	up_write(&pci_bus_sem);
--	if (!bus->is_added)
--		return;
--
- 	pci_remove_legacy_files(bus);
- 	device_unregister(&bus->dev);
- }
+-	list_for_each_entry(dev, &bus->devices, bus_list) {
++	list_for_each_entry_safe(dev, tmp, &bus->devices, bus_list) {
+ 		for (i=0; i<PCI_BRIDGE_RESOURCES; i++) {
+ 			struct resource *res = &dev->resource[i];
+ 			if ((res->flags & type_mask) && !res->start &&
 -- 
 1.7.9.5
