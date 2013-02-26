@@ -1,46 +1,44 @@
 From: Jiang Liu <liuj97@gmail.com>
-Subject: [PATCH v8 08/13] PCI, x86: implement pcibios_{add|remove}_bus() hooks
-Date: Tue, 26 Feb 2013 23:25:48 +0800
-Message-ID: <1361892353-14786-9-git-send-email-jiang.liu@huawei.com>
+Subject: [PATCH v8 07/13] PCI, IA64: implement pcibios_{add|remove}_bus() hooks
+Date: Tue, 26 Feb 2013 23:25:47 +0800
+Message-ID: <1361892353-14786-8-git-send-email-jiang.liu@huawei.com>
 References: <1361892353-14786-1-git-send-email-jiang.liu@huawei.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <1361892353-14786-1-git-send-email-jiang.liu@huawei.com>
 Sender: linux-kernel-owner@vger.kernel.org
 To: Bjorn Helgaas <bhelgaas@google.com>, "Rafael J . Wysocki" <rjw@sisk.pl>
-Cc: Jiang Liu <jiang.liu@huawei.com>, Yinghai Lu <yinghai@kernel.org>, Yijing Wang <wangyijing@huawei.com>, Jiang Liu <liuj97@gmail.com>, linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Toshi Kani <toshi.kani@hp.com>, Myron Stowe <myron.stowe@redhat.com>, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, x86@kernel.org
+Cc: Jiang Liu <jiang.liu@huawei.com>, Yinghai Lu <yinghai@kernel.org>, Yijing Wang <wangyijing@huawei.com>, Jiang Liu <liuj97@gmail.com>, linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Toshi Kani <toshi.kani@hp.com>, Myron Stowe <myron.stowe@redhat.com>, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Tony Luck <tony.luck@intel.com>, Fenghua Yu <fenghua.yu@intel.com>, linux-ia64@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-Implement pcibios_{add|remove}_bus() hooks for x86 platforms.
+Implement pcibios_{add|remove}_bus() hooks for IA64 platforms.
 
 Signed-off-by: Jiang Liu <jiang.liu@huawei.com>
 Signed-off-by: Yijing Wang <wangyijing@huawei.com>
 Cc: Yinghai Lu <yinghai@kernel.org>
 Cc: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>
 Cc: Toshi Kani <toshi.kani@hp.com>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Ingo Molnar <mingo@redhat.com>
-Cc: "H. Peter Anvin" <hpa@zytor.com>
-Cc: Myron Stowe <myron.stowe@redhat.com>
+Cc: Tony Luck <tony.luck@intel.com>
+Cc: Fenghua Yu <fenghua.yu@intel.com>
+Cc: linux-ia64@vger.kernel.org
 Cc: linux-kernel@vger.kernel.org
-Cc: x86@kernel.org
 ---
- arch/x86/pci/common.c |   11 +++++++++++
+ arch/ia64/pci/pci.c |   11 +++++++++++
  1 file changed, 11 insertions(+)
 
-diff --git a/arch/x86/pci/common.c b/arch/x86/pci/common.c
-index 505731b..79f81f0 100644
---- a/arch/x86/pci/common.c
-+++ b/arch/x86/pci/common.c
-@@ -6,6 +6,7 @@
- 
- #include <linux/sched.h>
+diff --git a/arch/ia64/pci/pci.c b/arch/ia64/pci/pci.c
+index 00e59c7..e60aeb7 100644
+--- a/arch/ia64/pci/pci.c
++++ b/arch/ia64/pci/pci.c
+@@ -15,6 +15,7 @@
+ #include <linux/types.h>
+ #include <linux/kernel.h>
  #include <linux/pci.h>
 +#include <linux/pci-acpi.h>
- #include <linux/ioport.h>
  #include <linux/init.h>
- #include <linux/dmi.h>
-@@ -170,6 +171,16 @@ void __devinit pcibios_fixup_bus(struct pci_bus *b)
- 		pcibios_fixup_device_resources(dev);
+ #include <linux/ioport.h>
+ #include <linux/slab.h>
+@@ -463,6 +464,16 @@ pcibios_fixup_bus (struct pci_bus *b)
+ 	platform_pci_fixup_bus(b);
  }
  
 +void pcibios_add_bus(struct pci_bus *bus)
@@ -53,8 +51,8 @@ index 505731b..79f81f0 100644
 +	acpi_pci_remove_bus(bus);
 +}
 +
- /*
-  * Only use DMI information to set this if nothing was passed
-  * on the kernel command line (which was parsed earlier).
+ void pcibios_set_master (struct pci_dev *dev)
+ {
+ 	/* No special bus mastering setup handling */
 -- 
 1.7.9.5
