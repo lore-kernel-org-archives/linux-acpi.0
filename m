@@ -1,41 +1,161 @@
-From: Manish <manishmj1111@gmail.com>
-Subject: WHEA Support in Linux
-Date: Tue, 26 Feb 2013 04:40:37 +0000 (UTC)
-Message-ID: <loom.20130226T053540-195@post.gmane.org>
+From: Yinghai Lu <yinghai@kernel.org>
+Subject: Re: [PATCH v8 13/13] PCI, ACPI: remove support of ACPI PCI subdrivers
+Date: Tue, 26 Feb 2013 11:07:36 -0800
+Message-ID: <CAE9FiQV_hv3fD166LuZYhTKGxeKKKCw-Dak+8UYou7tRa-4hYw@mail.gmail.com>
+References: <1361892353-14786-1-git-send-email-jiang.liu@huawei.com>
+	<1361892353-14786-14-git-send-email-jiang.liu@huawei.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from plane.gmane.org ([80.91.229.3]:36677 "EHLO plane.gmane.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756732Ab3BZRtq (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 26 Feb 2013 12:49:46 -0500
-Received: from list by plane.gmane.org with local (Exim 4.69)
-	(envelope-from <glad-acpi-devel@m.gmane.org>)
-	id 1UAOfD-0000BL-9q
-	for linux-acpi@vger.kernel.org; Tue, 26 Feb 2013 18:50:03 +0100
-Received: from illchn-static-203.199.198.252.vsnl.net.in ([illchn-static-203.199.198.252.vsnl.net.in])
-        by main.gmane.org with esmtp (Gmexim 0.1 (Debian))
-        id 1AlnuQ-0007hv-00
-        for <linux-acpi@vger.kernel.org>; Tue, 26 Feb 2013 18:50:03 +0100
-Received: from manishmj1111 by illchn-static-203.199.198.252.vsnl.net.in with local (Gmexim 0.1 (Debian))
-        id 1AlnuQ-0007hv-00
-        for <linux-acpi@vger.kernel.org>; Tue, 26 Feb 2013 18:50:03 +0100
+Received: from mail-ie0-f170.google.com ([209.85.223.170]:49886 "EHLO
+	mail-ie0-f170.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754791Ab3BZTHg (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 26 Feb 2013 14:07:36 -0500
+In-Reply-To: <1361892353-14786-14-git-send-email-jiang.liu@huawei.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org
+To: Jiang Liu <liuj97@gmail.com>
+Cc: Bjorn Helgaas <bhelgaas@google.com>, "Rafael J . Wysocki" <rjw@sisk.pl>, Myron Stowe <myron.stowe@redhat.com>, Yijing Wang <wangyijing@huawei.com>, linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Toshi Kani <toshi.kani@hp.com>, Jiang Liu <jiang.liu@huawei.com>, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>
 
-Can anyone please help me with details regarding the support for WHEA (Windows
-Hardware Error Architecture) in Linux.
-WHEA is supported in ACPI 5.0 specification.
+On Tue, Feb 26, 2013 at 7:25 AM, Jiang Liu <liuj97@gmail.com> wrote:
+> From: Myron Stowe <myron.stowe@redhat.com>
+>
+> Both sub-drivers of the "PCI Root Bridge ("pci_bridge")" driver, "acpiphp"
+> and "pci_slot", have been converted to hook directly into the PCI core.
+>
+> With the conversions there are no remaining usages of the 'struct
+> acpi_pci_driver' list based infrastructure.  This patch removes it.
+>
+> Signed-off-by: Myron Stowe <myron.stowe@redhat.com>
+> Signed-off-by: Jiang Liu <jiang.liu@huawei.com>
+> Cc: Yinghai Lu <yinghai@kernel.org>
+> Cc: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>
+> Cc: Toshi Kani <toshi.kani@hp.com>
+> Cc: linux-pci@vger.kernel.org
+> Cc: linux-kernel@vger.kernel.org
 
-I'm getting the following message in dmesg log from RHEL:
-"ERST: Could not register with persistent Store"
+Nice cleanup!
 
-Can anyone please let me know the scenarios in which this message comes.
+for 1-13,
+Reviewed-by: Yinghai Lu <yinghai@kernel.org>
 
-Thanks,
-Manish.
+Thanks
 
+Yinghai
 
-
+> ---
+>  drivers/acpi/pci_root.c |   48 +----------------------------------------------
+>  include/linux/acpi.h    |    9 ---------
+>  2 files changed, 1 insertion(+), 56 deletions(-)
+>
+> diff --git a/drivers/acpi/pci_root.c b/drivers/acpi/pci_root.c
+> index 8b5a73b..2ef0c91 100644
+> --- a/drivers/acpi/pci_root.c
+> +++ b/drivers/acpi/pci_root.c
+> @@ -69,44 +69,12 @@ static struct acpi_driver acpi_pci_root_driver = {
+>                 },
+>  };
+>
+> -/* Lock to protect both acpi_pci_roots and acpi_pci_drivers lists */
+> +/* Lock to protect both acpi_pci_roots lists */
+>  static DEFINE_MUTEX(acpi_pci_root_lock);
+>  static LIST_HEAD(acpi_pci_roots);
+> -static LIST_HEAD(acpi_pci_drivers);
+>
+>  static DEFINE_MUTEX(osc_lock);
+>
+> -int acpi_pci_register_driver(struct acpi_pci_driver *driver)
+> -{
+> -       int n = 0;
+> -       struct acpi_pci_root *root;
+> -
+> -       mutex_lock(&acpi_pci_root_lock);
+> -       list_add_tail(&driver->node, &acpi_pci_drivers);
+> -       if (driver->add)
+> -               list_for_each_entry(root, &acpi_pci_roots, node) {
+> -                       driver->add(root);
+> -                       n++;
+> -               }
+> -       mutex_unlock(&acpi_pci_root_lock);
+> -
+> -       return n;
+> -}
+> -EXPORT_SYMBOL(acpi_pci_register_driver);
+> -
+> -void acpi_pci_unregister_driver(struct acpi_pci_driver *driver)
+> -{
+> -       struct acpi_pci_root *root;
+> -
+> -       mutex_lock(&acpi_pci_root_lock);
+> -       list_del(&driver->node);
+> -       if (driver->remove)
+> -               list_for_each_entry(root, &acpi_pci_roots, node)
+> -                       driver->remove(root);
+> -       mutex_unlock(&acpi_pci_root_lock);
+> -}
+> -EXPORT_SYMBOL(acpi_pci_unregister_driver);
+> -
+>  /**
+>   * acpi_is_root_bridge - determine whether an ACPI CA node is a PCI root bridge
+>   * @handle - the ACPI CA node in question.
+> @@ -416,7 +384,6 @@ static int acpi_pci_root_add(struct acpi_device *device)
+>         acpi_status status;
+>         int result;
+>         struct acpi_pci_root *root;
+> -       struct acpi_pci_driver *driver;
+>         u32 flags, base_flags;
+>         bool is_osc_granted = false;
+>
+> @@ -576,12 +543,6 @@ static int acpi_pci_root_add(struct acpi_device *device)
+>                 pci_assign_unassigned_bus_resources(root->bus);
+>         }
+>
+> -       mutex_lock(&acpi_pci_root_lock);
+> -       list_for_each_entry(driver, &acpi_pci_drivers, node)
+> -               if (driver->add)
+> -                       driver->add(root);
+> -       mutex_unlock(&acpi_pci_root_lock);
+> -
+>         /* need to after hot-added ioapic is registered */
+>         if (system_state != SYSTEM_BOOTING)
+>                 pci_enable_bridges(root->bus);
+> @@ -602,16 +563,9 @@ end:
+>  static int acpi_pci_root_remove(struct acpi_device *device, int type)
+>  {
+>         struct acpi_pci_root *root = acpi_driver_data(device);
+> -       struct acpi_pci_driver *driver;
+>
+>         pci_stop_root_bus(root->bus);
+>
+> -       mutex_lock(&acpi_pci_root_lock);
+> -       list_for_each_entry_reverse(driver, &acpi_pci_drivers, node)
+> -               if (driver->remove)
+> -                       driver->remove(root);
+> -       mutex_unlock(&acpi_pci_root_lock);
+> -
+>         device_set_run_wake(root->bus->bridge, false);
+>         pci_acpi_remove_bus_pm_notifier(device);
+>
+> diff --git a/include/linux/acpi.h b/include/linux/acpi.h
+> index 8c1d6f2..eeb5600 100644
+> --- a/include/linux/acpi.h
+> +++ b/include/linux/acpi.h
+> @@ -147,15 +147,6 @@ void acpi_penalize_isa_irq(int irq, int active);
+>
+>  void acpi_pci_irq_disable (struct pci_dev *dev);
+>
+> -struct acpi_pci_driver {
+> -       struct list_head node;
+> -       int (*add)(struct acpi_pci_root *root);
+> -       void (*remove)(struct acpi_pci_root *root);
+> -};
+> -
+> -int acpi_pci_register_driver(struct acpi_pci_driver *driver);
+> -void acpi_pci_unregister_driver(struct acpi_pci_driver *driver);
+> -
+>  extern int ec_read(u8 addr, u8 *val);
+>  extern int ec_write(u8 addr, u8 val);
+>  extern int ec_transaction(u8 command,
+> --
+> 1.7.9.5
+>
