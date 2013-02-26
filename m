@@ -1,151 +1,109 @@
-From: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
-Subject: Re: [PATCH v2] ACPI: Add sysfs links from memory device to memblocks
-Date: Tue, 26 Feb 2013 14:37:11 +0900
-Message-ID: <512C4A07.40903@jp.fujitsu.com>
-References: <1361826130-31062-1-git-send-email-toshi.kani@hp.com>
+From: Antyvir <virusalert@automex.pl>
+Subject: WIRUS (Worm.Mydoom.I) WYKRYTO W POCZCIE, KTORA POCHODZI
+ PRAWDOPODOBNIE OD CIEBIE
+Date: Tue, 26 Feb 2013 10:37:07 +0100 (CET)
+Message-ID: <VS30991-03@automex.pl>
+References: <20130226093703.9E10CB1F65@automex.pl>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-2022-JP"
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/report; report-type=delivery-status;
+ boundary="----------=_1361871427-30991-1"
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from fgwmail5.fujitsu.co.jp ([192.51.44.35]:38390 "EHLO
-	fgwmail5.fujitsu.co.jp" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752552Ab3BZFhq (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 26 Feb 2013 00:37:46 -0500
-In-Reply-To: <1361826130-31062-1-git-send-email-toshi.kani@hp.com>
+Received: from automex.pl ([83.15.122.50]:35082 "EHLO automex.pl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S932228Ab3BZJhL (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 26 Feb 2013 04:37:11 -0500
+Received: from localhost (serwer.automex.pl [127.0.0.1])
+	by automex.pl (Postfix) with ESMTP id D86EEB1FC2
+	for <linux-acpi@vger.kernel.org>; Tue, 26 Feb 2013 10:37:07 +0100 (CET)
+In-Reply-To: <20130226093703.9E10CB1F65@automex.pl>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Toshi Kani <toshi.kani@hp.com>
-Cc: rjw@sisk.pl, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, vasilis.liaskovitis@profitbricks.com
+To: linux-acpi@vger.kernel.org
 
-2013/02/26 6:02, Toshi Kani wrote:
-> In order to eject a memory device object represented as "PNP0C80:%d"
-> in sysfs, its associated memblocks (system/memory/memory%d) need to
-> be off-lined.  However, there is no user friendly way to correlate
-> between a memory device object and its memblocks in sysfs.
-> 
-> This patch creates sysfs links to memblocks under a memory device
-> object so that a user can easily checks and manipulates its memblocks
-> in sysfs.
-> 
-> For example, when PNP0C80:05 is associated with memory8 and memory9,
-> the following two links are created under PNP0C80:05.  This allows
-> a user to access memory8/9 directly from PNP0C80:05.
-> 
->    # ll /sys/devices/LNXSYSTM:00/LNXSYBUS:00/PNP0C80:05
->    lrwxrwxrwx. memory8 -> ../../../system/memory/memory8
->    lrwxrwxrwx. memory9 -> ../../../system/memory/memory9
-> 
-> Signed-off-by: Toshi Kani <toshi.kani@hp.com>
-> ---
+This is a multi-part message in MIME format...
 
-I confirmed that the patch has no problem.
-Feel free to add:
+------------=_1361871427-30991-1
+Content-Type: text/plain; charset=iso-8859-2
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-Tested-by: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
-Acked-by: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
+OSTRZEZENIE O WIRUSIE
 
-Thanks,
-Yasuaki Ishimatsu
+Nasz skaner wiadomosci email znalazl=20
+    wirusa: Worm.Mydoom.I
+w Twojej poczcie do nastepujacego odbiorcy:
+-> darekk@automex.pl
 
-> 
-> This patch applies on top of the Rafael's patch below.
-> https://patchwork.kernel.org/patch/2153261/
-> 
-> v2: Added a NULL return check for find_memory_block_hinted() as
-> pointed by Yasuaki Ishimatsu.
-> 
-> ---
->   drivers/acpi/acpi_memhotplug.c |   56 ++++++++++++++++++++++++++++++++++++++++
->   1 file changed, 56 insertions(+)
-> 
-> diff --git a/drivers/acpi/acpi_memhotplug.c b/drivers/acpi/acpi_memhotplug.c
-> index 3b3abbc..98477a5 100644
-> --- a/drivers/acpi/acpi_memhotplug.c
-> +++ b/drivers/acpi/acpi_memhotplug.c
-> @@ -28,6 +28,7 @@
->    */
->   
->   #include <linux/acpi.h>
-> +#include <linux/memory.h>
->   #include <linux/memory_hotplug.h>
->   
->   #include "internal.h"
-> @@ -168,6 +169,55 @@ static int acpi_memory_check_device(struct acpi_memory_device *mem_device)
->   	return 0;
->   }
->   
-> +static void acpi_setup_mem_blk_links(struct acpi_memory_device *mem_device,
-> +		struct acpi_memory_info *info, bool add_links)
-> +{
-> +	struct memory_block *mem_blk = NULL;
-> +	struct mem_section *mem_sect;
-> +	unsigned long start_pfn, end_pfn, pfn;
-> +	unsigned long section_nr;
-> +	int ret;
-> +
-> +	start_pfn = PFN_DOWN(info->start_addr);
-> +	end_pfn = PFN_UP(info->start_addr + info->length-1);
-> +
-> +	for (pfn = start_pfn; pfn < end_pfn; pfn += PAGES_PER_SECTION) {
-> +		section_nr = pfn_to_section_nr(pfn);
-> +
-> +		if (!present_section_nr(section_nr))
-> +			continue;
-> +
-> +		mem_sect = __nr_to_section(section_nr);
-> +
-> +		/* skip if the same memblock */
-> +		if (mem_blk)
-> +			if ((section_nr >= mem_blk->start_section_nr) &&
-> +			    (section_nr <= mem_blk->end_section_nr))
-> +				continue;
-> +
-> +		mem_blk = find_memory_block_hinted(mem_sect, mem_blk);
-> +		if (!mem_blk)
-> +			continue;
-> +
-> +		if (add_links) {
-> +			ret = sysfs_create_link_nowarn(
-> +				&mem_device->device->dev.kobj,
-> +				&mem_blk->dev.kobj,
-> +				kobject_name(&mem_blk->dev.kobj));
-> +			if (ret && ret != -EEXIST)
-> +				dev_err(&mem_device->device->dev,
-> +					"Failed to create sysfs link %s\n",
-> +					kobject_name(&mem_blk->dev.kobj));
-> +		} else {
-> +			sysfs_remove_link(&mem_device->device->dev.kobj,
-> +				kobject_name(&mem_blk->dev.kobj));
-> +		}
-> +	}
-> +
-> +	if (mem_blk)
-> +		kobject_put(&mem_blk->dev.kobj);
-> +}
-> +
->   static int acpi_memory_enable_device(struct acpi_memory_device *mem_device)
->   {
->   	int result, num_enabled = 0;
-> @@ -207,6 +257,9 @@ static int acpi_memory_enable_device(struct acpi_memory_device *mem_device)
->   			continue;
->   		}
->   
-> +		/* Create sysfs links to its mem_blk devices */
-> +		acpi_setup_mem_blk_links(mem_device, info, true);
-> +
->   		if (!result)
->   			info->enabled = 1;
->   		/*
-> @@ -241,6 +294,9 @@ static int acpi_memory_remove_memory(struct acpi_memory_device *mem_device)
->   			/* The kernel does not use this memory block */
->   			continue;
->   
-> +		/* Remove sysfs links to its mem_blk devices */
-> +		acpi_setup_mem_blk_links(mem_device, info, false);
-> +
->   		if (!info->enabled)
->   			/*
->   			 * The kernel uses this memory block, but it may be not
-> 
+Sprawdz sw=F3j system na obecnosc wirus=F3w,
+lub zapytaj swojego administratora jak to zrobic.
+
+Wysylka tego maila zosta?a wstrzymana!
+
+Uwaga! Niekt=F3re wirusy losowo wybieraja adres email nadawcy z ksiazki
+adresowej zarazonego komputera wiec komunikat ten nie oznacza w 100
+ze posiadasz zarazony system. Nalezy jednak go sprawdzic skanerem=20
+antywirusowym.
 
 
+Dla Twojej wiadomosci i sprawdzenia poni?ej znajduja sie nagl=F3wki z
+zarazonego maila.
+------------------------- BEGIN HEADERS -----------------------------
+Received: from vger.kernel.org (unknown [27.223.15.202])
+	by automex.pl (Postfix) with ESMTP id 9E10CB1F65
+	for <darekk@automex.pl>; Tue, 26 Feb 2013 10:37:03 +0100 (CET)
+From: linux-acpi@vger.kernel.org
+To: darekk@automex.pl
+Subject: Returned mail: see transcript for details
+Date: Tue, 26 Feb 2013 17:36:20 +0800
+MIME-Version: 1.0
+Content-Type: multipart/mixed;
+	boundary=3D"----=3D_NextPart_000_0001_AB675364.CC2F214F"
+X-Priority: 3
+X-MSMail-Priority: Normal
+X-Mailer: Microsoft Outlook Express 6.00.2600.0000
+X-MIMEOLE: Produced By Microsoft MimeOLE V6.00.2600.0000
+Message-Id: <20130226093703.9E10CB1F65@automex.pl>
+-------------------------- END HEADERS ------------------------------
+Antivirus program from: http://www.mks.com.pl
+__DATA__
+=20=
+
+------------=_1361871427-30991-1
+Content-Type: message/delivery-status
+Content-Disposition: inline
+Content-Transfer-Encoding: 7bit
+Content-Description: Delivery error report
+
+Reporting-MTA: dns; automex.pl
+Received-From-MTA: smtp; automex.pl ([127.0.0.1])
+Arrival-Date: Tue, 26 Feb 2013 10:37:07 +0100 (CET)
+
+Final-Recipient: rfc822; darekk@automex.pl
+Action: failed
+Status: 5.7.1
+Diagnostic-Code: smtp; 550 5.7.1 Message content rejected, id=30991-03 - VIRUS: Worm.Mydoom.I
+Last-Attempt-Date: Tue, 26 Feb 2013 10:37:07 +0100 (CET)
+
+------------=_1361871427-30991-1
+Content-Type: text/rfc822-headers
+Content-Disposition: inline
+Content-Transfer-Encoding: 7bit
+Content-Description: Undelivered-message headers
+
+Received: from vger.kernel.org (unknown [27.223.15.202])
+	by automex.pl (Postfix) with ESMTP id 9E10CB1F65
+	for <darekk@automex.pl>; Tue, 26 Feb 2013 10:37:03 +0100 (CET)
+From: linux-acpi@vger.kernel.org
+To: darekk@automex.pl
+Subject: Returned mail: see transcript for details
+Date: Tue, 26 Feb 2013 17:36:20 +0800
+MIME-Version: 1.0
+Content-Type: multipart/mixed;
+	boundary="----=_NextPart_000_0001_AB675364.CC2F214F"
+X-Priority: 3
+X-MSMail-Priority: Normal
+X-Mailer: Microsoft Outlook Express 6.00.2600.0000
+X-MIMEOLE: Produced By Microsoft MimeOLE V6.00.2600.0000
+Message-Id: <20130226093703.9E10CB1F65@automex.pl>
+
+------------=_1361871427-30991-1--
