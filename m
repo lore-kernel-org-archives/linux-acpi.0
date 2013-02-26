@@ -1,149 +1,66 @@
 From: Jiang Liu <liuj97@gmail.com>
-Subject: [PATCH v8 11/13] PCI/acpiphp: use normal list to simplify implementation
-Date: Tue, 26 Feb 2013 23:25:51 +0800
-Message-ID: <1361892353-14786-12-git-send-email-jiang.liu@huawei.com>
+Subject: [PATCH v8 04/13] ACPI/acpiphp: replace local macros with standard ACPI macros
+Date: Tue, 26 Feb 2013 23:25:44 +0800
+Message-ID: <1361892353-14786-5-git-send-email-jiang.liu@huawei.com>
 References: <1361892353-14786-1-git-send-email-jiang.liu@huawei.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <1361892353-14786-1-git-send-email-jiang.liu@huawei.com>
 Sender: linux-kernel-owner@vger.kernel.org
 To: Bjorn Helgaas <bhelgaas@google.com>, "Rafael J . Wysocki" <rjw@sisk.pl>
-Cc: Yijing Wang <wangyijing@huawei.com>, Yinghai Lu <yinghai@kernel.org>, Jiang Liu <liuj97@gmail.com>, linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Toshi Kani <toshi.kani@hp.com>, Myron Stowe <myron.stowe@redhat.com>, Jiang Liu <jiang.liu@huawei.com>, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>
+Cc: Jiang Liu <jiang.liu@huawei.com>, Yinghai Lu <yinghai@kernel.org>, Yijing Wang <wangyijing@huawei.com>, Jiang Liu <liuj97@gmail.com>, linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Toshi Kani <toshi.kani@hp.com>, Myron Stowe <myron.stowe@redhat.com>, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>
 List-Id: linux-acpi@vger.kernel.org
 
-From: Yijing Wang <wangyijing@huawei.com>
+Replace local defined macros (ACPI_STA_xxx) with standard ACPI macros
+(ACPI_STA_DEVICE_xxx).
 
-Use normal list for struct acpiphp_slot to simplify implementation.
-
-Signed-off-by: Yijing Wang <wangyijing@huawei.com>
 Signed-off-by: Jiang Liu <jiang.liu@huawei.com>
+Signed-off-by: Yijing Wang <wangyijing@huawei.com>
 Cc: Yinghai Lu <yinghai@kernel.org>
 Cc: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>
 Cc: Toshi Kani <toshi.kani@hp.com>
 Cc: linux-pci@vger.kernel.org
 Cc: linux-kernel@vger.kernel.org
 ---
- drivers/pci/hotplug/acpiphp.h      |    4 ++--
- drivers/pci/hotplug/acpiphp_glue.c |   23 ++++++++++-------------
- 2 files changed, 12 insertions(+), 15 deletions(-)
+ drivers/pci/hotplug/acpiphp.h      |    4 ----
+ drivers/pci/hotplug/acpiphp_glue.c |    4 ++--
+ 2 files changed, 2 insertions(+), 6 deletions(-)
 
 diff --git a/drivers/pci/hotplug/acpiphp.h b/drivers/pci/hotplug/acpiphp.h
-index 69b4aac..0b30045 100644
+index b70ac00..1b311f9 100644
 --- a/drivers/pci/hotplug/acpiphp.h
 +++ b/drivers/pci/hotplug/acpiphp.h
-@@ -73,8 +73,8 @@ static inline const char *slot_name(struct slot *slot)
-  */
- struct acpiphp_bridge {
- 	struct list_head list;
-+	struct list_head slots;
- 	acpi_handle handle;
--	struct acpiphp_slot *slots;
+@@ -146,10 +146,6 @@ struct acpiphp_attention_info
+ #define ACPI_PCI_HOST_HID		"PNP0A03"
  
- 	/* Ejectable PCI-to-PCI bridge (PCI bridge and PCI function) */
- 	struct acpiphp_func *func;
-@@ -97,7 +97,7 @@ struct acpiphp_bridge {
-  * PCI slot information for each *physical* PCI slot
-  */
- struct acpiphp_slot {
--	struct acpiphp_slot *next;
-+	struct list_head node;
- 	struct acpiphp_bridge *bridge;	/* parent */
- 	struct list_head funcs;		/* one slot may have different
- 					   objects (i.e. for each function) */
+ /* ACPI _STA method value (ignore bit 4; battery present) */
+-#define ACPI_STA_PRESENT		(0x00000001)
+-#define ACPI_STA_ENABLED		(0x00000002)
+-#define ACPI_STA_SHOW_IN_UI		(0x00000004)
+-#define ACPI_STA_FUNCTIONING		(0x00000008)
+ #define ACPI_STA_ALL			(0x0000000f)
+ 
+ /* bridge flags */
 diff --git a/drivers/pci/hotplug/acpiphp_glue.c b/drivers/pci/hotplug/acpiphp_glue.c
-index 3db84b6..3566f9a 100644
+index 4101c15..89e0c36 100644
 --- a/drivers/pci/hotplug/acpiphp_glue.c
 +++ b/drivers/pci/hotplug/acpiphp_glue.c
-@@ -154,7 +154,7 @@ register_slot(acpi_handle handle, u32 lvl, void *context, void **rv)
- 	acpi_handle tmp;
- 	acpi_status status = AE_OK;
- 	unsigned long long adr, sun;
--	int device, function, retval;
-+	int device, function, retval, found = 0;
- 	struct pci_bus *pbus = bridge->pci_bus;
- 	struct pci_dev *pdev;
- 	u32 val;
-@@ -208,14 +208,15 @@ register_slot(acpi_handle handle, u32 lvl, void *context, void **rv)
- 	}
- 
- 	/* search for objects that share the same slot */
--	for (slot = bridge->slots; slot; slot = slot->next)
-+	list_for_each_entry(slot, &bridge->slots, node)
- 		if (slot->device == device) {
- 			if (slot->sun != sun)
- 				warn("sibling found, but _SUN doesn't match!\n");
-+			found = 1;
- 			break;
+@@ -487,7 +487,7 @@ static int add_bridge(struct acpi_pci_root *root)
+ 			dbg("%s: _STA evaluation failure\n", __func__);
+ 			return 0;
  		}
- 
--	if (!slot) {
-+	if (!found) {
- 		slot = kzalloc(sizeof(struct acpiphp_slot), GFP_KERNEL);
- 		if (!slot) {
- 			kfree(newfunc);
-@@ -228,9 +229,7 @@ register_slot(acpi_handle handle, u32 lvl, void *context, void **rv)
- 		INIT_LIST_HEAD(&slot->funcs);
- 		mutex_init(&slot->crit_sect);
- 
--		slot->next = bridge->slots;
--		bridge->slots = slot;
--
-+		list_add_tail(&slot->node, &bridge->slots);
- 		bridge->nr_slots++;
- 
- 		dbg("found ACPI PCI Hotplug slot %llu at PCI %04x:%02x:%02x\n",
-@@ -289,7 +288,7 @@ register_slot(acpi_handle handle, u32 lvl, void *context, void **rv)
- 
-  err_exit:
- 	bridge->nr_slots--;
--	bridge->slots = slot->next;
-+	list_del(&slot->node);
- 	kfree(slot);
- 	kfree(newfunc);
- 
-@@ -353,7 +352,7 @@ static struct acpiphp_func *acpiphp_bridge_handle_to_function(acpi_handle handle
- 	struct acpiphp_func *func;
- 
- 	list_for_each_entry(bridge, &bridge_list, list) {
--		for (slot = bridge->slots; slot; slot = slot->next) {
-+		list_for_each_entry(slot, &bridge->slots, node) {
- 			list_for_each_entry(func, &slot->funcs, sibling) {
- 				if (func->handle == handle)
- 					return func;
-@@ -400,9 +399,7 @@ static void cleanup_bridge(struct acpiphp_bridge *bridge)
- 			err("failed to install interrupt notify handler\n");
+-		if ((tmp & ACPI_STA_FUNCTIONING) == 0)
++		if ((tmp & ACPI_STA_DEVICE_FUNCTIONING) == 0)
+ 			/* don't register this object */
+ 			return 0;
  	}
+@@ -1387,7 +1387,7 @@ u8 acpiphp_get_latch_status(struct acpiphp_slot *slot)
  
--	slot = bridge->slots;
--	while (slot) {
--		next = slot->next;
-+	list_for_each_entry_safe(slot, next, &bridge->slots, node) {
- 		list_for_each_entry_safe(func, tmp, &slot->funcs, sibling) {
- 			if (is_dock_device(func->handle)) {
- 				unregister_hotplug_dock_device(func->handle);
-@@ -421,7 +418,6 @@ static void cleanup_bridge(struct acpiphp_bridge *bridge)
- 		acpiphp_unregister_hotplug_slot(slot);
- 		list_del(&slot->funcs);
- 		kfree(slot);
--		slot = next;
- 	}
+ 	sta = get_slot_status(slot);
  
- 	put_device(&bridge->pci_bus->dev);
-@@ -824,7 +820,7 @@ static int acpiphp_check_bridge(struct acpiphp_bridge *bridge)
+-	return (sta & ACPI_STA_SHOW_IN_UI) ? 0 : 1;
++	return (sta & ACPI_STA_DEVICE_UI) ? 0 : 1;
+ }
  
- 	enabled = disabled = 0;
  
--	for (slot = bridge->slots; slot; slot = slot->next) {
-+	list_for_each_entry(slot, &bridge->slots, node) {
- 		unsigned int status = get_slot_status(slot);
- 		if (slot->flags & SLOT_ENABLED) {
- 			if (status == ACPI_STA_ALL)
-@@ -1093,6 +1089,7 @@ void acpiphp_enumerate_slots(struct pci_bus *bus, acpi_handle handle)
- 		return;
- 	}
- 
-+	INIT_LIST_HEAD(&bridge->slots);
- 	bridge->handle = handle;
- 	bridge->pci_dev = pci_dev_get(bus->self);
- 	bridge->pci_bus = bus;
 -- 
 1.7.9.5
