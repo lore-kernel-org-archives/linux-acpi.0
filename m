@@ -1,166 +1,46 @@
-From: Jiang Liu <jiang.liu@huawei.com>
-Subject: Re: [PATCH v8 13/13] PCI, ACPI: remove support of ACPI PCI subdrivers
-Date: Wed, 27 Feb 2013 08:42:07 +0800
-Message-ID: <512D565F.1010403@huawei.com>
-References: <1361892353-14786-1-git-send-email-jiang.liu@huawei.com> <1361892353-14786-14-git-send-email-jiang.liu@huawei.com> <CAE9FiQV_hv3fD166LuZYhTKGxeKKKCw-Dak+8UYou7tRa-4hYw@mail.gmail.com>
+From: Toshi Kani <toshi.kani@hp.com>
+Subject: Re: [PATCH v2, 0/7] ACPI / hotplug: Common code for ACPI-based
+ hotplug
+Date: Tue, 26 Feb 2013 17:51:40 -0700
+Message-ID: <1361926300.12845.102.camel@misato.fc.hp.com>
+References: <3260206.bhaAobGhpZ@vostro.rjw.lan>
+	 <3171747.TOMjvVkWL1@vostro.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
+Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <CAE9FiQV_hv3fD166LuZYhTKGxeKKKCw-Dak+8UYou7tRa-4hYw@mail.gmail.com>
+In-Reply-To: <3171747.TOMjvVkWL1@vostro.rjw.lan>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Yinghai Lu <yinghai@kernel.org>
-Cc: Jiang Liu <liuj97@gmail.com>, Bjorn Helgaas <bhelgaas@google.com>, "Rafael J . Wysocki" <rjw@sisk.pl>, Myron Stowe <myron.stowe@redhat.com>, Yijing Wang <wangyijing@huawei.com>, linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Toshi Kani <toshi.kani@hp.com>, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>
+To: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Bjorn Helgaas <bhelgaas@google.com>, LKML <linux-kernel@vger.kernel.org>, Yinghai Lu <yinghai@kernel.org>, Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>, Jiang Liu <liuj97@gmail.com>
 List-Id: linux-acpi@vger.kernel.org
 
-On 2013-2-27 3:07, Yinghai Lu wrote:
-> On Tue, Feb 26, 2013 at 7:25 AM, Jiang Liu <liuj97@gmail.com> wrote:
->> From: Myron Stowe <myron.stowe@redhat.com>
->>
->> Both sub-drivers of the "PCI Root Bridge ("pci_bridge")" driver, "acpiphp"
->> and "pci_slot", have been converted to hook directly into the PCI core.
->>
->> With the conversions there are no remaining usages of the 'struct
->> acpi_pci_driver' list based infrastructure.  This patch removes it.
->>
->> Signed-off-by: Myron Stowe <myron.stowe@redhat.com>
->> Signed-off-by: Jiang Liu <jiang.liu@huawei.com>
->> Cc: Yinghai Lu <yinghai@kernel.org>
->> Cc: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>
->> Cc: Toshi Kani <toshi.kani@hp.com>
->> Cc: linux-pci@vger.kernel.org
->> Cc: linux-kernel@vger.kernel.org
+On Tue, 2013-02-26 at 23:41 +0100, Rafael J. Wysocki wrote:
+> On Sunday, February 17, 2013 04:18:31 PM Rafael J. Wysocki wrote:
+> > Hi All,
+> > 
+> > The following patches introduce common code for ACPI-based hotplug for non-PCI
+> > devices and modify the container and memory hotplug ACPI drivers to use the new
+> > code.
+> > 
+> > This is based on linux-pm.git/master and regarded as v3.10 material.
+> > 
+> > [1/7] Introduce acpi_scan_match_handler() that will be useful going forward.
+> > [2/7] Introduce common code for ACPI-base device hotplug.
+> > [3/7] Use the new commot hotplug code in the container driver.
+> > [4/7] Introduce acpi_scan_handler_matching() that will be useful subsequently.
+> > [5/7] Introduce user space interface for hotplug profiles.
+> > [6/7] Make the container driver use the hotplug profiles user space interface.
+> > [7/7] Make the memory hotplug driver use struct acpi_scan_handler along with
+> >       the hotplug profiles user space interface.
 > 
-> Nice cleanup!
-> 
-> for 1-13,
-> Reviewed-by: Yinghai Lu <yinghai@kernel.org>
-HiYinghai,
-	Thanks for review!
-	Regards!
-	Gerry
+> Following is the second iteration.  It takes all of the updates of patch [2/7]
+> and the discussion of them into account and fixes the issue with 'enabled'
+> working inversely in [5/7] spotted by Toshi Kani.
 
-> 
-> Thanks
-> 
-> Yinghai
-> 
->> ---
->>  drivers/acpi/pci_root.c |   48 +----------------------------------------------
->>  include/linux/acpi.h    |    9 ---------
->>  2 files changed, 1 insertion(+), 56 deletions(-)
->>
->> diff --git a/drivers/acpi/pci_root.c b/drivers/acpi/pci_root.c
->> index 8b5a73b..2ef0c91 100644
->> --- a/drivers/acpi/pci_root.c
->> +++ b/drivers/acpi/pci_root.c
->> @@ -69,44 +69,12 @@ static struct acpi_driver acpi_pci_root_driver = {
->>                 },
->>  };
->>
->> -/* Lock to protect both acpi_pci_roots and acpi_pci_drivers lists */
->> +/* Lock to protect both acpi_pci_roots lists */
->>  static DEFINE_MUTEX(acpi_pci_root_lock);
->>  static LIST_HEAD(acpi_pci_roots);
->> -static LIST_HEAD(acpi_pci_drivers);
->>
->>  static DEFINE_MUTEX(osc_lock);
->>
->> -int acpi_pci_register_driver(struct acpi_pci_driver *driver)
->> -{
->> -       int n = 0;
->> -       struct acpi_pci_root *root;
->> -
->> -       mutex_lock(&acpi_pci_root_lock);
->> -       list_add_tail(&driver->node, &acpi_pci_drivers);
->> -       if (driver->add)
->> -               list_for_each_entry(root, &acpi_pci_roots, node) {
->> -                       driver->add(root);
->> -                       n++;
->> -               }
->> -       mutex_unlock(&acpi_pci_root_lock);
->> -
->> -       return n;
->> -}
->> -EXPORT_SYMBOL(acpi_pci_register_driver);
->> -
->> -void acpi_pci_unregister_driver(struct acpi_pci_driver *driver)
->> -{
->> -       struct acpi_pci_root *root;
->> -
->> -       mutex_lock(&acpi_pci_root_lock);
->> -       list_del(&driver->node);
->> -       if (driver->remove)
->> -               list_for_each_entry(root, &acpi_pci_roots, node)
->> -                       driver->remove(root);
->> -       mutex_unlock(&acpi_pci_root_lock);
->> -}
->> -EXPORT_SYMBOL(acpi_pci_unregister_driver);
->> -
->>  /**
->>   * acpi_is_root_bridge - determine whether an ACPI CA node is a PCI root bridge
->>   * @handle - the ACPI CA node in question.
->> @@ -416,7 +384,6 @@ static int acpi_pci_root_add(struct acpi_device *device)
->>         acpi_status status;
->>         int result;
->>         struct acpi_pci_root *root;
->> -       struct acpi_pci_driver *driver;
->>         u32 flags, base_flags;
->>         bool is_osc_granted = false;
->>
->> @@ -576,12 +543,6 @@ static int acpi_pci_root_add(struct acpi_device *device)
->>                 pci_assign_unassigned_bus_resources(root->bus);
->>         }
->>
->> -       mutex_lock(&acpi_pci_root_lock);
->> -       list_for_each_entry(driver, &acpi_pci_drivers, node)
->> -               if (driver->add)
->> -                       driver->add(root);
->> -       mutex_unlock(&acpi_pci_root_lock);
->> -
->>         /* need to after hot-added ioapic is registered */
->>         if (system_state != SYSTEM_BOOTING)
->>                 pci_enable_bridges(root->bus);
->> @@ -602,16 +563,9 @@ end:
->>  static int acpi_pci_root_remove(struct acpi_device *device, int type)
->>  {
->>         struct acpi_pci_root *root = acpi_driver_data(device);
->> -       struct acpi_pci_driver *driver;
->>
->>         pci_stop_root_bus(root->bus);
->>
->> -       mutex_lock(&acpi_pci_root_lock);
->> -       list_for_each_entry_reverse(driver, &acpi_pci_drivers, node)
->> -               if (driver->remove)
->> -                       driver->remove(root);
->> -       mutex_unlock(&acpi_pci_root_lock);
->> -
->>         device_set_run_wake(root->bus->bridge, false);
->>         pci_acpi_remove_bus_pm_notifier(device);
->>
->> diff --git a/include/linux/acpi.h b/include/linux/acpi.h
->> index 8c1d6f2..eeb5600 100644
->> --- a/include/linux/acpi.h
->> +++ b/include/linux/acpi.h
->> @@ -147,15 +147,6 @@ void acpi_penalize_isa_irq(int irq, int active);
->>
->>  void acpi_pci_irq_disable (struct pci_dev *dev);
->>
->> -struct acpi_pci_driver {
->> -       struct list_head node;
->> -       int (*add)(struct acpi_pci_root *root);
->> -       void (*remove)(struct acpi_pci_root *root);
->> -};
->> -
->> -int acpi_pci_register_driver(struct acpi_pci_driver *driver);
->> -void acpi_pci_unregister_driver(struct acpi_pci_driver *driver);
->> -
->>  extern int ec_read(u8 addr, u8 *val);
->>  extern int ec_write(u8 addr, u8 val);
->>  extern int ec_transaction(u8 command,
->> --
->> 1.7.9.5
->>
-> 
-> .
-> 
+Thanks for all the updates.  Things look good now.  For the series:
+
+Acked-by: Toshi Kani <toshi.kani@hp.com>
+Tested-by: Toshi Kani <toshi.kani@hp.com>
+
+-Toshi
