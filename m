@@ -1,62 +1,194 @@
-From: Manish <manishmj1111@gmail.com>
-Subject: Re: WHEA Support in Linux
-Date: Wed, 27 Feb 2013 19:00:53 +0000 (UTC)
-Message-ID: <loom.20130227T195852-926@post.gmane.org>
-References: <loom.20130226T053540-195@post.gmane.org> <20130227023235.GB29624@gchen.bj.intel.com>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: [Resend][PATCH] ACPI / glue: Drop .find_bridge() callback from struct acpi_bus_type
+Date: Wed, 27 Feb 2013 23:06:52 +0100
+Message-ID: <2612891.I2roH54cPk@vostro.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from plane.gmane.org ([80.91.229.3]:57456 "EHLO plane.gmane.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1760723Ab3B0TEw (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 27 Feb 2013 14:04:52 -0500
-Received: from list by plane.gmane.org with local (Exim 4.69)
-	(envelope-from <glad-acpi-devel@m.gmane.org>)
-	id 1UAmJM-0003Fe-M8
-	for linux-acpi@vger.kernel.org; Wed, 27 Feb 2013 20:05:04 +0100
-Received: from 180.215.38.193 ([180.215.38.193])
-        by main.gmane.org with esmtp (Gmexim 0.1 (Debian))
-        id 1AlnuQ-0007hv-00
-        for <linux-acpi@vger.kernel.org>; Wed, 27 Feb 2013 20:05:04 +0100
-Received: from manishmj1111 by 180.215.38.193 with local (Gmexim 0.1 (Debian))
-        id 1AlnuQ-0007hv-00
-        for <linux-acpi@vger.kernel.org>; Wed, 27 Feb 2013 20:05:04 +0100
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7Bit
+Return-path: <linux-ide-owner@vger.kernel.org>
+Sender: linux-ide-owner@vger.kernel.org
+To: ACPI Devel Maling List <linux-acpi@vger.kernel.org>
+Cc: LKML <linux-kernel@vger.kernel.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Bjorn Helgaas <bhelgaas@google.com>, linux-usb@vger.kernel.org, Tejun Heo <tj@kernel.org>, linux-ide@vger.kernel.org, Jeff Garzik <jgarzik@pobox.com>, Yinghai Lu <yinghai@kernel.org>
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org
 
+From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 
+After PCI has stopped using the .find_bridge() callback in
+struct acpi_bus_type, the only remaining users of it are SATA and
+USB.  However, SATA only pretends to be a user, because it points
+that callback to a stub always returning -ENODEV, and USB uses it
+incorrectly, because as a result of the way it is used by USB every
+device in the system that doesn't have a bus type or parent is
+passed to usb_acpi_find_device() for inspection.
 
+What USB actually needs, though, is to call usb_acpi_find_device()
+for USB ports that don't have a bus type defined, but have
+usb_port_device_type as their device type.
 
-Thanks a lot for your quick response.
+To fix that add a device type field to struct acpi_bus_type and
+make acpi_get_bus_type() compare it with the device type fields of
+the device objects it inspects in addition to checking their bus
+types.  Next, make USB set the new type field in usb_acpi_bus to
+point to usb_port_device_type and stop abusing the .find_bridge()
+callback.
 
-How can we verify that a particular version of Linux supports WHEA or not?
-In Windows, OSC method returns supported for the Whea Guid. Is it applicable
-also for Linux?
-Also, In Windows, Error Injection is verifed using WHEA HCT tool and the Errors
-are logged in Windows Event Viewer.
-Is there any such facility/tool available to verify Error Injection (EINJ) stack
-in Linux?
-Also, Is there any thing similar to Event Viewer of Windows in Linux where the
-WHEA errors are logged?
+In addition to that drop the SATA's dummy .find_bridge() callback,
+and remove .find_bridge(), which is not used any more, from struct
+acpi_bus_type entirely.
 
-(I'm getting the following message in dmesg log from RHEL:
-"ERST: Could not register with persistent Store"
+Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+---
 
-You don't compile pstore support/not loaded it as a module/no NVRAM, UEFI
-runtime space etc. to support pstore.)
+I send this as an RFC before the merge window, but since it depends on changes
+in both PM and PCI trees, it couldn't be applied before.  Now that they both
+have been merged, here it goes again.
 
-As far as the above ERST dmesg is concerned, We are allocating a Flash Block for
-ERST persistent store.
-The persistent store will be used for Writing/Reading an Error Record by the OS
-in case of NMI when fatal error is generated.
-In case of fatal error from Windows, it is getting written as well as Read
-correctly from the persistent store and error is avialable in Event Viewer.
-Can you please help us to narrow down this issue or in what could be reason for
-this error in dmesg log.
+Please let me know if there are any objections.
 
-Regards,
-Manish.
+Thanks,
+Rafael
 
+---
+ drivers/acpi/glue.c         |   39 ++++++---------------------------------
+ drivers/ata/libata-acpi.c   |    6 ------
+ drivers/usb/core/usb-acpi.c |    2 +-
+ include/acpi/acpi_bus.h     |    4 +---
+ 4 files changed, 8 insertions(+), 43 deletions(-)
+
+Index: linux-pm/drivers/acpi/glue.c
+===================================================================
+--- linux-pm.orig/drivers/acpi/glue.c
++++ linux-pm/drivers/acpi/glue.c
+@@ -64,16 +64,17 @@ int unregister_acpi_bus_type(struct acpi
+ }
+ EXPORT_SYMBOL_GPL(unregister_acpi_bus_type);
+ 
+-static struct acpi_bus_type *acpi_get_bus_type(struct bus_type *type)
++static struct acpi_bus_type *acpi_get_bus_type(struct device *dev)
+ {
+ 	struct acpi_bus_type *tmp, *ret = NULL;
+ 
+-	if (!type)
++	if (!dev->bus && !dev->type)
+ 		return NULL;
+ 
+ 	down_read(&bus_type_sem);
+ 	list_for_each_entry(tmp, &bus_type_list, list) {
+-		if (tmp->bus == type) {
++		if ((tmp->bus && tmp->bus == dev->bus)
++		    || (tmp->type && tmp->type == dev->type)) {
+ 			ret = tmp;
+ 			break;
+ 		}
+@@ -82,22 +83,6 @@ static struct acpi_bus_type *acpi_get_bu
+ 	return ret;
+ }
+ 
+-static int acpi_find_bridge_device(struct device *dev, acpi_handle * handle)
+-{
+-	struct acpi_bus_type *tmp;
+-	int ret = -ENODEV;
+-
+-	down_read(&bus_type_sem);
+-	list_for_each_entry(tmp, &bus_type_list, list) {
+-		if (tmp->find_bridge && !tmp->find_bridge(dev, handle)) {
+-			ret = 0;
+-			break;
+-		}
+-	}
+-	up_read(&bus_type_sem);
+-	return ret;
+-}
+-
+ static acpi_status do_acpi_find_child(acpi_handle handle, u32 lvl_not_used,
+ 				      void *addr_p, void **ret_p)
+ {
+@@ -261,22 +246,11 @@ err:
+ 
+ static int acpi_platform_notify(struct device *dev)
+ {
+-	struct acpi_bus_type *type;
++	struct acpi_bus_type *type = acpi_get_bus_type(dev);
+ 	acpi_handle handle;
+ 	int ret;
+ 
+ 	ret = acpi_bind_one(dev, NULL);
+-	if (ret && (!dev->bus || !dev->parent)) {
+-		/* bridge devices genernally haven't bus or parent */
+-		ret = acpi_find_bridge_device(dev, &handle);
+-		if (!ret) {
+-			ret = acpi_bind_one(dev, handle);
+-			if (ret)
+-				goto out;
+-		}
+-	}
+-
+-	type = acpi_get_bus_type(dev->bus);
+ 	if (ret) {
+ 		if (!type || !type->find_device) {
+ 			DBG("No ACPI bus support for %s\n", dev_name(dev));
+@@ -293,7 +267,6 @@ static int acpi_platform_notify(struct d
+ 		if (ret)
+ 			goto out;
+ 	}
+-
+ 	if (type && type->setup)
+ 		type->setup(dev);
+ 
+@@ -316,7 +289,7 @@ static int acpi_platform_notify_remove(s
+ {
+ 	struct acpi_bus_type *type;
+ 
+-	type = acpi_get_bus_type(dev->bus);
++	type = acpi_get_bus_type(dev);
+ 	if (type && type->cleanup)
+ 		type->cleanup(dev);
+ 
+Index: linux-pm/include/acpi/acpi_bus.h
+===================================================================
+--- linux-pm.orig/include/acpi/acpi_bus.h
++++ linux-pm/include/acpi/acpi_bus.h
+@@ -438,10 +438,8 @@ void acpi_remove_dir(struct acpi_device
+ struct acpi_bus_type {
+ 	struct list_head list;
+ 	struct bus_type *bus;
+-	/* For general devices under the bus */
++	struct device_type *type;
+ 	int (*find_device) (struct device *, acpi_handle *);
+-	/* For bridges, such as PCI root bridge, IDE controller */
+-	int (*find_bridge) (struct device *, acpi_handle *);
+ 	void (*setup)(struct device *);
+ 	void (*cleanup)(struct device *);
+ };
+Index: linux-pm/drivers/ata/libata-acpi.c
+===================================================================
+--- linux-pm.orig/drivers/ata/libata-acpi.c
++++ linux-pm/drivers/ata/libata-acpi.c
+@@ -1144,13 +1144,7 @@ static int ata_acpi_find_device(struct d
+ 		return -ENODEV;
+ }
+ 
+-static int ata_acpi_find_dummy(struct device *dev, acpi_handle *handle)
+-{
+-	return -ENODEV;
+-}
+-
+ static struct acpi_bus_type ata_acpi_bus = {
+-	.find_bridge = ata_acpi_find_dummy,
+ 	.find_device = ata_acpi_find_device,
+ };
+ 
+Index: linux-pm/drivers/usb/core/usb-acpi.c
+===================================================================
+--- linux-pm.orig/drivers/usb/core/usb-acpi.c
++++ linux-pm/drivers/usb/core/usb-acpi.c
+@@ -212,7 +212,7 @@ static int usb_acpi_find_device(struct d
+ 
+ static struct acpi_bus_type usb_acpi_bus = {
+ 	.bus = &usb_bus_type,
+-	.find_bridge = usb_acpi_find_device,
++	.type = &usb_port_device_type,
+ 	.find_device = usb_acpi_find_device,
+ };
+ 
 
