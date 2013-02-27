@@ -1,218 +1,166 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: [Update][PATCH v2, 3/7] ACPI / container: Use common hotplug code
-Date: Wed, 27 Feb 2013 01:09:14 +0100
-Message-ID: <2454110.rj1LbBxzqa@vostro.rjw.lan>
-References: <3260206.bhaAobGhpZ@vostro.rjw.lan> <3171747.TOMjvVkWL1@vostro.rjw.lan> <2961608.xElddy7TSk@vostro.rjw.lan>
+From: Jiang Liu <jiang.liu@huawei.com>
+Subject: Re: [PATCH v8 13/13] PCI, ACPI: remove support of ACPI PCI subdrivers
+Date: Wed, 27 Feb 2013 08:42:07 +0800
+Message-ID: <512D565F.1010403@huawei.com>
+References: <1361892353-14786-1-git-send-email-jiang.liu@huawei.com> <1361892353-14786-14-git-send-email-jiang.liu@huawei.com> <CAE9FiQV_hv3fD166LuZYhTKGxeKKKCw-Dak+8UYou7tRa-4hYw@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="ISO-8859-1"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <2961608.xElddy7TSk@vostro.rjw.lan>
+In-Reply-To: <CAE9FiQV_hv3fD166LuZYhTKGxeKKKCw-Dak+8UYou7tRa-4hYw@mail.gmail.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: ACPI Devel Maling List <linux-acpi@vger.kernel.org>
-Cc: Bjorn Helgaas <bhelgaas@google.com>, LKML <linux-kernel@vger.kernel.org>, Yinghai Lu <yinghai@kernel.org>, Toshi Kani <toshi.kani@hp.com>, Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>, Jiang Liu <liuj97@gmail.com>
+To: Yinghai Lu <yinghai@kernel.org>
+Cc: Jiang Liu <liuj97@gmail.com>, Bjorn Helgaas <bhelgaas@google.com>, "Rafael J . Wysocki" <rjw@sisk.pl>, Myron Stowe <myron.stowe@redhat.com>, Yijing Wang <wangyijing@huawei.com>, linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Toshi Kani <toshi.kani@hp.com>, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>
 List-Id: linux-acpi@vger.kernel.org
 
-From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
-Subject: ACPI / container: Use common hotplug code
+On 2013-2-27 3:07, Yinghai Lu wrote:
+> On Tue, Feb 26, 2013 at 7:25 AM, Jiang Liu <liuj97@gmail.com> wrote:
+>> From: Myron Stowe <myron.stowe@redhat.com>
+>>
+>> Both sub-drivers of the "PCI Root Bridge ("pci_bridge")" driver, "acpiphp"
+>> and "pci_slot", have been converted to hook directly into the PCI core.
+>>
+>> With the conversions there are no remaining usages of the 'struct
+>> acpi_pci_driver' list based infrastructure.  This patch removes it.
+>>
+>> Signed-off-by: Myron Stowe <myron.stowe@redhat.com>
+>> Signed-off-by: Jiang Liu <jiang.liu@huawei.com>
+>> Cc: Yinghai Lu <yinghai@kernel.org>
+>> Cc: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>
+>> Cc: Toshi Kani <toshi.kani@hp.com>
+>> Cc: linux-pci@vger.kernel.org
+>> Cc: linux-kernel@vger.kernel.org
+> 
+> Nice cleanup!
+> 
+> for 1-13,
+> Reviewed-by: Yinghai Lu <yinghai@kernel.org>
+HiYinghai,
+	Thanks for review!
+	Regards!
+	Gerry
 
-Switch the ACPI container driver to using common device hotplug code
-introduced previously.  This reduces the driver down to a trivial
-definition and registration of a struct acpi_scan_handler object.
-
-Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
----
-
-I sent an old version of the patch before, sorry about that.
-
-Thanks,
-Rafael
-
----
- drivers/acpi/container.c |  146 +++--------------------------------------------
- 1 file changed, 10 insertions(+), 136 deletions(-)
-
-Index: test/drivers/acpi/container.c
-===================================================================
---- test.orig/drivers/acpi/container.c
-+++ test/drivers/acpi/container.c
-@@ -1,12 +1,12 @@
- /*
-- * acpi_container.c  - ACPI Generic Container Driver
-- * ($Revision: )
-+ * container.c  - ACPI Generic Container Driver
-  *
-  * Copyright (C) 2004 Anil S Keshavamurthy (anil.s.keshavamurthy@intel.com)
-  * Copyright (C) 2004 Keiichiro Tokunaga (tokunaga.keiich@jp.fujitsu.com)
-  * Copyright (C) 2004 Motoyuki Ito (motoyuki@soft.fujitsu.com)
-- * Copyright (C) 2004 Intel Corp.
-  * Copyright (C) 2004 FUJITSU LIMITED
-+ * Copyright (C) 2004, 2013 Intel Corp.
-+ * Author: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
-  *
-  * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-  *
-@@ -26,14 +26,9 @@
-  *
-  * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-  */
--#include <linux/kernel.h>
--#include <linux/module.h>
--#include <linux/init.h>
--#include <linux/slab.h>
--#include <linux/types.h>
- #include <linux/acpi.h>
--#include <acpi/acpi_bus.h>
--#include <acpi/acpi_drivers.h>
-+
-+#include "internal.h"
- 
- #define PREFIX "ACPI: "
- 
-@@ -50,141 +45,20 @@ static const struct acpi_device_id conta
- static int container_device_attach(struct acpi_device *device,
- 				   const struct acpi_device_id *not_used)
- {
--	/*
--	 * FIXME: This is necessary, so that acpi_eject_store() doesn't return
--	 * -ENODEV for containers.
--	 */
-+	/* This is necessary for container hotplug to work. */
- 	return 1;
- }
- 
- static struct acpi_scan_handler container_device_handler = {
- 	.ids = container_device_ids,
- 	.attach = container_device_attach,
-+	.hotplug = {
-+		.enabled = true,
-+		.mode = AHM_CONTAINER,
-+	},
- };
- 
--static int is_device_present(acpi_handle handle)
--{
--	acpi_handle temp;
--	acpi_status status;
--	unsigned long long sta;
--
--
--	status = acpi_get_handle(handle, "_STA", &temp);
--	if (ACPI_FAILURE(status))
--		return 1;	/* _STA not found, assume device present */
--
--	status = acpi_evaluate_integer(handle, "_STA", NULL, &sta);
--	if (ACPI_FAILURE(status))
--		return 0;	/* Firmware error */
--
--	return ((sta & ACPI_STA_DEVICE_PRESENT) == ACPI_STA_DEVICE_PRESENT);
--}
--
--static void container_notify_cb(acpi_handle handle, u32 type, void *context)
--{
--	struct acpi_device *device = NULL;
--	int result;
--	int present;
--	acpi_status status;
--	u32 ost_code = ACPI_OST_SC_NON_SPECIFIC_FAILURE; /* default */
--
--	acpi_scan_lock_acquire();
--
--	switch (type) {
--	case ACPI_NOTIFY_BUS_CHECK:
--		/* Fall through */
--	case ACPI_NOTIFY_DEVICE_CHECK:
--		pr_debug("Container driver received %s event\n",
--		       (type == ACPI_NOTIFY_BUS_CHECK) ?
--		       "ACPI_NOTIFY_BUS_CHECK" : "ACPI_NOTIFY_DEVICE_CHECK");
--
--		present = is_device_present(handle);
--		status = acpi_bus_get_device(handle, &device);
--		if (!present) {
--			if (ACPI_SUCCESS(status)) {
--				/* device exist and this is a remove request */
--				device->flags.eject_pending = 1;
--				kobject_uevent(&device->dev.kobj, KOBJ_OFFLINE);
--				goto out;
--			}
--			break;
--		}
--
--		if (!ACPI_FAILURE(status) || device)
--			break;
--
--		result = acpi_bus_scan(handle);
--		if (result) {
--			acpi_handle_warn(handle, "Failed to add container\n");
--			break;
--		}
--		result = acpi_bus_get_device(handle, &device);
--		if (result) {
--			acpi_handle_warn(handle, "Missing device object\n");
--			break;
--		}
--
--		kobject_uevent(&device->dev.kobj, KOBJ_ONLINE);
--		ost_code = ACPI_OST_SC_SUCCESS;
--		break;
--
--	case ACPI_NOTIFY_EJECT_REQUEST:
--		if (!acpi_bus_get_device(handle, &device) && device) {
--			device->flags.eject_pending = 1;
--			kobject_uevent(&device->dev.kobj, KOBJ_OFFLINE);
--			goto out;
--		}
--		break;
--
--	default:
--		/* non-hotplug event; possibly handled by other handler */
--		goto out;
--	}
--
--	/* Inform firmware that the hotplug operation has completed */
--	(void) acpi_evaluate_hotplug_ost(handle, type, ost_code, NULL);
--
-- out:
--	acpi_scan_lock_release();
--}
--
--static bool is_container(acpi_handle handle)
--{
--	struct acpi_device_info *info;
--	bool ret = false;
--
--	if (ACPI_FAILURE(acpi_get_object_info(handle, &info)))
--		return false;
--
--	if (info->valid & ACPI_VALID_HID) {
--		const struct acpi_device_id *id;
--
--		for (id = container_device_ids; id->id[0]; id++) {
--			ret = !strcmp((char *)id->id, info->hardware_id.string);
--			if (ret)
--				break;
--		}
--	}
--	kfree(info);
--	return ret;
--}
--
--static acpi_status acpi_container_register_notify_handler(acpi_handle handle,
--							  u32 lvl, void *ctxt,
--							  void **retv)
--{
--	if (is_container(handle))
--		acpi_install_notify_handler(handle, ACPI_SYSTEM_NOTIFY,
--					    container_notify_cb, NULL);
--
--	return AE_OK;
--}
--
- void __init acpi_container_init(void)
- {
--	acpi_walk_namespace(ACPI_TYPE_DEVICE, ACPI_ROOT_OBJECT, ACPI_UINT32_MAX,
--			    acpi_container_register_notify_handler, NULL,
--			    NULL, NULL);
--
- 	acpi_scan_add_handler(&container_device_handler);
- }
+> 
+> Thanks
+> 
+> Yinghai
+> 
+>> ---
+>>  drivers/acpi/pci_root.c |   48 +----------------------------------------------
+>>  include/linux/acpi.h    |    9 ---------
+>>  2 files changed, 1 insertion(+), 56 deletions(-)
+>>
+>> diff --git a/drivers/acpi/pci_root.c b/drivers/acpi/pci_root.c
+>> index 8b5a73b..2ef0c91 100644
+>> --- a/drivers/acpi/pci_root.c
+>> +++ b/drivers/acpi/pci_root.c
+>> @@ -69,44 +69,12 @@ static struct acpi_driver acpi_pci_root_driver = {
+>>                 },
+>>  };
+>>
+>> -/* Lock to protect both acpi_pci_roots and acpi_pci_drivers lists */
+>> +/* Lock to protect both acpi_pci_roots lists */
+>>  static DEFINE_MUTEX(acpi_pci_root_lock);
+>>  static LIST_HEAD(acpi_pci_roots);
+>> -static LIST_HEAD(acpi_pci_drivers);
+>>
+>>  static DEFINE_MUTEX(osc_lock);
+>>
+>> -int acpi_pci_register_driver(struct acpi_pci_driver *driver)
+>> -{
+>> -       int n = 0;
+>> -       struct acpi_pci_root *root;
+>> -
+>> -       mutex_lock(&acpi_pci_root_lock);
+>> -       list_add_tail(&driver->node, &acpi_pci_drivers);
+>> -       if (driver->add)
+>> -               list_for_each_entry(root, &acpi_pci_roots, node) {
+>> -                       driver->add(root);
+>> -                       n++;
+>> -               }
+>> -       mutex_unlock(&acpi_pci_root_lock);
+>> -
+>> -       return n;
+>> -}
+>> -EXPORT_SYMBOL(acpi_pci_register_driver);
+>> -
+>> -void acpi_pci_unregister_driver(struct acpi_pci_driver *driver)
+>> -{
+>> -       struct acpi_pci_root *root;
+>> -
+>> -       mutex_lock(&acpi_pci_root_lock);
+>> -       list_del(&driver->node);
+>> -       if (driver->remove)
+>> -               list_for_each_entry(root, &acpi_pci_roots, node)
+>> -                       driver->remove(root);
+>> -       mutex_unlock(&acpi_pci_root_lock);
+>> -}
+>> -EXPORT_SYMBOL(acpi_pci_unregister_driver);
+>> -
+>>  /**
+>>   * acpi_is_root_bridge - determine whether an ACPI CA node is a PCI root bridge
+>>   * @handle - the ACPI CA node in question.
+>> @@ -416,7 +384,6 @@ static int acpi_pci_root_add(struct acpi_device *device)
+>>         acpi_status status;
+>>         int result;
+>>         struct acpi_pci_root *root;
+>> -       struct acpi_pci_driver *driver;
+>>         u32 flags, base_flags;
+>>         bool is_osc_granted = false;
+>>
+>> @@ -576,12 +543,6 @@ static int acpi_pci_root_add(struct acpi_device *device)
+>>                 pci_assign_unassigned_bus_resources(root->bus);
+>>         }
+>>
+>> -       mutex_lock(&acpi_pci_root_lock);
+>> -       list_for_each_entry(driver, &acpi_pci_drivers, node)
+>> -               if (driver->add)
+>> -                       driver->add(root);
+>> -       mutex_unlock(&acpi_pci_root_lock);
+>> -
+>>         /* need to after hot-added ioapic is registered */
+>>         if (system_state != SYSTEM_BOOTING)
+>>                 pci_enable_bridges(root->bus);
+>> @@ -602,16 +563,9 @@ end:
+>>  static int acpi_pci_root_remove(struct acpi_device *device, int type)
+>>  {
+>>         struct acpi_pci_root *root = acpi_driver_data(device);
+>> -       struct acpi_pci_driver *driver;
+>>
+>>         pci_stop_root_bus(root->bus);
+>>
+>> -       mutex_lock(&acpi_pci_root_lock);
+>> -       list_for_each_entry_reverse(driver, &acpi_pci_drivers, node)
+>> -               if (driver->remove)
+>> -                       driver->remove(root);
+>> -       mutex_unlock(&acpi_pci_root_lock);
+>> -
+>>         device_set_run_wake(root->bus->bridge, false);
+>>         pci_acpi_remove_bus_pm_notifier(device);
+>>
+>> diff --git a/include/linux/acpi.h b/include/linux/acpi.h
+>> index 8c1d6f2..eeb5600 100644
+>> --- a/include/linux/acpi.h
+>> +++ b/include/linux/acpi.h
+>> @@ -147,15 +147,6 @@ void acpi_penalize_isa_irq(int irq, int active);
+>>
+>>  void acpi_pci_irq_disable (struct pci_dev *dev);
+>>
+>> -struct acpi_pci_driver {
+>> -       struct list_head node;
+>> -       int (*add)(struct acpi_pci_root *root);
+>> -       void (*remove)(struct acpi_pci_root *root);
+>> -};
+>> -
+>> -int acpi_pci_register_driver(struct acpi_pci_driver *driver);
+>> -void acpi_pci_unregister_driver(struct acpi_pci_driver *driver);
+>> -
+>>  extern int ec_read(u8 addr, u8 *val);
+>>  extern int ec_write(u8 addr, u8 val);
+>>  extern int ec_transaction(u8 command,
+>> --
+>> 1.7.9.5
+>>
+> 
+> .
+> 
