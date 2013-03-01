@@ -1,50 +1,32 @@
-From: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Subject: Re: [PATCH 1/2] ACPI / glue: Add .match() callback to struct
- acpi_bus_type
-Date: Thu, 28 Feb 2013 21:07:06 -0800
-Message-ID: <20130301050706.GB25192@kroah.com>
-References: <2612891.I2roH54cPk@vostro.rjw.lan>
- <20130228023313.GC4042@kroah.com>
- <1504144.f1SBuDyFqp@vostro.rjw.lan>
- <194591401.DiJi7SfL1g@vostro.rjw.lan>
+From: Sedat Dilek <sedat.dilek@gmail.com>
+Subject: Re: [PATCH] libata-acpi.c: fix copy and paste mistake in ata_acpi_register_power_resource
+Date: Fri, 1 Mar 2013 15:33:02 +0100
+Message-ID: <CA+icZUWHK-=gW_aLH-YsYKdwVUZBhmyOGACjY3MUzH+pL1eg7A@mail.gmail.com>
+Reply-To: sedat.dilek@gmail.com
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-pa0-f50.google.com ([209.85.220.50]:48703 "EHLO
-	mail-pa0-f50.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751496Ab3CAFHA (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 1 Mar 2013 00:07:00 -0500
-Received: by mail-pa0-f50.google.com with SMTP id fa11so1571629pad.9
-        for <linux-acpi@vger.kernel.org>; Thu, 28 Feb 2013 21:07:00 -0800 (PST)
-Content-Disposition: inline
-In-Reply-To: <194591401.DiJi7SfL1g@vostro.rjw.lan>
+Received: from mail-qe0-f46.google.com ([209.85.128.46]:56149 "EHLO
+	mail-qe0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750778Ab3CAOdE (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 1 Mar 2013 09:33:04 -0500
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>, Bjorn Helgaas <bhelgaas@google.com>, linux-usb@vger.kernel.org, Tejun Heo <tj@kernel.org>, linux-ide@vger.kernel.org, Jeff Garzik <jgarzik@pobox.com>, Yinghai Lu <yinghai@kernel.org>
+To: Sander Eikelenboom <linux@eikelenboom.it>
+Cc: "Rafael J. Wysocki" <rjw@sisk.pl>, Linux PM List <linux-pm@lists.linux-foundation.org>, LKML <linux-kernel@vger.kernel.org>, Linux ACPI <linux-acpi@vger.kernel.org>, linux-next <linux-next@vger.kernel.org>, Stephen Rothwell <sfr@canb.auug.org.au>
 
-On Thu, Feb 28, 2013 at 10:53:21PM +0100, Rafael J. Wysocki wrote:
-> From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
-> 
-> USB uses the .find_bridge() callback from struct acpi_bus_type
-> incorrectly, because as a result of the way it is used by USB every
-> device in the system that doesn't have a bus type or parent is
-> passed to usb_acpi_find_device() for inspection.
-> 
-> What USB actually needs, though, is to call usb_acpi_find_device()
-> for USB ports that don't have a bus type defined, but have
-> usb_port_device_type as their device type, as well as for USB
-> devices.
-> 
-> To fix that replace the struct bus_type pointer in struct
-> acpi_bus_type used for matching devices to specific subsystems
-> with a .match() callback to be used for this purpose and update
-> the users of struct acpi_bus_type, including USB, accordingly.
-> Define the .match() callback routine for USB, usb_acpi_bus_match(),
-> in such a way that it will cover both USB devices and USB ports
-> and remove the now redundant .find_bridge() callback pointer from
-> usb_acpi_bus.
-> 
-> Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+Original posting see [1].
 
-Acked-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Good catch!
+
+Latest Linux-Next (next-20130301) is also affected!
+
+The patch can be easily grabbed from [2].
+
+Sander pointed to the mismatch in [3].
+
+- Sedat -
+
+[1] http://marc.info/?l=linux-kernel&m=136213666529000&w=2
+[2] https://patchwork.kernel.org/patch/2200901/
+[3] http://git.kernel.org/?p=linux/kernel/git/torvalds/linux.git;a=commitdiff;h=bc9b6407bd6df3ab7189e5622816bbc11ae9d2d8#patch5
