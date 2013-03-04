@@ -1,33 +1,50 @@
-From: Peter Wu <lekensteyn@gmail.com>
-Subject: Re: [PATCH] PCI / ACPI: Rework ACPI device nodes lookup for the PCI bus type
-Date: Mon, 04 Mar 2013 16:56:32 +0100
-Message-ID: <3708737.8uVhOFRC2j@al>
-References: <16168955.038G1kVfN2@vostro.rjw.lan> <4892526.yENRuuZvDT@al> <3268331.1fmya6KvOh@vostro.rjw.lan>
+From: Maciej Rutecki <maciej.rutecki@gmail.com>
+Subject: [REGRESSION] [3.9-rc1] BUG: ktpacpi_nvramd/446 still has locks held!
+Date: Mon, 4 Mar 2013 20:55:37 +0100
+Message-ID: <201303042055.38040.maciej.rutecki@gmail.com>
+Reply-To: maciej.rutecki@gmail.com
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7Bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-ea0-f180.google.com ([209.85.215.180]:51952 "EHLO
-	mail-ea0-f180.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757741Ab3CDP4g (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 4 Mar 2013 10:56:36 -0500
-In-Reply-To: <3268331.1fmya6KvOh@vostro.rjw.lan>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: Text/Plain;
+  charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <platform-driver-x86-owner@vger.kernel.org>
+Sender: platform-driver-x86-owner@vger.kernel.org
+To: LKML <linux-kernel@vger.kernel.org>
+Cc: linux-acpi@vger.kernel.org, ibm-acpi@hmh.eng.br, ibm-acpi-devel@lists.sourceforge.net, platform-driver-x86@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: Bjorn Helgaas <bhelgaas@google.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Len Brown <lenb@kernel.org>, LKML <linux-kernel@vger.kernel.org>
 
-On Wednesday 23 January 2013 20:12:59 Rafael J. Wysocki wrote:
-> On Wednesday, January 23, 2013 08:00:31 PM Peter Wu wrote:
-> > Hi,
-> > 
-> > Any progress on this one? I guess it won't make into 3.8, perhaps 3.9?
-> 
-> No, that doesn't go anywhere for now.
-> 
-> In fact, I need to discuss that with Len.
-Is this patch still valid? If not, what patch do you suggest for users of the 
-affected Lenovo machines? (please CC me in a related discussion)
+Last known good: 3.8.0
+Bad version: 3.9-rc1
 
-Regards,
-Peter
+[    6.116492] =====================================
+[    6.116614] [ BUG: ktpacpi_nvramd/446 still has locks held! ]
+[    6.116737] 3.9.0-rc1 #1 Not tainted
+[    6.116821] -------------------------------------
+[    6.116900] 1 lock held by ktpacpi_nvramd/446:
+[    6.116973]  #0:  (&hotkey_thread_mutex){+.+...}, at: [<ffffffffa024e87e>] 
+hotkey_kthread+0x1f/0x354 [thinkpad_acpi]
+[    6.117193]
+[    6.117193] stack backtrace:
+[    6.117268] Pid: 446, comm: ktpacpi_nvramd Not tainted 3.9.0-rc1 #1
+[    6.117381] Call Trace:
+[    6.117445]  [<ffffffff810877ea>] debug_check_no_locks_held+0x8f/0x93
+[    6.117600]  [<ffffffff8107d8ac>] set_freezable+0x3e/0x64
+[    6.117703] input: ThinkPad Extra Buttons as 
+/devices/platform/thinkpad_acpi/input/input5
+[    6.117918]  [<ffffffffa024e890>] hotkey_kthread+0x31/0x354 [thinkpad_acpi]
+[    6.118088]  [<ffffffffa024e85f>] ? issue_volchange.29885+0x54/0x54 
+[thinkpad_acpi]
+[    6.118250]  [<ffffffff8105e296>] kthread+0xac/0xb4
+[    6.118356]  [<ffffffff8105e1ea>] ? __kthread_parkme+0x60/0x60
+[    6.118491]  [<ffffffff814b243c>] ret_from_fork+0x7c/0xb0
+[    6.118614]  [<ffffffff8105e1ea>] ? __kthread_parkme+0x60/0x60
+
+Config:
+http://mrutecki.pl/download/kernel/3.9.0-rc1/config-3.9.0-rc1
+
+full dmesg:
+http://mrutecki.pl/download/kernel/3.9.0-rc1/dmesg-3.9.0-rc1.txt
+
+-- 
+Maciej Rutecki
+http://www.mrutecki.pl
