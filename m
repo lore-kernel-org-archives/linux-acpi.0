@@ -1,68 +1,69 @@
-From: Peter Wu <lekensteyn@gmail.com>
-Subject: Re: [Resend][PATCH] ACPI / PM: Do not power manage devices in unknown initial states
-Date: Mon, 04 Mar 2013 15:37:18 +0100
-Message-ID: <123861787.JLtSYCl165@al>
-References: <3676077.i6vcpp7Nrn@vostro.rjw.lan> <2135454.ENo8eA9AXp@al> <6427459.8Ia2IB77g6@vostro.rjw.lan>
+From: Gustavo Maciel Dias Vieira <gustavo@sagui.org>
+Subject: [PATCH] ACPI video: ignore BIOS backlight value for HP dm4
+Date: Mon, 04 Mar 2013 12:23:37 -0300
+Message-ID: <1362410617.2761.30.camel@oberon.sagui.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-ee0-f52.google.com ([74.125.83.52]:37573 "EHLO
-	mail-ee0-f52.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758042Ab3CDOmx (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 4 Mar 2013 09:42:53 -0500
-In-Reply-To: <6427459.8Ia2IB77g6@vostro.rjw.lan>
+Received: from horatio.sagui.org ([173.230.138.212]:55940 "EHLO
+	horatio.sagui.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758165Ab3CDPbQ convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 4 Mar 2013 10:31:16 -0500
+Received: from oberon.sagui.org (gw.sor.ufscar.br [200.133.238.2])
+	by horatio.sagui.org (Postfix) with ESMTPSA id 32551839
+	for <linux-acpi@vger.kernel.org>; Mon,  4 Mar 2013 12:41:00 -0300 (BRT)
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>, Len Brown <lenb@kernel.org>, Mika Westerberg <mika.westerberg@linux.intel.com>
+To: ACPI Devel Maling List <linux-acpi@vger.kernel.org>
 
-On Friday 01 February 2013 22:44:55 Rafael J. Wysocki wrote:
-> On Friday, February 01, 2013 07:23:52 PM Peter Wu wrote:
-> > On Thursday 31 January 2013 23:32:40 Rafael J. Wysocki wrote:
-> > > In general, for ACPI device power management to work, the initial
-> > > power states of devices must be known (otherwise, we wouldn't be able
-> > > to keep track of power resources, for example).  Hence, if it is
-> > > impossible to determine the initial ACPI power states of some
-> > > devices, they can't be regarded as power-manageable using ACPI.
-> > >
-> > > 
-> > >
-> > > For this reason, modify acpi_bus_get_power_flags() to clear the
-> > > power_manageable flag if acpi_bus_init_power() fails and add some
-> > > extra fallback code to acpi_bus_init_power() to cover broken
-> > > BIOSes that provide _PS0/_PS3 without _PSC for some devices.
-> > >
-> > > 
-> > >
-> > > Verified to work on my HP nx6325 that has this problem.
-> > >
-> > > 
-> > >
-> > > Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
-> >
-> > 
-> >
-> > Tested-by: Peter Wu <lekensteyn@gmail.com>
-> >
-> > 
-> >
-> > I applied it on top of branch linux-next of repo linux-pm.
-> >
-> > 
-> >
-> > Fixes the issue I had with bbswitch in Linux 3.8. Can a backport patch be
-> > made  available for 3.8?
-> 
-> Yes, after this commit enters the mainline.  Please ping me some time around
-> 3.9-rc1.
 
-Now that this patch has entered 3.9-rc1, can this be backported to the 3.8 
-series?
+On a HP Pavilion dm4 laptop the BIOS sets minimum backlight on boot,
+completely dimming the screen. Ignore this initial value for this
+machine.
 
-commit b3785492268f9f3cdaa9722facb84b266dcf8bf6
-Author: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
-Date:   Fri Feb 1 23:43:02 2013 +0100
+Signed-off-by: Gustavo Maciel Dias Vieira <gustavo@sagui.org>
+---
 
-Regards,
-Peter
+This is the same situation as with the HP Folio
+(http://www.spinics.net/lists/linux-acpi/msg40401.html).
+
+Without this patch, the only way to get a correct display is with the
+video.use_bios_initial_backlight=3D0 command line switch. With it the
+display works out of the box.
+
+Abra=C3=A7os,
+Gustavo
+
+
+ drivers/acpi/video.c | 8 ++++++++
+ 1 file changed, 8 insertions(+)
+
+diff --git a/drivers/acpi/video.c b/drivers/acpi/video.c
+index ac9a69c..d7329bc 100644
+--- a/drivers/acpi/video.c
++++ b/drivers/acpi/video.c
+@@ -447,6 +447,14 @@ static struct dmi_system_id video_dmi_table[] __in=
+itdata =3D {
+ 		DMI_MATCH(DMI_PRODUCT_NAME, "HP Folio 13 - 2000 Notebook PC"),
+ 		},
+ 	},
++	{
++	 .callback =3D video_ignore_initial_backlight,
++	 .ident =3D "HP Pavilion dm4",
++	 .matches =3D {
++		DMI_MATCH(DMI_BOARD_VENDOR, "Hewlett-Packard"),
++		DMI_MATCH(DMI_PRODUCT_NAME, "HP Pavilion dm4 Notebook PC"),
++		},
++	},
+ 	{}
+ };
+=20
+--=20
+1.8.1.2
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
