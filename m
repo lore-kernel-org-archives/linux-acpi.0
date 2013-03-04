@@ -1,86 +1,68 @@
-From: Vasilis Liaskovitis <vasilis.liaskovitis@profitbricks.com>
-Subject: Re: [Update 4][PATCH 2/7] ACPI / scan: Introduce common code for
- ACPI-based device hotplug
-Date: Mon, 4 Mar 2013 14:10:23 +0100
-Message-ID: <20130304131023.GA4561@dhcp-192-168-178-175.profitbricks.localdomain>
-References: <3260206.bhaAobGhpZ@vostro.rjw.lan>
- <1478394.ryVNRuTre2@vostro.rjw.lan>
- <1361815672.12845.71.camel@misato.fc.hp.com>
- <18666371.hyHAvqrdQ6@vostro.rjw.lan>
+From: Peter Wu <lekensteyn@gmail.com>
+Subject: Re: [Resend][PATCH] ACPI / PM: Do not power manage devices in unknown initial states
+Date: Mon, 04 Mar 2013 15:37:18 +0100
+Message-ID: <123861787.JLtSYCl165@al>
+References: <3676077.i6vcpp7Nrn@vostro.rjw.lan> <2135454.ENo8eA9AXp@al> <6427459.8Ia2IB77g6@vostro.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7Bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-bk0-f47.google.com ([209.85.214.47]:58295 "EHLO
-	mail-bk0-f47.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756702Ab3CDNK2 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 4 Mar 2013 08:10:28 -0500
-Received: by mail-bk0-f47.google.com with SMTP id jc3so2327373bkc.6
-        for <linux-acpi@vger.kernel.org>; Mon, 04 Mar 2013 05:10:27 -0800 (PST)
-Content-Disposition: inline
-In-Reply-To: <18666371.hyHAvqrdQ6@vostro.rjw.lan>
+Received: from mail-ee0-f52.google.com ([74.125.83.52]:37573 "EHLO
+	mail-ee0-f52.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758042Ab3CDOmx (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 4 Mar 2013 09:42:53 -0500
+In-Reply-To: <6427459.8Ia2IB77g6@vostro.rjw.lan>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: Toshi Kani <toshi.kani@hp.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Bjorn Helgaas <bhelgaas@google.com>, LKML <linux-kernel@vger.kernel.org>, Yinghai Lu <yinghai@kernel.org>, Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>, Jiang Liu <liuj97@gmail.com>
+Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>, Len Brown <lenb@kernel.org>, Mika Westerberg <mika.westerberg@linux.intel.com>
 
-Hi,
-
-On Tue, Feb 26, 2013 at 12:39:50AM +0100, Rafael J. Wysocki wrote:
-> On Monday, February 25, 2013 11:07:52 AM Toshi Kani wrote:
-> > On Sat, 2013-02-23 at 22:38 +0000, Rafael J. Wysocki wrote:
-> > > From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+On Friday 01 February 2013 22:44:55 Rafael J. Wysocki wrote:
+> On Friday, February 01, 2013 07:23:52 PM Peter Wu wrote:
+> > On Thursday 31 January 2013 23:32:40 Rafael J. Wysocki wrote:
+> > > In general, for ACPI device power management to work, the initial
+> > > power states of devices must be known (otherwise, we wouldn't be able
+> > > to keep track of power resources, for example).  Hence, if it is
+> > > impossible to determine the initial ACPI power states of some
+> > > devices, they can't be regarded as power-manageable using ACPI.
+> > >
 > > > 
-> > > Multiple drivers handling hotplug-capable ACPI device nodes install
-> > > notify handlers covering the same types of events in a very similar
-> > > way.  Moreover, those handlers are installed in separate namespace
-> > > walks, although that really should be done during namespace scans
-> > > carried out by acpi_bus_scan().  This leads to substantial code
-> > > duplication, unnecessary overhead and behavior that is hard to
-> > > follow.
+> > >
+> > > For this reason, modify acpi_bus_get_power_flags() to clear the
+> > > power_manageable flag if acpi_bus_init_power() fails and add some
+> > > extra fallback code to acpi_bus_init_power() to cover broken
+> > > BIOSes that provide _PS0/_PS3 without _PSC for some devices.
+> > >
 > > > 
-> > > For this reason, introduce common code in drivers/acpi/scan.c for
-> > > handling hotplug-related notification and carrying out device
-> > > insertion and eject operations in a generic fashion, such that it
-> > > may be used by all of the relevant drivers in the future.  To cover
-> > > the existing differences between those drivers introduce struct
-> > > acpi_hotplug_profile for representing collections of hotplug
-> > > settings associated with different ACPI scan handlers that can be
-> > > used by the drivers to make the common code reflect their current
-> > > behavior.
-[...]
-> That's correct, but I don't know what the user space expectations are
-> currently.
+> > >
+> > > Verified to work on my HP nx6325 that has this problem.
+> > >
+> > > 
+> > >
+> > > Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+> >
+> > 
+> >
+> > Tested-by: Peter Wu <lekensteyn@gmail.com>
+> >
+> > 
+> >
+> > I applied it on top of branch linux-next of repo linux-pm.
+> >
+> > 
+> >
+> > Fixes the issue I had with bbswitch in Linux 3.8. Can a backport patch be
+> > made  available for 3.8?
 > 
-> > So, I'd suggest the following changes.
-> >  - Remove the "uevents" attribute.  KOBJ_ONLINE/OFFLINE are not used for
-> > ACPI device objects.
-> >  - Make the !autoeject case as an exception for now, and emit
-> > KOBJ_OFFLINE as a way to request off-lining to user.  This uevent is
-> > tied with the !autoeject case.  We can then revisit if this use-case
-> > needs to be supported going forward.  If so, we may want to consider a
-> > different event type.
-> 
-> Well, what about avoiding to expose uevents and autoeject for now and
-> exposing enabled only?  Drivers would still be able to set the other flags on
-> init on init to enforce the backwards-compatible behavior.
+> Yes, after this commit enters the mainline.  Please ping me some time around
+> 3.9-rc1.
 
-Now that we don't define uevents and autoeject in v2 of this series, could you
-explain how we get safe ejection from userspace e.g. for memory hot-remove? What
-are the other flags drivers can use (on init?) to avoid autoeject and only issue
-KOBJ_OFFLINE?
+Now that this patch has entered 3.9-rc1, can this be backported to the 3.8 
+series?
 
-> 
-> I agree that it would be sufficient to use one additional flag then, to start
-> with, but its meaning would be something like "keep backwards compatibility
-> with the old container driver", so perhaps "autoeject" is not a good name.
-> 
-> What about "user_eject" (that won't be exposed to user space) instead?  Where,
-> if set, it would meand "do not autoeject and emit KOBJ_OFFLINE/ONLINE uevents
-> like the old container driver did"?
+commit b3785492268f9f3cdaa9722facb84b266dcf8bf6
+Author: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+Date:   Fri Feb 1 23:43:02 2013 +0100
 
-I don't see user_eject in v2. Is it unnecessary for userspace ejection control
-or planned for later? Also why shouldn't it be exposed to userpace?
-
-thanks,
-
-- Vasilis
+Regards,
+Peter
