@@ -1,69 +1,33 @@
-From: Gustavo Maciel Dias Vieira <gustavo@sagui.org>
-Subject: [PATCH] ACPI video: ignore BIOS backlight value for HP dm4
-Date: Mon, 04 Mar 2013 12:23:37 -0300
-Message-ID: <1362410617.2761.30.camel@oberon.sagui.org>
+From: Peter Wu <lekensteyn@gmail.com>
+Subject: Re: [PATCH] PCI / ACPI: Rework ACPI device nodes lookup for the PCI bus type
+Date: Mon, 04 Mar 2013 16:56:32 +0100
+Message-ID: <3708737.8uVhOFRC2j@al>
+References: <16168955.038G1kVfN2@vostro.rjw.lan> <4892526.yENRuuZvDT@al> <3268331.1fmya6KvOh@vostro.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7Bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from horatio.sagui.org ([173.230.138.212]:55940 "EHLO
-	horatio.sagui.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758165Ab3CDPbQ convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 4 Mar 2013 10:31:16 -0500
-Received: from oberon.sagui.org (gw.sor.ufscar.br [200.133.238.2])
-	by horatio.sagui.org (Postfix) with ESMTPSA id 32551839
-	for <linux-acpi@vger.kernel.org>; Mon,  4 Mar 2013 12:41:00 -0300 (BRT)
+Received: from mail-ea0-f180.google.com ([209.85.215.180]:51952 "EHLO
+	mail-ea0-f180.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757741Ab3CDP4g (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 4 Mar 2013 10:56:36 -0500
+In-Reply-To: <3268331.1fmya6KvOh@vostro.rjw.lan>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: ACPI Devel Maling List <linux-acpi@vger.kernel.org>
+To: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: Bjorn Helgaas <bhelgaas@google.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Len Brown <lenb@kernel.org>, LKML <linux-kernel@vger.kernel.org>
 
+On Wednesday 23 January 2013 20:12:59 Rafael J. Wysocki wrote:
+> On Wednesday, January 23, 2013 08:00:31 PM Peter Wu wrote:
+> > Hi,
+> > 
+> > Any progress on this one? I guess it won't make into 3.8, perhaps 3.9?
+> 
+> No, that doesn't go anywhere for now.
+> 
+> In fact, I need to discuss that with Len.
+Is this patch still valid? If not, what patch do you suggest for users of the 
+affected Lenovo machines? (please CC me in a related discussion)
 
-On a HP Pavilion dm4 laptop the BIOS sets minimum backlight on boot,
-completely dimming the screen. Ignore this initial value for this
-machine.
-
-Signed-off-by: Gustavo Maciel Dias Vieira <gustavo@sagui.org>
----
-
-This is the same situation as with the HP Folio
-(http://www.spinics.net/lists/linux-acpi/msg40401.html).
-
-Without this patch, the only way to get a correct display is with the
-video.use_bios_initial_backlight=3D0 command line switch. With it the
-display works out of the box.
-
-Abra=C3=A7os,
-Gustavo
-
-
- drivers/acpi/video.c | 8 ++++++++
- 1 file changed, 8 insertions(+)
-
-diff --git a/drivers/acpi/video.c b/drivers/acpi/video.c
-index ac9a69c..d7329bc 100644
---- a/drivers/acpi/video.c
-+++ b/drivers/acpi/video.c
-@@ -447,6 +447,14 @@ static struct dmi_system_id video_dmi_table[] __in=
-itdata =3D {
- 		DMI_MATCH(DMI_PRODUCT_NAME, "HP Folio 13 - 2000 Notebook PC"),
- 		},
- 	},
-+	{
-+	 .callback =3D video_ignore_initial_backlight,
-+	 .ident =3D "HP Pavilion dm4",
-+	 .matches =3D {
-+		DMI_MATCH(DMI_BOARD_VENDOR, "Hewlett-Packard"),
-+		DMI_MATCH(DMI_PRODUCT_NAME, "HP Pavilion dm4 Notebook PC"),
-+		},
-+	},
- 	{}
- };
-=20
---=20
-1.8.1.2
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Regards,
+Peter
