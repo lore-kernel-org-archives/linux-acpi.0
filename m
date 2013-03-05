@@ -1,56 +1,158 @@
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: Re: [PATCH] thinkpad-acpi: fix potential suspend blocking issue
-Date: Tue, 5 Mar 2013 14:18:17 -0800
-Message-ID: <20130305141817.4e27e83aa66598115e52eb9e@linux-foundation.org>
-References: <201303042055.38040.maciej.rutecki@gmail.com>
-	<1362504883-9180-1-git-send-email-msb@chromium.org>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+From: Toshi Kani <toshi.kani@hp.com>
+Subject: [PATCH] ACPI: Update _OST handling for notify
+Date: Tue,  5 Mar 2013 15:33:31 -0700
+Message-ID: <1362522811-29063-1-git-send-email-toshi.kani@hp.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1362504883-9180-1-git-send-email-msb@chromium.org>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Mandeep Singh Baines <msb@chromium.org>
-Cc: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, ibm-acpi@hmh.eng.br, ibm-acpi-devel@lists.sourceforge.net, platform-driver-x86@vger.kernel.org, Aaron Lu <aaron.lu@intel.com>, Henrique de Moraes Holschuh <hmh@hmh.eng.br>, Tejun Heo <tj@kernel.org>, Oleg Nesterov <oleg@redhat.com>, Maciej Rutecki <maciej.rutecki@gmail.com>, Artem Savkov <artem.savkov@gmail.com>
+To: rjw@sisk.pl
+Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, yinghai@kernel.org, jiang.liu@huawei.com, isimatu.yasuaki@jp.fujitsu.com, Toshi Kani <toshi.kani@hp.com>
 List-Id: linux-acpi@vger.kernel.org
 
-On Tue,  5 Mar 2013 09:34:43 -0800 Mandeep Singh Baines <msb@chromium.org> wrote:
+When the kernel calls _OSC with OSC_SB_HOTPLUG_OST_SUPPORT bit
+set at boot-time, the OS is responsible for calling _OST for
+ACPI hotplug events.  However, when hotplug.enabled attribute
+is unset for ACPI scan drivers, their notify handlers are removed
+and _OST is not called for ACPI hotplug events as a result.
 
-> Fixes the following lockdep error:
-> 
-> [ BUG: ktpacpi_nvramd/446 still has locks held! ]
-> 
-> hotkey_kthread() calls set_freezable() after acquiring the
-> hotkey_kthread_mutex(). set_freezable() calls try_to_freeze().
-> This could block suspend if we were to freeze at this point
-> and another task were to block on the mutex, potentially via
-> writing to one of the sysfs attrs. This race is unlikely but
-> can be easily fixed by moving the set_freezable() call.
->
-> ...
->
-> --- a/drivers/platform/x86/thinkpad_acpi.c
-> +++ b/drivers/platform/x86/thinkpad_acpi.c
-> @@ -2462,13 +2462,13 @@ static int hotkey_kthread(void *data)
->  	unsigned int poll_freq;
->  	bool was_frozen;
->  
-> +	set_freezable();
-> +
->  	mutex_lock(&hotkey_thread_mutex);
->  
->  	if (tpacpi_lifecycle == TPACPI_LIFE_EXITING)
->  		goto exit;
->  
-> -	set_freezable();
-> -
->  	so = 0;
->  	si = 1;
->  	t = 0;
+This patch keeps the notify handler of ACPI scan drivers,
+acpi_hotplug_notify_cb(), installed regardless of the state of
+hotplug.enabled.  The notify handler then checks if hotplug.enabled
+is set for the associated scan handler.  If unset, the notify
+handler calls _OST with a proper error code.  The patch also
+eliminates ACPI namespace walk when hotplug.enabled is changed
+via sysfs.
 
-Basically the same as
-http://ozlabs.org/~akpm/mmots/broken-out/drivers-platform-x86-thinkpad_acpic-move-hotkey_thread_mutex-lock-after-set_freezable.patch.
- I think Artem's patch is a little better.  There doesn't appear to be
-any locking protocol for tpacpi_lifecycle.
+Signed-off-by: Toshi Kani <toshi.kani@hp.com>
+---
 
-I'll move Artem's patch into my for-3.9-rc2 queue.
+This patch applies on top of the following patchset.
+https://lkml.org/lkml/2013/3/4/455
+
+---
+ drivers/acpi/scan.c |   87 +++++++++++++++++++++------------------------------
+ 1 file changed, 35 insertions(+), 52 deletions(-)
+
+diff --git a/drivers/acpi/scan.c b/drivers/acpi/scan.c
+index 3f6ec0d..dfdbcfd 100644
+--- a/drivers/acpi/scan.c
++++ b/drivers/acpi/scan.c
+@@ -259,11 +259,43 @@ static void acpi_scan_device_check(void *context)
+ 				   ACPI_NOTIFY_DEVICE_CHECK);
+ }
+ 
+-static void acpi_hotplug_notify_cb(acpi_handle handle, u32 type, void *not_used)
++static void acpi_hotplug_unsupported(acpi_handle handle, u32 type)
++{
++	u32 ost_status;
++
++	switch (type) {
++	case ACPI_NOTIFY_BUS_CHECK:
++		acpi_handle_debug(handle,
++			"ACPI_NOTIFY_BUS_CHECK event: unsupported\n");
++		ost_status = ACPI_OST_SC_INSERT_NOT_SUPPORTED;
++		break;
++	case ACPI_NOTIFY_DEVICE_CHECK:
++		acpi_handle_debug(handle,
++			"ACPI_NOTIFY_DEVICE_CHECK event: unsupported\n");
++		ost_status = ACPI_OST_SC_INSERT_NOT_SUPPORTED;
++		break;
++	case ACPI_NOTIFY_EJECT_REQUEST:
++		acpi_handle_debug(handle,
++			"ACPI_NOTIFY_EJECT_REQUEST event: unsupported\n");
++		ost_status = ACPI_OST_SC_EJECT_NOT_SUPPORTED;
++		break;
++	default:
++		/* non-hotplug event; possibly handled by other handler */
++		return;
++	}
++
++	acpi_evaluate_hotplug_ost(handle, type, ost_status, NULL);
++}
++
++static void acpi_hotplug_notify_cb(acpi_handle handle, u32 type, void *data)
+ {
+ 	acpi_osd_exec_callback callback;
++	struct acpi_scan_handler *handler = data;
+ 	acpi_status status;
+ 
++	if (!handler->hotplug.enabled)
++		return acpi_hotplug_unsupported(handle, type);
++
+ 	switch (type) {
+ 	case ACPI_NOTIFY_BUS_CHECK:
+ 		acpi_handle_debug(handle, "ACPI_NOTIFY_BUS_CHECK event\n");
+@@ -1715,61 +1747,14 @@ static struct acpi_scan_handler *acpi_scan_match_handler(char *idstr,
+ 	return NULL;
+ }
+ 
+-static acpi_status acpi_scan_hotplug_modify(acpi_handle handle,
+-					    u32 lvl_not_used, void *data,
+-					    void **ret_not_used)
+-{
+-	struct acpi_device_pnp pnp = {};
+-	struct acpi_scan_handler *tgt_handler = data, *handler;
+-	struct acpi_hardware_id *hwid;
+-	unsigned long long sta_not_used;
+-	int type;
+-	bool match = false;
+-
+-	if (acpi_bus_type_and_status(handle, &type, &sta_not_used))
+-		return AE_OK;
+-
+-	INIT_LIST_HEAD(&pnp.ids);
+-	acpi_set_pnp_ids(handle, &pnp, type);
+-
+-	if (!pnp.type.hardware_id)
+-		return AE_OK;
+-
+-	list_for_each_entry(hwid, &pnp.ids, list) {
+-		handler = acpi_scan_match_handler(hwid->id, NULL);
+-		if (handler && handler == tgt_handler) {
+-			match = true;
+-			break;
+-		}
+-	}
+-	if (!match)
+-		goto out;
+-
+-	if (handler->hotplug.enabled)
+-		acpi_install_notify_handler(handle, ACPI_SYSTEM_NOTIFY,
+-					    acpi_hotplug_notify_cb, NULL);
+-	else
+-		acpi_remove_notify_handler(handle, ACPI_SYSTEM_NOTIFY,
+-					   acpi_hotplug_notify_cb);
+-
+-out:
+-	acpi_free_pnp_ids(&pnp);
+-	return AE_OK;
+-}
+-
+ void acpi_scan_hotplug_enabled(struct acpi_hotplug_profile *hotplug, bool val)
+ {
+-	struct acpi_scan_handler *handler;
+-
+ 	if (!!hotplug->enabled == !!val)
+ 		return;
+ 
+ 	mutex_lock(&acpi_scan_lock);
+ 
+ 	hotplug->enabled = val;
+-	handler = container_of(hotplug, struct acpi_scan_handler, hotplug);
+-	acpi_walk_namespace(ACPI_TYPE_DEVICE, ACPI_ROOT_OBJECT, ACPI_UINT32_MAX,
+-			    acpi_scan_hotplug_modify, NULL, handler, NULL);
+ 
+ 	mutex_unlock(&acpi_scan_lock);
+ }
+@@ -1793,10 +1778,8 @@ static void acpi_scan_init_hotplug(acpi_handle handle, int type)
+ 	list_for_each_entry(hwid, &pnp.ids, list) {
+ 		handler = acpi_scan_match_handler(hwid->id, NULL);
+ 		if (handler) {
+-			if (handler->hotplug.enabled)
+-				acpi_install_notify_handler(handle,
+-					ACPI_SYSTEM_NOTIFY,
+-					acpi_hotplug_notify_cb, NULL);
++			acpi_install_notify_handler(handle, ACPI_SYSTEM_NOTIFY,
++					acpi_hotplug_notify_cb, handler);
+ 			break;
+ 		}
+ 	}
