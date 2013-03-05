@@ -1,107 +1,121 @@
 From: Aaron Lu <aaron.lu@intel.com>
-Subject: [PATCH] mmc: sdio: bind acpi with sdio function device
-Date: Tue,  5 Mar 2013 11:24:52 +0800
-Message-ID: <1362453892-13304-1-git-send-email-aaron.lu@intel.com>
-Return-path: <linux-pm-owner@vger.kernel.org>
-Sender: linux-pm-owner@vger.kernel.org
-To: Chris Ball <cjb@laptop.org>
-Cc: Adrian Hunter <adrian.hunter@intel.com>, "Rafael J. Wysocki" <rjw@sisk.pl>, linux-mmc@vger.kernel.org, linux-acpi@vger.kernel.org, linux-pm@vger.kernel.org, Aaron Lu <aaron.lwe@gmail.com>, Aaron Lu <aaron.lu@intel.com>
+Subject: [PATCH] libata: acpi: remove redundent code for power resource handling
+Date: Tue,  5 Mar 2013 12:12:04 +0800
+Message-ID: <1362456724-21257-1-git-send-email-aaron.lu@intel.com>
+Return-path: <linux-ide-owner@vger.kernel.org>
+Sender: linux-ide-owner@vger.kernel.org
+To: Jeff Garzik <jgarzik@pobox.com>
+Cc: "Rafael J. Wysocki" <rjw@sisk.pl>, linux-ide@vger.kernel.org, linux-acpi@vger.kernel.org, Aaron Lu <aaron.lwe@gmail.com>, Aaron Lu <aaron.lu@intel.com>
 List-Id: linux-acpi@vger.kernel.org
 
-ACPI spec 5 defined the _ADR encoding for sdio bus as:
-High word - slot number (0 based)
-Low word  - function number
+With commit:
+bc9b6407bd6df3ab7189e5622816bbc11ae9d2d8
+ACPI / PM: Rework the handling of devices depending on power resources
 
-This patch adds support for binding sdio function device with acpi node,
-and if successful, involve acpi into its power management.
+The ACPI core now takes care of the power resources an acpi device
+depends on in that when the power resources are turned on, any devices
+that are bound to or in the dependent list of this acpi device will be
+runtime resumed. So there is no need for ata acpi code to duplicate this
+effort, and thus, the ata_acpi_(un)register_power_resource functions are
+no longer needed.
+
+The above commit thinks the scsi device is not bound to the acpi device,
+so needs to be added to the dependent list. But actually, it is. So
+there is no need to add it to the dependent list, or it will be runtime
+resumed twice(though this wouldn't cause any problem).
+
+This patch fixes it, and as a result, the
+ata_acpi_(un)register_power_resource and ata_acpi_(un)bind functions
+are removed.
 
 Signed-off-by: Aaron Lu <aaron.lu@intel.com>
-Reviewed-by: Adrian Hunter <adrian.hunter@intel.com>
 ---
- drivers/mmc/core/sdio_bus.c  | 20 +++++++++++++++++++-
- drivers/mmc/host/sdhci-pci.c |  1 +
- include/linux/mmc/host.h     |  2 ++
- 3 files changed, 22 insertions(+), 1 deletion(-)
+ drivers/ata/libata-acpi.c | 33 ---------------------------------
+ drivers/ata/libata-scsi.c |  6 ++++--
+ 2 files changed, 4 insertions(+), 35 deletions(-)
 
-diff --git a/drivers/mmc/core/sdio_bus.c b/drivers/mmc/core/sdio_bus.c
-index 5e57048..8d6bb18 100644
---- a/drivers/mmc/core/sdio_bus.c
-+++ b/drivers/mmc/core/sdio_bus.c
-@@ -16,6 +16,7 @@
- #include <linux/export.h>
+diff --git a/drivers/ata/libata-acpi.c b/drivers/ata/libata-acpi.c
+index cb3eab6d..5be0ed0 100644
+--- a/drivers/ata/libata-acpi.c
++++ b/drivers/ata/libata-acpi.c
+@@ -17,7 +17,6 @@
+ #include <linux/pci.h>
  #include <linux/slab.h>
  #include <linux/pm_runtime.h>
-+#include <linux/acpi.h>
+-#include <linux/pm_qos.h>
+ #include <scsi/scsi_device.h>
+ #include "libata.h"
  
- #include <linux/mmc/card.h>
- #include <linux/mmc/host.h>
-@@ -299,6 +300,19 @@ struct sdio_func *sdio_alloc_func(struct mmc_card *card)
- 	return func;
+@@ -1020,38 +1019,6 @@ void ata_acpi_on_disable(struct ata_device *dev)
+ 	ata_acpi_clear_gtf(dev);
  }
  
-+#ifdef CONFIG_ACPI
-+static void sdio_acpi_set_handle(struct sdio_func *func)
-+{
-+	struct mmc_host *host = func->card->host;
-+	u64 addr = (host->slotno << 16) | func->num;
-+
-+	ACPI_HANDLE_SET(&func->dev,
-+			acpi_get_child(ACPI_HANDLE(host->parent), addr));
-+}
-+#else
-+static inline void sdio_acpi_set_handle(struct sdio_func *func) {}
-+#endif
-+
- /*
-  * Register a new SDIO function with the driver model.
-  */
-@@ -308,9 +322,12 @@ int sdio_add_func(struct sdio_func *func)
+-static void ata_acpi_register_power_resource(struct ata_device *dev)
+-{
+-	struct scsi_device *sdev = dev->sdev;
+-	acpi_handle handle;
+-
+-	handle = ata_dev_acpi_handle(dev);
+-	if (handle)
+-		acpi_dev_pm_add_dependent(handle, &sdev->sdev_gendev);
+-}
+-
+-static void ata_acpi_unregister_power_resource(struct ata_device *dev)
+-{
+-	struct scsi_device *sdev = dev->sdev;
+-	acpi_handle handle;
+-
+-	handle = ata_dev_acpi_handle(dev);
+-	if (handle)
+-		acpi_dev_pm_remove_dependent(handle, &sdev->sdev_gendev);
+-}
+-
+-void ata_acpi_bind(struct ata_device *dev)
+-{
+-	ata_acpi_register_power_resource(dev);
+-	if (zpodd_dev_enabled(dev))
+-		dev_pm_qos_expose_flags(&dev->sdev->sdev_gendev, 0);
+-}
+-
+-void ata_acpi_unbind(struct ata_device *dev)
+-{
+-	ata_acpi_unregister_power_resource(dev);
+-}
+-
+ static int compat_pci_ata(struct ata_port *ap)
+ {
+ 	struct device *dev = ap->tdev.parent;
+diff --git a/drivers/ata/libata-scsi.c b/drivers/ata/libata-scsi.c
+index 318b413..8b05c68 100644
+--- a/drivers/ata/libata-scsi.c
++++ b/drivers/ata/libata-scsi.c
+@@ -49,6 +49,7 @@
+ #include <linux/hdreg.h>
+ #include <linux/uaccess.h>
+ #include <linux/suspend.h>
++#include <linux/pm_qos.h>
+ #include <asm/unaligned.h>
  
- 	dev_set_name(&func->dev, "%s:%d", mmc_card_id(func->card), func->num);
+ #include "libata.h"
+@@ -3668,7 +3669,9 @@ void ata_scsi_scan_host(struct ata_port *ap, int sync)
+ 			if (!IS_ERR(sdev)) {
+ 				dev->sdev = sdev;
+ 				scsi_device_put(sdev);
+-				ata_acpi_bind(dev);
++				if (zpodd_dev_enabled(dev))
++					dev_pm_qos_expose_flags(
++							&sdev->sdev_gendev, 0);
+ 			} else {
+ 				dev->sdev = NULL;
+ 			}
+@@ -3767,7 +3770,6 @@ static void ata_scsi_remove_dev(struct ata_device *dev)
  
-+	sdio_acpi_set_handle(func);
- 	ret = device_add(&func->dev);
--	if (ret == 0)
-+	if (ret == 0) {
- 		sdio_func_set_present(func);
-+		acpi_dev_pm_attach(&func->dev, false);
-+	}
+ 	if (zpodd_dev_enabled(dev))
+ 		zpodd_exit(dev);
+-	ata_acpi_unbind(dev);
  
- 	return ret;
- }
-@@ -326,6 +343,7 @@ void sdio_remove_func(struct sdio_func *func)
- 	if (!sdio_func_present(func))
- 		return;
- 
-+	acpi_dev_pm_detach(&func->dev, false);
- 	device_del(&func->dev);
- 	put_device(&func->dev);
- }
-diff --git a/drivers/mmc/host/sdhci-pci.c b/drivers/mmc/host/sdhci-pci.c
-index c7ccf30..3dee22d 100644
---- a/drivers/mmc/host/sdhci-pci.c
-+++ b/drivers/mmc/host/sdhci-pci.c
-@@ -1279,6 +1279,7 @@ static struct sdhci_pci_slot *sdhci_pci_probe_slot(
- 	}
- 
- 	host->mmc->pm_caps = MMC_PM_KEEP_POWER | MMC_PM_WAKE_SDIO_IRQ;
-+	host->mmc->slotno = slotno;
- 
- 	ret = sdhci_add_host(host);
- 	if (ret)
-diff --git a/include/linux/mmc/host.h b/include/linux/mmc/host.h
-index d6f20cc..17d7148 100644
---- a/include/linux/mmc/host.h
-+++ b/include/linux/mmc/host.h
-@@ -361,6 +361,8 @@ struct mmc_host {
- 
- 	unsigned int		actual_clock;	/* Actual HC clock rate */
- 
-+	unsigned int		slotno;	/* used for sdio acpi binding */
-+
- 	unsigned long		private[0] ____cacheline_aligned;
- };
- 
+ 	/* clearing dev->sdev is protected by host lock */
+ 	sdev = dev->sdev;
 -- 
-1.8.1.2
+1.8.1.4
 
