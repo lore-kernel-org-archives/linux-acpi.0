@@ -1,161 +1,309 @@
 From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: Regression in v3.9-rc1 introduced by d5aaffa9dd531c978c6f3fea06a2972653bd7fc8..
-Date: Wed, 06 Mar 2013 23:16:30 +0100
-Message-ID: <15852473.mpGhl7fuH1@vostro.rjw.lan>
-References: <20130305183919.GA8006@phenom.dumpdata.com> <3193614.16DCcHFHVM@vostro.rjw.lan> <20130306150515.GD10760@phenom.dumpdata.com>
+Subject: [Update][PATCH 2/2] ACPI / LPSS: Add support for exposing LTR registers to user space
+Date: Wed, 06 Mar 2013 23:59:07 +0100
+Message-ID: <1692006.SGTZ3bcltu@vostro.rjw.lan>
+References: <1878438.IOSu0hheXQ@vostro.rjw.lan> <6910166.A6hvu2UJQ6@vostro.rjw.lan>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7Bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from hydra.sisk.pl ([212.160.235.94]:60124 "EHLO hydra.sisk.pl"
+Received: from hydra.sisk.pl ([212.160.235.94]:60250 "EHLO hydra.sisk.pl"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754335Ab3CFWJe (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 6 Mar 2013 17:09:34 -0500
-In-Reply-To: <20130306150515.GD10760@phenom.dumpdata.com>
+	id S1754581Ab3CFWwL (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 6 Mar 2013 17:52:11 -0500
+In-Reply-To: <6910166.A6hvu2UJQ6@vostro.rjw.lan>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
-Cc: linux-acpi@vger.kernel.org, rafael.j.wysocki@intel.com, dirk.j.brandewie@intel.com
+To: LKML <linux-kernel@vger.kernel.org>
+Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Mika Westerberg <mika.westerberg@linux.intel.com>, Mike Turquette <mturquette@linaro.org>, "Kristen C. Accardi" <kristen.c.accardi@intel.com>, Len Brown <lenb@kernel.org>
 
-On Wednesday, March 06, 2013 10:05:15 AM Konrad Rzeszutek Wilk wrote:
-> On Wed, Mar 06, 2013 at 01:29:49AM +0100, Rafael J. Wysocki wrote:
-> > Hi,
-> > 
-> > Thanks for the report. ->
-> > 
-> > On Tuesday, March 05, 2013 01:39:19 PM Konrad Rzeszutek Wilk wrote:
-> > > In all fairness, the commit d5aaffa9dd531c978c6f3fea06a2972653bd7fc8
-> > > (cpufreq: handle cpufreq being disabled for all exported function.) is not
-> > > at fault - it just that it exposes an assumption that before v3.9-rc1
-> > > was not true. And git bisection points to it :-(
-> .. snip..
-> > > Thoughts?
-> > 
-> > Well, since your patch above seems to only affect Xen, I'm basically fine with
-> > it.
-> 
-> OK, here is the patch. Would you like to carry it in my tree for Linus or are
-> you comfortable taking it?
+From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+Subject: ACPI / LPSS: Add support for exposing LTR registers to user space
 
-Well, if you can push it to Linus, please do that.  It belongs to the Xen tree
-rather than to mine.
+Devices on the Intel Lynxpoint Low Power Subsystem (LPSS) have
+registers providing access to LTR (Latency Tolerance Reporting)
+functionality that allows software to monitor and possibly influence
+the aggressiveness of the platform's active-state power management.
+
+For each LPSS device, there are two modes of operation related to LTR,
+the auto mode and the software mode.  In the auto mode the LTR is
+set up by the platform firmware and managed by hardware.  Software
+can only read the LTR register values to monitor the platform's
+behavior.  In the software mode it is possible to use LTR to control
+the extent to which the platform will use its built-in power
+management features.
+
+This changeset adds support for reading the LPSS devices' LTR
+registers and exposing their values to user space for monitoring and
+diagnostics purposes.  It re-uses the MMIO mappings created to access
+the LPSS devices' clock registers for reading the values of the LTR
+registers and exposes them to user space through sysfs device
+attributes.  Namely, a new atrribute group, lpss_ltr, is created for
+each LPSS device.  It contains three new attributes: ltr_mode,
+auto_ltr, sw_ltr.  The value of the ltr_mode attribute reflects the
+LTR mode being used at the moment (software vs auto) and the other
+two contain the actual register values (raw) whose meaning depends
+on the LTR mode.  All of these attributes are read-only.
+
+Signed-off-by: Mika Westerberg <mika.westerberg@linux.intel.com>
+Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+---
+
+This update changes the ABI doc to follow the code more closely.
 
 Thanks,
 Rafael
 
+---
+ Documentation/ABI/testing/sysfs-devices-lpss_ltr |   44 +++++++
+ drivers/acpi/acpi_lpss.c                         |  139 ++++++++++++++++++++++-
+ 2 files changed, 178 insertions(+), 5 deletions(-)
 
-> From c705c78c0d0835a4aa5d0d9a3422e3218462030c Mon Sep 17 00:00:00 2001
-> From: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
-> Date: Tue, 5 Mar 2013 13:42:54 -0500
-> Subject: [PATCH] acpi: Export the acpi_processor_get_performance_info
-> 
-> The git commit d5aaffa9dd531c978c6f3fea06a2972653bd7fc8
-> (cpufreq: handle cpufreq being disabled for all exported function)
-> tightens the cpufreq API by returning errors when disable_cpufreq()
-> had been called.
-> 
-> The problem we are hitting is that the module xen-acpi-processor which
-> uses the ACPI's functions: acpi_processor_register_performance,
-> acpi_processor_preregister_performance, and acpi_processor_notify_smm
-> fails at acpi_processor_register_performance with -22.
-> 
-> Note that earlier during bootup in arch/x86/xen/setup.c there is also
-> an call to cpufreq's API: disable_cpufreq().
-> 
-> This is b/c we want the Linux kernel to parse the ACPI data, but leave
-> the cpufreq decisions to the hypervisor.
-> 
-> In v3.9 all the checks that d5aaffa9dd531c978c6f3fea06a2972653bd7fc8
-> added are now hit and the calls to cpufreq_register_notifier will now
-> fail. This means that acpi_processor_ppc_init ends up printing:
-> 
-> "Warning: Processor Platform Limit not supported"
-> 
-> and the acpi_processor_ppc_status is not set.
-> 
-> The repercussions of that is that the call to
-> acpi_processor_register_performance fails right away at:
-> 
-> 	if (!(acpi_processor_ppc_status & PPC_REGISTERED))
-> 
-> and we don't progress any further on parsing and extracting the _P*
-> objects.
-> 
-> The only reason the Xen code called that function was b/c it was
-> exported and the only way to gather the P-states. But we can also
-> just make acpi_processor_get_performance_info be exported and not
-> use acpi_processor_register_performance. This patch does so.
-> 
-> Acked-by: Rafael J. Wysocki <rjw@sisk.pl>
-> Signed-off-by: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
-> ---
->  drivers/acpi/processor_perflib.c | 4 ++--
->  drivers/xen/xen-acpi-processor.c | 8 ++++----
->  include/acpi/processor.h         | 3 +++
->  3 files changed, 9 insertions(+), 6 deletions(-)
-> 
-> diff --git a/drivers/acpi/processor_perflib.c b/drivers/acpi/processor_perflib.c
-> index 53e7ac9..e854582 100644
-> --- a/drivers/acpi/processor_perflib.c
-> +++ b/drivers/acpi/processor_perflib.c
-> @@ -465,7 +465,7 @@ static int acpi_processor_get_performance_states(struct acpi_processor *pr)
->  	return result;
->  }
->  
-> -static int acpi_processor_get_performance_info(struct acpi_processor *pr)
-> +int acpi_processor_get_performance_info(struct acpi_processor *pr)
->  {
->  	int result = 0;
->  	acpi_status status = AE_OK;
-> @@ -509,7 +509,7 @@ static int acpi_processor_get_performance_info(struct acpi_processor *pr)
->  #endif
->  	return result;
->  }
-> -
-> +EXPORT_SYMBOL_GPL(acpi_processor_get_performance_info);
->  int acpi_processor_notify_smm(struct module *calling_module)
->  {
->  	acpi_status status;
-> diff --git a/drivers/xen/xen-acpi-processor.c b/drivers/xen/xen-acpi-processor.c
-> index 316df65..f3278a6 100644
-> --- a/drivers/xen/xen-acpi-processor.c
-> +++ b/drivers/xen/xen-acpi-processor.c
-> @@ -500,16 +500,16 @@ static int __init xen_acpi_processor_init(void)
->  	(void)acpi_processor_preregister_performance(acpi_perf_data);
->  
->  	for_each_possible_cpu(i) {
-> +		struct acpi_processor *pr;
->  		struct acpi_processor_performance *perf;
->  
-> +		pr = per_cpu(processors, i);
->  		perf = per_cpu_ptr(acpi_perf_data, i);
-> -		rc = acpi_processor_register_performance(perf, i);
-> +		pr->performance = perf;
-> +		rc = acpi_processor_get_performance_info(pr);
->  		if (rc)
->  			goto err_out;
->  	}
-> -	rc = acpi_processor_notify_smm(THIS_MODULE);
-> -	if (rc)
-> -		goto err_unregister;
->  
->  	for_each_possible_cpu(i) {
->  		struct acpi_processor *_pr;
-> diff --git a/include/acpi/processor.h b/include/acpi/processor.h
-> index 555d033..b327b5a 100644
-> --- a/include/acpi/processor.h
-> +++ b/include/acpi/processor.h
-> @@ -235,6 +235,9 @@ extern void acpi_processor_unregister_performance(struct
->           if a _PPC object exists, rmmod is disallowed then */
->  int acpi_processor_notify_smm(struct module *calling_module);
->  
-> +/* parsing the _P* objects. */
-> +extern int acpi_processor_get_performance_info(struct acpi_processor *pr);
-> +
->  /* for communication between multiple parts of the processor kernel module */
->  DECLARE_PER_CPU(struct acpi_processor *, processors);
->  extern struct acpi_processor_errata errata;
-> 
--- 
-I speak only for myself.
-Rafael J. Wysocki, Intel Open Source Technology Center.
+Index: linux-pm/Documentation/ABI/testing/sysfs-devices-lpss_ltr
+===================================================================
+--- /dev/null
++++ linux-pm/Documentation/ABI/testing/sysfs-devices-lpss_ltr
+@@ -0,0 +1,44 @@
++What:		/sys/devices/.../lpss_ltr/
++Date:		March 2013
++Contact:	Rafael J. Wysocki <rafael.j.wysocki@intel.com>
++Description:
++		The /sys/devices/.../lpss_ltr/ directory is only present for
++		devices included into the Intel Lynxpoint Low Power Subsystem
++		(LPSS).  If present, it contains attributes containing the LTR
++		mode and the values of LTR registers of the device.
++
++What:		/sys/devices/.../lpss_ltr/ltr_mode
++Date:		March 2013
++Contact:	Rafael J. Wysocki <rafael.j.wysocki@intel.com>
++Description:
++		The /sys/devices/.../lpss_ltr/ltr_mode attribute contains an
++		integer number (0 or 1) indicating whether or not the devices'
++		LTR functionality is working in the software mode (1).
++
++		This attribute is read-only.  If the device's runtime PM status
++		is not "active", attempts to read from this attribute cause
++		-EAGAIN to be returned.
++
++What:		/sys/devices/.../lpss_ltr/auto_ltr
++Date:		March 2013
++Contact:	Rafael J. Wysocki <rafael.j.wysocki@intel.com>
++Description:
++		The /sys/devices/.../lpss_ltr/auto_ltr attribute contains the
++		current value of the device's AUTO_LTR register (raw)
++		represented as an 8-digit hexadecimal number.
++
++		This attribute is read-only.  If the device's runtime PM status
++		is not "active", attempts to read from this attribute cause
++		-EAGAIN to be returned.
++
++What:		/sys/devices/.../lpss_ltr/sw_ltr
++Date:		March 2013
++Contact:	Rafael J. Wysocki <rafael.j.wysocki@intel.com>
++Description:
++		The /sys/devices/.../lpss_ltr/auto_ltr attribute contains the
++		current value of the device's SW_LTR register (raw) represented
++		as an 8-digit hexadecimal number.
++
++		This attribute is read-only.  If the device's runtime PM status
++		is not "active", attempts to read from this attribute cause
++		-EAGAIN to be returned.
+Index: linux-pm/drivers/acpi/acpi_lpss.c
+===================================================================
+--- linux-pm.orig/drivers/acpi/acpi_lpss.c
++++ linux-pm/drivers/acpi/acpi_lpss.c
+@@ -18,17 +18,26 @@
+ #include <linux/io.h>
+ #include <linux/platform_device.h>
+ #include <linux/platform_data/clk-lpss.h>
++#include <linux/pm_runtime.h>
+ 
+ #include "internal.h"
+ 
+ ACPI_MODULE_NAME("acpi_lpss");
+ 
+-#define LPSS_CLK_OFFSET 0x800
+ #define LPSS_CLK_SIZE	0x04
++#define LPSS_LTR_SIZE	0x18
++
++/* Offsets relative to LPSS_PRIVATE_OFFSET */
++#define LPSS_GENERAL			0x08
++#define LPSS_GENERAL_LTR_MODE_SW	BIT(2)
++#define LPSS_SW_LTR			0x10
++#define LPSS_AUTO_LTR			0x14
+ 
+ struct lpss_device_desc {
+ 	bool clk_required;
+ 	const char *clk_parent;
++	bool ltr_required;
++	unsigned int prv_offset;
+ };
+ 
+ struct lpss_private_data {
+@@ -41,6 +50,13 @@ struct lpss_private_data {
+ static struct lpss_device_desc lpt_dev_desc = {
+ 	.clk_required = true,
+ 	.clk_parent = "lpss_clk",
++	.prv_offset = 0x800,
++	.ltr_required = true,
++};
++
++static struct lpss_device_desc lpt_sdio_dev_desc = {
++	.prv_offset = 0x1000,
++	.ltr_required = true,
+ };
+ 
+ static const struct acpi_device_id acpi_lpss_device_ids[] = {
+@@ -51,7 +67,7 @@ static const struct acpi_device_id acpi_
+ 	{ "INT33C3", (unsigned long)&lpt_dev_desc },
+ 	{ "INT33C4", (unsigned long)&lpt_dev_desc },
+ 	{ "INT33C5", (unsigned long)&lpt_dev_desc },
+-	{ "INT33C6", },
++	{ "INT33C6", (unsigned long)&lpt_sdio_dev_desc },
+ 	{ "INT33C7", },
+ 
+ 	{ }
+@@ -80,12 +96,12 @@ static int register_device_clock(struct
+ 		lpt_register_clock_device();
+ 
+ 	if (!dev_desc->clk_parent || !pdata->mmio_base
+-	    || pdata->mmio_size < LPSS_CLK_OFFSET + LPSS_CLK_SIZE)
++	    || pdata->mmio_size < dev_desc->prv_offset + LPSS_CLK_SIZE)
+ 		return -ENODATA;
+ 
+ 	pdata->clk = clk_register_gate(NULL, dev_name(&adev->dev),
+ 				       dev_desc->clk_parent, 0,
+-				       pdata->mmio_base + LPSS_CLK_OFFSET,
++				       pdata->mmio_base + dev_desc->prv_offset,
+ 				       0, 0, NULL);
+ 	if (IS_ERR(pdata->clk))
+ 		return PTR_ERR(pdata->clk);
+@@ -151,6 +167,117 @@ static int acpi_lpss_create_device(struc
+ 	return ret;
+ }
+ 
++static int lpss_reg_read(struct device *dev, unsigned int reg, u32 *val)
++{
++	struct acpi_device *adev;
++	struct lpss_private_data *pdata;
++	unsigned long flags;
++	int ret;
++
++	ret = acpi_bus_get_device(ACPI_HANDLE(dev), &adev);
++	if (WARN_ON(ret))
++		return ret;
++
++	spin_lock_irqsave(&dev->power.lock, flags);
++	if (pm_runtime_suspended(dev)) {
++		ret = -EAGAIN;
++		goto out;
++	}
++	pdata = acpi_driver_data(adev);
++	if (WARN_ON(!pdata || !pdata->mmio_base)) {
++		ret = -ENODEV;
++		goto out;
++	}
++	*val = readl(pdata->mmio_base + pdata->dev_desc->prv_offset + reg);
++
++ out:
++	spin_unlock_irqrestore(&dev->power.lock, flags);
++	return ret;
++}
++
++static ssize_t lpss_ltr_show(struct device *dev, struct device_attribute *attr,
++			     char *buf)
++{
++	u32 ltr_value = 0;
++	unsigned int reg;
++	int ret;
++
++	reg = strcmp(attr->attr.name, "auto_ltr") ? LPSS_SW_LTR : LPSS_AUTO_LTR;
++	ret = lpss_reg_read(dev, reg, &ltr_value);
++	if (ret)
++		return ret;
++
++	return snprintf(buf, PAGE_SIZE, "%08x\n", ltr_value);
++}
++
++static ssize_t lpss_ltr_mode_show(struct device *dev,
++				  struct device_attribute *attr, char *buf)
++{
++	u32 ltr_mode = 0;
++	char *outstr;
++	int ret;
++
++	ret = lpss_reg_read(dev, LPSS_GENERAL, &ltr_mode);
++	if (ret)
++		return ret;
++
++	outstr = (ltr_mode & LPSS_GENERAL_LTR_MODE_SW) ? "sw" : "auto";
++	return sprintf(buf, "%s\n", outstr);
++}
++
++static DEVICE_ATTR(auto_ltr, S_IRUSR, lpss_ltr_show, NULL);
++static DEVICE_ATTR(sw_ltr, S_IRUSR, lpss_ltr_show, NULL);
++static DEVICE_ATTR(ltr_mode, S_IRUSR, lpss_ltr_mode_show, NULL);
++
++static struct attribute *lpss_attrs[] = {
++	&dev_attr_auto_ltr.attr,
++	&dev_attr_sw_ltr.attr,
++	&dev_attr_ltr_mode.attr,
++	NULL,
++};
++
++static struct attribute_group lpss_attr_group = {
++	.attrs = lpss_attrs,
++	.name = "lpss_ltr",
++};
++
++static int acpi_lpss_platform_notify(struct notifier_block *nb,
++				     unsigned long action, void *data)
++{
++	struct platform_device *pdev = to_platform_device(data);
++	struct lpss_private_data *pdata;
++	struct acpi_device *adev;
++	const struct acpi_device_id *id;
++	int ret = 0;
++
++	id = acpi_match_device(acpi_lpss_device_ids, &pdev->dev);
++	if (!id || !id->driver_data)
++		return 0;
++
++	if (acpi_bus_get_device(ACPI_HANDLE(&pdev->dev), &adev))
++		return 0;
++
++	pdata = acpi_driver_data(adev);
++	if (!pdata || !pdata->mmio_base || !pdata->dev_desc->ltr_required)
++		return 0;
++
++	if (pdata->mmio_size < pdata->dev_desc->prv_offset + LPSS_LTR_SIZE) {
++		dev_err(&pdev->dev, "MMIO size insufficient to access LTR\n");
++		return 0;
++	}
++
++	if (action == BUS_NOTIFY_ADD_DEVICE)
++		ret = sysfs_create_group(&pdev->dev.kobj, &lpss_attr_group);
++	else if (action == BUS_NOTIFY_DEL_DEVICE)
++		sysfs_remove_group(&pdev->dev.kobj, &lpss_attr_group);
++
++	return ret;
++}
++
++static struct notifier_block acpi_lpss_nb = {
++	.notifier_call = acpi_lpss_platform_notify,
++};
++
+ static struct acpi_scan_handler lpss_handler = {
+ 	.ids = acpi_lpss_device_ids,
+ 	.attach = acpi_lpss_create_device,
+@@ -158,6 +285,8 @@ static struct acpi_scan_handler lpss_han
+ 
+ void __init acpi_lpss_init(void)
+ {
+-	if (!lpt_clk_init())
++	if (!lpt_clk_init()) {
++		bus_register_notifier(&platform_bus_type, &acpi_lpss_nb);
+ 		acpi_scan_add_handler(&lpss_handler);
++	}
+ }
+
