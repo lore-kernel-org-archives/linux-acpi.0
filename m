@@ -1,80 +1,77 @@
-From: Oleg Nesterov <oleg-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: [PATCH 0/1] thinkpad-acpi: kill hotkey_thread_mutex
-Date: Thu, 7 Mar 2013 18:53:05 +0100
-Message-ID: <20130307175305.GA15631@redhat.com>
-References: <201303042055.38040.maciej.rutecki@gmail.com>
-	<1362504883-9180-1-git-send-email-msb@chromium.org>
-	<20130305174838.GA7276@redhat.com>
-	<CACBanvqHRDsOQiMsQMw5_QDt1wFrb8_DRoiASSvqeA6XdFrwZQ@mail.gmail.com>
-	<20130305180542.GA12738@redhat.com>
-	<CACBanvr7XvXbFjphpRwKHHJKzVuA-s6sF-qkPiizBV3+uqzpJw@mail.gmail.com>
-	<20130305232603.GA16045@khazad-dum.debian.net>
-	<20130306154420.GA7697@redhat.com>
-	<20130306233232.GA12645@khazad-dum.debian.net>
+From: Oleg Nesterov <oleg@redhat.com>
+Subject: [PATCH 1/1] thinkpad-acpi: kill hotkey_thread_mutex
+Date: Thu, 7 Mar 2013 18:53:59 +0100
+Message-ID: <20130307175359.GB15631@redhat.com>
+References: <201303042055.38040.maciej.rutecki@gmail.com> <1362504883-9180-1-git-send-email-msb@chromium.org> <20130305174838.GA7276@redhat.com> <CACBanvqHRDsOQiMsQMw5_QDt1wFrb8_DRoiASSvqeA6XdFrwZQ@mail.gmail.com> <20130305180542.GA12738@redhat.com> <CACBanvr7XvXbFjphpRwKHHJKzVuA-s6sF-qkPiizBV3+uqzpJw@mail.gmail.com> <20130305232603.GA16045@khazad-dum.debian.net> <20130306154420.GA7697@redhat.com> <20130306233232.GA12645@khazad-dum.debian.net> <20130307175305.GA15631@redhat.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <ibm-acpi-devel-bounces-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mx1.redhat.com ([209.132.183.28]:31723 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756060Ab3CGRz7 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 7 Mar 2013 12:55:59 -0500
 Content-Disposition: inline
-In-Reply-To: <20130306233232.GA12645-ZGHd14iZgfaRjzvQDGKj+xxZW9W5cXbT@public.gmane.org>
-List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/ibm-acpi-devel>,
-	<mailto:ibm-acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum_name=ibm-acpi-devel>
-List-Post: <mailto:ibm-acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-List-Help: <mailto:ibm-acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/ibm-acpi-devel>,
-	<mailto:ibm-acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
-Errors-To: ibm-acpi-devel-bounces-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-To: Henrique de Moraes Holschuh <hmh-N3TV7GIv+o9fyO9Q7EP/yw@public.gmane.org>
-Cc: Aaron Lu <aaron.lu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, ibm-acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, Mandeep Singh Baines <msb-F7+t8E8rja9g9hUCZPvPmw@public.gmane.org>, ibm-acpi-N3TV7GIv+o9fyO9Q7EP/yw@public.gmane.org, Linux Kernel Mailing List <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, platform-driver-x86-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Tejun Heo <tj-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Andrew Morton <akpm-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org>
+In-Reply-To: <20130307175305.GA15631@redhat.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
+Cc: Mandeep Singh Baines <msb@chromium.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-acpi@vger.kernel.org, ibm-acpi@hmh.eng.br, ibm-acpi-devel@lists.sourceforge.net, platform-driver-x86@vger.kernel.org, Aaron Lu <aaron.lu@intel.com>, Tejun Heo <tj@kernel.org>, Andrew Morton <akpm@linux-foundation.org>, Artem Savkov <artem.savkov@gmail.com>
 
-On 03/06, Henrique de Moraes Holschuh wrote:
->
-> On Wed, 06 Mar 2013, Oleg Nesterov wrote:
-> >
-> > 	static void hotkey_poll_stop_sync(void)
-> > 	{
-> > 		if (tpacpi_hotkey_task) {
-> > 			kthread_stop(tpacpi_hotkey_task);
-> > 			tpacpi_hotkey_task = NULL;
-> > 			mutex_lock(&hotkey_thread_mutex);
-> > 			/* at this point, the thread did exit */
-> > 			mutex_unlock(&hotkey_thread_mutex);
-> > 		}
-> > 	}
-> >
-> > And I simply do not understand the comment. This thread has already exited
-> > when kthread_stop() returns (OK, it can be running do_exit() paths but this
-> > doesn't matter). So this mutex_lock() buys nothing afaics.
->
-> It was added due to an oops, waaaaay back then.  If it is not needed
-> anymore, and there is zero chance of the kthread still being active when
-> hotkey_poll_stop_sync() ends, hotkey_thread_mutex can be simply removed.
+hotkey_kthread() does try_to_freeze() under hotkey_thread_mutex.
 
-Well, there could be another bug. Say, hotkey_poll_stop_sync() can block
-on hotkey_thread_mutex if another thread was started. But at first glance
-this can't happen (hotkey_mutex), and even _if_ it can this needs another
-fix.
+We can simply kill this mutex, hotkey_poll_stop_sync() does not need
+to serialize with hotkey_kthread(). When kthread_stop() returns the
+thread is already dead, it called do_exit()->complete_vfork_done().
 
-> Looks like it, if the current semanthics of ktread_stop() are syncronous.
+Reported-by: Artem Savkov <artem.savkov@gmail.com>
+Reported-by: Maciej Rutecki <maciej.rutecki@gmail.com>
+Signed-off-by: Oleg Nesterov <oleg@redhat.com>
 
-IIRC, it always was... But at least currently it is certainly syncronous.
-kthread_stop(t) does wait_for_completion(t->vfork_done), complete(vfork_done)
-can't happen unless this task calls do_exit().
+--- x/drivers/platform/x86/thinkpad_acpi.c
++++ x/drivers/platform/x86/thinkpad_acpi.c
+@@ -1965,9 +1965,6 @@ struct tp_nvram_state {
+ /* kthread for the hotkey poller */
+ static struct task_struct *tpacpi_hotkey_task;
+ 
+-/* Acquired while the poller kthread is running, use to sync start/stop */
+-static struct mutex hotkey_thread_mutex;
+-
+ /*
+  * Acquire mutex to write poller control variables as an
+  * atomic block.
+@@ -2463,8 +2460,6 @@ static int hotkey_kthread(void *data)
+ 	unsigned int poll_freq;
+ 	bool was_frozen;
+ 
+-	mutex_lock(&hotkey_thread_mutex);
+-
+ 	if (tpacpi_lifecycle == TPACPI_LIFE_EXITING)
+ 		goto exit;
+ 
+@@ -2524,7 +2519,6 @@ static int hotkey_kthread(void *data)
+ 	}
+ 
+ exit:
+-	mutex_unlock(&hotkey_thread_mutex);
+ 	return 0;
+ }
+ 
+@@ -2534,9 +2528,6 @@ static void hotkey_poll_stop_sync(void)
+ 	if (tpacpi_hotkey_task) {
+ 		kthread_stop(tpacpi_hotkey_task);
+ 		tpacpi_hotkey_task = NULL;
+-		mutex_lock(&hotkey_thread_mutex);
+-		/* at this point, the thread did exit */
+-		mutex_unlock(&hotkey_thread_mutex);
+ 	}
+ }
+ 
+@@ -3235,7 +3226,6 @@ static int __init hotkey_init(struct ibm
+ 	mutex_init(&hotkey_mutex);
+ 
+ #ifdef CONFIG_THINKPAD_ACPI_HOTKEY_POLL
+-	mutex_init(&hotkey_thread_mutex);
+ 	mutex_init(&hotkey_thread_data_mutex);
+ #endif
+ 
 
-Hmm. I just noticed that the recent changes in kthread_stop() are not correct...
-But this is offtopic and doesn't affect thinkpad_acpi.c, I'll write another
-email later.
-
-So, what do you think about (UNTESTED) 1/1 ?
-
-Oleg.
-
-
-------------------------------------------------------------------------------
-Symantec Endpoint Protection 12 positioned as A LEADER in The Forrester  
-Wave(TM): Endpoint Security, Q1 2013 and "remains a good choice" in the  
-endpoint security space. For insight on selecting the right partner to 
-tackle endpoint security challenges, access the full report. 
-http://p.sf.net/sfu/symantec-dev2dev
