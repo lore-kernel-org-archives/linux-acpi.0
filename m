@@ -1,7 +1,7 @@
 From: Tang Chen <tangchen@cn.fujitsu.com>
-Subject: [RESEND PATCH 5/6] acpi: Add the missing parameter comment for acpi_initialize_tables().
-Date: Thu, 7 Mar 2013 18:38:16 +0800
-Message-ID: <1362652697-30284-6-git-send-email-tangchen@cn.fujitsu.com>
+Subject: [RESEND PATCH 4/6] acpi: Remove the leading spaces of "unmap_and_exit" label in acpi_tb_install_table().
+Date: Thu, 7 Mar 2013 18:38:15 +0800
+Message-ID: <1362652697-30284-5-git-send-email-tangchen@cn.fujitsu.com>
 References: <1362652697-30284-1-git-send-email-tangchen@cn.fujitsu.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <1362652697-30284-1-git-send-email-tangchen@cn.fujitsu.com>
@@ -10,26 +10,25 @@ To: lenb@kernel.org, rjw@sisk.pl, robert.moore@intel.com, lv.zheng@intel.com, mi
 Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linux-doc@vger.kernel.org, trivial@kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-In the comment of acpi_initialize_tables(), it mistakes allow_resize
-with allow_realloc.
+There are 6 leading spaces in front of "unmap_and_exit" label in acpi_tb_install_table(). Remove them.
 
 Signed-off-by: Tang Chen <tangchen@cn.fujitsu.com>
 ---
- drivers/acpi/acpica/tbxface.c |    2 +-
+ drivers/acpi/acpica/tbutils.c |    2 +-
  1 files changed, 1 insertions(+), 1 deletions(-)
 
-diff --git a/drivers/acpi/acpica/tbxface.c b/drivers/acpi/acpica/tbxface.c
-index 93d1432..659e0f6 100644
---- a/drivers/acpi/acpica/tbxface.c
-+++ b/drivers/acpi/acpica/tbxface.c
-@@ -80,7 +80,7 @@ acpi_status acpi_allocate_root_table(u32 initial_table_count)
-  *                                    array is dynamically allocated.
-  *              initial_table_count - Size of initial_table_array, in number of
-  *                                    struct acpi_table_desc structures
-- *              allow_realloc       - Flag to tell Table Manager if resize of
-+ *              allow_resize        - Flag to tell Table Manager if resize of
-  *                                    pre-allocated array is allowed. Ignored
-  *                                    if initial_table_array is NULL.
-  *
+diff --git a/drivers/acpi/acpica/tbutils.c b/drivers/acpi/acpica/tbutils.c
+index ce3d5db..27e7715 100644
+--- a/drivers/acpi/acpica/tbutils.c
++++ b/drivers/acpi/acpica/tbutils.c
+@@ -539,7 +539,7 @@ acpi_tb_install_table(acpi_physical_address address,
+ 		acpi_tb_delete_table(table_desc);
+ 	}
+ 
+-      unmap_and_exit:
++unmap_and_exit:
+ 
+ 	/* Always unmap the table header that we mapped above */
+ 
 -- 
 1.7.1
