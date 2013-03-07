@@ -1,110 +1,134 @@
 From: Seth Forshee <seth.forshee@canonical.com>
-Subject: [PATCH 3/5] acpi_video: Add workaround for broken Windows 8 backlight implementations
-Date: Thu,  7 Mar 2013 13:39:38 -0600
-Message-ID: <1362685180-7768-3-git-send-email-seth.forshee@canonical.com>
+Subject: [PATCH 4/5] acpi_video: Disable use of _BQC when value doesn't match those set through _BCM
+Date: Thu,  7 Mar 2013 13:39:39 -0600
+Message-ID: <1362685180-7768-4-git-send-email-seth.forshee@canonical.com>
 References: <20130307193812.GD24233@thinkpad-t410>
  <1362685180-7768-1-git-send-email-seth.forshee@canonical.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from youngberry.canonical.com ([91.189.89.112]:49290 "EHLO
+Received: from youngberry.canonical.com ([91.189.89.112]:49297 "EHLO
 	youngberry.canonical.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932336Ab3CGTju (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 7 Mar 2013 14:39:50 -0500
+	with ESMTP id S932336Ab3CGTjw (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 7 Mar 2013 14:39:52 -0500
 In-Reply-To: <1362685180-7768-1-git-send-email-seth.forshee@canonical.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: linux-acpi@vger.kernel.org
 Cc: Matthew Garrett <mjg59@srcf.ucam.org>, Len Brown <lenb@kernel.org>, "Rafael J. Wysocki" <rjw@sisk.pl>, Ben Jencks <ben@bjencks.net>, joeyli <jlee@suse.com>, Seth Forshee <seth.forshee@canonical.com>
 
-Windows 8 requires that all backlights report 101 brightness levels.
-When Lenovo updated the firmware for some machines for Windows 8 they
-met this requirement my making _BCL return a larger set of values for
-Windows 8 than for other OSes. However, only the values in the smaller
-set actually change the brightness at all. The rest of the values are
-silently discarded.
-
-As a workaround, change acpi_video to set all intermediate backlight
-levels when setting the brightness. This isn't perfect, but it will mean
-that most brightness changes done by common userspace utilities will hit
-at least one valid brightness value.
-
-[1] http://msdn.microsoft.com/en-us/library/windows/hardware/jj128256.aspx
+Check the value returned by _BQC after each brightness change, and if it
+doesn't match the value written disable use of _BQC. This works around
+problems on some Lenovos when valid brightness values are ignored by
+_BCM.
 
 Signed-off-by: Seth Forshee <seth.forshee@canonical.com>
 ---
- drivers/acpi/video.c |   51 ++++++++++++++++++++++++++++++++++++++++----------
- 1 file changed, 41 insertions(+), 10 deletions(-)
+ drivers/acpi/video.c |   59 ++++++++++++++++++++++++++++++++++++--------------
+ 1 file changed, 43 insertions(+), 16 deletions(-)
 
 diff --git a/drivers/acpi/video.c b/drivers/acpi/video.c
-index edfcd74..b83fbbd 100644
+index b83fbbd..6a19bf7 100644
 --- a/drivers/acpi/video.c
 +++ b/drivers/acpi/video.c
-@@ -352,25 +352,56 @@ acpi_video_device_lcd_query_levels(struct acpi_video_device *device,
- static int
- acpi_video_device_lcd_set_state(struct acpi_video_device *device, int state)
- {
--	int level = device->brightness->levels[state];
- 	union acpi_object arg0 = { ACPI_TYPE_INTEGER };
- 	struct acpi_object_list args = { 1, &arg0 };
-+	int curr_state, offset;
- 	acpi_status status;
-+	int result = 0;
- 
--	arg0.integer.value = level;
-+	curr_state = device->brightness->curr_state;
- 
--	status = acpi_evaluate_object(device->dev->handle, "_BCM",
--				      &args, NULL);
--	if (ACPI_FAILURE(status)) {
--		ACPI_ERROR((AE_INFO, "Evaluating _BCM failed"));
--		return -EIO;
-+	/*
-+	 * Some Lenovo firmware has a broken backlight implementation
-+	 * for Windows 8 where _BCL returns 101 backlight levels but
-+	 * only 16 or so levels actually change the brightness at all.
-+	 * As a workaround for these machines we set every intermediate
-+	 * value between the old and new brightness levels whenever the
-+	 * system has made the Windows 8 OSI call, hoping that at least
-+	 * one of them will cause a change in brightness.
-+	 */
-+	if (acpi_osi_windows_version() == ACPI_OSI_WIN_8) {
-+		if (state == curr_state)
-+			offset = 0;
-+		else
-+			offset = state > curr_state ? 1 : -1;
-+	} else {
-+		offset = state - curr_state;
- 	}
- 
--	device->brightness->curr_state = state;
-+	do {
-+		curr_state += offset;
-+		arg0.integer.value = device->brightness->levels[curr_state];
+@@ -230,6 +230,8 @@ static int acpi_video_device_lcd_set_state(struct acpi_video_device *device,
+ 					   int state);
+ static int acpi_video_device_lcd_set_level(struct acpi_video_device *device,
+ 			int level);
++static int acpi_video_device_get_bqc_level(struct acpi_video_device *device,
++					   unsigned long long *level);
+ static int acpi_video_device_lcd_get_level_current(
+ 			struct acpi_video_device *device,
+ 			unsigned long long *level, int init);
+@@ -395,6 +397,20 @@ acpi_video_device_lcd_set_state(struct acpi_video_device *device, int state)
+ 			result = -EIO;
+ 			break;
+ 		}
 +
-+		status = acpi_evaluate_object(device->dev->handle, "_BCM",
-+					      &args, NULL);
-+		if (ACPI_FAILURE(status)) {
-+			ACPI_ERROR((AE_INFO, "Evaluating _BCM failed"));
-+
-+			/*
-+			 * Change curr_state back to that of last
-+			 * successful _BCM call
-+			 */
-+			curr_state -= offset;
-+			result = -EIO;
-+			break;
++		if (device->cap._BQC || device->cap._BCQ) {
++			int bqc_result;
++			unsigned long long level;
++			bqc_result = acpi_video_device_get_bqc_level(device,
++								     &level);
++			if (!bqc_result &&
++			    level != device->brightness->levels[curr_state]) {
++				printk(KERN_WARNING FW_BUG
++				       "%s level does not match level set; disabling\n",
++				       device->cap._BQC ? "_BQC" : "_BCQ");
++				device->cap._BQC = device->cap._BCQ = 0;
++			}
 +		}
-+	} while (curr_state != state);
-+
-+	device->brightness->curr_state = curr_state;
- 	if (device->backlight)
--		device->backlight->props.brightness = state - 2;
-+		device->backlight->props.brightness = curr_state - 2;
+ 	} while (curr_state != state);
  
--	return 0;
-+	return result;
- }
+ 	device->brightness->curr_state = curr_state;
+@@ -495,26 +511,36 @@ static struct dmi_system_id video_dmi_table[] __initdata = {
+ };
  
  static int
++acpi_video_device_get_bqc_level(struct acpi_video_device *device,
++				      unsigned long long *level)
++{
++	acpi_status status;
++	char *buf = device->cap._BQC ? "_BQC" : "_BCQ";
++
++	status = acpi_evaluate_integer(device->dev->handle, buf, NULL, level);
++	if (ACPI_FAILURE(status))
++		return -EIO;
++
++	if (device->brightness->flags._BQC_use_index) {
++		if (device->brightness->flags._BCL_reversed)
++			*level = device->brightness->count - 3 - *level;
++		*level = device->brightness->levels[*level + 2];
++	}
++
++	*level += bqc_offset_aml_bug_workaround;
++	return 0;
++}
++
++static int
+ acpi_video_device_lcd_get_level_current(struct acpi_video_device *device,
+ 					unsigned long long *level, int init)
+ {
+-	acpi_status status = AE_OK;
++	int result;
+ 	int i;
+ 
+ 	if (device->cap._BQC || device->cap._BCQ) {
+-		char *buf = device->cap._BQC ? "_BQC" : "_BCQ";
+-
+-		status = acpi_evaluate_integer(device->dev->handle, buf,
+-						NULL, level);
+-		if (ACPI_SUCCESS(status)) {
+-			if (device->brightness->flags._BQC_use_index) {
+-				if (device->brightness->flags._BCL_reversed)
+-					*level = device->brightness->count
+-								 - 3 - (*level);
+-				*level = device->brightness->levels[*level + 2];
+-
+-			}
+-			*level += bqc_offset_aml_bug_workaround;
++		result = acpi_video_device_get_bqc_level(device, level);
++		if (!result) {
+ 			for (i = 2; i < device->brightness->count; i++)
+ 				if (device->brightness->levels[i] == *level) {
+ 					device->brightness->curr_state = i;
+@@ -527,7 +553,7 @@ acpi_video_device_lcd_get_level_current(struct acpi_video_device *device,
+ 				 */
+ 				ACPI_WARNING((AE_INFO,
+ 					      "%s returned an invalid level",
+-					      buf));
++					      device->cap._BQC ? "_BQC" : "_BCQ"));
+ 				device->cap._BQC = device->cap._BCQ = 0;
+ 			}
+ 		} else {
+@@ -539,7 +565,8 @@ acpi_video_device_lcd_get_level_current(struct acpi_video_device *device,
+ 			 * buggy _BQC.
+ 			 * http://bugzilla.kernel.org/show_bug.cgi?id=12233
+ 			 */
+-			ACPI_WARNING((AE_INFO, "Evaluating %s failed", buf));
++			ACPI_WARNING((AE_INFO, "Evaluating %s failed",
++				      device->cap._BQC ? "_BQC" : "_BCQ"));
+ 			device->cap._BQC = device->cap._BCQ = 0;
+ 		}
+ 	}
 -- 
 1.7.9.5
 
