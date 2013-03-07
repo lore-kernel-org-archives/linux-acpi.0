@@ -1,7 +1,7 @@
 From: Tang Chen <tangchen@cn.fujitsu.com>
-Subject: [RESEND PATCH 1/6] acpi: Remove the leading space of "unlock" label in acpi_memory_device_notify().
-Date: Thu, 7 Mar 2013 18:38:12 +0800
-Message-ID: <1362652697-30284-2-git-send-email-tangchen@cn.fujitsu.com>
+Subject: [RESEND PATCH 6/6] doc: Fix a wrong comment in Documentation/hw_random.txt
+Date: Thu, 7 Mar 2013 18:38:17 +0800
+Message-ID: <1362652697-30284-7-git-send-email-tangchen@cn.fujitsu.com>
 References: <1362652697-30284-1-git-send-email-tangchen@cn.fujitsu.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <1362652697-30284-1-git-send-email-tangchen@cn.fujitsu.com>
@@ -10,25 +10,27 @@ To: lenb@kernel.org, rjw@sisk.pl, robert.moore@intel.com, lv.zheng@intel.com, mi
 Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linux-doc@vger.kernel.org, trivial@kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-There is a leading space in front of "unlock" label in acpi_memory_device_notify(). Remove it.
+Seeing from the comment, there should be three reasons for removing request_mem_region.
+Change the comment "two" to "three".
 
 Signed-off-by: Tang Chen <tangchen@cn.fujitsu.com>
+Acked-by: Rob Landley <rob@landley.net> 
 ---
- drivers/acpi/acpi_memhotplug.c |    2 +-
+ Documentation/hw_random.txt |    2 +-
  1 files changed, 1 insertions(+), 1 deletions(-)
 
-diff --git a/drivers/acpi/acpi_memhotplug.c b/drivers/acpi/acpi_memhotplug.c
-index da1f82b..8a10c23 100644
---- a/drivers/acpi/acpi_memhotplug.c
-+++ b/drivers/acpi/acpi_memhotplug.c
-@@ -369,7 +369,7 @@ static void acpi_memory_device_notify(acpi_handle handle, u32 event, void *data)
- 			kfree(ej_event);
- 		}
+diff --git a/Documentation/hw_random.txt b/Documentation/hw_random.txt
+index 690f525..026e237 100644
+--- a/Documentation/hw_random.txt
++++ b/Documentation/hw_random.txt
+@@ -63,7 +63,7 @@ Intel RNG Driver notes:
  
-- unlock:
-+unlock:
- 		acpi_scan_lock_release();
- 		if (ACPI_SUCCESS(status))
- 			return;
+ 	* FIXME: support poll(2)
+ 
+-	NOTE: request_mem_region was removed, for two reasons:
++	NOTE: request_mem_region was removed, for three reasons:
+ 	1) Only one RNG is supported by this driver, 2) The location
+ 	used by the RNG is a fixed location in MMIO-addressable memory,
+ 	3) users with properly working BIOS e820 handling will always
 -- 
 1.7.1
