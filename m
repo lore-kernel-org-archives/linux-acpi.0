@@ -1,70 +1,121 @@
 From: Seth Forshee <seth.forshee@canonical.com>
-Subject: Re: [PATCH] ACPI: Disable Windows 8 compatibility for some Lenovo
- ThinkPads
-Date: Thu, 7 Mar 2013 13:38:12 -0600
-Message-ID: <20130307193812.GD24233@thinkpad-t410>
-References: <1360599681-24781-1-git-send-email-seth.forshee@canonical.com>
- <20130211175213.GA25139@srcf.ucam.org>
- <20130211190617.GH13768@thinkpad-t410>
- <20130211190914.GA27364@srcf.ucam.org>
- <20130213203228.GE22867@thinkpad-t410>
- <20130213205558.GA16559@srcf.ucam.org>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Subject: [PATCH 1/5] ACPICA: Add interface for getting latest Windows version requested via _OSI
+Date: Thu,  7 Mar 2013 13:39:36 -0600
+Message-ID: <1362685180-7768-1-git-send-email-seth.forshee@canonical.com>
+References: <20130307193812.GD24233@thinkpad-t410>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from youngberry.canonical.com ([91.189.89.112]:49274 "EHLO
+Received: from youngberry.canonical.com ([91.189.89.112]:49277 "EHLO
 	youngberry.canonical.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932724Ab3CGTiV (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 7 Mar 2013 14:38:21 -0500
-Content-Disposition: inline
-In-Reply-To: <20130213205558.GA16559@srcf.ucam.org>
+	with ESMTP id S932336Ab3CGTjp (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 7 Mar 2013 14:39:45 -0500
+In-Reply-To: <20130307193812.GD24233@thinkpad-t410>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Matthew Garrett <mjg59@srcf.ucam.org>
-Cc: Len Brown <lenb@kernel.org>, "Rafael J. Wysocki" <rjw@sisk.pl>, linux-acpi@vger.kernel.org, Ben Jencks <ben@bjencks.net>, joeyli <jlee@suse.com>
+To: linux-acpi@vger.kernel.org
+Cc: Matthew Garrett <mjg59@srcf.ucam.org>, Len Brown <lenb@kernel.org>, "Rafael J. Wysocki" <rjw@sisk.pl>, Ben Jencks <ben@bjencks.net>, joeyli <jlee@suse.com>, Seth Forshee <seth.forshee@canonical.com>
 
-On Wed, Feb 13, 2013 at 08:55:58PM +0000, Matthew Garrett wrote:
-> On Wed, Feb 13, 2013 at 02:32:28PM -0600, Seth Forshee wrote:
-> > On Mon, Feb 11, 2013 at 07:09:14PM +0000, Matthew Garrett wrote:
-> > > Right. My concern here is that Windows clearly doesn't trigger the 
-> > > issue, and so there's some chance that we'll see similar issues on other 
-> > > machines. Disabling Windows 8 compatibility isn't really an option. One 
-> > > choice might be to have the ACPI video driver set all intermediate 
-> > > values if the system makes the Windows 8 OSI call?
-> > 
-> > This turns out to have some problems. The hotkeys on the x230 at least
-> > generate increase/decrease brightness notifications. In response
-> > acpi_video reads the current brightness level via _BQC and decides what
-> > the next value should be. A value adjacent to a working value is never
-> > another working value on this machine, so _BCM does nothing. The next
-> > time a notification comes _BQC returns the same value as it did the
-> > previous time. Obviously this gets us nowhere.
-> 
-> Nrgh. Having this logic in the kernel has always been miserable. On the 
-> other hand, having _BQC return wrong values is arguably even worse.
-> 
-> > The (untested) fix I've come up with is to use the cached value for the
-> > current brightness rather than asking the firmware. I'm assuming though
-> > that acpi_video would be using the cached values already if there wasn't
-> > a chance that their changing without its knowledge?
-> 
-> Yeah. What I'd suggest here is calling _BQC after every change, and if 
-> it returns the old value throw a firmware bug message and fall back to 
-> using a cached one.
-> 
-> > The other issue with using the cached value is that the hotkeys on these
-> > machines are still going to end up cycling through 101 brightness levels
-> > with 85% of them leaving the brightness unchanged. When there's that
-> > many levels though maybe it makes sense to jump more than one level at a
-> > time.
-> 
-> Right. I'd recommend turning off that functionality and just leaving it 
-> up to userspace. We still seem to be carrying a patch to do that in 
-> Fedora. I thought I had a patch to make this a config option somewhere, 
-> but can't find any sign of it now...
+The acpi_video driver needs to know the latest Windows version requested
+by the BIOS to work around a buggy backlight implementation which is
+specific to Windows 8. Add a new interface named
+acpi_osi_windows_version() for retrieving this information.
 
-I've had the patches implementing your suggestions written for a while
-now but just got test feedback this week. So here they are.
+Signed-off-by: Seth Forshee <seth.forshee@canonical.com>
+---
+ drivers/acpi/acpica/aclocal.h |   13 -------------
+ drivers/acpi/acpica/utxface.c |   19 +++++++++++++++++++
+ include/acpi/acpixf.h         |   18 ++++++++++++++++++
+ 3 files changed, 37 insertions(+), 13 deletions(-)
 
-Seth
+diff --git a/drivers/acpi/acpica/aclocal.h b/drivers/acpi/acpica/aclocal.h
+index ff8bd00..932c3d8 100644
+--- a/drivers/acpi/acpica/aclocal.h
++++ b/drivers/acpi/acpica/aclocal.h
+@@ -926,19 +926,6 @@ struct acpi_bit_register_info {
+ 
+ /* Structs and definitions for _OSI support and I/O port validation */
+ 
+-#define ACPI_OSI_WIN_2000               0x01
+-#define ACPI_OSI_WIN_XP                 0x02
+-#define ACPI_OSI_WIN_XP_SP1             0x03
+-#define ACPI_OSI_WINSRV_2003            0x04
+-#define ACPI_OSI_WIN_XP_SP2             0x05
+-#define ACPI_OSI_WINSRV_2003_SP1        0x06
+-#define ACPI_OSI_WIN_VISTA              0x07
+-#define ACPI_OSI_WINSRV_2008            0x08
+-#define ACPI_OSI_WIN_VISTA_SP1          0x09
+-#define ACPI_OSI_WIN_VISTA_SP2          0x0A
+-#define ACPI_OSI_WIN_7                  0x0B
+-#define ACPI_OSI_WIN_8                  0x0C
+-
+ #define ACPI_ALWAYS_ILLEGAL             0x00
+ 
+ struct acpi_interface_info {
+diff --git a/drivers/acpi/acpica/utxface.c b/drivers/acpi/acpica/utxface.c
+index 390db0c..1531984 100644
+--- a/drivers/acpi/acpica/utxface.c
++++ b/drivers/acpi/acpica/utxface.c
+@@ -384,6 +384,25 @@ ACPI_EXPORT_SYMBOL(acpi_install_interface_handler)
+ 
+ /*****************************************************************************
+  *
++ * FUNCTION:    acpi_osi_windows_version
++ *
++ * PARAMETERS:  None
++ *
++ * RETURN:      Latest Windows version Windows requested via _OSI
++ *
++ * DESCRIPTION: Returns the latest version of Windows that has been requested
++ *              by the BIOS via _OSI.
++ *
++ ****************************************************************************/
++u8 acpi_osi_windows_version(void)
++{
++	return acpi_gbl_osi_data;
++}
++
++ACPI_EXPORT_SYMBOL(acpi_osi_windows_version)
++
++/*****************************************************************************
++ *
+  * FUNCTION:    acpi_check_address_range
+  *
+  * PARAMETERS:  space_id            - Address space ID
+diff --git a/include/acpi/acpixf.h b/include/acpi/acpixf.h
+index 3d88395..29a9429 100644
+--- a/include/acpi/acpixf.h
++++ b/include/acpi/acpixf.h
+@@ -73,6 +73,22 @@ extern u8 acpi_gbl_truncate_io_addresses;
+ extern u8 acpi_gbl_disable_auto_repair;
+ 
+ /*
++ * Values returned by acpi_osi_windows_version()
++ */
++#define ACPI_OSI_WIN_2000               0x01
++#define ACPI_OSI_WIN_XP                 0x02
++#define ACPI_OSI_WIN_XP_SP1             0x03
++#define ACPI_OSI_WINSRV_2003            0x04
++#define ACPI_OSI_WIN_XP_SP2             0x05
++#define ACPI_OSI_WINSRV_2003_SP1        0x06
++#define ACPI_OSI_WIN_VISTA              0x07
++#define ACPI_OSI_WINSRV_2008            0x08
++#define ACPI_OSI_WIN_VISTA_SP1          0x09
++#define ACPI_OSI_WIN_VISTA_SP2          0x0A
++#define ACPI_OSI_WIN_7                  0x0B
++#define ACPI_OSI_WIN_8                  0x0C
++
++/*
+  * Hardware-reduced prototypes. All interfaces that use these macros will
+  * be configured out of the ACPICA build if the ACPI_REDUCED_HARDWARE flag
+  * is set to TRUE.
+@@ -301,6 +317,8 @@ acpi_status acpi_install_notify_handler(acpi_handle device, u32 handler_type,
+ 					acpi_notify_handler handler,
+ 					void *context);
+ 
++u8 acpi_osi_windows_version(void);
++
+ acpi_status
+ acpi_remove_notify_handler(acpi_handle device,
+ 			   u32 handler_type, acpi_notify_handler handler);
+-- 
+1.7.9.5
 
