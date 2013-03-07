@@ -1,86 +1,70 @@
-From: Mandeep Singh Baines <msb@chromium.org>
-Subject: Re: [PATCH 1/1] thinkpad-acpi: kill hotkey_thread_mutex
-Date: Thu, 7 Mar 2013 10:42:46 -0800
-Message-ID: <CACBanvqP0jx_d-LtV5+fRD7M698M_b6j0Sv=v0uoTBpjEusQCw@mail.gmail.com>
-References: <201303042055.38040.maciej.rutecki@gmail.com>
-	<1362504883-9180-1-git-send-email-msb@chromium.org>
-	<20130305174838.GA7276@redhat.com>
-	<CACBanvqHRDsOQiMsQMw5_QDt1wFrb8_DRoiASSvqeA6XdFrwZQ@mail.gmail.com>
-	<20130305180542.GA12738@redhat.com>
-	<CACBanvr7XvXbFjphpRwKHHJKzVuA-s6sF-qkPiizBV3+uqzpJw@mail.gmail.com>
-	<20130305232603.GA16045@khazad-dum.debian.net>
-	<20130306154420.GA7697@redhat.com>
-	<20130306233232.GA12645@khazad-dum.debian.net>
-	<20130307175305.GA15631@redhat.com>
-	<20130307175359.GB15631@redhat.com>
+From: Seth Forshee <seth.forshee@canonical.com>
+Subject: Re: [PATCH] ACPI: Disable Windows 8 compatibility for some Lenovo
+ ThinkPads
+Date: Thu, 7 Mar 2013 13:38:12 -0600
+Message-ID: <20130307193812.GD24233@thinkpad-t410>
+References: <1360599681-24781-1-git-send-email-seth.forshee@canonical.com>
+ <20130211175213.GA25139@srcf.ucam.org>
+ <20130211190617.GH13768@thinkpad-t410>
+ <20130211190914.GA27364@srcf.ucam.org>
+ <20130213203228.GE22867@thinkpad-t410>
+ <20130213205558.GA16559@srcf.ucam.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <platform-driver-x86-owner@vger.kernel.org>
-In-Reply-To: <20130307175359.GB15631@redhat.com>
-Sender: platform-driver-x86-owner@vger.kernel.org
-To: Oleg Nesterov <oleg@redhat.com>
-Cc: Henrique de Moraes Holschuh <hmh@hmh.eng.br>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-acpi@vger.kernel.org, ibm-acpi@hmh.eng.br, ibm-acpi-devel@lists.sourceforge.net, platform-driver-x86@vger.kernel.org, Aaron Lu <aaron.lu@intel.com>, Tejun Heo <tj@kernel.org>, Andrew Morton <akpm@linux-foundation.org>, Artem Savkov <artem.savkov@gmail.com>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from youngberry.canonical.com ([91.189.89.112]:49274 "EHLO
+	youngberry.canonical.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932724Ab3CGTiV (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 7 Mar 2013 14:38:21 -0500
+Content-Disposition: inline
+In-Reply-To: <20130213205558.GA16559@srcf.ucam.org>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Matthew Garrett <mjg59@srcf.ucam.org>
+Cc: Len Brown <lenb@kernel.org>, "Rafael J. Wysocki" <rjw@sisk.pl>, linux-acpi@vger.kernel.org, Ben Jencks <ben@bjencks.net>, joeyli <jlee@suse.com>
 
-On Thu, Mar 7, 2013 at 9:53 AM, Oleg Nesterov <oleg@redhat.com> wrote:
-> hotkey_kthread() does try_to_freeze() under hotkey_thread_mutex.
->
-> We can simply kill this mutex, hotkey_poll_stop_sync() does not need
-> to serialize with hotkey_kthread(). When kthread_stop() returns the
-> thread is already dead, it called do_exit()->complete_vfork_done().
->
-> Reported-by: Artem Savkov <artem.savkov@gmail.com>
-> Reported-by: Maciej Rutecki <maciej.rutecki@gmail.com>
-> Signed-off-by: Oleg Nesterov <oleg@redhat.com>
->
+On Wed, Feb 13, 2013 at 08:55:58PM +0000, Matthew Garrett wrote:
+> On Wed, Feb 13, 2013 at 02:32:28PM -0600, Seth Forshee wrote:
+> > On Mon, Feb 11, 2013 at 07:09:14PM +0000, Matthew Garrett wrote:
+> > > Right. My concern here is that Windows clearly doesn't trigger the 
+> > > issue, and so there's some chance that we'll see similar issues on other 
+> > > machines. Disabling Windows 8 compatibility isn't really an option. One 
+> > > choice might be to have the ACPI video driver set all intermediate 
+> > > values if the system makes the Windows 8 OSI call?
+> > 
+> > This turns out to have some problems. The hotkeys on the x230 at least
+> > generate increase/decrease brightness notifications. In response
+> > acpi_video reads the current brightness level via _BQC and decides what
+> > the next value should be. A value adjacent to a working value is never
+> > another working value on this machine, so _BCM does nothing. The next
+> > time a notification comes _BQC returns the same value as it did the
+> > previous time. Obviously this gets us nowhere.
+> 
+> Nrgh. Having this logic in the kernel has always been miserable. On the 
+> other hand, having _BQC return wrong values is arguably even worse.
+> 
+> > The (untested) fix I've come up with is to use the cached value for the
+> > current brightness rather than asking the firmware. I'm assuming though
+> > that acpi_video would be using the cached values already if there wasn't
+> > a chance that their changing without its knowledge?
+> 
+> Yeah. What I'd suggest here is calling _BQC after every change, and if 
+> it returns the old value throw a firmware bug message and fall back to 
+> using a cached one.
+> 
+> > The other issue with using the cached value is that the hotkeys on these
+> > machines are still going to end up cycling through 101 brightness levels
+> > with 85% of them leaving the brightness unchanged. When there's that
+> > many levels though maybe it makes sense to jump more than one level at a
+> > time.
+> 
+> Right. I'd recommend turning off that functionality and just leaving it 
+> up to userspace. We still seem to be carrying a patch to do that in 
+> Fedora. I thought I had a patch to make this a config option somewhere, 
+> but can't find any sign of it now...
 
-Reviewed-by: Mandeep Singh Baines <msb@chromium.org>
+I've had the patches implementing your suggestions written for a while
+now but just got test feedback this week. So here they are.
 
-> --- x/drivers/platform/x86/thinkpad_acpi.c
-> +++ x/drivers/platform/x86/thinkpad_acpi.c
-> @@ -1965,9 +1965,6 @@ struct tp_nvram_state {
->  /* kthread for the hotkey poller */
->  static struct task_struct *tpacpi_hotkey_task;
->
-> -/* Acquired while the poller kthread is running, use to sync start/stop */
-> -static struct mutex hotkey_thread_mutex;
-> -
->  /*
->   * Acquire mutex to write poller control variables as an
->   * atomic block.
-> @@ -2463,8 +2460,6 @@ static int hotkey_kthread(void *data)
->         unsigned int poll_freq;
->         bool was_frozen;
->
-> -       mutex_lock(&hotkey_thread_mutex);
-> -
->         if (tpacpi_lifecycle == TPACPI_LIFE_EXITING)
->                 goto exit;
->
-> @@ -2524,7 +2519,6 @@ static int hotkey_kthread(void *data)
->         }
->
->  exit:
-> -       mutex_unlock(&hotkey_thread_mutex);
->         return 0;
->  }
->
-> @@ -2534,9 +2528,6 @@ static void hotkey_poll_stop_sync(void)
->         if (tpacpi_hotkey_task) {
->                 kthread_stop(tpacpi_hotkey_task);
->                 tpacpi_hotkey_task = NULL;
-> -               mutex_lock(&hotkey_thread_mutex);
-> -               /* at this point, the thread did exit */
-> -               mutex_unlock(&hotkey_thread_mutex);
->         }
->  }
->
-> @@ -3235,7 +3226,6 @@ static int __init hotkey_init(struct ibm
->         mutex_init(&hotkey_mutex);
->
->  #ifdef CONFIG_THINKPAD_ACPI_HOTKEY_POLL
-> -       mutex_init(&hotkey_thread_mutex);
->         mutex_init(&hotkey_thread_data_mutex);
->  #endif
->
->
+Seth
+
