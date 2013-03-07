@@ -1,29 +1,49 @@
-From: Tang Chen <tangchen@cn.fujitsu.com>
-Subject: [RESEND PATCH 0/6] Fix some coding style and comment problems.
-Date: Thu, 7 Mar 2013 18:38:11 +0800
-Message-ID: <1362652697-30284-1-git-send-email-tangchen@cn.fujitsu.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: lenb@kernel.org, rjw@sisk.pl, robert.moore@intel.com, lv.zheng@intel.com, ming.m.lin@intel.com, mpm@selenic.com, herbert@gondor.apana.org.au, rob@landley.net
-Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linux-doc@vger.kernel.org, trivial@kernel.org
+From: Myron Stowe <mstowe@redhat.com>
+Subject: 2013 Linux Plumbers PCI Microconference proposal call for
+ participaton
+Date: Thu, 07 Mar 2013 09:11:01 -0700
+Message-ID: <1362672661.2276.3.camel@zim.stowe>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mx1.redhat.com ([209.132.183.28]:8066 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751049Ab3CGQLN (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 7 Mar 2013 11:11:13 -0500
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: linux-pci <linux-pci@vger.kernel.org>
+Cc: linux-acpi <linux-acpi@vger.kernel.org>, linux-kernel <linux-kernel@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>
 
-Fix some coding style and comment problems I saw when I was reading the code.
+All:
 
-Tang Chen (6):
-  acpi: Remove the leading space of "unlock" label in
-    acpi_memory_device_notify().
-  acpi: Add missing parameter comment for acpi_get_table_with_size().
-  acpi: Remove the leading spaces of "finish_override" label in
-    acpi_tb_table_override().
-  acpi: Remove the leading spaces of "unmap_and_exit" label in
-    acpi_tb_install_table().
-  acpi: Add the missing parameter comment for acpi_initialize_tables().
-  doc: Fix a wrong comment in Documentation/hw_random.txt
+Bjorn and I would like to chair a PCI subsystem focused microconference
+as part of this year's Linux Plumbers conference but first we need to
+find out if there is enough interest and material that needs covered
+( http://wiki.linuxplumbersconf.org/2013:topics ).
 
- Documentation/hw_random.txt    |    2 +-
- drivers/acpi/acpi_memhotplug.c |    2 +-
- drivers/acpi/acpica/tbinstal.c |    2 +-
- drivers/acpi/acpica/tbutils.c  |    2 +-
- drivers/acpi/acpica/tbxface.c  |    6 +++---
- 5 files changed, 7 insertions(+), 7 deletions(-)
+Please respond to this invitation by submitting presentation or
+discussion proposals that you would be willing to cover for
+consideration (just respond to this mail on the linux-pci list).  You
+should also feel free to submit ideas as proposals for others to cover.
+
+If approved by the program committee we will give precedence to
+proposals that bring up current issues that need attention, help, or
+resolution.  We would like for the majority of the microconference to be
+"working session discussions" in which a current issue in the PCI
+subsystem's space that needs solving is introduced and then opened up
+for live discussion by attendees - much like what took place last year.
+
+As a possible aid towards promoting topics for submissions we have
+listed a few candidates that seem to meet the criteria in the
+microconference proposals wiki located at
+http://wiki.linuxplumbersconf.org/2013:pci_subsystem
+
+
+Please feel free to forward this invitation on to any others, or
+relevant lists, that seem appropriate.
+
+Thanks,
+Bjorn Helgaas and Myron Stowe 
+
