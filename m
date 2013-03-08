@@ -1,90 +1,115 @@
 From: Lv Zheng <lv.zheng@intel.com>
-Subject: [PATCH 00/21] ACPICA 20130214 Release
-Date: Fri,  8 Mar 2013 17:19:15 +0800
-Message-ID: <cover.1361292877.git.lv.zheng@intel.com>
+Subject: [PATCH 01/21] ACPICA: Resource Mgr: Prevent infinite loops in resource walks
+Date: Fri,  8 Mar 2013 17:19:38 +0800
+Message-ID: <75b5ee4083773f619db7605d92bde7b18a33add5.1361292877.git.lv.zheng@intel.com>
+References: <cover.1361292877.git.lv.zheng@intel.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga02.intel.com ([134.134.136.20]:62593 "EHLO mga02.intel.com"
+Received: from mga03.intel.com ([143.182.124.21]:14662 "EHLO mga03.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753451Ab3CHJTc (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 8 Mar 2013 04:19:32 -0500
+	id S1755133Ab3CHJUG (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 8 Mar 2013 04:20:06 -0500
+In-Reply-To: <cover.1361292877.git.lv.zheng@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: Len Brown <len.brown@intel.com>, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Robert Moore <robert.moore@intel.com>
 Cc: linux-acpi@vger.kernel.org, Lv Zheng <lv.zheng@intel.com>
 
-The 20130214 ACPICA linuxized patches are based on the pm/linux-next
-branch.
-The patch set has passed a basic build/boot test on z530.
-No new divergences are introduced by this patch set.
+From: Bob Moore <robert.moore@intel.com>
 
-Bob Moore (14):
-  ACPICA: Resource Mgr: Prevent infinite loops in resource walks
-  ACPICA: Fix a couple warnings detected on FreeBSD build
-  ACPICA: Update error/debug messages for fixed events
-  ACPICA: Add parens within macros around parameter names
-  ACPICA: Update for ACPI 5 hardware-reduced feature
-  ACPICA: Regression fix: reinstate safe exit macros
-  ACPICA: Add macros to exception code definitions
-  ACPICA: Add exception descriptions to exception info table
-  ACPICA: Remove trailing comma in enum declarations
-  ACPICA: Add mechanism for early object repairs on a per-name basis
-  ACPICA: Split object conversion functions to a new file
-  ACPICA: Disassembler: Add warnings for unresolved control methods
-  ACPICA: Object repair: Allow 0-length packages for variable-length
-    packages
-  ACPICA: Update version to 20130214
+Add checks for zero-length resource descriptors in all code that
+loops through a resource descriptor list. This prevents possible
+infinite loops because the length is used to increment the traveral
+pointer and detect the end-of-descriptor.
 
-Jung-uk Kim (2):
-  ACPICA: Fix a long-standing bug in local cache
-  ACPICA: Add macros to access pointer to next object in the descriptor
-    list
+Signed-off-by: Bob Moore <robert.moore@intel.com>
+Signed-off-by: Lv Zheng <lv.zheng@intel.com>
+---
+ drivers/acpi/acpica/rscalc.c  |    6 ++++++
+ drivers/acpi/acpica/rsdump.c  |    8 ++++++++
+ drivers/acpi/acpica/rslist.c  |    8 ++++++++
+ drivers/acpi/acpica/rsxface.c |    8 +++++++-
+ 4 files changed, 29 insertions(+), 1 deletion(-)
 
-Lv Zheng (5):
-  ACPICA: Update RASF table definition
-  ACPICA: iASL/Disassembler: Add support for VRTC table
-  ACPICA: iASL/Disassembler: Add support for MTMR table
-  ACPICA: Return object repair: Add string-to-unicode conversion
-  ACPICA: Return object repair: Add resource template repairs
-
- drivers/acpi/acpica/Makefile    |    1 +
- drivers/acpi/acpica/acglobal.h  |    4 +-
- drivers/acpi/acpica/aclocal.h   |   16 ++
- drivers/acpi/acpica/acmacros.h  |    6 +-
- drivers/acpi/acpica/acnamesp.h  |   25 ++-
- drivers/acpi/acpica/acutils.h   |    3 +-
- drivers/acpi/acpica/dsutils.c   |   10 +-
- drivers/acpi/acpica/evevent.c   |   12 +-
- drivers/acpi/acpica/evgpe.c     |    6 +-
- drivers/acpi/acpica/evsci.c     |    4 +-
- drivers/acpi/acpica/evxface.c   |   21 +-
- drivers/acpi/acpica/evxfevnt.c  |   12 +
- drivers/acpi/acpica/exprep.c    |    4 +-
- drivers/acpi/acpica/exutils.c   |    4 +-
- drivers/acpi/acpica/hwacpi.c    |   20 +-
- drivers/acpi/acpica/nsconvert.c |  443 +++++++++++++++++++++++++++++++++++++
- drivers/acpi/acpica/nspredef.c  |  141 ++++++------
- drivers/acpi/acpica/nsprepkg.c  |   10 +-
- drivers/acpi/acpica/nsrepair.c  |  381 ++++++++++++--------------------
- drivers/acpi/acpica/nsrepair2.c |   16 +-
- drivers/acpi/acpica/nsutils.c   |    8 +-
- drivers/acpi/acpica/psargs.c    |    2 +-
- drivers/acpi/acpica/rscalc.c    |    6 +
- drivers/acpi/acpica/rsdump.c    |    8 +
- drivers/acpi/acpica/rslist.c    |    8 +
- drivers/acpi/acpica/rsxface.c   |    8 +-
- drivers/acpi/acpica/utaddress.c |    4 +-
- drivers/acpi/acpica/utcache.c   |   18 +-
- drivers/acpi/acpica/utexcep.c   |   26 ++-
- drivers/acpi/acpica/utglobal.c  |    2 +
- include/acpi/acexcep.h          |  461 +++++++++++++++++++++++----------------
- include/acpi/acoutput.h         |   53 ++++-
- include/acpi/acpixf.h           |    2 +-
- include/acpi/actbl2.h           |   47 ++++
- include/acpi/actbl3.h           |   55 ++++-
- include/acpi/actypes.h          |    1 -
- 36 files changed, 1231 insertions(+), 617 deletions(-)
- create mode 100644 drivers/acpi/acpica/nsconvert.c
-
+diff --git a/drivers/acpi/acpica/rscalc.c b/drivers/acpi/acpica/rscalc.c
+index 7816d4ee..72077fa 100644
+--- a/drivers/acpi/acpica/rscalc.c
++++ b/drivers/acpi/acpica/rscalc.c
+@@ -202,6 +202,12 @@ acpi_rs_get_aml_length(struct acpi_resource * resource, acpi_size * size_needed)
+ 			return_ACPI_STATUS(AE_AML_INVALID_RESOURCE_TYPE);
+ 		}
+ 
++		/* Sanity check the length. It must not be zero, or we loop forever */
++
++		if (!resource->length) {
++			return_ACPI_STATUS(AE_AML_BAD_RESOURCE_LENGTH);
++		}
++
+ 		/* Get the base size of the (external stream) resource descriptor */
+ 
+ 		total_size = acpi_gbl_aml_resource_sizes[resource->type];
+diff --git a/drivers/acpi/acpica/rsdump.c b/drivers/acpi/acpica/rsdump.c
+index cab5144..b5fc0db 100644
+--- a/drivers/acpi/acpica/rsdump.c
++++ b/drivers/acpi/acpica/rsdump.c
+@@ -385,6 +385,14 @@ void acpi_rs_dump_resource_list(struct acpi_resource *resource_list)
+ 			return;
+ 		}
+ 
++		/* Sanity check the length. It must not be zero, or we loop forever */
++
++		if (!resource_list->length) {
++			acpi_os_printf
++			    ("Invalid zero length descriptor in resource list\n");
++			return;
++		}
++
+ 		/* Dump the resource descriptor */
+ 
+ 		if (type == ACPI_RESOURCE_TYPE_SERIAL_BUS) {
+diff --git a/drivers/acpi/acpica/rslist.c b/drivers/acpi/acpica/rslist.c
+index ee2e206..6053aa1 100644
+--- a/drivers/acpi/acpica/rslist.c
++++ b/drivers/acpi/acpica/rslist.c
+@@ -178,6 +178,14 @@ acpi_rs_convert_resources_to_aml(struct acpi_resource *resource,
+ 			return_ACPI_STATUS(AE_BAD_DATA);
+ 		}
+ 
++		/* Sanity check the length. It must not be zero, or we loop forever */
++
++		if (!resource->length) {
++			ACPI_ERROR((AE_INFO,
++				    "Invalid zero length descriptor in resource list\n"));
++			return_ACPI_STATUS(AE_AML_BAD_RESOURCE_LENGTH);
++		}
++
+ 		/* Perform the conversion */
+ 
+ 		if (resource->type == ACPI_RESOURCE_TYPE_SERIAL_BUS) {
+diff --git a/drivers/acpi/acpica/rsxface.c b/drivers/acpi/acpica/rsxface.c
+index 15d6eae..c0e5d2d 100644
+--- a/drivers/acpi/acpica/rsxface.c
++++ b/drivers/acpi/acpica/rsxface.c
+@@ -563,13 +563,19 @@ acpi_walk_resource_buffer(struct acpi_buffer * buffer,
+ 
+ 	while (resource < resource_end) {
+ 
+-		/* Sanity check the resource */
++		/* Sanity check the resource type */
+ 
+ 		if (resource->type > ACPI_RESOURCE_TYPE_MAX) {
+ 			status = AE_AML_INVALID_RESOURCE_TYPE;
+ 			break;
+ 		}
+ 
++		/* Sanity check the length. It must not be zero, or we loop forever */
++
++		if (!resource->length) {
++			return_ACPI_STATUS(AE_AML_BAD_RESOURCE_LENGTH);
++		}
++
+ 		/* Invoke the user function, abort on any error returned */
+ 
+ 		status = user_function(resource, context);
 -- 
 1.7.10
 
