@@ -1,81 +1,40 @@
-From: Tejun Heo <tj@kernel.org>
-Subject: Re: [PATCH 05/14] x86, ACPI: Find acpi tables in initrd early at
- head_32.S/head64.c
-Date: Thu, 7 Mar 2013 21:57:29 -0800
-Message-ID: <20130308055729.GG14556@mtj.dyndns.org>
-References: <1362718720-27048-1-git-send-email-yinghai@kernel.org>
- <1362718720-27048-6-git-send-email-yinghai@kernel.org>
+From: "H. Peter Anvin" <hpa@zytor.com>
+Subject: Re: [PATCH 01/14] x86, ACPI, mm: Kill max_low_pfn_mapped
+Date: Thu, 07 Mar 2013 22:09:26 -0800
+Message-ID: <51398096.1060304@zytor.com>
+References: <1362718720-27048-1-git-send-email-yinghai@kernel.org> <1362718720-27048-2-git-send-email-yinghai@kernel.org> <20130308051059.GC14556@mtj.dyndns.org> <CAE9FiQVMjm7P28XLYGQ675we2+dU+H6rJK2eiO+FFeynYefJHA@mail.gmail.com> <CAOS58YOwSjHyFfAfaY_o3YZKhD-p2gc78ZGrc4N5_NCg+ZVu1A@mail.gmail.com> <CAE9FiQVFvg2M5A5Se5pys5yquNSZeOTV=s4YgLwr6QH_6=nY_w@mail.gmail.com> <CAOS58YNy_Rhg8M_7Qbgyutz68Q67i9R00rTuVy6CyZaFV1MSgA@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-pb0-f42.google.com ([209.85.160.42]:52672 "EHLO
-	mail-pb0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932161Ab3CHF5e (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 8 Mar 2013 00:57:34 -0500
-Content-Disposition: inline
-In-Reply-To: <1362718720-27048-6-git-send-email-yinghai@kernel.org>
+Received: from terminus.zytor.com ([198.137.202.10]:35829 "EHLO mail.zytor.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750744Ab3CHGNO (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 8 Mar 2013 01:13:14 -0500
+In-Reply-To: <CAOS58YNy_Rhg8M_7Qbgyutz68Q67i9R00rTuVy6CyZaFV1MSgA@mail.gmail.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Yinghai Lu <yinghai@kernel.org>
-Cc: Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@elte.hu>, "H. Peter Anvin" <hpa@zytor.com>, Andrew Morton <akpm@linux-foundation.org>, Thomas Renninger <trenn@suse.de>, Tang Chen <tangchen@cn.fujitsu.com>, linux-kernel@vger.kernel.org, Pekka Enberg <penberg@kernel.org>, Jacob Shin <jacob.shin@amd.com>, "Rafael J. Wysocki" <rjw@sisk.pl>, linux-acpi@vger.kernel.org
+To: Tejun Heo <tj@kernel.org>
+Cc: Yinghai Lu <yinghai@kernel.org>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@elte.hu>, Andrew Morton <akpm@linux-foundation.org>, Thomas Renninger <trenn@suse.de>, Tang Chen <tangchen@cn.fujitsu.com>, linux-kernel@vger.kernel.org, "Rafael J. Wysocki" <rjw@sisk.pl>, Daniel Vetter <daniel.vetter@ffwll.ch>, David Airlie <airlied@linux.ie>, Jacob Shin <jacob.shin@amd.com>, linux-acpi@vger.kernel.org, dri-devel@lists.freedesktop.org
 
-On Thu, Mar 07, 2013 at 08:58:31PM -0800, Yinghai Lu wrote:
-> diff --git a/arch/x86/kernel/head_32.S b/arch/x86/kernel/head_32.S
-> index 73afd11..ca08f0e 100644
-> --- a/arch/x86/kernel/head_32.S
-> +++ b/arch/x86/kernel/head_32.S
-> @@ -149,6 +149,10 @@ ENTRY(startup_32)
->  	call load_ucode_bsp
->  #endif
->  
-> +#ifdef CONFIG_ACPI_INITRD_TABLE_OVERRIDE
-> +	call x86_acpi_override_find
-> +#endif
+On 03/07/2013 09:28 PM, Tejun Heo wrote:
+> On Thu, Mar 7, 2013 at 9:27 PM, Yinghai Lu <yinghai@kernel.org> wrote:
+>> They are not using memblock_find_in_range(), so 1ULL<< will not help.
+>>
+>> Really hope i915 drm guys could clean that hacks.
+> 
+> The code isn't being used.  Just leave it alone.  Maybe add a comment.
+>  The change is just making things more confusing.
+> 
 
-The function is always defined.  We can probalby lose ifdef here?
+Indeed, but...
 
-Also, does it really have to be called from head_32.S?  No way this
-can be done after entering C code?  It would be great if you can
-explain overall design choices in the head message (and important
-patches).
+Daniel: can you guys clean this up or can we just remove the #if 0 clause?
 
-> diff --git a/arch/x86/kernel/setup.c b/arch/x86/kernel/setup.c
-> index 668e658..d43545a 100644
-> --- a/arch/x86/kernel/setup.c
-> +++ b/arch/x86/kernel/setup.c
-> @@ -424,6 +424,32 @@ static void __init reserve_initrd(void)
->  }
->  #endif /* CONFIG_BLK_DEV_INITRD */
->  
-> +#ifdef CONFIG_ACPI_INITRD_TABLE_OVERRIDE
-> +void __init x86_acpi_override_find(void)
-> +{
-> +	unsigned long ramdisk_image, ramdisk_size;
-> +	unsigned char *p = NULL;
-> +
-> +#ifdef CONFIG_X86_32
-> +	struct boot_params *boot_params_p;
-> +
-> +	boot_params_p = (struct boot_params *)__pa_symbol(&boot_params);
-> +	ramdisk_image = boot_params_p->hdr.ramdisk_image;
-> +	ramdisk_size  = boot_params_p->hdr.ramdisk_size;
-> +	p = (unsigned char *)ramdisk_image;
-> +	acpi_initrd_override_find(p, ramdisk_size, true);
-> +#else
-> +	ramdisk_image = get_ramdisk_image();
-> +	ramdisk_size  = get_ramdisk_size();
-> +	if (ramdisk_image)
-> +		p = __va(ramdisk_image);
-> +	acpi_initrd_override_find(p, ramdisk_size, false);
-> +#endif
-> +}
-> +#else
-> +void __init x86_acpi_override_find(void) { }
+	-hpa
 
-And add a comment here why we're not doing static inline for the dummy
-function?
-
-Thanks.
 
 -- 
-tejun
+H. Peter Anvin, Intel Open Source Technology Center
+I work for Intel.  I don't speak on their behalf.
+
