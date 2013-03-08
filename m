@@ -1,13 +1,13 @@
 From: Lv Zheng <lv.zheng@intel.com>
-Subject: [PATCH 10/21] ACPICA: Update for ACPI 5 hardware-reduced feature
-Date: Fri,  8 Mar 2013 17:22:14 +0800
-Message-ID: <7b09609acd22b4e91b4f2e3ba9a990951e0b5b7c.1361292877.git.lv.zheng@intel.com>
+Subject: [PATCH 11/21] ACPICA: Regression fix: reinstate safe exit macros
+Date: Fri,  8 Mar 2013 17:22:23 +0800
+Message-ID: <b4476d6b91289c7e3c66a0098fc9f77d516c7fce.1361292877.git.lv.zheng@intel.com>
 References: <cover.1361292877.git.lv.zheng@intel.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga11.intel.com ([192.55.52.93]:16195 "EHLO mga11.intel.com"
+Received: from mga09.intel.com ([134.134.136.24]:62590 "EHLO mga09.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S933331Ab3CHJW1 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 8 Mar 2013 04:22:27 -0500
+	id S933331Ab3CHJWf (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 8 Mar 2013 04:22:35 -0500
 In-Reply-To: <cover.1361292877.git.lv.zheng@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
@@ -16,76 +16,380 @@ Cc: linux-acpi@vger.kernel.org, Lv Zheng <lv.zheng@intel.com>
 
 From: Bob Moore <robert.moore@intel.com>
 
-Ensure that AcpiEnable and AcpiDisable work properly when the
-hardware-reduced flag is set in the FADT.
+Removal caused a regression on at least FreeBSD. This fix
+reinstates the macros.
 
 Signed-off-by: Bob Moore <robert.moore@intel.com>
 Signed-off-by: Lv Zheng <lv.zheng@intel.com>
 ---
- drivers/acpi/acpica/evxfevnt.c |   12 ++++++++++++
- drivers/acpi/acpica/hwacpi.c   |   12 ++++++++++++
- 2 files changed, 24 insertions(+)
+ drivers/acpi/acpica/dsutils.c   |   10 ++++----
+ drivers/acpi/acpica/evgpe.c     |    6 ++---
+ drivers/acpi/acpica/evsci.c     |    4 +--
+ drivers/acpi/acpica/exprep.c    |    4 +--
+ drivers/acpi/acpica/exutils.c   |    4 +--
+ drivers/acpi/acpica/hwacpi.c    |   10 ++++----
+ drivers/acpi/acpica/nsutils.c   |    8 +++---
+ drivers/acpi/acpica/psargs.c    |    2 +-
+ drivers/acpi/acpica/utaddress.c |    4 +--
+ include/acpi/acoutput.h         |   53 ++++++++++++++++++++++++++++++---------
+ 10 files changed, 67 insertions(+), 38 deletions(-)
 
-diff --git a/drivers/acpi/acpica/evxfevnt.c b/drivers/acpi/acpica/evxfevnt.c
-index d6e4e42..7039606 100644
---- a/drivers/acpi/acpica/evxfevnt.c
-+++ b/drivers/acpi/acpica/evxfevnt.c
-@@ -74,6 +74,12 @@ acpi_status acpi_enable(void)
- 		return_ACPI_STATUS(AE_NO_ACPI_TABLES);
+diff --git a/drivers/acpi/acpica/dsutils.c b/drivers/acpi/acpica/dsutils.c
+index 4d8c992..9977899 100644
+--- a/drivers/acpi/acpica/dsutils.c
++++ b/drivers/acpi/acpica/dsutils.c
+@@ -178,7 +178,7 @@ acpi_ds_is_result_used(union acpi_parse_object * op,
+ 
+ 	if (!op) {
+ 		ACPI_ERROR((AE_INFO, "Null Op"));
+-		return_VALUE(TRUE);
++		return_UINT8(TRUE);
  	}
  
-+	/* If the Hardware Reduced flag is set, machine is always in acpi mode */
-+
-+	if (acpi_gbl_reduced_hardware) {
-+		return_ACPI_STATUS(AE_OK);
-+	}
-+
- 	/* Check current mode */
+ 	/*
+@@ -210,7 +210,7 @@ acpi_ds_is_result_used(union acpi_parse_object * op,
+ 				  "At Method level, result of [%s] not used\n",
+ 				  acpi_ps_get_opcode_name(op->common.
+ 							  aml_opcode)));
+-		return_VALUE(FALSE);
++		return_UINT8(FALSE);
+ 	}
  
- 	if (acpi_hw_get_mode() == ACPI_SYS_MODE_ACPI) {
-@@ -126,6 +132,12 @@ acpi_status acpi_disable(void)
+ 	/* Get info on the parent. The root_op is AML_SCOPE */
+@@ -219,7 +219,7 @@ acpi_ds_is_result_used(union acpi_parse_object * op,
+ 	    acpi_ps_get_opcode_info(op->common.parent->common.aml_opcode);
+ 	if (parent_info->class == AML_CLASS_UNKNOWN) {
+ 		ACPI_ERROR((AE_INFO, "Unknown parent opcode Op=%p", op));
+-		return_VALUE(FALSE);
++		return_UINT8(FALSE);
+ 	}
  
- 	ACPI_FUNCTION_TRACE(acpi_disable);
+ 	/*
+@@ -307,7 +307,7 @@ acpi_ds_is_result_used(union acpi_parse_object * op,
+ 			  acpi_ps_get_opcode_name(op->common.parent->common.
+ 						  aml_opcode), op));
  
-+	/* If the Hardware Reduced flag is set, machine is always in acpi mode */
-+
-+	if (acpi_gbl_reduced_hardware) {
-+		return_ACPI_STATUS(AE_OK);
-+	}
-+
- 	if (acpi_hw_get_mode() == ACPI_SYS_MODE_LEGACY) {
- 		ACPI_DEBUG_PRINT((ACPI_DB_INIT,
- 				  "System is already in legacy (non-ACPI) mode\n"));
+-	return_VALUE(TRUE);
++	return_UINT8(TRUE);
+ 
+       result_not_used:
+ 	ACPI_DEBUG_PRINT((ACPI_DB_DISPATCH,
+@@ -316,7 +316,7 @@ acpi_ds_is_result_used(union acpi_parse_object * op,
+ 			  acpi_ps_get_opcode_name(op->common.parent->common.
+ 						  aml_opcode), op));
+ 
+-	return_VALUE(FALSE);
++	return_UINT8(FALSE);
+ }
+ 
+ /*******************************************************************************
+diff --git a/drivers/acpi/acpica/evgpe.c b/drivers/acpi/acpica/evgpe.c
+index b9adb9a..a493b52 100644
+--- a/drivers/acpi/acpica/evgpe.c
++++ b/drivers/acpi/acpica/evgpe.c
+@@ -707,7 +707,7 @@ acpi_ev_gpe_dispatch(struct acpi_namespace_node *gpe_device,
+ 		if (ACPI_FAILURE(status)) {
+ 			ACPI_EXCEPTION((AE_INFO, status,
+ 					"Unable to clear GPE%02X", gpe_number));
+-			return_VALUE(ACPI_INTERRUPT_NOT_HANDLED);
++			return_UINT32(ACPI_INTERRUPT_NOT_HANDLED);
+ 		}
+ 	}
+ 
+@@ -724,7 +724,7 @@ acpi_ev_gpe_dispatch(struct acpi_namespace_node *gpe_device,
+ 	if (ACPI_FAILURE(status)) {
+ 		ACPI_EXCEPTION((AE_INFO, status,
+ 				"Unable to disable GPE%02X", gpe_number));
+-		return_VALUE(ACPI_INTERRUPT_NOT_HANDLED);
++		return_UINT32(ACPI_INTERRUPT_NOT_HANDLED);
+ 	}
+ 
+ 	/*
+@@ -784,7 +784,7 @@ acpi_ev_gpe_dispatch(struct acpi_namespace_node *gpe_device,
+ 		break;
+ 	}
+ 
+-	return_VALUE(ACPI_INTERRUPT_HANDLED);
++	return_UINT32(ACPI_INTERRUPT_HANDLED);
+ }
+ 
+ #endif				/* !ACPI_REDUCED_HARDWARE */
+diff --git a/drivers/acpi/acpica/evsci.c b/drivers/acpi/acpica/evsci.c
+index f4b43be..b905acf 100644
+--- a/drivers/acpi/acpica/evsci.c
++++ b/drivers/acpi/acpica/evsci.c
+@@ -89,7 +89,7 @@ static u32 ACPI_SYSTEM_XFACE acpi_ev_sci_xrupt_handler(void *context)
+ 	 */
+ 	interrupt_handled |= acpi_ev_gpe_detect(gpe_xrupt_list);
+ 
+-	return_VALUE(interrupt_handled);
++	return_UINT32(interrupt_handled);
+ }
+ 
+ /*******************************************************************************
+@@ -120,7 +120,7 @@ u32 ACPI_SYSTEM_XFACE acpi_ev_gpe_xrupt_handler(void *context)
+ 
+ 	interrupt_handled |= acpi_ev_gpe_detect(gpe_xrupt_list);
+ 
+-	return_VALUE(interrupt_handled);
++	return_UINT32(interrupt_handled);
+ }
+ 
+ /******************************************************************************
+diff --git a/drivers/acpi/acpica/exprep.c b/drivers/acpi/acpica/exprep.c
+index d6eab81..6b728ae 100644
+--- a/drivers/acpi/acpica/exprep.c
++++ b/drivers/acpi/acpica/exprep.c
+@@ -276,7 +276,7 @@ acpi_ex_decode_field_access(union acpi_operand_object *obj_desc,
+ 		/* Invalid field access type */
+ 
+ 		ACPI_ERROR((AE_INFO, "Unknown field access type 0x%X", access));
+-		return_VALUE(0);
++		return_UINT32(0);
+ 	}
+ 
+ 	if (obj_desc->common.type == ACPI_TYPE_BUFFER_FIELD) {
+@@ -289,7 +289,7 @@ acpi_ex_decode_field_access(union acpi_operand_object *obj_desc,
+ 	}
+ 
+ 	*return_byte_alignment = byte_alignment;
+-	return_VALUE(bit_length);
++	return_UINT32(bit_length);
+ }
+ 
+ /*******************************************************************************
+diff --git a/drivers/acpi/acpica/exutils.c b/drivers/acpi/acpica/exutils.c
+index b205cbb..99dc7b2 100644
+--- a/drivers/acpi/acpica/exutils.c
++++ b/drivers/acpi/acpica/exutils.c
+@@ -340,7 +340,7 @@ static u32 acpi_ex_digits_needed(u64 value, u32 base)
+ 	/* u64 is unsigned, so we don't worry about a '-' prefix */
+ 
+ 	if (value == 0) {
+-		return_VALUE(1);
++		return_UINT32(1);
+ 	}
+ 
+ 	current_value = value;
+@@ -354,7 +354,7 @@ static u32 acpi_ex_digits_needed(u64 value, u32 base)
+ 		num_digits++;
+ 	}
+ 
+-	return_VALUE(num_digits);
++	return_UINT32(num_digits);
+ }
+ 
+ /*******************************************************************************
 diff --git a/drivers/acpi/acpica/hwacpi.c b/drivers/acpi/acpica/hwacpi.c
-index deb3f61..9b02a9f 100644
+index 9b02a9f..579c3a5 100644
 --- a/drivers/acpi/acpica/hwacpi.c
 +++ b/drivers/acpi/acpica/hwacpi.c
-@@ -66,6 +66,12 @@ acpi_status acpi_hw_set_mode(u32 mode)
+@@ -155,7 +155,7 @@ u32 acpi_hw_get_mode(void)
+ 	/* If the Hardware Reduced flag is set, machine is always in acpi mode */
  
- 	ACPI_FUNCTION_TRACE(hw_set_mode);
+ 	if (acpi_gbl_reduced_hardware) {
+-		return_VALUE(ACPI_SYS_MODE_ACPI);
++		return_UINT32(ACPI_SYS_MODE_ACPI);
+ 	}
  
-+	/* If the Hardware Reduced flag is set, machine is always in acpi mode */
-+
-+	if (acpi_gbl_reduced_hardware) {
-+		return_ACPI_STATUS(AE_OK);
-+	}
-+
  	/*
- 	 * ACPI 2.0 clarified that if SMI_CMD in FADT is zero,
+@@ -163,18 +163,18 @@ u32 acpi_hw_get_mode(void)
  	 * system does not support mode transition.
-@@ -146,6 +152,12 @@ u32 acpi_hw_get_mode(void)
+ 	 */
+ 	if (!acpi_gbl_FADT.smi_command) {
+-		return_VALUE(ACPI_SYS_MODE_ACPI);
++		return_UINT32(ACPI_SYS_MODE_ACPI);
+ 	}
  
- 	ACPI_FUNCTION_TRACE(hw_get_mode);
+ 	status = acpi_read_bit_register(ACPI_BITREG_SCI_ENABLE, &value);
+ 	if (ACPI_FAILURE(status)) {
+-		return_VALUE(ACPI_SYS_MODE_LEGACY);
++		return_UINT32(ACPI_SYS_MODE_LEGACY);
+ 	}
  
-+	/* If the Hardware Reduced flag is set, machine is always in acpi mode */
+ 	if (value) {
+-		return_VALUE(ACPI_SYS_MODE_ACPI);
++		return_UINT32(ACPI_SYS_MODE_ACPI);
+ 	} else {
+-		return_VALUE(ACPI_SYS_MODE_LEGACY);
++		return_UINT32(ACPI_SYS_MODE_LEGACY);
+ 	}
+ }
+ 
+diff --git a/drivers/acpi/acpica/nsutils.c b/drivers/acpi/acpica/nsutils.c
+index 686420d..2808586 100644
+--- a/drivers/acpi/acpica/nsutils.c
++++ b/drivers/acpi/acpica/nsutils.c
+@@ -112,10 +112,10 @@ acpi_object_type acpi_ns_get_type(struct acpi_namespace_node * node)
+ 
+ 	if (!node) {
+ 		ACPI_WARNING((AE_INFO, "Null Node parameter"));
+-		return_VALUE(ACPI_TYPE_ANY);
++		return_UINT8(ACPI_TYPE_ANY);
+ 	}
+ 
+-	return_VALUE(node->type);
++	return_UINT8(node->type);
+ }
+ 
+ /*******************************************************************************
+@@ -140,10 +140,10 @@ u32 acpi_ns_local(acpi_object_type type)
+ 		/* Type code out of range  */
+ 
+ 		ACPI_WARNING((AE_INFO, "Invalid Object Type 0x%X", type));
+-		return_VALUE(ACPI_NS_NORMAL);
++		return_UINT32(ACPI_NS_NORMAL);
+ 	}
+ 
+-	return_VALUE(acpi_gbl_ns_properties[type] & ACPI_NS_LOCAL);
++	return_UINT32(acpi_gbl_ns_properties[type] & ACPI_NS_LOCAL);
+ }
+ 
+ /*******************************************************************************
+diff --git a/drivers/acpi/acpica/psargs.c b/drivers/acpi/acpica/psargs.c
+index f51308c..9f25a3d 100644
+--- a/drivers/acpi/acpica/psargs.c
++++ b/drivers/acpi/acpica/psargs.c
+@@ -108,7 +108,7 @@ acpi_ps_get_next_package_length(struct acpi_parse_state *parser_state)
+ 	/* Byte 0 is a special case, either bits [0:3] or [0:5] are used */
+ 
+ 	package_length |= (aml[0] & byte_zero_mask);
+-	return_VALUE(package_length);
++	return_UINT32(package_length);
+ }
+ 
+ /*******************************************************************************
+diff --git a/drivers/acpi/acpica/utaddress.c b/drivers/acpi/acpica/utaddress.c
+index 698b9d3..e0a2e27 100644
+--- a/drivers/acpi/acpica/utaddress.c
++++ b/drivers/acpi/acpica/utaddress.c
+@@ -214,7 +214,7 @@ acpi_ut_check_address_range(acpi_adr_space_type space_id,
+ 
+ 	if ((space_id != ACPI_ADR_SPACE_SYSTEM_MEMORY) &&
+ 	    (space_id != ACPI_ADR_SPACE_SYSTEM_IO)) {
+-		return_VALUE(0);
++		return_UINT32(0);
+ 	}
+ 
+ 	range_info = acpi_gbl_address_range_list[space_id];
+@@ -256,7 +256,7 @@ acpi_ut_check_address_range(acpi_adr_space_type space_id,
+ 		range_info = range_info->next;
+ 	}
+ 
+-	return_VALUE(overlap_count);
++	return_UINT32(overlap_count);
+ }
+ 
+ /*******************************************************************************
+diff --git a/include/acpi/acoutput.h b/include/acpi/acoutput.h
+index 9885276..4f52ea7 100644
+--- a/include/acpi/acoutput.h
++++ b/include/acpi/acoutput.h
+@@ -324,9 +324,9 @@
+ 
+ /* Helper macro */
+ 
+-#define ACPI_TRACE_ENTRY(name, function, cast, param) \
++#define ACPI_TRACE_ENTRY(name, function, type, param) \
+ 	ACPI_FUNCTION_NAME (name) \
+-	function (ACPI_DEBUG_PARAMETERS, cast (param))
++	function (ACPI_DEBUG_PARAMETERS, (type) (param))
+ 
+ /* The actual entry trace macros */
+ 
+@@ -335,13 +335,13 @@
+ 	acpi_ut_trace (ACPI_DEBUG_PARAMETERS)
+ 
+ #define ACPI_FUNCTION_TRACE_PTR(name, pointer) \
+-	ACPI_TRACE_ENTRY (name, acpi_ut_trace_ptr, (void *), pointer)
++	ACPI_TRACE_ENTRY (name, acpi_ut_trace_ptr, void *, pointer)
+ 
+ #define ACPI_FUNCTION_TRACE_U32(name, value) \
+-	ACPI_TRACE_ENTRY (name, acpi_ut_trace_u32, (u32), value)
++	ACPI_TRACE_ENTRY (name, acpi_ut_trace_u32, u32, value)
+ 
+ #define ACPI_FUNCTION_TRACE_STR(name, string) \
+-	ACPI_TRACE_ENTRY (name, acpi_ut_trace_str, (char *), string)
++	ACPI_TRACE_ENTRY (name, acpi_ut_trace_str, char *, string)
+ 
+ #define ACPI_FUNCTION_ENTRY() \
+ 	acpi_ut_track_stack_ptr()
+@@ -355,16 +355,37 @@
+  *
+  * One of the FUNCTION_TRACE macros above must be used in conjunction
+  * with these macros so that "_AcpiFunctionName" is defined.
++ *
++ * There are two versions of most of the return macros. The default version is
++ * safer, since it avoids side-effects by guaranteeing that the argument will
++ * not be evaluated twice.
++ *
++ * A less-safe version of the macros is provided for optional use if the
++ * compiler uses excessive CPU stack (for example, this may happen in the
++ * debug case if code optimzation is disabled.)
+  */
+ 
+ /* Exit trace helper macro */
+ 
+-#define ACPI_TRACE_EXIT(function, cast, param) \
++#ifndef ACPI_SIMPLE_RETURN_MACROS
 +
-+	if (acpi_gbl_reduced_hardware) {
-+		return_VALUE(ACPI_SYS_MODE_ACPI);
-+	}
++#define ACPI_TRACE_EXIT(function, type, param) \
++	ACPI_DO_WHILE0 ({ \
++		register type _param = (type) (param); \
++		function (ACPI_DEBUG_PARAMETERS, _param); \
++		return (_param); \
++	})
 +
- 	/*
- 	 * ACPI 2.0 clarified that if SMI_CMD in FADT is zero,
- 	 * system does not support mode transition.
++#else				/* Use original less-safe macros */
++
++#define ACPI_TRACE_EXIT(function, type, param) \
+ 	ACPI_DO_WHILE0 ({ \
+-		function (ACPI_DEBUG_PARAMETERS, cast (param)); \
+-		return ((param)); \
++		function (ACPI_DEBUG_PARAMETERS, (type) (param)); \
++		return (param); \
+ 	})
+ 
++#endif				/* ACPI_SIMPLE_RETURN_MACROS */
++
+ /* The actual exit macros */
+ 
+ #define return_VOID \
+@@ -374,13 +395,19 @@
+ 	})
+ 
+ #define return_ACPI_STATUS(status) \
+-	ACPI_TRACE_EXIT (acpi_ut_status_exit, (acpi_status), status)
++	ACPI_TRACE_EXIT (acpi_ut_status_exit, acpi_status, status)
+ 
+ #define return_PTR(pointer) \
+-	ACPI_TRACE_EXIT (acpi_ut_ptr_exit, (u8 *), pointer)
++	ACPI_TRACE_EXIT (acpi_ut_ptr_exit, void *, pointer)
+ 
+ #define return_VALUE(value) \
+-	ACPI_TRACE_EXIT (acpi_ut_value_exit, (u64), value)
++	ACPI_TRACE_EXIT (acpi_ut_value_exit, u64, value)
++
++#define return_UINT32(value) \
++	ACPI_TRACE_EXIT (acpi_ut_value_exit, u32, value)
++
++#define return_UINT8(value) \
++	ACPI_TRACE_EXIT (acpi_ut_value_exit, u8, value)
+ 
+ /* Conditional execution */
+ 
+@@ -428,8 +455,10 @@
+ 
+ #define return_VOID                     return
+ #define return_ACPI_STATUS(s)           return(s)
+-#define return_VALUE(s)                 return(s)
+ #define return_PTR(s)                   return(s)
++#define return_VALUE(s)                 return(s)
++#define return_UINT8(s)                 return(s)
++#define return_UINT32(s)                return(s)
+ 
+ #endif				/* ACPI_DEBUG_OUTPUT */
+ 
 -- 
 1.7.10
 
