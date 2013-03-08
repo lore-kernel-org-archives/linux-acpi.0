@@ -1,35 +1,64 @@
-From: Toshi Kani <toshi.kani@hp.com>
-Subject: [PATCH] ACPI: Remove acpi_pci_bind_root() definition
-Date: Fri,  8 Mar 2013 12:17:10 -0700
-Message-ID: <1362770230-8734-1-git-send-email-toshi.kani@hp.com>
+From: Thomas Gleixner <tglx@linutronix.de>
+Subject: Re: [PATCH 04/14] x86, ACPI: make acpi override finding work with
+ 32bit flat mode
+Date: Fri, 8 Mar 2013 22:25:38 +0100 (CET)
+Message-ID: <alpine.LFD.2.02.1303082123570.22263@ionos>
+References: <1362718720-27048-1-git-send-email-yinghai@kernel.org> <1362718720-27048-5-git-send-email-yinghai@kernel.org> <20130308055023.GF14556@mtj.dyndns.org> <CAE9FiQVXOC71BGSK3t_xg+nP5Qq8ZKoup0sTMJDPnv-y8++=hg@mail.gmail.com>
+Mime-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from g5t0006.atlanta.hp.com ([15.192.0.43]:28000 "EHLO
-	g5t0006.atlanta.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750917Ab3CHT2Z (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 8 Mar 2013 14:28:25 -0500
+Received: from www.linutronix.de ([62.245.132.108]:56742 "EHLO
+	Galois.linutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756158Ab3CHV0A (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 8 Mar 2013 16:26:00 -0500
+In-Reply-To: <CAE9FiQVXOC71BGSK3t_xg+nP5Qq8ZKoup0sTMJDPnv-y8++=hg@mail.gmail.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: rjw@sisk.pl
-Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Toshi Kani <toshi.kani@hp.com>
+To: Yinghai Lu <yinghai@kernel.org>
+Cc: Tejun Heo <tj@kernel.org>, "Yu, Fenghua" <fenghua.yu@intel.com>, Ingo Molnar <mingo@elte.hu>, "H. Peter Anvin" <hpa@zytor.com>, Andrew Morton <akpm@linux-foundation.org>, Thomas Renninger <trenn@suse.de>, Tang Chen <tangchen@cn.fujitsu.com>, linux-kernel@vger.kernel.org, Pekka Enberg <penberg@kernel.org>, Jacob Shin <jacob.shin@amd.com>, "Rafael J. Wysocki" <rjw@sisk.pl>, linux-acpi@vger.kernel.org
 
-Noticed that acpi_pci_bind_root(), which has been deleted,
-is left defined in acpi_driver.h.  So delete this definition
-from the header as well.
+Yinghai,
 
-Signed-off-by: Toshi Kani <toshi.kani@hp.com>
----
- include/acpi/acpi_drivers.h |    1 -
- 1 file changed, 1 deletion(-)
+On Thu, 7 Mar 2013, Yinghai Lu wrote:
 
-diff --git a/include/acpi/acpi_drivers.h b/include/acpi/acpi_drivers.h
-index 627749a..e6168a2 100644
---- a/include/acpi/acpi_drivers.h
-+++ b/include/acpi/acpi_drivers.h
-@@ -95,7 +95,6 @@ int acpi_pci_link_free_irq(acpi_handle handle);
- struct pci_bus;
- 
- struct pci_dev *acpi_get_pci_dev(acpi_handle);
--int acpi_pci_bind_root(struct acpi_device *device);
- 
- /* Arch-defined function to add a bus to the system */
- 
+> On Thu, Mar 7, 2013 at 9:50 PM, Tejun Heo <tj@kernel.org> wrote:
+> > On Thu, Mar 07, 2013 at 08:58:30PM -0800, Yinghai Lu wrote:
+> >> We will find acpi tables in initrd during head_32.S in 32bit flat mode.
+> >>
+> >> So need acpi_initrd_override_find could take phys directly.
+> >
+> > The patch description doesn't explain even half of what's going on.
+> 
+> hope HPA could understand.
+
+What the heck? Is HPA your personal decryptor?
+
+I'm really tired of this nonsense. There is a track record of people
+complaining about your completely useless and sloppy changelogs and
+your unwillingness to properly explain and discuss your patches.
+
+Just to make it clear. We all are able and willing to cope with
+developers who are not native english speakers and have limited
+language skills. I'm rewriting changelogs on a regular base without
+complaining about that.
+
+But that's not the problem at hand. I met you personally at KS and
+found out that your english skills are not those of the random Chinese
+person. You just prefer to hide your excellent language skills behind
+your Chinese name.
+
+That's an utter waste of time and resources!
+
+Please grow up and use your language and technical skills in a way
+which does not offend the people you need to interact with.
+
+Seriously, if you can't convince yourself that a proper communication
+with maintainers and other developers is a primary task, please don't
+be surprised if you end up on the /dev/null filters and auto-NAK bots
+of quite a bunch of affected people.
+
+That would be a sad outcome, really. But that's solely your decision.
+
+Thanks,
+
+	tglx
