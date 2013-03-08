@@ -1,13 +1,13 @@
 From: Lv Zheng <lv.zheng@intel.com>
-Subject: [PATCH 20/21] ACPICA: Object repair: Allow 0-length packages for variable-length packages
-Date: Fri,  8 Mar 2013 17:23:51 +0800
-Message-ID: <701301ea0d890d29e91d41c383e3f5c78d37419d.1361292877.git.lv.zheng@intel.com>
+Subject: [PATCH 21/21] ACPICA: Update version to 20130214
+Date: Fri,  8 Mar 2013 17:23:58 +0800
+Message-ID: <b780a3138490ee3e1ad3ecd0d9d67e67f6b5f0c3.1361292877.git.lv.zheng@intel.com>
 References: <cover.1361292877.git.lv.zheng@intel.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga02.intel.com ([134.134.136.20]:17131 "EHLO mga02.intel.com"
+Received: from mga14.intel.com ([143.182.124.37]:19297 "EHLO mga14.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S933331Ab3CHJYC (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 8 Mar 2013 04:24:02 -0500
+	id S933944Ab3CHJYL (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 8 Mar 2013 04:24:11 -0500
 In-Reply-To: <cover.1361292877.git.lv.zheng@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
@@ -16,38 +16,27 @@ Cc: linux-acpi@vger.kernel.org, Lv Zheng <lv.zheng@intel.com>
 
 From: Bob Moore <robert.moore@intel.com>
 
-For the predefined names that return fully variable-length
-packages, allow a zero-length package with no warning, since it
-is technically a legal construct (and BIOS writers use it.)
+Version 20130214.
 
 Signed-off-by: Bob Moore <robert.moore@intel.com>
 Signed-off-by: Lv Zheng <lv.zheng@intel.com>
 ---
- drivers/acpi/acpica/nsprepkg.c |   10 ++++++++--
- 1 file changed, 8 insertions(+), 2 deletions(-)
+ include/acpi/acpixf.h |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/drivers/acpi/acpica/nsprepkg.c b/drivers/acpi/acpica/nsprepkg.c
-index a401554..77cdd53 100644
---- a/drivers/acpi/acpica/nsprepkg.c
-+++ b/drivers/acpi/acpica/nsprepkg.c
-@@ -112,9 +112,15 @@ acpi_ns_check_package(struct acpi_predefined_data *data,
- 	elements = return_object->package.elements;
- 	count = return_object->package.count;
+diff --git a/include/acpi/acpixf.h b/include/acpi/acpixf.h
+index 03322dd..7aa231b 100644
+--- a/include/acpi/acpixf.h
++++ b/include/acpi/acpixf.h
+@@ -46,7 +46,7 @@
  
--	/* The package must have at least one element, else invalid */
--
-+	/*
-+	 * Most packages must have at least one element. The only exception
-+	 * is the variable-length package (ACPI_PTYPE1_VAR).
-+	 */
- 	if (!count) {
-+		if (package->ret_info.type == ACPI_PTYPE1_VAR) {
-+			return (AE_OK);
-+		}
-+
- 		ACPI_WARN_PREDEFINED((AE_INFO, data->pathname, data->node_flags,
- 				      "Return Package has no elements (empty)"));
+ /* Current ACPICA subsystem version in YYYYMMDD format */
  
+-#define ACPI_CA_VERSION                 0x20130117
++#define ACPI_CA_VERSION                 0x20130214
+ 
+ #include <acpi/acconfig.h>
+ #include <acpi/actypes.h>
 -- 
 1.7.10
 
