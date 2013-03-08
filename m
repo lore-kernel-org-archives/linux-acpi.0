@@ -1,138 +1,120 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: [GIT PULL] ACPI and power management fixes for v3.9-rc2
-Date: Thu, 07 Mar 2013 23:12:51 +0100
-Message-ID: <1885118.tBgWHmWy46@vostro.rjw.lan>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from hydra.sisk.pl ([212.160.235.94]:36865 "EHLO hydra.sisk.pl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1758733Ab3CGWFx convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 7 Mar 2013 17:05:53 -0500
-Sender: linux-acpi-owner@vger.kernel.org
+From: Yinghai Lu <yinghai@kernel.org>
+Subject: [PATCH 05/14] x86, ACPI: Find acpi tables in initrd early at head_32.S/head64.c
+Date: Thu,  7 Mar 2013 20:58:31 -0800
+Message-ID: <1362718720-27048-6-git-send-email-yinghai@kernel.org>
+References: <1362718720-27048-1-git-send-email-yinghai@kernel.org>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1362718720-27048-1-git-send-email-yinghai@kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@elte.hu>, "H. Peter Anvin" <hpa@zytor.com>, Andrew Morton <akpm@linux-foundation.org>, Thomas Renninger <trenn@suse.de>, Tang Chen <tangchen@cn.fujitsu.com>
+Cc: linux-kernel@vger.kernel.org, Yinghai Lu <yinghai@kernel.org>, Pekka Enberg <penberg@kernel.org>, Jacob Shin <jacob.shin@amd.com>, "Rafael J. Wysocki" <rjw@sisk.pl>, linux-acpi@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>, Linux PM list <linux-pm@vger.kernel.org>
 
-Hi Linus,
+head64.c could use #PF handler set page table to access initrd before
+mapping and relocating.
 
-Please pull from the git repository at
+head_32.S could use 32bit flat mode to access initrd before mapping
+and relocating.
 
-  git://git.kernel.org/pub/scm/linux/kernel/git/rafael/linux-pm.git pm+=
-acpi-3.9-rc2
+Signed-off-by: Yinghai Lu <yinghai@kernel.org>
+Cc: Thomas Renninger <trenn@suse.de>
+Cc: Pekka Enberg <penberg@kernel.org>
+Cc: Jacob Shin <jacob.shin@amd.com>
+Cc: Rafael J. Wysocki <rjw@sisk.pl>
+Cc: linux-acpi@vger.kernel.org
+---
+ arch/x86/include/asm/setup.h |    2 ++
+ arch/x86/kernel/head64.c     |    2 ++
+ arch/x86/kernel/head_32.S    |    4 ++++
+ arch/x86/kernel/setup.c      |   28 ++++++++++++++++++++++++++--
+ 4 files changed, 34 insertions(+), 2 deletions(-)
 
-to receive ACPI and power management fixes for v3.9-rc2 with top-most c=
-ommit
-6bd51658fae374557b063155bd4465411acd12fc
-
-  Merge branch 'pm-fixes' into fixes
-
-on top of commit 6dbe51c251a327e012439c4772097a13df43c5b8
-
-  Linux 3.9-rc1
-
-Included are:
-
-- Two fixes for the new intel_pstate driver from Dirk Brandewie.
-
-- Fix for incorrect usage of the .find_bridge() callback from struct
-  acpi_bus_type in the USB core and subsequent removal of that
-  callback.  This couldn't be pushed earlier, because it depended
-  on material in the PCI and PM/ACPI trees, so it needed to wait for
-  them both to be merged.
-
-- ACPI processor driver cleanups from Chen Gang and Syam Sidhardhan.
-
-- ACPI initialization and error messages fix from Joe Perches.
-
-- Operating Performance Points documentation improvement from
-  Nishanth Menon.
-
-- Fixes for memory leaks and potential concurrency issues and sysfs
-  attributes leaks during device removal in the core device PM QoS
-  code.
-
-- Calxeda Highbank cpufreq driver simplification from Emilio L=C3=B3pez=
-=2E
-
-- cpufreq comment cleanup from Namhyung Kim.
-
-- Fix for a section mismatch in Calxeda Highbank interprocessor
-  communication code from Mark Langsdorf (this is not a PM fix
-  strictly speaking, but the code in question went in through the
-  PM tree).
-
-Thanks!
-
-
----------------
-
-Chen Gang (1):
-      ACPI / porocessor: Beautify code, pr->id is u32 which is never < =
-0
-
-Dirk Brandewie (2):
-      cpufreq / intel_pstate: Fix intel_pstate_init() error path
-      cpufreq / intel_pstate: Do not load on VM that does not report ma=
-x P state.
-
-Emilio L=C3=B3pez (1):
-      cpufreq: highbank: do not initialize array with a loop
-
-Joe Perches (1):
-      ACPI / Sleep: Avoid interleaved message on errors
-
-Mark Langsdorf (1):
-      mailbox, pl320-ipc: remove __init from probe function
-
-Namhyung Kim (1):
-      cpufreq: Fix a typo in comment
-
-Nishanth Menon (1):
-      PM / OPP: improve introductory documentation
-
-Rafael J. Wysocki (4):
-      PM / QoS: Fix concurrency issues and memory leaks in device PM Qo=
-S
-      PM / QoS: Remove device PM QoS sysfs attributes at the right plac=
-e
-      ACPI / glue: Add .match() callback to struct acpi_bus_type
-      ACPI / glue: Drop .find_bridge() callback from struct acpi_bus_ty=
-pe
-
-Syam Sidhardhan (1):
-      ACPI / processor: Remove redundant NULL check before kfree
-
----------------
-
- Documentation/power/opp.txt        |   25 ++++-
- drivers/acpi/glue.c                |   55 ++---------
- drivers/acpi/processor_core.c      |    3 +-
- drivers/acpi/processor_driver.c    |    2 +-
- drivers/acpi/sleep.c               |   16 +++-
- drivers/ata/libata-acpi.c          |    7 +-
- drivers/base/power/main.c          |    2 -
- drivers/base/power/power.h         |    8 +-
- drivers/base/power/qos.c           |  217 +++++++++++++++++++++++++---=
-----------------
- drivers/base/power/sysfs.c         |    1 +
- drivers/cpufreq/cpufreq_governor.h |    2 +-
- drivers/cpufreq/highbank-cpufreq.c |    8 +-
- drivers/cpufreq/intel_pstate.c     |   42 +++------
- drivers/mailbox/pl320-ipc.c        |    3 +-
- drivers/pci/pci-acpi.c             |    8 +-
- drivers/pnp/pnpacpi/core.c         |    8 +-
- drivers/scsi/scsi_lib.c            |    7 +-
- drivers/usb/core/usb-acpi.c        |    9 +-
- include/acpi/acpi_bus.h            |    6 +-
- 19 files changed, 215 insertions(+), 214 deletions(-)
-
---=20
-I speak only for myself.
-Rafael J. Wysocki, Intel Open Source Technology Center.
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+diff --git a/arch/x86/include/asm/setup.h b/arch/x86/include/asm/setup.h
+index b7bf350..b09db26 100644
+--- a/arch/x86/include/asm/setup.h
++++ b/arch/x86/include/asm/setup.h
+@@ -42,6 +42,8 @@ extern void visws_early_detect(void);
+ static inline void visws_early_detect(void) { }
+ #endif
+ 
++void x86_acpi_override_find(void);
++
+ extern unsigned long saved_video_mode;
+ 
+ extern void reserve_standard_io_resources(void);
+diff --git a/arch/x86/kernel/head64.c b/arch/x86/kernel/head64.c
+index c5e403f..a31bc63 100644
+--- a/arch/x86/kernel/head64.c
++++ b/arch/x86/kernel/head64.c
+@@ -174,6 +174,8 @@ void __init x86_64_start_kernel(char * real_mode_data)
+ 	if (console_loglevel == 10)
+ 		early_printk("Kernel alive\n");
+ 
++	x86_acpi_override_find();
++
+ 	clear_page(init_level4_pgt);
+ 	/* set init_level4_pgt kernel high mapping*/
+ 	init_level4_pgt[511] = early_level4_pgt[511];
+diff --git a/arch/x86/kernel/head_32.S b/arch/x86/kernel/head_32.S
+index 73afd11..ca08f0e 100644
+--- a/arch/x86/kernel/head_32.S
++++ b/arch/x86/kernel/head_32.S
+@@ -149,6 +149,10 @@ ENTRY(startup_32)
+ 	call load_ucode_bsp
+ #endif
+ 
++#ifdef CONFIG_ACPI_INITRD_TABLE_OVERRIDE
++	call x86_acpi_override_find
++#endif
++
+ /*
+  * Initialize page tables.  This creates a PDE and a set of page
+  * tables, which are located immediately beyond __brk_base.  The variable
+diff --git a/arch/x86/kernel/setup.c b/arch/x86/kernel/setup.c
+index 668e658..d43545a 100644
+--- a/arch/x86/kernel/setup.c
++++ b/arch/x86/kernel/setup.c
+@@ -424,6 +424,32 @@ static void __init reserve_initrd(void)
+ }
+ #endif /* CONFIG_BLK_DEV_INITRD */
+ 
++#ifdef CONFIG_ACPI_INITRD_TABLE_OVERRIDE
++void __init x86_acpi_override_find(void)
++{
++	unsigned long ramdisk_image, ramdisk_size;
++	unsigned char *p = NULL;
++
++#ifdef CONFIG_X86_32
++	struct boot_params *boot_params_p;
++
++	boot_params_p = (struct boot_params *)__pa_symbol(&boot_params);
++	ramdisk_image = boot_params_p->hdr.ramdisk_image;
++	ramdisk_size  = boot_params_p->hdr.ramdisk_size;
++	p = (unsigned char *)ramdisk_image;
++	acpi_initrd_override_find(p, ramdisk_size, true);
++#else
++	ramdisk_image = get_ramdisk_image();
++	ramdisk_size  = get_ramdisk_size();
++	if (ramdisk_image)
++		p = __va(ramdisk_image);
++	acpi_initrd_override_find(p, ramdisk_size, false);
++#endif
++}
++#else
++void __init x86_acpi_override_find(void) { }
++#endif
++
+ static void __init parse_setup_data(void)
+ {
+ 	struct setup_data *data;
+@@ -1092,8 +1118,6 @@ void __init setup_arch(char **cmdline_p)
+ 
+ 	reserve_initrd();
+ 
+-	acpi_initrd_override_find((void *)initrd_start,
+-					initrd_end - initrd_start, false);
+ 	acpi_initrd_override_copy();
+ 
+ 	reserve_crashkernel();
+-- 
+1.7.10.4
