@@ -1,115 +1,100 @@
 From: Lv Zheng <lv.zheng@intel.com>
-Subject: [PATCH 01/21] ACPICA: Resource Mgr: Prevent infinite loops in resource walks
-Date: Fri,  8 Mar 2013 17:19:38 +0800
-Message-ID: <75b5ee4083773f619db7605d92bde7b18a33add5.1361292877.git.lv.zheng@intel.com>
+Subject: [PATCH 03/21] ACPICA: Update RASF table definition
+Date: Fri,  8 Mar 2013 17:20:21 +0800
+Message-ID: <173aefa9898430a4e17ea8ea46e372c5daf4d917.1361292877.git.lv.zheng@intel.com>
 References: <cover.1361292877.git.lv.zheng@intel.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga03.intel.com ([143.182.124.21]:14662 "EHLO mga03.intel.com"
+Received: from mga09.intel.com ([134.134.136.24]:17381 "EHLO mga09.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755133Ab3CHJUG (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 8 Mar 2013 04:20:06 -0500
+	id S1756027Ab3CHJUg (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 8 Mar 2013 04:20:36 -0500
 In-Reply-To: <cover.1361292877.git.lv.zheng@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: Len Brown <len.brown@intel.com>, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Robert Moore <robert.moore@intel.com>
 Cc: linux-acpi@vger.kernel.org, Lv Zheng <lv.zheng@intel.com>
 
-From: Bob Moore <robert.moore@intel.com>
+Update to reflect final ACPI 5.0 changes.  Lv Zheng.
 
-Add checks for zero-length resource descriptors in all code that
-loops through a resource descriptor list. This prevents possible
-infinite loops because the length is used to increment the traveral
-pointer and detect the end-of-descriptor.
-
-Signed-off-by: Bob Moore <robert.moore@intel.com>
 Signed-off-by: Lv Zheng <lv.zheng@intel.com>
+Signed-off-by: Bob Moore <robert.moore@intel.com>
 ---
- drivers/acpi/acpica/rscalc.c  |    6 ++++++
- drivers/acpi/acpica/rsdump.c  |    8 ++++++++
- drivers/acpi/acpica/rslist.c  |    8 ++++++++
- drivers/acpi/acpica/rsxface.c |    8 +++++++-
- 4 files changed, 29 insertions(+), 1 deletion(-)
+ include/acpi/actbl3.h |   51 ++++++++++++++++++++++++++++++++++++++++---------
+ 1 file changed, 42 insertions(+), 9 deletions(-)
 
-diff --git a/drivers/acpi/acpica/rscalc.c b/drivers/acpi/acpica/rscalc.c
-index 7816d4ee..72077fa 100644
---- a/drivers/acpi/acpica/rscalc.c
-+++ b/drivers/acpi/acpica/rscalc.c
-@@ -202,6 +202,12 @@ acpi_rs_get_aml_length(struct acpi_resource * resource, acpi_size * size_needed)
- 			return_ACPI_STATUS(AE_AML_INVALID_RESOURCE_TYPE);
- 		}
- 
-+		/* Sanity check the length. It must not be zero, or we loop forever */
+diff --git a/include/acpi/actbl3.h b/include/acpi/actbl3.h
+index 332b17e..9f27890 100644
+--- a/include/acpi/actbl3.h
++++ b/include/acpi/actbl3.h
+@@ -505,26 +505,59 @@ struct acpi_rasf_shared_memory {
+ 	u32 signature;
+ 	u16 command;
+ 	u16 status;
+-	u64 requested_address;
+-	u64 requested_length;
+-	u64 actual_address;
+-	u64 actual_length;
++	u16 version;
++	u8 capabilities[16];
++	u8 set_capabilities[16];
++	u16 num_parameter_blocks;
++	u32 set_capabilities_status;
++};
 +
-+		if (!resource->length) {
-+			return_ACPI_STATUS(AE_AML_BAD_RESOURCE_LENGTH);
-+		}
++/* RASF Parameter Block Structure Header */
 +
- 		/* Get the base size of the (external stream) resource descriptor */
- 
- 		total_size = acpi_gbl_aml_resource_sizes[resource->type];
-diff --git a/drivers/acpi/acpica/rsdump.c b/drivers/acpi/acpica/rsdump.c
-index cab5144..b5fc0db 100644
---- a/drivers/acpi/acpica/rsdump.c
-+++ b/drivers/acpi/acpica/rsdump.c
-@@ -385,6 +385,14 @@ void acpi_rs_dump_resource_list(struct acpi_resource *resource_list)
- 			return;
- 		}
- 
-+		/* Sanity check the length. It must not be zero, or we loop forever */
++struct acpi_rasf_parameter_block {
++	u16 type;
++	u16 version;
++	u16 length;
++};
 +
-+		if (!resource_list->length) {
-+			acpi_os_printf
-+			    ("Invalid zero length descriptor in resource list\n");
-+			return;
-+		}
++/* RASF Parameter Block Structure for PATROL_SCRUB */
 +
- 		/* Dump the resource descriptor */
++struct acpi_rasf_patrol_scrub_parameter {
++	struct acpi_rasf_parameter_block header;
++	u16 patrol_scrub_command;
++	u64 requested_address_range[2];
++	u64 actual_address_range[2];
+ 	u16 flags;
+-	u8 speed;
++	u8 requested_speed;
+ };
  
- 		if (type == ACPI_RESOURCE_TYPE_SERIAL_BUS) {
-diff --git a/drivers/acpi/acpica/rslist.c b/drivers/acpi/acpica/rslist.c
-index ee2e206..6053aa1 100644
---- a/drivers/acpi/acpica/rslist.c
-+++ b/drivers/acpi/acpica/rslist.c
-@@ -178,6 +178,14 @@ acpi_rs_convert_resources_to_aml(struct acpi_resource *resource,
- 			return_ACPI_STATUS(AE_BAD_DATA);
- 		}
+ /* Masks for Flags and Speed fields above */
  
-+		/* Sanity check the length. It must not be zero, or we loop forever */
+ #define ACPI_RASF_SCRUBBER_RUNNING      1
+ #define ACPI_RASF_SPEED                 (7<<1)
++#define ACPI_RASF_SPEED_SLOW            (0<<1)
++#define ACPI_RASF_SPEED_MEDIUM          (4<<1)
++#define ACPI_RASF_SPEED_FAST            (7<<1)
+ 
+ /* Channel Commands */
+ 
+ enum acpi_rasf_commands {
+-	ACPI_RASF_GET_RAS_CAPABILITIES = 1,
+-	ACPI_RASF_GET_PATROL_PARAMETERS = 2,
+-	ACPI_RASF_START_PATROL_SCRUBBER = 3,
+-	ACPI_RASF_STOP_PATROL_SCRUBBER = 4
++	ACPI_RASF_EXECUTE_RASF_COMMAND = 1
++};
 +
-+		if (!resource->length) {
-+			ACPI_ERROR((AE_INFO,
-+				    "Invalid zero length descriptor in resource list\n"));
-+			return_ACPI_STATUS(AE_AML_BAD_RESOURCE_LENGTH);
-+		}
++/* Platform RAS Capabilities */
 +
- 		/* Perform the conversion */
- 
- 		if (resource->type == ACPI_RESOURCE_TYPE_SERIAL_BUS) {
-diff --git a/drivers/acpi/acpica/rsxface.c b/drivers/acpi/acpica/rsxface.c
-index 15d6eae..c0e5d2d 100644
---- a/drivers/acpi/acpica/rsxface.c
-+++ b/drivers/acpi/acpica/rsxface.c
-@@ -563,13 +563,19 @@ acpi_walk_resource_buffer(struct acpi_buffer * buffer,
- 
- 	while (resource < resource_end) {
- 
--		/* Sanity check the resource */
-+		/* Sanity check the resource type */
- 
- 		if (resource->type > ACPI_RESOURCE_TYPE_MAX) {
- 			status = AE_AML_INVALID_RESOURCE_TYPE;
- 			break;
- 		}
- 
-+		/* Sanity check the length. It must not be zero, or we loop forever */
++enum acpi_rasf_capabiliities {
++	ACPI_HW_PATROL_SCRUB_SUPPORTED = 0,
++	ACPI_SW_PATROL_SCRUB_EXPOSED = 1
++};
 +
-+		if (!resource->length) {
-+			return_ACPI_STATUS(AE_AML_BAD_RESOURCE_LENGTH);
-+		}
++/* Patrol Scrub Commands */
 +
- 		/* Invoke the user function, abort on any error returned */
++enum acpi_rasf_patrol_scrub_commands {
++	ACPI_RASF_GET_PATROL_PARAMETERS = 1,
++	ACPI_RASF_START_PATROL_SCRUBBER = 2,
++	ACPI_RASF_STOP_PATROL_SCRUBBER = 3
+ };
  
- 		status = user_function(resource, context);
+ /* Channel Command flags */
 -- 
 1.7.10
 
