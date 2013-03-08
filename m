@@ -1,52 +1,48 @@
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: Re: [PATCH 04/14] x86, ACPI: make acpi override finding work with
- 32bit flat mode
-Date: Thu, 7 Mar 2013 23:16:11 -0800
-Message-ID: <20130307231611.5fd2bdcb.akpm@linux-foundation.org>
+From: Yinghai Lu <yinghai@kernel.org>
+Subject: Re: [PATCH 11/14] x86, acpi, numa: split SLIT handling out
+Date: Thu, 7 Mar 2013 23:18:14 -0800
+Message-ID: <CAE9FiQVO0aDrUKE_EV+A+aksqeukn6JMQqbfbKyw8JMV=DpaVw@mail.gmail.com>
 References: <1362718720-27048-1-git-send-email-yinghai@kernel.org>
-	<1362718720-27048-5-git-send-email-yinghai@kernel.org>
-	<20130308055023.GF14556@mtj.dyndns.org>
-	<CAE9FiQVXOC71BGSK3t_xg+nP5Qq8ZKoup0sTMJDPnv-y8++=hg@mail.gmail.com>
+	<1362718720-27048-12-git-send-email-yinghai@kernel.org>
+	<20130308064640.GL14556@mtj.dyndns.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:44378 "EHLO
-	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753976Ab3CHHP5 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 8 Mar 2013 02:15:57 -0500
-In-Reply-To: <CAE9FiQVXOC71BGSK3t_xg+nP5Qq8ZKoup0sTMJDPnv-y8++=hg@mail.gmail.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20130308064640.GL14556@mtj.dyndns.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Tejun Heo <tj@kernel.org>
+Cc: Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@elte.hu>, "H. Peter Anvin" <hpa@zytor.com>, Andrew Morton <akpm@linux-foundation.org>, Thomas Renninger <trenn@suse.de>, Tang Chen <tangchen@cn.fujitsu.com>, linux-kernel@vger.kernel.org, "Rafael J. Wysocki" <rjw@sisk.pl>, linux-acpi@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Yinghai Lu <yinghai@kernel.org>
-Cc: Tejun Heo <tj@kernel.org>, "Yu, Fenghua" <fenghua.yu@intel.com>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@elte.hu>, "H. Peter Anvin" <hpa@zytor.com>, Thomas Renninger <trenn@suse.de>, Tang Chen <tangchen@cn.fujitsu.com>, linux-kernel@vger.kernel.org, Pekka Enberg <penberg@kernel.org>, Jacob Shin <jacob.shin@amd.com>, "Rafael J. Wysocki" <rjw@sisk.pl>, linux-acpi@vger.kernel.org
 
-On Thu, 7 Mar 2013 22:57:21 -0800 Yinghai Lu <yinghai@kernel.org> wrote:
+On Thu, Mar 7, 2013 at 10:46 PM, Tejun Heo <tj@kernel.org> wrote:
+> On Thu, Mar 07, 2013 at 08:58:37PM -0800, Yinghai Lu wrote:
+>> +void __init acpi_numa_init_only_slit(void)
+>> +{
+>> +     /* SLIT: System Locality Information Table */
+>> +     acpi_table_parse(ACPI_SIG_SLIT, acpi_parse_slit);
+>> +}
+>> +
+>> +static int __init __acpi_numa_init(bool with_slit)
+>>  {
+>>       int cnt = 0;
+>
+> Hmmm.... how about just having the following two functions
+>
+>         acpi_numa_init_srat();
+>         acpi_numa_init_slit();
 
-> >
-> >> @@ -552,38 +552,47 @@ u8 __init acpi_table_checksum(u8 *buffer, u32 length)
-> >>       return sum;
-> >>  }
-> >>
-> >> -/* All but ACPI_SIG_RSDP and ACPI_SIG_FACS: */
-> >> -static const char * const table_sigs[] = {
-> >> -     ACPI_SIG_BERT, ACPI_SIG_CPEP, ACPI_SIG_ECDT, ACPI_SIG_EINJ,
-> >> -     ACPI_SIG_ERST, ACPI_SIG_HEST, ACPI_SIG_MADT, ACPI_SIG_MSCT,
-> >> -     ACPI_SIG_SBST, ACPI_SIG_SLIT, ACPI_SIG_SRAT, ACPI_SIG_ASF,
-> >> -     ACPI_SIG_BOOT, ACPI_SIG_DBGP, ACPI_SIG_DMAR, ACPI_SIG_HPET,
-> >> -     ACPI_SIG_IBFT, ACPI_SIG_IVRS, ACPI_SIG_MCFG, ACPI_SIG_MCHI,
-> >> -     ACPI_SIG_SLIC, ACPI_SIG_SPCR, ACPI_SIG_SPMI, ACPI_SIG_TCPA,
-> >> -     ACPI_SIG_UEFI, ACPI_SIG_WAET, ACPI_SIG_WDAT, ACPI_SIG_WDDT,
-> >> -     ACPI_SIG_WDRT, ACPI_SIG_DSDT, ACPI_SIG_FADT, ACPI_SIG_PSDT,
-> >> -     ACPI_SIG_RSDT, ACPI_SIG_XSDT, ACPI_SIG_SSDT, NULL };
-> >
-> > Why is this table made a stack variable?  What's the benefit of doing
-> > that?
-> 
-> so I do need to switch global variables to phys and access it.
+ok.
 
-What Tejun means is that it should be marked "static" within
-acpi_initrd_override(), so we don't have to build a copy on the stack
-at runtime each time acpi_initrd_override() is called.
 
-While we're there, it should be __initdata also.
+> and update both x86 and ia64 to use the two functions?
+
+ia64 like to call in this seqence
+acpi_numa_init()
+parse srat
+parse slit
+then
+acpi_numa_arch_fixup()
+
+in this arch_fixup, it will try to fill dummy distance_matrix.
+
+so would to keep acpi_numa_init ...
