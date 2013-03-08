@@ -1,52 +1,63 @@
-From: Yinghai Lu <yinghai@kernel.org>
-Subject: Re: [PATCH 11/14] x86, acpi, numa: split SLIT handling out
-Date: Thu, 7 Mar 2013 23:33:32 -0800
-Message-ID: <CAE9FiQXsNnvQ8CyrF65=bU_OYPkUCuULD0mJ3cKfnm2-0Lv4sA@mail.gmail.com>
-References: <1362718720-27048-1-git-send-email-yinghai@kernel.org>
-	<1362718720-27048-12-git-send-email-yinghai@kernel.org>
-	<20130308064640.GL14556@mtj.dyndns.org>
-	<CAE9FiQVO0aDrUKE_EV+A+aksqeukn6JMQqbfbKyw8JMV=DpaVw@mail.gmail.com>
-	<CAOS58YP4DrSXMPRCeNakac1hp5=1e3OkBCDF8u4vLwksj9+Kdw@mail.gmail.com>
+From: "Zheng, Lv" <lv.zheng@intel.com>
+Subject: RE: [RESEND PATCH 3/6] acpi: Remove the leading spaces of
+ "finish_override" label in acpi_tb_table_override().
+Date: Fri, 8 Mar 2013 08:28:21 +0000
+Message-ID: <1AE640813FDE7649BE1B193DEA596E88C197C2@SHSMSX101.ccr.corp.intel.com>
+References: <1362652697-30284-1-git-send-email-tangchen@cn.fujitsu.com>
+ <1362652697-30284-4-git-send-email-tangchen@cn.fujitsu.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-oa0-f47.google.com ([209.85.219.47]:36089 "EHLO
-	mail-oa0-f47.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751342Ab3CHHdd (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 8 Mar 2013 02:33:33 -0500
-In-Reply-To: <CAOS58YP4DrSXMPRCeNakac1hp5=1e3OkBCDF8u4vLwksj9+Kdw@mail.gmail.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-doc-owner@vger.kernel.org>
+In-Reply-To: <1362652697-30284-4-git-send-email-tangchen@cn.fujitsu.com>
+Content-Language: en-US
+Sender: linux-doc-owner@vger.kernel.org
+To: Tang Chen <tangchen@cn.fujitsu.com>, "lenb@kernel.org" <lenb@kernel.org>, "rjw@sisk.pl" <rjw@sisk.pl>, "Moore, Robert" <robert.moore@intel.com>, "ming.m.lin@intel.com" <ming.m.lin@intel.com>, "mpm@selenic.com" <mpm@selenic.com>, "herbert@gondor.apana.org.au" <herbert@gondor.apana.org.au>, "rob@landley.net" <rob@landley.net>
+Cc: "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-doc@vger.kernel.org" <linux-doc@vger.kernel.org>, "trivial@kernel.org" <trivial@kernel.org>
 List-Id: linux-acpi@vger.kernel.org
-To: Tejun Heo <tj@kernel.org>
-Cc: Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@elte.hu>, "H. Peter Anvin" <hpa@zytor.com>, Andrew Morton <akpm@linux-foundation.org>, Thomas Renninger <trenn@suse.de>, Tang Chen <tangchen@cn.fujitsu.com>, linux-kernel@vger.kernel.org, "Rafael J. Wysocki" <rjw@sisk.pl>, linux-acpi@vger.kernel.org
 
-On Thu, Mar 7, 2013 at 11:19 PM, Tejun Heo <tj@kernel.org> wrote:
-> On Thu, Mar 7, 2013 at 11:18 PM, Yinghai Lu <yinghai@kernel.org> wrote:
->> ia64 like to call in this seqence
->> acpi_numa_init()
->> parse srat
->> parse slit
->> then
->> acpi_numa_arch_fixup()
->>
->> in this arch_fixup, it will try to fill dummy distance_matrix.
->>
->> so would to keep acpi_numa_init ...
->
-> Can't it just call acpi_numa_init_srat() and then init_slit()?  What
-> am I missing?
+Please do not try to fix ACPICA indentation problems in Linux side.
+This will introduce source code divergences between ACPICA and Linux, which will add difficulties to ACPICA release work.
+Please find real issues in ACPICA release scripts at:
 
-Yes, but need to break acpi_numa_init calling
-in arch/ia64/kernel/setup.c
-
-with
-acpi_numa_init_srat()
-acpi_numa_init_slit()
-acpi_numa_arch_fixup()
-
-current code is
-acpi_numa_init calling arch_numa_arch_fixup()
+https://github.com/acpica/acpica/tree/master/generate/linux
 
 Thanks
+-Lv
 
-Yinghai
+> -----Original Message-----
+> From: Tang Chen [mailto:tangchen@cn.fujitsu.com]
+> Sent: Thursday, March 07, 2013 6:38 PM
+> To: lenb@kernel.org; rjw@sisk.pl; Moore, Robert; Zheng, Lv;
+> ming.m.lin@intel.com; mpm@selenic.com; herbert@gondor.apana.org.au;
+> rob@landley.net
+> Cc: linux-acpi@vger.kernel.org; linux-kernel@vger.kernel.org;
+> linux-doc@vger.kernel.org; trivial@kernel.org
+> Subject: [RESEND PATCH 3/6] acpi: Remove the leading spaces of
+> "finish_override" label in acpi_tb_table_override().
+> 
+> There is 7 leading spaces in front of "finish_override" label in
+> acpi_tb_table_override(). Remove them.
+> 
+> Signed-off-by: Tang Chen <tangchen@cn.fujitsu.com>
+> ---
+>  drivers/acpi/acpica/tbinstal.c |    2 +-
+>  1 files changed, 1 insertions(+), 1 deletions(-)
+> 
+> diff --git a/drivers/acpi/acpica/tbinstal.c b/drivers/acpi/acpica/tbinstal.c index
+> e57cd38..b1e098d 100644
+> --- a/drivers/acpi/acpica/tbinstal.c
+> +++ b/drivers/acpi/acpica/tbinstal.c
+> @@ -313,7 +313,7 @@ struct acpi_table_header
+> *acpi_tb_table_override(struct acpi_table_header
+> 
+>  	return (NULL);		/* There was no override */
+> 
+> -      finish_override:
+> +finish_override:
+> 
+>  	ACPI_INFO((AE_INFO,
+>  		   "%4.4s %p %s table override, new table: %p",
+> --
+> 1.7.1
+
