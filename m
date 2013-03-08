@@ -1,67 +1,41 @@
-From: Yinghai Lu <yinghai@kernel.org>
-Subject: [PATCH 03/14] x86, ACPI: store override acpi tables phys addr
-Date: Thu,  7 Mar 2013 20:58:29 -0800
-Message-ID: <1362718720-27048-4-git-send-email-yinghai@kernel.org>
+From: Tejun Heo <tj@kernel.org>
+Subject: Re: [PATCH 01/14] x86, ACPI, mm: Kill max_low_pfn_mapped
+Date: Thu, 7 Mar 2013 21:10:59 -0800
+Message-ID: <20130308051059.GC14556@mtj.dyndns.org>
 References: <1362718720-27048-1-git-send-email-yinghai@kernel.org>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1362718720-27048-1-git-send-email-yinghai@kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@elte.hu>, "H. Peter Anvin" <hpa@zytor.com>, Andrew Morton <akpm@linux-foundation.org>, Thomas Renninger <trenn@suse.de>, Tang Chen <tangchen@cn.fujitsu.com>
-Cc: linux-kernel@vger.kernel.org, Yinghai Lu <yinghai@kernel.org>, "Rafael J. Wysocki" <rjw@sisk.pl>, linux-acpi@vger.kernel.org
+	<1362718720-27048-2-git-send-email-yinghai@kernel.org>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <dri-devel-bounces+sf-dri-devel=m.gmane.org@lists.freedesktop.org>
+Content-Disposition: inline
+In-Reply-To: <1362718720-27048-2-git-send-email-yinghai@kernel.org>
+List-Unsubscribe: <http://lists.freedesktop.org/mailman/options/dri-devel>,
+	<mailto:dri-devel-request@lists.freedesktop.org?subject=unsubscribe>
+List-Archive: <http://lists.freedesktop.org/archives/dri-devel>
+List-Post: <mailto:dri-devel@lists.freedesktop.org>
+List-Help: <mailto:dri-devel-request@lists.freedesktop.org?subject=help>
+List-Subscribe: <http://lists.freedesktop.org/mailman/listinfo/dri-devel>,
+	<mailto:dri-devel-request@lists.freedesktop.org?subject=subscribe>
+Sender: dri-devel-bounces+sf-dri-devel=m.gmane.org@lists.freedesktop.org
+Errors-To: dri-devel-bounces+sf-dri-devel=m.gmane.org@lists.freedesktop.org
+To: Yinghai Lu <yinghai@kernel.org>
+Cc: Andrew Morton <akpm@linux-foundation.org>, Daniel Vetter <daniel.vetter@ffwll.ch>, Ingo Molnar <mingo@elte.hu>, Jacob Shin <jacob.shin@amd.com>, linux-kernel@vger.kernel.org, dri-devel@lists.freedesktop.org, Tang Chen <tangchen@cn.fujitsu.com>, "Rafael J. Wysocki" <rjw@sisk.pl>, linux-acpi@vger.kernel.org, "H. Peter Anvin" <hpa@zytor.com>, Thomas Gleixner <tglx@linutronix.de>, Thomas Renninger <trenn@suse.de>
 List-Id: linux-acpi@vger.kernel.org
 
-As later 32bit only find table with phys address during 32bit flat mode
-in head_32.S.
+On Thu, Mar 07, 2013 at 08:58:27PM -0800, Yinghai Lu wrote:
+> diff --git a/drivers/gpu/drm/i915/i915_gem_stolen.c b/drivers/gpu/drm/i915/i915_gem_stolen.c
+> index 69d97cb..7f9380b 100644
+> --- a/drivers/gpu/drm/i915/i915_gem_stolen.c
+> +++ b/drivers/gpu/drm/i915/i915_gem_stolen.c
+> @@ -81,7 +81,7 @@ static unsigned long i915_stolen_to_physical(struct drm_device *dev)
+>  		base -= dev_priv->mm.gtt->stolen_size;
+>  	} else {
+>  		/* Stolen is immediately above Top of Memory */
+> -		base = max_low_pfn_mapped << PAGE_SHIFT;
+> +		base = __REMOVED_CRAZY__ << PAGE_SHIFT;
 
-To keep 32bit and 64 bit consistent, use phys_addr for all.
+Huh?
 
-Use early_ioremap to access during copying.
-
-Signed-off-by: Yinghai Lu <yinghai@kernel.org>
-Cc: Thomas Renninger <trenn@suse.de>
-Cc: Rafael J. Wysocki <rjw@sisk.pl>
-Cc: linux-acpi@vger.kernel.org
----
- drivers/acpi/osl.c |   11 +++++++----
- 1 file changed, 7 insertions(+), 4 deletions(-)
-
-diff --git a/drivers/acpi/osl.c b/drivers/acpi/osl.c
-index b9d2ff0..60317ea 100644
---- a/drivers/acpi/osl.c
-+++ b/drivers/acpi/osl.c
-@@ -616,7 +616,7 @@ void __init acpi_initrd_override_find(void *data, size_t size)
- 			table->signature, cpio_path, file.name, table->length);
- 
- 		all_tables_size += table->length;
--		early_initrd_files[table_nr].data = file.data;
-+		early_initrd_files[table_nr].data = (void *)__pa(file.data);
- 		early_initrd_files[table_nr].size = file.size;
- 		table_nr++;
- 	}
-@@ -625,7 +625,7 @@ void __init acpi_initrd_override_find(void *data, size_t size)
- void __init acpi_initrd_override_copy(void)
- {
- 	int no, total_offset = 0;
--	char *p;
-+	char *p, *q;
- 
- 	if (!table_nr)
- 		return;
-@@ -654,10 +654,13 @@ void __init acpi_initrd_override_copy(void)
- 	arch_reserve_mem_area(acpi_tables_addr, all_tables_size);
- 
- 	for (no = 0; no < table_nr; no++) {
--		size_t size = early_initrd_files[no].size;
-+		unsigned long size = early_initrd_files[no].size;
- 
- 		p = early_ioremap(acpi_tables_addr + total_offset, size);
--		memcpy(p, early_initrd_files[no].data, size);
-+		q = early_ioremap((unsigned long)early_initrd_files[no].data,
-+					 size);
-+		memcpy(p, q, size);
-+		early_iounmap(q, size);
- 		early_iounmap(p, size);
- 		total_offset += size;
- 	}
 -- 
-1.7.10.4
+tejun
