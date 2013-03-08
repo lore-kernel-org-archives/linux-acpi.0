@@ -1,13 +1,13 @@
 From: Lv Zheng <lv.zheng@intel.com>
-Subject: [PATCH 11/21] ACPICA: Regression fix: reinstate safe exit macros
-Date: Fri,  8 Mar 2013 17:22:23 +0800
-Message-ID: <b4476d6b91289c7e3c66a0098fc9f77d516c7fce.1361292877.git.lv.zheng@intel.com>
+Subject: [PATCH 12/21] ACPICA: Add macros to exception code definitions
+Date: Fri,  8 Mar 2013 17:22:31 +0800
+Message-ID: <8a9b76435214c4073e4a20de73d6de28b8561ab1.1361292877.git.lv.zheng@intel.com>
 References: <cover.1361292877.git.lv.zheng@intel.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga09.intel.com ([134.134.136.24]:62590 "EHLO mga09.intel.com"
+Received: from mga11.intel.com ([192.55.52.93]:6419 "EHLO mga11.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S933331Ab3CHJWf (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 8 Mar 2013 04:22:35 -0500
+	id S933331Ab3CHJWn (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 8 Mar 2013 04:22:43 -0500
 In-Reply-To: <cover.1361292877.git.lv.zheng@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
@@ -16,379 +16,256 @@ Cc: linux-acpi@vger.kernel.org, Lv Zheng <lv.zheng@intel.com>
 
 From: Bob Moore <robert.moore@intel.com>
 
-Removal caused a regression on at least FreeBSD. This fix
-reinstates the macros.
+Simplifies the definitions of new and existing codes.
 
 Signed-off-by: Bob Moore <robert.moore@intel.com>
 Signed-off-by: Lv Zheng <lv.zheng@intel.com>
 ---
- drivers/acpi/acpica/dsutils.c   |   10 ++++----
- drivers/acpi/acpica/evgpe.c     |    6 ++---
- drivers/acpi/acpica/evsci.c     |    4 +--
- drivers/acpi/acpica/exprep.c    |    4 +--
- drivers/acpi/acpica/exutils.c   |    4 +--
- drivers/acpi/acpica/hwacpi.c    |   10 ++++----
- drivers/acpi/acpica/nsutils.c   |    8 +++---
- drivers/acpi/acpica/psargs.c    |    2 +-
- drivers/acpi/acpica/utaddress.c |    4 +--
- include/acpi/acoutput.h         |   53 ++++++++++++++++++++++++++++++---------
- 10 files changed, 67 insertions(+), 38 deletions(-)
+ include/acpi/acexcep.h |  192 ++++++++++++++++++++++++++----------------------
+ 1 file changed, 103 insertions(+), 89 deletions(-)
 
-diff --git a/drivers/acpi/acpica/dsutils.c b/drivers/acpi/acpica/dsutils.c
-index 4d8c992..9977899 100644
---- a/drivers/acpi/acpica/dsutils.c
-+++ b/drivers/acpi/acpica/dsutils.c
-@@ -178,7 +178,7 @@ acpi_ds_is_result_used(union acpi_parse_object * op,
+diff --git a/include/acpi/acexcep.h b/include/acpi/acexcep.h
+index 9bf59d0..3e6b163 100644
+--- a/include/acpi/acexcep.h
++++ b/include/acpi/acexcep.h
+@@ -44,8 +44,10 @@
+ #ifndef __ACEXCEP_H__
+ #define __ACEXCEP_H__
  
- 	if (!op) {
- 		ACPI_ERROR((AE_INFO, "Null Op"));
--		return_VALUE(TRUE);
-+		return_UINT8(TRUE);
- 	}
- 
- 	/*
-@@ -210,7 +210,7 @@ acpi_ds_is_result_used(union acpi_parse_object * op,
- 				  "At Method level, result of [%s] not used\n",
- 				  acpi_ps_get_opcode_name(op->common.
- 							  aml_opcode)));
--		return_VALUE(FALSE);
-+		return_UINT8(FALSE);
- 	}
- 
- 	/* Get info on the parent. The root_op is AML_SCOPE */
-@@ -219,7 +219,7 @@ acpi_ds_is_result_used(union acpi_parse_object * op,
- 	    acpi_ps_get_opcode_info(op->common.parent->common.aml_opcode);
- 	if (parent_info->class == AML_CLASS_UNKNOWN) {
- 		ACPI_ERROR((AE_INFO, "Unknown parent opcode Op=%p", op));
--		return_VALUE(FALSE);
-+		return_UINT8(FALSE);
- 	}
- 
- 	/*
-@@ -307,7 +307,7 @@ acpi_ds_is_result_used(union acpi_parse_object * op,
- 			  acpi_ps_get_opcode_name(op->common.parent->common.
- 						  aml_opcode), op));
- 
--	return_VALUE(TRUE);
-+	return_UINT8(TRUE);
- 
-       result_not_used:
- 	ACPI_DEBUG_PRINT((ACPI_DB_DISPATCH,
-@@ -316,7 +316,7 @@ acpi_ds_is_result_used(union acpi_parse_object * op,
- 			  acpi_ps_get_opcode_name(op->common.parent->common.
- 						  aml_opcode), op));
- 
--	return_VALUE(FALSE);
-+	return_UINT8(FALSE);
- }
- 
- /*******************************************************************************
-diff --git a/drivers/acpi/acpica/evgpe.c b/drivers/acpi/acpica/evgpe.c
-index b9adb9a..a493b52 100644
---- a/drivers/acpi/acpica/evgpe.c
-+++ b/drivers/acpi/acpica/evgpe.c
-@@ -707,7 +707,7 @@ acpi_ev_gpe_dispatch(struct acpi_namespace_node *gpe_device,
- 		if (ACPI_FAILURE(status)) {
- 			ACPI_EXCEPTION((AE_INFO, status,
- 					"Unable to clear GPE%02X", gpe_number));
--			return_VALUE(ACPI_INTERRUPT_NOT_HANDLED);
-+			return_UINT32(ACPI_INTERRUPT_NOT_HANDLED);
- 		}
- 	}
- 
-@@ -724,7 +724,7 @@ acpi_ev_gpe_dispatch(struct acpi_namespace_node *gpe_device,
- 	if (ACPI_FAILURE(status)) {
- 		ACPI_EXCEPTION((AE_INFO, status,
- 				"Unable to disable GPE%02X", gpe_number));
--		return_VALUE(ACPI_INTERRUPT_NOT_HANDLED);
-+		return_UINT32(ACPI_INTERRUPT_NOT_HANDLED);
- 	}
- 
- 	/*
-@@ -784,7 +784,7 @@ acpi_ev_gpe_dispatch(struct acpi_namespace_node *gpe_device,
- 		break;
- 	}
- 
--	return_VALUE(ACPI_INTERRUPT_HANDLED);
-+	return_UINT32(ACPI_INTERRUPT_HANDLED);
- }
- 
- #endif				/* !ACPI_REDUCED_HARDWARE */
-diff --git a/drivers/acpi/acpica/evsci.c b/drivers/acpi/acpica/evsci.c
-index f4b43be..b905acf 100644
---- a/drivers/acpi/acpica/evsci.c
-+++ b/drivers/acpi/acpica/evsci.c
-@@ -89,7 +89,7 @@ static u32 ACPI_SYSTEM_XFACE acpi_ev_sci_xrupt_handler(void *context)
- 	 */
- 	interrupt_handled |= acpi_ev_gpe_detect(gpe_xrupt_list);
- 
--	return_VALUE(interrupt_handled);
-+	return_UINT32(interrupt_handled);
- }
- 
- /*******************************************************************************
-@@ -120,7 +120,7 @@ u32 ACPI_SYSTEM_XFACE acpi_ev_gpe_xrupt_handler(void *context)
- 
- 	interrupt_handled |= acpi_ev_gpe_detect(gpe_xrupt_list);
- 
--	return_VALUE(interrupt_handled);
-+	return_UINT32(interrupt_handled);
- }
- 
- /******************************************************************************
-diff --git a/drivers/acpi/acpica/exprep.c b/drivers/acpi/acpica/exprep.c
-index d6eab81..6b728ae 100644
---- a/drivers/acpi/acpica/exprep.c
-+++ b/drivers/acpi/acpica/exprep.c
-@@ -276,7 +276,7 @@ acpi_ex_decode_field_access(union acpi_operand_object *obj_desc,
- 		/* Invalid field access type */
- 
- 		ACPI_ERROR((AE_INFO, "Unknown field access type 0x%X", access));
--		return_VALUE(0);
-+		return_UINT32(0);
- 	}
- 
- 	if (obj_desc->common.type == ACPI_TYPE_BUFFER_FIELD) {
-@@ -289,7 +289,7 @@ acpi_ex_decode_field_access(union acpi_operand_object *obj_desc,
- 	}
- 
- 	*return_byte_alignment = byte_alignment;
--	return_VALUE(bit_length);
-+	return_UINT32(bit_length);
- }
- 
- /*******************************************************************************
-diff --git a/drivers/acpi/acpica/exutils.c b/drivers/acpi/acpica/exutils.c
-index b205cbb..99dc7b2 100644
---- a/drivers/acpi/acpica/exutils.c
-+++ b/drivers/acpi/acpica/exutils.c
-@@ -340,7 +340,7 @@ static u32 acpi_ex_digits_needed(u64 value, u32 base)
- 	/* u64 is unsigned, so we don't worry about a '-' prefix */
- 
- 	if (value == 0) {
--		return_VALUE(1);
-+		return_UINT32(1);
- 	}
- 
- 	current_value = value;
-@@ -354,7 +354,7 @@ static u32 acpi_ex_digits_needed(u64 value, u32 base)
- 		num_digits++;
- 	}
- 
--	return_VALUE(num_digits);
-+	return_UINT32(num_digits);
- }
- 
- /*******************************************************************************
-diff --git a/drivers/acpi/acpica/hwacpi.c b/drivers/acpi/acpica/hwacpi.c
-index 9b02a9f..579c3a5 100644
---- a/drivers/acpi/acpica/hwacpi.c
-+++ b/drivers/acpi/acpica/hwacpi.c
-@@ -155,7 +155,7 @@ u32 acpi_hw_get_mode(void)
- 	/* If the Hardware Reduced flag is set, machine is always in acpi mode */
- 
- 	if (acpi_gbl_reduced_hardware) {
--		return_VALUE(ACPI_SYS_MODE_ACPI);
-+		return_UINT32(ACPI_SYS_MODE_ACPI);
- 	}
- 
- 	/*
-@@ -163,18 +163,18 @@ u32 acpi_hw_get_mode(void)
- 	 * system does not support mode transition.
- 	 */
- 	if (!acpi_gbl_FADT.smi_command) {
--		return_VALUE(ACPI_SYS_MODE_ACPI);
-+		return_UINT32(ACPI_SYS_MODE_ACPI);
- 	}
- 
- 	status = acpi_read_bit_register(ACPI_BITREG_SCI_ENABLE, &value);
- 	if (ACPI_FAILURE(status)) {
--		return_VALUE(ACPI_SYS_MODE_LEGACY);
-+		return_UINT32(ACPI_SYS_MODE_LEGACY);
- 	}
- 
- 	if (value) {
--		return_VALUE(ACPI_SYS_MODE_ACPI);
-+		return_UINT32(ACPI_SYS_MODE_ACPI);
- 	} else {
--		return_VALUE(ACPI_SYS_MODE_LEGACY);
-+		return_UINT32(ACPI_SYS_MODE_LEGACY);
- 	}
- }
- 
-diff --git a/drivers/acpi/acpica/nsutils.c b/drivers/acpi/acpica/nsutils.c
-index 686420d..2808586 100644
---- a/drivers/acpi/acpica/nsutils.c
-+++ b/drivers/acpi/acpica/nsutils.c
-@@ -112,10 +112,10 @@ acpi_object_type acpi_ns_get_type(struct acpi_namespace_node * node)
- 
- 	if (!node) {
- 		ACPI_WARNING((AE_INFO, "Null Node parameter"));
--		return_VALUE(ACPI_TYPE_ANY);
-+		return_UINT8(ACPI_TYPE_ANY);
- 	}
- 
--	return_VALUE(node->type);
-+	return_UINT8(node->type);
- }
- 
- /*******************************************************************************
-@@ -140,10 +140,10 @@ u32 acpi_ns_local(acpi_object_type type)
- 		/* Type code out of range  */
- 
- 		ACPI_WARNING((AE_INFO, "Invalid Object Type 0x%X", type));
--		return_VALUE(ACPI_NS_NORMAL);
-+		return_UINT32(ACPI_NS_NORMAL);
- 	}
- 
--	return_VALUE(acpi_gbl_ns_properties[type] & ACPI_NS_LOCAL);
-+	return_UINT32(acpi_gbl_ns_properties[type] & ACPI_NS_LOCAL);
- }
- 
- /*******************************************************************************
-diff --git a/drivers/acpi/acpica/psargs.c b/drivers/acpi/acpica/psargs.c
-index f51308c..9f25a3d 100644
---- a/drivers/acpi/acpica/psargs.c
-+++ b/drivers/acpi/acpica/psargs.c
-@@ -108,7 +108,7 @@ acpi_ps_get_next_package_length(struct acpi_parse_state *parser_state)
- 	/* Byte 0 is a special case, either bits [0:3] or [0:5] are used */
- 
- 	package_length |= (aml[0] & byte_zero_mask);
--	return_VALUE(package_length);
-+	return_UINT32(package_length);
- }
- 
- /*******************************************************************************
-diff --git a/drivers/acpi/acpica/utaddress.c b/drivers/acpi/acpica/utaddress.c
-index 698b9d3..e0a2e27 100644
---- a/drivers/acpi/acpica/utaddress.c
-+++ b/drivers/acpi/acpica/utaddress.c
-@@ -214,7 +214,7 @@ acpi_ut_check_address_range(acpi_adr_space_type space_id,
- 
- 	if ((space_id != ACPI_ADR_SPACE_SYSTEM_MEMORY) &&
- 	    (space_id != ACPI_ADR_SPACE_SYSTEM_IO)) {
--		return_VALUE(0);
-+		return_UINT32(0);
- 	}
- 
- 	range_info = acpi_gbl_address_range_list[space_id];
-@@ -256,7 +256,7 @@ acpi_ut_check_address_range(acpi_adr_space_type space_id,
- 		range_info = range_info->next;
- 	}
- 
--	return_VALUE(overlap_count);
-+	return_UINT32(overlap_count);
- }
- 
- /*******************************************************************************
-diff --git a/include/acpi/acoutput.h b/include/acpi/acoutput.h
-index 9885276..4f52ea7 100644
---- a/include/acpi/acoutput.h
-+++ b/include/acpi/acoutput.h
-@@ -324,9 +324,9 @@
- 
- /* Helper macro */
- 
--#define ACPI_TRACE_ENTRY(name, function, cast, param) \
-+#define ACPI_TRACE_ENTRY(name, function, type, param) \
- 	ACPI_FUNCTION_NAME (name) \
--	function (ACPI_DEBUG_PARAMETERS, cast (param))
-+	function (ACPI_DEBUG_PARAMETERS, (type) (param))
- 
- /* The actual entry trace macros */
- 
-@@ -335,13 +335,13 @@
- 	acpi_ut_trace (ACPI_DEBUG_PARAMETERS)
- 
- #define ACPI_FUNCTION_TRACE_PTR(name, pointer) \
--	ACPI_TRACE_ENTRY (name, acpi_ut_trace_ptr, (void *), pointer)
-+	ACPI_TRACE_ENTRY (name, acpi_ut_trace_ptr, void *, pointer)
- 
- #define ACPI_FUNCTION_TRACE_U32(name, value) \
--	ACPI_TRACE_ENTRY (name, acpi_ut_trace_u32, (u32), value)
-+	ACPI_TRACE_ENTRY (name, acpi_ut_trace_u32, u32, value)
- 
- #define ACPI_FUNCTION_TRACE_STR(name, string) \
--	ACPI_TRACE_ENTRY (name, acpi_ut_trace_str, (char *), string)
-+	ACPI_TRACE_ENTRY (name, acpi_ut_trace_str, char *, string)
- 
- #define ACPI_FUNCTION_ENTRY() \
- 	acpi_ut_track_stack_ptr()
-@@ -355,16 +355,37 @@
-  *
-  * One of the FUNCTION_TRACE macros above must be used in conjunction
-  * with these macros so that "_AcpiFunctionName" is defined.
-+ *
-+ * There are two versions of most of the return macros. The default version is
-+ * safer, since it avoids side-effects by guaranteeing that the argument will
-+ * not be evaluated twice.
-+ *
-+ * A less-safe version of the macros is provided for optional use if the
-+ * compiler uses excessive CPU stack (for example, this may happen in the
-+ * debug case if code optimzation is disabled.)
++/* This module contains all possible exception codes for acpi_status */
++
+ /*
+- * Exceptions returned by external ACPI interfaces
++ * Exception code classes
   */
+ #define AE_CODE_ENVIRONMENTAL           0x0000
+ #define AE_CODE_PROGRAMMER              0x1000
+@@ -55,6 +57,18 @@
+ #define AE_CODE_MAX                     0x4000
+ #define AE_CODE_MASK                    0xF000
  
- /* Exit trace helper macro */
- 
--#define ACPI_TRACE_EXIT(function, cast, param) \
-+#ifndef ACPI_SIMPLE_RETURN_MACROS
++/*
++ * Macros to insert the exception code classes
++ */
++#define EXCEP_ENV(code)                 ((acpi_status) (code | AE_CODE_ENVIRONMENTAL))
++#define EXCEP_PGM(code)                 ((acpi_status) (code | AE_CODE_PROGRAMMER))
++#define EXCEP_TBL(code)                 ((acpi_status) (code | AE_CODE_ACPI_TABLES))
++#define EXCEP_AML(code)                 ((acpi_status) (code | AE_CODE_AML))
++#define EXCEP_CTL(code)                 ((acpi_status) (code | AE_CODE_CONTROL))
 +
-+#define ACPI_TRACE_EXIT(function, type, param) \
-+	ACPI_DO_WHILE0 ({ \
-+		register type _param = (type) (param); \
-+		function (ACPI_DEBUG_PARAMETERS, _param); \
-+		return (_param); \
-+	})
-+
-+#else				/* Use original less-safe macros */
-+
-+#define ACPI_TRACE_EXIT(function, type, param) \
- 	ACPI_DO_WHILE0 ({ \
--		function (ACPI_DEBUG_PARAMETERS, cast (param)); \
--		return ((param)); \
-+		function (ACPI_DEBUG_PARAMETERS, (type) (param)); \
-+		return (param); \
- 	})
++/*
++ * Success is always zero, failure is non-zero
++ */
+ #define ACPI_SUCCESS(a)                 (!(a))
+ #define ACPI_FAILURE(a)                 (a)
  
-+#endif				/* ACPI_SIMPLE_RETURN_MACROS */
-+
- /* The actual exit macros */
+@@ -64,60 +78,60 @@
+ /*
+  * Environmental exceptions
+  */
+-#define AE_ERROR                        (acpi_status) (0x0001 | AE_CODE_ENVIRONMENTAL)
+-#define AE_NO_ACPI_TABLES               (acpi_status) (0x0002 | AE_CODE_ENVIRONMENTAL)
+-#define AE_NO_NAMESPACE                 (acpi_status) (0x0003 | AE_CODE_ENVIRONMENTAL)
+-#define AE_NO_MEMORY                    (acpi_status) (0x0004 | AE_CODE_ENVIRONMENTAL)
+-#define AE_NOT_FOUND                    (acpi_status) (0x0005 | AE_CODE_ENVIRONMENTAL)
+-#define AE_NOT_EXIST                    (acpi_status) (0x0006 | AE_CODE_ENVIRONMENTAL)
+-#define AE_ALREADY_EXISTS               (acpi_status) (0x0007 | AE_CODE_ENVIRONMENTAL)
+-#define AE_TYPE                         (acpi_status) (0x0008 | AE_CODE_ENVIRONMENTAL)
+-#define AE_NULL_OBJECT                  (acpi_status) (0x0009 | AE_CODE_ENVIRONMENTAL)
+-#define AE_NULL_ENTRY                   (acpi_status) (0x000A | AE_CODE_ENVIRONMENTAL)
+-#define AE_BUFFER_OVERFLOW              (acpi_status) (0x000B | AE_CODE_ENVIRONMENTAL)
+-#define AE_STACK_OVERFLOW               (acpi_status) (0x000C | AE_CODE_ENVIRONMENTAL)
+-#define AE_STACK_UNDERFLOW              (acpi_status) (0x000D | AE_CODE_ENVIRONMENTAL)
+-#define AE_NOT_IMPLEMENTED              (acpi_status) (0x000E | AE_CODE_ENVIRONMENTAL)
+-#define AE_SUPPORT                      (acpi_status) (0x000F | AE_CODE_ENVIRONMENTAL)
+-#define AE_LIMIT                        (acpi_status) (0x0010 | AE_CODE_ENVIRONMENTAL)
+-#define AE_TIME                         (acpi_status) (0x0011 | AE_CODE_ENVIRONMENTAL)
+-#define AE_ACQUIRE_DEADLOCK             (acpi_status) (0x0012 | AE_CODE_ENVIRONMENTAL)
+-#define AE_RELEASE_DEADLOCK             (acpi_status) (0x0013 | AE_CODE_ENVIRONMENTAL)
+-#define AE_NOT_ACQUIRED                 (acpi_status) (0x0014 | AE_CODE_ENVIRONMENTAL)
+-#define AE_ALREADY_ACQUIRED             (acpi_status) (0x0015 | AE_CODE_ENVIRONMENTAL)
+-#define AE_NO_HARDWARE_RESPONSE         (acpi_status) (0x0016 | AE_CODE_ENVIRONMENTAL)
+-#define AE_NO_GLOBAL_LOCK               (acpi_status) (0x0017 | AE_CODE_ENVIRONMENTAL)
+-#define AE_ABORT_METHOD                 (acpi_status) (0x0018 | AE_CODE_ENVIRONMENTAL)
+-#define AE_SAME_HANDLER                 (acpi_status) (0x0019 | AE_CODE_ENVIRONMENTAL)
+-#define AE_NO_HANDLER                   (acpi_status) (0x001A | AE_CODE_ENVIRONMENTAL)
+-#define AE_OWNER_ID_LIMIT               (acpi_status) (0x001B | AE_CODE_ENVIRONMENTAL)
+-#define AE_NOT_CONFIGURED               (acpi_status) (0x001C | AE_CODE_ENVIRONMENTAL)
++#define AE_ERROR                        EXCEP_ENV (0x0001)
++#define AE_NO_ACPI_TABLES               EXCEP_ENV (0x0002)
++#define AE_NO_NAMESPACE                 EXCEP_ENV (0x0003)
++#define AE_NO_MEMORY                    EXCEP_ENV (0x0004)
++#define AE_NOT_FOUND                    EXCEP_ENV (0x0005)
++#define AE_NOT_EXIST                    EXCEP_ENV (0x0006)
++#define AE_ALREADY_EXISTS               EXCEP_ENV (0x0007)
++#define AE_TYPE                         EXCEP_ENV (0x0008)
++#define AE_NULL_OBJECT                  EXCEP_ENV (0x0009)
++#define AE_NULL_ENTRY                   EXCEP_ENV (0x000A)
++#define AE_BUFFER_OVERFLOW              EXCEP_ENV (0x000B)
++#define AE_STACK_OVERFLOW               EXCEP_ENV (0x000C)
++#define AE_STACK_UNDERFLOW              EXCEP_ENV (0x000D)
++#define AE_NOT_IMPLEMENTED              EXCEP_ENV (0x000E)
++#define AE_SUPPORT                      EXCEP_ENV (0x000F)
++#define AE_LIMIT                        EXCEP_ENV (0x0010)
++#define AE_TIME                         EXCEP_ENV (0x0011)
++#define AE_ACQUIRE_DEADLOCK             EXCEP_ENV (0x0012)
++#define AE_RELEASE_DEADLOCK             EXCEP_ENV (0x0013)
++#define AE_NOT_ACQUIRED                 EXCEP_ENV (0x0014)
++#define AE_ALREADY_ACQUIRED             EXCEP_ENV (0x0015)
++#define AE_NO_HARDWARE_RESPONSE         EXCEP_ENV (0x0016)
++#define AE_NO_GLOBAL_LOCK               EXCEP_ENV (0x0017)
++#define AE_ABORT_METHOD                 EXCEP_ENV (0x0018)
++#define AE_SAME_HANDLER                 EXCEP_ENV (0x0019)
++#define AE_NO_HANDLER                   EXCEP_ENV (0x001A)
++#define AE_OWNER_ID_LIMIT               EXCEP_ENV (0x001B)
++#define AE_NOT_CONFIGURED               EXCEP_ENV (0x001C)
  
- #define return_VOID \
-@@ -374,13 +395,19 @@
- 	})
+ #define AE_CODE_ENV_MAX                 0x001C
  
- #define return_ACPI_STATUS(status) \
--	ACPI_TRACE_EXIT (acpi_ut_status_exit, (acpi_status), status)
-+	ACPI_TRACE_EXIT (acpi_ut_status_exit, acpi_status, status)
+ /*
+  * Programmer exceptions
+  */
+-#define AE_BAD_PARAMETER                (acpi_status) (0x0001 | AE_CODE_PROGRAMMER)
+-#define AE_BAD_CHARACTER                (acpi_status) (0x0002 | AE_CODE_PROGRAMMER)
+-#define AE_BAD_PATHNAME                 (acpi_status) (0x0003 | AE_CODE_PROGRAMMER)
+-#define AE_BAD_DATA                     (acpi_status) (0x0004 | AE_CODE_PROGRAMMER)
+-#define AE_BAD_HEX_CONSTANT             (acpi_status) (0x0005 | AE_CODE_PROGRAMMER)
+-#define AE_BAD_OCTAL_CONSTANT           (acpi_status) (0x0006 | AE_CODE_PROGRAMMER)
+-#define AE_BAD_DECIMAL_CONSTANT         (acpi_status) (0x0007 | AE_CODE_PROGRAMMER)
+-#define AE_MISSING_ARGUMENTS            (acpi_status) (0x0008 | AE_CODE_PROGRAMMER)
+-#define AE_BAD_ADDRESS                  (acpi_status) (0x0009 | AE_CODE_PROGRAMMER)
++#define AE_BAD_PARAMETER                EXCEP_PGM (0x0001)
++#define AE_BAD_CHARACTER                EXCEP_PGM (0x0002)
++#define AE_BAD_PATHNAME                 EXCEP_PGM (0x0003)
++#define AE_BAD_DATA                     EXCEP_PGM (0x0004)
++#define AE_BAD_HEX_CONSTANT             EXCEP_PGM (0x0005)
++#define AE_BAD_OCTAL_CONSTANT           EXCEP_PGM (0x0006)
++#define AE_BAD_DECIMAL_CONSTANT         EXCEP_PGM (0x0007)
++#define AE_MISSING_ARGUMENTS            EXCEP_PGM (0x0008)
++#define AE_BAD_ADDRESS                  EXCEP_PGM (0x0009)
  
- #define return_PTR(pointer) \
--	ACPI_TRACE_EXIT (acpi_ut_ptr_exit, (u8 *), pointer)
-+	ACPI_TRACE_EXIT (acpi_ut_ptr_exit, void *, pointer)
+ #define AE_CODE_PGM_MAX                 0x0009
  
- #define return_VALUE(value) \
--	ACPI_TRACE_EXIT (acpi_ut_value_exit, (u64), value)
-+	ACPI_TRACE_EXIT (acpi_ut_value_exit, u64, value)
-+
-+#define return_UINT32(value) \
-+	ACPI_TRACE_EXIT (acpi_ut_value_exit, u32, value)
-+
-+#define return_UINT8(value) \
-+	ACPI_TRACE_EXIT (acpi_ut_value_exit, u8, value)
+ /*
+  * Acpi table exceptions
+  */
+-#define AE_BAD_SIGNATURE                (acpi_status) (0x0001 | AE_CODE_ACPI_TABLES)
+-#define AE_BAD_HEADER                   (acpi_status) (0x0002 | AE_CODE_ACPI_TABLES)
+-#define AE_BAD_CHECKSUM                 (acpi_status) (0x0003 | AE_CODE_ACPI_TABLES)
+-#define AE_BAD_VALUE                    (acpi_status) (0x0004 | AE_CODE_ACPI_TABLES)
+-#define AE_INVALID_TABLE_LENGTH         (acpi_status) (0x0005 | AE_CODE_ACPI_TABLES)
++#define AE_BAD_SIGNATURE                EXCEP_TBL (0x0001)
++#define AE_BAD_HEADER                   EXCEP_TBL (0x0002)
++#define AE_BAD_CHECKSUM                 EXCEP_TBL (0x0003)
++#define AE_BAD_VALUE                    EXCEP_TBL (0x0004)
++#define AE_INVALID_TABLE_LENGTH         EXCEP_TBL (0x0005)
  
- /* Conditional execution */
+ #define AE_CODE_TBL_MAX                 0x0005
  
-@@ -428,8 +455,10 @@
+@@ -125,58 +139,58 @@
+  * AML exceptions. These are caused by problems with
+  * the actual AML byte stream
+  */
+-#define AE_AML_BAD_OPCODE               (acpi_status) (0x0001 | AE_CODE_AML)
+-#define AE_AML_NO_OPERAND               (acpi_status) (0x0002 | AE_CODE_AML)
+-#define AE_AML_OPERAND_TYPE             (acpi_status) (0x0003 | AE_CODE_AML)
+-#define AE_AML_OPERAND_VALUE            (acpi_status) (0x0004 | AE_CODE_AML)
+-#define AE_AML_UNINITIALIZED_LOCAL      (acpi_status) (0x0005 | AE_CODE_AML)
+-#define AE_AML_UNINITIALIZED_ARG        (acpi_status) (0x0006 | AE_CODE_AML)
+-#define AE_AML_UNINITIALIZED_ELEMENT    (acpi_status) (0x0007 | AE_CODE_AML)
+-#define AE_AML_NUMERIC_OVERFLOW         (acpi_status) (0x0008 | AE_CODE_AML)
+-#define AE_AML_REGION_LIMIT             (acpi_status) (0x0009 | AE_CODE_AML)
+-#define AE_AML_BUFFER_LIMIT             (acpi_status) (0x000A | AE_CODE_AML)
+-#define AE_AML_PACKAGE_LIMIT            (acpi_status) (0x000B | AE_CODE_AML)
+-#define AE_AML_DIVIDE_BY_ZERO           (acpi_status) (0x000C | AE_CODE_AML)
+-#define AE_AML_BAD_NAME                 (acpi_status) (0x000D | AE_CODE_AML)
+-#define AE_AML_NAME_NOT_FOUND           (acpi_status) (0x000E | AE_CODE_AML)
+-#define AE_AML_INTERNAL                 (acpi_status) (0x000F | AE_CODE_AML)
+-#define AE_AML_INVALID_SPACE_ID         (acpi_status) (0x0010 | AE_CODE_AML)
+-#define AE_AML_STRING_LIMIT             (acpi_status) (0x0011 | AE_CODE_AML)
+-#define AE_AML_NO_RETURN_VALUE          (acpi_status) (0x0012 | AE_CODE_AML)
+-#define AE_AML_METHOD_LIMIT             (acpi_status) (0x0013 | AE_CODE_AML)
+-#define AE_AML_NOT_OWNER                (acpi_status) (0x0014 | AE_CODE_AML)
+-#define AE_AML_MUTEX_ORDER              (acpi_status) (0x0015 | AE_CODE_AML)
+-#define AE_AML_MUTEX_NOT_ACQUIRED       (acpi_status) (0x0016 | AE_CODE_AML)
+-#define AE_AML_INVALID_RESOURCE_TYPE    (acpi_status) (0x0017 | AE_CODE_AML)
+-#define AE_AML_INVALID_INDEX            (acpi_status) (0x0018 | AE_CODE_AML)
+-#define AE_AML_REGISTER_LIMIT           (acpi_status) (0x0019 | AE_CODE_AML)
+-#define AE_AML_NO_WHILE                 (acpi_status) (0x001A | AE_CODE_AML)
+-#define AE_AML_ALIGNMENT                (acpi_status) (0x001B | AE_CODE_AML)
+-#define AE_AML_NO_RESOURCE_END_TAG      (acpi_status) (0x001C | AE_CODE_AML)
+-#define AE_AML_BAD_RESOURCE_VALUE       (acpi_status) (0x001D | AE_CODE_AML)
+-#define AE_AML_CIRCULAR_REFERENCE       (acpi_status) (0x001E | AE_CODE_AML)
+-#define AE_AML_BAD_RESOURCE_LENGTH      (acpi_status) (0x001F | AE_CODE_AML)
+-#define AE_AML_ILLEGAL_ADDRESS          (acpi_status) (0x0020 | AE_CODE_AML)
+-#define AE_AML_INFINITE_LOOP            (acpi_status) (0x0021 | AE_CODE_AML)
++#define AE_AML_BAD_OPCODE               EXCEP_AML (0x0001)
++#define AE_AML_NO_OPERAND               EXCEP_AML (0x0002)
++#define AE_AML_OPERAND_TYPE             EXCEP_AML (0x0003)
++#define AE_AML_OPERAND_VALUE            EXCEP_AML (0x0004)
++#define AE_AML_UNINITIALIZED_LOCAL      EXCEP_AML (0x0005)
++#define AE_AML_UNINITIALIZED_ARG        EXCEP_AML (0x0006)
++#define AE_AML_UNINITIALIZED_ELEMENT    EXCEP_AML (0x0007)
++#define AE_AML_NUMERIC_OVERFLOW         EXCEP_AML (0x0008)
++#define AE_AML_REGION_LIMIT             EXCEP_AML (0x0009)
++#define AE_AML_BUFFER_LIMIT             EXCEP_AML (0x000A)
++#define AE_AML_PACKAGE_LIMIT            EXCEP_AML (0x000B)
++#define AE_AML_DIVIDE_BY_ZERO           EXCEP_AML (0x000C)
++#define AE_AML_BAD_NAME                 EXCEP_AML (0x000D)
++#define AE_AML_NAME_NOT_FOUND           EXCEP_AML (0x000E)
++#define AE_AML_INTERNAL                 EXCEP_AML (0x000F)
++#define AE_AML_INVALID_SPACE_ID         EXCEP_AML (0x0010)
++#define AE_AML_STRING_LIMIT             EXCEP_AML (0x0011)
++#define AE_AML_NO_RETURN_VALUE          EXCEP_AML (0x0012)
++#define AE_AML_METHOD_LIMIT             EXCEP_AML (0x0013)
++#define AE_AML_NOT_OWNER                EXCEP_AML (0x0014)
++#define AE_AML_MUTEX_ORDER              EXCEP_AML (0x0015)
++#define AE_AML_MUTEX_NOT_ACQUIRED       EXCEP_AML (0x0016)
++#define AE_AML_INVALID_RESOURCE_TYPE    EXCEP_AML (0x0017)
++#define AE_AML_INVALID_INDEX            EXCEP_AML (0x0018)
++#define AE_AML_REGISTER_LIMIT           EXCEP_AML (0x0019)
++#define AE_AML_NO_WHILE                 EXCEP_AML (0x001A)
++#define AE_AML_ALIGNMENT                EXCEP_AML (0x001B)
++#define AE_AML_NO_RESOURCE_END_TAG      EXCEP_AML (0x001C)
++#define AE_AML_BAD_RESOURCE_VALUE       EXCEP_AML (0x001D)
++#define AE_AML_CIRCULAR_REFERENCE       EXCEP_AML (0x001E)
++#define AE_AML_BAD_RESOURCE_LENGTH      EXCEP_AML (0x001F)
++#define AE_AML_ILLEGAL_ADDRESS          EXCEP_AML (0x0020)
++#define AE_AML_INFINITE_LOOP            EXCEP_AML (0x0021)
  
- #define return_VOID                     return
- #define return_ACPI_STATUS(s)           return(s)
--#define return_VALUE(s)                 return(s)
- #define return_PTR(s)                   return(s)
-+#define return_VALUE(s)                 return(s)
-+#define return_UINT8(s)                 return(s)
-+#define return_UINT32(s)                return(s)
+ #define AE_CODE_AML_MAX                 0x0021
  
- #endif				/* ACPI_DEBUG_OUTPUT */
+ /*
+  * Internal exceptions used for control
+  */
+-#define AE_CTRL_RETURN_VALUE            (acpi_status) (0x0001 | AE_CODE_CONTROL)
+-#define AE_CTRL_PENDING                 (acpi_status) (0x0002 | AE_CODE_CONTROL)
+-#define AE_CTRL_TERMINATE               (acpi_status) (0x0003 | AE_CODE_CONTROL)
+-#define AE_CTRL_TRUE                    (acpi_status) (0x0004 | AE_CODE_CONTROL)
+-#define AE_CTRL_FALSE                   (acpi_status) (0x0005 | AE_CODE_CONTROL)
+-#define AE_CTRL_DEPTH                   (acpi_status) (0x0006 | AE_CODE_CONTROL)
+-#define AE_CTRL_END                     (acpi_status) (0x0007 | AE_CODE_CONTROL)
+-#define AE_CTRL_TRANSFER                (acpi_status) (0x0008 | AE_CODE_CONTROL)
+-#define AE_CTRL_BREAK                   (acpi_status) (0x0009 | AE_CODE_CONTROL)
+-#define AE_CTRL_CONTINUE                (acpi_status) (0x000A | AE_CODE_CONTROL)
+-#define AE_CTRL_SKIP                    (acpi_status) (0x000B | AE_CODE_CONTROL)
+-#define AE_CTRL_PARSE_CONTINUE          (acpi_status) (0x000C | AE_CODE_CONTROL)
+-#define AE_CTRL_PARSE_PENDING           (acpi_status) (0x000D | AE_CODE_CONTROL)
++#define AE_CTRL_RETURN_VALUE            EXCEP_CTL (0x0001)
++#define AE_CTRL_PENDING                 EXCEP_CTL (0x0002)
++#define AE_CTRL_TERMINATE               EXCEP_CTL (0x0003)
++#define AE_CTRL_TRUE                    EXCEP_CTL (0x0004)
++#define AE_CTRL_FALSE                   EXCEP_CTL (0x0005)
++#define AE_CTRL_DEPTH                   EXCEP_CTL (0x0006)
++#define AE_CTRL_END                     EXCEP_CTL (0x0007)
++#define AE_CTRL_TRANSFER                EXCEP_CTL (0x0008)
++#define AE_CTRL_BREAK                   EXCEP_CTL (0x0009)
++#define AE_CTRL_CONTINUE                EXCEP_CTL (0x000A)
++#define AE_CTRL_SKIP                    EXCEP_CTL (0x000B)
++#define AE_CTRL_PARSE_CONTINUE          EXCEP_CTL (0x000C)
++#define AE_CTRL_PARSE_PENDING           EXCEP_CTL (0x000D)
+ 
+ #define AE_CODE_CTRL_MAX                0x000D
  
 -- 
 1.7.10
