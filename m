@@ -1,121 +1,87 @@
 From: Yinghai Lu <yinghai@kernel.org>
-Subject: Re: [PATCH 04/14] x86, ACPI: make acpi override finding work with
- 32bit flat mode
-Date: Thu, 7 Mar 2013 22:57:21 -0800
-Message-ID: <CAE9FiQVXOC71BGSK3t_xg+nP5Qq8ZKoup0sTMJDPnv-y8++=hg@mail.gmail.com>
+Subject: Re: [PATCH 05/14] x86, ACPI: Find acpi tables in initrd early at head_32.S/head64.c
+Date: Thu, 7 Mar 2013 23:02:15 -0800
+Message-ID: <CAE9FiQVeXTbLYQM=t1ZM6t7q51vvv65bicuVutbeSGZv1fT6zA@mail.gmail.com>
 References: <1362718720-27048-1-git-send-email-yinghai@kernel.org>
-	<1362718720-27048-5-git-send-email-yinghai@kernel.org>
-	<20130308055023.GF14556@mtj.dyndns.org>
+	<1362718720-27048-6-git-send-email-yinghai@kernel.org>
+	<20130308055729.GG14556@mtj.dyndns.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20130308055023.GF14556@mtj.dyndns.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Tejun Heo <tj@kernel.org>, "Yu, Fenghua" <fenghua.yu@intel.com>
-Cc: Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@elte.hu>, "H. Peter Anvin" <hpa@zytor.com>, Andrew Morton <akpm@linux-foundation.org>, Thomas Renninger <trenn@suse.de>, Tang Chen <tangchen@cn.fujitsu.com>, linux-kernel@vger.kernel.org, Pekka Enberg <penberg@kernel.org>, Jacob Shin <jacob.shin@amd.com>, "Rafael J. Wysocki" <rjw@sisk.pl>, linux-acpi@vger.kernel.org
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-oa0-f52.google.com ([209.85.219.52]:50642 "EHLO
+	mail-oa0-f52.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932697Ab3CHHCQ (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 8 Mar 2013 02:02:16 -0500
+In-Reply-To: <20130308055729.GG14556@mtj.dyndns.org>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Tejun Heo <tj@kernel.org>
+Cc: Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@elte.hu>, "H. Peter Anvin" <hpa@zytor.com>, Andrew Morton <akpm@linux-foundation.org>, Thomas Renninger <trenn@suse.de>, Tang Chen <tangchen@cn.fujitsu.com>, linux-kernel@vger.kernel.org, Pekka Enberg <penberg@kernel.org>, Jacob Shin <jacob.shin@amd.com>, "Rafael J. Wysocki" <rjw@sisk.pl>, linux-acpi@vger.kernel.org
 
-On Thu, Mar 7, 2013 at 9:50 PM, Tejun Heo <tj@kernel.org> wrote:
-> On Thu, Mar 07, 2013 at 08:58:30PM -0800, Yinghai Lu wrote:
->> We will find acpi tables in initrd during head_32.S in 32bit flat mode.
+On Thu, Mar 7, 2013 at 9:57 PM, Tejun Heo <tj@kernel.org> wrote:
+> On Thu, Mar 07, 2013 at 08:58:31PM -0800, Yinghai Lu wrote:
+>> diff --git a/arch/x86/kernel/head_32.S b/arch/x86/kernel/head_32.S
+>> index 73afd11..ca08f0e 100644
+>> --- a/arch/x86/kernel/head_32.S
+>> +++ b/arch/x86/kernel/head_32.S
+>> @@ -149,6 +149,10 @@ ENTRY(startup_32)
+>>       call load_ucode_bsp
+>>  #endif
 >>
->> So need acpi_initrd_override_find could take phys directly.
+>> +#ifdef CONFIG_ACPI_INITRD_TABLE_OVERRIDE
+>> +     call x86_acpi_override_find
+>> +#endif
 >
-> The patch description doesn't explain even half of what's going on.
+> The function is always defined.  We can probalby lose ifdef here?
 
-hope HPA could understand.
-
-Access initrd before relocate_initrd and init_memory mapping.
+just mimic microcode updating again.
 
 >
->> @@ -552,38 +552,47 @@ u8 __init acpi_table_checksum(u8 *buffer, u32 length)
->>       return sum;
+> Also, does it really have to be called from head_32.S?  No way this
+> can be done after entering C code?  It would be great if you can
+> explain overall design choices in the head message (and important
+> patches).
+
+have to be with head_32.S and it is with 32bit flat mode, so could access
+4G blow without setting page table.
+
+Will try add to more in the change log.
+
+>
+>> diff --git a/arch/x86/kernel/setup.c b/arch/x86/kernel/setup.c
+>> index 668e658..d43545a 100644
+>> --- a/arch/x86/kernel/setup.c
+>> +++ b/arch/x86/kernel/setup.c
+>> @@ -424,6 +424,32 @@ static void __init reserve_initrd(void)
 >>  }
+>>  #endif /* CONFIG_BLK_DEV_INITRD */
 >>
->> -/* All but ACPI_SIG_RSDP and ACPI_SIG_FACS: */
->> -static const char * const table_sigs[] = {
->> -     ACPI_SIG_BERT, ACPI_SIG_CPEP, ACPI_SIG_ECDT, ACPI_SIG_EINJ,
->> -     ACPI_SIG_ERST, ACPI_SIG_HEST, ACPI_SIG_MADT, ACPI_SIG_MSCT,
->> -     ACPI_SIG_SBST, ACPI_SIG_SLIT, ACPI_SIG_SRAT, ACPI_SIG_ASF,
->> -     ACPI_SIG_BOOT, ACPI_SIG_DBGP, ACPI_SIG_DMAR, ACPI_SIG_HPET,
->> -     ACPI_SIG_IBFT, ACPI_SIG_IVRS, ACPI_SIG_MCFG, ACPI_SIG_MCHI,
->> -     ACPI_SIG_SLIC, ACPI_SIG_SPCR, ACPI_SIG_SPMI, ACPI_SIG_TCPA,
->> -     ACPI_SIG_UEFI, ACPI_SIG_WAET, ACPI_SIG_WDAT, ACPI_SIG_WDDT,
->> -     ACPI_SIG_WDRT, ACPI_SIG_DSDT, ACPI_SIG_FADT, ACPI_SIG_PSDT,
->> -     ACPI_SIG_RSDT, ACPI_SIG_XSDT, ACPI_SIG_SSDT, NULL };
+>> +#ifdef CONFIG_ACPI_INITRD_TABLE_OVERRIDE
+>> +void __init x86_acpi_override_find(void)
+>> +{
+>> +     unsigned long ramdisk_image, ramdisk_size;
+>> +     unsigned char *p = NULL;
+>> +
+>> +#ifdef CONFIG_X86_32
+>> +     struct boot_params *boot_params_p;
+>> +
+>> +     boot_params_p = (struct boot_params *)__pa_symbol(&boot_params);
+>> +     ramdisk_image = boot_params_p->hdr.ramdisk_image;
+>> +     ramdisk_size  = boot_params_p->hdr.ramdisk_size;
+>> +     p = (unsigned char *)ramdisk_image;
+>> +     acpi_initrd_override_find(p, ramdisk_size, true);
+>> +#else
+>> +     ramdisk_image = get_ramdisk_image();
+>> +     ramdisk_size  = get_ramdisk_size();
+>> +     if (ramdisk_image)
+>> +             p = __va(ramdisk_image);
+>> +     acpi_initrd_override_find(p, ramdisk_size, false);
+>> +#endif
+>> +}
+>> +#else
+>> +void __init x86_acpi_override_find(void) { }
 >
-> Why is this table made a stack variable?  What's the benefit of doing
-> that?
+> And add a comment here why we're not doing static inline for the dummy
+> function?
 
-so I do need to switch global variables to phys and access it.
-
->
->>  /* Non-fatal errors: Affected tables/files are ignored */
->>  #define INVALID_TABLE(x, path, name)                                 \
->> -     { pr_err("ACPI OVERRIDE: " x " [%s%s]\n", path, name); continue; }
->> +     do { pr_err("ACPI OVERRIDE: " x " [%s%s]\n", path, name); } while (0)
->
-> Might as well rename the macro to something which indicates it's just
-> printing error message.  Urgh... who thought embedding control flow
-> directive like continue inside a macro was a good idea? :(
-
-so I removed it.
-
->
->> -void __init acpi_initrd_override_find(void *data, size_t size)
->> +void __init acpi_initrd_override_find(void *data, size_t size, bool is_phys)
->
-> Is it really necessary to make the function take both virtual and
-> physical addresses?  Can't we just make the function take phys_addr_t
-> and update everyone to call with physaddr?  Also @is_phys isn't simple
-> address switch.  It also changes error reporting.  If you're gonna
-> keep @is_phys, let's at least write up a function comment explaining
-> what's going on and why we need it.  But, really, if at all possible,
-> let's change the function to take single type of argument and
-> predicate error message printing on something else (e.g. early printk
-> initialized or whatever).
-
-yes, one for 32bit from head_32.S, phys.
-one for 64bit from head64.c. with _va.
-
-Not sure if I could use early_printk from head_32.S, as Fenghua does
-not print out
-from microcode updating early in the same parts.
-
-Will check that.
-
->
->> @@ -654,11 +677,14 @@ void __init acpi_initrd_override_copy(void)
->>       arch_reserve_mem_area(acpi_tables_addr, all_tables_size);
->>
->>       for (no = 0; no < table_nr; no++) {
->> +             unsigned long phys_addr = (unsigned long)early_initrd_files[no].data;
->
-> Can we please use phys_addr_t for physical addresses?
-
-ok.
-
->
->>               unsigned long size = early_initrd_files[no].size;
->>
->> +             q = early_ioremap(phys_addr, size);
->> +             pr_info("%4.4s ACPI table found in initrd [%#010lx-%#010lx]\n",
->> +                             ((struct acpi_table_header *)q)->signature,
->> +                             phys_addr, phys_addr + size - 1);
->
-> Maybe putting pr_info after ioremapping both p and q would be easier
-> on the eyes?
-
-ok.
-
->
->>               p = early_ioremap(acpi_tables_addr + total_offset, size);
->> -             q = early_ioremap((unsigned long)early_initrd_files[no].data,
->> -                                      size);
->>               memcpy(p, q, size);
->>               early_iounmap(q, size);
->>               early_iounmap(p, size);
-
-Thanks
-
-Yinghai
+...
