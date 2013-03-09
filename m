@@ -1,63 +1,79 @@
-From: Peter Wu <lekensteyn@gmail.com>
-Subject: Re: [Resend][PATCH] ACPI / PM: Do not power manage devices in unknown initial states
-Date: Sat, 09 Mar 2013 13:09:20 +0100
-Message-ID: <4672880.xWXfp5ko1N@al>
-References: <3676077.i6vcpp7Nrn@vostro.rjw.lan> <2135454.ENo8eA9AXp@al> <6427459.8Ia2IB77g6@vostro.rjw.lan>
+From: Peter Hurley <peter@hurleysoftware.com>
+Subject: Re: [3.9-rc1] irq 16: nobody cared  (was [3.9-rc1] very poor
+ interrupt responses)
+Date: Sat, 09 Mar 2013 08:07:56 -0500
+Message-ID: <1362834476.7755.33.camel@thor.lan>
+References: <Pine.LNX.4.44L0.1303082116310.28403-100000@netrider.rowland.org>
+	 <1362819234.1220.1.camel@localhost.localdomain>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-we0-f176.google.com ([74.125.82.176]:61609 "EHLO
-	mail-we0-f176.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753522Ab3CIMJ0 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sat, 9 Mar 2013 07:09:26 -0500
-In-Reply-To: <6427459.8Ia2IB77g6@vostro.rjw.lan>
+Received: from mailout01.c08.mtsvc.net ([205.186.168.189]:35061 "EHLO
+	mailout01.c08.mtsvc.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932197Ab3CINIY (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sat, 9 Mar 2013 08:08:24 -0500
+In-Reply-To: <1362819234.1220.1.camel@localhost.localdomain>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>, Len Brown <lenb@kernel.org>, Mika Westerberg <mika.westerberg@linux.intel.com>
+To: Thomas Meyer <thomas@m3y3r.de>, Shawn Starr <shawn.starr@rogers.com>
+Cc: Alan Stern <stern@rowland.harvard.edu>, Kernel development list <linux-kernel@vger.kernel.org>, USB list <linux-usb@vger.kernel.org>, linux-acpi@vger.kernel.org, "Rafael J. Wysocki" <rjw@sisk.pl>, Bjorn Helgaas <bhelgaas@google.com>, linux-pci@vger.kernel.org
 
-On Friday 01 February 2013 22:44:55 Rafael J. Wysocki wrote:
-> On Friday, February 01, 2013 07:23:52 PM Peter Wu wrote:
-> > On Thursday 31 January 2013 23:32:40 Rafael J. Wysocki wrote:
-> > > In general, for ACPI device power management to work, the initial
-> > > power states of devices must be known (otherwise, we wouldn't be able
-> > > to keep track of power resources, for example).  Hence, if it is
-> > > impossible to determine the initial ACPI power states of some
-> > > devices, they can't be regarded as power-manageable using ACPI.
-> > >
-> > > 
-> > >
-> > > For this reason, modify acpi_bus_get_power_flags() to clear the
-> > > power_manageable flag if acpi_bus_init_power() fails and add some
-> > > extra fallback code to acpi_bus_init_power() to cover broken
-> > > BIOSes that provide _PS0/_PS3 without _PSC for some devices.
-> > >
-> > > 
-> > >
-> > > Verified to work on my HP nx6325 that has this problem.
-> > >
-> > > 
-> > >
-> > > Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
-> >
+[ +linux-pci, +linux-acpi, +Rafael Wysocki, +Bjorn Helgaas ]
+
+On Sat, 2013-03-09 at 09:53 +0100, Thomas Meyer wrote:
+> Am Freitag, den 08.03.2013, 21:19 -0500 schrieb Alan Stern:
+> > On Fri, 8 Mar 2013, Peter Hurley wrote:
 > > 
-> >
-> > Tested-by: Peter Wu <lekensteyn@gmail.com>
-> >
+> > > [ +linux-usb ]
+> > > 
+> > > On Fri, 2013-03-08 at 14:12 -0500, Shawn Starr wrote:
+> > > > Hello folks,
+> > > > 
+> > > > I am noticing since rc0 and now rc1, very poor interrupt handling. Keyboard response, mouse movements, display refreshing etc. General input/display sluggishness. Did something break IRQ handling somewhere? I need to validate if this happens with X not running also if it is i915 related somehow. The behavor is noticed in a console login however.
+> > > > 
+> > > > Device: Lenovo W500 laptop
+> > > 
+> > > Hi Shawn,
+> > > 
+> > > Unhandled interrupts is the problem.
+> > > 
+> > > Is the device below being id'd properly?
+> > > If you remove this device, does the problem go away?
 > > 
-> >
-> > I applied it on top of branch linux-next of repo linux-pm.
-> >
-> > 
-> >
-> > Fixes the issue I had with bbswitch in Linux 3.8. Can a backport patch be
-> > made  available for 3.8?
+> > Does either of the kernels in question have commit 0f815a0a700b (USB:
+> > UHCI: fix IRQ race during initialization)?  That commit was added to
+> > fix precisely this sort of thing.
 > 
-> Yes, after this commit enters the mainline.  Please ping me some time around
-> 3.9-rc1.
+> I think so:
+> 
+> $ git describe
+> v3.9-rc1-211-g47b3bc9
+> 
+> $ git branch --contains 0f815a0a700b
+> * master
 
-This patch does not apply on 3.8.2, any suggestions?
+This might not be caused by USB. There were a lot of changes to PCI and
+ACPI for 3.9.
+
+Probably best to each file a bug at bugzilla.kernel.org with:
+
+Last known good kernel version
+
+-- For both good and bad kernels (preferably as attachments) --
+/proc/interrupts
+lsusb
+lspci
+dmesg
+
+and reply back with the bugzilla #.
+
+It may be necessary to bisect this problem.
 
 Regards,
-Peter
+Peter Hurley
+
+PS - I know it can be difficult to get those things on the bad kernel.
+It's easier if you boot to console.
+
+
