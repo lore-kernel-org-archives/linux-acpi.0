@@ -1,64 +1,63 @@
-From: Thomas Gleixner <tglx@linutronix.de>
-Subject: Re: [PATCH 04/14] x86, ACPI: make acpi override finding work with
- 32bit flat mode
-Date: Fri, 8 Mar 2013 22:25:38 +0100 (CET)
-Message-ID: <alpine.LFD.2.02.1303082123570.22263@ionos>
-References: <1362718720-27048-1-git-send-email-yinghai@kernel.org> <1362718720-27048-5-git-send-email-yinghai@kernel.org> <20130308055023.GF14556@mtj.dyndns.org> <CAE9FiQVXOC71BGSK3t_xg+nP5Qq8ZKoup0sTMJDPnv-y8++=hg@mail.gmail.com>
+From: Peter Wu <lekensteyn@gmail.com>
+Subject: Re: [Resend][PATCH] ACPI / PM: Do not power manage devices in unknown initial states
+Date: Sat, 09 Mar 2013 13:09:20 +0100
+Message-ID: <4672880.xWXfp5ko1N@al>
+References: <3676077.i6vcpp7Nrn@vostro.rjw.lan> <2135454.ENo8eA9AXp@al> <6427459.8Ia2IB77g6@vostro.rjw.lan>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7Bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from www.linutronix.de ([62.245.132.108]:56742 "EHLO
-	Galois.linutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756158Ab3CHV0A (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 8 Mar 2013 16:26:00 -0500
-In-Reply-To: <CAE9FiQVXOC71BGSK3t_xg+nP5Qq8ZKoup0sTMJDPnv-y8++=hg@mail.gmail.com>
+Received: from mail-we0-f176.google.com ([74.125.82.176]:61609 "EHLO
+	mail-we0-f176.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753522Ab3CIMJ0 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sat, 9 Mar 2013 07:09:26 -0500
+In-Reply-To: <6427459.8Ia2IB77g6@vostro.rjw.lan>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Yinghai Lu <yinghai@kernel.org>
-Cc: Tejun Heo <tj@kernel.org>, "Yu, Fenghua" <fenghua.yu@intel.com>, Ingo Molnar <mingo@elte.hu>, "H. Peter Anvin" <hpa@zytor.com>, Andrew Morton <akpm@linux-foundation.org>, Thomas Renninger <trenn@suse.de>, Tang Chen <tangchen@cn.fujitsu.com>, linux-kernel@vger.kernel.org, Pekka Enberg <penberg@kernel.org>, Jacob Shin <jacob.shin@amd.com>, "Rafael J. Wysocki" <rjw@sisk.pl>, linux-acpi@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>, Len Brown <lenb@kernel.org>, Mika Westerberg <mika.westerberg@linux.intel.com>
 
-Yinghai,
-
-On Thu, 7 Mar 2013, Yinghai Lu wrote:
-
-> On Thu, Mar 7, 2013 at 9:50 PM, Tejun Heo <tj@kernel.org> wrote:
-> > On Thu, Mar 07, 2013 at 08:58:30PM -0800, Yinghai Lu wrote:
-> >> We will find acpi tables in initrd during head_32.S in 32bit flat mode.
-> >>
-> >> So need acpi_initrd_override_find could take phys directly.
+On Friday 01 February 2013 22:44:55 Rafael J. Wysocki wrote:
+> On Friday, February 01, 2013 07:23:52 PM Peter Wu wrote:
+> > On Thursday 31 January 2013 23:32:40 Rafael J. Wysocki wrote:
+> > > In general, for ACPI device power management to work, the initial
+> > > power states of devices must be known (otherwise, we wouldn't be able
+> > > to keep track of power resources, for example).  Hence, if it is
+> > > impossible to determine the initial ACPI power states of some
+> > > devices, they can't be regarded as power-manageable using ACPI.
+> > >
+> > > 
+> > >
+> > > For this reason, modify acpi_bus_get_power_flags() to clear the
+> > > power_manageable flag if acpi_bus_init_power() fails and add some
+> > > extra fallback code to acpi_bus_init_power() to cover broken
+> > > BIOSes that provide _PS0/_PS3 without _PSC for some devices.
+> > >
+> > > 
+> > >
+> > > Verified to work on my HP nx6325 that has this problem.
+> > >
+> > > 
+> > >
+> > > Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 > >
-> > The patch description doesn't explain even half of what's going on.
+> > 
+> >
+> > Tested-by: Peter Wu <lekensteyn@gmail.com>
+> >
+> > 
+> >
+> > I applied it on top of branch linux-next of repo linux-pm.
+> >
+> > 
+> >
+> > Fixes the issue I had with bbswitch in Linux 3.8. Can a backport patch be
+> > made  available for 3.8?
 > 
-> hope HPA could understand.
+> Yes, after this commit enters the mainline.  Please ping me some time around
+> 3.9-rc1.
 
-What the heck? Is HPA your personal decryptor?
+This patch does not apply on 3.8.2, any suggestions?
 
-I'm really tired of this nonsense. There is a track record of people
-complaining about your completely useless and sloppy changelogs and
-your unwillingness to properly explain and discuss your patches.
-
-Just to make it clear. We all are able and willing to cope with
-developers who are not native english speakers and have limited
-language skills. I'm rewriting changelogs on a regular base without
-complaining about that.
-
-But that's not the problem at hand. I met you personally at KS and
-found out that your english skills are not those of the random Chinese
-person. You just prefer to hide your excellent language skills behind
-your Chinese name.
-
-That's an utter waste of time and resources!
-
-Please grow up and use your language and technical skills in a way
-which does not offend the people you need to interact with.
-
-Seriously, if you can't convince yourself that a proper communication
-with maintainers and other developers is a primary task, please don't
-be surprised if you end up on the /dev/null filters and auto-NAK bots
-of quite a bunch of affected people.
-
-That would be a sad outcome, really. But that's solely your decision.
-
-Thanks,
-
-	tglx
+Regards,
+Peter
