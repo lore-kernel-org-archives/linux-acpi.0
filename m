@@ -1,79 +1,48 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: [PATCH v2] Xen/ACPI: support sleep state entering on hardware reduced systems
-Date: Mon, 11 Mar 2013 17:58:06 +0100
-Message-ID: <3753630.geZXHDrzrL@vostro.rjw.lan>
-References: <513DB68E02000078000C4864@nat28.tlf.novell.com> <2127236.DctbS7jp3r@vostro.rjw.lan> <513E108A02000078000C4AB3@nat28.tlf.novell.com>
+From: Fabio Valentini <fafatheone@gmail.com>
+Subject: [PATCH] acpi: fix suspend and resume on Sony Vaio VGN-FW21M
+Date: Mon, 11 Mar 2013 20:16:34 +0100
+Message-ID: <1363029394.3138.3.camel@fafadora.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from hydra.sisk.pl ([212.160.235.94]:51810 "EHLO hydra.sisk.pl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752815Ab3CKQvF (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 11 Mar 2013 12:51:05 -0400
-In-Reply-To: <513E108A02000078000C4AB3@nat28.tlf.novell.com>
+Received: from mail-ee0-f46.google.com ([74.125.83.46]:54242 "EHLO
+	mail-ee0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751468Ab3CKTQk (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 11 Mar 2013 15:16:40 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Jan Beulich <JBeulich@suse.com>
-Cc: Bob Moore <robert.moore@intel.com>, Gang Wei <gang.wei@intel.com>, Lv Zheng <lv.zheng@intel.com>, richard.l.maliszewski@intel.com, Shane Wang <shane.wang@intel.com>, "tboot-devel@lists.sourceforge.net" <tboot-devel@lists.sourceforge.net>, xen-devel <xen-devel@lists.xen.org>, Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>, linux-acpi@vger.kernel.org
+To: rjw@sisk.pl
+Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 
-On Monday, March 11, 2013 04:12:42 PM Jan Beulich wrote:
-> >>> On 11.03.13 at 15:51, "Rafael J. Wysocki" <rjw@sisk.pl> wrote:
-> > On Monday, March 11, 2013 02:06:51 PM Jan Beulich wrote:
-> >> In version 3.4 acpi_os_prepare_sleep() got introduced in parallel with
-> >> reduced hardware sleep support, and the two changes didn't get
-> >> synchronized: The new code doesn't call the hook function (if so
-> >> requested). Fix this, requiring a boolean parameter to be added to the
-> >> hook function to distinguish "extended" from "legacy" sleep.
-> >> 
-> >> This requires adjusting TXT, but the adjustments only go as far as
-> >> failing the extended mode call (since, looking at the TXT interface,
-> >> there doesn't even appear to be precautions to deal with that
-> >> alternative interface).
-> >> 
-> >> The hypervisor change underlying this is commit 62d1a69 ("ACPI: support
-> >> v5 (reduced HW) sleep interface") on the master branch of
-> >> git://xenbits.xen.org/xen.git.
-> >> 
-> >> Signed-off-by: Jan Beulich <jbeulich@suse.com>
-> >> Cc: Richard L Maliszewski <richard.l.maliszewski@intel.com>
-> >> Cc: Gang Wei <gang.wei@intel.com>
-> >> Cc: Shane Wang <shane.wang@intel.com>
-> >> ---
-> >> v2: Extend description to include reference to hypervisor side change.
-> >> 
-> >> ---
-> >>  arch/x86/kernel/tboot.c          |    6 +++++-
-> >>  drivers/acpi/acpica/hwesleep.c   |    8 ++++++++
-> >>  drivers/acpi/acpica/hwsleep.c    |    2 +-
-> >>  drivers/acpi/osl.c               |   16 ++++++++--------
-> >>  drivers/xen/acpi.c               |   26 +++++++++++++-------------
-> >>  include/linux/acpi.h             |   10 +++++-----
-> >>  include/xen/acpi.h               |    4 ++--
-> >>  include/xen/interface/platform.h |    7 ++++---
-> >>  8 files changed, 46 insertions(+), 33 deletions(-)
-> > 
-> > ACPICA changes (hwesleep.c and hwsleep.c) need to go separately and through 
-> > the
-> > upstream ACPICA before we can take them into the kernel.  Sorry about that.
-> 
-> Looking at 09f98a8 (the change originally introducing the hook)
-> and comparing with the rest of the changes to hwsleep.c, I would
-> think this one didn't come from the ACPICA tree either.
+    From: Fabio Valentini <fafatheone@gmail.com>
 
-No, it didn't, but the policy has changed since then.
+    Add Sony Vaio VGN-FW21M to the device blacklist in drivers/acpi/sleep.c.
+    Fixes suspend/resume on this device (device no longer reboots instead of resuming).
+    Bugzilla: https://bugzilla.kernel.org/show_bug.cgi?id=55001
 
-> But anyway - if I really need to do that, are there any pointers as
-> to where to submit this to, and how to make sure it gets picked up
-> rather sooner than later?
+    Signed-off-by: Fabio Valentini <fafatheone@gmail.com>
+---
+    Patch applies cleanly to latest master (3.9-rc2) and stable (3.8.2).
+     drivers/acpi/sleep.c | 8 ++++++++
+     1 file changed, 8 insertions(+)
 
-You can submit it to linux-acpi as before, but as separate patches and please
-CC me and Bob Moore on that submission.
-
-Thanks,
-Rafael
+--- linux/drivers/acpi/sleep.c.orig	2013-03-09 16:46:41.407984555 +0100
++++ linux/drivers/acpi/sleep.c	2013-03-09 16:49:03.693005658 +0100
+@@ -193,6 +193,14 @@ static struct dmi_system_id __initdata a
+ 	},
+ 	{
+ 	.callback = init_nvs_nosave,
++	.ident = "Sony Vaio VGN-FW21M",
++	.matches = {
++		DMI_MATCH(DMI_SYS_VENDOR, "Sony Corporation"),
++		DMI_MATCH(DMI_PRODUCT_NAME, "VGN-FW21M"),
++		},
++	},
++	{
++	.callback = init_nvs_nosave,
+ 	.ident = "Sony Vaio VPCEB17FX",
+ 	.matches = {
+ 		DMI_MATCH(DMI_SYS_VENDOR, "Sony Corporation"),
 
 
--- 
-I speak only for myself.
-Rafael J. Wysocki, Intel Open Source Technology Center.
