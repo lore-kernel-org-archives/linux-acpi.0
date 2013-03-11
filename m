@@ -1,48 +1,52 @@
-From: Fabio Valentini <fafatheone@gmail.com>
-Subject: [PATCH] acpi: fix suspend and resume on Sony Vaio VGN-FW21M
-Date: Mon, 11 Mar 2013 20:16:34 +0100
-Message-ID: <1363029394.3138.3.camel@fafadora.lan>
+From: Daniel Vetter <daniel@ffwll.ch>
+Subject: Re: [PATCH 01/14] x86, ACPI, mm: Kill max_low_pfn_mapped
+Date: Mon, 11 Mar 2013 23:50:48 +0100
+Message-ID: <20130311225048.GA3872@bremse>
+References: <1362718720-27048-1-git-send-email-yinghai@kernel.org>
+ <1362718720-27048-2-git-send-email-yinghai@kernel.org>
+ <20130308051059.GC14556@mtj.dyndns.org>
+ <CAE9FiQVMjm7P28XLYGQ675we2+dU+H6rJK2eiO+FFeynYefJHA@mail.gmail.com>
+ <CAOS58YOwSjHyFfAfaY_o3YZKhD-p2gc78ZGrc4N5_NCg+ZVu1A@mail.gmail.com>
+ <CAE9FiQVFvg2M5A5Se5pys5yquNSZeOTV=s4YgLwr6QH_6=nY_w@mail.gmail.com>
+ <CAOS58YNy_Rhg8M_7Qbgyutz68Q67i9R00rTuVy6CyZaFV1MSgA@mail.gmail.com>
+ <51398096.1060304@zytor.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-ee0-f46.google.com ([74.125.83.46]:54242 "EHLO
-	mail-ee0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751468Ab3CKTQk (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 11 Mar 2013 15:16:40 -0400
+Received: from mail-ia0-f177.google.com ([209.85.210.177]:51488 "EHLO
+	mail-ia0-f177.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753506Ab3CKWvK (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 11 Mar 2013 18:51:10 -0400
+Received: by mail-ia0-f177.google.com with SMTP id y25so4208426iay.22
+        for <linux-acpi@vger.kernel.org>; Mon, 11 Mar 2013 15:51:09 -0700 (PDT)
+Content-Disposition: inline
+In-Reply-To: <51398096.1060304@zytor.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: rjw@sisk.pl
-Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+To: "H. Peter Anvin" <hpa@zytor.com>
+Cc: Tejun Heo <tj@kernel.org>, Yinghai Lu <yinghai@kernel.org>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@elte.hu>, Andrew Morton <akpm@linux-foundation.org>, Thomas Renninger <trenn@suse.de>, Tang Chen <tangchen@cn.fujitsu.com>, linux-kernel@vger.kernel.org, "Rafael J. Wysocki" <rjw@sisk.pl>, Daniel Vetter <daniel.vetter@ffwll.ch>, David Airlie <airlied@linux.ie>, Jacob Shin <jacob.shin@amd.com>, linux-acpi@vger.kernel.org, dri-devel@lists.freedesktop.org
 
-    From: Fabio Valentini <fafatheone@gmail.com>
+On Thu, Mar 07, 2013 at 10:09:26PM -0800, H. Peter Anvin wrote:
+> On 03/07/2013 09:28 PM, Tejun Heo wrote:
+> > On Thu, Mar 7, 2013 at 9:27 PM, Yinghai Lu <yinghai@kernel.org> wrote:
+> >> They are not using memblock_find_in_range(), so 1ULL<< will not help.
+> >>
+> >> Really hope i915 drm guys could clean that hacks.
+> > 
+> > The code isn't being used.  Just leave it alone.  Maybe add a comment.
+> >  The change is just making things more confusing.
+> > 
+> 
+> Indeed, but...
+> 
+> Daniel: can you guys clean this up or can we just remove the #if 0 clause?
 
-    Add Sony Vaio VGN-FW21M to the device blacklist in drivers/acpi/sleep.c.
-    Fixes suspend/resume on this device (device no longer reboots instead of resuming).
-    Bugzilla: https://bugzilla.kernel.org/show_bug.cgi?id=55001
-
-    Signed-off-by: Fabio Valentini <fafatheone@gmail.com>
----
-    Patch applies cleanly to latest master (3.9-rc2) and stable (3.8.2).
-     drivers/acpi/sleep.c | 8 ++++++++
-     1 file changed, 8 insertions(+)
-
---- linux/drivers/acpi/sleep.c.orig	2013-03-09 16:46:41.407984555 +0100
-+++ linux/drivers/acpi/sleep.c	2013-03-09 16:49:03.693005658 +0100
-@@ -193,6 +193,14 @@ static struct dmi_system_id __initdata a
- 	},
- 	{
- 	.callback = init_nvs_nosave,
-+	.ident = "Sony Vaio VGN-FW21M",
-+	.matches = {
-+		DMI_MATCH(DMI_SYS_VENDOR, "Sony Corporation"),
-+		DMI_MATCH(DMI_PRODUCT_NAME, "VGN-FW21M"),
-+		},
-+	},
-+	{
-+	.callback = init_nvs_nosave,
- 	.ident = "Sony Vaio VPCEB17FX",
- 	.matches = {
- 		DMI_MATCH(DMI_SYS_VENDOR, "Sony Corporation"),
-
-
+I guess we could just put this into a comment explaining where stolen
+memory for the gfx devices is at on gen2. But tbh I don't mind if we just
+keep the #if 0 code around. For all newer platforms we can get at that
+offset through mch bar registers, so I don't really care.
+-Daniel
+-- 
+Daniel Vetter
+Software Engineer, Intel Corporation
++41 (0) 79 365 57 48 - http://blog.ffwll.ch
