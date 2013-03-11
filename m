@@ -1,7 +1,7 @@
-From: Daniel Vetter <daniel@ffwll.ch>
+From: Chris Wilson <chris@chris-wilson.co.uk>
 Subject: Re: [PATCH 01/14] x86, ACPI, mm: Kill max_low_pfn_mapped
-Date: Mon, 11 Mar 2013 23:50:48 +0100
-Message-ID: <20130311225048.GA3872@bremse>
+Date: Mon, 11 Mar 2013 23:09:02 +0000
+Message-ID: <20130311230902.GC18499@cantiga.alporthouse.com>
 References: <1362718720-27048-1-git-send-email-yinghai@kernel.org>
  <1362718720-27048-2-git-send-email-yinghai@kernel.org>
  <20130308051059.GC14556@mtj.dyndns.org>
@@ -10,43 +10,47 @@ References: <1362718720-27048-1-git-send-email-yinghai@kernel.org>
  <CAE9FiQVFvg2M5A5Se5pys5yquNSZeOTV=s4YgLwr6QH_6=nY_w@mail.gmail.com>
  <CAOS58YNy_Rhg8M_7Qbgyutz68Q67i9R00rTuVy6CyZaFV1MSgA@mail.gmail.com>
  <51398096.1060304@zytor.com>
+ <20130311225048.GA3872@bremse>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-ia0-f177.google.com ([209.85.210.177]:51488 "EHLO
-	mail-ia0-f177.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753506Ab3CKWvK (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 11 Mar 2013 18:51:10 -0400
-Received: by mail-ia0-f177.google.com with SMTP id y25so4208426iay.22
-        for <linux-acpi@vger.kernel.org>; Mon, 11 Mar 2013 15:51:09 -0700 (PDT)
+Received: from mga03.intel.com ([143.182.124.21]:20283 "EHLO mga03.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753839Ab3CKXJK (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 11 Mar 2013 19:09:10 -0400
 Content-Disposition: inline
-In-Reply-To: <51398096.1060304@zytor.com>
+In-Reply-To: <20130311225048.GA3872@bremse>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "H. Peter Anvin" <hpa@zytor.com>
-Cc: Tejun Heo <tj@kernel.org>, Yinghai Lu <yinghai@kernel.org>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@elte.hu>, Andrew Morton <akpm@linux-foundation.org>, Thomas Renninger <trenn@suse.de>, Tang Chen <tangchen@cn.fujitsu.com>, linux-kernel@vger.kernel.org, "Rafael J. Wysocki" <rjw@sisk.pl>, Daniel Vetter <daniel.vetter@ffwll.ch>, David Airlie <airlied@linux.ie>, Jacob Shin <jacob.shin@amd.com>, linux-acpi@vger.kernel.org, dri-devel@lists.freedesktop.org
+To: "H. Peter Anvin" <hpa@zytor.com>, Tejun Heo <tj@kernel.org>, Yinghai Lu <yinghai@kernel.org>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@elte.hu>, Andrew Morton <akpm@linux-foundation.org>, Thomas Renninger <trenn@suse.de>, Tang Chen <tangchen@cn.fujitsu.com>, linux-kernel@vger.kernel.org, "Rafael J. Wysocki" <rjw@sisk.pl>, David Airlie <airlied@linux.ie>, Jacob Shin <jacob.shin@amd.com>, linux-acpi@vger.kernel.org, dri-devel@lists.freedesktop.org
 
-On Thu, Mar 07, 2013 at 10:09:26PM -0800, H. Peter Anvin wrote:
-> On 03/07/2013 09:28 PM, Tejun Heo wrote:
-> > On Thu, Mar 7, 2013 at 9:27 PM, Yinghai Lu <yinghai@kernel.org> wrote:
-> >> They are not using memblock_find_in_range(), so 1ULL<< will not help.
-> >>
-> >> Really hope i915 drm guys could clean that hacks.
+On Mon, Mar 11, 2013 at 11:50:48PM +0100, Daniel Vetter wrote:
+> On Thu, Mar 07, 2013 at 10:09:26PM -0800, H. Peter Anvin wrote:
+> > On 03/07/2013 09:28 PM, Tejun Heo wrote:
+> > > On Thu, Mar 7, 2013 at 9:27 PM, Yinghai Lu <yinghai@kernel.org> wrote:
+> > >> They are not using memblock_find_in_range(), so 1ULL<< will not help.
+> > >>
+> > >> Really hope i915 drm guys could clean that hacks.
+> > > 
+> > > The code isn't being used.  Just leave it alone.  Maybe add a comment.
+> > >  The change is just making things more confusing.
+> > > 
 > > 
-> > The code isn't being used.  Just leave it alone.  Maybe add a comment.
-> >  The change is just making things more confusing.
+> > Indeed, but...
 > > 
+> > Daniel: can you guys clean this up or can we just remove the #if 0 clause?
 > 
-> Indeed, but...
-> 
-> Daniel: can you guys clean this up or can we just remove the #if 0 clause?
+> I guess we could just put this into a comment explaining where stolen
+> memory for the gfx devices is at on gen2. But tbh I don't mind if we just
+> keep the #if 0 code around. For all newer platforms we can get at that
+> offset through mch bar registers, so I don't really care.
 
-I guess we could just put this into a comment explaining where stolen
-memory for the gfx devices is at on gen2. But tbh I don't mind if we just
-keep the #if 0 code around. For all newer platforms we can get at that
-offset through mch bar registers, so I don't really care.
--Daniel
+If you want to keep the comment accurate
+s/max_low_pfn_mapped/max_pfn_mapped/ as the machines in question don't
+support more than 4GiB anyway. Or you can help address the underlying
+issue of figuring out how we can derive the location of the stolen
+memory which is reserved by the BIOS but not communicated to the OS.
+-Chris
+
 -- 
-Daniel Vetter
-Software Engineer, Intel Corporation
-+41 (0) 79 365 57 48 - http://blog.ffwll.ch
+Chris Wilson, Intel Open Source Technology Centre
