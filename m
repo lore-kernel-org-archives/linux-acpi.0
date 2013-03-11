@@ -1,48 +1,68 @@
 From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Subject: [PATCHv2 3/5] ACPI: suppress compiler warning in battery.c
-Date: Mon, 11 Mar 2013 11:17:06 +0200
-Message-ID: <1362993428-14823-3-git-send-email-andriy.shevchenko@linux.intel.com>
-References: <1362993428-14823-1-git-send-email-andriy.shevchenko@linux.intel.com>
+Subject: Re: [PATCH] ACPI: suppress compiler warnings
+Date: Mon, 11 Mar 2013 11:20:37 +0200
+Message-ID: <1362993637.28241.179.camel@smile>
+References: <1362748991-17863-1-git-send-email-andriy.shevchenko@linux.intel.com>
+	 <2201683.kMNYfgVRi1@vostro.rjw.lan>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga03.intel.com ([143.182.124.21]:39079 "EHLO mga03.intel.com"
+Received: from mga14.intel.com ([143.182.124.37]:27344 "EHLO mga14.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753287Ab3CKJRe (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 11 Mar 2013 05:17:34 -0400
-In-Reply-To: <1362993428-14823-1-git-send-email-andriy.shevchenko@linux.intel.com>
+	id S1752861Ab3CKJUz convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 11 Mar 2013 05:20:55 -0400
+In-Reply-To: <2201683.kMNYfgVRi1@vostro.rjw.lan>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org, "Rafael J . Wysocki" <rjw@sisk.pl>
-Cc: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+To: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: linux-acpi@vger.kernel.org
 
-This patch fixes following compiler warning when build via make W=3D1:
+On Mon, 2013-03-11 at 04:31 +0100, Rafael J. Wysocki wrote:=20
+> On Friday, March 08, 2013 03:23:11 PM Andy Shevchenko wrote:
+> > This patch fixes following compiler warnings:
+> >=20
+> > drivers/acpi/csrt.c:135:116: warning: no previous prototype for =E2=
+=80=98acpi_csrt_init=E2=80=99 [-Wmissing-prototypes]
+> >=20
+> > drivers/acpi/container.c:183:116: warning: no previous prototype fo=
+r =E2=80=98acpi_container_init=E2=80=99 [-Wmissing-prototypes]
+> >=20
+> > drivers/pci/pcie/portdrv_acpi.c:34:5: warning: no previous prototyp=
+e for =E2=80=98pcie_port_acpi_setup=E2=80=99 [-Wmissing-prototypes]
+> >=20
+> > drivers/acpi/battery.c:149:52: warning: no previous prototype for =E2=
+=80=98acpi_battery_present=E2=80=99 [-Wmissing-prototypes]
+> >=20
+> > drivers/acpi/button.c:220:5: warning: no previous prototype for =E2=
+=80=98acpi_lid_notifier_register=E2=80=99 [-Wmissing-prototypes]
+> > drivers/acpi/button.c:226:5: warning: no previous prototype for =E2=
+=80=98acpi_lid_notifier_unregister=E2=80=99 [-Wmissing-prototypes]
+> > drivers/acpi/button.c:232:5: warning: no previous prototype for =E2=
+=80=98acpi_lid_open=E2=80=99 [-Wmissing-prototypes]
+> >=20
+> > drivers/acpi/processor_throttling.c: In function =E2=80=98acpi_proc=
+essor_throttling_init=E2=80=99:
+> > drivers/acpi/processor_throttling.c:216:40: warning: suggest braces=
+ around empty body in an =E2=80=98if=E2=80=99 statement [-Wempty-body]
+> >=20
+> > Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+>=20
+> Please split this into separate per-file patches.
 
-drivers/acpi/battery.c:149:52: warning: no previous prototype for =E2=80=
-=98acpi_battery_present=E2=80=99 [-Wmissing-prototypes]
+Done.
 
-Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
----
- drivers/acpi/battery.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+> Also it would be good to know what config options are triggering the =
+warnings
+> in each case.
 
-diff --git a/drivers/acpi/battery.c b/drivers/acpi/battery.c
-index c5cd5b5..0cc384b 100644
---- a/drivers/acpi/battery.c
-+++ b/drivers/acpi/battery.c
-@@ -146,7 +146,7 @@ struct acpi_battery {
-=20
- #define to_acpi_battery(x) container_of(x, struct acpi_battery, bat)
-=20
--inline int acpi_battery_present(struct acpi_battery *battery)
-+static inline int acpi_battery_present(struct acpi_battery *battery)
- {
- 	return battery->device->status.battery_present;
- }
+You mean 'compiler option', do you?
+Anyway, please, review patch v2 series.
+
+
 --=20
-1.8.2.rc0.22.gb3600c3
-
+Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Intel Finland Oy
 --
 To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
 n
