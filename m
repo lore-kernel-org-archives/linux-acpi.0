@@ -1,52 +1,251 @@
-From: "H. Peter Anvin" <hpa@zytor.com>
-Subject: Re: [PATCH 01/14] x86, ACPI, mm: Kill max_low_pfn_mapped
-Date: Mon, 11 Mar 2013 18:51:23 -0700
-Message-ID: <fd40bbee-66fd-410b-9304-7ab9c9092c15@email.android.com>
-References: <1362718720-27048-1-git-send-email-yinghai@kernel.org> <1362718720-27048-2-git-send-email-yinghai@kernel.org> <20130308051059.GC14556@mtj.dyndns.org> <CAE9FiQVMjm7P28XLYGQ675we2+dU+H6rJK2eiO+FFeynYefJHA@mail.gmail.com> <CAOS58YOwSjHyFfAfaY_o3YZKhD-p2gc78ZGrc4N5_NCg+ZVu1A@mail.gmail.com> <CAE9FiQVFvg2M5A5Se5pys5yquNSZeOTV=s4YgLwr6QH_6=nY_w@mail.gmail.com> <CAOS58YNy_Rhg8M_7Qbgyutz68Q67i9R00rTuVy6CyZaFV1MSgA@mail.gmail.com> <51398096.1060304@zytor.com> <20130311225048.GA3872@bremse>
+From: "Wei, Gang" <gang.wei@intel.com>
+Subject: RE: [PATCH v2] Xen/ACPI: support sleep state entering on hardware
+ reduced systems
+Date: Tue, 12 Mar 2013 06:39:58 +0000
+Message-ID: <D0B11485C64D4B47B66902F8A4E901BE573E5E@SHSMSX101.ccr.corp.intel.com>
+References: <513DB68E02000078000C4864@nat28.tlf.novell.com>
+ <20130311132127.GH23018@phenom.dumpdata.com>
+ <513DEAF102000078000C496E@nat28.tlf.novell.com>
+ <20130311135322.GA25036@phenom.dumpdata.com>
+ <513DF30B02000078000C49EB@nat28.tlf.novell.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
- charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Content-Type: multipart/signed; protocol="application/x-pkcs7-signature";
+	micalg=SHA1; boundary="----=_NextPart_000_009E_01CE1EB1.B9C2F750"
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from terminus.zytor.com ([198.137.202.10]:48585 "EHLO mail.zytor.com"
+Received: from mga01.intel.com ([192.55.52.88]:44783 "EHLO mga01.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753549Ab3CLB4a (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 11 Mar 2013 21:56:30 -0400
-In-Reply-To: <20130311225048.GA3872@bremse>
+	id S1753653Ab3CLGkD (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 12 Mar 2013 02:40:03 -0400
+In-Reply-To: <513DF30B02000078000C49EB@nat28.tlf.novell.com>
+Content-Language: en-US
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Daniel Vetter <daniel@ffwll.ch>
-Cc: Tejun Heo <tj@kernel.org>, Yinghai Lu <yinghai@kernel.org>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@elte.hu>, Andrew Morton <akpm@linux-foundation.org>, Thomas Renninger <trenn@suse.de>, Tang Chen <tangchen@cn.fujitsu.com>, linux-kernel@vger.kernel.org, "Rafael J. Wysocki" <rjw@sisk.pl>, Daniel Vetter <daniel.vetter@ffwll.ch>, David Airlie <airlied@linux.ie>, Jacob Shin <jacob.shin@amd.com>, linux-acpi@vger.kernel.org, dri-devel@lists.freedesktop.org
+To: Jan Beulich <JBeulich@suse.com>, Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>, "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: "Maliszewski, Richard L" <richard.l.maliszewski@intel.com>, "Wang, Shane" <shane.wang@intel.com>, "tboot-devel@lists.sourceforge.net" <tboot-devel@lists.sourceforge.net>, xen-devel <xen-devel@lists.xen.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "Wei, Gang" <gang.wei@intel.com>
 
-The problem is that the code will be broken, and so it makes no sense.  The #if 0 is really confusing.
+------=_NextPart_000_009E_01CE1EB1.B9C2F750
+Content-Type: text/plain;
+	charset="ISO-8859-1"
+Content-Transfer-Encoding: quoted-printable
 
-Daniel Vetter <daniel@ffwll.ch> wrote:
+Jan Beulich wrote on=A02013-03-11:
+> In version 3.4 acpi_os_prepare_sleep() got introduced in parallel with
+> reduced hardware sleep support, and the two changes didn't get
+> synchronized: The new code doesn't call the hook function (if so
+> requested). Fix this, requiring a boolean parameter to be added to the
+> hook function to distinguish "extended" from "legacy" sleep.
+>=20
+> This requires adjusting TXT, but the adjustments only go as far as
+> failing the extended mode call (since, looking at the TXT interface,
+> there doesn't even appear to be precautions to deal with that
+> alternative interface).
+>=20
+> The hypervisor change underlying this is commit 62d1a69 ("ACPI: =
+support
+> v5 (reduced HW) sleep interface") on the master branch of
+> git://xenbits.xen.org/xen.git.
+>=20
+> Signed-off-by: Jan Beulich <jbeulich@suse.com>
+> Cc: Richard L Maliszewski <richard.l.maliszewski@intel.com>
+> Cc: Gang Wei <gang.wei@intel.com>
+> Cc: Shane Wang <shane.wang@intel.com>
+> ---
+> v2: Extend description to include reference to hypervisor side change.
+>=20
+> ---
+>  arch/x86/kernel/tboot.c          |    6 +++++-
+>  drivers/acpi/acpica/hwesleep.c   |    8 ++++++++
+>  drivers/acpi/acpica/hwsleep.c    |    2 +-
+>  drivers/acpi/osl.c               |   16 ++++++++--------
+>  drivers/xen/acpi.c               |   26 +++++++++++++-------------
+>  include/linux/acpi.h             |   10 +++++-----
+>  include/xen/acpi.h               |    4 ++--
+>  include/xen/interface/platform.h |    7 ++++---
+>  8 files changed, 46 insertions(+), 33 deletions(-)
+> --- 3.9-rc2/arch/x86/kernel/tboot.c
+> +++ 3.9-rc2-xen-ACPI-v5-sleep/arch/x86/kernel/tboot.c
+> @@ -273,7 +273,8 @@ static void tboot_copy_fadt(const struct
+>  		offsetof(struct acpi_table_facs, firmware_waking_vector);
+>  }
+> -static int tboot_sleep(u8 sleep_state, u32 pm1a_control, u32
+pm1b_control)
+> +static int tboot_sleep(u8 sleep_state, u32 pm1a_control, u32
+pm1b_control,
+> +		       bool extended)
+>  { 	static u32 acpi_shutdown_map[ACPI_S_STATE_COUNT] =3D { 		/*
+S0,1,2: */
+>  -1, -1, -1, @@ -284,6 +285,9 @@ static int tboot_sleep(u8 =
+sleep_state,
+>  u 	if (!tboot_enabled()) 		return 0;
+> +	if (extended)
+> +		return -1;
+> +
+>  	tboot_copy_fadt(&acpi_gbl_FADT);
+>  	tboot->acpi_sinfo.pm1a_cnt_val =3D pm1a_control;
+>  	tboot->acpi_sinfo.pm1b_cnt_val =3D pm1b_control;
 
->On Thu, Mar 07, 2013 at 10:09:26PM -0800, H. Peter Anvin wrote:
->> On 03/07/2013 09:28 PM, Tejun Heo wrote:
->> > On Thu, Mar 7, 2013 at 9:27 PM, Yinghai Lu <yinghai@kernel.org>
->wrote:
->> >> They are not using memblock_find_in_range(), so 1ULL<< will not
->help.
->> >>
->> >> Really hope i915 drm guys could clean that hacks.
->> > 
->> > The code isn't being used.  Just leave it alone.  Maybe add a
->comment.
->> >  The change is just making things more confusing.
->> > 
->> 
->> Indeed, but...
->> 
->> Daniel: can you guys clean this up or can we just remove the #if 0
->clause?
->
->I guess we could just put this into a comment explaining where stolen
->memory for the gfx devices is at on gen2. But tbh I don't mind if we
->just
->keep the #if 0 code around. For all newer platforms we can get at that
->offset through mch bar registers, so I don't really care.
->-Daniel
+So looks like to make the extended way go further with TXT case other =
+than
+failing, tboot & its' interface have to be modified to support Reduced
+Hardware sleeping first, is that true?
 
--- 
-Sent from my mobile phone. Please excuse brevity and lack of formatting.
+Jimmy
+
+------=_NextPart_000_009E_01CE1EB1.B9C2F750
+Content-Type: application/pkcs7-signature; name="smime.p7s"
+Content-Transfer-Encoding: base64
+Content-Disposition: attachment; filename="smime.p7s"
+
+MIAGCSqGSIb3DQEHAqCAMIACAQExCzAJBgUrDgMCGgUAMIAGCSqGSIb3DQEHAQAAoIIdxjCCAyAw
+ggKJoAMCAQICBDXe9M8wDQYJKoZIhvcNAQEFBQAwTjELMAkGA1UEBhMCVVMxEDAOBgNVBAoTB0Vx
+dWlmYXgxLTArBgNVBAsTJEVxdWlmYXggU2VjdXJlIENlcnRpZmljYXRlIEF1dGhvcml0eTAeFw05
+ODA4MjIxNjQxNTFaFw0xODA4MjIxNjQxNTFaME4xCzAJBgNVBAYTAlVTMRAwDgYDVQQKEwdFcXVp
+ZmF4MS0wKwYDVQQLEyRFcXVpZmF4IFNlY3VyZSBDZXJ0aWZpY2F0ZSBBdXRob3JpdHkwgZ8wDQYJ
+KoZIhvcNAQEBBQADgY0AMIGJAoGBAMFdsVhnCGLuoJotHwhtkRRomAoe/toEbxOEYiHD0XzOnwXg
+uAHwTjTs4oqVBGSs8WtTXwWzy2eAv0ICjv7dAQns4QAUT/z78AzdQ7pbK+EfgHCZFVeTFvEPl2q3
+wmgjHMxNWTCsUR47ryvW7mNFe8XZX1DS41APOojnvxT94Me5AgMBAAGjggEJMIIBBTBwBgNVHR8E
+aTBnMGWgY6BhpF8wXTELMAkGA1UEBhMCVVMxEDAOBgNVBAoTB0VxdWlmYXgxLTArBgNVBAsTJEVx
+dWlmYXggU2VjdXJlIENlcnRpZmljYXRlIEF1dGhvcml0eTENMAsGA1UEAxMEQ1JMMTAaBgNVHRAE
+EzARgQ8yMDE4MDgyMjE2NDE1MVowCwYDVR0PBAQDAgEGMB8GA1UdIwQYMBaAFEjmaPkr0rKV10fY
+IyAQTzOYkJ/UMB0GA1UdDgQWBBRI5mj5K9KylddH2CMgEE8zmJCf1DAMBgNVHRMEBTADAQH/MBoG
+CSqGSIb2fQdBAAQNMAsbBVYzLjBjAwIGwDANBgkqhkiG9w0BAQUFAAOBgQBYzinq/Pfetc4CuRe1
+hdG54+CVzCUxDQCmkm5/tpJjnlCV0Zpv5BHeY4VumO6o/1rI01WyZnFX3sAh6z0qpyNJAQSGQnv8
+7n+iFlK1Z2fTQNs7JliyKHc9rhR3Ydb6KmYnoA36p3Nc6nDxlCFlRF/6/O8paKmih3nvee9PrAd3
+ODCCAz0wggKmoAMCAQICAwWw/zANBgkqhkiG9w0BAQUFADBOMQswCQYDVQQGEwJVUzEQMA4GA1UE
+ChMHRXF1aWZheDEtMCsGA1UECxMkRXF1aWZheCBTZWN1cmUgQ2VydGlmaWNhdGUgQXV0aG9yaXR5
+MB4XDTA2MDIxNjE4MDEzMFoXDTE2MDIxOTE4MDEzMFowUjELMAkGA1UEBhMCVVMxGjAYBgNVBAoT
+EUludGVsIENvcnBvcmF0aW9uMScwJQYDVQQDEx5JbnRlbCBFeHRlcm5hbCBCYXNpYyBQb2xpY3kg
+Q0EwggEiMA0GCSqGSIb3DQEBAQUAA4IBDwAwggEKAoIBAQDBpd/XOb9QVqEZ8mQ1042TdOIq3ATD
+IsV2xDyt30yLyMR5Wjtus0bn3B+he89BiNO/LP6+rFzEwlD55PlX+HLGIKeNNG97dqyc30FElEUj
+ZzTZFq2N4e3kVJ/XAEEgANzV8v9qp7qWwxugPgfc3z9BkYot+CifozexHLb/hEZj+yISCU61kRZv
+uSQ0E11yYL4dRgcglJeaHo3oX57rvIckaLsYV5/1Aj+R8DM1Ppk965XQAKsHfnyT7C4S50T4lVn4
+lz36wOdNZn/zegG1zp41lnoTFfT4KuKVJH5x7YD1p6KbgJCKLovnujGuohquBNfdXKpZkvz6pGv+
+iC1HawJdAgMBAAGjgaAwgZ0wDgYDVR0PAQH/BAQDAgEGMB0GA1UdDgQWBBQaxgxKxEdvqNutK/D0
+Vgaj7TdUDDA6BgNVHR8EMzAxMC+gLaArhilodHRwOi8vY3JsLmdlb3RydXN0LmNvbS9jcmxzL3Nl
+Y3VyZWNhLmNybDAfBgNVHSMEGDAWgBRI5mj5K9KylddH2CMgEE8zmJCf1DAPBgNVHRMBAf8EBTAD
+AQH/MA0GCSqGSIb3DQEBBQUAA4GBABMQOK2kVKVIlUWwLTdywJ+e2O+PC/uQltK2F3lRyrPfBn69
+tOkIP4SgDJOfsxyobIrPLe75kBLw+Dom13OBDp/EMZJZ1CglQfVV8co9mT3aZMjSGGQiMgkJLR3j
+Mfr900fXZKj5XeqCJ+JP0mEhJGEdVCY+FFlksJjV86fDrq1QMIIFijCCBHKgAwIBAgIKYR6AtwAA
+AAAABzANBgkqhkiG9w0BAQUFADBSMQswCQYDVQQGEwJVUzEaMBgGA1UEChMRSW50ZWwgQ29ycG9y
+YXRpb24xJzAlBgNVBAMTHkludGVsIEV4dGVybmFsIEJhc2ljIFBvbGljeSBDQTAeFw0wOTA1MTUx
+OTI1MTNaFw0xNTA1MTUxOTM1MTNaMFYxCzAJBgNVBAYTAlVTMRowGAYDVQQKExFJbnRlbCBDb3Jw
+b3JhdGlvbjErMCkGA1UEAxMiSW50ZWwgRXh0ZXJuYWwgQmFzaWMgSXNzdWluZyBDQSAzQTCCASIw
+DQYJKoZIhvcNAQEBBQADggEPADCCAQoCggEBAMGPgGLnOO5IOzlHRfr1XfCVb97V4BR2QVpPZ7Cr
+cIQ+FGa2KHD/6dPjwxOIrtFTdfW4BYikdFmxUZVBWRWZ5Vye2cCdGzFWqIEOE1e17nNx1jM8Z6GZ
+EqbDUS+vBuPlBFHKQoVm5BaNIHpyn2XZxqwjV9j5/crIfPrCGstk+2ztUhVS8OHEgzO784PgD9pO
+gBnnAbZHmEM1FYYmQ6ibS+gVCHzobDYG+YReRiHpFKWBxpUuP+X0WYFw/Ja1JW7N8pELAFDw0UFB
+WFgiv1QIusdLvSy8mcsLJ5wy050OVcxShqoUxhw/wvyuuoQxvmEPjhRa1C2oSCmGN0003GMhQWMC
+AwEAAaOCAlwwggJYMA8GA1UdEwEB/wQFMAMBAf8wHQYDVR0OBBYEFKoWZq+3PVZTYK4Nwu3z7gfL
+UWB+MAsGA1UdDwQEAwIBhjASBgkrBgEEAYI3FQEEBQIDAQABMCMGCSsGAQQBgjcVAgQWBBTCKwhT
+x+hdMsKCgOmWwLgjQsAV+TAZBgkrBgEEAYI3FAIEDB4KAFMAdQBiAEMAQTAfBgNVHSMEGDAWgBQa
+xgxKxEdvqNutK/D0Vgaj7TdUDDCBvQYDVR0fBIG1MIGyMIGvoIGsoIGphk5odHRwOi8vd3d3Lmlu
+dGVsLmNvbS9yZXBvc2l0b3J5L0NSTC9JbnRlbCUyMEV4dGVybmFsJTIwQmFzaWMlMjBQb2xpY3kl
+MjBDQS5jcmyGV2h0dHA6Ly9jZXJ0aWZpY2F0ZXMuaW50ZWwuY29tL3JlcG9zaXRvcnkvQ1JML0lu
+dGVsJTIwRXh0ZXJuYWwlMjBCYXNpYyUyMFBvbGljeSUyMENBLmNybDCB4wYIKwYBBQUHAQEEgdYw
+gdMwYwYIKwYBBQUHMAKGV2h0dHA6Ly93d3cuaW50ZWwuY29tL3JlcG9zaXRvcnkvY2VydGlmaWNh
+dGVzL0ludGVsJTIwRXh0ZXJuYWwlMjBCYXNpYyUyMFBvbGljeSUyMENBLmNydDBsBggrBgEFBQcw
+AoZgaHR0cDovL2NlcnRpZmljYXRlcy5pbnRlbC5jb20vcmVwb3NpdG9yeS9jZXJ0aWZpY2F0ZXMv
+SW50ZWwlMjBFeHRlcm5hbCUyMEJhc2ljJTIwUG9saWN5JTIwQ0EuY3J0MA0GCSqGSIb3DQEBBQUA
+A4IBAQCUY/1d0MS6VPTlIcOho1XWh193PD5kJDJSPdphLHQdM1oKA+whMdIBoY1VzTDDK+C+Ey4J
+cyna7fpC8uVmn/Rz/i9MZtyc7qezPtZTn9UyORvJmddH+Ox/RycGwe3ags8jUdspECorYOkJyZks
+nDIlTVUvbR7wyY+gGJYqxWXqrcVFEiMsWu8/OIlf7F2gAYMBw1kZ55dn4lWBIM0WqvReWpPvhYeN
+7Y+3MKEdSMkQ7TZiNbfdZ5D/8KfWNMTJ4VHltOgCL1lA5tx/F4R1920skpL5eu3Sj650RUe3rOXs
+aV5NyJzBwB31+1zsmleVdFD0k/Fw9HxXbAQE35ucN/7CMIIFijCCBHKgAwIBAgIKYSCKYgAAAAAA
+CDANBgkqhkiG9w0BAQUFADBSMQswCQYDVQQGEwJVUzEaMBgGA1UEChMRSW50ZWwgQ29ycG9yYXRp
+b24xJzAlBgNVBAMTHkludGVsIEV4dGVybmFsIEJhc2ljIFBvbGljeSBDQTAeFw0wOTA1MTUxOTI3
+MjZaFw0xNTA1MTUxOTM3MjZaMFYxCzAJBgNVBAYTAlVTMRowGAYDVQQKExFJbnRlbCBDb3Jwb3Jh
+dGlvbjErMCkGA1UEAxMiSW50ZWwgRXh0ZXJuYWwgQmFzaWMgSXNzdWluZyBDQSAzQjCCASIwDQYJ
+KoZIhvcNAQEBBQADggEPADCCAQoCggEBAKQEM1Wn9TU9vc9C+/Tc7KB+eiYElmrcEWE32WUdHvWG
++IcQHVQsikTmMyKKojNLw2B5s6Iekc8ivDo/wCfjZzX9JyftMnc+AArc0la87Olybzm8K9jXEfTB
+vTnUSFSiI9ZYefITdiUgqlAFuljFZEHYKYtLuhrRacpmQfP4mV63NKdc2bT804HRf6YptZFa4k6Y
+N94zlrGNrBuQQ74WFzz/jLBusbUpEkro6Mu/ZYFOFWQrV9lBhF9Ruk8yN+3N6n9fUo/qBigiF2kE
+n9xVh1ykl7SCGL2jBUkXx4qgV27a6Si8lRRdgrHGtN/HWnSWlLXTH5l575H4Lq++77OFv38CAwEA
+AaOCAlwwggJYMA8GA1UdEwEB/wQFMAMBAf8wHQYDVR0OBBYEFA7GKvdZsggQkCVvw939imYxMCvF
+MAsGA1UdDwQEAwIBhjASBgkrBgEEAYI3FQEEBQIDAQABMCMGCSsGAQQBgjcVAgQWBBQ5oFY2ekKQ
+/5Ktim+VdMeSWb4QWTAZBgkrBgEEAYI3FAIEDB4KAFMAdQBiAEMAQTAfBgNVHSMEGDAWgBQaxgxK
+xEdvqNutK/D0Vgaj7TdUDDCBvQYDVR0fBIG1MIGyMIGvoIGsoIGphk5odHRwOi8vd3d3LmludGVs
+LmNvbS9yZXBvc2l0b3J5L0NSTC9JbnRlbCUyMEV4dGVybmFsJTIwQmFzaWMlMjBQb2xpY3klMjBD
+QS5jcmyGV2h0dHA6Ly9jZXJ0aWZpY2F0ZXMuaW50ZWwuY29tL3JlcG9zaXRvcnkvQ1JML0ludGVs
+JTIwRXh0ZXJuYWwlMjBCYXNpYyUyMFBvbGljeSUyMENBLmNybDCB4wYIKwYBBQUHAQEEgdYwgdMw
+YwYIKwYBBQUHMAKGV2h0dHA6Ly93d3cuaW50ZWwuY29tL3JlcG9zaXRvcnkvY2VydGlmaWNhdGVz
+L0ludGVsJTIwRXh0ZXJuYWwlMjBCYXNpYyUyMFBvbGljeSUyMENBLmNydDBsBggrBgEFBQcwAoZg
+aHR0cDovL2NlcnRpZmljYXRlcy5pbnRlbC5jb20vcmVwb3NpdG9yeS9jZXJ0aWZpY2F0ZXMvSW50
+ZWwlMjBFeHRlcm5hbCUyMEJhc2ljJTIwUG9saWN5JTIwQ0EuY3J0MA0GCSqGSIb3DQEBBQUAA4IB
+AQCxtQEHchVQhXyjEqtMVUMe6gkmPsIczHxSeqNbo9dsD+6xbT65JT+oYgpIAtfEsYXeUJu1cChq
+pb22U5bMAz7eaQcW5bzefufWvA6lg2048B8oczBj/q+5P5NpYrUO8jOmN4jTjfJq3ElZ7yFWpy7r
+B3Vm/aN6ATYqWfMbS/xfh+JCxmH3droUmMJI0/aZJHsLtjbjFnNsHDNrJZX1vxlM78Lb1hjskTEN
+PmhbVbfTj5i/ZGnhv4tmI8QZPCNtcegXJrfhRl2D9bWpdTOPrWiLDUqzy1Z6KL7TcOS/PCl8RHCJ
+XkPau/thTQCpIoDa2+c+3XA++gRTfAQ4svTO260NMIIF+zCCBOOgAwIBAgIKHtX06gABAACWPTAN
+BgkqhkiG9w0BAQUFADBWMQswCQYDVQQGEwJVUzEaMBgGA1UEChMRSW50ZWwgQ29ycG9yYXRpb24x
+KzApBgNVBAMTIkludGVsIEV4dGVybmFsIEJhc2ljIElzc3VpbmcgQ0EgM0IwHhcNMTIwNjA4MDgw
+NTExWhcNMTUwNTE1MTkzNzI2WjA3MRIwEAYDVQQDEwlXZWksIEdhbmcxITAfBgkqhkiG9w0BCQEW
+Emdhbmcud2VpQGludGVsLmNvbTCCASIwDQYJKoZIhvcNAQEBBQADggEPADCCAQoCggEBALNyfS4y
+C6aDo3DZ/oId96Dvi8CB5SJyDUcMhpKWZtzqPX2mMOqQNgv4qAtHUjt4ibyPSjGZ+0EM3r63384g
+GcVR8+uxiuijBIOCkis6oGQ+TmBl1i28KobkE4jNnLCES0keisfNdzO8vAOxIFbT9KxQl1f1Mfvs
+ZfyGfFYB53gHCh1VxdZ7a2XKaON+l2YYx2p5xGGZtDDb61ajXSGvdHK+qMIfo7LMoZmY42t5Nawg
+izwcqBPUOLR+JXOtyGGiXZx3wZPeRmZx/eCMPBhSlfewpvUrK8W0kL591Lv0HeUVEJye2bOmlLo1
+DeIp6KH9JujFB33KhHXvNsugc9IYUVMCAwEAAaOCAugwggLkMAsGA1UdDwQEAwIHgDA8BgkrBgEE
+AYI3FQcELzAtBiUrBgEEAYI3FQiGw4x1hJnlUYP9gSiFjp9TgpHACWeB3r05lfBDAgFkAgEIMB0G
+A1UdDgQWBBQYdG5bBKSgjlBUQ6dpUm2vjlkEKDAfBgNVHSMEGDAWgBQOxir3WbIIEJAlb8Pd/Ypm
+MTArxTCBzwYDVR0fBIHHMIHEMIHBoIG+oIG7hldodHRwOi8vd3d3LmludGVsLmNvbS9yZXBvc2l0
+b3J5L0NSTC9JbnRlbCUyMEV4dGVybmFsJTIwQmFzaWMlMjBJc3N1aW5nJTIwQ0ElMjAzQigxKS5j
+cmyGYGh0dHA6Ly9jZXJ0aWZpY2F0ZXMuaW50ZWwuY29tL3JlcG9zaXRvcnkvQ1JML0ludGVsJTIw
+RXh0ZXJuYWwlMjBCYXNpYyUyMElzc3VpbmclMjBDQSUyMDNCKDEpLmNybDCB9QYIKwYBBQUHAQEE
+gegwgeUwbAYIKwYBBQUHMAKGYGh0dHA6Ly93d3cuaW50ZWwuY29tL3JlcG9zaXRvcnkvY2VydGlm
+aWNhdGVzL0ludGVsJTIwRXh0ZXJuYWwlMjBCYXNpYyUyMElzc3VpbmclMjBDQSUyMDNCKDEpLmNy
+dDB1BggrBgEFBQcwAoZpaHR0cDovL2NlcnRpZmljYXRlcy5pbnRlbC5jb20vcmVwb3NpdG9yeS9j
+ZXJ0aWZpY2F0ZXMvSW50ZWwlMjBFeHRlcm5hbCUyMEJhc2ljJTIwSXNzdWluZyUyMENBJTIwM0Io
+MSkuY3J0MB8GA1UdJQQYMBYGCCsGAQUFBwMEBgorBgEEAYI3CgMMMCkGCSsGAQQBgjcVCgQcMBow
+CgYIKwYBBQUHAwQwDAYKKwYBBAGCNwoDDDBBBgNVHREEOjA4oCIGCisGAQQBgjcUAgOgFAwSZ2Fu
+Zy53ZWlAaW50ZWwuY29tgRJnYW5nLndlaUBpbnRlbC5jb20wDQYJKoZIhvcNAQEFBQADggEBAHuy
+cX8AxjwfC5zmWDh0QpY8vDSgyLXaUDYKm2+ATDJDn5kALJgxAqaThvqGTH+oz73HQ7L8v7QxM0Yp
+1IQd/k5GeqMzhuXEoPM4rcORlOlvRqxBJNZUuYwxvyYaUpLU1W8EsOB2zB31ykzdXH93b6ZpfJk7
+8eqZuq00xHxU9mw4PXlWPnn1NDBYD1JH/ufCmpFk6sBE2bBf2u2miBEwHoRUyoH1nbu78aOs4mE6
+fRC9NutIriNPI2790R3FAY8dLWl3nrpXs80TrUCptat61uNRJDH06KXe81QCtvDVlBGbZ4gqWR3P
+ZGsnJKeOLOO38PQvFFm1Xjs4DVYiPVYyCTIwggZCMIIFKqADAgECAgoUmebGAAEAAFPVMA0GCSqG
+SIb3DQEBBQUAMFYxCzAJBgNVBAYTAlVTMRowGAYDVQQKExFJbnRlbCBDb3Jwb3JhdGlvbjErMCkG
+A1UEAxMiSW50ZWwgRXh0ZXJuYWwgQmFzaWMgSXNzdWluZyBDQSAzQTAeFw0xMDEyMDEwOTMxMzla
+Fw0xMzExMTUwOTMxMzlaMDcxEjAQBgNVBAMTCVdlaSwgR2FuZzEhMB8GCSqGSIb3DQEJARYSZ2Fu
+Zy53ZWlAaW50ZWwuY29tMIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAlkDjEHBe0Gg1
+dZhmebTYRY4qWGcBCKuEGfp8DuoVXyv3gW6bXc8TcWRSXj0vxL/+/RKObwVc17Cu2XcO0MTU1EOo
+ohTEl/QDnBvj0qeqKnkZGmAM0cCU7+m07N0ATPEzg0t2gJUA8dVO37iAo1KMQ72ovMJ1LU+x7tno
+d6PhrgXLmbjkEjQZnHwLvuI2TdiKKDvJtd6xz6DQuIBSPyn4wYsckGQcb5NlEiQCkCaPM/ZtcKcm
+Kxu0g1TfW7zIWuRhkPIOyin/bsN8RBTTq8lL74yFgTB4ybAMp13wtROVAN5FLYE31CAgJ69EBNix
+xTBNsLtv+KM6sXsbDccp3H5JwQIDAQABo4IDLzCCAyswCwYDVR0PBAQDAgQwMD0GCSsGAQQBgjcV
+BwQwMC4GJisGAQQBgjcVCIbDjHWEmeVRg/2BKIWOn1OCkcAJZ4S52UGHhP9OAgFkAgEMMEQGCSqG
+SIb3DQEJDwQ3MDUwDgYIKoZIhvcNAwICAgCAMA4GCCqGSIb3DQMEAgIAgDAHBgUrDgMCBzAKBggq
+hkiG9w0DBzAdBgNVHQ4EFgQUwmKbKrf26Ot7Acv/+2aZDzj7gaQwHwYDVR0jBBgwFoAUqhZmr7c9
+VlNgrg3C7fPuB8tRYH4wgc8GA1UdHwSBxzCBxDCBwaCBvqCBu4ZXaHR0cDovL3d3dy5pbnRlbC5j
+b20vcmVwb3NpdG9yeS9DUkwvSW50ZWwlMjBFeHRlcm5hbCUyMEJhc2ljJTIwSXNzdWluZyUyMENB
+JTIwM0EoMSkuY3JshmBodHRwOi8vY2VydGlmaWNhdGVzLmludGVsLmNvbS9yZXBvc2l0b3J5L0NS
+TC9JbnRlbCUyMEV4dGVybmFsJTIwQmFzaWMlMjBJc3N1aW5nJTIwQ0ElMjAzQSgxKS5jcmwwgfUG
+CCsGAQUFBwEBBIHoMIHlMGwGCCsGAQUFBzAChmBodHRwOi8vd3d3LmludGVsLmNvbS9yZXBvc2l0
+b3J5L2NlcnRpZmljYXRlcy9JbnRlbCUyMEV4dGVybmFsJTIwQmFzaWMlMjBJc3N1aW5nJTIwQ0El
+MjAzQSgxKS5jcnQwdQYIKwYBBQUHMAKGaWh0dHA6Ly9jZXJ0aWZpY2F0ZXMuaW50ZWwuY29tL3Jl
+cG9zaXRvcnkvY2VydGlmaWNhdGVzL0ludGVsJTIwRXh0ZXJuYWwlMjBCYXNpYyUyMElzc3Vpbmcl
+MjBDQSUyMDNBKDEpLmNydDAfBgNVHSUEGDAWBggrBgEFBQcDBAYKKwYBBAGCNwoDBDApBgkrBgEE
+AYI3FQoEHDAaMAoGCCsGAQUFBwMEMAwGCisGAQQBgjcKAwQwQQYDVR0RBDowOKAiBgorBgEEAYI3
+FAIDoBQMEmdhbmcud2VpQGludGVsLmNvbYESZ2FuZy53ZWlAaW50ZWwuY29tMA0GCSqGSIb3DQEB
+BQUAA4IBAQAPFjqbkKIbnvnYwFG/QpKUm2yGzieys9IJny7PU2fVV4ksTL7emcpCfhFtlg7cPEgU
+7Rx6gG4hO+ZBx9oojImSGWj44Pj3EzSyRRaN+UK1VVESHgE2HKmETsAnRN/wulP9ahPJNmEOklBg
+oX6BJg9NYTqp8gDS6m1QBQoh/C2/51MGcmTecM4g5BuEpgmvxovlPDHlnSq390NXwXtdh1lM5qbo
+V9FBWFCR1Q7mf7n2Y6b/9m9bn9gMzbdwjMrnpYIiC5rN5WBDQtuzAios8OheGSTX0A1npuGZ3cvP
+NlPbRAoD7TVAdGhr+ZztVLA0+IFYmQqHV2C8q3TybgPnp1/uMYIDhjCCA4ICAQEwZDBWMQswCQYD
+VQQGEwJVUzEaMBgGA1UEChMRSW50ZWwgQ29ycG9yYXRpb24xKzApBgNVBAMTIkludGVsIEV4dGVy
+bmFsIEJhc2ljIElzc3VpbmcgQ0EgM0ICCh7V9OoAAQAAlj0wCQYFKw4DAhoFAKCCAfcwGAYJKoZI
+hvcNAQkDMQsGCSqGSIb3DQEHATAcBgkqhkiG9w0BCQUxDxcNMTMwMzEyMDYzOTUxWjAjBgkqhkiG
+9w0BCQQxFgQUcjX0gF3skJScoTnDcA45qJ4r+vkwcwYJKwYBBAGCNxAEMWYwZDBWMQswCQYDVQQG
+EwJVUzEaMBgGA1UEChMRSW50ZWwgQ29ycG9yYXRpb24xKzApBgNVBAMTIkludGVsIEV4dGVybmFs
+IEJhc2ljIElzc3VpbmcgQ0EgM0ECChSZ5sYAAQAAU9UwdQYLKoZIhvcNAQkQAgsxZqBkMFYxCzAJ
+BgNVBAYTAlVTMRowGAYDVQQKExFJbnRlbCBDb3Jwb3JhdGlvbjErMCkGA1UEAxMiSW50ZWwgRXh0
+ZXJuYWwgQmFzaWMgSXNzdWluZyBDQSAzQQIKFJnmxgABAABT1TCBqwYJKoZIhvcNAQkPMYGdMIGa
+MAsGCWCGSAFlAwQBKjALBglghkgBZQMEARYwCgYIKoZIhvcNAwcwCwYJYIZIAWUDBAECMA4GCCqG
+SIb3DQMCAgIAgDAHBgUrDgMCBzANBggqhkiG9w0DAgIBQDANBggqhkiG9w0DAgIBKDAHBgUrDgMC
+GjALBglghkgBZQMEAgMwCwYJYIZIAWUDBAICMAsGCWCGSAFlAwQCATANBgkqhkiG9w0BAQEFAASC
+AQAA1iAVDDxKloeOaRuAhPr7gb01mioKLk1uwvfGEsL5++7jviQ4qXhoAT6u/jLZIxWHCZUcB1++
+yTgKaByxcff25Z24ZjvPuc8OCOoYFpZn6J8mCiyjjGeFuDxFfiQuTzWqWQx1RdkuvEhxIr6AlU4l
+xMXE9XcsfHDyT2iCBwWPIF4pZQAf0T3iaHLxgRjXf4NuQpR3Fke1mXGehJ/Y+Ec8/9ExZYxExqrY
+KybZB21qZNT67RAjhAZWbF2v1jsOVL9Wu4dWD+9xZ+FBIAii4CQp4pAzfyArFpYJ1Qspj+aeI1qz
+d7uyGJQb61P6KlnpR0H0NbU71nq41ADq5LksM8yvAAAAAAAA
+
+------=_NextPart_000_009E_01CE1EB1.B9C2F750--
