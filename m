@@ -1,70 +1,71 @@
 From: Toshi Kani <toshi.kani@hp.com>
-Subject: Re: [Bug fix PATCH] ACPI,acpi_memhotplug: enable
- acpi_memory_info->enabled of memory device presented at boot-time
-Date: Wed, 13 Mar 2013 08:50:13 -0600
-Message-ID: <1363186213.12845.174.camel@misato.fc.hp.com>
-References: <514022BF.3080303@jp.fujitsu.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
+Subject: [PATCH] ACPI: Verify device status after eject
+Date: Wed, 13 Mar 2013 13:29:26 -0600
+Message-ID: <1363202966-28436-1-git-send-email-toshi.kani@hp.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from g4t0017.houston.hp.com ([15.201.24.20]:6865 "EHLO
-	g4t0017.houston.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932759Ab3CMPBV (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 13 Mar 2013 11:01:21 -0400
-In-Reply-To: <514022BF.3080303@jp.fujitsu.com>
+Received: from g1t0029.austin.hp.com ([15.216.28.36]:6794 "EHLO
+	g1t0029.austin.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933232Ab3CMTko (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 13 Mar 2013 15:40:44 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
-Cc: rjw@sisk.pl, linux-acpi@vger.kernel.org, tangchen@cn.fujitsu.com, wency@cn.fujitsu.com, laijs@cn.fujitsu.com, linux-kernel@vger.kernel.org
+To: rjw@sisk.pl
+Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, yinghai@kernel.org, jiang.liu@huawei.com, isimatu.yasuaki@jp.fujitsu.com, Toshi Kani <toshi.kani@hp.com>
 
-On Wed, 2013-03-13 at 15:54 +0900, Yasuaki Ishimatsu wrote:
-> At http://marc.info/?l=linux-acpi&m=135769405622667&w=2 thread,
-> Toshi Kani mentioned as follows:
-> 
-> "I have a question about the change you made in commit 65479472 in
-> acpi_memhotplug.c.  This change seems to require that
-> acpi_memory_enable_device() calls add_memory() to add all memory ranges
-> represented by memory device objects at boot-time, and keep the results
-> be used for hot-remove.  
-> 
-> If I understand it right, this add_memory() call fails with EEXIST at
-> boot-time since all memory ranges should have been added from EFI memory
-> table (or e820) already.  This results all memory ranges be marked as !
-> enabled & !failed.  I think this means that we cannot hot-delete any
-> memory ranges presented at boot-time since acpi_memory_remove_memory()
-> only calls remove_memory() when the enabled flag is set.  Is that
-> correct?"
-> 
-> Above mention is correct. Thus even if memory device supports hotplug,
-> memory presented at boot-time cannot be hot removed since the memory
-> device's acpi_memory_info->enabled is always 0.
-> 
-> This patch changes to set 1 to "acpi_memory_info->enabled" of memory
-> device presented at boot-time for hot removing the memory device.
-> 
-> Signed-off-by: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
-> 
-> ---
->  drivers/acpi/acpi_memhotplug.c |    4 ++--
->  1 files changed, 2 insertions(+), 2 deletions(-)
-> 
-> diff --git a/drivers/acpi/acpi_memhotplug.c b/drivers/acpi/acpi_memhotplug.c
-> index da1f82b..88fd46a 100644
-> --- a/drivers/acpi/acpi_memhotplug.c
-> +++ b/drivers/acpi/acpi_memhotplug.c
-> @@ -254,8 +254,8 @@ static int acpi_memory_enable_device(struct acpi_memory_device *mem_device)
->  			continue;
->  		}
->  
-> -		if (!result)
-> -			info->enabled = 1;
-> +		info->enabled = 1;
+ACPI spec states that the OS evaluates _STA after calling _EJ0
+in order to verify if eject was successful.  Added a check to
+verify if the enabled bit of the status value is cleared after
+_EJ0.
 
-Do we still need to keep the enable bit?  I think !failed means enabled
-with this change.
+Note, the present bit is not checked since some FW implementations
+do not clear the present bit until the hardware is physically
+removed.
 
-Thanks,
--Toshi
+Signed-off-by: Toshi Kani <toshi.kani@hp.com>
+---
 
+This patch is based on linux-pm.git/bleeding-edge.
 
+---
+ drivers/acpi/scan.c |   18 +++++++++++++++++-
+ 1 file changed, 17 insertions(+), 1 deletion(-)
+
+diff --git a/drivers/acpi/scan.c b/drivers/acpi/scan.c
+index 4f2265e..31d1242 100644
+--- a/drivers/acpi/scan.c
++++ b/drivers/acpi/scan.c
+@@ -127,6 +127,7 @@ static int acpi_scan_hot_remove(struct acpi_device *device)
+ 	struct acpi_object_list arg_list;
+ 	union acpi_object arg;
+ 	acpi_status status;
++	unsigned long long sta;
+ 
+ 	/* If there is no handle, the device node has been unregistered. */
+ 	if (!handle) {
+@@ -164,10 +165,25 @@ static int acpi_scan_hot_remove(struct acpi_device *device)
+ 		if (status == AE_NOT_FOUND) {
+ 			return -ENODEV;
+ 		} else {
+-			acpi_handle_warn(handle, "Eject failed\n");
++			acpi_handle_warn(handle, "Eject failed (0x%x)\n",
++								status);
+ 			return -EIO;
+ 		}
+ 	}
++
++	/*
++	 * Verify if eject was indeed successful.  If not, log an error
++	 * message.  No need to call _OST since _EJ0 call was made OK.
++	 */
++	status = acpi_evaluate_integer(handle, "_STA", NULL, &sta);
++	if (ACPI_FAILURE(status)) {
++		acpi_handle_warn(handle,
++			"Status check after eject failed (0x%x)\n", status);
++	} else if (sta & ACPI_STA_DEVICE_ENABLED) {
++		acpi_handle_warn(handle,
++			"Eject incomplete - status 0x%llx\n", sta);
++	}
++
+ 	return 0;
+ }
+ 
