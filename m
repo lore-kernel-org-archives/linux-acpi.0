@@ -1,36 +1,53 @@
-From: Alan Stern <stern@rowland.harvard.edu>
-Subject: Re: [3.9-rc1] irq 16: nobody cared  (was [3.9-rc1] very poor interrupt
- responses)
-Date: Thu, 14 Mar 2013 12:13:10 -0400 (EDT)
-Message-ID: <Pine.LNX.4.44L0.1303141212170.1983-100000@iolanthe.rowland.org>
-References: <alpine.LNX.2.00.1303141634440.30118@pobox.suse.cz>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: Re: [3.9-rc1] irq 16: nobody cared  (was [3.9-rc1] very poor interrupt responses)
+Date: Thu, 14 Mar 2013 17:46:10 +0100
+Message-ID: <1460519.ejNFI1DrGk@vostro.rjw.lan>
+References: <Pine.LNX.4.44L0.1303141050310.1983-100000@iolanthe.rowland.org> <alpine.LNX.2.00.1303141555090.30118@pobox.suse.cz> <alpine.LNX.2.00.1303141709000.30118@pobox.suse.cz>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Return-path: <linux-pci-owner@vger.kernel.org>
-In-Reply-To: <alpine.LNX.2.00.1303141634440.30118@pobox.suse.cz>
-Sender: linux-pci-owner@vger.kernel.org
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7Bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <alpine.LNX.2.00.1303141709000.30118@pobox.suse.cz>
+Sender: linux-kernel-owner@vger.kernel.org
 To: Jiri Kosina <jkosina@suse.cz>
-Cc: Peter Hurley <peter@hurleysoftware.com>, Thomas Meyer <thomas@m3y3r.de>, Shawn Starr <shawn.starr@rogers.com>, Kernel development list <linux-kernel@vger.kernel.org>, USB list <linux-usb@vger.kernel.org>, linux-acpi@vger.kernel.org, "Rafael J. Wysocki" <rjw@sisk.pl>, Bjorn Helgaas <bhelgaas@google.com>, linux-pci@vger.kernel.org
+Cc: Alan Stern <stern@rowland.harvard.edu>, Peter Hurley <peter@hurleysoftware.com>, Thomas Meyer <thomas@m3y3r.de>, Shawn Starr <shawn.starr@rogers.com>, Kernel development list <linux-kernel@vger.kernel.org>, USB list <linux-usb@vger.kernel.org>, linux-acpi@vger.kernel.org, Bjorn Helgaas <bhelgaas@google.com>, linux-pci@vger.kernel.org, Yinghai Lu <yinghai@kernel.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On Thu, 14 Mar 2013, Jiri Kosina wrote:
-
-> > There have been only three significant changes to uhci-hcd since last 
-> > summer, and two of them appear to be completely unrelated to this 
-> > issue.  The three commits are
-> > 
-> > 	3171fcabb169  USB: uhci: beautify source code
-> > 	13996ca7afd5  USB: uhci: check buffer length to avoid memory 
-> > 			overflow
-> > 	0f815a0a700b  USB: UHCI: fix IRQ race during initialization
-> > 
-> > Reverting the first two almost certainly will not have any effect, but
-> > you may as well try it anyway.  The third commit may be relevant.
+On Thursday, March 14, 2013 05:09:59 PM Jiri Kosina wrote:
+> On Thu, 14 Mar 2013, Jiri Kosina wrote:
 > 
-> I have reverted all three commits, and the "nobody cared" is still there. 
+> > > > I don't think I have seen this message on rc1+ (8343bce, to be precise), 
+> > > > but I have definitely seen sluggish system response on that kernel as 
+> > > > well.
+> > > > 
+> > > > Attaching lspci, /proc/interrupts and dmesg. 
+> > > 
+> > > Can you try to do a git bisect for this?  Is the sluggish system 
+> > > response clear enough that you can tell reliably when it is present and 
+> > > when it isn't?
+> > 
+> > That was my first thought, but unfortunately I am afraid there will be 
+> > point at which I will easily make a bisection mistake, as the 
+> > responsiveness of the system varies over time, so it's not really a 
+> > 100% objective measure.
+> 
+> So I will try a bisect, but it'll take some time so that I could claim it 
+> to be trustworthy.
+> 
+> Therefore in case anyone has any idea in parallel, I am all ears.
 
-There's one other commit I failed to find at first: 840008bb5162 (USB: 
-UHCI: notify usbcore about port resumes).  Probably not relevant, but 
-you should check to make sure.
+This one is a candidate to focus on I think:
 
-Alan Stern
+commit 181380b702eee1a9aca51354d7b87c7b08541fcf
+Author: Yinghai Lu <yinghai@kernel.org>
+Date:   Sat Feb 16 11:58:34 2013 -0700
+
+    PCI/ACPI: Don't cache _PRT, and don't associate them with bus numbers
+
+Thanks,
+Rafael
+
+
+-- 
+I speak only for myself.
+Rafael J. Wysocki, Intel Open Source Technology Center.
