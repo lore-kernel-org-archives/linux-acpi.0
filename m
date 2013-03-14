@@ -1,44 +1,96 @@
-From: Jiri Kosina <jkosina@suse.cz>
+From: Alan Stern <stern@rowland.harvard.edu>
 Subject: Re: [3.9-rc1] irq 16: nobody cared  (was [3.9-rc1] very poor interrupt
  responses)
-Date: Thu, 14 Mar 2013 17:09:59 +0100 (CET)
-Message-ID: <alpine.LNX.2.00.1303141709000.30118@pobox.suse.cz>
-References: <Pine.LNX.4.44L0.1303141050310.1983-100000@iolanthe.rowland.org> <alpine.LNX.2.00.1303141555090.30118@pobox.suse.cz>
+Date: Thu, 14 Mar 2013 12:10:36 -0400 (EDT)
+Message-ID: <Pine.LNX.4.44L0.1303141151480.1983-100000@iolanthe.rowland.org>
+References: <alpine.LNX.2.00.1303141634440.30118@pobox.suse.cz>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cantor2.suse.de ([195.135.220.15]:49478 "EHLO mx2.suse.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S933603Ab3CNQKD (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 14 Mar 2013 12:10:03 -0400
-In-Reply-To: <alpine.LNX.2.00.1303141555090.30118@pobox.suse.cz>
-Sender: linux-acpi-owner@vger.kernel.org
-List-Id: linux-acpi@vger.kernel.org
-To: Alan Stern <stern@rowland.harvard.edu>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <alpine.LNX.2.00.1303141634440.30118@pobox.suse.cz>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Jiri Kosina <jkosina@suse.cz>
 Cc: Peter Hurley <peter@hurleysoftware.com>, Thomas Meyer <thomas@m3y3r.de>, Shawn Starr <shawn.starr@rogers.com>, Kernel development list <linux-kernel@vger.kernel.org>, USB list <linux-usb@vger.kernel.org>, linux-acpi@vger.kernel.org, "Rafael J. Wysocki" <rjw@sisk.pl>, Bjorn Helgaas <bhelgaas@google.com>, linux-pci@vger.kernel.org
+List-Id: linux-acpi@vger.kernel.org
 
 On Thu, 14 Mar 2013, Jiri Kosina wrote:
 
-> > > I don't think I have seen this message on rc1+ (8343bce, to be precise), 
-> > > but I have definitely seen sluggish system response on that kernel as 
-> > > well.
-> > > 
-> > > Attaching lspci, /proc/interrupts and dmesg. 
-> > 
-> > Can you try to do a git bisect for this?  Is the sluggish system 
-> > response clear enough that you can tell reliably when it is present and 
-> > when it isn't?
+> I have reverted all three commits, and the "nobody cared" is still there. 
 > 
-> That was my first thought, but unfortunately I am afraid there will be 
-> point at which I will easily make a bisection mistake, as the 
-> responsiveness of the system varies over time, so it's not really a 
-> 100% objective measure.
+> > If you revert all three and still see the problem then it must be
+> > caused by changes outside of the USB stack.  Differences in interrupt
+> > routing could be a result of changes to PCI or ACPI.  Have you compared 
+> > the current /proc/interrupts with versions from earlier kernels without 
+> > this problem?
+> 
+> The diff of stripped-down (without CPU statistics) /proc/interrupts from 
+> some oldish working 3.1 and the current tree:
+> 
+> --- /tmp/interrupts-old.txt	2013-03-14 16:30:46.938710286 +0100
+> +++ /tmp/interrupts-new.txt	2013-03-14 16:30:18.954571413 +0100
+> @@ -3,27 +3,28 @@
+>    8:IO-APIC-edge      rtc0
+>    9:IO-APIC-fasteoi   acpi
+>   12:IO-APIC-edge      i8042
+> - 16:IO-APIC-fasteoi   uhci_hcd:usb6
+> - 17:IO-APIC-fasteoi   uhci_hcd:usb7
+> - 18:IO-APIC-fasteoi   ata_generic, uhci_hcd:usb8
+> - 19:IO-APIC-fasteoi   ehci_hcd:usb2
+> - 20:IO-APIC-fasteoi   uhci_hcd:usb3
+> - 21:IO-APIC-fasteoi   uhci_hcd:usb4
+> - 22:IO-APIC-fasteoi   uhci_hcd:usb5
+> - 23:IO-APIC-fasteoi   ehci_hcd:usb1
+> + 16:IO-APIC-fasteoi   uhci_hcd:usb4
+> + 17:IO-APIC-fasteoi   uhci_hcd:usb5
+> + 18:IO-APIC-fasteoi   ata_generic, uhci_hcd:usb6
+> + 19:IO-APIC-fasteoi   ehci_hcd:usb8
+> + 20:IO-APIC-fasteoi   uhci_hcd:usb1
+> + 21:IO-APIC-fasteoi   uhci_hcd:usb2
+> + 22:IO-APIC-fasteoi   uhci_hcd:usb3
+> + 23:IO-APIC-fasteoi   ehci_hcd:usb7, i801_smbus
+>   40:PCI-MSI-edge      PCIe PME
+>   41:PCI-MSI-edge      PCIe PME
+>   42:PCI-MSI-edge      PCIe PME
+>   43:PCI-MSI-edge      ahci
+>   44:PCI-MSI-edge      i915
+>   45:PCI-MSI-edge      eth0
+> - 46:PCI-MSI-edge      iwlagn
+> + 46:PCI-MSI-edge      iwlwifi
+>   47:PCI-MSI-edge      snd_hda_intel
+>  NMI:Non-maskable interrupts
+>  LOC:Local timer interrupts
+>  SPU:Spurious interrupts
+>  PMI:Performance monitoring interrupts
+>  IWI:IRQ work interrupts
+> +RTR:APIC ICR read retries
+>  RES:Rescheduling interrupts
+>  CAL:Function call interrupts
+>  TLB:TLB shootdowns
+> 
+> IRQ16 is routed differently (usb4 vs usb6), so that might be relevant.
 
-So I will try a bisect, but it'll take some time so that I could claim it 
-to be trustworthy.
+It looks like the order of probing changed.  The old kernel did 
+ehci-hcd before uhci-hcd and the new kernel did them in the opposite 
+order.  Consequently usb3-usb8 in the old kernel (the UHCI devices) are 
+the same as usb1-usb6 in the new kernel.  Likewise, usb1-usb2 in the 
+old kernel are usb7-usb8 in the new kernel.
 
-Therefore in case anyone has any idea in parallel, I am all ears.
+In fact, the only major difference appears to be i801_smbus on IRQ 23.  
+It's hard to see how that could have any effect.
 
--- 
-Jiri Kosina
-SUSE Labs
+> > Is occurrence of the "nobody cared" connected with any particular 
+> > device?  Somebody reported a similar problem not long ago (although IIRC 
+> > it was for OHCI rather than UHCI) which appeared to be related to 
+> > activity on the built-in webcam.
+> 
+> Will check this. No external devices are plugged in, I think the only 
+> internal one it has is bluetooth chip. I'll try turning it off.
+
+All right.
+
+One other thing you could try: Transplant the entire uhci-hcd driver 
+from 3.1 (or whatever) into 3.9-rc1.  It should go okay -- you may have 
+to apply by hand the appropriate parts of commits bc677d5b6464, 
+90ab5ee94171, and 9ffc93f203c1.
+
+Alan Stern
