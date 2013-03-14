@@ -1,49 +1,55 @@
 From: Peter Hurley <peter@hurleysoftware.com>
 Subject: Re: [3.9-rc1] irq 16: nobody cared  (was [3.9-rc1] very poor
  interrupt responses)
-Date: Thu, 14 Mar 2013 12:42:09 -0400
-Message-ID: <1363279329.7443.10.camel@thor.lan>
+Date: Thu, 14 Mar 2013 13:06:04 -0400
+Message-ID: <1363280764.26318.4.camel@thor.lan>
 References: <Pine.LNX.4.44L0.1303141050310.1983-100000@iolanthe.rowland.org>
 	 <alpine.LNX.2.00.1303141555090.30118@pobox.suse.cz>
 	 <alpine.LNX.2.00.1303141709000.30118@pobox.suse.cz>
+	 <1460519.ejNFI1DrGk@vostro.rjw.lan>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-pci-owner@vger.kernel.org>
-In-Reply-To: <alpine.LNX.2.00.1303141709000.30118@pobox.suse.cz>
+In-Reply-To: <1460519.ejNFI1DrGk@vostro.rjw.lan>
 Sender: linux-pci-owner@vger.kernel.org
-To: Jiri Kosina <jkosina@suse.cz>
-Cc: Alan Stern <stern@rowland.harvard.edu>, Thomas Meyer <thomas@m3y3r.de>, Shawn Starr <shawn.starr@rogers.com>, Kernel development list <linux-kernel@vger.kernel.org>, USB list <linux-usb@vger.kernel.org>, linux-acpi@vger.kernel.org, "Rafael J. Wysocki" <rjw@sisk.pl>, Bjorn Helgaas <bhelgaas@google.com>, linux-pci@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: Jiri Kosina <jkosina@suse.cz>, Alan Stern <stern@rowland.harvard.edu>, Thomas Meyer <thomas@m3y3r.de>, Shawn Starr <shawn.starr@rogers.com>, Kernel development list <linux-kernel@vger.kernel.org>, USB list <linux-usb@vger.kernel.org>, linux-acpi@vger.kernel.org, Bjorn Helgaas <bhelgaas@google.com>, linux-pci@vger.kernel.org, Yinghai Lu <yinghai@kernel.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On Thu, 2013-03-14 at 17:09 +0100, Jiri Kosina wrote:
-> On Thu, 14 Mar 2013, Jiri Kosina wrote:
-> 
-> > > > I don't think I have seen this message on rc1+ (8343bce, to be precise), 
-> > > > but I have definitely seen sluggish system response on that kernel as 
-> > > > well.
-> > > > 
-> > > > Attaching lspci, /proc/interrupts and dmesg. 
-> > > 
-> > > Can you try to do a git bisect for this?  Is the sluggish system 
-> > > response clear enough that you can tell reliably when it is present and 
-> > > when it isn't?
+On Thu, 2013-03-14 at 17:46 +0100, Rafael J. Wysocki wrote:
+> On Thursday, March 14, 2013 05:09:59 PM Jiri Kosina wrote:
+> > On Thu, 14 Mar 2013, Jiri Kosina wrote:
 > > 
-> > That was my first thought, but unfortunately I am afraid there will be 
-> > point at which I will easily make a bisection mistake, as the 
-> > responsiveness of the system varies over time, so it's not really a 
-> > 100% objective measure.
+> > > > > I don't think I have seen this message on rc1+ (8343bce, to be precise), 
+> > > > > but I have definitely seen sluggish system response on that kernel as 
+> > > > > well.
+> > > > > 
+> > > > > Attaching lspci, /proc/interrupts and dmesg. 
+> > > > 
+> > > > Can you try to do a git bisect for this?  Is the sluggish system 
+> > > > response clear enough that you can tell reliably when it is present and 
+> > > > when it isn't?
+> > > 
+> > > That was my first thought, but unfortunately I am afraid there will be 
+> > > point at which I will easily make a bisection mistake, as the 
+> > > responsiveness of the system varies over time, so it's not really a 
+> > > 100% objective measure.
+> > 
+> > So I will try a bisect, but it'll take some time so that I could claim it 
+> > to be trustworthy.
+> > 
+> > Therefore in case anyone has any idea in parallel, I am all ears.
 > 
-> So I will try a bisect, but it'll take some time so that I could claim it 
-> to be trustworthy.
+> This one is a candidate to focus on I think:
 > 
-> Therefore in case anyone has any idea in parallel, I am all ears.
+> commit 181380b702eee1a9aca51354d7b87c7b08541fcf
+> Author: Yinghai Lu <yinghai@kernel.org>
+> Date:   Sat Feb 16 11:58:34 2013 -0700
+> 
+>     PCI/ACPI: Don't cache _PRT, and don't associate them with bus numbers
 
-When I had this happen on -next, it was PCI + ACPI-related and I had to
-bisect it. But for me the problem was quite noticable and showed up
-right at login prompt.
+This patch __fixed__ this problem for me in linux-next back in February.
 
-Regards,
-Peter Hurley
-
-PS - I already confirmed that the commit that fixes that is in 3.9-rc1
+Rafael, did you hold back some ACPI patches from 3.9 that would have
+made fix no longer applicable?
