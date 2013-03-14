@@ -1,44 +1,30 @@
-From: "Coca-Cola Company" <info@coca-cola.co.uk>
-Subject: YOUR REF:BT:12052011/20
-Date: Wed, 13 Mar 2013 21:31:56 -0800
-Message-ID: <20130314052953.08CDF1F381AC__16977.275562431$1363239182$gmane$org@mail.tvi.cl>
-Reply-To: ccbp@dgoh.org
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail.via.cl ([200.75.31.110]:41376 "EHLO mail.tvi.cl"
-	rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1751761Ab3CNFc3 convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 14 Mar 2013 01:32:29 -0400
-Content-Description: Mail message body
-Sender: linux-acpi-owner@vger.kernel.org
+From: Danny Baumann <dannybaumann@web.de>
+Subject: [PATCH 0/3] ACPI video: Fix brightness control initialization sequence
+Date: Thu, 14 Mar 2013 11:34:21 +0100
+Message-ID: <1363257264-15984-1-git-send-email-dannybaumann@web.de>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: linux-acpi@vger.kernel.org
+Cc: linux-kernel@vger.kernel.org, Zhang Rui <rui.zhang@intel.com>, Len Brown <lenb@kernel.org>, Danny Baumann <dannybaumann@web.de>
 List-Id: linux-acpi@vger.kernel.org
-To: Recipients <info@coca-cola.co.uk>
 
-Dear e-mail user; 
+This patch set fixes a some logic mistakes in the brightness control
+initialization sequence of the ACPI video driver. This should make
+the initialization (and as a consequence in-kernel brightness control)
+work for a number of laptops. One example that was broken before is the
+Dell Inspiron 15R SE (7520).
 
-Good to hear from you regarding the COCA-COLA EMAIL DRAWS. 
-My name is Mrs.Meena Anderson, i'm the COCA-COLA Cash officer assigned to winners on EMAIL sweepstakes,
-your EMAIL ID just won the sum of 1,000,000.00GBP in 
-on going COCA-COLA SWEEPSTAKES DRAWS,In line with commemorating event marking of our 125th anniversary.
+Regards,
 
+Danny
 
-VERIFICATION FORM:
-1.FULL NAMES:
-2.ADDRESS:
-3.AGE:
-4.MOBILE NUMBER & ALTERNATE MOBILE NUMBERS:
-5.PERSONAL EMAIL:
-6.COUNTRY:
-7.OCCUPATION:
-8.NATIONALITY:
+Danny Baumann (3):
+  ACPI video: Fix brightness control initialization for some laptops.
+  ACPI video: Make logic a little easier to understand.
+  ACPI video: Fix applying indexed initial brightness value.
 
-To email: ccbp@dgoh.org
+ drivers/acpi/video.c | 59 ++++++++++++++++++++++++++++++++--------------------
+ 1 file changed, 36 insertions(+), 23 deletions(-)
 
-Yours faithfully
-Mrs.Meena Anderson
-Cordinator For COCA-COLA EMAIL DRAWS PROMO
-FOR FURTHER CLARIFICATION CONTACT
-PHONENUMBER: +448719745576
-EMAIL: ccbp@dgoh.org
+-- 
+1.8.1.4
