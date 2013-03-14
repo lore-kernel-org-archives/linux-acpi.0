@@ -1,30 +1,43 @@
 From: Jiri Kosina <jkosina@suse.cz>
 Subject: Re: [3.9-rc1] irq 16: nobody cared  (was [3.9-rc1] very poor interrupt
  responses)
-Date: Thu, 14 Mar 2013 16:47:35 +0100 (CET)
-Message-ID: <alpine.LNX.2.00.1303141644230.30118@pobox.suse.cz>
-References: <Pine.LNX.4.44L0.1303141111350.1983-100000@iolanthe.rowland.org> <alpine.LNX.2.00.1303141634440.30118@pobox.suse.cz>
+Date: Thu, 14 Mar 2013 17:09:59 +0100 (CET)
+Message-ID: <alpine.LNX.2.00.1303141709000.30118@pobox.suse.cz>
+References: <Pine.LNX.4.44L0.1303141050310.1983-100000@iolanthe.rowland.org> <alpine.LNX.2.00.1303141555090.30118@pobox.suse.cz>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
-Return-path: <linux-pci-owner@vger.kernel.org>
-In-Reply-To: <alpine.LNX.2.00.1303141634440.30118@pobox.suse.cz>
-Sender: linux-pci-owner@vger.kernel.org
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from cantor2.suse.de ([195.135.220.15]:49478 "EHLO mx2.suse.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S933603Ab3CNQKD (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 14 Mar 2013 12:10:03 -0400
+In-Reply-To: <alpine.LNX.2.00.1303141555090.30118@pobox.suse.cz>
+Sender: linux-acpi-owner@vger.kernel.org
+List-Id: linux-acpi@vger.kernel.org
 To: Alan Stern <stern@rowland.harvard.edu>
 Cc: Peter Hurley <peter@hurleysoftware.com>, Thomas Meyer <thomas@m3y3r.de>, Shawn Starr <shawn.starr@rogers.com>, Kernel development list <linux-kernel@vger.kernel.org>, USB list <linux-usb@vger.kernel.org>, linux-acpi@vger.kernel.org, "Rafael J. Wysocki" <rjw@sisk.pl>, Bjorn Helgaas <bhelgaas@google.com>, linux-pci@vger.kernel.org
-List-Id: linux-acpi@vger.kernel.org
 
 On Thu, 14 Mar 2013, Jiri Kosina wrote:
 
-> > Is occurrence of the "nobody cared" connected with any particular 
-> > device?  Somebody reported a similar problem not long ago (although IIRC 
-> > it was for OHCI rather than UHCI) which appeared to be related to 
-> > activity on the built-in webcam.
+> > > I don't think I have seen this message on rc1+ (8343bce, to be precise), 
+> > > but I have definitely seen sluggish system response on that kernel as 
+> > > well.
+> > > 
+> > > Attaching lspci, /proc/interrupts and dmesg. 
+> > 
+> > Can you try to do a git bisect for this?  Is the sluggish system 
+> > response clear enough that you can tell reliably when it is present and 
+> > when it isn't?
 > 
-> Will check this. No external devices are plugged in, I think the only 
-> internal one it has is bluetooth chip. I'll try turning it off.
+> That was my first thought, but unfortunately I am afraid there will be 
+> point at which I will easily make a bisection mistake, as the 
+> responsiveness of the system varies over time, so it's not really a 
+> 100% objective measure.
 
-That didn't help (I disabled it via hard rfkill and it vanished from 
-lsusb), i.e. it happens even with only the hubs being there.
+So I will try a bisect, but it'll take some time so that I could claim it 
+to be trustworthy.
+
+Therefore in case anyone has any idea in parallel, I am all ears.
 
 -- 
 Jiri Kosina
