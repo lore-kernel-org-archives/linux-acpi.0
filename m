@@ -1,83 +1,71 @@
-From: Peter Hurley <peter@hurleysoftware.com>
-Subject: Re: [3.9-rc1] irq 16: nobody cared  (was [3.9-rc1] very poor
- interrupt responses)
-Date: Thu, 14 Mar 2013 13:26:58 -0400
-Message-ID: <1363282018.26318.10.camel@thor.lan>
-References: <Pine.LNX.4.44L0.1303141050310.1983-100000@iolanthe.rowland.org>
-	 <1460519.ejNFI1DrGk@vostro.rjw.lan> <1363280764.26318.4.camel@thor.lan>
-	 <5657408.cYX6iimiA4@vostro.rjw.lan>
+From: Yinghai Lu <yinghai@kernel.org>
+Subject: Re: [3.9-rc1] irq 16: nobody cared (was [3.9-rc1] very poor interrupt responses)
+Date: Thu, 14 Mar 2013 11:48:05 -0700
+Message-ID: <CAE9FiQXM5qTasq38CoroJk8uzCt5GLFBL9jxN5SDBQreqA7pFw@mail.gmail.com>
+References: <Pine.LNX.4.44L0.1303082116310.28403-100000@netrider.rowland.org>
+	<1362819234.1220.1.camel@localhost.localdomain>
+	<1362834476.7755.33.camel@thor.lan>
+	<alpine.LRH.2.00.1303132233080.27467@twin.jikos.cz>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mailout01.c08.mtsvc.net ([205.186.168.189]:58671 "EHLO
-	mailout01.c08.mtsvc.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755856Ab3CNR1X (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 14 Mar 2013 13:27:23 -0400
-In-Reply-To: <5657408.cYX6iimiA4@vostro.rjw.lan>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <alpine.LRH.2.00.1303132233080.27467@twin.jikos.cz>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Jiri Kosina <jkosina@suse.cz>
+Cc: Peter Hurley <peter@hurleysoftware.com>, Thomas Meyer <thomas@m3y3r.de>, Shawn Starr <shawn.starr@rogers.com>, Alan Stern <stern@rowland.harvard.edu>, Kernel development list <linux-kernel@vger.kernel.org>, USB list <linux-usb@vger.kernel.org>, linux-acpi@vger.kernel.org, "Rafael J. Wysocki" <rjw@sisk.pl>, Bjorn Helgaas <bhelgaas@google.com>, linux-pci@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: Jiri Kosina <jkosina@suse.cz>, Alan Stern <stern@rowland.harvard.edu>, Thomas Meyer <thomas@m3y3r.de>, Shawn Starr <shawn.starr@rogers.com>, Kernel development list <linux-kernel@vger.kernel.org>, USB list <linux-usb@vger.kernel.org>, linux-acpi@vger.kernel.org, Bjorn Helgaas <bhelgaas@google.com>, linux-pci@vger.kernel.org, Yinghai Lu <yinghai@kernel.org>
 
-On Thu, 2013-03-14 at 18:22 +0100, Rafael J. Wysocki wrote:
-> On Thursday, March 14, 2013 01:06:04 PM Peter Hurley wrote:
-> > On Thu, 2013-03-14 at 17:46 +0100, Rafael J. Wysocki wrote:
-> > > On Thursday, March 14, 2013 05:09:59 PM Jiri Kosina wrote:
-> > > > On Thu, 14 Mar 2013, Jiri Kosina wrote:
-> > > > 
-> > > > > > > I don't think I have seen this message on rc1+ (8343bce, to be precise), 
-> > > > > > > but I have definitely seen sluggish system response on that kernel as 
-> > > > > > > well.
-> > > > > > > 
-> > > > > > > Attaching lspci, /proc/interrupts and dmesg. 
-> > > > > > 
-> > > > > > Can you try to do a git bisect for this?  Is the sluggish system 
-> > > > > > response clear enough that you can tell reliably when it is present and 
-> > > > > > when it isn't?
-> > > > > 
-> > > > > That was my first thought, but unfortunately I am afraid there will be 
-> > > > > point at which I will easily make a bisection mistake, as the 
-> > > > > responsiveness of the system varies over time, so it's not really a 
-> > > > > 100% objective measure.
-> > > > 
-> > > > So I will try a bisect, but it'll take some time so that I could claim it 
-> > > > to be trustworthy.
-> > > > 
-> > > > Therefore in case anyone has any idea in parallel, I am all ears.
-> > > 
-> > > This one is a candidate to focus on I think:
-> > > 
-> > > commit 181380b702eee1a9aca51354d7b87c7b08541fcf
-> > > Author: Yinghai Lu <yinghai@kernel.org>
-> > > Date:   Sat Feb 16 11:58:34 2013 -0700
-> > > 
-> > >     PCI/ACPI: Don't cache _PRT, and don't associate them with bus numbers
-> > 
-> > This patch __fixed__ this problem for me in linux-next back in February.
-> > 
-> > Rafael, did you hold back some ACPI patches from 3.9 that would have
-> > made fix no longer applicable?
-> 
-> No, I didn't.
-> 
-> I'm afraid, though, that the fix might not be effective on some systems for a
-> reason that's unclear at the moment.
-> 
-> So in fact the one to check is commit 4f535093cf ("PCI: Put pci_dev in device
-> tree as early as possible") and if the problem doesn't appear before that, we
-> need to figure out why the fix may not be sufficient.
+On Wed, Mar 13, 2013 at 2:35 PM, Jiri Kosina <jkosina@suse.cz> wrote:
+> OK, this is a "me too", on Thinkpad x200s.
+>
+> [    4.116847] irq 16: nobody cared (try booting with the "irqpoll" option)
+> [    4.116849] Pid: 1, comm: systemd Not tainted 3.9.0-rc2-00188-g6c23cbb #186
+> [    4.116850] Call Trace:
+> [    4.116860]  <IRQ>  [<ffffffff810db0f8>] __report_bad_irq+0x38/0xf0
+> [    4.116862]  [<ffffffff810db3a3>] note_interrupt+0x1f3/0x240
+> [    4.116865]  [<ffffffff810d8977>] handle_irq_event_percpu+0x147/0x230
+> [    4.116867]  [<ffffffff810d8aa9>] handle_irq_event+0x49/0x70
+> [    4.116869]  [<ffffffff810dbbc1>] handle_fasteoi_irq+0x61/0x100
+> [    4.116873]  [<ffffffff81004689>] handle_irq+0x59/0x150
+> [    4.116877]  [<ffffffff8104e916>] ? irq_enter+0x16/0x80
+> [    4.116879]  [<ffffffff81003d4b>] do_IRQ+0x5b/0xe0
+> [    4.116883]  [<ffffffff815563ad>] common_interrupt+0x6d/0x6d
+> [    4.116888]  <EOI>  [<ffffffff81320dc1>] ? cfb_imageblit+0x581/0x5b0
+> [    4.116891]  [<ffffffff8131e019>] bit_putcs+0x329/0x560
+> [    4.116893]  [<ffffffff8131dc8f>] ? bit_cursor+0x5cf/0x630
+> [    4.116896]  [<ffffffff81317a28>] fbcon_putcs+0xf8/0x130
+> [    4.116898]  [<ffffffff8131dcf0>] ? bit_cursor+0x630/0x630
+> [    4.116900]  [<ffffffff8131a27e>] fbcon_redraw+0x16e/0x1e0
+> [    4.116902]  [<ffffffff8131a554>] fbcon_scroll+0x264/0xe40
+> [    4.116905]  [<ffffffff8138a263>] scrup+0x113/0x120
+> [    4.116907]  [<ffffffff8138a4d0>] lf+0x80/0x90
+> [    4.116910]  [<ffffffff8138e1dd>] do_con_trol+0xcd/0x1360
+> [    4.116912]  [<ffffffff8138f725>] do_con_write+0x2b5/0xa10
+> [    4.116915]  [<ffffffff81552bb7>] ? __mutex_lock_slowpath+0x237/0x2e0
+> [    4.116917]  [<ffffffff8138fed9>] con_write+0x19/0x30
+> [    4.116920]  [<ffffffff8137823b>] do_output_char+0x1eb/0x220
+> [    4.116922]  [<ffffffff813782b6>] process_output+0x46/0x70
+> [    4.116924]  [<ffffffff81378b0f>] n_tty_write+0x13f/0x2f0
+> [    4.116928]  [<ffffffff8107a900>] ? try_to_wake_up+0x2b0/0x2b0
+> [    4.116930]  [<ffffffff8137553c>] tty_write+0x1cc/0x280
+> [    4.116932]  [<ffffffff813789d0>] ? n_tty_ioctl+0x110/0x110
+> [    4.116934]  [<ffffffff8137569d>] redirected_tty_write+0xad/0xc0
+> [    4.116937]  [<ffffffff811733ab>] vfs_write+0xcb/0x130
+> [    4.116939]  [<ffffffff81173bac>] sys_write+0x5c/0xa0
+> [    4.116943]  [<ffffffff8155e4a9>] system_call_fastpath+0x16/0x1b
+> [    4.116943] handlers:
+> [    4.116959] [<ffffffffa0048450>] usb_hcd_irq [usbcore]
+> [    4.116960] Disabling IRQ #16
+>
+> I don't think I have seen this message on rc1+ (8343bce, to be precise),
+> but I have definitely seen sluggish system response on that kernel as
+> well.
+>
+> Attaching lspci, /proc/interrupts and dmesg.
 
-I agree. 
+can you post dmesg with "debug ignore_loglevel pci=routeirq" with
+current linus tree and v3.8 or previous working kernel?
 
-Commit 4f535093cf ("PCI: Put pci_dev in device tree as early as
-possible") is the likely culprit, and "Don't cache _PRT..." is probably
-an insufficient fix.
+Thanks
 
-Not so sure about the other reporters though because they had active
-devices on those USB ports.
-
-Regards,
-Peter Hurley
-
-
+Yinghai
