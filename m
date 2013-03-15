@@ -1,78 +1,42 @@
-From: Vasilis Liaskovitis <vasilis.liaskovitis@profitbricks.com>
-Subject: Re: [Update 4][PATCH 2/7] ACPI / scan: Introduce common code for
- ACPI-based device hotplug
-Date: Fri, 15 Mar 2013 11:47:33 +0100
-Message-ID: <20130315104732.GA4401@dhcp-192-168-178-175.profitbricks.localdomain>
-References: <3260206.bhaAobGhpZ@vostro.rjw.lan>
- <18666371.hyHAvqrdQ6@vostro.rjw.lan>
- <20130304131023.GA4561@dhcp-192-168-178-175.profitbricks.localdomain>
- <3390139.KZuRkSrE4e@vostro.rjw.lan>
+From: Jiri Kosina <jkosina@suse.cz>
+Subject: Re: [3.9-rc1] irq 16: nobody cared  (was [3.9-rc1] very poor interrupt
+ responses)
+Date: Fri, 15 Mar 2013 14:33:13 +0100 (CET)
+Message-ID: <alpine.LNX.2.00.1303151424140.9529@pobox.suse.cz>
+References: <Pine.LNX.4.44L0.1303141050310.1983-100000@iolanthe.rowland.org> <1460519.ejNFI1DrGk@vostro.rjw.lan> <1363280764.26318.4.camel@thor.lan> <5657408.cYX6iimiA4@vostro.rjw.lan> <alpine.LNX.2.00.1303150851020.9529@pobox.suse.cz>
+ <5142E7F0.4020002@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-bk0-f48.google.com ([209.85.214.48]:37253 "EHLO
-	mail-bk0-f48.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753858Ab3COKri (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 15 Mar 2013 06:47:38 -0400
-Received: by mail-bk0-f48.google.com with SMTP id jf20so1428729bkc.7
-        for <linux-acpi@vger.kernel.org>; Fri, 15 Mar 2013 03:47:36 -0700 (PDT)
-Content-Disposition: inline
-In-Reply-To: <3390139.KZuRkSrE4e@vostro.rjw.lan>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Return-path: <linux-pci-owner@vger.kernel.org>
+In-Reply-To: <5142E7F0.4020002@gmail.com>
+Sender: linux-pci-owner@vger.kernel.org
+To: Harald Arnesen <skogtun.linux@gmail.com>
+Cc: Kernel development list <linux-kernel@vger.kernel.org>, "Rafael J. Wysocki" <rjw@sisk.pl>, Peter Hurley <peter@hurleysoftware.com>, Alan Stern <stern@rowland.harvard.edu>, Thomas Meyer <thomas@m3y3r.de>, Shawn Starr <shawn.starr@rogers.com>, USB list <linux-usb@vger.kernel.org>, linux-acpi@vger.kernel.org, Bjorn Helgaas <bhelgaas@google.com>, linux-pci@vger.kernel.org, Yinghai Lu <yinghai@kernel.org>, Daniel Vetter <daniel.vetter@ffwll.ch>, Imre Deak <imre.deak@intel.com>, Daniel Kurtz <djkurtz@chromium.org>, dri-devel@lists.freedesktop.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: Toshi Kani <toshi.kani@hp.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Bjorn Helgaas <bhelgaas@google.com>, LKML <linux-kernel@vger.kernel.org>, Yinghai Lu <yinghai@kernel.org>, Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>, Jiang Liu <liuj97@gmail.com>
 
-Hi,
+On Fri, 15 Mar 2013, Harald Arnesen wrote:
 
-On Thu, Mar 14, 2013 at 06:16:30PM +0100, Rafael J. Wysocki wrote:
-> Sorry for the sluggish response, I've been travelling recently. ->
-[...]
-> > > > So, I'd suggest the following changes.
-> > > >  - Remove the "uevents" attribute.  KOBJ_ONLINE/OFFLINE are not used for
-> > > > ACPI device objects.
-> > > >  - Make the !autoeject case as an exception for now, and emit
-> > > > KOBJ_OFFLINE as a way to request off-lining to user.  This uevent is
-> > > > tied with the !autoeject case.  We can then revisit if this use-case
-> > > > needs to be supported going forward.  If so, we may want to consider a
-> > > > different event type.
-> > > 
-> > > Well, what about avoiding to expose uevents and autoeject for now and
-> > > exposing enabled only?  Drivers would still be able to set the other flags on
-> > > init on init to enforce the backwards-compatible behavior.
-> > 
-> > Now that we don't define uevents and autoeject in v2 of this series, could you
-> > explain how we get safe ejection from userspace e.g. for memory hot-remove? What
-> > are the other flags drivers can use (on init?) to avoid autoeject and only issue
-> > KOBJ_OFFLINE?
-> > 
-> > > 
-> > > I agree that it would be sufficient to use one additional flag then, to start
-> > > with, but its meaning would be something like "keep backwards compatibility
-> > > with the old container driver", so perhaps "autoeject" is not a good name.
-> > > 
-> > > What about "user_eject" (that won't be exposed to user space) instead?  Where,
-> > > if set, it would meand "do not autoeject and emit KOBJ_OFFLINE/ONLINE uevents
-> > > like the old container driver did"?
-> > 
-> > I don't see user_eject in v2. Is it unnecessary for userspace ejection control
-> > or planned for later? Also why shouldn't it be exposed to userpace?
+> I have the same problem on my Lenovo T500. I think the graphics card is
+> involved.
 > 
-> -> At this point we are not sure if it is necessary to have an attribute for
-> direct ejection control.  Since the plan is to have a separate offline/online
-> attribute anyway (and a check preventing us from ejecting things that haven't
-> been put offline), it is not clear how useful it is going to be to control
-> ejection directly from user space.
+> This laptop has "hybrid graphics" - one Intel GMA 4500MHD and one ATI
+> Mobility Radeon HD 3650. When I boot with the Intel card, I get "irq 16:
+> nobody cared" during boot, not when I boot with the ATI card.
 
-ok.
-Regarding the offline/online attribute and ejection prevention checking, do you
-mean the offline/online framework from Toshi:
-http://thread.gmane.org/gmane.linux.kernel/1420262
-or something else? I assume this is the long-term plan.
+Confirming this. After a lot of hassle, I have bisected this reliably to
 
-Is there any other short-term solution planned? If i understand correctly, until
-this framework is accepted, memory hot-remove is broken (=unsafe). 
+	commit 28c70f162a315bdcfbe0bf940a740ef8bfb918d6
+	Author: Daniel Vetter <daniel.vetter@ffwll.ch>
+	Date:   Sat Dec 1 13:53:45 2012 +0100
 
-thanks,
+	    drm/i915: use the gmbus irq for waits
 
-- Vasilis
+Adding Daniel, Imre and Daniel to CC while I will try to figure out what's 
+happening in parallel.
+
+Attaching dmesg.txt from the machine with 28c70f162a as head, with 
+drm.debug=0xe.
+
+-- 
+Jiri Kosina
+SUSE Labs
