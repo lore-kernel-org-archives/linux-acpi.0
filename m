@@ -1,62 +1,30 @@
-From: "Moore, Robert" <robert.moore@intel.com>
-Subject: RE: [PATCH] acpi: remove length check for large registers
-Date: Fri, 15 Mar 2013 20:50:45 +0000
-Message-ID: <94F2FBAB4432B54E8AACC7DFDE6C92E36F489B66@ORSMSX101.amr.corp.intel.com>
+From: Linn Crosetto <linn@hp.com>
+Subject: Re: [PATCH] acpi: remove length check for large registers
+Date: Fri, 15 Mar 2013 15:18:45 -0600
+Message-ID: <20130315211845.GD10730@oranje.fc.hp.com>
 References: <1363377367-12813-1-git-send-email-linn@hp.com>
+ <94F2FBAB4432B54E8AACC7DFDE6C92E36F489B66@ORSMSX101.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1363377367-12813-1-git-send-email-linn@hp.com>
-Content-Language: en-US
-Sender: linux-kernel-owner@vger.kernel.org
-To: Linn Crosetto <linn@hp.com>, "rjw@sisk.pl" <rjw@sisk.pl>, "ming.m.lin@intel.com" <ming.m.lin@intel.com>, "Zheng, Lv" <lv.zheng@intel.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
-Cc: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from g4t0016.houston.hp.com ([15.201.24.19]:32928 "EHLO
+	g4t0016.houston.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754873Ab3COVSr (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 15 Mar 2013 17:18:47 -0400
+Content-Disposition: inline
+In-Reply-To: <94F2FBAB4432B54E8AACC7DFDE6C92E36F489B66@ORSMSX101.amr.corp.intel.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: "Moore, Robert" <robert.moore@intel.com>
+Cc: "rjw@sisk.pl" <rjw@sisk.pl>, "ming.m.lin@intel.com" <ming.m.lin@intel.com>, "Zheng, Lv" <lv.zheng@intel.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
 
-Linn,
+On Fri, Mar 15, 2013 at 08:50:45PM +0000, Moore, Robert wrote:
+> Can you explain in a bit more detail what brings this up?
+> 
+> I'm aware of the limitation of the generic address structure, but we are forced by the (current) ACPI specification to use it if it is present for a given register.
 
-Can you explain in a bit more detail what brings this up?
-
-I'm aware of the limitation of the generic address structure, but we are forced by the (current) ACPI specification to use it if it is present for a given register.
+A system with a GPE block bit_width of 256 triggers it. In this case, the length
+check can never succeed.
 
 Thanks,
-Bob
-
-
-> -----Original Message-----
-> From: Linn Crosetto [mailto:linn@hp.com]
-> Sent: Friday, March 15, 2013 12:56 PM
-> To: rjw@sisk.pl; Moore, Robert; ming.m.lin@intel.com; Zheng, Lv; linux-
-> acpi@vger.kernel.org
-> Cc: linux-kernel@vger.kernel.org; Linn Crosetto
-> Subject: [PATCH] acpi: remove length check for large registers
-> 
-> The legacy bit width field in the Generic Address Structure is 1 byte,
-> limiting the reportable register width to 255 bits. Larger registers will
-> cause a length mismatch warning to be printed in acpi_tb_validate_fadt().
-> 
-> To avoid the warning, disable the length mismatch check for registers
-> larger than 255 bits.
-> 
-> Signed-off-by: Linn Crosetto <linn@hp.com>
-> ---
->  drivers/acpi/acpica/tbfadt.c | 1 +
->  1 file changed, 1 insertion(+)
-> 
-> diff --git a/drivers/acpi/acpica/tbfadt.c b/drivers/acpi/acpica/tbfadt.c
-> index 74181bf..e87abcd 100644
-> --- a/drivers/acpi/acpica/tbfadt.c
-> +++ b/drivers/acpi/acpica/tbfadt.c
-> @@ -561,6 +561,7 @@ static void acpi_tb_validate_fadt(void)
->  		 * legacy length field and the corresponding 64-bit X length
-> field.
->  		 */
->  		if (address64->address &&
-> +		    ACPI_MUL_8(length) <= ACPI_UINT8_MAX &&
->  		    (address64->bit_width != ACPI_MUL_8(length))) {
->  			ACPI_BIOS_WARNING((AE_INFO,
->  					   "32/64X length mismatch in FADT/%s:
-> %u/%u",
-> --
-> 1.7.11.3
+Linn
