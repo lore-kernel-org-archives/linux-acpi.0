@@ -1,59 +1,49 @@
-From: Jiri Kosina <jkosina@suse.cz>
-Subject: Re: [3.9-rc1] irq 16: nobody cared  (was [3.9-rc1] very poor interrupt
- responses)
-Date: Fri, 15 Mar 2013 17:21:37 +0100 (CET)
-Message-ID: <alpine.LNX.2.00.1303151720400.9529@pobox.suse.cz>
-References: <Pine.LNX.4.44L0.1303141050310.1983-100000@iolanthe.rowland.org> <1460519.ejNFI1DrGk@vostro.rjw.lan> <1363280764.26318.4.camel@thor.lan> <5657408.cYX6iimiA4@vostro.rjw.lan> <alpine.LNX.2.00.1303150851020.9529@pobox.suse.cz> <5142E7F0.4020002@gmail.com>
- <alpine.LNX.2.00.1303151424140.9529@pobox.suse.cz> <20130315153249.GA32425@kroah.com> <alpine.LNX.2.00.1303151636481.9529@pobox.suse.cz> <20130315154739.GA1024@kroah.com>
+From: Yinghai Lu <yinghai@kernel.org>
+Subject: Re: [3.9-rc1] irq 16: nobody cared (was [3.9-rc1] very poor interrupt responses)
+Date: Fri, 15 Mar 2013 12:14:28 -0700
+Message-ID: <CAE9FiQUqPTUqPOzANnxpdfoRYPr+OiU5pFEoLKRiOFHd9Py4XQ@mail.gmail.com>
+References: <Pine.LNX.4.44L0.1303141050310.1983-100000@iolanthe.rowland.org>
+	<1460519.ejNFI1DrGk@vostro.rjw.lan>
+	<1363280764.26318.4.camel@thor.lan>
+	<5657408.cYX6iimiA4@vostro.rjw.lan>
+	<alpine.LNX.2.00.1303150851020.9529@pobox.suse.cz>
+	<5142E7F0.4020002@gmail.com>
+	<alpine.LNX.2.00.1303151424140.9529@pobox.suse.cz>
+	<alpine.LNX.2.00.1303151609480.9529@pobox.suse.cz>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Return-path: <linux-pci-owner@vger.kernel.org>
-In-Reply-To: <20130315154739.GA1024@kroah.com>
-Sender: linux-pci-owner@vger.kernel.org
-To: Greg KH <greg@kroah.com>
-Cc: Harald Arnesen <skogtun.linux@gmail.com>, Kernel development list <linux-kernel@vger.kernel.org>, "Rafael J. Wysocki" <rjw@sisk.pl>, Peter Hurley <peter@hurleysoftware.com>, Alan Stern <stern@rowland.harvard.edu>, Thomas Meyer <thomas@m3y3r.de>, Shawn Starr <shawn.starr@rogers.com>, USB list <linux-usb@vger.kernel.org>, linux-acpi@vger.kernel.org, Bjorn Helgaas <bhelgaas@google.com>, linux-pci@vger.kernel.org, Yinghai Lu <yinghai@kernel.org>, Daniel Vetter <daniel.vetter@ffwll.ch>, Imre Deak <imre.deak@intel.com>, Daniel Kurtz <djkurtz@chromium.org>, dri-devel@lists.freedesktop.org
+Content-Type: text/plain; charset=ISO-8859-1
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-ie0-f172.google.com ([209.85.223.172]:52922 "EHLO
+	mail-ie0-f172.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755415Ab3COTO3 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 15 Mar 2013 15:14:29 -0400
+In-Reply-To: <alpine.LNX.2.00.1303151609480.9529@pobox.suse.cz>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Jiri Kosina <jkosina@suse.cz>
+Cc: Harald Arnesen <skogtun.linux@gmail.com>, Kernel development list <linux-kernel@vger.kernel.org>, "Rafael J. Wysocki" <rjw@sisk.pl>, Peter Hurley <peter@hurleysoftware.com>, Alan Stern <stern@rowland.harvard.edu>, Thomas Meyer <thomas@m3y3r.de>, Shawn Starr <shawn.starr@rogers.com>, USB list <linux-usb@vger.kernel.org>, linux-acpi@vger.kernel.org, Bjorn Helgaas <bhelgaas@google.com>, linux-pci@vger.kernel.org, Daniel Vetter <daniel.vetter@ffwll.ch>, Imre Deak <imre.deak@intel.com>, Daniel Kurtz <djkurtz@chromium.org>, dri-devel@lists.freedesktop.org
 
-On Fri, 15 Mar 2013, Greg KH wrote:
+On Fri, Mar 15, 2013 at 8:14 AM, Jiri Kosina <jkosina@suse.cz> wrote:
 
-> > > > > I have the same problem on my Lenovo T500. I think the graphics card is
-> > > > > involved.
-> > > > > 
-> > > > > This laptop has "hybrid graphics" - one Intel GMA 4500MHD and one ATI
-> > > > > Mobility Radeon HD 3650. When I boot with the Intel card, I get "irq 16:
-> > > > > nobody cared" during boot, not when I boot with the ATI card.
-> > > > 
-> > > > Confirming this. After a lot of hassle, I have bisected this reliably to
-> > > > 
-> > > > 	commit 28c70f162a315bdcfbe0bf940a740ef8bfb918d6
-> > > > 	Author: Daniel Vetter <daniel.vetter@ffwll.ch>
-> > > > 	Date:   Sat Dec 1 13:53:45 2012 +0100
-> > > > 
-> > > > 	    drm/i915: use the gmbus irq for waits
-> > > > 
-> > > > Adding Daniel, Imre and Daniel to CC while I will try to figure out what's 
-> > > > happening in parallel.
-> > > 
-> > > Wasn't this fixed by the merge from David
-> > > (2cc79544bd0aabb4b3cf467ead5df526d9134c64)?
-> > 
-> > Why do you think it should, please?
-> 
-> The line:
-> 	- Fix PCH irq handling race which resulted in missed gmbus/dp
-> 	  aux irqs and subsequent fallout (Paulo)
+> Just a datapoint -- I have put a trivial debugging patch in place, and it
+> reveals that "nobody cared" for irq 16 happens long after last
+>
+>         I915_WRITE(GMBUS4 + reg_offset, 0);
+>
+> has been performed in gmbus_wait_hw_status(). On the other hand, if I
+> comment out both GMBUS4 register offset writes in gmbus_wait_hw_status(),
+> then it of course falls back to GPIO bit-banging, but the "nobody cared"
+> for irq 16 is gone.
+>
+> So it seems like something gets severely confused by the I915_WRITE to
+> GMBUS4 + reg_offset. So far this seems to have been reported solely on
+> Lenovos as far as I can see (although a completely different types), so it
+> might be some platform-specific quirk?
+>
+> Honestly, I still don't understand how all the GMBUS stuff relates to IRQ
+> 16 at all.
 
-Ah, that one. I believe that should be irrelevant for GM chipsets, as they 
-don't have AUX line, right?
+that device is using
+i915 0000:00:02.0: irq 44 for MSI/MSI-X
 
-> > (I am seeing this with a2362d247 still).
-> 
-> Ok, I guess it isn't still fixed properly, just was guessing :)
-
-Seems like this is a different issue.
-
-Thanks,
-
--- 
-Jiri Kosina
-SUSE Labs
+so can you try to boot with pci=nomsi?
