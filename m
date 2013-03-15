@@ -1,50 +1,108 @@
-From: Jiri Kosina <jkosina@suse.cz>
-Subject: Re: [3.9-rc1] irq 16: nobody cared  (was [3.9-rc1] very poor interrupt
- responses)
-Date: Fri, 15 Mar 2013 08:59:06 +0100 (CET)
-Message-ID: <alpine.LNX.2.00.1303150851020.9529@pobox.suse.cz>
-References: <Pine.LNX.4.44L0.1303141050310.1983-100000@iolanthe.rowland.org> <1460519.ejNFI1DrGk@vostro.rjw.lan> <1363280764.26318.4.camel@thor.lan> <5657408.cYX6iimiA4@vostro.rjw.lan>
+From: Aaron Lu <aaron.lu@intel.com>
+Subject: Re: [PATCH 1/3] ACPI video: Fix brightness control initialization
+ for some laptops.
+Date: Fri, 15 Mar 2013 16:38:14 +0800
+Message-ID: <5142DDF6.1010102@intel.com>
+References: <1363257264-15984-1-git-send-email-dannybaumann@web.de> <1363257264-15984-2-git-send-email-dannybaumann@web.de>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cantor2.suse.de ([195.135.220.15]:48096 "EHLO mx2.suse.de"
+Received: from mga02.intel.com ([134.134.136.20]:2798 "EHLO mga02.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753551Ab3COH7N (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 15 Mar 2013 03:59:13 -0400
-In-Reply-To: <5657408.cYX6iimiA4@vostro.rjw.lan>
+	id S1753034Ab3COIhF (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 15 Mar 2013 04:37:05 -0400
+In-Reply-To: <1363257264-15984-2-git-send-email-dannybaumann@web.de>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: Peter Hurley <peter@hurleysoftware.com>, Alan Stern <stern@rowland.harvard.edu>, Thomas Meyer <thomas@m3y3r.de>, Shawn Starr <shawn.starr@rogers.com>, Kernel development list <linux-kernel@vger.kernel.org>, USB list <linux-usb@vger.kernel.org>, linux-acpi@vger.kernel.org, Bjorn Helgaas <bhelgaas@google.com>, linux-pci@vger.kernel.org, Yinghai Lu <yinghai@kernel.org>
+To: Danny Baumann <dannybaumann@web.de>
+Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Zhang Rui <rui.zhang@intel.com>, Len Brown <lenb@kernel.org>
 
-On Thu, 14 Mar 2013, Rafael J. Wysocki wrote:
-
-> > > commit 181380b702eee1a9aca51354d7b87c7b08541fcf
-> > > Author: Yinghai Lu <yinghai@kernel.org>
-> > > Date:   Sat Feb 16 11:58:34 2013 -0700
-> > > 
-> > >     PCI/ACPI: Don't cache _PRT, and don't associate them with bus numbers
-> > 
-> > This patch __fixed__ this problem for me in linux-next back in February.
-> > 
-> > Rafael, did you hold back some ACPI patches from 3.9 that would have
-> > made fix no longer applicable?
+On 03/14/2013 06:34 PM, Danny Baumann wrote:
+> In particular, this fixes brightness control initialization for all
+> devices that return index values from _BQC and don't happen to have the
+> initial index set by the BIOS in their _BCL table. One example for that
+> is the Dell Inspiron 15R SE (model number 7520).
 > 
-> No, I didn't.
+> What happened for those devices is that acpi_init_brightness queried the
+> initial brightness by calling acpi_video_device_lcd_get_level_current.
+> This called _BQC, which returned e.g. 13. As _BQC_use_index isn't
+> determined at this point (and thus has its initial value of 0), the
+> index isn't converted into the actual level. As '13' isn't present in
+> the _BCL list, *level is later overwritten with brightness->curr, which
+> was initialized to max_level (100) before. Later in
+> acpi_init_brightness, level_old (with the value 100) is used as an index
+> into the _BCL table, which causes a value outside of the actual table to
+> be used as input into acpi_video_device_lcd_set_level(). Depending on
+> the (undefined) value of that location, this call will fail, causing the
+> brightness control for the device in question not to be enabled.
 > 
-> I'm afraid, though, that the fix might not be effective on some systems for a
-> reason that's unclear at the moment.
+> Fix that by returning the raw value returned by the _BQC call in the
+> initialization case.
+
+You missed Signed-off-by tag here.
+Other than that, Reviewed-by: Aaron Lu <aaron.lu@intel.com>.
+
+Thanks,
+Aaron
+
+> ---
+>  drivers/acpi/video.c | 29 ++++++++++++++++++-----------
+>  1 file changed, 18 insertions(+), 11 deletions(-)
 > 
-> So in fact the one to check is commit 4f535093cf ("PCI: Put pci_dev in device
-> tree as early as possible") and if the problem doesn't appear before that, we
-> need to figure out why the fix may not be sufficient.
+> diff --git a/drivers/acpi/video.c b/drivers/acpi/video.c
+> index 313f959..ef85574 100644
+> --- a/drivers/acpi/video.c
+> +++ b/drivers/acpi/video.c
+> @@ -463,6 +463,15 @@ acpi_video_device_lcd_get_level_current(struct acpi_video_device *device,
+>  		status = acpi_evaluate_integer(device->dev->handle, buf,
+>  						NULL, level);
+>  		if (ACPI_SUCCESS(status)) {
+> +			if (init) {
+> +				/*
+> +				 * At init time we don't yet know whether the
+> +				 * value is indexed or not. Don't mess with it
+> +				 * until we have determined how to handle it.
+> +				 */
+> +				return 0;
+> +			}
+> +
+>  			if (device->brightness->flags._BQC_use_index) {
+>  				if (device->brightness->flags._BCL_reversed)
+>  					*level = device->brightness->count
+> @@ -476,16 +485,14 @@ acpi_video_device_lcd_get_level_current(struct acpi_video_device *device,
+>  					device->brightness->curr = *level;
+>  					return 0;
+>  			}
+> -			if (!init) {
+> -				/*
+> -				 * BQC returned an invalid level.
+> -				 * Stop using it.
+> -				 */
+> -				ACPI_WARNING((AE_INFO,
+> -					      "%s returned an invalid level",
+> -					      buf));
+> -				device->cap._BQC = device->cap._BCQ = 0;
+> -			}
+> +			/*
+> +			 * BQC returned an invalid level.
+> +			 * Stop using it.
+> +			 */
+> +			ACPI_WARNING((AE_INFO,
+> +				      "%s returned an invalid level",
+> +				      buf));
+> +			device->cap._BQC = device->cap._BCQ = 0;
+>  		} else {
+>  			/* Fixme:
+>  			 * should we return an error or ignore this failure?
+> @@ -714,7 +721,7 @@ acpi_video_init_brightness(struct acpi_video_device *device)
+>  	if (result)
+>  		goto out_free_levels;
+>  
+> -	result = acpi_video_device_lcd_get_level_current(device, &level, 0);
+> +	result = acpi_video_device_lcd_get_level_current(device, &level, 1);
+>  	if (result)
+>  		goto out_free_levels;
+>  
+> 
 
-With either 4f535093cf or 181380b702 I do *not* see the problem, i.e. 
-these commits are not the culprit and it was caused by some later change.
-
-I will proceed with bisect now, hopefully it'll produce a meaningful 
-result.
-
--- 
-Jiri Kosina
-SUSE Labs
