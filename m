@@ -1,34 +1,59 @@
-From: Kevin Wilson <wkevils@gmail.com>
-Subject: /proc/acpi/processor directory
-Date: Fri, 15 Mar 2013 18:03:54 +0200
-Message-ID: <CAGXs5wXKmhHuHC7GPZEO9ASB6eKZNAzKE7x3kRnx6P6dNiXw7w@mail.gmail.com>
+From: Jiri Kosina <jkosina@suse.cz>
+Subject: Re: [3.9-rc1] irq 16: nobody cared  (was [3.9-rc1] very poor interrupt
+ responses)
+Date: Fri, 15 Mar 2013 17:21:37 +0100 (CET)
+Message-ID: <alpine.LNX.2.00.1303151720400.9529@pobox.suse.cz>
+References: <Pine.LNX.4.44L0.1303141050310.1983-100000@iolanthe.rowland.org> <1460519.ejNFI1DrGk@vostro.rjw.lan> <1363280764.26318.4.camel@thor.lan> <5657408.cYX6iimiA4@vostro.rjw.lan> <alpine.LNX.2.00.1303150851020.9529@pobox.suse.cz> <5142E7F0.4020002@gmail.com>
+ <alpine.LNX.2.00.1303151424140.9529@pobox.suse.cz> <20130315153249.GA32425@kroah.com> <alpine.LNX.2.00.1303151636481.9529@pobox.suse.cz> <20130315154739.GA1024@kroah.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-ob0-f169.google.com ([209.85.214.169]:57807 "EHLO
-	mail-ob0-f169.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754537Ab3COQDz (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 15 Mar 2013 12:03:55 -0400
-Received: by mail-ob0-f169.google.com with SMTP id ta14so3440180obb.14
-        for <linux-acpi@vger.kernel.org>; Fri, 15 Mar 2013 09:03:54 -0700 (PDT)
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Return-path: <linux-pci-owner@vger.kernel.org>
+In-Reply-To: <20130315154739.GA1024@kroah.com>
+Sender: linux-pci-owner@vger.kernel.org
+To: Greg KH <greg@kroah.com>
+Cc: Harald Arnesen <skogtun.linux@gmail.com>, Kernel development list <linux-kernel@vger.kernel.org>, "Rafael J. Wysocki" <rjw@sisk.pl>, Peter Hurley <peter@hurleysoftware.com>, Alan Stern <stern@rowland.harvard.edu>, Thomas Meyer <thomas@m3y3r.de>, Shawn Starr <shawn.starr@rogers.com>, USB list <linux-usb@vger.kernel.org>, linux-acpi@vger.kernel.org, Bjorn Helgaas <bhelgaas@google.com>, linux-pci@vger.kernel.org, Yinghai Lu <yinghai@kernel.org>, Daniel Vetter <daniel.vetter@ffwll.ch>, Imre Deak <imre.deak@intel.com>, Daniel Kurtz <djkurtz@chromium.org>, dri-devel@lists.freedesktop.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org
 
-Hi, linux-acpi members,
+On Fri, 15 Mar 2013, Greg KH wrote:
 
-I get on Fedora 18 on x86_64 this message when running
-"acpitool -c" (from installed acpitool-0.5.1-5 rpm)
+> > > > > I have the same problem on my Lenovo T500. I think the graphics card is
+> > > > > involved.
+> > > > > 
+> > > > > This laptop has "hybrid graphics" - one Intel GMA 4500MHD and one ATI
+> > > > > Mobility Radeon HD 3650. When I boot with the Intel card, I get "irq 16:
+> > > > > nobody cared" during boot, not when I boot with the ATI card.
+> > > > 
+> > > > Confirming this. After a lot of hassle, I have bisected this reliably to
+> > > > 
+> > > > 	commit 28c70f162a315bdcfbe0bf940a740ef8bfb918d6
+> > > > 	Author: Daniel Vetter <daniel.vetter@ffwll.ch>
+> > > > 	Date:   Sat Dec 1 13:53:45 2012 +0100
+> > > > 
+> > > > 	    drm/i915: use the gmbus irq for waits
+> > > > 
+> > > > Adding Daniel, Imre and Daniel to CC while I will try to figure out what's 
+> > > > happening in parallel.
+> > > 
+> > > Wasn't this fixed by the merge from David
+> > > (2cc79544bd0aabb4b3cf467ead5df526d9134c64)?
+> > 
+> > Why do you think it should, please?
+> 
+> The line:
+> 	- Fix PCH irq handling race which resulted in missed gmbus/dp
+> 	  aux irqs and subsequent fallout (Paulo)
 
+Ah, that one. I believe that should be irrelevant for GM chipsets, as they 
+don't have AUX line, right?
 
-acpitool -c
-...
-  Bogomips               : 5242.94
-  Function Show_CPU_Info : could not read directory /proc/acpi/processor/
-  Make sure your kernel has ACPI processor support enabled.
-....
-what is the reason for this ?
+> > (I am seeing this with a2362d247 still).
+> 
+> Ok, I guess it isn't still fixed properly, just was guessing :)
 
-Is there a way to build a kernel to enable this ?
-rgs,
-Kevin
+Seems like this is a different issue.
+
+Thanks,
+
+-- 
+Jiri Kosina
+SUSE Labs
