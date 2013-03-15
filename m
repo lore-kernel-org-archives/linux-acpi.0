@@ -1,120 +1,115 @@
-From: Harald Arnesen <skogtun.linux@gmail.com>
-Subject: Re: [3.9-rc1] irq 16: nobody cared  (was [3.9-rc1] very poor interrupt
- responses)
-Date: Fri, 15 Mar 2013 10:20:48 +0100
-Message-ID: <5142E7F0.4020002@gmail.com>
-References: <Pine.LNX.4.44L0.1303141050310.1983-100000@iolanthe.rowland.org> <1460519.ejNFI1DrGk@vostro.rjw.lan> <1363280764.26318.4.camel@thor.lan> <5657408.cYX6iimiA4@vostro.rjw.lan> <alpine.LNX.2.00.1303150851020.9529@pobox.suse.cz>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+From: Danny Baumann <dannybaumann@web.de>
+Subject: [PATCH v2 1/3] ACPI video: Fix brightness control initialization for some laptops.
+Date: Fri, 15 Mar 2013 11:10:46 +0100
+Message-ID: <1363342248-6496-1-git-send-email-dannybaumann@web.de>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-la0-f44.google.com ([209.85.215.44]:33465 "EHLO
-	mail-la0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751965Ab3COJUw (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 15 Mar 2013 05:20:52 -0400
-In-Reply-To: <alpine.LNX.2.00.1303150851020.9529@pobox.suse.cz>
+Received: from mout.web.de ([212.227.17.12]:50758 "EHLO mout.web.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753282Ab3COKLI (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 15 Mar 2013 06:11:08 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Kernel development list <linux-kernel@vger.kernel.org>
-Cc: Jiri Kosina <jkosina@suse.cz>, "Rafael J. Wysocki" <rjw@sisk.pl>, Peter Hurley <peter@hurleysoftware.com>, Alan Stern <stern@rowland.harvard.edu>, Thomas Meyer <thomas@m3y3r.de>, Shawn Starr <shawn.starr@rogers.com>, USB list <linux-usb@vger.kernel.org>, linux-acpi@vger.kernel.org, Bjorn Helgaas <bhelgaas@google.com>, linux-pci@vger.kernel.org, Yinghai Lu <yinghai@kernel.org>
+To: linux-acpi@vger.kernel.org
+Cc: linux-kernel@vger.kernel.org, Zhang Rui <rui.zhang@intel.com>, Len Brown <lenb@kernel.org>, Danny Baumann <dannybaumann@web.de>
 
-I have the same problem on my Lenovo T500. I think the graphics card is
-involved.
+In particular, this fixes brightness control initialization for all
+devices that return index values from _BQC and don't happen to have the
+initial index set by the BIOS in their _BCL table. One example for that
+is the Dell Inspiron 15R SE (model number 7520).
 
-This laptop has "hybrid graphics" - one Intel GMA 4500MHD and one ATI
-Mobility Radeon HD 3650. When I boot with the Intel card, I get "irq 16:
-nobody cared" during boot, not when I boot with the ATI card.
+What happened for those devices is that acpi_init_brightness queried the
+initial brightness by calling acpi_video_device_lcd_get_level_current.
+This called _BQC, which returned e.g. 13. As _BQC_use_index isn't
+determined at this point (and thus has its initial value of 0), the
+index isn't converted into the actual level. As '13' isn't present in
+the _BCL list, *level is later overwritten with brightness->curr, which
+was initialized to max_level (100) before. Later in
+acpi_init_brightness, level_old (with the value 100) is used as an index
+into the _BCL table, which causes a value outside of the actual table to
+be used as input into acpi_video_device_lcd_set_level(). Depending on
+the (undefined) value of that location, this call will fail, causing the
+brightness control for the device in question not to be enabled.
 
-And /proc/interrupts are surely different with the two cards. Look at
-the irq 16 line:
+Fix that by returning the raw value returned by the _BQC call in the
+initialization case.
 
-$ cat intel-interrupts.txt
-           CPU0       CPU1
-  0:      23658      22859   IO-APIC-edge      timer
-  1:        168        177   IO-APIC-edge      i8042
-  8:          1          0   IO-APIC-edge      rtc0
-  9:        329        347   IO-APIC-fasteoi   acpi
- 12:       3065       3166   IO-APIC-edge      i8042
- 16:      49732      50269   IO-APIC-fasteoi   yenta, uhci_hcd:usb6
- 17:          1          0   IO-APIC-fasteoi   firewire_ohci, uhci_hcd:usb7
- 18:          0          0   IO-APIC-fasteoi   mmc0, uhci_hcd:usb8
- 19:        216        204   IO-APIC-fasteoi   ehci_hcd:usb2
- 20:          0          0   IO-APIC-fasteoi   uhci_hcd:usb3
- 21:        114        103   IO-APIC-fasteoi   uhci_hcd:usb4
- 22:          0          0   IO-APIC-fasteoi   uhci_hcd:usb5
- 23:          9          9   IO-APIC-fasteoi   i801_smbus, ehci_hcd:usb1
- 40:          0          0  DMAR_MSI-edge      dmar2
- 41:          0          0  DMAR_MSI-edge      dmar0
- 42:          0          0  DMAR_MSI-edge      dmar3
- 43:          0          0   PCI-MSI-edge      PCIe PME
- 44:          0          0   PCI-MSI-edge      PCIe PME
- 45:          0          0   PCI-MSI-edge      PCIe PME
- 46:          0          0   PCI-MSI-edge      PCIe PME
- 47:      10023      10173   PCI-MSI-edge      ahci
- 48:         10          8   PCI-MSI-edge      mei
- 49:         22         30   PCI-MSI-edge      eth0
- 50:         66         71   PCI-MSI-edge      i915
- 51:       2508       2348   PCI-MSI-edge      iwlwifi
- 52:        168        169   PCI-MSI-edge      snd_hda_intel
-NMI:         17         17   Non-maskable interrupts
-LOC:      27988      25243   Local timer interrupts
-SPU:          0          0   Spurious interrupts
-PMI:         17         17   Performance monitoring interrupts
-IWI:          0          0   IRQ work interrupts
-RTR:          0          0   APIC ICR read retries
-RES:       4584       2746   Rescheduling interrupts
-CAL:       6178       7492   Function call interrupts
-TLB:        702        651   TLB shootdowns
-TRM:          0          0   Thermal event interrupts
-THR:          0          0   Threshold APIC interrupts
-MCE:          0          0   Machine check exceptions
-MCP:          1          1   Machine check polls
-ERR:          0
-MIS:          0
+Signed-off-by: Danny Baumann <dannybaumann@web.de>
+---
+ drivers/acpi/video.c | 33 ++++++++++++++++++++-------------
+ 1 file changed, 20 insertions(+), 13 deletions(-)
 
-$ cat ati-interrupts.txt
-           CPU0       CPU1
-  0:      15488      15268   IO-APIC-edge      timer
-  1:        182        189   IO-APIC-edge      i8042
-  8:          1          0   IO-APIC-edge      rtc0
-  9:        328        339   IO-APIC-fasteoi   acpi
- 12:       2071       1997   IO-APIC-edge      i8042
- 16:         55         47   IO-APIC-fasteoi   yenta, uhci_hcd:usb4
- 17:          1          1   IO-APIC-fasteoi   firewire_ohci, uhci_hcd:usb5
- 18:          0          0   IO-APIC-fasteoi   uhci_hcd:usb6, mmc0
- 19:        219        202   IO-APIC-fasteoi   ehci_hcd:usb8
- 20:          0          0   IO-APIC-fasteoi   uhci_hcd:usb1
- 21:        112        104   IO-APIC-fasteoi   uhci_hcd:usb2
- 22:          0          0   IO-APIC-fasteoi   uhci_hcd:usb3
- 23:         10          8   IO-APIC-fasteoi   i801_smbus, ehci_hcd:usb7
- 40:          0          0  DMAR_MSI-edge      dmar1
- 41:          0          0  DMAR_MSI-edge      dmar0
- 42:          0          0  DMAR_MSI-edge      dmar2
- 43:          0          0   PCI-MSI-edge      PCIe PME
- 44:          0          0   PCI-MSI-edge      PCIe PME
- 45:          0          0   PCI-MSI-edge      PCIe PME
- 46:          0          0   PCI-MSI-edge      PCIe PME
- 47:          0          0   PCI-MSI-edge      PCIe PME
- 48:       9733       9932   PCI-MSI-edge      ahci
- 49:          9          9   PCI-MSI-edge      mei
- 50:       2308       2196   PCI-MSI-edge      iwlwifi
- 51:         15         35   PCI-MSI-edge      eth0
- 52:        818        815   PCI-MSI-edge      radeon
- 53:        167        167   PCI-MSI-edge      snd_hda_intel
-NMI:         17         16   Non-maskable interrupts
-LOC:      18139      34223   Local timer interrupts
-SPU:          0          0   Spurious interrupts
-PMI:         17         16   Performance monitoring interrupts
-IWI:          0          0   IRQ work interrupts
-RTR:          0          0   APIC ICR read retries
-RES:       3788       3563   Rescheduling interrupts
-CAL:       6303       5894   Function call interrupts
-TLB:        711        711   TLB shootdowns
-TRM:          0          0   Thermal event interrupts
-THR:          0          0   Threshold APIC interrupts
-MCE:          0          0   Machine check exceptions
-MCP:          1          1   Machine check polls
-ERR:          0
-MIS:          0
+diff --git a/drivers/acpi/video.c b/drivers/acpi/video.c
+index 313f959..9c33871 100644
+--- a/drivers/acpi/video.c
++++ b/drivers/acpi/video.c
+@@ -222,7 +222,7 @@ static int acpi_video_device_lcd_set_level(struct acpi_video_device *device,
+ 			int level);
+ static int acpi_video_device_lcd_get_level_current(
+ 			struct acpi_video_device *device,
+-			unsigned long long *level, int init);
++			unsigned long long *level, int raw);
+ static int acpi_video_get_next_level(struct acpi_video_device *device,
+ 				     u32 level_current, u32 event);
+ static int acpi_video_switch_brightness(struct acpi_video_device *device,
+@@ -452,7 +452,7 @@ static struct dmi_system_id video_dmi_table[] __initdata = {
+ 
+ static int
+ acpi_video_device_lcd_get_level_current(struct acpi_video_device *device,
+-					unsigned long long *level, int init)
++					unsigned long long *level, int raw)
+ {
+ 	acpi_status status = AE_OK;
+ 	int i;
+@@ -463,6 +463,15 @@ acpi_video_device_lcd_get_level_current(struct acpi_video_device *device,
+ 		status = acpi_evaluate_integer(device->dev->handle, buf,
+ 						NULL, level);
+ 		if (ACPI_SUCCESS(status)) {
++			if (raw) {
++				/*
++				 * Caller has indicated he wants the raw
++				 * value returned by _BQC, so don't furtherly
++				 * mess with the value.
++				 */
++				return 0;
++			}
++
+ 			if (device->brightness->flags._BQC_use_index) {
+ 				if (device->brightness->flags._BCL_reversed)
+ 					*level = device->brightness->count
+@@ -476,16 +485,14 @@ acpi_video_device_lcd_get_level_current(struct acpi_video_device *device,
+ 					device->brightness->curr = *level;
+ 					return 0;
+ 			}
+-			if (!init) {
+-				/*
+-				 * BQC returned an invalid level.
+-				 * Stop using it.
+-				 */
+-				ACPI_WARNING((AE_INFO,
+-					      "%s returned an invalid level",
+-					      buf));
+-				device->cap._BQC = device->cap._BCQ = 0;
+-			}
++			/*
++			 * BQC returned an invalid level.
++			 * Stop using it.
++			 */
++			ACPI_WARNING((AE_INFO,
++				      "%s returned an invalid level",
++				      buf));
++			device->cap._BQC = device->cap._BCQ = 0;
+ 		} else {
+ 			/* Fixme:
+ 			 * should we return an error or ignore this failure?
+@@ -714,7 +721,7 @@ acpi_video_init_brightness(struct acpi_video_device *device)
+ 	if (result)
+ 		goto out_free_levels;
+ 
+-	result = acpi_video_device_lcd_get_level_current(device, &level, 0);
++	result = acpi_video_device_lcd_get_level_current(device, &level, 1);
+ 	if (result)
+ 		goto out_free_levels;
+ 
 -- 
-Hilsen Harald
+1.8.1.4
+
