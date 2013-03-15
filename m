@@ -1,82 +1,120 @@
-From: Aaron Lu <aaron.lu@intel.com>
-Subject: Re: [PATCH 3/3] ACPI video: Fix applying indexed initial brightness
- value.
-Date: Fri, 15 Mar 2013 17:01:39 +0800
-Message-ID: <5142E373.1020006@intel.com>
-References: <1363257264-15984-1-git-send-email-dannybaumann@web.de> <1363257264-15984-4-git-send-email-dannybaumann@web.de> <5142E04F.1010400@intel.com> <5142E20C.40805@web.de>
+From: Harald Arnesen <skogtun.linux@gmail.com>
+Subject: Re: [3.9-rc1] irq 16: nobody cared  (was [3.9-rc1] very poor interrupt
+ responses)
+Date: Fri, 15 Mar 2013 10:20:48 +0100
+Message-ID: <5142E7F0.4020002@gmail.com>
+References: <Pine.LNX.4.44L0.1303141050310.1983-100000@iolanthe.rowland.org> <1460519.ejNFI1DrGk@vostro.rjw.lan> <1363280764.26318.4.camel@thor.lan> <5657408.cYX6iimiA4@vostro.rjw.lan> <alpine.LNX.2.00.1303150851020.9529@pobox.suse.cz>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga02.intel.com ([134.134.136.20]:30152 "EHLO mga02.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753922Ab3COJA1 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 15 Mar 2013 05:00:27 -0400
-In-Reply-To: <5142E20C.40805@web.de>
+Received: from mail-la0-f44.google.com ([209.85.215.44]:33465 "EHLO
+	mail-la0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751965Ab3COJUw (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 15 Mar 2013 05:20:52 -0400
+In-Reply-To: <alpine.LNX.2.00.1303150851020.9529@pobox.suse.cz>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Danny Baumann <dannybaumann@web.de>
-Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Zhang Rui <rui.zhang@intel.com>, Len Brown <lenb@kernel.org>
+To: Kernel development list <linux-kernel@vger.kernel.org>
+Cc: Jiri Kosina <jkosina@suse.cz>, "Rafael J. Wysocki" <rjw@sisk.pl>, Peter Hurley <peter@hurleysoftware.com>, Alan Stern <stern@rowland.harvard.edu>, Thomas Meyer <thomas@m3y3r.de>, Shawn Starr <shawn.starr@rogers.com>, USB list <linux-usb@vger.kernel.org>, linux-acpi@vger.kernel.org, Bjorn Helgaas <bhelgaas@google.com>, linux-pci@vger.kernel.org, Yinghai Lu <yinghai@kernel.org>
 
-On 03/15/2013 04:55 PM, Danny Baumann wrote:
-> Hi,
-> 
->  >> +static unsigned long long
->>> +acpi_video_index_to_level(struct acpi_video_device *device,
->>> +			  unsigned long long index)
->>> +{
->>> +	if (device->brightness->flags._BCL_reversed)
->>> +		index = device->brightness->count - 3 - index;
->>> +
->>> +	return device->brightness->levels[index + 2];
->>> +}
->>
->> What about making this function also take care of the
->> bqc_offset_aml_bug_workaround? so that this function serves more like a
->> conversion from raw value to fixed value, the function name can perhaps
->> be named as: acpi_video_fix_bqc_value, or whatever you think is more
->> appropriate.
-> 
-> Makes sense to me. How about acpi_video_bqc_to_level? I'd suggest 
-> acpi_video_bqc_value_to_level, but that makes it hard to keep the 80 
-> char limit in acpi_video_device_lcd_get_level_current.
+I have the same problem on my Lenovo T500. I think the graphics card is
+involved.
 
-Right, so let's go with acpi_video_bqc_to_level.
+This laptop has "hybrid graphics" - one Intel GMA 4500MHD and one ATI
+Mobility Radeon HD 3650. When I boot with the Intel card, I get "irq 16:
+nobody cared" during boot, not when I boot with the ATI card.
 
-> 
->>> @@ -742,9 +749,7 @@ acpi_video_init_brightness(struct acpi_video_device *device)
->>>   				}
->>>   		}
->>>   	} else {
->>> -		if (br->flags._BCL_reversed)
->>> -			level_old = (br->count - 1) - level_old;
->>> -		level = br->levels[level_old];
->>> +		level = acpi_video_index_to_level(device, level_old);
->>
->> And here, that new function should be used, which also takes care of the
->> offset_aml_bug problem(though in theory, the two problems may not happen
->> on the same BIOS table).
-> 
-> But that new function (whatever it's named) is already used here?
+And /proc/interrupts are surely different with the two cards. Look at
+the irq 16 line:
 
-Yes, I mean the new function that also takes care of offset_aml_bug :-)
+$ cat intel-interrupts.txt
+           CPU0       CPU1
+  0:      23658      22859   IO-APIC-edge      timer
+  1:        168        177   IO-APIC-edge      i8042
+  8:          1          0   IO-APIC-edge      rtc0
+  9:        329        347   IO-APIC-fasteoi   acpi
+ 12:       3065       3166   IO-APIC-edge      i8042
+ 16:      49732      50269   IO-APIC-fasteoi   yenta, uhci_hcd:usb6
+ 17:          1          0   IO-APIC-fasteoi   firewire_ohci, uhci_hcd:usb7
+ 18:          0          0   IO-APIC-fasteoi   mmc0, uhci_hcd:usb8
+ 19:        216        204   IO-APIC-fasteoi   ehci_hcd:usb2
+ 20:          0          0   IO-APIC-fasteoi   uhci_hcd:usb3
+ 21:        114        103   IO-APIC-fasteoi   uhci_hcd:usb4
+ 22:          0          0   IO-APIC-fasteoi   uhci_hcd:usb5
+ 23:          9          9   IO-APIC-fasteoi   i801_smbus, ehci_hcd:usb1
+ 40:          0          0  DMAR_MSI-edge      dmar2
+ 41:          0          0  DMAR_MSI-edge      dmar0
+ 42:          0          0  DMAR_MSI-edge      dmar3
+ 43:          0          0   PCI-MSI-edge      PCIe PME
+ 44:          0          0   PCI-MSI-edge      PCIe PME
+ 45:          0          0   PCI-MSI-edge      PCIe PME
+ 46:          0          0   PCI-MSI-edge      PCIe PME
+ 47:      10023      10173   PCI-MSI-edge      ahci
+ 48:         10          8   PCI-MSI-edge      mei
+ 49:         22         30   PCI-MSI-edge      eth0
+ 50:         66         71   PCI-MSI-edge      i915
+ 51:       2508       2348   PCI-MSI-edge      iwlwifi
+ 52:        168        169   PCI-MSI-edge      snd_hda_intel
+NMI:         17         17   Non-maskable interrupts
+LOC:      27988      25243   Local timer interrupts
+SPU:          0          0   Spurious interrupts
+PMI:         17         17   Performance monitoring interrupts
+IWI:          0          0   IRQ work interrupts
+RTR:          0          0   APIC ICR read retries
+RES:       4584       2746   Rescheduling interrupts
+CAL:       6178       7492   Function call interrupts
+TLB:        702        651   TLB shootdowns
+TRM:          0          0   Thermal event interrupts
+THR:          0          0   Threshold APIC interrupts
+MCE:          0          0   Machine check exceptions
+MCP:          1          1   Machine check polls
+ERR:          0
+MIS:          0
 
-> 
-> BTW, shouldn't the use_bios_initial_backlight also be respected for the 
-> BQC-returns-index case? Currently it's only used for the 
-> BQC-returns-level case.
-
-Definitely, we should care that.
-
-> 
->> And the acpi_video_device_lcd_get_level_current's param init can
->> probably be renamed as raw, meaning if raw value is desired or fixed
->> value, but it's not a big deal.
-> 
-> Agreed. I'll send a new patch set (this time with signed-off-by) once I 
-> get opinion on the question above.
-
-Cool, thanks.
-
--Aaron
-
+$ cat ati-interrupts.txt
+           CPU0       CPU1
+  0:      15488      15268   IO-APIC-edge      timer
+  1:        182        189   IO-APIC-edge      i8042
+  8:          1          0   IO-APIC-edge      rtc0
+  9:        328        339   IO-APIC-fasteoi   acpi
+ 12:       2071       1997   IO-APIC-edge      i8042
+ 16:         55         47   IO-APIC-fasteoi   yenta, uhci_hcd:usb4
+ 17:          1          1   IO-APIC-fasteoi   firewire_ohci, uhci_hcd:usb5
+ 18:          0          0   IO-APIC-fasteoi   uhci_hcd:usb6, mmc0
+ 19:        219        202   IO-APIC-fasteoi   ehci_hcd:usb8
+ 20:          0          0   IO-APIC-fasteoi   uhci_hcd:usb1
+ 21:        112        104   IO-APIC-fasteoi   uhci_hcd:usb2
+ 22:          0          0   IO-APIC-fasteoi   uhci_hcd:usb3
+ 23:         10          8   IO-APIC-fasteoi   i801_smbus, ehci_hcd:usb7
+ 40:          0          0  DMAR_MSI-edge      dmar1
+ 41:          0          0  DMAR_MSI-edge      dmar0
+ 42:          0          0  DMAR_MSI-edge      dmar2
+ 43:          0          0   PCI-MSI-edge      PCIe PME
+ 44:          0          0   PCI-MSI-edge      PCIe PME
+ 45:          0          0   PCI-MSI-edge      PCIe PME
+ 46:          0          0   PCI-MSI-edge      PCIe PME
+ 47:          0          0   PCI-MSI-edge      PCIe PME
+ 48:       9733       9932   PCI-MSI-edge      ahci
+ 49:          9          9   PCI-MSI-edge      mei
+ 50:       2308       2196   PCI-MSI-edge      iwlwifi
+ 51:         15         35   PCI-MSI-edge      eth0
+ 52:        818        815   PCI-MSI-edge      radeon
+ 53:        167        167   PCI-MSI-edge      snd_hda_intel
+NMI:         17         16   Non-maskable interrupts
+LOC:      18139      34223   Local timer interrupts
+SPU:          0          0   Spurious interrupts
+PMI:         17         16   Performance monitoring interrupts
+IWI:          0          0   IRQ work interrupts
+RTR:          0          0   APIC ICR read retries
+RES:       3788       3563   Rescheduling interrupts
+CAL:       6303       5894   Function call interrupts
+TLB:        711        711   TLB shootdowns
+TRM:          0          0   Thermal event interrupts
+THR:          0          0   Threshold APIC interrupts
+MCE:          0          0   Machine check exceptions
+MCP:          1          1   Machine check polls
+ERR:          0
+MIS:          0
+-- 
+Hilsen Harald
