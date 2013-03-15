@@ -1,25 +1,28 @@
-From: Jiri Kosina <jkosina@suse.cz>
-Subject: Re: [3.9-rc1] irq 16: nobody cared  (was [3.9-rc1] very poor interrupt
- responses)
-Date: Fri, 15 Mar 2013 16:14:17 +0100 (CET)
-Message-ID: <alpine.LNX.2.00.1303151609480.9529@pobox.suse.cz>
-References: <Pine.LNX.4.44L0.1303141050310.1983-100000@iolanthe.rowland.org> <1460519.ejNFI1DrGk@vostro.rjw.lan> <1363280764.26318.4.camel@thor.lan> <5657408.cYX6iimiA4@vostro.rjw.lan> <alpine.LNX.2.00.1303150851020.9529@pobox.suse.cz> <5142E7F0.4020002@gmail.com>
+From: Greg KH <greg@kroah.com>
+Subject: Re: [3.9-rc1] irq 16: nobody cared  (was [3.9-rc1] very poor
+ interrupt responses)
+Date: Fri, 15 Mar 2013 08:32:49 -0700
+Message-ID: <20130315153249.GA32425@kroah.com>
+References: <Pine.LNX.4.44L0.1303141050310.1983-100000@iolanthe.rowland.org>
+ <1460519.ejNFI1DrGk@vostro.rjw.lan>
+ <1363280764.26318.4.camel@thor.lan>
+ <5657408.cYX6iimiA4@vostro.rjw.lan>
+ <alpine.LNX.2.00.1303150851020.9529@pobox.suse.cz>
+ <5142E7F0.4020002@gmail.com>
  <alpine.LNX.2.00.1303151424140.9529@pobox.suse.cz>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cantor2.suse.de ([195.135.220.15]:39365 "EHLO mx2.suse.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754556Ab3COPO0 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 15 Mar 2013 11:14:26 -0400
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
 In-Reply-To: <alpine.LNX.2.00.1303151424140.9529@pobox.suse.cz>
-Sender: linux-acpi-owner@vger.kernel.org
+Sender: linux-kernel-owner@vger.kernel.org
+To: Jiri Kosina <jkosina@suse.cz>
+Cc: Harald Arnesen <skogtun.linux@gmail.com>, Kernel development list <linux-kernel@vger.kernel.org>, "Rafael J. Wysocki" <rjw@sisk.pl>, Peter Hurley <peter@hurleysoftware.com>, Alan Stern <stern@rowland.harvard.edu>, Thomas Meyer <thomas@m3y3r.de>, Shawn Starr <shawn.starr@rogers.com>, USB list <linux-usb@vger.kernel.org>, linux-acpi@vger.kernel.org, Bjorn Helgaas <bhelgaas@google.com>, linux-pci@vger.kernel.org, Yinghai Lu <yinghai@kernel.org>, Daniel Vetter <daniel.vetter@ffwll.ch>, Imre Deak <imre.deak@intel.com>, Daniel Kurtz <djkurtz@chromium.org>, dri-devel@lists.freedesktop.org
 List-Id: linux-acpi@vger.kernel.org
-To: Harald Arnesen <skogtun.linux@gmail.com>
-Cc: Kernel development list <linux-kernel@vger.kernel.org>, "Rafael J. Wysocki" <rjw@sisk.pl>, Peter Hurley <peter@hurleysoftware.com>, Alan Stern <stern@rowland.harvard.edu>, Thomas Meyer <thomas@m3y3r.de>, Shawn Starr <shawn.starr@rogers.com>, USB list <linux-usb@vger.kernel.org>, linux-acpi@vger.kernel.org, Bjorn Helgaas <bhelgaas@google.com>, linux-pci@vger.kernel.org, Yinghai Lu <yinghai@kernel.org>, Daniel Vetter <daniel.vetter@ffwll.ch>, Imre Deak <imre.deak@intel.com>, Daniel Kurtz <djkurtz@chromium.org>, dri-devel@lists.freedesktop.org
 
-On Fri, 15 Mar 2013, Jiri Kosina wrote:
-
+On Fri, Mar 15, 2013 at 02:33:13PM +0100, Jiri Kosina wrote:
+> On Fri, 15 Mar 2013, Harald Arnesen wrote:
+> 
 > > I have the same problem on my Lenovo T500. I think the graphics card is
 > > involved.
 > > 
@@ -37,28 +40,9 @@ On Fri, 15 Mar 2013, Jiri Kosina wrote:
 > 
 > Adding Daniel, Imre and Daniel to CC while I will try to figure out what's 
 > happening in parallel.
-> 
-> Attaching dmesg.txt from the machine with 28c70f162a as head, with 
-> drm.debug=0xe.
 
-Just a datapoint -- I have put a trivial debugging patch in place, and it 
-reveals that "nobody cared" for irq 16 happens long after last
+Wasn't this fixed by the merge from David
+(2cc79544bd0aabb4b3cf467ead5df526d9134c64)?  I can't figure out the
+exact commit that the merge message referred to though...
 
-	I915_WRITE(GMBUS4 + reg_offset, 0);
-
-has been performed in gmbus_wait_hw_status(). On the other hand, if I 
-comment out both GMBUS4 register offset writes in gmbus_wait_hw_status(), 
-then it of course falls back to GPIO bit-banging, but the "nobody cared" 
-for irq 16 is gone. 
-
-So it seems like something gets severely confused by the I915_WRITE to 
-GMBUS4 + reg_offset. So far this seems to have been reported solely on 
-Lenovos as far as I can see (although a completely different types), so it 
-might be some platform-specific quirk?
-
-Honestly, I still don't understand how all the GMBUS stuff relates to IRQ 
-16 at all. 
-
--- 
-Jiri Kosina
-SUSE Labs
+greg k-h
