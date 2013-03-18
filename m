@@ -1,115 +1,116 @@
-From: Chris Wilson <chris@chris-wilson.co.uk>
-Subject: Re: [PATCH] drm/i915: stop using GMBUS IRQs on Gen4 chips (was Re:
- [3.9-rc1] irq 16: nobody cared  (was [3.9-rc1] very poor interrupt
- responses))
-Date: Mon, 18 Mar 2013 17:04:24 +0000
-Message-ID: <20130318170424.GB5571@cantiga.alporthouse.com>
-References: <1363280764.26318.4.camel@thor.lan>
- <5657408.cYX6iimiA4@vostro.rjw.lan>
- <alpine.LNX.2.00.1303150851020.9529@pobox.suse.cz>
- <5142E7F0.4020002@gmail.com>
- <alpine.LNX.2.00.1303151424140.9529@pobox.suse.cz>
- <20130315153249.GA32425@kroah.com>
- <alpine.LNX.2.00.1303151636481.9529@pobox.suse.cz>
- <20130315154739.GA1024@kroah.com>
- <20130318082156.GO9021@phenom.ffwll.local>
- <alpine.LNX.2.00.1303181522460.9529@pobox.suse.cz>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-pci-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <alpine.LNX.2.00.1303181522460.9529@pobox.suse.cz>
-Sender: linux-pci-owner@vger.kernel.org
-To: Jiri Kosina <jkosina@suse.cz>
-Cc: Daniel Vetter <daniel@ffwll.ch>, Greg KH <greg@kroah.com>, Harald Arnesen <skogtun.linux@gmail.com>, Kernel development list <linux-kernel@vger.kernel.org>, "Rafael J. Wysocki" <rjw@sisk.pl>, Peter Hurley <peter@hurleysoftware.com>, Alan Stern <stern@rowland.harvard.edu>, Thomas Meyer <thomas@m3y3r.de>, Shawn Starr <shawn.starr@rogers.com>, USB list <linux-usb@vger.kernel.org>, linux-acpi@vger.kernel.org, Bjorn Helgaas <bhelgaas@google.com>, linux-pci@vger.kernel.org, Yinghai Lu <yinghai@kernel.org>, Daniel Vetter <daniel.vetter@ffwll.ch>, Imre Deak <imre.deak@intel.com>, Daniel Kurtz <djkurtz@chromium.org>, dri-devel@lists.freedesktop.org
+From: Yinghai Lu <yinghai@kernel.org>
+Subject: [PATCH] PCI: Remove not needed check in disable aspm link
+Date: Mon, 18 Mar 2013 10:37:06 -0700
+Message-ID: <1363628226-6679-1-git-send-email-yinghai@kernel.org>
+References: <CAE9FiQXmeb66dc8fET0y99BjqpUXp11c7utiQ5keR1Wf+N9xaA@mail.gmail.com>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from aserp1040.oracle.com ([141.146.126.69]:33715 "EHLO
+	aserp1040.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751613Ab3CRRhc (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 18 Mar 2013 13:37:32 -0400
+In-Reply-To: <CAE9FiQXmeb66dc8fET0y99BjqpUXp11c7utiQ5keR1Wf+N9xaA@mail.gmail.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Bjorn Helgaas <bhelgaas@google.com>, "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Yinghai Lu <yinghai@kernel.org>, Taku Izumi <izumi.taku@jp.fujitsu.com>, Kenji Kaneshige <kaneshige.kenji@jp.fujitsu.com>, stable@kernel.org
 
-On Mon, Mar 18, 2013 at 04:56:02PM +0100, Jiri Kosina wrote:
-> Okay, so I think that for 3.9 we want the patch below, and if eventually 
-> hardware root cause / workaround is found for GM45, we can have it merged 
-> later.
-> 
-> 
-> 
-> From: Jiri Kosina <jkosina@suse.cz>
-> Subject: [PATCH] drm/i915: stop using GMBUS IRQs on Gen4 chips
-> 
-> Commit 28c70f162 ("drm/i915: use the gmbus irq for waits") switched to
-> using GMBUS irqs instead of GPIO bit-banging for chipset generations 4
-> and above.
-> 
-> It turns out though that on many systems this leads to spurious interrupts
-> being generated, long after the register write to disable the IRQs has been
-> issued.
-> 
-> Flushing of the register writes by POSTING_READ() directly after the register
-> write doesn't work either.
-> 
-> Disable using of GMBUS IRQs on Gen4 systems before the root cause is found and
-> revert back to old behavior.
-> 
-> Also be more careful about not issuing GMBUS4 register reads in 
-> gmbus_wait_hw_status() if we are not using GMBUS IRQs.
-> 
-> Signed-off-by: Jiri Kosina <jkosina@suse.cz>
-> ---
->  drivers/gpu/drm/i915/intel_i2c.c |   12 ++++++++++--
->  1 files changed, 10 insertions(+), 2 deletions(-)
-> 
-> diff --git a/drivers/gpu/drm/i915/intel_i2c.c b/drivers/gpu/drm/i915/intel_i2c.c
-> index acf8aec..8638036 100644
-> --- a/drivers/gpu/drm/i915/intel_i2c.c
-> +++ b/drivers/gpu/drm/i915/intel_i2c.c
-> @@ -58,12 +58,14 @@ to_intel_gmbus(struct i2c_adapter *i2c)
->  	return container_of(i2c, struct intel_gmbus, adapter);
->  }
->  
-> +#define HAS_GMBUS_IRQ(dev) (INTEL_INFO(dev)->gen >= 5)
->  void
->  intel_i2c_reset(struct drm_device *dev)
->  {
->  	struct drm_i915_private *dev_priv = dev->dev_private;
->  	I915_WRITE(dev_priv->gpio_mmio_base + GMBUS0, 0);
-> -	I915_WRITE(dev_priv->gpio_mmio_base + GMBUS4, 0);
-> +	if (HAS_GMBUS_IRQ(dev))
-> +		I915_WRITE(dev_priv->gpio_mmio_base + GMBUS4, 0);
+Roman reported ath5k does not work anymore on 3.8.
+Bisected to
+| commit 8c33f51df406e1a1f7fa4e9b244845b7ebd61fa6
+| Author: Taku Izumi <izumi.taku@jp.fujitsu.com>
+| Date:   Tue Oct 30 15:27:13 2012 +0900
+|
+|    PCI/ACPI: Request _OSC control before scanning PCI root bus
+|
+|    This patch moves up the code block to request _OSC control in order to
+|    separate ACPI work and PCI work in acpi_pci_root_add().
 
-There should not be any harm in always clearing GMBUS4, it exists on all
-platforms.
+It make pci_disable_link_state does not work anymore as acpi_disabled
+is set before pci root bus scanning.
+It will skip that in quirks and pcie_aspm_sanity_check.
 
->  }
->  
->  static void intel_i2c_quirk_set(struct drm_i915_private *dev_priv, bool enable)
-> @@ -203,7 +205,6 @@ intel_gpio_setup(struct intel_gmbus *bus, u32 pin)
->  	algo->data = bus;
->  }
->  
-> -#define HAS_GMBUS_IRQ(dev) (INTEL_INFO(dev)->gen >= 4)
->  static int
->  gmbus_wait_hw_status(struct drm_i915_private *dev_priv,
->  		     u32 gmbus2_status,
-> @@ -214,6 +215,13 @@ gmbus_wait_hw_status(struct drm_i915_private *dev_priv,
->  	u32 gmbus2 = 0;
->  	DEFINE_WAIT(wait);
->  
-> +	if (!HAS_GMBUS_IRQ(dev_priv->dev)) {
-> +		int ret;
-> +		ret = wait_for((gmbus2 = I915_READ(GMBUS2 + reg_offset)) &
-> +				(GMBUS_SATOER | gmbus2_status),
-> +				50);
+We could revert to old logic, but that will make booting path and hotplug
+path with different aspm_disabled again.
 
-This should couple up to the normal return code that chooses the
-appropriate return value based on gmbus2.
+Acctually we don't need to check aspm_disabled in disable link, as
+we already have protection about link state following.
 
-How about just using:
-  if (!HAS_GMBUS_IRQ(dev_priv->dev)) gmbus4_irq_en = 0;
-and the existing wait loop?
+https://bugzilla.kernel.org/show_bug.cgi?id=55211
+http://article.gmane.org/gmane.linux.kernel.pci/20640
 
-> +		return ret;
-> +	}
->  	/* Important: The hw handles only the first bit, so set only one! Since
->  	 * we also need to check for NAKs besides the hw ready/idle signal, we
->  	 * need to wake up periodically and check that ourselves. */
+Need it for 3.8 stable.
 
--- 
-Chris Wilson, Intel Open Source Technology Centre
+Reported-by: Roman Yepishev <roman.yepishev@gmail.com>
+Bisected-by: Roman Yepishev <roman.yepishev@gmail.com>
+Tested-by: Roman Yepishev <roman.yepishev@gmail.com>
+Signed-off-by: Yinghai Lu <yinghai@kernel.org>
+Cc: Taku Izumi <izumi.taku@jp.fujitsu.com>
+Cc: Kenji Kaneshige <kaneshige.kenji@jp.fujitsu.com>
+Cc: stable@kernel.org
+
+---
+ drivers/pci/pcie/aspm.c |   21 ++++-----------------
+ 1 file changed, 4 insertions(+), 17 deletions(-)
+
+Index: linux-2.6/drivers/pci/pcie/aspm.c
+===================================================================
+--- linux-2.6.orig/drivers/pci/pcie/aspm.c
++++ linux-2.6/drivers/pci/pcie/aspm.c
+@@ -493,15 +493,6 @@ static int pcie_aspm_sanity_check(struct
+ 			return -EINVAL;
+ 
+ 		/*
+-		 * If ASPM is disabled then we're not going to change
+-		 * the BIOS state. It's safe to continue even if it's a
+-		 * pre-1.1 device
+-		 */
+-
+-		if (aspm_disabled)
+-			continue;
+-
+-		/*
+ 		 * Disable ASPM for pre-1.1 PCIe device, we follow MS to use
+ 		 * RBER bit to determine if a function is 1.1 version device
+ 		 */
+@@ -718,15 +709,11 @@ void pcie_aspm_powersave_config_link(str
+  * pci_disable_link_state - disable pci device's link state, so the link will
+  * never enter specific states
+  */
+-static void __pci_disable_link_state(struct pci_dev *pdev, int state, bool sem,
+-				     bool force)
++static void __pci_disable_link_state(struct pci_dev *pdev, int state, bool sem)
+ {
+ 	struct pci_dev *parent = pdev->bus->self;
+ 	struct pcie_link_state *link;
+ 
+-	if (aspm_disabled && !force)
+-		return;
+-
+ 	if (!pci_is_pcie(pdev))
+ 		return;
+ 
+@@ -757,13 +744,13 @@ static void __pci_disable_link_state(str
+ 
+ void pci_disable_link_state_locked(struct pci_dev *pdev, int state)
+ {
+-	__pci_disable_link_state(pdev, state, false, false);
++	__pci_disable_link_state(pdev, state, false);
+ }
+ EXPORT_SYMBOL(pci_disable_link_state_locked);
+ 
+ void pci_disable_link_state(struct pci_dev *pdev, int state)
+ {
+-	__pci_disable_link_state(pdev, state, true, false);
++	__pci_disable_link_state(pdev, state, true);
+ }
+ EXPORT_SYMBOL(pci_disable_link_state);
+ 
+@@ -781,7 +768,7 @@ void pcie_clear_aspm(struct pci_bus *bus
+ 		__pci_disable_link_state(child, PCIE_LINK_STATE_L0S |
+ 					 PCIE_LINK_STATE_L1 |
+ 					 PCIE_LINK_STATE_CLKPM,
+-					 false, true);
++					 false);
+ 	}
+ }
+ 
