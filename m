@@ -1,95 +1,51 @@
-From: Danny Baumann <dannybaumann@web.de>
-Subject: Re: [PATCH v2 3/3] ACPI video: Fix applying indexed initial brightness
- value.
-Date: Mon, 18 Mar 2013 09:26:40 +0100
-Message-ID: <5146CFC0.7090907@web.de>
-References: <1363342248-6496-1-git-send-email-dannybaumann@web.de> <1363342248-6496-3-git-send-email-dannybaumann@web.de> <5146CD67.8070203@intel.com>
+From: Jiri Kosina <jkosina@suse.cz>
+Subject: Re: [3.9-rc1] irq 16: nobody cared (was [3.9-rc1] very poor interrupt
+ responses)
+Date: Mon, 18 Mar 2013 10:12:49 +0100 (CET)
+Message-ID: <alpine.LNX.2.00.1303181010080.9529@pobox.suse.cz>
+References: <Pine.LNX.4.44L0.1303141050310.1983-100000@iolanthe.rowland.org> <1460519.ejNFI1DrGk@vostro.rjw.lan> <1363280764.26318.4.camel@thor.lan> <5657408.cYX6iimiA4@vostro.rjw.lan> <alpine.LNX.2.00.1303150851020.9529@pobox.suse.cz> <5142E7F0.4020002@gmail.com>
+ <alpine.LNX.2.00.1303151424140.9529@pobox.suse.cz> <alpine.LNX.2.00.1303151609480.9529@pobox.suse.cz> <CAE9FiQUqPTUqPOzANnxpdfoRYPr+OiU5pFEoLKRiOFHd9Py4XQ@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from nick.hrz.tu-chemnitz.de ([134.109.228.11]:40154 "EHLO
-	nick.hrz.tu-chemnitz.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752822Ab3CRIu6 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 18 Mar 2013 04:50:58 -0400
-In-Reply-To: <5146CD67.8070203@intel.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <CAE9FiQUqPTUqPOzANnxpdfoRYPr+OiU5pFEoLKRiOFHd9Py4XQ@mail.gmail.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Yinghai Lu <yinghai@kernel.org>
+Cc: Harald Arnesen <skogtun.linux@gmail.com>, Kernel development list <linux-kernel@vger.kernel.org>, "Rafael J. Wysocki" <rjw@sisk.pl>, Peter Hurley <peter@hurleysoftware.com>, Alan Stern <stern@rowland.harvard.edu>, Thomas Meyer <thomas@m3y3r.de>, Shawn Starr <shawn.starr@rogers.com>, USB list <linux-usb@vger.kernel.org>, linux-acpi@vger.kernel.org, Bjorn Helgaas <bhelgaas@google.com>, linux-pci@vger.kernel.org, Daniel Vetter <daniel.vetter@ffwll.ch>, Imre Deak <imre.deak@intel.com>, Daniel Kurtz <djkurtz@chromium.org>, dri-devel@lists.freedesktop.org
 List-Id: linux-acpi@vger.kernel.org
-To: Aaron Lu <aaron.lu@intel.com>
-Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Zhang Rui <rui.zhang@intel.com>, Len Brown <lenb@kernel.org>
 
-Hi,
+On Fri, 15 Mar 2013, Yinghai Lu wrote:
 
- >> +static unsigned long long
->> +acpi_video_bqc_value_to_level(struct acpi_video_device *device,
->> +			      unsigned long long bqc_value)
->> +{
->> +	unsigned long long level;
->> +
->> +	if (device->brightness->flags._BQC_use_index) {
->> +		if (device->brightness->flags._BCL_reversed)
->> +			bqc_value = device->brightness->count - 3 - bqc_value;
->> +
->> +		level = device->brightness->levels[bqc_value + 2];
->
-> I don't understand this, what does the +2 have to do here?
-> _BQC returned us an index, and then we should just convert it to level,
-> why +2?
->
-> The only explanation would be, for BIOS tables that return _BQC as
-> index, they are indexing from the 3rd entry. Is it the case? If so, I
-> think we need to put a comment here.
+> > Just a datapoint -- I have put a trivial debugging patch in place, and it
+> > reveals that "nobody cared" for irq 16 happens long after last
+> >
+> >         I915_WRITE(GMBUS4 + reg_offset, 0);
+> >
+> > has been performed in gmbus_wait_hw_status(). On the other hand, if I
+> > comment out both GMBUS4 register offset writes in gmbus_wait_hw_status(),
+> > then it of course falls back to GPIO bit-banging, but the "nobody cared"
+> > for irq 16 is gone.
+> >
+> > So it seems like something gets severely confused by the I915_WRITE to
+> > GMBUS4 + reg_offset. So far this seems to have been reported solely on
+> > Lenovos as far as I can see (although a completely different types), so it
+> > might be some platform-specific quirk?
+> >
+> > Honestly, I still don't understand how all the GMBUS stuff relates to IRQ
+> > 16 at all.
+> 
+> that device is using
+> i915 0000:00:02.0: irq 44 for MSI/MSI-X
+> 
+> so can you try to boot with pci=nomsi?
 
-Yes, that's the case. The old code did the same thing:
+Yes, switching from MSI to IO-APIC-fasteoi makes the report about lost 
+interrupts go away.
 
->> -			if (device->brightness->flags._BQC_use_index) {
->> -				if (device->brightness->flags._BCL_reversed)
->> -					*level = device->brightness->count
->> -								 - 3 - (*level);
->> -				*level = device->brightness->levels[*level + 2];
->> +			*level = acpi_video_bqc_value_to_level(device, *level);
+My understanding from the other mail is that DAniel Vetter already has an 
+idea what might be going wrong with IRQ acking on GM45 chipsets; hopefully 
+this datapoint regarding MSI will fit into it.
 
-That's also the reason for the -3 instead of -1 in the BCL_reversed 
-case. I can add a comment, though.
-
->> +	if (use_bios_initial_backlight) {
->> +		if (!br->flags._BQC_use_index) {
->> +			/*
->> +			 * Set the backlight to the initial state.
->> +			 * On some buggy laptops, _BQC returns an uninitialized
->> +			 * value when invoked for the first time, i.e.
->> +			 * level_old is invalid. Set the backlight to max_level
->> +			 * in this case.
->> +			 */
->>   			for (i = 2; i < br->count; i++)
->>   				if (level_old == br->levels[i]) {
->>   					level = level_old;
->>   					break;
->>   				}
->> +		} else {
->> +			level = acpi_video_bqc_value_to_level(device,
->> +							      level_old);
->
-> What about we convert the value to level first?
->
-> 	if (use_bios_initial_backlight) {
-> 		level = acpi_video_bqc_value_to_level(device, level_old);
-> 		/*
-> 		 * Set the backlight to the initial state.
-> 		 * On some buggy laptops, _BQC returns an uninitialized
-> 		 * value when invoked for the first time, i.e.
-> 		 * level_old is invalid(no matter it is a level, or an
-> 		 * index.) Set the backlight to max_level in this case.
-> 		 */
-> 		for (i = 2; i < br->count; i++)
-> 			if (level == br->levels[i])
-> 				break;
-> 		if (i == br->count)
-> 			level = max_level;
-> 	}
-
-That works as well, and looks cleaner to me as well. I'll change that.
-
-Regards,
-
-Danny
+-- 
+Jiri Kosina
+SUSE Labs
