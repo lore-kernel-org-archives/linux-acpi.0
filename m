@@ -1,150 +1,69 @@
-From: Aaron Lu <aaron.lu@intel.com>
-Subject: Re: [PATCH v2 3/3] ACPI video: Fix applying indexed initial brightness
- value.
-Date: Mon, 18 Mar 2013 16:16:39 +0800
-Message-ID: <5146CD67.8070203@intel.com>
-References: <1363342248-6496-1-git-send-email-dannybaumann@web.de> <1363342248-6496-3-git-send-email-dannybaumann@web.de>
+From: Daniel Vetter <daniel@ffwll.ch>
+Subject: Re: [3.9-rc1] irq 16: nobody cared  (was [3.9-rc1] very poor
+ interrupt responses)
+Date: Mon, 18 Mar 2013 09:21:57 +0100
+Message-ID: <20130318082156.GO9021@phenom.ffwll.local>
+References: <Pine.LNX.4.44L0.1303141050310.1983-100000@iolanthe.rowland.org>
+ <1460519.ejNFI1DrGk@vostro.rjw.lan>
+ <1363280764.26318.4.camel@thor.lan>
+ <5657408.cYX6iimiA4@vostro.rjw.lan>
+ <alpine.LNX.2.00.1303150851020.9529@pobox.suse.cz>
+ <5142E7F0.4020002@gmail.com>
+ <alpine.LNX.2.00.1303151424140.9529@pobox.suse.cz>
+ <20130315153249.GA32425@kroah.com>
+ <alpine.LNX.2.00.1303151636481.9529@pobox.suse.cz>
+ <20130315154739.GA1024@kroah.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga14.intel.com ([143.182.124.37]:17942 "EHLO mga14.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751834Ab3CRIP1 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 18 Mar 2013 04:15:27 -0400
-In-Reply-To: <1363342248-6496-3-git-send-email-dannybaumann@web.de>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-pci-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20130315154739.GA1024@kroah.com>
+Sender: linux-pci-owner@vger.kernel.org
+To: Greg KH <greg@kroah.com>
+Cc: Jiri Kosina <jkosina@suse.cz>, Harald Arnesen <skogtun.linux@gmail.com>, Kernel development list <linux-kernel@vger.kernel.org>, "Rafael J. Wysocki" <rjw@sisk.pl>, Peter Hurley <peter@hurleysoftware.com>, Alan Stern <stern@rowland.harvard.edu>, Thomas Meyer <thomas@m3y3r.de>, Shawn Starr <shawn.starr@rogers.com>, USB list <linux-usb@vger.kernel.org>, linux-acpi@vger.kernel.org, Bjorn Helgaas <bhelgaas@google.com>, linux-pci@vger.kernel.org, Yinghai Lu <yinghai@kernel.org>, Daniel Vetter <daniel.vetter@ffwll.ch>, Imre Deak <imre.deak@intel.com>, Daniel Kurtz <djkurtz@chromium.org>, dri-devel@lists.freedesktop.org
 List-Id: linux-acpi@vger.kernel.org
-To: Danny Baumann <dannybaumann@web.de>
-Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Zhang Rui <rui.zhang@intel.com>, Len Brown <lenb@kernel.org>
 
-On 03/15/2013 06:10 PM, Danny Baumann wrote:
-> The value initially read via _BQC also needs to be offset by 2 to
-> compensate for the first 2 special items in _BCL. Introduce a helper
-> function that does the BQC-value-to-level conversion in order to not
-> needlessly duplicate code.
+On Fri, Mar 15, 2013 at 08:47:39AM -0700, Greg KH wrote:
+> On Fri, Mar 15, 2013 at 04:37:56PM +0100, Jiri Kosina wrote:
+> > On Fri, 15 Mar 2013, Greg KH wrote:
+> > 
+> > > > > I have the same problem on my Lenovo T500. I think the graphics card is
+> > > > > involved.
+> > > > > 
+> > > > > This laptop has "hybrid graphics" - one Intel GMA 4500MHD and one ATI
+> > > > > Mobility Radeon HD 3650. When I boot with the Intel card, I get "irq 16:
+> > > > > nobody cared" during boot, not when I boot with the ATI card.
+> > > > 
+> > > > Confirming this. After a lot of hassle, I have bisected this reliably to
+> > > > 
+> > > > 	commit 28c70f162a315bdcfbe0bf940a740ef8bfb918d6
+> > > > 	Author: Daniel Vetter <daniel.vetter@ffwll.ch>
+> > > > 	Date:   Sat Dec 1 13:53:45 2012 +0100
+> > > > 
+> > > > 	    drm/i915: use the gmbus irq for waits
+> > > > 
+> > > > Adding Daniel, Imre and Daniel to CC while I will try to figure out what's 
+> > > > happening in parallel.
+> > > 
+> > > Wasn't this fixed by the merge from David
+> > > (2cc79544bd0aabb4b3cf467ead5df526d9134c64)?
+> > 
+> > Why do you think it should, please?
 > 
-> Signed-off-by: Danny Baumann <dannybaumann@web.de>
-> ---
->  drivers/acpi/video.c | 52 +++++++++++++++++++++++++++++++++-------------------
->  1 file changed, 33 insertions(+), 19 deletions(-)
+> The line:
+> 	- Fix PCH irq handling race which resulted in missed gmbus/dp
+> 	  aux irqs and subsequent fallout (Paulo)
 > 
-> diff --git a/drivers/acpi/video.c b/drivers/acpi/video.c
-> index 5ef329a..8faea35 100644
-> --- a/drivers/acpi/video.c
-> +++ b/drivers/acpi/video.c
-> @@ -450,6 +450,26 @@ static struct dmi_system_id video_dmi_table[] __initdata = {
->  	{}
->  };
->  
-> +static unsigned long long
-> +acpi_video_bqc_value_to_level(struct acpi_video_device *device,
-> +			      unsigned long long bqc_value)
-> +{
-> +	unsigned long long level;
-> +
-> +	if (device->brightness->flags._BQC_use_index) {
-> +		if (device->brightness->flags._BCL_reversed)
-> +			bqc_value = device->brightness->count - 3 - bqc_value;
-> +
-> +		level = device->brightness->levels[bqc_value + 2];
-
-I don't understand this, what does the +2 have to do here?
-_BQC returned us an index, and then we should just convert it to level,
-why +2?
-
-The only explanation would be, for BIOS tables that return _BQC as
-index, they are indexing from the 3rd entry. Is it the case? If so, I
-think we need to put a comment here.
-
-> +	} else {
-> +		level = bqc_value;
-> +	}
-> +
-> +	level += bqc_offset_aml_bug_workaround;
-> +
-> +	return level;
-> +}
-> +
->  static int
->  acpi_video_device_lcd_get_level_current(struct acpi_video_device *device,
->  					unsigned long long *level, int raw)
-> @@ -472,14 +492,8 @@ acpi_video_device_lcd_get_level_current(struct acpi_video_device *device,
->  				return 0;
->  			}
->  
-> -			if (device->brightness->flags._BQC_use_index) {
-> -				if (device->brightness->flags._BCL_reversed)
-> -					*level = device->brightness->count
-> -								 - 3 - (*level);
-> -				*level = device->brightness->levels[*level + 2];
-> +			*level = acpi_video_bqc_value_to_level(device, *level);
->  
-> -			}
-> -			*level += bqc_offset_aml_bug_workaround;
->  			for (i = 2; i < device->brightness->count; i++)
->  				if (device->brightness->levels[i] == *level) {
->  					device->brightness->curr = *level;
-> @@ -727,24 +741,24 @@ acpi_video_init_brightness(struct acpi_video_device *device)
->  
->  	br->flags._BQC_use_index = (level == max_level ? 0 : 1);
->  
-> -	if (!br->flags._BQC_use_index) {
-> -		/*
-> -		 * Set the backlight to the initial state.
-> -		 * On some buggy laptops, _BQC returns an uninitialized value
-> -		 * when invoked for the first time, i.e. level_old is invalid.
-> -		 * set the backlight to max_level in this case
-> -		 */
-> -		if (use_bios_initial_backlight) {
-
--------------------------------------------------------------------
-> +	if (use_bios_initial_backlight) {
-> +		if (!br->flags._BQC_use_index) {
-> +			/*
-> +			 * Set the backlight to the initial state.
-> +			 * On some buggy laptops, _BQC returns an uninitialized
-> +			 * value when invoked for the first time, i.e.
-> +			 * level_old is invalid. Set the backlight to max_level
-> +			 * in this case.
-> +			 */
->  			for (i = 2; i < br->count; i++)
->  				if (level_old == br->levels[i]) {
->  					level = level_old;
->  					break;
->  				}
-> +		} else {
-> +			level = acpi_video_bqc_value_to_level(device,
-> +							      level_old);
-
-What about we convert the value to level first?
-
-	if (use_bios_initial_backlight) {
-		level = acpi_video_bqc_value_to_level(device, level_old);
-		/*
-		 * Set the backlight to the initial state.
-		 * On some buggy laptops, _BQC returns an uninitialized
-		 * value when invoked for the first time, i.e.
-		 * level_old is invalid(no matter it is a level, or an
-		 * index.) Set the backlight to max_level in this case.
-		 */
-		for (i = 2; i < br->count; i++)
-			if (level == br->levels[i])
-				break;
-		if (i == br->count)
-			level = max_level;
-	}
-
-Thanks,
-Aaron
-
->  		}
-> -	} else {
-> -		if (br->flags._BCL_reversed)
-> -			level_old = (br->count - 1) - level_old;
-> -		level = br->levels[level_old];
->  	}
->  
->  set_level:
+> > (I am seeing this with a2362d247 still).
 > 
+> Ok, I guess it isn't still fixed properly, just was guessing :)
 
+Yeah, the above fix is for pch split platforms, whereas these reports here
+are for gm45 (which doesn't have the pch display split). Acking of gmbus
+interrupts works differently on those, I'm testing right now whether I can
+reproduce this fail.
+-Daniel
+-- 
+Daniel Vetter
+Software Engineer, Intel Corporation
++41 (0) 79 365 57 48 - http://blog.ffwll.ch
