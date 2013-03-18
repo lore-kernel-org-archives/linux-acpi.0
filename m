@@ -1,128 +1,119 @@
-From: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
-Subject: [PATCH] Remove acpi_memory_info->failed bit
-Date: Mon, 18 Mar 2013 11:19:40 +0900
-Message-ID: <514679BC.5020700@jp.fujitsu.com>
-References: <514022BF.3080303@jp.fujitsu.com> <1363186213.12845.174.camel@misato.fc.hp.com>
+From: Shawn Starr <shawn.starr@rogers.com>
+Subject: Re: [3.9-rc1] irq 16: nobody cared (was [3.9-rc1] very poor interrupt
+	responses)
+Date: Sun, 17 Mar 2013 22:41:28 -0400
+Message-ID: <2654053.iVVmfUEvRC@segfault.sh0n.net>
+References: <Pine.LNX.4.44L0.1303141050310.1983-100000@iolanthe.rowland.org>
+	<alpine.LNX.2.00.1303151609480.9529@pobox.suse.cz>
+	<CAE9FiQUqPTUqPOzANnxpdfoRYPr+OiU5pFEoLKRiOFHd9Py4XQ@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from fgwmail6.fujitsu.co.jp ([192.51.44.36]:55379 "EHLO
-	fgwmail6.fujitsu.co.jp" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750936Ab3CRCUk (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sun, 17 Mar 2013 22:20:40 -0400
-In-Reply-To: <1363186213.12845.174.camel@misato.fc.hp.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: multipart/mixed; boundary="===============0968175004=="
+Return-path: <dri-devel-bounces+sf-dri-devel=m.gmane.org@lists.freedesktop.org>
+In-Reply-To: <CAE9FiQUqPTUqPOzANnxpdfoRYPr+OiU5pFEoLKRiOFHd9Py4XQ@mail.gmail.com>
+List-Unsubscribe: <http://lists.freedesktop.org/mailman/options/dri-devel>,
+	<mailto:dri-devel-request@lists.freedesktop.org?subject=unsubscribe>
+List-Archive: <http://lists.freedesktop.org/archives/dri-devel>
+List-Post: <mailto:dri-devel@lists.freedesktop.org>
+List-Help: <mailto:dri-devel-request@lists.freedesktop.org?subject=help>
+List-Subscribe: <http://lists.freedesktop.org/mailman/listinfo/dri-devel>,
+	<mailto:dri-devel-request@lists.freedesktop.org?subject=subscribe>
+Sender: dri-devel-bounces+sf-dri-devel=m.gmane.org@lists.freedesktop.org
+Errors-To: dri-devel-bounces+sf-dri-devel=m.gmane.org@lists.freedesktop.org
+To: Yinghai Lu <yinghai@kernel.org>
+Cc: Harald Arnesen <skogtun.linux@gmail.com>, Peter Hurley <peter@hurleysoftware.com>, Jiri Kosina <jkosina@suse.cz>, Daniel Vetter <daniel.vetter@ffwll.ch>, USB list <linux-usb@vger.kernel.org>, Kernel development list <linux-kernel@vger.kernel.org>, "Rafael J. Wysocki" <rjw@sisk.pl>, linux-acpi@vger.kernel.org, Alan Stern <stern@rowland.harvard.edu>, dri-devel@lists.freedesktop.org, linux-pci@vger.kernel.org, Bjorn Helgaas <bhelgaas@google.com>, Thomas Meyer <thomas@m3y3r.de>
 List-Id: linux-acpi@vger.kernel.org
-To: Toshi Kani <toshi.kani@hp.com>
-Cc: rjw@sisk.pl, linux-acpi@vger.kernel.org, tangchen@cn.fujitsu.com, wency@cn.fujitsu.com, laijs@cn.fujitsu.com, linux-kernel@vger.kernel.org
 
-Hi Toshi,
+This is a multi-part message in MIME format.
 
-Sorry for the late reply
+--===============0968175004==
+Content-Type: multipart/alternative; boundary="nextPart7883118.HHc0sZQR6G"
+Content-Transfer-Encoding: 7Bit
 
-2013/03/13 23:50, Toshi Kani wrote:
-> On Wed, 2013-03-13 at 15:54 +0900, Yasuaki Ishimatsu wrote:
->> At http://marc.info/?l=linux-acpi&m=135769405622667&w=2 thread,
->> Toshi Kani mentioned as follows:
->>
->> "I have a question about the change you made in commit 65479472 in
->> acpi_memhotplug.c.  This change seems to require that
->> acpi_memory_enable_device() calls add_memory() to add all memory ranges
->> represented by memory device objects at boot-time, and keep the results
->> be used for hot-remove.
->>
->> If I understand it right, this add_memory() call fails with EEXIST at
->> boot-time since all memory ranges should have been added from EFI memory
->> table (or e820) already.  This results all memory ranges be marked as !
->> enabled & !failed.  I think this means that we cannot hot-delete any
->> memory ranges presented at boot-time since acpi_memory_remove_memory()
->> only calls remove_memory() when the enabled flag is set.  Is that
->> correct?"
->>
->> Above mention is correct. Thus even if memory device supports hotplug,
->> memory presented at boot-time cannot be hot removed since the memory
->> device's acpi_memory_info->enabled is always 0.
->>
->> This patch changes to set 1 to "acpi_memory_info->enabled" of memory
->> device presented at boot-time for hot removing the memory device.
->>
->> Signed-off-by: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
->>
->> ---
->>   drivers/acpi/acpi_memhotplug.c |    4 ++--
->>   1 files changed, 2 insertions(+), 2 deletions(-)
->>
->> diff --git a/drivers/acpi/acpi_memhotplug.c b/drivers/acpi/acpi_memhotplug.c
->> index da1f82b..88fd46a 100644
->> --- a/drivers/acpi/acpi_memhotplug.c
->> +++ b/drivers/acpi/acpi_memhotplug.c
->> @@ -254,8 +254,8 @@ static int acpi_memory_enable_device(struct acpi_memory_device *mem_device)
->>   			continue;
->>   		}
->>
->> -		if (!result)
->> -			info->enabled = 1;
->> +		info->enabled = 1;
->
-> Do we still need to keep the enable bit?  I think !failed means enabled
-> with this change.
+This is a multi-part message in MIME format.
 
-For controlling memory hotplug, we need either failed bit or enabled bit.
-So I want to remove failed bit as follows:
+--nextPart7883118.HHc0sZQR6G
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 
----
+On Friday, March 15, 2013 12:14:28 PM Yinghai Lu wrote:
+> On Fri, Mar 15, 2013 at 8:14 AM, Jiri Kosina <jkosina@suse.cz> wrote:
+> > Just a datapoint -- I have put a trivial debugging patch in place, and it
+> > reveals that "nobody cared" for irq 16 happens long after last
+> > 
+> >         I915_WRITE(GMBUS4 + reg_offset, 0);
+> > 
+> > has been performed in gmbus_wait_hw_status(). On the other hand, if I
+> > comment out both GMBUS4 register offset writes in gmbus_wait_hw_status(),
+> > then it of course falls back to GPIO bit-banging, but the "nobody cared"
+> > for irq 16 is gone.
+> > 
+> > So it seems like something gets severely confused by the I915_WRITE to
+> > GMBUS4 + reg_offset. So far this seems to have been reported solely on
+> > Lenovos as far as I can see (although a completely different types), so it
+> > might be some platform-specific quirk?
+> > 
+> > Honestly, I still don't understand how all the GMBUS stuff relates to IRQ
+> > 16 at all.
+> 
+> that device is using
+> i915 0000:00:02.0: irq 44 for MSI/MSI-X
+> 
+> so can you try to boot with pci=nomsi?
 
-acpi_memory_info has enabled bit and failed bit for controlling memory
-hotplug. But we don't need to keep both bits.
+I can try disabling MSI with 3.9.0-0.rc2.git0.4.fc20. -rc3 is not yet 
+available in rawhide.
 
-The patch removes acpi_memory_info->failed bit.
+thanks,
+Shawn
+--nextPart7883118.HHc0sZQR6G
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/html; charset="us-ascii"
 
-Signed-off-by: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
----
-  drivers/acpi/acpi_memhotplug.c |   15 ++-------------
-  1 files changed, 2 insertions(+), 13 deletions(-)
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0//EN" "http://www.w3.org/TR/REC-html40/strict.dtd">
+<html><head><meta name="qrichtext" content="1" /><style type="text/css">
+p, li { white-space: pre-wrap; }
+</style></head><body style=" font-family:'Monospace'; font-size:9pt; font-weight:600; font-style:normal;">
+<p style=" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px; -qt-user-state:0;">On Friday, March 15, 2013 12:14:28 PM Yinghai Lu wrote:</p>
+<p style=" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px; -qt-user-state:0;">&gt; On Fri, Mar 15, 2013 at 8:14 AM, Jiri Kosina &lt;jkosina@suse.cz&gt; wrote:</p>
+<p style=" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px; -qt-user-state:0;">&gt; &gt; Just a datapoint -- I have put a trivial debugging patch in place, and it</p>
+<p style=" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px; -qt-user-state:0;">&gt; &gt; reveals that &quot;nobody cared&quot; for irq 16 happens long after last</p>
+<p style=" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px; -qt-user-state:0;">&gt; &gt; </p>
+<p style=" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px; -qt-user-state:0;">&gt; &gt;         I915_WRITE(GMBUS4 + reg_offset, 0);</p>
+<p style=" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px; -qt-user-state:0;">&gt; &gt; </p>
+<p style=" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px; -qt-user-state:0;">&gt; &gt; has been performed in gmbus_wait_hw_status(). On the other hand, if I</p>
+<p style=" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px; -qt-user-state:0;">&gt; &gt; comment out both GMBUS4 register offset writes in gmbus_wait_hw_status(),</p>
+<p style=" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px; -qt-user-state:0;">&gt; &gt; then it of course falls back to GPIO bit-banging, but the &quot;nobody cared&quot;</p>
+<p style=" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px; -qt-user-state:0;">&gt; &gt; for irq 16 is gone.</p>
+<p style=" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px; -qt-user-state:0;">&gt; &gt; </p>
+<p style=" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px; -qt-user-state:0;">&gt; &gt; So it seems like something gets severely confused by the I915_WRITE to</p>
+<p style=" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px; -qt-user-state:0;">&gt; &gt; GMBUS4 + reg_offset. So far this seems to have been reported solely on</p>
+<p style=" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px; -qt-user-state:0;">&gt; &gt; Lenovos as far as I can see (although a completely different types), so it</p>
+<p style=" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px; -qt-user-state:0;">&gt; &gt; might be some platform-specific quirk?</p>
+<p style=" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px; -qt-user-state:0;">&gt; &gt; </p>
+<p style=" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px; -qt-user-state:0;">&gt; &gt; Honestly, I still don't understand how all the GMBUS stuff relates to IRQ</p>
+<p style=" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px; -qt-user-state:0;">&gt; &gt; 16 at all.</p>
+<p style=" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px; -qt-user-state:0;">&gt; </p>
+<p style=" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px; -qt-user-state:0;">&gt; that device is using</p>
+<p style=" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px; -qt-user-state:0;">&gt; i915 0000:00:02.0: irq 44 for MSI/MSI-X</p>
+<p style=" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px; -qt-user-state:0;">&gt; </p>
+<p style=" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px; -qt-user-state:0;">&gt; so can you try to boot with pci=nomsi?</p>
+<p style="-qt-paragraph-type:empty; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px; ">&nbsp;</p>
+<p style=" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px; -qt-user-state:0;">I can try disabling MSI with 3.9.0-0.rc2.git0.4.fc20. -rc3 is not yet available in rawhide.</p>
+<p style="-qt-paragraph-type:empty; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px; ">&nbsp;</p>
+<p style=" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px; -qt-user-state:0;">thanks,</p>
+<p style=" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px; -qt-user-state:0;">Shawn</p></body></html>
+--nextPart7883118.HHc0sZQR6G--
 
-diff --git a/drivers/acpi/acpi_memhotplug.c b/drivers/acpi/acpi_memhotplug.c
-index 88fd46a..cf4e1cf 100644
---- a/drivers/acpi/acpi_memhotplug.c
-+++ b/drivers/acpi/acpi_memhotplug.c
-@@ -79,7 +79,6 @@ struct acpi_memory_info {
-  	unsigned short caching;	/* memory cache attribute */
-  	unsigned short write_protect;	/* memory read/write attribute */
-  	unsigned int enabled:1;
--	unsigned int failed:1;
-  };
-  
-  struct acpi_memory_device {
-@@ -249,10 +248,8 @@ static int acpi_memory_enable_device(struct acpi_memory_device *mem_device)
-  		 * returns -EEXIST. If add_memory() returns the other error, it
-  		 * means that this memory block is not used by the kernel.
-  		 */
--		if (result && result != -EEXIST) {
--			info->failed = 1;
-+		if (result && result != -EEXIST)
-  			continue;
--		}
-  
-  		info->enabled = 1;
-  
-@@ -286,16 +283,8 @@ static int acpi_memory_remove_memory(struct acpi_memory_device *mem_device)
-  	nid = acpi_get_node(mem_device->device->handle);
-  
-  	list_for_each_entry_safe(info, n, &mem_device->res_list, list) {
--		if (info->failed)
--			/* The kernel does not use this memory block */
--			continue;
--
-  		if (!info->enabled)
--			/*
--			 * The kernel uses this memory block, but it may be not
--			 * managed by us.
--			 */
--			return -EBUSY;
-+			continue;
-  
-  		if (nid < 0)
-  			nid = memory_add_physaddr_to_nid(info->start_addr);
 
+--===============0968175004==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+
+_______________________________________________
+dri-devel mailing list
+dri-devel@lists.freedesktop.org
+http://lists.freedesktop.org/mailman/listinfo/dri-devel
+
+--===============0968175004==--
