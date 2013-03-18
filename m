@@ -1,116 +1,63 @@
 From: Yinghai Lu <yinghai@kernel.org>
-Subject: [PATCH] PCI: Remove not needed check in disable aspm link
-Date: Mon, 18 Mar 2013 10:37:06 -0700
-Message-ID: <1363628226-6679-1-git-send-email-yinghai@kernel.org>
-References: <CAE9FiQXmeb66dc8fET0y99BjqpUXp11c7utiQ5keR1Wf+N9xaA@mail.gmail.com>
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from aserp1040.oracle.com ([141.146.126.69]:33715 "EHLO
-	aserp1040.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751613Ab3CRRhc (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 18 Mar 2013 13:37:32 -0400
-In-Reply-To: <CAE9FiQXmeb66dc8fET0y99BjqpUXp11c7utiQ5keR1Wf+N9xaA@mail.gmail.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Subject: Re: [3.9-rc1] irq 16: nobody cared (was [3.9-rc1] very poor interrupt responses)
+Date: Mon, 18 Mar 2013 11:57:09 -0700
+Message-ID: <CAE9FiQXj0oD7_Abhz305dGytwg9_VKeEVuX128VXxEKexyvTLg@mail.gmail.com>
+References: <Pine.LNX.4.44L0.1303141050310.1983-100000@iolanthe.rowland.org>
+	<1460519.ejNFI1DrGk@vostro.rjw.lan>
+	<1363280764.26318.4.camel@thor.lan>
+	<5657408.cYX6iimiA4@vostro.rjw.lan>
+	<alpine.LNX.2.00.1303150851020.9529@pobox.suse.cz>
+	<5142E7F0.4020002@gmail.com>
+	<alpine.LNX.2.00.1303151424140.9529@pobox.suse.cz>
+	<alpine.LNX.2.00.1303151609480.9529@pobox.suse.cz>
+	<CAE9FiQUqPTUqPOzANnxpdfoRYPr+OiU5pFEoLKRiOFHd9Py4XQ@mail.gmail.com>
+	<alpine.LNX.2.00.1303181010080.9529@pobox.suse.cz>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1
+Return-path: <linux-pci-owner@vger.kernel.org>
+In-Reply-To: <alpine.LNX.2.00.1303181010080.9529@pobox.suse.cz>
+Sender: linux-pci-owner@vger.kernel.org
+To: Jiri Kosina <jkosina@suse.cz>
+Cc: Harald Arnesen <skogtun.linux@gmail.com>, Kernel development list <linux-kernel@vger.kernel.org>, "Rafael J. Wysocki" <rjw@sisk.pl>, Peter Hurley <peter@hurleysoftware.com>, Alan Stern <stern@rowland.harvard.edu>, Thomas Meyer <thomas@m3y3r.de>, Shawn Starr <shawn.starr@rogers.com>, USB list <linux-usb@vger.kernel.org>, linux-acpi@vger.kernel.org, Bjorn Helgaas <bhelgaas@google.com>, linux-pci@vger.kernel.org, Daniel Vetter <daniel.vetter@ffwll.ch>, Imre Deak <imre.deak@intel.com>, Daniel Kurtz <djkurtz@chromium.org>, dri-devel@lists.freedesktop.org
 List-Id: linux-acpi@vger.kernel.org
-To: Bjorn Helgaas <bhelgaas@google.com>, "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Yinghai Lu <yinghai@kernel.org>, Taku Izumi <izumi.taku@jp.fujitsu.com>, Kenji Kaneshige <kaneshige.kenji@jp.fujitsu.com>, stable@kernel.org
 
-Roman reported ath5k does not work anymore on 3.8.
-Bisected to
-| commit 8c33f51df406e1a1f7fa4e9b244845b7ebd61fa6
-| Author: Taku Izumi <izumi.taku@jp.fujitsu.com>
-| Date:   Tue Oct 30 15:27:13 2012 +0900
-|
-|    PCI/ACPI: Request _OSC control before scanning PCI root bus
-|
-|    This patch moves up the code block to request _OSC control in order to
-|    separate ACPI work and PCI work in acpi_pci_root_add().
+On Mon, Mar 18, 2013 at 2:12 AM, Jiri Kosina <jkosina@suse.cz> wrote:
+> On Fri, 15 Mar 2013, Yinghai Lu wrote:
+>
+>> > Just a datapoint -- I have put a trivial debugging patch in place, and it
+>> > reveals that "nobody cared" for irq 16 happens long after last
+>> >
+>> >         I915_WRITE(GMBUS4 + reg_offset, 0);
+>> >
+>> > has been performed in gmbus_wait_hw_status(). On the other hand, if I
+>> > comment out both GMBUS4 register offset writes in gmbus_wait_hw_status(),
+>> > then it of course falls back to GPIO bit-banging, but the "nobody cared"
+>> > for irq 16 is gone.
+>> >
+>> > So it seems like something gets severely confused by the I915_WRITE to
+>> > GMBUS4 + reg_offset. So far this seems to have been reported solely on
+>> > Lenovos as far as I can see (although a completely different types), so it
+>> > might be some platform-specific quirk?
+>> >
+>> > Honestly, I still don't understand how all the GMBUS stuff relates to IRQ
+>> > 16 at all.
+>>
+>> that device is using
+>> i915 0000:00:02.0: irq 44 for MSI/MSI-X
+>>
+>> so can you try to boot with pci=nomsi?
+>
+> Yes, switching from MSI to IO-APIC-fasteoi makes the report about lost
+> interrupts go away.
+>
+> My understanding from the other mail is that DAniel Vetter already has an
+> idea what might be going wrong with IRQ acking on GM45 chipsets; hopefully
+> this datapoint regarding MSI will fit into it.
 
-It make pci_disable_link_state does not work anymore as acpi_disabled
-is set before pci root bus scanning.
-It will skip that in quirks and pcie_aspm_sanity_check.
+What is /proc/interrupts difference between with and without pci=nomsi ?
 
-We could revert to old logic, but that will make booting path and hotplug
-path with different aspm_disabled again.
+drm is forced to share irq 16?
 
-Acctually we don't need to check aspm_disabled in disable link, as
-we already have protection about link state following.
+Thanks
 
-https://bugzilla.kernel.org/show_bug.cgi?id=55211
-http://article.gmane.org/gmane.linux.kernel.pci/20640
-
-Need it for 3.8 stable.
-
-Reported-by: Roman Yepishev <roman.yepishev@gmail.com>
-Bisected-by: Roman Yepishev <roman.yepishev@gmail.com>
-Tested-by: Roman Yepishev <roman.yepishev@gmail.com>
-Signed-off-by: Yinghai Lu <yinghai@kernel.org>
-Cc: Taku Izumi <izumi.taku@jp.fujitsu.com>
-Cc: Kenji Kaneshige <kaneshige.kenji@jp.fujitsu.com>
-Cc: stable@kernel.org
-
----
- drivers/pci/pcie/aspm.c |   21 ++++-----------------
- 1 file changed, 4 insertions(+), 17 deletions(-)
-
-Index: linux-2.6/drivers/pci/pcie/aspm.c
-===================================================================
---- linux-2.6.orig/drivers/pci/pcie/aspm.c
-+++ linux-2.6/drivers/pci/pcie/aspm.c
-@@ -493,15 +493,6 @@ static int pcie_aspm_sanity_check(struct
- 			return -EINVAL;
- 
- 		/*
--		 * If ASPM is disabled then we're not going to change
--		 * the BIOS state. It's safe to continue even if it's a
--		 * pre-1.1 device
--		 */
--
--		if (aspm_disabled)
--			continue;
--
--		/*
- 		 * Disable ASPM for pre-1.1 PCIe device, we follow MS to use
- 		 * RBER bit to determine if a function is 1.1 version device
- 		 */
-@@ -718,15 +709,11 @@ void pcie_aspm_powersave_config_link(str
-  * pci_disable_link_state - disable pci device's link state, so the link will
-  * never enter specific states
-  */
--static void __pci_disable_link_state(struct pci_dev *pdev, int state, bool sem,
--				     bool force)
-+static void __pci_disable_link_state(struct pci_dev *pdev, int state, bool sem)
- {
- 	struct pci_dev *parent = pdev->bus->self;
- 	struct pcie_link_state *link;
- 
--	if (aspm_disabled && !force)
--		return;
--
- 	if (!pci_is_pcie(pdev))
- 		return;
- 
-@@ -757,13 +744,13 @@ static void __pci_disable_link_state(str
- 
- void pci_disable_link_state_locked(struct pci_dev *pdev, int state)
- {
--	__pci_disable_link_state(pdev, state, false, false);
-+	__pci_disable_link_state(pdev, state, false);
- }
- EXPORT_SYMBOL(pci_disable_link_state_locked);
- 
- void pci_disable_link_state(struct pci_dev *pdev, int state)
- {
--	__pci_disable_link_state(pdev, state, true, false);
-+	__pci_disable_link_state(pdev, state, true);
- }
- EXPORT_SYMBOL(pci_disable_link_state);
- 
-@@ -781,7 +768,7 @@ void pcie_clear_aspm(struct pci_bus *bus
- 		__pci_disable_link_state(child, PCIE_LINK_STATE_L0S |
- 					 PCIE_LINK_STATE_L1 |
- 					 PCIE_LINK_STATE_CLKPM,
--					 false, true);
-+					 false);
- 	}
- }
- 
+Yinghai
