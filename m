@@ -1,74 +1,41 @@
-From: Seth Forshee <seth.forshee@canonical.com>
-Subject: Re: [PATCH] ACPI: Disable Windows 8 compatibility for some Lenovo
- ThinkPads
-Date: Mon, 18 Mar 2013 16:25:46 -0500
-Message-ID: <20130318212546.GC3964@thinkpad-t410>
-References: <1360599681-24781-1-git-send-email-seth.forshee@canonical.com>
- <20130211175213.GA25139@srcf.ucam.org>
- <20130211190617.GH13768@thinkpad-t410>
- <20130211190914.GA27364@srcf.ucam.org>
- <20130213203228.GE22867@thinkpad-t410>
- <20130213205558.GA16559@srcf.ucam.org>
- <20130307193812.GD24233@thinkpad-t410>
+From: Jiri Kosina <jkosina@suse.cz>
+Subject: Re: [3.9-rc1] irq 16: nobody cared (was [3.9-rc1] very poor interrupt
+ responses)
+Date: Mon, 18 Mar 2013 23:04:21 +0100 (CET)
+Message-ID: <alpine.LNX.2.00.1303182301450.9529@pobox.suse.cz>
+References: <Pine.LNX.4.44L0.1303141050310.1983-100000@iolanthe.rowland.org> <1460519.ejNFI1DrGk@vostro.rjw.lan> <1363280764.26318.4.camel@thor.lan> <5657408.cYX6iimiA4@vostro.rjw.lan> <alpine.LNX.2.00.1303150851020.9529@pobox.suse.cz> <5142E7F0.4020002@gmail.com>
+ <alpine.LNX.2.00.1303151424140.9529@pobox.suse.cz> <alpine.LNX.2.00.1303151609480.9529@pobox.suse.cz> <CAE9FiQUqPTUqPOzANnxpdfoRYPr+OiU5pFEoLKRiOFHd9Py4XQ@mail.gmail.com> <alpine.LNX.2.00.1303181010080.9529@pobox.suse.cz>
+ <20130318191903.GS9021@phenom.ffwll.local>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from youngberry.canonical.com ([91.189.89.112]:43380 "EHLO
-	youngberry.canonical.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933149Ab3CRVZz (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 18 Mar 2013 17:25:55 -0400
-Content-Disposition: inline
-In-Reply-To: <20130307193812.GD24233@thinkpad-t410>
+Received: from cantor2.suse.de ([195.135.220.15]:39143 "EHLO mx2.suse.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S932121Ab3CRWEc (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 18 Mar 2013 18:04:32 -0400
+In-Reply-To: <20130318191903.GS9021@phenom.ffwll.local>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Matthew Garrett <mjg59@srcf.ucam.org>
-Cc: Len Brown <lenb@kernel.org>, "Rafael J. Wysocki" <rjw@sisk.pl>, linux-acpi@vger.kernel.org, Ben Jencks <ben@bjencks.net>, joeyli <jlee@suse.com>
+To: Daniel Vetter <daniel@ffwll.ch>
+Cc: Yinghai Lu <yinghai@kernel.org>, Harald Arnesen <skogtun.linux@gmail.com>, Kernel development list <linux-kernel@vger.kernel.org>, "Rafael J. Wysocki" <rjw@sisk.pl>, Peter Hurley <peter@hurleysoftware.com>, Alan Stern <stern@rowland.harvard.edu>, Thomas Meyer <thomas@m3y3r.de>, Shawn Starr <shawn.starr@rogers.com>, USB list <linux-usb@vger.kernel.org>, linux-acpi@vger.kernel.org, Bjorn Helgaas <bhelgaas@google.com>, linux-pci@vger.kernel.org, Daniel Vetter <daniel.vetter@ffwll.ch>, Imre Deak <imre.deak@intel.com>, Daniel Kurtz <djkurtz@chromium.org>, dri-devel@lists.freedesktop.org
 
-On Thu, Mar 07, 2013 at 01:38:12PM -0600, Seth Forshee wrote:
-> On Wed, Feb 13, 2013 at 08:55:58PM +0000, Matthew Garrett wrote:
-> > On Wed, Feb 13, 2013 at 02:32:28PM -0600, Seth Forshee wrote:
-> > > On Mon, Feb 11, 2013 at 07:09:14PM +0000, Matthew Garrett wrote:
-> > > > Right. My concern here is that Windows clearly doesn't trigger the 
-> > > > issue, and so there's some chance that we'll see similar issues on other 
-> > > > machines. Disabling Windows 8 compatibility isn't really an option. One 
-> > > > choice might be to have the ACPI video driver set all intermediate 
-> > > > values if the system makes the Windows 8 OSI call?
-> > > 
-> > > This turns out to have some problems. The hotkeys on the x230 at least
-> > > generate increase/decrease brightness notifications. In response
-> > > acpi_video reads the current brightness level via _BQC and decides what
-> > > the next value should be. A value adjacent to a working value is never
-> > > another working value on this machine, so _BCM does nothing. The next
-> > > time a notification comes _BQC returns the same value as it did the
-> > > previous time. Obviously this gets us nowhere.
-> > 
-> > Nrgh. Having this logic in the kernel has always been miserable. On the 
-> > other hand, having _BQC return wrong values is arguably even worse.
-> > 
-> > > The (untested) fix I've come up with is to use the cached value for the
-> > > current brightness rather than asking the firmware. I'm assuming though
-> > > that acpi_video would be using the cached values already if there wasn't
-> > > a chance that their changing without its knowledge?
-> > 
-> > Yeah. What I'd suggest here is calling _BQC after every change, and if 
-> > it returns the old value throw a firmware bug message and fall back to 
-> > using a cached one.
-> > 
-> > > The other issue with using the cached value is that the hotkeys on these
-> > > machines are still going to end up cycling through 101 brightness levels
-> > > with 85% of them leaving the brightness unchanged. When there's that
-> > > many levels though maybe it makes sense to jump more than one level at a
-> > > time.
-> > 
-> > Right. I'd recommend turning off that functionality and just leaving it 
-> > up to userspace. We still seem to be carrying a patch to do that in 
-> > Fedora. I thought I had a patch to make this a config option somewhere, 
-> > but can't find any sign of it now...
-> 
-> I've had the patches implementing your suggestions written for a while
-> now but just got test feedback this week. So here they are.
+On Mon, 18 Mar 2013, Daniel Vetter wrote:
 
-Ping.
+> Yep, there's a big comment in the irq handler for that chipset that we
+> have a gaping race with when using MSI interrupts. Although the comment
+> bodly claims that the race is small enough to avoid the dreaded "nobody
+> cared" message. Looks like gmbus is good at hitting that race - on newer
+> chips it already brought up a similar race in handling pch interrupts.
 
-Matthew, do these patches look like what you had in mind?
+I see ... will target my focus in that direction, thanks.
 
+> Can you please give the below patch a whirl? It removes the probably race
+> msi race avoidance code and replaces it with the same trick Paulo used to
+> fix pch irq handling races.
+
+Unfortunately it didn't change anything, the spurious interrupt report is 
+still there.
+
+-- 
+Jiri Kosina
+SUSE Labs
