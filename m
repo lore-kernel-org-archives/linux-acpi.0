@@ -1,40 +1,34 @@
 From: Jiri Kosina <jkosina@suse.cz>
 Subject: Re: [3.9-rc1] irq 16: nobody cared (was [3.9-rc1] very poor interrupt
  responses)
-Date: Mon, 18 Mar 2013 23:04:21 +0100 (CET)
-Message-ID: <alpine.LNX.2.00.1303182301450.9529@pobox.suse.cz>
+Date: Mon, 18 Mar 2013 23:05:02 +0100 (CET)
+Message-ID: <alpine.LNX.2.00.1303182304320.9529@pobox.suse.cz>
 References: <Pine.LNX.4.44L0.1303141050310.1983-100000@iolanthe.rowland.org> <1460519.ejNFI1DrGk@vostro.rjw.lan> <1363280764.26318.4.camel@thor.lan> <5657408.cYX6iimiA4@vostro.rjw.lan> <alpine.LNX.2.00.1303150851020.9529@pobox.suse.cz> <5142E7F0.4020002@gmail.com>
  <alpine.LNX.2.00.1303151424140.9529@pobox.suse.cz> <alpine.LNX.2.00.1303151609480.9529@pobox.suse.cz> <CAE9FiQUqPTUqPOzANnxpdfoRYPr+OiU5pFEoLKRiOFHd9Py4XQ@mail.gmail.com> <alpine.LNX.2.00.1303181010080.9529@pobox.suse.cz>
- <20130318191903.GS9021@phenom.ffwll.local>
+ <CAE9FiQXj0oD7_Abhz305dGytwg9_VKeEVuX128VXxEKexyvTLg@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cantor2.suse.de ([195.135.220.15]:39143 "EHLO mx2.suse.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932121Ab3CRWEc (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 18 Mar 2013 18:04:32 -0400
-In-Reply-To: <20130318191903.GS9021@phenom.ffwll.local>
-Sender: linux-acpi-owner@vger.kernel.org
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <CAE9FiQXj0oD7_Abhz305dGytwg9_VKeEVuX128VXxEKexyvTLg@mail.gmail.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Yinghai Lu <yinghai@kernel.org>
+Cc: Harald Arnesen <skogtun.linux@gmail.com>, Kernel development list <linux-kernel@vger.kernel.org>, "Rafael J. Wysocki" <rjw@sisk.pl>, Peter Hurley <peter@hurleysoftware.com>, Alan Stern <stern@rowland.harvard.edu>, Thomas Meyer <thomas@m3y3r.de>, Shawn Starr <shawn.starr@rogers.com>, USB list <linux-usb@vger.kernel.org>, linux-acpi@vger.kernel.org, Bjorn Helgaas <bhelgaas@google.com>, linux-pci@vger.kernel.org, Daniel Vetter <daniel.vetter@ffwll.ch>, Imre Deak <imre.deak@intel.com>, Daniel Kurtz <djkurtz@chromium.org>, dri-devel@lists.freedesktop.org
 List-Id: linux-acpi@vger.kernel.org
-To: Daniel Vetter <daniel@ffwll.ch>
-Cc: Yinghai Lu <yinghai@kernel.org>, Harald Arnesen <skogtun.linux@gmail.com>, Kernel development list <linux-kernel@vger.kernel.org>, "Rafael J. Wysocki" <rjw@sisk.pl>, Peter Hurley <peter@hurleysoftware.com>, Alan Stern <stern@rowland.harvard.edu>, Thomas Meyer <thomas@m3y3r.de>, Shawn Starr <shawn.starr@rogers.com>, USB list <linux-usb@vger.kernel.org>, linux-acpi@vger.kernel.org, Bjorn Helgaas <bhelgaas@google.com>, linux-pci@vger.kernel.org, Daniel Vetter <daniel.vetter@ffwll.ch>, Imre Deak <imre.deak@intel.com>, Daniel Kurtz <djkurtz@chromium.org>, dri-devel@lists.freedesktop.org
 
-On Mon, 18 Mar 2013, Daniel Vetter wrote:
+On Mon, 18 Mar 2013, Yinghai Lu wrote:
 
-> Yep, there's a big comment in the irq handler for that chipset that we
-> have a gaping race with when using MSI interrupts. Although the comment
-> bodly claims that the race is small enough to avoid the dreaded "nobody
-> cared" message. Looks like gmbus is good at hitting that race - on newer
-> chips it already brought up a similar race in handling pch interrupts.
+> > Yes, switching from MSI to IO-APIC-fasteoi makes the report about lost
+> > interrupts go away.
+> >
+> > My understanding from the other mail is that DAniel Vetter already has an
+> > idea what might be going wrong with IRQ acking on GM45 chipsets; hopefully
+> > this datapoint regarding MSI will fit into it.
+> 
+> What is /proc/interrupts difference between with and without pci=nomsi ?
+> 
+> drm is forced to share irq 16?
 
-I see ... will target my focus in that direction, thanks.
-
-> Can you please give the below patch a whirl? It removes the probably race
-> msi race avoidance code and replaces it with the same trick Paulo used to
-> fix pch irq handling races.
-
-Unfortunately it didn't change anything, the spurious interrupt report is 
-still there.
+Yup, IRQ 16 is being shared, and one of the owners is i915.
 
 -- 
 Jiri Kosina
