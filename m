@@ -1,51 +1,127 @@
-From: Thomas Meyer <thomas-VsYtu1Qij5c@public.gmane.org>
-Subject: Re: [3.9-rc1] irq 16: nobody cared  (was [3.9-rc1] very poor
- interrupt responses)
-Date: Mon, 18 Mar 2013 08:14:48 +0100
-Message-ID: <3mh5gd58po5ybltccyfh2htu.1363590888245@email.android.com>
+From: Aaron Lu <aaron.lu@intel.com>
+Subject: Re: [PATCH v2 1/3] ACPI video: Fix brightness control initialization
+ for some laptops.
+Date: Mon, 18 Mar 2013 15:26:44 +0800
+Message-ID: <5146C1B4.4050907@intel.com>
+References: <1363342248-6496-1-git-send-email-dannybaumann@web.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: base64
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Jiri Kosina <jkosina-AlSwsSmVLrQ@public.gmane.org>
-Cc: Harald Arnesen <skogtun.linux-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Kernel development list <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, " Rafael J. Wysocki" <rjw-KKrjLPT3xs0@public.gmane.org>, Peter Hurley <peter-WaGBZJeGNqdsbIuE7sb01tBPR1lH4CV8@public.gmane.org>, Alan Stern <stern-nwvwT67g6+6dFdvTe/nMLpVzexx5G7lz@public.gmane.org>, Shawn Starr <shawn.starr-bJEeYj9oJeDQT0dZR+AlfA@public.gmane.org>, USB list <linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Bjorn Helgaas <bhelgaas-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org>, linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Yinghai Lu <yinghai-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Daniel Vetter <daniel.vetter-/w4YWyX8dFk@public.gmane.org>, Imre Deak <imre.deak-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Daniel Kurtz <djkurtz-F7+t8E8rja9g9hUCZPvPmw@public.gmane.org>, dri-devel-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mga09.intel.com ([134.134.136.24]:13975 "EHLO mga09.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751434Ab3CRHZd (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 18 Mar 2013 03:25:33 -0400
+In-Reply-To: <1363342248-6496-1-git-send-email-dannybaumann@web.de>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Danny Baumann <dannybaumann@web.de>
+Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Zhang Rui <rui.zhang@intel.com>, Len Brown <lenb@kernel.org>
 
-TXkgbGFwdG9wIGlzIGFuIEFjZXIgMTgxMFQuIEkgc2VlIHRoaXMgZXJyb3IgbWVzc2FnZSBlYWNo
-IGJvb3QuCgpLaW5kIHJlZ2FyZHMKVGhvbWFzCgpKaXJpIEtvc2luYSA8amtvc2luYUBzdXNlLmN6
-PiBzY2hyaWViOgoKPk9uIEZyaSwgMTUgTWFyIDIwMTMsIEppcmkgS29zaW5hIHdyb3RlOgo+Cj4+
-ID4gSSBoYXZlIHRoZSBzYW1lIHByb2JsZW0gb24gbXkgTGVub3ZvIFQ1MDAuIEkgdGhpbmsgdGhl
-IGdyYXBoaWNzIGNhcmQgaXMKPj4gPiBpbnZvbHZlZC4KPj4gPiAKPj4gPiBUaGlzIGxhcHRvcCBo
-YXMgImh5YnJpZCBncmFwaGljcyIgLSBvbmUgSW50ZWwgR01BIDQ1MDBNSEQgYW5kIG9uZSBBVEkK
-Pj4gPiBNb2JpbGl0eSBSYWRlb24gSEQgMzY1MC4gV2hlbiBJIGJvb3Qgd2l0aCB0aGUgSW50ZWwg
-Y2FyZCwgSSBnZXQgImlycSAxNjoKPj4gPiBub2JvZHkgY2FyZWQiIGR1cmluZyBib290LCBub3Qg
-d2hlbiBJIGJvb3Qgd2l0aCB0aGUgQVRJIGNhcmQuCj4+IAo+PiBDb25maXJtaW5nIHRoaXMuIEFm
-dGVyIGEgbG90IG9mIGhhc3NsZSwgSSBoYXZlIGJpc2VjdGVkIHRoaXMgcmVsaWFibHkgdG8KPj4g
-Cj4+IAljb21taXQgMjhjNzBmMTYyYTMxNWJkY2ZiZTBiZjk0MGE3NDBlZjhiZmI5MThkNgo+PiAJ
-QXV0aG9yOiBEYW5pZWwgVmV0dGVyIDxkYW5pZWwudmV0dGVyQGZmd2xsLmNoPgo+PiAJRGF0ZTog
-ICBTYXQgRGVjIDEgMTM6NTM6NDUgMjAxMiArMDEwMAo+PiAKPj4gCSAgICBkcm0vaTkxNTogdXNl
-IHRoZSBnbWJ1cyBpcnEgZm9yIHdhaXRzCj4+IAo+PiBBZGRpbmcgRGFuaWVsLCBJbXJlIGFuZCBE
-YW5pZWwgdG8gQ0Mgd2hpbGUgSSB3aWxsIHRyeSB0byBmaWd1cmUgb3V0IHdoYXQncyAKPj4gaGFw
-cGVuaW5nIGluIHBhcmFsbGVsLgo+PiAKPj4gQXR0YWNoaW5nIGRtZXNnLnR4dCBmcm9tIHRoZSBt
-YWNoaW5lIHdpdGggMjhjNzBmMTYyYSBhcyBoZWFkLCB3aXRoIAo+PiBkcm0uZGVidWc9MHhlLgo+
-Cj5KdXN0IGEgZGF0YXBvaW50IC0tIEkgaGF2ZSBwdXQgYSB0cml2aWFsIGRlYnVnZ2luZyBwYXRj
-aCBpbiBwbGFjZSwgYW5kIGl0IAo+cmV2ZWFscyB0aGF0ICJub2JvZHkgY2FyZWQiIGZvciBpcnEg
-MTYgaGFwcGVucyBsb25nIGFmdGVyIGxhc3QKPgo+CUk5MTVfV1JJVEUoR01CVVM0ICsgcmVnX29m
-ZnNldCwgMCk7Cj4KPmhhcyBiZWVuIHBlcmZvcm1lZCBpbiBnbWJ1c193YWl0X2h3X3N0YXR1cygp
-LiBPbiB0aGUgb3RoZXIgaGFuZCwgaWYgSSAKPmNvbW1lbnQgb3V0IGJvdGggR01CVVM0IHJlZ2lz
-dGVyIG9mZnNldCB3cml0ZXMgaW4gZ21idXNfd2FpdF9od19zdGF0dXMoKSwgCj50aGVuIGl0IG9m
-IGNvdXJzZSBmYWxscyBiYWNrIHRvIEdQSU8gYml0LWJhbmdpbmcsIGJ1dCB0aGUgIm5vYm9keSBj
-YXJlZCIgCj5mb3IgaXJxIDE2IGlzIGdvbmUuIAo+Cj5TbyBpdCBzZWVtcyBsaWtlIHNvbWV0aGlu
-ZyBnZXRzIHNldmVyZWx5IGNvbmZ1c2VkIGJ5IHRoZSBJOTE1X1dSSVRFIHRvIAo+R01CVVM0ICsg
-cmVnX29mZnNldC4gU28gZmFyIHRoaXMgc2VlbXMgdG8gaGF2ZSBiZWVuIHJlcG9ydGVkIHNvbGVs
-eSBvbiAKPkxlbm92b3MgYXMgZmFyIGFzIEkgY2FuIHNlZSAoYWx0aG91Z2ggYSBjb21wbGV0ZWx5
-IGRpZmZlcmVudCB0eXBlcyksIHNvIGl0IAo+bWlnaHQgYmUgc29tZSBwbGF0Zm9ybS1zcGVjaWZp
-YyBxdWlyaz8KPgo+SG9uZXN0bHksIEkgc3RpbGwgZG9uJ3QgdW5kZXJzdGFuZCBob3cgYWxsIHRo
-ZSBHTUJVUyBzdHVmZiByZWxhdGVzIHRvIElSUSAKPjE2IGF0IGFsbC4gCj4KPi0tIAo+SmlyaSBL
-b3NpbmEKPlNVU0UgTGFicwo=
+On 03/15/2013 06:10 PM, Danny Baumann wrote:
+> In particular, this fixes brightness control initialization for all
+> devices that return index values from _BQC and don't happen to have the
+> initial index set by the BIOS in their _BCL table. One example for that
+> is the Dell Inspiron 15R SE (model number 7520).
+> 
+> What happened for those devices is that acpi_init_brightness queried the
+> initial brightness by calling acpi_video_device_lcd_get_level_current.
+> This called _BQC, which returned e.g. 13. As _BQC_use_index isn't
+> determined at this point (and thus has its initial value of 0), the
+> index isn't converted into the actual level. As '13' isn't present in
+> the _BCL list, *level is later overwritten with brightness->curr, which
+> was initialized to max_level (100) before. Later in
+> acpi_init_brightness, level_old (with the value 100) is used as an index
+> into the _BCL table, which causes a value outside of the actual table to
+> be used as input into acpi_video_device_lcd_set_level(). Depending on
+> the (undefined) value of that location, this call will fail, causing the
+> brightness control for the device in question not to be enabled.
+> 
+> Fix that by returning the raw value returned by the _BQC call in the
+> initialization case.
+> 
+> Signed-off-by: Danny Baumann <dannybaumann@web.de>
+> ---
+>  drivers/acpi/video.c | 33 ++++++++++++++++++++-------------
+>  1 file changed, 20 insertions(+), 13 deletions(-)
+> 
+> diff --git a/drivers/acpi/video.c b/drivers/acpi/video.c
+> index 313f959..9c33871 100644
+> --- a/drivers/acpi/video.c
+> +++ b/drivers/acpi/video.c
+> @@ -222,7 +222,7 @@ static int acpi_video_device_lcd_set_level(struct acpi_video_device *device,
+>  			int level);
+>  static int acpi_video_device_lcd_get_level_current(
+>  			struct acpi_video_device *device,
+> -			unsigned long long *level, int init);
+> +			unsigned long long *level, int raw);
 
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Why not bool?
+
+Thanks,
+Aaron
+
+>  static int acpi_video_get_next_level(struct acpi_video_device *device,
+>  				     u32 level_current, u32 event);
+>  static int acpi_video_switch_brightness(struct acpi_video_device *device,
+> @@ -452,7 +452,7 @@ static struct dmi_system_id video_dmi_table[] __initdata = {
+>  
+>  static int
+>  acpi_video_device_lcd_get_level_current(struct acpi_video_device *device,
+> -					unsigned long long *level, int init)
+> +					unsigned long long *level, int raw)
+>  {
+>  	acpi_status status = AE_OK;
+>  	int i;
+> @@ -463,6 +463,15 @@ acpi_video_device_lcd_get_level_current(struct acpi_video_device *device,
+>  		status = acpi_evaluate_integer(device->dev->handle, buf,
+>  						NULL, level);
+>  		if (ACPI_SUCCESS(status)) {
+> +			if (raw) {
+> +				/*
+> +				 * Caller has indicated he wants the raw
+> +				 * value returned by _BQC, so don't furtherly
+> +				 * mess with the value.
+> +				 */
+> +				return 0;
+> +			}
+> +
+>  			if (device->brightness->flags._BQC_use_index) {
+>  				if (device->brightness->flags._BCL_reversed)
+>  					*level = device->brightness->count
+> @@ -476,16 +485,14 @@ acpi_video_device_lcd_get_level_current(struct acpi_video_device *device,
+>  					device->brightness->curr = *level;
+>  					return 0;
+>  			}
+> -			if (!init) {
+> -				/*
+> -				 * BQC returned an invalid level.
+> -				 * Stop using it.
+> -				 */
+> -				ACPI_WARNING((AE_INFO,
+> -					      "%s returned an invalid level",
+> -					      buf));
+> -				device->cap._BQC = device->cap._BCQ = 0;
+> -			}
+> +			/*
+> +			 * BQC returned an invalid level.
+> +			 * Stop using it.
+> +			 */
+> +			ACPI_WARNING((AE_INFO,
+> +				      "%s returned an invalid level",
+> +				      buf));
+> +			device->cap._BQC = device->cap._BCQ = 0;
+>  		} else {
+>  			/* Fixme:
+>  			 * should we return an error or ignore this failure?
+> @@ -714,7 +721,7 @@ acpi_video_init_brightness(struct acpi_video_device *device)
+>  	if (result)
+>  		goto out_free_levels;
+>  
+> -	result = acpi_video_device_lcd_get_level_current(device, &level, 0);
+> +	result = acpi_video_device_lcd_get_level_current(device, &level, 1);
+>  	if (result)
+>  		goto out_free_levels;
+>  
+> 
+
