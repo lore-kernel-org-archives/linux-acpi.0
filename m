@@ -1,41 +1,64 @@
-From: Alan Stern <stern@rowland.harvard.edu>
-Subject: Re: gm45 intel gfx can generate non-MSI irq# in MSI mode (was Re:
- [PATCH] drm/i915: stop using GMBUS IRQs on Gen4 chips (was Re: [3.9-rc1]
- irq 16: nobody cared (was [3.9-rc1] very poor interrupt respo
-Date: Tue, 19 Mar 2013 14:18:59 -0400 (EDT)
-Message-ID: <Pine.LNX.4.44L0.1303191417440.1302-100000@iolanthe.rowland.org>
-References: <CAKMK7uGtLcuSsoumAgdB7ri+fR5ReNYcZELbqDcSueXVsewppg@mail.gmail.com>
+From: "Moore, Robert" <robert.moore@intel.com>
+Subject: RE: [PATCH] acpi: remove length check for large registers
+Date: Tue, 19 Mar 2013 18:48:58 +0000
+Message-ID: <94F2FBAB4432B54E8AACC7DFDE6C92E36F48A3FB@ORSMSX101.amr.corp.intel.com>
+References: <1363377367-12813-1-git-send-email-linn@hp.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from iolanthe.rowland.org ([192.131.102.54]:56273 "HELO
-	iolanthe.rowland.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S933391Ab3CSSTA (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 19 Mar 2013 14:19:00 -0400
-In-Reply-To: <CAKMK7uGtLcuSsoumAgdB7ri+fR5ReNYcZELbqDcSueXVsewppg@mail.gmail.com>
+Received: from mga09.intel.com ([134.134.136.24]:49879 "EHLO mga09.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753640Ab3CSStR convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 19 Mar 2013 14:49:17 -0400
+In-Reply-To: <1363377367-12813-1-git-send-email-linn@hp.com>
+Content-Language: en-US
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Daniel Vetter <daniel.vetter@ffwll.ch>
-Cc: Chris Wilson <chris@chris-wilson.co.uk>, Jiri Kosina <jkosina@suse.cz>, Greg KH <greg@kroah.com>, Harald Arnesen <skogtun.linux@gmail.com>, Kernel development list <linux-kernel@vger.kernel.org>, "Rafael J. Wysocki" <rjw@sisk.pl>, Peter Hurley <peter@hurleysoftware.com>, Thomas Meyer <thomas@m3y3r.de>, Shawn Starr <shawn.starr@rogers.com>, USB list <linux-usb@vger.kernel.org>, linux-acpi@vger.kernel.org, Bjorn Helgaas <bhelgaas@google.com>, linux-pci@vger.kernel.org, Yinghai Lu <yinghai@kernel.org>, Imre Deak <imre.deak@intel.com>, Daniel Kurtz <djkurtz@chromium.org>, dri-devel@lists.freedesktop.org, Thomas Gleixner <tglx@linutronix.de>, "H. Peter Anvin" <hpa@zytor.com>, x86@kernel.org, Arkadiusz Miskiewicz <a.miskiewicz@gmail.com>
+To: Linn Crosetto <linn@hp.com>, "Zheng, Lv" <lv.zheng@intel.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "Wysocki, Rafael J" <rafael.j.wysocki@intel.com>
+Cc: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
 
-On Tue, 19 Mar 2013, Daniel Vetter wrote:
+Linn,
 
-> > That might be misleading.  It's possible that the erroneous IRQs _are_
-> > being issued but you're simply not aware of them.  If the kernel thinks
-> > that no device is using IRQ 16 then it will leave that IRQ disabled.
+We will integrate this change into ACPICA for the next release, later in March 2013.
+Thanks,
+Bob
+
+
+> -----Original Message-----
+> From: Linn Crosetto [mailto:linn@hp.com]
+> Sent: Friday, March 15, 2013 12:56 PM
+> To: rjw@sisk.pl; Moore, Robert; ming.m.lin@intel.com; Zheng, Lv; linux-
+> acpi@vger.kernel.org
+> Cc: linux-kernel@vger.kernel.org; Linn Crosetto
+> Subject: [PATCH] acpi: remove length check for large registers
 > 
-> I guess I should have phrased it more precisely, but that's exactly
-> what I expect is happening on my machine: I don't have anything on
-> irq16 (i.e. in non-msi mode the gfx interrupt isn't shared) and hence
-> the irq is completely disabled. Which obviously makes it impossible
-> for me to reproduce the issue. To test that theory, is there a quick
-> way to force-enable a given interrupt, short of just hacking up a 2nd
-> dummy irq handler in my driver?
-
-I don't know of any way.  In fact, I have been thinking of writing a 
-test driver module, with a module parameter telling it which IRQ number 
-to register for.  It seems like the sort of thing that would be useful 
-to have, from time to time.
-
-Alan Stern
+> The legacy bit width field in the Generic Address Structure is 1 byte,
+> limiting the reportable register width to 255 bits. Larger registers will
+> cause a length mismatch warning to be printed in acpi_tb_validate_fadt().
+> 
+> To avoid the warning, disable the length mismatch check for registers
+> larger than 255 bits.
+> 
+> Signed-off-by: Linn Crosetto <linn@hp.com>
+> ---
+>  drivers/acpi/acpica/tbfadt.c | 1 +
+>  1 file changed, 1 insertion(+)
+> 
+> diff --git a/drivers/acpi/acpica/tbfadt.c b/drivers/acpi/acpica/tbfadt.c
+> index 74181bf..e87abcd 100644
+> --- a/drivers/acpi/acpica/tbfadt.c
+> +++ b/drivers/acpi/acpica/tbfadt.c
+> @@ -561,6 +561,7 @@ static void acpi_tb_validate_fadt(void)
+>  		 * legacy length field and the corresponding 64-bit X length
+> field.
+>  		 */
+>  		if (address64->address &&
+> +		    ACPI_MUL_8(length) <= ACPI_UINT8_MAX &&
+>  		    (address64->bit_width != ACPI_MUL_8(length))) {
+>  			ACPI_BIOS_WARNING((AE_INFO,
+>  					   "32/64X length mismatch in FADT/%s:
+> %u/%u",
+> --
+> 1.7.11.3
 
