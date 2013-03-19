@@ -1,166 +1,83 @@
-From: Danny Baumann <dannybaumann@web.de>
-Subject: Re: [PATCH v4 1/3] ACPI video: Fix brightness control initialization
- for some laptops.
-Date: Tue, 19 Mar 2013 17:24:29 +0100
-Message-ID: <5148913D.5080309@web.de>
-References: <1363710172-2906-1-git-send-email-dannybaumann@web.de>
+From: Daniel Vetter <daniel.vetter@ffwll.ch>
+Subject: Re: gm45 intel gfx can generate non-MSI irq# in MSI mode (was Re:
+ [PATCH] drm/i915: stop using GMBUS IRQs on Gen4 chips (was Re: [3.9-rc1] irq
+ 16: nobody cared (was [3.9-rc1] very poor interrupt responses
+Date: Tue, 19 Mar 2013 17:54:50 +0100
+Message-ID: <CAKMK7uGtLcuSsoumAgdB7ri+fR5ReNYcZELbqDcSueXVsewppg@mail.gmail.com>
+References: <CAKMK7uGnZFaLQaZtoQ0Fz0ViNNjBvmf0Ak=qPmdAcm2mRBD7rA@mail.gmail.com>
+	<Pine.LNX.4.44L0.1303191136020.15684-100000@netrider.rowland.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cora.hrz.tu-chemnitz.de ([134.109.228.40]:37019 "EHLO
-	cora.hrz.tu-chemnitz.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932503Ab3CSQYe (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 19 Mar 2013 12:24:34 -0400
-In-Reply-To: <1363710172-2906-1-git-send-email-dannybaumann@web.de>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Return-path: <linux-pci-owner@vger.kernel.org>
+In-Reply-To: <Pine.LNX.4.44L0.1303191136020.15684-100000@netrider.rowland.org>
+Sender: linux-pci-owner@vger.kernel.org
+To: Alan Stern <stern@rowland.harvard.edu>
+Cc: Chris Wilson <chris@chris-wilson.co.uk>, Jiri Kosina <jkosina@suse.cz>, Greg KH <greg@kroah.com>, Harald Arnesen <skogtun.linux@gmail.com>, Kernel development list <linux-kernel@vger.kernel.org>, "Rafael J. Wysocki" <rjw@sisk.pl>, Peter Hurley <peter@hurleysoftware.com>, Thomas Meyer <thomas@m3y3r.de>, Shawn Starr <shawn.starr@rogers.com>, USB list <linux-usb@vger.kernel.org>, linux-acpi@vger.kernel.org, Bjorn Helgaas <bhelgaas@google.com>, linux-pci@vger.kernel.org, Yinghai Lu <yinghai@kernel.org>, Imre Deak <imre.deak@intel.com>, Daniel Kurtz <djkurtz@chromium.org>, dri-devel@lists.freedesktop.org, Thomas Gleixner <tglx@linutronix.de>, "H. Peter Anvin" <hpa@zytor.com>, x86@kernel.org, Arkadiusz Miskiewicz <a.miskiewicz@gmail.com>
 List-Id: linux-acpi@vger.kernel.org
-To: Danny Baumann <dannybaumann@web.de>
-Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Zhang Rui <rui.zhang@intel.com>, Len Brown <lenb@kernel.org>
 
-v3 incorporates Aaron's feedback, v4 fixes my inability to use git 
-send-email properly. Sorry for that.
+On Tue, Mar 19, 2013 at 4:38 PM, Alan Stern <stern@rowland.harvard.edu> wrote:
+> On Tue, 19 Mar 2013, Daniel Vetter wrote:
+>
+>> For reference below the updated commit message.
+>>
+>> Cheers, Daniel
+>>
+>> Author: Jiri Kosina <jkosina@suse.cz>
+>> Date:   Tue Mar 19 09:56:57 2013 +0100
+>
+>>
+>>     drm/i915: stop using GMBUS IRQs on Gen4 chips
+>>
+>>     Commit 28c70f162 ("drm/i915: use the gmbus irq for waits") switched to
+>>     using GMBUS irqs instead of GPIO bit-banging for chipset generations 4
+>>     and above.
+>>
+>>     It turns out though that on many systems this leads to spurious interrupts
+>>     being generated, long after the register write to disable the IRQs has been
+>>     issued.
+>>
+>>     Typically this results in the spurious interrupt source getting
+>>     disabled:
+>>
+>>     [    9.636345] irq 16: nobody cared (try booting with the "irqpoll" option)
+>>     [    9.637915] Pid: 4157, comm: ifup Tainted: GF
+>> 3.9.0-rc2-00341-g0863702 #422
+>>     [    9.639484] Call Trace:
+>>     [    9.640731]  <IRQ>  [<ffffffff8109b40d>] __report_bad_irq+0x1d/0xc7
+>>     [    9.640731]  [<ffffffff8109b7db>] note_interrupt+0x15b/0x1e8
+>>     [    9.640731]  [<ffffffff810999f7>] handle_irq_event_percpu+0x1bf/0x214
+>>     [    9.640731]  [<ffffffff81099a88>] handle_irq_event+0x3c/0x5c
+>>     [    9.640731]  [<ffffffff8109c139>] handle_fasteoi_irq+0x7a/0xb0
+>>     [    9.640731]  [<ffffffff8100400e>] handle_irq+0x1a/0x24
+>>     [    9.640731]  [<ffffffff81003d17>] do_IRQ+0x48/0xaf
+>>     [    9.640731]  [<ffffffff8142f1ea>] common_interrupt+0x6a/0x6a
+>>     [    9.640731]  <EOI>  [<ffffffff8142f952>] ? system_call_fastpath+0x16/0x1b
+>>     [    9.640731] handlers:
+>>     [    9.640731] [<ffffffffa000d771>] usb_hcd_irq [usbcore]
+>>     [    9.640731] [<ffffffffa0306189>] yenta_interrupt [yenta_socket]
+>>     [    9.640731] Disabling IRQ #16
+>>
+>>     The really curious thing is now that irq 16 is _not_ the interrupt for
+>>     the i915 driver when using MSI, but it _is_ the interrupt when not
+>>     using MSI. So by all indications it seems like gmbus is able to
+>>     generate a legacy (shared) interrupt in MSI mode on some
+>>     configurations. I've tried to reproduce this and the differentiating
+>>     thing seems to be that on unaffected systems no other device uses irq
+>>     16 (which seems to be the non-MSI intel gfx interrupt on all gm45).
+>
+> That might be misleading.  It's possible that the erroneous IRQs _are_
+> being issued but you're simply not aware of them.  If the kernel thinks
+> that no device is using IRQ 16 then it will leave that IRQ disabled.
 
-Regards,
-
-Danny
-
-Am 19.03.2013 17:22, schrieb Danny Baumann:
-> In particular, this fixes brightness control initialization for all
-> devices that return index values from _BQC and don't happen to have the
-> initial index set by the BIOS in their _BCL table. One example for that
-> is the Dell Inspiron 15R SE (model number 7520).
->
-> What happened for those devices is that acpi_init_brightness queried the
-> initial brightness by calling acpi_video_device_lcd_get_level_current.
-> This called _BQC, which returned e.g. 13. As _BQC_use_index isn't
-> determined at this point (and thus has its initial value of 0), the
-> index isn't converted into the actual level. As '13' isn't present in
-> the _BCL list, *level is later overwritten with brightness->curr, which
-> was initialized to max_level (100) before. Later in
-> acpi_init_brightness, level_old (with the value 100) is used as an index
-> into the _BCL table, which causes a value outside of the actual table to
-> be used as input into acpi_video_device_lcd_set_level(). Depending on
-> the (undefined) value of that location, this call will fail, causing the
-> brightness control for the device in question not to be enabled.
->
-> Fix that by returning the raw value returned by the _BQC call in the
-> initialization case.
->
-> Signed-off-by: Danny Baumann <dannybaumann@web.de>
-> ---
->   drivers/acpi/video.c | 43 ++++++++++++++++++++++++++-----------------
->   1 file changed, 26 insertions(+), 17 deletions(-)
->
-> diff --git a/drivers/acpi/video.c b/drivers/acpi/video.c
-> index 313f959..09e4722 100644
-> --- a/drivers/acpi/video.c
-> +++ b/drivers/acpi/video.c
-> @@ -222,7 +222,7 @@ static int acpi_video_device_lcd_set_level(struct acpi_video_device *device,
->   			int level);
->   static int acpi_video_device_lcd_get_level_current(
->   			struct acpi_video_device *device,
-> -			unsigned long long *level, int init);
-> +			unsigned long long *level, bool raw);
->   static int acpi_video_get_next_level(struct acpi_video_device *device,
->   				     u32 level_current, u32 event);
->   static int acpi_video_switch_brightness(struct acpi_video_device *device,
-> @@ -236,7 +236,7 @@ static int acpi_video_get_brightness(struct backlight_device *bd)
->   	struct acpi_video_device *vd =
->   		(struct acpi_video_device *)bl_get_data(bd);
->
-> -	if (acpi_video_device_lcd_get_level_current(vd, &cur_level, 0))
-> +	if (acpi_video_device_lcd_get_level_current(vd, &cur_level, false))
->   		return -EINVAL;
->   	for (i = 2; i < vd->brightness->count; i++) {
->   		if (vd->brightness->levels[i] == cur_level)
-> @@ -281,7 +281,7 @@ static int video_get_cur_state(struct thermal_cooling_device *cooling_dev, unsig
->   	unsigned long long level;
->   	int offset;
->
-> -	if (acpi_video_device_lcd_get_level_current(video, &level, 0))
-> +	if (acpi_video_device_lcd_get_level_current(video, &level, false))
->   		return -EINVAL;
->   	for (offset = 2; offset < video->brightness->count; offset++)
->   		if (level == video->brightness->levels[offset]) {
-> @@ -452,7 +452,7 @@ static struct dmi_system_id video_dmi_table[] __initdata = {
->
->   static int
->   acpi_video_device_lcd_get_level_current(struct acpi_video_device *device,
-> -					unsigned long long *level, int init)
-> +					unsigned long long *level, bool raw)
->   {
->   	acpi_status status = AE_OK;
->   	int i;
-> @@ -463,6 +463,15 @@ acpi_video_device_lcd_get_level_current(struct acpi_video_device *device,
->   		status = acpi_evaluate_integer(device->dev->handle, buf,
->   						NULL, level);
->   		if (ACPI_SUCCESS(status)) {
-> +			if (raw) {
-> +				/*
-> +				 * Caller has indicated he wants the raw
-> +				 * value returned by _BQC, so don't furtherly
-> +				 * mess with the value.
-> +				 */
-> +				return 0;
-> +			}
-> +
->   			if (device->brightness->flags._BQC_use_index) {
->   				if (device->brightness->flags._BCL_reversed)
->   					*level = device->brightness->count
-> @@ -476,16 +485,14 @@ acpi_video_device_lcd_get_level_current(struct acpi_video_device *device,
->   					device->brightness->curr = *level;
->   					return 0;
->   			}
-> -			if (!init) {
-> -				/*
-> -				 * BQC returned an invalid level.
-> -				 * Stop using it.
-> -				 */
-> -				ACPI_WARNING((AE_INFO,
-> -					      "%s returned an invalid level",
-> -					      buf));
-> -				device->cap._BQC = device->cap._BCQ = 0;
-> -			}
-> +			/*
-> +			 * BQC returned an invalid level.
-> +			 * Stop using it.
-> +			 */
-> +			ACPI_WARNING((AE_INFO,
-> +				      "%s returned an invalid level",
-> +				      buf));
-> +			device->cap._BQC = device->cap._BCQ = 0;
->   		} else {
->   			/* Fixme:
->   			 * should we return an error or ignore this failure?
-> @@ -703,7 +710,8 @@ acpi_video_init_brightness(struct acpi_video_device *device)
->   	if (!device->cap._BQC)
->   		goto set_level;
->
-> -	result = acpi_video_device_lcd_get_level_current(device, &level_old, 1);
-> +	result = acpi_video_device_lcd_get_level_current(device,
-> +							 &level_old, true);
->   	if (result)
->   		goto out_free_levels;
->
-> @@ -714,7 +722,7 @@ acpi_video_init_brightness(struct acpi_video_device *device)
->   	if (result)
->   		goto out_free_levels;
->
-> -	result = acpi_video_device_lcd_get_level_current(device, &level, 0);
-> +	result = acpi_video_device_lcd_get_level_current(device, &level, true);
->   	if (result)
->   		goto out_free_levels;
->
-> @@ -1268,7 +1276,8 @@ acpi_video_switch_brightness(struct acpi_video_device *device, int event)
->   		goto out;
->
->   	result = acpi_video_device_lcd_get_level_current(device,
-> -							 &level_current, 0);
-> +							 &level_current,
-> +							 false);
->   	if (result)
->   		goto out;
->
->
-
+I guess I should have phrased it more precisely, but that's exactly
+what I expect is happening on my machine: I don't have anything on
+irq16 (i.e. in non-msi mode the gfx interrupt isn't shared) and hence
+the irq is completely disabled. Which obviously makes it impossible
+for me to reproduce the issue. To test that theory, is there a quick
+way to force-enable a given interrupt, short of just hacking up a 2nd
+dummy irq handler in my driver?
+-Daniel
+-- 
+Daniel Vetter
+Software Engineer, Intel Corporation
++41 (0) 79 365 57 48 - http://blog.ffwll.ch
