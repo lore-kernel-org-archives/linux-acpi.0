@@ -1,80 +1,166 @@
-From: Dirk Brandewie <dirk.brandewie@gmail.com>
-Subject: Re: [PATCH] intel-pstate: Use #defines instead of hard-coded values.
-Date: Wed, 20 Mar 2013 09:11:09 -0700
-Message-ID: <5149DF9D.20605@intel.com>
-References: <1363789270-29579-1-git-send-email-konrad.wilk@oracle.com>
+From: Jiri Kosina <jkosina@suse.cz>
+Subject: Re: gm45 intel gfx can generate non-MSI irq# in MSI mode (was Re:
+ [PATCH] drm/i915: stop using GMBUS IRQs on Gen4 chips (was Re: [3.9-rc1]
+ irq 16: nobody cared (was [3.9-rc1] very poor interrupt respo
+Date: Wed, 20 Mar 2013 17:29:29 +0100 (CET)
+Message-ID: <alpine.LNX.2.00.1303201728070.17295@pobox.suse.cz>
+References: <Pine.LNX.4.44L0.1303191417440.1302-100000@iolanthe.rowland.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-da0-f53.google.com ([209.85.210.53]:39327 "EHLO
-	mail-da0-f53.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751975Ab3CTQLO (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 20 Mar 2013 12:11:14 -0400
-In-Reply-To: <1363789270-29579-1-git-send-email-konrad.wilk@oracle.com>
+Received: from cantor2.suse.de ([195.135.220.15]:45888 "EHLO mx2.suse.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S932082Ab3CTQ3j (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 20 Mar 2013 12:29:39 -0400
+In-Reply-To: <Pine.LNX.4.44L0.1303191417440.1302-100000@iolanthe.rowland.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
-Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, rafael.j.wysocki@intel.com, dirk.j.brandewie@intel.com
+To: Alan Stern <stern@rowland.harvard.edu>, Daniel Vetter <daniel.vetter@ffwll.ch>
+Cc: Chris Wilson <chris@chris-wilson.co.uk>, Greg KH <greg@kroah.com>, Harald Arnesen <skogtun.linux@gmail.com>, Kernel development list <linux-kernel@vger.kernel.org>, "Rafael J. Wysocki" <rjw@sisk.pl>, Peter Hurley <peter@hurleysoftware.com>, Thomas Meyer <thomas@m3y3r.de>, Shawn Starr <shawn.starr@rogers.com>, USB list <linux-usb@vger.kernel.org>, linux-acpi@vger.kernel.org, Bjorn Helgaas <bhelgaas@google.com>, linux-pci@vger.kernel.org, Yinghai Lu <yinghai@kernel.org>, Imre Deak <imre.deak@intel.com>, Daniel Kurtz <djkurtz@chromium.org>, dri-devel@lists.freedesktop.org, Thomas Gleixner <tglx@linutronix.de>, "H. Peter Anvin" <hpa@zytor.com>, x86@kernel.org, Arkadiusz Miskiewicz <a.miskiewicz@gmail.com>
 
-On 03/20/2013 07:21 AM, Konrad Rzeszutek Wilk wrote:
-> They are defined in coreboot (MSR_PLATFORM) and the other
-> one is already defined in msr-index.h.
->
-> Lets use those.
->
-> CC: rafael.j.wysocki@intel.com
-> CC: dirk.j.brandewie@intel.com
-> Signed-off-by: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
+On Tue, 19 Mar 2013, Alan Stern wrote:
 
-Acked-by: Dirk Brandewie <dirk.j.brandewie@intel.com>
+> > > That might be misleading.  It's possible that the erroneous IRQs _are_
+> > > being issued but you're simply not aware of them.  If the kernel thinks
+> > > that no device is using IRQ 16 then it will leave that IRQ disabled.
+> > 
+> > I guess I should have phrased it more precisely, but that's exactly
+> > what I expect is happening on my machine: I don't have anything on
+> > irq16 (i.e. in non-msi mode the gfx interrupt isn't shared) and hence
+> > the irq is completely disabled. Which obviously makes it impossible
+> > for me to reproduce the issue. To test that theory, is there a quick
+> > way to force-enable a given interrupt, short of just hacking up a 2nd
+> > dummy irq handler in my driver?
+> 
+> I don't know of any way.  In fact, I have been thinking of writing a 
+> test driver module, with a module parameter telling it which IRQ number 
+> to register for.  It seems like the sort of thing that would be useful 
+> to have, from time to time.
 
-> ---
->   arch/x86/include/uapi/asm/msr-index.h | 1 +
->   drivers/cpufreq/intel_pstate.c        | 6 +++---
->   2 files changed, 4 insertions(+), 3 deletions(-)
->
-> diff --git a/arch/x86/include/uapi/asm/msr-index.h b/arch/x86/include/uapi/asm/msr-index.h
-> index 892ce40..7a060f4 100644
-> --- a/arch/x86/include/uapi/asm/msr-index.h
-> +++ b/arch/x86/include/uapi/asm/msr-index.h
-> @@ -44,6 +44,7 @@
->   #define SNB_C1_AUTO_UNDEMOTE		(1UL << 27)
->   #define SNB_C3_AUTO_UNDEMOTE		(1UL << 28)
->
-> +#define MSR_PLATFORM_INFO		0x000000ce
->   #define MSR_MTRRcap			0x000000fe
->   #define MSR_IA32_BBL_CR_CTL		0x00000119
->   #define MSR_IA32_BBL_CR_CTL3		0x0000011e
-> diff --git a/drivers/cpufreq/intel_pstate.c b/drivers/cpufreq/intel_pstate.c
-> index f6dd1e7..dadc27d 100644
-> --- a/drivers/cpufreq/intel_pstate.c
-> +++ b/drivers/cpufreq/intel_pstate.c
-> @@ -358,14 +358,14 @@ static void intel_pstate_sysfs_expose_params(void)
->   static int intel_pstate_min_pstate(void)
->   {
->   	u64 value;
-> -	rdmsrl(0xCE, value);
-> +	rdmsrl(MSR_PLATFORM_INFO, value);
->   	return (value >> 40) & 0xFF;
->   }
->
->   static int intel_pstate_max_pstate(void)
->   {
->   	u64 value;
-> -	rdmsrl(0xCE, value);
-> +	rdmsrl(MSR_PLATFORM_INFO, value);
->   	return (value >> 8) & 0xFF;
->   }
->
-> @@ -373,7 +373,7 @@ static int intel_pstate_turbo_pstate(void)
->   {
->   	u64 value;
->   	int nont, ret;
-> -	rdmsrl(0x1AD, value);
-> +	rdmsrl(MSR_NHM_TURBO_RATIO_LIMIT, value);
->   	nont = intel_pstate_max_pstate();
->   	ret = ((value) & 255);
->   	if (ret <= nont)
->
+Ok, so how about this?
+Daniel, is it enough to make the problem appear on your system (by 
+building this into the kernel and booting with dummy-irq.irq=16)?
 
+Thanks.
+
+
+
+
+
+From: Jiri Kosina <jkosina@suse.cz>
+Subject: [PATCH] dummy-irq: introduce a dummy IRQ handler driver
+
+This module accepts a single 'irq' parameter, which it should register for.
+
+Its sole purpose is to help with debugging of IRQ sharing problems, by
+force-enabling IRQ that would otherwise be disabled.
+
+Suggested-by: Alan Stern <stern@rowland.harvard.edu>
+Signed-off-by: Jiri Kosina <jkosina@suse.cz>
+---
+ drivers/misc/Kconfig     |    8 ++++++
+ drivers/misc/Makefile    |    1 +
+ drivers/misc/dummy-irq.c |   59 ++++++++++++++++++++++++++++++++++++++++++++++
+ 3 files changed, 68 insertions(+), 0 deletions(-)
+ create mode 100644 drivers/misc/dummy-irq.c
+
+diff --git a/drivers/misc/Kconfig b/drivers/misc/Kconfig
+index e83fdfe..db24b79 100644
+--- a/drivers/misc/Kconfig
++++ b/drivers/misc/Kconfig
+@@ -93,6 +93,14 @@ config ATMEL_TCB_CLKSRC_BLOCK
+ 	  TC can be used for other purposes, such as PWM generation and
+ 	  interval timing.
+ 
++config DUMMY_IRQ
++	tristate "Dummy IRQ handler"
++	default n
++	---help---
++	  This module accepts a single 'irq' parameter, which it should register for.
++	  Its sole purpose is to help with debugging of IRQ sharing problems, by
++	  force-enabling IRQ that would otherwise be disabled.
++
+ config IBM_ASM
+ 	tristate "Device driver for IBM RSA service processor"
+ 	depends on X86 && PCI && INPUT
+diff --git a/drivers/misc/Makefile b/drivers/misc/Makefile
+index 35a1463..28ff261 100644
+--- a/drivers/misc/Makefile
++++ b/drivers/misc/Makefile
+@@ -13,6 +13,7 @@ obj-$(CONFIG_ATMEL_TCLIB)	+= atmel_tclib.o
+ obj-$(CONFIG_BMP085)		+= bmp085.o
+ obj-$(CONFIG_BMP085_I2C)	+= bmp085-i2c.o
+ obj-$(CONFIG_BMP085_SPI)	+= bmp085-spi.o
++obj-$(CONFIG_DUMMY_IRQ)		+= dummy-irq.o
+ obj-$(CONFIG_ICS932S401)	+= ics932s401.o
+ obj-$(CONFIG_LKDTM)		+= lkdtm.o
+ obj-$(CONFIG_TIFM_CORE)       	+= tifm_core.o
+diff --git a/drivers/misc/dummy-irq.c b/drivers/misc/dummy-irq.c
+new file mode 100644
+index 0000000..4fc13e0
+--- /dev/null
++++ b/drivers/misc/dummy-irq.c
+@@ -0,0 +1,59 @@
++/*
++ * Dummy IRQ handler driver.
++ *
++ * This module only registers itself as a handler that is specified to it
++ * by the 'irq' parameter.
++ *
++ * The sole purpose of this module is to help with debugging of systems on
++ * which spurious IRQs cause the IRQ to be disabled.
++ *
++ * Copyright (C) 2013 Jiri Kosina
++ */
++
++/*
++ * This program is free software; you can redistribute it and/or modify it
++ * under the terms of the GNU General Public License version 2 as published by
++ * the Free Software Foundation.
++ */
++#include <linux/module.h>
++#include <linux/irq.h>
++#include <linux/interrupt.h>
++
++static int irq;
++
++static irqreturn_t dummy_interrupt(int irq, void *dev_id)
++{
++	static int count = 0;
++
++	if (count == 0) {
++		printk("dummy-irq: interrupt occured on IRQ %d\n", irq);
++		count++;
++	}
++
++	return IRQ_NONE;
++}
++
++static int __init dummy_irq_init(void)
++{
++	if (request_irq(irq, &dummy_interrupt, IRQF_SHARED, "dummy_irq", &irq)) {
++		printk(KERN_ERR "dummy-irq: cannot register IRQ %d\n", irq);
++		return -EIO;
++	}
++	printk(KERN_INFO "dummy-irq: registered for IRQ %d\n", irq);
++	return 0;
++}
++
++static void __exit dummy_irq_exit(void)
++{
++	printk(KERN_INFO "dummy-irq unloaded\n");
++	free_irq(irq, &irq);
++	return;
++}
++
++module_init(dummy_irq_init);
++module_exit(dummy_irq_exit);
++
++MODULE_LICENSE("GPL");
++MODULE_AUTHOR("Jiri Kosina");
++module_param_named(irq, irq, uint, 0444);
++MODULE_PARM_DESC(irq, "The IRQ to register for");
+
+-- 
+Jiri Kosina
+SUSE Labs
