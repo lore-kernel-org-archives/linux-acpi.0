@@ -1,157 +1,65 @@
-From: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
-Subject: Re: [PATCH 2/2] ACPI,acpi_memhotplug: Remove acpi_memory_info->failed
- bit
-Date: Thu, 21 Mar 2013 13:45:16 +0900
-Message-ID: <514A905C.6070204@jp.fujitsu.com>
-References: <514022BF.3080303@jp.fujitsu.com>  <1363186213.12845.174.camel@misato.fc.hp.com>  <514679BC.5020700@jp.fujitsu.com> <1363705437.11659.5.camel@misato.fc.hp.com> <514A4CCD.6000608@jp.fujitsu.com> <514A8E3C.1050902@jp.fujitsu.com> <514A8EF3.90203@jp.fujitsu.com>
+From: Masatake YAMATO <yamato@redhat.com>
+Subject: [PATCH] thermal: shorten too long mcast group name
+Date: Thu, 21 Mar 2013 19:08:19 +0900 (JST)
+Message-ID: <20130321.190819.892238877314124764.yamato@redhat.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed;
-	boundary="------------080702000409010506020806"
+Content-Type: Text/Plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from fgwmail6.fujitsu.co.jp ([192.51.44.36]:51335 "EHLO
-	fgwmail6.fujitsu.co.jp" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751603Ab3CUEpg (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 21 Mar 2013 00:45:36 -0400
-In-Reply-To: <514A8EF3.90203@jp.fujitsu.com>
+Received: from mx1.redhat.com ([209.132.183.28]:61373 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751384Ab3CUKIV (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 21 Mar 2013 06:08:21 -0400
+Received: from int-mx11.intmail.prod.int.phx2.redhat.com (int-mx11.intmail.prod.int.phx2.redhat.com [10.5.11.24])
+	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id r2LA8LRb014605
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
+	for <linux-acpi@vger.kernel.org>; Thu, 21 Mar 2013 06:08:21 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Toshi Kani <toshi.kani@hp.com>, rjw@sisk.pl
-Cc: linux-acpi@vger.kernel.org, tangchen@cn.fujitsu.com, wency@cn.fujitsu.com, laijs@cn.fujitsu.com, linux-kernel@vger.kernel.org
+To: linux-acpi@vger.kernel.org
+Cc: yamato@redhat.com
 
---------------080702000409010506020806
-Content-Type: text/plain; charset="UTF-8"; format=flowed
-Content-Transfer-Encoding: 7bit
+You will see garbage at the end of line in the output of following command line:
 
-The mail's tab become spaces. So I attached origianl patch.
+        $ genl ctrl show | grep thermal_mc_group
+        #1:  ID-0x2  name: thermal_mc_group^B
 
-Thanks,
-Yasuaki Ishimatsu
+The type of structure field for "name" is char[16] in the kernel:
 
-2013/03/21 13:39, Yasuaki Ishimatsu wrote:
-> acpi_memory_info has enabled bit and failed bit for controlling memory
-> hotplug. But we don't need to keep both bits.
->
-> The patch removes acpi_memory_info->failed bit.
->
-> Signed-off-by: yasuaki ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
-> ---
->
-> v2 : Changed a based kernel from linux-3.9-rc2 to linux-pm.git/bleeding-edge.
->
-> ---
->   drivers/acpi/acpi_memhotplug.c |   13 +------------
->   1 files changed, 1 insertions(+), 12 deletions(-)
->
-> diff --git a/drivers/acpi/acpi_memhotplug.c b/drivers/acpi/acpi_memhotplug.c
-> index ea78988..597cd65 100644
-> --- a/drivers/acpi/acpi_memhotplug.c
-> +++ b/drivers/acpi/acpi_memhotplug.c
-> @@ -73,7 +73,6 @@ struct acpi_memory_info {
->       unsigned short caching;    /* memory cache attribute */
->       unsigned short write_protect;    /* memory read/write attribute */
->       unsigned int enabled:1;
-> -    unsigned int failed:1;
->   };
->
->   struct acpi_memory_device {
-> @@ -201,10 +200,8 @@ static int acpi_memory_enable_device(struct acpi_memory_device *mem_device)
->            * returns -EEXIST. If add_memory() returns the other error, it
->            * means that this memory block is not used by the kernel.
->            */
-> -        if (result && result != -EEXIST) {
-> -            info->failed = 1;
-> +        if (result && result != -EEXIST)
->               continue;
-> -        }
->
->           info->enabled = 1;
->
-> @@ -238,15 +235,7 @@ static int acpi_memory_remove_memory(struct acpi_memory_device *mem_device)
->       nid = acpi_get_node(mem_device->device->handle);
->
->       list_for_each_entry_safe(info, n, &mem_device->res_list, list) {
-> -        if (info->failed)
-> -            /* The kernel does not use this memory block */
-> -            continue;
-> -
->           if (!info->enabled)
-> -            /*
-> -             * The kernel uses this memory block, but it may be not
-> -             * managed by us.
-> -             */
->               return -EBUSY;
->
->           if (nid < 0)
->
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+    #define GENL_NAMSIZ 16      /* length of family name */
+    ...
+    struct genl_multicast_group {
+            ...
+            char                name[GENL_NAMSIZ];
+            ...
+    };
 
+strlen("thermal_mc_group") == 16 is too long for the array size.
 
---------------080702000409010506020806
-Content-Type: text/x-patch;
-	name="0002-Remove-acpi_memory_info-failed-bit.patch"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: attachment;
-	filename="0002-Remove-acpi_memory_info-failed-bit.patch"
+"thermal_mc_grp" is more readable than "thermal_mc_grou". However,
+I choose latter; the patch for genl command side may truncate the
+last char in the name:
 
-acpi_memory_info has enabled bit and failed bit for controlling memory
-hotplug. But we don't need to keep both bits.
+     http://marc.info/?l=linux-netdev&m=136371412625262&w=2
 
-The patch removes acpi_memory_info->failed bit.
-
-Signed-off-by: yasuaki ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
+Signed-off-by: Masatake YAMATO <yamato@redhat.com>
 ---
+ include/linux/thermal.h | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-v2 : Changed a based kernel from linux-3.9-rc2 to linux-pm.git/bleeding-edge.
-
----
- drivers/acpi/acpi_memhotplug.c |   13 +------------
- 1 files changed, 1 insertions(+), 12 deletions(-)
-
-diff --git a/drivers/acpi/acpi_memhotplug.c b/drivers/acpi/acpi_memhotplug.c
-index ea78988..597cd65 100644
---- a/drivers/acpi/acpi_memhotplug.c
-+++ b/drivers/acpi/acpi_memhotplug.c
-@@ -73,7 +73,6 @@ struct acpi_memory_info {
- 	unsigned short caching;	/* memory cache attribute */
- 	unsigned short write_protect;	/* memory read/write attribute */
- 	unsigned int enabled:1;
--	unsigned int failed:1;
- };
+diff --git a/include/linux/thermal.h b/include/linux/thermal.h
+index f0bd7f9..a65dff3 100644
+--- a/include/linux/thermal.h
++++ b/include/linux/thermal.h
+@@ -44,7 +44,7 @@
+ /* Adding event notification support elements */
+ #define THERMAL_GENL_FAMILY_NAME                "thermal_event"
+ #define THERMAL_GENL_VERSION                    0x01
+-#define THERMAL_GENL_MCAST_GROUP_NAME           "thermal_mc_group"
++#define THERMAL_GENL_MCAST_GROUP_NAME           "thermal_mc_grou"
  
- struct acpi_memory_device {
-@@ -201,10 +200,8 @@ static int acpi_memory_enable_device(struct acpi_memory_device *mem_device)
- 		 * returns -EEXIST. If add_memory() returns the other error, it
- 		 * means that this memory block is not used by the kernel.
- 		 */
--		if (result && result != -EEXIST) {
--			info->failed = 1;
-+		if (result && result != -EEXIST)
- 			continue;
--		}
- 
- 		info->enabled = 1;
- 
-@@ -238,15 +235,7 @@ static int acpi_memory_remove_memory(struct acpi_memory_device *mem_device)
- 	nid = acpi_get_node(mem_device->device->handle);
- 
- 	list_for_each_entry_safe(info, n, &mem_device->res_list, list) {
--		if (info->failed)
--			/* The kernel does not use this memory block */
--			continue;
--
- 		if (!info->enabled)
--			/*
--			 * The kernel uses this memory block, but it may be not
--			 * managed by us.
--			 */
- 			return -EBUSY;
- 
- 		if (nid < 0)
+ /* Default Thermal Governor */
+ #if defined(CONFIG_THERMAL_DEFAULT_GOV_STEP_WISE)
 -- 
-1.7.1
+1.7.11.7
 
-
---------------080702000409010506020806--
