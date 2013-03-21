@@ -1,88 +1,183 @@
-From: "R, Durgadoss" <durgadoss.r@intel.com>
-Subject: RE: [PATCH] thermal: shorten too long mcast group name
-Date: Thu, 21 Mar 2013 10:19:00 +0000
-Message-ID: <4D68720C2E767A4AA6A8796D42C8EB59C5573E@BGSMSX101.gar.corp.intel.com>
-References: <20130321.190819.892238877314124764.yamato@redhat.com>
+From: Daniel Vetter <daniel-/w4YWyX8dFk@public.gmane.org>
+Subject: Re: [PATCH] dummy-irq: introduce a dummy IRQ handler driver (was Re:
+ gm45 intel gfx can generate non-MSI irq# in MSI mode (was Re: [PATCH]
+ drm/i915: stop using GMBUS IRQs on Gen4 chips (was Re: [3.9-rc1] irq 16:
+ nobody cared (was [3.9-rc1] very poor interrupt respo))
+Date: Thu, 21 Mar 2013 15:45:26 +0100
+Message-ID: <20130321144526.GR9021@phenom.ffwll.local>
+References: <Pine.LNX.4.44L0.1303201319190.1208-100000@iolanthe.rowland.org>
+ <alpine.LNX.2.00.1303210018430.16237@pobox.suse.cz>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga14.intel.com ([143.182.124.37]:53321 "EHLO mga14.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752147Ab3CUKTF convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 21 Mar 2013 06:19:05 -0400
-In-Reply-To: <20130321.190819.892238877314124764.yamato@redhat.com>
-Content-Language: en-US
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <alpine.LNX.2.00.1303210018430.16237-ztGlSCb7Y1iN3ZZ/Hiejyg@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Jiri Kosina <jkosina-AlSwsSmVLrQ@public.gmane.org>
+Cc: Alan Stern <stern-nwvwT67g6+6dFdvTe/nMLpVzexx5G7lz@public.gmane.org>, Greg KH <greg-U8xfFu+wG4EAvxtiuMwx3w@public.gmane.org>, Daniel Vetter <daniel.vetter-/w4YWyX8dFk@public.gmane.org>, Chris Wilson <chris-Y6uKTt2uX1cEflXRtASbqLVCufUGDwFn@public.gmane.org>, Harald Arnesen <skogtun.linux-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Kernel development list <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "Rafael J. Wysocki" <rjw-KKrjLPT3xs0@public.gmane.org>, Peter Hurley <peter-WaGBZJeGNqdsbIuE7sb01tBPR1lH4CV8@public.gmane.org>, Thomas Meyer <thomas-VsYtu1Qij5c@public.gmane.org>, Shawn Starr <shawn.starr-bJEeYj9oJeDQT0dZR+AlfA@public.gmane.org>, USB list <linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Bjorn Helgaas <bhelgaas-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org>, linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Yinghai Lu <yinghai-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Imre Deak <imre.deak-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Daniel Kurtz <djkurtz-F7+t8E8rja9g9hUCZPvPmw@public.gmane.org>, dri-devel-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org, Thomas Gleixner <tglx-hfZtesqFncYOwBW4kG4KsQ@public.gmane.org>, "H. Peter Anvin" <hpa-YMNOUZJC4hwAvxtiuMwx3w@public.gmane.org>, x86-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, Arkadiusz Miskiewicz <a.miskiewicz-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
-To: Masatake YAMATO <yamato@redhat.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
-Cc: "Linux PM list (linux-pm@vger.kernel.org)" <linux-pm@vger.kernel.org>, "Zhang, Rui" <rui.zhang@intel.com>
 
-> -----Original Message-----
-> From: linux-acpi-owner@vger.kernel.org [mailto:linux-acpi-
-> owner@vger.kernel.org] On Behalf Of Masatake YAMATO
-> Sent: Thursday, March 21, 2013 3:38 PM
-> To: linux-acpi@vger.kernel.org
-> Cc: yamato@redhat.com
-> Subject: [PATCH] thermal: shorten too long mcast group name
+On Thu, Mar 21, 2013 at 12:21:21AM +0100, Jiri Kosina wrote:
+> On Wed, 20 Mar 2013, Alan Stern wrote:
 > 
-> You will see garbage at the end of line in the output of following command
-> line:
+> > > Ok, so how about this?
+> > > Daniel, is it enough to make the problem appear on your system (by 
+> > > building this into the kernel and booting with dummy-irq.irq=16)?
+> > > 
+> > > Thanks.
+> > > 
+> > > From: Jiri Kosina <jkosina-AlSwsSmVLrQ@public.gmane.org>
+> > > Subject: [PATCH] dummy-irq: introduce a dummy IRQ handler driver
+> > > 
+> > > This module accepts a single 'irq' parameter, which it should register for.
+> > > 
+> > > Its sole purpose is to help with debugging of IRQ sharing problems, by
+> > > force-enabling IRQ that would otherwise be disabled.
+> > > 
+> > > Suggested-by: Alan Stern <stern-nwvwT67g6+6dFdvTe/nMLpVzexx5G7lz@public.gmane.org>
+> > > Signed-off-by: Jiri Kosina <jkosina-AlSwsSmVLrQ@public.gmane.org>
+> > 
+> > This is just what I was thinking of.  Three extremely minor 
+> > suggestions...
 > 
->         $ genl ctrl show | grep thermal_mc_group
->         #1:  ID-0x2  name: thermal_mc_group^B
+> Thanks Alan. Updated version below.
+> 
+> Greg, willing to merge this simple debugging facility?
+> 
+> 
+> From: Jiri Kosina <jkosina-AlSwsSmVLrQ@public.gmane.org>
+> Subject: [PATCH] dummy-irq: introduce a dummy IRQ handler driver
+> 
+> This module accepts a single 'irq' parameter, which it should register for.
+> 
+> Its sole purpose is to help with debugging of IRQ sharing problems, by
+> force-enabling IRQ that would otherwise be disabled.
+> 
+> Suggested-by: Alan Stern <stern-nwvwT67g6+6dFdvTe/nMLpVzexx5G7lz@public.gmane.org>
+> Signed-off-by: Jiri Kosina <jkosina-AlSwsSmVLrQ@public.gmane.org>
 
-Agreed.
+Indeed, this is pretty useful and allowed me to quickly reproduce that
+phantom irq on my gm45. Thanks to module reloading we can even reset the
+kernel's irq disabling logic and so test different tricks quickly without
+rebooting. Really useful.
 
-> 
-> The type of structure field for "name" is char[16] in the kernel:
-> 
->     #define GENL_NAMSIZ 16      /* length of family name */
->     ...
->     struct genl_multicast_group {
->             ...
->             char                name[GENL_NAMSIZ];
->             ...
->     };
-> 
-> strlen("thermal_mc_group") == 16 is too long for the array size.
-> 
-> "thermal_mc_grp" is more readable than "thermal_mc_grou". However,
-> I choose latter; the patch for genl command side may truncate the
-> last char in the name:
+Acked-by: Daniel Vetter <daniel.vetter-/w4YWyX8dFk@public.gmane.org>
 
-I prefer we use thermal_mc_grp.
+Thanks, Daniel
 
-+ Adding Rui & the Linux-pm list.
-
-Thanks,
-Durga
-> 
->      http://marc.info/?l=linux-netdev&m=136371412625262&w=2
-> 
-> Signed-off-by: Masatake YAMATO <yamato@redhat.com>
 > ---
->  include/linux/thermal.h | 2 +-
->  1 file changed, 1 insertion(+), 1 deletion(-)
+>  drivers/misc/Kconfig     |    8 ++++++
+>  drivers/misc/Makefile    |    1 +
+>  drivers/misc/dummy-irq.c |   59 ++++++++++++++++++++++++++++++++++++++++++++++
+>  3 files changed, 68 insertions(+), 0 deletions(-)
+>  create mode 100644 drivers/misc/dummy-irq.c
 > 
-> diff --git a/include/linux/thermal.h b/include/linux/thermal.h
-> index f0bd7f9..a65dff3 100644
-> --- a/include/linux/thermal.h
-> +++ b/include/linux/thermal.h
-> @@ -44,7 +44,7 @@
->  /* Adding event notification support elements */
->  #define THERMAL_GENL_FAMILY_NAME                "thermal_event"
->  #define THERMAL_GENL_VERSION                    0x01
-> -#define THERMAL_GENL_MCAST_GROUP_NAME
-> "thermal_mc_group"
-> +#define THERMAL_GENL_MCAST_GROUP_NAME           "thermal_mc_grou"
+> diff --git a/drivers/misc/Kconfig b/drivers/misc/Kconfig
+> index e83fdfe..69bb79d 100644
+> --- a/drivers/misc/Kconfig
+> +++ b/drivers/misc/Kconfig
+> @@ -93,6 +93,14 @@ config ATMEL_TCB_CLKSRC_BLOCK
+>  	  TC can be used for other purposes, such as PWM generation and
+>  	  interval timing.
+>  
+> +config DUMMY_IRQ
+> +	tristate "Dummy IRQ handler"
+> +	default n
+> +	---help---
+> +	  This module accepts a single 'irq' parameter, which it should register for.
+> +	  The sole purpose of this module is to help with debugging of systems on
+> +	  which spurious IRQs would happen on disabled IRQ vector.
+> +
+>  config IBM_ASM
+>  	tristate "Device driver for IBM RSA service processor"
+>  	depends on X86 && PCI && INPUT
+> diff --git a/drivers/misc/Makefile b/drivers/misc/Makefile
+> index 35a1463..28ff261 100644
+> --- a/drivers/misc/Makefile
+> +++ b/drivers/misc/Makefile
+> @@ -13,6 +13,7 @@ obj-$(CONFIG_ATMEL_TCLIB)	+= atmel_tclib.o
+>  obj-$(CONFIG_BMP085)		+= bmp085.o
+>  obj-$(CONFIG_BMP085_I2C)	+= bmp085-i2c.o
+>  obj-$(CONFIG_BMP085_SPI)	+= bmp085-spi.o
+> +obj-$(CONFIG_DUMMY_IRQ)		+= dummy-irq.o
+>  obj-$(CONFIG_ICS932S401)	+= ics932s401.o
+>  obj-$(CONFIG_LKDTM)		+= lkdtm.o
+>  obj-$(CONFIG_TIFM_CORE)       	+= tifm_core.o
+> diff --git a/drivers/misc/dummy-irq.c b/drivers/misc/dummy-irq.c
+> new file mode 100644
+> index 0000000..7014167
+> --- /dev/null
+> +++ b/drivers/misc/dummy-irq.c
+> @@ -0,0 +1,59 @@
+> +/*
+> + * Dummy IRQ handler driver.
+> + *
+> + * This module only registers itself as a handler that is specified to it
+> + * by the 'irq' parameter.
+> + *
+> + * The sole purpose of this module is to help with debugging of systems on
+> + * which spurious IRQs would happen on disabled IRQ vector.
+> + *
+> + * Copyright (C) 2013 Jiri Kosina
+> + */
+> +
+> +/*
+> + * This program is free software; you can redistribute it and/or modify it
+> + * under the terms of the GNU General Public License version 2 as published by
+> + * the Free Software Foundation.
+> + */
+> +#include <linux/module.h>
+> +#include <linux/irq.h>
+> +#include <linux/interrupt.h>
+> +
+> +static int irq;
+> +
+> +static irqreturn_t dummy_interrupt(int irq, void *dev_id)
+> +{
+> +	static int count = 0;
+> +
+> +	if (count == 0) {
+> +		printk(KERN_INFO "dummy-irq: interrupt occured on IRQ %d\n",
+> +				irq);
+> +		count++;
+> +	}
+> +
+> +	return IRQ_NONE;
+> +}
+> +
+> +static int __init dummy_irq_init(void)
+> +{
+> +	if (request_irq(irq, &dummy_interrupt, IRQF_SHARED, "dummy_irq", &irq)) {
+> +		printk(KERN_ERR "dummy-irq: cannot register IRQ %d\n", irq);
+> +		return -EIO;
+> +	}
+> +	printk(KERN_INFO "dummy-irq: registered for IRQ %d\n", irq);
+> +	return 0;
+> +}
+> +
+> +static void __exit dummy_irq_exit(void)
+> +{
+> +	printk(KERN_INFO "dummy-irq unloaded\n");
+> +	free_irq(irq, &irq);
+> +}
+> +
+> +module_init(dummy_irq_init);
+> +module_exit(dummy_irq_exit);
+> +
+> +MODULE_LICENSE("GPL");
+> +MODULE_AUTHOR("Jiri Kosina");
+> +module_param(irq, uint, 0444);
+> +MODULE_PARM_DESC(irq, "The IRQ to register for");
 > 
->  /* Default Thermal Governor */
->  #if defined(CONFIG_THERMAL_DEFAULT_GOV_STEP_WISE)
-> --
-> 1.7.11.7
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> -- 
+> Jiri Kosina
+> SUSE Labs
+
+-- 
+Daniel Vetter
+Software Engineer, Intel Corporation
++41 (0) 79 365 57 48 - http://blog.ffwll.ch
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
