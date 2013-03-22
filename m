@@ -1,90 +1,28 @@
-From: Toshi Kani <toshi.kani@hp.com>
-Subject: Re: [PATCH v3 2/2] ACPI,acpi_memhotplug: Remove
- acpi_memory_info->failed bit
-Date: Fri, 22 Mar 2013 14:24:44 -0600
-Message-ID: <1363983884.11659.14.camel@misato.fc.hp.com>
-References: <514022BF.3080303@jp.fujitsu.com>
-	   <1363186213.12845.174.camel@misato.fc.hp.com>
-	   <514679BC.5020700@jp.fujitsu.com>
-	  <1363705437.11659.5.camel@misato.fc.hp.com>
-	  <514A4CCD.6000608@jp.fujitsu.com> <514A8E3C.1050902@jp.fujitsu.com>
-	  <514A8EF3.90203@jp.fujitsu.com>
-	 <1363912171.11659.12.camel@misato.fc.hp.com>
-	 <514BB9AD.3010704@jp.fujitsu.com>
+From: Paul Bolle <pebolle@tiscali.nl>
+Subject: acpi: config ACPI_PROCFS still needed?
+Date: Fri, 22 Mar 2013 22:05:49 +0100
+Message-ID: <1363986349.1390.197.camel@x61.thuisdomein>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <514BB9AD.3010704@jp.fujitsu.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
-Cc: rjw@sisk.pl, linux-acpi@vger.kernel.org, tangchen@cn.fujitsu.com, wency@cn.fujitsu.com, laijs@cn.fujitsu.com, linux-kernel@vger.kernel.org
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from cpsmtpb-ews02.kpnxchange.com ([213.75.39.5]:61775 "EHLO
+	cpsmtpb-ews02.kpnxchange.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1423056Ab3CVVFv (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 22 Mar 2013 17:05:51 -0400
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Len Brown <lenb@kernel.org>, "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: Zhang Rui <rui.zhang@intel.com>, linux-acpi@vger.kernel.org
 
-On Fri, 2013-03-22 at 10:53 +0900, Yasuaki Ishimatsu wrote:
-> acpi_memory_info has enabled bit and failed bit for controlling memory
-> hotplug. But we don't need to keep both bits.
-> 
-> The patch removes acpi_memory_info->failed bit.
-> 
-> Signed-off-by: yasuaki ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
-
-Thanks for the update.  It looks good.  For the series:
-
-Acked-by: Toshi Kani <toshi.kani@hp.com>
-
--Toshi
+As far as I can tell, the last user of config ACPI_PROCFS got removed in
+v2.6.38, with commit cef6e8a3790d6bdc305496629c357a56001d59a6 ("ACPI
+processor: remove processor throttling control procfs I/F"). I must
+admit I can't really wrap my head around the (former) purpose of
+ACPI_PROCFS. So perhaps someone can tell me whether its Kconfig entry is
+still needed.
 
 
-> ---
-> 
-> v3 : Continue to memory hot remove when (!info->enabled) case.
-> v2 : Changed a based kernel from linux-3.9-rc2 to linux-pm.git/bleeding-edge.
-> 
-> ---
->   drivers/acpi/acpi_memhotplug.c |   15 ++-------------
->   1 files changed, 2 insertions(+), 13 deletions(-)
-> 
-> diff --git a/drivers/acpi/acpi_memhotplug.c b/drivers/acpi/acpi_memhotplug.c
-> index ea78988..5e6301e 100644
-> --- a/drivers/acpi/acpi_memhotplug.c
-> +++ b/drivers/acpi/acpi_memhotplug.c
-> @@ -73,7 +73,6 @@ struct acpi_memory_info {
->   	unsigned short caching;	/* memory cache attribute */
->   	unsigned short write_protect;	/* memory read/write attribute */
->   	unsigned int enabled:1;
-> -	unsigned int failed:1;
->   };
->   
->   struct acpi_memory_device {
-> @@ -201,10 +200,8 @@ static int acpi_memory_enable_device(struct acpi_memory_device *mem_device)
->   		 * returns -EEXIST. If add_memory() returns the other error, it
->   		 * means that this memory block is not used by the kernel.
->   		 */
-> -		if (result && result != -EEXIST) {
-> -			info->failed = 1;
-> +		if (result && result != -EEXIST)
->   			continue;
-> -		}
->   
->   		info->enabled = 1;
->   
-> @@ -238,16 +235,8 @@ static int acpi_memory_remove_memory(struct acpi_memory_device *mem_device)
->   	nid = acpi_get_node(mem_device->device->handle);
->   
->   	list_for_each_entry_safe(info, n, &mem_device->res_list, list) {
-> -		if (info->failed)
-> -			/* The kernel does not use this memory block */
-> -			continue;
-> -
->   		if (!info->enabled)
-> -			/*
-> -			 * The kernel uses this memory block, but it may be not
-> -			 * managed by us.
-> -			 */
-> -			return -EBUSY;
-> +			continue;
->   
->   		if (nid < 0)
->   			nid = memory_add_physaddr_to_nid(info->start_addr);
-> 
+Paul Bolle
+
