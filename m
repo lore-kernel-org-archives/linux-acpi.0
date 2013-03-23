@@ -1,32 +1,24 @@
-From: Yinghai Lu <yinghai@kernel.org>
-Subject: Re: pm/linux-next cause network stop working with qemu-kvm/e1000
-Date: Sat, 23 Mar 2013 09:18:55 -0700
-Message-ID: <CAE9FiQWX15yH+7xgOZOg5XuLcoVEaJq3hononPkh5gYoC_C+zw@mail.gmail.com>
-References: <CAE9FiQVZ5VZDo1KCun6SDonTJ=TGWLxm5zJQN5U4f1_52cKKwg@mail.gmail.com>
-	<CAE9FiQUarQVqzB_VSMqUrMvSHryrSN3_4tLTEJqygDFzB7uDUw@mail.gmail.com>
-	<2281042.ltEMndsGee@vostro.rjw.lan>
+From: Matthew Garrett <mjg59@srcf.ucam.org>
+Subject: Re: [PATCH] PCI / ACPI: Always resume devices on ACPI wakeup
+ notifications
+Date: Sat, 23 Mar 2013 16:22:02 +0000
+Message-ID: <20130323162202.GA13361@srcf.ucam.org>
+References: <2282655.IicBMMa6jN@vostro.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-ie0-f178.google.com ([209.85.223.178]:37505 "EHLO
-	mail-ie0-f178.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751382Ab3CWQS4 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sat, 23 Mar 2013 12:18:56 -0400
-In-Reply-To: <2281042.ltEMndsGee@vostro.rjw.lan>
+Received: from cavan.codon.org.uk ([93.93.128.6]:59017 "EHLO
+	cavan.codon.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751456Ab3CWQWJ (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sat, 23 Mar 2013 12:22:09 -0400
+Content-Disposition: inline
+In-Reply-To: <2282655.IicBMMa6jN@vostro.rjw.lan>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: Bob Moore <robert.moore@intel.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
+Cc: Bjorn Helgaas <bhelgaas@google.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>, Linux PM list <linux-pm@vger.kernel.org>, Len Brown <lenb@kernel.org>, Sarah Sharp <sarah.a.sharp@linux.intel.com>, "Accardi, Kristen C" <kristen.c.accardi@intel.com>, "Huang, Ying" <ying.huang@intel.com>, linux-pci@vger.kernel.org
 
-On Sat, Mar 23, 2013 at 5:30 AM, Rafael J. Wysocki <rjw@sisk.pl> wrote:
+Looks good to me.
 
->>
->> Attached patch fix the problem. Please fold it into offending patch in
->> pm/linux-next.
->
-> I'd actually prefer to apply it as a separate patch, so can you please post
-> it with a proper changelog?
-
-but that will break bisecting, right?
-
-Yinghai
+-- 
+Matthew Garrett | mjg59@srcf.ucam.org
