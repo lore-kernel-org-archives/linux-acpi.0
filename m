@@ -1,65 +1,63 @@
-From: =?utf-8?Q?Bj=C3=B8rn_Mork?= <bjorn@mork.no>
-Subject: Re: 3.9-rc3+: reports battery as 0 mWh capacity on thinkpad x60
-Date: Sat, 23 Mar 2013 14:00:23 +0100
-Message-ID: <87zjxu9spk.fsf@nemi.mork.no>
-References: <20130323114011.GA11092@amd.pavel.ucw.cz>
-	<1364045783.tg02458AIS@vostro.rjw.lan>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: [PATCH] PCI / ACPI: Always resume devices on ACPI wakeup notifications
+Date: Sat, 23 Mar 2013 15:33:03 +0100
+Message-ID: <2282655.IicBMMa6jN@vostro.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7Bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from canardo.mork.no ([148.122.252.1]:35347 "EHLO canardo.mork.no"
+Received: from hydra.sisk.pl ([212.160.235.94]:36175 "EHLO hydra.sisk.pl"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751056Ab3CWNBk convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sat, 23 Mar 2013 09:01:40 -0400
-In-Reply-To: <1364045783.tg02458AIS@vostro.rjw.lan> (Rafael J. Wysocki's
-	message of "Sat, 23 Mar 2013 13:32:19 +0100")
+	id S1750973Ab3CWOZm (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Sat, 23 Mar 2013 10:25:42 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: Pavel Machek <pavel@ucw.cz>, kernel list <linux-kernel@vger.kernel.org>, lenb@kernel.org, linux-acpi@vger.kernel.org
+To: Bjorn Helgaas <bhelgaas@google.com>
+Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>, Linux PM list <linux-pm@vger.kernel.org>, Len Brown <lenb@kernel.org>, Matthew Garrett <mjg59@srcf.ucam.org>, Sarah Sharp <sarah.a.sharp@linux.intel.com>, "Accardi, Kristen C" <kristen.c.accardi@intel.com>, "Huang, Ying" <ying.huang@intel.com>, linux-pci@vger.kernel.org
 
-"Rafael J. Wysocki" <rjw@sisk.pl> writes:
-> On Saturday, March 23, 2013 12:40:12 PM Pavel Machek wrote:
->> Hi!
->>=20
->> pavel@amd:~$ cat /proc/acpi/battery/BAT0/info=20
->> present:                 yes
->> design capacity:         0 mWh
->> last full capacity:      0 mWh
->> battery technology:      rechargeable
->> design voltage:          14400 mV
->>=20
->> This worked before... at least it works in 2.6 kernel used by debian=
-=2E
->
-> This works for me in 3.9-rc3.  May I see your .config?
+From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 
-Well, if this works, then maybe the Kconfig help text should be updated=
-:
+It turns out that _Lxx control methods provided by some BIOSes clear
+the PME Status bit of PCI devices they handle, which means that
+pci_acpi_wake_dev() cannot really use that bit to check whether or
+not the device has signalled wakeup.
 
-config ACPI_PROCFS_POWER
-        bool "Deprecated power /proc/acpi directories"
-        depends on PROC_FS
-        help
-          For backwards compatibility, this option allows
-          deprecated power /proc/acpi/ directories to exist, even when
-          they have been replaced by functions in /sys.
-          The deprecated directories (and their replacements) include:
-          /proc/acpi/battery/* (/sys/class/power_supply/*)
-          /proc/acpi/ac_adapter/* (sys/class/power_supply/*)
-          This option has no effect on /proc/acpi/ directories
-          and functions, which do not yet exist in /sys
-          This option, together with the proc directories, will be
-          deleted in 2.6.39.
+For this reason, make pci_acpi_wake_dev() always attempt to resume
+the device it is called for regardless of the device's PME Status bit
+value (that bit still has to be cleared if set at this point,
+though).
 
+Reported-by: Sarah Sharp <sarah.a.sharp@linux.intel.com>
+Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+---
+ drivers/pci/pci-acpi.c |   15 ++++++++-------
+ 1 file changed, 8 insertions(+), 7 deletions(-)
 
-Time to call the bluff now :)
+Index: linux-pm/drivers/pci/pci-acpi.c
+===================================================================
+--- linux-pm.orig/drivers/pci/pci-acpi.c
++++ linux-pm/drivers/pci/pci-acpi.c
+@@ -53,14 +53,15 @@ static void pci_acpi_wake_dev(acpi_handl
+ 		return;
+ 	}
+ 
+-	if (!pci_dev->pm_cap || !pci_dev->pme_support
+-	     || pci_check_pme_status(pci_dev)) {
+-		if (pci_dev->pme_poll)
+-			pci_dev->pme_poll = false;
++	/* Clear PME Status if set. */
++	if (pci_dev->pme_support)
++		pci_check_pme_status(pci_dev);
+ 
+-		pci_wakeup_event(pci_dev);
+-		pm_runtime_resume(&pci_dev->dev);
+-	}
++	if (pci_dev->pme_poll)
++		pci_dev->pme_poll = false;
++
++	pci_wakeup_event(pci_dev);
++	pm_runtime_resume(&pci_dev->dev);
+ 
+ 	if (pci_dev->subordinate)
+ 		pci_pme_wakeup_bus(pci_dev->subordinate);
 
-
-Bj=C3=B8rn
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
