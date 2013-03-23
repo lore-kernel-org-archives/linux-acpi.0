@@ -1,28 +1,46 @@
-From: Paul Bolle <pebolle@tiscali.nl>
-Subject: acpi: config ACPI_PROCFS still needed?
-Date: Fri, 22 Mar 2013 22:05:49 +0100
-Message-ID: <1363986349.1390.197.camel@x61.thuisdomein>
+From: Yinghai Lu <yinghai@kernel.org>
+Subject: pm/linux-next cause network stop working with qemu-kvm/e1000
+Date: Fri, 22 Mar 2013 17:27:32 -0700
+Message-ID: <CAE9FiQVZ5VZDo1KCun6SDonTJ=TGWLxm5zJQN5U4f1_52cKKwg@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cpsmtpb-ews02.kpnxchange.com ([213.75.39.5]:61775 "EHLO
-	cpsmtpb-ews02.kpnxchange.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1423056Ab3CVVFv (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 22 Mar 2013 17:05:51 -0400
+Received: from mail-ie0-f170.google.com ([209.85.223.170]:49310 "EHLO
+	mail-ie0-f170.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754709Ab3CWA1c (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 22 Mar 2013 20:27:32 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Len Brown <lenb@kernel.org>, "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: Zhang Rui <rui.zhang@intel.com>, linux-acpi@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@sisk.pl>, Bob Moore <robert.moore@intel.com>
+Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
 
-As far as I can tell, the last user of config ACPI_PROCFS got removed in
-v2.6.38, with commit cef6e8a3790d6bdc305496629c357a56001d59a6 ("ACPI
-processor: remove processor throttling control procfs I/F"). I must
-admit I can't really wrap my head around the (former) purpose of
-ACPI_PROCFS. So perhaps someone can tell me whether its Kconfig entry is
-still needed.
+c13085e519e8984fede41fa3d6a5502523b10996 is the first bad commit
+commit c13085e519e8984fede41fa3d6a5502523b10996
+Author: Bob Moore <robert.moore@intel.com>
+Date:   Fri Mar 8 09:19:38 2013 +0000
+
+    ACPICA: Resource Mgr: Prevent infinite loops in resource walks
+
+    Add checks for zero-length resource descriptors in all code that
+    loops through a resource descriptor list. This prevents possible
+    infinite loops because the length is used to increment the traveral
+    pointer and detect the end-of-descriptor.
+
+    Signed-off-by: Bob Moore <robert.moore@intel.com>
+    Signed-off-by: Lv Zheng <lv.zheng@intel.com>
+    Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+
+:040000 040000 84f29d6ee654ffe4c935ce9023208019b2ef09a5
+c8a6613be9a5a130f69e654c5b560a8adb2174db M	drivers
 
 
-Paul Bolle
+long delay after
+calling  ip_auto_config+0x0/0xea4 @ 1
 
+also happen on one 8 sockets nehalem-ex.
+
+If I revert that commit, network works again.
+
+Thanks
+
+Yinghai
