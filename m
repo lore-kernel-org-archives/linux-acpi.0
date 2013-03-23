@@ -1,63 +1,32 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: [PATCH] PCI / ACPI: Always resume devices on ACPI wakeup notifications
-Date: Sat, 23 Mar 2013 15:33:03 +0100
-Message-ID: <2282655.IicBMMa6jN@vostro.rjw.lan>
+From: Yinghai Lu <yinghai@kernel.org>
+Subject: Re: pm/linux-next cause network stop working with qemu-kvm/e1000
+Date: Sat, 23 Mar 2013 09:18:55 -0700
+Message-ID: <CAE9FiQWX15yH+7xgOZOg5XuLcoVEaJq3hononPkh5gYoC_C+zw@mail.gmail.com>
+References: <CAE9FiQVZ5VZDo1KCun6SDonTJ=TGWLxm5zJQN5U4f1_52cKKwg@mail.gmail.com>
+	<CAE9FiQUarQVqzB_VSMqUrMvSHryrSN3_4tLTEJqygDFzB7uDUw@mail.gmail.com>
+	<2281042.ltEMndsGee@vostro.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from hydra.sisk.pl ([212.160.235.94]:36175 "EHLO hydra.sisk.pl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750973Ab3CWOZm (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Sat, 23 Mar 2013 10:25:42 -0400
+Received: from mail-ie0-f178.google.com ([209.85.223.178]:37505 "EHLO
+	mail-ie0-f178.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751382Ab3CWQS4 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sat, 23 Mar 2013 12:18:56 -0400
+In-Reply-To: <2281042.ltEMndsGee@vostro.rjw.lan>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Bjorn Helgaas <bhelgaas@google.com>
-Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>, Linux PM list <linux-pm@vger.kernel.org>, Len Brown <lenb@kernel.org>, Matthew Garrett <mjg59@srcf.ucam.org>, Sarah Sharp <sarah.a.sharp@linux.intel.com>, "Accardi, Kristen C" <kristen.c.accardi@intel.com>, "Huang, Ying" <ying.huang@intel.com>, linux-pci@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: Bob Moore <robert.moore@intel.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
 
-From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+On Sat, Mar 23, 2013 at 5:30 AM, Rafael J. Wysocki <rjw@sisk.pl> wrote:
 
-It turns out that _Lxx control methods provided by some BIOSes clear
-the PME Status bit of PCI devices they handle, which means that
-pci_acpi_wake_dev() cannot really use that bit to check whether or
-not the device has signalled wakeup.
+>>
+>> Attached patch fix the problem. Please fold it into offending patch in
+>> pm/linux-next.
+>
+> I'd actually prefer to apply it as a separate patch, so can you please post
+> it with a proper changelog?
 
-For this reason, make pci_acpi_wake_dev() always attempt to resume
-the device it is called for regardless of the device's PME Status bit
-value (that bit still has to be cleared if set at this point,
-though).
+but that will break bisecting, right?
 
-Reported-by: Sarah Sharp <sarah.a.sharp@linux.intel.com>
-Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
----
- drivers/pci/pci-acpi.c |   15 ++++++++-------
- 1 file changed, 8 insertions(+), 7 deletions(-)
-
-Index: linux-pm/drivers/pci/pci-acpi.c
-===================================================================
---- linux-pm.orig/drivers/pci/pci-acpi.c
-+++ linux-pm/drivers/pci/pci-acpi.c
-@@ -53,14 +53,15 @@ static void pci_acpi_wake_dev(acpi_handl
- 		return;
- 	}
- 
--	if (!pci_dev->pm_cap || !pci_dev->pme_support
--	     || pci_check_pme_status(pci_dev)) {
--		if (pci_dev->pme_poll)
--			pci_dev->pme_poll = false;
-+	/* Clear PME Status if set. */
-+	if (pci_dev->pme_support)
-+		pci_check_pme_status(pci_dev);
- 
--		pci_wakeup_event(pci_dev);
--		pm_runtime_resume(&pci_dev->dev);
--	}
-+	if (pci_dev->pme_poll)
-+		pci_dev->pme_poll = false;
-+
-+	pci_wakeup_event(pci_dev);
-+	pm_runtime_resume(&pci_dev->dev);
- 
- 	if (pci_dev->subordinate)
- 		pci_pme_wakeup_bus(pci_dev->subordinate);
-
+Yinghai
