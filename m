@@ -1,85 +1,112 @@
 From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: 3.9-rc3+: reports battery as 0 mWh capacity on thinkpad x60
-Date: Sun, 24 Mar 2013 00:45:08 +0100
-Message-ID: <6726347.ehkcE9iAxU@vostro.rjw.lan>
-References: <20130323114011.GA11092@amd.pavel.ucw.cz> <87zjxu9spk.fsf@nemi.mork.no> <20130323202155.GC18732@amd.pavel.ucw.cz>
+Subject: [PATCH] ACPI / PM: Fix potential problem in acpi_device_get_power()
+Date: Sun, 24 Mar 2013 00:57:16 +0100
+Message-ID: <6380949.vJPdL9PvJh@vostro.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7Bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from hydra.sisk.pl ([212.160.235.94]:37084 "EHLO hydra.sisk.pl"
+Received: from hydra.sisk.pl ([212.160.235.94]:37102 "EHLO hydra.sisk.pl"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752397Ab3CWXhq convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sat, 23 Mar 2013 19:37:46 -0400
-In-Reply-To: <20130323202155.GC18732@amd.pavel.ucw.cz>
+	id S1752457Ab3CWXtz (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Sat, 23 Mar 2013 19:49:55 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Pavel Machek <pavel@ucw.cz>
-Cc: =?ISO-8859-1?Q?Bj=F8rn?= Mork <bjorn@mork.no>, kernel list <linux-kernel@vger.kernel.org>, lenb@kernel.org, linux-acpi@vger.kernel.org
+To: ACPI Devel Maling List <linux-acpi@vger.kernel.org>
+Cc: Linux PM list <linux-pm@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>, Len Brown <lenb@kernel.org>, Aaron Lu <aaron.lu@intel.com>
 
-On Saturday, March 23, 2013 09:21:56 PM Pavel Machek wrote:
-> On Sat 2013-03-23 14:00:23, Bj=C3=B8rn Mork wrote:
-> > "Rafael J. Wysocki" <rjw@sisk.pl> writes:
-> > > On Saturday, March 23, 2013 12:40:12 PM Pavel Machek wrote:
-> > >> Hi!
-> > >>=20
-> > >> pavel@amd:~$ cat /proc/acpi/battery/BAT0/info=20
-> > >> present:                 yes
-> > >> design capacity:         0 mWh
-> > >> last full capacity:      0 mWh
-> > >> battery technology:      rechargeable
-> > >> design voltage:          14400 mV
-> > >>=20
-> > >> This worked before... at least it works in 2.6 kernel used by de=
-bian.
-> > >
-> > > This works for me in 3.9-rc3.  May I see your .config?
-> >=20
-> > Well, if this works, then maybe the Kconfig help text should be upd=
-ated:
-> >=20
-> > config ACPI_PROCFS_POWER
-> >         bool "Deprecated power /proc/acpi directories"
-> >         depends on PROC_FS
-> >         help
-> >           For backwards compatibility, this option allows
-> >           deprecated power /proc/acpi/ directories to exist, even w=
-hen
-> >           they have been replaced by functions in /sys.
-> >           The deprecated directories (and their replacements) inclu=
-de:
-> >           /proc/acpi/battery/* (/sys/class/power_supply/*)
-> >           /proc/acpi/ac_adapter/* (sys/class/power_supply/*)
-> >           This option has no effect on /proc/acpi/ directories
-> >           and functions, which do not yet exist in /sys
-> >           This option, together with the proc directories, will be
-> >           deleted in 2.6.39.
-> >=20
-> >=20
-> > Time to call the bluff now :)
->=20
-> This should probably be "default y", BTW.
->=20
-> But problem is not in /proc, /sys has zeros, too.
->=20
-> pavel@amd:~$ cat /sys/class/power_supply/BAT0/energy_full
-> 0
-> pavel@amd:~$ cat /sys/class/power_supply/BAT0/energy_full_design=20
-> 0
-> pavel@amd:~$ cat /sys/class/power_supply/BAT0/model_name=20
-> 93P5030
-> pavel@amd:~$
+From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 
-Can you narrow the time frame when it stopped working a bit?
+Theoretically, in some situations acpi_device_get_power() may return
+an incorrect result, because the settings of the power resources
+depended on by the device may indicate a power state shallower than
+the actual power state of the device.
 
-Rafael
+Say that two devices, A and B, depend on two power resources, X and
+Y, in such a way that _PR0 for both A and B list both X and Y and
+_PR3 for both A and B list power resource Y alone.  Also suppose
+that _PS0 and _PS3 are present for both A and B.  Then, if devices
+A and B are initially in D0, power resources X and Y are initially
+"on" and their reference counters are equal to 2.  To put device A
+into power state D3hot the kernel will decrement the reference
+counter of power resource X, but that power resource won't be turned
+off, because it is still in use by device B (its reference counter is
+equal to 1).  Next, _PS3 will be executed for device A.  Afterward
+the configuration of the power resources will indicate that device
+A is in power state D0 (both X and Y are "on"), but in fact it is
+in D3hot (because _PS3 has been executed for it).
 
+In that situation, if acpi_device_get_power() is called to get the
+power state of device A, it will first execute _PSC for it which
+should return 3.  That will cause acpi_device_get_power() to run
+acpi_power_get_inferred_state() for device A and the resultant power
+state will be D0, which is incorrect.
 
---=20
-I speak only for myself.
-Rafael J. Wysocki, Intel Open Source Technology Center.
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+To fix that change acpi_device_get_power() to first execute
+acpi_power_get_inferred_state() for the given device (if it
+depends on power resources) and to evaluate _PSC for it subsequently,
+so that the result inferred from the power resources configuration
+can be amended by the _PSC return value.
+
+Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+---
+ drivers/acpi/device_pm.c |   39 ++++++++++++++++++++++++---------------
+ 1 file changed, 24 insertions(+), 15 deletions(-)
+
+Index: linux-pm/drivers/acpi/device_pm.c
+===================================================================
+--- linux-pm.orig/drivers/acpi/device_pm.c
++++ linux-pm/drivers/acpi/device_pm.c
+@@ -145,27 +145,36 @@ int acpi_device_get_power(struct acpi_de
+ 	}
+ 
+ 	/*
+-	 * Get the device's power state either directly (via _PSC) or
+-	 * indirectly (via power resources).
++	 * Get the device's power state from power resources settings and _PSC,
++	 * if available.
+ 	 */
++	if (device->power.flags.power_resources) {
++		int error = acpi_power_get_inferred_state(device, &result);
++		if (error)
++			return error;
++	}
+ 	if (device->power.flags.explicit_get) {
++		acpi_handle handle = device->handle;
+ 		unsigned long long psc;
+-		acpi_status status = acpi_evaluate_integer(device->handle,
+-							   "_PSC", NULL, &psc);
++		acpi_status status;
++
++		status = acpi_evaluate_integer(handle, "_PSC", NULL, &psc);
+ 		if (ACPI_FAILURE(status))
+ 			return -ENODEV;
+ 
+-		result = psc;
+-	}
+-	/* The test below covers ACPI_STATE_UNKNOWN too. */
+-	if (result <= ACPI_STATE_D2) {
+-	  ; /* Do nothing. */
+-	} else if (device->power.flags.power_resources) {
+-		int error = acpi_power_get_inferred_state(device, &result);
+-		if (error)
+-			return error;
+-	} else if (result == ACPI_STATE_D3_HOT) {
+-		result = ACPI_STATE_D3;
++		/*
++		 * The power resources settings may indicate a power state
++		 * shallower than the actual power state of the device.
++		 *
++		 * Moreover, on systems predating ACPI 4.0, if the device
++		 * doesn't depend on any power resources and _PSC returns 3,
++		 * that means "power off".  We need to maintain compatibility
++		 * with those systems.
++		 */
++		if (psc > result && psc < ACPI_STATE_D3_COLD)
++			result = psc;
++		else if (result == ACPI_STATE_UNKNOWN)
++			result = psc > ACPI_STATE_D2 ? ACPI_STATE_D3_COLD : psc;
+ 	}
+ 
+ 	/*
+
