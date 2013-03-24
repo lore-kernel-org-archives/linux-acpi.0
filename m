@@ -1,112 +1,57 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: [PATCH] ACPI / PM: Fix potential problem in acpi_device_get_power()
-Date: Sun, 24 Mar 2013 00:57:16 +0100
-Message-ID: <6380949.vJPdL9PvJh@vostro.rjw.lan>
+From: Pavel Machek <pavel@ucw.cz>
+Subject: Re: 3.9-rc3+: reports battery as 0 mWh capacity on thinkpad x60
+Date: Sun, 24 Mar 2013 10:27:33 +0100
+Message-ID: <20130324092733.GA3071@amd.pavel.ucw.cz>
+References: <20130323114011.GA11092@amd.pavel.ucw.cz>
+ <87zjxu9spk.fsf@nemi.mork.no>
+ <20130323202155.GC18732@amd.pavel.ucw.cz>
+ <6726347.ehkcE9iAxU@vostro.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from hydra.sisk.pl ([212.160.235.94]:37102 "EHLO hydra.sisk.pl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752457Ab3CWXtz (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Sat, 23 Mar 2013 19:49:55 -0400
+Received: from atrey.karlin.mff.cuni.cz ([195.113.26.193]:36646 "EHLO
+	atrey.karlin.mff.cuni.cz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752896Ab3CXJ1g (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sun, 24 Mar 2013 05:27:36 -0400
+Content-Disposition: inline
+In-Reply-To: <6726347.ehkcE9iAxU@vostro.rjw.lan>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: ACPI Devel Maling List <linux-acpi@vger.kernel.org>
-Cc: Linux PM list <linux-pm@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>, Len Brown <lenb@kernel.org>, Aaron Lu <aaron.lu@intel.com>
+To: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: =?iso-8859-1?Q?Bj=F8rn?= Mork <bjorn@mork.no>, kernel list <linux-kernel@vger.kernel.org>, lenb@kernel.org, linux-acpi@vger.kernel.org
 
-From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+Hi!
 
-Theoretically, in some situations acpi_device_get_power() may return
-an incorrect result, because the settings of the power resources
-depended on by the device may indicate a power state shallower than
-the actual power state of the device.
+> > > >> pavel@amd:~$ cat /proc/acpi/battery/BAT0/info 
+> > > >> present:                 yes
+> > > >> design capacity:         0 mWh
+> > > >> last full capacity:      0 mWh
+> > > >> battery technology:      rechargeable
+> > > >> design voltage:          14400 mV
+> > > >> 
+> > > >> This worked before... at least it works in 2.6 kernel used by debian.
+> > > >
+> > > > This works for me in 3.9-rc3.  May I see your .config?
+...
+> > But problem is not in /proc, /sys has zeros, too.
+> > 
+> > pavel@amd:~$ cat /sys/class/power_supply/BAT0/energy_full
+> > 0
+> > pavel@amd:~$ cat /sys/class/power_supply/BAT0/energy_full_design 
+> > 0
+> > pavel@amd:~$ cat /sys/class/power_supply/BAT0/model_name 
+> > 93P5030
+> > pavel@amd:~$
+> 
+> Can you narrow the time frame when it stopped working a bit?
 
-Say that two devices, A and B, depend on two power resources, X and
-Y, in such a way that _PR0 for both A and B list both X and Y and
-_PR3 for both A and B list power resource Y alone.  Also suppose
-that _PS0 and _PS3 are present for both A and B.  Then, if devices
-A and B are initially in D0, power resources X and Y are initially
-"on" and their reference counters are equal to 2.  To put device A
-into power state D3hot the kernel will decrement the reference
-counter of power resource X, but that power resource won't be turned
-off, because it is still in use by device B (its reference counter is
-equal to 1).  Next, _PS3 will be executed for device A.  Afterward
-the configuration of the power resources will indicate that device
-A is in power state D0 (both X and Y are "on"), but in fact it is
-in D3hot (because _PS3 has been executed for it).
+Well, 2.6.32 from debian works ok, and self-compiled 3.1+ kernel also
+seems to work ok.
 
-In that situation, if acpi_device_get_power() is called to get the
-power state of device A, it will first execute _PSC for it which
-should return 3.  That will cause acpi_device_get_power() to run
-acpi_power_get_inferred_state() for device A and the resultant power
-state will be D0, which is incorrect.
+I'm not sure if 3.7+ kernels worked, actually... I'd have to do some
+compiling to check.
 
-To fix that change acpi_device_get_power() to first execute
-acpi_power_get_inferred_state() for the given device (if it
-depends on power resources) and to evaluate _PSC for it subsequently,
-so that the result inferred from the power resources configuration
-can be amended by the _PSC return value.
-
-Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
----
- drivers/acpi/device_pm.c |   39 ++++++++++++++++++++++++---------------
- 1 file changed, 24 insertions(+), 15 deletions(-)
-
-Index: linux-pm/drivers/acpi/device_pm.c
-===================================================================
---- linux-pm.orig/drivers/acpi/device_pm.c
-+++ linux-pm/drivers/acpi/device_pm.c
-@@ -145,27 +145,36 @@ int acpi_device_get_power(struct acpi_de
- 	}
- 
- 	/*
--	 * Get the device's power state either directly (via _PSC) or
--	 * indirectly (via power resources).
-+	 * Get the device's power state from power resources settings and _PSC,
-+	 * if available.
- 	 */
-+	if (device->power.flags.power_resources) {
-+		int error = acpi_power_get_inferred_state(device, &result);
-+		if (error)
-+			return error;
-+	}
- 	if (device->power.flags.explicit_get) {
-+		acpi_handle handle = device->handle;
- 		unsigned long long psc;
--		acpi_status status = acpi_evaluate_integer(device->handle,
--							   "_PSC", NULL, &psc);
-+		acpi_status status;
-+
-+		status = acpi_evaluate_integer(handle, "_PSC", NULL, &psc);
- 		if (ACPI_FAILURE(status))
- 			return -ENODEV;
- 
--		result = psc;
--	}
--	/* The test below covers ACPI_STATE_UNKNOWN too. */
--	if (result <= ACPI_STATE_D2) {
--	  ; /* Do nothing. */
--	} else if (device->power.flags.power_resources) {
--		int error = acpi_power_get_inferred_state(device, &result);
--		if (error)
--			return error;
--	} else if (result == ACPI_STATE_D3_HOT) {
--		result = ACPI_STATE_D3;
-+		/*
-+		 * The power resources settings may indicate a power state
-+		 * shallower than the actual power state of the device.
-+		 *
-+		 * Moreover, on systems predating ACPI 4.0, if the device
-+		 * doesn't depend on any power resources and _PSC returns 3,
-+		 * that means "power off".  We need to maintain compatibility
-+		 * with those systems.
-+		 */
-+		if (psc > result && psc < ACPI_STATE_D3_COLD)
-+			result = psc;
-+		else if (result == ACPI_STATE_UNKNOWN)
-+			result = psc > ACPI_STATE_D2 ? ACPI_STATE_D3_COLD : psc;
- 	}
- 
- 	/*
-
+									Pavel
+-- 
+(english) http://www.livejournal.com/~pavelmachek
+(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
