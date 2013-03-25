@@ -1,153 +1,95 @@
-From: Toshi Kani <toshi.kani@hp.com>
-Subject: Re: [Update 4][PATCH 2/7] ACPI / scan: Introduce common code for
- ACPI-based device hotplug
-Date: Mon, 25 Mar 2013 16:57:11 -0600
-Message-ID: <1364252231.11659.99.camel@misato.fc.hp.com>
-References: <3260206.bhaAobGhpZ@vostro.rjw.lan>
-	 <20130315104732.GA4401@dhcp-192-168-178-175.profitbricks.localdomain>
-	 <1364244336.11659.75.camel@misato.fc.hp.com>
-	 <2776997.5VXf3okT8O@vostro.rjw.lan>
+From: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
+Subject: Re: [PATCH v3 2/2] ACPI,acpi_memhotplug: Remove acpi_memory_info->failed
+ bit
+Date: Tue, 26 Mar 2013 08:57:05 +0900
+Message-ID: <5150E451.3010100@jp.fujitsu.com>
+References: <514022BF.3080303@jp.fujitsu.com>    <1363186213.12845.174.camel@misato.fc.hp.com>    <514679BC.5020700@jp.fujitsu.com>   <1363705437.11659.5.camel@misato.fc.hp.com>   <514A4CCD.6000608@jp.fujitsu.com> <514A8E3C.1050902@jp.fujitsu.com>   <514A8EF3.90203@jp.fujitsu.com>  <1363912171.11659.12.camel@misato.fc.hp.com>  <514BB9AD.3010704@jp.fujitsu.com> <1363983884.11659.14.camel@misato.fc.hp.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset="UTF-8"; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from g1t0026.austin.hp.com ([15.216.28.33]:43244 "EHLO
-	g1t0026.austin.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1759018Ab3CYXIc (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 25 Mar 2013 19:08:32 -0400
-In-Reply-To: <2776997.5VXf3okT8O@vostro.rjw.lan>
+Received: from fgwmail5.fujitsu.co.jp ([192.51.44.35]:43263 "EHLO
+	fgwmail5.fujitsu.co.jp" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753848Ab3CYX5e (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 25 Mar 2013 19:57:34 -0400
+In-Reply-To: <1363983884.11659.14.camel@misato.fc.hp.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: Vasilis Liaskovitis <vasilis.liaskovitis@profitbricks.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Bjorn Helgaas <bhelgaas@google.com>, LKML <linux-kernel@vger.kernel.org>, Yinghai Lu <yinghai@kernel.org>, Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>, Jiang Liu <liuj97@gmail.com>
+To: Toshi Kani <toshi.kani@hp.com>
+Cc: rjw@sisk.pl, linux-acpi@vger.kernel.org, tangchen@cn.fujitsu.com, wency@cn.fujitsu.com, laijs@cn.fujitsu.com, linux-kernel@vger.kernel.org
 
-On Mon, 2013-03-25 at 23:29 +0100, Rafael J. Wysocki wrote:
-> On Monday, March 25, 2013 02:45:36 PM Toshi Kani wrote:
-> > On Fri, 2013-03-15 at 11:47 +0100, Vasilis Liaskovitis wrote:
-> > > Hi,
-> > > 
-> > > On Thu, Mar 14, 2013 at 06:16:30PM +0100, Rafael J. Wysocki wrote:
-> > > > Sorry for the sluggish response, I've been travelling recently. ->
-> > > [...]
-> > > > > > > So, I'd suggest the following changes.
-> > > > > > >  - Remove the "uevents" attribute.  KOBJ_ONLINE/OFFLINE are not used for
-> > > > > > > ACPI device objects.
-> > > > > > >  - Make the !autoeject case as an exception for now, and emit
-> > > > > > > KOBJ_OFFLINE as a way to request off-lining to user.  This uevent is
-> > > > > > > tied with the !autoeject case.  We can then revisit if this use-case
-> > > > > > > needs to be supported going forward.  If so, we may want to consider a
-> > > > > > > different event type.
-> > > > > > 
-> > > > > > Well, what about avoiding to expose uevents and autoeject for now and
-> > > > > > exposing enabled only?  Drivers would still be able to set the other flags on
-> > > > > > init on init to enforce the backwards-compatible behavior.
-> > > > > 
-> > > > > Now that we don't define uevents and autoeject in v2 of this series, could you
-> > > > > explain how we get safe ejection from userspace e.g. for memory hot-remove? What
-> > > > > are the other flags drivers can use (on init?) to avoid autoeject and only issue
-> > > > > KOBJ_OFFLINE?
-> > > > > 
-> > > > > > 
-> > > > > > I agree that it would be sufficient to use one additional flag then, to start
-> > > > > > with, but its meaning would be something like "keep backwards compatibility
-> > > > > > with the old container driver", so perhaps "autoeject" is not a good name.
-> > > > > > 
-> > > > > > What about "user_eject" (that won't be exposed to user space) instead?  Where,
-> > > > > > if set, it would meand "do not autoeject and emit KOBJ_OFFLINE/ONLINE uevents
-> > > > > > like the old container driver did"?
-> > > > > 
-> > > > > I don't see user_eject in v2. Is it unnecessary for userspace ejection control
-> > > > > or planned for later? Also why shouldn't it be exposed to userpace?
-> > > > 
-> > > > -> At this point we are not sure if it is necessary to have an attribute for
-> > > > direct ejection control.  Since the plan is to have a separate offline/online
-> > > > attribute anyway (and a check preventing us from ejecting things that haven't
-> > > > been put offline), it is not clear how useful it is going to be to control
-> > > > ejection directly from user space.
-> > > 
-> > > ok.
-> > > Regarding the offline/online attribute and ejection prevention checking, do you
-> > > mean the offline/online framework from Toshi:
-> > > http://thread.gmane.org/gmane.linux.kernel/1420262
-> > > or something else? I assume this is the long-term plan.
-> > 
-> > Unfortunately, the idea of adding a new set of common hotplug framework
-> > was not well-received.  Since the driver-core does not allow any eject
-> > failure case, integrating into the driver-core framework seems also
-> > impractical.
-> > 
-> > > Is there any other short-term solution planned? If i understand correctly, until
-> > > this framework is accepted, memory hot-remove is broken (=unsafe). 
-> > 
-> > That is correct.  The alternative plan is to go with an ACPI-specific
-> > approach that user has to off-line a target device and its children
-> > beforehand from sysfs before initiating a hot-delete request.  This
-> > hot-delete request will fail if any of the devices are still on-line.
-> > The sysfs online/offline interfaces may fail, and user (or user tool)
-> > has to take care of the rollback as necessary.  It would move all the
-> > error handling & rollback stuff into the user space, and make the kernel
-> > part very simple & straightforward -- just delete target device
-> > objects.  
-> > 
-> > After looking further, however, I think this isn't the case...  In case
-> > of memory hot-delete, for example, off-lining is only a part of the job
-> > done in remove_memory().  So, ACPI-core still needs to call
-> > device-specific handlers to perform device-specific hot-delete
-> > operations, such as calling remove_memory() or its sub-set function,
-> > which can fail when a device is online.  In order to make sure all
-> > devices stay off-line, we need to delete their sysfs interfaces.
-> 
-> No, we don't need to.
-> 
-> > Since we do not have a way to serialize all online/offline & hot-plug
-> > operations (the above patchset had such serialization, but did not get
-> > thru), we cannot change all devices at once but delete sysfs interface
-> > for each device one by one.  If it failed on one of the devices, we need
-> > to rollback to put them back into the original state.  Other implication
-> > is that this approach is not backward compatible.
-> 
-> No.  No rollbacks, please.
-> 
-> There are three things that are needed: (1) online/offline, (2) a flag in
-> struct acpi_device indicating whether or not the "physical" device represented
-> by that struct acpi_device has been offlined, 
+2013/03/23 5:24, Toshi Kani wrote:
+> On Fri, 2013-03-22 at 10:53 +0900, Yasuaki Ishimatsu wrote:
+>> acpi_memory_info has enabled bit and failed bit for controlling memory
+>> hotplug. But we don't need to keep both bits.
+>>
+>> The patch removes acpi_memory_info->failed bit.
+>>
+>> Signed-off-by: yasuaki ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
+>
+> Thanks for the update.  It looks good.  For the series:
+>
+> Acked-by: Toshi Kani <toshi.kani@hp.com>
 
-acpi_device and its associated device(s) do not match 1 to 1.  For
-instance, a memory acpi_device usually associates with multiple memblks
-sysfs files, which can be individually on-lined / off-lined.  This
-association can be M:N matching.  I am not sure if the flag can be
-implemented easily.
+Thanks!
 
-> and (3) a synchronization
-> mechanism that will make the manipulation of the flag and device eject mutually
-> exclusive (it actually would need to tie the manipulation of the flag to
-> the online/offline).
+>
+> -Toshi
+>
+>
+>> ---
+>>
+>> v3 : Continue to memory hot remove when (!info->enabled) case.
+>> v2 : Changed a based kernel from linux-3.9-rc2 to linux-pm.git/bleeding-edge.
+>>
+>> ---
+>>    drivers/acpi/acpi_memhotplug.c |   15 ++-------------
+>>    1 files changed, 2 insertions(+), 13 deletions(-)
+>>
+>> diff --git a/drivers/acpi/acpi_memhotplug.c b/drivers/acpi/acpi_memhotplug.c
+>> index ea78988..5e6301e 100644
+>> --- a/drivers/acpi/acpi_memhotplug.c
+>> +++ b/drivers/acpi/acpi_memhotplug.c
+>> @@ -73,7 +73,6 @@ struct acpi_memory_info {
+>>    	unsigned short caching;	/* memory cache attribute */
+>>    	unsigned short write_protect;	/* memory read/write attribute */
+>>    	unsigned int enabled:1;
+>> -	unsigned int failed:1;
+>>    };
+>>
+>>    struct acpi_memory_device {
+>> @@ -201,10 +200,8 @@ static int acpi_memory_enable_device(struct acpi_memory_device *mem_device)
+>>    		 * returns -EEXIST. If add_memory() returns the other error, it
+>>    		 * means that this memory block is not used by the kernel.
+>>    		 */
+>> -		if (result && result != -EEXIST) {
+>> -			info->failed = 1;
+>> +		if (result && result != -EEXIST)
+>>    			continue;
+>> -		}
+>>
+>>    		info->enabled = 1;
+>>
+>> @@ -238,16 +235,8 @@ static int acpi_memory_remove_memory(struct acpi_memory_device *mem_device)
+>>    	nid = acpi_get_node(mem_device->device->handle);
+>>
+>>    	list_for_each_entry_safe(info, n, &mem_device->res_list, list) {
+>> -		if (info->failed)
+>> -			/* The kernel does not use this memory block */
+>> -			continue;
+>> -
+>>    		if (!info->enabled)
+>> -			/*
+>> -			 * The kernel uses this memory block, but it may be not
+>> -			 * managed by us.
+>> -			 */
+>> -			return -EBUSY;
+>> +			continue;
+>>
+>>    		if (nid < 0)
+>>    			nid = memory_add_physaddr_to_nid(info->start_addr);
+>>
+>
+>
 
-This needs to be a global lock that can serialize online/offline
-operations of all system devices.
-
-> Then, acpi_scan_hot_remove() will only need to check, before it calls
-> acpi_bus_trim(), if all of the devices that correspond to the struct device
-> objects to be removed have been offlined.  Of course, it will have to ensure
-> that the "online/offline" status of any of those devices won't change while
-> it is running (hence, the synchronization mechanism).
-> 
-> And once everything has been offlined, there's no reason why the removal should
-> fail, right?
-
-Yes, if we can introduce such global lock, we can prevent rollbacks.  I
-was under an assumption that we cannot make such changes to the common
-code.  
-
-> > Given this, I am inclined to other alternative -- rework on my patchset
-> > and make it as ACPI device hotplug framework.
-> 
-> Please don't.
-
-OK, I will keep it myself for now.  Are you going to make the code
-changes which you summarized?  I am hoping that we can make some
-improvement for 3.10.
-
-Thanks,
--Toshi
 
