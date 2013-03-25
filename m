@@ -1,69 +1,113 @@
-From: Sarah Sharp <sarah.a.sharp@linux.intel.com>
-Subject: Re: [PATCH] PCI / ACPI: Always resume devices on ACPI wakeup
- notifications
-Date: Mon, 25 Mar 2013 09:45:51 -0700
-Message-ID: <20130325164551.GA6869@xanatos>
-References: <2282655.IicBMMa6jN@vostro.rjw.lan>
+From: Toshi Kani <toshi.kani@hp.com>
+Subject: Re: [Update 4][PATCH 2/7] ACPI / scan: Introduce common code for
+ ACPI-based device hotplug
+Date: Mon, 25 Mar 2013 14:45:36 -0600
+Message-ID: <1364244336.11659.75.camel@misato.fc.hp.com>
+References: <3260206.bhaAobGhpZ@vostro.rjw.lan>
+	 <18666371.hyHAvqrdQ6@vostro.rjw.lan>
+	 <20130304131023.GA4561@dhcp-192-168-178-175.profitbricks.localdomain>
+	 <3390139.KZuRkSrE4e@vostro.rjw.lan>
+	 <20130315104732.GA4401@dhcp-192-168-178-175.profitbricks.localdomain>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <2282655.IicBMMa6jN@vostro.rjw.lan>
-Sender: linux-kernel-owner@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: Bjorn Helgaas <bhelgaas@google.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>, Linux PM list <linux-pm@vger.kernel.org>, Len Brown <lenb@kernel.org>, Matthew Garrett <mjg59@srcf.ucam.org>, "Accardi, Kristen C" <kristen.c.accardi@intel.com>, "Huang, Ying" <ying.huang@intel.com>, linux-pci@vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from g1t0028.austin.hp.com ([15.216.28.35]:15467 "EHLO
+	g1t0028.austin.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754455Ab3CYU45 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 25 Mar 2013 16:56:57 -0400
+In-Reply-To: <20130315104732.GA4401@dhcp-192-168-178-175.profitbricks.localdomain>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Vasilis Liaskovitis <vasilis.liaskovitis@profitbricks.com>
+Cc: "Rafael J. Wysocki" <rjw@sisk.pl>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Bjorn Helgaas <bhelgaas@google.com>, LKML <linux-kernel@vger.kernel.org>, Yinghai Lu <yinghai@kernel.org>, Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>, Jiang Liu <liuj97@gmail.com>
 
-On Sat, Mar 23, 2013 at 03:33:03PM +0100, Rafael J. Wysocki wrote:
-> From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+On Fri, 2013-03-15 at 11:47 +0100, Vasilis Liaskovitis wrote:
+> Hi,
 > 
-> It turns out that _Lxx control methods provided by some BIOSes clear
-> the PME Status bit of PCI devices they handle, which means that
-> pci_acpi_wake_dev() cannot really use that bit to check whether or
-> not the device has signalled wakeup.
+> On Thu, Mar 14, 2013 at 06:16:30PM +0100, Rafael J. Wysocki wrote:
+> > Sorry for the sluggish response, I've been travelling recently. ->
+> [...]
+> > > > > So, I'd suggest the following changes.
+> > > > >  - Remove the "uevents" attribute.  KOBJ_ONLINE/OFFLINE are not used for
+> > > > > ACPI device objects.
+> > > > >  - Make the !autoeject case as an exception for now, and emit
+> > > > > KOBJ_OFFLINE as a way to request off-lining to user.  This uevent is
+> > > > > tied with the !autoeject case.  We can then revisit if this use-case
+> > > > > needs to be supported going forward.  If so, we may want to consider a
+> > > > > different event type.
+> > > > 
+> > > > Well, what about avoiding to expose uevents and autoeject for now and
+> > > > exposing enabled only?  Drivers would still be able to set the other flags on
+> > > > init on init to enforce the backwards-compatible behavior.
+> > > 
+> > > Now that we don't define uevents and autoeject in v2 of this series, could you
+> > > explain how we get safe ejection from userspace e.g. for memory hot-remove? What
+> > > are the other flags drivers can use (on init?) to avoid autoeject and only issue
+> > > KOBJ_OFFLINE?
+> > > 
+> > > > 
+> > > > I agree that it would be sufficient to use one additional flag then, to start
+> > > > with, but its meaning would be something like "keep backwards compatibility
+> > > > with the old container driver", so perhaps "autoeject" is not a good name.
+> > > > 
+> > > > What about "user_eject" (that won't be exposed to user space) instead?  Where,
+> > > > if set, it would meand "do not autoeject and emit KOBJ_OFFLINE/ONLINE uevents
+> > > > like the old container driver did"?
+> > > 
+> > > I don't see user_eject in v2. Is it unnecessary for userspace ejection control
+> > > or planned for later? Also why shouldn't it be exposed to userpace?
+> > 
+> > -> At this point we are not sure if it is necessary to have an attribute for
+> > direct ejection control.  Since the plan is to have a separate offline/online
+> > attribute anyway (and a check preventing us from ejecting things that haven't
+> > been put offline), it is not clear how useful it is going to be to control
+> > ejection directly from user space.
 > 
-> For this reason, make pci_acpi_wake_dev() always attempt to resume
-> the device it is called for regardless of the device's PME Status bit
-> value (that bit still has to be cleared if set at this point,
-> though).
-> 
-> Reported-by: Sarah Sharp <sarah.a.sharp@linux.intel.com>
-> Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+> ok.
+> Regarding the offline/online attribute and ejection prevention checking, do you
+> mean the offline/online framework from Toshi:
+> http://thread.gmane.org/gmane.linux.kernel/1420262
+> or something else? I assume this is the long-term plan.
 
-Should this be marked for stable?  I had this issue on 3.7 and 3.8 as
-well.
+Unfortunately, the idea of adding a new set of common hotplug framework
+was not well-received.  Since the driver-core does not allow any eject
+failure case, integrating into the driver-core framework seems also
+impractical.
 
-Sarah
+> Is there any other short-term solution planned? If i understand correctly, until
+> this framework is accepted, memory hot-remove is broken (=unsafe). 
 
-> ---
->  drivers/pci/pci-acpi.c |   15 ++++++++-------
->  1 file changed, 8 insertions(+), 7 deletions(-)
-> 
-> Index: linux-pm/drivers/pci/pci-acpi.c
-> ===================================================================
-> --- linux-pm.orig/drivers/pci/pci-acpi.c
-> +++ linux-pm/drivers/pci/pci-acpi.c
-> @@ -53,14 +53,15 @@ static void pci_acpi_wake_dev(acpi_handl
->  		return;
->  	}
->  
-> -	if (!pci_dev->pm_cap || !pci_dev->pme_support
-> -	     || pci_check_pme_status(pci_dev)) {
-> -		if (pci_dev->pme_poll)
-> -			pci_dev->pme_poll = false;
-> +	/* Clear PME Status if set. */
-> +	if (pci_dev->pme_support)
-> +		pci_check_pme_status(pci_dev);
->  
-> -		pci_wakeup_event(pci_dev);
-> -		pm_runtime_resume(&pci_dev->dev);
-> -	}
-> +	if (pci_dev->pme_poll)
-> +		pci_dev->pme_poll = false;
-> +
-> +	pci_wakeup_event(pci_dev);
-> +	pm_runtime_resume(&pci_dev->dev);
->  
->  	if (pci_dev->subordinate)
->  		pci_pme_wakeup_bus(pci_dev->subordinate);
-> 
+That is correct.  The alternative plan is to go with an ACPI-specific
+approach that user has to off-line a target device and its children
+beforehand from sysfs before initiating a hot-delete request.  This
+hot-delete request will fail if any of the devices are still on-line.
+The sysfs online/offline interfaces may fail, and user (or user tool)
+has to take care of the rollback as necessary.  It would move all the
+error handling & rollback stuff into the user space, and make the kernel
+part very simple & straightforward -- just delete target device
+objects.  
+
+After looking further, however, I think this isn't the case...  In case
+of memory hot-delete, for example, off-lining is only a part of the job
+done in remove_memory().  So, ACPI-core still needs to call
+device-specific handlers to perform device-specific hot-delete
+operations, such as calling remove_memory() or its sub-set function,
+which can fail when a device is online.  In order to make sure all
+devices stay off-line, we need to delete their sysfs interfaces.  Since
+we do not have a way to serialize all online/offline & hot-plug
+operations (the above patchset had such serialization, but did not get
+thru), we cannot change all devices at once but delete sysfs interface
+for each device one by one.  If it failed on one of the devices, we need
+to rollback to put them back into the original state.  Other implication
+is that this approach is not backward compatible.
+
+Given this, I am inclined to other alternative -- rework on my patchset
+and make it as ACPI device hotplug framework.  All changes are within
+ACPI.  This actually requires less work and provides backward
+compatibility as well.  I have finished prototyping and is working well.
+I will send it out for review after all testing is done.
+
+Thanks,
+-Toshi
+
