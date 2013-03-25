@@ -1,53 +1,69 @@
-From: Lan Tianyu <lantianyu1986@gmail.com>
-Subject: Re: 3.9-rc3+: reports battery as 0 mWh capacity on thinkpad x60
-Date: Mon, 25 Mar 2013 22:20:11 +0800
-Message-ID: <51505D1B.1050900@gmail.com>
-References: <20130323114011.GA11092@amd.pavel.ucw.cz> <87zjxu9spk.fsf@nemi.mork.no> <20130323202155.GC18732@amd.pavel.ucw.cz> <6726347.ehkcE9iAxU@vostro.rjw.lan> <20130324092733.GA3071@amd.pavel.ucw.cz> <514F83F8.9000604@fold.natur.cuni.cz> <CAOLK0pxtpgDdvHFRMDw3791HjWrF0wiheLv4oVW_cg2SVCrLqQ@mail.gmail.com> <515024AF.2040508@fold.natur.cuni.cz>
+From: Sarah Sharp <sarah.a.sharp@linux.intel.com>
+Subject: Re: [PATCH] PCI / ACPI: Always resume devices on ACPI wakeup
+ notifications
+Date: Mon, 25 Mar 2013 09:45:51 -0700
+Message-ID: <20130325164551.GA6869@xanatos>
+References: <2282655.IicBMMa6jN@vostro.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8;
-	format=flowed
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-pd0-f179.google.com ([209.85.192.179]:34264 "EHLO
-	mail-pd0-f179.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757816Ab3CYOUS (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 25 Mar 2013 10:20:18 -0400
-In-Reply-To: <515024AF.2040508@fold.natur.cuni.cz>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <2282655.IicBMMa6jN@vostro.rjw.lan>
+Sender: linux-kernel-owner@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: Bjorn Helgaas <bhelgaas@google.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>, Linux PM list <linux-pm@vger.kernel.org>, Len Brown <lenb@kernel.org>, Matthew Garrett <mjg59@srcf.ucam.org>, "Accardi, Kristen C" <kristen.c.accardi@intel.com>, "Huang, Ying" <ying.huang@intel.com>, linux-pci@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Martin Mokrejs <mmokrejs@fold.natur.cuni.cz>, Pavel Machek <pavel@ucw.cz>
-Cc: "Rafael J. Wysocki" <rjw@sisk.pl>, =?UTF-8?B?QmrDuHJuIE1vcms=?= <bjorn@mork.no>, kernel list <linux-kernel@vger.kernel.org>, lenb@kernel.org, linux-acpi@vger.kernel.org
 
-=E4=BA=8E 2013/3/25 18:19, Martin Mokrejs =E5=86=99=E9=81=93:
-> Hi Lan,
->    this is actually a bug of Pavel, he had the problem. I just wanted=
- to show
-> him what works on 3.7.10 in my case (yes, different files are on my s=
-ystem).
-> If you feel the *missing* files are a problem, I can try some newer k=
-ernels
-> on my computer (Dell Vostro 3550), sure. I am attaching the files any=
-way
-> but I think 300kB won't make it into the email lists.
-> Martin
-Hi Martin:
-	Thanks for reminder.
+On Sat, Mar 23, 2013 at 03:33:03PM +0100, Rafael J. Wysocki wrote:
+> From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+> 
+> It turns out that _Lxx control methods provided by some BIOSes clear
+> the PME Status bit of PCI devices they handle, which means that
+> pci_acpi_wake_dev() cannot really use that bit to check whether or
+> not the device has signalled wakeup.
+> 
+> For this reason, make pci_acpi_wake_dev() always attempt to resume
+> the device it is called for regardless of the device's PME Status bit
+> value (that bit still has to be cleared if set at this point,
+> though).
+> 
+> Reported-by: Sarah Sharp <sarah.a.sharp@linux.intel.com>
+> Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 
-Hi  Pavel:
-	Could you provide following info and apply a acpi battery
-bug on the https://bugzilla.kernel.org? This can help others
-to trace the bug.
+Should this be marked for stable?  I had this issue on 3.7 and 3.8 as
+well.
 
->> Which version you found the issue? could you provide the
->>output of dmesg on it and acpidump? They will give us more
->>clues since acpi battery driver just exposes data from Bios.
+Sarah
 
-
---=20
-Best regards
-Tianyu Lan
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> ---
+>  drivers/pci/pci-acpi.c |   15 ++++++++-------
+>  1 file changed, 8 insertions(+), 7 deletions(-)
+> 
+> Index: linux-pm/drivers/pci/pci-acpi.c
+> ===================================================================
+> --- linux-pm.orig/drivers/pci/pci-acpi.c
+> +++ linux-pm/drivers/pci/pci-acpi.c
+> @@ -53,14 +53,15 @@ static void pci_acpi_wake_dev(acpi_handl
+>  		return;
+>  	}
+>  
+> -	if (!pci_dev->pm_cap || !pci_dev->pme_support
+> -	     || pci_check_pme_status(pci_dev)) {
+> -		if (pci_dev->pme_poll)
+> -			pci_dev->pme_poll = false;
+> +	/* Clear PME Status if set. */
+> +	if (pci_dev->pme_support)
+> +		pci_check_pme_status(pci_dev);
+>  
+> -		pci_wakeup_event(pci_dev);
+> -		pm_runtime_resume(&pci_dev->dev);
+> -	}
+> +	if (pci_dev->pme_poll)
+> +		pci_dev->pme_poll = false;
+> +
+> +	pci_wakeup_event(pci_dev);
+> +	pm_runtime_resume(&pci_dev->dev);
+>  
+>  	if (pci_dev->subordinate)
+>  		pci_pme_wakeup_bus(pci_dev->subordinate);
+> 
