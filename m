@@ -1,95 +1,104 @@
-From: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
-Subject: Re: [PATCH v3 2/2] ACPI,acpi_memhotplug: Remove acpi_memory_info->failed
- bit
-Date: Tue, 26 Mar 2013 08:57:05 +0900
-Message-ID: <5150E451.3010100@jp.fujitsu.com>
-References: <514022BF.3080303@jp.fujitsu.com>    <1363186213.12845.174.camel@misato.fc.hp.com>    <514679BC.5020700@jp.fujitsu.com>   <1363705437.11659.5.camel@misato.fc.hp.com>   <514A4CCD.6000608@jp.fujitsu.com> <514A8E3C.1050902@jp.fujitsu.com>   <514A8EF3.90203@jp.fujitsu.com>  <1363912171.11659.12.camel@misato.fc.hp.com>  <514BB9AD.3010704@jp.fujitsu.com> <1363983884.11659.14.camel@misato.fc.hp.com>
+From: "Brown, Len" <len.brown@intel.com>
+Subject: RE: Commit ac3ebafa81a makes NHM EX/EP machines hung out since
+ 3.9-rc1
+Date: Tue, 26 Mar 2013 01:44:20 +0000
+Message-ID: <1A7043D5F58CCB44A599DFD55ED4C9482976AE4D@FMSMSX108.amr.corp.intel.com>
+References: <20130313022759.GA120840@bee>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from fgwmail5.fujitsu.co.jp ([192.51.44.35]:43263 "EHLO
-	fgwmail5.fujitsu.co.jp" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753848Ab3CYX5e (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 25 Mar 2013 19:57:34 -0400
-In-Reply-To: <1363983884.11659.14.camel@misato.fc.hp.com>
+Received: from mga02.intel.com ([134.134.136.20]:24540 "EHLO mga02.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753628Ab3CZBoW convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 25 Mar 2013 21:44:22 -0400
+In-Reply-To: <20130313022759.GA120840@bee>
+Content-Language: en-US
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Toshi Kani <toshi.kani@hp.com>
-Cc: rjw@sisk.pl, linux-acpi@vger.kernel.org, tangchen@cn.fujitsu.com, wency@cn.fujitsu.com, laijs@cn.fujitsu.com, linux-kernel@vger.kernel.org
-
-2013/03/23 5:24, Toshi Kani wrote:
-> On Fri, 2013-03-22 at 10:53 +0900, Yasuaki Ishimatsu wrote:
->> acpi_memory_info has enabled bit and failed bit for controlling memory
->> hotplug. But we don't need to keep both bits.
->>
->> The patch removes acpi_memory_info->failed bit.
->>
->> Signed-off-by: yasuaki ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
->
-> Thanks for the update.  It looks good.  For the series:
->
-> Acked-by: Toshi Kani <toshi.kani@hp.com>
-
-Thanks!
-
->
-> -Toshi
->
->
->> ---
->>
->> v3 : Continue to memory hot remove when (!info->enabled) case.
->> v2 : Changed a based kernel from linux-3.9-rc2 to linux-pm.git/bleeding-edge.
->>
->> ---
->>    drivers/acpi/acpi_memhotplug.c |   15 ++-------------
->>    1 files changed, 2 insertions(+), 13 deletions(-)
->>
->> diff --git a/drivers/acpi/acpi_memhotplug.c b/drivers/acpi/acpi_memhotplug.c
->> index ea78988..5e6301e 100644
->> --- a/drivers/acpi/acpi_memhotplug.c
->> +++ b/drivers/acpi/acpi_memhotplug.c
->> @@ -73,7 +73,6 @@ struct acpi_memory_info {
->>    	unsigned short caching;	/* memory cache attribute */
->>    	unsigned short write_protect;	/* memory read/write attribute */
->>    	unsigned int enabled:1;
->> -	unsigned int failed:1;
->>    };
->>
->>    struct acpi_memory_device {
->> @@ -201,10 +200,8 @@ static int acpi_memory_enable_device(struct acpi_memory_device *mem_device)
->>    		 * returns -EEXIST. If add_memory() returns the other error, it
->>    		 * means that this memory block is not used by the kernel.
->>    		 */
->> -		if (result && result != -EEXIST) {
->> -			info->failed = 1;
->> +		if (result && result != -EEXIST)
->>    			continue;
->> -		}
->>
->>    		info->enabled = 1;
->>
->> @@ -238,16 +235,8 @@ static int acpi_memory_remove_memory(struct acpi_memory_device *mem_device)
->>    	nid = acpi_get_node(mem_device->device->handle);
->>
->>    	list_for_each_entry_safe(info, n, &mem_device->res_list, list) {
->> -		if (info->failed)
->> -			/* The kernel does not use this memory block */
->> -			continue;
->> -
->>    		if (!info->enabled)
->> -			/*
->> -			 * The kernel uses this memory block, but it may be not
->> -			 * managed by us.
->> -			 */
->> -			return -EBUSY;
->> +			continue;
->>
->>    		if (nid < 0)
->>    			nid = memory_add_physaddr_to_nid(info->start_addr);
->>
->
->
+To: "Xie, ChanglongX" <changlongx.xie@intel.com>
+Cc: Daniel Lezcano <daniel.lezcano@linaro.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "lkp@linux.intel.com" <lkp@linux.intel.com>
 
 
+
+> -----Original Message-----
+> From: Xie, ChanglongX
+> Sent: Tuesday, March 12, 2013 10:28 PM
+> To: Brown, Len
+> Cc: Daniel Lezcano; linux-acpi@vger.kernel.org; lkp@linux.intel.com
+> Subject: Commit ac3ebafa81a makes NHM EX/EP machines hung out since 3.9-
+> rc1
+> 
+> Hi Len,
+> 
+> 	FYI, since 3.9-rc1 our three NHM EP/EX LKP(linux kernel
+> performance) test servers
+> 	except SNB/IVB/WSM hung up unexpectly.
+> 
+> 	We did git bisect for about 8 times on all servers, it said that
+> the first bad commit is ac3ebafa.
+> 
+> 	commit ac3ebafa81af76d65e4fb45c6388f08e90ddcc6d
+> 	Author: Daniel Lezcano <daniel.lezcano@linaro.org>
+> 	Date:   Mon Feb 4 22:44:43 2013 +0000
+> 
+> 	ACPI / idle: remove usage of the statedata
+> 
+> 	Len Brown sent a patch to remove this field in the intel_idle
+> driver.
+> 	The other user of this field is the davinci cpuidle driver and a
+> 	patch has been sent to remove the usage of it.
+> 	This patch removes the last user of this field.
+> 
+> 	Signed-off-by: Daniel Lezcano <daniel.lezcano@linaro.org>
+> 	Signed-off-by: Len Brown <len.brown@intel.com>
+> 
+> 
+> 	More, all machines hung with following similar info. Would you
+> please have a look at it?
+> 
+> 	178748 ^[%Gmodprobe (1602) used greatest stack depth: 5504 bytes
+> left^M
+> 	2178749 modprobe (1606) used greatest stack depth: 5472 bytes
+> left^M
+> 
+> 	2178751 Task dump for CPU 1:^M
+> 	2178752 swapper/1       R  running task     6736     0      1
+> 0x00000000^M
+> 	2178753  ffff8801e8029dc8 ffffffff8101cf96 ffff8801e8029e28
+> ffffffff813d294b^M
+> 	2178754  0000000000000f99 0000000000000003 00000000003cf654
+> 0000000025c17d03^M
+> 	2178755  ffff8801e8029e38 ffff8801e74fc000 00000002590dc5c4
+> ffffffff8163cdb0^M
+> 	2178756 Call Trace:^M
+> 	2178757  [<ffffffff8101cf96>] ?
+> acpi_processor_ffh_cstate_enter+0x2d/0x2f^M
+> 	2178758  [<ffffffff813d294b>] acpi_idle_enter_bm+0x1b1/0x236^M
+> 	2178759  [<ffffffff8163cdb0>] ? disable_cpuidle+0x10/0x10^M
+> 	2178760  [<ffffffff8163cdc2>] cpuidle_enter+0x12/0x14^M
+> 	2178761  [<ffffffff8163d286>] cpuidle_wrap_enter+0x2f/0x6d^M
+> 	2178762  [<ffffffff8163d2d4>] cpuidle_enter_tk+0x10/0x12^M
+> 	2178763  [<ffffffff8163cdd6>] cpuidle_enter_state+0x12/0x3a^M
+> 	2178764  [<ffffffff8163d4a7>] cpuidle_idle_call+0xe8/0x161^M
+> 	2178765  [<ffffffff81008d99>] cpu_idle+0x5e/0xa4^M
+> 	2178766  [<ffffffff8174c6c1>] start_secondary+0x1a9/0x1ad^M
+> 	2178767 Task dump for CPU 2:^M
+
+Hmm, is it possible that the nth CPU is trying to use
+an idle state before acpi_cstate[] is initialized?
+
+Does bootin with maxcpus=1 work fine?
+
+how about booting with processor.max_cstate=1?
+
+-Len
+
+> 
+> Best regards
+> Changlong Xie
+> 
+> ---
+> Linux Kernel Performance (LKP) project        Open Source Technology
+> Center
+> 			                      Intel CorporationIntel Corporation
