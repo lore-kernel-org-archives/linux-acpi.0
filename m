@@ -1,64 +1,86 @@
 From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: [PATCH] ACPI/APEI: fix error status check condition for CPER
-Date: Tue, 26 Mar 2013 14:35:10 +0100
-Message-ID: <2538346.HX0LdEgg3N@vostro.rjw.lan>
-References: <1363675687-7839-1-git-send-email-gong.chen@linux.intel.com> <1363743416.11204.14.camel@yhuang-dev>
+Subject: Re: [PATCH] intel-pstate: Use #defines instead of hard-coded values.
+Date: Tue, 26 Mar 2013 14:37:51 +0100
+Message-ID: <13252849.uMIDiVUCkC@vostro.rjw.lan>
+References: <1363789270-29579-1-git-send-email-konrad.wilk@oracle.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7Bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from hydra.sisk.pl ([212.160.235.94]:43084 "EHLO hydra.sisk.pl"
+Received: from hydra.sisk.pl ([212.160.235.94]:43096 "EHLO hydra.sisk.pl"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932367Ab3CZN1p (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 26 Mar 2013 09:27:45 -0400
-In-Reply-To: <1363743416.11204.14.camel@yhuang-dev>
+	id S933705Ab3CZNaZ (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 26 Mar 2013 09:30:25 -0400
+In-Reply-To: <1363789270-29579-1-git-send-email-konrad.wilk@oracle.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Huang Ying <ying.huang@intel.com>
-Cc: Chen Gong <gong.chen@linux.intel.com>, tony.luck@intel.com, linux-acpi@vger.kernel.org
+To: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
+Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, rafael.j.wysocki@intel.com, dirk.j.brandewie@intel.com
 
-On Wednesday, March 20, 2013 09:36:56 AM Huang Ying wrote:
-> On Tue, 2013-03-19 at 02:48 -0400, Chen Gong wrote:
-> > In Table 18-289, ACPI5.0 SPEC, the error data length in CPER
-> > Generic Error Data Entry can be 0, which means this generic
-> > error data entry can have only one header. So fix the check
-> > conditon for it.
-> > 
-> > Signed-off-by: Chen Gong <gong.chen@linux.intel.com>
+On Wednesday, March 20, 2013 10:21:10 AM Konrad Rzeszutek Wilk wrote:
+> They are defined in coreboot (MSR_PLATFORM) and the other
+> one is already defined in msr-index.h.
 > 
-> Good catch!
+> Lets use those.
 > 
-> Reviewed-by: Huang Ying <ying.huang@intel.com>
+> CC: rafael.j.wysocki@intel.com
+> CC: dirk.j.brandewie@intel.com
+> Signed-off-by: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
 
-Applied.  I'm going to push it for 3.9.
+Applied.
 
 Thanks,
 Rafael
 
 
-> > ---
-> >  drivers/acpi/apei/cper.c |    2 +-
-> >  1 file changed, 1 insertion(+), 1 deletion(-)
-> > 
-> > diff --git a/drivers/acpi/apei/cper.c b/drivers/acpi/apei/cper.c
-> > index 1e5d8a4..fefc2ca 100644
-> > --- a/drivers/acpi/apei/cper.c
-> > +++ b/drivers/acpi/apei/cper.c
-> > @@ -405,7 +405,7 @@ int apei_estatus_check(const struct acpi_hest_generic_status *estatus)
-> >  		return rc;
-> >  	data_len = estatus->data_length;
-> >  	gdata = (struct acpi_hest_generic_data *)(estatus + 1);
-> > -	while (data_len > sizeof(*gdata)) {
-> > +	while (data_len >= sizeof(*gdata)) {
-> >  		gedata_len = gdata->error_data_length;
-> >  		if (gedata_len > data_len - sizeof(*gdata))
-> >  			return -EINVAL;
+> ---
+>  arch/x86/include/uapi/asm/msr-index.h | 1 +
+>  drivers/cpufreq/intel_pstate.c        | 6 +++---
+>  2 files changed, 4 insertions(+), 3 deletions(-)
 > 
+> diff --git a/arch/x86/include/uapi/asm/msr-index.h b/arch/x86/include/uapi/asm/msr-index.h
+> index 892ce40..7a060f4 100644
+> --- a/arch/x86/include/uapi/asm/msr-index.h
+> +++ b/arch/x86/include/uapi/asm/msr-index.h
+> @@ -44,6 +44,7 @@
+>  #define SNB_C1_AUTO_UNDEMOTE		(1UL << 27)
+>  #define SNB_C3_AUTO_UNDEMOTE		(1UL << 28)
+>  
+> +#define MSR_PLATFORM_INFO		0x000000ce
+>  #define MSR_MTRRcap			0x000000fe
+>  #define MSR_IA32_BBL_CR_CTL		0x00000119
+>  #define MSR_IA32_BBL_CR_CTL3		0x0000011e
+> diff --git a/drivers/cpufreq/intel_pstate.c b/drivers/cpufreq/intel_pstate.c
+> index f6dd1e7..dadc27d 100644
+> --- a/drivers/cpufreq/intel_pstate.c
+> +++ b/drivers/cpufreq/intel_pstate.c
+> @@ -358,14 +358,14 @@ static void intel_pstate_sysfs_expose_params(void)
+>  static int intel_pstate_min_pstate(void)
+>  {
+>  	u64 value;
+> -	rdmsrl(0xCE, value);
+> +	rdmsrl(MSR_PLATFORM_INFO, value);
+>  	return (value >> 40) & 0xFF;
+>  }
+>  
+>  static int intel_pstate_max_pstate(void)
+>  {
+>  	u64 value;
+> -	rdmsrl(0xCE, value);
+> +	rdmsrl(MSR_PLATFORM_INFO, value);
+>  	return (value >> 8) & 0xFF;
+>  }
+>  
+> @@ -373,7 +373,7 @@ static int intel_pstate_turbo_pstate(void)
+>  {
+>  	u64 value;
+>  	int nont, ret;
+> -	rdmsrl(0x1AD, value);
+> +	rdmsrl(MSR_NHM_TURBO_RATIO_LIMIT, value);
+>  	nont = intel_pstate_max_pstate();
+>  	ret = ((value) & 255);
+>  	if (ret <= nont)
 > 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 -- 
 I speak only for myself.
 Rafael J. Wysocki, Intel Open Source Technology Center.
