@@ -1,92 +1,62 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: [PATCH 1/1] thinkpad-acpi: kill hotkey_thread_mutex
-Date: Tue, 26 Mar 2013 14:50:46 +0100
-Message-ID: <7586645.G956EhhFvW@vostro.rjw.lan>
-References: <201303042055.38040.maciej.rutecki@gmail.com> <3714515.nbfe9U9zSg@vostro.rjw.lan> <20130326130918.GA29941@redhat.com>
+From: Toshi Kani <toshi.kani@hp.com>
+Subject: Re: [PATCH 0/3] ACPI: Provide consistent PNPID match handling
+Date: Tue, 26 Mar 2013 08:42:53 -0600
+Message-ID: <1364308973.11659.100.camel@misato.fc.hp.com>
+References: <1362432643-25636-1-git-send-email-toshi.kani@hp.com>
+	 <13382693.0xFuY5WfEP@vostro.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7Bit
-Return-path: <platform-driver-x86-owner@vger.kernel.org>
-In-Reply-To: <20130326130918.GA29941@redhat.com>
-Sender: platform-driver-x86-owner@vger.kernel.org
-To: Oleg Nesterov <oleg@redhat.com>
-Cc: Henrique de Moraes Holschuh <hmh@hmh.eng.br>, Mandeep Singh Baines <msb@chromium.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-acpi@vger.kernel.org, ibm-acpi@hmh.eng.br, ibm-acpi-devel@lists.sourceforge.net, platform-driver-x86@vger.kernel.org, Aaron Lu <aaron.lu@intel.com>, Tejun Heo <tj@kernel.org>, Andrew Morton <akpm@linux-foundation.org>, Artem Savkov <artem.savkov@gmail.com>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <13382693.0xFuY5WfEP@vostro.rjw.lan>
+Sender: linux-kernel-owner@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, yinghai@kernel.org, jiang.liu@huawei.com, isimatu.yasuaki@jp.fujitsu.com
 List-Id: linux-acpi@vger.kernel.org
 
-On Tuesday, March 26, 2013 02:09:19 PM Oleg Nesterov wrote:
-> On 03/26, Rafael J. Wysocki wrote:
-> >
-> > On Thursday, March 07, 2013 06:53:59 PM Oleg Nesterov wrote:
-> > > hotkey_kthread() does try_to_freeze() under hotkey_thread_mutex.
-> > >
-> > > We can simply kill this mutex, hotkey_poll_stop_sync() does not need
-> > > to serialize with hotkey_kthread(). When kthread_stop() returns the
-> > > thread is already dead, it called do_exit()->complete_vfork_done().
-> > >
-> > > Reported-by: Artem Savkov <artem.savkov@gmail.com>
-> > > Reported-by: Maciej Rutecki <maciej.rutecki@gmail.com>
-> > > Signed-off-by: Oleg Nesterov <oleg@redhat.com>
-> >
-> > I wonder if anyone is taking care of this patch?
+On Tue, 2013-03-26 at 14:11 +0100, Rafael J. Wysocki wrote:
+> On Monday, March 04, 2013 02:30:40 PM Toshi Kani wrote:
+> > When installing/removing a notify handler to/from an ACPI device
+> > object, ACPI core tries to match its associated scan handler to
+> > see if it supports hotplug.  However, the matching logic of the
+> > notify handler is different from the matching logic of attaching
+> > a scan handler to an ACPI device object.  This inconsistency can
+> > lead a mismatch and prevents ACPI scan handlers from supporting
+> > non-HID devices, such as processor objects.
+> > 
+> > This patchset first updates PNPID setup interfaces to be independent
+> > from acpi_device, and then updates the matching logic of the notify
+> > handlers to be consistent with the attach handling.
+> > 
+> > This patchset is based on linux-pm.git/bleeding-edge.
 > 
-> IIRC, it is already in -mm tree.
+> All patches in the series applied to linux-pm.git/linux-next.
 
-OK, thanks for letting me know.
+Great!  Thanks Rafael!
+-Toshi
 
 
-> > > --- x/drivers/platform/x86/thinkpad_acpi.c
-> > > +++ x/drivers/platform/x86/thinkpad_acpi.c
-> > > @@ -1965,9 +1965,6 @@ struct tp_nvram_state {
-> > >  /* kthread for the hotkey poller */
-> > >  static struct task_struct *tpacpi_hotkey_task;
-> > >  
-> > > -/* Acquired while the poller kthread is running, use to sync start/stop */
-> > > -static struct mutex hotkey_thread_mutex;
-> > > -
-> > >  /*
-> > >   * Acquire mutex to write poller control variables as an
-> > >   * atomic block.
-> > > @@ -2463,8 +2460,6 @@ static int hotkey_kthread(void *data)
-> > >  	unsigned int poll_freq;
-> > >  	bool was_frozen;
-> > >  
-> > > -	mutex_lock(&hotkey_thread_mutex);
-> > > -
-> > >  	if (tpacpi_lifecycle == TPACPI_LIFE_EXITING)
-> > >  		goto exit;
-> > >  
-> > > @@ -2524,7 +2519,6 @@ static int hotkey_kthread(void *data)
-> > >  	}
-> > >  
-> > >  exit:
-> > > -	mutex_unlock(&hotkey_thread_mutex);
-> > >  	return 0;
-> > >  }
-> > >  
-> > > @@ -2534,9 +2528,6 @@ static void hotkey_poll_stop_sync(void)
-> > >  	if (tpacpi_hotkey_task) {
-> > >  		kthread_stop(tpacpi_hotkey_task);
-> > >  		tpacpi_hotkey_task = NULL;
-> > > -		mutex_lock(&hotkey_thread_mutex);
-> > > -		/* at this point, the thread did exit */
-> > > -		mutex_unlock(&hotkey_thread_mutex);
-> > >  	}
-> > >  }
-> > >  
-> > > @@ -3235,7 +3226,6 @@ static int __init hotkey_init(struct ibm
-> > >  	mutex_init(&hotkey_mutex);
-> > >  
-> > >  #ifdef CONFIG_THINKPAD_ACPI_HOTKEY_POLL
-> > > -	mutex_init(&hotkey_thread_mutex);
-> > >  	mutex_init(&hotkey_thread_data_mutex);
-> > >  #endif
-> > >  
-> > > 
-> > > --
-> > > To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
-> > > the body of a message to majordomo@vger.kernel.org
-> > > More majordomo info at  http://vger.kernel.org/majordomo-info.html
 > 
--- 
-I speak only for myself.
-Rafael J. Wysocki, Intel Open Source Technology Center.
+> Thanks,
+> Rafael
+> 
+> 
+> > ---
+> > Toshi Kani (3):
+> >   ACPI: Remove acpi_device dependency in acpi_device_set_id()
+> >   ACPI: Update PNPID set/free interfaces
+> >   ACPI: Update PNPID match handling for notify
+> > 
+> > ---
+> >  drivers/acpi/internal.h               |   2 +-
+> >  drivers/acpi/power.c                  |   2 +-
+> >  drivers/acpi/scan.c                   | 203 +++++++++++++++++++---------------
+> >  drivers/acpi/video_detect.c           |  25 ++---
+> >  drivers/gpu/drm/i915/intel_opregion.c |   4 +-
+> >  include/acpi/acpi_bus.h               |  14 ++-
+> >  include/linux/acpi.h                  |   4 +-
+> >  7 files changed, 138 insertions(+), 116 deletions(-)
+> > --
+> > To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
+> > the body of a message to majordomo@vger.kernel.org
+> > More majordomo info at  http://vger.kernel.org/majordomo-info.html
