@@ -1,63 +1,64 @@
 From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: [PATCH] ACPI: remove "config ACPI_DEBUG_FUNC_TRACE"
-Date: Tue, 26 Mar 2013 14:34:25 +0100
-Message-ID: <3588021.V98D5VToQr@vostro.rjw.lan>
-References: <1363689661.1390.9.camel@x61.thuisdomein>
+Subject: Re: [PATCH] ACPI/APEI: fix error status check condition for CPER
+Date: Tue, 26 Mar 2013 14:35:10 +0100
+Message-ID: <2538346.HX0LdEgg3N@vostro.rjw.lan>
+References: <1363675687-7839-1-git-send-email-gong.chen@linux.intel.com> <1363743416.11204.14.camel@yhuang-dev>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7Bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from hydra.sisk.pl ([212.160.235.94]:43079 "EHLO hydra.sisk.pl"
+Received: from hydra.sisk.pl ([212.160.235.94]:43084 "EHLO hydra.sisk.pl"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1758206Ab3CZN07 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 26 Mar 2013 09:26:59 -0400
-In-Reply-To: <1363689661.1390.9.camel@x61.thuisdomein>
+	id S932367Ab3CZN1p (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 26 Mar 2013 09:27:45 -0400
+In-Reply-To: <1363743416.11204.14.camel@yhuang-dev>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Paul Bolle <pebolle@tiscali.nl>, Lv Zheng <lv.zheng@intel.com>
-Cc: Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+To: Huang Ying <ying.huang@intel.com>
+Cc: Chen Gong <gong.chen@linux.intel.com>, tony.luck@intel.com, linux-acpi@vger.kernel.org
 
-On Tuesday, March 19, 2013 11:41:01 AM Paul Bolle wrote:
-> Kconfig symbol ACPI_DEBUG_FUNC_TRACE was only used (through its
-> corresponding macro) in drivers/acpi/acpica/acmacros.h. That macro was
-> removed from that header in v3.8, with commit
-> 86ff0e508f88eda6e479a897476026055831d2d8 ("ACPICA: Fix unmerged
-> acmacros.h divergences."). That commit did not explain why that macro
-> was removed. But it seems that ACPI_DEBUG_FUNC_TRACE can now be removed
-> too, as it is unused.
+On Wednesday, March 20, 2013 09:36:56 AM Huang Ying wrote:
+> On Tue, 2013-03-19 at 02:48 -0400, Chen Gong wrote:
+> > In Table 18-289, ACPI5.0 SPEC, the error data length in CPER
+> > Generic Error Data Entry can be 0, which means this generic
+> > error data entry can have only one header. So fix the check
+> > conditon for it.
+> > 
+> > Signed-off-by: Chen Gong <gong.chen@linux.intel.com>
+> 
+> Good catch!
+> 
+> Reviewed-by: Huang Ying <ying.huang@intel.com>
 
-Lv, can you please comment here?
+Applied.  I'm going to push it for 3.9.
 
+Thanks,
 Rafael
 
 
-> Signed-off-by: Paul Bolle <pebolle@tiscali.nl>
-> ---
-> Eyeball tested.
+> > ---
+> >  drivers/acpi/apei/cper.c |    2 +-
+> >  1 file changed, 1 insertion(+), 1 deletion(-)
+> > 
+> > diff --git a/drivers/acpi/apei/cper.c b/drivers/acpi/apei/cper.c
+> > index 1e5d8a4..fefc2ca 100644
+> > --- a/drivers/acpi/apei/cper.c
+> > +++ b/drivers/acpi/apei/cper.c
+> > @@ -405,7 +405,7 @@ int apei_estatus_check(const struct acpi_hest_generic_status *estatus)
+> >  		return rc;
+> >  	data_len = estatus->data_length;
+> >  	gdata = (struct acpi_hest_generic_data *)(estatus + 1);
+> > -	while (data_len > sizeof(*gdata)) {
+> > +	while (data_len >= sizeof(*gdata)) {
+> >  		gedata_len = gdata->error_data_length;
+> >  		if (gedata_len > data_len - sizeof(*gdata))
+> >  			return -EINVAL;
 > 
->  drivers/acpi/Kconfig | 8 --------
->  1 file changed, 8 deletions(-)
 > 
-> diff --git a/drivers/acpi/Kconfig b/drivers/acpi/Kconfig
-> index 92ed969..006b714 100644
-> --- a/drivers/acpi/Kconfig
-> +++ b/drivers/acpi/Kconfig
-> @@ -298,14 +298,6 @@ config ACPI_DEBUG
->  	  Documentation/kernel-parameters.txt to control the type and
->  	  amount of debug output.
->  
-> -config ACPI_DEBUG_FUNC_TRACE
-> -	bool "Additionally enable ACPI function tracing"
-> -	default n
-> -	depends on ACPI_DEBUG
-> -	help
-> -	  ACPI Debug Statements slow down ACPI processing. Function trace
-> -	  is about half of the penalty and is rarely useful.
-> -
->  config ACPI_PCI_SLOT
->  	bool "PCI slot detection driver"
->  	depends on SYSFS
-> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 -- 
 I speak only for myself.
 Rafael J. Wysocki, Intel Open Source Technology Center.
