@@ -1,51 +1,104 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: [PATCH] PCI, ACPI: hold acpi_scan_lock during root bus hotplug
-Date: Tue, 26 Mar 2013 23:58:50 +0100
-Message-ID: <13791994.aJX11d8f7N@vostro.rjw.lan>
-References: <1673357.1IdxNNvGWX@vostro.rjw.lan> <2166148.RX0m5V0khX@vostro.rjw.lan> <CAErSpo7obx9Ay+sZZtki5ZBrSpYfJ+dnxxoH0=ReqOOByVkXhA@mail.gmail.com>
+From: Toshi Kani <toshi.kani@hp.com>
+Subject: Re: [PATCH v2] ACPI: Add sysfs links from memory device to memblocks
+Date: Tue, 26 Mar 2013 16:59:36 -0600
+Message-ID: <1364338776.15745.27.camel@misato.fc.hp.com>
+References: <1361826130-31062-1-git-send-email-toshi.kani@hp.com>
+	 <2207657.9htT4cP6Jv@vostro.rjw.lan>
+	 <1364312526.11659.134.camel@misato.fc.hp.com>
+	 <3205964.WeZJN7sRdd@vostro.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <CAErSpo7obx9Ay+sZZtki5ZBrSpYfJ+dnxxoH0=ReqOOByVkXhA@mail.gmail.com>
+In-Reply-To: <3205964.WeZJN7sRdd@vostro.rjw.lan>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Bjorn Helgaas <bhelgaas@google.com>
-Cc: Yinghai Lu <yinghai@kernel.org>, Linus Torvalds <torvalds@linux-foundation.org>, "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
+To: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, isimatu.yasuaki@jp.fujitsu.com, vasilis.liaskovitis@profitbricks.com
 List-Id: linux-acpi@vger.kernel.org
 
-On Tuesday, March 26, 2013 04:48:49 PM Bjorn Helgaas wrote:
-> On Tue, Mar 26, 2013 at 4:54 PM, Rafael J. Wysocki <rjw@sisk.pl> wrote:
-> > On Tuesday, March 26, 2013 08:12:30 AM Yinghai Lu wrote:
-> >> On Tue, Mar 26, 2013 at 6:24 AM, Rafael J. Wysocki <rjw@sisk.pl> wrote:
-> >> > On Sunday, March 10, 2013 10:05:16 PM Yinghai Lu wrote:
-> >> >> During merging pci tree with pm/acpi tree, Linus noticed that
-> >> >> we don't have same lock using patten about acpi pci root as
-> >> >> acpiphp.
-> >> >>
-> >> >> Here apply same lock patten, and we need to change
-> >> >> acpi_bus_hot_remove_device executing via acpi_os_hotplug_execute()
-> >> >> as it also hold the lock in acpi_bus_hot_remove_device.
-> >> >>
-> >> >> That will make acpi_bus_hot_remove_device calling the same as other
-> >> >> callers.
-> >> >>
-> >> >> Reported-by: Linus Torvalds <torvalds@linux-foundation.org>
-> >> >> Signed-off-by: Yinghai Lu <yinghai@kernel.org>
-> >> >> Acked-by: Rafael J. Wysocki <rjw@sisk.pl>
-> >> >
-> >> > Bjorn, this needs to go in before final 3.9.
-> >> >
-> >> > Are you going to handle it, or should I take care of it?
-> >>
-> >> It should be better via your pm+acpi tree, as that lock is added via your tree.
-> >
-> > OK, I'll take it, then, if Bjorn doesn't object.
+On Tue, 2013-03-26 at 23:39 +0100, Rafael J. Wysocki wrote:
+> On Tuesday, March 26, 2013 09:42:06 AM Toshi Kani wrote:
+> > On Tue, 2013-03-26 at 14:04 +0100, Rafael J. Wysocki wrote:
+> > > On Monday, February 25, 2013 02:02:10 PM Toshi Kani wrote:
+> > > > In order to eject a memory device object represented as "PNP0C80:%d"
+> > > > in sysfs, its associated memblocks (system/memory/memory%d) need to
+> > > > be off-lined.  However, there is no user friendly way to correlate
+> > > > between a memory device object and its memblocks in sysfs.
+> > > > 
+> > > > This patch creates sysfs links to memblocks under a memory device
+> > > > object so that a user can easily checks and manipulates its memblocks
+> > > > in sysfs.
+> > > > 
+> > > > For example, when PNP0C80:05 is associated with memory8 and memory9,
+> > > > the following two links are created under PNP0C80:05.  This allows
+> > > > a user to access memory8/9 directly from PNP0C80:05.
+> > > > 
+> > > >   # ll /sys/devices/LNXSYSTM:00/LNXSYBUS:00/PNP0C80:05
+> > > >   lrwxrwxrwx. memory8 -> ../../../system/memory/memory8
+> > > >   lrwxrwxrwx. memory9 -> ../../../system/memory/memory9
+> > > > 
+> > > > Signed-off-by: Toshi Kani <toshi.kani@hp.com>
+> > > 
+> > > Here I have some doubts.
+> > > 
+> > > This adds a very specific interface for user space that we're going to need to
+> > > maintain going forward if the user space starts to use it.  However, it kind of
+> > > duplicates the existing "physical_node" interface that we have for "regular"
+> > > devices.
+> > > 
+> > > So, if possible, I'd like the memory subsystem to utilize the existing
+> > > interface instead of creating an entirely new one.  Namely, why don't we create
+> > > a struct device-based object for each memory block and associated those new
+> > > "devices" with the PNP0C80 ACPI object through the functions in glue.c?
+> > > Then, we could add an "offline/online" interface to those "devices" too.
+> > 
+> > This patch simply adds symbolic links to system/memory/memoryN, which
+> > the memory subsystem already provides for the online/offline interface
+> > of memory blocks.  So, it does not introduce a new interface, but guides
+> > users (and user tools) to know which memory blocks need to be off-lined
+> > in order to hot-delete any particular memory device PNP0C80:X.  A cpu
+> > device LNXCPU:X also has a similar symbolic link "sysdev" that links to
+> > system/cpu/cpuN.  I could not use the same "sysdev" for PNP0C80:X since
+> > it typically associates with multiple memory blocks.
+> > 
+> > I thought about using glue.c to create symbolic links between memoryN
+> > and PNP0C80:X.  However, it has an ordering issue.  During boot-time,
+> > memoryN gets created before PNP0C80:X.  But during hot-add, PNP0C80:X
+> > gets created before memoryN.
 > 
-> Yep, that's fine with me.
+> Quite frankly, this sounds like a bug to me.  Namely, what is memoryN really
+> good for without PNP0C80:X?  If it is not good for anything in that case,
+> it should never be created befor PNP0C80:X.
 
-Cool, thanks. :-)
+memoryN works without PNP0C80:X and does not depend on ACPI.  A memoryN
+represents a memblk, each of which is merely a 128MB (in case of x86) of
+memory chunk sliced from the entire memory ranges.  This is why it is
+hard to associate between memoryN and PNP0C80:X without these symbolic
+links (otherwise, you will have to calculate from memory address.)
 
+The memory subsystem also obtains the memory ranges from EFI or e820
+during boot, and ACPI is not necessary to construct memoryN at boot.
+Since EFI / e820 only provides the boot-time configuration, ACPI is used
+to update the memory ranges during hot-add/delete.
 
--- 
-I speak only for myself.
-Rafael J. Wysocki, Intel Open Source Technology Center.
+> > This patch calls
+> > acpi_setup_mem_blk_links() in a point that solves this ordering issue
+> > since this point guarantees that both memoryN and PNP0C80X are created
+> > for both boot-time and hot-add.
+> 
+> I would prefer the ordering of creation to be the same in both cases.
+> Otherwise it really looks like we need to work around a problem that we're
+> creating for ourselves.
+> 
+> How exactly are memoryN created during boot?
+
+memoryN is created in memory_dev_init().  This is even before
+do_initcalls().  I'd also prefer the same ordering, but I felt that
+changing this ordering would be rather challenging.
+
+do_basic_setup()
+  driver_init()
+    memory_dev_init()
+
+Thanks,
+-Toshi
