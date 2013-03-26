@@ -1,65 +1,58 @@
 From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: [PATCHv2 1/5] ACPI: suppress compiler warnings in button.c
-Date: Tue, 26 Mar 2013 14:26:32 +0100
-Message-ID: <30325044.ggCSRcSXmt@vostro.rjw.lan>
-References: <1362993428-14823-1-git-send-email-andriy.shevchenko@linux.intel.com>
+Subject: Re: [PATCH] acpi: remove reference to ACPI_HOTPLUG_IO
+Date: Tue, 26 Mar 2013 14:27:17 +0100
+Message-ID: <1644989.VH5Ga70vPA@vostro.rjw.lan>
+References: <1362999228.3137.55.camel@x61.thuisdomein>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7Bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from hydra.sisk.pl ([212.160.235.94]:43015 "EHLO hydra.sisk.pl"
+Received: from hydra.sisk.pl ([212.160.235.94]:43023 "EHLO hydra.sisk.pl"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S933294Ab3CZNTH convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 26 Mar 2013 09:19:07 -0400
-In-Reply-To: <1362993428-14823-1-git-send-email-andriy.shevchenko@linux.intel.com>
+	id S934116Ab3CZNTv (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 26 Mar 2013 09:19:51 -0400
+In-Reply-To: <1362999228.3137.55.camel@x61.thuisdomein>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Cc: linux-acpi@vger.kernel.org, Bjorn Helgaas <bhelgaas@google.com>
+To: Paul Bolle <pebolle@tiscali.nl>
+Cc: Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 
-On Monday, March 11, 2013 11:17:04 AM Andy Shevchenko wrote:
-> This patch fixes following compiler warnings when build via make W=3D=
-1:
->=20
-> drivers/acpi/button.c:220:5: warning: no previous prototype for =E2=80=
-=98acpi_lid_notifier_register=E2=80=99 [-Wmissing-prototypes]
-> drivers/acpi/button.c:226:5: warning: no previous prototype for =E2=80=
-=98acpi_lid_notifier_unregister=E2=80=99 [-Wmissing-prototypes]
-> drivers/acpi/button.c:232:5: warning: no previous prototype for =E2=80=
-=98acpi_lid_open=E2=80=99 [-Wmissing-prototypes]
->=20
-> Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+On Monday, March 11, 2013 11:53:48 AM Paul Bolle wrote:
+> The Kconfig entry for ACPI Container and Module Devices got
+> added in v2.6.11. Its default value has always been set to
+>     (ACPI_HOTPLUG_MEMORY || ACPI_HOTPLUG_CPU || ACPI_HOTPLUG_IO)
+> 
+> But the Kconfig symbol ACPI_HOTPLUG_IO has never existed. So it's
+> pointless to use it to set this default value.
+> 
+> Signed-off-by: Paul Bolle <pebolle@tiscali.nl>
 
-Patches [1-4/5] applied to linux-pm.git/linux-next.  I'm leaving patch =
-[5/5]
-to Bjorn.
+Applied to linux-pm.git/linux-next.
 
 Thanks,
 Rafael
 
 
 > ---
->  drivers/acpi/button.c | 1 +
->  1 file changed, 1 insertion(+)
->=20
-> diff --git a/drivers/acpi/button.c b/drivers/acpi/button.c
-> index 86c7d54..92a659a 100644
-> --- a/drivers/acpi/button.c
-> +++ b/drivers/acpi/button.c
-> @@ -33,6 +33,7 @@
->  #include <linux/slab.h>
->  #include <acpi/acpi_bus.h>
->  #include <acpi/acpi_drivers.h>
-> +#include <acpi/button.h>
-> =20
->  #define PREFIX "ACPI: "
-> =20
->=20
---=20
+> Untested, actually.
+> 
+>  drivers/acpi/Kconfig | 2 +-
+>  1 file changed, 1 insertion(+), 1 deletion(-)
+> 
+> diff --git a/drivers/acpi/Kconfig b/drivers/acpi/Kconfig
+> index 92ed969..b46f5e3 100644
+> --- a/drivers/acpi/Kconfig
+> +++ b/drivers/acpi/Kconfig
+> @@ -334,7 +334,7 @@ config X86_PM_TIMER
+>  
+>  config ACPI_CONTAINER
+>  	bool "Container and Module Devices"
+> -	default (ACPI_HOTPLUG_MEMORY || ACPI_HOTPLUG_CPU || ACPI_HOTPLUG_IO)
+> +	default (ACPI_HOTPLUG_MEMORY || ACPI_HOTPLUG_CPU)
+>  	help
+>  	  This driver supports ACPI Container and Module devices (IDs
+>  	  ACPI0004, PNP0A05, and PNP0A06).
+> 
+-- 
 I speak only for myself.
 Rafael J. Wysocki, Intel Open Source Technology Center.
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
