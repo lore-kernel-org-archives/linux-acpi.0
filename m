@@ -1,51 +1,63 @@
-From: Richard Genoud <richard.genoud@gmail.com>
-Subject: Re: [RESEND PATCH 1/6] acpi: Remove the leading space of "unlock"
- label in acpi_memory_device_notify().
-Date: Tue, 26 Mar 2013 14:23:49 +0100
-Message-ID: <CACQ1gAia2YsbzV+zT8gTiYvB7JVft3aL1iwC0DBuyCoZ+8wAuQ@mail.gmail.com>
-References: <1362558611-32255-1-git-send-email-tangchen@cn.fujitsu.com>
- <1362558611-32255-2-git-send-email-tangchen@cn.fujitsu.com> <1843378.VZBEQ0WNNo@vostro.rjw.lan>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: Re: [PATCH] ACPI: remove "config ACPI_DEBUG_FUNC_TRACE"
+Date: Tue, 26 Mar 2013 14:34:25 +0100
+Message-ID: <3588021.V98D5VToQr@vostro.rjw.lan>
+References: <1363689661.1390.9.camel@x61.thuisdomein>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7Bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-ie0-f179.google.com ([209.85.223.179]:49166 "EHLO
-	mail-ie0-f179.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932733Ab3CZNYK (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 26 Mar 2013 09:24:10 -0400
-In-Reply-To: <1843378.VZBEQ0WNNo@vostro.rjw.lan>
+Received: from hydra.sisk.pl ([212.160.235.94]:43079 "EHLO hydra.sisk.pl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1758206Ab3CZN07 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 26 Mar 2013 09:26:59 -0400
+In-Reply-To: <1363689661.1390.9.camel@x61.thuisdomein>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: Tang Chen <tangchen@cn.fujitsu.com>, lenb@kernel.org, robert.moore@intel.com, lv.zheng@intel.com, ming.m.lin@intel.com, mpm@selenic.com, herbert@gondor.apana.org.au, rob@landley.net, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linux-doc@vger.kernel.org
+To: Paul Bolle <pebolle@tiscali.nl>, Lv Zheng <lv.zheng@intel.com>
+Cc: Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 
-2013/3/26 Rafael J. Wysocki <rjw@sisk.pl>:
-> On Wednesday, March 06, 2013 04:30:06 PM Tang Chen wrote:
->> There is a leading space in front of "unlock" label in acpi_memory_device_notify(). Remove it.
->>
->> Signed-off-by: Tang Chen <tangchen@cn.fujitsu.com>
->> ---
->>  drivers/acpi/acpi_memhotplug.c |    2 +-
->>  1 files changed, 1 insertions(+), 1 deletions(-)
->>
->> diff --git a/drivers/acpi/acpi_memhotplug.c b/drivers/acpi/acpi_memhotplug.c
->> index da1f82b..8a10c23 100644
->> --- a/drivers/acpi/acpi_memhotplug.c
->> +++ b/drivers/acpi/acpi_memhotplug.c
->> @@ -369,7 +369,7 @@ static void acpi_memory_device_notify(acpi_handle handle, u32 event, void *data)
->>                       kfree(ej_event);
->>               }
->>
->> - unlock:
->> +unlock:
->>               acpi_scan_lock_release();
->>               if (ACPI_SUCCESS(status))
->>                       return;
->
-> The leading space is actually in agreement with the kernel coding style
-> (and there's a reason why it's there).
+On Tuesday, March 19, 2013 11:41:01 AM Paul Bolle wrote:
+> Kconfig symbol ACPI_DEBUG_FUNC_TRACE was only used (through its
+> corresponding macro) in drivers/acpi/acpica/acmacros.h. That macro was
+> removed from that header in v3.8, with commit
+> 86ff0e508f88eda6e479a897476026055831d2d8 ("ACPICA: Fix unmerged
+> acmacros.h divergences."). That commit did not explain why that macro
+> was removed. But it seems that ACPI_DEBUG_FUNC_TRACE can now be removed
+> too, as it is unused.
 
-Well, I'm curious. What's the reason ?
-I didn't see anything in Documentation/CodingStyle about that.
+Lv, can you please comment here?
 
-Regards,
-Richard.
+Rafael
+
+
+> Signed-off-by: Paul Bolle <pebolle@tiscali.nl>
+> ---
+> Eyeball tested.
+> 
+>  drivers/acpi/Kconfig | 8 --------
+>  1 file changed, 8 deletions(-)
+> 
+> diff --git a/drivers/acpi/Kconfig b/drivers/acpi/Kconfig
+> index 92ed969..006b714 100644
+> --- a/drivers/acpi/Kconfig
+> +++ b/drivers/acpi/Kconfig
+> @@ -298,14 +298,6 @@ config ACPI_DEBUG
+>  	  Documentation/kernel-parameters.txt to control the type and
+>  	  amount of debug output.
+>  
+> -config ACPI_DEBUG_FUNC_TRACE
+> -	bool "Additionally enable ACPI function tracing"
+> -	default n
+> -	depends on ACPI_DEBUG
+> -	help
+> -	  ACPI Debug Statements slow down ACPI processing. Function trace
+> -	  is about half of the penalty and is rarely useful.
+> -
+>  config ACPI_PCI_SLOT
+>  	bool "PCI slot detection driver"
+>  	depends on SYSFS
+> 
+-- 
+I speak only for myself.
+Rafael J. Wysocki, Intel Open Source Technology Center.
