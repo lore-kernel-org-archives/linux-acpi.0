@@ -1,174 +1,195 @@
-From: Daniel Lezcano <daniel.lezcano@linaro.org>
-Subject: Re: [LKP] Commit ac3ebafa81a makes NHM EX/EP machines hung out since
- 3.9-rc1
-Date: Tue, 26 Mar 2013 22:11:56 +0100
-Message-ID: <51520F1C.8070904@linaro.org>
-References: <20130313022759.GA120840@bee> <5151BD10.3000108@intel.com>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: Re: [PATCH v2] ACPI: Add sysfs links from memory device to memblocks
+Date: Tue, 26 Mar 2013 23:39:29 +0100
+Message-ID: <3205964.WeZJN7sRdd@vostro.rjw.lan>
+References: <1361826130-31062-1-git-send-email-toshi.kani@hp.com> <2207657.9htT4cP6Jv@vostro.rjw.lan> <1364312526.11659.134.camel@misato.fc.hp.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7Bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-we0-f176.google.com ([74.125.82.176]:32875 "EHLO
-	mail-we0-f176.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751251Ab3CZVMA (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 26 Mar 2013 17:12:00 -0400
-Received: by mail-we0-f176.google.com with SMTP id s43so2403749wey.7
-        for <linux-acpi@vger.kernel.org>; Tue, 26 Mar 2013 14:11:58 -0700 (PDT)
-In-Reply-To: <5151BD10.3000108@intel.com>
+Received: from hydra.sisk.pl ([212.160.235.94]:43757 "EHLO hydra.sisk.pl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752138Ab3CZWcE (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 26 Mar 2013 18:32:04 -0400
+In-Reply-To: <1364312526.11659.134.camel@misato.fc.hp.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Alex Shi <alex.shi@intel.com>
-Cc: Changlong Xie <changlongx.xie@intel.com>, Len Brown <len.brown@intel.com>, linux-acpi@vger.kernel.org, lkp@linux.intel.com
+To: Toshi Kani <toshi.kani@hp.com>
+Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, isimatu.yasuaki@jp.fujitsu.com, vasilis.liaskovitis@profitbricks.com
 
-On 03/26/2013 04:21 PM, Alex Shi wrote:
-> On 03/13/2013 10:27 AM, Changlong Xie wrote:
->> Hi Len,
->>
->> 	FYI, since 3.9-rc1 our three NHM EP/EX LKP(linux kernel performance=
-) test servers=20
->> 	except SNB/IVB/WSM hung up unexpectly.=20
->>
->=20
-> the following draft patch can fix the panic, so it proved we still ne=
-ed the percpu cstate.
+On Tuesday, March 26, 2013 09:42:06 AM Toshi Kani wrote:
+> On Tue, 2013-03-26 at 14:04 +0100, Rafael J. Wysocki wrote:
+> > On Monday, February 25, 2013 02:02:10 PM Toshi Kani wrote:
+> > > In order to eject a memory device object represented as "PNP0C80:%d"
+> > > in sysfs, its associated memblocks (system/memory/memory%d) need to
+> > > be off-lined.  However, there is no user friendly way to correlate
+> > > between a memory device object and its memblocks in sysfs.
+> > > 
+> > > This patch creates sysfs links to memblocks under a memory device
+> > > object so that a user can easily checks and manipulates its memblocks
+> > > in sysfs.
+> > > 
+> > > For example, when PNP0C80:05 is associated with memory8 and memory9,
+> > > the following two links are created under PNP0C80:05.  This allows
+> > > a user to access memory8/9 directly from PNP0C80:05.
+> > > 
+> > >   # ll /sys/devices/LNXSYSTM:00/LNXSYBUS:00/PNP0C80:05
+> > >   lrwxrwxrwx. memory8 -> ../../../system/memory/memory8
+> > >   lrwxrwxrwx. memory9 -> ../../../system/memory/memory9
+> > > 
+> > > Signed-off-by: Toshi Kani <toshi.kani@hp.com>
+> > 
+> > Here I have some doubts.
+> > 
+> > This adds a very specific interface for user space that we're going to need to
+> > maintain going forward if the user space starts to use it.  However, it kind of
+> > duplicates the existing "physical_node" interface that we have for "regular"
+> > devices.
+> > 
+> > So, if possible, I'd like the memory subsystem to utilize the existing
+> > interface instead of creating an entirely new one.  Namely, why don't we create
+> > a struct device-based object for each memory block and associated those new
+> > "devices" with the PNP0C80 ACPI object through the functions in glue.c?
+> > Then, we could add an "offline/online" interface to those "devices" too.
+> 
+> This patch simply adds symbolic links to system/memory/memoryN, which
+> the memory subsystem already provides for the online/offline interface
+> of memory blocks.  So, it does not introduce a new interface, but guides
+> users (and user tools) to know which memory blocks need to be off-lined
+> in order to hot-delete any particular memory device PNP0C80:X.  A cpu
+> device LNXCPU:X also has a similar symbolic link "sysdev" that links to
+> system/cpu/cpuN.  I could not use the same "sysdev" for PNP0C80:X since
+> it typically associates with multiple memory blocks.
+> 
+> I thought about using glue.c to create symbolic links between memoryN
+> and PNP0C80:X.  However, it has an ordering issue.  During boot-time,
+> memoryN gets created before PNP0C80:X.  But during hot-add, PNP0C80:X
+> gets created before memoryN.
 
-Alex,
+Quite frankly, this sounds like a bug to me.  Namely, what is memoryN really
+good for without PNP0C80:X?  If it is not good for anything in that case,
+it should never be created befor PNP0C80:X.
 
-I don't get the connection between the patch and "we still need the
-percpu cstate" ?
+> This patch calls
+> acpi_setup_mem_blk_links() in a point that solves this ordering issue
+> since this point guarantees that both memoryN and PNP0C80X are created
+> for both boot-time and hot-add.
 
-Could you give more informations about how to reproduce the problem ?
+I would prefer the ordering of creation to be the same in both cases.
+Otherwise it really looks like we need to work around a problem that we're
+creating for ourselves.
 
-How many processors has your system ?
+How exactly are memoryN created during boot?
 
-Could you provide a small test program to trigger the issue ?
-
-When does it appear ? At boot time ? Under load ? At idle time ? etc ..=
-=2E
-
-What is the result of your investigation which lead you to propose the
-patch below ?
-
-Thanks
-  -- Daniel
-
-> but look at the struct acpi_processor_cx {
->         u8 valid;
->         u8 type;
->         u32 address;
->         u8 entry_method;
->         u8 index;
->         u32 latency;
->         u8 bm_sts_skip;
->         char desc[ACPI_CX_DESC_LEN];
-> };
->=20
-> I have printed all members except the last one. all of them are same =
-on all cpu.
-> It's interesting.=20
->=20
->=20
-> -----------
->=20
-> From 5a4fc23fdf5202f8555a25a03afc4d06ac168032 Mon Sep 17 00:00:00 200=
-1
-> From: Alex Shi <alex.shi@intel.com>
-> Date: Tue, 26 Mar 2013 22:57:47 +0800
-> Subject: [PATCH] acpi: abc
->=20
-> ---
->  drivers/acpi/processor_idle.c |   16 ++++++++++------
->  1 files changed, 10 insertions(+), 6 deletions(-)
->=20
-> diff --git a/drivers/acpi/processor_idle.c b/drivers/acpi/processor_i=
-dle.c
-> index fc95308..61373ab 100644
-> --- a/drivers/acpi/processor_idle.c
-> +++ b/drivers/acpi/processor_idle.c
-> @@ -66,7 +66,7 @@ module_param(latency_factor, uint, 0644);
-> =20
->  static DEFINE_PER_CPU(struct cpuidle_device *, acpi_cpuidle_device);
-> =20
-> -static struct acpi_processor_cx *acpi_cstate[CPUIDLE_STATE_MAX];
-> +static DEFINE_PER_CPU (struct acpi_processor_cx *[CPUIDLE_STATE_MAX]=
-, acpi_cstate);
-> =20
->  static int disabled_by_idle_boot_param(void)
->  {
-> @@ -722,9 +722,10 @@ static int acpi_idle_enter_c1(struct cpuidle_dev=
-ice *dev,
->  		struct cpuidle_driver *drv, int index)
->  {
->  	struct acpi_processor *pr;
-> -	struct acpi_processor_cx *cx =3D acpi_cstate[index];
-> +	struct acpi_processor_cx *cx;
-> =20
->  	pr =3D __this_cpu_read(processors);
-> + 	cx =3D per_cpu(acpi_cstate[index], pr->id);
-> =20
->  	if (unlikely(!pr))
->  		return -EINVAL;
-> @@ -745,7 +746,8 @@ static int acpi_idle_enter_c1(struct cpuidle_devi=
-ce *dev,
->   */
->  static int acpi_idle_play_dead(struct cpuidle_device *dev, int index=
-)
->  {
-> -	struct acpi_processor_cx *cx =3D acpi_cstate[index];
-> +	struct acpi_processor_cx *cx;
-> + 	cx =3D per_cpu(acpi_cstate[index], dev->cpu);
-> =20
->  	ACPI_FLUSH_CPU_CACHE();
-> =20
-> @@ -775,9 +777,10 @@ static int acpi_idle_enter_simple(struct cpuidle=
-_device *dev,
->  		struct cpuidle_driver *drv, int index)
->  {
->  	struct acpi_processor *pr;
-> -	struct acpi_processor_cx *cx =3D acpi_cstate[index];
-> +	struct acpi_processor_cx *cx;
-> =20
->  	pr =3D __this_cpu_read(processors);
-> + 	cx =3D per_cpu(acpi_cstate[index], pr->id);
-> =20
->  	if (unlikely(!pr))
->  		return -EINVAL;
-> @@ -833,9 +836,10 @@ static int acpi_idle_enter_bm(struct cpuidle_dev=
-ice *dev,
->  		struct cpuidle_driver *drv, int index)
->  {
->  	struct acpi_processor *pr;
-> -	struct acpi_processor_cx *cx =3D acpi_cstate[index];
-> +	struct acpi_processor_cx *cx;
-> =20
->  	pr =3D __this_cpu_read(processors);
-> + 	cx =3D per_cpu(acpi_cstate[index], pr->id);
-> =20
->  	if (unlikely(!pr))
->  		return -EINVAL;
-> @@ -960,7 +964,7 @@ static int acpi_processor_setup_cpuidle_cx(struct=
- acpi_processor *pr,
->  		    !(acpi_gbl_FADT.flags & ACPI_FADT_C2_MP_SUPPORTED))
->  			continue;
->  #endif
-> -		acpi_cstate[count] =3D cx;
-> +		per_cpu(acpi_cstate[count], dev->cpu) =3D cx;
-> =20
->  		count++;
->  		if (count =3D=3D CPUIDLE_STATE_MAX)
->=20
+Rafael
 
 
---=20
- <http://www.linaro.org/> Linaro.org =E2=94=82 Open source software for=
- ARM SoCs
-
-=46ollow Linaro:  <http://www.facebook.com/pages/Linaro> Facebook |
-<http://twitter.com/#!/linaroorg> Twitter |
-<http://www.linaro.org/linaro-blog/> Blog
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> > > ---
+> > > 
+> > > This patch applies on top of the Rafael's patch below.
+> > > https://patchwork.kernel.org/patch/2153261/
+> > > 
+> > > v2: Added a NULL return check for find_memory_block_hinted() as
+> > > pointed by Yasuaki Ishimatsu.
+> > > 
+> > > ---
+> > >  drivers/acpi/acpi_memhotplug.c |   56 ++++++++++++++++++++++++++++++++++++++++
+> > >  1 file changed, 56 insertions(+)
+> > > 
+> > > diff --git a/drivers/acpi/acpi_memhotplug.c b/drivers/acpi/acpi_memhotplug.c
+> > > index 3b3abbc..98477a5 100644
+> > > --- a/drivers/acpi/acpi_memhotplug.c
+> > > +++ b/drivers/acpi/acpi_memhotplug.c
+> > > @@ -28,6 +28,7 @@
+> > >   */
+> > >  
+> > >  #include <linux/acpi.h>
+> > > +#include <linux/memory.h>
+> > >  #include <linux/memory_hotplug.h>
+> > >  
+> > >  #include "internal.h"
+> > > @@ -168,6 +169,55 @@ static int acpi_memory_check_device(struct acpi_memory_device *mem_device)
+> > >  	return 0;
+> > >  }
+> > >  
+> > > +static void acpi_setup_mem_blk_links(struct acpi_memory_device *mem_device,
+> > > +		struct acpi_memory_info *info, bool add_links)
+> > > +{
+> > > +	struct memory_block *mem_blk = NULL;
+> > > +	struct mem_section *mem_sect;
+> > > +	unsigned long start_pfn, end_pfn, pfn;
+> > > +	unsigned long section_nr;
+> > > +	int ret;
+> > > +
+> > > +	start_pfn = PFN_DOWN(info->start_addr);
+> > > +	end_pfn = PFN_UP(info->start_addr + info->length-1);
+> > > +
+> > > +	for (pfn = start_pfn; pfn < end_pfn; pfn += PAGES_PER_SECTION) {
+> > > +		section_nr = pfn_to_section_nr(pfn);
+> > > +
+> > > +		if (!present_section_nr(section_nr))
+> > > +			continue;
+> > > +
+> > > +		mem_sect = __nr_to_section(section_nr);
+> > > +
+> > > +		/* skip if the same memblock */
+> > > +		if (mem_blk)
+> > > +			if ((section_nr >= mem_blk->start_section_nr) &&
+> > > +			    (section_nr <= mem_blk->end_section_nr))
+> > > +				continue;
+> > > +
+> > > +		mem_blk = find_memory_block_hinted(mem_sect, mem_blk);
+> > > +		if (!mem_blk)
+> > > +			continue;
+> > > +
+> > > +		if (add_links) {
+> > > +			ret = sysfs_create_link_nowarn(
+> > > +				&mem_device->device->dev.kobj,
+> > > +				&mem_blk->dev.kobj,
+> > > +				kobject_name(&mem_blk->dev.kobj));
+> > > +			if (ret && ret != -EEXIST)
+> > > +				dev_err(&mem_device->device->dev,
+> > > +					"Failed to create sysfs link %s\n",
+> > > +					kobject_name(&mem_blk->dev.kobj));
+> > > +		} else {
+> > > +			sysfs_remove_link(&mem_device->device->dev.kobj,
+> > > +				kobject_name(&mem_blk->dev.kobj));
+> > > +		}
+> > > +	}
+> > > +
+> > > +	if (mem_blk)
+> > > +		kobject_put(&mem_blk->dev.kobj);
+> > > +}
+> > > +
+> > >  static int acpi_memory_enable_device(struct acpi_memory_device *mem_device)
+> > >  {
+> > >  	int result, num_enabled = 0;
+> > > @@ -207,6 +257,9 @@ static int acpi_memory_enable_device(struct acpi_memory_device *mem_device)
+> > >  			continue;
+> > >  		}
+> > >  
+> > > +		/* Create sysfs links to its mem_blk devices */
+> > > +		acpi_setup_mem_blk_links(mem_device, info, true);
+> > > +
+> > >  		if (!result)
+> > >  			info->enabled = 1;
+> > >  		/*
+> > > @@ -241,6 +294,9 @@ static int acpi_memory_remove_memory(struct acpi_memory_device *mem_device)
+> > >  			/* The kernel does not use this memory block */
+> > >  			continue;
+> > >  
+> > > +		/* Remove sysfs links to its mem_blk devices */
+> > > +		acpi_setup_mem_blk_links(mem_device, info, false);
+> > > +
+> > >  		if (!info->enabled)
+> > >  			/*
+> > >  			 * The kernel uses this memory block, but it may be not
+> > > --
+> > > To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
+> > > the body of a message to majordomo@vger.kernel.org
+> > > More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
+> 
+-- 
+I speak only for myself.
+Rafael J. Wysocki, Intel Open Source Technology Center.
