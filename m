@@ -1,67 +1,62 @@
 From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: [PATCH] ACPI video: ignore BIOS backlight value for HP dm4
-Date: Tue, 26 Mar 2013 14:09:42 +0100
-Message-ID: <5078928.eqOt3FVRJ4@vostro.rjw.lan>
-References: <1362410617.2761.30.camel@oberon.sagui.org>
+Subject: Re: [PATCH 0/3] ACPI: Provide consistent PNPID match handling
+Date: Tue, 26 Mar 2013 14:11:11 +0100
+Message-ID: <13382693.0xFuY5WfEP@vostro.rjw.lan>
+References: <1362432643-25636-1-git-send-email-toshi.kani@hp.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7Bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from hydra.sisk.pl ([212.160.235.94]:42918 "EHLO hydra.sisk.pl"
+Received: from hydra.sisk.pl ([212.160.235.94]:42924 "EHLO hydra.sisk.pl"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1757947Ab3CZNCQ (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 26 Mar 2013 09:02:16 -0400
-In-Reply-To: <1362410617.2761.30.camel@oberon.sagui.org>
+	id S1757947Ab3CZNDr (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 26 Mar 2013 09:03:47 -0400
+In-Reply-To: <1362432643-25636-1-git-send-email-toshi.kani@hp.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Gustavo Maciel Dias Vieira <gustavo@sagui.org>
-Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>
+To: Toshi Kani <toshi.kani@hp.com>
+Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, yinghai@kernel.org, jiang.liu@huawei.com, isimatu.yasuaki@jp.fujitsu.com
 
-On Monday, March 04, 2013 12:23:37 PM Gustavo Maciel Dias Vieira wrote:
+On Monday, March 04, 2013 02:30:40 PM Toshi Kani wrote:
+> When installing/removing a notify handler to/from an ACPI device
+> object, ACPI core tries to match its associated scan handler to
+> see if it supports hotplug.  However, the matching logic of the
+> notify handler is different from the matching logic of attaching
+> a scan handler to an ACPI device object.  This inconsistency can
+> lead a mismatch and prevents ACPI scan handlers from supporting
+> non-HID devices, such as processor objects.
 > 
-> On a HP Pavilion dm4 laptop the BIOS sets minimum backlight on boot,
-> completely dimming the screen. Ignore this initial value for this
-> machine.
+> This patchset first updates PNPID setup interfaces to be independent
+> from acpi_device, and then updates the matching logic of the notify
+> handlers to be consistent with the attach handling.
 > 
-> Signed-off-by: Gustavo Maciel Dias Vieira <gustavo@sagui.org>
-> ---
-> 
-> This is the same situation as with the HP Folio
-> (http://www.spinics.net/lists/linux-acpi/msg40401.html).
-> 
-> Without this patch, the only way to get a correct display is with the
-> video.use_bios_initial_backlight=0 command line switch. With it the
-> display works out of the box.
+> This patchset is based on linux-pm.git/bleeding-edge.
 
-Applied to linux-pm.git/linux-next.
+All patches in the series applied to linux-pm.git/linux-next.
 
 Thanks,
 Rafael
 
 
->  drivers/acpi/video.c | 8 ++++++++
->  1 file changed, 8 insertions(+)
+> ---
+> Toshi Kani (3):
+>   ACPI: Remove acpi_device dependency in acpi_device_set_id()
+>   ACPI: Update PNPID set/free interfaces
+>   ACPI: Update PNPID match handling for notify
 > 
-> diff --git a/drivers/acpi/video.c b/drivers/acpi/video.c
-> index ac9a69c..d7329bc 100644
-> --- a/drivers/acpi/video.c
-> +++ b/drivers/acpi/video.c
-> @@ -447,6 +447,14 @@ static struct dmi_system_id video_dmi_table[] __initdata = {
->  		DMI_MATCH(DMI_PRODUCT_NAME, "HP Folio 13 - 2000 Notebook PC"),
->  		},
->  	},
-> +	{
-> +	 .callback = video_ignore_initial_backlight,
-> +	 .ident = "HP Pavilion dm4",
-> +	 .matches = {
-> +		DMI_MATCH(DMI_BOARD_VENDOR, "Hewlett-Packard"),
-> +		DMI_MATCH(DMI_PRODUCT_NAME, "HP Pavilion dm4 Notebook PC"),
-> +		},
-> +	},
->  	{}
->  };
->  
-> 
+> ---
+>  drivers/acpi/internal.h               |   2 +-
+>  drivers/acpi/power.c                  |   2 +-
+>  drivers/acpi/scan.c                   | 203 +++++++++++++++++++---------------
+>  drivers/acpi/video_detect.c           |  25 ++---
+>  drivers/gpu/drm/i915/intel_opregion.c |   4 +-
+>  include/acpi/acpi_bus.h               |  14 ++-
+>  include/linux/acpi.h                  |   4 +-
+>  7 files changed, 138 insertions(+), 116 deletions(-)
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 -- 
 I speak only for myself.
 Rafael J. Wysocki, Intel Open Source Technology Center.
