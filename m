@@ -1,85 +1,60 @@
 From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: [PATCH] intel-pstate: Use #defines instead of hard-coded values.
-Date: Tue, 26 Mar 2013 14:37:51 +0100
-Message-ID: <13252849.uMIDiVUCkC@vostro.rjw.lan>
-References: <1363789270-29579-1-git-send-email-konrad.wilk@oracle.com>
+Subject: Re: [PATCH 2/2] ACPI / LPSS: make code less confusing for reader
+Date: Tue, 26 Mar 2013 14:36:30 +0100
+Message-ID: <1536658.klx7ZE7lrX@vostro.rjw.lan>
+References: <1363781670-28775-1-git-send-email-andriy.shevchenko@linux.intel.com> <1363781670-28775-2-git-send-email-andriy.shevchenko@linux.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7Bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from hydra.sisk.pl ([212.160.235.94]:43096 "EHLO hydra.sisk.pl"
+Received: from hydra.sisk.pl ([212.160.235.94]:43091 "EHLO hydra.sisk.pl"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S933705Ab3CZNaZ (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 26 Mar 2013 09:30:25 -0400
-In-Reply-To: <1363789270-29579-1-git-send-email-konrad.wilk@oracle.com>
+	id S932367Ab3CZN3E (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 26 Mar 2013 09:29:04 -0400
+In-Reply-To: <1363781670-28775-2-git-send-email-andriy.shevchenko@linux.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
-Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, rafael.j.wysocki@intel.com, dirk.j.brandewie@intel.com
+To: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Cc: linux-acpi@vger.kernel.org, Mika Westerberg <mika.westerberg@linux.intel.com>
 
-On Wednesday, March 20, 2013 10:21:10 AM Konrad Rzeszutek Wilk wrote:
-> They are defined in coreboot (MSR_PLATFORM) and the other
-> one is already defined in msr-index.h.
+On Wednesday, March 20, 2013 02:14:30 PM Andy Shevchenko wrote:
+> The excerpt like this:
 > 
-> Lets use those.
+> 	if (err) {
+> 		err = 0;
+> 		goto error_out;
+> 	}
 > 
-> CC: rafael.j.wysocki@intel.com
-> CC: dirk.j.brandewie@intel.com
-> Signed-off-by: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
+> makes a reader confused even if it's commented. Let's do necessary actions and
+> return no error explicitly.
+> 
+> Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
 
-Applied.
+Applied to linux-pm.git/linux-next.
 
 Thanks,
 Rafael
 
 
 > ---
->  arch/x86/include/uapi/asm/msr-index.h | 1 +
->  drivers/cpufreq/intel_pstate.c        | 6 +++---
->  2 files changed, 4 insertions(+), 3 deletions(-)
+>  drivers/acpi/acpi_lpss.c | 4 ++--
+>  1 file changed, 2 insertions(+), 2 deletions(-)
 > 
-> diff --git a/arch/x86/include/uapi/asm/msr-index.h b/arch/x86/include/uapi/asm/msr-index.h
-> index 892ce40..7a060f4 100644
-> --- a/arch/x86/include/uapi/asm/msr-index.h
-> +++ b/arch/x86/include/uapi/asm/msr-index.h
-> @@ -44,6 +44,7 @@
->  #define SNB_C1_AUTO_UNDEMOTE		(1UL << 27)
->  #define SNB_C3_AUTO_UNDEMOTE		(1UL << 28)
+> diff --git a/drivers/acpi/acpi_lpss.c b/drivers/acpi/acpi_lpss.c
+> index c695841..5d7ded2 100644
+> --- a/drivers/acpi/acpi_lpss.c
+> +++ b/drivers/acpi/acpi_lpss.c
+> @@ -152,8 +152,8 @@ static int acpi_lpss_create_device(struct acpi_device *adev,
+>  			 * Skip the device, but don't terminate the namespace
+>  			 * scan.
+>  			 */
+> -			ret = 0;
+> -			goto err_out;
+> +			kfree(pdata);
+> +			return 0;
+>  		}
+>  	}
 >  
-> +#define MSR_PLATFORM_INFO		0x000000ce
->  #define MSR_MTRRcap			0x000000fe
->  #define MSR_IA32_BBL_CR_CTL		0x00000119
->  #define MSR_IA32_BBL_CR_CTL3		0x0000011e
-> diff --git a/drivers/cpufreq/intel_pstate.c b/drivers/cpufreq/intel_pstate.c
-> index f6dd1e7..dadc27d 100644
-> --- a/drivers/cpufreq/intel_pstate.c
-> +++ b/drivers/cpufreq/intel_pstate.c
-> @@ -358,14 +358,14 @@ static void intel_pstate_sysfs_expose_params(void)
->  static int intel_pstate_min_pstate(void)
->  {
->  	u64 value;
-> -	rdmsrl(0xCE, value);
-> +	rdmsrl(MSR_PLATFORM_INFO, value);
->  	return (value >> 40) & 0xFF;
->  }
->  
->  static int intel_pstate_max_pstate(void)
->  {
->  	u64 value;
-> -	rdmsrl(0xCE, value);
-> +	rdmsrl(MSR_PLATFORM_INFO, value);
->  	return (value >> 8) & 0xFF;
->  }
->  
-> @@ -373,7 +373,7 @@ static int intel_pstate_turbo_pstate(void)
->  {
->  	u64 value;
->  	int nont, ret;
-> -	rdmsrl(0x1AD, value);
-> +	rdmsrl(MSR_NHM_TURBO_RATIO_LIMIT, value);
->  	nont = intel_pstate_max_pstate();
->  	ret = ((value) & 255);
->  	if (ret <= nont)
 > 
 -- 
 I speak only for myself.
