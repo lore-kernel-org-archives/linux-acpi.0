@@ -1,122 +1,170 @@
-From: "Xie, ChanglongX" <changlongx.xie@intel.com>
-Subject: RE: Commit ac3ebafa81a makes NHM EX/EP machines hung out since
- 3.9-rc1
-Date: Tue, 26 Mar 2013 02:01:29 +0000
-Message-ID: <34595B4CEFDF144183CB79081300539F015A8551@SHSMSX102.ccr.corp.intel.com>
-References: <20130313022759.GA120840@bee>
- <1A7043D5F58CCB44A599DFD55ED4C9482976AE4D@FMSMSX108.amr.corp.intel.com>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: Re: [Update 4][PATCH 2/7] ACPI / scan: Introduce common code for ACPI-based device hotplug
+Date: Tue, 26 Mar 2013 13:22:44 +0100
+Message-ID: <9614919.jD6oB33NAX@vostro.rjw.lan>
+References: <3260206.bhaAobGhpZ@vostro.rjw.lan> <2776997.5VXf3okT8O@vostro.rjw.lan> <1364252231.11659.99.camel@misato.fc.hp.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7Bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga03.intel.com ([143.182.124.21]:12460 "EHLO mga03.intel.com"
+Received: from hydra.sisk.pl ([212.160.235.94]:42742 "EHLO hydra.sisk.pl"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1759040Ab3CZCBe convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 25 Mar 2013 22:01:34 -0400
-In-Reply-To: <1A7043D5F58CCB44A599DFD55ED4C9482976AE4D@FMSMSX108.amr.corp.intel.com>
-Content-Language: en-US
+	id S1752620Ab3CZMPW (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 26 Mar 2013 08:15:22 -0400
+In-Reply-To: <1364252231.11659.99.camel@misato.fc.hp.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Brown, Len" <len.brown@intel.com>
-Cc: Daniel Lezcano <daniel.lezcano@linaro.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "lkp@linux.intel.com" <lkp@linux.intel.com>
+To: Toshi Kani <toshi.kani@hp.com>
+Cc: Vasilis Liaskovitis <vasilis.liaskovitis@profitbricks.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Bjorn Helgaas <bhelgaas@google.com>, LKML <linux-kernel@vger.kernel.org>, Yinghai Lu <yinghai@kernel.org>, Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>, Jiang Liu <liuj97@gmail.com>
+
+On Monday, March 25, 2013 04:57:11 PM Toshi Kani wrote:
+> On Mon, 2013-03-25 at 23:29 +0100, Rafael J. Wysocki wrote:
+> > On Monday, March 25, 2013 02:45:36 PM Toshi Kani wrote:
+> > > On Fri, 2013-03-15 at 11:47 +0100, Vasilis Liaskovitis wrote:
+> > > > Hi,
+> > > > 
+> > > > On Thu, Mar 14, 2013 at 06:16:30PM +0100, Rafael J. Wysocki wrote:
+> > > > > Sorry for the sluggish response, I've been travelling recently. ->
+> > > > [...]
+> > > > > > > > So, I'd suggest the following changes.
+> > > > > > > >  - Remove the "uevents" attribute.  KOBJ_ONLINE/OFFLINE are not used for
+> > > > > > > > ACPI device objects.
+> > > > > > > >  - Make the !autoeject case as an exception for now, and emit
+> > > > > > > > KOBJ_OFFLINE as a way to request off-lining to user.  This uevent is
+> > > > > > > > tied with the !autoeject case.  We can then revisit if this use-case
+> > > > > > > > needs to be supported going forward.  If so, we may want to consider a
+> > > > > > > > different event type.
+> > > > > > > 
+> > > > > > > Well, what about avoiding to expose uevents and autoeject for now and
+> > > > > > > exposing enabled only?  Drivers would still be able to set the other flags on
+> > > > > > > init on init to enforce the backwards-compatible behavior.
+> > > > > > 
+> > > > > > Now that we don't define uevents and autoeject in v2 of this series, could you
+> > > > > > explain how we get safe ejection from userspace e.g. for memory hot-remove? What
+> > > > > > are the other flags drivers can use (on init?) to avoid autoeject and only issue
+> > > > > > KOBJ_OFFLINE?
+> > > > > > 
+> > > > > > > 
+> > > > > > > I agree that it would be sufficient to use one additional flag then, to start
+> > > > > > > with, but its meaning would be something like "keep backwards compatibility
+> > > > > > > with the old container driver", so perhaps "autoeject" is not a good name.
+> > > > > > > 
+> > > > > > > What about "user_eject" (that won't be exposed to user space) instead?  Where,
+> > > > > > > if set, it would meand "do not autoeject and emit KOBJ_OFFLINE/ONLINE uevents
+> > > > > > > like the old container driver did"?
+> > > > > > 
+> > > > > > I don't see user_eject in v2. Is it unnecessary for userspace ejection control
+> > > > > > or planned for later? Also why shouldn't it be exposed to userpace?
+> > > > > 
+> > > > > -> At this point we are not sure if it is necessary to have an attribute for
+> > > > > direct ejection control.  Since the plan is to have a separate offline/online
+> > > > > attribute anyway (and a check preventing us from ejecting things that haven't
+> > > > > been put offline), it is not clear how useful it is going to be to control
+> > > > > ejection directly from user space.
+> > > > 
+> > > > ok.
+> > > > Regarding the offline/online attribute and ejection prevention checking, do you
+> > > > mean the offline/online framework from Toshi:
+> > > > http://thread.gmane.org/gmane.linux.kernel/1420262
+> > > > or something else? I assume this is the long-term plan.
+> > > 
+> > > Unfortunately, the idea of adding a new set of common hotplug framework
+> > > was not well-received.  Since the driver-core does not allow any eject
+> > > failure case, integrating into the driver-core framework seems also
+> > > impractical.
+> > > 
+> > > > Is there any other short-term solution planned? If i understand correctly, until
+> > > > this framework is accepted, memory hot-remove is broken (=unsafe). 
+> > > 
+> > > That is correct.  The alternative plan is to go with an ACPI-specific
+> > > approach that user has to off-line a target device and its children
+> > > beforehand from sysfs before initiating a hot-delete request.  This
+> > > hot-delete request will fail if any of the devices are still on-line.
+> > > The sysfs online/offline interfaces may fail, and user (or user tool)
+> > > has to take care of the rollback as necessary.  It would move all the
+> > > error handling & rollback stuff into the user space, and make the kernel
+> > > part very simple & straightforward -- just delete target device
+> > > objects.  
+> > > 
+> > > After looking further, however, I think this isn't the case...  In case
+> > > of memory hot-delete, for example, off-lining is only a part of the job
+> > > done in remove_memory().  So, ACPI-core still needs to call
+> > > device-specific handlers to perform device-specific hot-delete
+> > > operations, such as calling remove_memory() or its sub-set function,
+> > > which can fail when a device is online.  In order to make sure all
+> > > devices stay off-line, we need to delete their sysfs interfaces.
+> > 
+> > No, we don't need to.
+> > 
+> > > Since we do not have a way to serialize all online/offline & hot-plug
+> > > operations (the above patchset had such serialization, but did not get
+> > > thru), we cannot change all devices at once but delete sysfs interface
+> > > for each device one by one.  If it failed on one of the devices, we need
+> > > to rollback to put them back into the original state.  Other implication
+> > > is that this approach is not backward compatible.
+> > 
+> > No.  No rollbacks, please.
+> > 
+> > There are three things that are needed: (1) online/offline, (2) a flag in
+> > struct acpi_device indicating whether or not the "physical" device represented
+> > by that struct acpi_device has been offlined, 
+> 
+> acpi_device and its associated device(s) do not match 1 to 1.  For
+> instance, a memory acpi_device usually associates with multiple memblks
+> sysfs files, which can be individually on-lined / off-lined.  This
+> association can be M:N matching.  I am not sure if the flag can be
+> implemented easily.
+
+If there are more "physical devices" associated with a single struct
+acpi_device (which is entirely possible), then that needs to be a counter
+rather than a flag.
+
+> > and (3) a synchronization
+> > mechanism that will make the manipulation of the flag and device eject mutually
+> > exclusive (it actually would need to tie the manipulation of the flag to
+> > the online/offline).
+> 
+> This needs to be a global lock that can serialize online/offline
+> operations of all system devices.
+
+Yes, it does, but we already have acpi_scan_lock that serializes all hotplug
+operations on the ACPI level, so it won't add much overhead.  And as far as
+memory is concerned, I really think it would be better not to offline two
+things at a time anyway.
+
+> > Then, acpi_scan_hot_remove() will only need to check, before it calls
+> > acpi_bus_trim(), if all of the devices that correspond to the struct device
+> > objects to be removed have been offlined.  Of course, it will have to ensure
+> > that the "online/offline" status of any of those devices won't change while
+> > it is running (hence, the synchronization mechanism).
+> > 
+> > And once everything has been offlined, there's no reason why the removal should
+> > fail, right?
+> 
+> Yes, if we can introduce such global lock, we can prevent rollbacks.  I
+> was under an assumption that we cannot make such changes to the common
+> code.  
+
+I believe we can add such a lock of online/offline operations.
+
+> > > Given this, I am inclined to other alternative -- rework on my patchset
+> > > and make it as ACPI device hotplug framework.
+> > 
+> > Please don't.
+> 
+> OK, I will keep it myself for now.  Are you going to make the code
+> changes which you summarized?  I am hoping that we can make some
+> improvement for 3.10.
+
+Well, for now memory offline/online is missing and that's needed in the first
+place regardless.  I'm not sure if I have the time to add it on time for the
+v3.10 merge window, however, because I have two conferences to attend in the
+meantime (where I'm going to speak) and some power management work to do.
+
+Thanks,
+Rafael
 
 
-
-
->-----Original Message-----
->From: Brown, Len
->Sent: Tuesday, March 26, 2013 9:44 AM
->To: Xie, ChanglongX
->Cc: Daniel Lezcano; linux-acpi@vger.kernel.org; lkp@linux.intel.com
->Subject: RE: Commit ac3ebafa81a makes NHM EX/EP machines hung out since
->3.9-rc1
->
->
->
->> -----Original Message-----
->> From: Xie, ChanglongX
->> Sent: Tuesday, March 12, 2013 10:28 PM
->> To: Brown, Len
->> Cc: Daniel Lezcano; linux-acpi@vger.kernel.org; lkp@linux.intel.com
->> Subject: Commit ac3ebafa81a makes NHM EX/EP machines hung out since
->> 3.9-
->> rc1
->>
->> Hi Len,
->>
->> 	FYI, since 3.9-rc1 our three NHM EP/EX LKP(linux kernel
->> performance) test servers
->> 	except SNB/IVB/WSM hung up unexpectly.
->>
->> 	We did git bisect for about 8 times on all servers, it said that the
->> first bad commit is ac3ebafa.
->>
->> 	commit ac3ebafa81af76d65e4fb45c6388f08e90ddcc6d
->> 	Author: Daniel Lezcano <daniel.lezcano@linaro.org>
->> 	Date:   Mon Feb 4 22:44:43 2013 +0000
->>
->> 	ACPI / idle: remove usage of the statedata
->>
->> 	Len Brown sent a patch to remove this field in the intel_idle driver.
->> 	The other user of this field is the davinci cpuidle driver and a
->> 	patch has been sent to remove the usage of it.
->> 	This patch removes the last user of this field.
->>
->> 	Signed-off-by: Daniel Lezcano <daniel.lezcano@linaro.org>
->> 	Signed-off-by: Len Brown <len.brown@intel.com>
->>
->>
->> 	More, all machines hung with following similar info. Would you please
->> have a look at it?
->>
->> 	178748 ^[%Gmodprobe (1602) used greatest stack depth: 5504 bytes
->> left^M
->> 	2178749 modprobe (1606) used greatest stack depth: 5472 bytes left^M
->>
->> 	2178751 Task dump for CPU 1:^M
->> 	2178752 swapper/1       R  running task     6736     0      1
->> 0x00000000^M
->> 	2178753  ffff8801e8029dc8 ffffffff8101cf96 ffff8801e8029e28
->> ffffffff813d294b^M
->> 	2178754  0000000000000f99 0000000000000003 00000000003cf654
->> 0000000025c17d03^M
->> 	2178755  ffff8801e8029e38 ffff8801e74fc000 00000002590dc5c4
->> ffffffff8163cdb0^M
->> 	2178756 Call Trace:^M
->> 	2178757  [<ffffffff8101cf96>] ?
->> acpi_processor_ffh_cstate_enter+0x2d/0x2f^M
->> 	2178758  [<ffffffff813d294b>] acpi_idle_enter_bm+0x1b1/0x236^M
->> 	2178759  [<ffffffff8163cdb0>] ? disable_cpuidle+0x10/0x10^M
->> 	2178760  [<ffffffff8163cdc2>] cpuidle_enter+0x12/0x14^M
->> 	2178761  [<ffffffff8163d286>] cpuidle_wrap_enter+0x2f/0x6d^M
->> 	2178762  [<ffffffff8163d2d4>] cpuidle_enter_tk+0x10/0x12^M
->> 	2178763  [<ffffffff8163cdd6>] cpuidle_enter_state+0x12/0x3a^M
->> 	2178764  [<ffffffff8163d4a7>] cpuidle_idle_call+0xe8/0x161^M
->> 	2178765  [<ffffffff81008d99>] cpu_idle+0x5e/0xa4^M
->> 	2178766  [<ffffffff8174c6c1>] start_secondary+0x1a9/0x1ad^M
->> 	2178767 Task dump for CPU 2:^M
->
->Hmm, is it possible that the nth CPU is trying to use an idle state before
->acpi_cstate[] is initialized?
->
->Does bootin with maxcpus=1 work fine?
->
->how about booting with processor.max_cstate=1?
-
-I just test it.  Any one of  "maxcpus=1"  or  "processor.max_cstate=1"  or  " idle=poll"
-Works fine.
-
-
-Best Regards
-Changlox
->
->-Len
->
->>
->> Best regards
->> Changlong Xie
->>
->> ---
->> Linux Kernel Performance (LKP) project        Open Source Technology
->> Center
->> 			                      Intel CorporationIntel Corporation
+-- 
+I speak only for myself.
+Rafael J. Wysocki, Intel Open Source Technology Center.
