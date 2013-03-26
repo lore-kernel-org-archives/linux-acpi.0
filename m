@@ -1,87 +1,51 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: [PATCH] ACPI: Verify device status after eject
-Date: Tue, 26 Mar 2013 14:28:56 +0100
-Message-ID: <11870686.7BLgAzWSyu@vostro.rjw.lan>
-References: <1363202966-28436-1-git-send-email-toshi.kani@hp.com>
+From: Richard Genoud <richard.genoud@gmail.com>
+Subject: Re: [RESEND PATCH 1/6] acpi: Remove the leading space of "unlock"
+ label in acpi_memory_device_notify().
+Date: Tue, 26 Mar 2013 14:23:49 +0100
+Message-ID: <CACQ1gAia2YsbzV+zT8gTiYvB7JVft3aL1iwC0DBuyCoZ+8wAuQ@mail.gmail.com>
+References: <1362558611-32255-1-git-send-email-tangchen@cn.fujitsu.com>
+ <1362558611-32255-2-git-send-email-tangchen@cn.fujitsu.com> <1843378.VZBEQ0WNNo@vostro.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7Bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1363202966-28436-1-git-send-email-toshi.kani@hp.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Toshi Kani <toshi.kani@hp.com>
-Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, yinghai@kernel.org, jiang.liu@huawei.com, isimatu.yasuaki@jp.fujitsu.com
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-ie0-f179.google.com ([209.85.223.179]:49166 "EHLO
+	mail-ie0-f179.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932733Ab3CZNYK (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 26 Mar 2013 09:24:10 -0400
+In-Reply-To: <1843378.VZBEQ0WNNo@vostro.rjw.lan>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: Tang Chen <tangchen@cn.fujitsu.com>, lenb@kernel.org, robert.moore@intel.com, lv.zheng@intel.com, ming.m.lin@intel.com, mpm@selenic.com, herbert@gondor.apana.org.au, rob@landley.net, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linux-doc@vger.kernel.org
 
-On Wednesday, March 13, 2013 01:29:26 PM Toshi Kani wrote:
-> ACPI spec states that the OS evaluates _STA after calling _EJ0
-> in order to verify if eject was successful.  Added a check to
-> verify if the enabled bit of the status value is cleared after
-> _EJ0.
-> 
-> Note, the present bit is not checked since some FW implementations
-> do not clear the present bit until the hardware is physically
-> removed.
-> 
-> Signed-off-by: Toshi Kani <toshi.kani@hp.com>
+2013/3/26 Rafael J. Wysocki <rjw@sisk.pl>:
+> On Wednesday, March 06, 2013 04:30:06 PM Tang Chen wrote:
+>> There is a leading space in front of "unlock" label in acpi_memory_device_notify(). Remove it.
+>>
+>> Signed-off-by: Tang Chen <tangchen@cn.fujitsu.com>
+>> ---
+>>  drivers/acpi/acpi_memhotplug.c |    2 +-
+>>  1 files changed, 1 insertions(+), 1 deletions(-)
+>>
+>> diff --git a/drivers/acpi/acpi_memhotplug.c b/drivers/acpi/acpi_memhotplug.c
+>> index da1f82b..8a10c23 100644
+>> --- a/drivers/acpi/acpi_memhotplug.c
+>> +++ b/drivers/acpi/acpi_memhotplug.c
+>> @@ -369,7 +369,7 @@ static void acpi_memory_device_notify(acpi_handle handle, u32 event, void *data)
+>>                       kfree(ej_event);
+>>               }
+>>
+>> - unlock:
+>> +unlock:
+>>               acpi_scan_lock_release();
+>>               if (ACPI_SUCCESS(status))
+>>                       return;
+>
+> The leading space is actually in agreement with the kernel coding style
+> (and there's a reason why it's there).
 
-Applied to linux-pm.git/linux-next.
+Well, I'm curious. What's the reason ?
+I didn't see anything in Documentation/CodingStyle about that.
 
-Thanks,
-Rafael
-
-
-> ---
-> 
-> This patch is based on linux-pm.git/bleeding-edge.
-> 
-> ---
->  drivers/acpi/scan.c |   18 +++++++++++++++++-
->  1 file changed, 17 insertions(+), 1 deletion(-)
-> 
-> diff --git a/drivers/acpi/scan.c b/drivers/acpi/scan.c
-> index 4f2265e..31d1242 100644
-> --- a/drivers/acpi/scan.c
-> +++ b/drivers/acpi/scan.c
-> @@ -127,6 +127,7 @@ static int acpi_scan_hot_remove(struct acpi_device *device)
->  	struct acpi_object_list arg_list;
->  	union acpi_object arg;
->  	acpi_status status;
-> +	unsigned long long sta;
->  
->  	/* If there is no handle, the device node has been unregistered. */
->  	if (!handle) {
-> @@ -164,10 +165,25 @@ static int acpi_scan_hot_remove(struct acpi_device *device)
->  		if (status == AE_NOT_FOUND) {
->  			return -ENODEV;
->  		} else {
-> -			acpi_handle_warn(handle, "Eject failed\n");
-> +			acpi_handle_warn(handle, "Eject failed (0x%x)\n",
-> +								status);
->  			return -EIO;
->  		}
->  	}
-> +
-> +	/*
-> +	 * Verify if eject was indeed successful.  If not, log an error
-> +	 * message.  No need to call _OST since _EJ0 call was made OK.
-> +	 */
-> +	status = acpi_evaluate_integer(handle, "_STA", NULL, &sta);
-> +	if (ACPI_FAILURE(status)) {
-> +		acpi_handle_warn(handle,
-> +			"Status check after eject failed (0x%x)\n", status);
-> +	} else if (sta & ACPI_STA_DEVICE_ENABLED) {
-> +		acpi_handle_warn(handle,
-> +			"Eject incomplete - status 0x%llx\n", sta);
-> +	}
-> +
->  	return 0;
->  }
->  
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
--- 
-I speak only for myself.
-Rafael J. Wysocki, Intel Open Source Technology Center.
+Regards,
+Richard.
