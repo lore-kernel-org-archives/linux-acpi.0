@@ -1,94 +1,104 @@
-From: Oleg Nesterov <oleg@redhat.com>
-Subject: Re: [PATCH 1/1] thinkpad-acpi: kill hotkey_thread_mutex
-Date: Tue, 26 Mar 2013 14:09:19 +0100
-Message-ID: <20130326130918.GA29941@redhat.com>
-References: <201303042055.38040.maciej.rutecki@gmail.com> <20130307175305.GA15631@redhat.com> <20130307175359.GB15631@redhat.com> <3714515.nbfe9U9zSg@vostro.rjw.lan>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: Re: [PATCH 00/21] ACPICA 20130214 Release
+Date: Tue, 26 Mar 2013 14:22:16 +0100
+Message-ID: <1547015.kqHDmKcBEz@vostro.rjw.lan>
+References: <cover.1361292877.git.lv.zheng@intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <platform-driver-x86-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <3714515.nbfe9U9zSg@vostro.rjw.lan>
-Sender: platform-driver-x86-owner@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: Henrique de Moraes Holschuh <hmh@hmh.eng.br>, Mandeep Singh Baines <msb@chromium.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-acpi@vger.kernel.org, ibm-acpi@hmh.eng.br, ibm-acpi-devel@lists.sourceforge.net, platform-driver-x86@vger.kernel.org, Aaron Lu <aaron.lu@intel.com>, Tejun Heo <tj@kernel.org>, Andrew Morton <akpm@linux-foundation.org>, Artem Savkov <artem.savkov@gmail.com>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7Bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from hydra.sisk.pl ([212.160.235.94]:42990 "EHLO hydra.sisk.pl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S933069Ab3CZNOu (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 26 Mar 2013 09:14:50 -0400
+In-Reply-To: <cover.1361292877.git.lv.zheng@intel.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Lv Zheng <lv.zheng@intel.com>
+Cc: Len Brown <len.brown@intel.com>, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Robert Moore <robert.moore@intel.com>, linux-acpi@vger.kernel.org
 
-On 03/26, Rafael J. Wysocki wrote:
->
-> On Thursday, March 07, 2013 06:53:59 PM Oleg Nesterov wrote:
-> > hotkey_kthread() does try_to_freeze() under hotkey_thread_mutex.
-> >
-> > We can simply kill this mutex, hotkey_poll_stop_sync() does not need
-> > to serialize with hotkey_kthread(). When kthread_stop() returns the
-> > thread is already dead, it called do_exit()->complete_vfork_done().
-> >
-> > Reported-by: Artem Savkov <artem.savkov@gmail.com>
-> > Reported-by: Maciej Rutecki <maciej.rutecki@gmail.com>
-> > Signed-off-by: Oleg Nesterov <oleg@redhat.com>
->
-> I wonder if anyone is taking care of this patch?
+On Friday, March 08, 2013 05:19:15 PM Lv Zheng wrote:
+> The 20130214 ACPICA linuxized patches are based on the pm/linux-next
+> branch.
+> The patch set has passed a basic build/boot test on z530.
+> No new divergences are introduced by this patch set.
+> 
+> Bob Moore (14):
+>   ACPICA: Resource Mgr: Prevent infinite loops in resource walks
+>   ACPICA: Fix a couple warnings detected on FreeBSD build
+>   ACPICA: Update error/debug messages for fixed events
+>   ACPICA: Add parens within macros around parameter names
+>   ACPICA: Update for ACPI 5 hardware-reduced feature
+>   ACPICA: Regression fix: reinstate safe exit macros
+>   ACPICA: Add macros to exception code definitions
+>   ACPICA: Add exception descriptions to exception info table
+>   ACPICA: Remove trailing comma in enum declarations
+>   ACPICA: Add mechanism for early object repairs on a per-name basis
+>   ACPICA: Split object conversion functions to a new file
+>   ACPICA: Disassembler: Add warnings for unresolved control methods
+>   ACPICA: Object repair: Allow 0-length packages for variable-length
+>     packages
+>   ACPICA: Update version to 20130214
+> 
+> Jung-uk Kim (2):
+>   ACPICA: Fix a long-standing bug in local cache
+>   ACPICA: Add macros to access pointer to next object in the descriptor
+>     list
+> 
+> Lv Zheng (5):
+>   ACPICA: Update RASF table definition
+>   ACPICA: iASL/Disassembler: Add support for VRTC table
+>   ACPICA: iASL/Disassembler: Add support for MTMR table
+>   ACPICA: Return object repair: Add string-to-unicode conversion
+>   ACPICA: Return object repair: Add resource template repairs
 
-IIRC, it is already in -mm tree.
+All patches in the series applied to linux-pm.git/linux-next.
+
+Thanks Lv!
+
+Rafael
 
 
-
-
-
-> Rafael
+>  drivers/acpi/acpica/Makefile    |    1 +
+>  drivers/acpi/acpica/acglobal.h  |    4 +-
+>  drivers/acpi/acpica/aclocal.h   |   16 ++
+>  drivers/acpi/acpica/acmacros.h  |    6 +-
+>  drivers/acpi/acpica/acnamesp.h  |   25 ++-
+>  drivers/acpi/acpica/acutils.h   |    3 +-
+>  drivers/acpi/acpica/dsutils.c   |   10 +-
+>  drivers/acpi/acpica/evevent.c   |   12 +-
+>  drivers/acpi/acpica/evgpe.c     |    6 +-
+>  drivers/acpi/acpica/evsci.c     |    4 +-
+>  drivers/acpi/acpica/evxface.c   |   21 +-
+>  drivers/acpi/acpica/evxfevnt.c  |   12 +
+>  drivers/acpi/acpica/exprep.c    |    4 +-
+>  drivers/acpi/acpica/exutils.c   |    4 +-
+>  drivers/acpi/acpica/hwacpi.c    |   20 +-
+>  drivers/acpi/acpica/nsconvert.c |  443 +++++++++++++++++++++++++++++++++++++
+>  drivers/acpi/acpica/nspredef.c  |  141 ++++++------
+>  drivers/acpi/acpica/nsprepkg.c  |   10 +-
+>  drivers/acpi/acpica/nsrepair.c  |  381 ++++++++++++--------------------
+>  drivers/acpi/acpica/nsrepair2.c |   16 +-
+>  drivers/acpi/acpica/nsutils.c   |    8 +-
+>  drivers/acpi/acpica/psargs.c    |    2 +-
+>  drivers/acpi/acpica/rscalc.c    |    6 +
+>  drivers/acpi/acpica/rsdump.c    |    8 +
+>  drivers/acpi/acpica/rslist.c    |    8 +
+>  drivers/acpi/acpica/rsxface.c   |    8 +-
+>  drivers/acpi/acpica/utaddress.c |    4 +-
+>  drivers/acpi/acpica/utcache.c   |   18 +-
+>  drivers/acpi/acpica/utexcep.c   |   26 ++-
+>  drivers/acpi/acpica/utglobal.c  |    2 +
+>  include/acpi/acexcep.h          |  461 +++++++++++++++++++++++----------------
+>  include/acpi/acoutput.h         |   53 ++++-
+>  include/acpi/acpixf.h           |    2 +-
+>  include/acpi/actbl2.h           |   47 ++++
+>  include/acpi/actbl3.h           |   55 ++++-
+>  include/acpi/actypes.h          |    1 -
+>  36 files changed, 1231 insertions(+), 617 deletions(-)
+>  create mode 100644 drivers/acpi/acpica/nsconvert.c
 > 
 > 
-> > --- x/drivers/platform/x86/thinkpad_acpi.c
-> > +++ x/drivers/platform/x86/thinkpad_acpi.c
-> > @@ -1965,9 +1965,6 @@ struct tp_nvram_state {
-> >  /* kthread for the hotkey poller */
-> >  static struct task_struct *tpacpi_hotkey_task;
-> >  
-> > -/* Acquired while the poller kthread is running, use to sync start/stop */
-> > -static struct mutex hotkey_thread_mutex;
-> > -
-> >  /*
-> >   * Acquire mutex to write poller control variables as an
-> >   * atomic block.
-> > @@ -2463,8 +2460,6 @@ static int hotkey_kthread(void *data)
-> >  	unsigned int poll_freq;
-> >  	bool was_frozen;
-> >  
-> > -	mutex_lock(&hotkey_thread_mutex);
-> > -
-> >  	if (tpacpi_lifecycle == TPACPI_LIFE_EXITING)
-> >  		goto exit;
-> >  
-> > @@ -2524,7 +2519,6 @@ static int hotkey_kthread(void *data)
-> >  	}
-> >  
-> >  exit:
-> > -	mutex_unlock(&hotkey_thread_mutex);
-> >  	return 0;
-> >  }
-> >  
-> > @@ -2534,9 +2528,6 @@ static void hotkey_poll_stop_sync(void)
-> >  	if (tpacpi_hotkey_task) {
-> >  		kthread_stop(tpacpi_hotkey_task);
-> >  		tpacpi_hotkey_task = NULL;
-> > -		mutex_lock(&hotkey_thread_mutex);
-> > -		/* at this point, the thread did exit */
-> > -		mutex_unlock(&hotkey_thread_mutex);
-> >  	}
-> >  }
-> >  
-> > @@ -3235,7 +3226,6 @@ static int __init hotkey_init(struct ibm
-> >  	mutex_init(&hotkey_mutex);
-> >  
-> >  #ifdef CONFIG_THINKPAD_ACPI_HOTKEY_POLL
-> > -	mutex_init(&hotkey_thread_mutex);
-> >  	mutex_init(&hotkey_thread_data_mutex);
-> >  #endif
-> >  
-> > 
-> > --
-> > To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
-> > the body of a message to majordomo@vger.kernel.org
-> > More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> -- 
-> I speak only for myself.
-> Rafael J. Wysocki, Intel Open Source Technology Center.
+-- 
+I speak only for myself.
+Rafael J. Wysocki, Intel Open Source Technology Center.
