@@ -1,91 +1,52 @@
 From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: [PATCH] PCI, ACPI: hold acpi_scan_lock during root bus hotplug
-Date: Tue, 26 Mar 2013 14:24:41 +0100
-Message-ID: <34989330.IyIZ6Qqfxh@vostro.rjw.lan>
-References: <1673357.1IdxNNvGWX@vostro.rjw.lan> <1362978316-23553-1-git-send-email-yinghai@kernel.org>
+Subject: Re: [PATCH] acpi: replaced kmalloc+memcpy with kmemdup
+Date: Tue, 26 Mar 2013 14:25:15 +0100
+Message-ID: <3996362.Dl8iZzsvl7@vostro.rjw.lan>
+References: <1362990016-21249-1-git-send-email-epure.andrei@gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7Bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1362978316-23553-1-git-send-email-yinghai@kernel.org>
+In-Reply-To: <1362990016-21249-1-git-send-email-epure.andrei@gmail.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Yinghai Lu <yinghai@kernel.org>, Bjorn Helgaas <bhelgaas@google.com>
-Cc: Linus Torvalds <torvalds@linux-foundation.org>, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+To: Andrei Epure <epure.andrei@gmail.com>
+Cc: lenb@kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Sunday, March 10, 2013 10:05:16 PM Yinghai Lu wrote:
-> During merging pci tree with pm/acpi tree, Linus noticed that
-> we don't have same lock using patten about acpi pci root as
-> acpiphp.
-> 
-> Here apply same lock patten, and we need to change
-> acpi_bus_hot_remove_device executing via acpi_os_hotplug_execute()
-> as it also hold the lock in acpi_bus_hot_remove_device.
-> 
-> That will make acpi_bus_hot_remove_device calling the same as other
-> callers.
-> 
-> Reported-by: Linus Torvalds <torvalds@linux-foundation.org>
-> Signed-off-by: Yinghai Lu <yinghai@kernel.org>
-> Acked-by: Rafael J. Wysocki <rjw@sisk.pl>
+On Monday, March 11, 2013 10:20:16 AM Andrei Epure wrote:
+> Signed-off-by: Andrei Epure <epure.andrei@gmail.com>
 
-Bjorn, this needs to go in before final 3.9.
+Added a changelog and applied to linux-pm.git/linux-next.
 
-Are you going to handle it, or should I take care of it?
-
+Thanks,
 Rafael
 
 
 > ---
->  drivers/acpi/pci_root.c |    9 +++++++--
->  1 file changed, 7 insertions(+), 2 deletions(-)
+>  drivers/acpi/bus.c |    5 ++---
+>  1 file changed, 2 insertions(+), 3 deletions(-)
 > 
-> Index: linux-2.6/drivers/acpi/pci_root.c
-> ===================================================================
-> --- linux-2.6.orig/drivers/acpi/pci_root.c
-> +++ linux-2.6/drivers/acpi/pci_root.c
-> @@ -646,6 +646,7 @@ static void handle_root_bridge_insertion
->  
->  static void handle_root_bridge_removal(struct acpi_device *device)
->  {
-> +	acpi_status status;
->  	struct acpi_eject_event *ej_event;
->  
->  	ej_event = kmalloc(sizeof(*ej_event), GFP_KERNEL);
-> @@ -661,7 +662,9 @@ static void handle_root_bridge_removal(s
->  	ej_event->device = device;
->  	ej_event->event = ACPI_NOTIFY_EJECT_REQUEST;
->  
-> -	acpi_bus_hot_remove_device(ej_event);
-> +	status = acpi_os_hotplug_execute(acpi_bus_hot_remove_device, ej_event);
-> +	if (ACPI_FAILURE(status))
-> +		kfree(ej_event);
->  }
->  
->  static void _handle_hotplug_event_root(struct work_struct *work)
-> @@ -676,8 +679,9 @@ static void _handle_hotplug_event_root(s
->  	handle = hp_work->handle;
->  	type = hp_work->type;
->  
-> -	root = acpi_pci_find_root(handle);
-> +	acpi_scan_lock_acquire();
->  
-> +	root = acpi_pci_find_root(handle);
->  	acpi_get_name(handle, ACPI_FULL_PATHNAME, &buffer);
->  
->  	switch (type) {
-> @@ -711,6 +715,7 @@ static void _handle_hotplug_event_root(s
->  		break;
+> diff --git a/drivers/acpi/bus.c b/drivers/acpi/bus.c
+> index 01708a1..292de3c 100644
+> --- a/drivers/acpi/bus.c
+> +++ b/drivers/acpi/bus.c
+> @@ -288,13 +288,12 @@ acpi_status acpi_run_osc(acpi_handle handle, struct acpi_osc_context *context)
 >  	}
+>  out_success:
+>  	context->ret.length = out_obj->buffer.length;
+> -	context->ret.pointer = kmalloc(context->ret.length, GFP_KERNEL);
+> +	context->ret.pointer = kmemdup(out_obj->buffer.pointer,
+> +				       context->ret.length, GFP_KERNEL);
+>  	if (!context->ret.pointer) {
+>  		status =  AE_NO_MEMORY;
+>  		goto out_kfree;
+>  	}
+> -	memcpy(context->ret.pointer, out_obj->buffer.pointer,
+> -		context->ret.length);
+>  	status =  AE_OK;
 >  
-> +	acpi_scan_lock_release();
->  	kfree(hp_work); /* allocated in handle_hotplug_event_bridge */
->  	kfree(buffer.pointer);
->  }
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>  out_kfree:
+> 
 -- 
 I speak only for myself.
 Rafael J. Wysocki, Intel Open Source Technology Center.
