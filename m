@@ -1,46 +1,126 @@
-From: Yinghai Lu <yinghai@kernel.org>
-Subject: Re: [PATCH] PCI, ACPI: hold acpi_scan_lock during root bus hotplug
-Date: Tue, 26 Mar 2013 08:12:30 -0700
-Message-ID: <CAE9FiQVSZd216JrdHdeLSrr1k0d5xTCmLz9FH151BHDDo8KRAQ@mail.gmail.com>
-References: <1673357.1IdxNNvGWX@vostro.rjw.lan>
-	<1362978316-23553-1-git-send-email-yinghai@kernel.org>
-	<34989330.IyIZ6Qqfxh@vostro.rjw.lan>
+From: Alex Shi <alex.shi@intel.com>
+Subject: Re: [LKP] Commit ac3ebafa81a makes NHM EX/EP machines hung out since
+ 3.9-rc1
+Date: Tue, 26 Mar 2013 23:21:52 +0800
+Message-ID: <5151BD10.3000108@intel.com>
+References: <20130313022759.GA120840@bee>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-ie0-f180.google.com ([209.85.223.180]:59957 "EHLO
-	mail-ie0-f180.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751048Ab3CZPMa (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 26 Mar 2013 11:12:30 -0400
-In-Reply-To: <34989330.IyIZ6Qqfxh@vostro.rjw.lan>
+Received: from mga09.intel.com ([134.134.136.24]:25680 "EHLO mga09.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S964869Ab3CZPV4 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 26 Mar 2013 11:21:56 -0400
+In-Reply-To: <20130313022759.GA120840@bee>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: Bjorn Helgaas <bhelgaas@google.com>, Linus Torvalds <torvalds@linux-foundation.org>, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+To: Changlong Xie <changlongx.xie@intel.com>
+Cc: Len Brown <len.brown@intel.com>, linux-acpi@vger.kernel.org, Daniel Lezcano <daniel.lezcano@linaro.org>, lkp@linux.intel.com
 
-On Tue, Mar 26, 2013 at 6:24 AM, Rafael J. Wysocki <rjw@sisk.pl> wrote:
-> On Sunday, March 10, 2013 10:05:16 PM Yinghai Lu wrote:
->> During merging pci tree with pm/acpi tree, Linus noticed that
->> we don't have same lock using patten about acpi pci root as
->> acpiphp.
->>
->> Here apply same lock patten, and we need to change
->> acpi_bus_hot_remove_device executing via acpi_os_hotplug_execute()
->> as it also hold the lock in acpi_bus_hot_remove_device.
->>
->> That will make acpi_bus_hot_remove_device calling the same as other
->> callers.
->>
->> Reported-by: Linus Torvalds <torvalds@linux-foundation.org>
->> Signed-off-by: Yinghai Lu <yinghai@kernel.org>
->> Acked-by: Rafael J. Wysocki <rjw@sisk.pl>
->
-> Bjorn, this needs to go in before final 3.9.
->
-> Are you going to handle it, or should I take care of it?
+On 03/13/2013 10:27 AM, Changlong Xie wrote:
+> Hi Len,
+> 
+> 	FYI, since 3.9-rc1 our three NHM EP/EX LKP(linux kernel performance) test servers 
+> 	except SNB/IVB/WSM hung up unexpectly. 
+> 
 
-It should be better via your pm+acpi tree, as that lock is added via your tree.
+the following draft patch can fix the panic, so it proved we still need the percpu cstate.
 
-Thanks
+but look at the struct acpi_processor_cx {
+        u8 valid;
+        u8 type;
+        u32 address;
+        u8 entry_method;
+        u8 index;
+        u32 latency;
+        u8 bm_sts_skip;
+        char desc[ACPI_CX_DESC_LEN];
+};
 
-Yinghai
+I have printed all members except the last one. all of them are same on all cpu.
+It's interesting. 
+
+
+-----------
+
+>From 5a4fc23fdf5202f8555a25a03afc4d06ac168032 Mon Sep 17 00:00:00 2001
+From: Alex Shi <alex.shi@intel.com>
+Date: Tue, 26 Mar 2013 22:57:47 +0800
+Subject: [PATCH] acpi: abc
+
+---
+ drivers/acpi/processor_idle.c |   16 ++++++++++------
+ 1 files changed, 10 insertions(+), 6 deletions(-)
+
+diff --git a/drivers/acpi/processor_idle.c b/drivers/acpi/processor_idle.c
+index fc95308..61373ab 100644
+--- a/drivers/acpi/processor_idle.c
++++ b/drivers/acpi/processor_idle.c
+@@ -66,7 +66,7 @@ module_param(latency_factor, uint, 0644);
+ 
+ static DEFINE_PER_CPU(struct cpuidle_device *, acpi_cpuidle_device);
+ 
+-static struct acpi_processor_cx *acpi_cstate[CPUIDLE_STATE_MAX];
++static DEFINE_PER_CPU (struct acpi_processor_cx *[CPUIDLE_STATE_MAX], acpi_cstate);
+ 
+ static int disabled_by_idle_boot_param(void)
+ {
+@@ -722,9 +722,10 @@ static int acpi_idle_enter_c1(struct cpuidle_device *dev,
+ 		struct cpuidle_driver *drv, int index)
+ {
+ 	struct acpi_processor *pr;
+-	struct acpi_processor_cx *cx = acpi_cstate[index];
++	struct acpi_processor_cx *cx;
+ 
+ 	pr = __this_cpu_read(processors);
++ 	cx = per_cpu(acpi_cstate[index], pr->id);
+ 
+ 	if (unlikely(!pr))
+ 		return -EINVAL;
+@@ -745,7 +746,8 @@ static int acpi_idle_enter_c1(struct cpuidle_device *dev,
+  */
+ static int acpi_idle_play_dead(struct cpuidle_device *dev, int index)
+ {
+-	struct acpi_processor_cx *cx = acpi_cstate[index];
++	struct acpi_processor_cx *cx;
++ 	cx = per_cpu(acpi_cstate[index], dev->cpu);
+ 
+ 	ACPI_FLUSH_CPU_CACHE();
+ 
+@@ -775,9 +777,10 @@ static int acpi_idle_enter_simple(struct cpuidle_device *dev,
+ 		struct cpuidle_driver *drv, int index)
+ {
+ 	struct acpi_processor *pr;
+-	struct acpi_processor_cx *cx = acpi_cstate[index];
++	struct acpi_processor_cx *cx;
+ 
+ 	pr = __this_cpu_read(processors);
++ 	cx = per_cpu(acpi_cstate[index], pr->id);
+ 
+ 	if (unlikely(!pr))
+ 		return -EINVAL;
+@@ -833,9 +836,10 @@ static int acpi_idle_enter_bm(struct cpuidle_device *dev,
+ 		struct cpuidle_driver *drv, int index)
+ {
+ 	struct acpi_processor *pr;
+-	struct acpi_processor_cx *cx = acpi_cstate[index];
++	struct acpi_processor_cx *cx;
+ 
+ 	pr = __this_cpu_read(processors);
++ 	cx = per_cpu(acpi_cstate[index], pr->id);
+ 
+ 	if (unlikely(!pr))
+ 		return -EINVAL;
+@@ -960,7 +964,7 @@ static int acpi_processor_setup_cpuidle_cx(struct acpi_processor *pr,
+ 		    !(acpi_gbl_FADT.flags & ACPI_FADT_C2_MP_SUPPORTED))
+ 			continue;
+ #endif
+-		acpi_cstate[count] = cx;
++		per_cpu(acpi_cstate[count], dev->cpu) = cx;
+ 
+ 		count++;
+ 		if (count == CPUIDLE_STATE_MAX)
+-- 
+1.7.5.4
+
