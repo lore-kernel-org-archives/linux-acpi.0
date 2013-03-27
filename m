@@ -1,156 +1,149 @@
-From: Yinghai Lu <yinghai@kernel.org>
-Subject: Re: [LKP] Commit ac3ebafa81a makes NHM EX/EP machines hung out since 3.9-rc1
-Date: Wed, 27 Mar 2013 09:36:44 -0700
-Message-ID: <CAE9FiQUnXev4Q+B1Cww-bhZM8O7bhbvOT=Y5c4SOjFksq1oXEw@mail.gmail.com>
-References: <20130313022759.GA120840@bee>
-	<5152781B.6060603@intel.com>
+From: Toshi Kani <toshi.kani@hp.com>
+Subject: Re: [PATCH v2] ACPI: Add sysfs links from memory device to memblocks
+Date: Wed, 27 Mar 2013 11:13:49 -0600
+Message-ID: <1364404429.15745.74.camel@misato.fc.hp.com>
+References: <1361826130-31062-1-git-send-email-toshi.kani@hp.com>
+	 <3205964.WeZJN7sRdd@vostro.rjw.lan>
+	 <1364338776.15745.27.camel@misato.fc.hp.com>
+	 <7718937.tEXDldppSg@vostro.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-ie0-f182.google.com ([209.85.223.182]:64945 "EHLO
-	mail-ie0-f182.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751158Ab3C0Qgp (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 27 Mar 2013 12:36:45 -0400
-In-Reply-To: <5152781B.6060603@intel.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <7718937.tEXDldppSg@vostro.rjw.lan>
+Sender: linux-kernel-owner@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, isimatu.yasuaki@jp.fujitsu.com, vasilis.liaskovitis@profitbricks.com
 List-Id: linux-acpi@vger.kernel.org
-To: Alex Shi <alex.shi@intel.com>, "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: Len Brown <len.brown@intel.com>, Changlong Xie <changlongx.xie@intel.com>, linux-acpi@vger.kernel.org, Daniel Lezcano <daniel.lezcano@linaro.org>, lkp@linux.intel.com, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
 
-On Tue, Mar 26, 2013 at 9:39 PM, Alex Shi <alex.shi@intel.com> wrote:
-> On 03/13/2013 10:27 AM, Changlong Xie wrote:
->> Hi Len,
->>
->>       FYI, since 3.9-rc1 our three NHM EP/EX LKP(linux kernel performance) test servers
->>       except SNB/IVB/WSM hung up unexpectly.
->>
->>       We did git bisect for about 8 times on all servers, it said that the first bad commit is ac3ebafa.
->>
->>       commit ac3ebafa81af76d65e4fb45c6388f08e90ddcc6d
->>       Author: Daniel Lezcano <daniel.lezcano@linaro.org>
->>       Date:   Mon Feb 4 22:44:43 2013 +0000
->
-> fixing patch for review:
->
->
-> -----------------------
-> From 78a74aea386b0969909c2e4ae388024ce71fdb18 Mon Sep 17 00:00:00 2001
-> From: Alex Shi <alex.shi@intel.com>
-> Date: Tue, 26 Mar 2013 22:57:47 +0800
-> Subject: [PATCH] cpuidle/acpi: recover percpu acpi processor cstate
->
-> Commit: ac3ebafa81af76d6 "ACPI / idle: remove usage of the statedata"
-> change the percpu processor cstate to a unify unique cstate in acpi
-> idle. That cause all our NHM box boot hang or panic.
->
-> 2178751 Task dump for CPU 1:^M
->         2178752 swapper/1       R  running task     6736     0      1
-> 0x00000000^M
->         2178753  ffff8801e8029dc8 ffffffff8101cf96 ffff8801e8029e28
-> ffffffff813d294b^M
->         2178754  0000000000000f99 0000000000000003 00000000003cf654
-> 0000000025c17d03^M
->         2178755  ffff8801e8029e38 ffff8801e74fc000 00000002590dc5c4
-> ffffffff8163cdb0^M
->         2178756 Call Trace:^M
->         2178757  [<ffffffff8101cf96>] ? acpi_processor_ffh_cstate_enter+0x2d/0x2f^M
->         2178758  [<ffffffff813d294b>] acpi_idle_enter_bm+0x1b1/0x236^M
->         2178759  [<ffffffff8163cdb0>] ? disable_cpuidle+0x10/0x10^M
->         2178760  [<ffffffff8163cdc2>] cpuidle_enter+0x12/0x14^M
->         2178761  [<ffffffff8163d286>] cpuidle_wrap_enter+0x2f/0x6d^M
->         2178762  [<ffffffff8163d2d4>] cpuidle_enter_tk+0x10/0x12^M
->         2178763  [<ffffffff8163cdd6>] cpuidle_enter_state+0x12/0x3a^M
->         2178764  [<ffffffff8163d4a7>] cpuidle_idle_call+0xe8/0x161^M
->         2178765  [<ffffffff81008d99>] cpu_idle+0x5e/0xa4^M
->         2178766  [<ffffffff8174c6c1>] start_secondary+0x1a9/0x1ad^M
->         2178767 Task dump for CPU 2:^M
->
-> In fact, the acpi idle bases on percpu cstate difference assumption, the
-> infrastructure use many percpu structures to implement self.
-> Just unique acpi_processor_cx is far far not enough.
->
-> This patch just is a quick fix by introducing back the percpu cstates.
-> And keep driver_data away.
->
-> If someone really want to unify the acpi cstates, please make sure whole
-> software infrastructure changed and get the grant from hardware,
-> include many kinds of BIOS setting.
->
-> Signed-off-by: Alex Shi <alex.shi@intel.com>
-> ---
->  drivers/acpi/processor_idle.c | 13 +++++++------
->  1 file changed, 7 insertions(+), 6 deletions(-)
->
-> diff --git a/drivers/acpi/processor_idle.c b/drivers/acpi/processor_idle.c
-> index fc95308..ee255c6 100644
-> --- a/drivers/acpi/processor_idle.c
-> +++ b/drivers/acpi/processor_idle.c
-> @@ -66,7 +66,8 @@ module_param(latency_factor, uint, 0644);
->
->  static DEFINE_PER_CPU(struct cpuidle_device *, acpi_cpuidle_device);
->
-> -static struct acpi_processor_cx *acpi_cstate[CPUIDLE_STATE_MAX];
-> +static DEFINE_PER_CPU(struct acpi_processor_cx * [CPUIDLE_STATE_MAX],
-> +                                                               acpi_cstate);
->
->  static int disabled_by_idle_boot_param(void)
->  {
-> @@ -722,7 +723,7 @@ static int acpi_idle_enter_c1(struct cpuidle_device *dev,
->                 struct cpuidle_driver *drv, int index)
->  {
->         struct acpi_processor *pr;
-> -       struct acpi_processor_cx *cx = acpi_cstate[index];
-> +       struct acpi_processor_cx *cx = per_cpu(acpi_cstate[index], dev->cpu);
->
->         pr = __this_cpu_read(processors);
->
-> @@ -745,7 +746,7 @@ static int acpi_idle_enter_c1(struct cpuidle_device *dev,
->   */
->  static int acpi_idle_play_dead(struct cpuidle_device *dev, int index)
->  {
-> -       struct acpi_processor_cx *cx = acpi_cstate[index];
-> +       struct acpi_processor_cx *cx = per_cpu(acpi_cstate[index], dev->cpu);
->
->         ACPI_FLUSH_CPU_CACHE();
->
-> @@ -775,7 +776,7 @@ static int acpi_idle_enter_simple(struct cpuidle_device *dev,
->                 struct cpuidle_driver *drv, int index)
->  {
->         struct acpi_processor *pr;
-> -       struct acpi_processor_cx *cx = acpi_cstate[index];
-> +       struct acpi_processor_cx *cx = per_cpu(acpi_cstate[index], dev->cpu);
->
->         pr = __this_cpu_read(processors);
->
-> @@ -833,7 +834,7 @@ static int acpi_idle_enter_bm(struct cpuidle_device *dev,
->                 struct cpuidle_driver *drv, int index)
->  {
->         struct acpi_processor *pr;
-> -       struct acpi_processor_cx *cx = acpi_cstate[index];
-> +       struct acpi_processor_cx *cx = per_cpu(acpi_cstate[index], dev->cpu);
->
->         pr = __this_cpu_read(processors);
->
-> @@ -960,7 +961,7 @@ static int acpi_processor_setup_cpuidle_cx(struct acpi_processor *pr,
->                     !(acpi_gbl_FADT.flags & ACPI_FADT_C2_MP_SUPPORTED))
->                         continue;
->  #endif
-> -               acpi_cstate[count] = cx;
-> +               per_cpu(acpi_cstate[count], dev->cpu) = cx;
->
->                 count++;
->                 if (count == CPUIDLE_STATE_MAX)
-> --
+On Wed, 2013-03-27 at 00:39 +0100, Rafael J. Wysocki wrote:
+> On Tuesday, March 26, 2013 04:59:36 PM Toshi Kani wrote:
+> > On Tue, 2013-03-26 at 23:39 +0100, Rafael J. Wysocki wrote:
+> > > On Tuesday, March 26, 2013 09:42:06 AM Toshi Kani wrote:
+> > > > On Tue, 2013-03-26 at 14:04 +0100, Rafael J. Wysocki wrote:
+> > > > > On Monday, February 25, 2013 02:02:10 PM Toshi Kani wrote:
+> > > > > > In order to eject a memory device object represented as "PNP0C80:%d"
+> > > > > > in sysfs, its associated memblocks (system/memory/memory%d) need to
+> > > > > > be off-lined.  However, there is no user friendly way to correlate
+> > > > > > between a memory device object and its memblocks in sysfs.
+> > > > > > 
+> > > > > > This patch creates sysfs links to memblocks under a memory device
+> > > > > > object so that a user can easily checks and manipulates its memblocks
+> > > > > > in sysfs.
+> > > > > > 
+> > > > > > For example, when PNP0C80:05 is associated with memory8 and memory9,
+> > > > > > the following two links are created under PNP0C80:05.  This allows
+> > > > > > a user to access memory8/9 directly from PNP0C80:05.
+> > > > > > 
+> > > > > >   # ll /sys/devices/LNXSYSTM:00/LNXSYBUS:00/PNP0C80:05
+> > > > > >   lrwxrwxrwx. memory8 -> ../../../system/memory/memory8
+> > > > > >   lrwxrwxrwx. memory9 -> ../../../system/memory/memory9
+> > > > > > 
+> > > > > > Signed-off-by: Toshi Kani <toshi.kani@hp.com>
+> > > > > 
+> > > > > Here I have some doubts.
+> > > > > 
+> > > > > This adds a very specific interface for user space that we're going to need to
+> > > > > maintain going forward if the user space starts to use it.  However, it kind of
+> > > > > duplicates the existing "physical_node" interface that we have for "regular"
+> > > > > devices.
+> > > > > 
+> > > > > So, if possible, I'd like the memory subsystem to utilize the existing
+> > > > > interface instead of creating an entirely new one.  Namely, why don't we create
+> > > > > a struct device-based object for each memory block and associated those new
+> > > > > "devices" with the PNP0C80 ACPI object through the functions in glue.c?
+> > > > > Then, we could add an "offline/online" interface to those "devices" too.
+> > > > 
+> > > > This patch simply adds symbolic links to system/memory/memoryN, which
+> > > > the memory subsystem already provides for the online/offline interface
+> > > > of memory blocks.  So, it does not introduce a new interface, but guides
+> > > > users (and user tools) to know which memory blocks need to be off-lined
+> > > > in order to hot-delete any particular memory device PNP0C80:X.  A cpu
+> > > > device LNXCPU:X also has a similar symbolic link "sysdev" that links to
+> > > > system/cpu/cpuN.  I could not use the same "sysdev" for PNP0C80:X since
+> > > > it typically associates with multiple memory blocks.
+> > > > 
+> > > > I thought about using glue.c to create symbolic links between memoryN
+> > > > and PNP0C80:X.  However, it has an ordering issue.  During boot-time,
+> > > > memoryN gets created before PNP0C80:X.  But during hot-add, PNP0C80:X
+> > > > gets created before memoryN.
+> > > 
+> > > Quite frankly, this sounds like a bug to me.  Namely, what is memoryN really
+> > > good for without PNP0C80:X?  If it is not good for anything in that case,
+> > > it should never be created befor PNP0C80:X.
+> > 
+> > memoryN works without PNP0C80:X and does not depend on ACPI.  A memoryN
+> > represents a memblk, each of which is merely a 128MB (in case of x86) of
+> > memory chunk sliced from the entire memory ranges.
+> 
+> Ah.  Why is it exported this way?
 
-It fixes the problem on my 8 sockets Nehalem-EX that will hang around
-ip_auto_config()
+This is because a memblk is the unit of the Sparse Memory design, which
+allows discontinuous memory ranges (ex. NUMA) and online/offline
+operations.  So, it makes sense for the memory subsystem to export this
+interface, although I feel that 128MB is rather small these days.
 
-Tested-by: Yinghai Lu <yinghai@kernel.org>
+> > This is why it is
+> > hard to associate between memoryN and PNP0C80:X without these symbolic
+> > links (otherwise, you will have to calculate from memory address.)
+> 
+> Sure.
+> 
+> > The memory subsystem also obtains the memory ranges from EFI or e820
+> > during boot, and ACPI is not necessary to construct memoryN at boot.
+> > Since EFI / e820 only provides the boot-time configuration, ACPI is used
+> > to update the memory ranges during hot-add/delete.
+> > 
+> > > > This patch calls
+> > > > acpi_setup_mem_blk_links() in a point that solves this ordering issue
+> > > > since this point guarantees that both memoryN and PNP0C80X are created
+> > > > for both boot-time and hot-add.
+> > > 
+> > > I would prefer the ordering of creation to be the same in both cases.
+> > > Otherwise it really looks like we need to work around a problem that we're
+> > > creating for ourselves.
+> > > 
+> > > How exactly are memoryN created during boot?
+> > 
+> > memoryN is created in memory_dev_init().  This is even before
+> > do_initcalls().  I'd also prefer the same ordering, but I felt that
+> > changing this ordering would be rather challenging.
+> > 
+> > do_basic_setup()
+> >   driver_init()
+> >     memory_dev_init()
+> 
+> What about having a "physical memory module" device that will be associated
+> with those memory blocks (and will have links to them from its directory in
+> sysfs) and that will be pointed to by the "physical_node" pointer from
+> under PNP0C80:X?  Then, it may have a driver that will do the online/offline
+> (and export the interface for that to user space through sysfs) and will
+> interact with the ACPI interface provided by PNP0C80:X.
 
-Rafael,
-Can you please push this one to Linus tree ?
-As the offending patch was via your tree to upstream.
+It sounds interesting idea, but I think it has several issues:
 
-Thanks
+ - Maintenance: It is not clear to me who owns this physical device.
+>From the memory subsystem perspective, a memblk is an object that is
+managed like a device internally.  So, I do not think the memory
+subsystem needs this.  If ACPI owns this, it adds complication to us and
+we need to keep up with the memory changes.    
+ - Rollback: As offline/online proceeds on each memblk, the driver has
+to support rollback when one of memblks failed to offline.  This seems
+to against the direction of this approach (no rollback in the kernel).
+ - Ordering issue: Creating symbolic links among 3 types of devices
+(PNP0C80, memblk, new physical device) further complicates the ordering
+issue. 
+ - Representation: PNP0C80:X represents the state of an ACPI PNP0C80
+device.  memoryN represents the state of a memblk.  It is not clear what
+this new physical device really represents when there isn't such device
+visible to users.  It may be seen as duplication.
 
-Yinghai
+Frankly, if we are to provide a good sysfs UI for hot-delete, I'd prefer
+to go with my updated patchset, which keeps user to allow doing "echo 1
+> PNP0C80:X/eject", and all associated memblks will be offlined
+together.  I think the user space approach will require good management
+tools to take care of the UI issue, and the kernel just has to provide
+the necessary info to the user space, which this patch is intended.
+
+Thanks,
+-Toshi
