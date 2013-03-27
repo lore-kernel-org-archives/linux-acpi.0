@@ -1,156 +1,115 @@
-From: Bjorn Helgaas <bhelgaas@google.com>
-Subject: Re: [PATCH] PCI: Remove not needed check in disable aspm link
-Date: Wed, 27 Mar 2013 16:56:37 -0600
-Message-ID: <CAErSpo6v0mj9=Q13d=G4hho0mb9XTcsmefzke9fROYmZ7oBWxQ@mail.gmail.com>
-References: <CAE9FiQXmeb66dc8fET0y99BjqpUXp11c7utiQ5keR1Wf+N9xaA@mail.gmail.com>
- <1363628226-6679-1-git-send-email-yinghai@kernel.org>
+From: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
+Subject: Re: [PATCH v3 2/2] ACPI,acpi_memhotplug: Remove acpi_memory_info->failed
+ bit
+Date: Thu, 28 Mar 2013 08:58:03 +0900
+Message-ID: <5153878B.2050307@jp.fujitsu.com>
+References: <514022BF.3080303@jp.fujitsu.com> <1363983884.11659.14.camel@misato.fc.hp.com> <5150E451.3010100@jp.fujitsu.com> <4310971.etCm8Nd6PX@vostro.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset="UTF-8"; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-ob0-f170.google.com ([209.85.214.170]:39499 "EHLO
-	mail-ob0-f170.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754923Ab3C0W46 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 27 Mar 2013 18:56:58 -0400
-Received: by mail-ob0-f170.google.com with SMTP id wc20so8805169obb.1
-        for <linux-acpi@vger.kernel.org>; Wed, 27 Mar 2013 15:56:57 -0700 (PDT)
-In-Reply-To: <1363628226-6679-1-git-send-email-yinghai@kernel.org>
+Received: from fgwmail6.fujitsu.co.jp ([192.51.44.36]:40556 "EHLO
+	fgwmail6.fujitsu.co.jp" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754253Ab3C0X6a (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 27 Mar 2013 19:58:30 -0400
+In-Reply-To: <4310971.etCm8Nd6PX@vostro.rjw.lan>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Yinghai Lu <yinghai@kernel.org>
-Cc: "Rafael J. Wysocki" <rjw@sisk.pl>, "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Taku Izumi <izumi.taku@jp.fujitsu.com>, Kenji Kaneshige <kaneshige.kenji@jp.fujitsu.com>, stable@kernel.org
+To: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: Toshi Kani <toshi.kani@hp.com>, linux-acpi@vger.kernel.org, tangchen@cn.fujitsu.com, wency@cn.fujitsu.com, laijs@cn.fujitsu.com, linux-kernel@vger.kernel.org
 
-On Mon, Mar 18, 2013 at 11:37 AM, Yinghai Lu <yinghai@kernel.org> wrote:
-> Roman reported ath5k does not work anymore on 3.8.
-> Bisected to
-> | commit 8c33f51df406e1a1f7fa4e9b244845b7ebd61fa6
-> | Author: Taku Izumi <izumi.taku@jp.fujitsu.com>
-> | Date:   Tue Oct 30 15:27:13 2012 +0900
-> |
-> |    PCI/ACPI: Request _OSC control before scanning PCI root bus
-> |
-> |    This patch moves up the code block to request _OSC control in order to
-> |    separate ACPI work and PCI work in acpi_pci_root_add().
->
-> It make pci_disable_link_state does not work anymore as acpi_disabled
-> is set before pci root bus scanning.
-> It will skip that in quirks and pcie_aspm_sanity_check.
->
-> We could revert to old logic, but that will make booting path and hotplug
-> path with different aspm_disabled again.
->
-> Acctually we don't need to check aspm_disabled in disable link, as
-> we already have protection about link state following.
->
-> https://bugzilla.kernel.org/show_bug.cgi?id=55211
-> http://article.gmane.org/gmane.linux.kernel.pci/20640
->
-> Need it for 3.8 stable.
->
-> Reported-by: Roman Yepishev <roman.yepishev@gmail.com>
-> Bisected-by: Roman Yepishev <roman.yepishev@gmail.com>
-> Tested-by: Roman Yepishev <roman.yepishev@gmail.com>
-> Signed-off-by: Yinghai Lu <yinghai@kernel.org>
-> Cc: Taku Izumi <izumi.taku@jp.fujitsu.com>
-> Cc: Kenji Kaneshige <kaneshige.kenji@jp.fujitsu.com>
-> Cc: stable@kernel.org
->
-> ---
->  drivers/pci/pcie/aspm.c |   21 ++++-----------------
->  1 file changed, 4 insertions(+), 17 deletions(-)
->
-> Index: linux-2.6/drivers/pci/pcie/aspm.c
-> ===================================================================
-> --- linux-2.6.orig/drivers/pci/pcie/aspm.c
-> +++ linux-2.6/drivers/pci/pcie/aspm.c
-> @@ -493,15 +493,6 @@ static int pcie_aspm_sanity_check(struct
->                         return -EINVAL;
->
->                 /*
-> -                * If ASPM is disabled then we're not going to change
-> -                * the BIOS state. It's safe to continue even if it's a
-> -                * pre-1.1 device
-> -                */
-> -
-> -               if (aspm_disabled)
-> -                       continue;
-> -
-> -               /*
->                  * Disable ASPM for pre-1.1 PCIe device, we follow MS to use
->                  * RBER bit to determine if a function is 1.1 version device
->                  */
-> @@ -718,15 +709,11 @@ void pcie_aspm_powersave_config_link(str
->   * pci_disable_link_state - disable pci device's link state, so the link will
->   * never enter specific states
->   */
-> -static void __pci_disable_link_state(struct pci_dev *pdev, int state, bool sem,
-> -                                    bool force)
-> +static void __pci_disable_link_state(struct pci_dev *pdev, int state, bool sem)
->  {
->         struct pci_dev *parent = pdev->bus->self;
->         struct pcie_link_state *link;
->
-> -       if (aspm_disabled && !force)
-> -               return;
-> -
->         if (!pci_is_pcie(pdev))
->                 return;
->
-> @@ -757,13 +744,13 @@ static void __pci_disable_link_state(str
->
->  void pci_disable_link_state_locked(struct pci_dev *pdev, int state)
->  {
-> -       __pci_disable_link_state(pdev, state, false, false);
-> +       __pci_disable_link_state(pdev, state, false);
->  }
->  EXPORT_SYMBOL(pci_disable_link_state_locked);
->
->  void pci_disable_link_state(struct pci_dev *pdev, int state)
->  {
-> -       __pci_disable_link_state(pdev, state, true, false);
-> +       __pci_disable_link_state(pdev, state, true);
->  }
->  EXPORT_SYMBOL(pci_disable_link_state);
->
-> @@ -781,7 +768,7 @@ void pcie_clear_aspm(struct pci_bus *bus
->                 __pci_disable_link_state(child, PCIE_LINK_STATE_L0S |
->                                          PCIE_LINK_STATE_L1 |
->                                          PCIE_LINK_STATE_CLKPM,
-> -                                        false, true);
-> +                                        false);
->         }
->  }
->
+Hi Rafael,
 
-This might fix the problem, but the code is still a mess.  In
-acpi_pci_root_add(), why do we have the following?
+2013/03/26 22:41, Rafael J. Wysocki wrote:
+> On Tuesday, March 26, 2013 08:57:05 AM Yasuaki Ishimatsu wrote:
+>> 2013/03/23 5:24, Toshi Kani wrote:
+>>> On Fri, 2013-03-22 at 10:53 +0900, Yasuaki Ishimatsu wrote:
+>>>> acpi_memory_info has enabled bit and failed bit for controlling memory
+>>>> hotplug. But we don't need to keep both bits.
+>>>>
+>>>> The patch removes acpi_memory_info->failed bit.
+>>>>
+>>>> Signed-off-by: yasuaki ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
+>>>
+>>> Thanks for the update.  It looks good.  For the series:
+>>>
+>>> Acked-by: Toshi Kani <toshi.kani@hp.com>
+>>
+>> Thanks!
+>
+> Both patches applied to linux-pm.git/linux-next.
 
-    acpi_pci_root_add
+Thank you for applying both patches.
+If you don't mind, I hope these patches are merged into linux-3.9
+since this is bug fix.
 
-      acpi_pci_osc_support
-      if (flags != base_flags)
-        pcie_no_aspm
-      if (...)
-        acpi_pci_osc_control_set
-        if (ACPI_SUCCESS)
-          is_osc_granted = true
+Thanks,
+Yasuaki Ishimatsu
 
-      pci_acpi_scan_root
+>
+> Thanks,
+> Rafael
+>
+>
+>>>> ---
+>>>>
+>>>> v3 : Continue to memory hot remove when (!info->enabled) case.
+>>>> v2 : Changed a based kernel from linux-3.9-rc2 to linux-pm.git/bleeding-edge.
+>>>>
+>>>> ---
+>>>>     drivers/acpi/acpi_memhotplug.c |   15 ++-------------
+>>>>     1 files changed, 2 insertions(+), 13 deletions(-)
+>>>>
+>>>> diff --git a/drivers/acpi/acpi_memhotplug.c b/drivers/acpi/acpi_memhotplug.c
+>>>> index ea78988..5e6301e 100644
+>>>> --- a/drivers/acpi/acpi_memhotplug.c
+>>>> +++ b/drivers/acpi/acpi_memhotplug.c
+>>>> @@ -73,7 +73,6 @@ struct acpi_memory_info {
+>>>>     	unsigned short caching;	/* memory cache attribute */
+>>>>     	unsigned short write_protect;	/* memory read/write attribute */
+>>>>     	unsigned int enabled:1;
+>>>> -	unsigned int failed:1;
+>>>>     };
+>>>>
+>>>>     struct acpi_memory_device {
+>>>> @@ -201,10 +200,8 @@ static int acpi_memory_enable_device(struct acpi_memory_device *mem_device)
+>>>>     		 * returns -EEXIST. If add_memory() returns the other error, it
+>>>>     		 * means that this memory block is not used by the kernel.
+>>>>     		 */
+>>>> -		if (result && result != -EEXIST) {
+>>>> -			info->failed = 1;
+>>>> +		if (result && result != -EEXIST)
+>>>>     			continue;
+>>>> -		}
+>>>>
+>>>>     		info->enabled = 1;
+>>>>
+>>>> @@ -238,16 +235,8 @@ static int acpi_memory_remove_memory(struct acpi_memory_device *mem_device)
+>>>>     	nid = acpi_get_node(mem_device->device->handle);
+>>>>
+>>>>     	list_for_each_entry_safe(info, n, &mem_device->res_list, list) {
+>>>> -		if (info->failed)
+>>>> -			/* The kernel does not use this memory block */
+>>>> -			continue;
+>>>> -
+>>>>     		if (!info->enabled)
+>>>> -			/*
+>>>> -			 * The kernel uses this memory block, but it may be not
+>>>> -			 * managed by us.
+>>>> -			 */
+>>>> -			return -EBUSY;
+>>>> +			continue;
+>>>>
+>>>>     		if (nid < 0)
+>>>>     			nid = memory_add_physaddr_to_nid(info->start_addr);
+>>>>
+>>>
+>>>
+>>
+>>
+>> --
+>> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
+>> the body of a message to majordomo@vger.kernel.org
+>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
-      if (is_osc_granted)
-        if (acpi_gbl_FADT.boot_flags & ACPI_FADT_NO_ASPM)
-          pcie_clear_aspm
-      else
-        pcie_no_aspm
 
-Why can't we set all the ASPM flags *first*, before calling
-pci_acpi_scan_root()?  That way we could just do the correct ASPM
-setup as we discover devices during enumeration, rather than trying to
-fix things up afterwards.  I suspect pcie_clear_aspm() is broken
-anyway, because it looks like it only touches one level of the
-hierarchy, without recursively descending it.
-
-But Taku went to some trouble in 8c33f51d to introduce is_osc_granted
-to remember this until after pci_acpi_scan_root(), so presumably
-there's some reason for this.  Do you remember why, Taku?
-
-Bjorn
