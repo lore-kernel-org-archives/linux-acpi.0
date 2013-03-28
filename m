@@ -1,120 +1,86 @@
-From: Martin Mokrejs <mmokrejs@fold.natur.cuni.cz>
+From: Bjorn Helgaas <bhelgaas@google.com>
 Subject: Re: [PATCH] PCI / ACPI: Always resume devices on ACPI wakeup notifications
-Date: Thu, 28 Mar 2013 19:31:58 +0100
-Message-ID: <51548C9E.9090703@fold.natur.cuni.cz>
-References: <2282655.IicBMMa6jN@vostro.rjw.lan> <2457825.yjlrJCricN@vostro.rjw.lan> <CAErSpo6oNPKn5eQV_ERaw1659-9N_Dti7ewKiRfVCy2Xw9rzbg@mail.gmail.com> <1433753.0tcctuHSKe@vostro.rjw.lan> <51547D45.6030106@fold.natur.cuni.cz> <CAErSpo7QXe1-R5_jXCcc3g_J-_HXqO3V12nNB=Z6eCAt-vwKfA@mail.gmail.com>
+Date: Thu, 28 Mar 2013 13:12:42 -0600
+Message-ID: <CAErSpo4PeJFikKZQvZVTFzZDu+mA--MsgbP7WZYBdd0hJBpAow@mail.gmail.com>
+References: <2282655.IicBMMa6jN@vostro.rjw.lan> <2457825.yjlrJCricN@vostro.rjw.lan>
+ <CAErSpo6oNPKn5eQV_ERaw1659-9N_Dti7ewKiRfVCy2Xw9rzbg@mail.gmail.com>
+ <1433753.0tcctuHSKe@vostro.rjw.lan> <51547D45.6030106@fold.natur.cuni.cz>
+ <CAErSpo7QXe1-R5_jXCcc3g_J-_HXqO3V12nNB=Z6eCAt-vwKfA@mail.gmail.com> <20130328182326.GA5995@xanatos>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from fold.natur.cuni.cz ([195.113.57.32]:51824 "HELO
-	fold.natur.cuni.cz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1754526Ab3C1ScE (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 28 Mar 2013 14:32:04 -0400
-In-Reply-To: <CAErSpo7QXe1-R5_jXCcc3g_J-_HXqO3V12nNB=Z6eCAt-vwKfA@mail.gmail.com>
+Received: from mail-ob0-f177.google.com ([209.85.214.177]:46597 "EHLO
+	mail-ob0-f177.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751110Ab3C1TNE (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 28 Mar 2013 15:13:04 -0400
+Received: by mail-ob0-f177.google.com with SMTP id eh20so9681745obb.36
+        for <linux-acpi@vger.kernel.org>; Thu, 28 Mar 2013 12:13:04 -0700 (PDT)
+In-Reply-To: <20130328182326.GA5995@xanatos>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Bjorn Helgaas <bhelgaas@google.com>
-Cc: "Rafael J. Wysocki" <rjw@sisk.pl>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Len Brown <lenb@kernel.org>, Matthew Garrett <mjg59@srcf.ucam.org>, Sarah Sharp <sarah.a.sharp@linux.intel.com>
+To: Sarah Sharp <sarah.a.sharp@linux.intel.com>
+Cc: Martin Mokrejs <mmokrejs@fold.natur.cuni.cz>, "Rafael J. Wysocki" <rjw@sisk.pl>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Len Brown <lenb@kernel.org>, Matthew Garrett <mjg59@srcf.ucam.org>
 
-Hi Bjorn,
+On Thu, Mar 28, 2013 at 12:23 PM, Sarah Sharp
+<sarah.a.sharp@linux.intel.com> wrote:
+> On Thu, Mar 28, 2013 at 11:49:05AM -0600, Bjorn Helgaas wrote:
+>> On Thu, Mar 28, 2013 at 11:26 AM, Martin Mokrejs
+>> <mmokrejs@fold.natur.cuni.cz> wrote:
+>> >
+>> >
+>> > Rafael J. Wysocki wrote:
+>> >> On Thursday, March 28, 2013 10:46:10 AM Bjorn Helgaas wrote:
+>> >>> On Thu, Mar 28, 2013 at 10:41 AM, Rafael J. Wysocki <rjw@sisk.pl> wrote:
+>> >>>> On Thursday, March 28, 2013 10:21:30 AM Bjorn Helgaas wrote:
+>> >>>>> On Thu, Mar 28, 2013 at 6:57 AM, Rafael J. Wysocki <rjw@sisk.pl> wrote:
+>> >>>>> If you have
+>> >>>>> a URL for a bugzilla or mailing list report of the original problem,
+>> >>>>> that would be good, too.  It'd be nice if users and distros could
+>> >>>>> match problem reports with this solution, but I can't tell what the
+>> >>>>> user-visible issue was.  I assume that Sarah tested this (or somebody
+>> >>>>> else reproduced the problem and tested the fix)?
+>> >>>>
+>> >>>> Sarah reported it to me privately and I'm afraid I don't have any pointers
+>> >>>> to publicly available mailing list archives etc.
+>> >>>
+>> >>> Do you at least have a description of how a user could determine
+>> >>> whether he is seeing the problem fixed by this patch?
+>> >>
+>> >> Yeah.  For example, when the problem is visible on a USB controller and that
+>> >> controller is runtime-suspended, then plugging a new USB device into one
+>> >> of the controller's ports won't wake the controller up without the patch.
+>> >
+>> > Hi,
+>> >  I am wondering for a week or two why nobody answered any of my bug reports,
+>> > not even Sarah who asked for more details. I am think the fix is about my report
+>> > under thread "Re: 3.8.2: xhci port is dead until pcieport PME# goes to disabled"
+>> > and I really wonder why I wasn't Cc:ed and listed as a reporter provided it is
+>> > about my report. But I should better wait what Sarah says. ;-)
+>
+> Actually, it didn't occur to me that your issue might be related at all.
+> Sure, you can try this patch, on top of Greg's usb-linus branch, and see
+> if it fixes your issue.
+>
+> I just reproduced this on an internal machine, and decided to report it
+> privately to Rafael first, in case the early hardware was just broken.
+>
+> Bjorn, I see that you're encouraging people to have their bugs and
+> symptoms in a bug tracker.  I've also been doing that within Intel, in a
+> private JIRA issue tracker.  I've been discussing if we can duplicate
+> some bugs or features that don't contain Intel confidential information
+> to a public JIRA at 01.org.  I don't really want to use
+> bugzilla.kernel.org because, quite frankly, the interface is archaic,
+> and in the past I've gotten pushback from other devs about tracking
+> "someday" features in there.
 
-Bjorn Helgaas wrote:
-> On Thu, Mar 28, 2013 at 11:26 AM, Martin Mokrejs
-> <mmokrejs@fold.natur.cuni.cz> wrote:
->>
->>
->> Rafael J. Wysocki wrote:
->>> On Thursday, March 28, 2013 10:46:10 AM Bjorn Helgaas wrote:
->>>> On Thu, Mar 28, 2013 at 10:41 AM, Rafael J. Wysocki <rjw@sisk.pl> wrote:
->>>>> On Thursday, March 28, 2013 10:21:30 AM Bjorn Helgaas wrote:
->>>>>> On Thu, Mar 28, 2013 at 6:57 AM, Rafael J. Wysocki <rjw@sisk.pl> wrote:
->>>>>>> Hi Bjorn,
->>>>>>>
->>>>>>> I wonder what you think about the patch below?
->>>>>>
->>>>>> Seems fine to me (I'm trusting your and Matthew's judgment here since
->>>>>> I don't know much about it).  Why don't you resend it with Matthew's
->>>>>> ack and the appropriate stable tags, and I'll put it in.
->>>>>
->>>>> I will, thanks!
->>>>>
->>>>>> If you have
->>>>>> a URL for a bugzilla or mailing list report of the original problem,
->>>>>> that would be good, too.  It'd be nice if users and distros could
->>>>>> match problem reports with this solution, but I can't tell what the
->>>>>> user-visible issue was.  I assume that Sarah tested this (or somebody
->>>>>> else reproduced the problem and tested the fix)?
->>>>>
->>>>> Sarah reported it to me privately and I'm afraid I don't have any pointers
->>>>> to publicly available mailing list archives etc.
->>>>
->>>> Do you at least have a description of how a user could determine
->>>> whether he is seeing the problem fixed by this patch?
->>>
->>> Yeah.  For example, when the problem is visible on a USB controller and that
->>> controller is runtime-suspended, then plugging a new USB device into one
->>> of the controller's ports won't wake the controller up without the patch.
->>
->> Hi,
->>  I am wondering for a week or two why nobody answered any of my bug reports,
->> not even Sarah who asked for more details. I am think the fix is about my report
->> under thread "Re: 3.8.2: xhci port is dead until pcieport PME# goes to disabled"
->> and I really wonder why I wasn't Cc:ed and listed as a reporter provided it is
->> about my report. But I should better wait what Sarah says. ;-)
-> 
-> I haven't forgotten about your hotplug issues, but I've been on
-> vacation for a week and have been working on the similar issue
-> reported by Chris Clayton
-> (https://bugzilla.kernel.org/show_bug.cgi?id=54981) because it seemed
-> a bit more tractable.  But I'll get back to yours eventually :)
-> Unfortunately nobody else seems to be jumping in to help, and I can
-> only do so much by myself.
-> 
-> I haven't been following your XHCI issue at all, but one thing you
+My main concern is that often there's more information relevant to a
+change than it makes sense to put in the changelog, so I like to
+include a URL to that additional info.  I don't really care if that's
+for a mailing list archive, a bugzilla, a JIRA instance, etc.  Issue
+trackers are more convenient than mailing lists for collecting dmesg
+logs, acpidumps, etc.  The archaic bugzilla interface notwithstanding,
+I'm not sure it would be an improvement to have a collection of dozens
+of issue trackers controlled by random organizations.  I'd rather have
+a single place and confidence that it will stick around.
 
-But please do so now. If we are talking about an existing patch it should be
-possible to say whether what I observed is likely to be fixed by the patch.
-I will happily discuss then why I loose interrupts in a same way for my
-rtl8169 network card and why this PME# stuff happens for me only with 3.8
-and not 3.7 (unlike what Sarah claims). I am not arguing that something 
-else makes 3.7 be able to wakeup the device and overcome the same bug
-while "it" is gone from 3.8. I think this should be an easy task for you,
-pci devs. ;-)
-
-
-> might consider is that it's easy for us on the receiving end to be
-> overwhelmed by the sheer volume of information.    For me personally,
-> it's more useful to get specific answers to a few questions than it is
-> for me to sort through a lot of speculation and other data.  In some
-> cases, "less is more" :)
-
-Although in theory I agree in real, I can only collect data for you and test a
-patch. Even when I extracted bits which I found important into emails there was
-still not much answer. And if there is nobody to go through the data then it
-is a waste of time.
-
-But still, each thread was a different bug and I just thought you will pick
-any which looks edible. Why Sarah had to fix PCI/ACPI stuff I don't know
-but yes, that one seemed quite clear.
-
-
-> 
->>   I would have actually same comment for the proposed patches in:
->> Yinghai Lu  "Re: [PATCH] PCI: Remove not needed check in disable aspm link"
->> Who tested the bug, if anybody? What change(the fix) in lspci output should one
->> observe?
-> 
-> Yeah, that's one of the things I'm trying to sort out right now.  It
-> *was* tested by Roman, according to the changelog, and I think I can
-> dig out the user-visible behavior from the bugzilla
-> (https://bugzilla.kernel.org/show_bug.cgi?id=55211), but I definitely
-> agree -- that patch needs a lot of tender loving care before I apply
-> it.
-
-Good. I think all of these relate to the issues I saw, and I don't believe
-one cannot find the *now described* broken behavior in my test outputs
-and verbosely explain what went on.
-
-Best,
-Martin
+Bjorn
