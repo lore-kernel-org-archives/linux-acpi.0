@@ -1,46 +1,80 @@
-From: Bjorn Helgaas <bhelgaas@google.com>
-Subject: Re: [PATCH] PCI: Remove not needed check in disable aspm link
-Date: Thu, 28 Mar 2013 06:46:39 -0600
-Message-ID: <CAErSpo4ncW8rkcpDiccORZedj30m7jRmpXK+amfDGn_wjwt7EA@mail.gmail.com>
-References: <CAE9FiQXmeb66dc8fET0y99BjqpUXp11c7utiQ5keR1Wf+N9xaA@mail.gmail.com>
- <1363628226-6679-1-git-send-email-yinghai@kernel.org> <CAErSpo6v0mj9=Q13d=G4hho0mb9XTcsmefzke9fROYmZ7oBWxQ@mail.gmail.com>
- <CAE9FiQU7cDzJdHxmqhJNgc9UCsRLgvCFQpv8+fLxD79pLEUC5A@mail.gmail.com>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: Re: [PATCH] PCI / ACPI: Always resume devices on ACPI wakeup notifications
+Date: Thu, 28 Mar 2013 13:57:07 +0100
+Message-ID: <2289048.zbdFnrKsCA@vostro.rjw.lan>
+References: <2282655.IicBMMa6jN@vostro.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7Bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-vc0-f170.google.com ([209.85.220.170]:51685 "EHLO
-	mail-vc0-f170.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754571Ab3C1Mq7 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 28 Mar 2013 08:46:59 -0400
-Received: by mail-vc0-f170.google.com with SMTP id lf10so7643672vcb.1
-        for <linux-acpi@vger.kernel.org>; Thu, 28 Mar 2013 05:46:59 -0700 (PDT)
-In-Reply-To: <CAE9FiQU7cDzJdHxmqhJNgc9UCsRLgvCFQpv8+fLxD79pLEUC5A@mail.gmail.com>
+Received: from hydra.sisk.pl ([212.160.235.94]:45558 "EHLO hydra.sisk.pl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755004Ab3C1Mtk (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 28 Mar 2013 08:49:40 -0400
+In-Reply-To: <2282655.IicBMMa6jN@vostro.rjw.lan>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Yinghai Lu <yinghai@kernel.org>
-Cc: "Rafael J. Wysocki" <rjw@sisk.pl>, "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Taku Izumi <izumi.taku@jp.fujitsu.com>, Kenji Kaneshige <kaneshige.kenji@jp.fujitsu.com>, stable@kernel.org
+To: Bjorn Helgaas <bhelgaas@google.com>
+Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Len Brown <lenb@kernel.org>, Matthew Garrett <mjg59@srcf.ucam.org>, Sarah Sharp <sarah.a.sharp@linux.intel.com>
 
-On Thu, Mar 28, 2013 at 1:41 AM, Yinghai Lu <yinghai@kernel.org> wrote:
-> On Wed, Mar 27, 2013 at 3:56 PM, Bjorn Helgaas <bhelgaas@google.com> wrote:
->>
->> Why can't we set all the ASPM flags *first*, before calling
->> pci_acpi_scan_root()?  That way we could just do the correct ASPM
->> setup as we discover devices during enumeration, rather than trying to
->> fix things up afterwards.  I suspect pcie_clear_aspm() is broken
->> anyway, because it looks like it only touches one level of the
->> hierarchy, without recursively descending it.
->
-> Yes, we can clean up aspm stop/clear up.
-> and that should be for 3.10 right?
->
-> But this patch should be safe for 3.9 and stable.
+Hi Bjorn,
 
-This patch might be *safe*, but it (and the changelog) are completely
-unintelligible.
+I wonder what you think about the patch below?
 
-The problem with applying an unintelligible stop-gap patch is that it
-becomes forever part of the changelog, and it's a huge waste of time
-to everybody who tries to understand the history later.  That's why I
-think it's worth spending some time to make a good patch now.
+Rafael
 
-Bjorn
+
+On Saturday, March 23, 2013 03:33:03 PM Rafael J. Wysocki wrote:
+> From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+> 
+> It turns out that _Lxx control methods provided by some BIOSes clear
+> the PME Status bit of PCI devices they handle, which means that
+> pci_acpi_wake_dev() cannot really use that bit to check whether or
+> not the device has signalled wakeup.
+> 
+> For this reason, make pci_acpi_wake_dev() always attempt to resume
+> the device it is called for regardless of the device's PME Status bit
+> value (that bit still has to be cleared if set at this point,
+> though).
+> 
+> Reported-by: Sarah Sharp <sarah.a.sharp@linux.intel.com>
+> Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+> ---
+>  drivers/pci/pci-acpi.c |   15 ++++++++-------
+>  1 file changed, 8 insertions(+), 7 deletions(-)
+> 
+> Index: linux-pm/drivers/pci/pci-acpi.c
+> ===================================================================
+> --- linux-pm.orig/drivers/pci/pci-acpi.c
+> +++ linux-pm/drivers/pci/pci-acpi.c
+> @@ -53,14 +53,15 @@ static void pci_acpi_wake_dev(acpi_handl
+>  		return;
+>  	}
+>  
+> -	if (!pci_dev->pm_cap || !pci_dev->pme_support
+> -	     || pci_check_pme_status(pci_dev)) {
+> -		if (pci_dev->pme_poll)
+> -			pci_dev->pme_poll = false;
+> +	/* Clear PME Status if set. */
+> +	if (pci_dev->pme_support)
+> +		pci_check_pme_status(pci_dev);
+>  
+> -		pci_wakeup_event(pci_dev);
+> -		pm_runtime_resume(&pci_dev->dev);
+> -	}
+> +	if (pci_dev->pme_poll)
+> +		pci_dev->pme_poll = false;
+> +
+> +	pci_wakeup_event(pci_dev);
+> +	pm_runtime_resume(&pci_dev->dev);
+>  
+>  	if (pci_dev->subordinate)
+>  		pci_pme_wakeup_bus(pci_dev->subordinate);
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+-- 
+I speak only for myself.
+Rafael J. Wysocki, Intel Open Source Technology Center.
