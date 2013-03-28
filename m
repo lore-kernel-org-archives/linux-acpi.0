@@ -1,86 +1,137 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: [GIT PULL] ACPI and power management fixes for v3.9-rc5
-Date: Thu, 28 Mar 2013 18:12:48 +0100
-Message-ID: <2079293.xj33ftEVWq@vostro.rjw.lan>
+From: Martin Mokrejs <mmokrejs@fold.natur.cuni.cz>
+Subject: Re: [PATCH] PCI / ACPI: Always resume devices on ACPI wakeup notifications
+Date: Thu, 28 Mar 2013 18:26:29 +0100
+Message-ID: <51547D45.6030106@fold.natur.cuni.cz>
+References: <2282655.IicBMMa6jN@vostro.rjw.lan> <2457825.yjlrJCricN@vostro.rjw.lan> <CAErSpo6oNPKn5eQV_ERaw1659-9N_Dti7ewKiRfVCy2Xw9rzbg@mail.gmail.com> <1433753.0tcctuHSKe@vostro.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7Bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: Bjorn Helgaas <bhelgaas@google.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>, Linux PM list <linux-pm@vger.kernel.org>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from fold.natur.cuni.cz ([195.113.57.32]:46940 "HELO
+	fold.natur.cuni.cz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S1756215Ab3C1R0e (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 28 Mar 2013 13:26:34 -0400
+In-Reply-To: <1433753.0tcctuHSKe@vostro.rjw.lan>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-
-Hi Linus,
-
-Please pull from the git repository at
-
-  git://git.kernel.org/pub/scm/linux/kernel/git/rafael/linux-pm.git pm+acpi-3.9-rc5
-
-to receive ACPI and power management fixes for v3.9-rc5 with top-most commit
-6125c2be96b941a08e05516cfa1125ca53945bb2
-
-  Merge branch 'acpi-fixes' into fixes
-
-on top of commit 8bb9660418e05bb1845ac1a2428444d78e322cc7
-
-  Linux 3.9-rc5
-
-Included are:
-
-- Fix for a recent cpufreq regression related to acpi-cpufreq and
-  suspend/resume from Viresh Kumar.
-
-- cpufreq stats reference counting fix from Viresh Kumar.
-
-- intel_pstate driver fixes from Dirk Brandewie and
-  Konrad Rzeszutek Wilk.
-
-- New ACPI suspend blacklist entry for Sony Vaio VGN-FW21M from
-  Fabio Valentini.
-
-- ACPI Platform Error Interface (APEI) fix from Chen Gong.
-
-- Fix for the new PCI root bridge hotplug code to make it use
-  acpi_scan_lock in analogy with the rest of the ACPI subsystem.
-  From Yinghai Lu.
-
-Thanks!
+To: "Rafael J. Wysocki" <rjw@sisk.pl>, Bjorn Helgaas <bhelgaas@google.com>
+Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Len Brown <lenb@kernel.org>, Matthew Garrett <mjg59@srcf.ucam.org>, Sarah Sharp <sarah.a.sharp@linux.intel.com>
 
 
----------------
 
-Chen Gong (1):
-      ACPI / APEI: fix error status check condition for CPER
+Rafael J. Wysocki wrote:
+> On Thursday, March 28, 2013 10:46:10 AM Bjorn Helgaas wrote:
+>> On Thu, Mar 28, 2013 at 10:41 AM, Rafael J. Wysocki <rjw@sisk.pl> wrote:
+>>> On Thursday, March 28, 2013 10:21:30 AM Bjorn Helgaas wrote:
+>>>> On Thu, Mar 28, 2013 at 6:57 AM, Rafael J. Wysocki <rjw@sisk.pl> wrote:
+>>>>> Hi Bjorn,
+>>>>>
+>>>>> I wonder what you think about the patch below?
+>>>>
+>>>> Seems fine to me (I'm trusting your and Matthew's judgment here since
+>>>> I don't know much about it).  Why don't you resend it with Matthew's
+>>>> ack and the appropriate stable tags, and I'll put it in.
+>>>
+>>> I will, thanks!
+>>>
+>>>> If you have
+>>>> a URL for a bugzilla or mailing list report of the original problem,
+>>>> that would be good, too.  It'd be nice if users and distros could
+>>>> match problem reports with this solution, but I can't tell what the
+>>>> user-visible issue was.  I assume that Sarah tested this (or somebody
+>>>> else reproduced the problem and tested the fix)?
+>>>
+>>> Sarah reported it to me privately and I'm afraid I don't have any pointers
+>>> to publicly available mailing list archives etc.
+>>
+>> Do you at least have a description of how a user could determine
+>> whether he is seeing the problem fixed by this patch?
+> 
+> Yeah.  For example, when the problem is visible on a USB controller and that
+> controller is runtime-suspended, then plugging a new USB device into one
+> of the controller's ports won't wake the controller up without the patch.
 
-Dirk Brandewie (2):
-      cpufreq / intel_pstate: Add function to check that all MSRs are valid
-      cpufreq / intel_pstate: Fix calculation of current frequency
+Hi,
+ I am wondering for a week or two why nobody answered any of my bug reports,
+not even Sarah who asked for more details. I am think the fix is about my report
+under thread "Re: 3.8.2: xhci port is dead until pcieport PME# goes to disabled"
+and I really wonder why I wasn't Cc:ed and listed as a reporter provided it is
+about my report. But I should better wait what Sarah says. ;-)
 
-Fabio Valentini (1):
-      ACPI / PM: fix suspend and resume on Sony Vaio VGN-FW21M
+  I would have actually same comment for the proposed patches in:
+Yinghai Lu  "Re: [PATCH] PCI: Remove not needed check in disable aspm link"
+Who tested the bug, if anybody? What change(the fix) in lspci output should one
+observe?
 
-Konrad Rzeszutek Wilk (1):
-      intel-pstate: Use #defines instead of hard-coded values.
+Thank you,
+Martin
 
-Viresh Kumar (2):
-      cpufreq: acpi-cpufreq: Don't set policy->related_cpus from .init()
-      cpufreq: stats: do cpufreq_cpu_put() corresponding to cpufreq_cpu_get()
 
-Yinghai Lu (1):
-      PCI / ACPI: hold acpi_scan_lock during root bus hotplug
-
----------------
-
- arch/x86/include/uapi/asm/msr-index.h |    1 +
- drivers/acpi/apei/cper.c              |    2 +-
- drivers/acpi/pci_root.c               |    9 +++++++--
- drivers/acpi/sleep.c                  |    8 ++++++++
- drivers/cpufreq/acpi-cpufreq.c        |    2 --
- drivers/cpufreq/cpufreq_stats.c       |   12 ++++++++----
- drivers/cpufreq/intel_pstate.c        |   34 ++++++++++++++++++++++++++++++----
- 7 files changed, 55 insertions(+), 13 deletions(-)
-
--- 
-I speak only for myself.
-Rafael J. Wysocki, Intel Open Source Technology Center.
+> 
+> I will put that information into the changelog.
+> 
+> Thanks,
+> Rafael
+> 
+> 
+>>>>> On Saturday, March 23, 2013 03:33:03 PM Rafael J. Wysocki wrote:
+>>>>>> From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+>>>>>>
+>>>>>> It turns out that _Lxx control methods provided by some BIOSes clear
+>>>>>> the PME Status bit of PCI devices they handle, which means that
+>>>>>> pci_acpi_wake_dev() cannot really use that bit to check whether or
+>>>>>> not the device has signalled wakeup.
+>>>>>>
+>>>>>> For this reason, make pci_acpi_wake_dev() always attempt to resume
+>>>>>> the device it is called for regardless of the device's PME Status bit
+>>>>>> value (that bit still has to be cleared if set at this point,
+>>>>>> though).
+>>>>>>
+>>>>>> Reported-by: Sarah Sharp <sarah.a.sharp@linux.intel.com>
+>>>>>> Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+>>>>>> ---
+>>>>>>  drivers/pci/pci-acpi.c |   15 ++++++++-------
+>>>>>>  1 file changed, 8 insertions(+), 7 deletions(-)
+>>>>>>
+>>>>>> Index: linux-pm/drivers/pci/pci-acpi.c
+>>>>>> ===================================================================
+>>>>>> --- linux-pm.orig/drivers/pci/pci-acpi.c
+>>>>>> +++ linux-pm/drivers/pci/pci-acpi.c
+>>>>>> @@ -53,14 +53,15 @@ static void pci_acpi_wake_dev(acpi_handl
+>>>>>>               return;
+>>>>>>       }
+>>>>>>
+>>>>>> -     if (!pci_dev->pm_cap || !pci_dev->pme_support
+>>>>>> -          || pci_check_pme_status(pci_dev)) {
+>>>>>> -             if (pci_dev->pme_poll)
+>>>>>> -                     pci_dev->pme_poll = false;
+>>>>>> +     /* Clear PME Status if set. */
+>>>>>> +     if (pci_dev->pme_support)
+>>>>>> +             pci_check_pme_status(pci_dev);
+>>>>>>
+>>>>>> -             pci_wakeup_event(pci_dev);
+>>>>>> -             pm_runtime_resume(&pci_dev->dev);
+>>>>>> -     }
+>>>>>> +     if (pci_dev->pme_poll)
+>>>>>> +             pci_dev->pme_poll = false;
+>>>>>> +
+>>>>>> +     pci_wakeup_event(pci_dev);
+>>>>>> +     pm_runtime_resume(&pci_dev->dev);
+>>>>>>
+>>>>>>       if (pci_dev->subordinate)
+>>>>>>               pci_pme_wakeup_bus(pci_dev->subordinate);
+>>>>>>
+>>>>>> --
+>>>>>> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
+>>>>>> the body of a message to majordomo@vger.kernel.org
+>>>>>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>>>>> --
+>>>>> I speak only for myself.
+>>>>> Rafael J. Wysocki, Intel Open Source Technology Center.
+>>> --
+>>> I speak only for myself.
+>>> Rafael J. Wysocki, Intel Open Source Technology Center.
+>> --
+>> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
+>> the body of a message to majordomo@vger.kernel.org
+>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
