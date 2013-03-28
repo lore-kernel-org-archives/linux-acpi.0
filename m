@@ -1,199 +1,75 @@
-From: Yinghai Lu <yinghai@kernel.org>
-Subject: Re: [PATCH] PCI: Remove not needed check in disable aspm link
-Date: Thu, 28 Mar 2013 13:24:55 -0700
-Message-ID: <CAE9FiQVMgdj5edbR4qZny29fV9-bW_We_G4Wpn_yruDLQZiQiQ@mail.gmail.com>
-References: <CAE9FiQXmeb66dc8fET0y99BjqpUXp11c7utiQ5keR1Wf+N9xaA@mail.gmail.com>
-	<1363628226-6679-1-git-send-email-yinghai@kernel.org>
-	<CAErSpo6v0mj9=Q13d=G4hho0mb9XTcsmefzke9fROYmZ7oBWxQ@mail.gmail.com>
-	<CAE9FiQU7cDzJdHxmqhJNgc9UCsRLgvCFQpv8+fLxD79pLEUC5A@mail.gmail.com>
-	<CAErSpo4ncW8rkcpDiccORZedj30m7jRmpXK+amfDGn_wjwt7EA@mail.gmail.com>
-	<CAE9FiQVqKag2TGah7x_1MAJ+c0UWgywgM_jKUoOnh+rq3bwBhg@mail.gmail.com>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: [Update][PATCH] PCI / ACPI: Always resume devices on ACPI wakeup notifications
+Date: Thu, 28 Mar 2013 22:07:29 +0100
+Message-ID: <2699206.HmPyNvCpNR@vostro.rjw.lan>
+References: <2282655.IicBMMa6jN@vostro.rjw.lan> <1396732.fV788D0xgr@vostro.rjw.lan>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary=089e0129483aa6e4d704d901f27a
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-ia0-f177.google.com ([209.85.210.177]:47644 "EHLO
-	mail-ia0-f177.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752300Ab3C1UY4 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 28 Mar 2013 16:24:56 -0400
-In-Reply-To: <CAE9FiQVqKag2TGah7x_1MAJ+c0UWgywgM_jKUoOnh+rq3bwBhg@mail.gmail.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7Bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1396732.fV788D0xgr@vostro.rjw.lan>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Bjorn Helgaas <bhelgaas@google.com>
+Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>, Linux PM list <linux-pm@vger.kernel.org>, Len Brown <lenb@kernel.org>, Matthew Garrett <mjg59@srcf.ucam.org>, Sarah Sharp <sarah.a.sharp@linux.intel.com>, "Accardi, Kristen C" <kristen.c.accardi@intel.com>, "Huang, Ying" <ying.huang@intel.com>, linux-pci@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Bjorn Helgaas <bhelgaas@google.com>, Roman Yepishev <roman.yepishev@gmail.com>
-Cc: "Rafael J. Wysocki" <rjw@sisk.pl>, "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Taku Izumi <izumi.taku@jp.fujitsu.com>, Kenji Kaneshige <kaneshige.kenji@jp.fujitsu.com>
 
---089e0129483aa6e4d704d901f27a
-Content-Type: text/plain; charset=ISO-8859-1
+From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+Subject: PCI / ACPI: Always resume devices on ACPI wakeup notifications
 
-patch for Roman
+It turns out that the _Lxx control methods provided by some BIOSes
+clear the PME Status bit of PCI devices they handle, which means that
+pci_acpi_wake_dev() cannot really use that bit to check whether or
+not the device has signalled wakeup.
 
-On Thu, Mar 28, 2013 at 1:24 PM, Yinghai Lu <yinghai@kernel.org> wrote:
-> resending with adding To Roman.
->
-> On Thu, Mar 28, 2013 at 5:46 AM, Bjorn Helgaas <bhelgaas@google.com> wrote:
->> This patch might be *safe*, but it (and the changelog) are completely
->> unintelligible.
->>
->> The problem with applying an unintelligible stop-gap patch is that it
->> becomes forever part of the changelog, and it's a huge waste of time
->> to everybody who tries to understand the history later.  That's why I
->> think it's worth spending some time to make a good patch now.
->
-> Please check if attached patch is doing what you want.
->
-> Thanks
->
-> Yinghai
+One symptom of the problem is, for example, that when an affected PCI
+USB controller is runtime-suspended, then plugging in a new USB device
+into one of the controller's ports will not wake up the controller,
+which should happen.
 
---089e0129483aa6e4d704d901f27a
-Content-Type: application/octet-stream; name="disable_aspm.patch"
-Content-Disposition: attachment; filename="disable_aspm.patch"
-Content-Transfer-Encoding: base64
-X-Attachment-Id: f_heudffl90
+For this reason, make pci_acpi_wake_dev() always attempt to resume
+the device it is called for regardless of the device's PME Status bit
+value (that bit still has to be cleared if set at this point,
+though).
 
-U3ViamVjdDogW1BBVENIXSBQQ0k6IFJlbW92ZSBub3QgbmVlZGVkIGNoZWNrIGluIGRpc2FibGUg
-YXNwbSBsaW5rCgpSb21hbiByZXBvcnRlZCBhdGg1ayBkb2VzIG5vdCB3b3JrIGFueW1vcmUgb24g
-My44LgpCaXNlY3RlZCB0bwp8IGNvbW1pdCA4YzMzZjUxZGY0MDZlMWExZjdmYTRlOWIyNDQ4NDVi
-N2ViZDYxZmE2CnwgQXV0aG9yOiBUYWt1IEl6dW1pIDxpenVtaS50YWt1QGpwLmZ1aml0c3UuY29t
-Pgp8IERhdGU6ICAgVHVlIE9jdCAzMCAxNToyNzoxMyAyMDEyICswOTAwCnwKfCAgICBQQ0kvQUNQ
-STogUmVxdWVzdCBfT1NDIGNvbnRyb2wgYmVmb3JlIHNjYW5uaW5nIFBDSSByb290IGJ1cwp8Cnwg
-ICAgVGhpcyBwYXRjaCBtb3ZlcyB1cCB0aGUgY29kZSBibG9jayB0byByZXF1ZXN0IF9PU0MgY29u
-dHJvbCBpbiBvcmRlciB0bwp8ICAgIHNlcGFyYXRlIEFDUEkgd29yayBhbmQgUENJIHdvcmsgaW4g
-YWNwaV9wY2lfcm9vdF9hZGQoKS4KCkl0IG1ha2UgcGNpX2Rpc2FibGVfbGlua19zdGF0ZSBkb2Vz
-IG5vdCB3b3JrIGFueW1vcmUgYXMgYWNwaV9kaXNhYmxlZAppcyBzZXQgYmVmb3JlIHBjaSByb290
-IGJ1cyBzY2FubmluZy4KSXQgd2lsbCBza2lwIHRoYXQgaW4gcXVpcmtzIGFuZCBwY2llX2FzcG1f
-c2FuaXR5X2NoZWNrLgoKV2UgY291bGQgcmV2ZXJ0IHRvIG9sZCBsb2dpYywgYnV0IHRoYXQgd2ls
-bCBtYWtlIGJvb3RpbmcgcGF0aCBhbmQgaG90cGx1ZwpwYXRoIHdpdGggZGlmZmVyZW50IGFzcG1f
-ZGlzYWJsZWQgYWdhaW4uCgpBY2N0dWFsbHkgd2UgZG9uJ3QgbmVlZCB0byBjaGVjayBhc3BtX2Rp
-c2FibGVkIGluIGRpc2FibGUgbGluaywgYXMKd2UgYWxyZWFkeSBoYXZlIHByb3RlY3Rpb24gYWJv
-dXQgbGluayBzdGF0ZSBmb2xsb3dpbmcuCgpodHRwczovL2J1Z3ppbGxhLmtlcm5lbC5vcmcvc2hv
-d19idWcuY2dpP2lkPTU1MjExCmh0dHA6Ly9hcnRpY2xlLmdtYW5lLm9yZy9nbWFuZS5saW51eC5r
-ZXJuZWwucGNpLzIwNjQwCgpOZWVkIGl0IGZvciAzLjggc3RhYmxlLgoKLXYyOiBtb3JlIGNsZWFu
-dXAKCTEuIHJlbW92ZSBhc3BtX3N1cHBvcnRfZW5hYmxlZCwgYXMgaWYgaXQgY29tcGlsZWQgaW4s
-IHN1cHBvcnQgaXMgdGhlcmUKCQlzbyBldmVuIHVzZXIgcGFzcyBhc3BtPW9mZiwgbGlua19zdGF0
-ZSBzdGlsbCBnZXQgYWxsb2NhdGVkLAoJCXRoZW4gd2Ugd2lsbCBoYXZlIGNoYW5jZSB0byBkaXNh
-YmxlIGFzcG0gb24gZGV2aWNlcyBmcm9tCgkJYnVnZ3kgc2V0dGluZyBvZiBCSU9TLgoJMi4gbW92
-ZSBwY2llX25vX2FzcG0oKSBjYWxsaW5nIGZvciBmYWR0IGRpc2FibGluZyBiZWZvcmUgc2Nhbm5p
-bmcKCQlyZXF1ZXN0ZWQgYnkgQmpvcm4uCgpSZXBvcnRlZC1ieTogUm9tYW4gWWVwaXNoZXYgPHJv
-bWFuLnllcGlzaGV2QGdtYWlsLmNvbT4KQmlzZWN0ZWQtYnk6IFJvbWFuIFllcGlzaGV2IDxyb21h
-bi55ZXBpc2hldkBnbWFpbC5jb20+ClNpZ25lZC1vZmYtYnk6IFlpbmdoYWkgTHUgPHlpbmdoYWlA
-a2VybmVsLm9yZz4KQ2M6IFRha3UgSXp1bWkgPGl6dW1pLnRha3VAanAuZnVqaXRzdS5jb20+CkNj
-OiBLZW5qaSBLYW5lc2hpZ2UgPGthbmVzaGlnZS5rZW5qaUBqcC5mdWppdHN1LmNvbT4KCi0tLQog
-ZHJpdmVycy9hY3BpL3BjaV9yb290LmMgIHwgICAyNSArKysrKysrKystLS0tLS0tLS0tLS0tLS0K
-IGRyaXZlcnMvcGNpL3BjaWUvYXNwbS5jICB8ICAgNDggKystLS0tLS0tLS0tLS0tLS0tLS0tLS0t
-LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0KIGluY2x1ZGUvbGludXgvcGNpLWFzcG0uaCB8ICAgIDQg
-LS0tCiBpbmNsdWRlL2xpbnV4L3BjaS5oICAgICAgfCAgICAyIC0KIDQgZmlsZXMgY2hhbmdlZCwg
-MTQgaW5zZXJ0aW9ucygrKSwgNjUgZGVsZXRpb25zKC0pCgpJbmRleDogbGludXgtMi42L2RyaXZl
-cnMvYWNwaS9wY2lfcm9vdC5jCj09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09
-PT09PT09PT09PT09PT09PT09PT09PT09PT09PT0KLS0tIGxpbnV4LTIuNi5vcmlnL2RyaXZlcnMv
-YWNwaS9wY2lfcm9vdC5jCisrKyBsaW51eC0yLjYvZHJpdmVycy9hY3BpL3BjaV9yb290LmMKQEAg
-LTQxNSw3ICs0MTUsNiBAQCBzdGF0aWMgaW50IGFjcGlfcGNpX3Jvb3RfYWRkKHN0cnVjdCBhY3Bp
-CiAJc3RydWN0IGFjcGlfcGNpX3Jvb3QgKnJvb3Q7CiAJc3RydWN0IGFjcGlfcGNpX2RyaXZlciAq
-ZHJpdmVyOwogCXUzMiBmbGFncywgYmFzZV9mbGFnczsKLQlib29sIGlzX29zY19ncmFudGVkID0g
-ZmFsc2U7CiAKIAlyb290ID0ga3phbGxvYyhzaXplb2Yoc3RydWN0IGFjcGlfcGNpX3Jvb3QpLCBH
-RlBfS0VSTkVMKTsKIAlpZiAoIXJvb3QpCkBAIC00OTQsNiArNDkzLDExIEBAIHN0YXRpYyBpbnQg
-YWNwaV9wY2lfcm9vdF9hZGQoc3RydWN0IGFjcGkKIAkJCWZsYWdzID0gYmFzZV9mbGFnczsKIAkJ
-fQogCX0KKworCS8qIEFTUE0gc2V0dGluZyAqLworCWlmIChhY3BpX2dibF9GQURULmJvb3RfZmxh
-Z3MgJiBBQ1BJX0ZBRFRfTk9fQVNQTSkKKwkJcGNpZV9ub19hc3BtKCk7CisKIAlpZiAoIXBjaWVf
-cG9ydHNfZGlzYWJsZWQKIAkgICAgJiYgKGZsYWdzICYgQUNQSV9QQ0lFX1JFUV9TVVBQT1JUKSA9
-PSBBQ1BJX1BDSUVfUkVRX1NVUFBPUlQpIHsKIAkJZmxhZ3MgPSBPU0NfUENJX0VYUFJFU1NfQ0FQ
-X1NUUlVDVFVSRV9DT05UUk9MCkBAIC01MTMsMTYgKzUxNywxNyBAQCBzdGF0aWMgaW50IGFjcGlf
-cGNpX3Jvb3RfYWRkKHN0cnVjdCBhY3BpCiAKIAkJc3RhdHVzID0gYWNwaV9wY2lfb3NjX2NvbnRy
-b2xfc2V0KGRldmljZS0+aGFuZGxlLCAmZmxhZ3MsCiAJCQkJICAgICAgIE9TQ19QQ0lfRVhQUkVT
-U19DQVBfU1RSVUNUVVJFX0NPTlRST0wpOwotCQlpZiAoQUNQSV9TVUNDRVNTKHN0YXR1cykpIHsK
-LQkJCWlzX29zY19ncmFudGVkID0gdHJ1ZTsKKwkJaWYgKEFDUElfU1VDQ0VTUyhzdGF0dXMpKQog
-CQkJZGV2X2luZm8oJmRldmljZS0+ZGV2LAogCQkJCSJBQ1BJIF9PU0MgY29udHJvbCAoMHglMDJ4
-KSBncmFudGVkXG4iLCBmbGFncyk7Ci0JCX0gZWxzZSB7Ci0JCQlpc19vc2NfZ3JhbnRlZCA9IGZh
-bHNlOworCQllbHNlIHsKIAkJCWRldl9pbmZvKCZkZXZpY2UtPmRldiwKIAkJCQkiQUNQSSBfT1ND
-IHJlcXVlc3QgZmFpbGVkICglcyksICIKIAkJCQkicmV0dXJuZWQgY29udHJvbCBtYXNrOiAweCUw
-MnhcbiIsCiAJCQkJYWNwaV9mb3JtYXRfZXhjZXB0aW9uKHN0YXR1cyksIGZsYWdzKTsKKwkJCXBy
-X2luZm8oIkFDUEkgX09TQyBjb250cm9sIGZvciBQQ0llIG5vdCBncmFudGVkLCAiCisJCQkJImRp
-c2FibGluZyBBU1BNXG4iKTsKKwkJCXBjaWVfbm9fYXNwbSgpOwogCQl9CiAJfSBlbHNlIHsKIAkJ
-ZGV2X2luZm8oJmRldmljZS0+ZGV2LApAQCAtNTU0LDE2ICs1NTksNiBAQCBzdGF0aWMgaW50IGFj
-cGlfcGNpX3Jvb3RfYWRkKHN0cnVjdCBhY3BpCiAJCWdvdG8gb3V0X2RlbF9yb290OwogCX0KIAot
-CS8qIEFTUE0gc2V0dGluZyAqLwotCWlmIChpc19vc2NfZ3JhbnRlZCkgewotCQlpZiAoYWNwaV9n
-YmxfRkFEVC5ib290X2ZsYWdzICYgQUNQSV9GQURUX05PX0FTUE0pCi0JCQlwY2llX2NsZWFyX2Fz
-cG0ocm9vdC0+YnVzKTsKLQl9IGVsc2UgewotCQlwcl9pbmZvKCJBQ1BJIF9PU0MgY29udHJvbCBm
-b3IgUENJZSBub3QgZ3JhbnRlZCwgIgotCQkJImRpc2FibGluZyBBU1BNXG4iKTsKLQkJcGNpZV9u
-b19hc3BtKCk7Ci0JfQotCiAJcGNpX2FjcGlfYWRkX2J1c19wbV9ub3RpZmllcihkZXZpY2UsIHJv
-b3QtPmJ1cyk7CiAJaWYgKGRldmljZS0+d2FrZXVwLmZsYWdzLnJ1bl93YWtlKQogCQlkZXZpY2Vf
-c2V0X3J1bl93YWtlKHJvb3QtPmJ1cy0+YnJpZGdlLCB0cnVlKTsKSW5kZXg6IGxpbnV4LTIuNi9k
-cml2ZXJzL3BjaS9wY2llL2FzcG0uYwo9PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09
-PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09Ci0tLSBsaW51eC0yLjYub3JpZy9kcml2
-ZXJzL3BjaS9wY2llL2FzcG0uYworKysgbGludXgtMi42L2RyaXZlcnMvcGNpL3BjaWUvYXNwbS5j
-CkBAIC02OSw3ICs2OSw2IEBAIHN0cnVjdCBwY2llX2xpbmtfc3RhdGUgewogfTsKIAogc3RhdGlj
-IGludCBhc3BtX2Rpc2FibGVkLCBhc3BtX2ZvcmNlOwotc3RhdGljIGJvb2wgYXNwbV9zdXBwb3J0
-X2VuYWJsZWQgPSB0cnVlOwogc3RhdGljIERFRklORV9NVVRFWChhc3BtX2xvY2spOwogc3RhdGlj
-IExJU1RfSEVBRChsaW5rX2xpc3QpOwogCkBAIC00OTMsMTUgKzQ5Miw2IEBAIHN0YXRpYyBpbnQg
-cGNpZV9hc3BtX3Nhbml0eV9jaGVjayhzdHJ1Y3QKIAkJCXJldHVybiAtRUlOVkFMOwogCiAJCS8q
-Ci0JCSAqIElmIEFTUE0gaXMgZGlzYWJsZWQgdGhlbiB3ZSdyZSBub3QgZ29pbmcgdG8gY2hhbmdl
-Ci0JCSAqIHRoZSBCSU9TIHN0YXRlLiBJdCdzIHNhZmUgdG8gY29udGludWUgZXZlbiBpZiBpdCdz
-IGEKLQkJICogcHJlLTEuMSBkZXZpY2UKLQkJICovCi0KLQkJaWYgKGFzcG1fZGlzYWJsZWQpCi0J
-CQljb250aW51ZTsKLQotCQkvKgogCQkgKiBEaXNhYmxlIEFTUE0gZm9yIHByZS0xLjEgUENJZSBk
-ZXZpY2UsIHdlIGZvbGxvdyBNUyB0byB1c2UKIAkJICogUkJFUiBiaXQgdG8gZGV0ZXJtaW5lIGlm
-IGEgZnVuY3Rpb24gaXMgMS4xIHZlcnNpb24gZGV2aWNlCiAJCSAqLwpAQCAtNTU2LDkgKzU0Niw2
-IEBAIHZvaWQgcGNpZV9hc3BtX2luaXRfbGlua19zdGF0ZShzdHJ1Y3QgcGMKIAlzdHJ1Y3QgcGNp
-ZV9saW5rX3N0YXRlICpsaW5rOwogCWludCBibGFja2xpc3QgPSAhIXBjaWVfYXNwbV9zYW5pdHlf
-Y2hlY2socGRldik7CiAKLQlpZiAoIWFzcG1fc3VwcG9ydF9lbmFibGVkKQotCQlyZXR1cm47Ci0K
-IAlpZiAoIXBjaV9pc19wY2llKHBkZXYpIHx8IHBkZXYtPmxpbmtfc3RhdGUpCiAJCXJldHVybjsK
-IAlpZiAocGNpX3BjaWVfdHlwZShwZGV2KSAhPSBQQ0lfRVhQX1RZUEVfUk9PVF9QT1JUICYmCkBA
-IC03MTgsMTUgKzcwNSwxMSBAQCB2b2lkIHBjaWVfYXNwbV9wb3dlcnNhdmVfY29uZmlnX2xpbmso
-c3RyCiAgKiBwY2lfZGlzYWJsZV9saW5rX3N0YXRlIC0gZGlzYWJsZSBwY2kgZGV2aWNlJ3MgbGlu
-ayBzdGF0ZSwgc28gdGhlIGxpbmsgd2lsbAogICogbmV2ZXIgZW50ZXIgc3BlY2lmaWMgc3RhdGVz
-CiAgKi8KLXN0YXRpYyB2b2lkIF9fcGNpX2Rpc2FibGVfbGlua19zdGF0ZShzdHJ1Y3QgcGNpX2Rl
-diAqcGRldiwgaW50IHN0YXRlLCBib29sIHNlbSwKLQkJCQkgICAgIGJvb2wgZm9yY2UpCitzdGF0
-aWMgdm9pZCBfX3BjaV9kaXNhYmxlX2xpbmtfc3RhdGUoc3RydWN0IHBjaV9kZXYgKnBkZXYsIGlu
-dCBzdGF0ZSwgYm9vbCBzZW0pCiB7CiAJc3RydWN0IHBjaV9kZXYgKnBhcmVudCA9IHBkZXYtPmJ1
-cy0+c2VsZjsKIAlzdHJ1Y3QgcGNpZV9saW5rX3N0YXRlICpsaW5rOwogCi0JaWYgKGFzcG1fZGlz
-YWJsZWQgJiYgIWZvcmNlKQotCQlyZXR1cm47Ci0KIAlpZiAoIXBjaV9pc19wY2llKHBkZXYpKQog
-CQlyZXR1cm47CiAKQEAgLTc1NywzNCArNzQwLDE2IEBAIHN0YXRpYyB2b2lkIF9fcGNpX2Rpc2Fi
-bGVfbGlua19zdGF0ZShzdHIKIAogdm9pZCBwY2lfZGlzYWJsZV9saW5rX3N0YXRlX2xvY2tlZChz
-dHJ1Y3QgcGNpX2RldiAqcGRldiwgaW50IHN0YXRlKQogewotCV9fcGNpX2Rpc2FibGVfbGlua19z
-dGF0ZShwZGV2LCBzdGF0ZSwgZmFsc2UsIGZhbHNlKTsKKwlfX3BjaV9kaXNhYmxlX2xpbmtfc3Rh
-dGUocGRldiwgc3RhdGUsIGZhbHNlKTsKIH0KIEVYUE9SVF9TWU1CT0wocGNpX2Rpc2FibGVfbGlu
-a19zdGF0ZV9sb2NrZWQpOwogCiB2b2lkIHBjaV9kaXNhYmxlX2xpbmtfc3RhdGUoc3RydWN0IHBj
-aV9kZXYgKnBkZXYsIGludCBzdGF0ZSkKIHsKLQlfX3BjaV9kaXNhYmxlX2xpbmtfc3RhdGUocGRl
-diwgc3RhdGUsIHRydWUsIGZhbHNlKTsKKwlfX3BjaV9kaXNhYmxlX2xpbmtfc3RhdGUocGRldiwg
-c3RhdGUsIHRydWUpOwogfQogRVhQT1JUX1NZTUJPTChwY2lfZGlzYWJsZV9saW5rX3N0YXRlKTsK
-IAotdm9pZCBwY2llX2NsZWFyX2FzcG0oc3RydWN0IHBjaV9idXMgKmJ1cykKLXsKLQlzdHJ1Y3Qg
-cGNpX2RldiAqY2hpbGQ7Ci0KLQlpZiAoYXNwbV9mb3JjZSkKLQkJcmV0dXJuOwotCi0JLyoKLQkg
-KiBDbGVhciBhbnkgQVNQTSBzZXR1cCB0aGF0IHRoZSBmaXJtd2FyZSBoYXMgY2FycmllZCBvdXQg
-b24gdGhpcyBidXMKLQkgKi8KLQlsaXN0X2Zvcl9lYWNoX2VudHJ5KGNoaWxkLCAmYnVzLT5kZXZp
-Y2VzLCBidXNfbGlzdCkgewotCQlfX3BjaV9kaXNhYmxlX2xpbmtfc3RhdGUoY2hpbGQsIFBDSUVf
-TElOS19TVEFURV9MMFMgfAotCQkJCQkgUENJRV9MSU5LX1NUQVRFX0wxIHwKLQkJCQkJIFBDSUVf
-TElOS19TVEFURV9DTEtQTSwKLQkJCQkJIGZhbHNlLCB0cnVlKTsKLQl9Ci19Ci0KIHN0YXRpYyBp
-bnQgcGNpZV9hc3BtX3NldF9wb2xpY3koY29uc3QgY2hhciAqdmFsLCBzdHJ1Y3Qga2VybmVsX3Bh
-cmFtICprcCkKIHsKIAlpbnQgaTsKQEAgLTk0NCw3ICs5MDksNiBAQCBzdGF0aWMgaW50IF9faW5p
-dCBwY2llX2FzcG1fZGlzYWJsZShjaGFyCiAJaWYgKCFzdHJjbXAoc3RyLCAib2ZmIikpIHsKIAkJ
-YXNwbV9wb2xpY3kgPSBQT0xJQ1lfREVGQVVMVDsKIAkJYXNwbV9kaXNhYmxlZCA9IDE7Ci0JCWFz
-cG1fc3VwcG9ydF9lbmFibGVkID0gZmFsc2U7CiAJCXByaW50ayhLRVJOX0lORk8gIlBDSWUgQVNQ
-TSBpcyBkaXNhYmxlZFxuIik7CiAJfSBlbHNlIGlmICghc3RyY21wKHN0ciwgImZvcmNlIikpIHsK
-IAkJYXNwbV9mb3JjZSA9IDE7CkBAIC05ODAsOSArOTQ0LDMgQEAgaW50IHBjaWVfYXNwbV9lbmFi
-bGVkKHZvaWQpCiAgICAgICAgcmV0dXJuICFhc3BtX2Rpc2FibGVkOwogfQogRVhQT1JUX1NZTUJP
-TChwY2llX2FzcG1fZW5hYmxlZCk7Ci0KLWJvb2wgcGNpZV9hc3BtX3N1cHBvcnRfZW5hYmxlZCh2
-b2lkKQotewotCXJldHVybiBhc3BtX3N1cHBvcnRfZW5hYmxlZDsKLX0KLUVYUE9SVF9TWU1CT0wo
-cGNpZV9hc3BtX3N1cHBvcnRfZW5hYmxlZCk7CkluZGV4OiBsaW51eC0yLjYvaW5jbHVkZS9saW51
-eC9wY2ktYXNwbS5oCj09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09
-PT09PT09PT09PT09PT09PT09PT09PT0KLS0tIGxpbnV4LTIuNi5vcmlnL2luY2x1ZGUvbGludXgv
-cGNpLWFzcG0uaAorKysgbGludXgtMi42L2luY2x1ZGUvbGludXgvcGNpLWFzcG0uaApAQCAtMjks
-NyArMjksNiBAQCBleHRlcm4gdm9pZCBwY2llX2FzcG1fcG1fc3RhdGVfY2hhbmdlKHN0CiBleHRl
-cm4gdm9pZCBwY2llX2FzcG1fcG93ZXJzYXZlX2NvbmZpZ19saW5rKHN0cnVjdCBwY2lfZGV2ICpw
-ZGV2KTsKIGV4dGVybiB2b2lkIHBjaV9kaXNhYmxlX2xpbmtfc3RhdGUoc3RydWN0IHBjaV9kZXYg
-KnBkZXYsIGludCBzdGF0ZSk7CiBleHRlcm4gdm9pZCBwY2lfZGlzYWJsZV9saW5rX3N0YXRlX2xv
-Y2tlZChzdHJ1Y3QgcGNpX2RldiAqcGRldiwgaW50IHN0YXRlKTsKLWV4dGVybiB2b2lkIHBjaWVf
-Y2xlYXJfYXNwbShzdHJ1Y3QgcGNpX2J1cyAqYnVzKTsKIGV4dGVybiB2b2lkIHBjaWVfbm9fYXNw
-bSh2b2lkKTsKICNlbHNlCiBzdGF0aWMgaW5saW5lIHZvaWQgcGNpZV9hc3BtX2luaXRfbGlua19z
-dGF0ZShzdHJ1Y3QgcGNpX2RldiAqcGRldikKQEAgLTQ3LDkgKzQ2LDYgQEAgc3RhdGljIGlubGlu
-ZSB2b2lkIHBjaWVfYXNwbV9wb3dlcnNhdmVfYwogc3RhdGljIGlubGluZSB2b2lkIHBjaV9kaXNh
-YmxlX2xpbmtfc3RhdGUoc3RydWN0IHBjaV9kZXYgKnBkZXYsIGludCBzdGF0ZSkKIHsKIH0KLXN0
-YXRpYyBpbmxpbmUgdm9pZCBwY2llX2NsZWFyX2FzcG0oc3RydWN0IHBjaV9idXMgKmJ1cykKLXsK
-LX0KIHN0YXRpYyBpbmxpbmUgdm9pZCBwY2llX25vX2FzcG0odm9pZCkKIHsKIH0KSW5kZXg6IGxp
-bnV4LTIuNi9pbmNsdWRlL2xpbnV4L3BjaS5oCj09PT09PT09PT09PT09PT09PT09PT09PT09PT09
-PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT0KLS0tIGxpbnV4LTIuNi5vcmln
-L2luY2x1ZGUvbGludXgvcGNpLmgKKysrIGxpbnV4LTIuNi9pbmNsdWRlL2xpbnV4L3BjaS5oCkBA
-IC0xMTY4LDcgKzExNjgsNyBAQCBzdGF0aWMgaW5saW5lIGludCBwY2llX2FzcG1fZW5hYmxlZCh2
-b2lkCiBzdGF0aWMgaW5saW5lIGJvb2wgcGNpZV9hc3BtX3N1cHBvcnRfZW5hYmxlZCh2b2lkKSB7
-IHJldHVybiBmYWxzZTsgfQogI2Vsc2UKIGV4dGVybiBpbnQgcGNpZV9hc3BtX2VuYWJsZWQodm9p
-ZCk7Ci1leHRlcm4gYm9vbCBwY2llX2FzcG1fc3VwcG9ydF9lbmFibGVkKHZvaWQpOworc3RhdGlj
-IGlubGluZSBib29sIHBjaWVfYXNwbV9zdXBwb3J0X2VuYWJsZWQodm9pZCkgeyByZXR1cm4gdHJ1
-ZTsgfQogI2VuZGlmCiAKICNpZmRlZiBDT05GSUdfUENJRUFFUgo=
---089e0129483aa6e4d704d901f27a--
+Reported-by: Sarah Sharp <sarah.a.sharp@linux.intel.com>
+Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+Acked-by: Matthew Garrett <mjg59@srcf.ucam.org>
+Cc: 3.7+ <stable@vger.kernel.org>
+---
+
+The changelog in this version is slightly better than in the previous one, IMHO.
+
+Thanks,
+Rafael
+
+---
+ drivers/pci/pci-acpi.c |   15 ++++++++-------
+ 1 file changed, 8 insertions(+), 7 deletions(-)
+
+Index: linux-pm/drivers/pci/pci-acpi.c
+===================================================================
+--- linux-pm.orig/drivers/pci/pci-acpi.c
++++ linux-pm/drivers/pci/pci-acpi.c
+@@ -53,14 +53,15 @@ static void pci_acpi_wake_dev(acpi_handl
+ 		return;
+ 	}
+ 
+-	if (!pci_dev->pm_cap || !pci_dev->pme_support
+-	     || pci_check_pme_status(pci_dev)) {
+-		if (pci_dev->pme_poll)
+-			pci_dev->pme_poll = false;
++	/* Clear PME Status if set. */
++	if (pci_dev->pme_support)
++		pci_check_pme_status(pci_dev);
+ 
+-		pci_wakeup_event(pci_dev);
+-		pm_runtime_resume(&pci_dev->dev);
+-	}
++	if (pci_dev->pme_poll)
++		pci_dev->pme_poll = false;
++
++	pci_wakeup_event(pci_dev);
++	pm_runtime_resume(&pci_dev->dev);
+ 
+ 	if (pci_dev->subordinate)
+ 		pci_pme_wakeup_bus(pci_dev->subordinate);
