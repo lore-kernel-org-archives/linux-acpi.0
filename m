@@ -1,178 +1,44 @@
-From: Vinod Koul <vinod.koul@intel.com>
-Subject: Re: [PATCH 1/6] dma: acpi-dma: introduce ACPI DMA helpers
-Date: Sat, 30 Mar 2013 02:05:43 +0530
-Message-ID: <20130329203543.GY10326@intel.com>
-References: <1364374682-8547-1-git-send-email-andriy.shevchenko@linux.intel.com>
- <1364374682-8547-2-git-send-email-andriy.shevchenko@linux.intel.com>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: Re: [Update][PATCH] PCI / ACPI: Always resume devices on ACPI wakeup notifications
+Date: Fri, 29 Mar 2013 22:34:53 +0100
+Message-ID: <2094285.pXOAcW8yQk@vostro.rjw.lan>
+References: <2282655.IicBMMa6jN@vostro.rjw.lan> <2699206.HmPyNvCpNR@vostro.rjw.lan> <5155ADD2.3090005@fold.natur.cuni.cz>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga09.intel.com ([134.134.136.24]:55425 "EHLO mga09.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1757021Ab3C2VCs (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 29 Mar 2013 17:02:48 -0400
-Content-Disposition: inline
-In-Reply-To: <1364374682-8547-2-git-send-email-andriy.shevchenko@linux.intel.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7Bit
+Return-path: <linux-pm-owner@vger.kernel.org>
+In-Reply-To: <5155ADD2.3090005@fold.natur.cuni.cz>
+Sender: linux-pm-owner@vger.kernel.org
+To: Martin Mokrejs <mmokrejs@fold.natur.cuni.cz>
+Cc: Bjorn Helgaas <bhelgaas@google.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>, Linux PM list <linux-pm@vger.kernel.org>, Len Brown <lenb@kernel.org>, Matthew Garrett <mjg59@srcf.ucam.org>, Sarah Sharp <sarah.a.sharp@linux.intel.com>, "Accardi, Kristen C" <kristen.c.accardi@intel.com>, "Huang, Ying" <ying.huang@intel.com>, linux-pci@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Andy Shevchenko <andriy.shevchenko@linux.jf.intel.com>
-Cc: "Rafael J . Wysocki" <rafael.j.wysocki@intel.com>, Mika Westerberg <mika.westerberg@linux.jf.intel.com>, Viresh Kumar <viresh.kumar@linaro.org>, linux-kernel@vger.kernel.org, spear-devel <spear-devel@list.st.com>, linux-acpi@vger.kernel.org
 
-On Wed, Mar 27, 2013 at 10:57:57AM +0200, Andy Shevchenko wrote:
-> + * @dev:	struct device to get DMA request from
-> + * @index:	index of FixedDMA descriptor for @dev
-> + *
-> + * Returns pointer to appropriate dma channel on success or NULL on error.
-> + */
-> +struct dma_chan *acpi_dma_request_slave_chan_by_index(struct device *dev,
-> +		size_t index)
-> +{
-So i think this will be called by client driver to request a channel right?
+On Friday, March 29, 2013 04:05:54 PM Martin Mokrejs wrote:
+> Hi,
+>   I applied this patches over 3.8.3 hoping it will fix my issue under
+> thread: "Re: 3.8.2: xhci port is dead until pcieport PME# goes to disabled"
+> but unfortunately, it is even worse! Now, although lsusb -v nor lsusb -vv do
+> wakeup the XHCI port but it falls asleep immediately, more quickly than I am
+> able to plug a device into the socket. To get a device working in the USB3 socket
+> I need to plug it in, run lsusb -vv and then it is recognized.
+> 
+> Without the patch, the 'lsusb -vv' woke up the port (PME# disabled happened
+> on both 1c.4 and 0b:00.0) and I had unlimited time to find some USB device
+> around and to plug it into the slot.
 
-If so how does client find the device pointer for dma controller.
+Well, using lsusb to work around problems in the PCI subsystem isn't even
+*supposed* to work as far as I can tell.
 
-And index is a global one, right? What is it use ?
+First off, do you use laptop-mode (or something equivalent) to enable runtime
+PM for all PCI devices in your system?  If you do, please test things without
+it and see if they work then.
 
-> +	struct acpi_dma_parser_data pdata;
-> +	struct acpi_dma_spec *dma_spec = &pdata.dma_spec;
-> +	struct list_head resource_list;
-> +	struct acpi_device *adev;
-> +	struct acpi_dma *adma;
-> +	struct dma_chan *chan;
-> +
-> +	/* Check if the device was enumerated by ACPI */
-> +	if (!dev || !ACPI_HANDLE(dev))
-> +		return NULL;
-> +
-> +	if (acpi_bus_get_device(ACPI_HANDLE(dev), &adev))
-> +		return NULL;
-> +
-> +	memset(&pdata, 0, sizeof(pdata));
-> +	pdata.index = index;
-> +
-> +	/* Initial values for the request line and channel */
-> +	dma_spec->chan_id = -1;
-> +	dma_spec->slave_id = -1;
-> +
-> +	INIT_LIST_HEAD(&resource_list);
-> +	acpi_dev_get_resources(adev, &resource_list,
-> +			acpi_dma_parse_fixed_dma, &pdata);
-> +	acpi_dev_free_resource_list(&resource_list);
-> +
-> +	if (dma_spec->slave_id < 0 || dma_spec->chan_id < 0)
-> +		return NULL;
-> +
-> +	mutex_lock(&acpi_dma_lock);
-> +
-> +	list_for_each_entry(adma, &acpi_dma_list, dma_controllers) {
-> +		dma_spec->dev = adma->dev;
-> +		chan = adma->acpi_dma_xlate(dma_spec, adma);
-> +		if (chan) {
-> +			mutex_unlock(&acpi_dma_lock);
-> +			return chan;
-> +		}
-> +	}
-> +
-> +	mutex_unlock(&acpi_dma_lock);
-> +	return NULL;
-in this and error handling you are not doing anything different so why code
-duplication?
+Second, do things work after you echo "on" to the xHCI controller's
+/sys/devices/.../power/control file?
 
-> +}
-> +EXPORT_SYMBOL_GPL(acpi_dma_request_slave_chan_by_index);
-> +
-> +/**
-> + * acpi_dma_request_slave_chan_by_name - Get the DMA slave channel
-> + * @dev:	struct device to get DMA request from
-> + * @name:	represents corresponding FixedDMA descriptor for @dev
-> + *
-> + * In order to support both Device Tree and ACPI in a single driver we
-> + * translate the names "tx" and "rx" here based on the most common case where
-> + * the first FixedDMA descriptor is TX and second is RX.
-> + *
-> + * Returns pointer to appropriate dma channel on success or NULL on error.
-> + */
-> +struct dma_chan *acpi_dma_request_slave_chan_by_name(struct device *dev,
-> +		const char *name)
-> +{
-> +	size_t index;
-> +
-> +	if (!strcmp(name, "tx"))
-> +		index = 0;
-> +	else if (!strcmp(name, "rx"))
-> +		index = 1;
-> +	else
-> +		return NULL;
-> +
-> +	return acpi_dma_request_slave_chan_by_index(dev, index);
-are you going to a have a different descriptor for tx and rx? Is index only for
-tx = 0 and rx =1 always. How would a controller be represented which has 8
-channels, each channel can do DMA in either direction
+Rafael
 
-> +}
-> +EXPORT_SYMBOL_GPL(acpi_dma_request_slave_chan_by_name);
-> +
-> +/**
-> + * acpi_dma_simple_xlate - Simple ACPI DMA engine translation helper
-> + * @dma_spec: pointer to ACPI DMA specifier
-> + * @adma: pointer to ACPI DMA controller data
-> + *
-> + * A simple translation function for ACPI based devices. Passes &struct
-> + * dma_spec to the DMA controller driver provided filter function. Returns
-> + * pointer to the channel if found or %NULL otherwise.
-> + */
-> +struct dma_chan *acpi_dma_simple_xlate(struct acpi_dma_spec *dma_spec,
-> +		struct acpi_dma *adma)
-> +{
-> +	struct acpi_dma_filter_info *info = adma->data;
-what is the purpose of filter here?
-> +
-> +	if (!info || !info->filter_fn)
-> +		return NULL;
-> +
-> +	return dma_request_channel(info->dma_cap, info->filter_fn, dma_spec);
-> +}
-> +EXPORT_SYMBOL_GPL(acpi_dma_simple_xlate);
-> diff --git a/include/linux/acpi_dma.h b/include/linux/acpi_dma.h
-> new file mode 100644
-> index 0000000..d09deab
-> --- /dev/null
-> +++ b/include/linux/acpi_dma.h
-> @@ -0,0 +1,116 @@
-> +/*
-> + * ACPI helpers for DMA request / controller
-> + *
-> + * Based on of_dma.h
-> + *
-> + * Copyright (C) 2013, Intel Corporation
-> + * Author: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-> + *
-> + * This program is free software; you can redistribute it and/or modify
-> + * it under the terms of the GNU General Public License version 2 as
-> + * published by the Free Software Foundation.
-> + */
-> +
-> +#ifndef __LINUX_ACPI_DMA_H
-> +#define __LINUX_ACPI_DMA_H
-> +
-> +#include <linux/list.h>
-> +#include <linux/device.h>
-> +#include <linux/dmaengine.h>
-> +
-> +/**
-> + * struct acpi_dma_spec - slave device DMA resources
-> + * @chan_id:	channel unique id
-> + * @slave_id:	request line unique id
-> + * @dev:	struct device of the DMA controller to be used in the filter
-> + *		function
-> + */
-> +struct acpi_dma_spec {
-> +	int		chan_id;
-> +	int		slave_id;
-> +	struct device	*dev;
-> +};
-is this the representation of Fixed DMA, if so why have you omitted transfer widths?
-I can see obvious benefits of using that 
 
---
-~Vinod
+-- 
+I speak only for myself.
+Rafael J. Wysocki, Intel Open Source Technology Center.
