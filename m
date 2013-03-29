@@ -1,175 +1,123 @@
-From: Yinghai Lu <yinghai@kernel.org>
-Subject: Re: [PATCH] PCI: Remove not needed check in disable
-	aspm link
-Date: Thu, 28 Mar 2013 22:59:49 -0700
-Message-ID: <CAE9FiQVu5QyxaKsYzzQoroQD=TvsziHzDOtoeg=FvhZ8HyN5yw@mail.gmail.com>
-References: <CAE9FiQXmeb66dc8fET0y99BjqpUXp11c7utiQ5keR1Wf+N9xaA@mail.gmail.com>
-	<1363628226-6679-1-git-send-email-yinghai@kernel.org>
-	<CAErSpo6v0mj9=Q13d=G4hho0mb9XTcsmefzke9fROYmZ7oBWxQ@mail.gmail.com>
-	<CAE9FiQU7cDzJdHxmqhJNgc9UCsRLgvCFQpv8+fLxD79pLEUC5A@mail.gmail.com>
-	<CAErSpo4ncW8rkcpDiccORZedj30m7jRmpXK+amfDGn_wjwt7EA@mail.gmail.com>
-	<CAE9FiQVqKag2TGah7x_1MAJ+c0UWgywgM_jKUoOnh+rq3bwBhg@mail.gmail.com>
-	<CAE9FiQVMgdj5edbR4qZny29fV9-bW_We_G4Wpn_yruDLQZiQiQ@mail.gmail.com>
-	<20130329032200.GA11990@google.com>
+From: huang ying <huang.ying.caritas@gmail.com>
+Subject: Re: [PATCH] PCI / ACPI: Always resume devices on ACPI wakeup notifications
+Date: Fri, 29 Mar 2013 15:41:23 +0800
+Message-ID: <CAC=cRTPOOmnkZvM+3Kw4FU79paEhyh-M9vXU4cGoEkN7niH7Eg@mail.gmail.com>
+References: <2282655.IicBMMa6jN@vostro.rjw.lan>
+	<CAErSpo7QXe1-R5_jXCcc3g_J-_HXqO3V12nNB=Z6eCAt-vwKfA@mail.gmail.com>
+	<51548C9E.9090703@fold.natur.cuni.cz>
+	<2990024.LMTIBUbM3d@vostro.rjw.lan>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="===============4670101421399239580=="
-Return-path: <e1000-devel-bounces@lists.sourceforge.net>
-In-Reply-To: <20130329032200.GA11990@google.com>
-List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/e1000-devel>,
-	<mailto:e1000-devel-request@lists.sourceforge.net?subject=unsubscribe>
-List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum_name=e1000-devel>
-List-Post: <mailto:e1000-devel@lists.sourceforge.net>
-List-Help: <mailto:e1000-devel-request@lists.sourceforge.net?subject=help>
-List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/e1000-devel>,
-	<mailto:e1000-devel-request@lists.sourceforge.net?subject=subscribe>
-Errors-To: e1000-devel-bounces@lists.sourceforge.net
-To: Bjorn Helgaas <bhelgaas@google.com>
-Cc: Matthew Garrett <matthew.garrett@nebula.com>, "e1000-devel@lists.sourceforge.net" <e1000-devel@lists.sourceforge.net>, "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>, Kenji Kaneshige <kaneshige.kenji@jp.fujitsu.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "Rafael J. Wysocki" <rjw@sisk.pl>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, Roman Yepishev <roman.yepishev@gmail.com>, Taku Izumi <izumi.taku@jp.fujitsu.com>
+Content-Type: multipart/mixed; boundary=bcaec52d4d03dc630004d90b65d0
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-bk0-f52.google.com ([209.85.214.52]:38442 "EHLO
+	mail-bk0-f52.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750952Ab3C2HlZ (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 29 Mar 2013 03:41:25 -0400
+Received: by mail-bk0-f52.google.com with SMTP id it16so98492bkc.11
+        for <linux-acpi@vger.kernel.org>; Fri, 29 Mar 2013 00:41:23 -0700 (PDT)
+In-Reply-To: <2990024.LMTIBUbM3d@vostro.rjw.lan>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Martin Mokrejs <mmokrejs@fold.natur.cuni.cz>, "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: Bjorn Helgaas <bhelgaas@google.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Len Brown <lenb@kernel.org>, Matthew Garrett <mjg59@srcf.ucam.org>, Sarah Sharp <sarah.a.sharp@linux.intel.com>
 
---===============4670101421399239580==
-Content-Type: multipart/alternative; boundary=089e0129483aa1fcd904d909fa5c
+--bcaec52d4d03dc630004d90b65d0
+Content-Type: text/plain; charset=UTF-8
 
---089e0129483aa1fcd904d909fa5c
-Content-Type: text/plain; charset=ISO-8859-1
+On Fri, Mar 29, 2013 at 5:27 AM, Rafael J. Wysocki <rjw@sisk.pl> wrote:
+> On Thursday, March 28, 2013 07:31:58 PM Martin Mokrejs wrote:
+>> Hi Bjorn,
+>>
+>> Bjorn Helgaas wrote:
+>> > On Thu, Mar 28, 2013 at 11:26 AM, Martin Mokrejs
+>> > <mmokrejs@fold.natur.cuni.cz> wrote:
+>> >>
+>> >>
+>> >> Rafael J. Wysocki wrote:
+>> >>> On Thursday, March 28, 2013 10:46:10 AM Bjorn Helgaas wrote:
+>> >>>> On Thu, Mar 28, 2013 at 10:41 AM, Rafael J. Wysocki <rjw@sisk.pl> wrote:
+>> >>>>> On Thursday, March 28, 2013 10:21:30 AM Bjorn Helgaas wrote:
+>> >>>>>> On Thu, Mar 28, 2013 at 6:57 AM, Rafael J. Wysocki <rjw@sisk.pl> wrote:
+>> >>>>>>> Hi Bjorn,
+>> >>>>>>>
+>> >>>>>>> I wonder what you think about the patch below?
+>> >>>>>>
+>> >>>>>> Seems fine to me (I'm trusting your and Matthew's judgment here since
+>> >>>>>> I don't know much about it).  Why don't you resend it with Matthew's
+>> >>>>>> ack and the appropriate stable tags, and I'll put it in.
+>> >>>>>
+>> >>>>> I will, thanks!
+>> >>>>>
+>> >>>>>> If you have
+>> >>>>>> a URL for a bugzilla or mailing list report of the original problem,
+>> >>>>>> that would be good, too.  It'd be nice if users and distros could
+>> >>>>>> match problem reports with this solution, but I can't tell what the
+>> >>>>>> user-visible issue was.  I assume that Sarah tested this (or somebody
+>> >>>>>> else reproduced the problem and tested the fix)?
+>> >>>>>
+>> >>>>> Sarah reported it to me privately and I'm afraid I don't have any pointers
+>> >>>>> to publicly available mailing list archives etc.
+>> >>>>
+>> >>>> Do you at least have a description of how a user could determine
+>> >>>> whether he is seeing the problem fixed by this patch?
+>> >>>
+>> >>> Yeah.  For example, when the problem is visible on a USB controller and that
+>> >>> controller is runtime-suspended, then plugging a new USB device into one
+>> >>> of the controller's ports won't wake the controller up without the patch.
+>> >>
+>> >> Hi,
+>> >>  I am wondering for a week or two why nobody answered any of my bug reports,
+>> >> not even Sarah who asked for more details. I am think the fix is about my report
+>> >> under thread "Re: 3.8.2: xhci port is dead until pcieport PME# goes to disabled"
+>> >> and I really wonder why I wasn't Cc:ed and listed as a reporter provided it is
+>> >> about my report. But I should better wait what Sarah says. ;-)
 
-On Thu, Mar 28, 2013 at 8:22 PM, Bjorn Helgaas <bhelgaas@google.com> wrote:
+Hi, Martin,
 
-> [+cc Matthew]
-> [+cc e1000-devel@lists.sourceforge.net for suspected 82575/82598
-> regression]
->
-> On Thu, Mar 28, 2013 at 01:24:55PM -0700, Yinghai Lu wrote:
-> > patch for Roman
-> >
-> > On Thu, Mar 28, 2013 at 1:24 PM, Yinghai Lu <yinghai@kernel.org> wrote:
-> > > resending with adding To Roman.
-> > >
-> > > On Thu, Mar 28, 2013 at 5:46 AM, Bjorn Helgaas <bhelgaas@google.com>
-> wrote:
-> > >> This patch might be *safe*, but it (and the changelog) are completely
-> > >> unintelligible.
-> > >>
-> > >> The problem with applying an unintelligible stop-gap patch is that it
-> > >> becomes forever part of the changelog, and it's a huge waste of time
-> > >> to everybody who tries to understand the history later.  That's why I
-> > >> think it's worth spending some time to make a good patch now.
-> > >
-> > > Please check if attached patch is doing what you want.
->
-> Patch inlined below for convenience.
->
-> > Subject: [PATCH] PCI: Remove not needed check in disable aspm link
-> >
-> > Roman reported ath5k does not work anymore on 3.8.
-> > Bisected to
-> > | commit 8c33f51df406e1a1f7fa4e9b244845b7ebd61fa6
-> > | Author: Taku Izumi <izumi.taku@jp.fujitsu.com>
-> > | Date:   Tue Oct 30 15:27:13 2012 +0900
-> > |
-> > |    PCI/ACPI: Request _OSC control before scanning PCI root bus
-> > |
-> > |    This patch moves up the code block to request _OSC control in order
-> to
-> > |    separate ACPI work and PCI work in acpi_pci_root_add().
-> >
-> > It make pci_disable_link_state does not work anymore as acpi_disabled
-> > is set before pci root bus scanning.
-> > It will skip that in quirks and pcie_aspm_sanity_check.
->
-> I think this regression has nothing to do with pci_disable_link_state().
->
-> When aspm_disabled is set, pci_disable_link_state() doesn't do anything.
->
-> In both 3.7 and 3.8, aspm_disabled is set in acpi_pci_root_add() before
-> any driver probe routines are run, so it looks like calling
-> pci_disable_link_state() from a driver had no effect even in 3.7.  This
-> is a problem, of course, but not the one Roman is seeing, because ath5k
-> calls pci_disable_link_state() from the driver probe routine.
->
-> There are also PCI_FIXUP_FINAL quirks for 82575 and 82598 NICs that call
-> pci_disable_link_state().  In 3.7, these quirks are run before
-> aspm_disabled is set, but 8c33f51d moved the pcie_no_aspm() call up
-> before we start scanning the bus, so in 3.8, aspm_disabled is set
-> *before* we run them.  I think that means 8c33f51d broke all these
-> quirks.  That's also a problem, of course, but this isn't the one Roman
-> is seeing either.
->
-> I think the problem Roman is seeing happens when
-> pcie_aspm_init_link_state() calls pcie_aspm_sanity_check() during device
-> enumeration.  In 3.8, the fact that aspm_disabled is already set by the
-> time we get here means we skip the check for pre-1.1 PCIe devices, and
-> I think *this* is what Roman is seeing.
->
-> I suspect the following hunk of your patch is enough to fix things for
-> Roman:
->
-> > --- linux-2.6.orig/drivers/pci/pcie/aspm.c
-> > +++ linux-2.6/drivers/pci/pcie/aspm.c
-> > @@ -493,15 +492,6 @@ static int pcie_aspm_sanity_check(struct
-> >                       return -EINVAL;
-> >
-> >               /*
-> > -              * If ASPM is disabled then we're not going to change
-> > -              * the BIOS state. It's safe to continue even if it's a
-> > -              * pre-1.1 device
-> > -              */
-> > -
-> > -             if (aspm_disabled)
-> > -                     continue;
-> > -
-> > -             /*
-> >                * Disable ASPM for pre-1.1 PCIe device, we follow MS to
-> use
-> >                * RBER bit to determine if a function is 1.1 version
-> device
-> >                */
->
-> However, this test was added by Matthew in c9651e70, and I can't remove
-> it unless we have an explanation of why removing it will not reintroduce
-> the bug he was fixing.
->
-> This code is such a terrible mess that it's not surprising at all that
-> we have all these issues.  But there's too much to untangle in v3.9; all
-> we can hope for is to fix the regressions in v3.9 and clean it up later.
->
+Sorry for late.  Just found your bug report.  That seems related with
+PCIe port runtime PM support.
 
-v1 will fix quirks and pcie_aspm_sanity_check path.
-v2. will go further even user pass "aspm=off", those quirks and disable
-aspm in driver
-will still work, and also call pcie_no_aspm for disable aspm for FADT path
-early.
+Can you try the debug patch attached?  And send me back the dmesg?
 
-So now you want half of v1, and not want to fix quirk path.
-Is my understanding right?
+Sorry I use gmail web client, so I can only send patch as attachment.
 
-Yinghai
+Best Regards,
+Huang Ying
 
---089e0129483aa1fcd904d909fa5c--
+--bcaec52d4d03dc630004d90b65d0
+Content-Type: application/octet-stream; name="port_wake_dbg.patch"
+Content-Disposition: attachment; filename="port_wake_dbg.patch"
+Content-Transfer-Encoding: base64
+X-Attachment-Id: f_hev1g2j50
 
-
---===============4670101421399239580==
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-
-------------------------------------------------------------------------------
-Own the Future-Intel(R) Level Up Game Demo Contest 2013
-Rise to greatness in Intel's independent game demo contest. Compete 
-for recognition, cash, and the chance to get your game on Steam. 
-$5K grand prize plus 10 genre and skill prizes. Submit your demo 
-by 6/6/13. http://altfarm.mediaplex.com/ad/ck/12124-176961-30367-2
---===============4670101421399239580==
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-
-_______________________________________________
-E1000-devel mailing list
-E1000-devel@lists.sourceforge.net
-https://lists.sourceforge.net/lists/listinfo/e1000-devel
-To learn more about Intel&#174; Ethernet, visit http://communities.intel.com/community/wired
-
---===============4670101421399239580==--
+ZGlmZiAtLWdpdCBhL2RyaXZlcnMvcGNpL3BjaS1hY3BpLmMgYi9kcml2ZXJzL3BjaS9wY2ktYWNw
+aS5jCmluZGV4IGRlZTVkZGQuLjhkMGI5MDkgMTAwNjQ0Ci0tLSBhL2RyaXZlcnMvcGNpL3BjaS1h
+Y3BpLmMKKysrIGIvZHJpdmVycy9wY2kvcGNpLWFjcGkuYwpAQCAtNDMsMTAgKzQzLDE2IEBAIHN0
+YXRpYyB2b2lkIHBjaV9hY3BpX3dha2VfYnVzKGFjcGlfaGFuZGxlIGhhbmRsZSwgdTMyIGV2ZW50
+LCB2b2lkICpjb250ZXh0KQogc3RhdGljIHZvaWQgcGNpX2FjcGlfd2FrZV9kZXYoYWNwaV9oYW5k
+bGUgaGFuZGxlLCB1MzIgZXZlbnQsIHZvaWQgKmNvbnRleHQpCiB7CiAJc3RydWN0IHBjaV9kZXYg
+KnBjaV9kZXYgPSBjb250ZXh0OworCXN0cnVjdCBhY3BpX2RldmljZSAqYWRldjsKIAogCWlmIChl
+dmVudCAhPSBBQ1BJX05PVElGWV9ERVZJQ0VfV0FLRSB8fCAhcGNpX2RldikKIAkJcmV0dXJuOwog
+CisJaWYgKCFhY3BpX2J1c19nZXRfZGV2aWNlKGhhbmRsZSwgJmFkZXYpKSB7CisJCWFkZXYtPndh
+a2V1cC5mbGFncy5ydW5fd2FrZV93b3JrcyA9IHRydWU7CisJCWRldl9pbmZvKCZwY2lfZGV2LT5k
+ZXYsICJydW4gd2FrZSB3b3JrcyFcbiIpOworCX0KKwogCWlmIChwY2lfZGV2LT5jdXJyZW50X3N0
+YXRlID09IFBDSV9EM2NvbGQpIHsKIAkJcGNpX3dha2V1cF9ldmVudChwY2lfZGV2KTsKIAkJcG1f
+cnVudGltZV9yZXN1bWUoJnBjaV9kZXYtPmRldik7CkBAIC0xNDYsNiArMTUyLDE1IEBAIHBoeXNf
+YWRkcl90IGFjcGlfcGNpX3Jvb3RfZ2V0X21jZmdfYWRkcihhY3BpX2hhbmRsZSBoYW5kbGUpCiBz
+dGF0aWMgcGNpX3Bvd2VyX3QgYWNwaV9wY2lfY2hvb3NlX3N0YXRlKHN0cnVjdCBwY2lfZGV2ICpw
+ZGV2KQogewogCWludCBhY3BpX3N0YXRlLCBkX21heDsKKwlhY3BpX2hhbmRsZSBoYW5kbGUgPSBE
+RVZJQ0VfQUNQSV9IQU5ETEUoJnBkZXYtPmRldik7CisJc3RydWN0IGFjcGlfZGV2aWNlICphZGV2
+OworCisJaWYgKHBjaV9pc19icmlkZ2UocGRldikgJiYgIWFjcGlfYnVzX2dldF9kZXZpY2UoaGFu
+ZGxlLCAmYWRldikpIHsKKwkJaWYgKCFhZGV2LT53YWtldXAuZmxhZ3MucnVuX3dha2Vfd29ya3Mp
+IHsKKwkJCWRldl9pbmZvKCZwZGV2LT5kZXYsICJjaG9vc2Ugc3RhdGUsIHJ1bl93YWtlIG5vdCB2
+ZXJpZmllZFxuIik7CisJCQlyZXR1cm4gUENJX0QwOworCQl9CisJfQogCiAJaWYgKHBkZXYtPm5v
+X2QzY29sZCkKIAkJZF9tYXggPSBBQ1BJX1NUQVRFX0QzX0hPVDsKZGlmZiAtLWdpdCBhL2luY2x1
+ZGUvYWNwaS9hY3BpX2J1cy5oIGIvaW5jbHVkZS9hY3BpL2FjcGlfYnVzLmgKaW5kZXggMjJiYTU2
+ZS4uYmM4ODQxOSAxMDA2NDQKLS0tIGEvaW5jbHVkZS9hY3BpL2FjcGlfYnVzLmgKKysrIGIvaW5j
+bHVkZS9hY3BpL2FjcGlfYnVzLmgKQEAgLTI0NSw2ICsyNDUsNyBAQCBzdHJ1Y3QgYWNwaV9kZXZp
+Y2VfcGVyZiB7CiBzdHJ1Y3QgYWNwaV9kZXZpY2Vfd2FrZXVwX2ZsYWdzIHsKIAl1OCB2YWxpZDox
+OwkJLyogQ2FuIHN1Y2Nlc3NmdWxseSBlbmFibGUgd2FrZXVwPyAqLwogCXU4IHJ1bl93YWtlOjE7
+CQkvKiBSdW4tV2FrZSBHUEUgZGV2aWNlcyAqLworCXU4IHJ1bl93YWtlX3dvcmtzOjE7CS8qIFJ1
+bi1XYWtlIHdvcmtzIGZvciB0aGUgZGV2aWNlICovCiAJdTggbm90aWZpZXJfcHJlc2VudDoxOyAg
+LyogV2FrZS11cCBub3RpZnkgaGFuZGxlciBoYXMgYmVlbiBpbnN0YWxsZWQgKi8KIH07CiAK
+--bcaec52d4d03dc630004d90b65d0--
