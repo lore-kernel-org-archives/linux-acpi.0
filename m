@@ -1,196 +1,150 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: [Update][PATCH] PCI / ACPI: Always resume devices on ACPI wakeup notifications
-Date: Fri, 29 Mar 2013 22:37:12 +0100
-Message-ID: <1600150.ItUTnFh37v@vostro.rjw.lan>
-References: <2282655.IicBMMa6jN@vostro.rjw.lan> <5155ADD2.3090005@fold.natur.cuni.cz> <20130329160535.GA5113@xanatos>
+From: Vinod Koul <vinod.koul@intel.com>
+Subject: Re: [PATCH 3/6] dma: acpi-dma: parse CSRT to extract additional
+ resources
+Date: Sat, 30 Mar 2013 03:03:50 +0530
+Message-ID: <20130329213350.GZ10326@intel.com>
+References: <1364374682-8547-1-git-send-email-andriy.shevchenko@linux.intel.com>
+ <1364374682-8547-4-git-send-email-andriy.shevchenko@linux.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from hydra.sisk.pl ([212.160.235.94]:47009 "EHLO hydra.sisk.pl"
+Received: from mga14.intel.com ([143.182.124.37]:13464 "EHLO mga14.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1757021Ab3C2V3m (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 29 Mar 2013 17:29:42 -0400
-In-Reply-To: <20130329160535.GA5113@xanatos>
+	id S1755945Ab3C2WAf (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 29 Mar 2013 18:00:35 -0400
+Content-Disposition: inline
+In-Reply-To: <1364374682-8547-4-git-send-email-andriy.shevchenko@linux.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Sarah Sharp <sarah.a.sharp@linux.intel.com>
-Cc: Martin Mokrejs <mmokrejs@fold.natur.cuni.cz>, Bjorn Helgaas <bhelgaas@google.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>, Linux PM list <linux-pm@vger.kernel.org>, Len Brown <lenb@kernel.org>, Matthew Garrett <mjg59@srcf.ucam.org>, "Accardi, Kristen C" <kristen.c.accardi@intel.com>, "Huang, Ying" <ying.huang@intel.com>, linux-pci@vger.kernel.org
+To: Andy Shevchenko <andriy.shevchenko@linux.jf.intel.com>
+Cc: "Rafael J . Wysocki" <rafael.j.wysocki@intel.com>, Mika Westerberg <mika.westerberg@linux.jf.intel.com>, Viresh Kumar <viresh.kumar@linaro.org>, linux-kernel@vger.kernel.org, spear-devel <spear-devel@list.st.com>, linux-acpi@vger.kernel.org
 
-On Friday, March 29, 2013 09:05:35 AM Sarah Sharp wrote:
-> On Fri, Mar 29, 2013 at 04:05:54PM +0100, Martin Mokrejs wrote:
-> > [   36.594171] xhci_hcd 0000:0b:00.0: xhci_suspend: stopping port polling.
-> > [   36.594202] xhci_hcd 0000:0b:00.0: // Setting command ring address to 0xd6007001
-> > [   36.594247] xhci_hcd 0000:0b:00.0: hcd_pci_runtime_suspend: 0
-> > [   36.594349] xhci_hcd 0000:0b:00.0: PME# enabled
-> > [   36.703695] r8169 0000:05:00.0 eth0: link down
-> > [   37.098299] microcode: CPU0 updated to revision 0x28, date = 2012-04-24
-> > [   37.098941] microcode: CPU1 updated to revision 0x28, date = 2012-04-24
-> > [   37.098944] perf_event_intel: PEBS enabled due to microcode update
-> > [   38.343029] r8169 0000:05:00.0 eth0: link up
-> > [   39.094944] r8169 0000:05:00.0 eth0: link down
-> > [   41.492768] r8169 0000:05:00.0 eth0: link up
-> > [   62.782910] xhci_hcd 0000:0b:00.0: Poll event ring: 4294943584
-> > [   62.782938] xhci_hcd 0000:0b:00.0: op reg status = 0xffffffff
-> > [   62.782939] xhci_hcd 0000:0b:00.0: HW died, polling stopped.
-> > [   88.754183] pcieport 0000:00:1c.0: PME# enabled
-> > [   88.764182] xhci_hcd 0000:0b:00.0: PME# disabled
-> > [   88.764192] xhci_hcd 0000:0b:00.0: enabling bus mastering
-> > [   88.764206] xhci_hcd 0000:0b:00.0: // Setting command ring address to 0xd6007001
-> > [   88.764242] xhci_hcd 0000:0b:00.0: Port Status Change Event for port 2
-> > [   88.764246] xhci_hcd 0000:0b:00.0: resume root hub
-> > [   88.764259] xhci_hcd 0000:0b:00.0: handle_port_status: starting port polling.
-> > [   88.764276] xhci_hcd 0000:0b:00.0: xhci_resume: starting port polling.
-> > [   88.764281] xhci_hcd 0000:0b:00.0: hcd_pci_runtime_resume: 0
-> > 
-> > 
-> > What "HW died? Why 1c.0 is here? What is this device actually doing?
+On Wed, Mar 27, 2013 at 10:57:59AM +0200, Andy Shevchenko wrote:
+> Since we have CSRT only to get additional DMA controller resources, let's get
+> rid of drivers/acpi/csrt.c and move its logic inside ACPI DMA helpers code.
 > 
-> It's harmless.  The xHCI polling loop to debug the host registers and
-> rings simply notices that the registers are reading as all ffs.  I
-> believe that's normal when a PCI device is in D3.  I just haven't had
-> time to make a patch to disable the polling loop when the host is suspended.
-> 
-> So, for now, ignore the "HW died, polling stopped." messages.
-> 
-> > Nevertheless, I went to check if if the USB3 socket dies after first unplug of device
-> > or not anymore thanks to the patch being tested:
-> > 
-> > I plugged into the USB3.0 socket a mouse, it worked. Around its unplug I got:
-> > 
-> > [   94.954779] hub 3-0:1.0: debounce: port 2: total 100ms stable 100ms status 0x100
-> > [   94.954795] hub 3-0:1.0: hub_suspend
-> > [   94.954802] usb usb3: bus auto-suspend, wakeup 1
-> > [   94.954817] xhci_hcd 0000:0b:00.0: xhci_hub_status_data: stopping port polling.
-> > [   94.954835] xhci_hcd 0000:0b:00.0: xhci_suspend: stopping port polling.
-> > [   94.954857] xhci_hcd 0000:0b:00.0: // Setting command ring address to 0xd6007001
-> > [   94.954898] xhci_hcd 0000:0b:00.0: hcd_pci_runtime_suspend: 0
-> > [   94.954983] xhci_hcd 0000:0b:00.0: PME# enabled
-> > [  169.622513] hub 2-1:1.0: state 7 ports 8 chg 0000 evt 0004
-> > [  169.623057] hub 2-1:1.0: port 2, status 0101, change 0001, 12 Mb/s
-> > [  169.777012] hub 2-1:1.0: debounce: port 2: total 100ms stable 100ms status 0x101
-> > [  169.856992] usb 2-1.2: new low-speed USB device number 4 using ehci-pci
-> > 
-> > and the port was dead, no matter what "lsusb -v or -vv" options I tried. At about
-> > [  169.622513] I plugged the mouse into a USB2.0 socket (do not know if that is 1a.0 or 1d.0).
-> 
-> All right, I wonder if the USB core/xHCI driver is forgetting to clear a
-> port status change bit after the device is unplugged.  That can cause
-> the xHCI host to not give us a port status change event later (and thus
-> no PME).  Looking at the logs later, it doesn't seem like we do this
-> though.
-> 
-> > If I run lsusb -vv it does (with the problematic patch):
-> > 
-> > [ 1760.414086] pcieport 0000:00:1c.4: PME# disabled
-> > [ 1760.434314] xhci_hcd 0000:0b:00.0: PME# disabled
-> > [ 1760.434327] xhci_hcd 0000:0b:00.0: enabling bus mastering
-> > [ 1760.434338] xhci_hcd 0000:0b:00.0: // Setting command ring address to 0xd6007001
-> > [ 1760.434360] xhci_hcd 0000:0b:00.0: Port Status Change Event for port 2
-> 
-> Ok, so the xHCI driver *is* getting a port status change event, and thus
-> must have gotten a PME.  So the PCI layer is doing its job.
-> 
-> > [ 1760.434363] xhci_hcd 0000:0b:00.0: resume root hub
-> > [ 1760.434367] xhci_hcd 0000:0b:00.0: handle_port_status: starting port polling.
-> > [ 1760.434378] xhci_hcd 0000:0b:00.0: xhci_resume: starting port polling.
-> > [ 1760.434383] xhci_hcd 0000:0b:00.0: hcd_pci_runtime_resume: 0
-> > [ 1760.434388] usb usb3: usb auto-resume
-> > [ 1760.434407] hub 3-0:1.0: hub_resume
-> > [ 1760.434439] xhci_hcd 0000:0b:00.0: get port status, actual port 0 status  = 0x2a0
-> > [ 1760.434440] xhci_hcd 0000:0b:00.0: Get port status returned 0x100
-> > [ 1760.434464] xhci_hcd 0000:0b:00.0: get port status, actual port 1 status  = 0x202a0
-> > [ 1760.434465] xhci_hcd 0000:0b:00.0: Get port status returned 0x10100
-> > [ 1760.434492] xhci_hcd 0000:0b:00.0: clear port connect change, actual port 1 status  = 0x2a0
-> 
-> Odd.  The port status shows there's no device connected, but there was a
-> connect change:
-> 
-> sarah@xanatos:~$ ./decode-port-status 0x202a0
-> port status = 0x0202a0
->  bit  0     (CCS)          0x0, device not connected
->  bit  1     (PED)          0x0, port disabled
->  bit  3     (OCA)          0x0, no over-current condition
->  bit  4     (PR)           0x0, port not in reset
->  bits 8:5   (PLS)          0x5, link is in the RxDetect state
->  bit  9     (PP)           0x1, port power on
->  bits 13:10 (speed)        0x0, Undefined
->  bits 15:14 (indicators)   0x0, port indicators are off
->  bit  17    (CSC)          0x1, connect change
->  bit  18    (PEC)          0x0, no port enable/disable change
->  bit  19    (WRC)          0x0, no warm port reset change
->  bit  20    (OCC)          0x0, no over-current change
->  bit  21    (PRC)          0x0, no port reset change
->  bit  22    (PLC)          0x0, no port link change
->  bit  23    (CEC)          0x0, no port config error change
->  bit  25    (WCE)          0x0, wake on connect disabled
->  bit  26    (WDE)          0x0, wake on disconnect disabled
->  bit  27    (WOE)          0x0, wake on over-current enable disabled
->  bit  30    (DR)           0x0, device is permanently attached
-> 
-> RxDetect is the "I'm looking for a USB device" port state.
-> 
-> > [ 1760.434642] usb usb4: usb wakeup-resume
-> > [ 1760.434646] usb usb4: usb auto-resume
-> > [ 1760.434661] hub 4-0:1.0: hub_resume
-> > [ 1760.434683] xhci_hcd 0000:0b:00.0: get port status, actual port 0 status  = 0x2a0
-> > [ 1760.434684] xhci_hcd 0000:0b:00.0: Get port status returned 0x2a0
-> > [ 1760.434710] xhci_hcd 0000:0b:00.0: get port status, actual port 1 status  = 0x2a0
-> > [ 1760.434711] xhci_hcd 0000:0b:00.0: Get port status returned 0x2a0
-> > [ 1760.434727] hub 4-0:1.0: state 7 ports 2 chg 0000 evt 0000
-> > [ 1760.434757] xhci_hcd 0000:0b:00.0: set port remote wake mask, actual port 0 status  = 0xe0002a0
-> > [ 1760.434784] xhci_hcd 0000:0b:00.0: set port remote wake mask, actual port 1 status  = 0xe0002a0
-> > [ 1760.434791] hub 4-0:1.0: hub_suspend
-> > [ 1760.434796] usb usb4: bus auto-suspend, wakeup 1
-> > [ 1760.434807] xhci_hcd 0000:0b:00.0: xhci_hub_status_data: stopping port polling.
-> > [ 1760.553734] xhci_hcd 0000:0b:00.0: xhci_hub_status_data: stopping port polling.
-> > [ 1760.553751] hub 3-0:1.0: state 7 ports 2 chg 0000 evt 0000
-> > [ 1760.574793] xhci_hcd 0000:0b:00.0: get port status, actual port 0 status  = 0x2a0
-> > [ 1760.574794] xhci_hcd 0000:0b:00.0: Get port status returned 0x100
-> > [ 1760.575300] xhci_hcd 0000:0b:00.0: get port status, actual port 1 status  = 0x2a0
-> > [ 1760.575301] xhci_hcd 0000:0b:00.0: Get port status returned 0x100
-> 
-> sarah@xanatos:~$ ./decode-port-status 0x2a0
-> port status = 0x0002a0
->  bit  0     (CCS)          0x0, device not connected
->  bit  1     (PED)          0x0, port disabled
->  bit  3     (OCA)          0x0, no over-current condition
->  bit  4     (PR)           0x0, port not in reset
->  bits 8:5   (PLS)          0x5, link is in the RxDetect state
->  bit  9     (PP)           0x1, port power on
->  bits 13:10 (speed)        0x0, Undefined
->  bits 15:14 (indicators)   0x0, port indicators are off
->  bit  17    (CSC)          0x0, no connect change
->  bit  18    (PEC)          0x0, no port enable/disable change
->  bit  19    (WRC)          0x0, no warm port reset change
->  bit  20    (OCC)          0x0, no over-current change
->  bit  21    (PRC)          0x0, no port reset change
->  bit  22    (PLC)          0x0, no port link change
->  bit  23    (CEC)          0x0, no port config error change
->  bit  25    (WCE)          0x0, wake on connect disabled
->  bit  26    (WDE)          0x0, wake on disconnect disabled
->  bit  27    (WOE)          0x0, wake on over-current enable disabled
->  bit  30    (DR)           0x0, device is permanently attached
-> 
-> Nope, your host really isn't reporting there's a device connected
-> *at all*.  That's just broken hardware, and there's really nothing
-> software can do if the hardware isn't reporting connect events, even
-> with polling.
-> 
-> It also doesn't sound like the other TI redriver bug.  That bug only
-> effected USB 3.0 ports, and when lsusb was run, we would find the port
-> in Compliance Mode.  This is the host simply not reporting the USB 2.0
-> port connect at all.
-> 
-> Maybe if we completely disable PCI runtime PM for your host, we can work
-> around this bug?
+> Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+> Signed-off-by: Mika Westerberg <mika.westerberg@linux.intel.com>
+> Acked-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+for such a patch git format-patch -M is your friend. It generates patch to show
+file movement. It helps review greatly if you just move the file and then do
+additions on second patch, as diffstat tells me some changes have been done.
 
-Well, that's what I've just asked Martin to try.
-
-Thanks,
-Rafael
-
-
--- 
-I speak only for myself.
-Rafael J. Wysocki, Intel Open Source Technology Center.
+> @@ -23,6 +25,117 @@ static LIST_HEAD(acpi_dma_list);
+>  static DEFINE_MUTEX(acpi_dma_lock);
+>  
+>  /**
+> + * acpi_dma_parse_resource_group - match device and parse resource group
+> + * @grp:	CSRT resource group
+> + * @adev:	ACPI device to match with
+> + * @adma:	struct acpi_dma of the given DMA controller
+> + *
+> + * Returns 1 on success, 0 when no information is available, or appropriate
+> + * errno value on error.
+> + *
+> + * In order to match a device from DSDT table to the corresponding CSRT device
+> + * we use MMIO address and IRQ.
+> + */
+>  
+> +/**
+> + * acpi_dma_update_dma_spec - prepare dma specifier to pass to translation function
+> + * @adma:	struct acpi_dma of DMA controller
+> + * @dma_spec:	dma specifier to update
+> + *
+> + * Returns 0, if no information is avaiable, -1 on mismatch, and 1 otherwise.
+> + *
+> + * Accordingly to ACPI 5.0 Specification Table 6-170 "Fixed DMA Resource
+> + * Descriptor":
+> + *	DMA Request Line bits is a platform-relative number uniquely
+> + *	identifying the request line assigned. Request line-to-Controller
+> + *	mapping is done in a controller-specific OS driver.
+> + * That's why we can safely adjust slave_id when the appropriate controller is
+> + * found.
+> + */
+> +static int acpi_dma_update_dma_spec(struct acpi_dma *adma,
+> +		struct acpi_dma_spec *dma_spec)
+> +{
+> +	/* Set link to the DMA controller device */
+> +	dma_spec->dev = adma->dev;
+> +
+> +	/* Check if the request line range is available */
+> +	if (adma->base_request_line == 0 && adma->end_request_line == 0)
+> +		return 0;
+> +
+> +	/* Check if slave_id falls to the range */
+> +	if (dma_spec->slave_id < adma->base_request_line ||
+> +	    dma_spec->slave_id > adma->end_request_line)
+> +		return -1;
+> +
+> +	/*
+> +	 * Here we adjust slave_id. It should be a relative number to the base
+> +	 * request line.
+> +	 */
+> +	dma_spec->slave_id -= adma->base_request_line;
+where are you getting the base_request_line, i didnt see anything for this in
+ACPI spec?
+> +
+> +	return 1;
+> +}
+> +
+>  struct acpi_dma_parser_data {
+>  	struct acpi_dma_spec dma_spec;
+>  	size_t index;
+> @@ -193,6 +347,7 @@ struct dma_chan *acpi_dma_request_slave_chan_by_index(struct device *dev,
+>  	struct acpi_device *adev;
+>  	struct acpi_dma *adma;
+>  	struct dma_chan *chan;
+> +	int found;
+>  
+>  	/* Check if the device was enumerated by ACPI */
+>  	if (!dev || !ACPI_HANDLE(dev))
+> @@ -219,9 +374,20 @@ struct dma_chan *acpi_dma_request_slave_chan_by_index(struct device *dev,
+>  	mutex_lock(&acpi_dma_lock);
+>  
+>  	list_for_each_entry(adma, &acpi_dma_list, dma_controllers) {
+> -		dma_spec->dev = adma->dev;
+> +		/*
+> +		 * We are not going to call translation function if slave_id
+> +		 * doesn't fall to the request range.
+> +		 */
+> +		found = acpi_dma_update_dma_spec(adma, dma_spec);
+> +		if (found < 0)
+> +			continue;
+>  		chan = adma->acpi_dma_xlate(dma_spec, adma);
+> -		if (chan) {
+> +		/*
+> +		 * Try to get a channel only from the DMA controller that
+> +		 * matches the slave_id. See acpi_dma_update_dma_spec()
+> +		 * description for the details.
+> +		 */
+> +		if (found > 0 || chan) {
+>  			mutex_unlock(&acpi_dma_lock);
+>  			return chan;
+>  		}
+> diff --git a/include/linux/acpi_dma.h b/include/linux/acpi_dma.h
+> index d09deab..fb02980 100644
+> --- a/include/linux/acpi_dma.h
+> +++ b/include/linux/acpi_dma.h
+> @@ -37,6 +37,8 @@ struct acpi_dma_spec {
+>   * @dev:		struct device of this controller
+>   * @acpi_dma_xlate:	callback function to find a suitable channel
+>   * @data:		private data used by a callback function
+> + * @base_request_line:	first supported request line (CSRT)
+> + * @end_request_line:	last supported request line (CSRT)
+okay here it is, can you add the width here as well
+>   */
+>  struct acpi_dma {
+>  	struct list_head	dma_controllers;
+> @@ -44,6 +46,8 @@ struct acpi_dma {
+>  	struct dma_chan		*(*acpi_dma_xlate)
+>  				(struct acpi_dma_spec *, struct acpi_dma *);
+>  	void			*data;
+> +	unsigned short		base_request_line;
+> +	unsigned short		end_request_line;
+how do you define these two?
+>  };
+>  
+>  /* Used with acpi_dma_simple_xlate() */
+> -- 
+> 1.8.2.rc0.22.gb3600c3
+> 
