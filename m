@@ -1,49 +1,45 @@
-From: Seth Forshee <seth.forshee@canonical.com>
-Subject: Re: [PATCH] ACPI: Disable Windows 8 compatibility for some Lenovo
- ThinkPads
-Date: Mon, 1 Apr 2013 08:03:40 -0500
-Message-ID: <20130401130340.GA3269@thinkpad-t410>
-References: <1360599681-24781-1-git-send-email-seth.forshee@canonical.com>
- <5158E8A0.3050904@intel.com>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: Re: [PATCH] ACPI / SPI: Use parent's ACPI_HANDLE() in acpi_register_spi_devices()
+Date: Mon, 01 Apr 2013 15:30:05 +0200
+Message-ID: <3094287.rEsFgshmOE@vostro.rjw.lan>
+References: <2747891.0orCNBJG8v@vostro.rjw.lan> <20130401114422.GA18636@opensource.wolfsonmicro.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7Bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from youngberry.canonical.com ([91.189.89.112]:49897 "EHLO
-	youngberry.canonical.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756444Ab3DANDv (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 1 Apr 2013 09:03:51 -0400
-Content-Disposition: inline
-In-Reply-To: <5158E8A0.3050904@intel.com>
+Received: from hydra.sisk.pl ([212.160.235.94]:49410 "EHLO hydra.sisk.pl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756956Ab3DANWb (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 1 Apr 2013 09:22:31 -0400
+In-Reply-To: <20130401114422.GA18636@opensource.wolfsonmicro.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Aaron Lu <aaron.lu@intel.com>
-Cc: Len Brown <lenb@kernel.org>, "Rafael J. Wysocki" <rjw@sisk.pl>, linux-acpi@vger.kernel.org, Ben Jencks <ben@bjencks.net>, joeyli <jlee@suse.com>, Matthew Garrett <mjg59@srcf.ucam.org>
+To: Mark Brown <broonie@opensource.wolfsonmicro.com>
+Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>, Mika Westerberg <mika.westerberg@linux.intel.com>, grant.likely@secretlab.ca
 
-On Mon, Apr 01, 2013 at 09:53:36AM +0800, Aaron Lu wrote:
-> On 02/12/2013 12:21 AM, Seth Forshee wrote:
-> > The AML implementation for brightness control on several ThinkPads
-> > contains a workaround to meet a Windows 8 requirement of 101 brightness
-> > levels [1]. The implementation is flawed, as only 16 of the brighness
-> > values reported by _BCL affect a change in brightness. _BCM silently
-> > discards the rest of the values. Disabling Windows 8 compatibility on
-> > these machines reverts them to the old behavior, making _BCL only report
-> > the 16 brightness levels which actually work. Add a quirk to do this
-> > along with a dmi callback to disable Win8 compatibility.
+On Monday, April 01, 2013 12:44:23 PM Mark Brown wrote:
+> On Mon, Apr 01, 2013 at 02:21:08AM +0200, Rafael J. Wysocki wrote:
+> > From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+> > 
+> > The ACPI handle of struct spi_master's dev member should not be
+> > set, because this causes that struct spi_master to be associated
+> > with the ACPI device node corresponding to its parent as the
+> > second "physical_device", which is incorrect (this happens during
+> > the registration of struct spi_master).  Consequently,
+> > acpi_register_spi_devices() should use the ACPI handle of the
+> > parent of the struct spi_master it is called for rather than that
+> > struct spi_master's ACPI handle (which should be NULL).
 > 
-> If we disable the _BQC(i.e. set cap._BQC=0) for these systems, will the
-> problem go away? If so, I think perhaps we can put these systems into a
-> _BQC quirk table and set cap._BQC=0 for them.
+> Acked-by: Mark Brown <broonie@opensource.wolfsonmicro.com>
+> 
+> or does this need to be applied to the SPI tree?
 
-That helps a little, but we're still left with only 16 of the 101
-brightness levels causing any change in brightness. The firmware isn't
-rounding the "bad" values or anything like that; it just silently
-ignores them.
+I can push it through the PM/ACPI tree along with an analogous I2C patch.
 
-I submitted a second set of patches [1] which writes all intermediate
-values between the old and new brightness values and disables _BQC for
-these machines (empirically rather than using a quirk table), though no
-one seems to be interested in reviewing them.
+Thanks,
+Rafael
 
-Seth
 
-[1] http://www.spinics.net/lists/linux-acpi/msg42525.html
+-- 
+I speak only for myself.
+Rafael J. Wysocki, Intel Open Source Technology Center.
