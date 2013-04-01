@@ -1,75 +1,146 @@
-From: Aaron Lu <aaron.lu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH] ACPI / I2C: Use parent's ACPI_HANDLE() in acpi_i2c_register_devices()
-Date: Mon, 01 Apr 2013 09:27:41 +0800
-Message-ID: <5158E28D.6040403@intel.com>
-References: <2966020.zlpeyGGUDW@vostro.rjw.lan>
+From: Aaron Lu <aaron.lu@intel.com>
+Subject: Re: [PATCH] ACPI: Disable Windows 8 compatibility for some Lenovo
+ ThinkPads
+Date: Mon, 01 Apr 2013 09:53:36 +0800
+Message-ID: <5158E8A0.3050904@intel.com>
+References: <1360599681-24781-1-git-send-email-seth.forshee@canonical.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <2966020.zlpeyGGUDW-sKB8Sp2ER+y1GS7QM15AGw@public.gmane.org>
-Sender: linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Rafael J. Wysocki" <rjw-KKrjLPT3xs0@public.gmane.org>
-Cc: ACPI Devel Maling List <linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, LKML <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Mika Westerberg <mika.westerberg-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>, Wolfram Sang <wsa-z923LK4zBo2bacvFa/9K2g@public.gmane.org>, linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Ben Dooks <ben-linux-elnMNo+KYs3YtjvyW6yDsg@public.gmane.org>, Jean Delvare <khali-PUYAD+kWke1g9hUCZPvPmw@public.gmane.org>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mga02.intel.com ([134.134.136.20]:36904 "EHLO mga02.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754589Ab3DABwU (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Sun, 31 Mar 2013 21:52:20 -0400
+In-Reply-To: <1360599681-24781-1-git-send-email-seth.forshee@canonical.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Seth Forshee <seth.forshee@canonical.com>
+Cc: Len Brown <lenb@kernel.org>, "Rafael J. Wysocki" <rjw@sisk.pl>, linux-acpi@vger.kernel.org, Ben Jencks <ben@bjencks.net>, joeyli <jlee@suse.com>
 
-On 04/01/2013 08:25 AM, Rafael J. Wysocki wrote:
-> From: Rafael J. Wysocki <rafael.j.wysocki-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-> 
-> The ACPI handle of struct i2c_adapter's dev member should not be
-> set, because this causes that struct i2c_adapter to be associated
-> with the ACPI device node corresponding to its parent as the
-> second "physical_device", which is incorrect (this happens during
-> the registration of struct i2c_adapter).  Consequently,
-> acpi_i2c_register_devices() should use the ACPI handle of the
-> parent of the struct i2c_adapter it is called for rather than the
-> struct i2c_adapter's ACPI handle (which should be NULL).
-> 
-> Make that happen and modify the i2c-designware-platdrv driver,
-> which currently is the only driver for ACPI-enumerated I2C
-> controller chips, not to set the ACPI handle for the
-> struct i2c_adapter it creates.
-> 
-> Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+On 02/12/2013 12:21 AM, Seth Forshee wrote:
+> The AML implementation for brightness control on several ThinkPads
+> contains a workaround to meet a Windows 8 requirement of 101 brightness
+> levels [1]. The implementation is flawed, as only 16 of the brighness
+> values reported by _BCL affect a change in brightness. _BCM silently
+> discards the rest of the values. Disabling Windows 8 compatibility on
+> these machines reverts them to the old behavior, making _BCL only report
+> the 16 brightness levels which actually work. Add a quirk to do this
+> along with a dmi callback to disable Win8 compatibility.
 
-Reviewed-by: Aaron Lu <aaron.lu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+If we disable the _BQC(i.e. set cap._BQC=0) for these systems, will the
+problem go away? If so, I think perhaps we can put these systems into a
+_BQC quirk table and set cap._BQC=0 for them.
 
 Thanks,
 Aaron
 
+> 
+> [1] http://msdn.microsoft.com/en-us/library/windows/hardware/jj128256.aspx
+> 
+> Bugzilla: https://bugzilla.kernel.org/show_bug.cgi?id=51231
+> BugLink: http://bugs.launchpad.net/bugs/1098216
+> Signed-off-by: Seth Forshee <seth.forshee@canonical.com>
 > ---
->  drivers/acpi/acpi_i2c.c                     |    2 +-
->  drivers/i2c/busses/i2c-designware-platdrv.c |    1 -
->  2 files changed, 1 insertion(+), 2 deletions(-)
 > 
-> Index: linux-pm/drivers/acpi/acpi_i2c.c
-> ===================================================================
-> --- linux-pm.orig/drivers/acpi/acpi_i2c.c
-> +++ linux-pm/drivers/acpi/acpi_i2c.c
-> @@ -90,7 +90,7 @@ void acpi_i2c_register_devices(struct i2
->  	acpi_handle handle;
->  	acpi_status status;
->  
-> -	handle = ACPI_HANDLE(&adapter->dev);
-> +	handle = ACPI_HANDLE(adapter->dev.parent);
->  	if (!handle)
->  		return;
->  
-> Index: linux-pm/drivers/i2c/busses/i2c-designware-platdrv.c
-> ===================================================================
-> --- linux-pm.orig/drivers/i2c/busses/i2c-designware-platdrv.c
-> +++ linux-pm/drivers/i2c/busses/i2c-designware-platdrv.c
-> @@ -182,7 +182,6 @@ static int dw_i2c_probe(struct platform_
->  	adap->algo = &i2c_dw_algo;
->  	adap->dev.parent = &pdev->dev;
->  	adap->dev.of_node = pdev->dev.of_node;
-> -	ACPI_HANDLE_SET(&adap->dev, ACPI_HANDLE(&pdev->dev));
->  
->  	r = i2c_add_numbered_adapter(adap);
->  	if (r) {
+> This has been discussed previously at [2], however the description of
+> the problem there is incorrect. _BCM simply discards any value written
+> that isn't one of the brightness levels returned by _BCL for non-Win8
+> systems; it does not do any rounding.
 > 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
-> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> This patch quirks six machines that have been confirmed to have this
+> problem, but there may be others. I looked for some way to do this other
+> than quirking for individual models, but unfortunately I couldn't find
+> any other criteria which worked.
 > 
+> Thanks,
+> Seth
+> 
+> [2] http://comments.gmane.org/gmane.linux.acpi.devel/58398
+> 
+> 
+>  drivers/acpi/blacklist.c |   62 ++++++++++++++++++++++++++++++++++++++++++++++
+>  1 file changed, 62 insertions(+)
+> 
+> diff --git a/drivers/acpi/blacklist.c b/drivers/acpi/blacklist.c
+> index cb96296..6c242ed 100644
+> --- a/drivers/acpi/blacklist.c
+> +++ b/drivers/acpi/blacklist.c
+> @@ -193,6 +193,13 @@ static int __init dmi_disable_osi_win7(const struct dmi_system_id *d)
+>  	return 0;
+>  }
+>  
+> +static int __init dmi_disable_osi_win8(const struct dmi_system_id *d)
+> +{
+> +	printk(KERN_NOTICE PREFIX "DMI detected: %s\n", d->ident);
+> +	acpi_osi_setup("!Windows 2012");
+> +	return 0;
+> +}
+> +
+>  static struct dmi_system_id acpi_osi_dmi_table[] __initdata = {
+>  	{
+>  	.callback = dmi_disable_osi_vista,
+> @@ -269,6 +276,61 @@ static struct dmi_system_id acpi_osi_dmi_table[] __initdata = {
+>  	},
+>  
+>  	/*
+> +	 * The following Lenovo models have a broken workaround in the
+> +	 * acpi_video backlight implementation to meet the Windows 8
+> +	 * requirement of 101 backlight levels. Reverting to pre-Win8
+> +	 * behavior fixes the problem.
+> +	 */
+> +	{
+> +	.callback = dmi_disable_osi_win8,
+> +	.ident = "Lenovo ThinkPad L430",
+> +	.matches = {
+> +		     DMI_MATCH(DMI_SYS_VENDOR, "LENOVO"),
+> +		     DMI_MATCH(DMI_PRODUCT_VERSION, "ThinkPad L430"),
+> +		},
+> +	},
+> +	{
+> +	.callback = dmi_disable_osi_win8,
+> +	.ident = "Lenovo ThinkPad T430s",
+> +	.matches = {
+> +		     DMI_MATCH(DMI_SYS_VENDOR, "LENOVO"),
+> +		     DMI_MATCH(DMI_PRODUCT_VERSION, "ThinkPad T430s"),
+> +		},
+> +	},
+> +	{
+> +	.callback = dmi_disable_osi_win8,
+> +	.ident = "Lenovo ThinkPad T530",
+> +	.matches = {
+> +		     DMI_MATCH(DMI_SYS_VENDOR, "LENOVO"),
+> +		     DMI_MATCH(DMI_PRODUCT_VERSION, "ThinkPad T530"),
+> +		},
+> +	},
+> +	{
+> +	.callback = dmi_disable_osi_win8,
+> +	.ident = "Lenovo ThinkPad W530",
+> +	.matches = {
+> +		     DMI_MATCH(DMI_SYS_VENDOR, "LENOVO"),
+> +		     DMI_MATCH(DMI_PRODUCT_VERSION, "ThinkPad W530"),
+> +		},
+> +	},
+> +	{
+> +	.callback = dmi_disable_osi_win8,
+> +	.ident = "Lenovo ThinkPad X1 Carbon",
+> +	.matches = {
+> +		     DMI_MATCH(DMI_SYS_VENDOR, "LENOVO"),
+> +		     DMI_MATCH(DMI_PRODUCT_VERSION, "ThinkPad X1 Carbon"),
+> +		},
+> +	},
+> +	{
+> +	.callback = dmi_disable_osi_win8,
+> +	.ident = "Lenovo ThinkPad X230",
+> +	.matches = {
+> +		     DMI_MATCH(DMI_SYS_VENDOR, "LENOVO"),
+> +		     DMI_MATCH(DMI_PRODUCT_VERSION, "ThinkPad X230"),
+> +		},
+> +	},
+> +
+> +	/*
+>  	 * BIOS invocation of _OSI(Linux) is almost always a BIOS bug.
+>  	 * Linux ignores it, except for the machines enumerated below.
+>  	 */
+> 
+
