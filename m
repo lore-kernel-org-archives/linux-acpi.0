@@ -1,45 +1,58 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: [PATCH] ACPI / SPI: Use parent's ACPI_HANDLE() in acpi_register_spi_devices()
-Date: Mon, 01 Apr 2013 15:30:05 +0200
-Message-ID: <3094287.rEsFgshmOE@vostro.rjw.lan>
-References: <2747891.0orCNBJG8v@vostro.rjw.lan> <20130401114422.GA18636@opensource.wolfsonmicro.com>
+From: Mark Brown <broonie@opensource.wolfsonmicro.com>
+Subject: Re: [PATCH] ACPI / SPI: Use parent's ACPI_HANDLE() in
+ acpi_register_spi_devices()
+Date: Mon, 1 Apr 2013 14:25:46 +0100
+Message-ID: <20130401132546.GM18636@opensource.wolfsonmicro.com>
+References: <2747891.0orCNBJG8v@vostro.rjw.lan>
+ <20130401114422.GA18636@opensource.wolfsonmicro.com>
+ <3094287.rEsFgshmOE@vostro.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7Bit
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="uwB7x3tnyrZQfZJI"
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from hydra.sisk.pl ([212.160.235.94]:49410 "EHLO hydra.sisk.pl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756956Ab3DANWb (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 1 Apr 2013 09:22:31 -0400
-In-Reply-To: <20130401114422.GA18636@opensource.wolfsonmicro.com>
+Received: from opensource.wolfsonmicro.com ([80.75.67.52]:39340 "EHLO
+	opensource.wolfsonmicro.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1757242Ab3DANZs (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 1 Apr 2013 09:25:48 -0400
+Content-Disposition: inline
+In-Reply-To: <3094287.rEsFgshmOE@vostro.rjw.lan>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Mark Brown <broonie@opensource.wolfsonmicro.com>
+To: "Rafael J. Wysocki" <rjw@sisk.pl>
 Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>, Mika Westerberg <mika.westerberg@linux.intel.com>, grant.likely@secretlab.ca
 
-On Monday, April 01, 2013 12:44:23 PM Mark Brown wrote:
-> On Mon, Apr 01, 2013 at 02:21:08AM +0200, Rafael J. Wysocki wrote:
-> > From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
-> > 
-> > The ACPI handle of struct spi_master's dev member should not be
-> > set, because this causes that struct spi_master to be associated
-> > with the ACPI device node corresponding to its parent as the
-> > second "physical_device", which is incorrect (this happens during
-> > the registration of struct spi_master).  Consequently,
-> > acpi_register_spi_devices() should use the ACPI handle of the
-> > parent of the struct spi_master it is called for rather than that
-> > struct spi_master's ACPI handle (which should be NULL).
-> 
-> Acked-by: Mark Brown <broonie@opensource.wolfsonmicro.com>
-> 
-> or does this need to be applied to the SPI tree?
 
-I can push it through the PM/ACPI tree along with an analogous I2C patch.
+--uwB7x3tnyrZQfZJI
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
-Thanks,
-Rafael
+On Mon, Apr 01, 2013 at 03:30:05PM +0200, Rafael J. Wysocki wrote:
 
+> I can push it through the PM/ACPI tree along with an analogous I2C patch.
 
--- 
-I speak only for myself.
-Rafael J. Wysocki, Intel Open Source Technology Center.
+Great, thanks - I couldn't remember if the dependencies were in the SPI
+tree or not.
+
+--uwB7x3tnyrZQfZJI
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.12 (GNU/Linux)
+
+iQIcBAEBAgAGBQJRWYq7AAoJELSic+t+oim9F48P/32ihAhB/Ux6b8R9mF0Wb+28
+x0xRpc3ZGm2PodnrYZ8/qSvxNXSAHg1sYWuz8y3OpvC3A0sVi1lLXim89wOYtAwc
+aNqlhc76C5RE2X/4XhVEerZcDux9eniLULRD/O1Xfg5HJc8LvGd6C4G9ZtkgLU3E
+isDiFdtg0Q1E4bMejmsxfXzvTPYVghJJqaQIoMXS8uJmPJy3SISBcOmqrpAqF6ls
+gugP0ehe/nYmVqdOvYWyjwKrZLat5rq63d4dpP7nvZ1CSBbdale+WiDliNMz25BW
+1TDQBezQE1Bn4HMWUs3uWSDOe3B3n+T6+RM9XxbPq9GrQWx8JedcA5+fhXhFXD0W
++qN5q2IixV9zRz/O9XOypWd7G8/9f1qhTThNSFXTWKe0RZwdNYOiFV3JazZZUebe
+quSRf4Xv45cLSdnaQpwHbfGqnot7X4slyqnX1C74HrrPkD7zu6Kayz/dnAMuc0tC
+Z/UeiUFPD6fXeEUiGiXlM8SXp5Vk4qr8+4MTW1FvsrwWfa6/doYRXBap3epaUlA+
+pRb6iDDfIic3/sRtNY9H5tM3P6nUVFRin91ZKTPgKusjvK2htLyf7MMZjoiu4kx9
+Wmke+a6sssoD+ewMSMFCAAktSehf8WAmkmyh1bEZbXJPUqeqNJVxf3TEt/Qzar7Y
+HdiNHE4QpHrtAkUu5Rnl
+=8DVJ
+-----END PGP SIGNATURE-----
+
+--uwB7x3tnyrZQfZJI--
