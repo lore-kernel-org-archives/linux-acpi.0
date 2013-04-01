@@ -1,39 +1,64 @@
-From: Jiri Kosina <jkosina@suse.cz>
-Subject: Re: [PATCH] dummy-irq: introduce a dummy IRQ handler driver (was
- Re: gm45 intel gfx can generate non-MSI irq# in MSI mode (was Re: [PATCH]
- drm/i915: stop using GMBUS IRQs on Gen4 chips (was Re: [3.9-rc1] irq 16:
- nobody cared (was [3.9-rc1] very poor interrupt respo))
-Date: Sun, 31 Mar 2013 21:55:14 +0200 (CEST)
-Message-ID: <alpine.LNX.2.00.1303312153520.22069@pobox.suse.cz>
-References: <Pine.LNX.4.44L0.1303201319190.1208-100000@iolanthe.rowland.org> <alpine.LNX.2.00.1303210018430.16237@pobox.suse.cz> <20130321144526.GR9021@phenom.ffwll.local>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: [PATCH] ACPI / SPI: Use parent's ACPI_HANDLE() in acpi_register_spi_devices()
+Date: Mon, 01 Apr 2013 02:21:08 +0200
+Message-ID: <2747891.0orCNBJG8v@vostro.rjw.lan>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7Bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cantor2.suse.de ([195.135.220.15]:44567 "EHLO mx2.suse.de"
+Received: from hydra.sisk.pl ([212.160.235.94]:49019 "EHLO hydra.sisk.pl"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753067Ab3CaTzW (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Sun, 31 Mar 2013 15:55:22 -0400
-In-Reply-To: <20130321144526.GR9021@phenom.ffwll.local>
+	id S1756188Ab3DAANf (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Sun, 31 Mar 2013 20:13:35 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Daniel Vetter <daniel@ffwll.ch>
-Cc: Alan Stern <stern@rowland.harvard.edu>, Greg KH <greg@kroah.com>, Daniel Vetter <daniel.vetter@ffwll.ch>, Chris Wilson <chris@chris-wilson.co.uk>, Harald Arnesen <skogtun.linux@gmail.com>, Kernel development list <linux-kernel@vger.kernel.org>, "Rafael J. Wysocki" <rjw@sisk.pl>, Peter Hurley <peter@hurleysoftware.com>, Thomas Meyer <thomas@m3y3r.de>, Shawn Starr <shawn.starr@rogers.com>, USB list <linux-usb@vger.kernel.org>, linux-acpi@vger.kernel.org, Bjorn Helgaas <bhelgaas@google.com>, linux-pci@vger.kernel.org, Yinghai Lu <yinghai@kernel.org>, Imre Deak <imre.deak@intel.com>, Daniel Kurtz <djkurtz@chromium.org>, dri-devel@lists.freedesktop.org, Thomas Gleixner <tglx@linutronix.de>, "H. Peter Anvin" <hpa@zytor.com>, x86@kernel.org, Arkadiusz Miskiewicz <a.miskiewicz@gmail.com>
+To: ACPI Devel Maling List <linux-acpi@vger.kernel.org>
+Cc: LKML <linux-kernel@vger.kernel.org>, Mika Westerberg <mika.westerberg@linux.intel.com>, grant.likely@secretlab.ca, broonie@opensource.wolfsonmicro.com
 
-On Thu, 21 Mar 2013, Daniel Vetter wrote:
+From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 
-> Indeed, this is pretty useful and allowed me to quickly reproduce that
-> phantom irq on my gm45. Thanks to module reloading we can even reset the
-> kernel's irq disabling logic and so test different tricks quickly without
-> rebooting. Really useful.
+The ACPI handle of struct spi_master's dev member should not be
+set, because this causes that struct spi_master to be associated
+with the ACPI device node corresponding to its parent as the
+second "physical_device", which is incorrect (this happens during
+the registration of struct spi_master).  Consequently,
+acpi_register_spi_devices() should use the ACPI handle of the
+parent of the struct spi_master it is called for rather than that
+struct spi_master's ACPI handle (which should be NULL).
 
-Daniel,
+Make that happen and modify the spi-pxa2xx driver, which currently is
+the only driver for ACPI-enumerated SPI controller chips, not to set
+the ACPI handle for the struct spi_master it creates.
 
-out of curiosity, have you been able to make some sense of the phantom 
-legacy IRQs on GM45 systems, or are we just staying with my original 
-bandaid (disabling GMBUS IRQs), declaring GM45 broken in this respect?
+Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+---
+ drivers/spi/spi-pxa2xx.c |    1 -
+ drivers/spi/spi.c        |    2 +-
+ 2 files changed, 1 insertion(+), 2 deletions(-)
 
-Thanks,
+Index: linux-pm/drivers/spi/spi.c
+===================================================================
+--- linux-pm.orig/drivers/spi/spi.c
++++ linux-pm/drivers/spi/spi.c
+@@ -984,7 +984,7 @@ static void acpi_register_spi_devices(st
+ 	acpi_status status;
+ 	acpi_handle handle;
+ 
+-	handle = ACPI_HANDLE(&master->dev);
++	handle = ACPI_HANDLE(master->dev.parent);
+ 	if (!handle)
+ 		return;
+ 
+Index: linux-pm/drivers/spi/spi-pxa2xx.c
+===================================================================
+--- linux-pm.orig/drivers/spi/spi-pxa2xx.c
++++ linux-pm/drivers/spi/spi-pxa2xx.c
+@@ -1168,7 +1168,6 @@ static int pxa2xx_spi_probe(struct platf
+ 
+ 	master->dev.parent = &pdev->dev;
+ 	master->dev.of_node = pdev->dev.of_node;
+-	ACPI_HANDLE_SET(&master->dev, ACPI_HANDLE(&pdev->dev));
+ 	/* the spi->mode bits understood by this driver: */
+ 	master->mode_bits = SPI_CPOL | SPI_CPHA | SPI_CS_HIGH | SPI_LOOP;
+ 
 
--- 
-Jiri Kosina
-SUSE Labs
