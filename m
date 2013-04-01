@@ -1,83 +1,54 @@
-From: Bjorn Helgaas <bhelgaas@google.com>
-Subject: Re: [Update][PATCH] PCI / PM: Disable runtime PM of PCIe ports
-Date: Mon, 1 Apr 2013 11:34:46 -0600
-Message-ID: <CAErSpo7kGBNEkLOftJ1J7ivaxZL-yVWyAwmoiQ1=NADpmJ67XA@mail.gmail.com>
-References: <2282655.IicBMMa6jN@vostro.rjw.lan> <51548C9E.9090703@fold.natur.cuni.cz>
- <2990024.LMTIBUbM3d@vostro.rjw.lan> <1378320.ernsY1JWPv@vostro.rjw.lan>
+From: Daniel Vetter <daniel-/w4YWyX8dFk@public.gmane.org>
+Subject: Re: [PATCH] dummy-irq: introduce a dummy IRQ handler driver (was Re:
+ gm45 intel gfx can generate non-MSI irq# in MSI mode (was Re: [PATCH]
+ drm/i915: stop using GMBUS IRQs on Gen4 chips (was Re: [3.9-rc1] irq 16:
+ nobody cared (was [3.9-rc1] very poor interrupt respo))
+Date: Mon, 1 Apr 2013 20:30:13 +0200
+Message-ID: <CAKMK7uFvbbUXZ4NGSWTMiqFEPxX+5CBnJE7t_A35vosxODVR9Q@mail.gmail.com>
+References: <Pine.LNX.4.44L0.1303201319190.1208-100000@iolanthe.rowland.org>
+	<alpine.LNX.2.00.1303210018430.16237@pobox.suse.cz>
+	<20130321144526.GR9021@phenom.ffwll.local>
+	<alpine.LNX.2.00.1303312153520.22069@pobox.suse.cz>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1378320.ernsY1JWPv@vostro.rjw.lan>
-Sender: linux-kernel-owner@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: Martin Mokrejs <mmokrejs@fold.natur.cuni.cz>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Len Brown <lenb@kernel.org>, Matthew Garrett <mjg59@srcf.ucam.org>, Sarah Sharp <sarah.a.sharp@linux.intel.com>, LKML <linux-kernel@vger.kernel.org>, "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>, Zheng Yan <zheng.z.yan@intel.com>
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <alpine.LNX.2.00.1303312153520.22069-ztGlSCb7Y1iN3ZZ/Hiejyg@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Jiri Kosina <jkosina-AlSwsSmVLrQ@public.gmane.org>
+Cc: Alan Stern <stern-nwvwT67g6+6dFdvTe/nMLpVzexx5G7lz@public.gmane.org>, Greg KH <greg-U8xfFu+wG4EAvxtiuMwx3w@public.gmane.org>, Chris Wilson <chris-Y6uKTt2uX1cEflXRtASbqLVCufUGDwFn@public.gmane.org>, Harald Arnesen <skogtun.linux-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Kernel development list <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "Rafael J. Wysocki" <rjw-KKrjLPT3xs0@public.gmane.org>, Peter Hurley <peter-WaGBZJeGNqdsbIuE7sb01tBPR1lH4CV8@public.gmane.org>, Thomas Meyer <thomas-VsYtu1Qij5c@public.gmane.org>, Shawn Starr <shawn.starr-bJEeYj9oJeDQT0dZR+AlfA@public.gmane.org>, USB list <linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Bjorn Helgaas <bhelgaas-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org>, linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Yinghai Lu <yinghai-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Imre Deak <imre.deak-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Daniel Kurtz <djkurtz-F7+t8E8rja9g9hUCZPvPmw@public.gmane.org>, dri-devel-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org, Thomas Gleixner <tglx-hfZtesqFncYOwBW4kG4KsQ@public.gmane.org>, "H. Peter Anvin" <hpa-YMNOUZJC4hwAvxtiuMwx3w@public.gmane.org>, x86-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, Arkadiusz Miskiewicz <a.miskiewicz-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-[+cc Zheng, who added this with 71a83bd727]
+On Sun, Mar 31, 2013 at 9:55 PM, Jiri Kosina <jkosina-AlSwsSmVLrQ@public.gmane.org> wrote:
+> On Thu, 21 Mar 2013, Daniel Vetter wrote:
+>
+>> Indeed, this is pretty useful and allowed me to quickly reproduce that
+>> phantom irq on my gm45. Thanks to module reloading we can even reset the
+>> kernel's irq disabling logic and so test different tricks quickly without
+>> rebooting. Really useful.
+>
+> Daniel,
+>
+> out of curiosity, have you been able to make some sense of the phantom
+> legacy IRQs on GM45 systems, or are we just staying with my original
+> bandaid (disabling GMBUS IRQs), declaring GM45 broken in this respect?
 
-On Sat, Mar 30, 2013 at 4:38 PM, Rafael J. Wysocki <rjw@sisk.pl> wrote:
-> From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
->
-> The runtime PM of PCIe ports turns out to be quite fragile, as in
-> some cases things work while in some other cases they don't and we
-> don't seem to have a good way to determine whether or not they are
-> going to work in advance.
+I've played around with dummy-irq on my own gm45 and afaict every
+gmbus interrupt generates both an msi and a legacy pci interrupt when
+msi is enabled. Everything else (= other interrupt sources) seems to
+work as expected, and disabling msi also papers over the issue.
+There's also scary comments in our gm45 irq handler that we need msi
+to paper over some other races.
 
-Do you have any references to problems encountered when enabling
-runtime PM for PCIe ports?  That information will be useful to anybody
-who wants to take another crack at getting this working.
+So I've decided that I don't want to dwell any longer in this
+particular dungeon and that your bandaid (of just disabling this mess)
+is the real fix.
 
-> For this reason, avoid enabling runtime PM for PCIe ports by
-> keeping their runtime PM reference counters always above 0 for the
-> time being.
->
-> Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
-> ---
->
-> This version also removes the no longer necessary (and empty anyway)
-> port_runtime_pm_black_list[] table.
->
-> Thanks,
-> Rafael
->
-> ---
->  drivers/pci/pcie/portdrv_pci.c |   13 -------------
->  1 file changed, 13 deletions(-)
->
-> Index: linux-pm/drivers/pci/pcie/portdrv_pci.c
-> ===================================================================
-> --- linux-pm.orig/drivers/pci/pcie/portdrv_pci.c
-> +++ linux-pm/drivers/pci/pcie/portdrv_pci.c
-> @@ -185,14 +185,6 @@ static const struct dev_pm_ops pcie_port
->  #endif /* !PM */
->
->  /*
-> - * PCIe port runtime suspend is broken for some chipsets, so use a
-> - * black list to disable runtime PM for these chipsets.
-> - */
-> -static const struct pci_device_id port_runtime_pm_black_list[] = {
-> -       { /* end: all zeroes */ }
-> -};
-> -
-> -/*
->   * pcie_portdrv_probe - Probe PCI-Express port devices
->   * @dev: PCI-Express port device being probed
->   *
-> @@ -225,16 +217,11 @@ static int pcie_portdrv_probe(struct pci
->          * it by default.
->          */
->         dev->d3cold_allowed = false;
-> -       if (!pci_match_id(port_runtime_pm_black_list, dev))
-> -               pm_runtime_put_noidle(&dev->dev);
-> -
->         return 0;
->  }
->
->  static void pcie_portdrv_remove(struct pci_dev *dev)
->  {
-> -       if (!pci_match_id(port_runtime_pm_black_list, dev))
-> -               pm_runtime_get_noresume(&dev->dev);
->         pcie_port_device_remove(dev);
->         pci_disable_device(dev);
->  }
->
+Thanks, Daniel
+-- 
+Daniel Vetter
+Software Engineer, Intel Corporation
++41 (0) 79 365 57 48 - http://blog.ffwll.ch
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
