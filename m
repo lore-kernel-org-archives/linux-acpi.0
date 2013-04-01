@@ -1,39 +1,36 @@
-From: Mika Westerberg <mika.westerberg@linux.intel.com>
-Subject: Re: [PATCH] ACPI / SPI: Use parent's ACPI_HANDLE() in
- acpi_register_spi_devices()
-Date: Mon, 1 Apr 2013 11:27:17 +0300
-Message-ID: <20130401082717.GK21804@intel.com>
-References: <2747891.0orCNBJG8v@vostro.rjw.lan>
+From: Mika Westerberg <mika.westerberg-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
+Subject: Re: [PATCH] ACPI / I2C: Use parent's ACPI_HANDLE() in
+ acpi_i2c_register_devices()
+Date: Mon, 1 Apr 2013 11:28:07 +0300
+Message-ID: <20130401082807.GL21804@intel.com>
+References: <2966020.zlpeyGGUDW@vostro.rjw.lan>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga09.intel.com ([134.134.136.24]:61577 "EHLO mga09.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1757787Ab3DAIXG (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 1 Apr 2013 04:23:06 -0400
+Return-path: <linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <2747891.0orCNBJG8v@vostro.rjw.lan>
-Sender: linux-acpi-owner@vger.kernel.org
+In-Reply-To: <2966020.zlpeyGGUDW-sKB8Sp2ER+y1GS7QM15AGw@public.gmane.org>
+Sender: linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: "Rafael J. Wysocki" <rjw-KKrjLPT3xs0@public.gmane.org>
+Cc: ACPI Devel Maling List <linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, LKML <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Wolfram Sang <wsa-z923LK4zBo2bacvFa/9K2g@public.gmane.org>, linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Ben Dooks <ben-linux-elnMNo+KYs3YtjvyW6yDsg@public.gmane.org>, Jean Delvare <khali-PUYAD+kWke1g9hUCZPvPmw@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>, grant.likely@secretlab.ca, broonie@opensource.wolfsonmicro.com
 
-On Mon, Apr 01, 2013 at 02:21:08AM +0200, Rafael J. Wysocki wrote:
-> From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+On Mon, Apr 01, 2013 at 02:25:03AM +0200, Rafael J. Wysocki wrote:
+> From: Rafael J. Wysocki <rafael.j.wysocki-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 > 
-> The ACPI handle of struct spi_master's dev member should not be
-> set, because this causes that struct spi_master to be associated
+> The ACPI handle of struct i2c_adapter's dev member should not be
+> set, because this causes that struct i2c_adapter to be associated
 > with the ACPI device node corresponding to its parent as the
 > second "physical_device", which is incorrect (this happens during
-> the registration of struct spi_master).  Consequently,
-> acpi_register_spi_devices() should use the ACPI handle of the
-> parent of the struct spi_master it is called for rather than that
-> struct spi_master's ACPI handle (which should be NULL).
+> the registration of struct i2c_adapter).  Consequently,
+> acpi_i2c_register_devices() should use the ACPI handle of the
+> parent of the struct i2c_adapter it is called for rather than the
+> struct i2c_adapter's ACPI handle (which should be NULL).
 > 
-> Make that happen and modify the spi-pxa2xx driver, which currently is
-> the only driver for ACPI-enumerated SPI controller chips, not to set
-> the ACPI handle for the struct spi_master it creates.
+> Make that happen and modify the i2c-designware-platdrv driver,
+> which currently is the only driver for ACPI-enumerated I2C
+> controller chips, not to set the ACPI handle for the
+> struct i2c_adapter it creates.
 > 
-> Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+> Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 
-Acked-by: Mika Westerberg <mika.westerberg@linux.intel.com>
+Acked-by: Mika Westerberg <mika.westerberg-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
