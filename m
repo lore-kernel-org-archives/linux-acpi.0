@@ -1,46 +1,70 @@
-From: "Rafael J. Wysocki" <rjw-KKrjLPT3xs0@public.gmane.org>
-Subject: Re: [PATCH] ACPI / I2C: Use parent's ACPI_HANDLE() in acpi_i2c_register_devices()
-Date: Tue, 02 Apr 2013 14:44:51 +0200
-Message-ID: <1781994.sa3Syq0Q4W@vostro.rjw.lan>
-References: <2966020.zlpeyGGUDW@vostro.rjw.lan> <20130402045105.GA17682@the-dreams.de>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: Re: [PATCH v3 2/2] ACPI,acpi_memhotplug: Remove acpi_memory_info->failed bit
+Date: Tue, 02 Apr 2013 14:57:03 +0200
+Message-ID: <2321578.IdtOOylV2Q@vostro.rjw.lan>
+References: <514022BF.3080303@jp.fujitsu.com> <7171436.IWIKuTHVjL@vostro.rjw.lan> <515A227C.3060009@jp.fujitsu.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7Bit
-Return-path: <linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20130402045105.GA17682-z923LK4zBo2bacvFa/9K2g@public.gmane.org>
-Sender: linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Wolfram Sang <wsa-z923LK4zBo2bacvFa/9K2g@public.gmane.org>
-Cc: ACPI Devel Maling List <linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, LKML <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Mika Westerberg <mika.westerberg-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>, linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Ben Dooks <ben-linux-elnMNo+KYs3YtjvyW6yDsg@public.gmane.org>, Jean Delvare <khali-PUYAD+kWke1g9hUCZPvPmw@public.gmane.org>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from hydra.sisk.pl ([212.160.235.94]:50079 "EHLO hydra.sisk.pl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1760629Ab3DBMt3 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 2 Apr 2013 08:49:29 -0400
+In-Reply-To: <515A227C.3060009@jp.fujitsu.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
+Cc: Toshi Kani <toshi.kani@hp.com>, linux-acpi@vger.kernel.org, tangchen@cn.fujitsu.com, wency@cn.fujitsu.com, laijs@cn.fujitsu.com, linux-kernel@vger.kernel.org
 
-On Tuesday, April 02, 2013 06:52:37 AM Wolfram Sang wrote:
-> On Mon, Apr 01, 2013 at 02:25:03AM +0200, Rafael J. Wysocki wrote:
-> > From: Rafael J. Wysocki <rafael.j.wysocki-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-> > 
-> > The ACPI handle of struct i2c_adapter's dev member should not be
-> > set, because this causes that struct i2c_adapter to be associated
-> > with the ACPI device node corresponding to its parent as the
-> > second "physical_device", which is incorrect (this happens during
-> > the registration of struct i2c_adapter).  Consequently,
-> > acpi_i2c_register_devices() should use the ACPI handle of the
-> > parent of the struct i2c_adapter it is called for rather than the
-> > struct i2c_adapter's ACPI handle (which should be NULL).
-> > 
-> > Make that happen and modify the i2c-designware-platdrv driver,
-> > which currently is the only driver for ACPI-enumerated I2C
-> > controller chips, not to set the ACPI handle for the
-> > struct i2c_adapter it creates.
-> > 
-> > Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+On Tuesday, April 02, 2013 09:12:44 AM Yasuaki Ishimatsu wrote:
+> Hi Rafael,
 > 
-> Shall this go via the I2C tree? If not, for the I2C part:
+> 2013/04/02 8:48, Rafael J. Wysocki wrote:
+> > On Thursday, March 28, 2013 08:58:03 AM Yasuaki Ishimatsu wrote:
+> >> Hi Rafael,
+> >>
+> >> 2013/03/26 22:41, Rafael J. Wysocki wrote:
+> >>> On Tuesday, March 26, 2013 08:57:05 AM Yasuaki Ishimatsu wrote:
+> >>>> 2013/03/23 5:24, Toshi Kani wrote:
+> >>>>> On Fri, 2013-03-22 at 10:53 +0900, Yasuaki Ishimatsu wrote:
+> >>>>>> acpi_memory_info has enabled bit and failed bit for controlling memory
+> >>>>>> hotplug. But we don't need to keep both bits.
+> >>>>>>
+> >>>>>> The patch removes acpi_memory_info->failed bit.
+> >>>>>>
+> >>>>>> Signed-off-by: yasuaki ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
+> >>>>>
+> >>>>> Thanks for the update.  It looks good.  For the series:
+> >>>>>
+> >>>>> Acked-by: Toshi Kani <toshi.kani@hp.com>
+> >>>>
+> >>>> Thanks!
+> >>>
+> >>> Both patches applied to linux-pm.git/linux-next.
+> >>
+> >> Thank you for applying both patches.
+> >> If you don't mind, I hope these patches are merged into linux-3.9
+> >> since this is bug fix.
+> >
+> > I honestly don't think that [2/2] is 3.9 material, but I can push [1/2]
+> > for 3.9 provided that you also regard it as material for 3.8-stable.
+> 
+> linux-3.8 does not support physical memory hot remove. It has been supported
+> since linux-3.9. So I don't need [1/2] patch to linux-3.8 but need it to
+> linux-3.9. So please push [1/2] patch to linux-3.9.
 
-Well, I'm going to push it through the ACPI/PM tree, if that's not a problem
-along with an analogous SPI patch.
+Well, I don't think it would be a good idea to push that patch for 3.9 so late
+in the cycle.  Yes, it would make memory hotplug work in 3.9, but that might
+surprise some people and cause problems to happen as a result and we wouldn't
+have the time to address them before the 3.9 release.
 
-> Acked-by: Wolfram Sang <wsa-z923LK4zBo2bacvFa/9K2g@public.gmane.org>
+If that's not a big problem, I'd prefer to defer that patch until the 3.10
+merge window is open (which is just about 2 weeks from now) and if need be we
+can still push it for 3.9-stable afterward.
 
-Thanks!
+Thanks,
+Rafael
 
 
 -- 
