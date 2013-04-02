@@ -1,72 +1,74 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: [PATCH v3 2/2] ACPI,acpi_memhotplug: Remove acpi_memory_info->failed bit
-Date: Tue, 02 Apr 2013 14:57:03 +0200
-Message-ID: <2321578.IdtOOylV2Q@vostro.rjw.lan>
-References: <514022BF.3080303@jp.fujitsu.com> <7171436.IWIKuTHVjL@vostro.rjw.lan> <515A227C.3060009@jp.fujitsu.com>
+From: Seth Forshee <seth.forshee@canonical.com>
+Subject: Re: [PATCH] ACPI: Disable Windows 8 compatibility for some Lenovo
+ ThinkPads
+Date: Tue, 2 Apr 2013 08:00:00 -0500
+Message-ID: <20130402130000.GA12381@thinkpad-t410>
+References: <1360599681-24781-1-git-send-email-seth.forshee@canonical.com>
+ <5158E8A0.3050904@intel.com>
+ <20130401130340.GA3269@thinkpad-t410>
+ <515AA007.1050305@intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from hydra.sisk.pl ([212.160.235.94]:50079 "EHLO hydra.sisk.pl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1760629Ab3DBMt3 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 2 Apr 2013 08:49:29 -0400
-In-Reply-To: <515A227C.3060009@jp.fujitsu.com>
+Received: from youngberry.canonical.com ([91.189.89.112]:54830 "EHLO
+	youngberry.canonical.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1760800Ab3DBNAJ (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 2 Apr 2013 09:00:09 -0400
+Content-Disposition: inline
+In-Reply-To: <515AA007.1050305@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
-Cc: Toshi Kani <toshi.kani@hp.com>, linux-acpi@vger.kernel.org, tangchen@cn.fujitsu.com, wency@cn.fujitsu.com, laijs@cn.fujitsu.com, linux-kernel@vger.kernel.org
+To: Aaron Lu <aaron.lu@intel.com>
+Cc: Len Brown <lenb@kernel.org>, "Rafael J. Wysocki" <rjw@sisk.pl>, linux-acpi@vger.kernel.org, Ben Jencks <ben@bjencks.net>, joeyli <jlee@suse.com>, Matthew Garrett <mjg59@srcf.ucam.org>
 
-On Tuesday, April 02, 2013 09:12:44 AM Yasuaki Ishimatsu wrote:
-> Hi Rafael,
-> 
-> 2013/04/02 8:48, Rafael J. Wysocki wrote:
-> > On Thursday, March 28, 2013 08:58:03 AM Yasuaki Ishimatsu wrote:
-> >> Hi Rafael,
+On Tue, Apr 02, 2013 at 05:08:23PM +0800, Aaron Lu wrote:
+> On 04/01/2013 09:03 PM, Seth Forshee wrote:
+> > On Mon, Apr 01, 2013 at 09:53:36AM +0800, Aaron Lu wrote:
+> >> On 02/12/2013 12:21 AM, Seth Forshee wrote:
+> >>> The AML implementation for brightness control on several ThinkPads
+> >>> contains a workaround to meet a Windows 8 requirement of 101 brightness
+> >>> levels [1]. The implementation is flawed, as only 16 of the brighness
+> >>> values reported by _BCL affect a change in brightness. _BCM silently
+> >>> discards the rest of the values. Disabling Windows 8 compatibility on
+> >>> these machines reverts them to the old behavior, making _BCL only report
+> >>> the 16 brightness levels which actually work. Add a quirk to do this
+> >>> along with a dmi callback to disable Win8 compatibility.
 > >>
-> >> 2013/03/26 22:41, Rafael J. Wysocki wrote:
-> >>> On Tuesday, March 26, 2013 08:57:05 AM Yasuaki Ishimatsu wrote:
-> >>>> 2013/03/23 5:24, Toshi Kani wrote:
-> >>>>> On Fri, 2013-03-22 at 10:53 +0900, Yasuaki Ishimatsu wrote:
-> >>>>>> acpi_memory_info has enabled bit and failed bit for controlling memory
-> >>>>>> hotplug. But we don't need to keep both bits.
-> >>>>>>
-> >>>>>> The patch removes acpi_memory_info->failed bit.
-> >>>>>>
-> >>>>>> Signed-off-by: yasuaki ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
-> >>>>>
-> >>>>> Thanks for the update.  It looks good.  For the series:
-> >>>>>
-> >>>>> Acked-by: Toshi Kani <toshi.kani@hp.com>
-> >>>>
-> >>>> Thanks!
-> >>>
-> >>> Both patches applied to linux-pm.git/linux-next.
-> >>
-> >> Thank you for applying both patches.
-> >> If you don't mind, I hope these patches are merged into linux-3.9
-> >> since this is bug fix.
-> >
-> > I honestly don't think that [2/2] is 3.9 material, but I can push [1/2]
-> > for 3.9 provided that you also regard it as material for 3.8-stable.
+> >> If we disable the _BQC(i.e. set cap._BQC=0) for these systems, will the
+> >> problem go away? If so, I think perhaps we can put these systems into a
+> >> _BQC quirk table and set cap._BQC=0 for them.
+> > 
+> > That helps a little, but we're still left with only 16 of the 101
+> > brightness levels causing any change in brightness. The firmware isn't
+> > rounding the "bad" values or anything like that; it just silently
+> > ignores them.
 > 
-> linux-3.8 does not support physical memory hot remove. It has been supported
-> since linux-3.9. So I don't need [1/2] patch to linux-3.8 but need it to
-> linux-3.9. So please push [1/2] patch to linux-3.9.
+> OK, and if GUI tool like g-s-d decides to go some more steps when
+> adjusting backlight level, it may always choose the non-functional
+> values. Hmm, doesn't seem to be an usable way then.
 
-Well, I don't think it would be a good idea to push that patch for 3.9 so late
-in the cycle.  Yes, it would make memory hotplug work in 3.9, but that might
-surprise some people and cause problems to happen as a result and we wouldn't
-have the time to address them before the 3.9 release.
+Exactly.
 
-If that's not a big problem, I'd prefer to defer that patch until the 3.10
-merge window is open (which is just about 2 weeks from now) and if need be we
-can still push it for 3.9-stable afterward.
+> I really wondered, how Windows handled this, it should have the same
+> problem, unless they are not using the acpi video interface?
 
-Thanks,
-Rafael
+I can only guess.
 
+I think I remember reading that Windows 8 does smooth backlight
+transitions, so it may well hit every intermediate brightness value.
+Lenovo could also be supplying a driver which rounds values to the
+nearest working value or uses some other interface or something else.
 
--- 
-I speak only for myself.
-Rafael J. Wysocki, Intel Open Source Technology Center.
+> > I submitted a second set of patches [1] which writes all intermediate
+> > values between the old and new brightness values and disables _BQC for
+> > these machines (empirically rather than using a quirk table), though no
+> > one seems to be interested in reviewing them.
+> 
+> Suppose we are at level 100, and the user sets the target level to be
+> 20, then we will need to call _BCM 80 times?
+
+Yes. And on machines where _BQC actually returns legitimate values it
+will get called 80 times as well. On these Lenovo's we'd quickly
+determine that _BQC doesn't work and stop trying to use it however.
+
+Seth
