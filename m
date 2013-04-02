@@ -1,38 +1,48 @@
-From: Matthew Garrett <mjg59@srcf.ucam.org>
-Subject: Re: [PATCH] ACPI: Disable Windows 8 compatibility for some Lenovo
- ThinkPads
-Date: Tue, 2 Apr 2013 12:23:28 +0100
-Message-ID: <20130402112328.GA23248@srcf.ucam.org>
-References: <1360599681-24781-1-git-send-email-seth.forshee@canonical.com>
- <20130211175213.GA25139@srcf.ucam.org>
- <20130211190617.GH13768@thinkpad-t410>
- <20130211190914.GA27364@srcf.ucam.org>
- <20130213203228.GE22867@thinkpad-t410>
- <20130213205558.GA16559@srcf.ucam.org>
- <20130307193812.GD24233@thinkpad-t410>
- <20130318212546.GC3964@thinkpad-t410>
- <515A6A10.70404@bjencks.net>
- <515AA197.7020601@intel.com>
+From: "Rafael J. Wysocki" <rjw-KKrjLPT3xs0@public.gmane.org>
+Subject: Re: [PATCH] ACPI / I2C: Use parent's ACPI_HANDLE() in acpi_i2c_register_devices()
+Date: Tue, 02 Apr 2013 14:44:51 +0200
+Message-ID: <1781994.sa3Syq0Q4W@vostro.rjw.lan>
+References: <2966020.zlpeyGGUDW@vostro.rjw.lan> <20130402045105.GA17682@the-dreams.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cavan.codon.org.uk ([93.93.128.6]:32796 "EHLO
-	cavan.codon.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753921Ab3DBLXl (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 2 Apr 2013 07:23:41 -0400
-Content-Disposition: inline
-In-Reply-To: <515AA197.7020601@intel.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7Bit
+Return-path: <linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20130402045105.GA17682-z923LK4zBo2bacvFa/9K2g@public.gmane.org>
+Sender: linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Wolfram Sang <wsa-z923LK4zBo2bacvFa/9K2g@public.gmane.org>
+Cc: ACPI Devel Maling List <linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, LKML <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Mika Westerberg <mika.westerberg-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>, linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Ben Dooks <ben-linux-elnMNo+KYs3YtjvyW6yDsg@public.gmane.org>, Jean Delvare <khali-PUYAD+kWke1g9hUCZPvPmw@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
-To: Aaron Lu <aaron.lu@intel.com>
-Cc: Ben Jencks <ben@bjencks.net>, Seth Forshee <seth.forshee@canonical.com>, Len Brown <lenb@kernel.org>, "Rafael J. Wysocki" <rjw@sisk.pl>, linux-acpi@vger.kernel.org, joeyli <jlee@suse.com>
 
-On Tue, Apr 02, 2013 at 05:15:03PM +0800, Aaron Lu wrote:
+On Tuesday, April 02, 2013 06:52:37 AM Wolfram Sang wrote:
+> On Mon, Apr 01, 2013 at 02:25:03AM +0200, Rafael J. Wysocki wrote:
+> > From: Rafael J. Wysocki <rafael.j.wysocki-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+> > 
+> > The ACPI handle of struct i2c_adapter's dev member should not be
+> > set, because this causes that struct i2c_adapter to be associated
+> > with the ACPI device node corresponding to its parent as the
+> > second "physical_device", which is incorrect (this happens during
+> > the registration of struct i2c_adapter).  Consequently,
+> > acpi_i2c_register_devices() should use the ACPI handle of the
+> > parent of the struct i2c_adapter it is called for rather than the
+> > struct i2c_adapter's ACPI handle (which should be NULL).
+> > 
+> > Make that happen and modify the i2c-designware-platdrv driver,
+> > which currently is the only driver for ACPI-enumerated I2C
+> > controller chips, not to set the ACPI handle for the
+> > struct i2c_adapter it creates.
+> > 
+> > Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+> 
+> Shall this go via the I2C tree? If not, for the I2C part:
 
-> Perhaps we can introduce a _BCM quirk function, with a DMI table for
-> these systems.
+Well, I'm going to push it through the ACPI/PM tree, if that's not a problem
+along with an analogous SPI patch.
 
-No. Really, plesae no.
+> Acked-by: Wolfram Sang <wsa-z923LK4zBo2bacvFa/9K2g@public.gmane.org>
+
+Thanks!
+
 
 -- 
-Matthew Garrett | mjg59@srcf.ucam.org
+I speak only for myself.
+Rafael J. Wysocki, Intel Open Source Technology Center.
