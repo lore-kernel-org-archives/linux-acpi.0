@@ -1,83 +1,66 @@
-From: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
-Subject: Re: [PATCH v3 2/2] ACPI,acpi_memhotplug: Remove acpi_memory_info->failed
- bit
-Date: Wed, 3 Apr 2013 08:55:26 +0900
-Message-ID: <515B6FEE.9000508@jp.fujitsu.com>
-References: <514022BF.3080303@jp.fujitsu.com> <7171436.IWIKuTHVjL@vostro.rjw.lan> <515A227C.3060009@jp.fujitsu.com> <2321578.IdtOOylV2Q@vostro.rjw.lan>
+From: Bjorn Helgaas <bhelgaas@google.com>
+Subject: Re: [PATCH] PCI / ACPI: Always resume devices on ACPI wakeup notifications
+Date: Tue, 2 Apr 2013 17:58:42 -0600
+Message-ID: <CAErSpo6VS6obMfsnGz9KHQup8CdKBBR=ezVsEJp2-tas=vMJGg@mail.gmail.com>
+References: <2282655.IicBMMa6jN@vostro.rjw.lan> <515AF312.1010507@fold.natur.cuni.cz>
+ <CAErSpo6EAkSniVF7NnDVsR=H_x0dHK=xQNbdKf67WDW=o1D+_Q@mail.gmail.com> <5030643.tE4LAX0txW@vostro.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from fgwmail6.fujitsu.co.jp ([192.51.44.36]:59102 "EHLO
-	fgwmail6.fujitsu.co.jp" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758045Ab3DBX4A (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 2 Apr 2013 19:56:00 -0400
-In-Reply-To: <2321578.IdtOOylV2Q@vostro.rjw.lan>
+Received: from mail-oa0-f53.google.com ([209.85.219.53]:42837 "EHLO
+	mail-oa0-f53.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756640Ab3DBX7E (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 2 Apr 2013 19:59:04 -0400
+Received: by mail-oa0-f53.google.com with SMTP id m17so928174oag.40
+        for <linux-acpi@vger.kernel.org>; Tue, 02 Apr 2013 16:59:02 -0700 (PDT)
+In-Reply-To: <5030643.tE4LAX0txW@vostro.rjw.lan>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: Toshi Kani <toshi.kani@hp.com>, linux-acpi@vger.kernel.org, tangchen@cn.fujitsu.com, wency@cn.fujitsu.com, laijs@cn.fujitsu.com, linux-kernel@vger.kernel.org
+Cc: Martin Mokrejs <mmokrejs@fold.natur.cuni.cz>, huang ying <huang.ying.caritas@gmail.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Len Brown <lenb@kernel.org>, Matthew Garrett <mjg59@srcf.ucam.org>, Sarah Sharp <sarah.a.sharp@linux.intel.com>
 
-Hi Rafael,
-
-2013/04/02 21:57, Rafael J. Wysocki wrote:
-> On Tuesday, April 02, 2013 09:12:44 AM Yasuaki Ishimatsu wrote:
->> Hi Rafael,
+On Tue, Apr 2, 2013 at 4:49 PM, Rafael J. Wysocki <rjw@sisk.pl> wrote:
+> On Tuesday, April 02, 2013 10:30:54 AM Bjorn Helgaas wrote:
+>> On Tue, Apr 2, 2013 at 9:02 AM, Martin Mokrejs
+>> <mmokrejs@fold.natur.cuni.cz> wrote:
+>> > Hi Ying,
+>> >
+>> > huang ying wrote:
 >>
->> 2013/04/02 8:48, Rafael J. Wysocki wrote:
->>> On Thursday, March 28, 2013 08:58:03 AM Yasuaki Ishimatsu wrote:
->>>> Hi Rafael,
->>>>
->>>> 2013/03/26 22:41, Rafael J. Wysocki wrote:
->>>>> On Tuesday, March 26, 2013 08:57:05 AM Yasuaki Ishimatsu wrote:
->>>>>> 2013/03/23 5:24, Toshi Kani wrote:
->>>>>>> On Fri, 2013-03-22 at 10:53 +0900, Yasuaki Ishimatsu wrote:
->>>>>>>> acpi_memory_info has enabled bit and failed bit for controlling memory
->>>>>>>> hotplug. But we don't need to keep both bits.
->>>>>>>>
->>>>>>>> The patch removes acpi_memory_info->failed bit.
->>>>>>>>
->>>>>>>> Signed-off-by: yasuaki ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
->>>>>>>
->>>>>>> Thanks for the update.  It looks good.  For the series:
->>>>>>>
->>>>>>> Acked-by: Toshi Kani <toshi.kani@hp.com>
->>>>>>
->>>>>> Thanks!
->>>>>
->>>>> Both patches applied to linux-pm.git/linux-next.
->>>>
->>>> Thank you for applying both patches.
->>>> If you don't mind, I hope these patches are merged into linux-3.9
->>>> since this is bug fix.
->>>
->>> I honestly don't think that [2/2] is 3.9 material, but I can push [1/2]
->>> for 3.9 provided that you also regard it as material for 3.8-stable.
+>> >> And please give me the full dmesg for boot and incremental dmesg for
+>> >> operations.
+>> >
+>> >
+>> > The incremental bits here, the full dmesg will send only directly to your email, due to its size.
 >>
->> linux-3.8 does not support physical memory hot remove. It has been supported
->> since linux-3.9. So I don't need [1/2] patch to linux-3.8 but need it to
->> linux-3.9. So please push [1/2] patch to linux-3.9.
+>> Is there a bugzilla for this issue?  Please attach the complete dmesg
+>> there or somewhere similar so we can all benefit.
+>>
+>> I think we have two problems that may be relevant to this discussion.
+>>
+>> 1) The _OSC "PCI Express Capability Structure control" bit.  I don't
+>> think Linux pays attention to whether the BIOS has granted us control
+>> over the capability, so we may do things to it that the BIOS doesn't
+>> expect.
 >
-> Well, I don't think it would be a good idea to push that patch for 3.9 so late
-> in the cycle.  Yes, it would make memory hotplug work in 3.9, but that might
-> surprise some people and cause problems to happen as a result and we wouldn't
-> have the time to address them before the 3.9 release.
->
-> If that's not a big problem, I'd prefer to defer that patch until the 3.10
-> merge window is open (which is just about 2 weeks from now) and if need be we
-> can still push it for 3.9-stable afterward.
+> Yes, it does, as far as I can say.
 
-Sorry for bothering you by my mention.
-I understood your thought. Please merge this patch to 3.10 and push if for
-3.9-stable.
+Let me expand on this to see if we're talking about the same thing.
+I'm looking at Tables 6-149 and 6-150 in ACPI spec 5.0, and I
+interpret them as saying the OS should not perform any configuration
+in the PCI Express, VC, Power Budgeting, AER, or Serial Number
+capabilities unless the BIOS grants "PCI Express Capability Structure
+control."
 
-Thanks,
-Yasuaki Ishimatsu
+I see the code in acpi_pci_root_add() that runs _OSC with
+OSC_PCI_EXPRESS_CAP_STRUCTURE_CONTROL in flags, but I don't see
+anything that uses the result to decide whether we can write to the
+Device Control, Link Control, Slot Control, etc., registers in the
+capability, or to the other extended capabilities.  (ASPM is an
+exception -- we *do* call pcie_no_aspm(), and maybe that keeps us from
+touching the ASPM part of Link Control.)
 
->
-> Thanks,
-> Rafael
->
->
+I haven't looked deeply enough to identify a problem; it's just
+something that worries me.
 
-
+Bjorn
