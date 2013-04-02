@@ -1,58 +1,60 @@
-From: huang ying <huang.ying.caritas@gmail.com>
-Subject: Re: [Update][PATCH] PCI / PM: Disable runtime PM of PCIe ports
-Date: Tue, 2 Apr 2013 13:34:35 +0800
-Message-ID: <CAC=cRTNfUkgYzC-+tOw8hyP8k3qRd6jRU67NA7PwXpHNL+2c2A@mail.gmail.com>
-References: <2282655.IicBMMa6jN@vostro.rjw.lan>
-	<1378320.ernsY1JWPv@vostro.rjw.lan>
-	<CAErSpo7kGBNEkLOftJ1J7ivaxZL-yVWyAwmoiQ1=NADpmJ67XA@mail.gmail.com>
-	<3943547.m5K1tfygWn@vostro.rjw.lan>
-	<CAErSpo5iyziiGDKiy-416UQ2xr+2hvcHz6do+ueMmnPM5oy6Cw@mail.gmail.com>
+From: Aaron Lu <aaron.lu@intel.com>
+Subject: Re: [PATCH] ACPI: Disable Windows 8 compatibility for some Lenovo
+ ThinkPads
+Date: Tue, 02 Apr 2013 17:08:23 +0800
+Message-ID: <515AA007.1050305@intel.com>
+References: <1360599681-24781-1-git-send-email-seth.forshee@canonical.com> <5158E8A0.3050904@intel.com> <20130401130340.GA3269@thinkpad-t410>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <CAErSpo5iyziiGDKiy-416UQ2xr+2hvcHz6do+ueMmnPM5oy6Cw@mail.gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Bjorn Helgaas <bhelgaas@google.com>
-Cc: "Rafael J. Wysocki" <rjw@sisk.pl>, Martin Mokrejs <mmokrejs@fold.natur.cuni.cz>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Len Brown <lenb@kernel.org>, Matthew Garrett <mjg59@srcf.ucam.org>, Sarah Sharp <sarah.a.sharp@linux.intel.com>, LKML <linux-kernel@vger.kernel.org>, "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>, Zheng Yan <zheng.z.yan@intel.com>, Huang Ying <ying.huang@intel.com>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mga03.intel.com ([143.182.124.21]:46345 "EHLO mga03.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753812Ab3DBJHL (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 2 Apr 2013 05:07:11 -0400
+In-Reply-To: <20130401130340.GA3269@thinkpad-t410>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Seth Forshee <seth.forshee@canonical.com>
+Cc: Len Brown <lenb@kernel.org>, "Rafael J. Wysocki" <rjw@sisk.pl>, linux-acpi@vger.kernel.org, Ben Jencks <ben@bjencks.net>, joeyli <jlee@suse.com>, Matthew Garrett <mjg59@srcf.ucam.org>
 
-Hi, Bjorn,
-
-On Tue, Apr 2, 2013 at 4:53 AM, Bjorn Helgaas <bhelgaas@google.com> wrote:
-> On Mon, Apr 1, 2013 at 2:51 PM, Rafael J. Wysocki <rjw@sisk.pl> wrote:
->> On Monday, April 01, 2013 11:34:46 AM Bjorn Helgaas wrote:
->>> [+cc Zheng, who added this with 71a83bd727]
->>>
->>> On Sat, Mar 30, 2013 at 4:38 PM, Rafael J. Wysocki <rjw@sisk.pl> wrote:
->>> > From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
->>> >
->>> > The runtime PM of PCIe ports turns out to be quite fragile, as in
->>> > some cases things work while in some other cases they don't and we
->>> > don't seem to have a good way to determine whether or not they are
->>> > going to work in advance.
->>>
->>> Do you have any references to problems encountered when enabling
->>> runtime PM for PCIe ports?  That information will be useful to anybody
->>> who wants to take another crack at getting this working.
+On 04/01/2013 09:03 PM, Seth Forshee wrote:
+> On Mon, Apr 01, 2013 at 09:53:36AM +0800, Aaron Lu wrote:
+>> On 02/12/2013 12:21 AM, Seth Forshee wrote:
+>>> The AML implementation for brightness control on several ThinkPads
+>>> contains a workaround to meet a Windows 8 requirement of 101 brightness
+>>> levels [1]. The implementation is flawed, as only 16 of the brighness
+>>> values reported by _BCL affect a change in brightness. _BCM silently
+>>> discards the rest of the values. Disabling Windows 8 compatibility on
+>>> these machines reverts them to the old behavior, making _BCL only report
+>>> the 16 brightness levels which actually work. Add a quirk to do this
+>>> along with a dmi callback to disable Win8 compatibility.
 >>
->> Well, bug 53811 is one example and problems recently reported by
->> Martin are another.  Do you want me to dig deeper?
->
-> OK, I got this one:
->
->   https://bugzilla.kernel.org/show_bug.cgi?id=53811
->
-> Martin has reported a lot of problems lately, and I don't know which
-> are related to runtime PM for PCIe ports.  I was hoping for a couple
-> URLs to put in the changelog so that when somebody gets the itch to
-> make this work, they have some useful info to start from.  If you
-> point me at a specific message, I'll dig up an archive URL for it.
->
-> Otherwise, I'm afraid we'll just oscillate between "enable PM, find
-> bug, disable PM, enable PM, find same bug, disable PM, etc..."
+>> If we disable the _BQC(i.e. set cap._BQC=0) for these systems, will the
+>> problem go away? If so, I think perhaps we can put these systems into a
+>> _BQC quirk table and set cap._BQC=0 for them.
+> 
+> That helps a little, but we're still left with only 16 of the 101
+> brightness levels causing any change in brightness. The firmware isn't
+> rounding the "bad" values or anything like that; it just silently
+> ignores them.
 
-Sorry for late!  I am trying to fix a way to fix 53811 and Martin's
-bug without disable PM for port totally.
+OK, and if GUI tool like g-s-d decides to go some more steps when
+adjusting backlight level, it may always choose the non-functional
+values. Hmm, doesn't seem to be an usable way then.
 
-Best Regards,
-Huang Ying
+I really wondered, how Windows handled this, it should have the same
+problem, unless they are not using the acpi video interface?
+
+> 
+> I submitted a second set of patches [1] which writes all intermediate
+> values between the old and new brightness values and disables _BQC for
+> these machines (empirically rather than using a quirk table), though no
+> one seems to be interested in reviewing them.
+
+Suppose we are at level 100, and the user sets the target level to be
+20, then we will need to call _BCM 80 times?
+
+Thanks,
+Aaron
+
