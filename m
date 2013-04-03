@@ -1,97 +1,73 @@
-From: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>
-Subject: Re: [PATCH] acpi/bgrt: Don't let users configure BGRT on non X86
- systems
-Date: Wed, 03 Apr 2013 02:10:29 +0200
-Message-ID: <515B7375.9000502@intel.com>
-References: <0234310@agluck-desk.sc.intel.com>
+From: huang ying <huang.ying.caritas@gmail.com>
+Subject: Re: [PATCH] PCI / ACPI: Always resume devices on ACPI wakeup notifications
+Date: Wed, 3 Apr 2013 10:04:16 +0800
+Message-ID: <CAC=cRTP+VHZrzELDgJTZw6hykPD4FR9xzB2BR2TwCUcPGCmGsg@mail.gmail.com>
+References: <2282655.IicBMMa6jN@vostro.rjw.lan>
+	<CAErSpo7QXe1-R5_jXCcc3g_J-_HXqO3V12nNB=Z6eCAt-vwKfA@mail.gmail.com>
+	<51548C9E.9090703@fold.natur.cuni.cz>
+	<2990024.LMTIBUbM3d@vostro.rjw.lan>
+	<51564804.9000700@fold.natur.cuni.cz>
+	<CAC=cRTMJH+40oPSM9pFzkb5x6Q42rWR8BPtUOxJn_3WopmOSvQ@mail.gmail.com>
+	<515AF312.1010507@fold.natur.cuni.cz>
+	<CAErSpo6EAkSniVF7NnDVsR=H_x0dHK=xQNbdKf67WDW=o1D+_Q@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII;
-	format=flowed
-Content-Transfer-Encoding: 7BIT
+Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga11.intel.com ([192.55.52.93]:26907 "EHLO mga11.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756197Ab3DCAKp convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 2 Apr 2013 20:10:45 -0400
-In-Reply-To: <0234310@agluck-desk.sc.intel.com>
+Received: from mail-bk0-f53.google.com ([209.85.214.53]:50815 "EHLO
+	mail-bk0-f53.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1760246Ab3DCCES (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 2 Apr 2013 22:04:18 -0400
+Received: by mail-bk0-f53.google.com with SMTP id e19so509096bku.40
+        for <linux-acpi@vger.kernel.org>; Tue, 02 Apr 2013 19:04:16 -0700 (PDT)
+In-Reply-To: <CAErSpo6EAkSniVF7NnDVsR=H_x0dHK=xQNbdKf67WDW=o1D+_Q@mail.gmail.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Luck, Tony" <tony.luck@intel.com>
-Cc: linux-acpi@vger.kernel.org, Matthew Garrett <mjg@redhat.com>, Len Brown <len.brown@intel.com>, LKML <linux-kernel@vger.kernel.org>
+To: Bjorn Helgaas <bhelgaas@google.com>
+Cc: Martin Mokrejs <mmokrejs@fold.natur.cuni.cz>, "Rafael J. Wysocki" <rjw@sisk.pl>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Len Brown <lenb@kernel.org>, Matthew Garrett <mjg59@srcf.ucam.org>, Sarah Sharp <sarah.a.sharp@linux.intel.com>
 
-On 3/29/2013 11:30 PM, Luck, Tony wrote:
-> Fengguang Wu's 0-Day kernel build testing backend found the
-> following build error for an allmodconfig build on ia64:
+On Wed, Apr 3, 2013 at 12:30 AM, Bjorn Helgaas <bhelgaas@google.com> wrote:
+> On Tue, Apr 2, 2013 at 9:02 AM, Martin Mokrejs
+> <mmokrejs@fold.natur.cuni.cz> wrote:
+>> Hi Ying,
+>>
+>> huang ying wrote:
 >
->     drivers/built-in.o: In function `show_yoffset':
->>> bgrt.c:(.text+0xe5a71): undefined reference to `bgrt_tab'
->>> bgrt.c:(.text+0xe5a91): undefined reference to `bgrt_tab'
->     drivers/built-in.o: In function `show_xoffset':
->>> bgrt.c:(.text+0xe5b51): undefined reference to `bgrt_tab'
->>> bgrt.c:(.text+0xe5b71): undefined reference to `bgrt_tab'
->     drivers/built-in.o: In function `show_type':
->>> bgrt.c:(.text+0xe5c31): undefined reference to `bgrt_tab'
->     drivers/built-in.o:bgrt.c:(.text+0xe5c51): more undefined references to `bgrt_tab' follow
->     drivers/built-in.o: In function `bgrt_init':
->     bgrt.c:(.init.text+0x8931): undefined reference to `bgrt_image'
->     bgrt.c:(.init.text+0x8932): undefined reference to `bgrt_image_size'
->     bgrt.c:(.init.text+0x8950): undefined reference to `bgrt_image'
->     bgrt.c:(.init.text+0x8960): undefined reference to `bgrt_image_size'
+>>> And please give me the full dmesg for boot and incremental dmesg for
+>>> operations.
+>>
+>>
+>> The incremental bits here, the full dmesg will send only directly to your email, due to its size.
 >
-> The problem is that all these undefined names are provided by
-> arch/x86/platform/efi/efi-bgrt.c - which is obviously not available
-> to the ia64 build.
+> Is there a bugzilla for this issue?  Please attach the complete dmesg
+> there or somewhere similar so we can all benefit.
 >
-> It doesn't seem useful to provide the BGRT support for Itanium
-> (many systems are headless and have no graphics at all). So
-> just don't let users configure this driver on non-X86 machines.
+> I think we have two problems that may be relevant to this discussion.
 >
-> Reported-by: Fengguang Wu <fengguang.wu@intel.com>
-> Acked-by: H. Peter Anvin <hpa@zytor.com>
-> Signed-off-by: Tony Luck <tony.luck@intel.com>
-
-I'd take it, but it didn't seem to make it to the list for some obscure 
-reason and I'd prefer it to show up there before it shows up in my tree.
-
-Let's see if my reply makes it.
-
-Thanks,
-Rafael
-
-
-> ---
->   drivers/acpi/Kconfig | 2 +-
->   1 file changed, 1 insertion(+), 1 deletion(-)
+> 1) The _OSC "PCI Express Capability Structure control" bit.  I don't
+> think Linux pays attention to whether the BIOS has granted us control
+> over the capability, so we may do things to it that the BIOS doesn't
+> expect.
 >
-> diff --git a/drivers/acpi/Kconfig b/drivers/acpi/Kconfig
-> index 4fc0ffc..8fcae6d 100644
-> --- a/drivers/acpi/Kconfig
-> +++ b/drivers/acpi/Kconfig
-> @@ -395,7 +395,7 @@ config ACPI_CUSTOM_METHOD
->   
->   config ACPI_BGRT
->   	bool "Boottime Graphics Resource Table support"
-> -	depends on EFI
-> +	depends on EFI && X86
->           help
->   	  This driver adds support for exposing the ACPI Boottime Graphics
->   	  Resource Table, which allows the operating system to obtain
+> 2) acpiphp currently uses the presence of _ADR/_EJ0/_RMV to detect
+> hotplug slots.  I don't think this is sufficient (see
+> https://bugzilla.kernel.org/show_bug.cgi?id=54981 for details).
+> Therefore, I don't think pci_bus_has_hotplug_slots() in port_dbg.patch
+> can be accurate.  I think it returns "false" for some buses where it
+> should return "true," such as the ExpressCard slot on Chris Clayton's
+> system (see bug 54981).
 
----------------------------------------------------------------------
-Intel Technology Poland sp. z o.o.
-z siedziba w Gdansku
-ul. Slowackiego 173
-80-298 Gdansk
+Yes. pci_bus_has_hotplug_slots() is not accurate.  But I still think
+it can be used in port runtime PM.  Because if there is no hotplug
+slots registered, the hotplug itself can not work properly, with or
+without port runtime PM enabled.  And we should add necessary
+pm_runtime_get_sync/put_sync into pci_scan_bus to deal with "rescan".
+What do you think about that?
 
-Sad Rejonowy Gdansk Polnoc w Gdansku, 
-VII Wydzial Gospodarczy Krajowego Rejestru Sadowego, 
-numer KRS 101882
+pci_dev->is_hotplug_bridge is not accurate too.  It reports a internal
+port of my X220 as a hotplug-able port.  But it appears that it will
+report more instead of less.  It can report correctly for port in bug
+54981.  Do you think that is a good choice for port runtime PM
+filtering?
 
-NIP 957-07-52-316
-Kapital zakladowy 200.000 zl
-
-This e-mail and any attachments may contain confidential material for
-the sole use of the intended recipient(s). Any review or distribution
-by others is strictly prohibited. If you are not the intended
-recipient, please contact the sender and delete all copies.
-
+Best Regards,
+Huang Ying
