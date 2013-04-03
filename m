@@ -1,80 +1,220 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: [PATCH] PCI / ACPI: Always resume devices on ACPI wakeup notifications
-Date: Wed, 03 Apr 2013 13:00:39 +0200
-Message-ID: <4565620.kVgyMAxUbs@vostro.rjw.lan>
-References: <2282655.IicBMMa6jN@vostro.rjw.lan> <5030643.tE4LAX0txW@vostro.rjw.lan> <CAErSpo6VS6obMfsnGz9KHQup8CdKBBR=ezVsEJp2-tas=vMJGg@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7Bit
+From: Mika Westerberg <mika.westerberg@linux.intel.com>
+Subject: [PATCH] gpiolib-acpi: introduce acpi_get_gpio_by_index() helper
+Date: Wed,  3 Apr 2013 13:56:54 +0300
+Message-ID: <1364986614-15711-1-git-send-email-mika.westerberg@linux.intel.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from hydra.sisk.pl ([212.160.235.94]:50655 "EHLO hydra.sisk.pl"
+Received: from mga14.intel.com ([143.182.124.37]:18266 "EHLO mga14.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1761846Ab3DCKxE (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 3 Apr 2013 06:53:04 -0400
-In-Reply-To: <CAErSpo6VS6obMfsnGz9KHQup8CdKBBR=ezVsEJp2-tas=vMJGg@mail.gmail.com>
+	id S1761846Ab3DCKzE (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 3 Apr 2013 06:55:04 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Bjorn Helgaas <bhelgaas@google.com>
-Cc: Martin Mokrejs <mmokrejs@fold.natur.cuni.cz>, huang ying <huang.ying.caritas@gmail.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Len Brown <lenb@kernel.org>, Matthew Garrett <mjg59@srcf.ucam.org>, Sarah Sharp <sarah.a.sharp@linux.intel.com>
+To: linux-kernel@vger.kernel.org
+Cc: Grant Likely <grant.likely@secretlab.ca>, Linus Walleij <linus.walleij@linaro.org>, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Mathias Nyman <mathias.nyman@linux.intel.com>, Mika Westerberg <mika.westerberg@linux.intel.com>, linux-acpi@vger.kernel.org
 
-On Tuesday, April 02, 2013 05:58:42 PM Bjorn Helgaas wrote:
-> On Tue, Apr 2, 2013 at 4:49 PM, Rafael J. Wysocki <rjw@sisk.pl> wrote:
-> > On Tuesday, April 02, 2013 10:30:54 AM Bjorn Helgaas wrote:
-> >> On Tue, Apr 2, 2013 at 9:02 AM, Martin Mokrejs
-> >> <mmokrejs@fold.natur.cuni.cz> wrote:
-> >> > Hi Ying,
-> >> >
-> >> > huang ying wrote:
-> >>
-> >> >> And please give me the full dmesg for boot and incremental dmesg for
-> >> >> operations.
-> >> >
-> >> >
-> >> > The incremental bits here, the full dmesg will send only directly to your email, due to its size.
-> >>
-> >> Is there a bugzilla for this issue?  Please attach the complete dmesg
-> >> there or somewhere similar so we can all benefit.
-> >>
-> >> I think we have two problems that may be relevant to this discussion.
-> >>
-> >> 1) The _OSC "PCI Express Capability Structure control" bit.  I don't
-> >> think Linux pays attention to whether the BIOS has granted us control
-> >> over the capability, so we may do things to it that the BIOS doesn't
-> >> expect.
-> >
-> > Yes, it does, as far as I can say.
-> 
-> Let me expand on this to see if we're talking about the same thing.
-> I'm looking at Tables 6-149 and 6-150 in ACPI spec 5.0, and I
-> interpret them as saying the OS should not perform any configuration
-> in the PCI Express, VC, Power Budgeting, AER, or Serial Number
-> capabilities unless the BIOS grants "PCI Express Capability Structure
-> control."
-> 
-> I see the code in acpi_pci_root_add() that runs _OSC with
-> OSC_PCI_EXPRESS_CAP_STRUCTURE_CONTROL in flags, but I don't see
-> anything that uses the result to decide whether we can write to the
-> Device Control, Link Control, Slot Control, etc., registers in the
-> capability, or to the other extended capabilities.  (ASPM is an
-> exception -- we *do* call pcie_no_aspm(), and maybe that keeps us from
-> touching the ASPM part of Link Control.)
-> 
-> I haven't looked deeply enough to identify a problem; it's just
-> something that worries me.
+Instead of open-coding ACPI GPIO resource lookup in each driver, we provide
+a helper function analogous to Device Tree version that allows drivers to
+specify which GPIO resource they are interested (using an index to the GPIO
+resources). The function then finds out the correct resource, translates
+the ACPI GPIO number to the corresponding Linux GPIO number and returns
+that.
 
-That actually is more convoluted.  Because we pass
-OSC_PCI_EXPRESS_CAP_STRUCTURE_CONTROL to acpi_pci_osc_control_set() as the
-minimum requirement, it won't request any of the other PCIe flags without it.
-This causes those flags to be unset in root->osc_control_set and then
-*srv_mask from pcie_port_acpi_setup() will always be 0, in which case no native
-PCIe port services will be used.
+Signed-off-by: Mika Westerberg <mika.westerberg@linux.intel.com>
+---
+ Documentation/acpi/enumeration.txt |   32 ++++++++++++++-
+ drivers/gpio/gpiolib-acpi.c        |   77 ++++++++++++++++++++++++++++++++++++
+ include/linux/acpi_gpio.h          |   17 ++++++++
+ 3 files changed, 125 insertions(+), 1 deletion(-)
 
-Of course, whether this is sufficient or not is a good question.
-
-Thanks,
-Rafael
-
-
+diff --git a/Documentation/acpi/enumeration.txt b/Documentation/acpi/enumeration.txt
+index 94a6561..b0d5410 100644
+--- a/Documentation/acpi/enumeration.txt
++++ b/Documentation/acpi/enumeration.txt
+@@ -199,6 +199,8 @@ the device to the driver. For example:
+ 	{
+ 		Name (SBUF, ResourceTemplate()
+ 		{
++			...
++			// Used to power on/off the device
+ 			GpioIo (Exclusive, PullDefault, 0x0000, 0x0000,
+ 				IoRestrictionOutputOnly, "\\_SB.PCI0.GPI0",
+ 				0x00, ResourceConsumer,,)
+@@ -206,10 +208,20 @@ the device to the driver. For example:
+ 				// Pin List
+ 				0x0055
+ 			}
++
++			// Interrupt for the device
++			GpioInt (Edge, ActiveHigh, ExclusiveAndWake, PullNone,
++				 0x0000, "\\_SB.PCI0.GPI0", 0x00, ResourceConsumer,,)
++			{
++				// Pin list
++				0x0058
++			}
++
+ 			...
+ 
+-			Return (SBUF)
+ 		}
++
++		Return (SBUF)
+ 	}
+ 
+ These GPIO numbers are controller relative and path "\\_SB.PCI0.GPI0"
+@@ -220,6 +232,24 @@ The driver can do this by including <linux/acpi_gpio.h> and then calling
+ acpi_get_gpio(path, gpio). This will return the Linux GPIO number or
+ negative errno if there was no translation found.
+ 
++In a simple case of just getting the Linux GPIO number from device
++resources one can use acpi_get_gpio_by_index() helper function. It takes
++pointer to the device and index of the GpioIo/GpioInt descriptor in the
++device resources list. For example:
++
++	int gpio_irq, gpio_power;
++	int ret;
++
++	gpio_irq = acpi_get_gpio_by_index(dev, 1, NULL);
++	if (gpio_irq < 0)
++		/* handle error */
++
++	gpio_power = acpi_get_gpio_by_index(dev, 0, NULL);
++	if (gpio_power < 0)
++		/* handle error */
++
++	/* Now we can use the GPIO numbers */
++
+ Other GpioIo parameters must be converted first by the driver to be
+ suitable to the gpiolib before passing them.
+ 
+diff --git a/drivers/gpio/gpiolib-acpi.c b/drivers/gpio/gpiolib-acpi.c
+index a063eb0..b66df3b 100644
+--- a/drivers/gpio/gpiolib-acpi.c
++++ b/drivers/gpio/gpiolib-acpi.c
+@@ -54,6 +54,83 @@ int acpi_get_gpio(char *path, int pin)
+ }
+ EXPORT_SYMBOL_GPL(acpi_get_gpio);
+ 
++struct acpi_gpio_lookup {
++	struct acpi_gpio_info info;
++	int index;
++	int gpio;
++	int n;
++};
++
++static int acpi_find_gpio(struct acpi_resource *ares, void *data)
++{
++	struct acpi_gpio_lookup *lookup = data;
++
++	if (ares->type != ACPI_RESOURCE_TYPE_GPIO)
++		return 1;
++
++	if (lookup->n++ == lookup->index && lookup->gpio < 0) {
++		const struct acpi_resource_gpio *agpio = &ares->data.gpio;
++
++		lookup->gpio = acpi_get_gpio(agpio->resource_source.string_ptr,
++					     agpio->pin_table[0]);
++		lookup->info.gpioint =
++			agpio->connection_type == ACPI_RESOURCE_GPIO_TYPE_INT;
++	}
++
++	return 1;
++}
++
++/**
++ * acpi_get_gpio_by_index() - get a GPIO number from device resources
++ * @dev: pointer to a device to get GPIO from
++ * @index: index of GpioIo/GpioInt resource (starting from %0)
++ * @info: info pointer to fill in (optional)
++ *
++ * Function goes through ACPI resources for @dev and based on @index looks
++ * up a GpioIo/GpioInt resource, translates it to the Linux GPIO number,
++ * and returns it. @index matches GpioIo/GpioInt resources only so if there
++ * are total %3 GPIO resources, the index goes from %0 to %2.
++ *
++ * If the GPIO cannot be translated or there is an error, negative errno is
++ * returned.
++ *
++ * Note: if the GPIO resource has multiple entries in the pin list, this
++ * function only returns the first.
++ */
++int acpi_get_gpio_by_index(struct device *dev, int index,
++			   struct acpi_gpio_info *info)
++{
++	struct acpi_gpio_lookup lookup;
++	struct list_head resource_list;
++	struct acpi_device *adev;
++	acpi_handle handle;
++	int ret;
++
++	if (!dev)
++		return -EINVAL;
++
++	handle = ACPI_HANDLE(dev);
++	if (!handle || acpi_bus_get_device(handle, &adev))
++		return -ENODEV;
++
++	memset(&lookup, 0, sizeof(lookup));
++	lookup.index = index;
++	lookup.gpio = -ENODEV;
++
++	INIT_LIST_HEAD(&resource_list);
++	ret = acpi_dev_get_resources(adev, &resource_list, acpi_find_gpio,
++				     &lookup);
++	if (ret < 0)
++		return ret;
++
++	acpi_dev_free_resource_list(&resource_list);
++
++	if (lookup.gpio >= 0 && info)
++		*info = lookup.info;
++
++	return lookup.gpio;
++}
++EXPORT_SYMBOL_GPL(acpi_get_gpio_by_index);
+ 
+ static irqreturn_t acpi_gpio_irq_handler(int irq, void *data)
+ {
+diff --git a/include/linux/acpi_gpio.h b/include/linux/acpi_gpio.h
+index b76ebd0..598ea41 100644
+--- a/include/linux/acpi_gpio.h
++++ b/include/linux/acpi_gpio.h
+@@ -1,12 +1,23 @@
+ #ifndef _LINUX_ACPI_GPIO_H_
+ #define _LINUX_ACPI_GPIO_H_
+ 
++#include <linux/device.h>
+ #include <linux/errno.h>
+ #include <linux/gpio.h>
+ 
++/**
++ * struct acpi_gpio_info - ACPI GPIO specific information
++ * @gpioint: if %true this GPIO is of type GpioInt otherwise type is GpioIo
++ */
++struct acpi_gpio_info {
++	bool gpioint;
++};
++
+ #ifdef CONFIG_GPIO_ACPI
+ 
+ int acpi_get_gpio(char *path, int pin);
++int acpi_get_gpio_by_index(struct device *dev, int index,
++			   struct acpi_gpio_info *info);
+ void acpi_gpiochip_request_interrupts(struct gpio_chip *chip);
+ 
+ #else /* CONFIG_GPIO_ACPI */
+@@ -16,6 +27,12 @@ static inline int acpi_get_gpio(char *path, int pin)
+ 	return -ENODEV;
+ }
+ 
++static inline int acpi_get_gpio_by_index(struct device *dev, int index,
++					 struct acpi_gpio_info *info)
++{
++	return -ENODEV;
++}
++
+ static inline void acpi_gpiochip_request_interrupts(struct gpio_chip *chip) { }
+ 
+ #endif /* CONFIG_GPIO_ACPI */
 -- 
-I speak only for myself.
-Rafael J. Wysocki, Intel Open Source Technology Center.
+1.7.10.4
+
