@@ -1,79 +1,64 @@
-From: huang ying <huang.ying.caritas@gmail.com>
-Subject: Re: [PATCH] PCI / ACPI: Always resume devices on ACPI wakeup notifications
-Date: Wed, 3 Apr 2013 10:34:43 +0800
-Message-ID: <CAC=cRTPNfhwSC=3VuxNxXLcp5D_fK3UCwKykWk1yN-6SpGAbVQ@mail.gmail.com>
-References: <2282655.IicBMMa6jN@vostro.rjw.lan>
-	<CAErSpo7QXe1-R5_jXCcc3g_J-_HXqO3V12nNB=Z6eCAt-vwKfA@mail.gmail.com>
-	<51548C9E.9090703@fold.natur.cuni.cz>
-	<2990024.LMTIBUbM3d@vostro.rjw.lan>
-	<51564804.9000700@fold.natur.cuni.cz>
-	<CAC=cRTMJH+40oPSM9pFzkb5x6Q42rWR8BPtUOxJn_3WopmOSvQ@mail.gmail.com>
-	<515AF312.1010507@fold.natur.cuni.cz>
-	<CAErSpo6EAkSniVF7NnDVsR=H_x0dHK=xQNbdKf67WDW=o1D+_Q@mail.gmail.com>
-	<515B17D9.6030805@fold.natur.cuni.cz>
-	<515B45A6.1020404@fold.natur.cuni.cz>
+From: Ben Jencks <ben@bjencks.net>
+Subject: Re: [PATCH] ACPI: Disable Windows 8 compatibility for some Lenovo
+ ThinkPads
+Date: Wed, 03 Apr 2013 03:04:43 -0400
+Message-ID: <515BD48B.7000901@bjencks.net>
+References: <1360599681-24781-1-git-send-email-seth.forshee@canonical.com> <5158E8A0.3050904@intel.com> <20130401130340.GA3269@thinkpad-t410> <515AA007.1050305@intel.com> <20130402130000.GA12381@thinkpad-t410>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-bk0-f53.google.com ([209.85.214.53]:45715 "EHLO
-	mail-bk0-f53.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1761044Ab3DCCep (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 2 Apr 2013 22:34:45 -0400
-In-Reply-To: <515B45A6.1020404@fold.natur.cuni.cz>
+Received: from mail-yh0-f47.google.com ([209.85.213.47]:49198 "EHLO
+	mail-yh0-f47.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1762521Ab3DCHKK (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 3 Apr 2013 03:10:10 -0400
+Received: by mail-yh0-f47.google.com with SMTP id z12so188155yhz.34
+        for <linux-acpi@vger.kernel.org>; Wed, 03 Apr 2013 00:10:09 -0700 (PDT)
+In-Reply-To: <20130402130000.GA12381@thinkpad-t410>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Martin Mokrejs <mmokrejs@fold.natur.cuni.cz>
-Cc: Bjorn Helgaas <bhelgaas@google.com>, "Rafael J. Wysocki" <rjw@sisk.pl>, Len Brown <lenb@kernel.org>, Matthew Garrett <mjg59@srcf.ucam.org>, Sarah Sharp <sarah.a.sharp@linux.intel.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>, Yinghai Lu <yinghai@kernel.org>, Huang Ying <ying.huang@intel.com>
+To: Seth Forshee <seth.forshee@canonical.com>
+Cc: Aaron Lu <aaron.lu@intel.com>, Len Brown <lenb@kernel.org>, "Rafael J. Wysocki" <rjw@sisk.pl>, linux-acpi@vger.kernel.org, joeyli <jlee@suse.com>, Matthew Garrett <mjg59@srcf.ucam.org>
 
-Hi, Martin,
-
-On Wed, Apr 3, 2013 at 4:55 AM, Martin Mokrejs
-<mmokrejs@fold.natur.cuni.cz> wrote:
-> [ +linux-pci and Yinghai as they suffered already those many emails on individual
->  threads so one overviewing email hopefully won't harm] ;-)
->
-> Martin Mokrejs wrote:
->>
->>
->> Bjorn Helgaas wrote:
->>> On Tue, Apr 2, 2013 at 9:02 AM, Martin Mokrejs
->>> <mmokrejs@fold.natur.cuni.cz> wrote:
->>>> Hi Ying,
+On 04/02/2013 09:00 AM, Seth Forshee wrote:
+> On Tue, Apr 02, 2013 at 05:08:23PM +0800, Aaron Lu wrote:
+>> On 04/01/2013 09:03 PM, Seth Forshee wrote:
+>>> On Mon, Apr 01, 2013 at 09:53:36AM +0800, Aaron Lu wrote:
+>>>> On 02/12/2013 12:21 AM, Seth Forshee wrote:
+>>>>> The AML implementation for brightness control on several ThinkPads
+>>>>> contains a workaround to meet a Windows 8 requirement of 101 brightness
+>>>>> levels [1]. The implementation is flawed, as only 16 of the brighness
+>>>>> values reported by _BCL affect a change in brightness. _BCM silently
+>>>>> discards the rest of the values. Disabling Windows 8 compatibility on
+>>>>> these machines reverts them to the old behavior, making _BCL only report
+>>>>> the 16 brightness levels which actually work. Add a quirk to do this
+>>>>> along with a dmi callback to disable Win8 compatibility.
 >>>>
->>>> huang ying wrote:
+>>>> If we disable the _BQC(i.e. set cap._BQC=0) for these systems, will the
+>>>> problem go away? If so, I think perhaps we can put these systems into a
+>>>> _BQC quirk table and set cap._BQC=0 for them.
 >>>
->>>>> And please give me the full dmesg for boot and incremental dmesg for
->>>>> operations.
->>>>
->>>>
->>>> The incremental bits here, the full dmesg will send only directly to your email, due to its size.
->>>
->>> Is there a bugzilla for this issue?  Please attach the complete dmesg
->>> there or somewhere similar so we can all benefit.
+>>> That helps a little, but we're still left with only 16 of the 101
+>>> brightness levels causing any change in brightness. The firmware isn't
+>>> rounding the "bad" values or anything like that; it just silently
+>>> ignores them.
 >>
->> I changed my mind. I am attaching the dmesg here but omitting linux-acpi
->> list. After I hear a proposal from Rafel/Bjorn I will open separate bugs.
->> I thought that the threads I started so far were enough but yes, dmesg
->> files don't pass through list filters so I should move that to bugzilla.
->>
->> so far my view of the the bugs was:
->>
->> 1) acpiphp hotplug broken due to upstream pcieport 1c.7 PME# enabled
->>   (eSATA-based card)
->
-> Fixed by Ying Huang port_dbg.patch applied over 3.8.5 (fixes acpiphp hotplug
-> of eSATA and Firewire cards, NOT the hotplug of a NEC-based USB3 card -> hence
-> the bug 4) below). Now I can continue using laptop-mode-tools.
->
->
->> 2) xHCI dead due to to its suspend - 3.8 series and above
->
-> Not fixed by port_dbg.patch applied over 3.8.5. Interestingly, a NEC-based
-> XHCI card *in an express card slot* does not suffer this suspend issue.
-> Although it is being put into suspend if a device is unplugged.
+>> I really wondered, how Windows handled this, it should have the same
+>> problem, unless they are not using the acpi video interface?
+> 
+> I can only guess.
+> 
+> I think I remember reading that Windows 8 does smooth backlight
+> transitions, so it may well hit every intermediate brightness value.
+> Lenovo could also be supplying a driver which rounds values to the
+> nearest working value or uses some other interface or something else.
 
-Do not find the dmesg or any other details about this.  Could you
-provide some details?  Or I miss some emails from you?
+Just checked; Windows 8 doesn't use the ACPI interface. It seems to have
+access to at least 100 distinct brightness levels.
 
-Best Regards,
-Huang Ying
+I'd guess it's using the same interface as
+/sys/class/backlight/intel_backlight, which on my system has a
+max_brightness of 4438 and all the values seem to be actually distinct,
+if not necessarily discernible to the naked eye.
+
+-Ben
