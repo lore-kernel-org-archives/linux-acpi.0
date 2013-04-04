@@ -1,94 +1,122 @@
 From: Aaron Lu <aaron.lwe@gmail.com>
-Subject: Re: [PATCH] ACPI: Disable Windows 8 compatibility for some Lenovo
- ThinkPads
-Date: Thu, 04 Apr 2013 19:39:58 +0800
-Message-ID: <515D668E.20102@gmail.com>
-References: <1360599681-24781-1-git-send-email-seth.forshee@canonical.com> <5158E8A0.3050904@intel.com> <20130401130340.GA3269@thinkpad-t410> <515AA007.1050305@intel.com> <20130402130000.GA12381@thinkpad-t410> <515BD48B.7000901@bjencks.net> <515BD9F2.4010001@intel.com> <20130403134515.GA16939@thinkpad-t410>
+Subject: Re: [PATCH 3/5] acpi_video: Add workaround for broken Windows 8 backlight
+ implementations
+Date: Thu, 04 Apr 2013 19:44:04 +0800
+Message-ID: <515D6784.4010900@gmail.com>
+References: <20130307193812.GD24233@thinkpad-t410> <1362685180-7768-1-git-send-email-seth.forshee@canonical.com> <1362685180-7768-3-git-send-email-seth.forshee@canonical.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-pd0-f173.google.com ([209.85.192.173]:61786 "EHLO
-	mail-pd0-f173.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1759035Ab3DDLit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 4 Apr 2013 07:38:49 -0400
-Received: by mail-pd0-f173.google.com with SMTP id v14so1158805pde.32
-        for <linux-acpi@vger.kernel.org>; Thu, 04 Apr 2013 04:38:49 -0700 (PDT)
-In-Reply-To: <20130403134515.GA16939@thinkpad-t410>
+Received: from mail-da0-f53.google.com ([209.85.210.53]:53803 "EHLO
+	mail-da0-f53.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757323Ab3DDLmz (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 4 Apr 2013 07:42:55 -0400
+Received: by mail-da0-f53.google.com with SMTP id n34so1089693dal.26
+        for <linux-acpi@vger.kernel.org>; Thu, 04 Apr 2013 04:42:55 -0700 (PDT)
+In-Reply-To: <1362685180-7768-3-git-send-email-seth.forshee@canonical.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: Seth Forshee <seth.forshee@canonical.com>
-Cc: Aaron Lu <aaron.lu@intel.com>, Ben Jencks <ben@bjencks.net>, Len Brown <lenb@kernel.org>, "Rafael J. Wysocki" <rjw@sisk.pl>, linux-acpi@vger.kernel.org, joeyli <jlee@suse.com>, Matthew Garrett <mjg59@srcf.ucam.org>, Danny Baumann <dannybaumann@web.de>
+Cc: linux-acpi@vger.kernel.org, Matthew Garrett <mjg59@srcf.ucam.org>, Len Brown <lenb@kernel.org>, "Rafael J. Wysocki" <rjw@sisk.pl>, Ben Jencks <ben@bjencks.net>, joeyli <jlee@suse.com>
 
-On 04/03/2013 09:45 PM, Seth Forshee wrote:
-> On Wed, Apr 03, 2013 at 03:27:46PM +0800, Aaron Lu wrote:
->> On 04/03/2013 03:04 PM, Ben Jencks wrote:
->>> On 04/02/2013 09:00 AM, Seth Forshee wrote:
->>>> On Tue, Apr 02, 2013 at 05:08:23PM +0800, Aaron Lu wrote:
->>>>> On 04/01/2013 09:03 PM, Seth Forshee wrote:
->>>>>> On Mon, Apr 01, 2013 at 09:53:36AM +0800, Aaron Lu wrote:
->>>>>>> On 02/12/2013 12:21 AM, Seth Forshee wrote:
->>>>>>>> The AML implementation for brightness control on several ThinkPads
->>>>>>>> contains a workaround to meet a Windows 8 requirement of 101 brightness
->>>>>>>> levels [1]. The implementation is flawed, as only 16 of the brighness
->>>>>>>> values reported by _BCL affect a change in brightness. _BCM silently
->>>>>>>> discards the rest of the values. Disabling Windows 8 compatibility on
->>>>>>>> these machines reverts them to the old behavior, making _BCL only report
->>>>>>>> the 16 brightness levels which actually work. Add a quirk to do this
->>>>>>>> along with a dmi callback to disable Win8 compatibility.
->>>>>>>
->>>>>>> If we disable the _BQC(i.e. set cap._BQC=0) for these systems, will the
->>>>>>> problem go away? If so, I think perhaps we can put these systems into a
->>>>>>> _BQC quirk table and set cap._BQC=0 for them.
->>>>>>
->>>>>> That helps a little, but we're still left with only 16 of the 101
->>>>>> brightness levels causing any change in brightness. The firmware isn't
->>>>>> rounding the "bad" values or anything like that; it just silently
->>>>>> ignores them.
->>>>>
->>>>> I really wondered, how Windows handled this, it should have the same
->>>>> problem, unless they are not using the acpi video interface?
->>>>
->>>> I can only guess.
->>>>
->>>> I think I remember reading that Windows 8 does smooth backlight
->>>> transitions, so it may well hit every intermediate brightness value.
->>>> Lenovo could also be supplying a driver which rounds values to the
->>>> nearest working value or uses some other interface or something else.
->>>
->>> Just checked; Windows 8 doesn't use the ACPI interface. It seems to have
->>> access to at least 100 distinct brightness levels.
->>>
->>> I'd guess it's using the same interface as
->>> /sys/class/backlight/intel_backlight, which on my system has a
->>> max_brightness of 4438 and all the values seem to be actually distinct,
->>> if not necessarily discernible to the naked eye.
->>
->> Thanks for the information.
->>
->> If all these affected systems have gpu driver's interface, I think we
->> can simply add them to the video_detect_dmi_table so that no acpi
->> backlight interface will be created for them, and gpu's interface will
->> be used by user space and hotkey processing can still be handled by acpi
->> video driver.
+On 03/08/2013 03:39 AM, Seth Forshee wrote:
+> Windows 8 requires that all backlights report 101 brightness levels.
+> When Lenovo updated the firmware for some machines for Windows 8 they
+> met this requirement my making _BCL return a larger set of values for
+> Windows 8 than for other OSes. However, only the values in the smaller
+> set actually change the brightness at all. The rest of the values are
+> silently discarded.
 > 
-> I've got two machines here with discrete graphics, one with nvidia and
-> one with AMD (neither one is a Lenovo). With the nvidia machine neither
-> nouveau nor the proprietary driver registers a backlight device. On the
-> AMD machine radeon does register a backlight but the proprietary driver
-> does not. So I think quirking away the acpi_video backlight interface
-> has potential to leave some users without any backlight control at all.
+> As a workaround, change acpi_video to set all intermediate backlight
+> levels when setting the brightness. This isn't perfect, but it will mean
+> that most brightness changes done by common userspace utilities will hit
+> at least one valid brightness value.
+> 
+> [1] http://msdn.microsoft.com/en-us/library/windows/hardware/jj128256.aspx
+> 
+> Signed-off-by: Seth Forshee <seth.forshee@canonical.com>
+> ---
+>  drivers/acpi/video.c |   51 ++++++++++++++++++++++++++++++++++++++++----------
+>  1 file changed, 41 insertions(+), 10 deletions(-)
+> 
+> diff --git a/drivers/acpi/video.c b/drivers/acpi/video.c
+> index edfcd74..b83fbbd 100644
+> --- a/drivers/acpi/video.c
+> +++ b/drivers/acpi/video.c
+> @@ -352,25 +352,56 @@ acpi_video_device_lcd_query_levels(struct acpi_video_device *device,
+>  static int
+>  acpi_video_device_lcd_set_state(struct acpi_video_device *device, int state)
+>  {
+> -	int level = device->brightness->levels[state];
+>  	union acpi_object arg0 = { ACPI_TYPE_INTEGER };
+>  	struct acpi_object_list args = { 1, &arg0 };
+> +	int curr_state, offset;
+>  	acpi_status status;
+> +	int result = 0;
+>  
+> -	arg0.integer.value = level;
+> +	curr_state = device->brightness->curr_state;
+>  
+> -	status = acpi_evaluate_object(device->dev->handle, "_BCM",
+> -				      &args, NULL);
+> -	if (ACPI_FAILURE(status)) {
+> -		ACPI_ERROR((AE_INFO, "Evaluating _BCM failed"));
+> -		return -EIO;
+> +	/*
+> +	 * Some Lenovo firmware has a broken backlight implementation
+> +	 * for Windows 8 where _BCL returns 101 backlight levels but
+> +	 * only 16 or so levels actually change the brightness at all.
+> +	 * As a workaround for these machines we set every intermediate
+> +	 * value between the old and new brightness levels whenever the
+> +	 * system has made the Windows 8 OSI call, hoping that at least
+> +	 * one of them will cause a change in brightness.
+> +	 */
+> +	if (acpi_osi_windows_version() == ACPI_OSI_WIN_8) {
 
-Then let's try to work around this problem in acpi video driver.
+What do you think of testing br->count > 100 instead of OSI version? It
+looks like only win8 systems will try to claim so many brightness levels.
 
 Thanks,
 Aaron
 
-> 
-> Seth
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> +		if (state == curr_state)
+> +			offset = 0;
+> +		else
+> +			offset = state > curr_state ? 1 : -1;
+> +	} else {
+> +		offset = state - curr_state;
+>  	}
+>  
+> -	device->brightness->curr_state = state;
+> +	do {
+> +		curr_state += offset;
+> +		arg0.integer.value = device->brightness->levels[curr_state];
+> +
+> +		status = acpi_evaluate_object(device->dev->handle, "_BCM",
+> +					      &args, NULL);
+> +		if (ACPI_FAILURE(status)) {
+> +			ACPI_ERROR((AE_INFO, "Evaluating _BCM failed"));
+> +
+> +			/*
+> +			 * Change curr_state back to that of last
+> +			 * successful _BCM call
+> +			 */
+> +			curr_state -= offset;
+> +			result = -EIO;
+> +			break;
+> +		}
+> +	} while (curr_state != state);
+> +
+> +	device->brightness->curr_state = curr_state;
+>  	if (device->backlight)
+> -		device->backlight->props.brightness = state - 2;
+> +		device->backlight->props.brightness = curr_state - 2;
+>  
+> -	return 0;
+> +	return result;
+>  }
+>  
+>  static int
 > 
 
