@@ -1,102 +1,138 @@
 From: Yinghai Lu <yinghai@kernel.org>
-Subject: [PATCH v3 05/22] x86, ACPI: Increase override tables number limit
-Date: Thu,  4 Apr 2013 16:46:09 -0700
-Message-ID: <1365119186-23487-6-git-send-email-yinghai@kernel.org>
+Subject: [PATCH v3 09/22] x86, ACPI: Find acpi tables in initrd early from head_32.S/head64.c
+Date: Thu,  4 Apr 2013 16:46:13 -0700
+Message-ID: <1365119186-23487-10-git-send-email-yinghai@kernel.org>
 References: <1365119186-23487-1-git-send-email-yinghai@kernel.org>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <1365119186-23487-1-git-send-email-yinghai@kernel.org>
 Sender: linux-kernel-owner@vger.kernel.org
 To: Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@elte.hu>, "H. Peter Anvin" <hpa@zytor.com>, Andrew Morton <akpm@linux-foundation.org>, Tejun Heo <tj@kernel.org>, Thomas Renninger <trenn@suse.de>, Tang Chen <tangchen@cn.fujitsu.com>
-Cc: linux-kernel@vger.kernel.org, Yinghai Lu <yinghai@kernel.org>, "Rafael J. Wysocki" <rjw@sisk.pl>, linux-acpi@vger.kernel.org
+Cc: linux-kernel@vger.kernel.org, Yinghai Lu <yinghai@kernel.org>, Pekka Enberg <penberg@kernel.org>, Jacob Shin <jacob.shin@amd.com>, "Rafael J. Wysocki" <rjw@sisk.pl>, linux-acpi@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-Current acpi tables in initrd is limited to 10, that is too small.
-64 should be good enough as we have 35 sigs and could have several
-SSDT.
+head64.c could use #PF handler set page table to access initrd before
+init mem mapping and initrd relocating.
 
-Two problems in current code prevent us from increasing limit:
-1. that cpio file info array is put in stack, as every element is 32
-   bytes, could run out of stack if we have that array size to 64.
-   We can move it out from stack, and make it as global and put it in
-   __initdata section.
-2. early_ioremap only can remap 256k one time. Current code is mapping
-   10 tables one time. If we increase that limit, whole size could be
-   more than 256k, early_ioremap will fail with that.
-   We can map table one by one during copying, instead of mapping
-   all them one time.
+head_32.S could use 32bit flat mode to access initrd before init mem
+mapping initrd relocating.
 
--v2: According to tj, split it out to separated patch, also
-     rename array name to acpi_initrd_files.
--v3: Add some comments about mapping table one by one during copying
-     per tj.
+That make 32bit and 64 bit more consistent.
 
-Signed-off-by: Yinghai <yinghai@kernel.org>
+-v2: use inline function in header file instead according to tj.
+     also still need to keep #idef head_32.S to avoid compiling error.
+-v3: need to move down reserve_initrd() after acpi_initrd_override_copy(),
+     to make sure we are using right address.
+
+Signed-off-by: Yinghai Lu <yinghai@kernel.org>
+Cc: Pekka Enberg <penberg@kernel.org>
+Cc: Jacob Shin <jacob.shin@amd.com>
 Cc: Rafael J. Wysocki <rjw@sisk.pl>
 Cc: linux-acpi@vger.kernel.org
-Acked-by: Tejun Heo <tj@kernel.org>
 ---
- drivers/acpi/osl.c | 26 +++++++++++++++-----------
- 1 file changed, 15 insertions(+), 11 deletions(-)
+ arch/x86/include/asm/setup.h |  6 ++++++
+ arch/x86/kernel/head64.c     |  2 ++
+ arch/x86/kernel/head_32.S    |  4 ++++
+ arch/x86/kernel/setup.c      | 34 ++++++++++++++++++++++++++++++----
+ 4 files changed, 42 insertions(+), 4 deletions(-)
 
-diff --git a/drivers/acpi/osl.c b/drivers/acpi/osl.c
-index c08cdb6..a5a9346 100644
---- a/drivers/acpi/osl.c
-+++ b/drivers/acpi/osl.c
-@@ -569,8 +569,8 @@ static const char * const table_sigs[] = {
+diff --git a/arch/x86/include/asm/setup.h b/arch/x86/include/asm/setup.h
+index 4f71d48..6f885b7 100644
+--- a/arch/x86/include/asm/setup.h
++++ b/arch/x86/include/asm/setup.h
+@@ -42,6 +42,12 @@ extern void visws_early_detect(void);
+ static inline void visws_early_detect(void) { }
+ #endif
  
- #define ACPI_HEADER_SIZE sizeof(struct acpi_table_header)
- 
--/* Must not increase 10 or needs code modification below */
--#define ACPI_OVERRIDE_TABLES 10
-+#define ACPI_OVERRIDE_TABLES 64
-+static struct cpio_data __initdata acpi_initrd_files[ACPI_OVERRIDE_TABLES];
- 
- void __init acpi_initrd_override(void *data, size_t size)
- {
-@@ -579,7 +579,6 @@ void __init acpi_initrd_override(void *data, size_t size)
- 	struct acpi_table_header *table;
- 	char cpio_path[32] = "kernel/firmware/acpi/";
- 	struct cpio_data file;
--	struct cpio_data early_initrd_files[ACPI_OVERRIDE_TABLES];
- 	char *p;
- 
- 	if (data == NULL || size == 0)
-@@ -617,8 +616,8 @@ void __init acpi_initrd_override(void *data, size_t size)
- 			table->signature, cpio_path, file.name, table->length);
- 
- 		all_tables_size += table->length;
--		early_initrd_files[table_nr].data = file.data;
--		early_initrd_files[table_nr].size = file.size;
-+		acpi_initrd_files[table_nr].data = file.data;
-+		acpi_initrd_files[table_nr].size = file.size;
- 		table_nr++;
- 	}
- 	if (table_nr == 0)
-@@ -648,14 +647,19 @@ void __init acpi_initrd_override(void *data, size_t size)
- 	memblock_reserve(acpi_tables_addr, acpi_tables_addr + all_tables_size);
- 	arch_reserve_mem_area(acpi_tables_addr, all_tables_size);
- 
--	p = early_ioremap(acpi_tables_addr, all_tables_size);
--
-+	/*
-+	 * early_ioremap only can remap 256k one time. If we map all
-+	 * tables one time, we will hit the limit. Need to map table
-+	 * one by one during copying.
-+	 */
- 	for (no = 0; no < table_nr; no++) {
--		memcpy(p + total_offset, early_initrd_files[no].data,
--		       early_initrd_files[no].size);
--		total_offset += early_initrd_files[no].size;
-+		phys_addr_t size = acpi_initrd_files[no].size;
++#ifdef CONFIG_ACPI_INITRD_TABLE_OVERRIDE
++void x86_acpi_override_find(void);
++#else
++static inline void x86_acpi_override_find(void) { }
++#endif
 +
-+		p = early_ioremap(acpi_tables_addr + total_offset, size);
-+		memcpy(p, acpi_initrd_files[no].data, size);
-+		early_iounmap(p, size);
-+		total_offset += size;
- 	}
--	early_iounmap(p, all_tables_size);
- }
- #endif /* CONFIG_ACPI_INITRD_TABLE_OVERRIDE */
+ extern unsigned long saved_video_mode;
  
+ extern void reserve_standard_io_resources(void);
+diff --git a/arch/x86/kernel/head64.c b/arch/x86/kernel/head64.c
+index c5e403f..a31bc63 100644
+--- a/arch/x86/kernel/head64.c
++++ b/arch/x86/kernel/head64.c
+@@ -174,6 +174,8 @@ void __init x86_64_start_kernel(char * real_mode_data)
+ 	if (console_loglevel == 10)
+ 		early_printk("Kernel alive\n");
+ 
++	x86_acpi_override_find();
++
+ 	clear_page(init_level4_pgt);
+ 	/* set init_level4_pgt kernel high mapping*/
+ 	init_level4_pgt[511] = early_level4_pgt[511];
+diff --git a/arch/x86/kernel/head_32.S b/arch/x86/kernel/head_32.S
+index 73afd11..ca08f0e 100644
+--- a/arch/x86/kernel/head_32.S
++++ b/arch/x86/kernel/head_32.S
+@@ -149,6 +149,10 @@ ENTRY(startup_32)
+ 	call load_ucode_bsp
+ #endif
+ 
++#ifdef CONFIG_ACPI_INITRD_TABLE_OVERRIDE
++	call x86_acpi_override_find
++#endif
++
+ /*
+  * Initialize page tables.  This creates a PDE and a set of page
+  * tables, which are located immediately beyond __brk_base.  The variable
+diff --git a/arch/x86/kernel/setup.c b/arch/x86/kernel/setup.c
+index 16a703f..2d29bc0 100644
+--- a/arch/x86/kernel/setup.c
++++ b/arch/x86/kernel/setup.c
+@@ -424,6 +424,34 @@ static void __init reserve_initrd(void)
+ }
+ #endif /* CONFIG_BLK_DEV_INITRD */
+ 
++#ifdef CONFIG_ACPI_INITRD_TABLE_OVERRIDE
++void __init x86_acpi_override_find(void)
++{
++	unsigned long ramdisk_image, ramdisk_size;
++	unsigned char *p = NULL;
++
++#ifdef CONFIG_X86_32
++	struct boot_params *boot_params_p;
++
++	/*
++	 * 32bit is from head_32.S, and it is 32bit flat mode.
++	 * So need to use phys address to access global variables.
++	 */
++	boot_params_p = (struct boot_params *)__pa_nodebug(&boot_params);
++	ramdisk_image = get_ramdisk_image(boot_params_p);
++	ramdisk_size  = get_ramdisk_size(boot_params_p);
++	p = (unsigned char *)ramdisk_image;
++	acpi_initrd_override_find(p, ramdisk_size, true);
++#else
++	ramdisk_image = get_ramdisk_image(&boot_params);
++	ramdisk_size  = get_ramdisk_size(&boot_params);
++	if (ramdisk_image)
++		p = __va(ramdisk_image);
++	acpi_initrd_override_find(p, ramdisk_size, false);
++#endif
++}
++#endif
++
+ static void __init parse_setup_data(void)
+ {
+ 	struct setup_data *data;
+@@ -1090,12 +1118,10 @@ void __init setup_arch(char **cmdline_p)
+ 	/* Allocate bigger log buffer */
+ 	setup_log_buf(1);
+ 
+-	reserve_initrd();
+-
+-	acpi_initrd_override_find((void *)initrd_start,
+-					initrd_end - initrd_start, false);
+ 	acpi_initrd_override_copy();
+ 
++	reserve_initrd();
++
+ 	reserve_crashkernel();
+ 
+ 	vsmp_init();
 -- 
 1.8.1.4
