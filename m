@@ -1,47 +1,41 @@
-From: Jeff Garzik <jgarzik@pobox.com>
-Subject: Re: [PATCH] libata: acpi: remove redundent code for power resource
- handling
-Date: Wed, 03 Apr 2013 19:56:53 -0400
-Message-ID: <515CC1C5.7030902@pobox.com>
-References: <1362456724-21257-1-git-send-email-aaron.lu@intel.com>
+From: Wei Yongjun <weiyj.lk@gmail.com>
+Subject: [PATCH -next] ACPI: remove duplicated include from container.c
+Date: Thu, 4 Apr 2013 09:17:00 +0800
+Message-ID: <CAPgLHd8MdWkAZjJJ0T895YJtz74vJ6iVjmncD9pvwamSeL8fQg@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-ide-owner@vger.kernel.org>
-In-Reply-To: <1362456724-21257-1-git-send-email-aaron.lu@intel.com>
-Sender: linux-ide-owner@vger.kernel.org
-To: Aaron Lu <aaron.lu@intel.com>
-Cc: "Rafael J. Wysocki" <rjw@sisk.pl>, linux-ide@vger.kernel.org, linux-acpi@vger.kernel.org, Aaron Lu <aaron.lwe@gmail.com>
+Content-Type: text/plain; charset=ISO-8859-1
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-bk0-f52.google.com ([209.85.214.52]:54418 "EHLO
+	mail-bk0-f52.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1761846Ab3DDBRC (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 3 Apr 2013 21:17:02 -0400
+Received: by mail-bk0-f52.google.com with SMTP id it16so1180862bkc.11
+        for <linux-acpi@vger.kernel.org>; Wed, 03 Apr 2013 18:17:01 -0700 (PDT)
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: lenb@kernel.org, rjw@sisk.pl
+Cc: yongjun_wei@trendmicro.com.cn, linux-acpi@vger.kernel.org
 
-On 03/04/2013 11:12 PM, Aaron Lu wrote:
-> With commit:
-> bc9b6407bd6df3ab7189e5622816bbc11ae9d2d8
-> ACPI / PM: Rework the handling of devices depending on power resources
->
-> The ACPI core now takes care of the power resources an acpi device
-> depends on in that when the power resources are turned on, any devices
-> that are bound to or in the dependent list of this acpi device will be
-> runtime resumed. So there is no need for ata acpi code to duplicate this
-> effort, and thus, the ata_acpi_(un)register_power_resource functions are
-> no longer needed.
->
-> The above commit thinks the scsi device is not bound to the acpi device,
-> so needs to be added to the dependent list. But actually, it is. So
-> there is no need to add it to the dependent list, or it will be runtime
-> resumed twice(though this wouldn't cause any problem).
->
-> This patch fixes it, and as a result, the
-> ata_acpi_(un)register_power_resource and ata_acpi_(un)bind functions
-> are removed.
->
-> Signed-off-by: Aaron Lu <aaron.lu@intel.com>
-> ---
->   drivers/ata/libata-acpi.c | 33 ---------------------------------
->   drivers/ata/libata-scsi.c |  6 ++++--
->   2 files changed, 4 insertions(+), 35 deletions(-)
+From: Wei Yongjun <yongjun_wei@trendmicro.com.cn>
 
-applied
+Remove duplicated include.
 
+Signed-off-by: Wei Yongjun <yongjun_wei@trendmicro.com.cn>
+---
+ drivers/acpi/container.c | 2 --
+ 1 file changed, 2 deletions(-)
 
+diff --git a/drivers/acpi/container.c b/drivers/acpi/container.c
+index e231516..f9f8a08 100644
+--- a/drivers/acpi/container.c
++++ b/drivers/acpi/container.c
+@@ -30,8 +30,6 @@
+ 
+ #include "internal.h"
+ 
+-#include "internal.h"
+-
+ #define PREFIX "ACPI: "
+ 
+ #define _COMPONENT			ACPI_CONTAINER_COMPONENT
 
