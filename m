@@ -1,68 +1,99 @@
 From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: [PATCH] ACPI: remove "config ACPI_DEBUG_FUNC_TRACE"
-Date: Thu, 04 Apr 2013 23:00:57 +0200
-Message-ID: <9105435.faatoZyPxO@vostro.rjw.lan>
-References: <1363689661.1390.9.camel@x61.thuisdomein> <3588021.V98D5VToQr@vostro.rjw.lan>
+Subject: [GIT PULL] ACPI and power management fixes for v3.9-rc6
+Date: Thu, 04 Apr 2013 23:13:17 +0200
+Message-ID: <1903330.VdMMbXjxYW@vostro.rjw.lan>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7Bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from hydra.sisk.pl ([212.160.235.94]:51444 "EHLO hydra.sisk.pl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1761409Ab3DDUxU (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 4 Apr 2013 16:53:20 -0400
-In-Reply-To: <3588021.V98D5VToQr@vostro.rjw.lan>
-Sender: linux-acpi-owner@vger.kernel.org
+Return-path: <linux-pm-owner@vger.kernel.org>
+Sender: linux-pm-owner@vger.kernel.org
+To: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>, Linux PM list <linux-pm@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
-To: Lv Zheng <lv.zheng@intel.com>
-Cc: Paul Bolle <pebolle@tiscali.nl>, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 
-On Tuesday, March 26, 2013 02:34:25 PM Rafael J. Wysocki wrote:
-> On Tuesday, March 19, 2013 11:41:01 AM Paul Bolle wrote:
-> > Kconfig symbol ACPI_DEBUG_FUNC_TRACE was only used (through its
-> > corresponding macro) in drivers/acpi/acpica/acmacros.h. That macro was
-> > removed from that header in v3.8, with commit
-> > 86ff0e508f88eda6e479a897476026055831d2d8 ("ACPICA: Fix unmerged
-> > acmacros.h divergences."). That commit did not explain why that macro
-> > was removed. But it seems that ACPI_DEBUG_FUNC_TRACE can now be removed
-> > too, as it is unused.
-> 
-> Lv, can you please comment here?
+Hi Linus,
 
-Lv, I'm still waiting for your comment regarding the commit mentioned above.
+Please pull from the git repository at
 
-Thanks,
-Rafael
+  git://git.kernel.org/pub/scm/linux/kernel/git/rafael/linux-pm.git pm+acpi-3.9-rc6
 
+to receive ACPI and power management fixes for v3.9-rc6 with top-most commit
+6cb437acd93a01fdbd6bac9c78ac8159c644e576
 
-> > Signed-off-by: Paul Bolle <pebolle@tiscali.nl>
-> > ---
-> > Eyeball tested.
-> > 
-> >  drivers/acpi/Kconfig | 8 --------
-> >  1 file changed, 8 deletions(-)
-> > 
-> > diff --git a/drivers/acpi/Kconfig b/drivers/acpi/Kconfig
-> > index 92ed969..006b714 100644
-> > --- a/drivers/acpi/Kconfig
-> > +++ b/drivers/acpi/Kconfig
-> > @@ -298,14 +298,6 @@ config ACPI_DEBUG
-> >  	  Documentation/kernel-parameters.txt to control the type and
-> >  	  amount of debug output.
-> >  
-> > -config ACPI_DEBUG_FUNC_TRACE
-> > -	bool "Additionally enable ACPI function tracing"
-> > -	default n
-> > -	depends on ACPI_DEBUG
-> > -	help
-> > -	  ACPI Debug Statements slow down ACPI processing. Function trace
-> > -	  is about half of the penalty and is rarely useful.
-> > -
-> >  config ACPI_PCI_SLOT
-> >  	bool "PCI slot detection driver"
-> >  	depends on SYSFS
-> > 
-> 
+  Merge branch 'acpi-fixes' into fixes
+
+on top of commit 07961ac7c0ee8b546658717034fe692fd12eefa9
+
+  Linux 3.9-rc5
+
+Included are:
+
+- Revert of a recent cpuidle change that caused Nehalem machines
+  to hang on boot from Alex Shi.
+
+- USB power management fix addressing a crash in the port device
+  object's release routine.
+
+- Device PM QoS fix for a potential deadlock related to sysfs
+  interface.
+
+- Fix for a cpufreq crash when the /cpus Device Tree node is missing.
+  From Paolo Pisati.
+
+- Fix for a build issue on ia64 related to the fact that the
+  Boot Graphics Resource Table (BGRT) is only useful on x86 with
+  EFI.  From Tony Luck.
+
+- Two fixes for ACPI handles being set incorrectly for device
+  objects that don't correspond to any ACPI namespace nodes in
+  the I2C and SPI subsystems.
+
+- Fix for compiler warnings related to CONFIG_PM_DEVFREQ being
+  unset from Rajagopal Venkat.
+
+- Fix for a symbol definition typo in cpufreq_governor.h from
+  Borislav Petkov.
+
+Thanks!
+
+---------------
+
+Alex Shi (1):
+      cpuidle / ACPI: recover percpu ACPI processor cstate
+
+Borislav Petkov (1):
+      cpufreq: Correct header guards typo
+
+Paolo Pisati (1):
+      cpufreq: check OF node /cpus presence before dereferencing it
+
+Rafael J. Wysocki (4):
+      USB / PM: Don't try to hide PM QoS flags from usb_port_device_release()
+      PM / QoS: Avoid possible deadlock related to sysfs access
+      ACPI / SPI: Use parent's ACPI_HANDLE() in acpi_register_spi_devices()
+      ACPI / I2C: Use parent's ACPI_HANDLE() in acpi_i2c_register_devices()
+
+Rajagopal Venkat (1):
+      PM / devfreq: Fix compiler warnings for CONFIG_PM_DEVFREQ unset
+
+Tony Luck (1):
+      ACPI / BGRT: Don't let users configure BGRT on non X86 systems
+
+---------------
+
+ drivers/acpi/Kconfig                        |    2 +-
+ drivers/acpi/acpi_i2c.c                     |    2 +-
+ drivers/acpi/processor_idle.c               |   13 ++++----
+ drivers/base/power/qos.c                    |   60 +++++++++++++++++++++++++++--------
+ drivers/cpufreq/cpufreq-cpu0.c              |   10 ++++--
+ drivers/cpufreq/cpufreq_governor.h          |    6 ++--
+ drivers/i2c/busses/i2c-designware-platdrv.c |    1 -
+ drivers/spi/spi-pxa2xx.c                    |    1 -
+ drivers/spi/spi.c                           |    2 +-
+ drivers/usb/core/port.c                     |    1 -
+ include/linux/devfreq.h                     |   16 +++++-----
+ 11 files changed, 76 insertions(+), 38 deletions(-)
+
 -- 
 I speak only for myself.
 Rafael J. Wysocki, Intel Open Source Technology Center.
