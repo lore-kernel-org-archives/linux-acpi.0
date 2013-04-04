@@ -1,38 +1,68 @@
-From: "H. Peter Anvin" <hpa@zytor.com>
-Subject: Re: [PATCH v2 08/20] x86, ACPI: Find acpi tables in initrd early
- from head_32.S/head64.c
-Date: Thu, 04 Apr 2013 13:25:37 -0700
-Message-ID: <515DE1C1.6080000@zytor.com>
-References: <1362897887-30808-1-git-send-email-yinghai@kernel.org> <1362897887-30808-9-git-send-email-yinghai@kernel.org> <CAOJsxLG2Qg7vmLWirWK-GOBp65NxogGcAU5guoVphDu2G=BsjA@mail.gmail.com>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: Re: [PATCH] ACPI: remove "config ACPI_DEBUG_FUNC_TRACE"
+Date: Thu, 04 Apr 2013 23:00:57 +0200
+Message-ID: <9105435.faatoZyPxO@vostro.rjw.lan>
+References: <1363689661.1390.9.camel@x61.thuisdomein> <3588021.V98D5VToQr@vostro.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7Bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from terminus.zytor.com ([198.137.202.10]:57404 "EHLO mail.zytor.com"
+Received: from hydra.sisk.pl ([212.160.235.94]:51444 "EHLO hydra.sisk.pl"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1763121Ab3DDU0x (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 4 Apr 2013 16:26:53 -0400
-In-Reply-To: <CAOJsxLG2Qg7vmLWirWK-GOBp65NxogGcAU5guoVphDu2G=BsjA@mail.gmail.com>
+	id S1761409Ab3DDUxU (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 4 Apr 2013 16:53:20 -0400
+In-Reply-To: <3588021.V98D5VToQr@vostro.rjw.lan>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Pekka Enberg <penberg@kernel.org>
-Cc: Yinghai Lu <yinghai@kernel.org>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@elte.hu>, Andrew Morton <akpm@linux-foundation.org>, Tejun Heo <tj@kernel.org>, Thomas Renninger <trenn@suse.de>, Tang Chen <tangchen@cn.fujitsu.com>, linux-kernel@vger.kernel.org, Jacob Shin <jacob.shin@amd.com>, "Rafael J. Wysocki" <rjw@sisk.pl>, linux-acpi@vger.kernel.org
+To: Lv Zheng <lv.zheng@intel.com>
+Cc: Paul Bolle <pebolle@tiscali.nl>, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 
-On 03/10/2013 03:25 AM, Pekka Enberg wrote:
+On Tuesday, March 26, 2013 02:34:25 PM Rafael J. Wysocki wrote:
+> On Tuesday, March 19, 2013 11:41:01 AM Paul Bolle wrote:
+> > Kconfig symbol ACPI_DEBUG_FUNC_TRACE was only used (through its
+> > corresponding macro) in drivers/acpi/acpica/acmacros.h. That macro was
+> > removed from that header in v3.8, with commit
+> > 86ff0e508f88eda6e479a897476026055831d2d8 ("ACPICA: Fix unmerged
+> > acmacros.h divergences."). That commit did not explain why that macro
+> > was removed. But it seems that ACPI_DEBUG_FUNC_TRACE can now be removed
+> > too, as it is unused.
 > 
-> What is preventing us from making the 64-bit variant also work in flat
-> mode to make the code consistent and not hiding the differences under
-> the rug? What am I missing here?
+> Lv, can you please comment here?
+
+Lv, I'm still waiting for your comment regarding the commit mentioned above.
+
+Thanks,
+Rafael
+
+
+> > Signed-off-by: Paul Bolle <pebolle@tiscali.nl>
+> > ---
+> > Eyeball tested.
+> > 
+> >  drivers/acpi/Kconfig | 8 --------
+> >  1 file changed, 8 deletions(-)
+> > 
+> > diff --git a/drivers/acpi/Kconfig b/drivers/acpi/Kconfig
+> > index 92ed969..006b714 100644
+> > --- a/drivers/acpi/Kconfig
+> > +++ b/drivers/acpi/Kconfig
+> > @@ -298,14 +298,6 @@ config ACPI_DEBUG
+> >  	  Documentation/kernel-parameters.txt to control the type and
+> >  	  amount of debug output.
+> >  
+> > -config ACPI_DEBUG_FUNC_TRACE
+> > -	bool "Additionally enable ACPI function tracing"
+> > -	default n
+> > -	depends on ACPI_DEBUG
+> > -	help
+> > -	  ACPI Debug Statements slow down ACPI processing. Function trace
+> > -	  is about half of the penalty and is rarely useful.
+> > -
+> >  config ACPI_PCI_SLOT
+> >  	bool "PCI slot detection driver"
+> >  	depends on SYSFS
+> > 
 > 
-
-There is no such thing as "flat mode" in 64-bit mode.  We use a #PF
-handler to emulate it, but we add the normal kernel offset when doing so.
-
-In the 32-bit case the problem is that the kernel offset is not
-available while in linear mode.  It *could* be created using segment
-bases, but that would break Xen, I'm pretty sure, and possibly some
-other too-clever environments.
-
-	-hpa
-
-
+-- 
+I speak only for myself.
+Rafael J. Wysocki, Intel Open Source Technology Center.
