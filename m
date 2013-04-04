@@ -1,399 +1,156 @@
-From: "Zheng, Lv" <lv.zheng@intel.com>
-Subject: RE: [PATCH v6] ACPI / serial: Add peripheral PnP IDs enumeration
- support
-Date: Thu, 4 Apr 2013 10:12:56 +0000
-Message-ID: <1AE640813FDE7649BE1B193DEA596E88015CC828@SHSMSX101.ccr.corp.intel.com>
-References: <cover.1354505471.git.lv.zheng@intel.com>
- <eb535db4b040bbe8712a975ed70cb3899b5b0fea.1364954385.git.lv.zheng@intel.com>
- <20130403161431.GB21383@kroah.com>
+From: Huang Ying <ying.huang@intel.com>
+Subject: Re: [PATCH] PCI / ACPI: Always resume devices on ACPI wakeup
+ notifications
+Date: Thu, 04 Apr 2013 19:30:19 +0800
+Message-ID: <1365075019.8901.9.camel@yhuang-mobile.sh.intel.com>
+References: <2282655.IicBMMa6jN@vostro.rjw.lan>
+	 <CAErSpo7QXe1-R5_jXCcc3g_J-_HXqO3V12nNB=Z6eCAt-vwKfA@mail.gmail.com>
+	 <51548C9E.9090703@fold.natur.cuni.cz> <2990024.LMTIBUbM3d@vostro.rjw.lan>
+	 <51564804.9000700@fold.natur.cuni.cz>
+	 <CAC=cRTMJH+40oPSM9pFzkb5x6Q42rWR8BPtUOxJn_3WopmOSvQ@mail.gmail.com>
+	 <515AF312.1010507@fold.natur.cuni.cz>
+	 <CAErSpo6EAkSniVF7NnDVsR=H_x0dHK=xQNbdKf67WDW=o1D+_Q@mail.gmail.com>
+	 <515B17D9.6030805@fold.natur.cuni.cz> <515B45A6.1020404@fold.natur.cuni.cz>
+	 <515C1DB8.5020905@fold.natur.cuni.cz>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-serial-owner@vger.kernel.org>
-In-Reply-To: <20130403161431.GB21383@kroah.com>
-Content-Language: en-US
-Sender: linux-serial-owner@vger.kernel.org
-To: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc: "Wysocki, Rafael J" <rafael.j.wysocki@intel.com>, "Brown, Len" <len.brown@intel.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-serial@vger.kernel.org" <linux-serial@vger.kernel.org>, "Zhang, Rui" <rui.zhang@intel.com>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mga02.intel.com ([134.134.136.20]:12447 "EHLO mga02.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1758541Ab3DDLb7 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 4 Apr 2013 07:31:59 -0400
+In-Reply-To: <515C1DB8.5020905@fold.natur.cuni.cz>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Martin Mokrejs <mmokrejs@fold.natur.cuni.cz>, Sarah Sharp <sarah.a.sharp@linux.intel.com>
+Cc: Bjorn Helgaas <bhelgaas@google.com>, huang ying <huang.ying.caritas@gmail.com>, "Rafael J. Wysocki" <rjw@sisk.pl>, Len Brown <lenb@kernel.org>, Matthew Garrett <mjg59@srcf.ucam.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>, Yinghai Lu <yinghai@kernel.org>
 
-> > ACPI 5.0 specification introduces mechanisms of enumerating the
-> > peripherals connected on the serial buses. It will look like:
-> >   Device (BTH0)
-> >   {
-> >       Name (_HID, "IBMF001")  // _HID: Hardware ID
-> >       Name (_CID, "PNPF001")  // _CID: Compatible ID
-> >       Method (_CRS, 0, NotSerialized)  // _CRS: Current Resource Settings
-> >       {
-> >           Name (UBUF, ResourceTemplate ()
-> >           {
-> >               UartSerialBus (0x0001C200, DataBitsEight, StopBitsOne,
-> >                   0xC0, LittleEndian, ParityTypeNone,
-> FlowControlHardware,
-> >                   0x0020, 0x0020, "\\_SB.PCI0.UA00",
-> >                   0x00, ResourceConsumer, ,
-> >               )
-> >           }
-> >           Return (UBUF)
-> >       }
-> >   }
-> > This patch follows the specification, implementing such UART
-> > enumeration machanism by exporting current peripheral HID/CIDs for the
-> UART devices.
-> > A userspace udev rule may look like:
-> >  SUBSYSTEM=tty, ATTR{peripheral_type}=="*:IBMF001:*",
-> >  RUN+="/bin/userprog --devpath=%p"
-> > Thanks for the internal composers:
-> >   Mika Westerberg <mika.westerberg@intel.com>
-> >   Huang Ying <ying.huang@intel.com>
-> >   Zhang Rui <rui.zhang@intel.com>
-> > Thanks for the internal reviewers:
-> >   Alan Cox <alan@linux.intel.com>
-> >   Rafael J. Wysocki <rafael.j.wysocki@intel.com>
-> >   Heikki Krogerus <heikki.krogerus@intel.com>
-> >   Andriy Shevchenko <andriy.shevchenko@intel.com>
-> >   Fengguang Wu <fengguang.wu@intel.com>
+Hi, Martin,
+
+On Wed, 2013-04-03 at 14:16 +0200, Martin Mokrejs wrote:
+> Meanwhile, the raw data: http://195.113.57.32/~mmokrejs/tmp/20130402.tar.bz2
+> (size 468641 bytes)
+
+Thanks a lot!  Your information is very complete and clear :)
+
+> They were collected by:
 > 
-> Why are these names not on the list below?
-
-I obtained help from them on old revisions.
-Mika is the key person for the acpi serial enumeration.
-He has implemented the acpi i2c/spi serial enumeration.
-
-> > Signed-off-by: Lv Zheng <lv.zheng@intel.com>
-> > Signed-off-by: Zhang Rui <rui.zhang@intel.com>
-> > Acked-by: Huang Ying <ying.huang@intel.com>
-> > Reviewed-by: Mika Westerberg <mika.westerberg@linux.intel.com>
+> # cat ~/bin/collect_runtime_status.sh 
+> #!/bin/sh
+> grep . /sys/bus/pci/devices/*/power/runtime_status > runtime_status_"$1".txt
+> grep . /sys/bus/pci/devices/*/power/control > control_"$1".txt
+> cat /proc/interrupts > interrupts_"$1".txt
+> cat /proc/iomem > iomem_"$1".txt
+> lspci -vvv > lspci_vvv_"$1".txt
+> dmesg > dmesg_"$1".txt
+> #
+> 
+> Just do 'ls -latr' to see the ordering of the files as they were created.
+> The longer the filename, the later in the test process. The names should be
+> relatively self-explaining. Definitely, from the log files you should see
+> what happened in real and therefore, can figure out what the (maybe weird)
+> long filename really meant.
+> 
+> Sometimes I manually recorded lsusb of dmesg_final.txt, mostly after I did some
+> extra tests but but not want to record every step by the above 6 files.
+> 
+> In one or two places I added some my own notes into COMMENTS file.
 > 
 > 
-> > ---
-> >  drivers/acpi/Kconfig             |    6 ++
-> >  drivers/acpi/Makefile            |    1 +
-> >  drivers/acpi/acpi_uart.c         |  135
-> ++++++++++++++++++++++++++++++++++++++
-> >  drivers/acpi/internal.h          |    2 +
-> >  drivers/acpi/scan.c              |    8 +--
-> >  drivers/tty/serial/serial_core.c |   15 +++++
-> >  include/linux/tty.h              |   11 ++++
-> >  7 files changed, 174 insertions(+), 4 deletions(-)  create mode
-> > 100644 drivers/acpi/acpi_uart.c
-> >
-> > diff --git a/drivers/acpi/Kconfig b/drivers/acpi/Kconfig index
-> > 92ed969..42233f6 100644
-> > --- a/drivers/acpi/Kconfig
-> > +++ b/drivers/acpi/Kconfig
-> > @@ -186,6 +186,12 @@ config ACPI_I2C
-> >  	help
-> >  	  ACPI I2C enumeration support.
-> >
-> > +config ACPI_UART
-> > +	def_tristate TTY
-> > +	depends on TTY
-> > +	help
-> > +	  ACPI UART enumeration support.
 > 
-> Please provide more information here.
-
-OK.
-
-> As this is primarily an ACPI patch, I need an ack from a ACPI maintainer before I
-> can take this.
-
-OK, I'll ask for this.
-
-> > +
-> >  config ACPI_PROCESSOR
-> >  	tristate "Processor"
-> >  	select THERMAL
-> > diff --git a/drivers/acpi/Makefile b/drivers/acpi/Makefile index
-> > 474fcfe..4db5470 100644
-> > --- a/drivers/acpi/Makefile
-> > +++ b/drivers/acpi/Makefile
-> > @@ -72,6 +72,7 @@ obj-$(CONFIG_ACPI_EC_DEBUGFS)	+= ec_sys.o
-> >  obj-$(CONFIG_ACPI_CUSTOM_METHOD)+= custom_method.o
-> >  obj-$(CONFIG_ACPI_BGRT)		+= bgrt.o
-> >  obj-$(CONFIG_ACPI_I2C)		+= acpi_i2c.o
-> > +obj-$(CONFIG_ACPI_UART)		+= acpi_uart.o
-> >
-> >  # processor has its own "processor." module_param namespace
-> >  processor-y			:= processor_driver.o processor_throttling.o
-> > diff --git a/drivers/acpi/acpi_uart.c b/drivers/acpi/acpi_uart.c new
-> > file mode 100644 index 0000000..dd5ac2e
-> > --- /dev/null
-> > +++ b/drivers/acpi/acpi_uart.c
-> > @@ -0,0 +1,135 @@
-> > +/*
-> > + * acpi_uart.c - ACPI UART enumeration support
-> > + *
-> > + * Copyright (c) 2013, Intel Corporation
-> > + * Author: Lv Zheng <lv.zheng@intel.com>
-> > + *
-> > + * This program is free software; you can redistribute it and/or
-> > +modify it
-> > + * under the terms of the GNU General Public License as published by
-> > +the
-> > + * Free Software Foundation; version 2 of the License.
-> > + */
-> > +
-> > +#include <linux/init.h>
-> > +#include <linux/tty.h>
-> > +#include <linux/module.h>
-> > +#include <linux/acpi.h>
-> > +
-> > +#include "internal.h"
-> > +
-> > +struct acpi_uart_buf {
-> > +	char *buf;
-> > +	size_t size;
-> > +	int *len;
-> > +};
-> > +
-> > +struct acpi_uart_enum {
-> > +	void *context;
-> > +	acpi_status status;
-> > +
-> > +	struct acpi_device *adev;
-> > +};
-> > +
-> > +static acpi_status
-> > +acpi_uart_enum_pnpids(struct acpi_device *adev,
-> > +		      struct acpi_resource_uart_serialbus *sb,
-> > +		      void *context);
-> > +
-> > +static int acpi_uart_enum_resources(struct acpi_resource *ares,
-> > +				    void *context)
-> > +{
-> > +	struct acpi_uart_enum *ctx = context;
-> > +	struct acpi_resource_uart_serialbus *sb;
-> > +
-> > +	if (ares->type != ACPI_RESOURCE_TYPE_SERIAL_BUS)
-> > +		return 1;
-> > +	sb = &ares->data.uart_serial_bus;
-> > +	if (sb->type != ACPI_RESOURCE_SERIAL_TYPE_UART)
-> > +		return 1;
-> > +
-> > +	ctx->status = acpi_uart_enum_pnpids(ctx->adev, sb, ctx->context);
-> > +	return 1;
-> > +}
-> > +
-> > +static acpi_status acpi_uart_enum_devices(acpi_handle handle, u32 level,
-> > +					  void *context,
-> > +					  void **return_value)
-> > +{
-> > +	struct acpi_uart_enum *ctx = context;
-> > +	struct acpi_device *adev;
-> > +	struct list_head resource_list;
-> > +
-> > +	if (acpi_bus_get_device(handle, &adev))
-> > +		return AE_OK;
-> > +	if (acpi_bus_get_status(adev) || !adev->status.present)
-> > +		return AE_OK;
-> > +
-> > +	/* Enumerate resources. */
-> > +	ctx->adev = adev;
-> > +	ctx->status = AE_OK;
-> > +	INIT_LIST_HEAD(&resource_list);
-> > +	acpi_dev_get_resources(adev, &resource_list,
-> > +			       acpi_uart_enum_resources, ctx);
-> > +	acpi_dev_free_resource_list(&resource_list);
-> > +
-> > +	return ctx->status;
-> > +}
-> > +
-> > +static int acpi_uart_walk_port(struct device *parent,
-> > +			       void *context)
-> > +{
-> > +	acpi_handle handle;
-> > +	acpi_status status;
-> > +	struct acpi_uart_enum ctx;
-> > +
-> > +	handle = parent ? ACPI_HANDLE(parent) : NULL;
-> > +	if (!handle)
-> > +		return -ENODEV;
-> > +
-> > +	ctx.context = context;
-> > +
-> > +	status = acpi_walk_namespace(ACPI_TYPE_DEVICE, handle, 1,
-> > +				     acpi_uart_enum_devices, NULL,
-> > +				     &ctx, NULL);
-> > +	if (ACPI_FAILURE(status))
-> > +		return -EINVAL;
-> > +
-> > +	return 0;
-> > +}
-> > +
-> > +static acpi_status
-> > +acpi_uart_enum_pnpids(struct acpi_device *adev,
-> > +		      struct acpi_resource_uart_serialbus *sb,
-> > +		      void *context)
-> > +{
-> > +	int len;
-> > +	struct acpi_uart_buf *ctx = context;
-> > +
-> > +	len = acpi_device_create_modalias(adev, ctx->buf, ctx->size);
-> > +	*ctx->len = len;
-> > +
-> > +	return len < 0 ? AE_CTRL_DEPTH : AE_OK; }
-> > +
-> > +/**
-> > + * acpi_uart_get_peripheral_type - get peripheral HID/CIDs
-> > + * @dev: the tty class device
-> > + * @buf: the string buffer containing HID/CIDs
-> > + * @size: the size of the string buffer
-> > + *
-> > + * Obtain UART peripheral HID/CIDs.  Return buffer size on success,
-> > + * -errno on failure.
-> > + */
-> > +int acpi_uart_get_peripheral_type(struct device *dev,
-> > +				  char *buf, size_t size)
-> > +{
-> > +	int ret;
-> > +	int len = 0;
-> > +	struct acpi_uart_buf ctx = { buf, size, &len };
-> > +
-> > +	ret = acpi_uart_walk_port(dev->parent, &ctx);
-> > +	if (ret < 0)
-> > +		return ret;
-> > +
-> > +	return len;
-> > +}
-> > +EXPORT_SYMBOL_GPL(acpi_uart_get_peripheral_type);
-> > diff --git a/drivers/acpi/internal.h b/drivers/acpi/internal.h index
-> > 3c94a73..30d7440 100644
-> > --- a/drivers/acpi/internal.h
-> > +++ b/drivers/acpi/internal.h
-> > @@ -61,6 +61,8 @@ void acpi_init_device_object(struct acpi_device *device,
-> acpi_handle handle,
-> >  			     int type, unsigned long long sta);  void
-> > acpi_device_add_finalize(struct acpi_device *device);  void
-> > acpi_free_ids(struct acpi_device *device);
-> > +int acpi_device_create_modalias(struct acpi_device *acpi_dev,
-> > +				char *modalias, int size);
-> >
-> >  /* --------------------------------------------------------------------------
-> >                                    Power Resource diff --git
-> > a/drivers/acpi/scan.c b/drivers/acpi/scan.c index 5e7e991..0d7d49f
-> > 100644
-> > --- a/drivers/acpi/scan.c
-> > +++ b/drivers/acpi/scan.c
-> > @@ -68,8 +68,8 @@ int acpi_scan_add_handler(struct acpi_scan_handler
-> *handler)
-> >   * e.g. on a device with hid:IBM0001 and cid:ACPI0001 you get:
-> >   * char *modalias: "acpi:IBM0001:ACPI0001"
-> >  */
-> > -static int create_modalias(struct acpi_device *acpi_dev, char *modalias,
-> > -			   int size)
-> > +int acpi_device_create_modalias(struct acpi_device *acpi_dev,
-> > +				char *modalias, int size)
-> >  {
-> >  	int len;
-> >  	int count;
-> > @@ -99,7 +99,7 @@ acpi_device_modalias_show(struct device *dev, struct
-> device_attribute *attr, cha
-> >  	int len;
-> >
-> >  	/* Device has no HID and no CID or string is >1024 */
-> > -	len = create_modalias(acpi_dev, buf, 1024);
-> > +	len = acpi_device_create_modalias(acpi_dev, buf, 1024);
-> >  	if (len <= 0)
-> >  		return 0;
-> >  	buf[len++] = '\n';
-> > @@ -567,7 +567,7 @@ static int acpi_device_uevent(struct device *dev,
-> > struct kobj_uevent_env *env)
-> >
-> >  	if (add_uevent_var(env, "MODALIAS="))
-> >  		return -ENOMEM;
-> > -	len = create_modalias(acpi_dev, &env->buf[env->buflen - 1],
-> > +	len = acpi_device_create_modalias(acpi_dev, &env->buf[env->buflen -
-> > +1],
-> >  			      sizeof(env->buf) - env->buflen);
-> >  	if (len >= (sizeof(env->buf) - env->buflen))
-> >  		return -ENOMEM;
-> > diff --git a/drivers/tty/serial/serial_core.c
-> > b/drivers/tty/serial/serial_core.c
-> > index a400002..17e104e 100644
-> > --- a/drivers/tty/serial/serial_core.c
-> > +++ b/drivers/tty/serial/serial_core.c
-> > @@ -2515,6 +2515,19 @@ static ssize_t
-> uart_get_attr_iomem_reg_shift(struct device *dev,
-> >  	return snprintf(buf, PAGE_SIZE, "%d\n", tmp.iomem_reg_shift);  }
-> >
-> > +static ssize_t uart_get_attr_peripheral_type(struct device *dev,
-> > +		struct device_attribute *attr, char *buf) {
-> > +	int len;
-> > +
-> > +	len = acpi_uart_get_peripheral_type(dev, buf, 1024);
-> > +	if (len > 0) {
-> > +		buf[len++] = '\n';
-> > +		return len;
-> > +	}
-> > +	return snprintf(buf, PAGE_SIZE, "uart\n");
 > 
-> What is the "uart" part for?  Isn't that kind of obvious?
-
-It is the default "peripheral_type" content.
-Before sending next revision out, let me ask a question here:
-Shall I leave this empty as my previous revisions?
-
-> > +}
+> I will try to guide your below where you can study which of the bugs. Mostly,
+> for each bug you need just one subdirectory to look into, the other are just
+> repeated the same bug under different kernel version or another patch.
+> However, Sarah for the xHCI dead port issue will need to compare by diff
+> two directories, one with the TI-based controller tests, the other with the
+> NEC-based tests. Especially there, I would do something like:
 > 
-> You are creating a new sysfs file, you must create a new Documentation/ABI
-> entry as well.
-
-OK.
-
-> > +
-> >  static DEVICE_ATTR(type, S_IRUSR | S_IRGRP, uart_get_attr_type,
-> > NULL);  static DEVICE_ATTR(line, S_IRUSR | S_IRGRP,
-> > uart_get_attr_line, NULL);  static DEVICE_ATTR(port, S_IRUSR |
-> > S_IRGRP, uart_get_attr_port, NULL); @@ -2528,6 +2541,7 @@ static
-> > DEVICE_ATTR(custom_divisor, S_IRUSR | S_IRGRP,
-> > uart_get_attr_custom_divis  static DEVICE_ATTR(io_type, S_IRUSR |
-> > S_IRGRP, uart_get_attr_io_type, NULL);  static DEVICE_ATTR(iomem_base,
-> > S_IRUSR | S_IRGRP, uart_get_attr_iomem_base, NULL);  static
-> > DEVICE_ATTR(iomem_reg_shift, S_IRUSR | S_IRGRP,
-> > uart_get_attr_iomem_reg_shift, NULL);
-> > +static DEVICE_ATTR(peripheral_type, S_IRUSR | S_IRGRP,
-> > +uart_get_attr_peripheral_type, NULL);
-> >
-> >  static struct attribute *tty_dev_attrs[] = {
-> >  	&dev_attr_type.attr,
-> > @@ -2543,6 +2557,7 @@ static struct attribute *tty_dev_attrs[] = {
-> >  	&dev_attr_io_type.attr,
-> >  	&dev_attr_iomem_base.attr,
-> >  	&dev_attr_iomem_reg_shift.attr,
-> > +	&dev_attr_peripheral_type.attr,
-> >  	NULL,
-> >  	};
-> >
-> > diff --git a/include/linux/tty.h b/include/linux/tty.h index
-> > 367a9df..723fdd01 100644
-> > --- a/include/linux/tty.h
-> > +++ b/include/linux/tty.h
-> > @@ -692,4 +692,15 @@ do {									\
-> >  } while (0)
-> >
-> >
-> > +#ifdef CONFIG_ACPI_UART
-> > +int acpi_uart_get_peripheral_type(struct device *dev,
-> > +	char *buf, size_t size);
-> > +#else
-> > +static inline int acpi_uart_get_peripheral_type(struct device *dev,
-> > +	char *buf, size_t size)
-> > +{
-> > +	return -ENODEV;
-> > +}
-> > +#endif
+> cd *TI-based; for f in dmesg*; do cut -c 15- $f > /tmp/TI/$f; done
+> cd ../*NEC-based; for f in dmesg*; do cut -c 15- $f > /tmp/NEC/$f; done
 > 
-> I see you never tested this code without the configuration option enabled :(
+> Then it should be easier to poke through file captured at the same test step,
+> like:
 > 
-> {sigh}
+> diff -u -w /tmp/TI/dmesg_initial__mouse_attached__unplugged__reattached_but_port_dead.txt \
+> /tmp/NEC/dmesg_initial__mouse_attached__detached__reattached.txt
+> 
+> 
+> 
+> Other than that, just diff pairs of files with each other, like:
+> 
+> diff -u -w lspci_vvv_initial.txt lspci_vvv_initial__mouse_attached.txt
+> 
+> 
+> Sorry that I sometimes used only a single underscore instead of double underscores
+> to separate the test steps from each other in the filename.
+> 
+> 
+> Martin Mokrejs wrote:
+> > [ +linux-pci and Yinghai as they suffered already those many emails on individual
+> >  threads so one overviewing email hopefully won't harm] ;-)
+> > 
+> > Martin Mokrejs wrote:
+> >>
+> >>
+> >> Bjorn Helgaas wrote:
+> >>> On Tue, Apr 2, 2013 at 9:02 AM, Martin Mokrejs
+> >>> <mmokrejs@fold.natur.cuni.cz> wrote:
+> >>>> Hi Ying,
+> >>>>
+> >>>> huang ying wrote:
+> >>>
+> >>>>> And please give me the full dmesg for boot and incremental dmesg for
+> >>>>> operations.
+> >>>>
+> >>>>
+> >>>> The incremental bits here, the full dmesg will send only directly to your email, due to its size.
+> >>>
+> >>> Is there a bugzilla for this issue?  Please attach the complete dmesg
+> >>> there or somewhere similar so we can all benefit.
+> >>
+> >> I changed my mind. I am attaching the dmesg here but omitting linux-acpi
+> >> list. After I hear a proposal from Rafel/Bjorn I will open separate bugs.
+> >> I thought that the threads I started so far were enough but yes, dmesg
+> >> files don't pass through list filters so I should move that to bugzilla.
+> >>
+> >> so far my view of the the bugs was:
+> >>
+> >> 1) acpiphp hotplug broken due to upstream pcieport 1c.7 PME# enabled
+> >>   (eSATA-based card)
+> > 
+> > Fixed by Ying Huang port_dbg.patch applied over 3.8.5 (fixes acpiphp hotplug
+> > of eSATA and Firewire cards, NOT the hotplug of a NEC-based USB3 card -> hence
+> > the bug 4) below). Now I can continue using laptop-mode-tools.
+> 
+> 20130402/3.8.5-ying_port-dbg__with_laptop-mode-tools_eSATA_testing
+> 20130402/3.8.3-vanilla__with_laptop-mode-tools (with some comments in
+>                                                 COMMENTS file)
 
-Yes, I rely too much on an internal test system as it can do this for me automatically.
-OK, I'll take care of this next time.
-I've a plan and a TODO to offer a complete test framework for this as I've done 10 years ago.
-Hope you will like it.
+Thanks for your testing!
 
-Thanks and best regards
--Lv
+> >> 2) xHCI dead due to to its suspend - 3.8 series and above
+> > 
+> > Not fixed by port_dbg.patch applied over 3.8.5. Interestingly, a NEC-based
+> > XHCI card *in an express card slot* does not suffer this suspend issue.
+> > Although it is being put into suspend if a device is unplugged.
+> 
+> 20130402/3.8.5-ying_port-dbg__with_laptop-mode-tools_xHCI_test_TI-based
+> 20130402/3.8.5-ying_port-dbg__with_laptop-mode-tools_xHCI_test_NEC-based
+> 
+> Same thing but yet without the port_dbg.patch:
+> 20130402/3.9-rc5__with_2368081__with-latop-mode-tools_xhci_testing/
+
+It appears that TI xHCI dead port issue will present even if the PCIe
+port will never go suspended.  So I think this bug is not related to
+PCIe port runtime PM but related to USB xHCI.
+
+Do you agree Sarah?
+
+[snip]
+
+Best Regards,
+Huang Ying
+
 
