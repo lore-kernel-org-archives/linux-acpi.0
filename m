@@ -1,81 +1,70 @@
 From: Tejun Heo <tj@kernel.org>
-Subject: Re: [PATCH v2 03/20] x86, ACPI, mm: Kill max_low_pfn_mapped
-Date: Thu, 4 Apr 2013 10:36:59 -0700
-Message-ID: <20130404173626.GQ9425@htj.dyndns.org>
+Subject: Re: [PATCH v2 04/20] x86, ACPI: Increase override tables number limit
+Date: Thu, 4 Apr 2013 10:50:17 -0700
+Message-ID: <20130404175017.GS9425@htj.dyndns.org>
 References: <1362897887-30808-1-git-send-email-yinghai@kernel.org>
- <1362897887-30808-4-git-send-email-yinghai@kernel.org>
+ <1362897887-30808-5-git-send-email-yinghai@kernel.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-pd0-f173.google.com ([209.85.192.173]:59360 "EHLO
-	mail-pd0-f173.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1763588Ab3DDRhG (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 4 Apr 2013 13:37:06 -0400
+Received: from mail-pa0-f43.google.com ([209.85.220.43]:53168 "EHLO
+	mail-pa0-f43.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1764142Ab3DDRuW (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 4 Apr 2013 13:50:22 -0400
 Content-Disposition: inline
-In-Reply-To: <1362897887-30808-4-git-send-email-yinghai@kernel.org>
+In-Reply-To: <1362897887-30808-5-git-send-email-yinghai@kernel.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: Yinghai Lu <yinghai@kernel.org>
-Cc: Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@elte.hu>, "H. Peter Anvin" <hpa@zytor.com>, Andrew Morton <akpm@linux-foundation.org>, Thomas Renninger <trenn@suse.de>, Tang Chen <tangchen@cn.fujitsu.com>, linux-kernel@vger.kernel.org, "Rafael J. Wysocki" <rjw@sisk.pl>, Daniel Vetter <daniel.vetter@ffwll.ch>, David Airlie <airlied@linux.ie>, Jacob Shin <jacob.shin@amd.com>, linux-acpi@vger.kernel.org, dri-devel@lists.freedesktop.org
+Cc: Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@elte.hu>, "H. Peter Anvin" <hpa@zytor.com>, Andrew Morton <akpm@linux-foundation.org>, Thomas Renninger <trenn@suse.de>, Tang Chen <tangchen@cn.fujitsu.com>, linux-kernel@vger.kernel.org, "Rafael J. Wysocki" <rjw@sisk.pl>, linux-acpi@vger.kernel.org
 
-Hello,
+On Sat, Mar 09, 2013 at 10:44:31PM -0800, Yinghai Lu wrote:
+> Current acpi tables in initrd is limited to 10, that is too small.
+> 64 should be good enough as we have 35 sigs and could have several
+> SSDT.
+> 
+> Two problems in current code prevent us from increasing limit:
+> 1. that cpio file info array is put in stack, as every element is 32
+>    bytes, could run out of stack if we have that array size to 64.
+>    We can move it out from stack, and make it as global and put it in
+>    __initdata section.
+> 2. early_ioremap only can remap 256k one time. Current code is mapping
+>    10 tables one time. If we increase that limit, whole size could be
+>    more than 256k, early_ioremap will fail with that.
+>    We can map table one by one during copying, instead of mapping
+>    all them one time.
+> 
+> -v2: According to tj, split it out to separated patch, also
+>      rename array name to acpi_initrd_files.
+> 
+> Signed-off-by: Yinghai <yinghai@kernel.org>
+> Cc: Rafael J. Wysocki <rjw@sisk.pl>
+> Cc: linux-acpi@vger.kernel.org
 
-On Sat, Mar 09, 2013 at 10:44:30PM -0800, Yinghai Lu wrote:
-> Now we have arch_pfn_mapped array, and max_low_pfn_mapped should not
-> be used anymore.
-> 
-> User should use arch_pfn_mapped or just 1UL<<(32-PAGE_SHIFT) instead.
-> 
-> Only user is ACPI_INITRD_TABLE_OVERRIDE, and it should not use that,
-> as later accessing is using early_ioremap(). Change to try to 4G below
-> and then 4G above.
-...
-> diff --git a/drivers/acpi/osl.c b/drivers/acpi/osl.c
-> index 586e7e9..c08cdb6 100644
-> --- a/drivers/acpi/osl.c
-> +++ b/drivers/acpi/osl.c
-> @@ -624,9 +624,13 @@ void __init acpi_initrd_override(void *data, size_t size)
->  	if (table_nr == 0)
->  		return;
+Acked-by: Tejun Heo <tj@kernel.org>
+
+> @@ -648,14 +647,14 @@ void __init acpi_initrd_override(void *data, size_t size)
+>  	memblock_reserve(acpi_tables_addr, acpi_tables_addr + all_tables_size);
+>  	arch_reserve_mem_area(acpi_tables_addr, all_tables_size);
 >  
-> -	acpi_tables_addr =
-> -		memblock_find_in_range(0, max_low_pfn_mapped << PAGE_SHIFT,
-> -				       all_tables_size, PAGE_SIZE);
-> +	/* under 4G at first, then above 4G */
-> +	acpi_tables_addr = memblock_find_in_range(0, (1ULL<<32) - 1,
-> +					all_tables_size, PAGE_SIZE);
-> +	if (!acpi_tables_addr)
-> +		acpi_tables_addr = memblock_find_in_range(0,
-> +					~(phys_addr_t)0,
-> +					all_tables_size, PAGE_SIZE);
+> -	p = early_ioremap(acpi_tables_addr, all_tables_size);
+> -
 
-So, it's changing the allocation from <=4G to <=4G first and then >4G.
-The only explanation given is "as later accessing is using
-early_ioremap()", but I can't see why that can be a reason for that.
-early_ioremap() doesn't care whether the given physaddr is under 4G or
-not, it unconditionally maps it into fixmap, so whether the allocated
-address is below or above 4G doesn't make any difference.
+It'd be nice to have a brief comment here explaining why we're mapping
+each table separately.
 
-Changing the allowed range of the allocation should be a separate
-patch.  It has some chance of its own breakage and the change itself
-isn't really related to this one.
-
-Please try to elaborate the reasoning behind "why", so that readers of
-the description don't have to deduce (oh well, guess) your intentions
-behind the changes.  As much as it would help the readers, it'd also
-help you even more as you would have had to explicitly write something
-like "the table is accessed with early_ioremap() so the address
-doesn't need to be restricted under 4G; however, to avoid unnecessary
-remappings, first try <= 4G and then > 4G."  Then, you would be
-compelled to check whether the statement you explicitly wrote is true,
-which isn't in this case and you would also realize that the change
-isn't trivial and doesn't really belong with this patch.  By not doing
-the due diligence, you're offloading what you should have done to
-others, which isn't very nice.
-
-I think the descriptions are better in this posting than the last time
-but it's still lacking, so, please putfff more effort into describing
-the changes and reasoning behind them.
+>  	for (no = 0; no < table_nr; no++) {
+> -		memcpy(p + total_offset, early_initrd_files[no].data,
+> -		       early_initrd_files[no].size);
+> -		total_offset += early_initrd_files[no].size;
+> +		phys_addr_t size = acpi_initrd_files[no].size;
+> +
+> +		p = early_ioremap(acpi_tables_addr + total_offset, size);
+> +		memcpy(p, acpi_initrd_files[no].data, size);
+> +		early_iounmap(p, size);
+> +		total_offset += size;
+>  	}
+> -	early_iounmap(p, all_tables_size);
 
 Thanks.
 
