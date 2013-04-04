@@ -1,56 +1,94 @@
-From: Aaron Lu <aaron.lu@intel.com>
-Subject: [RFD] Let acpi video driver handle its dmi table
-Date: Thu, 04 Apr 2013 19:37:37 +0800
-Message-ID: <515D6601.4070509@intel.com>
+From: Aaron Lu <aaron.lwe@gmail.com>
+Subject: Re: [PATCH] ACPI: Disable Windows 8 compatibility for some Lenovo
+ ThinkPads
+Date: Thu, 04 Apr 2013 19:39:58 +0800
+Message-ID: <515D668E.20102@gmail.com>
+References: <1360599681-24781-1-git-send-email-seth.forshee@canonical.com> <5158E8A0.3050904@intel.com> <20130401130340.GA3269@thinkpad-t410> <515AA007.1050305@intel.com> <20130402130000.GA12381@thinkpad-t410> <515BD48B.7000901@bjencks.net> <515BD9F2.4010001@intel.com> <20130403134515.GA16939@thinkpad-t410>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-Return-path: <platform-driver-x86-owner@vger.kernel.org>
-Sender: platform-driver-x86-owner@vger.kernel.org
-To: Corentin Chary <corentin.chary@gmail.com>, Lee Chun-Yi <jlee@novell.com>, "Rafael J. Wysocki" <rjw@sisk.pl>, Matthew Garrett <matthew.garrett@nebula.com>, Seth Forshee <seth.forshee@canonical.com>, Zhang Rui <rui.zhang@intel.com>
-Cc: ACPI Devel Mailing List <linux-acpi@vger.kernel.org>, platform-driver-x86@vger.kernel.org
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-pd0-f173.google.com ([209.85.192.173]:61786 "EHLO
+	mail-pd0-f173.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1759035Ab3DDLit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 4 Apr 2013 07:38:49 -0400
+Received: by mail-pd0-f173.google.com with SMTP id v14so1158805pde.32
+        for <linux-acpi@vger.kernel.org>; Thu, 04 Apr 2013 04:38:49 -0700 (PDT)
+In-Reply-To: <20130403134515.GA16939@thinkpad-t410>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Seth Forshee <seth.forshee@canonical.com>
+Cc: Aaron Lu <aaron.lu@intel.com>, Ben Jencks <ben@bjencks.net>, Len Brown <lenb@kernel.org>, "Rafael J. Wysocki" <rjw@sisk.pl>, linux-acpi@vger.kernel.org, joeyli <jlee@suse.com>, Matthew Garrett <mjg59@srcf.ucam.org>, Danny Baumann <dannybaumann@web.de>
 
-Hi,
+On 04/03/2013 09:45 PM, Seth Forshee wrote:
+> On Wed, Apr 03, 2013 at 03:27:46PM +0800, Aaron Lu wrote:
+>> On 04/03/2013 03:04 PM, Ben Jencks wrote:
+>>> On 04/02/2013 09:00 AM, Seth Forshee wrote:
+>>>> On Tue, Apr 02, 2013 at 05:08:23PM +0800, Aaron Lu wrote:
+>>>>> On 04/01/2013 09:03 PM, Seth Forshee wrote:
+>>>>>> On Mon, Apr 01, 2013 at 09:53:36AM +0800, Aaron Lu wrote:
+>>>>>>> On 02/12/2013 12:21 AM, Seth Forshee wrote:
+>>>>>>>> The AML implementation for brightness control on several ThinkPads
+>>>>>>>> contains a workaround to meet a Windows 8 requirement of 101 brightness
+>>>>>>>> levels [1]. The implementation is flawed, as only 16 of the brighness
+>>>>>>>> values reported by _BCL affect a change in brightness. _BCM silently
+>>>>>>>> discards the rest of the values. Disabling Windows 8 compatibility on
+>>>>>>>> these machines reverts them to the old behavior, making _BCL only report
+>>>>>>>> the 16 brightness levels which actually work. Add a quirk to do this
+>>>>>>>> along with a dmi callback to disable Win8 compatibility.
+>>>>>>>
+>>>>>>> If we disable the _BQC(i.e. set cap._BQC=0) for these systems, will the
+>>>>>>> problem go away? If so, I think perhaps we can put these systems into a
+>>>>>>> _BQC quirk table and set cap._BQC=0 for them.
+>>>>>>
+>>>>>> That helps a little, but we're still left with only 16 of the 101
+>>>>>> brightness levels causing any change in brightness. The firmware isn't
+>>>>>> rounding the "bad" values or anything like that; it just silently
+>>>>>> ignores them.
+>>>>>
+>>>>> I really wondered, how Windows handled this, it should have the same
+>>>>> problem, unless they are not using the acpi video interface?
+>>>>
+>>>> I can only guess.
+>>>>
+>>>> I think I remember reading that Windows 8 does smooth backlight
+>>>> transitions, so it may well hit every intermediate brightness value.
+>>>> Lenovo could also be supplying a driver which rounds values to the
+>>>> nearest working value or uses some other interface or something else.
+>>>
+>>> Just checked; Windows 8 doesn't use the ACPI interface. It seems to have
+>>> access to at least 100 distinct brightness levels.
+>>>
+>>> I'd guess it's using the same interface as
+>>> /sys/class/backlight/intel_backlight, which on my system has a
+>>> max_brightness of 4438 and all the values seem to be actually distinct,
+>>> if not necessarily discernible to the naked eye.
+>>
+>> Thanks for the information.
+>>
+>> If all these affected systems have gpu driver's interface, I think we
+>> can simply add them to the video_detect_dmi_table so that no acpi
+>> backlight interface will be created for them, and gpu's interface will
+>> be used by user space and hotkey processing can still be handled by acpi
+>> video driver.
+> 
+> I've got two machines here with discrete graphics, one with nvidia and
+> one with AMD (neither one is a Lenovo). With the nvidia machine neither
+> nouveau nor the proprietary driver registers a backlight device. On the
+> AMD machine radeon does register a backlight but the proprietary driver
+> does not. So I think quirking away the acpi_video backlight interface
+> has potential to leave some users without any backlight control at all.
 
-Recently I saw two bugs about acer system:
-https://bugzilla.kernel.org/show_bug.cgi?id=35622
-https://bugzilla.kernel.org/show_bug.cgi?id=51051
-The backlight is handled by gpu driver's backlight interface, and hotkey
-is handled by acpi video driver. The problem is, hotkey notification
-does not function on these systems now.
-
-The reason is, acer-wmi driver will unload acpi video driver when it
-found these systems are in its video_vendor_dmi_table, which is used to
-keep all the systems that are known having buggy acpi video interface
-implementations.
-
-So we have a problem here, though acpi video driver can't handle
-backlight level change, it is still required to handle hotkey
-notificaions, and thus unload the driver is not desired.
-
-One way to solve this problem is, to have acpi video driver deal with
-these broken systems that it can not handle by itself: not create
-backlight interface while still keeping the notification handler there.
-To achieve this, we need to move those systems listed in
-video_vendor_dmi_table to video_detect_dmi_table, and we are done. And
-any code to touch acpi video driver in acer-wmi driver can be removed,
-also no need to add SELECT ACPI_VIDEO to CONFIG_ACER_WMI. The downside
-is, if other platform vendor drivers all follow this rule, we will end
-up with a big video_detect_dmi_table.
-
-Another way is to add a new interface, something like
-acpi_video_unregister_backlight, to let platform drivers call. And this
-new interface will only unregister the backlight device acpi video
-driver has already created and nothing more. So the notification handler
-of acpi video driver will stay, solving the problem. The downside is,
-it's kind of odd to let another module solve a problem for acpi video
-module. In this case, the vendor driver's whole point is to unregister
-acpi video driver's backlight interface, while it does't handle backlight
-nor hotkey. So it doesn't seem to be required in this game.
-
-Please feel free to share your opinion, which one you prefer or some new
-idea perhaps.
+Then let's try to work around this problem in acpi video driver.
 
 Thanks,
 Aaron
+
+> 
+> Seth
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
+
