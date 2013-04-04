@@ -1,36 +1,23 @@
-From: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Subject: Re: [PATCH v6] ACPI / serial: Add peripheral PnP IDs enumeration
- support
-Date: Thu, 4 Apr 2013 11:23:35 -0700
-Message-ID: <20130404182335.GC24711@kroah.com>
-References: <cover.1354505471.git.lv.zheng@intel.com>
- <eb535db4b040bbe8712a975ed70cb3899b5b0fea.1364954385.git.lv.zheng@intel.com>
- <20130403161431.GB21383@kroah.com>
- <1AE640813FDE7649BE1B193DEA596E88015CC891@SHSMSX101.ccr.corp.intel.com>
+From: Bjorn Helgaas <bhelgaas@google.com>
+Subject: Re: [PATCH 0/4] PCI/PM: D3cold support for system suspend
+Date: Thu, 4 Apr 2013 12:26:52 -0600
+Message-ID: <CAErSpo6m=3txSUH5Bwm7Y7K=25UWA4-kgPs_fs-Pa8jkP5WRDA@mail.gmail.com>
+References: <1359434058-15918-1-git-send-email-ying.huang@intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-serial-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <1AE640813FDE7649BE1B193DEA596E88015CC891@SHSMSX101.ccr.corp.intel.com>
-Sender: linux-serial-owner@vger.kernel.org
-To: "Zheng, Lv" <lv.zheng@intel.com>
-Cc: "Wysocki, Rafael J" <rafael.j.wysocki@intel.com>, "Brown, Len" <len.brown@intel.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-serial@vger.kernel.org" <linux-serial@vger.kernel.org>, "Zhang, Rui" <rui.zhang@intel.com>
+Content-Type: text/plain; charset=ISO-8859-1
+Return-path: <linux-pm-owner@vger.kernel.org>
+In-Reply-To: <1359434058-15918-1-git-send-email-ying.huang@intel.com>
+Sender: linux-pm-owner@vger.kernel.org
+To: Huang Ying <ying.huang@intel.com>
+Cc: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>, Linux PM list <linux-pm@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "Rafael J. Wysocki" <rjw@sisk.pl>
 List-Id: linux-acpi@vger.kernel.org
 
-On Thu, Apr 04, 2013 at 03:43:43PM +0000, Zheng, Lv wrote:
-> Hi,
-> 
-> > > > +	return snprintf(buf, PAGE_SIZE, "uart\n");
-> > >
-> > > What is the "uart" part for?  Isn't that kind of obvious?
-> > 
-> > It is the default "peripheral_type" content.
-> > Before sending next revision out, let me ask a question here:
-> > Shall I leave this empty as my previous revisions?
-> 
-> Hmm, if this is empty by default then the udev rules may require additional handlings.
-> Can I use "NONE" here for the user space users?
+On Mon, Jan 28, 2013 at 9:34 PM, Huang Ying <ying.huang@intel.com> wrote:
+> [PATCH 1/4] PCI/ACPI: Add target state as parameter to pci_platform_pm_ops->run_wake
+> [PATCH 2/4] PCI: Rename pci_dev->runtime_d3cold to pci_dev->set_d3cold
+> [PATCH 3/4] PCI/PM: Set pci_dev->set_d3cold in pci_set_power_state
+> [PATCH 4/4] PCI/PM: Enable D3cold support for system suspend
 
-No, just don't create the sysfs file at all for that type of device.
+Do we still need these?
 
-greg k-h
+What problem do they solve?  Or what new functionality do they add?
