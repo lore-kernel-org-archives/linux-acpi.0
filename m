@@ -1,41 +1,38 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: [PATCH 0/4] PCI/PM: D3cold support for system suspend
-Date: Thu, 04 Apr 2013 22:18:04 +0200
-Message-ID: <40154903.vXKcu58qDG@vostro.rjw.lan>
-References: <1359434058-15918-1-git-send-email-ying.huang@intel.com> <CAErSpo6m=3txSUH5Bwm7Y7K=25UWA4-kgPs_fs-Pa8jkP5WRDA@mail.gmail.com>
+From: Yinghai Lu <yinghai@kernel.org>
+Subject: Re: [PATCH v2 07/20] x86, ACPI: Make acpi_initrd_override_find work
+ with 32bit flat mode
+Date: Thu, 4 Apr 2013 13:22:57 -0700
+Message-ID: <CAE9FiQUXULou9itoDDZzDFY8gu8p5j1iMfX7EGF_KMgpb6hL+Q@mail.gmail.com>
+References: <1362897887-30808-1-git-send-email-yinghai@kernel.org>
+	<1362897887-30808-8-git-send-email-yinghai@kernel.org>
+	<20130404183555.GW9425@htj.dyndns.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7Bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from hydra.sisk.pl ([212.160.235.94]:51420 "EHLO hydra.sisk.pl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1764182Ab3DDUK0 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 4 Apr 2013 16:10:26 -0400
-In-Reply-To: <CAErSpo6m=3txSUH5Bwm7Y7K=25UWA4-kgPs_fs-Pa8jkP5WRDA@mail.gmail.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20130404183555.GW9425@htj.dyndns.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Tejun Heo <tj@kernel.org>
+Cc: Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@elte.hu>, "H. Peter Anvin" <hpa@zytor.com>, Andrew Morton <akpm@linux-foundation.org>, Thomas Renninger <trenn@suse.de>, Tang Chen <tangchen@cn.fujitsu.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Pekka Enberg <penberg@kernel.org>, Jacob Shin <jacob.shin@amd.com>, "Rafael J. Wysocki" <rjw@sisk.pl>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
-To: Bjorn Helgaas <bhelgaas@google.com>
-Cc: Huang Ying <ying.huang@intel.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>, Linux PM list <linux-pm@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
 
-On Thursday, April 04, 2013 12:26:52 PM Bjorn Helgaas wrote:
-> On Mon, Jan 28, 2013 at 9:34 PM, Huang Ying <ying.huang@intel.com> wrote:
-> > [PATCH 1/4] PCI/ACPI: Add target state as parameter to pci_platform_pm_ops->run_wake
-> > [PATCH 2/4] PCI: Rename pci_dev->runtime_d3cold to pci_dev->set_d3cold
-> > [PATCH 3/4] PCI/PM: Set pci_dev->set_d3cold in pci_set_power_state
-> > [PATCH 4/4] PCI/PM: Enable D3cold support for system suspend
-> 
-> Do we still need these?
-> 
-> What problem do they solve?  Or what new functionality do they add?
+On Thu, Apr 4, 2013 at 11:35 AM, Tejun Heo <tj@kernel.org> wrote:
+>
+> It'd be nice if the error message can be stored somewhere and then
+> printed out after the system is in proper address mode if that isn't
+> too complex to achieve.  If it gets too messy, no need to bother.
 
-They were supposed to allow PCI devices to be put into D3cold (via ACPI)
-during system suspend, but I think it's better not to do that at this
-point.
+Maybe not necessary. As later during coping, another print out
+is added there for successful one.
 
-Thanks,
-Rafael
+@@ -670,6 +700,9 @@ void __init acpi_initrd_override_copy(vo
+                        break;
+                q = early_ioremap(addr, size);
+                p = early_ioremap(acpi_tables_addr + total_offset, size);
++               pr_info("%4.4s ACPI table found in initrd
+[%#010llx-%#010llx]\n",
++                               ((struct acpi_table_header *)q)->signature,
++                               (u64)addr, (u64)(addr + size - 1));
 
+Thanks
 
--- 
-I speak only for myself.
-Rafael J. Wysocki, Intel Open Source Technology Center.
+Yinghai
