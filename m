@@ -1,99 +1,101 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: [GIT PULL] ACPI and power management fixes for v3.9-rc6
-Date: Thu, 04 Apr 2013 23:13:17 +0200
-Message-ID: <1903330.VdMMbXjxYW@vostro.rjw.lan>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7Bit
-Return-path: <linux-pm-owner@vger.kernel.org>
-Sender: linux-pm-owner@vger.kernel.org
-To: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>, Linux PM list <linux-pm@vger.kernel.org>
+From: Yinghai Lu <yinghai@kernel.org>
+Subject: [PATCH v3 03/22] x86, ACPI, mm: Kill max_low_pfn_mapped
+Date: Thu,  4 Apr 2013 16:46:07 -0700
+Message-ID: <1365119186-23487-4-git-send-email-yinghai@kernel.org>
+References: <1365119186-23487-1-git-send-email-yinghai@kernel.org>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1365119186-23487-1-git-send-email-yinghai@kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@elte.hu>, "H. Peter Anvin" <hpa@zytor.com>, Andrew Morton <akpm@linux-foundation.org>, Tejun Heo <tj@kernel.org>, Thomas Renninger <trenn@suse.de>, Tang Chen <tangchen@cn.fujitsu.com>
+Cc: linux-kernel@vger.kernel.org, Yinghai Lu <yinghai@kernel.org>, "Rafael J. Wysocki" <rjw@sisk.pl>, Jacob Shin <jacob.shin@amd.com>, Pekka Enberg <penberg@kernel.org>, linux-acpi@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hi Linus,
+Now we have arch_pfn_mapped array, and max_low_pfn_mapped should not
+be used anymore.
 
-Please pull from the git repository at
+User should use arch_pfn_mapped or just 1UL<<(32-PAGE_SHIFT) instead.
 
-  git://git.kernel.org/pub/scm/linux/kernel/git/rafael/linux-pm.git pm+acpi-3.9-rc6
+Only user is ACPI_INITRD_TABLE_OVERRIDE, and it should not use that,
+as later accessing is using early_ioremap(). We could change to use
+1U<<(32_PAGE_SHIFT) with it, aka under 4G.
 
-to receive ACPI and power management fixes for v3.9-rc6 with top-most commit
-6cb437acd93a01fdbd6bac9c78ac8159c644e576
+-v2: Leave alone max_low_pfn_mapped in i915 code according to tj.
 
-  Merge branch 'acpi-fixes' into fixes
+Suggested-by: H. Peter Anvin <hpa@zytor.com>
+Signed-off-by: Yinghai Lu <yinghai@kernel.org>
+Cc: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: Jacob Shin <jacob.shin@amd.com>
+Cc: Pekka Enberg <penberg@kernel.org>
+Cc: linux-acpi@vger.kernel.org
+---
+ arch/x86/include/asm/page_types.h | 1 -
+ arch/x86/kernel/setup.c           | 4 +---
+ arch/x86/mm/init.c                | 4 ----
+ drivers/acpi/osl.c                | 6 +++---
+ 4 files changed, 4 insertions(+), 11 deletions(-)
 
-on top of commit 07961ac7c0ee8b546658717034fe692fd12eefa9
-
-  Linux 3.9-rc5
-
-Included are:
-
-- Revert of a recent cpuidle change that caused Nehalem machines
-  to hang on boot from Alex Shi.
-
-- USB power management fix addressing a crash in the port device
-  object's release routine.
-
-- Device PM QoS fix for a potential deadlock related to sysfs
-  interface.
-
-- Fix for a cpufreq crash when the /cpus Device Tree node is missing.
-  From Paolo Pisati.
-
-- Fix for a build issue on ia64 related to the fact that the
-  Boot Graphics Resource Table (BGRT) is only useful on x86 with
-  EFI.  From Tony Luck.
-
-- Two fixes for ACPI handles being set incorrectly for device
-  objects that don't correspond to any ACPI namespace nodes in
-  the I2C and SPI subsystems.
-
-- Fix for compiler warnings related to CONFIG_PM_DEVFREQ being
-  unset from Rajagopal Venkat.
-
-- Fix for a symbol definition typo in cpufreq_governor.h from
-  Borislav Petkov.
-
-Thanks!
-
----------------
-
-Alex Shi (1):
-      cpuidle / ACPI: recover percpu ACPI processor cstate
-
-Borislav Petkov (1):
-      cpufreq: Correct header guards typo
-
-Paolo Pisati (1):
-      cpufreq: check OF node /cpus presence before dereferencing it
-
-Rafael J. Wysocki (4):
-      USB / PM: Don't try to hide PM QoS flags from usb_port_device_release()
-      PM / QoS: Avoid possible deadlock related to sysfs access
-      ACPI / SPI: Use parent's ACPI_HANDLE() in acpi_register_spi_devices()
-      ACPI / I2C: Use parent's ACPI_HANDLE() in acpi_i2c_register_devices()
-
-Rajagopal Venkat (1):
-      PM / devfreq: Fix compiler warnings for CONFIG_PM_DEVFREQ unset
-
-Tony Luck (1):
-      ACPI / BGRT: Don't let users configure BGRT on non X86 systems
-
----------------
-
- drivers/acpi/Kconfig                        |    2 +-
- drivers/acpi/acpi_i2c.c                     |    2 +-
- drivers/acpi/processor_idle.c               |   13 ++++----
- drivers/base/power/qos.c                    |   60 +++++++++++++++++++++++++++--------
- drivers/cpufreq/cpufreq-cpu0.c              |   10 ++++--
- drivers/cpufreq/cpufreq_governor.h          |    6 ++--
- drivers/i2c/busses/i2c-designware-platdrv.c |    1 -
- drivers/spi/spi-pxa2xx.c                    |    1 -
- drivers/spi/spi.c                           |    2 +-
- drivers/usb/core/port.c                     |    1 -
- include/linux/devfreq.h                     |   16 +++++-----
- 11 files changed, 76 insertions(+), 38 deletions(-)
-
+diff --git a/arch/x86/include/asm/page_types.h b/arch/x86/include/asm/page_types.h
+index 54c9787..b012b82 100644
+--- a/arch/x86/include/asm/page_types.h
++++ b/arch/x86/include/asm/page_types.h
+@@ -43,7 +43,6 @@
+ 
+ extern int devmem_is_allowed(unsigned long pagenr);
+ 
+-extern unsigned long max_low_pfn_mapped;
+ extern unsigned long max_pfn_mapped;
+ 
+ static inline phys_addr_t get_max_mapped(void)
+diff --git a/arch/x86/kernel/setup.c b/arch/x86/kernel/setup.c
+index 1629577..e75c6e6 100644
+--- a/arch/x86/kernel/setup.c
++++ b/arch/x86/kernel/setup.c
+@@ -113,13 +113,11 @@
+ #include <asm/prom.h>
+ 
+ /*
+- * max_low_pfn_mapped: highest direct mapped pfn under 4GB
+- * max_pfn_mapped:     highest direct mapped pfn over 4GB
++ * max_pfn_mapped:     highest direct mapped pfn
+  *
+  * The direct mapping only covers E820_RAM regions, so the ranges and gaps are
+  * represented by pfn_mapped
+  */
+-unsigned long max_low_pfn_mapped;
+ unsigned long max_pfn_mapped;
+ 
+ #ifdef CONFIG_DMI
+diff --git a/arch/x86/mm/init.c b/arch/x86/mm/init.c
+index 59b7fc4..abcc241 100644
+--- a/arch/x86/mm/init.c
++++ b/arch/x86/mm/init.c
+@@ -313,10 +313,6 @@ static void add_pfn_range_mapped(unsigned long start_pfn, unsigned long end_pfn)
+ 	nr_pfn_mapped = clean_sort_range(pfn_mapped, E820_X_MAX);
+ 
+ 	max_pfn_mapped = max(max_pfn_mapped, end_pfn);
+-
+-	if (start_pfn < (1UL<<(32-PAGE_SHIFT)))
+-		max_low_pfn_mapped = max(max_low_pfn_mapped,
+-					 min(end_pfn, 1UL<<(32-PAGE_SHIFT)));
+ }
+ 
+ bool pfn_range_is_mapped(unsigned long start_pfn, unsigned long end_pfn)
+diff --git a/drivers/acpi/osl.c b/drivers/acpi/osl.c
+index 586e7e9..313d14d 100644
+--- a/drivers/acpi/osl.c
++++ b/drivers/acpi/osl.c
+@@ -624,9 +624,9 @@ void __init acpi_initrd_override(void *data, size_t size)
+ 	if (table_nr == 0)
+ 		return;
+ 
+-	acpi_tables_addr =
+-		memblock_find_in_range(0, max_low_pfn_mapped << PAGE_SHIFT,
+-				       all_tables_size, PAGE_SIZE);
++	/* under 4G at first, then above 4G */
++	acpi_tables_addr = memblock_find_in_range(0, (1ULL<<32) - 1,
++					all_tables_size, PAGE_SIZE);
+ 	if (!acpi_tables_addr) {
+ 		WARN_ON(1);
+ 		return;
 -- 
-I speak only for myself.
-Rafael J. Wysocki, Intel Open Source Technology Center.
+1.8.1.4
