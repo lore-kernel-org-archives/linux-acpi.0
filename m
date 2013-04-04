@@ -1,156 +1,56 @@
-From: Huang Ying <ying.huang@intel.com>
-Subject: Re: [PATCH] PCI / ACPI: Always resume devices on ACPI wakeup
- notifications
-Date: Thu, 04 Apr 2013 19:30:19 +0800
-Message-ID: <1365075019.8901.9.camel@yhuang-mobile.sh.intel.com>
-References: <2282655.IicBMMa6jN@vostro.rjw.lan>
-	 <CAErSpo7QXe1-R5_jXCcc3g_J-_HXqO3V12nNB=Z6eCAt-vwKfA@mail.gmail.com>
-	 <51548C9E.9090703@fold.natur.cuni.cz> <2990024.LMTIBUbM3d@vostro.rjw.lan>
-	 <51564804.9000700@fold.natur.cuni.cz>
-	 <CAC=cRTMJH+40oPSM9pFzkb5x6Q42rWR8BPtUOxJn_3WopmOSvQ@mail.gmail.com>
-	 <515AF312.1010507@fold.natur.cuni.cz>
-	 <CAErSpo6EAkSniVF7NnDVsR=H_x0dHK=xQNbdKf67WDW=o1D+_Q@mail.gmail.com>
-	 <515B17D9.6030805@fold.natur.cuni.cz> <515B45A6.1020404@fold.natur.cuni.cz>
-	 <515C1DB8.5020905@fold.natur.cuni.cz>
+From: Aaron Lu <aaron.lu@intel.com>
+Subject: [RFD] Let acpi video driver handle its dmi table
+Date: Thu, 04 Apr 2013 19:37:37 +0800
+Message-ID: <515D6601.4070509@intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga02.intel.com ([134.134.136.20]:12447 "EHLO mga02.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1758541Ab3DDLb7 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 4 Apr 2013 07:31:59 -0400
-In-Reply-To: <515C1DB8.5020905@fold.natur.cuni.cz>
-Sender: linux-acpi-owner@vger.kernel.org
+Return-path: <platform-driver-x86-owner@vger.kernel.org>
+Sender: platform-driver-x86-owner@vger.kernel.org
+To: Corentin Chary <corentin.chary@gmail.com>, Lee Chun-Yi <jlee@novell.com>, "Rafael J. Wysocki" <rjw@sisk.pl>, Matthew Garrett <matthew.garrett@nebula.com>, Seth Forshee <seth.forshee@canonical.com>, Zhang Rui <rui.zhang@intel.com>
+Cc: ACPI Devel Mailing List <linux-acpi@vger.kernel.org>, platform-driver-x86@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Martin Mokrejs <mmokrejs@fold.natur.cuni.cz>, Sarah Sharp <sarah.a.sharp@linux.intel.com>
-Cc: Bjorn Helgaas <bhelgaas@google.com>, huang ying <huang.ying.caritas@gmail.com>, "Rafael J. Wysocki" <rjw@sisk.pl>, Len Brown <lenb@kernel.org>, Matthew Garrett <mjg59@srcf.ucam.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>, Yinghai Lu <yinghai@kernel.org>
 
-Hi, Martin,
+Hi,
 
-On Wed, 2013-04-03 at 14:16 +0200, Martin Mokrejs wrote:
-> Meanwhile, the raw data: http://195.113.57.32/~mmokrejs/tmp/20130402.tar.bz2
-> (size 468641 bytes)
+Recently I saw two bugs about acer system:
+https://bugzilla.kernel.org/show_bug.cgi?id=35622
+https://bugzilla.kernel.org/show_bug.cgi?id=51051
+The backlight is handled by gpu driver's backlight interface, and hotkey
+is handled by acpi video driver. The problem is, hotkey notification
+does not function on these systems now.
 
-Thanks a lot!  Your information is very complete and clear :)
+The reason is, acer-wmi driver will unload acpi video driver when it
+found these systems are in its video_vendor_dmi_table, which is used to
+keep all the systems that are known having buggy acpi video interface
+implementations.
 
-> They were collected by:
-> 
-> # cat ~/bin/collect_runtime_status.sh 
-> #!/bin/sh
-> grep . /sys/bus/pci/devices/*/power/runtime_status > runtime_status_"$1".txt
-> grep . /sys/bus/pci/devices/*/power/control > control_"$1".txt
-> cat /proc/interrupts > interrupts_"$1".txt
-> cat /proc/iomem > iomem_"$1".txt
-> lspci -vvv > lspci_vvv_"$1".txt
-> dmesg > dmesg_"$1".txt
-> #
-> 
-> Just do 'ls -latr' to see the ordering of the files as they were created.
-> The longer the filename, the later in the test process. The names should be
-> relatively self-explaining. Definitely, from the log files you should see
-> what happened in real and therefore, can figure out what the (maybe weird)
-> long filename really meant.
-> 
-> Sometimes I manually recorded lsusb of dmesg_final.txt, mostly after I did some
-> extra tests but but not want to record every step by the above 6 files.
-> 
-> In one or two places I added some my own notes into COMMENTS file.
-> 
-> 
-> 
-> 
-> I will try to guide your below where you can study which of the bugs. Mostly,
-> for each bug you need just one subdirectory to look into, the other are just
-> repeated the same bug under different kernel version or another patch.
-> However, Sarah for the xHCI dead port issue will need to compare by diff
-> two directories, one with the TI-based controller tests, the other with the
-> NEC-based tests. Especially there, I would do something like:
-> 
-> cd *TI-based; for f in dmesg*; do cut -c 15- $f > /tmp/TI/$f; done
-> cd ../*NEC-based; for f in dmesg*; do cut -c 15- $f > /tmp/NEC/$f; done
-> 
-> Then it should be easier to poke through file captured at the same test step,
-> like:
-> 
-> diff -u -w /tmp/TI/dmesg_initial__mouse_attached__unplugged__reattached_but_port_dead.txt \
-> /tmp/NEC/dmesg_initial__mouse_attached__detached__reattached.txt
-> 
-> 
-> 
-> Other than that, just diff pairs of files with each other, like:
-> 
-> diff -u -w lspci_vvv_initial.txt lspci_vvv_initial__mouse_attached.txt
-> 
-> 
-> Sorry that I sometimes used only a single underscore instead of double underscores
-> to separate the test steps from each other in the filename.
-> 
-> 
-> Martin Mokrejs wrote:
-> > [ +linux-pci and Yinghai as they suffered already those many emails on individual
-> >  threads so one overviewing email hopefully won't harm] ;-)
-> > 
-> > Martin Mokrejs wrote:
-> >>
-> >>
-> >> Bjorn Helgaas wrote:
-> >>> On Tue, Apr 2, 2013 at 9:02 AM, Martin Mokrejs
-> >>> <mmokrejs@fold.natur.cuni.cz> wrote:
-> >>>> Hi Ying,
-> >>>>
-> >>>> huang ying wrote:
-> >>>
-> >>>>> And please give me the full dmesg for boot and incremental dmesg for
-> >>>>> operations.
-> >>>>
-> >>>>
-> >>>> The incremental bits here, the full dmesg will send only directly to your email, due to its size.
-> >>>
-> >>> Is there a bugzilla for this issue?  Please attach the complete dmesg
-> >>> there or somewhere similar so we can all benefit.
-> >>
-> >> I changed my mind. I am attaching the dmesg here but omitting linux-acpi
-> >> list. After I hear a proposal from Rafel/Bjorn I will open separate bugs.
-> >> I thought that the threads I started so far were enough but yes, dmesg
-> >> files don't pass through list filters so I should move that to bugzilla.
-> >>
-> >> so far my view of the the bugs was:
-> >>
-> >> 1) acpiphp hotplug broken due to upstream pcieport 1c.7 PME# enabled
-> >>   (eSATA-based card)
-> > 
-> > Fixed by Ying Huang port_dbg.patch applied over 3.8.5 (fixes acpiphp hotplug
-> > of eSATA and Firewire cards, NOT the hotplug of a NEC-based USB3 card -> hence
-> > the bug 4) below). Now I can continue using laptop-mode-tools.
-> 
-> 20130402/3.8.5-ying_port-dbg__with_laptop-mode-tools_eSATA_testing
-> 20130402/3.8.3-vanilla__with_laptop-mode-tools (with some comments in
->                                                 COMMENTS file)
+So we have a problem here, though acpi video driver can't handle
+backlight level change, it is still required to handle hotkey
+notificaions, and thus unload the driver is not desired.
 
-Thanks for your testing!
+One way to solve this problem is, to have acpi video driver deal with
+these broken systems that it can not handle by itself: not create
+backlight interface while still keeping the notification handler there.
+To achieve this, we need to move those systems listed in
+video_vendor_dmi_table to video_detect_dmi_table, and we are done. And
+any code to touch acpi video driver in acer-wmi driver can be removed,
+also no need to add SELECT ACPI_VIDEO to CONFIG_ACER_WMI. The downside
+is, if other platform vendor drivers all follow this rule, we will end
+up with a big video_detect_dmi_table.
 
-> >> 2) xHCI dead due to to its suspend - 3.8 series and above
-> > 
-> > Not fixed by port_dbg.patch applied over 3.8.5. Interestingly, a NEC-based
-> > XHCI card *in an express card slot* does not suffer this suspend issue.
-> > Although it is being put into suspend if a device is unplugged.
-> 
-> 20130402/3.8.5-ying_port-dbg__with_laptop-mode-tools_xHCI_test_TI-based
-> 20130402/3.8.5-ying_port-dbg__with_laptop-mode-tools_xHCI_test_NEC-based
-> 
-> Same thing but yet without the port_dbg.patch:
-> 20130402/3.9-rc5__with_2368081__with-latop-mode-tools_xhci_testing/
+Another way is to add a new interface, something like
+acpi_video_unregister_backlight, to let platform drivers call. And this
+new interface will only unregister the backlight device acpi video
+driver has already created and nothing more. So the notification handler
+of acpi video driver will stay, solving the problem. The downside is,
+it's kind of odd to let another module solve a problem for acpi video
+module. In this case, the vendor driver's whole point is to unregister
+acpi video driver's backlight interface, while it does't handle backlight
+nor hotkey. So it doesn't seem to be required in this game.
 
-It appears that TI xHCI dead port issue will present even if the PCIe
-port will never go suspended.  So I think this bug is not related to
-PCIe port runtime PM but related to USB xHCI.
+Please feel free to share your opinion, which one you prefer or some new
+idea perhaps.
 
-Do you agree Sarah?
-
-[snip]
-
-Best Regards,
-Huang Ying
-
-
+Thanks,
+Aaron
