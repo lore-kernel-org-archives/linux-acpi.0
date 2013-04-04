@@ -1,34 +1,66 @@
-From: Yinghai Lu <yinghai@kernel.org>
-Subject: Re: [PATCH v2 04/20] x86, ACPI: Increase override tables number limit
-Date: Thu, 4 Apr 2013 11:03:30 -0700
-Message-ID: <CAE9FiQXJjALfmRSZH_H4qAJrCV0+jQOTEk=fUHn_3+eLZ6XQfA@mail.gmail.com>
+From: Tejun Heo <tj@kernel.org>
+Subject: Re: [PATCH v2 05/20] x86, ACPI: Split acpi_initrd_override to
+ find/copy two functions
+Date: Thu, 4 Apr 2013 11:07:21 -0700
+Message-ID: <20130404180721.GT9425@htj.dyndns.org>
 References: <1362897887-30808-1-git-send-email-yinghai@kernel.org>
-	<1362897887-30808-5-git-send-email-yinghai@kernel.org>
-	<20130404175017.GS9425@htj.dyndns.org>
+ <1362897887-30808-6-git-send-email-yinghai@kernel.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20130404175017.GS9425@htj.dyndns.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Tejun Heo <tj@kernel.org>
-Cc: Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@elte.hu>, "H. Peter Anvin" <hpa@zytor.com>, Andrew Morton <akpm@linux-foundation.org>, Thomas Renninger <trenn@suse.de>, Tang Chen <tangchen@cn.fujitsu.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, "Rafael J. Wysocki" <rjw@sisk.pl>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-da0-f50.google.com ([209.85.210.50]:45838 "EHLO
+	mail-da0-f50.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1764294Ab3DDSH3 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 4 Apr 2013 14:07:29 -0400
+Content-Disposition: inline
+In-Reply-To: <1362897887-30808-6-git-send-email-yinghai@kernel.org>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Yinghai Lu <yinghai@kernel.org>
+Cc: Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@elte.hu>, "H. Peter Anvin" <hpa@zytor.com>, Andrew Morton <akpm@linux-foundation.org>, Thomas Renninger <trenn@suse.de>, Tang Chen <tangchen@cn.fujitsu.com>, linux-kernel@vger.kernel.org, Pekka Enberg <penberg@kernel.org>, Jacob Shin <jacob.shin@amd.com>, "Rafael J. Wysocki" <rjw@sisk.pl>, linux-acpi@vger.kernel.org
 
-On Thu, Apr 4, 2013 at 10:50 AM, Tejun Heo <tj@kernel.org> wrote:
-> On Sat, Mar 09, 2013 at 10:44:31PM -0800, Yinghai Lu wrote:
+On Sat, Mar 09, 2013 at 10:44:32PM -0800, Yinghai Lu wrote:
+> To parse srat early, we need to move acpi table probing early.
+> acpi_initrd_table_override is before acpi table probing. So we need to
+> move it early too.
+> 
+> Current code acpi_initrd_table_override is after init_mem_mapping and
+> relocate_initrd(), so it can scan initrd and copy acpi tables with kernel
+> virtual address of initrd.
+> Copying need to be after memblock is ready, because it need to allocate
+> buffer for new acpi tables.
+> 
+> So we have to split that function to find and copy two functions.
+> Find should be as early as possible. Copy should be after memblock is ready.
+> 
+> Finding could be done in head_32.S and head64.c, just like microcode
+> early scanning. In head_32.S, it is 32bit flat mode, we don't
+> need to set page table to access it. In head64.c, #PF set page table
+> could help us access initrd with kernel low mapping address.
+> 
+> Copying could be done just after memblock is ready and before probing
+> acpi tables, and we need to early_ioremap to access source and target
+> range, as init_mem_mapping is not called yet.
+> 
+> Also move down two functions declaration to avoid #ifdef in setup.c
+> 
+> ACPI_INITRD_TABLE_OVERRIDE depends one ACPI and BLK_DEV_INITRD.
+> So could move declaration out from #ifdef CONFIG_ACPI protection.
 
->> @@ -648,14 +647,14 @@ void __init acpi_initrd_override(void *data, size_t size)
->>       memblock_reserve(acpi_tables_addr, acpi_tables_addr + all_tables_size);
->>       arch_reserve_mem_area(acpi_tables_addr, all_tables_size);
->>
->> -     p = early_ioremap(acpi_tables_addr, all_tables_size);
->> -
->
-> It'd be nice to have a brief comment here explaining why we're mapping
-> each table separately.
+Heh, I couldn't really follow the above.  How about something like the
+following.
 
-ok, will copy lines from changelog to comment.
+ While a dummy version of acpi_initrd_override() was defined when
+ !CONFIG_ACPI_INITRD_TABLE_OVERRIDE, the prototype and dummy version
+ were conditionalized inside CONFIG_ACPI.  This forced setup_arch() to
+ have its own #ifdefs around acpi_initrd_override() as otherwise build
+ would fail when !CONFIG_ACPI.  Move the prototypes and dummy
+ implementations of the newly split functions below CONFIG_ACPI block
+ in acpi.h so that we can do away with #ifdefs in its user.
 
-Thanks
+Acked-by: Tejun Heo <tj@kernel.org>
 
-Yinghai
+Thanks.
+
+-- 
+tejun
