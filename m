@@ -1,88 +1,36 @@
-From: Yinghai Lu <yinghai@kernel.org>
-Subject: Re: [PATCH v2 03/20] x86, ACPI, mm: Kill max_low_pfn_mapped
-Date: Thu, 4 Apr 2013 11:20:54 -0700
-Message-ID: <CAE9FiQUco7bnwg-_UwjEsEAmwRje8j5JYycrvhR_bWTwOQDuxQ@mail.gmail.com>
-References: <1362897887-30808-1-git-send-email-yinghai@kernel.org>
-	<1362897887-30808-4-git-send-email-yinghai@kernel.org>
-	<20130404173626.GQ9425@htj.dyndns.org>
+From: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Subject: Re: [PATCH v6] ACPI / serial: Add peripheral PnP IDs enumeration
+ support
+Date: Thu, 4 Apr 2013 11:23:35 -0700
+Message-ID: <20130404182335.GC24711@kroah.com>
+References: <cover.1354505471.git.lv.zheng@intel.com>
+ <eb535db4b040bbe8712a975ed70cb3899b5b0fea.1364954385.git.lv.zheng@intel.com>
+ <20130403161431.GB21383@kroah.com>
+ <1AE640813FDE7649BE1B193DEA596E88015CC891@SHSMSX101.ccr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-ie0-f175.google.com ([209.85.223.175]:35291 "EHLO
-	mail-ie0-f175.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1764452Ab3DDSUy (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 4 Apr 2013 14:20:54 -0400
-In-Reply-To: <20130404173626.GQ9425@htj.dyndns.org>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-serial-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <1AE640813FDE7649BE1B193DEA596E88015CC891@SHSMSX101.ccr.corp.intel.com>
+Sender: linux-serial-owner@vger.kernel.org
+To: "Zheng, Lv" <lv.zheng@intel.com>
+Cc: "Wysocki, Rafael J" <rafael.j.wysocki@intel.com>, "Brown, Len" <len.brown@intel.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-serial@vger.kernel.org" <linux-serial@vger.kernel.org>, "Zhang, Rui" <rui.zhang@intel.com>
 List-Id: linux-acpi@vger.kernel.org
-To: Tejun Heo <tj@kernel.org>
-Cc: Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@elte.hu>, "H. Peter Anvin" <hpa@zytor.com>, Andrew Morton <akpm@linux-foundation.org>, Thomas Renninger <trenn@suse.de>, Tang Chen <tangchen@cn.fujitsu.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, "Rafael J. Wysocki" <rjw@sisk.pl>, Daniel Vetter <daniel.vetter@ffwll.ch>, David Airlie <airlied@linux.ie>, Jacob Shin <jacob.shin@amd.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, DRI mailing list <dri-devel@lists.freedesktop.org>
 
-On Thu, Apr 4, 2013 at 10:36 AM, Tejun Heo <tj@kernel.org> wrote:
-> Hello,
->
-> On Sat, Mar 09, 2013 at 10:44:30PM -0800, Yinghai Lu wrote:
->> Now we have arch_pfn_mapped array, and max_low_pfn_mapped should not
->> be used anymore.
->>
->> User should use arch_pfn_mapped or just 1UL<<(32-PAGE_SHIFT) instead.
->>
->> Only user is ACPI_INITRD_TABLE_OVERRIDE, and it should not use that,
->> as later accessing is using early_ioremap(). Change to try to 4G below
->> and then 4G above.
-> ...
->> diff --git a/drivers/acpi/osl.c b/drivers/acpi/osl.c
->> index 586e7e9..c08cdb6 100644
->> --- a/drivers/acpi/osl.c
->> +++ b/drivers/acpi/osl.c
->> @@ -624,9 +624,13 @@ void __init acpi_initrd_override(void *data, size_t size)
->>       if (table_nr == 0)
->>               return;
->>
->> -     acpi_tables_addr =
->> -             memblock_find_in_range(0, max_low_pfn_mapped << PAGE_SHIFT,
->> -                                    all_tables_size, PAGE_SIZE);
->> +     /* under 4G at first, then above 4G */
->> +     acpi_tables_addr = memblock_find_in_range(0, (1ULL<<32) - 1,
->> +                                     all_tables_size, PAGE_SIZE);
->> +     if (!acpi_tables_addr)
->> +             acpi_tables_addr = memblock_find_in_range(0,
->> +                                     ~(phys_addr_t)0,
->> +                                     all_tables_size, PAGE_SIZE);
->
-> So, it's changing the allocation from <=4G to <=4G first and then >4G.
-> The only explanation given is "as later accessing is using
-> early_ioremap()", but I can't see why that can be a reason for that.
-> early_ioremap() doesn't care whether the given physaddr is under 4G or
-> not, it unconditionally maps it into fixmap, so whether the allocated
-> address is below or above 4G doesn't make any difference.
->
-> Changing the allowed range of the allocation should be a separate
-> patch.  It has some chance of its own breakage and the change itself
-> isn't really related to this one.
+On Thu, Apr 04, 2013 at 03:43:43PM +0000, Zheng, Lv wrote:
+> Hi,
+> 
+> > > > +	return snprintf(buf, PAGE_SIZE, "uart\n");
+> > >
+> > > What is the "uart" part for?  Isn't that kind of obvious?
+> > 
+> > It is the default "peripheral_type" content.
+> > Before sending next revision out, let me ask a question here:
+> > Shall I leave this empty as my previous revisions?
+> 
+> Hmm, if this is empty by default then the udev rules may require additional handlings.
+> Can I use "NONE" here for the user space users?
 
-Ok, will separate that  "try above 4G" to another patch.
+No, just don't create the sysfs file at all for that type of device.
 
->
-> Please try to elaborate the reasoning behind "why", so that readers of
-> the description don't have to deduce (oh well, guess) your intentions
-> behind the changes.  As much as it would help the readers, it'd also
-> help you even more as you would have had to explicitly write something
-> like "the table is accessed with early_ioremap() so the address
-> doesn't need to be restricted under 4G; however, to avoid unnecessary
-> remappings, first try <= 4G and then > 4G."  Then, you would be
-> compelled to check whether the statement you explicitly wrote is true,
-> which isn't in this case and you would also realize that the change
-> isn't trivial and doesn't really belong with this patch.  By not doing
-> the due diligence, you're offloading what you should have done to
-> others, which isn't very nice.
->
-> I think the descriptions are better in this posting than the last time
-> but it's still lacking, so, please putfff more effort into describing
-> the changes and reasoning behind them.
-
-ok.
-
-Thanks a lot.
-
-Yinghai
+greg k-h
