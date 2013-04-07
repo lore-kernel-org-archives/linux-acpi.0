@@ -1,30 +1,29 @@
-From: Yinghai Lu <yinghai@kernel.org>
-Subject: Re: [PATCH v3 17/22] x86, ACPI, numa, ia64: split SLIT handling out
-Date: Fri, 5 Apr 2013 15:16:48 -0700
-Message-ID: <CAE9FiQW9LsXo7gRvpAUv2ORbe2iuZaYO9nNOP-vTWa-_P450tg@mail.gmail.com>
-References: <1365119186-23487-1-git-send-email-yinghai@kernel.org>
-	<1365119186-23487-18-git-send-email-yinghai@kernel.org>
-	<CA+8MBbJMk2w77VGBswoYCEKQZ4HTC9jBhWun5UzGLOj15Nqrmg@mail.gmail.com>
+From: "Zheng, Lv" <lv.zheng@intel.com>
+Subject: RE: [PATCH] ACPI: remove "config ACPI_DEBUG_FUNC_TRACE"
+Date: Sun, 7 Apr 2013 01:02:24 +0000
+Message-ID: <1AE640813FDE7649BE1B193DEA596E88015CD54B@SHSMSX101.ccr.corp.intel.com>
+References: <1363689661.1390.9.camel@x61.thuisdomein>
+ <3588021.V98D5VToQr@vostro.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <linux-ia64-owner@vger.kernel.org>
-In-Reply-To: <CA+8MBbJMk2w77VGBswoYCEKQZ4HTC9jBhWun5UzGLOj15Nqrmg@mail.gmail.com>
-Sender: linux-ia64-owner@vger.kernel.org
-To: Tony Luck <tony.luck@gmail.com>
-Cc: Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@elte.hu>, "H. Peter Anvin" <hpa@zytor.com>, Andrew Morton <akpm@linux-foundation.org>, Tejun Heo <tj@kernel.org>, Thomas Renninger <trenn@suse.de>, Tang Chen <tangchen@cn.fujitsu.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, "Rafael J. Wysocki" <rjw@sisk.pl>, linux-acpi <linux-acpi@vger.kernel.org>, Fenghua Yu <fenghua.yu@intel.com>, "linux-ia64@vger.kernel.org" <linux-ia64@vger.kernel.org>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <3588021.V98D5VToQr@vostro.rjw.lan>
+Content-Language: en-US
+Sender: linux-kernel-owner@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@sisk.pl>, Paul Bolle <pebolle@tiscali.nl>
+Cc: Len Brown <lenb@kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On Fri, Apr 5, 2013 at 2:54 PM, Tony Luck <tony.luck@gmail.com> wrote:
-> On Thu, Apr 4, 2013 at 4:46 PM, Yinghai Lu <yinghai@kernel.org> wrote:
->> It should not break ia64 by replacing acpi_numa_init with
->> acpi_numa_init_srat/acpi_numa_init_slit/acpi_num_arch_fixup.
->
-> You are right - it doesn't break ia64.  All my test configs still
-> build.  Machines both with and without NUMA still boot and
-> nothing strange happens.
->
-> Tested-by: Tony Luck <tony.luck@intel.com>
-
-Great, Thanks a lot for testing them.
-
-Yinghai
+PiA+IEtjb25maWcgc3ltYm9sIEFDUElfREVCVUdfRlVOQ19UUkFDRSB3YXMgb25seSB1c2VkICh0
+aHJvdWdoIGl0cw0KPiA+IGNvcnJlc3BvbmRpbmcgbWFjcm8pIGluIGRyaXZlcnMvYWNwaS9hY3Bp
+Y2EvYWNtYWNyb3MuaC4gVGhhdCBtYWNybyB3YXMNCj4gPiByZW1vdmVkIGZyb20gdGhhdCBoZWFk
+ZXIgaW4gdjMuOCwgd2l0aCBjb21taXQNCj4gPiA4NmZmMGU1MDhmODhlZGE2ZTQ3OWE4OTc0NzYw
+MjYwNTU4MzFkMmQ4ICgiQUNQSUNBOiBGaXggdW5tZXJnZWQNCj4gPiBhY21hY3Jvcy5oIGRpdmVy
+Z2VuY2VzLiIpLiBUaGF0IGNvbW1pdCBkaWQgbm90IGV4cGxhaW4gd2h5IHRoYXQgbWFjcm8NCj4g
+PiB3YXMgcmVtb3ZlZC4gQnV0IGl0IHNlZW1zIHRoYXQgQUNQSV9ERUJVR19GVU5DX1RSQUNFIGNh
+biBub3cgYmUNCj4gPiByZW1vdmVkIHRvbywgYXMgaXQgaXMgdW51c2VkLg0KPiANCj4gTHYsIGNh
+biB5b3UgcGxlYXNlIGNvbW1lbnQgaGVyZT8NCg0KU29ycnkgZm9yIHRoZSBkZWxheWVkIHJlcGx5
+Lg0KDQpUaGUgY29tbWl0IHNob3VsZCBoYXZlIGRvbmUgc29tZXRoaW5nIHRoYXQgYWxyZWFkeSBo
+YXZlIGJlZW4gZG9uZSBpbiB0aGUgQUNQSUNBLg0KSSdsbCB0YWtlIGEgbG9vayBhdCB0aGlzLg0K
+DQpUaGFua3MgYW5kIGJlc3QgcmVnYXJkcw0KLUx2DQo=
