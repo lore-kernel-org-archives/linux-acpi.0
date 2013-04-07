@@ -1,135 +1,58 @@
-From: Aaron Lu <aaron.lu@intel.com>
-Subject: [PATCH] acpi: video: enhance the quirk detect logic of _BQC
-Date: Sun, 07 Apr 2013 09:56:07 +0800
-Message-ID: <5160D237.50307@intel.com>
+From: "Zheng, Lv" <lv.zheng@intel.com>
+Subject: RE: [PATCH v6] ACPI / serial: Add peripheral PnP IDs enumeration
+ support
+Date: Sun, 7 Apr 2013 03:05:43 +0000
+Message-ID: <1AE640813FDE7649BE1B193DEA596E88015CDA22@SHSMSX101.ccr.corp.intel.com>
+References: <cover.1354505471.git.lv.zheng@intel.com>
+ <eb535db4b040bbe8712a975ed70cb3899b5b0fea.1364954385.git.lv.zheng@intel.com>
+ <20130403161431.GB21383@kroah.com>
+ <1AE640813FDE7649BE1B193DEA596E88015CC828@SHSMSX101.ccr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga14.intel.com ([143.182.124.37]:42660 "EHLO mga14.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1765123Ab3DGBy4 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Sat, 6 Apr 2013 21:54:56 -0400
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-serial-owner@vger.kernel.org>
+In-Reply-To: <1AE640813FDE7649BE1B193DEA596E88015CC828@SHSMSX101.ccr.corp.intel.com>
+Content-Language: en-US
+Sender: linux-serial-owner@vger.kernel.org
+To: "Zheng, Lv" <lv.zheng@intel.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: "Wysocki, Rafael J" <rafael.j.wysocki@intel.com>, "Brown, Len" <len.brown@intel.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-serial@vger.kernel.org" <linux-serial@vger.kernel.org>, "Zhang, Rui" <rui.zhang@intel.com>
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: Artem Savkov <artem.savkov@gmail.com>, Cheppes <cheppes@mailinator.com>, Luis Medinas <lmedinas@gmail.com>, ACPI Devel Mailing List <linux-acpi@vger.kernel.org>, Zhang Rui <rui.zhang@intel.com>
 
-Currently we decide if the _BQC is using index by first setting the
-level to maximum, and then check if _BQC returned maximum; if not, we
-say it is using index.
+Hi, Greg
 
-This is not true for some buggy systems, where the _BQC method will
-always return a constant value(e.g. 0 or 100 for the two broken system)
-and thus break the current logic. So this patch tries to enhance the
-quirk detect logic for _BQC: we do this by picking a test_level, it can
-be the maximum level or the mininum one based on some condition. And we
-don't make the assumption that if _BQC returned a value that is not what
-we just set, it must be using an index. Instead, we will compare the
-value returned from _BQC and if it doesn't match, see if the returned
-value is an index. And if still no, clear the capability of _BQC.
+I think I may misunderstand what you mean here, let me confirm again.
+Sorry for doing this.
 
-Buglink: https://bugzilla.kernel.org/show_bug.cgi?id=42861
-Buglink: https://bugzilla.kernel.org/show_bug.cgi?id=56011
-Reported-and-tested-by: Artem Savkov <artem.savkov@gmail.com>
-Reported-by: Luis Medinas <lmedinas@gmail.com>
-Reported-by: Cheppes <cheppes@mailinator.com>
-Signed-off-by: Aaron Lu <aaron.lu@intel.com>
----
-Thanks Cheppes <cheppes@mailinator.com> for the suggestion of choosing
-different levels to test, and also for the help of in code comment
-correction.
+> > > +#ifdef CONFIG_ACPI_UART
+> > > +int acpi_uart_get_peripheral_type(struct device *dev,
+> > > +	char *buf, size_t size);
+> > > +#else
+> > > +static inline int acpi_uart_get_peripheral_type(struct device *dev,
+> > > +	char *buf, size_t size)
+> > > +{
+> > > +	return -ENODEV;
+> > > +}
+> > > +#endif
 
- drivers/acpi/video.c | 67 ++++++++++++++++++++++++++++++++++++++++++++--------
- 1 file changed, 57 insertions(+), 10 deletions(-)
+> > I see you never tested this code without the configuration option enabled :(
 
-diff --git a/drivers/acpi/video.c b/drivers/acpi/video.c
-index 3cdd047..306ea2a 100644
---- a/drivers/acpi/video.c
-+++ b/drivers/acpi/video.c
-@@ -632,6 +632,56 @@ acpi_video_cmp_level(const void *a, const void *b)
- }
- 
- /*
-+ * Decides if _BQC/_BCQ for this system is usable
-+ *
-+ * We do this by changing the level first and then read out the current
-+ * brightness level, if the value does not match, find out if it is using
-+ * index. If not, clear the _BQC/_BCQ capability.
-+ */
-+static int acpi_video_bqc_quirk(struct acpi_video_device *device,
-+				int max_level, int current_level)
-+{
-+	struct acpi_video_device_brightness *br = device->brightness;
-+	int result;
-+	unsigned long long level;
-+	int test_level;
-+
-+	/* don't mess with existing known broken systems */
-+	if (bqc_offset_aml_bug_workaround)
-+		return 0;
-+
-+	/*
-+	 * Some systems always report current brightness level as maximum
-+	 * through _BQC, we need to test another value for them.
-+	 */
-+	test_level = current_level == max_level ? br->levels[2] : max_level;
-+
-+	result = acpi_video_device_lcd_set_level(device, test_level);
-+	if (result)
-+		return result;
-+
-+	result = acpi_video_device_lcd_get_level_current(device, &level, true);
-+	if (result)
-+		return result;
-+
-+	if (level != test_level) {
-+		/* buggy _BQC found, need to find out if it uses index */
-+		if (level < br->count) {
-+			if (br->flags._BCL_reversed)
-+				level = br->count - 3 - level;
-+			if (br->levels[level + 2] == test_level)
-+				br->flags._BQC_use_index = 1;
-+		}
-+
-+		if (!br->flags._BQC_use_index)
-+			device->cap._BQC = device->cap._BCQ = 0;
-+	}
-+
-+	return 0;
-+}
-+
-+
-+/*
-  *  Arg:	
-  *  	device	: video output device (LCD, CRT, ..)
-  *
-@@ -742,18 +792,15 @@ acpi_video_init_brightness(struct acpi_video_device *device)
- 	if (result)
- 		goto out_free_levels;
- 
--	/*
--	 * Set the level to maximum and check if _BQC uses indexed value
--	 */
--	result = acpi_video_device_lcd_set_level(device, max_level);
--	if (result)
--		goto out_free_levels;
--
--	result = acpi_video_device_lcd_get_level_current(device, &level, true);
-+	result = acpi_video_bqc_quirk(device, max_level, level_old);
- 	if (result)
- 		goto out_free_levels;
--
--	br->flags._BQC_use_index = (level == max_level ? 0 : 1);
-+	/*
-+	 * cap._BQC may get cleared due to _BQC is found to be broken
-+	 * in acpi_video_bqc_quirk, so check again here.
-+	 */
-+	if (!device->cap._BQC)
-+		goto set_level;
- 
- 	if (use_bios_initial_backlight) {
- 		level = acpi_video_bqc_value_to_level(device, level_old);
--- 
-1.8.1.4
+I was thinking you were talking about test plans.
+Since I didn't see any issues here and I just didn't want to argue on this topic and replied in this way. :-)
+The only user - uart_get_attr_peripheral_type with "int" return value check can ensure no issues here.
+> > > +static ssize_t uart_get_attr_peripheral_type(struct device *dev,
+> > > +		struct device_attribute *attr, char *buf) {
+> > > +	int len;
+> > > +
+> > > +	len = acpi_uart_get_peripheral_type(dev, buf, 1024);
+> > > +	if (len > 0) {
+> > > +		buf[len++] = '\n';
+> > > +		return len;
+> > > +	}
+> > > +	return snprintf(buf, PAGE_SIZE, "uart\n");
+
+Now I realize that you might be talking about the "-NODEV" return value is not a good choice, "0" or something else is better.
+Shall I return 0 here?
+
+Thanks and best regards
+-Lv
 
