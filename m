@@ -1,45 +1,57 @@
-From: "Zheng, Lv" <lv.zheng@intel.com>
-Subject: RE: [PATCH] ACPI: remove "config ACPI_DEBUG_FUNC_TRACE"
-Date: Sun, 7 Apr 2013 07:07:11 +0000
-Message-ID: <1AE640813FDE7649BE1B193DEA596E88015CDBAA@SHSMSX101.ccr.corp.intel.com>
-References: <1363689661.1390.9.camel@x61.thuisdomein>
- <3588021.V98D5VToQr@vostro.rjw.lan>
- <1AE640813FDE7649BE1B193DEA596E88015CD54B@SHSMSX101.ccr.corp.intel.com>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: Re: [PATCH] ACPI: remove "config ACPI_DEBUG_FUNC_TRACE"
+Date: Sun, 07 Apr 2013 10:48:41 +0200
+Message-ID: <1425689.yaSMfvQtv5@vostro.rjw.lan>
+References: <1363689661.1390.9.camel@x61.thuisdomein> <1AE640813FDE7649BE1B193DEA596E88015CD54B@SHSMSX101.ccr.corp.intel.com> <1AE640813FDE7649BE1B193DEA596E88015CDB97@SHSMSX101.ccr.corp.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Language: en-US
-Sender: linux-kernel-owner@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@sisk.pl>, Paul Bolle <pebolle@tiscali.nl>
-Cc: Len Brown <lenb@kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "Moore, Robert" <robert.moore@intel.com>
+Content-Transfer-Encoding: 7Bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from hydra.sisk.pl ([212.160.235.94]:53159 "EHLO hydra.sisk.pl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1161601Ab3DGIlA (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Sun, 7 Apr 2013 04:41:00 -0400
+In-Reply-To: <1AE640813FDE7649BE1B193DEA596E88015CDB97@SHSMSX101.ccr.corp.intel.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: "Zheng, Lv" <lv.zheng@intel.com>
+Cc: Paul Bolle <pebolle@tiscali.nl>, Len Brown <lenb@kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "Moore, Robert" <robert.moore@intel.com>
 
-PiA+ID4gPiBLY29uZmlnIHN5bWJvbCBBQ1BJX0RFQlVHX0ZVTkNfVFJBQ0Ugd2FzIG9ubHkgdXNl
-ZCAodGhyb3VnaCBpdHMNCj4gPiA+ID4gY29ycmVzcG9uZGluZyBtYWNybykgaW4gZHJpdmVycy9h
-Y3BpL2FjcGljYS9hY21hY3Jvcy5oLiBUaGF0IG1hY3JvDQo+ID4gPiA+IHdhcyByZW1vdmVkIGZy
-b20gdGhhdCBoZWFkZXIgaW4gdjMuOCwgd2l0aCBjb21taXQNCj4gPiA+ID4gODZmZjBlNTA4Zjg4
-ZWRhNmU0NzlhODk3NDc2MDI2MDU1ODMxZDJkOCAoIkFDUElDQTogRml4IHVubWVyZ2VkDQo+ID4g
-PiA+IGFjbWFjcm9zLmggZGl2ZXJnZW5jZXMuIikuIFRoYXQgY29tbWl0IGRpZCBub3QgZXhwbGFp
-biB3aHkgdGhhdA0KPiA+ID4gPiBtYWNybyB3YXMgcmVtb3ZlZC4gQnV0IGl0IHNlZW1zIHRoYXQg
-QUNQSV9ERUJVR19GVU5DX1RSQUNFIGNhbg0KPiA+IG5vdw0KPiA+ID4gPiBiZSByZW1vdmVkIHRv
-bywgYXMgaXQgaXMgdW51c2VkLg0KPiA+ID4NCj4gPiA+IEx2LCBjYW4geW91IHBsZWFzZSBjb21t
-ZW50IGhlcmU/DQo+ID4NCj4gPiBTb3JyeSBmb3IgdGhlIGRlbGF5ZWQgcmVwbHkuDQo+ID4NCj4g
-PiBUaGUgY29tbWl0IHNob3VsZCBoYXZlIGRvbmUgc29tZXRoaW5nIHRoYXQgYWxyZWFkeSBoYXZl
-IGJlZW4gZG9uZSBpbg0KPiA+IHRoZSBBQ1BJQ0EuDQo+ID4gSSdsbCB0YWtlIGEgbG9vayBhdCB0
-aGlzLg0KPiANCj4gVGhlIG9yaWdpbmFsIGNvbW1pdCBkZWxldGVkIENPTkZJR19BQ1BJX0RFQlVH
-X0ZVTkNfVFJBQ0UgZnJvbQ0KPiBhY21hY3Jvcy5oIGFzIGl0IGlzIGluIHRoZSBfX3dyb25nX18g
-cGxhY2UuDQo+IENPTkZJR194eHggaXMgbGludXggc3BlY2lmaWMgY29kZXMgdGh1cyBzaG91bGQg
-YXBwZWFyIGluIE9TTCBsYXllciAtIGFjbGludXguaC4NCj4gQUNQSUNBIHNwZWNpZmljIGNvZGVz
-IHNob3VsZCBvbmx5IHVzZSBzZWxlY3RpdmUgZGVmaW5pdGlvbnMgaW4gI2lmZGVmIEFDUElfeHh4
-DQo+IHN0eWxlIGFuZCBzdWNoIGNvZGVzIHNob3VsZCBiZSBtZXJnZWQgaW50byBBQ1BJQ0EgcmF0
-aGVyIHRoYW4gYmVpbmcgbWVyZ2VkDQo+IGludG8gTGludXggQUNQSS4NCj4gDQo+IE5vdyB3ZSBo
-YXZlIHR3byBjaG9pY2VzOg0KPiBSZS1pbXBsZW1lbnQgaXQgaW4gdGhlIGFjbGludXguaCB1c2lu
-ZyAiQUNQSV9ERUJVR19PVVRQVVQiDQo+IGRlZmluZWQvdW5kZWZpbmVkIG9yIGRlbGV0ZSB0aGlz
-IGtlcm5lbCBjb25maWd1cmF0aW9uIGl0ZW0gdGVtcG9yYXJpbHkuDQoNClNvcnJ5LCBJIG1hZGUg
-YSBtaXN0YWtlIGhlcmUuDQpBQ1BJX0RFQlVHX09VVFBVVCBpcyBhbHJlYWR5IGNvdmVyZWQgYnkg
-dGhlIENPTkZJR19BQ1BJX0RFQlVHLg0KVGhlIGNvcnJlY3RlZCBzdGF0ZW1lbnQgc2hvdWxkIGJl
-Og0KSWYgd2Ugd2FudCB0byBmaW5lIHR1bmUgdGhlIG91dHB1dCwgdGhlbiB0aGUgY29kZXMgbWln
-aHQgYmUgaW1wbGVtZW50ZWQgaW4gQUNQSUNBIGZpcnN0IGFuZCB0aGVuIGdldCB1dGlsaXplZCBp
-biBMaW51eCB1c2luZyB0aGUgbmV3IEFDUElDQSBmZWF0dXJlLg0KDQpCZXN0IHJlZ2FyZHMNCi1M
-dg0KDQo=
+On Sunday, April 07, 2013 07:00:34 AM Zheng, Lv wrote:
+> > > > Kconfig symbol ACPI_DEBUG_FUNC_TRACE was only used (through its
+> > > > corresponding macro) in drivers/acpi/acpica/acmacros.h. That macro
+> > > > was removed from that header in v3.8, with commit
+> > > > 86ff0e508f88eda6e479a897476026055831d2d8 ("ACPICA: Fix unmerged
+> > > > acmacros.h divergences."). That commit did not explain why that
+> > > > macro was removed. But it seems that ACPI_DEBUG_FUNC_TRACE can
+> > now
+> > > > be removed too, as it is unused.
+> > >
+> > > Lv, can you please comment here?
+> > 
+> > Sorry for the delayed reply.
+> > 
+> > The commit should have done something that already have been done in the
+> > ACPICA.
+> > I'll take a look at this.
+> 
+> The original commit deleted CONFIG_ACPI_DEBUG_FUNC_TRACE from acmacros.h as it is in the __wrong__ place.
+> CONFIG_xxx is linux specific codes thus should appear in OSL layer - aclinux.h.
+> ACPICA specific codes should only use selective definitions in #ifdef ACPI_xxx style and such codes should be merged into ACPICA rather than being merged into Linux ACPI.
+> 
+> Now we have two choices:
+> Re-implement it in the aclinux.h using "ACPI_DEBUG_OUTPUT" defined/undefined or delete
+> this kernel configuration item temporarily.
+
+OK
+
+I'll apply the Paul's patch then and we'll decide what to do with that config
+option later.
+
+Thanks,
+Rafael
+
+
+-- 
+I speak only for myself.
+Rafael J. Wysocki, Intel Open Source Technology Center.
