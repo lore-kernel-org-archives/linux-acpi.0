@@ -1,52 +1,44 @@
 From: "Zheng, Lv" <lv.zheng@intel.com>
-Subject: RE: [PATCH v6] ACPI / serial: Add peripheral PnP IDs enumeration
- support
-Date: Sun, 7 Apr 2013 03:11:51 +0000
-Message-ID: <1AE640813FDE7649BE1B193DEA596E88015CDA38@SHSMSX101.ccr.corp.intel.com>
-References: <cover.1354505471.git.lv.zheng@intel.com>
- <eb535db4b040bbe8712a975ed70cb3899b5b0fea.1364954385.git.lv.zheng@intel.com>
- <20130403161431.GB21383@kroah.com>
- <1AE640813FDE7649BE1B193DEA596E88015CC891@SHSMSX101.ccr.corp.intel.com>
- <20130404182335.GC24711@kroah.com>
+Subject: RE: [PATCH] ACPI: remove "config ACPI_DEBUG_FUNC_TRACE"
+Date: Sun, 7 Apr 2013 07:00:34 +0000
+Message-ID: <1AE640813FDE7649BE1B193DEA596E88015CDB97@SHSMSX101.ccr.corp.intel.com>
+References: <1363689661.1390.9.camel@x61.thuisdomein>
+ <3588021.V98D5VToQr@vostro.rjw.lan>
+ <1AE640813FDE7649BE1B193DEA596E88015CD54B@SHSMSX101.ccr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga02.intel.com ([134.134.136.20]:53183 "EHLO mga02.intel.com"
+Received: from mga03.intel.com ([143.182.124.21]:48416 "EHLO mga03.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1161342Ab3DGDL5 convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sat, 6 Apr 2013 23:11:57 -0400
-In-Reply-To: <20130404182335.GC24711@kroah.com>
+	id S1755520Ab3DGHAj (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Sun, 7 Apr 2013 03:00:39 -0400
+In-Reply-To: <1AE640813FDE7649BE1B193DEA596E88015CD54B@SHSMSX101.ccr.corp.intel.com>
 Content-Language: en-US
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc: "Wysocki, Rafael J" <rafael.j.wysocki@intel.com>, "Brown, Len" <len.brown@intel.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-serial@vger.kernel.org" <linux-serial@vger.kernel.org>, "Zhang, Rui" <rui.zhang@intel.com>
+To: "Zheng, Lv" <lv.zheng@intel.com>, "Rafael J. Wysocki" <rjw@sisk.pl>, Paul Bolle <pebolle@tiscali.nl>
+Cc: Len Brown <lenb@kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "Moore, Robert" <robert.moore@intel.com>
 
-> > Hi,
-> >
-> > > > > +	return snprintf(buf, PAGE_SIZE, "uart\n");
-> > > >
-> > > > What is the "uart" part for?  Isn't that kind of obvious?
-> > >
-> > > It is the default "peripheral_type" content.
-> > > Before sending next revision out, let me ask a question here:
-> > > Shall I leave this empty as my previous revisions?
-> >
-> > Hmm, if this is empty by default then the udev rules may require additional
-> handlings.
-> > Can I use "NONE" here for the user space users?
-> 
-> No, just don't create the sysfs file at all for that type of device.
-
-Sorry for the delayed reply.
-
-I was thinking developers are encouraged to use the default attributes.
-In the tty subsystem, the default attributes are owned by the tty drivers, thus I added peripheral_type file in the serial layer.
-
-If we want to have it as a dynamic attribute, we may modify the codes in the tty_register_device_attr, splitting device_register into two parts, and add sysfs addition codes between the device_initialize and device_add.
-So that the uevents received by the user space can have this attribute set.
-Sorry that I need your confirmation before doing such modification.
-
-Thanks and best regards
--Lv
+PiA+ID4gS2NvbmZpZyBzeW1ib2wgQUNQSV9ERUJVR19GVU5DX1RSQUNFIHdhcyBvbmx5IHVzZWQg
+KHRocm91Z2ggaXRzDQo+ID4gPiBjb3JyZXNwb25kaW5nIG1hY3JvKSBpbiBkcml2ZXJzL2FjcGkv
+YWNwaWNhL2FjbWFjcm9zLmguIFRoYXQgbWFjcm8NCj4gPiA+IHdhcyByZW1vdmVkIGZyb20gdGhh
+dCBoZWFkZXIgaW4gdjMuOCwgd2l0aCBjb21taXQNCj4gPiA+IDg2ZmYwZTUwOGY4OGVkYTZlNDc5
+YTg5NzQ3NjAyNjA1NTgzMWQyZDggKCJBQ1BJQ0E6IEZpeCB1bm1lcmdlZA0KPiA+ID4gYWNtYWNy
+b3MuaCBkaXZlcmdlbmNlcy4iKS4gVGhhdCBjb21taXQgZGlkIG5vdCBleHBsYWluIHdoeSB0aGF0
+DQo+ID4gPiBtYWNybyB3YXMgcmVtb3ZlZC4gQnV0IGl0IHNlZW1zIHRoYXQgQUNQSV9ERUJVR19G
+VU5DX1RSQUNFIGNhbg0KPiBub3cNCj4gPiA+IGJlIHJlbW92ZWQgdG9vLCBhcyBpdCBpcyB1bnVz
+ZWQuDQo+ID4NCj4gPiBMdiwgY2FuIHlvdSBwbGVhc2UgY29tbWVudCBoZXJlPw0KPiANCj4gU29y
+cnkgZm9yIHRoZSBkZWxheWVkIHJlcGx5Lg0KPiANCj4gVGhlIGNvbW1pdCBzaG91bGQgaGF2ZSBk
+b25lIHNvbWV0aGluZyB0aGF0IGFscmVhZHkgaGF2ZSBiZWVuIGRvbmUgaW4gdGhlDQo+IEFDUElD
+QS4NCj4gSSdsbCB0YWtlIGEgbG9vayBhdCB0aGlzLg0KDQpUaGUgb3JpZ2luYWwgY29tbWl0IGRl
+bGV0ZWQgQ09ORklHX0FDUElfREVCVUdfRlVOQ19UUkFDRSBmcm9tIGFjbWFjcm9zLmggYXMgaXQg
+aXMgaW4gdGhlIF9fd3JvbmdfXyBwbGFjZS4NCkNPTkZJR194eHggaXMgbGludXggc3BlY2lmaWMg
+Y29kZXMgdGh1cyBzaG91bGQgYXBwZWFyIGluIE9TTCBsYXllciAtIGFjbGludXguaC4NCkFDUElD
+QSBzcGVjaWZpYyBjb2RlcyBzaG91bGQgb25seSB1c2Ugc2VsZWN0aXZlIGRlZmluaXRpb25zIGlu
+ICNpZmRlZiBBQ1BJX3h4eCBzdHlsZSBhbmQgc3VjaCBjb2RlcyBzaG91bGQgYmUgbWVyZ2VkIGlu
+dG8gQUNQSUNBIHJhdGhlciB0aGFuIGJlaW5nIG1lcmdlZCBpbnRvIExpbnV4IEFDUEkuDQoNCk5v
+dyB3ZSBoYXZlIHR3byBjaG9pY2VzOg0KUmUtaW1wbGVtZW50IGl0IGluIHRoZSBhY2xpbnV4Lmgg
+dXNpbmcgIkFDUElfREVCVUdfT1VUUFVUIiBkZWZpbmVkL3VuZGVmaW5lZCBvciBkZWxldGUgdGhp
+cyBrZXJuZWwgY29uZmlndXJhdGlvbiBpdGVtIHRlbXBvcmFyaWx5Lg0KDQpUaGFua3MgYW5kIGJl
+c3QgcmVnYXJkcw0KLUx2DQo=
