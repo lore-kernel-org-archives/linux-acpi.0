@@ -1,156 +1,263 @@
-From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Subject: [PATCH v2.1 5/5] ACPI / LPSS: add support of shared clock
-Date: Tue,  9 Apr 2013 14:42:53 +0300
-Message-ID: <1365507773-12395-1-git-send-email-andriy.shevchenko@linux.intel.com>
-References: <47108562.YbdrT92xjE@vostro.rjw.lan>
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga11.intel.com ([192.55.52.93]:61343 "EHLO mga11.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S935438Ab3DILnP (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 9 Apr 2013 07:43:15 -0400
-In-Reply-To: <47108562.YbdrT92xjE@vostro.rjw.lan>
-Sender: linux-acpi-owner@vger.kernel.org
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: [PATCH] gpio / ACPI: Handle ACPI events in accordance with the spec
+Date: Tue, 09 Apr 2013 15:57:25 +0200
+Message-ID: <3043137.BtEKcMiXSu@vostro.rjw.lan>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7Bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Linus Walleij <linus.walleij@linaro.org>
+Cc: Mathias Nyman <mathias.nyman@linux.intel.com>, grant.likely@secretlab.ca, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J . Wysocki" <rafael.j.wysocki@intel.com>, Mika Westerberg <mika.westerberg@linux.intel.com>, Viresh Kumar <viresh.kumar@linaro.org>, linux-kernel@vger.kernel.org, spear-devel <spear-devel@list.st.com>, Vinod Koul <vinod.koul@intel.com>, linux-acpi@vger.kernel.org
 
-From: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>
+From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 
-The DMA controller in Lynxpoint is using the LPSS root clock as a functional
-clock to work properly. Proposed patch adds support of the shared clock. It
-also avoids hardcoding the name of the DMA device in clk-lpt.c and the name of
-the root clock in acpi_lpss.c.
+Commit 0d1c28a (gpiolib-acpi: Add ACPI5 event model support to gpio.)
+that added support for ACPI events signalled through GPIO interrupts
+covered only GPIO pins whose numbers are less than or equal to 255.
+However, there may be GPIO pins with numbers greater than 255 and
+the ACPI spec (ACPI 5.0, Section 5.6.5.1) requires the _EVT method
+to be used for handling events corresponding to those pins.
+
+Moreover, according to the spec, _EVT is the default mechanism
+for handling all ACPI events signalled through GPIO interrupts,
+so if the _Exx/_Lxx method is not present for the given pin,
+_EVT should be used instead.  If present, though, _Exx/_Lxx take
+precedence over _EVT which shouldn't be executed in that case
+(ACPI 5.0, Section 5.6.5.3).
+
+Modify acpi_gpiochip_request_interrupts() to follow the spec as
+described above and add acpi_gpiochip_free_interrupts() needed
+to free interrupts associated with _EVT.
 
 Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 ---
- drivers/acpi/acpi_lpss.c               | 26 ++++++++++++++++++++++----
- drivers/clk/x86/clk-lpt.c              | 15 +++++++++++----
- include/linux/platform_data/clk-lpss.h |  5 +++++
- 3 files changed, 38 insertions(+), 8 deletions(-)
+ drivers/gpio/gpiolib-acpi.c |  140 +++++++++++++++++++++++++++++++++++++-------
+ include/linux/acpi_gpio.h   |    2 
+ 2 files changed, 122 insertions(+), 20 deletions(-)
 
-diff --git a/drivers/acpi/acpi_lpss.c b/drivers/acpi/acpi_lpss.c
-index b1c9542..652fd5c 100644
---- a/drivers/acpi/acpi_lpss.c
-+++ b/drivers/acpi/acpi_lpss.c
-@@ -35,11 +35,16 @@ ACPI_MODULE_NAME("acpi_lpss");
+Index: linux-pm/drivers/gpio/gpiolib-acpi.c
+===================================================================
+--- linux-pm.orig/drivers/gpio/gpiolib-acpi.c
++++ linux-pm/drivers/gpio/gpiolib-acpi.c
+@@ -17,6 +17,13 @@
+ #include <linux/acpi.h>
+ #include <linux/interrupt.h>
  
- struct lpss_device_desc {
- 	bool clk_required;
--	const char *clk_parent;
-+	const char *clkdev_name;
- 	bool ltr_required;
- 	unsigned int prv_offset;
- };
- 
-+static struct lpss_device_desc lpss_dma_desc = {
-+	.clk_required = true,
-+	.clkdev_name = "hclk",
++struct acpi_gpio_evt_pin {
++	struct list_head node;
++	acpi_handle *evt_handle;
++	unsigned int pin;
++	unsigned int irq;
 +};
 +
- struct lpss_private_data {
- 	void __iomem *mmio_base;
- 	resource_size_t mmio_size;
-@@ -49,7 +54,6 @@ struct lpss_private_data {
- 
- static struct lpss_device_desc lpt_dev_desc = {
- 	.clk_required = true,
--	.clk_parent = "lpss_clk",
- 	.prv_offset = 0x800,
- 	.ltr_required = true,
- };
-@@ -60,6 +64,9 @@ static struct lpss_device_desc lpt_sdio_dev_desc = {
- };
- 
- static const struct acpi_device_id acpi_lpss_device_ids[] = {
-+	/* Generic LPSS devices */
-+	{ "INTL9C60", (unsigned long)&lpss_dma_desc },
-+
- 	/* Lynxpoint LPSS devices */
- 	{ "INT33C0", (unsigned long)&lpt_dev_desc },
- 	{ "INT33C1", (unsigned long)&lpt_dev_desc },
-@@ -91,16 +98,27 @@ static int register_device_clock(struct acpi_device *adev,
- 				 struct lpss_private_data *pdata)
+ static int acpi_gpiochip_find(struct gpio_chip *gc, void *data)
  {
- 	const struct lpss_device_desc *dev_desc = pdata->dev_desc;
-+	struct lpss_clk_data *clk_data;
+ 	if (!gc->dev)
+@@ -54,7 +61,6 @@ int acpi_get_gpio(char *path, int pin)
+ }
+ EXPORT_SYMBOL_GPL(acpi_get_gpio);
  
- 	if (!lpss_clk_dev)
- 		lpt_register_clock_device();
- 
--	if (!dev_desc->clk_parent || !pdata->mmio_base
-+	clk_data = platform_get_drvdata(lpss_clk_dev);
-+	if (!clk_data)
-+		return -ENODEV;
-+
-+	if (dev_desc->clkdev_name) {
-+		clk_register_clkdev(clk_data->clk, dev_desc->clkdev_name,
-+				    dev_name(&adev->dev));
-+		return 0;
-+	}
-+
-+	if (!pdata->mmio_base
- 	    || pdata->mmio_size < dev_desc->prv_offset + LPSS_CLK_SIZE)
- 		return -ENODATA;
- 
- 	pdata->clk = clk_register_gate(NULL, dev_name(&adev->dev),
--				       dev_desc->clk_parent, 0,
-+				       clk_data->name, 0,
- 				       pdata->mmio_base + dev_desc->prv_offset,
- 				       0, 0, NULL);
- 	if (IS_ERR(pdata->clk))
-diff --git a/drivers/clk/x86/clk-lpt.c b/drivers/clk/x86/clk-lpt.c
-index 5cf4f46..e70fae3f 100644
---- a/drivers/clk/x86/clk-lpt.c
-+++ b/drivers/clk/x86/clk-lpt.c
-@@ -15,22 +15,29 @@
- #include <linux/clk-provider.h>
- #include <linux/err.h>
- #include <linux/module.h>
-+#include <linux/platform_data/clk-lpss.h>
- #include <linux/platform_device.h>
- 
- #define PRV_CLOCK_PARAMS 0x800
- 
- static int lpt_clk_probe(struct platform_device *pdev)
+-
+ static irqreturn_t acpi_gpio_irq_handler(int irq, void *data)
  {
-+	struct lpss_clk_data *drvdata;
- 	struct clk *clk;
- 
-+	drvdata = devm_kmalloc(&pdev->dev, sizeof(*drvdata), GFP_KERNEL);
-+	if (!drvdata)
-+		return -ENOMEM;
-+
- 	/* LPSS free running clock */
--	clk = clk_register_fixed_rate(&pdev->dev, "lpss_clk", NULL, CLK_IS_ROOT,
--				      100000000);
-+	drvdata->name = "lpss_clk";
-+	clk = clk_register_fixed_rate(&pdev->dev, drvdata->name, NULL,
-+				      CLK_IS_ROOT, 100000000);
- 	if (IS_ERR(clk))
- 		return PTR_ERR(clk);
- 
--	/* Shared DMA clock */
--	clk_register_clkdev(clk, "hclk", "INTL9C60.0.auto");
-+	drvdata->clk = clk;
-+	platform_set_drvdata(pdev, drvdata);
- 	return 0;
+ 	acpi_handle handle = data;
+@@ -64,6 +70,27 @@ static irqreturn_t acpi_gpio_irq_handler
+ 	return IRQ_HANDLED;
  }
  
-diff --git a/include/linux/platform_data/clk-lpss.h b/include/linux/platform_data/clk-lpss.h
-index 528e73c..2390199 100644
---- a/include/linux/platform_data/clk-lpss.h
-+++ b/include/linux/platform_data/clk-lpss.h
-@@ -13,6 +13,11 @@
- #ifndef __CLK_LPSS_H
- #define __CLK_LPSS_H
- 
-+struct lpss_clk_data {
-+	const char *name;
-+	struct clk *clk;
-+};
++static irqreturn_t acpi_gpio_irq_handler_evt(int irq, void *data)
++{
++	struct acpi_gpio_evt_pin *evt_pin = data;
++	struct acpi_object_list args;
++	union acpi_object arg;
 +
- extern int lpt_clk_init(void);
++	arg.type = ACPI_TYPE_INTEGER;
++	arg.integer.value = evt_pin->pin;
++	args.count = 1;
++	args.pointer = &arg;
++
++	acpi_evaluate_object(evt_pin->evt_handle, NULL, &args, NULL);
++
++	return IRQ_HANDLED;
++}
++
++static void acpi_gpio_evt_dh(acpi_handle handle, void *data)
++{
++	/* The address of this function is used as a key. */
++}
++
+ /**
+  * acpi_gpiochip_request_interrupts() - Register isr for gpio chip ACPI events
+  * @chip:      gpio chip
+@@ -73,15 +100,13 @@ static irqreturn_t acpi_gpio_irq_handler
+  * chip's interrupt handler. acpi_gpiochip_request_interrupts finds out which
+  * gpio pins have acpi event methods and assigns interrupt handlers that calls
+  * the acpi event methods for those pins.
+- *
+- * Interrupts are automatically freed on driver detach
+  */
+-
+ void acpi_gpiochip_request_interrupts(struct gpio_chip *chip)
+ {
+ 	struct acpi_buffer buf = {ACPI_ALLOCATE_BUFFER, NULL};
+ 	struct acpi_resource *res;
+-	acpi_handle handle, ev_handle;
++	acpi_handle handle, evt_handle;
++	struct list_head *evt_pins = NULL;
+ 	acpi_status status;
+ 	unsigned int pin;
+ 	int irq, ret;
+@@ -98,13 +123,30 @@ void acpi_gpiochip_request_interrupts(st
+ 	if (ACPI_FAILURE(status))
+ 		return;
  
- #endif /* __CLK_LPSS_H */
--- 
-1.8.2.rc0.22.gb3600c3
-
+-	/* If a gpio interrupt has an acpi event handler method, then
+-	 * set up an interrupt handler that calls the acpi event handler
+-	 */
++	status = acpi_get_handle(handle, "_EVT", &evt_handle);
++	if (ACPI_SUCCESS(status)) {
++		evt_pins = kzalloc(sizeof(*evt_pins), GFP_KERNEL);
++		if (evt_pins) {
++			INIT_LIST_HEAD(evt_pins);
++			status = acpi_attach_data(handle, acpi_gpio_evt_dh,
++						  evt_pins);
++			if (ACPI_FAILURE(status)) {
++				kfree(evt_pins);
++				evt_pins = NULL;
++			}
++		}
++	}
+ 
++	/*
++	 * If a GPIO interrupt has an ACPI event handler method, or _EVT is
++	 * present, set up an interrupt handler that calls the ACPI event
++	 * handler.
++	 */
+ 	for (res = buf.pointer;
+ 	     res && (res->type != ACPI_RESOURCE_TYPE_END_TAG);
+ 	     res = ACPI_NEXT_RESOURCE(res)) {
++		irq_handler_t handler = NULL;
++		void *data;
+ 
+ 		if (res->type != ACPI_RESOURCE_TYPE_GPIO ||
+ 		    res->data.gpio.connection_type !=
+@@ -115,23 +157,42 @@ void acpi_gpiochip_request_interrupts(st
+ 		if (pin > chip->ngpio)
+ 			continue;
+ 
+-		sprintf(ev_name, "_%c%02X",
+-		res->data.gpio.triggering ? 'E' : 'L', pin);
+-
+-		status = acpi_get_handle(handle, ev_name, &ev_handle);
+-		if (ACPI_FAILURE(status))
+-			continue;
+-
+ 		irq = chip->to_irq(chip, pin);
+ 		if (irq < 0)
+ 			continue;
+ 
++		if (pin <= 255) {
++			acpi_handle ev_handle;
++
++			sprintf(ev_name, "_%c%02X",
++				res->data.gpio.triggering ? 'E' : 'L', pin);
++			status = acpi_get_handle(handle, ev_name, &ev_handle);
++			if (ACPI_SUCCESS(status)) {
++				handler = acpi_gpio_irq_handler;
++				data = ev_handle;
++			}
++		}
++		if (!handler && evt_pins) {
++			struct acpi_gpio_evt_pin *evt_pin;
++
++			evt_pin = kzalloc(sizeof(*evt_pin), GFP_KERNEL);
++			if (!evt_pin)
++				continue;
++
++			list_add_tail(&evt_pin->node, evt_pins);
++			evt_pin->evt_handle = evt_handle;
++			evt_pin->pin = pin;
++			evt_pin->irq = irq;
++			handler = acpi_gpio_irq_handler_evt;
++			data = evt_pin;
++		}
++		if (!handler)
++			continue;
++
+ 		/* Assume BIOS sets the triggering, so no flags */
+-		ret = devm_request_threaded_irq(chip->dev, irq, NULL,
+-					  acpi_gpio_irq_handler,
+-					  0,
+-					  "GPIO-signaled-ACPI-event",
+-					  ev_handle);
++		ret = devm_request_threaded_irq(chip->dev, irq, NULL, handler,
++						0, "GPIO-signaled-ACPI-event",
++						data);
+ 		if (ret)
+ 			dev_err(chip->dev,
+ 				"Failed to request IRQ %d ACPI event handler\n",
+@@ -139,3 +200,42 @@ void acpi_gpiochip_request_interrupts(st
+ 	}
+ }
+ EXPORT_SYMBOL(acpi_gpiochip_request_interrupts);
++
++
++/**
++ * acpi_gpiochip_free_interrupts() - Free GPIO _EVT ACPI event interrupts.
++ * @chip:      gpio chip
++ *
++ * Free interrupts associated with the _EVT method for the given GPIO chip.
++ *
++ * The remaining ACPI event interrupts associated with the chip are freed
++ * automatically.
++ */
++void acpi_gpiochip_free_interrupts(struct gpio_chip *chip)
++{
++	acpi_handle handle;
++	acpi_status status;
++	struct list_head *evt_pins;
++	struct acpi_gpio_evt_pin *evt_pin, *ep;
++
++	if (!chip->dev || !chip->to_irq)
++		return;
++
++	handle = ACPI_HANDLE(chip->dev);
++	if (!handle)
++		return;
++
++	status = acpi_get_data(handle, acpi_gpio_evt_dh, (void **)&evt_pins);
++	if (ACPI_FAILURE(status))
++		return;
++
++	list_for_each_entry_safe_reverse(evt_pin, ep, evt_pins, node) {
++		devm_free_irq(chip->dev, evt_pin->irq, evt_pin);
++		list_del(&evt_pin->node);
++		kfree(evt_pin);
++	}
++
++	acpi_detach_data(handle, acpi_gpio_evt_dh);
++	kfree(evt_pins);
++}
++EXPORT_SYMBOL(acpi_gpiochip_free_interrupts);
+Index: linux-pm/include/linux/acpi_gpio.h
+===================================================================
+--- linux-pm.orig/include/linux/acpi_gpio.h
++++ linux-pm/include/linux/acpi_gpio.h
+@@ -8,6 +8,7 @@
+ 
+ int acpi_get_gpio(char *path, int pin);
+ void acpi_gpiochip_request_interrupts(struct gpio_chip *chip);
++void acpi_gpiochip_free_interrupts(struct gpio_chip *chip);
+ 
+ #else /* CONFIG_GPIO_ACPI */
+ 
+@@ -17,6 +18,7 @@ static inline int acpi_get_gpio(char *pa
+ }
+ 
+ static inline void acpi_gpiochip_request_interrupts(struct gpio_chip *chip) { }
++static inline void acpi_gpiochip_free_interrupts(struct gpio_chip *chip) { }
+ 
+ #endif /* CONFIG_GPIO_ACPI */
+ 
