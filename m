@@ -1,112 +1,50 @@
-From: Bjorn Helgaas <bhelgaas@google.com>
-Subject: Re: [PATCH v8 10/13] PCI/acpiphp: do not use ACPI PCI subdriver mechanism
-Date: Wed, 10 Apr 2013 11:07:25 -0600
-Message-ID: <CAErSpo7O1L2aRc2aVSqwj2CKwwoC9dbFWgukNj=jCkG-PjYOMA@mail.gmail.com>
-References: <1361892353-14786-1-git-send-email-jiang.liu@huawei.com>
- <1361892353-14786-11-git-send-email-jiang.liu@huawei.com> <CAErSpo4uyqPRDWKvH_3rtnGzbro1+_SnGH9GBU_-tz1p2a+AMQ@mail.gmail.com>
- <51658FCB.3030906@gmail.com>
+From: Linus Walleij <linus.walleij@linaro.org>
+Subject: Re: [PATCH] gpio / ACPI: Handle ACPI events in accordance with the spec
+Date: Wed, 10 Apr 2013 23:06:48 +0200
+Message-ID: <CACRpkdZ+Tj2tdQsY7dM+ZJHDeO=HdnYtQ8fWVAXRbP0zpG8ijA@mail.gmail.com>
+References: <3043137.BtEKcMiXSu@vostro.rjw.lan>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <linux-pci-owner@vger.kernel.org>
-In-Reply-To: <51658FCB.3030906@gmail.com>
-Sender: linux-pci-owner@vger.kernel.org
-To: Jiang Liu <liuj97@gmail.com>
-Cc: "Rafael J . Wysocki" <rjw@sisk.pl>, Jiang Liu <jiang.liu@huawei.com>, Yinghai Lu <yinghai@kernel.org>, Yijing Wang <wangyijing@huawei.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Toshi Kani <toshi.kani@hp.com>, Myron Stowe <myron.stowe@redhat.com>, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-ie0-f177.google.com ([209.85.223.177]:58219 "EHLO
+	mail-ie0-f177.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750975Ab3DJVGs (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 10 Apr 2013 17:06:48 -0400
+Received: by mail-ie0-f177.google.com with SMTP id 9so857988iec.22
+        for <linux-acpi@vger.kernel.org>; Wed, 10 Apr 2013 14:06:48 -0700 (PDT)
+In-Reply-To: <3043137.BtEKcMiXSu@vostro.rjw.lan>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: Mathias Nyman <mathias.nyman@linux.intel.com>, Grant Likely <grant.likely@secretlab.ca>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>
 
-On Wed, Apr 10, 2013 at 10:14 AM, Jiang Liu <liuj97@gmail.com> wrote:
-> On 04/10/2013 07:38 AM, Bjorn Helgaas wrote:
->> On Tue, Feb 26, 2013 at 8:25 AM, Jiang Liu <liuj97@gmail.com> wrote:
->>> Previously the acpiphp driver registers itself as an ACPI PCI subdriver,
->>> so it's callbacks will be invoked when creating/destroying PCI root
->>> buses to manage ACPI based PCI hotplug slots. But it doesn't handle
->>> P2P bridge hotplug events, so it will cause strange behavours if there
->>> are hotplug slots associated with a hot-removed P2P bridge.
->>>
->>> So this patch tries to fix this issue by:
->>> 1) Make acpiphp built-in only, not a module.
->>> 2) Directly hook into PCI core to update hotplug slot devices when
->>>    creating/destroying PCI buses through:
->>>         pci_{add|remove}_bus() -> acpi_pci_{add|remove}_bus()
->>> 3) Get rid of ACPI PCI subdriver related code, it's not used any more.
->>>
->>> Signed-off-by: Jiang Liu <jiang.liu@huawei.com>
->>> Signed-off-by: Yijing Wang <wangyijing@huawei.com>
->>> Cc: Yinghai Lu <yinghai@kernel.org>
->>> Cc: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>
->>> Cc: Toshi Kani <toshi.kani@hp.com>
->>> Cc: linux-pci@vger.kernel.org
->>> Cc: linux-kernel@vger.kernel.org
->>> ---
->>>  drivers/pci/hotplug/Kconfig        |    7 +-
->>>  drivers/pci/hotplug/acpiphp.h      |    3 -
->>>  drivers/pci/hotplug/acpiphp_core.c |   23 +--
->>>  drivers/pci/hotplug/acpiphp_glue.c |  282 +++++++-----------------------------
->>>  drivers/pci/pci-acpi.c             |    3 +
->>>  include/linux/pci-acpi.h           |   14 +-
->>>  6 files changed, 67 insertions(+), 265 deletions(-)
->>>
->>> diff --git a/drivers/pci/hotplug/Kconfig b/drivers/pci/hotplug/Kconfig
->>> index 13e9e63..9fcb87f 100644
->>> --- a/drivers/pci/hotplug/Kconfig
->>> +++ b/drivers/pci/hotplug/Kconfig
->>> @@ -52,15 +52,12 @@ config HOTPLUG_PCI_IBM
->>>           When in doubt, say N.
->>>
->>>  config HOTPLUG_PCI_ACPI
->>> -       tristate "ACPI PCI Hotplug driver"
->>> -       depends on (!ACPI_DOCK && ACPI) || (ACPI_DOCK)
->>> +       bool "ACPI PCI Hotplug driver"
->>
-> Hi Bjorn,
->         Thanks for review.
->
->> My goal is that a user should never have to specify a kernel boot
->> parameter or edit a modules.conf file, but the user did previously
->> have some way to influence whether we use pciehp or acpiphp.  I know
->> we still have some issues, particularly with acpiphp, so I'm a little
->> concerned that by removing the CONFIG_HOTPLUG_PCI_ACPI=m, we might be
->> removing a way to work around those issues.
->>
->> A distro that previously used CONFIG_HOTPLUG_PCI_ACPI=m will now have
->> to use =y, so modules.conf is no longer applicable.  Can you convince
->> me that the user still has a way to work around issues?  I spent quite
->> a while trying to understand the pciehp/acpiphp dependencies, but it's
->> pretty tangled web.
-> I will try my best to explain the relationships between pciehp and acpiphp
-> as of v3.9-rc6.
->
-> The pciehp driver always have priority over the acpiphp driver.
-> That is, the acpiphp driver rejects binding to an ACPI PCI hotplug slot if
-> a) The slot's parent is a PCIe port with native hotplug capability
-> b) OSPM has taken over PCIe native hotplug control from BIOS.
->         !(root->osc_control_set & OSC_PCI_EXPRESS_NATIVE_HP_CONTROL)
-> The above check has no dependency on the loading order of pciehp and acpiphp
-> drivers. So converting acpiphp driver to builit-in should be ok.
->
-> On the other hand, I remember Yinghai has mentioned that some PCIe ports
-> with native hotplug capability doesn't work as expected with the pciehp driver
-> and should be managed by the acpiphp driver. Currently we could achieve that
-> by using boot param "pcie_ports=compat", but this will disable PCIe port
-> drivers altogether. And I also remember that Rafael has mentioned that
-> some BIOSes exhibit strange dependency among PCIe OSC controls, so it's
-> not feasible to only disable PCIe native hotplug.
->
-> For "pciehp_force", it does only affect the way pciehp to detect a hotplug
-> slot, it doesn't affect acpiphp at all.
->
-> To sum up, converting acpiphp as built-in should not affect the relationship
-> between pciehp and acpiphp driver.
+On Tue, Apr 9, 2013 at 3:57 PM, Rafael J. Wysocki <rjw@sisk.pl> wrote:
 
-My concern is that a user used to be able to remove acpiphp from
-modules.conf.  Now removing acpiphp will require a kernel rebuild.
-But maybe that won't turn out to be a problem.
+> From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+>
+> Commit 0d1c28a (gpiolib-acpi: Add ACPI5 event model support to gpio.)
+> that added support for ACPI events signalled through GPIO interrupts
+> covered only GPIO pins whose numbers are less than or equal to 255.
+> However, there may be GPIO pins with numbers greater than 255 and
+> the ACPI spec (ACPI 5.0, Section 5.6.5.1) requires the _EVT method
+> to be used for handling events corresponding to those pins.
+>
+> Moreover, according to the spec, _EVT is the default mechanism
+> for handling all ACPI events signalled through GPIO interrupts,
+> so if the _Exx/_Lxx method is not present for the given pin,
+> _EVT should be used instead.  If present, though, _Exx/_Lxx take
+> precedence over _EVT which shouldn't be executed in that case
+> (ACPI 5.0, Section 5.6.5.3).
+>
+> Modify acpi_gpiochip_request_interrupts() to follow the spec as
+> described above and add acpi_gpiochip_free_interrupts() needed
+> to free interrupts associated with _EVT.
+>
+> Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 
-> So how about splitting this patch into
-> two and adding more comments for the Kconfig change?
+Patch applied with Mika's ACK, thanks!
 
-Yes, please at least split this into two.  While you're at it, please
-also split the first patch into "remove unnecessary is_added guard"
-and "cleanup."
+It's not like I fully understand it, but I totally trust you guys.
 
-Bjorn
+Yours,
+Linus Walleij
