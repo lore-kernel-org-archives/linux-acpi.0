@@ -1,42 +1,72 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: [PATCH] gpiolib-acpi: introduce acpi_get_gpio_by_index() helper
-Date: Fri, 12 Apr 2013 00:43:54 +0200
-Message-ID: <91057740.Ix5vA2gAR4@vostro.rjw.lan>
-References: <1364986614-15711-1-git-send-email-mika.westerberg@linux.intel.com> <CACRpkdZKnLJbEqiWBmmTC+9yeSYgXryG0Na3BXqo1We1mRyTAg@mail.gmail.com>
+From: Bjorn Helgaas <bhelgaas@google.com>
+Subject: Re: [PATCH] pci: Remove unnecessary dependency between PME and ACPI.
+Date: Thu, 11 Apr 2013 17:44:26 -0600
+Message-ID: <20130411234426.GA10196@google.com>
+References: <20130221155329.GA26729@arm.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7Bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from hydra.sisk.pl ([212.160.235.94]:56573 "EHLO hydra.sisk.pl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753881Ab3DKWgH (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 11 Apr 2013 18:36:07 -0400
-In-Reply-To: <CACRpkdZKnLJbEqiWBmmTC+9yeSYgXryG0Na3BXqo1We1mRyTAg@mail.gmail.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-pci-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20130221155329.GA26729@arm.com>
+Sender: linux-pci-owner@vger.kernel.org
+To: Andrew Murray <Andrew.Murray@arm.com>
+Cc: linux-pci@vger.kernel.org, "thierry.reding@avionic-design.de" <thierry.reding@avionic-design.de>, "thomas.petazzoni@free-electrons.com" <thomas.petazzoni@free-electrons.com>, "jbarnes@virtuousgeek.org" <jbarnes@virtuousgeek.org>, linux-acpi@vger.kernel.org, "Rafael J. Wysocki" <rjw@sisk.pl>
 List-Id: linux-acpi@vger.kernel.org
-To: Linus Walleij <linus.walleij@linaro.org>
-Cc: Mika Westerberg <mika.westerberg@linux.intel.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Grant Likely <grant.likely@secretlab.ca>, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Mathias Nyman <mathias.nyman@linux.intel.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>
 
-On Friday, April 12, 2013 12:33:55 AM Linus Walleij wrote:
-> On Wed, Apr 3, 2013 at 12:56 PM, Mika Westerberg
-> <mika.westerberg@linux.intel.com> wrote:
+On Thu, Feb 21, 2013 at 03:53:29PM +0000, Andrew Murray wrote:
+> Signed-off-by: Andrew Murray <Andrew.Murray@arm.com>
+> Signed-off-by: Liviu Dudau <Liviu.Dudau@arm.com>
+> ---
+>  drivers/pci/pcie/Kconfig |    2 +-
+>  1 files changed, 1 insertions(+), 1 deletions(-)
 > 
-> > Instead of open-coding ACPI GPIO resource lookup in each driver, we provide
-> > a helper function analogous to Device Tree version that allows drivers to
-> > specify which GPIO resource they are interested (using an index to the GPIO
-> > resources). The function then finds out the correct resource, translates
-> > the ACPI GPIO number to the corresponding Linux GPIO number and returns
-> > that.
-> >
-> > Signed-off-by: Mika Westerberg <mika.westerberg@linux.intel.com>
-> 
-> Patch applied with Rafael's ACK and pushed.
+> diff --git a/drivers/pci/pcie/Kconfig b/drivers/pci/pcie/Kconfig
+> index 6c8bc58..4cccd8c 100644
+> --- a/drivers/pci/pcie/Kconfig
+> +++ b/drivers/pci/pcie/Kconfig
+> @@ -82,4 +82,4 @@ endchoice
+>  
+>  config PCIE_PME
+>  	def_bool y
+> -	depends on PCIEPORTBUS && PM_RUNTIME && EXPERIMENTAL && ACPI
+> +	depends on PCIEPORTBUS && PM_RUNTIME && EXPERIMENTAL
 
-Thanks a lot Linus!
+I think we can go even further and remove the ACPI-related #includes
+as in the patch below.  Any objections to this?
 
-Rafael
 
+commit 8bde83b5f5519b630e7630fb735f76c184c74289
+Author: Bjorn Helgaas <bhelgaas@google.com>
+Date:   Thu Apr 11 17:36:50 2013 -0600
 
--- 
-I speak only for myself.
-Rafael J. Wysocki, Intel Open Source Technology Center.
+    PCI: Remove unnecessary dependencies between PME and ACPI
+    
+    PCIe PME doesn't depend on ACPI, so remove the #includes and
+    Kconfig dependency.
+    
+    Based-on-patch-by: Andrew Murray <Andrew.Murray@arm.com>
+    Signed-off-by: Bjorn Helgaas <bhelgaas@google.com>
+
+diff --git a/drivers/pci/pcie/Kconfig b/drivers/pci/pcie/Kconfig
+index fde4a32..569f82f 100644
+--- a/drivers/pci/pcie/Kconfig
++++ b/drivers/pci/pcie/Kconfig
+@@ -82,4 +82,4 @@ endchoice
+ 
+ config PCIE_PME
+ 	def_bool y
+-	depends on PCIEPORTBUS && PM_RUNTIME && ACPI
++	depends on PCIEPORTBUS && PM_RUNTIME
+diff --git a/drivers/pci/pcie/pme.c b/drivers/pci/pcie/pme.c
+index 9ca0dc9..795db1f 100644
+--- a/drivers/pci/pcie/pme.c
++++ b/drivers/pci/pcie/pme.c
+@@ -19,8 +19,6 @@
+ #include <linux/interrupt.h>
+ #include <linux/device.h>
+ #include <linux/pcieport_if.h>
+-#include <linux/acpi.h>
+-#include <linux/pci-acpi.h>
+ #include <linux/pm_runtime.h>
+ 
+ #include "../pci.h"
