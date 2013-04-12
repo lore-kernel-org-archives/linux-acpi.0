@@ -1,33 +1,17 @@
 From: Jiang Liu <liuj97@gmail.com>
-Subject: [PATCH v9 01/16] PCI: do not check is_added flag in pci_remove_bus()
-Date: Fri, 12 Apr 2013 23:44:15 +0800
-Message-ID: <1365781470-32379-2-git-send-email-jiang.liu@huawei.com>
+Subject: [PATCH v9 05/16] ACPI/acpiphp: replace local macros with standard ACPI macros
+Date: Fri, 12 Apr 2013 23:44:19 +0800
+Message-ID: <1365781470-32379-6-git-send-email-jiang.liu@huawei.com>
 References: <1365781470-32379-1-git-send-email-jiang.liu@huawei.com>
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-pa0-f42.google.com ([209.85.220.42]:37451 "EHLO
-	mail-pa0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752847Ab3DLPqM (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 12 Apr 2013 11:46:12 -0400
+Return-path: <linux-pci-owner@vger.kernel.org>
 In-Reply-To: <1365781470-32379-1-git-send-email-jiang.liu@huawei.com>
-Sender: linux-acpi-owner@vger.kernel.org
-List-Id: linux-acpi@vger.kernel.org
+Sender: linux-pci-owner@vger.kernel.org
 To: Bjorn Helgaas <bhelgaas@google.com>, "Rafael J . Wysocki" <rjw@sisk.pl>
 Cc: Jiang Liu <jiang.liu@huawei.com>, Yinghai Lu <yinghai@kernel.org>, Yijing Wang <wangyijing@huawei.com>, Jiang Liu <liuj97@gmail.com>, linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Toshi Kani <toshi.kani@hp.com>, Myron Stowe <myron.stowe@redhat.com>, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>
+List-Id: linux-acpi@vger.kernel.org
 
-The is_added flag in struct pci_bus is always set after invoking
-device_register() and pci_create_legacy_files(). The related code
-paths are:
-1) pci_create_root_bus() and pci_add_new_bus()
-	bus = pci_alloc_bus()
-	device_register(&bus->dev)
-	pci_create_legacy_file(bus)
-2.a) pci_scan_child_bus(bus)
-	set is_added flag for PCI root buses
-2.b) pci_bus_add_devices(bus)
-	set is_added flag for normal PCI buses
-
-So pci_remove_bus() shouldn't use is_added flag to guard invoking of
-pci_remove_lagecy_files() and device_unregister().
+Replace local defined macros (ACPI_STA_xxx) with standard ACPI macros
+(ACPI_STA_DEVICE_xxx).
 
 Signed-off-by: Jiang Liu <jiang.liu@huawei.com>
 Signed-off-by: Yijing Wang <wangyijing@huawei.com>
@@ -37,23 +21,46 @@ Cc: Toshi Kani <toshi.kani@hp.com>
 Cc: linux-pci@vger.kernel.org
 Cc: linux-kernel@vger.kernel.org
 ---
- drivers/pci/remove.c |    3 ---
- 1 file changed, 3 deletions(-)
+ drivers/pci/hotplug/acpiphp.h      |    4 ----
+ drivers/pci/hotplug/acpiphp_glue.c |    4 ++--
+ 2 files changed, 2 insertions(+), 6 deletions(-)
 
-diff --git a/drivers/pci/remove.c b/drivers/pci/remove.c
-index cc875e6..a831880 100644
---- a/drivers/pci/remove.c
-+++ b/drivers/pci/remove.c
-@@ -50,9 +50,6 @@ void pci_remove_bus(struct pci_bus *bus)
- 	list_del(&bus->node);
- 	pci_bus_release_busn_res(bus);
- 	up_write(&pci_bus_sem);
--	if (!bus->is_added)
--		return;
--
- 	pci_remove_legacy_files(bus);
- 	device_unregister(&bus->dev);
+diff --git a/drivers/pci/hotplug/acpiphp.h b/drivers/pci/hotplug/acpiphp.h
+index b70ac00..1b311f9 100644
+--- a/drivers/pci/hotplug/acpiphp.h
++++ b/drivers/pci/hotplug/acpiphp.h
+@@ -146,10 +146,6 @@ struct acpiphp_attention_info
+ #define ACPI_PCI_HOST_HID		"PNP0A03"
+ 
+ /* ACPI _STA method value (ignore bit 4; battery present) */
+-#define ACPI_STA_PRESENT		(0x00000001)
+-#define ACPI_STA_ENABLED		(0x00000002)
+-#define ACPI_STA_SHOW_IN_UI		(0x00000004)
+-#define ACPI_STA_FUNCTIONING		(0x00000008)
+ #define ACPI_STA_ALL			(0x0000000f)
+ 
+ /* bridge flags */
+diff --git a/drivers/pci/hotplug/acpiphp_glue.c b/drivers/pci/hotplug/acpiphp_glue.c
+index a1c8dd6..718464f 100644
+--- a/drivers/pci/hotplug/acpiphp_glue.c
++++ b/drivers/pci/hotplug/acpiphp_glue.c
+@@ -487,7 +487,7 @@ static int add_bridge(struct acpi_pci_root *root)
+ 			dbg("%s: _STA evaluation failure\n", __func__);
+ 			return 0;
+ 		}
+-		if ((tmp & ACPI_STA_FUNCTIONING) == 0)
++		if ((tmp & ACPI_STA_DEVICE_FUNCTIONING) == 0)
+ 			/* don't register this object */
+ 			return 0;
+ 	}
+@@ -1389,7 +1389,7 @@ u8 acpiphp_get_latch_status(struct acpiphp_slot *slot)
+ 
+ 	sta = get_slot_status(slot);
+ 
+-	return (sta & ACPI_STA_SHOW_IN_UI) ? 0 : 1;
++	return (sta & ACPI_STA_DEVICE_UI) ? 0 : 1;
  }
+ 
+ 
 -- 
 1.7.9.5
-
