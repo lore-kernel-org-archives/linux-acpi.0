@@ -1,68 +1,98 @@
 From: Bjorn Helgaas <bhelgaas@google.com>
-Subject: Re: [PATCHv2 5/5] ACPI / pcie: suppress compiler warning in portdrv_acpi.c
-Date: Fri, 12 Apr 2013 14:54:34 -0600
-Message-ID: <CAErSpo7b6CvQgo44oRi+iREq1zduHMLTvw0r_7McroLc38r97A@mail.gmail.com>
-References: <1362993428-14823-1-git-send-email-andriy.shevchenko@linux.intel.com>
- <1362993428-14823-5-git-send-email-andriy.shevchenko@linux.intel.com>
+Subject: Re: [PATCH v9 00/16] Get rid of the ACPI PCI subdriver mechanism
+Date: Fri, 12 Apr 2013 16:17:35 -0600
+Message-ID: <CAErSpo6uVRvuaOusRi=d8g52gwOR1RzEaAep0OxSwjgZ1qk6BQ@mail.gmail.com>
+References: <1365781470-32379-1-git-send-email-jiang.liu@huawei.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-ob0-f178.google.com ([209.85.214.178]:54458 "EHLO
-	mail-ob0-f178.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755061Ab3DLUyy convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 12 Apr 2013 16:54:54 -0400
-Received: by mail-ob0-f178.google.com with SMTP id ni5so2690727obc.23
-        for <linux-acpi@vger.kernel.org>; Fri, 12 Apr 2013 13:54:54 -0700 (PDT)
-In-Reply-To: <1362993428-14823-5-git-send-email-andriy.shevchenko@linux.intel.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Return-path: <linux-pci-owner@vger.kernel.org>
+In-Reply-To: <1365781470-32379-1-git-send-email-jiang.liu@huawei.com>
+Sender: linux-pci-owner@vger.kernel.org
+To: Jiang Liu <liuj97@gmail.com>
+Cc: "Rafael J . Wysocki" <rjw@sisk.pl>, Jiang Liu <jiang.liu@huawei.com>, Yinghai Lu <yinghai@kernel.org>, Yijing Wang <wangyijing@huawei.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Toshi Kani <toshi.kani@hp.com>, Myron Stowe <myron.stowe@redhat.com>
 List-Id: linux-acpi@vger.kernel.org
-To: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Cc: "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "Rafael J . Wysocki" <rjw@sisk.pl>, "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>
 
-On Mon, Mar 11, 2013 at 3:17 AM, Andy Shevchenko
-<andriy.shevchenko@linux.intel.com> wrote:
-> This patch fixes following compiler warning when build via make W=3D1=
-:
+On Fri, Apr 12, 2013 at 9:44 AM, Jiang Liu <liuj97@gmail.com> wrote:
+> PCI, ACPI: remove ACPI PCI subdriver mechanism
 >
-> drivers/pci/pcie/portdrv_acpi.c:34:5: warning: no previous prototype =
-for =91pcie_port_acpi_setup=92 [-Wmissing-prototypes]
+> This patch set is directly derived from two sources:
+> 1) '[PATCH 00/15] PCI/ACPI: Remove "pci_root" sub-driver support' at
+> https://lkml.org/lkml/2012/12/7/11 from Myron Stowe
+> The major goal is to resolve any potential sequencing inter-dependencies
+> by converting sub-driver functionality to being only supported as
+> statically built-in to the kernel as part of the "pci_root" driver
+> itself.
 >
-> Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-> Cc: Bjorn Helgaas <bhelgaas@google.com>
-> Cc: linux-pci@vger.kernel.org
+> 2) 'introduce PCI bus notifier chain to get rid of the ACPI PCI subdriver'
+> at http://lwn.net/Articles/533547/
+> The major goal is to update PCI slots(pci_slot), ACPI based PCI hotplug
+> slots(acpiphp), PCIe AER(aer) etc when hot-plugging PCI devices and P2P
+> bridges, and eventually get rid of the ACPI PCI subdriver interfaces.
+>
+> This patchset applies to Bjorn's pci-next branch. Patch 1-4 are minor
+> fixups for 3.9-rc1. Patch 5-8 introduce two hooks into PCI core which
+> will be called when creating/destroying PCI buses. Patch 9-12 replace
+> ACPI PCI subdriver interfaces with the new hook mechanism for pci_slot
+> and acpiphp. Patch 13 removes the ACPI PCI subdriver interfaces.
+>
+> v7->v8:
+>         Hook directly into the PCI core to replace pci_bus notification
+>         Remove ACPI PCI subdriver related code
+>
+> v8->v9:
+>         Introduce kernel boot option "acpiphp.disable" to disable the
+>         acpiphp driver.
+>
+> Jiang Liu (13):
+>   PCI: do not check is_added flag in pci_remove_bus()
+>   pci: clean up usages of pci_bus->is_added
+>   PCI/acpiphp: don't rely on function 0 in disable_device()
+>   ACPI/acpiphp: replace local macros with standard ACPI macros
+>   PCI: introduce platform dependent hooks for creating/destroying PCI
+>     busses
+>   PCI, ACPI: prepare stub functions to handle ACPI PCI (hotplug) slots
+>   PCI, IA64: implement pcibios_{add|remove}_bus() hooks
+>   PCI, x86: implement pcibios_{add|remove}_bus() hooks
+>   PCI, ACPI: handle PCI slot devices when creating/destroying PCI
+>     busses
+>   PCI/acpiphp: convert acpiphp as a builtin driver
+>   PCI/acpiphp: do not use ACPI PCI subdriver mechanism
+>   PCI/acpiphp: protect acpiphp data structures from concurrent updating
+>   PCI/acpiphp: introduce a kernel option to disable the acpiphp driver
+>
+> Myron Stowe (1):
+>   PCI, ACPI: remove support of ACPI PCI subdrivers
+>
+> Yijing Wang (2):
+>   PCI/acpiphp: use list_for_each_entry_safe() in acpiphp_sanitize_bus()
+>   PCI/acpiphp: use normal list to simplify implementation
+>
+>  Documentation/kernel-parameters.txt |    3 +
+>  arch/ia64/pci/pci.c                 |   11 +
+>  arch/x86/pci/common.c               |   11 +
+>  drivers/acpi/pci_root.c             |   48 +---
+>  drivers/acpi/pci_slot.c             |  170 ++------------
+>  drivers/acpi/scan.c                 |    1 -
+>  drivers/pci/bus.c                   |   11 +-
+>  drivers/pci/hotplug/Kconfig         |    7 +-
+>  drivers/pci/hotplug/acpiphp.h       |   13 +-
+>  drivers/pci/hotplug/acpiphp_core.c  |   29 +--
+>  drivers/pci/hotplug/acpiphp_glue.c  |  415 ++++++++++++-----------------------
+>  drivers/pci/pci-acpi.c              |   30 +++
+>  drivers/pci/probe.c                 |   15 +-
+>  drivers/pci/remove.c                |    4 +-
+>  include/linux/acpi.h                |    9 -
+>  include/linux/pci-acpi.h            |   26 +++
+>  include/linux/pci.h                 |    2 +
+>  17 files changed, 280 insertions(+), 525 deletions(-)
 
-I applied this and several similar patches to my pci/cleanup branch
-for v3.10.  Thanks!
+I applied these to my pci/jiang-subdrivers branch with minor tweaks.
+The most significant is that I folded in the acpiphp.disable option to
+the patch that makes the driver builtin-only.  That way there's no
+window between removing the "edit modules.conf" workaround and adding
+the kernel parameter.
 
-http://git.kernel.org/cgit/linux/kernel/git/helgaas/pci.git/log/?h=3Dpc=
-i/cleanup
+Take a look and make sure it's what you want:
+http://git.kernel.org/cgit/linux/kernel/git/helgaas/pci.git/log/?h=pci/jiang-subdrivers
 
 Bjorn
-
-> ---
->  drivers/pci/pcie/portdrv_acpi.c | 1 +
->  1 file changed, 1 insertion(+)
->
-> diff --git a/drivers/pci/pcie/portdrv_acpi.c b/drivers/pci/pcie/portd=
-rv_acpi.c
-> index a86b56e..b4d2894 100644
-> --- a/drivers/pci/pcie/portdrv_acpi.c
-> +++ b/drivers/pci/pcie/portdrv_acpi.c
-> @@ -17,6 +17,7 @@
->
->  #include "aer/aerdrv.h"
->  #include "../pci.h"
-> +#include "portdrv.h"
->
->  /**
->   * pcie_port_acpi_setup - Request the BIOS to release control of PCI=
-e services.
-> --
-> 1.8.2.rc0.22.gb3600c3
->
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
