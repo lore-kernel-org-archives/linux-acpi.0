@@ -1,102 +1,85 @@
-From: Yinghai Lu <yinghai@kernel.org>
-Subject: [PATCH v4 03/22] x86, ACPI, mm: Kill max_low_pfn_mapped
-Date: Thu, 11 Apr 2013 17:55:49 -0700
-Message-ID: <1365728168-32067-4-git-send-email-yinghai@kernel.org>
-References: <1365728168-32067-1-git-send-email-yinghai@kernel.org>
+From: Yijing Wang <wangyijing@huawei.com>
+Subject: Re: [PATCH v8 10/13] PCI/acpiphp: do not use ACPI PCI subdriver mechanism
+Date: Fri, 12 Apr 2013 09:04:45 +0800
+Message-ID: <51675DAD.8070009@huawei.com>
+References: <1361892353-14786-1-git-send-email-jiang.liu@huawei.com> <1361892353-14786-11-git-send-email-jiang.liu@huawei.com> <CAErSpo4uyqPRDWKvH_3rtnGzbro1+_SnGH9GBU_-tz1p2a+AMQ@mail.gmail.com> <51658FCB.3030906@gmail.com> <CAErSpo7O1L2aRc2aVSqwj2CKwwoC9dbFWgukNj=jCkG-PjYOMA@mail.gmail.com> <516616F0.6040508@huawei.com> <CAErSpo7=BoNAXQ_shm8M8FoLuZPVJGK9k5-LQhX4X30sFoaWjg@mail.gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="ISO-8859-1"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1365728168-32067-1-git-send-email-yinghai@kernel.org>
+In-Reply-To: <CAErSpo7=BoNAXQ_shm8M8FoLuZPVJGK9k5-LQhX4X30sFoaWjg@mail.gmail.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@elte.hu>, "H. Peter Anvin" <hpa@zytor.com>, Andrew Morton <akpm@linux-foundation.org>, Tejun Heo <tj@kernel.org>, Thomas Renninger <trenn@suse.de>, Tang Chen <tangchen@cn.fujitsu.com>
-Cc: linux-kernel@vger.kernel.org, Yinghai Lu <yinghai@kernel.org>, "Rafael J. Wysocki" <rjw@sisk.pl>, Jacob Shin <jacob.shin@amd.com>, Pekka Enberg <penberg@kernel.org>, linux-acpi@vger.kernel.org
+To: Bjorn Helgaas <bhelgaas@google.com>
+Cc: Jiang Liu <liuj97@gmail.com>, "Rafael J . Wysocki" <rjw@sisk.pl>, Jiang Liu <jiang.liu@huawei.com>, Yinghai Lu <yinghai@kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Toshi Kani <toshi.kani@hp.com>, Myron Stowe <myron.stowe@redhat.com>, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>
 List-Id: linux-acpi@vger.kernel.org
 
-Now we have arch_pfn_mapped array, and max_low_pfn_mapped should not
-be used anymore.
+On 2013/4/12 1:29, Bjorn Helgaas wrote:
+> On Wed, Apr 10, 2013 at 7:50 PM, Yijing Wang <wangyijing@huawei.com> wrote:
+>>>> Hi Bjorn,
+>>>>         Thanks for review.
+>>>>
+>>>>> My goal is that a user should never have to specify a kernel boot
+>>>>> parameter or edit a modules.conf file, but the user did previously
+>>>>> have some way to influence whether we use pciehp or acpiphp.  I know
+>>>>> we still have some issues, particularly with acpiphp, so I'm a little
+>>>>> concerned that by removing the CONFIG_HOTPLUG_PCI_ACPI=m, we might be
+>>>>> removing a way to work around those issues.
+>>>>>
+>>>>> A distro that previously used CONFIG_HOTPLUG_PCI_ACPI=m will now have
+>>>>> to use =y, so modules.conf is no longer applicable.  Can you convince
+>>>>> me that the user still has a way to work around issues?  I spent quite
+>>>>> a while trying to understand the pciehp/acpiphp dependencies, but it's
+>>>>> pretty tangled web.
+>>>> I will try my best to explain the relationships between pciehp and acpiphp
+>>>> as of v3.9-rc6.
+>>>>
+>>>> The pciehp driver always have priority over the acpiphp driver.
+>>>> That is, the acpiphp driver rejects binding to an ACPI PCI hotplug slot if
+>>>> a) The slot's parent is a PCIe port with native hotplug capability
+>>>> b) OSPM has taken over PCIe native hotplug control from BIOS.
+>>>>         !(root->osc_control_set & OSC_PCI_EXPRESS_NATIVE_HP_CONTROL)
+>>>> The above check has no dependency on the loading order of pciehp and acpiphp
+>>>> drivers. So converting acpiphp driver to builit-in should be ok.
+>>>>
+>>>> On the other hand, I remember Yinghai has mentioned that some PCIe ports
+>>>> with native hotplug capability doesn't work as expected with the pciehp driver
+>>>> and should be managed by the acpiphp driver. Currently we could achieve that
+>>>> by using boot param "pcie_ports=compat", but this will disable PCIe port
+>>>> drivers altogether. And I also remember that Rafael has mentioned that
+>>>> some BIOSes exhibit strange dependency among PCIe OSC controls, so it's
+>>>> not feasible to only disable PCIe native hotplug.
+>>>>
+>>>> For "pciehp_force", it does only affect the way pciehp to detect a hotplug
+>>>> slot, it doesn't affect acpiphp at all.
+>>>>
+>>>> To sum up, converting acpiphp as built-in should not affect the relationship
+>>>> between pciehp and acpiphp driver.
+>>>
+>>> My concern is that a user used to be able to remove acpiphp from
+>>> modules.conf.  Now removing acpiphp will require a kernel rebuild.
+>>> But maybe that won't turn out to be a problem.
+>>
+>> Hi Bjorn,
+>>    If user don't want to occupy the slot by acpiphp. Conservative approach, what about add a kernel parameter
+>> to control acpiphp to enumerate slot ?
+> 
+> Yes, that's what I'm thinking.  A "Please report a bug if you have to
+> use this parameter" chicken switch.  Hopefully nobody will need to use
+> it, but if somebody *does* need it, it's a lot better than having to
+> tell him to rebuild the kernel.
 
-User should use arch_pfn_mapped or just 1UL<<(32-PAGE_SHIFT) instead.
+Yes, I agree. We will add this patch to the patchset and resend soon.
 
-Only user is ACPI_INITRD_TABLE_OVERRIDE, and it should not use that,
-as later accessing is using early_ioremap(). We could change to use
-1U<<(32_PAGE_SHIFT) with it, aka under 4G.
+Thanks!
+Yijing.
 
--v2: Leave alone max_low_pfn_mapped in i915 code according to tj.
+> 
+> Bjorn
+> 
+> .
+> 
 
-Suggested-by: H. Peter Anvin <hpa@zytor.com>
-Signed-off-by: Yinghai Lu <yinghai@kernel.org>
-Cc: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: Jacob Shin <jacob.shin@amd.com>
-Cc: Pekka Enberg <penberg@kernel.org>
-Cc: linux-acpi@vger.kernel.org
-Tested-by: Thomas Renninger <trenn@suse.de>
----
- arch/x86/include/asm/page_types.h | 1 -
- arch/x86/kernel/setup.c           | 4 +---
- arch/x86/mm/init.c                | 4 ----
- drivers/acpi/osl.c                | 6 +++---
- 4 files changed, 4 insertions(+), 11 deletions(-)
 
-diff --git a/arch/x86/include/asm/page_types.h b/arch/x86/include/asm/page_types.h
-index 54c9787..b012b82 100644
---- a/arch/x86/include/asm/page_types.h
-+++ b/arch/x86/include/asm/page_types.h
-@@ -43,7 +43,6 @@
- 
- extern int devmem_is_allowed(unsigned long pagenr);
- 
--extern unsigned long max_low_pfn_mapped;
- extern unsigned long max_pfn_mapped;
- 
- static inline phys_addr_t get_max_mapped(void)
-diff --git a/arch/x86/kernel/setup.c b/arch/x86/kernel/setup.c
-index 1629577..e75c6e6 100644
---- a/arch/x86/kernel/setup.c
-+++ b/arch/x86/kernel/setup.c
-@@ -113,13 +113,11 @@
- #include <asm/prom.h>
- 
- /*
-- * max_low_pfn_mapped: highest direct mapped pfn under 4GB
-- * max_pfn_mapped:     highest direct mapped pfn over 4GB
-+ * max_pfn_mapped:     highest direct mapped pfn
-  *
-  * The direct mapping only covers E820_RAM regions, so the ranges and gaps are
-  * represented by pfn_mapped
-  */
--unsigned long max_low_pfn_mapped;
- unsigned long max_pfn_mapped;
- 
- #ifdef CONFIG_DMI
-diff --git a/arch/x86/mm/init.c b/arch/x86/mm/init.c
-index 59b7fc4..abcc241 100644
---- a/arch/x86/mm/init.c
-+++ b/arch/x86/mm/init.c
-@@ -313,10 +313,6 @@ static void add_pfn_range_mapped(unsigned long start_pfn, unsigned long end_pfn)
- 	nr_pfn_mapped = clean_sort_range(pfn_mapped, E820_X_MAX);
- 
- 	max_pfn_mapped = max(max_pfn_mapped, end_pfn);
--
--	if (start_pfn < (1UL<<(32-PAGE_SHIFT)))
--		max_low_pfn_mapped = max(max_low_pfn_mapped,
--					 min(end_pfn, 1UL<<(32-PAGE_SHIFT)));
- }
- 
- bool pfn_range_is_mapped(unsigned long start_pfn, unsigned long end_pfn)
-diff --git a/drivers/acpi/osl.c b/drivers/acpi/osl.c
-index 586e7e9..313d14d 100644
---- a/drivers/acpi/osl.c
-+++ b/drivers/acpi/osl.c
-@@ -624,9 +624,9 @@ void __init acpi_initrd_override(void *data, size_t size)
- 	if (table_nr == 0)
- 		return;
- 
--	acpi_tables_addr =
--		memblock_find_in_range(0, max_low_pfn_mapped << PAGE_SHIFT,
--				       all_tables_size, PAGE_SIZE);
-+	/* under 4G at first, then above 4G */
-+	acpi_tables_addr = memblock_find_in_range(0, (1ULL<<32) - 1,
-+					all_tables_size, PAGE_SIZE);
- 	if (!acpi_tables_addr) {
- 		WARN_ON(1);
- 		return;
 -- 
-1.8.1.4
+Thanks!
+Yijing
