@@ -1,47 +1,90 @@
-From: Mika Westerberg <mika.westerberg@linux.intel.com>
-Subject: Re: [PATCH] gpiolib-acpi: introduce acpi_get_gpio_by_index() helper
-Date: Fri, 12 Apr 2013 09:57:11 +0300
-Message-ID: <20130412065710.GM1283@intel.com>
-References: <1364986614-15711-1-git-send-email-mika.westerberg@linux.intel.com>
- <15166969.9Sfs2U7qQb@vostro.rjw.lan>
- <20130411072912.GE1283@intel.com>
- <CACRpkdYiNOLVAgZVhZG3OaJw5ZZ4OM8RPafCxPPfMWo2gVM=dg@mail.gmail.com>
+From: Andrew Murray <andrew.murray@arm.com>
+Subject: Re: [PATCH] pci: Remove unnecessary dependency between PME and
+ ACPI.
+Date: Fri, 12 Apr 2013 08:42:48 +0100
+Message-ID: <20130412074248.GA30537@arm.com>
+References: <20130221155329.GA26729@arm.com>
+ <20130411234426.GA10196@google.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=utf-8
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga09.intel.com ([134.134.136.24]:14747 "EHLO mga09.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752693Ab3DLGxA (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 12 Apr 2013 02:53:00 -0400
+Received: from fw-tnat.cambridge.arm.com ([217.140.96.21]:54094 "EHLO
+	cam-smtp0.cambridge.arm.com" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1752954Ab3DLHm6 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 12 Apr 2013 03:42:58 -0400
 Content-Disposition: inline
-In-Reply-To: <CACRpkdYiNOLVAgZVhZG3OaJw5ZZ4OM8RPafCxPPfMWo2gVM=dg@mail.gmail.com>
+In-Reply-To: <20130411234426.GA10196@google.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Linus Walleij <linus.walleij@linaro.org>
-Cc: Grant Likely <grant.likely@secretlab.ca>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Mathias Nyman <mathias.nyman@linux.intel.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>
+To: Bjorn Helgaas <bhelgaas@google.com>
+Cc: "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>, "thierry.reding@avionic-design.de" <thierry.reding@avionic-design.de>, "thomas.petazzoni@free-electrons.com" <thomas.petazzoni@free-electrons.com>, "jbarnes@virtuousgeek.org" <jbarnes@virtuousgeek.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "Rafael J. Wysocki" <rjw@sisk.pl>
 
-On Fri, Apr 12, 2013 at 12:35:05AM +0200, Linus Walleij wrote:
-> On Thu, Apr 11, 2013 at 9:29 AM, Mika Westerberg
-> <mika.westerberg@linux.intel.com> wrote:
+On Fri, Apr 12, 2013 at 12:44:26AM +0100, Bjorn Helgaas wrote:
+> On Thu, Feb 21, 2013 at 03:53:29PM +0000, Andrew Murray wrote:
+> > Signed-off-by: Andrew Murray <Andrew.Murray@arm.com>
+> > Signed-off-by: Liviu Dudau <Liviu.Dudau@arm.com>
+> > ---
+> >  drivers/pci/pcie/Kconfig |    2 +-
+> >  1 files changed, 1 insertions(+), 1 deletions(-)
+> > 
+> > diff --git a/drivers/pci/pcie/Kconfig b/drivers/pci/pcie/Kconfig
+> > index 6c8bc58..4cccd8c 100644
+> > --- a/drivers/pci/pcie/Kconfig
+> > +++ b/drivers/pci/pcie/Kconfig
+> > @@ -82,4 +82,4 @@ endchoice
+> >  
+> >  config PCIE_PME
+> >  	def_bool y
+> > -	depends on PCIEPORTBUS && PM_RUNTIME && EXPERIMENTAL && ACPI
+> > +	depends on PCIEPORTBUS && PM_RUNTIME && EXPERIMENTAL
 > 
-> > Grant and Linus W,
-> >
-> > Do you have any comments on this patch? Could it still be merged for 3.10?
+> I think we can go even further and remove the ACPI-related #includes
+> as in the patch below.  Any objections to this?
 > 
-> No and yes.
 > 
-> Applied and pushed for linux-next now.
-
-Thanks!
-
-> Sorry for taking so long, I was confused by the discussion.
-
-np. We probably need to add another ACPI GPIO helper function to get all
-the GPIOs but I guess we can do that once a need emerges. For a single GPIO
-(like the patch here does) we know already from internal discussion that it
-will be needed.
-
-> I had to use some fuzzing to apply the patch, please check the
-> result in linux-next.
+> commit 8bde83b5f5519b630e7630fb735f76c184c74289
+> Author: Bjorn Helgaas <bhelgaas@google.com>
+> Date:   Thu Apr 11 17:36:50 2013 -0600
+> 
+>     PCI: Remove unnecessary dependencies between PME and ACPI
+>     
+>     PCIe PME doesn't depend on ACPI, so remove the #includes and
+>     Kconfig dependency.
+>     
+>     Based-on-patch-by: Andrew Murray <Andrew.Murray@arm.com>
+>     Signed-off-by: Bjorn Helgaas <bhelgaas@google.com>
+> 
+> diff --git a/drivers/pci/pcie/Kconfig b/drivers/pci/pcie/Kconfig
+> index fde4a32..569f82f 100644
+> --- a/drivers/pci/pcie/Kconfig
+> +++ b/drivers/pci/pcie/Kconfig
+> @@ -82,4 +82,4 @@ endchoice
+>  
+>  config PCIE_PME
+>  	def_bool y
+> -	depends on PCIEPORTBUS && PM_RUNTIME && ACPI
+> +	depends on PCIEPORTBUS && PM_RUNTIME
+> diff --git a/drivers/pci/pcie/pme.c b/drivers/pci/pcie/pme.c
+> index 9ca0dc9..795db1f 100644
+> --- a/drivers/pci/pcie/pme.c
+> +++ b/drivers/pci/pcie/pme.c
+> @@ -19,8 +19,6 @@
+>  #include <linux/interrupt.h>
+>  #include <linux/device.h>
+>  #include <linux/pcieport_if.h>
+> -#include <linux/acpi.h>
+> -#include <linux/pci-acpi.h>
+>  #include <linux/pm_runtime.h>
+>  
+>  #include "../pci.h"
+> --
 
 Looks good to me.
+
+Andrew Murray
+
+> To unsubscribe from this list: send the line "unsubscribe linux-pci" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
