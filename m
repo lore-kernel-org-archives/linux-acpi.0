@@ -1,93 +1,68 @@
 From: Bjorn Helgaas <bhelgaas@google.com>
-Subject: Re: [PATCH] pci: Remove unnecessary dependency between PME and ACPI.
-Date: Fri, 12 Apr 2013 13:03:39 -0600
-Message-ID: <CAErSpo78TrUtBBFM9AYciXWDtkPaQDnZt3kdYeBCpF3BOwhrng@mail.gmail.com>
-References: <20130221155329.GA26729@arm.com> <20130411234426.GA10196@google.com>
- <2781744.X672n7t2jq@vostro.rjw.lan>
+Subject: Re: [PATCHv2 5/5] ACPI / pcie: suppress compiler warning in portdrv_acpi.c
+Date: Fri, 12 Apr 2013 14:54:34 -0600
+Message-ID: <CAErSpo7b6CvQgo44oRi+iREq1zduHMLTvw0r_7McroLc38r97A@mail.gmail.com>
+References: <1362993428-14823-1-git-send-email-andriy.shevchenko@linux.intel.com>
+ <1362993428-14823-5-git-send-email-andriy.shevchenko@linux.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-ob0-f171.google.com ([209.85.214.171]:38127 "EHLO
-	mail-ob0-f171.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754078Ab3DLTEA (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 12 Apr 2013 15:04:00 -0400
-Received: by mail-ob0-f171.google.com with SMTP id v19so2653309obq.30
-        for <linux-acpi@vger.kernel.org>; Fri, 12 Apr 2013 12:03:59 -0700 (PDT)
-In-Reply-To: <2781744.X672n7t2jq@vostro.rjw.lan>
+Received: from mail-ob0-f178.google.com ([209.85.214.178]:54458 "EHLO
+	mail-ob0-f178.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755061Ab3DLUyy convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 12 Apr 2013 16:54:54 -0400
+Received: by mail-ob0-f178.google.com with SMTP id ni5so2690727obc.23
+        for <linux-acpi@vger.kernel.org>; Fri, 12 Apr 2013 13:54:54 -0700 (PDT)
+In-Reply-To: <1362993428-14823-5-git-send-email-andriy.shevchenko@linux.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: Andrew Murray <Andrew.Murray@arm.com>, "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>, "thierry.reding@avionic-design.de" <thierry.reding@avionic-design.de>, "thomas.petazzoni@free-electrons.com" <thomas.petazzoni@free-electrons.com>, "jbarnes@virtuousgeek.org" <jbarnes@virtuousgeek.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
+To: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Cc: "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "Rafael J . Wysocki" <rjw@sisk.pl>, "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>
 
-On Fri, Apr 12, 2013 at 5:13 AM, Rafael J. Wysocki <rjw@sisk.pl> wrote:
-> On Thursday, April 11, 2013 05:44:26 PM Bjorn Helgaas wrote:
->> On Thu, Feb 21, 2013 at 03:53:29PM +0000, Andrew Murray wrote:
->> > Signed-off-by: Andrew Murray <Andrew.Murray@arm.com>
->> > Signed-off-by: Liviu Dudau <Liviu.Dudau@arm.com>
->> > ---
->> >  drivers/pci/pcie/Kconfig |    2 +-
->> >  1 files changed, 1 insertions(+), 1 deletions(-)
->> >
->> > diff --git a/drivers/pci/pcie/Kconfig b/drivers/pci/pcie/Kconfig
->> > index 6c8bc58..4cccd8c 100644
->> > --- a/drivers/pci/pcie/Kconfig
->> > +++ b/drivers/pci/pcie/Kconfig
->> > @@ -82,4 +82,4 @@ endchoice
->> >
->> >  config PCIE_PME
->> >     def_bool y
->> > -   depends on PCIEPORTBUS && PM_RUNTIME && EXPERIMENTAL && ACPI
->> > +   depends on PCIEPORTBUS && PM_RUNTIME && EXPERIMENTAL
->>
->> I think we can go even further and remove the ACPI-related #includes
->> as in the patch below.  Any objections to this?
->>
->>
->> commit 8bde83b5f5519b630e7630fb735f76c184c74289
->> Author: Bjorn Helgaas <bhelgaas@google.com>
->> Date:   Thu Apr 11 17:36:50 2013 -0600
->>
->>     PCI: Remove unnecessary dependencies between PME and ACPI
->>
->>     PCIe PME doesn't depend on ACPI, so remove the #includes and
->>     Kconfig dependency.
->>
->>     Based-on-patch-by: Andrew Murray <Andrew.Murray@arm.com>
->>     Signed-off-by: Bjorn Helgaas <bhelgaas@google.com>
+On Mon, Mar 11, 2013 at 3:17 AM, Andy Shevchenko
+<andriy.shevchenko@linux.intel.com> wrote:
+> This patch fixes following compiler warning when build via make W=3D1=
+:
 >
-> Acked-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+> drivers/pci/pcie/portdrv_acpi.c:34:5: warning: no previous prototype =
+for =91pcie_port_acpi_setup=92 [-Wmissing-prototypes]
+>
+> Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+> Cc: Bjorn Helgaas <bhelgaas@google.com>
+> Cc: linux-pci@vger.kernel.org
 
-I applied this for v3.10, thanks!
+I applied this and several similar patches to my pci/cleanup branch
+for v3.10.  Thanks!
+
+http://git.kernel.org/cgit/linux/kernel/git/helgaas/pci.git/log/?h=3Dpc=
+i/cleanup
 
 Bjorn
 
->> diff --git a/drivers/pci/pcie/Kconfig b/drivers/pci/pcie/Kconfig
->> index fde4a32..569f82f 100644
->> --- a/drivers/pci/pcie/Kconfig
->> +++ b/drivers/pci/pcie/Kconfig
->> @@ -82,4 +82,4 @@ endchoice
->>
->>  config PCIE_PME
->>       def_bool y
->> -     depends on PCIEPORTBUS && PM_RUNTIME && ACPI
->> +     depends on PCIEPORTBUS && PM_RUNTIME
->> diff --git a/drivers/pci/pcie/pme.c b/drivers/pci/pcie/pme.c
->> index 9ca0dc9..795db1f 100644
->> --- a/drivers/pci/pcie/pme.c
->> +++ b/drivers/pci/pcie/pme.c
->> @@ -19,8 +19,6 @@
->>  #include <linux/interrupt.h>
->>  #include <linux/device.h>
->>  #include <linux/pcieport_if.h>
->> -#include <linux/acpi.h>
->> -#include <linux/pci-acpi.h>
->>  #include <linux/pm_runtime.h>
->>
->>  #include "../pci.h"
->> --
->> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
->> the body of a message to majordomo@vger.kernel.org
->> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> ---
+>  drivers/pci/pcie/portdrv_acpi.c | 1 +
+>  1 file changed, 1 insertion(+)
+>
+> diff --git a/drivers/pci/pcie/portdrv_acpi.c b/drivers/pci/pcie/portd=
+rv_acpi.c
+> index a86b56e..b4d2894 100644
+> --- a/drivers/pci/pcie/portdrv_acpi.c
+> +++ b/drivers/pci/pcie/portdrv_acpi.c
+> @@ -17,6 +17,7 @@
+>
+>  #include "aer/aerdrv.h"
+>  #include "../pci.h"
+> +#include "portdrv.h"
+>
+>  /**
+>   * pcie_port_acpi_setup - Request the BIOS to release control of PCI=
+e services.
 > --
-> I speak only for myself.
-> Rafael J. Wysocki, Intel Open Source Technology Center.
+> 1.8.2.rc0.22.gb3600c3
+>
+--
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
