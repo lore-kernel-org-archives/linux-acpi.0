@@ -1,98 +1,66 @@
 From: Jiang Liu <liuj97@gmail.com>
-Subject: [PATCH v9 07/16] PCI, ACPI: prepare stub functions to handle ACPI PCI (hotplug) slots
-Date: Fri, 12 Apr 2013 23:44:21 +0800
-Message-ID: <1365781470-32379-8-git-send-email-jiang.liu@huawei.com>
+Subject: [PATCH v9 11/16] PCI/acpiphp: convert acpiphp as a builtin driver
+Date: Fri, 12 Apr 2013 23:44:25 +0800
+Message-ID: <1365781470-32379-12-git-send-email-jiang.liu@huawei.com>
 References: <1365781470-32379-1-git-send-email-jiang.liu@huawei.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <1365781470-32379-1-git-send-email-jiang.liu@huawei.com>
 Sender: linux-kernel-owner@vger.kernel.org
 To: Bjorn Helgaas <bhelgaas@google.com>, "Rafael J . Wysocki" <rjw@sisk.pl>
-Cc: Jiang Liu <jiang.liu@huawei.com>, Yinghai Lu <yinghai@kernel.org>, Yijing Wang <wangyijing@huawei.com>, Jiang Liu <liuj97@gmail.com>, linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Toshi Kani <toshi.kani@hp.com>, Myron Stowe <myron.stowe@redhat.com>, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Tony Luck <tony.luck@intel.com>, Fenghua Yu <fenghua.yu@intel.com>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, linux-ia64@vger.kernel.org, x86@kernel.org
+Cc: Jiang Liu <jiang.liu@huawei.com>, Yinghai Lu <yinghai@kernel.org>, Yijing Wang <wangyijing@huawei.com>, Jiang Liu <liuj97@gmail.com>, linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Toshi Kani <toshi.kani@hp.com>, Myron Stowe <myron.stowe@redhat.com>
 List-Id: linux-acpi@vger.kernel.org
 
-Prepare two stub functions to handle ACPI PCI slots and ACPI PCI hotplug
-slots, which will be invoked by the PCI core when creating/destroying
-PCI buses.
-
-It will be used to get rid of ACPI PCI subdrivers for pci_slot and
-acpiphp, and eventually remove the ACPI PCI subdriver mechanism.
-
-And it will also be used to handle ACPI PCI (hotplug) slots in a unified
-way, both at boot time and for PCI hotplug operations.
+Prepare for coming bugfixes by converting acpiphp as a builtin driver.
+This change has a drawback that user has no way to disable the acpiphp
+driver anymore once it becomes a builtin driver. We may introduce a
+kernel option to disable the acpiphp driver if needed.
 
 Signed-off-by: Jiang Liu <jiang.liu@huawei.com>
-Signed-off-by: Yijing Wang <wangyijing@huawei.com>
-Cc: Yinghai Lu <yinghai@kernel.org>
-Cc: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>
-Cc: Toshi Kani <toshi.kani@hp.com>
-Cc: Tony Luck <tony.luck@intel.com>
-Cc: Fenghua Yu <fenghua.yu@intel.com>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Ingo Molnar <mingo@redhat.com>
-Cc: "H. Peter Anvin" <hpa@zytor.com>
-Cc: Myron Stowe <myron.stowe@redhat.com>
-Cc: linux-pci@vger.kernel.org
-Cc: linux-ia64@vger.kernel.org
-Cc: x86@kernel.org
-Cc: linux-kernel@vger.kernel.org
 ---
- drivers/pci/pci-acpi.c   |   24 ++++++++++++++++++++++++
- include/linux/pci-acpi.h |    8 +++++++-
- 2 files changed, 31 insertions(+), 1 deletion(-)
+ drivers/pci/hotplug/Kconfig        |    7 ++-----
+ drivers/pci/hotplug/acpiphp_core.c |   10 ----------
+ 2 files changed, 2 insertions(+), 15 deletions(-)
 
-diff --git a/drivers/pci/pci-acpi.c b/drivers/pci/pci-acpi.c
-index dee5ddd..b8b8437 100644
---- a/drivers/pci/pci-acpi.c
-+++ b/drivers/pci/pci-acpi.c
-@@ -287,6 +287,30 @@ static struct pci_platform_pm_ops acpi_pci_platform_pm = {
- 	.run_wake = acpi_pci_run_wake,
- };
+diff --git a/drivers/pci/hotplug/Kconfig b/drivers/pci/hotplug/Kconfig
+index 13e9e63..9fcb87f 100644
+--- a/drivers/pci/hotplug/Kconfig
++++ b/drivers/pci/hotplug/Kconfig
+@@ -52,15 +52,12 @@ config HOTPLUG_PCI_IBM
+ 	  When in doubt, say N.
  
-+void acpi_pci_add_bus(struct pci_bus *bus)
-+{
-+	acpi_handle handle = NULL;
-+
-+	if (bus->bridge)
-+		handle = ACPI_HANDLE(bus->bridge);
-+	if (acpi_pci_disabled || handle == NULL)
-+		return;
-+
-+	/* TODO: add PCI slots and acpiphp hotplug slots */
-+}
-+
-+void acpi_pci_remove_bus(struct pci_bus *bus)
-+{
-+	/*
-+	 * bus->bridge->acpi_node.handle has already been reset to NULL
-+	 * when acpi_pci_remove_bus() is called, so don't check ACPI handle.
-+	 */
-+	if (acpi_pci_disabled)
-+		return;
-+
-+	/* TODO: remove PCI slots and acpiphp hotplug slots */
-+}
-+
- /* ACPI bus type */
- static int acpi_pci_find_device(struct device *dev, acpi_handle *handle)
- {
-diff --git a/include/linux/pci-acpi.h b/include/linux/pci-acpi.h
-index 9a22b5e..2b1743c 100644
---- a/include/linux/pci-acpi.h
-+++ b/include/linux/pci-acpi.h
-@@ -41,7 +41,13 @@ static inline acpi_handle acpi_pci_get_bridge_handle(struct pci_bus *pbus)
+ config HOTPLUG_PCI_ACPI
+-	tristate "ACPI PCI Hotplug driver"
+-	depends on (!ACPI_DOCK && ACPI) || (ACPI_DOCK)
++	bool "ACPI PCI Hotplug driver"
++	depends on HOTPLUG_PCI=y && ((!ACPI_DOCK && ACPI) || (ACPI_DOCK))
+ 	help
+ 	  Say Y here if you have a system that supports PCI Hotplug using
+ 	  ACPI.
  
- 	return DEVICE_ACPI_HANDLE(dev);
+-	  To compile this driver as a module, choose M here: the
+-	  module will be called acpiphp.
+-
+ 	  When in doubt, say N.
+ 
+ config HOTPLUG_PCI_ACPI_IBM
+diff --git a/drivers/pci/hotplug/acpiphp_core.c b/drivers/pci/hotplug/acpiphp_core.c
+index c2fd309..45312e5 100644
+--- a/drivers/pci/hotplug/acpiphp_core.c
++++ b/drivers/pci/hotplug/acpiphp_core.c
+@@ -364,14 +364,4 @@ static int __init acpiphp_init(void)
  }
--#endif
-+
-+void acpi_pci_add_bus(struct pci_bus *bus);
-+void acpi_pci_remove_bus(struct pci_bus *bus);
-+#else	/* CONFIG_ACPI */
-+static inline void acpi_pci_add_bus(struct pci_bus *bus) { }
-+static inline void acpi_pci_remove_bus(struct pci_bus *bus) { }
-+#endif	/* CONFIG_ACPI */
  
- #ifdef CONFIG_ACPI_APEI
- extern bool aer_acpi_firmware_first(void);
+ 
+-static void __exit acpiphp_exit(void)
+-{
+-	if (acpi_pci_disabled)
+-		return;
+-
+-	/* deallocate internal data structures etc. */
+-	acpiphp_glue_exit();
+-}
+-
+ module_init(acpiphp_init);
+-module_exit(acpiphp_exit);
 -- 
 1.7.9.5
