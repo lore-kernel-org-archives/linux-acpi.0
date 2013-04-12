@@ -1,26 +1,19 @@
-From: Andrew Murray <andrew.murray@arm.com>
-Subject: Re: [PATCH] pci: Remove unnecessary dependency between PME and
- ACPI.
-Date: Fri, 12 Apr 2013 08:42:48 +0100
-Message-ID: <20130412074248.GA30537@arm.com>
-References: <20130221155329.GA26729@arm.com>
- <20130411234426.GA10196@google.com>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: Re: [PATCH] pci: Remove unnecessary dependency between PME and ACPI.
+Date: Fri, 12 Apr 2013 13:13:20 +0200
+Message-ID: <2781744.X672n7t2jq@vostro.rjw.lan>
+References: <20130221155329.GA26729@arm.com> <20130411234426.GA10196@google.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from fw-tnat.cambridge.arm.com ([217.140.96.21]:54094 "EHLO
-	cam-smtp0.cambridge.arm.com" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1752954Ab3DLHm6 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 12 Apr 2013 03:42:58 -0400
-Content-Disposition: inline
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7Bit
+Return-path: <linux-pci-owner@vger.kernel.org>
 In-Reply-To: <20130411234426.GA10196@google.com>
-Sender: linux-acpi-owner@vger.kernel.org
-List-Id: linux-acpi@vger.kernel.org
+Sender: linux-pci-owner@vger.kernel.org
 To: Bjorn Helgaas <bhelgaas@google.com>
-Cc: "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>, "thierry.reding@avionic-design.de" <thierry.reding@avionic-design.de>, "thomas.petazzoni@free-electrons.com" <thomas.petazzoni@free-electrons.com>, "jbarnes@virtuousgeek.org" <jbarnes@virtuousgeek.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: Andrew Murray <Andrew.Murray@arm.com>, linux-pci@vger.kernel.org, "thierry.reding@avionic-design.de" <thierry.reding@avionic-design.de>, "thomas.petazzoni@free-electrons.com" <thomas.petazzoni@free-electrons.com>, "jbarnes@virtuousgeek.org" <jbarnes@virtuousgeek.org>, linux-acpi@vger.kernel.org
+List-Id: linux-acpi@vger.kernel.org
 
-On Fri, Apr 12, 2013 at 12:44:26AM +0100, Bjorn Helgaas wrote:
+On Thursday, April 11, 2013 05:44:26 PM Bjorn Helgaas wrote:
 > On Thu, Feb 21, 2013 at 03:53:29PM +0000, Andrew Murray wrote:
 > > Signed-off-by: Andrew Murray <Andrew.Murray@arm.com>
 > > Signed-off-by: Liviu Dudau <Liviu.Dudau@arm.com>
@@ -54,7 +47,9 @@ On Fri, Apr 12, 2013 at 12:44:26AM +0100, Bjorn Helgaas wrote:
 >     
 >     Based-on-patch-by: Andrew Murray <Andrew.Murray@arm.com>
 >     Signed-off-by: Bjorn Helgaas <bhelgaas@google.com>
-> 
+
+Acked-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+
 > diff --git a/drivers/pci/pcie/Kconfig b/drivers/pci/pcie/Kconfig
 > index fde4a32..569f82f 100644
 > --- a/drivers/pci/pcie/Kconfig
@@ -79,12 +74,9 @@ On Fri, Apr 12, 2013 at 12:44:26AM +0100, Bjorn Helgaas wrote:
 >  
 >  #include "../pci.h"
 > --
-
-Looks good to me.
-
-Andrew Murray
-
-> To unsubscribe from this list: send the line "unsubscribe linux-pci" in
+> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
 > the body of a message to majordomo@vger.kernel.org
 > More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
+-- 
+I speak only for myself.
+Rafael J. Wysocki, Intel Open Source Technology Center.
