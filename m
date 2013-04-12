@@ -1,114 +1,60 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: [PATCH 00/11] ACPICA 20130328 Release
-Date: Fri, 12 Apr 2013 13:49:44 +0200
-Message-ID: <32529701.AOHe0lsdxE@vostro.rjw.lan>
-References: <cover.1364865215.git.lv.zheng@intel.com> <cover.1365473141.git.lv.zheng@intel.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7Bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from hydra.sisk.pl ([212.160.235.94]:56961 "EHLO hydra.sisk.pl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753539Ab3DLLl4 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 12 Apr 2013 07:41:56 -0400
-In-Reply-To: <cover.1365473141.git.lv.zheng@intel.com>
-Sender: linux-acpi-owner@vger.kernel.org
+From: Jiang Liu <liuj97@gmail.com>
+Subject: [PATCH v9 02/16] pci: clean up usages of pci_bus->is_added
+Date: Fri, 12 Apr 2013 23:44:16 +0800
+Message-ID: <1365781470-32379-3-git-send-email-jiang.liu@huawei.com>
+References: <1365781470-32379-1-git-send-email-jiang.liu@huawei.com>
+Return-path: <linux-pci-owner@vger.kernel.org>
+In-Reply-To: <1365781470-32379-1-git-send-email-jiang.liu@huawei.com>
+Sender: linux-pci-owner@vger.kernel.org
+To: Bjorn Helgaas <bhelgaas@google.com>, "Rafael J . Wysocki" <rjw@sisk.pl>
+Cc: Jiang Liu <jiang.liu@huawei.com>, Yinghai Lu <yinghai@kernel.org>, Yijing Wang <wangyijing@huawei.com>, Jiang Liu <liuj97@gmail.com>, linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Toshi Kani <toshi.kani@hp.com>, Myron Stowe <myron.stowe@redhat.com>
 List-Id: linux-acpi@vger.kernel.org
-To: Lv Zheng <lv.zheng@intel.com>
-Cc: Len Brown <len.brown@intel.com>, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Robert Moore <robert.moore@intel.com>, linux-acpi@vger.kernel.org
 
-On Friday, April 12, 2013 08:24:14 AM Lv Zheng wrote:
-> The 20130328 ACPICA kernel resident system updates is linuxized based on
-> the pm/linux-next branch.
-> The patch set has passed a basic build/boot test on z530.
-> 
-> Fixed several possible race conditions with the internal object reference 
-> counting mechanism. Some of the external ACPICA interfaces update object 
-> reference counts without holding the interpreter or namespace lock. This 
-> change adds a spinlock to protect reference count updates on the internal 
-> ACPICA objects. Reported by and with assistance from Andriy Gapon 
-> (avg@FreeBSD.org).
-> 
-> FADT support: Removed an extraneous warning for very large GPE register sets. 
-> This change removes a size mismatch warning if the legacy length field for a 
-> GPE register set is larger than the 64-bit GAS structure can accommodate. GPE 
-> register sets can be larger than the 255-bit width limitation of the GAS 
-> structure. Linn Crosetto (linn@hp.com).
-> 
-> _OSI Support: handle any errors from AcpiOsAcquireMutex. Check for error 
-> return from this interface. Handles a possible timeout case if 
-> ACPI_WAIT_FOREVER is modified by the host to be a value less than "forever". 
-> Jung-uk Kim.
-> 
-> Predefined name support: Add allowed/required argument type information to 
-> the master predefined info table. This change adds the infrastructure to 
-> enable typechecking on incoming arguments for all predefined methods/objects. 
-> It does not actually contain the code that will fully utilize this 
-> information, this is still under development. Also condenses some duplicate 
-> code for the predefined names into a new module, utilities/utpredef.c
-> 
-> Example Code and Data Size: These are the sizes for the OS-independent 
-> acpica.lib produced by the Microsoft Visual C++ 9.0 32-bit compiler. The 
-> debug version of the code includes the debug output trace mechanism and has a 
-> much larger code and data size.
-> 
->   Previous Release:
->     Non-Debug Version:  95.0K Code, 25.9K Data, 120.9K Total
->     Debug Version:     182.9K Code, 75.6K Data, 258.5K Total
->   Current Release:
->     Non-Debug Version:  95.2K Code, 26.4K Data, 121.6K Total
->     Debug Version:     183.0K Code, 76.0K Data, 259.0K Total
-> 
-> Bob Moore (6):
->   ACPICA: Predefine names: Add allowed argument types to master info
->     table
->   ACPICA: Improve error message for Index() operator
->   ACPICA: Remove FORCE_DELETE option for global reference count
->     mechanism
->   ACPICA: Fix a format string for 64-bit generation
->   ACPICA: Update version to 20130328
->   ACPICA: Add a lock to the internal object reference count mechanism
-> 
-> Colin Ian King (2):
->   ACPICA: Fix a typo in an error message
->   ACPICA: Fix a typo in a function header, no functional change
-> 
-> Jung-uk Kim (1):
->   ACPICA: _OSI Support: handle any errors from AcpiOsAcquireMutex
-> 
-> Linn Crosetto (1):
->   ACPICA: FADT: Remove extraneous warning for very large GPE registers
-> 
-> Tang Chen (1):
->   ACPICA: Fix for some comments/headers
-> 
->  drivers/acpi/acpica/Makefile   |    1 +
->  drivers/acpi/acpica/acglobal.h |    1 +
->  drivers/acpi/acpica/aclocal.h  |   13 +-
->  drivers/acpi/acpica/acnamesp.h |    4 -
->  drivers/acpi/acpica/acpredef.h | 1305 ++++++++++++++++++++++++++++------------
->  drivers/acpi/acpica/acutils.h  |   25 +-
->  drivers/acpi/acpica/dswexec.c  |    2 +-
->  drivers/acpi/acpica/evevent.c  |    2 +-
->  drivers/acpi/acpica/exoparg2.c |   11 +-
->  drivers/acpi/acpica/nseval.c   |   26 +-
->  drivers/acpi/acpica/nspredef.c |  106 +---
->  drivers/acpi/acpica/tbfadt.c   |    4 +
->  drivers/acpi/acpica/tbxface.c  |   22 +-
->  drivers/acpi/acpica/utdelete.c |   96 +--
->  drivers/acpi/acpica/utmutex.c  |    9 +-
->  drivers/acpi/acpica/utosi.c    |   26 +-
->  drivers/acpi/acpica/utpredef.c |  399 ++++++++++++
->  drivers/acpi/acpica/utxface.c  |   17 +-
->  include/acpi/acpixf.h          |    2 +-
->  19 files changed, 1481 insertions(+), 590 deletions(-)
->  create mode 100644 drivers/acpi/acpica/utpredef.c
+Now pci_bus->is_added is only used to guard invoking of
+pcibios_fixup_bus(), so clean up the code.
 
-Applied, thanks Lv!
+Signed-off-by: Jiang Liu <jiang.liu@huawei.com>
+---
+ drivers/pci/bus.c   |   11 ++---------
+ drivers/pci/probe.c |    3 +--
+ 2 files changed, 3 insertions(+), 11 deletions(-)
 
-Rafael
-
-
+diff --git a/drivers/pci/bus.c b/drivers/pci/bus.c
+index 8647dc6..bdc1e8b 100644
+--- a/drivers/pci/bus.c
++++ b/drivers/pci/bus.c
+@@ -206,16 +206,9 @@ void pci_bus_add_devices(const struct pci_bus *bus)
+ 
+ 	list_for_each_entry(dev, &bus->devices, bus_list) {
+ 		BUG_ON(!dev->is_added);
+-
+ 		child = dev->subordinate;
+-
+-		if (!child)
+-			continue;
+-		pci_bus_add_devices(child);
+-
+-		if (child->is_added)
+-			continue;
+-		child->is_added = 1;
++		if (child)
++			pci_bus_add_devices(child);
+ 	}
+ }
+ 
+diff --git a/drivers/pci/probe.c b/drivers/pci/probe.c
+index b494066..45c93b3 100644
+--- a/drivers/pci/probe.c
++++ b/drivers/pci/probe.c
+@@ -1627,8 +1627,7 @@ unsigned int pci_scan_child_bus(struct pci_bus *bus)
+ 	if (!bus->is_added) {
+ 		dev_dbg(&bus->dev, "fixups for bus\n");
+ 		pcibios_fixup_bus(bus);
+-		if (pci_is_root_bus(bus))
+-			bus->is_added = 1;
++		bus->is_added = 1;
+ 	}
+ 
+ 	for (pass=0; pass < 2; pass++)
 -- 
-I speak only for myself.
-Rafael J. Wysocki, Intel Open Source Technology Center.
+1.7.9.5
