@@ -1,139 +1,198 @@
 From: Yinghai Lu <yinghai@kernel.org>
-Subject: [PATCH v4 09/22] x86, ACPI: Find acpi tables in initrd early from head_32.S/head64.c
-Date: Thu, 11 Apr 2013 17:55:55 -0700
-Message-ID: <1365728168-32067-10-git-send-email-yinghai@kernel.org>
+Subject: [PATCH v4 17/22] x86, ACPI, numa, ia64: split SLIT handling out
+Date: Thu, 11 Apr 2013 17:56:03 -0700
+Message-ID: <1365728168-32067-18-git-send-email-yinghai@kernel.org>
 References: <1365728168-32067-1-git-send-email-yinghai@kernel.org>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <1365728168-32067-1-git-send-email-yinghai@kernel.org>
 Sender: linux-kernel-owner@vger.kernel.org
 To: Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@elte.hu>, "H. Peter Anvin" <hpa@zytor.com>, Andrew Morton <akpm@linux-foundation.org>, Tejun Heo <tj@kernel.org>, Thomas Renninger <trenn@suse.de>, Tang Chen <tangchen@cn.fujitsu.com>
-Cc: linux-kernel@vger.kernel.org, Yinghai Lu <yinghai@kernel.org>, Pekka Enberg <penberg@kernel.org>, Jacob Shin <jacob.shin@amd.com>, "Rafael J. Wysocki" <rjw@sisk.pl>, linux-acpi@vger.kernel.org
+Cc: linux-kernel@vger.kernel.org, Yinghai Lu <yinghai@kernel.org>, "Rafael J. Wysocki" <rjw@sisk.pl>, linux-acpi@vger.kernel.org, Tony Luck <tony.luck@intel.com>, Fenghua Yu <fenghua.yu@intel.com>, linux-ia64@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-head64.c could use #PF handler set page table to access initrd before
-init mem mapping and initrd relocating.
+We need to handle slit later, as it need to allocate buffer for distance
+matrix. Also we do not need SLIT info before init_mem_mapping.
 
-head_32.S could use 32bit flat mode to access initrd before init mem
-mapping initrd relocating.
+So move SLIT parsing later.
 
-That make 32bit and 64 bit more consistent.
+x86_acpi_numa_init become x86_acpi_numa_init_srat/x86_acpi_numa_init_slit.
 
--v2: use inline function in header file instead according to tj.
-     also still need to keep #idef head_32.S to avoid compiling error.
--v3: need to move down reserve_initrd() after acpi_initrd_override_copy(),
-     to make sure we are using right address.
+It should not break ia64 by replacing acpi_numa_init with
+acpi_numa_init_srat/acpi_numa_init_slit/acpi_num_arch_fixup.
+
+-v2: Change name to acpi_numa_init_srat/acpi_numa_init_slit according tj.
+     remove the reset_numa_distance() in numa_init(), as get we only set
+     distance in slit handling.
 
 Signed-off-by: Yinghai Lu <yinghai@kernel.org>
-Cc: Pekka Enberg <penberg@kernel.org>
-Cc: Jacob Shin <jacob.shin@amd.com>
 Cc: Rafael J. Wysocki <rjw@sisk.pl>
 Cc: linux-acpi@vger.kernel.org
-Tested-by: Thomas Renninger <trenn@suse.de>
+Cc: Tony Luck <tony.luck@intel.com>
+Cc: Fenghua Yu <fenghua.yu@intel.com>
+Cc: linux-ia64@vger.kernel.org
+Tested-by: Tony Luck <tony.luck@intel.com>
 ---
- arch/x86/include/asm/setup.h |  6 ++++++
- arch/x86/kernel/head64.c     |  2 ++
- arch/x86/kernel/head_32.S    |  4 ++++
- arch/x86/kernel/setup.c      | 34 ++++++++++++++++++++++++++++++----
- 4 files changed, 42 insertions(+), 4 deletions(-)
+ arch/ia64/kernel/setup.c    |  4 +++-
+ arch/x86/include/asm/acpi.h |  3 ++-
+ arch/x86/mm/numa.c          | 14 ++++++++++++--
+ arch/x86/mm/srat.c          | 11 +++++++----
+ drivers/acpi/numa.c         | 13 +++++++------
+ include/linux/acpi.h        |  3 ++-
+ 6 files changed, 33 insertions(+), 15 deletions(-)
 
-diff --git a/arch/x86/include/asm/setup.h b/arch/x86/include/asm/setup.h
-index 4f71d48..6f885b7 100644
---- a/arch/x86/include/asm/setup.h
-+++ b/arch/x86/include/asm/setup.h
-@@ -42,6 +42,12 @@ extern void visws_early_detect(void);
- static inline void visws_early_detect(void) { }
- #endif
+diff --git a/arch/ia64/kernel/setup.c b/arch/ia64/kernel/setup.c
+index 2029cc0..6a2efb5 100644
+--- a/arch/ia64/kernel/setup.c
++++ b/arch/ia64/kernel/setup.c
+@@ -558,7 +558,9 @@ setup_arch (char **cmdline_p)
+ 	acpi_table_init();
+ 	early_acpi_boot_init();
+ # ifdef CONFIG_ACPI_NUMA
+-	acpi_numa_init();
++	acpi_numa_init_srat();
++	acpi_numa_init_slit();
++	acpi_numa_arch_fixup();
+ #  ifdef CONFIG_ACPI_HOTPLUG_CPU
+ 	prefill_possible_map();
+ #  endif
+diff --git a/arch/x86/include/asm/acpi.h b/arch/x86/include/asm/acpi.h
+index b31bf97..651db0b 100644
+--- a/arch/x86/include/asm/acpi.h
++++ b/arch/x86/include/asm/acpi.h
+@@ -178,7 +178,8 @@ static inline void disable_acpi(void) { }
  
-+#ifdef CONFIG_ACPI_INITRD_TABLE_OVERRIDE
-+void x86_acpi_override_find(void);
-+#else
-+static inline void x86_acpi_override_find(void) { }
-+#endif
-+
- extern unsigned long saved_video_mode;
+ #ifdef CONFIG_ACPI_NUMA
+ extern int acpi_numa;
+-extern int x86_acpi_numa_init(void);
++int x86_acpi_numa_init_srat(void);
++void x86_acpi_numa_init_slit(void);
+ #endif /* CONFIG_ACPI_NUMA */
  
- extern void reserve_standard_io_resources(void);
-diff --git a/arch/x86/kernel/head64.c b/arch/x86/kernel/head64.c
-index c5e403f..a31bc63 100644
---- a/arch/x86/kernel/head64.c
-+++ b/arch/x86/kernel/head64.c
-@@ -174,6 +174,8 @@ void __init x86_64_start_kernel(char * real_mode_data)
- 	if (console_loglevel == 10)
- 		early_printk("Kernel alive\n");
+ #define acpi_unlazy_tlb(x)	leave_mm(x)
+diff --git a/arch/x86/mm/numa.c b/arch/x86/mm/numa.c
+index 90fd123..182e085 100644
+--- a/arch/x86/mm/numa.c
++++ b/arch/x86/mm/numa.c
+@@ -598,7 +598,6 @@ static int __init numa_init(int (*init_func)(void))
  
-+	x86_acpi_override_find();
-+
- 	clear_page(init_level4_pgt);
- 	/* set init_level4_pgt kernel high mapping*/
- 	init_level4_pgt[511] = early_level4_pgt[511];
-diff --git a/arch/x86/kernel/head_32.S b/arch/x86/kernel/head_32.S
-index 73afd11..ca08f0e 100644
---- a/arch/x86/kernel/head_32.S
-+++ b/arch/x86/kernel/head_32.S
-@@ -149,6 +149,10 @@ ENTRY(startup_32)
- 	call load_ucode_bsp
- #endif
+ 	nodes_clear(numa_nodes_parsed);
+ 	memset(&numa_meminfo, 0, sizeof(numa_meminfo));
+-	numa_reset_distance();
  
-+#ifdef CONFIG_ACPI_INITRD_TABLE_OVERRIDE
-+	call x86_acpi_override_find
-+#endif
-+
- /*
-  * Initialize page tables.  This creates a PDE and a set of page
-  * tables, which are located immediately beyond __brk_base.  The variable
-diff --git a/arch/x86/kernel/setup.c b/arch/x86/kernel/setup.c
-index 16a703f..2d29bc0 100644
---- a/arch/x86/kernel/setup.c
-+++ b/arch/x86/kernel/setup.c
-@@ -424,6 +424,34 @@ static void __init reserve_initrd(void)
+ 	ret = init_func();
+ 	if (ret < 0)
+@@ -636,6 +635,10 @@ static int __init dummy_numa_init(void)
+ 	return 0;
  }
- #endif /* CONFIG_BLK_DEV_INITRD */
  
-+#ifdef CONFIG_ACPI_INITRD_TABLE_OVERRIDE
-+void __init x86_acpi_override_find(void)
-+{
-+	unsigned long ramdisk_image, ramdisk_size;
-+	unsigned char *p = NULL;
-+
-+#ifdef CONFIG_X86_32
-+	struct boot_params *boot_params_p;
-+
-+	/*
-+	 * 32bit is from head_32.S, and it is 32bit flat mode.
-+	 * So need to use phys address to access global variables.
-+	 */
-+	boot_params_p = (struct boot_params *)__pa_nodebug(&boot_params);
-+	ramdisk_image = get_ramdisk_image(boot_params_p);
-+	ramdisk_size  = get_ramdisk_size(boot_params_p);
-+	p = (unsigned char *)ramdisk_image;
-+	acpi_initrd_override_find(p, ramdisk_size, true);
-+#else
-+	ramdisk_image = get_ramdisk_image(&boot_params);
-+	ramdisk_size  = get_ramdisk_size(&boot_params);
-+	if (ramdisk_image)
-+		p = __va(ramdisk_image);
-+	acpi_initrd_override_find(p, ramdisk_size, false);
-+#endif
-+}
++#ifdef CONFIG_ACPI_NUMA
++static bool srat_used __initdata;
 +#endif
 +
- static void __init parse_setup_data(void)
- {
- 	struct setup_data *data;
-@@ -1090,12 +1118,10 @@ void __init setup_arch(char **cmdline_p)
- 	/* Allocate bigger log buffer */
- 	setup_log_buf(1);
+ /**
+  * x86_numa_init - Initialize NUMA
+  *
+@@ -651,8 +654,10 @@ static void __init early_x86_numa_init(void)
+ 			return;
+ #endif
+ #ifdef CONFIG_ACPI_NUMA
+-		if (!numa_init(x86_acpi_numa_init))
++		if (!numa_init(x86_acpi_numa_init_srat)) {
++			srat_used = true;
+ 			return;
++		}
+ #endif
+ #ifdef CONFIG_AMD_NUMA
+ 		if (!numa_init(amd_numa_init))
+@@ -670,6 +675,11 @@ void __init x86_numa_init(void)
  
--	reserve_initrd();
+ 	early_x86_numa_init();
+ 
++#ifdef CONFIG_ACPI_NUMA
++	if (srat_used)
++		x86_acpi_numa_init_slit();
++#endif
++
+ 	numa_emulation(&numa_meminfo, numa_distance_cnt);
+ 
+ 	node_possible_map = numa_nodes_parsed;
+diff --git a/arch/x86/mm/srat.c b/arch/x86/mm/srat.c
+index cdd0da9..443f9ef 100644
+--- a/arch/x86/mm/srat.c
++++ b/arch/x86/mm/srat.c
+@@ -185,14 +185,17 @@ out_err:
+ 	return -1;
+ }
+ 
+-void __init acpi_numa_arch_fixup(void) {}
 -
--	acpi_initrd_override_find((void *)initrd_start,
--					initrd_end - initrd_start, false);
- 	acpi_initrd_override_copy();
+-int __init x86_acpi_numa_init(void)
++int __init x86_acpi_numa_init_srat(void)
+ {
+ 	int ret;
  
-+	reserve_initrd();
+-	ret = acpi_numa_init();
++	ret = acpi_numa_init_srat();
+ 	if (ret < 0)
+ 		return ret;
+ 	return srat_disabled() ? -EINVAL : 0;
+ }
 +
- 	reserve_crashkernel();
++void __init x86_acpi_numa_init_slit(void)
++{
++	acpi_numa_init_slit();
++}
+diff --git a/drivers/acpi/numa.c b/drivers/acpi/numa.c
+index 33e609f..6460db4 100644
+--- a/drivers/acpi/numa.c
++++ b/drivers/acpi/numa.c
+@@ -282,7 +282,7 @@ acpi_table_parse_srat(enum acpi_srat_type id,
+ 					    handler, max_entries);
+ }
  
- 	vsmp_init();
+-int __init acpi_numa_init(void)
++int __init acpi_numa_init_srat(void)
+ {
+ 	int cnt = 0;
+ 
+@@ -303,11 +303,6 @@ int __init acpi_numa_init(void)
+ 					    NR_NODE_MEMBLKS);
+ 	}
+ 
+-	/* SLIT: System Locality Information Table */
+-	acpi_table_parse(ACPI_SIG_SLIT, acpi_parse_slit);
+-
+-	acpi_numa_arch_fixup();
+-
+ 	if (cnt < 0)
+ 		return cnt;
+ 	else if (!parsed_numa_memblks)
+@@ -315,6 +310,12 @@ int __init acpi_numa_init(void)
+ 	return 0;
+ }
+ 
++void __init acpi_numa_init_slit(void)
++{
++	/* SLIT: System Locality Information Table */
++	acpi_table_parse(ACPI_SIG_SLIT, acpi_parse_slit);
++}
++
+ int acpi_get_pxm(acpi_handle h)
+ {
+ 	unsigned long long pxm;
+diff --git a/include/linux/acpi.h b/include/linux/acpi.h
+index 4b943e6..4a78235 100644
+--- a/include/linux/acpi.h
++++ b/include/linux/acpi.h
+@@ -85,7 +85,8 @@ int early_acpi_boot_init(void);
+ int acpi_boot_init (void);
+ void acpi_boot_table_init (void);
+ int acpi_mps_check (void);
+-int acpi_numa_init (void);
++int acpi_numa_init_srat(void);
++void acpi_numa_init_slit(void);
+ 
+ int acpi_table_init (void);
+ int acpi_table_parse(char *id, acpi_tbl_table_handler handler);
 -- 
 1.8.1.4
