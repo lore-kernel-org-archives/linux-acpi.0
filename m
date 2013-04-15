@@ -1,64 +1,97 @@
-From: Zhang Rui <rui.zhang@intel.com>
-Subject: [PATCH] ACPI: update comments for acpi_event_status
-Date: Sun, 14 Apr 2013 22:31:37 +0800
-Message-ID: <1365949897.2180.1.camel@rzhang1-mobl4>
+From: "Zheng, Lv" <lv.zheng@intel.com>
+Subject: RE: [PATCH 00/11] ACPICA 20130328 Release
+Date: Mon, 15 Apr 2013 05:26:33 +0000
+Message-ID: <1AE640813FDE7649BE1B193DEA596E88015D021C@SHSMSX101.ccr.corp.intel.com>
+References: <cover.1364865215.git.lv.zheng@intel.com>
+ <cover.1365473141.git.lv.zheng@intel.com>
+ <32529701.AOHe0lsdxE@vostro.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga01.intel.com ([192.55.52.88]:3884 "EHLO mga01.intel.com"
+Received: from mga09.intel.com ([134.134.136.24]:50631 "EHLO mga09.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751845Ab3DNObk (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Sun, 14 Apr 2013 10:31:40 -0400
+	id S932982Ab3DOF1H (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 15 Apr 2013 01:27:07 -0400
+In-Reply-To: <32529701.AOHe0lsdxE@vostro.rjw.lan>
+Content-Language: en-US
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, "Zhang, Rui" <rui.zhang@intel.com>
+Cc: "Brown, Len" <len.brown@intel.com>, "Wysocki, Rafael J" <rafael.j.wysocki@intel.com>, "Moore, Robert" <robert.moore@intel.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
 
->From 44504499041e944aae4ed577d9c99bdccf3d07c7 Mon Sep 17 00:00:00 2001
-From: Zhang Rui <rui.zhang@intel.com>
-Date: Sun, 14 Apr 2013 22:25:07 +0800
-Subject: [PATCH] ACPI: update comments for acpi_event_status
-
-ACPI_EVENT_FLAG_HANDLE is a flag for acpi_event_status.
-When it is set, it indicates that the ACPI event,
-either GPE or fixed event, is associated with a handler.
-
-Update the comments to reflect this flag.
-
-Signed-off-by: Zhang Rui <rui.zhang@intel.com>
----
- include/acpi/actypes.h |   15 ++++++++-------
- 1 file changed, 8 insertions(+), 7 deletions(-)
-
-diff --git a/include/acpi/actypes.h b/include/acpi/actypes.h
-index 845e75f..de72f2b 100644
---- a/include/acpi/actypes.h
-+++ b/include/acpi/actypes.h
-@@ -650,13 +650,14 @@ typedef u32 acpi_event_type;
-  * The encoding of acpi_event_status is illustrated below.
-  * Note that a set bit (1) indicates the property is TRUE
-  * (e.g. if bit 0 is set then the event is enabled).
-- * +-------------+-+-+-+
-- * |   Bits 31:3 |2|1|0|
-- * +-------------+-+-+-+
-- *          |     | | |
-- *          |     | | +- Enabled?
-- *          |     | +--- Enabled for wake?
-- *          |     +----- Set?
-+ * +-------------+-+-+-+-+
-+ * |   Bits 31:4 |3|2|1|0|
-+ * +-------------+-+-+-+-+
-+ *          |     | | | |
-+ *          |     | | | +- Enabled?
-+ *          |     | | +--- Enabled for wake?
-+ *          |     | +----- Set?
-+ *          |     +------- Has a handler?
-  *          +----------- <Reserved>
-  */
- typedef u32 acpi_event_status;
--- 
-1.7.9.5
-
-
-
+PiA+IFRoZSAyMDEzMDMyOCBBQ1BJQ0Ega2VybmVsIHJlc2lkZW50IHN5c3RlbSB1cGRhdGVzIGlz
+IGxpbnV4aXplZCBiYXNlZA0KPiA+IG9uIHRoZSBwbS9saW51eC1uZXh0IGJyYW5jaC4NCj4gPiBU
+aGUgcGF0Y2ggc2V0IGhhcyBwYXNzZWQgYSBiYXNpYyBidWlsZC9ib290IHRlc3Qgb24gejUzMC4N
+Cj4gPg0KPiA+IEZpeGVkIHNldmVyYWwgcG9zc2libGUgcmFjZSBjb25kaXRpb25zIHdpdGggdGhl
+IGludGVybmFsIG9iamVjdA0KPiA+IHJlZmVyZW5jZSBjb3VudGluZyBtZWNoYW5pc20uIFNvbWUg
+b2YgdGhlIGV4dGVybmFsIEFDUElDQSBpbnRlcmZhY2VzDQo+ID4gdXBkYXRlIG9iamVjdCByZWZl
+cmVuY2UgY291bnRzIHdpdGhvdXQgaG9sZGluZyB0aGUgaW50ZXJwcmV0ZXIgb3INCj4gPiBuYW1l
+c3BhY2UgbG9jay4gVGhpcyBjaGFuZ2UgYWRkcyBhIHNwaW5sb2NrIHRvIHByb3RlY3QgcmVmZXJl
+bmNlIGNvdW50DQo+ID4gdXBkYXRlcyBvbiB0aGUgaW50ZXJuYWwgQUNQSUNBIG9iamVjdHMuIFJl
+cG9ydGVkIGJ5IGFuZCB3aXRoDQo+ID4gYXNzaXN0YW5jZSBmcm9tIEFuZHJpeSBHYXBvbiAoYXZn
+QEZyZWVCU0Qub3JnKS4NCj4gPg0KPiA+IEZBRFQgc3VwcG9ydDogUmVtb3ZlZCBhbiBleHRyYW5l
+b3VzIHdhcm5pbmcgZm9yIHZlcnkgbGFyZ2UgR1BFIHJlZ2lzdGVyDQo+IHNldHMuDQo+ID4gVGhp
+cyBjaGFuZ2UgcmVtb3ZlcyBhIHNpemUgbWlzbWF0Y2ggd2FybmluZyBpZiB0aGUgbGVnYWN5IGxl
+bmd0aCBmaWVsZA0KPiA+IGZvciBhIEdQRSByZWdpc3RlciBzZXQgaXMgbGFyZ2VyIHRoYW4gdGhl
+IDY0LWJpdCBHQVMgc3RydWN0dXJlIGNhbg0KPiA+IGFjY29tbW9kYXRlLiBHUEUgcmVnaXN0ZXIg
+c2V0cyBjYW4gYmUgbGFyZ2VyIHRoYW4gdGhlIDI1NS1iaXQgd2lkdGgNCj4gPiBsaW1pdGF0aW9u
+IG9mIHRoZSBHQVMgc3RydWN0dXJlLiBMaW5uIENyb3NldHRvIChsaW5uQGhwLmNvbSkuDQo+ID4N
+Cj4gPiBfT1NJIFN1cHBvcnQ6IGhhbmRsZSBhbnkgZXJyb3JzIGZyb20gQWNwaU9zQWNxdWlyZU11
+dGV4LiBDaGVjayBmb3INCj4gPiBlcnJvciByZXR1cm4gZnJvbSB0aGlzIGludGVyZmFjZS4gSGFu
+ZGxlcyBhIHBvc3NpYmxlIHRpbWVvdXQgY2FzZSBpZg0KPiA+IEFDUElfV0FJVF9GT1JFVkVSIGlz
+IG1vZGlmaWVkIGJ5IHRoZSBob3N0IHRvIGJlIGEgdmFsdWUgbGVzcyB0aGFuDQo+ICJmb3JldmVy
+Ii4NCj4gPiBKdW5nLXVrIEtpbS4NCj4gPg0KPiA+IFByZWRlZmluZWQgbmFtZSBzdXBwb3J0OiBB
+ZGQgYWxsb3dlZC9yZXF1aXJlZCBhcmd1bWVudCB0eXBlDQo+ID4gaW5mb3JtYXRpb24gdG8gdGhl
+IG1hc3RlciBwcmVkZWZpbmVkIGluZm8gdGFibGUuIFRoaXMgY2hhbmdlIGFkZHMgdGhlDQo+ID4g
+aW5mcmFzdHJ1Y3R1cmUgdG8gZW5hYmxlIHR5cGVjaGVja2luZyBvbiBpbmNvbWluZyBhcmd1bWVu
+dHMgZm9yIGFsbA0KPiBwcmVkZWZpbmVkIG1ldGhvZHMvb2JqZWN0cy4NCj4gPiBJdCBkb2VzIG5v
+dCBhY3R1YWxseSBjb250YWluIHRoZSBjb2RlIHRoYXQgd2lsbCBmdWxseSB1dGlsaXplIHRoaXMN
+Cj4gPiBpbmZvcm1hdGlvbiwgdGhpcyBpcyBzdGlsbCB1bmRlciBkZXZlbG9wbWVudC4gQWxzbyBj
+b25kZW5zZXMgc29tZQ0KPiA+IGR1cGxpY2F0ZSBjb2RlIGZvciB0aGUgcHJlZGVmaW5lZCBuYW1l
+cyBpbnRvIGEgbmV3IG1vZHVsZSwNCj4gPiB1dGlsaXRpZXMvdXRwcmVkZWYuYw0KPiA+DQo+ID4g
+RXhhbXBsZSBDb2RlIGFuZCBEYXRhIFNpemU6IFRoZXNlIGFyZSB0aGUgc2l6ZXMgZm9yIHRoZSBP
+Uy1pbmRlcGVuZGVudA0KPiA+IGFjcGljYS5saWIgcHJvZHVjZWQgYnkgdGhlIE1pY3Jvc29mdCBW
+aXN1YWwgQysrIDkuMCAzMi1iaXQgY29tcGlsZXIuDQo+ID4gVGhlIGRlYnVnIHZlcnNpb24gb2Yg
+dGhlIGNvZGUgaW5jbHVkZXMgdGhlIGRlYnVnIG91dHB1dCB0cmFjZQ0KPiA+IG1lY2hhbmlzbSBh
+bmQgaGFzIGEgbXVjaCBsYXJnZXIgY29kZSBhbmQgZGF0YSBzaXplLg0KPiA+DQo+ID4gICBQcmV2
+aW91cyBSZWxlYXNlOg0KPiA+ICAgICBOb24tRGVidWcgVmVyc2lvbjogIDk1LjBLIENvZGUsIDI1
+LjlLIERhdGEsIDEyMC45SyBUb3RhbA0KPiA+ICAgICBEZWJ1ZyBWZXJzaW9uOiAgICAgMTgyLjlL
+IENvZGUsIDc1LjZLIERhdGEsIDI1OC41SyBUb3RhbA0KPiA+ICAgQ3VycmVudCBSZWxlYXNlOg0K
+PiA+ICAgICBOb24tRGVidWcgVmVyc2lvbjogIDk1LjJLIENvZGUsIDI2LjRLIERhdGEsIDEyMS42
+SyBUb3RhbA0KPiA+ICAgICBEZWJ1ZyBWZXJzaW9uOiAgICAgMTgzLjBLIENvZGUsIDc2LjBLIERh
+dGEsIDI1OS4wSyBUb3RhbA0KPiA+DQo+ID4gQm9iIE1vb3JlICg2KToNCj4gPiAgIEFDUElDQTog
+UHJlZGVmaW5lIG5hbWVzOiBBZGQgYWxsb3dlZCBhcmd1bWVudCB0eXBlcyB0byBtYXN0ZXIgaW5m
+bw0KPiA+ICAgICB0YWJsZQ0KPiA+ICAgQUNQSUNBOiBJbXByb3ZlIGVycm9yIG1lc3NhZ2UgZm9y
+IEluZGV4KCkgb3BlcmF0b3INCj4gPiAgIEFDUElDQTogUmVtb3ZlIEZPUkNFX0RFTEVURSBvcHRp
+b24gZm9yIGdsb2JhbCByZWZlcmVuY2UgY291bnQNCj4gPiAgICAgbWVjaGFuaXNtDQo+ID4gICBB
+Q1BJQ0E6IEZpeCBhIGZvcm1hdCBzdHJpbmcgZm9yIDY0LWJpdCBnZW5lcmF0aW9uDQo+ID4gICBB
+Q1BJQ0E6IFVwZGF0ZSB2ZXJzaW9uIHRvIDIwMTMwMzI4DQo+ID4gICBBQ1BJQ0E6IEFkZCBhIGxv
+Y2sgdG8gdGhlIGludGVybmFsIG9iamVjdCByZWZlcmVuY2UgY291bnQgbWVjaGFuaXNtDQo+ID4N
+Cj4gPiBDb2xpbiBJYW4gS2luZyAoMik6DQo+ID4gICBBQ1BJQ0E6IEZpeCBhIHR5cG8gaW4gYW4g
+ZXJyb3IgbWVzc2FnZQ0KPiA+ICAgQUNQSUNBOiBGaXggYSB0eXBvIGluIGEgZnVuY3Rpb24gaGVh
+ZGVyLCBubyBmdW5jdGlvbmFsIGNoYW5nZQ0KPiA+DQo+ID4gSnVuZy11ayBLaW0gKDEpOg0KPiA+
+ICAgQUNQSUNBOiBfT1NJIFN1cHBvcnQ6IGhhbmRsZSBhbnkgZXJyb3JzIGZyb20gQWNwaU9zQWNx
+dWlyZU11dGV4DQo+ID4NCj4gPiBMaW5uIENyb3NldHRvICgxKToNCj4gPiAgIEFDUElDQTogRkFE
+VDogUmVtb3ZlIGV4dHJhbmVvdXMgd2FybmluZyBmb3IgdmVyeSBsYXJnZSBHUEUgcmVnaXN0ZXJz
+DQo+ID4NCj4gPiBUYW5nIENoZW4gKDEpOg0KPiA+ICAgQUNQSUNBOiBGaXggZm9yIHNvbWUgY29t
+bWVudHMvaGVhZGVycw0KPiA+DQo+ID4gIGRyaXZlcnMvYWNwaS9hY3BpY2EvTWFrZWZpbGUgICB8
+ICAgIDEgKw0KPiA+ICBkcml2ZXJzL2FjcGkvYWNwaWNhL2FjZ2xvYmFsLmggfCAgICAxICsNCj4g
+PiAgZHJpdmVycy9hY3BpL2FjcGljYS9hY2xvY2FsLmggIHwgICAxMyArLQ0KPiA+ICBkcml2ZXJz
+L2FjcGkvYWNwaWNhL2FjbmFtZXNwLmggfCAgICA0IC0NCj4gPiAgZHJpdmVycy9hY3BpL2FjcGlj
+YS9hY3ByZWRlZi5oIHwgMTMwNQ0KPiArKysrKysrKysrKysrKysrKysrKysrKysrKysrLS0tLS0t
+LS0tLS0tDQo+ID4gIGRyaXZlcnMvYWNwaS9hY3BpY2EvYWN1dGlscy5oICB8ICAgMjUgKy0NCj4g
+PiAgZHJpdmVycy9hY3BpL2FjcGljYS9kc3dleGVjLmMgIHwgICAgMiArLQ0KPiA+ICBkcml2ZXJz
+L2FjcGkvYWNwaWNhL2V2ZXZlbnQuYyAgfCAgICAyICstDQo+ID4gIGRyaXZlcnMvYWNwaS9hY3Bp
+Y2EvZXhvcGFyZzIuYyB8ICAgMTEgKy0NCj4gPiAgZHJpdmVycy9hY3BpL2FjcGljYS9uc2V2YWwu
+YyAgIHwgICAyNiArLQ0KPiA+ICBkcml2ZXJzL2FjcGkvYWNwaWNhL25zcHJlZGVmLmMgfCAgMTA2
+ICstLS0NCj4gPiAgZHJpdmVycy9hY3BpL2FjcGljYS90YmZhZHQuYyAgIHwgICAgNCArDQo+ID4g
+IGRyaXZlcnMvYWNwaS9hY3BpY2EvdGJ4ZmFjZS5jICB8ICAgMjIgKy0NCj4gPiAgZHJpdmVycy9h
+Y3BpL2FjcGljYS91dGRlbGV0ZS5jIHwgICA5NiArLS0NCj4gPiAgZHJpdmVycy9hY3BpL2FjcGlj
+YS91dG11dGV4LmMgIHwgICAgOSArLQ0KPiA+ICBkcml2ZXJzL2FjcGkvYWNwaWNhL3V0b3NpLmMg
+ICAgfCAgIDI2ICstDQo+ID4gIGRyaXZlcnMvYWNwaS9hY3BpY2EvdXRwcmVkZWYuYyB8ICAzOTkg
+KysrKysrKysrKysrDQo+ID4gIGRyaXZlcnMvYWNwaS9hY3BpY2EvdXR4ZmFjZS5jICB8ICAgMTcg
+Ky0NCj4gPiAgaW5jbHVkZS9hY3BpL2FjcGl4Zi5oICAgICAgICAgIHwgICAgMiArLQ0KPiA+ICAx
+OSBmaWxlcyBjaGFuZ2VkLCAxNDgxIGluc2VydGlvbnMoKyksIDU5MCBkZWxldGlvbnMoLSkgIGNy
+ZWF0ZSBtb2RlDQo+ID4gMTAwNjQ0IGRyaXZlcnMvYWNwaS9hY3BpY2EvdXRwcmVkZWYuYw0KPiAN
+Cj4gQXBwbGllZCwgdGhhbmtzIEx2IQ0KDQpUaGFua3MhDQotTHYNCg==
