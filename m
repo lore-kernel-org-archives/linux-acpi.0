@@ -1,62 +1,114 @@
-From: Seth Forshee <seth.forshee@canonical.com>
-Subject: Re: [PATCH] ACPI: Disable Windows 8 compatibility for some Lenovo
- ThinkPads
-Date: Mon, 22 Apr 2013 10:11:25 -0500
-Message-ID: <20130422151125.GD31365@thinkpad-t410>
-References: <1360599681-24781-1-git-send-email-seth.forshee@canonical.com>
- <9174410.cA7eiWOPcn@vostro.rjw.lan>
- <5175055F.9000600@intel.com>
- <1587525.URWXxEIA21@vostro.rjw.lan>
- <517528E5.7030105@intel.com>
- <20130422130600.GA31365@thinkpad-t410>
- <51753DB0.9010703@intel.com>
- <20130422135651.GB31365@thinkpad-t410>
- <51754424.6040203@intel.com>
+From: Myron Stowe <myron.stowe-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: 2013 Linux Plumbers ACPI/PM,
+	PCI Microconference proposal call for participaton
+Date: Thu, 18 Apr 2013 15:43:34 -0600
+Message-ID: <CAL-B5D3UzFP2nMmj7hzXTyq9EkV0WDJMWKM=FMCv6ps5DH8PdA@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from youngberry.canonical.com ([91.189.89.112]:42427 "EHLO
-	youngberry.canonical.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752739Ab3DVPLh (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 22 Apr 2013 11:11:37 -0400
-Content-Disposition: inline
-In-Reply-To: <51754424.6040203@intel.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: multipart/mixed; boundary="===============3034976900017647216=="
+Return-path: <iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
+List-Unsubscribe: <https://lists.linuxfoundation.org/mailman/options/iommu>,
+	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.linuxfoundation.org/pipermail/iommu/>
+List-Post: <mailto:iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
+List-Help: <mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.linuxfoundation.org/mailman/listinfo/iommu>,
+	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=subscribe>
+Sender: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
+Errors-To: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
+To: linux-pci <linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org, virtualization-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org, kvm-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, LKML <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
-To: Aaron Lu <aaron.lu@intel.com>
-Cc: "Rafael J. Wysocki" <rjw@sisk.pl>, Ben Jencks <ben@bjencks.net>, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, joeyli <jlee@suse.com>, Matthew Garrett <mjg59@srcf.ucam.org>
 
-On Mon, Apr 22, 2013 at 10:07:32PM +0800, Aaron Lu wrote:
-> On 04/22/2013 09:56 PM, Seth Forshee wrote:
-> >On Mon, Apr 22, 2013 at 09:40:00PM +0800, Aaron Lu wrote:
-> >>On 04/22/2013 09:06 PM, Seth Forshee wrote:
-> >>>On Mon, Apr 22, 2013 at 08:11:17PM +0800, Aaron Lu wrote:
-> >>>>On 04/22/2013 07:51 PM, Rafael J. Wysocki wrote:
-> >>>>>I suppose we need to blacklist them to start with.  I wouldn't like to apply
-> >>>>>any general changes before we know how many different systems are affected by
-> >>>>>this particular issue.
-> >>>>
-> >>>>I totally agree.
-> >>>
-> >>>Are you sure that all of these machines have an alternate interface for
-> >>>userspace to change the brightness? I know that I've got a non-Lenovo
-> >>>machine with nVidia graphics for which nouveau exposes no backlight
-> >>
-> >>What's the problem with this system then? The same as the thinkpads in
-> >>bug 51231?
-> >
-> >There's no problem with that system; it has another working backlight
-> >interface. I'm only mentioning it to demonstrate that taking away the
-> >ACPI interface could leave some machines without any backlight control
-> >mechanism that Linux currently supports.
-> 
-> I think we just need take away the ACPI interface for these known broken
-> systems for now, that would require: check if we are in win8 mode, if
-> so, disable acpi video interface for these known broken systems.
-> 
-> I think video_detect_dmi_table is the proper place to do this.
+--===============3034976900017647216==
+Content-Type: multipart/alternative; boundary=089e01184d728e222d04daa97ebe
 
-Well, I suppose that's better than what we've got now. I'll post some
-patches to the bug for testing.
+--089e01184d728e222d04daa97ebe
+Content-Type: text/plain; charset=ISO-8859-1
 
-Seth
+All:
+
+We would like to hold a combined ACPI/PM, PCI focused microconference as
+part of this year's Linux Plumbers conference but first we need to show
+that there is enough interest and material that needs covered.
+
+There is a lot of activity in these subsystems so please respond by
+submitting presentation or discussion proposals that you would be willing
+to cover for consideration (respond to this mail on the linux-pci list for
+tracking purposes please).  You should also feel free to submit ideas as
+proposals that others could cover.  This is the "Plumbers" conference so
+topics concerning userspace interaction with the kernel and not just topics
+concerning pure kernel subsystem internals would be greatly welcomed.
+
+The initial call[1] only produced two responses.  We understand that
+everyone is busy but without proposals the program committee will not be
+able to select this topic for approval - so please step up.
+
+
+If approved by the program committee, we will give precedence to proposals
+that bring up current issues that need attention, help, or resolution.  We
+would like for the majority of the microconference to be "working session
+discussions" in which a current issues in/with the ACPI/PM and PCI
+subsystem space that needs solving are introduced and then opened up for
+live discussion by attendees - much like what took place last year during
+the Kernel Summit's PCI miniconf.
+
+As a possible aid towards promoting topics for submissions we have listed a
+few candidates that seem to meet the criteria in the microconference
+proposals wiki located at
+http://wiki.linuxplumbersconf.org/2013:pci_subsystem
+
+
+Please feel free to forward this invitation on to any others, or relevant
+lists, that seem appropriate.
+
+Thanks,
+  Len, Bjorn, Myron, Rafael
+
+
+[1] https://lkml.org/lkml/2013/3/7/315
+
+--089e01184d728e222d04daa97ebe
+Content-Type: text/html; charset=ISO-8859-1
+Content-Transfer-Encoding: quoted-printable
+
+<div dir=3D"ltr">All:<br><br>We would like to hold a combined ACPI/PM, PCI =
+focused microconference as part of this year&#39;s Linux Plumbers conferenc=
+e but first we need to show that there is enough interest and material that=
+ needs covered.<br>
+<br>There is a lot of activity in these subsystems so please respond by sub=
+mitting presentation or discussion proposals that you would be willing to c=
+over for consideration (respond to this mail on the linux-pci list for trac=
+king purposes please).=A0 You should also feel free to submit ideas as prop=
+osals that others could cover.=A0 This is the &quot;Plumbers&quot; conferen=
+ce so topics concerning userspace interaction with the kernel and not just =
+topics concerning pure kernel subsystem internals would be greatly welcomed=
+.<br>
+<br>The initial call[1] only produced two responses.=A0 We understand that =
+everyone is busy but without proposals the program committee will not be ab=
+le to select this topic for approval - so please step up.<br><br><br>If app=
+roved by the program committee, we will give precedence to proposals that b=
+ring up current issues that need attention, help, or resolution.=A0 We woul=
+d like for the majority of the microconference to be &quot;working session =
+discussions&quot; in which a current issues in/with the ACPI/PM and PCI sub=
+system space that needs solving are introduced and then opened up for live =
+discussion by attendees - much like what took place last year during the Ke=
+rnel Summit&#39;s PCI miniconf.<br>
+<br>As a possible aid towards promoting topics for submissions we have list=
+ed a few candidates that seem to meet the criteria in the microconference p=
+roposals wiki located at <a href=3D"http://wiki.linuxplumbersconf.org/2013:=
+pci_subsystem">http://wiki.linuxplumbersconf.org/2013:pci_subsystem</a><br>
+<br><br>Please feel free to forward this invitation on to any others, or re=
+levant lists, that seem appropriate.<br><br>Thanks,<br>=A0 Len, Bjorn, Myro=
+n, Rafael<br><br><br>[1] <a href=3D"https://lkml.org/lkml/2013/3/7/315">htt=
+ps://lkml.org/lkml/2013/3/7/315</a><br>
+<br></div>
+
+--089e01184d728e222d04daa97ebe--
+
+--===============3034976900017647216==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+
+
+--===============3034976900017647216==--
