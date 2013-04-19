@@ -1,51 +1,162 @@
-From: Aaron Lu <aaron.lu@intel.com>
-Subject: Re: [PATCH] ACPI: Disable Windows 8 compatibility for some Lenovo
- ThinkPads
-Date: Fri, 19 Apr 2013 11:15:57 +0800
-Message-ID: <5170B6ED.2040408@intel.com>
-References: <1360599681-24781-1-git-send-email-seth.forshee@canonical.com> <5158E8A0.3050904@intel.com> <20130401130340.GA3269@thinkpad-t410> <515AA007.1050305@intel.com> <20130402130000.GA12381@thinkpad-t410> <515BD48B.7000901@bjencks.net>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Subject: [PATCH v2.2 5/5] ACPI / LPSS: register clock device for Lynxpoint DMA properly
+Date: Fri, 19 Apr 2013 11:20:24 +0300
+Message-ID: <1366359624-11176-1-git-send-email-andriy.shevchenko@linux.intel.com>
+References: <20130415163618.GF12436@intel.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga09.intel.com ([134.134.136.24]:21629 "EHLO mga09.intel.com"
+Received: from mga09.intel.com ([134.134.136.24]:19016 "EHLO mga09.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S967861Ab3DSDOa (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 18 Apr 2013 23:14:30 -0400
-In-Reply-To: <515BD48B.7000901@bjencks.net>
+	id S1751409Ab3DSIUa (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 19 Apr 2013 04:20:30 -0400
+In-Reply-To: <20130415163618.GF12436@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Ben Jencks <ben@bjencks.net>
-Cc: Seth Forshee <seth.forshee@canonical.com>, Aaron Lu <aaron.lu@intel.com>, Len Brown <lenb@kernel.org>, "Rafael J. Wysocki" <rjw@sisk.pl>, linux-acpi@vger.kernel.org, joeyli <jlee@suse.com>, Matthew Garrett <mjg59@srcf.ucam.org>
+To: "Rafael J . Wysocki" <rafael.j.wysocki@intel.com>, Mika Westerberg <mika.westerberg@linux.intel.com>, Viresh Kumar <viresh.kumar@linaro.org>, linux-kernel@vger.kernel.org, spear-devel <spear-devel@list.st.com>, Vinod Koul <vinod.koul@intel.com>, linux-acpi@vger.kernel.org
 
-On 04/03/2013 03:04 PM, Ben Jencks wrote:
-> On 04/02/2013 09:00 AM, Seth Forshee wrote:
->> On Tue, Apr 02, 2013 at 05:08:23PM +0800, Aaron Lu wrote:
->>>
->>> I really wondered, how Windows handled this, it should have the same
->>> problem, unless they are not using the acpi video interface?
->>
->> I can only guess.
->>
->> I think I remember reading that Windows 8 does smooth backlight
->> transitions, so it may well hit every intermediate brightness value.
->> Lenovo could also be supplying a driver which rounds values to the
->> nearest working value or uses some other interface or something else.
-> 
-> Just checked; Windows 8 doesn't use the ACPI interface. It seems to have
-> access to at least 100 distinct brightness levels.
+From: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>
 
-I just came across a document on win8 backlight control, it has words
-like this:
-"
-In Windows 8, the primary mechanism by which a platform should expose
-its display brightness control functionality is the Windows Display
-Driver Model (WDDM) miniport Device Driver Interfaces (DDI).
-"
-So looks like, on win8, ACPI interface is not used for these systems.
+The DMA controller in Lynxpoint is enumerated as a regular ACPI device now. To
+work properly it is using the LPSS root clock as a functional clock. That's why
+we have to register the clock device accordingly to the ACPI ID of the DMA
+controller. The acpi_lpss.c module is responsible to do the job.
 
-The link for the document is here:
-http://msdn.microsoft.com/en-US/library/windows/hardware/jj159305
+This patch also removes hardcoded name of the DMA device in clk-lpt.c and the
+name of the root clock in acpi_lpss.c.
 
--Aaron
+Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+---
+Since 5/5 v2.1:
+- fix a typo (devm_kzalloc)
+- amend commit message to clarify what is done and why.
+ drivers/acpi/acpi_lpss.c               | 26 ++++++++++++++++++++++----
+ drivers/clk/x86/clk-lpt.c              | 15 +++++++++++----
+ include/linux/platform_data/clk-lpss.h |  5 +++++
+ 3 files changed, 38 insertions(+), 8 deletions(-)
+
+diff --git a/drivers/acpi/acpi_lpss.c b/drivers/acpi/acpi_lpss.c
+index b1c9542..652fd5c 100644
+--- a/drivers/acpi/acpi_lpss.c
++++ b/drivers/acpi/acpi_lpss.c
+@@ -35,11 +35,16 @@ ACPI_MODULE_NAME("acpi_lpss");
+ 
+ struct lpss_device_desc {
+ 	bool clk_required;
+-	const char *clk_parent;
++	const char *clkdev_name;
+ 	bool ltr_required;
+ 	unsigned int prv_offset;
+ };
+ 
++static struct lpss_device_desc lpss_dma_desc = {
++	.clk_required = true,
++	.clkdev_name = "hclk",
++};
++
+ struct lpss_private_data {
+ 	void __iomem *mmio_base;
+ 	resource_size_t mmio_size;
+@@ -49,7 +54,6 @@ struct lpss_private_data {
+ 
+ static struct lpss_device_desc lpt_dev_desc = {
+ 	.clk_required = true,
+-	.clk_parent = "lpss_clk",
+ 	.prv_offset = 0x800,
+ 	.ltr_required = true,
+ };
+@@ -60,6 +64,9 @@ static struct lpss_device_desc lpt_sdio_dev_desc = {
+ };
+ 
+ static const struct acpi_device_id acpi_lpss_device_ids[] = {
++	/* Generic LPSS devices */
++	{ "INTL9C60", (unsigned long)&lpss_dma_desc },
++
+ 	/* Lynxpoint LPSS devices */
+ 	{ "INT33C0", (unsigned long)&lpt_dev_desc },
+ 	{ "INT33C1", (unsigned long)&lpt_dev_desc },
+@@ -91,16 +98,27 @@ static int register_device_clock(struct acpi_device *adev,
+ 				 struct lpss_private_data *pdata)
+ {
+ 	const struct lpss_device_desc *dev_desc = pdata->dev_desc;
++	struct lpss_clk_data *clk_data;
+ 
+ 	if (!lpss_clk_dev)
+ 		lpt_register_clock_device();
+ 
+-	if (!dev_desc->clk_parent || !pdata->mmio_base
++	clk_data = platform_get_drvdata(lpss_clk_dev);
++	if (!clk_data)
++		return -ENODEV;
++
++	if (dev_desc->clkdev_name) {
++		clk_register_clkdev(clk_data->clk, dev_desc->clkdev_name,
++				    dev_name(&adev->dev));
++		return 0;
++	}
++
++	if (!pdata->mmio_base
+ 	    || pdata->mmio_size < dev_desc->prv_offset + LPSS_CLK_SIZE)
+ 		return -ENODATA;
+ 
+ 	pdata->clk = clk_register_gate(NULL, dev_name(&adev->dev),
+-				       dev_desc->clk_parent, 0,
++				       clk_data->name, 0,
+ 				       pdata->mmio_base + dev_desc->prv_offset,
+ 				       0, 0, NULL);
+ 	if (IS_ERR(pdata->clk))
+diff --git a/drivers/clk/x86/clk-lpt.c b/drivers/clk/x86/clk-lpt.c
+index 5cf4f46..4f45eee 100644
+--- a/drivers/clk/x86/clk-lpt.c
++++ b/drivers/clk/x86/clk-lpt.c
+@@ -15,22 +15,29 @@
+ #include <linux/clk-provider.h>
+ #include <linux/err.h>
+ #include <linux/module.h>
++#include <linux/platform_data/clk-lpss.h>
+ #include <linux/platform_device.h>
+ 
+ #define PRV_CLOCK_PARAMS 0x800
+ 
+ static int lpt_clk_probe(struct platform_device *pdev)
+ {
++	struct lpss_clk_data *drvdata;
+ 	struct clk *clk;
+ 
++	drvdata = devm_kzalloc(&pdev->dev, sizeof(*drvdata), GFP_KERNEL);
++	if (!drvdata)
++		return -ENOMEM;
++
+ 	/* LPSS free running clock */
+-	clk = clk_register_fixed_rate(&pdev->dev, "lpss_clk", NULL, CLK_IS_ROOT,
+-				      100000000);
++	drvdata->name = "lpss_clk";
++	clk = clk_register_fixed_rate(&pdev->dev, drvdata->name, NULL,
++				      CLK_IS_ROOT, 100000000);
+ 	if (IS_ERR(clk))
+ 		return PTR_ERR(clk);
+ 
+-	/* Shared DMA clock */
+-	clk_register_clkdev(clk, "hclk", "INTL9C60.0.auto");
++	drvdata->clk = clk;
++	platform_set_drvdata(pdev, drvdata);
+ 	return 0;
+ }
+ 
+diff --git a/include/linux/platform_data/clk-lpss.h b/include/linux/platform_data/clk-lpss.h
+index 528e73c..2390199 100644
+--- a/include/linux/platform_data/clk-lpss.h
++++ b/include/linux/platform_data/clk-lpss.h
+@@ -13,6 +13,11 @@
+ #ifndef __CLK_LPSS_H
+ #define __CLK_LPSS_H
+ 
++struct lpss_clk_data {
++	const char *name;
++	struct clk *clk;
++};
++
+ extern int lpt_clk_init(void);
+ 
+ #endif /* __CLK_LPSS_H */
+-- 
+1.8.2.rc0.22.gb3600c3
 
