@@ -1,50 +1,77 @@
-From: Andy Shevchenko <andy.shevchenko@gmail.com>
-Subject: Re: [PATCH v2 0/5] dmaengine: add ACPI DMA helpers and use them in dw_dmac
-Date: Mon, 22 Apr 2013 13:07:39 +0300
-Message-ID: <CAHp75Ve+c01kSoOwUSW=D9tq+svuOTzkkEhM0Amn1vL9VdiXWg@mail.gmail.com>
-References: <1365505547-10552-1-git-send-email-andriy.shevchenko@linux.intel.com>
-	<20130415163618.GF12436@intel.com>
-	<1366114487.7932.29.camel@smile>
-	<1525811.597RVDyDxu@vostro.rjw.lan>
-	<20130422055612.GE6081@intel.com>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: Re: [PATCH] ACPI: Disable Windows 8 compatibility for some Lenovo ThinkPads
+Date: Mon, 22 Apr 2013 13:51:37 +0200
+Message-ID: <1587525.URWXxEIA21@vostro.rjw.lan>
+References: <1360599681-24781-1-git-send-email-seth.forshee@canonical.com> <9174410.cA7eiWOPcn@vostro.rjw.lan> <5175055F.9000600@intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7Bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-la0-f49.google.com ([209.85.215.49]:61052 "EHLO
-	mail-la0-f49.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751474Ab3DVKHl (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 22 Apr 2013 06:07:41 -0400
-In-Reply-To: <20130422055612.GE6081@intel.com>
+Received: from hydra.sisk.pl ([212.160.235.94]:40576 "EHLO hydra.sisk.pl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751168Ab3DVLnf (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 22 Apr 2013 07:43:35 -0400
+In-Reply-To: <5175055F.9000600@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Vinod Koul <vinod.koul@intel.com>
-Cc: "Rafael J. Wysocki" <rjw@sisk.pl>, Andy Shevchenko <andriy.shevchenko@linux.jf.intel.com>, "Rafael J . Wysocki" <rafael.j.wysocki@intel.com>, Mika Westerberg <mika.westerberg@linux.jf.intel.com>, Viresh Kumar <viresh.kumar@linaro.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, spear-devel <spear-devel@list.st.com>, linux-acpi@vger.kernel.org
+To: Aaron Lu <aaron.lu@intel.com>
+Cc: Ben Jencks <ben@bjencks.net>, Seth Forshee <seth.forshee@canonical.com>, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, joeyli <jlee@suse.com>, Matthew Garrett <mjg59@srcf.ucam.org>
 
-On Mon, Apr 22, 2013 at 8:56 AM, Vinod Koul <vinod.koul@intel.com> wrote:
-> On Tue, Apr 16, 2013 at 08:11:57PM +0200, Rafael J. Wysocki wrote:
->> On Tuesday, April 16, 2013 03:14:47 PM Andy Shevchenko wrote:
->> > On Mon, 2013-04-15 at 22:06 +0530, Vinod Koul wrote:
->> > > On Tue, Apr 09, 2013 at 02:05:42PM +0300, Andy Shevchenko wrote:
->> > > > There is a patch series which introduces ACPI DMA helpers in similar way like
->> > > > we have for DeviceTree.
->> > > >
->> > > > In addition it applies this to the first user, namely dw_dmac driver.
->> > > Applied w/o 3 & 5.2 they failed, can you pls rebase and resend
->> > >
->> >
->> > Actually those two (at least 5/5) can't be applied on top of slave-dma.
->> > The patches requires slave-dma and linux-pm together. I heard it's
->> > usually achieved by creating a specific branch in one subsystem
->> > (linux-pm in our case) for another.
->> >
->> > Rafael, what could we do here?
->>
->> I suppose Vinod can pull from my acpi-lpss (which is guaranteed not to be
->> rebased at this point) and apply the series on top of that.
-> Or I can wait for rc1 and apply afterwards...?
+On Monday, April 22, 2013 05:39:43 PM Aaron Lu wrote:
+> On 04/22/2013 05:42 AM, Rafael J. Wysocki wrote:
+> > On Sunday, April 21, 2013 07:07:04 PM Aaron Lu wrote:
+> >> On 04/21/2013 06:06 AM, Rafael J. Wysocki wrote:
+> >>> On Friday, April 19, 2013 11:15:57 AM Aaron Lu wrote:
+> >>>> On 04/03/2013 03:04 PM, Ben Jencks wrote:
+> >>>>> On 04/02/2013 09:00 AM, Seth Forshee wrote:
+> >>>>>> On Tue, Apr 02, 2013 at 05:08:23PM +0800, Aaron Lu wrote:
+> >>>>>>>
+> >>>>>>> I really wondered, how Windows handled this, it should have the same
+> >>>>>>> problem, unless they are not using the acpi video interface?
+> >>>>>>
+> >>>>>> I can only guess.
+> >>>>>>
+> >>>>>> I think I remember reading that Windows 8 does smooth backlight
+> >>>>>> transitions, so it may well hit every intermediate brightness value.
+> >>>>>> Lenovo could also be supplying a driver which rounds values to the
+> >>>>>> nearest working value or uses some other interface or something else.
+> >>>>>
+> >>>>> Just checked; Windows 8 doesn't use the ACPI interface. It seems to have
+> >>>>> access to at least 100 distinct brightness levels.
+> >>>>
+> >>>> I just came across a document on win8 backlight control, it has words
+> >>>> like this:
+> >>>> "
+> >>>> In Windows 8, the primary mechanism by which a platform should expose
+> >>>> its display brightness control functionality is the Windows Display
+> >>>> Driver Model (WDDM) miniport Device Driver Interfaces (DDI).
+> >>>> "
+> >>>> So looks like, on win8, ACPI interface is not used for these systems.
+> >>>>
+> >>>> The link for the document is here:
+> >>>> http://msdn.microsoft.com/en-US/library/windows/hardware/jj159305
+> >>>
+> >>> OK, so what does that mean for the issue at hand?
+> >>
+> >> That means, we should not try to use acpi video interface to control
+> >> backlight on these systems if they are in win8 mode.
+> > 
+> > In that case, how are we going to indentify "these systems"?
+> 
+> Sorry, I don't know.
+> 
+> According to the following bug page:
+> https://bugzilla.kernel.org/show_bug.cgi?id=51231
+> "these systems" now include: thinkpad x230, t430s, t530, L430.
 
-Mika and I have no objections to go this way.
+I suppose we need to blacklist them to start with.  I wouldn't like to apply
+any general changes before we know how many different systems are affected by
+this particular issue.
 
---
-With Best Regards,
-Andy Shevchenko
+Thanks,
+Rafael
+
+
+-- 
+I speak only for myself.
+Rafael J. Wysocki, Intel Open Source Technology Center.
