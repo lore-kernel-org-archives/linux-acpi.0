@@ -1,78 +1,88 @@
-From: joeyli <jlee@suse.com>
-Subject: Re: [PATCH] ACPI: Disable Windows 8 compatibility for some Lenovo
- ThinkPads
-Date: Mon, 22 Apr 2013 10:18:22 +0800
-Message-ID: <1366597102.23707.92.camel@linux-s257.site>
-References: <1360599681-24781-1-git-send-email-seth.forshee@canonical.com>
-	 <5158E8A0.3050904@intel.com> <20130401130340.GA3269@thinkpad-t410>
-	 <515AA007.1050305@intel.com> <20130402130000.GA12381@thinkpad-t410>
-	 <515BD48B.7000901@bjencks.net>  <5170B6ED.2040408@intel.com>
+From: Vinod Koul <vinod.koul@intel.com>
+Subject: Re: [PATCH v2 0/5] dmaengine: add ACPI DMA helpers and use them in
+ dw_dmac
+Date: Mon, 22 Apr 2013 11:26:12 +0530
+Message-ID: <20130422055612.GE6081@intel.com>
+References: <1365505547-10552-1-git-send-email-andriy.shevchenko@linux.intel.com>
+ <20130415163618.GF12436@intel.com>
+ <1366114487.7932.29.camel@smile>
+ <1525811.597RVDyDxu@vostro.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp.nue.novell.com ([195.135.221.5]:54670 "EHLO
-	smtp.nue.novell.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753616Ab3DVCTh (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sun, 21 Apr 2013 22:19:37 -0400
-In-Reply-To: <5170B6ED.2040408@intel.com>
+Received: from mga02.intel.com ([134.134.136.20]:27887 "EHLO mga02.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753291Ab3DVG1m (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 22 Apr 2013 02:27:42 -0400
+Content-Disposition: inline
+In-Reply-To: <1525811.597RVDyDxu@vostro.rjw.lan>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Aaron Lu <aaron.lu@intel.com>
-Cc: Ben Jencks <ben@bjencks.net>, Seth Forshee <seth.forshee@canonical.com>, Len Brown <lenb@kernel.org>, "Rafael J. Wysocki" <rjw@sisk.pl>, linux-acpi@vger.kernel.org, Matthew Garrett <mjg59@srcf.ucam.org>
+To: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: Andy Shevchenko <andriy.shevchenko@linux.jf.intel.com>Andy Shevchenko <andriy.shevchenko@linux.jf.intel.com>, "Rafael J . Wysocki" <rafael.j.wysocki@intel.com>, Mika Westerberg <mika.westerberg@linux.jf.intel.com>, Viresh Kumar <viresh.kumar@linaro.org>, linux-kernel@vger.kernel.org, spear-devel <spear-devel@list.st.com>, linux-acpi@vger.kernel.org
 
-=E6=96=BC =E4=BA=94=EF=BC=8C2013-04-19 =E6=96=BC 11:15 +0800=EF=BC=8CAa=
-ron Lu =E6=8F=90=E5=88=B0=EF=BC=9A
-> On 04/03/2013 03:04 PM, Ben Jencks wrote:
-> > On 04/02/2013 09:00 AM, Seth Forshee wrote:
-> >> On Tue, Apr 02, 2013 at 05:08:23PM +0800, Aaron Lu wrote:
-> >>>
-> >>> I really wondered, how Windows handled this, it should have the s=
-ame
-> >>> problem, unless they are not using the acpi video interface?
-> >>
-> >> I can only guess.
-> >>
-> >> I think I remember reading that Windows 8 does smooth backlight
-> >> transitions, so it may well hit every intermediate brightness valu=
-e.
-> >> Lenovo could also be supplying a driver which rounds values to the
-> >> nearest working value or uses some other interface or something el=
-se.
-> >=20
-> > Just checked; Windows 8 doesn't use the ACPI interface. It seems to=
- have
-> > access to at least 100 distinct brightness levels.
->=20
-> I just came across a document on win8 backlight control, it has words
-> like this:
-> "
-> In Windows 8, the primary mechanism by which a platform should expose
-> its display brightness control functionality is the Windows Display
-> Driver Model (WDDM) miniport Device Driver Interfaces (DDI).
-> "
-> So looks like, on win8, ACPI interface is not used for these systems.
->=20
-> The link for the document is here:
-> http://msdn.microsoft.com/en-US/library/windows/hardware/jj159305
->=20
-> -Aaron
->=20
-
-Per WDDM document, OEM/ODM should keep the ACPI methods (_BQL, _BCM,
-_BQC) available for compliant to the OS that doesn't support WDDM, e.g.
-XP, Vista.
-
-But, I discussed with Acer for this situation at last year, they didn't
-force their ODM do test ACPI compatibility. They only test through
-Windows 8 UI with Fn keys.
-
-
-Thanks a lot!
-Joey Lee
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+On Tue, Apr 16, 2013 at 08:11:57PM +0200, Rafael J. Wysocki wrote:
+> On Tuesday, April 16, 2013 03:14:47 PM Andy Shevchenko wrote:
+> > On Mon, 2013-04-15 at 22:06 +0530, Vinod Koul wrote: 
+> > > On Tue, Apr 09, 2013 at 02:05:42PM +0300, Andy Shevchenko wrote:
+> > > > There is a patch series which introduces ACPI DMA helpers in similar way like
+> > > > we have for DeviceTree.
+> > > > 
+> > > > In addition it applies this to the first user, namely dw_dmac driver.
+> > > Applied w/o 3 & 5.2 they failed, can you pls rebase and resend
+> > > 
+> > 
+> > Actually those two (at least 5/5) can't be applied on top of slave-dma.
+> > The patches requires slave-dma and linux-pm together. I heard it's
+> > usually achieved by creating a specific branch in one subsystem
+> > (linux-pm in our case) for another.
+> > 
+> > Rafael, what could we do here?
+> 
+> I suppose Vinod can pull from my acpi-lpss (which is guaranteed not to be
+> rebased at this point) and apply the series on top of that.
+Or I can wait for rc1 and apply afterwards...?
+> 
+> Thanks,
+> Rafael
+> 
+> 
+> > > > Since v1:
+> > > >  - address one Vinod's comment
+> > > >  - replace 5/6 & 6/6 by 5/5 from Rafael
+> > > >  - tested on Intel Lynxpoint system
+> > > > 
+> > > > Andy Shevchenko (4):
+> > > >   dma: acpi-dma: introduce ACPI DMA helpers
+> > > >   dmaengine: call acpi_dma_request_slave_channel as well
+> > > >   dma: acpi-dma: parse CSRT to extract additional resources
+> > > >   dw_dmac: add ACPI support
+> > > > 
+> > > > Rafael J. Wysocki (1):
+> > > >   ACPI / LPSS: add support of shared clock
+> > > > 
+> > > >  Documentation/acpi/enumeration.txt     |  77 ++++++
+> > > >  drivers/acpi/Makefile                  |   1 -
+> > > >  drivers/acpi/acpi_lpss.c               |  26 +-
+> > > >  drivers/acpi/csrt.c                    | 159 ------------
+> > > >  drivers/acpi/internal.h                |   1 -
+> > > >  drivers/acpi/scan.c                    |   1 -
+> > > >  drivers/clk/x86/clk-lpt.c              |  15 +-
+> > > >  drivers/dma/Kconfig                    |   4 +
+> > > >  drivers/dma/Makefile                   |   1 +
+> > > >  drivers/dma/acpi-dma.c                 | 445 +++++++++++++++++++++++++++++++++
+> > > >  drivers/dma/dmaengine.c                |   6 +
+> > > >  drivers/dma/dw_dmac.c                  |  68 +++--
+> > > >  drivers/dma/dw_dmac_regs.h             |   1 -
+> > > >  include/linux/acpi_dma.h               | 120 +++++++++
+> > > >  include/linux/platform_data/clk-lpss.h |   5 +
+> > > >  15 files changed, 741 insertions(+), 189 deletions(-)
+> > > >  delete mode 100644 drivers/acpi/csrt.c
+> > > >  create mode 100644 drivers/dma/acpi-dma.c
+> > > >  create mode 100644 include/linux/acpi_dma.h
+> > > > 
+> > 
+> > 
+> -- 
+> I speak only for myself.
+> Rafael J. Wysocki, Intel Open Source Technology Center.
