@@ -1,77 +1,272 @@
 From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: [PATCH] ACPI: Disable Windows 8 compatibility for some Lenovo ThinkPads
-Date: Mon, 22 Apr 2013 13:51:37 +0200
-Message-ID: <1587525.URWXxEIA21@vostro.rjw.lan>
-References: <1360599681-24781-1-git-send-email-seth.forshee@canonical.com> <9174410.cA7eiWOPcn@vostro.rjw.lan> <5175055F.9000600@intel.com>
+Subject: Re: [PATCH] ACPI: add a dummy ACPI RTC driver to handle BIOS AML's accesses  to registers delcared in CMOS OperationRegion v2.
+Date: Mon, 22 Apr 2013 13:53:35 +0200
+Message-ID: <13146464.pvb4trzDdt@vostro.rjw.lan>
+References: <1359338202-4942-1-git-send-email-alex.hung@canonical.com> <517502B3.2040405@canonical.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7Bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from hydra.sisk.pl ([212.160.235.94]:40576 "EHLO hydra.sisk.pl"
+Received: from hydra.sisk.pl ([212.160.235.94]:40585 "EHLO hydra.sisk.pl"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751168Ab3DVLnf (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 22 Apr 2013 07:43:35 -0400
-In-Reply-To: <5175055F.9000600@intel.com>
+	id S1751435Ab3DVLpd (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 22 Apr 2013 07:45:33 -0400
+In-Reply-To: <517502B3.2040405@canonical.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Aaron Lu <aaron.lu@intel.com>
-Cc: Ben Jencks <ben@bjencks.net>, Seth Forshee <seth.forshee@canonical.com>, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, joeyli <jlee@suse.com>, Matthew Garrett <mjg59@srcf.ucam.org>
+To: Alex Hung <alex.hung@canonical.com>
+Cc: lenb@kernel.org, linux-acpi@vger.kernel.org, robert.moore@intel.com, lv.zheng@intel.com
 
-On Monday, April 22, 2013 05:39:43 PM Aaron Lu wrote:
-> On 04/22/2013 05:42 AM, Rafael J. Wysocki wrote:
-> > On Sunday, April 21, 2013 07:07:04 PM Aaron Lu wrote:
-> >> On 04/21/2013 06:06 AM, Rafael J. Wysocki wrote:
-> >>> On Friday, April 19, 2013 11:15:57 AM Aaron Lu wrote:
-> >>>> On 04/03/2013 03:04 PM, Ben Jencks wrote:
-> >>>>> On 04/02/2013 09:00 AM, Seth Forshee wrote:
-> >>>>>> On Tue, Apr 02, 2013 at 05:08:23PM +0800, Aaron Lu wrote:
-> >>>>>>>
-> >>>>>>> I really wondered, how Windows handled this, it should have the same
-> >>>>>>> problem, unless they are not using the acpi video interface?
-> >>>>>>
-> >>>>>> I can only guess.
-> >>>>>>
-> >>>>>> I think I remember reading that Windows 8 does smooth backlight
-> >>>>>> transitions, so it may well hit every intermediate brightness value.
-> >>>>>> Lenovo could also be supplying a driver which rounds values to the
-> >>>>>> nearest working value or uses some other interface or something else.
-> >>>>>
-> >>>>> Just checked; Windows 8 doesn't use the ACPI interface. It seems to have
-> >>>>> access to at least 100 distinct brightness levels.
-> >>>>
-> >>>> I just came across a document on win8 backlight control, it has words
-> >>>> like this:
-> >>>> "
-> >>>> In Windows 8, the primary mechanism by which a platform should expose
-> >>>> its display brightness control functionality is the Windows Display
-> >>>> Driver Model (WDDM) miniport Device Driver Interfaces (DDI).
-> >>>> "
-> >>>> So looks like, on win8, ACPI interface is not used for these systems.
-> >>>>
-> >>>> The link for the document is here:
-> >>>> http://msdn.microsoft.com/en-US/library/windows/hardware/jj159305
-> >>>
-> >>> OK, so what does that mean for the issue at hand?
-> >>
-> >> That means, we should not try to use acpi video interface to control
-> >> backlight on these systems if they are in win8 mode.
-> > 
-> > In that case, how are we going to indentify "these systems"?
-> 
-> Sorry, I don't know.
-> 
-> According to the following bug page:
-> https://bugzilla.kernel.org/show_bug.cgi?id=51231
-> "these systems" now include: thinkpad x230, t430s, t530, L430.
+On Monday, April 22, 2013 05:28:19 PM Alex Hung wrote:
+> Hi,
 
-I suppose we need to blacklist them to start with.  I wouldn't like to apply
-any general changes before we know how many different systems are affected by
-this particular issue.
+Hi,
 
-Thanks,
+> I haven't seen any feedback for this patch, and it has not been in 
+> 3.9-rc8 yet so I assumed this patch is not accepted.
+
+Yes.  In fact, we're still unsure how to address this problem.
+
+> I spent some time to implement the space handler in 
+> acpi_rtc_space_handler, which I will re-submit shortly. It should be a 
+> better solution than just skipping the CMOS accesses.
+
+Thanks a lot for working on this!
+
 Rafael
 
 
+
+> On 01/28/2013 09:56 AM, Alex Hung wrote:
+> > This is to fix acpica returns an error and terminate when BIOS ASL
+> > tries to access ACPI's RTC CMOS registers as the below example:
+> >
+> > Device (RTC)
+> > {
+> > 	Name (_HID, EisaId ("PNP0B00"))
+> > 	...
+> > 	OperationRegion (CMS0, SystemCMOS, Zero, 0x40)
+> > 	Field (CMS0, ByteAcc, NoLock, Preserve)
+> > 	{
+> > 		RTSE,   8,
+> > 			Offset (0x02),
+> > 		RTMN,   8,
+> > 			Offset (0x04),
+> > 		RTHR,   8,
+> > 			Offset (0x06),
+> > 		RTDY,   8,
+> > 		RTDE,   8
+> > 	}
+> > }
+> >
+> > Method (_Q33, 0, NotSerialized)
+> > {
+> > 	Store (^^RTC.RTMN, Local0)
+> > 	FromBCD (Local0, Local0)
+> > 	Store (^^RTC.RTHR, Local1)
+> > 	FromBCD (Local1, Local1)
+> > 	Store (^^RTC.RTDY, Local2)
+> > 	Store (^^RTC.RTSE, Local3)
+> > 	...
+> > }
+> >
+> > Signed-off-by: Alex Hung <alex.hung@canonical.com>
+> > ---
+> >   drivers/acpi/Kconfig    |    9 +++
+> >   drivers/acpi/Makefile   |    1 +
+> >   drivers/acpi/acpi_rtc.c |  149 +++++++++++++++++++++++++++++++++++++++++++++++
+> >   3 files changed, 159 insertions(+)
+> >   create mode 100644 drivers/acpi/acpi_rtc.c
+> >
+> > diff --git a/drivers/acpi/Kconfig b/drivers/acpi/Kconfig
+> > index 38c5078..fb90397 100644
+> > --- a/drivers/acpi/Kconfig
+> > +++ b/drivers/acpi/Kconfig
+> > @@ -181,6 +181,15 @@ config ACPI_DOCK
+> >   	  This driver supports ACPI-controlled docking stations and removable
+> >   	  drive bays such as the IBM Ultrabay and the Dell Module Bay.
+> >
+> > +config ACPI_RTC
+> > +	tristate "RTC"
+> > +	default m
+> > +	help
+> > +	  This driver supports an ACPI RTC device. It enables BIOS to read and
+> > +	  to write ACPI RTC registers declared in an OperationRegion with
+> > +	  RegionSpace as SYSTEMCMOS. This is required if BIOS needs to access
+> > +	  RTC registers during run-time such as a number of HP laptops.
+> > +
+> >   config ACPI_I2C
+> >   	def_tristate I2C
+> >   	depends on I2C
+> > diff --git a/drivers/acpi/Makefile b/drivers/acpi/Makefile
+> > index 2a4502b..383c62b 100644
+> > --- a/drivers/acpi/Makefile
+> > +++ b/drivers/acpi/Makefile
+> > @@ -71,6 +71,7 @@ obj-$(CONFIG_ACPI_EC_DEBUGFS)	+= ec_sys.o
+> >   obj-$(CONFIG_ACPI_CUSTOM_METHOD)+= custom_method.o
+> >   obj-$(CONFIG_ACPI_BGRT)		+= bgrt.o
+> >   obj-$(CONFIG_ACPI_I2C)		+= acpi_i2c.o
+> > +obj-$(CONFIG_ACPI_RTC)          += acpi_rtc.o
+> >
+> >   # processor has its own "processor." module_param namespace
+> >   processor-y			:= processor_driver.o processor_throttling.o
+> > diff --git a/drivers/acpi/acpi_rtc.c b/drivers/acpi/acpi_rtc.c
+> > new file mode 100644
+> > index 0000000..8d6b76b
+> > --- /dev/null
+> > +++ b/drivers/acpi/acpi_rtc.c
+> > @@ -0,0 +1,149 @@
+> > +/*
+> > + *  acpi_rtc - ACPI RTC Driver
+> > + *
+> > + *  Copyright (C) 2013 Alex Hung <alex.hung@canonical.com>
+> > + *
+> > + * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+> > + *
+> > + *  This program is free software; you can redistribute it and/or modify
+> > + *  it under the terms of the GNU General Public License as published by
+> > + *  the Free Software Foundation; either version 2 of the License, or (at
+> > + *  your option) any later version.
+> > + *
+> > + *  This program is distributed in the hope that it will be useful, but
+> > + *  WITHOUT ANY WARRANTY; without even the implied warranty of
+> > + *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+> > + *  General Public License for more details.
+> > + *
+> > + *  You should have received a copy of the GNU General Public License along
+> > + *  with this program; if not, write to the Free Software Foundation, Inc.,
+> > + *  59 Temple Place, Suite 330, Boston, MA 02111-1307 USA.
+> > + *
+> > + * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+> > + */
+> > +
+> > +#include <linux/kernel.h>
+> > +#include <linux/module.h>
+> > +#include <linux/init.h>
+> > +#include <linux/acpi.h>
+> > +
+> > +MODULE_LICENSE("GPL");
+> > +MODULE_ALIAS("acpi*:PNP0B00:*");
+> > +MODULE_ALIAS("acpi*:PNP0B01:*");
+> > +MODULE_ALIAS("acpi*:PNP0B02:*");
+> > +
+> > +static const struct acpi_device_id rtc_device_ids[] = {
+> > +	{"PNP0B00", 0},
+> > +	{"PNP0B01", 0},
+> > +	{"PNP0B02", 0},
+> > +	{"", 0},
+> > +};
+> > +
+> > +static acpi_status acpi_acpi_handle_locate_callback(acpi_handle handle,
+> > +			u32 level, void *context, void **return_value)
+> > +{
+> > +	struct acpi_device *dev = context;
+> > +
+> > +	dev->handle = handle;
+> > +	*(acpi_handle *)return_value = handle;
+> > +
+> > +	return AE_CTRL_TERMINATE;
+> > +}
+> > +
+> > +static acpi_status
+> > +acpi_rtc_space_handler(u32 function, acpi_physical_address address,
+> > +		      u32 bits, u64 *value64,
+> > +		      void *handler_context, void *region_context)
+> > +{
+> > +	pr_warn("Accessing CMOS offset 0x%02llx is skipped.\n", address);
+> > +
+> > +	return AE_OK;
+> > +}
+> > +
+> > +static int rtc_install_handlers(struct acpi_device *rtc_dev)
+> > +{
+> > +	acpi_status status;
+> > +	status = acpi_install_address_space_handler(rtc_dev->handle,
+> > +						    ACPI_ADR_SPACE_CMOS,
+> > +						    &acpi_rtc_space_handler,
+> > +						    NULL, rtc_dev);
+> > +	if (ACPI_FAILURE(status)) {
+> > +		pr_info("Fail to install ACPI RTC handler\n");
+> > +		return AE_ERROR;
+> > +	}
+> > +
+> > +	return 0;
+> > +}
+> > +
+> > +static int acpi_rtc_add(struct acpi_device *device)
+> > +{
+> > +	int ret;
+> > +	int i;
+> > +	acpi_status status;
+> > +	acpi_handle rtc_dev = NULL;
+> > +
+> > +	for (i = 0; i < sizeof(rtc_device_ids) /
+> > +			sizeof(struct acpi_device_id) - 1; i++) {
+> > +		status = acpi_get_devices(rtc_device_ids[i].id,
+> > +				  acpi_acpi_handle_locate_callback,
+> > +				  &rtc_dev, &rtc_dev);
+> > +		if (ACPI_SUCCESS(status) && rtc_dev)
+> > +				break;
+> > +	}
+> > +
+> > +	if (!ACPI_SUCCESS(status) || !rtc_dev)
+> > +		return AE_NOT_FOUND;
+> > +
+> > +	ret = rtc_install_handlers((struct acpi_device *) &rtc_dev);
+> > +
+> > +	return ret;
+> > +}
+> > +
+> > +static int acpi_rtc_remove(struct acpi_device *device, int type)
+> > +{
+> > +	acpi_status status;
+> > +	status = acpi_remove_address_space_handler(device->handle,
+> > +						   ACPI_ADR_SPACE_CMOS,
+> > +						   &acpi_rtc_space_handler);
+> > +	if (!ACPI_SUCCESS(status))
+> > +		return AE_ERROR;
+> > +
+> > +	return AE_OK;
+> > +}
+> > +
+> > +static struct acpi_driver acpi_rtc_driver = {
+> > +	.name = "rtc",
+> > +	.class = "ACPI_RTC_CLASS",
+> > +	.ids = rtc_device_ids,
+> > +	.ops = {
+> > +		.add = acpi_rtc_add,
+> > +		.remove = acpi_rtc_remove,
+> > +		},
+> > +};
+> > +
+> > +static int __init rtc_init(void)
+> > +{
+> > +	int err;
+> > +
+> > +	pr_info("Initializing ACPI RTC module\n");
+> > +	err = acpi_bus_register_driver(&acpi_rtc_driver);
+> > +	if (err) {
+> > +		pr_err("Unable to register acpi driver.\n");
+> > +		goto error_acpi_register;
+> > +	}
+> > +
+> > +	return 0;
+> > +
+> > +error_acpi_register:
+> > +
+> > +	return err;
+> > +}
+> > +
+> > +static void __exit rtc_exit(void)
+> > +{
+> > +	pr_info("Exiting ACPI RTC module\n");
+> > +	acpi_bus_unregister_driver(&acpi_rtc_driver);
+> > +}
+> > +
+> > +module_init(rtc_init);
+> > +module_exit(rtc_exit);
+> >
+> 
 -- 
 I speak only for myself.
 Rafael J. Wysocki, Intel Open Source Technology Center.
