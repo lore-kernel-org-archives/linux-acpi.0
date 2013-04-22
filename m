@@ -1,54 +1,115 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: [PATCH v2 0/5] dmaengine: add ACPI DMA helpers and use them in dw_dmac
-Date: Mon, 22 Apr 2013 13:57:49 +0200
-Message-ID: <2382527.O0vcbyEZOf@vostro.rjw.lan>
-References: <1365505547-10552-1-git-send-email-andriy.shevchenko@linux.intel.com> <20130422055612.GE6081@intel.com> <CAHp75Ve+c01kSoOwUSW=D9tq+svuOTzkkEhM0Amn1vL9VdiXWg@mail.gmail.com>
+From: joeyli <jlee@suse.com>
+Subject: Re: [PATCH] ACPI: Disable Windows 8 compatibility for some Lenovo
+ ThinkPads
+Date: Mon, 22 Apr 2013 20:00:09 +0800
+Message-ID: <1366632009.23707.155.camel@linux-s257.site>
+References: <1360599681-24781-1-git-send-email-seth.forshee@canonical.com>
+	 <5158E8A0.3050904@intel.com> <20130401130340.GA3269@thinkpad-t410>
+	 <515AA007.1050305@intel.com> <20130402130000.GA12381@thinkpad-t410>
+	 <515BD48B.7000901@bjencks.net>  <5170B6ED.2040408@intel.com>
+	 <1366597102.23707.92.camel@linux-s257.site>  <51750C11.7060600@intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from hydra.sisk.pl ([212.160.235.94]:40591 "EHLO hydra.sisk.pl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752212Ab3DVLtr (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 22 Apr 2013 07:49:47 -0400
-In-Reply-To: <CAHp75Ve+c01kSoOwUSW=D9tq+svuOTzkkEhM0Amn1vL9VdiXWg@mail.gmail.com>
+Received: from smtp.nue.novell.com ([195.135.221.5]:37779 "EHLO
+	smtp.nue.novell.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751435Ab3DVMBY (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 22 Apr 2013 08:01:24 -0400
+In-Reply-To: <51750C11.7060600@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Andy Shevchenko <andy.shevchenko@gmail.com>
-Cc: Vinod Koul <vinod.koul@intel.com>, Andy Shevchenko <andriy.shevchenko@linux.jf.intel.com>, "Rafael J . Wysocki" <rafael.j.wysocki@intel.com>, Mika Westerberg <mika.westerberg@linux.jf.intel.com>, Viresh Kumar <viresh.kumar@linaro.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, spear-devel <spear-devel@list.st.com>, linux-acpi@vger.kernel.org
+To: Aaron Lu <aaron.lu@intel.com>
+Cc: Ben Jencks <ben@bjencks.net>, Seth Forshee <seth.forshee@canonical.com>, Len Brown <lenb@kernel.org>, "Rafael J. Wysocki" <rjw@sisk.pl>, linux-acpi@vger.kernel.org, Matthew Garrett <mjg59@srcf.ucam.org>
 
-On Monday, April 22, 2013 01:07:39 PM Andy Shevchenko wrote:
-> On Mon, Apr 22, 2013 at 8:56 AM, Vinod Koul <vinod.koul@intel.com> wrote:
-> > On Tue, Apr 16, 2013 at 08:11:57PM +0200, Rafael J. Wysocki wrote:
-> >> On Tuesday, April 16, 2013 03:14:47 PM Andy Shevchenko wrote:
-> >> > On Mon, 2013-04-15 at 22:06 +0530, Vinod Koul wrote:
-> >> > > On Tue, Apr 09, 2013 at 02:05:42PM +0300, Andy Shevchenko wrote:
-> >> > > > There is a patch series which introduces ACPI DMA helpers in similar way like
-> >> > > > we have for DeviceTree.
-> >> > > >
-> >> > > > In addition it applies this to the first user, namely dw_dmac driver.
-> >> > > Applied w/o 3 & 5.2 they failed, can you pls rebase and resend
-> >> > >
-> >> >
-> >> > Actually those two (at least 5/5) can't be applied on top of slave-dma.
-> >> > The patches requires slave-dma and linux-pm together. I heard it's
-> >> > usually achieved by creating a specific branch in one subsystem
-> >> > (linux-pm in our case) for another.
-> >> >
-> >> > Rafael, what could we do here?
+=E6=96=BC =E4=B8=80=EF=BC=8C2013-04-22 =E6=96=BC 18:08 +0800=EF=BC=8CAa=
+ron Lu =E6=8F=90=E5=88=B0=EF=BC=9A
+> On 04/22/2013 10:18 AM, joeyli wrote:
+> > =E6=96=BC =E4=BA=94=EF=BC=8C2013-04-19 =E6=96=BC 11:15 +0800=EF=BC=8C=
+Aaron Lu =E6=8F=90=E5=88=B0=EF=BC=9A
+> >> On 04/03/2013 03:04 PM, Ben Jencks wrote:
+> >>> On 04/02/2013 09:00 AM, Seth Forshee wrote:
+> >>>> On Tue, Apr 02, 2013 at 05:08:23PM +0800, Aaron Lu wrote:
+> >>>>>
+> >>>>> I really wondered, how Windows handled this, it should have the=
+ same
+> >>>>> problem, unless they are not using the acpi video interface?
+> >>>>
+> >>>> I can only guess.
+> >>>>
+> >>>> I think I remember reading that Windows 8 does smooth backlight
+> >>>> transitions, so it may well hit every intermediate brightness va=
+lue.
+> >>>> Lenovo could also be supplying a driver which rounds values to t=
+he
+> >>>> nearest working value or uses some other interface or something =
+else.
+> >>>
+> >>> Just checked; Windows 8 doesn't use the ACPI interface. It seems =
+to have
+> >>> access to at least 100 distinct brightness levels.
 > >>
-> >> I suppose Vinod can pull from my acpi-lpss (which is guaranteed not to be
-> >> rebased at this point) and apply the series on top of that.
-> > Or I can wait for rc1 and apply afterwards...?
-> 
-> Mika and I have no objections to go this way.
+> >> I just came across a document on win8 backlight control, it has wo=
+rds
+> >> like this:
+> >> "
+> >> In Windows 8, the primary mechanism by which a platform should exp=
+ose
+> >> its display brightness control functionality is the Windows Displa=
+y
+> >> Driver Model (WDDM) miniport Device Driver Interfaces (DDI).
+> >> "
+> >> So looks like, on win8, ACPI interface is not used for these syste=
+ms.
+> >>
+> >> The link for the document is here:
+> >> http://msdn.microsoft.com/en-US/library/windows/hardware/jj159305
+> >>
+> >> -Aaron
+> >>
+> >=20
+> > Per WDDM document, OEM/ODM should keep the ACPI methods (_BQL, _BCM=
+,
+> > _BQC) available for compliant to the OS that doesn't support WDDM, =
+e.g.
+> > XP, Vista.
+>=20
+> Thanks for the information, so this suggests that acpi interface is
+> mostly used for pre-win8 OSes?(does win7 support WDDM?)
 
-That'd be fine by me too.
+Yes, they applied WDDM driver support on Windows 7 platform, but I don'=
+t
+know how many models only work on WDDM and have broken ACPI
+implementation.
 
-Thanks,
-Rafael
+>=20
+> One interesting thing is, if they do not support acpi interface, why
+> they even bother to expose this interface in acpi table?
+>=20
+> -Aaron
+>=20
+
+I don't know, maybe they just thought that doesn't hurt anything becaus=
+e
+they only test Windows 7 or Windows 8, dependent on which OS preloaded
+and shipped with the machine.
+
+Use OSI string fallback to Windows XP or Vista mode sometimes can
+workaround problem when we are lucky. But, bad thing is OEM/ODM also
+didn't test XP/Vista code path with other ACPI features, e.g. S3/S4.
+
+=46allback to vendor mode, leave video driver to control backlight is w=
+hat
+we done in platform driver, that's why we have quirk table. That best
+situation is we find a general logic to detect does issue machine
+shipped with WDDM driver. It's out of my knowledge.
 
 
--- 
-I speak only for myself.
-Rafael J. Wysocki, Intel Open Source Technology Center.
+Thanks a lot!
+Joey Lee
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
