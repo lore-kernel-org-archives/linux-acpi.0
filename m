@@ -1,80 +1,261 @@
-From: Daniel Lezcano <daniel.lezcano@linaro.org>
-Subject: Re: PM+ACPI material for v3.10
-Date: Mon, 22 Apr 2013 08:55:19 +0200
-Message-ID: <5174DED7.4000400@linaro.org>
-References: <3222400.G8tzcaWZXV@vostro.rjw.lan> <51690B60.1050205@linaro.org> <1416312.lSirPJDWF5@vostro.rjw.lan>
+From: Alex Hung <alex.hung@canonical.com>
+Subject: Re: [PATCH] ACPI: add a dummy ACPI RTC driver to handle BIOS AML's
+  accesses  to registers delcared in CMOS OperationRegion v2.
+Date: Mon, 22 Apr 2013 17:28:19 +0800
+Message-ID: <517502B3.2040405@canonical.com>
+References: <1359338202-4942-1-git-send-email-alex.hung@canonical.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-wg0-f46.google.com ([74.125.82.46]:40124 "EHLO
-	mail-wg0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752660Ab3DVGzm (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 22 Apr 2013 02:55:42 -0400
-Received: by mail-wg0-f46.google.com with SMTP id e11so699301wgh.13
-        for <linux-acpi@vger.kernel.org>; Sun, 21 Apr 2013 23:55:21 -0700 (PDT)
-In-Reply-To: <1416312.lSirPJDWF5@vostro.rjw.lan>
+Received: from youngberry.canonical.com ([91.189.89.112]:39741 "EHLO
+	youngberry.canonical.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751909Ab3DVJ2a (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 22 Apr 2013 05:28:30 -0400
+In-Reply-To: <1359338202-4942-1-git-send-email-alex.hung@canonical.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: Linux PM list <linux-pm@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Viresh Kumar <viresh.kumar@linaro.org>, "horms@verge.net.au" <horms@verge.net.au>, Kevin Hilman <khilman@deeprootsystems.com>, Magnus Damm <magnus.damm@gmail.com>
+To: Alex Hung <alex.hung@canonical.com>, lenb@kernel.org, rjw@sisk.pl, linux-acpi@vger.kernel.org, robert.moore@intel.com, lv.zheng@intel.com
 
-On 04/22/2013 01:25 AM, Rafael J. Wysocki wrote:
-> On Saturday, April 13, 2013 09:38:08 AM Daniel Lezcano wrote:
->> On 04/13/2013 02:17 AM, Rafael J. Wysocki wrote:
->>> Hi All,
->>>
->>> As some of you already know, I will be traveling through Apr. 20 an=
-d I'm not
->>> going to take any new material for v3.10 from now onwards until I'm=
- back.
->>>
->>> The summary of my current queue is appended and quite frankly I don=
-'t see any
->>> compelling reasons to add anything more to it at the moment (except=
- for fixes,
->>> if any).  That said, if you really really need/want some new stuff =
-(or generally
->>> something that is not a fix) to go into it, you may try to convince=
- me, but
->>> that will cost you a beverage of my choice if successful.  So you h=
-ave been
->>> warned.
->>
->> :)
->>
->> For me it is ok to wait but there some patches, that should be taken
->> from the last series I sent because they are fixes:
->>
->> http://www.spinics.net/lists/arm-kernel/msg237936.html
->> http://www.spinics.net/lists/arm-kernel/msg237938.html
->> http://www.spinics.net/lists/arm-kernel/msg237939.html
->=20
-> All three applied.
->=20
-> Since we seem to have a few extra days before final v3.9, please feel=
- free to
-> resend the other patches in the series that have been ACKed so far.
+Hi,
 
-Ok, cool.
+I haven't seen any feedback for this patch, and it has not been in 
+3.9-rc8 yet so I assumed this patch is not accepted.
 
-I will wait a few hours to see if Ben or Kim ack the s3c64 patch.
+I spent some time to implement the space handler in 
+acpi_rtc_space_handler, which I will re-submit shortly. It should be a 
+better solution than just skipping the CMOS accesses.
 
-Thanks !
-  -- Daniel
+Cheers,
+Alex Hung
 
+On 01/28/2013 09:56 AM, Alex Hung wrote:
+> This is to fix acpica returns an error and terminate when BIOS ASL
+> tries to access ACPI's RTC CMOS registers as the below example:
+>
+> Device (RTC)
+> {
+> 	Name (_HID, EisaId ("PNP0B00"))
+> 	...
+> 	OperationRegion (CMS0, SystemCMOS, Zero, 0x40)
+> 	Field (CMS0, ByteAcc, NoLock, Preserve)
+> 	{
+> 		RTSE,   8,
+> 			Offset (0x02),
+> 		RTMN,   8,
+> 			Offset (0x04),
+> 		RTHR,   8,
+> 			Offset (0x06),
+> 		RTDY,   8,
+> 		RTDE,   8
+> 	}
+> }
+>
+> Method (_Q33, 0, NotSerialized)
+> {
+> 	Store (^^RTC.RTMN, Local0)
+> 	FromBCD (Local0, Local0)
+> 	Store (^^RTC.RTHR, Local1)
+> 	FromBCD (Local1, Local1)
+> 	Store (^^RTC.RTDY, Local2)
+> 	Store (^^RTC.RTSE, Local3)
+> 	...
+> }
+>
+> Signed-off-by: Alex Hung <alex.hung@canonical.com>
+> ---
+>   drivers/acpi/Kconfig    |    9 +++
+>   drivers/acpi/Makefile   |    1 +
+>   drivers/acpi/acpi_rtc.c |  149 +++++++++++++++++++++++++++++++++++++++++++++++
+>   3 files changed, 159 insertions(+)
+>   create mode 100644 drivers/acpi/acpi_rtc.c
+>
+> diff --git a/drivers/acpi/Kconfig b/drivers/acpi/Kconfig
+> index 38c5078..fb90397 100644
+> --- a/drivers/acpi/Kconfig
+> +++ b/drivers/acpi/Kconfig
+> @@ -181,6 +181,15 @@ config ACPI_DOCK
+>   	  This driver supports ACPI-controlled docking stations and removable
+>   	  drive bays such as the IBM Ultrabay and the Dell Module Bay.
+>
+> +config ACPI_RTC
+> +	tristate "RTC"
+> +	default m
+> +	help
+> +	  This driver supports an ACPI RTC device. It enables BIOS to read and
+> +	  to write ACPI RTC registers declared in an OperationRegion with
+> +	  RegionSpace as SYSTEMCMOS. This is required if BIOS needs to access
+> +	  RTC registers during run-time such as a number of HP laptops.
+> +
+>   config ACPI_I2C
+>   	def_tristate I2C
+>   	depends on I2C
+> diff --git a/drivers/acpi/Makefile b/drivers/acpi/Makefile
+> index 2a4502b..383c62b 100644
+> --- a/drivers/acpi/Makefile
+> +++ b/drivers/acpi/Makefile
+> @@ -71,6 +71,7 @@ obj-$(CONFIG_ACPI_EC_DEBUGFS)	+= ec_sys.o
+>   obj-$(CONFIG_ACPI_CUSTOM_METHOD)+= custom_method.o
+>   obj-$(CONFIG_ACPI_BGRT)		+= bgrt.o
+>   obj-$(CONFIG_ACPI_I2C)		+= acpi_i2c.o
+> +obj-$(CONFIG_ACPI_RTC)          += acpi_rtc.o
+>
+>   # processor has its own "processor." module_param namespace
+>   processor-y			:= processor_driver.o processor_throttling.o
+> diff --git a/drivers/acpi/acpi_rtc.c b/drivers/acpi/acpi_rtc.c
+> new file mode 100644
+> index 0000000..8d6b76b
+> --- /dev/null
+> +++ b/drivers/acpi/acpi_rtc.c
+> @@ -0,0 +1,149 @@
+> +/*
+> + *  acpi_rtc - ACPI RTC Driver
+> + *
+> + *  Copyright (C) 2013 Alex Hung <alex.hung@canonical.com>
+> + *
+> + * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+> + *
+> + *  This program is free software; you can redistribute it and/or modify
+> + *  it under the terms of the GNU General Public License as published by
+> + *  the Free Software Foundation; either version 2 of the License, or (at
+> + *  your option) any later version.
+> + *
+> + *  This program is distributed in the hope that it will be useful, but
+> + *  WITHOUT ANY WARRANTY; without even the implied warranty of
+> + *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+> + *  General Public License for more details.
+> + *
+> + *  You should have received a copy of the GNU General Public License along
+> + *  with this program; if not, write to the Free Software Foundation, Inc.,
+> + *  59 Temple Place, Suite 330, Boston, MA 02111-1307 USA.
+> + *
+> + * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+> + */
+> +
+> +#include <linux/kernel.h>
+> +#include <linux/module.h>
+> +#include <linux/init.h>
+> +#include <linux/acpi.h>
+> +
+> +MODULE_LICENSE("GPL");
+> +MODULE_ALIAS("acpi*:PNP0B00:*");
+> +MODULE_ALIAS("acpi*:PNP0B01:*");
+> +MODULE_ALIAS("acpi*:PNP0B02:*");
+> +
+> +static const struct acpi_device_id rtc_device_ids[] = {
+> +	{"PNP0B00", 0},
+> +	{"PNP0B01", 0},
+> +	{"PNP0B02", 0},
+> +	{"", 0},
+> +};
+> +
+> +static acpi_status acpi_acpi_handle_locate_callback(acpi_handle handle,
+> +			u32 level, void *context, void **return_value)
+> +{
+> +	struct acpi_device *dev = context;
+> +
+> +	dev->handle = handle;
+> +	*(acpi_handle *)return_value = handle;
+> +
+> +	return AE_CTRL_TERMINATE;
+> +}
+> +
+> +static acpi_status
+> +acpi_rtc_space_handler(u32 function, acpi_physical_address address,
+> +		      u32 bits, u64 *value64,
+> +		      void *handler_context, void *region_context)
+> +{
+> +	pr_warn("Accessing CMOS offset 0x%02llx is skipped.\n", address);
+> +
+> +	return AE_OK;
+> +}
+> +
+> +static int rtc_install_handlers(struct acpi_device *rtc_dev)
+> +{
+> +	acpi_status status;
+> +	status = acpi_install_address_space_handler(rtc_dev->handle,
+> +						    ACPI_ADR_SPACE_CMOS,
+> +						    &acpi_rtc_space_handler,
+> +						    NULL, rtc_dev);
+> +	if (ACPI_FAILURE(status)) {
+> +		pr_info("Fail to install ACPI RTC handler\n");
+> +		return AE_ERROR;
+> +	}
+> +
+> +	return 0;
+> +}
+> +
+> +static int acpi_rtc_add(struct acpi_device *device)
+> +{
+> +	int ret;
+> +	int i;
+> +	acpi_status status;
+> +	acpi_handle rtc_dev = NULL;
+> +
+> +	for (i = 0; i < sizeof(rtc_device_ids) /
+> +			sizeof(struct acpi_device_id) - 1; i++) {
+> +		status = acpi_get_devices(rtc_device_ids[i].id,
+> +				  acpi_acpi_handle_locate_callback,
+> +				  &rtc_dev, &rtc_dev);
+> +		if (ACPI_SUCCESS(status) && rtc_dev)
+> +				break;
+> +	}
+> +
+> +	if (!ACPI_SUCCESS(status) || !rtc_dev)
+> +		return AE_NOT_FOUND;
+> +
+> +	ret = rtc_install_handlers((struct acpi_device *) &rtc_dev);
+> +
+> +	return ret;
+> +}
+> +
+> +static int acpi_rtc_remove(struct acpi_device *device, int type)
+> +{
+> +	acpi_status status;
+> +	status = acpi_remove_address_space_handler(device->handle,
+> +						   ACPI_ADR_SPACE_CMOS,
+> +						   &acpi_rtc_space_handler);
+> +	if (!ACPI_SUCCESS(status))
+> +		return AE_ERROR;
+> +
+> +	return AE_OK;
+> +}
+> +
+> +static struct acpi_driver acpi_rtc_driver = {
+> +	.name = "rtc",
+> +	.class = "ACPI_RTC_CLASS",
+> +	.ids = rtc_device_ids,
+> +	.ops = {
+> +		.add = acpi_rtc_add,
+> +		.remove = acpi_rtc_remove,
+> +		},
+> +};
+> +
+> +static int __init rtc_init(void)
+> +{
+> +	int err;
+> +
+> +	pr_info("Initializing ACPI RTC module\n");
+> +	err = acpi_bus_register_driver(&acpi_rtc_driver);
+> +	if (err) {
+> +		pr_err("Unable to register acpi driver.\n");
+> +		goto error_acpi_register;
+> +	}
+> +
+> +	return 0;
+> +
+> +error_acpi_register:
+> +
+> +	return err;
+> +}
+> +
+> +static void __exit rtc_exit(void)
+> +{
+> +	pr_info("Exiting ACPI RTC module\n");
+> +	acpi_bus_unregister_driver(&acpi_rtc_driver);
+> +}
+> +
+> +module_init(rtc_init);
+> +module_exit(rtc_exit);
+>
 
-
---=20
- <http://www.linaro.org/> Linaro.org =E2=94=82 Open source software for=
- ARM SoCs
-
-=46ollow Linaro:  <http://www.facebook.com/pages/Linaro> Facebook |
-<http://twitter.com/#!/linaroorg> Twitter |
-<http://www.linaro.org/linaro-blog/> Blog
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
