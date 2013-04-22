@@ -1,114 +1,132 @@
-From: Myron Stowe <myron.stowe-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: 2013 Linux Plumbers ACPI/PM,
-	PCI Microconference proposal call for participaton
-Date: Thu, 18 Apr 2013 15:43:34 -0600
-Message-ID: <CAL-B5D3UzFP2nMmj7hzXTyq9EkV0WDJMWKM=FMCv6ps5DH8PdA@mail.gmail.com>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: Re: [PATCH 1/2] acpi: video: add function to support unregister backlight
+Date: Tue, 23 Apr 2013 01:09:33 +0200
+Message-ID: <1608295.QCMETqCo7o@vostro.rjw.lan>
+References: <1366634355-26482-1-git-send-email-jlee@suse.com> <1366634355-26482-2-git-send-email-jlee@suse.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="===============3034976900017647216=="
-Return-path: <iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
-List-Unsubscribe: <https://lists.linuxfoundation.org/mailman/options/iommu>,
-	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.linuxfoundation.org/pipermail/iommu/>
-List-Post: <mailto:iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
-List-Help: <mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.linuxfoundation.org/mailman/listinfo/iommu>,
-	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=subscribe>
-Sender: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
-Errors-To: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
-To: linux-pci <linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org, virtualization-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org, kvm-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, LKML <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7Bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from hydra.sisk.pl ([212.160.235.94]:41005 "EHLO hydra.sisk.pl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752511Ab3DVXBb (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 22 Apr 2013 19:01:31 -0400
+In-Reply-To: <1366634355-26482-2-git-send-email-jlee@suse.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Chun-Yi Lee <joeyli.kernel@gmail.com>, Zhang Rui <rui.zhang@intel.com>
+Cc: mjg@redhat.com, platform-driver-x86@vger.kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, "Lee, Chun-Yi" <jlee@suse.com>, Carlos Corbacho <carlos@strangeworlds.co.uk>, Dmitry Torokhov <dtor@mail.ru>, Corentin Chary <corentincj@iksaif.net>, Aaron Lu <aaron.lu@intel.com>, Thomas Renninger <trenn@suse.de>
 
---===============3034976900017647216==
-Content-Type: multipart/alternative; boundary=089e01184d728e222d04daa97ebe
+On Monday, April 22, 2013 08:39:15 PM Chun-Yi Lee wrote:
+> From: "Lee, Chun-Yi" <jlee@suse.com>
+> 
+> There have situation we unregister whole acpi/video driver by downstream driver
+> just want to remove backlight control interface of acpi/video. It caues we lost
+> other functions of acpi/video, e.g. transfer acpi event to input event.
+> 
+> So, this patch add a new function, find_video_unregister_backlight, it provide
+> the interface let downstream driver can tell acpi/video to unregister backlight
+> interface of all acpi video devices. Then we can keep functions of acpi/video
+> but only remove backlight support.
+> 
+> Reference: bko#35622
+>         https://bugzilla.kernel.org/show_bug.cgi?id=35622
 
---089e01184d728e222d04daa97ebe
-Content-Type: text/plain; charset=ISO-8859-1
+Rui, any comments?
 
-All:
-
-We would like to hold a combined ACPI/PM, PCI focused microconference as
-part of this year's Linux Plumbers conference but first we need to show
-that there is enough interest and material that needs covered.
-
-There is a lot of activity in these subsystems so please respond by
-submitting presentation or discussion proposals that you would be willing
-to cover for consideration (respond to this mail on the linux-pci list for
-tracking purposes please).  You should also feel free to submit ideas as
-proposals that others could cover.  This is the "Plumbers" conference so
-topics concerning userspace interaction with the kernel and not just topics
-concerning pure kernel subsystem internals would be greatly welcomed.
-
-The initial call[1] only produced two responses.  We understand that
-everyone is busy but without proposals the program committee will not be
-able to select this topic for approval - so please step up.
+Rafael
 
 
-If approved by the program committee, we will give precedence to proposals
-that bring up current issues that need attention, help, or resolution.  We
-would like for the majority of the microconference to be "working session
-discussions" in which a current issues in/with the ACPI/PM and PCI
-subsystem space that needs solving are introduced and then opened up for
-live discussion by attendees - much like what took place last year during
-the Kernel Summit's PCI miniconf.
-
-As a possible aid towards promoting topics for submissions we have listed a
-few candidates that seem to meet the criteria in the microconference
-proposals wiki located at
-http://wiki.linuxplumbersconf.org/2013:pci_subsystem
-
-
-Please feel free to forward this invitation on to any others, or relevant
-lists, that seem appropriate.
-
-Thanks,
-  Len, Bjorn, Myron, Rafael
-
-
-[1] https://lkml.org/lkml/2013/3/7/315
-
---089e01184d728e222d04daa97ebe
-Content-Type: text/html; charset=ISO-8859-1
-Content-Transfer-Encoding: quoted-printable
-
-<div dir=3D"ltr">All:<br><br>We would like to hold a combined ACPI/PM, PCI =
-focused microconference as part of this year&#39;s Linux Plumbers conferenc=
-e but first we need to show that there is enough interest and material that=
- needs covered.<br>
-<br>There is a lot of activity in these subsystems so please respond by sub=
-mitting presentation or discussion proposals that you would be willing to c=
-over for consideration (respond to this mail on the linux-pci list for trac=
-king purposes please).=A0 You should also feel free to submit ideas as prop=
-osals that others could cover.=A0 This is the &quot;Plumbers&quot; conferen=
-ce so topics concerning userspace interaction with the kernel and not just =
-topics concerning pure kernel subsystem internals would be greatly welcomed=
-.<br>
-<br>The initial call[1] only produced two responses.=A0 We understand that =
-everyone is busy but without proposals the program committee will not be ab=
-le to select this topic for approval - so please step up.<br><br><br>If app=
-roved by the program committee, we will give precedence to proposals that b=
-ring up current issues that need attention, help, or resolution.=A0 We woul=
-d like for the majority of the microconference to be &quot;working session =
-discussions&quot; in which a current issues in/with the ACPI/PM and PCI sub=
-system space that needs solving are introduced and then opened up for live =
-discussion by attendees - much like what took place last year during the Ke=
-rnel Summit&#39;s PCI miniconf.<br>
-<br>As a possible aid towards promoting topics for submissions we have list=
-ed a few candidates that seem to meet the criteria in the microconference p=
-roposals wiki located at <a href=3D"http://wiki.linuxplumbersconf.org/2013:=
-pci_subsystem">http://wiki.linuxplumbersconf.org/2013:pci_subsystem</a><br>
-<br><br>Please feel free to forward this invitation on to any others, or re=
-levant lists, that seem appropriate.<br><br>Thanks,<br>=A0 Len, Bjorn, Myro=
-n, Rafael<br><br><br>[1] <a href=3D"https://lkml.org/lkml/2013/3/7/315">htt=
-ps://lkml.org/lkml/2013/3/7/315</a><br>
-<br></div>
-
---089e01184d728e222d04daa97ebe--
-
---===============3034976900017647216==
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-
-
---===============3034976900017647216==--
+> Tested-by: Andrzej Krentosz <endrjux@gmail.com>
+> Cc: Carlos Corbacho <carlos@strangeworlds.co.uk>
+> Cc: Matthew Garrett <mjg@redhat.com>
+> Cc: Dmitry Torokhov <dtor@mail.ru>
+> Cc: Corentin Chary <corentincj@iksaif.net>
+> Cc: Rafael J. Wysocki <rjw@sisk.pl>
+> Cc: Aaron Lu <aaron.lu@intel.com>
+> Cc: Thomas Renninger <trenn@suse.de>
+> Signed-off-by: Lee, Chun-Yi <jlee@suse.com>
+> ---
+>  drivers/acpi/video.c | 46 ++++++++++++++++++++++++++++++++++++++++++++++
+>  include/acpi/video.h |  2 ++
+>  2 files changed, 48 insertions(+)
+> 
+> diff --git a/drivers/acpi/video.c b/drivers/acpi/video.c
+> index 313f959..acd2e7a 100644
+> --- a/drivers/acpi/video.c
+> +++ b/drivers/acpi/video.c
+> @@ -1793,6 +1793,52 @@ static int __init intel_opregion_present(void)
+>  	return opregion;
+>  }
+>  
+> +static acpi_status
+> +find_video_unregister_backlight(acpi_handle handle, u32 lvl, void *context,
+> +				void **rv)
+> +{
+> +	struct acpi_device *acpi_dev;
+> +	struct acpi_video_bus *video = NULL;
+> +	struct acpi_video_device *dev, *next;
+> +
+> +	if (acpi_bus_get_device(handle, &acpi_dev))
+> +		return AE_OK;
+> +
+> +	if (!acpi_match_device_ids(acpi_dev, video_device_ids)) {
+> +		video = acpi_driver_data(acpi_dev);
+> +		acpi_video_bus_stop_devices(video);
+> +		mutex_lock(&video->device_list_lock);
+> +		list_for_each_entry_safe(dev, next, &video->video_device_list,
+> +					entry) {
+> +			if (dev->backlight) {
+> +				backlight_device_unregister(dev->backlight);
+> +				dev->backlight = NULL;
+> +				kfree(dev->brightness->levels);
+> +				kfree(dev->brightness);
+> +			}
+> +		}
+> +		mutex_unlock(&video->device_list_lock);
+> +		acpi_video_bus_start_devices(video);
+> +	}
+> +	return AE_OK;
+> +}
+> +
+> +void acpi_video_backlight_unregister(void)
+> +{
+> +	if (!register_count) {
+> +		/*
+> +		 * If the acpi video bus is already unloaded, don't
+> +		 * unregister backlight of devices and return directly.
+> +		 */
+> +		return;
+> +	}
+> +	acpi_walk_namespace(ACPI_TYPE_DEVICE, ACPI_ROOT_OBJECT,
+> +			    ACPI_UINT32_MAX, find_video_unregister_backlight,
+> +			    NULL, NULL, NULL);
+> +	return;
+> +}
+> +EXPORT_SYMBOL(acpi_video_backlight_unregister);
+> +
+>  int acpi_video_register(void)
+>  {
+>  	int result = 0;
+> diff --git a/include/acpi/video.h b/include/acpi/video.h
+> index 61109f2..1e810a1 100644
+> --- a/include/acpi/video.h
+> +++ b/include/acpi/video.h
+> @@ -19,11 +19,13 @@ struct acpi_device;
+>  #if (defined CONFIG_ACPI_VIDEO || defined CONFIG_ACPI_VIDEO_MODULE)
+>  extern int acpi_video_register(void);
+>  extern void acpi_video_unregister(void);
+> +extern void acpi_video_backlight_unregister(void);
+>  extern int acpi_video_get_edid(struct acpi_device *device, int type,
+>  			       int device_id, void **edid);
+>  #else
+>  static inline int acpi_video_register(void) { return 0; }
+>  static inline void acpi_video_unregister(void) { return; }
+> +static inline void acpi_video_backlight_unregister(void) { return; }
+>  static inline int acpi_video_get_edid(struct acpi_device *device, int type,
+>  				      int device_id, void **edid)
+>  {
+> 
+-- 
+I speak only for myself.
+Rafael J. Wysocki, Intel Open Source Technology Center.
