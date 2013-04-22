@@ -1,76 +1,154 @@
-From: Aaron Lu <aaron.lu@intel.com>
-Subject: Re: [PATCH] ACPI: Disable Windows 8 compatibility for some Lenovo
- ThinkPads
-Date: Mon, 22 Apr 2013 20:11:17 +0800
-Message-ID: <517528E5.7030105@intel.com>
-References: <1360599681-24781-1-git-send-email-seth.forshee@canonical.com> <9174410.cA7eiWOPcn@vostro.rjw.lan> <5175055F.9000600@intel.com> <1587525.URWXxEIA21@vostro.rjw.lan>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: Re: [PATCH] acpi: video: enhance the quirk detect logic of _BQC
+Date: Mon, 22 Apr 2013 14:19:02 +0200
+Message-ID: <5871154.Sa0zIVPm1q@vostro.rjw.lan>
+References: <5160D237.50307@intel.com> <1366210490.2091.47.camel@rzhang1-mobl4>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7Bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga01.intel.com ([192.55.52.88]:39250 "EHLO mga01.intel.com"
+Received: from hydra.sisk.pl ([212.160.235.94]:40616 "EHLO hydra.sisk.pl"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752198Ab3DVMKc (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 22 Apr 2013 08:10:32 -0400
-In-Reply-To: <1587525.URWXxEIA21@vostro.rjw.lan>
+	id S1753010Ab3DVMLB (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 22 Apr 2013 08:11:01 -0400
+In-Reply-To: <1366210490.2091.47.camel@rzhang1-mobl4>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: Ben Jencks <ben@bjencks.net>, Seth Forshee <seth.forshee@canonical.com>, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, joeyli <jlee@suse.com>, Matthew Garrett <mjg59@srcf.ucam.org>
+To: Zhang Rui <rui.zhang@intel.com>
+Cc: Aaron Lu <aaron.lu@intel.com>, Artem Savkov <artem.savkov@gmail.com>, Cheppes <cheppes@mailinator.com>, Luis Medinas <lmedinas@gmail.com>, ACPI Devel Mailing List <linux-acpi@vger.kernel.org>
 
-On 04/22/2013 07:51 PM, Rafael J. Wysocki wrote:
-> On Monday, April 22, 2013 05:39:43 PM Aaron Lu wrote:
->> On 04/22/2013 05:42 AM, Rafael J. Wysocki wrote:
->>> On Sunday, April 21, 2013 07:07:04 PM Aaron Lu wrote:
->>>> On 04/21/2013 06:06 AM, Rafael J. Wysocki wrote:
->>>>> On Friday, April 19, 2013 11:15:57 AM Aaron Lu wrote:
->>>>>> On 04/03/2013 03:04 PM, Ben Jencks wrote:
->>>>>>> On 04/02/2013 09:00 AM, Seth Forshee wrote:
->>>>>>>> On Tue, Apr 02, 2013 at 05:08:23PM +0800, Aaron Lu wrote:
->>>>>>>>>
->>>>>>>>> I really wondered, how Windows handled this, it should have the same
->>>>>>>>> problem, unless they are not using the acpi video interface?
->>>>>>>>
->>>>>>>> I can only guess.
->>>>>>>>
->>>>>>>> I think I remember reading that Windows 8 does smooth backlight
->>>>>>>> transitions, so it may well hit every intermediate brightness value.
->>>>>>>> Lenovo could also be supplying a driver which rounds values to the
->>>>>>>> nearest working value or uses some other interface or something else.
->>>>>>>
->>>>>>> Just checked; Windows 8 doesn't use the ACPI interface. It seems to have
->>>>>>> access to at least 100 distinct brightness levels.
->>>>>>
->>>>>> I just came across a document on win8 backlight control, it has words
->>>>>> like this:
->>>>>> "
->>>>>> In Windows 8, the primary mechanism by which a platform should expose
->>>>>> its display brightness control functionality is the Windows Display
->>>>>> Driver Model (WDDM) miniport Device Driver Interfaces (DDI).
->>>>>> "
->>>>>> So looks like, on win8, ACPI interface is not used for these systems.
->>>>>>
->>>>>> The link for the document is here:
->>>>>> http://msdn.microsoft.com/en-US/library/windows/hardware/jj159305
->>>>>
->>>>> OK, so what does that mean for the issue at hand?
->>>>
->>>> That means, we should not try to use acpi video interface to control
->>>> backlight on these systems if they are in win8 mode.
->>>
->>> In that case, how are we going to indentify "these systems"?
->>
->> Sorry, I don't know.
->>
->> According to the following bug page:
->> https://bugzilla.kernel.org/show_bug.cgi?id=51231
->> "these systems" now include: thinkpad x230, t430s, t530, L430.
+On Wednesday, April 17, 2013 10:54:50 PM Zhang Rui wrote:
+> On Sun, 2013-04-07 at 09:56 +0800, Aaron Lu wrote:
+> > Currently we decide if the _BQC is using index by first setting the
+> > level to maximum, and then check if _BQC returned maximum; if not, we
+> > say it is using index.
+> > 
+> > This is not true for some buggy systems, where the _BQC method will
+> > always return a constant value(e.g. 0 or 100 for the two broken system)
+> > and thus break the current logic. So this patch tries to enhance the
+> > quirk detect logic for _BQC: we do this by picking a test_level, it can
+> > be the maximum level or the mininum one based on some condition. And we
+> > don't make the assumption that if _BQC returned a value that is not what
+> > we just set, it must be using an index. Instead, we will compare the
+> > value returned from _BQC and if it doesn't match, see if the returned
+> > value is an index. And if still no, clear the capability of _BQC.
+> > 
+> > Buglink: https://bugzilla.kernel.org/show_bug.cgi?id=42861
+> > Buglink: https://bugzilla.kernel.org/show_bug.cgi?id=56011
+> > Reported-and-tested-by: Artem Savkov <artem.savkov@gmail.com>
+> > Reported-by: Luis Medinas <lmedinas@gmail.com>
+> > Reported-by: Cheppes <cheppes@mailinator.com>
+> > Signed-off-by: Aaron Lu <aaron.lu@intel.com>
 > 
-> I suppose we need to blacklist them to start with.  I wouldn't like to apply
-> any general changes before we know how many different systems are affected by
-> this particular issue.
+> Acked-by: Zhang Rui <rui.zhang@intel.com>
 
-I totally agree.
+Applied.
 
 Thanks,
-Aaron
+Rafael
+
+
+> > ---
+> > Thanks Cheppes <cheppes@mailinator.com> for the suggestion of choosing
+> > different levels to test, and also for the help of in code comment
+> > correction.
+> > 
+> >  drivers/acpi/video.c | 67 ++++++++++++++++++++++++++++++++++++++++++++--------
+> >  1 file changed, 57 insertions(+), 10 deletions(-)
+> > 
+> > diff --git a/drivers/acpi/video.c b/drivers/acpi/video.c
+> > index 3cdd047..306ea2a 100644
+> > --- a/drivers/acpi/video.c
+> > +++ b/drivers/acpi/video.c
+> > @@ -632,6 +632,56 @@ acpi_video_cmp_level(const void *a, const void *b)
+> >  }
+> >  
+> >  /*
+> > + * Decides if _BQC/_BCQ for this system is usable
+> > + *
+> > + * We do this by changing the level first and then read out the current
+> > + * brightness level, if the value does not match, find out if it is using
+> > + * index. If not, clear the _BQC/_BCQ capability.
+> > + */
+> > +static int acpi_video_bqc_quirk(struct acpi_video_device *device,
+> > +				int max_level, int current_level)
+> > +{
+> > +	struct acpi_video_device_brightness *br = device->brightness;
+> > +	int result;
+> > +	unsigned long long level;
+> > +	int test_level;
+> > +
+> > +	/* don't mess with existing known broken systems */
+> > +	if (bqc_offset_aml_bug_workaround)
+> > +		return 0;
+> > +
+> > +	/*
+> > +	 * Some systems always report current brightness level as maximum
+> > +	 * through _BQC, we need to test another value for them.
+> > +	 */
+> > +	test_level = current_level == max_level ? br->levels[2] : max_level;
+> > +
+> > +	result = acpi_video_device_lcd_set_level(device, test_level);
+> > +	if (result)
+> > +		return result;
+> > +
+> > +	result = acpi_video_device_lcd_get_level_current(device, &level, true);
+> > +	if (result)
+> > +		return result;
+> > +
+> > +	if (level != test_level) {
+> > +		/* buggy _BQC found, need to find out if it uses index */
+> > +		if (level < br->count) {
+> > +			if (br->flags._BCL_reversed)
+> > +				level = br->count - 3 - level;
+> > +			if (br->levels[level + 2] == test_level)
+> > +				br->flags._BQC_use_index = 1;
+> > +		}
+> > +
+> > +		if (!br->flags._BQC_use_index)
+> > +			device->cap._BQC = device->cap._BCQ = 0;
+> > +	}
+> > +
+> > +	return 0;
+> > +}
+> > +
+> > +
+> > +/*
+> >   *  Arg:	
+> >   *  	device	: video output device (LCD, CRT, ..)
+> >   *
+> > @@ -742,18 +792,15 @@ acpi_video_init_brightness(struct acpi_video_device *device)
+> >  	if (result)
+> >  		goto out_free_levels;
+> >  
+> > -	/*
+> > -	 * Set the level to maximum and check if _BQC uses indexed value
+> > -	 */
+> > -	result = acpi_video_device_lcd_set_level(device, max_level);
+> > -	if (result)
+> > -		goto out_free_levels;
+> > -
+> > -	result = acpi_video_device_lcd_get_level_current(device, &level, true);
+> > +	result = acpi_video_bqc_quirk(device, max_level, level_old);
+> >  	if (result)
+> >  		goto out_free_levels;
+> > -
+> > -	br->flags._BQC_use_index = (level == max_level ? 0 : 1);
+> > +	/*
+> > +	 * cap._BQC may get cleared due to _BQC is found to be broken
+> > +	 * in acpi_video_bqc_quirk, so check again here.
+> > +	 */
+> > +	if (!device->cap._BQC)
+> > +		goto set_level;
+> >  
+> >  	if (use_bios_initial_backlight) {
+> >  		level = acpi_video_bqc_value_to_level(device, level_old);
+> 
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+-- 
+I speak only for myself.
+Rafael J. Wysocki, Intel Open Source Technology Center.
