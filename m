@@ -1,78 +1,100 @@
 From: Dmitry Torokhov <dmitry.torokhov@gmail.com>
-Subject: Re: [PATCH 2/2] acer-wmi: add Acer Aspire 5750G to video vendor list
- but keep acpi video driver
-Date: Mon, 22 Apr 2013 21:04:13 -0700
-Message-ID: <20130423040413.GA2435@core.coreip.homeip.net>
+Subject: Re: [PATCH 1/2] acpi: video: add function to support unregister
+ backlight
+Date: Mon, 22 Apr 2013 21:12:45 -0700
+Message-ID: <20130423041245.GB2435@core.coreip.homeip.net>
 References: <1366634355-26482-1-git-send-email-jlee@suse.com>
+ <1366634355-26482-2-git-send-email-jlee@suse.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-pd0-f181.google.com ([209.85.192.181]:40496 "EHLO
-	mail-pd0-f181.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751148Ab3DWEEQ (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 23 Apr 2013 00:04:16 -0400
+Return-path: <platform-driver-x86-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <1366634355-26482-1-git-send-email-jlee@suse.com>
-Sender: linux-acpi-owner@vger.kernel.org
-List-Id: linux-acpi@vger.kernel.org
+In-Reply-To: <1366634355-26482-2-git-send-email-jlee@suse.com>
+Sender: platform-driver-x86-owner@vger.kernel.org
 To: Chun-Yi Lee <joeyli.kernel@gmail.com>
 Cc: mjg@redhat.com, rjw@sisk.pl, platform-driver-x86@vger.kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, "Lee, Chun-Yi" <jlee@suse.com>, Carlos Corbacho <carlos@strangeworlds.co.uk>, Corentin Chary <corentincj@iksaif.net>, Aaron Lu <aaron.lu@intel.com>, Thomas Renninger <trenn@suse.de>
+List-Id: linux-acpi@vger.kernel.org
 
-On Mon, Apr 22, 2013 at 08:39:14PM +0800, Chun-Yi Lee wrote:
-> From: Lee, Chun-Yi <jlee@suse.com>
-> 
-> After Andrzej's testing, we found the acpi backlight methods broken on Acer
-> Aspire 5750G but the i915 backlight control works when we set to vendor mode.
-> And, we still want to keep the acpi/video driver for transfer acpi event to key
-> event but not unregister whole acpi/video driver.
-> 
-> This patch introduced a new capability flag is ACER_CAP_KEEP_VIDEO_KEY, it
-> indicates the machine works fine with acpi/video driver for key event but want
-> to unregister the backlight interface of acpi/video.
-> 
-> Reference: bko#35622
->         https://bugzilla.kernel.org/show_bug.cgi?id=35622
-> 
-> Tested-by: Andrzej Krentosz <endrjux@gmail.com>
-> Cc: Carlos Corbacho <carlos@strangeworlds.co.uk>
-> Cc: Matthew Garrett <mjg@redhat.com>
-> Cc: Dmitry Torokhov <dtor@mail.ru>
-> Cc: Corentin Chary <corentincj@iksaif.net>
-> Cc: Rafael J. Wysocki <rjw@sisk.pl>
-> Cc: Aaron Lu <aaron.lu@intel.com>
-> Cc: Thomas Renninger <trenn@suse.de>
-> Signed-off-by: Lee, Chun-Yi <jlee@suse.com>
-> ---
->  drivers/platform/x86/acer-wmi.c |   20 ++++++++++++++++++++
->  1 files changed, 20 insertions(+), 0 deletions(-)
-> 
-> diff --git a/drivers/platform/x86/acer-wmi.c b/drivers/platform/x86/acer-wmi.c
-> index c9076bd..2a02409 100644
-> --- a/drivers/platform/x86/acer-wmi.c
-> +++ b/drivers/platform/x86/acer-wmi.c
-> @@ -207,6 +207,7 @@ struct hotkey_function_type_aa {
->  #define ACER_CAP_BRIGHTNESS		(1<<3)
->  #define ACER_CAP_THREEG			(1<<4)
->  #define ACER_CAP_ACCEL			(1<<5)
-> +#define ACER_CAP_KEEP_VIDEO_KEY		(1<<6)
->  #define ACER_CAP_ANY			(0xFFFFFFFF)
->  
->  /*
-> @@ -539,6 +540,15 @@ static int video_set_backlight_video_vendor(const struct dmi_system_id *d)
->  	return 0;
->  }
->  
-> +static int video_set_backlight_video_vendor_keep_acpi_video(
-> +		const struct dmi_system_id *d)
+On Mon, Apr 22, 2013 at 08:39:15PM +0800, Chun-Yi Lee wrote:
+> From: "Lee, Chun-Yi" <jlee@suse.com>
+> +static acpi_status
+> +find_video_unregister_backlight(acpi_handle handle, u32 lvl, void *context,
+> +				void **rv)
 > +{
-> +	video_set_backlight_video_vendor(d);
-> +	interface->capability |= ACER_CAP_KEEP_VIDEO_KEY;
-> +	pr_info("Keep acpi video driver for emit keycode against backlight change\n");
+> +	struct acpi_device *acpi_dev;
+> +	struct acpi_video_bus *video = NULL;
 
-Huh?
+Gratuitous initialization of local variables prevents compiler from
+warning when you using variable uninitialized.
 
-"Keeping acpi video driver active to emit backlight brightness change
-key events"?
+> +	struct acpi_video_device *dev, *next;
+> +
+> +	if (acpi_bus_get_device(handle, &acpi_dev))
+> +		return AE_OK;
+> +
+> +	if (!acpi_match_device_ids(acpi_dev, video_device_ids)) {
+> +		video = acpi_driver_data(acpi_dev);
+> +		acpi_video_bus_stop_devices(video);
+> +		mutex_lock(&video->device_list_lock);
+> +		list_for_each_entry_safe(dev, next, &video->video_device_list,
+> +					entry) {
+> +			if (dev->backlight) {
+> +				backlight_device_unregister(dev->backlight);
+> +				dev->backlight = NULL;
+> +				kfree(dev->brightness->levels);
+> +				kfree(dev->brightness);
+> +			}
+> +		}
+> +		mutex_unlock(&video->device_list_lock);
+> +		acpi_video_bus_start_devices(video);
+> +	}
+> +	return AE_OK;
+> +}
+> +
+> +void acpi_video_backlight_unregister(void)
+> +{
+> +	if (!register_count) {
+
+Locking? It looks like the rest of the driver ignores locking too...
+
+> +		/*
+> +		 * If the acpi video bus is already unloaded, don't
+> +		 * unregister backlight of devices and return directly.
+> +		 */
+> +		return;
+> +	}
+> +	acpi_walk_namespace(ACPI_TYPE_DEVICE, ACPI_ROOT_OBJECT,
+> +			    ACPI_UINT32_MAX, find_video_unregister_backlight,
+> +			    NULL, NULL, NULL);
+> +	return;
+> +}
+> +EXPORT_SYMBOL(acpi_video_backlight_unregister);
+> +
+>  int acpi_video_register(void)
+>  {
+>  	int result = 0;
+> diff --git a/include/acpi/video.h b/include/acpi/video.h
+> index 61109f2..1e810a1 100644
+> --- a/include/acpi/video.h
+> +++ b/include/acpi/video.h
+> @@ -19,11 +19,13 @@ struct acpi_device;
+>  #if (defined CONFIG_ACPI_VIDEO || defined CONFIG_ACPI_VIDEO_MODULE)
+>  extern int acpi_video_register(void);
+>  extern void acpi_video_unregister(void);
+> +extern void acpi_video_backlight_unregister(void);
+>  extern int acpi_video_get_edid(struct acpi_device *device, int type,
+>  			       int device_id, void **edid);
+>  #else
+>  static inline int acpi_video_register(void) { return 0; }
+>  static inline void acpi_video_unregister(void) { return; }
+> +static inline void acpi_video_backlight_unregister(void) { return; }
+>  static inline int acpi_video_get_edid(struct acpi_device *device, int type,
+>  				      int device_id, void **edid)
+>  {
+> -- 
+> 1.8.1.4
+> 
+> 
 
 Thanks.
 
