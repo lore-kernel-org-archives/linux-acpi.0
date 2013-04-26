@@ -1,131 +1,79 @@
-From: Aaron Lu <aaron.lu@intel.com>
-Subject: Re: [PATCH 1/2] acpi: video: add function to support unregister backlight
-Date: Fri, 26 Apr 2013 13:24:49 +0800
-Message-ID: <517A0FA1.3040406@intel.com>
-References: <1366634355-26482-1-git-send-email-jlee@suse.com> <1366634355-26482-2-git-send-email-jlee@suse.com>
+From: Zhang Rui <rui.zhang@intel.com>
+Subject: [PATCH] ACPI thermal: do not always return THERMAL_TREND_RAISING for active trip points
+Date: Fri, 26 Apr 2013 17:19:53 +0800
+Message-ID: <1366967993-3812-1-git-send-email-rui.zhang@intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga02.intel.com ([134.134.136.20]:58747 "EHLO mga02.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751414Ab3DZFXS (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 26 Apr 2013 01:23:18 -0400
-In-Reply-To: <1366634355-26482-2-git-send-email-jlee@suse.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-pm-owner@vger.kernel.org>
+Sender: linux-pm-owner@vger.kernel.org
+To: linux-kernel@vger.kernel.org, linux-pm@vger.kernel.org, linux-acpi@vger.kernel.org
+Cc: rjw@sisk.pl, lenb@kernel.org, eduardo.valentin@ti.com, Zhang Rui <rui.zhang@intel.com>
 List-Id: linux-acpi@vger.kernel.org
-To: Chun-Yi Lee <joeyli.kernel@gmail.com>
-Cc: mjg@redhat.com, rjw@sisk.pl, platform-driver-x86@vger.kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, "Lee, Chun-Yi" <jlee@suse.com>, Carlos Corbacho <carlos@strangeworlds.co.uk>, Dmitry Torokhov <dtor@mail.ru>, Corentin Chary <corentincj@iksaif.net>, Thomas Renninger <trenn@suse.de>
 
-On 04/22/2013 08:39 PM, Chun-Yi Lee wrote:
-> From: "Lee, Chun-Yi" <jlee@suse.com>
->
-> There have situation we unregister whole acpi/video driver by downstream driver
-> just want to remove backlight control interface of acpi/video. It caues we lost
-> other functions of acpi/video, e.g. transfer acpi event to input event.
->
-> So, this patch add a new function, find_video_unregister_backlight, it provide
-> the interface let downstream driver can tell acpi/video to unregister backlight
-> interface of all acpi video devices. Then we can keep functions of acpi/video
-> but only remove backlight support.
->
-> Reference: bko#35622
->          https://bugzilla.kernel.org/show_bug.cgi?id=35622
->
-> Tested-by: Andrzej Krentosz <endrjux@gmail.com>
-> Cc: Carlos Corbacho <carlos@strangeworlds.co.uk>
-> Cc: Matthew Garrett <mjg@redhat.com>
-> Cc: Dmitry Torokhov <dtor@mail.ru>
-> Cc: Corentin Chary <corentincj@iksaif.net>
-> Cc: Rafael J. Wysocki <rjw@sisk.pl>
-> Cc: Aaron Lu <aaron.lu@intel.com>
-> Cc: Thomas Renninger <trenn@suse.de>
-> Signed-off-by: Lee, Chun-Yi <jlee@suse.com>
-> ---
->   drivers/acpi/video.c | 46 ++++++++++++++++++++++++++++++++++++++++++++++
->   include/acpi/video.h |  2 ++
->   2 files changed, 48 insertions(+)
->
-> diff --git a/drivers/acpi/video.c b/drivers/acpi/video.c
-> index 313f959..acd2e7a 100644
-> --- a/drivers/acpi/video.c
-> +++ b/drivers/acpi/video.c
-> @@ -1793,6 +1793,52 @@ static int __init intel_opregion_present(void)
->   	return opregion;
->   }
->
-> +static acpi_status
-> +find_video_unregister_backlight(acpi_handle handle, u32 lvl, void *context,
-> +				void **rv)
-> +{
-> +	struct acpi_device *acpi_dev;
-> +	struct acpi_video_bus *video = NULL;
-> +	struct acpi_video_device *dev, *next;
-> +
-> +	if (acpi_bus_get_device(handle, &acpi_dev))
-> +		return AE_OK;
-> +
-> +	if (!acpi_match_device_ids(acpi_dev, video_device_ids)) {
-> +		video = acpi_driver_data(acpi_dev);
-> +		acpi_video_bus_stop_devices(video);
-> +		mutex_lock(&video->device_list_lock);
-> +		list_for_each_entry_safe(dev, next, &video->video_device_list,
-> +					entry) {
-> +			if (dev->backlight) {
-> +				backlight_device_unregister(dev->backlight);
-> +				dev->backlight = NULL;
-> +				kfree(dev->brightness->levels);
-> +				kfree(dev->brightness);
-> +			}
+Commit 4ae46befb49d4173122e0afa995c4e93d01948a2
+introduces a regression that the fan is always on
+even if the system is in idle state.
 
-The cooling_dev should also be unregistered I think.
+My original idea in that commit is that:
+when the current temperature is above the trip point,
+keep the fan on, even if the temperature is dropping.
+when the current temperature is below the trip point,
+turn on the fan when the temperature is raising,
+turn off the fan when the temperature is dropping.
 
-Thanks,
-Aaron
+But this is what the code actually does:
+when the current temperature is above the trip point,
+the fan keeps on.
+when the current temperature is below the trip point,
+the fan is always on because thermal_get_trend()
+in driver/acpi/thermal.c returns THERMAL_TREND_RAISING.
+Thus the fan keeps running even if the system is idle.
 
-> +		}
-> +		mutex_unlock(&video->device_list_lock);
-> +		acpi_video_bus_start_devices(video);
-> +	}
-> +	return AE_OK;
-> +}
-> +
-> +void acpi_video_backlight_unregister(void)
-> +{
-> +	if (!register_count) {
-> +		/*
-> +		 * If the acpi video bus is already unloaded, don't
-> +		 * unregister backlight of devices and return directly.
-> +		 */
-> +		return;
-> +	}
-> +	acpi_walk_namespace(ACPI_TYPE_DEVICE, ACPI_ROOT_OBJECT,
-> +			    ACPI_UINT32_MAX, find_video_unregister_backlight,
-> +			    NULL, NULL, NULL);
-> +	return;
-> +}
-> +EXPORT_SYMBOL(acpi_video_backlight_unregister);
-> +
->   int acpi_video_register(void)
->   {
->   	int result = 0;
-> diff --git a/include/acpi/video.h b/include/acpi/video.h
-> index 61109f2..1e810a1 100644
-> --- a/include/acpi/video.h
-> +++ b/include/acpi/video.h
-> @@ -19,11 +19,13 @@ struct acpi_device;
->   #if (defined CONFIG_ACPI_VIDEO || defined CONFIG_ACPI_VIDEO_MODULE)
->   extern int acpi_video_register(void);
->   extern void acpi_video_unregister(void);
-> +extern void acpi_video_backlight_unregister(void);
->   extern int acpi_video_get_edid(struct acpi_device *device, int type,
->   			       int device_id, void **edid);
->   #else
->   static inline int acpi_video_register(void) { return 0; }
->   static inline void acpi_video_unregister(void) { return; }
-> +static inline void acpi_video_backlight_unregister(void) { return; }
->   static inline int acpi_video_get_edid(struct acpi_device *device, int type,
->   				      int device_id, void **edid)
->   {
->
+=46ix this in drivers/acpi/thermal.c.
+
+https://bugzilla.kernel.org/show_bug.cgi?id=3D56591
+https://bugzilla.kernel.org/show_bug.cgi?id=3D56601
+https://bugzilla.kernel.org/show_bug.cgi?id=3D50041#c45
+
+Patch should be applied to 3.7 stable kernel and later.
+
+Signed-off-by: Zhang Rui <rui.zhang@intel.com>
+Tested-by: Matthias <morpheusxyz123@yahoo.de>
+Tested-by: Ville Syrj=C3=A4l=C3=A4 <syrjala@sci.fi>
+Cc: <stable@vger.kernel.org> # v3.7+
+---
+ drivers/acpi/thermal.c |   16 +++++++++++++---
+ 1 file changed, 13 insertions(+), 3 deletions(-)
+
+diff --git a/drivers/acpi/thermal.c b/drivers/acpi/thermal.c
+index 8470771..a33821c 100644
+--- a/drivers/acpi/thermal.c
++++ b/drivers/acpi/thermal.c
+@@ -723,9 +723,19 @@ static int thermal_get_trend(struct thermal_zone_d=
+evice *thermal,
+ 		return -EINVAL;
+=20
+ 	if (type =3D=3D THERMAL_TRIP_ACTIVE) {
+-		/* aggressive active cooling */
+-		*trend =3D THERMAL_TREND_RAISING;
+-		return 0;
++		unsigned long trip_temp;
++		unsigned long temp =3D KELVIN_TO_MILLICELSIUS(tz->temperature,
++							tz->kelvin_offset);
++		if (thermal_get_trip_temp(thermal, trip, &trip_temp))
++			return -EINVAL;
++
++		if (temp > trip_temp) {
++			*trend =3D THERMAL_TREND_RAISING;
++			return 0;
++		} else {
++			/* Fall back on default trend */
++			return -EINVAL;
++		}
+ 	}
+=20
+ 	/*
+--=20
+1.7.9.5
 
