@@ -1,126 +1,131 @@
-From: Yinghai Lu <yinghai@kernel.org>
-Subject: [PATCH -v3] PCI, ACPI, hotplug: Fix BUS_CHECK event handle on root bridge
-Date: Thu, 25 Apr 2013 18:46:38 -0700
-Message-ID: <1366940798-15268-1-git-send-email-yinghai@kernel.org>
-References: <CAAh6nkn2WxQAcmtLM1bu66Ngn+BheJNfoAUMN=dO9eY2HXi7YQ@mail.gmail.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <CAAh6nkn2WxQAcmtLM1bu66Ngn+BheJNfoAUMN=dO9eY2HXi7YQ@mail.gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Bjorn Helgaas <bhelgaas@google.com>, "Rafael J. Wysocki" <rjw@sisk.pl>, Jiang Liu <jiang.liu@huawei.com>
-Cc: Gavin Guo <tuffkidtt@gmail.com>, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Yinghai Lu <yinghai@kernel.org>
+From: Aaron Lu <aaron.lu@intel.com>
+Subject: Re: [PATCH 1/2] acpi: video: add function to support unregister backlight
+Date: Fri, 26 Apr 2013 13:24:49 +0800
+Message-ID: <517A0FA1.3040406@intel.com>
+References: <1366634355-26482-1-git-send-email-jlee@suse.com> <1366634355-26482-2-git-send-email-jlee@suse.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mga02.intel.com ([134.134.136.20]:58747 "EHLO mga02.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751414Ab3DZFXS (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 26 Apr 2013 01:23:18 -0400
+In-Reply-To: <1366634355-26482-2-git-send-email-jlee@suse.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Chun-Yi Lee <joeyli.kernel@gmail.com>
+Cc: mjg@redhat.com, rjw@sisk.pl, platform-driver-x86@vger.kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, "Lee, Chun-Yi" <jlee@suse.com>, Carlos Corbacho <carlos@strangeworlds.co.uk>, Dmitry Torokhov <dtor@mail.ru>, Corentin Chary <corentincj@iksaif.net>, Thomas Renninger <trenn@suse.de>
 
-Gavin found that acpiphp does not handle hotplug anymore even after
-now we have acpiphp built-in preparing for v3.10.
+On 04/22/2013 08:39 PM, Chun-Yi Lee wrote:
+> From: "Lee, Chun-Yi" <jlee@suse.com>
+>
+> There have situation we unregister whole acpi/video driver by downstream driver
+> just want to remove backlight control interface of acpi/video. It caues we lost
+> other functions of acpi/video, e.g. transfer acpi event to input event.
+>
+> So, this patch add a new function, find_video_unregister_backlight, it provide
+> the interface let downstream driver can tell acpi/video to unregister backlight
+> interface of all acpi video devices. Then we can keep functions of acpi/video
+> but only remove backlight support.
+>
+> Reference: bko#35622
+>          https://bugzilla.kernel.org/show_bug.cgi?id=35622
+>
+> Tested-by: Andrzej Krentosz <endrjux@gmail.com>
+> Cc: Carlos Corbacho <carlos@strangeworlds.co.uk>
+> Cc: Matthew Garrett <mjg@redhat.com>
+> Cc: Dmitry Torokhov <dtor@mail.ru>
+> Cc: Corentin Chary <corentincj@iksaif.net>
+> Cc: Rafael J. Wysocki <rjw@sisk.pl>
+> Cc: Aaron Lu <aaron.lu@intel.com>
+> Cc: Thomas Renninger <trenn@suse.de>
+> Signed-off-by: Lee, Chun-Yi <jlee@suse.com>
+> ---
+>   drivers/acpi/video.c | 46 ++++++++++++++++++++++++++++++++++++++++++++++
+>   include/acpi/video.h |  2 ++
+>   2 files changed, 48 insertions(+)
+>
+> diff --git a/drivers/acpi/video.c b/drivers/acpi/video.c
+> index 313f959..acd2e7a 100644
+> --- a/drivers/acpi/video.c
+> +++ b/drivers/acpi/video.c
+> @@ -1793,6 +1793,52 @@ static int __init intel_opregion_present(void)
+>   	return opregion;
+>   }
+>
+> +static acpi_status
+> +find_video_unregister_backlight(acpi_handle handle, u32 lvl, void *context,
+> +				void **rv)
+> +{
+> +	struct acpi_device *acpi_dev;
+> +	struct acpi_video_bus *video = NULL;
+> +	struct acpi_video_device *dev, *next;
+> +
+> +	if (acpi_bus_get_device(handle, &acpi_dev))
+> +		return AE_OK;
+> +
+> +	if (!acpi_match_device_ids(acpi_dev, video_device_ids)) {
+> +		video = acpi_driver_data(acpi_dev);
+> +		acpi_video_bus_stop_devices(video);
+> +		mutex_lock(&video->device_list_lock);
+> +		list_for_each_entry_safe(dev, next, &video->video_device_list,
+> +					entry) {
+> +			if (dev->backlight) {
+> +				backlight_device_unregister(dev->backlight);
+> +				dev->backlight = NULL;
+> +				kfree(dev->brightness->levels);
+> +				kfree(dev->brightness);
+> +			}
 
-Bjorn analyzed bootlog, he found that 
-    acpiphp: ACPI Hot Plug PCI Controller Driver version: 0.5
-    ACPI: PCI Root Bridge [PCI0] (domain 0000 [bus 00-3e])
-    \_SB_.PCI0:_OSC invalid UUID
-    acpiphp: Slot [1] registered
-    acpiphp: Slot [1-1] registered
-   acpi root: \_SB_.PCI0 notify handler is installed
-    _handle_hotplug_event_root: Bus check notify on \_SB_.PCI0
-    _handle_hotplug_event_root: Bus check notify on \_SB_.PCI0
-And that means:
-   So we should be using acpiphp, which you do have built in statically,
-   and it found a couple slots.  And we did get two bus check notifies on
-   \_SB_.PCI0, so we *should* be re-enumerating PCI bus 0000:00.  But it
-   looks like we're handling this as a host bridge hotplug event instead
-   of a PCI device hotplug.  My guess is that
-   handle_root_bridge_insertion() does nothing because the PCI0 ACPI
-   device already exists, though I would expect to see the "acpi device
-   exists..." in your dmesg log if this were the case.
+The cooling_dev should also be unregistered I think.
 
-Also according to Rafael and Bjorn, it is perfect fine that we
-should enumerate bus by sending event to root bridge after hotadd
-device to slots under that root bridge or children bridges.
+Thanks,
+Aaron
 
-It turns out that it is regression caused by
-| commit 668192b678201d2fff27c6cc76bb003c1ec4a52a
-| Author: Yinghai Lu <yinghai@kernel.org>
-| Date:   Mon Jan 21 13:20:48 2013 -0800
-|
-|    PCI: acpiphp: Move host bridge hotplug to pci_root.c
+> +		}
+> +		mutex_unlock(&video->device_list_lock);
+> +		acpi_video_bus_start_devices(video);
+> +	}
+> +	return AE_OK;
+> +}
+> +
+> +void acpi_video_backlight_unregister(void)
+> +{
+> +	if (!register_count) {
+> +		/*
+> +		 * If the acpi video bus is already unloaded, don't
+> +		 * unregister backlight of devices and return directly.
+> +		 */
+> +		return;
+> +	}
+> +	acpi_walk_namespace(ACPI_TYPE_DEVICE, ACPI_ROOT_OBJECT,
+> +			    ACPI_UINT32_MAX, find_video_unregister_backlight,
+> +			    NULL, NULL, NULL);
+> +	return;
+> +}
+> +EXPORT_SYMBOL(acpi_video_backlight_unregister);
+> +
+>   int acpi_video_register(void)
+>   {
+>   	int result = 0;
+> diff --git a/include/acpi/video.h b/include/acpi/video.h
+> index 61109f2..1e810a1 100644
+> --- a/include/acpi/video.h
+> +++ b/include/acpi/video.h
+> @@ -19,11 +19,13 @@ struct acpi_device;
+>   #if (defined CONFIG_ACPI_VIDEO || defined CONFIG_ACPI_VIDEO_MODULE)
+>   extern int acpi_video_register(void);
+>   extern void acpi_video_unregister(void);
+> +extern void acpi_video_backlight_unregister(void);
+>   extern int acpi_video_get_edid(struct acpi_device *device, int type,
+>   			       int device_id, void **edid);
+>   #else
+>   static inline int acpi_video_register(void) { return 0; }
+>   static inline void acpi_video_unregister(void) { return; }
+> +static inline void acpi_video_backlight_unregister(void) { return; }
+>   static inline int acpi_video_get_edid(struct acpi_device *device, int type,
+>   				      int device_id, void **edid)
+>   {
+>
 
-We should check slots when BUS_CHECK is sent to root bridge acpi handle.
-
-Restore the old behavoir by calling acpi_check_bridge and check_sub_bridge
-in acpiphp.
-
-Jiang Liu acctually have simimar patch but it forgets calling
-acpi_check_bridge() for system that have slots on root bus directly.
-That is still valid, as in QEMU we still have that slots on bus 0 at
-least. But my first version patch wrongly check if root bridge exists
-before check_sub_bridge for children bridges. 
-
--v2: Don't check bridge for acpi_walk_namespace with check_sub_bridges.
-     also put back bridge reference.
--v3: More changelog and etc.
-
-Reported-by: Gavin Guo <tuffkidtt@gmail.com>
-Tested-by: Gavin Guo <tuffkidtt@gmail.com>
-Signed-off-by: Yinghai Lu <yinghai@kernel.org>
-
----
- drivers/acpi/pci_root.c            |    2 ++
- drivers/pci/hotplug/acpiphp_glue.c |   14 ++++++++++++++
- include/linux/pci-acpi.h           |    2 ++
- 3 files changed, 18 insertions(+)
-
-Index: linux-2.6/drivers/acpi/pci_root.c
-===================================================================
---- linux-2.6.orig/drivers/acpi/pci_root.c
-+++ linux-2.6/drivers/acpi/pci_root.c
-@@ -643,6 +643,8 @@ static void _handle_hotplug_event_root(s
- 				 (char *)buffer.pointer);
- 		if (!root)
- 			handle_root_bridge_insertion(handle);
-+		else
-+			acpiphp_check_host_bridge(handle);
- 
- 		break;
- 
-Index: linux-2.6/drivers/pci/hotplug/acpiphp_glue.c
-===================================================================
---- linux-2.6.orig/drivers/pci/hotplug/acpiphp_glue.c
-+++ linux-2.6/drivers/pci/hotplug/acpiphp_glue.c
-@@ -950,6 +950,20 @@ check_sub_bridges(acpi_handle handle, u3
- 	return AE_OK ;
- }
- 
-+void acpiphp_check_host_bridge(acpi_handle handle)
-+{
-+	struct acpiphp_bridge *bridge;
-+
-+	bridge = acpiphp_handle_to_bridge(handle);
-+	if (bridge) {
-+		acpiphp_check_bridge(bridge);
-+		put_bridge(bridge);
-+	}
-+
-+	acpi_walk_namespace(ACPI_TYPE_DEVICE, handle,
-+		ACPI_UINT32_MAX, check_sub_bridges, NULL, NULL, NULL);
-+}
-+
- static void _handle_hotplug_event_bridge(struct work_struct *work)
- {
- 	struct acpiphp_bridge *bridge;
-Index: linux-2.6/include/linux/pci-acpi.h
-===================================================================
---- linux-2.6.orig/include/linux/pci-acpi.h
-+++ linux-2.6/include/linux/pci-acpi.h
-@@ -60,11 +60,13 @@ static inline void acpi_pci_slot_remove(
- void acpiphp_init(void);
- void acpiphp_enumerate_slots(struct pci_bus *bus, acpi_handle handle);
- void acpiphp_remove_slots(struct pci_bus *bus);
-+void acpiphp_check_host_bridge(acpi_handle handle);
- #else
- static inline void acpiphp_init(void) { }
- static inline void acpiphp_enumerate_slots(struct pci_bus *bus,
- 					   acpi_handle handle) { }
- static inline void acpiphp_remove_slots(struct pci_bus *bus) { }
-+static inline void acpiphp_check_host_bridge(acpi_handle handle) { }
- #endif
- 
- #else	/* CONFIG_ACPI */
