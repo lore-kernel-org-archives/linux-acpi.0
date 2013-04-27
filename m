@@ -1,67 +1,48 @@
-From: Pavel Machek <pavel@ucw.cz>
-Subject: Re: [PATCH] ACPI thermal: do not always return
- THERMAL_TREND_RAISING for active trip points
-Date: Sat, 27 Apr 2013 20:38:00 +0200
-Message-ID: <20130427183800.GA8929@amd.pavel.ucw.cz>
-References: <1366967993-3812-1-git-send-email-rui.zhang@intel.com>
- <20130427102346.GA30588@amd.pavel.ucw.cz>
- <1367065950.2128.11.camel@rzhang1-mobl4>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: Re: [regression] suspend is flakey, "shutdown -h now" does not power off
+Date: Sat, 27 Apr 2013 22:12:57 +0200
+Message-ID: <15552608.yopBJFHLkP@vostro.rjw.lan>
+References: <4EC27F88.9070209@gmail.com> <5985141.Edh9Qf6347@vostro.rjw.lan> <517BEBD5.6050301@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from atrey.karlin.mff.cuni.cz ([195.113.26.193]:39789 "EHLO
-	atrey.karlin.mff.cuni.cz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755667Ab3D0SiD (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sat, 27 Apr 2013 14:38:03 -0400
-Content-Disposition: inline
-In-Reply-To: <1367065950.2128.11.camel@rzhang1-mobl4>
+Received: from hydra.sisk.pl ([212.160.235.94]:46783 "EHLO hydra.sisk.pl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754092Ab3D0UEr convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sat, 27 Apr 2013 16:04:47 -0400
+In-Reply-To: <517BEBD5.6050301@gmail.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Zhang Rui <rui.zhang@intel.com>
-Cc: linux-kernel@vger.kernel.org, linux-pm@vger.kernel.org, linux-acpi@vger.kernel.org, rjw@sisk.pl, lenb@kernel.org, eduardo.valentin@ti.com
+To: matthieu.dubuget@gmail.com
+Cc: linux-acpi@vger.kernel.org, Jonathan Nieder <jrnieder@gmail.com>
 
-Hi!
+On Saturday, April 27, 2013 05:16:37 PM Matthieu Dubuget wrote:
+> Le 27/04/2013 17:09, Rafael J. Wysocki a =C3=A9crit :
+> > Did it ever worked with a kernel that's not from Ubuntu?
+>=20
+> I do not know=E2=80=A6 You suggest that I shourd find a =C2=AB pure =C2=
+=BB
+> kernel that is working, around 2.6.30 version?
 
-> > Is that even right algoritm?
-> > 
-> sorry the changelog is not clear enough here.
-> I should say,
-> "keep the fan on when the temperature is raising"
-> "turn off the fan when the temperature is dropping"
-> 
-> > Assume I'm running at very cold room, lets say -10C. Assume idle CPU
-> > will hover around 30C with no fan, or hover around 10C with fan
-> > running, trip point being 50C.
-> > 
-> > You _could_ leave fan off until 50C, having silent, passively cooled
-> > system.
-> > 
-> > What it will do instead is annoyingly pulse fan at 10C.
-> > 
-> First, fan will never spins on if the temperature never hits 50C.
-> 
-> let's see how ACPI 3.0 fan (just have on and off state) is supposed to
-> work after overheat.
-> 1. temperature goes above 50C
-> 2. Fan starts to spin.
-> 3. a) if temperature goes higher (if possible), fan keeps on.
->    b) if temperature drops, but still above 50C. the fan keeps on.
->    c) if temperature drops below 50C, the last temperature is above 50C,
-> thus the fan is turned off.
->    d) if the temperature goes higher again, the fan will not spin on
-> until the temperature is higher than the trip point (50C) again.
+Yes.  Basically, I'd like to know if the fact that it worked was due to=
+ an
+Ubuntu patch or something we did in the mainline that changed.
 
-So the fan is spinning iff the temperature is over threshold, right?
+Also, it would be good to know what the failing hardware is.
 
-> is this behavior what you want?
+> I'll come back when/if I will have found one.
 
-That's better, yes. Even better would be if it had some hysteresis:
-turn the fan on at threshold temperature, but turn it off only if it
-drops below temperature-5C, or if it is below threshold for 1 minute.
+Thanks!
 
-Thanks,
-      	    		       	     	      		      Pavel
+Rafael
 
--- 
-(english) http://www.livejournal.com/~pavelmachek
-(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
+
+--=20
+I speak only for myself.
+Rafael J. Wysocki, Intel Open Source Technology Center.
+--
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
