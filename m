@@ -1,106 +1,137 @@
-From: Eduardo Valentin <eduardo.valentin@ti.com>
-Subject: Re: [PATCH] thermal: Can't set policy
-Date: Fri, 26 Apr 2013 17:21:04 -0400
-Message-ID: <517AEFC0.2010301@ti.com>
-References: <1367008557-12443-1-git-send-email-srinivas.pandruvada@linux.intel.com>
+From: Aaron Lu <aaron.lu@intel.com>
+Subject: [PATCH 1/2] ata: acpi: make ata_ap_acpi_handle not block
+Date: Sat, 27 Apr 2013 09:33:07 +0800
+Message-ID: <517B2AD3.6010305@intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:42714 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751566Ab3DZVVO (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 26 Apr 2013 17:21:14 -0400
-In-Reply-To: <1367008557-12443-1-git-send-email-srinivas.pandruvada@linux.intel.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Return-path: <linux-ide-owner@vger.kernel.org>
+Sender: linux-ide-owner@vger.kernel.org
+To: Jeff Garzik <jgarzik@pobox.com>
+Cc: Tejun Heo <tj@kernel.org>, kenzopl@o2.pl, linux-ide@vger.kernel.org, linux-acpi@vger.kernel.org, "Rafael J. Wysocki" <rjw@sisk.pl>
 List-Id: linux-acpi@vger.kernel.org
-To: Srinivas Pandruvada <srinivas.pandruvada@linux.intel.com>
-Cc: linux-acpi@vger.kernel.org, rui.zhang@intel.com, linux-pm@vger.kernel.org, eduardo.valentin@ti.com
 
-Hello Srinivas,
+Since commit 30dcf76acc, ata_ap_acpi_handle will always do a namespace
+walk, which requires acquiring an acpi namespace mutex. This made it
+impossible to be used when calling path has held a spinlock.
 
-On 26-04-2013 16:35, Srinivas Pandruvada wrote:
-> Setting policy results in invalid value error.
-> 	>echo "step_wise" > policy
-> 	>echo: write error: Invalid argument
->
-> Need clean up of the buffer which "echo" may add based on the
-> arguments, before comparing aganist list of governor names.
->
-> Signed-off-by: Srinivas Pandruvada <srinivas.pandruvada@linux.intel.com>
-> ---
->   drivers/thermal/thermal_core.c | 19 +++++++++++++++----
->   1 file changed, 15 insertions(+), 4 deletions(-)
->
-> diff --git a/drivers/thermal/thermal_core.c b/drivers/thermal/thermal_core.c
-> index 4cdc3e3..ed6904f 100644
-> --- a/drivers/thermal/thermal_core.c
-> +++ b/drivers/thermal/thermal_core.c
-> @@ -696,16 +696,27 @@ static ssize_t
->   policy_store(struct device *dev, struct device_attribute *attr,
->   		    const char *buf, size_t count)
->   {
-> -	int ret = -EINVAL;
-> +	int ret;
->   	struct thermal_zone_device *tz = to_thermal_zone(dev);
->   	struct thermal_governor *gov;
-> +	char str_gov[THERMAL_NAME_LENGTH];
-> +	char format[6]; /* enough for 3 digit format width */
-> +
-> +	ret = snprintf(format, sizeof(format), "%%%ds",
-> +					THERMAL_NAME_LENGTH - 1);
-> +	if (ret < 0)
-> +		return ret;
-> +	ret = sscanf(buf, format, str_gov);
-> +	if (ret <= 0)
-> +		return -EINVAL;
+For example, it can occur in the following code path for pata_acpi:
+ata_scsi_queuecmd (ap->lock is acquired)
+  __ata_scsi_queuecmd
+    ata_scsi_translate
+      ata_qc_issue
+        pacpi_qc_issue
+          ata_acpi_stm
+            ata_ap_acpi_handle
+              acpi_get_child
+                acpi_walk_namespace
+                  acpi_ut_acquire_mutex (acquire mutex while holding lock)
+This caused scheduling while atomic bug, as reported in bug #56781.
 
+Actually, ata_ap_acpi_handle doesn't have to walk the namespace every
+time it is called, it can simply return the bound acpi handle on the
+corresponding SCSI host. The reason previously it is not done this way
+is, ata_ap_acpi_handle is used in the binding function
+ata_acpi_bind_host by ata_acpi_gtm when the handle is not bound to the
+SCSI host yet. Since we already have the ATA port's handle in its
+binding function, we can simply use it instead of calling
+ata_ap_acpi_handle there. So introduce a new function __ata_acpi_gtm,
+where it will receive an acpi handle param in addition to the ATA port
+which is solely used for debug statement. With this change, we can make
+ata_ap_acpi_handle simply return the bound handle for SCSI host instead
+of walking the acpi namespace now.
 
-Is this due to trainling \n? Why not using sysfs_streq()? I believe it 
-is better approach. Can you please check if the following solves the issue?
+Buglink: https://bugzilla.kernel.org/show_bug.cgi?id=56781
+Reported-and-tested-by: <kenzopl@o2.pl>
+Cc: <stable@vger.kernel.org>
+Signed-off-by: Aaron Lu <aaron.lu@intel.com>
+---
+ drivers/ata/libata-acpi.c | 45 +++++++++++++++++++++++++++------------------
+ 1 file changed, 27 insertions(+), 18 deletions(-)
 
-https://gitorious.org/thermal-framework/thermal-framework/commit/810a33a629b40adfa92a164883281bbdfad80516
+diff --git a/drivers/ata/libata-acpi.c b/drivers/ata/libata-acpi.c
+index 1c33f78..f6d80e3 100644
+--- a/drivers/ata/libata-acpi.c
++++ b/drivers/ata/libata-acpi.c
+@@ -60,7 +60,8 @@ acpi_handle ata_ap_acpi_handle(struct ata_port *ap)
+ 	if (ap->flags & ATA_FLAG_ACPI_SATA)
+ 		return NULL;
 
-commit 810a33a629b40adfa92a164883281bbdfad80516
-Author: Eduardo Valentin <eduardo.valentin@ti.com>
-Date:   Fri Apr 26 17:12:30 2013 -0400
+-	return acpi_get_child(DEVICE_ACPI_HANDLE(ap->host->dev), ap->port_no);
++	return ap->scsi_host ?
++		DEVICE_ACPI_HANDLE(&ap->scsi_host->shost_gendev) : NULL;
+ }
+ EXPORT_SYMBOL(ata_ap_acpi_handle);
 
-     thermal: better string treatment while finding governors
+@@ -239,28 +240,15 @@ void ata_acpi_dissociate(struct ata_host *host)
+ 	}
+ }
 
-     To avoid returning error value just because of trailing
-     \n, this patch changes the function to find governors
-     by name to use sysfs_streq().
+-/**
+- * ata_acpi_gtm - execute _GTM
+- * @ap: target ATA port
+- * @gtm: out parameter for _GTM result
+- *
+- * Evaluate _GTM and store the result in @gtm.
+- *
+- * LOCKING:
+- * EH context.
+- *
+- * RETURNS:
+- * 0 on success, -ENOENT if _GTM doesn't exist, -errno on failure.
+- */
+-int ata_acpi_gtm(struct ata_port *ap, struct ata_acpi_gtm *gtm)
++static int __ata_acpi_gtm(struct ata_port *ap, acpi_handle handle,
++			  struct ata_acpi_gtm *gtm)
+ {
+ 	struct acpi_buffer output = { .length = ACPI_ALLOCATE_BUFFER };
+ 	union acpi_object *out_obj;
+ 	acpi_status status;
+ 	int rc = 0;
 
-     Signed-off-by: Eduardo Valentin <eduardo.valentin@ti.com>
+-	status = acpi_evaluate_object(ata_ap_acpi_handle(ap), "_GTM", NULL,
+-				      &output);
++	status = acpi_evaluate_object(handle, "_GTM", NULL, &output);
 
-diff --git a/drivers/thermal/thermal_core.c b/drivers/thermal/thermal_core.c
-index f36cd44..08ea62c 100644
---- a/drivers/thermal/thermal_core.c
-+++ b/drivers/thermal/thermal_core.c
-@@ -58,7 +58,7 @@ static struct thermal_governor *__find_governor(const 
-char *name)
-         struct thermal_governor *pos;
+ 	rc = -ENOENT;
+ 	if (status == AE_NOT_FOUND)
+@@ -294,6 +282,27 @@ int ata_acpi_gtm(struct ata_port *ap, struct ata_acpi_gtm *gtm)
+ 	return rc;
+ }
 
-         list_for_each_entry(pos, &thermal_governor_list, governor_list)
--               if (!strnicmp(name, pos->name, THERMAL_NAME_LENGTH))
-+               if (sysfs_streq(name, pos->name))
-                         return pos;
++/**
++ * ata_acpi_gtm - execute _GTM
++ * @ap: target ATA port
++ * @gtm: out parameter for _GTM result
++ *
++ * Evaluate _GTM and store the result in @gtm.
++ *
++ * LOCKING:
++ * EH context.
++ *
++ * RETURNS:
++ * 0 on success, -ENOENT if _GTM doesn't exist, -errno on failure.
++ */
++int ata_acpi_gtm(struct ata_port *ap, struct ata_acpi_gtm *gtm)
++{
++	if (ata_ap_acpi_handle(ap))
++		return __ata_acpi_gtm(ap, ata_ap_acpi_handle(ap), gtm);
++	else
++		return -EINVAL;
++}
++
+ EXPORT_SYMBOL_GPL(ata_acpi_gtm);
 
-         return NULL;
+ /**
+@@ -1047,7 +1056,7 @@ static int ata_acpi_bind_host(struct ata_port *ap, acpi_handle *handle)
+ 	if (!*handle)
+ 		return -ENODEV;
 
->
->   	mutex_lock(&thermal_governor_lock);
->
-> -	gov = __find_governor(buf);
-> -	if (!gov)
-> +	gov = __find_governor(str_gov);
-> +	if (!gov) {
-> +		ret = -EINVAL;
->   		goto exit;
-> -
-> +	}
->   	tz->governor = gov;
->   	ret = count;
->
->
+-	if (ata_acpi_gtm(ap, &ap->__acpi_init_gtm) == 0)
++	if (__ata_acpi_gtm(ap, *handle, &ap->__acpi_init_gtm) == 0)
+ 		ap->pflags |= ATA_PFLAG_INIT_GTM_VALID;
+
+ 	return 0;
+-- 
+1.8.2.1.94.g173f9a7
 
