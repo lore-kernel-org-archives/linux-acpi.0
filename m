@@ -1,92 +1,95 @@
 From: joeyli <jlee@suse.com>
-Subject: Re: [PATCH 1/2] acpi: video: add function to support unregister
- backlight
-Date: Mon, 29 Apr 2013 17:19:27 +0800
-Message-ID: <1367227167.22858.42.camel@linux-s257.site>
+Subject: Re: [PATCH 2/2] acer-wmi: add Acer Aspire 5750G to video vendor
+ list but keep acpi video driver
+Date: Mon, 29 Apr 2013 17:21:10 +0800
+Message-ID: <1367227270.22858.44.camel@linux-s257.site>
 References: <1366634355-26482-1-git-send-email-jlee@suse.com>
-	 <1366634355-26482-2-git-send-email-jlee@suse.com>
-	 <20130423041245.GB2435@core.coreip.homeip.net>
+	 <20130423040413.GA2435@core.coreip.homeip.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp.nue.novell.com ([195.135.221.5]:41307 "EHLO
-	smtp.nue.novell.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752580Ab3D2JU6 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 29 Apr 2013 05:20:58 -0400
-In-Reply-To: <20130423041245.GB2435@core.coreip.homeip.net>
-Sender: linux-acpi-owner@vger.kernel.org
-List-Id: linux-acpi@vger.kernel.org
+Return-path: <platform-driver-x86-owner@vger.kernel.org>
+In-Reply-To: <20130423040413.GA2435@core.coreip.homeip.net>
+Sender: platform-driver-x86-owner@vger.kernel.org
 To: Dmitry Torokhov <dmitry.torokhov@gmail.com>
 Cc: mjg@redhat.com, rjw@sisk.pl, platform-driver-x86@vger.kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Carlos Corbacho <carlos@strangeworlds.co.uk>, Corentin Chary <corentincj@iksaif.net>, Aaron Lu <aaron.lu@intel.com>, Thomas Renninger <trenn@suse.de>
+List-Id: linux-acpi@vger.kernel.org
 
 Hi Dmitry,=20
 
-Thanks for your review and suggestions first!
+Thanks for your review and suggestion!
 
-=E6=96=BC =E4=B8=80=EF=BC=8C2013-04-22 =E6=96=BC 21:12 -0700=EF=BC=8CDm=
+=E6=96=BC =E4=B8=80=EF=BC=8C2013-04-22 =E6=96=BC 21:04 -0700=EF=BC=8CDm=
 itry Torokhov =E6=8F=90=E5=88=B0=EF=BC=9A
-> On Mon, Apr 22, 2013 at 08:39:15PM +0800, Chun-Yi Lee wrote:
-> > From: "Lee, Chun-Yi" <jlee@suse.com>
-> > +static acpi_status
-> > +find_video_unregister_backlight(acpi_handle handle, u32 lvl, void =
-*context,
-> > +				void **rv)
+> On Mon, Apr 22, 2013 at 08:39:14PM +0800, Chun-Yi Lee wrote:
+> > From: Lee, Chun-Yi <jlee@suse.com>
+> >=20
+> > After Andrzej's testing, we found the acpi backlight methods broken=
+ on Acer
+> > Aspire 5750G but the i915 backlight control works when we set to ve=
+ndor mode.
+> > And, we still want to keep the acpi/video driver for transfer acpi =
+event to key
+> > event but not unregister whole acpi/video driver.
+> >=20
+> > This patch introduced a new capability flag is ACER_CAP_KEEP_VIDEO_=
+KEY, it
+> > indicates the machine works fine with acpi/video driver for key eve=
+nt but want
+> > to unregister the backlight interface of acpi/video.
+> >=20
+> > Reference: bko#35622
+> >         https://bugzilla.kernel.org/show_bug.cgi?id=3D35622
+> >=20
+> > Tested-by: Andrzej Krentosz <endrjux@gmail.com>
+> > Cc: Carlos Corbacho <carlos@strangeworlds.co.uk>
+> > Cc: Matthew Garrett <mjg@redhat.com>
+> > Cc: Dmitry Torokhov <dtor@mail.ru>
+> > Cc: Corentin Chary <corentincj@iksaif.net>
+> > Cc: Rafael J. Wysocki <rjw@sisk.pl>
+> > Cc: Aaron Lu <aaron.lu@intel.com>
+> > Cc: Thomas Renninger <trenn@suse.de>
+> > Signed-off-by: Lee, Chun-Yi <jlee@suse.com>
+> > ---
+> >  drivers/platform/x86/acer-wmi.c |   20 ++++++++++++++++++++
+> >  1 files changed, 20 insertions(+), 0 deletions(-)
+> >=20
+> > diff --git a/drivers/platform/x86/acer-wmi.c b/drivers/platform/x86=
+/acer-wmi.c
+> > index c9076bd..2a02409 100644
+> > --- a/drivers/platform/x86/acer-wmi.c
+> > +++ b/drivers/platform/x86/acer-wmi.c
+> > @@ -207,6 +207,7 @@ struct hotkey_function_type_aa {
+> >  #define ACER_CAP_BRIGHTNESS		(1<<3)
+> >  #define ACER_CAP_THREEG			(1<<4)
+> >  #define ACER_CAP_ACCEL			(1<<5)
+> > +#define ACER_CAP_KEEP_VIDEO_KEY		(1<<6)
+> >  #define ACER_CAP_ANY			(0xFFFFFFFF)
+> > =20
+> >  /*
+> > @@ -539,6 +540,15 @@ static int video_set_backlight_video_vendor(co=
+nst struct dmi_system_id *d)
+> >  	return 0;
+> >  }
+> > =20
+> > +static int video_set_backlight_video_vendor_keep_acpi_video(
+> > +		const struct dmi_system_id *d)
 > > +{
-> > +	struct acpi_device *acpi_dev;
-> > +	struct acpi_video_bus *video =3D NULL;
+> > +	video_set_backlight_video_vendor(d);
+> > +	interface->capability |=3D ACER_CAP_KEEP_VIDEO_KEY;
+> > +	pr_info("Keep acpi video driver for emit keycode against backligh=
+t change\n");
 >=20
-> Gratuitous initialization of local variables prevents compiler from
-> warning when you using variable uninitialized.
-
-Yes, I agreed should not put gratuitous initialization, I will remove i=
-t
-in v2 patch.
-
+> Huh?
 >=20
-> > +	struct acpi_video_device *dev, *next;
-> > +
-> > +	if (acpi_bus_get_device(handle, &acpi_dev))
-> > +		return AE_OK;
-> > +
-> > +	if (!acpi_match_device_ids(acpi_dev, video_device_ids)) {
-> > +		video =3D acpi_driver_data(acpi_dev);
-> > +		acpi_video_bus_stop_devices(video);
-> > +		mutex_lock(&video->device_list_lock);
-> > +		list_for_each_entry_safe(dev, next, &video->video_device_list,
-> > +					entry) {
-> > +			if (dev->backlight) {
-> > +				backlight_device_unregister(dev->backlight);
-> > +				dev->backlight =3D NULL;
-> > +				kfree(dev->brightness->levels);
-> > +				kfree(dev->brightness);
-> > +			}
-> > +		}
-> > +		mutex_unlock(&video->device_list_lock);
-> > +		acpi_video_bus_start_devices(video);
-> > +	}
-> > +	return AE_OK;
-> > +}
-> > +
-> > +void acpi_video_backlight_unregister(void)
-> > +{
-> > +	if (!register_count) {
+> "Keeping acpi video driver active to emit backlight brightness change
+> key events"?
 >=20
-> Locking? It looks like the rest of the driver ignores locking too...
+> Thanks.
+>=20
 
-Did you mean locking video_device_list?=20
-
-The acpi/video locks video_device_list when add, remove and notify acpi
-video bus driver. It always do the mutex lock before control
-video_device_list, so I also add lock when unregister all backlight of
-devices.
+Yes, this statement is more fluent, I will put to v2 patch.
 
 
 Thanks a lot!
 Joey Lee
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
