@@ -1,140 +1,303 @@
-From: Jiang Liu <liuj97@gmail.com>
-Subject: Re: [PATCH -v3] PCI, ACPI, hotplug: Fix BUS_CHECK event handle on
- root bridge
-Date: Tue, 30 Apr 2013 00:19:56 +0800
-Message-ID: <517E9DAC.7030709@gmail.com>
-References: <1366940798-15268-1-git-send-email-yinghai@kernel.org>
+From: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Subject: Re: [PATCH 1/3 RFC] Driver core: Add offline/online device operations
+Date: Mon, 29 Apr 2013 16:10:19 -0700
+Message-ID: <20130429231019.GB1333@kroah.com>
+References: <1576321.HU0tZ4cGWk@vostro.rjw.lan>
+ <1989524.p5J87p9Tnl@vostro.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-pci-owner@vger.kernel.org>
-In-Reply-To: <1366940798-15268-1-git-send-email-yinghai@kernel.org>
-Sender: linux-pci-owner@vger.kernel.org
-To: Yinghai Lu <yinghai@kernel.org>
-Cc: Bjorn Helgaas <bhelgaas@google.com>, "Rafael J. Wysocki" <rjw@sisk.pl>, Jiang Liu <jiang.liu@huawei.com>, Gavin Guo <tuffkidtt@gmail.com>, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-da0-f53.google.com ([209.85.210.53]:38937 "EHLO
+	mail-da0-f53.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758823Ab3D2XKW (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 29 Apr 2013 19:10:22 -0400
+Received: by mail-da0-f53.google.com with SMTP id n34so3136307dal.26
+        for <linux-acpi@vger.kernel.org>; Mon, 29 Apr 2013 16:10:21 -0700 (PDT)
+Content-Disposition: inline
+In-Reply-To: <1989524.p5J87p9Tnl@vostro.rjw.lan>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: Toshi Kani <toshi.kani@hp.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>, isimatu.yasuaki@jp.fujitsu.com, vasilis.liaskovitis@profitbricks.com
 
-Hi Yinghai,
-	Reviewed-by: Jiang Liu <jiang.liu@huawei.com>
-	Thanks!
-
-On 04/26/2013 09:46 AM, Yinghai Lu wrote:
-> Gavin found that acpiphp does not handle hotplug anymore even after
-> now we have acpiphp built-in preparing for v3.10.
+On Mon, Apr 29, 2013 at 02:26:56PM +0200, Rafael J. Wysocki wrote:
+> From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 > 
-> Bjorn analyzed bootlog, he found that 
->     acpiphp: ACPI Hot Plug PCI Controller Driver version: 0.5
->     ACPI: PCI Root Bridge [PCI0] (domain 0000 [bus 00-3e])
->     \_SB_.PCI0:_OSC invalid UUID
->     acpiphp: Slot [1] registered
->     acpiphp: Slot [1-1] registered
->    acpi root: \_SB_.PCI0 notify handler is installed
->     _handle_hotplug_event_root: Bus check notify on \_SB_.PCI0
->     _handle_hotplug_event_root: Bus check notify on \_SB_.PCI0
-> And that means:
->    So we should be using acpiphp, which you do have built in statically,
->    and it found a couple slots.  And we did get two bus check notifies on
->    \_SB_.PCI0, so we *should* be re-enumerating PCI bus 0000:00.  But it
->    looks like we're handling this as a host bridge hotplug event instead
->    of a PCI device hotplug.  My guess is that
->    handle_root_bridge_insertion() does nothing because the PCI0 ACPI
->    device already exists, though I would expect to see the "acpi device
->    exists..." in your dmesg log if this were the case.
+> In some cases, graceful hot-removal of devices is not possible,
+> although in principle the devices in question support hotplug.
+> For example, that may happen for the last CPU in the system or
+> for memory modules holding kernel memory.
 > 
-> Also according to Rafael and Bjorn, it is perfect fine that we
-> should enumerate bus by sending event to root bridge after hotadd
-> device to slots under that root bridge or children bridges.
+> In those cases it is nice to be able to check if the given device
+> can be safely hot-removed before triggering a removal procedure
+> that cannot be aborted or reversed.  Unfortunately, however, the
+> kernel currently doesn't provide any support for that.
 > 
-> It turns out that it is regression caused by
-> | commit 668192b678201d2fff27c6cc76bb003c1ec4a52a
-> | Author: Yinghai Lu <yinghai@kernel.org>
-> | Date:   Mon Jan 21 13:20:48 2013 -0800
-> |
-> |    PCI: acpiphp: Move host bridge hotplug to pci_root.c
+> To address that deficiency, introduce support for offline and
+> online operations that can be performed on devices, respectively,
+> before a hot-removal and in case when it is necessary (or convenient)
+> to put a device back online after a successful offline (that has not
+> been followed by removal).  The idea is that the offline will fail
+> whenever the given device cannot be gracefully removed from the
+> system and it will not be allowed to use the device after a
+> successful offline (until a subsequent online) in analogy with the
+> existing CPU offline/online mechanism.
 > 
-> We should check slots when BUS_CHECK is sent to root bridge acpi handle.
+> For now, the offline and online operations are introduced at the
+> bus type level, as that should be sufficient for the most urgent use
+> cases (CPUs and memory modules).  In the future, however, the
+> approach may be extended to cover some more complicated device
+> offline/online scenarios involving device drivers etc.
 > 
-> Restore the old behavoir by calling acpi_check_bridge and check_sub_bridge
-> in acpiphp.
-> 
-> Jiang Liu acctually have simimar patch but it forgets calling
-> acpi_check_bridge() for system that have slots on root bus directly.
-> That is still valid, as in QEMU we still have that slots on bus 0 at
-> least. But my first version patch wrongly check if root bridge exists
-> before check_sub_bridge for children bridges. 
-> 
-> -v2: Don't check bridge for acpi_walk_namespace with check_sub_bridges.
->      also put back bridge reference.
-> -v3: More changelog and etc.
-> 
-> Reported-by: Gavin Guo <tuffkidtt@gmail.com>
-> Tested-by: Gavin Guo <tuffkidtt@gmail.com>
-> Signed-off-by: Yinghai Lu <yinghai@kernel.org>
-> 
+> Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 > ---
->  drivers/acpi/pci_root.c            |    2 ++
->  drivers/pci/hotplug/acpiphp_glue.c |   14 ++++++++++++++
->  include/linux/pci-acpi.h           |    2 ++
->  3 files changed, 18 insertions(+)
+>  Documentation/ABI/testing/sysfs-devices-online |   19 +++
+>  drivers/base/core.c                            |  134 +++++++++++++++++++++++++
+>  include/linux/device.h                         |   21 +++
+>  3 files changed, 174 insertions(+)
 > 
-> Index: linux-2.6/drivers/acpi/pci_root.c
+> Index: linux-pm/include/linux/device.h
 > ===================================================================
-> --- linux-2.6.orig/drivers/acpi/pci_root.c
-> +++ linux-2.6/drivers/acpi/pci_root.c
-> @@ -643,6 +643,8 @@ static void _handle_hotplug_event_root(s
->  				 (char *)buffer.pointer);
->  		if (!root)
->  			handle_root_bridge_insertion(handle);
-> +		else
-> +			acpiphp_check_host_bridge(handle);
+> --- linux-pm.orig/include/linux/device.h
+> +++ linux-pm/include/linux/device.h
+> @@ -70,6 +70,10 @@ extern void bus_remove_file(struct bus_t
+>   *		the specific driver's probe to initial the matched device.
+>   * @remove:	Called when a device removed from this bus.
+>   * @shutdown:	Called at shut-down time to quiesce the device.
+> + *
+> + * @online:	Called to put the device back online (after offlining it).
+> + * @offline:	Called to put the device offline for hot-removal. May fail.
+> + *
+>   * @suspend:	Called when a device on this bus wants to go to sleep mode.
+>   * @resume:	Called to bring a device on this bus out of sleep mode.
+>   * @pm:		Power management operations of this bus, callback the specific
+> @@ -103,6 +107,9 @@ struct bus_type {
+>  	int (*remove)(struct device *dev);
+>  	void (*shutdown)(struct device *dev);
 >  
->  		break;
+> +	int (*online)(struct device *dev);
+> +	int (*offline)(struct device *dev);
+> +
+>  	int (*suspend)(struct device *dev, pm_message_t state);
+>  	int (*resume)(struct device *dev);
 >  
-> Index: linux-2.6/drivers/pci/hotplug/acpiphp_glue.c
-> ===================================================================
-> --- linux-2.6.orig/drivers/pci/hotplug/acpiphp_glue.c
-> +++ linux-2.6/drivers/pci/hotplug/acpiphp_glue.c
-> @@ -950,6 +950,20 @@ check_sub_bridges(acpi_handle handle, u3
->  	return AE_OK ;
->  }
+> @@ -646,6 +653,8 @@ struct acpi_dev_node {
+>   * @release:	Callback to free the device after all references have
+>   * 		gone away. This should be set by the allocator of the
+>   * 		device (i.e. the bus driver that discovered the device).
+> + * @offline_disabled: If set, the device is permanently online.
+> + * @offline:	Set after successful invocation of bus type's .offline().
+>   *
+>   * At the lowest level, every device in a Linux system is represented by an
+>   * instance of struct device. The device structure contains the information
+> @@ -718,6 +727,9 @@ struct device {
 >  
-> +void acpiphp_check_host_bridge(acpi_handle handle)
+>  	void	(*release)(struct device *dev);
+>  	struct iommu_group	*iommu_group;
+> +
+> +	bool			offline_disabled:1;
+> +	bool			offline:1;
+>  };
+>  
+>  static inline struct device *kobj_to_dev(struct kobject *kobj)
+> @@ -853,6 +865,15 @@ extern const char *device_get_devnode(st
+>  extern void *dev_get_drvdata(const struct device *dev);
+>  extern int dev_set_drvdata(struct device *dev, void *data);
+>  
+> +static inline bool device_supports_offline(struct device *dev)
 > +{
-> +	struct acpiphp_bridge *bridge;
-> +
-> +	bridge = acpiphp_handle_to_bridge(handle);
-> +	if (bridge) {
-> +		acpiphp_check_bridge(bridge);
-> +		put_bridge(bridge);
-> +	}
-> +
-> +	acpi_walk_namespace(ACPI_TYPE_DEVICE, handle,
-> +		ACPI_UINT32_MAX, check_sub_bridges, NULL, NULL, NULL);
+> +	return dev->bus && dev->bus->offline && dev->bus->online;
+
+Wouldn't it be easier for us to also check offline_disabled here as
+well?  That would save the extra check when we go to create the sysfs
+file.
+
+
 > +}
 > +
->  static void _handle_hotplug_event_bridge(struct work_struct *work)
->  {
->  	struct acpiphp_bridge *bridge;
-> Index: linux-2.6/include/linux/pci-acpi.h
+> +extern void lock_device_offline(void);
+> +extern void unlock_device_offline(void);
+> +extern int device_offline(struct device *dev);
+> +extern int device_online(struct device *dev);
+>  /*
+>   * Root device objects for grouping under /sys/devices
+>   */
+> Index: linux-pm/drivers/base/core.c
 > ===================================================================
-> --- linux-2.6.orig/include/linux/pci-acpi.h
-> +++ linux-2.6/include/linux/pci-acpi.h
-> @@ -60,11 +60,13 @@ static inline void acpi_pci_slot_remove(
->  void acpiphp_init(void);
->  void acpiphp_enumerate_slots(struct pci_bus *bus, acpi_handle handle);
->  void acpiphp_remove_slots(struct pci_bus *bus);
-> +void acpiphp_check_host_bridge(acpi_handle handle);
->  #else
->  static inline void acpiphp_init(void) { }
->  static inline void acpiphp_enumerate_slots(struct pci_bus *bus,
->  					   acpi_handle handle) { }
->  static inline void acpiphp_remove_slots(struct pci_bus *bus) { }
-> +static inline void acpiphp_check_host_bridge(acpi_handle handle) { }
->  #endif
+> --- linux-pm.orig/drivers/base/core.c
+> +++ linux-pm/drivers/base/core.c
+> @@ -397,6 +397,40 @@ static ssize_t store_uevent(struct devic
+>  static struct device_attribute uevent_attr =
+>  	__ATTR(uevent, S_IRUGO | S_IWUSR, show_uevent, store_uevent);
 >  
->  #else	/* CONFIG_ACPI */
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-pci" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
+> +static ssize_t show_online(struct device *dev, struct device_attribute *attr,
+> +			   char *buf)
+> +{
+> +	bool ret;
+> +
+> +	lock_device_offline();
+> +	ret = !dev->offline;
+> +	unlock_device_offline();
+> +	return sprintf(buf, "%u\n", ret);
+> +}
+> +
+> +static ssize_t store_online(struct device *dev, struct device_attribute *attr,
+> +			    const char *buf, size_t count)
+> +{
+> +	int ret;
+> +
+> +	lock_device_offline();
+> +	switch (buf[0]) {
+> +	case '0':
+> +		ret = device_offline(dev);
+> +		break;
+> +	case '1':
+> +		ret = device_online(dev);
+> +		break;
+
+Should we also accept 'y', 'Y', 'n', and 'N', like most boolean sysfs
+files do?  I think we even have a kernel helper function for it
+somewhere...
+
+> +	default:
+> +		ret = -EINVAL;
+> +	}
+> +	unlock_device_offline();
+> +	return ret < 0 ? ret : count;
+> +}
+> +
+> +static struct device_attribute online_attr =
+> +	__ATTR(online, S_IRUGO | S_IWUSR, show_online, store_online);
+> +
+>  static int device_add_attributes(struct device *dev,
+>  				 struct device_attribute *attrs)
+>  {
+> @@ -510,6 +544,12 @@ static int device_add_attrs(struct devic
+>  	if (error)
+>  		goto err_remove_type_groups;
+>  
+> +	if (device_supports_offline(dev) && !dev->offline_disabled) {
+> +		error = device_create_file(dev, &online_attr);
+> +		if (error)
+> +			goto err_remove_type_groups;
+> +	}
+> +
+>  	return 0;
+>  
+>   err_remove_type_groups:
+> @@ -530,6 +570,7 @@ static void device_remove_attrs(struct d
+>  	struct class *class = dev->class;
+>  	const struct device_type *type = dev->type;
+>  
+> +	device_remove_file(dev, &online_attr);
+>  	device_remove_groups(dev, dev->groups);
+>  
+>  	if (type)
+> @@ -1415,6 +1456,99 @@ EXPORT_SYMBOL_GPL(put_device);
+>  EXPORT_SYMBOL_GPL(device_create_file);
+>  EXPORT_SYMBOL_GPL(device_remove_file);
+>  
+> +static DEFINE_MUTEX(device_offline_lock);
+> +
+> +void lock_device_offline(void)
+> +{
+> +	mutex_lock(&device_offline_lock);
+> +}
+> +
+> +void unlock_device_offline(void)
+> +{
+> +	mutex_unlock(&device_offline_lock);
+> +}
+
+Why have functions?  Why not just do the mutex_lock/unlock instead
+everywhere?
+
+> +static int device_check_offline(struct device *dev, void *not_used)
+> +{
+> +	int ret;
+> +
+> +	ret = device_for_each_child(dev, NULL, device_check_offline);
+> +	if (ret)
+> +		return ret;
+> +
+> +	return device_supports_offline(dev) && !dev->offline ? -EBUSY : 0;
+> +}
+> +
+> +/**
+> + * device_offline - Prepare the device for hot-removal.
+> + * @dev: Device to be put offline.
+> + *
+> + * Execute the device bus type's .offline() callback, if present, to prepare
+> + * the device for a subsequent hot-removal.  If that succeeds, the device must
+> + * not be used until either it is removed or its bus type's .online() callback
+> + * is executed.
+> + *
+> + * Call under device_offline_lock.
+> + */
+> +int device_offline(struct device *dev)
+> +{
+> +	int ret;
+> +
+> +	if (dev->offline_disabled)
+> +		return -EPERM;
+> +
+> +	ret = device_for_each_child(dev, NULL, device_check_offline);
+> +	if (ret)
+> +		return ret;
+> +
+> +	device_lock(dev);
+> +	if (device_supports_offline(dev)) {
+> +		if (dev->offline) {
+> +			ret = 1;
+> +		} else {
+> +			ret = dev->bus->offline(dev);
+> +			if (!ret) {
+> +				kobject_uevent(&dev->kobj, KOBJ_OFFLINE);
+> +				dev->offline = true;
+> +			}
+> +		}
+> +	}
+> +	device_unlock(dev);
+> +
+> +	return ret;
+> +}
+> +
+> +/**
+> + * device_online - Put the device back online after successful device_offline().
+> + * @dev: Device to be put back online.
+> + *
+> + * If device_offline() has been successfully executed for @dev, but the device
+> + * has not been removed subsequently, execute its bus type's .online() callback
+> + * to indicate that the device can be used again.
+> + *
+> + * Call under device_offline_lock.
+> + */
+> +int device_online(struct device *dev)
+> +{
+> +	int ret = 0;
+> +
+> +	device_lock(dev);
+> +	if (device_supports_offline(dev)) {
+> +		if (dev->offline) {
+> +			ret = dev->bus->online(dev);
+> +			if (!ret) {
+> +				kobject_uevent(&dev->kobj, KOBJ_ONLINE);
+> +				dev->offline = false;
+> +			}
+> +		} else {
+> +			ret = 1;
+> +		}
+> +	}
+> +	device_unlock(dev);
+> +
+> +	return ret;
+> +}
+
+We don't grab the offline lock for when we go offline/online?  I like
+the device_lock() call.  I don't understand what the offline locking is
+supposed to be protecting as you don't use it here.  Will it make more
+sense in the rest of the patches?
+
+thanks,
+
+greg k-h
