@@ -1,53 +1,43 @@
-From: Matthieu Dubuget <matthieu.dubuget@gmail.com>
-Subject: Re: [regression] suspend is flakey, "shutdown -h now" does not power
- off
-Date: Sun, 28 Apr 2013 10:09:35 +0200
-Message-ID: <517CD93F.2060802@gmail.com>
-References: <4EC27F88.9070209@gmail.com> <20111116044358.GB5889@elie.hsd1.il.comcast.net> <4EC95C07.6030706@gmail.com> <517BE0C6.4070107@gmail.com> <517C7B1C.3000600@intel.com>
-Reply-To: matthieu.dubuget@gmail.com
+From: nmn@nathanielmnelson.com
+Subject: [PATCH] platform-driver-x86: toshiba_hdaps (new) (3.8.10)
+Date: Sun, 28 Apr 2013 22:42:16 -0700
+Message-ID: <fdc446a704647f251072e94517f5fa2e.squirrel@webmail.nathanielmnelson.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1;
-	format=flowed
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-we0-f173.google.com ([74.125.82.173]:43525 "EHLO
-	mail-we0-f173.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751574Ab3D1IJi (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sun, 28 Apr 2013 04:09:38 -0400
-Received: by mail-we0-f173.google.com with SMTP id o7so4566489wea.18
-        for <linux-acpi@vger.kernel.org>; Sun, 28 Apr 2013 01:09:37 -0700 (PDT)
-Received: from [192.168.1.78] (7.99.10.109.rev.sfr.net. [109.10.99.7])
-        by mx.google.com with ESMTPSA id ge7sm14314338wib.6.2013.04.28.01.09.36
-        for <linux-acpi@vger.kernel.org>
-        (version=TLSv1 cipher=ECDHE-RSA-RC4-SHA bits=128/128);
-        Sun, 28 Apr 2013 01:09:36 -0700 (PDT)
-In-Reply-To: <517C7B1C.3000600@intel.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
+Return-path: <platform-driver-x86-owner@vger.kernel.org>
+Sender: platform-driver-x86-owner@vger.kernel.org
+To: platform-driver-x86@vger.kernel.org, linux-acpi@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-Cc: linux-acpi@vger.kernel.org
 
-Le 28/04/2013 03:27, Aaron Lu a =E9crit :
-> Filed a bug report for you here:
-> https://bugzilla.kernel.org/show_bug.cgi?id=3D57231
->
-> Thanks,
-> Aaron
->
+Hello all, I've created a patch that enables support for the TOS620A device,
+an accelerometer device on many Toshiba laptops to detect hard drive shock.
+Included is a pretty simple ACPI module and will send out notifications via
+netlink and procfs when the detected state changes.
 
-I am to thank you. I'll try to gather more details to narrow the proble=
-m=20
-and add them in the bug report.
+This module will send a value of 0x80 when vibration is detected from the
+HDAPS device, and 0x81 when the laptop has been stable for about 1-2 seconds.
+There are 3 different levels of sensitivity set explicitly in ACPI.  These are
+essentially 'low', 'medium', and 'high'. (1, 2, 3 respectively).
 
-Is there any common known distrib that uses the kernel untouched I coul=
-d=20
-use to narrow the revision
-at which the problem was introduced?
+For the actual parking of the hard drive heads, I then use two separate ACPI2
+event files.  The first is triggered when vibration is detected:
 
-Thanks
+event=HAPS 00000080
+action=echo 30000 > /sys/block/sd?/device/unload_heads
 
-Matt
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+and to reset:
+
+event=HAPS 00000081
+action=echo 0 > /sys/block/sd?/device/unload_heads
+
+It creates 2 sysfs attributes.  The first is 'status', which just returns 1 if
+the device exists and everything is cool.  The second is 'protlevel' which is
+RW and allows you to view the current protection level or set a new level.
+
+Since it is a full module patch, I've included a link to download.  Please let
+me know what you think.  Thanks!
+
+Signed off by: Nate Nelson <nmn@nathanielmnelson.com>
+---
+http://www.nathanielmnelson.com/sites/default/files/toshiba_hdaps-3.8.10.patch
