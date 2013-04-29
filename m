@@ -1,43 +1,40 @@
-From: nmn@nathanielmnelson.com
-Subject: [PATCH] platform-driver-x86: toshiba_hdaps (new) (3.8.10)
-Date: Sun, 28 Apr 2013 22:42:16 -0700
-Message-ID: <fdc446a704647f251072e94517f5fa2e.squirrel@webmail.nathanielmnelson.com>
+From: Matthieu Dubuget <matthieu.dubuget@gmail.com>
+Subject: Re: [regression] suspend is flakey, "shutdown -h now" does not power
+ off
+Date: Mon, 29 Apr 2013 09:09:32 +0200
+Message-ID: <517E1CAC.6090804@gmail.com>
+References: <4EC27F88.9070209@gmail.com> <20111116044358.GB5889@elie.hsd1.il.comcast.net> <4EC95C07.6030706@gmail.com> <517BE0C6.4070107@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
-Return-path: <platform-driver-x86-owner@vger.kernel.org>
-Sender: platform-driver-x86-owner@vger.kernel.org
-To: platform-driver-x86@vger.kernel.org, linux-acpi@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-ee0-f43.google.com ([74.125.83.43]:56862 "EHLO
+	mail-ee0-f43.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751413Ab3D2HJf (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 29 Apr 2013 03:09:35 -0400
+Received: by mail-ee0-f43.google.com with SMTP id b47so1524836eek.30
+        for <linux-acpi@vger.kernel.org>; Mon, 29 Apr 2013 00:09:34 -0700 (PDT)
+In-Reply-To: <517BE0C6.4070107@gmail.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: linux-acpi@vger.kernel.org
+Cc: Jonathan Nieder <jrnieder@gmail.com>
 
-Hello all, I've created a patch that enables support for the TOS620A device,
-an accelerometer device on many Toshiba laptops to detect hard drive shock.
-Included is a pretty simple ACPI module and will send out notifications via
-netlink and procfs when the detected state changes.
+It seems that the problem reported is not a regression in acpi, but a
+bug in the amd64 version.  For all the live systems I tested, each
+time I used a 386/686 version it worked fine, each time I tried a
+amd64 version it failed.
 
-This module will send a value of 0x80 when vibration is detected from the
-HDAPS device, and 0x81 when the laptop has been stable for about 1-2 seconds.
-There are 3 different levels of sensitivity set explicitly in ACPI.  These are
-essentially 'low', 'medium', and 'high'. (1, 2, 3 respectively).
+Hoping this will help narrowing the bug!
 
-For the actual parking of the hard drive heads, I then use two separate ACPI2
-event files.  The first is triggered when vibration is detected:
+ From now on, I'm not sure about what I could do to understand the
+problem?
 
-event=HAPS 00000080
-action=echo 30000 > /sys/block/sd?/device/unload_heads
+Maybe a kernel recompilation with some debugging options added? But
+which?
 
-and to reset:
+Salutations, and thanks for your help
 
-event=HAPS 00000081
-action=echo 0 > /sys/block/sd?/device/unload_heads
+Matt
 
-It creates 2 sysfs attributes.  The first is 'status', which just returns 1 if
-the device exists and everything is cool.  The second is 'protlevel' which is
-RW and allows you to view the current protection level or set a new level.
 
-Since it is a full module patch, I've included a link to download.  Please let
-me know what you think.  Thanks!
-
-Signed off by: Nate Nelson <nmn@nathanielmnelson.com>
----
-http://www.nathanielmnelson.com/sites/default/files/toshiba_hdaps-3.8.10.patch
