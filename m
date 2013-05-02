@@ -1,263 +1,112 @@
 From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: [PATCH 3/4] ACPI / hotplug: Use device offline/online for graceful hot-removal
-Date: Thu, 02 May 2013 14:29:56 +0200
-Message-ID: <4172338.SM4yyc8Lmg@vostro.rjw.lan>
-References: <1576321.HU0tZ4cGWk@vostro.rjw.lan> <3166726.elbgrUIZ0L@vostro.rjw.lan>
+Subject: [PATCH 0/4] Driver core / ACPI: Add offline/online for graceful hot-removal of devices
+Date: Thu, 02 May 2013 14:26:39 +0200
+Message-ID: <3166726.elbgrUIZ0L@vostro.rjw.lan>
+References: <1576321.HU0tZ4cGWk@vostro.rjw.lan>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7Bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <3166726.elbgrUIZ0L@vostro.rjw.lan>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc: Toshi Kani <toshi.kani@hp.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>, isimatu.yasuaki@jp.fujitsu.com, vasilis.liaskovitis@profitbricks.com, Len Brown <lenb@kernel.org>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from hydra.sisk.pl ([212.160.235.94]:55045 "EHLO hydra.sisk.pl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S932081Ab3EBMXx (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 2 May 2013 08:23:53 -0400
+In-Reply-To: <1576321.HU0tZ4cGWk@vostro.rjw.lan>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Toshi Kani <toshi.kani@hp.com>
+Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>, isimatu.yasuaki@jp.fujitsu.com, vasilis.liaskovitis@profitbricks.com, Len Brown <lenb@kernel.org>
 
-From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+Hi,
 
-Modify the generic ACPI hotplug code to be able to check if devices
-scheduled for hot-removal may be gracefully removed from the system
-using the device offline/online mechanism introduced previously.
+The following introduction is still valid for patches [1-3/4] and patch [4/4]
+reworks the ACPI processor driver to use the new code.  Some details below.
 
-Namely, make acpi_scan_hot_remove() handling device hot-removal call
-device_offline() for all physical companions of the ACPI device nodes
-involved in the operation and check the results.  If any of the
-device_offline() calls fails, the function will not progress to the
-removal phase (which cannot be aborted), unless its (new) force
-argument is set (in case of a failing offline it will put the devices
-offlined by it back online).
+On Monday, April 29, 2013 02:23:59 PM Rafael J. Wysocki wrote:
+> 
+> It has been argued for a number of times that in some cases, if a device cannot
+> be gracefully removed from the system, it shouldn't be removed from it at all,
+> because that may lead to a kernel crash.  In particular, that will happen if a
+> memory module holding kernel memory is removed, but also removing the last CPU
+> in the system may not be a good idea.  [And I can imagine a few other cases
+> like that.]
+> 
+> The kernel currently only supports "forced" hot-remove which cannot be stopped
+> once started, so users have no choice but to try to hot-remove stuff and see
+> whether or not that crashes the kernel which is kind of unpleasant.  That seems
+> to be based on the "the user knows better" argument according to which users
+> triggering device hot-removal should really know what they are doing, so the
+> kernel doesn't have to worry about that.  However, for instance, this pretty
+> much isn't the case for memory modules, because the users have no way to see
+> whether or not any kernel memory has been allocated from a given module.
+> 
+> There have been a few attempts to address this issue, but none of them has
+> gained broader acceptance.  The following 3 patches are the heart of a new
+> proposal which is based on the idea to introduce device_offline() and
+> device_online() operations along the lines of the existing CPU offline/online
+> mechanism (or, rather, to extend the CPU offline/online so that analogous
+> operations are available for other devices).  The way it is supposed to work is
+> that device_offline() will fail if the given device cannot be gracefully
+> removed from the system (in the kernel's view).  Once it succeeds, though, the
+> device won't be used any more until either it is removed, or device_online() is
+> run for it.  That will allow the ACPI device hot-remove code, for one example,
+> to avoid triggering a non-reversible removal procedure for devices that cannot
+> be removed gracefully.
+> 
+> Patch [1/3] introduces device_offline() and device_online() as outlined above.
+> The .offline() and .online() callbacks are only added at the bus type level for
+> now, because that should be sufficient to cover the memory and CPU use cases.
 
-In support of 'forced' device hot-removal, add a new sysfs attribute
-'force_remove' that will reside under /sys/firmware/acpi/hotplug/.
+That's [1/4] now and the changes from the previous version are:
+- strtobool() is used in store_online().
+- device_offline_lock has been renamed to device_hotplug_lock (and the
+  functions operating it accordingly) following the Toshi's advice.
 
-Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
----
- Documentation/ABI/testing/sysfs-firmware-acpi |   10 +++
- drivers/acpi/internal.h                       |    2 
- drivers/acpi/scan.c                           |   84 ++++++++++++++++++++++++++
- drivers/acpi/sysfs.c                          |   31 +++++++++
- include/acpi/acpi_bus.h                       |    1 
- 5 files changed, 128 insertions(+)
+> Patch [2/3] modifies the CPU hotplug support code to use device_offline() and
+> device_online() to support the sysfs 'online' attribute for CPUs.
 
-Index: linux-pm/include/acpi/acpi_bus.h
-===================================================================
---- linux-pm.orig/include/acpi/acpi_bus.h
-+++ linux-pm/include/acpi/acpi_bus.h
-@@ -286,6 +286,7 @@ struct acpi_device_physical_node {
- 	u8 node_id;
- 	struct list_head node;
- 	struct device *dev;
-+	bool put_online:1;
- };
- 
- /* set maximum of physical nodes to 32 for expansibility */
-Index: linux-pm/drivers/acpi/scan.c
-===================================================================
---- linux-pm.orig/drivers/acpi/scan.c
-+++ linux-pm/drivers/acpi/scan.c
-@@ -27,6 +27,12 @@ extern struct acpi_device *acpi_root;
- 
- #define ACPI_IS_ROOT_DEVICE(device)    (!(device)->parent)
- 
-+/*
-+ * If set, devices will be hot-removed even if they cannot be put offline
-+ * gracefully (from the kernel's standpoint).
-+ */
-+bool acpi_force_hot_remove;
-+
- static const char *dummy_hid = "device";
- 
- static LIST_HEAD(acpi_device_list);
-@@ -120,6 +126,59 @@ acpi_device_modalias_show(struct device
- }
- static DEVICE_ATTR(modalias, 0444, acpi_device_modalias_show, NULL);
- 
-+static acpi_status acpi_bus_offline_companions(acpi_handle handle, u32 lvl,
-+					       void *data, void **ret_p)
-+{
-+	struct acpi_device *device = NULL;
-+	struct acpi_device_physical_node *pn;
-+	acpi_status status = AE_OK;
-+
-+	if (acpi_bus_get_device(handle, &device))
-+		return AE_OK;
-+
-+	mutex_lock(&device->physical_node_lock);
-+
-+	list_for_each_entry(pn, &device->physical_node_list, node) {
-+		int ret;
-+
-+		ret = device_offline(pn->dev);
-+		if (acpi_force_hot_remove)
-+			continue;
-+
-+		if (ret < 0) {
-+			status = AE_ERROR;
-+			break;
-+		}
-+		pn->put_online = !ret;
-+	}
-+
-+	mutex_unlock(&device->physical_node_lock);
-+
-+	return status;
-+}
-+
-+static acpi_status acpi_bus_online_companions(acpi_handle handle, u32 lvl,
-+					      void *data, void **ret_p)
-+{
-+	struct acpi_device *device = NULL;
-+	struct acpi_device_physical_node *pn;
-+
-+	if (acpi_bus_get_device(handle, &device))
-+		return AE_OK;
-+
-+	mutex_lock(&device->physical_node_lock);
-+
-+	list_for_each_entry(pn, &device->physical_node_list, node)
-+		if (pn->put_online) {
-+			device_online(pn->dev);
-+			pn->put_online = false;
-+		}
-+
-+	mutex_unlock(&device->physical_node_lock);
-+
-+	return AE_OK;
-+}
-+
- static int acpi_scan_hot_remove(struct acpi_device *device)
- {
- 	acpi_handle handle = device->handle;
-@@ -136,10 +195,33 @@ static int acpi_scan_hot_remove(struct a
- 		return -EINVAL;
- 	}
- 
-+	lock_device_hotplug();
-+
-+	status = acpi_walk_namespace(ACPI_TYPE_ANY, handle, ACPI_UINT32_MAX,
-+				     NULL, acpi_bus_offline_companions, NULL,
-+				     NULL);
-+	if (ACPI_SUCCESS(status) || acpi_force_hot_remove)
-+		status = acpi_bus_offline_companions(handle, 0, NULL, NULL);
-+
-+	if (ACPI_FAILURE(status) && !acpi_force_hot_remove) {
-+		acpi_bus_online_companions(handle, 0, NULL, NULL);
-+		acpi_walk_namespace(ACPI_TYPE_ANY, handle, ACPI_UINT32_MAX,
-+				    acpi_bus_online_companions, NULL, NULL,
-+				    NULL);
-+
-+		unlock_device_hotplug();
-+
-+		put_device(&device->dev);
-+		return -EBUSY;
-+	}
-+
- 	ACPI_DEBUG_PRINT((ACPI_DB_INFO,
- 		"Hot-removing device %s...\n", dev_name(&device->dev)));
- 
- 	acpi_bus_trim(device);
-+
-+	unlock_device_hotplug();
-+
- 	/* Device node has been unregistered. */
- 	put_device(&device->dev);
- 	device = NULL;
-@@ -236,6 +318,7 @@ static void acpi_scan_bus_device_check(a
- 	int error;
- 
- 	mutex_lock(&acpi_scan_lock);
-+	lock_device_hotplug();
- 
- 	acpi_bus_get_device(handle, &device);
- 	if (device) {
-@@ -259,6 +342,7 @@ static void acpi_scan_bus_device_check(a
- 		kobject_uevent(&device->dev.kobj, KOBJ_ONLINE);
- 
-  out:
-+	unlock_device_hotplug();
- 	acpi_evaluate_hotplug_ost(handle, ost_source, ost_code, NULL);
- 	mutex_unlock(&acpi_scan_lock);
- }
-Index: linux-pm/drivers/acpi/sysfs.c
-===================================================================
---- linux-pm.orig/drivers/acpi/sysfs.c
-+++ linux-pm/drivers/acpi/sysfs.c
-@@ -780,6 +780,33 @@ void acpi_sysfs_add_hotplug_profile(stru
- 	pr_err(PREFIX "Unable to add hotplug profile '%s'\n", name);
- }
- 
-+static ssize_t force_remove_show(struct kobject *kobj,
-+				 struct kobj_attribute *attr, char *buf)
-+{
-+	return sprintf(buf, "%d\n", !!acpi_force_hot_remove);
-+}
-+
-+static ssize_t force_remove_store(struct kobject *kobj,
-+				  struct kobj_attribute *attr,
-+				  const char *buf, size_t size)
-+{
-+	bool val;
-+	int ret;
-+
-+	ret = strtobool(buf, &val);
-+	if (ret < 0)
-+		return ret;
-+
-+	lock_device_hotplug();
-+	acpi_force_hot_remove = val;
-+	unlock_device_hotplug();
-+	return size;
-+}
-+
-+static const struct kobj_attribute force_remove_attr =
-+	__ATTR(force_remove, S_IRUGO | S_IWUSR, force_remove_show,
-+	       force_remove_store);
-+
- int __init acpi_sysfs_init(void)
- {
- 	int result;
-@@ -789,6 +816,10 @@ int __init acpi_sysfs_init(void)
- 		return result;
- 
- 	hotplug_kobj = kobject_create_and_add("hotplug", acpi_kobj);
-+	result = sysfs_create_file(hotplug_kobj, &force_remove_attr.attr);
-+	if (result)
-+		return result;
-+
- 	result = sysfs_create_file(acpi_kobj, &pm_profile_attr.attr);
- 	return result;
- }
-Index: linux-pm/drivers/acpi/internal.h
-===================================================================
---- linux-pm.orig/drivers/acpi/internal.h
-+++ linux-pm/drivers/acpi/internal.h
-@@ -47,6 +47,8 @@ void acpi_memory_hotplug_init(void);
- static inline void acpi_memory_hotplug_init(void) {}
- #endif
- 
-+extern bool acpi_force_hot_remove;
-+
- void acpi_sysfs_add_hotplug_profile(struct acpi_hotplug_profile *hotplug,
- 				    const char *name);
- int acpi_scan_add_handler_with_hotplug(struct acpi_scan_handler *handler,
-Index: linux-pm/Documentation/ABI/testing/sysfs-firmware-acpi
-===================================================================
---- linux-pm.orig/Documentation/ABI/testing/sysfs-firmware-acpi
-+++ linux-pm/Documentation/ABI/testing/sysfs-firmware-acpi
-@@ -44,6 +44,16 @@ Description:
- 		or 0 (unset).  Attempts to write any other values to it will
- 		cause -EINVAL to be returned.
- 
-+What:		/sys/firmware/acpi/hotplug/force_remove
-+Date:		May 2013
-+Contact:	Rafael J. Wysocki <rafael.j.wysocki@intel.com>
-+Description:
-+		The number in this file (0 or 1) determines whether (1) or not
-+		(0) the ACPI subsystem will allow devices to be hot-removed even
-+		if they cannot be put offline gracefully (from the kernel's
-+		viewpoint).  That number can be changed by writing a boolean
-+		value to this file.
-+
- What:		/sys/firmware/acpi/interrupts/
- Date:		February 2008
- Contact:	Len Brown <lenb@kernel.org>
+That is [2/4] now and it takes cpu_hotplug_driver_lock() around cpu_up() and
+cpu_down().
+
+> Patch [3/3] changes the ACPI device hot-remove code to use device_offline()
+> for checking if graceful removal of devices is possible.  The way it does that
+> is to walk the list of "physical" companion devices for each struct acpi_device
+> involved in the operation and call device_offline() for each of them.  If any
+> of the device_offline() calls fails (and the hot-removal is not "forced", which
+> is an option), the removal procedure (which is not reversible) is simply not
+> carried out.
+
+That's current [3/4].  It's a bit simpler, because I decided that it would be
+better to have a global 'force_remove' attribute (the semantics of the
+per-profile 'force_remove' wasn't clear and it didn't really add any value over
+a global one).  I also added lock/unlock_device_hotplug() around acpi_bus_scan()
+in acpi_scan_bus_device_check() to allow scan handlers to update dev->offline
+for "physical" companion devices safely (the processor's one added by the next
+patch actually does that).
+
+> Of some concern is that device_offline() (and possibly device_online()) is
+> called under physical_node_lock of the corresponding struct acpi_device, which
+> introduces ordering dependency between that lock and device locks for the
+> "physical" devices, but I didn't see any cleaner way to do that (I guess it
+> is avoidable at the expense of added complexity, but for now it's just better
+> to make the code as clean as possible IMO).
+
+Patch [4/4] reworks the ACPI processor driver to use the common hotplug code.
+It basically splits the driver into two parts as described in the changelog,
+where the first part is essentially a scan handler and the second part is
+a driver, but it doesn't bind to struct acpi_device any more.  Instead, it
+binds to processor devices under /sys/devices/system/cpu/ (the driver itself
+has a sysfs directory under /sys/bus/cpu/drivers/ which IMHO makes more sense
+than having it under /sys/bus/acpi/drivers/).
+
+The patch at https://patchwork.kernel.org/patch/2506371/ is a prerequisite
+for this series, but I'm going to push it for v3.10-rc2 if no one screams
+bloody murder.
+
+Thanks,
+Rafael
+
+
+-- 
+I speak only for myself.
+Rafael J. Wysocki, Intel Open Source Technology Center.
