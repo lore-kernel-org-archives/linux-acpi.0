@@ -1,317 +1,137 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: [PATCH 1/3 RFC] Driver core: Add offline/online device operations
-Date: Thu, 02 May 2013 02:58:24 +0200
-Message-ID: <1431630.dgj2h0U6M6@vostro.rjw.lan>
-References: <1576321.HU0tZ4cGWk@vostro.rjw.lan> <1989524.p5J87p9Tnl@vostro.rjw.lan> <1367365118.16154.137.camel@misato.fc.hp.com>
+From: Srinivas Pandruvada <srinivas.pandruvada@linux.intel.com>
+Subject: Re: [PATCH] thermal: Can't set policy
+Date: Wed, 01 May 2013 21:50:43 -0700
+Message-ID: <5181F0A3.90005@linux.intel.com>
+References: <1367008557-12443-1-git-send-email-srinivas.pandruvada@linux.intel.com> <517AEFC0.2010301@ti.com> <517B0E9D.6000904@linux.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7Bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from hydra.sisk.pl ([212.160.235.94]:54374 "EHLO hydra.sisk.pl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753830Ab3EBAuJ (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 1 May 2013 20:50:09 -0400
-In-Reply-To: <1367365118.16154.137.camel@misato.fc.hp.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-pm-owner@vger.kernel.org>
+In-Reply-To: <517B0E9D.6000904@linux.intel.com>
+Sender: linux-pm-owner@vger.kernel.org
+To: Eduardo Valentin <eduardo.valentin@ti.com>
+Cc: linux-acpi@vger.kernel.org, rui.zhang@intel.com, linux-pm@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Toshi Kani <toshi.kani@hp.com>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>, isimatu.yasuaki@jp.fujitsu.com, vasilis.liaskovitis@profitbricks.com
 
-On Tuesday, April 30, 2013 05:38:38 PM Toshi Kani wrote:
-> On Mon, 2013-04-29 at 14:26 +0200, Rafael J. Wysocki wrote:
-> > From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
-> > 
-> > In some cases, graceful hot-removal of devices is not possible,
-> > although in principle the devices in question support hotplug.
-> > For example, that may happen for the last CPU in the system or
-> > for memory modules holding kernel memory.
-> > 
-> > In those cases it is nice to be able to check if the given device
-> > can be safely hot-removed before triggering a removal procedure
-> > that cannot be aborted or reversed.  Unfortunately, however, the
-> > kernel currently doesn't provide any support for that.
-> > 
-> > To address that deficiency, introduce support for offline and
-> > online operations that can be performed on devices, respectively,
-> > before a hot-removal and in case when it is necessary (or convenient)
-> > to put a device back online after a successful offline (that has not
-> > been followed by removal).  The idea is that the offline will fail
-> > whenever the given device cannot be gracefully removed from the
-> > system and it will not be allowed to use the device after a
-> > successful offline (until a subsequent online) in analogy with the
-> > existing CPU offline/online mechanism.
-> > 
-> > For now, the offline and online operations are introduced at the
-> > bus type level, as that should be sufficient for the most urgent use
-> > cases (CPUs and memory modules).  In the future, however, the
-> > approach may be extended to cover some more complicated device
-> > offline/online scenarios involving device drivers etc.
-> 
-> I like this approach much better than the user space approach we
-> considered before. :)  My comments below.
+Hi Valentin,
 
-Great! :-)
-
-> > Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
-> > ---
-> >  Documentation/ABI/testing/sysfs-devices-online |   19 +++
-> >  drivers/base/core.c                            |  134 +++++++++++++++++++++++++
-> >  include/linux/device.h                         |   21 +++
-> >  3 files changed, 174 insertions(+)
-> > 
-> > Index: linux-pm/include/linux/device.h
-> > ===================================================================
-> > --- linux-pm.orig/include/linux/device.h
-> > +++ linux-pm/include/linux/device.h
-> > @@ -70,6 +70,10 @@ extern void bus_remove_file(struct bus_t
-> >   *		the specific driver's probe to initial the matched device.
-> >   * @remove:	Called when a device removed from this bus.
-> >   * @shutdown:	Called at shut-down time to quiesce the device.
-> > + *
-> > + * @online:	Called to put the device back online (after offlining it).
-> > + * @offline:	Called to put the device offline for hot-removal. May fail.
-> > + *
-> >   * @suspend:	Called when a device on this bus wants to go to sleep mode.
-> >   * @resume:	Called to bring a device on this bus out of sleep mode.
-> >   * @pm:		Power management operations of this bus, callback the specific
-> > @@ -103,6 +107,9 @@ struct bus_type {
-> >  	int (*remove)(struct device *dev);
-> >  	void (*shutdown)(struct device *dev);
-> >  
-> > +	int (*online)(struct device *dev);
-> > +	int (*offline)(struct device *dev);
-> > +
-> >  	int (*suspend)(struct device *dev, pm_message_t state);
-> >  	int (*resume)(struct device *dev);
-> >  
-> > @@ -646,6 +653,8 @@ struct acpi_dev_node {
-> >   * @release:	Callback to free the device after all references have
-> >   * 		gone away. This should be set by the allocator of the
-> >   * 		device (i.e. the bus driver that discovered the device).
-> > + * @offline_disabled: If set, the device is permanently online.
-> > + * @offline:	Set after successful invocation of bus type's .offline().
-> >   *
-> >   * At the lowest level, every device in a Linux system is represented by an
-> >   * instance of struct device. The device structure contains the information
-> > @@ -718,6 +727,9 @@ struct device {
-> >  
-> >  	void	(*release)(struct device *dev);
-> >  	struct iommu_group	*iommu_group;
-> > +
-> > +	bool			offline_disabled:1;
-> > +	bool			offline:1;
-> >  };
-> >  
-> >  static inline struct device *kobj_to_dev(struct kobject *kobj)
-> > @@ -853,6 +865,15 @@ extern const char *device_get_devnode(st
-> >  extern void *dev_get_drvdata(const struct device *dev);
-> >  extern int dev_set_drvdata(struct device *dev, void *data);
-> >  
-> > +static inline bool device_supports_offline(struct device *dev)
-> > +{
-> > +	return dev->bus && dev->bus->offline && dev->bus->online;
-> > +}
-> > +
-> > +extern void lock_device_offline(void);
-> > +extern void unlock_device_offline(void);
-> > +extern int device_offline(struct device *dev);
-> > +extern int device_online(struct device *dev);
-> >  /*
-> >   * Root device objects for grouping under /sys/devices
-> >   */
-> > Index: linux-pm/drivers/base/core.c
-> > ===================================================================
-> > --- linux-pm.orig/drivers/base/core.c
-> > +++ linux-pm/drivers/base/core.c
-> > @@ -397,6 +397,40 @@ static ssize_t store_uevent(struct devic
-> >  static struct device_attribute uevent_attr =
-> >  	__ATTR(uevent, S_IRUGO | S_IWUSR, show_uevent, store_uevent);
-> >  
-> > +static ssize_t show_online(struct device *dev, struct device_attribute *attr,
-> > +			   char *buf)
-> > +{
-> > +	bool ret;
-> > +
-> > +	lock_device_offline();
-> > +	ret = !dev->offline;
-> > +	unlock_device_offline();
-> > +	return sprintf(buf, "%u\n", ret);
-> > +}
-> > +
-> > +static ssize_t store_online(struct device *dev, struct device_attribute *attr,
-> > +			    const char *buf, size_t count)
-> > +{
-> > +	int ret;
-> > +
-> > +	lock_device_offline();
-> > +	switch (buf[0]) {
-> > +	case '0':
-> > +		ret = device_offline(dev);
-> > +		break;
-> > +	case '1':
-> > +		ret = device_online(dev);
-> > +		break;
-> 
-> memblk has multiple types of online operations specific to memory
-> devices, such as "online_kernel" and "online_movable".  As memblk needs
-> to be integrated into this framework for addressing the crash issue, we
-> need to think about how they can be generalized into this operation.
-
-Sure.
-
-> > +	default:
-> > +		ret = -EINVAL;
-> > +	}
-> > +	unlock_device_offline();
-> > +	return ret < 0 ? ret : count;
-> > +}
-> > +
-> > +static struct device_attribute online_attr =
-> > +	__ATTR(online, S_IRUGO | S_IWUSR, show_online, store_online);
-> > +
-> >  static int device_add_attributes(struct device *dev,
-> >  				 struct device_attribute *attrs)
-> >  {
-> > @@ -510,6 +544,12 @@ static int device_add_attrs(struct devic
-> >  	if (error)
-> >  		goto err_remove_type_groups;
-> >  
-> > +	if (device_supports_offline(dev) && !dev->offline_disabled) {
-> > +		error = device_create_file(dev, &online_attr);
-> > +		if (error)
-> > +			goto err_remove_type_groups;
-> > +	}
-> > +
-> >  	return 0;
-> >  
-> >   err_remove_type_groups:
-> > @@ -530,6 +570,7 @@ static void device_remove_attrs(struct d
-> >  	struct class *class = dev->class;
-> >  	const struct device_type *type = dev->type;
-> >  
-> > +	device_remove_file(dev, &online_attr);
-> >  	device_remove_groups(dev, dev->groups);
-> >  
-> >  	if (type)
-> > @@ -1415,6 +1456,99 @@ EXPORT_SYMBOL_GPL(put_device);
-> >  EXPORT_SYMBOL_GPL(device_create_file);
-> >  EXPORT_SYMBOL_GPL(device_remove_file);
-> >  
-> > +static DEFINE_MUTEX(device_offline_lock);
-> > +
-> > +void lock_device_offline(void)
-> > +{
-> > +	mutex_lock(&device_offline_lock);
-> > +}
-> > +
-> > +void unlock_device_offline(void)
-> > +{
-> > +	mutex_unlock(&device_offline_lock);
-> > +}
-> > +
-> > +static int device_check_offline(struct device *dev, void *not_used)
-> > +{
-> > +	int ret;
-> > +
-> > +	ret = device_for_each_child(dev, NULL, device_check_offline);
-> > +	if (ret)
-> > +		return ret;
-> > +
-> > +	return device_supports_offline(dev) && !dev->offline ? -EBUSY : 0;
-> > +}
-> > +
-> > +/**
-> > + * device_offline - Prepare the device for hot-removal.
-> > + * @dev: Device to be put offline.
-> > + *
-> > + * Execute the device bus type's .offline() callback, if present, to prepare
-> > + * the device for a subsequent hot-removal.  If that succeeds, the device must
-> > + * not be used until either it is removed or its bus type's .online() callback
-> > + * is executed.
-> > + *
-> > + * Call under device_offline_lock.
-> > + */
-> > +int device_offline(struct device *dev)
-> > +{
-> > +	int ret;
-> > +
-> > +	if (dev->offline_disabled)
-> > +		return -EPERM;
-> > +
-> > +	ret = device_for_each_child(dev, NULL, device_check_offline);
-> > +	if (ret)
-> > +		return ret;
-> > +
-> > +	device_lock(dev);
-> > +	if (device_supports_offline(dev)) {
-> > +		if (dev->offline) {
-> > +			ret = 1;
-> > +		} else {
-> > +			ret = dev->bus->offline(dev);
-> > +			if (!ret) {
-> > +				kobject_uevent(&dev->kobj, KOBJ_OFFLINE);
-> > +				dev->offline = true;
-> 
-> Shouldn't this offline flag be set before sending KOBJ_OFFLINE?
-> 
-> > +			}
-> > +		}
-> > +	}
-> > +	device_unlock(dev);
-> > +
-> > +	return ret;
-> > +}
-> > +
-> > +/**
-> > + * device_online - Put the device back online after successful device_offline().
-> > + * @dev: Device to be put back online.
-> > + *
-> > + * If device_offline() has been successfully executed for @dev, but the device
-> > + * has not been removed subsequently, execute its bus type's .online() callback
-> > + * to indicate that the device can be used again.
-> 
-> There is another use-case for online().  When a device like CPU is
-> hot-added, it is added in offline.  I am not sure why, but it has been
-> this way.  So, we need to call online() to make a new device available
-> for use after a hot-add.
-
-Actually, in the CPU case that is left to user space as far as I can say.
-That is, the device appears initially offline and user space is supposed to
-bring it online via sysfs.
-
-> > + *
-> > + * Call under device_offline_lock.
-> > + */
-> > +int device_online(struct device *dev)
-> > +{
-> > +	int ret = 0;
-> > +
-> > +	device_lock(dev);
-> > +	if (device_supports_offline(dev)) {
-> > +		if (dev->offline) {
-> > +			ret = dev->bus->online(dev);
-> > +			if (!ret) {
-> > +				kobject_uevent(&dev->kobj, KOBJ_ONLINE);
-> > +				dev->offline = false;
-> 
-> Same comment as KOBJ_OFFLINE.
-
-I wonder why the ordering may be important?
-
-> > +			}
-> > +		} else {
-> > +			ret = 1;
-> 
-> This case has a problem in the hot-add use-case I mentioned above.  When
-> a new device is added, dev->offline is set to 0.  So, device_online()
-> thinks it is online already.
-
-Then whoever adds the device needs to set dev->offline.
+Any further thoughts?
 
 Thanks,
-Rafael
+Srinivas
 
+On 04/26/2013 04:32 PM, Srinivas Pandruvada wrote:
+> Hi Valentin,
+>
+> I planned to use that before , but it will change the semantics here.
+>
+> - Here comparison is using a case in-sensitive version, sysfs_streq is 
+> case sensitive.
+> - I am not sure if there is any protection for length. If we pass a 
+> more than THERM_NAME_LENGTH string, then whether sysfs_streq can 
+> handle. so we need to pre-check for length.
+> - some stupid echo command with CRLF, will still fail
+> I see that some other syfs string write (eg. cpufreq.c) decided not to 
+> use sysfs_streq, may be historical.
+>
+> Thanks,
+> Srinivas
+>
+>
+> On 04/26/2013 02:21 PM, Eduardo Valentin wrote:
+>> Hello Srinivas,
+>>
+>> On 26-04-2013 16:35, Srinivas Pandruvada wrote:
+>>> Setting policy results in invalid value error.
+>>>     >echo "step_wise" > policy
+>>>     >echo: write error: Invalid argument
+>>>
+>>> Need clean up of the buffer which "echo" may add based on the
+>>> arguments, before comparing aganist list of governor names.
+>>>
+>>> Signed-off-by: Srinivas Pandruvada 
+>>> <srinivas.pandruvada@linux.intel.com>
+>>> ---
+>>>   drivers/thermal/thermal_core.c | 19 +++++++++++++++----
+>>>   1 file changed, 15 insertions(+), 4 deletions(-)
+>>>
+>>> diff --git a/drivers/thermal/thermal_core.c 
+>>> b/drivers/thermal/thermal_core.c
+>>> index 4cdc3e3..ed6904f 100644
+>>> --- a/drivers/thermal/thermal_core.c
+>>> +++ b/drivers/thermal/thermal_core.c
+>>> @@ -696,16 +696,27 @@ static ssize_t
+>>>   policy_store(struct device *dev, struct device_attribute *attr,
+>>>               const char *buf, size_t count)
+>>>   {
+>>> -    int ret = -EINVAL;
+>>> +    int ret;
+>>>       struct thermal_zone_device *tz = to_thermal_zone(dev);
+>>>       struct thermal_governor *gov;
+>>> +    char str_gov[THERMAL_NAME_LENGTH];
+>>> +    char format[6]; /* enough for 3 digit format width */
+>>> +
+>>> +    ret = snprintf(format, sizeof(format), "%%%ds",
+>>> +                    THERMAL_NAME_LENGTH - 1);
+>>> +    if (ret < 0)
+>>> +        return ret;
+>>> +    ret = sscanf(buf, format, str_gov);
+>>> +    if (ret <= 0)
+>>> +        return -EINVAL;
+>>
+>>
+>> Is this due to trainling \n? Why not using sysfs_streq()? I believe 
+>> it is better approach. Can you please check if the following solves 
+>> the issue?
+>>
+>> https://gitorious.org/thermal-framework/thermal-framework/commit/810a33a629b40adfa92a164883281bbdfad80516 
+>>
+>>
+>> commit 810a33a629b40adfa92a164883281bbdfad80516
+>> Author: Eduardo Valentin <eduardo.valentin@ti.com>
+>> Date:   Fri Apr 26 17:12:30 2013 -0400
+>>
+>>     thermal: better string treatment while finding governors
+>>
+>>     To avoid returning error value just because of trailing
+>>     \n, this patch changes the function to find governors
+>>     by name to use sysfs_streq().
+>>
+>>     Signed-off-by: Eduardo Valentin <eduardo.valentin@ti.com>
+>>
+>> diff --git a/drivers/thermal/thermal_core.c 
+>> b/drivers/thermal/thermal_core.c
+>> index f36cd44..08ea62c 100644
+>> --- a/drivers/thermal/thermal_core.c
+>> +++ b/drivers/thermal/thermal_core.c
+>> @@ -58,7 +58,7 @@ static struct thermal_governor 
+>> *__find_governor(const char *name)
+>>         struct thermal_governor *pos;
+>>
+>>         list_for_each_entry(pos, &thermal_governor_list, governor_list)
+>> -               if (!strnicmp(name, pos->name, THERMAL_NAME_LENGTH))
+>> +               if (sysfs_streq(name, pos->name))
+>>                         return pos;
+>>
+>>         return NULL;
+>>
+>>>
+>>>       mutex_lock(&thermal_governor_lock);
+>>>
+>>> -    gov = __find_governor(buf);
+>>> -    if (!gov)
+>>> +    gov = __find_governor(str_gov);
+>>> +    if (!gov) {
+>>> +        ret = -EINVAL;
+>>>           goto exit;
+>>> -
+>>> +    }
+>>>       tz->governor = gov;
+>>>       ret = count;
+>>>
+>>>
+>>
+>>
+>
+>
 
--- 
-I speak only for myself.
-Rafael J. Wysocki, Intel Open Source Technology Center.
