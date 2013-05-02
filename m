@@ -1,112 +1,157 @@
 From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: [PATCH 0/4] Driver core / ACPI: Add offline/online for graceful hot-removal of devices
-Date: Thu, 02 May 2013 14:26:39 +0200
-Message-ID: <3166726.elbgrUIZ0L@vostro.rjw.lan>
-References: <1576321.HU0tZ4cGWk@vostro.rjw.lan>
+Subject: [PATCH 2/4] Driver core: Use generic offline/online for CPU offline/online
+Date: Thu, 02 May 2013 14:28:19 +0200
+Message-ID: <14113724.8SqWXP0sFF@vostro.rjw.lan>
+References: <1576321.HU0tZ4cGWk@vostro.rjw.lan> <3166726.elbgrUIZ0L@vostro.rjw.lan>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7Bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from hydra.sisk.pl ([212.160.235.94]:55045 "EHLO hydra.sisk.pl"
+Received: from hydra.sisk.pl ([212.160.235.94]:55034 "EHLO hydra.sisk.pl"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932081Ab3EBMXx (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 2 May 2013 08:23:53 -0400
-In-Reply-To: <1576321.HU0tZ4cGWk@vostro.rjw.lan>
+	id S932070Ab3EBMXw (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 2 May 2013 08:23:52 -0400
+In-Reply-To: <3166726.elbgrUIZ0L@vostro.rjw.lan>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Toshi Kani <toshi.kani@hp.com>
-Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>, isimatu.yasuaki@jp.fujitsu.com, vasilis.liaskovitis@profitbricks.com, Len Brown <lenb@kernel.org>
+To: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: Toshi Kani <toshi.kani@hp.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>, isimatu.yasuaki@jp.fujitsu.com, vasilis.liaskovitis@profitbricks.com, Len Brown <lenb@kernel.org>
 
-Hi,
+From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 
-The following introduction is still valid for patches [1-3/4] and patch [4/4]
-reworks the ACPI processor driver to use the new code.  Some details below.
+Rework the CPU hotplug code in drivers/base/cpu.c to use the
+generic offline/online support introduced previously instead of
+its own CPU-specific code.
 
-On Monday, April 29, 2013 02:23:59 PM Rafael J. Wysocki wrote:
-> 
-> It has been argued for a number of times that in some cases, if a device cannot
-> be gracefully removed from the system, it shouldn't be removed from it at all,
-> because that may lead to a kernel crash.  In particular, that will happen if a
-> memory module holding kernel memory is removed, but also removing the last CPU
-> in the system may not be a good idea.  [And I can imagine a few other cases
-> like that.]
-> 
-> The kernel currently only supports "forced" hot-remove which cannot be stopped
-> once started, so users have no choice but to try to hot-remove stuff and see
-> whether or not that crashes the kernel which is kind of unpleasant.  That seems
-> to be based on the "the user knows better" argument according to which users
-> triggering device hot-removal should really know what they are doing, so the
-> kernel doesn't have to worry about that.  However, for instance, this pretty
-> much isn't the case for memory modules, because the users have no way to see
-> whether or not any kernel memory has been allocated from a given module.
-> 
-> There have been a few attempts to address this issue, but none of them has
-> gained broader acceptance.  The following 3 patches are the heart of a new
-> proposal which is based on the idea to introduce device_offline() and
-> device_online() operations along the lines of the existing CPU offline/online
-> mechanism (or, rather, to extend the CPU offline/online so that analogous
-> operations are available for other devices).  The way it is supposed to work is
-> that device_offline() will fail if the given device cannot be gracefully
-> removed from the system (in the kernel's view).  Once it succeeds, though, the
-> device won't be used any more until either it is removed, or device_online() is
-> run for it.  That will allow the ACPI device hot-remove code, for one example,
-> to avoid triggering a non-reversible removal procedure for devices that cannot
-> be removed gracefully.
-> 
-> Patch [1/3] introduces device_offline() and device_online() as outlined above.
-> The .offline() and .online() callbacks are only added at the bus type level for
-> now, because that should be sufficient to cover the memory and CPU use cases.
+For this purpose, modify cpu_subsys to provide offline and online
+callbacks for CONFIG_HOTPLUG_CPU set and remove the code handling
+the CPU-specific 'online' sysfs attribute.
 
-That's [1/4] now and the changes from the previous version are:
-- strtobool() is used in store_online().
-- device_offline_lock has been renamed to device_hotplug_lock (and the
-  functions operating it accordingly) following the Toshi's advice.
+This modification is not supposed to change the user-observable
+behavior of the kernel (i.e. the 'online' attribute will be present
+in exactly the same place in sysfs and should trigger exactly the
+same actions as before).
 
-> Patch [2/3] modifies the CPU hotplug support code to use device_offline() and
-> device_online() to support the sysfs 'online' attribute for CPUs.
+Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+---
+ drivers/base/cpu.c |   66 ++++++++++++++++-------------------------------------
+ 1 file changed, 20 insertions(+), 46 deletions(-)
 
-That is [2/4] now and it takes cpu_hotplug_driver_lock() around cpu_up() and
-cpu_down().
+Index: linux-pm/drivers/base/cpu.c
+===================================================================
+--- linux-pm.orig/drivers/base/cpu.c
++++ linux-pm/drivers/base/cpu.c
+@@ -16,66 +16,35 @@
+ 
+ #include "base.h"
+ 
+-struct bus_type cpu_subsys = {
+-	.name = "cpu",
+-	.dev_name = "cpu",
+-};
+-EXPORT_SYMBOL_GPL(cpu_subsys);
+-
+ static DEFINE_PER_CPU(struct device *, cpu_sys_devices);
+ 
+ #ifdef CONFIG_HOTPLUG_CPU
+-static ssize_t show_online(struct device *dev,
+-			   struct device_attribute *attr,
+-			   char *buf)
++static int cpu_subsys_online(struct device *dev)
+ {
+-	struct cpu *cpu = container_of(dev, struct cpu, dev);
++	int ret;
+ 
+-	return sprintf(buf, "%u\n", !!cpu_online(cpu->dev.id));
++	cpu_hotplug_driver_lock();
++	ret = cpu_up(dev->id);
++	cpu_hotplug_driver_unlock();
++	return ret;
+ }
+ 
+-static ssize_t __ref store_online(struct device *dev,
+-				  struct device_attribute *attr,
+-				  const char *buf, size_t count)
++static int cpu_subsys_offline(struct device *dev)
+ {
+-	struct cpu *cpu = container_of(dev, struct cpu, dev);
+-	ssize_t ret;
++	int ret;
+ 
+ 	cpu_hotplug_driver_lock();
+-	switch (buf[0]) {
+-	case '0':
+-		ret = cpu_down(cpu->dev.id);
+-		if (!ret)
+-			kobject_uevent(&dev->kobj, KOBJ_OFFLINE);
+-		break;
+-	case '1':
+-		ret = cpu_up(cpu->dev.id);
+-		if (!ret)
+-			kobject_uevent(&dev->kobj, KOBJ_ONLINE);
+-		break;
+-	default:
+-		ret = -EINVAL;
+-	}
++	ret = cpu_down(dev->id);
+ 	cpu_hotplug_driver_unlock();
+-
+-	if (ret >= 0)
+-		ret = count;
+ 	return ret;
+ }
+-static DEVICE_ATTR(online, 0644, show_online, store_online);
+ 
+-static void __cpuinit register_cpu_control(struct cpu *cpu)
+-{
+-	device_create_file(&cpu->dev, &dev_attr_online);
+-}
+ void unregister_cpu(struct cpu *cpu)
+ {
+ 	int logical_cpu = cpu->dev.id;
+ 
+ 	unregister_cpu_under_node(logical_cpu, cpu_to_node(logical_cpu));
+ 
+-	device_remove_file(&cpu->dev, &dev_attr_online);
+-
+ 	device_unregister(&cpu->dev);
+ 	per_cpu(cpu_sys_devices, logical_cpu) = NULL;
+ 	return;
+@@ -102,12 +71,18 @@ static DEVICE_ATTR(probe, S_IWUSR, NULL,
+ static DEVICE_ATTR(release, S_IWUSR, NULL, cpu_release_store);
+ #endif /* CONFIG_ARCH_CPU_PROBE_RELEASE */
+ 
+-#else /* ... !CONFIG_HOTPLUG_CPU */
+-static inline void register_cpu_control(struct cpu *cpu)
+-{
+-}
+ #endif /* CONFIG_HOTPLUG_CPU */
+ 
++struct bus_type cpu_subsys = {
++	.name = "cpu",
++	.dev_name = "cpu",
++#ifdef CONFIG_HOTPLUG_CPU
++	.online = cpu_subsys_online,
++	.offline = cpu_subsys_offline,
++#endif
++};
++EXPORT_SYMBOL_GPL(cpu_subsys);
++
+ #ifdef CONFIG_KEXEC
+ #include <linux/kexec.h>
+ 
+@@ -245,12 +220,11 @@ int __cpuinit register_cpu(struct cpu *c
+ 	cpu->dev.id = num;
+ 	cpu->dev.bus = &cpu_subsys;
+ 	cpu->dev.release = cpu_device_release;
++	cpu->dev.offline_disabled = !cpu->hotpluggable;
+ #ifdef CONFIG_ARCH_HAS_CPU_AUTOPROBE
+ 	cpu->dev.bus->uevent = arch_cpu_uevent;
+ #endif
+ 	error = device_register(&cpu->dev);
+-	if (!error && cpu->hotpluggable)
+-		register_cpu_control(cpu);
+ 	if (!error)
+ 		per_cpu(cpu_sys_devices, num) = &cpu->dev;
+ 	if (!error)
 
-> Patch [3/3] changes the ACPI device hot-remove code to use device_offline()
-> for checking if graceful removal of devices is possible.  The way it does that
-> is to walk the list of "physical" companion devices for each struct acpi_device
-> involved in the operation and call device_offline() for each of them.  If any
-> of the device_offline() calls fails (and the hot-removal is not "forced", which
-> is an option), the removal procedure (which is not reversible) is simply not
-> carried out.
-
-That's current [3/4].  It's a bit simpler, because I decided that it would be
-better to have a global 'force_remove' attribute (the semantics of the
-per-profile 'force_remove' wasn't clear and it didn't really add any value over
-a global one).  I also added lock/unlock_device_hotplug() around acpi_bus_scan()
-in acpi_scan_bus_device_check() to allow scan handlers to update dev->offline
-for "physical" companion devices safely (the processor's one added by the next
-patch actually does that).
-
-> Of some concern is that device_offline() (and possibly device_online()) is
-> called under physical_node_lock of the corresponding struct acpi_device, which
-> introduces ordering dependency between that lock and device locks for the
-> "physical" devices, but I didn't see any cleaner way to do that (I guess it
-> is avoidable at the expense of added complexity, but for now it's just better
-> to make the code as clean as possible IMO).
-
-Patch [4/4] reworks the ACPI processor driver to use the common hotplug code.
-It basically splits the driver into two parts as described in the changelog,
-where the first part is essentially a scan handler and the second part is
-a driver, but it doesn't bind to struct acpi_device any more.  Instead, it
-binds to processor devices under /sys/devices/system/cpu/ (the driver itself
-has a sysfs directory under /sys/bus/cpu/drivers/ which IMHO makes more sense
-than having it under /sys/bus/acpi/drivers/).
-
-The patch at https://patchwork.kernel.org/patch/2506371/ is a prerequisite
-for this series, but I'm going to push it for v3.10-rc2 if no one screams
-bloody murder.
-
-Thanks,
-Rafael
-
-
--- 
-I speak only for myself.
-Rafael J. Wysocki, Intel Open Source Technology Center.
