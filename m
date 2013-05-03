@@ -1,46 +1,106 @@
-From: =?UTF-8?B?VG9yYWxmIEbDtnJzdGVy?= <toralf.foerster@gmx.de>
-Subject: 3.9.0 + CONFIG_X86_INTEL_PSTATE=y  -> ThinkPad T420 with i5 lost
- ACPI functionality
-Date: Fri, 03 May 2013 18:55:37 +0200
-Message-ID: <5183EC09.9080208@gmx.de>
+From: Toshi Kani <toshi.kani@hp.com>
+Subject: Re: [PATCH 4/4] ACPI / processor: Use common hotplug infrastructure
+Date: Fri, 03 May 2013 12:27:54 -0600
+Message-ID: <1367605674.16154.198.camel@misato.fc.hp.com>
+References: <1576321.HU0tZ4cGWk@vostro.rjw.lan>
+	 <4370898.CqFcWEhTiu@vostro.rjw.lan>
+	 <1367536812.16154.178.camel@misato.fc.hp.com>
+	 <8416995.PXoT3vbUMm@vostro.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: linux-acpi@vger.kernel.org
-Cc: Linux Kernel <linux-kernel@vger.kernel.org>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from g1t0026.austin.hp.com ([15.216.28.33]:19043 "EHLO
+	g1t0026.austin.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752726Ab3ECS16 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 3 May 2013 14:27:58 -0400
+In-Reply-To: <8416995.PXoT3vbUMm@vostro.rjw.lan>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>, isimatu.yasuaki@jp.fujitsu.com, vasilis.liaskovitis@profitbricks.com, Len Brown <lenb@kernel.org>
 
-The following file doesn't exists at my Gentoo Linux
-/sys/devices/system/cpu/cpufreq/ondemand/ignore_nice_load
-in 3.9.0 if I activate CONFIG_X86_INTEL_PSTATE=3Dy=20
+On Fri, 2013-05-03 at 14:05 +0200, Rafael J. Wysocki wrote:
+> On Thursday, May 02, 2013 05:20:12 PM Toshi Kani wrote:
+> > On Thu, 2013-05-02 at 14:31 +0200, Rafael J. Wysocki wrote:
+> > > From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+ : 
+> > > Index: linux-pm/drivers/base/cpu.c
+> > > ===================================================================
+> > > --- linux-pm.orig/drivers/base/cpu.c
+> > > +++ linux-pm/drivers/base/cpu.c
+> > > @@ -13,11 +13,21 @@
+> > >  #include <linux/gfp.h>
+> > >  #include <linux/slab.h>
+> > >  #include <linux/percpu.h>
+> > > +#include <linux/acpi.h>
+> > >  
+> > >  #include "base.h"
+> > >  
+> > >  static DEFINE_PER_CPU(struct device *, cpu_sys_devices);
+> > >  
+> > > +static int cpu_subsys_match(struct device *dev, struct device_driver *drv)
+> > > +{
+> > > +	/* ACPI style match is the only one that may succeed. */
+> > > +	if (acpi_driver_match_device(dev, drv))
+> > 
+> > Can you explain why this change is needed?
+> 
+> This is the mechanism by which the driver core determines which driver to use
+> with a processor device passed to device_attach().
+> 
+> Basically, it walks the list of drivers whose bus type is cpu_subsys and
+> calls cpu_subsys->match(), which points to cpu_subsys_match(), for the device
+> and each of the drivers.  The result of that tell is whether or not to use
+> the given driver with the device.
+> 
+> Now, acpi_driver_match_device() returns 'true' if (a) the device has an ACPI
+> handle and (b) at least one of the IDs of the struct acpi_device associated
+> with that handle is in the driver's .acpi_match_table table.  Since the ACPI
+> processor's .acpi_match_table contains the same set of IDs as the table
+> of device IDs of processor_handler, this guarantees that the ACPI processor
+> driver will be used for the devices prepared by acpi_processor_add().
+> 
+> What it boils down to is that acpi_processor_start() is going to be called
+> for every device whose ACPI handle is populated by acpi_processor_add().
+> 
+> > Do CPU devices still behave the same on non-ACPI systems?
+> 
+> Yes, they do.  The whole driver matching/binding is irrelevant to them, because
+> the ACPI processor driver is the only one registering itself under cpu_subsys.
 
-That means, that a command like
+Thanks for the detailed explanation!  I missed that the new processor
+driver is registered to cpu_subsys.  I now see what you did.  This is
+clever.
 
-$> echo 1 > /sys/devices/system/cpu/cpufreq/ondemand/ignore_nice_load
+One minor comment.
 
-in /etc/rc.local is now no longer working.
-A high fan +  high temperature are the result, even if just the BOINC c=
-lient
-is run with low prio (nice 19) in the back ground.
++static __cpuinit int __acpi_processor_start(struct acpi_device *device)
+>  {
+> -	struct acpi_device *device = per_cpu(processor_device_array,
+pr->id);
+> +	struct acpi_processor *pr = acpi_driver_data(device);
+> +	acpi_status status;
+>  	int result = 0;
+>  
+> +	if (!pr)
+> +		return -ENODEV;
+> +
+> +	if (pr->flags.need_hotplug_init)
+> +		return 0;
+> +
 
-Manually loading the missing module won't work too :
+I felt the name of "need_hotplug_init" is a bit misleading since the
+func actually skips when the need-flag is set.  It may be nice to rename
+it to defer_online_init, offline or something like that.
 
-$> modprobe acpi_cpufreq
-modprobe: ERROR: could not insert 'acpi_cpufreq': Device or resource bu=
-sy
+Otherwise the changes look very good. 
 
-Is the behaviour a bug or a feature ?
-In the later case: How can I achieve the previous behaviour back ?
+Reviewed-by: Toshi Kani <toshi.kani@hp.com>
 
-This issue might affect the RH EL kernel too [1] where I observed a sim=
-ilar behaviour.
+Thanks,
+-Toshi
 
 
-[1] http://elrepo.org/bugs/view.php?id=3D379
 
---=20
-MfG/Sincerely
-Toralf F=C3=B6rster
-pgp finger print: 7B1A 07F4 EC82 0F90 D4C2 8936 872A E508 7DB6 9DA3
+
