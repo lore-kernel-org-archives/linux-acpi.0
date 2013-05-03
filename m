@@ -1,111 +1,66 @@
 From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: [PATCH 4/4] ACPI / processor: Use common hotplug infrastructure
-Date: Fri, 03 May 2013 21:31:50 +0200
-Message-ID: <2355471.VAFinTCtRm@vostro.rjw.lan>
-References: <1576321.HU0tZ4cGWk@vostro.rjw.lan> <8416995.PXoT3vbUMm@vostro.rjw.lan> <1367605674.16154.198.camel@misato.fc.hp.com>
+Subject: Re: 3.9.0 + CONFIG_X86_INTEL_PSTATE=y  -> ThinkPad T420 with i5 lost ACPI functionality
+Date: Fri, 03 May 2013 21:36:54 +0200
+Message-ID: <3715884.H8PIhhjRXL@vostro.rjw.lan>
+References: <5183EC09.9080208@gmx.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from hydra.sisk.pl ([212.160.235.94]:57065 "EHLO hydra.sisk.pl"
+Received: from hydra.sisk.pl ([212.160.235.94]:57078 "EHLO hydra.sisk.pl"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1763031Ab3ECTXd (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 3 May 2013 15:23:33 -0400
-In-Reply-To: <1367605674.16154.198.camel@misato.fc.hp.com>
+	id S1763076Ab3ECT2g convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 3 May 2013 15:28:36 -0400
+In-Reply-To: <5183EC09.9080208@gmx.de>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Toshi Kani <toshi.kani@hp.com>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>, isimatu.yasuaki@jp.fujitsu.com, vasilis.liaskovitis@profitbricks.com, Len Brown <lenb@kernel.org>
+To: Toralf =?ISO-8859-1?Q?F=F6rster?= <toralf.foerster@gmx.de>, Dirk Brandewie <dirk.brandewie@gmail.com>
+Cc: linux-acpi@vger.kernel.org, Linux Kernel <linux-kernel@vger.kernel.org>, Linux PM list <linux-pm@vger.kernel.org>, Dirk Brandewie <dirk.j.brandewie@intel.com>
 
-On Friday, May 03, 2013 12:27:54 PM Toshi Kani wrote:
-> On Fri, 2013-05-03 at 14:05 +0200, Rafael J. Wysocki wrote:
-> > On Thursday, May 02, 2013 05:20:12 PM Toshi Kani wrote:
-> > > On Thu, 2013-05-02 at 14:31 +0200, Rafael J. Wysocki wrote:
-> > > > From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
->  : 
-> > > > Index: linux-pm/drivers/base/cpu.c
-> > > > ===================================================================
-> > > > --- linux-pm.orig/drivers/base/cpu.c
-> > > > +++ linux-pm/drivers/base/cpu.c
-> > > > @@ -13,11 +13,21 @@
-> > > >  #include <linux/gfp.h>
-> > > >  #include <linux/slab.h>
-> > > >  #include <linux/percpu.h>
-> > > > +#include <linux/acpi.h>
-> > > >  
-> > > >  #include "base.h"
-> > > >  
-> > > >  static DEFINE_PER_CPU(struct device *, cpu_sys_devices);
-> > > >  
-> > > > +static int cpu_subsys_match(struct device *dev, struct device_driver *drv)
-> > > > +{
-> > > > +	/* ACPI style match is the only one that may succeed. */
-> > > > +	if (acpi_driver_match_device(dev, drv))
-> > > 
-> > > Can you explain why this change is needed?
-> > 
-> > This is the mechanism by which the driver core determines which driver to use
-> > with a processor device passed to device_attach().
-> > 
-> > Basically, it walks the list of drivers whose bus type is cpu_subsys and
-> > calls cpu_subsys->match(), which points to cpu_subsys_match(), for the device
-> > and each of the drivers.  The result of that tell is whether or not to use
-> > the given driver with the device.
-> > 
-> > Now, acpi_driver_match_device() returns 'true' if (a) the device has an ACPI
-> > handle and (b) at least one of the IDs of the struct acpi_device associated
-> > with that handle is in the driver's .acpi_match_table table.  Since the ACPI
-> > processor's .acpi_match_table contains the same set of IDs as the table
-> > of device IDs of processor_handler, this guarantees that the ACPI processor
-> > driver will be used for the devices prepared by acpi_processor_add().
-> > 
-> > What it boils down to is that acpi_processor_start() is going to be called
-> > for every device whose ACPI handle is populated by acpi_processor_add().
-> > 
-> > > Do CPU devices still behave the same on non-ACPI systems?
-> > 
-> > Yes, they do.  The whole driver matching/binding is irrelevant to them, because
-> > the ACPI processor driver is the only one registering itself under cpu_subsys.
-> 
-> Thanks for the detailed explanation!  I missed that the new processor
-> driver is registered to cpu_subsys.  I now see what you did.  This is
-> clever.
+On Friday, May 03, 2013 06:55:37 PM Toralf F=C3=B6rster wrote:
+> The following file doesn't exists at my Gentoo Linux
+> /sys/devices/system/cpu/cpufreq/ondemand/ignore_nice_load
+> in 3.9.0 if I activate CONFIG_X86_INTEL_PSTATE=3Dy=20
+>=20
+> That means, that a command like
+>=20
+> $> echo 1 > /sys/devices/system/cpu/cpufreq/ondemand/ignore_nice_load
+>=20
+> in /etc/rc.local is now no longer working.
+> A high fan +  high temperature are the result, even if just the BOINC=
+ client
+> is run with low prio (nice 19) in the back ground.
+>=20
+> Manually loading the missing module won't work too :
+>=20
+> $> modprobe acpi_cpufreq
+> modprobe: ERROR: could not insert 'acpi_cpufreq': Device or resource =
+busy
+>=20
+> Is the behaviour a bug or a feature ?
 
-Well, thanks! :-)
+The thermal management problem is not an intentional outcome, definitel=
+y.
 
-> One minor comment.
-> 
-> +static __cpuinit int __acpi_processor_start(struct acpi_device *device)
-> >  {
-> > -	struct acpi_device *device = per_cpu(processor_device_array,
-> pr->id);
-> > +	struct acpi_processor *pr = acpi_driver_data(device);
-> > +	acpi_status status;
-> >  	int result = 0;
-> >  
-> > +	if (!pr)
-> > +		return -ENODEV;
-> > +
-> > +	if (pr->flags.need_hotplug_init)
-> > +		return 0;
-> > +
-> 
-> I felt the name of "need_hotplug_init" is a bit misleading since the
-> func actually skips when the need-flag is set.  It may be nice to rename
-> it to defer_online_init, offline or something like that.
+> In the later case: How can I achieve the previous behaviour back ?
+>=20
+> This issue might affect the RH EL kernel too [1] where I observed a s=
+imilar behaviour.
+>=20
+>=20
+> [1] http://elrepo.org/bugs/view.php?id=3D379
 
-I just wanted to avoid making too many non-essential changes in one patch.
-We can change the name of that field at any time later.
-
-> Otherwise the changes look very good. 
-> 
-> Reviewed-by: Toshi Kani <toshi.kani@hp.com>
-
-Thank you!
+Dirk, is this the problem we were talking about recently or something e=
+lse?
 
 Rafael
 
 
--- 
+--=20
 I speak only for myself.
 Rafael J. Wysocki, Intel Open Source Technology Center.
+--
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
