@@ -1,66 +1,59 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: 3.9.0 + CONFIG_X86_INTEL_PSTATE=y  -> ThinkPad T420 with i5 lost ACPI functionality
-Date: Fri, 03 May 2013 21:36:54 +0200
-Message-ID: <3715884.H8PIhhjRXL@vostro.rjw.lan>
-References: <5183EC09.9080208@gmx.de>
+From: Toshi Kani <toshi.kani@hp.com>
+Subject: Re: [PATCH 4/4] ACPI / processor: Use common hotplug infrastructure
+Date: Fri, 03 May 2013 13:34:16 -0600
+Message-ID: <1367609656.16154.199.camel@misato.fc.hp.com>
+References: <1576321.HU0tZ4cGWk@vostro.rjw.lan>
+	 <8416995.PXoT3vbUMm@vostro.rjw.lan>
+	 <1367605674.16154.198.camel@misato.fc.hp.com>
+	 <2355471.VAFinTCtRm@vostro.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from hydra.sisk.pl ([212.160.235.94]:57078 "EHLO hydra.sisk.pl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1763076Ab3ECT2g convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 3 May 2013 15:28:36 -0400
-In-Reply-To: <5183EC09.9080208@gmx.de>
+Received: from g1t0026.austin.hp.com ([15.216.28.33]:41215 "EHLO
+	g1t0026.austin.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1760627Ab3ECTeT (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 3 May 2013 15:34:19 -0400
+In-Reply-To: <2355471.VAFinTCtRm@vostro.rjw.lan>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Toralf =?ISO-8859-1?Q?F=F6rster?= <toralf.foerster@gmx.de>, Dirk Brandewie <dirk.brandewie@gmail.com>
-Cc: linux-acpi@vger.kernel.org, Linux Kernel <linux-kernel@vger.kernel.org>, Linux PM list <linux-pm@vger.kernel.org>, Dirk Brandewie <dirk.j.brandewie@intel.com>
+To: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>, isimatu.yasuaki@jp.fujitsu.com, vasilis.liaskovitis@profitbricks.com, Len Brown <lenb@kernel.org>
 
-On Friday, May 03, 2013 06:55:37 PM Toralf F=C3=B6rster wrote:
-> The following file doesn't exists at my Gentoo Linux
-> /sys/devices/system/cpu/cpufreq/ondemand/ignore_nice_load
-> in 3.9.0 if I activate CONFIG_X86_INTEL_PSTATE=3Dy=20
->=20
-> That means, that a command like
->=20
-> $> echo 1 > /sys/devices/system/cpu/cpufreq/ondemand/ignore_nice_load
->=20
-> in /etc/rc.local is now no longer working.
-> A high fan +  high temperature are the result, even if just the BOINC=
- client
-> is run with low prio (nice 19) in the back ground.
->=20
-> Manually loading the missing module won't work too :
->=20
-> $> modprobe acpi_cpufreq
-> modprobe: ERROR: could not insert 'acpi_cpufreq': Device or resource =
-busy
->=20
-> Is the behaviour a bug or a feature ?
+On Fri, 2013-05-03 at 21:31 +0200, Rafael J. Wysocki wrote:
+> On Friday, May 03, 2013 12:27:54 PM Toshi Kani wrote:
+> > On Fri, 2013-05-03 at 14:05 +0200, Rafael J. Wysocki wrote:
+> > > On Thursday, May 02, 2013 05:20:12 PM Toshi Kani wrote:
 
-The thermal management problem is not an intentional outcome, definitel=
-y.
+:
 
-> In the later case: How can I achieve the previous behaviour back ?
->=20
-> This issue might affect the RH EL kernel too [1] where I observed a s=
-imilar behaviour.
->=20
->=20
-> [1] http://elrepo.org/bugs/view.php?id=3D379
+> > One minor comment.
+> > 
+> > +static __cpuinit int __acpi_processor_start(struct acpi_device *device)
+> > >  {
+> > > -	struct acpi_device *device = per_cpu(processor_device_array,
+> > pr->id);
+> > > +	struct acpi_processor *pr = acpi_driver_data(device);
+> > > +	acpi_status status;
+> > >  	int result = 0;
+> > >  
+> > > +	if (!pr)
+> > > +		return -ENODEV;
+> > > +
+> > > +	if (pr->flags.need_hotplug_init)
+> > > +		return 0;
+> > > +
+> > 
+> > I felt the name of "need_hotplug_init" is a bit misleading since the
+> > func actually skips when the need-flag is set.  It may be nice to rename
+> > it to defer_online_init, offline or something like that.
+> 
+> I just wanted to avoid making too many non-essential changes in one patch.
+> We can change the name of that field at any time later.
 
-Dirk, is this the problem we were talking about recently or something e=
-lse?
+Sounds good to me.
 
-Rafael
+Thanks,
+-Toshi
 
 
---=20
-I speak only for myself.
-Rafael J. Wysocki, Intel Open Source Technology Center.
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
