@@ -1,59 +1,231 @@
-From: =?UTF-8?B?VG9yYWxmIEbDtnJzdGVy?= <toralf.foerster-Mmb7MZpHnFY@public.gmane.org>
-Subject: Re: 3.9.0 + CONFIG_X86_INTEL_PSTATE=y -> ThinkPad T420
- with i5 lost ACPI functionality
-Date: Sat, 04 May 2013 09:57:54 +0200
-Message-ID: <5184BF82.4070700@gmx.de>
-References: <5183EC09.9080208@gmx.de> <3715884.H8PIhhjRXL@vostro.rjw.lan>
-	<518427D4.3050104@gmail.com> <51842B79.8060302@gmx.de>
-	<51842F6F.1050005@intel.com>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: [PATCH 2/2 v2, RFC] Driver core: Introduce offline/online callbacks for memory blocks
+Date: Sat, 04 May 2013 13:21:16 +0200
+Message-ID: <19540491.PRsM4lKIYM@vostro.rjw.lan>
+References: <1576321.HU0tZ4cGWk@vostro.rjw.lan> <1583356.7oqZ7gBy2q@vostro.rjw.lan> <2376818.CRj1BTLk0Y@vostro.rjw.lan>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <boinc_dev-bounces-C9EgComYM8RUAgJt6FLh2g@public.gmane.org>
-In-Reply-To: <51842F6F.1050005-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-List-Unsubscribe: <http://lists.ssl.berkeley.edu/mailman/options/boinc_dev>,
-	<mailto:boinc_dev-request-C9EgComYM8RUAgJt6FLh2g@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.ssl.berkeley.edu/pipermail/boinc_dev/>
-List-Post: <mailto:boinc_dev-C9EgComYM8RUAgJt6FLh2g@public.gmane.org>
-List-Help: <mailto:boinc_dev-request-C9EgComYM8RUAgJt6FLh2g@public.gmane.org?subject=help>
-List-Subscribe: <http://lists.ssl.berkeley.edu/mailman/listinfo/boinc_dev>,
-	<mailto:boinc_dev-request-C9EgComYM8RUAgJt6FLh2g@public.gmane.org?subject=subscribe>
-Errors-To: boinc_dev-bounces-C9EgComYM8RUAgJt6FLh2g@public.gmane.org
-Sender: "boinc_dev" <boinc_dev-bounces-C9EgComYM8RUAgJt6FLh2g@public.gmane.org>
-To: Dirk Brandewie <dirk.brandewie-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Cc: "Rafael J. Wysocki" <rjw-KKrjLPT3xs0@public.gmane.org>, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, boinc_dev-C9EgComYM8RUAgJt6FLh2g@public.gmane.org, Linux Kernel <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linux PM list <linux-pm-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Transfer-Encoding: 7Bit
+Return-path: <owner-linux-mm@kvack.org>
+In-Reply-To: <2376818.CRj1BTLk0Y@vostro.rjw.lan>
+Sender: owner-linux-mm@kvack.org
+To: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: Toshi Kani <toshi.kani@hp.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>, isimatu.yasuaki@jp.fujitsu.com, vasilis.liaskovitis@profitbricks.com, Len Brown <lenb@kernel.org>, linux-mm@kvack.org
 List-Id: linux-acpi@vger.kernel.org
 
-T24gMDUvMDMvMjAxMyAxMTo0MyBQTSwgRGlyayBCcmFuZGV3aWUgd3JvdGU6Cj4gT24gMDUvMDMv
-MjAxMyAwMjoyNiBQTSwgVG9yYWxmIEbDtnJzdGVyIHdyb3RlOgo+PiBPbiAwNS8wMy8yMDEzIDEx
-OjEwIFBNLCBEaXJrIEJyYW5kZXdpZSB3cm90ZToKPj4+Cj4+PiBpZ25vcmVfbmljZV9sb2FkIGlz
-IGEgZmVhdHVyZSBvZiB0aGUgb25kZW1hbmQgZ292ZXJub3IuCj4+PiBUaGUgaW50ZWxfcHN0YXRl
-IGRyaXZlciBpcyBzZWVpbmcgdGhlIGxvYWQgcHJlc2VudGVkIGJ5IHRoZSBCT0lOQyBjbGllbnQK
-Pj4+IGFuZCBpcyBhZGp1c3RpbmcgdGhlIHBzdGF0ZSBhY2NvcmRpbmdseS4KPj4KPj4gSXMgdGhl
-IGludGVsX3BzdGF0ZSBkcml2ZXIgYSBjaG9pY2UgZm9yIGEgbm90ZWJvb2sgYW5kIGZyaWVuZHMg
-d2hlcmUgYQo+PiBncmlkIHNvZnR3YXJlIGlzIHJ1bm5pbmcgYXMgYSBsb3ctcHJpbyBiYWNrIGdy
-b3VuZCBqb2IgPwo+Pgo+IAo+IFByb2JhYmx5IG5vdC4KCkhobS4KClRoZSBrZXJuZWwgbWVudWNv
-bmZpZyBzYXlzIDoKCiBUaGlzIGRyaXZlciBwcm92aWRlcyBhIFAgc3RhdGUgZm9yIEludGVsIGNv
-cmUgcHJvY2Vzc29ycwogVGhlIGRyaXZlciBpbXBsZW1lbnRzIGFuIGludGVybmFsIGdvdmVybm9y
-IGFuZCB3aWxsIGJlY29tZQogdGhlIHNjYWxpbmcgZHJpdmVyIGFuZCBnb3Zlcm5vciBmb3IgU2Fu
-ZHkgYnJpZGdlIHByb2Nlc3NvcnMuCgoKV2hhdCBzaGFsbCBhIGNvbXBhbnkgbGlrZSBJQk0gd2l0
-aCBhIGxvdCBvZiBub3RlYm9vayBpbnN0YWxsYXRpb24gcnVubmluZyBCT0lOQwppbiB0aGUgYmFj
-ayBncm91bmQgcHJvY2VzcyAoV29ybGQgQ29tbXVuaXR5IEdyaWQpIGRvIC0gd2hhdCdzIHRoZSBj
-b25zZXF1ZW5jZSBmb3IKdGhvc2UgaW5zdGFsbGF0aW9ucyBpZiB0aGV5IHdpbGwgaGF2ZSB0aGF0
-IGEgcHJvY2Vzc29yID8KCkluIHRoZSBwYXN0IChmZXcgeWVhcnMgYWdvIGFuZCByZWxhdGVkIHRv
-IHRoZSBvbmRlbWFuZCBnb3Zlcm5vciBJSVJDKSB0aGVyZSB3ZXJlCmFscmVhZHkgYSBsb25nZXIg
-ZGlzY3Vzc2lvbiBhYm91dCB0aGUgIm5pY2UgLW4gMTkiIHRvcGljIGFuZCB0aGUgcmVzdWx0IHdh
-cwp0byBzdXBwb3J0IGl0LgoKL21lIENjOidpbmcgYm9pbmMgZGV2cywgdGhlIHRvcGljIG1pZ2h0
-IGJlIGludGVyZXN0aW5nIGZvciB0aGVtIHRvby4KCgo+PiBCZWNhdXNlIHRoZSBDUFUgd2lsbCBi
-ZSBydW5uaW5nIG1vc3RseSBhdCBoaWdoKGVyKSBmcmVxdWVuY3kgLSB3aGljaAo+PiBhbHdheXMg
-cmVzdWx0cyBpbiBhIGhpZ2ggdGVtcGVyYXR1cmUgYW5kIHNob3J0IGJhdHRlcnkgdGltZS4KPj4K
-PiAKPiBJdCB3b3VsZCBiZSBiZXR0ZXIgSU1ITyBpZiB0aGUgY2xpZW50IHNvZnR3YXJlIGxpbWl0
-ZWQgdGhlIHJlc291cmNlcwo+IGl0IHVzZXMgd2hlbiB0aGUgc3lzdGVtIGlzIG5vdCBvbiB3YWxs
-IHBvd2VyIGJ1dCB0aGF0IGlzIGEgc2VwZXJhdGUKPiBkaXNjdXNzaW9uIDotKQo+IAo+IC0tRGly
-awo+IAo+IAoKCi0tIApNZkcvU2luY2VyZWx5ClRvcmFsZiBGw7Zyc3RlcgpwZ3AgZmluZ2VyIHBy
-aW50OiA3QjFBIDA3RjQgRUM4MiAwRjkwIEQ0QzIgODkzNiA4NzJBIEU1MDggN0RCNiA5REEzCl9f
-X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fCmJvaW5jX2RldiBt
-YWlsaW5nIGxpc3QKYm9pbmNfZGV2QHNzbC5iZXJrZWxleS5lZHUKaHR0cDovL2xpc3RzLnNzbC5i
-ZXJrZWxleS5lZHUvbWFpbG1hbi9saXN0aW5mby9ib2luY19kZXYKVG8gdW5zdWJzY3JpYmUsIHZp
-c2l0IHRoZSBhYm92ZSBVUkwgYW5kCihuZWFyIGJvdHRvbSBvZiBwYWdlKSBlbnRlciB5b3VyIGVt
-YWlsIGFkZHJlc3Mu
+From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+
+Introduce .offline() and .online() callbacks for memory_subsys
+that will allow the generic device_offline() and device_online()
+to be used with device objects representing memory blocks.  That,
+in turn, allows the ACPI subsystem to use device_offline() to put
+removable memory blocks offline, if possible, before removing
+memory modules holding them.
+
+The 'online' sysfs attribute of memory block devices will attempt to
+put them offline if 0 is written to it and will attempt to apply the
+previously used online type when onlining them (i.e. when 1 is
+written to it).
+
+Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+---
+ drivers/base/memory.c  |  105 +++++++++++++++++++++++++++++++++++++------------
+ include/linux/memory.h |    1 
+ 2 files changed, 81 insertions(+), 25 deletions(-)
+
+Index: linux-pm/drivers/base/memory.c
+===================================================================
+--- linux-pm.orig/drivers/base/memory.c
++++ linux-pm/drivers/base/memory.c
+@@ -37,9 +37,14 @@ static inline int base_memory_block_id(i
+ 	return section_nr / sections_per_block;
+ }
+ 
++static int memory_subsys_online(struct device *dev);
++static int memory_subsys_offline(struct device *dev);
++
+ static struct bus_type memory_subsys = {
+ 	.name = MEMORY_CLASS_NAME,
+ 	.dev_name = MEMORY_CLASS_NAME,
++	.online = memory_subsys_online,
++	.offline = memory_subsys_offline,
+ };
+ 
+ static BLOCKING_NOTIFIER_HEAD(memory_chain);
+@@ -278,33 +283,64 @@ static int __memory_block_change_state(s
+ {
+ 	int ret = 0;
+ 
+-	if (mem->state != from_state_req) {
+-		ret = -EINVAL;
+-		goto out;
+-	}
++	if (mem->state != from_state_req)
++		return -EINVAL;
+ 
+ 	if (to_state == MEM_OFFLINE)
+ 		mem->state = MEM_GOING_OFFLINE;
+ 
+ 	ret = memory_block_action(mem->start_section_nr, to_state, online_type);
+-
+ 	if (ret) {
+ 		mem->state = from_state_req;
+-		goto out;
++	} else {
++		mem->state = to_state;
++		if (to_state == MEM_ONLINE)
++			mem->last_online = online_type;
+ 	}
++	return ret;
++}
+ 
+-	mem->state = to_state;
+-	switch (mem->state) {
+-	case MEM_OFFLINE:
+-		kobject_uevent(&mem->dev.kobj, KOBJ_OFFLINE);
+-		break;
+-	case MEM_ONLINE:
+-		kobject_uevent(&mem->dev.kobj, KOBJ_ONLINE);
+-		break;
+-	default:
+-		break;
++static int memory_subsys_online(struct device *dev)
++{
++	struct memory_block *mem = container_of(dev, struct memory_block, dev);
++	int ret;
++
++	mutex_lock(&mem->state_mutex);
++	ret = __memory_block_change_state(mem, MEM_ONLINE, MEM_OFFLINE,
++					  mem->last_online);
++	mutex_unlock(&mem->state_mutex);
++	return ret;
++}
++
++static int memory_subsys_offline(struct device *dev)
++{
++	struct memory_block *mem = container_of(dev, struct memory_block, dev);
++	int ret;
++
++	mutex_lock(&mem->state_mutex);
++	ret = __memory_block_change_state(mem, MEM_OFFLINE, MEM_ONLINE, -1);
++	mutex_unlock(&mem->state_mutex);
++	return ret;
++}
++
++static int __memory_block_change_state_uevent(struct memory_block *mem,
++		unsigned long to_state, unsigned long from_state_req,
++		int online_type)
++{
++	int ret = __memory_block_change_state(mem, to_state, from_state_req,
++					      online_type);
++	if (!ret) {
++		switch (mem->state) {
++		case MEM_OFFLINE:
++			kobject_uevent(&mem->dev.kobj, KOBJ_OFFLINE);
++			break;
++		case MEM_ONLINE:
++			kobject_uevent(&mem->dev.kobj, KOBJ_ONLINE);
++			break;
++		default:
++			break;
++		}
+ 	}
+-out:
+ 	return ret;
+ }
+ 
+@@ -315,8 +351,8 @@ static int memory_block_change_state(str
+ 	int ret;
+ 
+ 	mutex_lock(&mem->state_mutex);
+-	ret = __memory_block_change_state(mem, to_state, from_state_req,
+-					  online_type);
++	ret = __memory_block_change_state_uevent(mem, to_state, from_state_req,
++						 online_type);
+ 	mutex_unlock(&mem->state_mutex);
+ 
+ 	return ret;
+@@ -326,22 +362,34 @@ store_mem_state(struct device *dev,
+ 		struct device_attribute *attr, const char *buf, size_t count)
+ {
+ 	struct memory_block *mem;
++	bool offline;
+ 	int ret = -EINVAL;
+ 
+ 	mem = container_of(dev, struct memory_block, dev);
+ 
+-	if (!strncmp(buf, "online_kernel", min_t(int, count, 13)))
++	lock_device_hotplug();
++
++	if (!strncmp(buf, "online_kernel", min_t(int, count, 13))) {
++		offline = false;
+ 		ret = memory_block_change_state(mem, MEM_ONLINE,
+ 						MEM_OFFLINE, ONLINE_KERNEL);
+-	else if (!strncmp(buf, "online_movable", min_t(int, count, 14)))
++	} else if (!strncmp(buf, "online_movable", min_t(int, count, 14))) {
++		offline = false;
+ 		ret = memory_block_change_state(mem, MEM_ONLINE,
+ 						MEM_OFFLINE, ONLINE_MOVABLE);
+-	else if (!strncmp(buf, "online", min_t(int, count, 6)))
++	} else if (!strncmp(buf, "online", min_t(int, count, 6))) {
++		offline = false;
+ 		ret = memory_block_change_state(mem, MEM_ONLINE,
+ 						MEM_OFFLINE, ONLINE_KEEP);
+-	else if(!strncmp(buf, "offline", min_t(int, count, 7)))
++	} else if(!strncmp(buf, "offline", min_t(int, count, 7))) {
++		offline = true;
+ 		ret = memory_block_change_state(mem, MEM_OFFLINE,
+ 						MEM_ONLINE, -1);
++	}
++	if (!ret)
++		dev->offline = offline;
++
++	unlock_device_hotplug();
+ 
+ 	if (ret)
+ 		return ret;
+@@ -563,6 +611,7 @@ static int init_memory_block(struct memo
+ 			base_memory_block_id(scn_nr) * sections_per_block;
+ 	mem->end_section_nr = mem->start_section_nr + sections_per_block - 1;
+ 	mem->state = state;
++	mem->last_online = ONLINE_KEEP;
+ 	mem->section_count++;
+ 	mutex_init(&mem->state_mutex);
+ 	start_pfn = section_nr_to_pfn(mem->start_section_nr);
+@@ -686,10 +735,16 @@ int offline_memory_block(struct memory_b
+ {
+ 	int ret = 0;
+ 
++	lock_device_hotplug();
+ 	mutex_lock(&mem->state_mutex);
+-	if (mem->state != MEM_OFFLINE)
+-		ret = __memory_block_change_state(mem, MEM_OFFLINE, MEM_ONLINE, -1);
++	if (mem->state != MEM_OFFLINE) {
++		ret = __memory_block_change_state_uevent(mem, MEM_OFFLINE,
++							 MEM_ONLINE, -1);
++		if (!ret)
++			mem->dev.offline = true;
++	}
+ 	mutex_unlock(&mem->state_mutex);
++	unlock_device_hotplug();
+ 
+ 	return ret;
+ }
+Index: linux-pm/include/linux/memory.h
+===================================================================
+--- linux-pm.orig/include/linux/memory.h
++++ linux-pm/include/linux/memory.h
+@@ -26,6 +26,7 @@ struct memory_block {
+ 	unsigned long start_section_nr;
+ 	unsigned long end_section_nr;
+ 	unsigned long state;
++	int last_online;
+ 	int section_count;
+ 
+ 	/*
+
+--
+To unsubscribe, send a message with 'unsubscribe linux-mm' in
+the body to majordomo@kvack.org.  For more info on Linux MM,
+see: http://www.linux-mm.org/ .
+Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
