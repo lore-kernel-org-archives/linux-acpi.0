@@ -1,42 +1,182 @@
-From: Dirk Brandewie <dirk.brandewie@gmail.com>
-Subject: Re: 3.9.0 + CONFIG_X86_INTEL_PSTATE=y  -> ThinkPad T420 with i5 lost
- ACPI functionality
-Date: Fri, 03 May 2013 14:43:11 -0700
-Message-ID: <51842F6F.1050005@intel.com>
-References: <5183EC09.9080208@gmx.de> <3715884.H8PIhhjRXL@vostro.rjw.lan> <518427D4.3050104@gmail.com> <51842B79.8060302@gmx.de>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: [PATCH 3/3 RFC] Driver core: Introduce offline/online callbacks for memory blocks
+Date: Sat, 04 May 2013 03:06:24 +0200
+Message-ID: <3831347.P78I4u6NFE@vostro.rjw.lan>
+References: <1576321.HU0tZ4cGWk@vostro.rjw.lan> <3166726.elbgrUIZ0L@vostro.rjw.lan> <1583356.7oqZ7gBy2q@vostro.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8;
-	format=flowed
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-pm-owner@vger.kernel.org>
-In-Reply-To: <51842B79.8060302@gmx.de>
-Sender: linux-pm-owner@vger.kernel.org
-To: =?UTF-8?B?VG9yYWxmIEbDtnJzdGVy?= <toralf.foerster@gmx.de>
-Cc: Dirk Brandewie <dirk.brandewie@gmail.com>, "Rafael J. Wysocki" <rjw@sisk.pl>, linux-acpi@vger.kernel.org, Linux Kernel <linux-kernel@vger.kernel.org>, Linux PM list <linux-pm@vger.kernel.org>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7Bit
+Return-path: <owner-linux-mm@kvack.org>
+In-Reply-To: <1583356.7oqZ7gBy2q@vostro.rjw.lan>
+Sender: owner-linux-mm@kvack.org
+To: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: Toshi Kani <toshi.kani@hp.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>, isimatu.yasuaki@jp.fujitsu.com, vasilis.liaskovitis@profitbricks.com, Len Brown <lenb@kernel.org>, linux-mm@kvack.org
 List-Id: linux-acpi@vger.kernel.org
 
-On 05/03/2013 02:26 PM, Toralf F=C3=B6rster wrote:
-> On 05/03/2013 11:10 PM, Dirk Brandewie wrote:
->>
->> ignore_nice_load is a feature of the ondemand governor.
->> The intel_pstate driver is seeing the load presented by the BOINC cl=
-ient
->> and is adjusting the pstate accordingly.
->
-> Is the intel_pstate driver a choice for a notebook and friends where =
-a
-> grid software is running as a low-prio back ground job ?
->
+From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 
-Probably not.
+Introduce .offline() and .online() callbacks for memory_subsys
+that will allow the generic device_offline() and device_online()
+to be used with device objects representing memory blocks.  That,
+in turn, allows the ACPI subsystem to use device_offline() to put
+removable memory blocks offline, if possible, before removing
+memory modules holding them.
 
-> Because the CPU will be running mostly at high(er) frequency - which
-> always results in a high temperature and short battery time.
->
+Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+---
+ drivers/base/memory.c          |   84 ++++++++++++++++++++++++++++++-----------
+ include/linux/memory_hotplug.h |    2 
+ 2 files changed, 64 insertions(+), 22 deletions(-)
 
-It would be better IMHO if the client software limited the resources
-it uses when the system is not on wall power but that is a seperate
-discussion :-)
+Index: linux-pm/drivers/base/memory.c
+===================================================================
+--- linux-pm.orig/drivers/base/memory.c
++++ linux-pm/drivers/base/memory.c
+@@ -37,9 +37,14 @@ static inline int base_memory_block_id(i
+ 	return section_nr / sections_per_block;
+ }
+ 
++static int memory_subsys_online(struct device *dev, unsigned int type);
++static int memory_subsys_offline(struct device *dev);
++
+ static struct bus_type memory_subsys = {
+ 	.name = MEMORY_CLASS_NAME,
+ 	.dev_name = MEMORY_CLASS_NAME,
++	.online = memory_subsys_online,
++	.offline = memory_subsys_offline,
+ };
+ 
+ static BLOCKING_NOTIFIER_HEAD(memory_chain);
+@@ -294,16 +299,7 @@ static int __memory_block_change_state(s
+ 	}
+ 
+ 	mem->state = to_state;
+-	switch (mem->state) {
+-	case MEM_OFFLINE:
+-		kobject_uevent(&mem->dev.kobj, KOBJ_OFFLINE);
+-		break;
+-	case MEM_ONLINE:
+-		kobject_uevent(&mem->dev.kobj, KOBJ_ONLINE);
+-		break;
+-	default:
+-		break;
+-	}
++
+ out:
+ 	return ret;
+ }
+@@ -321,27 +317,66 @@ static int memory_block_change_state(str
+ 
+ 	return ret;
+ }
++
++static int memory_subsys_online(struct device *dev, unsigned int type)
++{
++	struct memory_block *mem = container_of(dev, struct memory_block, dev);
++
++	if (type < ONLINE_KEEP || type > ONLINE_KERNEL)
++		return -EINVAL;
++
++	return memory_block_change_state(mem, MEM_ONLINE, MEM_OFFLINE, type);
++}
++
++static int memory_block_online(struct device *dev, unsigned int type)
++{
++	int ret = memory_subsys_online(dev, type);
++
++	if (!ret) {
++		dev->online_type = type;
++		kobject_uevent(&dev->kobj, KOBJ_ONLINE);
++	}
++
++	return ret;
++}
++
++static int memory_subsys_offline(struct device *dev)
++{
++	struct memory_block *mem = container_of(dev, struct memory_block, dev);
++
++	return memory_block_change_state(mem, MEM_OFFLINE, MEM_ONLINE, -1);
++}
++
++static int memory_block_offline(struct device *dev)
++{
++	int ret = memory_subsys_offline(dev);
++
++	if (!ret) {
++		dev->online_type = 0;
++		kobject_uevent(&dev->kobj, KOBJ_OFFLINE);
++	}
++
++	return ret;
++}
++
+ static ssize_t
+ store_mem_state(struct device *dev,
+ 		struct device_attribute *attr, const char *buf, size_t count)
+ {
+-	struct memory_block *mem;
+ 	int ret = -EINVAL;
+ 
+-	mem = container_of(dev, struct memory_block, dev);
++	lock_device_hotplug();
+ 
+ 	if (!strncmp(buf, "online_kernel", min_t(int, count, 13)))
+-		ret = memory_block_change_state(mem, MEM_ONLINE,
+-						MEM_OFFLINE, ONLINE_KERNEL);
++		ret = memory_block_online(dev, ONLINE_KERNEL);
+ 	else if (!strncmp(buf, "online_movable", min_t(int, count, 14)))
+-		ret = memory_block_change_state(mem, MEM_ONLINE,
+-						MEM_OFFLINE, ONLINE_MOVABLE);
++		ret = memory_block_online(dev, ONLINE_MOVABLE);
+ 	else if (!strncmp(buf, "online", min_t(int, count, 6)))
+-		ret = memory_block_change_state(mem, MEM_ONLINE,
+-						MEM_OFFLINE, ONLINE_KEEP);
++		ret = memory_block_online(dev, ONLINE_KEEP);
+ 	else if(!strncmp(buf, "offline", min_t(int, count, 7)))
+-		ret = memory_block_change_state(mem, MEM_OFFLINE,
+-						MEM_ONLINE, -1);
++		ret = memory_block_offline(dev);
++
++	unlock_device_hotplug();
+ 
+ 	if (ret)
+ 		return ret;
+@@ -686,10 +721,17 @@ int offline_memory_block(struct memory_b
+ {
+ 	int ret = 0;
+ 
++	lock_device_hotplug();
+ 	mutex_lock(&mem->state_mutex);
+-	if (mem->state != MEM_OFFLINE)
++	if (mem->state != MEM_OFFLINE) {
+ 		ret = __memory_block_change_state(mem, MEM_OFFLINE, MEM_ONLINE, -1);
++		if (!ret) {
++			mem->dev.online_type = 0;
++			kobject_uevent(&mem->dev.kobj, KOBJ_OFFLINE);
++		}
++	}
+ 	mutex_unlock(&mem->state_mutex);
++	unlock_device_hotplug();
+ 
+ 	return ret;
+ }
+Index: linux-pm/include/linux/memory_hotplug.h
+===================================================================
+--- linux-pm.orig/include/linux/memory_hotplug.h
++++ linux-pm/include/linux/memory_hotplug.h
+@@ -28,7 +28,7 @@ enum {
+ 
+ /* Types for control the zone type of onlined memory */
+ enum {
+-	ONLINE_KEEP,
++	ONLINE_KEEP = 1,
+ 	ONLINE_KERNEL,
+ 	ONLINE_MOVABLE,
+ };
 
---Dirk
-
+--
+To unsubscribe, send a message with 'unsubscribe linux-mm' in
+the body to majordomo@kvack.org.  For more info on Linux MM,
+see: http://www.linux-mm.org/ .
+Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
