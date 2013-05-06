@@ -1,80 +1,72 @@
-From: "Ortiz, Lance E" <lance.oritz@hp.com>
-Subject: RE: WARNING at drivers/pci/search.c:214 for 3.9
-Date: Mon, 6 May 2013 21:20:04 +0000
-Message-ID: <A961433CDFF2F640A2866803152E61F951772648@G9W0715.americas.hpqcorp.net>
+From: Borislav Petkov <bp@alien8.de>
+Subject: Re: WARNING at drivers/pci/search.c:214 for 3.9
+Date: Mon, 6 May 2013 23:49:13 +0200
+Message-ID: <20130506214913.GE22041@pd.tnic>
 References: <20130506162112.6b79b7b1@pluto.restena.lu>
  <20130506150757.GC22041@pd.tnic>
+ <A961433CDFF2F640A2866803152E61F951772648@G9W0715.americas.hpqcorp.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset=utf-8
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from g4t0015.houston.hp.com ([15.201.24.18]:37172 "EHLO
-	g4t0015.houston.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757013Ab3EFVVP (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 6 May 2013 17:21:15 -0400
-In-Reply-To: <20130506150757.GC22041@pd.tnic>
-Content-Language: en-US
+Received: from mail.skyhub.de ([78.46.96.112]:51370 "EHLO mail.skyhub.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756334Ab3EFVsI (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 6 May 2013 17:48:08 -0400
+Content-Disposition: inline
+In-Reply-To: <A961433CDFF2F640A2866803152E61F951772648@G9W0715.americas.hpqcorp.net>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Borislav Petkov <bp@alien8.de>, =?utf-8?B?QnJ1bm8gUHLDqW1vbnQ=?= <bonbons@linux-vserver.org>
-Cc: LKML <linux-kernel@vger.kernel.org>, Linux-ACPI <linux-acpi@vger.kernel.org>, Len Brown <lenb@kernel.org>, "Rafael J. Wysocki" <rjw@sisk.pl>, Tony Luck <tony.luck@intel.com>, Matthew Garrett <mjg59@srcf.ucam.org>, "Dall, Elizabeth J (MCLinux)" <betty.dall@hp.com>
+To: "Ortiz, Lance E" <lance.oritz@hp.com>
+Cc: Bruno =?utf-8?Q?Pr=C3=A9mont?= <bonbons@linux-vserver.org>, LKML <linux-kernel@vger.kernel.org>, Linux-ACPI <linux-acpi@vger.kernel.org>, Len Brown <lenb@kernel.org>, "Rafael J. Wysocki" <rjw@sisk.pl>, Tony Luck <tony.luck@intel.com>, Matthew Garrett <mjg59@srcf.ucam.org>, "Dall, Elizabeth J (MCLinux)" <betty.dall@hp.com>
 
-PiA+IFsgICA2OS45NjU5MzNdIC0tLS0tLS0tLS0tLVsgY3V0IGhlcmUgXS0tLS0tLS0tLS0tLQ0K
-PiA+IFsgICA2OS45NjU5MzhdIFdBUk5JTkc6IGF0IC9kYXRhL2tlcm5lbC9saW51eC0NCj4gZ2l0
-L2RyaXZlcnMvcGNpL3NlYXJjaC5jOjIxNCBwY2lfZ2V0X2Rldl9ieV9pZCsweDhhLzB4OTAoKQ0K
-PiA+IFsgICA2OS45NjU5NDFdIEhhcmR3YXJlIG5hbWU6IFBSSU1FUkdZIFJYMjAwIFM3DQo+ID4g
-WyAgIDY5Ljk2NTk0Nl0gTW9kdWxlcyBsaW5rZWQgaW46DQo+ID4gWyAgIDY5Ljk2NTk1MF0gUGlk
-OiAwLCBjb21tOiBzd2FwcGVyLzExIFRhaW50ZWQ6IEcgICAgICAgIFcgICAgMy45LjAtDQo+IHg4
-Nl82NC1maiAjMQ0KPiA+IFsgICA2OS45NjU5NTNdIENhbGwgVHJhY2U6DQo+ID4gWyAgIDY5Ljk2
-NTk1Nl0gIDxJUlE+ICBbPGZmZmZmZmZmODEwNjY4OWE+XQ0KPiB3YXJuX3Nsb3dwYXRoX2NvbW1v
-bisweDdhLzB4YzANCj4gPiBbICAgNjkuOTY1OTY3XSAgWzxmZmZmZmZmZjgxMDY2OGY1Pl0gd2Fy
-bl9zbG93cGF0aF9udWxsKzB4MTUvMHgyMA0KPiA+IFsgICA2OS45NjU5NzVdICBbPGZmZmZmZmZm
-ODEyNWI5OGE+XSBwY2lfZ2V0X2Rldl9ieV9pZCsweDhhLzB4OTANCj4gPiBbICAgNjkuOTY1OTgx
-XSAgWzxmZmZmZmZmZjgxMjViYWEwPl0gcGNpX2dldF9zdWJzeXMrMHgzMC8weDQwDQo+ID4gWyAg
-IDY5Ljk2NTk4N10gIFs8ZmZmZmZmZmY4MTI1YmFjMz5dIHBjaV9nZXRfZGV2aWNlKzB4MTMvMHgy
-MA0KPiA+IFsgICA2OS45NjU5OTNdICBbPGZmZmZmZmZmODEyNWJhZmY+XQ0KPiBwY2lfZ2V0X2Rv
-bWFpbl9idXNfYW5kX3Nsb3QrMHgyZi8weDcwDQo+ID4gWyAgIDY5Ljk2NjAwMV0gIFs8ZmZmZmZm
-ZmY4MTJiZjNlZD5dDQo+IGNwZXJfcHJpbnRfcGNpZS5pc3JhLjErMHg1ZC8weDIwMA0KPiA+IFsg
-ICA2OS45NjYwMDddICBbPGZmZmZmZmZmODEyYmY4YzU+XQ0KPiBhcGVpX2VzdGF0dXNfcHJpbnRf
-c2VjdGlvbisweDFlNS8weDJjMA0KPiA+IFsgICA2OS45NjYwMTNdICBbPGZmZmZmZmZmODEyYmZh
-Mjc+XSBhcGVpX2VzdGF0dXNfcHJpbnQrMHg4Ny8weGIwDQo+ID4gWyAgIDY5Ljk2NjAxOV0gIFs8
-ZmZmZmZmZmY4MTJjMjAxNT5dDQo+IF9fZ2hlc19wcmludF9lc3RhdHVzLmlzcmEuOCsweDc1LzB4
-YzANCj4gPiBbICAgNjkuOTY2MDI3XSAgWzxmZmZmZmZmZjgxMjM5ZDUwPl0gPyBfX19yYXRlbGlt
-aXQucGFydC4wKzB4ODAvMHhlMA0KPiA+IFsgICA2OS45NjYwMzNdICBbPGZmZmZmZmZmODEyYzIw
-Yjk+XQ0KPiBnaGVzX3ByaW50X2VzdGF0dXMuY29uc3Rwcm9wLjEwKzB4NTkvMHg3MA0KPiA+IFsg
-ICA2OS45NjYwMzldICBbPGZmZmZmZmZmODEyYzI0ZjA+XSA/IGdoZXNfaXJxX2Z1bmMrMHgyMC8w
-eDIwDQo+ID4gWyAgIDY5Ljk2NjA0NF0gIFs8ZmZmZmZmZmY4MTJjMjQ0Yz5dIGdoZXNfcHJvYysw
-eDVjLzB4NzANCj4gPiBbICAgNjkuOTY2MDUwXSAgWzxmZmZmZmZmZjgxMmMyNTAxPl0gZ2hlc19w
-b2xsX2Z1bmMrMHgxMS8weDMwDQo+ID4gWyAgIDY5Ljk2NjA1N10gIFs8ZmZmZmZmZmY4MTA3MzMy
-ZD5dIGNhbGxfdGltZXJfZm4uaXNyYS4zMCsweDJkLzB4OTANCj4gPiBbICAgNjkuOTY2MDY1XSAg
-WzxmZmZmZmZmZjgxMDczNTM2Pl0gcnVuX3RpbWVyX3NvZnRpcnErMHgxYTYvMHgxZTANCj4gPiBb
-ICAgNjkuOTY2MDcxXSAgWzxmZmZmZmZmZjgxMDZkY2M4Pl0gX19kb19zb2Z0aXJxKzB4YzgvMHgx
-ODANCj4gPiBbICAgNjkuOTY2MDc3XSAgWzxmZmZmZmZmZjgxMDZkZWM2Pl0gaXJxX2V4aXQrMHg4
-Ni8weGEwDQo+ID4gWyAgIDY5Ljk2NjA4NF0gIFs8ZmZmZmZmZmY4MTAyNDhkOT5dDQo+IHNtcF9h
-cGljX3RpbWVyX2ludGVycnVwdCsweDY5LzB4YTANCj4gPiBbICAgNjkuOTY2MDkwXSAgWzxmZmZm
-ZmZmZjgxNWY0YjRhPl0gYXBpY190aW1lcl9pbnRlcnJ1cHQrMHg2YS8weDcwDQo+ID4gWyAgIDY5
-Ljk2NjA5M10gIDxFT0k+ICBbPGZmZmZmZmZmODE0Yzg0MDg+XSA/DQo+IGNwdWlkbGVfd3JhcF9l
-bnRlcisweDQ4LzB4OTANCj4gPiBbICAgNjkuOTY2MTAxXSAgWzxmZmZmZmZmZjgxNGM4NDA0Pl0g
-PyBjcHVpZGxlX3dyYXBfZW50ZXIrMHg0NC8weDkwDQo+ID4gWyAgIDY5Ljk2NjEwN10gIFs8ZmZm
-ZmZmZmY4MTRjODQ2MD5dIGNwdWlkbGVfZW50ZXJfdGsrMHgxMC8weDIwDQo+ID4gWyAgIDY5Ljk2
-NjExNl0gIFs8ZmZmZmZmZmY4MTRjODFjNT5dIGNwdWlkbGVfaWRsZV9jYWxsKzB4ODUvMHgxMDAN
-Cj4gPiBbICAgNjkuOTY2MTIyXSAgWzxmZmZmZmZmZjgxMDBiOTdmPl0gY3B1X2lkbGUrMHhiZi8w
-eDExMA0KPiA+IFsgICA2OS45NjYxMjldICBbPGZmZmZmZmZmODE1ZGIyZWQ+XSBzdGFydF9zZWNv
-bmRhcnkrMHhiZC8weGJmDQo+ID4gWyAgIDY5Ljk2NjEzNF0gLS0tWyBlbmQgdHJhY2UgOWVhMDQ1
-NDEzM2RkZjhhMyBdLS0tDQo+IA0KPiBBcHBhcmVudGx5IHlvdSdyZSBub3Qgc3VwcG9zZWQgdG8g
-ZG8gcGNpX2dldCogaW4gSVJRIGNvbnRleHQuIEJ1dCB0aGlzDQo+IGNvZGUgaXMgb2xkZXIgdGhh
-biAzLjkgc28gd2h5IGRvZXMgaXQgdHJpZ2dlciBub3c/DQoNClJpZ2h0IEJvcmlzLCBsb29rcyBs
-aWtlIHdlIGFyZSBoaXR0aW5nIHRoZSBXQVJOX09OKGluX2ludGVycnVwdCkgaW4gcGNpX2dldF9k
-ZXZfYnlfaWQoKS4gIFdlIHJlY2VudGx5IHN0YXJ0ZWQgc2VlaW5nIHRoaXMgb24gb3VyIHRlc3Qg
-c3lzdGVtcyB3aGVuIGluamVjdGluZyBlcnJvcnMuICBUaGUgb25seSByZWFzb24gd2UgYXJlIGNh
-bGxpbmcgcGNpX2dldF9kb21haW5fYnVzX2FuZF9zbG90KCkgaXMgdG8gZ2V0IHRoZSBwY2lfZGV2
-KiB0byBwYXNzIGludG8gY3Blcl9wcmludF9hZXIoKSBzbyB3ZSBjYW4gaGF2ZSB0aGUgZGV2aWNl
-J3MgbmFtZSB0byBwdXQgaW50byB0aGUgdHJhY2UgZXZlbnQgZm9yIEFFUi4gIElmIHdlIGNhbiBm
-aW5kIGFub3RoZXIgd2F5IHRvIGdldCB0aGUgZGV2aWNlIG5hbWUgZm9yIHRoZSB0cmFjZSBldmVu
-dCB3ZSBjb3VsZCByZW1vdmUgdGhpcyBjYWxsIHRvIHBjaV9nZXRfZG9tYWluX2J1c19hbmRfc2xv
-dCgpLiAgSSB3aWxsIGNvbnRpbnVlIHRvIGxvb2sgaW50byBhbiBhbHRlcm5hdGl2ZS4gSWYgeW91
-IGhhdmUgYW55IGlkZWFzIG9uIGhvdyB0byBnZXQgdGhlIGRldmljZSBkYXRhIGZyb20gdGhpcyBj
-b250ZXh0IGxldCBtZSBrbm93Lg0KDQpJJ20gbm90IHN1cmUgd2h5IHRoZSBwY2lfZ2V0X2RvbWFp
-bl9idXNfYW5kX3Nsb3QoKSBpcyBmYWlsaW5nIHRvIGZpbmQgdGhlIFBDSSBkZXZpY2UgdGhvdWdo
-LiAgV2UgYXJlIG5vdCBoaXR0aW5nIHRoYXQgaXNzdWUuICBXZSBhcmUganVzdCBzZWVpbmcgdGhl
-IGluX2ludGVycnVwdCB3YXJuaW5nLg0KDQpMYW5jZQ0K
+On Mon, May 06, 2013 at 09:20:04PM +0000, Ortiz, Lance E wrote:
+> Right Boris, looks like we are hitting the WARN_ON(in_interrupt)
+> in pci_get_dev_by_id(). We recently started seeing this on our
+> test systems when injecting errors.
+
+Ok, I think I have it. That comes from cper_print_pcie(), i.e. your
+enhanced PCIe logging in 1d5210008bd3a26daf4b06aed9d6c330dd4c83e2 which
+came in 3.9. And since 3.9 is just out now, people are starting to see
+the issue.
+
+If you look at the call stack, you land in cper_print_pcie() down
+from ghes_proc() which can be called from the polling routine
+ghes_poll_func() but also from the interrupt handler ghes_irq_func.
+
+> The only reason we are calling pci_get_domain_bus_and_slot() is to get
+> the pci_dev* to pass into cper_print_aer() so we can have the device's
+> name to put into the trace event for AER. If we can find another way
+> to get the device name for the trace event we could remove this call
+> to pci_get_domain_bus_and_slot(). I will continue to look into an
+> alternative. If you have any ideas on how to get the device data from
+> this context let me know.
+
+Hmm, not sure.
+
+Off the top of my head, maybe add the whole code around:
+
+#ifdef CONFIG_ACPI_APEI_PCIEAER
+...
+
+#endif
+
+in cper_print_pcie() into a separate function which is called from a
+workqueue right after the interrupt is done.. Or something to that
+effect.
+
+> I'm not sure why the pci_get_domain_bus_and_slot() is failing to find
+> the PCI device though. We are not hitting that issue. We are just
+> seeing the in_interrupt warning.
+
+Well, it could be corrupted error info or such because it used to say
+
+[   65.782664] {1}[Hardware Error]: device_id: 0000:00:02.3
+
+but he doesn't have a 02.3 device in the lspci output.
+
+-- 
+Regards/Gruss,
+    Boris.
+
+Sent from a fat crate under my desk. Formatting is fine.
+--
