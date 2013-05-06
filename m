@@ -1,46 +1,80 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: [PATCH 2/2 v2, RFC] Driver core: Introduce offline/online callbacks for memory blocks
-Date: Mon, 06 May 2013 21:46:59 +0200
-Message-ID: <7557979.vTGLb3exlI@vostro.rjw.lan>
-References: <1576321.HU0tZ4cGWk@vostro.rjw.lan> <19540491.PRsM4lKIYM@vostro.rjw.lan> <20130506172044.GA13974@kroah.com>
+From: "Ortiz, Lance E" <lance.oritz@hp.com>
+Subject: RE: WARNING at drivers/pci/search.c:214 for 3.9
+Date: Mon, 6 May 2013 21:20:04 +0000
+Message-ID: <A961433CDFF2F640A2866803152E61F951772648@G9W0715.americas.hpqcorp.net>
+References: <20130506162112.6b79b7b1@pluto.restena.lu>
+ <20130506150757.GC22041@pd.tnic>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7Bit
-Return-path: <owner-linux-mm@kvack.org>
-In-Reply-To: <20130506172044.GA13974@kroah.com>
-Sender: owner-linux-mm@kvack.org
-To: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc: Toshi Kani <toshi.kani@hp.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>, isimatu.yasuaki@jp.fujitsu.com, vasilis.liaskovitis@profitbricks.com, Len Brown <lenb@kernel.org>, linux-mm@kvack.org
+Content-Transfer-Encoding: base64
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from g4t0015.houston.hp.com ([15.201.24.18]:37172 "EHLO
+	g4t0015.houston.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757013Ab3EFVVP (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 6 May 2013 17:21:15 -0400
+In-Reply-To: <20130506150757.GC22041@pd.tnic>
+Content-Language: en-US
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Borislav Petkov <bp@alien8.de>, =?utf-8?B?QnJ1bm8gUHLDqW1vbnQ=?= <bonbons@linux-vserver.org>
+Cc: LKML <linux-kernel@vger.kernel.org>, Linux-ACPI <linux-acpi@vger.kernel.org>, Len Brown <lenb@kernel.org>, "Rafael J. Wysocki" <rjw@sisk.pl>, Tony Luck <tony.luck@intel.com>, Matthew Garrett <mjg59@srcf.ucam.org>, "Dall, Elizabeth J (MCLinux)" <betty.dall@hp.com>
 
-On Monday, May 06, 2013 10:20:44 AM Greg Kroah-Hartman wrote:
-> On Sat, May 04, 2013 at 01:21:16PM +0200, Rafael J. Wysocki wrote:
-> > From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
-> > 
-> > Introduce .offline() and .online() callbacks for memory_subsys
-> > that will allow the generic device_offline() and device_online()
-> > to be used with device objects representing memory blocks.  That,
-> > in turn, allows the ACPI subsystem to use device_offline() to put
-> > removable memory blocks offline, if possible, before removing
-> > memory modules holding them.
-> > 
-> > The 'online' sysfs attribute of memory block devices will attempt to
-> > put them offline if 0 is written to it and will attempt to apply the
-> > previously used online type when onlining them (i.e. when 1 is
-> > written to it).
-> > 
-> > Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
-> > ---
-> >  drivers/base/memory.c  |  105 +++++++++++++++++++++++++++++++++++++------------
-> >  include/linux/memory.h |    1 
-> >  2 files changed, 81 insertions(+), 25 deletions(-)
-> 
-> Acked-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-
-Thanks!
-
---
-To unsubscribe, send a message with 'unsubscribe linux-mm' in
-the body to majordomo@kvack.org.  For more info on Linux MM,
-see: http://www.linux-mm.org/ .
-Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
+PiA+IFsgICA2OS45NjU5MzNdIC0tLS0tLS0tLS0tLVsgY3V0IGhlcmUgXS0tLS0tLS0tLS0tLQ0K
+PiA+IFsgICA2OS45NjU5MzhdIFdBUk5JTkc6IGF0IC9kYXRhL2tlcm5lbC9saW51eC0NCj4gZ2l0
+L2RyaXZlcnMvcGNpL3NlYXJjaC5jOjIxNCBwY2lfZ2V0X2Rldl9ieV9pZCsweDhhLzB4OTAoKQ0K
+PiA+IFsgICA2OS45NjU5NDFdIEhhcmR3YXJlIG5hbWU6IFBSSU1FUkdZIFJYMjAwIFM3DQo+ID4g
+WyAgIDY5Ljk2NTk0Nl0gTW9kdWxlcyBsaW5rZWQgaW46DQo+ID4gWyAgIDY5Ljk2NTk1MF0gUGlk
+OiAwLCBjb21tOiBzd2FwcGVyLzExIFRhaW50ZWQ6IEcgICAgICAgIFcgICAgMy45LjAtDQo+IHg4
+Nl82NC1maiAjMQ0KPiA+IFsgICA2OS45NjU5NTNdIENhbGwgVHJhY2U6DQo+ID4gWyAgIDY5Ljk2
+NTk1Nl0gIDxJUlE+ICBbPGZmZmZmZmZmODEwNjY4OWE+XQ0KPiB3YXJuX3Nsb3dwYXRoX2NvbW1v
+bisweDdhLzB4YzANCj4gPiBbICAgNjkuOTY1OTY3XSAgWzxmZmZmZmZmZjgxMDY2OGY1Pl0gd2Fy
+bl9zbG93cGF0aF9udWxsKzB4MTUvMHgyMA0KPiA+IFsgICA2OS45NjU5NzVdICBbPGZmZmZmZmZm
+ODEyNWI5OGE+XSBwY2lfZ2V0X2Rldl9ieV9pZCsweDhhLzB4OTANCj4gPiBbICAgNjkuOTY1OTgx
+XSAgWzxmZmZmZmZmZjgxMjViYWEwPl0gcGNpX2dldF9zdWJzeXMrMHgzMC8weDQwDQo+ID4gWyAg
+IDY5Ljk2NTk4N10gIFs8ZmZmZmZmZmY4MTI1YmFjMz5dIHBjaV9nZXRfZGV2aWNlKzB4MTMvMHgy
+MA0KPiA+IFsgICA2OS45NjU5OTNdICBbPGZmZmZmZmZmODEyNWJhZmY+XQ0KPiBwY2lfZ2V0X2Rv
+bWFpbl9idXNfYW5kX3Nsb3QrMHgyZi8weDcwDQo+ID4gWyAgIDY5Ljk2NjAwMV0gIFs8ZmZmZmZm
+ZmY4MTJiZjNlZD5dDQo+IGNwZXJfcHJpbnRfcGNpZS5pc3JhLjErMHg1ZC8weDIwMA0KPiA+IFsg
+ICA2OS45NjYwMDddICBbPGZmZmZmZmZmODEyYmY4YzU+XQ0KPiBhcGVpX2VzdGF0dXNfcHJpbnRf
+c2VjdGlvbisweDFlNS8weDJjMA0KPiA+IFsgICA2OS45NjYwMTNdICBbPGZmZmZmZmZmODEyYmZh
+Mjc+XSBhcGVpX2VzdGF0dXNfcHJpbnQrMHg4Ny8weGIwDQo+ID4gWyAgIDY5Ljk2NjAxOV0gIFs8
+ZmZmZmZmZmY4MTJjMjAxNT5dDQo+IF9fZ2hlc19wcmludF9lc3RhdHVzLmlzcmEuOCsweDc1LzB4
+YzANCj4gPiBbICAgNjkuOTY2MDI3XSAgWzxmZmZmZmZmZjgxMjM5ZDUwPl0gPyBfX19yYXRlbGlt
+aXQucGFydC4wKzB4ODAvMHhlMA0KPiA+IFsgICA2OS45NjYwMzNdICBbPGZmZmZmZmZmODEyYzIw
+Yjk+XQ0KPiBnaGVzX3ByaW50X2VzdGF0dXMuY29uc3Rwcm9wLjEwKzB4NTkvMHg3MA0KPiA+IFsg
+ICA2OS45NjYwMzldICBbPGZmZmZmZmZmODEyYzI0ZjA+XSA/IGdoZXNfaXJxX2Z1bmMrMHgyMC8w
+eDIwDQo+ID4gWyAgIDY5Ljk2NjA0NF0gIFs8ZmZmZmZmZmY4MTJjMjQ0Yz5dIGdoZXNfcHJvYysw
+eDVjLzB4NzANCj4gPiBbICAgNjkuOTY2MDUwXSAgWzxmZmZmZmZmZjgxMmMyNTAxPl0gZ2hlc19w
+b2xsX2Z1bmMrMHgxMS8weDMwDQo+ID4gWyAgIDY5Ljk2NjA1N10gIFs8ZmZmZmZmZmY4MTA3MzMy
+ZD5dIGNhbGxfdGltZXJfZm4uaXNyYS4zMCsweDJkLzB4OTANCj4gPiBbICAgNjkuOTY2MDY1XSAg
+WzxmZmZmZmZmZjgxMDczNTM2Pl0gcnVuX3RpbWVyX3NvZnRpcnErMHgxYTYvMHgxZTANCj4gPiBb
+ICAgNjkuOTY2MDcxXSAgWzxmZmZmZmZmZjgxMDZkY2M4Pl0gX19kb19zb2Z0aXJxKzB4YzgvMHgx
+ODANCj4gPiBbICAgNjkuOTY2MDc3XSAgWzxmZmZmZmZmZjgxMDZkZWM2Pl0gaXJxX2V4aXQrMHg4
+Ni8weGEwDQo+ID4gWyAgIDY5Ljk2NjA4NF0gIFs8ZmZmZmZmZmY4MTAyNDhkOT5dDQo+IHNtcF9h
+cGljX3RpbWVyX2ludGVycnVwdCsweDY5LzB4YTANCj4gPiBbICAgNjkuOTY2MDkwXSAgWzxmZmZm
+ZmZmZjgxNWY0YjRhPl0gYXBpY190aW1lcl9pbnRlcnJ1cHQrMHg2YS8weDcwDQo+ID4gWyAgIDY5
+Ljk2NjA5M10gIDxFT0k+ICBbPGZmZmZmZmZmODE0Yzg0MDg+XSA/DQo+IGNwdWlkbGVfd3JhcF9l
+bnRlcisweDQ4LzB4OTANCj4gPiBbICAgNjkuOTY2MTAxXSAgWzxmZmZmZmZmZjgxNGM4NDA0Pl0g
+PyBjcHVpZGxlX3dyYXBfZW50ZXIrMHg0NC8weDkwDQo+ID4gWyAgIDY5Ljk2NjEwN10gIFs8ZmZm
+ZmZmZmY4MTRjODQ2MD5dIGNwdWlkbGVfZW50ZXJfdGsrMHgxMC8weDIwDQo+ID4gWyAgIDY5Ljk2
+NjExNl0gIFs8ZmZmZmZmZmY4MTRjODFjNT5dIGNwdWlkbGVfaWRsZV9jYWxsKzB4ODUvMHgxMDAN
+Cj4gPiBbICAgNjkuOTY2MTIyXSAgWzxmZmZmZmZmZjgxMDBiOTdmPl0gY3B1X2lkbGUrMHhiZi8w
+eDExMA0KPiA+IFsgICA2OS45NjYxMjldICBbPGZmZmZmZmZmODE1ZGIyZWQ+XSBzdGFydF9zZWNv
+bmRhcnkrMHhiZC8weGJmDQo+ID4gWyAgIDY5Ljk2NjEzNF0gLS0tWyBlbmQgdHJhY2UgOWVhMDQ1
+NDEzM2RkZjhhMyBdLS0tDQo+IA0KPiBBcHBhcmVudGx5IHlvdSdyZSBub3Qgc3VwcG9zZWQgdG8g
+ZG8gcGNpX2dldCogaW4gSVJRIGNvbnRleHQuIEJ1dCB0aGlzDQo+IGNvZGUgaXMgb2xkZXIgdGhh
+biAzLjkgc28gd2h5IGRvZXMgaXQgdHJpZ2dlciBub3c/DQoNClJpZ2h0IEJvcmlzLCBsb29rcyBs
+aWtlIHdlIGFyZSBoaXR0aW5nIHRoZSBXQVJOX09OKGluX2ludGVycnVwdCkgaW4gcGNpX2dldF9k
+ZXZfYnlfaWQoKS4gIFdlIHJlY2VudGx5IHN0YXJ0ZWQgc2VlaW5nIHRoaXMgb24gb3VyIHRlc3Qg
+c3lzdGVtcyB3aGVuIGluamVjdGluZyBlcnJvcnMuICBUaGUgb25seSByZWFzb24gd2UgYXJlIGNh
+bGxpbmcgcGNpX2dldF9kb21haW5fYnVzX2FuZF9zbG90KCkgaXMgdG8gZ2V0IHRoZSBwY2lfZGV2
+KiB0byBwYXNzIGludG8gY3Blcl9wcmludF9hZXIoKSBzbyB3ZSBjYW4gaGF2ZSB0aGUgZGV2aWNl
+J3MgbmFtZSB0byBwdXQgaW50byB0aGUgdHJhY2UgZXZlbnQgZm9yIEFFUi4gIElmIHdlIGNhbiBm
+aW5kIGFub3RoZXIgd2F5IHRvIGdldCB0aGUgZGV2aWNlIG5hbWUgZm9yIHRoZSB0cmFjZSBldmVu
+dCB3ZSBjb3VsZCByZW1vdmUgdGhpcyBjYWxsIHRvIHBjaV9nZXRfZG9tYWluX2J1c19hbmRfc2xv
+dCgpLiAgSSB3aWxsIGNvbnRpbnVlIHRvIGxvb2sgaW50byBhbiBhbHRlcm5hdGl2ZS4gSWYgeW91
+IGhhdmUgYW55IGlkZWFzIG9uIGhvdyB0byBnZXQgdGhlIGRldmljZSBkYXRhIGZyb20gdGhpcyBj
+b250ZXh0IGxldCBtZSBrbm93Lg0KDQpJJ20gbm90IHN1cmUgd2h5IHRoZSBwY2lfZ2V0X2RvbWFp
+bl9idXNfYW5kX3Nsb3QoKSBpcyBmYWlsaW5nIHRvIGZpbmQgdGhlIFBDSSBkZXZpY2UgdGhvdWdo
+LiAgV2UgYXJlIG5vdCBoaXR0aW5nIHRoYXQgaXNzdWUuICBXZSBhcmUganVzdCBzZWVpbmcgdGhl
+IGluX2ludGVycnVwdCB3YXJuaW5nLg0KDQpMYW5jZQ0K
