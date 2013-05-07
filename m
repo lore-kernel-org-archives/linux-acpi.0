@@ -1,79 +1,154 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: [FIX PATCH] ACPI/EC: Restart transaction even when IBF flag setting
-Date: Wed, 08 May 2013 02:00:30 +0200
-Message-ID: <2059413.MqXkV1l8ih@vostro.rjw.lan>
-References: <1367810620-9369-1-git-send-email-tianyu.lan@intel.com>
+From: Toshi Kani <toshi.kani@hp.com>
+Subject: Re: [PATCH 2/2 v2, RFC] Driver core: Introduce offline/online
+ callbacks for memory blocks
+Date: Tue, 07 May 2013 17:59:16 -0600
+Message-ID: <1367971156.30363.32.camel@misato.fc.hp.com>
+References: <1576321.HU0tZ4cGWk@vostro.rjw.lan>
+	 <2150698.7rPOtiF0kp@vostro.rjw.lan>
+	 <1367966740.30363.26.camel@misato.fc.hp.com>
+	 <228012439.MgiLXSqjLd@vostro.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from hydra.sisk.pl ([212.160.235.94]:37714 "EHLO hydra.sisk.pl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755804Ab3EGXwF (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 7 May 2013 19:52:05 -0400
-In-Reply-To: <1367810620-9369-1-git-send-email-tianyu.lan@intel.com>
+Received: from g4t0015.houston.hp.com ([15.201.24.18]:40888 "EHLO
+	g4t0015.houston.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754132Ab3EGX7T (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 7 May 2013 19:59:19 -0400
+In-Reply-To: <228012439.MgiLXSqjLd@vostro.rjw.lan>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Lan Tianyu <tianyu.lan@intel.com>
-Cc: lenb@kernel.org, linux-acpi@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: Vasilis Liaskovitis <vasilis.liaskovitis@profitbricks.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>, isimatu.yasuaki@jp.fujitsu.com, Len Brown <lenb@kernel.org>, linux-mm@kvack.org, wency@cn.fujitsu.com
 
-On Monday, May 06, 2013 11:23:40 AM Lan Tianyu wrote:
-> Some time, EC works abnormally with IBF flag always setting.
-> IBF means "The host has written a byte of data to the command
-> or data port, but the embedded controller has not yet read it".
-> This will cause all EC requests to be failed with timeout error.
+On Wed, 2013-05-08 at 01:17 +0200, Rafael J. Wysocki wrote:
+> On Tuesday, May 07, 2013 04:45:40 PM Toshi Kani wrote:
+> > On Wed, 2013-05-08 at 00:10 +0200, Rafael J. Wysocki wrote:
+> > > On Tuesday, May 07, 2013 03:03:49 PM Toshi Kani wrote:
+> > > > On Tue, 2013-05-07 at 14:11 +0200, Rafael J. Wysocki wrote:
+> > > > > On Tuesday, May 07, 2013 12:59:45 PM Vasilis Liaskovitis wrote:
+> > > > 
+> > > >  :
+> > > > 
+> > > > > Updated patch is appended for completness.
+> > > > 
+> > > > Yes, this updated patch solved the locking issue.
+> > > > 
+> > > > > > > > A more general issue is that there are now two memory offlining efforts:
+> > > > > > > > 
+> > > > > > > > 1) from acpi_bus_offline_companions during device offline
+> > > > > > > > 2) from mm: remove_memory during device detach (offline_memory_block_cb)
+> > > > > > > > 
+> > > > > > > > The 2nd is only called if the device offline operation was already succesful, so
+> > > > > > > > it seems ineffective or redundant now, at least for x86_64/acpi_memhotplug machine
+> > > > > > > > (unless the blocks were re-onlined in between).
+> > > > > > > 
+> > > > > > > Sure, and that should be OK for now.  Changing the detach behavior is not
+> > > > > > > essential from the patch [2/2] perspective, we can do it later.
+> > > > > > 
+> > > > > > yes, ok.
+> > > > > > 
+> > > > > > > 
+> > > > > > > > On the other hand, the 2nd effort has some more intelligence in offlining, as it
+> > > > > > > > tries to offline twice in the precense of memcg, see commits df3e1b91 or
+> > > > > > > > reworked 0baeab16. Maybe we need to consolidate the logic.
+> > > > > > > 
+> > > > > > > Hmm.  Perhaps it would make sense to implement that logic in
+> > > > > > > memory_subsys_offline(), then?
+> > > > > > 
+> > > > > > the logic tries to offline the memory blocks of the device twice, because the
+> > > > > > first memory block might be storing information for the subsequent memblocks.
+> > > > > > 
+> > > > > > memory_subsys_offline operates on one memory block at a time. Perhaps we can get
+> > > > > > the same effect if we do an acpi_walk of acpi_bus_offline_companions twice in
+> > > > > > acpi_scan_hot_remove but it's probably not a good idea, since that would
+> > > > > > affect non-memory devices as well. 
+> > > > > > 
+> > > > > > I am not sure how important this intelligence is in practice (I am not using
+> > > > > > mem cgroups in my guest kernel tests yet).  Maybe Wen (original author) has
+> > > > > > more details on 2-pass offlining effectiveness.
+> > > > > 
+> > > > > OK
+> > > > > 
+> > > > > It may be added in a separate patch in any case.
+> > > > 
+> > > > I had the same comment as Vasilis.  And, I agree with you that we can
+> > > > enhance it in separate patches.
+> > > > 
+> > > >  :
+> > > > 
+> > > > > +static int memory_subsys_offline(struct device *dev)
+> > > > > +{
+> > > > > +	struct memory_block *mem = container_of(dev, struct memory_block, dev);
+> > > > > +	int ret;
+> > > > > +
+> > > > > +	mutex_lock(&mem->state_mutex);
+> > > > > +	ret = __memory_block_change_state(mem, MEM_OFFLINE, MEM_ONLINE, -1);
+> > > > 
+> > > > This function needs to check mem->state just like
+> > > > offline_memory_block().  That is:
+> > > > 
+> > > > 	int ret = 0;
+> > > > 		:
+> > > > 	if (mem->state != MEM_OFFLINE)
+> > > > 		ret = __memory_block_change_state(...);
+> > > > 
+> > > > Otherwise, memory hot-delete to an off-lined memory fails in
+> > > > __memory_block_change_state() since mem->state is already set to
+> > > > MEM_OFFLINE.
+> > > > 
+> > > > With that change, for the series:
+> > > > Reviewed-by: Toshi Kani <toshi.kani@hp.com>
+> > > 
+> > > OK, one more update, then (appended).
+> > > 
+> > > That said I thought that the check against dev->offline in device_offline()
+> > > would be sufficient to guard agaist that.  Is there any "offline" code path
+> > > I didn't take into account?
+> > 
+> > Oh, you are right about that.  The real problem is that dev->offline is
+> > set to false (0) when a new memory is hot-added in off-line state.  So,
+> > instead, dev->offline needs to be set properly.  
 > 
-> After several trials, find restarting transaction with IBF flag
-> setting can make EC work again. This patch is to remove the
-> IBF flag check before restarting transaction and increase the
-> repeat number to 5. Some time, once restart is not enough.
-> 
-> This bug happens on the different machines. (e.g Asus V1S,
-> Dell Latitude E6530, Samsung R719, Acer Aspire 5930G,
-> Sony Vaio SR19VN and so on).
-> 
-> Related bugs:
-> 	https://bugzilla.kernel.org/show_bug.cgi?id=14733
-> 	https://bugzilla.kernel.org/show_bug.cgi?id=15560
-> 	https://bugzilla.kernel.org/show_bug.cgi?id=15946
-> 	https://bugzilla.kernel.org/show_bug.cgi?id=42945
-> 	https://bugzilla.kernel.org/show_bug.cgi?id=48221
-> 
-> Signed-off-by: Lan Tianyu <tianyu.lan@intel.com>
+> OK, where does that happen?
 
-Queued up for a post-3.10-rc1 push as 3.10 (and -stable) material.
+It's a bit messy, but the following change seems to work.  A tricky part
+is that online() is not called during boot, so I needed to update the
+offline flag in __memory_block_change_state().
 
 Thanks,
-Rafael
+-Toshi
+
+---
+ drivers/base/memory.c |    5 ++++-
+ 1 file changed, 4 insertions(+), 1 deletion(-)
+
+diff --git a/drivers/base/memory.c b/drivers/base/memory.c
+index b9dfd34..1c8d781 100644
+--- a/drivers/base/memory.c
++++ b/drivers/base/memory.c
+@@ -294,8 +294,10 @@ static int __memory_block_change_state(struct
+memory_block *mem,
+ 		mem->state = from_state_req;
+ 	} else {
+ 		mem->state = to_state;
+-		if (to_state == MEM_ONLINE)
++		if (to_state == MEM_ONLINE) {
+ 			mem->last_online = online_type;
++			mem->dev.offline = false;
++		}
+ 	}
+ 	return ret;
+ }
+@@ -613,6 +615,7 @@ static int init_memory_block(struct memory_block
+**memory,
+ 	mem->state = state;
+ 	mem->last_online = ONLINE_KEEP;
+ 	mem->section_count++;
++	mem->dev.offline = (state == MEM_OFFLINE) ? true : false; 
+ 	mutex_init(&mem->state_mutex);
+ 	start_pfn = section_nr_to_pfn(mem->start_section_nr);
+ 	mem->phys_device = arch_get_memory_phys_device(start_pfn);
 
 
-> ---
->  drivers/acpi/ec.c |    4 +---
->  1 file changed, 1 insertion(+), 3 deletions(-)
-> 
-> diff --git a/drivers/acpi/ec.c b/drivers/acpi/ec.c
-> index d45b287..edc0081 100644
-> --- a/drivers/acpi/ec.c
-> +++ b/drivers/acpi/ec.c
-> @@ -223,7 +223,7 @@ static int ec_check_sci_sync(struct acpi_ec *ec, u8 state)
->  static int ec_poll(struct acpi_ec *ec)
->  {
->  	unsigned long flags;
-> -	int repeat = 2; /* number of command restarts */
-> +	int repeat = 5; /* number of command restarts */
->  	while (repeat--) {
->  		unsigned long delay = jiffies +
->  			msecs_to_jiffies(ec_delay);
-> @@ -241,8 +241,6 @@ static int ec_poll(struct acpi_ec *ec)
->  			}
->  			advance_transaction(ec, acpi_ec_read_status(ec));
->  		} while (time_before(jiffies, delay));
-> -		if (acpi_ec_read_status(ec) & ACPI_EC_FLAG_IBF)
-> -			break;
->  		pr_debug(PREFIX "controller reset, restart transaction\n");
->  		spin_lock_irqsave(&ec->lock, flags);
->  		start_transaction(ec);
-> 
--- 
-I speak only for myself.
-Rafael J. Wysocki, Intel Open Source Technology Center.
+
