@@ -1,63 +1,122 @@
 From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: Immediate wakeup after suspend
-Date: Tue, 07 May 2013 01:56:08 +0200
-Message-ID: <1612326.XDA8n1le4S@vostro.rjw.lan>
-References: <CAOULuObQq+WPf97LdsD5kN6cq=E9TvaHzqGzdKSWRme-Nk+WQQ@mail.gmail.com>
+Subject: Re: [PATCH 2/2 v2, RFC] Driver core: Introduce offline/online callbacks for memory blocks
+Date: Tue, 07 May 2013 02:59:05 +0200
+Message-ID: <1809544.1r1JBXrr0i@vostro.rjw.lan>
+References: <1576321.HU0tZ4cGWk@vostro.rjw.lan> <19540491.PRsM4lKIYM@vostro.rjw.lan> <20130506162812.GB4929@dhcp-192-168-178-175.profitbricks.localdomain>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7Bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <CAOULuObQq+WPf97LdsD5kN6cq=E9TvaHzqGzdKSWRme-Nk+WQQ@mail.gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Parag Warudkar <parag.lkml@gmail.com>
-Cc: LKML <linux-kernel@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux PM list <linux-pm@vger.kernel.org>
+Return-path: <owner-linux-mm@kvack.org>
+In-Reply-To: <20130506162812.GB4929@dhcp-192-168-178-175.profitbricks.localdomain>
+Sender: owner-linux-mm@kvack.org
+To: Vasilis Liaskovitis <vasilis.liaskovitis@profitbricks.com>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Toshi Kani <toshi.kani@hp.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>, isimatu.yasuaki@jp.fujitsu.com, Len Brown <lenb@kernel.org>, linux-mm@kvack.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Monday, May 06, 2013 06:22:47 PM Parag Warudkar wrote:
-> Sometime after 3.9 my iMac has started to resume almost immediately
-> after suspend.  Even with 3.9 it was all working as expected.
+On Monday, May 06, 2013 06:28:12 PM Vasilis Liaskovitis wrote:
+> Hi,
+> 
+> On Sat, May 04, 2013 at 01:21:16PM +0200, Rafael J. Wysocki wrote:
+> > From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+> > 
+> > Introduce .offline() and .online() callbacks for memory_subsys
+> > that will allow the generic device_offline() and device_online()
+> > to be used with device objects representing memory blocks.  That,
+> > in turn, allows the ACPI subsystem to use device_offline() to put
+> > removable memory blocks offline, if possible, before removing
+> > memory modules holding them.
+> > 
+> > The 'online' sysfs attribute of memory block devices will attempt to
+> > put them offline if 0 is written to it and will attempt to apply the
+> > previously used online type when onlining them (i.e. when 1 is
+> > written to it).
+> > 
+> > Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+> > ---
+> >  drivers/base/memory.c  |  105 +++++++++++++++++++++++++++++++++++++------------
+> >  include/linux/memory.h |    1 
+> >  2 files changed, 81 insertions(+), 25 deletions(-)
+> >
+> [...]
+> 
+> > @@ -686,10 +735,16 @@ int offline_memory_block(struct memory_b
+> >  {
+> >  	int ret = 0;
+> >  
+> > +	lock_device_hotplug();
+> >  	mutex_lock(&mem->state_mutex);
+> > -	if (mem->state != MEM_OFFLINE)
+> > -		ret = __memory_block_change_state(mem, MEM_OFFLINE, MEM_ONLINE, -1);
+> > +	if (mem->state != MEM_OFFLINE) {
+> > +		ret = __memory_block_change_state_uevent(mem, MEM_OFFLINE,
+> > +							 MEM_ONLINE, -1);
+> > +		if (!ret)
+> > +			mem->dev.offline = true;
+> > +	}
+> >  	mutex_unlock(&mem->state_mutex);
+> > +	unlock_device_hotplug();
+> 
+> (Testing with qemu...)
 
-It'd be good to know something more precise, like for example which merge
-introduced the problem.  I'm not aware of anything that might result is this
-kind of breakage.
+Thanks!
 
-> Relevant dmesg output below. Any way to find out the source of the wakeup?
+> offline_memory_block is called from remove_memory, which in turn is called from
+> acpi_memory_device_remove (detach operation) during acpi_bus_trim. We already
+> hold the device_hotplug lock when we trim (acpi_scan_hot_remove), so we
+> don't need to lock/unlock_device_hotplug in offline_memory_block.
 
-Not really.
+Indeed.
 
-You can play with the wakeup settings of various devices.
+First, it looks like offline_memory_block_cb() is the only place calling
+offline_memory_block(), is that right?  I'm wondering if it would make
+sense to use device_offline() in there and remove offline_memory_block()
+entirely?
 
-Can you send the contents of /proc/acpi/wakeup from the machine?
+Second, if you ran into this issue during testing, that would mean that patch
+[1/2] actually worked for you, which would be nice. :-)  Was that really the
+case?
+
+> A more general issue is that there are now two memory offlining efforts:
+> 
+> 1) from acpi_bus_offline_companions during device offline
+> 2) from mm: remove_memory during device detach (offline_memory_block_cb)
+> 
+> The 2nd is only called if the device offline operation was already succesful, so
+> it seems ineffective or redundant now, at least for x86_64/acpi_memhotplug machine
+> (unless the blocks were re-onlined in between).
+
+Sure, and that should be OK for now.  Changing the detach behavior is not
+essential from the patch [2/2] perspective, we can do it later.
+
+> On the other hand, the 2nd effort has some more intelligence in offlining, as it
+> tries to offline twice in the precense of memcg, see commits df3e1b91 or
+> reworked 0baeab16. Maybe we need to consolidate the logic.
+
+Hmm.  Perhaps it would make sense to implement that logic in
+memory_subsys_offline(), then?
+
+> remove_memory is called from device_detach, during trim that can't fail, so it
+> should not fail. However this function can still fail in 2 cases:
+> - offline_memory_block_cb
+> - is_memblock_offlined_cb
+> in the case of re-onlined memblocks in between device-offline and device detach.
+> This seems possible I think, since we do not hold lock_memory_hotplug for the
+> duration of the hot-remove operation.
+
+But we do hold device_hotplug_lock, so every code path that may race with
+acpi_scan_hot_remove() needs to take device_hotplug_lock as well.  Now,
+question is whether or not there are any code paths like that calling one of
+the two functions above without holding device_hotplug_lock?
 
 Rafael
 
 
-> Linux parag-iMac 3.9.0+ #5 SMP PREEMPT Mon May 6 17:01:19 EDT 2013
-> x86_64 x86_64 x86_64 GNU/Linux
-> 
-> [ 3631.441257] PM: Entering mem sleep
-> [ 3631.441274] Suspending console(s) (use no_console_suspend to debug)
-> [ 3631.441825] sd 0:0:0:0: [sda] Synchronizing SCSI cache
-> [ 3631.442003] sd 0:0:0:0: [sda] Stopping disk
-> [ 3631.755076] PM: suspend of devices complete after 313.257 msecs
-> [ 3631.755219] PM: late suspend of devices complete after 0.134 msecs
-> [ 3631.795185] PM: noirq suspend of devices complete after 39.904 msecs
-> [ 3631.821922] pcieport 0000:00:1c.1: power state changed by ACPI to D0
-> [ 3631.915378] PM: noirq resume of devices complete after 119.999 msecs
-> [ 3631.915459] PM: early resume of devices complete after 0.062 msecs
-> [ 3631.915525] ahci 0000:00:1f.2: setting latency timer to 64
-> [ 3631.915609] ehci-pci 0000:00:1a.7: setting latency timer to 64
-> [ 3631.915654] uhci_hcd 0000:00:1a.0: setting latency timer to 64
-> [ 3631.915690] usb usb1: root hub lost power or was reset
-> [ 3631.915709] snd_hda_intel 0000:00:1b.0: irq 46 for MSI/MSI-X
-> [ 3631.915770] uhci_hcd 0000:00:1d.0: setting latency timer to 64
-> [ 3631.915792] usb usb2: root hub lost power or was reset
-> [ 3631.915804] ehci-pci 0000:00:1d.7: setting latency timer to 64
-> [ 3631.915821] snd_hda_intel 0000:01:00.1: irq 48 for MSI/MSI-X
-> [ 3631.918662] [drm] probing gen 2 caps for device 8086:101 = 2212d02/0
-> [ 3631.918665] [drm] PCIE gen 2 link speeds already enabled
-> [ 3631.921479] [drm] PCIE GART of 512M enabled (table at 0x0000000000040000).
-> [ 3631.921584] radeon 0000:01:00.0: WB enabled
 -- 
 I speak only for myself.
 Rafael J. Wysocki, Intel Open Source Technology Center.
+
+--
+To unsubscribe, send a message with 'unsubscribe linux-mm' in
+the body to majordomo@kvack.org.  For more info on Linux MM,
+see: http://www.linux-mm.org/ .
+Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
