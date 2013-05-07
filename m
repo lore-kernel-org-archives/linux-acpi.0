@@ -1,117 +1,139 @@
 From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: [PATCH 2/2 v2, RFC] Driver core: Introduce offline/online callbacks for memory blocks
-Date: Wed, 08 May 2013 01:17:25 +0200
-Message-ID: <228012439.MgiLXSqjLd@vostro.rjw.lan>
-References: <1576321.HU0tZ4cGWk@vostro.rjw.lan> <2150698.7rPOtiF0kp@vostro.rjw.lan> <1367966740.30363.26.camel@misato.fc.hp.com>
+Subject: Re: [FIX PATCH] ACPI/AC: Add sleep quirk for Thinkpad e530
+Date: Wed, 08 May 2013 01:54:48 +0200
+Message-ID: <1623264.1zFYjzoa3n@vostro.rjw.lan>
+References: <1367843253-13021-1-git-send-email-tianyu.lan@intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7Bit
-Return-path: <owner-linux-mm@kvack.org>
-In-Reply-To: <1367966740.30363.26.camel@misato.fc.hp.com>
-Sender: owner-linux-mm@kvack.org
-To: Toshi Kani <toshi.kani@hp.com>
-Cc: Vasilis Liaskovitis <vasilis.liaskovitis@profitbricks.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>, isimatu.yasuaki@jp.fujitsu.com, Len Brown <lenb@kernel.org>, linux-mm@kvack.org, wency@cn.fujitsu.com
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from hydra.sisk.pl ([212.160.235.94]:37700 "EHLO hydra.sisk.pl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752123Ab3EGXqY (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 7 May 2013 19:46:24 -0400
+In-Reply-To: <1367843253-13021-1-git-send-email-tianyu.lan@intel.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Lan Tianyu <tianyu.lan@intel.com>
+Cc: lenb@kernel.org, linux-acpi@vger.kernel.org
 
-On Tuesday, May 07, 2013 04:45:40 PM Toshi Kani wrote:
-> On Wed, 2013-05-08 at 00:10 +0200, Rafael J. Wysocki wrote:
-> > On Tuesday, May 07, 2013 03:03:49 PM Toshi Kani wrote:
-> > > On Tue, 2013-05-07 at 14:11 +0200, Rafael J. Wysocki wrote:
-> > > > On Tuesday, May 07, 2013 12:59:45 PM Vasilis Liaskovitis wrote:
-> > > 
-> > >  :
-> > > 
-> > > > Updated patch is appended for completness.
-> > > 
-> > > Yes, this updated patch solved the locking issue.
-> > > 
-> > > > > > > A more general issue is that there are now two memory offlining efforts:
-> > > > > > > 
-> > > > > > > 1) from acpi_bus_offline_companions during device offline
-> > > > > > > 2) from mm: remove_memory during device detach (offline_memory_block_cb)
-> > > > > > > 
-> > > > > > > The 2nd is only called if the device offline operation was already succesful, so
-> > > > > > > it seems ineffective or redundant now, at least for x86_64/acpi_memhotplug machine
-> > > > > > > (unless the blocks were re-onlined in between).
-> > > > > > 
-> > > > > > Sure, and that should be OK for now.  Changing the detach behavior is not
-> > > > > > essential from the patch [2/2] perspective, we can do it later.
-> > > > > 
-> > > > > yes, ok.
-> > > > > 
-> > > > > > 
-> > > > > > > On the other hand, the 2nd effort has some more intelligence in offlining, as it
-> > > > > > > tries to offline twice in the precense of memcg, see commits df3e1b91 or
-> > > > > > > reworked 0baeab16. Maybe we need to consolidate the logic.
-> > > > > > 
-> > > > > > Hmm.  Perhaps it would make sense to implement that logic in
-> > > > > > memory_subsys_offline(), then?
-> > > > > 
-> > > > > the logic tries to offline the memory blocks of the device twice, because the
-> > > > > first memory block might be storing information for the subsequent memblocks.
-> > > > > 
-> > > > > memory_subsys_offline operates on one memory block at a time. Perhaps we can get
-> > > > > the same effect if we do an acpi_walk of acpi_bus_offline_companions twice in
-> > > > > acpi_scan_hot_remove but it's probably not a good idea, since that would
-> > > > > affect non-memory devices as well. 
-> > > > > 
-> > > > > I am not sure how important this intelligence is in practice (I am not using
-> > > > > mem cgroups in my guest kernel tests yet).  Maybe Wen (original author) has
-> > > > > more details on 2-pass offlining effectiveness.
-> > > > 
-> > > > OK
-> > > > 
-> > > > It may be added in a separate patch in any case.
-> > > 
-> > > I had the same comment as Vasilis.  And, I agree with you that we can
-> > > enhance it in separate patches.
-> > > 
-> > >  :
-> > > 
-> > > > +static int memory_subsys_offline(struct device *dev)
-> > > > +{
-> > > > +	struct memory_block *mem = container_of(dev, struct memory_block, dev);
-> > > > +	int ret;
-> > > > +
-> > > > +	mutex_lock(&mem->state_mutex);
-> > > > +	ret = __memory_block_change_state(mem, MEM_OFFLINE, MEM_ONLINE, -1);
-> > > 
-> > > This function needs to check mem->state just like
-> > > offline_memory_block().  That is:
-> > > 
-> > > 	int ret = 0;
-> > > 		:
-> > > 	if (mem->state != MEM_OFFLINE)
-> > > 		ret = __memory_block_change_state(...);
-> > > 
-> > > Otherwise, memory hot-delete to an off-lined memory fails in
-> > > __memory_block_change_state() since mem->state is already set to
-> > > MEM_OFFLINE.
-> > > 
-> > > With that change, for the series:
-> > > Reviewed-by: Toshi Kani <toshi.kani@hp.com>
-> > 
-> > OK, one more update, then (appended).
-> > 
-> > That said I thought that the check against dev->offline in device_offline()
-> > would be sufficient to guard agaist that.  Is there any "offline" code path
-> > I didn't take into account?
+On Monday, May 06, 2013 08:27:33 PM Lan Tianyu wrote:
+> Thinkpad e530 bios notify ac device first and then sleep
+> a specific time before doing actual operations in the
+> EC event handler(_Qxx). This will cause the AC state
+> reported by ACPI event.
 > 
-> Oh, you are right about that.  The real problem is that dev->offline is
-> set to false (0) when a new memory is hot-added in off-line state.  So,
-> instead, dev->offline needs to be set properly.  
+> Method (_Q27, 0, NotSerialized)
+> {
+>       Notify (AC, 0x80)
+>       Sleep (0x03E8)
+>       Store (Zero, PWRS)
+>       PNOT ()
+> }
+> 
+> This patch is to add a 1s sleep in the ac driver's
+> notify handler before acpi_ac_get_state() to make
+> sure get right state.
+> 
+> https://bugzilla.kernel.org/show_bug.cgi?id=45221
+> 
+> Signed-off-by: Lan Tianyu <tianyu.lan@intel.com>
+> ---
+>  drivers/acpi/ac.c |   32 ++++++++++++++++++++++++++++++++
+>  1 file changed, 32 insertions(+)
+> 
+> diff --git a/drivers/acpi/ac.c b/drivers/acpi/ac.c
+> index 6d5bf64..0292cbb 100644
+> --- a/drivers/acpi/ac.c
+> +++ b/drivers/acpi/ac.c
+> @@ -28,6 +28,8 @@
+>  #include <linux/slab.h>
+>  #include <linux/init.h>
+>  #include <linux/types.h>
+> +#include <linux/dmi.h>
+> +#include <linux/delay.h>
+>  #ifdef CONFIG_ACPI_PROCFS_POWER
+>  #include <linux/proc_fs.h>
+>  #include <linux/seq_file.h>
+> @@ -74,6 +76,8 @@ static int acpi_ac_resume(struct device *dev);
+>  #endif
+>  static SIMPLE_DEV_PM_OPS(acpi_ac_pm, NULL, acpi_ac_resume);
+>  
+> +static int ac_flag_sleep_for_get_state;
 
-OK, where does that happen?
+Hmm.  Why don't you replace ac_flag_sleep_for_get_state with the time
+to sleep in acpi_ac_notify(), something like ac_sleep_before_get_state_ms
+and then do something like this ->
 
+> +
+>  static struct acpi_driver acpi_ac_driver = {
+>  	.name = "ac",
+>  	.class = ACPI_AC_CLASS,
+> @@ -252,6 +256,15 @@ static void acpi_ac_notify(struct acpi_device *device, u32 event)
+>  	case ACPI_AC_NOTIFY_STATUS:
+>  	case ACPI_NOTIFY_BUS_CHECK:
+>  	case ACPI_NOTIFY_DEVICE_CHECK:
+> +		/* Some buggy bios notify ac device first and then sleep
+> +		 * a specific time before doing actual operations in the
+> +		 * EC event handler(_Qxx). This will cause the AC state
+> +		 * reported by ACPI event wrong. So add a 1s sleep here
+> +		 * to ensure get correct state.
+> +		 */
+> +		if (ac_flag_sleep_for_get_state)
+> +			msleep(1000);
+
+-> if (ac_sleep_before_get_state_ms > 0)
+			msleep(ac_sleep_before_get_state_ms);
+
+and *then* set ac_sleep_before_get_state_ms to 1000 in the Thinkpad e530
+specific quirk?
+
+If we find another machine having this problem in the future, but needing
+a different sleep time, it will be easier to add it to the blacklist in that
+case.
+
+Thanks,
 Rafael
 
 
+> +
+>  		acpi_ac_get_state(ac);
+>  		acpi_bus_generate_proc_event(device, event, (u32) ac->state);
+>  		acpi_bus_generate_netlink_event(device->pnp.device_class,
+> @@ -264,6 +277,24 @@ static void acpi_ac_notify(struct acpi_device *device, u32 event)
+>  	return;
+>  }
+>  
+> +static int ac_sleep_for_get_state(const struct dmi_system_id *d)
+> +{
+> +	ac_flag_sleep_for_get_state = 1;
+> +	return 0;
+> +}
+> +
+> +static struct dmi_system_id __initdata ac_dmi_table[] = {
+> +	{
+> +	.callback = ac_sleep_for_get_state,
+> +	.ident = "thinkpad e530",
+> +	.matches = {
+> +		DMI_MATCH(DMI_SYS_VENDOR, "LENOVO"),
+> +		DMI_MATCH(DMI_PRODUCT_NAME, "32597CG"),
+> +		},
+> +	},
+> +	{},
+> +};
+> +
+>  static int acpi_ac_add(struct acpi_device *device)
+>  {
+>  	int result = 0;
+> @@ -312,6 +343,7 @@ static int acpi_ac_add(struct acpi_device *device)
+>  		kfree(ac);
+>  	}
+>  
+> +	dmi_check_system(ac_dmi_table);
+>  	return result;
+>  }
+>  
+> 
 -- 
 I speak only for myself.
 Rafael J. Wysocki, Intel Open Source Technology Center.
-
---
-To unsubscribe, send a message with 'unsubscribe linux-mm' in
-the body to majordomo@kvack.org.  For more info on Linux MM,
-see: http://www.linux-mm.org/ .
-Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
