@@ -1,55 +1,109 @@
-From: Borislav Petkov <bp@alien8.de>
-Subject: Re: WARNING at drivers/pci/search.c:214 for 3.9
-Date: Tue, 7 May 2013 22:49:58 +0200
-Message-ID: <20130507204958.GF7633@pd.tnic>
-References: <20130506162112.6b79b7b1@pluto.restena.lu>
- <20130506150757.GC22041@pd.tnic>
- <20130507085205.5a41b5ca@pluto.restena.lu>
- <20130507103830.GA7633@pd.tnic>
- <20130507153349.4d03040a@pluto.restena.lu>
+From: Toshi Kani <toshi.kani@hp.com>
+Subject: Re: [PATCH 2/2 v2, RFC] Driver core: Introduce offline/online
+ callbacks for memory blocks
+Date: Tue, 07 May 2013 15:03:49 -0600
+Message-ID: <1367960629.30363.21.camel@misato.fc.hp.com>
+References: <1576321.HU0tZ4cGWk@vostro.rjw.lan>
+	 <1809544.1r1JBXrr0i@vostro.rjw.lan>
+	 <20130507105945.GA4354@dhcp-192-168-178-175.profitbricks.localdomain>
+	 <7132174.AKkXX1jln2@vostro.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail.skyhub.de ([78.46.96.112]:57775 "EHLO mail.skyhub.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1757064Ab3EGUtA (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 7 May 2013 16:49:00 -0400
-Content-Disposition: inline
-In-Reply-To: <20130507153349.4d03040a@pluto.restena.lu>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
+Return-path: <owner-linux-mm@kvack.org>
+In-Reply-To: <7132174.AKkXX1jln2@vostro.rjw.lan>
+Sender: owner-linux-mm@kvack.org
+To: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: Vasilis Liaskovitis <vasilis.liaskovitis@profitbricks.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>, isimatu.yasuaki@jp.fujitsu.com, Len Brown <lenb@kernel.org>, linux-mm@kvack.org, wency@cn.fujitsu.com
 List-Id: linux-acpi@vger.kernel.org
-To: Bruno =?utf-8?Q?Pr=C3=A9mont?= <bonbons@linux-vserver.org>
-Cc: LKML <linux-kernel@vger.kernel.org>, Linux-ACPI <linux-acpi@vger.kernel.org>, Len Brown <lenb@kernel.org>, "Rafael J. Wysocki" <rjw@sisk.pl>, Lance Ortiz <lance.ortiz@hp.com>, Tony Luck <tony.luck@intel.com>, Matthew Garrett <mjg59@srcf.ucam.org>
 
-On Tue, May 07, 2013 at 03:33:49PM +0200, Bruno Pr=C3=A9mont wrote:
-> With the BIOS updated, the error message is gone (both the Hardware
-> error, and the WARNINGs triggered by attempting to lookup the source
-> PCIe device) Not sure which of the two public updates did the fix...
+On Tue, 2013-05-07 at 14:11 +0200, Rafael J. Wysocki wrote:
+> On Tuesday, May 07, 2013 12:59:45 PM Vasilis Liaskovitis wrote:
 
-Yeah, who knows. At least it got fixed.
+ :
 
-> > I don't understand: are you saying this patch breaks detection of y=
-our
-> > keyboard and touchpad and if you revert it, it works again? But 3.9=
- works?
->=20
-> No, that was the commit message of the SUSE guy who performed
-> the revert for SUSE kernel!
+> Updated patch is appended for completness.
 
-Oh ok, I see. SP2 was probably missing some other commits from upstream=
-=2E
-Ok, good, so it was a BIOS issue and it got fixed by a BIOS update.
-Seldom do I see bugs resolved that way :-).
+Yes, this updated patch solved the locking issue.
 
---=20
-Regards/Gruss,
-    Boris.
+> > > > A more general issue is that there are now two memory offlining efforts:
+> > > > 
+> > > > 1) from acpi_bus_offline_companions during device offline
+> > > > 2) from mm: remove_memory during device detach (offline_memory_block_cb)
+> > > > 
+> > > > The 2nd is only called if the device offline operation was already succesful, so
+> > > > it seems ineffective or redundant now, at least for x86_64/acpi_memhotplug machine
+> > > > (unless the blocks were re-onlined in between).
+> > > 
+> > > Sure, and that should be OK for now.  Changing the detach behavior is not
+> > > essential from the patch [2/2] perspective, we can do it later.
+> > 
+> > yes, ok.
+> > 
+> > > 
+> > > > On the other hand, the 2nd effort has some more intelligence in offlining, as it
+> > > > tries to offline twice in the precense of memcg, see commits df3e1b91 or
+> > > > reworked 0baeab16. Maybe we need to consolidate the logic.
+> > > 
+> > > Hmm.  Perhaps it would make sense to implement that logic in
+> > > memory_subsys_offline(), then?
+> > 
+> > the logic tries to offline the memory blocks of the device twice, because the
+> > first memory block might be storing information for the subsequent memblocks.
+> > 
+> > memory_subsys_offline operates on one memory block at a time. Perhaps we can get
+> > the same effect if we do an acpi_walk of acpi_bus_offline_companions twice in
+> > acpi_scan_hot_remove but it's probably not a good idea, since that would
+> > affect non-memory devices as well. 
+> > 
+> > I am not sure how important this intelligence is in practice (I am not using
+> > mem cgroups in my guest kernel tests yet).  Maybe Wen (original author) has
+> > more details on 2-pass offlining effectiveness.
+> 
+> OK
+> 
+> It may be added in a separate patch in any case.
 
-Sent from a fat crate under my desk. Formatting is fine.
+I had the same comment as Vasilis.  And, I agree with you that we can
+enhance it in separate patches.
+
+ :
+
+> +static int memory_subsys_offline(struct device *dev)
+> +{
+> +	struct memory_block *mem = container_of(dev, struct memory_block, dev);
+> +	int ret;
+> +
+> +	mutex_lock(&mem->state_mutex);
+> +	ret = __memory_block_change_state(mem, MEM_OFFLINE, MEM_ONLINE, -1);
+
+This function needs to check mem->state just like
+offline_memory_block().  That is:
+
+	int ret = 0;
+		:
+	if (mem->state != MEM_OFFLINE)
+		ret = __memory_block_change_state(...);
+
+Otherwise, memory hot-delete to an off-lined memory fails in
+__memory_block_change_state() since mem->state is already set to
+MEM_OFFLINE.
+
+With that change, for the series:
+Reviewed-by: Toshi Kani <toshi.kani@hp.com>
+
+Thanks,
+-Toshi
+
+> +	mutex_unlock(&mem->state_mutex);
+> +	return ret;
+> +}
+> +
+
+
+
 --
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+To unsubscribe, send a message with 'unsubscribe linux-mm' in
+the body to majordomo@kvack.org.  For more info on Linux MM,
+see: http://www.linux-mm.org/ .
+Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
