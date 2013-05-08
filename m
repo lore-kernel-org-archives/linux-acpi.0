@@ -1,68 +1,84 @@
-From: Borislav Petkov <bp@alien8.de>
-Subject: Re: [PATCH] aerdrv: Move cper_print_pcie() out of interrupt context
-Date: Thu, 9 May 2013 00:28:45 +0200
-Message-ID: <20130508222845.GL30955@pd.tnic>
-References: <20130508171519.26724.63307.stgit@grignak.americas.hpqcorp.net>
- <2598827.AVAqMcfGuF@vostro.rjw.lan>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
+From: GBGamer <npmazzuca@gmail.com>
+Subject: ACPI: battery: Made sure all spaces were in correct places
+Date: Wed,  8 May 2013 16:11:15 -0700
+Message-ID: <1368054675-5168-1-git-send-email-nicholas@mazzucastuff.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail.skyhub.de ([78.46.96.112]:53565 "EHLO mail.skyhub.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750830Ab3EHW0b (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 8 May 2013 18:26:31 -0400
-Content-Disposition: inline
-In-Reply-To: <2598827.AVAqMcfGuF@vostro.rjw.lan>
+Received: from mail-pd0-f176.google.com ([209.85.192.176]:52877 "EHLO
+	mail-pd0-f176.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752578Ab3EHXLl (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 8 May 2013 19:11:41 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: Lance Ortiz <lance.ortiz@hp.com>, bhelgaas@google.com, lance_ortiz@hotmail.com, jiang.liu@huawei.com, tony.luck@intel.com, rostedt@goodmis.org, mchehab@redhat.com, linux-acpi@vger.kernel.org, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org
+To: lenb@kernel.org
+Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, GBGamer <nicholas@mazzucastuff.com>
 
-On Thu, May 09, 2013 at 12:01:21AM +0200, Rafael J. Wysocki wrote:
-> On Wednesday, May 08, 2013 11:15:19 AM Lance Ortiz wrote:
-> > The following warning was seen on 3.9 when a corrected PCIe error was being
-> > handled by the AER subsystem.
-> > 
-> > WARNING: at .../drivers/pci/search.c:214 pci_get_dev_by_id+0x8a/0x90()
-> > 
-> > This occurred because code was added to the function cper_print_pcie() that
-> > calls the pci_get_domain_bus_and_slot() function.
-> 
-> Do you know which commit added that code?
+Added or removed any spaces that gave errors or warnings in checkpatch.pl
 
-1d5210008bd3a26daf4b06aed9d6c330dd4c83e2
+Signed-off-by: Nicholas Mazzuca <nicholas@mazzucastuff.com>
+---
+ drivers/acpi/battery.c |   14 +++++++-------
+ 1 file changed, 7 insertions(+), 7 deletions(-)
 
-> > cper_print_pcie() is called
-> > in an interrupt context and pci_get* functions are not supposed to be called
-> > in that context hence the warning.
-> > 
-> > The solution is to move the call to cper_print_aer() out of the interrupt
-> > context and into aer_recover_queue() to avoid any warnings when calling
-> > pci_get* functions.
-> 
-> The way the changes are described here isn't particularly clear to me.  I'd say
-> something like
-> 
->   If cper_print_aer() is called by aer_recover_work_func(), there won't be any
->   reason to call it from cper_print_pcie() any more, in which case all of the
->   problematic code needed only to prepare for the cper_print_aer() call,
->   including the invocation of pci_get_domain_bus_and_slot() causing the warning
->   to be printed, may be removed from there.  Make that happen."
-> 
-> Also, since aer_recover_work_func() is going to be the only existing caller of
-> cper_print_aer() after this change, as far as I can say, and it doesn't use the
-> function's first argument, that argument should be dropped entirely.
-
-Hmm, that needs more diddling: AFAICT __ghes_print_estatus() figures out
-what the prefix is depending on the ->error_severity coming from the
-acpi_hest_generic_status thing so it probably needs to be handed down or
-similar...
-
-Fun.
-
+diff --git a/drivers/acpi/battery.c b/drivers/acpi/battery.c
+index 3c1784b..082b4dd 100644
+--- a/drivers/acpi/battery.c
++++ b/drivers/acpi/battery.c
+@@ -425,7 +425,7 @@ static int acpi_battery_get_info(struct acpi_battery *battery)
+ {
+ 	int result = -EFAULT;
+ 	acpi_status status = 0;
+-	char *name = test_bit(ACPI_BATTERY_XINFO_PRESENT, &battery->flags)?
++	char *name = test_bit(ACPI_BATTERY_XINFO_PRESENT, &battery->flags) ?
+ 			"_BIX" : "_BIF";
+ 
+ 	struct acpi_buffer buffer = { ACPI_ALLOCATE_BUFFER, NULL };
+@@ -661,11 +661,11 @@ static void find_battery(const struct dmi_header *dm, void *private)
+ static void acpi_battery_quirks(struct acpi_battery *battery)
+ {
+ 	if (test_bit(ACPI_BATTERY_QUIRK_PERCENTAGE_CAPACITY, &battery->flags))
+-		return ;
++		return;
+ 
+ 	if (battery->full_charge_capacity == 100 &&
+ 		battery->rate_now == ACPI_BATTERY_VALUE_UNKNOWN &&
+-		battery->capacity_now >=0 && battery->capacity_now <= 100) {
++		battery->capacity_now >= 0 && battery->capacity_now <= 100) {
+ 		set_bit(ACPI_BATTERY_QUIRK_PERCENTAGE_CAPACITY, &battery->flags);
+ 		battery->full_charge_capacity = battery->design_capacity;
+ 		battery->capacity_now = (battery->capacity_now *
+@@ -673,7 +673,7 @@ static void acpi_battery_quirks(struct acpi_battery *battery)
+ 	}
+ 
+ 	if (test_bit(ACPI_BATTERY_QUIRK_THINKPAD_MAH, &battery->flags))
+-		return ;
++		return;
+ 
+ 	if (battery->power_unit && dmi_name_in_vendors("LENOVO")) {
+ 		const char *s;
+@@ -761,7 +761,7 @@ static int acpi_battery_print_info(struct seq_file *seq, int result)
+ 		goto end;
+ 
+ 	seq_printf(seq, "present:                 %s\n",
+-		   acpi_battery_present(battery)?"yes":"no");
++		   acpi_battery_present(battery) ? "yes" : "no");
+ 	if (!acpi_battery_present(battery))
+ 		goto end;
+ 	if (battery->design_capacity == ACPI_BATTERY_VALUE_UNKNOWN)
+@@ -817,12 +817,12 @@ static int acpi_battery_print_state(struct seq_file *seq, int result)
+ 		goto end;
+ 
+ 	seq_printf(seq, "present:                 %s\n",
+-		   acpi_battery_present(battery)?"yes":"no");
++		   acpi_battery_present(battery) ? "yes" : "no");
+ 	if (!acpi_battery_present(battery))
+ 		goto end;
+ 
+ 	seq_printf(seq, "capacity state:          %s\n",
+-			(battery->state & 0x04)?"critical":"ok");
++			(battery->state & 0x04) ? "critical" : "ok");
+ 	if ((battery->state & 0x01) && (battery->state & 0x02))
+ 		seq_printf(seq,
+ 			   "charging state:          charging/discharging\n");
 -- 
-Regards/Gruss,
-    Boris.
+1.7.9.5
 
-Sent from a fat crate under my desk. Formatting is fine.
---
