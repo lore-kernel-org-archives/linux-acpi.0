@@ -1,48 +1,60 @@
-From: "Luck, Tony" <tony.luck@intel.com>
-Subject: RE: [Patch] MCE, APEI: Don't enable CMCI when Firmware First mode
- is set in HEST for corrected machine checks
-Date: Wed, 8 May 2013 21:55:28 +0000
-Message-ID: <3908561D78D1C84285E8C5FCA982C28F2DA47E5E@ORSMSX101.amr.corp.intel.com>
-References: <1367881102.4518.68.camel@oc3432500282.ibm.com>
- <20130506232537.GF22041@pd.tnic>
- <1367897566.4518.83.camel@oc3432500282.ibm.com>
- <20130507131946.GC7633@pd.tnic>
- <1367941214.4518.90.camel@oc3432500282.ibm.com>
- <20130508212237.GI30955@pd.tnic>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: Re: [PATCH] ACPI: battery: Changed leading spaces to tab
+Date: Thu, 09 May 2013 00:05:35 +0200
+Message-ID: <4297619.TAqcfu2p5L@vostro.rjw.lan>
+References: <1368029369-2115-1-git-send-email-nicholas@mazzucastuff.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Transfer-Encoding: 7Bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga11.intel.com ([192.55.52.93]:58824 "EHLO mga11.intel.com"
+Received: from hydra.sisk.pl ([212.160.235.94]:39482 "EHLO hydra.sisk.pl"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751520Ab3EHVza (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 8 May 2013 17:55:30 -0400
-In-Reply-To: <20130508212237.GI30955@pd.tnic>
-Content-Language: en-US
+	id S1751520Ab3EHV5K (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 8 May 2013 17:57:10 -0400
+In-Reply-To: <1368029369-2115-1-git-send-email-nicholas@mazzucastuff.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Borislav Petkov <bp@alien8.de>, Max Asbock <masbock@linux.vnet.ibm.com>
-Cc: "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "Huang, Ying" <ying.huang@intel.com>, "naveen.n.rao@in.ibm.com" <naveen.n.rao@in.ibm.com>, "ananth@in.ibm.com" <ananth@in.ibm.com>, "lcm@linux.vnet.ibm.com" <lcm@linux.vnet.ibm.com>
+To: GBGamer <npmazzuca@gmail.com>
+Cc: lenb@kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, GBGamer <nicholas@mazzucastuff.com>
 
-PiBCZWNhdXNlIGlmIHllcywgeW91IHdvbid0IG5lZWQgYW55IG9mIHRoZSBIRVNUIGhlYWRlciBw
-YXJzaW5nIGhlcmUuIFNvDQo+IHdoYXQncyB1cD8NCg0KSSB0aGlua1sxXSBIRVNUIGNhbiB0ZWxs
-IHlvdSB3aGljaCBiYW5rcyByZXBvcnQgdXNpbmcgQVBFSSAoYXMgd2VsbCBhcy9pbnN0ZWFkIG9m
-KSBDTUNJLg0KDQpTbyBhIGZ1bGwgc29sdXRpb24gc2hvdWxkIHRha2UgaW50byBhY2NvdW50IGxv
-dHMgb2YgcG9zc2liaWxpdGllczoNCg0KMSkgU29tZSBiYW5rcyBtYXkgbm90IHN1cHBvcnQgQ01D
-SSBhdCBhbGwgKGJpdCAzMCBpbiBNQ2lfQ1RMMiByZWdpc3RlciBpZ25vcmVzIGF0dGVtcHRzIHRv
-IGVuYWJsZSkuIEZvciB0aGVzZSBiYW5rcyBMaW51eCBzaG91bGQgcG9sbC4NCjIpIEJJT1MgbWF5
-IHN1cHBvcnQgZ2VuZXJhdGlvbiBvZiBBUEVJIHJlY29yZHMgZm9yIGNlcnRhaW4gY2xhc3NlcyBv
-ZiBlcnJvcnMuIEhFU1Qgd2lsbCBzYXkgd2hpY2ggYmFua3MgYXJlIGFmZmVjdGVkLCBhbmQgaWYg
-d2UgcHJlZmVyIEFQRUksIHdlIHNob3VsZCBkaXNhYmxlIENNQ0kgZm9yIHRoZXNlIGJhbmtzIChh
-bmQgbm90IHBvbGwgdGhlbSkuDQozKSBTb21lIGJhbmtzIG1heSBzdXBwb3J0IENNQ0ksIGJ1dCBk
-b24ndCBoYXZlIEJJT1Mgc3VwcG9ydCB0byBnZW5lcmF0ZSBBUEVJIHJlY29yZHMuICBXZSBzaG91
-bGQgY29udGludWUgdG8gZW5hYmxlIENNQ0kgZm9yIHRoZXNlLg0KDQpXZSBzaG91bGQgYWxzbyB0
-YWtlIGFkdmFudGFnZSBvZiBtb3JlIGluZm9ybWF0aW9uIHByb3ZpZGVkIGluIHRoZSBBUEVJIHJl
-Y29yZC4gIFdlIG9ubHkgbG9vayBhdCBtZW1fZXJyLT5waHlzaWNhbF9hZGRyIGZvciBtZW1vcnkg
-ZXJyb3JzIC0gYnV0IHRoZXJlIGFyZSBhIHRvbiBvZiBvdGhlciBwb3RlbnRpYWxseSBpbnRlcmVz
-dGluZyB0aGluZ3MgaW4gdGhlcmUuDQoNCi1Ub255DQoNClsxXSBCdXQgSSBtYXkgYmUgbWlzcmVh
-ZGluZyBBQ1BJIHNwZWMgLSB1bmZvcnR1bmF0ZWx5IGl0IGp1c3QgaGFzIGRlc2NyaXB0aW9ucyBv
-ZiAqd2hhdCogYml0cyBkbywgYnV0IG5vIHJhdGlvbmFsZSBhcyB0byAqd2h5KiBhbnlvbmUgd291
-bGQgd2FudCB0byB1c2UgdGhlbSwgb3IgdHJhZGVvZmZzIGJldHdlZW4gZGlmZmVyZW50IG9wZXJh
-dGluZyBtb2Rlcy4gV2lsbGluZyB0byBiZSByZS1lZHVjYXRlZCBpZiB0aGlzIGlzIGFsbCBob3Jy
-aWJseSB3cm9uZy4NCg==
+On Wednesday, May 08, 2013 09:09:29 AM GBGamer wrote:
+> Fixed coding style problems in battery.c
+
+First off, patches without a sign-off are not applicable.
+
+Second, ->
+
+> ---
+>  drivers/acpi/battery.c |    6 +++---
+>  1 file changed, 3 insertions(+), 3 deletions(-)
+> 
+> diff --git a/drivers/acpi/battery.c b/drivers/acpi/battery.c
+> index e710045..3c1784b 100644
+> --- a/drivers/acpi/battery.c
+> +++ b/drivers/acpi/battery.c
+> @@ -663,9 +663,9 @@ static void acpi_battery_quirks(struct acpi_battery *battery)
+>  	if (test_bit(ACPI_BATTERY_QUIRK_PERCENTAGE_CAPACITY, &battery->flags))
+>  		return ;
+>  
+> -        if (battery->full_charge_capacity == 100 &&
+> -            battery->rate_now == ACPI_BATTERY_VALUE_UNKNOWN &&
+> -            battery->capacity_now >=0 && battery->capacity_now <= 100) {
+> +	if (battery->full_charge_capacity == 100 &&
+> +		battery->rate_now == ACPI_BATTERY_VALUE_UNKNOWN &&
+> +		battery->capacity_now >=0 && battery->capacity_now <= 100) {
+
+-> this isn't entirely correct, because the indentation pattern used in the
+kernel for continuations of if () conditionals is one tab and four spaces
+(whereas you've used two tabs).
+
+>  		set_bit(ACPI_BATTERY_QUIRK_PERCENTAGE_CAPACITY, &battery->flags);
+>  		battery->full_charge_capacity = battery->design_capacity;
+>  		battery->capacity_now = (battery->capacity_now *
+
+Thanks,
+Rafael
+
+
+-- 
+I speak only for myself.
+Rafael J. Wysocki, Intel Open Source Technology Center.
