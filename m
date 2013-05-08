@@ -1,48 +1,34 @@
-From: Toshi Kani <toshi.kani@hp.com>
-Subject: Re: [PATCH 2/2 v2, RFC] Driver core: Introduce offline/online
- callbacks for memory blocks
-Date: Wed, 08 May 2013 08:38:11 -0600
-Message-ID: <1368023891.30363.40.camel@misato.fc.hp.com>
-References: <1576321.HU0tZ4cGWk@vostro.rjw.lan>
-	 <1738385.YBsAESXG5F@vostro.rjw.lan>
-	 <1367973454.30363.38.camel@misato.fc.hp.com>
-	 <4229865.4cv6g5bbx4@vostro.rjw.lan>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
-Return-path: <owner-linux-mm@kvack.org>
-In-Reply-To: <4229865.4cv6g5bbx4@vostro.rjw.lan>
-Sender: owner-linux-mm@kvack.org
-To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: Vasilis Liaskovitis <vasilis.liaskovitis@profitbricks.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>, isimatu.yasuaki@jp.fujitsu.com, Len Brown <lenb@kernel.org>, linux-mm@kvack.org, wency@cn.fujitsu.com
+From: GBGamer <npmazzuca@gmail.com>
+Subject: [PATCH] ACPI: battery: Changed leading spaces to tab
+Date: Wed,  8 May 2013 09:09:29 -0700
+Message-ID: <1368029369-2115-1-git-send-email-nicholas@mazzucastuff.com>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: lenb@kernel.org
+Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, GBGamer <nicholas@mazzucastuff.com>
 List-Id: linux-acpi@vger.kernel.org
 
-On Wed, 2013-05-08 at 13:53 +0200, Rafael J. Wysocki wrote:
-> On Tuesday, May 07, 2013 06:37:34 PM Toshi Kani wrote:
-> > On Wed, 2013-05-08 at 02:24 +0200, Rafael J. Wysocki wrote:
-> > > On Tuesday, May 07, 2013 05:59:16 PM Toshi Kani wrote:
+Fixed coding style problems in battery.c
+---
+ drivers/acpi/battery.c |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
- :
+diff --git a/drivers/acpi/battery.c b/drivers/acpi/battery.c
+index e710045..3c1784b 100644
+--- a/drivers/acpi/battery.c
++++ b/drivers/acpi/battery.c
+@@ -663,9 +663,9 @@ static void acpi_battery_quirks(struct acpi_battery *battery)
+ 	if (test_bit(ACPI_BATTERY_QUIRK_PERCENTAGE_CAPACITY, &battery->flags))
+ 		return ;
  
-> > > Moreover, it'd be better to do it in register_memory(), I think.
-> > 
-> > Yes, if we change register_memory() to have the arg state.
-> 
-> It can use mem->state which already has been populated at this point
-> (and init_memory_block() is the only called).
-
-Right.
-
-> I've updated the patch to do that (appended).
-
-Looks good!  Thanks for the update!
--Toshi
-
-
-
-
---
-To unsubscribe, send a message with 'unsubscribe linux-mm' in
-the body to majordomo@kvack.org.  For more info on Linux MM,
-see: http://www.linux-mm.org/ .
-Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
+-        if (battery->full_charge_capacity == 100 &&
+-            battery->rate_now == ACPI_BATTERY_VALUE_UNKNOWN &&
+-            battery->capacity_now >=0 && battery->capacity_now <= 100) {
++	if (battery->full_charge_capacity == 100 &&
++		battery->rate_now == ACPI_BATTERY_VALUE_UNKNOWN &&
++		battery->capacity_now >=0 && battery->capacity_now <= 100) {
+ 		set_bit(ACPI_BATTERY_QUIRK_PERCENTAGE_CAPACITY, &battery->flags);
+ 		battery->full_charge_capacity = battery->design_capacity;
+ 		battery->capacity_now = (battery->capacity_now *
+-- 
+1.7.9.5
