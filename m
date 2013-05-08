@@ -1,120 +1,62 @@
-From: Lan Tianyu <tianyu.lan@intel.com>
-Subject: [FIX PATCH V2] ACPI/AC: Add sleep quirk for Thinkpad e530
-Date: Wed,  8 May 2013 15:28:46 +0800
-Message-ID: <1367998126-25929-1-git-send-email-tianyu.lan@intel.com>
+From: Lan Tianyu <lantianyu1986@gmail.com>
+Subject: Re: ACPI battery driver loading failed..
+Date: Wed, 8 May 2013 15:39:08 +0800
+Message-ID: <CAOLK0pwbCJFmmn1Uix9VSYGM_VEh3oVyZHNg8iDZ9ws14_KMew@mail.gmail.com>
+References: <D854C92F57B1B347B57E531E78D05EAD2DB9A150@BGSMSX104.gar.corp.intel.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga11.intel.com ([192.55.52.93]:30959 "EHLO mga11.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752808Ab3EHHeY (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 8 May 2013 03:34:24 -0400
+Received: from mail-ia0-f175.google.com ([209.85.210.175]:51945 "EHLO
+	mail-ia0-f175.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751109Ab3EHHjI (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 8 May 2013 03:39:08 -0400
+Received: by mail-ia0-f175.google.com with SMTP id i38so1658670iae.34
+        for <linux-acpi@vger.kernel.org>; Wed, 08 May 2013 00:39:08 -0700 (PDT)
+In-Reply-To: <D854C92F57B1B347B57E531E78D05EAD2DB9A150@BGSMSX104.gar.corp.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: rjw@sisk.pl, lenb@kernel.org
-Cc: Lan Tianyu <tianyu.lan@intel.com>, linux-acpi@vger.kernel.org
+To: "Pallala, Ramakrishna" <ramakrishna.pallala@intel.com>
+Cc: "Westerberg, Mika" <mika.westerberg@intel.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
 
-Thinkpad e530 bios notify ac device first and then sleep
-a specific time before doing actual operations in the
-EC event handler(_Qxx). This will cause AC driver report
-wrong AC state by ACPI proc event.
+2013/5/8 Pallala, Ramakrishna <ramakrishna.pallala@intel.com>
+>
+> Hi All,
+>
+> Kernel acpi battery driver loading fails eventhouh I have FW entry for PNP0C0A. but I see acpi ac driver is getting loaded without any issue.
+>
+> One thing I observed is FW doesn't implement the _CSR method which is being implemented by most of PNP devices.
+>
+> I have enabled the following driver in kernel config.
+>
+> CONFIG_ACPI=y
+> CONFIG_ACPI_SLEEP=y
+> # CONFIG_ACPI_PROCFS is not set
+> CONFIG_ACPI_PROCFS_POWER=y
+> # CONFIG_ACPI_EC_DEBUGFS is not set
+> CONFIG_ACPI_PROC_EVENT=y
+> CONFIG_ACPI_AC=y
+> CONFIG_ACPI_BATTERY=y
+> CONFIG_ACPI_BUTTON=y
+> CONFIG_ACPI_VIDEO=y
+> CONFIG_ACPI_FAN=y
+>
+> CONFIG_PNPACPI=y
+>
+> Also does acpi battery depends on BIOS for loading?
+>
+Hi Ram:
+            Please provide the output of dmesg and acpidump.
+>
+> Thanks,
+> Ram
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
-Method (_Q27, 0, NotSerialized)
-{
-      Notify (AC, 0x80)
-      Sleep (0x03E8)
-      Store (Zero, PWRS)
-      PNOT ()
-}
 
-This patch is to add a specific delay in the ac driver's
-notify handler before acpi_ac_get_state() in order to
-get right AC state. The delay is set via 
-ac_sleep_before_get_state_ms. For thinkpad e530, 1s delay
-is enough.
 
-https://bugzilla.kernel.org/show_bug.cgi?id=45221
 
-Signed-off-by: Lan Tianyu <tianyu.lan@intel.com>
----
-Change since v1:
-	Replace ac_flag_sleep_for_get_state with
-ac_sleep_before_get_state_ms to indicate the delay.
-Set ac_sleep_before_get_state_ms to 1000 in the
-thinkpad_e530_quirk().
-
- drivers/acpi/ac.c |   32 ++++++++++++++++++++++++++++++++
- 1 file changed, 32 insertions(+)
-
-diff --git a/drivers/acpi/ac.c b/drivers/acpi/ac.c
-index 6d5bf64..9075feb 100644
---- a/drivers/acpi/ac.c
-+++ b/drivers/acpi/ac.c
-@@ -28,6 +28,8 @@
- #include <linux/slab.h>
- #include <linux/init.h>
- #include <linux/types.h>
-+#include <linux/dmi.h>
-+#include <linux/delay.h>
- #ifdef CONFIG_ACPI_PROCFS_POWER
- #include <linux/proc_fs.h>
- #include <linux/seq_file.h>
-@@ -74,6 +76,8 @@ static int acpi_ac_resume(struct device *dev);
- #endif
- static SIMPLE_DEV_PM_OPS(acpi_ac_pm, NULL, acpi_ac_resume);
- 
-+static int ac_sleep_before_get_state_ms;
-+
- static struct acpi_driver acpi_ac_driver = {
- 	.name = "ac",
- 	.class = ACPI_AC_CLASS,
-@@ -252,6 +256,15 @@ static void acpi_ac_notify(struct acpi_device *device, u32 event)
- 	case ACPI_AC_NOTIFY_STATUS:
- 	case ACPI_NOTIFY_BUS_CHECK:
- 	case ACPI_NOTIFY_DEVICE_CHECK:
-+		/* Some buggy bios notify ac device first and then sleep
-+		 * a specific time before doing actual operations in the
-+		 * EC event handler(_Qxx). This will cause the AC state
-+		 * reported by ACPI event wrong. So add a specific sleep here
-+		 * to ensure get correct state.
-+		 */
-+		if (ac_sleep_before_get_state_ms > 0)
-+			msleep(ac_sleep_before_get_state_ms);
-+
- 		acpi_ac_get_state(ac);
- 		acpi_bus_generate_proc_event(device, event, (u32) ac->state);
- 		acpi_bus_generate_netlink_event(device->pnp.device_class,
-@@ -264,6 +277,24 @@ static void acpi_ac_notify(struct acpi_device *device, u32 event)
- 	return;
- }
- 
-+static int thinkpad_e530_quirk(const struct dmi_system_id *d)
-+{
-+	ac_sleep_before_get_state_ms = 1000;
-+	return 0;
-+}
-+
-+static struct dmi_system_id __initdata ac_dmi_table[] = {
-+	{
-+	.callback = thinkpad_e530_quirk,
-+	.ident = "thinkpad e530",
-+	.matches = {
-+		DMI_MATCH(DMI_SYS_VENDOR, "LENOVO"),
-+		DMI_MATCH(DMI_PRODUCT_NAME, "32597CG"),
-+		},
-+	},
-+	{},
-+};
-+
- static int acpi_ac_add(struct acpi_device *device)
- {
- 	int result = 0;
-@@ -312,6 +343,7 @@ static int acpi_ac_add(struct acpi_device *device)
- 		kfree(ac);
- 	}
- 
-+	dmi_check_system(ac_dmi_table);
- 	return result;
- }
- 
--- 
-1.7.10.4
-
+--
+Best regards
+Tianyu Lan
