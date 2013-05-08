@@ -1,38 +1,58 @@
 From: Lv Zheng <lv.zheng@intel.com>
-Subject: [PATCH 00/03] Hotfixes in ACPICA 20130418 Release
-Date: Wed,  8 May 2013 12:00:35 +0800
-Message-ID: <cover.1367912853.git.lv.zheng@intel.com>
-References: <cover.1367813690.git.lv.zheng@intel.com>
+Subject: [PATCH 1/3] ACPICA: Fix possible buffer overflow during a field unit read operation
+Date: Wed,  8 May 2013 12:01:15 +0800
+Message-ID: <ce8ab48589fa4dd3e5468b75228992ddc12646ae.1367912853.git.lv.zheng@intel.com>
+References: <cover.1367813690.git.lv.zheng@intel.com> <cover.1367912853.git.lv.zheng@intel.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga09.intel.com ([134.134.136.24]:13932 "EHLO mga09.intel.com"
+Received: from mga01.intel.com ([192.55.52.88]:12279 "EHLO mga01.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750807Ab3EHEBY (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 8 May 2013 00:01:24 -0400
-In-Reply-To: <cover.1367813690.git.lv.zheng@intel.com>
+	id S1750881Ab3EHECA (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 8 May 2013 00:02:00 -0400
+In-Reply-To: <cover.1367912853.git.lv.zheng@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: Len Brown <len.brown@intel.com>, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Robert Moore <robert.moore@intel.com>
 Cc: Lv Zheng <lv.zheng@intel.com>, stable@vger.kernel.org, linux-acpi@vger.kernel.org
 
-The 20130418 ACPICA kernel resident system updates is linuxized based on
-the pm/linux-next branch.
-This patch set includes hot fixes useful for -stable.
+From: Bob Moore <robert.moore@intel.com>
 
-Bob Moore (1):
-  ACPICA: Fix possible buffer overflow during a field unit read
-    operation
+Can only happen under these conditions: 1) The DSDT version is 1,
+meaning integers are 32-bits.  2) The field is between 33 and 64
+bits long.
+It applies cleanly back to ACPICA 20100806+ (Linux v2.6.37+).
 
-Jung-uk Kim (1):
-  ACPICA: _OSI support: Fix possible memory leak
-
-Tomasz Nowicki (1):
-  ACPICA: ACPICA: Fix for _INI regression
-
+Signed-off-by: Bob Moore <robert.moore@intel.com>
+Signed-off-by: Lv Zheng <lv.zheng@intel.com>
+Cc: <stable@vger.kernel.org>
+---
  drivers/acpi/acpica/exfldio.c |   14 +++++++++++++-
- drivers/acpi/acpica/nsinit.c  |    1 +
- drivers/acpi/acpica/utosi.c   |    3 ++-
- 3 files changed, 16 insertions(+), 2 deletions(-)
+ 1 file changed, 13 insertions(+), 1 deletion(-)
 
+diff --git a/drivers/acpi/acpica/exfldio.c b/drivers/acpi/acpica/exfldio.c
+index ec7f569..c84ee95 100644
+--- a/drivers/acpi/acpica/exfldio.c
++++ b/drivers/acpi/acpica/exfldio.c
+@@ -720,7 +720,19 @@ acpi_ex_extract_from_field(union acpi_operand_object *obj_desc,
+ 
+ 	if ((obj_desc->common_field.start_field_bit_offset == 0) &&
+ 	    (obj_desc->common_field.bit_length == access_bit_width)) {
+-		status = acpi_ex_field_datum_io(obj_desc, 0, buffer, ACPI_READ);
++		if (buffer_length >= sizeof(u64)) {
++			status =
++			    acpi_ex_field_datum_io(obj_desc, 0, buffer,
++						   ACPI_READ);
++		} else {
++			/* Use raw_datum (u64) to handle buffers < 64 bits */
++
++			status =
++			    acpi_ex_field_datum_io(obj_desc, 0, &raw_datum,
++						   ACPI_READ);
++			ACPI_MEMCPY(buffer, &raw_datum, buffer_length);
++		}
++
+ 		return_ACPI_STATUS(status);
+ 	}
+ 
 -- 
 1.7.10
 
