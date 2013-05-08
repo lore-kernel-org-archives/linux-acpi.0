@@ -1,168 +1,48 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: [PATCH] aerdrv: Move cper_print_pcie() out of interrupt context
-Date: Thu, 09 May 2013 00:01:21 +0200
-Message-ID: <2598827.AVAqMcfGuF@vostro.rjw.lan>
-References: <20130508171519.26724.63307.stgit@grignak.americas.hpqcorp.net>
+From: "Luck, Tony" <tony.luck@intel.com>
+Subject: RE: [Patch] MCE, APEI: Don't enable CMCI when Firmware First mode
+ is set in HEST for corrected machine checks
+Date: Wed, 8 May 2013 21:55:28 +0000
+Message-ID: <3908561D78D1C84285E8C5FCA982C28F2DA47E5E@ORSMSX101.amr.corp.intel.com>
+References: <1367881102.4518.68.camel@oc3432500282.ibm.com>
+ <20130506232537.GF22041@pd.tnic>
+ <1367897566.4518.83.camel@oc3432500282.ibm.com>
+ <20130507131946.GC7633@pd.tnic>
+ <1367941214.4518.90.camel@oc3432500282.ibm.com>
+ <20130508212237.GI30955@pd.tnic>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7Bit
-Return-path: <linux-pci-owner@vger.kernel.org>
-In-Reply-To: <20130508171519.26724.63307.stgit@grignak.americas.hpqcorp.net>
-Sender: linux-pci-owner@vger.kernel.org
-To: Lance Ortiz <lance.ortiz@hp.com>
-Cc: bhelgaas@google.com, lance_ortiz@hotmail.com, jiang.liu@huawei.com, tony.luck@intel.com, bp@alien8.de, rostedt@goodmis.org, mchehab@redhat.com, linux-acpi@vger.kernel.org, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org
+Content-Transfer-Encoding: base64
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mga11.intel.com ([192.55.52.93]:58824 "EHLO mga11.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751520Ab3EHVza (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 8 May 2013 17:55:30 -0400
+In-Reply-To: <20130508212237.GI30955@pd.tnic>
+Content-Language: en-US
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Borislav Petkov <bp@alien8.de>, Max Asbock <masbock@linux.vnet.ibm.com>
+Cc: "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "Huang, Ying" <ying.huang@intel.com>, "naveen.n.rao@in.ibm.com" <naveen.n.rao@in.ibm.com>, "ananth@in.ibm.com" <ananth@in.ibm.com>, "lcm@linux.vnet.ibm.com" <lcm@linux.vnet.ibm.com>
 
-On Wednesday, May 08, 2013 11:15:19 AM Lance Ortiz wrote:
-> The following warning was seen on 3.9 when a corrected PCIe error was being
-> handled by the AER subsystem.
-> 
-> WARNING: at .../drivers/pci/search.c:214 pci_get_dev_by_id+0x8a/0x90()
-> 
-> This occurred because code was added to the function cper_print_pcie() that
-> calls the pci_get_domain_bus_and_slot() function.
-
-Do you know which commit added that code?
-
-> cper_print_pcie() is called
-> in an interrupt context and pci_get* functions are not supposed to be called
-> in that context hence the warning.
-> 
-> The solution is to move the call to cper_print_aer() out of the interrupt
-> context and into aer_recover_queue() to avoid any warnings when calling
-> pci_get* functions.
-
-The way the changes are described here isn't particularly clear to me.  I'd say
-something like
-
-  If cper_print_aer() is called by aer_recover_work_func(), there won't be any
-  reason to call it from cper_print_pcie() any more, in which case all of the
-  problematic code needed only to prepare for the cper_print_aer() call,
-  including the invocation of pci_get_domain_bus_and_slot() causing the warning
-  to be printed, may be removed from there.  Make that happen."
-
-Also, since aer_recover_work_func() is going to be the only existing caller of
-cper_print_aer() after this change, as far as I can say, and it doesn't use the
-function's first argument, that argument should be dropped entirely.
-
-Thanks,
-Rafael
-
-
-> Signed-off-by: Lance Ortiz <lance.ortiz@hp.com>
-> ---
-> 
->  drivers/acpi/apei/cper.c           |   18 ------------------
->  drivers/acpi/apei/ghes.c           |    3 ++-
->  drivers/pci/pcie/aer/aerdrv_core.c |    6 +++++-
->  include/linux/aer.h                |    2 +-
->  4 files changed, 8 insertions(+), 21 deletions(-)
-> 
-> diff --git a/drivers/acpi/apei/cper.c b/drivers/acpi/apei/cper.c
-> index 1e5d8a4..8713229 100644
-> --- a/drivers/acpi/apei/cper.c
-> +++ b/drivers/acpi/apei/cper.c
-> @@ -250,10 +250,6 @@ static const char *cper_pcie_port_type_strs[] = {
->  static void cper_print_pcie(const char *pfx, const struct cper_sec_pcie *pcie,
->  			    const struct acpi_hest_generic_data *gdata)
->  {
-> -#ifdef CONFIG_ACPI_APEI_PCIEAER
-> -	struct pci_dev *dev;
-> -#endif
-> -
->  	if (pcie->validation_bits & CPER_PCIE_VALID_PORT_TYPE)
->  		printk("%s""port_type: %d, %s\n", pfx, pcie->port_type,
->  		       pcie->port_type < ARRAY_SIZE(cper_pcie_port_type_strs) ?
-> @@ -285,20 +281,6 @@ static void cper_print_pcie(const char *pfx, const struct cper_sec_pcie *pcie,
->  		printk(
->  	"%s""bridge: secondary_status: 0x%04x, control: 0x%04x\n",
->  	pfx, pcie->bridge.secondary_status, pcie->bridge.control);
-> -#ifdef CONFIG_ACPI_APEI_PCIEAER
-> -	dev = pci_get_domain_bus_and_slot(pcie->device_id.segment,
-> -			pcie->device_id.bus, pcie->device_id.function);
-> -	if (!dev) {
-> -		pr_err("PCI AER Cannot get PCI device %04x:%02x:%02x.%d\n",
-> -			pcie->device_id.segment, pcie->device_id.bus,
-> -			pcie->device_id.slot, pcie->device_id.function);
-> -		return;
-> -	}
-> -	if (pcie->validation_bits & CPER_PCIE_VALID_AER_INFO)
-> -		cper_print_aer(pfx, dev, gdata->error_severity,
-> -				(struct aer_capability_regs *) pcie->aer_info);
-> -	pci_dev_put(dev);
-> -#endif
->  }
->  
->  static const char *apei_estatus_section_flag_strs[] = {
-> diff --git a/drivers/acpi/apei/ghes.c b/drivers/acpi/apei/ghes.c
-> index d668a8a..f2084b5 100644
-> --- a/drivers/acpi/apei/ghes.c
-> +++ b/drivers/acpi/apei/ghes.c
-> @@ -454,7 +454,8 @@ static void ghes_do_proc(struct ghes *ghes,
->  				aer_severity = cper_severity_to_aer(sev);
->  				aer_recover_queue(pcie_err->device_id.segment,
->  						  pcie_err->device_id.bus,
-> -						  devfn, aer_severity);
-> +						  devfn, aer_severity,
-> +						  pcie_err->aer_info);
->  			}
->  
->  		}
-> diff --git a/drivers/pci/pcie/aer/aerdrv_core.c b/drivers/pci/pcie/aer/aerdrv_core.c
-> index 564d97f..26aec0f 100644
-> --- a/drivers/pci/pcie/aer/aerdrv_core.c
-> +++ b/drivers/pci/pcie/aer/aerdrv_core.c
-> @@ -582,6 +582,7 @@ struct aer_recover_entry
->  	u8	devfn;
->  	u16	domain;
->  	int	severity;
-> +	u8	*regs;
->  };
->  
->  static DEFINE_KFIFO(aer_recover_ring, struct aer_recover_entry,
-> @@ -595,7 +596,7 @@ static DEFINE_SPINLOCK(aer_recover_ring_lock);
->  static DECLARE_WORK(aer_recover_work, aer_recover_work_func);
->  
->  void aer_recover_queue(int domain, unsigned int bus, unsigned int devfn,
-> -		       int severity)
-> +		       int severity, u8 *aer_regs)
->  {
->  	unsigned long flags;
->  	struct aer_recover_entry entry = {
-> @@ -603,6 +604,7 @@ void aer_recover_queue(int domain, unsigned int bus, unsigned int devfn,
->  		.devfn		= devfn,
->  		.domain		= domain,
->  		.severity	= severity,
-> +		.regs		= aer_regs,
->  	};
->  
->  	spin_lock_irqsave(&aer_recover_ring_lock, flags);
-> @@ -629,6 +631,8 @@ static void aer_recover_work_func(struct work_struct *work)
->  			       PCI_SLOT(entry.devfn), PCI_FUNC(entry.devfn));
->  			continue;
->  		}
-> +		cper_print_aer("", pdev, entry.severity,
-> +				(struct aer_capability_regs *)entry.regs);
->  		do_recovery(pdev, entry.severity);
->  		pci_dev_put(pdev);
->  	}
-> diff --git a/include/linux/aer.h b/include/linux/aer.h
-> index ec10e1b..a5c1583 100644
-> --- a/include/linux/aer.h
-> +++ b/include/linux/aer.h
-> @@ -53,6 +53,6 @@ extern void cper_print_aer(const char *prefix, struct pci_dev *dev,
->  			   int cper_severity, struct aer_capability_regs *aer);
->  extern int cper_severity_to_aer(int cper_severity);
->  extern void aer_recover_queue(int domain, unsigned int bus, unsigned int devfn,
-> -			      int severity);
-> +			      int severity,  u8 *aer_regs);
->  #endif //_AER_H_
->  
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
--- 
-I speak only for myself.
-Rafael J. Wysocki, Intel Open Source Technology Center.
+PiBCZWNhdXNlIGlmIHllcywgeW91IHdvbid0IG5lZWQgYW55IG9mIHRoZSBIRVNUIGhlYWRlciBw
+YXJzaW5nIGhlcmUuIFNvDQo+IHdoYXQncyB1cD8NCg0KSSB0aGlua1sxXSBIRVNUIGNhbiB0ZWxs
+IHlvdSB3aGljaCBiYW5rcyByZXBvcnQgdXNpbmcgQVBFSSAoYXMgd2VsbCBhcy9pbnN0ZWFkIG9m
+KSBDTUNJLg0KDQpTbyBhIGZ1bGwgc29sdXRpb24gc2hvdWxkIHRha2UgaW50byBhY2NvdW50IGxv
+dHMgb2YgcG9zc2liaWxpdGllczoNCg0KMSkgU29tZSBiYW5rcyBtYXkgbm90IHN1cHBvcnQgQ01D
+SSBhdCBhbGwgKGJpdCAzMCBpbiBNQ2lfQ1RMMiByZWdpc3RlciBpZ25vcmVzIGF0dGVtcHRzIHRv
+IGVuYWJsZSkuIEZvciB0aGVzZSBiYW5rcyBMaW51eCBzaG91bGQgcG9sbC4NCjIpIEJJT1MgbWF5
+IHN1cHBvcnQgZ2VuZXJhdGlvbiBvZiBBUEVJIHJlY29yZHMgZm9yIGNlcnRhaW4gY2xhc3NlcyBv
+ZiBlcnJvcnMuIEhFU1Qgd2lsbCBzYXkgd2hpY2ggYmFua3MgYXJlIGFmZmVjdGVkLCBhbmQgaWYg
+d2UgcHJlZmVyIEFQRUksIHdlIHNob3VsZCBkaXNhYmxlIENNQ0kgZm9yIHRoZXNlIGJhbmtzIChh
+bmQgbm90IHBvbGwgdGhlbSkuDQozKSBTb21lIGJhbmtzIG1heSBzdXBwb3J0IENNQ0ksIGJ1dCBk
+b24ndCBoYXZlIEJJT1Mgc3VwcG9ydCB0byBnZW5lcmF0ZSBBUEVJIHJlY29yZHMuICBXZSBzaG91
+bGQgY29udGludWUgdG8gZW5hYmxlIENNQ0kgZm9yIHRoZXNlLg0KDQpXZSBzaG91bGQgYWxzbyB0
+YWtlIGFkdmFudGFnZSBvZiBtb3JlIGluZm9ybWF0aW9uIHByb3ZpZGVkIGluIHRoZSBBUEVJIHJl
+Y29yZC4gIFdlIG9ubHkgbG9vayBhdCBtZW1fZXJyLT5waHlzaWNhbF9hZGRyIGZvciBtZW1vcnkg
+ZXJyb3JzIC0gYnV0IHRoZXJlIGFyZSBhIHRvbiBvZiBvdGhlciBwb3RlbnRpYWxseSBpbnRlcmVz
+dGluZyB0aGluZ3MgaW4gdGhlcmUuDQoNCi1Ub255DQoNClsxXSBCdXQgSSBtYXkgYmUgbWlzcmVh
+ZGluZyBBQ1BJIHNwZWMgLSB1bmZvcnR1bmF0ZWx5IGl0IGp1c3QgaGFzIGRlc2NyaXB0aW9ucyBv
+ZiAqd2hhdCogYml0cyBkbywgYnV0IG5vIHJhdGlvbmFsZSBhcyB0byAqd2h5KiBhbnlvbmUgd291
+bGQgd2FudCB0byB1c2UgdGhlbSwgb3IgdHJhZGVvZmZzIGJldHdlZW4gZGlmZmVyZW50IG9wZXJh
+dGluZyBtb2Rlcy4gV2lsbGluZyB0byBiZSByZS1lZHVjYXRlZCBpZiB0aGlzIGlzIGFsbCBob3Jy
+aWJseSB3cm9uZy4NCg==
