@@ -1,39 +1,56 @@
-From: "Ortiz, Lance E" <lance.oritz@hp.com>
-Subject: RE: [PATCH] aerdrv: Move cper_print_pcie() out of interrupt context
-Date: Thu, 9 May 2013 19:10:36 +0000
-Message-ID: <A961433CDFF2F640A2866803152E61F95177AFA9@G4W3219.americas.hpqcorp.net>
-References: <20130508171519.26724.63307.stgit@grignak.americas.hpqcorp.net>
- <2598827.AVAqMcfGuF@vostro.rjw.lan>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: Re: [PATCH] aerdrv: Move cper_print_pcie() out of interrupt context
+Date: Thu, 09 May 2013 21:24:12 +0200
+Message-ID: <2958841.JugbRneiDu@vostro.rjw.lan>
+References: <20130508171519.26724.63307.stgit@grignak.americas.hpqcorp.net> <2598827.AVAqMcfGuF@vostro.rjw.lan> <A961433CDFF2F640A2866803152E61F95177AFA9@G4W3219.americas.hpqcorp.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from g4t0014.houston.hp.com ([15.201.24.17]:45465 "EHLO
-	g4t0014.houston.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750925Ab3EITLt (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 9 May 2013 15:11:49 -0400
-In-Reply-To: <2598827.AVAqMcfGuF@vostro.rjw.lan>
-Content-Language: en-US
-Sender: linux-acpi-owner@vger.kernel.org
-List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@sisk.pl>
+Content-Transfer-Encoding: 7Bit
+Return-path: <linux-pci-owner@vger.kernel.org>
+In-Reply-To: <A961433CDFF2F640A2866803152E61F95177AFA9@G4W3219.americas.hpqcorp.net>
+Sender: linux-pci-owner@vger.kernel.org
+To: "Ortiz, Lance E" <lance.oritz@hp.com>
 Cc: "bhelgaas@google.com" <bhelgaas@google.com>, "lance_ortiz@hotmail.com" <lance_ortiz@hotmail.com>, "jiang.liu@huawei.com" <jiang.liu@huawei.com>, "tony.luck@intel.com" <tony.luck@intel.com>, "bp@alien8.de" <bp@alien8.de>, "rostedt@goodmis.org" <rostedt@goodmis.org>, "mchehab@redhat.com" <mchehab@redhat.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
+List-Id: linux-acpi@vger.kernel.org
 
-UmFmYWVsLCAgDQoNClRoYW5rcyBmb3IgeW91ciBmZWVkYmFjay4NCg0KPiBUaGUgd2F5IHRoZSBj
-aGFuZ2VzIGFyZSBkZXNjcmliZWQgaGVyZSBpc24ndCBwYXJ0aWN1bGFybHkgY2xlYXIgdG8gbWUu
-DQoNCkkgd2lsbCB0cnkgdG8gbWFrZSBpdCBhIGxpdHRsZSBtb3JlIGNsZWFyLg0KDQoNCj4gQWxz
-bywgc2luY2UgYWVyX3JlY292ZXJfd29ya19mdW5jKCkgaXMgZ29pbmcgdG8gYmUgdGhlIG9ubHkg
-ZXhpc3RpbmcNCj4gY2FsbGVyIG9mDQo+IGNwZXJfcHJpbnRfYWVyKCkgYWZ0ZXIgdGhpcyBjaGFu
-Z2UsIGFzIGZhciBhcyBJIGNhbiBzYXksIGFuZCBpdCBkb2Vzbid0DQo+IHVzZSB0aGUNCj4gZnVu
-Y3Rpb24ncyBmaXJzdCBhcmd1bWVudCwgdGhhdCBhcmd1bWVudCBzaG91bGQgYmUgZHJvcHBlZCBl
-bnRpcmVseS4NCg0KVGhlIHRydXRoIGlzLCB0aGUgZnVuY3Rpb24gY3Blcl9wcmludF9hZXIoKSBy
-ZWFsbHkgbmVlZHMgdG8gYmUgcmUtd3JpdHRlbiBzbyBpdCBpcyBjb25zaXN0ZW50IHdpdGggYWVy
-X3ByaW50X2Vycm9yKCkgaW4gaG93IGl0IG91dHB1dHMgaW5mb3JtYXRpb24uICBSaWdodCBub3cs
-IHRoZSBvdXRwdXQgaXMgZm9ybWF0dGVkIHZlcnkgZGlmZmVyZW50bHkuICBJIHdhcyBwbGFubmlu
-ZyBvbiBkb2luZyB0aGF0IGF0IGEgbGF0ZXIgZGF0ZSwgYnV0IGZpeCB0aGUgd2FybmluZyBub3cu
-ICBJIG1pZ2h0IGFkZCBhIFRPRE8gY29tbWVudCBpbiB0aGUgY29kZSBmb3IgdGhpcy4NCg0KVGhl
-IHJlYXNvbiBJIGRpZCBub3QgcmVtb3ZlIHRoZSBhcmd1bWVudCBpbiBjcGVyX3ByaW50X2Flcigp
-IGlzIGJlY2F1c2UgJ3ByZWZpeCcgaXMgdXNlZCBpbiB0aGUgY2FsbCB0byBjcGVyX3ByaW50X2Jp
-dHMoKSwgYW5kIEkgcGFzc2VkIHRocm91Z2ggYW4gZW1wdHkgc3RyaW5nIHRvIG1ha2Ugc3VyZSB0
-aGF0IGZ1bmN0aW9uIHdvcmtlZCBjb3JyZWN0bHkuICBJIGNhbiB0cnkgdG8gY2xlYW4gaXQgdXAu
-DQoNCkxhbmNlDQo=
+On Thursday, May 09, 2013 07:10:36 PM Ortiz, Lance E wrote:
+> Rafael,  
+> 
+> Thanks for your feedback.
+> 
+> > The way the changes are described here isn't particularly clear to me.
+> 
+> I will try to make it a little more clear.
+
+Cool, thanks!
+
+> > Also, since aer_recover_work_func() is going to be the only existing
+> > caller of
+> > cper_print_aer() after this change, as far as I can say, and it doesn't
+> > use the
+> > function's first argument, that argument should be dropped entirely.
+> 
+> The truth is, the function cper_print_aer() really needs to be re-written so
+> it is consistent with aer_print_error() in how it outputs information.
+> Right now, the output is formatted very differently.  I was planning on doing
+> that at a later date, but fix the warning now.  I might add a TODO comment in
+> the code for this.
+
+Yes, I think that would be OK, depending on the amount of changes actually
+needed to rework it (if that's not too much, I'd just go straight for the
+rework, honestly).
+
+> The reason I did not remove the argument in cper_print_aer() is because
+> 'prefix' is used in the call to cper_print_bits(), and I passed through an
+> empty string to make sure that function worked correctly.  I can try to clean
+> it up.
+
+Please do.
+
+Thanks,
+Rafael
+
+
+-- 
+I speak only for myself.
+Rafael J. Wysocki, Intel Open Source Technology Center.
