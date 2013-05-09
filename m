@@ -1,84 +1,73 @@
-From: GBGamer <npmazzuca@gmail.com>
-Subject: ACPI: battery: Made sure all spaces were in correct places
-Date: Wed,  8 May 2013 16:11:15 -0700
-Message-ID: <1368054675-5168-1-git-send-email-nicholas@mazzucastuff.com>
+From: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>
+Subject: Re: v3.9 - CPU hotplug and microcode earlier loading hits a mutex
+ deadlock (x86_cpu_hotplug_driver_mutex)
+Date: Thu, 09 May 2013 02:23:52 +0200
+Message-ID: <518AEC98.4070507@intel.com>
+References: <20130506125937.GA14036@phenom.dumpdata.com> <20130507190024.GA4303@phenom.dumpdata.com> <20130508125414.GB30955@pd.tnic> <20130508140342.GA8152@phenom.dumpdata.com> <20130508142949.GC30955@pd.tnic> <20130508163249.GB369@phenom.dumpdata.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="utf-8"; format="flowed"
+Content-Transfer-Encoding: base64
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-pd0-f176.google.com ([209.85.192.176]:52877 "EHLO
-	mail-pd0-f176.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752578Ab3EHXLl (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 8 May 2013 19:11:41 -0400
+Received: from mga14.intel.com ([143.182.124.37]:18561 "EHLO mga14.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751982Ab3EIAX7 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 8 May 2013 20:23:59 -0400
+In-Reply-To: <20130508163249.GB369@phenom.dumpdata.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: lenb@kernel.org
-Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, GBGamer <nicholas@mazzucastuff.com>
+To: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
+Cc: Borislav Petkov <bp@alien8.de>, toshi.kani@hp.com, prarit@redhat.com, isimatu.yasuaki@jp.fujitsu.com, linux-kernel@vger.kernel.org, tglx@linutronix.de, mingo@redhat.com, hpa@zytor.com, x86@kernel.org, fenghua.yu@intel.com, xen-devel@lists.xensource.com, linux-acpi@vger.kernel.org
 
-Added or removed any spaces that gave errors or warnings in checkpatch.pl
-
-Signed-off-by: Nicholas Mazzuca <nicholas@mazzucastuff.com>
----
- drivers/acpi/battery.c |   14 +++++++-------
- 1 file changed, 7 insertions(+), 7 deletions(-)
-
-diff --git a/drivers/acpi/battery.c b/drivers/acpi/battery.c
-index 3c1784b..082b4dd 100644
---- a/drivers/acpi/battery.c
-+++ b/drivers/acpi/battery.c
-@@ -425,7 +425,7 @@ static int acpi_battery_get_info(struct acpi_battery *battery)
- {
- 	int result = -EFAULT;
- 	acpi_status status = 0;
--	char *name = test_bit(ACPI_BATTERY_XINFO_PRESENT, &battery->flags)?
-+	char *name = test_bit(ACPI_BATTERY_XINFO_PRESENT, &battery->flags) ?
- 			"_BIX" : "_BIF";
- 
- 	struct acpi_buffer buffer = { ACPI_ALLOCATE_BUFFER, NULL };
-@@ -661,11 +661,11 @@ static void find_battery(const struct dmi_header *dm, void *private)
- static void acpi_battery_quirks(struct acpi_battery *battery)
- {
- 	if (test_bit(ACPI_BATTERY_QUIRK_PERCENTAGE_CAPACITY, &battery->flags))
--		return ;
-+		return;
- 
- 	if (battery->full_charge_capacity == 100 &&
- 		battery->rate_now == ACPI_BATTERY_VALUE_UNKNOWN &&
--		battery->capacity_now >=0 && battery->capacity_now <= 100) {
-+		battery->capacity_now >= 0 && battery->capacity_now <= 100) {
- 		set_bit(ACPI_BATTERY_QUIRK_PERCENTAGE_CAPACITY, &battery->flags);
- 		battery->full_charge_capacity = battery->design_capacity;
- 		battery->capacity_now = (battery->capacity_now *
-@@ -673,7 +673,7 @@ static void acpi_battery_quirks(struct acpi_battery *battery)
- 	}
- 
- 	if (test_bit(ACPI_BATTERY_QUIRK_THINKPAD_MAH, &battery->flags))
--		return ;
-+		return;
- 
- 	if (battery->power_unit && dmi_name_in_vendors("LENOVO")) {
- 		const char *s;
-@@ -761,7 +761,7 @@ static int acpi_battery_print_info(struct seq_file *seq, int result)
- 		goto end;
- 
- 	seq_printf(seq, "present:                 %s\n",
--		   acpi_battery_present(battery)?"yes":"no");
-+		   acpi_battery_present(battery) ? "yes" : "no");
- 	if (!acpi_battery_present(battery))
- 		goto end;
- 	if (battery->design_capacity == ACPI_BATTERY_VALUE_UNKNOWN)
-@@ -817,12 +817,12 @@ static int acpi_battery_print_state(struct seq_file *seq, int result)
- 		goto end;
- 
- 	seq_printf(seq, "present:                 %s\n",
--		   acpi_battery_present(battery)?"yes":"no");
-+		   acpi_battery_present(battery) ? "yes" : "no");
- 	if (!acpi_battery_present(battery))
- 		goto end;
- 
- 	seq_printf(seq, "capacity state:          %s\n",
--			(battery->state & 0x04)?"critical":"ok");
-+			(battery->state & 0x04) ? "critical" : "ok");
- 	if ((battery->state & 0x01) && (battery->state & 0x02))
- 		seq_printf(seq,
- 			   "charging state:          charging/discharging\n");
--- 
-1.7.9.5
+T24gNS84LzIwMTMgNjozMiBQTSwgS29ucmFkIFJ6ZXN6dXRlayBXaWxrIHdyb3RlOgo+IE9uIFdl
+ZCwgTWF5IDA4LCAyMDEzIGF0IDA0OjI5OjQ5UE0gKzAyMDAsIEJvcmlzbGF2IFBldGtvdiB3cm90
+ZToKPj4gT24gV2VkLCBNYXkgMDgsIDIwMTMgYXQgMTA6MDM6NDJBTSAtMDQwMCwgS29ucmFkIFJ6
+ZXN6dXRlayBXaWxrIHdyb3RlOgo+Pgo+PiBbIOKApiBzbmlwIHNvbWUgZnVua3kgQklPUyBjb2Rl
+IF0KPj4KPj4+IFtoZXJlIGl0IHNoaWZ0cyBhbmQgY29udGludWVzIG9uIHRlc3RpbmcgZWFjaCBD
+UFUgYml0XQo+Pj4KPj4+PiBRdWVzdGlvbnMgb3ZlciBxdWVzdGlvbnMuLi4/Cj4+PiBJIHByb2Jh
+Ymx5IHdlbnQgb3ZlcmJvYXJkIHdpdGggbXkgYW5zd2VycyA6LSkKPj4gS29ucmFkLCB5b3UncmUg
+a2lsbGluZyBtZSEgOi0pIFlvdSBhY3R1YWxseSB3ZW50IGFuZCBsb29rZWQgYXQgdGhlCj4+IEJJ
+T1MgZGlzYXNzZW1ibHkgdm9sdW50YXJpbHkuIFlvdSBtdXN0IGJlIGluc2FuZSwgSSB0aGluayB5
+b3Ugc2hvdWxkCj4+IGltbWVkaWF0ZWx5IGdvIHRvIHRoZSBkb2N0b3Igbm93IGZvciBhIHRob3Jv
+dWdoIGNoZWNrdXAuIDotKQo+Pgo+PiBJIHRoaW5rIEkga25vdyB3aG8gSSBjYW4gc2xpbmcgQklP
+UyBpc3N1ZXMgbm93IHRvLgo+IEdyZWF0IC4uIDotKQo+Pj4+IExvb2tzIGxpa2Ugc2F2ZV9tY19m
+b3JfZWFybHkgd291bGQgbmVlZCBhbm90aGVyLCBsb2NhbCBtdXRleCB0byBmaXggdGhhdC4KPj4+
+IExldCBtZSB0cnkgdGhhdC4gVGhhbmtzIGZvciB0aGUgc3VnZ2VzdGlvbi4KPj4gT2ssIHNlcmlv
+dXNseSBub3c6IHllYWgsIHRoaXMgd2FzIGp1c3QgYW4gaWRlYSwgaXQgc2hvdWxkIGF0IGxlYXN0
+IGdldAo+PiB0aGUgbmVzdGluZyBvdXQgb2YgdGhlIHdheS4KPj4KPj4gQWJvdXQgdGhlIEJJT1Mg
+ZGVhbDogeW91J3JlIHByb2JhYmx5IHN0YXJpbmcgYXQgc29tZSBCSU9TIG91dCB0aGVyZQo+PiBi
+dXQgaXMgdGhpcyB0aGUgd2F5IHRoYXQgaXQgaXMgYWN0dWFsbHkgZ29pbmcgdG8gYmUgaW1wbGVt
+ZW50ZWQgb24KPj4gdGhlIHBoeXNpY2FsIGhvdHBsdWcgQklPUz8gSSBtZWFuLCBJJ3ZlIG9ubHkg
+aGVhcmQgcnVtb3JzIGFib3V0IElWQgo+PiBzdXBwb3J0aW5nIHBoeXNpY2FsIGhvdHBsdWcgYnV0
+IGRvIHlvdSBldmVuIGhhdmUgYWNjZXNzIHRvIHN1Y2ggQklPUyB0bwo+PiB2ZXJpZnk/Cj4gVW5m
+b3J0dW5hdGx5IG5vdC4gSSBhbSBnZXR0aW5nIGFuIEl2eVRvd24gYm94IHNvIGhvcGVmdWxseSB0
+aGF0IGhhcyB0aGlzCj4gc3VwcG9ydC4gQnV0IEkgdGhvdWdodCB0aGF0IEZlbmdodWEgZGlkIHNp
+bmNlIGhlIG1lbnRpb25lZCBpbiB0aGUgcGF0Y2guCj4KPiBCZXNpZGVzIHRoYXQgSSB0aGluayB0
+aGlzIGNhbiBhbHNvIGFwcGVhciBvbiBWTVdhcmUgaWYgb25lIGlzIGRvaW5nCj4gQ1BVIGhvdHBs
+dWcgYW5kIG9uIHNvbWUgSFAgbWFjaGluZXMgLSBsZXQgbWUgQ0MgdGhlIHJlbGV2YW50IHBlb3Bs
+ZQo+IGV4dHJhY3RlZCBmcm9tIGRyaXZlcnMvYWNwaS9wcm9jZXNzb3JfZHJpdmVyLmMuCj4gKHNl
+ZSAgaHR0cHM6Ly9sa21sLm9yZy9sa21sLzIwMTMvNS83LzU4OCBmb3IgdGhlIHRocmVhZCkKPgo+
+IFJhZmFlbCwgZG8geW91IGtub3cgb2YgYW55IHNwZWNpZmljIEludGVsIGhhcmR3YXJlIHRoYXQg
+aGFzIHRoaXMgaW1wbGVtZW50ZWQ/CgpObywgSSBkb24ndCBoYXZlIHRoaXMgaW5mb3JtYXRpb24u
+CgpCeSB0aGUgd2F5LCBoZXJlJ3MgYSBnZW5lcmFsIHJlcXVlc3QuCgpQbGVhc2UgQ0MgYW55IG1l
+c3NhZ2VzIGhhdmluZyB0aGUgd29yZCAiQUNQSSIgYW55d2hlcmUgaW4gdGhlIGJvZHkgb3IgCnN1
+YmplY3QgdG8gbGludXgtYWNwaUB2Z2VyLmtlcm5lbC5vcmcuICBJJ20gcmVhbGx5IHRpcmVkIG9m
+IGNoYXNpbmcgCkFDUEktcmVsYXRlZCB0aHJlYWRzIG9uIHRoZSBMS01MIGp1c3QgYmVjYXVzZSBw
+ZW9wbGUgZG9uJ3QgY2FyZSBhYm91dCAKQ0NpbmcgcmVsZXZhbnQgbGlzdHMgYW5kIEknbSBnb2lu
+ZyB0byBOQUsgYWxsIHBhdGNoZXMgdG91Y2hpbmcgQUNQSSBpbiAKYW55IHdheSBpZiB0aGV5IGhh
+dmVuJ3QgYmVlbiBDQ2VkIHRvIHRoZSBBQ1BJIGxpc3QuICBTZXJpb3VzbHkuCgpUaGlzIHBhcnRp
+Y3VsYXIgaXRlbSBtYXkgb3IgbWF5IG5vdCBjb25mbGljdCB3aXRoIHNvbWUgb25nb2luZyB3b3Jr
+IAp0YWtpbmcgcGxhY2UgaW4gdGhlcmUgKGFuZCBwYXRjaGVzIHByZXNlbnQgaW4gbXkgdHJlZSku
+CgpBbmQgeW91J3ZlIGFscmVhZHkgaGFkIHByb2JsZW1zIHdpdGggQUNQSS1yZWxhdGVkIGNvZGUg
+Y29uZmxpY3RzLCBzbyAKdGhhdCdzIG5vdCBsaWtlIGl0J3MgbmV2ZXIgaGFwcGVuZWQuCgpUaGFu
+a3MsClJhZmFlbAoKLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
+LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tCkludGVsIFRlY2hub2xvZ3kgUG9sYW5kIHNwLiB6IG8u
+by4KeiBzaWVkemliYSB3IEdkYW5za3UKdWwuIFNsb3dhY2tpZWdvIDE3Mwo4MC0yOTggR2RhbnNr
+CgpTYWQgUmVqb25vd3kgR2RhbnNrIFBvbG5vYyB3IEdkYW5za3UsIApWSUkgV3lkemlhbCBHb3Nw
+b2RhcmN6eSBLcmFqb3dlZ28gUmVqZXN0cnUgU2Fkb3dlZ28sIApudW1lciBLUlMgMTAxODgyCgpO
+SVAgOTU3LTA3LTUyLTMxNgpLYXBpdGFsIHpha2xhZG93eSAyMDAuMDAwIHpsCgpUaGlzIGUtbWFp
+bCBhbmQgYW55IGF0dGFjaG1lbnRzIG1heSBjb250YWluIGNvbmZpZGVudGlhbCBtYXRlcmlhbCBm
+b3IKdGhlIHNvbGUgdXNlIG9mIHRoZSBpbnRlbmRlZCByZWNpcGllbnQocykuIEFueSByZXZpZXcg
+b3IgZGlzdHJpYnV0aW9uCmJ5IG90aGVycyBpcyBzdHJpY3RseSBwcm9oaWJpdGVkLiBJZiB5b3Ug
+YXJlIG5vdCB0aGUgaW50ZW5kZWQKcmVjaXBpZW50LCBwbGVhc2UgY29udGFjdCB0aGUgc2VuZGVy
+IGFuZCBkZWxldGUgYWxsIGNvcGllcy4K
 
