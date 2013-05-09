@@ -1,61 +1,39 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: [GIT PULL] ACPI fixes for v3.10-rc1
-Date: Thu, 09 May 2013 21:18:23 +0200
-Message-ID: <1903378.croiM3Nu8S@vostro.rjw.lan>
+From: "Ortiz, Lance E" <lance.oritz@hp.com>
+Subject: RE: [PATCH] aerdrv: Move cper_print_pcie() out of interrupt context
+Date: Thu, 9 May 2013 19:10:36 +0000
+Message-ID: <A961433CDFF2F640A2866803152E61F95177AFA9@G4W3219.americas.hpqcorp.net>
+References: <20130508171519.26724.63307.stgit@grignak.americas.hpqcorp.net>
+ <2598827.AVAqMcfGuF@vostro.rjw.lan>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7Bit
+Content-Transfer-Encoding: base64
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from hydra.sisk.pl ([212.160.235.94]:41474 "EHLO hydra.sisk.pl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751898Ab3EITJ5 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 9 May 2013 15:09:57 -0400
+Received: from g4t0014.houston.hp.com ([15.201.24.17]:45465 "EHLO
+	g4t0014.houston.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750925Ab3EITLt (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 9 May 2013 15:11:49 -0400
+In-Reply-To: <2598827.AVAqMcfGuF@vostro.rjw.lan>
+Content-Language: en-US
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>
+To: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: "bhelgaas@google.com" <bhelgaas@google.com>, "lance_ortiz@hotmail.com" <lance_ortiz@hotmail.com>, "jiang.liu@huawei.com" <jiang.liu@huawei.com>, "tony.luck@intel.com" <tony.luck@intel.com>, "bp@alien8.de" <bp@alien8.de>, "rostedt@goodmis.org" <rostedt@goodmis.org>, "mchehab@redhat.com" <mchehab@redhat.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
 
-Hi Linus,
-
-Please pull from the git repository at
-
-  git://git.kernel.org/pub/scm/linux/kernel/git/rafael/linux-pm.git acpi-fixes-3.10-rc1
-
-to receive ACPI fixes for v3.10-rc1 with top-most commit
-04a29a15520463e072b1a98d8989f04233ee4a7e
-
-  ACPICA: ACPICA: Fix for _INI regression
-
-on top of commit 371deb9500831ad1afbf9ea00e373f650deaed2f
-
-  Merge branch 'pm-cpufreq'
-
-These are three urgent ACPICA fixes two of which fix regressions introduced
-earlier during this merge window and the third one fixes a potential buffer
-overflow that has been there for quite a while (fortunately, it's not easy
-to trigger).
-
-Thanks!
-
-
----------------
-
-Bob Moore (1):
-      ACPICA: Fix possible buffer overflow during a field unit read operation
-
-Jung-uk Kim (1):
-      ACPICA: _OSI support: Fix possible memory leak
-
-Tomasz Nowicki (1):
-      ACPICA: ACPICA: Fix for _INI regression
-
----------------
-
- drivers/acpi/acpica/exfldio.c |   14 +++++++++++++-
- drivers/acpi/acpica/nsinit.c  |    1 +
- drivers/acpi/acpica/utosi.c   |    3 ++-
- 3 files changed, 16 insertions(+), 2 deletions(-)
-
--- 
-I speak only for myself.
-Rafael J. Wysocki, Intel Open Source Technology Center.
+UmFmYWVsLCAgDQoNClRoYW5rcyBmb3IgeW91ciBmZWVkYmFjay4NCg0KPiBUaGUgd2F5IHRoZSBj
+aGFuZ2VzIGFyZSBkZXNjcmliZWQgaGVyZSBpc24ndCBwYXJ0aWN1bGFybHkgY2xlYXIgdG8gbWUu
+DQoNCkkgd2lsbCB0cnkgdG8gbWFrZSBpdCBhIGxpdHRsZSBtb3JlIGNsZWFyLg0KDQoNCj4gQWxz
+bywgc2luY2UgYWVyX3JlY292ZXJfd29ya19mdW5jKCkgaXMgZ29pbmcgdG8gYmUgdGhlIG9ubHkg
+ZXhpc3RpbmcNCj4gY2FsbGVyIG9mDQo+IGNwZXJfcHJpbnRfYWVyKCkgYWZ0ZXIgdGhpcyBjaGFu
+Z2UsIGFzIGZhciBhcyBJIGNhbiBzYXksIGFuZCBpdCBkb2Vzbid0DQo+IHVzZSB0aGUNCj4gZnVu
+Y3Rpb24ncyBmaXJzdCBhcmd1bWVudCwgdGhhdCBhcmd1bWVudCBzaG91bGQgYmUgZHJvcHBlZCBl
+bnRpcmVseS4NCg0KVGhlIHRydXRoIGlzLCB0aGUgZnVuY3Rpb24gY3Blcl9wcmludF9hZXIoKSBy
+ZWFsbHkgbmVlZHMgdG8gYmUgcmUtd3JpdHRlbiBzbyBpdCBpcyBjb25zaXN0ZW50IHdpdGggYWVy
+X3ByaW50X2Vycm9yKCkgaW4gaG93IGl0IG91dHB1dHMgaW5mb3JtYXRpb24uICBSaWdodCBub3cs
+IHRoZSBvdXRwdXQgaXMgZm9ybWF0dGVkIHZlcnkgZGlmZmVyZW50bHkuICBJIHdhcyBwbGFubmlu
+ZyBvbiBkb2luZyB0aGF0IGF0IGEgbGF0ZXIgZGF0ZSwgYnV0IGZpeCB0aGUgd2FybmluZyBub3cu
+ICBJIG1pZ2h0IGFkZCBhIFRPRE8gY29tbWVudCBpbiB0aGUgY29kZSBmb3IgdGhpcy4NCg0KVGhl
+IHJlYXNvbiBJIGRpZCBub3QgcmVtb3ZlIHRoZSBhcmd1bWVudCBpbiBjcGVyX3ByaW50X2Flcigp
+IGlzIGJlY2F1c2UgJ3ByZWZpeCcgaXMgdXNlZCBpbiB0aGUgY2FsbCB0byBjcGVyX3ByaW50X2Jp
+dHMoKSwgYW5kIEkgcGFzc2VkIHRocm91Z2ggYW4gZW1wdHkgc3RyaW5nIHRvIG1ha2Ugc3VyZSB0
+aGF0IGZ1bmN0aW9uIHdvcmtlZCBjb3JyZWN0bHkuICBJIGNhbiB0cnkgdG8gY2xlYW4gaXQgdXAu
+DQoNCkxhbmNlDQo=
