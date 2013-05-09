@@ -1,73 +1,61 @@
-From: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>
-Subject: Re: v3.9 - CPU hotplug and microcode earlier loading hits a mutex
- deadlock (x86_cpu_hotplug_driver_mutex)
-Date: Thu, 09 May 2013 02:23:52 +0200
-Message-ID: <518AEC98.4070507@intel.com>
-References: <20130506125937.GA14036@phenom.dumpdata.com> <20130507190024.GA4303@phenom.dumpdata.com> <20130508125414.GB30955@pd.tnic> <20130508140342.GA8152@phenom.dumpdata.com> <20130508142949.GC30955@pd.tnic> <20130508163249.GB369@phenom.dumpdata.com>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: [GIT PULL] ACPI fixes for v3.10-rc1
+Date: Thu, 09 May 2013 21:18:23 +0200
+Message-ID: <1903378.croiM3Nu8S@vostro.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"; format="flowed"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7Bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga14.intel.com ([143.182.124.37]:18561 "EHLO mga14.intel.com"
+Received: from hydra.sisk.pl ([212.160.235.94]:41474 "EHLO hydra.sisk.pl"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751982Ab3EIAX7 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 8 May 2013 20:23:59 -0400
-In-Reply-To: <20130508163249.GB369@phenom.dumpdata.com>
+	id S1751898Ab3EITJ5 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 9 May 2013 15:09:57 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
-Cc: Borislav Petkov <bp@alien8.de>, toshi.kani@hp.com, prarit@redhat.com, isimatu.yasuaki@jp.fujitsu.com, linux-kernel@vger.kernel.org, tglx@linutronix.de, mingo@redhat.com, hpa@zytor.com, x86@kernel.org, fenghua.yu@intel.com, xen-devel@lists.xensource.com, linux-acpi@vger.kernel.org
+To: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>
 
-T24gNS84LzIwMTMgNjozMiBQTSwgS29ucmFkIFJ6ZXN6dXRlayBXaWxrIHdyb3RlOgo+IE9uIFdl
-ZCwgTWF5IDA4LCAyMDEzIGF0IDA0OjI5OjQ5UE0gKzAyMDAsIEJvcmlzbGF2IFBldGtvdiB3cm90
-ZToKPj4gT24gV2VkLCBNYXkgMDgsIDIwMTMgYXQgMTA6MDM6NDJBTSAtMDQwMCwgS29ucmFkIFJ6
-ZXN6dXRlayBXaWxrIHdyb3RlOgo+Pgo+PiBbIOKApiBzbmlwIHNvbWUgZnVua3kgQklPUyBjb2Rl
-IF0KPj4KPj4+IFtoZXJlIGl0IHNoaWZ0cyBhbmQgY29udGludWVzIG9uIHRlc3RpbmcgZWFjaCBD
-UFUgYml0XQo+Pj4KPj4+PiBRdWVzdGlvbnMgb3ZlciBxdWVzdGlvbnMuLi4/Cj4+PiBJIHByb2Jh
-Ymx5IHdlbnQgb3ZlcmJvYXJkIHdpdGggbXkgYW5zd2VycyA6LSkKPj4gS29ucmFkLCB5b3UncmUg
-a2lsbGluZyBtZSEgOi0pIFlvdSBhY3R1YWxseSB3ZW50IGFuZCBsb29rZWQgYXQgdGhlCj4+IEJJ
-T1MgZGlzYXNzZW1ibHkgdm9sdW50YXJpbHkuIFlvdSBtdXN0IGJlIGluc2FuZSwgSSB0aGluayB5
-b3Ugc2hvdWxkCj4+IGltbWVkaWF0ZWx5IGdvIHRvIHRoZSBkb2N0b3Igbm93IGZvciBhIHRob3Jv
-dWdoIGNoZWNrdXAuIDotKQo+Pgo+PiBJIHRoaW5rIEkga25vdyB3aG8gSSBjYW4gc2xpbmcgQklP
-UyBpc3N1ZXMgbm93IHRvLgo+IEdyZWF0IC4uIDotKQo+Pj4+IExvb2tzIGxpa2Ugc2F2ZV9tY19m
-b3JfZWFybHkgd291bGQgbmVlZCBhbm90aGVyLCBsb2NhbCBtdXRleCB0byBmaXggdGhhdC4KPj4+
-IExldCBtZSB0cnkgdGhhdC4gVGhhbmtzIGZvciB0aGUgc3VnZ2VzdGlvbi4KPj4gT2ssIHNlcmlv
-dXNseSBub3c6IHllYWgsIHRoaXMgd2FzIGp1c3QgYW4gaWRlYSwgaXQgc2hvdWxkIGF0IGxlYXN0
-IGdldAo+PiB0aGUgbmVzdGluZyBvdXQgb2YgdGhlIHdheS4KPj4KPj4gQWJvdXQgdGhlIEJJT1Mg
-ZGVhbDogeW91J3JlIHByb2JhYmx5IHN0YXJpbmcgYXQgc29tZSBCSU9TIG91dCB0aGVyZQo+PiBi
-dXQgaXMgdGhpcyB0aGUgd2F5IHRoYXQgaXQgaXMgYWN0dWFsbHkgZ29pbmcgdG8gYmUgaW1wbGVt
-ZW50ZWQgb24KPj4gdGhlIHBoeXNpY2FsIGhvdHBsdWcgQklPUz8gSSBtZWFuLCBJJ3ZlIG9ubHkg
-aGVhcmQgcnVtb3JzIGFib3V0IElWQgo+PiBzdXBwb3J0aW5nIHBoeXNpY2FsIGhvdHBsdWcgYnV0
-IGRvIHlvdSBldmVuIGhhdmUgYWNjZXNzIHRvIHN1Y2ggQklPUyB0bwo+PiB2ZXJpZnk/Cj4gVW5m
-b3J0dW5hdGx5IG5vdC4gSSBhbSBnZXR0aW5nIGFuIEl2eVRvd24gYm94IHNvIGhvcGVmdWxseSB0
-aGF0IGhhcyB0aGlzCj4gc3VwcG9ydC4gQnV0IEkgdGhvdWdodCB0aGF0IEZlbmdodWEgZGlkIHNp
-bmNlIGhlIG1lbnRpb25lZCBpbiB0aGUgcGF0Y2guCj4KPiBCZXNpZGVzIHRoYXQgSSB0aGluayB0
-aGlzIGNhbiBhbHNvIGFwcGVhciBvbiBWTVdhcmUgaWYgb25lIGlzIGRvaW5nCj4gQ1BVIGhvdHBs
-dWcgYW5kIG9uIHNvbWUgSFAgbWFjaGluZXMgLSBsZXQgbWUgQ0MgdGhlIHJlbGV2YW50IHBlb3Bs
-ZQo+IGV4dHJhY3RlZCBmcm9tIGRyaXZlcnMvYWNwaS9wcm9jZXNzb3JfZHJpdmVyLmMuCj4gKHNl
-ZSAgaHR0cHM6Ly9sa21sLm9yZy9sa21sLzIwMTMvNS83LzU4OCBmb3IgdGhlIHRocmVhZCkKPgo+
-IFJhZmFlbCwgZG8geW91IGtub3cgb2YgYW55IHNwZWNpZmljIEludGVsIGhhcmR3YXJlIHRoYXQg
-aGFzIHRoaXMgaW1wbGVtZW50ZWQ/CgpObywgSSBkb24ndCBoYXZlIHRoaXMgaW5mb3JtYXRpb24u
-CgpCeSB0aGUgd2F5LCBoZXJlJ3MgYSBnZW5lcmFsIHJlcXVlc3QuCgpQbGVhc2UgQ0MgYW55IG1l
-c3NhZ2VzIGhhdmluZyB0aGUgd29yZCAiQUNQSSIgYW55d2hlcmUgaW4gdGhlIGJvZHkgb3IgCnN1
-YmplY3QgdG8gbGludXgtYWNwaUB2Z2VyLmtlcm5lbC5vcmcuICBJJ20gcmVhbGx5IHRpcmVkIG9m
-IGNoYXNpbmcgCkFDUEktcmVsYXRlZCB0aHJlYWRzIG9uIHRoZSBMS01MIGp1c3QgYmVjYXVzZSBw
-ZW9wbGUgZG9uJ3QgY2FyZSBhYm91dCAKQ0NpbmcgcmVsZXZhbnQgbGlzdHMgYW5kIEknbSBnb2lu
-ZyB0byBOQUsgYWxsIHBhdGNoZXMgdG91Y2hpbmcgQUNQSSBpbiAKYW55IHdheSBpZiB0aGV5IGhh
-dmVuJ3QgYmVlbiBDQ2VkIHRvIHRoZSBBQ1BJIGxpc3QuICBTZXJpb3VzbHkuCgpUaGlzIHBhcnRp
-Y3VsYXIgaXRlbSBtYXkgb3IgbWF5IG5vdCBjb25mbGljdCB3aXRoIHNvbWUgb25nb2luZyB3b3Jr
-IAp0YWtpbmcgcGxhY2UgaW4gdGhlcmUgKGFuZCBwYXRjaGVzIHByZXNlbnQgaW4gbXkgdHJlZSku
-CgpBbmQgeW91J3ZlIGFscmVhZHkgaGFkIHByb2JsZW1zIHdpdGggQUNQSS1yZWxhdGVkIGNvZGUg
-Y29uZmxpY3RzLCBzbyAKdGhhdCdzIG5vdCBsaWtlIGl0J3MgbmV2ZXIgaGFwcGVuZWQuCgpUaGFu
-a3MsClJhZmFlbAoKLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
-LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tCkludGVsIFRlY2hub2xvZ3kgUG9sYW5kIHNwLiB6IG8u
-by4KeiBzaWVkemliYSB3IEdkYW5za3UKdWwuIFNsb3dhY2tpZWdvIDE3Mwo4MC0yOTggR2RhbnNr
-CgpTYWQgUmVqb25vd3kgR2RhbnNrIFBvbG5vYyB3IEdkYW5za3UsIApWSUkgV3lkemlhbCBHb3Nw
-b2RhcmN6eSBLcmFqb3dlZ28gUmVqZXN0cnUgU2Fkb3dlZ28sIApudW1lciBLUlMgMTAxODgyCgpO
-SVAgOTU3LTA3LTUyLTMxNgpLYXBpdGFsIHpha2xhZG93eSAyMDAuMDAwIHpsCgpUaGlzIGUtbWFp
-bCBhbmQgYW55IGF0dGFjaG1lbnRzIG1heSBjb250YWluIGNvbmZpZGVudGlhbCBtYXRlcmlhbCBm
-b3IKdGhlIHNvbGUgdXNlIG9mIHRoZSBpbnRlbmRlZCByZWNpcGllbnQocykuIEFueSByZXZpZXcg
-b3IgZGlzdHJpYnV0aW9uCmJ5IG90aGVycyBpcyBzdHJpY3RseSBwcm9oaWJpdGVkLiBJZiB5b3Ug
-YXJlIG5vdCB0aGUgaW50ZW5kZWQKcmVjaXBpZW50LCBwbGVhc2UgY29udGFjdCB0aGUgc2VuZGVy
-IGFuZCBkZWxldGUgYWxsIGNvcGllcy4K
+Hi Linus,
 
+Please pull from the git repository at
+
+  git://git.kernel.org/pub/scm/linux/kernel/git/rafael/linux-pm.git acpi-fixes-3.10-rc1
+
+to receive ACPI fixes for v3.10-rc1 with top-most commit
+04a29a15520463e072b1a98d8989f04233ee4a7e
+
+  ACPICA: ACPICA: Fix for _INI regression
+
+on top of commit 371deb9500831ad1afbf9ea00e373f650deaed2f
+
+  Merge branch 'pm-cpufreq'
+
+These are three urgent ACPICA fixes two of which fix regressions introduced
+earlier during this merge window and the third one fixes a potential buffer
+overflow that has been there for quite a while (fortunately, it's not easy
+to trigger).
+
+Thanks!
+
+
+---------------
+
+Bob Moore (1):
+      ACPICA: Fix possible buffer overflow during a field unit read operation
+
+Jung-uk Kim (1):
+      ACPICA: _OSI support: Fix possible memory leak
+
+Tomasz Nowicki (1):
+      ACPICA: ACPICA: Fix for _INI regression
+
+---------------
+
+ drivers/acpi/acpica/exfldio.c |   14 +++++++++++++-
+ drivers/acpi/acpica/nsinit.c  |    1 +
+ drivers/acpi/acpica/utosi.c   |    3 ++-
+ 3 files changed, 16 insertions(+), 2 deletions(-)
+
+-- 
+I speak only for myself.
+Rafael J. Wysocki, Intel Open Source Technology Center.
