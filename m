@@ -1,83 +1,72 @@
-From: Bjorn Helgaas <bhelgaas@google.com>
-Subject: Re: [PATCH -v3] PCI, ACPI, hotplug: Fix BUS_CHECK event handle on
- root bridge
-Date: Fri, 10 May 2013 11:09:10 -0600
-Message-ID: <CAErSpo6=EMckwU0L9dwSmzrMNqfgVzuoppq9phsPysz+XWs2eA@mail.gmail.com>
-References: <1366940798-15268-1-git-send-email-yinghai@kernel.org> <517E9DAC.7030709@gmail.com>
+From: Max Asbock <masbock@linux.vnet.ibm.com>
+Subject: RE: [Patch] MCE, APEI: Don't enable CMCI when Firmware First mode
+ is set in HEST for corrected machine checks
+Date: Fri, 10 May 2013 10:59:04 -0700
+Message-ID: <1368208744.4518.182.camel@oc3432500282.ibm.com>
+References: <1367881102.4518.68.camel@oc3432500282.ibm.com>
+	 <20130506232537.GF22041@pd.tnic>
+	 <1367897566.4518.83.camel@oc3432500282.ibm.com>
+	 <20130507131946.GC7633@pd.tnic>
+	 <1367941214.4518.90.camel@oc3432500282.ibm.com>
+	 <20130508212237.GI30955@pd.tnic>
+	 <3908561D78D1C84285E8C5FCA982C28F2DA47E5E@ORSMSX101.amr.corp.intel.com>
+	 <20130508221501.GK30955@pd.tnic>
+	 <3908561D78D1C84285E8C5FCA982C28F2DA47F03@ORSMSX101.amr.corp.intel.com>
+Reply-To: masbock@linux.vnet.ibm.com
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <517E9DAC.7030709@gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Jiang Liu <liuj97@gmail.com>
-Cc: Yinghai Lu <yinghai@kernel.org>, "Rafael J. Wysocki" <rjw@sisk.pl>, Jiang Liu <jiang.liu@huawei.com>, Gavin Guo <tuffkidtt@gmail.com>, "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from e32.co.us.ibm.com ([32.97.110.150]:52550 "EHLO
+	e32.co.us.ibm.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753686Ab3EJSAE (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 10 May 2013 14:00:04 -0400
+Received: from /spool/local
+	by e32.co.us.ibm.com with IBM ESMTP SMTP Gateway: Authorized Use Only! Violators will be prosecuted
+	for <linux-acpi@vger.kernel.org> from <masbock@linux.vnet.ibm.com>;
+	Fri, 10 May 2013 12:00:02 -0600
+Received: from d03relay01.boulder.ibm.com (d03relay01.boulder.ibm.com [9.17.195.226])
+	by d03dlp02.boulder.ibm.com (Postfix) with ESMTP id 74DED3E40026
+	for <linux-acpi@vger.kernel.org>; Fri, 10 May 2013 11:58:52 -0600 (MDT)
+Received: from d03av03.boulder.ibm.com (d03av03.boulder.ibm.com [9.17.195.169])
+	by d03relay01.boulder.ibm.com (8.13.8/8.13.8/NCO v10.0) with ESMTP id r4AHx6hB127122
+	for <linux-acpi@vger.kernel.org>; Fri, 10 May 2013 11:59:06 -0600
+Received: from d03av03.boulder.ibm.com (loopback [127.0.0.1])
+	by d03av03.boulder.ibm.com (8.14.4/8.13.1/NCO v10.0 AVout) with ESMTP id r4AHx5bW017847
+	for <linux-acpi@vger.kernel.org>; Fri, 10 May 2013 11:59:06 -0600
+In-Reply-To: <3908561D78D1C84285E8C5FCA982C28F2DA47F03@ORSMSX101.amr.corp.intel.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: "Luck, Tony" <tony.luck@intel.com>
+Cc: Borislav Petkov <bp@alien8.de>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "Huang, Ying" <ying.huang@intel.com>, "naveen.n.rao@in.ibm.com" <naveen.n.rao@in.ibm.com>, "ananth@in.ibm.com" <ananth@in.ibm.com>, "lcm@linux.vnet.ibm.com" <lcm@linux.vnet.ibm.com>
 
-On Mon, Apr 29, 2013 at 10:19 AM, Jiang Liu <liuj97@gmail.com> wrote:
-> Hi Yinghai,
->         Reviewed-by: Jiang Liu <jiang.liu@huawei.com>
->         Thanks!
->
-> On 04/26/2013 09:46 AM, Yinghai Lu wrote:
->> Gavin found that acpiphp does not handle hotplug anymore even after
->> now we have acpiphp built-in preparing for v3.10.
->>
->> Bjorn analyzed bootlog, he found that
->>     acpiphp: ACPI Hot Plug PCI Controller Driver version: 0.5
->>     ACPI: PCI Root Bridge [PCI0] (domain 0000 [bus 00-3e])
->>     \_SB_.PCI0:_OSC invalid UUID
->>     acpiphp: Slot [1] registered
->>     acpiphp: Slot [1-1] registered
->>    acpi root: \_SB_.PCI0 notify handler is installed
->>     _handle_hotplug_event_root: Bus check notify on \_SB_.PCI0
->>     _handle_hotplug_event_root: Bus check notify on \_SB_.PCI0
->> And that means:
->>    So we should be using acpiphp, which you do have built in statically,
->>    and it found a couple slots.  And we did get two bus check notifies on
->>    \_SB_.PCI0, so we *should* be re-enumerating PCI bus 0000:00.  But it
->>    looks like we're handling this as a host bridge hotplug event instead
->>    of a PCI device hotplug.  My guess is that
->>    handle_root_bridge_insertion() does nothing because the PCI0 ACPI
->>    device already exists, though I would expect to see the "acpi device
->>    exists..." in your dmesg log if this were the case.
->>
->> Also according to Rafael and Bjorn, it is perfect fine that we
->> should enumerate bus by sending event to root bridge after hotadd
->> device to slots under that root bridge or children bridges.
->>
->> It turns out that it is regression caused by
->> | commit 668192b678201d2fff27c6cc76bb003c1ec4a52a
->> | Author: Yinghai Lu <yinghai@kernel.org>
->> | Date:   Mon Jan 21 13:20:48 2013 -0800
->> |
->> |    PCI: acpiphp: Move host bridge hotplug to pci_root.c
->>
->> We should check slots when BUS_CHECK is sent to root bridge acpi handle.
->>
->> Restore the old behavoir by calling acpi_check_bridge and check_sub_bridge
->> in acpiphp.
->>
->> Jiang Liu acctually have simimar patch but it forgets calling
->> acpi_check_bridge() for system that have slots on root bus directly.
->> That is still valid, as in QEMU we still have that slots on bus 0 at
->> least. But my first version patch wrongly check if root bridge exists
->> before check_sub_bridge for children bridges.
->>
->> -v2: Don't check bridge for acpi_walk_namespace with check_sub_bridges.
->>      also put back bridge reference.
->> -v3: More changelog and etc.
->>
->> Reported-by: Gavin Guo <tuffkidtt@gmail.com>
->> Tested-by: Gavin Guo <tuffkidtt@gmail.com>
->> Signed-off-by: Yinghai Lu <yinghai@kernel.org>
+I'll try to summarize the situation:
 
-I added the Acked-by and Reviewed-by and opened
-https://bugzilla.kernel.org/show_bug.cgi?id=57961 just as a place to
-store the dmesg logs.  I also backported it to v3.9 and added a CC:
-stable tag because I think v3.9 has the same issue.  The backport is
-also attached to the bugzilla.
+We proposed two iterations of a patch that would parse HEST for a
+Corrected Machine Check entry and cause CMCI to be disabled if the
+Firmware First flag was found to be on in that entry.
+Several shortcomings of this approach were subsequently pointed out:
+a) Disabling CMCI doesn't go far enough. If the firmware wants to
+control corrected machine checks then we shouldn't even be polling the
+MCi_STATUS registers. Therefore we need to disable CMCI and disable
+polling if FF is set.
 
-I'll ask Linus to put this in v3.10.
+b) The firmware may take over only a subset of the possible corrected
+machine check events. If we turn off CMCI (and polling) for all banks we
+may miss out on some types of errors. Therefore we should not
+indiscriminately disable CMCI on all banks.
 
-Thanks,
-  Bjorn
+The question arose whether the APEI spec allows to specify individual
+machine check banks which fall under FF control. The answer appears to
+be 'possibly'. The Corrected Machine Check (CMC) structure defined in
+the APEI spec allows for a list of Machine Check Bank structures which
+could be used to designate a set of banks falling under FF control.
+However, the spec is silent on how the list of Machine Check Bank
+structures in the CMC structure is be used. 
+
+Further steps in this endeavor may depend on the interpretation of the
+CMC structure in APEI an whether we can specify individual machine check
+banks that fall under FF control.
+
+- Max
+
