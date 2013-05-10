@@ -1,201 +1,75 @@
 From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: [PATCH v2] aerdrv: Move cper_print_aer() call out of interrupt context
-Date: Thu, 09 May 2013 22:24:37 +0200
-Message-ID: <2787560.ZE29Z7LhAi@vostro.rjw.lan>
-References: <20130509195135.16108.70845.stgit@grignak.americas.hpqcorp.net>
+Subject: Re: 3.9.0 + CONFIG_X86_INTEL_PSTATE=y  -> ThinkPad T420 with i5 lost ACPI functionality
+Date: Fri, 10 May 2013 15:10:12 +0200
+Message-ID: <4720627.g9zHkFYIDJ@vostro.rjw.lan>
+References: <5183EC09.9080208@gmx.de> <51842F6F.1050005@intel.com> <5184BF82.4070700@gmx.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from hydra.sisk.pl ([212.160.235.94]:41596 "EHLO hydra.sisk.pl"
+Received: from hydra.sisk.pl ([212.160.235.94]:42821 "EHLO hydra.sisk.pl"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752071Ab3EIUQM (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 9 May 2013 16:16:12 -0400
-In-Reply-To: <20130509195135.16108.70845.stgit@grignak.americas.hpqcorp.net>
+	id S1752693Ab3EJNBq convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 10 May 2013 09:01:46 -0400
+In-Reply-To: <5184BF82.4070700@gmx.de>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Lance Ortiz <lance.ortiz@hp.com>
-Cc: bhelgaas@google.com, lance_ortiz@hotmail.com, jiang.liu@huawei.com, tony.luck@intel.com, bp@alien8.de, rostedt@goodmis.org, mchehab@redhat.com, linux-acpi@vger.kernel.org, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org
+To: Toralf =?ISO-8859-1?Q?F=F6rster?= <toralf.foerster@gmx.de>
+Cc: Dirk Brandewie <dirk.brandewie@gmail.com>, linux-acpi@vger.kernel.org, Linux Kernel <linux-kernel@vger.kernel.org>, Linux PM list <linux-pm@vger.kernel.org>, boinc_dev@ssl.berkeley.edu
 
-On Thursday, May 09, 2013 01:51:35 PM Lance Ortiz wrote:
-> The following warning was seen on 3.9 when a corrected PCIe error was being
-> handled by the AER subsystem.
-> 
-> WARNING: at .../drivers/pci/search.c:214 pci_get_dev_by_id+0x8a/0x90()
-> 
-> This occurred because a call to pci_get_domain_bus_and_slot() was added to
-> cper_print_pcie() to setup for the call to cper_print_aer().  The warning
-> showed up because cper_print_pcie() is called in an interrupt context and
-> pci_get* functions are not supposed to be called in that context.
-> 
-> The solution is to move the cper_print_aer() call out of the interrupt
-> context and into aer_recover_work_func() to avoid any warnings when calling
-> pci_get* functions.
-> 
-> v2 - Re-worded header text.  Removed prefix arg from cper_print_aer().
->      Added TODO message in cper_print_aer().
+On Saturday, May 04, 2013 09:57:54 AM Toralf F=C3=B6rster wrote:
+> On 05/03/2013 11:43 PM, Dirk Brandewie wrote:
+> > On 05/03/2013 02:26 PM, Toralf F=C3=B6rster wrote:
+> >> On 05/03/2013 11:10 PM, Dirk Brandewie wrote:
+> >>>
+> >>> ignore_nice_load is a feature of the ondemand governor.
+> >>> The intel_pstate driver is seeing the load presented by the BOINC=
+ client
+> >>> and is adjusting the pstate accordingly.
+> >>
+> >> Is the intel_pstate driver a choice for a notebook and friends whe=
+re a
+> >> grid software is running as a low-prio back ground job ?
+> >>
+> >=20
+> > Probably not.
+>=20
+> Hhm.
+>=20
+> The kernel menuconfig says :
+>=20
+>  This driver provides a P state for Intel core processors
+>  The driver implements an internal governor and will become
+>  the scaling driver and governor for Sandy bridge processors.
+>=20
+>=20
+> What shall a company like IBM with a lot of notebook installation run=
+ning BOINC
+> in the back ground process (World Community Grid) do - what's the con=
+sequence for
+> those installations if they will have that a processor ?
+>=20
+> In the past (few years ago and related to the ondemand governor IIRC)=
+ there were
+> already a longer discussion about the "nice -n 19" topic and the resu=
+lt was
+> to support it.
+>=20
+> /me Cc:'ing boinc devs, the topic might be interesting for them too.
 
-That's fine by me.
+One option might be to use the powerclamp driver along with intel_pstat=
+e to
+reduce the heat dissipation.
 
 Thanks,
 Rafael
 
 
-> Signed-off-by: Lance Ortiz <lance.ortiz@hp.com>
-> Acked-by: Borislav Petkov <bp@suse.de>
-> ---
-> 
->  drivers/acpi/apei/cper.c               |   18 ------------------
->  drivers/acpi/apei/ghes.c               |    3 ++-
->  drivers/pci/pcie/aer/aerdrv_core.c     |    6 +++++-
->  drivers/pci/pcie/aer/aerdrv_errprint.c |   10 ++++++++--
->  include/linux/aer.h                    |    4 ++--
->  5 files changed, 17 insertions(+), 24 deletions(-)
-> 
-> diff --git a/drivers/acpi/apei/cper.c b/drivers/acpi/apei/cper.c
-> index 1e5d8a4..8713229 100644
-> --- a/drivers/acpi/apei/cper.c
-> +++ b/drivers/acpi/apei/cper.c
-> @@ -250,10 +250,6 @@ static const char *cper_pcie_port_type_strs[] = {
->  static void cper_print_pcie(const char *pfx, const struct cper_sec_pcie *pcie,
->  			    const struct acpi_hest_generic_data *gdata)
->  {
-> -#ifdef CONFIG_ACPI_APEI_PCIEAER
-> -	struct pci_dev *dev;
-> -#endif
-> -
->  	if (pcie->validation_bits & CPER_PCIE_VALID_PORT_TYPE)
->  		printk("%s""port_type: %d, %s\n", pfx, pcie->port_type,
->  		       pcie->port_type < ARRAY_SIZE(cper_pcie_port_type_strs) ?
-> @@ -285,20 +281,6 @@ static void cper_print_pcie(const char *pfx, const struct cper_sec_pcie *pcie,
->  		printk(
->  	"%s""bridge: secondary_status: 0x%04x, control: 0x%04x\n",
->  	pfx, pcie->bridge.secondary_status, pcie->bridge.control);
-> -#ifdef CONFIG_ACPI_APEI_PCIEAER
-> -	dev = pci_get_domain_bus_and_slot(pcie->device_id.segment,
-> -			pcie->device_id.bus, pcie->device_id.function);
-> -	if (!dev) {
-> -		pr_err("PCI AER Cannot get PCI device %04x:%02x:%02x.%d\n",
-> -			pcie->device_id.segment, pcie->device_id.bus,
-> -			pcie->device_id.slot, pcie->device_id.function);
-> -		return;
-> -	}
-> -	if (pcie->validation_bits & CPER_PCIE_VALID_AER_INFO)
-> -		cper_print_aer(pfx, dev, gdata->error_severity,
-> -				(struct aer_capability_regs *) pcie->aer_info);
-> -	pci_dev_put(dev);
-> -#endif
->  }
->  
->  static const char *apei_estatus_section_flag_strs[] = {
-> diff --git a/drivers/acpi/apei/ghes.c b/drivers/acpi/apei/ghes.c
-> index d668a8a..f2084b5 100644
-> --- a/drivers/acpi/apei/ghes.c
-> +++ b/drivers/acpi/apei/ghes.c
-> @@ -454,7 +454,8 @@ static void ghes_do_proc(struct ghes *ghes,
->  				aer_severity = cper_severity_to_aer(sev);
->  				aer_recover_queue(pcie_err->device_id.segment,
->  						  pcie_err->device_id.bus,
-> -						  devfn, aer_severity);
-> +						  devfn, aer_severity,
-> +						  pcie_err->aer_info);
->  			}
->  
->  		}
-> diff --git a/drivers/pci/pcie/aer/aerdrv_core.c b/drivers/pci/pcie/aer/aerdrv_core.c
-> index 564d97f..ceba124 100644
-> --- a/drivers/pci/pcie/aer/aerdrv_core.c
-> +++ b/drivers/pci/pcie/aer/aerdrv_core.c
-> @@ -582,6 +582,7 @@ struct aer_recover_entry
->  	u8	devfn;
->  	u16	domain;
->  	int	severity;
-> +	u8	*regs;
->  };
->  
->  static DEFINE_KFIFO(aer_recover_ring, struct aer_recover_entry,
-> @@ -595,7 +596,7 @@ static DEFINE_SPINLOCK(aer_recover_ring_lock);
->  static DECLARE_WORK(aer_recover_work, aer_recover_work_func);
->  
->  void aer_recover_queue(int domain, unsigned int bus, unsigned int devfn,
-> -		       int severity)
-> +		       int severity, u8 *aer_regs)
->  {
->  	unsigned long flags;
->  	struct aer_recover_entry entry = {
-> @@ -603,6 +604,7 @@ void aer_recover_queue(int domain, unsigned int bus, unsigned int devfn,
->  		.devfn		= devfn,
->  		.domain		= domain,
->  		.severity	= severity,
-> +		.regs		= aer_regs,
->  	};
->  
->  	spin_lock_irqsave(&aer_recover_ring_lock, flags);
-> @@ -629,6 +631,8 @@ static void aer_recover_work_func(struct work_struct *work)
->  			       PCI_SLOT(entry.devfn), PCI_FUNC(entry.devfn));
->  			continue;
->  		}
-> +		cper_print_aer(pdev, entry.severity,
-> +				(struct aer_capability_regs *)entry.regs);
->  		do_recovery(pdev, entry.severity);
->  		pci_dev_put(pdev);
->  	}
-> diff --git a/drivers/pci/pcie/aer/aerdrv_errprint.c b/drivers/pci/pcie/aer/aerdrv_errprint.c
-> index 5ab1425..f277dc3 100644
-> --- a/drivers/pci/pcie/aer/aerdrv_errprint.c
-> +++ b/drivers/pci/pcie/aer/aerdrv_errprint.c
-> @@ -220,13 +220,19 @@ int cper_severity_to_aer(int cper_severity)
->  }
->  EXPORT_SYMBOL_GPL(cper_severity_to_aer);
->  
-> -void cper_print_aer(const char *prefix, struct pci_dev *dev, int cper_severity,
-> +void cper_print_aer(struct pci_dev *dev, int cper_severity,
->  		    struct aer_capability_regs *aer)
->  {
->  	int aer_severity, layer, agent, status_strs_size, tlp_header_valid = 0;
->  	u32 status, mask;
->  	const char **status_strs;
->  
-> +	/*
-> +	 * TODO: This function needs to be re-written so that it's output
-> +	 * matches the output of aer_print_error().  Right now, the output
-> +	 * is formatted very differently.
-> +	 */
-> +
->  	aer_severity = cper_severity_to_aer(cper_severity);
->  	if (aer_severity == AER_CORRECTABLE) {
->  		status = aer->cor_status;
-> @@ -244,7 +250,7 @@ void cper_print_aer(const char *prefix, struct pci_dev *dev, int cper_severity,
->  	agent = AER_GET_AGENT(aer_severity, status);
->  	dev_err(&dev->dev, "aer_status: 0x%08x, aer_mask: 0x%08x\n",
->  	       status, mask);
-> -	cper_print_bits(prefix, status, status_strs, status_strs_size);
-> +	cper_print_bits("", status, status_strs, status_strs_size);
->  	dev_err(&dev->dev, "aer_layer=%s, aer_agent=%s\n",
->  	       aer_error_layer[layer], aer_agent_string[agent]);
->  	if (aer_severity != AER_CORRECTABLE)
-> diff --git a/include/linux/aer.h b/include/linux/aer.h
-> index ec10e1b..d8cf12b 100644
-> --- a/include/linux/aer.h
-> +++ b/include/linux/aer.h
-> @@ -49,10 +49,10 @@ static inline int pci_cleanup_aer_uncorrect_error_status(struct pci_dev *dev)
->  }
->  #endif
->  
-> -extern void cper_print_aer(const char *prefix, struct pci_dev *dev,
-> +extern void cper_print_aer(struct pci_dev *dev,
->  			   int cper_severity, struct aer_capability_regs *aer);
->  extern int cper_severity_to_aer(int cper_severity);
->  extern void aer_recover_queue(int domain, unsigned int bus, unsigned int devfn,
-> -			      int severity);
-> +			      int severity,  u8 *aer_regs);
->  #endif //_AER_H_
->  
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-pci" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
--- 
+--=20
 I speak only for myself.
 Rafael J. Wysocki, Intel Open Source Technology Center.
+--
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
