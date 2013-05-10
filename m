@@ -1,75 +1,83 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: 3.9.0 + CONFIG_X86_INTEL_PSTATE=y  -> ThinkPad T420 with i5 lost ACPI functionality
-Date: Fri, 10 May 2013 15:10:12 +0200
-Message-ID: <4720627.g9zHkFYIDJ@vostro.rjw.lan>
-References: <5183EC09.9080208@gmx.de> <51842F6F.1050005@intel.com> <5184BF82.4070700@gmx.de>
+From: Bjorn Helgaas <bhelgaas@google.com>
+Subject: Re: [PATCH -v3] PCI, ACPI, hotplug: Fix BUS_CHECK event handle on
+ root bridge
+Date: Fri, 10 May 2013 11:09:10 -0600
+Message-ID: <CAErSpo6=EMckwU0L9dwSmzrMNqfgVzuoppq9phsPysz+XWs2eA@mail.gmail.com>
+References: <1366940798-15268-1-git-send-email-yinghai@kernel.org> <517E9DAC.7030709@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from hydra.sisk.pl ([212.160.235.94]:42821 "EHLO hydra.sisk.pl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752693Ab3EJNBq convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 10 May 2013 09:01:46 -0400
-In-Reply-To: <5184BF82.4070700@gmx.de>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <517E9DAC.7030709@gmail.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Jiang Liu <liuj97@gmail.com>
+Cc: Yinghai Lu <yinghai@kernel.org>, "Rafael J. Wysocki" <rjw@sisk.pl>, Jiang Liu <jiang.liu@huawei.com>, Gavin Guo <tuffkidtt@gmail.com>, "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
-To: Toralf =?ISO-8859-1?Q?F=F6rster?= <toralf.foerster@gmx.de>
-Cc: Dirk Brandewie <dirk.brandewie@gmail.com>, linux-acpi@vger.kernel.org, Linux Kernel <linux-kernel@vger.kernel.org>, Linux PM list <linux-pm@vger.kernel.org>, boinc_dev@ssl.berkeley.edu
 
-On Saturday, May 04, 2013 09:57:54 AM Toralf F=C3=B6rster wrote:
-> On 05/03/2013 11:43 PM, Dirk Brandewie wrote:
-> > On 05/03/2013 02:26 PM, Toralf F=C3=B6rster wrote:
-> >> On 05/03/2013 11:10 PM, Dirk Brandewie wrote:
-> >>>
-> >>> ignore_nice_load is a feature of the ondemand governor.
-> >>> The intel_pstate driver is seeing the load presented by the BOINC=
- client
-> >>> and is adjusting the pstate accordingly.
-> >>
-> >> Is the intel_pstate driver a choice for a notebook and friends whe=
-re a
-> >> grid software is running as a low-prio back ground job ?
-> >>
-> >=20
-> > Probably not.
->=20
-> Hhm.
->=20
-> The kernel menuconfig says :
->=20
->  This driver provides a P state for Intel core processors
->  The driver implements an internal governor and will become
->  the scaling driver and governor for Sandy bridge processors.
->=20
->=20
-> What shall a company like IBM with a lot of notebook installation run=
-ning BOINC
-> in the back ground process (World Community Grid) do - what's the con=
-sequence for
-> those installations if they will have that a processor ?
->=20
-> In the past (few years ago and related to the ondemand governor IIRC)=
- there were
-> already a longer discussion about the "nice -n 19" topic and the resu=
-lt was
-> to support it.
->=20
-> /me Cc:'ing boinc devs, the topic might be interesting for them too.
+On Mon, Apr 29, 2013 at 10:19 AM, Jiang Liu <liuj97@gmail.com> wrote:
+> Hi Yinghai,
+>         Reviewed-by: Jiang Liu <jiang.liu@huawei.com>
+>         Thanks!
+>
+> On 04/26/2013 09:46 AM, Yinghai Lu wrote:
+>> Gavin found that acpiphp does not handle hotplug anymore even after
+>> now we have acpiphp built-in preparing for v3.10.
+>>
+>> Bjorn analyzed bootlog, he found that
+>>     acpiphp: ACPI Hot Plug PCI Controller Driver version: 0.5
+>>     ACPI: PCI Root Bridge [PCI0] (domain 0000 [bus 00-3e])
+>>     \_SB_.PCI0:_OSC invalid UUID
+>>     acpiphp: Slot [1] registered
+>>     acpiphp: Slot [1-1] registered
+>>    acpi root: \_SB_.PCI0 notify handler is installed
+>>     _handle_hotplug_event_root: Bus check notify on \_SB_.PCI0
+>>     _handle_hotplug_event_root: Bus check notify on \_SB_.PCI0
+>> And that means:
+>>    So we should be using acpiphp, which you do have built in statically,
+>>    and it found a couple slots.  And we did get two bus check notifies on
+>>    \_SB_.PCI0, so we *should* be re-enumerating PCI bus 0000:00.  But it
+>>    looks like we're handling this as a host bridge hotplug event instead
+>>    of a PCI device hotplug.  My guess is that
+>>    handle_root_bridge_insertion() does nothing because the PCI0 ACPI
+>>    device already exists, though I would expect to see the "acpi device
+>>    exists..." in your dmesg log if this were the case.
+>>
+>> Also according to Rafael and Bjorn, it is perfect fine that we
+>> should enumerate bus by sending event to root bridge after hotadd
+>> device to slots under that root bridge or children bridges.
+>>
+>> It turns out that it is regression caused by
+>> | commit 668192b678201d2fff27c6cc76bb003c1ec4a52a
+>> | Author: Yinghai Lu <yinghai@kernel.org>
+>> | Date:   Mon Jan 21 13:20:48 2013 -0800
+>> |
+>> |    PCI: acpiphp: Move host bridge hotplug to pci_root.c
+>>
+>> We should check slots when BUS_CHECK is sent to root bridge acpi handle.
+>>
+>> Restore the old behavoir by calling acpi_check_bridge and check_sub_bridge
+>> in acpiphp.
+>>
+>> Jiang Liu acctually have simimar patch but it forgets calling
+>> acpi_check_bridge() for system that have slots on root bus directly.
+>> That is still valid, as in QEMU we still have that slots on bus 0 at
+>> least. But my first version patch wrongly check if root bridge exists
+>> before check_sub_bridge for children bridges.
+>>
+>> -v2: Don't check bridge for acpi_walk_namespace with check_sub_bridges.
+>>      also put back bridge reference.
+>> -v3: More changelog and etc.
+>>
+>> Reported-by: Gavin Guo <tuffkidtt@gmail.com>
+>> Tested-by: Gavin Guo <tuffkidtt@gmail.com>
+>> Signed-off-by: Yinghai Lu <yinghai@kernel.org>
 
-One option might be to use the powerclamp driver along with intel_pstat=
-e to
-reduce the heat dissipation.
+I added the Acked-by and Reviewed-by and opened
+https://bugzilla.kernel.org/show_bug.cgi?id=57961 just as a place to
+store the dmesg logs.  I also backported it to v3.9 and added a CC:
+stable tag because I think v3.9 has the same issue.  The backport is
+also attached to the bugzilla.
+
+I'll ask Linus to put this in v3.10.
 
 Thanks,
-Rafael
-
-
---=20
-I speak only for myself.
-Rafael J. Wysocki, Intel Open Source Technology Center.
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+  Bjorn
