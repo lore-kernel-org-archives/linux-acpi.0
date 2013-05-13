@@ -1,93 +1,50 @@
-From: "Lee, Chun-Yi" <joeyli.kernel@gmail.com>
-Subject: [PATCH 2/2 v2] acer-wmi: add Acer Aspire 5750G to video vendor list but keep acpi video driver
-Date: Mon, 13 May 2013 15:43:57 +0800
-Message-ID: <1368431037-21105-2-git-send-email-jlee@suse.com>
-References: <1368431037-21105-1-git-send-email-jlee@suse.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1368431037-21105-1-git-send-email-jlee@suse.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: mjg@redhat.com, rjw@sisk.pl
-Cc: platform-driver-x86@vger.kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, "Lee, Chun-Yi" <jlee@suse.com>, Carlos Corbacho <carlos@strangeworlds.co.uk>, Dmitry Torokhov <dtor@mail.ru>, Corentin Chary <corentincj@iksaif.net>, Aaron Lu <aaron.lu@intel.com>, Thomas Renninger <trenn@suse.de>
+From: Mika Westerberg <mika.westerberg@linux.intel.com>
+Subject: [PATCH] ACPI: implement acpi_os_get_timer() according the spec
+Date: Mon, 13 May 2013 13:27:51 +0300
+Message-ID: <1368440871-27552-1-git-send-email-mika.westerberg@linux.intel.com>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mga09.intel.com ([134.134.136.24]:27301 "EHLO mga09.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753234Ab3EMKZb (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 13 May 2013 06:25:31 -0400
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: linux-acpi@vger.kernel.org
+Cc: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Len Brown <lenb@kernel.org>, Mika Westerberg <mika.westerberg@linux.intel.com>, linux-kernel@vger.kernel.org
 
-After Andrzej's testing, we found the acpi backlight methods broken on Acer
-Aspire 5750G but the i915 backlight control works when we set to vendor mode.
-And, we still want to keep the acpi/video driver for transfer acpi event to key
-event but not unregister whole acpi/video driver.
+ACPI Timer() opcode should return monotonically increasing clock with 100ns
+granularity. Implement this with the help of ktime_get().
 
-This patch introduced a new capability flag is ACER_CAP_KEEP_VIDEO_KEY, it
-indicates the machine works fine with acpi/video driver for key event but want
-to unregister the backlight interface of acpi/video.
-
-Reference: bko#35622
-        https://bugzilla.kernel.org/show_bug.cgi?id=35622
-
-v2: changed the information statement of keeping acpi video driver.
-
-Tested-by: Andrzej Krentosz <endrjux@gmail.com>
-Cc: Carlos Corbacho <carlos@strangeworlds.co.uk>
-Cc: Matthew Garrett <mjg@redhat.com>
-Cc: Dmitry Torokhov <dtor@mail.ru>
-Cc: Corentin Chary <corentincj@iksaif.net>
-Cc: Rafael J. Wysocki <rjw@sisk.pl>
-Cc: Aaron Lu <aaron.lu@intel.com>
-Cc: Thomas Renninger <trenn@suse.de>
-Signed-off-by: Lee, Chun-Yi <jlee@suse.com>
+Signed-off-by: Mika Westerberg <mika.westerberg@linux.intel.com>
 ---
- drivers/platform/x86/acer-wmi.c |   20 ++++++++++++++++++++
- 1 files changed, 20 insertions(+), 0 deletions(-)
+ drivers/acpi/osl.c |   14 +-------------
+ 1 file changed, 1 insertion(+), 13 deletions(-)
 
-diff --git a/drivers/platform/x86/acer-wmi.c b/drivers/platform/x86/acer-wmi.c
-index c9076bd..a81c9ed 100644
---- a/drivers/platform/x86/acer-wmi.c
-+++ b/drivers/platform/x86/acer-wmi.c
-@@ -207,6 +207,7 @@ struct hotkey_function_type_aa {
- #define ACER_CAP_BRIGHTNESS		(1<<3)
- #define ACER_CAP_THREEG			(1<<4)
- #define ACER_CAP_ACCEL			(1<<5)
-+#define ACER_CAP_KEEP_VIDEO_KEY		(1<<6)
- #define ACER_CAP_ANY			(0xFFFFFFFF)
- 
- /*
-@@ -539,6 +540,15 @@ static int video_set_backlight_video_vendor(const struct dmi_system_id *d)
- 	return 0;
+diff --git a/drivers/acpi/osl.c b/drivers/acpi/osl.c
+index 586e7e9..2a22170 100644
+--- a/drivers/acpi/osl.c
++++ b/drivers/acpi/osl.c
+@@ -835,19 +835,7 @@ void acpi_os_stall(u32 us)
+  */
+ u64 acpi_os_get_timer(void)
+ {
+-	static u64 t;
+-
+-#ifdef	CONFIG_HPET
+-	/* TBD: use HPET if available */
+-#endif
+-
+-#ifdef	CONFIG_X86_PM_TIMER
+-	/* TBD: default to PM timer if HPET was not available */
+-#endif
+-	if (!t)
+-		printk(KERN_ERR PREFIX "acpi_os_get_timer() TBD\n");
+-
+-	return ++t;
++	return ktime_to_ns(ktime_get()) / 100;
  }
  
-+static int video_set_backlight_video_vendor_keep_acpi_video(
-+		const struct dmi_system_id *d)
-+{
-+	video_set_backlight_video_vendor(d);
-+	interface->capability |= ACER_CAP_KEEP_VIDEO_KEY;
-+	pr_info("Keeping acpi video driver active to emit backlight brightness change key events\n");
-+	return 0;
-+}
-+
- static const struct dmi_system_id video_vendor_dmi_table[] = {
- 	{
- 		.callback = video_set_backlight_video_vendor,
-@@ -572,6 +582,14 @@ static const struct dmi_system_id video_vendor_dmi_table[] = {
- 			DMI_MATCH(DMI_PRODUCT_NAME, "Aspire 5750"),
- 		},
- 	},
-+	{
-+		.callback = video_set_backlight_video_vendor_keep_acpi_video,
-+		.ident = "Acer Aspire 5750G",
-+		.matches = {
-+			DMI_MATCH(DMI_BOARD_VENDOR, "Acer"),
-+			DMI_MATCH(DMI_PRODUCT_NAME, "Aspire 5750G"),
-+		},
-+	},
- 	{}
- };
- 
-@@ -2228,6 +2246,8 @@ static int __init acer_wmi_init(void)
- 	if (acpi_video_backlight_support()) {
- 		interface->capability &= ~ACER_CAP_BRIGHTNESS;
- 		pr_info("Brightness must be controlled by acpi video driver\n");
-+	} else if (interface->capability & ACER_CAP_KEEP_VIDEO_KEY) {
-+		acpi_video_backlight_unregister();
- 	} else {
- 		pr_info("Disabling ACPI video driver\n");
- 		acpi_video_unregister();
+ acpi_status acpi_os_read_port(acpi_io_address port, u32 * value, u32 width)
 -- 
-1.6.4.2
+1.7.10.4
+
