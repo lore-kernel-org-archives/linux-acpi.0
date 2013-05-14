@@ -1,55 +1,35 @@
 From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: [RFC PATCH v2, part 2 12/18] PCI, ACPI: use hotplug-safe iterators to walk PCI buses
-Date: Tue, 14 May 2013 22:28:11 +0200
-Message-ID: <4477970.CvMHDHr0Cv@vostro.rjw.lan>
-References: <1368550322-1045-1-git-send-email-jiang.liu@huawei.com> <1368550322-1045-12-git-send-email-jiang.liu@huawei.com>
+Subject: Re: REGRESSION: 3.10-rc1: Dell Latitude e6410 hangs within 3 seconds
+Date: Tue, 14 May 2013 22:34:30 +0200
+Message-ID: <1396357.SFbZsj3Bmy@vostro.rjw.lan>
+References: <5192363E.7040204@broadcom.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7Bit
-Return-path: <linux-pci-owner@vger.kernel.org>
-In-Reply-To: <1368550322-1045-12-git-send-email-jiang.liu@huawei.com>
-Sender: linux-pci-owner@vger.kernel.org
-To: Jiang Liu <liuj97@gmail.com>
-Cc: Bjorn Helgaas <bhelgaas@google.com>, Yinghai Lu <yinghai@kernel.org>, Jiang Liu <jiang.liu@huawei.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Gu Zheng <guz.fnst@cn.fujitsu.com>, Toshi Kani <toshi.kani@hp.com>, Myron Stowe <myron.stowe@redhat.com>, Yijing Wang <wangyijing@huawei.com>, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from hydra.sisk.pl ([212.160.235.94]:46855 "EHLO hydra.sisk.pl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756895Ab3ENUZ5 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 14 May 2013 16:25:57 -0400
+In-Reply-To: <5192363E.7040204@broadcom.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Arend van Spriel <arend@broadcom.com>
+Cc: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>
 
-On Wednesday, May 15, 2013 12:51:56 AM Jiang Liu wrote:
-> Enhance ACPI reset drvier to use hotplug-safe iterators to walk PCI buses.
+On Tuesday, May 14, 2013 03:03:58 PM Arend van Spriel wrote:
+> Laptop hangs pretty soon after booting. Workaround for me was to turn 
+> off ACPI on kernel command line, ie. acpi=off
 > 
-> Signed-off-by: Jiang Liu <jiang.liu@huawei.com>
-> Cc: Len Brown <lenb@kernel.org>
-> Cc: "Rafael J. Wysocki" <rjw@sisk.pl>
-> Cc: linux-acpi@vger.kernel.org
-> Cc: linux-kernel@vger.kernel.org
+> Attached is my kernel configuration.
 
-Acked-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+Well, I have no idea what may be the source of this.
 
-> ---
->  drivers/acpi/reboot.c | 3 ++-
->  1 file changed, 2 insertions(+), 1 deletion(-)
-> 
-> diff --git a/drivers/acpi/reboot.c b/drivers/acpi/reboot.c
-> index a6c77e8b..532dd6d 100644
-> --- a/drivers/acpi/reboot.c
-> +++ b/drivers/acpi/reboot.c
-> @@ -33,7 +33,7 @@ void acpi_reboot(void)
->  	switch (rr->space_id) {
->  	case ACPI_ADR_SPACE_PCI_CONFIG:
->  		/* The reset register can only live on bus 0. */
-> -		bus0 = pci_find_bus(0, 0);
-> +		bus0 = pci_get_bus(0, 0);
->  		if (!bus0)
->  			return;
->  		/* Form PCI device/function pair. */
-> @@ -43,6 +43,7 @@ void acpi_reboot(void)
->  		/* Write the value that resets us. */
->  		pci_bus_write_config_byte(bus0, devfn,
->  				(rr->address & 0xffff), reset_value);
-> +		pci_bus_put(bus0);
->  		break;
->  
->  	case ACPI_ADR_SPACE_SYSTEM_MEMORY:
-> 
+Any chance to bisect?
+
+Rafael
+
+
 -- 
 I speak only for myself.
 Rafael J. Wysocki, Intel Open Source Technology Center.
