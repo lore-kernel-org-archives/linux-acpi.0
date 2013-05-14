@@ -1,12 +1,16 @@
 From: Jiang Liu <liuj97@gmail.com>
 Subject: [PATCH v1 1/2] ACPI, PCI: remove unused global list acpi_pci_roots in pci_root.c
-Date: Tue, 14 May 2013 20:59:55 +0800
-Message-ID: <1368536396-19375-1-git-send-email-jiang.liu@huawei.com>
-Return-path: <linux-pci-owner@vger.kernel.org>
-Sender: linux-pci-owner@vger.kernel.org
+Date: Tue, 14 May 2013 21:00:38 +0800
+Message-ID: <1368536439-19421-1-git-send-email-jiang.liu@huawei.com>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-pd0-f176.google.com ([209.85.192.176]:46484 "EHLO
+	mail-pd0-f176.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756770Ab3ENNAv (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 14 May 2013 09:00:51 -0400
+Sender: linux-acpi-owner@vger.kernel.org
+List-Id: linux-acpi@vger.kernel.org
 To: "Rafael J . Wysocki" <rjw@sisk.pl>, Bjorn Helgaas <bhelgaas@google.com>, Yinghai Lu <yinghai@kernel.org>
 Cc: Jiang Liu <jiang.liu@huawei.com>, Gu Zheng <guz.fnst@cn.fujitsu.com>, Toshi Kani <toshi.kani@hp.com>, Myron Stowe <myron.stowe@redhat.com>, Yijing Wang <wangyijing@huawei.com>, Jiang Liu <liuj97@gmail.com>, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org
-List-Id: linux-acpi@vger.kernel.org
 
 Now the global list acpi_pci_roots pci_root.c is useless, remove it.
 
@@ -110,3 +114,4 @@ index 22ba56e..4eb9a88 100644
  	u16 segment;
 -- 
 1.8.1.2
+
