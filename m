@@ -1,231 +1,200 @@
-From: Jiang Liu <liuj97@gmail.com>
-Subject: [PATCH v1 2/2] ACPI, pci_root: use acpi_handle_print() and pr_xxx() to print messages
-Date: Tue, 14 May 2013 21:00:39 +0800
-Message-ID: <1368536439-19421-2-git-send-email-jiang.liu@huawei.com>
-References: <1368536439-19421-1-git-send-email-jiang.liu@huawei.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1368536439-19421-1-git-send-email-jiang.liu@huawei.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: "Rafael J . Wysocki" <rjw@sisk.pl>, Bjorn Helgaas <bhelgaas@google.com>, Yinghai Lu <yinghai@kernel.org>
-Cc: Jiang Liu <jiang.liu@huawei.com>, Gu Zheng <guz.fnst@cn.fujitsu.com>, Toshi Kani <toshi.kani@hp.com>, Myron Stowe <myron.stowe@redhat.com>, Yijing Wang <wangyijing@huawei.com>, Jiang Liu <liuj97@gmail.com>, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org
+From: Mike Turquette <mturquette@linaro.org>
+Subject: Re: [PATCH] ACPI / LPSS: add support for Intel BayTrail
+Date: Tue, 14 May 2013 09:29:03 -0700
+Message-ID: <20130514162903.10068.97616@quantum>
+References: <1368448964-2118-1-git-send-email-mika.westerberg@linux.intel.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-da0-f45.google.com ([209.85.210.45]:47692 "EHLO
+	mail-da0-f45.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751194Ab3ENQ3H convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 14 May 2013 12:29:07 -0400
+Received: by mail-da0-f45.google.com with SMTP id w3so406252dad.18
+        for <linux-acpi@vger.kernel.org>; Tue, 14 May 2013 09:29:06 -0700 (PDT)
+In-Reply-To: <1368448964-2118-1-git-send-email-mika.westerberg@linux.intel.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: linux-acpi@vger.kernel.org
+Cc: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Len Brown <lenb@kernel.org>, Mika Westerberg <mika.westerberg@linux.intel.com>, linux-kernel@vger.kernel.org
 
-Use acpi_handle_print() and pr_xxx() to print messages in pci_root.c.
+Quoting Mika Westerberg (2013-05-13 05:42:44)
+> Intel BayTrail has almost the same Low Power Subsystem than Lynxpoint with
+> few differences. Peripherals are clocked with different speeds (typically
+> lower) and the clock is not always gated. To support this we add
+> possibility to share a common fixed rate clock and make clock gating
+> optional.
+> 
+> Signed-off-by: Mika Westerberg <mika.westerberg@linux.intel.com>
 
-Signed-off-by: Jiang Liu <jiang.liu@huawei.com>
-Cc: Len Brown <lenb@kernel.org>
-Cc: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: linux-acpi@vger.kernel.org
-Cc: linux-kernel@vger.kernel.org
----
- drivers/acpi/pci_root.c | 70 ++++++++++++++++++++++---------------------------
- 1 file changed, 32 insertions(+), 38 deletions(-)
+Acked-by: Mike Turquette <mturquette@linaro.org>
 
-diff --git a/drivers/acpi/pci_root.c b/drivers/acpi/pci_root.c
-index 91ddfd6..21dda5a 100644
---- a/drivers/acpi/pci_root.c
-+++ b/drivers/acpi/pci_root.c
-@@ -379,23 +379,24 @@ static int acpi_pci_root_add(struct acpi_device *device,
- 	struct acpi_pci_root *root;
- 	u32 flags, base_flags;
- 	bool is_osc_granted = false;
-+	acpi_handle handle = device->handle;
- 
- 	root = kzalloc(sizeof(struct acpi_pci_root), GFP_KERNEL);
- 	if (!root)
- 		return -ENOMEM;
- 
- 	segment = 0;
--	status = acpi_evaluate_integer(device->handle, METHOD_NAME__SEG, NULL,
-+	status = acpi_evaluate_integer(handle, METHOD_NAME__SEG, NULL,
- 				       &segment);
- 	if (ACPI_FAILURE(status) && status != AE_NOT_FOUND) {
--		printk(KERN_ERR PREFIX "can't evaluate _SEG\n");
-+		acpi_handle_err(handle, "can't evaluate _SEG\n");
- 		result = -ENODEV;
- 		goto end;
- 	}
- 
- 	/* Check _CRS first, then _BBN.  If no _BBN, default to zero. */
- 	root->secondary.flags = IORESOURCE_BUS;
--	status = try_get_root_bridge_busnr(device->handle, &root->secondary);
-+	status = try_get_root_bridge_busnr(handle, &root->secondary);
- 	if (ACPI_FAILURE(status)) {
- 		/*
- 		 * We need both the start and end of the downstream bus range
-@@ -404,16 +405,16 @@ static int acpi_pci_root_add(struct acpi_device *device,
- 		 * can do is assume [_BBN-0xFF] or [0-0xFF].
- 		 */
- 		root->secondary.end = 0xFF;
--		printk(KERN_WARNING FW_BUG PREFIX
--		       "no secondary bus range in _CRS\n");
--		status = acpi_evaluate_integer(device->handle, METHOD_NAME__BBN,
-+		acpi_handle_warn(handle,
-+				 FW_BUG "no secondary bus range in _CRS\n");
-+		status = acpi_evaluate_integer(handle, METHOD_NAME__BBN,
- 					       NULL, &bus);
- 		if (ACPI_SUCCESS(status))
- 			root->secondary.start = bus;
- 		else if (status == AE_NOT_FOUND)
- 			root->secondary.start = 0;
- 		else {
--			printk(KERN_ERR PREFIX "can't evaluate _BBN\n");
-+			acpi_handle_err(handle, "can't evaluate _BBN\n");
- 			result = -ENODEV;
- 			goto end;
- 		}
-@@ -425,11 +426,11 @@ static int acpi_pci_root_add(struct acpi_device *device,
- 	strcpy(acpi_device_class(device), ACPI_PCI_ROOT_CLASS);
- 	device->driver_data = root;
- 
--	printk(KERN_INFO PREFIX "%s [%s] (domain %04x %pR)\n",
-+	pr_info(PREFIX "%s [%s] (domain %04x %pR)\n",
- 	       acpi_device_name(device), acpi_device_bid(device),
- 	       root->segment, &root->secondary);
- 
--	root->mcfg_addr = acpi_pci_root_get_mcfg_addr(device->handle);
-+	root->mcfg_addr = acpi_pci_root_get_mcfg_addr(handle);
- 
- 	/*
- 	 * All supported architectures that use ACPI have support for
-@@ -473,7 +474,7 @@ static int acpi_pci_root_add(struct acpi_device *device,
- 		dev_info(&device->dev,
- 			"Requesting ACPI _OSC control (0x%02x)\n", flags);
- 
--		status = acpi_pci_osc_control_set(device->handle, &flags,
-+		status = acpi_pci_osc_control_set(handle, &flags,
- 				       OSC_PCI_EXPRESS_CAP_STRUCTURE_CONTROL);
- 		if (ACPI_SUCCESS(status)) {
- 			is_osc_granted = true;
-@@ -505,9 +506,9 @@ static int acpi_pci_root_add(struct acpi_device *device,
- 	 */
- 	root->bus = pci_acpi_scan_root(root);
- 	if (!root->bus) {
--		printk(KERN_ERR PREFIX
--			    "Bus %04x:%02x not present in PCI namespace\n",
--			    root->segment, (unsigned int)root->secondary.start);
-+		acpi_handle_err(handle,
-+			"Bus %04x:%02x not present in PCI namespace\n",
-+			root->segment, (unsigned int)root->secondary.start);
- 		result = -ENODEV;
- 		goto end;
- 	}
-@@ -517,8 +518,8 @@ static int acpi_pci_root_add(struct acpi_device *device,
- 		if (acpi_gbl_FADT.boot_flags & ACPI_FADT_NO_ASPM)
- 			pcie_clear_aspm(root->bus);
- 	} else {
--		pr_info("ACPI _OSC control for PCIe not granted, "
--			"disabling ASPM\n");
-+		acpi_handle_info(handle,
-+			"ACPI _OSC control for PCIe not granted, disabling ASPM\n");
- 		pcie_no_aspm();
- 	}
- 
-@@ -571,12 +572,13 @@ static void handle_root_bridge_insertion(acpi_handle handle)
- 	struct acpi_device *device;
- 
- 	if (!acpi_bus_get_device(handle, &device)) {
--		printk(KERN_DEBUG "acpi device exists...\n");
-+		acpi_handle_printk(KERN_DEBUG, handle,
-+				   "acpi device exists...\n");
- 		return;
- 	}
- 
- 	if (acpi_bus_scan(handle))
--		printk(KERN_ERR "cannot add bridge to acpi list\n");
-+		acpi_handle_err(handle, "cannot add bridge to acpi list\n");
- }
- 
- static void handle_root_bridge_removal(struct acpi_device *device)
-@@ -602,7 +604,6 @@ static void handle_root_bridge_removal(struct acpi_device *device)
- static void _handle_hotplug_event_root(struct work_struct *work)
- {
- 	struct acpi_pci_root *root;
--	struct acpi_buffer buffer = { ACPI_ALLOCATE_BUFFER };
- 	struct acpi_hp_work *hp_work;
- 	acpi_handle handle;
- 	u32 type;
-@@ -613,13 +614,11 @@ static void _handle_hotplug_event_root(struct work_struct *work)
- 
- 	root = acpi_pci_find_root(handle);
- 
--	acpi_get_name(handle, ACPI_FULL_PATHNAME, &buffer);
--
- 	switch (type) {
- 	case ACPI_NOTIFY_BUS_CHECK:
- 		/* bus enumerate */
--		printk(KERN_DEBUG "%s: Bus check notify on %s\n", __func__,
--				 (char *)buffer.pointer);
-+		acpi_handle_printk(KERN_DEBUG, handle,
-+				   "Bus check notify on %s\n", __func__);
- 		if (!root)
- 			handle_root_bridge_insertion(handle);
- 
-@@ -627,27 +626,26 @@ static void _handle_hotplug_event_root(struct work_struct *work)
- 
- 	case ACPI_NOTIFY_DEVICE_CHECK:
- 		/* device check */
--		printk(KERN_DEBUG "%s: Device check notify on %s\n", __func__,
--				 (char *)buffer.pointer);
-+		acpi_handle_printk(KERN_DEBUG, handle,
-+				   "Device check notify on %s\n", __func__);
- 		if (!root)
- 			handle_root_bridge_insertion(handle);
- 		break;
- 
- 	case ACPI_NOTIFY_EJECT_REQUEST:
- 		/* request device eject */
--		printk(KERN_DEBUG "%s: Device eject notify on %s\n", __func__,
--				 (char *)buffer.pointer);
-+		acpi_handle_printk(KERN_DEBUG, handle,
-+				   "Device eject notify on %s\n", __func__);
- 		if (root)
- 			handle_root_bridge_removal(root->device);
- 		break;
- 	default:
--		printk(KERN_WARNING "notify_handler: unknown event type 0x%x for %s\n",
--				 type, (char *)buffer.pointer);
-+		acpi_handle_warn(handle,
-+			 "notify_handler: unknown event type 0x%x\n", type);
- 		break;
- 	}
- 
- 	kfree(hp_work); /* allocated in handle_hotplug_event_bridge */
--	kfree(buffer.pointer);
- }
- 
- static void handle_hotplug_event_root(acpi_handle handle, u32 type,
-@@ -661,9 +659,6 @@ static acpi_status __init
- find_root_bridges(acpi_handle handle, u32 lvl, void *context, void **rv)
- {
- 	acpi_status status;
--	char objname[64];
--	struct acpi_buffer buffer = { .length = sizeof(objname),
--				      .pointer = objname };
- 	int *count = (int *)context;
- 
- 	if (!acpi_is_root_bridge(handle))
-@@ -671,16 +666,15 @@ find_root_bridges(acpi_handle handle, u32 lvl, void *context, void **rv)
- 
- 	(*count)++;
- 
--	acpi_get_name(handle, ACPI_FULL_PATHNAME, &buffer);
--
- 	status = acpi_install_notify_handler(handle, ACPI_SYSTEM_NOTIFY,
- 					handle_hotplug_event_root, NULL);
- 	if (ACPI_FAILURE(status))
--		printk(KERN_DEBUG "acpi root: %s notify handler is not installed, exit status: %u\n",
--				  objname, (unsigned int)status);
-+		acpi_handle_printk(KERN_DEBUG, handle,
-+			"notify handler is not installed, exit status: %u\n",
-+			 (unsigned int)status);
- 	else
--		printk(KERN_DEBUG "acpi root: %s notify handler is installed\n",
--				 objname);
-+		acpi_handle_printk(KERN_DEBUG, handle,
-+				   "notify handler is installed\n");
- 
- 	return AE_OK;
- }
--- 
-1.8.1.2
+> ---
+>  drivers/acpi/acpi_lpss.c  |   88 +++++++++++++++++++++++++++++++++++++++++----
+>  drivers/clk/x86/clk-lpt.c |    4 +--
+>  2 files changed, 82 insertions(+), 10 deletions(-)
+> 
+> diff --git a/drivers/acpi/acpi_lpss.c b/drivers/acpi/acpi_lpss.c
+> index 652fd5c..f6d7605 100644
+> --- a/drivers/acpi/acpi_lpss.c
+> +++ b/drivers/acpi/acpi_lpss.c
+> @@ -33,11 +33,19 @@ ACPI_MODULE_NAME("acpi_lpss");
+>  #define LPSS_SW_LTR                    0x10
+>  #define LPSS_AUTO_LTR                  0x14
+>  
+> +struct lpss_shared_clock {
+> +       const char *name;
+> +       unsigned long rate;
+> +       struct clk *clk;
+> +};
+> +
+>  struct lpss_device_desc {
+>         bool clk_required;
+>         const char *clkdev_name;
+>         bool ltr_required;
+>         unsigned int prv_offset;
+> +       bool clk_gate;
+> +       struct lpss_shared_clock *shared_clock;
+>  };
+>  
+>  static struct lpss_device_desc lpss_dma_desc = {
+> @@ -56,6 +64,7 @@ static struct lpss_device_desc lpt_dev_desc = {
+>         .clk_required = true,
+>         .prv_offset = 0x800,
+>         .ltr_required = true,
+> +       .clk_gate = true,
+>  };
+>  
+>  static struct lpss_device_desc lpt_sdio_dev_desc = {
+> @@ -63,6 +72,45 @@ static struct lpss_device_desc lpt_sdio_dev_desc = {
+>         .ltr_required = true,
+>  };
+>  
+> +static struct lpss_shared_clock uart_clock = {
+> +       .name = "uart_clk",
+> +       .rate = 44236800,
+> +};
+> +
+> +static struct lpss_device_desc byt_uart_dev_desc = {
+> +       .clk_required = true,
+> +       .prv_offset = 0x800,
+> +       .clk_gate = true,
+> +       .shared_clock = &uart_clock,
+> +};
+> +
+> +static struct lpss_shared_clock spi_clock = {
+> +       .name = "spi_clk",
+> +       .rate = 50000000,
+> +};
+> +
+> +static struct lpss_device_desc byt_spi_dev_desc = {
+> +       .clk_required = true,
+> +       .prv_offset = 0x400,
+> +       .clk_gate = true,
+> +       .shared_clock = &spi_clock,
+> +};
+> +
+> +static struct lpss_device_desc byt_sdio_dev_desc = {
+> +       .clk_required = true,
+> +};
+> +
+> +static struct lpss_shared_clock i2c_clock = {
+> +       .name = "i2c_clk",
+> +       .rate = 100000000,
+> +};
+> +
+> +static struct lpss_device_desc byt_i2c_dev_desc = {
+> +       .clk_required = true,
+> +       .prv_offset = 0x800,
+> +       .shared_clock = &i2c_clock,
+> +};
+> +
+>  static const struct acpi_device_id acpi_lpss_device_ids[] = {
+>         /* Generic LPSS devices */
+>         { "INTL9C60", (unsigned long)&lpss_dma_desc },
+> @@ -77,6 +125,13 @@ static const struct acpi_device_id acpi_lpss_device_ids[] = {
+>         { "INT33C6", (unsigned long)&lpt_sdio_dev_desc },
+>         { "INT33C7", },
+>  
+> +       /* BayTrail LPSS devices */
+> +       { "80860F0A", (unsigned long)&byt_uart_dev_desc },
+> +       { "80860F0E", (unsigned long)&byt_spi_dev_desc },
+> +       { "80860F14", (unsigned long)&byt_sdio_dev_desc },
+> +       { "80860F41", (unsigned long)&byt_i2c_dev_desc },
+> +       { "INT33B2", },
+> +
+>         { }
+>  };
+>  
+> @@ -98,7 +153,10 @@ static int register_device_clock(struct acpi_device *adev,
+>                                  struct lpss_private_data *pdata)
+>  {
+>         const struct lpss_device_desc *dev_desc = pdata->dev_desc;
+> +       struct lpss_shared_clock *shared_clock = dev_desc->shared_clock;
+> +       struct clk *clk = ERR_PTR(-ENODEV);
+>         struct lpss_clk_data *clk_data;
+> +       const char *parent;
+>  
+>         if (!lpss_clk_dev)
+>                 lpt_register_clock_device();
+> @@ -117,14 +175,30 @@ static int register_device_clock(struct acpi_device *adev,
+>             || pdata->mmio_size < dev_desc->prv_offset + LPSS_CLK_SIZE)
+>                 return -ENODATA;
+>  
+> -       pdata->clk = clk_register_gate(NULL, dev_name(&adev->dev),
+> -                                      clk_data->name, 0,
+> -                                      pdata->mmio_base + dev_desc->prv_offset,
+> -                                      0, 0, NULL);
+> -       if (IS_ERR(pdata->clk))
+> -               return PTR_ERR(pdata->clk);
+> +       parent = clk_data->name;
+> +
+> +       if (shared_clock) {
+> +               clk = shared_clock->clk;
+> +               if (!clk) {
+> +                       clk = clk_register_fixed_rate(NULL, shared_clock->name,
+> +                                                     "lpss_clk", 0,
+> +                                                     shared_clock->rate);
+> +                       shared_clock->clk = clk;
+> +               }
+> +               parent = shared_clock->name;
+> +       }
+> +
+> +       if (dev_desc->clk_gate) {
+> +               clk = clk_register_gate(NULL, dev_name(&adev->dev), parent, 0,
+> +                                       pdata->mmio_base + dev_desc->prv_offset,
+> +                                       0, 0, NULL);
+> +               pdata->clk = clk;
+> +       }
+> +
+> +       if (IS_ERR(clk))
+> +               return PTR_ERR(clk);
+>  
+> -       clk_register_clkdev(pdata->clk, NULL, dev_name(&adev->dev));
+> +       clk_register_clkdev(clk, NULL, dev_name(&adev->dev));
+>         return 0;
+>  }
+>  
+> diff --git a/drivers/clk/x86/clk-lpt.c b/drivers/clk/x86/clk-lpt.c
+> index 4f45eee..812f83f 100644
+> --- a/drivers/clk/x86/clk-lpt.c
+> +++ b/drivers/clk/x86/clk-lpt.c
+> @@ -1,5 +1,5 @@
+>  /*
+> - * Intel Lynxpoint LPSS clocks.
+> + * Intel Low Power Subsystem clocks.
+>   *
+>   * Copyright (C) 2013, Intel Corporation
+>   * Authors: Mika Westerberg <mika.westerberg@linux.intel.com>
+> @@ -18,8 +18,6 @@
+>  #include <linux/platform_data/clk-lpss.h>
+>  #include <linux/platform_device.h>
+>  
+> -#define PRV_CLOCK_PARAMS 0x800
+> -
+>  static int lpt_clk_probe(struct platform_device *pdev)
+>  {
+>         struct lpss_clk_data *drvdata;
+> -- 
+> 1.7.10.4
