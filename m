@@ -1,51 +1,38 @@
-From: Jiang Liu <liuj97@gmail.com>
-Subject: [RFC PATCH v2, part 2 12/18] PCI, ACPI: use hotplug-safe iterators to walk PCI buses
-Date: Wed, 15 May 2013 00:51:56 +0800
-Message-ID: <1368550322-1045-12-git-send-email-jiang.liu@huawei.com>
-References: <1368550322-1045-1-git-send-email-jiang.liu@huawei.com>
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-pb0-f53.google.com ([209.85.160.53]:39819 "EHLO
-	mail-pb0-f53.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758170Ab3ENQxZ (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 14 May 2013 12:53:25 -0400
-In-Reply-To: <1368550322-1045-1-git-send-email-jiang.liu@huawei.com>
-Sender: linux-acpi-owner@vger.kernel.org
+From: Ben Guthro <benjamin.guthro@citrix.com>
+Subject: [PATCH 0/2] Implement ACPI S3 for Xen dom0
+Date: Tue, 14 May 2013 13:09:15 -0400
+Message-ID: <1368551357-3903-1-git-send-email-benjamin.guthro@citrix.com>
+Mime-Version: 1.0
+Content-Type: text/plain
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: linux-kernel@vger.kernel.org, x86@kernel.org, linux-acpi@vger.kernel.org, xen-devel@lists.xensource.com
+Cc: Ben Guthro <benjamin.guthro@citrix.com>
 List-Id: linux-acpi@vger.kernel.org
-To: Bjorn Helgaas <bhelgaas@google.com>, Yinghai Lu <yinghai@kernel.org>
-Cc: Jiang Liu <jiang.liu@huawei.com>, "Rafael J . Wysocki" <rjw@sisk.pl>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Gu Zheng <guz.fnst@cn.fujitsu.com>, Toshi Kani <toshi.kani@hp.com>, Myron Stowe <myron.stowe@redhat.com>, Yijing Wang <wangyijing@huawei.com>, Jiang Liu <liuj97@gmail.com>, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org
 
-Enhance ACPI reset drvier to use hotplug-safe iterators to walk PCI buses.
+The following series provides a mechanism for a Xen based dom0 to
+be able to suspend the platform to ACPI S3.
 
-Signed-off-by: Jiang Liu <jiang.liu@huawei.com>
-Cc: Len Brown <lenb@kernel.org>
-Cc: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: linux-acpi@vger.kernel.org
-Cc: linux-kernel@vger.kernel.org
----
- drivers/acpi/reboot.c | 3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+The first patch provides a registration mechanism for alternate
+implementations of acpi_suspend_lowlevel.
 
-diff --git a/drivers/acpi/reboot.c b/drivers/acpi/reboot.c
-index a6c77e8b..532dd6d 100644
---- a/drivers/acpi/reboot.c
-+++ b/drivers/acpi/reboot.c
-@@ -33,7 +33,7 @@ void acpi_reboot(void)
- 	switch (rr->space_id) {
- 	case ACPI_ADR_SPACE_PCI_CONFIG:
- 		/* The reset register can only live on bus 0. */
--		bus0 = pci_find_bus(0, 0);
-+		bus0 = pci_get_bus(0, 0);
- 		if (!bus0)
- 			return;
- 		/* Form PCI device/function pair. */
-@@ -43,6 +43,7 @@ void acpi_reboot(void)
- 		/* Write the value that resets us. */
- 		pci_bus_write_config_byte(bus0, devfn,
- 				(rr->address & 0xffff), reset_value);
-+		pci_bus_put(bus0);
- 		break;
- 
- 	case ACPI_ADR_SPACE_SYSTEM_MEMORY:
+The second patch provides a Xen specific version of this, and hooks
+into the callback.
+
+Regards,
+Ben Guthro
+
+Konrad Rzeszutek Wilk (2):
+  x86/acpi/sleep: Provide registration for acpi_suspend_lowlevel.
+  xen/acpi/sleep: Register to the acpi_suspend_lowlevel a callback.
+
+ arch/x86/include/asm/acpi.h  |    2 +-
+ arch/x86/kernel/acpi/boot.c  |    7 +++++++
+ arch/x86/kernel/acpi/sleep.c |    4 ++--
+ arch/x86/kernel/acpi/sleep.h |    2 ++
+ drivers/acpi/sleep.c         |    2 ++
+ include/xen/acpi.h           |   16 +++++++++++++++-
+ 6 files changed, 29 insertions(+), 4 deletions(-)
+
 -- 
-1.8.1.2
-
+1.7.9.5
