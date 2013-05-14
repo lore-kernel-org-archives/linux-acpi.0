@@ -1,70 +1,55 @@
-From: Ben Guthro <benjamin.guthro@citrix.com>
-Subject: [PATCH] xen/acpi/sleep: Register to the acpi_suspend_lowlevel a callback.
-Date: Tue, 14 May 2013 13:46:12 -0400
-Message-ID: <1368553572-4966-2-git-send-email-benjamin.guthro@citrix.com>
-References: <1368551357-3903-1-git-send-email-benjamin.guthro@citrix.com>
- <1368553572-4966-1-git-send-email-benjamin.guthro@citrix.com>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: Re: [RFC PATCH v2, part 2 12/18] PCI, ACPI: use hotplug-safe iterators to walk PCI buses
+Date: Tue, 14 May 2013 22:28:11 +0200
+Message-ID: <4477970.CvMHDHr0Cv@vostro.rjw.lan>
+References: <1368550322-1045-1-git-send-email-jiang.liu@huawei.com> <1368550322-1045-12-git-send-email-jiang.liu@huawei.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp.citrix.com ([66.165.176.89]:28695 "EHLO SMTP.CITRIX.COM"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1757408Ab3ENRqa (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 14 May 2013 13:46:30 -0400
-In-Reply-To: <1368553572-4966-1-git-send-email-benjamin.guthro@citrix.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7Bit
+Return-path: <linux-pci-owner@vger.kernel.org>
+In-Reply-To: <1368550322-1045-12-git-send-email-jiang.liu@huawei.com>
+Sender: linux-pci-owner@vger.kernel.org
+To: Jiang Liu <liuj97@gmail.com>
+Cc: Bjorn Helgaas <bhelgaas@google.com>, Yinghai Lu <yinghai@kernel.org>, Jiang Liu <jiang.liu@huawei.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Gu Zheng <guz.fnst@cn.fujitsu.com>, Toshi Kani <toshi.kani@hp.com>, Myron Stowe <myron.stowe@redhat.com>, Yijing Wang <wangyijing@huawei.com>, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-kernel@vger.kernel.org, x86@kernel.org, linux-acpi@vger.kernel.org, xen-devel@lists.xensource.com
-Cc: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>, Liang Tang <liang.tang@oracle.com>
 
-From: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
+On Wednesday, May 15, 2013 12:51:56 AM Jiang Liu wrote:
+> Enhance ACPI reset drvier to use hotplug-safe iterators to walk PCI buses.
+> 
+> Signed-off-by: Jiang Liu <jiang.liu@huawei.com>
+> Cc: Len Brown <lenb@kernel.org>
+> Cc: "Rafael J. Wysocki" <rjw@sisk.pl>
+> Cc: linux-acpi@vger.kernel.org
+> Cc: linux-kernel@vger.kernel.org
 
-We piggyback on "x86/acpi: Provide registration for acpi_suspend_lowlevel."
-to register a Xen version of the callback. The callback does not
-do anything special - except it omits the x86_acpi_suspend_lowlevel.
+Acked-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 
-This is necessary b/c during suspend the generic code tries to write
-cr3 values that clashes with what the hypervisor has set up for the guest.
-
-Signed-off-by: Liang Tang <liang.tang@oracle.com>
-Signed-off-by: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
-Tested-by: Ben Guthro <benjamin.guthro@citrix.com>
-Acked-by: H. Peter Anvin <hpa@linux.intel.com>
----
- include/xen/acpi.h |   16 +++++++++++++++-
- 1 file changed, 15 insertions(+), 1 deletion(-)
-
-diff --git a/include/xen/acpi.h b/include/xen/acpi.h
-index 68d73d0..46aa3d1 100644
---- a/include/xen/acpi.h
-+++ b/include/xen/acpi.h
-@@ -78,11 +78,25 @@ static inline int xen_acpi_get_pxm(acpi_handle h)
- int xen_acpi_notify_hypervisor_state(u8 sleep_state,
- 				     u32 pm1a_cnt, u32 pm1b_cnd);
- 
-+static inline int xen_acpi_suspend_lowlevel(void)
-+{
-+	/*
-+	* Xen will save and restore CPU context, so
-+	* we can skip that and just go straight to
-+	* the suspend.
-+	*/
-+	acpi_enter_sleep_state(ACPI_STATE_S3);
-+	return 0;
-+}
-+
- static inline void xen_acpi_sleep_register(void)
- {
--	if (xen_initial_domain())
-+	if (xen_initial_domain()) {
- 		acpi_os_set_prepare_sleep(
- 			&xen_acpi_notify_hypervisor_state);
-+
-+		acpi_suspend_lowlevel = xen_acpi_suspend_lowlevel;
-+	}
- }
- #else
- static inline void xen_acpi_sleep_register(void)
+> ---
+>  drivers/acpi/reboot.c | 3 ++-
+>  1 file changed, 2 insertions(+), 1 deletion(-)
+> 
+> diff --git a/drivers/acpi/reboot.c b/drivers/acpi/reboot.c
+> index a6c77e8b..532dd6d 100644
+> --- a/drivers/acpi/reboot.c
+> +++ b/drivers/acpi/reboot.c
+> @@ -33,7 +33,7 @@ void acpi_reboot(void)
+>  	switch (rr->space_id) {
+>  	case ACPI_ADR_SPACE_PCI_CONFIG:
+>  		/* The reset register can only live on bus 0. */
+> -		bus0 = pci_find_bus(0, 0);
+> +		bus0 = pci_get_bus(0, 0);
+>  		if (!bus0)
+>  			return;
+>  		/* Form PCI device/function pair. */
+> @@ -43,6 +43,7 @@ void acpi_reboot(void)
+>  		/* Write the value that resets us. */
+>  		pci_bus_write_config_byte(bus0, devfn,
+>  				(rr->address & 0xffff), reset_value);
+> +		pci_bus_put(bus0);
+>  		break;
+>  
+>  	case ACPI_ADR_SPACE_SYSTEM_MEMORY:
+> 
 -- 
-1.7.9.5
-
+I speak only for myself.
+Rafael J. Wysocki, Intel Open Source Technology Center.
