@@ -1,261 +1,50 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: [PATCH] ACPI / PM: Allow device power states to be used for CONFIG_PM unset
-Date: Thu, 16 May 2013 01:04:27 +0200
-Message-ID: <6756211.Qs5Byrr4Re@vostro.rjw.lan>
+From: Phillip Susi <psusi@ubuntu.com>
+Subject: Re: Disable hibernate -- Live media shouldn't allow it?
+Date: Wed, 15 May 2013 19:45:48 -0400
+Message-ID: <51941E2C.1070900@ubuntu.com>
+References: <519408C1.9030706@ubuntu.com> <1613817.TcdBxdmQtn@vostro.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from hydra.sisk.pl ([212.160.235.94]:49838 "EHLO hydra.sisk.pl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753084Ab3EOWzx (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 15 May 2013 18:55:53 -0400
+Received: from cdptpa-omtalb.mail.rr.com ([75.180.132.120]:45036 "EHLO
+	cdptpa-omtalb.mail.rr.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751677Ab3EOXpv (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 15 May 2013 19:45:51 -0400
+In-Reply-To: <1613817.TcdBxdmQtn@vostro.rjw.lan>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: ACPI Devel Maling List <linux-acpi@vger.kernel.org>
-Cc: Linux PM list <linux-pm@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>, Zhang Rui <rui.zhang@intel.com>
+To: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: linux-acpi@vger.kernel.org
 
-From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+-----BEGIN PGP SIGNED MESSAGE-----
+Hash: SHA1
 
-Currently, drivers/acpi/device_pm.c depends on CONFIG_PM and all of
-the functions defined in there are replaced with static inline stubs
-if that option is unset.  However, CONFIG_PM means, roughly, "runtime
-PM or suspend/hibernation support" and some of those functions are
-useful regardless of that.  For example, they are used by the ACPI
-fan driver for controlling fans and acpi_device_set_power() is called
-during device removal.  Moreover, device initialization may depend on
-setting device power states properly.
+On 05/15/2013 06:29 PM, Rafael J. Wysocki wrote:
+> That said, it is reasonable to expect live CDs not to configure the
+> system to hibernate in response to overheating etc.  But that's not
+> a problem we can address in the kernel.
 
-For these reasons, make the routines manipulating ACPI device power
-states defined in drivers/acpi/device_pm.c available for CONFIG_PM
-unset too.
+How would that be configured?  Initiating the hibernation in response
+to api HOT event is done in the kernel isn't it?
 
-Reported-by: Zhang Rui <rui.zhang@intel.com>
-Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
----
- drivers/acpi/Makefile    |    2 
- drivers/acpi/device_pm.c |  126 +++++++++++++++++++++++------------------------
- include/acpi/acpi_bus.h  |   40 +-------------
- 3 files changed, 70 insertions(+), 98 deletions(-)
+Setting the policy obviously isn't something that can be done in the
+kernel, but it should provide for the ability to have such a policy by
+having a knob user mode has to switch on when it thinks hibernation
+makes any kind of sense.  Simply enabling a swap shouldn't be all it
+takes -- you should have to specify that yes, this swap is configured
+for hibernate/resume.
 
-Index: linux-pm/drivers/acpi/Makefile
-===================================================================
---- linux-pm.orig/drivers/acpi/Makefile
-+++ linux-pm/drivers/acpi/Makefile
-@@ -24,7 +24,7 @@ acpi-y				+= nvs.o
- # Power management related files
- acpi-y				+= wakeup.o
- acpi-y				+= sleep.o
--acpi-$(CONFIG_PM)		+= device_pm.o
-+acpi-y				+= device_pm.o
- acpi-$(CONFIG_ACPI_SLEEP)	+= proc.o
- 
- 
-Index: linux-pm/drivers/acpi/device_pm.c
-===================================================================
---- linux-pm.orig/drivers/acpi/device_pm.c
-+++ linux-pm/drivers/acpi/device_pm.c
-@@ -37,68 +37,6 @@
- #define _COMPONENT	ACPI_POWER_COMPONENT
- ACPI_MODULE_NAME("device_pm");
- 
--static DEFINE_MUTEX(acpi_pm_notifier_lock);
--
--/**
-- * acpi_add_pm_notifier - Register PM notifier for given ACPI device.
-- * @adev: ACPI device to add the notifier for.
-- * @context: Context information to pass to the notifier routine.
-- *
-- * NOTE: @adev need not be a run-wake or wakeup device to be a valid source of
-- * PM wakeup events.  For example, wakeup events may be generated for bridges
-- * if one of the devices below the bridge is signaling wakeup, even if the
-- * bridge itself doesn't have a wakeup GPE associated with it.
-- */
--acpi_status acpi_add_pm_notifier(struct acpi_device *adev,
--				 acpi_notify_handler handler, void *context)
--{
--	acpi_status status = AE_ALREADY_EXISTS;
--
--	mutex_lock(&acpi_pm_notifier_lock);
--
--	if (adev->wakeup.flags.notifier_present)
--		goto out;
--
--	status = acpi_install_notify_handler(adev->handle,
--					     ACPI_SYSTEM_NOTIFY,
--					     handler, context);
--	if (ACPI_FAILURE(status))
--		goto out;
--
--	adev->wakeup.flags.notifier_present = true;
--
-- out:
--	mutex_unlock(&acpi_pm_notifier_lock);
--	return status;
--}
--
--/**
-- * acpi_remove_pm_notifier - Unregister PM notifier from given ACPI device.
-- * @adev: ACPI device to remove the notifier from.
-- */
--acpi_status acpi_remove_pm_notifier(struct acpi_device *adev,
--				    acpi_notify_handler handler)
--{
--	acpi_status status = AE_BAD_PARAMETER;
--
--	mutex_lock(&acpi_pm_notifier_lock);
--
--	if (!adev->wakeup.flags.notifier_present)
--		goto out;
--
--	status = acpi_remove_notify_handler(adev->handle,
--					    ACPI_SYSTEM_NOTIFY,
--					    handler);
--	if (ACPI_FAILURE(status))
--		goto out;
--
--	adev->wakeup.flags.notifier_present = false;
--
-- out:
--	mutex_unlock(&acpi_pm_notifier_lock);
--	return status;
--}
--
- /**
-  * acpi_power_state_string - String representation of ACPI device power state.
-  * @state: ACPI device power state to return the string representation of.
-@@ -385,6 +323,69 @@ bool acpi_bus_power_manageable(acpi_hand
- }
- EXPORT_SYMBOL(acpi_bus_power_manageable);
- 
-+#ifdef CONFIG_PM
-+static DEFINE_MUTEX(acpi_pm_notifier_lock);
-+
-+/**
-+ * acpi_add_pm_notifier - Register PM notifier for given ACPI device.
-+ * @adev: ACPI device to add the notifier for.
-+ * @context: Context information to pass to the notifier routine.
-+ *
-+ * NOTE: @adev need not be a run-wake or wakeup device to be a valid source of
-+ * PM wakeup events.  For example, wakeup events may be generated for bridges
-+ * if one of the devices below the bridge is signaling wakeup, even if the
-+ * bridge itself doesn't have a wakeup GPE associated with it.
-+ */
-+acpi_status acpi_add_pm_notifier(struct acpi_device *adev,
-+				 acpi_notify_handler handler, void *context)
-+{
-+	acpi_status status = AE_ALREADY_EXISTS;
-+
-+	mutex_lock(&acpi_pm_notifier_lock);
-+
-+	if (adev->wakeup.flags.notifier_present)
-+		goto out;
-+
-+	status = acpi_install_notify_handler(adev->handle,
-+					     ACPI_SYSTEM_NOTIFY,
-+					     handler, context);
-+	if (ACPI_FAILURE(status))
-+		goto out;
-+
-+	adev->wakeup.flags.notifier_present = true;
-+
-+ out:
-+	mutex_unlock(&acpi_pm_notifier_lock);
-+	return status;
-+}
-+
-+/**
-+ * acpi_remove_pm_notifier - Unregister PM notifier from given ACPI device.
-+ * @adev: ACPI device to remove the notifier from.
-+ */
-+acpi_status acpi_remove_pm_notifier(struct acpi_device *adev,
-+				    acpi_notify_handler handler)
-+{
-+	acpi_status status = AE_BAD_PARAMETER;
-+
-+	mutex_lock(&acpi_pm_notifier_lock);
-+
-+	if (!adev->wakeup.flags.notifier_present)
-+		goto out;
-+
-+	status = acpi_remove_notify_handler(adev->handle,
-+					    ACPI_SYSTEM_NOTIFY,
-+					    handler);
-+	if (ACPI_FAILURE(status))
-+		goto out;
-+
-+	adev->wakeup.flags.notifier_present = false;
-+
-+ out:
-+	mutex_unlock(&acpi_pm_notifier_lock);
-+	return status;
-+}
-+
- bool acpi_bus_can_wakeup(acpi_handle handle)
- {
- 	struct acpi_device *device;
-@@ -1023,3 +1024,4 @@ void acpi_dev_pm_remove_dependent(acpi_h
- 	mutex_unlock(&adev->physical_node_lock);
- }
- EXPORT_SYMBOL_GPL(acpi_dev_pm_remove_dependent);
-+#endif /* CONFIG_PM */
-Index: linux-pm/include/acpi/acpi_bus.h
-===================================================================
---- linux-pm.orig/include/acpi/acpi_bus.h
-+++ linux-pm/include/acpi/acpi_bus.h
-@@ -370,7 +370,6 @@ acpi_status acpi_bus_get_status_handle(a
- 				       unsigned long long *sta);
- int acpi_bus_get_status(struct acpi_device *device);
- 
--#ifdef CONFIG_PM
- int acpi_bus_set_power(acpi_handle handle, int state);
- const char *acpi_power_state_string(int state);
- int acpi_device_get_power(struct acpi_device *device, int *state);
-@@ -378,41 +377,12 @@ int acpi_device_set_power(struct acpi_de
- int acpi_bus_init_power(struct acpi_device *device);
- int acpi_bus_update_power(acpi_handle handle, int *state_p);
- bool acpi_bus_power_manageable(acpi_handle handle);
-+
-+#ifdef CONFIG_PM
- bool acpi_bus_can_wakeup(acpi_handle handle);
--#else /* !CONFIG_PM */
--static inline int acpi_bus_set_power(acpi_handle handle, int state)
--{
--	return 0;
--}
--static inline const char *acpi_power_state_string(int state)
--{
--	return "D0";
--}
--static inline int acpi_device_get_power(struct acpi_device *device, int *state)
--{
--	return 0;
--}
--static inline int acpi_device_set_power(struct acpi_device *device, int state)
--{
--	return 0;
--}
--static inline int acpi_bus_init_power(struct acpi_device *device)
--{
--	return 0;
--}
--static inline int acpi_bus_update_power(acpi_handle handle, int *state_p)
--{
--	return 0;
--}
--static inline bool acpi_bus_power_manageable(acpi_handle handle)
--{
--	return false;
--}
--static inline bool acpi_bus_can_wakeup(acpi_handle handle)
--{
--	return false;
--}
--#endif /* !CONFIG_PM */
-+#else
-+static inline bool acpi_bus_can_wakeup(acpi_handle handle) { return false; }
-+#endif
- 
- #ifdef CONFIG_ACPI_PROC_EVENT
- int acpi_bus_generate_proc_event(struct acpi_device *device, u8 type, int data);
 
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.12 (GNU/Linux)
+Comment: Using GnuPG with undefined - http://www.enigmail.net/
+
+iQEcBAEBAgAGBQJRlB4sAAoJEJrBOlT6nu75oCwIAI2BmGmz/3gZjXuijTtDT90A
+ztcC04GltiCW6ciP8eq87L+dxogUoorR7lyJAeDycafEGscjbu9zaMFf6DL2SheH
+MKEWGg9Kk0j81gl2FDdkKrj6ZJzibcDuEFytcr9kLVE+je7vckUxDueBQvcy7ReK
+P6HYLgy6kEprvlAi8xmhv3CKZRmBi/gzsi6kxSTb32smqJ9l5qFfPSpL6paq6QbX
+20rUvX0JHF5b8LHAsHgQfyS5DQ50tGVBKwE/X0+CRoVqPmS4tdJVvkp429SlwmJY
+FSPEN2aXESfwtRt/zk9AJRkZN9OCFQP44mVBSRsmjAN/lTTOjb35bdZPRBUP76o=
+=0vb+
+-----END PGP SIGNATURE-----
