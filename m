@@ -1,33 +1,79 @@
-From: Phillip Susi <psusi@ubuntu.com>
-Subject: How to simulate thermal event?
-Date: Wed, 15 May 2013 16:29:34 -0400
-Message-ID: <5193F02E.60606@ubuntu.com>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: Re: [PATCH] acpi: Fix memory leak on acpi_scan_init_hotplug() error path
+Date: Wed, 15 May 2013 22:48:27 +0200
+Message-ID: <1462642.q2i8uhJOgR@vostro.rjw.lan>
+References: <1368636575-5480-1-git-send-email-catalin.marinas@arm.com> <1368642071.5673.37.camel@misato.fc.hp.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7Bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cdptpa-omtalb.mail.rr.com ([75.180.132.120]:45012 "EHLO
-	cdptpa-omtalb.mail.rr.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932623Ab3EOU3g (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 15 May 2013 16:29:36 -0400
+Received: from hydra.sisk.pl ([212.160.235.94]:49572 "EHLO hydra.sisk.pl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S932623Ab3EOUjw (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 15 May 2013 16:39:52 -0400
+In-Reply-To: <1368642071.5673.37.camel@misato.fc.hp.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org
+To: Toshi Kani <toshi.kani@hp.com>
+Cc: Catalin Marinas <catalin.marinas@arm.com>, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Larry Finger <Larry.Finger@lwfinger.net>
 
------BEGIN PGP SIGNED MESSAGE-----
-Hash: SHA1
+On Wednesday, May 15, 2013 12:21:11 PM Toshi Kani wrote:
+> On Wed, 2013-05-15 at 17:49 +0100, Catalin Marinas wrote:
+> > Following commit 6b772e8f9 (ACPI: Update PNPID match handling for
+> > notify), the acpi_scan_init_hotplug() calls acpi_set_pnp_ids() which
+> > allocates acpi_hardware_id and copies a few strings (kstrdup). If the
+> > devices does not have hardware_id set, the function exits without
+> > freeing the previously allocated ids (and kmemleak complains). This
+> > patch calls simply changes 'return' on error to a 'goto out' which calls
+> > acpi_free_pnp_ids().
+> > 
+> > Signed-off-by: Catalin Marinas <catalin.marinas@arm.com>
+> > Reported-by: Larry Finger <Larry.Finger@lwfinger.net>
+> > Cc: Toshi Kani <toshi.kani@hp.com>
+> 
+> Reviewed-by: Toshi Kani <toshi.kani@hp.com>
+> Tested-by: Toshi Kani <toshi.kani@hp.com>
+> 
+> Testing was performed by adding a fake ACPI object with _UID only.
 
-I would like to simulate an acpi HOT or CRT event to test the OS
-response.  Is this possible?
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2.0.17 (MingW32)
-Comment: Using GnuPG with Thunderbird - http://www.enigmail.net/
+Applied to linux-pm.git/linux-next as v3.10-rc2 material.
 
-iQEcBAEBAgAGBQJRk/AuAAoJEJrBOlT6nu75wqYH/RNkmPoeEPvD/h6NLnpNCbbJ
-EmFN5xZSlP8dzUTbGO7BkFNS8YlPp63v2MVtKI6Vh9kF4GUdjEnY/qXATRFTaj6E
-Jcbk7qLDzxkBTN3K5CZRaBJUMnq2lGonYWHL5F2VxrlpNCzqvowcAgThVwsFpwnt
-TVanaHKt7uZzyHu3oDgAVcXP+5m7OJtwL1YPEgCLNzkXR/XjRvR8PxOpJ/JsOh5x
-dzUK84XANnC9vuejvh5rbhDsf1jQtYmzozg0TZkGcvlWchNAe3+OcjQTWD1wh3ub
-2USZdNnrhfZ+rfOOSSSmT4diqUmT2RT5ZbnXXj2B7UTwE8HbQSKX59LXCGrxrrE=
-=iQaF
------END PGP SIGNATURE-----
+Thanks,
+Rafael
+
+
+> > ---
+> >  drivers/acpi/scan.c | 3 ++-
+> >  1 file changed, 2 insertions(+), 1 deletion(-)
+> > 
+> > diff --git a/drivers/acpi/scan.c b/drivers/acpi/scan.c
+> > index fe158fd..c1bc608 100644
+> > --- a/drivers/acpi/scan.c
+> > +++ b/drivers/acpi/scan.c
+> > @@ -1785,7 +1785,7 @@ static void acpi_scan_init_hotplug(acpi_handle handle, int type)
+> >  	acpi_set_pnp_ids(handle, &pnp, type);
+> >  
+> >  	if (!pnp.type.hardware_id)
+> > -		return;
+> > +		goto out;
+> >  
+> >  	/*
+> >  	 * This relies on the fact that acpi_install_notify_handler() will not
+> > @@ -1800,6 +1800,7 @@ static void acpi_scan_init_hotplug(acpi_handle handle, int type)
+> >  		}
+> >  	}
+> >  
+> > +out:
+> >  	acpi_free_pnp_ids(&pnp);
+> >  }
+> >  
+> 
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-kernel" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> Please read the FAQ at  http://www.tux.org/lkml/
+-- 
+I speak only for myself.
+Rafael J. Wysocki, Intel Open Source Technology Center.
