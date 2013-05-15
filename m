@@ -1,79 +1,38 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: [PATCH] acpi: Fix memory leak on acpi_scan_init_hotplug() error path
-Date: Wed, 15 May 2013 22:48:27 +0200
-Message-ID: <1462642.q2i8uhJOgR@vostro.rjw.lan>
-References: <1368636575-5480-1-git-send-email-catalin.marinas@arm.com> <1368642071.5673.37.camel@misato.fc.hp.com>
+From: Phillip Susi <psusi@ubuntu.com>
+Subject: Disable hibernate -- Live media shouldn't allow it?
+Date: Wed, 15 May 2013 18:14:25 -0400
+Message-ID: <519408C1.9030706@ubuntu.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from hydra.sisk.pl ([212.160.235.94]:49572 "EHLO hydra.sisk.pl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932623Ab3EOUjw (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 15 May 2013 16:39:52 -0400
-In-Reply-To: <1368642071.5673.37.camel@misato.fc.hp.com>
+Received: from cdptpa-omtalb.mail.rr.com ([75.180.132.120]:37558 "EHLO
+	cdptpa-omtalb.mail.rr.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751340Ab3EOWO1 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 15 May 2013 18:14:27 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Toshi Kani <toshi.kani@hp.com>
-Cc: Catalin Marinas <catalin.marinas@arm.com>, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Larry Finger <Larry.Finger@lwfinger.net>
+To: linux-acpi@vger.kernel.org
 
-On Wednesday, May 15, 2013 12:21:11 PM Toshi Kani wrote:
-> On Wed, 2013-05-15 at 17:49 +0100, Catalin Marinas wrote:
-> > Following commit 6b772e8f9 (ACPI: Update PNPID match handling for
-> > notify), the acpi_scan_init_hotplug() calls acpi_set_pnp_ids() which
-> > allocates acpi_hardware_id and copies a few strings (kstrdup). If the
-> > devices does not have hardware_id set, the function exits without
-> > freeing the previously allocated ids (and kmemleak complains). This
-> > patch calls simply changes 'return' on error to a 'goto out' which calls
-> > acpi_free_pnp_ids().
-> > 
-> > Signed-off-by: Catalin Marinas <catalin.marinas@arm.com>
-> > Reported-by: Larry Finger <Larry.Finger@lwfinger.net>
-> > Cc: Toshi Kani <toshi.kani@hp.com>
-> 
-> Reviewed-by: Toshi Kani <toshi.kani@hp.com>
-> Tested-by: Toshi Kani <toshi.kani@hp.com>
-> 
-> Testing was performed by adding a fake ACPI object with _UID only.
+-----BEGIN PGP SIGNED MESSAGE-----
+Hash: SHA1
 
-Applied to linux-pm.git/linux-next as v3.10-rc2 material.
+When booting from removable media, you may end up mounting a swap
+partition on an internal hard disk, thus enabling hibernation.
+Inadvertently hibernating ( perhaps in response to ACPI HOT event ) is
+silly since the system can not be resumed.  Is there a flag somewhere
+to prevent hibernating?  Shouldn't there be and shouldn't it be
+disabled by default?
 
-Thanks,
-Rafael
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.12 (GNU/Linux)
+Comment: Using GnuPG with undefined - http://www.enigmail.net/
 
-
-> > ---
-> >  drivers/acpi/scan.c | 3 ++-
-> >  1 file changed, 2 insertions(+), 1 deletion(-)
-> > 
-> > diff --git a/drivers/acpi/scan.c b/drivers/acpi/scan.c
-> > index fe158fd..c1bc608 100644
-> > --- a/drivers/acpi/scan.c
-> > +++ b/drivers/acpi/scan.c
-> > @@ -1785,7 +1785,7 @@ static void acpi_scan_init_hotplug(acpi_handle handle, int type)
-> >  	acpi_set_pnp_ids(handle, &pnp, type);
-> >  
-> >  	if (!pnp.type.hardware_id)
-> > -		return;
-> > +		goto out;
-> >  
-> >  	/*
-> >  	 * This relies on the fact that acpi_install_notify_handler() will not
-> > @@ -1800,6 +1800,7 @@ static void acpi_scan_init_hotplug(acpi_handle handle, int type)
-> >  		}
-> >  	}
-> >  
-> > +out:
-> >  	acpi_free_pnp_ids(&pnp);
-> >  }
-> >  
-> 
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-kernel" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> Please read the FAQ at  http://www.tux.org/lkml/
--- 
-I speak only for myself.
-Rafael J. Wysocki, Intel Open Source Technology Center.
+iQEcBAEBAgAGBQJRlAjBAAoJEJrBOlT6nu75tD4IANMtQGPJfnwOrnwcL+pmxmRW
+1Iq7EpwXtkxMbibcIiLIjtqfPXjupHQMQBxMoHvlZuISPv4lMChRqbM+wBEy5GfN
+waGcSilqbHurx+L4xSUE9UmZ6iUOWEvZreQRniTlrFbAV+pClYq2D0Ub2msOo1Ka
+Rg0zygVJSs0y6VrTZdUIbutiiGo24KFiJyTkErTnFr21QReIPd5Bq4zwVd+1I+UR
+oZY0z49ot8c+m2BhBZ8V6+H0do+zpmcvjmik3b6Dm8sFfGiCnjQVHhmc4tHNZfhS
+SnmW8dC+haR7kHAAFmIrd2RRbczD2H3XCM0/QvwVQ8ISz0h6Ejy1MTeNlW87XBA=
+=5nIU
+-----END PGP SIGNATURE-----
