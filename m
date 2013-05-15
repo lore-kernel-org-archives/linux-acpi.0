@@ -1,36 +1,99 @@
-From: "Arend van Spriel" <arend@broadcom.com>
-Subject: Re: REGRESSION: 3.10-rc1: Dell Latitude e6410 hangs within 3
- seconds
-Date: Tue, 14 May 2013 22:38:54 +0200
-Message-ID: <5192A0DE.90209@broadcom.com>
-References: <5192363E.7040204@broadcom.com>
- <1396357.SFbZsj3Bmy@vostro.rjw.lan>
+From: Toshi Kani <toshi.kani@hp.com>
+Subject: Re: V3.10-rc1 memory leak
+Date: Wed, 15 May 2013 09:49:50 -0600
+Message-ID: <1368632990.5673.33.camel@misato.fc.hp.com>
+References: <51912567.6090507@lwfinger.net>
+	 <1368558586.6828.53.camel@gandalf.local.home>
+	 <20130514203028.GA2997@MacBook-Pro.local> <5192A847.1000100@lwfinger.net>
+	 <1368566427.6828.58.camel@gandalf.local.home>
+	 <1368579423.6828.63.camel@gandalf.local.home>
+	 <5192FDE2.1020305@lwfinger.net>
+	 <20130515150228.GC1096@darko.cambridge.arm.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
- charset=utf-8;
- format=flowed
+Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1396357.SFbZsj3Bmy@vostro.rjw.lan>
-Sender: linux-kernel-owner@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from g4t0014.houston.hp.com ([15.201.24.17]:34906 "EHLO
+	g4t0014.houston.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758111Ab3EOPty (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 15 May 2013 11:49:54 -0400
+In-Reply-To: <20130515150228.GC1096@darko.cambridge.arm.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Catalin Marinas <catalin.marinas@arm.com>, rjw@sisk.pl
+Cc: Larry Finger <Larry.Finger@lwfinger.net>, Steven Rostedt <rostedt@goodmis.org>, "zhangwei(Jovi)" <jovi.zhangwei@huawei.com>, Masami Hiramatsu <masami.hiramatsu.pt@hitachi.com>, LKML <linux-kernel@vger.kernel.org>, Rusty Russell <rusty@rustcorp.com.au>, linux-acpi@vger.kernel.org
 
-On 05/14/2013 10:34 PM, Rafael J. Wysocki wrote:
-> On Tuesday, May 14, 2013 03:03:58 PM Arend van Spriel wrote:
->> Laptop hangs pretty soon after booting. Workaround for me was to turn
->> off ACPI on kernel command line, ie. acpi=off
->>
->> Attached is my kernel configuration.
->
-> Well, I have no idea what may be the source of this.
+On Wed, 2013-05-15 at 16:02 +0100, Catalin Marinas wrote:
+> On Wed, May 15, 2013 at 04:15:46AM +0100, Larry Finger wrote:
+> > I do not see that particular one; however, I see 4 instances of
+> > 
+> > unreferenced object 0xffff8800b7979750 (size 8):
+> >    comm "swapper/0", pid 1, jiffies 4294892402 (age 21888.316s)
+> >    hex dump (first 8 bytes):
+> >      31 38 00 b7 00 88 ff ff                          18......
+> >    backtrace:
+> >      [<ffffffff81432ea1>] kmemleak_alloc+0x21/0x50
+> >      [<ffffffff81145d50>] __kmalloc_track_caller+0x140/0x2b0
+> >      [<ffffffff81119fb5>] kstrdup+0x35/0x70
+> >      [<ffffffff8125febc>] acpi_set_pnp_ids+0xd0/0x304
+> >      [<ffffffff81260c47>] acpi_scan_init_hotplug+0x47/0xa1
+> >      [<ffffffff81261223>] acpi_bus_check_add+0x66/0xd7
+> >      [<ffffffff8127877a>] acpi_ns_walk_namespace+0xb9/0x173
+> >      [<ffffffff81278bf3>] acpi_walk_namespace+0x93/0xc6
+> >      [<ffffffff812612dc>] acpi_bus_scan+0x48/0x9a
+> >      [<ffffffff818c983d>] acpi_scan_init+0x57/0x14b
+> >      [<ffffffff818c966a>] acpi_init+0x244/0x286
+> >      [<ffffffff810002fa>] do_one_initcall+0x10a/0x160
+> >      [<ffffffff8189cef0>] kernel_init_freeable+0x103/0x192
+> >      [<ffffffff814313a9>] kernel_init+0x9/0xf0
+> >      [<ffffffff8144992c>] ret_from_fork+0x7c/0xb0
+> >      [<ffffffffffffffff>] 0xffffffffffffffff
+> > 
+> > All four were allocated early in the bootup, and are the only leaks reported in 
+> > my system. I have not yet tested to see if they are false.
+> 
+> This looks to me like a real leak, possibly introduced by commit
+> 6b772e8f9 (ACPI: Update PNPID match handling for notify). The
+> acpi_scan_init_hotplug() function calls acpi_set_pnp_ids() which
+> allocates pnp.unique_id (kstrdup()) but for some reason it fails and
+> does not set pnp.type.hardware_id. The return does not call
+> acpi_free_pnp_ids() which would be responsible for such freeing.
 
-Me neither.
+I agree with your analysis.  It appears that this ACPI device object has
+_UID but not _HID.  ACPI spec defines that _UID is a unique ID among a
+same _HID.  So, it is odd to have _UID without _HID.  But, nonetheless,
+this case needs to be handled as such systems exist.
 
-> Any chance to bisect?
+> Something like below, but not tested and may fail some NULL pointer
+> checks:
 
-can try. Rebuilding kernels can be a drag :-p
+The change looks good.  acpi_free_pnp_ids() handles this empty list
+pnp->ids properly.  Are you going to submit this patch with your
+signed-off?
 
-Regards,
-Arend
+Thanks!
+-Toshi
+
+> diff --git a/drivers/acpi/scan.c b/drivers/acpi/scan.c
+> index fe158fd..c1bc608 100644
+> --- a/drivers/acpi/scan.c
+> +++ b/drivers/acpi/scan.c
+> @@ -1785,7 +1785,7 @@ static void acpi_scan_init_hotplug(acpi_handle handle, int type)
+>  	acpi_set_pnp_ids(handle, &pnp, type);
+>  
+>  	if (!pnp.type.hardware_id)
+> -		return;
+> +		goto out;
+>  
+>  	/*
+>  	 * This relies on the fact that acpi_install_notify_handler() will not
+> @@ -1800,6 +1800,7 @@ static void acpi_scan_init_hotplug(acpi_handle handle, int type)
+>  		}
+>  	}
+>  
+> +out:
+>  	acpi_free_pnp_ids(&pnp);
+>  }
+>  
+
+
