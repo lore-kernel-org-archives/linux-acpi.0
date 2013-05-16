@@ -1,50 +1,56 @@
-From: Phillip Susi <psusi@ubuntu.com>
-Subject: Re: Disable hibernate -- Live media shouldn't allow it?
-Date: Wed, 15 May 2013 19:45:48 -0400
-Message-ID: <51941E2C.1070900@ubuntu.com>
-References: <519408C1.9030706@ubuntu.com> <1613817.TcdBxdmQtn@vostro.rjw.lan>
+From: Zhang Rui <rui.zhang@intel.com>
+Subject: Re: ACPI fan driver: uninitialized variable when CONFIG_PM is not
+ set
+Date: Thu, 16 May 2013 09:07:23 +0800
+Message-ID: <1368666443.2063.22.camel@rzhang1-mobl4>
+References: <CANN689GoQm8dGEN6L1xuuc_aZ_65G3N7tBPbEXHjAfebB7xrLw@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cdptpa-omtalb.mail.rr.com ([75.180.132.120]:45036 "EHLO
-	cdptpa-omtalb.mail.rr.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751677Ab3EOXpv (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 15 May 2013 19:45:51 -0400
-In-Reply-To: <1613817.TcdBxdmQtn@vostro.rjw.lan>
-Sender: linux-acpi-owner@vger.kernel.org
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <CANN689GoQm8dGEN6L1xuuc_aZ_65G3N7tBPbEXHjAfebB7xrLw@mail.gmail.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Michel Lespinasse <walken@google.com>
+Cc: linux-acpi@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>, "Rafael J. Wysocki" <rjw@sisk.pl>
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: linux-acpi@vger.kernel.org
 
------BEGIN PGP SIGNED MESSAGE-----
-Hash: SHA1
+Hi, Michel,
 
-On 05/15/2013 06:29 PM, Rafael J. Wysocki wrote:
-> That said, it is reasonable to expect live CDs not to configure the
-> system to hibernate in response to overheating etc.  But that's not
-> a problem we can address in the kernel.
+On Mon, 2013-04-29 at 05:32 -0700, Michel Lespinasse wrote:
+> In the following code:
+> 
+> static int fan_get_cur_state(struct thermal_cooling_device *cdev, unsigned long
+>                              *state)
+> {
+>         struct acpi_device *device = cdev->devdata;
+>         int result;
+>         int acpi_state;
+> 
+>         if (!device)
+>                 return -EINVAL;
+> 
+>         result = acpi_bus_update_power(device->handle, &acpi_state);
+>         if (result)
+>                 return result;
+> 
+>         *state = (acpi_state == ACPI_STATE_D3 ? 0 :
+>                  (acpi_state == ACPI_STATE_D0 ? 1 : -1));
+>         return 0;
+> }
+> 
+> With CONFIG_PM not set, acpi_bus_update_power() returns 0 and does not
+> initialize acpi_state. This results in acpi_state being used before
+> initialization.
+> 
+> (I found out by random chance, as I suppose people don't normally
+> build without CONFIG_PM anymore ?)
+> 
+> I'm not sure what a proper fix would be, so I'll just report this here
+> and enable CONFIG_PM locally :)
+> 
+thanks for your report.
+please check if the following patch helps or not.
+https://patchwork.kernel.org/patch/2574691/
 
-How would that be configured?  Initiating the hibernation in response
-to api HOT event is done in the kernel isn't it?
-
-Setting the policy obviously isn't something that can be done in the
-kernel, but it should provide for the ability to have such a policy by
-having a knob user mode has to switch on when it thinks hibernation
-makes any kind of sense.  Simply enabling a swap shouldn't be all it
-takes -- you should have to specify that yes, this swap is configured
-for hibernate/resume.
-
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.12 (GNU/Linux)
-Comment: Using GnuPG with undefined - http://www.enigmail.net/
-
-iQEcBAEBAgAGBQJRlB4sAAoJEJrBOlT6nu75oCwIAI2BmGmz/3gZjXuijTtDT90A
-ztcC04GltiCW6ciP8eq87L+dxogUoorR7lyJAeDycafEGscjbu9zaMFf6DL2SheH
-MKEWGg9Kk0j81gl2FDdkKrj6ZJzibcDuEFytcr9kLVE+je7vckUxDueBQvcy7ReK
-P6HYLgy6kEprvlAi8xmhv3CKZRmBi/gzsi6kxSTb32smqJ9l5qFfPSpL6paq6QbX
-20rUvX0JHF5b8LHAsHgQfyS5DQ50tGVBKwE/X0+CRoVqPmS4tdJVvkp429SlwmJY
-FSPEN2aXESfwtRt/zk9AJRkZN9OCFQP44mVBSRsmjAN/lTTOjb35bdZPRBUP76o=
-=0vb+
------END PGP SIGNATURE-----
+thanks,
+rui
