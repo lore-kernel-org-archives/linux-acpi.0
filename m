@@ -1,56 +1,43 @@
-From: Zhang Rui <rui.zhang@intel.com>
-Subject: Re: ACPI fan driver: uninitialized variable when CONFIG_PM is not
- set
-Date: Thu, 16 May 2013 09:07:23 +0800
-Message-ID: <1368666443.2063.22.camel@rzhang1-mobl4>
-References: <CANN689GoQm8dGEN6L1xuuc_aZ_65G3N7tBPbEXHjAfebB7xrLw@mail.gmail.com>
+From: Phillip Susi <psusi@ubuntu.com>
+Subject: enabling aspm on ati radeon
+Date: Wed, 15 May 2013 22:25:37 -0400
+Message-ID: <519443A1.8050905@ubuntu.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <CANN689GoQm8dGEN6L1xuuc_aZ_65G3N7tBPbEXHjAfebB7xrLw@mail.gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Michel Lespinasse <walken@google.com>
-Cc: linux-acpi@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>, "Rafael J. Wysocki" <rjw@sisk.pl>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from cdptpa-omtalb.mail.rr.com ([75.180.132.120]:53766 "EHLO
+	cdptpa-omtalb.mail.rr.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755010Ab3EPCZj (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 15 May 2013 22:25:39 -0400
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: linux-acpi@vger.kernel.org
 
-Hi, Michel,
+-----BEGIN PGP SIGNED MESSAGE-----
+Hash: SHA1
 
-On Mon, 2013-04-29 at 05:32 -0700, Michel Lespinasse wrote:
-> In the following code:
-> 
-> static int fan_get_cur_state(struct thermal_cooling_device *cdev, unsigned long
->                              *state)
-> {
->         struct acpi_device *device = cdev->devdata;
->         int result;
->         int acpi_state;
-> 
->         if (!device)
->                 return -EINVAL;
-> 
->         result = acpi_bus_update_power(device->handle, &acpi_state);
->         if (result)
->                 return result;
-> 
->         *state = (acpi_state == ACPI_STATE_D3 ? 0 :
->                  (acpi_state == ACPI_STATE_D0 ? 1 : -1));
->         return 0;
-> }
-> 
-> With CONFIG_PM not set, acpi_bus_update_power() returns 0 and does not
-> initialize acpi_state. This results in acpi_state being used before
-> initialization.
-> 
-> (I found out by random chance, as I suppose people don't normally
-> build without CONFIG_PM anymore ?)
-> 
-> I'm not sure what a proper fix would be, so I'll just report this here
-> and enable CONFIG_PM locally :)
-> 
-thanks for your report.
-please check if the following patch helps or not.
-https://patchwork.kernel.org/patch/2574691/
+I thought that booting with the pcie_aspm=force option should make
+sure this was enabled, but passing this to a 3.8.0 kernel, lspci still
+shows:
 
-thanks,
-rui
+LnkCap:	Port #0, Speed 5GT/s, Width x16, ASPM L0s L1, Latency L0
+<64ns, L1 <1us ClockPM- Surprise- LLActRep- BwNot-
+LnkCtl:	ASPM Disabled; RCB 64 bytes Disabled- Retrain- CommClk+
+ExtSynch- ClockPM- AutWidDis- BWInt- AutBWInt-
+
+What could be disabling ASPM?  dmesg confirms: [    0.000000] PCIe
+ASPM is forcibly enabled
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.12 (GNU/Linux)
+Comment: Using GnuPG with undefined - http://www.enigmail.net/
+
+iQEcBAEBAgAGBQJRlEOfAAoJEJrBOlT6nu75D7gH/1/Nk62FAELr/IJR49pNFNVB
+TY0JflxJ7hRMxGUYtcKCgGLA2UrUSf95fFh11NmWMCZFRXHS/9WQXp2gr8KUGXIp
+iOlHHME2egFslbr8nUp3aHkmq0/D7lbZdK7eA1PO6hojnxapygbqt6tjpRKT7Vke
+djWz+43IiljDD7ZKz1JoUPjJIEV2v/Eg5BpXFEVEiXXFYFfjAU3ZG95/mNuvTX3T
+MraQFQOP/4kqpMc75tSsAsfMHg3ciYOt0GIYIk9SUE6mONkAY6o2g4kRgva5CwQC
+bBvhDZcQfx8QsIPlTBa74Kjjx9q7yQyOD6lkJTLE5SQWfTiBwB5ET9Dt0kKSJ/I=
+=WgMm
+-----END PGP SIGNATURE-----
