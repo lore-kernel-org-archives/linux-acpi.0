@@ -1,52 +1,116 @@
-From: Phillip Susi <psusi@ubuntu.com>
-Subject: Re: Disable hibernate -- Live media shouldn't allow it?
-Date: Thu, 16 May 2013 09:56:43 -0400
-Message-ID: <5194E59B.8070800@ubuntu.com>
-References: <519408C1.9030706@ubuntu.com> <1613817.TcdBxdmQtn@vostro.rjw.lan> <51941E2C.1070900@ubuntu.com> <1504575.PoflzRoA7X@vostro.rjw.lan>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+From: Jiang Liu <liuj97@gmail.com>
+Subject: [RFC PATCH v2, part3 11/11] PCI, ACPI, pci_root: use PCI bus lock to protect PCI device hotplug
+Date: Thu, 16 May 2013 23:50:59 +0800
+Message-ID: <1368719459-24800-12-git-send-email-jiang.liu@huawei.com>
+References: <1368719459-24800-1-git-send-email-jiang.liu@huawei.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cdptpa-omtalb.mail.rr.com ([75.180.132.120]:65210 "EHLO
-	cdptpa-omtalb.mail.rr.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754445Ab3EPN4p (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 16 May 2013 09:56:45 -0400
-In-Reply-To: <1504575.PoflzRoA7X@vostro.rjw.lan>
+Received: from mail-pa0-f54.google.com ([209.85.220.54]:49572 "EHLO
+	mail-pa0-f54.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754847Ab3EPPwF (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 16 May 2013 11:52:05 -0400
+In-Reply-To: <1368719459-24800-1-git-send-email-jiang.liu@huawei.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@sisk.pl>
+To: Bjorn Helgaas <bhelgaas@google.com>, Yinghai Lu <yinghai@kernel.org>
+Cc: Jiang Liu <jiang.liu@huawei.com>, "Rafael J . Wysocki" <rjw@sisk.pl>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Gu Zheng <guz.fnst@cn.fujitsu.com>, Toshi Kani <toshi.kani@hp.com>, Myron Stowe <myron.stowe@redhat.com>, Yijing Wang <wangyijing@huawei.com>, Jiang Liu <liuj97@gmail.com>, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, x86@kernel.org, Len Brown <lenb@kernel.org>, Feng Tang <feng.tang@intel.com>, linux-acpi@vger.kernel.org
+
+Use PCI bus lock to protect concurrent PCI device hotplug operations.
+
+Signed-off-by: Jiang Liu <jiang.liu@huawei.com>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Ingo Molnar <mingo@redhat.com>
+Cc: "H. Peter Anvin" <hpa@zytor.com>
+Cc: x86@kernel.org
+Cc: Len Brown <lenb@kernel.org>
+Cc: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: Yinghai Lu <yinghai@kernel.org>
+Cc: Feng Tang <feng.tang@intel.com>
+Cc: linux-kernel@vger.kernel.org
 Cc: linux-acpi@vger.kernel.org
+---
+ arch/ia64/pci/pci.c     |  2 +-
+ arch/x86/pci/acpi.c     |  3 ++-
+ drivers/acpi/pci_root.c | 14 ++++++++------
+ drivers/pci/Kconfig     |  2 +-
+ 4 files changed, 12 insertions(+), 9 deletions(-)
 
------BEGIN PGP SIGNED MESSAGE-----
-Hash: SHA1
+diff --git a/arch/ia64/pci/pci.c b/arch/ia64/pci/pci.c
+index de1474f..6e91e87 100644
+--- a/arch/ia64/pci/pci.c
++++ b/arch/ia64/pci/pci.c
+@@ -384,7 +384,7 @@ struct pci_bus *pci_acpi_scan_root(struct acpi_pci_root *root)
+ 	}
+ 
+ 	pci_scan_child_bus(pbus);
+-	return pbus;
++	return pci_bus_get(pbus);
+ 
+ out3:
+ 	kfree(controller->window);
+diff --git a/arch/x86/pci/acpi.c b/arch/x86/pci/acpi.c
+index b972f04..6dddc06 100644
+--- a/arch/x86/pci/acpi.c
++++ b/arch/x86/pci/acpi.c
+@@ -534,7 +534,7 @@ struct pci_bus *pci_acpi_scan_root(struct acpi_pci_root *root)
+ 		 */
+ 		memcpy(bus->sysdata, sd, sizeof(*sd));
+ 		kfree(info);
+-		pci_bus_put(bus);
++		BUG_ON(pci_bus_lock(bus, PCI_BUS_STATE_REMOVED - 1, true) < 0);
+ 	} else {
+ 		probe_pci_root_info(info, device, busnum, domain);
+ 
+@@ -561,6 +561,7 @@ struct pci_bus *pci_acpi_scan_root(struct acpi_pci_root *root)
+ 			pci_set_host_bridge_release(
+ 				to_pci_host_bridge(bus->bridge),
+ 				release_pci_root_info, info);
++			pci_bus_get(bus);
+ 		} else {
+ 			pci_free_resource_list(&resources);
+ 			__release_pci_root_info(info);
+diff --git a/drivers/acpi/pci_root.c b/drivers/acpi/pci_root.c
+index 21dda5a..eb01cc7 100644
+--- a/drivers/acpi/pci_root.c
++++ b/drivers/acpi/pci_root.c
+@@ -535,6 +535,7 @@ static int acpi_pci_root_add(struct acpi_device *device,
+ 	}
+ 
+ 	pci_bus_add_devices(root->bus);
++	pci_bus_unlock(root->bus, true);
+ 	return 1;
+ 
+ end:
+@@ -546,13 +547,14 @@ static void acpi_pci_root_remove(struct acpi_device *device)
+ {
+ 	struct acpi_pci_root *root = acpi_driver_data(device);
+ 
+-	pci_stop_root_bus(root->bus);
+-
+-	device_set_run_wake(root->bus->bridge, false);
+-	pci_acpi_remove_bus_pm_notifier(device);
+-
+-	pci_remove_root_bus(root->bus);
++	if (pci_bus_lock(root->bus, PCI_BUS_STATE_REMOVED - 1, true) == 0) {
++		pci_stop_root_bus(root->bus);
++		device_set_run_wake(root->bus->bridge, false);
++		pci_acpi_remove_bus_pm_notifier(device);
++		pci_remove_root_bus(root->bus);
++	}
+ 
++	pci_bus_put(root->bus);
+ 	kfree(root);
+ }
+ 
+diff --git a/drivers/pci/Kconfig b/drivers/pci/Kconfig
+index 92e69bd..5ae3504 100644
+--- a/drivers/pci/Kconfig
++++ b/drivers/pci/Kconfig
+@@ -121,4 +121,4 @@ config PCI_LABEL
+ 	select NLS
+ 
+ config PCI_BUS_LOCK
+-	def_bool n
++	def_bool y if (X86 || IA64)
+-- 
+1.8.1.2
 
-On 5/16/2013 4:54 AM, Rafael J. Wysocki wrote:
-> No, I don't think so.  At least I'm not aware of that.  Do you have
-> any pointers to the kernel code doing that?
-
-No, but I also can't see anything in user mode doing it either, which
-is why I'm asking.  I assumed that since this is an emergency response
-required by the ACPI spec, that it would be implemented by the kernel
-ACPI driver.
-
-> Actually, it is not all it takes.  You need to point the hibernate
-> code to the specific swap through the resume= kernel command line
-> option (there is a default, though).
-
-That's needed to resume, but not to hibernate.  Simply doing a swapon
-is enough to enable hibernating.  Checking that you have a valid
-resume= kernel argument probably would be a sane thing to do before
-allowing hibernation, but this isn't currently the case.
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2.0.17 (MingW32)
-Comment: Using GnuPG with Thunderbird - http://www.enigmail.net/
-
-iQEcBAEBAgAGBQJRlOWYAAoJEJrBOlT6nu75C5AH/AylnOPsCPngyZtMGoyBNE5t
-IY/AM6YjVnuOuCYkIvQ973Vm6gIBaX4jP3SIAc35GEHWMwc+374DmDsuCsH3+hSh
-aT16qYIyx/hMgX8YN1qKoLSLoN3VwA0Lv1UV8aaAsmlJsX5mG4FtSpzPTtwBkIoj
-ctVJIfihpKgBJcbF0uvWyI8Z+2i9xa8jryd+Tl31K3Q4WLX/8XWjOtph9dcsXUXC
-6En190gCz9dYeNN0937OLCXbmjOd0krGo7512OkfsygjAoPf589XzopS3BCLichM
-RQ8w295x8OhO5BZaKMUtHaxsLuj7v5X4BAqfAP83iNbR7Gj/nP7dQpExb8/y7xs=
-=O9Ks
------END PGP SIGNATURE-----
