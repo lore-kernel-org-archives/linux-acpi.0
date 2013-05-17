@@ -1,62 +1,97 @@
-From: Bjorn Helgaas <bhelgaas@google.com>
-Subject: Re: enabling aspm on ati radeon
-Date: Fri, 17 May 2013 15:28:56 -0600
-Message-ID: <CAErSpo4H-=dnHON3vDvJEme2hGD0z0r_NSsm-Bk9tZ4QqtBTCw@mail.gmail.com>
-References: <519443A1.8050905@ubuntu.com> <1995989.Fff0uGKnZO@vostro.rjw.lan>
- <CAErSpo50rX5Pvj=pX5xsdcZ1qq1C7kBqrNyDmY6t26OCVqbxXA@mail.gmail.com>
- <5195596C.3000406@ubuntu.com> <CAErSpo6wSgquzJc22tFJozp8cfx0vpULnO3KZN2gr2YHt8EHrw@mail.gmail.com>
- <5196713A.1010102@ubuntu.com> <CAErSpo7zESr5_PEyX=1JWEApCuW+yx+j3RKWh=qC-jReRgSXZw@mail.gmail.com>
- <51968E9F.1010909@ubuntu.com> <CAErSpo6ZKB-4PTa_2Cthx_8S2txCbGyatbPmDUPYexCQFg-A=A@mail.gmail.com>
- <51969D30.1070502@ubuntu.com>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: Re: REGRESSION: 3.10-rc1: Dell Latitude e6410 hangs within 3 seconds
+Date: Sat, 18 May 2013 01:45:30 +0200
+Message-ID: <2152370.hoU9Fodeoj@vostro.rjw.lan>
+References: <5192363E.7040204@broadcom.com> <5192A0DE.90209@broadcom.com> <519697CC.1070308@broadcom.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7Bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-oa0-f45.google.com ([209.85.219.45]:64029 "EHLO
-	mail-oa0-f45.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755699Ab3EQV3R (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 17 May 2013 17:29:17 -0400
-Received: by mail-oa0-f45.google.com with SMTP id j6so5617698oag.4
-        for <linux-acpi@vger.kernel.org>; Fri, 17 May 2013 14:29:16 -0700 (PDT)
-In-Reply-To: <51969D30.1070502@ubuntu.com>
+Received: from hydra.sisk.pl ([212.160.235.94]:57754 "EHLO hydra.sisk.pl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752974Ab3EQXgw (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 17 May 2013 19:36:52 -0400
+In-Reply-To: <519697CC.1070308@broadcom.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Phillip Susi <psusi@ubuntu.com>
-Cc: "Rafael J. Wysocki" <rjw@sisk.pl>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, Linux PCI <linux-pci@vger.kernel.org>
+To: "Paul E. McKenney" <paul.mckenney@linaro.org>
+Cc: Arend van Spriel <arend@broadcom.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>
 
-On Fri, May 17, 2013 at 3:12 PM, Phillip Susi <psusi@ubuntu.com> wrote:
-> -----BEGIN PGP SIGNED MESSAGE-----
-> Hash: SHA1
->
-> On 5/17/2013 4:24 PM, Bjorn Helgaas wrote:
->> Oh, wait a minute...  You mentioned the radeon driver.  The Radeon
->> device in your system is at 01:00.0, and that is below the 00:01.0
->> bridge that said "ASPM unknown."  If the bridge leading to the
->> Radeon device doesn't support ASPM, then of course, we won't be
->> able to turn on ASPM for it.
->
-> That's what I was asking about before when I said surely the bridge
-> higher up doesn't have to have aspm enabled in order to enable it on
-> the downstream link?
+Hi Paul,
 
-A link has two ends.  Both ends have to support ASPM in order for it
-to work.  But ASPM on a particular link has no dependency on things
-elsewhere in the hierarchy.
+Is this known?
 
->> That doesn't explain why we don't turn on ASPM for the *other*
->> devices (03:00.0, 05:00.0, 06:00.0, 09:00.0) though.
->
-> 00:01.0 says it is the root complex, so wouldn't that make it upstream
-> of *everything*?  As I understand it, the root complex is built into
-> the CPU and has 16 lanes going to the video slot, and another 4 lanes
-> running at gen3 speed that Intel calls the DMI that goes to the PCH,
-> which has some internal functions, and bridges to another 20 pcie lanes.
->
-> Since the root complex is built into the cpu, I wouldn't think ASPM
-> could possibly make sense on it, so it showing that it doesn't support
-> ASPM makes sense to me.  That doesn't seem like it should preclude
-> using ASPM on the link down to the video card.
+Rafael
 
-The link between 00:01.0 and 01:00.0 apparently only supports ASPM on
-one end (the downstream end), so ASPM won't work on it.
 
-Bjorn
+On Friday, May 17, 2013 10:49:16 PM Arend van Spriel wrote:
+> On 05/14/2013 10:38 PM, Arend van Spriel wrote:
+> > On 05/14/2013 10:34 PM, Rafael J. Wysocki wrote:
+> >> On Tuesday, May 14, 2013 03:03:58 PM Arend van Spriel wrote:
+> >>> Laptop hangs pretty soon after booting. Workaround for me was to turn
+> >>> off ACPI on kernel command line, ie. acpi=off
+> >>>
+> >>> Attached is my kernel configuration.
+> >>
+> >> Well, I have no idea what may be the source of this.
+> >
+> > Me neither.
+> >
+> >> Any chance to bisect?
+> >
+> > can try. Rebuilding kernels can be a drag :-p
+> >
+> > Regards,
+> > Arend
+> 
+> Hi Rafael,
+> 
+> The bisect result found commit c0f4dfd4f as culprit. I also verified 
+> that the merge into Linus' tree introduced the issue upstream, ie. 
+> 6c24499 works and 1f889ec does not. I tried to revert the commit, but 
+> that was a bit risky (conflict to resolve) and did not give me a stable 
+> kernel. The only thing that works is selecting acpi=off. I tried also 
+> nohz=off but that resulted in /init failure.
+> 
+> Regards,
+> Arend
+> 
+> ---8<----------------------------------------------------------------
+> 
+> commit 1f889ec62c3f0d8913f3c32f9aff2a1e15099346
+>    Merge: 6c24499 8fcfae3
+> 
+>    commit 8fcfae31719c0a6c03f2cf63f815b46d378d8be4
+>      Merge: d02a9a8 6d87669
+> 
+>      commit 6d87669357936bffa1e8fea7a4e7743e76905736
+>        Merge: 3f944ad 81e5949 910ee45
+> 
+>        commit c0f4dfd4f90f1667d234d21f15153ea09a2eaa66
+>        Author: Paul E. McKenney <paul.mckenney@linaro.org>
+>        Date:   Fri Dec 28 11:30:36 2012 -0800
+> 
+>            rcu: Make RCU_FAST_NO_HZ take advantage of numbered callbacks
+> 
+>            Because RCU callbacks are now associated with the number
+>            of the grace period that they must wait for, CPUs can now
+>            take advance callbacks corresponding to grace periods that
+>            ended while a given CPU was in dyntick-idle mode. This
+>            eliminates the need to try forcing the RCU state machine
+>            while entering idle, thus reducing the CPU intensiveness
+>            of RCU_FAST_NO_HZ, which should increase its energy
+>            efficiency.
+> 
+>        Signed-off-by: Paul E. McKenney <paul.mckenney@linaro.org>
+>        Signed-off-by: Paul E. McKenney <paulmck@linux.vnet.ibm.com>
+> 
+> > --
+> > To unsubscribe from this list: send the line "unsubscribe linux-kernel" in
+> > the body of a message to majordomo@vger.kernel.org
+> > More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> > Please read the FAQ at  http://www.tux.org/lkml/
+> >
+> 
+-- 
+I speak only for myself.
+Rafael J. Wysocki, Intel Open Source Technology Center.
