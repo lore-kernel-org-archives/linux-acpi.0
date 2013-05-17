@@ -1,57 +1,56 @@
-From: Andy Lutomirski <luto@amacapital.net>
-Subject: [PATCH] efi: Work around bogus pointers in BGRT
-Date: Fri, 17 May 2013 14:05:33 -0700
-Message-ID: <7ccd9d84f7407ba65c1f03d144e2113dee0d797a.1368824585.git.luto@amacapital.net>
-References: <CALCETrX2yUzVLTAabrdDM1zgZnRL+KWEJoqSu2VM5jMaArAjpg@mail.gmail.com>
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-pa0-f54.google.com ([209.85.220.54]:45077 "EHLO
-	mail-pa0-f54.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756078Ab3EQVFo (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 17 May 2013 17:05:44 -0400
-Received: by mail-pa0-f54.google.com with SMTP id kx1so3930864pab.27
-        for <linux-acpi@vger.kernel.org>; Fri, 17 May 2013 14:05:44 -0700 (PDT)
-In-Reply-To: <CALCETrX2yUzVLTAabrdDM1zgZnRL+KWEJoqSu2VM5jMaArAjpg@mail.gmail.com>
-Sender: linux-acpi-owner@vger.kernel.org
+From: Phillip Susi <psusi@ubuntu.com>
+Subject: Re: enabling aspm on ati radeon
+Date: Fri, 17 May 2013 17:12:16 -0400
+Message-ID: <51969D30.1070502@ubuntu.com>
+References: <519443A1.8050905@ubuntu.com> <1995989.Fff0uGKnZO@vostro.rjw.lan> <CAErSpo50rX5Pvj=pX5xsdcZ1qq1C7kBqrNyDmY6t26OCVqbxXA@mail.gmail.com> <5195596C.3000406@ubuntu.com> <CAErSpo6wSgquzJc22tFJozp8cfx0vpULnO3KZN2gr2YHt8EHrw@mail.gmail.com> <5196713A.1010102@ubuntu.com> <CAErSpo7zESr5_PEyX=1JWEApCuW+yx+j3RKWh=qC-jReRgSXZw@mail.gmail.com> <51968E9F.1010909@ubuntu.com> <CAErSpo6ZKB-4PTa_2Cthx_8S2txCbGyatbPmDUPYexCQFg-A=A@mail.gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-pci-owner@vger.kernel.org>
+In-Reply-To: <CAErSpo6ZKB-4PTa_2Cthx_8S2txCbGyatbPmDUPYexCQFg-A=A@mail.gmail.com>
+Sender: linux-pci-owner@vger.kernel.org
+To: Bjorn Helgaas <bhelgaas@google.com>
+Cc: "Rafael J. Wysocki" <rjw@sisk.pl>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, Linux PCI <linux-pci@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
-To: Linux ACPI <linux-acpi@vger.kernel.org>, Josh Triplett <josh@joshtriplett.org>, Matthew Garrett <mjg59@srcf.ucam.org>
-Cc: Andy Lutomirski <luto@amacapital.net>
 
-The MSI MS-7760 supplies a BGRT marked "invalid" that contains a
-pointer to nowhere.  Since an "invalid" BGRT isn't particularly
-useful (userspace isn't supposed to use it anyway), ignore the BGRT
-if it's marked "invalid" and the pointer points outside of EFI boot
-services space.
+-----BEGIN PGP SIGNED MESSAGE-----
+Hash: SHA1
 
-Signed-off-by: Andy Lutomirski <luto@amacapital.net>
----
-This seems to fix the problem for me.
+On 5/17/2013 4:24 PM, Bjorn Helgaas wrote:
+> Oh, wait a minute...  You mentioned the radeon driver.  The Radeon 
+> device in your system is at 01:00.0, and that is below the 00:01.0 
+> bridge that said "ASPM unknown."  If the bridge leading to the
+> Radeon device doesn't support ASPM, then of course, we won't be
+> able to turn on ASPM for it.
 
- arch/x86/platform/efi/efi-bgrt.c | 12 ++++++++++++
- 1 file changed, 12 insertions(+)
+That's what I was asking about before when I said surely the bridge
+higher up doesn't have to have aspm enabled in order to enable it on
+the downstream link?
 
-diff --git a/arch/x86/platform/efi/efi-bgrt.c b/arch/x86/platform/efi/efi-bgrt.c
-index 7145ec6..c77b7cf 100644
---- a/arch/x86/platform/efi/efi-bgrt.c
-+++ b/arch/x86/platform/efi/efi-bgrt.c
-@@ -49,6 +49,18 @@ void __init efi_bgrt_init(void)
- 
- 	image = efi_lookup_mapped_addr(bgrt_tab->image_address);
- 	if (!image) {
-+		if (!(bgrt_tab->status & 1)) {
-+			/*
-+			 * The MSI MS-7760 exposes an "invalid" BGRT
-+			 * containing a pointer to nowhere.  This heuristic
-+			 * will avoid following that pointer.  (The idea
-+			 * is that an "invalid" image pointing into boot
-+			 * services data is probably sensible, but other
-+			 * "invalid" pointers are questionable.)
-+			 */
-+			return;
-+		}
-+
- 		image = ioremap(bgrt_tab->image_address, sizeof(bmp_header));
- 		ioremapped = true;
- 		if (!image)
--- 
-1.8.1.4
+> That doesn't explain why we don't turn on ASPM for the *other*
+> devices (03:00.0, 05:00.0, 06:00.0, 09:00.0) though.
 
+00:01.0 says it is the root complex, so wouldn't that make it upstream
+of *everything*?  As I understand it, the root complex is built into
+the CPU and has 16 lanes going to the video slot, and another 4 lanes
+running at gen3 speed that Intel calls the DMI that goes to the PCH,
+which has some internal functions, and bridges to another 20 pcie lanes.
+
+Since the root complex is built into the cpu, I wouldn't think ASPM
+could possibly make sense on it, so it showing that it doesn't support
+ASPM makes sense to me.  That doesn't seem like it should preclude
+using ASPM on the link down to the video card.
+
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2.0.17 (MingW32)
+Comment: Using GnuPG with Thunderbird - http://www.enigmail.net/
+
+iQEcBAEBAgAGBQJRlp0wAAoJEJrBOlT6nu7543QIAMfU7GnhweyxmunYl8fKq0B9
+KCX3PSQaXXmknKxKtSDPtI3BhuTN+5g9KjXX+tDngETRPwq/5ZRXhIAcNjQCpv0d
+K5Io/1vh652Aa0eVm1Yae+ejBWB/hWSu/AM/U0L1wyWGqat53QwfSHlMcQOFeuxq
+oHoRrE5JtmcSbRbWtXFsOgRx5iXkgMzcwDxZ93Z4djhWjYGX+pGSk0DOTlttG/AP
+RyT+oKYs8BmCytk/9/PFE0v/CtaAiNjEL42WAgv3nJMNuezG/CiBeUi7q9+vqKE8
+1r+kGTbenKeEkboROWHXN/JCq3IsKCkff6rQC/s+oXBdORpCw46PcwpBno5kK+Q=
+=sZdM
+-----END PGP SIGNATURE-----
