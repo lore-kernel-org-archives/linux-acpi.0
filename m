@@ -1,75 +1,50 @@
-From: Andy Lutomirski <luto@amacapital.net>
-Subject: BGRT wild pointer
-Date: Fri, 17 May 2013 12:36:47 -0700
-Message-ID: <CALCETrX2yUzVLTAabrdDM1zgZnRL+KWEJoqSu2VM5jMaArAjpg@mail.gmail.com>
+From: Bjorn Helgaas <bhelgaas@google.com>
+Subject: Re: enabling aspm on ati radeon
+Date: Fri, 17 May 2013 13:52:18 -0600
+Message-ID: <CAErSpo7zESr5_PEyX=1JWEApCuW+yx+j3RKWh=qC-jReRgSXZw@mail.gmail.com>
+References: <519443A1.8050905@ubuntu.com> <1995989.Fff0uGKnZO@vostro.rjw.lan>
+ <CAErSpo50rX5Pvj=pX5xsdcZ1qq1C7kBqrNyDmY6t26OCVqbxXA@mail.gmail.com>
+ <5195596C.3000406@ubuntu.com> <CAErSpo6wSgquzJc22tFJozp8cfx0vpULnO3KZN2gr2YHt8EHrw@mail.gmail.com>
+ <5196713A.1010102@ubuntu.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-la0-f45.google.com ([209.85.215.45]:43256 "EHLO
-	mail-la0-f45.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756617Ab3EQThJ (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 17 May 2013 15:37:09 -0400
-Received: by mail-la0-f45.google.com with SMTP id ec20so4384075lab.32
-        for <linux-acpi@vger.kernel.org>; Fri, 17 May 2013 12:37:08 -0700 (PDT)
+Received: from mail-oa0-f44.google.com ([209.85.219.44]:48536 "EHLO
+	mail-oa0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756330Ab3EQTwj (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 17 May 2013 15:52:39 -0400
+Received: by mail-oa0-f44.google.com with SMTP id n12so5656168oag.3
+        for <linux-acpi@vger.kernel.org>; Fri, 17 May 2013 12:52:38 -0700 (PDT)
+In-Reply-To: <5196713A.1010102@ubuntu.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Linux ACPI <linux-acpi@vger.kernel.org>, Josh Triplett <josh@joshtriplett.org>, Matthew Garrett <mjg59@srcf.ucam.org>
+To: Phillip Susi <psusi@ubuntu.com>
+Cc: "Rafael J. Wysocki" <rjw@sisk.pl>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, Linux PCI <linux-pci@vger.kernel.org>
 
-My MSI 79A-GD65 (8D) (MS-7760), which is a shining example of firmware
-engineering, warns like this on startup:
+On Fri, May 17, 2013 at 12:04 PM, Phillip Susi <psusi@ubuntu.com> wrote:
+> -----BEGIN PGP SIGNED MESSAGE-----
+> Hash: SHA1
+>
+> On 5/17/2013 1:31 PM, Bjorn Helgaas wrote:
+>> You also have this bridge where lspci says "ASPM unknown":
+>>
+>> 00:01.0 bridge to [bus 01] ASPM unknown
+>>
+>> Just out of curiosity, can you collect the output of "lspci -xxxs
+>> 00:01.0"?  There are only two bits in the Link Capabilities ASPM
+>> support field, and all four encodings are defined, so I'm curious
+>> about why lspci says "unknown".
+>
+> I'll get that as soon as I get home, but why would the ASPM status of
+> the root complex have anything to do with the rest of the devices?
+> Enabling ASPM on one link doesn't require it to be enabled on all
+> upstream links does it?
 
-[    0.061363] ioremap: invalid physical address d0bb01800000001
-[    0.061365] ------------[ cut here ]------------
-[    0.061368] WARNING: at arch/x86/mm/ioremap.c:85
-__ioremap_caller+0x35a/0x370()
-[    0.061369] Hardware name: MS-7760
-[    0.061370] Modules linked in:
-[    0.061372] Pid: 0, comm: swapper/0 Not tainted 3.8.11-200.fc18.x86_64 #1
-[    0.061373] Call Trace:
-[    0.061377]  [<ffffffff8105e675>] warn_slowpath_common+0x75/0xa0
-[    0.061379]  [<ffffffff8105e6ba>] warn_slowpath_null+0x1a/0x20
-[    0.061381]  [<ffffffff8104779a>] __ioremap_caller+0x35a/0x370
-[    0.061383]  [<ffffffff81059645>] ? efi_bgrt_init+0xc5/0x160
-[    0.061385]  [<ffffffff813800b0>] ? acpi_get_table_with_size+0x5f/0xbe
-[    0.061386]  [<ffffffff81047807>] ioremap_nocache+0x17/0x20
-[    0.061388]  [<ffffffff81059645>] efi_bgrt_init+0xc5/0x160
-[    0.061390]  [<ffffffff81d18bb6>] efi_late_init+0x9/0xb
-[    0.061392]  [<ffffffff81d00c31>] start_kernel+0x3c2/0x3de
-[    0.061394]  [<ffffffff81d0066e>] ? repair_env_string+0x5e/0x5e
-[    0.061395]  [<ffffffff81d00356>] x86_64_start_reservations+0x131/0x135
-[    0.061397]  [<ffffffff81d0045a>] x86_64_start_kernel+0x100/0x10f
-[    0.061401] ---[ end trace 6a8f322ccc28a247 ]---
+Nope, that one shouldn't affect the other devices.  I was just curious.
 
-The BGRT table is, indeed, buggered, according to a build of iasl from git:
+I just sent a patch to make lspci decode all possible values there.
+In the PCIe r2.1 spec, only 1 ("L0s") and 3 ("L0s and L1") were
+defined.  The r3 spec added 0 ("not supported") and 2 ("L1"), but
+lspci hadn't quite kept up.
 
-[000h 0000   4]                    Signature : "BGRT"    [Boot
-Graphics Resource Table]
-[004h 0004   4]                 Table Length : 0000003C
-[008h 0008   1]                     Revision : 00
-[009h 0009   1]                     Checksum : B3
-[00Ah 0010   6]                       Oem ID : "ALASKA"
-[010h 0016   8]                 Oem Table ID : "A M I"
-[018h 0024   4]                 Oem Revision : 01072009
-[01Ch 0028   4]              Asl Compiler ID : "AMI "
-[020h 0032   4]        Asl Compiler Revision : 00010013
-
-[024h 0036   2]                      Version : 0001
-[026h 0038   1]                       Status : 00
-[027h 0039   1]                   Image Type : 00
-[028h 0040   8]                Image Address : 0D0BB01800000001
-[030h 0048   4]                Image OffsetX : 00000000
-[034h 0052   4]                Image OffsetY : 00000000
-
-Raw Table Data: Length 60 (0x3C)
-
-  0000: 42 47 52 54 3C 00 00 00 00 B3 41 4C 41 53 4B 41  BGRT<.....ALASKA
-  0010: 41 20 4D 20 49 00 00 00 09 20 07 01 41 4D 49 20  A M I.... ..AMI
-  0020: 13 00 01 00 01 00 00 00 01 00 00 00 18 B0 0B 0D  ................
-  0030: 00 00 00 00 00 00 00 00 00 00 00 00              ............
-
-A simple "fix" would be to ignore the BGRT if the status is "invalid",
-which mine is -- even if the image address actually pointed somewhere,
-the contents are probably uninteresting.  Or maybe just do that if
-efi_lookup_mapped_addr fails.
-
---Andy
+Bjorn
