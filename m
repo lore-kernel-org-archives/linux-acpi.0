@@ -1,158 +1,213 @@
-From: "Paul E. McKenney" <paulmck@linux.vnet.ibm.com>
-Subject: Re: REGRESSION: 3.10-rc1: Dell Latitude e6410 hangs within 3 seconds
-Date: Sat, 18 May 2013 16:06:51 -0700
-Message-ID: <20130518230651.GC4006@linux.vnet.ibm.com>
-References: <5192363E.7040204@broadcom.com>
- <1396357.SFbZsj3Bmy@vostro.rjw.lan>
- <5192A0DE.90209@broadcom.com>
- <519697CC.1070308@broadcom.com>
- <20130518014724.GA4006@linux.vnet.ibm.com>
- <51972A51.40106@broadcom.com>
-Reply-To: paulmck@linux.vnet.ibm.com
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: [PATCH 5/5] ACPI / memhotplug: Drop unnecessary code
+Date: Sun, 19 May 2013 01:34:59 +0200
+Message-ID: <2228904.eTtCrFuSan@vostro.rjw.lan>
+References: <2250271.rGYN6WlBxf@vostro.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from e38.co.us.ibm.com ([32.97.110.159]:34671 "EHLO
-	e38.co.us.ibm.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753407Ab3ERXG5 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sat, 18 May 2013 19:06:57 -0400
-Received: from /spool/local
-	by e38.co.us.ibm.com with IBM ESMTP SMTP Gateway: Authorized Use Only! Violators will be prosecuted
-	for <linux-acpi@vger.kernel.org> from <paulmck@linux.vnet.ibm.com>;
-	Sat, 18 May 2013 17:06:56 -0600
-Content-Disposition: inline
-In-Reply-To: <51972A51.40106@broadcom.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7Bit
+Return-path: <owner-linux-mm@kvack.org>
+In-Reply-To: <2250271.rGYN6WlBxf@vostro.rjw.lan>
+Sender: owner-linux-mm@kvack.org
+To: ACPI Devel Maling List <linux-acpi@vger.kernel.org>
+Cc: LKML <linux-kernel@vger.kernel.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Toshi Kani <toshi.kani@hp.com>, Wen Congyang <wency@cn.fujitsu.com>, Tang Chen <tangchen@cn.fujitsu.com>, Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>, Andrew Morton <akpm@linux-foundation.org>, Jiang Liu <liuj97@gmail.com>, Vasilis Liaskovitis <vasilis.liaskovitis@profitbricks.com>, linux-mm@kvack.org
 List-Id: linux-acpi@vger.kernel.org
-To: Arend van Spriel <arend@broadcom.com>
-Cc: "Rafael J. Wysocki" <rjw@sisk.pl>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, "Paul E. McKenney" <paul.mckenney@linaro.org>
 
-On Sat, May 18, 2013 at 09:14:25AM +0200, Arend van Spriel wrote:
-> On 05/18/13 03:47, Paul E. McKenney wrote:
-> >On Fri, May 17, 2013 at 10:49:16PM +0200, Arend van Spriel wrote:
-> >>On 05/14/2013 10:38 PM, Arend van Spriel wrote:
-> >>>On 05/14/2013 10:34 PM, Rafael J. Wysocki wrote:
-> >>>>On Tuesday, May 14, 2013 03:03:58 PM Arend van Spriel wrote:
-> >>>>>Laptop hangs pretty soon after booting. Workaround for me was to=
- turn
-> >>>>>off ACPI on kernel command line, ie. acpi=3Doff
-> >>>>>
-> >>>>>Attached is my kernel configuration.
-> >>>>
-> >>>>Well, I have no idea what may be the source of this.
-> >>>
-> >>>Me neither.
-> >>>
-> >>>>Any chance to bisect?
-> >>>
-> >>>can try. Rebuilding kernels can be a drag :-p
-> >>>
-> >>>Regards,
-> >>>Arend
-> >>
-> >>Hi Rafael,
-> >>
-> >>The bisect result found commit c0f4dfd4f as culprit. I also verifie=
-d
-> >>that the merge into Linus' tree introduced the issue upstream, ie.
-> >>6c24499 works and 1f889ec does not. I tried to revert the commit,
-> >>but that was a bit risky (conflict to resolve) and did not give me =
-a
-> >>stable kernel. The only thing that works is selecting acpi=3Doff. I
-> >>tried also nohz=3Doff but that resulted in /init failure.
-> >>
-> >>Regards,
-> >>Arend
-> >>
-> >>---8<--------------------------------------------------------------=
+From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+
+Now that the memory offlining should be taken care of by the
+companion device offlining code in acpi_scan_hot_remove(), the
+ACPI memory hotplug driver doesn't need to offline it in
+acpi_memory_remove_memory() any more.  Consequently, it doesn't
+need to call remove_memory() any more, which means that that
+funtion may be dropped entirely, because acpi_memory_remove_memory()
+is the only user of it.
+
+Make the changes described above to get rid of the dead code.
+
+Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+---
+ drivers/acpi/acpi_memhotplug.c |   15 ------
+ include/linux/memory_hotplug.h |    1 
+ mm/memory_hotplug.c            |  102 -----------------------------------------
+ 3 files changed, 2 insertions(+), 116 deletions(-)
+
+Index: linux-pm/drivers/acpi/acpi_memhotplug.c
+===================================================================
+--- linux-pm.orig/drivers/acpi/acpi_memhotplug.c
++++ linux-pm/drivers/acpi/acpi_memhotplug.c
+@@ -271,31 +271,20 @@ static int acpi_memory_enable_device(str
+ 	return 0;
+ }
+ 
+-static int acpi_memory_remove_memory(struct acpi_memory_device *mem_device)
++static void acpi_memory_remove_memory(struct acpi_memory_device *mem_device)
+ {
+ 	acpi_handle handle = mem_device->device->handle;
+-	int result = 0, nid;
+ 	struct acpi_memory_info *info, *n;
+ 
+-	nid = acpi_get_node(handle);
+-
+ 	list_for_each_entry_safe(info, n, &mem_device->res_list, list) {
+ 		if (!info->enabled)
+ 			continue;
+ 
+-		if (nid < 0)
+-			nid = memory_add_physaddr_to_nid(info->start_addr);
+-
++		/* All of the memory blocks are offline at this point. */
+ 		acpi_unbind_memory_blocks(info, handle);
+-		result = remove_memory(nid, info->start_addr, info->length);
+-		if (result)
+-			return result;
+-
+ 		list_del(&info->list);
+ 		kfree(info);
+ 	}
+-
+-	return result;
+ }
+ 
+ static void acpi_memory_device_free(struct acpi_memory_device *mem_device)
+Index: linux-pm/include/linux/memory_hotplug.h
+===================================================================
+--- linux-pm.orig/include/linux/memory_hotplug.h
++++ linux-pm/include/linux/memory_hotplug.h
+@@ -252,7 +252,6 @@ extern int add_memory(int nid, u64 start
+ extern int arch_add_memory(int nid, u64 start, u64 size);
+ extern int offline_pages(unsigned long start_pfn, unsigned long nr_pages);
+ extern bool is_memblock_offlined(struct memory_block *mem);
+-extern int remove_memory(int nid, u64 start, u64 size);
+ extern int sparse_add_one_section(struct zone *zone, unsigned long start_pfn,
+ 								int nr_pages);
+ extern void sparse_remove_one_section(struct zone *zone, struct mem_section *ms);
+Index: linux-pm/mm/memory_hotplug.c
+===================================================================
+--- linux-pm.orig/mm/memory_hotplug.c
++++ linux-pm/mm/memory_hotplug.c
+@@ -1670,41 +1670,6 @@ int walk_memory_range(unsigned long star
+ }
+ 
+ #ifdef CONFIG_MEMORY_HOTREMOVE
+-/**
+- * offline_memory_block_cb - callback function for offlining memory block
+- * @mem: the memory block to be offlined
+- * @arg: buffer to hold error msg
+- *
+- * Always return 0, and put the error msg in arg if any.
+- */
+-static int offline_memory_block_cb(struct memory_block *mem, void *arg)
+-{
+-	int *ret = arg;
+-	int error = device_offline(&mem->dev);
+-
+-	if (error != 0 && *ret == 0)
+-		*ret = error;
+-
+-	return 0;
+-}
+-
+-static int is_memblock_offlined_cb(struct memory_block *mem, void *arg)
+-{
+-	int ret = !is_memblock_offlined(mem);
+-
+-	if (unlikely(ret)) {
+-		phys_addr_t beginpa, endpa;
+-
+-		beginpa = PFN_PHYS(section_nr_to_pfn(mem->start_section_nr));
+-		endpa = PFN_PHYS(section_nr_to_pfn(mem->end_section_nr + 1))-1;
+-		pr_warn("removing memory fails, because memory "
+-			"[%pa-%pa] is onlined\n",
+-			&beginpa, &endpa);
+-	}
+-
+-	return ret;
+-}
+-
+ static int check_cpu_on_node(void *data)
+ {
+ 	struct pglist_data *pgdat = data;
+@@ -1812,76 +1777,9 @@ void try_offline_node(int nid)
+ 	memset(pgdat, 0, sizeof(*pgdat));
+ }
+ EXPORT_SYMBOL(try_offline_node);
+-
+-int __ref remove_memory(int nid, u64 start, u64 size)
+-{
+-	unsigned long start_pfn, end_pfn;
+-	int ret = 0;
+-	int retry = 1;
+-
+-	start_pfn = PFN_DOWN(start);
+-	end_pfn = PFN_UP(start + size - 1);
+-
+-	/*
+-	 * When CONFIG_MEMCG is on, one memory block may be used by other
+-	 * blocks to store page cgroup when onlining pages. But we don't know
+-	 * in what order pages are onlined. So we iterate twice to offline
+-	 * memory:
+-	 * 1st iterate: offline every non primary memory block.
+-	 * 2nd iterate: offline primary (i.e. first added) memory block.
+-	 */
+-repeat:
+-	walk_memory_range(start_pfn, end_pfn, &ret,
+-			  offline_memory_block_cb);
+-	if (ret) {
+-		if (!retry)
+-			return ret;
+-
+-		retry = 0;
+-		ret = 0;
+-		goto repeat;
+-	}
+-
+-	lock_memory_hotplug();
+-
+-	/*
+-	 * we have offlined all memory blocks like this:
+-	 *   1. lock memory hotplug
+-	 *   2. offline a memory block
+-	 *   3. unlock memory hotplug
+-	 *
+-	 * repeat step1-3 to offline the memory block. All memory blocks
+-	 * must be offlined before removing memory. But we don't hold the
+-	 * lock in the whole operation. So we should check whether all
+-	 * memory blocks are offlined.
+-	 */
+-
+-	ret = walk_memory_range(start_pfn, end_pfn, NULL,
+-				is_memblock_offlined_cb);
+-	if (ret) {
+-		unlock_memory_hotplug();
+-		return ret;
+-	}
+-
+-	/* remove memmap entry */
+-	firmware_map_remove(start, start + size, "System RAM");
+-
+-	arch_remove_memory(start, size);
+-
+-	try_offline_node(nid);
+-
+-	unlock_memory_hotplug();
+-
+-	return 0;
+-}
+ #else
+ int offline_pages(unsigned long start_pfn, unsigned long nr_pages)
+ {
+ 	return -EINVAL;
+ }
+-int remove_memory(int nid, u64 start, u64 size)
+-{
+-	return -EINVAL;
+-}
+ #endif /* CONFIG_MEMORY_HOTREMOVE */
+-EXPORT_SYMBOL_GPL(remove_memory);
+
 --
-> >>
-> >>commit 1f889ec62c3f0d8913f3c32f9aff2a1e15099346
-> >>   Merge: 6c24499 8fcfae3
-> >>
-> >>   commit 8fcfae31719c0a6c03f2cf63f815b46d378d8be4
-> >>     Merge: d02a9a8 6d87669
-> >>
-> >>     commit 6d87669357936bffa1e8fea7a4e7743e76905736
-> >>       Merge: 3f944ad 81e5949 910ee45
-> >>
-> >>       commit c0f4dfd4f90f1667d234d21f15153ea09a2eaa66
-> >>       Author: Paul E. McKenney<paul.mckenney@linaro.org>
-> >>       Date:   Fri Dec 28 11:30:36 2012 -0800
-> >>
-> >>           rcu: Make RCU_FAST_NO_HZ take advantage of numbered call=
-backs
-> >>
-> >>           Because RCU callbacks are now associated with the number
-> >>           of the grace period that they must wait for, CPUs can no=
-w
-> >>           take advance callbacks corresponding to grace periods th=
-at
-> >>           ended while a given CPU was in dyntick-idle mode. This
-> >>           eliminates the need to try forcing the RCU state machine
-> >>           while entering idle, thus reducing the CPU intensiveness
-> >>           of RCU_FAST_NO_HZ, which should increase its energy
-> >>           efficiency.
-> >>
-> >>       Signed-off-by: Paul E. McKenney<paul.mckenney@linaro.org>
-> >>       Signed-off-by: Paul E. McKenney<paulmck@linux.vnet.ibm.com>
-> >
-> >Hello, Arend,
-> >
-> >Thank you for tracking this down!  Could you please try out the foll=
-owing
-> >patch?
->=20
-> Thanks, Paul
->=20
-> That did the trick. Made me bumping into another regression in the
-> driver I am maintaining so more fun to do :-)
->=20
-> Looking at the commit message I guess it is already in some tree.
-> Otherwise I would have said: "You may add
->=20
-> Tested-by: Arend van Spriel <arend@broadcom.com>"
-
-Thank you for trying it out, and glad that it worked for you!
-
-And I did already send the pull request.  But if I need to re-send it,
-I will update to add your Tested-by.
-
-							Thanx, Paul
-
-> >--------------------------------------------------------------------=
-----
-> >
-> >rcu: Fix comparison sense in rcu_needs_cpu()
-> >
-> >Commit c0f4dfd4f (rcu: Make RCU_FAST_NO_HZ take advantage of numbere=
-d
-> >callbacks) introduced a bug that can result in excessively long grac=
-e
-> >periods.  This bug reverse the senes of the "if" statement checking
->=20
-> Oh, there is a typo in the commit message: sense iso senes.
->=20
-> >for lazy callbacks, so that RCU takes a lazy approach when there are
-> >in fact non-lazy callbacks.  This can result in excessive boot, susp=
-end,
-> >and resume times.
-> >
-> >This commit therefore fixes the sense of this "if" statement.
-> >
-> >Reported-by: Borislav Petkov<bp@alien8.de>
-> >Reported-by: Bj=F8rn Mork<bjorn@mork.no>
-> >Reported-by: Joerg Roedel<joro@8bytes.org>
-> >Signed-off-by: Paul E. McKenney<paulmck@linux.vnet.ibm.com>
-> >Tested-by: Bj=F8rn Mork<bjorn@mork.no>
-> >Tested-by: Joerg Roedel<joro@8bytes.org>
->=20
-> Gr. AvS
->=20
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+To unsubscribe, send a message with 'unsubscribe linux-mm' in
+the body to majordomo@kvack.org.  For more info on Linux MM,
+see: http://www.linux-mm.org/ .
+Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
