@@ -1,32 +1,52 @@
-From: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Subject: Re: [PATCH 3/5] Driver core / MM: Drop offline_memory_block()
-Date: Sat, 18 May 2013 18:23:47 -0700
-Message-ID: <20130519012347.GA26947@kroah.com>
-References: <2250271.rGYN6WlBxf@vostro.rjw.lan>
- <2529630.QGJsLhExPp@vostro.rjw.lan>
+From: Bastian Triller <bastian.triller@gmail.com>
+Subject: [PATCH] ACPI / video: Add "Asus UL30A" to ACPI video detect blacklist
+Date: Sun, 19 May 2013 13:52:33 +0200
+Message-ID: <20130519115233.GA4615@gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <owner-linux-mm@kvack.org>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-ea0-f180.google.com ([209.85.215.180]:50827 "EHLO
+	mail-ea0-f180.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754289Ab3ESLwg (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sun, 19 May 2013 07:52:36 -0400
+Received: by mail-ea0-f180.google.com with SMTP id g10so3362387eak.39
+        for <linux-acpi@vger.kernel.org>; Sun, 19 May 2013 04:52:35 -0700 (PDT)
 Content-Disposition: inline
-In-Reply-To: <2529630.QGJsLhExPp@vostro.rjw.lan>
-Sender: owner-linux-mm@kvack.org
-To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>, Toshi Kani <toshi.kani@hp.com>, Wen Congyang <wency@cn.fujitsu.com>, Tang Chen <tangchen@cn.fujitsu.com>, Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>, Andrew Morton <akpm@linux-foundation.org>, Jiang Liu <liuj97@gmail.com>, Vasilis Liaskovitis <vasilis.liaskovitis@profitbricks.com>, linux-mm@kvack.org
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Len Brown <lenb@kernel.org>, "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: linux-acpi@vger.kernel.org
 
-On Sun, May 19, 2013 at 01:33:02AM +0200, Rafael J. Wysocki wrote:
-> From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
-> 
-> Since offline_memory_block(mem) is functionally equivalent to
-> device_offline(&mem->dev), make the only caller of the former use
-> the latter instead and drop offline_memory_block() entirely.
-> 
-> Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+Like on UL30VT, the ACPI video driver can't control backlight correctly on
+Asus UL30A.  Vendor driver (asus-laptop) can work.  This patch is to
+add "Asus UL30A" to ACPI video detect blacklist in order to use
+asus-laptop for video control on the "Asus UL30A" rather than ACPI
+video driver.
 
-Acked-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Signed-off-by: Bastian Triller <bastian.triller@gmail.com>
+---
+ drivers/acpi/video_detect.c | 8 ++++++++
+ 1 file changed, 8 insertions(+)
 
---
-To unsubscribe, send a message with 'unsubscribe linux-mm' in
-the body to majordomo@kvack.org.  For more info on Linux MM,
-see: http://www.linux-mm.org/ .
-Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
+diff --git a/drivers/acpi/video_detect.c b/drivers/acpi/video_detect.c
+index 66f6762..e6bd910 100644
+--- a/drivers/acpi/video_detect.c
++++ b/drivers/acpi/video_detect.c
+@@ -161,6 +161,14 @@ static struct dmi_system_id video_detect_dmi_table[] = {
+ 		DMI_MATCH(DMI_PRODUCT_NAME, "UL30VT"),
+ 		},
+ 	},
++	{
++	.callback = video_detect_force_vendor,
++	.ident = "Asus UL30A",
++	.matches = {
++		DMI_MATCH(DMI_SYS_VENDOR, "ASUSTeK Computer Inc."),
++		DMI_MATCH(DMI_PRODUCT_NAME, "UL30A"),
++		},
++	},
+ 	{ },
+ };
+ 
+-- 
+1.8.3.rc2
+
