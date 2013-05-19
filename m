@@ -1,38 +1,29 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: [PATCH 0/5] ACPI / scan / memhotplug: ACPI hotplug rework followup changes
-Date: Sun, 19 May 2013 01:29:43 +0200
-Message-ID: <2250271.rGYN6WlBxf@vostro.rjw.lan>
+From: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Subject: Re: [PATCH 3/5] Driver core / MM: Drop offline_memory_block()
+Date: Sat, 18 May 2013 18:23:47 -0700
+Message-ID: <20130519012347.GA26947@kroah.com>
+References: <2250271.rGYN6WlBxf@vostro.rjw.lan>
+ <2529630.QGJsLhExPp@vostro.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <owner-linux-mm@kvack.org>
+Content-Disposition: inline
+In-Reply-To: <2529630.QGJsLhExPp@vostro.rjw.lan>
 Sender: owner-linux-mm@kvack.org
-To: ACPI Devel Maling List <linux-acpi@vger.kernel.org>
-Cc: LKML <linux-kernel@vger.kernel.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Toshi Kani <toshi.kani@hp.com>, Wen Congyang <wency@cn.fujitsu.com>, Tang Chen <tangchen@cn.fujitsu.com>, Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>, Andrew Morton <akpm@linux-foundation.org>, Jiang Liu <liuj97@gmail.com>, Vasilis Liaskovitis <vasilis.liaskovitis@profitbricks.com>, linux-mm@kvack.org
+To: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>, Toshi Kani <toshi.kani@hp.com>, Wen Congyang <wency@cn.fujitsu.com>, Tang Chen <tangchen@cn.fujitsu.com>, Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>, Andrew Morton <akpm@linux-foundation.org>, Jiang Liu <liuj97@gmail.com>, Vasilis Liaskovitis <vasilis.liaskovitis@profitbricks.com>, linux-mm@kvack.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hi,
+On Sun, May 19, 2013 at 01:33:02AM +0200, Rafael J. Wysocki wrote:
+> From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+> 
+> Since offline_memory_block(mem) is functionally equivalent to
+> device_offline(&mem->dev), make the only caller of the former use
+> the latter instead and drop offline_memory_block() entirely.
+> 
+> Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 
-This series contains changes that are possible on top of the linux-pm.git
-tree's acpi-hotplug branch.  They touch ACPI, driver core and the core memory
-hotplug code and the majority of them are about removing code that's not
-necessary any more.
-
-Please review and let me know if there's anything wrong with any of them.
-
-[1/5] Drop the struct acpi_device's removal_type field that's not used any more.
-[2/5] Pass processor object handle to acpi_bind_one()
-[3/5] Replace offline_memory_block() with device_offline().
-[4/5] Add second pass of companion offlining to acpi_scan_hot_remove().
-[5/5] Drop ACPI memory hotplug code that's not necessary any more.
-
-Thanks,
-Rafael
-
-
--- 
-I speak only for myself.
-Rafael J. Wysocki, Intel Open Source Technology Center.
+Acked-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 
 --
 To unsubscribe, send a message with 'unsubscribe linux-mm' in
