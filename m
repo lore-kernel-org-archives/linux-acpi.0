@@ -1,61 +1,76 @@
-From: Felipe Contreras <felipe.contreras@gmail.com>
-Subject: [PATCH] acpi: blacklist win8 OSI for ASUS Zenbok Prime UX31A
-Date: Mon, 20 May 2013 03:16:33 -0500
-Message-ID: <1369037793-1559-1-git-send-email-felipe.contreras@gmail.com>
+From: Mika Westerberg <mika.westerberg@linux.intel.com>
+Subject: Re: [PATCH] ACPI: implement acpi_os_get_timer() according the spec
+Date: Mon, 20 May 2013 13:25:30 +0300
+Message-ID: <20130520102530.GG11878@intel.com>
+References: <1368440871-27552-1-git-send-email-mika.westerberg@linux.intel.com>
+ <9521576.ePuIMg9qsX@vostro.rjw.lan>
+ <20130513114432.GK20562@intel.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-ob0-f179.google.com ([209.85.214.179]:42083 "EHLO
-	mail-ob0-f179.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755141Ab3ETISH (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 20 May 2013 04:18:07 -0400
-Received: by mail-ob0-f179.google.com with SMTP id wd20so5055309obb.38
-        for <linux-acpi@vger.kernel.org>; Mon, 20 May 2013 01:18:07 -0700 (PDT)
+Received: from mga11.intel.com ([192.55.52.93]:12222 "EHLO mga11.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752024Ab3ETKVX (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 20 May 2013 06:21:23 -0400
+Content-Disposition: inline
+In-Reply-To: <20130513114432.GK20562@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org
-Cc: Len Brown <lenb@kernel.org>, "Rafael J. Wysocki" <rjw@sisk.pl>, Felipe Contreras <felipe.contreras@gmail.com>
+To: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: linux-acpi@vger.kernel.org, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Len Brown <lenb@kernel.org>, linux-kernel@vger.kernel.org
 
-Otherwise the backlight can't be changed, presumably because the DSDT
-contains stub code when in conjunction with Windows 8.
+On Mon, May 13, 2013 at 02:44:32PM +0300, Mika Westerberg wrote:
+> On Mon, May 13, 2013 at 01:38:46PM +0200, Rafael J. Wysocki wrote:
+> > On Monday, May 13, 2013 01:27:51 PM Mika Westerberg wrote:
+> > > ACPI Timer() opcode should return monotonically increasing clock with 100ns
+> > > granularity. Implement this with the help of ktime_get().
+> > > 
+> > > Signed-off-by: Mika Westerberg <mika.westerberg@linux.intel.com>
+> > 
+> > That looks reasobable.  Have you tested it?
+> 
+> Very lightly. Basically I added some debug printks() between two
+> successsive calls of Timer() and it seemed like it returned correct time.
+> 
+> It is certainly better than returning t+1 every time Timer() is called :)
 
-https://wiki.archlinux.org/index.php/ASUS_Zenbook_Prime_UX31A
+I did somewhat better test for this. I added following ASL code:
 
-Signed-off-by: Felipe Contreras <felipe.contreras@gmail.com>
----
- drivers/acpi/blacklist.c | 14 ++++++++++++++
- 1 file changed, 14 insertions(+)
+	...
+	Store(Timer, Local1)
+	Sleep(10)
+	Divide(Subtract(Timer, Local1), 10000,, Local1)
+	Sleep(Local1)
 
-diff --git a/drivers/acpi/blacklist.c b/drivers/acpi/blacklist.c
-index cb96296..a404127 100644
---- a/drivers/acpi/blacklist.c
-+++ b/drivers/acpi/blacklist.c
-@@ -192,6 +192,12 @@ static int __init dmi_disable_osi_win7(const struct dmi_system_id *d)
- 	acpi_osi_setup("!Windows 2009");
- 	return 0;
- }
-+static int __init dmi_disable_osi_win8(const struct dmi_system_id *d)
-+{
-+	printk(KERN_NOTICE PREFIX "DMI detected: %s\n", d->ident);
-+	acpi_osi_setup("!Windows 2012");
-+	return 0;
-+}
- 
- static struct dmi_system_id acpi_osi_dmi_table[] __initdata = {
- 	{
-@@ -267,6 +273,14 @@ static struct dmi_system_id acpi_osi_dmi_table[] __initdata = {
- 		     DMI_MATCH(DMI_PRODUCT_NAME, "Satellite P305D"),
- 		},
- 	},
-+	{
-+	.callback = dmi_disable_osi_win8,
-+	.ident = "ASUS Zenbook Prime UX31A",
-+	.matches = {
-+		     DMI_MATCH(DMI_SYS_VENDOR, "ASUSTeK COMPUTER INC."),
-+		     DMI_MATCH(DMI_PRODUCT_NAME, "UX31A"),
-+		},
-+	},
- 
- 	/*
- 	 * BIOS invocation of _OSI(Linux) is almost always a BIOS bug.
--- 
-1.8.3.rc3.286.g3d43083
+	Store(Timer, Local1)
+	Sleep(200)
+	Divide(Subtract(Timer, Local1), 10000,, Local1)
+	Sleep(Local1)
 
+	Store(Timer, Local1)
+	Sleep(1300)
+	Divide(Subtract(Timer, Local1), 10000,, Local1)
+	Sleep(Local1)
+
+The second sleep should be pretty close to the first one.
+
+Without this patch I get:
+
+[   11.488100] ACPI: acpi_os_get_timer() TBD
+[   11.492150] ACPI: Sleep(10)
+[   11.502993] ACPI: Sleep(0)
+[   11.506315] ACPI: Sleep(200)
+[   11.706237] ACPI: Sleep(0)
+[   11.709550] ACPI: Sleep(1300)
+[   13.008929] ACPI: Sleep(0)
+
+With the patch applied I get:
+
+[   11.486786] ACPI: Sleep(10)
+[   11.499029] ACPI: Sleep(12)
+[   11.512350] ACPI: Sleep(200)
+[   11.712282] ACPI: Sleep(200)
+[   11.912170] ACPI: Sleep(1300)
+[   13.211577] ACPI: Sleep(1300)
+
+The above looks much more correct to me.
