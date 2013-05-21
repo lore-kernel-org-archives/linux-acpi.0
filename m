@@ -1,87 +1,63 @@
-From: Toshi Kani <toshi.kani@hp.com>
-Subject: Re: [PATCH 5/5] ACPI / memhotplug: Drop unnecessary code
-Date: Mon, 20 May 2013 15:31:45 -0600
-Message-ID: <1369085505.5673.60.camel@misato.fc.hp.com>
-References: <2250271.rGYN6WlBxf@vostro.rjw.lan>
-	 <2228904.eTtCrFuSan@vostro.rjw.lan>
-	 <1369070876.5673.51.camel@misato.fc.hp.com>
-	 <1726699.Z30ifEcQDQ@vostro.rjw.lan>
-	 <1369079733.5673.58.camel@misato.fc.hp.com>
+From: <jeff.wu@amd.com>
+Subject: [PATCH] ACPI:add _STA evaluating at do_acpi_find_child()
+Date: Tue, 21 May 2013 19:19:33 +0800
+Message-ID: <1369135173-4457-1-git-send-email-jeff.wu@amd.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
-Return-path: <owner-linux-mm@kvack.org>
-In-Reply-To: <1369079733.5673.58.camel@misato.fc.hp.com>
-Sender: owner-linux-mm@kvack.org
-To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Wen Congyang <wency@cn.fujitsu.com>, Tang Chen <tangchen@cn.fujitsu.com>, Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>, Andrew Morton <akpm@linux-foundation.org>, Jiang Liu <liuj97@gmail.com>, Vasilis Liaskovitis <vasilis.liaskovitis@profitbricks.com>, linux-mm@kvack.org
+Content-Type: text/plain
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-db9lp0250.outbound.messaging.microsoft.com ([213.199.154.250]:34734
+	"EHLO db9outboundpool.messaging.microsoft.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1755086Ab3EUDef (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 20 May 2013 23:34:35 -0400
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: lenb@kernel.org, rjw@sisk.pl, linux-acpi@vger.kernel.org
+Cc: zlinuxkernel@gmail.com, lekensteyn@gmail.com, dagobertstaler@gmail.com, shang.huang@amd.com, aaron.lwe@gmail.com
 
-On Mon, 2013-05-20 at 13:55 -0600, Toshi Kani wrote:
-> On Mon, 2013-05-20 at 21:47 +0200, Rafael J. Wysocki wrote:
-> > On Monday, May 20, 2013 11:27:56 AM Toshi Kani wrote:
-> > > On Sun, 2013-05-19 at 01:34 +0200, Rafael J. Wysocki wrote:
-> > > > From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
-> 
->  :
-> 
-> > > > -	lock_memory_hotplug();
-> > > > -
-> > > > -	/*
-> > > > -	 * we have offlined all memory blocks like this:
-> > > > -	 *   1. lock memory hotplug
-> > > > -	 *   2. offline a memory block
-> > > > -	 *   3. unlock memory hotplug
-> > > > -	 *
-> > > > -	 * repeat step1-3 to offline the memory block. All memory blocks
-> > > > -	 * must be offlined before removing memory. But we don't hold the
-> > > > -	 * lock in the whole operation. So we should check whether all
-> > > > -	 * memory blocks are offlined.
-> > > > -	 */
-> > > > -
-> > > > -	ret = walk_memory_range(start_pfn, end_pfn, NULL,
-> > > > -				is_memblock_offlined_cb);
-> > > > -	if (ret) {
-> > > > -		unlock_memory_hotplug();
-> > > > -		return ret;
-> > > > -	}
-> > > > -
-> > > 
-> > > I think the above procedure is still useful for safe guard.
-> > 
-> > But then it shoud to BUG_ON() instead of returning an error (which isn't very
-> > useful for anything now).
-> 
-> Right since we cannot fail at that state.
-> 
-> > > > -	/* remove memmap entry */
-> > > > -	firmware_map_remove(start, start + size, "System RAM");
-> > > > -
-> > > > -	arch_remove_memory(start, size);
-> > > > -
-> > > > -	try_offline_node(nid);
-> > > 
-> > > The above procedure performs memory hot-delete specific operations and
-> > > is necessary.
-> > 
-> > OK, I see.  I'll replace this patch with something simpler, then.
-> 
-> Thanks.
-> 
-> > What about the other patches in the series?
-> 
-> I will send you my comments later (a bit interrupted for other thing
-> now).  
+From: Jeff Wu <zlinuxkernel@gmail.com>
 
-Other patches look good.  For patch 1/5 to 4/5:
+Once do_acpi_find_child() found the first matching handle, it makes the acpi_get_child()
+loop stop and return the matching handle. But, at some of the platforms, a "_ADR" is
+with the multiple devices, and if one is enabled, the others will be disabled.
+Just like a case:
+Address : 0x1FFFF ; handle : SB_PCI0.SATA.DEV0
+Address : 0x1FFFF ; handle : SB_PCI0.SATA.DEV1
+Address : 0x1FFFF ; handle : SB_PCI0.SATA.DEV2
 
-Acked-by: Toshi Kani <toshi.kani@hp.com>
+If DEV0 and DEV1 are disabled and DEV2 is enabled, the target is to get DEV2 handle, but
+actually it always return the first disabled device DEV0 handle. So add a _STA evaluating
+at do_acpi_find_child() to check the device status. If the object exists, but it is disabled,
+acpi_get_child() will continue looping to get the correct handle that the object exists and
+is enabled.
+ 
 
-Thanks,
--Toshi
+Signed-off-by: Jeff Wu <zlinuxkernel@gmail.com>
+---
+ drivers/acpi/glue.c | 5 ++++-
+ 1 file changed, 4 insertions(+), 1 deletion(-)
 
---
-To unsubscribe, send a message with 'unsubscribe linux-mm' in
-the body to majordomo@kvack.org.  For more info on Linux MM,
-see: http://www.linux-mm.org/ .
-Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
+diff --git a/drivers/acpi/glue.c b/drivers/acpi/glue.c
+index 40a84cc..ace6c2e 100644
+--- a/drivers/acpi/glue.c
++++ b/drivers/acpi/glue.c
+@@ -81,11 +81,14 @@ static struct acpi_bus_type *acpi_get_bus_type(struct device *dev)
+ static acpi_status do_acpi_find_child(acpi_handle handle, u32 lvl_not_used,
+ 				      void *addr_p, void **ret_p)
+ {
+-	unsigned long long addr;
+ 	acpi_status status;
++	unsigned long long addr = 0, sta = 0;
+ 
+ 	status = acpi_evaluate_integer(handle, METHOD_NAME__ADR, NULL, &addr);
+ 	if (ACPI_SUCCESS(status) && addr == *((u64 *)addr_p)) {
++		status = acpi_bus_get_status_handle(handle, &sta);
++		if (ACPI_SUCCESS(status) && !(sta & ACPI_STA_DEVICE_ENABLED))
++			return AE_CTRL_DEPTH;
+ 		*ret_p = handle;
+ 		return AE_CTRL_TERMINATE;
+ 	}
+-- 
+1.8.1.2
+
+
