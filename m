@@ -1,107 +1,82 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: [PATCH -resend 5/6] acpi: ec_sys: access user space with get_user()/put_user()
-Date: Thu, 23 May 2013 01:39 +0200
-Message-ID: <28555689.kcgDUFsbsB@vostro.rjw.lan>
-References: <1369227552-11743-1-git-send-email-jslaby@suse.cz> <1369227552-11743-5-git-send-email-jslaby@suse.cz>
+From: "Moore, Robert" <robert.moore@intel.com>
+Subject: RE: ACPI v5 sleep registers broken on Toshiba laptops
+Date: Wed, 22 May 2013 23:35:43 +0000
+Message-ID: <94F2FBAB4432B54E8AACC7DFDE6C92E36FE780C8@ORSMSX103.amr.corp.intel.com>
+References: <CAHW-aUcG7kT6uMFwbjUJ4DnvU=c+aj-Z8vaq94Gnt_UbJ6QRjA@mail.gmail.com>
+ <1552539.vmT8XH6Vrv@vostro.rjw.lan>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7Bit
+Content-Transfer-Encoding: base64
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from hydra.sisk.pl ([212.160.235.94]:46420 "EHLO hydra.sisk.pl"
+Received: from mga02.intel.com ([134.134.136.20]:9306 "EHLO mga02.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756285Ab3EVXaP (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 22 May 2013 19:30:15 -0400
-In-Reply-To: <1369227552-11743-5-git-send-email-jslaby@suse.cz>
+	id S1756241Ab3EVXfp (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 22 May 2013 19:35:45 -0400
+In-Reply-To: <1552539.vmT8XH6Vrv@vostro.rjw.lan>
+Content-Language: en-US
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Jiri Slaby <jslaby@suse.cz>
-Cc: jirislaby@gmail.com, akpm@linux-foundation.org, linux-kernel@vger.kernel.org, Vasiliy Kulikov <segooon@gmail.com>, Thomas Renninger <trenn@suse.de>, Len Brown <lenb@kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>
+To: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: Michael Marineau <mike@marineau.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, Len Brown <lenb@kernel.org>, "Zheng, Lv" <lv.zheng@intel.com>
 
-On Wednesday, May 22, 2013 02:59:11 PM Jiri Slaby wrote:
-> From: Vasiliy Kulikov <segooon@gmail.com>
-> 
-> User space pointer may not be dereferenced. Use get_user()/put_user()
-> instead and check their return codes.
-> 
-> Signed-off-by: Vasiliy Kulikov <segooon@gmail.com>
-> Signed-off-by: Thomas Renninger <trenn@suse.de>
-> Signed-off-by: Jiri Slaby <jslaby@suse.cz>
-> Cc: Len Brown <lenb@kernel.org>
-> Cc: "Rafael J. Wysocki" <rjw@sisk.pl>
-> Cc: linux-acpi@vger.kernel.org
-
-Interesting.  It looks like it actually didn't reach linux-acpi.
-
-Anyway, I'm going to queue it up for v3.11.
-
-Thanks,
-Rafael
-
-
-> ---
->  drivers/acpi/ec_sys.c | 18 ++++++++++++++----
->  1 file changed, 14 insertions(+), 4 deletions(-)
-> 
-> diff --git a/drivers/acpi/ec_sys.c b/drivers/acpi/ec_sys.c
-> index 7586544..4e7b798 100644
-> --- a/drivers/acpi/ec_sys.c
-> +++ b/drivers/acpi/ec_sys.c
-> @@ -12,6 +12,7 @@
->  #include <linux/acpi.h>
->  #include <linux/debugfs.h>
->  #include <linux/module.h>
-> +#include <linux/uaccess.h>
->  #include "internal.h"
->  
->  MODULE_AUTHOR("Thomas Renninger <trenn@suse.de>");
-> @@ -34,7 +35,6 @@ static ssize_t acpi_ec_read_io(struct file *f, char __user *buf,
->  	 * struct acpi_ec *ec = ((struct seq_file *)f->private_data)->private;
->  	 */
->  	unsigned int size = EC_SPACE_SIZE;
-> -	u8 *data = (u8 *) buf;
->  	loff_t init_off = *off;
->  	int err = 0;
->  
-> @@ -47,9 +47,15 @@ static ssize_t acpi_ec_read_io(struct file *f, char __user *buf,
->  		size = count;
->  
->  	while (size) {
-> -		err = ec_read(*off, &data[*off - init_off]);
-> +		u8 byte_read;
-> +		err = ec_read(*off, &byte_read);
->  		if (err)
->  			return err;
-> +		if (put_user(byte_read, buf + *off - init_off)) {
-> +			if (*off - init_off)
-> +				return *off - init_off; /* partial read */
-> +			return -EFAULT;
-> +		}
->  		*off += 1;
->  		size--;
->  	}
-> @@ -65,7 +71,6 @@ static ssize_t acpi_ec_write_io(struct file *f, const char __user *buf,
->  
->  	unsigned int size = count;
->  	loff_t init_off = *off;
-> -	u8 *data = (u8 *) buf;
->  	int err = 0;
->  
->  	if (*off >= EC_SPACE_SIZE)
-> @@ -76,7 +81,12 @@ static ssize_t acpi_ec_write_io(struct file *f, const char __user *buf,
->  	}
->  
->  	while (size) {
-> -		u8 byte_write = data[*off - init_off];
-> +		u8 byte_write;
-> +		if (get_user(byte_write, buf + *off - init_off)) {
-> +			if (*off - init_off)
-> +				return *off - init_off; /* partial write */
-> +			return -EFAULT;
-> +		}
->  		err = ec_write(*off, byte_write);
->  		if (err)
->  			return err;
-> 
--- 
-I speak only for myself.
-Rafael J. Wysocki, Intel Open Source Technology Center.
+VGhpcyBzaG91bGQgYmUgZml4ZWQgaW4gQUNQSUNBIHZlcnNpb24gMjAxMzA1MTgNCg0KDQo+IC0t
+LS0tT3JpZ2luYWwgTWVzc2FnZS0tLS0tDQo+IEZyb206IFJhZmFlbCBKLiBXeXNvY2tpIFttYWls
+dG86cmp3QHNpc2sucGxdDQo+IFNlbnQ6IFdlZG5lc2RheSwgTWF5IDIyLCAyMDEzIDEyOjM3IFBN
+DQo+IFRvOiBNb29yZSwgUm9iZXJ0DQo+IENjOiBNaWNoYWVsIE1hcmluZWF1OyBsaW51eC1hY3Bp
+QHZnZXIua2VybmVsLm9yZzsgTGVuIEJyb3duOyBaaGVuZywgTHYNCj4gU3ViamVjdDogUmU6IEFD
+UEkgdjUgc2xlZXAgcmVnaXN0ZXJzIGJyb2tlbiBvbiBUb3NoaWJhIGxhcHRvcHMNCj4gDQo+IEhp
+IEJvYiwNCj4gDQo+IFdoYXQgZG8geW91IHRoaW5rIGFib3V0IHRoaXM/DQo+IA0KPiBSYWZhZWwN
+Cj4gDQo+IA0KPiBPbiBXZWRuZXNkYXksIE1heSAyMiwgMjAxMyAwOTozOToxMiBBTSBNaWNoYWVs
+IE1hcmluZWF1IHdyb3RlOg0KPiA+IEdyZWV0aW5ncywNCj4gPg0KPiA+IE9uIHRoZSByZWNlbnRs
+eSByZWxlYXNlZCBUb3NoaWJhIEtpcmFib29rIGFuZCBrZXJuZWxzID49IDMuNA0KPiA+IHN1c3Bl
+bmQvcmVzdW1lIG9ubHkgd29ya3Mgb25jZS4gQWZ0ZXIgcmVzdW1lIGlucHV0IGZyb20gdGhpbmdz
+IGxpa2UNCj4gPiB0aGUgcG93ZXIgYnV0dG9uLCBicmlnaHRuZXNzIGJ1dHRvbnMsIGxpZCBzd2l0
+Y2gsIGV0Yy4gbm8gbG9uZ2VyIHdvcmsNCj4gPiBhbmQgdGhlIGxhcHRvcCBzaW1wbHkgaGFuZ3Mg
+d2hlbiBzdXNwZW5kZWQgZm9yIGEgc2Vjb25kIHRpbWUuIFRoaXMNCj4gPiBhcHBlYXJzIHRvIGFs
+c28gaW1wYWN0IG90aGVyIHJlY2VudCBUb3NoaWJhIGxhcHRvcHMgKGFsdGhvdWdoIHRoZSBidWcN
+Cj4gPiBjbGFpbXMgdGhlIGhhbmcgaXMgZHVyaW5nIHRoZSBzZWNvbmQgcmVzdW1lIHJhdGhlciB0
+aGFuIHRoZSBzZWNvbmQNCj4gPiBzdXNwZW5kIGFzIGlzIG15IGNhc2UpLg0KPiA+IGh0dHBzOi8v
+YnVncy5sYXVuY2hwYWQubmV0L3VidW50dS8rc291cmNlL2xpbnV4LytidWcvMTA5NDgwMA0KPiA+
+DQo+ID4gU3VzcGVuZC9yZXN1bWUgYW5kIGFsbCB0aGUgYnV0dG9ucyB3b3JrIGp1c3QgZmluZSBv
+biB2My4zLiBJIGJpc2VjdGVkDQo+ID4gdGhlIHYzLjMtPnYzLjQgY2hhbmdlICh3aXRoIHRoZSBo
+ZWxwIG9mIHBhdGNoaW5nIGluIGEga3ZtIGNsb2NrIGZpeCBhcw0KPiA+IG5lZWRlZCkgYW5kIHRy
+YWNrZWQgaXQgZG93biB0byB0aGlzIGNvbW1pdDoNCj4gPg0KPiA+IGNvbW1pdCAyZmVlYzQ3ZDRj
+NWY4MGIwNWYxNjUwZjVhMjQ4NjU3MTg5NzhlZWE0DQo+ID4gQXV0aG9yOiBCb2IgTW9vcmUgPHJv
+YmVydC5tb29yZUBpbnRlbC5jb20+DQo+ID4gRGF0ZTogVHVlIEZlYiAxNCAxNTowMDo1MyAyMDEy
+ICswODAwDQo+ID4NCj4gPiAgICAgQUNQSUNBOiBBQ1BJIDU6IFN1cHBvcnQgZm9yIG5ldyBGQURU
+IFNsZWVwU3RhdHVzLCBTbGVlcENvbnRyb2wNCj4gPiByZWdpc3RlcnMNCj4gPg0KPiA+ICAgICBB
+ZGRzIHNsZWVwIGFuZCB3YWtlIHN1cHBvcnQgZm9yIHN5c3RlbXMgd2l0aCB0aGVzZSByZWdpc3Rl
+cnMuDQo+ID4gICAgIE9uZSBuZXcgZmlsZSwgaHd4ZnNsZWVwLmMNCj4gPg0KPiA+ICAgICBTaWdu
+ZWQtb2ZmLWJ5OiBCb2IgTW9vcmUgPHJvYmVydC5tb29yZUBpbnRlbC5jb20+DQo+ID4gICAgIFNp
+Z25lZC1vZmYtYnk6IExlbiBCcm93biA8bGVuLmJyb3duQGludGVsLmNvbT4NCj4gPg0KPiA+IFNw
+ZWNpZmljYWxseSwgd2hlbiB0aGUgc2xlZXAgc3RhdHVzL2NvbnRyb2wgcmVnaXN0ZXJlcyBhcmUg
+ZGV0ZWN0ZWQNCj4gPiB0aGV5IGFyZSB1c2VkIGluc3RlYWQgb2YgdGhlIHRyYWRpdGlvbmFsIHJl
+Z2lzdGVycy4gVGhlIGZhaWx1cmUgdG8NCj4gPiByZXN1bWUgYSBzZWNvbmQgdGltZSBpcyB0cmln
+Z2VyZWQgYnkgdGhpcyB3cml0ZSBpbiB0aGUgbmV3DQo+ID4gYWNwaV9od19leHRlbmRlZF93YWtl
+X3ByZXAgZnVuY3Rpb246DQo+ID4NCj4gPiAgICAgc3RhdHVzID0gYWNwaV9nZXRfc2xlZXBfdHlw
+ZV9kYXRhKEFDUElfU1RBVEVfUzAsDQo+ID4gICAgICAgICAgICAgICAgICAgICAgICZhY3BpX2di
+bF9zbGVlcF90eXBlX2EsDQo+ID4gICAgICAgICAgICAgICAgICAgICAgICZhY3BpX2dibF9zbGVl
+cF90eXBlX2IpOw0KPiA+ICAgICBpZiAoQUNQSV9TVUNDRVNTKHN0YXR1cykpIHsNCj4gPiAgICAg
+ICAgIHNsZWVwX3R5cGVfdmFsdWUgPQ0KPiA+ICAgICAgICAgICAgICgoYWNwaV9nYmxfc2xlZXBf
+dHlwZV9hIDw8IEFDUElfWF9TTEVFUF9UWVBFX1BPU0lUSU9OKSAmDQo+ID4gICAgICAgICAgICAg
+IEFDUElfWF9TTEVFUF9UWVBFX01BU0spOw0KPiA+DQo+ID4gICAgICAgICAodm9pZClhY3BpX3dy
+aXRlKCh1NjQpKHNsZWVwX3R5cGVfdmFsdWUgfCBBQ1BJX1hfU0xFRVBfRU5BQkxFKSwNCj4gPiAg
+ICAgICAgICAgICAgICAgICZhY3BpX2dibF9GQURULnNsZWVwX2NvbnRyb2wpOw0KPiA+ICAgICB9
+DQo+ID4NCj4gPiBSZXBsYWNpbmcgdGhhdCB3cml0ZSB3aXRoIHRoZSBjb3JyZXNwb25kaW5nIGNv
+ZGUgZnJvbQ0KPiA+IGFjcGlfaHdfbGVnYWN5X3dha2VfcHJlcCB3aGlsZSBsZWF2aW5nIHRoZSBv
+dGhlciBhY3BpX2h3X2V4dGVuZGVkXyoNCj4gPiBmdW5jdGlvbnMgYWxvbmUgZ2V0cyBzdXNwZW5k
+L3Jlc3VtZSB3b3JraW5nIGNvbnNpc3RhbnRseS4gVGhhdCBpc24ndA0KPiA+IHF1aXRlIGVub3Vn
+aCBhcyBldmVudHMgZG9uJ3Qgc2VlbSB0byBnZXQgcmUtZW5hYmxlZCBzbyBhY3BpIGJ1dHRvbnMN
+Cj4gPiBhbmQgc3VjaCBkb24ndCB3b3JrIGFmdGVyIHJlc3VtZS4gQ29weWluZyB0aGUgZW5hYmxl
+IHBvd2VyIGJ1dHRvbiBjb2RlDQo+ID4gZnJvbSBhY3BpX2h3X2xlZ2FjeV93YWtlIHRvIGFjcGlf
+aHdfZXh0ZW5kZWRfd2FrZSBhdCBsZWFzdCBnZXRzIHRoZQ0KPiA+IHBvd2VyIGJ1dHRvbiBiYWNr
+IGJ1dCBsaWQsIGJyaWdodG5lc3MsIGV0YyByZW1haW4gZGVhZC4NCj4gPg0KPiA+IEF0IHRoZSBt
+b21lbnQgSSd2ZSBoYWNrZWQgdGhlc2UgY2hhbmdlcyBpbnRvIHYzLjEwLjAtcmMyIGFsb25nIHdp
+dGgNCj4gPiBhbm90aGVyIGhhY2sgdG8gZml4IGEgdmlkZW8gcmVncmVzc2lvbiBhbmQgaXQgc2Vl
+bXMgdG8gYmVoYXZlDQo+ID4gcmVhc29uYWJseSB3ZWxsIChtaW51cyB0aGUgYnJpZ2h0bmVzcyBr
+ZXlzIGFuZCBsaWQpLiBJJ20gbm90IHN1cmUgd2hhdA0KPiA+IHRoZSBhcHJvcHJpYXRlIGZpeCBp
+cy4gTWF5YmUgZmluZCBzb21lIHdheSBiZXlvbmQgdGhlaXIgcHJlc2VuY2UgdG8NCj4gPiBkZXRl
+Y3QgaWYgdGhlc2UgcmVnaXN0ZXJzIGFyZSBzYWZlIHRvIHVzZSBvciBqdXN0IGEgZGV2aWNlIGJs
+YWNrbGlzdD8NCj4gDQo+IA0KPiANCj4gDQo+IC0tDQo+IEkgc3BlYWsgb25seSBmb3IgbXlzZWxm
+Lg0KPiBSYWZhZWwgSi4gV3lzb2NraSwgSW50ZWwgT3BlbiBTb3VyY2UgVGVjaG5vbG9neSBDZW50
+ZXIuDQo=
