@@ -1,118 +1,108 @@
-From: Chen Gong <gong.chen@linux.intel.com>
-Subject: Re: [PATCH 1/2 V2] ACPI/APEI: Add parameter check before error
- injection
-Date: Wed, 22 May 2013 02:10:29 -0400
-Message-ID: <20130522061029.GA25406@gchen.bj.intel.com>
-References: <1369034433-13666-1-git-send-email-gong.chen@linux.intel.com>
- <1369034433-13666-2-git-send-email-gong.chen@linux.intel.com>
- <3908561D78D1C84285E8C5FCA982C28F2DA69843@ORSMSX106.amr.corp.intel.com>
+From: Lan Tianyu <lantianyu1986@gmail.com>
+Subject: Re: [PATCH] ACPI:add _STA evaluating at do_acpi_find_child()
+Date: Wed, 22 May 2013 14:41:51 +0800
+Message-ID: <CAOLK0pwfVugT+B8HEKUcEJ72Aqdmj2QMreJrcP1wBwyP+sToaA@mail.gmail.com>
+References: <1369135173-4457-1-git-send-email-jeff.wu@amd.com>
+	<CAOLK0py8zxuWsztK=4e+2AoTAsnSO-_DzUcQxjTLvi_JaU1qdQ@mail.gmail.com>
+	<CAPb2CAMDei52uNoeuYmtyaL69Qu9Ye-hi_BqiG8LrnGFc8SKgg@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="J/dobhs11T7y2rNN"
+Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga01.intel.com ([192.55.52.88]:46413 "EHLO mga01.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755369Ab3EVGRK (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 22 May 2013 02:17:10 -0400
-Content-Disposition: inline
-In-Reply-To: <3908561D78D1C84285E8C5FCA982C28F2DA69843@ORSMSX106.amr.corp.intel.com>
+Received: from mail-ie0-f170.google.com ([209.85.223.170]:41646 "EHLO
+	mail-ie0-f170.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755341Ab3EVGlw (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 22 May 2013 02:41:52 -0400
+Received: by mail-ie0-f170.google.com with SMTP id aq17so4439490iec.15
+        for <linux-acpi@vger.kernel.org>; Tue, 21 May 2013 23:41:51 -0700 (PDT)
+In-Reply-To: <CAPb2CAMDei52uNoeuYmtyaL69Qu9Ye-hi_BqiG8LrnGFc8SKgg@mail.gmail.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Luck, Tony" <tony.luck@intel.com>
-Cc: "bp@alien8.de" <bp@alien8.de>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
+To: Jeff Wu <zlinuxkernel@gmail.com>
+Cc: linux-acpi@vger.kernel.org, Len Brown <lenb@kernel.org>, "Rafael J. Wysocki" <rjw@sisk.pl>, lekensteyn@gmail.com, Sergio Perez <dagobertstaler@gmail.com>, shang.huang@amd.com, Aaron Lu <aaron.lwe@gmail.com>
+
+2013/5/22 Jeff Wu <zlinuxkernel@gmail.com>:
+> 2013/5/21 Lan Tianyu <lantianyu1986@gmail.com>:
+>> 2013/5/21  <jeff.wu@amd.com>:
+>>> From: Jeff Wu <zlinuxkernel@gmail.com>
+>>>
+>>> Once do_acpi_find_child() found the first matching handle, it makes the acpi_get_child()
+>>> loop stop and return the matching handle. But, at some of the platforms, a "_ADR" is
+>>> with the multiple devices, and if one is enabled, the others will be disabled.
+>>> Just like a case:
+>>> Address : 0x1FFFF ; handle : SB_PCI0.SATA.DEV0
+>>> Address : 0x1FFFF ; handle : SB_PCI0.SATA.DEV1
+>>> Address : 0x1FFFF ; handle : SB_PCI0.SATA.DEV2
+>>>
+>>> If DEV0 and DEV1 are disabled and DEV2 is enabled, the target is to get DEV2 handle, but
+>>> actually it always return the first disabled device DEV0 handle. So add a _STA evaluating
+>>> at do_acpi_find_child() to check the device status. If the object exists, but it is disabled,
+>>> acpi_get_child() will continue looping to get the correct handle that the object exists and
+>>> is enabled.
+>>>
+>>>
+>>> Signed-off-by: Jeff Wu <zlinuxkernel@gmail.com>
+>>> ---
+>>>  drivers/acpi/glue.c | 5 ++++-
+>>>  1 file changed, 4 insertions(+), 1 deletion(-)
+>>>
+>>> diff --git a/drivers/acpi/glue.c b/drivers/acpi/glue.c
+>>> index 40a84cc..ace6c2e 100644
+>>> --- a/drivers/acpi/glue.c
+>>> +++ b/drivers/acpi/glue.c
+>>> @@ -81,11 +81,14 @@ static struct acpi_bus_type *acpi_get_bus_type(struct device *dev)
+>>>  static acpi_status do_acpi_find_child(acpi_handle handle, u32 lvl_not_used,
+>>>                                       void *addr_p, void **ret_p)
+>>>  {
+>>> -       unsigned long long addr;
+>>>         acpi_status status;
+>>> +       unsigned long long addr = 0, sta = 0;
+>>>
+>>>         status = acpi_evaluate_integer(handle, METHOD_NAME__ADR, NULL, &addr);
+>>>         if (ACPI_SUCCESS(status) && addr == *((u64 *)addr_p)) {
+>>> +               status = acpi_bus_get_status_handle(handle, &sta);
+>>> +               if (ACPI_SUCCESS(status) && !(sta & ACPI_STA_DEVICE_ENABLED))
+>>> +                       return AE_CTRL_DEPTH;
+>> Will this affect other devices? Since the device maybe disabled during
+>> do binding with ACPI.
+>> After some operations, the device would be enabled.
+> At our platforms, DEV1 use for win8,DEV2 use for win7,DEV1 use for Linux.
+> If these devices are disabled when do init, they will always be
+> disabled ,so, work fine.
+>
+> At some of the platforms, the devices may be disabled during do the
+> first binding ,if their status are changed,do they not do re-binding ?
+Currently, the glue binding operation takes place when the device  is
+created. In my mind, there is no re-binding operation after the device being
+created, Unless the device being removed and created again.
+>
+>>
+>> Hi Rafael:
+>>                  How about add a new function
+>> "acpi_get_children_with_same_addr" to return a list
+>> which contains all these child devices with same _ADR.And then do some
+>> special check in the specific
+>> bus glue callback. Since these cases are no common.
+>>
+>>>                 *ret_p = handle;
+>>>                 return AE_CTRL_TERMINATE;
+>>>         }
+>>> --
+>>> 1.8.1.2
+>>>
+>>>
+>>> --
+>>> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
+>>> the body of a message to majordomo@vger.kernel.org
+>>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>>
+>>
+>>
+>> --
+>> Best regards
+>> Tianyu Lan
 
 
---J/dobhs11T7y2rNN
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
 
-On Tue, May 21, 2013 at 08:19:16PM +0000, Luck, Tony wrote:
-> Date: Tue, 21 May 2013 20:19:16 +0000
-> From: "Luck, Tony" <tony.luck@intel.com>
-> To: Chen Gong <gong.chen@linux.intel.com>, "bp@alien8.de" <bp@alien8.de>
-> CC: "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
-> Subject: RE: [PATCH 1/2 V2] ACPI/APEI: Add parameter check before error
->  injection
->=20
-> +	/* ensure param1/param2 existed */
-> +	if (!(param_extension || acpi5))
-> +		goto inject;
-> +
-> +	/* ensure injection is memory related */
-> +	if (type & ACPI5_VENDOR_BIT) {
-> +		if (vendor_flags !=3D SETWA_FLAGS_MEM)
-> +			goto inject;
-> +	} else if (!(type & MEM_ERROR_MASK))
-> +		goto inject;
->=20
-> Maybe a comment before all these three goto blocks saying why we are jump=
-ing
-> around.  Perhaps:
->=20
-> 	/* We need extra sanity checks for memory errors. Other types leap direc=
-tly to injection */
->=20
-Thanks, this comment is great.
-
-> +
-> +	/*
-> +	 * When error injection type is memory related, param2 is the address
-> +	 * mask of param1. This mask is used to ensure that the final address
-> +	 * (param1 & param2) is meaningful. If param2 has a *weird* style
-> +	 * like 0xf0f0f0f0f0f0f0f0, it means the injection address can be
-> +	 * anywhere around param1, and that must be forbidden. In that reason,
-> +	 * PAGE_MASK is employed to avoid injection address discontinuous.
-> +	 * If one finds a special case not to satisfy this requirement, please
-> +	 * fix it.
-> +	 */
-> +	pfn =3D PFN_DOWN(param1 & param2);
-> +	if (!page_is_ram(pfn) || ((param2 & PAGE_MASK) !=3D PAGE_MASK))
-> +		return -EINVAL;
->=20
-> This has too much comment (rare!) and is still too complicated. Split the=
- tests apart?
-
-Your comment is great to me. Boris ever mentioned that
-"(param2 & PAGE_MASK) !=3D PAGE_MASK)" is not usual, most of situations are
-like "(param2 & PAGE_MASK) !=3D param2). So he wants here I can give a clear
-explanation for it. Maybe I can move my explanation into patch description.
-
->=20
-> 	/*
-> 	 * Disallow crazy address masks that give BIOS leeway to pick injection =
-address
-> 	 * almost anywhere. Insist on page or better granularity
-> 	 */
-> 	if ((param2 & PAGE_MASK) !=3D PAGE_MASK)
-> 		return -EINVAL;
->=20
-> 	/* make sure target address is normal memory */
-> 	pfn =3D PFN_DOWN(param1 & param2);
-> 	if (!page_is_ram(pfn))
-> 		return -EINVAL;
->=20
-
---J/dobhs11T7y2rNN
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.12 (GNU/Linux)
-
-iQIcBAEBAgAGBQJRnGFVAAoJEI01n1+kOSLHQFoP/2hEuDgSCguS0tY5/zmjyd8j
-SlKOIBzVISxr4RntBu14MTdM6Tzmp0lVovaGBkx30CYg7OFASOopSSFyFCCbMoVp
-mDi/1fLD5hIWbxQOtaGbe/ysbmMzhxQA/Jiq4ChQCvsl0tFeH8YHiDPu1r6HmnS9
-4Da7hL0NCWyhXClx5xRjZNswZ2Zc4CKbZtJWDL9yqG1xpf2D57a48gYfj6xiiPZs
-WQh63tZc4QPdzEgc9vQzv/QRNe+e5XAaFhvsm+WOVMJ2VDyFo5tc3hpcCa94+hp9
-2Lj+hdf4TKmZobZve9DBwqsqEMrD96+kbcGNjav8ksCJCwlDVKlQl9IFP9fs6QRT
-EHB0+5izZUMPnqjfeGwEfY1VyIBk56+HCxbdETOR4ca5oEez5+UuSdlnockZ5qyy
-NHHwFoWPTFdAcSYrvXLp5DAO0A+hg4TnFwkwVQaKaS1aFkwhHxzeM9QmCRMeAc2I
-c1/BF1GhcMFwBqyf8FtQib2pBM1fdVQ6rydHiKD+z5kd0IqHkclSGrf0YEZwAAjg
-xm6Gq2opOcCYBtC+n7ojtuFsHpUQ3ZgfMJqZ7v/DqRVAnqqQuLjzkkkLuu6VbIFh
-9yZBXLRrvN9KVBrhdiozcIffZJvNurO/+kZ3Q65r68D+1FVKO6tTvX3+sflfPvvR
-9XypcoJcUG5yJpvonqQs
-=a0Sh
------END PGP SIGNATURE-----
-
---J/dobhs11T7y2rNN--
+-- 
+Best regards
+Tianyu Lan
