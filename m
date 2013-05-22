@@ -1,96 +1,118 @@
-From: Tang Chen <tangchen@cn.fujitsu.com>
-Subject: Re: [PATCH 2/2 v2, RFC] Driver core: Introduce offline/online callbacks
- for memory blocks
-Date: Wed, 22 May 2013 12:45:34 +0800
-Message-ID: <519C4D6E.6080902@cn.fujitsu.com>
-References: <1576321.HU0tZ4cGWk@vostro.rjw.lan> <19540491.PRsM4lKIYM@vostro.rjw.lan> <519B1641.1020906@cn.fujitsu.com> <1824290.fKsAJTo9gA@vostro.rjw.lan>
+From: Chen Gong <gong.chen@linux.intel.com>
+Subject: Re: [PATCH 1/2 V2] ACPI/APEI: Add parameter check before error
+ injection
+Date: Wed, 22 May 2013 02:10:29 -0400
+Message-ID: <20130522061029.GA25406@gchen.bj.intel.com>
+References: <1369034433-13666-1-git-send-email-gong.chen@linux.intel.com>
+ <1369034433-13666-2-git-send-email-gong.chen@linux.intel.com>
+ <3908561D78D1C84285E8C5FCA982C28F2DA69843@ORSMSX106.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <owner-linux-mm@kvack.org>
-In-Reply-To: <1824290.fKsAJTo9gA@vostro.rjw.lan>
-Sender: owner-linux-mm@kvack.org
-To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Toshi Kani <toshi.kani@hp.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>, isimatu.yasuaki@jp.fujitsu.com, vasilis.liaskovitis@profitbricks.com, Len Brown <lenb@kernel.org>, linux-mm@kvack.org
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="J/dobhs11T7y2rNN"
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mga01.intel.com ([192.55.52.88]:46413 "EHLO mga01.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755369Ab3EVGRK (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 22 May 2013 02:17:10 -0400
+Content-Disposition: inline
+In-Reply-To: <3908561D78D1C84285E8C5FCA982C28F2DA69843@ORSMSX106.amr.corp.intel.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: "Luck, Tony" <tony.luck@intel.com>
+Cc: "bp@alien8.de" <bp@alien8.de>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
 
-Hi Rafael,
 
-On 05/21/2013 07:15 PM, Rafael J. Wysocki wrote:
-......
->>> +		mem->state = to_state;
->>> +		if (to_state == MEM_ONLINE)
->>> +			mem->last_online = online_type;
->>
->> Why do we need to remember last online type ?
->>
->> And as far as I know, we can obtain which zone a page was in last time it
->> was onlined by check page->flags, just like online_pages() does. If we
->> use online_kernel or online_movable, the zone boundary will be
->> recalculated.
->> So we don't need to remember the last online type.
->>
->> Seeing from your patch, I guess memory_subsys_online() can only handle
->> online and offline. So mem->last_online is used to remember what user has
->> done through the original way to trigger memory hot-remove, right ? And
->> when
->> user does it in this new way, it just does the same thing as user does last
->> time.
->>
->> But I still think we don't need to remember it because if finally you call
->> online_pages(), it just does the same thing as last time by default.
->>
->> online_pages()
->> {
->> 	......
->> 	if (online_type == ONLINE_KERNEL ......
->>
->> 	if (online_type == ONLINE_MOVABLE......
->>
->> 	zone = page_zone(pfn_to_page(pfn));
->>
->> 	/* Here, the page will be put into the zone which it belong to last
->> time. */
->
-> To be honest, it wasn't entirely clear to me that online_pages() would do the
-> same thing as last time by default.  Suppose, for example, that the previous
-> online_type was ONLINE_MOVABLE.  How online_pages() is supposed to know that
-> it should do the move_pfn_zone_right() if we don't tell it to do that?  Or
-> is that unnecessary, because it's already been done previously?
+--J/dobhs11T7y2rNN
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-Yes, it is unnecessary. move_pfn_zone_right/left() will modify the zone 
-related
-bits in page->flags. But when the page is offline, the zone related bits in
-page->flags will not change. So when it is online again, by dafault, it 
-will
-be in the zone which it was in last time.
+On Tue, May 21, 2013 at 08:19:16PM +0000, Luck, Tony wrote:
+> Date: Tue, 21 May 2013 20:19:16 +0000
+> From: "Luck, Tony" <tony.luck@intel.com>
+> To: Chen Gong <gong.chen@linux.intel.com>, "bp@alien8.de" <bp@alien8.de>
+> CC: "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
+> Subject: RE: [PATCH 1/2 V2] ACPI/APEI: Add parameter check before error
+>  injection
+>=20
+> +	/* ensure param1/param2 existed */
+> +	if (!(param_extension || acpi5))
+> +		goto inject;
+> +
+> +	/* ensure injection is memory related */
+> +	if (type & ACPI5_VENDOR_BIT) {
+> +		if (vendor_flags !=3D SETWA_FLAGS_MEM)
+> +			goto inject;
+> +	} else if (!(type & MEM_ERROR_MASK))
+> +		goto inject;
+>=20
+> Maybe a comment before all these three goto blocks saying why we are jump=
+ing
+> around.  Perhaps:
+>=20
+> 	/* We need extra sanity checks for memory errors. Other types leap direc=
+tly to injection */
+>=20
+Thanks, this comment is great.
 
-......
+> +
+> +	/*
+> +	 * When error injection type is memory related, param2 is the address
+> +	 * mask of param1. This mask is used to ensure that the final address
+> +	 * (param1 & param2) is meaningful. If param2 has a *weird* style
+> +	 * like 0xf0f0f0f0f0f0f0f0, it means the injection address can be
+> +	 * anywhere around param1, and that must be forbidden. In that reason,
+> +	 * PAGE_MASK is employed to avoid injection address discontinuous.
+> +	 * If one finds a special case not to satisfy this requirement, please
+> +	 * fix it.
+> +	 */
+> +	pfn =3D PFN_DOWN(param1 & param2);
+> +	if (!page_is_ram(pfn) || ((param2 & PAGE_MASK) !=3D PAGE_MASK))
+> +		return -EINVAL;
+>=20
+> This has too much comment (rare!) and is still too complicated. Split the=
+ tests apart?
 
->>
->> I just thought of it. Maybe I missed something in your design. Please tell
->> me if I'm wrong.
->
-> Well, so what should be passed to __memory_block_change_state() in
-> memory_subsys_online()?  -1?
+Your comment is great to me. Boris ever mentioned that
+"(param2 & PAGE_MASK) !=3D PAGE_MASK)" is not usual, most of situations are
+like "(param2 & PAGE_MASK) !=3D param2). So he wants here I can give a clear
+explanation for it. Maybe I can move my explanation into patch description.
 
-If you want to keep the last time status, you can pass ONLINE_KEEP.
-Or -1 is all right.
+>=20
+> 	/*
+> 	 * Disallow crazy address masks that give BIOS leeway to pick injection =
+address
+> 	 * almost anywhere. Insist on page or better granularity
+> 	 */
+> 	if ((param2 & PAGE_MASK) !=3D PAGE_MASK)
+> 		return -EINVAL;
+>=20
+> 	/* make sure target address is normal memory */
+> 	pfn =3D PFN_DOWN(param1 & param2);
+> 	if (!page_is_ram(pfn))
+> 		return -EINVAL;
+>=20
 
-Thanks. :)
+--J/dobhs11T7y2rNN
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
 
->
->> Reviewed-by: Tang Chen<tangchen@cn.fujitsu.com>
->>
->> Thanks. :)
->
-> Thanks for your comments,
-> Rafael
->
->
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.12 (GNU/Linux)
 
---
-To unsubscribe, send a message with 'unsubscribe linux-mm' in
-the body to majordomo@kvack.org.  For more info on Linux MM,
-see: http://www.linux-mm.org/ .
-Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
+iQIcBAEBAgAGBQJRnGFVAAoJEI01n1+kOSLHQFoP/2hEuDgSCguS0tY5/zmjyd8j
+SlKOIBzVISxr4RntBu14MTdM6Tzmp0lVovaGBkx30CYg7OFASOopSSFyFCCbMoVp
+mDi/1fLD5hIWbxQOtaGbe/ysbmMzhxQA/Jiq4ChQCvsl0tFeH8YHiDPu1r6HmnS9
+4Da7hL0NCWyhXClx5xRjZNswZ2Zc4CKbZtJWDL9yqG1xpf2D57a48gYfj6xiiPZs
+WQh63tZc4QPdzEgc9vQzv/QRNe+e5XAaFhvsm+WOVMJ2VDyFo5tc3hpcCa94+hp9
+2Lj+hdf4TKmZobZve9DBwqsqEMrD96+kbcGNjav8ksCJCwlDVKlQl9IFP9fs6QRT
+EHB0+5izZUMPnqjfeGwEfY1VyIBk56+HCxbdETOR4ca5oEez5+UuSdlnockZ5qyy
+NHHwFoWPTFdAcSYrvXLp5DAO0A+hg4TnFwkwVQaKaS1aFkwhHxzeM9QmCRMeAc2I
+c1/BF1GhcMFwBqyf8FtQib2pBM1fdVQ6rydHiKD+z5kd0IqHkclSGrf0YEZwAAjg
+xm6Gq2opOcCYBtC+n7ojtuFsHpUQ3ZgfMJqZ7v/DqRVAnqqQuLjzkkkLuu6VbIFh
+9yZBXLRrvN9KVBrhdiozcIffZJvNurO/+kZ3Q65r68D+1FVKO6tTvX3+sflfPvvR
+9XypcoJcUG5yJpvonqQs
+=a0Sh
+-----END PGP SIGNATURE-----
+
+--J/dobhs11T7y2rNN--
