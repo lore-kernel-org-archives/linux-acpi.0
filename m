@@ -1,100 +1,88 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: [PATCH 2/2 v2, RFC] Driver core: Introduce offline/online callbacks for memory blocks
-Date: Wed, 22 May 2013 12:42:50 +0200
-Message-ID: <2525744.qpOuRMa9WS@vostro.rjw.lan>
-References: <1576321.HU0tZ4cGWk@vostro.rjw.lan> <1824290.fKsAJTo9gA@vostro.rjw.lan> <519C4D6E.6080902@cn.fujitsu.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7Bit
-Return-path: <owner-linux-mm@kvack.org>
-In-Reply-To: <519C4D6E.6080902@cn.fujitsu.com>
-Sender: owner-linux-mm@kvack.org
-To: Tang Chen <tangchen@cn.fujitsu.com>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Toshi Kani <toshi.kani@hp.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>, isimatu.yasuaki@jp.fujitsu.com, vasilis.liaskovitis@profitbricks.com, Len Brown <lenb@kernel.org>, linux-mm@kvack.org
+From: Jiri Slaby <jslaby@suse.cz>
+Subject: [PATCH -resend 5/6] acpi: ec_sys: access user space with get_user()/put_user()
+Date: Wed, 22 May 2013 14:59:11 +0200
+Message-ID: <1369227552-11743-5-git-send-email-jslaby@suse.cz>
+References: <1369227552-11743-1-git-send-email-jslaby@suse.cz>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1369227552-11743-1-git-send-email-jslaby@suse.cz>
+Sender: linux-kernel-owner@vger.kernel.org
+To: jirislaby@gmail.com
+Cc: akpm@linux-foundation.org, linux-kernel@vger.kernel.org, Vasiliy Kulikov <segooon@gmail.com>, Thomas Renninger <trenn@suse.de>, Jiri Slaby <jslaby@suse.cz>, Len Brown <lenb@kernel.org>, "Rafael J. Wysocki" <rjw@sisk.pl>, linux-acpi@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Wednesday, May 22, 2013 12:45:34 PM Tang Chen wrote:
-> Hi Rafael,
-> 
-> On 05/21/2013 07:15 PM, Rafael J. Wysocki wrote:
-> ......
-> >>> +		mem->state = to_state;
-> >>> +		if (to_state == MEM_ONLINE)
-> >>> +			mem->last_online = online_type;
-> >>
-> >> Why do we need to remember last online type ?
-> >>
-> >> And as far as I know, we can obtain which zone a page was in last time it
-> >> was onlined by check page->flags, just like online_pages() does. If we
-> >> use online_kernel or online_movable, the zone boundary will be
-> >> recalculated.
-> >> So we don't need to remember the last online type.
-> >>
-> >> Seeing from your patch, I guess memory_subsys_online() can only handle
-> >> online and offline. So mem->last_online is used to remember what user has
-> >> done through the original way to trigger memory hot-remove, right ? And
-> >> when
-> >> user does it in this new way, it just does the same thing as user does last
-> >> time.
-> >>
-> >> But I still think we don't need to remember it because if finally you call
-> >> online_pages(), it just does the same thing as last time by default.
-> >>
-> >> online_pages()
-> >> {
-> >> 	......
-> >> 	if (online_type == ONLINE_KERNEL ......
-> >>
-> >> 	if (online_type == ONLINE_MOVABLE......
-> >>
-> >> 	zone = page_zone(pfn_to_page(pfn));
-> >>
-> >> 	/* Here, the page will be put into the zone which it belong to last
-> >> time. */
-> >
-> > To be honest, it wasn't entirely clear to me that online_pages() would do the
-> > same thing as last time by default.  Suppose, for example, that the previous
-> > online_type was ONLINE_MOVABLE.  How online_pages() is supposed to know that
-> > it should do the move_pfn_zone_right() if we don't tell it to do that?  Or
-> > is that unnecessary, because it's already been done previously?
-> 
-> Yes, it is unnecessary. move_pfn_zone_right/left() will modify the zone 
-> related
-> bits in page->flags. But when the page is offline, the zone related bits in
-> page->flags will not change. So when it is online again, by dafault, it 
-> will
-> be in the zone which it was in last time.
-> 
-> ......
-> 
-> >>
-> >> I just thought of it. Maybe I missed something in your design. Please tell
-> >> me if I'm wrong.
-> >
-> > Well, so what should be passed to __memory_block_change_state() in
-> > memory_subsys_online()?  -1?
-> 
-> If you want to keep the last time status, you can pass ONLINE_KEEP.
-> Or -1 is all right.
-> 
-> Thanks. :)
+From: Vasiliy Kulikov <segooon@gmail.com>
 
-OK, thanks for the info.
+User space pointer may not be dereferenced. Use get_user()/put_user()
+instead and check their return codes.
 
-Since the $subject patch is on my acpi-hotplug branch which has gone public
-already (and cannot be rebased), I'll prepare a patch with the change you're
-recommending on top of it.
+Signed-off-by: Vasiliy Kulikov <segooon@gmail.com>
+Signed-off-by: Thomas Renninger <trenn@suse.de>
+Signed-off-by: Jiri Slaby <jslaby@suse.cz>
+Cc: Len Brown <lenb@kernel.org>
+Cc: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: linux-acpi@vger.kernel.org
+---
+ drivers/acpi/ec_sys.c | 18 ++++++++++++++----
+ 1 file changed, 14 insertions(+), 4 deletions(-)
 
-Thanks,
-Rafael
-
-
+diff --git a/drivers/acpi/ec_sys.c b/drivers/acpi/ec_sys.c
+index 7586544..4e7b798 100644
+--- a/drivers/acpi/ec_sys.c
++++ b/drivers/acpi/ec_sys.c
+@@ -12,6 +12,7 @@
+ #include <linux/acpi.h>
+ #include <linux/debugfs.h>
+ #include <linux/module.h>
++#include <linux/uaccess.h>
+ #include "internal.h"
+ 
+ MODULE_AUTHOR("Thomas Renninger <trenn@suse.de>");
+@@ -34,7 +35,6 @@ static ssize_t acpi_ec_read_io(struct file *f, char __user *buf,
+ 	 * struct acpi_ec *ec = ((struct seq_file *)f->private_data)->private;
+ 	 */
+ 	unsigned int size = EC_SPACE_SIZE;
+-	u8 *data = (u8 *) buf;
+ 	loff_t init_off = *off;
+ 	int err = 0;
+ 
+@@ -47,9 +47,15 @@ static ssize_t acpi_ec_read_io(struct file *f, char __user *buf,
+ 		size = count;
+ 
+ 	while (size) {
+-		err = ec_read(*off, &data[*off - init_off]);
++		u8 byte_read;
++		err = ec_read(*off, &byte_read);
+ 		if (err)
+ 			return err;
++		if (put_user(byte_read, buf + *off - init_off)) {
++			if (*off - init_off)
++				return *off - init_off; /* partial read */
++			return -EFAULT;
++		}
+ 		*off += 1;
+ 		size--;
+ 	}
+@@ -65,7 +71,6 @@ static ssize_t acpi_ec_write_io(struct file *f, const char __user *buf,
+ 
+ 	unsigned int size = count;
+ 	loff_t init_off = *off;
+-	u8 *data = (u8 *) buf;
+ 	int err = 0;
+ 
+ 	if (*off >= EC_SPACE_SIZE)
+@@ -76,7 +81,12 @@ static ssize_t acpi_ec_write_io(struct file *f, const char __user *buf,
+ 	}
+ 
+ 	while (size) {
+-		u8 byte_write = data[*off - init_off];
++		u8 byte_write;
++		if (get_user(byte_write, buf + *off - init_off)) {
++			if (*off - init_off)
++				return *off - init_off; /* partial write */
++			return -EFAULT;
++		}
+ 		err = ec_write(*off, byte_write);
+ 		if (err)
+ 			return err;
 -- 
-I speak only for myself.
-Rafael J. Wysocki, Intel Open Source Technology Center.
-
---
-To unsubscribe, send a message with 'unsubscribe linux-mm' in
-the body to majordomo@kvack.org.  For more info on Linux MM,
-see: http://www.linux-mm.org/ .
-Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
+1.8.2.3
