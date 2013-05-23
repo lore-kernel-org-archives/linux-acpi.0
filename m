@@ -1,63 +1,77 @@
-From: Vinod Koul <vinod.koul@intel.com>
-Subject: Re: [PATCH v3 0/2] dma: support Lynxpoint DMA
-Date: Thu, 23 May 2013 21:52:12 +0530
-Message-ID: <20130523162212.GJ30200@intel.com>
-References: <1368003349-12204-1-git-send-email-andriy.shevchenko@linux.intel.com>
- <20130514045423.GC27639@intel.com>
- <1369128579.29283.139.camel@smile>
- <20130523101919.GB30200@intel.com>
- <CAHp75Vctb1kR8gUQk0vu8scsgjBtZUq9DS0NQ+zVOPAobG0QOw@mail.gmail.com>
- <20130523112504.GF11878@intel.com>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: Re: [PATCH] ACPI:add _STA evaluating at do_acpi_find_child()
+Date: Fri, 24 May 2013 00:00:16 +0200
+Message-ID: <1904822.ijPZMuCUgG@vostro.rjw.lan>
+References: <1369135173-4457-1-git-send-email-jeff.wu@amd.com> <2230710.zxq3zIVHyr@vostro.rjw.lan> <CAOLK0pxMgxBA8rwMTDXxZYq6uX6zpBXOpCPK=jpAwEybbV5yOQ@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7Bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga03.intel.com ([143.182.124.21]:50277 "EHLO mga03.intel.com"
+Received: from hydra.sisk.pl ([212.160.235.94]:48130 "EHLO hydra.sisk.pl"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1757631Ab3EWQ7I (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 23 May 2013 12:59:08 -0400
-Content-Disposition: inline
-In-Reply-To: <20130523112504.GF11878@intel.com>
+	id S1759458Ab3EWVve (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 23 May 2013 17:51:34 -0400
+In-Reply-To: <CAOLK0pxMgxBA8rwMTDXxZYq6uX6zpBXOpCPK=jpAwEybbV5yOQ@mail.gmail.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Mika Westerberg <mika.westerberg@intel.com>
-Cc: Andy Shevchenko <andy.shevchenko@gmail.com>, Andy Shevchenko <andriy.shevchenko@linux.jf.intel.com>, "Rafael J . Wysocki" <rafael.j.wysocki@intel.com>, Mika Westerberg <mika.westerberg@linux.jf.intel.com>, Viresh Kumar <viresh.kumar@linaro.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, spear-devel <spear-devel@list.st.com>, linux-acpi@vger.kernel.org
+To: Lan Tianyu <lantianyu1986@gmail.com>
+Cc: Jeff Wu <zlinuxkernel@gmail.com>, linux-acpi@vger.kernel.org, Len Brown <lenb@kernel.org>, lekensteyn@gmail.com, Sergio Perez <dagobertstaler@gmail.com>, shane.huang@amd.com, Aaron Lu <aaron.lwe@gmail.com>
 
-On Thu, May 23, 2013 at 02:25:05PM +0300, Mika Westerberg wrote:
-> On Thu, May 23, 2013 at 02:07:54PM +0300, Andy Shevchenko wrote:
-> > On Thu, May 23, 2013 at 1:19 PM, Vinod Koul <vinod.koul@intel.com> wrote:
-> > > On Tue, May 21, 2013 at 12:29:39PM +0300, Andy Shevchenko wrote:
-> > >> On Tue, 2013-05-14 at 10:24 +0530, Vinod Koul wrote:
-> > >> > On Wed, May 08, 2013 at 11:55:47AM +0300, Andy Shevchenko wrote:
-> > >> > > This is the rest of patch series related to ACPI DMA helpers and Lynxpoint DMAC.
-> > >> > > Patches are rebased against current Linus' tree and Vinod's branch for-linus.
-> > >> > >
-> > >> > > Since v2:
-> > >> > >  - remove patches that are already in the Vinod's tree
-> > >> > >  - rebase on top of today's origin/master and Vinod's for-linus branch
-> > >> > >  - fix description in patch 2/2
-> > >> > Applied both, Thanks
-> > >>
-> > >> Thank you for applying them to next.
-> > >>
-> > >> I'm just wondering if you are going to send pull request soon to get
-> > >> them in the v3.10-rcX.
-> > > Nope these are in next & would show up in Linus's tree in next merge window.
-> > > Something which is not a bug fix doesnt get merged in rc's. You should know the
-> > > process
-> > 
-> > Hmm... Now we have a situation when v3.9.x has support of Lynxpoint
-> > DMA, v3.10-rc2 has it broken.
-How does it work in 3.9 and not in 3.10?
+On Thursday, May 23, 2013 08:56:32 PM Lan Tianyu wrote:
+> 2013/5/23 Rafael J. Wysocki <rjw@sisk.pl>:
+> > On Wednesday, May 22, 2013 03:42:04 PM Jeff Wu wrote:
+> >> 2013/5/22 Lan Tianyu <lantianyu1986@gmail.com>:
+> >> > 2013/5/22 Jeff Wu <zlinuxkernel@gmail.com>:
+> >> >> 2013/5/21 Lan Tianyu <lantianyu1986@gmail.com>:
+> >> >>>> From: Jeff Wu <zlinuxkernel@gmail.com>
+> >> >>> Will this affect other devices? Since the device maybe disabled during
+> >> >>> do binding with ACPI.
+> >> >>> After some operations, the device would be enabled.
+> >> >> At our platforms, DEV1 use for win8,DEV2 use for win7,DEV1 use for Linux.
+> >> >> If these devices are disabled when do init, they will always be
+> >> >> disabled ,so, work fine.
+> >> >>
+> >> >> At some of the platforms, the devices may be disabled during do the
+> >> >> first binding ,if their status are changed,do they not do re-binding ?
+> >> > Currently, the glue binding operation takes place when the device  is
+> >> > created. In my mind, there is no re-binding operation after the device being
+> >> > created, Unless the device being removed and created again.
+> >> Thank you very much.
+> >> So, as your suggestion, it is a better solution to add a new function
+> >> for the same _ADR devices,
+> >
+> > I don't really think this is a good idea, because then it won't be clear when
+> > to use which version.
+> Ok. How about make them as one function?.
+> New function will return all the children's handle with same _ADR and the number
+> of children. The caller should check the number. If the number is 1 and then
+> do eveything that now have done. If the number is larger than 1. It should
+> select one according their strategy.
 
-> > As far as I remember our discussion [1]  we agreed to wait for
-> > v3.10-rc1 due to merge of linux-pm patches.
-Yes I applied these. BUT that does not mean they will get merged to Linus as
-this is not a fix. Which part is not obvious here. This is _the_ process.
+Why do you think that the callers may have different strategies?  They are
+subsystems, not drivers.
 
-> Yes, and we need that stuff for BayTrail support as well. Currently Rafael
-> is waiting these patches so that he can then merge [1].
-I can keep these in a topic/branch which wont eb rebased. So Rafael can merge
-the other dependecies. Let me know if you would like that.
+> There is another such issue. In this case, the first child should be selected.
+> http://www.spinics.net/lists/linux-acpi/msg39739.html
 
---
-~Vinod
+No, that's about something different.
+
+Thanks,
+Rafael
+
+
+> > Your patch kind of makes sense (although we don't need to initialize both
+> > local variables to 0), but the Tianyu's concern is valid in principle either.
+> >
+> > Perhaps it would be better to make do_acpi_find_child() return the disabled
+> > device if its the only one matching or the first enabled matching device
+> > otherwise?
+> >
+> > Rafael
+> >
+> >
+> 
+> 
+-- 
+I speak only for myself.
+Rafael J. Wysocki, Intel Open Source Technology Center.
