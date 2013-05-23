@@ -1,102 +1,47 @@
-From: Mika Westerberg <mika.westerberg@linux.intel.com>
-Subject: [PATCH v3] ACPI: implement acpi_os_get_timer() according the spec
-Date: Thu, 23 May 2013 10:27:46 +0300
-Message-ID: <1369294066-22449-1-git-send-email-mika.westerberg@linux.intel.com>
-References: <1369049282-18550-1-git-send-email-mika.westerberg@linux.intel.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1369049282-18550-1-git-send-email-mika.westerberg@linux.intel.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: linux-kernel@vger.kernel.org
-Cc: "Rafael J. Wysocki" <rjw@sisk.pl>, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, Mika Westerberg <mika.westerberg@linux.intel.com>
+From: Vinod Koul <vinod.koul@intel.com>
+Subject: Re: [PATCH v3 0/2] dma: support Lynxpoint DMA
+Date: Thu, 23 May 2013 15:49:19 +0530
+Message-ID: <20130523101919.GB30200@intel.com>
+References: <1368003349-12204-1-git-send-email-andriy.shevchenko@linux.intel.com>
+ <20130514045423.GC27639@intel.com>
+ <1369128579.29283.139.camel@smile>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mga09.intel.com ([134.134.136.24]:40201 "EHLO mga09.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1758125Ab3EWKzr (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 23 May 2013 06:55:47 -0400
+Content-Disposition: inline
+In-Reply-To: <1369128579.29283.139.camel@smile>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+Cc: Andy Shevchenko <andriy.shevchenko@linux.jf.intel.com>, "Rafael J . Wysocki" <rafael.j.wysocki@intel.com>, Mika Westerberg <mika.westerberg@linux.jf.intel.com>, Viresh Kumar <viresh.kumar@linaro.org>, linux-kernel@vger.kernel.org, spear-devel <spear-devel@list.st.com>, linux-acpi@vger.kernel.org
 
-ACPI Timer() opcode should return monotonically increasing clock with 100ns
-granularity according the ACPI 5.0 spec.
+On Tue, May 21, 2013 at 12:29:39PM +0300, Andy Shevchenko wrote:
+> On Tue, 2013-05-14 at 10:24 +0530, Vinod Koul wrote: 
+> > On Wed, May 08, 2013 at 11:55:47AM +0300, Andy Shevchenko wrote:
+> > > This is the rest of patch series related to ACPI DMA helpers and Lynxpoint DMAC.
+> > > Patches are rebased against current Linus' tree and Vinod's branch for-linus.
+> > > 
+> > > Since v2:
+> > >  - remove patches that are already in the Vinod's tree
+> > >  - rebase on top of today's origin/master and Vinod's for-linus branch
+> > >  - fix description in patch 2/2
+> > Applied both, Thanks
+> 
+> Thank you for applying them to next.
+> 
+> I'm just wondering if you are going to send pull request soon to get
+> them in the v3.10-rcX.
+Nope these are in next & would show up in Linus's tree in next merge window.
+Something which is not a bug fix doesnt get merged in rc's. You should know the
+process
+> 
+> Besides those two are really needed to support Haswell properly, there
+> are people who are waiting for those patches, because patches touch ACPI
+> subsystem.
+well distro's should cherry-pick the patch, this is fairly common way to do so
 
-Testing the current Timer() implementation with following ASL code (and an
-additional debug print in acpi_os_sleep() to get the sleep times dumped out
-to dmesg):
-
-	// Test: 10ms
-	Store(Timer, Local1)
-	Sleep(10)
-	Divide(Subtract(Timer, Local1), 10000,, Local1)
-	Sleep(Local1)
-
-	// Test: 200ms
-	Store(Timer, Local1)
-	Sleep(200)
-	Divide(Subtract(Timer, Local1), 10000,, Local1)
-	Sleep(Local1)
-
-	// Test 1300ms
-	Store(Timer, Local1)
-	Sleep(1300)
-	Divide(Subtract(Timer, Local1), 10000,, Local1)
-	Sleep(Local1)
-
-The second sleep value is calculated using Timer(). If the implementation
-is good enough we should be able to get the second value pretty close to
-the first.
-
-However, the current Timer() gives pretty bad sleep times:
-
-	[   11.488100] ACPI: acpi_os_get_timer() TBD
-	[   11.492150] ACPI: Sleep(10)
-	[   11.502993] ACPI: Sleep(0)
-	[   11.506315] ACPI: Sleep(200)
-	[   11.706237] ACPI: Sleep(0)
-	[   11.709550] ACPI: Sleep(1300)
-	[   13.008929] ACPI: Sleep(0)
-
-Fix this with the help of ktime_get(). Once the fix is applied and run
-against the same ASL code we get:
-
-	[   11.486786] ACPI: Sleep(10)
-	[   11.499029] ACPI: Sleep(12)
-	[   11.512350] ACPI: Sleep(200)
-	[   11.712282] ACPI: Sleep(200)
-	[   11.912170] ACPI: Sleep(1300)
-	[   13.211577] ACPI: Sleep(1300)
-
-That is much more closer to the values we expected.
-
-Signed-off-by: Mika Westerberg <mika.westerberg@linux.intel.com>
----
-Difference to the previous version is that now we use do_div() instead so
-that i386 build won't break. This was found by kbuild test robot.
-
-In addition I tested this on both i386 and x86_64.
-
- drivers/acpi/osl.c |   16 +++-------------
- 1 file changed, 3 insertions(+), 13 deletions(-)
-
-diff --git a/drivers/acpi/osl.c b/drivers/acpi/osl.c
-index e721863..c290769 100644
---- a/drivers/acpi/osl.c
-+++ b/drivers/acpi/osl.c
-@@ -835,19 +835,9 @@ void acpi_os_stall(u32 us)
-  */
- u64 acpi_os_get_timer(void)
- {
--	static u64 t;
--
--#ifdef	CONFIG_HPET
--	/* TBD: use HPET if available */
--#endif
--
--#ifdef	CONFIG_X86_PM_TIMER
--	/* TBD: default to PM timer if HPET was not available */
--#endif
--	if (!t)
--		printk(KERN_ERR PREFIX "acpi_os_get_timer() TBD\n");
--
--	return ++t;
-+	u64 time_ns = ktime_to_ns(ktime_get());
-+	do_div(time_ns, 100);
-+	return time_ns;
- }
- 
- acpi_status acpi_os_read_port(acpi_io_address port, u32 * value, u32 width)
--- 
-1.7.10.4
+--
+~Vinod
