@@ -1,79 +1,147 @@
-From: li guang <lig.fnst@cn.fujitsu.com>
-Subject: Re: [rebased-again][PATCH 0/4] acpi: do some changes for numa info
-Date: Thu, 23 May 2013 08:25:01 +0800
-Message-ID: <1369268701.5142.156.camel@liguang.fnst.cn.fujitsu.com>
-References: <1361759917-5195-1-git-send-email-lig.fnst@cn.fujitsu.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+From: Chen Gong <gong.chen@linux.intel.com>
+Subject: [PATCH 1/2 V3] ACPI/APEI: Add parameter check before error injection
+Date: Wed, 22 May 2013 22:32:02 -0400
+Message-ID: <1369276323-31436-2-git-send-email-gong.chen@linux.intel.com>
+References: <1369276323-31436-1-git-send-email-gong.chen@linux.intel.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cn.fujitsu.com ([222.73.24.84]:53211 "EHLO song.cn.fujitsu.com"
-	rhost-flags-OK-FAIL-OK-OK) by vger.kernel.org with ESMTP
-	id S1751457Ab3EWAZK convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 22 May 2013 20:25:10 -0400
-In-Reply-To: <1361759917-5195-1-git-send-email-lig.fnst@cn.fujitsu.com>
+Received: from mga09.intel.com ([134.134.136.24]:58050 "EHLO mga09.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756806Ab3EWCiq (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 22 May 2013 22:38:46 -0400
+In-Reply-To: <1369276323-31436-1-git-send-email-gong.chen@linux.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: tglx@linutronix.de
-Cc: hpa@zytor.com, pavel@ucw.cz, rjw@sisk.pl, lv.zheng@intel.com, jarkko.sakkinen@intel.com, dave@linux.vnet.ibm.com, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, x86@kernel.org
+To: tony.luck@intel.com, bp@alien8.de
+Cc: linux-acpi@vger.kernel.org, Chen Gong <gong.chen@linux.intel.com>
 
-ping ...
+When param1 is enabled in EINJ but not assigned with a valid
+value, sometimes it will cause the error like below:
 
-again.
+APEI: Can not request [mem 0x7aaa7000-0x7aaa7007] for APEI EINJ Trigger
+registers
 
-=E5=9C=A8 2013-02-25=E4=B8=80=E7=9A=84 10:38 +0800=EF=BC=8Cliguang=E5=86=
-=99=E9=81=93=EF=BC=9A
-> just do some trivial changes to make acpi's numa info
-> operation more cleaner.
->=20
-> ChangeLog
->=20
-> v3->v4
->  1.fix srat_disabled function
->  spotted by Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
->=20
-> v2->v3
->  1. rebase on linux-next
->  2. bring back lost Makefile changes
->  spotted by David Rientjes <rientjes@google.com>
->  spotted by Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
->=20
-> v1->v2
->  1. fix-up several coding issues
->  2. finish srat.c change
->  spotted by David Rientjes <rientjes@google.com>
->=20
-> Li Guang (4)
-> 	 acpi: move x86/mm/srat.c to x86/kernel/acpi/srat.c
-> 	 numa: avoid export acpi_numa variable
-> 	 acpi: add clock_domain field to acpi_srat_cpu_affinity
-> 	 remove include asm/acpi.h in process_driver.c
->=20
-> arch/x86/include/asm/acpi.h     | 2 +-
-> arch/x86/kernel/acpi/Makefile   | 1 +
-> arch/x86/kernel/acpi/srat.c     | 299 +++++++++++++++++++++++++++++++=
-++++++++++
-> arch/x86/mm/Makefile            | 1 -
-> arch/x86/mm/numa.c              | 2 +-
-> arch/x86/mm/srat.c              | 278 -------------------------------=
-----------
-> arch/x86/xen/enlighten.c        | 2 +-
-> drivers/acpi/processor_driver.c | 1 -
-> include/acpi/actbl1.h           | 2 +-
-> 9 files changed, 296 insertions(+), 292 deletions(-)
->  create mode 100644 arch/x86/kernel/acpi/srat.c
->  delete mode 100644 arch/x86/mm/srat.c
-> =20
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-kerne=
-l" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> Please read the FAQ at  http://www.tux.org/lkml/
+It is because some firmware will access target address specified in
+param1 to trigger the error when injecting memory error. This will
+cause resource conflict with regular memory. So It must be removed
+from trigger table resources, but incorrect param1/param2
+combination will stop this action. Add extra check to avoid
+this kind of error.
 
+v3 -> v2: update comments suggested by Tony Luck
+v2 -> v1: update redundant logic following the suggestion from Boris
 
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Signed-off-by: Chen Gong <gong.chen@linux.intel.com>
+---
+ drivers/acpi/apei/einj.c |   44 +++++++++++++++++++++++++++++++++++++++++---
+ kernel/resource.c        |    1 +
+ 2 files changed, 42 insertions(+), 3 deletions(-)
+
+diff --git a/drivers/acpi/apei/einj.c b/drivers/acpi/apei/einj.c
+index 8d457b5..9a47d85 100644
+--- a/drivers/acpi/apei/einj.c
++++ b/drivers/acpi/apei/einj.c
+@@ -32,6 +32,7 @@
+ #include <linux/seq_file.h>
+ #include <linux/nmi.h>
+ #include <linux/delay.h>
++#include <linux/mm.h>
+ #include <acpi/acpi.h>
+ 
+ #include "apei-internal.h"
+@@ -41,6 +42,10 @@
+ #define SPIN_UNIT		100			/* 100ns */
+ /* Firmware should respond within 1 milliseconds */
+ #define FIRMWARE_TIMEOUT	(1 * NSEC_PER_MSEC)
++#define ACPI5_VENDOR_BIT	BIT(31)
++#define MEM_ERROR_MASK		(ACPI_EINJ_MEMORY_CORRECTABLE | \
++				ACPI_EINJ_MEMORY_UNCORRECTABLE | \
++				ACPI_EINJ_MEMORY_FATAL)
+ 
+ /*
+  * ACPI version 5 provides a SET_ERROR_TYPE_WITH_ADDRESS action.
+@@ -367,7 +372,7 @@ static int __einj_error_trigger(u64 trigger_paddr, u32 type,
+ 	 * This will cause resource conflict with regular memory.  So
+ 	 * remove it from trigger table resources.
+ 	 */
+-	if ((param_extension || acpi5) && (type & 0x0038) && param2) {
++	if ((param_extension || acpi5) && (type & MEM_ERROR_MASK) && param2) {
+ 		struct apei_resources addr_resources;
+ 		apei_resources_init(&addr_resources);
+ 		trigger_param_region = einj_get_trigger_parameter_region(
+@@ -427,7 +432,7 @@ static int __einj_error_inject(u32 type, u64 param1, u64 param2)
+ 		struct set_error_type_with_address *v5param = einj_param;
+ 
+ 		v5param->type = type;
+-		if (type & 0x80000000) {
++		if (type & ACPI5_VENDOR_BIT) {
+ 			switch (vendor_flags) {
+ 			case SETWA_FLAGS_APICID:
+ 				v5param->apicid = param1;
+@@ -509,10 +514,43 @@ static int __einj_error_inject(u32 type, u64 param1, u64 param2)
+ }
+ 
+ /* Inject the specified hardware error */
++
++/*
++ * When injection type is memory related, the param1/param2 should
++ * be check carefully. Especially if param2 is non-page-aligned
++ * like 0xf0f0f0f0f0f0f0f0, that must be strictly forbidden.
++ */
+ static int einj_error_inject(u32 type, u64 param1, u64 param2)
+ {
+ 	int rc;
++	unsigned long pfn;
++
++	/*
++	 * We need extra sanity checks for memory errors.
++	 * Other types leap directly to injection.
++	 */
++
++	/* ensure param1/param2 existed */
++	if (!(param_extension || acpi5))
++		goto inject;
++
++	/* ensure injection is memory related */
++	if (type & ACPI5_VENDOR_BIT) {
++		if (vendor_flags != SETWA_FLAGS_MEM)
++			goto inject;
++	} else if (!(type & MEM_ERROR_MASK))
++		goto inject;
++
++	/*
++	 * Disallow crazy address masks that give BIOS leeway to pick
++	 * injection address almost anywhere. Insist on page or
++	 * better granularity.
++	 */
++	pfn = PFN_DOWN(param1 & param2);
++	if (!page_is_ram(pfn) || ((param2 & PAGE_MASK) != PAGE_MASK))
++		return -EINVAL;
+ 
++inject:
+ 	mutex_lock(&einj_mutex);
+ 	rc = __einj_error_inject(type, param1, param2);
+ 	mutex_unlock(&einj_mutex);
+@@ -590,7 +628,7 @@ static int error_type_set(void *data, u64 val)
+ 	 * Vendor defined types have 0x80000000 bit set, and
+ 	 * are not enumerated by ACPI_EINJ_GET_ERROR_TYPE
+ 	 */
+-	vendor = val & 0x80000000;
++	vendor = val & ACPI5_VENDOR_BIT;
+ 	tval = val & 0x7fffffff;
+ 
+ 	/* Only one error type can be specified */
+diff --git a/kernel/resource.c b/kernel/resource.c
+index d738698..77bf11a 100644
+--- a/kernel/resource.c
++++ b/kernel/resource.c
+@@ -409,6 +409,7 @@ int __weak page_is_ram(unsigned long pfn)
+ {
+ 	return walk_system_ram_range(pfn, 1, NULL, __is_ram) == 1;
+ }
++EXPORT_SYMBOL_GPL(page_is_ram);
+ 
+ void __weak arch_remove_reservations(struct resource *avail)
+ {
+-- 
+1.7.10.4
+
