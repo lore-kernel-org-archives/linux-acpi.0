@@ -1,113 +1,128 @@
 From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: ACPI v5 sleep registers broken on Toshiba laptops
-Date: Thu, 23 May 2013 02:00:02 +0200
-Message-ID: <4954737.Dk6B3QEe3D@vostro.rjw.lan>
-References: <CAHW-aUcG7kT6uMFwbjUJ4DnvU=c+aj-Z8vaq94Gnt_UbJ6QRjA@mail.gmail.com> <1552539.vmT8XH6Vrv@vostro.rjw.lan> <94F2FBAB4432B54E8AACC7DFDE6C92E36FE780C8@ORSMSX103.amr.corp.intel.com>
+Subject: Re: [PATCH] ACPI:add _STA evaluating at do_acpi_find_child()
+Date: Thu, 23 May 2013 02:06:59 +0200
+Message-ID: <2230710.zxq3zIVHyr@vostro.rjw.lan>
+References: <1369135173-4457-1-git-send-email-jeff.wu@amd.com> <CAOLK0pwfVugT+B8HEKUcEJ72Aqdmj2QMreJrcP1wBwyP+sToaA@mail.gmail.com> <CAPb2CAO9r=etC=JjqpytT3-Z+=gmFCwAa+CC6dh8BkpSgSBXPA@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7Bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from hydra.sisk.pl ([212.160.235.94]:46449 "EHLO hydra.sisk.pl"
+Received: from hydra.sisk.pl ([212.160.235.94]:46459 "EHLO hydra.sisk.pl"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756601Ab3EVXvS (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 22 May 2013 19:51:18 -0400
-In-Reply-To: <94F2FBAB4432B54E8AACC7DFDE6C92E36FE780C8@ORSMSX103.amr.corp.intel.com>
+	id S1754052Ab3EVX6P (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 22 May 2013 19:58:15 -0400
+In-Reply-To: <CAPb2CAO9r=etC=JjqpytT3-Z+=gmFCwAa+CC6dh8BkpSgSBXPA@mail.gmail.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Moore, Robert" <robert.moore@intel.com>
-Cc: Michael Marineau <mike@marineau.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, Len Brown <lenb@kernel.org>, "Zheng, Lv" <lv.zheng@intel.com>
+To: Jeff Wu <zlinuxkernel@gmail.com>
+Cc: Lan Tianyu <lantianyu1986@gmail.com>, linux-acpi@vger.kernel.org, Len Brown <lenb@kernel.org>, lekensteyn@gmail.com, Sergio Perez <dagobertstaler@gmail.com>, shane.huang@amd.com, Aaron Lu <aaron.lwe@gmail.com>
 
-On Wednesday, May 22, 2013 11:35:43 PM Moore, Robert wrote:
-> This should be fixed in ACPICA version 20130518
+On Wednesday, May 22, 2013 03:42:04 PM Jeff Wu wrote:
+> 2013/5/22 Lan Tianyu <lantianyu1986@gmail.com>:
+> > 2013/5/22 Jeff Wu <zlinuxkernel@gmail.com>:
+> >> 2013/5/21 Lan Tianyu <lantianyu1986@gmail.com>:
+> >>>> From: Jeff Wu <zlinuxkernel@gmail.com>
+> >>>>
+> >>>> Once do_acpi_find_child() found the first matching handle, it makes the acpi_get_child()
+> >>>> loop stop and return the matching handle. But, at some of the platforms, a "_ADR" is
+> >>>> with the multiple devices, and if one is enabled, the others will be disabled.
+> >>>> Just like a case:
+> >>>> Address : 0x1FFFF ; handle : SB_PCI0.SATA.DEV0
+> >>>> Address : 0x1FFFF ; handle : SB_PCI0.SATA.DEV1
+> >>>> Address : 0x1FFFF ; handle : SB_PCI0.SATA.DEV2
+> >>>>
+> >>>> If DEV0 and DEV1 are disabled and DEV2 is enabled, the target is to get DEV2 handle, but
+> >>>> actually it always return the first disabled device DEV0 handle. So add a _STA evaluating
+> >>>> at do_acpi_find_child() to check the device status. If the object exists, but it is disabled,
+> >>>> acpi_get_child() will continue looping to get the correct handle that the object exists and
+> >>>> is enabled.
+> >>>>
+> >>>>
+> >>>> Signed-off-by: Jeff Wu <zlinuxkernel@gmail.com>
+> >>>> ---
+> >>>>  drivers/acpi/glue.c | 5 ++++-
+> >>>>  1 file changed, 4 insertions(+), 1 deletion(-)
+> >>>>
+> >>>> diff --git a/drivers/acpi/glue.c b/drivers/acpi/glue.c
+> >>>> index 40a84cc..ace6c2e 100644
+> >>>> --- a/drivers/acpi/glue.c
+> >>>> +++ b/drivers/acpi/glue.c
+> >>>> @@ -81,11 +81,14 @@ static struct acpi_bus_type *acpi_get_bus_type(struct device *dev)
+> >>>>  static acpi_status do_acpi_find_child(acpi_handle handle, u32 lvl_not_used,
+> >>>>                                       void *addr_p, void **ret_p)
+> >>>>  {
+> >>>> -       unsigned long long addr;
+> >>>>         acpi_status status;
+> >>>> +       unsigned long long addr = 0, sta = 0;
+> >>>>
+> >>>>         status = acpi_evaluate_integer(handle, METHOD_NAME__ADR, NULL, &addr);
+> >>>>         if (ACPI_SUCCESS(status) && addr == *((u64 *)addr_p)) {
+> >>>> +               status = acpi_bus_get_status_handle(handle, &sta);
+> >>>> +               if (ACPI_SUCCESS(status) && !(sta & ACPI_STA_DEVICE_ENABLED))
+> >>>> +                       return AE_CTRL_DEPTH;
+> >>> Will this affect other devices? Since the device maybe disabled during
+> >>> do binding with ACPI.
+> >>> After some operations, the device would be enabled.
+> >> At our platforms, DEV1 use for win8,DEV2 use for win7,DEV1 use for Linux.
+> >> If these devices are disabled when do init, they will always be
+> >> disabled ,so, work fine.
+> >>
+> >> At some of the platforms, the devices may be disabled during do the
+> >> first binding ,if their status are changed,do they not do re-binding ?
+> > Currently, the glue binding operation takes place when the device  is
+> > created. In my mind, there is no re-binding operation after the device being
+> > created, Unless the device being removed and created again.
+> Thank you very much.
+> So, as your suggestion, it is a better solution to add a new function
+> for the same _ADR devices,
 
-Since that's not a new regression, that should be fine, but we need to remember
-to mark that patch for inclusion into the -stable kernels.
+I don't really think this is a good idea, because then it won't be clear when
+to use which version.
 
-Thanks,
+Your patch kind of makes sense (although we don't need to initialize both
+local variables to 0), but the Tianyu's concern is valid in principle either.
+
+Perhaps it would be better to make do_acpi_find_child() return the disabled
+device if its the only one matching or the first enabled matching device
+otherwise?
+
 Rafael
 
 
-> > -----Original Message-----
-> > From: Rafael J. Wysocki [mailto:rjw@sisk.pl]
-> > Sent: Wednesday, May 22, 2013 12:37 PM
-> > To: Moore, Robert
-> > Cc: Michael Marineau; linux-acpi@vger.kernel.org; Len Brown; Zheng, Lv
-> > Subject: Re: ACPI v5 sleep registers broken on Toshiba laptops
-> > 
-> > Hi Bob,
-> > 
-> > What do you think about this?
-> > 
-> > Rafael
-> > 
-> > 
-> > On Wednesday, May 22, 2013 09:39:12 AM Michael Marineau wrote:
-> > > Greetings,
-> > >
-> > > On the recently released Toshiba Kirabook and kernels >= 3.4
-> > > suspend/resume only works once. After resume input from things like
-> > > the power button, brightness buttons, lid switch, etc. no longer work
-> > > and the laptop simply hangs when suspended for a second time. This
-> > > appears to also impact other recent Toshiba laptops (although the bug
-> > > claims the hang is during the second resume rather than the second
-> > > suspend as is my case).
-> > > https://bugs.launchpad.net/ubuntu/+source/linux/+bug/1094800
-> > >
-> > > Suspend/resume and all the buttons work just fine on v3.3. I bisected
-> > > the v3.3->v3.4 change (with the help of patching in a kvm clock fix as
-> > > needed) and tracked it down to this commit:
-> > >
-> > > commit 2feec47d4c5f80b05f1650f5a24865718978eea4
-> > > Author: Bob Moore <robert.moore@intel.com>
-> > > Date: Tue Feb 14 15:00:53 2012 +0800
-> > >
-> > >     ACPICA: ACPI 5: Support for new FADT SleepStatus, SleepControl
-> > > registers
-> > >
-> > >     Adds sleep and wake support for systems with these registers.
-> > >     One new file, hwxfsleep.c
-> > >
-> > >     Signed-off-by: Bob Moore <robert.moore@intel.com>
-> > >     Signed-off-by: Len Brown <len.brown@intel.com>
-> > >
-> > > Specifically, when the sleep status/control registeres are detected
-> > > they are used instead of the traditional registers. The failure to
-> > > resume a second time is triggered by this write in the new
-> > > acpi_hw_extended_wake_prep function:
-> > >
-> > >     status = acpi_get_sleep_type_data(ACPI_STATE_S0,
-> > >                       &acpi_gbl_sleep_type_a,
-> > >                       &acpi_gbl_sleep_type_b);
-> > >     if (ACPI_SUCCESS(status)) {
-> > >         sleep_type_value =
-> > >             ((acpi_gbl_sleep_type_a << ACPI_X_SLEEP_TYPE_POSITION) &
-> > >              ACPI_X_SLEEP_TYPE_MASK);
-> > >
-> > >         (void)acpi_write((u64)(sleep_type_value | ACPI_X_SLEEP_ENABLE),
-> > >                  &acpi_gbl_FADT.sleep_control);
-> > >     }
-> > >
-> > > Replacing that write with the corresponding code from
-> > > acpi_hw_legacy_wake_prep while leaving the other acpi_hw_extended_*
-> > > functions alone gets suspend/resume working consistantly. That isn't
-> > > quite enough as events don't seem to get re-enabled so acpi buttons
-> > > and such don't work after resume. Copying the enable power button code
-> > > from acpi_hw_legacy_wake to acpi_hw_extended_wake at least gets the
-> > > power button back but lid, brightness, etc remain dead.
-> > >
-> > > At the moment I've hacked these changes into v3.10.0-rc2 along with
-> > > another hack to fix a video regression and it seems to behave
-> > > reasonably well (minus the brightness keys and lid). I'm not sure what
-> > > the apropriate fix is. Maybe find some way beyond their presence to
-> > > detect if these registers are safe to use or just a device blacklist?
-> > 
-> > 
-> > 
-> > 
+> >>> Hi Rafael:
+> >>>                  How about add a new function
+> >>> "acpi_get_children_with_same_addr" to return a list
+> >>> which contains all these child devices with same _ADR.And then do some
+> >>> special check in the specific
+> >>> bus glue callback. Since these cases are no common.
+> >>>
+> >>>>                 *ret_p = handle;
+> >>>>                 return AE_CTRL_TERMINATE;
+> >>>>         }
+> >>>> --
+> >>>> 1.8.1.2
+> >>>>
+> >>>>
+> >>>> --
+> >>>> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
+> >>>> the body of a message to majordomo@vger.kernel.org
+> >>>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> >>>
+> >>>
+> >>>
+> >>> --
+> >>> Best regards
+> >>> Tianyu Lan
+> >
+> >
+> >
 > > --
-> > I speak only for myself.
-> > Rafael J. Wysocki, Intel Open Source Technology Center.
-> 
+> > Best regards
+> > Tianyu Lan
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 -- 
 I speak only for myself.
 Rafael J. Wysocki, Intel Open Source Technology Center.
