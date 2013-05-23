@@ -1,96 +1,113 @@
-From: "Moore, Robert" <robert.moore@intel.com>
-Subject: RE: ACPI v5 sleep registers broken on Toshiba laptops
-Date: Wed, 22 May 2013 23:36:31 +0000
-Message-ID: <94F2FBAB4432B54E8AACC7DFDE6C92E36FE780E0@ORSMSX103.amr.corp.intel.com>
-References: <CAHW-aUcG7kT6uMFwbjUJ4DnvU=c+aj-Z8vaq94Gnt_UbJ6QRjA@mail.gmail.com>
-	<1552539.vmT8XH6Vrv@vostro.rjw.lan>
- <CAHW-aUcKQ5pe4qsr+qu335-ELccfWh7D=QKsW97Hk9L6g5ZOzQ@mail.gmail.com>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: Re: ACPI v5 sleep registers broken on Toshiba laptops
+Date: Thu, 23 May 2013 02:00:02 +0200
+Message-ID: <4954737.Dk6B3QEe3D@vostro.rjw.lan>
+References: <CAHW-aUcG7kT6uMFwbjUJ4DnvU=c+aj-Z8vaq94Gnt_UbJ6QRjA@mail.gmail.com> <1552539.vmT8XH6Vrv@vostro.rjw.lan> <94F2FBAB4432B54E8AACC7DFDE6C92E36FE780C8@ORSMSX103.amr.corp.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Transfer-Encoding: 7Bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga14.intel.com ([143.182.124.37]:52136 "EHLO mga14.intel.com"
+Received: from hydra.sisk.pl ([212.160.235.94]:46449 "EHLO hydra.sisk.pl"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754549Ab3EVXgw (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 22 May 2013 19:36:52 -0400
-In-Reply-To: <CAHW-aUcKQ5pe4qsr+qu335-ELccfWh7D=QKsW97Hk9L6g5ZOzQ@mail.gmail.com>
-Content-Language: en-US
+	id S1756601Ab3EVXvS (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 22 May 2013 19:51:18 -0400
+In-Reply-To: <94F2FBAB4432B54E8AACC7DFDE6C92E36FE780C8@ORSMSX103.amr.corp.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Michael Marineau <mike@marineau.org>, "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, Len Brown <lenb@kernel.org>, "Zheng, Lv" <lv.zheng@intel.com>
+To: "Moore, Robert" <robert.moore@intel.com>
+Cc: Michael Marineau <mike@marineau.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, Len Brown <lenb@kernel.org>, "Zheng, Lv" <lv.zheng@intel.com>
 
-V2UgaGF2ZSBjaGFuZ2VkIEFDUElDQSB0byBvbmx5IHVzZSB0aGUgbmV3IHJlZ2lzdGVycyBpZiB0
-aGUgSFctcmVkdWNlZCBmbGFnIGlzIHNldC4gVGhpcyBzaG91bGQgZml4IHRoZSBwcm9ibGVtIHlv
-dSBhcmUgc2VlaW5nLg0KDQoNCj4gLS0tLS1PcmlnaW5hbCBNZXNzYWdlLS0tLS0NCj4gRnJvbTog
-TWljaGFlbCBNYXJpbmVhdSBbbWFpbHRvOm1pa2VAbWFyaW5lYXUub3JnXQ0KPiBTZW50OiBXZWRu
-ZXNkYXksIE1heSAyMiwgMjAxMyAxOjUxIFBNDQo+IFRvOiBSYWZhZWwgSi4gV3lzb2NraQ0KPiBD
-YzogTW9vcmUsIFJvYmVydDsgbGludXgtYWNwaUB2Z2VyLmtlcm5lbC5vcmc7IExlbiBCcm93bjsg
-WmhlbmcsIEx2DQo+IFN1YmplY3Q6IFJlOiBBQ1BJIHY1IHNsZWVwIHJlZ2lzdGVycyBicm9rZW4g
-b24gVG9zaGliYSBsYXB0b3BzDQo+IA0KPiBPbmUgdGhpbmcgdGhhdCB3YXNuJ3QgY2xlYXIgdG8g
-bWUgZnJvbSB0aGUgY29kZSBpcyB3aHkgdGhlIG5ldyBzbGVlcA0KPiByZWdpc3RlcnMgYXJlIHVz
-ZWQgYW55IHRpbWUgdGhleSBoYXZlIGRlZmluZWQgYWRkcmVzc2VzIHJhdGhlciB0aGFuIG9ubHkN
-Cj4gd2hlbiB0aGUgcmVkdWNlZCBoYXJkd2FyZSBmbGFnIGlzIHNldC4gSSBwb2tlZCB0aHJvdWdo
-IHRoZSBBQ1BJDQo+IHY1IHNwZWMgYW5kIGl0IHNlZW1zIHRvIGluZGljYXRlIHRoYXQgdGhlIHNs
-ZWVwIHJlZ2lzdGVycyBhcmUgb25seSBmb3INCj4gcmVkdWNlZCBoYXJkd2FyZS4gT24gdGhlIG90
-aGVyIGhhbmQgaXQgZG9lc24ndCBleHBsaWNpdGx5IHNheSB0byBub3QgdXNlDQo+IHRoZW0gb24g
-bm9uLXJlZHVjZWQgaGFyZHdhcmUgZWl0aGVyLiBCdXQgbWF5YmUgSSBtaXNzZWQgc29tZXRoaW5n
-LCB0aGF0DQo+IGRvY3VtZW50IGlzIGh1Z2UuIDotUA0KPiANCj4gQ2hlZXJzLA0KPiBNaWtlDQo+
-IA0KPiBPbiBXZWQsIE1heSAyMiwgMjAxMyBhdCAzOjM2IFBNLCBSYWZhZWwgSi4gV3lzb2NraSA8
-cmp3QHNpc2sucGw+IHdyb3RlOg0KPiA+IEhpIEJvYiwNCj4gPg0KPiA+IFdoYXQgZG8geW91IHRo
-aW5rIGFib3V0IHRoaXM/DQo+ID4NCj4gPiBSYWZhZWwNCj4gPg0KPiA+DQo+ID4gT24gV2VkbmVz
-ZGF5LCBNYXkgMjIsIDIwMTMgMDk6Mzk6MTIgQU0gTWljaGFlbCBNYXJpbmVhdSB3cm90ZToNCj4g
-Pj4gR3JlZXRpbmdzLA0KPiA+Pg0KPiA+PiBPbiB0aGUgcmVjZW50bHkgcmVsZWFzZWQgVG9zaGli
-YSBLaXJhYm9vayBhbmQga2VybmVscyA+PSAzLjQNCj4gPj4gc3VzcGVuZC9yZXN1bWUgb25seSB3
-b3JrcyBvbmNlLiBBZnRlciByZXN1bWUgaW5wdXQgZnJvbSB0aGluZ3MgbGlrZQ0KPiA+PiB0aGUg
-cG93ZXIgYnV0dG9uLCBicmlnaHRuZXNzIGJ1dHRvbnMsIGxpZCBzd2l0Y2gsIGV0Yy4gbm8gbG9u
-Z2VyIHdvcmsNCj4gPj4gYW5kIHRoZSBsYXB0b3Agc2ltcGx5IGhhbmdzIHdoZW4gc3VzcGVuZGVk
-IGZvciBhIHNlY29uZCB0aW1lLiBUaGlzDQo+ID4+IGFwcGVhcnMgdG8gYWxzbyBpbXBhY3Qgb3Ro
-ZXIgcmVjZW50IFRvc2hpYmEgbGFwdG9wcyAoYWx0aG91Z2ggdGhlIGJ1Zw0KPiA+PiBjbGFpbXMg
-dGhlIGhhbmcgaXMgZHVyaW5nIHRoZSBzZWNvbmQgcmVzdW1lIHJhdGhlciB0aGFuIHRoZSBzZWNv
-bmQNCj4gPj4gc3VzcGVuZCBhcyBpcyBteSBjYXNlKS4NCj4gPj4gaHR0cHM6Ly9idWdzLmxhdW5j
-aHBhZC5uZXQvdWJ1bnR1Lytzb3VyY2UvbGludXgvK2J1Zy8xMDk0ODAwDQo+ID4+DQo+ID4+IFN1
-c3BlbmQvcmVzdW1lIGFuZCBhbGwgdGhlIGJ1dHRvbnMgd29yayBqdXN0IGZpbmUgb24gdjMuMy4g
-SSBiaXNlY3RlZA0KPiA+PiB0aGUgdjMuMy0+djMuNCBjaGFuZ2UgKHdpdGggdGhlIGhlbHAgb2Yg
-cGF0Y2hpbmcgaW4gYSBrdm0gY2xvY2sgZml4DQo+ID4+IGFzDQo+ID4+IG5lZWRlZCkgYW5kIHRy
-YWNrZWQgaXQgZG93biB0byB0aGlzIGNvbW1pdDoNCj4gPj4NCj4gPj4gY29tbWl0IDJmZWVjNDdk
-NGM1ZjgwYjA1ZjE2NTBmNWEyNDg2NTcxODk3OGVlYTQNCj4gPj4gQXV0aG9yOiBCb2IgTW9vcmUg
-PHJvYmVydC5tb29yZUBpbnRlbC5jb20+DQo+ID4+IERhdGU6IFR1ZSBGZWIgMTQgMTU6MDA6NTMg
-MjAxMiArMDgwMA0KPiA+Pg0KPiA+PiAgICAgQUNQSUNBOiBBQ1BJIDU6IFN1cHBvcnQgZm9yIG5l
-dyBGQURUIFNsZWVwU3RhdHVzLCBTbGVlcENvbnRyb2wNCj4gPj4gcmVnaXN0ZXJzDQo+ID4+DQo+
-ID4+ICAgICBBZGRzIHNsZWVwIGFuZCB3YWtlIHN1cHBvcnQgZm9yIHN5c3RlbXMgd2l0aCB0aGVz
-ZSByZWdpc3RlcnMuDQo+ID4+ICAgICBPbmUgbmV3IGZpbGUsIGh3eGZzbGVlcC5jDQo+ID4+DQo+
-ID4+ICAgICBTaWduZWQtb2ZmLWJ5OiBCb2IgTW9vcmUgPHJvYmVydC5tb29yZUBpbnRlbC5jb20+
-DQo+ID4+ICAgICBTaWduZWQtb2ZmLWJ5OiBMZW4gQnJvd24gPGxlbi5icm93bkBpbnRlbC5jb20+
-DQo+ID4+DQo+ID4+IFNwZWNpZmljYWxseSwgd2hlbiB0aGUgc2xlZXAgc3RhdHVzL2NvbnRyb2wg
-cmVnaXN0ZXJlcyBhcmUgZGV0ZWN0ZWQNCj4gPj4gdGhleSBhcmUgdXNlZCBpbnN0ZWFkIG9mIHRo
-ZSB0cmFkaXRpb25hbCByZWdpc3RlcnMuIFRoZSBmYWlsdXJlIHRvDQo+ID4+IHJlc3VtZSBhIHNl
-Y29uZCB0aW1lIGlzIHRyaWdnZXJlZCBieSB0aGlzIHdyaXRlIGluIHRoZSBuZXcNCj4gPj4gYWNw
-aV9od19leHRlbmRlZF93YWtlX3ByZXAgZnVuY3Rpb246DQo+ID4+DQo+ID4+ICAgICBzdGF0dXMg
-PSBhY3BpX2dldF9zbGVlcF90eXBlX2RhdGEoQUNQSV9TVEFURV9TMCwNCj4gPj4gICAgICAgICAg
-ICAgICAgICAgICAgICZhY3BpX2dibF9zbGVlcF90eXBlX2EsDQo+ID4+ICAgICAgICAgICAgICAg
-ICAgICAgICAmYWNwaV9nYmxfc2xlZXBfdHlwZV9iKTsNCj4gPj4gICAgIGlmIChBQ1BJX1NVQ0NF
-U1Moc3RhdHVzKSkgew0KPiA+PiAgICAgICAgIHNsZWVwX3R5cGVfdmFsdWUgPQ0KPiA+PiAgICAg
-ICAgICAgICAoKGFjcGlfZ2JsX3NsZWVwX3R5cGVfYSA8PCBBQ1BJX1hfU0xFRVBfVFlQRV9QT1NJ
-VElPTikgJg0KPiA+PiAgICAgICAgICAgICAgQUNQSV9YX1NMRUVQX1RZUEVfTUFTSyk7DQo+ID4+
-DQo+ID4+ICAgICAgICAgKHZvaWQpYWNwaV93cml0ZSgodTY0KShzbGVlcF90eXBlX3ZhbHVlIHwg
-QUNQSV9YX1NMRUVQX0VOQUJMRSksDQo+ID4+ICAgICAgICAgICAgICAgICAgJmFjcGlfZ2JsX0ZB
-RFQuc2xlZXBfY29udHJvbCk7DQo+ID4+ICAgICB9DQo+ID4+DQo+ID4+IFJlcGxhY2luZyB0aGF0
-IHdyaXRlIHdpdGggdGhlIGNvcnJlc3BvbmRpbmcgY29kZSBmcm9tDQo+ID4+IGFjcGlfaHdfbGVn
-YWN5X3dha2VfcHJlcCB3aGlsZSBsZWF2aW5nIHRoZSBvdGhlciBhY3BpX2h3X2V4dGVuZGVkXyoN
-Cj4gPj4gZnVuY3Rpb25zIGFsb25lIGdldHMgc3VzcGVuZC9yZXN1bWUgd29ya2luZyBjb25zaXN0
-YW50bHkuIFRoYXQgaXNuJ3QNCj4gPj4gcXVpdGUgZW5vdWdoIGFzIGV2ZW50cyBkb24ndCBzZWVt
-IHRvIGdldCByZS1lbmFibGVkIHNvIGFjcGkgYnV0dG9ucw0KPiA+PiBhbmQgc3VjaCBkb24ndCB3
-b3JrIGFmdGVyIHJlc3VtZS4gQ29weWluZyB0aGUgZW5hYmxlIHBvd2VyIGJ1dHRvbg0KPiA+PiBj
-b2RlIGZyb20gYWNwaV9od19sZWdhY3lfd2FrZSB0byBhY3BpX2h3X2V4dGVuZGVkX3dha2UgYXQg
-bGVhc3QgZ2V0cw0KPiA+PiB0aGUgcG93ZXIgYnV0dG9uIGJhY2sgYnV0IGxpZCwgYnJpZ2h0bmVz
-cywgZXRjIHJlbWFpbiBkZWFkLg0KPiA+Pg0KPiA+PiBBdCB0aGUgbW9tZW50IEkndmUgaGFja2Vk
-IHRoZXNlIGNoYW5nZXMgaW50byB2My4xMC4wLXJjMiBhbG9uZyB3aXRoDQo+ID4+IGFub3RoZXIg
-aGFjayB0byBmaXggYSB2aWRlbyByZWdyZXNzaW9uIGFuZCBpdCBzZWVtcyB0byBiZWhhdmUNCj4g
-Pj4gcmVhc29uYWJseSB3ZWxsIChtaW51cyB0aGUgYnJpZ2h0bmVzcyBrZXlzIGFuZCBsaWQpLiBJ
-J20gbm90IHN1cmUNCj4gPj4gd2hhdCB0aGUgYXByb3ByaWF0ZSBmaXggaXMuIE1heWJlIGZpbmQg
-c29tZSB3YXkgYmV5b25kIHRoZWlyIHByZXNlbmNlDQo+ID4+IHRvIGRldGVjdCBpZiB0aGVzZSBy
-ZWdpc3RlcnMgYXJlIHNhZmUgdG8gdXNlIG9yIGp1c3QgYSBkZXZpY2UNCj4gYmxhY2tsaXN0Pw0K
-PiA+DQo+ID4NCj4gPg0KPiA+DQo+ID4gLS0NCj4gPiBJIHNwZWFrIG9ubHkgZm9yIG15c2VsZi4N
-Cj4gPiBSYWZhZWwgSi4gV3lzb2NraSwgSW50ZWwgT3BlbiBTb3VyY2UgVGVjaG5vbG9neSBDZW50
-ZXIuDQo+IA0KPiANCj4gDQo+IC0tDQo+IE1pY2hhZWwgTWFyaW5lYXUNCg==
+On Wednesday, May 22, 2013 11:35:43 PM Moore, Robert wrote:
+> This should be fixed in ACPICA version 20130518
+
+Since that's not a new regression, that should be fine, but we need to remember
+to mark that patch for inclusion into the -stable kernels.
+
+Thanks,
+Rafael
+
+
+> > -----Original Message-----
+> > From: Rafael J. Wysocki [mailto:rjw@sisk.pl]
+> > Sent: Wednesday, May 22, 2013 12:37 PM
+> > To: Moore, Robert
+> > Cc: Michael Marineau; linux-acpi@vger.kernel.org; Len Brown; Zheng, Lv
+> > Subject: Re: ACPI v5 sleep registers broken on Toshiba laptops
+> > 
+> > Hi Bob,
+> > 
+> > What do you think about this?
+> > 
+> > Rafael
+> > 
+> > 
+> > On Wednesday, May 22, 2013 09:39:12 AM Michael Marineau wrote:
+> > > Greetings,
+> > >
+> > > On the recently released Toshiba Kirabook and kernels >= 3.4
+> > > suspend/resume only works once. After resume input from things like
+> > > the power button, brightness buttons, lid switch, etc. no longer work
+> > > and the laptop simply hangs when suspended for a second time. This
+> > > appears to also impact other recent Toshiba laptops (although the bug
+> > > claims the hang is during the second resume rather than the second
+> > > suspend as is my case).
+> > > https://bugs.launchpad.net/ubuntu/+source/linux/+bug/1094800
+> > >
+> > > Suspend/resume and all the buttons work just fine on v3.3. I bisected
+> > > the v3.3->v3.4 change (with the help of patching in a kvm clock fix as
+> > > needed) and tracked it down to this commit:
+> > >
+> > > commit 2feec47d4c5f80b05f1650f5a24865718978eea4
+> > > Author: Bob Moore <robert.moore@intel.com>
+> > > Date: Tue Feb 14 15:00:53 2012 +0800
+> > >
+> > >     ACPICA: ACPI 5: Support for new FADT SleepStatus, SleepControl
+> > > registers
+> > >
+> > >     Adds sleep and wake support for systems with these registers.
+> > >     One new file, hwxfsleep.c
+> > >
+> > >     Signed-off-by: Bob Moore <robert.moore@intel.com>
+> > >     Signed-off-by: Len Brown <len.brown@intel.com>
+> > >
+> > > Specifically, when the sleep status/control registeres are detected
+> > > they are used instead of the traditional registers. The failure to
+> > > resume a second time is triggered by this write in the new
+> > > acpi_hw_extended_wake_prep function:
+> > >
+> > >     status = acpi_get_sleep_type_data(ACPI_STATE_S0,
+> > >                       &acpi_gbl_sleep_type_a,
+> > >                       &acpi_gbl_sleep_type_b);
+> > >     if (ACPI_SUCCESS(status)) {
+> > >         sleep_type_value =
+> > >             ((acpi_gbl_sleep_type_a << ACPI_X_SLEEP_TYPE_POSITION) &
+> > >              ACPI_X_SLEEP_TYPE_MASK);
+> > >
+> > >         (void)acpi_write((u64)(sleep_type_value | ACPI_X_SLEEP_ENABLE),
+> > >                  &acpi_gbl_FADT.sleep_control);
+> > >     }
+> > >
+> > > Replacing that write with the corresponding code from
+> > > acpi_hw_legacy_wake_prep while leaving the other acpi_hw_extended_*
+> > > functions alone gets suspend/resume working consistantly. That isn't
+> > > quite enough as events don't seem to get re-enabled so acpi buttons
+> > > and such don't work after resume. Copying the enable power button code
+> > > from acpi_hw_legacy_wake to acpi_hw_extended_wake at least gets the
+> > > power button back but lid, brightness, etc remain dead.
+> > >
+> > > At the moment I've hacked these changes into v3.10.0-rc2 along with
+> > > another hack to fix a video regression and it seems to behave
+> > > reasonably well (minus the brightness keys and lid). I'm not sure what
+> > > the apropriate fix is. Maybe find some way beyond their presence to
+> > > detect if these registers are safe to use or just a device blacklist?
+> > 
+> > 
+> > 
+> > 
+> > --
+> > I speak only for myself.
+> > Rafael J. Wysocki, Intel Open Source Technology Center.
+> 
+-- 
+I speak only for myself.
+Rafael J. Wysocki, Intel Open Source Technology Center.
