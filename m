@@ -1,100 +1,102 @@
-From: Tang Chen <tangchen@cn.fujitsu.com>
-Subject: Re: [PATCH] Driver core / memory: Simplify __memory_block_change_state()
-Date: Thu, 23 May 2013 12:37:24 +0800
-Message-ID: <519D9D04.9090403@cn.fujitsu.com>
-References: <1576321.HU0tZ4cGWk@vostro.rjw.lan> <1824290.fKsAJTo9gA@vostro.rjw.lan> <519C4D6E.6080902@cn.fujitsu.com> <1594596.DcsjzgnrZI@vostro.rjw.lan>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cn.fujitsu.com ([222.73.24.84]:13072 "EHLO song.cn.fujitsu.com"
-	rhost-flags-OK-FAIL-OK-OK) by vger.kernel.org with ESMTP
-	id S1750916Ab3EWEer (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 23 May 2013 00:34:47 -0400
-In-Reply-To: <1594596.DcsjzgnrZI@vostro.rjw.lan>
-Sender: linux-acpi-owner@vger.kernel.org
+From: Mika Westerberg <mika.westerberg@linux.intel.com>
+Subject: [PATCH v3] ACPI: implement acpi_os_get_timer() according the spec
+Date: Thu, 23 May 2013 10:27:46 +0300
+Message-ID: <1369294066-22449-1-git-send-email-mika.westerberg@linux.intel.com>
+References: <1369049282-18550-1-git-send-email-mika.westerberg@linux.intel.com>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1369049282-18550-1-git-send-email-mika.westerberg@linux.intel.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: linux-kernel@vger.kernel.org
+Cc: "Rafael J. Wysocki" <rjw@sisk.pl>, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, Mika Westerberg <mika.westerberg@linux.intel.com>
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Toshi Kani <toshi.kani@hp.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>, isimatu.yasuaki@jp.fujitsu.com, vasilis.liaskovitis@profitbricks.com, Len Brown <lenb@kernel.org>, linux-mm@kvack.org
 
-Reviewed-by: Tang Chen <tangchen@cn.fujitsu.com>
+ACPI Timer() opcode should return monotonically increasing clock with 100ns
+granularity according the ACPI 5.0 spec.
 
-Thanks. :)
+Testing the current Timer() implementation with following ASL code (and an
+additional debug print in acpi_os_sleep() to get the sleep times dumped out
+to dmesg):
 
-On 05/23/2013 06:06 AM, Rafael J. Wysocki wrote:
-> From: Rafael J. Wysocki<rafael.j.wysocki@intel.com>
->
-> As noted by Tang Chen, the last_online field in struct memory_block
-> introduced by commit 4960e05 (Driver core: Introduce offline/online
-> callbacks for memory blocks) is not really necessary, because
-> online_pages() restores the previous state if passed ONLINE_KEEP as
-> the last argument.  Therefore, remove that field along with the code
-> referring to it.
->
-> References: http://marc.info/?l=linux-kernel&m=136919777305599&w=2
-> Signed-off-by: Rafael J. Wysocki<rafael.j.wysocki@intel.com>
-> ---
->
-> Hi,
->
-> The patch is on top (and the commit mentioned in the changelog is present in)
-> the acpi-hotplug branch of the linux-pm.git tree.
->
-> Thanks,
-> Rafael
->
-> ---
->   drivers/base/memory.c  |   11 ++---------
->   include/linux/memory.h |    1 -
->   2 files changed, 2 insertions(+), 10 deletions(-)
->
-> Index: linux-pm/drivers/base/memory.c
-> ===================================================================
-> --- linux-pm.orig/drivers/base/memory.c
-> +++ linux-pm/drivers/base/memory.c
-> @@ -291,13 +291,7 @@ static int __memory_block_change_state(s
->   		mem->state = MEM_GOING_OFFLINE;
->
->   	ret = memory_block_action(mem->start_section_nr, to_state, online_type);
-> -	if (ret) {
-> -		mem->state = from_state_req;
-> -	} else {
-> -		mem->state = to_state;
-> -		if (to_state == MEM_ONLINE)
-> -			mem->last_online = online_type;
-> -	}
-> +	mem->state = ret ? from_state_req : to_state;
->   	return ret;
->   }
->
-> @@ -310,7 +304,7 @@ static int memory_subsys_online(struct d
->
->   	ret = mem->state == MEM_ONLINE ? 0 :
->   		__memory_block_change_state(mem, MEM_ONLINE, MEM_OFFLINE,
-> -					    mem->last_online);
-> +					    ONLINE_KEEP);
->
->   	mutex_unlock(&mem->state_mutex);
->   	return ret;
-> @@ -618,7 +612,6 @@ static int init_memory_block(struct memo
->   			base_memory_block_id(scn_nr) * sections_per_block;
->   	mem->end_section_nr = mem->start_section_nr + sections_per_block - 1;
->   	mem->state = state;
-> -	mem->last_online = ONLINE_KEEP;
->   	mem->section_count++;
->   	mutex_init(&mem->state_mutex);
->   	start_pfn = section_nr_to_pfn(mem->start_section_nr);
-> Index: linux-pm/include/linux/memory.h
-> ===================================================================
-> --- linux-pm.orig/include/linux/memory.h
-> +++ linux-pm/include/linux/memory.h
-> @@ -26,7 +26,6 @@ struct memory_block {
->   	unsigned long start_section_nr;
->   	unsigned long end_section_nr;
->   	unsigned long state;
-> -	int last_online;
->   	int section_count;
->
->   	/*
->
->
+	// Test: 10ms
+	Store(Timer, Local1)
+	Sleep(10)
+	Divide(Subtract(Timer, Local1), 10000,, Local1)
+	Sleep(Local1)
+
+	// Test: 200ms
+	Store(Timer, Local1)
+	Sleep(200)
+	Divide(Subtract(Timer, Local1), 10000,, Local1)
+	Sleep(Local1)
+
+	// Test 1300ms
+	Store(Timer, Local1)
+	Sleep(1300)
+	Divide(Subtract(Timer, Local1), 10000,, Local1)
+	Sleep(Local1)
+
+The second sleep value is calculated using Timer(). If the implementation
+is good enough we should be able to get the second value pretty close to
+the first.
+
+However, the current Timer() gives pretty bad sleep times:
+
+	[   11.488100] ACPI: acpi_os_get_timer() TBD
+	[   11.492150] ACPI: Sleep(10)
+	[   11.502993] ACPI: Sleep(0)
+	[   11.506315] ACPI: Sleep(200)
+	[   11.706237] ACPI: Sleep(0)
+	[   11.709550] ACPI: Sleep(1300)
+	[   13.008929] ACPI: Sleep(0)
+
+Fix this with the help of ktime_get(). Once the fix is applied and run
+against the same ASL code we get:
+
+	[   11.486786] ACPI: Sleep(10)
+	[   11.499029] ACPI: Sleep(12)
+	[   11.512350] ACPI: Sleep(200)
+	[   11.712282] ACPI: Sleep(200)
+	[   11.912170] ACPI: Sleep(1300)
+	[   13.211577] ACPI: Sleep(1300)
+
+That is much more closer to the values we expected.
+
+Signed-off-by: Mika Westerberg <mika.westerberg@linux.intel.com>
+---
+Difference to the previous version is that now we use do_div() instead so
+that i386 build won't break. This was found by kbuild test robot.
+
+In addition I tested this on both i386 and x86_64.
+
+ drivers/acpi/osl.c |   16 +++-------------
+ 1 file changed, 3 insertions(+), 13 deletions(-)
+
+diff --git a/drivers/acpi/osl.c b/drivers/acpi/osl.c
+index e721863..c290769 100644
+--- a/drivers/acpi/osl.c
++++ b/drivers/acpi/osl.c
+@@ -835,19 +835,9 @@ void acpi_os_stall(u32 us)
+  */
+ u64 acpi_os_get_timer(void)
+ {
+-	static u64 t;
+-
+-#ifdef	CONFIG_HPET
+-	/* TBD: use HPET if available */
+-#endif
+-
+-#ifdef	CONFIG_X86_PM_TIMER
+-	/* TBD: default to PM timer if HPET was not available */
+-#endif
+-	if (!t)
+-		printk(KERN_ERR PREFIX "acpi_os_get_timer() TBD\n");
+-
+-	return ++t;
++	u64 time_ns = ktime_to_ns(ktime_get());
++	do_div(time_ns, 100);
++	return time_ns;
+ }
+ 
+ acpi_status acpi_os_read_port(acpi_io_address port, u32 * value, u32 width)
+-- 
+1.7.10.4
