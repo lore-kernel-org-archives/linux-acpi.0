@@ -1,45 +1,72 @@
-From: Hanjun Guo <hanjun.guo@linaro.org>
-Subject: [PATCH] ACPI: Fix potential NULL pointer dereference in acpi_processor_add()
-Date: Thu, 23 May 2013 20:44:26 +0800
-Message-ID: <519E0F2A.4070602@linaro.org>
+From: Lan Tianyu <lantianyu1986@gmail.com>
+Subject: Re: [PATCH] ACPI:add _STA evaluating at do_acpi_find_child()
+Date: Thu, 23 May 2013 20:56:32 +0800
+Message-ID: <CAOLK0pxMgxBA8rwMTDXxZYq6uX6zpBXOpCPK=jpAwEybbV5yOQ@mail.gmail.com>
+References: <1369135173-4457-1-git-send-email-jeff.wu@amd.com>
+	<CAOLK0pwfVugT+B8HEKUcEJ72Aqdmj2QMreJrcP1wBwyP+sToaA@mail.gmail.com>
+	<CAPb2CAO9r=etC=JjqpytT3-Z+=gmFCwAa+CC6dh8BkpSgSBXPA@mail.gmail.com>
+	<2230710.zxq3zIVHyr@vostro.rjw.lan>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-pb0-f46.google.com ([209.85.160.46]:39008 "EHLO
-	mail-pb0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758245Ab3EWMo4 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 23 May 2013 08:44:56 -0400
-Received: by mail-pb0-f46.google.com with SMTP id rq2so2861710pbb.19
-        for <linux-acpi@vger.kernel.org>; Thu, 23 May 2013 05:44:55 -0700 (PDT)
+Received: from mail-ie0-f176.google.com ([209.85.223.176]:49431 "EHLO
+	mail-ie0-f176.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758241Ab3EWM4c (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 23 May 2013 08:56:32 -0400
+Received: by mail-ie0-f176.google.com with SMTP id at1so8508306iec.35
+        for <linux-acpi@vger.kernel.org>; Thu, 23 May 2013 05:56:32 -0700 (PDT)
+In-Reply-To: <2230710.zxq3zIVHyr@vostro.rjw.lan>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, patches@linaro.org, linaro-kernel@lists.linaro.org
+Cc: Jeff Wu <zlinuxkernel@gmail.com>, linux-acpi@vger.kernel.org, Len Brown <lenb@kernel.org>, lekensteyn@gmail.com, Sergio Perez <dagobertstaler@gmail.com>, shane.huang@amd.com, Aaron Lu <aaron.lwe@gmail.com>
 
-In acpi_processor_add(), get_cpu_device() will return NULL sometimes,
-although the chances are small, I think it should be fixed.
+2013/5/23 Rafael J. Wysocki <rjw@sisk.pl>:
+> On Wednesday, May 22, 2013 03:42:04 PM Jeff Wu wrote:
+>> 2013/5/22 Lan Tianyu <lantianyu1986@gmail.com>:
+>> > 2013/5/22 Jeff Wu <zlinuxkernel@gmail.com>:
+>> >> 2013/5/21 Lan Tianyu <lantianyu1986@gmail.com>:
+>> >>>> From: Jeff Wu <zlinuxkernel@gmail.com>
+>> >>> Will this affect other devices? Since the device maybe disabled during
+>> >>> do binding with ACPI.
+>> >>> After some operations, the device would be enabled.
+>> >> At our platforms, DEV1 use for win8,DEV2 use for win7,DEV1 use for Linux.
+>> >> If these devices are disabled when do init, they will always be
+>> >> disabled ,so, work fine.
+>> >>
+>> >> At some of the platforms, the devices may be disabled during do the
+>> >> first binding ,if their status are changed,do they not do re-binding ?
+>> > Currently, the glue binding operation takes place when the device  is
+>> > created. In my mind, there is no re-binding operation after the device being
+>> > created, Unless the device being removed and created again.
+>> Thank you very much.
+>> So, as your suggestion, it is a better solution to add a new function
+>> for the same _ADR devices,
+>
+> I don't really think this is a good idea, because then it won't be clear when
+> to use which version.
+Ok. How about make them as one function?.
+New function will return all the children's handle with same _ADR and the number
+of children. The caller should check the number. If the number is 1 and then
+do eveything that now have done. If the number is larger than 1. It should
+select one according their strategy.
 
-Signed-off-by: Hanjun Guo <hanjun.guo@linaro.org>
----
- drivers/acpi/processor_driver.c |    4 ++++
- 1 files changed, 4 insertions(+), 0 deletions(-)
+There is another such issue. In this case, the first child should be selected.
+http://www.spinics.net/lists/linux-acpi/msg39739.html
 
-diff --git a/drivers/acpi/processor_driver.c b/drivers/acpi/processor_driver.c
-index bec717f..dd64f23 100644
---- a/drivers/acpi/processor_driver.c
-+++ b/drivers/acpi/processor_driver.c
-@@ -579,6 +579,10 @@ static int __cpuinit acpi_processor_add(struct acpi_device
-*device)
-        per_cpu(processors, pr->id) = pr;
 
-        dev = get_cpu_device(pr->id);
-+       if (!dev) {
-+               result = -ENODEV;
-+               goto err_clear_processor;
-+       }
-        if (sysfs_create_link(&device->dev.kobj, &dev->kobj, "sysdev")) {
-                result = -EFAULT;
-                goto err_clear_processor;
+>
+> Your patch kind of makes sense (although we don't need to initialize both
+> local variables to 0), but the Tianyu's concern is valid in principle either.
+>
+> Perhaps it would be better to make do_acpi_find_child() return the disabled
+> device if its the only one matching or the first enabled matching device
+> otherwise?
+>
+> Rafael
+>
+>
+
 -- 
-1.7.1
+Best regards
+Tianyu Lan
