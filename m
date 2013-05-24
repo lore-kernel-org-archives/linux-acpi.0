@@ -1,85 +1,201 @@
-From: Jeff Wu <zlinuxkernel@gmail.com>
-Subject: Re: [PATCH] ACPI:add _STA evaluating at do_acpi_find_child()
-Date: Fri, 24 May 2013 16:22:19 +0800
-Message-ID: <CAPb2CANbHikhbp3Hu+nqDwxLhS3hc687khyw8rWU=ivoXh3j1A@mail.gmail.com>
-References: <1369135173-4457-1-git-send-email-jeff.wu@amd.com>
-	<2230710.zxq3zIVHyr@vostro.rjw.lan>
-	<CAOLK0pxMgxBA8rwMTDXxZYq6uX6zpBXOpCPK=jpAwEybbV5yOQ@mail.gmail.com>
-	<1904822.ijPZMuCUgG@vostro.rjw.lan>
+From: Bjorn Helgaas <bhelgaas@google.com>
+Subject: Re: [PATCH v2] aerdrv: Move cper_print_aer() call out of interrupt context
+Date: Fri, 24 May 2013 13:36:14 -0600
+Message-ID: <CAErSpo4_h+yrjGTEpJ-Q=nwfcd3xi0qa0z6NQad1EQDZom8kUQ@mail.gmail.com>
+References: <20130509195135.16108.70845.stgit@grignak.americas.hpqcorp.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-ie0-f181.google.com ([209.85.223.181]:57106 "EHLO
-	mail-ie0-f181.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754527Ab3EXIWU (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 24 May 2013 04:22:20 -0400
-Received: by mail-ie0-f181.google.com with SMTP id x12so11222702ief.40
-        for <linux-acpi@vger.kernel.org>; Fri, 24 May 2013 01:22:19 -0700 (PDT)
-In-Reply-To: <1904822.ijPZMuCUgG@vostro.rjw.lan>
-Sender: linux-acpi-owner@vger.kernel.org
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20130509195135.16108.70845.stgit@grignak.americas.hpqcorp.net>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Lance Ortiz <lance.ortiz@hp.com>
+Cc: "lance_ortiz@hotmail.com" <lance_ortiz@hotmail.com>, Jiang Liu <jiang.liu@huawei.com>, Tony Luck <tony.luck@intel.com>, Borislav Petkov <bp@alien8.de>, Steven Rostedt <rostedt@goodmis.org>, Mauro Carvalho Chehab <mchehab@redhat.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@sisk.pl>, Lan Tianyu <lantianyu1986@gmail.com>
-Cc: linux-acpi@vger.kernel.org, Len Brown <lenb@kernel.org>, lekensteyn@gmail.com, Sergio Perez <dagobertstaler@gmail.com>, shane.huang@amd.com, Aaron Lu <aaron.lwe@gmail.com>
 
-2013/5/24 Rafael J. Wysocki <rjw@sisk.pl>:
-> On Thursday, May 23, 2013 08:56:32 PM Lan Tianyu wrote:
->> 2013/5/23 Rafael J. Wysocki <rjw@sisk.pl>:
->> > On Wednesday, May 22, 2013 03:42:04 PM Jeff Wu wrote:
->> >> 2013/5/22 Lan Tianyu <lantianyu1986@gmail.com>:
->> >> > 2013/5/22 Jeff Wu <zlinuxkernel@gmail.com>:
->> >> >> 2013/5/21 Lan Tianyu <lantianyu1986@gmail.com>:
->> >> >>>> From: Jeff Wu <zlinuxkernel@gmail.com>
->> >> >>> Will this affect other devices? Since the device maybe disabled during
->> >> >>> do binding with ACPI.
->> >> >>> After some operations, the device would be enabled.
->> >> >> At our platforms, DEV1 use for win8,DEV2 use for win7,DEV1 use for Linux.
->> >> >> If these devices are disabled when do init, they will always be
->> >> >> disabled ,so, work fine.
->> >> >>
->> >> >> At some of the platforms, the devices may be disabled during do the
->> >> >> first binding ,if their status are changed,do they not do re-binding ?
->> >> > Currently, the glue binding operation takes place when the device  is
->> >> > created. In my mind, there is no re-binding operation after the device being
->> >> > created, Unless the device being removed and created again.
->> >> Thank you very much.
->> >> So, as your suggestion, it is a better solution to add a new function
->> >> for the same _ADR devices,
->> >
->> > I don't really think this is a good idea, because then it won't be clear when
->> > to use which version.
->> Ok. How about make them as one function?.
->> New function will return all the children's handle with same _ADR and the number
->> of children. The caller should check the number. If the number is 1 and then
->> do eveything that now have done. If the number is larger than 1. It should
->> select one according their strategy.
+On Thu, May 9, 2013 at 1:51 PM, Lance Ortiz <lance.ortiz@hp.com> wrote:
+> The following warning was seen on 3.9 when a corrected PCIe error was being
+> handled by the AER subsystem.
 >
-> Why do you think that the callers may have different strategies?  They are
-> subsystems, not drivers.
+> WARNING: at .../drivers/pci/search.c:214 pci_get_dev_by_id+0x8a/0x90()
 >
->> There is another such issue. In this case, the first child should be selected.
->> http://www.spinics.net/lists/linux-acpi/msg39739.html
+> This occurred because a call to pci_get_domain_bus_and_slot() was added to
+> cper_print_pcie() to setup for the call to cper_print_aer().  The warning
+> showed up because cper_print_pcie() is called in an interrupt context and
+> pci_get* functions are not supposed to be called in that context.
 >
-> No, that's about something different.
+> The solution is to move the cper_print_aer() call out of the interrupt
+> context and into aer_recover_work_func() to avoid any warnings when calling
+> pci_get* functions.
+>
+> v2 - Re-worded header text.  Removed prefix arg from cper_print_aer().
+>      Added TODO message in cper_print_aer().
+>
+> Signed-off-by: Lance Ortiz <lance.ortiz@hp.com>
+> Acked-by: Borislav Petkov <bp@suse.de>
+> ---
+>
+>  drivers/acpi/apei/cper.c               |   18 ------------------
+>  drivers/acpi/apei/ghes.c               |    3 ++-
+>  drivers/pci/pcie/aer/aerdrv_core.c     |    6 +++++-
+>  drivers/pci/pcie/aer/aerdrv_errprint.c |   10 ++++++++--
+>  include/linux/aer.h                    |    4 ++--
+>  5 files changed, 17 insertions(+), 24 deletions(-)
+>
+> diff --git a/drivers/acpi/apei/cper.c b/drivers/acpi/apei/cper.c
+> index 1e5d8a4..8713229 100644
+> --- a/drivers/acpi/apei/cper.c
+> +++ b/drivers/acpi/apei/cper.c
+> @@ -250,10 +250,6 @@ static const char *cper_pcie_port_type_strs[] = {
+>  static void cper_print_pcie(const char *pfx, const struct cper_sec_pcie *pcie,
+>                             const struct acpi_hest_generic_data *gdata)
+>  {
+> -#ifdef CONFIG_ACPI_APEI_PCIEAER
+> -       struct pci_dev *dev;
+> -#endif
+> -
+>         if (pcie->validation_bits & CPER_PCIE_VALID_PORT_TYPE)
+>                 printk("%s""port_type: %d, %s\n", pfx, pcie->port_type,
+>                        pcie->port_type < ARRAY_SIZE(cper_pcie_port_type_strs) ?
+> @@ -285,20 +281,6 @@ static void cper_print_pcie(const char *pfx, const struct cper_sec_pcie *pcie,
+>                 printk(
+>         "%s""bridge: secondary_status: 0x%04x, control: 0x%04x\n",
+>         pfx, pcie->bridge.secondary_status, pcie->bridge.control);
+> -#ifdef CONFIG_ACPI_APEI_PCIEAER
+> -       dev = pci_get_domain_bus_and_slot(pcie->device_id.segment,
+> -                       pcie->device_id.bus, pcie->device_id.function);
+> -       if (!dev) {
+> -               pr_err("PCI AER Cannot get PCI device %04x:%02x:%02x.%d\n",
+> -                       pcie->device_id.segment, pcie->device_id.bus,
+> -                       pcie->device_id.slot, pcie->device_id.function);
+> -               return;
+> -       }
+> -       if (pcie->validation_bits & CPER_PCIE_VALID_AER_INFO)
+> -               cper_print_aer(pfx, dev, gdata->error_severity,
+> -                               (struct aer_capability_regs *) pcie->aer_info);
+> -       pci_dev_put(dev);
+> -#endif
+>  }
+>
+>  static const char *apei_estatus_section_flag_strs[] = {
+> diff --git a/drivers/acpi/apei/ghes.c b/drivers/acpi/apei/ghes.c
+> index d668a8a..f2084b5 100644
+> --- a/drivers/acpi/apei/ghes.c
+> +++ b/drivers/acpi/apei/ghes.c
+> @@ -454,7 +454,8 @@ static void ghes_do_proc(struct ghes *ghes,
+>                                 aer_severity = cper_severity_to_aer(sev);
+>                                 aer_recover_queue(pcie_err->device_id.segment,
+>                                                   pcie_err->device_id.bus,
+> -                                                 devfn, aer_severity);
+> +                                                 devfn, aer_severity,
+> +                                                 pcie_err->aer_info);
+>                         }
+>
+>                 }
+> diff --git a/drivers/pci/pcie/aer/aerdrv_core.c b/drivers/pci/pcie/aer/aerdrv_core.c
+> index 564d97f..ceba124 100644
+> --- a/drivers/pci/pcie/aer/aerdrv_core.c
+> +++ b/drivers/pci/pcie/aer/aerdrv_core.c
+> @@ -582,6 +582,7 @@ struct aer_recover_entry
+>         u8      devfn;
+>         u16     domain;
+>         int     severity;
+> +       u8      *regs;
+>  };
+>
+>  static DEFINE_KFIFO(aer_recover_ring, struct aer_recover_entry,
+> @@ -595,7 +596,7 @@ static DEFINE_SPINLOCK(aer_recover_ring_lock);
+>  static DECLARE_WORK(aer_recover_work, aer_recover_work_func);
+>
+>  void aer_recover_queue(int domain, unsigned int bus, unsigned int devfn,
+> -                      int severity)
+> +                      int severity, u8 *aer_regs)
+>  {
+>         unsigned long flags;
+>         struct aer_recover_entry entry = {
+> @@ -603,6 +604,7 @@ void aer_recover_queue(int domain, unsigned int bus, unsigned int devfn,
+>                 .devfn          = devfn,
+>                 .domain         = domain,
+>                 .severity       = severity,
+> +               .regs           = aer_regs,
+>         };
+>
+>         spin_lock_irqsave(&aer_recover_ring_lock, flags);
+> @@ -629,6 +631,8 @@ static void aer_recover_work_func(struct work_struct *work)
+>                                PCI_SLOT(entry.devfn), PCI_FUNC(entry.devfn));
+>                         continue;
+>                 }
+> +               cper_print_aer(pdev, entry.severity,
+> +                               (struct aer_capability_regs *)entry.regs);
 
-Thanks, Rafel and Lan,TianYu
+I like this change a lot because pci_get_domain_bus_and_slot() is sort
+of a dubious interface to begin with, and we were using it twice in
+this path -- once in cper_print_pcie() and then again (for the exact
+same device) here in aer_recover_work_func() -- and this patch gets
+rid of the first one.
 
+Normally we shouldn't have to look up a pci_dev from a bus
+number/device number.  This is an exception because there's no
+connection between the life of a pci_dev in the kernel and the
+information from firmware, so there's not really a better way to do
+it.
+
+>                 do_recovery(pdev, entry.severity);
+>                 pci_dev_put(pdev);
+>         }
+> diff --git a/drivers/pci/pcie/aer/aerdrv_errprint.c b/drivers/pci/pcie/aer/aerdrv_errprint.c
+> index 5ab1425..f277dc3 100644
+> --- a/drivers/pci/pcie/aer/aerdrv_errprint.c
+> +++ b/drivers/pci/pcie/aer/aerdrv_errprint.c
+> @@ -220,13 +220,19 @@ int cper_severity_to_aer(int cper_severity)
+>  }
+>  EXPORT_SYMBOL_GPL(cper_severity_to_aer);
 >
-> Thanks,
-> Rafael
+> -void cper_print_aer(const char *prefix, struct pci_dev *dev, int cper_severity,
+> +void cper_print_aer(struct pci_dev *dev, int cper_severity,
+>                     struct aer_capability_regs *aer)
+>  {
+>         int aer_severity, layer, agent, status_strs_size, tlp_header_valid = 0;
+>         u32 status, mask;
+>         const char **status_strs;
 >
+> +       /*
+> +        * TODO: This function needs to be re-written so that it's output
+> +        * matches the output of aer_print_error().  Right now, the output
+> +        * is formatted very differently.
+> +        */
+> +
+>         aer_severity = cper_severity_to_aer(cper_severity);
+>         if (aer_severity == AER_CORRECTABLE) {
+>                 status = aer->cor_status;
+> @@ -244,7 +250,7 @@ void cper_print_aer(const char *prefix, struct pci_dev *dev, int cper_severity,
+>         agent = AER_GET_AGENT(aer_severity, status);
+>         dev_err(&dev->dev, "aer_status: 0x%08x, aer_mask: 0x%08x\n",
+>                status, mask);
+> -       cper_print_bits(prefix, status, status_strs, status_strs_size);
+> +       cper_print_bits("", status, status_strs, status_strs_size);
+>         dev_err(&dev->dev, "aer_layer=%s, aer_agent=%s\n",
+>                aer_error_layer[layer], aer_agent_string[agent]);
+>         if (aer_severity != AER_CORRECTABLE)
+> diff --git a/include/linux/aer.h b/include/linux/aer.h
+> index ec10e1b..d8cf12b 100644
+> --- a/include/linux/aer.h
+> +++ b/include/linux/aer.h
+> @@ -49,10 +49,10 @@ static inline int pci_cleanup_aer_uncorrect_error_status(struct pci_dev *dev)
+>  }
+>  #endif
 >
->> > Your patch kind of makes sense (although we don't need to initialize both
->> > local variables to 0), but the Tianyu's concern is valid in principle either.
->> >
->> > Perhaps it would be better to make do_acpi_find_child() return the disabled
->> > device if its the only one matching or the first enabled matching device
->> > otherwise?
->> >
->> > Rafael
->> >
->> >
->>
->>
-> --
-> I speak only for myself.
-> Rafael J. Wysocki, Intel Open Source Technology Center.
+> -extern void cper_print_aer(const char *prefix, struct pci_dev *dev,
+> +extern void cper_print_aer(struct pci_dev *dev,
+>                            int cper_severity, struct aer_capability_regs *aer);
+>  extern int cper_severity_to_aer(int cper_severity);
+>  extern void aer_recover_queue(int domain, unsigned int bus, unsigned int devfn,
+> -                             int severity);
+> +                             int severity,  u8 *aer_regs);
+
+Can the aer_regs type be made "struct aer_capability_regs *"?  It'd be
+nice if we could avoid the casting when passing the pointer around.
+We might still need a cast in ghes_do_proc() when calling
+aer_recover_queue(), but I *think* everyplace else would be OK with
+keeping the exact type.
+
+Bjorn
