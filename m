@@ -1,49 +1,44 @@
-From: Andy Lutomirski <luto@amacapital.net>
-Subject: Re: [PATCH] efi: Work around bogus pointers in BGRT
-Date: Fri, 24 May 2013 18:15:16 -0700
-Message-ID: <CALCETrVz0W--YybyLatG1MW=pkdGa2PdR0d2hrfXUSXT0=K4fw@mail.gmail.com>
-References: <CALCETrX2yUzVLTAabrdDM1zgZnRL+KWEJoqSu2VM5jMaArAjpg@mail.gmail.com>
- <7ccd9d84f7407ba65c1f03d144e2113dee0d797a.1368824585.git.luto@amacapital.net> <20130524053737.GB6380@leaf>
+From: Hanjun Guo <hanjun.guo@linaro.org>
+Subject: [PATCH] ACPICA: Remove redundant macro defines for ACPI_DEBUG_PRINT()
+ and ACPI_DEBUG_PRINT_RAW()
+Date: Sat, 25 May 2013 17:12:56 +0800
+Message-ID: <51A08098.1090807@linaro.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-lb0-f175.google.com ([209.85.217.175]:38123 "EHLO
-	mail-lb0-f175.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751685Ab3EYBPh (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 24 May 2013 21:15:37 -0400
-Received: by mail-lb0-f175.google.com with SMTP id v10so5220563lbd.20
-        for <linux-acpi@vger.kernel.org>; Fri, 24 May 2013 18:15:36 -0700 (PDT)
-In-Reply-To: <20130524053737.GB6380@leaf>
+Received: from mail-pa0-f42.google.com ([209.85.220.42]:44517 "EHLO
+	mail-pa0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753272Ab3EYJNa (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sat, 25 May 2013 05:13:30 -0400
+Received: by mail-pa0-f42.google.com with SMTP id bj3so5161633pad.29
+        for <linux-acpi@vger.kernel.org>; Sat, 25 May 2013 02:13:29 -0700 (PDT)
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Josh Triplett <josh@joshtriplett.org>
-Cc: Linux ACPI <linux-acpi@vger.kernel.org>, Matthew Garrett <mjg59@srcf.ucam.org>
+To: Lv Zheng <lv.zheng@intel.com>
+Cc: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Robert Moore <robert.moore@intel.com>, linux-acpi@vger.kernel.org, patches@linaro.org, linaro-kernel@lists.linaro.org, Jiang Liu <liuj97@gmail.com>
 
-On Thu, May 23, 2013 at 10:37 PM, Josh Triplett <josh@joshtriplett.org> wrote:
-> On Fri, May 17, 2013 at 02:05:33PM -0700, Andy Lutomirski wrote:
->> The MSI MS-7760 supplies a BGRT marked "invalid" that contains a
->> pointer to nowhere.  Since an "invalid" BGRT isn't particularly
->> useful (userspace isn't supposed to use it anyway), ignore the BGRT
->> if it's marked "invalid" and the pointer points outside of EFI boot
->> services space.
->>
->> Signed-off-by: Andy Lutomirski <luto@amacapital.net>
->
-> I'd suggest generalizing the comment to not just mention the one system
-> you observed it on.  In any case, I'm fine with this patch, but I seem
-> to recall Matthew Garrett having some objections to ignoring the BGRT
-> when the valid bit is not set.  Also, if you're going to do so, you
-> might as well not expose the valid bit to userspace.
+In commit 0377b5acba2 (ACPICA: Merge all debug output macros into
+a single file, acoutput.), the patch introduces redundant macro
+defines for ACPI_DEBUG_PRINT() and ACPI_DEBUG_PRINT_RAW(), just
+remove it.
 
-Hmm.
+Signed-off-by: Hanjun Guo <hanjun.guo@linaro.org>
+---
+ include/acpi/acoutput.h | 2 --
+ 1 file changed, 2 deletions(-)
 
-Not exposing the valid bit to userspace would be a bit odd -- it's
-part of a bitfield which (in principle, I think) could have other bits
-defined.
+diff --git a/include/acpi/acoutput.h b/include/acpi/acoutput.h
+index 4f52ea7..e1c7474 100644
+--- a/include/acpi/acoutput.h
++++ b/include/acpi/acoutput.h
+@@ -447,8 +447,6 @@
+ #define ACPI_DUMP_TABLES(a, b)
+ #define ACPI_DUMP_PATHNAME(a, b, c, d)
+ #define ACPI_DUMP_BUFFER(a, b)
+-#define ACPI_DEBUG_PRINT(pl)
+-#define ACPI_DEBUG_PRINT_RAW(pl)
+ #define ACPI_IS_DEBUG_ENABLED(level, component) 0
 
-One option would be to still load the bgrt table if invalid but to not
-try to load the image and to therefore not show that sysfs attribute.
-I don't know what this would break because I don't know what userspace
-programs actually use bgrt.
-
---Andy
+ /* Return macros must have a return statement at the minimum */
+-- 1.8.2.1
