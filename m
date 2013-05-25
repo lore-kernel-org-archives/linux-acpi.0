@@ -1,57 +1,86 @@
-From: Josh Triplett <josh@joshtriplett.org>
-Subject: Re: [PATCH] efi: Work around bogus pointers in BGRT
-Date: Sat, 25 May 2013 12:50:37 -0700
-Message-ID: <20130525195037.GA30094@leaf>
-References: <CALCETrX2yUzVLTAabrdDM1zgZnRL+KWEJoqSu2VM5jMaArAjpg@mail.gmail.com>
- <7ccd9d84f7407ba65c1f03d144e2113dee0d797a.1368824585.git.luto@amacapital.net>
- <20130524053737.GB6380@leaf>
- <CALCETrVz0W--YybyLatG1MW=pkdGa2PdR0d2hrfXUSXT0=K4fw@mail.gmail.com>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: [GIT PULL] Power management and ACPI fixes for v3.10-rc3
+Date: Sat, 25 May 2013 22:04:06 +0200
+Message-ID: <7077400.RbAansdZvT@vostro.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from slow1-d.mail.gandi.net ([217.70.178.86]:51088 "EHLO
-	slow1-d.mail.gandi.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757763Ab3EYTw4 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sat, 25 May 2013 15:52:56 -0400
-Received: from relay5-d.mail.gandi.net (relay5-d.mail.gandi.net [217.70.183.197])
-	by slow1-d.mail.gandi.net (Postfix) with ESMTP id 37B7A47B289
-	for <linux-acpi@vger.kernel.org>; Sat, 25 May 2013 21:51:14 +0200 (CEST)
-Content-Disposition: inline
-In-Reply-To: <CALCETrVz0W--YybyLatG1MW=pkdGa2PdR0d2hrfXUSXT0=K4fw@mail.gmail.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-pm-owner@vger.kernel.org>
+Sender: linux-pm-owner@vger.kernel.org
+To: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>, Linux PM list <linux-pm@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
-To: Andy Lutomirski <luto@amacapital.net>
-Cc: Linux ACPI <linux-acpi@vger.kernel.org>, Matthew Garrett <mjg59@srcf.ucam.org>
 
-On Fri, May 24, 2013 at 06:15:16PM -0700, Andy Lutomirski wrote:
-> On Thu, May 23, 2013 at 10:37 PM, Josh Triplett <josh@joshtriplett.org> wrote:
-> > On Fri, May 17, 2013 at 02:05:33PM -0700, Andy Lutomirski wrote:
-> >> The MSI MS-7760 supplies a BGRT marked "invalid" that contains a
-> >> pointer to nowhere.  Since an "invalid" BGRT isn't particularly
-> >> useful (userspace isn't supposed to use it anyway), ignore the BGRT
-> >> if it's marked "invalid" and the pointer points outside of EFI boot
-> >> services space.
-> >>
-> >> Signed-off-by: Andy Lutomirski <luto@amacapital.net>
-> >
-> > I'd suggest generalizing the comment to not just mention the one system
-> > you observed it on.  In any case, I'm fine with this patch, but I seem
-> > to recall Matthew Garrett having some objections to ignoring the BGRT
-> > when the valid bit is not set.  Also, if you're going to do so, you
-> > might as well not expose the valid bit to userspace.
-> 
-> Hmm.
-> 
-> Not exposing the valid bit to userspace would be a bit odd -- it's
-> part of a bitfield which (in principle, I think) could have other bits
-> defined.
-> 
-> One option would be to still load the bgrt table if invalid but to not
-> try to load the image and to therefore not show that sysfs attribute.
-> I don't know what this would break because I don't know what userspace
-> programs actually use bgrt.
+Hi Linus,
 
-That sounds sensible to me: there's a BGRT, so load it and expose it,
-but with "valid" not set, don't attempt to look at the image.
+Please pull from the git repository at
 
-- Josh Triplett
+  git://git.kernel.org/pub/scm/linux/kernel/git/rafael/linux-pm.git pm+=
+acpi-3.10-rc3
+
+to receive power management and ACPI fixes for v3.10-rc3 with top-most
+commit 5a2bff8d7c7f63e2e8d467f66f6492fbb4d9509c
+
+  Merge branch 'pm-cpufreq'
+
+on top of commit c7788792a5e7b0d5d7f96d0766b4cb6112d47d75
+
+  Linux 3.10-rc2
+
+Included are:
+
+- Additional CPU ID for the intel_pstate driver from Dirk Brandewie.
+
+- More cpufreq fixes related to ARM big.LITTLE support and locking from
+  Viresh Kumar.
+
+- VIA C7 cpufreq build fix from Rafa=C5=82 Bilski.
+
+- ACPI power management fix making it possible to use device power
+  states regardless of the CONFIG_PM setting (which was possible
+  before 3.9) from yours truly.
+
+- New ACPI video blacklist item from Bastian Triller.
+
+Thanks!
+
+
+---------------
+
+Bastian Triller (1):
+      ACPI / video: Add "Asus UL30A" to ACPI video detect blacklist
+
+Dirk Brandewie (1):
+      cpufreq / intel_pstate: Add additional supported CPU ID
+
+Rafael J. Wysocki (1):
+      ACPI / PM: Allow device power states to be used for CONFIG_PM uns=
+et
+
+Rafa=C5=82 Bilski (1):
+      cpufreq / e_powersaver: Fix linker error when ACPI processor is a=
+ module
+
+Viresh Kumar (3):
+      cpufreq: Drop rwsem lock around CPUFREQ_GOV_POLICY_EXIT
+      cpufreq: arm_big_little_dt: Register driver only if DT has valid =
+data
+      cpufreq: arm_big_little_dt: Instantiate as platform_driver
+
+---------------
+
+ drivers/acpi/Makefile               |    2 +-
+ drivers/acpi/device_pm.c            |  126 ++++++++++++++++++++++-----=
+----------------
+ drivers/acpi/video_detect.c         |    8 +++
+ drivers/cpufreq/Kconfig.x86         |    2 +-
+ drivers/cpufreq/arm_big_little_dt.c |   93 +++++++++++++++++++--------=
+-----
+ drivers/cpufreq/cpufreq.c           |    9 +++-
+ drivers/cpufreq/intel_pstate.c      |    1 +
+ include/acpi/acpi_bus.h             |   40 ++------------
+ 8 files changed, 144 insertions(+), 137 deletions(-)
+
+--=20
+I speak only for myself.
+Rafael J. Wysocki, Intel Open Source Technology Center.
