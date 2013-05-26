@@ -1,86 +1,64 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: [GIT PULL] Power management and ACPI fixes for v3.10-rc3
-Date: Sat, 25 May 2013 22:04:06 +0200
-Message-ID: <7077400.RbAansdZvT@vostro.rjw.lan>
+From: Boszormenyi Zoltan <zboszor@pr.hu>
+Subject: S3 question
+Date: Sun, 26 May 2013 13:36:27 +0200
+Message-ID: <51A1F3BB.5070609@pr.hu>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
+Content-Type: text/plain; charset=ISO-8859-2;
+	format=flowed
 Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-pm-owner@vger.kernel.org>
-Sender: linux-pm-owner@vger.kernel.org
-To: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>, Linux PM list <linux-pm@vger.kernel.org>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from ns.km31432.keymachine.de ([87.118.86.135]:56485 "EHLO
+	mail.cybertec.at" rhost-flags-OK-FAIL-OK-OK) by vger.kernel.org
+	with ESMTP id S1752196Ab3EZLnN (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sun, 26 May 2013 07:43:13 -0400
+Received: from localhost.localdomain (unknown [87.242.20.225])
+	by mail.cybertec.at (Postfix) with ESMTPSA id D6E863900413
+	for <linux-acpi@vger.kernel.org>; Sun, 26 May 2013 11:36:27 +0000 (UTC)
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: linux-acpi@vger.kernel.org
 
-Hi Linus,
+Dear ACPI developers,
 
-Please pull from the git repository at
+I have a question about S3 (Suspend To RAM) sleep.
 
-  git://git.kernel.org/pub/scm/linux/kernel/git/rafael/linux-pm.git pm+=
-acpi-3.10-rc3
+Explicit warning: This mail mentions Windows XP. If you have heart prob=
+lems, please skip=20
+this mail entirely.
 
-to receive power management and ACPI fixes for v3.10-rc3 with top-most
-commit 5a2bff8d7c7f63e2e8d467f66f6492fbb4d9509c
+I am currently working with an Atom-based PC for embedded (POS) applica=
+tion,
+we use a custom modified Linux distribution.
 
-  Merge branch 'pm-cpufreq'
+The BIOS is setup in a way so the suspend mode is S3 and video Re-POST =
+is
+enabled when resuming from S3.
 
-on top of commit c7788792a5e7b0d5d7f96d0766b4cb6112d47d75
+The vendor of the machine tests suspend/resume using Windows XP SP3.
+The machine can suspend/resume properly under Linux as well but there i=
+s
+a big difference.
 
-  Linux 3.10-rc2
+When resuming, the video is not re-POSTed under Windows XP but the
+screen comes back just fine. When resuming under Linux, the first thing=
+ that
+appears on the screen are some lines in text mode indicating that video=
+ re-POST
+is happening. (A totally different screen from the screens at powerup.)
 
-Included are:
+Does anyone know:
+1. What XP is doing differently here?
+2. Can the same sequence be also done under Linux? Maybe with a command=
+ line
+    option to control the way S3 is done?
 
-- Additional CPU ID for the intel_pstate driver from Dirk Brandewie.
+Please, use reply-all, I am not subscribed to this mailing list.
 
-- More cpufreq fixes related to ARM big.LITTLE support and locking from
-  Viresh Kumar.
+Thanks in advance,
+Zolt=E1n B=F6sz=F6rm=E9nyi
 
-- VIA C7 cpufreq build fix from Rafa=C5=82 Bilski.
-
-- ACPI power management fix making it possible to use device power
-  states regardless of the CONFIG_PM setting (which was possible
-  before 3.9) from yours truly.
-
-- New ACPI video blacklist item from Bastian Triller.
-
-Thanks!
-
-
----------------
-
-Bastian Triller (1):
-      ACPI / video: Add "Asus UL30A" to ACPI video detect blacklist
-
-Dirk Brandewie (1):
-      cpufreq / intel_pstate: Add additional supported CPU ID
-
-Rafael J. Wysocki (1):
-      ACPI / PM: Allow device power states to be used for CONFIG_PM uns=
-et
-
-Rafa=C5=82 Bilski (1):
-      cpufreq / e_powersaver: Fix linker error when ACPI processor is a=
- module
-
-Viresh Kumar (3):
-      cpufreq: Drop rwsem lock around CPUFREQ_GOV_POLICY_EXIT
-      cpufreq: arm_big_little_dt: Register driver only if DT has valid =
-data
-      cpufreq: arm_big_little_dt: Instantiate as platform_driver
-
----------------
-
- drivers/acpi/Makefile               |    2 +-
- drivers/acpi/device_pm.c            |  126 ++++++++++++++++++++++-----=
-----------------
- drivers/acpi/video_detect.c         |    8 +++
- drivers/cpufreq/Kconfig.x86         |    2 +-
- drivers/cpufreq/arm_big_little_dt.c |   93 +++++++++++++++++++--------=
------
- drivers/cpufreq/cpufreq.c           |    9 +++-
- drivers/cpufreq/intel_pstate.c      |    1 +
- include/acpi/acpi_bus.h             |   40 ++------------
- 8 files changed, 144 insertions(+), 137 deletions(-)
-
---=20
-I speak only for myself.
-Rafael J. Wysocki, Intel Open Source Technology Center.
+--
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
