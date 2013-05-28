@@ -1,41 +1,138 @@
-From: Betty Dall <betty.dall@hp.com>
-Subject: [PATCH 1/3] PCI/AER: Fix incorrect return from aer_hest_parse()
-Date: Tue, 28 May 2013 12:48:47 -0600
-Message-ID: <1369766929-4386-2-git-send-email-betty.dall@hp.com>
-References: <1369766929-4386-1-git-send-email-betty.dall@hp.com>
-Return-path: <linux-pci-owner@vger.kernel.org>
-In-Reply-To: <1369766929-4386-1-git-send-email-betty.dall@hp.com>
-Sender: linux-pci-owner@vger.kernel.org
-To: rjw@sisk.pl, bhelgaas@google.com
-Cc: ying.huang@intel.com, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, Betty Dall <betty.dall@hp.com>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: Re: [regression,bisected] restore of disks after suspend-to-disk broken in 3.9.x
+Date: Tue, 28 May 2013 23:21:07 +0200
+Message-ID: <2311399.dRVpqHHLQS@vostro.rjw.lan>
+References: <CAPm-kmsTNz4niGXsWyhLwwBkQ48gHdq1vjPvSKKwQ0kbhHm=JQ@mail.gmail.com> <1569319.PChVOz05me@vostro.rjw.lan> <CAPm-kmu45=uqR2TXmHKjtNcvRCmOpu7cpOzi6WyWmsTdw-QPPw@mail.gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7Bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from hydra.sisk.pl ([212.160.235.94]:53576 "EHLO hydra.sisk.pl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755968Ab3E1VMQ (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 28 May 2013 17:12:16 -0400
+In-Reply-To: <CAPm-kmu45=uqR2TXmHKjtNcvRCmOpu7cpOzi6WyWmsTdw-QPPw@mail.gmail.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Giacomo Perale <giacomo.perale@gmail.com>
+Cc: Zhang Rui <rui.zhang@intel.com>, Linux PM list <linux-pm@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>
 
-The function aer_hest_parse() is called to determine if the given
-PCI device is firmware first or not. The code loops through each
-section of the HEST table to look for a match. The bug is that
-the function always returns whether the last HEST section is firmware
-first. The fix stops the iteration once the info.firmware_first
-variable is set.  This is similar to how the function aer_hest_parse_aff()
-stops the iteration.
+On Tuesday, May 28, 2013 03:47:30 PM Giacomo Perale wrote:
+> 2013/5/28 Rafael J. Wysocki <rjw@sisk.pl>:
+> > On Tuesday, May 28, 2013 02:59:25 PM Giacomo Perale wrote:
+> >> 2013/5/28 Rafael J. Wysocki <rjw@sisk.pl>:
+> >> > On Monday, May 27, 2013 10:07:18 PM Giacomo Perale wrote:
+> >> >> 2013/5/27 Zhang Rui <rui.zhang@intel.com>:
+> >> >> > On Sun, 2013-05-26 at 15:51 +0200, Giacomo Perale wrote:
+> >> >> >> after upgrading from 3.8.7 to 3.9.x I noticed some slightly longer
+> >> >> >> delays when resuming from suspend-to-disk and a few new error messages
+> >> >> >> in the logs:
+> >> >> >>
+> >> >> >>
+> >> >> >> Not having connected the issue with the previous error messages I
+> >> >> >> initially blamed the disk and replaced it with a new one thinking it
+> >> >> >> was broken, but the problem persisted so I started a bisection run
+> >> >> >> that pointed to this commit:
+> >> >> >>
+> >> >> >>
+> >> >> >> b8bb6cb999858043489c1ddef08eed2127559169 is the first bad commit
+> >> >> >> commit b8bb6cb999858043489c1ddef08eed2127559169
+> >> >> >> Author: Zhang Rui <rui.zhang@intel.com>
+> >> >> >> Date:   Thu Nov 22 15:45:02 2012 +0800
+> >> >> >>
+> >> >> >>     step_wise: Unify the code for both throttle and dethrottle
+> >> >> >>
+> >> >> >>     Signed-off-by: Zhang Rui <rui.zhang@intel.com>
+> >> >> >>
+> >> >> > I do not see how this would affect the sata hibernation/resume.
+> >> >> > but anyway, would you please try the four patches in comment #10, #11,
+> >> >> > #12 and #13 in
+> >> >> > https://bugzilla.kernel.org/show_bug.cgi?id=58301
+> >> >> > and check if they help?
+> >> >> >
+> >> >> > thanks,
+> >> >> > rui
+> >> >> >
+> >> >>
+> >> >> No luck, with git head and those four patches hibernation is
+> >> >> completely broken, the system doesn't even shut down, it just loses
+> >> >> the disks (I'm attaching what I could get from /proc/kmsg to this
+> >> >> email).
+> >> >>
+> >> >> With the fair_share governor or with step_wise _and_ commit
+> >> >> b8bb6cb999858043489c1ddef08eed2127559169 reverted everything is ok
+> >> >> again.
+> >> >>
+> >> >
+> >> > Can you please attach the output of acpidump from your system?
+> >> >
+> >> > Rafael
+> >> >
+> >> >
+> >>
+> >> Sure, here it is.
+> >
+> > Thanks!
+> >
+> > Can you please also check if the patch below makes any difference?
+> >
+> > Rafael
+> >
+> >
+> 
+> With that patch hibernation is working again on git head and on 3.9.2.
+> 
+> Thank you!
 
-Signed-off-by: Betty Dall <betty.dall@hp.com>
+Thanks for testing.  It seems to me, though, that we need to do something
+more radical here.  Can you please test the one below too and report back?
+
+Rafael
+
+
 ---
+ drivers/thermal/step_wise.c |   18 +++++++-----------
+ 1 file changed, 7 insertions(+), 11 deletions(-)
 
- drivers/pci/pcie/aer/aerdrv_acpi.c |    3 +++
- 1 files changed, 3 insertions(+), 0 deletions(-)
-
-
-diff --git a/drivers/pci/pcie/aer/aerdrv_acpi.c b/drivers/pci/pcie/aer/aerdrv_acpi.c
-index 5194a7d..39b8671 100644
---- a/drivers/pci/pcie/aer/aerdrv_acpi.c
-+++ b/drivers/pci/pcie/aer/aerdrv_acpi.c
-@@ -42,6 +42,9 @@ static int aer_hest_parse(struct acpi_hest_header *hest_hdr, void *data)
- 	u8 bridge = 0;
- 	int ff = 0;
+Index: linux-pm/drivers/thermal/step_wise.c
+===================================================================
+--- linux-pm.orig/drivers/thermal/step_wise.c
++++ linux-pm/drivers/thermal/step_wise.c
+@@ -109,7 +109,6 @@ static void thermal_zone_trip_update(str
+ 	enum thermal_trend trend;
+ 	struct thermal_instance *instance;
+ 	bool throttle = false;
+-	int old_target;
  
-+	if (info->firmware_first)
-+		return 0;
-+
- 	switch (hest_hdr->type) {
- 	case ACPI_HEST_TYPE_AER_ROOT_PORT:
- 		pcie_type = PCI_EXP_TYPE_ROOT_PORT;
+ 	if (trip == THERMAL_TRIPS_NONE) {
+ 		trip_temp = tz->forced_passive;
+@@ -130,18 +129,15 @@ static void thermal_zone_trip_update(str
+ 		if (instance->trip != trip)
+ 			continue;
+ 
+-		old_target = instance->target;
+-		instance->target = get_target_state(instance, trend, throttle);
++		if (!throttle && instance->target == THERMAL_NO_TARGET)
++			continue;
+ 
+-		/* Activate a passive thermal instance */
+-		if (old_target == THERMAL_NO_TARGET &&
+-			instance->target != THERMAL_NO_TARGET)
+-			update_passive_instance(tz, trip_type, 1);
+-		/* Deactivate a passive thermal instance */
+-		else if (old_target != THERMAL_NO_TARGET &&
+-			instance->target == THERMAL_NO_TARGET)
+-			update_passive_instance(tz, trip_type, -1);
++		instance->target = get_target_state(instance, trend, throttle);
+ 
++		/* Activate or deactivate a passive thermal instance */
++		if (instance->target == THERMAL_NO_TARGET)
++			update_passive_instance(tz, trip_type,
++						throttle ? 1 : -1);
+ 
+ 		instance->cdev->updated = false; /* cdev needs update */
+ 	}
+
+-- 
+I speak only for myself.
+Rafael J. Wysocki, Intel Open Source Technology Center.
