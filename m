@@ -1,87 +1,74 @@
 From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: [PATCH v2] ACPI:add _STA evaluating at do_acpi_find_child()
-Date: Tue, 28 May 2013 13:10:45 +0200
-Message-ID: <7656594.F3TsMgsJ7C@vostro.rjw.lan>
-References: <1369711337-2410-1-git-send-email-jeff.wu@amd.com>
+Subject: Re: [regression,bisected] restore of disks after suspend-to-disk broken in 3.9.x
+Date: Tue, 28 May 2013 15:01:58 +0200
+Message-ID: <2552290.9fhTfGPlAk@vostro.rjw.lan>
+References: <CAPm-kmsTNz4niGXsWyhLwwBkQ48gHdq1vjPvSKKwQ0kbhHm=JQ@mail.gmail.com> <1369631226.2159.5.camel@rzhang1-mobl4> <CAPm-kmu4WmAKX4N5GTsG-J+oq95pLxB9=iLMf2dyK-p6RbwFXQ@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7Bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from hydra.sisk.pl ([212.160.235.94]:53206 "EHLO hydra.sisk.pl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1757782Ab3E1LB4 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 28 May 2013 07:01:56 -0400
-In-Reply-To: <1369711337-2410-1-git-send-email-jeff.wu@amd.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Return-path: <linux-pm-owner@vger.kernel.org>
+In-Reply-To: <CAPm-kmu4WmAKX4N5GTsG-J+oq95pLxB9=iLMf2dyK-p6RbwFXQ@mail.gmail.com>
+Sender: linux-pm-owner@vger.kernel.org
+To: Giacomo Perale <giacomo.perale@gmail.com>
+Cc: Zhang Rui <rui.zhang@intel.com>, linux-acpi@vger.kernel.org, linux-pm@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: jeff.wu@amd.com
-Cc: lenb@kernel.org, lantianyu1986@gmail.com, linux-acpi@vger.kernel.org, zlinuxkernel@gmail.com, shane.huang@amd.com, aaron.lwe@gmail.com, lekensteyn@gmail.com, dagobertstaler@gmail.com
 
-On Tuesday, May 28, 2013 11:22:17 AM jeff.wu@amd.com wrote:
-> From: Jeff Wu <zlinuxkernel@gmail.com>
+On Monday, May 27, 2013 10:07:18 PM Giacomo Perale wrote:
+> 2013/5/27 Zhang Rui <rui.zhang@intel.com>:
+> > On Sun, 2013-05-26 at 15:51 +0200, Giacomo Perale wrote:
+> >> Hello,
+> >>
+> >> after upgrading from 3.8.7 to 3.9.x I noticed some slightly longer
+> >> delays when resuming from suspend-to-disk and a few new error messages
+> >> in the logs:
+> >>
+> >>
+> >> Not having connected the issue with the previous error messages I
+> >> initially blamed the disk and replaced it with a new one thinking it
+> >> was broken, but the problem persisted so I started a bisection run
+> >> that pointed to this commit:
+> >>
+> >>
+> >> b8bb6cb999858043489c1ddef08eed2127559169 is the first bad commit
+> >> commit b8bb6cb999858043489c1ddef08eed2127559169
+> >> Author: Zhang Rui <rui.zhang@intel.com>
+> >> Date:   Thu Nov 22 15:45:02 2012 +0800
+> >>
+> >>     step_wise: Unify the code for both throttle and dethrottle
+> >>
+> >>     Signed-off-by: Zhang Rui <rui.zhang@intel.com>
+> >>
+> > I do not see how this would affect the sata hibernation/resume.
+> > but anyway, would you please try the four patches in comment #10, #11,
+> > #12 and #13 in
+> > https://bugzilla.kernel.org/show_bug.cgi?id=58301
+> > and check if they help?
+> >
+> > thanks,
+> > rui
+> >
 > 
-> v2:
-> 1).If it's only one matching device, whether the deivce status is enabled or disabled,
->    do_acpi_find_child() return its' handle
-> 2).If it's more than one matching devices, do_acpi_find_child() return the first 
->    enabled device handle
-> The idea mail thread:
-> http://wwww.spinics.net/lists/linux-acpi/msg43481.html
+> No luck, with git head and those four patches hibernation is
+> completely broken, the system doesn't even shut down, it just loses
+> the disks (I'm attaching what I could get from /proc/kmsg to this
+> email).
+> 
+> With the fair_share governor or with step_wise _and_ commit
+> b8bb6cb999858043489c1ddef08eed2127559169 reverted everything is ok
+> again.
+> 
+> I think there's something wrong in the commit logic (for example, why
+> are you checking for "instance->target != THERMAL_NO_TARGET" when
+> update_instance_for_throttle checked for "instance->target ==
+> THERMAL_NO_TARGET"?) but my attempts to fix it failed, probably
+> because I'm not sure of what 'continue;' does inside a
+> list_for_each_entry macro.
 
-The information what's changed in v2 with respect to v1 is rather not
-interesting to the future readers of the changelog, so can you please rearrange
-it as one comprehensive description of the patch?
+Can you please attach the output of acpidump from your system?
 
-The patch itself looks good to me.
-
-Thanks,
 Rafael
 
 
-> v1:
-> Once do_acpi_find_child() found the first matching handle, it makes the acpi_get_child()
-> loop stop and return the matching handle. But, at some of the platforms, a "_ADR" is
-> with the multiple devices, and if one is enabled, the others will be disabled.
-> Just like a case:
-> Address : 0x1FFFF ; handle : SB_PCI0.SATA.DEV0
-> Address : 0x1FFFF ; handle : SB_PCI0.SATA.DEV1
-> Address : 0x1FFFF ; handle : SB_PCI0.SATA.DEV2
-> 
-> If DEV0 and DEV1 are disabled and DEV2 is enabled, the target is to get DEV2 handle, but
-> actually it always return the first disabled device DEV0 handle. So add a _STA evaluating
-> at do_acpi_find_child() to check the device status. If the object exists, but it is disabled,
-> acpi_get_child() will continue looping to get the correct handle that the object exists and
-> is enabled.
->  
-> 
-> Signed-off-by: Jeff Wu <zlinuxkernel@gmail.com>
-> ---
->  drivers/acpi/glue.c | 6 ++++--
->  1 file changed, 4 insertions(+), 2 deletions(-)
-> 
-> diff --git a/drivers/acpi/glue.c b/drivers/acpi/glue.c
-> index 40a84cc..51ca764 100644
-> --- a/drivers/acpi/glue.c
-> +++ b/drivers/acpi/glue.c
-> @@ -81,13 +81,15 @@ static struct acpi_bus_type *acpi_get_bus_type(struct device *dev)
->  static acpi_status do_acpi_find_child(acpi_handle handle, u32 lvl_not_used,
->  				      void *addr_p, void **ret_p)
->  {
-> -	unsigned long long addr;
-> +	unsigned long long addr, sta;
->  	acpi_status status;
->  
->  	status = acpi_evaluate_integer(handle, METHOD_NAME__ADR, NULL, &addr);
->  	if (ACPI_SUCCESS(status) && addr == *((u64 *)addr_p)) {
->  		*ret_p = handle;
-> -		return AE_CTRL_TERMINATE;
-> +		status = acpi_bus_get_status_handle(handle, &sta);
-> +		if (ACPI_SUCCESS(status) && (sta & ACPI_STA_DEVICE_ENABLED))
-> +			return AE_CTRL_TERMINATE;
->  	}
->  	return AE_OK;
->  }
-> 
 -- 
 I speak only for myself.
 Rafael J. Wysocki, Intel Open Source Technology Center.
