@@ -1,39 +1,62 @@
 From: Betty Dall <betty.dall@hp.com>
-Subject: [PATCH 0/3] PCI/ACPI: Fix firmware first error recovery with root port in reset
-Date: Tue, 28 May 2013 12:48:46 -0600
-Message-ID: <1369766929-4386-1-git-send-email-betty.dall@hp.com>
+Subject: [PATCH 2/3] ACPI/APEI: Force fatal AER severity when bus has been reset
+Date: Tue, 28 May 2013 12:48:48 -0600
+Message-ID: <1369766929-4386-3-git-send-email-betty.dall@hp.com>
+References: <1369766929-4386-1-git-send-email-betty.dall@hp.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from g4t0014.houston.hp.com ([15.201.24.17]:37706 "EHLO
-	g4t0014.houston.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751878Ab3E1Sxf (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 28 May 2013 14:53:35 -0400
+Received: from g4t0017.houston.hp.com ([15.201.24.20]:45177 "EHLO
+	g4t0017.houston.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753426Ab3E1Sxh (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 28 May 2013 14:53:37 -0400
+In-Reply-To: <1369766929-4386-1-git-send-email-betty.dall@hp.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: rjw@sisk.pl, bhelgaas@google.com
 Cc: ying.huang@intel.com, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, Betty Dall <betty.dall@hp.com>
 
-This patch set fixes a bug on platforms that use firmware first AER.
-Firmware can leave the root port in Secondary Bus Reset (SBR) and
-communicate this to the OS through the "reset" bit in the flags field
-of the HEST table and associated CPER records. Firmware wants to do this
-so that the error is contained and the hardware is in a known state.
+The CPER error record has a reset bit that indicates that the platform
+has reset the bus. The reset bit can be set for any severity error
+including recoverable.  From the AER code path's perspective,
+any error is fatal if the bus has been reset. This patch upgrades the
+severity of the AER recovery to AER_FATAL whenever the CPER error record
+indicates that the bus has been reset.
 
-Without these patches, the root port stays in SBR and the device drivers
-cannot recover. These patches recognize when the firmware first root port
-is in SBR and bring the root port out of SBR so the devices under the root
-port can recover.
-
-The changes have been tested on systems with firmware first that set the
-"reset" bit by injecting various hardware errors. The errors successfully
-recover.
-
+Signed-off-by: Betty Dall <betty.dall@hp.com>
 ---
-Betty Dall (3):
-  PCI/AER: Fix incorrect return from aer_hest_parse()
-  ACPI/APEI: Force fatal AER severity when bus has been reset
-  PCI/AER: Provide reset_link for firmware first root port
----
- drivers/acpi/apei/ghes.c           |   21 ++++++++++++++++++-
- drivers/pci/pcie/aer/aerdrv_acpi.c |    3 ++
- drivers/pci/pcie/aer/aerdrv_core.c |   38 ++++++++++++++++++++++++++++++++++++
- 3 files changed, 61 insertions(+), 1 deletions(-)
+
+ drivers/acpi/apei/ghes.c |   21 ++++++++++++++++++++-
+ 1 files changed, 20 insertions(+), 1 deletions(-)
+
+
+diff --git a/drivers/acpi/apei/ghes.c b/drivers/acpi/apei/ghes.c
+index d668a8a..4a42afc 100644
+--- a/drivers/acpi/apei/ghes.c
++++ b/drivers/acpi/apei/ghes.c
+@@ -451,7 +451,26 @@ static void ghes_do_proc(struct ghes *ghes,
+ 				int aer_severity;
+ 				devfn = PCI_DEVFN(pcie_err->device_id.device,
+ 						  pcie_err->device_id.function);
+-				aer_severity = cper_severity_to_aer(sev);
++				/*
++				 * Some Firmware First implementations
++				 * put the device in SBR to contain
++				 * the error. This is indicated by the
++				 * CPER Section Decriptor Flags reset
++				 * bit which means the component must
++				 * be re-initialized or re-enabled
++				 * prior to use. Promoting the AER
++				 * serverity to FATAL will cause the
++				 * AER code to link_reset and allow
++				 * drivers to reprogram their cards.
++				 */
++				if (gdata->flags & CPER_SEC_RESET)
++					aer_severity = cper_severity_to_aer(
++							CPER_SEV_FATAL);
++				else
++					aer_severity =
++						cper_severity_to_aer(sev);
++
++
+ 				aer_recover_queue(pcie_err->device_id.segment,
+ 						  pcie_err->device_id.bus,
+ 						  devfn, aer_severity);
