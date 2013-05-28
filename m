@@ -1,56 +1,84 @@
 From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: [PATCH] ACPI: Fix potential NULL pointer dereference in acpi_processor_add()
-Date: Wed, 29 May 2013 01:30:24 +0200
-Message-ID: <1693841.iH9OWSxHyo@vostro.rjw.lan>
-References: <519E0F2A.4070602@linaro.org>
+Subject: [PATCH] Memory hotplug: Move alternative function definitions to header
+Date: Wed, 29 May 2013 01:32:39 +0200
+Message-ID: <3399422.RK6bMrAa5x@vostro.rjw.lan>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7Bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from hydra.sisk.pl ([212.160.235.94]:53667 "EHLO hydra.sisk.pl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1759227Ab3E1XVa (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 28 May 2013 19:21:30 -0400
-In-Reply-To: <519E0F2A.4070602@linaro.org>
-Sender: linux-acpi-owner@vger.kernel.org
+Return-path: <owner-linux-mm@kvack.org>
+Sender: owner-linux-mm@kvack.org
+To: ACPI Devel Maling List <linux-acpi@vger.kernel.org>
+Cc: LKML <linux-kernel@vger.kernel.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Toshi Kani <toshi.kani@hp.com>, Wen Congyang <wency@cn.fujitsu.com>, Tang Chen <tangchen@cn.fujitsu.com>, Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>, Andrew Morton <akpm@linux-foundation.org>, Jiang Liu <liuj97@gmail.com>, Vasilis Liaskovitis <vasilis.liaskovitis@profitbricks.com>, linux-mm@kvack.org
 List-Id: linux-acpi@vger.kernel.org
-To: Hanjun Guo <hanjun.guo@linaro.org>
-Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, patches@linaro.org, linaro-kernel@lists.linaro.org
 
-On Thursday, May 23, 2013 08:44:26 PM Hanjun Guo wrote:
-> In acpi_processor_add(), get_cpu_device() will return NULL sometimes,
-> although the chances are small, I think it should be fixed.
-> 
-> Signed-off-by: Hanjun Guo <hanjun.guo@linaro.org>
+From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 
-This patch isn't necessary any more after the changes queued up for 3.11
-in the acpi-hotplug branch of the linux-pm.git tree.
+Move the definitions of offline_pages() and remove_memory()
+for CONFIG_MEMORY_HOTREMOVE to memory_hotplug.h, where they belong,
+and make them static inline.
+
+Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+---
+
+On top of the linux-next branch of the linux-pm.git tree.
+
+Please let me know if there are any objections.
 
 Thanks,
 Rafael
 
+---
+ include/linux/memory_hotplug.h |    9 +++++++++
+ mm/memory_hotplug.c            |    8 +-------
+ 2 files changed, 10 insertions(+), 7 deletions(-)
 
-> ---
->  drivers/acpi/processor_driver.c |    4 ++++
->  1 files changed, 4 insertions(+), 0 deletions(-)
-> 
-> diff --git a/drivers/acpi/processor_driver.c b/drivers/acpi/processor_driver.c
-> index bec717f..dd64f23 100644
-> --- a/drivers/acpi/processor_driver.c
-> +++ b/drivers/acpi/processor_driver.c
-> @@ -579,6 +579,10 @@ static int __cpuinit acpi_processor_add(struct acpi_device
-> *device)
->         per_cpu(processors, pr->id) = pr;
-> 
->         dev = get_cpu_device(pr->id);
-> +       if (!dev) {
-> +               result = -ENODEV;
-> +               goto err_clear_processor;
-> +       }
->         if (sysfs_create_link(&device->dev.kobj, &dev->kobj, "sysdev")) {
->                 result = -EFAULT;
->                 goto err_clear_processor;
-> 
--- 
-I speak only for myself.
-Rafael J. Wysocki, Intel Open Source Technology Center.
+Index: linux-pm/include/linux/memory_hotplug.h
+===================================================================
+--- linux-pm.orig/include/linux/memory_hotplug.h
++++ linux-pm/include/linux/memory_hotplug.h
+@@ -234,6 +234,8 @@ static inline void unlock_memory_hotplug
+ 
+ extern int is_mem_section_removable(unsigned long pfn, unsigned long nr_pages);
+ extern void try_offline_node(int nid);
++extern int offline_pages(unsigned long start_pfn, unsigned long nr_pages);
++extern void remove_memory(int nid, u64 start, u64 size);
+ 
+ #else
+ static inline int is_mem_section_removable(unsigned long pfn,
+@@ -243,6 +245,13 @@ static inline int is_mem_section_removab
+ }
+ 
+ static inline void try_offline_node(int nid) {}
++
++static inline int offline_pages(unsigned long start_pfn, unsigned long nr_pages)
++{
++	return -EINVAL;
++}
++
++static inline void remove_memory(int nid, u64 start, u64 size) {}
+ #endif /* CONFIG_MEMORY_HOTREMOVE */
+ 
+ extern int walk_memory_range(unsigned long start_pfn, unsigned long end_pfn,
+Index: linux-pm/mm/memory_hotplug.c
+===================================================================
+--- linux-pm.orig/mm/memory_hotplug.c
++++ linux-pm/mm/memory_hotplug.c
+@@ -1825,11 +1825,5 @@ void __ref remove_memory(int nid, u64 st
+ 
+ 	unlock_memory_hotplug();
+ }
+-#else
+-int offline_pages(unsigned long start_pfn, unsigned long nr_pages)
+-{
+-	return -EINVAL;
+-}
+-void remove_memory(int nid, u64 start, u64 size) {}
+-#endif /* CONFIG_MEMORY_HOTREMOVE */
+ EXPORT_SYMBOL_GPL(remove_memory);
++#endif /* CONFIG_MEMORY_HOTREMOVE */
+
+--
+To unsubscribe, send a message with 'unsubscribe linux-mm' in
+the body to majordomo@kvack.org.  For more info on Linux MM,
+see: http://www.linux-mm.org/ .
+Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
