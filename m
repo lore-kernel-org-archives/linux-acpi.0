@@ -1,138 +1,133 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: [regression,bisected] restore of disks after suspend-to-disk broken in 3.9.x
-Date: Tue, 28 May 2013 23:21:07 +0200
-Message-ID: <2311399.dRVpqHHLQS@vostro.rjw.lan>
-References: <CAPm-kmsTNz4niGXsWyhLwwBkQ48gHdq1vjPvSKKwQ0kbhHm=JQ@mail.gmail.com> <1569319.PChVOz05me@vostro.rjw.lan> <CAPm-kmu45=uqR2TXmHKjtNcvRCmOpu7cpOzi6WyWmsTdw-QPPw@mail.gmail.com>
+From: Bjorn Helgaas <bhelgaas@google.com>
+Subject: Re: [PATCH v1 1/2] ACPI, PCI: remove unused global list
+ acpi_pci_roots in pci_root.c
+Date: Tue, 28 May 2013 16:37:03 -0600
+Message-ID: <CAErSpo6-xtrNgPYxu_4QRtZs76P9B6b4JXQPENhX6hyNPpKx+g@mail.gmail.com>
+References: <1368536439-19421-1-git-send-email-jiang.liu@huawei.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from hydra.sisk.pl ([212.160.235.94]:53576 "EHLO hydra.sisk.pl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755968Ab3E1VMQ (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 28 May 2013 17:12:16 -0400
-In-Reply-To: <CAPm-kmu45=uqR2TXmHKjtNcvRCmOpu7cpOzi6WyWmsTdw-QPPw@mail.gmail.com>
+Received: from mail-oa0-f47.google.com ([209.85.219.47]:40490 "EHLO
+	mail-oa0-f47.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757098Ab3E1Wh0 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 28 May 2013 18:37:26 -0400
+Received: by mail-oa0-f47.google.com with SMTP id m1so10594701oag.6
+        for <linux-acpi@vger.kernel.org>; Tue, 28 May 2013 15:37:23 -0700 (PDT)
+In-Reply-To: <1368536439-19421-1-git-send-email-jiang.liu@huawei.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Giacomo Perale <giacomo.perale@gmail.com>
-Cc: Zhang Rui <rui.zhang@intel.com>, Linux PM list <linux-pm@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>
+To: Jiang Liu <liuj97@gmail.com>
+Cc: "Rafael J . Wysocki" <rjw@sisk.pl>, Yinghai Lu <yinghai@kernel.org>, Jiang Liu <jiang.liu@huawei.com>, Gu Zheng <guz.fnst@cn.fujitsu.com>, Toshi Kani <toshi.kani@hp.com>, Myron Stowe <myron.stowe@redhat.com>, Yijing Wang <wangyijing@huawei.com>, "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Len Brown <lenb@kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
 
-On Tuesday, May 28, 2013 03:47:30 PM Giacomo Perale wrote:
-> 2013/5/28 Rafael J. Wysocki <rjw@sisk.pl>:
-> > On Tuesday, May 28, 2013 02:59:25 PM Giacomo Perale wrote:
-> >> 2013/5/28 Rafael J. Wysocki <rjw@sisk.pl>:
-> >> > On Monday, May 27, 2013 10:07:18 PM Giacomo Perale wrote:
-> >> >> 2013/5/27 Zhang Rui <rui.zhang@intel.com>:
-> >> >> > On Sun, 2013-05-26 at 15:51 +0200, Giacomo Perale wrote:
-> >> >> >> after upgrading from 3.8.7 to 3.9.x I noticed some slightly longer
-> >> >> >> delays when resuming from suspend-to-disk and a few new error messages
-> >> >> >> in the logs:
-> >> >> >>
-> >> >> >>
-> >> >> >> Not having connected the issue with the previous error messages I
-> >> >> >> initially blamed the disk and replaced it with a new one thinking it
-> >> >> >> was broken, but the problem persisted so I started a bisection run
-> >> >> >> that pointed to this commit:
-> >> >> >>
-> >> >> >>
-> >> >> >> b8bb6cb999858043489c1ddef08eed2127559169 is the first bad commit
-> >> >> >> commit b8bb6cb999858043489c1ddef08eed2127559169
-> >> >> >> Author: Zhang Rui <rui.zhang@intel.com>
-> >> >> >> Date:   Thu Nov 22 15:45:02 2012 +0800
-> >> >> >>
-> >> >> >>     step_wise: Unify the code for both throttle and dethrottle
-> >> >> >>
-> >> >> >>     Signed-off-by: Zhang Rui <rui.zhang@intel.com>
-> >> >> >>
-> >> >> > I do not see how this would affect the sata hibernation/resume.
-> >> >> > but anyway, would you please try the four patches in comment #10, #11,
-> >> >> > #12 and #13 in
-> >> >> > https://bugzilla.kernel.org/show_bug.cgi?id=58301
-> >> >> > and check if they help?
-> >> >> >
-> >> >> > thanks,
-> >> >> > rui
-> >> >> >
-> >> >>
-> >> >> No luck, with git head and those four patches hibernation is
-> >> >> completely broken, the system doesn't even shut down, it just loses
-> >> >> the disks (I'm attaching what I could get from /proc/kmsg to this
-> >> >> email).
-> >> >>
-> >> >> With the fair_share governor or with step_wise _and_ commit
-> >> >> b8bb6cb999858043489c1ddef08eed2127559169 reverted everything is ok
-> >> >> again.
-> >> >>
-> >> >
-> >> > Can you please attach the output of acpidump from your system?
-> >> >
-> >> > Rafael
-> >> >
-> >> >
-> >>
-> >> Sure, here it is.
-> >
-> > Thanks!
-> >
-> > Can you please also check if the patch below makes any difference?
-> >
-> > Rafael
-> >
-> >
-> 
-> With that patch hibernation is working again on git head and on 3.9.2.
-> 
-> Thank you!
+On Tue, May 14, 2013 at 7:00 AM, Jiang Liu <liuj97@gmail.com> wrote:
+> Now the global list acpi_pci_roots pci_root.c is useless, remove it.
+>
+> Signed-off-by: Jiang Liu <jiang.liu@huawei.com>
+> Cc: Len Brown <lenb@kernel.org>
+> Cc: "Rafael J. Wysocki" <rjw@sisk.pl>
+> Cc: linux-acpi@vger.kernel.org
+> Cc: linux-kernel@vger.kernel.org
+> ---
+>  drivers/acpi/pci_root.c | 25 +++----------------------
+>  include/acpi/acpi_bus.h |  1 -
+>  2 files changed, 3 insertions(+), 23 deletions(-)
 
-Thanks for testing.  It seems to me, though, that we need to do something
-more radical here.  Can you please test the one below too and report back?
+This and the "use acpi_handle_print()" patch look fine to me.
 
-Rafael
+Rafael, I can take them, or if you want to take them yourself, you can add
 
+  Acked-by: Bjorn Helgaas <bhelgaas@google.com>
 
----
- drivers/thermal/step_wise.c |   18 +++++++-----------
- 1 file changed, 7 insertions(+), 11 deletions(-)
+Bjorn
 
-Index: linux-pm/drivers/thermal/step_wise.c
-===================================================================
---- linux-pm.orig/drivers/thermal/step_wise.c
-+++ linux-pm/drivers/thermal/step_wise.c
-@@ -109,7 +109,6 @@ static void thermal_zone_trip_update(str
- 	enum thermal_trend trend;
- 	struct thermal_instance *instance;
- 	bool throttle = false;
--	int old_target;
- 
- 	if (trip == THERMAL_TRIPS_NONE) {
- 		trip_temp = tz->forced_passive;
-@@ -130,18 +129,15 @@ static void thermal_zone_trip_update(str
- 		if (instance->trip != trip)
- 			continue;
- 
--		old_target = instance->target;
--		instance->target = get_target_state(instance, trend, throttle);
-+		if (!throttle && instance->target == THERMAL_NO_TARGET)
-+			continue;
- 
--		/* Activate a passive thermal instance */
--		if (old_target == THERMAL_NO_TARGET &&
--			instance->target != THERMAL_NO_TARGET)
--			update_passive_instance(tz, trip_type, 1);
--		/* Deactivate a passive thermal instance */
--		else if (old_target != THERMAL_NO_TARGET &&
--			instance->target == THERMAL_NO_TARGET)
--			update_passive_instance(tz, trip_type, -1);
-+		instance->target = get_target_state(instance, trend, throttle);
- 
-+		/* Activate or deactivate a passive thermal instance */
-+		if (instance->target == THERMAL_NO_TARGET)
-+			update_passive_instance(tz, trip_type,
-+						throttle ? 1 : -1);
- 
- 		instance->cdev->updated = false; /* cdev needs update */
- 	}
-
--- 
-I speak only for myself.
-Rafael J. Wysocki, Intel Open Source Technology Center.
+> diff --git a/drivers/acpi/pci_root.c b/drivers/acpi/pci_root.c
+> index b80e06e..91ddfd6 100644
+> --- a/drivers/acpi/pci_root.c
+> +++ b/drivers/acpi/pci_root.c
+> @@ -65,10 +65,6 @@ static struct acpi_scan_handler pci_root_handler = {
+>         .detach = acpi_pci_root_remove,
+>  };
+>
+> -/* Lock to protect both acpi_pci_roots lists */
+> -static DEFINE_MUTEX(acpi_pci_root_lock);
+> -static LIST_HEAD(acpi_pci_roots);
+> -
+>  static DEFINE_MUTEX(osc_lock);
+>
+>  /**
+> @@ -423,7 +419,6 @@ static int acpi_pci_root_add(struct acpi_device *device,
+>                 }
+>         }
+>
+> -       INIT_LIST_HEAD(&root->node);
+>         root->device = device;
+>         root->segment = segment & 0xFFFF;
+>         strcpy(acpi_device_name(device), ACPI_PCI_ROOT_DEVICE_NAME);
+> @@ -501,10 +496,6 @@ static int acpi_pci_root_add(struct acpi_device *device,
+>          * TBD: Need PCI interface for enumeration/configuration of roots.
+>          */
+>
+> -       mutex_lock(&acpi_pci_root_lock);
+> -       list_add_tail(&root->node, &acpi_pci_roots);
+> -       mutex_unlock(&acpi_pci_root_lock);
+> -
+>         /*
+>          * Scan the Root Bridge
+>          * --------------------
+> @@ -518,7 +509,7 @@ static int acpi_pci_root_add(struct acpi_device *device,
+>                             "Bus %04x:%02x not present in PCI namespace\n",
+>                             root->segment, (unsigned int)root->secondary.start);
+>                 result = -ENODEV;
+> -               goto out_del_root;
+> +               goto end;
+>         }
+>
+>         /* ASPM setting */
+> @@ -538,20 +529,13 @@ static int acpi_pci_root_add(struct acpi_device *device,
+>         if (system_state != SYSTEM_BOOTING) {
+>                 pcibios_resource_survey_bus(root->bus);
+>                 pci_assign_unassigned_bus_resources(root->bus);
+> -       }
+> -
+> -       /* need to after hot-added ioapic is registered */
+> -       if (system_state != SYSTEM_BOOTING)
+> +               /* need to after hot-added ioapic is registered */
+>                 pci_enable_bridges(root->bus);
+> +       }
+>
+>         pci_bus_add_devices(root->bus);
+>         return 1;
+>
+> -out_del_root:
+> -       mutex_lock(&acpi_pci_root_lock);
+> -       list_del(&root->node);
+> -       mutex_unlock(&acpi_pci_root_lock);
+> -
+>  end:
+>         kfree(root);
+>         return result;
+> @@ -568,9 +552,6 @@ static void acpi_pci_root_remove(struct acpi_device *device)
+>
+>         pci_remove_root_bus(root->bus);
+>
+> -       mutex_lock(&acpi_pci_root_lock);
+> -       list_del(&root->node);
+> -       mutex_unlock(&acpi_pci_root_lock);
+>         kfree(root);
+>  }
+>
+> diff --git a/include/acpi/acpi_bus.h b/include/acpi/acpi_bus.h
+> index 22ba56e..4eb9a88 100644
+> --- a/include/acpi/acpi_bus.h
+> +++ b/include/acpi/acpi_bus.h
+> @@ -447,7 +447,6 @@ int register_acpi_bus_type(struct acpi_bus_type *);
+>  int unregister_acpi_bus_type(struct acpi_bus_type *);
+>
+>  struct acpi_pci_root {
+> -       struct list_head node;
+>         struct acpi_device * device;
+>         struct pci_bus *bus;
+>         u16 segment;
+> --
+> 1.8.1.2
+>
