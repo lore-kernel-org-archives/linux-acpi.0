@@ -1,65 +1,74 @@
-From: Lan Tianyu <tianyu.lan@intel.com>
-Subject: [PATCH] Platform/HP: Fix misuse variable bluetooth_rfkill in the hp_wmi_rfkill_setup()
-Date: Tue, 28 May 2013 10:25:33 +0800
-Message-ID: <1369707933-8565-1-git-send-email-tianyu.lan@intel.com>
-Return-path: <platform-driver-x86-owner@vger.kernel.org>
-Sender: platform-driver-x86-owner@vger.kernel.org
-To: lenb@kernel.org, rjw@sisk.pl, linux-kernel@vger.kernel.org, mjg59@srcf.ucam.org, platform-driver-x86@vger.kernel.org, linux-acpi@vger.kernel.org, mytbk920423@gmail.com
-Cc: Lan Tianyu <tianyu.lan@intel.com>, stable@vger.kernel.org
+From: <jeff.wu@amd.com>
+Subject: [PATCH v2] ACPI:add _STA evaluating at do_acpi_find_child()
+Date: Tue, 28 May 2013 11:22:17 +0800
+Message-ID: <1369711337-2410-1-git-send-email-jeff.wu@amd.com>
+Mime-Version: 1.0
+Content-Type: text/plain
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-db8lp0184.outbound.messaging.microsoft.com ([213.199.154.184]:53898
+	"EHLO db8outboundpool.messaging.microsoft.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1758735Ab3E1DX2 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 27 May 2013 23:23:28 -0400
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: rjw@sisk.pl, lenb@kernel.org, lantianyu1986@gmail.com, linux-acpi@vger.kernel.org
+Cc: zlinuxkernel@gmail.com, shane.huang@amd.com, aaron.lwe@gmail.com, lekensteyn@gmail.com, dagobertstaler@gmail.com
 
-HP wmi platform driver fails to initialize GPS and causes poweroff
-failure in HP Elitebook 6930p.
+From: Jeff Wu <zlinuxkernel@gmail.com>
 
-[    9.462428] Call Trace:
-[    9.462449]  [<ffffffffa088d25a>] hp_wmi_bios_setup+0x25a/0x3a0 [hp_wmi]
-[    9.462493]  [<ffffffff8135978c>] platform_drv_probe+0x3c/0x70
-[    9.462530]  [<ffffffff81356d6a>] ? driver_sysfs_add+0x7a/0xb0
-[    9.462566]  [<ffffffff81357407>] driver_probe_device+0x87/0x3a0
-[    9.462603]  [<ffffffff813577f3>] __driver_attach+0x93/0xa0
-[    9.462636]  [<ffffffff81357760>] ? __device_attach+0x40/0x40
-[    9.462671]  [<ffffffff81355403>] bus_for_each_dev+0x63/0xa0
-[    9.462707]  [<ffffffff81356e8e>] driver_attach+0x1e/0x20
-[    9.462740]  [<ffffffff81356a28>] bus_add_driver+0x1f8/0x2b0
-[    9.462775]  [<ffffffff81357e81>] driver_register+0x71/0x150
-[    9.462810]  [<ffffffff813594e6>] platform_driver_register+0x46/0x50
-[    9.462849]  [<ffffffff813595ab>] platform_driver_probe+0x1b/0xa0
-[    9.462886]  [<ffffffffa088d55e>] hp_wmi_init+0x1be/0x1fb [hp_wmi]
-[    9.462925]  [<ffffffffa088d3a0>] ? hp_wmi_bios_setup+0x3a0/0x3a0 [hp_wmi]
-[    9.462967]  [<ffffffff8100210a>] do_one_initcall+0x10a/0x160
-[    9.463004]  [<ffffffff810bdac6>] load_module+0x1b46/0x2640
-[    9.463038]  [<ffffffff8128da20>] ? ddebug_proc_write+0xf0/0xf0
-[    9.463076]  [<ffffffff810be662>] sys_init_module+0xa2/0xf0
-[    9.463111]  [<ffffffff814d975d>] system_call_fastpath+0x1a/0x1f
-[    9.463146] Code: 48 ff ff ff 80 7b 24 00 74 d2 41 83 e5 01 45 38 ec 74 c9
-48 8d bb a0 03 00 00 e8 ed fb aa e0 5b 41 5c 41 5d 44 89 f0 41 5e 5d c3 <0f> 0b
-66 66 66 66 66 66 2e 0f 1f 84 00 00 00 00 00 66 66 66 66
-[    9.463479] RIP  [<ffffffffa05c57af>] rfkill_set_hw_state+0x9f/0xb0 [rfkill]
-[    9.463526]  RSP <ffff880071523b60>
+v2:
+1).If it's only one matching device, whether the deivce status is enabled or disabled,
+   do_acpi_find_child() return its' handle
+2).If it's more than one matching devices, do_acpi_find_child() return the first 
+   enabled device handle
+The idea mail thread:
+http://wwww.spinics.net/lists/linux-acpi/msg43481.html
 
-Check code and find this error is caused by misusing variable bluetooth_rfkill
-where gps_rfkill should be.
+v1:
+Once do_acpi_find_child() found the first matching handle, it makes the acpi_get_child()
+loop stop and return the matching handle. But, at some of the platforms, a "_ADR" is
+with the multiple devices, and if one is enabled, the others will be disabled.
+Just like a case:
+Address : 0x1FFFF ; handle : SB_PCI0.SATA.DEV0
+Address : 0x1FFFF ; handle : SB_PCI0.SATA.DEV1
+Address : 0x1FFFF ; handle : SB_PCI0.SATA.DEV2
 
-Reported-and-tested-by: Iru Cai <mytbk920423@gmail.com>
-References: https://bugzilla.kernel.org/show_bug.cgi?id=58401
-Cc: stable@vger.kernel.org
-Signed-off-by: Lan Tianyu <tianyu.lan@intel.com>
+If DEV0 and DEV1 are disabled and DEV2 is enabled, the target is to get DEV2 handle, but
+actually it always return the first disabled device DEV0 handle. So add a _STA evaluating
+at do_acpi_find_child() to check the device status. If the object exists, but it is disabled,
+acpi_get_child() will continue looping to get the correct handle that the object exists and
+is enabled.
+ 
+
+Signed-off-by: Jeff Wu <zlinuxkernel@gmail.com>
 ---
- drivers/platform/x86/hp-wmi.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/acpi/glue.c | 6 ++++--
+ 1 file changed, 4 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/platform/x86/hp-wmi.c b/drivers/platform/x86/hp-wmi.c
-index 45cacf7..9b60282 100644
---- a/drivers/platform/x86/hp-wmi.c
-+++ b/drivers/platform/x86/hp-wmi.c
-@@ -680,7 +680,7 @@ static int hp_wmi_rfkill_setup(struct platform_device *device)
- 		}
- 		rfkill_init_sw_state(gps_rfkill,
- 				     hp_wmi_get_sw_state(HPWMI_GPS));
--		rfkill_set_hw_state(bluetooth_rfkill,
-+		rfkill_set_hw_state(gps_rfkill,
- 				    hp_wmi_get_hw_state(HPWMI_GPS));
- 		err = rfkill_register(gps_rfkill);
- 		if (err)
+diff --git a/drivers/acpi/glue.c b/drivers/acpi/glue.c
+index 40a84cc..51ca764 100644
+--- a/drivers/acpi/glue.c
++++ b/drivers/acpi/glue.c
+@@ -81,13 +81,15 @@ static struct acpi_bus_type *acpi_get_bus_type(struct device *dev)
+ static acpi_status do_acpi_find_child(acpi_handle handle, u32 lvl_not_used,
+ 				      void *addr_p, void **ret_p)
+ {
+-	unsigned long long addr;
++	unsigned long long addr, sta;
+ 	acpi_status status;
+ 
+ 	status = acpi_evaluate_integer(handle, METHOD_NAME__ADR, NULL, &addr);
+ 	if (ACPI_SUCCESS(status) && addr == *((u64 *)addr_p)) {
+ 		*ret_p = handle;
+-		return AE_CTRL_TERMINATE;
++		status = acpi_bus_get_status_handle(handle, &sta);
++		if (ACPI_SUCCESS(status) && (sta & ACPI_STA_DEVICE_ENABLED))
++			return AE_CTRL_TERMINATE;
+ 	}
+ 	return AE_OK;
+ }
 -- 
-1.7.9.5
+1.8.1.2
+
+
