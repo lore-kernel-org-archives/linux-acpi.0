@@ -1,66 +1,74 @@
-From: Hanjun Guo <hanjun.guo@linaro.org>
-Subject: Re: [PATCH] ACPICA: Remove redundant macro defines for ACPI_DEBUG_PRINT()
- and ACPI_DEBUG_PRINT_RAW()
-Date: Wed, 29 May 2013 18:00:32 +0800
-Message-ID: <51A5D1C0.3070008@linaro.org>
-References: <51A08098.1090807@linaro.org> <94F2FBAB4432B54E8AACC7DFDE6C92E36FE78E65@ORSMSX103.amr.corp.intel.com>
+From: Martin Mokrejs <mmokrejs@fold.natur.cuni.cz>
+Subject: Re: [PATCH] ACPI: Fix potential NULL pointer dereference in acpi_processor_add()
+Date: Wed, 29 May 2013 13:07:35 +0200
+Message-ID: <51A5E177.3090809@fold.natur.cuni.cz>
+References: <519E0F2A.4070602@linaro.org> <1693841.iH9OWSxHyo@vostro.rjw.lan> <51A55C2B.7050805@linaro.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-pa0-f51.google.com ([209.85.220.51]:41329 "EHLO
-	mail-pa0-f51.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S965379Ab3E2KBK (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 29 May 2013 06:01:10 -0400
-Received: by mail-pa0-f51.google.com with SMTP id lf10so8057195pab.38
-        for <linux-acpi@vger.kernel.org>; Wed, 29 May 2013 03:01:10 -0700 (PDT)
-In-Reply-To: <94F2FBAB4432B54E8AACC7DFDE6C92E36FE78E65@ORSMSX103.amr.corp.intel.com>
+Received: from fold.natur.cuni.cz ([195.113.57.32]:34233 "EHLO
+	fold.natur.cuni.cz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S965542Ab3E2LHh (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 29 May 2013 07:07:37 -0400
+In-Reply-To: <51A55C2B.7050805@linaro.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Moore, Robert" <robert.moore@intel.com>
-Cc: "Zheng, Lv" <lv.zheng@intel.com>, "Wysocki, Rafael J" <rafael.j.wysocki@intel.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "patches@linaro.org" <patches@linaro.org>, "linaro-kernel@lists.linaro.org" <linaro-kernel@lists.linaro.org>, Jiang Liu <liuj97@gmail.com>
+To: Hanjun Guo <hanjun.guo@linaro.org>, "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, patches@linaro.org, linaro-kernel@lists.linaro.org
 
-On 2013-5-29 1:07, Moore, Robert wrote:
-> This was fixed some time ago in the main ACPICA source, and should have made it into Linux by now.
+Hanjun Guo wrote:
+> On 2013-5-29 7:30, Rafael J. Wysocki wrote:
+>> On Thursday, May 23, 2013 08:44:26 PM Hanjun Guo wrote:
+>>> In acpi_processor_add(), get_cpu_device() will return NULL sometimes,
+>>> although the chances are small, I think it should be fixed.
+>>>
+>>> Signed-off-by: Hanjun Guo <hanjun.guo@linaro.org>
+>>
+>> This patch isn't necessary any more after the changes queued up for 3.11
+>> in the acpi-hotplug branch of the linux-pm.git tree.
+> 
+> Ok, I noticed your patch set, just drop my patch.
 
-Ok, I noticed the ACPICA patch set sent out today by Lv Zheng,
-and it is fixed in this patch set.
-
-Thanks
-Hanjun Guo
+But shouldn't this go to stable at least? I checked linux-3.9.4
+and it applies fine. Whether this is relevant for other stable
+series I will leave up to somebody else. ;)
+Martin
 
 > 
+> Thanks
+> Hanjun
 > 
->> -----Original Message-----
->> From: Hanjun Guo [mailto:hanjun.guo@linaro.org]
->> Sent: Saturday, May 25, 2013 2:13 AM
->> To: Zheng, Lv
->> Cc: Wysocki, Rafael J; Moore, Robert; linux-acpi@vger.kernel.org;
->> patches@linaro.org; linaro-kernel@lists.linaro.org; Jiang Liu
->> Subject: [PATCH] ACPICA: Remove redundant macro defines for
->> ACPI_DEBUG_PRINT() and ACPI_DEBUG_PRINT_RAW()
 >>
->> In commit 0377b5acba2 (ACPICA: Merge all debug output macros into a single
->> file, acoutput.), the patch introduces redundant macro defines for
->> ACPI_DEBUG_PRINT() and ACPI_DEBUG_PRINT_RAW(), just remove it.
+>> Thanks,
+>> Rafael
 >>
->> Signed-off-by: Hanjun Guo <hanjun.guo@linaro.org>
->> ---
->>  include/acpi/acoutput.h | 2 --
->>  1 file changed, 2 deletions(-)
 >>
->> diff --git a/include/acpi/acoutput.h b/include/acpi/acoutput.h index
->> 4f52ea7..e1c7474 100644
->> --- a/include/acpi/acoutput.h
->> +++ b/include/acpi/acoutput.h
->> @@ -447,8 +447,6 @@
->>  #define ACPI_DUMP_TABLES(a, b)
->>  #define ACPI_DUMP_PATHNAME(a, b, c, d)
->>  #define ACPI_DUMP_BUFFER(a, b)
->> -#define ACPI_DEBUG_PRINT(pl)
->> -#define ACPI_DEBUG_PRINT_RAW(pl)
->>  #define ACPI_IS_DEBUG_ENABLED(level, component) 0
->>
->>  /* Return macros must have a return statement at the minimum */
->> -- 1.8.2.1
-
+>>> ---
+>>>  drivers/acpi/processor_driver.c |    4 ++++
+>>>  1 files changed, 4 insertions(+), 0 deletions(-)
+>>>
+>>> diff --git a/drivers/acpi/processor_driver.c b/drivers/acpi/processor_driver.c
+>>> index bec717f..dd64f23 100644
+>>> --- a/drivers/acpi/processor_driver.c
+>>> +++ b/drivers/acpi/processor_driver.c
+>>> @@ -579,6 +579,10 @@ static int __cpuinit acpi_processor_add(struct acpi_device
+>>> *device)
+>>>         per_cpu(processors, pr->id) = pr;
+>>>
+>>>         dev = get_cpu_device(pr->id);
+>>> +       if (!dev) {
+>>> +               result = -ENODEV;
+>>> +               goto err_clear_processor;
+>>> +       }
+>>>         if (sysfs_create_link(&device->dev.kobj, &dev->kobj, "sysdev")) {
+>>>                 result = -EFAULT;
+>>>                 goto err_clear_processor;
+>>>
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
+> 
