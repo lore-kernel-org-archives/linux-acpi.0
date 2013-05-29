@@ -1,65 +1,56 @@
-From: Toshi Kani <toshi.kani@hp.com>
+From: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>
 Subject: Re: possible_cpus broken in linux-next
-Date: Wed, 29 May 2013 12:50:14 -0600
-Message-ID: <1369853414.16819.56.camel@misato.fc.hp.com>
-References: <51A6367E.1060400@intel.com>
-	 <1369852557.16819.54.camel@misato.fc.hp.com>
+Date: Wed, 29 May 2013 21:02:20 +0200
+Message-ID: <51A650BC.7030604@intel.com>
+References: <51A6367E.1060400@intel.com>  <1369852557.16819.54.camel@misato.fc.hp.com> <1369853414.16819.56.camel@misato.fc.hp.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"; format="flowed"
+Content-Transfer-Encoding: base64
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from g1t0027.austin.hp.com ([15.216.28.34]:28269 "EHLO
-	g1t0027.austin.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S965561Ab3E2SuP (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 29 May 2013 14:50:15 -0400
-In-Reply-To: <1369852557.16819.54.camel@misato.fc.hp.com>
+Received: from mga14.intel.com ([143.182.124.37]:33391 "EHLO mga14.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1759396Ab3E2TCZ (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 29 May 2013 15:02:25 -0400
+In-Reply-To: <1369853414.16819.56.camel@misato.fc.hp.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Dave Hansen <dave.hansen@intel.com>
-Cc: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Stephen Rothwell <sfr@canb.auug.org.au>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, LKML <linux-kernel@vger.kernel.org>, linux-acpi@vger.kernel.org
+To: Toshi Kani <toshi.kani@hp.com>, Dave Hansen <dave.hansen@intel.com>
+Cc: Stephen Rothwell <sfr@canb.auug.org.au>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, LKML <linux-kernel@vger.kernel.org>, linux-acpi@vger.kernel.org
 
-On Wed, 2013-05-29 at 12:35 -0600, Toshi Kani wrote:
-> On Wed, 2013-05-29 at 10:10 -0700, Dave Hansen wrote:
-
- :
-
-> Thanks for the report.  The following patch fixes the problem.
-> -Toshi
-> 
-> ====
-> From: Toshi Kani <toshi.kani@hp.com>
-> Subject: [PATCH] ACPI: Fix sysfs cpu/online of offlined cpus
-
-Typo. The subject needs to be:
-
-Subject: [PATCH] cpu: Fix sysfs cpu/online of offlined cpus
-
--Toshi
-
-> As reported by Dave Hansen, sysfs cpu/online shows 1 for
-> offlined cpus at boot.
-> https://lkml.org/lkml/2013/5/29/403
-> 
-> Fix this problem by initializing dev.offline with cpu_online()
-> when registering a cpu.
-> 
-> Reported-by: Dave Hansen <dave.hansen@intel.com>
-> Signed-off-by: Toshi Kani <toshi.kani@hp.com>
-> ---
->  drivers/base/cpu.c | 1 +
->  1 file changed, 1 insertion(+)
-> 
-> diff --git a/drivers/base/cpu.c b/drivers/base/cpu.c
-> index 130ba0b..b9f0eec 100644
-> --- a/drivers/base/cpu.c
-> +++ b/drivers/base/cpu.c
-> @@ -281,6 +281,7 @@ int __cpuinit register_cpu(struct cpu *cpu, int num)
->  	cpu->dev.bus = &cpu_subsys;
->  	cpu->dev.release = cpu_device_release;
->  	cpu->dev.offline_disabled = !cpu->hotpluggable;
-> +	cpu->dev.offline = !cpu_online(num);
->  #ifdef CONFIG_ARCH_HAS_CPU_AUTOPROBE
->  	cpu->dev.bus->uevent = arch_cpu_uevent;
->  #endif
-
+T24gNS8yOS8yMDEzIDg6NTAgUE0sIFRvc2hpIEthbmkgd3JvdGU6Cj4gT24gV2VkLCAyMDEzLTA1
+LTI5IGF0IDEyOjM1IC0wNjAwLCBUb3NoaSBLYW5pIHdyb3RlOgo+PiBPbiBXZWQsIDIwMTMtMDUt
+MjkgYXQgMTA6MTAgLTA3MDAsIERhdmUgSGFuc2VuIHdyb3RlOgo+ICAgOgo+Cj4+IFRoYW5rcyBm
+b3IgdGhlIHJlcG9ydC4gIFRoZSBmb2xsb3dpbmcgcGF0Y2ggZml4ZXMgdGhlIHByb2JsZW0uCj4+
+IC1Ub3NoaQo+Pgo+PiA9PT09Cj4+IEZyb206IFRvc2hpIEthbmkgPHRvc2hpLmthbmlAaHAuY29t
+Pgo+PiBTdWJqZWN0OiBbUEFUQ0hdIEFDUEk6IEZpeCBzeXNmcyBjcHUvb25saW5lIG9mIG9mZmxp
+bmVkIGNwdXMKPiBUeXBvLiBUaGUgc3ViamVjdCBuZWVkcyB0byBiZToKPgo+IFN1YmplY3Q6IFtQ
+QVRDSF0gY3B1OiBGaXggc3lzZnMgY3B1L29ubGluZSBvZiBvZmZsaW5lZCBjcHVzCj4KPiAtVG9z
+aGkKPgo+PiBBcyByZXBvcnRlZCBieSBEYXZlIEhhbnNlbiwgc3lzZnMgY3B1L29ubGluZSBzaG93
+cyAxIGZvcgo+PiBvZmZsaW5lZCBjcHVzIGF0IGJvb3QuCj4+IGh0dHBzOi8vbGttbC5vcmcvbGtt
+bC8yMDEzLzUvMjkvNDAzCj4+Cj4+IEZpeCB0aGlzIHByb2JsZW0gYnkgaW5pdGlhbGl6aW5nIGRl
+di5vZmZsaW5lIHdpdGggY3B1X29ubGluZSgpCj4+IHdoZW4gcmVnaXN0ZXJpbmcgYSBjcHUuCj4+
+Cj4+IFJlcG9ydGVkLWJ5OiBEYXZlIEhhbnNlbiA8ZGF2ZS5oYW5zZW5AaW50ZWwuY29tPgo+PiBT
+aWduZWQtb2ZmLWJ5OiBUb3NoaSBLYW5pIDx0b3NoaS5rYW5pQGhwLmNvbT4KClRoYW5rcyBUb3No
+aSEKCkRhdmUsIGNhbiB5b3UgcGxlYXNlIGNvbmZpcm0gdGhhdCB0aGUgcHJvYmxlbSBpcyBmaXhl
+ZCBieSB0aGlzIHBhdGNoPwoKUmFmYWVsCgoKPj4gLS0tCj4+ICAgZHJpdmVycy9iYXNlL2NwdS5j
+IHwgMSArCj4+ICAgMSBmaWxlIGNoYW5nZWQsIDEgaW5zZXJ0aW9uKCspCj4+Cj4+IGRpZmYgLS1n
+aXQgYS9kcml2ZXJzL2Jhc2UvY3B1LmMgYi9kcml2ZXJzL2Jhc2UvY3B1LmMKPj4gaW5kZXggMTMw
+YmEwYi4uYjlmMGVlYyAxMDA2NDQKPj4gLS0tIGEvZHJpdmVycy9iYXNlL2NwdS5jCj4+ICsrKyBi
+L2RyaXZlcnMvYmFzZS9jcHUuYwo+PiBAQCAtMjgxLDYgKzI4MSw3IEBAIGludCBfX2NwdWluaXQg
+cmVnaXN0ZXJfY3B1KHN0cnVjdCBjcHUgKmNwdSwgaW50IG51bSkKPj4gICAJY3B1LT5kZXYuYnVz
+ID0gJmNwdV9zdWJzeXM7Cj4+ICAgCWNwdS0+ZGV2LnJlbGVhc2UgPSBjcHVfZGV2aWNlX3JlbGVh
+c2U7Cj4+ICAgCWNwdS0+ZGV2Lm9mZmxpbmVfZGlzYWJsZWQgPSAhY3B1LT5ob3RwbHVnZ2FibGU7
+Cj4+ICsJY3B1LT5kZXYub2ZmbGluZSA9ICFjcHVfb25saW5lKG51bSk7Cj4+ICAgI2lmZGVmIENP
+TkZJR19BUkNIX0hBU19DUFVfQVVUT1BST0JFCj4+ICAgCWNwdS0+ZGV2LmJ1cy0+dWV2ZW50ID0g
+YXJjaF9jcHVfdWV2ZW50Owo+PiAgICNlbmRpZgo+CgotLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
+LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0KSW50ZWwgVGVjaG5v
+bG9neSBQb2xhbmQgc3AuIHogby5vLgp6IHNpZWR6aWJhIHcgR2RhbnNrdQp1bC4gU2xvd2Fja2ll
+Z28gMTczCjgwLTI5OCBHZGFuc2sKClNhZCBSZWpvbm93eSBHZGFuc2sgUG9sbm9jIHcgR2RhbnNr
+dSwgClZJSSBXeWR6aWFsIEdvc3BvZGFyY3p5IEtyYWpvd2VnbyBSZWplc3RydSBTYWRvd2Vnbywg
+Cm51bWVyIEtSUyAxMDE4ODIKCk5JUCA5NTctMDctNTItMzE2CkthcGl0YWwgemFrbGFkb3d5IDIw
+MC4wMDAgemwKClRoaXMgZS1tYWlsIGFuZCBhbnkgYXR0YWNobWVudHMgbWF5IGNvbnRhaW4gY29u
+ZmlkZW50aWFsIG1hdGVyaWFsIGZvcgp0aGUgc29sZSB1c2Ugb2YgdGhlIGludGVuZGVkIHJlY2lw
+aWVudChzKS4gQW55IHJldmlldyBvciBkaXN0cmlidXRpb24KYnkgb3RoZXJzIGlzIHN0cmljdGx5
+IHByb2hpYml0ZWQuIElmIHlvdSBhcmUgbm90IHRoZSBpbnRlbmRlZApyZWNpcGllbnQsIHBsZWFz
+ZSBjb250YWN0IHRoZSBzZW5kZXIgYW5kIGRlbGV0ZSBhbGwgY29waWVzLgo=
 
