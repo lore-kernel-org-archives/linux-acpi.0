@@ -1,74 +1,41 @@
-From: Martin Mokrejs <mmokrejs@fold.natur.cuni.cz>
-Subject: Re: [PATCH] ACPI: Fix potential NULL pointer dereference in acpi_processor_add()
-Date: Wed, 29 May 2013 13:07:35 +0200
-Message-ID: <51A5E177.3090809@fold.natur.cuni.cz>
-References: <519E0F2A.4070602@linaro.org> <1693841.iH9OWSxHyo@vostro.rjw.lan> <51A55C2B.7050805@linaro.org>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: Re: System slow down from udev
+Date: Wed, 29 May 2013 13:29:15 +0200
+Message-ID: <7385243.PHJHW0xyGs@vostro.rjw.lan>
+References: <CAE9FiQUbSeCGTsukX3zfVYBhFKgWfVd8WDDvpix==wSXzc=RVQ@mail.gmail.com> <2013173.c6WKZTQWxj@vostro.rjw.lan> <CAE9FiQUqHBuoAMeLYDa1GCD8yD+S1QHwxnF4gVPFpgQaatf+Hg@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7Bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from fold.natur.cuni.cz ([195.113.57.32]:34233 "EHLO
-	fold.natur.cuni.cz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S965542Ab3E2LHh (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 29 May 2013 07:07:37 -0400
-In-Reply-To: <51A55C2B.7050805@linaro.org>
+Received: from hydra.sisk.pl ([212.160.235.94]:54033 "EHLO hydra.sisk.pl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S965683Ab3E2LUZ (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 29 May 2013 07:20:25 -0400
+In-Reply-To: <CAE9FiQUqHBuoAMeLYDa1GCD8yD+S1QHwxnF4gVPFpgQaatf+Hg@mail.gmail.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Hanjun Guo <hanjun.guo@linaro.org>, "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, patches@linaro.org, linaro-kernel@lists.linaro.org
+To: Yinghai Lu <yinghai@kernel.org>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
 
-Hanjun Guo wrote:
-> On 2013-5-29 7:30, Rafael J. Wysocki wrote:
->> On Thursday, May 23, 2013 08:44:26 PM Hanjun Guo wrote:
->>> In acpi_processor_add(), get_cpu_device() will return NULL sometimes,
->>> although the chances are small, I think it should be fixed.
->>>
->>> Signed-off-by: Hanjun Guo <hanjun.guo@linaro.org>
->>
->> This patch isn't necessary any more after the changes queued up for 3.11
->> in the acpi-hotplug branch of the linux-pm.git tree.
+On Tuesday, May 28, 2013 08:46:11 PM Yinghai Lu wrote:
+> On Tue, May 28, 2013 at 5:30 PM, Rafael J. Wysocki <rjw@sisk.pl> wrote:
+> > On Tuesday, May 28, 2013 05:01:41 PM Yinghai Lu wrote:
+> >
+> > Please attach your .config for comparison and maybe Greg will have an idea about what's up with udev vs that commit (Greg, the
+> > commit in question, unfortunately far from trivial, is http://git.kernel.org/cgit/linux/kernel/git/rafael/linux-pm.git/commit/?h=acpi-hotplug&id=ac212b6980d8d5eda705864fc5a8ecddc6d6eacc).
 > 
-> Ok, I noticed your patch set, just drop my patch.
+> config file attached.
 
-But shouldn't this go to stable at least? I checked linux-3.9.4
-and it applies fine. Whether this is relevant for other stable
-series I will leave up to somebody else. ;)
-Martin
+On your systems the processor driver is built-in.  Any chance to build it as
+a module and see if that helps?
 
-> 
-> Thanks
-> Hanjun
-> 
->>
->> Thanks,
->> Rafael
->>
->>
->>> ---
->>>  drivers/acpi/processor_driver.c |    4 ++++
->>>  1 files changed, 4 insertions(+), 0 deletions(-)
->>>
->>> diff --git a/drivers/acpi/processor_driver.c b/drivers/acpi/processor_driver.c
->>> index bec717f..dd64f23 100644
->>> --- a/drivers/acpi/processor_driver.c
->>> +++ b/drivers/acpi/processor_driver.c
->>> @@ -579,6 +579,10 @@ static int __cpuinit acpi_processor_add(struct acpi_device
->>> *device)
->>>         per_cpu(processors, pr->id) = pr;
->>>
->>>         dev = get_cpu_device(pr->id);
->>> +       if (!dev) {
->>> +               result = -ENODEV;
->>> +               goto err_clear_processor;
->>> +       }
->>>         if (sysfs_create_link(&device->dev.kobj, &dev->kobj, "sysdev")) {
->>>                 result = -EFAULT;
->>>                 goto err_clear_processor;
->>>
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
-> 
+Well, I thought I tested the built-in variant, but I'm going to test it again
+later today.
+
+Thanks,
+Rafael
+
+
+-- 
+I speak only for myself.
+Rafael J. Wysocki, Intel Open Source Technology Center.
