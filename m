@@ -1,29 +1,34 @@
-From: Yinghai Lu <yinghai@kernel.org>
-Subject: Re: System slow down from udev
-Date: Wed, 29 May 2013 13:13:46 -0700
-Message-ID: <CAE9FiQX99+V-jS_h9Lr=mz_n8e1KazUOxcLrAyPG19KJM_3ABg@mail.gmail.com>
-References: <CAE9FiQUbSeCGTsukX3zfVYBhFKgWfVd8WDDvpix==wSXzc=RVQ@mail.gmail.com>
-	<2013173.c6WKZTQWxj@vostro.rjw.lan>
-	<CAE9FiQUqHBuoAMeLYDa1GCD8yD+S1QHwxnF4gVPFpgQaatf+Hg@mail.gmail.com>
-	<7385243.PHJHW0xyGs@vostro.rjw.lan>
+From: "Brown, Len" <len.brown@intel.com>
+Subject: RE: [PATCH 00/07] ACPICA 20130418 Release
+Date: Wed, 29 May 2013 20:41:00 +0000
+Message-ID: <1A7043D5F58CCB44A599DFD55ED4C9482B33D8D2@FMSMSX106.amr.corp.intel.com>
+References: <cover.1367813690.git.lv.zheng@intel.com>
+ <cover.1367913046.git.lv.zheng@intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-ie0-f173.google.com ([209.85.223.173]:49177 "EHLO
-	mail-ie0-f173.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S965519Ab3E2UNr (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 29 May 2013 16:13:47 -0400
-In-Reply-To: <7385243.PHJHW0xyGs@vostro.rjw.lan>
+Received: from mga01.intel.com ([192.55.52.88]:44947 "EHLO mga01.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S967020Ab3E2Ula convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 29 May 2013 16:41:30 -0400
+In-Reply-To: <cover.1367913046.git.lv.zheng@intel.com>
+Content-Language: en-US
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
+To: "Zheng, Lv" <lv.zheng@intel.com>, "Wysocki, Rafael J" <rafael.j.wysocki@intel.com>, "Moore, Robert" <robert.moore@intel.com>
+Cc: "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
 
-On Wed, May 29, 2013 at 4:29 AM, Rafael J. Wysocki <rjw@sisk.pl> wrote:
-> On your systems the processor driver is built-in.  Any chance to build it as
-> a module and see if that helps?
+for 1-7:
 
-it CONFIG_ACPI_PROCESSOR it not set in the config
-the boot get to normal speed.
+Acked-by: Len Brown <len.brown@intel.com>
 
-Yinghai
+
+thanks,
+-Len
+
+ps. i would prefer that there be less whitespace changes
+mixed with functional changes in the future.  Those kind
+of things are best done in separate functionality vs
+cleanup patches.
+
