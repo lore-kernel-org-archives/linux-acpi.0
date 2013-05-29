@@ -1,74 +1,71 @@
-From: <jeff.wu@amd.com>
-Subject: [UPDATE][PATCH v2] ACPI:add _STA evaluating at do_acpi_find_child()
-Date: Wed, 29 May 2013 14:31:30 +0800
-Message-ID: <1369809090-4884-1-git-send-email-jeff.wu@amd.com>
+From: Mika Westerberg <mika.westerberg@linux.intel.com>
+Subject: Re: [PATCH RFC] PM / Runtime: Rework the "runtime idle" helper
+ routine
+Date: Wed, 29 May 2013 11:29:59 +0300
+Message-ID: <20130529082959.GW11878@intel.com>
+References: <1463685.qFyr66vqF2@vostro.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from tx2ehsobe004.messaging.microsoft.com ([65.55.88.14]:50253 "EHLO
-	tx2outboundpool.messaging.microsoft.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756378Ab3E2Gco (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 29 May 2013 02:32:44 -0400
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-pci-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <1463685.qFyr66vqF2@vostro.rjw.lan>
+Sender: linux-pci-owner@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: Linux PM list <linux-pm@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Alan Stern <stern@rowland.harvard.edu>, Bjorn Helgaas <bhelgaas@google.com>, Linux PCI <linux-pci@vger.kernel.org>, Kevin Hilman <khilman@linaro.org>
 List-Id: linux-acpi@vger.kernel.org
-To: rjw@sisk.pl, lenb@kernel.org, lantianyu1986@gmail.com, linux-acpi@vger.kernel.org
-Cc: zlinuxkernel@gmail.com, shane.huang@amd.com, aaron.lwe@gmail.com, lekensteyn@gmail.com, dagobertstaler@gmail.com
 
-From: Jeff Wu <zlinuxkernel@gmail.com>
+On Wed, May 29, 2013 at 01:29:06AM +0200, Rafael J. Wysocki wrote:
+> From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+> 
+> The "runtime idle" helper routine, rpm_idle(), currently ignores
+> return values from .runtime_idle() callbacks executed by it.
+> 
+> However, it turns out that many subsystems use the generic idle
+> callback routine pm_generic_runtime_idle() which checks the return
+> value of the driver's callback and executes pm_runtime_suspend() for
+> the device unless that value is different from 0.  If that logic is
+> moved to rpm_idle() instead, pm_generic_runtime_idle() can be dropped
+> and its users will not need any .runtime_idle() callbacks any more.
+> 
+> Moreover, the PCI subsystem's .runtime_idle() routine,
+> pci_pm_runtime_idle(), works in analogy with the generic one and if
+> rpm_idle() calls rpm_suspend() after 0 has been returned by the
+> .runtime_idle() callback executed by it, that routine will not be
+> necessary any more and may be dropped.
+> 
+> To reduce overall code duplication make the changes described above.
+> 
+> Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+> ---
+> 
+> The patch doesn't break compilation for me, but it hasn't been tested
+> otherwise.  It applies on top of the linux-pm.git tree's linux-next branch.
+> 
+> Thanks,
+> Rafael
+> 
+> ---
+>  Documentation/power/runtime_pm.txt |    5 -----
+>  arch/arm/mach-omap2/omap_device.c  |    7 +------
+>  drivers/acpi/device_pm.c           |    1 -
+>  drivers/amba/bus.c                 |    2 +-
+>  drivers/base/platform.c            |    1 -
+>  drivers/base/power/domain.c        |    1 -
+>  drivers/base/power/generic_ops.c   |   23 -----------------------
+>  drivers/base/power/runtime.c       |   12 +++++-------
+>  drivers/i2c/i2c-core.c             |    2 +-
 
-v2:
-To make do_acpi_find_child() return the disabled device if it's only one matching device.
-Rafael suggested that it had better to make do_acpi_find_child() return the disabled device
-if it's only one matching or the first enabled matching deivce otherwise.
-v1:
-Once do_acpi_find_child() found the first matching handle, it makes the acpi_get_child()
-loop stop and return the matching handle. But, at some of the platforms, a "_ADR" is
-with the multiple devices, and if one is enabled, the others will be disabled.
-Just like a case:
-Address : 0x1FFFF ; handle : SB_PCI0.SATA.DEV0
-Address : 0x1FFFF ; handle : SB_PCI0.SATA.DEV1
-Address : 0x1FFFF ; handle : SB_PCI0.SATA.DEV2
+i2c-core runtime PM idle still works with this patch :-)
 
-If DEV0 and DEV1 are disabled and DEV2 is enabled, the target is to get DEV2 handle, but
-actually it always return the first disabled device DEV0 handle. So add a _STA evaluating
-at do_acpi_find_child() to check the device status. If the object exists, but it is disabled,
-acpi_get_child() will continue looping to get the correct handle that the object exists and
-is enabled.
- 
+You can add my
 
-Signed-off-by: Jeff Wu <zlinuxkernel@gmail.com>
----
-Changes from v2:
-* Rearrange the changelog description.
+Tested-by: Mika Westerberg <mika.westerberg@linux.intel.com>
 
----
- drivers/acpi/glue.c | 6 ++++--
- 1 file changed, 4 insertions(+), 2 deletions(-)
+for the i2c parts if you like.
 
-diff --git a/drivers/acpi/glue.c b/drivers/acpi/glue.c
-index 40a84cc..51ca764 100644
---- a/drivers/acpi/glue.c
-+++ b/drivers/acpi/glue.c
-@@ -81,13 +81,15 @@ static struct acpi_bus_type *acpi_get_bus_type(struct device *dev)
- static acpi_status do_acpi_find_child(acpi_handle handle, u32 lvl_not_used,
- 				      void *addr_p, void **ret_p)
- {
--	unsigned long long addr;
-+	unsigned long long addr, sta;
- 	acpi_status status;
- 
- 	status = acpi_evaluate_integer(handle, METHOD_NAME__ADR, NULL, &addr);
- 	if (ACPI_SUCCESS(status) && addr == *((u64 *)addr_p)) {
- 		*ret_p = handle;
--		return AE_CTRL_TERMINATE;
-+		status = acpi_bus_get_status_handle(handle, &sta);
-+		if (ACPI_SUCCESS(status) && (sta & ACPI_STA_DEVICE_ENABLED))
-+			return AE_CTRL_TERMINATE;
- 	}
- 	return AE_OK;
- }
--- 
-1.8.1.2
-
-
+>  drivers/mmc/core/sdio_bus.c        |    2 +-
+>  drivers/pci/pci-driver.c           |   27 ---------------------------
+>  drivers/spi/spi.c                  |    2 +-
+>  drivers/usb/core/port.c            |    1 -
+>  include/linux/pm_runtime.h         |    2 --
+>  14 files changed, 10 insertions(+), 78 deletions(-)
