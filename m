@@ -1,113 +1,106 @@
-From: Alan Stern <stern@rowland.harvard.edu>
-Subject: Re: [PATCH RFC] PM / Runtime: Rework the "runtime idle" helper
- routine
-Date: Wed, 29 May 2013 10:51:11 -0400 (EDT)
-Message-ID: <Pine.LNX.4.44L0.1305291023170.1473-100000@iolanthe.rowland.org>
-References: <1463685.qFyr66vqF2@vostro.rjw.lan>
+From: "Pearson, Greg" <greg.pearson@hp.com>
+Subject: Re: [PATCH 3/3] PCI/AER: Provide reset_link for firmware first root
+ port
+Date: Wed, 29 May 2013 15:42:27 +0000
+Message-ID: <51A621E2.2050202@hp.com>
+References: <1369766929-4386-1-git-send-email-betty.dall@hp.com>
+ <1369766929-4386-4-git-send-email-betty.dall@hp.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Return-path: <linux-pm-owner@vger.kernel.org>
-In-Reply-To: <1463685.qFyr66vqF2@vostro.rjw.lan>
-Sender: linux-pm-owner@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: Linux PM list <linux-pm@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Bjorn Helgaas <bhelgaas@google.com>, Linux PCI <linux-pci@vger.kernel.org>, Kevin Hilman <khilman@linaro.org>, Mika Westerberg <mika.westerberg@linux.intel.com>
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from g4t0015.houston.hp.com ([15.201.24.18]:25958 "EHLO
+	g4t0015.houston.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757797Ab3E2Pnh convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 29 May 2013 11:43:37 -0400
+In-Reply-To: <1369766929-4386-4-git-send-email-betty.dall@hp.com>
+Content-Language: en-US
+Content-ID: <AEA19B9B076D5840B61DDE2BB6343B4E@Compaq.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: "Dall, Elizabeth J (MCLinux)" <betty.dall@hp.com>
+Cc: "rjw@sisk.pl" <rjw@sisk.pl>, "bhelgaas@google.com" <bhelgaas@google.com>, "ying.huang@intel.com" <ying.huang@intel.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>
 
-On Wed, 29 May 2013, Rafael J. Wysocki wrote:
+On 05/28/2013 12:48 PM, Betty Dall wrote:
+> The firmware first path does not install the aerdrv root port
+> service driver, so the firmware first root port does not have
+> a reset_link callback. When a firmware first root port does not have
+> a reset_link callback, use a new default reset_link similar to what
+> we already do for the default_downstream_reset_link(). The firmware
+> first default reset_link brings the root port out of SBR if firmware
+> left it in SBR.
+>
+> Signed-off-by: Betty Dall <betty.dall@hp.com>
+> ---
+>
+>   drivers/pci/pcie/aer/aerdrv_core.c |   37 ++++++++++++++++++++++++++++++++++++
+>   1 files changed, 37 insertions(+), 0 deletions(-)
+>
+>
+> diff --git a/drivers/pci/pcie/aer/aerdrv_core.c b/drivers/pci/pcie/aer/aerdrv_core.c
+> index 8ec8b4f..6862fe3 100644
+> --- a/drivers/pci/pcie/aer/aerdrv_core.c
+> +++ b/drivers/pci/pcie/aer/aerdrv_core.c
+> @@ -413,6 +413,40 @@ static pci_ers_result_t default_downstream_reset_link(struct pci_dev *dev)
+>   	return PCI_ERS_RESULT_RECOVERED;
+>   }
+>   
+> +/**
+> + * default_ff_root_port_reset_link - default reset function for firmware
+> + *		first Root Port
+> + * @dev: pointer to root port's pci_dev data structure
+> + *
+> + * Invoked when performing link reset at Root Port w/ no aer driver.
+> + * This happens through the firmware first path. Firmware may leave
+> + * the Root Port in SBR and it is the OS responsiblity to bring it out
+> + * of SBR.
+> + */
+> +static pci_ers_result_t default_ff_root_port_reset_link(struct pci_dev *dev)
+> +{
+> +	u16 p2p_ctrl;
+> +
+> +	/* Read Secondary Bus Reset */
+> +	pci_read_config_word(dev, PCI_BRIDGE_CONTROL, &p2p_ctrl);
+> +	p2p_ctrl |= PCI_BRIDGE_CTL_BUS_RESET;
 
-> From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
-> 
-> The "runtime idle" helper routine, rpm_idle(), currently ignores
-> return values from .runtime_idle() callbacks executed by it.
-> 
-> However, it turns out that many subsystems use the generic idle
-> callback routine pm_generic_runtime_idle() which checks the return
-> value of the driver's callback and executes pm_runtime_suspend() for
-> the device unless that value is different from 0.  If that logic is
-> moved to rpm_idle() instead, pm_generic_runtime_idle() can be dropped
-> and its users will not need any .runtime_idle() callbacks any more.
+Remove "p2p_ctrl |= PCI_BRIDGE_CTL_BUS_RESET;" otherwise the following 
+conditional is always taken.
 
-Since you're making this change, wouldn't it be a good idea to adopt
-Mika's original suggestion and turn on the RPM_AUTO bit in rpmflags
-when the use_autosuspend flag is set?
+--
+Greg
 
-> Moreover, the PCI subsystem's .runtime_idle() routine,
-> pci_pm_runtime_idle(), works in analogy with the generic one and if
-> rpm_idle() calls rpm_suspend() after 0 has been returned by the
-> .runtime_idle() callback executed by it, that routine will not be
-> necessary any more and may be dropped.
-
-See below.
-
-What about cases where the runtime-idle callback does
-rpm_schedule_suspend or rpm_request_suspend?  You'd have to make sure
-that it returns -EBUSY in such cases.  Did you audit for this?
-
-> Index: linux-pm/Documentation/power/runtime_pm.txt
-> ===================================================================
-> --- linux-pm.orig/Documentation/power/runtime_pm.txt
-> +++ linux-pm/Documentation/power/runtime_pm.txt
-> @@ -660,11 +660,6 @@ Subsystems may wish to conserve code spa
->  management callbacks provided by the PM core, defined in
->  driver/base/power/generic_ops.c:
->  
-> -  int pm_generic_runtime_idle(struct device *dev);
-> -    - invoke the ->runtime_idle() callback provided by the driver of this
-> -      device, if defined, and call pm_runtime_suspend() for this device if the
-> -      return value is 0 or the callback is not defined
-> -
-
-The documentation for the runtime-idle callback needs to be updated too.
-
-> Index: linux-pm/drivers/pci/pci-driver.c
-> ===================================================================
-> --- linux-pm.orig/drivers/pci/pci-driver.c
-> +++ linux-pm/drivers/pci/pci-driver.c
-> @@ -1046,32 +1046,6 @@ static int pci_pm_runtime_resume(struct
->  	return rc;
->  }
->  
-> -static int pci_pm_runtime_idle(struct device *dev)
-> -{
-> -	struct pci_dev *pci_dev = to_pci_dev(dev);
-> -	const struct dev_pm_ops *pm = dev->driver ? dev->driver->pm : NULL;
-> -
-> -	/*
-> -	 * If pci_dev->driver is not set (unbound), the device should
-> -	 * always remain in D0 regardless of the runtime PM status
-> -	 */
-> -	if (!pci_dev->driver)
-> -		goto out;
-> -
-> -	if (!pm)
-> -		return -ENOSYS;
-> -
-> -	if (pm->runtime_idle) {
-> -		int ret = pm->runtime_idle(dev);
-> -		if (ret)
-> -			return ret;
-> -	}
-> -
-> -out:
-> -	pm_runtime_suspend(dev);
-> -	return 0;
-> -}
-
-This may not be a safe change, because now the behavior is different
-in the case where dev->driver is set but pci_dev->driver isn't.  The
-difference is that you will now call the driver's runtime-idle
-handler, whereas the existing code doesn't.
-
-In fact, this may turn out to be a more widespread problem.  
-dev->driver gets set before the probe routine is called, and it gets
-cleared after the remove routine is called.  A runtime PM callback to
-the driver during these windows isn't a good idea.  Erasing subsystems'
-runtime_idle handlers, as this patch does, makes it impossible for the
-subsystems to protect against this.
-
-The patch also needs to update
-drivers/usb/core/driver.c:usb_runtime_idle().  If you include Mika's
-suggestion, the routine can be removed entirely.
-
-Alan Stern
-
+> +
+> +	/* De-assert Secondary Bus Reset, if it is set */
+> +	if (p2p_ctrl & PCI_BRIDGE_CTL_BUS_RESET) {
+> +		p2p_ctrl &= ~PCI_BRIDGE_CTL_BUS_RESET;
+> +		pci_write_config_word(dev, PCI_BRIDGE_CONTROL, p2p_ctrl);
+> +
+> +		/*
+> +		 * System software must wait for at least 100ms from the end
+> +		 * of a reset of one or more device before it is permitted
+> +		 * to issue Configuration Requests to those devices.
+> +		 */
+> +		msleep(200);
+> +		dev_dbg(&dev->dev, "Root Port link has been reset\n");
+> +	}
+> +	return PCI_ERS_RESULT_RECOVERED;
+> +}
+> +
+>   static int find_aer_service_iter(struct device *device, void *data)
+>   {
+>   	struct pcie_port_service_driver *service_driver, **drv;
+> @@ -460,6 +494,9 @@ static pci_ers_result_t reset_link(struct pci_dev *dev)
+>   		status = driver->reset_link(udev);
+>   	} else if (pci_pcie_type(udev) == PCI_EXP_TYPE_DOWNSTREAM) {
+>   		status = default_downstream_reset_link(udev);
+> +	} else if (pci_pcie_type(udev) == PCI_EXP_TYPE_ROOT_PORT &&
+> +		pcie_aer_get_firmware_first(udev)) {
+> +		status = default_ff_root_port_reset_link(udev);
+>   	} else {
+>   		dev_printk(KERN_DEBUG, &dev->dev,
+>   			"no link-reset support at upstream device %s\n",
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-pci" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>
