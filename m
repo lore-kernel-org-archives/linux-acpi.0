@@ -1,56 +1,182 @@
-From: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>
-Subject: Re: possible_cpus broken in linux-next
-Date: Wed, 29 May 2013 21:02:20 +0200
-Message-ID: <51A650BC.7030604@intel.com>
-References: <51A6367E.1060400@intel.com>  <1369852557.16819.54.camel@misato.fc.hp.com> <1369853414.16819.56.camel@misato.fc.hp.com>
+From: Lance Ortiz <lance.ortiz@hp.com>
+Subject: [PATCH v3] aerdrv: Move cper_print_aer() call out of interrupt context
+Date: Wed, 29 May 2013 13:03:26 -0600
+Message-ID: <20130529190326.24171.86905.stgit@grignak.americas.hpqcorp.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"; format="flowed"
-Content-Transfer-Encoding: base64
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga14.intel.com ([143.182.124.37]:33391 "EHLO mga14.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1759396Ab3E2TCZ (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 29 May 2013 15:02:25 -0400
-In-Reply-To: <1369853414.16819.56.camel@misato.fc.hp.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-pci-owner@vger.kernel.org>
+Sender: linux-pci-owner@vger.kernel.org
+To: bhelgaas@google.com, lance_ortiz@hotmail.com, jiang.liu@huawei.com, tony.luck@intel.com, bp@alien8.de, rostedt@goodmis.org, mchehab@redhat.com, linux-acpi@vger.kernel.org, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Toshi Kani <toshi.kani@hp.com>, Dave Hansen <dave.hansen@intel.com>
-Cc: Stephen Rothwell <sfr@canb.auug.org.au>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, LKML <linux-kernel@vger.kernel.org>, linux-acpi@vger.kernel.org
 
-T24gNS8yOS8yMDEzIDg6NTAgUE0sIFRvc2hpIEthbmkgd3JvdGU6Cj4gT24gV2VkLCAyMDEzLTA1
-LTI5IGF0IDEyOjM1IC0wNjAwLCBUb3NoaSBLYW5pIHdyb3RlOgo+PiBPbiBXZWQsIDIwMTMtMDUt
-MjkgYXQgMTA6MTAgLTA3MDAsIERhdmUgSGFuc2VuIHdyb3RlOgo+ICAgOgo+Cj4+IFRoYW5rcyBm
-b3IgdGhlIHJlcG9ydC4gIFRoZSBmb2xsb3dpbmcgcGF0Y2ggZml4ZXMgdGhlIHByb2JsZW0uCj4+
-IC1Ub3NoaQo+Pgo+PiA9PT09Cj4+IEZyb206IFRvc2hpIEthbmkgPHRvc2hpLmthbmlAaHAuY29t
-Pgo+PiBTdWJqZWN0OiBbUEFUQ0hdIEFDUEk6IEZpeCBzeXNmcyBjcHUvb25saW5lIG9mIG9mZmxp
-bmVkIGNwdXMKPiBUeXBvLiBUaGUgc3ViamVjdCBuZWVkcyB0byBiZToKPgo+IFN1YmplY3Q6IFtQ
-QVRDSF0gY3B1OiBGaXggc3lzZnMgY3B1L29ubGluZSBvZiBvZmZsaW5lZCBjcHVzCj4KPiAtVG9z
-aGkKPgo+PiBBcyByZXBvcnRlZCBieSBEYXZlIEhhbnNlbiwgc3lzZnMgY3B1L29ubGluZSBzaG93
-cyAxIGZvcgo+PiBvZmZsaW5lZCBjcHVzIGF0IGJvb3QuCj4+IGh0dHBzOi8vbGttbC5vcmcvbGtt
-bC8yMDEzLzUvMjkvNDAzCj4+Cj4+IEZpeCB0aGlzIHByb2JsZW0gYnkgaW5pdGlhbGl6aW5nIGRl
-di5vZmZsaW5lIHdpdGggY3B1X29ubGluZSgpCj4+IHdoZW4gcmVnaXN0ZXJpbmcgYSBjcHUuCj4+
-Cj4+IFJlcG9ydGVkLWJ5OiBEYXZlIEhhbnNlbiA8ZGF2ZS5oYW5zZW5AaW50ZWwuY29tPgo+PiBT
-aWduZWQtb2ZmLWJ5OiBUb3NoaSBLYW5pIDx0b3NoaS5rYW5pQGhwLmNvbT4KClRoYW5rcyBUb3No
-aSEKCkRhdmUsIGNhbiB5b3UgcGxlYXNlIGNvbmZpcm0gdGhhdCB0aGUgcHJvYmxlbSBpcyBmaXhl
-ZCBieSB0aGlzIHBhdGNoPwoKUmFmYWVsCgoKPj4gLS0tCj4+ICAgZHJpdmVycy9iYXNlL2NwdS5j
-IHwgMSArCj4+ICAgMSBmaWxlIGNoYW5nZWQsIDEgaW5zZXJ0aW9uKCspCj4+Cj4+IGRpZmYgLS1n
-aXQgYS9kcml2ZXJzL2Jhc2UvY3B1LmMgYi9kcml2ZXJzL2Jhc2UvY3B1LmMKPj4gaW5kZXggMTMw
-YmEwYi4uYjlmMGVlYyAxMDA2NDQKPj4gLS0tIGEvZHJpdmVycy9iYXNlL2NwdS5jCj4+ICsrKyBi
-L2RyaXZlcnMvYmFzZS9jcHUuYwo+PiBAQCAtMjgxLDYgKzI4MSw3IEBAIGludCBfX2NwdWluaXQg
-cmVnaXN0ZXJfY3B1KHN0cnVjdCBjcHUgKmNwdSwgaW50IG51bSkKPj4gICAJY3B1LT5kZXYuYnVz
-ID0gJmNwdV9zdWJzeXM7Cj4+ICAgCWNwdS0+ZGV2LnJlbGVhc2UgPSBjcHVfZGV2aWNlX3JlbGVh
-c2U7Cj4+ICAgCWNwdS0+ZGV2Lm9mZmxpbmVfZGlzYWJsZWQgPSAhY3B1LT5ob3RwbHVnZ2FibGU7
-Cj4+ICsJY3B1LT5kZXYub2ZmbGluZSA9ICFjcHVfb25saW5lKG51bSk7Cj4+ICAgI2lmZGVmIENP
-TkZJR19BUkNIX0hBU19DUFVfQVVUT1BST0JFCj4+ICAgCWNwdS0+ZGV2LmJ1cy0+dWV2ZW50ID0g
-YXJjaF9jcHVfdWV2ZW50Owo+PiAgICNlbmRpZgo+CgotLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
-LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0KSW50ZWwgVGVjaG5v
-bG9neSBQb2xhbmQgc3AuIHogby5vLgp6IHNpZWR6aWJhIHcgR2RhbnNrdQp1bC4gU2xvd2Fja2ll
-Z28gMTczCjgwLTI5OCBHZGFuc2sKClNhZCBSZWpvbm93eSBHZGFuc2sgUG9sbm9jIHcgR2RhbnNr
-dSwgClZJSSBXeWR6aWFsIEdvc3BvZGFyY3p5IEtyYWpvd2VnbyBSZWplc3RydSBTYWRvd2Vnbywg
-Cm51bWVyIEtSUyAxMDE4ODIKCk5JUCA5NTctMDctNTItMzE2CkthcGl0YWwgemFrbGFkb3d5IDIw
-MC4wMDAgemwKClRoaXMgZS1tYWlsIGFuZCBhbnkgYXR0YWNobWVudHMgbWF5IGNvbnRhaW4gY29u
-ZmlkZW50aWFsIG1hdGVyaWFsIGZvcgp0aGUgc29sZSB1c2Ugb2YgdGhlIGludGVuZGVkIHJlY2lw
-aWVudChzKS4gQW55IHJldmlldyBvciBkaXN0cmlidXRpb24KYnkgb3RoZXJzIGlzIHN0cmljdGx5
-IHByb2hpYml0ZWQuIElmIHlvdSBhcmUgbm90IHRoZSBpbnRlbmRlZApyZWNpcGllbnQsIHBsZWFz
-ZSBjb250YWN0IHRoZSBzZW5kZXIgYW5kIGRlbGV0ZSBhbGwgY29waWVzLgo=
+The following warning was seen on 3.9 when a corrected PCIe error was being
+handled by the AER subsystem.
 
+WARNING: at .../drivers/pci/search.c:214 pci_get_dev_by_id+0x8a/0x90()
+
+This occurred because a call to pci_get_domain_bus_and_slot() was added to
+cper_print_pcie() to setup for the call to cper_print_aer().  The warning
+showed up because cper_print_pcie() is called in an interrupt context and
+pci_get* functions are not supposed to be called in that context.
+
+The solution is to move the cper_print_aer() call out of the interrupt
+context and into aer_recover_work_func() to avoid any warnings when calling
+pci_get* functions.
+
+v2 - Re-worded header text.  Removed prefix arg from cper_print_aer().
+     Added TODO message in cper_print_aer().
+v3 - Changed type of u8* to struct aer_capability_regs* in the code
+     to avoid too much casting based on comment from Bjorn Helgaas.
+
+Signed-off-by: Lance Ortiz <lance.ortiz@hp.com>
+Acked-by: Borislav Petkov <bp@suse.de>
+---
+
+ drivers/acpi/apei/cper.c               |   18 ------------------
+ drivers/acpi/apei/ghes.c               |    4 +++-
+ drivers/pci/pcie/aer/aerdrv_core.c     |    5 ++++-
+ drivers/pci/pcie/aer/aerdrv_errprint.c |   10 ++++++++--
+ include/linux/aer.h                    |    5 +++--
+ 5 files changed, 18 insertions(+), 24 deletions(-)
+
+diff --git a/drivers/acpi/apei/cper.c b/drivers/acpi/apei/cper.c
+index 1e5d8a4..8713229 100644
+--- a/drivers/acpi/apei/cper.c
++++ b/drivers/acpi/apei/cper.c
+@@ -250,10 +250,6 @@ static const char *cper_pcie_port_type_strs[] = {
+ static void cper_print_pcie(const char *pfx, const struct cper_sec_pcie *pcie,
+ 			    const struct acpi_hest_generic_data *gdata)
+ {
+-#ifdef CONFIG_ACPI_APEI_PCIEAER
+-	struct pci_dev *dev;
+-#endif
+-
+ 	if (pcie->validation_bits & CPER_PCIE_VALID_PORT_TYPE)
+ 		printk("%s""port_type: %d, %s\n", pfx, pcie->port_type,
+ 		       pcie->port_type < ARRAY_SIZE(cper_pcie_port_type_strs) ?
+@@ -285,20 +281,6 @@ static void cper_print_pcie(const char *pfx, const struct cper_sec_pcie *pcie,
+ 		printk(
+ 	"%s""bridge: secondary_status: 0x%04x, control: 0x%04x\n",
+ 	pfx, pcie->bridge.secondary_status, pcie->bridge.control);
+-#ifdef CONFIG_ACPI_APEI_PCIEAER
+-	dev = pci_get_domain_bus_and_slot(pcie->device_id.segment,
+-			pcie->device_id.bus, pcie->device_id.function);
+-	if (!dev) {
+-		pr_err("PCI AER Cannot get PCI device %04x:%02x:%02x.%d\n",
+-			pcie->device_id.segment, pcie->device_id.bus,
+-			pcie->device_id.slot, pcie->device_id.function);
+-		return;
+-	}
+-	if (pcie->validation_bits & CPER_PCIE_VALID_AER_INFO)
+-		cper_print_aer(pfx, dev, gdata->error_severity,
+-				(struct aer_capability_regs *) pcie->aer_info);
+-	pci_dev_put(dev);
+-#endif
+ }
+ 
+ static const char *apei_estatus_section_flag_strs[] = {
+diff --git a/drivers/acpi/apei/ghes.c b/drivers/acpi/apei/ghes.c
+index d668a8a..403baf4 100644
+--- a/drivers/acpi/apei/ghes.c
++++ b/drivers/acpi/apei/ghes.c
+@@ -454,7 +454,9 @@ static void ghes_do_proc(struct ghes *ghes,
+ 				aer_severity = cper_severity_to_aer(sev);
+ 				aer_recover_queue(pcie_err->device_id.segment,
+ 						  pcie_err->device_id.bus,
+-						  devfn, aer_severity);
++						  devfn, aer_severity,
++						  (struct aer_capability_regs *)
++						  pcie_err->aer_info);
+ 			}
+ 
+ 		}
+diff --git a/drivers/pci/pcie/aer/aerdrv_core.c b/drivers/pci/pcie/aer/aerdrv_core.c
+index 564d97f..120549a 100644
+--- a/drivers/pci/pcie/aer/aerdrv_core.c
++++ b/drivers/pci/pcie/aer/aerdrv_core.c
+@@ -582,6 +582,7 @@ struct aer_recover_entry
+ 	u8	devfn;
+ 	u16	domain;
+ 	int	severity;
++	struct aer_capability_regs *regs;
+ };
+ 
+ static DEFINE_KFIFO(aer_recover_ring, struct aer_recover_entry,
+@@ -595,7 +596,7 @@ static DEFINE_SPINLOCK(aer_recover_ring_lock);
+ static DECLARE_WORK(aer_recover_work, aer_recover_work_func);
+ 
+ void aer_recover_queue(int domain, unsigned int bus, unsigned int devfn,
+-		       int severity)
++		       int severity, struct aer_capability_regs *aer_regs)
+ {
+ 	unsigned long flags;
+ 	struct aer_recover_entry entry = {
+@@ -603,6 +604,7 @@ void aer_recover_queue(int domain, unsigned int bus, unsigned int devfn,
+ 		.devfn		= devfn,
+ 		.domain		= domain,
+ 		.severity	= severity,
++		.regs		= aer_regs,
+ 	};
+ 
+ 	spin_lock_irqsave(&aer_recover_ring_lock, flags);
+@@ -629,6 +631,7 @@ static void aer_recover_work_func(struct work_struct *work)
+ 			       PCI_SLOT(entry.devfn), PCI_FUNC(entry.devfn));
+ 			continue;
+ 		}
++		cper_print_aer(pdev, entry.severity, entry.regs);
+ 		do_recovery(pdev, entry.severity);
+ 		pci_dev_put(pdev);
+ 	}
+diff --git a/drivers/pci/pcie/aer/aerdrv_errprint.c b/drivers/pci/pcie/aer/aerdrv_errprint.c
+index 5ab1425..f277dc3 100644
+--- a/drivers/pci/pcie/aer/aerdrv_errprint.c
++++ b/drivers/pci/pcie/aer/aerdrv_errprint.c
+@@ -220,13 +220,19 @@ int cper_severity_to_aer(int cper_severity)
+ }
+ EXPORT_SYMBOL_GPL(cper_severity_to_aer);
+ 
+-void cper_print_aer(const char *prefix, struct pci_dev *dev, int cper_severity,
++void cper_print_aer(struct pci_dev *dev, int cper_severity,
+ 		    struct aer_capability_regs *aer)
+ {
+ 	int aer_severity, layer, agent, status_strs_size, tlp_header_valid = 0;
+ 	u32 status, mask;
+ 	const char **status_strs;
+ 
++	/*
++	 * TODO: This function needs to be re-written so that it's output
++	 * matches the output of aer_print_error().  Right now, the output
++	 * is formatted very differently.
++	 */
++
+ 	aer_severity = cper_severity_to_aer(cper_severity);
+ 	if (aer_severity == AER_CORRECTABLE) {
+ 		status = aer->cor_status;
+@@ -244,7 +250,7 @@ void cper_print_aer(const char *prefix, struct pci_dev *dev, int cper_severity,
+ 	agent = AER_GET_AGENT(aer_severity, status);
+ 	dev_err(&dev->dev, "aer_status: 0x%08x, aer_mask: 0x%08x\n",
+ 	       status, mask);
+-	cper_print_bits(prefix, status, status_strs, status_strs_size);
++	cper_print_bits("", status, status_strs, status_strs_size);
+ 	dev_err(&dev->dev, "aer_layer=%s, aer_agent=%s\n",
+ 	       aer_error_layer[layer], aer_agent_string[agent]);
+ 	if (aer_severity != AER_CORRECTABLE)
+diff --git a/include/linux/aer.h b/include/linux/aer.h
+index ec10e1b..737f90a 100644
+--- a/include/linux/aer.h
++++ b/include/linux/aer.h
+@@ -49,10 +49,11 @@ static inline int pci_cleanup_aer_uncorrect_error_status(struct pci_dev *dev)
+ }
+ #endif
+ 
+-extern void cper_print_aer(const char *prefix, struct pci_dev *dev,
++extern void cper_print_aer(struct pci_dev *dev,
+ 			   int cper_severity, struct aer_capability_regs *aer);
+ extern int cper_severity_to_aer(int cper_severity);
+ extern void aer_recover_queue(int domain, unsigned int bus, unsigned int devfn,
+-			      int severity);
++			      int severity,
++			      struct aer_capability_regs *aer_regs);
+ #endif //_AER_H_
+ 
