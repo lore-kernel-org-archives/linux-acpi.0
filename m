@@ -1,41 +1,42 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: System slow down from udev
-Date: Wed, 29 May 2013 13:29:15 +0200
-Message-ID: <7385243.PHJHW0xyGs@vostro.rjw.lan>
-References: <CAE9FiQUbSeCGTsukX3zfVYBhFKgWfVd8WDDvpix==wSXzc=RVQ@mail.gmail.com> <2013173.c6WKZTQWxj@vostro.rjw.lan> <CAE9FiQUqHBuoAMeLYDa1GCD8yD+S1QHwxnF4gVPFpgQaatf+Hg@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7Bit
+From: Sachin Kamat <sachin.kamat@linaro.org>
+Subject: [PATCH 1/1] ACPI: ghes: Remove redundant platform_set_drvdata()
+Date: Wed, 29 May 2013 17:16:17 +0530
+Message-ID: <1369827977-29975-1-git-send-email-sachin.kamat@linaro.org>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from hydra.sisk.pl ([212.160.235.94]:54033 "EHLO hydra.sisk.pl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S965683Ab3E2LUZ (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 29 May 2013 07:20:25 -0400
-In-Reply-To: <CAE9FiQUqHBuoAMeLYDa1GCD8yD+S1QHwxnF4gVPFpgQaatf+Hg@mail.gmail.com>
+Received: from mail-pd0-f170.google.com ([209.85.192.170]:40382 "EHLO
+	mail-pd0-f170.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S965879Ab3E2MAQ (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 29 May 2013 08:00:16 -0400
+Received: by mail-pd0-f170.google.com with SMTP id x10so8697123pdj.29
+        for <linux-acpi@vger.kernel.org>; Wed, 29 May 2013 05:00:16 -0700 (PDT)
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Yinghai Lu <yinghai@kernel.org>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
+To: linux-acpi@vger.kernel.org
+Cc: rjw@sisk.pl, lenb@kernel.org, sachin.kamat@linaro.org, Huang Ying <ying.huang@intel.com>
 
-On Tuesday, May 28, 2013 08:46:11 PM Yinghai Lu wrote:
-> On Tue, May 28, 2013 at 5:30 PM, Rafael J. Wysocki <rjw@sisk.pl> wrote:
-> > On Tuesday, May 28, 2013 05:01:41 PM Yinghai Lu wrote:
-> >
-> > Please attach your .config for comparison and maybe Greg will have an idea about what's up with udev vs that commit (Greg, the
-> > commit in question, unfortunately far from trivial, is http://git.kernel.org/cgit/linux/kernel/git/rafael/linux-pm.git/commit/?h=acpi-hotplug&id=ac212b6980d8d5eda705864fc5a8ecddc6d6eacc).
-> 
-> config file attached.
+Commit 0998d06310 (device-core: Ensure drvdata = NULL when no
+driver is bound) removes the need to set driver data field to
+NULL.
 
-On your systems the processor driver is built-in.  Any chance to build it as
-a module and see if that helps?
+Signed-off-by: Sachin Kamat <sachin.kamat@linaro.org>
+Cc: Huang Ying <ying.huang@intel.com>
+---
+ drivers/acpi/apei/ghes.c |    2 --
+ 1 file changed, 2 deletions(-)
 
-Well, I thought I tested the built-in variant, but I'm going to test it again
-later today.
-
-Thanks,
-Rafael
-
-
+diff --git a/drivers/acpi/apei/ghes.c b/drivers/acpi/apei/ghes.c
+index d668a8a..e03c20e 100644
+--- a/drivers/acpi/apei/ghes.c
++++ b/drivers/acpi/apei/ghes.c
+@@ -1011,8 +1011,6 @@ static int ghes_remove(struct platform_device *ghes_dev)
+ 
+ 	kfree(ghes);
+ 
+-	platform_set_drvdata(ghes_dev, NULL);
+-
+ 	return 0;
+ }
+ 
 -- 
-I speak only for myself.
-Rafael J. Wysocki, Intel Open Source Technology Center.
+1.7.9.5
+
