@@ -1,34 +1,64 @@
-From: "Luck, Tony" <tony.luck@intel.com>
-Subject: RE: [PATCH v3] aerdrv: Move cper_print_aer() call out of interrupt
- context
-Date: Wed, 29 May 2013 23:07:47 +0000
-Message-ID: <3908561D78D1C84285E8C5FCA982C28F2DA70112@ORSMSX106.amr.corp.intel.com>
-References: <20130529190326.24171.86905.stgit@grignak.americas.hpqcorp.net>
- <30463843.EmBn1xaq3I@vostro.rjw.lan>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: Re: System slow down from udev
+Date: Thu, 30 May 2013 01:55:07 +0200
+Message-ID: <19316305.cljVYtP0Hv@vostro.rjw.lan>
+References: <CAE9FiQUbSeCGTsukX3zfVYBhFKgWfVd8WDDvpix==wSXzc=RVQ@mail.gmail.com> <2968280.mrRQeH7SYv@vostro.rjw.lan> <CAE9FiQV8CZN+mQvZScr16y9R1y6Tyx7uQg_DbNwE5KkHdi5H1w@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Transfer-Encoding: 7Bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga09.intel.com ([134.134.136.24]:57930 "EHLO mga09.intel.com"
+Received: from hydra.sisk.pl ([212.160.235.94]:54421 "EHLO hydra.sisk.pl"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S966322Ab3E2XHt (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 29 May 2013 19:07:49 -0400
-In-Reply-To: <30463843.EmBn1xaq3I@vostro.rjw.lan>
-Content-Language: en-US
+	id S935040Ab3E2XqN (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 29 May 2013 19:46:13 -0400
+In-Reply-To: <CAE9FiQV8CZN+mQvZScr16y9R1y6Tyx7uQg_DbNwE5KkHdi5H1w@mail.gmail.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@sisk.pl>, Lance Ortiz <lance.ortiz@hp.com>
-Cc: "bhelgaas@google.com" <bhelgaas@google.com>, "lance_ortiz@hotmail.com" <lance_ortiz@hotmail.com>, "jiang.liu@huawei.com" <jiang.liu@huawei.com>, "bp@alien8.de" <bp@alien8.de>, "rostedt@goodmis.org" <rostedt@goodmis.org>, "mchehab@redhat.com" <mchehab@redhat.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
+To: Yinghai Lu <yinghai@kernel.org>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
 
-PiArCS8qDQo+ICsJICogVE9ETzogVGhpcyBmdW5jdGlvbiBuZWVkcyB0byBiZSByZS13cml0dGVu
-IHNvIHRoYXQgaXQncyBvdXRwdXQNCj4gKwkgKiBtYXRjaGVzIHRoZSBvdXRwdXQgb2YgYWVyX3By
-aW50X2Vycm9yKCkuICBSaWdodCBub3csIHRoZSBvdXRwdXQNCj4gKwkgKiBpcyBmb3JtYXR0ZWQg
-dmVyeSBkaWZmZXJlbnRseS4NCj4gKwkgKi8NCg0KU28gd2UgaGF2ZSB0aGlzIGJpZyAiVE9ETyIg
-Y29tbWVudCBzaXR0aW5nIHRoZXJlIHZlcnkgcHJvbWluZW50bHkgLi4uIHdoaWNoIExpbnVzDQpp
-cyBib3VuZCB0byBhc2sgYWJvdXQgaWYgSSBhc2sgaGltIHRvIHB1bGwgdGhpcyBpbnRvIDMuMTAt
-cmNYIC4uLiB3aGF0J3MgdGhlIGltcGFjdCBvZg0KdGhpcz8gIFdoYXQgc2hvdWxkIEkgc2F5IHdo
-ZW4gaGUgYXNrcyB3aHkgc2hvdWxkIGhlIHB1bGwgdGhpcyBmaXggaW50byAzLjEwIHdoZW4NCnRo
-ZXJlIGlzIHN0aWxsIHNvbWUgd29yayB0byBkbz8gIElzIG1hdGNoaW5nIHRoZSBvdXRwdXQgbm8g
-YmlnIGRlYWwgYW5kIGNhbiB3YWl0IGZvcg0Kc29tZSBmdXR1cmUsIHdoaWxlIG1vdmluZyB0aGUg
-cGNpIGJpdHMgdG8gdGhlIHdvcmsgZnVuY3Rpb24gbmVlZHMgdG8gZ28gaW4gbm93Pw0KDQotVG9u
-eQ0K
+On Wednesday, May 29, 2013 03:49:38 PM Yinghai Lu wrote:
+> On Wed, May 29, 2013 at 2:34 PM, Rafael J. Wysocki <rjw@sisk.pl> wrote:
+> > On Wednesday, May 29, 2013 01:13:46 PM Yinghai Lu wrote:
+> >> On Wed, May 29, 2013 at 4:29 AM, Rafael J. Wysocki <rjw@sisk.pl> wrote:
+> >> > On your systems the processor driver is built-in.  Any chance to build it as
+> >> > a module and see if that helps?
+> >>
+> >> it CONFIG_ACPI_PROCESSOR it not set in the config
+> >> the boot get to normal speed.
+> >
+> > Well, if it is not set at all, there won't be problems with it. :-)
+> >
+> > I've tested my linux-next branch on OpenSUSE 11.3 both with the processor
+> > driver built in and modular and I'm not able to reproduce the issue you're
+> > seeing.
+> >
+> > Moreover, I'm not sure if user space is involved here at all, because the
+> > problem triggers for you when all of the relevant kernel code is non-modular.
+> >
+> > With the processor driver enabled, when the slowdown happens, are the systems
+> > usable enough to get some debug info out of them?
+> 
+> please check the bootchart data.
+> 
+> looks like it take 200s if no acpi_processor ...
+> otherwise will take 800s or more.
+
+Well, something's fishy for sure.
+
+To my eyes it looks like we're getting lots of notifications related to the
+processor driver and that generates a lot of workqueue load.
+
+Can you please get /proc/interrupts from both cases and the output of
+"find /sys/firmware/acpi/interrupts/ -print -exec cat {} \;"?
+
+Also please send the output of "ls -l /sys/devices/system/cpu/cpu*" with the
+processor driver present.
+
+Thanks,
+Rafael
+
+
+-- 
+I speak only for myself.
+Rafael J. Wysocki, Intel Open Source Technology Center.
