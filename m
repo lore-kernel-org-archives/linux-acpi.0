@@ -1,50 +1,66 @@
-From: Yinghai Lu <yinghai@kernel.org>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
 Subject: Re: System slow down from udev
-Date: Tue, 28 May 2013 17:01:41 -0700
-Message-ID: <CAE9FiQVC6ByeBmYojctsQ4n2_QV=hw_5zO=87DOeWZBfLH8cug@mail.gmail.com>
-References: <CAE9FiQUbSeCGTsukX3zfVYBhFKgWfVd8WDDvpix==wSXzc=RVQ@mail.gmail.com>
-	<4790010.08sMRz00G6@vostro.rjw.lan>
-	<CAE9FiQUUQ8Nbw7y5yZYy=LnS6xMD64pO3UBiz+44LvsCPxD56A@mail.gmail.com>
-	<1826731.cQudjZKeXZ@vostro.rjw.lan>
+Date: Wed, 29 May 2013 02:30:12 +0200
+Message-ID: <2013173.c6WKZTQWxj@vostro.rjw.lan>
+References: <CAE9FiQUbSeCGTsukX3zfVYBhFKgWfVd8WDDvpix==wSXzc=RVQ@mail.gmail.com> <1826731.cQudjZKeXZ@vostro.rjw.lan> <CAE9FiQVC6ByeBmYojctsQ4n2_QV=hw_5zO=87DOeWZBfLH8cug@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7Bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-ie0-f172.google.com ([209.85.223.172]:58623 "EHLO
-	mail-ie0-f172.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932080Ab3E2ABm (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 28 May 2013 20:01:42 -0400
-In-Reply-To: <1826731.cQudjZKeXZ@vostro.rjw.lan>
+Received: from hydra.sisk.pl ([212.160.235.94]:53703 "EHLO hydra.sisk.pl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S933350Ab3E2AVT (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 28 May 2013 20:21:19 -0400
+In-Reply-To: <CAE9FiQVC6ByeBmYojctsQ4n2_QV=hw_5zO=87DOeWZBfLH8cug@mail.gmail.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@sisk.pl>
+To: Yinghai Lu <yinghai@kernel.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
 
-On Tue, May 28, 2013 at 4:57 PM, Rafael J. Wysocki <rjw@sisk.pl> wrote:
-> On Tuesday, May 28, 2013 04:46:30 PM Yinghai Lu wrote:
->> On Tue, May 28, 2013 at 4:50 PM, Rafael J. Wysocki <rjw@sisk.pl> wrote:
->> > On Tuesday, May 28, 2013 04:39:37 PM Yinghai Lu wrote:
->> >> Raphael:
->> >>
->> >> Found one commit in your linus-pm cause user space very slow...
->> >> at least from udev start...
->> >
->> > I obviously can't reproduce it, so it would be great if you could give me
->> > more details.
->> >
->> > Is there anything unusual about your test system?
->>
->> they are normal nehalem ex, westmere ex and ivybridge ex 8 sockets system.
->
-> Do all of them have the same problem?
+On Tuesday, May 28, 2013 05:01:41 PM Yinghai Lu wrote:
+> On Tue, May 28, 2013 at 4:57 PM, Rafael J. Wysocki <rjw@sisk.pl> wrote:
+> > On Tuesday, May 28, 2013 04:46:30 PM Yinghai Lu wrote:
+> >> On Tue, May 28, 2013 at 4:50 PM, Rafael J. Wysocki <rjw@sisk.pl> wrote:
+> >> > On Tuesday, May 28, 2013 04:39:37 PM Yinghai Lu wrote:
+> >> >> Raphael:
+> >> >>
+> >> >> Found one commit in your linus-pm cause user space very slow...
+> >> >> at least from udev start...
+> >> >
+> >> > I obviously can't reproduce it, so it would be great if you could give me
+> >> > more details.
+> >> >
+> >> > Is there anything unusual about your test system?
+> >>
+> >> they are normal nehalem ex, westmere ex and ivybridge ex 8 sockets system.
+> >
+> > Do all of them have the same problem?
+> 
+> yes
+> 
+> >
+> > What distro is running there?
+> 
+> Using rescue initrd/root disk from opensuse 11.4 (?) and boot from network.
+> 
+> udevd version is 128.
 
-yes
+I'm successfully running kernels including that commit on two different boxes
+(dual-core and quad-core, both Intel, the quad-core one is Sandy Bridge) with
+OpenSUSE 12.2 and 12.3.
 
->
-> What distro is running there?
+There's a machine with an older OpenSUSE on it somewhere here, but I won't be
+able to get to it before tomorrow evening.
 
-Using rescue initrd/root disk from opensuse 11.4 (?) and boot from network.
+I have no idea what's wrong at the moment.
 
-udevd version is 128.
+Please attach your .config for comparison and maybe Greg will have an idea about what's up with udev vs that commit (Greg, the
+commit in question, unfortunately far from trivial, is http://git.kernel.org/cgit/linux/kernel/git/rafael/linux-pm.git/commit/?h=acpi-hotplug&id=ac212b6980d8d5eda705864fc5a8ecddc6d6eacc).
+
+Thanks,
+Rafael
 
 
-Yinghai
+-- 
+I speak only for myself.
+Rafael J. Wysocki, Intel Open Source Technology Center.
