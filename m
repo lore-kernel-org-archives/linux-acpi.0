@@ -1,71 +1,66 @@
-From: Mika Westerberg <mika.westerberg@linux.intel.com>
-Subject: Re: [PATCH RFC] PM / Runtime: Rework the "runtime idle" helper
- routine
-Date: Wed, 29 May 2013 11:29:59 +0300
-Message-ID: <20130529082959.GW11878@intel.com>
-References: <1463685.qFyr66vqF2@vostro.rjw.lan>
+From: Hanjun Guo <hanjun.guo@linaro.org>
+Subject: Re: [PATCH] ACPICA: Remove redundant macro defines for ACPI_DEBUG_PRINT()
+ and ACPI_DEBUG_PRINT_RAW()
+Date: Wed, 29 May 2013 18:00:32 +0800
+Message-ID: <51A5D1C0.3070008@linaro.org>
+References: <51A08098.1090807@linaro.org> <94F2FBAB4432B54E8AACC7DFDE6C92E36FE78E65@ORSMSX103.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-pci-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <1463685.qFyr66vqF2@vostro.rjw.lan>
-Sender: linux-pci-owner@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: Linux PM list <linux-pm@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Alan Stern <stern@rowland.harvard.edu>, Bjorn Helgaas <bhelgaas@google.com>, Linux PCI <linux-pci@vger.kernel.org>, Kevin Hilman <khilman@linaro.org>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-pa0-f51.google.com ([209.85.220.51]:41329 "EHLO
+	mail-pa0-f51.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S965379Ab3E2KBK (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 29 May 2013 06:01:10 -0400
+Received: by mail-pa0-f51.google.com with SMTP id lf10so8057195pab.38
+        for <linux-acpi@vger.kernel.org>; Wed, 29 May 2013 03:01:10 -0700 (PDT)
+In-Reply-To: <94F2FBAB4432B54E8AACC7DFDE6C92E36FE78E65@ORSMSX103.amr.corp.intel.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: "Moore, Robert" <robert.moore@intel.com>
+Cc: "Zheng, Lv" <lv.zheng@intel.com>, "Wysocki, Rafael J" <rafael.j.wysocki@intel.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "patches@linaro.org" <patches@linaro.org>, "linaro-kernel@lists.linaro.org" <linaro-kernel@lists.linaro.org>, Jiang Liu <liuj97@gmail.com>
 
-On Wed, May 29, 2013 at 01:29:06AM +0200, Rafael J. Wysocki wrote:
-> From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
-> 
-> The "runtime idle" helper routine, rpm_idle(), currently ignores
-> return values from .runtime_idle() callbacks executed by it.
-> 
-> However, it turns out that many subsystems use the generic idle
-> callback routine pm_generic_runtime_idle() which checks the return
-> value of the driver's callback and executes pm_runtime_suspend() for
-> the device unless that value is different from 0.  If that logic is
-> moved to rpm_idle() instead, pm_generic_runtime_idle() can be dropped
-> and its users will not need any .runtime_idle() callbacks any more.
-> 
-> Moreover, the PCI subsystem's .runtime_idle() routine,
-> pci_pm_runtime_idle(), works in analogy with the generic one and if
-> rpm_idle() calls rpm_suspend() after 0 has been returned by the
-> .runtime_idle() callback executed by it, that routine will not be
-> necessary any more and may be dropped.
-> 
-> To reduce overall code duplication make the changes described above.
-> 
-> Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
-> ---
-> 
-> The patch doesn't break compilation for me, but it hasn't been tested
-> otherwise.  It applies on top of the linux-pm.git tree's linux-next branch.
-> 
-> Thanks,
-> Rafael
-> 
-> ---
->  Documentation/power/runtime_pm.txt |    5 -----
->  arch/arm/mach-omap2/omap_device.c  |    7 +------
->  drivers/acpi/device_pm.c           |    1 -
->  drivers/amba/bus.c                 |    2 +-
->  drivers/base/platform.c            |    1 -
->  drivers/base/power/domain.c        |    1 -
->  drivers/base/power/generic_ops.c   |   23 -----------------------
->  drivers/base/power/runtime.c       |   12 +++++-------
->  drivers/i2c/i2c-core.c             |    2 +-
+On 2013-5-29 1:07, Moore, Robert wrote:
+> This was fixed some time ago in the main ACPICA source, and should have made it into Linux by now.
 
-i2c-core runtime PM idle still works with this patch :-)
+Ok, I noticed the ACPICA patch set sent out today by Lv Zheng,
+and it is fixed in this patch set.
 
-You can add my
+Thanks
+Hanjun Guo
 
-Tested-by: Mika Westerberg <mika.westerberg@linux.intel.com>
+> 
+> 
+>> -----Original Message-----
+>> From: Hanjun Guo [mailto:hanjun.guo@linaro.org]
+>> Sent: Saturday, May 25, 2013 2:13 AM
+>> To: Zheng, Lv
+>> Cc: Wysocki, Rafael J; Moore, Robert; linux-acpi@vger.kernel.org;
+>> patches@linaro.org; linaro-kernel@lists.linaro.org; Jiang Liu
+>> Subject: [PATCH] ACPICA: Remove redundant macro defines for
+>> ACPI_DEBUG_PRINT() and ACPI_DEBUG_PRINT_RAW()
+>>
+>> In commit 0377b5acba2 (ACPICA: Merge all debug output macros into a single
+>> file, acoutput.), the patch introduces redundant macro defines for
+>> ACPI_DEBUG_PRINT() and ACPI_DEBUG_PRINT_RAW(), just remove it.
+>>
+>> Signed-off-by: Hanjun Guo <hanjun.guo@linaro.org>
+>> ---
+>>  include/acpi/acoutput.h | 2 --
+>>  1 file changed, 2 deletions(-)
+>>
+>> diff --git a/include/acpi/acoutput.h b/include/acpi/acoutput.h index
+>> 4f52ea7..e1c7474 100644
+>> --- a/include/acpi/acoutput.h
+>> +++ b/include/acpi/acoutput.h
+>> @@ -447,8 +447,6 @@
+>>  #define ACPI_DUMP_TABLES(a, b)
+>>  #define ACPI_DUMP_PATHNAME(a, b, c, d)
+>>  #define ACPI_DUMP_BUFFER(a, b)
+>> -#define ACPI_DEBUG_PRINT(pl)
+>> -#define ACPI_DEBUG_PRINT_RAW(pl)
+>>  #define ACPI_IS_DEBUG_ENABLED(level, component) 0
+>>
+>>  /* Return macros must have a return statement at the minimum */
+>> -- 1.8.2.1
 
-for the i2c parts if you like.
-
->  drivers/mmc/core/sdio_bus.c        |    2 +-
->  drivers/pci/pci-driver.c           |   27 ---------------------------
->  drivers/spi/spi.c                  |    2 +-
->  drivers/usb/core/port.c            |    1 -
->  include/linux/pm_runtime.h         |    2 --
->  14 files changed, 10 insertions(+), 78 deletions(-)
