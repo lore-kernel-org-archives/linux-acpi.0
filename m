@@ -1,106 +1,101 @@
-From: Betty Dall <betty.dall@hp.com>
-Subject: Re: [PATCH 3/3] PCI/AER: Provide reset_link for firmware first root
- port
-Date: Wed, 29 May 2013 10:16:32 -0600
-Message-ID: <1369844192.12792.3.camel@ejdallLaptop>
-References: <1369766929-4386-1-git-send-email-betty.dall@hp.com>
-	 <1369766929-4386-4-git-send-email-betty.dall@hp.com>
-	 <51A621E2.2050202@hp.com>
+From: Toshi Kani <toshi.kani@hp.com>
+Subject: Re: possible_cpus broken in linux-next
+Date: Wed, 29 May 2013 12:35:57 -0600
+Message-ID: <1369852557.16819.54.camel@misato.fc.hp.com>
+References: <51A6367E.1060400@intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <51A621E2.2050202@hp.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: "Pearson, Greg" <greg.pearson@hp.com>
-Cc: "rjw@sisk.pl" <rjw@sisk.pl>, "bhelgaas@google.com" <bhelgaas@google.com>, "ying.huang@intel.com" <ying.huang@intel.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from g1t0028.austin.hp.com ([15.216.28.35]:9269 "EHLO
+	g1t0028.austin.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754206Ab3E2SgC (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 29 May 2013 14:36:02 -0400
+In-Reply-To: <51A6367E.1060400@intel.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Dave Hansen <dave.hansen@intel.com>
+Cc: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Stephen Rothwell <sfr@canb.auug.org.au>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, LKML <linux-kernel@vger.kernel.org>, linux-acpi@vger.kernel.org
 
-On Wed, 2013-05-29 at 09:42 -0600, Pearson, Greg wrote:
-> On 05/28/2013 12:48 PM, Betty Dall wrote:
-> > The firmware first path does not install the aerdrv root port
-> > service driver, so the firmware first root port does not have
-> > a reset_link callback. When a firmware first root port does not have
-> > a reset_link callback, use a new default reset_link similar to what
-> > we already do for the default_downstream_reset_link(). The firmware
-> > first default reset_link brings the root port out of SBR if firmware
-> > left it in SBR.
-> >
-> > Signed-off-by: Betty Dall <betty.dall@hp.com>
-> > ---
-> >
-> >   drivers/pci/pcie/aer/aerdrv_core.c |   37 ++++++++++++++++++++++++++++++++++++
-> >   1 files changed, 37 insertions(+), 0 deletions(-)
-> >
-> >
-> > diff --git a/drivers/pci/pcie/aer/aerdrv_core.c b/drivers/pci/pcie/aer/aerdrv_core.c
-> > index 8ec8b4f..6862fe3 100644
-> > --- a/drivers/pci/pcie/aer/aerdrv_core.c
-> > +++ b/drivers/pci/pcie/aer/aerdrv_core.c
-> > @@ -413,6 +413,40 @@ static pci_ers_result_t default_downstream_reset_link(struct pci_dev *dev)
-> >   	return PCI_ERS_RESULT_RECOVERED;
-> >   }
-> >   
-> > +/**
-> > + * default_ff_root_port_reset_link - default reset function for firmware
-> > + *		first Root Port
-> > + * @dev: pointer to root port's pci_dev data structure
-> > + *
-> > + * Invoked when performing link reset at Root Port w/ no aer driver.
-> > + * This happens through the firmware first path. Firmware may leave
-> > + * the Root Port in SBR and it is the OS responsiblity to bring it out
-> > + * of SBR.
-> > + */
-> > +static pci_ers_result_t default_ff_root_port_reset_link(struct pci_dev *dev)
-> > +{
-> > +	u16 p2p_ctrl;
-> > +
-> > +	/* Read Secondary Bus Reset */
-> > +	pci_read_config_word(dev, PCI_BRIDGE_CONTROL, &p2p_ctrl);
-> > +	p2p_ctrl |= PCI_BRIDGE_CTL_BUS_RESET;
+On Wed, 2013-05-29 at 10:10 -0700, Dave Hansen wrote:
+> If I boot with: maxcpus=2 possible_cpus=4, I get
 > 
-> Remove "p2p_ctrl |= PCI_BRIDGE_CTL_BUS_RESET;" otherwise the following 
-> conditional is always taken.
+> 	# grep . /sys/devices/system/cpu/cpu[0-9]*/online'
+> 	/sys/devices/system/cpu/cpu1/online:1
+> 	/sys/devices/system/cpu/cpu2/online:1
+> 	/sys/devices/system/cpu/cpu3/online:1
 > 
-> --
-> Greg
+> on bad kernels, and this on working ones:
+> 
+> 	/sys/devices/system/cpu/cpu1/online:1
+> 	/sys/devices/system/cpu/cpu2/online:0
+> 	/sys/devices/system/cpu/cpu3/online:0
+> 
+> 
+> I also get -EINVAL if I try to re-offline them in this state.  2 and 3
+> don't show up in /proc/cpuinfo, so sysfs just looks broken here.  This
+> happens in a KVM guest, so it should be dirt-simple for anyone to reproduce.
+> 
+> I bisected it down to:
+> 
+> > commit 0902a9044fa5b7a0456ea4daacec2c2b3189ba8c
+> > Author: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+> > Date:   Fri May 3 00:25:49 2013 +0200
+> > 
+> >     Driver core: Use generic offline/online for CPU offline/online
+> >     
+> >     Rework the CPU hotplug code in drivers/base/cpu.c to use the
+> >     generic offline/online support introduced previously instead of
+> >     its own CPU-specific code.
+> >     
+> >     For this purpose, modify cpu_subsys to provide offline and online
+> >     callbacks for CONFIG_HOTPLUG_CPU set and remove the code handling
+> >     the CPU-specific 'online' sysfs attribute.
+> >     
+> >     This modification is not supposed to change the user-observable
+> >     behavior of the kernel (i.e. the 'online' attribute will be present
+> >     in exactly the same place in sysfs and should trigger exactly the
+> >     same actions as before).
+> >     
+> >     Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+> >     Acked-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+> >     Reviewed-by: Toshi Kani <toshi.kani@hp.com>
 
-Agreed. That was a copy and paste mistake. I will fix and retest.
 
--Betty
+Thanks for the report.  The following patch fixes the problem.
+-Toshi
 
-> > +
-> > +	/* De-assert Secondary Bus Reset, if it is set */
-> > +	if (p2p_ctrl & PCI_BRIDGE_CTL_BUS_RESET) {
-> > +		p2p_ctrl &= ~PCI_BRIDGE_CTL_BUS_RESET;
-> > +		pci_write_config_word(dev, PCI_BRIDGE_CONTROL, p2p_ctrl);
-> > +
-> > +		/*
-> > +		 * System software must wait for at least 100ms from the end
-> > +		 * of a reset of one or more device before it is permitted
-> > +		 * to issue Configuration Requests to those devices.
-> > +		 */
-> > +		msleep(200);
-> > +		dev_dbg(&dev->dev, "Root Port link has been reset\n");
-> > +	}
-> > +	return PCI_ERS_RESULT_RECOVERED;
-> > +}
-> > +
-> >   static int find_aer_service_iter(struct device *device, void *data)
-> >   {
-> >   	struct pcie_port_service_driver *service_driver, **drv;
-> > @@ -460,6 +494,9 @@ static pci_ers_result_t reset_link(struct pci_dev *dev)
-> >   		status = driver->reset_link(udev);
-> >   	} else if (pci_pcie_type(udev) == PCI_EXP_TYPE_DOWNSTREAM) {
-> >   		status = default_downstream_reset_link(udev);
-> > +	} else if (pci_pcie_type(udev) == PCI_EXP_TYPE_ROOT_PORT &&
-> > +		pcie_aer_get_firmware_first(udev)) {
-> > +		status = default_ff_root_port_reset_link(udev);
-> >   	} else {
-> >   		dev_printk(KERN_DEBUG, &dev->dev,
-> >   			"no link-reset support at upstream device %s\n",
-> > --
-> > To unsubscribe from this list: send the line "unsubscribe linux-pci" in
-> > the body of a message to majordomo@vger.kernel.org
-> > More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> >
+====
+From: Toshi Kani <toshi.kani@hp.com>
+Subject: [PATCH] ACPI: Fix sysfs cpu/online of offlined cpus
+
+As reported by Dave Hansen, sysfs cpu/online shows 1 for
+offlined cpus at boot.
+https://lkml.org/lkml/2013/5/29/403
+
+Fix this problem by initializing dev.offline with cpu_online()
+when registering a cpu.
+
+Reported-by: Dave Hansen <dave.hansen@intel.com>
+Signed-off-by: Toshi Kani <toshi.kani@hp.com>
+---
+ drivers/base/cpu.c | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/drivers/base/cpu.c b/drivers/base/cpu.c
+index 130ba0b..b9f0eec 100644
+--- a/drivers/base/cpu.c
++++ b/drivers/base/cpu.c
+@@ -281,6 +281,7 @@ int __cpuinit register_cpu(struct cpu *cpu, int num)
+ 	cpu->dev.bus = &cpu_subsys;
+ 	cpu->dev.release = cpu_device_release;
+ 	cpu->dev.offline_disabled = !cpu->hotpluggable;
++	cpu->dev.offline = !cpu_online(num);
+ #ifdef CONFIG_ARCH_HAS_CPU_AUTOPROBE
+ 	cpu->dev.bus->uevent = arch_cpu_uevent;
+ #endif
+-- 
+1.8.1.4
+
+
+
