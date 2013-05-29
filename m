@@ -1,34 +1,45 @@
-From: "Brown, Len" <len.brown@intel.com>
-Subject: RE: [PATCH 00/07] ACPICA 20130418 Release
-Date: Wed, 29 May 2013 20:41:00 +0000
-Message-ID: <1A7043D5F58CCB44A599DFD55ED4C9482B33D8D2@FMSMSX106.amr.corp.intel.com>
-References: <cover.1367813690.git.lv.zheng@intel.com>
- <cover.1367913046.git.lv.zheng@intel.com>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: Re: System slow down from udev
+Date: Wed, 29 May 2013 23:34:39 +0200
+Message-ID: <2968280.mrRQeH7SYv@vostro.rjw.lan>
+References: <CAE9FiQUbSeCGTsukX3zfVYBhFKgWfVd8WDDvpix==wSXzc=RVQ@mail.gmail.com> <7385243.PHJHW0xyGs@vostro.rjw.lan> <CAE9FiQX99+V-jS_h9Lr=mz_n8e1KazUOxcLrAyPG19KJM_3ABg@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7Bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga01.intel.com ([192.55.52.88]:44947 "EHLO mga01.intel.com"
+Received: from hydra.sisk.pl ([212.160.235.94]:54342 "EHLO hydra.sisk.pl"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S967020Ab3E2Ula convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 29 May 2013 16:41:30 -0400
-In-Reply-To: <cover.1367913046.git.lv.zheng@intel.com>
-Content-Language: en-US
+	id S932609Ab3E2VZs (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 29 May 2013 17:25:48 -0400
+In-Reply-To: <CAE9FiQX99+V-jS_h9Lr=mz_n8e1KazUOxcLrAyPG19KJM_3ABg@mail.gmail.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Zheng, Lv" <lv.zheng@intel.com>, "Wysocki, Rafael J" <rafael.j.wysocki@intel.com>, "Moore, Robert" <robert.moore@intel.com>
-Cc: "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
+To: Yinghai Lu <yinghai@kernel.org>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
 
-for 1-7:
+On Wednesday, May 29, 2013 01:13:46 PM Yinghai Lu wrote:
+> On Wed, May 29, 2013 at 4:29 AM, Rafael J. Wysocki <rjw@sisk.pl> wrote:
+> > On your systems the processor driver is built-in.  Any chance to build it as
+> > a module and see if that helps?
+> 
+> it CONFIG_ACPI_PROCESSOR it not set in the config
+> the boot get to normal speed.
 
-Acked-by: Len Brown <len.brown@intel.com>
+Well, if it is not set at all, there won't be problems with it. :-)
+
+I've tested my linux-next branch on OpenSUSE 11.3 both with the processor
+driver built in and modular and I'm not able to reproduce the issue you're
+seeing.
+
+Moreover, I'm not sure if user space is involved here at all, because the
+problem triggers for you when all of the relevant kernel code is non-modular.
+
+With the processor driver enabled, when the slowdown happens, are the systems
+usable enough to get some debug info out of them?
+
+Rafael
 
 
-thanks,
--Len
-
-ps. i would prefer that there be less whitespace changes
-mixed with functional changes in the future.  Those kind
-of things are best done in separate functionality vs
-cleanup patches.
-
+-- 
+I speak only for myself.
+Rafael J. Wysocki, Intel Open Source Technology Center.
