@@ -1,65 +1,84 @@
 From: Betty Dall <betty.dall@hp.com>
-Subject: [PATCH v2 2/3] ACPI/APEI: Force fatal AER severity when bus has been reset
-Date: Thu, 30 May 2013 08:39:28 -0600
-Message-ID: <1369924769-17183-3-git-send-email-betty.dall@hp.com>
+Subject: [PATCH v2 3/3] PCI/AER: Provide reset_link for firmware first root port
+Date: Thu, 30 May 2013 08:39:29 -0600
+Message-ID: <1369924769-17183-4-git-send-email-betty.dall@hp.com>
 References: <1369924769-17183-1-git-send-email-betty.dall@hp.com>
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from g5t0006.atlanta.hp.com ([15.192.0.43]:44266 "EHLO
-	g5t0006.atlanta.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933196Ab3E3OqR (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 30 May 2013 10:46:17 -0400
+Return-path: <linux-pci-owner@vger.kernel.org>
 In-Reply-To: <1369924769-17183-1-git-send-email-betty.dall@hp.com>
-Sender: linux-acpi-owner@vger.kernel.org
-List-Id: linux-acpi@vger.kernel.org
+Sender: linux-pci-owner@vger.kernel.org
 To: rjw@sisk.pl, bhelgaas@google.com
 Cc: ying.huang@intel.com, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, Betty Dall <betty.dall@hp.com>
+List-Id: linux-acpi@vger.kernel.org
 
-The CPER error record has a reset bit that indicates that the platform
-has reset the bus. The reset bit can be set for any severity error
-including recoverable.  From the AER code path's perspective,
-any error is fatal if the bus has been reset. This patch upgrades the
-severity of the AER recovery to AER_FATAL whenever the CPER error record
-indicates that the bus has been reset.
+The firmware first path does not install the aerdrv root port
+service driver, so the firmware first root port does not have
+a reset_link callback. When a firmware first root port does not have
+a reset_link callback, use a new default reset_link similar to what
+we already do for the default_downstream_reset_link(). The firmware
+first default reset_link brings the root port out of SBR if firmware
+left it in SBR.
 
 Changes since v1:
-Fixed a typo in comment.
+Removed incorrect setting of p2p_ctrl after the read.
 
 Signed-off-by: Betty Dall <betty.dall@hp.com>
 ---
 
- drivers/acpi/apei/ghes.c |   21 ++++++++++++++++++++-
- 1 files changed, 20 insertions(+), 1 deletions(-)
+ drivers/pci/pcie/aer/aerdrv_core.c |   36 ++++++++++++++++++++++++++++++++++++
+ 1 files changed, 36 insertions(+), 0 deletions(-)
 
 
-diff --git a/drivers/acpi/apei/ghes.c b/drivers/acpi/apei/ghes.c
-index d668a8a..1c67d5a 100644
---- a/drivers/acpi/apei/ghes.c
-+++ b/drivers/acpi/apei/ghes.c
-@@ -451,7 +451,26 @@ static void ghes_do_proc(struct ghes *ghes,
- 				int aer_severity;
- 				devfn = PCI_DEVFN(pcie_err->device_id.device,
- 						  pcie_err->device_id.function);
--				aer_severity = cper_severity_to_aer(sev);
-+				/*
-+				 * Some Firmware First implementations
-+				 * put the device in SBR to contain
-+				 * the error. This is indicated by the
-+				 * CPER Section Descriptor Flags reset
-+				 * bit which means the component must
-+				 * be re-initialized or re-enabled
-+				 * prior to use. Promoting the AER
-+				 * serverity to FATAL will cause the
-+				 * AER code to link_reset and allow
-+				 * drivers to reprogram their cards.
-+				 */
-+				if (gdata->flags & CPER_SEC_RESET)
-+					aer_severity = cper_severity_to_aer(
-+							CPER_SEV_FATAL);
-+				else
-+					aer_severity =
-+						cper_severity_to_aer(sev);
+diff --git a/drivers/pci/pcie/aer/aerdrv_core.c b/drivers/pci/pcie/aer/aerdrv_core.c
+index 8ec8b4f..72f76cd 100644
+--- a/drivers/pci/pcie/aer/aerdrv_core.c
++++ b/drivers/pci/pcie/aer/aerdrv_core.c
+@@ -413,6 +413,39 @@ static pci_ers_result_t default_downstream_reset_link(struct pci_dev *dev)
+ 	return PCI_ERS_RESULT_RECOVERED;
+ }
+ 
++/**
++ * default_ff_root_port_reset_link - default reset function for firmware
++ *		first Root Port
++ * @dev: pointer to root port's pci_dev data structure
++ *
++ * Invoked when performing link reset at Root Port w/ no aer driver.
++ * This happens through the firmware first path. Firmware may leave
++ * the Root Port in SBR and it is the OS responsiblity to bring it out
++ * of SBR.
++ */
++static pci_ers_result_t default_ff_root_port_reset_link(struct pci_dev *dev)
++{
++	u16 p2p_ctrl;
 +
++	/* Read Secondary Bus Reset */
++	pci_read_config_word(dev, PCI_BRIDGE_CONTROL, &p2p_ctrl);
 +
- 				aer_recover_queue(pcie_err->device_id.segment,
- 						  pcie_err->device_id.bus,
- 						  devfn, aer_severity);
++	/* De-assert Secondary Bus Reset, if it is set */
++	if (p2p_ctrl & PCI_BRIDGE_CTL_BUS_RESET) {
++		p2p_ctrl &= ~PCI_BRIDGE_CTL_BUS_RESET;
++		pci_write_config_word(dev, PCI_BRIDGE_CONTROL, p2p_ctrl);
++
++		/*
++		 * System software must wait for at least 100ms from the end
++		 * of a reset of one or more device before it is permitted
++		 * to issue Configuration Requests to those devices.
++		 */
++		msleep(200);
++		dev_dbg(&dev->dev, "Root Port link has been reset\n");
++	}
++	return PCI_ERS_RESULT_RECOVERED;
++}
++
+ static int find_aer_service_iter(struct device *device, void *data)
+ {
+ 	struct pcie_port_service_driver *service_driver, **drv;
+@@ -460,6 +493,9 @@ static pci_ers_result_t reset_link(struct pci_dev *dev)
+ 		status = driver->reset_link(udev);
+ 	} else if (pci_pcie_type(udev) == PCI_EXP_TYPE_DOWNSTREAM) {
+ 		status = default_downstream_reset_link(udev);
++	} else if (pci_pcie_type(udev) == PCI_EXP_TYPE_ROOT_PORT &&
++		pcie_aer_get_firmware_first(udev)) {
++		status = default_ff_root_port_reset_link(udev);
+ 	} else {
+ 		dev_printk(KERN_DEBUG, &dev->dev,
+ 			"no link-reset support at upstream device %s\n",
