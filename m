@@ -1,39 +1,70 @@
-From: Borislav Petkov <bp@alien8.de>
-Subject: Re: [PATCH v3] aerdrv: Move cper_print_aer() call out of interrupt
- context
-Date: Thu, 30 May 2013 09:28:50 +0200
-Message-ID: <20130530072849.GA20793@pd.tnic>
-References: <20130529190326.24171.86905.stgit@grignak.americas.hpqcorp.net>
- <30463843.EmBn1xaq3I@vostro.rjw.lan>
- <3908561D78D1C84285E8C5FCA982C28F2DA70112@ORSMSX106.amr.corp.intel.com>
- <A961433CDFF2F640A2866803152E61F95D13A6F2@G9W0715.americas.hpqcorp.net>
+From: Giacomo Perale <giacomo.perale@gmail.com>
+Subject: Re: [regression,bisected] restore of disks after suspend-to-disk
+ broken in 3.9.x
+Date: Thu, 30 May 2013 10:04:07 +0200
+Message-ID: <CAPm-kmtwxgDO24UmtmZ44-P2W-80tK11k1aE8M4Ty3t3LKu14Q@mail.gmail.com>
+References: <CAPm-kmsTNz4niGXsWyhLwwBkQ48gHdq1vjPvSKKwQ0kbhHm=JQ@mail.gmail.com>
+	<1369631226.2159.5.camel@rzhang1-mobl4>
+	<CAPm-kmu4WmAKX4N5GTsG-J+oq95pLxB9=iLMf2dyK-p6RbwFXQ@mail.gmail.com>
+	<1369878386.3368.16.camel@rzhang1-mobl4>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-pci-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <A961433CDFF2F640A2866803152E61F95D13A6F2@G9W0715.americas.hpqcorp.net>
-Sender: linux-pci-owner@vger.kernel.org
-To: "Ortiz, Lance E" <lance.oritz@hp.com>
-Cc: "Luck, Tony" <tony.luck@intel.com>, "Rafael J. Wysocki" <rjw@sisk.pl>, "bhelgaas@google.com" <bhelgaas@google.com>, "lance_ortiz@hotmail.com" <lance_ortiz@hotmail.com>, "jiang.liu@huawei.com" <jiang.liu@huawei.com>, "rostedt@goodmis.org" <rostedt@goodmis.org>, "mchehab@redhat.com" <mchehab@redhat.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-pm-owner@vger.kernel.org>
+In-Reply-To: <1369878386.3368.16.camel@rzhang1-mobl4>
+Sender: linux-pm-owner@vger.kernel.org
+To: Zhang Rui <rui.zhang@intel.com>
+Cc: linux-acpi@vger.kernel.org, linux-pm@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Thu, May 30, 2013 at 04:55:20AM +0000, Ortiz, Lance E wrote:
-> This TODO is a note for future clean-up and is not directly related t=
-o
->the bug being fixed with this patch. Which lends to the argument of wh=
-y
->put the TODO in this patch? Opportunistic. I don=E2=80=99t think we wa=
-nt to
->create a separate patch just for a TODO note.
+2013/5/30 Zhang Rui <rui.zhang@intel.com>:
+> On Mon, 2013-05-27 at 22:07 +0200, Giacomo Perale wrote:
+>> 2013/5/27 Zhang Rui <rui.zhang@intel.com>:
+>> > On Sun, 2013-05-26 at 15:51 +0200, Giacomo Perale wrote:
+>> >> Hello,
+>> >>
+>> >> after upgrading from 3.8.7 to 3.9.x I noticed some slightly longer
+>> >> delays when resuming from suspend-to-disk and a few new error messages
+>> >> in the logs:
+>> >>
+>> >>
+>> >> Not having connected the issue with the previous error messages I
+>> >> initially blamed the disk and replaced it with a new one thinking it
+>> >> was broken, but the problem persisted so I started a bisection run
+>> >> that pointed to this commit:
+>> >>
+>> >>
+>> >> b8bb6cb999858043489c1ddef08eed2127559169 is the first bad commit
+>> >> commit b8bb6cb999858043489c1ddef08eed2127559169
+>> >> Author: Zhang Rui <rui.zhang@intel.com>
+>> >> Date:   Thu Nov 22 15:45:02 2012 +0800
+>> >>
+>> >>     step_wise: Unify the code for both throttle and dethrottle
+>> >>
+>> >>     Signed-off-by: Zhang Rui <rui.zhang@intel.com>
+>> >>
+>> > I do not see how this would affect the sata hibernation/resume.
+>> > but anyway, would you please try the four patches in comment #10, #11,
+>> > #12 and #13 in
+>> > https://bugzilla.kernel.org/show_bug.cgi?id=58301
+>> > and check if they help?
+>> >
+>> > thanks,
+>> > rui
+>> >
+>>
+>> No luck, with git head and those four patches hibernation is
+>> completely broken, the system doesn't even shut down, it just loses
+>> the disks (I'm attaching what I could get from /proc/kmsg to this
+>> email).
+>>
+> then can you please try the patch at
+> https://patchwork.kernel.org/patch/2633071/
+> on top of the four patches and see if it helps?
+>
+> thanks,
+> rui
+>
 
-Sounds to me, this TODO item should be on your TODO list - not in kerne=
-l
-sources :-)
+Do you mean without Rafael's patch?
 
---=20
-Regards/Gruss,
-    Boris.
-
-Sent from a fat crate under my desk. Formatting is fine.
---
+Giacomo
