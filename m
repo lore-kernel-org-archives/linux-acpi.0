@@ -1,97 +1,105 @@
 From: Yinghai Lu <yinghai@kernel.org>
 Subject: Re: System slow down from udev
-Date: Thu, 30 May 2013 10:42:09 -0700
-Message-ID: <CAE9FiQU=kC7J2Ocqy-Bq8rN-pO_2gDOrngwev_be70j=LLSpUg@mail.gmail.com>
+Date: Thu, 30 May 2013 10:49:07 -0700
+Message-ID: <CAE9FiQX2tPe5EkdFBMtNwo73MqnVePKPxWCDktpa9BoJyRW5nQ@mail.gmail.com>
 References: <CAE9FiQUbSeCGTsukX3zfVYBhFKgWfVd8WDDvpix==wSXzc=RVQ@mail.gmail.com>
 	<3463581.AQ3EkyvJ7g@vostro.rjw.lan>
 	<5738208.7rKb57pu5j@vostro.rjw.lan>
 	<4462684.QmYxzGRhx8@vostro.rjw.lan>
+	<CAE9FiQU=kC7J2Ocqy-Bq8rN-pO_2gDOrngwev_be70j=LLSpUg@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-ie0-f170.google.com ([209.85.223.170]:52504 "EHLO
-	mail-ie0-f170.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S965710Ab3E3RmK (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 30 May 2013 13:42:10 -0400
-In-Reply-To: <4462684.QmYxzGRhx8@vostro.rjw.lan>
+Received: from mail-ie0-f182.google.com ([209.85.223.182]:41638 "EHLO
+	mail-ie0-f182.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S965953Ab3E3RtH (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 30 May 2013 13:49:07 -0400
+In-Reply-To: <CAE9FiQU=kC7J2Ocqy-Bq8rN-pO_2gDOrngwev_be70j=LLSpUg@mail.gmail.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: "Rafael J. Wysocki" <rjw@sisk.pl>
 Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Toshi Kani <toshi.kani@hp.com>
 
-On Thu, May 30, 2013 at 9:36 AM, Rafael J. Wysocki <rjw@sisk.pl> wrote:
-> On Thursday, May 30, 2013 04:45:35 PM Rafael J. Wysocki wrote:
->> On Thursday, May 30, 2013 04:34:51 PM Rafael J. Wysocki wrote:
-> [...]
->> >
->> > I'll try to dig deeper locally in the meantime.
+On Thu, May 30, 2013 at 10:42 AM, Yinghai Lu <yinghai@kernel.org> wrote:
+> On Thu, May 30, 2013 at 9:36 AM, Rafael J. Wysocki <rjw@sisk.pl> wrote:
+>> On Thursday, May 30, 2013 04:45:35 PM Rafael J. Wysocki wrote:
+>>> On Thursday, May 30, 2013 04:34:51 PM Rafael J. Wysocki wrote:
+>> [...]
+>>> >
+>>> > I'll try to dig deeper locally in the meantime.
+>>>
+>>> Actually, I think I know what the problem is, but I need some more time to
+>>> debug it.  Fortunately, I'm able to see some symptoms. :-)
 >>
->> Actually, I think I know what the problem is, but I need some more time to
->> debug it.  Fortunately, I'm able to see some symptoms. :-)
+>> OK, one fix is appended, but there still is one more bug I need to investigate.
+>>
+>> Please check if this one helps, though.
 >
-> OK, one fix is appended, but there still is one more bug I need to investigate.
+> yes, that fix the problem.
 >
-> Please check if this one helps, though.
+>
+>>
+>> Thanks,
+>> Rafael
+>>
+>>
+>> ---
+>>  drivers/acpi/acpi_processor.c   |    5 +++++
+>>  drivers/acpi/processor_driver.c |    3 ---
+>>  2 files changed, 5 insertions(+), 3 deletions(-)
+>>
+>> Index: linux-pm/drivers/acpi/processor_driver.c
+>> ===================================================================
+>> --- linux-pm.orig/drivers/acpi/processor_driver.c
+>> +++ linux-pm/drivers/acpi/processor_driver.c
+>> @@ -78,9 +78,6 @@ static struct device_driver acpi_process
+>>         .remove = acpi_processor_stop,
+>>  };
+>>
+>> -DEFINE_PER_CPU(struct acpi_processor *, processors);
+>> -EXPORT_PER_CPU_SYMBOL(processors);
+>> -
+>>  static void acpi_processor_notify(acpi_handle handle, u32 event, void *data)
+>>  {
+>>         struct acpi_device *device = data;
+>> Index: linux-pm/drivers/acpi/acpi_processor.c
+>> ===================================================================
+>> --- linux-pm.orig/drivers/acpi/acpi_processor.c
+>> +++ linux-pm/drivers/acpi/acpi_processor.c
+>> @@ -29,6 +29,9 @@
+>>
+>>  ACPI_MODULE_NAME("processor");
+>>
+>> +DEFINE_PER_CPU(struct acpi_processor *, processors);
+>> +EXPORT_PER_CPU_SYMBOL(processors);
+>> +
+>>  /* --------------------------------------------------------------------------
+>>                                  Errata Handling
+>>     -------------------------------------------------------------------------- */
+>> @@ -387,6 +390,7 @@ static int __cpuinit acpi_processor_add(
+>>          * checks.
+>>          */
+>>         per_cpu(processor_device_array, pr->id) = device;
+>> +       per_cpu(processors, pr->id) = pr;
+>>
+>>         dev = get_cpu_device(pr->id);
+>>         result = acpi_bind_one(dev, pr->handle);
+>> @@ -406,6 +410,7 @@ static int __cpuinit acpi_processor_add(
+>>   err:
+>>         free_cpumask_var(pr->throttling.shared_cpu_map);
+>>         device->driver_data = NULL;
+>> +       per_cpu(processors, pr->id) = NULL;
+>>   err_free_pr:
+>>         kfree(pr);
+>>         return result;
+>>
+>
+> do you need to remove
+>     per_cpu(processors, pr->id) = NULL;
+> from processor_driver.c::acpi_processor_stop ?
 
-yes, that fix the problem.
+also can you kill per_cpu processors ?
 
-
->
-> Thanks,
-> Rafael
->
->
-> ---
->  drivers/acpi/acpi_processor.c   |    5 +++++
->  drivers/acpi/processor_driver.c |    3 ---
->  2 files changed, 5 insertions(+), 3 deletions(-)
->
-> Index: linux-pm/drivers/acpi/processor_driver.c
-> ===================================================================
-> --- linux-pm.orig/drivers/acpi/processor_driver.c
-> +++ linux-pm/drivers/acpi/processor_driver.c
-> @@ -78,9 +78,6 @@ static struct device_driver acpi_process
->         .remove = acpi_processor_stop,
->  };
->
-> -DEFINE_PER_CPU(struct acpi_processor *, processors);
-> -EXPORT_PER_CPU_SYMBOL(processors);
-> -
->  static void acpi_processor_notify(acpi_handle handle, u32 event, void *data)
->  {
->         struct acpi_device *device = data;
-> Index: linux-pm/drivers/acpi/acpi_processor.c
-> ===================================================================
-> --- linux-pm.orig/drivers/acpi/acpi_processor.c
-> +++ linux-pm/drivers/acpi/acpi_processor.c
-> @@ -29,6 +29,9 @@
->
->  ACPI_MODULE_NAME("processor");
->
-> +DEFINE_PER_CPU(struct acpi_processor *, processors);
-> +EXPORT_PER_CPU_SYMBOL(processors);
-> +
->  /* --------------------------------------------------------------------------
->                                  Errata Handling
->     -------------------------------------------------------------------------- */
-> @@ -387,6 +390,7 @@ static int __cpuinit acpi_processor_add(
->          * checks.
->          */
->         per_cpu(processor_device_array, pr->id) = device;
-> +       per_cpu(processors, pr->id) = pr;
->
->         dev = get_cpu_device(pr->id);
->         result = acpi_bind_one(dev, pr->handle);
-> @@ -406,6 +410,7 @@ static int __cpuinit acpi_processor_add(
->   err:
->         free_cpumask_var(pr->throttling.shared_cpu_map);
->         device->driver_data = NULL;
-> +       per_cpu(processors, pr->id) = NULL;
->   err_free_pr:
->         kfree(pr);
->         return result;
->
-
-do you need to remove
-    per_cpu(processors, pr->id) = NULL;
-from processor_driver.c::acpi_processor_stop ?
+You should always get it from
+acpi_device from per_cpu(processor_device_array, cpu)
+then driver_data from it.
