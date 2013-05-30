@@ -1,177 +1,287 @@
-From: Lance Ortiz <lance.ortiz@hp.com>
-Subject: [PATCH v4] aerdrv: Move cper_print_aer() call out of interrupt context
-Date: Thu, 30 May 2013 08:25:12 -0600
-Message-ID: <20130530142512.3404.74494.stgit@grignak.americas.hpqcorp.net>
+From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Subject: Re: System slow down from udev
+Date: Thu, 30 May 2013 16:45:35 +0200
+Message-ID: <5738208.7rKb57pu5j@vostro.rjw.lan>
+References: <CAE9FiQUbSeCGTsukX3zfVYBhFKgWfVd8WDDvpix==wSXzc=RVQ@mail.gmail.com> <CAE9FiQWroCPOitz-k0h5Rm2+qqBitAySE7m6fqaKmzA+xdJn1w@mail.gmail.com> <3463581.AQ3EkyvJ7g@vostro.rjw.lan>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 7Bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from g4t0015.houston.hp.com ([15.201.24.18]:46567 "EHLO
-	g4t0015.houston.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757037Ab3E3OeC (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 30 May 2013 10:34:02 -0400
+Received: from v094114.home.net.pl ([79.96.170.134]:63250 "HELO
+	v094114.home.net.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S932733Ab3E3OnV (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 30 May 2013 10:43:21 -0400
+In-Reply-To: <3463581.AQ3EkyvJ7g@vostro.rjw.lan>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: bhelgaas@google.com, lance_ortiz@hotmail.com, jiang.liu@huawei.com, tony.luck@intel.com, bp@alien8.de, rostedt@goodmis.org, mchehab@redhat.com, linux-acpi@vger.kernel.org, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org
+To: Yinghai Lu <yinghai@kernel.org>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Toshi Kani <toshi.kani@hp.com>
 
-The following warning was seen on 3.9 when a corrected PCIe error was being
-handled by the AER subsystem.
+On Thursday, May 30, 2013 04:34:51 PM Rafael J. Wysocki wrote:
+> [Adding CC to Toshi Kani just in case he has an idea.]
+> 
+> On Wednesday, May 29, 2013 06:55:33 PM Yinghai Lu wrote:
+> > On Wed, May 29, 2013 at 4:55 PM, Rafael J. Wysocki <rjw@sisk.pl> wrote:
+> > > On Wednesday, May 29, 2013 03:49:38 PM Yinghai Lu wrote:
+> > >> On Wed, May 29, 2013 at 2:34 PM, Rafael J. Wysocki <rjw@sisk.pl> wrote:
+> > >> > On Wednesday, May 29, 2013 01:13:46 PM Yinghai Lu wrote:
+> > >> >> On Wed, May 29, 2013 at 4:29 AM, Rafael J. Wysocki <rjw@sisk.pl> wrote:
+> > >> >> > On your systems the processor driver is built-in.  Any chance to build it as
+> > >> >> > a module and see if that helps?
+> > >> >>
+> > >> >> it CONFIG_ACPI_PROCESSOR it not set in the config
+> > >> >> the boot get to normal speed.
+> > >> >
+> > >> > Well, if it is not set at all, there won't be problems with it. :-)
+> > >> >
+> > >> > I've tested my linux-next branch on OpenSUSE 11.3 both with the processor
+> > >> > driver built in and modular and I'm not able to reproduce the issue you're
+> > >> > seeing.
+> > >> >
+> > >> > Moreover, I'm not sure if user space is involved here at all, because the
+> > >> > problem triggers for you when all of the relevant kernel code is non-modular.
+> > >> >
+> > >> > With the processor driver enabled, when the slowdown happens, are the systems
+> > >> > usable enough to get some debug info out of them?
+> > >>
+> > >> please check the bootchart data.
+> > >>
+> > >> looks like it take 200s if no acpi_processor ...
+> > >> otherwise will take 800s or more.
+> > >
+> > > Well, something's fishy for sure.
+> > >
+> > > To my eyes it looks like we're getting lots of notifications related to the
+> > > processor driver and that generates a lot of workqueue load.
+> > >
+> > > Can you please get /proc/interrupts from both cases and the output of
+> > > "find /sys/firmware/acpi/interrupts/ -print -exec cat {} \;"?
+> 
+> Thanks for the info!
+> 
+> > sca05-0a818ce5:~/g5_acpi_driver # find /sys/firmware/acpi/interrupts/
+> > -print -exec cat {} \;
+> > /sys/firmware/acpi/interrupts/
+> > cat: /sys/firmware/acpi/interrupts/: Is a directory
+> > /sys/firmware/acpi/interrupts/sci
+> >        0
+> > /sys/firmware/acpi/interrupts/error
+> >        0
+> > /sys/firmware/acpi/interrupts/gpe00
+> >        0   invalid
+> > /sys/firmware/acpi/interrupts/gpe01
+> >        0   invalid
+> > /sys/firmware/acpi/interrupts/gpe02
+> >        0   invalid
+> > /sys/firmware/acpi/interrupts/gpe03
+> >        0   disabled
+> > /sys/firmware/acpi/interrupts/gpe04
+> >        0   disabled
+> > /sys/firmware/acpi/interrupts/gpe05
+> >        0   disabled
+> > /sys/firmware/acpi/interrupts/gpe06
+> >        0   invalid
+> > /sys/firmware/acpi/interrupts/gpe07
+> >        0   invalid
+> > /sys/firmware/acpi/interrupts/gpe08
+> >        0   invalid
+> > /sys/firmware/acpi/interrupts/gpe09
+> >        0   disabled
+> > /sys/firmware/acpi/interrupts/gpe10
+> >        0   invalid
+> > /sys/firmware/acpi/interrupts/gpe11
+> >        0   invalid
+> > /sys/firmware/acpi/interrupts/gpe12
+> >        0   invalid
+> > /sys/firmware/acpi/interrupts/gpe13
+> >        0   invalid
+> > /sys/firmware/acpi/interrupts/gpe14
+> >        0   invalid
+> > /sys/firmware/acpi/interrupts/gpe15
+> >        0   invalid
+> > /sys/firmware/acpi/interrupts/gpe16
+> >        0   invalid
+> > /sys/firmware/acpi/interrupts/gpe0A
+> >        0   enabled
+> > /sys/firmware/acpi/interrupts/gpe17
+> >        0   invalid
+> > /sys/firmware/acpi/interrupts/gpe0B
+> >        0   disabled
+> > /sys/firmware/acpi/interrupts/gpe18
+> >        0   invalid
+> > /sys/firmware/acpi/interrupts/gpe0C
+> >        0   disabled
+> > /sys/firmware/acpi/interrupts/gpe19
+> >        0   invalid
+> > /sys/firmware/acpi/interrupts/gpe0D
+> >        0   disabled
+> > /sys/firmware/acpi/interrupts/gpe0E
+> >        0   disabled
+> > /sys/firmware/acpi/interrupts/gpe20
+> >        0   disabled
+> > /sys/firmware/acpi/interrupts/gpe0F
+> >        0   invalid
+> > /sys/firmware/acpi/interrupts/gpe21
+> >        0   invalid
+> > /sys/firmware/acpi/interrupts/gpe22
+> >        0   invalid
+> > /sys/firmware/acpi/interrupts/gpe23
+> >        0   invalid
+> > /sys/firmware/acpi/interrupts/gpe24
+> >        0   invalid
+> > /sys/firmware/acpi/interrupts/gpe25
+> >        0   invalid
+> > /sys/firmware/acpi/interrupts/gpe26
+> >        0   invalid
+> > /sys/firmware/acpi/interrupts/gpe1A
+> >        0   invalid
+> > /sys/firmware/acpi/interrupts/gpe27
+> >        0   invalid
+> > /sys/firmware/acpi/interrupts/gpe1B
+> >        0   disabled
+> > /sys/firmware/acpi/interrupts/gpe28
+> >        0   invalid
+> > /sys/firmware/acpi/interrupts/gpe1C
+> >        0   invalid
+> > /sys/firmware/acpi/interrupts/gpe29
+> >        0   invalid
+> > /sys/firmware/acpi/interrupts/gpe1D
+> >        0   invalid
+> > /sys/firmware/acpi/interrupts/gpe1E
+> >        0   invalid
+> > /sys/firmware/acpi/interrupts/gpe30
+> >        0   invalid
+> > /sys/firmware/acpi/interrupts/gpe1F
+> >        0   invalid
+> > /sys/firmware/acpi/interrupts/gpe31
+> >        0   invalid
+> > /sys/firmware/acpi/interrupts/gpe32
+> >        0   invalid
+> > /sys/firmware/acpi/interrupts/gpe33
+> >        0   invalid
+> > /sys/firmware/acpi/interrupts/gpe34
+> >        0   invalid
+> > /sys/firmware/acpi/interrupts/gpe35
+> >        0   invalid
+> > /sys/firmware/acpi/interrupts/gpe36
+> >        0   invalid
+> > /sys/firmware/acpi/interrupts/gpe2A
+> >        0   invalid
+> > /sys/firmware/acpi/interrupts/gpe37
+> >        0   invalid
+> > /sys/firmware/acpi/interrupts/gpe2B
+> >        0   invalid
+> > /sys/firmware/acpi/interrupts/gpe38
+> >        0   invalid
+> > /sys/firmware/acpi/interrupts/gpe2C
+> >        0   invalid
+> > /sys/firmware/acpi/interrupts/gpe39
+> >        0   invalid
+> > /sys/firmware/acpi/interrupts/gpe2D
+> >        0   invalid
+> > /sys/firmware/acpi/interrupts/gpe2E
+> >        0   invalid
+> > /sys/firmware/acpi/interrupts/gpe2F
+> >        0   invalid
+> > /sys/firmware/acpi/interrupts/gpe3A
+> >        0   invalid
+> > /sys/firmware/acpi/interrupts/gpe3B
+> >        0   invalid
+> > /sys/firmware/acpi/interrupts/gpe3C
+> >        0   invalid
+> > /sys/firmware/acpi/interrupts/gpe3D
+> >        0   invalid
+> > /sys/firmware/acpi/interrupts/gpe3E
+> >        0   invalid
+> > /sys/firmware/acpi/interrupts/gpe3F
+> >        0   invalid
+> > /sys/firmware/acpi/interrupts/sci_not
+> >        0
+> > /sys/firmware/acpi/interrupts/ff_pmtimer
+> >        0   invalid
+> > /sys/firmware/acpi/interrupts/ff_rt_clk
+> >        0   disabled
+> > /sys/firmware/acpi/interrupts/gpe_all
+> >        0
+> > /sys/firmware/acpi/interrupts/ff_gbl_lock
+> >        0   enabled
+> > /sys/firmware/acpi/interrupts/ff_pwr_btn
+> >        0   enabled
+> > /sys/firmware/acpi/interrupts/ff_slp_btn
+> >        0   invalid
+> 
+> OK, no GPEs.  Interesting.
+> 
+> > > Also please send the output of "ls -l /sys/devices/system/cpu/cpu*" with the
+> > > processor driver present.
+> > 
+> > sca05-0a818ce5:~/g5_acpi_driver # ls -l /sys/devices/system/cpu/cpu*
+> > /sys/devices/system/cpu/cpu0:
+> > total 0
+> > drwxr-xr-x 6 root root    0 May 30 20:09 cache
+> > drwxr-xr-x 5 root root    0 May 30 20:09 cpuidle
+> > -r-------- 1 root root 4096 May 30 20:09 crash_notes
+> > -r-------- 1 root root 4096 May 30 20:09 crash_notes_size
+> > lrwxrwxrwx 1 root root    0 May 30 20:09 driver ->
+> > ../../../../bus/cpu/drivers/processor
+> > lrwxrwxrwx 1 root root    0 May 30 20:09 firmware_node ->
+> > ../../../LNXSYSTM:00/LNXCPU:00
+> > lrwxrwxrwx 1 root root    0 May 30 20:09 node0 -> ../../node/node0
+> > drwxr-xr-x 2 root root    0 May 30 20:09 power
+> > lrwxrwxrwx 1 root root    0 May 30 20:03 subsystem -> ../../../../bus/cpu
+> > drwxr-xr-x 2 root root    0 May 30 20:09 thermal_throttle
+> > drwxr-xr-x 2 root root    0 May 30 20:09 topology
+> > -rw-r--r-- 1 root root 4096 May 30 20:03 uevent
+> > 
+> > /sys/devices/system/cpu/cpu1:
+> > total 0
+> > drwxr-xr-x 6 root root    0 May 30 20:09 cache
+> > drwxr-xr-x 5 root root    0 May 30 20:09 cpuidle
+> > -r-------- 1 root root 4096 May 30 20:09 crash_notes
+> > -r-------- 1 root root 4096 May 30 20:09 crash_notes_size
+> > lrwxrwxrwx 1 root root    0 May 30 20:09 driver ->
+> > ../../../../bus/cpu/drivers/processor
+> > lrwxrwxrwx 1 root root    0 May 30 20:09 firmware_node ->
+> > ../../../LNXSYSTM:00/LNXCPU:01
+> > lrwxrwxrwx 1 root root    0 May 30 20:09 node0 -> ../../node/node0
+> > -rw-r--r-- 1 root root 4096 May 30 20:09 online
+> > drwxr-xr-x 2 root root    0 May 30 20:09 power
+> > lrwxrwxrwx 1 root root    0 May 30 20:03 subsystem -> ../../../../bus/cpu
+> > drwxr-xr-x 2 root root    0 May 30 20:09 thermal_throttle
+> > drwxr-xr-x 2 root root    0 May 30 20:09 topology
+> > -rw-r--r-- 1 root root 4096 May 30 20:03 uevent
+> 
+> [Skipping a number of analogous items.]
+> 
+> Well, it seems to initialize correctly at least.
+> 
+> > /sys/devices/system/cpu/cpuidle:
+> > total 0
+> > -r--r--r-- 1 root root 4096 May 30 20:10 current_driver
+> > -r--r--r-- 1 root root 4096 May 30 20:10 current_governor_ro
+> 
+> Well, this shows that my previous suspicion regarding notifications wasn't
+> justified, as there are none of them, apparently.
+> 
+> Also the CPUs' directory structures in sysfs look correctly to me.  The
+> driver binds to the devices it is supposed to bind to and acpi_bind_one()
+> works as expected.  Hmm.
+> 
+> Let's see if thermal throttling is not going on.  Please send the output of:
+> $ find /sys/devices/system/cpu/ -name core_throttle_count -print -exec cat {} \;
+> $ find /sys/devices/system/cpu/ -name package_throttle_count -print -exec cat {} \;
+> 
+> from the affected systems.
+> 
+> I'll try to dig deeper locally in the meantime.
 
-WARNING: at .../drivers/pci/search.c:214 pci_get_dev_by_id+0x8a/0x90()
+Actually, I think I know what the problem is, but I need some more time to
+debug it.  Fortunately, I'm able to see some symptoms. :-)
 
-This occurred because a call to pci_get_domain_bus_and_slot() was added to
-cper_print_pcie() to setup for the call to cper_print_aer().  The warning
-showed up because cper_print_pcie() is called in an interrupt context and
-pci_get* functions are not supposed to be called in that context.
+Thanks,
+Rafael
 
-The solution is to move the cper_print_aer() call out of the interrupt
-context and into aer_recover_work_func() to avoid any warnings when calling
-pci_get* functions.
 
-v2 - Re-worded header text.  Removed prefix arg from cper_print_aer().
-     Added TODO message in cper_print_aer().
-v3 - Changed type of u8* to struct aer_capability_regs* in the code
-     to avoid too much casting based on comment from Bjorn Helgaas.
-v4 - Removed TODO message.  Does not have to do with what this patch
-     is trying to fix.
-
-Signed-off-by: Lance Ortiz <lance.ortiz@hp.com>
-Acked-by: Borislav Petkov <bp@suse.de>
----
-
- drivers/acpi/apei/cper.c               |   18 ------------------
- drivers/acpi/apei/ghes.c               |    4 +++-
- drivers/pci/pcie/aer/aerdrv_core.c     |    5 ++++-
- drivers/pci/pcie/aer/aerdrv_errprint.c |    4 ++--
- include/linux/aer.h                    |    5 +++--
- 5 files changed, 12 insertions(+), 24 deletions(-)
-
-diff --git a/drivers/acpi/apei/cper.c b/drivers/acpi/apei/cper.c
-index 1e5d8a4..8713229 100644
---- a/drivers/acpi/apei/cper.c
-+++ b/drivers/acpi/apei/cper.c
-@@ -250,10 +250,6 @@ static const char *cper_pcie_port_type_strs[] = {
- static void cper_print_pcie(const char *pfx, const struct cper_sec_pcie *pcie,
- 			    const struct acpi_hest_generic_data *gdata)
- {
--#ifdef CONFIG_ACPI_APEI_PCIEAER
--	struct pci_dev *dev;
--#endif
--
- 	if (pcie->validation_bits & CPER_PCIE_VALID_PORT_TYPE)
- 		printk("%s""port_type: %d, %s\n", pfx, pcie->port_type,
- 		       pcie->port_type < ARRAY_SIZE(cper_pcie_port_type_strs) ?
-@@ -285,20 +281,6 @@ static void cper_print_pcie(const char *pfx, const struct cper_sec_pcie *pcie,
- 		printk(
- 	"%s""bridge: secondary_status: 0x%04x, control: 0x%04x\n",
- 	pfx, pcie->bridge.secondary_status, pcie->bridge.control);
--#ifdef CONFIG_ACPI_APEI_PCIEAER
--	dev = pci_get_domain_bus_and_slot(pcie->device_id.segment,
--			pcie->device_id.bus, pcie->device_id.function);
--	if (!dev) {
--		pr_err("PCI AER Cannot get PCI device %04x:%02x:%02x.%d\n",
--			pcie->device_id.segment, pcie->device_id.bus,
--			pcie->device_id.slot, pcie->device_id.function);
--		return;
--	}
--	if (pcie->validation_bits & CPER_PCIE_VALID_AER_INFO)
--		cper_print_aer(pfx, dev, gdata->error_severity,
--				(struct aer_capability_regs *) pcie->aer_info);
--	pci_dev_put(dev);
--#endif
- }
- 
- static const char *apei_estatus_section_flag_strs[] = {
-diff --git a/drivers/acpi/apei/ghes.c b/drivers/acpi/apei/ghes.c
-index d668a8a..403baf4 100644
---- a/drivers/acpi/apei/ghes.c
-+++ b/drivers/acpi/apei/ghes.c
-@@ -454,7 +454,9 @@ static void ghes_do_proc(struct ghes *ghes,
- 				aer_severity = cper_severity_to_aer(sev);
- 				aer_recover_queue(pcie_err->device_id.segment,
- 						  pcie_err->device_id.bus,
--						  devfn, aer_severity);
-+						  devfn, aer_severity,
-+						  (struct aer_capability_regs *)
-+						  pcie_err->aer_info);
- 			}
- 
- 		}
-diff --git a/drivers/pci/pcie/aer/aerdrv_core.c b/drivers/pci/pcie/aer/aerdrv_core.c
-index 564d97f..120549a 100644
---- a/drivers/pci/pcie/aer/aerdrv_core.c
-+++ b/drivers/pci/pcie/aer/aerdrv_core.c
-@@ -582,6 +582,7 @@ struct aer_recover_entry
- 	u8	devfn;
- 	u16	domain;
- 	int	severity;
-+	struct aer_capability_regs *regs;
- };
- 
- static DEFINE_KFIFO(aer_recover_ring, struct aer_recover_entry,
-@@ -595,7 +596,7 @@ static DEFINE_SPINLOCK(aer_recover_ring_lock);
- static DECLARE_WORK(aer_recover_work, aer_recover_work_func);
- 
- void aer_recover_queue(int domain, unsigned int bus, unsigned int devfn,
--		       int severity)
-+		       int severity, struct aer_capability_regs *aer_regs)
- {
- 	unsigned long flags;
- 	struct aer_recover_entry entry = {
-@@ -603,6 +604,7 @@ void aer_recover_queue(int domain, unsigned int bus, unsigned int devfn,
- 		.devfn		= devfn,
- 		.domain		= domain,
- 		.severity	= severity,
-+		.regs		= aer_regs,
- 	};
- 
- 	spin_lock_irqsave(&aer_recover_ring_lock, flags);
-@@ -629,6 +631,7 @@ static void aer_recover_work_func(struct work_struct *work)
- 			       PCI_SLOT(entry.devfn), PCI_FUNC(entry.devfn));
- 			continue;
- 		}
-+		cper_print_aer(pdev, entry.severity, entry.regs);
- 		do_recovery(pdev, entry.severity);
- 		pci_dev_put(pdev);
- 	}
-diff --git a/drivers/pci/pcie/aer/aerdrv_errprint.c b/drivers/pci/pcie/aer/aerdrv_errprint.c
-index 5ab1425..2c7c9f5 100644
---- a/drivers/pci/pcie/aer/aerdrv_errprint.c
-+++ b/drivers/pci/pcie/aer/aerdrv_errprint.c
-@@ -220,7 +220,7 @@ int cper_severity_to_aer(int cper_severity)
- }
- EXPORT_SYMBOL_GPL(cper_severity_to_aer);
- 
--void cper_print_aer(const char *prefix, struct pci_dev *dev, int cper_severity,
-+void cper_print_aer(struct pci_dev *dev, int cper_severity,
- 		    struct aer_capability_regs *aer)
- {
- 	int aer_severity, layer, agent, status_strs_size, tlp_header_valid = 0;
-@@ -244,7 +244,7 @@ void cper_print_aer(const char *prefix, struct pci_dev *dev, int cper_severity,
- 	agent = AER_GET_AGENT(aer_severity, status);
- 	dev_err(&dev->dev, "aer_status: 0x%08x, aer_mask: 0x%08x\n",
- 	       status, mask);
--	cper_print_bits(prefix, status, status_strs, status_strs_size);
-+	cper_print_bits("", status, status_strs, status_strs_size);
- 	dev_err(&dev->dev, "aer_layer=%s, aer_agent=%s\n",
- 	       aer_error_layer[layer], aer_agent_string[agent]);
- 	if (aer_severity != AER_CORRECTABLE)
-diff --git a/include/linux/aer.h b/include/linux/aer.h
-index ec10e1b..737f90a 100644
---- a/include/linux/aer.h
-+++ b/include/linux/aer.h
-@@ -49,10 +49,11 @@ static inline int pci_cleanup_aer_uncorrect_error_status(struct pci_dev *dev)
- }
- #endif
- 
--extern void cper_print_aer(const char *prefix, struct pci_dev *dev,
-+extern void cper_print_aer(struct pci_dev *dev,
- 			   int cper_severity, struct aer_capability_regs *aer);
- extern int cper_severity_to_aer(int cper_severity);
- extern void aer_recover_queue(int domain, unsigned int bus, unsigned int devfn,
--			      int severity);
-+			      int severity,
-+			      struct aer_capability_regs *aer_regs);
- #endif //_AER_H_
- 
-
+-- 
+I speak only for myself.
+Rafael J. Wysocki, Intel Open Source Technology Center.
