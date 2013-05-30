@@ -1,51 +1,59 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: Q: acpi-cpufreq module auto-loading after processor driver change
-Date: Thu, 30 May 2013 23:54:27 +0200
-Message-ID: <1487824.nHPLYfRjuC@vostro.rjw.lan>
-References: <1511440.Xd41mcOoEa@vostro.rjw.lan>
+From: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Subject: Re: [PATCH] ACPI: Fix potential NULL pointer dereference in
+ acpi_processor_add()
+Date: Fri, 31 May 2013 07:25:42 +0900
+Message-ID: <20130530222542.GD1630@kroah.com>
+References: <519E0F2A.4070602@linaro.org>
+ <51A5E177.3090809@fold.natur.cuni.cz>
+ <51A6B9A2.8090904@linaro.org>
+ <2969934.XTKV7y9VVT@vostro.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from hydra.sisk.pl ([212.160.235.94]:55184 "EHLO hydra.sisk.pl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1757923Ab3E3Vpa (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 30 May 2013 17:45:30 -0400
-In-Reply-To: <1511440.Xd41mcOoEa@vostro.rjw.lan>
+Received: from mail.linuxfoundation.org ([140.211.169.12]:60844 "EHLO
+	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751173Ab3E3WxJ (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 30 May 2013 18:53:09 -0400
+Content-Disposition: inline
+In-Reply-To: <2969934.XTKV7y9VVT@vostro.rjw.lan>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc: Linux PM list <linux-pm@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>
+To: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: Hanjun Guo <hanjun.guo@linaro.org>, Martin Mokrejs <mmokrejs@fold.natur.cuni.cz>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, patches@linaro.org, linaro-kernel@lists.linaro.org
 
-On Thursday, May 30, 2013 11:38:37 PM Rafael J. Wysocki wrote:
-> Hi Greg,
+On Thu, May 30, 2013 at 03:57:58PM +0200, Rafael J. Wysocki wrote:
+> On Thursday, May 30, 2013 10:29:54 AM Hanjun Guo wrote:
+> > On 2013-5-29 19:07, Martin Mokrejs wrote:
+> > > Hanjun Guo wrote:
+> > >> On 2013-5-29 7:30, Rafael J. Wysocki wrote:
+> > >>> On Thursday, May 23, 2013 08:44:26 PM Hanjun Guo wrote:
+> > >>>> In acpi_processor_add(), get_cpu_device() will return NULL sometimes,
+> > >>>> although the chances are small, I think it should be fixed.
+> > >>>>
+> > >>>> Signed-off-by: Hanjun Guo <hanjun.guo@linaro.org>
+> > >>>
+> > >>> This patch isn't necessary any more after the changes queued up for 3.11
+> > >>> in the acpi-hotplug branch of the linux-pm.git tree.
+> > >>
+> > >> Ok, I noticed your patch set, just drop my patch.
+> > > 
+> > > But shouldn't this go to stable at least? I checked linux-3.9.4
+> > > and it applies fine. Whether this is relevant for other stable
+> > > series I will leave up to somebody else. ;)
+> > 
+> > Hi Rafeal,
+> > 
+> > What's your opinion on Martin's suggestion?
 > 
-> I've noticed during recent testing that with this commit applied:
+> Well, this is kind of hard to say.  We generally don't apply patches to -stable
+> that don't have mainline counterparts.
 > 
-> http://git.kernel.org/cgit/linux/kernel/git/rafael/linux-pm.git/commit/?h=acpi-hotplug&id=ac212b6980d8d5eda705864fc5a8ecddc6d6eacc
-> 
-> on my openSUSE (and Tubmbleweed) installations I need to modify
-> /etc/sysconfig/kernel to make mkinitrd put the acpi-cpufreq module into the
-> initramfs or otherwise it won't be loaded automatically.
-> 
-> I think I understand why it needs to be present in the initramfs along the
-> processor module for the automatic loading to work (acpi_processor_load_module()
-> seems to need that), but before the above commit it wasn't necessary to make
-> any changes to /etc/sysconfig/kernel and acpi-cpufreq was loaded automatically
-> anyway.
+> Greg, I wonder what your opinion is?
 
-To be precise, before the commit in question acpi-cpufreq doesn't need to be
-present in the initramfs at all to be loaded automatically (and I don't really
-know how that works).
+We do not apply patches to -stable that are not in Linus's tree, unless
+there is no problem in Linus's tree due to a major rewrite of the code,
+and it has been confirmed that the same problem isn't there.
 
-> Unfortunately, my experience with udev and related things is kind of limited
-> and I have no idea what exactly makes the difference.  Can you please have a
-> look and help me understand that?
+thanks,
 
-Thanks,
-Rafael
-
-
--- 
-I speak only for myself.
-Rafael J. Wysocki, Intel Open Source Technology Center.
+greg k-h
