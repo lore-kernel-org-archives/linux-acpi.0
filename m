@@ -1,53 +1,31 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: [PATCH] ACPI: Fix potential NULL pointer dereference in acpi_processor_add()
-Date: Thu, 30 May 2013 15:57:58 +0200
-Message-ID: <2969934.XTKV7y9VVT@vostro.rjw.lan>
-References: <519E0F2A.4070602@linaro.org> <51A5E177.3090809@fold.natur.cuni.cz> <51A6B9A2.8090904@linaro.org>
+From: "Ortiz, Lance E" <lance.oritz@hp.com>
+Subject: RE: [PATCH v3] aerdrv: Move cper_print_aer() call out of interrupt
+ context
+Date: Thu, 30 May 2013 13:58:08 +0000
+Message-ID: <A961433CDFF2F640A2866803152E61F95D13A750@G9W0715.americas.hpqcorp.net>
+References: <20130529190326.24171.86905.stgit@grignak.americas.hpqcorp.net>
+ <30463843.EmBn1xaq3I@vostro.rjw.lan>
+ <3908561D78D1C84285E8C5FCA982C28F2DA70112@ORSMSX106.amr.corp.intel.com>
+ <A961433CDFF2F640A2866803152E61F95D13A6F2@G9W0715.americas.hpqcorp.net>
+ <20130530072849.GA20793@pd.tnic>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7Bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from hydra.sisk.pl ([212.160.235.94]:54897 "EHLO hydra.sisk.pl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755861Ab3E3NtD (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 30 May 2013 09:49:03 -0400
-In-Reply-To: <51A6B9A2.8090904@linaro.org>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Transfer-Encoding: base64
+Return-path: <linux-pci-owner@vger.kernel.org>
+In-Reply-To: <20130530072849.GA20793@pd.tnic>
+Content-Language: en-US
+Sender: linux-pci-owner@vger.kernel.org
+To: Borislav Petkov <bp@alien8.de>
+Cc: "Luck, Tony" <tony.luck@intel.com>, "Rafael J. Wysocki" <rjw@sisk.pl>, "bhelgaas@google.com" <bhelgaas@google.com>, "lance_ortiz@hotmail.com" <lance_ortiz@hotmail.com>, "jiang.liu@huawei.com" <jiang.liu@huawei.com>, "rostedt@goodmis.org" <rostedt@goodmis.org>, "mchehab@redhat.com" <mchehab@redhat.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
-To: Hanjun Guo <hanjun.guo@linaro.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc: Martin Mokrejs <mmokrejs@fold.natur.cuni.cz>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, patches@linaro.org, linaro-kernel@lists.linaro.org
 
-On Thursday, May 30, 2013 10:29:54 AM Hanjun Guo wrote:
-> On 2013-5-29 19:07, Martin Mokrejs wrote:
-> > Hanjun Guo wrote:
-> >> On 2013-5-29 7:30, Rafael J. Wysocki wrote:
-> >>> On Thursday, May 23, 2013 08:44:26 PM Hanjun Guo wrote:
-> >>>> In acpi_processor_add(), get_cpu_device() will return NULL sometimes,
-> >>>> although the chances are small, I think it should be fixed.
-> >>>>
-> >>>> Signed-off-by: Hanjun Guo <hanjun.guo@linaro.org>
-> >>>
-> >>> This patch isn't necessary any more after the changes queued up for 3.11
-> >>> in the acpi-hotplug branch of the linux-pm.git tree.
-> >>
-> >> Ok, I noticed your patch set, just drop my patch.
-> > 
-> > But shouldn't this go to stable at least? I checked linux-3.9.4
-> > and it applies fine. Whether this is relevant for other stable
-> > series I will leave up to somebody else. ;)
-> 
-> Hi Rafeal,
-> 
-> What's your opinion on Martin's suggestion?
-
-Well, this is kind of hard to say.  We generally don't apply patches to -stable
-that don't have mainline counterparts.
-
-Greg, I wonder what your opinion is?
-
-Rafael
-
-
--- 
-I speak only for myself.
-Rafael J. Wysocki, Intel Open Source Technology Center.
+PiBPbiBUaHUsIE1heSAzMCwgMjAxMyBhdCAwNDo1NToyMEFNICswMDAwLCBPcnRpeiwgTGFuY2Ug
+RSB3cm90ZToNCj4gPiBUaGlzIFRPRE8gaXMgYSBub3RlIGZvciBmdXR1cmUgY2xlYW4tdXAgYW5k
+IGlzIG5vdCBkaXJlY3RseSByZWxhdGVkDQo+IHRvDQo+ID50aGUgYnVnIGJlaW5nIGZpeGVkIHdp
+dGggdGhpcyBwYXRjaC4gV2hpY2ggbGVuZHMgdG8gdGhlIGFyZ3VtZW50IG9mDQo+IHdoeQ0KPiA+
+cHV0IHRoZSBUT0RPIGluIHRoaXMgcGF0Y2g/IE9wcG9ydHVuaXN0aWMuIEkgZG9u4oCZdCB0aGlu
+ayB3ZSB3YW50IHRvDQo+ID5jcmVhdGUgYSBzZXBhcmF0ZSBwYXRjaCBqdXN0IGZvciBhIFRPRE8g
+bm90ZS4NCj4gDQo+IFNvdW5kcyB0byBtZSwgdGhpcyBUT0RPIGl0ZW0gc2hvdWxkIGJlIG9uIHlv
+dXIgVE9ETyBsaXN0IC0gbm90IGluDQo+IGtlcm5lbA0KPiBzb3VyY2VzIDotKQ0KPiAtLQ0KTWFr
+ZXMgc2Vuc2UuICBJIHdpbGwgeWFuayB0aGUgVE9ETyBhbmQgcmVzdWJtaXQgdGhlIHBhdGNoLiAg
+DQoNCkxhbmNlDQoNCg==
