@@ -1,44 +1,80 @@
-From: Aaron Lu <aaron.lu@intel.com>
-Subject: Re: [PATCH RFC] PM / Runtime: Rework the "runtime idle" helper routine
-Date: Thu, 30 May 2013 09:05:43 +0800
-Message-ID: <51A6A5E7.1040601@intel.com>
-References: <Pine.LNX.4.44L0.1305291023170.1473-100000@iolanthe.rowland.org> <1645401.1grgttHPMR@vostro.rjw.lan>
+From: Zhang Rui <rui.zhang@intel.com>
+Subject: Re: [regression,bisected] restore of disks after suspend-to-disk
+ broken in 3.9.x
+Date: Thu, 30 May 2013 09:46:26 +0800
+Message-ID: <1369878386.3368.16.camel@rzhang1-mobl4>
+References: <CAPm-kmsTNz4niGXsWyhLwwBkQ48gHdq1vjPvSKKwQ0kbhHm=JQ@mail.gmail.com>
+	 <1369631226.2159.5.camel@rzhang1-mobl4>
+	 <CAPm-kmu4WmAKX4N5GTsG-J+oq95pLxB9=iLMf2dyK-p6RbwFXQ@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-pm-owner@vger.kernel.org>
-In-Reply-To: <1645401.1grgttHPMR@vostro.rjw.lan>
+In-Reply-To: <CAPm-kmu4WmAKX4N5GTsG-J+oq95pLxB9=iLMf2dyK-p6RbwFXQ@mail.gmail.com>
 Sender: linux-pm-owner@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: Alan Stern <stern@rowland.harvard.edu>, Linux PM list <linux-pm@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Bjorn Helgaas <bhelgaas@google.com>, Linux PCI <linux-pci@vger.kernel.org>, Kevin Hilman <khilman@linaro.org>, Mika Westerberg <mika.westerberg@linux.intel.com>
+To: Giacomo Perale <giacomo.perale@gmail.com>
+Cc: linux-acpi@vger.kernel.org, linux-pm@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-On 05/30/2013 06:18 AM, Rafael J. Wysocki wrote:
-> On Wednesday, May 29, 2013 10:51:11 AM Alan Stern wrote:
->> On Wed, 29 May 2013, Rafael J. Wysocki wrote:
->>
->>> From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
->>>
->>> The "runtime idle" helper routine, rpm_idle(), currently ignores
->>> return values from .runtime_idle() callbacks executed by it.
->>>
->>> However, it turns out that many subsystems use the generic idle
->>> callback routine pm_generic_runtime_idle() which checks the return
->>> value of the driver's callback and executes pm_runtime_suspend() for
->>> the device unless that value is different from 0.  If that logic is
->>> moved to rpm_idle() instead, pm_generic_runtime_idle() can be dropped
->>> and its users will not need any .runtime_idle() callbacks any more.
->>
->> Since you're making this change, wouldn't it be a good idea to adopt
->> Mika's original suggestion and turn on the RPM_AUTO bit in rpmflags
->> when the use_autosuspend flag is set?
+On Mon, 2013-05-27 at 22:07 +0200, Giacomo Perale wrote:
+> 2013/5/27 Zhang Rui <rui.zhang@intel.com>:
+> > On Sun, 2013-05-26 at 15:51 +0200, Giacomo Perale wrote:
+> >> Hello,
+> >>
+> >> after upgrading from 3.8.7 to 3.9.x I noticed some slightly longer
+> >> delays when resuming from suspend-to-disk and a few new error messages
+> >> in the logs:
+> >>
+> >>
+> >> Not having connected the issue with the previous error messages I
+> >> initially blamed the disk and replaced it with a new one thinking it
+> >> was broken, but the problem persisted so I started a bisection run
+> >> that pointed to this commit:
+> >>
+> >>
+> >> b8bb6cb999858043489c1ddef08eed2127559169 is the first bad commit
+> >> commit b8bb6cb999858043489c1ddef08eed2127559169
+> >> Author: Zhang Rui <rui.zhang@intel.com>
+> >> Date:   Thu Nov 22 15:45:02 2012 +0800
+> >>
+> >>     step_wise: Unify the code for both throttle and dethrottle
+> >>
+> >>     Signed-off-by: Zhang Rui <rui.zhang@intel.com>
+> >>
+> > I do not see how this would affect the sata hibernation/resume.
+> > but anyway, would you please try the four patches in comment #10, #11,
+> > #12 and #13 in
+> > https://bugzilla.kernel.org/show_bug.cgi?id=58301
+> > and check if they help?
+> >
+> > thanks,
+> > rui
+> >
 > 
-> I'm not actually sure.  It can be done, but I'd prefer to do that as a separate
-> change in any case.
+> No luck, with git head and those four patches hibernation is
+> completely broken, the system doesn't even shut down, it just loses
+> the disks (I'm attaching what I could get from /proc/kmsg to this
+> email).
+> 
+then can you please try the patch at
+https://patchwork.kernel.org/patch/2633071/
+on top of the four patches and see if it helps?
 
-For SCSI idle callback, that would be a welcome change, where instead of
-calling pm_runtime_autosuspend and then return -EBUSY, it can be changed
-to simply return 0 after mark_last_busy.
+thanks,
+rui
 
-Thanks,
-Aaron
+> With the fair_share governor or with step_wise _and_ commit
+> b8bb6cb999858043489c1ddef08eed2127559169 reverted everything is ok
+> again.
+> 
+> I think there's something wrong in the commit logic (for example, why
+> are you checking for "instance->target != THERMAL_NO_TARGET" when
+> update_instance_for_throttle checked for "instance->target ==
+> THERMAL_NO_TARGET"?) but my attempts to fix it failed, probably
+> because I'm not sure of what 'continue;' does inside a
+> list_for_each_entry macro.
+> 
+> Thanks,
+> Giacomo
+
+
