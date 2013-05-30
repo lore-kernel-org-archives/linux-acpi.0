@@ -1,84 +1,99 @@
-From: Betty Dall <betty.dall@hp.com>
-Subject: [PATCH v2 3/3] PCI/AER: Provide reset_link for firmware first root port
-Date: Thu, 30 May 2013 08:39:29 -0600
-Message-ID: <1369924769-17183-4-git-send-email-betty.dall@hp.com>
-References: <1369924769-17183-1-git-send-email-betty.dall@hp.com>
-Return-path: <linux-pci-owner@vger.kernel.org>
-In-Reply-To: <1369924769-17183-1-git-send-email-betty.dall@hp.com>
-Sender: linux-pci-owner@vger.kernel.org
-To: rjw@sisk.pl, bhelgaas@google.com
-Cc: ying.huang@intel.com, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, Betty Dall <betty.dall@hp.com>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: Re: [resend] cpuidle: ACPI processor idle regression
+Date: Thu, 30 May 2013 16:56:18 +0200
+Message-ID: <41543089.RHFiQpfZdy@vostro.rjw.lan>
+References: <51A75830.30007@linaro.org>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7Bit
+Return-path: <linux-pm-owner@vger.kernel.org>
+In-Reply-To: <51A75830.30007@linaro.org>
+Sender: linux-pm-owner@vger.kernel.org
+To: Daniel Lezcano <daniel.lezcano@linaro.org>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>, toshi.kani@hp.com, linux-pm@vger.kernel.org, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
 
-The firmware first path does not install the aerdrv root port
-service driver, so the firmware first root port does not have
-a reset_link callback. When a firmware first root port does not have
-a reset_link callback, use a new default reset_link similar to what
-we already do for the default_downstream_reset_link(). The firmware
-first default reset_link brings the root port out of SBR if firmware
-left it in SBR.
+On Thursday, May 30, 2013 03:46:24 PM Daniel Lezcano wrote:
+> 
+> Sorry, a bad copy/paste address for Rafael.
+> 
+> ----
+> 
+> Hi all,
+> 
+> while testing the processor_idle for ACPI, I noticed the states usage is
+> not used for cpuidle in sysfs.
+> 
+> Reproduced on Lenovo x230, with a i7-3520M CPU @ 2.90GHz without the
+> intel_idle driver.
+> 
+> After git-bisecting, the commit where this regression occurs is:
 
-Changes since v1:
-Removed incorrect setting of p2p_ctrl after the read.
+Reproduced and investigating that.
 
-Signed-off-by: Betty Dall <betty.dall@hp.com>
----
-
- drivers/pci/pcie/aer/aerdrv_core.c |   36 ++++++++++++++++++++++++++++++++++++
- 1 files changed, 36 insertions(+), 0 deletions(-)
+Thanks,
+Rafael
 
 
-diff --git a/drivers/pci/pcie/aer/aerdrv_core.c b/drivers/pci/pcie/aer/aerdrv_core.c
-index 8ec8b4f..72f76cd 100644
---- a/drivers/pci/pcie/aer/aerdrv_core.c
-+++ b/drivers/pci/pcie/aer/aerdrv_core.c
-@@ -413,6 +413,39 @@ static pci_ers_result_t default_downstream_reset_link(struct pci_dev *dev)
- 	return PCI_ERS_RESULT_RECOVERED;
- }
- 
-+/**
-+ * default_ff_root_port_reset_link - default reset function for firmware
-+ *		first Root Port
-+ * @dev: pointer to root port's pci_dev data structure
-+ *
-+ * Invoked when performing link reset at Root Port w/ no aer driver.
-+ * This happens through the firmware first path. Firmware may leave
-+ * the Root Port in SBR and it is the OS responsiblity to bring it out
-+ * of SBR.
-+ */
-+static pci_ers_result_t default_ff_root_port_reset_link(struct pci_dev *dev)
-+{
-+	u16 p2p_ctrl;
-+
-+	/* Read Secondary Bus Reset */
-+	pci_read_config_word(dev, PCI_BRIDGE_CONTROL, &p2p_ctrl);
-+
-+	/* De-assert Secondary Bus Reset, if it is set */
-+	if (p2p_ctrl & PCI_BRIDGE_CTL_BUS_RESET) {
-+		p2p_ctrl &= ~PCI_BRIDGE_CTL_BUS_RESET;
-+		pci_write_config_word(dev, PCI_BRIDGE_CONTROL, p2p_ctrl);
-+
-+		/*
-+		 * System software must wait for at least 100ms from the end
-+		 * of a reset of one or more device before it is permitted
-+		 * to issue Configuration Requests to those devices.
-+		 */
-+		msleep(200);
-+		dev_dbg(&dev->dev, "Root Port link has been reset\n");
-+	}
-+	return PCI_ERS_RESULT_RECOVERED;
-+}
-+
- static int find_aer_service_iter(struct device *device, void *data)
- {
- 	struct pcie_port_service_driver *service_driver, **drv;
-@@ -460,6 +493,9 @@ static pci_ers_result_t reset_link(struct pci_dev *dev)
- 		status = driver->reset_link(udev);
- 	} else if (pci_pcie_type(udev) == PCI_EXP_TYPE_DOWNSTREAM) {
- 		status = default_downstream_reset_link(udev);
-+	} else if (pci_pcie_type(udev) == PCI_EXP_TYPE_ROOT_PORT &&
-+		pcie_aer_get_firmware_first(udev)) {
-+		status = default_ff_root_port_reset_link(udev);
- 	} else {
- 		dev_printk(KERN_DEBUG, &dev->dev,
- 			"no link-reset support at upstream device %s\n",
+> ac212b6980d8d5eda705864fc5a8ecddc6d6eacc is the first bad commit
+> commit ac212b6980d8d5eda705864fc5a8ecddc6d6eacc
+> Author: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+> Date:   Fri May 3 00:26:22 2013 +0200
+> 
+>     ACPI / processor: Use common hotplug infrastructure
+> 
+>     Split the ACPI processor driver into two parts, one that is
+>     non-modular, resides in the ACPI core and handles the enumeration
+>     and hotplug of processors and one that implements the rest of the
+>     existing processor driver functionality.
+> 
+>     The non-modular part uses an ACPI scan handler object to enumerate
+>     processors on the basis of information provided by the ACPI namespace
+>     and to hook up with the common ACPI hotplug infrastructure.  It also
+>     populates the ACPI handle of each processor device having a
+>     corresponding object in the ACPI namespace, which allows the driver
+>     proper to bind to those devices, and makes the driver bind to them
+>     if it is readily available (i.e. loaded) when the scan handler's
+>     .attach() routine is running.
+> 
+>     There are a few reasons to make this change.
+> 
+>     First, switching the ACPI processor driver to using the common ACPI
+>     hotplug infrastructure reduces code duplication and size considerably,
+>     even though a new file is created along with a header comment etc.
+> 
+>     Second, since the common hotplug code attempts to offline devices
+>     before starting the (non-reversible) removal procedure, it will abort
+>     (and possibly roll back) hot-remove operations involving processors
+>     if cpu_down() returns an error code for one of them instead of
+>     continuing them blindly (if /sys/firmware/acpi/hotplug/force_remove
+>     is unset).  That is a more desirable behavior than what the current
+>     code does.
+> 
+>     Finally, the separation of the scan/hotplug part from the driver
+>     proper makes it possible to simplify the driver's .remove() routine,
+>     because it doesn't need to worry about the possible cleanup related
+>     to processor removal any more (the scan/hotplug part is responsible
+>     for that now) and can handle device removal and driver removal
+>     symmetricaly (i.e. as appropriate).
+> 
+>     Some user-visible changes in sysfs are made (for example, the
+>     'sysdev' link from the ACPI device node to the processor device's
+>     directory is gone and a 'physical_node' link is present instead
+>     and a corresponding 'firmware_node' is present in the processor
+>     device's directory, the processor driver is now visible under
+>     /sys/bus/cpu/drivers/ and bound to the processor device), but
+>     that shouldn't affect the functionality that users care about
+>     (frequency scaling, C-states and thermal management).
+> 
+>     Tested on my venerable Toshiba Portege R500.
+> 
+>     Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+>     Acked-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+>     Reviewed-by: Toshi Kani <toshi.kani@hp.com>
+> 
+> 
+> 
+-- 
+I speak only for myself.
+Rafael J. Wysocki, Intel Open Source Technology Center.
