@@ -1,44 +1,45 @@
 From: Betty Dall <betty.dall@hp.com>
-Subject: [PATCH v2 0/3] PCI/ACPI: Fix firmware first error recovery with root port in reset
-Date: Thu, 30 May 2013 08:39:26 -0600
-Message-ID: <1369924769-17183-1-git-send-email-betty.dall@hp.com>
+Subject: [PATCH v2 1/3] PCI/AER: Fix incorrect return from aer_hest_parse()
+Date: Thu, 30 May 2013 08:39:27 -0600
+Message-ID: <1369924769-17183-2-git-send-email-betty.dall@hp.com>
+References: <1369924769-17183-1-git-send-email-betty.dall@hp.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from g6t0185.atlanta.hp.com ([15.193.32.62]:27366 "EHLO
+Received: from g6t0185.atlanta.hp.com ([15.193.32.62]:27968 "EHLO
 	g6t0185.atlanta.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932733Ab3E3OoM (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 30 May 2013 10:44:12 -0400
+	with ESMTP id S933053Ab3E3OqM (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 30 May 2013 10:46:12 -0400
+In-Reply-To: <1369924769-17183-1-git-send-email-betty.dall@hp.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: rjw@sisk.pl, bhelgaas@google.com
 Cc: ying.huang@intel.com, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, Betty Dall <betty.dall@hp.com>
 
-This patch set fixes a bug on platforms that use firmware first AER.
-Firmware can leave the root port in Secondary Bus Reset (SBR) and
-communicate this to the OS through the "reset" bit in the flags field
-of the HEST table and associated CPER records. Firmware wants to do this
-so that the error is contained and the hardware is in a known state.
-
-Without these patches, the root port stays in SBR and the device drivers
-cannot recover. These patches recognize when the firmware first root port
-is in SBR and bring the root port out of SBR so the devices under the root
-port can recover.
-
-The changes have been tested on systems with firmware first that set the
-"reset" bit by injecting various hardware errors. The errors successfully
-recover.
-
-Changes since v1:
-Fixed a typo in the comment of patch 2.
-Removed incorrect setting of reset bit in patch 3.
+The function aer_hest_parse() is called to determine if the given
+PCI device is firmware first or not. The code loops through each
+section of the HEST table to look for a match. The bug is that
+the function always returns whether the last HEST section is firmware
+first. The fix stops the iteration once the info.firmware_first
+variable is set.  This is similar to how the function aer_hest_parse_aff()
+stops the iteration.
 
 Signed-off-by: Betty Dall <betty.dall@hp.com>
 ---
-Betty Dall (3):
-  PCI/AER: Fix incorrect return from aer_hest_parse()
-  ACPI/APEI: Force fatal AER severity when bus has been reset
-  PCI/AER: Provide reset_link for firmware first root port
----
- drivers/acpi/apei/ghes.c           |   21 ++++++++++++++++++++-
+
  drivers/pci/pcie/aer/aerdrv_acpi.c |    3 +++
- drivers/pci/pcie/aer/aerdrv_core.c |   36 ++++++++++++++++++++++++++++++++++++
- 3 files changed, 59 insertions(+), 1 deletions(-)
+ 1 files changed, 3 insertions(+), 0 deletions(-)
+
+
+diff --git a/drivers/pci/pcie/aer/aerdrv_acpi.c b/drivers/pci/pcie/aer/aerdrv_acpi.c
+index 5194a7d..39b8671 100644
+--- a/drivers/pci/pcie/aer/aerdrv_acpi.c
++++ b/drivers/pci/pcie/aer/aerdrv_acpi.c
+@@ -42,6 +42,9 @@ static int aer_hest_parse(struct acpi_hest_header *hest_hdr, void *data)
+ 	u8 bridge = 0;
+ 	int ff = 0;
+ 
++	if (info->firmware_first)
++		return 0;
++
+ 	switch (hest_hdr->type) {
+ 	case ACPI_HEST_TYPE_AER_ROOT_PORT:
+ 		pcie_type = PCI_EXP_TYPE_ROOT_PORT;
