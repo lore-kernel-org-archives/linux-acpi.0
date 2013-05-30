@@ -1,39 +1,36 @@
 From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: [resend] cpuidle: ACPI processor idle regression
-Date: Thu, 30 May 2013 18:35:09 +0200
-Message-ID: <2514002.nHT3FtHL0W@vostro.rjw.lan>
-References: <51A75830.30007@linaro.org> <41543089.RHFiQpfZdy@vostro.rjw.lan>
+Subject: Re: System slow down from udev
+Date: Thu, 30 May 2013 18:36:58 +0200
+Message-ID: <4462684.QmYxzGRhx8@vostro.rjw.lan>
+References: <CAE9FiQUbSeCGTsukX3zfVYBhFKgWfVd8WDDvpix==wSXzc=RVQ@mail.gmail.com> <3463581.AQ3EkyvJ7g@vostro.rjw.lan> <5738208.7rKb57pu5j@vostro.rjw.lan>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7Bit
-Return-path: <linux-pm-owner@vger.kernel.org>
-In-Reply-To: <41543089.RHFiQpfZdy@vostro.rjw.lan>
-Sender: linux-pm-owner@vger.kernel.org
-To: Daniel Lezcano <daniel.lezcano@linaro.org>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>, toshi.kani@hp.com, linux-pm@vger.kernel.org, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from hydra.sisk.pl ([212.160.235.94]:54970 "EHLO hydra.sisk.pl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S933985Ab3E3Q2D (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 30 May 2013 12:28:03 -0400
+In-Reply-To: <5738208.7rKb57pu5j@vostro.rjw.lan>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Yinghai Lu <yinghai@kernel.org>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Toshi Kani <toshi.kani@hp.com>
 
-On Thursday, May 30, 2013 04:56:18 PM Rafael J. Wysocki wrote:
-> On Thursday, May 30, 2013 03:46:24 PM Daniel Lezcano wrote:
+On Thursday, May 30, 2013 04:45:35 PM Rafael J. Wysocki wrote:
+> On Thursday, May 30, 2013 04:34:51 PM Rafael J. Wysocki wrote:
+[...]
 > > 
-> > Sorry, a bad copy/paste address for Rafael.
-> > 
-> > ----
-> > 
-> > Hi all,
-> > 
-> > while testing the processor_idle for ACPI, I noticed the states usage is
-> > not used for cpuidle in sysfs.
-> > 
-> > Reproduced on Lenovo x230, with a i7-3520M CPU @ 2.90GHz without the
-> > intel_idle driver.
-> > 
-> > After git-bisecting, the commit where this regression occurs is:
+> > I'll try to dig deeper locally in the meantime.
 > 
-> Reproduced and investigating that.
+> Actually, I think I know what the problem is, but I need some more time to
+> debug it.  Fortunately, I'm able to see some symptoms. :-)
 
-The appended patch fixes this for me.  Can you please verify?
+OK, one fix is appended, but there still is one more bug I need to investigate.
 
+Please check if this one helps, though.
+
+Thanks,
 Rafael
 
 
