@@ -1,49 +1,49 @@
-From: Hanjun Guo <hanjun.guo@linaro.org>
-Subject: Re: [PATCH] ACPI: Fix potential NULL pointer dereference in acpi_processor_add()
-Date: Thu, 30 May 2013 10:29:54 +0800
-Message-ID: <51A6B9A2.8090904@linaro.org>
-References: <519E0F2A.4070602@linaro.org> <1693841.iH9OWSxHyo@vostro.rjw.lan> <51A55C2B.7050805@linaro.org> <51A5E177.3090809@fold.natur.cuni.cz>
+From: "Ortiz, Lance E" <lance.oritz@hp.com>
+Subject: RE: [PATCH v3] aerdrv: Move cper_print_aer() call out of interrupt
+ context
+Date: Thu, 30 May 2013 04:55:20 +0000
+Message-ID: <A961433CDFF2F640A2866803152E61F95D13A6F2@G9W0715.americas.hpqcorp.net>
+References: <20130529190326.24171.86905.stgit@grignak.americas.hpqcorp.net>
+ <30463843.EmBn1xaq3I@vostro.rjw.lan>
+ <3908561D78D1C84285E8C5FCA982C28F2DA70112@ORSMSX106.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-pd0-f182.google.com ([209.85.192.182]:41377 "EHLO
-	mail-pd0-f182.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S967287Ab3E3Cao (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 29 May 2013 22:30:44 -0400
-Received: by mail-pd0-f182.google.com with SMTP id g10so9828231pdj.13
-        for <linux-acpi@vger.kernel.org>; Wed, 29 May 2013 19:30:43 -0700 (PDT)
-In-Reply-To: <51A5E177.3090809@fold.natur.cuni.cz>
+Received: from g4t0014.houston.hp.com ([15.201.24.17]:48984 "EHLO
+	g4t0014.houston.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750845Ab3E3E5J (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 30 May 2013 00:57:09 -0400
+In-Reply-To: <3908561D78D1C84285E8C5FCA982C28F2DA70112@ORSMSX106.amr.corp.intel.com>
+Content-Language: en-US
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: Martin Mokrejs <mmokrejs@fold.natur.cuni.cz>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, patches@linaro.org, linaro-kernel@lists.linaro.org
+To: "Luck, Tony" <tony.luck@intel.com>, "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: "bhelgaas@google.com" <bhelgaas@google.com>, "lance_ortiz@hotmail.com" <lance_ortiz@hotmail.com>, "jiang.liu@huawei.com" <jiang.liu@huawei.com>, "bp@alien8.de" <bp@alien8.de>, "rostedt@goodmis.org" <rostedt@goodmis.org>, "mchehab@redhat.com" <mchehab@redhat.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
 
-On 2013-5-29 19:07, Martin Mokrejs wrote:
-> Hanjun Guo wrote:
->> On 2013-5-29 7:30, Rafael J. Wysocki wrote:
->>> On Thursday, May 23, 2013 08:44:26 PM Hanjun Guo wrote:
->>>> In acpi_processor_add(), get_cpu_device() will return NULL sometimes,
->>>> although the chances are small, I think it should be fixed.
->>>>
->>>> Signed-off-by: Hanjun Guo <hanjun.guo@linaro.org>
->>>
->>> This patch isn't necessary any more after the changes queued up for 3.11
->>> in the acpi-hotplug branch of the linux-pm.git tree.
->>
->> Ok, I noticed your patch set, just drop my patch.
-> 
-> But shouldn't this go to stable at least? I checked linux-3.9.4
-> and it applies fine. Whether this is relevant for other stable
-> series I will leave up to somebody else. ;)
-
-Hi Rafeal,
-
-What's your opinion on Martin's suggestion?
-
-Thanks
-Hanjun
-
-> Martin
-
-
+PiA+ICsJLyoNCj4gPiArCSAqIFRPRE86IFRoaXMgZnVuY3Rpb24gbmVlZHMgdG8gYmUgcmUtd3Jp
+dHRlbiBzbyB0aGF0IGl0J3Mgb3V0cHV0DQo+ID4gKwkgKiBtYXRjaGVzIHRoZSBvdXRwdXQgb2Yg
+YWVyX3ByaW50X2Vycm9yKCkuICBSaWdodCBub3csIHRoZQ0KPiBvdXRwdXQNCj4gPiArCSAqIGlz
+IGZvcm1hdHRlZCB2ZXJ5IGRpZmZlcmVudGx5Lg0KPiA+ICsJICovDQo+IA0KPiBTbyB3ZSBoYXZl
+IHRoaXMgYmlnICJUT0RPIiBjb21tZW50IHNpdHRpbmcgdGhlcmUgdmVyeSBwcm9taW5lbnRseSAu
+Li4NCj4gd2hpY2ggTGludXMNCj4gaXMgYm91bmQgdG8gYXNrIGFib3V0IGlmIEkgYXNrIGhpbSB0
+byBwdWxsIHRoaXMgaW50byAzLjEwLXJjWCAuLi4NCj4gd2hhdCdzIHRoZSBpbXBhY3Qgb2YNCj4g
+dGhpcz8gIFdoYXQgc2hvdWxkIEkgc2F5IHdoZW4gaGUgYXNrcyB3aHkgc2hvdWxkIGhlIHB1bGwg
+dGhpcyBmaXggaW50bw0KPiAzLjEwIHdoZW4NCj4gdGhlcmUgaXMgc3RpbGwgc29tZSB3b3JrIHRv
+IGRvPyAgSXMgbWF0Y2hpbmcgdGhlIG91dHB1dCBubyBiaWcgZGVhbCBhbmQNCj4gY2FuIHdhaXQg
+Zm9yDQo+IHNvbWUgZnV0dXJlLCB3aGlsZSBtb3ZpbmcgdGhlIHBjaSBiaXRzIHRvIHRoZSB3b3Jr
+IGZ1bmN0aW9uIG5lZWRzIHRvIGdvDQo+IGluIG5vdz8NCg0KVG9ueSwgDQoNCllvdSBoYXZlIGEg
+Z29vZCBwb2ludC4gIElkZWFsbHkgdGhlIGNvbnNvbGUgb3V0cHV0IHNob3VsZCBiZSB0aGUgc2Ft
+ZSBpbiBib3RoIHRoZSBhZXIgYW5kIHRoZSBjcGVyIGNhc2UuICBUaGUgb3V0cHV0IGluIGNwZXJf
+cHJpbnRfZXJyb3IoKSBkb2VzIGdpdmUgdXMgYSByZWFzb25hYmxlIGFtb3VudCBvZiBpbmZvcm1h
+dGlvbiwganVzdCBub3QgYXMgZGV0YWlsZWQgYXMgSSB0aGUgYWVyIGNhc2UuIEFsc28gbm93IHdo
+YXQgd2UgaGF2ZSB0aGUgdHJhY2UgZXZlbnQgZm9yIGFlciwgdGhlIGNvbnNvbGUgb3V0cHV0IG1p
+Z2h0IGJlIGxlc3MgaW1wb3J0YW50LiAgVGhpcyBUT0RPIGlzIGEgbm90ZSBmb3IgZnV0dXJlIGNs
+ZWFuLXVwIGFuZCBpcyBub3QgZGlyZWN0bHkgcmVsYXRlZCB0byB0aGUgYnVnIGJlaW5nIGZpeGVk
+IHdpdGggdGhpcyBwYXRjaC4gIFdoaWNoIGxlbmRzIHRvIHRoZSBhcmd1bWVudCBvZiB3aHkgcHV0
+IHRoZSBUT0RPIGluIHRoaXMgcGF0Y2g/ICBPcHBvcnR1bmlzdGljLiAgSSBkb27igJl0IHRoaW5r
+IHdlIHdhbnQgdG8gY3JlYXRlIGEgc2VwYXJhdGUgcGF0Y2gganVzdCBmb3IgYSBUT0RPIG5vdGUu
+ICANCg0KU28sIHdoeSBwdWxsIHRoaXMgcGF0Y2ggaW4gZXZlbiB0aG91Z2ggdGhlcmUgaXMgd29y
+ayB0byBkbz8gIFRoZSBwYXRjaCBmaXhlcyBhIHdhcm5pbmcgdGhhdCBtaWdodCBjYXVzZSBjdXN0
+b21lcnMgdW4tZHVlIGNvbmNlcm4gYW5kIHJlbW92ZXMgYSBjYWxsIGluIGludGVycnVwdCBjb250
+ZXh0IHRoYXQgc2hvdWxkIG5vdCBiZSB0aGVyZS4gIA0KDQpMYW5jZQ0K
