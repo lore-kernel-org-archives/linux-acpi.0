@@ -1,83 +1,47 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: System slow down from udev
-Date: Thu, 30 May 2013 02:20:41 +0200
-Message-ID: <5422298.byNmKLLQxX@vostro.rjw.lan>
-References: <CAE9FiQUbSeCGTsukX3zfVYBhFKgWfVd8WDDvpix==wSXzc=RVQ@mail.gmail.com> <CAE9FiQV8CZN+mQvZScr16y9R1y6Tyx7uQg_DbNwE5KkHdi5H1w@mail.gmail.com> <19316305.cljVYtP0Hv@vostro.rjw.lan>
+From: "Zheng, Lv" <lv.zheng@intel.com>
+Subject: RE: [PATCH 00/07] ACPICA 20130418 Release
+Date: Thu, 30 May 2013 00:02:22 +0000
+Message-ID: <1AE640813FDE7649BE1B193DEA596E8802403E86@SHSMSX101.ccr.corp.intel.com>
+References: <cover.1367813690.git.lv.zheng@intel.com>
+ <cover.1367913046.git.lv.zheng@intel.com>
+ <1A7043D5F58CCB44A599DFD55ED4C9482B33D8D2@FMSMSX106.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from hydra.sisk.pl ([212.160.235.94]:54430 "EHLO hydra.sisk.pl"
+Received: from mga02.intel.com ([134.134.136.20]:43188 "EHLO mga02.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S966530Ab3E3ALr (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 29 May 2013 20:11:47 -0400
-In-Reply-To: <19316305.cljVYtP0Hv@vostro.rjw.lan>
+	id S1755938Ab3E3BCY convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 29 May 2013 21:02:24 -0400
+In-Reply-To: <1A7043D5F58CCB44A599DFD55ED4C9482B33D8D2@FMSMSX106.amr.corp.intel.com>
+Content-Language: en-US
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Yinghai Lu <yinghai@kernel.org>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
+To: "Brown, Len" <len.brown@intel.com>, "Wysocki, Rafael J" <rafael.j.wysocki@intel.com>, "Moore, Robert" <robert.moore@intel.com>
+Cc: "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
 
-On Thursday, May 30, 2013 01:55:07 AM Rafael J. Wysocki wrote:
-> On Wednesday, May 29, 2013 03:49:38 PM Yinghai Lu wrote:
-> > On Wed, May 29, 2013 at 2:34 PM, Rafael J. Wysocki <rjw@sisk.pl> wrote:
-> > > On Wednesday, May 29, 2013 01:13:46 PM Yinghai Lu wrote:
-> > >> On Wed, May 29, 2013 at 4:29 AM, Rafael J. Wysocki <rjw@sisk.pl> wrote:
-> > >> > On your systems the processor driver is built-in.  Any chance to build it as
-> > >> > a module and see if that helps?
-> > >>
-> > >> it CONFIG_ACPI_PROCESSOR it not set in the config
-> > >> the boot get to normal speed.
-> > >
-> > > Well, if it is not set at all, there won't be problems with it. :-)
-> > >
-> > > I've tested my linux-next branch on OpenSUSE 11.3 both with the processor
-> > > driver built in and modular and I'm not able to reproduce the issue you're
-> > > seeing.
-> > >
-> > > Moreover, I'm not sure if user space is involved here at all, because the
-> > > problem triggers for you when all of the relevant kernel code is non-modular.
-> > >
-> > > With the processor driver enabled, when the slowdown happens, are the systems
-> > > usable enough to get some debug info out of them?
-> > 
-> > please check the bootchart data.
-> > 
-> > looks like it take 200s if no acpi_processor ...
-> > otherwise will take 800s or more.
+OK.
+I'll add and re-send them.
+
+Thanks
+-Lv
+
+> -----Original Message-----
+> From: Brown, Len
+> Sent: Thursday, May 30, 2013 4:41 AM
+> To: Zheng, Lv; Wysocki, Rafael J; Moore, Robert
+> Cc: linux-acpi@vger.kernel.org
+> Subject: RE: [PATCH 00/07] ACPICA 20130418 Release
 > 
-> Well, something's fishy for sure.
+> for 1-7:
 > 
-> To my eyes it looks like we're getting lots of notifications related to the
-> processor driver and that generates a lot of workqueue load.
+> Acked-by: Len Brown <len.brown@intel.com>
 > 
-> Can you please get /proc/interrupts from both cases and the output of
-> "find /sys/firmware/acpi/interrupts/ -print -exec cat {} \;"?
 > 
-> Also please send the output of "ls -l /sys/devices/system/cpu/cpu*" with the
-> processor driver present.
-
-Well, this is kind of a blind shot, but I'm wondering if the appended patch
-makes any difference?
-
-Rafael
-
-
----
- drivers/acpi/processor_driver.c |    3 ---
- 1 file changed, 3 deletions(-)
-
-Index: linux-pm/drivers/acpi/processor_driver.c
-===================================================================
---- linux-pm.orig/drivers/acpi/processor_driver.c
-+++ linux-pm/drivers/acpi/processor_driver.c
-@@ -87,9 +87,6 @@ static void acpi_processor_notify(acpi_h
- 	struct acpi_processor *pr;
- 	int saved;
- 
--	if (device->handle != handle)
--		return;
--
- 	pr = acpi_driver_data(device);
- 	if (!pr)
- 		return;
+> thanks,
+> -Len
+> 
+> ps. i would prefer that there be less whitespace changes mixed with functional
+> changes in the future.  Those kind of things are best done in separate
+> functionality vs cleanup patches.
 
