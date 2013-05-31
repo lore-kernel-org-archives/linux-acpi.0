@@ -1,95 +1,45 @@
-From: "Lee, Chun-Yi" <joeyli.kernel@gmail.com>
-Subject: [PATCH v2 2/2] acer-wmi: add Acer Aspire 5750G to video vendor list but keep acpi video driver
-Date: Fri, 31 May 2013 12:10:34 +0800
-Message-ID: <1369973434-8742-2-git-send-email-jlee@suse.com>
-References: <1369973434-8742-1-git-send-email-jlee@suse.com>
-Return-path: <platform-driver-x86-owner@vger.kernel.org>
-In-Reply-To: <1369973434-8742-1-git-send-email-jlee@suse.com>
-Sender: platform-driver-x86-owner@vger.kernel.org
-To: rui.zhang@intel.com, mjg@redhat.com, rjw@sisk.pl
-Cc: platform-driver-x86@vger.kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, "Lee, Chun-Yi" <jlee@suse.com>, Len Brown <lenb@kernel.org>, Carlos Corbacho <carlos@strangeworlds.co.uk>, Dmitry Torokhov <dtor@mail.ru>, Corentin Chary <corentincj@iksaif.net>, Aaron Lu <aaron.lu@intel.com>, Thomas Renninger <trenn@suse.de>
+From: Borislav Petkov <bp@alien8.de>
+Subject: Re: [PATCH v3] aerdrv: Move cper_print_aer() call out of interrupt
+ context
+Date: Fri, 31 May 2013 09:41:01 +0200
+Message-ID: <20130531074101.GA3379@nazgul.tnic>
+References: <20130529190326.24171.86905.stgit@grignak.americas.hpqcorp.net>
+ <30463843.EmBn1xaq3I@vostro.rjw.lan>
+ <3908561D78D1C84285E8C5FCA982C28F2DA70112@ORSMSX106.amr.corp.intel.com>
+ <A961433CDFF2F640A2866803152E61F95D13A6F2@G9W0715.americas.hpqcorp.net>
+ <20130530072849.GA20793@pd.tnic>
+ <1369921028.26799.4.camel@gandalf.local.home>
+ <A961433CDFF2F640A2866803152E61F95D13A762@G9W0715.americas.hpqcorp.net>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail.skyhub.de ([78.46.96.112]:52121 "EHLO mail.skyhub.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753647Ab3EaHkv (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 31 May 2013 03:40:51 -0400
+Content-Disposition: inline
+In-Reply-To: <A961433CDFF2F640A2866803152E61F95D13A762@G9W0715.americas.hpqcorp.net>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: "Ortiz, Lance E" <lance.oritz@hp.com>
+Cc: Steven Rostedt <rostedt@goodmis.org>, "Luck, Tony" <tony.luck@intel.com>, "Rafael J. Wysocki" <rjw@sisk.pl>, "bhelgaas@google.com" <bhelgaas@google.com>, "lance_ortiz@hotmail.com" <lance_ortiz@hotmail.com>, "jiang.liu@huawei.com" <jiang.liu@huawei.com>, "mchehab@redhat.com" <mchehab@redhat.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
 
-After Andrzej's testing, we found the acpi backlight methods broken on Acer
-Aspire 5750G but the i915 backlight control works when we set to vendor mode.
-And, we still want to keep the acpi/video driver for transfer acpi event to key
-event but not unregister whole acpi/video driver.
+On Thu, May 30, 2013 at 02:04:42PM +0000, Ortiz, Lance E wrote:
+> Steve, you do have a good point here. I am wondering if that is why
+> we should consider changing the output to match aer_print_error().
+> The code path to aer_print_error() is the more common path where not
+> as many platforms support the cper_print_error() path (firmware first
+> AER). So it is more likely that any tools written would know how to
+> parse the output from aer_print_error(). It would be good for those
+> tools to support firmware first AER when it becomes more common. Of
+> course this is purely conjecture. I have no idea if there are any
+> tools that parse this text output.
 
-This patch introduced a new capability flag is ACER_CAP_KEEP_VIDEO_KEY, it
-indicates the machine works fine with acpi/video driver for key event but want
-to unregister the backlight interface of acpi/video.
+Whatever you end up doing, just make sure you've hammered out the
+information going out to userspace to be clear, succinct and complete
+(as far as possible, of course). Because once you cast it in stone and
+tools start using it, changing its format is a huge PITA, if at all
+possible.
 
-Reference: bko#35622
-        https://bugzilla.kernel.org/show_bug.cgi?id=35622
-
-v2: changed the information statement of keeping acpi video driver.
-
-Tested-by: Andrzej Krentosz <endrjux@gmail.com>
-Cc: Zhang Rui <rui.zhang@intel.com>
-Cc: Len Brown <lenb@kernel.org>
-Cc: Carlos Corbacho <carlos@strangeworlds.co.uk>
-Cc: Matthew Garrett <mjg@redhat.com>
-Cc: Dmitry Torokhov <dtor@mail.ru>
-Cc: Corentin Chary <corentincj@iksaif.net>
-Cc: Rafael J. Wysocki <rjw@sisk.pl>
-Cc: Aaron Lu <aaron.lu@intel.com>
-Cc: Thomas Renninger <trenn@suse.de>
-Signed-off-by: Lee, Chun-Yi <jlee@suse.com>
----
- drivers/platform/x86/acer-wmi.c |   20 ++++++++++++++++++++
- 1 files changed, 20 insertions(+), 0 deletions(-)
-
-diff --git a/drivers/platform/x86/acer-wmi.c b/drivers/platform/x86/acer-wmi.c
-index c9076bd..a81c9ed 100644
---- a/drivers/platform/x86/acer-wmi.c
-+++ b/drivers/platform/x86/acer-wmi.c
-@@ -207,6 +207,7 @@ struct hotkey_function_type_aa {
- #define ACER_CAP_BRIGHTNESS		(1<<3)
- #define ACER_CAP_THREEG			(1<<4)
- #define ACER_CAP_ACCEL			(1<<5)
-+#define ACER_CAP_KEEP_VIDEO_KEY		(1<<6)
- #define ACER_CAP_ANY			(0xFFFFFFFF)
- 
- /*
-@@ -539,6 +540,15 @@ static int video_set_backlight_video_vendor(const struct dmi_system_id *d)
- 	return 0;
- }
- 
-+static int video_set_backlight_video_vendor_keep_acpi_video(
-+		const struct dmi_system_id *d)
-+{
-+	video_set_backlight_video_vendor(d);
-+	interface->capability |= ACER_CAP_KEEP_VIDEO_KEY;
-+	pr_info("Keeping acpi video driver active to emit backlight brightness change key events\n");
-+	return 0;
-+}
-+
- static const struct dmi_system_id video_vendor_dmi_table[] = {
- 	{
- 		.callback = video_set_backlight_video_vendor,
-@@ -572,6 +582,14 @@ static const struct dmi_system_id video_vendor_dmi_table[] = {
- 			DMI_MATCH(DMI_PRODUCT_NAME, "Aspire 5750"),
- 		},
- 	},
-+	{
-+		.callback = video_set_backlight_video_vendor_keep_acpi_video,
-+		.ident = "Acer Aspire 5750G",
-+		.matches = {
-+			DMI_MATCH(DMI_BOARD_VENDOR, "Acer"),
-+			DMI_MATCH(DMI_PRODUCT_NAME, "Aspire 5750G"),
-+		},
-+	},
- 	{}
- };
- 
-@@ -2228,6 +2246,8 @@ static int __init acer_wmi_init(void)
- 	if (acpi_video_backlight_support()) {
- 		interface->capability &= ~ACER_CAP_BRIGHTNESS;
- 		pr_info("Brightness must be controlled by acpi video driver\n");
-+	} else if (interface->capability & ACER_CAP_KEEP_VIDEO_KEY) {
-+		acpi_video_backlight_unregister();
- 	} else {
- 		pr_info("Disabling ACPI video driver\n");
- 		acpi_video_unregister();
--- 
-1.6.4.2
+And if the error formats are compatible, then sharing the format is
+obviously advantageous.
