@@ -1,30 +1,87 @@
-From: "Luck, Tony" <tony.luck@intel.com>
-Subject: RE: Why write CPER_NOTIFY_MCE to ERST when reboot
-Date: Fri, 31 May 2013 18:29:37 +0000
-Message-ID: <3908561D78D1C84285E8C5FCA982C28F2DA71899@ORSMSX106.amr.corp.intel.com>
-References: <51A85DCC.3000109@oracle.com> <51A8CA09.1060709@gmail.com>
+From: Bjorn Helgaas <bhelgaas@google.com>
+Subject: Re: [PATCH v1 2/2] ACPI, pci_root: use acpi_handle_print() and
+ pr_xxx() to print messages
+Date: Fri, 31 May 2013 13:18:26 -0600
+Message-ID: <CAErSpo5mtYxWkVn+DTT4Sswp0RkWBM=prhtViMJ+KoLpOMY1hw@mail.gmail.com>
+References: <1368536439-19421-1-git-send-email-jiang.liu@huawei.com>
+ <1368536439-19421-2-git-send-email-jiang.liu@huawei.com> <20130530173356.GA26075@google.com>
+ <3828716.JNCrg8I1Kf@vostro.rjw.lan> <51A8CDC7.2050508@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga03.intel.com ([143.182.124.21]:29437 "EHLO mga03.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753696Ab3EaS3n (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 31 May 2013 14:29:43 -0400
-In-Reply-To: <51A8CA09.1060709@gmail.com>
-Content-Language: en-US
+Received: from mail-ob0-f171.google.com ([209.85.214.171]:39536 "EHLO
+	mail-ob0-f171.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754457Ab3EaTSr (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 31 May 2013 15:18:47 -0400
+Received: by mail-ob0-f171.google.com with SMTP id dn14so3753219obc.16
+        for <linux-acpi@vger.kernel.org>; Fri, 31 May 2013 12:18:46 -0700 (PDT)
+In-Reply-To: <51A8CDC7.2050508@gmail.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Jiang Liu <liuj97@gmail.com>, Joe Jin <joe.jin@oracle.com>
-Cc: "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, david zhuang <david.zhuang@oracle.com>
+To: Jiang Liu <liuj97@gmail.com>
+Cc: "Rafael J. Wysocki" <rjw@sisk.pl>, Yinghai Lu <yinghai@kernel.org>, Jiang Liu <jiang.liu@huawei.com>, Gu Zheng <guz.fnst@cn.fujitsu.com>, Toshi Kani <toshi.kani@hp.com>, Myron Stowe <myron.stowe@redhat.com>, Yijing Wang <wangyijing@huawei.com>, "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Len Brown <lenb@kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
 
-R2VycnkgaGFzIHRoaXMgcmlnaHQgLSB3ZSB3YW50IHRvIHByZXNlcnZlIHRoZSBlcnJvciBpbmZv
-cm1hdGlvbiwgYnV0IHdlDQpkb24ndCB0cnVzdCBvdXIga2VybmVsIGVub3VnaCB0byBoYXZlIGl0
-IHdyaXRlIHRvIGEgcmVndWxhciBkaXNrIChwZXJoYXBzDQppdCBoYXMgbm8gYWNjZXNzIHRvIEkv
-TyBiZWNhdXNlIG9mIHRoZSBlcnJvciAtIG9yIHdvcnNlLCBwZXJoYXBzIGl0IG1pZ2h0DQp3cml0
-ZSB0byB0aGUgd3JvbmcgcGxhY2Ugb3IgdGhlIHdyb25nIGRpc2spLg0KDQpJbiB0aGVvcnkgZGF0
-YSB0aGUgaW5mb3JtYXRpb24gaW4gdGhlIG1hY2hpbmUgY2hlY2sgYmFua3MgaXMgcHJlc2VydmVk
-DQphY3Jvc3MgYSB3YXJtIHJlc2V0IGZvciB0aGUgcmVib290IC0gYnV0IGluIHByYWN0aWNlIHdl
-IG1heSBzb21ldGltZXMNCm5lZWQgYSBwb3dlci1jeWNsZSBhbmQgZnVsbCBjb2xkIHJlc2V0LiBB
-bHNvIEkndmUgaGVhcmQgdGhhdCBvbiBzb21lIHN5c3RlbXMNCnRoZSBCSU9TIGNsZWFycyB0aGUg
-YmFua3MgYmVmb3JlIHRoZSBPUyBjYW4gc2VlIHRoZW0uDQoNCi1Ub255DQo=
+On Fri, May 31, 2013 at 10:20 AM, Jiang Liu <liuj97@gmail.com> wrote:
+> On Fri 31 May 2013 03:51:51 AM CST, Rafael J. Wysocki wrote:
+>> On Thursday, May 30, 2013 11:33:56 AM Bjorn Helgaas wrote:
+>>> On Tue, May 14, 2013 at 09:00:39PM +0800, Jiang Liu wrote:
+>>>> Use acpi_handle_print() and pr_xxx() to print messages in pci_root.c.
+>>>>
+>>>> Signed-off-by: Jiang Liu <jiang.liu@huawei.com>
+>>>> Cc: Len Brown <lenb@kernel.org>
+>>>> Cc: "Rafael J. Wysocki" <rjw@sisk.pl>
+>>>> Cc: linux-acpi@vger.kernel.org
+>>>> Cc: linux-kernel@vger.kernel.org
+>>>> ---
+>>>>  drivers/acpi/pci_root.c | 70 ++++++++++++++++++++++---------------------------
+>>>>  1 file changed, 32 insertions(+), 38 deletions(-)
+>>>>
+>>>> diff --git a/drivers/acpi/pci_root.c b/drivers/acpi/pci_root.c
+>>>> index 91ddfd6..21dda5a 100644
+>>>> --- a/drivers/acpi/pci_root.c
+>>>> +++ b/drivers/acpi/pci_root.c
+>>>> @@ -379,23 +379,24 @@ static int acpi_pci_root_add(struct acpi_device *device,
+>>>>     struct acpi_pci_root *root;
+>>>>     u32 flags, base_flags;
+>>>>     bool is_osc_granted = false;
+>>>> +   acpi_handle handle = device->handle;
+>>>>
+>>>>     root = kzalloc(sizeof(struct acpi_pci_root), GFP_KERNEL);
+>>>>     if (!root)
+>>>>             return -ENOMEM;
+>>>>
+>>>>     segment = 0;
+>>>> -   status = acpi_evaluate_integer(device->handle, METHOD_NAME__SEG, NULL,
+>>>> +   status = acpi_evaluate_integer(handle, METHOD_NAME__SEG, NULL,
+>>>>                                    &segment);
+>>>>     if (ACPI_FAILURE(status) && status != AE_NOT_FOUND) {
+>>>> -           printk(KERN_ERR PREFIX "can't evaluate _SEG\n");
+>>>> +           acpi_handle_err(handle, "can't evaluate _SEG\n");
+>>>
+>>> I previously acked this, but I noticed that we are making a mix of
+>>> dev_printk() and acpi_handle_printk() here.  The difference is like this:
+>>>
+>>>   acpi PNP0A08:00: ACPI _OSC support notification failed, disabling PCIe ASPM
+>>>   ACPI: \_SB_.PCI0: ACPI _OSC support notification failed, disabling PCIe ASPM
+>>>
+>>> I'm not sure which direction we should go here, but I think we should
+>>> choose one or the other and use it consistently.  Personally, I think the
+>>> internal DSDT names should be available *somewhere*, but not necessarily
+>>> used in run-of-the-mill chit-chat.  For that reason, I prefer
+>>> dev_printk(), though I have the feeling that Rafael is moving toward
+>>> eliminating the struct acpi_device, so he might prefer
+>>> acpi_handle_printk().
+>>
+>> I really don't care that much, but I agree that they should be used
+>> consistently.
+> Hi Bjorn and Rafael,
+>      I will work on this tomorrow. In some cases, only handle is
+> available, so we
+> could only use acpi_handle_printk(). So I think the directly may be:
+> use dev_printk()
+> if possible, otherwise use acpi_handle_printk() instead. Is that the
+> right way to go?
+
+That sounds good to me.
+
+Bjorn
