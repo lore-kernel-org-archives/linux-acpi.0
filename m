@@ -1,45 +1,28 @@
-From: Borislav Petkov <bp@alien8.de>
-Subject: Re: [PATCH v3] aerdrv: Move cper_print_aer() call out of interrupt
- context
-Date: Fri, 31 May 2013 09:41:01 +0200
-Message-ID: <20130531074101.GA3379@nazgul.tnic>
-References: <20130529190326.24171.86905.stgit@grignak.americas.hpqcorp.net>
- <30463843.EmBn1xaq3I@vostro.rjw.lan>
- <3908561D78D1C84285E8C5FCA982C28F2DA70112@ORSMSX106.amr.corp.intel.com>
- <A961433CDFF2F640A2866803152E61F95D13A6F2@G9W0715.americas.hpqcorp.net>
- <20130530072849.GA20793@pd.tnic>
- <1369921028.26799.4.camel@gandalf.local.home>
- <A961433CDFF2F640A2866803152E61F95D13A762@G9W0715.americas.hpqcorp.net>
+From: Joe Jin <joe.jin@oracle.com>
+Subject: Why write CPER_NOTIFY_MCE to ERST when reboot
+Date: Fri, 31 May 2013 16:22:36 +0800
+Message-ID: <51A85DCC.3000109@oracle.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail.skyhub.de ([78.46.96.112]:52121 "EHLO mail.skyhub.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753647Ab3EaHkv (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 31 May 2013 03:40:51 -0400
-Content-Disposition: inline
-In-Reply-To: <A961433CDFF2F640A2866803152E61F95D13A762@G9W0715.americas.hpqcorp.net>
+Received: from userp1040.oracle.com ([156.151.31.81]:45799 "EHLO
+	userp1040.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754048Ab3EaIWp (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 31 May 2013 04:22:45 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Ortiz, Lance E" <lance.oritz@hp.com>
-Cc: Steven Rostedt <rostedt@goodmis.org>, "Luck, Tony" <tony.luck@intel.com>, "Rafael J. Wysocki" <rjw@sisk.pl>, "bhelgaas@google.com" <bhelgaas@google.com>, "lance_ortiz@hotmail.com" <lance_ortiz@hotmail.com>, "jiang.liu@huawei.com" <jiang.liu@huawei.com>, "mchehab@redhat.com" <mchehab@redhat.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
+To: Tony Luck <tony.luck@intel.com>
+Cc: linux-acpi@vger.kernel.org, david zhuang <david.zhuang@oracle.com>
 
-On Thu, May 30, 2013 at 02:04:42PM +0000, Ortiz, Lance E wrote:
-> Steve, you do have a good point here. I am wondering if that is why
-> we should consider changing the output to match aer_print_error().
-> The code path to aer_print_error() is the more common path where not
-> as many platforms support the cper_print_error() path (firmware first
-> AER). So it is more likely that any tools written would know how to
-> parse the output from aer_print_error(). It would be good for those
-> tools to support firmware first AER when it becomes more common. Of
-> course this is purely conjecture. I have no idea if there are any
-> tools that parse this text output.
+Hi Tony,
 
-Whatever you end up doing, just make sure you've hammered out the
-information going out to userspace to be clear, succinct and complete
-(as far as possible, of course). Because once you cast it in stone and
-tools start using it, changing its format is a huge PITA, if at all
-possible.
+With commit 0bb77c46 "pstore: X86 platform interface using ACPI/APEI/ERST"
+when reboot the server kernel will call erst_writer() to write CPER_NOTIFY_MCE
+to ERST, if reboot the server to Windows we find MCE from system event logs.
+Any reason write this to ERST when reboot?
 
-And if the error formats are compatible, then sharing the format is
-obviously advantageous.
+Any input will appreciate!
+
+Regards,
+Joe
