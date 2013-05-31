@@ -1,87 +1,48 @@
-From: Bjorn Helgaas <bhelgaas@google.com>
-Subject: Re: [PATCH v1 2/2] ACPI, pci_root: use acpi_handle_print() and
- pr_xxx() to print messages
-Date: Fri, 31 May 2013 13:18:26 -0600
-Message-ID: <CAErSpo5mtYxWkVn+DTT4Sswp0RkWBM=prhtViMJ+KoLpOMY1hw@mail.gmail.com>
-References: <1368536439-19421-1-git-send-email-jiang.liu@huawei.com>
- <1368536439-19421-2-git-send-email-jiang.liu@huawei.com> <20130530173356.GA26075@google.com>
- <3828716.JNCrg8I1Kf@vostro.rjw.lan> <51A8CDC7.2050508@gmail.com>
+From: Kevin Hilman <khilman@linaro.org>
+Subject: Re: [PATCH RFC] PM / Runtime: Rework the "runtime idle" helper routine
+Date: Fri, 31 May 2013 12:55:56 -0700
+Message-ID: <87r4gmyldf.fsf@linaro.org>
+References: <1463685.qFyr66vqF2@vostro.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-ob0-f171.google.com ([209.85.214.171]:39536 "EHLO
-	mail-ob0-f171.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754457Ab3EaTSr (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 31 May 2013 15:18:47 -0400
-Received: by mail-ob0-f171.google.com with SMTP id dn14so3753219obc.16
-        for <linux-acpi@vger.kernel.org>; Fri, 31 May 2013 12:18:46 -0700 (PDT)
-In-Reply-To: <51A8CDC7.2050508@gmail.com>
+Received: from mail-pb0-f54.google.com ([209.85.160.54]:51538 "EHLO
+	mail-pb0-f54.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753294Ab3EaT4A (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 31 May 2013 15:56:00 -0400
+Received: by mail-pb0-f54.google.com with SMTP id ro12so2730463pbb.41
+        for <linux-acpi@vger.kernel.org>; Fri, 31 May 2013 12:56:00 -0700 (PDT)
+In-Reply-To: <1463685.qFyr66vqF2@vostro.rjw.lan> (Rafael J. Wysocki's message
+	of "Wed, 29 May 2013 01:29:06 +0200")
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Jiang Liu <liuj97@gmail.com>
-Cc: "Rafael J. Wysocki" <rjw@sisk.pl>, Yinghai Lu <yinghai@kernel.org>, Jiang Liu <jiang.liu@huawei.com>, Gu Zheng <guz.fnst@cn.fujitsu.com>, Toshi Kani <toshi.kani@hp.com>, Myron Stowe <myron.stowe@redhat.com>, Yijing Wang <wangyijing@huawei.com>, "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Len Brown <lenb@kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
+To: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: Linux PM list <linux-pm@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Alan Stern <stern@rowland.harvard.edu>, Bjorn Helgaas <bhelgaas@google.com>, Linux PCI <linux-pci@vger.kernel.org>, Mika Westerberg <mika.westerberg@linux.intel.com>
 
-On Fri, May 31, 2013 at 10:20 AM, Jiang Liu <liuj97@gmail.com> wrote:
-> On Fri 31 May 2013 03:51:51 AM CST, Rafael J. Wysocki wrote:
->> On Thursday, May 30, 2013 11:33:56 AM Bjorn Helgaas wrote:
->>> On Tue, May 14, 2013 at 09:00:39PM +0800, Jiang Liu wrote:
->>>> Use acpi_handle_print() and pr_xxx() to print messages in pci_root.c.
->>>>
->>>> Signed-off-by: Jiang Liu <jiang.liu@huawei.com>
->>>> Cc: Len Brown <lenb@kernel.org>
->>>> Cc: "Rafael J. Wysocki" <rjw@sisk.pl>
->>>> Cc: linux-acpi@vger.kernel.org
->>>> Cc: linux-kernel@vger.kernel.org
->>>> ---
->>>>  drivers/acpi/pci_root.c | 70 ++++++++++++++++++++++---------------------------
->>>>  1 file changed, 32 insertions(+), 38 deletions(-)
->>>>
->>>> diff --git a/drivers/acpi/pci_root.c b/drivers/acpi/pci_root.c
->>>> index 91ddfd6..21dda5a 100644
->>>> --- a/drivers/acpi/pci_root.c
->>>> +++ b/drivers/acpi/pci_root.c
->>>> @@ -379,23 +379,24 @@ static int acpi_pci_root_add(struct acpi_device *device,
->>>>     struct acpi_pci_root *root;
->>>>     u32 flags, base_flags;
->>>>     bool is_osc_granted = false;
->>>> +   acpi_handle handle = device->handle;
->>>>
->>>>     root = kzalloc(sizeof(struct acpi_pci_root), GFP_KERNEL);
->>>>     if (!root)
->>>>             return -ENOMEM;
->>>>
->>>>     segment = 0;
->>>> -   status = acpi_evaluate_integer(device->handle, METHOD_NAME__SEG, NULL,
->>>> +   status = acpi_evaluate_integer(handle, METHOD_NAME__SEG, NULL,
->>>>                                    &segment);
->>>>     if (ACPI_FAILURE(status) && status != AE_NOT_FOUND) {
->>>> -           printk(KERN_ERR PREFIX "can't evaluate _SEG\n");
->>>> +           acpi_handle_err(handle, "can't evaluate _SEG\n");
->>>
->>> I previously acked this, but I noticed that we are making a mix of
->>> dev_printk() and acpi_handle_printk() here.  The difference is like this:
->>>
->>>   acpi PNP0A08:00: ACPI _OSC support notification failed, disabling PCIe ASPM
->>>   ACPI: \_SB_.PCI0: ACPI _OSC support notification failed, disabling PCIe ASPM
->>>
->>> I'm not sure which direction we should go here, but I think we should
->>> choose one or the other and use it consistently.  Personally, I think the
->>> internal DSDT names should be available *somewhere*, but not necessarily
->>> used in run-of-the-mill chit-chat.  For that reason, I prefer
->>> dev_printk(), though I have the feeling that Rafael is moving toward
->>> eliminating the struct acpi_device, so he might prefer
->>> acpi_handle_printk().
->>
->> I really don't care that much, but I agree that they should be used
->> consistently.
-> Hi Bjorn and Rafael,
->      I will work on this tomorrow. In some cases, only handle is
-> available, so we
-> could only use acpi_handle_printk(). So I think the directly may be:
-> use dev_printk()
-> if possible, otherwise use acpi_handle_printk() instead. Is that the
-> right way to go?
+"Rafael J. Wysocki" <rjw@sisk.pl> writes:
 
-That sounds good to me.
+> From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+>
+> The "runtime idle" helper routine, rpm_idle(), currently ignores
+> return values from .runtime_idle() callbacks executed by it.
+>
+> However, it turns out that many subsystems use the generic idle
+> callback routine pm_generic_runtime_idle() which checks the return
+> value of the driver's callback and executes pm_runtime_suspend() for
+> the device unless that value is different from 0.  If that logic is
+> moved to rpm_idle() instead, pm_generic_runtime_idle() can be dropped
+> and its users will not need any .runtime_idle() callbacks any more.
+>
+> Moreover, the PCI subsystem's .runtime_idle() routine,
+> pci_pm_runtime_idle(), works in analogy with the generic one and if
+> rpm_idle() calls rpm_suspend() after 0 has been returned by the
+> .runtime_idle() callback executed by it, that routine will not be
+> necessary any more and may be dropped.
+>
+> To reduce overall code duplication make the changes described above.
+>
+> Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 
-Bjorn
+Acked-by: Kevin Hilman <khilman@linaro.org>
+Tested-by: Kevin Hilman <khilman@linaro.org> # for OMAP PM domain change
+
