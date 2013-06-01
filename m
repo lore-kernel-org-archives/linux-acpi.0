@@ -1,48 +1,44 @@
-From: Kevin Hilman <khilman@linaro.org>
-Subject: Re: [PATCH RFC] PM / Runtime: Rework the "runtime idle" helper routine
-Date: Fri, 31 May 2013 12:55:56 -0700
-Message-ID: <87r4gmyldf.fsf@linaro.org>
-References: <1463685.qFyr66vqF2@vostro.rjw.lan>
+From: Joe Jin <joe.jin@oracle.com>
+Subject: Re: Why write CPER_NOTIFY_MCE to ERST when reboot
+Date: Sat, 01 Jun 2013 09:33:54 +0800
+Message-ID: <51A94F82.40902@oracle.com>
+References: <51A85DCC.3000109@oracle.com> <51A8CA09.1060709@gmail.com> <3908561D78D1C84285E8C5FCA982C28F2DA71899@ORSMSX106.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-pb0-f54.google.com ([209.85.160.54]:51538 "EHLO
-	mail-pb0-f54.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753294Ab3EaT4A (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 31 May 2013 15:56:00 -0400
-Received: by mail-pb0-f54.google.com with SMTP id ro12so2730463pbb.41
-        for <linux-acpi@vger.kernel.org>; Fri, 31 May 2013 12:56:00 -0700 (PDT)
-In-Reply-To: <1463685.qFyr66vqF2@vostro.rjw.lan> (Rafael J. Wysocki's message
-	of "Wed, 29 May 2013 01:29:06 +0200")
+Received: from aserp1040.oracle.com ([141.146.126.69]:35706 "EHLO
+	aserp1040.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753129Ab3FABeH (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 31 May 2013 21:34:07 -0400
+In-Reply-To: <3908561D78D1C84285E8C5FCA982C28F2DA71899@ORSMSX106.amr.corp.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: Linux PM list <linux-pm@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Alan Stern <stern@rowland.harvard.edu>, Bjorn Helgaas <bhelgaas@google.com>, Linux PCI <linux-pci@vger.kernel.org>, Mika Westerberg <mika.westerberg@linux.intel.com>
+To: "Luck, Tony" <tony.luck@intel.com>
+Cc: Jiang Liu <liuj97@gmail.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, david zhuang <david.zhuang@oracle.com>
 
-"Rafael J. Wysocki" <rjw@sisk.pl> writes:
+Tony and Gerry, thanks!
 
-> From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
->
-> The "runtime idle" helper routine, rpm_idle(), currently ignores
-> return values from .runtime_idle() callbacks executed by it.
->
-> However, it turns out that many subsystems use the generic idle
-> callback routine pm_generic_runtime_idle() which checks the return
-> value of the driver's callback and executes pm_runtime_suspend() for
-> the device unless that value is different from 0.  If that logic is
-> moved to rpm_idle() instead, pm_generic_runtime_idle() can be dropped
-> and its users will not need any .runtime_idle() callbacks any more.
->
-> Moreover, the PCI subsystem's .runtime_idle() routine,
-> pci_pm_runtime_idle(), works in analogy with the generic one and if
-> rpm_idle() calls rpm_suspend() after 0 has been returned by the
-> .runtime_idle() callback executed by it, that routine will not be
-> necessary any more and may be dropped.
->
-> To reduce overall code duplication make the changes described above.
->
-> Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+Regards,
+Joe
 
-Acked-by: Kevin Hilman <khilman@linaro.org>
-Tested-by: Kevin Hilman <khilman@linaro.org> # for OMAP PM domain change
+On 06/01/13 02:29, Luck, Tony wrote:
+> Gerry has this right - we want to preserve the error information, but we
+> don't trust our kernel enough to have it write to a regular disk (perhaps
+> it has no access to I/O because of the error - or worse, perhaps it might
+> write to the wrong place or the wrong disk).
+> 
+> In theory data the information in the machine check banks is preserved
+> across a warm reset for the reboot - but in practice we may sometimes
+> need a power-cycle and full cold reset. Also I've heard that on some systems
+> the BIOS clears the banks before the OS can see them.
+> 
+> -Tony
+> 
 
+
+-- 
+Oracle <http://www.oracle.com>
+Joe Jin | Software Development Senior Manager | +8610.6106.5624
+ORACLE | Linux and Virtualization
+No. 24 Zhongguancun Software Park, Haidian District | 100193 Beijing 
