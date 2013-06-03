@@ -1,84 +1,46 @@
-From: Jeff Wu <zlinuxkernel@gmail.com>
-Subject: Re: [UPDATE][PATCH v2] ACPI:add _STA evaluating at do_acpi_find_child()
-Date: Mon, 3 Jun 2013 23:08:33 +0800
-Message-ID: <CAPb2CAOrKnx704EqbjnHv8sxQaB82Vfs8+knOZdmeAf0yuMkpw@mail.gmail.com>
-References: <1369809090-4884-1-git-send-email-jeff.wu@amd.com>
+From: Tony Luck <tony.luck@gmail.com>
+Subject: Re: Add CMOS RTC Operation Region handler support
+Date: Mon, 3 Jun 2013 11:13:17 -0700
+Message-ID: <CA+8MBbJE7SKpDZRcX-0TipoQYeitq8eG3Eph+dDgsO5TpF5jdw@mail.gmail.com>
+References: <CA+8MBb+kgsOoM5UHTwJSivNW8Lsc96mTT-mM37vRQLBtrmh6+w@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-ea0-f176.google.com ([209.85.215.176]:51328 "EHLO
-	mail-ea0-f176.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752723Ab3FCPIe (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 3 Jun 2013 11:08:34 -0400
-Received: by mail-ea0-f176.google.com with SMTP id o14so1356358eaj.35
-        for <linux-acpi@vger.kernel.org>; Mon, 03 Jun 2013 08:08:33 -0700 (PDT)
-In-Reply-To: <1369809090-4884-1-git-send-email-jeff.wu@amd.com>
+Received: from mail-vb0-f43.google.com ([209.85.212.43]:48569 "EHLO
+	mail-vb0-f43.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757041Ab3FCSNS (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 3 Jun 2013 14:13:18 -0400
+Received: by mail-vb0-f43.google.com with SMTP id e15so1345572vbg.2
+        for <linux-acpi@vger.kernel.org>; Mon, 03 Jun 2013 11:13:17 -0700 (PDT)
+In-Reply-To: <CA+8MBb+kgsOoM5UHTwJSivNW8Lsc96mTT-mM37vRQLBtrmh6+w@mail.gmail.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: Len Brown <lenb@kernel.org>, =?UTF-8?B?6JOd5aSp5a6H?= <lantianyu1986@gmail.com>, linux-acpi@vger.kernel.org, shane.huang@amd.com, Aaron Lu <aaron.lwe@gmail.com>, lekensteyn@gmail.com, Sergio Perez <dagobertstaler@gmail.com>
+To: Lan Tianyu <tianyu.lan@intel.com>
+Cc: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, linux-acpi <linux-acpi@vger.kernel.org>
 
-Hi Rafael,
+Oops - major Monday brain-fade on the linux-acpi address!
 
-How about the patch ?Thanks.
-
-Jeff Wu
-
-On Wed, May 29, 2013 at 2:31 PM,  <jeff.wu@amd.com> wrote:
-> From: Jeff Wu <zlinuxkernel@gmail.com>
+On Mon, Jun 3, 2013 at 11:11 AM, Tony Luck <tony.luck@gmail.com> wrote:
+> Building linux-next with tag "next-20130603" on ia64 I see these errors:
 >
-> v2:
-> To make do_acpi_find_child() return the disabled device if it's only one matching device.
-> Rafael suggested that it had better to make do_acpi_find_child() return the disabled device
-> if it's only one matching or the first enabled matching deivce otherwise.
-> v1:
-> Once do_acpi_find_child() found the first matching handle, it makes the acpi_get_child()
-> loop stop and return the matching handle. But, at some of the platforms, a "_ADR" is
-> with the multiple devices, and if one is enabled, the others will be disabled.
-> Just like a case:
-> Address : 0x1FFFF ; handle : SB_PCI0.SATA.DEV0
-> Address : 0x1FFFF ; handle : SB_PCI0.SATA.DEV1
-> Address : 0x1FFFF ; handle : SB_PCI0.SATA.DEV2
+> In file included from drivers/acpi/acpi_cmos_rtc.c:17:
+> include/asm-generic/rtc.h: In function 'rtc_is_updating':
+> include/asm-generic/rtc.h:40: error: implicit declaration of function
+> 'CMOS_READ'
+> include/asm-generic/rtc.h: In function '__get_rtc_time':
+> include/asm-generic/rtc.h:85: error: 'RTC_ALWAYS_BCD' undeclared
+> (first use in this function)
+> include/asm-generic/rtc.h:85: error: (Each undeclared identifier is
+> reported only once
+> include/asm-generic/rtc.h:85: error: for each function it appears in.)
+> include/asm-generic/rtc.h: In function '__set_rtc_time':
+> include/asm-generic/rtc.h:165: error: 'RTC_ALWAYS_BCD' undeclared
+> (first use in this function)
+> include/asm-generic/rtc.h:175: error: implicit declaration of function
+> 'CMOS_WRITE'
 >
-> If DEV0 and DEV1 are disabled and DEV2 is enabled, the target is to get DEV2 handle, but
-> actually it always return the first disabled device DEV0 handle. So add a _STA evaluating
-> at do_acpi_find_child() to check the device status. If the object exists, but it is disabled,
-> acpi_get_child() will continue looping to get the correct handle that the object exists and
-> is enabled.
+> Maybe we just need to exclude this from being built for ia64?
+> Otherwise some extensive surgery is needed as ia64 doesn't
+> have CMOS_READ() etc.
 >
->
-> Signed-off-by: Jeff Wu <zlinuxkernel@gmail.com>
-> ---
-> Changes from v2:
-> * Rearrange the changelog description.
->
-> ---
->  drivers/acpi/glue.c | 6 ++++--
->  1 file changed, 4 insertions(+), 2 deletions(-)
->
-> diff --git a/drivers/acpi/glue.c b/drivers/acpi/glue.c
-> index 40a84cc..51ca764 100644
-> --- a/drivers/acpi/glue.c
-> +++ b/drivers/acpi/glue.c
-> @@ -81,13 +81,15 @@ static struct acpi_bus_type *acpi_get_bus_type(struct device *dev)
->  static acpi_status do_acpi_find_child(acpi_handle handle, u32 lvl_not_used,
->                                       void *addr_p, void **ret_p)
->  {
-> -       unsigned long long addr;
-> +       unsigned long long addr, sta;
->         acpi_status status;
->
->         status = acpi_evaluate_integer(handle, METHOD_NAME__ADR, NULL, &addr);
->         if (ACPI_SUCCESS(status) && addr == *((u64 *)addr_p)) {
->                 *ret_p = handle;
-> -               return AE_CTRL_TERMINATE;
-> +               status = acpi_bus_get_status_handle(handle, &sta);
-> +               if (ACPI_SUCCESS(status) && (sta & ACPI_STA_DEVICE_ENABLED))
-> +                       return AE_CTRL_TERMINATE;
->         }
->         return AE_OK;
->  }
-> --
-> 1.8.1.2
->
->
+> -Tony
