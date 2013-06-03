@@ -1,98 +1,91 @@
-From: Bjorn Helgaas <bhelgaas@google.com>
-Subject: [PATCH] ACPI: Remove useless initializers
-Date: Mon, 03 Jun 2013 12:20:24 -0600
-Message-ID: <20130603182024.16039.34089.stgit@bhelgaas-glaptop>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: Re: [UPDATE][PATCH v2] ACPI:add _STA evaluating at do_acpi_find_child()
+Date: Mon, 03 Jun 2013 21:18:36 +0200
+Message-ID: <2481741.ti0LAn8BFl@vostro.rjw.lan>
+References: <1369809090-4884-1-git-send-email-jeff.wu@amd.com> <CAPb2CAOrKnx704EqbjnHv8sxQaB82Vfs8+knOZdmeAf0yuMkpw@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 7Bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-ie0-f178.google.com ([209.85.223.178]:43437 "EHLO
-	mail-ie0-f178.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1759544Ab3FCSU1 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 3 Jun 2013 14:20:27 -0400
-Received: by mail-ie0-f178.google.com with SMTP id f4so11351161iea.37
-        for <linux-acpi@vger.kernel.org>; Mon, 03 Jun 2013 11:20:26 -0700 (PDT)
+Received: from hydra.sisk.pl ([212.160.235.94]:57474 "EHLO hydra.sisk.pl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1758259Ab3FCTJi (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 3 Jun 2013 15:09:38 -0400
+In-Reply-To: <CAPb2CAOrKnx704EqbjnHv8sxQaB82Vfs8+knOZdmeAf0yuMkpw@mail.gmail.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@sisk.pl>, Len Brown <lenb@kernel.org>
-Cc: linux-acpi@vger.kernel.org
+To: Jeff Wu <zlinuxkernel@gmail.com>
+Cc: Len Brown <lenb@kernel.org>, =?utf-8?B?6JOd5aSp5a6H?= <lantianyu1986@gmail.com>, linux-acpi@vger.kernel.org, shane.huang@amd.com, Aaron Lu <aaron.lwe@gmail.com>, lekensteyn@gmail.com, Sergio Perez <dagobertstaler@gmail.com>
 
-These local variables are all initialized at their first use, so there's
-no point in initializing them earlier.
+On Monday, June 03, 2013 11:08:33 PM Jeff Wu wrote:
+> Hi Rafael,
+> 
+> How about the patch ?Thanks.
 
-Signed-off-by: Bjorn Helgaas <bhelgaas@google.com>
----
- drivers/acpi/bus.c |   17 ++++++++---------
- 1 file changed, 8 insertions(+), 9 deletions(-)
+It's in my linux-next branch.  I modified the changelog slightly, though.
 
-diff --git a/drivers/acpi/bus.c b/drivers/acpi/bus.c
-index 292de3c..a5bb33b 100644
---- a/drivers/acpi/bus.c
-+++ b/drivers/acpi/bus.c
-@@ -91,8 +91,7 @@ static struct dmi_system_id dsdt_dmi_table[] __initdata = {
- 
- int acpi_bus_get_device(acpi_handle handle, struct acpi_device **device)
- {
--	acpi_status status = AE_OK;
--
-+	acpi_status status;
- 
- 	if (!device)
- 		return -EINVAL;
-@@ -162,7 +161,7 @@ EXPORT_SYMBOL(acpi_bus_private_data_handler);
- 
- int acpi_bus_get_private_data(acpi_handle handle, void **data)
- {
--	acpi_status status = AE_OK;
-+	acpi_status status;
- 
- 	if (!*data)
- 		return -EINVAL;
-@@ -361,7 +360,7 @@ extern int event_is_open;
- int acpi_bus_generate_proc_event4(const char *device_class, const char *bus_id, u8 type, int data)
- {
- 	struct acpi_bus_event *event;
--	unsigned long flags = 0;
-+	unsigned long flags;
- 
- 	/* drop event on the floor if no one's listening */
- 	if (!event_is_open)
-@@ -400,7 +399,7 @@ EXPORT_SYMBOL(acpi_bus_generate_proc_event);
- 
- int acpi_bus_receive_event(struct acpi_bus_event *event)
- {
--	unsigned long flags = 0;
-+	unsigned long flags;
- 	struct acpi_bus_event *entry = NULL;
- 
- 	DECLARE_WAITQUEUE(wait, current);
-@@ -593,7 +592,7 @@ static void acpi_bus_notify(acpi_handle handle, u32 type, void *data)
- 
- static int __init acpi_bus_init_irq(void)
- {
--	acpi_status status = AE_OK;
-+	acpi_status status;
- 	union acpi_object arg = { ACPI_TYPE_INTEGER };
- 	struct acpi_object_list arg_list = { 1, &arg };
- 	char *message = NULL;
-@@ -640,7 +639,7 @@ u8 acpi_gbl_permanent_mmap;
- 
- void __init acpi_early_init(void)
- {
--	acpi_status status = AE_OK;
-+	acpi_status status;
- 
- 	if (acpi_disabled)
- 		return;
-@@ -714,8 +713,8 @@ void __init acpi_early_init(void)
- 
- static int __init acpi_bus_init(void)
- {
--	int result = 0;
--	acpi_status status = AE_OK;
-+	int result;
-+	acpi_status status;
- 	extern acpi_status acpi_os_initialize1(void);
- 
- 	acpi_os_initialize1();
+Thanks,
+Rafael
 
+
+> On Wed, May 29, 2013 at 2:31 PM,  <jeff.wu@amd.com> wrote:
+> > From: Jeff Wu <zlinuxkernel@gmail.com>
+> >
+> > v2:
+> > To make do_acpi_find_child() return the disabled device if it's only one matching device.
+> > Rafael suggested that it had better to make do_acpi_find_child() return the disabled device
+> > if it's only one matching or the first enabled matching deivce otherwise.
+> > v1:
+> > Once do_acpi_find_child() found the first matching handle, it makes the acpi_get_child()
+> > loop stop and return the matching handle. But, at some of the platforms, a "_ADR" is
+> > with the multiple devices, and if one is enabled, the others will be disabled.
+> > Just like a case:
+> > Address : 0x1FFFF ; handle : SB_PCI0.SATA.DEV0
+> > Address : 0x1FFFF ; handle : SB_PCI0.SATA.DEV1
+> > Address : 0x1FFFF ; handle : SB_PCI0.SATA.DEV2
+> >
+> > If DEV0 and DEV1 are disabled and DEV2 is enabled, the target is to get DEV2 handle, but
+> > actually it always return the first disabled device DEV0 handle. So add a _STA evaluating
+> > at do_acpi_find_child() to check the device status. If the object exists, but it is disabled,
+> > acpi_get_child() will continue looping to get the correct handle that the object exists and
+> > is enabled.
+> >
+> >
+> > Signed-off-by: Jeff Wu <zlinuxkernel@gmail.com>
+> > ---
+> > Changes from v2:
+> > * Rearrange the changelog description.
+> >
+> > ---
+> >  drivers/acpi/glue.c | 6 ++++--
+> >  1 file changed, 4 insertions(+), 2 deletions(-)
+> >
+> > diff --git a/drivers/acpi/glue.c b/drivers/acpi/glue.c
+> > index 40a84cc..51ca764 100644
+> > --- a/drivers/acpi/glue.c
+> > +++ b/drivers/acpi/glue.c
+> > @@ -81,13 +81,15 @@ static struct acpi_bus_type *acpi_get_bus_type(struct device *dev)
+> >  static acpi_status do_acpi_find_child(acpi_handle handle, u32 lvl_not_used,
+> >                                       void *addr_p, void **ret_p)
+> >  {
+> > -       unsigned long long addr;
+> > +       unsigned long long addr, sta;
+> >         acpi_status status;
+> >
+> >         status = acpi_evaluate_integer(handle, METHOD_NAME__ADR, NULL, &addr);
+> >         if (ACPI_SUCCESS(status) && addr == *((u64 *)addr_p)) {
+> >                 *ret_p = handle;
+> > -               return AE_CTRL_TERMINATE;
+> > +               status = acpi_bus_get_status_handle(handle, &sta);
+> > +               if (ACPI_SUCCESS(status) && (sta & ACPI_STA_DEVICE_ENABLED))
+> > +                       return AE_CTRL_TERMINATE;
+> >         }
+> >         return AE_OK;
+> >  }
+> > --
+> > 1.8.1.2
+> >
+> >
+-- 
+I speak only for myself.
+Rafael J. Wysocki, Intel Open Source Technology Center.
