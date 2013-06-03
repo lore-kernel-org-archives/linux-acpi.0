@@ -1,76 +1,94 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: [PATCH] ghes: fix error return code in ghes_probe()
-Date: Mon, 03 Jun 2013 21:48:55 +0200
-Message-ID: <1382711.KFDAtoNYNp@vostro.rjw.lan>
-References: <CAPgLHd8ONsRjZr9vKMiSR3ZgD7nD8mg+x3pM88+U6DPB=bO_XQ@mail.gmail.com> <1370225694.7548.9.camel@yhuang-dev>
+From: Betty Dall <betty.dall@hp.com>
+Subject: Re: [PATCH v2 1/3] PCI/AER: Fix incorrect return from
+ aer_hest_parse()
+Date: Mon, 03 Jun 2013 15:18:12 -0600
+Message-ID: <1370294292.20051.41.camel@ejdallLaptop>
+References: <1369924769-17183-1-git-send-email-betty.dall@hp.com>
+	 <1369924769-17183-2-git-send-email-betty.dall@hp.com>
+	 <CAErSpo6KV28p3QRoz-Xx=xMjsFaY7sCho8HN2W_M-DntrNk+Ag@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7Bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from hydra.sisk.pl ([212.160.235.94]:57501 "EHLO hydra.sisk.pl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1759739Ab3FCTjz (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 3 Jun 2013 15:39:55 -0400
-In-Reply-To: <1370225694.7548.9.camel@yhuang-dev>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-pci-owner@vger.kernel.org>
+In-Reply-To: <CAErSpo6KV28p3QRoz-Xx=xMjsFaY7sCho8HN2W_M-DntrNk+Ag@mail.gmail.com>
+Sender: linux-pci-owner@vger.kernel.org
+To: Bjorn Helgaas <bhelgaas@google.com>
+Cc: "Rafael J. Wysocki" <rjw@sisk.pl>, Huang Ying <ying.huang@intel.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>, "Moore, Robert" <robert.moore@intel.com>
 List-Id: linux-acpi@vger.kernel.org
-To: Huang Ying <ying.huang@intel.com>
-Cc: Wei Yongjun <weiyj.lk@gmail.com>, lenb@kernel.org, wfp5p@virginia.edu, mchehab@redhat.com, gregkh@linuxfoundation.org, yongjun_wei@trendmicro.com.cn, linux-acpi@vger.kernel.org
 
-On Monday, June 03, 2013 10:14:54 AM Huang Ying wrote:
-> On Mon, 2013-06-03 at 10:08 +0800, Wei Yongjun wrote:
-> > From: Wei Yongjun <yongjun_wei@trendmicro.com.cn>
-> > 
-> > Fix to return a negative error code in the acpi_gsi_to_irq() and
-> > request_irq() error handling case instead of 0, as done elsewhere
-> > in this function.
-> > 
-> > Signed-off-by: Wei Yongjun <yongjun_wei@trendmicro.com.cn>
+On Sat, 2013-06-01 at 18:38 -0600, Bjorn Helgaas wrote:
+> [+cc Bob for ACPI HEST spec questions]
 > 
-> Good catch!
-> 
-> Reviewed-by: Huang Ying <ying.huang@intel.com>
-
-Queued up as a fix for 3.10.
-
-Do we need that in -stable?  If so, which versions?
-
-Rafael
-
-
+> On Thu, May 30, 2013 at 8:39 AM, Betty Dall <betty.dall@hp.com> wrote:
+> > The function aer_hest_parse() is called to determine if the given
+> > PCI device is firmware first or not. The code loops through each
+> > section of the HEST table to look for a match. The bug is that
+> > the function always returns whether the last HEST section is firmware
+> > first. The fix stops the iteration once the info.firmware_first
+> > variable is set.  This is similar to how the function aer_hest_parse_aff()
+> > stops the iteration.
+> >
+> > Signed-off-by: Betty Dall <betty.dall@hp.com>
 > > ---
-> >  drivers/acpi/apei/ghes.c | 7 ++++---
-> >  1 file changed, 4 insertions(+), 3 deletions(-)
-> > 
-> > diff --git a/drivers/acpi/apei/ghes.c b/drivers/acpi/apei/ghes.c
-> > index 403baf4..fcd7d91 100644
-> > --- a/drivers/acpi/apei/ghes.c
-> > +++ b/drivers/acpi/apei/ghes.c
-> > @@ -919,13 +919,14 @@ static int ghes_probe(struct platform_device *ghes_dev)
-> >  		break;
-> >  	case ACPI_HEST_NOTIFY_EXTERNAL:
-> >  		/* External interrupt vector is GSI */
-> > -		if (acpi_gsi_to_irq(generic->notify.vector, &ghes->irq)) {
-> > +		rc = acpi_gsi_to_irq(generic->notify.vector, &ghes->irq);
-> > +		if (rc) {
-> >  			pr_err(GHES_PFX "Failed to map GSI to IRQ for generic hardware error source: %d\n",
-> >  			       generic->header.source_id);
-> >  			goto err_edac_unreg;
-> >  		}
-> > -		if (request_irq(ghes->irq, ghes_irq_func,
-> > -				0, "GHES IRQ", ghes)) {
-> > +		rc = request_irq(ghes->irq, ghes_irq_func, 0, "GHES IRQ", ghes);
-> > +		if (rc) {
-> >  			pr_err(GHES_PFX "Failed to register IRQ for generic hardware error source: %d\n",
-> >  			       generic->header.source_id);
-> >  			goto err_edac_unreg;
-> > 
+> >
+> >  drivers/pci/pcie/aer/aerdrv_acpi.c |    3 +++
+> >  1 files changed, 3 insertions(+), 0 deletions(-)
+> >
+> >
+> > diff --git a/drivers/pci/pcie/aer/aerdrv_acpi.c b/drivers/pci/pcie/aer/aerdrv_acpi.c
+> > index 5194a7d..39b8671 100644
+> > --- a/drivers/pci/pcie/aer/aerdrv_acpi.c
+> > +++ b/drivers/pci/pcie/aer/aerdrv_acpi.c
+> > @@ -42,6 +42,9 @@ static int aer_hest_parse(struct acpi_hest_header *hest_hdr, void *data)
+> >         u8 bridge = 0;
+> >         int ff = 0;
+> >
+> > +       if (info->firmware_first)
+> > +               return 0;
+> > +
+> >         switch (hest_hdr->type) {
+> >         case ACPI_HEST_TYPE_AER_ROOT_PORT:
+> >                 pcie_type = PCI_EXP_TYPE_ROOT_PORT;
 > 
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
--- 
-I speak only for myself.
-Rafael J. Wysocki, Intel Open Source Technology Center.
+> Not related directly to your patch, Betty, but I can't figure out why
+> the ACPI spec defines the HEST structures for PCIe as it does.  I'm
+> looking at ACPI 5.0, sec 18.3.2.3 - 18.3.2.5. 
+
+> 1) The PCIe Root Port, PCIe Device, and PCIe/PCI-X Bridge structures
+> all include Bus, Device, and Function fields.  But there's no Segment.
+>  The current Linux code (hest_match_pci()) assumes HEST records can
+> only apply to PCI domain 0.  Is Linux missing something, or is the
+> HEST really this limited?
+You are right that the HEST table does not have the Segment for the PCIe
+sources. The Linux code uses the Generic Source type that points to a
+UEFI CPER record. Those do have the Segment. The code in
+acpi/apei/ghes.c that parses the HEST and invokes the
+aer_recover_queue() is using the segment from the CPER record. 
+
+The hest_match_pci() code is only looking at the PCIe error source types
+because that is where the flags field is defined to indicate "firmware
+first". Flags is not defined in the Generic error source.  Firmware
+first platforms today must be using GLOBAL error sources because the
+code is written in such a way that any specific PCIe match will cause
+the entire platform to be firmware first. Linux only supports either AER
+or firmware first right now, and it would be an enhancement to do both. 
+
+> 2) Doesn't the fact that the HEST structures include a bus number mean
+> that the OS cannot reassign bus numbers?  I guess maybe we could still
+> reassign them if we kept track of the mapping back to the original
+> values.
+Yes, I think there needs to be a mapping between the HEST/CPER bus
+number and the OS assigned bus numbers, if the OS is reassigning bus
+numbers.  
+
+> 3) It's interesting that the only choices seem to be "global" or "list
+> every device."  There's no "apply to this device and the subtree under
+> it," so I guess if you want HEST to apply to hot-added devices,
+> "global" is the only thing that makes sense?
+"Global" is the one one that makes sense to me too. The size of the HEST
+table is fixed at boot and firmware strives to keep it as small as
+possible because firmware memory is a scarce resource. 
+
+Betty
+
+> Bjorn
