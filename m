@@ -1,50 +1,84 @@
-From: Fengguang Wu <fengguang.wu@intel.com>
-Subject: Re: Kernel panic - not syncing: IO-APIC + timer doesn't work!  Boot
- with apic=debug and send a report.  Then try booting with the 'noapic'
- option.
-Date: Mon, 3 Jun 2013 19:26:24 +0800
-Message-ID: <20130603112624.GA7623@localhost>
-References: <20130602042033.GB16050@localhost>
- <51AC7B2C.5000204@intel.com>
+From: Jeff Wu <zlinuxkernel@gmail.com>
+Subject: Re: [UPDATE][PATCH v2] ACPI:add _STA evaluating at do_acpi_find_child()
+Date: Mon, 3 Jun 2013 23:08:33 +0800
+Message-ID: <CAPb2CAOrKnx704EqbjnHv8sxQaB82Vfs8+knOZdmeAf0yuMkpw@mail.gmail.com>
+References: <1369809090-4884-1-git-send-email-jeff.wu@amd.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga03.intel.com ([143.182.124.21]:27136 "EHLO mga03.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756963Ab3FCL02 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 3 Jun 2013 07:26:28 -0400
-Content-Disposition: inline
-In-Reply-To: <51AC7B2C.5000204@intel.com>
+Received: from mail-ea0-f176.google.com ([209.85.215.176]:51328 "EHLO
+	mail-ea0-f176.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752723Ab3FCPIe (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 3 Jun 2013 11:08:34 -0400
+Received: by mail-ea0-f176.google.com with SMTP id o14so1356358eaj.35
+        for <linux-acpi@vger.kernel.org>; Mon, 03 Jun 2013 08:08:33 -0700 (PDT)
+In-Reply-To: <1369809090-4884-1-git-send-email-jeff.wu@amd.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>
-Cc: linux-acpi@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: Len Brown <lenb@kernel.org>, =?UTF-8?B?6JOd5aSp5a6H?= <lantianyu1986@gmail.com>, linux-acpi@vger.kernel.org, shane.huang@amd.com, Aaron Lu <aaron.lwe@gmail.com>, lekensteyn@gmail.com, Sergio Perez <dagobertstaler@gmail.com>
 
-On Mon, Jun 03, 2013 at 01:17:00PM +0200, Rafael J. Wysocki wrote:
-> On 6/2/2013 6:20 AM, Fengguang Wu wrote:
-> >Greetings,
-> >
-> >FYI, I got this occasionally in some of my machines when testing the
-> >pm/bleeding-edge branch:
-> >
-> >[    0.040000] ..TIMER: vector=0x30 apic1=0 pin1=2 apic2=-1 pin2=-1
-> >[    0.044000] ..MP-BIOS bug: 8254 timer not connected to IO-APIC
-> >[    0.044000] ...trying to set up timer (IRQ0) through the 8259A ...
-> >[    0.044000] ..... (found apic 0 pin 2) ...
-> >[    0.048000] ....... failed.
-> >[    0.048000] ...trying to set up timer as Virtual Wire IRQ...
-> >[    0.048000] ..... failed.
-> >[    0.048000] ...trying to set up timer as ExtINT IRQ...
-> >[    0.052000] ..... failed :(.
-> >[    0.052000] Kernel panic - not syncing: IO-APIC + timer doesn't work!  Boot with apic=debug and send a report.  Then try booting with the
-> >+'noapic' option.
-> >
-> >Bisect result is unfortunately not reliable..
-> 
-> Can you please check if this is reproducible with the acpi-hotplug
-> branch alone?
+Hi Rafael,
 
-Nope, it also shows up in upstream kernel. Sorry.. I'll try more bisect.
+How about the patch ?Thanks.
 
-Thanks,
-Fengguang
+Jeff Wu
+
+On Wed, May 29, 2013 at 2:31 PM,  <jeff.wu@amd.com> wrote:
+> From: Jeff Wu <zlinuxkernel@gmail.com>
+>
+> v2:
+> To make do_acpi_find_child() return the disabled device if it's only one matching device.
+> Rafael suggested that it had better to make do_acpi_find_child() return the disabled device
+> if it's only one matching or the first enabled matching deivce otherwise.
+> v1:
+> Once do_acpi_find_child() found the first matching handle, it makes the acpi_get_child()
+> loop stop and return the matching handle. But, at some of the platforms, a "_ADR" is
+> with the multiple devices, and if one is enabled, the others will be disabled.
+> Just like a case:
+> Address : 0x1FFFF ; handle : SB_PCI0.SATA.DEV0
+> Address : 0x1FFFF ; handle : SB_PCI0.SATA.DEV1
+> Address : 0x1FFFF ; handle : SB_PCI0.SATA.DEV2
+>
+> If DEV0 and DEV1 are disabled and DEV2 is enabled, the target is to get DEV2 handle, but
+> actually it always return the first disabled device DEV0 handle. So add a _STA evaluating
+> at do_acpi_find_child() to check the device status. If the object exists, but it is disabled,
+> acpi_get_child() will continue looping to get the correct handle that the object exists and
+> is enabled.
+>
+>
+> Signed-off-by: Jeff Wu <zlinuxkernel@gmail.com>
+> ---
+> Changes from v2:
+> * Rearrange the changelog description.
+>
+> ---
+>  drivers/acpi/glue.c | 6 ++++--
+>  1 file changed, 4 insertions(+), 2 deletions(-)
+>
+> diff --git a/drivers/acpi/glue.c b/drivers/acpi/glue.c
+> index 40a84cc..51ca764 100644
+> --- a/drivers/acpi/glue.c
+> +++ b/drivers/acpi/glue.c
+> @@ -81,13 +81,15 @@ static struct acpi_bus_type *acpi_get_bus_type(struct device *dev)
+>  static acpi_status do_acpi_find_child(acpi_handle handle, u32 lvl_not_used,
+>                                       void *addr_p, void **ret_p)
+>  {
+> -       unsigned long long addr;
+> +       unsigned long long addr, sta;
+>         acpi_status status;
+>
+>         status = acpi_evaluate_integer(handle, METHOD_NAME__ADR, NULL, &addr);
+>         if (ACPI_SUCCESS(status) && addr == *((u64 *)addr_p)) {
+>                 *ret_p = handle;
+> -               return AE_CTRL_TERMINATE;
+> +               status = acpi_bus_get_status_handle(handle, &sta);
+> +               if (ACPI_SUCCESS(status) && (sta & ACPI_STA_DEVICE_ENABLED))
+> +                       return AE_CTRL_TERMINATE;
+>         }
+>         return AE_OK;
+>  }
+> --
+> 1.8.1.2
+>
+>
