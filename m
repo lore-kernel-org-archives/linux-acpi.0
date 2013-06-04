@@ -1,195 +1,107 @@
-From: Ursula Braun <ubraun@linux.vnet.ibm.com>
-Subject: Re: [PATCH] clean up scary strncpy(dst, src, strlen(src)) uses
-Date: Tue, 04 Jun 2013 09:25:32 +0200
-Message-ID: <1370330732.8307.3.camel@BR9GV9YG.de.ibm.com>
-References: <OF1F22772E.CA553233-ONC1257B80.002841B9-C1257B80.00284FD3@de.ibm.com>
+From: Chen Gong <gong.chen@linux.intel.com>
+Subject: Re: [PATCH v2 1/3] PCI/AER: Fix incorrect return from
+ aer_hest_parse()
+Date: Tue, 4 Jun 2013 03:42:00 -0400
+Message-ID: <20130604074159.GB20448@gchen.bj.intel.com>
+References: <1369924769-17183-1-git-send-email-betty.dall@hp.com>
+ <1369924769-17183-2-git-send-email-betty.dall@hp.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-doc-owner@vger.kernel.org>
-In-Reply-To: <OF1F22772E.CA553233-ONC1257B80.002841B9-C1257B80.00284FD3@de.ibm.com>
-Sender: linux-doc-owner@vger.kernel.org
-To: Kees Cook <keescook@chromium.org>
-Cc: Andrew Morton <akpm@linux-foundation.org>, linux-kernel@vger.kernel.org, linux-doc@vger.kernel.org, linux-acpi@vger.kernel.org, linux-s390@vger.kernel.org, devel@driverdev.osuosl.org, user-mode-linux-devel@lists.sourceforge.net
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="24zk1gE8NUlDmwG9"
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mga02.intel.com ([134.134.136.20]:57262 "EHLO mga02.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1759292Ab3FDHtT (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 4 Jun 2013 03:49:19 -0400
+Content-Disposition: inline
+In-Reply-To: <1369924769-17183-2-git-send-email-betty.dall@hp.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Betty Dall <betty.dall@hp.com>
+Cc: rjw@sisk.pl, bhelgaas@google.com, ying.huang@intel.com, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org
 
-On Friday, May 31, 2013 09:18:07 AM Kees Cook wrote:
-> Fix various weird constructions of strncpy(dst, src, strlen(src)).
-> Length
-> limits should be about the space available in the destination, not
-> repurposed as a method to either always include or always exclude
-> a trailing NULL byte. Either the NULL should always be copied
-> (using strlcpy), or it should not be copied (using something like
-> memcpy). Readable code should not depend on the weird behavior of
-> strncpy
-> when it hits the length limit. Better to avoid the anti-pattern
-> entirely.
-> 
-> Signed-off-by: Kees Cook <keescook@chromium.org>
 
-For the s390-part:
+--24zk1gE8NUlDmwG9
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-Acked-by: Ursula Braun <ursula.braun@de.ibm.com>
+On Thu, May 30, 2013 at 08:39:27AM -0600, Betty Dall wrote:
+> Date:	Thu, 30 May 2013 08:39:27 -0600
+> From: Betty Dall <betty.dall@hp.com>
+> To: rjw@sisk.pl, bhelgaas@google.com
+> Cc: ying.huang@intel.com, linux-acpi@vger.kernel.org,
+>  linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, Betty Dall
+>  <betty.dall@hp.com>
+> Subject: [PATCH v2 1/3] PCI/AER: Fix incorrect return from aer_hest_parse=
+()
+> X-Mailer: git-send-email 1.7.7.6
+>=20
+> The function aer_hest_parse() is called to determine if the given
+> PCI device is firmware first or not. The code loops through each
+> section of the HEST table to look for a match. The bug is that
+> the function always returns whether the last HEST section is firmware
+> first. The fix stops the iteration once the info.firmware_first
+> variable is set.  This is similar to how the function aer_hest_parse_aff()
+> stops the iteration.
+>=20
+> Signed-off-by: Betty Dall <betty.dall@hp.com>
+
+The patch is good. But I have further concern based on your patch.
+1) aer_hest_parse never checks the 2nd input parameter (void *data),
+which means once it is NULL, it will crash the kernel.
+
+2) both aer_hest_parse and aer_hest_parse_aff utilize some flag
+as shortcut, if so, why not adding similar logic in apei_hest_parse
+to stop meaningless loops once FFM is confirmed as enabled.
 
 > ---
-> This is a follow-up to the anti-pattern being fixed in iscsi-target,
-> which was exploitable:
-> "iscsi-target: fix heap buffer overflow on error"
-> http://git.kernel.org/cgit/linux/kernel/git/nab/target-pending.git/commit/?id=cea4dcfdad926a27a18e188720efe0f2c9403456
-> ---
-> Documentation/accounting/getdelays.c             |    3 ++-
-> drivers/acpi/sysfs.c                             |    3 +--
-> drivers/s390/net/qeth_l3_sys.c                   |    6 ++----
-> drivers/staging/tidspbridge/rmgr/drv_interface.c |    3 +--
-> fs/hppfs/hppfs.c                                 |   11 ++++++-----
-> 5 files changed, 12 insertions(+), 14 deletions(-)
-> 
-> diff --git a/Documentation/accounting/getdelays.c
-> b/Documentation/accounting/getdelays.c
-> index f8ebcde..5e4773d 100644
-> --- a/Documentation/accounting/getdelays.c
-> +++ b/Documentation/accounting/getdelays.c
-> @@ -23,6 +23,7 @@
-> #include <sys/socket.h>
-> #include <sys/wait.h>
-> #include <signal.h>
-> +#include <bsd/string.h>
-> 
-> #include <linux/genetlink.h>
-> #include <linux/taskstats.h>
-> @@ -299,7 +300,7 @@ int main(int argc, char *argv[])
->                                                    break;
->                                   case 'C':
->                                                    containerset = 1;
-> -
-> strncpy(containerpath, optarg, strlen(optarg) + 1);
+>=20
+>  drivers/pci/pcie/aer/aerdrv_acpi.c |    3 +++
+>  1 files changed, 3 insertions(+), 0 deletions(-)
+>=20
+>=20
+> diff --git a/drivers/pci/pcie/aer/aerdrv_acpi.c b/drivers/pci/pcie/aer/ae=
+rdrv_acpi.c
+> index 5194a7d..39b8671 100644
+> --- a/drivers/pci/pcie/aer/aerdrv_acpi.c
+> +++ b/drivers/pci/pcie/aer/aerdrv_acpi.c
+> @@ -42,6 +42,9 @@ static int aer_hest_parse(struct acpi_hest_header *hest=
+_hdr, void *data)
+>  	u8 bridge =3D 0;
+>  	int ff =3D 0;
+> =20
+> +	if (info->firmware_first)
+> +		return 0;
 > +
-> strlcpy(containerpath, optarg, sizeof(containerpath));
->                                                    break;
->                                   case 'w':
->                                                    logfile =
-> strdup(optarg);
-> diff --git a/drivers/acpi/sysfs.c b/drivers/acpi/sysfs.c
-> index fcae5fa..193745d 100644
-> --- a/drivers/acpi/sysfs.c
-> +++ b/drivers/acpi/sysfs.c
-> @@ -677,10 +677,9 @@ void acpi_irq_stats_init(void)
->                                   else
->                                                    sprintf(buffer,
-> "bug%02X", i);
-> 
-> -                                  name = kzalloc(strlen(buffer) + 1,
-> GFP_KERNEL);
-> +                                  name = kstrdup(buffer, GFP_KERNEL);
->                                   if (name == NULL)
->                                                    goto fail;
-> -                                  strncpy(name, buffer,
-> strlen(buffer) + 1);
-> 
-> 
-> sysfs_attr_init(&counter_attrs[i].attr);
->                                   counter_attrs[i].attr.name = name;
-> diff --git a/drivers/s390/net/qeth_l3_sys.c
-> b/drivers/s390/net/qeth_l3_sys.c
-> index e70af24..d1c8025 100644
-> --- a/drivers/s390/net/qeth_l3_sys.c
-> +++ b/drivers/s390/net/qeth_l3_sys.c
-> @@ -315,10 +315,8 @@ static ssize_t qeth_l3_dev_hsuid_store(struct
-> device *dev,
->                  if (qeth_configure_cq(card, QETH_CQ_ENABLED))
->                                   return -EPERM;
-> 
-> -                 for (i = 0; i < 8; i++)
-> -                                  card->options.hsuid[i] = ' ';
-> -                 card->options.hsuid[8] = '\0';
-> -                 strncpy(card->options.hsuid, tmp, strlen(tmp));
-> +                 snprintf(card->options.hsuid,
-> sizeof(card->options.hsuid),
-> +                                   "%-8s", tmp);
->                  ASCEBC(card->options.hsuid, 8);
->                  if (card->dev)
->                                   memcpy(card->dev->perm_addr,
-> card->options.hsuid, 9);
-> diff --git a/drivers/staging/tidspbridge/rmgr/drv_interface.c
-> b/drivers/staging/tidspbridge/rmgr/drv_interface.c
-> index df0f37e..c4d632c 100644
-> --- a/drivers/staging/tidspbridge/rmgr/drv_interface.c
-> +++ b/drivers/staging/tidspbridge/rmgr/drv_interface.c
-> @@ -421,12 +421,11 @@ static int omap3_bridge_startup(struct
-> platform_device *pdev)
->                  drv_datap->tc_wordswapon = tc_wordswapon;
-> 
->                  if (base_img) {
-> -                                  drv_datap->base_img =
-> kmalloc(strlen(base_img) + 1, GFP_KERNEL);
-> +                                  drv_datap->base_img =
-> kstrdup(base_img, GFP_KERNEL);
->                                   if (!drv_datap->base_img) {
->                                                    err = -ENOMEM;
->                                                    goto err2;
->                                   }
-> -                                  strncpy(drv_datap->base_img,
-> base_img, strlen(base_img) + 1);
->                  }
-> 
->                  dev_set_drvdata(bridge, drv_datap);
-> diff --git a/fs/hppfs/hppfs.c b/fs/hppfs/hppfs.c
-> index cd3e389..d619b83 100644
-> --- a/fs/hppfs/hppfs.c
-> +++ b/fs/hppfs/hppfs.c
-> @@ -69,7 +69,7 @@ static char *dentry_name(struct dentry *dentry, int
-> extra)
->                  struct dentry *parent;
->                  char *root, *name;
->                  const char *seg_name;
-> -                 int len, seg_len;
-> +                 int len, seg_len, root_len;
-> 
->                  len = 0;
->                  parent = dentry;
-> @@ -81,7 +81,8 @@ static char *dentry_name(struct dentry *dentry, int
-> extra)
->                  }
-> 
->                  root = "proc";
-> -                 len += strlen(root);
-> +                 root_len = strlen(root);
-> +                 len += root_len;
->                  name = kmalloc(len + extra + 1, GFP_KERNEL);
->                  if (name == NULL)
->                                   return NULL;
-> @@ -91,7 +92,7 @@ static char *dentry_name(struct dentry *dentry, int
-> extra)
->                  while (parent->d_parent != parent) {
->                                   if (is_pid(parent)) {
->                                                    seg_name = "pid";
-> -                                                   seg_len =
-> strlen("pid");
-> +                                                   seg_len =
-> strlen(seg_name);
->                                   }
->                                   else {
->                                                    seg_name =
-> parent->d_name.name;
-> @@ -100,10 +101,10 @@ static char *dentry_name(struct dentry *dentry,
-> int extra)
-> 
->                                   len -= seg_len + 1;
->                                   name[len] = '/';
-> -                                  strncpy(&name[len + 1], seg_name,
-> seg_len);
-> +                                  memcpy(&name[len + 1], seg_name,
-> seg_len);
->                                   parent = parent->d_parent;
->                  }
-> -                 strncpy(name, root, strlen(root));
-> +                 memcpy(name, root, root_len);
->                  return name;
-> }
-> 
-> -- 
-> 1.7.9.5
-> 
-> 
+>  	switch (hest_hdr->type) {
+>  	case ACPI_HEST_TYPE_AER_ROOT_PORT:
+>  		pcie_type =3D PCI_EXP_TYPE_ROOT_PORT;
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
+--24zk1gE8NUlDmwG9
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
 
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.12 (GNU/Linux)
+
+iQIcBAEBAgAGBQJRrZpHAAoJEI01n1+kOSLHfFwP/A4Sz65iCJQCdsdZNiGWC9Ow
+4OikR6hhGedkII4aZT1f3XCtibS5+m/O5VG827AhO/6OaWXas7v/HPJDqr9u/fGk
+tUFzR2n9yMIcNGBeYuUyp8oDjedov2xqksvbOglXIkcQxB+ZfPVms51HpvxkxE1o
+W7ZvHzM3RtFzsDJELnZ5jS0d2M2bt2i+kIsk1xNpNreCvkip5LJiyiJRVTlldTKq
+0SMKSvJCOgBAFHdScH5Xzf5fTyQib1W02Qn+sONPB+gbledZMFQJpEvG9ttMid1h
+CH/1cTXfePogoTUjSWe0JuMKwFuioy/dCDgH5PqAK+gdLJLoG7a/NQdUZ8xkMfok
+DDi8vf4FvPWZ3LRdm62gp0b/Wb3NpfbSIbVaEdBN7sDDlOD2IY5BplW6kuAqDVr1
+pIu7sunnyt/iwRCdenSlo4e7G8qz2+4p3jpOxKYAoOQvqV758MbHvaGB8yUNe7MN
+ff9yhw+guGKzLoEy/JN+q/iuLxJ1kBCWBYNODAIAb+P3xg6RA+x8HOX+l2xVppaf
+fs/K7eb9M8SpaHNVTm1SQHkcL3CSh3c3xEVef60roIgbohQXEKaeouo9lrfOC9Ui
+9obeZNab50SAg6MaHQSn5NwjSDxde2dtoTJ3QIo9AGr+Gh3+rbyoAzsPqSozlmxj
+HFrWL8cS09Pjpm4cMIBp
+=Q9b2
+-----END PGP SIGNATURE-----
+
+--24zk1gE8NUlDmwG9--
