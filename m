@@ -1,94 +1,55 @@
-From: Betty Dall <betty.dall@hp.com>
-Subject: Re: [PATCH v2 1/3] PCI/AER: Fix incorrect return from
- aer_hest_parse()
-Date: Mon, 03 Jun 2013 15:18:12 -0600
-Message-ID: <1370294292.20051.41.camel@ejdallLaptop>
-References: <1369924769-17183-1-git-send-email-betty.dall@hp.com>
-	 <1369924769-17183-2-git-send-email-betty.dall@hp.com>
-	 <CAErSpo6KV28p3QRoz-Xx=xMjsFaY7sCho8HN2W_M-DntrNk+Ag@mail.gmail.com>
+From: Fengguang Wu <fengguang.wu@intel.com>
+Subject: Re: Kernel panic - not syncing: IO-APIC + timer doesn't work!  Boot
+ with apic=debug and send a report.  Then try booting with the 'noapic'
+ option.
+Date: Tue, 4 Jun 2013 08:43:19 +0800
+Message-ID: <20130604004319.GA11618@localhost>
+References: <20130602042033.GB16050@localhost>
+ <51AC7B2C.5000204@intel.com>
+ <20130603112624.GA7623@localhost>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-pci-owner@vger.kernel.org>
-In-Reply-To: <CAErSpo6KV28p3QRoz-Xx=xMjsFaY7sCho8HN2W_M-DntrNk+Ag@mail.gmail.com>
-Sender: linux-pci-owner@vger.kernel.org
-To: Bjorn Helgaas <bhelgaas@google.com>
-Cc: "Rafael J. Wysocki" <rjw@sisk.pl>, Huang Ying <ying.huang@intel.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>, "Moore, Robert" <robert.moore@intel.com>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mga01.intel.com ([192.55.52.88]:4799 "EHLO mga01.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756101Ab3FDAnX (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 3 Jun 2013 20:43:23 -0400
+Content-Disposition: inline
+In-Reply-To: <20130603112624.GA7623@localhost>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>
+Cc: linux-acpi@vger.kernel.org
 
-On Sat, 2013-06-01 at 18:38 -0600, Bjorn Helgaas wrote:
-> [+cc Bob for ACPI HEST spec questions]
+On Mon, Jun 03, 2013 at 07:26:24PM +0800, Fengguang Wu wrote:
+> On Mon, Jun 03, 2013 at 01:17:00PM +0200, Rafael J. Wysocki wrote:
+> > On 6/2/2013 6:20 AM, Fengguang Wu wrote:
+> > >Greetings,
+> > >
+> > >FYI, I got this occasionally in some of my machines when testing the
+> > >pm/bleeding-edge branch:
+> > >
+> > >[    0.040000] ..TIMER: vector=0x30 apic1=0 pin1=2 apic2=-1 pin2=-1
+> > >[    0.044000] ..MP-BIOS bug: 8254 timer not connected to IO-APIC
+> > >[    0.044000] ...trying to set up timer (IRQ0) through the 8259A ...
+> > >[    0.044000] ..... (found apic 0 pin 2) ...
+> > >[    0.048000] ....... failed.
+> > >[    0.048000] ...trying to set up timer as Virtual Wire IRQ...
+> > >[    0.048000] ..... failed.
+> > >[    0.048000] ...trying to set up timer as ExtINT IRQ...
+> > >[    0.052000] ..... failed :(.
+> > >[    0.052000] Kernel panic - not syncing: IO-APIC + timer doesn't work!  Boot with apic=debug and send a report.  Then try booting with the
+> > >+'noapic' option.
+> > >
+> > >Bisect result is unfortunately not reliable..
+> > 
+> > Can you please check if this is reproducible with the acpi-hotplug
+> > branch alone?
 > 
-> On Thu, May 30, 2013 at 8:39 AM, Betty Dall <betty.dall@hp.com> wrote:
-> > The function aer_hest_parse() is called to determine if the given
-> > PCI device is firmware first or not. The code loops through each
-> > section of the HEST table to look for a match. The bug is that
-> > the function always returns whether the last HEST section is firmware
-> > first. The fix stops the iteration once the info.firmware_first
-> > variable is set.  This is similar to how the function aer_hest_parse_aff()
-> > stops the iteration.
-> >
-> > Signed-off-by: Betty Dall <betty.dall@hp.com>
-> > ---
-> >
-> >  drivers/pci/pcie/aer/aerdrv_acpi.c |    3 +++
-> >  1 files changed, 3 insertions(+), 0 deletions(-)
-> >
-> >
-> > diff --git a/drivers/pci/pcie/aer/aerdrv_acpi.c b/drivers/pci/pcie/aer/aerdrv_acpi.c
-> > index 5194a7d..39b8671 100644
-> > --- a/drivers/pci/pcie/aer/aerdrv_acpi.c
-> > +++ b/drivers/pci/pcie/aer/aerdrv_acpi.c
-> > @@ -42,6 +42,9 @@ static int aer_hest_parse(struct acpi_hest_header *hest_hdr, void *data)
-> >         u8 bridge = 0;
-> >         int ff = 0;
-> >
-> > +       if (info->firmware_first)
-> > +               return 0;
-> > +
-> >         switch (hest_hdr->type) {
-> >         case ACPI_HEST_TYPE_AER_ROOT_PORT:
-> >                 pcie_type = PCI_EXP_TYPE_ROOT_PORT;
-> 
-> Not related directly to your patch, Betty, but I can't figure out why
-> the ACPI spec defines the HEST structures for PCIe as it does.  I'm
-> looking at ACPI 5.0, sec 18.3.2.3 - 18.3.2.5. 
+> Nope, it also shows up in upstream kernel. Sorry.. I'll try more bisect.
 
-> 1) The PCIe Root Port, PCIe Device, and PCIe/PCI-X Bridge structures
-> all include Bus, Device, and Function fields.  But there's no Segment.
->  The current Linux code (hest_match_pci()) assumes HEST records can
-> only apply to PCI domain 0.  Is Linux missing something, or is the
-> HEST really this limited?
-You are right that the HEST table does not have the Segment for the PCIe
-sources. The Linux code uses the Generic Source type that points to a
-UEFI CPER record. Those do have the Segment. The code in
-acpi/apei/ghes.c that parses the HEST and invokes the
-aer_recover_queue() is using the segment from the CPER record. 
+FYI, linux-next boots fine, so it should have been fixed somewhere.
+Sorry for the noises!
 
-The hest_match_pci() code is only looking at the PCIe error source types
-because that is where the flags field is defined to indicate "firmware
-first". Flags is not defined in the Generic error source.  Firmware
-first platforms today must be using GLOBAL error sources because the
-code is written in such a way that any specific PCIe match will cause
-the entire platform to be firmware first. Linux only supports either AER
-or firmware first right now, and it would be an enhancement to do both. 
-
-> 2) Doesn't the fact that the HEST structures include a bus number mean
-> that the OS cannot reassign bus numbers?  I guess maybe we could still
-> reassign them if we kept track of the mapping back to the original
-> values.
-Yes, I think there needs to be a mapping between the HEST/CPER bus
-number and the OS assigned bus numbers, if the OS is reassigning bus
-numbers.  
-
-> 3) It's interesting that the only choices seem to be "global" or "list
-> every device."  There's no "apply to this device and the subtree under
-> it," so I guess if you want HEST to apply to hot-added devices,
-> "global" is the only thing that makes sense?
-"Global" is the one one that makes sense to me too. The size of the HEST
-table is fixed at boot and firmware strives to keep it as small as
-possible because firmware memory is a scarce resource. 
-
-Betty
-
-> Bjorn
+Thanks,
+Fengguang
