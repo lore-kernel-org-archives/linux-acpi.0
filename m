@@ -1,51 +1,211 @@
-From: Sachin Kamat <sachin.kamat@linaro.org>
-Subject: Re: [PATCH 1/1] ACPI: ghes: Remove redundant platform_set_drvdata()
-Date: Tue, 4 Jun 2013 16:59:51 +0530
-Message-ID: <CAK9yfHwrcZpjihr6VaJC+hz2bskToWQw1jrC5QPLKsDft-Fqdw@mail.gmail.com>
-References: <1369827977-29975-1-git-send-email-sachin.kamat@linaro.org>
-	<20130604031828.GA20448@gchen.bj.intel.com>
-	<CAK9yfHwU-Xfy_K9cLXRX-cRssANZZ040DSe86O=JL9_riUvs-w@mail.gmail.com>
-	<1557779.lOKEfHNnMB@vostro.rjw.lan>
+From: Bjorn Helgaas <bhelgaas@google.com>
+Subject: Re: [PATCH v2 1/3] PCI/AER: Fix incorrect return from
+ aer_hest_parse()
+Date: Tue, 4 Jun 2013 07:13:24 -0600
+Message-ID: <20130604131324.GA4829@google.com>
+References: <1369924769-17183-1-git-send-email-betty.dall@hp.com>
+ <1369924769-17183-2-git-send-email-betty.dall@hp.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-ob0-f182.google.com ([209.85.214.182]:61045 "EHLO
-	mail-ob0-f182.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751992Ab3FDL3v (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 4 Jun 2013 07:29:51 -0400
-Received: by mail-ob0-f182.google.com with SMTP id va7so135447obc.13
-        for <linux-acpi@vger.kernel.org>; Tue, 04 Jun 2013 04:29:51 -0700 (PDT)
-In-Reply-To: <1557779.lOKEfHNnMB@vostro.rjw.lan>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-pci-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <1369924769-17183-2-git-send-email-betty.dall@hp.com>
+Sender: linux-pci-owner@vger.kernel.org
+To: Betty Dall <betty.dall@hp.com>
+Cc: rjw@sisk.pl, ying.huang@intel.com, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, gong.chen@linux.intel.com
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: linux-acpi@vger.kernel.org, lenb@kernel.org, Huang Ying <ying.huang@intel.com>, gong.chen@linux.intel.com
 
-On 4 June 2013 16:40, Rafael J. Wysocki <rjw@sisk.pl> wrote:
-> On Tuesday, June 04, 2013 09:04:07 AM Sachin Kamat wrote:
->> On 4 June 2013 08:48, Chen Gong <gong.chen@linux.intel.com> wrote:
->> > On Wed, May 29, 2013 at 05:16:17PM +0530, Sachin Kamat wrote:
->> >> Date: Wed, 29 May 2013 17:16:17 +0530
->> >> From: Sachin Kamat <sachin.kamat@linaro.org>
->> >> To: linux-acpi@vger.kernel.org
->> >> Cc: rjw@sisk.pl, lenb@kernel.org, sachin.kamat@linaro.org, Huang Ying
->> >>  <ying.huang@intel.com>
->> >> Subject: [PATCH 1/1] ACPI: ghes: Remove redundant platform_set_drvdata()
->> >> X-Mailer: git-send-email 1.7.9.5
->> >>
->> >> Commit 0998d06310 (device-core: Ensure drvdata = NULL when no
->> >> driver is bound) removes the need to set driver data field to
->> >> NULL.
->> >>
->> > Your description doesn't give any meaningful explanation.
->>
->> It just means that setting driver data to NULL is not necessary.
->
-> I've queued up the patch for 3.11.
+On Thu, May 30, 2013 at 08:39:27AM -0600, Betty Dall wrote:
+> The function aer_hest_parse() is called to determine if the given
+> PCI device is firmware first or not. The code loops through each
+> section of the HEST table to look for a match. The bug is that
+> the function always returns whether the last HEST section is firmware
+> first. The fix stops the iteration once the info.firmware_first
+> variable is set.  This is similar to how the function aer_hest_parse_aff()
+> stops the iteration.
+> 
+> Signed-off-by: Betty Dall <betty.dall@hp.com>
+> ---
+> 
+>  drivers/pci/pcie/aer/aerdrv_acpi.c |    3 +++
+>  1 files changed, 3 insertions(+), 0 deletions(-)
+> 
+> 
+> diff --git a/drivers/pci/pcie/aer/aerdrv_acpi.c b/drivers/pci/pcie/aer/aerdrv_acpi.c
+> index 5194a7d..39b8671 100644
+> --- a/drivers/pci/pcie/aer/aerdrv_acpi.c
+> +++ b/drivers/pci/pcie/aer/aerdrv_acpi.c
+> @@ -42,6 +42,9 @@ static int aer_hest_parse(struct acpi_hest_header *hest_hdr, void *data)
+>  	u8 bridge = 0;
+>  	int ff = 0;
+>  
+> +	if (info->firmware_first)
+> +		return 0;
+> +
+>  	switch (hest_hdr->type) {
+>  	case ACPI_HEST_TYPE_AER_ROOT_PORT:
+>  		pcie_type = PCI_EXP_TYPE_ROOT_PORT;
 
-Thanks Rafael.
+
+1) I think dev->__aer_firmware_first should be initialized somewhere in the
+pci_scan_single_device() path, e.g., maybe pci_init_capabilities().  It's
+known at device add-time and never changes, so there's no point in doing
+the lazy setup we do now.  That would let us get rid of
+__aer_firmware_first_valid, too (along with the pointless "__" prefix).
+This is just an observation, not a requirement for this patch set.
+
+2) This is a band-aid that covers up the real problem, which is that we
+update info->firmware_first even for non-matching devices.  I think we
+should do something like the following instead:
 
 
--- 
-With warm regards,
-Sachin
+commit c67612f272f1792a08f012f1b5ca37d5cfde5de4
+Author: Bjorn Helgaas <bhelgaas@google.com>
+Date:   Mon Jun 3 16:49:12 2013 -0600
+
+    PCI/AER: Don't parse HEST table for non-PCIe devices
+    
+    AER is a PCIe-only capability, so there's no point in trying to match
+    a HEST PCIe structure with a non-PCIe device.
+    
+    Previously, a HEST global AER bridge entry (type 8) could incorrectly
+    match *any* bridge, even a legacy PCI-PCI bridge, and a non-global
+    HEST entry could match a legacy PCI device.
+    
+    Signed-off-by: Bjorn Helgaas <bhelgaas@google.com>
+
+diff --git a/drivers/pci/pcie/aer/aerdrv_acpi.c b/drivers/pci/pcie/aer/aerdrv_acpi.c
+index 5194a7d..4f798ab 100644
+--- a/drivers/pci/pcie/aer/aerdrv_acpi.c
++++ b/drivers/pci/pcie/aer/aerdrv_acpi.c
+@@ -59,8 +59,7 @@ static int aer_hest_parse(struct acpi_hest_header *hest_hdr, void *data)
+ 
+ 	p = (struct acpi_hest_aer_common *)(hest_hdr + 1);
+ 	if (p->flags & ACPI_HEST_GLOBAL) {
+-		if ((pci_is_pcie(info->pci_dev) &&
+-		     pci_pcie_type(info->pci_dev) == pcie_type) || bridge)
++		if ((pci_pcie_type(info->pci_dev) == pcie_type) || bridge)
+ 			ff = !!(p->flags & ACPI_HEST_FIRMWARE_FIRST);
+ 	} else
+ 		if (hest_match_pci(p, info->pci_dev))
+@@ -89,6 +88,9 @@ static void aer_set_firmware_first(struct pci_dev *pci_dev)
+ 
+ int pcie_aer_get_firmware_first(struct pci_dev *dev)
+ {
++	if (!pci_is_pcie(dev))
++		return 0;
++
+ 	if (!dev->__aer_firmware_first_valid)
+ 		aer_set_firmware_first(dev);
+ 	return dev->__aer_firmware_first;
+
+commit 947da50270686b0d70f4bc2f7323ef7229489ecb
+Author: Bjorn Helgaas <bhelgaas@google.com>
+Date:   Mon Jun 3 15:42:00 2013 -0600
+
+    PCI/AER: Factor out HEST device type matching
+    
+    This factors out the matching of HEST structure type and PCIe device type
+    to improve readability.  No functional change.
+    
+    Signed-off-by: Bjorn Helgaas <bhelgaas@google.com>
+
+diff --git a/drivers/pci/pcie/aer/aerdrv_acpi.c b/drivers/pci/pcie/aer/aerdrv_acpi.c
+index 4f798ab..56e2d94 100644
+--- a/drivers/pci/pcie/aer/aerdrv_acpi.c
++++ b/drivers/pci/pcie/aer/aerdrv_acpi.c
+@@ -29,6 +29,22 @@ static inline int hest_match_pci(struct acpi_hest_aer_common *p,
+ 		 p->function == PCI_FUNC(pci->devfn));
+ }
+ 
++static inline bool hest_match_type(struct acpi_hest_header *hest_hdr,
++				   struct pci_dev *dev)
++{
++	u16 hest_type = hest_hdr->type;
++	u8 pcie_type = pci_pcie_type(dev);
++
++	if ((hest_type == ACPI_HEST_TYPE_AER_ROOT_PORT &&
++	     pcie_type == PCI_EXP_TYPE_ROOT_PORT) ||
++	    (hest_type == ACPI_HEST_TYPE_AER_ENDPOINT &&
++	     pcie_type == PCI_EXP_TYPE_ENDPOINT) ||
++	    (hest_type == ACPI_HEST_TYPE_AER_BRIDGE &&
++	     (dev->class >> 16) == PCI_BASE_CLASS_BRIDGE))
++		return true;
++	return false;
++}
++
+ struct aer_hest_parse_info {
+ 	struct pci_dev *pci_dev;
+ 	int firmware_first;
+@@ -38,28 +54,11 @@ static int aer_hest_parse(struct acpi_hest_header *hest_hdr, void *data)
+ {
+ 	struct aer_hest_parse_info *info = data;
+ 	struct acpi_hest_aer_common *p;
+-	u8 pcie_type = 0;
+-	u8 bridge = 0;
+ 	int ff = 0;
+ 
+-	switch (hest_hdr->type) {
+-	case ACPI_HEST_TYPE_AER_ROOT_PORT:
+-		pcie_type = PCI_EXP_TYPE_ROOT_PORT;
+-		break;
+-	case ACPI_HEST_TYPE_AER_ENDPOINT:
+-		pcie_type = PCI_EXP_TYPE_ENDPOINT;
+-		break;
+-	case ACPI_HEST_TYPE_AER_BRIDGE:
+-		if ((info->pci_dev->class >> 16) == PCI_BASE_CLASS_BRIDGE)
+-			bridge = 1;
+-		break;
+-	default:
+-		return 0;
+-	}
+-
+ 	p = (struct acpi_hest_aer_common *)(hest_hdr + 1);
+ 	if (p->flags & ACPI_HEST_GLOBAL) {
+-		if ((pci_pcie_type(info->pci_dev) == pcie_type) || bridge)
++		if (hest_match_type(hest_hdr, info->pci_dev))
+ 			ff = !!(p->flags & ACPI_HEST_FIRMWARE_FIRST);
+ 	} else
+ 		if (hest_match_pci(p, info->pci_dev))
+
+commit e9f977a04d96a54c4f6aa0b831e725dab2154364
+Author: Bjorn Helgaas <bhelgaas@google.com>
+Date:   Mon Jun 3 19:47:27 2013 -0600
+
+    PCI/AER: Set dev->__aer_firmware_first only for matching devices
+    
+    Previously, we always updated info->firmware_first, even for HEST entries
+    that didn't match the device.  Therefore, if the last HEST descriptor was
+    a PCIe structure that didn't match the device, we always cleared
+    dev->__aer_firmware_first.
+    
+    Based-on-patch-by: Betty Dall <betty.dall@hp.com>
+    Signed-off-by: Bjorn Helgaas <bhelgaas@google.com>
+
+diff --git a/drivers/pci/pcie/aer/aerdrv_acpi.c b/drivers/pci/pcie/aer/aerdrv_acpi.c
+index 56e2d94..2bedad8 100644
+--- a/drivers/pci/pcie/aer/aerdrv_acpi.c
++++ b/drivers/pci/pcie/aer/aerdrv_acpi.c
+@@ -54,16 +54,16 @@ static int aer_hest_parse(struct acpi_hest_header *hest_hdr, void *data)
+ {
+ 	struct aer_hest_parse_info *info = data;
+ 	struct acpi_hest_aer_common *p;
+-	int ff = 0;
++	int ff;
+ 
+ 	p = (struct acpi_hest_aer_common *)(hest_hdr + 1);
+-	if (p->flags & ACPI_HEST_GLOBAL) {
++	ff = !!(p->flags & ACPI_HEST_FIRMWARE_FIRST);
++	if (p->flags & ACPI_HEST_GLOBAL)
+ 		if (hest_match_type(hest_hdr, info->pci_dev))
+-			ff = !!(p->flags & ACPI_HEST_FIRMWARE_FIRST);
+-	} else
++			info->firmware_first = ff;
++	else
+ 		if (hest_match_pci(p, info->pci_dev))
+-			ff = !!(p->flags & ACPI_HEST_FIRMWARE_FIRST);
+-	info->firmware_first = ff;
++			info->firmware_first = ff;
+ 
+ 	return 0;
+ }
