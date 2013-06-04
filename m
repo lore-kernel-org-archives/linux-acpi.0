@@ -1,86 +1,136 @@
 From: Bjorn Helgaas <bhelgaas@google.com>
-Subject: Re: [PATCH v2 1/3] PCI/AER: Fix incorrect return from aer_hest_parse()
-Date: Tue, 4 Jun 2013 11:39:00 -0600
-Message-ID: <CAErSpo6e_3Xy3F0z2L0LCdQoShc=VkLTsS6+icYkhsexiqgQMQ@mail.gmail.com>
+Subject: Re: [PATCH v2 2/3] ACPI/APEI: Force fatal AER severity when bus has
+ been reset
+Date: Tue, 4 Jun 2013 11:54:34 -0600
+Message-ID: <20130604175434.GA6548@google.com>
 References: <1369924769-17183-1-git-send-email-betty.dall@hp.com>
- <1369924769-17183-2-git-send-email-betty.dall@hp.com> <CAErSpo6KV28p3QRoz-Xx=xMjsFaY7sCho8HN2W_M-DntrNk+Ag@mail.gmail.com>
- <1370294292.20051.41.camel@ejdallLaptop>
+ <1369924769-17183-3-git-send-email-betty.dall@hp.com>
+ <20130604075336.GC20448@gchen.bj.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-oa0-f41.google.com ([209.85.219.41]:47707 "EHLO
-	mail-oa0-f41.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755517Ab3FDRjV (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 4 Jun 2013 13:39:21 -0400
-Received: by mail-oa0-f41.google.com with SMTP id n9so386479oag.0
-        for <linux-acpi@vger.kernel.org>; Tue, 04 Jun 2013 10:39:20 -0700 (PDT)
-In-Reply-To: <1370294292.20051.41.camel@ejdallLaptop>
+Received: from mail-ie0-f171.google.com ([209.85.223.171]:55272 "EHLO
+	mail-ie0-f171.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750808Ab3FDRyi (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 4 Jun 2013 13:54:38 -0400
+Received: by mail-ie0-f171.google.com with SMTP id s9so1108881iec.16
+        for <linux-acpi@vger.kernel.org>; Tue, 04 Jun 2013 10:54:37 -0700 (PDT)
+Content-Disposition: inline
+In-Reply-To: <20130604075336.GC20448@gchen.bj.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Betty Dall <betty.dall@hp.com>
-Cc: "Rafael J. Wysocki" <rjw@sisk.pl>, Huang Ying <ying.huang@intel.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>, "Moore, Robert" <robert.moore@intel.com>
+To: Betty Dall <betty.dall@hp.com>, rjw@sisk.pl, ying.huang@intel.com, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org
 
-On Mon, Jun 3, 2013 at 3:18 PM, Betty Dall <betty.dall@hp.com> wrote:
-> On Sat, 2013-06-01 at 18:38 -0600, Bjorn Helgaas wrote:
->> [+cc Bob for ACPI HEST spec questions]
->>
->> On Thu, May 30, 2013 at 8:39 AM, Betty Dall <betty.dall@hp.com> wrote:
->> > The function aer_hest_parse() is called to determine if the given
->> > PCI device is firmware first or not. The code loops through each
->> > section of the HEST table to look for a match. The bug is that
->> > the function always returns whether the last HEST section is firmware
->> > first. The fix stops the iteration once the info.firmware_first
->> > variable is set.  This is similar to how the function aer_hest_parse_aff()
->> > stops the iteration.
->> >
->> > Signed-off-by: Betty Dall <betty.dall@hp.com>
->> > ---
->> >
->> >  drivers/pci/pcie/aer/aerdrv_acpi.c |    3 +++
->> >  1 files changed, 3 insertions(+), 0 deletions(-)
->> >
->> >
->> > diff --git a/drivers/pci/pcie/aer/aerdrv_acpi.c b/drivers/pci/pcie/aer/aerdrv_acpi.c
->> > index 5194a7d..39b8671 100644
->> > --- a/drivers/pci/pcie/aer/aerdrv_acpi.c
->> > +++ b/drivers/pci/pcie/aer/aerdrv_acpi.c
->> > @@ -42,6 +42,9 @@ static int aer_hest_parse(struct acpi_hest_header *hest_hdr, void *data)
->> >         u8 bridge = 0;
->> >         int ff = 0;
->> >
->> > +       if (info->firmware_first)
->> > +               return 0;
->> > +
->> >         switch (hest_hdr->type) {
->> >         case ACPI_HEST_TYPE_AER_ROOT_PORT:
->> >                 pcie_type = PCI_EXP_TYPE_ROOT_PORT;
->>
->> Not related directly to your patch, Betty, but I can't figure out why
->> the ACPI spec defines the HEST structures for PCIe as it does.  I'm
->> looking at ACPI 5.0, sec 18.3.2.3 - 18.3.2.5.
->
->> 1) The PCIe Root Port, PCIe Device, and PCIe/PCI-X Bridge structures
->> all include Bus, Device, and Function fields.  But there's no Segment.
->>  The current Linux code (hest_match_pci()) assumes HEST records can
->> only apply to PCI domain 0.  Is Linux missing something, or is the
->> HEST really this limited?
-> You are right that the HEST table does not have the Segment for the PCIe
-> sources. The Linux code uses the Generic Source type that points to a
-> UEFI CPER record. Those do have the Segment. The code in
-> acpi/apei/ghes.c that parses the HEST and invokes the
-> aer_recover_queue() is using the segment from the CPER record.
+On Tue, Jun 04, 2013 at 03:53:36AM -0400, Chen Gong wrote:
+> On Thu, May 30, 2013 at 08:39:28AM -0600, Betty Dall wrote:
+> > Date:	Thu, 30 May 2013 08:39:28 -0600
+> > From: Betty Dall <betty.dall@hp.com>
+> > To: rjw@sisk.pl, bhelgaas@google.com
+> > Cc: ying.huang@intel.com, linux-acpi@vger.kernel.org,
+> >  linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, Betty Dall
+> >  <betty.dall@hp.com>
+> > Subject: [PATCH v2 2/3] ACPI/APEI: Force fatal AER severity when bus has
+> >  been reset
+> > X-Mailer: git-send-email 1.7.7.6
+> > 
+> > The CPER error record has a reset bit that indicates that the platform
+> > has reset the bus. The reset bit can be set for any severity error
+> > including recoverable.  From the AER code path's perspective,
+> > any error is fatal if the bus has been reset. This patch upgrades the
+> > severity of the AER recovery to AER_FATAL whenever the CPER error record
+> > indicates that the bus has been reset.
+> > 
+> > Changes since v1:
+> > Fixed a typo in comment.
+> > 
+> > Signed-off-by: Betty Dall <betty.dall@hp.com>
+> > ---
+> > 
+> >  drivers/acpi/apei/ghes.c |   21 ++++++++++++++++++++-
+> >  1 files changed, 20 insertions(+), 1 deletions(-)
+> > 
+> > 
+> > diff --git a/drivers/acpi/apei/ghes.c b/drivers/acpi/apei/ghes.c
+> > index d668a8a..1c67d5a 100644
+> > --- a/drivers/acpi/apei/ghes.c
+> > +++ b/drivers/acpi/apei/ghes.c
+> > @@ -451,7 +451,26 @@ static void ghes_do_proc(struct ghes *ghes,
+> >  				int aer_severity;
+> >  				devfn = PCI_DEVFN(pcie_err->device_id.device,
+> >  						  pcie_err->device_id.function);
+> > -				aer_severity = cper_severity_to_aer(sev);
+> > +				/*
+> > +				 * Some Firmware First implementations
+> > +				 * put the device in SBR to contain
+> > +				 * the error. This is indicated by the
+> > +				 * CPER Section Descriptor Flags reset
+> > +				 * bit which means the component must
+> > +				 * be re-initialized or re-enabled
+> > +				 * prior to use. Promoting the AER
+> > +				 * serverity to FATAL will cause the
+> > +				 * AER code to link_reset and allow
+> > +				 * drivers to reprogram their cards.
+> > +				 */
+> > +				if (gdata->flags & CPER_SEC_RESET)
+> > +					aer_severity = cper_severity_to_aer(
+> > +							CPER_SEV_FATAL);
+> > +				else
+> > +					aer_severity =
+> > +						cper_severity_to_aer(sev);
+> > +
+> > +
+> 
+> How about this?
+>                                 if (gdata->flags & CPER_SEC_RESET)
+>                                         sev = CPER_SEV_FATAL;
+>                                 cper_severity_to_aer(sev);
 
-My question has nothing to do with CPER.  Drivers can enable error
-reporting for their devices with pci_enable_pcie_error_reporting().
-If the device is marked "firmware-first" in the HEST, this call fails
-without enabling reporting.  The HEST can only mark devices in domain
-0 as "firmware-first."  Therefore pci_enable_pcie_error_reporting()
-will enable reporting for:
+No.  If the object is to make the severity AER_FATAL, you should just
+do that.  You shouldn't fiddle around with the CPER severity, because
+then you depend on the mapping performed by cper_severity_to_aer().
 
-  - domain 0 devices not marked "firmware-first" and
-  - all devices in other domains.
+> 
+> >  				aer_recover_queue(pcie_err->device_id.segment,
+> >  						  pcie_err->device_id.bus,
+> >  						  devfn, aer_severity);
 
-This inconsistency seems like a hole in the spec, but maybe I'm
-missing something.
+In other words, something like the patch below.  I don't really care
+if you use the original "if" above that only sets aer_severity once,
+or if you overwrite it as below.  I overwrote it because it doesn't
+wrap as many lines.  ghes_do_proc() really should just call helpers
+so the interesting code doesn't have to be indented three and four
+tab stops.
 
-Bjorn
+
+ACPI/APEI: Force fatal AER severity when component has been reset
+    
+The CPER error record has a reset bit that indicates that the platform has
+reset the component.  The reset bit can be set for any severity error
+including recoverable.  From the AER code path's perspective, any error is
+fatal if the component has been reset. This patch upgrades the severity of
+the AER recovery to AER_FATAL in this case.
+    
+diff --git a/drivers/acpi/apei/ghes.c b/drivers/acpi/apei/ghes.c
+index d668a8a..ab31551 100644
+--- a/drivers/acpi/apei/ghes.c
++++ b/drivers/acpi/apei/ghes.c
+@@ -449,9 +449,19 @@ static void ghes_do_proc(struct ghes *ghes,
+ 			    pcie_err->validation_bits & CPER_PCIE_VALID_AER_INFO) {
+ 				unsigned int devfn;
+ 				int aer_severity;
++
+ 				devfn = PCI_DEVFN(pcie_err->device_id.device,
+ 						  pcie_err->device_id.function);
+ 				aer_severity = cper_severity_to_aer(sev);
++
++				/*
++				 * If firmware reset the component to contain
++				 * the error, we must reinitialize it before
++				 * use, so treat it as a fatal AER error.
++				 */
++				if (gdata->flags & CPER_SEC_RESET)
++					aer_severity = AER_FATAL;
++
+ 				aer_recover_queue(pcie_err->device_id.segment,
+ 						  pcie_err->device_id.bus,
+ 						  devfn, aer_severity);
