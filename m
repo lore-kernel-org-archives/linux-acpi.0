@@ -1,107 +1,122 @@
 From: Chen Gong <gong.chen@linux.intel.com>
-Subject: Re: [PATCH v2 1/3] PCI/AER: Fix incorrect return from
- aer_hest_parse()
-Date: Tue, 4 Jun 2013 03:42:00 -0400
-Message-ID: <20130604074159.GB20448@gchen.bj.intel.com>
+Subject: Re: [PATCH v2 2/3] ACPI/APEI: Force fatal AER severity when bus has
+ been reset
+Date: Tue, 4 Jun 2013 03:53:36 -0400
+Message-ID: <20130604075336.GC20448@gchen.bj.intel.com>
 References: <1369924769-17183-1-git-send-email-betty.dall@hp.com>
- <1369924769-17183-2-git-send-email-betty.dall@hp.com>
+ <1369924769-17183-3-git-send-email-betty.dall@hp.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="24zk1gE8NUlDmwG9"
+	protocol="application/pgp-signature"; boundary="uXxzq0nDebZQVNAZ"
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga02.intel.com ([134.134.136.20]:57262 "EHLO mga02.intel.com"
+Received: from mga09.intel.com ([134.134.136.24]:19411 "EHLO mga09.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1759292Ab3FDHtT (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 4 Jun 2013 03:49:19 -0400
+	id S1750818Ab3FDIAz (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 4 Jun 2013 04:00:55 -0400
 Content-Disposition: inline
-In-Reply-To: <1369924769-17183-2-git-send-email-betty.dall@hp.com>
+In-Reply-To: <1369924769-17183-3-git-send-email-betty.dall@hp.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: Betty Dall <betty.dall@hp.com>
 Cc: rjw@sisk.pl, bhelgaas@google.com, ying.huang@intel.com, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org
 
 
---24zk1gE8NUlDmwG9
+--uXxzq0nDebZQVNAZ
 Content-Type: text/plain; charset=utf-8
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
-On Thu, May 30, 2013 at 08:39:27AM -0600, Betty Dall wrote:
-> Date:	Thu, 30 May 2013 08:39:27 -0600
+On Thu, May 30, 2013 at 08:39:28AM -0600, Betty Dall wrote:
+> Date:	Thu, 30 May 2013 08:39:28 -0600
 > From: Betty Dall <betty.dall@hp.com>
 > To: rjw@sisk.pl, bhelgaas@google.com
 > Cc: ying.huang@intel.com, linux-acpi@vger.kernel.org,
 >  linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, Betty Dall
 >  <betty.dall@hp.com>
-> Subject: [PATCH v2 1/3] PCI/AER: Fix incorrect return from aer_hest_parse=
-()
+> Subject: [PATCH v2 2/3] ACPI/APEI: Force fatal AER severity when bus has
+>  been reset
 > X-Mailer: git-send-email 1.7.7.6
 >=20
-> The function aer_hest_parse() is called to determine if the given
-> PCI device is firmware first or not. The code loops through each
-> section of the HEST table to look for a match. The bug is that
-> the function always returns whether the last HEST section is firmware
-> first. The fix stops the iteration once the info.firmware_first
-> variable is set.  This is similar to how the function aer_hest_parse_aff()
-> stops the iteration.
+> The CPER error record has a reset bit that indicates that the platform
+> has reset the bus. The reset bit can be set for any severity error
+> including recoverable.  From the AER code path's perspective,
+> any error is fatal if the bus has been reset. This patch upgrades the
+> severity of the AER recovery to AER_FATAL whenever the CPER error record
+> indicates that the bus has been reset.
+>=20
+> Changes since v1:
+> Fixed a typo in comment.
 >=20
 > Signed-off-by: Betty Dall <betty.dall@hp.com>
-
-The patch is good. But I have further concern based on your patch.
-1) aer_hest_parse never checks the 2nd input parameter (void *data),
-which means once it is NULL, it will crash the kernel.
-
-2) both aer_hest_parse and aer_hest_parse_aff utilize some flag
-as shortcut, if so, why not adding similar logic in apei_hest_parse
-to stop meaningless loops once FFM is confirmed as enabled.
-
 > ---
 >=20
->  drivers/pci/pcie/aer/aerdrv_acpi.c |    3 +++
->  1 files changed, 3 insertions(+), 0 deletions(-)
+>  drivers/acpi/apei/ghes.c |   21 ++++++++++++++++++++-
+>  1 files changed, 20 insertions(+), 1 deletions(-)
 >=20
 >=20
-> diff --git a/drivers/pci/pcie/aer/aerdrv_acpi.c b/drivers/pci/pcie/aer/ae=
-rdrv_acpi.c
-> index 5194a7d..39b8671 100644
-> --- a/drivers/pci/pcie/aer/aerdrv_acpi.c
-> +++ b/drivers/pci/pcie/aer/aerdrv_acpi.c
-> @@ -42,6 +42,9 @@ static int aer_hest_parse(struct acpi_hest_header *hest=
-_hdr, void *data)
->  	u8 bridge =3D 0;
->  	int ff =3D 0;
-> =20
-> +	if (info->firmware_first)
-> +		return 0;
+> diff --git a/drivers/acpi/apei/ghes.c b/drivers/acpi/apei/ghes.c
+> index d668a8a..1c67d5a 100644
+> --- a/drivers/acpi/apei/ghes.c
+> +++ b/drivers/acpi/apei/ghes.c
+> @@ -451,7 +451,26 @@ static void ghes_do_proc(struct ghes *ghes,
+>  				int aer_severity;
+>  				devfn =3D PCI_DEVFN(pcie_err->device_id.device,
+>  						  pcie_err->device_id.function);
+> -				aer_severity =3D cper_severity_to_aer(sev);
+> +				/*
+> +				 * Some Firmware First implementations
+> +				 * put the device in SBR to contain
+> +				 * the error. This is indicated by the
+> +				 * CPER Section Descriptor Flags reset
+> +				 * bit which means the component must
+> +				 * be re-initialized or re-enabled
+> +				 * prior to use. Promoting the AER
+> +				 * serverity to FATAL will cause the
+> +				 * AER code to link_reset and allow
+> +				 * drivers to reprogram their cards.
+> +				 */
+> +				if (gdata->flags & CPER_SEC_RESET)
+> +					aer_severity =3D cper_severity_to_aer(
+> +							CPER_SEV_FATAL);
+> +				else
+> +					aer_severity =3D
+> +						cper_severity_to_aer(sev);
 > +
->  	switch (hest_hdr->type) {
->  	case ACPI_HEST_TYPE_AER_ROOT_PORT:
->  		pcie_type =3D PCI_EXP_TYPE_ROOT_PORT;
+> +
+
+How about this?
+                                if (gdata->flags & CPER_SEC_RESET)
+                                        sev =3D CPER_SEV_FATAL;
+                                cper_severity_to_aer(sev);
+
+>  				aer_recover_queue(pcie_err->device_id.segment,
+>  						  pcie_err->device_id.bus,
+>  						  devfn, aer_severity);
 > --
 > To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
 > the body of a message to majordomo@vger.kernel.org
 > More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
---24zk1gE8NUlDmwG9
+--uXxzq0nDebZQVNAZ
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: Digital signature
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1.4.12 (GNU/Linux)
 
-iQIcBAEBAgAGBQJRrZpHAAoJEI01n1+kOSLHfFwP/A4Sz65iCJQCdsdZNiGWC9Ow
-4OikR6hhGedkII4aZT1f3XCtibS5+m/O5VG827AhO/6OaWXas7v/HPJDqr9u/fGk
-tUFzR2n9yMIcNGBeYuUyp8oDjedov2xqksvbOglXIkcQxB+ZfPVms51HpvxkxE1o
-W7ZvHzM3RtFzsDJELnZ5jS0d2M2bt2i+kIsk1xNpNreCvkip5LJiyiJRVTlldTKq
-0SMKSvJCOgBAFHdScH5Xzf5fTyQib1W02Qn+sONPB+gbledZMFQJpEvG9ttMid1h
-CH/1cTXfePogoTUjSWe0JuMKwFuioy/dCDgH5PqAK+gdLJLoG7a/NQdUZ8xkMfok
-DDi8vf4FvPWZ3LRdm62gp0b/Wb3NpfbSIbVaEdBN7sDDlOD2IY5BplW6kuAqDVr1
-pIu7sunnyt/iwRCdenSlo4e7G8qz2+4p3jpOxKYAoOQvqV758MbHvaGB8yUNe7MN
-ff9yhw+guGKzLoEy/JN+q/iuLxJ1kBCWBYNODAIAb+P3xg6RA+x8HOX+l2xVppaf
-fs/K7eb9M8SpaHNVTm1SQHkcL3CSh3c3xEVef60roIgbohQXEKaeouo9lrfOC9Ui
-9obeZNab50SAg6MaHQSn5NwjSDxde2dtoTJ3QIo9AGr+Gh3+rbyoAzsPqSozlmxj
-HFrWL8cS09Pjpm4cMIBp
-=Q9b2
+iQIcBAEBAgAGBQJRrZ0AAAoJEI01n1+kOSLHwt4P/AqOj+0I8PBmd/iSw2eGVTfe
+JkE98/yYegWKjmualxwEu0pyvO20a2BVVdezsmdXNuSF7L2SJQ7peA/Mdeb1/8CN
+aGXmcX2gX7r827SQKK0/ALwVh+pRXDUnGuEnRqI9xXIq0/q9cA2xFeUZNhRgvCbq
+vG2mfwc3dPXceXL5YdEEfznJdPBt7v7ICzKE3/SuBofO2xSG6f+1UyO/cPKlyBJt
+PL6nq0sIFec8K0uT4b9EYN5gwRRYjQgnbP3Jlk0ZEBuzzxOcmtM/FJ/Vm9Cnoid2
+nCzn723/PDsHH6pchic+m+qjhB4ENe0WY0dXDrMIbbpZunnsHC4mdup575asxSRu
+zIDxaUAw8vsdevRvXicQSpZ07x6vfF/AHIDiQT0LeYjGxf3dHbPFfBu6UpYDVG/g
+Rdd1UdWWeT3NdWAfEFSVruyk/8+ZqaGtV1mF3DYzuNDAAKZqzhjE2zyV4CzIhfx5
+AHOs9b4k7PPsDXbM9XOB95X+DHwvr2B3N1k6wZGqi3aZBLDZ7Dd9ZyNJD1Wn7cma
+fy6OdVp4FUDUvgXdzliIQNfAwvLbL6WOwvqg9rrgpwjj2mDkjAGMdMuEfnG0nWth
+xhb7z7H+lWO0Ud4zY+1NflfMTVXw3Syl1VbEnNIkYjToW8Qb75CMcP/38adV1iQb
+ds4fniplyOVBVj/S5x2i
+=iBO8
 -----END PGP SIGNATURE-----
 
---24zk1gE8NUlDmwG9--
+--uXxzq0nDebZQVNAZ--
