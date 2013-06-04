@@ -1,56 +1,51 @@
-From: Martin Mokrejs <mmokrejs@fold.natur.cuni.cz>
-Subject: Re: Kernel panic - not syncing: IO-APIC + timer doesn't work!  Boot
- with apic=debug and send a report.  Then try booting with the 'noapic' option.
-Date: Tue, 04 Jun 2013 11:13:55 +0200
-Message-ID: <51ADAFD3.7020604@fold.natur.cuni.cz>
-References: <20130602042033.GB16050@localhost> <51AC7B2C.5000204@intel.com> <20130603112624.GA7623@localhost> <20130604004319.GA11618@localhost>
+From: Grant Likely <grant.likely@secretlab.ca>
+Subject: Re: [PATCH v6 1/2] ACPI: Add early console framework for DBGP/DBG2.
+Date: Tue, 4 Jun 2013 11:53:56 +0100
+Message-ID: <CACxGe6tC+=98uD=Oc=u-=NHzVKgG9r_3eg+-sG-DQYUnCGw0sA@mail.gmail.com>
+References: <cover.1348652044.git.lv.zheng@intel.com> <09ee0e9c79c57da2fc9d0af1c2daeaacdc0bb234.1349838218.git.lv.zheng@intel.com>
+ <20121010174406.GA13861@srcf.ucam.org> <1350069843.7065.65.camel@rhapsody>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from fold.natur.cuni.cz ([195.113.57.32]:42783 "EHLO
-	fold.natur.cuni.cz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751127Ab3FDJN4 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 4 Jun 2013 05:13:56 -0400
-In-Reply-To: <20130604004319.GA11618@localhost>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Return-path: <platform-driver-x86-owner@vger.kernel.org>
+In-Reply-To: <1350069843.7065.65.camel@rhapsody>
+Sender: platform-driver-x86-owner@vger.kernel.org
+To: Khalid Aziz <khalid@gonehiking.org>
+Cc: Matthew Garrett <mjg@redhat.com>, Lv Zheng <lv.zheng@intel.com>, Len Brown <len.brown@intel.com>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, Jason Wessel <jason.wessel@windriver.com>, Feng Tang <feng.tang@intel.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, ACPI Devel Mailing List <linux-acpi@vger.kernel.org>, x86@kernel.org, platform-driver-x86@vger.kernel.org, Al Stone <al.stone@linaro.org>
 List-Id: linux-acpi@vger.kernel.org
-To: Fengguang Wu <fengguang.wu@intel.com>, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>
-Cc: linux-acpi@vger.kernel.org
 
-
-
-Fengguang Wu wrote:
-> On Mon, Jun 03, 2013 at 07:26:24PM +0800, Fengguang Wu wrote:
->> On Mon, Jun 03, 2013 at 01:17:00PM +0200, Rafael J. Wysocki wrote:
->>> On 6/2/2013 6:20 AM, Fengguang Wu wrote:
->>>> Greetings,
->>>>
->>>> FYI, I got this occasionally in some of my machines when testing the
->>>> pm/bleeding-edge branch:
->>>>
->>>> [    0.040000] ..TIMER: vector=0x30 apic1=0 pin1=2 apic2=-1 pin2=-1
->>>> [    0.044000] ..MP-BIOS bug: 8254 timer not connected to IO-APIC
->>>> [    0.044000] ...trying to set up timer (IRQ0) through the 8259A ...
->>>> [    0.044000] ..... (found apic 0 pin 2) ...
->>>> [    0.048000] ....... failed.
->>>> [    0.048000] ...trying to set up timer as Virtual Wire IRQ...
->>>> [    0.048000] ..... failed.
->>>> [    0.048000] ...trying to set up timer as ExtINT IRQ...
->>>> [    0.052000] ..... failed :(.
->>>> [    0.052000] Kernel panic - not syncing: IO-APIC + timer doesn't work!  Boot with apic=debug and send a report.  Then try booting with the
->>>> +'noapic' option.
->>>>
->>>> Bisect result is unfortunately not reliable..
->>>
->>> Can you please check if this is reproducible with the acpi-hotplug
->>> branch alone?
+On Fri, Oct 12, 2012 at 8:24 PM, Khalid Aziz <khalid@gonehiking.org> wrote:
+> On Wed, 2012-10-10 at 18:44 +0100, Matthew Garrett wrote:
+>> On Wed, Oct 10, 2012 at 11:23:01AM +0800, Lv Zheng wrote:
+>> > Microsoft Debug Port Table (DBGP or DBG2) is used by the Windows SoC
+>> > platforms to describe their debugging facilities.
+>> > DBGP: http://msdn.microsoft.com/en-us/windows/hardware/hh134821
+>> > DBG2: http://msdn.microsoft.com/en-us/library/windows/hardware/hh673515
 >>
->> Nope, it also shows up in upstream kernel. Sorry.. I'll try more bisect.
-> 
-> FYI, linux-next boots fine, so it should have been fixed somewhere.
-> Sorry for the noises!
+>> The license for these specifications only covers BIOS implementations,
+>> not OS implementations. Has this had appropriate legal review?
+>>
+>
+> I agree with Matthew. There are potential legal issues with using
+> DBGP/DBGP2 tables in Linux. I had added support for SPCR and DBGP tables
+> many years ago (in early 2.6 kernel timeframe) before Microsoft added
+> this new license. I pulled the code out (in 2.6.14, I think) after
+> Microsoft added the new license to these tables. I agree with Matthew's
+> interpretation that the license is clear only about BIOS vendors being
+> allowed to use these tables. PCDP table in DIG64 spec was introduced to
+> get around the legal issues with using SPCR and DBGP in Linux.
+>
+> License for DBGP/DBGP2 needs some legal review before this patch can go
+> into Linux.
 
-Can you please check it is not present in stable 3.9 and 3.10-rc4?
-We might still need to backport the deemed patch. Thank you,
-Martin
+Matthew, can you point me at the license Microsoft is using for the
+DBG2 table? I can download the document from Microsoft's site without
+seeing any reference to it being licensed only for BIOS implementers.
+All I see is a "this document is provided 'as-is', blah blah blah"
+blurb at the beginning of the document. It may be that Microsoft has
+changed the license on this document in the last 6 months.
+
+I asked some of my contacts at Microsoft about this and was told that
+the DBG2 spec was supposed to be freed up; but I wasn't able to get
+anything absolutely confirmed or in writing.
+
+g.
