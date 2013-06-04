@@ -1,65 +1,162 @@
-From: li guang <lig.fnst@cn.fujitsu.com>
-Subject: Re: [PATCH 2/2] xen: remove bm_rld_set of xen_processor_flags
-Date: Tue, 04 Jun 2013 16:19:27 +0800
-Message-ID: <1370333967.17798.60.camel@liguang.fnst.cn.fujitsu.com>
-References: <1370333128-11412-1-git-send-email-lig.fnst@cn.fujitsu.com>
-	 <1370333128-11412-2-git-send-email-lig.fnst@cn.fujitsu.com>
-	 <51ADBDC402000078000DAF36@nat28.tlf.novell.com>
+From: Chen Gong <gong.chen@linux.intel.com>
+Subject: Re: [PATCH v2 3/3] PCI/AER: Provide reset_link for firmware first
+ root port
+Date: Tue, 4 Jun 2013 04:36:44 -0400
+Message-ID: <20130604083644.GD20448@gchen.bj.intel.com>
+References: <1369924769-17183-1-git-send-email-betty.dall@hp.com>
+ <1369924769-17183-4-git-send-email-betty.dall@hp.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="OaZoDhBhXzo6bW1J"
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cn.fujitsu.com ([222.73.24.84]:1118 "EHLO song.cn.fujitsu.com"
-	rhost-flags-OK-FAIL-OK-OK) by vger.kernel.org with ESMTP
-	id S1751170Ab3FDIUX convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 4 Jun 2013 04:20:23 -0400
-In-Reply-To: <51ADBDC402000078000DAF36@nat28.tlf.novell.com>
+Received: from mga09.intel.com ([134.134.136.24]:1426 "EHLO mga09.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751284Ab3FDIoE (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 4 Jun 2013 04:44:04 -0400
+Content-Disposition: inline
+In-Reply-To: <1369924769-17183-4-git-send-email-betty.dall@hp.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Jan Beulich <JBeulich@suse.com>
-Cc: Stefano Stabellini <stefano.stabellini@eu.citrix.com>, Len Brown <lenb@kernel.org>, Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>, "Rafael J. Wysocki" <rjw@sisk.pl>, Jeremy Fitzhardinge <jeremy@goop.org>, Liu Jinsong <jinsong.liu@intel.com>, "Paul E. McKenney" <paulmck@linux.vnet.ibm.com>, virtualization@lists.linux-foundation.org, xen-devel@lists.xensource.com, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+To: Betty Dall <betty.dall@hp.com>
+Cc: rjw@sisk.pl, bhelgaas@google.com, ying.huang@intel.com, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org
 
-=E5=9C=A8 2013-06-04=E4=BA=8C=E7=9A=84 09:13 +0100=EF=BC=8CJan Beulich=E5=
-=86=99=E9=81=93=EF=BC=9A
-> >>> On 04.06.13 at 10:05, liguang <lig.fnst@cn.fujitsu.com> wrote:
-> > bm_rld_set seems obsolete now
-> >=20
-> > Signed-off-by: liguang <lig.fnst@cn.fujitsu.com>
-> > ---
-> >  include/xen/interface/platform.h |    1 -
-> >  1 files changed, 0 insertions(+), 1 deletions(-)
-> >=20
-> > diff --git a/include/xen/interface/platform.h=20
-> > b/include/xen/interface/platform.h
-> > index c57d5f6..7ffff33 100644
-> > --- a/include/xen/interface/platform.h
-> > +++ b/include/xen/interface/platform.h
-> > @@ -240,7 +240,6 @@ struct xen_processor_flags {
-> >  	uint32_t bm_check:1;
-> >  	uint32_t has_cst:1;
-> >  	uint32_t power_setup_done:1;
-> > -	uint32_t bm_rld_set:1;
-> >  };
-> > =20
-> >  struct xen_processor_power {
+
+--OaZoDhBhXzo6bW1J
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
+
+On Thu, May 30, 2013 at 08:39:29AM -0600, Betty Dall wrote:
+> Date:	Thu, 30 May 2013 08:39:29 -0600
+> From: Betty Dall <betty.dall@hp.com>
+> To: rjw@sisk.pl, bhelgaas@google.com
+> Cc: ying.huang@intel.com, linux-acpi@vger.kernel.org,
+>  linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, Betty Dall
+>  <betty.dall@hp.com>
+> Subject: [PATCH v2 3/3] PCI/AER: Provide reset_link for firmware first ro=
+ot
+>  port
+> X-Mailer: git-send-email 1.7.7.6
 >=20
-> Any such patch would need to be submitted against the master copy
-> of the header (in the Xen repo), and by recognizing that you'd also
-> notice that this is part of a public ABI, and hence can't be removed,
-> but at best can be documented as obsolete. Of course you'd first
-> need to check whether the hypervisor makes any use of that bit
-> when passed down from Dom0.
+> The firmware first path does not install the aerdrv root port
+> service driver, so the firmware first root port does not have
+> a reset_link callback. When a firmware first root port does not have
+> a reset_link callback, use a new default reset_link similar to what
+> we already do for the default_downstream_reset_link(). The firmware
+> first default reset_link brings the root port out of SBR if firmware
+> left it in SBR.
 >=20
+> Changes since v1:
+> Removed incorrect setting of p2p_ctrl after the read.
+>=20
+> Signed-off-by: Betty Dall <betty.dall@hp.com>
+> ---
+>=20
+>  drivers/pci/pcie/aer/aerdrv_core.c |   36 ++++++++++++++++++++++++++++++=
+++++++
+>  1 files changed, 36 insertions(+), 0 deletions(-)
+>=20
+>=20
+> diff --git a/drivers/pci/pcie/aer/aerdrv_core.c b/drivers/pci/pcie/aer/ae=
+rdrv_core.c
+> index 8ec8b4f..72f76cd 100644
+> --- a/drivers/pci/pcie/aer/aerdrv_core.c
+> +++ b/drivers/pci/pcie/aer/aerdrv_core.c
+> @@ -413,6 +413,39 @@ static pci_ers_result_t default_downstream_reset_lin=
+k(struct pci_dev *dev)
+>  	return PCI_ERS_RESULT_RECOVERED;
+>  }
+> =20
+> +/**
+> + * default_ff_root_port_reset_link - default reset function for firmware
+> + *		first Root Port
+> + * @dev: pointer to root port's pci_dev data structure
+> + *
+> + * Invoked when performing link reset at Root Port w/ no aer driver.
+> + * This happens through the firmware first path. Firmware may leave
+> + * the Root Port in SBR and it is the OS responsiblity to bring it out
+> + * of SBR.
+> + */
+> +static pci_ers_result_t default_ff_root_port_reset_link(struct pci_dev *=
+dev)
+> +{
+> +	u16 p2p_ctrl;
+> +
+> +	/* Read Secondary Bus Reset */
+> +	pci_read_config_word(dev, PCI_BRIDGE_CONTROL, &p2p_ctrl);
+> +
+> +	/* De-assert Secondary Bus Reset, if it is set */
+> +	if (p2p_ctrl & PCI_BRIDGE_CTL_BUS_RESET) {
+> +		p2p_ctrl &=3D ~PCI_BRIDGE_CTL_BUS_RESET;
+> +		pci_write_config_word(dev, PCI_BRIDGE_CONTROL, p2p_ctrl);
+> +
+> +		/*
+> +		 * System software must wait for at least 100ms from the end
+> +		 * of a reset of one or more device before it is permitted
+> +		 * to issue Configuration Requests to those devices.
+> +		 */
+> +		msleep(200);
+> +		dev_dbg(&dev->dev, "Root Port link has been reset\n");
+> +	}
+> +	return PCI_ERS_RESULT_RECOVERED;
+> +}
 
-Right, this patch mostly likes a reminder,
-hoping someone will try it and verify it's fail or OK,
-since I can't test this for now.
+I don't think this function is OK.
+1) You don't really reset the 2nd Bus but just checking its status.
+I think you should have following steps to reset 2nd Bus:
 
-Sorry and Thanks!
+a. Assert 2nd Bus Reset
+b. wait for some time until this message has been broadcasted well
+c. De-assert 2nd Bus Reset
+d. wait for Trst time
 
+IOW, since we have aer_do_secondary_bus_reset to perform secondary bus
+reset, why you repeat it again?
 
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+2) msleep(200) is too long for kernel. You'd better yield the CPU when
+sleep.
+
+> +
+>  static int find_aer_service_iter(struct device *device, void *data)
+>  {
+>  	struct pcie_port_service_driver *service_driver, **drv;
+> @@ -460,6 +493,9 @@ static pci_ers_result_t reset_link(struct pci_dev *de=
+v)
+>  		status =3D driver->reset_link(udev);
+>  	} else if (pci_pcie_type(udev) =3D=3D PCI_EXP_TYPE_DOWNSTREAM) {
+>  		status =3D default_downstream_reset_link(udev);
+> +	} else if (pci_pcie_type(udev) =3D=3D PCI_EXP_TYPE_ROOT_PORT &&
+> +		pcie_aer_get_firmware_first(udev)) {
+> +		status =3D default_ff_root_port_reset_link(udev);
+>  	} else {
+>  		dev_printk(KERN_DEBUG, &dev->dev,
+>  			"no link-reset support at upstream device %s\n",
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-kernel" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> Please read the FAQ at  http://www.tux.org/lkml/
+
+--OaZoDhBhXzo6bW1J
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.12 (GNU/Linux)
+
+iQIcBAEBAgAGBQJRraccAAoJEI01n1+kOSLHRTkP/0jhUh5xVIuY3/kD1aOlyxqe
+eHiMbAD+w4Dzm/Oq17znVp2SWrllri6A/1qxoV5sqCXYHxScfDAg5VwqzzR4WNZ5
+Gtsu64jFkvA1B4qw5K6hpPqNeeTCZfgMM2ahadAhTfMAFgnwD6D6UDOpcbWHvqi6
+qZcFNGQAfAP0j/7iSOYXD9LfqXl20hMkPgwXRvw96IKfnVpmmi6DOIS/TcA8uTgn
+e7lD6TfaMZsa4fWQrruLZ9hBrDRZFbXEy6WvIJdOJ9I//eMN/1j79yxYtslObZSi
+Al26EIMeOEF6MR5iMIc9+BjnYbXF/iZTPxrQ1mNyoqg2H872YdJ6J7Ca+WaWb3uF
++9gfR/Ai/Llt/j1BASgvFMHDFdm2SyXFMm0mBC97bVoIU0AIg/jgf8tD3Lm+fTs/
+U5V67MlCuQMr+S8aOtOVaSmTLnP5+Jux2xP2B6i5ECYRAnxF0mUivjFiLQvivPbn
+d1wRnS/kdGoIo2WREbuD6IamSj0z7DHIqRJa/9XDzz5mkJYuVYsjPDMkJcUo+8eK
+eu+PqTozJBJ+ZMBLJBfmKfozpw34Hu1A/go5FOD6+hYGaGkoHtQztE/bXbigAiRK
+A6og0C2yI9znnipKb/n8M5/GDbFgEKFBXPujvL6BM/b/tUg3GmV4uI5tEn+PL9y7
+1kEQWJ2rewiP9JtEWy3X
+=GpEw
+-----END PGP SIGNATURE-----
+
+--OaZoDhBhXzo6bW1J--
