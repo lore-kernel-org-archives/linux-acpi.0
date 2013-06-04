@@ -1,51 +1,47 @@
-From: Grant Likely <grant.likely@secretlab.ca>
-Subject: Re: [PATCH v6 1/2] ACPI: Add early console framework for DBGP/DBG2.
-Date: Tue, 4 Jun 2013 11:53:56 +0100
-Message-ID: <CACxGe6tC+=98uD=Oc=u-=NHzVKgG9r_3eg+-sG-DQYUnCGw0sA@mail.gmail.com>
-References: <cover.1348652044.git.lv.zheng@intel.com> <09ee0e9c79c57da2fc9d0af1c2daeaacdc0bb234.1349838218.git.lv.zheng@intel.com>
- <20121010174406.GA13861@srcf.ucam.org> <1350069843.7065.65.camel@rhapsody>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: Re: [PATCH 1/1] ACPI: ghes: Remove redundant platform_set_drvdata()
+Date: Tue, 04 Jun 2013 13:10:41 +0200
+Message-ID: <1557779.lOKEfHNnMB@vostro.rjw.lan>
+References: <1369827977-29975-1-git-send-email-sachin.kamat@linaro.org> <20130604031828.GA20448@gchen.bj.intel.com> <CAK9yfHwU-Xfy_K9cLXRX-cRssANZZ040DSe86O=JL9_riUvs-w@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <platform-driver-x86-owner@vger.kernel.org>
-In-Reply-To: <1350069843.7065.65.camel@rhapsody>
-Sender: platform-driver-x86-owner@vger.kernel.org
-To: Khalid Aziz <khalid@gonehiking.org>
-Cc: Matthew Garrett <mjg@redhat.com>, Lv Zheng <lv.zheng@intel.com>, Len Brown <len.brown@intel.com>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, Jason Wessel <jason.wessel@windriver.com>, Feng Tang <feng.tang@intel.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, ACPI Devel Mailing List <linux-acpi@vger.kernel.org>, x86@kernel.org, platform-driver-x86@vger.kernel.org, Al Stone <al.stone@linaro.org>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7Bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from hydra.sisk.pl ([212.160.235.94]:57813 "EHLO hydra.sisk.pl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751674Ab3FDLBm (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 4 Jun 2013 07:01:42 -0400
+In-Reply-To: <CAK9yfHwU-Xfy_K9cLXRX-cRssANZZ040DSe86O=JL9_riUvs-w@mail.gmail.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Sachin Kamat <sachin.kamat@linaro.org>
+Cc: linux-acpi@vger.kernel.org, lenb@kernel.org, Huang Ying <ying.huang@intel.com>, gong.chen@linux.intel.com
 
-On Fri, Oct 12, 2012 at 8:24 PM, Khalid Aziz <khalid@gonehiking.org> wrote:
-> On Wed, 2012-10-10 at 18:44 +0100, Matthew Garrett wrote:
->> On Wed, Oct 10, 2012 at 11:23:01AM +0800, Lv Zheng wrote:
->> > Microsoft Debug Port Table (DBGP or DBG2) is used by the Windows SoC
->> > platforms to describe their debugging facilities.
->> > DBGP: http://msdn.microsoft.com/en-us/windows/hardware/hh134821
->> > DBG2: http://msdn.microsoft.com/en-us/library/windows/hardware/hh673515
->>
->> The license for these specifications only covers BIOS implementations,
->> not OS implementations. Has this had appropriate legal review?
->>
->
-> I agree with Matthew. There are potential legal issues with using
-> DBGP/DBGP2 tables in Linux. I had added support for SPCR and DBGP tables
-> many years ago (in early 2.6 kernel timeframe) before Microsoft added
-> this new license. I pulled the code out (in 2.6.14, I think) after
-> Microsoft added the new license to these tables. I agree with Matthew's
-> interpretation that the license is clear only about BIOS vendors being
-> allowed to use these tables. PCDP table in DIG64 spec was introduced to
-> get around the legal issues with using SPCR and DBGP in Linux.
->
-> License for DBGP/DBGP2 needs some legal review before this patch can go
-> into Linux.
+On Tuesday, June 04, 2013 09:04:07 AM Sachin Kamat wrote:
+> On 4 June 2013 08:48, Chen Gong <gong.chen@linux.intel.com> wrote:
+> > On Wed, May 29, 2013 at 05:16:17PM +0530, Sachin Kamat wrote:
+> >> Date: Wed, 29 May 2013 17:16:17 +0530
+> >> From: Sachin Kamat <sachin.kamat@linaro.org>
+> >> To: linux-acpi@vger.kernel.org
+> >> Cc: rjw@sisk.pl, lenb@kernel.org, sachin.kamat@linaro.org, Huang Ying
+> >>  <ying.huang@intel.com>
+> >> Subject: [PATCH 1/1] ACPI: ghes: Remove redundant platform_set_drvdata()
+> >> X-Mailer: git-send-email 1.7.9.5
+> >>
+> >> Commit 0998d06310 (device-core: Ensure drvdata = NULL when no
+> >> driver is bound) removes the need to set driver data field to
+> >> NULL.
+> >>
+> > Your description doesn't give any meaningful explanation.
+> 
+> It just means that setting driver data to NULL is not necessary.
 
-Matthew, can you point me at the license Microsoft is using for the
-DBG2 table? I can download the document from Microsoft's site without
-seeing any reference to it being licensed only for BIOS implementers.
-All I see is a "this document is provided 'as-is', blah blah blah"
-blurb at the beginning of the document. It may be that Microsoft has
-changed the license on this document in the last 6 months.
+I've queued up the patch for 3.11.
 
-I asked some of my contacts at Microsoft about this and was told that
-the DBG2 spec was supposed to be freed up; but I wasn't able to get
-anything absolutely confirmed or in writing.
+Thanks,
+Rafael
 
-g.
+
+-- 
+I speak only for myself.
+Rafael J. Wysocki, Intel Open Source Technology Center.
