@@ -1,72 +1,92 @@
-From: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>
-Subject: Re: Kernel panic - not syncing: IO-APIC + timer doesn't work!  Boot
- with apic=debug and send a report.  Then try booting with the 'noapic' option.
-Date: Tue, 04 Jun 2013 02:52:26 +0200
-Message-ID: <51AD3A4A.2060307@intel.com>
-References: <20130602042033.GB16050@localhost> <51AC7B2C.5000204@intel.com> <20130603112624.GA7623@localhost> <20130604004319.GA11618@localhost>
+From: Chen Gong <gong.chen@linux.intel.com>
+Subject: Re: [PATCH 1/1] ACPI: ghes: Remove redundant platform_set_drvdata()
+Date: Mon, 3 Jun 2013 23:18:28 -0400
+Message-ID: <20130604031828.GA20448@gchen.bj.intel.com>
+References: <1369827977-29975-1-git-send-email-sachin.kamat@linaro.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII;
-	format=flowed
-Content-Transfer-Encoding: 7BIT
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="h31gzZEtNLTqOjlF"
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga11.intel.com ([192.55.52.93]:5358 "EHLO mga11.intel.com"
+Received: from mga11.intel.com ([192.55.52.93]:15835 "EHLO mga11.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1757267Ab3FDAw3 convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 3 Jun 2013 20:52:29 -0400
-In-Reply-To: <20130604004319.GA11618@localhost>
+	id S1754186Ab3FDDZs (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 3 Jun 2013 23:25:48 -0400
+Content-Disposition: inline
+In-Reply-To: <1369827977-29975-1-git-send-email-sachin.kamat@linaro.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Fengguang Wu <fengguang.wu@intel.com>
-Cc: linux-acpi@vger.kernel.org
+To: Sachin Kamat <sachin.kamat@linaro.org>
+Cc: linux-acpi@vger.kernel.org, rjw@sisk.pl, lenb@kernel.org, Huang Ying <ying.huang@intel.com>
 
-On 6/4/2013 2:43 AM, Fengguang Wu wrote:
-> On Mon, Jun 03, 2013 at 07:26:24PM +0800, Fengguang Wu wrote:
->> On Mon, Jun 03, 2013 at 01:17:00PM +0200, Rafael J. Wysocki wrote:
->>> On 6/2/2013 6:20 AM, Fengguang Wu wrote:
->>>> Greetings,
->>>>
->>>> FYI, I got this occasionally in some of my machines when testing the
->>>> pm/bleeding-edge branch:
->>>>
->>>> [    0.040000] ..TIMER: vector=0x30 apic1=0 pin1=2 apic2=-1 pin2=-1
->>>> [    0.044000] ..MP-BIOS bug: 8254 timer not connected to IO-APIC
->>>> [    0.044000] ...trying to set up timer (IRQ0) through the 8259A ...
->>>> [    0.044000] ..... (found apic 0 pin 2) ...
->>>> [    0.048000] ....... failed.
->>>> [    0.048000] ...trying to set up timer as Virtual Wire IRQ...
->>>> [    0.048000] ..... failed.
->>>> [    0.048000] ...trying to set up timer as ExtINT IRQ...
->>>> [    0.052000] ..... failed :(.
->>>> [    0.052000] Kernel panic - not syncing: IO-APIC + timer doesn't work!  Boot with apic=debug and send a report.  Then try booting with the
->>>> +'noapic' option.
->>>>
->>>> Bisect result is unfortunately not reliable..
->>> Can you please check if this is reproducible with the acpi-hotplug
->>> branch alone?
->> Nope, it also shows up in upstream kernel. Sorry.. I'll try more bisect.
-> FYI, linux-next boots fine, so it should have been fixed somewhere.
-> Sorry for the noises!
 
-No problem, I'm glad it's been fixed.
+--h31gzZEtNLTqOjlF
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-Thanks,
-Rafael
+On Wed, May 29, 2013 at 05:16:17PM +0530, Sachin Kamat wrote:
+> Date:	Wed, 29 May 2013 17:16:17 +0530
+> From: Sachin Kamat <sachin.kamat@linaro.org>
+> To: linux-acpi@vger.kernel.org
+> Cc: rjw@sisk.pl, lenb@kernel.org, sachin.kamat@linaro.org, Huang Ying
+>  <ying.huang@intel.com>
+> Subject: [PATCH 1/1] ACPI: ghes: Remove redundant platform_set_drvdata()
+> X-Mailer: git-send-email 1.7.9.5
+>=20
+> Commit 0998d06310 (device-core: Ensure drvdata =3D NULL when no
+> driver is bound) removes the need to set driver data field to
+> NULL.
+>=20
+Your description doesn't give any meaningful explanation.
 
----------------------------------------------------------------------
-Intel Technology Poland sp. z o.o.
-z siedziba w Gdansku
-ul. Slowackiego 173
-80-298 Gdansk
+> Signed-off-by: Sachin Kamat <sachin.kamat@linaro.org>
+> Cc: Huang Ying <ying.huang@intel.com>
+> ---
+>  drivers/acpi/apei/ghes.c |    2 --
+>  1 file changed, 2 deletions(-)
+>=20
+> diff --git a/drivers/acpi/apei/ghes.c b/drivers/acpi/apei/ghes.c
+> index d668a8a..e03c20e 100644
+> --- a/drivers/acpi/apei/ghes.c
+> +++ b/drivers/acpi/apei/ghes.c
+> @@ -1011,8 +1011,6 @@ static int ghes_remove(struct platform_device *ghes=
+_dev)
+> =20
+>  	kfree(ghes);
+> =20
+> -	platform_set_drvdata(ghes_dev, NULL);
+> -
+>  	return 0;
+>  }
+> =20
+> --=20
+> 1.7.9.5
+>=20
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
-Sad Rejonowy Gdansk Polnoc w Gdansku, 
-VII Wydzial Gospodarczy Krajowego Rejestru Sadowego, 
-numer KRS 101882
+--h31gzZEtNLTqOjlF
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
 
-NIP 957-07-52-316
-Kapital zakladowy 200.000 zl
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.12 (GNU/Linux)
 
-This e-mail and any attachments may contain confidential material for
-the sole use of the intended recipient(s). Any review or distribution
-by others is strictly prohibited. If you are not the intended
-recipient, please contact the sender and delete all copies.
+iQIcBAEBAgAGBQJRrVyEAAoJEI01n1+kOSLH8lkP/2MHUPeW+SCK3Xa8JhbyL6Vx
+fDSkGxZ1LaCqItGu4XfR0zuKFIvvEaIfdDjQzf2hOFCOpFljUM6jXCQ59usAGeyE
+Gdx6f3q4NiwaF3E4SPjPYvmrBNpAMUkRloXLTBqUUxgSKJjo2SJaGMFpyeEMQPGg
+H4S9BTRUwmVUv1cLuhc9oim9/RAtQjwRUbgfq+d+BzCqHa4SZpAakmOUydnlN9/1
+w7SgtwnUY8poDiyewVOs0XmusqmI0f5DOmmq5sq0U7l727u+2Rp3CYa9La/hCxxo
+qEE9FI72/8cnAbPbA+f/7vGPh+W3V4TKxZ8oADom8K5LLlMMdnfzt+3sW8MwhMmV
+fE3u2nJSLXddzOlUJRM0OBmeyqKq47/FVe0STPdmy+umsi1qlxz9ie/oxyWuCrpN
+gGzvyfRGkU8LebXfY9pP2CiMZKCnH7HqfQaEsxxBGe2vcxq3CmA3IEg4uvxsZwyE
+q5bVmFhqOZhLxsoVyj+QpIv7Mb4M2XglPzJ3YK1VCYWuaD/SgoFhv7Dicl6J0FxP
+CQhH8pYxkQ1vjPvSctvI+uuZfiitGsV7vDdrHk2ltjvB8KJrzk08B6bSBzfuEAe/
+rhNAIwTJhRTjJLf6tYHbPHaMNxAOfJX6b2VmbamQYJFetkXavjSwMqjsOrRXWwT8
+MmJCioS6dIJEIHmERoIl
+=2ICO
+-----END PGP SIGNATURE-----
 
+--h31gzZEtNLTqOjlF--
