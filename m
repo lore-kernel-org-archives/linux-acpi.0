@@ -1,120 +1,86 @@
-From: Tang Chen <tangchen@cn.fujitsu.com>
-Subject: Re: [PATCH v4 03/22] x86, ACPI, mm: Kill max_low_pfn_mapped
-Date: Wed, 05 Jun 2013 16:36:40 +0800
-Message-ID: <51AEF898.9080002@cn.fujitsu.com>
-References: <1365728168-32067-1-git-send-email-yinghai@kernel.org> <1365728168-32067-4-git-send-email-yinghai@kernel.org>
+From: Giacomo Perale <giacomo.perale@gmail.com>
+Subject: Re: [regression,bisected] restore of disks after suspend-to-disk
+ broken in 3.9.x
+Date: Wed, 5 Jun 2013 11:09:18 +0200
+Message-ID: <CAPm-kmupuP-MKU5xQuReEagNz1EFzWyzjs1vPhKQYOkxg96_uA@mail.gmail.com>
+References: <CAPm-kmsTNz4niGXsWyhLwwBkQ48gHdq1vjPvSKKwQ0kbhHm=JQ@mail.gmail.com>
+	<1369631226.2159.5.camel@rzhang1-mobl4>
+	<CAPm-kmu4WmAKX4N5GTsG-J+oq95pLxB9=iLMf2dyK-p6RbwFXQ@mail.gmail.com>
+	<1369878386.3368.16.camel@rzhang1-mobl4>
+	<CAPm-kmtwxgDO24UmtmZ44-P2W-80tK11k1aE8M4Ty3t3LKu14Q@mail.gmail.com>
+	<1369911036.2636.5.camel@rzhang1-mobl4>
+	<CAPm-kmtdxjf1J0GUSMo+x1XY0BX7hFBsDQCjuAH=f65TfGHRbQ@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cn.fujitsu.com ([222.73.24.84]:65019 "EHLO song.cn.fujitsu.com"
-	rhost-flags-OK-FAIL-OK-OK) by vger.kernel.org with ESMTP
-	id S1753035Ab3FEIiK (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 5 Jun 2013 04:38:10 -0400
-In-Reply-To: <1365728168-32067-4-git-send-email-yinghai@kernel.org>
+Received: from mail-pd0-f174.google.com ([209.85.192.174]:34101 "EHLO
+	mail-pd0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752926Ab3FEJJT (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 5 Jun 2013 05:09:19 -0400
+In-Reply-To: <CAPm-kmtdxjf1J0GUSMo+x1XY0BX7hFBsDQCjuAH=f65TfGHRbQ@mail.gmail.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Yinghai Lu <yinghai@kernel.org>
-Cc: Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@elte.hu>, "H. Peter Anvin" <hpa@zytor.com>, Andrew Morton <akpm@linux-foundation.org>, Tejun Heo <tj@kernel.org>, Thomas Renninger <trenn@suse.de>, linux-kernel@vger.kernel.org, "Rafael J. Wysocki" <rjw@sisk.pl>, Jacob Shin <jacob.shin@amd.com>, Pekka Enberg <penberg@kernel.org>, linux-acpi@vger.kernel.org
+To: Zhang Rui <rui.zhang@intel.com>
+Cc: linux-acpi@vger.kernel.org, linux-pm@vger.kernel.org, "Rafael J. Wysocki" <rjw@sisk.pl>
 
-Hi yinghai, HPA,
+2013/5/30 Giacomo Perale <giacomo.perale@gmail.com>:
+> 2013/5/30 Zhang Rui <rui.zhang@intel.com>:
+>> On Thu, 2013-05-30 at 10:04 +0200, Giacomo Perale wrote:
+>>> 2013/5/30 Zhang Rui <rui.zhang@intel.com>:
+>>> > On Mon, 2013-05-27 at 22:07 +0200, Giacomo Perale wrote:
+>>> >> 2013/5/27 Zhang Rui <rui.zhang@intel.com>:
+>>> >> > On Sun, 2013-05-26 at 15:51 +0200, Giacomo Perale wrote:
+>>> >> >> Hello,
+>>> >> >>
+>>> >> >> after upgrading from 3.8.7 to 3.9.x I noticed some slightly longer
+>>> >> >> delays when resuming from suspend-to-disk and a few new error messages
+>>> >> >> in the logs:
+>>> >> >>
+>>> >> >>
+>>> >> >> Not having connected the issue with the previous error messages I
+>>> >> >> initially blamed the disk and replaced it with a new one thinking it
+>>> >> >> was broken, but the problem persisted so I started a bisection run
+>>> >> >> that pointed to this commit:
+>>> >> >>
+>>> >> >>
+>>> >> > I do not see how this would affect the sata hibernation/resume.
+>>> >> > but anyway, would you please try the four patches in comment #10, #11,
+>>> >> > #12 and #13 in
+>>> >> > https://bugzilla.kernel.org/show_bug.cgi?id=58301
+>>> >> > and check if they help?
+>>> >> >
+>>> >> > thanks,
+>>> >> > rui
+>>> >> >
+>>> >>
+>>> >> No luck, with git head and those four patches hibernation is
+>>> >> completely broken, the system doesn't even shut down, it just loses
+>>> >> the disks (I'm attaching what I could get from /proc/kmsg to this
+>>> >> email).
+>>> >>
+>>> > then can you please try the patch at
+>>> > https://patchwork.kernel.org/patch/2633071/
+>>> > on top of the four patches and see if it helps?
+>>> >
+>>> > thanks,
+>>> > rui
+>>> >
+>>>
+>>> Do you mean without Rafael's patch?
+>>>
+>> right.
+>>
+>> thanks,
+>> rui
+>
+> [cc-ing list]
+>
+> No difference, system doesn't shut down and disks become unavailable.
+>
+> Giacomo
 
-On 04/12/2013 08:55 AM, Yinghai Lu wrote:
-> Now we have arch_pfn_mapped array, and max_low_pfn_mapped should not
-> be used anymore.
+Any news about this?
 
-I'm rebasing this patch-set to the latest kernel, and improving the
-comment. But I didn't find any "arch_pfn_mapped array" in the kernel.
+Thanks.
 
-Would you please tell me what "arch_pfn_mapped array" is ?
-
-Is it the "struct range pfn_mapped[E820_X_MAX];" in arch/x86/mm/init.c ?
-
-Thanks. :)
-
->
-> User should use arch_pfn_mapped or just 1UL<<(32-PAGE_SHIFT) instead.
->
-> Only user is ACPI_INITRD_TABLE_OVERRIDE, and it should not use that,
-> as later accessing is using early_ioremap(). We could change to use
-> 1U<<(32_PAGE_SHIFT) with it, aka under 4G.
->
-> -v2: Leave alone max_low_pfn_mapped in i915 code according to tj.
->
-> Suggested-by: H. Peter Anvin<hpa@zytor.com>
-> Signed-off-by: Yinghai Lu<yinghai@kernel.org>
-> Cc: "Rafael J. Wysocki"<rjw@sisk.pl>
-> Cc: Jacob Shin<jacob.shin@amd.com>
-> Cc: Pekka Enberg<penberg@kernel.org>
-> Cc: linux-acpi@vger.kernel.org
-> Tested-by: Thomas Renninger<trenn@suse.de>
-> ---
->   arch/x86/include/asm/page_types.h | 1 -
->   arch/x86/kernel/setup.c           | 4 +---
->   arch/x86/mm/init.c                | 4 ----
->   drivers/acpi/osl.c                | 6 +++---
->   4 files changed, 4 insertions(+), 11 deletions(-)
->
-> diff --git a/arch/x86/include/asm/page_types.h b/arch/x86/include/asm/page_types.h
-> index 54c9787..b012b82 100644
-> --- a/arch/x86/include/asm/page_types.h
-> +++ b/arch/x86/include/asm/page_types.h
-> @@ -43,7 +43,6 @@
->
->   extern int devmem_is_allowed(unsigned long pagenr);
->
-> -extern unsigned long max_low_pfn_mapped;
->   extern unsigned long max_pfn_mapped;
->
->   static inline phys_addr_t get_max_mapped(void)
-> diff --git a/arch/x86/kernel/setup.c b/arch/x86/kernel/setup.c
-> index 1629577..e75c6e6 100644
-> --- a/arch/x86/kernel/setup.c
-> +++ b/arch/x86/kernel/setup.c
-> @@ -113,13 +113,11 @@
->   #include<asm/prom.h>
->
->   /*
-> - * max_low_pfn_mapped: highest direct mapped pfn under 4GB
-> - * max_pfn_mapped:     highest direct mapped pfn over 4GB
-> + * max_pfn_mapped:     highest direct mapped pfn
->    *
->    * The direct mapping only covers E820_RAM regions, so the ranges and gaps are
->    * represented by pfn_mapped
->    */
-> -unsigned long max_low_pfn_mapped;
->   unsigned long max_pfn_mapped;
->
->   #ifdef CONFIG_DMI
-> diff --git a/arch/x86/mm/init.c b/arch/x86/mm/init.c
-> index 59b7fc4..abcc241 100644
-> --- a/arch/x86/mm/init.c
-> +++ b/arch/x86/mm/init.c
-> @@ -313,10 +313,6 @@ static void add_pfn_range_mapped(unsigned long start_pfn, unsigned long end_pfn)
->   	nr_pfn_mapped = clean_sort_range(pfn_mapped, E820_X_MAX);
->
->   	max_pfn_mapped = max(max_pfn_mapped, end_pfn);
-> -
-> -	if (start_pfn<  (1UL<<(32-PAGE_SHIFT)))
-> -		max_low_pfn_mapped = max(max_low_pfn_mapped,
-> -					 min(end_pfn, 1UL<<(32-PAGE_SHIFT)));
->   }
->
->   bool pfn_range_is_mapped(unsigned long start_pfn, unsigned long end_pfn)
-> diff --git a/drivers/acpi/osl.c b/drivers/acpi/osl.c
-> index 586e7e9..313d14d 100644
-> --- a/drivers/acpi/osl.c
-> +++ b/drivers/acpi/osl.c
-> @@ -624,9 +624,9 @@ void __init acpi_initrd_override(void *data, size_t size)
->   	if (table_nr == 0)
->   		return;
->
-> -	acpi_tables_addr =
-> -		memblock_find_in_range(0, max_low_pfn_mapped<<  PAGE_SHIFT,
-> -				       all_tables_size, PAGE_SIZE);
-> +	/* under 4G at first, then above 4G */
-> +	acpi_tables_addr = memblock_find_in_range(0, (1ULL<<32) - 1,
-> +					all_tables_size, PAGE_SIZE);
->   	if (!acpi_tables_addr) {
->   		WARN_ON(1);
->   		return;
+Giacomo
