@@ -1,56 +1,54 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: [PATCH] ACPI / PM: Do not execute _PS0 for devices without _PSC during initialization
-Date: Wed, 05 Jun 2013 22:24:58 +0200
-Message-ID: <1448886.dqrNhOa96I@vostro.rjw.lan>
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: Re: [PATCH] clean up scary strncpy(dst, src, strlen(src)) uses
+Date: Wed, 5 Jun 2013 16:48:04 -0700
+Message-ID: <20130605164804.8071867d28c1f20cad8d7d2a@linux-foundation.org>
+References: <20130531161807.GA9536@www.outflux.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from hydra.sisk.pl ([212.160.235.94]:58446 "EHLO hydra.sisk.pl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1757286Ab3FEUP6 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 5 Jun 2013 16:15:58 -0400
+Received: from mail.linuxfoundation.org ([140.211.169.12]:41366 "EHLO
+	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753039Ab3FEXsG (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 5 Jun 2013 19:48:06 -0400
+In-Reply-To: <20130531161807.GA9536@www.outflux.net>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: ACPI Devel Maling List <linux-acpi@vger.kernel.org>
-Cc: LKML <linux-kernel@vger.kernel.org>, Lan Tianyu <tianyu.lan@intel.com>, Jerome Cantenot <jerome.cantenot@gmail.com>, Peter Wu <lekensteyn@gmail.com>
+To: Kees Cook <keescook@chromium.org>
+Cc: linux-kernel@vger.kernel.org, linux-doc@vger.kernel.org, linux-acpi@vger.kernel.org, linux-s390@vger.kernel.org, devel@driverdev.osuosl.org, user-mode-linux-devel@lists.sourceforge.net
 
-From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+On Fri, 31 May 2013 09:18:07 -0700 Kees Cook <keescook@chromium.org> wrote:
 
-Commit b378549 (ACPI / PM: Do not power manage devices in unknown
-initial states) added code to force devices without _PSC, but having
-_PS0 defined in the ACPI namespace, into ACPI power state D0 by
-executing _PS0 for them.  That turned out to break Toshiba P870-303,
-however, so revert that code.
+> Fix various weird constructions of strncpy(dst, src, strlen(src)). Length
+> limits should be about the space available in the destination, not
+> repurposed as a method to either always include or always exclude
+> a trailing NULL byte. Either the NULL should always be copied
+> (using strlcpy), or it should not be copied (using something like
+> memcpy). Readable code should not depend on the weird behavior of strncpy
+> when it hits the length limit. Better to avoid the anti-pattern entirely.
+> 
+> ...
+>
+> --- a/Documentation/accounting/getdelays.c
+> +++ b/Documentation/accounting/getdelays.c
+> @@ -23,6 +23,7 @@
+>  #include <sys/socket.h>
+>  #include <sys/wait.h>
+>  #include <signal.h>
+> +#include <bsd/string.h>
+>  
+>  #include <linux/genetlink.h>
+>  #include <linux/taskstats.h>
+> @@ -299,7 +300,7 @@ int main(int argc, char *argv[])
+>  			break;
+>  		case 'C':
+>  			containerset = 1;
+> -			strncpy(containerpath, optarg, strlen(optarg) + 1);
+> +			strlcpy(containerpath, optarg, sizeof(containerpath));
+>  			break;
+>  		case 'w':
+>  			logfile = strdup(optarg);
 
-References: https://bugzilla.kernel.org/show_bug.cgi?id=58201
-Reported-and-tested-by: Jerome Cantenot <jerome.cantenot@gmail.com>
-Tracked-down-by: Lan Tianyu <tianyu.lan@intel.com>
-Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
----
- drivers/acpi/device_pm.c |   10 ++++++----
- 1 file changed, 6 insertions(+), 4 deletions(-)
+Documentation/accounting/getdelays.c:26:24: fatal error: bsd/string.h: No such file or directory
 
-Index: linux-pm/drivers/acpi/device_pm.c
-===================================================================
---- linux-pm.orig/drivers/acpi/device_pm.c
-+++ linux-pm/drivers/acpi/device_pm.c
-@@ -278,11 +278,13 @@ int acpi_bus_init_power(struct acpi_devi
- 		if (result)
- 			return result;
- 	} else if (state == ACPI_STATE_UNKNOWN) {
--		/* No power resources and missing _PSC? Try to force D0. */
-+		/*
-+		 * No power resources and missing _PSC?  Cross fingers and make
-+		 * it D0 in hope that this is what the BIOS put the device into.
-+		 * [We tried to force D0 here by executing _PS0, but that broke
-+		 * Toshiba P870-303 in a nasty way.]
-+		 */
- 		state = ACPI_STATE_D0;
--		result = acpi_dev_pm_explicit_set(device, state);
--		if (result)
--			return result;
- 	}
- 	device->power.state = state;
- 	return 0;
-
+I'll revert this part.
