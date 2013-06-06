@@ -1,7 +1,7 @@
 From: Betty Dall <betty.dall@hp.com>
-Subject: [PATCH v3 3/6] PCI/AER: Set dev->__aer_firmware_first only for matching devices
-Date: Thu,  6 Jun 2013 12:10:48 -0600
-Message-ID: <1370542251-27387-4-git-send-email-betty.dall@hp.com>
+Subject: [PATCH v3 1/6] PCI/AER: Don't parse HEST table for non-PCIe devices
+Date: Thu,  6 Jun 2013 12:10:46 -0600
+Message-ID: <1370542251-27387-2-git-send-email-betty.dall@hp.com>
 References: <1370542251-27387-1-git-send-email-betty.dall@hp.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <1370542251-27387-1-git-send-email-betty.dall@hp.com>
@@ -10,41 +10,42 @@ To: rjw@sisk.pl, bhelgaas@google.com, gong.chen@linux.intel.com, greg.pearson@hp
 Cc: ying.huang@intel.com, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, Betty Dall <betty.dall@hp.com>
 List-Id: linux-acpi@vger.kernel.org
 
-Previously, we always updated info->firmware_first, even for HEST entries
-that didn't match the device.  Therefore, if the last HEST descriptor was
-a PCIe structure that didn't match the device, we always cleared
-dev->__aer_firmware_first.
-    
+AER is a PCIe-only capability, so there's no point in trying to match
+a HEST PCIe structure with a non-PCIe device.
+
+Previously, a HEST global AER bridge entry (type 8) could incorrectly
+match *any* bridge, even a legacy PCI-PCI bridge, and a non-global
+HEST entry could match a legacy PCI device.
+
 Signed-off-by: Bjorn Helgaas <bhelgaas@google.com>
 Tested-by: Betty Dall <betty.dall@hp.com>
 ---
 
- drivers/pci/pcie/aer/aerdrv_acpi.c |    8 ++++----
- 1 files changed, 4 insertions(+), 4 deletions(-)
+ drivers/pci/pcie/aer/aerdrv_acpi.c |    6 ++++--
+ 1 files changed, 4 insertions(+), 2 deletions(-)
 
 
 diff --git a/drivers/pci/pcie/aer/aerdrv_acpi.c b/drivers/pci/pcie/aer/aerdrv_acpi.c
-index e7ea573..cf611ab 100644
+index 5194a7d..4f798ab 100644
 --- a/drivers/pci/pcie/aer/aerdrv_acpi.c
 +++ b/drivers/pci/pcie/aer/aerdrv_acpi.c
-@@ -54,16 +54,16 @@ static int aer_hest_parse(struct acpi_hest_header *hest_hdr, void *data)
- {
- 	struct aer_hest_parse_info *info = data;
- 	struct acpi_hest_aer_common *p;
--	int ff = 0;
-+	int ff;
+@@ -59,8 +59,7 @@ static int aer_hest_parse(struct acpi_hest_header *hest_hdr, void *data)
  
  	p = (struct acpi_hest_aer_common *)(hest_hdr + 1);
-+	ff = !!(p->flags & ACPI_HEST_FIRMWARE_FIRST);
  	if (p->flags & ACPI_HEST_GLOBAL) {
- 		if (hest_match_type(hest_hdr, info->pci_dev))
--			ff = !!(p->flags & ACPI_HEST_FIRMWARE_FIRST);
-+			info->firmware_first = ff;
+-		if ((pci_is_pcie(info->pci_dev) &&
+-		     pci_pcie_type(info->pci_dev) == pcie_type) || bridge)
++		if ((pci_pcie_type(info->pci_dev) == pcie_type) || bridge)
+ 			ff = !!(p->flags & ACPI_HEST_FIRMWARE_FIRST);
  	} else
  		if (hest_match_pci(p, info->pci_dev))
--			ff = !!(p->flags & ACPI_HEST_FIRMWARE_FIRST);
--	info->firmware_first = ff;
-+			info->firmware_first = ff;
+@@ -89,6 +88,9 @@ static void aer_set_firmware_first(struct pci_dev *pci_dev)
  
- 	return 0;
- }
+ int pcie_aer_get_firmware_first(struct pci_dev *dev)
+ {
++	if (!pci_is_pcie(dev))
++		return 0;
++
+ 	if (!dev->__aer_firmware_first_valid)
+ 		aer_set_firmware_first(dev);
+ 	return dev->__aer_firmware_first;
