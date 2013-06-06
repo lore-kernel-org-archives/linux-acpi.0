@@ -1,84 +1,73 @@
 From: Betty Dall <betty.dall@hp.com>
-Subject: [PATCH v3 2/6] PCI/AER: Factor out HEST device type matching
-Date: Thu,  6 Jun 2013 12:10:47 -0600
-Message-ID: <1370542251-27387-3-git-send-email-betty.dall@hp.com>
+Subject: [PATCH v3 6/6] PCI/AER: Provide reset_link for firmware first root port
+Date: Thu,  6 Jun 2013 12:10:51 -0600
+Message-ID: <1370542251-27387-7-git-send-email-betty.dall@hp.com>
 References: <1370542251-27387-1-git-send-email-betty.dall@hp.com>
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from g1t0029.austin.hp.com ([15.216.28.36]:20676 "EHLO
-	g1t0029.austin.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751144Ab3FFSPw (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 6 Jun 2013 14:15:52 -0400
+Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <1370542251-27387-1-git-send-email-betty.dall@hp.com>
-Sender: linux-acpi-owner@vger.kernel.org
-List-Id: linux-acpi@vger.kernel.org
+Sender: linux-kernel-owner@vger.kernel.org
 To: rjw@sisk.pl, bhelgaas@google.com, gong.chen@linux.intel.com, greg.pearson@hp.com
 Cc: ying.huang@intel.com, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, Betty Dall <betty.dall@hp.com>
+List-Id: linux-acpi@vger.kernel.org
 
-This factors out the matching of HEST structure type and PCIe device type
-to improve readability.  No functional change.
-    
-Signed-off-by: Bjorn Helgaas <bhelgaas@google.com>
-Tested-by: Betty Dall <betty.dall@hp.com>
+The firmware first path does not install the aerdrv root port
+service driver, so the firmware first root port does not have
+a reset_link callback. When a firmware first root port does not have
+a reset_link callback, use a new default reset_link similar to what
+we already do for the default_downstream_reset_link(). The firmware
+first default reset_link brings the root port out of SBR if firmware
+left it in SBR.
+
+Changes since v1:
+Removed incorrect setting of p2p_ctrl after the read.
+
+Changes since v2:
+Treat the default case for a Root Port the same as the existing
+default case for a Downstream Link.
+
+Signed-off-by: Betty Dall <betty.dall@hp.com>
 ---
 
- drivers/pci/pcie/aer/aerdrv_acpi.c |   35 +++++++++++++++++------------------
- 1 files changed, 17 insertions(+), 18 deletions(-)
+ drivers/pci/pcie/aer/aerdrv_core.c |   17 +++++++++--------
+ 1 files changed, 9 insertions(+), 8 deletions(-)
 
 
-diff --git a/drivers/pci/pcie/aer/aerdrv_acpi.c b/drivers/pci/pcie/aer/aerdrv_acpi.c
-index 4f798ab..e7ea573 100644
---- a/drivers/pci/pcie/aer/aerdrv_acpi.c
-+++ b/drivers/pci/pcie/aer/aerdrv_acpi.c
-@@ -29,6 +29,22 @@ static inline int hest_match_pci(struct acpi_hest_aer_common *p,
- 		 p->function == PCI_FUNC(pci->devfn));
+diff --git a/drivers/pci/pcie/aer/aerdrv_core.c b/drivers/pci/pcie/aer/aerdrv_core.c
+index 8ec8b4f..cb29c04 100644
+--- a/drivers/pci/pcie/aer/aerdrv_core.c
++++ b/drivers/pci/pcie/aer/aerdrv_core.c
+@@ -400,16 +400,16 @@ void aer_do_secondary_bus_reset(struct pci_dev *dev)
  }
  
-+static inline bool hest_match_type(struct acpi_hest_header *hest_hdr,
-+				struct pci_dev *dev)
-+{
-+	u16 hest_type = hest_hdr->type;
-+	u8 pcie_type = pci_pcie_type(dev);
-+
-+	if ((hest_type == ACPI_HEST_TYPE_AER_ROOT_PORT &&
-+		pcie_type == PCI_EXP_TYPE_ROOT_PORT) ||
-+	    (hest_type == ACPI_HEST_TYPE_AER_ENDPOINT &&
-+		pcie_type == PCI_EXP_TYPE_ENDPOINT) ||
-+	    (hest_type == ACPI_HEST_TYPE_AER_BRIDGE &&
-+		(dev->class >> 16) == PCI_BASE_CLASS_BRIDGE))
-+		return true;
-+	return false;
-+}
-+
- struct aer_hest_parse_info {
- 	struct pci_dev *pci_dev;
- 	int firmware_first;
-@@ -38,28 +54,11 @@ static int aer_hest_parse(struct acpi_hest_header *hest_hdr, void *data)
+ /**
+- * default_downstream_reset_link - default reset function for Downstream Port
+- * @dev: pointer to downstream port's pci_dev data structure
++ * default_reset_link - default reset function
++ * @dev: pointer to pci_dev data structure
+  *
+- * Invoked when performing link reset at Downstream Port w/ no aer driver.
++ * Invoked when performing link reset on a Downstream Port or a
++ * Root Port with no aer driver.
+  */
+-static pci_ers_result_t default_downstream_reset_link(struct pci_dev *dev)
++static pci_ers_result_t default_reset_link(struct pci_dev *dev)
  {
- 	struct aer_hest_parse_info *info = data;
- 	struct acpi_hest_aer_common *p;
--	u8 pcie_type = 0;
--	u8 bridge = 0;
- 	int ff = 0;
+ 	aer_do_secondary_bus_reset(dev);
+-	dev_printk(KERN_DEBUG, &dev->dev,
+-		"Downstream Port link has been reset\n");
++	dev_dbg(&dev->dev, "Link has been reset\n");
+ 	return PCI_ERS_RESULT_RECOVERED;
+ }
  
--	switch (hest_hdr->type) {
--	case ACPI_HEST_TYPE_AER_ROOT_PORT:
--		pcie_type = PCI_EXP_TYPE_ROOT_PORT;
--		break;
--	case ACPI_HEST_TYPE_AER_ENDPOINT:
--		pcie_type = PCI_EXP_TYPE_ENDPOINT;
--		break;
--	case ACPI_HEST_TYPE_AER_BRIDGE:
--		if ((info->pci_dev->class >> 16) == PCI_BASE_CLASS_BRIDGE)
--			bridge = 1;
--		break;
--	default:
--		return 0;
--	}
--
- 	p = (struct acpi_hest_aer_common *)(hest_hdr + 1);
- 	if (p->flags & ACPI_HEST_GLOBAL) {
--		if ((pci_pcie_type(info->pci_dev) == pcie_type) || bridge)
-+		if (hest_match_type(hest_hdr, info->pci_dev))
- 			ff = !!(p->flags & ACPI_HEST_FIRMWARE_FIRST);
- 	} else
- 		if (hest_match_pci(p, info->pci_dev))
+@@ -458,8 +458,9 @@ static pci_ers_result_t reset_link(struct pci_dev *dev)
+ 
+ 	if (driver && driver->reset_link) {
+ 		status = driver->reset_link(udev);
+-	} else if (pci_pcie_type(udev) == PCI_EXP_TYPE_DOWNSTREAM) {
+-		status = default_downstream_reset_link(udev);
++	} else if (pci_pcie_type(udev) == PCI_EXP_TYPE_DOWNSTREAM ||
++		pci_pcie_type(udev) == PCI_EXP_TYPE_ROOT_PORT) {
++		status = default_reset_link(udev);
+ 	} else {
+ 		dev_printk(KERN_DEBUG, &dev->dev,
+ 			"no link-reset support at upstream device %s\n",
