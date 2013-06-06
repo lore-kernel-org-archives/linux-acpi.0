@@ -1,59 +1,75 @@
-From: Borislav Petkov <bp@alien8.de>
-Subject: Re: [PATCH RFC v2 1/3] drivers/platform/x86: add cpu physically
- hotplug driver
-Date: Thu, 6 Jun 2013 11:34:02 +0200
-Message-ID: <20130606093402.GA21272@pd.tnic>
-References: <1370482835-764-1-git-send-email-lig.fnst@cn.fujitsu.com>
- <1370482835-764-2-git-send-email-lig.fnst@cn.fujitsu.com>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: Re: [PATCH v2] ACPI / scan: do not match drivers against objects having scan handlers
+Date: Thu, 06 Jun 2013 12:56:30 +0200
+Message-ID: <5052765.IKTP5VVydy@vostro.rjw.lan>
+References: <51AC9389.3050603@intel.com> <51AD79B6.6060902@intel.com> <51AFF9FC.20303@intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <1370482835-764-2-git-send-email-lig.fnst@cn.fujitsu.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: liguang <lig.fnst@cn.fujitsu.com>
-Cc: Len Brown <lenb@kernel.org>, "Rafael J. Wysocki" <rjw@sisk.pl>, Matthew Garrett <matthew.garrett@nebula.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, platform-driver-x86@vger.kernel.org, Andreas =?utf-8?Q?F=C3=A4rber?= <afaerber@suse.de>, Igor Mammedov <imammedo@redhat.com>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7Bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from hydra.sisk.pl ([212.160.235.94]:58825 "EHLO hydra.sisk.pl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S932141Ab3FFKr3 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 6 Jun 2013 06:47:29 -0400
+In-Reply-To: <51AFF9FC.20303@intel.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Aaron Lu <aaron.lu@intel.com>
+Cc: ACPI Devel Mailing List <linux-acpi@vger.kernel.org>, Len Brown <lenb@kernel.org>, Zhang Rui <rui.zhang@intel.com>, Jason Cassell <bluesloth600@gmail.com>, "Dmitry S. Demin" <dmitryy.demin@gmail.com>, Lan Tianyu <tianyu.lan@intel.com>
 
-On Thu, Jun 06, 2013 at 09:40:33AM +0800, liguang wrote:
-> this driver will support cpu phyical add/removal automatically
-> after online/offline. if cpu hotpluged, cpu will not
-> online automatically, and for cpu offline, we try to
-> do actually eject if allowed for cpu like
-> "echo 1 > /sys/bus/acpi/devices/LNXCPU\:0X/eject"
-> this "echo ..." is only present for recent kernel
-> (sorry, can't figure out since when), for a little
-> older kernel, there's not such approach AFAICS.
+On Thursday, June 06, 2013 10:54:52 AM Aaron Lu wrote:
+> With the introduction of ACPI scan handlers, an ACPI device object
+> with an ACPI scan handler attached to it must not be bound to an ACPI
+> driver any more.  Therefore it doesn't make sense to match those
+> ACPI device objects against a newly registered ACPI driver in
+> acpi_bus_match(), so make that function return 0 if the device
+> object passed to it has an ACPI scan handler attached.
 > 
-> Signed-off-by: liguang <lig.fnst@cn.fujitsu.com>
+> This also addresses a regression related to a broken ACPI table in
+> the BIOS, where it has defined a _ROM method under the PCI root
+> bridge object.  This causes the video module to treat that object
+> as a display controller device (since only display devices are
+> supposed to have a _ROM method defined according to the ACPI spec).
+> As a result, the ACPI video driver binds to the PCI root bridge
+> object and overwrites the previously assigned driver_data field of
+> it, causing subsequent calls to acpi_get_pci_dev() to fail.
+> 
+> [rjw: Subject and changelog]
+> References: https://bugzilla.kernel.org/show_bug.cgi?id=58091
+> Reported-and-tested-by: Jason Cassell <bluesloth600@gmail.com>
+> Reported-bisected-and-tested-by: Dmitry S. Demin <dmitryy.demin@gmail.com>
+> Cc: 3.9+ <stable@kernel.org>
+> Signed-off-by: Aaron Lu <aaron.lu@intel.com>
+
+I've applied this one already.
+
+Thanks,
+Rafael
+
+
 > ---
->  drivers/platform/x86/Kconfig              |    8 ++++
->  drivers/platform/x86/Makefile             |    1 +
->  drivers/platform/x86/cpu_physic_hotplug.c |   60 +++++++++++++++++++++++++++++
->  3 files changed, 69 insertions(+), 0 deletions(-)
->  create mode 100644 drivers/platform/x86/cpu_physic_hotplug.c
+> v2:
+> Remove WARN_ON as it would cause unnecessary warnings for devices that
+> already have drivers bound.
 > 
-> diff --git a/drivers/platform/x86/Kconfig b/drivers/platform/x86/Kconfig
-> index 8577261..39b2392 100644
-> --- a/drivers/platform/x86/Kconfig
-> +++ b/drivers/platform/x86/Kconfig
-> @@ -789,4 +789,12 @@ config PVPANIC
->  	  a paravirtualized device provided by QEMU; it lets a virtual machine
->  	  (guest) communicate panic events to the host.
+> drivers/acpi/scan.c | 6 ++++++
+>  1 file changed, 6 insertions(+)
+> 
+> diff --git a/drivers/acpi/scan.c b/drivers/acpi/scan.c
+> index 5e7e991..67ce501 100644
+> --- a/drivers/acpi/scan.c
+> +++ b/drivers/acpi/scan.c
+> @@ -553,6 +553,10 @@ static int acpi_bus_match(struct device *dev, struct device_driver *drv)
+>  	struct acpi_device *acpi_dev = to_acpi_device(dev);
+>  	struct acpi_driver *acpi_drv = to_acpi_driver(drv);
 >  
-> +config QEMU_CPU_PHYSIC_HOTPLUG
-
-This is hillarious: have you actually checked the dictionary on the
-meaning of "physic"?
-
-Yep, "laxative" because the kernel is constipated and can't hold its
-CPUs anymore.
-
-LOOOL :-).
-
+> +	/* Skip ACPI device objects with scan handlers attached. */
+> +	if (acpi_dev->handler)
+> +		return 0;
+> +
+>  	return acpi_dev->flags.match_driver
+>  		&& !acpi_match_device_ids(acpi_dev, acpi_drv->ids);
+>  }
 -- 
-Regards/Gruss,
-    Boris.
-
-Sent from a fat crate under my desk. Formatting is fine.
---
+I speak only for myself.
+Rafael J. Wysocki, Intel Open Source Technology Center.
