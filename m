@@ -1,58 +1,84 @@
 From: Betty Dall <betty.dall@hp.com>
-Subject: [PATCH v3 0/6] PCI/ACPI: Fix firmware first error recovery with root port in reset
-Date: Thu,  6 Jun 2013 12:10:45 -0600
-Message-ID: <1370542251-27387-1-git-send-email-betty.dall@hp.com>
+Subject: [PATCH v3 2/6] PCI/AER: Factor out HEST device type matching
+Date: Thu,  6 Jun 2013 12:10:47 -0600
+Message-ID: <1370542251-27387-3-git-send-email-betty.dall@hp.com>
+References: <1370542251-27387-1-git-send-email-betty.dall@hp.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from g1t0028.austin.hp.com ([15.216.28.35]:4049 "EHLO
-	g1t0028.austin.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751190Ab3FFSPs (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 6 Jun 2013 14:15:48 -0400
+Received: from g1t0029.austin.hp.com ([15.216.28.36]:20676 "EHLO
+	g1t0029.austin.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751144Ab3FFSPw (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 6 Jun 2013 14:15:52 -0400
+In-Reply-To: <1370542251-27387-1-git-send-email-betty.dall@hp.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: rjw@sisk.pl, bhelgaas@google.com, gong.chen@linux.intel.com, greg.pearson@hp.com
 Cc: ying.huang@intel.com, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, Betty Dall <betty.dall@hp.com>
 
-This patch set fixes a bug on platforms that use firmware first AER.
-Firmware can leave the root port in Secondary Bus Reset (SBR) and
-communicate this to the OS through the "reset" bit in the flags field
-of the HEST table and associated CPER records. Firmware wants to do this
-so that the error is contained and the hardware is in a known state.
-
-Without these patches, the root port stays in SBR and the device drivers
-cannot recover. These patches recognize when the firmware first root port
-is in SBR and bring the root port out of SBR so the devices under the root
-port can recover.
-
-The changes have been tested on systems with firmware first that set the
-"reset" bit by injecting various hardware errors. The errors successfully
-recover.
-
-Changes since v1:
-Fixed a typo in the comment of patch 2.
-Removed incorrect setting of reset bit in patch 3.
-
-Changes since v2: 
-The v2 patch 1/3 was re-written by Bjorn Helgaas and is now patches 1/6
-through 3/6.
-The v2 patch 2/3 is now 5/6 and changed to directly use the AER_FATAL define
-and introduced patch 4/6 to move the defines to a public header file.
-The v2 patch 3/3 is now 6/6 and uses the same default reset link function for
-both Downstream Ports and Root Ports.
-
-Signed-off-by: Betty Dall <betty.dall@hp.com>
+This factors out the matching of HEST structure type and PCIe device type
+to improve readability.  No functional change.
+    
+Signed-off-by: Bjorn Helgaas <bhelgaas@google.com>
+Tested-by: Betty Dall <betty.dall@hp.com>
 ---
-Betty Dall (6):
-  PCI/AER: Don't parse HEST table for non-PCIe devices
-  PCI/AER: Factor out HEST device type matching
-  PCI/AER: Set dev->__aer_firmware_first only for matching devices
-  PCI/ACPI: Move AER severity defines to aer.h
-  ACPI/APEI: Force fatal AER severity when bus has been reset
-  PCI/AER: Provide reset_link for firmware first root port
----
- drivers/acpi/apei/ghes.c           |   10 +++++++
- drivers/pci/pcie/aer/aerdrv.h      |    4 ---
- drivers/pci/pcie/aer/aerdrv_acpi.c |   47 ++++++++++++++++++-----------------
- drivers/pci/pcie/aer/aerdrv_core.c |   17 +++++++------
- include/linux/aer.h                |   16 +++++++----
- 5 files changed, 53 insertions(+), 41 deletions(-)
 
+ drivers/pci/pcie/aer/aerdrv_acpi.c |   35 +++++++++++++++++------------------
+ 1 files changed, 17 insertions(+), 18 deletions(-)
+
+
+diff --git a/drivers/pci/pcie/aer/aerdrv_acpi.c b/drivers/pci/pcie/aer/aerdrv_acpi.c
+index 4f798ab..e7ea573 100644
+--- a/drivers/pci/pcie/aer/aerdrv_acpi.c
++++ b/drivers/pci/pcie/aer/aerdrv_acpi.c
+@@ -29,6 +29,22 @@ static inline int hest_match_pci(struct acpi_hest_aer_common *p,
+ 		 p->function == PCI_FUNC(pci->devfn));
+ }
+ 
++static inline bool hest_match_type(struct acpi_hest_header *hest_hdr,
++				struct pci_dev *dev)
++{
++	u16 hest_type = hest_hdr->type;
++	u8 pcie_type = pci_pcie_type(dev);
++
++	if ((hest_type == ACPI_HEST_TYPE_AER_ROOT_PORT &&
++		pcie_type == PCI_EXP_TYPE_ROOT_PORT) ||
++	    (hest_type == ACPI_HEST_TYPE_AER_ENDPOINT &&
++		pcie_type == PCI_EXP_TYPE_ENDPOINT) ||
++	    (hest_type == ACPI_HEST_TYPE_AER_BRIDGE &&
++		(dev->class >> 16) == PCI_BASE_CLASS_BRIDGE))
++		return true;
++	return false;
++}
++
+ struct aer_hest_parse_info {
+ 	struct pci_dev *pci_dev;
+ 	int firmware_first;
+@@ -38,28 +54,11 @@ static int aer_hest_parse(struct acpi_hest_header *hest_hdr, void *data)
+ {
+ 	struct aer_hest_parse_info *info = data;
+ 	struct acpi_hest_aer_common *p;
+-	u8 pcie_type = 0;
+-	u8 bridge = 0;
+ 	int ff = 0;
+ 
+-	switch (hest_hdr->type) {
+-	case ACPI_HEST_TYPE_AER_ROOT_PORT:
+-		pcie_type = PCI_EXP_TYPE_ROOT_PORT;
+-		break;
+-	case ACPI_HEST_TYPE_AER_ENDPOINT:
+-		pcie_type = PCI_EXP_TYPE_ENDPOINT;
+-		break;
+-	case ACPI_HEST_TYPE_AER_BRIDGE:
+-		if ((info->pci_dev->class >> 16) == PCI_BASE_CLASS_BRIDGE)
+-			bridge = 1;
+-		break;
+-	default:
+-		return 0;
+-	}
+-
+ 	p = (struct acpi_hest_aer_common *)(hest_hdr + 1);
+ 	if (p->flags & ACPI_HEST_GLOBAL) {
+-		if ((pci_pcie_type(info->pci_dev) == pcie_type) || bridge)
++		if (hest_match_type(hest_hdr, info->pci_dev))
+ 			ff = !!(p->flags & ACPI_HEST_FIRMWARE_FIRST);
+ 	} else
+ 		if (hest_match_pci(p, info->pci_dev))
