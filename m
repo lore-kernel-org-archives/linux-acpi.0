@@ -1,42 +1,63 @@
-From: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Subject: Re: Q: acpi-cpufreq module auto-loading after processor driver change
-Date: Thu, 6 Jun 2013 13:24:19 -0700
-Message-ID: <20130606202419.GF18075@kroah.com>
-References: <1511440.Xd41mcOoEa@vostro.rjw.lan>
+From: Bjorn Helgaas <bhelgaas@google.com>
+Subject: Re: [PATCH v3 0/6] PCI/ACPI: Fix firmware first error recovery with
+ root port in reset
+Date: Thu, 6 Jun 2013 15:04:54 -0600
+Message-ID: <CAErSpo7e5EN3bCFzFZvVe5pZ5tsDW+7CbLqhuPr_oNPy5ShWKg@mail.gmail.com>
+References: <1370542251-27387-1-git-send-email-betty.dall@hp.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-pm-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <1511440.Xd41mcOoEa@vostro.rjw.lan>
-Sender: linux-pm-owner@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: Linux PM list <linux-pm@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>
+Content-Type: text/plain; charset=ISO-8859-1
+Return-path: <linux-pci-owner@vger.kernel.org>
+In-Reply-To: <1370542251-27387-1-git-send-email-betty.dall@hp.com>
+Sender: linux-pci-owner@vger.kernel.org
+To: Betty Dall <betty.dall@hp.com>
+Cc: "Rafael J. Wysocki" <rjw@sisk.pl>, Chen Gong <gong.chen@linux.intel.com>, "Pearson, Greg" <greg.pearson@hp.com>, Huang Ying <ying.huang@intel.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On Thu, May 30, 2013 at 11:38:37PM +0200, Rafael J. Wysocki wrote:
-> Hi Greg,
-> 
-> I've noticed during recent testing that with this commit applied:
-> 
-> http://git.kernel.org/cgit/linux/kernel/git/rafael/linux-pm.git/commit/?h=acpi-hotplug&id=ac212b6980d8d5eda705864fc5a8ecddc6d6eacc
-> 
-> on my openSUSE (and Tubmbleweed) installations I need to modify
-> /etc/sysconfig/kernel to make mkinitrd put the acpi-cpufreq module into the
-> initramfs or otherwise it won't be loaded automatically.
-> 
-> I think I understand why it needs to be present in the initramfs along the
-> processor module for the automatic loading to work (acpi_processor_load_module()
-> seems to need that), but before the above commit it wasn't necessary to make
-> any changes to /etc/sysconfig/kernel and acpi-cpufreq was loaded automatically
-> anyway.
-> 
-> Unfortunately, my experience with udev and related things is kind of limited
-> and I have no idea what exactly makes the difference.  Can you please have a
-> look and help me understand that?
+On Thu, Jun 6, 2013 at 12:10 PM, Betty Dall <betty.dall@hp.com> wrote:
+> This patch set fixes a bug on platforms that use firmware first AER.
+> Firmware can leave the root port in Secondary Bus Reset (SBR) and
+> communicate this to the OS through the "reset" bit in the flags field
+> of the HEST table and associated CPER records. Firmware wants to do this
+> so that the error is contained and the hardware is in a known state.
+>
+> Without these patches, the root port stays in SBR and the device drivers
+> cannot recover. These patches recognize when the firmware first root port
+> is in SBR and bring the root port out of SBR so the devices under the root
+> port can recover.
+>
+> The changes have been tested on systems with firmware first that set the
+> "reset" bit by injecting various hardware errors. The errors successfully
+> recover.
+>
+> Changes since v1:
+> Fixed a typo in the comment of patch 2.
+> Removed incorrect setting of reset bit in patch 3.
+>
+> Changes since v2:
+> The v2 patch 1/3 was re-written by Bjorn Helgaas and is now patches 1/6
+> through 3/6.
+> The v2 patch 2/3 is now 5/6 and changed to directly use the AER_FATAL define
+> and introduced patch 4/6 to move the defines to a public header file.
+> The v2 patch 3/3 is now 6/6 and uses the same default reset link function for
+> both Downstream Ports and Root Ports.
+>
+> Signed-off-by: Betty Dall <betty.dall@hp.com>
+> ---
+> Betty Dall (6):
+>   PCI/AER: Don't parse HEST table for non-PCIe devices
+>   PCI/AER: Factor out HEST device type matching
+>   PCI/AER: Set dev->__aer_firmware_first only for matching devices
+>   PCI/ACPI: Move AER severity defines to aer.h
+>   ACPI/APEI: Force fatal AER severity when bus has been reset
+>   PCI/AER: Provide reset_link for firmware first root port
+> ---
+>  drivers/acpi/apei/ghes.c           |   10 +++++++
+>  drivers/pci/pcie/aer/aerdrv.h      |    4 ---
+>  drivers/pci/pcie/aer/aerdrv_acpi.c |   47 ++++++++++++++++++-----------------
+>  drivers/pci/pcie/aer/aerdrv_core.c |   17 +++++++------
+>  include/linux/aer.h                |   16 +++++++----
+>  5 files changed, 53 insertions(+), 41 deletions(-)
 
-Don't you need a MODULE_DEVICE_TABLE() macro in that module somewhere so
-that udev and the like know to load it when it sees the hardware?
+I put these on http://git.kernel.org/cgit/linux/kernel/git/helgaas/pci.git/log/?h=pci/betty-aer-v3
 
-thanks,
-
-greg k-h
+I'll merge them into -next for v3.11 soon.  Thanks, Betty!
