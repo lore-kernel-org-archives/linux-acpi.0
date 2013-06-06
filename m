@@ -1,60 +1,43 @@
-From: Kees Cook <keescook@chromium.org>
-Subject: Re: [PATCH] clean up scary strncpy(dst, src, strlen(src)) uses
-Date: Wed, 5 Jun 2013 17:11:23 -0700
-Message-ID: <CAGXu5jKj-z1d_ZVToa=+j6MKMPS522gnrOZS12pu+619eEUnQQ@mail.gmail.com>
-References: <20130531161807.GA9536@www.outflux.net>
-	<20130605164804.8071867d28c1f20cad8d7d2a@linux-foundation.org>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <linux-doc-owner@vger.kernel.org>
-In-Reply-To: <20130605164804.8071867d28c1f20cad8d7d2a@linux-foundation.org>
-Sender: linux-doc-owner@vger.kernel.org
-To: Andrew Morton <akpm@linux-foundation.org>
-Cc: LKML <linux-kernel@vger.kernel.org>, "linux-doc@vger.kernel.org" <linux-doc@vger.kernel.org>, linux-acpi@vger.kernel.org, linux-s390@vger.kernel.org, devel@driverdev.osuosl.org, user-mode-linux-devel@lists.sourceforge.net
+From: liguang <lig.fnst@cn.fujitsu.com>
+Subject: [PATCH RFC 0/3] add cpu physically hotplug driver
+Date: Thu, 6 Jun 2013 09:32:13 +0800
+Message-ID: <1370482336-636-1-git-send-email-lig.fnst@cn.fujitsu.com>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from cn.fujitsu.com ([222.73.24.84]:42922 "EHLO song.cn.fujitsu.com"
+	rhost-flags-OK-FAIL-OK-OK) by vger.kernel.org with ESMTP
+	id S1755990Ab3FFBd2 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 5 Jun 2013 21:33:28 -0400
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Len Brown <lenb@kernel.org>, "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: Matthew Garrett <matthew.garrett@nebula.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, platform-driver-x86@vger.kernel.org, liguang <lig.fnst@cn.fujitsu.com>
 
-On Wed, Jun 5, 2013 at 4:48 PM, Andrew Morton <akpm@linux-foundation.org> wrote:
-> On Fri, 31 May 2013 09:18:07 -0700 Kees Cook <keescook@chromium.org> wrote:
->
->> Fix various weird constructions of strncpy(dst, src, strlen(src)). Length
->> limits should be about the space available in the destination, not
->> repurposed as a method to either always include or always exclude
->> a trailing NULL byte. Either the NULL should always be copied
->> (using strlcpy), or it should not be copied (using something like
->> memcpy). Readable code should not depend on the weird behavior of strncpy
->> when it hits the length limit. Better to avoid the anti-pattern entirely.
->>
->> ...
->>
->> --- a/Documentation/accounting/getdelays.c
->> +++ b/Documentation/accounting/getdelays.c
->> @@ -23,6 +23,7 @@
->>  #include <sys/socket.h>
->>  #include <sys/wait.h>
->>  #include <signal.h>
->> +#include <bsd/string.h>
->>
->>  #include <linux/genetlink.h>
->>  #include <linux/taskstats.h>
->> @@ -299,7 +300,7 @@ int main(int argc, char *argv[])
->>                       break;
->>               case 'C':
->>                       containerset = 1;
->> -                     strncpy(containerpath, optarg, strlen(optarg) + 1);
->> +                     strlcpy(containerpath, optarg, sizeof(containerpath));
->>                       break;
->>               case 'w':
->>                       logfile = strdup(optarg);
->
-> Documentation/accounting/getdelays.c:26:24: fatal error: bsd/string.h: No such file or directory
->
-> I'll revert this part.
+This patch-set try to support physically hot-plug/unplug
+a cpu automatically, that is:
+if you offline a cpu, it will automatically actually remove
+a cpu, and if you hot-plug a cpu, then it will online this
+cpu automatically.
+so, offline is just like eject, but eject attribute seems not
+available since recent kernel(can't figure out when), with
+this driver, if allowed, it will trigger a eject cpu process.
+and for automatically online, it was said there are objections,
+don't know the reason, so, send this patch-set boldly.
 
-Ah, hrm. Well, in that case, it should use strdup, as logfile does
-already. Do you want me to send a patch for that?
+of course, this approach is for QEMU 's hotplug cpu emulation 
+only, but not limited, if someone like to explore ec space to
+implment cpu hot-plug/unplug for real platform please
+feel free to continue.
 
--Kees
+Li Guang (3)
+	 drivers/platform/x86: add cpu physically hotplug driver
+	 ec: add ec space notifier
+	 cpu_physic_hotplug: register handler for ec space notifier
 
---
-Kees Cook
-Chrome OS Security
+drivers/acpi/ec.c                         | 32 ++++++++++++++++++++++++++++++++
+drivers/platform/x86/Kconfig              |  8 ++++
+drivers/platform/x86/Makefile             |  1 +
+drivers/platform/x86/cpu_physic_hotplug.c | 87 +++++++++++++++++++++++++++++
+include/linux/acpi.h                      |  2 ++
+5 files changed, 128 insertions(+), 2 deletions(-)
+ create mode 100644 drivers/platform/x86/cpu_physic_hotplug.c
+
