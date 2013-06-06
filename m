@@ -1,127 +1,147 @@
-From: Yinghai Lu <yinghai@kernel.org>
-Subject: [PATCH v3.9 stable] PCI: acpiphp: Re-enumerate devices when host bridge receives Bus Check
-Date: Wed,  5 Jun 2013 18:55:53 -0700
-Message-ID: <1370483753-2907-1-git-send-email-yinghai@kernel.org>
-References: <20130605223852.GA16729@kroah.com>
+From: Gu Zheng <guz.fnst@cn.fujitsu.com>
+Subject: Re: [PATCH RFC v2 1/3] drivers/platform/x86: add cpu physically hotplug
+ driver
+Date: Thu, 06 Jun 2013 10:24:59 +0800
+Message-ID: <51AFF2FB.6020007@cn.fujitsu.com>
+References: <1370482835-764-1-git-send-email-lig.fnst@cn.fujitsu.com> <1370482835-764-2-git-send-email-lig.fnst@cn.fujitsu.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from userp1040.oracle.com ([156.151.31.81]:39648 "EHLO
-	userp1040.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755418Ab3FFB4E (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 5 Jun 2013 21:56:04 -0400
-In-Reply-To: <20130605223852.GA16729@kroah.com>
+Received: from cn.fujitsu.com ([222.73.24.84]:30649 "EHLO song.cn.fujitsu.com"
+	rhost-flags-OK-FAIL-OK-OK) by vger.kernel.org with ESMTP
+	id S1755148Ab3FFC1k (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 5 Jun 2013 22:27:40 -0400
+In-Reply-To: <1370482835-764-2-git-send-email-lig.fnst@cn.fujitsu.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Bjorn Helgaas <bhelgaas@google.com>, "Rafael J. Wysocki" <rjw@sisk.pl>, Jiang Liu <jiang.liu@huawei.com>, gregkh@linuxfoundation.org
-Cc: Gavin Guo <tuffkidtt@gmail.com>, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Yinghai Lu <yinghai@kernel.org>, rafael.j.wysocki@intel.com, stable@vger.kernel.org
+To: liguang <lig.fnst@cn.fujitsu.com>
+Cc: Len Brown <lenb@kernel.org>, "Rafael J. Wysocki" <rjw@sisk.pl>, Matthew Garrett <matthew.garrett@nebula.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, platform-driver-x86@vger.kernel.org, =?ISO-8859-1?Q?Andreas_F=E4rber?= <afaerber@suse.de>, Igor Mammedov <imammedo@redhat.com>
 
-When a PCI host bridge device receives a Bus Check notification, we
-must re-enumerate starting with the bridge to discover changes (devices
-that have been added or removed).
+On 06/06/2013 09:40 AM, liguang wrote:
 
-Prior to 668192b678 ("PCI: acpiphp: Move host bridge hotplug to
-pci_root.c"), this happened in _handle_hotplug_event_bridge().  After that
-commit, _handle_hotplug_event_bridge() is not installed for host bridges,
-and the host bridge notify handler, _handle_hotplug_event_root() did not
-re-enumerate.
+> this driver will support cpu phyical add/removal automatically
+> after online/offline. if cpu hotpluged, cpu will not
+> online automatically, and for cpu offline, we try to
+> do actually eject if allowed for cpu like
+> "echo 1 > /sys/bus/acpi/devices/LNXCPU\:0X/eject"
+> this "echo ..." is only present for recent kernel
+> (sorry, can't figure out since when), for a little
+> older kernel, there's not such approach AFAICS.
+> 
+> Signed-off-by: liguang <lig.fnst@cn.fujitsu.com>
+> ---
+>  drivers/platform/x86/Kconfig              |    8 ++++
+>  drivers/platform/x86/Makefile             |    1 +
+>  drivers/platform/x86/cpu_physic_hotplug.c |   60 +++++++++++++++++++++++++++++
+>  3 files changed, 69 insertions(+), 0 deletions(-)
+>  create mode 100644 drivers/platform/x86/cpu_physic_hotplug.c
+> 
+> diff --git a/drivers/platform/x86/Kconfig b/drivers/platform/x86/Kconfig
+> index 8577261..39b2392 100644
+> --- a/drivers/platform/x86/Kconfig
+> +++ b/drivers/platform/x86/Kconfig
+> @@ -789,4 +789,12 @@ config PVPANIC
+>  	  a paravirtualized device provided by QEMU; it lets a virtual machine
+>  	  (guest) communicate panic events to the host.
+>  
+> +config QEMU_CPU_PHYSIC_HOTPLUG
+> +	tristate "physically add/remove cpu after cpu onlined/offlined"
+> +	depends on ACPI_HOTPLUG_CPU
+> +	---help---
+> +	  This driver will support physically remove a cpu after
+> +	  it offlined for QEMU automatically. someone may require this feature
+> +	  to do a physically removal for a cpu.
+> +
+>  endif # X86_PLATFORM_DEVICES
+> diff --git a/drivers/platform/x86/Makefile b/drivers/platform/x86/Makefile
+> index ef0ec74..2e669b0 100644
+> --- a/drivers/platform/x86/Makefile
+> +++ b/drivers/platform/x86/Makefile
+> @@ -53,3 +53,4 @@ obj-$(CONFIG_APPLE_GMUX)	+= apple-gmux.o
+>  obj-$(CONFIG_CHROMEOS_LAPTOP)	+= chromeos_laptop.o
+>  
+>  obj-$(CONFIG_PVPANIC)           += pvpanic.o
+> +obj-$(CONFIG_QEMU_CPU_PHYSIC_HOTPLUG)	+= cpu_physic_hotplug.o
+> diff --git a/drivers/platform/x86/cpu_physic_hotplug.c b/drivers/platform/x86/cpu_physic_hotplug.c
+> new file mode 100644
+> index 0000000..a52c042
+> --- /dev/null
+> +++ b/drivers/platform/x86/cpu_physic_hotplug.c
+> @@ -0,0 +1,60 @@
+> +#include <linux/kernel.h>
+> +#include <linux/module.h>
+> +#include <linux/acpi.h>
+> +#include <linux/cpu.h>
+> +#include <linux/notifier.h>
+> +#include <acpi/processor.h>
+> +
+> +MODULE_AUTHOR("Li Guang");
+> +MODULE_DESCRIPTION("CPU physically hot-plug/unplug Driver");
+> +MODULE_LICENSE("GPL");
+> +
+> +static int cpu_logic_hotplug_notify(struct notifier_block *nfb,
+> +				unsigned long action, void *hcpu)
+> +{
+> +	unsigned int cpu = (unsigned long)hcpu;
+> +	struct acpi_processor *pr = per_cpu(processors, cpu);
+> +
+> +	if (pr) {
+> +		switch (action) {
+> +		case CPU_ONLINE:
+> +			break;
+> +		case CPU_DEAD:
+> +			break;
+> +		default:
+> +			break;
+> +		}
+> +	}
+> +	return NOTIFY_OK;
+> +}
+> +
+> +static struct notifier_block cpu_logic_hotplug_notifier =
+> +{
+> +	.notifier_call = cpu_logic_hotplug_notify,
+> +};
+> +
+> +static int cpu_physic_hotplug_notify(struct notifier_block *nfb,
+> +				 unsigned char *s)
+> +{
+> +}
 
-This patch adds re-enumeration to _handle_hotplug_event_root().
+Hi guang,
+	Maybe you need to define the callback function in the right format at the beginning,
+if so, no need to correct it later.:)
 
-This fixes cases where we don't notice the addition or removal of
-PCI devices, e.g., the PCI-to-USB ExpressCard in the bugzilla below.
+Thanks,
+Gu
 
--v1: Backport of 3f327e39b4 to v3.9 by Bjorn Helgaas <bhelgaas@google.com>
--v2: use request_module("acpiphp") for acpiphp is as module instead of built-in
-     by Yinghai.
 
-[bhelgaas: changelog, references]
-Reference: https://lkml.kernel.org/r/CAAh6nkmbKR3HTqm5ommevsBwhL_u0N8Rk7Wsms_LfP=nBgKNew@mail.gmail.com
-Reference: https://bugzilla.kernel.org/show_bug.cgi?id=57961
-Reported-by: Gavin Guo <tuffkidtt@gmail.com>
-Tested-by: Gavin Guo <tuffkidtt@gmail.com>
-Signed-off-by: Yinghai Lu <yinghai@kernel.org>
-Signed-off-by: Bjorn Helgaas <bhelgaas@google.com>
-Acked-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
-CC: stable@vger.kernel.org	# v3.9+
----
- drivers/acpi/pci_root.c            |    7 ++++++-
- drivers/pci/hotplug/acpiphp_glue.c |   14 ++++++++++++++
- include/linux/pci-acpi.h           |    2 ++
- 3 files changed, 22 insertions(+), 1 deletion(-)
+> +
+> +static struct notifier_block cpu_physic_hotplug_notifier =
+> +{
+> +	.notifier_call = cpu_physic_hotplug_notify,
+> +};
+> +
+> +static int __init cpu_qemu_hotplug_init(void)
+> +{
+> +	register_hotcpu_notifier(&cpu_logic_hotplug_notifier);
+> +	register_ec_gpe_notifier(&cpu_physic_hotplug_notifier);
 
-Index: linux-3.9.4/drivers/acpi/pci_root.c
-===================================================================
---- linux-3.9.4.orig/drivers/acpi/pci_root.c
-+++ linux-3.9.4/drivers/acpi/pci_root.c
-@@ -665,6 +665,7 @@ static void handle_root_bridge_removal(s
- 		kfree(ej_event);
- }
- 
-+void (*acpiphp_check_host_bridge)(acpi_handle handle);
- static void _handle_hotplug_event_root(struct work_struct *work)
- {
- 	struct acpi_pci_root *root;
-@@ -687,7 +688,11 @@ static void _handle_hotplug_event_root(s
- 		/* bus enumerate */
- 		printk(KERN_DEBUG "%s: Bus check notify on %s\n", __func__,
- 				 (char *)buffer.pointer);
--		if (!root)
-+		if (root) {
-+			request_module("acpiphp");
-+			if (acpiphp_check_host_bridge)
-+				acpiphp_check_host_bridge(handle);
-+		} else
- 			handle_root_bridge_insertion(handle);
- 
- 		break;
-Index: linux-3.9.4/drivers/pci/hotplug/acpiphp_glue.c
-===================================================================
---- linux-3.9.4.orig/drivers/pci/hotplug/acpiphp_glue.c
-+++ linux-3.9.4/drivers/pci/hotplug/acpiphp_glue.c
-@@ -1122,6 +1122,18 @@ check_sub_bridges(acpi_handle handle, u3
- 	return AE_OK ;
- }
- 
-+static void __acpiphp_check_host_bridge(acpi_handle handle)
-+{
-+	struct acpiphp_bridge *bridge;
-+
-+	bridge = acpiphp_handle_to_bridge(handle);
-+	if (bridge)
-+		acpiphp_check_bridge(bridge);
-+
-+	acpi_walk_namespace(ACPI_TYPE_DEVICE, handle,
-+		ACPI_UINT32_MAX, check_sub_bridges, NULL, NULL, NULL);
-+}
-+
- static void _handle_hotplug_event_bridge(struct work_struct *work)
- {
- 	struct acpiphp_bridge *bridge;
-@@ -1305,6 +1317,7 @@ static struct acpi_pci_driver acpi_pci_h
- int __init acpiphp_glue_init(void)
- {
- 	acpi_pci_register_driver(&acpi_pci_hp_driver);
-+	acpiphp_check_host_bridge = __acpiphp_check_host_bridge;
- 
- 	return 0;
- }
-@@ -1317,6 +1330,7 @@ int __init acpiphp_glue_init(void)
-  */
- void  acpiphp_glue_exit(void)
- {
-+	acpiphp_check_host_bridge = NULL;
- 	acpi_pci_unregister_driver(&acpi_pci_hp_driver);
- }
- 
-Index: linux-3.9.4/include/linux/pci-acpi.h
-===================================================================
---- linux-3.9.4.orig/include/linux/pci-acpi.h
-+++ linux-3.9.4/include/linux/pci-acpi.h
-@@ -43,6 +43,8 @@ static inline acpi_handle acpi_pci_get_b
- }
- #endif
- 
-+extern void (*acpiphp_check_host_bridge)(acpi_handle handle);
-+
- #ifdef CONFIG_ACPI_APEI
- extern bool aer_acpi_firmware_first(void);
- #else
+
+As the [PATCH 2/3] has no dependence on this one, so you can set [PATCH 2/3] to [PATCH 1/3] and this one
+to [PATCH 2/3]. Then you can use the xxx_ec_space_notifier directly here.
+
+> +	return 0;
+> +}
+> +
+> +static void __exit cpu_qemu_hotplug_exit(void)
+> +{
+> +	unregister_hotcpu_notifier(&cpu_logic_hotplug_notifier);
+> +	unregister_ec_gpe_notifier(&cpu_physic_hotplug_notifier);
+> +}
+> +
+> +module_init(cpu_qemu_hotplug_init);
+> +module_exit(cpu_qemu_hotplug_exit);
+
+
