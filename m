@@ -1,7 +1,7 @@
 From: Betty Dall <betty.dall@hp.com>
-Subject: [PATCH v3 6/6] PCI/AER: Provide reset_link for firmware first root port
-Date: Thu,  6 Jun 2013 12:10:51 -0600
-Message-ID: <1370542251-27387-7-git-send-email-betty.dall@hp.com>
+Subject: [PATCH v2 4/6] PCI/ACPI: Move AER severity defines to aer.h
+Date: Thu,  6 Jun 2013 12:10:49 -0600
+Message-ID: <1370542251-27387-5-git-send-email-betty.dall@hp.com>
 References: <1370542251-27387-1-git-send-email-betty.dall@hp.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <1370542251-27387-1-git-send-email-betty.dall@hp.com>
@@ -10,64 +10,75 @@ To: rjw@sisk.pl, bhelgaas@google.com, gong.chen@linux.intel.com, greg.pearson@hp
 Cc: ying.huang@intel.com, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, Betty Dall <betty.dall@hp.com>
 List-Id: linux-acpi@vger.kernel.org
 
-The firmware first path does not install the aerdrv root port
-service driver, so the firmware first root port does not have
-a reset_link callback. When a firmware first root port does not have
-a reset_link callback, use a new default reset_link similar to what
-we already do for the default_downstream_reset_link(). The firmware
-first default reset_link brings the root port out of SBR if firmware
-left it in SBR.
+The function aer_recover_queue() is a public interface and the
+severity argument uses #defines that are in the private header
+pci/pcie/aer/aerdrv.h.
 
-Changes since v1:
-Removed incorrect setting of p2p_ctrl after the read.
-
-Changes since v2:
-Treat the default case for a Root Port the same as the existing
-default case for a Downstream Link.
+This patch moves the #defines from pci/pcie/aer/aerdrv.h to 
+include/linux/aer.h.
 
 Signed-off-by: Betty Dall <betty.dall@hp.com>
 ---
 
- drivers/pci/pcie/aer/aerdrv_core.c |   17 +++++++++--------
- 1 files changed, 9 insertions(+), 8 deletions(-)
+ drivers/pci/pcie/aer/aerdrv.h |    4 ----
+ include/linux/aer.h           |   16 ++++++++++------
+ 2 files changed, 10 insertions(+), 10 deletions(-)
 
 
-diff --git a/drivers/pci/pcie/aer/aerdrv_core.c b/drivers/pci/pcie/aer/aerdrv_core.c
-index 8ec8b4f..cb29c04 100644
---- a/drivers/pci/pcie/aer/aerdrv_core.c
-+++ b/drivers/pci/pcie/aer/aerdrv_core.c
-@@ -400,16 +400,16 @@ void aer_do_secondary_bus_reset(struct pci_dev *dev)
- }
+diff --git a/drivers/pci/pcie/aer/aerdrv.h b/drivers/pci/pcie/aer/aerdrv.h
+index d12c77c..90ea3e8 100644
+--- a/drivers/pci/pcie/aer/aerdrv.h
++++ b/drivers/pci/pcie/aer/aerdrv.h
+@@ -13,10 +13,6 @@
+ #include <linux/aer.h>
+ #include <linux/interrupt.h>
  
- /**
-- * default_downstream_reset_link - default reset function for Downstream Port
-- * @dev: pointer to downstream port's pci_dev data structure
-+ * default_reset_link - default reset function
-+ * @dev: pointer to pci_dev data structure
-  *
-- * Invoked when performing link reset at Downstream Port w/ no aer driver.
-+ * Invoked when performing link reset on a Downstream Port or a
-+ * Root Port with no aer driver.
-  */
--static pci_ers_result_t default_downstream_reset_link(struct pci_dev *dev)
-+static pci_ers_result_t default_reset_link(struct pci_dev *dev)
+-#define AER_NONFATAL			0
+-#define AER_FATAL			1
+-#define AER_CORRECTABLE			2
+-
+ #define SYSTEM_ERROR_INTR_ON_MESG_MASK	(PCI_EXP_RTCTL_SECEE|	\
+ 					PCI_EXP_RTCTL_SENFEE|	\
+ 					PCI_EXP_RTCTL_SEFEE)
+diff --git a/include/linux/aer.h b/include/linux/aer.h
+index ec10e1b..0f6a9e2 100644
+--- a/include/linux/aer.h
++++ b/include/linux/aer.h
+@@ -7,6 +7,10 @@
+ #ifndef _AER_H_
+ #define _AER_H_
+ 
++#define AER_NONFATAL			0
++#define AER_FATAL			1
++#define AER_CORRECTABLE			2
++
+ struct aer_header_log_regs {
+ 	unsigned int dw0;
+ 	unsigned int dw1;
+@@ -31,9 +35,9 @@ struct aer_capability_regs {
+ 
+ #if defined(CONFIG_PCIEAER)
+ /* pci-e port driver needs this function to enable aer */
+-extern int pci_enable_pcie_error_reporting(struct pci_dev *dev);
+-extern int pci_disable_pcie_error_reporting(struct pci_dev *dev);
+-extern int pci_cleanup_aer_uncorrect_error_status(struct pci_dev *dev);
++int pci_enable_pcie_error_reporting(struct pci_dev *dev);
++int pci_disable_pcie_error_reporting(struct pci_dev *dev);
++int pci_cleanup_aer_uncorrect_error_status(struct pci_dev *dev);
+ #else
+ static inline int pci_enable_pcie_error_reporting(struct pci_dev *dev)
  {
- 	aer_do_secondary_bus_reset(dev);
--	dev_printk(KERN_DEBUG, &dev->dev,
--		"Downstream Port link has been reset\n");
-+	dev_dbg(&dev->dev, "Link has been reset\n");
- 	return PCI_ERS_RESULT_RECOVERED;
+@@ -49,10 +53,10 @@ static inline int pci_cleanup_aer_uncorrect_error_status(struct pci_dev *dev)
  }
+ #endif
  
-@@ -458,8 +458,9 @@ static pci_ers_result_t reset_link(struct pci_dev *dev)
+-extern void cper_print_aer(const char *prefix, struct pci_dev *dev,
++void cper_print_aer(const char *prefix, struct pci_dev *dev,
+ 			   int cper_severity, struct aer_capability_regs *aer);
+-extern int cper_severity_to_aer(int cper_severity);
+-extern void aer_recover_queue(int domain, unsigned int bus, unsigned int devfn,
++int cper_severity_to_aer(int cper_severity);
++void aer_recover_queue(int domain, unsigned int bus, unsigned int devfn,
+ 			      int severity);
+ #endif //_AER_H_
  
- 	if (driver && driver->reset_link) {
- 		status = driver->reset_link(udev);
--	} else if (pci_pcie_type(udev) == PCI_EXP_TYPE_DOWNSTREAM) {
--		status = default_downstream_reset_link(udev);
-+	} else if (pci_pcie_type(udev) == PCI_EXP_TYPE_DOWNSTREAM ||
-+		pci_pcie_type(udev) == PCI_EXP_TYPE_ROOT_PORT) {
-+		status = default_reset_link(udev);
- 	} else {
- 		dev_printk(KERN_DEBUG, &dev->dev,
- 			"no link-reset support at upstream device %s\n",
