@@ -1,75 +1,99 @@
 From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: [PATCH v2] ACPI / scan: do not match drivers against objects having scan handlers
-Date: Thu, 06 Jun 2013 12:56:30 +0200
-Message-ID: <5052765.IKTP5VVydy@vostro.rjw.lan>
-References: <51AC9389.3050603@intel.com> <51AD79B6.6060902@intel.com> <51AFF9FC.20303@intel.com>
+Subject: Re: [PATCH RFC v2 2/3] ec: add ec space notifier
+Date: Thu, 06 Jun 2013 12:59:28 +0200
+Message-ID: <10739719.ouMOhAfYPv@vostro.rjw.lan>
+References: <1370482835-764-1-git-send-email-lig.fnst@cn.fujitsu.com> <1370482835-764-3-git-send-email-lig.fnst@cn.fujitsu.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7Bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from hydra.sisk.pl ([212.160.235.94]:58825 "EHLO hydra.sisk.pl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932141Ab3FFKr3 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 6 Jun 2013 06:47:29 -0400
-In-Reply-To: <51AFF9FC.20303@intel.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1370482835-764-3-git-send-email-lig.fnst@cn.fujitsu.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: liguang <lig.fnst@cn.fujitsu.com>
+Cc: Len Brown <lenb@kernel.org>, Matthew Garrett <matthew.garrett@nebula.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, platform-driver-x86@vger.kernel.org, Andreas =?ISO-8859-1?Q?F=E4rber?= <afaerber@suse.de>, Igor Mammedov <imammedo@redhat.com>
 List-Id: linux-acpi@vger.kernel.org
-To: Aaron Lu <aaron.lu@intel.com>
-Cc: ACPI Devel Mailing List <linux-acpi@vger.kernel.org>, Len Brown <lenb@kernel.org>, Zhang Rui <rui.zhang@intel.com>, Jason Cassell <bluesloth600@gmail.com>, "Dmitry S. Demin" <dmitryy.demin@gmail.com>, Lan Tianyu <tianyu.lan@intel.com>
 
-On Thursday, June 06, 2013 10:54:52 AM Aaron Lu wrote:
-> With the introduction of ACPI scan handlers, an ACPI device object
-> with an ACPI scan handler attached to it must not be bound to an ACPI
-> driver any more.  Therefore it doesn't make sense to match those
-> ACPI device objects against a newly registered ACPI driver in
-> acpi_bus_match(), so make that function return 0 if the device
-> object passed to it has an ACPI scan handler attached.
+On Thursday, June 06, 2013 09:40:34 AM liguang wrote:
+> add a notifier for anyone who are instresting in
+> ec space changing.
 > 
-> This also addresses a regression related to a broken ACPI table in
-> the BIOS, where it has defined a _ROM method under the PCI root
-> bridge object.  This causes the video module to treat that object
-> as a display controller device (since only display devices are
-> supposed to have a _ROM method defined according to the ACPI spec).
-> As a result, the ACPI video driver binds to the PCI root bridge
-> object and overwrites the previously assigned driver_data field of
-> it, causing subsequent calls to acpi_get_pci_dev() to fail.
-> 
-> [rjw: Subject and changelog]
-> References: https://bugzilla.kernel.org/show_bug.cgi?id=58091
-> Reported-and-tested-by: Jason Cassell <bluesloth600@gmail.com>
-> Reported-bisected-and-tested-by: Dmitry S. Demin <dmitryy.demin@gmail.com>
-> Cc: 3.9+ <stable@kernel.org>
-> Signed-off-by: Aaron Lu <aaron.lu@intel.com>
+> Signed-off-by: liguang <lig.fnst@cn.fujitsu.com>
 
-I've applied this one already.
+I'm not going to apply this anyway, but can you please explain what's the
+problem you're trying to solve here?
 
-Thanks,
 Rafael
 
 
 > ---
-> v2:
-> Remove WARN_ON as it would cause unnecessary warnings for devices that
-> already have drivers bound.
+>  drivers/acpi/ec.c    |   32 ++++++++++++++++++++++++++++++++
+>  include/linux/acpi.h |    2 ++
+>  2 files changed, 34 insertions(+), 0 deletions(-)
 > 
-> drivers/acpi/scan.c | 6 ++++++
->  1 file changed, 6 insertions(+)
-> 
-> diff --git a/drivers/acpi/scan.c b/drivers/acpi/scan.c
-> index 5e7e991..67ce501 100644
-> --- a/drivers/acpi/scan.c
-> +++ b/drivers/acpi/scan.c
-> @@ -553,6 +553,10 @@ static int acpi_bus_match(struct device *dev, struct device_driver *drv)
->  	struct acpi_device *acpi_dev = to_acpi_device(dev);
->  	struct acpi_driver *acpi_drv = to_acpi_driver(drv);
+> diff --git a/drivers/acpi/ec.c b/drivers/acpi/ec.c
+> index edc0081..dee3417 100644
+> --- a/drivers/acpi/ec.c
+> +++ b/drivers/acpi/ec.c
+> @@ -124,6 +124,35 @@ static int EC_FLAGS_MSI; /* Out-of-spec MSI controller */
+>  static int EC_FLAGS_VALIDATE_ECDT; /* ASUStec ECDTs need to be validated */
+>  static int EC_FLAGS_SKIP_DSDT_SCAN; /* Not all BIOS survive early DSDT scan */
 >  
-> +	/* Skip ACPI device objects with scan handlers attached. */
-> +	if (acpi_dev->handler)
-> +		return 0;
+> +/* notifier chain for who are intresting in ec space changing */
+> +static RAW_NOTIFIER_HEAD(ec_space_chain);
 > +
->  	return acpi_dev->flags.match_driver
->  		&& !acpi_match_device_ids(acpi_dev, acpi_drv->ids);
+> +int __ref register_ec_space_notifier(struct notifier_block *nb)
+> +{
+> +        int ret;
+> +
+> +        ret = raw_notifier_chain_register(&ec_space_chain, nb);
+> +
+> +        return ret;
+> +}
+> +EXPORT_SYMBOL(register_ec_space_notifier);
+> +
+> +void __ref unregister_ec_space_notifier(struct notifier_block *nb)
+> +{
+> +
+> +        raw_notifier_chain_unregister(&ec_space_chain, nb);
+> +}
+> +EXPORT_SYMBOL(unregister_ec_space_notifier);
+> +
+> +static int ec_space_notify(void *data)
+> +{
+> +    int ret;
+> +
+> +    ret = __raw_notifier_call_chain(&ec_space_chain, 0, data, -1, NULL);
+> +
+> +     return notifier_to_errno(ret);
+> +}
+> +
+>  /* --------------------------------------------------------------------------
+>                               Transaction Management
+>     -------------------------------------------------------------------------- */
+> @@ -638,6 +667,9 @@ static u32 acpi_ec_gpe_handler(acpi_handle gpe_device,
+>  		wake_up(&ec->wait);
+>  		ec_check_sci(ec, acpi_ec_read_status(ec));
+>  	}
+> +
+> +	ec_space_notify(data);
+> +
+>  	return ACPI_INTERRUPT_HANDLED | ACPI_REENABLE_GPE;
 >  }
+>  
+> diff --git a/include/linux/acpi.h b/include/linux/acpi.h
+> index 17b5b59..4fe2247 100644
+> --- a/include/linux/acpi.h
+> +++ b/include/linux/acpi.h
+> @@ -158,6 +158,8 @@ extern int ec_transaction(u8 command,
+>                            const u8 *wdata, unsigned wdata_len,
+>                            u8 *rdata, unsigned rdata_len);
+>  extern acpi_handle ec_get_handle(void);
+> +extern int register_ec_space_notifier(struct notifier_block *nb);
+> +extern void unregister_ec_space_notifier(struct notifier_block *nb);
+>  
+>  #if defined(CONFIG_ACPI_WMI) || defined(CONFIG_ACPI_WMI_MODULE)
+>  
+> 
 -- 
 I speak only for myself.
 Rafael J. Wysocki, Intel Open Source Technology Center.
