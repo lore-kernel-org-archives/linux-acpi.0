@@ -1,154 +1,39 @@
-From: Aaron Lu <aaron.lu@intel.com>
-Subject: Re: [PATCH v2 1/2] acpi: video: add function to support unregister
- backlight interface
-Date: Thu, 06 Jun 2013 13:21:46 +0800
-Message-ID: <51B01C6A.9010403@intel.com>
-References: <1369973434-8742-1-git-send-email-jlee@suse.com>
+From: Geert Uytterhoeven <geert@linux-m68k.org>
+Subject: Re: [PATCH] clean up scary strncpy(dst, src, strlen(src)) uses
+Date: Thu, 6 Jun 2013 09:08:49 +0200
+Message-ID: <CAMuHMdWH=3XMTn6Qbt+af9oEOG=EhBVTaDTWqmqg3=zn70q0JQ@mail.gmail.com>
+References: <20130531161807.GA9536@www.outflux.net>
+	<20130605164804.8071867d28c1f20cad8d7d2a@linux-foundation.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga03.intel.com ([143.182.124.21]:8567 "EHLO mga03.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751467Ab3FFFVf (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 6 Jun 2013 01:21:35 -0400
-In-Reply-To: <1369973434-8742-1-git-send-email-jlee@suse.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-doc-owner@vger.kernel.org>
+In-Reply-To: <20130605164804.8071867d28c1f20cad8d7d2a@linux-foundation.org>
+Sender: linux-doc-owner@vger.kernel.org
+To: Andrew Morton <akpm@linux-foundation.org>
+Cc: Kees Cook <keescook@chromium.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, linux-doc@vger.kernel.org, linux-acpi@vger.kernel.org, linux-s390@vger.kernel.org, driverdevel <devel@driverdev.osuosl.org>, uml-devel <user-mode-linux-devel@lists.sourceforge.net>
 List-Id: linux-acpi@vger.kernel.org
-To: "Lee, Chun-Yi" <joeyli.kernel@gmail.com>
-Cc: rui.zhang@intel.com, mjg@redhat.com, rjw@sisk.pl, platform-driver-x86@vger.kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, "Lee, Chun-Yi" <jlee@suse.com>, Len Brown <lenb@kernel.org>, Carlos Corbacho <carlos@strangeworlds.co.uk>, Dmitry Torokhov <dtor@mail.ru>, Corentin Chary <corentincj@iksaif.net>, Thomas Renninger <trenn@suse.de>
 
-On 05/31/2013 12:10 PM, Lee, Chun-Yi wrote:
-> There have some situation we unregister whole acpi/video driver by downstream
-> driver just want to remove backlight control interface of acpi/video. It caues
-> we lost other functions of acpi/video, e.g. transfer acpi event to input event.
-> 
-> So, this patch add a new function, find_video_unregister_backlight, it provide
-> the interface let downstream driver can tell acpi/video to unregister backlight
-> interface of all acpi video devices. Then we can keep functions of acpi/video
-> but only remove backlight support.
+On Thu, Jun 6, 2013 at 1:48 AM, Andrew Morton <akpm@linux-foundation.org> wrote:
+>> -                     strncpy(containerpath, optarg, strlen(optarg) + 1);
+>> +                     strlcpy(containerpath, optarg, sizeof(containerpath));
+>>                       break;
+>>               case 'w':
+>>                       logfile = strdup(optarg);
+>
+> Documentation/accounting/getdelays.c:26:24: fatal error: bsd/string.h: No such file or directory
 
-It doesn't seem to be the best way to solve this problem to me, as the
-platform driver doesn't need to be dependent on ACPI video driver and
-ACPI video driver shouldn't handle things like these.
+sudo apt-get install libbsd-dev
 
-The current backlight model has limitations to solve problems like this,
-also bear in mind we have some thinkpad models that have similar
-problems. I sent the email hoping we can have a discussion on this
-topic a while ago:
-http://marc.info/?l=linux-acpi&m=136507538826872&w=2
-Unfortunately nobody seems interested. 
+strlcpy() is available almost everywhere, except in glibc, cfr.
+http://en.wikibooks.org/wiki/C_Programming/C_Reference/nonstandard/strlcpy#Criticism
 
-I'm thinking how we can deal with such problems altogether, introducing
-something like backlight manager seems to be a necessary thing to do now.
+Gr{oetje,eeting}s,
 
-Thanks,
-Aaron
+                        Geert
 
-> 
-> Reference: bko#35622
->         https://bugzilla.kernel.org/show_bug.cgi?id=35622
-> 
-> v2: Also unregister cooling devices.
-> 
-> Tested-by: Andrzej Krentosz <endrjux@gmail.com>
-> Cc: Zhang Rui <rui.zhang@intel.com>
-> Cc: Len Brown <lenb@kernel.org>
-> Cc: Rafael J. Wysocki <rjw@sisk.pl>
-> Cc: Carlos Corbacho <carlos@strangeworlds.co.uk>
-> Cc: Matthew Garrett <mjg@redhat.com>
-> Cc: Dmitry Torokhov <dtor@mail.ru>
-> Cc: Corentin Chary <corentincj@iksaif.net>
-> Cc: Aaron Lu <aaron.lu@intel.com>
-> Cc: Thomas Renninger <trenn@suse.de>
-> Signed-off-by: Lee, Chun-Yi <jlee@suse.com>
-> ---
->  drivers/acpi/video.c |   54 ++++++++++++++++++++++++++++++++++++++++++++++++++
->  include/acpi/video.h |    2 +
->  2 files changed, 56 insertions(+), 0 deletions(-)
-> 
-> diff --git a/drivers/acpi/video.c b/drivers/acpi/video.c
-> index c3932d0..f21104d 100644
-> --- a/drivers/acpi/video.c
-> +++ b/drivers/acpi/video.c
-> @@ -1861,6 +1861,60 @@ static int __init intel_opregion_present(void)
->  	return opregion;
->  }
->  
-> +static acpi_status
-> +find_video_unregister_backlight(acpi_handle handle, u32 lvl, void *context,
-> +				void **rv)
-> +{
-> +	struct acpi_device *acpi_dev;
-> +	struct acpi_video_bus *video;
-> +	struct acpi_video_device *dev, *next;
-> +
-> +	if (acpi_bus_get_device(handle, &acpi_dev))
-> +		return AE_OK;
-> +
-> +	if (!acpi_match_device_ids(acpi_dev, video_device_ids)) {
-> +		video = acpi_driver_data(acpi_dev);
-> +		acpi_video_bus_stop_devices(video);
-> +		mutex_lock(&video->device_list_lock);
-> +		list_for_each_entry_safe(dev, next, &video->video_device_list,
-> +					entry) {
-> +			if (dev->backlight) {
-> +				backlight_device_unregister(dev->backlight);
-> +				dev->backlight = NULL;
-> +				kfree(dev->brightness->levels);
-> +				kfree(dev->brightness);
-> +			}
-> +			if (dev->cooling_dev) {
-> +				sysfs_remove_link(&dev->dev->dev.kobj,
-> +						  "thermal_cooling");
-> +				sysfs_remove_link(&dev->cooling_dev->device.kobj,
-> +						  "device");
-> +				thermal_cooling_device_unregister(dev->cooling_dev);
-> +				dev->cooling_dev = NULL;
-> +			}
-> +		}
-> +		mutex_unlock(&video->device_list_lock);
-> +		acpi_video_bus_start_devices(video);
-> +	}
-> +	return AE_OK;
-> +}
-> +
-> +void acpi_video_backlight_unregister(void)
-> +{
-> +	if (!register_count) {
-> +		/*
-> +		 * If the acpi video bus is already unloaded, don't
-> +		 * unregister backlight of devices and return directly.
-> +		 */
-> +		return;
-> +	}
-> +	acpi_walk_namespace(ACPI_TYPE_DEVICE, ACPI_ROOT_OBJECT,
-> +			    ACPI_UINT32_MAX, find_video_unregister_backlight,
-> +			    NULL, NULL, NULL);
-> +	return;
-> +}
-> +EXPORT_SYMBOL(acpi_video_backlight_unregister);
-> +
->  int acpi_video_register(void)
->  {
->  	int result = 0;
-> diff --git a/include/acpi/video.h b/include/acpi/video.h
-> index 61109f2..1e810a1 100644
-> --- a/include/acpi/video.h
-> +++ b/include/acpi/video.h
-> @@ -19,11 +19,13 @@ struct acpi_device;
->  #if (defined CONFIG_ACPI_VIDEO || defined CONFIG_ACPI_VIDEO_MODULE)
->  extern int acpi_video_register(void);
->  extern void acpi_video_unregister(void);
-> +extern void acpi_video_backlight_unregister(void);
->  extern int acpi_video_get_edid(struct acpi_device *device, int type,
->  			       int device_id, void **edid);
->  #else
->  static inline int acpi_video_register(void) { return 0; }
->  static inline void acpi_video_unregister(void) { return; }
-> +static inline void acpi_video_backlight_unregister(void) { return; }
->  static inline int acpi_video_get_edid(struct acpi_device *device, int type,
->  				      int device_id, void **edid)
->  {
-> 
+--
+Geert Uytterhoeven -- There's lots of Linux beyond ia32 -- geert@linux-m68k.org
 
+In personal conversations with technical people, I call myself a hacker. But
+when I'm talking to journalists I just say "programmer" or something like that.
+                                -- Linus Torvalds
