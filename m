@@ -1,51 +1,43 @@
-From: Betty Dall <betty.dall@hp.com>
-Subject: [PATCH v3 1/6] PCI/AER: Don't parse HEST table for non-PCIe devices
-Date: Thu,  6 Jun 2013 12:10:46 -0600
-Message-ID: <1370542251-27387-2-git-send-email-betty.dall@hp.com>
+From: Joe Perches <joe@perches.com>
+Subject: Re: [PATCH v2 4/6] PCI/ACPI: Move AER severity defines to aer.h
+Date: Thu, 06 Jun 2013 11:23:07 -0700
+Message-ID: <1370542987.2209.18.camel@joe-AO722>
 References: <1370542251-27387-1-git-send-email-betty.dall@hp.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1370542251-27387-1-git-send-email-betty.dall@hp.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: rjw@sisk.pl, bhelgaas@google.com, gong.chen@linux.intel.com, greg.pearson@hp.com
-Cc: ying.huang@intel.com, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, Betty Dall <betty.dall@hp.com>
+	 <1370542251-27387-5-git-send-email-betty.dall@hp.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="ISO-8859-1"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from perches-mx.perches.com ([206.117.179.246]:39436 "EHLO
+	labridge.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1751201Ab3FFSXI (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 6 Jun 2013 14:23:08 -0400
+In-Reply-To: <1370542251-27387-5-git-send-email-betty.dall@hp.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Betty Dall <betty.dall@hp.com>
+Cc: rjw@sisk.pl, bhelgaas@google.com, gong.chen@linux.intel.com, greg.pearson@hp.com, ying.huang@intel.com, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org
 
-AER is a PCIe-only capability, so there's no point in trying to match
-a HEST PCIe structure with a non-PCIe device.
+On Thu, 2013-06-06 at 12:10 -0600, Betty Dall wrote:
+> The function aer_recover_queue() is a public interface and the
+> severity argument uses #defines that are in the private header
+> pci/pcie/aer/aerdrv.h.
+> 
+> This patch moves the #defines from pci/pcie/aer/aerdrv.h to 
+> include/linux/aer.h.
+[]
+> diff --git a/include/linux/aer.h b/include/linux/aer.h
+[]
+> -extern void cper_print_aer(const char *prefix, struct pci_dev *dev,
+> +void cper_print_aer(const char *prefix, struct pci_dev *dev,
+>  			   int cper_severity, struct aer_capability_regs *aer);
 
-Previously, a HEST global AER bridge entry (type 8) could incorrectly
-match *any* bridge, even a legacy PCI-PCI bridge, and a non-global
-HEST entry could match a legacy PCI device.
+Can you please also realign the arguments on subsequent
+lines to the open parenthesis of the first line and reflow
+then to 80 cols when appropriate?
 
-Signed-off-by: Bjorn Helgaas <bhelgaas@google.com>
-Tested-by: Betty Dall <betty.dall@hp.com>
----
-
- drivers/pci/pcie/aer/aerdrv_acpi.c |    6 ++++--
- 1 files changed, 4 insertions(+), 2 deletions(-)
+> -extern void aer_recover_queue(int domain, unsigned int bus, unsigned int devfn,
+> +void aer_recover_queue(int domain, unsigned int bus, unsigned int devfn,
+>  			      int severity);
 
 
-diff --git a/drivers/pci/pcie/aer/aerdrv_acpi.c b/drivers/pci/pcie/aer/aerdrv_acpi.c
-index 5194a7d..4f798ab 100644
---- a/drivers/pci/pcie/aer/aerdrv_acpi.c
-+++ b/drivers/pci/pcie/aer/aerdrv_acpi.c
-@@ -59,8 +59,7 @@ static int aer_hest_parse(struct acpi_hest_header *hest_hdr, void *data)
- 
- 	p = (struct acpi_hest_aer_common *)(hest_hdr + 1);
- 	if (p->flags & ACPI_HEST_GLOBAL) {
--		if ((pci_is_pcie(info->pci_dev) &&
--		     pci_pcie_type(info->pci_dev) == pcie_type) || bridge)
-+		if ((pci_pcie_type(info->pci_dev) == pcie_type) || bridge)
- 			ff = !!(p->flags & ACPI_HEST_FIRMWARE_FIRST);
- 	} else
- 		if (hest_match_pci(p, info->pci_dev))
-@@ -89,6 +88,9 @@ static void aer_set_firmware_first(struct pci_dev *pci_dev)
- 
- int pcie_aer_get_firmware_first(struct pci_dev *dev)
- {
-+	if (!pci_is_pcie(dev))
-+		return 0;
-+
- 	if (!dev->__aer_firmware_first_valid)
- 		aer_set_firmware_first(dev);
- 	return dev->__aer_firmware_first;
