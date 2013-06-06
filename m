@@ -1,7 +1,7 @@
 From: Betty Dall <betty.dall@hp.com>
-Subject: [PATCH v2 4/6] PCI/ACPI: Move AER severity defines to aer.h
-Date: Thu,  6 Jun 2013 12:10:49 -0600
-Message-ID: <1370542251-27387-5-git-send-email-betty.dall@hp.com>
+Subject: [PATCH v3 5/6] ACPI/APEI: Force fatal AER severity when bus has been reset
+Date: Thu,  6 Jun 2013 12:10:50 -0600
+Message-ID: <1370542251-27387-6-git-send-email-betty.dall@hp.com>
 References: <1370542251-27387-1-git-send-email-betty.dall@hp.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <1370542251-27387-1-git-send-email-betty.dall@hp.com>
@@ -10,75 +10,48 @@ To: rjw@sisk.pl, bhelgaas@google.com, gong.chen@linux.intel.com, greg.pearson@hp
 Cc: ying.huang@intel.com, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, Betty Dall <betty.dall@hp.com>
 List-Id: linux-acpi@vger.kernel.org
 
-The function aer_recover_queue() is a public interface and the
-severity argument uses #defines that are in the private header
-pci/pcie/aer/aerdrv.h.
+The CPER error record has a reset bit that indicates that the platform
+has reset the bus. The reset bit can be set for any severity error
+including recoverable.  From the AER code path's perspective,
+any error is fatal if the bus has been reset. This patch upgrades the
+severity of the AER recovery to AER_FATAL whenever the CPER error record
+indicates that the bus has been reset.
 
-This patch moves the #defines from pci/pcie/aer/aerdrv.h to 
-include/linux/aer.h.
+Changes since v1:
+Fixed a typo in comment.
+
+Changes since v2:
+Set the aer_severity to AER_FATAL rather than using cper_severity_to_aer().
+Simplified the comment.
 
 Signed-off-by: Betty Dall <betty.dall@hp.com>
 ---
 
- drivers/pci/pcie/aer/aerdrv.h |    4 ----
- include/linux/aer.h           |   16 ++++++++++------
- 2 files changed, 10 insertions(+), 10 deletions(-)
+ drivers/acpi/apei/ghes.c |   10 ++++++++++
+ 1 files changed, 10 insertions(+), 0 deletions(-)
 
 
-diff --git a/drivers/pci/pcie/aer/aerdrv.h b/drivers/pci/pcie/aer/aerdrv.h
-index d12c77c..90ea3e8 100644
---- a/drivers/pci/pcie/aer/aerdrv.h
-+++ b/drivers/pci/pcie/aer/aerdrv.h
-@@ -13,10 +13,6 @@
- #include <linux/aer.h>
- #include <linux/interrupt.h>
- 
--#define AER_NONFATAL			0
--#define AER_FATAL			1
--#define AER_CORRECTABLE			2
--
- #define SYSTEM_ERROR_INTR_ON_MESG_MASK	(PCI_EXP_RTCTL_SECEE|	\
- 					PCI_EXP_RTCTL_SENFEE|	\
- 					PCI_EXP_RTCTL_SEFEE)
-diff --git a/include/linux/aer.h b/include/linux/aer.h
-index ec10e1b..0f6a9e2 100644
---- a/include/linux/aer.h
-+++ b/include/linux/aer.h
-@@ -7,6 +7,10 @@
- #ifndef _AER_H_
- #define _AER_H_
- 
-+#define AER_NONFATAL			0
-+#define AER_FATAL			1
-+#define AER_CORRECTABLE			2
+diff --git a/drivers/acpi/apei/ghes.c b/drivers/acpi/apei/ghes.c
+index d668a8a..ab31551 100644
+--- a/drivers/acpi/apei/ghes.c
++++ b/drivers/acpi/apei/ghes.c
+@@ -449,9 +449,19 @@ static void ghes_do_proc(struct ghes *ghes,
+ 			    pcie_err->validation_bits & CPER_PCIE_VALID_AER_INFO) {
+ 				unsigned int devfn;
+ 				int aer_severity;
 +
- struct aer_header_log_regs {
- 	unsigned int dw0;
- 	unsigned int dw1;
-@@ -31,9 +35,9 @@ struct aer_capability_regs {
- 
- #if defined(CONFIG_PCIEAER)
- /* pci-e port driver needs this function to enable aer */
--extern int pci_enable_pcie_error_reporting(struct pci_dev *dev);
--extern int pci_disable_pcie_error_reporting(struct pci_dev *dev);
--extern int pci_cleanup_aer_uncorrect_error_status(struct pci_dev *dev);
-+int pci_enable_pcie_error_reporting(struct pci_dev *dev);
-+int pci_disable_pcie_error_reporting(struct pci_dev *dev);
-+int pci_cleanup_aer_uncorrect_error_status(struct pci_dev *dev);
- #else
- static inline int pci_enable_pcie_error_reporting(struct pci_dev *dev)
- {
-@@ -49,10 +53,10 @@ static inline int pci_cleanup_aer_uncorrect_error_status(struct pci_dev *dev)
- }
- #endif
- 
--extern void cper_print_aer(const char *prefix, struct pci_dev *dev,
-+void cper_print_aer(const char *prefix, struct pci_dev *dev,
- 			   int cper_severity, struct aer_capability_regs *aer);
--extern int cper_severity_to_aer(int cper_severity);
--extern void aer_recover_queue(int domain, unsigned int bus, unsigned int devfn,
-+int cper_severity_to_aer(int cper_severity);
-+void aer_recover_queue(int domain, unsigned int bus, unsigned int devfn,
- 			      int severity);
- #endif //_AER_H_
- 
+ 				devfn = PCI_DEVFN(pcie_err->device_id.device,
+ 						  pcie_err->device_id.function);
+ 				aer_severity = cper_severity_to_aer(sev);
++
++				/*
++				 * If firmware reset the component to contain
++				 * the error, we must reinitialize it before
++				 * use, so treat it as a fatal AER error.
++				 */
++				if (gdata->flags & CPER_SEC_RESET)
++					aer_severity = AER_FATAL;
++
+ 				aer_recover_queue(pcie_err->device_id.segment,
+ 						  pcie_err->device_id.bus,
+ 						  devfn, aer_severity);
