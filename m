@@ -1,14 +1,14 @@
 From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: [GIT PULL] Power management and ACPI fixes for v3.10-rc5
-Date: Sat, 08 Jun 2013 01:19:23 +0200
-Message-ID: <5684767.k0MV6s4nnb@vostro.rjw.lan>
+Subject: acpi_sba_ioc_driver breakage (was: Re: [GIT PULL] Power management and ACPI fixes for v3.10-rc5)
+Date: Sat, 08 Jun 2013 01:54:56 +0200
+Message-ID: <1951427.655ut1iKp4@vostro.rjw.lan>
 References: <3863425.93Oeg2bhJF@vostro.rjw.lan> <CA+8MBb+NAHvTCc-NMz4+HqkDc=VUWJ8gDz7ji=HtFiDbcpWo4Q@mail.gmail.com> <CA+8MBbJC9hKCjcZVK1tvpjr9DAwY_wAPmarqCWa7X-cq7Bph0A@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7Bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Return-path: <linux-pm-owner@vger.kernel.org>
 In-Reply-To: <CA+8MBbJC9hKCjcZVK1tvpjr9DAwY_wAPmarqCWa7X-cq7Bph0A@mail.gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
+Sender: linux-pm-owner@vger.kernel.org
 To: Tony Luck <tony.luck@gmail.com>
 Cc: Aaron Lu <aaron.lu@intel.com>, Linus Torvalds <torvalds@linux-foundation.org>, LKML <linux-kernel@vger.kernel.org>, Linux PM list <linux-pm@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
@@ -51,7 +51,19 @@ On Friday, June 07, 2013 04:02:11 PM Tony Luck wrote:
 > Is my problem that this driver has (or attaches) a "scan handler"
 > where it shouldn't ... and I just need to stop it doing that?
 
-Looking into that.
+The driver doesn't, but the device it attempts to bind to does.
+It looks like that device object has multiple device IDs and one of them
+matches one of the existing ACPI scan handlers, but I need a confirmation.
 
-Thanks,
+Can you please send me the output of
+
+$ find /sys/devices/LNXSYSTM\:00/ -name modalias -print -exec cat {} \;
+
+from the affected system?
+
 Rafael
+
+
+-- 
+I speak only for myself.
+Rafael J. Wysocki, Intel Open Source Technology Center.
