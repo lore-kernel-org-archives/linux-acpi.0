@@ -1,53 +1,56 @@
-From: Aaron Lu <aaron.lwe@gmail.com>
-Subject: Re: New prototype computer problem with S3 suspend
-Date: Fri, 07 Jun 2013 09:17:26 +0800
-Message-ID: <51B134A6.1020808@gmail.com>
-References: <51B0D0DE.30902@pr.hu>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: [PATCH] ACPI / cpufreq: Add ACPI processor device IDs to acpi-cpufreq
+Date: Fri, 07 Jun 2013 04:08:15 +0200
+Message-ID: <2339263.DWrxye4sI1@vostro.rjw.lan>
+References: <1511440.Xd41mcOoEa@vostro.rjw.lan> <20130606230947.GA31618@kroah.com> <2456209.UJDSHpYIkx@vostro.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-pb0-f54.google.com ([209.85.160.54]:35891 "EHLO
-	mail-pb0-f54.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754553Ab3FGBRH (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 6 Jun 2013 21:17:07 -0400
-In-Reply-To: <51B0D0DE.30902@pr.hu>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7Bit
+Return-path: <linux-pm-owner@vger.kernel.org>
+In-Reply-To: <2456209.UJDSHpYIkx@vostro.rjw.lan>
+Sender: linux-pm-owner@vger.kernel.org
+To: ACPI Devel Maling List <linux-acpi@vger.kernel.org>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Linux PM list <linux-pm@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
-To: Boszormenyi Zoltan <zboszor@pr.hu>
-Cc: dri-devel@lists.freedesktop.org, lkml <linux-kernel@vger.kernel.org>, linux-acpi@vger.kernel.org, Steve Tilden <stilden@sicom.com>
 
-On 06/07/2013 02:11 AM, Boszormenyi Zoltan wrote:
-> Hi,
-> 
-> we are working on an Intel Atom-based embedded PC and I have to
-> make suspend-to-RAM work but I can't seem to succeed.
-> 
-> The symptom is that quite often, the machine resumes immediately
-> after pm-suspend. Sometimes more than 20 times out of 50 attempts.
+From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 
-Can you please file a bug about this?
-https://bugzilla.kernel.org
+After commit ac212b6 (ACPI / processor: Use common hotplug
+infrastructure) the acpi-cpufreq module is not loaded automatically
+by udev which fails to match it against the x86cpu modalias.  Still,
+it can be matched against ACPI processor device IDs, which even
+makes more sense, because it depends on the ACPI processor driver
+that uses those device IDs to bind to processor devices.
 
-> 
-> I have tried 3.7.10, 3.9.4, 3.10-rc[234] and the linux-next branch from the
-> git://git.kernel.org/pub/scm/linux/kernel/git/rafael/linux-pm.git repository.
-> The attached dmesg is from today's linux-pm/linux-next plus the
-> latest drm-fixes patchset posted by Dave Airlie.
-> 
-> I have tried disabling wakeup devices via /proc/acpi/wakeup and via sysfs files.
-> (/sys/devices/.../wakeup)
+For this reason, add ACPI processor device IDs to acpi-cpufreq.
 
->From the dmesg, the following three devices are still armed with wakeup
-capability and might be the cause:
+Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+---
 
-i8042 kbd 00:03: System wakeup enabled by ACPI
-PM: suspend of devices complete after 578.883 msecs
-PM: late suspend of devices complete after 0.279 msecs
-pcieport 0000:00:1c.1: System wakeup enabled by ACPI
-ehci-pci 0000:00:1d.7: System wakeup enabled by ACPI
-PM: noirq suspend of devices complete after 31.946 msecs
+This patch is against the acpi-hotplug branch of the linux-pm.git tree which
+is part of linux-next.
 
-Anyway, please file a bug there, thanks.
+Thanks,
+Rafael
 
--Aaron
+---
+ drivers/cpufreq/acpi-cpufreq.c |    7 +++++++
+ 1 file changed, 7 insertions(+)
+
+Index: linux-pm/drivers/cpufreq/acpi-cpufreq.c
+===================================================================
+--- linux-pm.orig/drivers/cpufreq/acpi-cpufreq.c
++++ linux-pm/drivers/cpufreq/acpi-cpufreq.c
+@@ -1034,4 +1034,11 @@ static const struct x86_cpu_id acpi_cpuf
+ };
+ MODULE_DEVICE_TABLE(x86cpu, acpi_cpufreq_ids);
+ 
++static const struct acpi_device_id processor_device_ids[] = {
++	{ACPI_PROCESSOR_OBJECT_HID, },
++	{ACPI_PROCESSOR_DEVICE_HID, },
++	{},
++};
++MODULE_DEVICE_TABLE(acpi, processor_device_ids);
++
+ MODULE_ALIAS("acpi");
+
