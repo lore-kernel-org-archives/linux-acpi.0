@@ -1,69 +1,61 @@
-From: Boszormenyi Zoltan <zboszor@pr.hu>
-Subject: Re: New prototype computer problem with S3 suspend
-Date: Fri, 07 Jun 2013 10:14:03 +0200
-Message-ID: <51B1964B.3090007@pr.hu>
-References: <51B0D0DE.30902@pr.hu> <51B134A6.1020808@gmail.com>
+From: Paul Menzel <paulepanter@users.sourceforge.net>
+Subject: OT: Best practices for indenting ASL files
+Date: Fri, 07 Jun 2013 10:53:14 +0200
+Message-ID: <1370595194.21257.9.camel@mattotaupa>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1;
-	format=flowed
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: multipart/signed; micalg="pgp-sha1"; protocol="application/pgp-signature";
+	boundary="=-jrzeNIru9sZqg5aFjI8Y"
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ns.km31432.keymachine.de ([87.118.86.135]:48603 "EHLO
-	mail.cybertec.at" rhost-flags-OK-FAIL-OK-OK) by vger.kernel.org
-	with ESMTP id S1752532Ab3FGIO1 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 7 Jun 2013 04:14:27 -0400
-In-Reply-To: <51B134A6.1020808@gmail.com>
+Received: from mail.gw90.de ([188.40.100.199]:46787 "EHLO mail.gw90.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753741Ab3FGIxZ (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 7 Jun 2013 04:53:25 -0400
+Received: from e178068118.adsl.alicedsl.de ([85.178.68.118] helo=[192.168.2.49])
+	by mail.gw90.de with esmtpsa (TLS1.0:DHE_RSA_CAMELLIA_256_CBC_SHA1:256)
+	(Exim 4.80)
+	(envelope-from <paulepanter@users.sourceforge.net>)
+	id 1UksQD-0005m2-VF
+	for linux-acpi@vger.kernel.org; Fri, 07 Jun 2013 08:53:22 +0000
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Aaron Lu <aaron.lwe@gmail.com>
-Cc: dri-devel@lists.freedesktop.org, lkml <linux-kernel@vger.kernel.org>, linux-acpi@vger.kernel.org, Steve Tilden <stilden@sicom.com>
+To: linux-acpi@vger.kernel.org
 
-2013-06-07 03:17 keltez=E9ssel, Aaron Lu =EDrta:
-> On 06/07/2013 02:11 AM, Boszormenyi Zoltan wrote:
->> Hi,
->>
->> we are working on an Intel Atom-based embedded PC and I have to
->> make suspend-to-RAM work but I can't seem to succeed.
->>
->> The symptom is that quite often, the machine resumes immediately
->> after pm-suspend. Sometimes more than 20 times out of 50 attempts.
-> Can you please file a bug about this?
-> https://bugzilla.kernel.org
->
->> I have tried 3.7.10, 3.9.4, 3.10-rc[234] and the linux-next branch f=
-rom the
->> git://git.kernel.org/pub/scm/linux/kernel/git/rafael/linux-pm.git re=
-pository.
->> The attached dmesg is from today's linux-pm/linux-next plus the
->> latest drm-fixes patchset posted by Dave Airlie.
->>
->> I have tried disabling wakeup devices via /proc/acpi/wakeup and via =
-sysfs files.
->> (/sys/devices/.../wakeup)
-> >From the dmesg, the following three devices are still armed with wak=
-eup
-> capability and might be the cause:
->
-> i8042 kbd 00:03: System wakeup enabled by ACPI
-> PM: suspend of devices complete after 578.883 msecs
-> PM: late suspend of devices complete after 0.279 msecs
-> pcieport 0000:00:1c.1: System wakeup enabled by ACPI
-> ehci-pci 0000:00:1d.7: System wakeup enabled by ACPI
-> PM: noirq suspend of devices complete after 31.946 msecs
->
-> Anyway, please file a bug there, thanks.
 
-=46or the suspend bug:
-https://bugzilla.kernel.org/show_bug.cgi?id=3D59401
+--=-jrzeNIru9sZqg5aFjI8Y
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
-=46or the warnings in i915:
-https://bugs.freedesktop.org/show_bug.cgi?id=3D65497
+Dear Linux ACPI folks,
 
-Best regards,
-Zolt=E1n B=F6sz=F6rm=E9nyi
 
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+we have a lot of ASL files in coreboot [1], a free firmware for hardware
+initialization.
+
+As you can see in [2] for example, we struggle with whitespace issues.
+
+Could you recommend best practices how to indent ASL files?
+
+
+Thanks,
+
+Paul
+
+
+[1] http://www.coreboot.org/
+[2] http://review.coreboot.org/#/c/3403/2/src/ec/lenovo/h8/acpi/ec.asl
+
+--=-jrzeNIru9sZqg5aFjI8Y
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: This is a digitally signed message part
+Content-Transfer-Encoding: 7bit
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.12 (GNU/Linux)
+
+iEYEABECAAYFAlGxn3oACgkQPX1aK2wOHVhCdwCfTaflxMgX0gU5xmQCHWT9ghNU
+b5sAn3GNxOwnbh2FXcsL0Stp5fkne2Ug
+=uu+7
+-----END PGP SIGNATURE-----
+
+--=-jrzeNIru9sZqg5aFjI8Y--
+
