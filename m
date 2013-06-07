@@ -1,61 +1,111 @@
-From: Paul Menzel <paulepanter@users.sourceforge.net>
-Subject: OT: Best practices for indenting ASL files
-Date: Fri, 07 Jun 2013 10:53:14 +0200
-Message-ID: <1370595194.21257.9.camel@mattotaupa>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: [GIT PULL] Power management and ACPI fixes for v3.10-rc5
+Date: Fri, 07 Jun 2013 14:51:58 +0200
+Message-ID: <3863425.93Oeg2bhJF@vostro.rjw.lan>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg="pgp-sha1"; protocol="application/pgp-signature";
-	boundary="=-jrzeNIru9sZqg5aFjI8Y"
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7Bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail.gw90.de ([188.40.100.199]:46787 "EHLO mail.gw90.de"
+Received: from hydra.sisk.pl ([212.160.235.94]:59505 "EHLO hydra.sisk.pl"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753741Ab3FGIxZ (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 7 Jun 2013 04:53:25 -0400
-Received: from e178068118.adsl.alicedsl.de ([85.178.68.118] helo=[192.168.2.49])
-	by mail.gw90.de with esmtpsa (TLS1.0:DHE_RSA_CAMELLIA_256_CBC_SHA1:256)
-	(Exim 4.80)
-	(envelope-from <paulepanter@users.sourceforge.net>)
-	id 1UksQD-0005m2-VF
-	for linux-acpi@vger.kernel.org; Fri, 07 Jun 2013 08:53:22 +0000
+	id S1752118Ab3FGMmx (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 7 Jun 2013 08:42:53 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org
+To: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: LKML <linux-kernel@vger.kernel.org>, Linux PM list <linux-pm@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>
+
+Hi Linus,
+
+Please pull from the git repository at
+
+  git://git.kernel.org/pub/scm/linux/kernel/git/rafael/linux-pm.git pm+acpi-3.10-rc5
+
+to receive power management and ACPI fixes for v3.10-rc5 with top-most
+commit c6617b39c39d8735c912bb4efd2f735fedff5052
+
+  Merge branch 'pm-fixes'
+
+on top of commit d683b96b072dc4680fc74964eca77e6a23d1fa6e
+
+  Linux 3.10-rc4
+
+These fixes emerged after my previous pull request.  They fix one recent
+regression, a few regressions introduced in 3.9 and 3.8, and a couple of
+long-standing issues.  A couple of blacklist entries for systems known
+to misbehave are added too.
+
+Included are:
+
+- Fix for an ACPI PM regression introduced in 3.9 causing Toshiba
+  P870-303 to crash during boot. From yours truly.
+
+- ACPI fix for an issue causing some drivers to attempt to bind to
+  devices they shouldn't touch introduced in 3.9 (a broken BIOS is
+  requisite to trigger this). From Aaron Lu.
+
+- Fix for a recent cpufreq regression related to a possible race with
+  CPU offline. From Michael Wang.
+
+- Fix for an ACPI cpufreq regression introduced in 3.8 causing turbo
+  frequencies to be underutilized in some cases. From Ross Lagerwall.
+
+- cpufreq-cpu0 driver fix related to incorrect clock ACPI usage from
+  Guennadi Liakhovetski.
+
+- HP WMI driver fix for an issue causing GPS initialization and
+  poweroff failures on HP Elitebook 6930p.  From Lan Tianyu.
+
+- APEI (ACPI Platform Error Interface) fix for an issue in the error
+  code path in ghes_probe(). From Wei Yongjun.
+
+- New ACPI video driver blacklist entries for HP m4 and HP Pavilion
+  g6 from Alex Hung and Ash Willis.
+
+Thanks!
 
 
---=-jrzeNIru9sZqg5aFjI8Y
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+---------------
 
-Dear Linux ACPI folks,
+Aaron Lu (1):
+      ACPI / scan: do not match drivers against objects having scan handlers
 
+Alex Hung (1):
+      ACPI / video: ignore BIOS initial backlight value for HP m4
 
-we have a lot of ASL files in coreboot [1], a free firmware for hardware
-initialization.
+Ash Willis (1):
+      ACPI / video: ignore BIOS initial backlight value for HP Pavilion g6
 
-As you can see in [2] for example, we struggle with whitespace issues.
+Guennadi Liakhovetski (1):
+      cpufreq: cpufreq-cpu0: use the exact frequency for clk_set_rate()
 
-Could you recommend best practices how to indent ASL files?
+Michael Wang (1):
+      cpufreq: protect 'policy->cpus' from offlining during __gov_queue_work()
 
+Rafael J. Wysocki (1):
+      ACPI / PM: Do not execute _PS0 for devices without _PSC during initialization
 
-Thanks,
+Ross Lagerwall (1):
+      acpi-cpufreq: set current frequency based on target P-State
 
-Paul
+Wei Yongjun (1):
+      ACPI / APEI: fix error return code in ghes_probe()
 
+Lan Tianyu (1):
+      x86 / platform / hp_wmi: Fix bluetooth_rfkill misuse in hp_wmi_rfkill_setup()
 
-[1] http://www.coreboot.org/
-[2] http://review.coreboot.org/#/c/3403/2/src/ec/lenovo/h8/acpi/ec.asl
+---------------
 
---=-jrzeNIru9sZqg5aFjI8Y
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: This is a digitally signed message part
-Content-Transfer-Encoding: 7bit
+ drivers/acpi/apei/ghes.c           |    7 ++++---
+ drivers/acpi/device_pm.c           |   10 ++++++----
+ drivers/acpi/scan.c                |    4 ++++
+ drivers/acpi/video.c               |   16 ++++++++++++++++
+ drivers/cpufreq/acpi-cpufreq.c     |    4 ++--
+ drivers/cpufreq/cpufreq-cpu0.c     |    5 +++--
+ drivers/cpufreq/cpufreq_governor.c |    3 +++
+ drivers/platform/x86/hp-wmi.c      |    2 +-
+ 8 files changed, 39 insertions(+), 12 deletions(-)
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.12 (GNU/Linux)
-
-iEYEABECAAYFAlGxn3oACgkQPX1aK2wOHVhCdwCfTaflxMgX0gU5xmQCHWT9ghNU
-b5sAn3GNxOwnbh2FXcsL0Stp5fkne2Ug
-=uu+7
------END PGP SIGNATURE-----
-
---=-jrzeNIru9sZqg5aFjI8Y--
-
+-- 
+I speak only for myself.
+Rafael J. Wysocki, Intel Open Source Technology Center.
