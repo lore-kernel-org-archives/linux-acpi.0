@@ -1,42 +1,77 @@
-From: Lv Zheng <lv.zheng@intel.com>
-Subject: [PATCH 16/16] ACPICA: Update version to 20130517
-Date: Sat,  8 Jun 2013 09:01:37 +0800
-Message-ID: <b3e4f6edabc8edd6f5c2a5c230393dae4bf5d323.1369274559.git.lv.zheng@intel.com>
-References: <cover.1369274558.git.lv.zheng@intel.com>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: [PATCH] ACPI / video: Do not bind to device objects with a driver or scan handler
+Date: Sat, 08 Jun 2013 16:14:53 +0200
+Message-ID: <8441239.yeE1QYIOsS@vostro.rjw.lan>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7Bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga01.intel.com ([192.55.52.88]:46310 "EHLO mga01.intel.com"
+Received: from hydra.sisk.pl ([212.160.235.94]:60089 "EHLO hydra.sisk.pl"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756445Ab3FHBB4 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 7 Jun 2013 21:01:56 -0400
-In-Reply-To: <cover.1369274558.git.lv.zheng@intel.com>
+	id S1751680Ab3FHOFq (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Sat, 8 Jun 2013 10:05:46 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Robert Moore <robert.moore@intel.com>, Len Brown <len.brown@intel.com>
-Cc: Lv Zheng <lv.zheng@intel.com>, linux-acpi@vger.kernel.org
+To: ACPI Devel Maling List <linux-acpi@vger.kernel.org>
+Cc: LKML <linux-kernel@vger.kernel.org>, Aaron Lu <aaron.lu@intel.com>
 
-From: Bob Moore <robert.moore@intel.com>
+From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 
-Version 20130517.
+With the introduction of ACPI scan handlers, ACPI device objects
+with an ACPI scan handler attached to them must not be bound to
+an ACPI driver any more.  Unfortunately, however, the ACPI video
+driver attempts to do just that if there is a _ROM ACPI control
+method defined under a device object with an ACPI scan handler.
 
-Signed-off-by: Bob Moore <robert.moore@intel.com>
-Signed-off-by: Lv Zheng <lv.zheng@intel.com>
+Prevent that from happening by making the video driver's "add"
+routine check if the device object already has a driver or
+ACPI scan handler attached to it and return an error code in
+that case.  That is not sufficient, though, because
+acpi_bus_driver_init() would then clear the device object's
+driver_data that may be set by the scan handler attached to it,
+so for the fix to work acpi_bus_driver_init() has to be modified
+to leave driver_data as is on errors.
+
+References: https://bugzilla.kernel.org/show_bug.cgi?id=58091
+Reported-and-bisected-by: Dmitry S. Demin <dmitryy.demin@gmail.com>
+Reported-and-tested-by: Jason Cassell <bluesloth600@gmail.com>
+Tracked-down-by: Aaron Lu <aaron.lu@intel.com>
+Cc: 3.9+ <stable@kernel.org>
+Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 ---
- include/acpi/acpixf.h |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/acpi/scan.c  |    5 +----
+ drivers/acpi/video.c |    3 +++
+ 2 files changed, 4 insertions(+), 4 deletions(-)
 
-diff --git a/include/acpi/acpixf.h b/include/acpi/acpixf.h
-index 5d9bf46..1b09300 100644
---- a/include/acpi/acpixf.h
-+++ b/include/acpi/acpixf.h
-@@ -46,7 +46,7 @@
+Index: linux-pm/drivers/acpi/video.c
+===================================================================
+--- linux-pm.orig/drivers/acpi/video.c
++++ linux-pm/drivers/acpi/video.c
+@@ -1722,6 +1722,9 @@ static int acpi_video_bus_add(struct acp
+ 	int error;
+ 	acpi_status status;
  
- /* Current ACPICA subsystem version in YYYYMMDD format */
++	if (device->handler || device->driver)
++		return -EINVAL;
++
+ 	status = acpi_walk_namespace(ACPI_TYPE_DEVICE,
+ 				device->parent->handle, 1,
+ 				acpi_video_bus_match, NULL,
+Index: linux-pm/drivers/acpi/scan.c
+===================================================================
+--- linux-pm.orig/drivers/acpi/scan.c
++++ linux-pm/drivers/acpi/scan.c
+@@ -1133,11 +1133,8 @@ acpi_bus_driver_init(struct acpi_device
+ 		return -ENOSYS;
  
--#define ACPI_CA_VERSION                 0x20130418
-+#define ACPI_CA_VERSION                 0x20130517
+ 	result = driver->ops.add(device);
+-	if (result) {
+-		device->driver = NULL;
+-		device->driver_data = NULL;
++	if (result)
+ 		return result;
+-	}
  
- #include <acpi/acconfig.h>
- #include <acpi/actypes.h>
--- 
-1.7.10
+ 	device->driver = driver;
+ 
 
