@@ -1,13 +1,13 @@
 From: Lv Zheng <lv.zheng@intel.com>
-Subject: [PATCH 01/16] ACPICA: Split buffer dump routines into separate file
-Date: Sat,  8 Jun 2013 08:57:47 +0800
-Message-ID: <cf0a4a2644066d05799e6fb76b0fa08037e21066.1369274559.git.lv.zheng@intel.com>
+Subject: [PATCH 02/16] ACPICA: Split internal error msg routines to a separate file
+Date: Sat,  8 Jun 2013 08:58:00 +0800
+Message-ID: <8cde0c9be70a6ce0f03d4bfeda73213db7a9a167.1369274559.git.lv.zheng@intel.com>
 References: <cover.1369274558.git.lv.zheng@intel.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga11.intel.com ([192.55.52.93]:18587 "EHLO mga11.intel.com"
+Received: from mga09.intel.com ([134.134.136.24]:35355 "EHLO mga09.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755647Ab3FHA6M (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 7 Jun 2013 20:58:12 -0400
+	id S1755647Ab3FHA61 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 7 Jun 2013 20:58:27 -0400
 In-Reply-To: <cover.1369274558.git.lv.zheng@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
@@ -16,41 +16,95 @@ Cc: Lv Zheng <lv.zheng@intel.com>, linux-acpi@vger.kernel.org
 
 From: Bob Moore <robert.moore@intel.com>
 
-To enhance configurability of ACPICA.  New file is
-utilities/utbuffer.c
+Improves configurability of ACPICA.
 
 Signed-off-by: Bob Moore <robert.moore@intel.com>
 Signed-off-by: Lv Zheng <lv.zheng@intel.com>
 ---
- drivers/acpi/acpica/Makefile   |    1 +
- drivers/acpi/acpica/utbuffer.c |  201 ++++++++++++++++++++++++++++++++++++++++
- drivers/acpi/acpica/utdebug.c  |  148 +----------------------------
- 3 files changed, 203 insertions(+), 147 deletions(-)
- create mode 100644 drivers/acpi/acpica/utbuffer.c
+ drivers/acpi/acpica/Makefile    |    1 +
+ drivers/acpi/acpica/acutils.h   |   42 ++++++
+ drivers/acpi/acpica/uterror.c   |  289 +++++++++++++++++++++++++++++++++++++++
+ drivers/acpi/acpica/uteval.c    |    2 +-
+ drivers/acpi/acpica/utxferror.c |  277 -------------------------------------
+ 5 files changed, 333 insertions(+), 278 deletions(-)
+ create mode 100644 drivers/acpi/acpica/uterror.c
 
 diff --git a/drivers/acpi/acpica/Makefile b/drivers/acpi/acpica/Makefile
-index 29b3dab..474901e 100644
+index 474901e..987bf41 100644
 --- a/drivers/acpi/acpica/Makefile
 +++ b/drivers/acpi/acpica/Makefile
-@@ -146,6 +146,7 @@ acpi-y +=		\
- acpi-y +=		\
- 	utaddress.o	\
- 	utalloc.o	\
-+	utbuffer.o	\
- 	utcopy.o	\
- 	utexcep.o	\
+@@ -152,6 +152,7 @@ acpi-y +=		\
  	utdebug.o	\
-diff --git a/drivers/acpi/acpica/utbuffer.c b/drivers/acpi/acpica/utbuffer.c
+ 	utdecode.o	\
+ 	utdelete.o	\
++	uterror.o	\
+ 	uteval.o	\
+ 	utglobal.o	\
+ 	utids.o		\
+diff --git a/drivers/acpi/acpica/acutils.h b/drivers/acpi/acpica/acutils.h
+index 19e5cf7..d552036 100644
+--- a/drivers/acpi/acpica/acutils.h
++++ b/drivers/acpi/acpica/acutils.h
+@@ -87,6 +87,48 @@ extern const char *acpi_gbl_fc_decode[];
+ extern const char *acpi_gbl_pt_decode[];
+ #endif
+ 
++/*
++ * For the iASL compiler case, the output is redirected to stderr so that
++ * any of the various ACPI errors and warnings do not appear in the output
++ * files, for either the compiler or disassembler portions of the tool.
++ */
++#ifdef ACPI_ASL_COMPILER
++
++#include <stdio.h>
++extern FILE *acpi_gbl_output_file;
++
++#define ACPI_MSG_REDIRECT_BEGIN \
++	FILE                            *output_file = acpi_gbl_output_file; \
++	acpi_os_redirect_output (stderr);
++
++#define ACPI_MSG_REDIRECT_END \
++	acpi_os_redirect_output (output_file);
++
++#else
++/*
++ * non-iASL case - no redirection, nothing to do
++ */
++#define ACPI_MSG_REDIRECT_BEGIN
++#define ACPI_MSG_REDIRECT_END
++#endif
++
++/*
++ * Common error message prefixes
++ */
++#define ACPI_MSG_ERROR          "ACPI Error: "
++#define ACPI_MSG_EXCEPTION      "ACPI Exception: "
++#define ACPI_MSG_WARNING        "ACPI Warning: "
++#define ACPI_MSG_INFO           "ACPI: "
++
++#define ACPI_MSG_BIOS_ERROR     "ACPI BIOS Error (bug): "
++#define ACPI_MSG_BIOS_WARNING   "ACPI BIOS Warning (bug): "
++
++/*
++ * Common message suffix
++ */
++#define ACPI_MSG_SUFFIX \
++	acpi_os_printf (" (%8.8X/%s-%u)\n", ACPI_CA_VERSION, module_name, line_number)
++
+ /* Types for Resource descriptor entries */
+ 
+ #define ACPI_INVALID_RESOURCE           0
+diff --git a/drivers/acpi/acpica/uterror.c b/drivers/acpi/acpica/uterror.c
 new file mode 100644
-index 0000000..11fde93
+index 0000000..154fdca
 --- /dev/null
-+++ b/drivers/acpi/acpica/utbuffer.c
-@@ -0,0 +1,201 @@
-+/******************************************************************************
++++ b/drivers/acpi/acpica/uterror.c
+@@ -0,0 +1,289 @@
++/*******************************************************************************
 + *
-+ * Module Name: utbuffer - Buffer dump routines
++ * Module Name: uterror - Various internal error/warning output functions
 + *
-+ *****************************************************************************/
++ ******************************************************************************/
 +
 +/*
 + * Copyright (C) 2000 - 2013, Intel Corp.
@@ -91,324 +145,563 @@ index 0000000..11fde93
 +
 +#include <acpi/acpi.h>
 +#include "accommon.h"
++#include "acnamesp.h"
 +
 +#define _COMPONENT          ACPI_UTILITIES
-+ACPI_MODULE_NAME("utbuffer")
++ACPI_MODULE_NAME("uterror")
 +
++/*
++ * This module contains internal error functions that may
++ * be configured out.
++ */
++#if !defined (ACPI_NO_ERROR_MESSAGES)
 +/*******************************************************************************
 + *
-+ * FUNCTION:    acpi_ut_dump_buffer
++ * FUNCTION:    acpi_ut_predefined_warning
 + *
-+ * PARAMETERS:  buffer              - Buffer to dump
-+ *              count               - Amount to dump, in bytes
-+ *              display             - BYTE, WORD, DWORD, or QWORD display:
-+ *                                      DB_BYTE_DISPLAY
-+ *                                      DB_WORD_DISPLAY
-+ *                                      DB_DWORD_DISPLAY
-+ *                                      DB_QWORD_DISPLAY
-+ *              base_offset         - Beginning buffer offset (display only)
++ * PARAMETERS:  module_name     - Caller's module name (for error output)
++ *              line_number     - Caller's line number (for error output)
++ *              pathname        - Full pathname to the node
++ *              node_flags      - From Namespace node for the method/object
++ *              format          - Printf format string + additional args
 + *
 + * RETURN:      None
 + *
-+ * DESCRIPTION: Generic dump buffer in both hex and ascii.
++ * DESCRIPTION: Warnings for the predefined validation module. Messages are
++ *              only emitted the first time a problem with a particular
++ *              method/object is detected. This prevents a flood of error
++ *              messages for methods that are repeatedly evaluated.
 + *
 + ******************************************************************************/
-+void acpi_ut_dump_buffer(u8 *buffer, u32 count, u32 display, u32 base_offset)
++void ACPI_INTERNAL_VAR_XFACE
++acpi_ut_predefined_warning(const char *module_name,
++			   u32 line_number,
++			   char *pathname,
++			   u8 node_flags, const char *format, ...)
 +{
-+	u32 i = 0;
-+	u32 j;
-+	u32 temp32;
-+	u8 buf_char;
++	va_list arg_list;
 +
-+	if (!buffer) {
-+		acpi_os_printf("Null Buffer Pointer in DumpBuffer!\n");
++	/*
++	 * Warning messages for this method/object will be disabled after the
++	 * first time a validation fails or an object is successfully repaired.
++	 */
++	if (node_flags & ANOBJ_EVALUATED) {
 +		return;
 +	}
 +
-+	if ((count < 4) || (count & 0x01)) {
-+		display = DB_BYTE_DISPLAY;
-+	}
++	acpi_os_printf(ACPI_MSG_WARNING "%s: ", pathname);
 +
-+	/* Nasty little dump buffer routine! */
-+
-+	while (i < count) {
-+
-+		/* Print current offset */
-+
-+		acpi_os_printf("%6.4X: ", (base_offset + i));
-+
-+		/* Print 16 hex chars */
-+
-+		for (j = 0; j < 16;) {
-+			if (i + j >= count) {
-+
-+				/* Dump fill spaces */
-+
-+				acpi_os_printf("%*s", ((display * 2) + 1), " ");
-+				j += display;
-+				continue;
-+			}
-+
-+			switch (display) {
-+			case DB_BYTE_DISPLAY:
-+			default:	/* Default is BYTE display */
-+
-+				acpi_os_printf("%02X ",
-+					       buffer[(acpi_size) i + j]);
-+				break;
-+
-+			case DB_WORD_DISPLAY:
-+
-+				ACPI_MOVE_16_TO_32(&temp32,
-+						   &buffer[(acpi_size) i + j]);
-+				acpi_os_printf("%04X ", temp32);
-+				break;
-+
-+			case DB_DWORD_DISPLAY:
-+
-+				ACPI_MOVE_32_TO_32(&temp32,
-+						   &buffer[(acpi_size) i + j]);
-+				acpi_os_printf("%08X ", temp32);
-+				break;
-+
-+			case DB_QWORD_DISPLAY:
-+
-+				ACPI_MOVE_32_TO_32(&temp32,
-+						   &buffer[(acpi_size) i + j]);
-+				acpi_os_printf("%08X", temp32);
-+
-+				ACPI_MOVE_32_TO_32(&temp32,
-+						   &buffer[(acpi_size) i + j +
-+							   4]);
-+				acpi_os_printf("%08X ", temp32);
-+				break;
-+			}
-+
-+			j += display;
-+		}
-+
-+		/*
-+		 * Print the ASCII equivalent characters but watch out for the bad
-+		 * unprintable ones (printable chars are 0x20 through 0x7E)
-+		 */
-+		acpi_os_printf(" ");
-+		for (j = 0; j < 16; j++) {
-+			if (i + j >= count) {
-+				acpi_os_printf("\n");
-+				return;
-+			}
-+
-+			buf_char = buffer[(acpi_size) i + j];
-+			if (ACPI_IS_PRINT(buf_char)) {
-+				acpi_os_printf("%c", buf_char);
-+			} else {
-+				acpi_os_printf(".");
-+			}
-+		}
-+
-+		/* Done with that line. */
-+
-+		acpi_os_printf("\n");
-+		i += 16;
-+	}
-+
-+	return;
++	va_start(arg_list, format);
++	acpi_os_vprintf(format, arg_list);
++	ACPI_MSG_SUFFIX;
++	va_end(arg_list);
 +}
 +
 +/*******************************************************************************
 + *
-+ * FUNCTION:    acpi_ut_debug_dump_buffer
++ * FUNCTION:    acpi_ut_predefined_info
 + *
-+ * PARAMETERS:  buffer              - Buffer to dump
-+ *              count               - Amount to dump, in bytes
-+ *              display             - BYTE, WORD, DWORD, or QWORD display:
-+ *                                      DB_BYTE_DISPLAY
-+ *                                      DB_WORD_DISPLAY
-+ *                                      DB_DWORD_DISPLAY
-+ *                                      DB_QWORD_DISPLAY
-+ *              component_ID        - Caller's component ID
++ * PARAMETERS:  module_name     - Caller's module name (for error output)
++ *              line_number     - Caller's line number (for error output)
++ *              pathname        - Full pathname to the node
++ *              node_flags      - From Namespace node for the method/object
++ *              format          - Printf format string + additional args
 + *
 + * RETURN:      None
 + *
-+ * DESCRIPTION: Generic dump buffer in both hex and ascii.
++ * DESCRIPTION: Info messages for the predefined validation module. Messages
++ *              are only emitted the first time a problem with a particular
++ *              method/object is detected. This prevents a flood of
++ *              messages for methods that are repeatedly evaluated.
++ *
++ ******************************************************************************/
++
++void ACPI_INTERNAL_VAR_XFACE
++acpi_ut_predefined_info(const char *module_name,
++			u32 line_number,
++			char *pathname, u8 node_flags, const char *format, ...)
++{
++	va_list arg_list;
++
++	/*
++	 * Warning messages for this method/object will be disabled after the
++	 * first time a validation fails or an object is successfully repaired.
++	 */
++	if (node_flags & ANOBJ_EVALUATED) {
++		return;
++	}
++
++	acpi_os_printf(ACPI_MSG_INFO "%s: ", pathname);
++
++	va_start(arg_list, format);
++	acpi_os_vprintf(format, arg_list);
++	ACPI_MSG_SUFFIX;
++	va_end(arg_list);
++}
++
++/*******************************************************************************
++ *
++ * FUNCTION:    acpi_ut_predefined_bios_error
++ *
++ * PARAMETERS:  module_name     - Caller's module name (for error output)
++ *              line_number     - Caller's line number (for error output)
++ *              pathname        - Full pathname to the node
++ *              node_flags      - From Namespace node for the method/object
++ *              format          - Printf format string + additional args
++ *
++ * RETURN:      None
++ *
++ * DESCRIPTION: BIOS error message for predefined names. Messages
++ *              are only emitted the first time a problem with a particular
++ *              method/object is detected. This prevents a flood of
++ *              messages for methods that are repeatedly evaluated.
++ *
++ ******************************************************************************/
++
++void ACPI_INTERNAL_VAR_XFACE
++acpi_ut_predefined_bios_error(const char *module_name,
++			      u32 line_number,
++			      char *pathname,
++			      u8 node_flags, const char *format, ...)
++{
++	va_list arg_list;
++
++	/*
++	 * Warning messages for this method/object will be disabled after the
++	 * first time a validation fails or an object is successfully repaired.
++	 */
++	if (node_flags & ANOBJ_EVALUATED) {
++		return;
++	}
++
++	acpi_os_printf(ACPI_MSG_BIOS_ERROR "%s: ", pathname);
++
++	va_start(arg_list, format);
++	acpi_os_vprintf(format, arg_list);
++	ACPI_MSG_SUFFIX;
++	va_end(arg_list);
++}
++
++/*******************************************************************************
++ *
++ * FUNCTION:    acpi_ut_namespace_error
++ *
++ * PARAMETERS:  module_name         - Caller's module name (for error output)
++ *              line_number         - Caller's line number (for error output)
++ *              internal_name       - Name or path of the namespace node
++ *              lookup_status       - Exception code from NS lookup
++ *
++ * RETURN:      None
++ *
++ * DESCRIPTION: Print error message with the full pathname for the NS node.
 + *
 + ******************************************************************************/
 +
 +void
-+acpi_ut_debug_dump_buffer(u8 *buffer, u32 count, u32 display, u32 component_id)
++acpi_ut_namespace_error(const char *module_name,
++			u32 line_number,
++			const char *internal_name, acpi_status lookup_status)
 +{
++	acpi_status status;
++	u32 bad_name;
++	char *name = NULL;
 +
-+	/* Only dump the buffer if tracing is enabled */
++	ACPI_MSG_REDIRECT_BEGIN;
++	acpi_os_printf(ACPI_MSG_ERROR);
 +
-+	if (!((ACPI_LV_TABLES & acpi_dbg_level) &&
-+	      (component_id & acpi_dbg_layer))) {
-+		return;
++	if (lookup_status == AE_BAD_CHARACTER) {
++
++		/* There is a non-ascii character in the name */
++
++		ACPI_MOVE_32_TO_32(&bad_name,
++				   ACPI_CAST_PTR(u32, internal_name));
++		acpi_os_printf("[0x%.8X] (NON-ASCII)", bad_name);
++	} else {
++		/* Convert path to external format */
++
++		status = acpi_ns_externalize_name(ACPI_UINT32_MAX,
++						  internal_name, NULL, &name);
++
++		/* Print target name */
++
++		if (ACPI_SUCCESS(status)) {
++			acpi_os_printf("[%s]", name);
++		} else {
++			acpi_os_printf("[COULD NOT EXTERNALIZE NAME]");
++		}
++
++		if (name) {
++			ACPI_FREE(name);
++		}
 +	}
 +
-+	acpi_ut_dump_buffer(buffer, count, display, 0);
++	acpi_os_printf(" Namespace lookup failure, %s",
++		       acpi_format_exception(lookup_status));
++
++	ACPI_MSG_SUFFIX;
++	ACPI_MSG_REDIRECT_END;
 +}
-diff --git a/drivers/acpi/acpica/utdebug.c b/drivers/acpi/acpica/utdebug.c
-index c57d9cc..5796e11 100644
---- a/drivers/acpi/acpica/utdebug.c
-+++ b/drivers/acpi/acpica/utdebug.c
-@@ -1,6 +1,6 @@
- /******************************************************************************
-  *
-- * Module Name: utdebug - Debug print routines
-+ * Module Name: utdebug - Debug print/trace routines
-  *
-  *****************************************************************************/
++
++/*******************************************************************************
++ *
++ * FUNCTION:    acpi_ut_method_error
++ *
++ * PARAMETERS:  module_name         - Caller's module name (for error output)
++ *              line_number         - Caller's line number (for error output)
++ *              message             - Error message to use on failure
++ *              prefix_node         - Prefix relative to the path
++ *              path                - Path to the node (optional)
++ *              method_status       - Execution status
++ *
++ * RETURN:      None
++ *
++ * DESCRIPTION: Print error message with the full pathname for the method.
++ *
++ ******************************************************************************/
++
++void
++acpi_ut_method_error(const char *module_name,
++		     u32 line_number,
++		     const char *message,
++		     struct acpi_namespace_node *prefix_node,
++		     const char *path, acpi_status method_status)
++{
++	acpi_status status;
++	struct acpi_namespace_node *node = prefix_node;
++
++	ACPI_MSG_REDIRECT_BEGIN;
++	acpi_os_printf(ACPI_MSG_ERROR);
++
++	if (path) {
++		status =
++		    acpi_ns_get_node(prefix_node, path, ACPI_NS_NO_UPSEARCH,
++				     &node);
++		if (ACPI_FAILURE(status)) {
++			acpi_os_printf("[Could not get node by pathname]");
++		}
++	}
++
++	acpi_ns_print_node_pathname(node, message);
++	acpi_os_printf(", %s", acpi_format_exception(method_status));
++
++	ACPI_MSG_SUFFIX;
++	ACPI_MSG_REDIRECT_END;
++}
++
++#endif				/* ACPI_NO_ERROR_MESSAGES */
+diff --git a/drivers/acpi/acpica/uteval.c b/drivers/acpi/acpica/uteval.c
+index 1673ddd..9d68029 100644
+--- a/drivers/acpi/acpica/uteval.c
++++ b/drivers/acpi/acpica/uteval.c
+@@ -68,7 +68,7 @@ ACPI_MODULE_NAME("uteval")
+  ******************************************************************************/
  
-@@ -543,149 +543,3 @@ acpi_ut_ptr_exit(u32 line_number,
+ acpi_status
+-acpi_ut_evaluate_object(struct acpi_namespace_node * prefix_node,
++acpi_ut_evaluate_object(struct acpi_namespace_node *prefix_node,
+ 			char *path,
+ 			u32 expected_return_btypes,
+ 			union acpi_operand_object **return_desc)
+diff --git a/drivers/acpi/acpica/utxferror.c b/drivers/acpi/acpica/utxferror.c
+index 61a2c17..e966a2e 100644
+--- a/drivers/acpi/acpica/utxferror.c
++++ b/drivers/acpi/acpica/utxferror.c
+@@ -44,7 +44,6 @@
+ #include <linux/export.h>
+ #include <acpi/acpi.h>
+ #include "accommon.h"
+-#include "acnamesp.h"
+ 
+ #define _COMPONENT          ACPI_UTILITIES
+ ACPI_MODULE_NAME("utxferror")
+@@ -52,43 +51,7 @@ ACPI_MODULE_NAME("utxferror")
+ /*
+  * This module is used for the in-kernel ACPICA as well as the ACPICA
+  * tools/applications.
+- *
+- * For the iASL compiler case, the output is redirected to stderr so that
+- * any of the various ACPI errors and warnings do not appear in the output
+- * files, for either the compiler or disassembler portions of the tool.
+- */
+-#ifdef ACPI_ASL_COMPILER
+-#include <stdio.h>
+-extern FILE *acpi_gbl_output_file;
+-
+-#define ACPI_MSG_REDIRECT_BEGIN \
+-	FILE                            *output_file = acpi_gbl_output_file; \
+-	acpi_os_redirect_output (stderr);
+-
+-#define ACPI_MSG_REDIRECT_END \
+-	acpi_os_redirect_output (output_file);
+-
+-#else
+-/*
+- * non-iASL case - no redirection, nothing to do
+- */
+-#define ACPI_MSG_REDIRECT_BEGIN
+-#define ACPI_MSG_REDIRECT_END
+-#endif
+-/*
+- * Common message prefixes
+  */
+-#define ACPI_MSG_ERROR          "ACPI Error: "
+-#define ACPI_MSG_EXCEPTION      "ACPI Exception: "
+-#define ACPI_MSG_WARNING        "ACPI Warning: "
+-#define ACPI_MSG_INFO           "ACPI: "
+-#define ACPI_MSG_BIOS_ERROR     "ACPI BIOS Error (bug): "
+-#define ACPI_MSG_BIOS_WARNING   "ACPI BIOS Warning (bug): "
+-/*
+- * Common message suffix
+- */
+-#define ACPI_MSG_SUFFIX \
+-	acpi_os_printf (" (%8.8X/%s-%u)\n", ACPI_CA_VERSION, module_name, line_number)
+ /*******************************************************************************
+  *
+  * FUNCTION:    acpi_error
+@@ -285,243 +248,3 @@ acpi_bios_warning(const char *module_name,
  }
  
- #endif
+ ACPI_EXPORT_SYMBOL(acpi_bios_warning)
 -
+-/*
+- * The remainder of this module contains internal error functions that may
+- * be configured out.
+- */
+-#if !defined (ACPI_NO_ERROR_MESSAGES) && !defined (ACPI_BIN_APP)
 -/*******************************************************************************
 - *
-- * FUNCTION:    acpi_ut_dump_buffer
+- * FUNCTION:    acpi_ut_predefined_warning
 - *
-- * PARAMETERS:  buffer              - Buffer to dump
-- *              count               - Amount to dump, in bytes
-- *              display             - BYTE, WORD, DWORD, or QWORD display
-- *              offset              - Beginning buffer offset (display only)
+- * PARAMETERS:  module_name     - Caller's module name (for error output)
+- *              line_number     - Caller's line number (for error output)
+- *              pathname        - Full pathname to the node
+- *              node_flags      - From Namespace node for the method/object
+- *              format          - Printf format string + additional args
 - *
 - * RETURN:      None
 - *
-- * DESCRIPTION: Generic dump buffer in both hex and ascii.
+- * DESCRIPTION: Warnings for the predefined validation module. Messages are
+- *              only emitted the first time a problem with a particular
+- *              method/object is detected. This prevents a flood of error
+- *              messages for methods that are repeatedly evaluated.
 - *
 - ******************************************************************************/
--
--void acpi_ut_dump_buffer(u8 *buffer, u32 count, u32 display, u32 base_offset)
+-void ACPI_INTERNAL_VAR_XFACE
+-acpi_ut_predefined_warning(const char *module_name,
+-			   u32 line_number,
+-			   char *pathname,
+-			   u8 node_flags, const char *format, ...)
 -{
--	u32 i = 0;
--	u32 j;
--	u32 temp32;
--	u8 buf_char;
+-	va_list arg_list;
 -
--	if (!buffer) {
--		acpi_os_printf("Null Buffer Pointer in DumpBuffer!\n");
+-	/*
+-	 * Warning messages for this method/object will be disabled after the
+-	 * first time a validation fails or an object is successfully repaired.
+-	 */
+-	if (node_flags & ANOBJ_EVALUATED) {
 -		return;
 -	}
 -
--	if ((count < 4) || (count & 0x01)) {
--		display = DB_BYTE_DISPLAY;
--	}
+-	acpi_os_printf(ACPI_MSG_WARNING "%s: ", pathname);
 -
--	/* Nasty little dump buffer routine! */
--
--	while (i < count) {
--
--		/* Print current offset */
--
--		acpi_os_printf("%6.4X: ", (base_offset + i));
--
--		/* Print 16 hex chars */
--
--		for (j = 0; j < 16;) {
--			if (i + j >= count) {
--
--				/* Dump fill spaces */
--
--				acpi_os_printf("%*s", ((display * 2) + 1), " ");
--				j += display;
--				continue;
--			}
--
--			switch (display) {
--			case DB_BYTE_DISPLAY:
--			default:	/* Default is BYTE display */
--
--				acpi_os_printf("%02X ",
--					       buffer[(acpi_size) i + j]);
--				break;
--
--			case DB_WORD_DISPLAY:
--
--				ACPI_MOVE_16_TO_32(&temp32,
--						   &buffer[(acpi_size) i + j]);
--				acpi_os_printf("%04X ", temp32);
--				break;
--
--			case DB_DWORD_DISPLAY:
--
--				ACPI_MOVE_32_TO_32(&temp32,
--						   &buffer[(acpi_size) i + j]);
--				acpi_os_printf("%08X ", temp32);
--				break;
--
--			case DB_QWORD_DISPLAY:
--
--				ACPI_MOVE_32_TO_32(&temp32,
--						   &buffer[(acpi_size) i + j]);
--				acpi_os_printf("%08X", temp32);
--
--				ACPI_MOVE_32_TO_32(&temp32,
--						   &buffer[(acpi_size) i + j +
--							   4]);
--				acpi_os_printf("%08X ", temp32);
--				break;
--			}
--
--			j += display;
--		}
--
--		/*
--		 * Print the ASCII equivalent characters but watch out for the bad
--		 * unprintable ones (printable chars are 0x20 through 0x7E)
--		 */
--		acpi_os_printf(" ");
--		for (j = 0; j < 16; j++) {
--			if (i + j >= count) {
--				acpi_os_printf("\n");
--				return;
--			}
--
--			buf_char = buffer[(acpi_size) i + j];
--			if (ACPI_IS_PRINT(buf_char)) {
--				acpi_os_printf("%c", buf_char);
--			} else {
--				acpi_os_printf(".");
--			}
--		}
--
--		/* Done with that line. */
--
--		acpi_os_printf("\n");
--		i += 16;
--	}
--
--	return;
+-	va_start(arg_list, format);
+-	acpi_os_vprintf(format, arg_list);
+-	ACPI_MSG_SUFFIX;
+-	va_end(arg_list);
 -}
 -
 -/*******************************************************************************
 - *
-- * FUNCTION:    acpi_ut_debug_dump_buffer
+- * FUNCTION:    acpi_ut_predefined_info
 - *
-- * PARAMETERS:  buffer              - Buffer to dump
-- *              count               - Amount to dump, in bytes
-- *              display             - BYTE, WORD, DWORD, or QWORD display
-- *              component_ID        - Caller's component ID
+- * PARAMETERS:  module_name     - Caller's module name (for error output)
+- *              line_number     - Caller's line number (for error output)
+- *              pathname        - Full pathname to the node
+- *              node_flags      - From Namespace node for the method/object
+- *              format          - Printf format string + additional args
 - *
 - * RETURN:      None
 - *
-- * DESCRIPTION: Generic dump buffer in both hex and ascii.
+- * DESCRIPTION: Info messages for the predefined validation module. Messages
+- *              are only emitted the first time a problem with a particular
+- *              method/object is detected. This prevents a flood of
+- *              messages for methods that are repeatedly evaluated.
+- *
+- ******************************************************************************/
+-
+-void ACPI_INTERNAL_VAR_XFACE
+-acpi_ut_predefined_info(const char *module_name,
+-			u32 line_number,
+-			char *pathname, u8 node_flags, const char *format, ...)
+-{
+-	va_list arg_list;
+-
+-	/*
+-	 * Warning messages for this method/object will be disabled after the
+-	 * first time a validation fails or an object is successfully repaired.
+-	 */
+-	if (node_flags & ANOBJ_EVALUATED) {
+-		return;
+-	}
+-
+-	acpi_os_printf(ACPI_MSG_INFO "%s: ", pathname);
+-
+-	va_start(arg_list, format);
+-	acpi_os_vprintf(format, arg_list);
+-	ACPI_MSG_SUFFIX;
+-	va_end(arg_list);
+-}
+-
+-/*******************************************************************************
+- *
+- * FUNCTION:    acpi_ut_predefined_bios_error
+- *
+- * PARAMETERS:  module_name     - Caller's module name (for error output)
+- *              line_number     - Caller's line number (for error output)
+- *              pathname        - Full pathname to the node
+- *              node_flags      - From Namespace node for the method/object
+- *              format          - Printf format string + additional args
+- *
+- * RETURN:      None
+- *
+- * DESCRIPTION: BIOS error message for predefined names. Messages
+- *              are only emitted the first time a problem with a particular
+- *              method/object is detected. This prevents a flood of
+- *              messages for methods that are repeatedly evaluated.
+- *
+- ******************************************************************************/
+-
+-void ACPI_INTERNAL_VAR_XFACE
+-acpi_ut_predefined_bios_error(const char *module_name,
+-			      u32 line_number,
+-			      char *pathname,
+-			      u8 node_flags, const char *format, ...)
+-{
+-	va_list arg_list;
+-
+-	/*
+-	 * Warning messages for this method/object will be disabled after the
+-	 * first time a validation fails or an object is successfully repaired.
+-	 */
+-	if (node_flags & ANOBJ_EVALUATED) {
+-		return;
+-	}
+-
+-	acpi_os_printf(ACPI_MSG_BIOS_ERROR "%s: ", pathname);
+-
+-	va_start(arg_list, format);
+-	acpi_os_vprintf(format, arg_list);
+-	ACPI_MSG_SUFFIX;
+-	va_end(arg_list);
+-}
+-
+-/*******************************************************************************
+- *
+- * FUNCTION:    acpi_ut_namespace_error
+- *
+- * PARAMETERS:  module_name         - Caller's module name (for error output)
+- *              line_number         - Caller's line number (for error output)
+- *              internal_name       - Name or path of the namespace node
+- *              lookup_status       - Exception code from NS lookup
+- *
+- * RETURN:      None
+- *
+- * DESCRIPTION: Print error message with the full pathname for the NS node.
 - *
 - ******************************************************************************/
 -
 -void
--acpi_ut_debug_dump_buffer(u8 *buffer, u32 count, u32 display, u32 component_id)
+-acpi_ut_namespace_error(const char *module_name,
+-			u32 line_number,
+-			const char *internal_name, acpi_status lookup_status)
 -{
+-	acpi_status status;
+-	u32 bad_name;
+-	char *name = NULL;
 -
--	/* Only dump the buffer if tracing is enabled */
+-	ACPI_MSG_REDIRECT_BEGIN;
+-	acpi_os_printf(ACPI_MSG_ERROR);
 -
--	if (!((ACPI_LV_TABLES & acpi_dbg_level) &&
--	      (component_id & acpi_dbg_layer))) {
--		return;
+-	if (lookup_status == AE_BAD_CHARACTER) {
+-
+-		/* There is a non-ascii character in the name */
+-
+-		ACPI_MOVE_32_TO_32(&bad_name,
+-				   ACPI_CAST_PTR(u32, internal_name));
+-		acpi_os_printf("[0x%.8X] (NON-ASCII)", bad_name);
+-	} else {
+-		/* Convert path to external format */
+-
+-		status = acpi_ns_externalize_name(ACPI_UINT32_MAX,
+-						  internal_name, NULL, &name);
+-
+-		/* Print target name */
+-
+-		if (ACPI_SUCCESS(status)) {
+-			acpi_os_printf("[%s]", name);
+-		} else {
+-			acpi_os_printf("[COULD NOT EXTERNALIZE NAME]");
+-		}
+-
+-		if (name) {
+-			ACPI_FREE(name);
+-		}
 -	}
 -
--	acpi_ut_dump_buffer(buffer, count, display, 0);
+-	acpi_os_printf(" Namespace lookup failure, %s",
+-		       acpi_format_exception(lookup_status));
+-
+-	ACPI_MSG_SUFFIX;
+-	ACPI_MSG_REDIRECT_END;
 -}
+-
+-/*******************************************************************************
+- *
+- * FUNCTION:    acpi_ut_method_error
+- *
+- * PARAMETERS:  module_name         - Caller's module name (for error output)
+- *              line_number         - Caller's line number (for error output)
+- *              message             - Error message to use on failure
+- *              prefix_node         - Prefix relative to the path
+- *              path                - Path to the node (optional)
+- *              method_status       - Execution status
+- *
+- * RETURN:      None
+- *
+- * DESCRIPTION: Print error message with the full pathname for the method.
+- *
+- ******************************************************************************/
+-
+-void
+-acpi_ut_method_error(const char *module_name,
+-		     u32 line_number,
+-		     const char *message,
+-		     struct acpi_namespace_node *prefix_node,
+-		     const char *path, acpi_status method_status)
+-{
+-	acpi_status status;
+-	struct acpi_namespace_node *node = prefix_node;
+-
+-	ACPI_MSG_REDIRECT_BEGIN;
+-	acpi_os_printf(ACPI_MSG_ERROR);
+-
+-	if (path) {
+-		status =
+-		    acpi_ns_get_node(prefix_node, path, ACPI_NS_NO_UPSEARCH,
+-				     &node);
+-		if (ACPI_FAILURE(status)) {
+-			acpi_os_printf("[Could not get node by pathname]");
+-		}
+-	}
+-
+-	acpi_ns_print_node_pathname(node, message);
+-	acpi_os_printf(", %s", acpi_format_exception(method_status));
+-
+-	ACPI_MSG_SUFFIX;
+-	ACPI_MSG_REDIRECT_END;
+-}
+-
+-#endif				/* ACPI_NO_ERROR_MESSAGES */
 -- 
 1.7.10
 
