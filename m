@@ -1,77 +1,151 @@
 From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: [PATCH] ACPI / video: Do not bind to device objects with a driver or scan handler
-Date: Sat, 08 Jun 2013 16:14:53 +0200
-Message-ID: <8441239.yeE1QYIOsS@vostro.rjw.lan>
+Subject: [PATCH] ACPI / scan: Simplify ACPI driver probing
+Date: Sun, 09 Jun 2013 00:28:02 +0200
+Message-ID: <2159292.upDGjkPUz6@vostro.rjw.lan>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7Bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from hydra.sisk.pl ([212.160.235.94]:60089 "EHLO hydra.sisk.pl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751680Ab3FHOFq (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Sat, 8 Jun 2013 10:05:46 -0400
-Sender: linux-acpi-owner@vger.kernel.org
-List-Id: linux-acpi@vger.kernel.org
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
 To: ACPI Devel Maling List <linux-acpi@vger.kernel.org>
-Cc: LKML <linux-kernel@vger.kernel.org>, Aaron Lu <aaron.lu@intel.com>
+Cc: Aaron Lu <aaron.lu@intel.com>, LKML <linux-kernel@vger.kernel.org>
+List-Id: linux-acpi@vger.kernel.org
 
 From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 
-With the introduction of ACPI scan handlers, ACPI device objects
-with an ACPI scan handler attached to them must not be bound to
-an ACPI driver any more.  Unfortunately, however, the ACPI video
-driver attempts to do just that if there is a _ROM ACPI control
-method defined under a device object with an ACPI scan handler.
+There is no particular reason why acpi_bus_driver_init() needs to be
+a separate function and its location with respect to its only caller,
+acpi_device_probe(), makes the code a bit difficult to follow.
 
-Prevent that from happening by making the video driver's "add"
-routine check if the device object already has a driver or
-ACPI scan handler attached to it and return an error code in
-that case.  That is not sufficient, though, because
-acpi_bus_driver_init() would then clear the device object's
-driver_data that may be set by the scan handler attached to it,
-so for the fix to work acpi_bus_driver_init() has to be modified
-to leave driver_data as is on errors.
+Besides, it doesn't really make sense to check if 'device' is not
+NULL in acpi_bus_driver_init(), because we've already dereferenced
+dev->driver in acpi_device_probe() at that point, so that check has
+to be moved to acpi_device_probe() anyway.
 
-References: https://bugzilla.kernel.org/show_bug.cgi?id=58091
-Reported-and-bisected-by: Dmitry S. Demin <dmitryy.demin@gmail.com>
-Reported-and-tested-by: Jason Cassell <bluesloth600@gmail.com>
-Tracked-down-by: Aaron Lu <aaron.lu@intel.com>
-Cc: 3.9+ <stable@kernel.org>
+For these reasons, drop acpi_bus_driver_init() altogether and move
+the code from it directly into acpi_device_probe().
+
 Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 ---
- drivers/acpi/scan.c  |    5 +----
- drivers/acpi/video.c |    3 +++
- 2 files changed, 4 insertions(+), 4 deletions(-)
 
-Index: linux-pm/drivers/acpi/video.c
-===================================================================
---- linux-pm.orig/drivers/acpi/video.c
-+++ linux-pm/drivers/acpi/video.c
-@@ -1722,6 +1722,9 @@ static int acpi_video_bus_add(struct acp
- 	int error;
- 	acpi_status status;
- 
-+	if (device->handler || device->driver)
-+		return -EINVAL;
-+
- 	status = acpi_walk_namespace(ACPI_TYPE_DEVICE,
- 				device->parent->handle, 1,
- 				acpi_video_bus_match, NULL,
+Should apply on top of the bleeding-edge branch of the linux-pm.git tree.
+
+Thanks,
+Rafael
+
+---
+ drivers/acpi/scan.c |   88 +++++++++++++++++++---------------------------------
+ 1 file changed, 33 insertions(+), 55 deletions(-)
+
 Index: linux-pm/drivers/acpi/scan.c
 ===================================================================
 --- linux-pm.orig/drivers/acpi/scan.c
 +++ linux-pm/drivers/acpi/scan.c
-@@ -1133,11 +1133,8 @@ acpi_bus_driver_init(struct acpi_device
- 		return -ENOSYS;
+@@ -933,32 +933,45 @@ static void acpi_device_remove_notify_ha
+ 					   acpi_device_notify);
+ }
  
- 	result = driver->ops.add(device);
--	if (result) {
--		device->driver = NULL;
--		device->driver_data = NULL;
-+	if (result)
- 		return result;
--	}
+-static int acpi_bus_driver_init(struct acpi_device *, struct acpi_driver *);
+ static int acpi_device_probe(struct device * dev)
+ {
+-	struct acpi_device *acpi_dev = to_acpi_device(dev);
+-	struct acpi_driver *acpi_drv = to_acpi_driver(dev->driver);
++	struct acpi_device *acpi_dev;
++	struct acpi_driver *acpi_drv;
+ 	int ret;
  
- 	device->driver = driver;
+-	ret = acpi_bus_driver_init(acpi_dev, acpi_drv);
+-	if (!ret) {
+-		if (acpi_drv->ops.notify) {
+-			ret = acpi_device_install_notify_handler(acpi_dev);
+-			if (ret) {
+-				if (acpi_drv->ops.remove)
+-					acpi_drv->ops.remove(acpi_dev);
+-				acpi_dev->driver = NULL;
+-				acpi_dev->driver_data = NULL;
+-				return ret;
+-			}
+-		}
++	if (!dev || !dev->driver)
++		return -EINVAL;
++
++	acpi_dev = to_acpi_device(dev);
++	acpi_drv = to_acpi_driver(dev->driver);
++	if (!acpi_drv->ops.add)
++		return -ENOSYS;
++
++	ret = acpi_drv->ops.add(acpi_dev);
++	if (ret)
++		return ret;
++
++	acpi_dev->driver = acpi_drv;
++	ACPI_DEBUG_PRINT((ACPI_DB_INFO,
++			  "Driver [%s] successfully bound to device [%s]\n",
++			  acpi_drv->name, acpi_dev->pnp.bus_id));
  
-
+-		ACPI_DEBUG_PRINT((ACPI_DB_INFO,
+-			"Found driver [%s] for device [%s]\n",
+-			acpi_drv->name, acpi_dev->pnp.bus_id));
+-		get_device(dev);
++	if (acpi_drv->ops.notify) {
++		ret = acpi_device_install_notify_handler(acpi_dev);
++		if (ret) {
++			if (acpi_drv->ops.remove)
++				acpi_drv->ops.remove(acpi_dev);
++
++			acpi_dev->driver = NULL;
++			acpi_dev->driver_data = NULL;
++			return ret;
++		}
+ 	}
+-	return ret;
++
++	ACPI_DEBUG_PRINT((ACPI_DB_INFO, "Found driver [%s] for device [%s]\n",
++			  acpi_drv->name, acpi_dev->pnp.bus_id));
++	get_device(dev);
++	return 0;
+ }
+ 
+ static int acpi_device_remove(struct device * dev)
+@@ -1114,41 +1127,6 @@ static void acpi_device_unregister(struc
+                                  Driver Management
+    -------------------------------------------------------------------------- */
+ /**
+- * acpi_bus_driver_init - add a device to a driver
+- * @device: the device to add and initialize
+- * @driver: driver for the device
+- *
+- * Used to initialize a device via its device driver.  Called whenever a
+- * driver is bound to a device.  Invokes the driver's add() ops.
+- */
+-static int
+-acpi_bus_driver_init(struct acpi_device *device, struct acpi_driver *driver)
+-{
+-	int result = 0;
+-
+-	if (!device || !driver)
+-		return -EINVAL;
+-
+-	if (!driver->ops.add)
+-		return -ENOSYS;
+-
+-	result = driver->ops.add(device);
+-	if (result)
+-		return result;
+-
+-	device->driver = driver;
+-
+-	/*
+-	 * TBD - Configuration Management: Assign resources to device based
+-	 * upon possible configuration and currently allocated resources.
+-	 */
+-
+-	ACPI_DEBUG_PRINT((ACPI_DB_INFO,
+-			  "Driver successfully bound to device\n"));
+-	return 0;
+-}
+-
+-/**
+  * acpi_bus_register_driver - register a driver with the ACPI bus
+  * @driver: driver being registered
+  *
