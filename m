@@ -1,13 +1,13 @@
 From: Lv Zheng <lv.zheng@intel.com>
-Subject: [PATCH 10/16] ACPICA: Fix possible memory leak in GPE init error path
-Date: Sat,  8 Jun 2013 09:00:07 +0800
-Message-ID: <e66609edf3d7173197872a170fe8be2abe8fde69.1369274559.git.lv.zheng@intel.com>
+Subject: [PATCH 11/16] ACPICA: Clear events initialized flag upon event component termination
+Date: Sat,  8 Jun 2013 09:00:23 +0800
+Message-ID: <17a5d121655fce6e2438b10adaf8271dd05b454c.1369274559.git.lv.zheng@intel.com>
 References: <cover.1369274558.git.lv.zheng@intel.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga03.intel.com ([143.182.124.21]:60857 "EHLO mga03.intel.com"
+Received: from mga02.intel.com ([134.134.136.20]:13225 "EHLO mga02.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753181Ab3FHBAc (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 7 Jun 2013 21:00:32 -0400
+	id S1753181Ab3FHBAn (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 7 Jun 2013 21:00:43 -0400
 In-Reply-To: <cover.1369274558.git.lv.zheng@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
@@ -16,30 +16,30 @@ Cc: Lv Zheng <lv.zheng@intel.com>, linux-acpi@vger.kernel.org, Tomasz Nowicki <t
 
 From: Tomasz Nowicki <tomasz.nowicki@linaro.org>
 
-Some GPE blocks were not deleted.  ACPICA BZ 1018. Tomasz Nowicki
-<tomasz.nowicki@linaro.org>
+Clear this flag to allow clean startup and even double termination.
+ACPICA BZ 1013. Tomasz Nowicki <tomasz.nowicki@linaro.org>
 
-Buglink: https://bugs.acpica.org/show_bug.cgi?id=1018
+Buglink: https://bugs.acpica.org/show_bug.cgi?id=1013
 Signed-off-by: Tomasz Nowicki <tomasz.nowicki@linaro.org>
 Signed-off-by: Bob Moore <robert.moore@intel.com>
 Signed-off-by: Lv Zheng <lv.zheng@intel.com>
 ---
- drivers/acpi/acpica/evgpeblk.c |    2 ++
+ drivers/acpi/acpica/evmisc.c |    2 ++
  1 file changed, 2 insertions(+)
 
-diff --git a/drivers/acpi/acpica/evgpeblk.c b/drivers/acpi/acpica/evgpeblk.c
-index a2d688b..c1aa1ed 100644
---- a/drivers/acpi/acpica/evgpeblk.c
-+++ b/drivers/acpi/acpica/evgpeblk.c
-@@ -382,6 +382,8 @@ acpi_ev_create_gpe_block(struct acpi_namespace_node *gpe_device,
- 
- 	status = acpi_ev_install_gpe_block(gpe_block, interrupt_number);
- 	if (ACPI_FAILURE(status)) {
-+		ACPI_FREE(gpe_block->register_info);
-+		ACPI_FREE(gpe_block->event_info);
- 		ACPI_FREE(gpe_block);
- 		return_ACPI_STATUS(status);
+diff --git a/drivers/acpi/acpica/evmisc.c b/drivers/acpi/acpica/evmisc.c
+index db59fe3..1b111ef 100644
+--- a/drivers/acpi/acpica/evmisc.c
++++ b/drivers/acpi/acpica/evmisc.c
+@@ -276,6 +276,8 @@ void acpi_ev_terminate(void)
+ 			ACPI_ERROR((AE_INFO,
+ 				    "Could not remove Global Lock handler"));
+ 		}
++
++		acpi_gbl_events_initialized = FALSE;
  	}
+ 
+ 	/* Deallocate all handler objects installed within GPE info structs */
 -- 
 1.7.10
 
