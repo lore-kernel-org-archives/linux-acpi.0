@@ -1,88 +1,168 @@
 From: Aaron Lu <aaron.lu@intel.com>
-Subject: Re: [PATCH] ACPI / video: Do not bind to device objects with a driver
- or scan handler
-Date: Sun, 09 Jun 2013 08:33:51 +0800
-Message-ID: <51B3CD6F.7040606@intel.com>
-References: <8441239.yeE1QYIOsS@vostro.rjw.lan>
+Subject: Re: [PATCH] ACPI / scan: Simplify ACPI driver probing
+Date: Sun, 09 Jun 2013 09:19:33 +0800
+Message-ID: <51B3D825.3060505@intel.com>
+References: <2159292.upDGjkPUz6@vostro.rjw.lan>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga02.intel.com ([134.134.136.20]:14155 "EHLO mga02.intel.com"
+Received: from mga11.intel.com ([192.55.52.93]:42835 "EHLO mga11.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752909Ab3FIAd1 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Sat, 8 Jun 2013 20:33:27 -0400
-In-Reply-To: <8441239.yeE1QYIOsS@vostro.rjw.lan>
+	id S1753104Ab3FIBTF (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Sat, 8 Jun 2013 21:19:05 -0400
+In-Reply-To: <2159292.upDGjkPUz6@vostro.rjw.lan>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: "Rafael J. Wysocki" <rjw@sisk.pl>
 Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>
 
-On 06/08/2013 10:14 PM, Rafael J. Wysocki wrote:
+On 06/09/2013 06:28 AM, Rafael J. Wysocki wrote:
 > From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 > 
-> With the introduction of ACPI scan handlers, ACPI device objects
-> with an ACPI scan handler attached to them must not be bound to
-> an ACPI driver any more.  Unfortunately, however, the ACPI video
-> driver attempts to do just that if there is a _ROM ACPI control
-> method defined under a device object with an ACPI scan handler.
+> There is no particular reason why acpi_bus_driver_init() needs to be
+> a separate function and its location with respect to its only caller,
+> acpi_device_probe(), makes the code a bit difficult to follow.
 > 
-> Prevent that from happening by making the video driver's "add"
-> routine check if the device object already has a driver or
-> ACPI scan handler attached to it and return an error code in
-> that case.  That is not sufficient, though, because
-> acpi_bus_driver_init() would then clear the device object's
-> driver_data that may be set by the scan handler attached to it,
-> so for the fix to work acpi_bus_driver_init() has to be modified
-> to leave driver_data as is on errors.
-
-Reviewed-by: Aaron Lu <aaron.lu@intel.com>
-
-Thanks,
-Aaron
-
+> Besides, it doesn't really make sense to check if 'device' is not
+> NULL in acpi_bus_driver_init(), because we've already dereferenced
+> dev->driver in acpi_device_probe() at that point, so that check has
+> to be moved to acpi_device_probe() anyway.
 > 
-> References: https://bugzilla.kernel.org/show_bug.cgi?id=58091
-> Reported-and-bisected-by: Dmitry S. Demin <dmitryy.demin@gmail.com>
-> Reported-and-tested-by: Jason Cassell <bluesloth600@gmail.com>
-> Tracked-down-by: Aaron Lu <aaron.lu@intel.com>
-> Cc: 3.9+ <stable@kernel.org>
+> For these reasons, drop acpi_bus_driver_init() altogether and move
+> the code from it directly into acpi_device_probe().
+> 
 > Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 > ---
->  drivers/acpi/scan.c  |    5 +----
->  drivers/acpi/video.c |    3 +++
->  2 files changed, 4 insertions(+), 4 deletions(-)
 > 
-> Index: linux-pm/drivers/acpi/video.c
-> ===================================================================
-> --- linux-pm.orig/drivers/acpi/video.c
-> +++ linux-pm/drivers/acpi/video.c
-> @@ -1722,6 +1722,9 @@ static int acpi_video_bus_add(struct acp
->  	int error;
->  	acpi_status status;
->  
-> +	if (device->handler || device->driver)
-> +		return -EINVAL;
-> +
->  	status = acpi_walk_namespace(ACPI_TYPE_DEVICE,
->  				device->parent->handle, 1,
->  				acpi_video_bus_match, NULL,
+> Should apply on top of the bleeding-edge branch of the linux-pm.git tree.
+> 
+> Thanks,
+> Rafael
+> 
+> ---
+>  drivers/acpi/scan.c |   88 +++++++++++++++++++---------------------------------
+>  1 file changed, 33 insertions(+), 55 deletions(-)
+> 
 > Index: linux-pm/drivers/acpi/scan.c
 > ===================================================================
 > --- linux-pm.orig/drivers/acpi/scan.c
 > +++ linux-pm/drivers/acpi/scan.c
-> @@ -1133,11 +1133,8 @@ acpi_bus_driver_init(struct acpi_device
->  		return -ENOSYS;
+> @@ -933,32 +933,45 @@ static void acpi_device_remove_notify_ha
+>  					   acpi_device_notify);
+>  }
 >  
->  	result = driver->ops.add(device);
-> -	if (result) {
-> -		device->driver = NULL;
-> -		device->driver_data = NULL;
-> +	if (result)
->  		return result;
-> -	}
+> -static int acpi_bus_driver_init(struct acpi_device *, struct acpi_driver *);
+>  static int acpi_device_probe(struct device * dev)
+>  {
+> -	struct acpi_device *acpi_dev = to_acpi_device(dev);
+> -	struct acpi_driver *acpi_drv = to_acpi_driver(dev->driver);
+> +	struct acpi_device *acpi_dev;
+> +	struct acpi_driver *acpi_drv;
+>  	int ret;
 >  
->  	device->driver = driver;
+> -	ret = acpi_bus_driver_init(acpi_dev, acpi_drv);
+> -	if (!ret) {
+> -		if (acpi_drv->ops.notify) {
+> -			ret = acpi_device_install_notify_handler(acpi_dev);
+> -			if (ret) {
+> -				if (acpi_drv->ops.remove)
+> -					acpi_drv->ops.remove(acpi_dev);
+> -				acpi_dev->driver = NULL;
+> -				acpi_dev->driver_data = NULL;
+> -				return ret;
+> -			}
+> -		}
+> +	if (!dev || !dev->driver)
+> +		return -EINVAL;
+
+Just out of curiosity, will dev ever be NULL in this function?
+This function is called in really_probe by dev->bus->probe after
+assigning dev->driver, so does the above check make any sense?
+
+Thanks,
+Aaron
+
+> +
+> +	acpi_dev = to_acpi_device(dev);
+> +	acpi_drv = to_acpi_driver(dev->driver);
+> +	if (!acpi_drv->ops.add)
+> +		return -ENOSYS;
+> +
+> +	ret = acpi_drv->ops.add(acpi_dev);
+> +	if (ret)
+> +		return ret;
+> +
+> +	acpi_dev->driver = acpi_drv;
+> +	ACPI_DEBUG_PRINT((ACPI_DB_INFO,
+> +			  "Driver [%s] successfully bound to device [%s]\n",
+> +			  acpi_drv->name, acpi_dev->pnp.bus_id));
 >  
+> -		ACPI_DEBUG_PRINT((ACPI_DB_INFO,
+> -			"Found driver [%s] for device [%s]\n",
+> -			acpi_drv->name, acpi_dev->pnp.bus_id));
+> -		get_device(dev);
+> +	if (acpi_drv->ops.notify) {
+> +		ret = acpi_device_install_notify_handler(acpi_dev);
+> +		if (ret) {
+> +			if (acpi_drv->ops.remove)
+> +				acpi_drv->ops.remove(acpi_dev);
+> +
+> +			acpi_dev->driver = NULL;
+> +			acpi_dev->driver_data = NULL;
+> +			return ret;
+> +		}
+>  	}
+> -	return ret;
+> +
+> +	ACPI_DEBUG_PRINT((ACPI_DB_INFO, "Found driver [%s] for device [%s]\n",
+> +			  acpi_drv->name, acpi_dev->pnp.bus_id));
+> +	get_device(dev);
+> +	return 0;
+>  }
+>  
+>  static int acpi_device_remove(struct device * dev)
+> @@ -1114,41 +1127,6 @@ static void acpi_device_unregister(struc
+>                                   Driver Management
+>     -------------------------------------------------------------------------- */
+>  /**
+> - * acpi_bus_driver_init - add a device to a driver
+> - * @device: the device to add and initialize
+> - * @driver: driver for the device
+> - *
+> - * Used to initialize a device via its device driver.  Called whenever a
+> - * driver is bound to a device.  Invokes the driver's add() ops.
+> - */
+> -static int
+> -acpi_bus_driver_init(struct acpi_device *device, struct acpi_driver *driver)
+> -{
+> -	int result = 0;
+> -
+> -	if (!device || !driver)
+> -		return -EINVAL;
+> -
+> -	if (!driver->ops.add)
+> -		return -ENOSYS;
+> -
+> -	result = driver->ops.add(device);
+> -	if (result)
+> -		return result;
+> -
+> -	device->driver = driver;
+> -
+> -	/*
+> -	 * TBD - Configuration Management: Assign resources to device based
+> -	 * upon possible configuration and currently allocated resources.
+> -	 */
+> -
+> -	ACPI_DEBUG_PRINT((ACPI_DB_INFO,
+> -			  "Driver successfully bound to device\n"));
+> -	return 0;
+> -}
+> -
+> -/**
+>   * acpi_bus_register_driver - register a driver with the ACPI bus
+>   * @driver: driver being registered
+>   *
 > 
 
