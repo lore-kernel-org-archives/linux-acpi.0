@@ -1,154 +1,32 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: [Update][PATCH] ACPI / scan: Simplify ACPI driver probing
-Date: Mon, 10 Jun 2013 00:18:38 +0200
-Message-ID: <9524864.uKH8yPZA91@vostro.rjw.lan>
-References: <2159292.upDGjkPUz6@vostro.rjw.lan>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7Bit
+From: Matthew Garrett <matthew.garrett@nebula.com>
+Subject: [PATCH 0/3] Fix backlight issues on some Windows 8 systems
+Date: Sun,  9 Jun 2013 19:01:36 -0400
+Message-ID: <1370818899-8595-1-git-send-email-matthew.garrett@nebula.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from hydra.sisk.pl ([212.160.235.94]:60932 "EHLO hydra.sisk.pl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751476Ab3FIWJa (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Sun, 9 Jun 2013 18:09:30 -0400
-In-Reply-To: <2159292.upDGjkPUz6@vostro.rjw.lan>
+Received: from cavan.codon.org.uk ([93.93.128.6]:45794 "EHLO
+	cavan.codon.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751371Ab3FIXB7 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sun, 9 Jun 2013 19:01:59 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: ACPI Devel Maling List <linux-acpi@vger.kernel.org>
-Cc: Aaron Lu <aaron.lu@intel.com>, LKML <linux-kernel@vger.kernel.org>
+To: linux-acpi@vger.kernel.org
+Cc: seth.forshee@canonical.com, joeyli.kernel@gmail.com, daniel.vetter@ffwll.ch, intel-gfx@lists.freedesktop.org, dri-devel@lists.freedesktop.org, linux-kernel@vger.kernel.org, lenb@kernel.org, rjw@sisk.pl
 
-From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
-Subject: ACPI / scan: Simplify ACPI driver probing
+Windows 8 introduced new policy for backlight control by pushing it out to
+graphics drivers. This appears to have coincided with a range of vendors
+adding Windows 8 checks to their backlight control code which trigger either
+awkward behaviour (Lenovo) or complete brokenness (some Dells). The simplest
+thing to do would be to just disable ACPI backlight control entirely if the
+firmware indicates Windows 8 support, but it's entirely possible that
+individual graphics drivers might still make use of the ACPI functionality in
+preference to native control.
 
-There is no particular reason why acpi_bus_driver_init() needs to be
-a separate function and its location with respect to its only caller,
-acpi_device_probe(), makes the code a bit difficult to follow.
+The first two patches in this series are picked from other patchesets aimed at
+solving similar problems. The last simply unregisters ACPI backlight control
+on Windows 8 systems when using an Intel GPU. Similar code could be added to
+other drivers, but I'm reluctant to do so without further investigation as
+to the behaviour of the vendor drivers under Windows.
 
-Besides, it doesn't really make sense to check if 'device' is not
-NULL in acpi_bus_driver_init(), because we've already dereferenced
-dev->driver in acpi_device_probe() at that point and, moreover,
-'device' cannot be NULL then, because acpi_device_probe() is called
-via really_probe() (which also sets dev->driver for that matter).
-
-For these reasons, drop acpi_bus_driver_init() altogether and move
-the remaining code from it directly into acpi_device_probe().
-
-Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
----
-
-It's in the bleeding-edge branch of the linux-pm.git tree already.
-
-Thanks,
-Rafael
-
----
- drivers/acpi/scan.c |   81 +++++++++++++++++-----------------------------------
- 1 file changed, 27 insertions(+), 54 deletions(-)
-
-Index: linux-pm/drivers/acpi/scan.c
-===================================================================
---- linux-pm.orig/drivers/acpi/scan.c
-+++ linux-pm/drivers/acpi/scan.c
-@@ -933,32 +933,40 @@ static void acpi_device_remove_notify_ha
- 					   acpi_device_notify);
- }
- 
--static int acpi_bus_driver_init(struct acpi_device *, struct acpi_driver *);
--static int acpi_device_probe(struct device * dev)
-+static int acpi_device_probe(struct device *dev)
- {
- 	struct acpi_device *acpi_dev = to_acpi_device(dev);
- 	struct acpi_driver *acpi_drv = to_acpi_driver(dev->driver);
- 	int ret;
- 
--	ret = acpi_bus_driver_init(acpi_dev, acpi_drv);
--	if (!ret) {
--		if (acpi_drv->ops.notify) {
--			ret = acpi_device_install_notify_handler(acpi_dev);
--			if (ret) {
--				if (acpi_drv->ops.remove)
--					acpi_drv->ops.remove(acpi_dev);
--				acpi_dev->driver = NULL;
--				acpi_dev->driver_data = NULL;
--				return ret;
--			}
--		}
-+	if (!acpi_drv->ops.add)
-+		return -ENOSYS;
-+
-+	ret = acpi_drv->ops.add(acpi_dev);
-+	if (ret)
-+		return ret;
- 
--		ACPI_DEBUG_PRINT((ACPI_DB_INFO,
--			"Found driver [%s] for device [%s]\n",
--			acpi_drv->name, acpi_dev->pnp.bus_id));
--		get_device(dev);
-+	acpi_dev->driver = acpi_drv;
-+	ACPI_DEBUG_PRINT((ACPI_DB_INFO,
-+			  "Driver [%s] successfully bound to device [%s]\n",
-+			  acpi_drv->name, acpi_dev->pnp.bus_id));
-+
-+	if (acpi_drv->ops.notify) {
-+		ret = acpi_device_install_notify_handler(acpi_dev);
-+		if (ret) {
-+			if (acpi_drv->ops.remove)
-+				acpi_drv->ops.remove(acpi_dev);
-+
-+			acpi_dev->driver = NULL;
-+			acpi_dev->driver_data = NULL;
-+			return ret;
-+		}
- 	}
--	return ret;
-+
-+	ACPI_DEBUG_PRINT((ACPI_DB_INFO, "Found driver [%s] for device [%s]\n",
-+			  acpi_drv->name, acpi_dev->pnp.bus_id));
-+	get_device(dev);
-+	return 0;
- }
- 
- static int acpi_device_remove(struct device * dev)
-@@ -1114,41 +1122,6 @@ static void acpi_device_unregister(struc
-                                  Driver Management
-    -------------------------------------------------------------------------- */
- /**
-- * acpi_bus_driver_init - add a device to a driver
-- * @device: the device to add and initialize
-- * @driver: driver for the device
-- *
-- * Used to initialize a device via its device driver.  Called whenever a
-- * driver is bound to a device.  Invokes the driver's add() ops.
-- */
--static int
--acpi_bus_driver_init(struct acpi_device *device, struct acpi_driver *driver)
--{
--	int result = 0;
--
--	if (!device || !driver)
--		return -EINVAL;
--
--	if (!driver->ops.add)
--		return -ENOSYS;
--
--	result = driver->ops.add(device);
--	if (result)
--		return result;
--
--	device->driver = driver;
--
--	/*
--	 * TBD - Configuration Management: Assign resources to device based
--	 * upon possible configuration and currently allocated resources.
--	 */
--
--	ACPI_DEBUG_PRINT((ACPI_DB_INFO,
--			  "Driver successfully bound to device\n"));
--	return 0;
--}
--
--/**
-  * acpi_bus_register_driver - register a driver with the ACPI bus
-  * @driver: driver being registered
-  *
+-- 
+Matthew Garrett | mjg59@srcf.ucam.org
 
