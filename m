@@ -1,64 +1,62 @@
-From: Daniel Vetter <daniel@ffwll.ch>
+From: joeyli <jlee@suse.com>
 Subject: Re: [PATCH 3/3] i915: Don't provide ACPI backlight interface if
  firmware expects Windows 8
-Date: Mon, 10 Jun 2013 09:40:31 +0200
-Message-ID: <20130610074031.GG22870@phenom.ffwll.local>
+Date: Mon, 10 Jun 2013 17:22:23 +0800
+Message-ID: <1370856143.6523.114.camel@linux-s257.site>
 References: <1370818899-8595-1-git-send-email-matthew.garrett@nebula.com>
- <1370818899-8595-4-git-send-email-matthew.garrett@nebula.com>
+	 <1370818899-8595-4-git-send-email-matthew.garrett@nebula.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-ea0-f181.google.com ([209.85.215.181]:53912 "EHLO
-	mail-ea0-f181.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751090Ab3FJHkh (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 10 Jun 2013 03:40:37 -0400
-Received: by mail-ea0-f181.google.com with SMTP id a15so2764684eae.40
-        for <linux-acpi@vger.kernel.org>; Mon, 10 Jun 2013 00:40:36 -0700 (PDT)
-Content-Disposition: inline
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <1370818899-8595-4-git-send-email-matthew.garrett@nebula.com>
-Sender: linux-acpi-owner@vger.kernel.org
-List-Id: linux-acpi@vger.kernel.org
+Sender: linux-kernel-owner@vger.kernel.org
 To: Matthew Garrett <matthew.garrett@nebula.com>
-Cc: linux-acpi@vger.kernel.org, seth.forshee@canonical.com, joeyli.kernel@gmail.com, daniel.vetter@ffwll.ch, intel-gfx@lists.freedesktop.org, dri-devel@lists.freedesktop.org, linux-kernel@vger.kernel.org, lenb@kernel.org, rjw@sisk.pl
+Cc: linux-acpi@vger.kernel.org, seth.forshee@canonical.com, daniel.vetter@ffwll.ch, intel-gfx@lists.freedesktop.org, dri-devel@lists.freedesktop.org, linux-kernel@vger.kernel.org, lenb@kernel.org, rjw@sisk.pl
+List-Id: linux-acpi@vger.kernel.org
 
-On Sun, Jun 09, 2013 at 07:01:39PM -0400, Matthew Garrett wrote:
-> Windows 8 leaves backlight control up to individual graphics drivers rather
-> than making ACPI calls itself. There's plenty of evidence to suggest that
-> the Intel driver for Windows doesn't use the ACPI interface, including the
-> fact that it's broken on a bunch of machines when the OS claims to support
+=E6=96=BC =E6=97=A5=EF=BC=8C2013-06-09 =E6=96=BC 19:01 -0400=EF=BC=8CMa=
+tthew Garrett =E6=8F=90=E5=88=B0=EF=BC=9A
+> Windows 8 leaves backlight control up to individual graphics drivers =
+rather
+> than making ACPI calls itself. There's plenty of evidence to suggest =
+that
+> the Intel driver for Windows doesn't use the ACPI interface, includin=
+g the
+> fact that it's broken on a bunch of machines when the OS claims to su=
+pport
 > Windows 8. The simplest thing to do appears to be to disable the ACPI
 > backlight interface on these systems.
-> 
+>=20
 > Signed-off-by: Matthew Garrett <matthew.garrett@nebula.com>
-
-Make sense and I guess it's easier to merge this all through the acpi
-tree. So
-
-Acked-by: Daniel Vetter <daniel.vetter@ffwll.ch>
-
 > ---
 >  drivers/gpu/drm/i915/i915_dma.c | 3 +++
 >  1 file changed, 3 insertions(+)
-> 
-> diff --git a/drivers/gpu/drm/i915/i915_dma.c b/drivers/gpu/drm/i915/i915_dma.c
+>=20
+> diff --git a/drivers/gpu/drm/i915/i915_dma.c b/drivers/gpu/drm/i915/i=
+915_dma.c
 > index 3b315ba..23b6292 100644
 > --- a/drivers/gpu/drm/i915/i915_dma.c
 > +++ b/drivers/gpu/drm/i915/i915_dma.c
-> @@ -1661,6 +1661,9 @@ int i915_driver_load(struct drm_device *dev, unsigned long flags)
+> @@ -1661,6 +1661,9 @@ int i915_driver_load(struct drm_device *dev, un=
+signed long flags)
 >  		/* Must be done after probing outputs */
 >  		intel_opregion_init(dev);
 >  		acpi_video_register();
 > +		/* Don't use ACPI backlight functions on Windows 8 platforms */
-> +		if (acpi_osi_version() >= ACPI_OSI_WIN_8)
+> +		if (acpi_osi_version() >=3D ACPI_OSI_WIN_8)
 > +			acpi_video_backlight_unregister();
 >  	}
->  
+> =20
 >  	if (IS_GEN5(dev))
-> -- 
-> 1.8.2.1
-> 
 
--- 
-Daniel Vetter
-Software Engineer, Intel Corporation
-+41 (0) 79 365 57 48 - http://blog.ffwll.ch
+This patch set works to me on Acer Aspire V3 notebook for unregister th=
+e
+backlight interface of acpi video driver when i915 loaded. Acer Aspire
+V3 has the Windows8 support in DSDT.
+
+Tested-by: Lee, Chun-Yi <jlee@suse.com>
+
+
+Thanks a lot!
+Joey Lee
