@@ -1,123 +1,64 @@
-From: li guang <lig.fnst@cn.fujitsu.com>
-Subject: Re: [PATCH RFC v2 0/3] add cpu physically hotplug driver
-Date: Mon, 10 Jun 2013 12:04:21 +0800
-Message-ID: <1370837061.21655.54.camel@liguang.fnst.cn.fujitsu.com>
-References: <1370482835-764-1-git-send-email-lig.fnst@cn.fujitsu.com>
-	 <5449620.11SBDUltzF@vostro.rjw.lan>
-	 <1370824567.21655.10.camel@liguang.fnst.cn.fujitsu.com>
-	 <51B54D51.2070505@jp.fujitsu.com>
+From: Daniel Vetter <daniel@ffwll.ch>
+Subject: Re: [PATCH 3/3] i915: Don't provide ACPI backlight interface if
+ firmware expects Windows 8
+Date: Mon, 10 Jun 2013 09:40:31 +0200
+Message-ID: <20130610074031.GG22870@phenom.ffwll.local>
+References: <1370818899-8595-1-git-send-email-matthew.garrett@nebula.com>
+ <1370818899-8595-4-git-send-email-matthew.garrett@nebula.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cn.fujitsu.com ([222.73.24.84]:16556 "EHLO song.cn.fujitsu.com"
-	rhost-flags-OK-FAIL-OK-OK) by vger.kernel.org with ESMTP
-	id S1750707Ab3FJEMs convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 10 Jun 2013 00:12:48 -0400
-In-Reply-To: <51B54D51.2070505@jp.fujitsu.com>
+Received: from mail-ea0-f181.google.com ([209.85.215.181]:53912 "EHLO
+	mail-ea0-f181.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751090Ab3FJHkh (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 10 Jun 2013 03:40:37 -0400
+Received: by mail-ea0-f181.google.com with SMTP id a15so2764684eae.40
+        for <linux-acpi@vger.kernel.org>; Mon, 10 Jun 2013 00:40:36 -0700 (PDT)
+Content-Disposition: inline
+In-Reply-To: <1370818899-8595-4-git-send-email-matthew.garrett@nebula.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
-Cc: "Rafael J. Wysocki" <rjw@sisk.pl>, Len Brown <lenb@kernel.org>, Matthew Garrett <matthew.garrett@nebula.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, platform-driver-x86@vger.kernel.org, Andreas =?ISO-8859-1?Q?F=E4rber?= <afaerber@suse.de>, Igor Mammedov <imammedo@redhat.com>
+To: Matthew Garrett <matthew.garrett@nebula.com>
+Cc: linux-acpi@vger.kernel.org, seth.forshee@canonical.com, joeyli.kernel@gmail.com, daniel.vetter@ffwll.ch, intel-gfx@lists.freedesktop.org, dri-devel@lists.freedesktop.org, linux-kernel@vger.kernel.org, lenb@kernel.org, rjw@sisk.pl
 
-=E5=9C=A8 2013-06-10=E4=B8=80=E7=9A=84 12:51 +0900=EF=BC=8CYasuaki Ishi=
-matsu=E5=86=99=E9=81=93=EF=BC=9A
-> 2013/06/10 9:36, li guang wrote:
-> > Hi, Rafael
-> >
-> > =E5=9C=A8 2013-06-06=E5=9B=9B=E7=9A=84 13:00 +0200=EF=BC=8CRafael J=
-=2E Wysocki=E5=86=99=E9=81=93=EF=BC=9A
-> >> On Thursday, June 06, 2013 09:40:32 AM liguang wrote:
-> >>> This patch-set try to support physically hot-plug/unplug
-> >>> a cpu automatically, that is:
-> >>> if you offline a cpu, it will automatically actually remove
-> >>> a cpu, and if you hot-plug a cpu, then it will online this
-> >>> cpu automatically.
-> >>
-> >> No and no.
-> >
-> > Hmm... are you saying cpu online/offline designed to distinguish
-> > with real cpu plug/unplug?
-> > but, what the actual usage of online/offline?
-> > forgive my foolish.
-> >
-> >>
-> >> Why do you need this?
-> >>
-> >
-> > e.g. for QEMU case, if hot-plug a cpu,
->=20
-> > we have to online a cpu manually if there's
-> > no user space support like udev to do it automatically.
->=20
-> I could not understand why you do not use udev.
-> Please explain in detail.
+On Sun, Jun 09, 2013 at 07:01:39PM -0400, Matthew Garrett wrote:
+> Windows 8 leaves backlight control up to individual graphics drivers rather
+> than making ACPI calls itself. There's plenty of evidence to suggest that
+> the Intel driver for Windows doesn't use the ACPI interface, including the
+> fact that it's broken on a bunch of machines when the OS claims to support
+> Windows 8. The simplest thing to do appears to be to disable the ACPI
+> backlight interface on these systems.
+> 
+> Signed-off-by: Matthew Garrett <matthew.garrett@nebula.com>
 
-I did not say I can't use udev now,
-just for in case someone can't.
+Make sense and I guess it's easier to merge this all through the acpi
+tree. So
 
->=20
-> > and also, I think maybe online/offline should be naturally
-> > integrated with real plug/unplug process of CPU.
->=20
-> I could not understand this explanation too.
-> Why do we need it?
->=20
+Acked-by: Daniel Vetter <daniel.vetter@ffwll.ch>
 
-actually, I am asking if CPU online/offline have real purpose,
-you offline a CPU, then threads can't run on it,
-you online a CPU, then threads can run on it,
-so, the purpose here is just bouncing threads?
-obviously not, any profound historical reasons?
+> ---
+>  drivers/gpu/drm/i915/i915_dma.c | 3 +++
+>  1 file changed, 3 insertions(+)
+> 
+> diff --git a/drivers/gpu/drm/i915/i915_dma.c b/drivers/gpu/drm/i915/i915_dma.c
+> index 3b315ba..23b6292 100644
+> --- a/drivers/gpu/drm/i915/i915_dma.c
+> +++ b/drivers/gpu/drm/i915/i915_dma.c
+> @@ -1661,6 +1661,9 @@ int i915_driver_load(struct drm_device *dev, unsigned long flags)
+>  		/* Must be done after probing outputs */
+>  		intel_opregion_init(dev);
+>  		acpi_video_register();
+> +		/* Don't use ACPI backlight functions on Windows 8 platforms */
+> +		if (acpi_osi_version() >= ACPI_OSI_WIN_8)
+> +			acpi_video_backlight_unregister();
+>  	}
+>  
+>  	if (IS_GEN5(dev))
+> -- 
+> 1.8.2.1
+> 
 
-I boldly think maybe online/offline should be integrated into
-real plug/unplug process of CPU.
-
-Thanks!
-
-> >
-> >>
-> >>
-> >>> so, offline is just like eject, but eject attribute seems not
-> >>> available since recent kernel(can't figure out when), with
-> >>> this driver, if allowed, it will trigger a eject cpu process.
-> >>> and for automatically online, it was said there are objections,
-> >>> don't know the reason, so, send this patch-set boldly.
-> >>>
-> >>> of course, this approach is for QEMU 's hotplug cpu emulation
-> >>> only, but not limited, if someone like to explore ec space to
-> >>> implment cpu hot-plug/unplug for real platform please
-> >>> feel free to continue.
-> >>>
-> >>> Li Guang (3)
-> >>> 	 drivers/platform/x86: add cpu physically hotplug driver
-> >>> 	 ec: add ec space notifier
-> >>> 	 cpu_physic_hotplug: register handler for ec space notifier
-> >>>
-> >>> drivers/acpi/ec.c                         | 32 ++++++++++++++++++=
-++++++++++++++
-> >>> drivers/platform/x86/Kconfig              |  8 ++++
-> >>> drivers/platform/x86/Makefile             |  1 +
-> >>> drivers/platform/x86/cpu_physic_hotplug.c | 90 ++++++++++++++++++=
-+++++++++++
-> >>> include/linux/acpi.h                      |  2 ++
-> >>> 5 files changed, 130 insertions(+), 3 deletions(-)
-> >>>   create mode 100644 drivers/platform/x86/cpu_physic_hotplug.c
-> >
-> >
-> > --
-> > To unsubscribe from this list: send the line "unsubscribe linux-ker=
-nel" in
-> > the body of a message to majordomo@vger.kernel.org
-> > More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> > Please read the FAQ at  http://www.tux.org/lkml/
-> >
->=20
->=20
-
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+-- 
+Daniel Vetter
+Software Engineer, Intel Corporation
++41 (0) 79 365 57 48 - http://blog.ffwll.ch
