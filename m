@@ -1,46 +1,104 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: [PATCH 0/3] Fix backlight issues on some Windows 8 systems
-Date: Mon, 10 Jun 2013 13:59:30 +0200
-Message-ID: <1714928.Kf7sBtKE1o@vostro.rjw.lan>
-References: <1370818899-8595-1-git-send-email-matthew.garrett@nebula.com>
+From: Aaron Lu <aaron.lu@intel.com>
+Subject: Re: [PATCH] ACPI / scan: Simplify ACPI driver probing
+Date: Mon, 10 Jun 2013 21:28:58 +0800
+Message-ID: <51B5D49A.90300@intel.com>
+References: <2159292.upDGjkPUz6@vostro.rjw.lan> <51B3D825.3060505@intel.com> <51B3E069.8090301@intel.com> <5445053.CFZ3ZkxVKT@vostro.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7Bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1370818899-8595-1-git-send-email-matthew.garrett@nebula.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Matthew Garrett <matthew.garrett@nebula.com>
-Cc: linux-acpi@vger.kernel.org, seth.forshee@canonical.com, joeyli.kernel@gmail.com, daniel.vetter@ffwll.ch, intel-gfx@lists.freedesktop.org, dri-devel@lists.freedesktop.org, linux-kernel@vger.kernel.org, lenb@kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mga03.intel.com ([143.182.124.21]:43361 "EHLO mga03.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752456Ab3FJN2b (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 10 Jun 2013 09:28:31 -0400
+In-Reply-To: <5445053.CFZ3ZkxVKT@vostro.rjw.lan>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>
 
-Hi Matthew,
-
-On Sunday, June 09, 2013 07:01:36 PM Matthew Garrett wrote:
-> Windows 8 introduced new policy for backlight control by pushing it out to
-> graphics drivers. This appears to have coincided with a range of vendors
-> adding Windows 8 checks to their backlight control code which trigger either
-> awkward behaviour (Lenovo) or complete brokenness (some Dells). The simplest
-> thing to do would be to just disable ACPI backlight control entirely if the
-> firmware indicates Windows 8 support, but it's entirely possible that
-> individual graphics drivers might still make use of the ACPI functionality in
-> preference to native control.
+On 06/10/2013 06:16 AM, Rafael J. Wysocki wrote:
+> On Sunday, June 09, 2013 09:54:49 AM Aaron Lu wrote:
+>> On 06/09/2013 09:19 AM, Aaron Lu wrote:
+>>> On 06/09/2013 06:28 AM, Rafael J. Wysocki wrote:
+>>>> From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+>>>>
+>>>> There is no particular reason why acpi_bus_driver_init() needs to be
+>>>> a separate function and its location with respect to its only caller,
+>>>> acpi_device_probe(), makes the code a bit difficult to follow.
+>>>>
+>>>> Besides, it doesn't really make sense to check if 'device' is not
+>>>> NULL in acpi_bus_driver_init(), because we've already dereferenced
+>>>> dev->driver in acpi_device_probe() at that point, so that check has
+>>>> to be moved to acpi_device_probe() anyway.
+>>>>
+>>>> For these reasons, drop acpi_bus_driver_init() altogether and move
+>>>> the code from it directly into acpi_device_probe().
+>>>>
+>>>> Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+>>>> ---
+>>>>
+>>>> Should apply on top of the bleeding-edge branch of the linux-pm.git tree.
+>>>>
+>>>> Thanks,
+>>>> Rafael
+>>>>
+>>>> ---
+>>>>  drivers/acpi/scan.c |   88 +++++++++++++++++++---------------------------------
+>>>>  1 file changed, 33 insertions(+), 55 deletions(-)
+>>>>
+>>>> Index: linux-pm/drivers/acpi/scan.c
+>>>> ===================================================================
+>>>> --- linux-pm.orig/drivers/acpi/scan.c
+>>>> +++ linux-pm/drivers/acpi/scan.c
+>>>> @@ -933,32 +933,45 @@ static void acpi_device_remove_notify_ha
+>>>>  					   acpi_device_notify);
+>>>>  }
+>>>>  
+>>>> -static int acpi_bus_driver_init(struct acpi_device *, struct acpi_driver *);
+>>>>  static int acpi_device_probe(struct device * dev)
+>>>>  {
+>>>> -	struct acpi_device *acpi_dev = to_acpi_device(dev);
+>>>> -	struct acpi_driver *acpi_drv = to_acpi_driver(dev->driver);
+>>>> +	struct acpi_device *acpi_dev;
+>>>> +	struct acpi_driver *acpi_drv;
+>>>>  	int ret;
+>>>>  
+>>>> -	ret = acpi_bus_driver_init(acpi_dev, acpi_drv);
+>>>> -	if (!ret) {
+>>>> -		if (acpi_drv->ops.notify) {
+>>>> -			ret = acpi_device_install_notify_handler(acpi_dev);
+>>>> -			if (ret) {
+>>>> -				if (acpi_drv->ops.remove)
+>>>> -					acpi_drv->ops.remove(acpi_dev);
+>>>> -				acpi_dev->driver = NULL;
+>>>> -				acpi_dev->driver_data = NULL;
+>>>> -				return ret;
+>>>> -			}
+>>>> -		}
+>>>> +	if (!dev || !dev->driver)
+>>>> +		return -EINVAL;
+>>>
+>>> Just out of curiosity, will dev ever be NULL in this function?
+>>> This function is called in really_probe by dev->bus->probe after
+>>> assigning dev->driver, so does the above check make any sense?
 > 
-> The first two patches in this series are picked from other patchesets aimed at
-> solving similar problems. The last simply unregisters ACPI backlight control
-> on Windows 8 systems when using an Intel GPU. Similar code could be added to
-> other drivers, but I'm reluctant to do so without further investigation as
-> to the behaviour of the vendor drivers under Windows.
+> Well, it makes sense as such, but it's not useful. :-)
+> 
+>> BTW, I also tested the patch on a desktop and two laptops, no problems
+>> found. Feel free to add my tested-by tag.
+> 
+> I've modified the patch to remove that check and will post it again shortly.
+> Can you please give the new version a run?
 
-I happen to know that alternative solution to this problem is being worked on,
-so I'm going to wait until it is submitted and then we'll decide what to merge.
+Actually, I added:
+dev_info(dev, "%s: driver=%s\n", __func__, dev->driver->name);
+before the if (!dev || !dev->driver) check while doing the tests to
+verify my thoughts, so your new patch should also be fine on those
+test systems, and my tested-by should still qualify.
 
-I'm slightly concerned about unregistering ACPI backlight control for all
-systems declaring win8 support, even though it may actually work for them.
+It's national holiday here (6/10-6/12), but if you want to be sure, I
+can do the tests on 6/13 when getting back to work.
 
 Thanks,
-Rafael
-
-
--- 
-I speak only for myself.
-Rafael J. Wysocki, Intel Open Source Technology Center.
+Aaron
