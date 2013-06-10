@@ -1,62 +1,146 @@
-From: joeyli <jlee@suse.com>
-Subject: Re: [PATCH 3/3] i915: Don't provide ACPI backlight interface if
- firmware expects Windows 8
-Date: Mon, 10 Jun 2013 17:22:23 +0800
-Message-ID: <1370856143.6523.114.camel@linux-s257.site>
-References: <1370818899-8595-1-git-send-email-matthew.garrett@nebula.com>
-	 <1370818899-8595-4-git-send-email-matthew.garrett@nebula.com>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: Re: [PATCH RFC v2 2/3] ec: add ec space notifier
+Date: Mon, 10 Jun 2013 13:43:09 +0200
+Message-ID: <21097972.gssLReeoxv@vostro.rjw.lan>
+References: <1370482835-764-1-git-send-email-lig.fnst@cn.fujitsu.com> <10739719.ouMOhAfYPv@vostro.rjw.lan> <1370825214.21655.20.camel@liguang.fnst.cn.fujitsu.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1370818899-8595-4-git-send-email-matthew.garrett@nebula.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Matthew Garrett <matthew.garrett@nebula.com>
-Cc: linux-acpi@vger.kernel.org, seth.forshee@canonical.com, daniel.vetter@ffwll.ch, intel-gfx@lists.freedesktop.org, dri-devel@lists.freedesktop.org, linux-kernel@vger.kernel.org, lenb@kernel.org, rjw@sisk.pl
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from hydra.sisk.pl ([212.160.235.94]:33127 "EHLO hydra.sisk.pl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752347Ab3FJLeF convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 10 Jun 2013 07:34:05 -0400
+In-Reply-To: <1370825214.21655.20.camel@liguang.fnst.cn.fujitsu.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: li guang <lig.fnst@cn.fujitsu.com>
+Cc: Len Brown <lenb@kernel.org>, Matthew Garrett <matthew.garrett@nebula.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, platform-driver-x86@vger.kernel.org, Andreas =?ISO-8859-1?Q?F=E4rber?= <afaerber@suse.de>, Igor Mammedov <imammedo@redhat.com>
 
-=E6=96=BC =E6=97=A5=EF=BC=8C2013-06-09 =E6=96=BC 19:01 -0400=EF=BC=8CMa=
-tthew Garrett =E6=8F=90=E5=88=B0=EF=BC=9A
-> Windows 8 leaves backlight control up to individual graphics drivers =
-rather
-> than making ACPI calls itself. There's plenty of evidence to suggest =
-that
-> the Intel driver for Windows doesn't use the ACPI interface, includin=
-g the
-> fact that it's broken on a bunch of machines when the OS claims to su=
-pport
-> Windows 8. The simplest thing to do appears to be to disable the ACPI
-> backlight interface on these systems.
+On Monday, June 10, 2013 08:46:54 AM li guang wrote:
+> =E5=9C=A8 2013-06-06=E5=9B=9B=E7=9A=84 12:59 +0200=EF=BC=8CRafael J. =
+Wysocki=E5=86=99=E9=81=93=EF=BC=9A
+> > On Thursday, June 06, 2013 09:40:34 AM liguang wrote:
+> > > add a notifier for anyone who are instresting in
+> > > ec space changing.
+> > >=20
+> > > Signed-off-by: liguang <lig.fnst@cn.fujitsu.com>
+> >=20
+> > I'm not going to apply this anyway, but can you please explain what=
+'s the
+> > problem you're trying to solve here?
 >=20
-> Signed-off-by: Matthew Garrett <matthew.garrett@nebula.com>
-> ---
->  drivers/gpu/drm/i915/i915_dma.c | 3 +++
->  1 file changed, 3 insertions(+)
+> OK, currently it is for QEMU to do cpu online automatically after
+> hot-plug a cpu,
+> and maybe potentially for real platform's cpu
+> plug/unplug implementation.
+> with this notifier, we don't need any GPIOes,IO ports, and other
+> hardware cost if we do have an EC chip in board to trigger kernel's=20
+> cpu process for this.
+
+You need to make ACPI eject/bus/device notifications go to the processo=
+r
+objects rather than to listen to the EC events.
+
+> Yep, you said you'll reject this anyway,
+> but I have to ask do this notifier offend
+> any rules of your development?
+
+Well, yes, it does.  CPU offline/online is not only for hotplugging and=
+ people
+do not expect CPUs to actually physically go away after using offline.
+
+Thanks,
+Rafael
+
+
+> > > ---
+> > >  drivers/acpi/ec.c    |   32 ++++++++++++++++++++++++++++++++
+> > >  include/linux/acpi.h |    2 ++
+> > >  2 files changed, 34 insertions(+), 0 deletions(-)
+> > >=20
+> > > diff --git a/drivers/acpi/ec.c b/drivers/acpi/ec.c
+> > > index edc0081..dee3417 100644
+> > > --- a/drivers/acpi/ec.c
+> > > +++ b/drivers/acpi/ec.c
+> > > @@ -124,6 +124,35 @@ static int EC_FLAGS_MSI; /* Out-of-spec MSI =
+controller */
+> > >  static int EC_FLAGS_VALIDATE_ECDT; /* ASUStec ECDTs need to be v=
+alidated */
+> > >  static int EC_FLAGS_SKIP_DSDT_SCAN; /* Not all BIOS survive earl=
+y DSDT scan */
+> > > =20
+> > > +/* notifier chain for who are intresting in ec space changing */
+> > > +static RAW_NOTIFIER_HEAD(ec_space_chain);
+> > > +
+> > > +int __ref register_ec_space_notifier(struct notifier_block *nb)
+> > > +{
+> > > +        int ret;
+> > > +
+> > > +        ret =3D raw_notifier_chain_register(&ec_space_chain, nb)=
+;
+> > > +
+> > > +        return ret;
+> > > +}
+> > > +EXPORT_SYMBOL(register_ec_space_notifier);
+> > > +
+> > > +void __ref unregister_ec_space_notifier(struct notifier_block *n=
+b)
+> > > +{
+> > > +
+> > > +        raw_notifier_chain_unregister(&ec_space_chain, nb);
+> > > +}
+> > > +EXPORT_SYMBOL(unregister_ec_space_notifier);
+> > > +
+> > > +static int ec_space_notify(void *data)
+> > > +{
+> > > +    int ret;
+> > > +
+> > > +    ret =3D __raw_notifier_call_chain(&ec_space_chain, 0, data, =
+-1, NULL);
+> > > +
+> > > +     return notifier_to_errno(ret);
+> > > +}
+> > > +
+> > >  /* -------------------------------------------------------------=
+-------------
+> > >                               Transaction Management
+> > >     -------------------------------------------------------------=
+------------- */
+> > > @@ -638,6 +667,9 @@ static u32 acpi_ec_gpe_handler(acpi_handle gp=
+e_device,
+> > >  		wake_up(&ec->wait);
+> > >  		ec_check_sci(ec, acpi_ec_read_status(ec));
+> > >  	}
+> > > +
+> > > +	ec_space_notify(data);
+> > > +
+> > >  	return ACPI_INTERRUPT_HANDLED | ACPI_REENABLE_GPE;
+> > >  }
+> > > =20
+> > > diff --git a/include/linux/acpi.h b/include/linux/acpi.h
+> > > index 17b5b59..4fe2247 100644
+> > > --- a/include/linux/acpi.h
+> > > +++ b/include/linux/acpi.h
+> > > @@ -158,6 +158,8 @@ extern int ec_transaction(u8 command,
+> > >                            const u8 *wdata, unsigned wdata_len,
+> > >                            u8 *rdata, unsigned rdata_len);
+> > >  extern acpi_handle ec_get_handle(void);
+> > > +extern int register_ec_space_notifier(struct notifier_block *nb)=
+;
+> > > +extern void unregister_ec_space_notifier(struct notifier_block *=
+nb);
+> > > =20
+> > >  #if defined(CONFIG_ACPI_WMI) || defined(CONFIG_ACPI_WMI_MODULE)
+> > > =20
+> > >=20
 >=20
-> diff --git a/drivers/gpu/drm/i915/i915_dma.c b/drivers/gpu/drm/i915/i=
-915_dma.c
-> index 3b315ba..23b6292 100644
-> --- a/drivers/gpu/drm/i915/i915_dma.c
-> +++ b/drivers/gpu/drm/i915/i915_dma.c
-> @@ -1661,6 +1661,9 @@ int i915_driver_load(struct drm_device *dev, un=
-signed long flags)
->  		/* Must be done after probing outputs */
->  		intel_opregion_init(dev);
->  		acpi_video_register();
-> +		/* Don't use ACPI backlight functions on Windows 8 platforms */
-> +		if (acpi_osi_version() >=3D ACPI_OSI_WIN_8)
-> +			acpi_video_backlight_unregister();
->  	}
-> =20
->  	if (IS_GEN5(dev))
-
-This patch set works to me on Acer Aspire V3 notebook for unregister th=
-e
-backlight interface of acpi video driver when i915 loaded. Acer Aspire
-V3 has the Windows8 support in DSDT.
-
-Tested-by: Lee, Chun-Yi <jlee@suse.com>
-
-
-Thanks a lot!
-Joey Lee
+>=20
+--=20
+I speak only for myself.
+Rafael J. Wysocki, Intel Open Source Technology Center.
+--
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
