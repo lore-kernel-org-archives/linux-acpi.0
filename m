@@ -1,104 +1,32 @@
-From: Aaron Lu <aaron.lu@intel.com>
-Subject: Re: [PATCH] ACPI / scan: Simplify ACPI driver probing
-Date: Mon, 10 Jun 2013 21:28:58 +0800
-Message-ID: <51B5D49A.90300@intel.com>
-References: <2159292.upDGjkPUz6@vostro.rjw.lan> <51B3D825.3060505@intel.com> <51B3E069.8090301@intel.com> <5445053.CFZ3ZkxVKT@vostro.rjw.lan>
+From: Matthew Garrett <matthew.garrett@nebula.com>
+Subject: Re: [PATCH 0/3] Fix backlight issues on some Windows 8 systems
+Date: Mon, 10 Jun 2013 13:48:04 +0000
+Message-ID: <1370872083.9178.2.camel@x230.lan>
+References: <1370818899-8595-1-git-send-email-matthew.garrett@nebula.com>
+	 <1714928.Kf7sBtKE1o@vostro.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga03.intel.com ([143.182.124.21]:43361 "EHLO mga03.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752456Ab3FJN2b (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 10 Jun 2013 09:28:31 -0400
-In-Reply-To: <5445053.CFZ3ZkxVKT@vostro.rjw.lan>
-Sender: linux-acpi-owner@vger.kernel.org
-List-Id: linux-acpi@vger.kernel.org
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1714928.Kf7sBtKE1o@vostro.rjw.lan>
+Content-Language: en-US
+Content-ID: <E5D0396D51E1A14194A5994F95A8B5B9@namprd05.prod.outlook.com>
+Sender: linux-kernel-owner@vger.kernel.org
 To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>
+Cc: "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "seth.forshee@canonical.com" <seth.forshee@canonical.com>, "joeyli.kernel@gmail.com" <joeyli.kernel@gmail.com>, "daniel.vetter@ffwll.ch" <daniel.vetter@ffwll.ch>, "intel-gfx@lists.freedesktop.org" <intel-gfx@lists.freedesktop.org>, "dri-devel@lists.freedesktop.org" <dri-devel@lists.freedesktop.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "lenb@kernel.org" <lenb@kernel.org>
+List-Id: linux-acpi@vger.kernel.org
 
-On 06/10/2013 06:16 AM, Rafael J. Wysocki wrote:
-> On Sunday, June 09, 2013 09:54:49 AM Aaron Lu wrote:
->> On 06/09/2013 09:19 AM, Aaron Lu wrote:
->>> On 06/09/2013 06:28 AM, Rafael J. Wysocki wrote:
->>>> From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
->>>>
->>>> There is no particular reason why acpi_bus_driver_init() needs to be
->>>> a separate function and its location with respect to its only caller,
->>>> acpi_device_probe(), makes the code a bit difficult to follow.
->>>>
->>>> Besides, it doesn't really make sense to check if 'device' is not
->>>> NULL in acpi_bus_driver_init(), because we've already dereferenced
->>>> dev->driver in acpi_device_probe() at that point, so that check has
->>>> to be moved to acpi_device_probe() anyway.
->>>>
->>>> For these reasons, drop acpi_bus_driver_init() altogether and move
->>>> the code from it directly into acpi_device_probe().
->>>>
->>>> Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
->>>> ---
->>>>
->>>> Should apply on top of the bleeding-edge branch of the linux-pm.git tree.
->>>>
->>>> Thanks,
->>>> Rafael
->>>>
->>>> ---
->>>>  drivers/acpi/scan.c |   88 +++++++++++++++++++---------------------------------
->>>>  1 file changed, 33 insertions(+), 55 deletions(-)
->>>>
->>>> Index: linux-pm/drivers/acpi/scan.c
->>>> ===================================================================
->>>> --- linux-pm.orig/drivers/acpi/scan.c
->>>> +++ linux-pm/drivers/acpi/scan.c
->>>> @@ -933,32 +933,45 @@ static void acpi_device_remove_notify_ha
->>>>  					   acpi_device_notify);
->>>>  }
->>>>  
->>>> -static int acpi_bus_driver_init(struct acpi_device *, struct acpi_driver *);
->>>>  static int acpi_device_probe(struct device * dev)
->>>>  {
->>>> -	struct acpi_device *acpi_dev = to_acpi_device(dev);
->>>> -	struct acpi_driver *acpi_drv = to_acpi_driver(dev->driver);
->>>> +	struct acpi_device *acpi_dev;
->>>> +	struct acpi_driver *acpi_drv;
->>>>  	int ret;
->>>>  
->>>> -	ret = acpi_bus_driver_init(acpi_dev, acpi_drv);
->>>> -	if (!ret) {
->>>> -		if (acpi_drv->ops.notify) {
->>>> -			ret = acpi_device_install_notify_handler(acpi_dev);
->>>> -			if (ret) {
->>>> -				if (acpi_drv->ops.remove)
->>>> -					acpi_drv->ops.remove(acpi_dev);
->>>> -				acpi_dev->driver = NULL;
->>>> -				acpi_dev->driver_data = NULL;
->>>> -				return ret;
->>>> -			}
->>>> -		}
->>>> +	if (!dev || !dev->driver)
->>>> +		return -EINVAL;
->>>
->>> Just out of curiosity, will dev ever be NULL in this function?
->>> This function is called in really_probe by dev->bus->probe after
->>> assigning dev->driver, so does the above check make any sense?
-> 
-> Well, it makes sense as such, but it's not useful. :-)
-> 
->> BTW, I also tested the patch on a desktop and two laptops, no problems
->> found. Feel free to add my tested-by tag.
-> 
-> I've modified the patch to remove that check and will post it again shortly.
-> Can you please give the new version a run?
-
-Actually, I added:
-dev_info(dev, "%s: driver=%s\n", __func__, dev->driver->name);
-before the if (!dev || !dev->driver) check while doing the tests to
-verify my thoughts, so your new patch should also be fine on those
-test systems, and my tested-by should still qualify.
-
-It's national holiday here (6/10-6/12), but if you want to be sure, I
-can do the tests on 6/13 when getting back to work.
-
-Thanks,
-Aaron
+T24gTW9uLCAyMDEzLTA2LTEwIGF0IDEzOjU5ICswMjAwLCBSYWZhZWwgSi4gV3lzb2NraSB3cm90
+ZToNCg0KPiBJIGhhcHBlbiB0byBrbm93IHRoYXQgYWx0ZXJuYXRpdmUgc29sdXRpb24gdG8gdGhp
+cyBwcm9ibGVtIGlzIGJlaW5nIHdvcmtlZCBvbiwNCj4gc28gSSdtIGdvaW5nIHRvIHdhaXQgdW50
+aWwgaXQgaXMgc3VibWl0dGVkIGFuZCB0aGVuIHdlJ2xsIGRlY2lkZSB3aGF0IHRvIG1lcmdlLg0K
+DQpTdXJlLg0KDQo+IEknbSBzbGlnaHRseSBjb25jZXJuZWQgYWJvdXQgdW5yZWdpc3RlcmluZyBB
+Q1BJIGJhY2tsaWdodCBjb250cm9sIGZvciBhbGwNCj4gc3lzdGVtcyBkZWNsYXJpbmcgd2luOCBz
+dXBwb3J0LCBldmVuIHRob3VnaCBpdCBtYXkgYWN0dWFsbHkgd29yayBmb3IgdGhlbS4NCg0KUmln
+aHQsIHRoYXQncyB3aHkgSSB0aGluayBpdCdzIGNvcnJlY3QgdG8gbGVhdmUgaXQgdXAgdG8gdGhl
+IGdyYXBoaWNzDQpkcml2ZXJzLiBJdCBzZWVtcyBsaWtlIHRoZXkncmUgdGhlIG9uZXMgdGhhdCBt
+YWtlIHRoZSBwb2xpY3kNCmRldGVybWluYXRpb24gdW5kZXIgV2luZG93cyBub3cuIFRoZSBwb2xp
+Y3kgYXMgaW1wbGVtZW50ZWQgaGVyZSBtYXkgbm90DQpiZSBjb3JyZWN0LCBidXQgZG9pbmcgYmV0
+dGVyIHdvdWxkIHByb2JhYmx5IGludm9sdmUgSW50ZWwgbGV0dGluZyB1cw0Ka25vdyBob3cgdGhl
+aXIgV2luZG93cyBkcml2ZXIgYmVoYXZlcy4NCg0KLS0gDQpNYXR0aGV3IEdhcnJldHQgfCBtamc1
+OUBzcmNmLnVjYW0ub3JnDQo=
