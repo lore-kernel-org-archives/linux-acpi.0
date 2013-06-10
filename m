@@ -1,92 +1,113 @@
-From: Alex Deucher <alexdeucher@gmail.com>
-Subject: Re: [PATCH 3/3] i915: Don't provide ACPI backlight interface if
- firmware expects Windows 8
-Date: Mon, 10 Jun 2013 10:09:18 -0400
-Message-ID: <CADnq5_Ns9e85h4WB_0m9-E42mOLrydo6GwkyvjrNYarY4yxJcw@mail.gmail.com>
-References: <1370818899-8595-1-git-send-email-matthew.garrett@nebula.com>
-	<1370818899-8595-4-git-send-email-matthew.garrett@nebula.com>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: Re: [PATCH] ACPI / scan: Simplify ACPI driver probing
+Date: Mon, 10 Jun 2013 22:01:47 +0200
+Message-ID: <1498251.QI4rBdZDg6@vostro.rjw.lan>
+References: <2159292.upDGjkPUz6@vostro.rjw.lan> <5445053.CFZ3ZkxVKT@vostro.rjw.lan> <51B5D49A.90300@intel.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary=089e01293fe293264d04decd53e4
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7Bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-vb0-f49.google.com ([209.85.212.49]:43197 "EHLO
-	mail-vb0-f49.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750792Ab3FJOJT (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 10 Jun 2013 10:09:19 -0400
-In-Reply-To: <1370818899-8595-4-git-send-email-matthew.garrett@nebula.com>
+Received: from hydra.sisk.pl ([212.160.235.94]:33492 "EHLO hydra.sisk.pl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751997Ab3FJTwh (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 10 Jun 2013 15:52:37 -0400
+In-Reply-To: <51B5D49A.90300@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Matthew Garrett <matthew.garrett@nebula.com>
-Cc: linux-acpi@vger.kernel.org, daniel.vetter@ffwll.ch, intel-gfx@lists.freedesktop.org, linux-kernel@vger.kernel.org, dri-devel@lists.freedesktop.org, rjw@sisk.pl, seth.forshee@canonical.com, joeyli.kernel@gmail.com, lenb@kernel.org
+To: Aaron Lu <aaron.lu@intel.com>
+Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>
 
---089e01293fe293264d04decd53e4
-Content-Type: text/plain; charset=ISO-8859-1
+On Monday, June 10, 2013 09:28:58 PM Aaron Lu wrote:
+> On 06/10/2013 06:16 AM, Rafael J. Wysocki wrote:
+> > On Sunday, June 09, 2013 09:54:49 AM Aaron Lu wrote:
+> >> On 06/09/2013 09:19 AM, Aaron Lu wrote:
+> >>> On 06/09/2013 06:28 AM, Rafael J. Wysocki wrote:
+> >>>> From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+> >>>>
+> >>>> There is no particular reason why acpi_bus_driver_init() needs to be
+> >>>> a separate function and its location with respect to its only caller,
+> >>>> acpi_device_probe(), makes the code a bit difficult to follow.
+> >>>>
+> >>>> Besides, it doesn't really make sense to check if 'device' is not
+> >>>> NULL in acpi_bus_driver_init(), because we've already dereferenced
+> >>>> dev->driver in acpi_device_probe() at that point, so that check has
+> >>>> to be moved to acpi_device_probe() anyway.
+> >>>>
+> >>>> For these reasons, drop acpi_bus_driver_init() altogether and move
+> >>>> the code from it directly into acpi_device_probe().
+> >>>>
+> >>>> Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+> >>>> ---
+> >>>>
+> >>>> Should apply on top of the bleeding-edge branch of the linux-pm.git tree.
+> >>>>
+> >>>> Thanks,
+> >>>> Rafael
+> >>>>
+> >>>> ---
+> >>>>  drivers/acpi/scan.c |   88 +++++++++++++++++++---------------------------------
+> >>>>  1 file changed, 33 insertions(+), 55 deletions(-)
+> >>>>
+> >>>> Index: linux-pm/drivers/acpi/scan.c
+> >>>> ===================================================================
+> >>>> --- linux-pm.orig/drivers/acpi/scan.c
+> >>>> +++ linux-pm/drivers/acpi/scan.c
+> >>>> @@ -933,32 +933,45 @@ static void acpi_device_remove_notify_ha
+> >>>>  					   acpi_device_notify);
+> >>>>  }
+> >>>>  
+> >>>> -static int acpi_bus_driver_init(struct acpi_device *, struct acpi_driver *);
+> >>>>  static int acpi_device_probe(struct device * dev)
+> >>>>  {
+> >>>> -	struct acpi_device *acpi_dev = to_acpi_device(dev);
+> >>>> -	struct acpi_driver *acpi_drv = to_acpi_driver(dev->driver);
+> >>>> +	struct acpi_device *acpi_dev;
+> >>>> +	struct acpi_driver *acpi_drv;
+> >>>>  	int ret;
+> >>>>  
+> >>>> -	ret = acpi_bus_driver_init(acpi_dev, acpi_drv);
+> >>>> -	if (!ret) {
+> >>>> -		if (acpi_drv->ops.notify) {
+> >>>> -			ret = acpi_device_install_notify_handler(acpi_dev);
+> >>>> -			if (ret) {
+> >>>> -				if (acpi_drv->ops.remove)
+> >>>> -					acpi_drv->ops.remove(acpi_dev);
+> >>>> -				acpi_dev->driver = NULL;
+> >>>> -				acpi_dev->driver_data = NULL;
+> >>>> -				return ret;
+> >>>> -			}
+> >>>> -		}
+> >>>> +	if (!dev || !dev->driver)
+> >>>> +		return -EINVAL;
+> >>>
+> >>> Just out of curiosity, will dev ever be NULL in this function?
+> >>> This function is called in really_probe by dev->bus->probe after
+> >>> assigning dev->driver, so does the above check make any sense?
+> > 
+> > Well, it makes sense as such, but it's not useful. :-)
+> > 
+> >> BTW, I also tested the patch on a desktop and two laptops, no problems
+> >> found. Feel free to add my tested-by tag.
+> > 
+> > I've modified the patch to remove that check and will post it again shortly.
+> > Can you please give the new version a run?
+> 
+> Actually, I added:
+> dev_info(dev, "%s: driver=%s\n", __func__, dev->driver->name);
+> before the if (!dev || !dev->driver) check while doing the tests to
+> verify my thoughts, so your new patch should also be fine on those
+> test systems, and my tested-by should still qualify.
+> 
+> It's national holiday here (6/10-6/12), but if you want to be sure, I
+> can do the tests on 6/13 when getting back to work.
 
-Radeon probably needs something similar.  See attached untested patch.
+That won't hurt, but it's 3.11 material anyway, so it's going to get some
+testing (hopefully).
 
-Alex
+Thanks,
+Rafael
 
-On Sun, Jun 9, 2013 at 7:01 PM, Matthew Garrett
-<matthew.garrett@nebula.com> wrote:
-> Windows 8 leaves backlight control up to individual graphics drivers rather
-> than making ACPI calls itself. There's plenty of evidence to suggest that
-> the Intel driver for Windows doesn't use the ACPI interface, including the
-> fact that it's broken on a bunch of machines when the OS claims to support
-> Windows 8. The simplest thing to do appears to be to disable the ACPI
-> backlight interface on these systems.
->
-> Signed-off-by: Matthew Garrett <matthew.garrett@nebula.com>
-> ---
->  drivers/gpu/drm/i915/i915_dma.c | 3 +++
->  1 file changed, 3 insertions(+)
->
-> diff --git a/drivers/gpu/drm/i915/i915_dma.c b/drivers/gpu/drm/i915/i915_dma.c
-> index 3b315ba..23b6292 100644
-> --- a/drivers/gpu/drm/i915/i915_dma.c
-> +++ b/drivers/gpu/drm/i915/i915_dma.c
-> @@ -1661,6 +1661,9 @@ int i915_driver_load(struct drm_device *dev, unsigned long flags)
->                 /* Must be done after probing outputs */
->                 intel_opregion_init(dev);
->                 acpi_video_register();
-> +               /* Don't use ACPI backlight functions on Windows 8 platforms */
-> +               if (acpi_osi_version() >= ACPI_OSI_WIN_8)
-> +                       acpi_video_backlight_unregister();
->         }
->
->         if (IS_GEN5(dev))
-> --
-> 1.8.2.1
->
-> _______________________________________________
-> dri-devel mailing list
-> dri-devel@lists.freedesktop.org
-> http://lists.freedesktop.org/mailman/listinfo/dri-devel
 
---089e01293fe293264d04decd53e4
-Content-Type: text/x-patch; charset=US-ASCII;
-	name="0001-drm-radeon-don-t-provide-ACPI-backlight-if-firmware-.patch"
-Content-Disposition: attachment;
-	filename="0001-drm-radeon-don-t-provide-ACPI-backlight-if-firmware-.patch"
-Content-Transfer-Encoding: base64
-X-Attachment-Id: f_hhrqkrhm0
-
-RnJvbSBjNmVhZDM0MjlmZDM5NzdiNGIyZWU1NzQ4ZDgzYzcyMjcyNTkyYjI5IE1vbiBTZXAgMTcg
-MDA6MDA6MDAgMjAwMQpGcm9tOiBBbGV4IERldWNoZXIgPGFsZXhhbmRlci5kZXVjaGVyQGFtZC5j
-b20+CkRhdGU6IE1vbiwgMTAgSnVuIDIwMTMgMTA6MDU6NDMgLTA0MDAKU3ViamVjdDogW1BBVENI
-XSBkcm0vcmFkZW9uOiBkb24ndCBwcm92aWRlIEFDUEkgYmFja2xpZ2h0IGlmIGZpcm13YXJlIGV4
-cGVjdHMKIFdpbmRvd3MgOAoKV2luZG93cyA4IGxlYXZlcyBiYWNrbGlnaHQgY29udHJvbCB1cCB0
-byBpbmRpdmlkdWFsIGdyYXBoaWNzIGRyaXZlcnMgcmF0aGVyCnRoYW4gbWFraW5nIEFDUEkgY2Fs
-bHMgaXRzZWxmLgoKVW50ZXN0ZWQuCgpTaWduZWQtb2ZmLWJ5OiBBbGV4IERldWNoZXIgPGFsZXhh
-bmRlci5kZXVjaGVyQGFtZC5jb20+Ci0tLQogZHJpdmVycy9ncHUvZHJtL3JhZGVvbi9hdG9tYmlv
-c19lbmNvZGVycy5jIHwgICAgNCArKysrCiAxIGZpbGVzIGNoYW5nZWQsIDQgaW5zZXJ0aW9ucygr
-KSwgMCBkZWxldGlvbnMoLSkKCmRpZmYgLS1naXQgYS9kcml2ZXJzL2dwdS9kcm0vcmFkZW9uL2F0
-b21iaW9zX2VuY29kZXJzLmMgYi9kcml2ZXJzL2dwdS9kcm0vcmFkZW9uL2F0b21iaW9zX2VuY29k
-ZXJzLmMKaW5kZXggNDEyMGQzNS4uYmM5ZTAwNyAxMDA2NDQKLS0tIGEvZHJpdmVycy9ncHUvZHJt
-L3JhZGVvbi9hdG9tYmlvc19lbmNvZGVycy5jCisrKyBiL2RyaXZlcnMvZ3B1L2RybS9yYWRlb24v
-YXRvbWJpb3NfZW5jb2RlcnMuYwpAQCAtMjMzLDYgKzIzMywxMCBAQCB2b2lkIHJhZGVvbl9hdG9t
-X2JhY2tsaWdodF9pbml0KHN0cnVjdCByYWRlb25fZW5jb2RlciAqcmFkZW9uX2VuY29kZXIsCiAK
-IAlEUk1fSU5GTygicmFkZW9uIGF0b20gRElHIGJhY2tsaWdodCBpbml0aWFsaXplZFxuIik7CiAK
-KwkvKiBEb24ndCB1c2UgQUNQSSBiYWNrbGlnaHQgZnVuY3Rpb25zIG9uIFdpbmRvd3MgOCBwbGF0
-Zm9ybXMgKi8KKwlpZiAoYWNwaV9vc2lfdmVyc2lvbigpID49IEFDUElfT1NJX1dJTl84KQorCQlh
-Y3BpX3ZpZGVvX2JhY2tsaWdodF91bnJlZ2lzdGVyKCk7CisKIAlyZXR1cm47CiAKIGVycm9yOgot
-LSAKMS43LjcuNQoK
---089e01293fe293264d04decd53e4--
+-- 
+I speak only for myself.
+Rafael J. Wysocki, Intel Open Source Technology Center.
