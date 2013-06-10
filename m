@@ -1,146 +1,128 @@
 From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: [PATCH RFC v2 2/3] ec: add ec space notifier
-Date: Mon, 10 Jun 2013 13:43:09 +0200
-Message-ID: <21097972.gssLReeoxv@vostro.rjw.lan>
-References: <1370482835-764-1-git-send-email-lig.fnst@cn.fujitsu.com> <10739719.ouMOhAfYPv@vostro.rjw.lan> <1370825214.21655.20.camel@liguang.fnst.cn.fujitsu.com>
+Subject: Re: [PATCH RFC v2 0/3] add cpu physically hotplug driver
+Date: Mon, 10 Jun 2013 13:47:17 +0200
+Message-ID: <1875411.erfv3Z7LVk@vostro.rjw.lan>
+References: <1370482835-764-1-git-send-email-lig.fnst@cn.fujitsu.com> <51B54D51.2070505@jp.fujitsu.com> <1370837061.21655.54.camel@liguang.fnst.cn.fujitsu.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from hydra.sisk.pl ([212.160.235.94]:33127 "EHLO hydra.sisk.pl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752347Ab3FJLeF convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 10 Jun 2013 07:34:05 -0400
-In-Reply-To: <1370825214.21655.20.camel@liguang.fnst.cn.fujitsu.com>
-Sender: linux-acpi-owner@vger.kernel.org
-List-Id: linux-acpi@vger.kernel.org
+Return-path: <platform-driver-x86-owner@vger.kernel.org>
+In-Reply-To: <1370837061.21655.54.camel@liguang.fnst.cn.fujitsu.com>
+Sender: platform-driver-x86-owner@vger.kernel.org
 To: li guang <lig.fnst@cn.fujitsu.com>
-Cc: Len Brown <lenb@kernel.org>, Matthew Garrett <matthew.garrett@nebula.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, platform-driver-x86@vger.kernel.org, Andreas =?ISO-8859-1?Q?F=E4rber?= <afaerber@suse.de>, Igor Mammedov <imammedo@redhat.com>
+Cc: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>, Len Brown <lenb@kernel.org>, Matthew Garrett <matthew.garrett@nebula.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, platform-driver-x86@vger.kernel.org, Andreas =?ISO-8859-1?Q?F=E4rber?= <afaerber@suse.de>, Igor Mammedov <imammedo@redhat.com>
+List-Id: linux-acpi@vger.kernel.org
 
-On Monday, June 10, 2013 08:46:54 AM li guang wrote:
-> =E5=9C=A8 2013-06-06=E5=9B=9B=E7=9A=84 12:59 +0200=EF=BC=8CRafael J. =
-Wysocki=E5=86=99=E9=81=93=EF=BC=9A
-> > On Thursday, June 06, 2013 09:40:34 AM liguang wrote:
-> > > add a notifier for anyone who are instresting in
-> > > ec space changing.
-> > >=20
-> > > Signed-off-by: liguang <lig.fnst@cn.fujitsu.com>
+On Monday, June 10, 2013 12:04:21 PM li guang wrote:
+> =E5=9C=A8 2013-06-10=E4=B8=80=E7=9A=84 12:51 +0900=EF=BC=8CYasuaki Is=
+himatsu=E5=86=99=E9=81=93=EF=BC=9A
+> > 2013/06/10 9:36, li guang wrote:
+> > > Hi, Rafael
+> > >
+> > > =E5=9C=A8 2013-06-06=E5=9B=9B=E7=9A=84 13:00 +0200=EF=BC=8CRafael=
+ J. Wysocki=E5=86=99=E9=81=93=EF=BC=9A
+> > >> On Thursday, June 06, 2013 09:40:32 AM liguang wrote:
+> > >>> This patch-set try to support physically hot-plug/unplug
+> > >>> a cpu automatically, that is:
+> > >>> if you offline a cpu, it will automatically actually remove
+> > >>> a cpu, and if you hot-plug a cpu, then it will online this
+> > >>> cpu automatically.
+> > >>
+> > >> No and no.
+> > >
+> > > Hmm... are you saying cpu online/offline designed to distinguish
+> > > with real cpu plug/unplug?
+> > > but, what the actual usage of online/offline?
+> > > forgive my foolish.
+> > >
+> > >>
+> > >> Why do you need this?
+> > >>
+> > >
+> > > e.g. for QEMU case, if hot-plug a cpu,
 > >=20
-> > I'm not going to apply this anyway, but can you please explain what=
-'s the
-> > problem you're trying to solve here?
+> > > we have to online a cpu manually if there's
+> > > no user space support like udev to do it automatically.
+> >=20
+> > I could not understand why you do not use udev.
+> > Please explain in detail.
 >=20
-> OK, currently it is for QEMU to do cpu online automatically after
-> hot-plug a cpu,
-> and maybe potentially for real platform's cpu
-> plug/unplug implementation.
-> with this notifier, we don't need any GPIOes,IO ports, and other
-> hardware cost if we do have an EC chip in board to trigger kernel's=20
-> cpu process for this.
+> I did not say I can't use udev now,
+> just for in case someone can't.
+>=20
+> >=20
+> > > and also, I think maybe online/offline should be naturally
+> > > integrated with real plug/unplug process of CPU.
+> >=20
+> > I could not understand this explanation too.
+> > Why do we need it?
+> >=20
+>=20
+> actually, I am asking if CPU online/offline have real purpose,
+> you offline a CPU, then threads can't run on it,
+> you online a CPU, then threads can run on it,
+> so, the purpose here is just bouncing threads?
+> obviously not, any profound historical reasons?
 
-You need to make ACPI eject/bus/device notifications go to the processo=
-r
-objects rather than to listen to the EC events.
+The purpose is to ensure that the CPU won't be used after the offline
+and the online is simply complementary.
 
-> Yep, you said you'll reject this anyway,
-> but I have to ask do this notifier offend
-> any rules of your development?
+> I boldly think maybe online/offline should be integrated into
+> real plug/unplug process of CPU.
 
-Well, yes, it does.  CPU offline/online is not only for hotplugging and=
- people
-do not expect CPUs to actually physically go away after using offline.
+Well, please look into the acpi-hotplug branch of the linux-pm.git tree=
+ for
+patches that do just that.
 
 Thanks,
 Rafael
 
 
-> > > ---
-> > >  drivers/acpi/ec.c    |   32 ++++++++++++++++++++++++++++++++
-> > >  include/linux/acpi.h |    2 ++
-> > >  2 files changed, 34 insertions(+), 0 deletions(-)
-> > >=20
-> > > diff --git a/drivers/acpi/ec.c b/drivers/acpi/ec.c
-> > > index edc0081..dee3417 100644
-> > > --- a/drivers/acpi/ec.c
-> > > +++ b/drivers/acpi/ec.c
-> > > @@ -124,6 +124,35 @@ static int EC_FLAGS_MSI; /* Out-of-spec MSI =
-controller */
-> > >  static int EC_FLAGS_VALIDATE_ECDT; /* ASUStec ECDTs need to be v=
-alidated */
-> > >  static int EC_FLAGS_SKIP_DSDT_SCAN; /* Not all BIOS survive earl=
-y DSDT scan */
-> > > =20
-> > > +/* notifier chain for who are intresting in ec space changing */
-> > > +static RAW_NOTIFIER_HEAD(ec_space_chain);
-> > > +
-> > > +int __ref register_ec_space_notifier(struct notifier_block *nb)
-> > > +{
-> > > +        int ret;
-> > > +
-> > > +        ret =3D raw_notifier_chain_register(&ec_space_chain, nb)=
-;
-> > > +
-> > > +        return ret;
-> > > +}
-> > > +EXPORT_SYMBOL(register_ec_space_notifier);
-> > > +
-> > > +void __ref unregister_ec_space_notifier(struct notifier_block *n=
-b)
-> > > +{
-> > > +
-> > > +        raw_notifier_chain_unregister(&ec_space_chain, nb);
-> > > +}
-> > > +EXPORT_SYMBOL(unregister_ec_space_notifier);
-> > > +
-> > > +static int ec_space_notify(void *data)
-> > > +{
-> > > +    int ret;
-> > > +
-> > > +    ret =3D __raw_notifier_call_chain(&ec_space_chain, 0, data, =
--1, NULL);
-> > > +
-> > > +     return notifier_to_errno(ret);
-> > > +}
-> > > +
-> > >  /* -------------------------------------------------------------=
--------------
-> > >                               Transaction Management
-> > >     -------------------------------------------------------------=
-------------- */
-> > > @@ -638,6 +667,9 @@ static u32 acpi_ec_gpe_handler(acpi_handle gp=
-e_device,
-> > >  		wake_up(&ec->wait);
-> > >  		ec_check_sci(ec, acpi_ec_read_status(ec));
-> > >  	}
-> > > +
-> > > +	ec_space_notify(data);
-> > > +
-> > >  	return ACPI_INTERRUPT_HANDLED | ACPI_REENABLE_GPE;
-> > >  }
-> > > =20
-> > > diff --git a/include/linux/acpi.h b/include/linux/acpi.h
-> > > index 17b5b59..4fe2247 100644
-> > > --- a/include/linux/acpi.h
-> > > +++ b/include/linux/acpi.h
-> > > @@ -158,6 +158,8 @@ extern int ec_transaction(u8 command,
-> > >                            const u8 *wdata, unsigned wdata_len,
-> > >                            u8 *rdata, unsigned rdata_len);
-> > >  extern acpi_handle ec_get_handle(void);
-> > > +extern int register_ec_space_notifier(struct notifier_block *nb)=
-;
-> > > +extern void unregister_ec_space_notifier(struct notifier_block *=
-nb);
-> > > =20
-> > >  #if defined(CONFIG_ACPI_WMI) || defined(CONFIG_ACPI_WMI_MODULE)
-> > > =20
-> > >=20
+>=20
+> Thanks!
+>=20
+> > >
+> > >>
+> > >>
+> > >>> so, offline is just like eject, but eject attribute seems not
+> > >>> available since recent kernel(can't figure out when), with
+> > >>> this driver, if allowed, it will trigger a eject cpu process.
+> > >>> and for automatically online, it was said there are objections,
+> > >>> don't know the reason, so, send this patch-set boldly.
+> > >>>
+> > >>> of course, this approach is for QEMU 's hotplug cpu emulation
+> > >>> only, but not limited, if someone like to explore ec space to
+> > >>> implment cpu hot-plug/unplug for real platform please
+> > >>> feel free to continue.
+> > >>>
+> > >>> Li Guang (3)
+> > >>> 	 drivers/platform/x86: add cpu physically hotplug driver
+> > >>> 	 ec: add ec space notifier
+> > >>> 	 cpu_physic_hotplug: register handler for ec space notifier
+> > >>>
+> > >>> drivers/acpi/ec.c                         | 32 ++++++++++++++++=
+++++++++++++++++
+> > >>> drivers/platform/x86/Kconfig              |  8 ++++
+> > >>> drivers/platform/x86/Makefile             |  1 +
+> > >>> drivers/platform/x86/cpu_physic_hotplug.c | 90 ++++++++++++++++=
++++++++++++++
+> > >>> include/linux/acpi.h                      |  2 ++
+> > >>> 5 files changed, 130 insertions(+), 3 deletions(-)
+> > >>>   create mode 100644 drivers/platform/x86/cpu_physic_hotplug.c
+> > >
+> > >
+> > > --
+> > > To unsubscribe from this list: send the line "unsubscribe linux-k=
+ernel" in
+> > > the body of a message to majordomo@vger.kernel.org
+> > > More majordomo info at  http://vger.kernel.org/majordomo-info.htm=
+l
+> > > Please read the FAQ at  http://www.tux.org/lkml/
+> > >
+> >=20
+> >=20
 >=20
 >=20
 --=20
 I speak only for myself.
 Rafael J. Wysocki, Intel Open Source Technology Center.
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
