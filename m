@@ -1,46 +1,172 @@
-From: Seth Forshee <seth.forshee@canonical.com>
-Subject: Re: [PATCH 0/3] Fix backlight issues on some Windows 8 systems
-Date: Tue, 11 Jun 2013 08:08:04 -0500
-Message-ID: <20130611130804.GF8943@thinkpad-t410>
-References: <1370818899-8595-1-git-send-email-matthew.garrett@nebula.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+From: Larry Baker <baker@usgs.gov>
+Subject: Wishlist: Disable C6 in intel_idle for Model 44 processors
+Date: Tue, 11 Jun 2013 14:30:30 -0700
+Message-ID: <38D8523B-C50E-4D81-A9E2-526292B19AF3@usgs.gov>
+Mime-Version: 1.0 (Apple Message framework v1085)
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-ob0-f182.google.com ([209.85.214.182]:52407 "EHLO
-	mail-ob0-f182.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751226Ab3FKNII (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 11 Jun 2013 09:08:08 -0400
-Received: by mail-ob0-f182.google.com with SMTP id va7so11575537obc.27
-        for <linux-acpi@vger.kernel.org>; Tue, 11 Jun 2013 06:08:06 -0700 (PDT)
-Content-Disposition: inline
-In-Reply-To: <1370818899-8595-1-git-send-email-matthew.garrett@nebula.com>
+Received: from [137.227.28.11] ([137.227.28.11]:32943 "EHLO smtp5.doi.gov"
+	rhost-flags-FAIL-FAIL-OK-OK) by vger.kernel.org with ESMTP
+	id S1752574Ab3FKVa7 convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 11 Jun 2013 17:30:59 -0400
+Received: by mail-pb0-f45.google.com with SMTP id mc8so8963075pbc.32
+        for <linux-acpi@vger.kernel.org>; Tue, 11 Jun 2013 14:30:33 -0700
+ (PDT)
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Matthew Garrett <matthew.garrett@nebula.com>
-Cc: linux-acpi@vger.kernel.org, joeyli.kernel@gmail.com, daniel.vetter@ffwll.ch, intel-gfx@lists.freedesktop.org, dri-devel@lists.freedesktop.org, linux-kernel@vger.kernel.org, lenb@kernel.org, rjw@sisk.pl
+To: linux-acpi@vger.kernel.org
+Cc: Rob E Russell <robr@us.ibm.com>
 
-On Sun, Jun 09, 2013 at 07:01:36PM -0400, Matthew Garrett wrote:
-> Windows 8 introduced new policy for backlight control by pushing it out to
-> graphics drivers. This appears to have coincided with a range of vendors
-> adding Windows 8 checks to their backlight control code which trigger either
-> awkward behaviour (Lenovo) or complete brokenness (some Dells). The simplest
-> thing to do would be to just disable ACPI backlight control entirely if the
-> firmware indicates Windows 8 support, but it's entirely possible that
-> individual graphics drivers might still make use of the ACPI functionality in
-> preference to native control.
-> 
-> The first two patches in this series are picked from other patchesets aimed at
-> solving similar problems. The last simply unregisters ACPI backlight control
-> on Windows 8 systems when using an Intel GPU. Similar code could be added to
-> other drivers, but I'm reluctant to do so without further investigation as
-> to the behaviour of the vendor drivers under Windows.
+I have an IBM System x3650 M3 with an Intel Xeon L5630 processor.  My I=
+BM support team alerted me to an issue with C6 states for those process=
+ors when running Linux and the intel_idle kernel module is used.  The I=
+BM solutions page, http://www-947.ibm.com/support/entry/portal/docdispl=
+ay?lndocid=3Dmigr-5091901, recommends disabling intel_idle.  I propose =
+intel_idle disable C6 for the affected processors.
 
-I've received some feedback from user testing of these patches (don't
-have an affected machine myself) and the feedback is mostly good. One
-user reported it didn't work, but I that machine may have discrete
-graphics (waiting to hear back from the user).
+Description:
 
-The main drawback I see with any approach like this one is that the
-backlight remains broken for users of proprietary graphics drivers.
+Intel Xeon 5600 and Core i7-900 processors (Family 6 Model 44) have a f=
+law when the C6 state is used.  See Intel=AE Xeon=AE Processor 5600 Ser=
+ies Specification Update May 2012 (http://www.intel.eu/content/dam/www/=
+public/us/en/documents/specification-updates/xeon-5600-specification-up=
+date.pdf) and Intel=AE CoreTM i7-900 Desktop Processor Extreme Edition =
+Series and Intel=AE CoreTM i7-900 Desktop Processor Series on 32-nm Pro=
+cess Specification Update June 2013 (http://www.intel.com/content/dam/w=
+ww/public/us/en/documents/specification-updates/core-i7-900-ee-and-desk=
+top-processor-series-32nm-spec-update.pdf):
 
-Seth
+> Package C6 Transitions May Cause Memory Bit Errors to be Observed
+>=20
+> Problem:
+> During Package C6 transitions, internal signaling noise may cause the=
+ DDRx_CKE signal to become asserted during self-refresh. These assertio=
+ns may result in memory bit errors upon exiting from the package C6 sta=
+te. Due to this erratum the DDRx_CKE signals can be driven during times=
+ in which the DDR3 JEDEC specification requires that they are idle.
+>=20
+> Implication:
+> DDRx_CKE signals can be driven during package C6 memory self-refresh =
+creating an invalid memory DRAM state.  A system hang, memory ECC error=
+s or unpredictable system behavior may occur when exiting the package C=
+6 state.
+>=20
+> Workaround:=20
+> It is possible for the BIOS to contain a workaround for this erratum.
+>=20
+> Status:
+> For the steppings affected, see the Summary Table of Changes.
+
+The intel_idle kernel module uses the standard Nehalem C states table f=
+or these processors (boot_cpu_data.x86_model=3D=3D0x2c):
+
+> static const struct x86_cpu_id intel_idle_ids[] =3D {
+> <snip>
+> 	ICPU(0x2c, idle_cpu_xeon5600),
+> <snip>
+> 	{}
+> };
+> MODULE_DEVICE_TABLE(x86cpu, intel_idle_ids);
+
+I propose two alternatives for intel_idle.c to avoid the processor flaw=
+=2E  (I didn't try to compile them -- I only modified intel_idle.c.)  T=
+he first limits max_cstates=3D3, and prints in a console message if the=
+ limit was forced.  The second creates a Xeon 5600-specific C states ta=
+ble which leaves off the C6 state.  No message is printed in that case.=
+  I like the idea of a message, and I like the idea of a proper C state=
+s table.  I did not look to see if acpi_idle can also benefit from a si=
+milar modification.
+
+Thank you,
+
+Larry Baker
+US Geological Survey
+650-329-5608
+baker@usgs.gov
+
+=3D=3D=3D=3D=3D Version 1 Patch - Limit max_cstate=3D3 for Family 6 Mod=
+el 44 Processors =3D=3D=3D=3D=3D
+
+--- intel_idle.c.orig	2013-06-11 11:41:49.000000000 -0700
++++ intel_idle-fix-v1.c	2013-06-11 13:47:15.000000000 -0700
+@@ -534,2 +534,13 @@
+=20
++/*
++ * Disable C6-state for Xeon 5600 and Core i7-900.  Refer to Xeon 5600=
+ errata
++ * BD104 and Core i7-900 errata BC82: Package C6 Transitions May Resul=
+t in
++ * Single and Multi-Bit Memory Errors.
++ */
++	if (boot_cpu_data.x86_model =3D=3D 0x2c &&
++	    max_cstate > 3) {
++		pr_debug(PREFIX "limiting model 0x2c to max_cstate=3D3\n");
++		max_cstate =3D 3;
++	}
++
+ 	pr_debug(PREFIX "lapic_timer_reliable_states 0x%x\n",
+
+=3D=3D=3D=3D=3D Version 2 Patch - Disable C6 for Family 6 Model 44 Proc=
+essors =3D=3D=3D=3D=3D
+
+--- intel_idle.c.orig	2013-06-11 11:41:49.000000000 -0700
++++ intel_idle-fix-v2.c	2013-06-11 13:51:32.000000000 -0700
+@@ -158,2 +158,33 @@
+=20
++/*
++ * Disable C6-state for Xeon 5600 and Core i7-900.  Refer to Xeon 5600=
+ errata
++ * BD104 and Core i7-900 errata BC82: Package C6 Transitions May Resul=
+t in
++ * Single and Multi-Bit Memory Errors.
++ */
++static struct cpuidle_state xeon5600_cstates[CPUIDLE_STATE_MAX] =3D {
++	{
++		.name =3D "C1-NHM",
++		.desc =3D "MWAIT 0x00",
++		.flags =3D MWAIT2flg(0x00) | CPUIDLE_FLAG_TIME_VALID,
++		.exit_latency =3D 3,
++		.target_residency =3D 6,
++		.enter =3D &intel_idle },
++	{
++		.name =3D "C1E-NHM",
++		.desc =3D "MWAIT 0x01",
++		.flags =3D MWAIT2flg(0x01) | CPUIDLE_FLAG_TIME_VALID,
++		.exit_latency =3D 10,
++		.target_residency =3D 20,
++		.enter =3D &intel_idle },
++	{
++		.name =3D "C3-NHM",
++		.desc =3D "MWAIT 0x10",
++		.flags =3D MWAIT2flg(0x10) | CPUIDLE_FLAG_TIME_VALID | CPUIDLE_FLAG_=
+TLB_FLUSHED,
++		.exit_latency =3D 20,
++		.target_residency =3D 80,
++		.enter =3D &intel_idle },
++	{
++		.enter =3D NULL }
++};
++
+ static struct cpuidle_state snb_cstates[CPUIDLE_STATE_MAX] =3D {
+@@ -440,2 +471,8 @@
+=20
++static const struct idle_cpu idle_cpu_xeon5600 =3D {
++	.state_table =3D xeon5600_cstates,
++	.auto_demotion_disable_flags =3D NHM_C1_AUTO_DEMOTE | NHM_C3_AUTO_DEM=
+OTE,
++	.disable_promotion_to_c1e =3D true,
++};
++
+ static const struct idle_cpu idle_cpu_atom =3D {
+@@ -472,3 +509,3 @@
+ 	ICPU(0x25, idle_cpu_nehalem),
+-	ICPU(0x2c, idle_cpu_nehalem),
++	ICPU(0x2c, idle_cpu_xeon5600),
+ 	ICPU(0x2e, idle_cpu_nehalem),
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
