@@ -1,66 +1,44 @@
-From: Toshi Kani <toshi.kani@hp.com>
-Subject: Re: [PATCH] ACPI: Remove unused flags in acpi_device_flags
-Date: Tue, 11 Jun 2013 16:41:09 -0600
-Message-ID: <1370990469.21540.5.camel@misato.fc.hp.com>
-References: <1370382985-12163-1-git-send-email-toshi.kani@hp.com>
-	 <1929531.s4Kmz37sNk@vostro.rjw.lan>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: Re: OT: Best practices for indenting ASL files
+Date: Wed, 12 Jun 2013 00:53:45 +0200
+Message-ID: <228515949.LdhQTLUpvh@vostro.rjw.lan>
+References: <1370595194.21257.9.camel@mattotaupa>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7Bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from g4t0016.houston.hp.com ([15.201.24.19]:34532 "EHLO
-	g4t0016.houston.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756291Ab3FKWlV (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 11 Jun 2013 18:41:21 -0400
-In-Reply-To: <1929531.s4Kmz37sNk@vostro.rjw.lan>
+Received: from hydra.sisk.pl ([212.160.235.94]:34511 "EHLO hydra.sisk.pl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754237Ab3FKWof (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 11 Jun 2013 18:44:35 -0400
+In-Reply-To: <1370595194.21257.9.camel@mattotaupa>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+To: Paul Menzel <paulepanter@users.sourceforge.net>
+Cc: linux-acpi@vger.kernel.org
 
-On Wed, 2013-06-12 at 00:24 +0200, Rafael J. Wysocki wrote:
-> On Tuesday, June 04, 2013 03:56:25 PM Toshi Kani wrote:
-> > suprise_removal_ok and performance_manageable in struct
-> > acpi_device_flags are not used by any code.  So, remove
-> > them.
-> > 
-> > Signed-off-by: Toshi Kani <toshi.kani@hp.com>
-> 
-> Queued up for 3.11.
-
-Great.  Thanks!
--Toshi
-
-> 
-> Thanks,
-> Rafael
+On Friday, June 07, 2013 10:53:14 AM Paul Menzel wrote:
+> Dear Linux ACPI folks,
 > 
 > 
-> > ---
-> >  include/acpi/acpi_bus.h |    4 +---
-> >  1 file changed, 1 insertion(+), 3 deletions(-)
-> > 
-> > diff --git a/include/acpi/acpi_bus.h b/include/acpi/acpi_bus.h
-> > index 1a681ee..9efc52f 100644
-> > --- a/include/acpi/acpi_bus.h
-> > +++ b/include/acpi/acpi_bus.h
-> > @@ -156,12 +156,10 @@ struct acpi_device_flags {
-> >  	u32 dynamic_status:1;
-> >  	u32 removable:1;
-> >  	u32 ejectable:1;
-> > -	u32 suprise_removal_ok:1;
-> >  	u32 power_manageable:1;
-> > -	u32 performance_manageable:1;
-> >  	u32 eject_pending:1;
-> >  	u32 match_driver:1;
-> > -	u32 reserved:24;
-> > +	u32 reserved:26;
-> >  };
-> >  
-> >  /* File System */
-> > --
-> > To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
-> > the body of a message to majordomo@vger.kernel.org
-> > More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> we have a lot of ASL files in coreboot [1], a free firmware for hardware
+> initialization.
+> 
+> As you can see in [2] for example, we struggle with whitespace issues.
+> 
+> Could you recommend best practices how to indent ASL files?
+
+Well, why don't you adopt the convention used by 'iasl -d'?  People are
+quite accustomed to that.
+
+Thanks,
+Rafael
 
 
+> 
+> 
+> [1] http://www.coreboot.org/
+> [2] http://review.coreboot.org/#/c/3403/2/src/ec/lenovo/h8/acpi/ec.asl
+-- 
+I speak only for myself.
+Rafael J. Wysocki, Intel Open Source Technology Center.
