@@ -1,195 +1,171 @@
 From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: [PATCH V2 1/2] ACPI: Add CMOS RTC Operation Region handler support
-Date: Wed, 12 Jun 2013 00:28:55 +0200
-Message-ID: <3857719.P57XvbL8ou@vostro.rjw.lan>
-References: <1370399271-6340-1-git-send-email-tianyu.lan@intel.com>
+Subject: Re: [PATCH 00/16] ACPICA: 20130517 release
+Date: Wed, 12 Jun 2013 00:32:10 +0200
+Message-ID: <5753771.3dVMSzT29L@vostro.rjw.lan>
+References: <cover.1369274558.git.lv.zheng@intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7Bit
-Return-path: <stable-owner@vger.kernel.org>
-In-Reply-To: <1370399271-6340-1-git-send-email-tianyu.lan@intel.com>
-Sender: stable-owner@vger.kernel.org
-To: Lan Tianyu <tianyu.lan@intel.com>
-Cc: lenb@kernel.org, linux-acpi@vger.kernel.org, "3.9+" <stable@vger.kernel.org>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from hydra.sisk.pl ([212.160.235.94]:34484 "EHLO hydra.sisk.pl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756425Ab3FKWXA (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 11 Jun 2013 18:23:00 -0400
+In-Reply-To: <cover.1369274558.git.lv.zheng@intel.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Lv Zheng <lv.zheng@intel.com>
+Cc: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Robert Moore <robert.moore@intel.com>, Len Brown <len.brown@intel.com>, linux-acpi@vger.kernel.org
 
-On Wednesday, June 05, 2013 10:27:50 AM Lan Tianyu wrote:
-> On HP Folio 13-2000, the BIOS defines a CMOS RTC Operation Region and
-> the EC's _REG methord accesses that region.  Thus an appropriate
-> address space handler must be registered for that region before the
-> EC driver is loaded.
+On Saturday, June 08, 2013 08:57:36 AM Lv Zheng wrote:
+> The 20130517 ACPICA kernel resident system updates is linuxized based on
+> the pm/linux-next branch.
+> The patch set has passed a build/boot test on the following machines:
+> Dell Inspiron Mini 1010 (i386)
+> HP Compaq 8200 Elite SFF PC (x86-64)
+> With the following kernel configuration items enabled:
+>   CONFIG_ACPI_AC
+>   CONFIG_ACPI_BATTERY
+>   CONFIG_ACPI_NUMA
+>   CONFIG_ACPI_PROCESSOR
+>   CONFIG_ACPI_THERMAL
+>   CONFIG_ACPI_VIDEO
+>   CONFIG_CPU_FREQ
+>   CONFIG_I2C_SCMI
+>   CONFIG_SENSORS_ACPI_POWER
+>   CONFIG_PANASONIC_LAPTOP
+>   CONFIG_XO15_EBOOK
+> No new divergences are introduced in this release.
+> Please review.
 > 
-> Introduce a mechanism for adding CMOS RTC address space handlers.
-> Register an ACPI scan handler for CMOS RTC devices such that, when
-> a device of that kind is detected during an ACPI namespace scan, a
-> common CMOS RTC operation region address space handler will be
-> installed for it.
+> Bob Moore (7):
+>   ACPICA: Split buffer dump routines into separate file
+>   ACPICA: Split internal error msg routines to a separate file
+>   ACPICA: Split table print utilities to a new a separate file
+>   ACPICA: New: Portable acpidump utility (get system ACPI tables)
+>   ACPICA: Update interface to AcpiUtValidAcpiName
+>   ACPICA: Support Mac OS X in Makefile
+>   ACPICA: Update version to 20130517
 > 
-> [rjw: Changelog]
-> References: https://bugzilla.kernel.org/show_bug.cgi?id=54621
-> Reported-and-tested-by: Stefan Nagy <public@stefan-nagy.at>
-> Signed-off-by: Lan Tianyu <tianyu.lan@intel.com>
-> Cc: 3.9+ <stable@vger.kernel.org>
+> Chao Guan (1):
+>   ACPICA: Standardize all switch() blocks
+> 
+> Lv Zheng (5):
+>   ACPICA: Add option to disable loading of SSDTs from the RSDT/XSDT
+>   ACPICA: Do not use extended sleep registers unless HW-reduced bit is
+>     set
+>   ACPICA: Move _PRT repair into the standard complex repair module
+>   ACPICA: Add several repairs for _CST predefined name
+>   ACPICA: _CST repair: Handle null package entries
+> 
+> Tomasz Nowicki (3):
+>   ACPICA: ACPICA Termination: Delete global lock pending lock
+>   ACPICA: Fix possible memory leak in GPE init error path
+>   ACPICA: Clear events initialized flag upon event component
+>     termination
+> 
+>  drivers/acpi/acpica/Makefile    |    3 +
+>  drivers/acpi/acpica/acglobal.h  |    6 +
+>  drivers/acpi/acpica/acutils.h   |   44 +++++-
+>  drivers/acpi/acpica/dscontrol.c |    4 +-
+>  drivers/acpi/acpica/dsfield.c   |    4 +
+>  drivers/acpi/acpica/dsinit.c    |    1 +
+>  drivers/acpi/acpica/dsmthdat.c  |    2 +-
+>  drivers/acpi/acpica/dsobject.c  |    3 +-
+>  drivers/acpi/acpica/dsopcode.c  |    1 +
+>  drivers/acpi/acpica/dsutils.c   |    5 +-
+>  drivers/acpi/acpica/dswexec.c   |    3 +-
+>  drivers/acpi/acpica/dswload.c   |    7 +-
+>  drivers/acpi/acpica/dswload2.c  |    4 +
+>  drivers/acpi/acpica/evglock.c   |    1 +
+>  drivers/acpi/acpica/evgpe.c     |    6 +-
+>  drivers/acpi/acpica/evgpeblk.c  |    2 +
+>  drivers/acpi/acpica/evgpeinit.c |    3 +
+>  drivers/acpi/acpica/evhandler.c |    7 +
+>  drivers/acpi/acpica/evmisc.c    |    3 +
+>  drivers/acpi/acpica/evrgnini.c  |    2 +
+>  drivers/acpi/acpica/evxfgpe.c   |    3 +
+>  drivers/acpi/acpica/evxfregn.c  |    1 +
+>  drivers/acpi/acpica/exconfig.c  |    1 +
+>  drivers/acpi/acpica/exconvrt.c  |   13 +-
+>  drivers/acpi/acpica/excreate.c  |    3 -
+>  drivers/acpi/acpica/exdebug.c   |    2 +
+>  drivers/acpi/acpica/exdump.c    |    2 +
+>  drivers/acpi/acpica/exfield.c   |    4 +
+>  drivers/acpi/acpica/exfldio.c   |    2 -
+>  drivers/acpi/acpica/exmisc.c    |   12 +-
+>  drivers/acpi/acpica/exoparg1.c  |   16 +--
+>  drivers/acpi/acpica/exoparg2.c  |    1 -
+>  drivers/acpi/acpica/exoparg3.c  |    1 -
+>  drivers/acpi/acpica/exoparg6.c  |    5 -
+>  drivers/acpi/acpica/exprep.c    |    7 +
+>  drivers/acpi/acpica/exregion.c  |   27 +++-
+>  drivers/acpi/acpica/exresnte.c  |    1 +
+>  drivers/acpi/acpica/exresolv.c  |    6 +-
+>  drivers/acpi/acpica/exresop.c   |    9 +-
+>  drivers/acpi/acpica/exstore.c   |    4 +-
+>  drivers/acpi/acpica/exstoren.c  |    4 -
+>  drivers/acpi/acpica/hwacpi.c    |    2 +-
+>  drivers/acpi/acpica/hwgpe.c     |    3 +
+>  drivers/acpi/acpica/hwregs.c    |    4 +-
+>  drivers/acpi/acpica/hwxface.c   |    3 +
+>  drivers/acpi/acpica/hwxfsleep.c |   12 +-
+>  drivers/acpi/acpica/nsaccess.c  |    1 +
+>  drivers/acpi/acpica/nsconvert.c |    3 +
+>  drivers/acpi/acpica/nsdump.c    |   10 ++
+>  drivers/acpi/acpica/nsinit.c    |    9 ++
+>  drivers/acpi/acpica/nspredef.c  |   14 +-
+>  drivers/acpi/acpica/nsprepkg.c  |    5 -
+>  drivers/acpi/acpica/nsrepair.c  |    1 +
+>  drivers/acpi/acpica/nsrepair2.c |  283 +++++++++++++++++++++++++++++++++-----
+>  drivers/acpi/acpica/nsutils.c   |    3 +
+>  drivers/acpi/acpica/nsxfeval.c  |    1 +
+>  drivers/acpi/acpica/psargs.c    |    4 +
+>  drivers/acpi/acpica/psloop.c    |    2 +-
+>  drivers/acpi/acpica/psobject.c  |    1 +
+>  drivers/acpi/acpica/psparse.c   |    3 +-
+>  drivers/acpi/acpica/pstree.c    |    2 +
+>  drivers/acpi/acpica/rscalc.c    |    7 +-
+>  drivers/acpi/acpica/rscreate.c  |   27 ----
+>  drivers/acpi/acpica/rsdump.c    |   10 ++
+>  drivers/acpi/acpica/rsmisc.c    |    3 +-
+>  drivers/acpi/acpica/rsutils.c   |    5 +
+>  drivers/acpi/acpica/rsxface.c   |    1 +
+>  drivers/acpi/acpica/tbinstal.c  |    7 +-
+>  drivers/acpi/acpica/tbprint.c   |  237 ++++++++++++++++++++++++++++++++
+>  drivers/acpi/acpica/tbutils.c   |  191 +-------------------------
+>  drivers/acpi/acpica/tbxfload.c  |   25 ++--
+>  drivers/acpi/acpica/utbuffer.c  |  201 +++++++++++++++++++++++++++
+>  drivers/acpi/acpica/utcopy.c    |   11 +-
+>  drivers/acpi/acpica/utdebug.c   |  148 +-------------------
+>  drivers/acpi/acpica/utdelete.c  |    3 +-
+>  drivers/acpi/acpica/uterror.c   |  289 +++++++++++++++++++++++++++++++++++++++
+>  drivers/acpi/acpica/uteval.c    |    7 +-
+>  drivers/acpi/acpica/utexcep.c   |    1 +
+>  drivers/acpi/acpica/utids.c     |    3 +
+>  drivers/acpi/acpica/utmisc.c    |    2 +
+>  drivers/acpi/acpica/utobject.c  |    5 +-
+>  drivers/acpi/acpica/utstring.c  |   19 ++-
+>  drivers/acpi/acpica/uttrack.c   |    8 ++
+>  drivers/acpi/acpica/utxferror.c |  277 -------------------------------------
+>  drivers/acpi/osl.c              |   11 ++
+>  include/acpi/acpiosxf.h         |   18 +++
+>  include/acpi/acpixf.h           |    3 +-
+>  include/acpi/actypes.h          |    8 ++
+>  include/acpi/platform/acenv.h   |    8 +-
+>  89 files changed, 1353 insertions(+), 783 deletions(-)
+>  create mode 100644 drivers/acpi/acpica/tbprint.c
+>  create mode 100644 drivers/acpi/acpica/utbuffer.c
+>  create mode 100644 drivers/acpi/acpica/uterror.c
 
-Both patches queued up for 3.11.
+I've queued up all patches from this series except for [12/16] (which I don't
+think is necessary for the Linux kernel) for 3.11.
 
-Thanks,
+Thanks Lv!
+
 Rafael
 
 
-> ---
-> Change since v1:
-> 	Make CMOS RTC operation region handler X86 specific and remove
-> little endian conversion.
-> 
->  drivers/acpi/Makefile        |    1 +
->  drivers/acpi/acpi_cmos_rtc.c |   92 ++++++++++++++++++++++++++++++++++++++++++
->  drivers/acpi/internal.h      |    7 ++++
->  drivers/acpi/scan.c          |    1 +
->  4 files changed, 101 insertions(+)
->  create mode 100644 drivers/acpi/acpi_cmos_rtc.c
-> 
-> diff --git a/drivers/acpi/Makefile b/drivers/acpi/Makefile
-> index d07771b..81dbeb8 100644
-> --- a/drivers/acpi/Makefile
-> +++ b/drivers/acpi/Makefile
-> @@ -44,6 +44,7 @@ acpi-y				+= acpi_platform.o
->  acpi-y				+= power.o
->  acpi-y				+= event.o
->  acpi-y				+= sysfs.o
-> +acpi-$(CONFIG_X86)		+= acpi_cmos_rtc.o
->  acpi-$(CONFIG_DEBUG_FS)		+= debugfs.o
->  acpi-$(CONFIG_ACPI_NUMA)	+= numa.o
->  acpi-$(CONFIG_ACPI_PROCFS_POWER) += cm_sbs.o
-> diff --git a/drivers/acpi/acpi_cmos_rtc.c b/drivers/acpi/acpi_cmos_rtc.c
-> new file mode 100644
-> index 0000000..84190ed
-> --- /dev/null
-> +++ b/drivers/acpi/acpi_cmos_rtc.c
-> @@ -0,0 +1,92 @@
-> +/*
-> + * ACPI support for CMOS RTC Address Space access
-> + *
-> + * Copyright (C) 2013, Intel Corporation
-> + * Authors: Lan Tianyu <tianyu.lan@intel.com>
-> + *
-> + * This program is free software; you can redistribute it and/or modify
-> + * it under the terms of the GNU General Public License version 2 as
-> + * published by the Free Software Foundation.
-> + */
-> +
-> +#include <linux/acpi.h>
-> +#include <linux/device.h>
-> +#include <linux/err.h>
-> +#include <linux/kernel.h>
-> +#include <linux/module.h>
-> +#include <asm-generic/rtc.h>
-> +
-> +#include "internal.h"
-> +
-> +#define PREFIX "ACPI: "
-> +
-> +ACPI_MODULE_NAME("cmos rtc");
-> +
-> +static const struct acpi_device_id acpi_cmos_rtc_ids[] = {
-> +	{ "PNP0B00" },
-> +	{ "PNP0B01" },
-> +	{ "PNP0B02" },
-> +	{}
-> +};
-> +
-> +static acpi_status
-> +acpi_cmos_rtc_space_handler(u32 function, acpi_physical_address address,
-> +		      u32 bits, u64 *value64,
-> +		      void *handler_context, void *region_context)
-> +{
-> +	int i;
-> +	u8 *value = (u8 *)&value64;
-> +
-> +	if (address > 0xff || !value64)
-> +		return AE_BAD_PARAMETER;
-> +
-> +	if (function != ACPI_WRITE && function != ACPI_READ)
-> +		return AE_BAD_PARAMETER;
-> +
-> +	spin_lock_irq(&rtc_lock);
-> +
-> +	for (i = 0; i < DIV_ROUND_UP(bits, 8); ++i, ++address, ++value)
-> +		if (function == ACPI_READ)
-> +			*value = CMOS_READ(address);
-> +		else
-> +			CMOS_WRITE(*value, address);
-> +
-> +	spin_unlock_irq(&rtc_lock);
-> +
-> +	return AE_OK;
-> +}
-> +
-> +static int acpi_install_cmos_rtc_space_handler(struct acpi_device *adev,
-> +		const struct acpi_device_id *id)
-> +{
-> +	acpi_status status;
-> +
-> +	status = acpi_install_address_space_handler(adev->handle,
-> +			ACPI_ADR_SPACE_CMOS,
-> +			&acpi_cmos_rtc_space_handler,
-> +			NULL, NULL);
-> +	if (ACPI_FAILURE(status)) {
-> +		pr_err(PREFIX "Error installing CMOS-RTC region handler\n");
-> +		return -ENODEV;
-> +	}
-> +
-> +	return 0;
-> +}
-> +
-> +static void acpi_remove_cmos_rtc_space_handler(struct acpi_device *adev)
-> +{
-> +	if (ACPI_FAILURE(acpi_remove_address_space_handler(adev->handle,
-> +			ACPI_ADR_SPACE_CMOS, &acpi_cmos_rtc_space_handler)))
-> +		pr_err(PREFIX "Error removing CMOS-RTC region handler\n");
-> +}
-> +
-> +static struct acpi_scan_handler cmos_rtc_handler = {
-> +	.ids = acpi_cmos_rtc_ids,
-> +	.attach = acpi_install_cmos_rtc_space_handler,
-> +	.detach = acpi_remove_cmos_rtc_space_handler,
-> +};
-> +
-> +void __init acpi_cmos_rtc_init(void)
-> +{
-> +	acpi_scan_add_handler(&cmos_rtc_handler);
-> +}
-> diff --git a/drivers/acpi/internal.h b/drivers/acpi/internal.h
-> index 18a9d22..c82785f 100644
-> --- a/drivers/acpi/internal.h
-> +++ b/drivers/acpi/internal.h
-> @@ -36,6 +36,13 @@ void acpi_pci_root_hp_init(void);
->  void acpi_processor_init(void);
->  void acpi_platform_init(void);
->  int acpi_sysfs_init(void);
-> +
-> +#ifdef CONFIG_X86
-> +void acpi_cmos_rtc_init(void);
-> +#else
-> +static inline void acpi_cmos_rtc_init(void) {}
-> +#endif
-> +
->  #ifdef CONFIG_ACPI_CONTAINER
->  void acpi_container_init(void);
->  #else
-> diff --git a/drivers/acpi/scan.c b/drivers/acpi/scan.c
-> index a67f614..642e045 100644
-> --- a/drivers/acpi/scan.c
-> +++ b/drivers/acpi/scan.c
-> @@ -2159,6 +2159,7 @@ int __init acpi_scan_init(void)
->  	acpi_processor_init();
->  	acpi_platform_init();
->  	acpi_lpss_init();
-> +	acpi_cmos_rtc_init();
->  	acpi_container_init();
->  	acpi_memory_hotplug_init();
->  
-> 
 -- 
 I speak only for myself.
 Rafael J. Wysocki, Intel Open Source Technology Center.
