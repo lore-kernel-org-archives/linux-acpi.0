@@ -1,67 +1,46 @@
-From: Paul Menzel <paulepanter@users.sourceforge.net>
-Subject: Re: OT: Best practices for indenting ASL files
-Date: Wed, 12 Jun 2013 09:00:59 +0200
-Message-ID: <1371020459.5500.33.camel@mattotaupa>
-References: <1370595194.21257.9.camel@mattotaupa>
-	 <228515949.LdhQTLUpvh@vostro.rjw.lan>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: Re: [PATCH] ACPI / APEI: fix error return code in einj_init()
+Date: Wed, 12 Jun 2013 13:13:29 +0200
+Message-ID: <3066984.NhLpaQnhPR@vostro.rjw.lan>
+References: <CAPgLHd-uB=hWRNCgoUhzFzsjQiPj1cuedUk0ttu1g7UXAx=3=Q@mail.gmail.com> <4984765.hSvoDJCYAH@vostro.rjw.lan> <3908561D78D1C84285E8C5FCA982C28F2DA79B4D@ORSMSX106.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg="pgp-sha1"; protocol="application/pgp-signature";
-	boundary="=-oALIR0ekLPxieFdsDfbo"
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7Bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail.gw90.de ([188.40.100.199]:35415 "EHLO mail.gw90.de"
+Received: from hydra.sisk.pl ([212.160.235.94]:34852 "EHLO hydra.sisk.pl"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753803Ab3FLHBM (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 12 Jun 2013 03:01:12 -0400
-In-Reply-To: <228515949.LdhQTLUpvh@vostro.rjw.lan>
+	id S1752103Ab3FLLET (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 12 Jun 2013 07:04:19 -0400
+In-Reply-To: <3908561D78D1C84285E8C5FCA982C28F2DA79B4D@ORSMSX106.amr.corp.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: linux-acpi@vger.kernel.org
+To: "Luck, Tony" <tony.luck@intel.com>
+Cc: Chen Gong <gong.chen@linux.intel.com>, Wei Yongjun <weiyj.lk@gmail.com>, "lenb@kernel.org" <lenb@kernel.org>, "yongjun_wei@trendmicro.com.cn" <yongjun_wei@trendmicro.com.cn>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
+
+On Tuesday, June 11, 2013 11:04:51 PM Luck, Tony wrote:
+> > Queued up for 3.11.
+> 
+> I'd independently queued this and a couple of other EINJ fixes from Chen Gong
+> in my RAS tree and tried to tempt Ingo to pull them for 3.11 (since this was the
+> route that we'd used for EINJ stuff in the past).
+> 
+> If you want them, then please pull what Ingo is ignoring.
+> 
+> Here's the e-mail with the please pull details:
+> 
+> http://marc.info/?l=linux-kernel&m=137062147012973&w=2
+
+Well, as it happens, all of these patches are in my tree as well. :-)
+
+I actually didn't know that there was a separate path to Linus for APEI
+material.
+
+Do you want to handle it going forward or do you want me to do that?  Or do
+you want me to pull it from you?
+
+Rafael
 
 
---=-oALIR0ekLPxieFdsDfbo
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
-
-Am Mittwoch, den 12.06.2013, 00:53 +0200 schrieb Rafael J. Wysocki:
-> On Friday, June 07, 2013 10:53:14 AM Paul Menzel wrote:
-
-> > we have a lot of ASL files in coreboot [1], a free firmware for hardwar=
-e
-> > initialization.
-> >=20
-> > As you can see in [2] for example, we struggle with whitespace issues.
-> >=20
-> > Could you recommend best practices how to indent ASL files?
->=20
-> Well, why don't you adopt the convention used by 'iasl -d'?  People are
-> quite accustomed to that.
-
-Yes, that is what I want to achieve. But how? Sorry for being unclear.
-Is there a utility for ASL files like `indent -linux` for C files?
-
-
-Thanks,
-
-Paul
-
-
-> > [1] http://www.coreboot.org/
-> > [2] http://review.coreboot.org/#/c/3403/2/src/ec/lenovo/h8/acpi/ec.asl
-
-
---=-oALIR0ekLPxieFdsDfbo
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: This is a digitally signed message part
-Content-Transfer-Encoding: 7bit
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.12 (GNU/Linux)
-
-iEYEABECAAYFAlG4HKsACgkQPX1aK2wOHVhZaACfaXE/9ugI+boe8n3LPsHIECm+
-37sAni7JU0WF2hOl+7Kmi8oZRjx/ezHF
-=/Jnt
------END PGP SIGNATURE-----
-
---=-oALIR0ekLPxieFdsDfbo--
-
+-- 
+I speak only for myself.
+Rafael J. Wysocki, Intel Open Source Technology Center.
