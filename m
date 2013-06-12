@@ -1,35 +1,32 @@
-From: Matthew Garrett <mjg59@srcf.ucam.org>
-Subject: Re: Wishlist: Disable C6 in intel_idle for Model 44 processors
-Date: Wed, 12 Jun 2013 14:40:02 +0100
-Message-ID: <20130612134002.GA15317@srcf.ucam.org>
-References: <38D8523B-C50E-4D81-A9E2-526292B19AF3@usgs.gov>
+From: "Luck, Tony" <tony.luck@intel.com>
+Subject: RE: [PATCH] ACPI / APEI: fix error return code in einj_init()
+Date: Wed, 12 Jun 2013 13:42:02 +0000
+Message-ID: <3908561D78D1C84285E8C5FCA982C28F2DA7A526@ORSMSX106.amr.corp.intel.com>
+References: <CAPgLHd-uB=hWRNCgoUhzFzsjQiPj1cuedUk0ttu1g7UXAx=3=Q@mail.gmail.com>
+ <4984765.hSvoDJCYAH@vostro.rjw.lan>
+ <3908561D78D1C84285E8C5FCA982C28F2DA79B4D@ORSMSX106.amr.corp.intel.com>
+ <3066984.NhLpaQnhPR@vostro.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cavan.codon.org.uk ([93.93.128.6]:53831 "EHLO
-	cavan.codon.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752658Ab3FLNkJ (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 12 Jun 2013 09:40:09 -0400
-Content-Disposition: inline
-In-Reply-To: <38D8523B-C50E-4D81-A9E2-526292B19AF3@usgs.gov>
+Received: from mga09.intel.com ([134.134.136.24]:28390 "EHLO mga09.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752168Ab3FLNm3 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 12 Jun 2013 09:42:29 -0400
+In-Reply-To: <3066984.NhLpaQnhPR@vostro.rjw.lan>
+Content-Language: en-US
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Larry Baker <baker@usgs.gov>
-Cc: linux-acpi@vger.kernel.org, Rob E Russell <robr@us.ibm.com>
+To: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: Chen Gong <gong.chen@linux.intel.com>, Wei Yongjun <weiyj.lk@gmail.com>, "lenb@kernel.org" <lenb@kernel.org>, "yongjun_wei@trendmicro.com.cn" <yongjun_wei@trendmicro.com.cn>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
 
-On Tue, Jun 11, 2013 at 02:30:30PM -0700, Larry Baker wrote:
-> I have an IBM System x3650 M3 with an Intel Xeon L5630 processor.  My IBM support team alerted me to an issue with C6 states for those processors when running Linux and the intel_idle kernel module is used.  The IBM solutions page, http://www-947.ibm.com/support/entry/portal/docdisplay?lndocid=migr-5091901, recommends disabling intel_idle.  I propose intel_idle disable C6 for the affected processors.
-
-As you note:
-
-> > Workaround: 
-> > It is possible for the BIOS to contain a workaround for this erratum.
-
-Are you actually seeing this specific problem? If so, you should 
-probably request a firmware update from IBM. If that's not a 
-possibility, and if it is necessary to disable package C6 in this 
-situation, it'd be nice to determine what the BIOS workaround actually 
-does and limit the quirk to that case.
-
--- 
-Matthew Garrett | mjg59@srcf.ucam.org
+PiBXZWxsLCBhcyBpdCBoYXBwZW5zLCBhbGwgb2YgdGhlc2UgcGF0Y2hlcyBhcmUgaW4gbXkgdHJl
+ZSBhcyB3ZWxsLiA6LSkNCg0KRXhjZWxsZW50IQ0KDQo+IEkgYWN0dWFsbHkgZGlkbid0IGtub3cg
+dGhhdCB0aGVyZSB3YXMgYSBzZXBhcmF0ZSBwYXRoIHRvIExpbnVzIGZvciBBUEVJDQo+IG1hdGVy
+aWFsLg0KDQpJdCdzIG9uZSBvZiB0aGUgbWFueSBncmF5IGFyZWFzIC4uLiBBUEVJIGlzIGNsZWFy
+bHkgcGFydCBvZiBBQ1BJLCBidXQgaXQgaXMgYWxzbw0KYWxsIGFib3V0IFJBUyB0b28uDQoNCj4g
+RG8geW91IHdhbnQgdG8gaGFuZGxlIGl0IGdvaW5nIGZvcndhcmQgb3IgZG8geW91IHdhbnQgbWUg
+dG8gZG8gdGhhdD8gIE9yIGRvDQo+IHlvdSB3YW50IG1lIHRvIHB1bGwgaXQgZnJvbSB5b3U/DQoN
+CkkgdGhpbmsgSSdkIGxpa2UgdG8gdGFrZSB0aGVtIGludG8gbXkgdHJlZSBhbmQgdGhlbiBoYXZl
+IHlvdSBwdWxsIHRoZW0NCmludG8gdGhlIEFDUEkgdHJlZS4NCg0KLVRvbnkNCg==
