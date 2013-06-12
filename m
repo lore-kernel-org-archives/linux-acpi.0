@@ -1,80 +1,67 @@
-From: Yinghai Lu <yinghai@kernel.org>
-Subject: Re: [PATCH] PCI: Remove not needed check in disable aspm link
-Date: Tue, 11 Jun 2013 23:20:18 -0700
-Message-ID: <CAE9FiQWjQXwiTWju6cBc_o25jy_wmZ1u+Pifh1wdnxtV=i5ENw@mail.gmail.com>
-References: <CAErSpo6v0mj9=Q13d=G4hho0mb9XTcsmefzke9fROYmZ7oBWxQ@mail.gmail.com>
-	<CAE9FiQU7cDzJdHxmqhJNgc9UCsRLgvCFQpv8+fLxD79pLEUC5A@mail.gmail.com>
-	<CAErSpo4ncW8rkcpDiccORZedj30m7jRmpXK+amfDGn_wjwt7EA@mail.gmail.com>
-	<CAE9FiQVqKag2TGah7x_1MAJ+c0UWgywgM_jKUoOnh+rq3bwBhg@mail.gmail.com>
-	<CAE9FiQVMgdj5edbR4qZny29fV9-bW_We_G4Wpn_yruDLQZiQiQ@mail.gmail.com>
-	<20130329032200.GA11990@google.com>
-	<CAE9FiQVu5QyxaKsYzzQoroQD=TvsziHzDOtoeg=FvhZ8HyN5yw@mail.gmail.com>
-	<CAErSpo7ChfRiEn0eR1rf-mVheUS9Yf8f+j4n78PJcGYh+yMVgA@mail.gmail.com>
-	<CAE9FiQXkDg7Y336S=DXoms44=5HLaiUx=sWviupz1fJmaDUEzQ@mail.gmail.com>
-	<CAE9FiQU5c=ztzbskNnYFFKF9V5zO+jnRcMBCivLxA1F3fSfX5w@mail.gmail.com>
-	<20130401235256.GA31966@google.com>
-	<CAE9FiQV8cPh-s6=EQu_cZTtn86+NwZE5KuGMhf43aOhzkL=hwA@mail.gmail.com>
-	<CAErSpo7Jni1ZSf_W=vB3kqsucPpoepa2Q5g=77a6D3FaPwe9LA@mail.gmail.com>
+From: Paul Menzel <paulepanter@users.sourceforge.net>
+Subject: Re: OT: Best practices for indenting ASL files
+Date: Wed, 12 Jun 2013 09:00:59 +0200
+Message-ID: <1371020459.5500.33.camel@mattotaupa>
+References: <1370595194.21257.9.camel@mattotaupa>
+	 <228515949.LdhQTLUpvh@vostro.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: multipart/signed; micalg="pgp-sha1"; protocol="application/pgp-signature";
+	boundary="=-oALIR0ekLPxieFdsDfbo"
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-ie0-f174.google.com ([209.85.223.174]:49300 "EHLO
-	mail-ie0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750966Ab3FLGUT (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 12 Jun 2013 02:20:19 -0400
-In-Reply-To: <CAErSpo7Jni1ZSf_W=vB3kqsucPpoepa2Q5g=77a6D3FaPwe9LA@mail.gmail.com>
+Received: from mail.gw90.de ([188.40.100.199]:35415 "EHLO mail.gw90.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753803Ab3FLHBM (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 12 Jun 2013 03:01:12 -0400
+In-Reply-To: <228515949.LdhQTLUpvh@vostro.rjw.lan>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Bjorn Helgaas <bhelgaas@google.com>, Jiang Liu <jiang.liu@huawei.com>
-Cc: Roman Yepishev <roman.yepishev@gmail.com>, "Rafael J. Wysocki" <rjw@sisk.pl>, "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Taku Izumi <izumi.taku@jp.fujitsu.com>, Kenji Kaneshige <kaneshige.kenji@jp.fujitsu.com>, Matthew Garrett <matthew.garrett@nebula.com>, "e1000-devel@lists.sourceforge.net" <e1000-devel@lists.sourceforge.net>
+To: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: linux-acpi@vger.kernel.org
 
-On Tue, Apr 2, 2013 at 1:10 PM, Bjorn Helgaas <bhelgaas@google.com> wrote:
-> On Mon, Apr 1, 2013 at 6:03 PM, Yinghai Lu <yinghai@kernel.org> wrote:
->>> commit 96e5d01cd536458435ef0678d9fa3dc542afb41f
->>> Author: Bjorn Helgaas <bhelgaas@google.com>
->>> Date:   Mon Apr 1 15:47:39 2013 -0600
->>>
->>>     Revert "PCI/ACPI: Request _OSC control before scanning PCI root bus"
->>>
->>>     This reverts commit 8c33f51df406e1a1f7fa4e9b244845b7ebd61fa6.
->>>
->>>     Conflicts:
->>>         drivers/acpi/pci_root.c
->>>
->>>     Reference: https://bugzilla.kernel.org/show_bug.cgi?id=55211
->>>     Signed-off-by: Bjorn Helgaas <bhelgaas@google.com>
->>
->> Acked-by: Yinghai Lu <yinghai@kernel.org>
->>
->> stable need this reverting too.
->
-> I updated the changelog and added this to my for-linus branch, headed for v3.9.
 
-We may need to revert this reverting for 3.10.
+--=-oALIR0ekLPxieFdsDfbo
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
-Today noticed that acpiphp jump in before pciehp on one setup.
+Am Mittwoch, den 12.06.2013, 00:53 +0200 schrieb Rafael J. Wysocki:
+> On Friday, June 07, 2013 10:53:14 AM Paul Menzel wrote:
 
-current code from acpi_pci_root_add we have
-  1. pci_acpi_scan_root
-         ==> pci devices enumeration and bus scanning.
-             ==> pci_alloc_child_bus
-                 ==> pcibios_add_bus
-                     ==> acpi_pci_add_bus
-                         ==> acpiphp_enumerate_slots
-                             ==> ...==> register_slot
-                                  ==> device_is_managed_by_native_pciehp
-                                        ==> check osc_set with
-OSC_PCI_EXPRESS_NATIVE_HP_CONTROL
-   2. _OSC set request
+> > we have a lot of ASL files in coreboot [1], a free firmware for hardwar=
+e
+> > initialization.
+> >=20
+> > As you can see in [2] for example, we struggle with whitespace issues.
+> >=20
+> > Could you recommend best practices how to indent ASL files?
+>=20
+> Well, why don't you adopt the convention used by 'iasl -d'?  People are
+> quite accustomed to that.
 
-so we always have acpiphp hotplug slot registered at first.
+Yes, that is what I want to achieve. But how? Sorry for being unclear.
+Is there a utility for ASL files like `indent -linux` for C files?
 
-so either we need to
-A. revert reverting about _OSC
-B. move pcibios_add_bus down to pci_bus_add_devices()
-    as acpiphp and apci pci slot driver are some kind of drivers for pci_bus
-C. A+B
 
-Thanks
+Thanks,
 
-Yinghai
+Paul
+
+
+> > [1] http://www.coreboot.org/
+> > [2] http://review.coreboot.org/#/c/3403/2/src/ec/lenovo/h8/acpi/ec.asl
+
+
+--=-oALIR0ekLPxieFdsDfbo
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: This is a digitally signed message part
+Content-Transfer-Encoding: 7bit
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.12 (GNU/Linux)
+
+iEYEABECAAYFAlG4HKsACgkQPX1aK2wOHVhZaACfaXE/9ugI+boe8n3LPsHIECm+
+37sAni7JU0WF2hOl+7Kmi8oZRjx/ezHF
+=/Jnt
+-----END PGP SIGNATURE-----
+
+--=-oALIR0ekLPxieFdsDfbo--
+
