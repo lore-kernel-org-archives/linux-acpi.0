@@ -1,50 +1,98 @@
 From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: [PATCH] ACPI / APEI: fix error return code in einj_init()
-Date: Thu, 13 Jun 2013 00:51:34 +0200
-Message-ID: <1564755.IPcJhbuUt7@vostro.rjw.lan>
-References: <CAPgLHd-uB=hWRNCgoUhzFzsjQiPj1cuedUk0ttu1g7UXAx=3=Q@mail.gmail.com> <3066984.NhLpaQnhPR@vostro.rjw.lan> <3908561D78D1C84285E8C5FCA982C28F2DA7A526@ORSMSX106.amr.corp.intel.com>
+Subject: [PATCH 5/5] ACPI / ia64 / sba_iommu: Use ACPI scan handler for discovery
+Date: Thu, 13 Jun 2013 01:26:45 +0200
+Message-ID: <2429621.vqKFZEI7Ma@vostro.rjw.lan>
+References: <1417592.vuSG0cUIGo@vostro.rjw.lan>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7Bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from hydra.sisk.pl ([212.160.235.94]:35430 "EHLO hydra.sisk.pl"
+Received: from hydra.sisk.pl ([212.160.235.94]:35466 "EHLO hydra.sisk.pl"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756916Ab3FLWm2 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 12 Jun 2013 18:42:28 -0400
-In-Reply-To: <3908561D78D1C84285E8C5FCA982C28F2DA7A526@ORSMSX106.amr.corp.intel.com>
+	id S1756838Ab3FLXS4 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 12 Jun 2013 19:18:56 -0400
+In-Reply-To: <1417592.vuSG0cUIGo@vostro.rjw.lan>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Luck, Tony" <tony.luck@intel.com>
-Cc: Chen Gong <gong.chen@linux.intel.com>, Wei Yongjun <weiyj.lk@gmail.com>, "lenb@kernel.org" <lenb@kernel.org>, "yongjun_wei@trendmicro.com.cn" <yongjun_wei@trendmicro.com.cn>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
+To: ACPI Devel Maling List <linux-acpi@vger.kernel.org>
+Cc: LKML <linux-kernel@vger.kernel.org>, "Luck, Tony" <tony.luck@intel.com>, Toshi Kani <toshi.kani@hp.com>, Aaron Lu <aaron.lu@intel.com>
 
-On Wednesday, June 12, 2013 01:42:02 PM Luck, Tony wrote:
-> > Well, as it happens, all of these patches are in my tree as well. :-)
-> 
-> Excellent!
-> 
-> > I actually didn't know that there was a separate path to Linus for APEI
-> > material.
-> 
-> It's one of the many gray areas ... APEI is clearly part of ACPI, but it is also
-> all about RAS too.
+From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 
-Yes, it is.
+The IA64 System Bus Adapter (SBA) I/O MMU driver uses an ACPI driver
+object to look for device objects it needs in the ACPI namespace, but
+the way that driver object is used by it is kind of abusive.
 
-> > Do you want to handle it going forward or do you want me to do that?  Or do
-> > you want me to pull it from you?
-> 
-> I think I'd like to take them into my tree and then have you pull them
-> into the ACPI tree.
+First of all, the ACPI driver is registered with the assumption that
+its .add() routine (an equivalent of .probe()) will run immediately
+during the registration, which in principle may or may not happen (it
+happens in practice due to the way the kernel is built, but that's
+not actually guaranteed).  Second, .add() is the only functionality
+provided by that driver object (which means that it probes devices
+without really doing anything with them afterward) and that .add() is
+only supposed to run during system initialization, so having the
+driver object registered (and present in sysfs) throughout the
+system's life time isn't particularly useful.
 
-OK
+A cleaner way to achieve the same goal that driver object is for
+is to use an ACPI scan handler instead of it, which at least
+prevents sysfs from being littered with useless data and causes
+an improved algorithm of matching ACPI device IDs to be used.
 
-Going forward I won't pick up any APEI patches from the list unless you tell
-me to do that.
+Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+---
+ arch/ia64/hp/common/sba_iommu.c |   24 ++++++++++++++++--------
+ 1 file changed, 16 insertions(+), 8 deletions(-)
 
-Thanks,
-Rafael
+Index: linux-pm/arch/ia64/hp/common/sba_iommu.c
+===================================================================
+--- linux-pm.orig/arch/ia64/hp/common/sba_iommu.c
++++ linux-pm/arch/ia64/hp/common/sba_iommu.c
+@@ -2042,7 +2042,8 @@ sba_map_ioc_to_node(struct ioc *ioc, acp
+ #endif
+ 
+ static int __init
+-acpi_sba_ioc_add(struct acpi_device *device)
++acpi_sba_ioc_add(struct acpi_device *device,
++		 const struct acpi_device_id *not_used)
+ {
+ 	struct ioc *ioc;
+ 	acpi_status status;
+@@ -2090,14 +2091,18 @@ static const struct acpi_device_id hp_io
+ 	{"HWP0004", 0},
+ 	{"", 0},
+ };
+-static struct acpi_driver acpi_sba_ioc_driver = {
+-	.name		= "IOC IOMMU Driver",
+-	.ids		= hp_ioc_iommu_device_ids,
+-	.ops		= {
+-		.add	= acpi_sba_ioc_add,
+-	},
++static struct acpi_scan_handler acpi_sba_ioc_handler = {
++	.ids	= hp_ioc_iommu_device_ids,
++	.attach	= acpi_sba_ioc_add,
+ };
+ 
++static int __init acpi_sba_ioc_init_acpi(void)
++{
++	return acpi_scan_add_handler(&acpi_sba_ioc_handler);
++}
++/* This has to run before acpi_scan_init(). */
++arch_initcall(acpi_sba_ioc_init_acpi);
++
+ extern struct dma_map_ops swiotlb_dma_ops;
+ 
+ static int __init
+@@ -2122,7 +2127,10 @@ sba_init(void)
+ 	}
+ #endif
+ 
+-	acpi_bus_register_driver(&acpi_sba_ioc_driver);
++	/*
++	 * ioc_list should be populated by the acpi_sba_ioc_handler's .attach()
++	 * routine, but that only happens if acpi_scan_init() has already run.
++	 */
+ 	if (!ioc_list) {
+ #ifdef CONFIG_IA64_GENERIC
+ 		/*
 
-
--- 
-I speak only for myself.
-Rafael J. Wysocki, Intel Open Source Technology Center.
