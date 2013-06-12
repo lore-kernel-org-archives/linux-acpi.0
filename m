@@ -1,98 +1,103 @@
 From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: [PATCH 5/5] ACPI / ia64 / sba_iommu: Use ACPI scan handler for discovery
-Date: Thu, 13 Jun 2013 01:26:45 +0200
-Message-ID: <2429621.vqKFZEI7Ma@vostro.rjw.lan>
+Subject: [PATCH 4/5] ACPI / scan: Use container hotplug profile for matching device objects
+Date: Thu, 13 Jun 2013 01:26:08 +0200
+Message-ID: <2271890.fO4Egl60hq@vostro.rjw.lan>
 References: <1417592.vuSG0cUIGo@vostro.rjw.lan>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7Bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from hydra.sisk.pl ([212.160.235.94]:35466 "EHLO hydra.sisk.pl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756838Ab3FLXS4 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 12 Jun 2013 19:18:56 -0400
+Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <1417592.vuSG0cUIGo@vostro.rjw.lan>
-Sender: linux-acpi-owner@vger.kernel.org
-List-Id: linux-acpi@vger.kernel.org
+Sender: linux-kernel-owner@vger.kernel.org
 To: ACPI Devel Maling List <linux-acpi@vger.kernel.org>
 Cc: LKML <linux-kernel@vger.kernel.org>, "Luck, Tony" <tony.luck@intel.com>, Toshi Kani <toshi.kani@hp.com>, Aaron Lu <aaron.lu@intel.com>
+List-Id: linux-acpi@vger.kernel.org
 
 From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 
-The IA64 System Bus Adapter (SBA) I/O MMU driver uses an ACPI driver
-object to look for device objects it needs in the ACPI namespace, but
-the way that driver object is used by it is kind of abusive.
+On some systems (ia64 HP rx2600 in particular) the ACPI namespace
+contains device objects with container compatibility IDs in addition
+to some other hardware IDs.  This means that those devices are
+containers and if an ACPI scan handler without a hotplug profile is
+attached to one of them, the container hotplug profile should be used
+for that device.
 
-First of all, the ACPI driver is registered with the assumption that
-its .add() routine (an equivalent of .probe()) will run immediately
-during the registration, which in principle may or may not happen (it
-happens in practice due to the way the kernel is built, but that's
-not actually guaranteed).  Second, .add() is the only functionality
-provided by that driver object (which means that it probes devices
-without really doing anything with them afterward) and that .add() is
-only supposed to run during system initialization, so having the
-driver object registered (and present in sysfs) throughout the
-system's life time isn't particularly useful.
+Moreover, the container hotplug profile should be used for handling
+bus check and device check notifications targeted at device handles
+with matching scan handlers that don't provide hotplug profiles.
 
-A cleaner way to achieve the same goal that driver object is for
-is to use an ACPI scan handler instead of it, which at least
-prevents sysfs from being littered with useless data and causes
-an improved algorithm of matching ACPI device IDs to be used.
+Modify the ACPI namespace scan code to ensure that the above will
+happen.
 
 Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 ---
- arch/ia64/hp/common/sba_iommu.c |   24 ++++++++++++++++--------
- 1 file changed, 16 insertions(+), 8 deletions(-)
+ drivers/acpi/scan.c |   33 ++++++++++++++++++++++++++++-----
+ 1 file changed, 28 insertions(+), 5 deletions(-)
 
-Index: linux-pm/arch/ia64/hp/common/sba_iommu.c
+Index: linux-pm/drivers/acpi/scan.c
 ===================================================================
---- linux-pm.orig/arch/ia64/hp/common/sba_iommu.c
-+++ linux-pm/arch/ia64/hp/common/sba_iommu.c
-@@ -2042,7 +2042,8 @@ sba_map_ioc_to_node(struct ioc *ioc, acp
- #endif
+--- linux-pm.orig/drivers/acpi/scan.c
++++ linux-pm/drivers/acpi/scan.c
+@@ -1855,11 +1855,26 @@ void acpi_scan_hotplug_enabled(struct ac
+ 	mutex_unlock(&acpi_scan_lock);
+ }
  
- static int __init
--acpi_sba_ioc_add(struct acpi_device *device)
-+acpi_sba_ioc_add(struct acpi_device *device,
-+		 const struct acpi_device_id *not_used)
- {
- 	struct ioc *ioc;
- 	acpi_status status;
-@@ -2090,14 +2091,18 @@ static const struct acpi_device_id hp_io
- 	{"HWP0004", 0},
- 	{"", 0},
- };
--static struct acpi_driver acpi_sba_ioc_driver = {
--	.name		= "IOC IOMMU Driver",
--	.ids		= hp_ioc_iommu_device_ids,
--	.ops		= {
--		.add	= acpi_sba_ioc_add,
--	},
-+static struct acpi_scan_handler acpi_sba_ioc_handler = {
-+	.ids	= hp_ioc_iommu_device_ids,
-+	.attach	= acpi_sba_ioc_add,
- };
- 
-+static int __init acpi_sba_ioc_init_acpi(void)
++static struct acpi_hotplug_profile *acpi_container_hotplug(
++						struct acpi_device_pnp *pnp)
 +{
-+	return acpi_scan_add_handler(&acpi_sba_ioc_handler);
-+}
-+/* This has to run before acpi_scan_init(). */
-+arch_initcall(acpi_sba_ioc_init_acpi);
++	if (acpi_container_scan_handler()) {
++		struct acpi_scan_handler *handler;
++		struct acpi_hardware_id *hwid;
 +
- extern struct dma_map_ops swiotlb_dma_ops;
++		handler = acpi_container_scan_handler();
++		list_for_each_entry(hwid, &pnp->ids, list)
++			if (acpi_scan_handler_matching(handler, hwid->id, NULL))
++				return handler->hotplug;
++	}
++	return NULL;
++}
++
+ static void acpi_scan_init_hotplug(acpi_handle handle, int type)
+ {
+ 	struct acpi_device_pnp pnp = {};
+ 	struct acpi_hardware_id *hwid;
+-	struct acpi_scan_handler *handler;
++	struct acpi_hotplug_profile *hotplug = NULL;
  
- static int __init
-@@ -2122,7 +2127,10 @@ sba_init(void)
+ 	INIT_LIST_HEAD(&pnp.ids);
+ 	acpi_set_pnp_ids(handle, &pnp, type);
+@@ -1872,14 +1887,20 @@ static void acpi_scan_init_hotplug(acpi_
+ 	 * install the same notify handler routine twice for the same handle.
+ 	 */
+ 	list_for_each_entry(hwid, &pnp.ids, list) {
++		struct acpi_scan_handler *handler;
++
+ 		handler = acpi_scan_match_handler(hwid->id, NULL);
+ 		if (handler && handler->hotplug) {
+-			acpi_install_notify_handler(handle, ACPI_SYSTEM_NOTIFY,
+-						    acpi_hotplug_notify_cb,
+-						    handler->hotplug);
++			hotplug = handler->hotplug;
+ 			break;
+ 		}
  	}
- #endif
++	if (!hotplug)
++		hotplug = acpi_container_hotplug(&pnp);
++
++	if (hotplug)
++		acpi_install_notify_handler(handle, ACPI_SYSTEM_NOTIFY,
++					    acpi_hotplug_notify_cb, hotplug);
  
--	acpi_bus_register_driver(&acpi_sba_ioc_driver);
-+	/*
-+	 * ioc_list should be populated by the acpi_sba_ioc_handler's .attach()
-+	 * routine, but that only happens if acpi_scan_init() has already run.
-+	 */
- 	if (!ioc_list) {
- #ifdef CONFIG_IA64_GENERIC
- 		/*
-
+ out:
+ 	acpi_free_pnp_ids(&pnp);
+@@ -1948,7 +1969,9 @@ static int acpi_scan_attach_handler(stru
+ 			ret = handler->attach(device, devid);
+ 			if (ret > 0) {
+ 				device->handler = handler;
+-				device->hotplug = handler->hotplug;
++				device->hotplug = handler->hotplug ?
++					handler->hotplug :
++					acpi_container_hotplug(&device->pnp);
+ 				break;
+ 			} else if (ret < 0) {
+ 				break;
