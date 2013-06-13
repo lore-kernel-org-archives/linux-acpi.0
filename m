@@ -1,46 +1,162 @@
-From: Yinghai Lu <yinghai@kernel.org>
-Subject: Re: [PATCH] PCI: Remove not needed check in disable aspm link
-Date: Wed, 12 Jun 2013 22:47:08 -0700
-Message-ID: <CAE9FiQWDDqcUwNDfOgBKOLrm7K811P=foK3-ZavFEkdUj=bSDg@mail.gmail.com>
-References: <CAErSpo6v0mj9=Q13d=G4hho0mb9XTcsmefzke9fROYmZ7oBWxQ@mail.gmail.com>
-	<CAE9FiQU7cDzJdHxmqhJNgc9UCsRLgvCFQpv8+fLxD79pLEUC5A@mail.gmail.com>
-	<CAErSpo4ncW8rkcpDiccORZedj30m7jRmpXK+amfDGn_wjwt7EA@mail.gmail.com>
-	<CAE9FiQVqKag2TGah7x_1MAJ+c0UWgywgM_jKUoOnh+rq3bwBhg@mail.gmail.com>
-	<CAE9FiQVMgdj5edbR4qZny29fV9-bW_We_G4Wpn_yruDLQZiQiQ@mail.gmail.com>
-	<20130329032200.GA11990@google.com>
-	<CAE9FiQVu5QyxaKsYzzQoroQD=TvsziHzDOtoeg=FvhZ8HyN5yw@mail.gmail.com>
-	<CAErSpo7ChfRiEn0eR1rf-mVheUS9Yf8f+j4n78PJcGYh+yMVgA@mail.gmail.com>
-	<CAE9FiQXkDg7Y336S=DXoms44=5HLaiUx=sWviupz1fJmaDUEzQ@mail.gmail.com>
-	<CAE9FiQU5c=ztzbskNnYFFKF9V5zO+jnRcMBCivLxA1F3fSfX5w@mail.gmail.com>
-	<20130401235256.GA31966@google.com>
-	<CAE9FiQV8cPh-s6=EQu_cZTtn86+NwZE5KuGMhf43aOhzkL=hwA@mail.gmail.com>
-	<CAErSpo7Jni1ZSf_W=vB3kqsucPpoepa2Q5g=77a6D3FaPwe9LA@mail.gmail.com>
-	<CAE9FiQWjQXwiTWju6cBc_o25jy_wmZ1u+Pifh1wdnxtV=i5ENw@mail.gmail.com>
-	<CAErSpo7=a-wX6BLbm_O1nUMMrQHOgtSm3xZHKuRqaz8rnKSbRA@mail.gmail.com>
-	<CAE9FiQUbw7OUhRB+gKMxkuE9+nm9097+mwZ2z4adO8Hv_NjF1Q@mail.gmail.com>
-	<CAErSpo7gL3Ds9oq8ZZ4zdt1uHy9xbkWJE+Ja=-0QXFQECjr40A@mail.gmail.com>
+From: Aaron Lu <aaron.lu@intel.com>
+Subject: Re: [Update][PATCH] ACPI / scan: Simplify ACPI driver probing
+Date: Thu, 13 Jun 2013 16:27:00 +0800
+Message-ID: <51B98254.1060504@intel.com>
+References: <2159292.upDGjkPUz6@vostro.rjw.lan> <9524864.uKH8yPZA91@vostro.rjw.lan>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <linux-pci-owner@vger.kernel.org>
-In-Reply-To: <CAErSpo7gL3Ds9oq8ZZ4zdt1uHy9xbkWJE+Ja=-0QXFQECjr40A@mail.gmail.com>
-Sender: linux-pci-owner@vger.kernel.org
-To: Bjorn Helgaas <bhelgaas@google.com>
-Cc: Jiang Liu <jiang.liu@huawei.com>, Roman Yepishev <roman.yepishev@gmail.com>, "Rafael J. Wysocki" <rjw@sisk.pl>, "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Linus Torvalds <torvalds@linux-foundation.org>, Andrew Morton <akpm@linux-foundation.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mga02.intel.com ([134.134.136.20]:39337 "EHLO mga02.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755611Ab3FMI0n (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 13 Jun 2013 04:26:43 -0400
+In-Reply-To: <9524864.uKH8yPZA91@vostro.rjw.lan>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>
 
-On Wed, Jun 12, 2013 at 8:50 PM, Bjorn Helgaas <bhelgaas@google.com> wrote:
-> On Wed, Jun 12, 2013 at 1:41 PM, Yinghai Lu <yinghai@kernel.org> wrote:
->
-> I think you're saying that in systems that support both acpiphp and
-> pciehp, we should be using pciehp, but we currently use acpiphp.  If
-> so, that's certainly a bug.  How serious is it?  Is it a disaster if
-> we use acpiphp until we can resolve this cleanly?  Are there a lot of
-> systems that claim to support acpiphp but it doesn't actually work?
+On 06/10/2013 06:18 AM, Rafael J. Wysocki wrote:
+> From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+> Subject: ACPI / scan: Simplify ACPI driver probing
+> 
+> There is no particular reason why acpi_bus_driver_init() needs to be
+> a separate function and its location with respect to its only caller,
+> acpi_device_probe(), makes the code a bit difficult to follow.
+> 
+> Besides, it doesn't really make sense to check if 'device' is not
+> NULL in acpi_bus_driver_init(), because we've already dereferenced
+> dev->driver in acpi_device_probe() at that point and, moreover,
+> 'device' cannot be NULL then, because acpi_device_probe() is called
+> via really_probe() (which also sets dev->driver for that matter).
+> 
+> For these reasons, drop acpi_bus_driver_init() altogether and move
+> the remaining code from it directly into acpi_device_probe().
 
-No sure. To make acpiphp would need more expertise in bios.
-Normally BIOS vendor would have half done work there, and will need
-OEM or system vendor have someone to make it work ....
-You would not want to read asl code in DSDT to help them out.
-That is not something that we can control.
+Tested on one desktop and two laptops, no problems found.
 
-Yinghai
+Thanks,
+Aaron
+
+> 
+> Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+> ---
+> 
+> It's in the bleeding-edge branch of the linux-pm.git tree already.
+> 
+> Thanks,
+> Rafael
+> 
+> ---
+>  drivers/acpi/scan.c |   81 +++++++++++++++++-----------------------------------
+>  1 file changed, 27 insertions(+), 54 deletions(-)
+> 
+> Index: linux-pm/drivers/acpi/scan.c
+> ===================================================================
+> --- linux-pm.orig/drivers/acpi/scan.c
+> +++ linux-pm/drivers/acpi/scan.c
+> @@ -933,32 +933,40 @@ static void acpi_device_remove_notify_ha
+>  					   acpi_device_notify);
+>  }
+>  
+> -static int acpi_bus_driver_init(struct acpi_device *, struct acpi_driver *);
+> -static int acpi_device_probe(struct device * dev)
+> +static int acpi_device_probe(struct device *dev)
+>  {
+>  	struct acpi_device *acpi_dev = to_acpi_device(dev);
+>  	struct acpi_driver *acpi_drv = to_acpi_driver(dev->driver);
+>  	int ret;
+>  
+> -	ret = acpi_bus_driver_init(acpi_dev, acpi_drv);
+> -	if (!ret) {
+> -		if (acpi_drv->ops.notify) {
+> -			ret = acpi_device_install_notify_handler(acpi_dev);
+> -			if (ret) {
+> -				if (acpi_drv->ops.remove)
+> -					acpi_drv->ops.remove(acpi_dev);
+> -				acpi_dev->driver = NULL;
+> -				acpi_dev->driver_data = NULL;
+> -				return ret;
+> -			}
+> -		}
+> +	if (!acpi_drv->ops.add)
+> +		return -ENOSYS;
+> +
+> +	ret = acpi_drv->ops.add(acpi_dev);
+> +	if (ret)
+> +		return ret;
+>  
+> -		ACPI_DEBUG_PRINT((ACPI_DB_INFO,
+> -			"Found driver [%s] for device [%s]\n",
+> -			acpi_drv->name, acpi_dev->pnp.bus_id));
+> -		get_device(dev);
+> +	acpi_dev->driver = acpi_drv;
+> +	ACPI_DEBUG_PRINT((ACPI_DB_INFO,
+> +			  "Driver [%s] successfully bound to device [%s]\n",
+> +			  acpi_drv->name, acpi_dev->pnp.bus_id));
+> +
+> +	if (acpi_drv->ops.notify) {
+> +		ret = acpi_device_install_notify_handler(acpi_dev);
+> +		if (ret) {
+> +			if (acpi_drv->ops.remove)
+> +				acpi_drv->ops.remove(acpi_dev);
+> +
+> +			acpi_dev->driver = NULL;
+> +			acpi_dev->driver_data = NULL;
+> +			return ret;
+> +		}
+>  	}
+> -	return ret;
+> +
+> +	ACPI_DEBUG_PRINT((ACPI_DB_INFO, "Found driver [%s] for device [%s]\n",
+> +			  acpi_drv->name, acpi_dev->pnp.bus_id));
+> +	get_device(dev);
+> +	return 0;
+>  }
+>  
+>  static int acpi_device_remove(struct device * dev)
+> @@ -1114,41 +1122,6 @@ static void acpi_device_unregister(struc
+>                                   Driver Management
+>     -------------------------------------------------------------------------- */
+>  /**
+> - * acpi_bus_driver_init - add a device to a driver
+> - * @device: the device to add and initialize
+> - * @driver: driver for the device
+> - *
+> - * Used to initialize a device via its device driver.  Called whenever a
+> - * driver is bound to a device.  Invokes the driver's add() ops.
+> - */
+> -static int
+> -acpi_bus_driver_init(struct acpi_device *device, struct acpi_driver *driver)
+> -{
+> -	int result = 0;
+> -
+> -	if (!device || !driver)
+> -		return -EINVAL;
+> -
+> -	if (!driver->ops.add)
+> -		return -ENOSYS;
+> -
+> -	result = driver->ops.add(device);
+> -	if (result)
+> -		return result;
+> -
+> -	device->driver = driver;
+> -
+> -	/*
+> -	 * TBD - Configuration Management: Assign resources to device based
+> -	 * upon possible configuration and currently allocated resources.
+> -	 */
+> -
+> -	ACPI_DEBUG_PRINT((ACPI_DB_INFO,
+> -			  "Driver successfully bound to device\n"));
+> -	return 0;
+> -}
+> -
+> -/**
+>   * acpi_bus_register_driver - register a driver with the ACPI bus
+>   * @driver: driver being registered
+>   *
+> 
+
