@@ -1,111 +1,54 @@
 From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: [BUGFIX 3/9] ACPI, DOCK: clean up unused module related code
-Date: Thu, 13 Jun 2013 20:39:51 +0200
-Message-ID: <2136440.CPpNzdaTXG@vostro.rjw.lan>
-References: <1371141152-9468-1-git-send-email-jiang.liu@huawei.com> <1371141152-9468-4-git-send-email-jiang.liu@huawei.com> <1841512.D0ScSNfNgy@vostro.rjw.lan>
+Subject: [GIT PULL] ACPI fix for v3.10-rc6
+Date: Thu, 13 Jun 2013 20:50:21 +0200
+Message-ID: <2350270.gryTXaEjHZ@vostro.rjw.lan>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7Bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1841512.D0ScSNfNgy@vostro.rjw.lan>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Jiang Liu <jiang.liu@huawei.com>
-Cc: Bjorn Helgaas <bhelgaas@google.com>, Yinghai Lu <yinghai@kernel.org>, "Alexander E . Patrakov" <patrakov@gmail.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Yijing Wang <wangyijing@huawei.com>, Jiang Liu <liuj97@gmail.com>, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, Shaohua Li <shaohua.li@intel.com>, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from hydra.sisk.pl ([212.160.235.94]:36393 "EHLO hydra.sisk.pl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1758920Ab3FMSlJ (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 13 Jun 2013 14:41:09 -0400
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: LKML <linux-kernel@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Aaron Lu <aaron.lu@intel.com>, Tony Luck <tony.luck@gmail.com>
 
-On Thursday, June 13, 2013 08:26:10 PM Rafael J. Wysocki wrote:
-> On Friday, June 14, 2013 12:32:26 AM Jiang Liu wrote:
-> > ACPI dock driver can't be built as a module any more, so clean up
-> > module related code.
-> > 
-> > Signed-off-by: Jiang Liu <jiang.liu@huawei.com>
-> > Cc: Shaohua Li <shaohua.li@intel.com>
-> > Cc: Len Brown <lenb@kernel.org>
-> > Cc: "Rafael J. Wysocki" <rjw@sisk.pl>
-> > Cc: linux-acpi@vger.kernel.org
-> > Cc: linux-kernel@vger.kernel.org
-> 
-> How exactly does this depend on [2/9]?  If it doesn't at all, it should go
-> after [1/9].
+Hi Linus,
 
-However, this isn't even 3.10 material, so please stop sending it for now.
+Please pull from the git repository at
 
-Thanks,
-Rafael
+  git://git.kernel.org/pub/scm/linux/kernel/git/rafael/linux-pm.git acpi-3.10-rc6
+
+to receive one ACPI fix for v3.10-rc6 which is
+commit 8c9b7a7b2fc2750af418ddc28e707c42e78aa0bf
+
+  ACPI / video: Do not bind to device objects with a scan handler
+
+on top of commit 317ddd256b9c24b0d78fa8018f80f1e495481a10
+
+  Linux 3.10-rc5
+
+This is an alternative fix for the regression introduced in 3.9 whose
+previous fix had to be reverted right before 3.10-rc5, because it broke
+one of the Tony's machines.  In this one the check is confined to the
+ACPI video driver (which is the only one causing the problem to happen
+in the first place) and the Tony's box shouldn't even notice it.
+
+Thanks!
 
 
-> > ---
-> >  drivers/acpi/dock.c | 41 -----------------------------------------
-> >  1 file changed, 41 deletions(-)
-> > 
-> > diff --git a/drivers/acpi/dock.c b/drivers/acpi/dock.c
-> > index 79c8d9e..50e38b7 100644
-> > --- a/drivers/acpi/dock.c
-> > +++ b/drivers/acpi/dock.c
-> > @@ -53,12 +53,6 @@ MODULE_PARM_DESC(immediate_undock, "1 (default) will cause the driver to "
-> >  
-> >  static struct atomic_notifier_head dock_notifier_list;
-> >  
-> > -static const struct acpi_device_id dock_device_ids[] = {
-> > -	{"LNXDOCK", 0},
-> > -	{"", 0},
-> > -};
-> > -MODULE_DEVICE_TABLE(acpi, dock_device_ids);
-> > -
-> 
-> Don't we actually need the device IDs?
-> 
-> >  struct dock_station {
-> >  	acpi_handle handle;
-> >  	unsigned long last_dock_time;
-> > @@ -1013,30 +1007,6 @@ err_unregister:
-> >  }
-> >  
-> >  /**
-> > - * dock_remove - free up resources related to the dock station
-> > - */
-> > -static int dock_remove(struct dock_station *ds)
-> > -{
-> > -	struct dock_dependent_device *dd, *tmp;
-> > -	struct platform_device *dock_device = ds->dock_device;
-> > -
-> > -	if (!dock_station_count)
-> > -		return 0;
-> > -
-> > -	/* remove dependent devices */
-> > -	list_for_each_entry_safe(dd, tmp, &ds->dependent_devices, list)
-> > -		kfree(dd);
-> > -
-> > -	list_del(&ds->sibling);
-> > -
-> > -	/* cleanup sysfs */
-> > -	sysfs_remove_group(&dock_device->dev.kobj, &dock_attribute_group);
-> > -	platform_device_unregister(dock_device);
-> > -
-> > -	return 0;
-> > -}
-> > -
-> > -/**
-> >   * find_dock_and_bay - look for dock stations and bays
-> >   * @handle: acpi handle of a device
-> >   * @lvl: unused
-> > @@ -1073,14 +1043,3 @@ int __init acpi_dock_init(void)
-> >  		ACPI_DOCK_DRIVER_DESCRIPTION, dock_station_count);
-> >  	return 0;
-> >  }
-> > -
-> > -static void __exit dock_exit(void)
-> > -{
-> > -	struct dock_station *tmp, *dock_station;
-> > -
-> > -	unregister_acpi_bus_notifier(&dock_acpi_notifier);
-> > -	list_for_each_entry_safe(dock_station, tmp, &dock_stations, sibling)
-> > -		dock_remove(dock_station);
-> > -}
-> > -
-> > -module_exit(dock_exit);
-> 
-> The other changes look OK to me.
+---------------
+
+Rafael J. Wysocki (1):
+      ACPI / video: Do not bind to device objects with a scan handler
+
+---------------
+
+ drivers/acpi/scan.c  |    5 +----
+ drivers/acpi/video.c |    3 +++
+ 2 files changed, 4 insertions(+), 4 deletions(-)
 
 -- 
 I speak only for myself.
