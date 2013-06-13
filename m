@@ -1,44 +1,91 @@
-From: Bjorn Helgaas <bhelgaas@google.com>
-Subject: Re: [PATCH] PCI: Remove not needed check in disable aspm link
-Date: Thu, 13 Jun 2013 07:57:31 -0600
-Message-ID: <CAErSpo5j52u-6YNVa2K3usC4qjbz99iyHY1SKvrsJSQRkzM0CA@mail.gmail.com>
-References: <CAErSpo6v0mj9=Q13d=G4hho0mb9XTcsmefzke9fROYmZ7oBWxQ@mail.gmail.com>
- <CAE9FiQVqKag2TGah7x_1MAJ+c0UWgywgM_jKUoOnh+rq3bwBhg@mail.gmail.com>
- <CAE9FiQVMgdj5edbR4qZny29fV9-bW_We_G4Wpn_yruDLQZiQiQ@mail.gmail.com>
- <20130329032200.GA11990@google.com> <CAE9FiQVu5QyxaKsYzzQoroQD=TvsziHzDOtoeg=FvhZ8HyN5yw@mail.gmail.com>
- <CAErSpo7ChfRiEn0eR1rf-mVheUS9Yf8f+j4n78PJcGYh+yMVgA@mail.gmail.com>
- <CAE9FiQXkDg7Y336S=DXoms44=5HLaiUx=sWviupz1fJmaDUEzQ@mail.gmail.com>
- <CAE9FiQU5c=ztzbskNnYFFKF9V5zO+jnRcMBCivLxA1F3fSfX5w@mail.gmail.com>
- <20130401235256.GA31966@google.com> <CAE9FiQV8cPh-s6=EQu_cZTtn86+NwZE5KuGMhf43aOhzkL=hwA@mail.gmail.com>
- <CAErSpo7Jni1ZSf_W=vB3kqsucPpoepa2Q5g=77a6D3FaPwe9LA@mail.gmail.com>
- <CAE9FiQWjQXwiTWju6cBc_o25jy_wmZ1u+Pifh1wdnxtV=i5ENw@mail.gmail.com>
- <CAErSpo7=a-wX6BLbm_O1nUMMrQHOgtSm3xZHKuRqaz8rnKSbRA@mail.gmail.com>
- <CAE9FiQUbw7OUhRB+gKMxkuE9+nm9097+mwZ2z4adO8Hv_NjF1Q@mail.gmail.com>
- <CAErSpo7gL3Ds9oq8ZZ4zdt1uHy9xbkWJE+Ja=-0QXFQECjr40A@mail.gmail.com> <51B9467B.7080902@huawei.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <linux-pci-owner@vger.kernel.org>
-In-Reply-To: <51B9467B.7080902@huawei.com>
-Sender: linux-pci-owner@vger.kernel.org
-To: "Jiang Liu (Gerry)" <jiang.liu@huawei.com>
-Cc: Yinghai Lu <yinghai@kernel.org>, Roman Yepishev <roman.yepishev@gmail.com>, "Rafael J. Wysocki" <rjw@sisk.pl>, "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Linus Torvalds <torvalds@linux-foundation.org>, Andrew Morton <akpm@linux-foundation.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+From: Jiang Liu <jiang.liu@huawei.com>
+Subject: [BUGFIX 1/9] ACPI, DOCK: initialize dock subsystem before scanning PCI root buses
+Date: Fri, 14 Jun 2013 00:32:24 +0800
+Message-ID: <1371141152-9468-2-git-send-email-jiang.liu@huawei.com>
+References: <1371141152-9468-1-git-send-email-jiang.liu@huawei.com>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1371141152-9468-1-git-send-email-jiang.liu@huawei.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: "Rafael J . Wysocki" <rjw@sisk.pl>, Bjorn Helgaas <bhelgaas@google.com>, Yinghai Lu <yinghai@kernel.org>, "Alexander E . Patrakov" <patrakov@gmail.com>
+Cc: Jiang Liu <jiang.liu@huawei.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Yijing Wang <wangyijing@huawei.com>, Jiang Liu <liuj97@gmail.com>, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, stable@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Wed, Jun 12, 2013 at 10:11 PM, Jiang Liu (Gerry)
-<jiang.liu@huawei.com> wrote:
-> Hi Bjorn,
->     I'm working on several acpiphp related bugfixes, and feel some
-> are materials for 3.10 too. Actually we have identified four bugs
-> related to dock station support on Sony VAIO VPCZ23A4R laptop.
-> I will try to send out patchset to address these bugs tonight.
-> Seems we really need to rethink about acpiphp and pciehp now.
+Changeset "3b63aaa70e1 PCI: acpiphp: Do not use ACPI PCI subdriver
+mechanism" causes a regression which breaks ACPI dock support,
+please refer to https://bugzilla.kernel.org/show_bug.cgi?id=59501
 
-We certainly need more rework in acpiphp and pciehp.  But unless it's
-an obvious fix for a serious regression, I'm doubtful about putting it
-in 3.10.  rc6 is imminent and it's not the time to be putting
-significant changes in.
+The root cause is that changeset 3b63aaa70e1 changed the relative
+initialization order of ACPI dock subsystem and acpiphp driver,
+and acpiphp driver has dependency on ACPI dock subsystem's
+initialization result, so that acpiphp can't correctly detect ACPI
+dock stations now.
 
-I don't know the details of the dock issues, but you might not need to
-be in a huge rush about them.
+On the other hand, ACPI dock is a built-in driver, so we could
+explicitly initialize it before the acpiphp driver is used.
 
-Bjorn
+Signed-off-by: Jiang Liu <jiang.liu@huawei.com>
+Reported-by: Alexander E. Patrakov <patrakov@gmail.com>
+Tested-by: Alexander E. Patrakov <patrakov@gmail.com>
+Cc: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: linux-acpi@vger.kernel.org
+Cc: linux-kernel@vger.kernel.org
+Cc: <stable@vger.kernel.org> # 3.9+
+---
+ drivers/acpi/dock.c     | 7 +------
+ drivers/acpi/internal.h | 5 +++++
+ drivers/acpi/scan.c     | 1 +
+ 3 files changed, 7 insertions(+), 6 deletions(-)
+
+diff --git a/drivers/acpi/dock.c b/drivers/acpi/dock.c
+index 4fdea38..02b0563 100644
+--- a/drivers/acpi/dock.c
++++ b/drivers/acpi/dock.c
+@@ -1033,7 +1033,7 @@ find_dock_and_bay(acpi_handle handle, u32 lvl, void *context, void **rv)
+ 	return AE_OK;
+ }
+ 
+-static int __init dock_init(void)
++int __init acpi_dock_init(void)
+ {
+ 	if (acpi_disabled)
+ 		return 0;
+@@ -1062,9 +1062,4 @@ static void __exit dock_exit(void)
+ 		dock_remove(dock_station);
+ }
+ 
+-/*
+- * Must be called before drivers of devices in dock, otherwise we can't know
+- * which devices are in a dock
+- */
+-subsys_initcall(dock_init);
+ module_exit(dock_exit);
+diff --git a/drivers/acpi/internal.h b/drivers/acpi/internal.h
+index 297cbf4..c610a76 100644
+--- a/drivers/acpi/internal.h
++++ b/drivers/acpi/internal.h
+@@ -40,6 +40,11 @@ void acpi_container_init(void);
+ #else
+ static inline void acpi_container_init(void) {}
+ #endif
++#ifdef CONFIG_ACPI_DOCK
++void acpi_dock_init(void);
++#else
++static inline void acpi_dock_init(void) {}
++#endif
+ #ifdef CONFIG_ACPI_HOTPLUG_MEMORY
+ void acpi_memory_hotplug_init(void);
+ #else
+diff --git a/drivers/acpi/scan.c b/drivers/acpi/scan.c
+index 44225cb..4148163 100644
+--- a/drivers/acpi/scan.c
++++ b/drivers/acpi/scan.c
+@@ -2045,6 +2045,7 @@ int __init acpi_scan_init(void)
+ 	acpi_lpss_init();
+ 	acpi_container_init();
+ 	acpi_memory_hotplug_init();
++	acpi_dock_init();
+ 
+ 	mutex_lock(&acpi_scan_lock);
+ 	/*
+-- 
+1.8.1.2
