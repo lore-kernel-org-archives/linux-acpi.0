@@ -1,7 +1,7 @@
 From: Jiang Liu <jiang.liu@huawei.com>
-Subject: [BUGFIX 5/9] ACPI, DOCK: kill redundant spin lock in dock device object
-Date: Fri, 14 Jun 2013 00:32:28 +0800
-Message-ID: <1371141152-9468-6-git-send-email-jiang.liu@huawei.com>
+Subject: [BUGFIX 7/9] ACPI, DOCK: simplify implementation of dock_create_acpi_device()
+Date: Fri, 14 Jun 2013 00:32:30 +0800
+Message-ID: <1371141152-9468-8-git-send-email-jiang.liu@huawei.com>
 References: <1371141152-9468-1-git-send-email-jiang.liu@huawei.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <1371141152-9468-1-git-send-email-jiang.liu@huawei.com>
@@ -10,8 +10,8 @@ To: "Rafael J . Wysocki" <rjw@sisk.pl>, Bjorn Helgaas <bhelgaas@google.com>, Yin
 Cc: Jiang Liu <jiang.liu@huawei.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Yijing Wang <wangyijing@huawei.com>, Jiang Liu <liuj97@gmail.com>, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, Shaohua Li <shaohua.li@intel.com>, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-All dock device related data structures are created during driver
-initialization, so kill the redundant spin lock in dock device object.
+The return value of dock_create_acpi_device() is unused, so simplify
+it by returning void.
 
 Signed-off-by: Jiang Liu <jiang.liu@huawei.com>
 Cc: Shaohua Li <shaohua.li@intel.com>
@@ -20,57 +20,35 @@ Cc: "Rafael J. Wysocki" <rjw@sisk.pl>
 Cc: linux-acpi@vger.kernel.org
 Cc: linux-kernel@vger.kernel.org
 ---
- drivers/acpi/dock.c | 15 +++------------
- 1 file changed, 3 insertions(+), 12 deletions(-)
+ drivers/acpi/dock.c | 7 +------
+ 1 file changed, 1 insertion(+), 6 deletions(-)
 
 diff --git a/drivers/acpi/dock.c b/drivers/acpi/dock.c
-index 8e578aa..cd2d5df 100644
+index da3314d..72cf97e 100644
 --- a/drivers/acpi/dock.c
 +++ b/drivers/acpi/dock.c
-@@ -57,7 +57,6 @@ struct dock_station {
- 	acpi_handle handle;
- 	unsigned long last_dock_time;
- 	u32 flags;
--	spinlock_t dd_lock;
- 	struct mutex hp_lock;
- 	struct task_struct *owner;
- 	struct list_head dependent_devices;
-@@ -107,10 +106,7 @@ add_dock_dependent_device(struct dock_station *ds, acpi_handle handle)
- 	dd->handle = handle;
- 	INIT_LIST_HEAD(&dd->list);
- 	INIT_LIST_HEAD(&dd->hotplug_list);
--
--	spin_lock(&ds->dd_lock);
- 	list_add_tail(&dd->list, &ds->dependent_devices);
--	spin_unlock(&ds->dd_lock);
- 
- 	return 0;
- }
-@@ -168,14 +164,10 @@ find_dock_dependent_device(struct dock_station *ds, acpi_handle handle)
+@@ -299,10 +299,8 @@ static int dock_present(struct dock_station *ds)
+  *  handle if one does not exist already.  This should cause
+  *  acpi to scan for drivers for the given devices, and call
+  *  matching driver's add routine.
+- *
+- *  Returns a pointer to the acpi_device corresponding to the handle.
+  */
+-static struct acpi_device * dock_create_acpi_device(acpi_handle handle)
++static void dock_create_acpi_device(acpi_handle handle)
  {
- 	struct dock_dependent_device *dd;
- 
--	spin_lock(&ds->dd_lock);
--	list_for_each_entry(dd, &ds->dependent_devices, list) {
--		if (handle == dd->handle) {
--			spin_unlock(&ds->dd_lock);
-+	list_for_each_entry(dd, &ds->dependent_devices, list)
-+		if (handle == dd->handle)
- 			return dd;
--		}
--	}
--	spin_unlock(&ds->dd_lock);
-+
- 	return NULL;
+ 	struct acpi_device *device;
+ 	int ret;
+@@ -315,10 +313,7 @@ static struct acpi_device * dock_create_acpi_device(acpi_handle handle)
+ 		ret = acpi_bus_scan(handle);
+ 		if (ret)
+ 			pr_debug("error adding bus, %x\n", -ret);
+-
+-		acpi_bus_get_device(handle, &device);
+ 	}
+-	return device;
  }
  
-@@ -964,7 +956,6 @@ static int __init dock_add(acpi_handle handle)
- 	dock_station->last_dock_time = jiffies - HZ;
- 
- 	mutex_init(&dock_station->hp_lock);
--	spin_lock_init(&dock_station->dd_lock);
- 	INIT_LIST_HEAD(&dock_station->sibling);
- 	INIT_LIST_HEAD(&dock_station->hotplug_devices);
- 	INIT_LIST_HEAD(&dock_station->dependent_devices);
+ /**
 -- 
 1.8.1.2
