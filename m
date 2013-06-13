@@ -1,24 +1,27 @@
 From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: [BUGFIX 5/9] ACPI, DOCK: kill redundant spin lock in dock device object
-Date: Thu, 13 Jun 2013 20:28:40 +0200
-Message-ID: <1490442.eFer0nddaj@vostro.rjw.lan>
-References: <1371141152-9468-1-git-send-email-jiang.liu@huawei.com> <1371141152-9468-6-git-send-email-jiang.liu@huawei.com>
+Subject: Re: [BUGFIX 6/9] ACPI, DOCK: mark initialization functions with __init
+Date: Thu, 13 Jun 2013 20:29:59 +0200
+Message-ID: <4725934.hjsbtR4hAr@vostro.rjw.lan>
+References: <1371141152-9468-1-git-send-email-jiang.liu@huawei.com> <1371141152-9468-7-git-send-email-jiang.liu@huawei.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7Bit
 Return-path: <linux-pci-owner@vger.kernel.org>
-In-Reply-To: <1371141152-9468-6-git-send-email-jiang.liu@huawei.com>
+In-Reply-To: <1371141152-9468-7-git-send-email-jiang.liu@huawei.com>
 Sender: linux-pci-owner@vger.kernel.org
 To: Jiang Liu <jiang.liu@huawei.com>
 Cc: Bjorn Helgaas <bhelgaas@google.com>, Yinghai Lu <yinghai@kernel.org>, "Alexander E . Patrakov" <patrakov@gmail.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Yijing Wang <wangyijing@huawei.com>, Jiang Liu <liuj97@gmail.com>, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, Shaohua Li <shaohua.li@intel.com>, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Friday, June 14, 2013 12:32:28 AM Jiang Liu wrote:
-> All dock device related data structures are created during driver
-> initialization, so kill the redundant spin lock in dock device object.
+On Friday, June 14, 2013 12:32:29 AM Jiang Liu wrote:
+> Mark all initialization functions with __init to reduce memory
+> consumption at runtime.
 
-As a cleanup, it definitely makes sense, but does it fix anything?
+Again, this is a *cleanup*, not a fix.  Please don't mix cleanups with fixes,
+especially with ones you want to go into 3.10, because the cleanups aren't
+3.10 material for sure.
 
+Thanks,
 Rafael
 
 
@@ -29,58 +32,67 @@ Rafael
 > Cc: linux-acpi@vger.kernel.org
 > Cc: linux-kernel@vger.kernel.org
 > ---
->  drivers/acpi/dock.c | 15 +++------------
->  1 file changed, 3 insertions(+), 12 deletions(-)
+>  drivers/acpi/dock.c | 12 ++++++------
+>  1 file changed, 6 insertions(+), 6 deletions(-)
 > 
 > diff --git a/drivers/acpi/dock.c b/drivers/acpi/dock.c
-> index 8e578aa..cd2d5df 100644
+> index cd2d5df..da3314d 100644
 > --- a/drivers/acpi/dock.c
 > +++ b/drivers/acpi/dock.c
-> @@ -57,7 +57,6 @@ struct dock_station {
->  	acpi_handle handle;
->  	unsigned long last_dock_time;
->  	u32 flags;
-> -	spinlock_t dd_lock;
->  	struct mutex hp_lock;
->  	struct task_struct *owner;
->  	struct list_head dependent_devices;
-> @@ -107,10 +106,7 @@ add_dock_dependent_device(struct dock_station *ds, acpi_handle handle)
->  	dd->handle = handle;
->  	INIT_LIST_HEAD(&dd->list);
->  	INIT_LIST_HEAD(&dd->hotplug_list);
-> -
-> -	spin_lock(&ds->dd_lock);
->  	list_add_tail(&dd->list, &ds->dependent_devices);
-> -	spin_unlock(&ds->dd_lock);
->  
->  	return 0;
->  }
-> @@ -168,14 +164,10 @@ find_dock_dependent_device(struct dock_station *ds, acpi_handle handle)
+> @@ -94,7 +94,7 @@ struct dock_dependent_device {
+>   *
+>   * Add the dependent device to the dock's dependent device list.
+>   */
+> -static int
+> +static int __init
+>  add_dock_dependent_device(struct dock_station *ds, acpi_handle handle)
 >  {
 >  	struct dock_dependent_device *dd;
->  
-> -	spin_lock(&ds->dd_lock);
-> -	list_for_each_entry(dd, &ds->dependent_devices, list) {
-> -		if (handle == dd->handle) {
-> -			spin_unlock(&ds->dd_lock);
-> +	list_for_each_entry(dd, &ds->dependent_devices, list)
-> +		if (handle == dd->handle)
->  			return dd;
-> -		}
-> -	}
-> -	spin_unlock(&ds->dd_lock);
-> +
->  	return NULL;
+> @@ -192,7 +192,7 @@ static int is_dock(acpi_handle handle)
+>  	return 1;
 >  }
 >  
-> @@ -964,7 +956,6 @@ static int __init dock_add(acpi_handle handle)
->  	dock_station->last_dock_time = jiffies - HZ;
+> -static int is_ejectable(acpi_handle handle)
+> +static int __init is_ejectable(acpi_handle handle)
+>  {
+>  	acpi_status status;
+>  	acpi_handle tmp;
+> @@ -203,7 +203,7 @@ static int is_ejectable(acpi_handle handle)
+>  	return 1;
+>  }
 >  
->  	mutex_init(&dock_station->hp_lock);
-> -	spin_lock_init(&dock_station->dd_lock);
->  	INIT_LIST_HEAD(&dock_station->sibling);
->  	INIT_LIST_HEAD(&dock_station->hotplug_devices);
->  	INIT_LIST_HEAD(&dock_station->dependent_devices);
+> -static int is_ata(acpi_handle handle)
+> +static int __init is_ata(acpi_handle handle)
+>  {
+>  	acpi_handle tmp;
+>  
+> @@ -216,7 +216,7 @@ static int is_ata(acpi_handle handle)
+>  	return 0;
+>  }
+>  
+> -static int is_battery(acpi_handle handle)
+> +static int __init is_battery(acpi_handle handle)
+>  {
+>  	struct acpi_device_info *info;
+>  	int ret = 1;
+> @@ -232,7 +232,7 @@ static int is_battery(acpi_handle handle)
+>  	return ret;
+>  }
+>  
+> -static int is_ejectable_bay(acpi_handle handle)
+> +static int __init is_ejectable_bay(acpi_handle handle)
+>  {
+>  	acpi_handle phandle;
+>  
+> @@ -809,7 +809,7 @@ static struct notifier_block dock_acpi_notifier = {
+>   * check to see if an object has an _EJD method.  If it does, then it
+>   * will see if it is dependent on the dock station.
+>   */
+> -static acpi_status
+> +static acpi_status __init
+>  find_dock_devices(acpi_handle handle, u32 lvl, void *context, void **rv)
+>  {
+>  	acpi_status status;
 > 
 -- 
 I speak only for myself.
