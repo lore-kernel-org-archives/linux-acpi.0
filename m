@@ -1,16 +1,16 @@
 From: "Rafael J. Wysocki" <rjw@sisk.pl>
 Subject: Re: [BUGFIX 1/9] ACPI, DOCK: initialize dock subsystem before scanning PCI root buses
-Date: Thu, 13 Jun 2013 20:22:05 +0200
-Message-ID: <1371177946.Su9xBvOtAM@vostro.rjw.lan>
+Date: Thu, 13 Jun 2013 20:24:02 +0200
+Message-ID: <1498259.Hek0QddKX5@vostro.rjw.lan>
 References: <1371141152-9468-1-git-send-email-jiang.liu@huawei.com> <1371141152-9468-2-git-send-email-jiang.liu@huawei.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7Bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from hydra.sisk.pl ([212.160.235.94]:36312 "EHLO hydra.sisk.pl"
+Received: from hydra.sisk.pl ([212.160.235.94]:36322 "EHLO hydra.sisk.pl"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755225Ab3FMSMw (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 13 Jun 2013 14:12:52 -0400
+	id S1751603Ab3FMSOt (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 13 Jun 2013 14:14:49 -0400
 In-Reply-To: <1371141152-9468-2-git-send-email-jiang.liu@huawei.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
@@ -30,7 +30,13 @@ On Friday, June 14, 2013 12:32:24 AM Jiang Liu wrote:
 > 
 > On the other hand, ACPI dock is a built-in driver, so we could
 > explicitly initialize it before the acpiphp driver is used.
-> 
+
+This change makes sense to me.
+
+Thanks,
+Rafael
+
+
 > Signed-off-by: Jiang Liu <jiang.liu@huawei.com>
 > Reported-by: Alexander E. Patrakov <patrakov@gmail.com>
 > Tested-by: Alexander E. Patrakov <patrakov@gmail.com>
@@ -38,17 +44,6 @@ On Friday, June 14, 2013 12:32:24 AM Jiang Liu wrote:
 > Cc: linux-acpi@vger.kernel.org
 > Cc: linux-kernel@vger.kernel.org
 > Cc: <stable@vger.kernel.org> # 3.9+
-
-Can you please send the whole series to linux-acpi next time?
-
-First, because I believe it should go in through the ACPI tree.  Second,
-because it is kind of useful to have all of the patches in context.
-
-
-Thanks,
-Rafael
-
-
 > ---
 >  drivers/acpi/dock.c     | 7 +------
 >  drivers/acpi/internal.h | 5 +++++
