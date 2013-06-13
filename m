@@ -1,107 +1,109 @@
 From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: [BUGFIX 1/9] ACPI, DOCK: initialize dock subsystem before scanning PCI root buses
-Date: Thu, 13 Jun 2013 20:24:02 +0200
-Message-ID: <1498259.Hek0QddKX5@vostro.rjw.lan>
-References: <1371141152-9468-1-git-send-email-jiang.liu@huawei.com> <1371141152-9468-2-git-send-email-jiang.liu@huawei.com>
+Subject: Re: [BUGFIX 3/9] ACPI, DOCK: clean up unused module related code
+Date: Thu, 13 Jun 2013 20:26:10 +0200
+Message-ID: <1841512.D0ScSNfNgy@vostro.rjw.lan>
+References: <1371141152-9468-1-git-send-email-jiang.liu@huawei.com> <1371141152-9468-4-git-send-email-jiang.liu@huawei.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7Bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from hydra.sisk.pl ([212.160.235.94]:36322 "EHLO hydra.sisk.pl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751603Ab3FMSOt (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 13 Jun 2013 14:14:49 -0400
-In-Reply-To: <1371141152-9468-2-git-send-email-jiang.liu@huawei.com>
-Sender: linux-acpi-owner@vger.kernel.org
-List-Id: linux-acpi@vger.kernel.org
+Return-path: <linux-pci-owner@vger.kernel.org>
+In-Reply-To: <1371141152-9468-4-git-send-email-jiang.liu@huawei.com>
+Sender: linux-pci-owner@vger.kernel.org
 To: Jiang Liu <jiang.liu@huawei.com>
-Cc: Bjorn Helgaas <bhelgaas@google.com>, Yinghai Lu <yinghai@kernel.org>, "Alexander E . Patrakov" <patrakov@gmail.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Yijing Wang <wangyijing@huawei.com>, Jiang Liu <liuj97@gmail.com>, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, stable@vger.kernel.org
+Cc: Bjorn Helgaas <bhelgaas@google.com>, Yinghai Lu <yinghai@kernel.org>, "Alexander E . Patrakov" <patrakov@gmail.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Yijing Wang <wangyijing@huawei.com>, Jiang Liu <liuj97@gmail.com>, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, Shaohua Li <shaohua.li@intel.com>, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org
+List-Id: linux-acpi@vger.kernel.org
 
-On Friday, June 14, 2013 12:32:24 AM Jiang Liu wrote:
-> Changeset "3b63aaa70e1 PCI: acpiphp: Do not use ACPI PCI subdriver
-> mechanism" causes a regression which breaks ACPI dock support,
-> please refer to https://bugzilla.kernel.org/show_bug.cgi?id=59501
+On Friday, June 14, 2013 12:32:26 AM Jiang Liu wrote:
+> ACPI dock driver can't be built as a module any more, so clean up
+> module related code.
 > 
-> The root cause is that changeset 3b63aaa70e1 changed the relative
-> initialization order of ACPI dock subsystem and acpiphp driver,
-> and acpiphp driver has dependency on ACPI dock subsystem's
-> initialization result, so that acpiphp can't correctly detect ACPI
-> dock stations now.
-> 
-> On the other hand, ACPI dock is a built-in driver, so we could
-> explicitly initialize it before the acpiphp driver is used.
+> Signed-off-by: Jiang Liu <jiang.liu@huawei.com>
+> Cc: Shaohua Li <shaohua.li@intel.com>
+> Cc: Len Brown <lenb@kernel.org>
+> Cc: "Rafael J. Wysocki" <rjw@sisk.pl>
+> Cc: linux-acpi@vger.kernel.org
+> Cc: linux-kernel@vger.kernel.org
 
-This change makes sense to me.
+How exactly does this depend on [2/9]?  If it doesn't at all, it should go
+after [1/9].
+
+> ---
+>  drivers/acpi/dock.c | 41 -----------------------------------------
+>  1 file changed, 41 deletions(-)
+> 
+> diff --git a/drivers/acpi/dock.c b/drivers/acpi/dock.c
+> index 79c8d9e..50e38b7 100644
+> --- a/drivers/acpi/dock.c
+> +++ b/drivers/acpi/dock.c
+> @@ -53,12 +53,6 @@ MODULE_PARM_DESC(immediate_undock, "1 (default) will cause the driver to "
+>  
+>  static struct atomic_notifier_head dock_notifier_list;
+>  
+> -static const struct acpi_device_id dock_device_ids[] = {
+> -	{"LNXDOCK", 0},
+> -	{"", 0},
+> -};
+> -MODULE_DEVICE_TABLE(acpi, dock_device_ids);
+> -
+
+Don't we actually need the device IDs?
+
+>  struct dock_station {
+>  	acpi_handle handle;
+>  	unsigned long last_dock_time;
+> @@ -1013,30 +1007,6 @@ err_unregister:
+>  }
+>  
+>  /**
+> - * dock_remove - free up resources related to the dock station
+> - */
+> -static int dock_remove(struct dock_station *ds)
+> -{
+> -	struct dock_dependent_device *dd, *tmp;
+> -	struct platform_device *dock_device = ds->dock_device;
+> -
+> -	if (!dock_station_count)
+> -		return 0;
+> -
+> -	/* remove dependent devices */
+> -	list_for_each_entry_safe(dd, tmp, &ds->dependent_devices, list)
+> -		kfree(dd);
+> -
+> -	list_del(&ds->sibling);
+> -
+> -	/* cleanup sysfs */
+> -	sysfs_remove_group(&dock_device->dev.kobj, &dock_attribute_group);
+> -	platform_device_unregister(dock_device);
+> -
+> -	return 0;
+> -}
+> -
+> -/**
+>   * find_dock_and_bay - look for dock stations and bays
+>   * @handle: acpi handle of a device
+>   * @lvl: unused
+> @@ -1073,14 +1043,3 @@ int __init acpi_dock_init(void)
+>  		ACPI_DOCK_DRIVER_DESCRIPTION, dock_station_count);
+>  	return 0;
+>  }
+> -
+> -static void __exit dock_exit(void)
+> -{
+> -	struct dock_station *tmp, *dock_station;
+> -
+> -	unregister_acpi_bus_notifier(&dock_acpi_notifier);
+> -	list_for_each_entry_safe(dock_station, tmp, &dock_stations, sibling)
+> -		dock_remove(dock_station);
+> -}
+> -
+> -module_exit(dock_exit);
+
+The other changes look OK to me.
 
 Thanks,
 Rafael
 
 
-> Signed-off-by: Jiang Liu <jiang.liu@huawei.com>
-> Reported-by: Alexander E. Patrakov <patrakov@gmail.com>
-> Tested-by: Alexander E. Patrakov <patrakov@gmail.com>
-> Cc: "Rafael J. Wysocki" <rjw@sisk.pl>
-> Cc: linux-acpi@vger.kernel.org
-> Cc: linux-kernel@vger.kernel.org
-> Cc: <stable@vger.kernel.org> # 3.9+
-> ---
->  drivers/acpi/dock.c     | 7 +------
->  drivers/acpi/internal.h | 5 +++++
->  drivers/acpi/scan.c     | 1 +
->  3 files changed, 7 insertions(+), 6 deletions(-)
-> 
-> diff --git a/drivers/acpi/dock.c b/drivers/acpi/dock.c
-> index 4fdea38..02b0563 100644
-> --- a/drivers/acpi/dock.c
-> +++ b/drivers/acpi/dock.c
-> @@ -1033,7 +1033,7 @@ find_dock_and_bay(acpi_handle handle, u32 lvl, void *context, void **rv)
->  	return AE_OK;
->  }
->  
-> -static int __init dock_init(void)
-> +int __init acpi_dock_init(void)
->  {
->  	if (acpi_disabled)
->  		return 0;
-> @@ -1062,9 +1062,4 @@ static void __exit dock_exit(void)
->  		dock_remove(dock_station);
->  }
->  
-> -/*
-> - * Must be called before drivers of devices in dock, otherwise we can't know
-> - * which devices are in a dock
-> - */
-> -subsys_initcall(dock_init);
->  module_exit(dock_exit);
-> diff --git a/drivers/acpi/internal.h b/drivers/acpi/internal.h
-> index 297cbf4..c610a76 100644
-> --- a/drivers/acpi/internal.h
-> +++ b/drivers/acpi/internal.h
-> @@ -40,6 +40,11 @@ void acpi_container_init(void);
->  #else
->  static inline void acpi_container_init(void) {}
->  #endif
-> +#ifdef CONFIG_ACPI_DOCK
-> +void acpi_dock_init(void);
-> +#else
-> +static inline void acpi_dock_init(void) {}
-> +#endif
->  #ifdef CONFIG_ACPI_HOTPLUG_MEMORY
->  void acpi_memory_hotplug_init(void);
->  #else
-> diff --git a/drivers/acpi/scan.c b/drivers/acpi/scan.c
-> index 44225cb..4148163 100644
-> --- a/drivers/acpi/scan.c
-> +++ b/drivers/acpi/scan.c
-> @@ -2045,6 +2045,7 @@ int __init acpi_scan_init(void)
->  	acpi_lpss_init();
->  	acpi_container_init();
->  	acpi_memory_hotplug_init();
-> +	acpi_dock_init();
->  
->  	mutex_lock(&acpi_scan_lock);
->  	/*
-> 
 -- 
 I speak only for myself.
 Rafael J. Wysocki, Intel Open Source Technology Center.
