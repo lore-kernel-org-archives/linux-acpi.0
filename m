@@ -1,114 +1,114 @@
-From: Yinghai Lu <yinghai@kernel.org>
-Subject: Re: [PATCH] PCI: Remove not needed check in disable aspm link
-Date: Fri, 14 Jun 2013 11:26:49 -0700
-Message-ID: <CAE9FiQWevd6ZNDdqGkqbLrGujKYuTiwibPAT+30VPpC_H-rLJA@mail.gmail.com>
-References: <CAE9FiQVu5QyxaKsYzzQoroQD=TvsziHzDOtoeg=FvhZ8HyN5yw@mail.gmail.com>
-	<CAErSpo7ChfRiEn0eR1rf-mVheUS9Yf8f+j4n78PJcGYh+yMVgA@mail.gmail.com>
-	<CAE9FiQXkDg7Y336S=DXoms44=5HLaiUx=sWviupz1fJmaDUEzQ@mail.gmail.com>
-	<CAE9FiQU5c=ztzbskNnYFFKF9V5zO+jnRcMBCivLxA1F3fSfX5w@mail.gmail.com>
-	<20130401235256.GA31966@google.com>
-	<CAE9FiQV8cPh-s6=EQu_cZTtn86+NwZE5KuGMhf43aOhzkL=hwA@mail.gmail.com>
-	<CAErSpo7Jni1ZSf_W=vB3kqsucPpoepa2Q5g=77a6D3FaPwe9LA@mail.gmail.com>
-	<CAE9FiQWjQXwiTWju6cBc_o25jy_wmZ1u+Pifh1wdnxtV=i5ENw@mail.gmail.com>
-	<CAErSpo7=a-wX6BLbm_O1nUMMrQHOgtSm3xZHKuRqaz8rnKSbRA@mail.gmail.com>
-	<CAE9FiQUbw7OUhRB+gKMxkuE9+nm9097+mwZ2z4adO8Hv_NjF1Q@mail.gmail.com>
-	<20130614141101.GA29452@google.com>
-	<CAE9FiQVr-OWeqEHFXn0MjNiSD0WM=FNO_DFo6m9UbbG60uonpw@mail.gmail.com>
-	<CAErSpo7grN-93zZfBJOHZH-pR1wDYrojTwt=B=++QqA0rPb3Rg@mail.gmail.com>
-	<CAE9FiQUO350kqrXB5=yQ-OxOeSJj4+P6WPg4gGgXxFEvfoLyng@mail.gmail.com>
-	<CAErSpo6vEOw10YV=Sou6wjjSc2GWr-oX=Dvbt7Xt=RJKi4RELw@mail.gmail.com>
+From: Len Brown <lenb@kernel.org>
+Subject: Re: Wishlist: Disable C6 in intel_idle for Model 44 processors
+Date: Fri, 14 Jun 2013 15:32:20 -0400
+Message-ID: <CAJvTdKkAy3P=vL=Z5yy31FTvrPNx=Bv11zq-XPi+HeexL=90dg@mail.gmail.com>
+References: <38D8523B-C50E-4D81-A9E2-526292B19AF3@usgs.gov>
+	<20130612134002.GA15317@srcf.ucam.org>
+	<1BD2BF18-8FAA-4633-8B6D-7CA2D6AE67AC@usgs.gov>
+	<20130612183249.GA20957@srcf.ucam.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <linux-pci-owner@vger.kernel.org>
-In-Reply-To: <CAErSpo6vEOw10YV=Sou6wjjSc2GWr-oX=Dvbt7Xt=RJKi4RELw@mail.gmail.com>
-Sender: linux-pci-owner@vger.kernel.org
-To: Bjorn Helgaas <bhelgaas@google.com>, Matthew Garrett <matthew.garrett@nebula.com>
-Cc: Jiang Liu <jiang.liu@huawei.com>, Roman Yepishev <roman.yepishev@gmail.com>, "Rafael J. Wysocki" <rjw@sisk.pl>, "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Linus Torvalds <torvalds@linux-foundation.org>, Andrew Morton <akpm@linux-foundation.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-wg0-f52.google.com ([74.125.82.52]:60248 "EHLO
+	mail-wg0-f52.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753767Ab3FNTcV (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 14 Jun 2013 15:32:21 -0400
+Received: by mail-wg0-f52.google.com with SMTP id b12so831482wgh.31
+        for <linux-acpi@vger.kernel.org>; Fri, 14 Jun 2013 12:32:20 -0700 (PDT)
+In-Reply-To: <20130612183249.GA20957@srcf.ucam.org>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Matthew Garrett <mjg59@srcf.ucam.org>
+Cc: Larry Baker <baker@usgs.gov>, linux acpi <linux-acpi@vger.kernel.org>, Rob E Russell <robr@us.ibm.com>
 
-On Fri, Jun 14, 2013 at 10:44 AM, Bjorn Helgaas <bhelgaas@google.com> wrote:
-> On Fri, Jun 14, 2013 at 10:57 AM, Yinghai Lu <yinghai@kernel.org> wrote:
->> On Fri, Jun 14, 2013 at 9:33 AM, Bjorn Helgaas <bhelgaas@google.com> wrote:
->>> On Fri, Jun 14, 2013 at 10:17 AM, Yinghai Lu <yinghai@kernel.org> wrote:
->>>
->>> Can you please refer to specific function names?  I can't read your mind.
->>>
->>> You might be referring to quirk_disable_aspm_l0s().  This is a
->>> pci_fixup_final quirk that calls pci_disable_link_state().  In the
->>> current tree, we enumerate devices before requesting _OSC control.
->>> However, pci_fixup_final quirks are not run until the
->>> pci_apply_final_quirks() fs_initcall, which is after we request _OSC
->>> control.
->>>
->>> As far as I can tell, we never call pci_disable_link_state() before
->>> calling pcie_no_aspm().
->>
->> ok, you are right, that is not pci_disable_link_state.
->>
->> It is pcie_aspm_init_link_state ==> pcie_aspm_sanity_check in booting path
->> that disable aspm.  It has  "if (aspm_disabled)" in it, and it cause
->> the difference.
->
-> Yes, I agree, the pcie_aspm_init_link_state() path uses aspm_disabled
-> before we set it:
->
->     acpi_pci_root_add
->       pci_acpi_scan_root
->         pci_scan_child_bus
->           pci_scan_slot
->             pcie_aspm_init_link_state
->               pcie_aspm_sanity_check
->                 if (aspm_disabled)              # used before set
->                   ...
->       acpi_pci_osc_control_set
->       pcie_no_aspm
->         aspm_disabled = 1                       # set
->
-> That might mean we do some ASPM configuration during enumeration (in
-> pci_scan_slot()) even though the BIOS hasn't given us permission.  It
-> looks like we did that even in v3.7, since we did the enumeration
-> before the _OSC there as well.  That looks like a bug to me.
+Hi Larry,
 
-agreed. that means commits from Matthew Garrett
+Thanks for the note.
 
-commit 4949be16822e92a18ea0cc1616319926628092ee
-Author: Matthew Garrett <mjg@redhat.com>
-Date:   Tue Mar 6 13:41:49 2012 -0500
+I use two Westmere systems:
+An Extreme Edition X980 on an Intel DX58SO motherboard,
+and a pair of Xeon X5680's on a Intel S5520SC motherboard.
 
-    PCI: ignore pre-1.1 ASPM quirking when ASPM is disabled
+Both processors model 0x2c, and thus subject to this errata.
 
-commit c9651e70ad0aa499814817cbf3cc1d0b806ed3a1
-Author: Matthew Garrett <mjg@redhat.com>
-Date:   Tue Mar 27 10:17:41 2012 -0400
+Both system are running the latest BIOS and firmware from Intel.
+Both systems enable and use CC6 and PC6, by default.
+This is true whether they are running ACPI idle
+(such as Windows would do, or acpi_idle in Linux)
+or Linux's intel_idle driver.
 
-    ASPM: Fix pcie devices with non-pcie children
+This suggests that the fix is not to disable PC6 on model 0x2c.
+I would expect, as Matthew does, that the "BIOS workaround"
+is likely something to do with how the BIOS initialization code sets
+up the memory controller...  But in the event that the real fix
+is to disable PC6 and Intel itself has not updated its own BIOS
+to comply with its own errata, I'll contact the hardware designers
+to see if I can get a more fact-based response.
 
-will only works when the user specify "aspm=off" in boot command line.
+So I concur with Matthew.
+If you are concerned about configuration of your chip-set,
+then you want to run the latest BIOS from the the vendor.
+A Linux workaround doesn't currently look warranted.
 
-(Roman's should have problem when he boot current linus tree with
-"aspm=off", as no one will disable aspm for the offending pci devices)
+thanks,
+-Len Brown, Intel Open Source Technology Center
 
-To close the hole that Matthew' commits miss, that we should move _OSC
-support/control set ahead.
+ps.
 
-For Roman's system it will have to fail, as BIOS enable prep-1.1 pcie devices
-aspm, and do not handle over control to OS, so os can not disable aspm link
-state for it.
+Yes, we have an issue that intel_idle doesn't respect when
+the BIOS "disables" C-states via ACPI tables.  Indeed,
+part of the value proposition of intel_idle is that it is immune
+to ACPI table bugs that crop up from system to system.
+Also, intel_idle is not subject to some of the limitations of ACPI.
+We believe this is one of the reasons that Linux on Intel
+is better than some other operating systems on Intel.
 
-To workaround the problem in Roman's system, we can add pcie_aspm=force_off
+The OEMs such as Dell, HP and IBM are accustomed to having
+control in the BIOS and so they are unhappy about losing
+that capability.  We do hear them, but unfortunately it will
+likely be the Haswell Server generation before we can give their
+BIOS programmers that absolute control back by
+empowering them to modify CPUID.MWAIT.EDX --
+which is how the HW enumerates C-states.
 
-so we will have
-pcie_aspm=off
-pcie_aspm=force
-pcie_aspm=force_off
+This issue comes up mostly when latency sensitive
+customers want to disable the high latency C-states.
+In the past, the OEM could configure their BIOS to
+handle that situation.  But with modern Linux,
+a cmdline param such as intel_idle.max_cstate=N
+is necessary.  OEM's don't like Linux cmdline params,
+they prefer BIOS control.
 
-What a mess!
+As Matthew pointed out, the Linux community believes
+that the answer for latency-sensitive customers is
+to use Linux PM-QOS to tell the machine how
+the customer wants it to run.  From a Linux point
+of view, this is a universal solution, it requires
+no BIOS SETUP tweaks and no kernel cmdline parms.
 
->
-> I don't think the fact that we have been doing ASPM config during
-> enumeration before _OSC is an argument for dropping the check in
-> pci_disable_link_state().
+BTW. If the workaround for the errata were actually
+to disable C6, it would be (Package) PC6, not (Core) CC6.
+The BIOS already has control over Package C-states,
+and if the BIOS doesn't lock the MSR, Linux also
+has that capability.
 
-Agreed.
+Get the latest turbostat from the kernel tree
+and run turbostat -v
+and look for a line like this:
 
-Yinghai
+cpu0: MSR_NHM_SNB_PKG_CST_CFG_CTL: 0x06008403 (demote-C3, demote-C1,
+locked: pkg-cstate-limit=3: pc6)
+
+cpu0: MSR_NHM_SNB_PKG_CST_CFG_CTL: 0x06000403 (demote-C3, demote-C1,
+UNlocked: pkg-cstate-limit=3: pc6)
+
+As described in the Intel Software Developer's Manual,
+this MSR, MSR_PKG_CST_CONFIG_CONTROL has a package C-state limit field.
+Above it limits the hardware to PC6, but could easily be set to PC3.
+
+In one of the examples above, the register was locked by the BIOS,
+preventing Linux from modifying it, in the 2nd example, it is unlocked.
+
+if we limited the package to PC3 here, then Linux would still choose CC6,
+but when all the cores entered CC6, the deepest the package would
+go would be PC3.
