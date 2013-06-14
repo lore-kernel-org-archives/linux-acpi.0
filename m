@@ -1,55 +1,172 @@
-From: Thomas Koch <linrunner@gmx.net>
-Subject: Re: [PATCH] ACPI: Add missing Thinkpad models to OSI(Linux) white
- list
-Date: Fri, 14 Jun 2013 20:15:34 +0200
-Message-ID: <51BB5DC6.6070808@gmx.net>
-References: <51BB4312.6060302@gmx.net> <20130614174527.GA29875@srcf.ucam.org>
+From: "Naveen N. Rao" <naveen.n.rao@linux.vnet.ibm.com>
+Subject: [PATCH] Re: [Patch] MCE,
+ APEI: Don't enable CMCI when Firmware First mode is set in
+Date: Fri, 14 Jun 2013 23:47:21 +0530
+Message-ID: <20130614181721.11206.95341.stgit@localhost.localdomain>
+References: <3908561D78D1C84285E8C5FCA982C28F2DA47F03@ORSMSX101.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mout.gmx.net ([212.227.17.22]:54458 "EHLO mout.gmx.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751382Ab3FNSPm (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 14 Jun 2013 14:15:42 -0400
-Received: from mailout-de.gmx.net ([10.1.76.12]) by mrigmx.server.lan
- (mrigmx002) with ESMTP (Nemesis) id 0MEHXK-1UYAL704Xg-00FRbo for
- <linux-acpi@vger.kernel.org>; Fri, 14 Jun 2013 20:15:41 +0200
-In-Reply-To: <20130614174527.GA29875@srcf.ucam.org>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <3908561D78D1C84285E8C5FCA982C28F2DA47F03@ORSMSX101.amr.corp.intel.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: tony.luck@intel.com, bp@alien8.de
+Cc: ananth@in.ibm.com, masbock@linux.vnet.ibm.com, lcm@linux.vnet.ibm.com, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, ying.huang@intel.com
 List-Id: linux-acpi@vger.kernel.org
-To: Matthew Garrett <mjg59@srcf.ucam.org>
-Cc: lenb@kernel.org, linux-acpi@vger.kernel.org
 
-On 14.06.2013 19:45, Matthew Garrett wrote:
-> On Fri, Jun 14, 2013 at 06:21:38PM +0200, Thomas Koch wrote:
->> acpi_osi=3DLinux helps the mute button work properly by sending Linu=
-x a
->> mute key press.
->=20
-> There was a proper fix for this a while back, but it never seemed to =
-go=20
-> anywhere. Can you try=20
-> http://comments.gmane.org/gmane.linux.drivers.platform.x86.devel/1895=
-=20
-> and see if it works? If so we should just merge that instead.
+HEST for corrected machine checks
 
-Hi Matthew,
+Here's a patch that implements this technique. If the firmware advertises
+support for firmware first mode in the CMC structure, we disable CMCI and
+polling for all the MCA banks listed in the CMC structure.
 
-I'll try to merge and test your suggestion.
+- Naveen
 
-My patch may be ugly but has the advantage of being well tested by quit=
-e
-a bunch of users of my custom kernel:
-https://launchpad.net/~linrunner/+archive/thinkpad-extras
+Signed-off-by: Naveen N. Rao <naveen.n.rao@linux.vnet.ibm.com>
+---
+ arch/x86/include/asm/mce.h             |    3 ++
+ arch/x86/kernel/cpu/mcheck/mce_intel.c |   38 +++++++++++++++++++++++++++++++
+ drivers/acpi/apei/hest.c               |   39 ++++++++++++++++++++++++++++++++
+ 3 files changed, 80 insertions(+)
 
-Thomas
-
---=20
-Thomas Koch =96 linrunner@gmx.net
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+diff --git a/arch/x86/include/asm/mce.h b/arch/x86/include/asm/mce.h
+index fa5f71e..9c91683 100644
+--- a/arch/x86/include/asm/mce.h
++++ b/arch/x86/include/asm/mce.h
+@@ -188,6 +188,9 @@ extern void register_mce_write_callback(ssize_t (*)(struct file *filp,
+ 				    const char __user *ubuf,
+ 				    size_t usize, loff_t *off));
+ 
++/* Disable CMCI/polling for MCA bank claimed by firmware */
++extern void mce_disable_bank(int bank);
++
+ /*
+  * Exception handler
+  */
+diff --git a/arch/x86/kernel/cpu/mcheck/mce_intel.c b/arch/x86/kernel/cpu/mcheck/mce_intel.c
+index ae1697c..bc0307d 100644
+--- a/arch/x86/kernel/cpu/mcheck/mce_intel.c
++++ b/arch/x86/kernel/cpu/mcheck/mce_intel.c
+@@ -26,6 +26,9 @@
+ 
+ static DEFINE_PER_CPU(mce_banks_t, mce_banks_owned);
+ 
++/* MCA banks controlled through firmware first */
++static mce_banks_t mce_banks_disabled;
++
+ /*
+  * cmci_discover_lock protects against parallel discovery attempts
+  * which could race against each other.
+@@ -191,6 +194,10 @@ static void cmci_discover(int banks)
+ 		if (test_bit(i, owned))
+ 			continue;
+ 
++		/* Skip banks in firmware first mode */
++		if (test_bit(i, mce_banks_disabled))
++			continue;
++
+ 		rdmsrl(MSR_IA32_MCx_CTL2(i), val);
+ 
+ 		/* Already owned by someone else? */
+@@ -315,6 +322,37 @@ void cmci_reenable(void)
+ 		cmci_discover(banks);
+ }
+ 
++static void cmci_disable_bank(void *arg)
++{
++	int banks;
++	unsigned long flags;
++	u64 val;
++	int bank = *((int *)arg);
++
++	/* Ensure we don't poll this bank */
++	__clear_bit(bank, __get_cpu_var(mce_poll_banks));
++
++	if (!cmci_supported(&banks))
++		return;
++
++	raw_spin_lock_irqsave(&cmci_discover_lock, flags);
++
++	/* Disable CMCI */
++	rdmsrl(MSR_IA32_MCx_CTL2(bank), val);
++	val &= ~MCI_CTL2_CMCI_EN;
++	wrmsrl(MSR_IA32_MCx_CTL2(bank), val);
++
++	__clear_bit(bank, __get_cpu_var(mce_banks_owned));
++
++	raw_spin_unlock_irqrestore(&cmci_discover_lock, flags);
++}
++
++void mce_disable_bank(int bank)
++{
++	set_bit(bank, mce_banks_disabled);
++	on_each_cpu(cmci_disable_bank, &bank, 1);
++}
++
+ static void intel_init_cmci(void)
+ {
+ 	int banks;
+diff --git a/drivers/acpi/apei/hest.c b/drivers/acpi/apei/hest.c
+index f5ef5d5..765d8bf 100644
+--- a/drivers/acpi/apei/hest.c
++++ b/drivers/acpi/apei/hest.c
+@@ -36,6 +36,7 @@
+ #include <linux/io.h>
+ #include <linux/platform_device.h>
+ #include <acpi/apei.h>
++#include <asm/mce.h>
+ 
+ #include "apei-internal.h"
+ 
+@@ -121,6 +122,42 @@ int apei_hest_parse(apei_hest_func_t func, void *data)
+ }
+ EXPORT_SYMBOL_GPL(apei_hest_parse);
+ 
++/*
++ * Check if firmware advertises firmware first mode. We need FF bit to be set
++ * along with a set of MC banks which work in FF mode.
++ */
++static int __init hest_parse_cmc(struct acpi_hest_header *hest_hdr, void *data)
++{
++	int i;
++	struct acpi_hest_ia_corrected *cmc;
++	struct acpi_hest_ia_error_bank *mc_bank;
++
++	if (hest_hdr->type != ACPI_HEST_TYPE_IA32_CORRECTED_CHECK)
++		return 0;
++
++	if (!((struct acpi_hest_generic *)hest_hdr)->enabled)
++		return 0;
++
++	cmc = (struct acpi_hest_ia_corrected *)hest_hdr;
++	if (!(cmc->flags & ACPI_HEST_FIRMWARE_FIRST))
++		return 0;
++
++	/*
++	 * We expect HEST to provide a list of MC banks that
++	 * report errors through firmware first mode.
++	 */
++	if (cmc->num_hardware_banks <= 0)
++		return 0;
++
++	pr_info("HEST: Enabling Firmware First mode for corrected errors\n");
++
++	mc_bank = (struct acpi_hest_ia_error_bank *)(cmc + 1);
++	for (i = 0; i < cmc->num_hardware_banks; i++, mc_bank++)
++		mce_disable_bank(mc_bank->bank_number);
++
++	return 0;
++}
++
+ struct ghes_arr {
+ 	struct platform_device **ghes_devs;
+ 	unsigned int count;
+@@ -227,6 +264,8 @@ void __init acpi_hest_init(void)
+ 		goto err;
+ 	}
+ 
++	apei_hest_parse(hest_parse_cmc, NULL);
++
+ 	if (!ghes_disable) {
+ 		rc = apei_hest_parse(hest_parse_ghes_count, &ghes_count);
+ 		if (rc)
