@@ -1,82 +1,162 @@
-From: Aaron Lu <aaron.lu@intel.com>
-Subject: Re: [PATCH 3/3] i915: Don't provide ACPI backlight interface if firmware
- expects Windows 8
-Date: Fri, 14 Jun 2013 14:47:11 +0800
-Message-ID: <51BABC6F.3050201@intel.com>
-References: <1370818899-8595-1-git-send-email-matthew.garrett@nebula.com> <1370818899-8595-4-git-send-email-matthew.garrett@nebula.com>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: [PATCH 4/4] ACPI / PM: Drop two functions that are not used any more
+Date: Fri, 14 Jun 2013 14:33:24 +0200
+Message-ID: <2934743.cl2LaccKZx@vostro.rjw.lan>
+References: <6895318.cKDBc4OdI0@vostro.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7Bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga14.intel.com ([143.182.124.37]:29473 "EHLO mga14.intel.com"
+Received: from hydra.sisk.pl ([212.160.235.94]:37233 "EHLO hydra.sisk.pl"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751344Ab3FNGqn (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 14 Jun 2013 02:46:43 -0400
-In-Reply-To: <1370818899-8595-4-git-send-email-matthew.garrett@nebula.com>
+	id S1752471Ab3FNMYP (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 14 Jun 2013 08:24:15 -0400
+In-Reply-To: <6895318.cKDBc4OdI0@vostro.rjw.lan>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Matthew Garrett <matthew.garrett@nebula.com>
-Cc: linux-acpi@vger.kernel.org, Seth Forshee <seth.forshee@canonical.com>, "Lee, Chun-Yi" <joeyli.kernel@gmail.com>, daniel.vetter@ffwll.ch, intel-gfx@lists.freedesktop.org, dri-devel@lists.freedesktop.org, linux-kernel@vger.kernel.org, Len Brown <lenb@kernel.org>, "Rafael J. Wysocki" <rjw@sisk.pl>, Zhang Rui <rui.zhang@intel.com>, Aaron Lu <aaron.lwe@gmail.com>, Alex Deucher <alexdeucher@gmail.com>
+To: ACPI Devel Maling List <linux-acpi@vger.kernel.org>
+Cc: LKML <linux-kernel@vger.kernel.org>, Linux PM list <linux-pm@vger.kernel.org>, Aaron Lu <aaron.lu@intel.com>, Lan Tianyu <tianyu.lan@intel.com>
 
-On 06/10/2013 07:01 AM, Matthew Garrett wrote:
-> Windows 8 leaves backlight control up to individual graphics drivers rather
-> than making ACPI calls itself. There's plenty of evidence to suggest that
-> the Intel driver for Windows doesn't use the ACPI interface, including the
-> fact that it's broken on a bunch of machines when the OS claims to support
-> Windows 8. The simplest thing to do appears to be to disable the ACPI
-> backlight interface on these systems.
-> 
-> Signed-off-by: Matthew Garrett <matthew.garrett@nebula.com>
-> ---
->  drivers/gpu/drm/i915/i915_dma.c | 3 +++
->  1 file changed, 3 insertions(+)
-> 
-> diff --git a/drivers/gpu/drm/i915/i915_dma.c b/drivers/gpu/drm/i915/i915_dma.c
-> index 3b315ba..23b6292 100644
-> --- a/drivers/gpu/drm/i915/i915_dma.c
-> +++ b/drivers/gpu/drm/i915/i915_dma.c
-> @@ -1661,6 +1661,9 @@ int i915_driver_load(struct drm_device *dev, unsigned long flags)
->  		/* Must be done after probing outputs */
->  		intel_opregion_init(dev);
->  		acpi_video_register();
-> +		/* Don't use ACPI backlight functions on Windows 8 platforms */
-> +		if (acpi_osi_version() >= ACPI_OSI_WIN_8)
-> +			acpi_video_backlight_unregister();
+From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 
-What about the platform driver created backlight interface? Oh right,
-thinkpad_acpi will not create backlight interface for them since they
-are not in DMI table, so acpi_video_backlight_support() will return
-true and thinkspad_acpi thinks ACPI video driver is controlling
-backlight so it will not create backlight interface for them.
+Two functions defined in device_pm.c, acpi_dev_pm_add_dependent()
+and acpi_dev_pm_remove_dependent(), have no callers and may be
+dropped, so drop them.
 
-Then we will need to remember not to add any of those systems into
-the DMI table of video_detect.c, or thinkpad_acpi module will create
-backlight interface for them and according to reporter, that interface
-does not work either.
+Moreover, they are the only functions adding entries to and removing
+entries from the power_dependent list in struct acpi_device, so drop
+that list and the loop walking it in acpi_power_resume_dependent()
+too.
 
-What about a priority based solution? We can introduce a new field named
-priority to backlight_device and instead of calling another module's
-function like the unregister one here(which cause unnecessary module
-dependency), we only need to boost priority for its own interface. This
-field will be exported to sysfs, so user can change it during runtime
-too. And we can also introduce a new kernel command line as
-backlight.force_interface=raw/firmware/platform, to overcome the limited
-functionality provided by acpi_backlight=video/vendor, which does not
-involve GPU's interface.
+Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+---
+ drivers/acpi/device_pm.c |   56 -----------------------------------------------
+ drivers/acpi/power.c     |    3 --
+ drivers/acpi/scan.c      |    1 
+ include/acpi/acpi_bus.h  |    7 -----
+ 4 files changed, 67 deletions(-)
 
-And we can place the quirk code in backlight layer instead of individual
-backlight functionality provider module. Suppose we have a backlight
-manager there, for all win8 systems, we can boost the raw type's
-priority on its registration, so no need to add code in
-intel/amd/etc./'s GPU driver code.
+Index: linux-pm/include/acpi/acpi_bus.h
+===================================================================
+--- linux-pm.orig/include/acpi/acpi_bus.h
++++ linux-pm/include/acpi/acpi_bus.h
+@@ -308,7 +308,6 @@ struct acpi_device {
+ 	struct list_head physical_node_list;
+ 	struct mutex physical_node_lock;
+ 	DECLARE_BITMAP(physical_node_id_bitmap, ACPI_MAX_PHYSICAL_NODE);
+-	struct list_head power_dependent;
+ 	void (*remove)(struct acpi_device *);
+ };
+ 
+@@ -461,8 +460,6 @@ acpi_status acpi_add_pm_notifier(struct
+ acpi_status acpi_remove_pm_notifier(struct acpi_device *adev,
+ 				    acpi_notify_handler handler);
+ int acpi_pm_device_sleep_state(struct device *, int *, int);
+-void acpi_dev_pm_add_dependent(acpi_handle handle, struct device *depdev);
+-void acpi_dev_pm_remove_dependent(acpi_handle handle, struct device *depdev);
+ #else
+ static inline acpi_status acpi_add_pm_notifier(struct acpi_device *adev,
+ 					       acpi_notify_handler handler,
+@@ -482,10 +479,6 @@ static inline int acpi_pm_device_sleep_s
+ 
+ 	return (m >= ACPI_STATE_D0 && m <= ACPI_STATE_D3) ? m : ACPI_STATE_D0;
+ }
+-static inline void acpi_dev_pm_add_dependent(acpi_handle handle,
+-					     struct device *depdev) {}
+-static inline void acpi_dev_pm_remove_dependent(acpi_handle handle,
+-						struct device *depdev) {}
+ #endif
+ 
+ #ifdef CONFIG_PM_RUNTIME
+Index: linux-pm/drivers/acpi/device_pm.c
+===================================================================
+--- linux-pm.orig/drivers/acpi/device_pm.c
++++ linux-pm/drivers/acpi/device_pm.c
+@@ -994,60 +994,4 @@ void acpi_dev_pm_detach(struct device *d
+ 	}
+ }
+ EXPORT_SYMBOL_GPL(acpi_dev_pm_detach);
+-
+-/**
+- * acpi_dev_pm_add_dependent - Add physical device depending for PM.
+- * @handle: Handle of ACPI device node.
+- * @depdev: Device depending on that node for PM.
+- */
+-void acpi_dev_pm_add_dependent(acpi_handle handle, struct device *depdev)
+-{
+-	struct acpi_device_physical_node *dep;
+-	struct acpi_device *adev;
+-
+-	if (!depdev || acpi_bus_get_device(handle, &adev))
+-		return;
+-
+-	mutex_lock(&adev->physical_node_lock);
+-
+-	list_for_each_entry(dep, &adev->power_dependent, node)
+-		if (dep->dev == depdev)
+-			goto out;
+-
+-	dep = kzalloc(sizeof(*dep), GFP_KERNEL);
+-	if (dep) {
+-		dep->dev = depdev;
+-		list_add_tail(&dep->node, &adev->power_dependent);
+-	}
+-
+- out:
+-	mutex_unlock(&adev->physical_node_lock);
+-}
+-EXPORT_SYMBOL_GPL(acpi_dev_pm_add_dependent);
+-
+-/**
+- * acpi_dev_pm_remove_dependent - Remove physical device depending for PM.
+- * @handle: Handle of ACPI device node.
+- * @depdev: Device depending on that node for PM.
+- */
+-void acpi_dev_pm_remove_dependent(acpi_handle handle, struct device *depdev)
+-{
+-	struct acpi_device_physical_node *dep;
+-	struct acpi_device *adev;
+-
+-	if (!depdev || acpi_bus_get_device(handle, &adev))
+-		return;
+-
+-	mutex_lock(&adev->physical_node_lock);
+-
+-	list_for_each_entry(dep, &adev->power_dependent, node)
+-		if (dep->dev == depdev) {
+-			list_del(&dep->node);
+-			kfree(dep);
+-			break;
+-		}
+-
+-	mutex_unlock(&adev->physical_node_lock);
+-}
+-EXPORT_SYMBOL_GPL(acpi_dev_pm_remove_dependent);
+ #endif /* CONFIG_PM */
+Index: linux-pm/drivers/acpi/power.c
+===================================================================
+--- linux-pm.orig/drivers/acpi/power.c
++++ linux-pm/drivers/acpi/power.c
+@@ -253,9 +253,6 @@ static void acpi_power_resume_dependent(
+ 	list_for_each_entry(pn, &adev->physical_node_list, node)
+ 		pm_request_resume(pn->dev);
+ 
+-	list_for_each_entry(pn, &adev->power_dependent, node)
+-		pm_request_resume(pn->dev);
+-
+ 	mutex_unlock(&adev->physical_node_lock);
+ }
+ 
+Index: linux-pm/drivers/acpi/scan.c
+===================================================================
+--- linux-pm.orig/drivers/acpi/scan.c
++++ linux-pm/drivers/acpi/scan.c
+@@ -1018,7 +1018,6 @@ int acpi_device_add(struct acpi_device *
+ 	INIT_LIST_HEAD(&device->wakeup_list);
+ 	INIT_LIST_HEAD(&device->physical_node_list);
+ 	mutex_init(&device->physical_node_lock);
+-	INIT_LIST_HEAD(&device->power_dependent);
+ 
+ 	new_bus_id = kzalloc(sizeof(struct acpi_device_bus_id), GFP_KERNEL);
+ 	if (!new_bus_id) {
 
-With priority based solution, all backlight control interfaces stay,
-the priority field is an indication given by kernel to user space.
-
-For a complete description on backlight control background and the
-proposed solution, please take a look at:
-https://gist.github.com/aaronlu/5779828
-
-It would be good to know your opinions, thanks.
-
--Aaron
