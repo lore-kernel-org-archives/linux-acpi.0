@@ -1,50 +1,71 @@
-From: Matthew Garrett <matthew.garrett@nebula.com>
-Subject: Re: [PATCH 3/3] i915: Don't provide ACPI backlight interface if
- firmware expects Windows 8
-Date: Fri, 14 Jun 2013 17:29:48 +0000
-Message-ID: <1371230988.2490.2.camel@x230>
-References: <1370818899-8595-1-git-send-email-matthew.garrett@nebula.com>
-	 <1370818899-8595-4-git-send-email-matthew.garrett@nebula.com>
-	 <51BABC6F.3050201@intel.com>
+From: Bjorn Helgaas <bhelgaas@google.com>
+Subject: Re: [PATCH] PCI: Remove not needed check in disable aspm link
+Date: Fri, 14 Jun 2013 11:44:42 -0600
+Message-ID: <CAErSpo6vEOw10YV=Sou6wjjSc2GWr-oX=Dvbt7Xt=RJKi4RELw@mail.gmail.com>
+References: <CAE9FiQVu5QyxaKsYzzQoroQD=TvsziHzDOtoeg=FvhZ8HyN5yw@mail.gmail.com>
+ <CAErSpo7ChfRiEn0eR1rf-mVheUS9Yf8f+j4n78PJcGYh+yMVgA@mail.gmail.com>
+ <CAE9FiQXkDg7Y336S=DXoms44=5HLaiUx=sWviupz1fJmaDUEzQ@mail.gmail.com>
+ <CAE9FiQU5c=ztzbskNnYFFKF9V5zO+jnRcMBCivLxA1F3fSfX5w@mail.gmail.com>
+ <20130401235256.GA31966@google.com> <CAE9FiQV8cPh-s6=EQu_cZTtn86+NwZE5KuGMhf43aOhzkL=hwA@mail.gmail.com>
+ <CAErSpo7Jni1ZSf_W=vB3kqsucPpoepa2Q5g=77a6D3FaPwe9LA@mail.gmail.com>
+ <CAE9FiQWjQXwiTWju6cBc_o25jy_wmZ1u+Pifh1wdnxtV=i5ENw@mail.gmail.com>
+ <CAErSpo7=a-wX6BLbm_O1nUMMrQHOgtSm3xZHKuRqaz8rnKSbRA@mail.gmail.com>
+ <CAE9FiQUbw7OUhRB+gKMxkuE9+nm9097+mwZ2z4adO8Hv_NjF1Q@mail.gmail.com>
+ <20130614141101.GA29452@google.com> <CAE9FiQVr-OWeqEHFXn0MjNiSD0WM=FNO_DFo6m9UbbG60uonpw@mail.gmail.com>
+ <CAErSpo7grN-93zZfBJOHZH-pR1wDYrojTwt=B=++QqA0rPb3Rg@mail.gmail.com> <CAE9FiQUO350kqrXB5=yQ-OxOeSJj4+P6WPg4gGgXxFEvfoLyng@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-bn1lp0152.outbound.protection.outlook.com ([207.46.163.152]:47647
-	"EHLO na01-bn1-obe.outbound.protection.outlook.com"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1752615Ab3FNR3w (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 14 Jun 2013 13:29:52 -0400
-In-Reply-To: <51BABC6F.3050201@intel.com>
-Content-Language: en-US
-Content-ID: <89367251F921144BA1652F68756238DC@namprd05.prod.outlook.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <CAE9FiQUO350kqrXB5=yQ-OxOeSJj4+P6WPg4gGgXxFEvfoLyng@mail.gmail.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Yinghai Lu <yinghai@kernel.org>
+Cc: Jiang Liu <jiang.liu@huawei.com>, Roman Yepishev <roman.yepishev@gmail.com>, "Rafael J. Wysocki" <rjw@sisk.pl>, "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Linus Torvalds <torvalds@linux-foundation.org>, Andrew Morton <akpm@linux-foundation.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 List-Id: linux-acpi@vger.kernel.org
-To: Aaron Lu <aaron.lu@intel.com>
-Cc: "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, Seth Forshee <seth.forshee@canonical.com>, "Lee, Chun-Yi" <joeyli.kernel@gmail.com>, "daniel.vetter@ffwll.ch" <daniel.vetter@ffwll.ch>, "intel-gfx@lists.freedesktop.org" <intel-gfx@lists.freedesktop.org>, "dri-devel@lists.freedesktop.org" <dri-devel@lists.freedesktop.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Len Brown <lenb@kernel.org>, "Rafael J. Wysocki" <rjw@sisk.pl>, Zhang Rui <rui.zhang@intel.com>, Aaron Lu <aaron.lwe@gmail.com>, Alex Deucher <alexdeucher@gmail.com>
 
-T24gRnJpLCAyMDEzLTA2LTE0IGF0IDE0OjQ3ICswODAwLCBBYXJvbiBMdSB3cm90ZToNCg0KPiBX
-aGF0IGFib3V0IGEgcHJpb3JpdHkgYmFzZWQgc29sdXRpb24/IFdlIGNhbiBpbnRyb2R1Y2UgYSBu
-ZXcgZmllbGQgbmFtZWQNCj4gcHJpb3JpdHkgdG8gYmFja2xpZ2h0X2RldmljZSBhbmQgaW5zdGVh
-ZCBvZiBjYWxsaW5nIGFub3RoZXIgbW9kdWxlJ3MNCj4gZnVuY3Rpb24gbGlrZSB0aGUgdW5yZWdp
-c3RlciBvbmUgaGVyZSh3aGljaCBjYXVzZSB1bm5lY2Vzc2FyeSBtb2R1bGUNCj4gZGVwZW5kZW5j
-eSksIHdlIG9ubHkgbmVlZCB0byBib29zdCBwcmlvcml0eSBmb3IgaXRzIG93biBpbnRlcmZhY2Uu
-IFRoaXMNCj4gZmllbGQgd2lsbCBiZSBleHBvcnRlZCB0byBzeXNmcywgc28gdXNlciBjYW4gY2hh
-bmdlIGl0IGR1cmluZyBydW50aW1lDQo+IHRvby4gQW5kIHdlIGNhbiBhbHNvIGludHJvZHVjZSBh
-IG5ldyBrZXJuZWwgY29tbWFuZCBsaW5lIGFzDQo+IGJhY2tsaWdodC5mb3JjZV9pbnRlcmZhY2U9
-cmF3L2Zpcm13YXJlL3BsYXRmb3JtLCB0byBvdmVyY29tZSB0aGUgbGltaXRlZA0KPiBmdW5jdGlv
-bmFsaXR5IHByb3ZpZGVkIGJ5IGFjcGlfYmFja2xpZ2h0PXZpZGVvL3ZlbmRvciwgd2hpY2ggZG9l
-cyBub3QNCj4gaW52b2x2ZSBHUFUncyBpbnRlcmZhY2UuDQoNCkhvdyB3b3VsZCB0aGF0IHdvcmsg
-d2l0aCBleGlzdGluZyB1c2Vyc3BhY2U/DQoNCj4gQW5kIHdlIGNhbiBwbGFjZSB0aGUgcXVpcmsg
-Y29kZSBpbiBiYWNrbGlnaHQgbGF5ZXIgaW5zdGVhZCBvZiBpbmRpdmlkdWFsDQo+IGJhY2tsaWdo
-dCBmdW5jdGlvbmFsaXR5IHByb3ZpZGVyIG1vZHVsZS4gU3VwcG9zZSB3ZSBoYXZlIGEgYmFja2xp
-Z2h0DQo+IG1hbmFnZXIgdGhlcmUsIGZvciBhbGwgd2luOCBzeXN0ZW1zLCB3ZSBjYW4gYm9vc3Qg
-dGhlIHJhdyB0eXBlJ3MNCj4gcHJpb3JpdHkgb24gaXRzIHJlZ2lzdHJhdGlvbiwgc28gbm8gbmVl
-ZCB0byBhZGQgY29kZSBpbg0KPiBpbnRlbC9hbWQvZXRjLi8ncyBHUFUgZHJpdmVyIGNvZGUuDQoN
-CkJ1dCB3ZSdkIG5lZWQgdG8gYWRkIGNvZGUgdG8gZXZlcnkgcGllY2Ugb2YgdXNlcnNwYWNlIHRo
-YXQgY3VycmVudGx5DQp1c2VzIHRoZSBiYWNrbGlnaHQsIHJpZ2h0Pw0KDQo+IFdpdGggcHJpb3Jp
-dHkgYmFzZWQgc29sdXRpb24sIGFsbCBiYWNrbGlnaHQgY29udHJvbCBpbnRlcmZhY2VzIHN0YXks
-DQo+IHRoZSBwcmlvcml0eSBmaWVsZCBpcyBhbiBpbmRpY2F0aW9uIGdpdmVuIGJ5IGtlcm5lbCB0
-byB1c2VyIHNwYWNlLg0KDQpXZSBzaG91bGRuJ3QgZXhwb3J0IGludGVyZmFjZXMgaWYgd2UgZG9u
-J3QgZXhwZWN0IHRoZW0gdG8gd29yay4NCg0KLS0gDQpNYXR0aGV3IEdhcnJldHQgfCBtamc1OUBz
-cmNmLnVjYW0ub3JnDQo=
+On Fri, Jun 14, 2013 at 10:57 AM, Yinghai Lu <yinghai@kernel.org> wrote:
+> On Fri, Jun 14, 2013 at 9:33 AM, Bjorn Helgaas <bhelgaas@google.com> wrote:
+>> On Fri, Jun 14, 2013 at 10:17 AM, Yinghai Lu <yinghai@kernel.org> wrote:
+>>
+>> Can you please refer to specific function names?  I can't read your mind.
+>>
+>> You might be referring to quirk_disable_aspm_l0s().  This is a
+>> pci_fixup_final quirk that calls pci_disable_link_state().  In the
+>> current tree, we enumerate devices before requesting _OSC control.
+>> However, pci_fixup_final quirks are not run until the
+>> pci_apply_final_quirks() fs_initcall, which is after we request _OSC
+>> control.
+>>
+>> As far as I can tell, we never call pci_disable_link_state() before
+>> calling pcie_no_aspm().
+>
+> ok, you are right, that is not pci_disable_link_state.
+>
+> It is pcie_aspm_init_link_state ==> pcie_aspm_sanity_check in booting path
+> that disable aspm.  It has  "if (aspm_disabled)" in it, and it cause
+> the difference.
+
+Yes, I agree, the pcie_aspm_init_link_state() path uses aspm_disabled
+before we set it:
+
+    acpi_pci_root_add
+      pci_acpi_scan_root
+        pci_scan_child_bus
+          pci_scan_slot
+            pcie_aspm_init_link_state
+              pcie_aspm_sanity_check
+                if (aspm_disabled)              # used before set
+                  ...
+      acpi_pci_osc_control_set
+      pcie_no_aspm
+        aspm_disabled = 1                       # set
+
+That might mean we do some ASPM configuration during enumeration (in
+pci_scan_slot()) even though the BIOS hasn't given us permission.  It
+looks like we did that even in v3.7, since we did the enumeration
+before the _OSC there as well.  That looks like a bug to me.
+
+I don't think the fact that we have been doing ASPM config during
+enumeration before _OSC is an argument for dropping the check in
+pci_disable_link_state().
+
+Bjorn
