@@ -1,123 +1,80 @@
 From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: [PATCH] PCI / ACPI / PM: Use correct power state strings in messages
-Date: Sat, 15 Jun 2013 01:13:22 +0200
-Message-ID: <1560214.24OrRSoYgv@vostro.rjw.lan>
-References: <2491625.TQ1FFQeR38@vostro.rjw.lan> <1701924.fhYB0ilm4Z@vostro.rjw.lan> <20130614224949.GA29105@google.com>
+Subject: Re: [PATCH 0/5] ACPI / scan: Make it possible to use the container hotplug with other scan handlers
+Date: Sat, 15 Jun 2013 01:20:43 +0200
+Message-ID: <3321228.vG97AE80O6@vostro.rjw.lan>
+References: <1417592.vuSG0cUIGo@vostro.rjw.lan> <3168584.RRBYoY5UXf@vostro.rjw.lan> <CA+8MBbKZBvqVA+wKTK7GpXorpBvDLGCJURc+PQz+QfDiwA1a8A@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7Bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from hydra.sisk.pl ([212.160.235.94]:37814 "EHLO hydra.sisk.pl"
+Received: from hydra.sisk.pl ([212.160.235.94]:37823 "EHLO hydra.sisk.pl"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751294Ab3FNXEH (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 14 Jun 2013 19:04:07 -0400
-In-Reply-To: <20130614224949.GA29105@google.com>
+	id S1753130Ab3FNXL3 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 14 Jun 2013 19:11:29 -0400
+In-Reply-To: <CA+8MBbKZBvqVA+wKTK7GpXorpBvDLGCJURc+PQz+QfDiwA1a8A@mail.gmail.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Bjorn Helgaas <bhelgaas@google.com>
-Cc: LKML <linux-kernel@vger.kernel.org>, Linux PCI <linux-pci@vger.kernel.org>, Linux PM list <linux-pm@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>
+To: Tony Luck <tony.luck@gmail.com>
+Cc: Toshi Kani <toshi.kani@hp.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>, "Lu, Aaron" <aaron.lu@intel.com>
 
-On Friday, June 14, 2013 04:49:49 PM Bjorn Helgaas wrote:
-> On Sat, Jun 15, 2013 at 12:28:12AM +0200, Rafael J. Wysocki wrote:
-> > On Friday, June 14, 2013 11:08:44 AM Bjorn Helgaas wrote:
-> > > On Thu, Jun 13, 2013 at 4:29 PM, Rafael J. Wysocki <rjw@sisk.pl> wrote:
-> > > > From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
-> > > >
-> > > > Make acpi_pci_set_power_state() print the name of the ACPI device
-> > > > power state the device has been actually put into instead of printing
-> > > > the name of the requested PCI device power state, which need not be
-> > > > the same.
-> > > >
-> > > > Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
-> > > > ---
-> > > >
-> > > > For 3.11.
-> > > >
-> > > > Thanks,
-> > > > Rafael
-> > > >
-> > > > ---
-> > > >  drivers/pci/pci-acpi.c |    2 +-
-> > > >  1 file changed, 1 insertion(+), 1 deletion(-)
-> > > >
-> > > > Index: linux-pm/drivers/pci/pci-acpi.c
-> > > > ===================================================================
-> > > > --- linux-pm.orig/drivers/pci/pci-acpi.c
-> > > > +++ linux-pm/drivers/pci/pci-acpi.c
-> > > > @@ -211,7 +211,7 @@ static int acpi_pci_set_power_state(stru
-> > > >
-> > > >         if (!error)
-> > > >                 dev_info(&dev->dev, "power state changed by ACPI to %s\n",
-> > > > -                        pci_power_name(state));
-> > > > +                        acpi_power_state_string(state_conv[state]));
-> > > >
-> > > >         return error;
-> > > >  }
-> > > >
-> > > 
-> > > Just to double-check this, it *looks* like the effective change is
-> > > that for PCI_D3hot and PCI_D3cold, we'll print "(unknown)" instead of
-> > > "D3hot" and "D3cold" because state_conv[] folds both PCI_D3hot and
-> > > PCI_D3cold into ACPI_STATE_D3, and acpi_power_state_string() doesn't
-> > > have a case for ACPI_STATE_D3.
-> > 
-> > No, it won't work like this, because ACPI_STATE_D3 == ACPI_STATE_D3_COLD. :-)
-> > 
-> > So, actually, "D3cold" will be printed for both PCI_D3hot and PCI_D3cold
-> > (and I have tested this).
+On Friday, June 14, 2013 03:32:42 PM Tony Luck wrote:
+> On Fri, Jun 14, 2013 at 3:23 PM, Rafael J. Wysocki <rjw@sisk.pl> wrote:
+> > Can you please just test patch [5/5] alone without patches [1-4/5]?  We believe
+> > that this should work too and if that's the case, we'll only need that patch
+> > and a reworked [1/5].
 > 
-> Ah, right, I should have noticed that.
-> 
-> > Well, I think it's better to actually replace ACPI_STATE_D3 everywhere in
-> > pci-acpi.c with ACPI_STATE_D3_COLD to avoid that confusion.  Do you want me
-> > to prepare a patch?
-> 
-> If the following is OK, I'll just put it in my pci/misc branch:
+> Your belief is sound - I popped all five patches and then applied just
+> 5/5 ... and
+> the system still works.
 
-Yes, it is, thanks!
+Great, thanks!
+
+Can you please apply the appended patch on top of it and see if the system
+still works then?
 
 Rafael
 
 
-> commit fc6504b3a4dc9beae782a11e6f7c3c4a9f077fb8
-> Author: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
-> Date:   Fri Jun 14 00:29:50 2013 +0200
-> 
->     PCI / ACPI / PM: Use correct power state strings in messages
->     
->     Make acpi_pci_set_power_state() print the name of the ACPI device
->     power state the device has been actually put into instead of printing
->     the name of the requested PCI device power state, which need not be
->     the same.
->     
->     [bhelgaas: use ACPI_STATE_D3_COLD (ACPI_STATE_D3 == ACPI_STATE_D3_COLD)]
->     Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
->     Signed-off-by: Bjorn Helgaas <bhelgaas@google.com>
-> 
-> diff --git a/drivers/pci/pci-acpi.c b/drivers/pci/pci-acpi.c
-> index 6c15d6a..dbdc5f7 100644
-> --- a/drivers/pci/pci-acpi.c
-> +++ b/drivers/pci/pci-acpi.c
-> @@ -186,8 +186,8 @@ static int acpi_pci_set_power_state(struct pci_dev *dev, pci_power_t state)
->  		[PCI_D0] = ACPI_STATE_D0,
->  		[PCI_D1] = ACPI_STATE_D1,
->  		[PCI_D2] = ACPI_STATE_D2,
-> -		[PCI_D3hot] = ACPI_STATE_D3,
-> -		[PCI_D3cold] = ACPI_STATE_D3
-> +		[PCI_D3hot] = ACPI_STATE_D3_COLD,
-> +		[PCI_D3cold] = ACPI_STATE_D3_COLD,
->  	};
->  	int error = -EINVAL;
->  
-> @@ -211,7 +211,7 @@ static int acpi_pci_set_power_state(struct pci_dev *dev, pci_power_t state)
->  
->  	if (!error)
->  		dev_info(&dev->dev, "power state changed by ACPI to %s\n",
-> -			 pci_power_name(state));
-> +			 acpi_power_state_string(state_conv[state]));
->  
->  	return error;
->  }
--- 
-I speak only for myself.
-Rafael J. Wysocki, Intel Open Source Technology Center.
+---
+From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+Subject: ACPI / scan: Do not bind ACPI drivers to objects with scan handlers
+
+ACPI drivers must not be bound to device objects having scan handlers
+attatched to them, so make acpi_device_probe() fail with -EINVAL if the
+device object being probed has an ACPI scan handler.
+
+Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+---
+ drivers/acpi/scan.c  |    3 +++
+ drivers/acpi/video.c |    3 ---
+ 2 files changed, 3 insertions(+), 3 deletions(-)
+
+Index: linux-pm/drivers/acpi/scan.c
+===================================================================
+--- linux-pm.orig/drivers/acpi/scan.c
++++ linux-pm/drivers/acpi/scan.c
+@@ -939,6 +939,9 @@ static int acpi_device_probe(struct devi
+ 	struct acpi_driver *acpi_drv = to_acpi_driver(dev->driver);
+ 	int ret;
+ 
++	if (acpi_dev->handler)
++		return -EINVAL;
++
+ 	if (!acpi_drv->ops.add)
+ 		return -ENOSYS;
+ 
+Index: linux-pm/drivers/acpi/video.c
+===================================================================
+--- linux-pm.orig/drivers/acpi/video.c
++++ linux-pm/drivers/acpi/video.c
+@@ -1722,9 +1722,6 @@ static int acpi_video_bus_add(struct acp
+ 	int error;
+ 	acpi_status status;
+ 
+-	if (device->handler)
+-		return -EINVAL;
+-
+ 	status = acpi_walk_namespace(ACPI_TYPE_DEVICE,
+ 				device->parent->handle, 1,
+ 				acpi_video_bus_match, NULL,
+
