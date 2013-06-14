@@ -1,33 +1,55 @@
-From: "Luck, Tony" <tony.luck@intel.com>
-Subject: RE: [PATCH 0/5] ACPI / scan: Make it possible to use the container
- hotplug with other scan handlers
-Date: Fri, 14 Jun 2013 18:01:41 +0000
-Message-ID: <3908561D78D1C84285E8C5FCA982C28F2DA7C18E@ORSMSX106.amr.corp.intel.com>
-References: <1417592.vuSG0cUIGo@vostro.rjw.lan>
-	 <1371158939.21540.39.camel@misato.fc.hp.com>
-	 <1461809.TyKCjmiDDv@vostro.rjw.lan>
- <1371162234.21540.43.camel@misato.fc.hp.com>
+From: Thomas Koch <linrunner@gmx.net>
+Subject: Re: [PATCH] ACPI: Add missing Thinkpad models to OSI(Linux) white
+ list
+Date: Fri, 14 Jun 2013 20:15:34 +0200
+Message-ID: <51BB5DC6.6070808@gmx.net>
+References: <51BB4312.6060302@gmx.net> <20130614174527.GA29875@srcf.ucam.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga09.intel.com ([134.134.136.24]:34623 "EHLO mga09.intel.com"
+Received: from mout.gmx.net ([212.227.17.22]:54458 "EHLO mout.gmx.net"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751933Ab3FNSB5 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 14 Jun 2013 14:01:57 -0400
-In-Reply-To: <1371162234.21540.43.camel@misato.fc.hp.com>
-Content-Language: en-US
+	id S1751382Ab3FNSPm (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 14 Jun 2013 14:15:42 -0400
+Received: from mailout-de.gmx.net ([10.1.76.12]) by mrigmx.server.lan
+ (mrigmx002) with ESMTP (Nemesis) id 0MEHXK-1UYAL704Xg-00FRbo for
+ <linux-acpi@vger.kernel.org>; Fri, 14 Jun 2013 20:15:41 +0200
+In-Reply-To: <20130614174527.GA29875@srcf.ucam.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Toshi Kani <toshi.kani@hp.com>, "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>, "Lu, Aaron" <aaron.lu@intel.com>
+To: Matthew Garrett <mjg59@srcf.ucam.org>
+Cc: lenb@kernel.org, linux-acpi@vger.kernel.org
 
-Pj4gVG9ueSBwcm9taXNlZCBtZSB0byB0ZXN0IHRob3NlIHBhdGNoZXMgb24gaGlzIGJveCwgc28g
-d2UnbGwga25vdyBmb3Igc3VyZQ0KPj4gaW4gYSB3aGlsZS4NCg0KVGVzdGVkIHRoaXMgc2VyaWVz
-IC0gYW5kIHRoZSBib3ggYm9vdHMganVzdCBmaW5lIHdpdGggbm8gdW5leHBlY3RlZCBtZXNzYWdl
-cy4NCg0KQnV0IEkgc2hvdWxkIG5vdGUgdGhhdCB0aGlzIGJveCBkb2Vzbid0IGhhdmUgYW55dGhp
-bmcgdGhhdCBpcyBob3QgcGx1Z2dhYmxlLCBzbyBJDQpjb3VsZG4ndCB0ZXN0IGhvdHBsdWcgKHdo
-aWNoIHNlZW1zIHRvIGJlIGRlZXBseSBpbnZvbHZlZCB3aXRoIHRoaW5ncyB0aGF0IHRoaXMNCnBh
-dGNoIGlzIHRvdWNoaW5nKS4NCg0KT2YgY291cnNlIHRoYXQgbWVhbnMgdGhhdCBJIGhhdmVuJ3Qg
-YmVlbiB0ZXN0aW5nIGhvdHBsdWcgLSBzbyBpdCBtaWdodCBoYXZlIGJlZW4NCmJyb2tlbiBmb3Ig
-eWVhcnMgYW5kIEknZCBuZXZlciBoYXZlIG5vdGljZWQuDQoNCi1Ub255DQo=
+On 14.06.2013 19:45, Matthew Garrett wrote:
+> On Fri, Jun 14, 2013 at 06:21:38PM +0200, Thomas Koch wrote:
+>> acpi_osi=3DLinux helps the mute button work properly by sending Linu=
+x a
+>> mute key press.
+>=20
+> There was a proper fix for this a while back, but it never seemed to =
+go=20
+> anywhere. Can you try=20
+> http://comments.gmane.org/gmane.linux.drivers.platform.x86.devel/1895=
+=20
+> and see if it works? If so we should just merge that instead.
+
+Hi Matthew,
+
+I'll try to merge and test your suggestion.
+
+My patch may be ugly but has the advantage of being well tested by quit=
+e
+a bunch of users of my custom kernel:
+https://launchpad.net/~linrunner/+archive/thinkpad-extras
+
+Thomas
+
+--=20
+Thomas Koch =96 linrunner@gmx.net
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
