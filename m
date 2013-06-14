@@ -1,32 +1,58 @@
-From: Tony Luck <tony.luck@gmail.com>
-Subject: Re: [PATCH 0/5] ACPI / scan: Make it possible to use the container
- hotplug with other scan handlers
-Date: Fri, 14 Jun 2013 15:32:42 -0700
-Message-ID: <CA+8MBbKZBvqVA+wKTK7GpXorpBvDLGCJURc+PQz+QfDiwA1a8A@mail.gmail.com>
-References: <1417592.vuSG0cUIGo@vostro.rjw.lan>
-	<1371162234.21540.43.camel@misato.fc.hp.com>
-	<3908561D78D1C84285E8C5FCA982C28F2DA7C18E@ORSMSX106.amr.corp.intel.com>
-	<3168584.RRBYoY5UXf@vostro.rjw.lan>
+From: Yinghai Lu <yinghai@kernel.org>
+Subject: Re: [PATCH] PCI: Remove not needed check in disable aspm link
+Date: Fri, 14 Jun 2013 15:40:28 -0700
+Message-ID: <CAE9FiQWPvOYK2W0VSRuMyfj9Edbw1BSp-W91HjPyszPK0ZBcjg@mail.gmail.com>
+References: <CAE9FiQVu5QyxaKsYzzQoroQD=TvsziHzDOtoeg=FvhZ8HyN5yw@mail.gmail.com>
+	<CAErSpo7ChfRiEn0eR1rf-mVheUS9Yf8f+j4n78PJcGYh+yMVgA@mail.gmail.com>
+	<CAE9FiQXkDg7Y336S=DXoms44=5HLaiUx=sWviupz1fJmaDUEzQ@mail.gmail.com>
+	<CAE9FiQU5c=ztzbskNnYFFKF9V5zO+jnRcMBCivLxA1F3fSfX5w@mail.gmail.com>
+	<20130401235256.GA31966@google.com>
+	<CAE9FiQV8cPh-s6=EQu_cZTtn86+NwZE5KuGMhf43aOhzkL=hwA@mail.gmail.com>
+	<CAErSpo7Jni1ZSf_W=vB3kqsucPpoepa2Q5g=77a6D3FaPwe9LA@mail.gmail.com>
+	<CAE9FiQWjQXwiTWju6cBc_o25jy_wmZ1u+Pifh1wdnxtV=i5ENw@mail.gmail.com>
+	<CAErSpo7=a-wX6BLbm_O1nUMMrQHOgtSm3xZHKuRqaz8rnKSbRA@mail.gmail.com>
+	<CAE9FiQUbw7OUhRB+gKMxkuE9+nm9097+mwZ2z4adO8Hv_NjF1Q@mail.gmail.com>
+	<20130614141101.GA29452@google.com>
+	<CAE9FiQVr-OWeqEHFXn0MjNiSD0WM=FNO_DFo6m9UbbG60uonpw@mail.gmail.com>
+	<CAErSpo7grN-93zZfBJOHZH-pR1wDYrojTwt=B=++QqA0rPb3Rg@mail.gmail.com>
+	<CAE9FiQUO350kqrXB5=yQ-OxOeSJj4+P6WPg4gGgXxFEvfoLyng@mail.gmail.com>
+	<CAErSpo6vEOw10YV=Sou6wjjSc2GWr-oX=Dvbt7Xt=RJKi4RELw@mail.gmail.com>
+	<CAE9FiQWevd6ZNDdqGkqbLrGujKYuTiwibPAT+30VPpC_H-rLJA@mail.gmail.com>
+	<CAErSpo66qtgg8=BqX+4sm4h1vXD5gR6aiH7hHK7gvz1x3rEQZA@mail.gmail.com>
+	<CAE9FiQWxDhagFNAYc2eNDe_1jYtVTa5Azg0zifiprND5m3CmMw@mail.gmail.com>
+	<1371248853.2490.5.camel@x230>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-oa0-f49.google.com ([209.85.219.49]:33833 "EHLO
-	mail-oa0-f49.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753476Ab3FNWcm (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 14 Jun 2013 18:32:42 -0400
-In-Reply-To: <3168584.RRBYoY5UXf@vostro.rjw.lan>
+Received: from mail-ie0-f181.google.com ([209.85.223.181]:47854 "EHLO
+	mail-ie0-f181.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753689Ab3FNWk3 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 14 Jun 2013 18:40:29 -0400
+In-Reply-To: <1371248853.2490.5.camel@x230>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: Toshi Kani <toshi.kani@hp.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>, "Lu, Aaron" <aaron.lu@intel.com>
+To: Matthew Garrett <matthew.garrett@nebula.com>
+Cc: Bjorn Helgaas <bhelgaas@google.com>, Roman Yepishev <roman.yepishev@gmail.com>, Jiang Liu <jiang.liu@huawei.com>, "Rafael J. Wysocki" <rjw@sisk.pl>, "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Linus Torvalds <torvalds@linux-foundation.org>, Andrew Morton <akpm@linux-foundation.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Maxim Levitsky <maximlevitsky@gmail.com>, Jussi Kivilinna <jussi.kivilinna@iki.fi>
 
-On Fri, Jun 14, 2013 at 3:23 PM, Rafael J. Wysocki <rjw@sisk.pl> wrote:
-> Can you please just test patch [5/5] alone without patches [1-4/5]?  We believe
-> that this should work too and if that's the case, we'll only need that patch
-> and a reworked [1/5].
+On Fri, Jun 14, 2013 at 3:27 PM, Matthew Garrett
+<matthew.garrett@nebula.com> wrote:
+> On Fri, 2013-06-14 at 15:17 -0700, Yinghai Lu wrote:
+>
+>> after those two patches, it aspm_disabled is set, via _osc early,
+>> pre-1.1 devices aspm register will be touched even aspm_force is not specified.
+>
+> I don't follow. We were previously automatically disabling ASPM on
+> pre-1.1 devices even if _OSC didn't give us control.
 
-Your belief is sound - I popped all five patches and then applied just
-5/5 ... and
-the system still works.
+I don't think so, we just moved _OSC support/control setting before pci scan
+in 3.8 and revert that in v3.9.
 
--Tony
+> I've confirmed that
+> this was the wrong thing for us to be doing, and my patch changed the
+> behaviour such that if the firmware enables ASPM on a pre-1.1 device and
+> refuses to give us control via _OSC we will leave ASPM enabled.
+
+not sure, aspm_disabled should be false on booting path when that function
+is called, if you don't pass aspm=off.
+
+Yinghai
