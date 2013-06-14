@@ -1,31 +1,33 @@
-From: Matthew Garrett <mjg59@srcf.ucam.org>
-Subject: Re: [PATCH] ACPI: Add missing Thinkpad models to OSI(Linux) white
- list
-Date: Fri, 14 Jun 2013 18:45:28 +0100
-Message-ID: <20130614174527.GA29875@srcf.ucam.org>
-References: <51BB4312.6060302@gmx.net>
+From: "Luck, Tony" <tony.luck@intel.com>
+Subject: RE: [PATCH 0/5] ACPI / scan: Make it possible to use the container
+ hotplug with other scan handlers
+Date: Fri, 14 Jun 2013 18:01:41 +0000
+Message-ID: <3908561D78D1C84285E8C5FCA982C28F2DA7C18E@ORSMSX106.amr.corp.intel.com>
+References: <1417592.vuSG0cUIGo@vostro.rjw.lan>
+	 <1371158939.21540.39.camel@misato.fc.hp.com>
+	 <1461809.TyKCjmiDDv@vostro.rjw.lan>
+ <1371162234.21540.43.camel@misato.fc.hp.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cavan.codon.org.uk ([93.93.128.6]:58095 "EHLO
-	cavan.codon.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753623Ab3FNRpl (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 14 Jun 2013 13:45:41 -0400
-Content-Disposition: inline
-In-Reply-To: <51BB4312.6060302@gmx.net>
+Received: from mga09.intel.com ([134.134.136.24]:34623 "EHLO mga09.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751933Ab3FNSB5 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 14 Jun 2013 14:01:57 -0400
+In-Reply-To: <1371162234.21540.43.camel@misato.fc.hp.com>
+Content-Language: en-US
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Thomas Koch <linrunner@gmx.net>
-Cc: lenb@kernel.org, linux-acpi@vger.kernel.org
+To: Toshi Kani <toshi.kani@hp.com>, "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>, "Lu, Aaron" <aaron.lu@intel.com>
 
-On Fri, Jun 14, 2013 at 06:21:38PM +0200, Thomas Koch wrote:
-> acpi_osi=Linux helps the mute button work properly by sending Linux a
-> mute key press.
-
-There was a proper fix for this a while back, but it never seemed to go 
-anywhere. Can you try 
-http://comments.gmane.org/gmane.linux.drivers.platform.x86.devel/1895 
-and see if it works? If so we should just merge that instead.
-
--- 
-Matthew Garrett | mjg59@srcf.ucam.org
+Pj4gVG9ueSBwcm9taXNlZCBtZSB0byB0ZXN0IHRob3NlIHBhdGNoZXMgb24gaGlzIGJveCwgc28g
+d2UnbGwga25vdyBmb3Igc3VyZQ0KPj4gaW4gYSB3aGlsZS4NCg0KVGVzdGVkIHRoaXMgc2VyaWVz
+IC0gYW5kIHRoZSBib3ggYm9vdHMganVzdCBmaW5lIHdpdGggbm8gdW5leHBlY3RlZCBtZXNzYWdl
+cy4NCg0KQnV0IEkgc2hvdWxkIG5vdGUgdGhhdCB0aGlzIGJveCBkb2Vzbid0IGhhdmUgYW55dGhp
+bmcgdGhhdCBpcyBob3QgcGx1Z2dhYmxlLCBzbyBJDQpjb3VsZG4ndCB0ZXN0IGhvdHBsdWcgKHdo
+aWNoIHNlZW1zIHRvIGJlIGRlZXBseSBpbnZvbHZlZCB3aXRoIHRoaW5ncyB0aGF0IHRoaXMNCnBh
+dGNoIGlzIHRvdWNoaW5nKS4NCg0KT2YgY291cnNlIHRoYXQgbWVhbnMgdGhhdCBJIGhhdmVuJ3Qg
+YmVlbiB0ZXN0aW5nIGhvdHBsdWcgLSBzbyBpdCBtaWdodCBoYXZlIGJlZW4NCmJyb2tlbiBmb3Ig
+eWVhcnMgYW5kIEknZCBuZXZlciBoYXZlIG5vdGljZWQuDQoNCi1Ub255DQo=
