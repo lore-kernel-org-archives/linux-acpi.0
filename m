@@ -1,100 +1,82 @@
-From: Toshi Kani <toshi.kani@hp.com>
-Subject: Re: [PATCH 0/5] ACPI / scan: Make it possible to use the container
- hotplug with other scan handlers
-Date: Thu, 13 Jun 2013 16:23:54 -0600
-Message-ID: <1371162234.21540.43.camel@misato.fc.hp.com>
-References: <1417592.vuSG0cUIGo@vostro.rjw.lan>
-	 <1371158939.21540.39.camel@misato.fc.hp.com>
-	 <1461809.TyKCjmiDDv@vostro.rjw.lan>
+From: Aaron Lu <aaron.lu@intel.com>
+Subject: Re: [PATCH 3/3] i915: Don't provide ACPI backlight interface if firmware
+ expects Windows 8
+Date: Fri, 14 Jun 2013 14:47:11 +0800
+Message-ID: <51BABC6F.3050201@intel.com>
+References: <1370818899-8595-1-git-send-email-matthew.garrett@nebula.com> <1370818899-8595-4-git-send-email-matthew.garrett@nebula.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from g1t0029.austin.hp.com ([15.216.28.36]:32694 "EHLO
-	g1t0029.austin.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757878Ab3FMWYK (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 13 Jun 2013 18:24:10 -0400
-In-Reply-To: <1461809.TyKCjmiDDv@vostro.rjw.lan>
+Received: from mga14.intel.com ([143.182.124.37]:29473 "EHLO mga14.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751344Ab3FNGqn (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 14 Jun 2013 02:46:43 -0400
+In-Reply-To: <1370818899-8595-4-git-send-email-matthew.garrett@nebula.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>, "Luck, Tony" <tony.luck@intel.com>, Aaron Lu <aaron.lu@intel.com>
+To: Matthew Garrett <matthew.garrett@nebula.com>
+Cc: linux-acpi@vger.kernel.org, Seth Forshee <seth.forshee@canonical.com>, "Lee, Chun-Yi" <joeyli.kernel@gmail.com>, daniel.vetter@ffwll.ch, intel-gfx@lists.freedesktop.org, dri-devel@lists.freedesktop.org, linux-kernel@vger.kernel.org, Len Brown <lenb@kernel.org>, "Rafael J. Wysocki" <rjw@sisk.pl>, Zhang Rui <rui.zhang@intel.com>, Aaron Lu <aaron.lwe@gmail.com>, Alex Deucher <alexdeucher@gmail.com>
 
-On Fri, 2013-06-14 at 00:13 +0200, Rafael J. Wysocki wrote:
-> On Thursday, June 13, 2013 03:28:59 PM Toshi Kani wrote:
-> > On Thu, 2013-06-13 at 01:23 +0200, Rafael J. Wysocki wrote:
-> > > Hi All,
-> > > 
-> > > It turns out that some BIOSes add container device IDs as _CIDs to device
-> > > object that in principle may be matched against the other scan handlers (or
-> > > ACPI drivers, but that's not a problem, because the container scan handler
-> > > can co-exist with an ACPI driver).  That's why our recent fix for an issue
-> > > related to the ACPI video driver had to be reverted right before -rc5.
-> > 
-> > I am familiar with this firmware, although I no longer have access to
-> > the systems.  An SBA device object has _HID with an HP-specific PNPID
-> > and _CID with a generic container PNPID.  The _HID allows an OS with the
-> > HP SBA driver (which recognizes the _HID) to enable the SBA's I/O TLB
-> > functionality, while the _CID allows an OS without the HP SBA driver to
-> > boot-up by treating this SBA as a container.  The _CID is needed because
-> > some OS skips scanning underneath when it finds an unrecognized object.
+On 06/10/2013 07:01 AM, Matthew Garrett wrote:
+> Windows 8 leaves backlight control up to individual graphics drivers rather
+> than making ACPI calls itself. There's plenty of evidence to suggest that
+> the Intel driver for Windows doesn't use the ACPI interface, including the
+> fact that it's broken on a bunch of machines when the OS claims to support
+> Windows 8. The simplest thing to do appears to be to disable the ACPI
+> backlight interface on these systems.
 > 
-> How cute.
+> Signed-off-by: Matthew Garrett <matthew.garrett@nebula.com>
+> ---
+>  drivers/gpu/drm/i915/i915_dma.c | 3 +++
+>  1 file changed, 3 insertions(+)
 > 
-> > > Although I submitted an alternative fix for that bug, I think the problem
-> > > with the container scan handler possibly matching devices already having
-> > > some other scan handlers attached needs addressing, because we may need to
-> > > use the container hotplug profile for those devices.  The following patch
-> > > series is supposed to address it.
-> > 
-> > When the HP SBA driver is bound to the SBA object, this driver needs to
-> > handle a hotplug request when it is supported.  This is because the I/O
-> > TLB functionality requires its hot-delete operation as well.  The
-> > container scan handler can be used only when this driver is bound to the
-> > SBA object as a container and therefore its I/O TLB functionality is not
-> > used. 
-> 
-> Ah, so in fact those device IDs are kind of mutually exclusive?  That is,
-> we only should use the _CID if we don't use the _HID, right?
+> diff --git a/drivers/gpu/drm/i915/i915_dma.c b/drivers/gpu/drm/i915/i915_dma.c
+> index 3b315ba..23b6292 100644
+> --- a/drivers/gpu/drm/i915/i915_dma.c
+> +++ b/drivers/gpu/drm/i915/i915_dma.c
+> @@ -1661,6 +1661,9 @@ int i915_driver_load(struct drm_device *dev, unsigned long flags)
+>  		/* Must be done after probing outputs */
+>  		intel_opregion_init(dev);
+>  		acpi_video_register();
+> +		/* Don't use ACPI backlight functions on Windows 8 platforms */
+> +		if (acpi_osi_version() >= ACPI_OSI_WIN_8)
+> +			acpi_video_backlight_unregister();
 
-Yes and yes.
+What about the platform driver created backlight interface? Oh right,
+thinkpad_acpi will not create backlight interface for them since they
+are not in DMI table, so acpi_video_backlight_support() will return
+true and thinkspad_acpi thinks ACPI video driver is controlling
+backlight so it will not create backlight interface for them.
 
-> We have a bug there, then, but it probably is bening enough for 3.10 to be left
-> as is.
-> 
-> > > [1/5] ACPI / scan: Do not bind ACPI drivers to objects with scan handlers
-> > >    (this version shouldn't break the Tony's IA64 HP box the previous one broke)
-> > > [2/5] ACPI / scan: Separate hotplug profiles from scan handlers
-> > > [3/5] ACPI / scan: Add hotplug profile pointer to struct acpi_device
-> > > [4/5] ACPI / scan: Use container hotplug profile for matching device objects
-> > > [5/5] ACPI / ia64 / sba_iommu: Use ACPI scan handler for discovery
-> > > 
-> > > Patches [1-4/5] were run on my Toshiba test box and didn't break it, but it
-> > > really doesn't do any ACPI hotplug notifications.
-> > > 
-> > > Patch [5/5] is kind of additional, but it wouldn't work correctly without the
-> > > previous ones (to be honest, I haven't tried to compile it yet, but here it
-> > > goes for completness).
-> > 
-> > I think we only need patch [5/5] to address the problem.  We have
-> > enhanced the match function of scan handlers to match a proper driver
-> > with respect to their priority order, i.e. matching with _HID first and
-> > then with _CIDs.  Patch [5/5] should assure that the HP SBA driver is
-> > bound to an SBA object when this driver is configured to the kernel.
-> 
-> OK, but then I'd like to apply a modified version of [1/5] that won't
-> check if the scan handler is the container handler, but will just return
-> -EINVAL if any scan handler has been set already.  And the changelog of
-> [5/5] needs to be modified slightly.
+Then we will need to remember not to add any of those systems into
+the DMI table of video_detect.c, or thinkpad_acpi module will create
+backlight interface for them and according to reporter, that interface
+does not work either.
 
-Agreed.
+What about a priority based solution? We can introduce a new field named
+priority to backlight_device and instead of calling another module's
+function like the unregister one here(which cause unnecessary module
+dependency), we only need to boost priority for its own interface. This
+field will be exported to sysfs, so user can change it during runtime
+too. And we can also introduce a new kernel command line as
+backlight.force_interface=raw/firmware/platform, to overcome the limited
+functionality provided by acpi_backlight=video/vendor, which does not
+involve GPU's interface.
 
-> Tony promised me to test those patches on his box, so we'll know for sure
-> in a while.
+And we can place the quirk code in backlight layer instead of individual
+backlight functionality provider module. Suppose we have a backlight
+manager there, for all win8 systems, we can boost the raw type's
+priority on its registration, so no need to add code in
+intel/amd/etc./'s GPU driver code.
 
-Cool.
+With priority based solution, all backlight control interfaces stay,
+the priority field is an indication given by kernel to user space.
 
-Thanks,
--Toshi
+For a complete description on backlight control background and the
+proposed solution, please take a look at:
+https://gist.github.com/aaronlu/5779828
 
+It would be good to know your opinions, thanks.
 
+-Aaron
