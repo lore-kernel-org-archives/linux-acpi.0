@@ -1,64 +1,50 @@
-From: Bjorn Helgaas <bhelgaas@google.com>
-Subject: Re: [PATCH] PCI / ACPI / PM: Use correct power state strings in messages
-Date: Fri, 14 Jun 2013 11:08:44 -0600
-Message-ID: <CAErSpo7Q8H5wmMUPKqquerp_zbFwnac95Gbezd2=STBjtUrnvw@mail.gmail.com>
-References: <2491625.TQ1FFQeR38@vostro.rjw.lan>
+From: Matthew Garrett <matthew.garrett@nebula.com>
+Subject: Re: [PATCH 3/3] i915: Don't provide ACPI backlight interface if
+ firmware expects Windows 8
+Date: Fri, 14 Jun 2013 17:29:48 +0000
+Message-ID: <1371230988.2490.2.camel@x230>
+References: <1370818899-8595-1-git-send-email-matthew.garrett@nebula.com>
+	 <1370818899-8595-4-git-send-email-matthew.garrett@nebula.com>
+	 <51BABC6F.3050201@intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-oa0-f52.google.com ([209.85.219.52]:33941 "EHLO
-	mail-oa0-f52.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751512Ab3FNRJF (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 14 Jun 2013 13:09:05 -0400
-Received: by mail-oa0-f52.google.com with SMTP id g12so1007673oah.11
-        for <linux-acpi@vger.kernel.org>; Fri, 14 Jun 2013 10:09:05 -0700 (PDT)
-In-Reply-To: <2491625.TQ1FFQeR38@vostro.rjw.lan>
+Received: from mail-bn1lp0152.outbound.protection.outlook.com ([207.46.163.152]:47647
+	"EHLO na01-bn1-obe.outbound.protection.outlook.com"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1752615Ab3FNR3w (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 14 Jun 2013 13:29:52 -0400
+In-Reply-To: <51BABC6F.3050201@intel.com>
+Content-Language: en-US
+Content-ID: <89367251F921144BA1652F68756238DC@namprd05.prod.outlook.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: LKML <linux-kernel@vger.kernel.org>, Linux PCI <linux-pci@vger.kernel.org>, Linux PM list <linux-pm@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>
+To: Aaron Lu <aaron.lu@intel.com>
+Cc: "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, Seth Forshee <seth.forshee@canonical.com>, "Lee, Chun-Yi" <joeyli.kernel@gmail.com>, "daniel.vetter@ffwll.ch" <daniel.vetter@ffwll.ch>, "intel-gfx@lists.freedesktop.org" <intel-gfx@lists.freedesktop.org>, "dri-devel@lists.freedesktop.org" <dri-devel@lists.freedesktop.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Len Brown <lenb@kernel.org>, "Rafael J. Wysocki" <rjw@sisk.pl>, Zhang Rui <rui.zhang@intel.com>, Aaron Lu <aaron.lwe@gmail.com>, Alex Deucher <alexdeucher@gmail.com>
 
-On Thu, Jun 13, 2013 at 4:29 PM, Rafael J. Wysocki <rjw@sisk.pl> wrote:
-> From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
->
-> Make acpi_pci_set_power_state() print the name of the ACPI device
-> power state the device has been actually put into instead of printing
-> the name of the requested PCI device power state, which need not be
-> the same.
->
-> Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
-> ---
->
-> For 3.11.
->
-> Thanks,
-> Rafael
->
-> ---
->  drivers/pci/pci-acpi.c |    2 +-
->  1 file changed, 1 insertion(+), 1 deletion(-)
->
-> Index: linux-pm/drivers/pci/pci-acpi.c
-> ===================================================================
-> --- linux-pm.orig/drivers/pci/pci-acpi.c
-> +++ linux-pm/drivers/pci/pci-acpi.c
-> @@ -211,7 +211,7 @@ static int acpi_pci_set_power_state(stru
->
->         if (!error)
->                 dev_info(&dev->dev, "power state changed by ACPI to %s\n",
-> -                        pci_power_name(state));
-> +                        acpi_power_state_string(state_conv[state]));
->
->         return error;
->  }
->
-
-Just to double-check this, it *looks* like the effective change is
-that for PCI_D3hot and PCI_D3cold, we'll print "(unknown)" instead of
-"D3hot" and "D3cold" because state_conv[] folds both PCI_D3hot and
-PCI_D3cold into ACPI_STATE_D3, and acpi_power_state_string() doesn't
-have a case for ACPI_STATE_D3.
-
-Is that what you intended?
-
-Bjorn
+T24gRnJpLCAyMDEzLTA2LTE0IGF0IDE0OjQ3ICswODAwLCBBYXJvbiBMdSB3cm90ZToNCg0KPiBX
+aGF0IGFib3V0IGEgcHJpb3JpdHkgYmFzZWQgc29sdXRpb24/IFdlIGNhbiBpbnRyb2R1Y2UgYSBu
+ZXcgZmllbGQgbmFtZWQNCj4gcHJpb3JpdHkgdG8gYmFja2xpZ2h0X2RldmljZSBhbmQgaW5zdGVh
+ZCBvZiBjYWxsaW5nIGFub3RoZXIgbW9kdWxlJ3MNCj4gZnVuY3Rpb24gbGlrZSB0aGUgdW5yZWdp
+c3RlciBvbmUgaGVyZSh3aGljaCBjYXVzZSB1bm5lY2Vzc2FyeSBtb2R1bGUNCj4gZGVwZW5kZW5j
+eSksIHdlIG9ubHkgbmVlZCB0byBib29zdCBwcmlvcml0eSBmb3IgaXRzIG93biBpbnRlcmZhY2Uu
+IFRoaXMNCj4gZmllbGQgd2lsbCBiZSBleHBvcnRlZCB0byBzeXNmcywgc28gdXNlciBjYW4gY2hh
+bmdlIGl0IGR1cmluZyBydW50aW1lDQo+IHRvby4gQW5kIHdlIGNhbiBhbHNvIGludHJvZHVjZSBh
+IG5ldyBrZXJuZWwgY29tbWFuZCBsaW5lIGFzDQo+IGJhY2tsaWdodC5mb3JjZV9pbnRlcmZhY2U9
+cmF3L2Zpcm13YXJlL3BsYXRmb3JtLCB0byBvdmVyY29tZSB0aGUgbGltaXRlZA0KPiBmdW5jdGlv
+bmFsaXR5IHByb3ZpZGVkIGJ5IGFjcGlfYmFja2xpZ2h0PXZpZGVvL3ZlbmRvciwgd2hpY2ggZG9l
+cyBub3QNCj4gaW52b2x2ZSBHUFUncyBpbnRlcmZhY2UuDQoNCkhvdyB3b3VsZCB0aGF0IHdvcmsg
+d2l0aCBleGlzdGluZyB1c2Vyc3BhY2U/DQoNCj4gQW5kIHdlIGNhbiBwbGFjZSB0aGUgcXVpcmsg
+Y29kZSBpbiBiYWNrbGlnaHQgbGF5ZXIgaW5zdGVhZCBvZiBpbmRpdmlkdWFsDQo+IGJhY2tsaWdo
+dCBmdW5jdGlvbmFsaXR5IHByb3ZpZGVyIG1vZHVsZS4gU3VwcG9zZSB3ZSBoYXZlIGEgYmFja2xp
+Z2h0DQo+IG1hbmFnZXIgdGhlcmUsIGZvciBhbGwgd2luOCBzeXN0ZW1zLCB3ZSBjYW4gYm9vc3Qg
+dGhlIHJhdyB0eXBlJ3MNCj4gcHJpb3JpdHkgb24gaXRzIHJlZ2lzdHJhdGlvbiwgc28gbm8gbmVl
+ZCB0byBhZGQgY29kZSBpbg0KPiBpbnRlbC9hbWQvZXRjLi8ncyBHUFUgZHJpdmVyIGNvZGUuDQoN
+CkJ1dCB3ZSdkIG5lZWQgdG8gYWRkIGNvZGUgdG8gZXZlcnkgcGllY2Ugb2YgdXNlcnNwYWNlIHRo
+YXQgY3VycmVudGx5DQp1c2VzIHRoZSBiYWNrbGlnaHQsIHJpZ2h0Pw0KDQo+IFdpdGggcHJpb3Jp
+dHkgYmFzZWQgc29sdXRpb24sIGFsbCBiYWNrbGlnaHQgY29udHJvbCBpbnRlcmZhY2VzIHN0YXks
+DQo+IHRoZSBwcmlvcml0eSBmaWVsZCBpcyBhbiBpbmRpY2F0aW9uIGdpdmVuIGJ5IGtlcm5lbCB0
+byB1c2VyIHNwYWNlLg0KDQpXZSBzaG91bGRuJ3QgZXhwb3J0IGludGVyZmFjZXMgaWYgd2UgZG9u
+J3QgZXhwZWN0IHRoZW0gdG8gd29yay4NCg0KLS0gDQpNYXR0aGV3IEdhcnJldHQgfCBtamc1OUBz
+cmNmLnVjYW0ub3JnDQo=
