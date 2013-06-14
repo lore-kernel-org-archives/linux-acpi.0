@@ -1,50 +1,32 @@
-From: Matthew Garrett <matthew.garrett@nebula.com>
-Subject: Re: [PATCH] PCI: Remove not needed check in disable aspm link
-Date: Fri, 14 Jun 2013 22:27:34 +0000
-Message-ID: <1371248853.2490.5.camel@x230>
-References: <CAE9FiQVu5QyxaKsYzzQoroQD=TvsziHzDOtoeg=FvhZ8HyN5yw@mail.gmail.com>
-	 <CAErSpo7ChfRiEn0eR1rf-mVheUS9Yf8f+j4n78PJcGYh+yMVgA@mail.gmail.com>
-	 <CAE9FiQXkDg7Y336S=DXoms44=5HLaiUx=sWviupz1fJmaDUEzQ@mail.gmail.com>
-	 <CAE9FiQU5c=ztzbskNnYFFKF9V5zO+jnRcMBCivLxA1F3fSfX5w@mail.gmail.com>
-	 <20130401235256.GA31966@google.com>
-	 <CAE9FiQV8cPh-s6=EQu_cZTtn86+NwZE5KuGMhf43aOhzkL=hwA@mail.gmail.com>
-	 <CAErSpo7Jni1ZSf_W=vB3kqsucPpoepa2Q5g=77a6D3FaPwe9LA@mail.gmail.com>
-	 <CAE9FiQWjQXwiTWju6cBc_o25jy_wmZ1u+Pifh1wdnxtV=i5ENw@mail.gmail.com>
-	 <CAErSpo7=a-wX6BLbm_O1nUMMrQHOgtSm3xZHKuRqaz8rnKSbRA@mail.gmail.com>
-	 <CAE9FiQUbw7OUhRB+gKMxkuE9+nm9097+mwZ2z4adO8Hv_NjF1Q@mail.gmail.com>
-	 <20130614141101.GA29452@google.com>
-	 <CAE9FiQVr-OWeqEHFXn0MjNiSD0WM=FNO_DFo6m9UbbG60uonpw@mail.gmail.com>
-	 <CAErSpo7grN-93zZfBJOHZH-pR1wDYrojTwt=B=++QqA0rPb3Rg@mail.gmail.com>
-	 <CAE9FiQUO350kqrXB5=yQ-OxOeSJj4+P6WPg4gGgXxFEvfoLyng@mail.gmail.com>
-	 <CAErSpo6vEOw10YV=Sou6wjjSc2GWr-oX=Dvbt7Xt=RJKi4RELw@mail.gmail.com>
-	 <CAE9FiQWevd6ZNDdqGkqbLrGujKYuTiwibPAT+30VPpC_H-rLJA@mail.gmail.com>
-	 <CAErSpo66qtgg8=BqX+4sm4h1vXD5gR6aiH7hHK7gvz1x3rEQZA@mail.gmail.com>
-	 <CAE9FiQWxDhagFNAYc2eNDe_1jYtVTa5Azg0zifiprND5m3CmMw@mail.gmail.com>
+From: Tony Luck <tony.luck@gmail.com>
+Subject: Re: [PATCH 0/5] ACPI / scan: Make it possible to use the container
+ hotplug with other scan handlers
+Date: Fri, 14 Jun 2013 15:32:42 -0700
+Message-ID: <CA+8MBbKZBvqVA+wKTK7GpXorpBvDLGCJURc+PQz+QfDiwA1a8A@mail.gmail.com>
+References: <1417592.vuSG0cUIGo@vostro.rjw.lan>
+	<1371162234.21540.43.camel@misato.fc.hp.com>
+	<3908561D78D1C84285E8C5FCA982C28F2DA7C18E@ORSMSX106.amr.corp.intel.com>
+	<3168584.RRBYoY5UXf@vostro.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-bl2lp0203.outbound.protection.outlook.com ([207.46.163.203]:29787
-	"EHLO na01-bl2-obe.outbound.protection.outlook.com"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1751512Ab3FNW17 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 14 Jun 2013 18:27:59 -0400
-In-Reply-To: <CAE9FiQWxDhagFNAYc2eNDe_1jYtVTa5Azg0zifiprND5m3CmMw@mail.gmail.com>
-Content-Language: en-US
-Content-ID: <D141784C3C2CD4439E3C574B5E93F81A@namprd05.prod.outlook.com>
+Received: from mail-oa0-f49.google.com ([209.85.219.49]:33833 "EHLO
+	mail-oa0-f49.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753476Ab3FNWcm (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 14 Jun 2013 18:32:42 -0400
+In-Reply-To: <3168584.RRBYoY5UXf@vostro.rjw.lan>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Yinghai Lu <yinghai@kernel.org>
-Cc: Bjorn Helgaas <bhelgaas@google.com>, Roman Yepishev <roman.yepishev@gmail.com>, Jiang Liu <jiang.liu@huawei.com>, "Rafael J. Wysocki" <rjw@sisk.pl>, "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Linus Torvalds <torvalds@linux-foundation.org>, Andrew Morton <akpm@linux-foundation.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Maxim Levitsky <maximlevitsky@gmail.com>, Jussi Kivilinna <jussi.kivilinna@iki.fi>
+To: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: Toshi Kani <toshi.kani@hp.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>, "Lu, Aaron" <aaron.lu@intel.com>
 
-T24gRnJpLCAyMDEzLTA2LTE0IGF0IDE1OjE3IC0wNzAwLCBZaW5naGFpIEx1IHdyb3RlOg0KDQo+
-IGFmdGVyIHRob3NlIHR3byBwYXRjaGVzLCBpdCBhc3BtX2Rpc2FibGVkIGlzIHNldCwgdmlhIF9v
-c2MgZWFybHksDQo+IHByZS0xLjEgZGV2aWNlcyBhc3BtIHJlZ2lzdGVyIHdpbGwgYmUgdG91Y2hl
-ZCBldmVuIGFzcG1fZm9yY2UgaXMgbm90IHNwZWNpZmllZC4NCg0KSSBkb24ndCBmb2xsb3cuIFdl
-IHdlcmUgcHJldmlvdXNseSBhdXRvbWF0aWNhbGx5IGRpc2FibGluZyBBU1BNIG9uDQpwcmUtMS4x
-IGRldmljZXMgZXZlbiBpZiBfT1NDIGRpZG4ndCBnaXZlIHVzIGNvbnRyb2wuIEkndmUgY29uZmly
-bWVkIHRoYXQNCnRoaXMgd2FzIHRoZSB3cm9uZyB0aGluZyBmb3IgdXMgdG8gYmUgZG9pbmcsIGFu
-ZCBteSBwYXRjaCBjaGFuZ2VkIHRoZQ0KYmVoYXZpb3VyIHN1Y2ggdGhhdCBpZiB0aGUgZmlybXdh
-cmUgZW5hYmxlcyBBU1BNIG9uIGEgcHJlLTEuMSBkZXZpY2UgYW5kDQpyZWZ1c2VzIHRvIGdpdmUg
-dXMgY29udHJvbCB2aWEgX09TQyB3ZSB3aWxsIGxlYXZlIEFTUE0gZW5hYmxlZC4NCg0KLS0gDQpN
-YXR0aGV3IEdhcnJldHQgfCBtamc1OUBzcmNmLnVjYW0ub3JnDQo=
+On Fri, Jun 14, 2013 at 3:23 PM, Rafael J. Wysocki <rjw@sisk.pl> wrote:
+> Can you please just test patch [5/5] alone without patches [1-4/5]?  We believe
+> that this should work too and if that's the case, we'll only need that patch
+> and a reworked [1/5].
+
+Your belief is sound - I popped all five patches and then applied just
+5/5 ... and
+the system still works.
+
+-Tony
