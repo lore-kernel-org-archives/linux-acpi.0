@@ -1,77 +1,56 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: [PATCH 3/3] i915: Don't provide ACPI backlight interface if firmware expects Windows 8
-Date: Sat, 15 Jun 2013 22:27:06 +0200
-Message-ID: <6834259.1uPUZ8EFRd@vostro.rjw.lan>
-References: <1370818899-8595-1-git-send-email-matthew.garrett@nebula.com> <20130615151628.GA9868@srcf.ucam.org> <20130615182942.GA6424@phenom.ffwll.local>
+From: Daniel Vetter <daniel@ffwll.ch>
+Subject: Re: [PATCH 3/3] i915: Don't provide ACPI backlight interface if
+ firmware expects Windows 8
+Date: Sat, 15 Jun 2013 22:35:34 +0200
+Message-ID: <20130615203534.GC6424@phenom.ffwll.local>
+References: <1370818899-8595-1-git-send-email-matthew.garrett@nebula.com>
+ <20130615151628.GA9868@srcf.ucam.org>
+ <20130615182942.GA6424@phenom.ffwll.local>
+ <6834259.1uPUZ8EFRd@vostro.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from hydra.sisk.pl ([212.160.235.94]:38646 "EHLO hydra.sisk.pl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754301Ab3FOURv (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Sat, 15 Jun 2013 16:17:51 -0400
-In-Reply-To: <20130615182942.GA6424@phenom.ffwll.local>
+Received: from mail-ea0-f170.google.com ([209.85.215.170]:60435 "EHLO
+	mail-ea0-f170.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754575Ab3FOUfq (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sat, 15 Jun 2013 16:35:46 -0400
+Received: by mail-ea0-f170.google.com with SMTP id h10so1002644eaj.29
+        for <linux-acpi@vger.kernel.org>; Sat, 15 Jun 2013 13:35:45 -0700 (PDT)
+Content-Disposition: inline
+In-Reply-To: <6834259.1uPUZ8EFRd@vostro.rjw.lan>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Daniel Vetter <daniel@ffwll.ch>
-Cc: Matthew Garrett <mjg59@srcf.ucam.org>, Aaron Lu <aaron.lu@intel.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, Seth Forshee <seth.forshee@canonical.com>, "Lee, Chun-Yi" <joeyli.kernel@gmail.com>, "daniel.vetter@ffwll.ch" <daniel.vetter@ffwll.ch>, "intel-gfx@lists.freedesktop.org" <intel-gfx@lists.freedesktop.org>, "dri-devel@lists.freedesktop.org" <dri-devel@lists.freedesktop.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Len Brown <lenb@kernel.org>, Zhang Rui <rui.zhang@intel.com>, Aaron Lu <aaron.lwe@gmail.com>, Alex Deucher <alexdeucher@gmail.com>
+To: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: Daniel Vetter <daniel@ffwll.ch>, Matthew Garrett <mjg59@srcf.ucam.org>, Aaron Lu <aaron.lu@intel.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, Seth Forshee <seth.forshee@canonical.com>, "Lee, Chun-Yi" <joeyli.kernel@gmail.com>, "daniel.vetter@ffwll.ch" <daniel.vetter@ffwll.ch>, "intel-gfx@lists.freedesktop.org" <intel-gfx@lists.freedesktop.org>, "dri-devel@lists.freedesktop.org" <dri-devel@lists.freedesktop.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Len Brown <lenb@kernel.org>, Zhang Rui <rui.zhang@intel.com>, Aaron Lu <aaron.lwe@gmail.com>, Alex Deucher <alexdeucher@gmail.com>
 
-On Saturday, June 15, 2013 08:29:42 PM Daniel Vetter wrote:
-> Hi all,
+On Sat, Jun 15, 2013 at 10:27:06PM +0200, Rafael J. Wysocki wrote:
+> On Saturday, June 15, 2013 08:29:42 PM Daniel Vetter wrote:
+> > Hi all,
+> > 
+> > So to me it looks like the discussion is going in circles a bit, hence let
+> > me drop my maintainer-opinion here:
+> > 
+> > 1. Matthew's patch series here looks reasonable, and if it fixes a bunch
+> > of systems (which it seems to) it has my Ack and imo should go in. If acpi
+> > maintainers can smash their Ack onto the acpi parts I'd very much like to
+> > merge this into drm-intel-next, that should give us the most coverage for
+> > intel systems.
+> > 
+> > Len, Rafael, are you ok with the acpi part of this and merging it through
+> > drm-intel-next?
 > 
-> So to me it looks like the discussion is going in circles a bit, hence let
-> me drop my maintainer-opinion here:
-> 
-> 1. Matthew's patch series here looks reasonable, and if it fixes a bunch
-> of systems (which it seems to) it has my Ack and imo should go in. If acpi
-> maintainers can smash their Ack onto the acpi parts I'd very much like to
-> merge this into drm-intel-next, that should give us the most coverage for
-> intel systems.
-> 
-> Len, Rafael, are you ok with the acpi part of this and merging it through
-> drm-intel-next?
+> It has to go through the ACPI tree because of the ACPICA patch that needs to
+> be synchronized with the ACPICA upstream.  Sorry.
 
-It has to go through the ACPI tree because of the ACPICA patch that needs to
-be synchronized with the ACPICA upstream.  Sorry.
+No problem, since we're pretty close to the merge window that would have
+at most resulted in a few more weeks of testing in i915 trees anyway. -rc
+kernels should still give us plenty of time to catch fallout, if there is
+any.
 
-That said, I'm going to take this patchset.
+> That said, I'm going to take this patchset.
 
-> 2. Imo the current amount of quirking we expose to users (we have kernel
-> options to disable the acpi interface, blacklist platform modules, all
-> backlights can be tested through sysfs and on top of that xf86-video-intel
-> has an xorg.conf to select the backlight used by the driver). I haven't
-> spotted a compelling reason in this thread to add another one, what we
-> have seems to be good enough to debug backligh issues.
-> 
-> 3. Also, adding yet another backlight quirk mechanism isn't gonna
-> magically fix broken systems.
-> 
-> We _really_ should strive to make this just work and not offer the angry
-> user another roll of duct-tape for free.
-> 
-> 4. The currently established priority selection for backlights of platform
-> > firmware > raw seems to be good enough. Note that the explicit list in
-> xf86-vidoe-intel is only used as a fallback for really old kernels which
-> do not expose this information. We could probably rip it out.
-> 
-> 5. We've recently looked at opregion again and couldn't spot a hint.
-> Unfortnately it looks like both noodling better information out of Intel
-> and trying to publish an updated opregion spec seem to be losing games :(
-> We'll keep on trying though.
-> 
-> Aside at the end: If the gnome tool indeed has its own backlight code and
-> doesn't just use that as a fallback if the xrandr backligh property isn't
-> available, then that's just a serious bug in gnome and should be fixed
-> asap. But imo that's not something we should try to (nor do I see any way
-> how to) work around in the kernel.
-
-Agreed.
-
-Thanks,
-Rafael
-
-
+Thanks, Daniel
 -- 
-I speak only for myself.
-Rafael J. Wysocki, Intel Open Source Technology Center.
+Daniel Vetter
+Software Engineer, Intel Corporation
++41 (0) 79 365 57 48 - http://blog.ffwll.ch
