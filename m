@@ -1,67 +1,59 @@
-From: Aaron Lu <aaron.lu@intel.com>
-Subject: Re: [PATCH 3/3] i915: Don't provide ACPI backlight interface if firmware
- expects Windows 8
-Date: Sat, 15 Jun 2013 09:26:57 +0800
-Message-ID: <51BBC2E1.9040401@intel.com>
-References: <1370818899-8595-1-git-send-email-matthew.garrett@nebula.com>  <1370818899-8595-4-git-send-email-matthew.garrett@nebula.com>  <51BABC6F.3050201@intel.com> <1371230988.2490.2.camel@x230>
+From: Matthew Garrett <matthew.garrett@nebula.com>
+Subject: Re: [PATCH 3/3] i915: Don't provide ACPI backlight
+ interface if firmware expects Windows 8
+Date: Sat, 15 Jun 2013 01:38:05 +0000
+Message-ID: <1371260284.523.2.camel@x230>
+References: <1370818899-8595-1-git-send-email-matthew.garrett@nebula.com>
+	<1370818899-8595-4-git-send-email-matthew.garrett@nebula.com>
+	<51BABC6F.3050201@intel.com> <1371230988.2490.2.camel@x230>
+	<51BBC2E1.9040401@intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga14.intel.com ([143.182.124.37]:17460 "EHLO mga14.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753204Ab3FOB0b (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 14 Jun 2013 21:26:31 -0400
-In-Reply-To: <1371230988.2490.2.camel@x230>
-Sender: linux-acpi-owner@vger.kernel.org
+Return-path: <intel-gfx-bounces+gcfxdi-intel-gfx=m.gmane.org@lists.freedesktop.org>
+In-Reply-To: <51BBC2E1.9040401@intel.com>
+Content-Language: en-US
+Content-ID: <2861A50AFD728848B4788028958ADD4A@namprd05.prod.outlook.com>
+List-Unsubscribe: <http://lists.freedesktop.org/mailman/options/intel-gfx>,
+	<mailto:intel-gfx-request@lists.freedesktop.org?subject=unsubscribe>
+List-Archive: <http://lists.freedesktop.org/archives/intel-gfx>
+List-Post: <mailto:intel-gfx@lists.freedesktop.org>
+List-Help: <mailto:intel-gfx-request@lists.freedesktop.org?subject=help>
+List-Subscribe: <http://lists.freedesktop.org/mailman/listinfo/intel-gfx>,
+	<mailto:intel-gfx-request@lists.freedesktop.org?subject=subscribe>
+Sender: intel-gfx-bounces+gcfxdi-intel-gfx=m.gmane.org@lists.freedesktop.org
+Errors-To: intel-gfx-bounces+gcfxdi-intel-gfx=m.gmane.org@lists.freedesktop.org
+To: Aaron Lu <aaron.lu@intel.com>
+Cc: Seth Forshee <seth.forshee@canonical.com>, "daniel.vetter@ffwll.ch" <daniel.vetter@ffwll.ch>, "intel-gfx@lists.freedesktop.org" <intel-gfx@lists.freedesktop.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "dri-devel@lists.freedesktop.org" <dri-devel@lists.freedesktop.org>, "Rafael J. Wysocki" <rjw@sisk.pl>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "Lee,
+	Chun-Yi" <joeyli.kernel@gmail.com>, Alex Deucher <alexdeucher@gmail.com>, Zhang Rui <rui.zhang@intel.com>, Aaron Lu <aaron.lwe@gmail.com>, Len Brown <lenb@kernel.org>
 List-Id: linux-acpi@vger.kernel.org
-To: Matthew Garrett <matthew.garrett@nebula.com>
-Cc: "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, Seth Forshee <seth.forshee@canonical.com>, "Lee, Chun-Yi" <joeyli.kernel@gmail.com>, "daniel.vetter@ffwll.ch" <daniel.vetter@ffwll.ch>, "intel-gfx@lists.freedesktop.org" <intel-gfx@lists.freedesktop.org>, "dri-devel@lists.freedesktop.org" <dri-devel@lists.freedesktop.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Len Brown <lenb@kernel.org>, "Rafael J. Wysocki" <rjw@sisk.pl>, Zhang Rui <rui.zhang@intel.com>, Aaron Lu <aaron.lwe@gmail.com>, Alex Deucher <alexdeucher@gmail.com>
 
-On 06/15/2013 01:29 AM, Matthew Garrett wrote:
-> On Fri, 2013-06-14 at 14:47 +0800, Aaron Lu wrote:
+On Sat, 2013-06-15 at 09:26 +0800, Aaron Lu wrote:
+> On 06/15/2013 01:29 AM, Matthew Garrett wrote: 
+> > How would that work with existing userspace?
 > 
->> What about a priority based solution? We can introduce a new field named
->> priority to backlight_device and instead of calling another module's
->> function like the unregister one here(which cause unnecessary module
->> dependency), we only need to boost priority for its own interface. This
->> field will be exported to sysfs, so user can change it during runtime
->> too. And we can also introduce a new kernel command line as
->> backlight.force_interface=raw/firmware/platform, to overcome the limited
->> functionality provided by acpi_backlight=video/vendor, which does not
->> involve GPU's interface.
+> User space tool will need to be updated to use this as stated in the
+> gist page, I've patches for gsd-backlight-helper and xorg-x11-drv-intel,
+> for others we can add I think if the priority based solution is deemed
+> useful.
+
+Right, that's not a great solution.
+
+> > We shouldn't export interfaces if we don't expect them to work.
 > 
-> How would that work with existing userspace?
+> It's not easy to decide if they work or not sometimes, e.g. I came
+> across a system that claims win8 in ACPI table and has an Intel GPU,
+> while its ACPI video interface also works. With this patch, the working
+> ACPI video interface is removed, while with the priority based solution,
+> the GPU's interface priority gets higher, but the ACPI video interface
+> still stays.
 
-User space tool will need to be updated to use this as stated in the
-gist page, I've patches for gsd-backlight-helper and xorg-x11-drv-intel,
-for others we can add I think if the priority based solution is deemed
-useful.
+Well, Windows 8 will only use the ACPI backlight interface if the GPU
+driver decides to, right? So the logic for deciding whether to remove
+the ACPI backlight control or not should be left up to the GPU. There's
+no harm in refusing to expose a working method if there's another
+working method, but there is harm in exposing a broken one and expecting
+userspace to know the difference.
 
-> 
->> And we can place the quirk code in backlight layer instead of individual
->> backlight functionality provider module. Suppose we have a backlight
->> manager there, for all win8 systems, we can boost the raw type's
->> priority on its registration, so no need to add code in
->> intel/amd/etc./'s GPU driver code.
-> 
-> But we'd need to add code to every piece of userspace that currently
-> uses the backlight, right?
-
-Yes that's the case.
-
-> 
->> With priority based solution, all backlight control interfaces stay,
->> the priority field is an indication given by kernel to user space.
-> 
-> We shouldn't export interfaces if we don't expect them to work.
-
-It's not easy to decide if they work or not sometimes, e.g. I came
-across a system that claims win8 in ACPI table and has an Intel GPU,
-while its ACPI video interface also works. With this patch, the working
-ACPI video interface is removed, while with the priority based solution,
-the GPU's interface priority gets higher, but the ACPI video interface
-still stays.
-
-Thanks,
-Aaron
+-- 
+Matthew Garrett | mjg59@srcf.ucam.org
