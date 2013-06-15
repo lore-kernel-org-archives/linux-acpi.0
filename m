@@ -1,104 +1,140 @@
-From: Jiang Liu <liuj97@gmail.com>
-Subject: Re: [BUGFIX v2 1/4] ACPI, DOCK: initialize dock subsystem before
- scanning PCI root buses
-Date: Sat, 15 Jun 2013 18:05:31 +0800
-Message-ID: <51BC3C6B.9010908@gmail.com>
-References: <1371238081-32260-1-git-send-email-jiang.liu@huawei.com> <1371238081-32260-2-git-send-email-jiang.liu@huawei.com> <CAE9FiQWOMF4HWdQRfxF68BBYC4ONcr8wOHWvVGt6Jvb_-p6S8w@mail.gmail.com>
+From: Aaron Lu <aaron.lu@intel.com>
+Subject: Re: [PATCH 3/3] i915: Don't provide ACPI backlight
+ interface if firmware expects Windows 8
+Date: Sat, 15 Jun 2013 20:29:15 +0800
+Message-ID: <51BC5E1B.2020400@intel.com>
+References: <1370818899-8595-1-git-send-email-matthew.garrett@nebula.com>
+	<1370818899-8595-4-git-send-email-matthew.garrett@nebula.com>
+	<51BABC6F.3050201@intel.com> <1371230988.2490.2.camel@x230>
+	<51BBC2E1.9040401@intel.com> <1371260284.523.2.camel@x230>
+	<51BBEA32.1040002@intel.com> <20130615041945.GA4756@srcf.ucam.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-pci-owner@vger.kernel.org>
-In-Reply-To: <CAE9FiQWOMF4HWdQRfxF68BBYC4ONcr8wOHWvVGt6Jvb_-p6S8w@mail.gmail.com>
-Sender: linux-pci-owner@vger.kernel.org
-To: Yinghai Lu <yinghai@kernel.org>
-Cc: Jiang Liu <jiang.liu@huawei.com>, "Rafael J . Wysocki" <rjw@sisk.pl>, Bjorn Helgaas <bhelgaas@google.com>, "Alexander E . Patrakov" <patrakov@gmail.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Yijing Wang <wangyijing@huawei.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, "stable@vger.kernel.org" <stable@vger.kernel.org>
+Return-path: <intel-gfx-bounces+gcfxdi-intel-gfx=m.gmane.org@lists.freedesktop.org>
+In-Reply-To: <20130615041945.GA4756@srcf.ucam.org>
+List-Unsubscribe: <http://lists.freedesktop.org/mailman/options/intel-gfx>,
+	<mailto:intel-gfx-request@lists.freedesktop.org?subject=unsubscribe>
+List-Archive: <http://lists.freedesktop.org/archives/intel-gfx>
+List-Post: <mailto:intel-gfx@lists.freedesktop.org>
+List-Help: <mailto:intel-gfx-request@lists.freedesktop.org?subject=help>
+List-Subscribe: <http://lists.freedesktop.org/mailman/listinfo/intel-gfx>,
+	<mailto:intel-gfx-request@lists.freedesktop.org?subject=subscribe>
+Sender: intel-gfx-bounces+gcfxdi-intel-gfx=m.gmane.org@lists.freedesktop.org
+Errors-To: intel-gfx-bounces+gcfxdi-intel-gfx=m.gmane.org@lists.freedesktop.org
+To: Matthew Garrett <mjg59@srcf.ucam.org>
+Cc: Seth Forshee <seth.forshee@canonical.com>, "daniel.vetter@ffwll.ch" <daniel.vetter@ffwll.ch>, "intel-gfx@lists.freedesktop.org" <intel-gfx@lists.freedesktop.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "dri-devel@lists.freedesktop.org" <dri-devel@lists.freedesktop.org>, "Rafael J. Wysocki" <rjw@sisk.pl>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "Lee,
+	Chun-Yi" <joeyli.kernel@gmail.com>, Alex Deucher <alexdeucher@gmail.com>, Zhang Rui <rui.zhang@intel.com>, Aaron Lu <aaron.lwe@gmail.com>, Len Brown <lenb@kernel.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On 06/15/2013 02:51 PM, Yinghai Lu wrote:
-> On Fri, Jun 14, 2013 at 12:27 PM, Jiang Liu <jiang.liu@huawei.com> wrote:
->> Changeset "3b63aaa70e1 PCI: acpiphp: Do not use ACPI PCI subdriver
->> mechanism" causes a regression which breaks ACPI dock support,
->> please refer to https://bugzilla.kernel.org/show_bug.cgi?id=59501
+On 06/15/2013 12:19 PM, Matthew Garrett wrote:
+> On Sat, Jun 15, 2013 at 12:14:42PM +0800, Aaron Lu wrote:
+>> On 06/15/2013 09:38 AM, Matthew Garrett wrote:
+>>> Well, Windows 8 will only use the ACPI backlight interface if the GPU
+>>> driver decides to, right? So the logic for deciding whether to remove
+>>> the ACPI backlight control or not should be left up to the GPU. There's
 >>
->> The root cause is that changeset 3b63aaa70e1 changed the relative
->> initialization order of ACPI dock subsystem and acpiphp driver,
->> and acpiphp driver has dependency on ACPI dock subsystem's
->> initialization result, so that acpiphp can't correctly detect ACPI
->> dock stations now.
->>
->> On the other hand, ACPI dock is a built-in driver, so we could
->> explicitly initialize it before the acpiphp driver is used.
->>
->> Signed-off-by: Jiang Liu <jiang.liu@huawei.com>
->> Reported-by: Alexander E. Patrakov <patrakov@gmail.com>
->> Tested-by: Alexander E. Patrakov <patrakov@gmail.com>
->> Cc: "Rafael J. Wysocki" <rjw@sisk.pl>
->> Cc: linux-acpi@vger.kernel.org
->> Cc: linux-kernel@vger.kernel.org
->> Cc: <stable@vger.kernel.org> # 3.9+
->> ---
->>  drivers/acpi/dock.c     | 7 +------
->>  drivers/acpi/internal.h | 5 +++++
->>  drivers/acpi/scan.c     | 1 +
->>  3 files changed, 7 insertions(+), 6 deletions(-)
->>
->> diff --git a/drivers/acpi/dock.c b/drivers/acpi/dock.c
->> index 4fdea38..02b0563 100644
->> --- a/drivers/acpi/dock.c
->> +++ b/drivers/acpi/dock.c
->> @@ -1033,7 +1033,7 @@ find_dock_and_bay(acpi_handle handle, u32 lvl, void *context, void **rv)
->>         return AE_OK;
->>  }
->>
->> -static int __init dock_init(void)
->> +int __init acpi_dock_init(void)
->>  {
->>         if (acpi_disabled)
->>                 return 0;
->> @@ -1062,9 +1062,4 @@ static void __exit dock_exit(void)
->>                 dock_remove(dock_station);
->>  }
->>
->> -/*
->> - * Must be called before drivers of devices in dock, otherwise we can't know
->> - * which devices are in a dock
->> - */
->> -subsys_initcall(dock_init);
->>  module_exit(dock_exit);
+>> I don't know this. From the document I googled, Microsoft suggests under
+>> win8, backlight should be controlled by the graphics driver for smooth
+>> brightness level change, instead of ACPI or other methods. So it is
+>> possible that OEM will not test the ACPI interface well and thus the
+>> interface is likely broken. I don't see why GPU driver has any better
+>> knowledge on which systems the firmware interface is broken or not.
 > 
-> why not remove dock_exit?
-I have a pending patchset to clean up dock driver, Rafael suggested to
-focus on bugfix first, so I will send out the clean up patchset later.
+> The vendor will presumably have tested that backlight control works - if 
+> the GPU driver uses the ACPI interface and backlight control is broken, 
+> then the vendor would fix it.
+
+I don't think GPU driver uses ACPI interface, that's why for some
+systems, ACPI interface is broken while the GPU's is not.
 
 > 
->> diff --git a/drivers/acpi/internal.h b/drivers/acpi/internal.h
->> index 297cbf4..c610a76 100644
->> --- a/drivers/acpi/internal.h
->> +++ b/drivers/acpi/internal.h
->> @@ -40,6 +40,11 @@ void acpi_container_init(void);
->>  #else
->>  static inline void acpi_container_init(void) {}
->>  #endif
->> +#ifdef CONFIG_ACPI_DOCK
->> +void acpi_dock_init(void);
->> +#else
->> +static inline void acpi_dock_init(void) {}
->> +#endif
->>  #ifdef CONFIG_ACPI_HOTPLUG_MEMORY
->>  void acpi_memory_hotplug_init(void);
->>  #else
->> diff --git a/drivers/acpi/scan.c b/drivers/acpi/scan.c
->> index 44225cb..4148163 100644
->> --- a/drivers/acpi/scan.c
->> +++ b/drivers/acpi/scan.c
->> @@ -2045,6 +2045,7 @@ int __init acpi_scan_init(void)
->>         acpi_lpss_init();
->>         acpi_container_init();
->>         acpi_memory_hotplug_init();
->> +       acpi_dock_init();
+>>> no harm in refusing to expose a working method if there's another
+>>> working method, but there is harm in exposing a broken one and expecting
+>>> userspace to know the difference.
 >>
->>         mutex_lock(&acpi_scan_lock);
->>         /*
->> --
->> 1.8.1.2
->>
+>> BTW, the proposed solution is not meant to solve win8 problems alone, it
+>> should make solving other problems easy and make individual backlight
+>> control interface provider module independent with each other such as
+>> the platform drivers will not need to check if ACPI video driver will
+>> control backlight or not and can always create backlight interface(its
+>> default priority is lower that ACPI video driver's so will not be taken
+>> by user space by default, showing the same behavior of the current code).
+> 
+> Sure, but it still requires the replacement of existing userspace. We 
+> need to fix the problem with existing userspace, too.
+
+Yes. The problem is two way. First, some of the backlight interface
+privoder module provides a broken interface; Two, the userspace picked a
+broken interface while there are usable ones. For example, in the win8
+thinkpad case, the ACPI video driver provides broken interface and the
+GPU driver provides usable interface, but userspace choose ACPI video's
+interface. To make things complicated, if we make the broken interface
+disappear in ACPI video module, then the platform driver thinkpad_acpi
+will start to provide another broken interface. I have to say, solve it
+in the GPU code is a clever way, it's just a little weird to me for a
+broken interface to be blacklisted, we have to do it in another module,
+not the broken module itself.
+
+> 
+>> The current acpi_backlight=video/vendor kernel command line is pretty
+>> misleading, for laptops that do not have vendor backlight interface,
+>> adding acpi_backlight=vendor actually makes the system using the GPU's
+>> interface. Some laptops are using this switch to work around problems in
+>> ACPI video driver and users think they are using vendor interface.
+>> That's why I think we need a new command line as the
+>> backlight.force_interface=raw/firmware/platform.
+> 
+> No, I think we need to fix the bugs that currently require users to pass 
+> options.
+
+For ACPI video driver, since it relies on firmware to do the right thing,
+if the functionality is broken, then it is, there is hardly anything we
+can do...(not always, we can quirk in some cases, but there are cases we
+can do nothing). In this case, we can:
+1 Ask user to add acpi_backlight=vendor, so that ACPI video driver will
+  not create backlight interface and userspace will not pick it;
+2 Add that model in DMI table in video_detect.c, eliminating the need for
+  that command line;
+3 Add that model in DMI table in another module, let that module
+  unregister backlight interface provided by ACPI video as is done in
+  acer-wmi, asus-wmi, and i915 in this case;
+3 Use the backlight section in xorg.conf to make X uses another
+  backlight interface. This may not work for distros that use
+  gsd-backlight-helper, which always prefers firmware.
+
+Which one do you prefer?
+
+> 
+>> Instead of letting individual driver to make decisions on which
+>> backlight interface this system should use(either in platform driver as
+>> we currently did, see acer-wmi and asus-wmi, or GPU driver as this case),
+>> I think we need a better and clear way to handle such things. For
+>> example, suppose an acer laptop: vendor does not support backlight, ACPI
+>> video's backlight interface is broken and GPU's works, to make it work,
+>> user will need to select acer-wmi module while this module does not have
+>> anything to do with the functionality, but simply because it serves as
+>> the backlight manager for acer laptops.
+> 
+> How do these machines work under Windows? Until we know the answer to 
+> that, we don't know what the correct way to handle the problem is under 
+> Linux.
+
+Do you mean we need to understand Windows behavior so that we can
+decide where to place the code to do the backlight management thing?
+So for win8 case, we know MS will use GPU driver to do backlight
+control, all this means to me is, ACPI video's and platform driver's
+interface are more likely broken on those systems, but it doesn't
+qualify why Linux' GPU driver should do the decision, it's not that the
+GPU driver can poke some GPU register and then decide oh, this model
+does not have working ACPI backlight interface. As this patch shows, we
+make the decision by OSI, which is not specific to GPU driver.
+
+BTW, I don't think any module knows something better than another
+module, all quirk logic and DMI entry we currently have in Linux are
+got by user's feedback(bug reports), it doesn't seem to me some module
+is natrually the one that should make this decision. Or do I miss
+something?
+
+Thanks,
+Aaron
