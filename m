@@ -1,88 +1,67 @@
-From: Yinghai Lu <yinghai@kernel.org>
-Subject: [PATCH v5 07/22] x86, ACPI: Store override acpi tables phys addr in cpio files info array
-Date: Fri, 14 Jun 2013 17:56:25 -0700
-Message-ID: <1371257800-11720-8-git-send-email-yinghai@kernel.org>
-References: <1371257800-11720-1-git-send-email-yinghai@kernel.org>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1371257800-11720-1-git-send-email-yinghai@kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: "H. Peter Anvin" <hpa@zytor.com>
-Cc: Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@elte.hu>, Andrew Morton <akpm@linux-foundation.org>, Tejun Heo <tj@kernel.org>, Thomas Renninger <trenn@suse.de>, Tang Chen <tangchen@cn.fujitsu.com>, linux-kernel@vger.kernel.org, Yinghai Lu <yinghai@kernel.org>, "Rafael J. Wysocki" <rjw@sisk.pl>, linux-acpi@vger.kernel.org
+From: Aaron Lu <aaron.lu@intel.com>
+Subject: Re: [PATCH 3/3] i915: Don't provide ACPI backlight interface if firmware
+ expects Windows 8
+Date: Sat, 15 Jun 2013 09:26:57 +0800
+Message-ID: <51BBC2E1.9040401@intel.com>
+References: <1370818899-8595-1-git-send-email-matthew.garrett@nebula.com>  <1370818899-8595-4-git-send-email-matthew.garrett@nebula.com>  <51BABC6F.3050201@intel.com> <1371230988.2490.2.camel@x230>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mga14.intel.com ([143.182.124.37]:17460 "EHLO mga14.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753204Ab3FOB0b (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 14 Jun 2013 21:26:31 -0400
+In-Reply-To: <1371230988.2490.2.camel@x230>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Matthew Garrett <matthew.garrett@nebula.com>
+Cc: "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, Seth Forshee <seth.forshee@canonical.com>, "Lee, Chun-Yi" <joeyli.kernel@gmail.com>, "daniel.vetter@ffwll.ch" <daniel.vetter@ffwll.ch>, "intel-gfx@lists.freedesktop.org" <intel-gfx@lists.freedesktop.org>, "dri-devel@lists.freedesktop.org" <dri-devel@lists.freedesktop.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Len Brown <lenb@kernel.org>, "Rafael J. Wysocki" <rjw@sisk.pl>, Zhang Rui <rui.zhang@intel.com>, Aaron Lu <aaron.lwe@gmail.com>, Alex Deucher <alexdeucher@gmail.com>
 
-In 32bit we will find table with phys address during 32bit flat mode
-in head_32.S, because at that time we don't need set page table to
-access initrd.
+On 06/15/2013 01:29 AM, Matthew Garrett wrote:
+> On Fri, 2013-06-14 at 14:47 +0800, Aaron Lu wrote:
+> 
+>> What about a priority based solution? We can introduce a new field named
+>> priority to backlight_device and instead of calling another module's
+>> function like the unregister one here(which cause unnecessary module
+>> dependency), we only need to boost priority for its own interface. This
+>> field will be exported to sysfs, so user can change it during runtime
+>> too. And we can also introduce a new kernel command line as
+>> backlight.force_interface=raw/firmware/platform, to overcome the limited
+>> functionality provided by acpi_backlight=video/vendor, which does not
+>> involve GPU's interface.
+> 
+> How would that work with existing userspace?
 
-For copying we could use early_ioremap() with phys directly before mem mapping
-is set.
+User space tool will need to be updated to use this as stated in the
+gist page, I've patches for gsd-backlight-helper and xorg-x11-drv-intel,
+for others we can add I think if the priority based solution is deemed
+useful.
 
-To keep 32bit and 64bit consistent, use phys_addr for all.
+> 
+>> And we can place the quirk code in backlight layer instead of individual
+>> backlight functionality provider module. Suppose we have a backlight
+>> manager there, for all win8 systems, we can boost the raw type's
+>> priority on its registration, so no need to add code in
+>> intel/amd/etc./'s GPU driver code.
+> 
+> But we'd need to add code to every piece of userspace that currently
+> uses the backlight, right?
 
--v2: introduce file_pos to save phys address instead of abusing cpio_data
-	that tj is not happy with.
+Yes that's the case.
 
-Signed-off-by: Yinghai Lu <yinghai@kernel.org>
-Cc: Rafael J. Wysocki <rjw@sisk.pl>
-Cc: linux-acpi@vger.kernel.org
-Tested-by: Thomas Renninger <trenn@suse.de>
-Reviewed-by: Tang Chen <tangchen@cn.fujitsu.com>
-Tested-by: Tang Chen <tangchen@cn.fujitsu.com>
----
- drivers/acpi/osl.c | 15 +++++++++++----
- 1 file changed, 11 insertions(+), 4 deletions(-)
+> 
+>> With priority based solution, all backlight control interfaces stay,
+>> the priority field is an indication given by kernel to user space.
+> 
+> We shouldn't export interfaces if we don't expect them to work.
 
-diff --git a/drivers/acpi/osl.c b/drivers/acpi/osl.c
-index fea73af..3a307ec 100644
---- a/drivers/acpi/osl.c
-+++ b/drivers/acpi/osl.c
-@@ -570,7 +570,11 @@ static const char * const table_sigs[] = {
- #define ACPI_HEADER_SIZE sizeof(struct acpi_table_header)
- 
- #define ACPI_OVERRIDE_TABLES 64
--static struct cpio_data __initdata acpi_initrd_files[ACPI_OVERRIDE_TABLES];
-+struct file_pos {
-+	phys_addr_t data;
-+	phys_addr_t size;
-+};
-+static struct file_pos __initdata acpi_initrd_files[ACPI_OVERRIDE_TABLES];
- 
- void __init acpi_initrd_override_find(void *data, size_t size)
- {
-@@ -615,7 +619,7 @@ void __init acpi_initrd_override_find(void *data, size_t size)
- 			table->signature, cpio_path, file.name, table->length);
- 
- 		all_tables_size += table->length;
--		acpi_initrd_files[table_nr].data = file.data;
-+		acpi_initrd_files[table_nr].data = __pa_nodebug(file.data);
- 		acpi_initrd_files[table_nr].size = file.size;
- 		table_nr++;
- 	}
-@@ -624,7 +628,7 @@ void __init acpi_initrd_override_find(void *data, size_t size)
- void __init acpi_initrd_override_copy(void)
- {
- 	int no, total_offset = 0;
--	char *p;
-+	char *p, *q;
- 
- 	if (!all_tables_size)
- 		return;
-@@ -659,12 +663,15 @@ void __init acpi_initrd_override_copy(void)
- 	 * one by one during copying.
- 	 */
- 	for (no = 0; no < ACPI_OVERRIDE_TABLES; no++) {
-+		phys_addr_t addr = acpi_initrd_files[no].data;
- 		phys_addr_t size = acpi_initrd_files[no].size;
- 
- 		if (!size)
- 			break;
-+		q = early_ioremap(addr, size);
- 		p = early_ioremap(acpi_tables_addr + total_offset, size);
--		memcpy(p, acpi_initrd_files[no].data, size);
-+		memcpy(p, q, size);
-+		early_iounmap(q, size);
- 		early_iounmap(p, size);
- 		total_offset += size;
- 	}
--- 
-1.8.1.4
+It's not easy to decide if they work or not sometimes, e.g. I came
+across a system that claims win8 in ACPI table and has an Intel GPU,
+while its ACPI video interface also works. With this patch, the working
+ACPI video interface is removed, while with the priority based solution,
+the GPU's interface priority gets higher, but the ACPI video interface
+still stays.
+
+Thanks,
+Aaron
