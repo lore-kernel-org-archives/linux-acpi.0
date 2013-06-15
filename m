@@ -1,220 +1,117 @@
-From: Borislav Petkov <bp@alien8.de>
-Subject: Re: [PATCH] Re: [Patch] MCE, APEI: Don't enable CMCI when Firmware
- First mode is set in
-Date: Sat, 15 Jun 2013 16:48:30 +0200
-Message-ID: <20130615144830.GA13310@pd.tnic>
-References: <3908561D78D1C84285E8C5FCA982C28F2DA47F03@ORSMSX101.amr.corp.intel.com>
- <20130614181721.11206.95341.stgit@localhost.localdomain>
+From: Matthew Garrett <mjg59@srcf.ucam.org>
+Subject: Re: [PATCH 3/3] i915: Don't provide ACPI backlight interface if
+ firmware expects Windows 8
+Date: Sat, 15 Jun 2013 16:16:28 +0100
+Message-ID: <20130615151628.GA9868@srcf.ucam.org>
+References: <1370818899-8595-1-git-send-email-matthew.garrett@nebula.com>
+ <1370818899-8595-4-git-send-email-matthew.garrett@nebula.com>
+ <51BABC6F.3050201@intel.com>
+ <1371230988.2490.2.camel@x230>
+ <51BBC2E1.9040401@intel.com>
+ <1371260284.523.2.camel@x230>
+ <51BBEA32.1040002@intel.com>
+ <20130615041945.GA4756@srcf.ucam.org>
+ <51BC5E1B.2020400@intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from cavan.codon.org.uk ([93.93.128.6]:39093 "EHLO
+	cavan.codon.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754178Ab3FOPQd (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sat, 15 Jun 2013 11:16:33 -0400
 Content-Disposition: inline
-In-Reply-To: <20130614181721.11206.95341.stgit@localhost.localdomain>
-Sender: linux-kernel-owner@vger.kernel.org
-To: "Naveen N. Rao" <naveen.n.rao@linux.vnet.ibm.com>
-Cc: tony.luck@intel.com, ananth@in.ibm.com, masbock@linux.vnet.ibm.com, lcm@linux.vnet.ibm.com, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, ying.huang@intel.com
+In-Reply-To: <51BC5E1B.2020400@intel.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Aaron Lu <aaron.lu@intel.com>
+Cc: "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, Seth Forshee <seth.forshee@canonical.com>, "Lee, Chun-Yi" <joeyli.kernel@gmail.com>, "daniel.vetter@ffwll.ch" <daniel.vetter@ffwll.ch>, "intel-gfx@lists.freedesktop.org" <intel-gfx@lists.freedesktop.org>, "dri-devel@lists.freedesktop.org" <dri-devel@lists.freedesktop.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Len Brown <lenb@kernel.org>, "Rafael J. Wysocki" <rjw@sisk.pl>, Zhang Rui <rui.zhang@intel.com>, Aaron Lu <aaron.lwe@gmail.com>, Alex Deucher <alexdeucher@gmail.com>
 
-On Fri, Jun 14, 2013 at 11:47:21PM +0530, Naveen N. Rao wrote:
-> HEST for corrected machine checks
+On Sat, Jun 15, 2013 at 08:29:15PM +0800, Aaron Lu wrote:
+> On 06/15/2013 12:19 PM, Matthew Garrett wrote:
+> > The vendor will presumably have tested that backlight control works - if 
+> > the GPU driver uses the ACPI interface and backlight control is broken, 
+> > then the vendor would fix it.
 > 
-> Here's a patch that implements this technique. If the firmware advertises
-> support for firmware first mode in the CMC structure, we disable CMCI and
-> polling for all the MCA banks listed in the CMC structure.
+> I don't think GPU driver uses ACPI interface, that's why for some
+> systems, ACPI interface is broken while the GPU's is not.
 
-Yeah, this commit message needs a bit massaging. Don't be afraid to be
-more verbose than you feel is necessary. :-)
+On systems where the ACPI interface is broken, the GPU driver clearly 
+doesn't use the ACPI interface. As yet, we don't know if that's always 
+true, though.
 
-> Signed-off-by: Naveen N. Rao <naveen.n.rao@linux.vnet.ibm.com>
-> ---
->  arch/x86/include/asm/mce.h             |    3 ++
->  arch/x86/kernel/cpu/mcheck/mce_intel.c |   38 +++++++++++++++++++++++++++++++
->  drivers/acpi/apei/hest.c               |   39 ++++++++++++++++++++++++++++++++
->  3 files changed, 80 insertions(+)
+> > Sure, but it still requires the replacement of existing userspace. We 
+> > need to fix the problem with existing userspace, too.
 > 
-> diff --git a/arch/x86/include/asm/mce.h b/arch/x86/include/asm/mce.h
-> index fa5f71e..9c91683 100644
-> --- a/arch/x86/include/asm/mce.h
-> +++ b/arch/x86/include/asm/mce.h
-> @@ -188,6 +188,9 @@ extern void register_mce_write_callback(ssize_t (*)(struct file *filp,
->  				    const char __user *ubuf,
->  				    size_t usize, loff_t *off));
->  
-> +/* Disable CMCI/polling for MCA bank claimed by firmware */
-> +extern void mce_disable_bank(int bank);
-> +
->  /*
->   * Exception handler
->   */
-> diff --git a/arch/x86/kernel/cpu/mcheck/mce_intel.c b/arch/x86/kernel/cpu/mcheck/mce_intel.c
-> index ae1697c..bc0307d 100644
-> --- a/arch/x86/kernel/cpu/mcheck/mce_intel.c
-> +++ b/arch/x86/kernel/cpu/mcheck/mce_intel.c
-> @@ -26,6 +26,9 @@
->  
->  static DEFINE_PER_CPU(mce_banks_t, mce_banks_owned);
->  
-> +/* MCA banks controlled through firmware first */
-> +static mce_banks_t mce_banks_disabled;
-> +
->  /*
->   * cmci_discover_lock protects against parallel discovery attempts
->   * which could race against each other.
-> @@ -191,6 +194,10 @@ static void cmci_discover(int banks)
->  		if (test_bit(i, owned))
->  			continue;
->  
-> +		/* Skip banks in firmware first mode */
-> +		if (test_bit(i, mce_banks_disabled))
-> +			continue;
-> +
->  		rdmsrl(MSR_IA32_MCx_CTL2(i), val);
->  
->  		/* Already owned by someone else? */
-> @@ -315,6 +322,37 @@ void cmci_reenable(void)
->  		cmci_discover(banks);
->  }
->  
-> +static void cmci_disable_bank(void *arg)
-> +{
-> +	int banks;
-> +	unsigned long flags;
-> +	u64 val;
-> +	int bank = *((int *)arg);
-> +
-> +	/* Ensure we don't poll this bank */
-> +	__clear_bit(bank, __get_cpu_var(mce_poll_banks));
-> +
-> +	if (!cmci_supported(&banks))
-> +		return;
+> Yes. The problem is two way. First, some of the backlight interface
+> privoder module provides a broken interface; Two, the userspace picked a
+> broken interface while there are usable ones. For example, in the win8
+> thinkpad case, the ACPI video driver provides broken interface and the
+> GPU driver provides usable interface, but userspace choose ACPI video's
+> interface. To make things complicated, if we make the broken interface
+> disappear in ACPI video module, then the platform driver thinkpad_acpi
+> will start to provide another broken interface. I have to say, solve it
+> in the GPU code is a clever way, it's just a little weird to me for a
+> broken interface to be blacklisted, we have to do it in another module,
+> not the broken module itself.
 
-Hmm, so if CMCI is not supported, you just disabled polling of this bank
-and returned here. Not good.
+The ACPI driver has no way of making this kind of policy decision. The 
+GPU driver does.
 
-> +
-> +	raw_spin_lock_irqsave(&cmci_discover_lock, flags);
-> +
-> +	/* Disable CMCI */
-> +	rdmsrl(MSR_IA32_MCx_CTL2(bank), val);
-> +	val &= ~MCI_CTL2_CMCI_EN;
-> +	wrmsrl(MSR_IA32_MCx_CTL2(bank), val);
-> +
-> +	__clear_bit(bank, __get_cpu_var(mce_banks_owned));
-> +
-> +	raw_spin_unlock_irqrestore(&cmci_discover_lock, flags);
+> > No, I think we need to fix the bugs that currently require users to pass 
+> > options.
+> 
+> For ACPI video driver, since it relies on firmware to do the right thing,
+> if the functionality is broken, then it is, there is hardly anything we
+> can do...(not always, we can quirk in some cases, but there are cases we
+> can do nothing). In this case, we can:
+> 1 Ask user to add acpi_backlight=vendor, so that ACPI video driver will
+>   not create backlight interface and userspace will not pick it;
+> 2 Add that model in DMI table in video_detect.c, eliminating the need for
+>   that command line;
+> 3 Add that model in DMI table in another module, let that module
+>   unregister backlight interface provided by ACPI video as is done in
+>   acer-wmi, asus-wmi, and i915 in this case;
+> 3 Use the backlight section in xorg.conf to make X uses another
+>   backlight interface. This may not work for distros that use
+>   gsd-backlight-helper, which always prefers firmware.
+> 
+> Which one do you prefer?
 
-Almost the exact sequence is also in cmci_clear(). How about a static
-function called __cmci_disable_bank which does that and the other
-functions call it?
+I'd prefer to figure out how it works in Windows and implement it the 
+same way.
 
-> +}
-> +
-> +void mce_disable_bank(int bank)
-> +{
-> +	set_bit(bank, mce_banks_disabled);
-> +	on_each_cpu(cmci_disable_bank, &bank, 1);
-> +}
-> +
->  static void intel_init_cmci(void)
->  {
->  	int banks;
-> diff --git a/drivers/acpi/apei/hest.c b/drivers/acpi/apei/hest.c
-> index f5ef5d5..765d8bf 100644
-> --- a/drivers/acpi/apei/hest.c
-> +++ b/drivers/acpi/apei/hest.c
-> @@ -36,6 +36,7 @@
->  #include <linux/io.h>
->  #include <linux/platform_device.h>
->  #include <acpi/apei.h>
-> +#include <asm/mce.h>
->  
->  #include "apei-internal.h"
->  
-> @@ -121,6 +122,42 @@ int apei_hest_parse(apei_hest_func_t func, void *data)
->  }
->  EXPORT_SYMBOL_GPL(apei_hest_parse);
->  
-> +/*
-> + * Check if firmware advertises firmware first mode. We need FF bit to be set
-> + * along with a set of MC banks which work in FF mode.
-> + */
-> +static int __init hest_parse_cmc(struct acpi_hest_header *hest_hdr, void *data)
-> +{
-> +	int i;
-> +	struct acpi_hest_ia_corrected *cmc;
-> +	struct acpi_hest_ia_error_bank *mc_bank;
-> +
-> +	if (hest_hdr->type != ACPI_HEST_TYPE_IA32_CORRECTED_CHECK)
-> +		return 0;
-> +
-> +	if (!((struct acpi_hest_generic *)hest_hdr)->enabled)
-> +		return 0;
-> +
-> +	cmc = (struct acpi_hest_ia_corrected *)hest_hdr;
+> > How do these machines work under Windows? Until we know the answer to 
+> > that, we don't know what the correct way to handle the problem is under 
+> > Linux.
+> 
+> Do you mean we need to understand Windows behavior so that we can
+> decide where to place the code to do the backlight management thing?
+> So for win8 case, we know MS will use GPU driver to do backlight
+> control, all this means to me is, ACPI video's and platform driver's
+> interface are more likely broken on those systems, but it doesn't
+> qualify why Linux' GPU driver should do the decision, it's not that the
+> GPU driver can poke some GPU register and then decide oh, this model
+> does not have working ACPI backlight interface. As this patch shows, we
+> make the decision by OSI, which is not specific to GPU driver.
 
-There is some crazy casting going on here: hest_hdr can be struct
-acpi_hest_generic and struct acpi_hest_ia_corrected.
+Sure it is - for all we know there's a value in the opregion space that 
+tells the Intel GPU driver which interface we should be using. We don't 
+know because Intel haven't released a version of the opregion driver 
+newer than 2007. It may be that all Windows 8 GPU drivers use the GPU 
+backlight control registers directly and never use any firmware 
+interface, but right now we simply don't know that. All we can do is 
+look at the existing cases we have and say that it appears that 
+Intel graphics systems don't use the ACPI interface. Anything more than 
+that requires more evidence.
 
-Since the ->enabled field overlaps in both structs and you want only it
-as a struct acpi_hest_generic, and want the cmc later, why don't you do
-this:
+> BTW, I don't think any module knows something better than another
+> module, all quirk logic and DMI entry we currently have in Linux are
+> got by user's feedback(bug reports), it doesn't seem to me some module
+> is natrually the one that should make this decision. Or do I miss
+> something?
 
-	struct acpi_hest_ia_corrected *cmc = (struct acpi_hest_ia_corrected *)hest_hdr;
-
-	if (!cmc->enabled)
-		...
-
-Then this below:
-
-> +	if (!(cmc->flags & ACPI_HEST_FIRMWARE_FIRST))
-> +		return 0;
-
-and so on... It should simplify the code a bit and drop the fun games
-with casting.
-
-> +
-> +	/*
-> +	 * We expect HEST to provide a list of MC banks that
-> +	 * report errors through firmware first mode.
-> +	 */
-> +	if (cmc->num_hardware_banks <= 0)
-
-->num_hardware_banks is unsigned char, so "== 0"
-
-> +		return 0;
-> +
-> +	pr_info("HEST: Enabling Firmware First mode for corrected errors\n");
-
-	pr_info(HEST_PFX "Enabling..." (fullstop at the end of the sentence).
-
-Btw, this hest.c could use the standard pr_fmt mechanism.
-
-> +
-> +	mc_bank = (struct acpi_hest_ia_error_bank *)(cmc + 1);
-> +	for (i = 0; i < cmc->num_hardware_banks; i++, mc_bank++)
-> +		mce_disable_bank(mc_bank->bank_number);
-> +
-> +	return 0;
-> +}
-> +
->  struct ghes_arr {
->  	struct platform_device **ghes_devs;
->  	unsigned int count;
-> @@ -227,6 +264,8 @@ void __init acpi_hest_init(void)
->  		goto err;
->  	}
->  
-> +	apei_hest_parse(hest_parse_cmc, NULL);
-> +
->  	if (!ghes_disable) {
->  		rc = apei_hest_parse(hest_parse_ghes_count, &ghes_count);
->  		if (rc)
-
-Thanks.
+The GPU driver makes the policy decision under Windows 8, so it's the 
+natural place to make this decision on Windows 8 systems.
 
 -- 
-Regards/Gruss,
-    Boris.
-
-Sent from a fat crate under my desk. Formatting is fine.
---
+Matthew Garrett | mjg59@srcf.ucam.org
