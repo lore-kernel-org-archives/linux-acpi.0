@@ -1,8 +1,8 @@
-From: Matthew Garrett <mjg59@srcf.ucam.org>
+From: Daniel Vetter <daniel@ffwll.ch>
 Subject: Re: [PATCH 3/3] i915: Don't provide ACPI backlight interface if
  firmware expects Windows 8
-Date: Sat, 15 Jun 2013 16:16:28 +0100
-Message-ID: <20130615151628.GA9868@srcf.ucam.org>
+Date: Sat, 15 Jun 2013 20:29:42 +0200
+Message-ID: <20130615182942.GA6424@phenom.ffwll.local>
 References: <1370818899-8595-1-git-send-email-matthew.garrett@nebula.com>
  <1370818899-8595-4-git-send-email-matthew.garrett@nebula.com>
  <51BABC6F.3050201@intel.com>
@@ -12,106 +12,62 @@ References: <1370818899-8595-1-git-send-email-matthew.garrett@nebula.com>
  <51BBEA32.1040002@intel.com>
  <20130615041945.GA4756@srcf.ucam.org>
  <51BC5E1B.2020400@intel.com>
+ <20130615151628.GA9868@srcf.ucam.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cavan.codon.org.uk ([93.93.128.6]:39093 "EHLO
-	cavan.codon.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754178Ab3FOPQd (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sat, 15 Jun 2013 11:16:33 -0400
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <51BC5E1B.2020400@intel.com>
-Sender: linux-acpi-owner@vger.kernel.org
+In-Reply-To: <20130615151628.GA9868@srcf.ucam.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Matthew Garrett <mjg59@srcf.ucam.org>
+Cc: Aaron Lu <aaron.lu@intel.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, Seth Forshee <seth.forshee@canonical.com>, "Lee, Chun-Yi" <joeyli.kernel@gmail.com>, "daniel.vetter@ffwll.ch" <daniel.vetter@ffwll.ch>, "intel-gfx@lists.freedesktop.org" <intel-gfx@lists.freedesktop.org>, "dri-devel@lists.freedesktop.org" <dri-devel@lists.freedesktop.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Len Brown <lenb@kernel.org>, "Rafael J. Wysocki" <rjw@sisk.pl>, Zhang Rui <rui.zhang@intel.com>, Aaron Lu <aaron.lwe@gmail.com>, Alex Deucher <alexdeucher@gmail.com>
 List-Id: linux-acpi@vger.kernel.org
-To: Aaron Lu <aaron.lu@intel.com>
-Cc: "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, Seth Forshee <seth.forshee@canonical.com>, "Lee, Chun-Yi" <joeyli.kernel@gmail.com>, "daniel.vetter@ffwll.ch" <daniel.vetter@ffwll.ch>, "intel-gfx@lists.freedesktop.org" <intel-gfx@lists.freedesktop.org>, "dri-devel@lists.freedesktop.org" <dri-devel@lists.freedesktop.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Len Brown <lenb@kernel.org>, "Rafael J. Wysocki" <rjw@sisk.pl>, Zhang Rui <rui.zhang@intel.com>, Aaron Lu <aaron.lwe@gmail.com>, Alex Deucher <alexdeucher@gmail.com>
 
-On Sat, Jun 15, 2013 at 08:29:15PM +0800, Aaron Lu wrote:
-> On 06/15/2013 12:19 PM, Matthew Garrett wrote:
-> > The vendor will presumably have tested that backlight control works - if 
-> > the GPU driver uses the ACPI interface and backlight control is broken, 
-> > then the vendor would fix it.
-> 
-> I don't think GPU driver uses ACPI interface, that's why for some
-> systems, ACPI interface is broken while the GPU's is not.
+Hi all,
 
-On systems where the ACPI interface is broken, the GPU driver clearly 
-doesn't use the ACPI interface. As yet, we don't know if that's always 
-true, though.
+So to me it looks like the discussion is going in circles a bit, hence let
+me drop my maintainer-opinion here:
 
-> > Sure, but it still requires the replacement of existing userspace. We 
-> > need to fix the problem with existing userspace, too.
-> 
-> Yes. The problem is two way. First, some of the backlight interface
-> privoder module provides a broken interface; Two, the userspace picked a
-> broken interface while there are usable ones. For example, in the win8
-> thinkpad case, the ACPI video driver provides broken interface and the
-> GPU driver provides usable interface, but userspace choose ACPI video's
-> interface. To make things complicated, if we make the broken interface
-> disappear in ACPI video module, then the platform driver thinkpad_acpi
-> will start to provide another broken interface. I have to say, solve it
-> in the GPU code is a clever way, it's just a little weird to me for a
-> broken interface to be blacklisted, we have to do it in another module,
-> not the broken module itself.
+1. Matthew's patch series here looks reasonable, and if it fixes a bunch
+of systems (which it seems to) it has my Ack and imo should go in. If acpi
+maintainers can smash their Ack onto the acpi parts I'd very much like to
+merge this into drm-intel-next, that should give us the most coverage for
+intel systems.
 
-The ACPI driver has no way of making this kind of policy decision. The 
-GPU driver does.
+Len, Rafael, are you ok with the acpi part of this and merging it through
+drm-intel-next?
 
-> > No, I think we need to fix the bugs that currently require users to pass 
-> > options.
-> 
-> For ACPI video driver, since it relies on firmware to do the right thing,
-> if the functionality is broken, then it is, there is hardly anything we
-> can do...(not always, we can quirk in some cases, but there are cases we
-> can do nothing). In this case, we can:
-> 1 Ask user to add acpi_backlight=vendor, so that ACPI video driver will
->   not create backlight interface and userspace will not pick it;
-> 2 Add that model in DMI table in video_detect.c, eliminating the need for
->   that command line;
-> 3 Add that model in DMI table in another module, let that module
->   unregister backlight interface provided by ACPI video as is done in
->   acer-wmi, asus-wmi, and i915 in this case;
-> 3 Use the backlight section in xorg.conf to make X uses another
->   backlight interface. This may not work for distros that use
->   gsd-backlight-helper, which always prefers firmware.
-> 
-> Which one do you prefer?
+2. Imo the current amount of quirking we expose to users (we have kernel
+options to disable the acpi interface, blacklist platform modules, all
+backlights can be tested through sysfs and on top of that xf86-video-intel
+has an xorg.conf to select the backlight used by the driver). I haven't
+spotted a compelling reason in this thread to add another one, what we
+have seems to be good enough to debug backligh issues.
 
-I'd prefer to figure out how it works in Windows and implement it the 
-same way.
+3. Also, adding yet another backlight quirk mechanism isn't gonna
+magically fix broken systems.
 
-> > How do these machines work under Windows? Until we know the answer to 
-> > that, we don't know what the correct way to handle the problem is under 
-> > Linux.
-> 
-> Do you mean we need to understand Windows behavior so that we can
-> decide where to place the code to do the backlight management thing?
-> So for win8 case, we know MS will use GPU driver to do backlight
-> control, all this means to me is, ACPI video's and platform driver's
-> interface are more likely broken on those systems, but it doesn't
-> qualify why Linux' GPU driver should do the decision, it's not that the
-> GPU driver can poke some GPU register and then decide oh, this model
-> does not have working ACPI backlight interface. As this patch shows, we
-> make the decision by OSI, which is not specific to GPU driver.
+We _really_ should strive to make this just work and not offer the angry
+user another roll of duct-tape for free.
 
-Sure it is - for all we know there's a value in the opregion space that 
-tells the Intel GPU driver which interface we should be using. We don't 
-know because Intel haven't released a version of the opregion driver 
-newer than 2007. It may be that all Windows 8 GPU drivers use the GPU 
-backlight control registers directly and never use any firmware 
-interface, but right now we simply don't know that. All we can do is 
-look at the existing cases we have and say that it appears that 
-Intel graphics systems don't use the ACPI interface. Anything more than 
-that requires more evidence.
+4. The currently established priority selection for backlights of platform
+> firmware > raw seems to be good enough. Note that the explicit list in
+xf86-vidoe-intel is only used as a fallback for really old kernels which
+do not expose this information. We could probably rip it out.
 
-> BTW, I don't think any module knows something better than another
-> module, all quirk logic and DMI entry we currently have in Linux are
-> got by user's feedback(bug reports), it doesn't seem to me some module
-> is natrually the one that should make this decision. Or do I miss
-> something?
+5. We've recently looked at opregion again and couldn't spot a hint.
+Unfortnately it looks like both noodling better information out of Intel
+and trying to publish an updated opregion spec seem to be losing games :(
+We'll keep on trying though.
 
-The GPU driver makes the policy decision under Windows 8, so it's the 
-natural place to make this decision on Windows 8 systems.
+Aside at the end: If the gnome tool indeed has its own backlight code and
+doesn't just use that as a fallback if the xrandr backligh property isn't
+available, then that's just a serious bug in gnome and should be fixed
+asap. But imo that's not something we should try to (nor do I see any way
+how to) work around in the kernel.
 
+Cheers, Daniel
 -- 
-Matthew Garrett | mjg59@srcf.ucam.org
+Daniel Vetter
+Software Engineer, Intel Corporation
++41 (0) 79 365 57 48 - http://blog.ffwll.ch
