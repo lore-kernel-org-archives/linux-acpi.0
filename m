@@ -1,80 +1,200 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: [PATCH 0/5] ACPI / scan: Make it possible to use the container hotplug with other scan handlers
-Date: Sat, 15 Jun 2013 01:20:43 +0200
-Message-ID: <3321228.vG97AE80O6@vostro.rjw.lan>
-References: <1417592.vuSG0cUIGo@vostro.rjw.lan> <3168584.RRBYoY5UXf@vostro.rjw.lan> <CA+8MBbKZBvqVA+wKTK7GpXorpBvDLGCJURc+PQz+QfDiwA1a8A@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7Bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from hydra.sisk.pl ([212.160.235.94]:37823 "EHLO hydra.sisk.pl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753130Ab3FNXL3 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 14 Jun 2013 19:11:29 -0400
-In-Reply-To: <CA+8MBbKZBvqVA+wKTK7GpXorpBvDLGCJURc+PQz+QfDiwA1a8A@mail.gmail.com>
-Sender: linux-acpi-owner@vger.kernel.org
+From: Yinghai Lu <yinghai@kernel.org>
+Subject: [PATCH v5 17/22] x86, ACPI, numa, ia64: split SLIT handling out
+Date: Fri, 14 Jun 2013 17:56:35 -0700
+Message-ID: <1371257800-11720-18-git-send-email-yinghai@kernel.org>
+References: <1371257800-11720-1-git-send-email-yinghai@kernel.org>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1371257800-11720-1-git-send-email-yinghai@kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: "H. Peter Anvin" <hpa@zytor.com>
+Cc: Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@elte.hu>, Andrew Morton <akpm@linux-foundation.org>, Tejun Heo <tj@kernel.org>, Thomas Renninger <trenn@suse.de>, Tang Chen <tangchen@cn.fujitsu.com>, linux-kernel@vger.kernel.org, Yinghai Lu <yinghai@kernel.org>, "Rafael J. Wysocki" <rjw@sisk.pl>, linux-acpi@vger.kernel.org, Tony Luck <tony.luck@intel.com>, Fenghua Yu <fenghua.yu@intel.com>, linux-ia64@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Tony Luck <tony.luck@gmail.com>
-Cc: Toshi Kani <toshi.kani@hp.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>, "Lu, Aaron" <aaron.lu@intel.com>
 
-On Friday, June 14, 2013 03:32:42 PM Tony Luck wrote:
-> On Fri, Jun 14, 2013 at 3:23 PM, Rafael J. Wysocki <rjw@sisk.pl> wrote:
-> > Can you please just test patch [5/5] alone without patches [1-4/5]?  We believe
-> > that this should work too and if that's the case, we'll only need that patch
-> > and a reworked [1/5].
-> 
-> Your belief is sound - I popped all five patches and then applied just
-> 5/5 ... and
-> the system still works.
+We need to handle slit later, as it need to allocate buffer for distance
+matrix. Also we do not need SLIT info before init_mem_mapping.
 
-Great, thanks!
+So move SLIT parsing later.
 
-Can you please apply the appended patch on top of it and see if the system
-still works then?
+x86_acpi_numa_init become x86_acpi_numa_init_srat/x86_acpi_numa_init_slit.
 
-Rafael
+It should not break ia64 by replacing acpi_numa_init with
+acpi_numa_init_srat/acpi_numa_init_slit/acpi_num_arch_fixup.
 
+-v2: Change name to acpi_numa_init_srat/acpi_numa_init_slit according tj.
+     remove the reset_numa_distance() in numa_init(), as get we only set
+     distance in slit handling.
 
+Signed-off-by: Yinghai Lu <yinghai@kernel.org>
+Cc: Rafael J. Wysocki <rjw@sisk.pl>
+Cc: linux-acpi@vger.kernel.org
+Cc: Tony Luck <tony.luck@intel.com>
+Cc: Fenghua Yu <fenghua.yu@intel.com>
+Cc: linux-ia64@vger.kernel.org
+Tested-by: Tony Luck <tony.luck@intel.com>
+Reviewed-by: Tang Chen <tangchen@cn.fujitsu.com>
+Tested-by: Tang Chen <tangchen@cn.fujitsu.com>
 ---
-From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
-Subject: ACPI / scan: Do not bind ACPI drivers to objects with scan handlers
+ arch/ia64/kernel/setup.c    |  4 +++-
+ arch/x86/include/asm/acpi.h |  3 ++-
+ arch/x86/mm/numa.c          | 14 ++++++++++++--
+ arch/x86/mm/srat.c          | 11 +++++++----
+ drivers/acpi/numa.c         | 13 +++++++------
+ include/linux/acpi.h        |  3 ++-
+ 6 files changed, 33 insertions(+), 15 deletions(-)
 
-ACPI drivers must not be bound to device objects having scan handlers
-attatched to them, so make acpi_device_probe() fail with -EINVAL if the
-device object being probed has an ACPI scan handler.
-
-Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
----
- drivers/acpi/scan.c  |    3 +++
- drivers/acpi/video.c |    3 ---
- 2 files changed, 3 insertions(+), 3 deletions(-)
-
-Index: linux-pm/drivers/acpi/scan.c
-===================================================================
---- linux-pm.orig/drivers/acpi/scan.c
-+++ linux-pm/drivers/acpi/scan.c
-@@ -939,6 +939,9 @@ static int acpi_device_probe(struct devi
- 	struct acpi_driver *acpi_drv = to_acpi_driver(dev->driver);
+diff --git a/arch/ia64/kernel/setup.c b/arch/ia64/kernel/setup.c
+index 13bfdd2..5f7db4a 100644
+--- a/arch/ia64/kernel/setup.c
++++ b/arch/ia64/kernel/setup.c
+@@ -558,7 +558,9 @@ setup_arch (char **cmdline_p)
+ 	acpi_table_init();
+ 	early_acpi_boot_init();
+ # ifdef CONFIG_ACPI_NUMA
+-	acpi_numa_init();
++	acpi_numa_init_srat();
++	acpi_numa_init_slit();
++	acpi_numa_arch_fixup();
+ #  ifdef CONFIG_ACPI_HOTPLUG_CPU
+ 	prefill_possible_map();
+ #  endif
+diff --git a/arch/x86/include/asm/acpi.h b/arch/x86/include/asm/acpi.h
+index b31bf97..651db0b 100644
+--- a/arch/x86/include/asm/acpi.h
++++ b/arch/x86/include/asm/acpi.h
+@@ -178,7 +178,8 @@ static inline void disable_acpi(void) { }
+ 
+ #ifdef CONFIG_ACPI_NUMA
+ extern int acpi_numa;
+-extern int x86_acpi_numa_init(void);
++int x86_acpi_numa_init_srat(void);
++void x86_acpi_numa_init_slit(void);
+ #endif /* CONFIG_ACPI_NUMA */
+ 
+ #define acpi_unlazy_tlb(x)	leave_mm(x)
+diff --git a/arch/x86/mm/numa.c b/arch/x86/mm/numa.c
+index 3254f22..630e09f 100644
+--- a/arch/x86/mm/numa.c
++++ b/arch/x86/mm/numa.c
+@@ -595,7 +595,6 @@ static int __init numa_init(int (*init_func)(void))
+ 
+ 	nodes_clear(numa_nodes_parsed);
+ 	memset(&numa_meminfo, 0, sizeof(numa_meminfo));
+-	numa_reset_distance();
+ 
+ 	ret = init_func();
+ 	if (ret < 0)
+@@ -633,6 +632,10 @@ static int __init dummy_numa_init(void)
+ 	return 0;
+ }
+ 
++#ifdef CONFIG_ACPI_NUMA
++static bool srat_used __initdata;
++#endif
++
+ /**
+  * x86_numa_init - Initialize NUMA
+  *
+@@ -648,8 +651,10 @@ static void __init early_x86_numa_init(void)
+ 			return;
+ #endif
+ #ifdef CONFIG_ACPI_NUMA
+-		if (!numa_init(x86_acpi_numa_init))
++		if (!numa_init(x86_acpi_numa_init_srat)) {
++			srat_used = true;
+ 			return;
++		}
+ #endif
+ #ifdef CONFIG_AMD_NUMA
+ 		if (!numa_init(amd_numa_init))
+@@ -667,6 +672,11 @@ void __init x86_numa_init(void)
+ 
+ 	early_x86_numa_init();
+ 
++#ifdef CONFIG_ACPI_NUMA
++	if (srat_used)
++		x86_acpi_numa_init_slit();
++#endif
++
+ 	numa_emulation(&numa_meminfo, numa_distance_cnt);
+ 
+ 	node_possible_map = numa_nodes_parsed;
+diff --git a/arch/x86/mm/srat.c b/arch/x86/mm/srat.c
+index cdd0da9..443f9ef 100644
+--- a/arch/x86/mm/srat.c
++++ b/arch/x86/mm/srat.c
+@@ -185,14 +185,17 @@ out_err:
+ 	return -1;
+ }
+ 
+-void __init acpi_numa_arch_fixup(void) {}
+-
+-int __init x86_acpi_numa_init(void)
++int __init x86_acpi_numa_init_srat(void)
+ {
  	int ret;
  
-+	if (acpi_dev->handler)
-+		return -EINVAL;
+-	ret = acpi_numa_init();
++	ret = acpi_numa_init_srat();
+ 	if (ret < 0)
+ 		return ret;
+ 	return srat_disabled() ? -EINVAL : 0;
+ }
 +
- 	if (!acpi_drv->ops.add)
- 		return -ENOSYS;
++void __init x86_acpi_numa_init_slit(void)
++{
++	acpi_numa_init_slit();
++}
+diff --git a/drivers/acpi/numa.c b/drivers/acpi/numa.c
+index 33e609f..6460db4 100644
+--- a/drivers/acpi/numa.c
++++ b/drivers/acpi/numa.c
+@@ -282,7 +282,7 @@ acpi_table_parse_srat(enum acpi_srat_type id,
+ 					    handler, max_entries);
+ }
  
-Index: linux-pm/drivers/acpi/video.c
-===================================================================
---- linux-pm.orig/drivers/acpi/video.c
-+++ linux-pm/drivers/acpi/video.c
-@@ -1722,9 +1722,6 @@ static int acpi_video_bus_add(struct acp
- 	int error;
- 	acpi_status status;
+-int __init acpi_numa_init(void)
++int __init acpi_numa_init_srat(void)
+ {
+ 	int cnt = 0;
  
--	if (device->handler)
--		return -EINVAL;
+@@ -303,11 +303,6 @@ int __init acpi_numa_init(void)
+ 					    NR_NODE_MEMBLKS);
+ 	}
+ 
+-	/* SLIT: System Locality Information Table */
+-	acpi_table_parse(ACPI_SIG_SLIT, acpi_parse_slit);
 -
- 	status = acpi_walk_namespace(ACPI_TYPE_DEVICE,
- 				device->parent->handle, 1,
- 				acpi_video_bus_match, NULL,
-
+-	acpi_numa_arch_fixup();
+-
+ 	if (cnt < 0)
+ 		return cnt;
+ 	else if (!parsed_numa_memblks)
+@@ -315,6 +310,12 @@ int __init acpi_numa_init(void)
+ 	return 0;
+ }
+ 
++void __init acpi_numa_init_slit(void)
++{
++	/* SLIT: System Locality Information Table */
++	acpi_table_parse(ACPI_SIG_SLIT, acpi_parse_slit);
++}
++
+ int acpi_get_pxm(acpi_handle h)
+ {
+ 	unsigned long long pxm;
+diff --git a/include/linux/acpi.h b/include/linux/acpi.h
+index 4e3731b..92463b5 100644
+--- a/include/linux/acpi.h
++++ b/include/linux/acpi.h
+@@ -85,7 +85,8 @@ int early_acpi_boot_init(void);
+ int acpi_boot_init (void);
+ void acpi_boot_table_init (void);
+ int acpi_mps_check (void);
+-int acpi_numa_init (void);
++int acpi_numa_init_srat(void);
++void acpi_numa_init_slit(void);
+ 
+ int acpi_table_init (void);
+ int acpi_table_parse(char *id, acpi_tbl_table_handler handler);
+-- 
+1.8.1.4
