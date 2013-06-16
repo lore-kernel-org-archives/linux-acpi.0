@@ -1,57 +1,59 @@
-From: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
-Subject: Re: Wishlist: Disable C6 in intel_idle for Model 44 processors
-Date: Sun, 16 Jun 2013 00:29:52 -0300
-Message-ID: <20130616032952.GC10838@khazad-dum.debian.net>
-References: <38D8523B-C50E-4D81-A9E2-526292B19AF3@usgs.gov>
- <20130612134002.GA15317@srcf.ucam.org>
+From: Rusty Russell <rusty@ozlabs.org>
+Subject: Re: mod filenames != modnames? (inconsistent name changing)
+Date: Sun, 16 Jun 2013 15:05:29 +0930
+Message-ID: <87bo76r526.fsf@rustcorp.com.au>
+References: <51B7BD57.7050406@tlinx.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from out4-smtp.messagingengine.com ([66.111.4.28]:33240 "EHLO
-	out4-smtp.messagingengine.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754796Ab3FPDiL (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>);
-	Sat, 15 Jun 2013 23:38:11 -0400
-Content-Disposition: inline
-In-Reply-To: <20130612134002.GA15317@srcf.ucam.org>
-Sender: linux-acpi-owner@vger.kernel.org
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <51B7BD57.7050406@tlinx.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Linda Walsh <lkml@tlinx.org>, Linux-Kernel <linux-kernel@vger.kernel.org>
+Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, kvm@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Matthew Garrett <mjg59@srcf.ucam.org>
-Cc: Larry Baker <baker@usgs.gov>, linux-acpi@vger.kernel.org, Rob E Russell <robr@us.ibm.com>
 
-On Wed, 12 Jun 2013, Matthew Garrett wrote:
-> On Tue, Jun 11, 2013 at 02:30:30PM -0700, Larry Baker wrote:
-> > I have an IBM System x3650 M3 with an Intel Xeon L5630 processor.  My
-> > IBM support team alerted me to an issue with C6 states for those
-> > processors when running Linux and the intel_idle kernel module is used.
-> > The IBM solutions page,
-> > http://www-947.ibm.com/support/entry/portal/docdisplay?lndocid=migr-5091901,
-> > recommends disabling intel_idle.  I propose intel_idle disable C6 for
-> > the affected processors.
-> 
-> As you note:
-> 
-> > > Workaround: It is possible for the BIOS to contain a workaround for
-> > > this erratum.
-> 
-> Are you actually seeing this specific problem? If so, you should probably
-> request a firmware update from IBM. If that's not a possibility, and if it
-> is necessary to disable package C6 in this situation, it'd be nice to
-> determine what the BIOS workaround actually does and limit the quirk to
-> that case.
+Linda Walsh <lkml@tlinx.org> writes:
+> Should we have any expectation that a module name and it's filename
+> should be equivalent?
+>
+> I was writing an auto-complete script for modprobe so it wouldn't give
+> me the option to double load a module (I'd have to manually type it in if
+> I really wanted it).
+>
+> Trouble is some modules with names w/underscores ('_') change
+> register their names with a 'dash'.
 
-"It is possible for the BIOS to contain a workaround for this erratum." is
-Intel speak for either "there is a processor microcode update that fixes
-this", or "there is an undocumented bit somewhere you can toggle that
-disables some functionality, and also works around this bug".
+But modprobe kvm_intel already works.  Just convert any - to _?
 
-Now, good luck finding out WHICH microcode update is required or which bit
-to toggle on whichever MSR/PCIe register.  It is certainly something we
-could easily detect and disable C6 only when required (i.e. workaround not
-in place) or even fix it ourselves... IF we had enough information.
+> Would it be too much trouble to ask that the same names be used in
+> both places?
 
--- 
-  "One disk to rule them all, One disk to find them. One disk to bring
-  them all and in the darkness grind them. In the Land of Redmond
-  where the shadows lie." -- The Silicon Valley Tarot
-  Henrique Holschuh
+Well, you could get kernel developers to rename their files with
+underscores.  I've CC'd them.
+
+We use _ because we turn the module names into identifiers; it's also
+the most common choice, and having both is just confusing.
+
+> I have about 30 modules loaded now and out of that list,
+> 2 are name changes:
+>
+> acpi_cpufreq  (filename acip-cpufreq.ko)
+> kvm_intel     (filename kvm-intel.ko)
+>
+> If I load a bunch more... I find more that change names.
+>
+> Could the naming in the modules that do this be made consistent?
+>
+> Not doing so makes automatically tying a mod-name to it's file
+> tend toward being non-deterministic.
+>
+> Many modules use '-' or '_' without being confused.
+> It would be helpful if the few confused modules could
+> get their identity straight.  Is there a problem with
+> making these names consistent?
+
+It shouldn't break anything to rename them, if there's consensus I'm
+happy to create a patch.
+
+Cheers,
+Rusty.
