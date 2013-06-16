@@ -1,60 +1,72 @@
 From: Jiang Liu <liuj97@gmail.com>
-Subject: Re: [BUGFIX v2 2/4] ACPI, DOCK: resolve possible deadlock scenarios
-Date: Mon, 17 Jun 2013 01:12:00 +0800
-Message-ID: <51BDF1E0.5070201@gmail.com>
-References: <1371238081-32260-1-git-send-email-jiang.liu@huawei.com> <8974656.5GmDyxHW7F@vostro.rjw.lan> <18797091.iPZsNWFGi1@vostro.rjw.lan> <2139297.LeMhgEjsya@vostro.rjw.lan>
+Subject: Re: [BUGFIX v2 0/4] fix bug 56531, 59501 and 59581
+Date: Mon, 17 Jun 2013 01:33:57 +0800
+Message-ID: <51BDF705.5090904@gmail.com>
+References: <1371238081-32260-1-git-send-email-jiang.liu@huawei.com> <CAN_LGv1itN=ADE-3LNCoBJFXmpWZffhQb6NQuoBzvONkX3brug@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-pa0-f47.google.com ([209.85.220.47]:32805 "EHLO
-	mail-pa0-f47.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755334Ab3FPRMI (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sun, 16 Jun 2013 13:12:08 -0400
-In-Reply-To: <2139297.LeMhgEjsya@vostro.rjw.lan>
+Received: from mail-pb0-f44.google.com ([209.85.160.44]:36154 "EHLO
+	mail-pb0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755364Ab3FPReF (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sun, 16 Jun 2013 13:34:05 -0400
+In-Reply-To: <CAN_LGv1itN=ADE-3LNCoBJFXmpWZffhQb6NQuoBzvONkX3brug@mail.gmail.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: Bjorn Helgaas <bhelgaas@google.com>, Yinghai Lu <yinghai@kernel.org>, "Alexander E . Patrakov" <patrakov@gmail.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Yijing Wang <wangyijing@huawei.com>, linux-acpi@vger.kernel.org, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, Len Brown <lenb@kernel.org>, stable@vger.kernel.org, Jiang Liu <jiang.liu@huawei.com>
+To: "Alexander E. Patrakov" <patrakov@gmail.com>
+Cc: Jiang Liu <jiang.liu@huawei.com>, alexdeucher@gmail.com, "Rafael J . Wysocki" <rjw@sisk.pl>, Bjorn Helgaas <bhelgaas@google.com>, Yinghai Lu <yinghai@kernel.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Yijing Wang <wangyijing@huawei.com>, linux-acpi@vger.kernel.org, "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
 
-On 06/16/2013 06:54 AM, Rafael J. Wysocki wrote:
-> On Saturday, June 15, 2013 11:20:40 PM Rafael J. Wysocki wrote:
->> On Saturday, June 15, 2013 10:17:42 PM Rafael J. Wysocki wrote:
+On 06/15/2013 02:42 PM, Alexander E. Patrakov wrote:
+> 2013/6/15 Jiang Liu <jiang.liu@huawei.com>:
+>> Alexander E. Patrakov <patrakov@gmail.com> reports two bugs related to
+>> dock station support on Sony VAIO VPCZ23A4R. Actually there are at least
+>> four bugs related to Sony VAIO VPCZ23A4R dock support.
+>> 1) can't correctly detect hotplug slot for dock state
+>> 2) resource leak on undocking
+>> 3) resource allocation failure for dock devices
+>> 4) one bug in intel_snd_hda driver
+> 5) one or two bugs in radeon driver
 > 
-> [...]
+> As for the subject - only a hotplug-related part of bug 59581 is fixed.
 > 
->>
->> Which sysfs interfaces do you mean, by the way?
->>
->> If you mean "eject", then it takes acpi_scan_lock and hotplug_dock_devices()
->> should always be run under acpi_scan_lock too.  It isn't at the moment,
->> because write_undock() doesn't take acpi_scan_lock(), but this is an obvious
->> bug (so I'm going to send a patch to fix it in a while).
->>
->> With that bug fixed, the possible race between acpi_eject_store() and
->> hotplug_dock_devices() should be prevented from happening, so perhaps we're
->> worrying about something that cannot happen?
+>> Hi Alexander, could you please help to test the whole patchset?
+>> Really get sleepy, it's already 3 oclock now, so please forgive me
+>> if there any stupid mistakes.
 > 
-> So here's a question: What particular races are possible if we remove
-> ds->hp_lock entirely without doing anything else just yet?  I mean, how to
-> *trigger* them from the start to the end and not how they can possibly happen
-> but never do, because there's no way they can be actually triggered?
-Hi Rafael,
-    I have no really platform which triggers this bug, but I may imagine
-a possible platform if it's valid for explanation.
-    Let's think about a laptop dock station with a thunderbolt
-controller built-in. The dock station is managed by dock driver and
-acpiphp driver. And the PCIe hierarchy managed by the thunderbolt
-controller may be managed by dock driver and ACPIPHP driver too.
-So it may trigger the issue by pressing the dock button and unplugging
-thunderbolt cable concurrently.
-    But after all, this is all by imagination:). We may need to find a
-simple and quick solution for 3.10 and the stable trees and enhance the
-solution later to avoid introducing new bugs while fixing a bug.
+> I have tested this patchset on top of 3.10-rc5 using the following two
+> testcases.
+> 
+> 1. Boot docked with radeon blacklisted. Switch to text-based virtual
+> console, undock, dock, modprobe radeon, rmmod radeon, undock, dock,
+> modprobe radeon again. Tested in this sequence because Alex Deucher
+> told me in bug 59681 to rmmod radeon before undocking.
+> 
+> 2. Boot undocked, with radeon not blacklisted. Stay in X. Dock,
+> undock, dock, undock, dock.
+> 
+> Both cases work, and exhibit similar backtraces in dmesg. So I am
+> attaching a dmesg only from the first testcase. Please look for "INFO:
+> trying to register non-static key" and for "*ERROR* Memory manager not
+> clean. Delaying takedown". I understand that the second trace is
+> unrelated to this patchset, but would like you to fix the first.
+Hi Alexander,
+	Great thanks for your testing!
+	I have investigated the first issue but still have no idea about it.
+According to source code, everything should be OK.
+The r8169 driver has invoked INIT_WORK(&tp->wk.work, rtl_task) to
+initialize the work item, so it shouldn't trigger the warning.
+Have you found this issue in other test cases?
 Regards!
 Gerry
+
 > 
-> Rafael
+> Note that the snd_hda_intel bug somehow didn't manifest itself today,
+> probably because the TV that is connected to the HDMI output of the
+> radeon card was off and because Xorg never really tried to use the
+> card.
 > 
+> --
+> Alexander E. Patrakov
 > 
 
