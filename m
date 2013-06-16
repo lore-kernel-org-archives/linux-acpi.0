@@ -1,59 +1,56 @@
-From: Rusty Russell <rusty@ozlabs.org>
-Subject: Re: mod filenames != modnames? (inconsistent name changing)
-Date: Sun, 16 Jun 2013 15:05:29 +0930
-Message-ID: <87bo76r526.fsf@rustcorp.com.au>
-References: <51B7BD57.7050406@tlinx.org>
+From: Borislav Petkov <bp@alien8.de>
+Subject: Re: [PATCH] Re: [Patch] MCE, APEI: Don't enable CMCI when Firmware
+ First mode is set in
+Date: Sun, 16 Jun 2013 14:20:30 +0200
+Message-ID: <20130616122030.GA12290@nazgul.tnic>
+References: <3908561D78D1C84285E8C5FCA982C28F2DA47F03@ORSMSX101.amr.corp.intel.com>
+ <20130614181721.11206.95341.stgit@localhost.localdomain>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <51B7BD57.7050406@tlinx.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Linda Walsh <lkml@tlinx.org>, Linux-Kernel <linux-kernel@vger.kernel.org>
-Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, kvm@vger.kernel.org
+Content-Type: text/plain; charset=utf-8
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail.skyhub.de ([78.46.96.112]:46164 "EHLO mail.skyhub.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755133Ab3FPMUc (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Sun, 16 Jun 2013 08:20:32 -0400
+Content-Disposition: inline
+In-Reply-To: <20130614181721.11206.95341.stgit@localhost.localdomain>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: "Naveen N. Rao" <naveen.n.rao@linux.vnet.ibm.com>
+Cc: tony.luck@intel.com, ananth@in.ibm.com, masbock@linux.vnet.ibm.com, lcm@linux.vnet.ibm.com, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, ying.huang@intel.com
 
-Linda Walsh <lkml@tlinx.org> writes:
-> Should we have any expectation that a module name and it's filename
-> should be equivalent?
->
-> I was writing an auto-complete script for modprobe so it wouldn't give
-> me the option to double load a module (I'd have to manually type it in if
-> I really wanted it).
->
-> Trouble is some modules with names w/underscores ('_') change
-> register their names with a 'dash'.
+On Fri, Jun 14, 2013 at 11:47:21PM +0530, Naveen N. Rao wrote:
+> +static int __init hest_parse_cmc(struct acpi_hest_header *hest_hdr, void *data)
+> +{
+> +	int i;
+> +	struct acpi_hest_ia_corrected *cmc;
+> +	struct acpi_hest_ia_error_bank *mc_bank;
+> +
+> +	if (hest_hdr->type != ACPI_HEST_TYPE_IA32_CORRECTED_CHECK)
+> +		return 0;
+> +
+> +	if (!((struct acpi_hest_generic *)hest_hdr)->enabled)
+> +		return 0;
+> +
+> +	cmc = (struct acpi_hest_ia_corrected *)hest_hdr;
+> +	if (!(cmc->flags & ACPI_HEST_FIRMWARE_FIRST))
+> +		return 0;
+> +
+> +	/*
+> +	 * We expect HEST to provide a list of MC banks that
+> +	 * report errors through firmware first mode.
+> +	 */
+> +	if (cmc->num_hardware_banks <= 0)
+> +		return 0;
+> +
+> +	pr_info("HEST: Enabling Firmware First mode for corrected errors\n");
+> +
+> +	mc_bank = (struct acpi_hest_ia_error_bank *)(cmc + 1);
+> +	for (i = 0; i < cmc->num_hardware_banks; i++, mc_bank++)
+> +		mce_disable_bank(mc_bank->bank_number);
 
-But modprobe kvm_intel already works.  Just convert any - to _?
+One more thing: we never trust the BIOS so mce_disable_bank() should
+sanity-check this mc_bank->bank_number against the number of the
+actually available banks on the system before disabling anything.
 
-> Would it be too much trouble to ask that the same names be used in
-> both places?
-
-Well, you could get kernel developers to rename their files with
-underscores.  I've CC'd them.
-
-We use _ because we turn the module names into identifiers; it's also
-the most common choice, and having both is just confusing.
-
-> I have about 30 modules loaded now and out of that list,
-> 2 are name changes:
->
-> acpi_cpufreq  (filename acip-cpufreq.ko)
-> kvm_intel     (filename kvm-intel.ko)
->
-> If I load a bunch more... I find more that change names.
->
-> Could the naming in the modules that do this be made consistent?
->
-> Not doing so makes automatically tying a mod-name to it's file
-> tend toward being non-deterministic.
->
-> Many modules use '-' or '_' without being confused.
-> It would be helpful if the few confused modules could
-> get their identity straight.  Is there a problem with
-> making these names consistent?
-
-It shouldn't break anything to rename them, if there's consensus I'm
-happy to create a patch.
-
-Cheers,
-Rusty.
+Thanks.
