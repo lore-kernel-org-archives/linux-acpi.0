@@ -1,72 +1,66 @@
-From: Jiang Liu <liuj97@gmail.com>
-Subject: Re: [BUGFIX v2 0/4] fix bug 56531, 59501 and 59581
-Date: Mon, 17 Jun 2013 01:33:57 +0800
-Message-ID: <51BDF705.5090904@gmail.com>
-References: <1371238081-32260-1-git-send-email-jiang.liu@huawei.com> <CAN_LGv1itN=ADE-3LNCoBJFXmpWZffhQb6NQuoBzvONkX3brug@mail.gmail.com>
+From: Aaron Lu <aaron.lu@intel.com>
+Subject: [PATCH] acpi: video: no automatic brightness changes by firmware
+Date: Mon, 17 Jun 2013 09:01:10 +0800
+Message-ID: <51BE5FD6.6070405@intel.com>
+References: <51B98CFD.7090409@intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-pb0-f44.google.com ([209.85.160.44]:36154 "EHLO
-	mail-pb0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755364Ab3FPReF (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sun, 16 Jun 2013 13:34:05 -0400
-In-Reply-To: <CAN_LGv1itN=ADE-3LNCoBJFXmpWZffhQb6NQuoBzvONkX3brug@mail.gmail.com>
+Received: from mga02.intel.com ([134.134.136.20]:61323 "EHLO mga02.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755002Ab3FQBAn (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Sun, 16 Jun 2013 21:00:43 -0400
+In-Reply-To: <51B98CFD.7090409@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Alexander E. Patrakov" <patrakov@gmail.com>
-Cc: Jiang Liu <jiang.liu@huawei.com>, alexdeucher@gmail.com, "Rafael J . Wysocki" <rjw@sisk.pl>, Bjorn Helgaas <bhelgaas@google.com>, Yinghai Lu <yinghai@kernel.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Yijing Wang <wangyijing@huawei.com>, linux-acpi@vger.kernel.org, "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
+To: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: Len Brown <lenb@kernel.org>, ACPI Devel Mailing List <linux-acpi@vger.kernel.org>, Zhang Rui <rui.zhang@intel.com>, Micael Dias <kam1kaz3@gmail.com>, Dan Garton <dan.garton@gmail.com>, Bob Ziuchkovski <bob.ziuchkovski@gmail.com>
 
-On 06/15/2013 02:42 PM, Alexander E. Patrakov wrote:
-> 2013/6/15 Jiang Liu <jiang.liu@huawei.com>:
->> Alexander E. Patrakov <patrakov@gmail.com> reports two bugs related to
->> dock station support on Sony VAIO VPCZ23A4R. Actually there are at least
->> four bugs related to Sony VAIO VPCZ23A4R dock support.
->> 1) can't correctly detect hotplug slot for dock state
->> 2) resource leak on undocking
->> 3) resource allocation failure for dock devices
->> 4) one bug in intel_snd_hda driver
-> 5) one or two bugs in radeon driver
-> 
-> As for the subject - only a hotplug-related part of bug 59581 is fixed.
-> 
->> Hi Alexander, could you please help to test the whole patchset?
->> Really get sleepy, it's already 3 oclock now, so please forgive me
->> if there any stupid mistakes.
-> 
-> I have tested this patchset on top of 3.10-rc5 using the following two
-> testcases.
-> 
-> 1. Boot docked with radeon blacklisted. Switch to text-based virtual
-> console, undock, dock, modprobe radeon, rmmod radeon, undock, dock,
-> modprobe radeon again. Tested in this sequence because Alex Deucher
-> told me in bug 59681 to rmmod radeon before undocking.
-> 
-> 2. Boot undocked, with radeon not blacklisted. Stay in X. Dock,
-> undock, dock, undock, dock.
-> 
-> Both cases work, and exhibit similar backtraces in dmesg. So I am
-> attaching a dmesg only from the first testcase. Please look for "INFO:
-> trying to register non-static key" and for "*ERROR* Memory manager not
-> clean. Delaying takedown". I understand that the second trace is
-> unrelated to this patchset, but would like you to fix the first.
-Hi Alexander,
-	Great thanks for your testing!
-	I have investigated the first issue but still have no idea about it.
-According to source code, everything should be OK.
-The r8169 driver has invoked INIT_WORK(&tp->wk.work, rtl_task) to
-initialize the work item, so it shouldn't trigger the warning.
-Have you found this issue in other test cases?
-Regards!
-Gerry
+Starting from win8, MS backlight control driver will set bit 2 of the
+parameter of control method _DOS, to inform firmware it should not
+perform any automatic brightness changes. This mostly affects hotkey
+notification deliver - if we do not set this bit, on hotkey press,
+firmware may choose to adjust brightness level instead of sending out
+notification and doing nothing.
 
-> 
-> Note that the snd_hda_intel bug somehow didn't manifest itself today,
-> probably because the TV that is connected to the HDMI output of the
-> radeon card was off and because Xorg never really tried to use the
-> card.
-> 
-> --
-> Alexander E. Patrakov
-> 
+So this patch sets bit 2 when calling _DOS so that GUIs can show the
+notification window on hotkey press.
 
+The MS document on win8 backlight control is here:
+http://msdn.microsoft.com/en-US/library/windows/hardware/jj159305
+
+This patch solves problem for ASUS N56VZ and ASUS N56VJ, both for
+notification delivery and for brightness control.
+
+Buglink: https://bugzilla.kernel.org/show_bug.cgi?id=52951
+Buglink: https://bugzilla.kernel.org/show_bug.cgi?id=56711
+Reported-and-tested-by: Micael Dias <kam1kaz3@gmail.com>
+Reported-and-tested-by: Dan Garton <dan.garton@gmail.com>
+Reported-and-tested-by: Bob Ziuchkovski <bob.ziuchkovski@gmail.com>
+Signed-off-by: Aaron Lu <aaron.lu@intel.com>
+---
+ drivers/acpi/video.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/drivers/acpi/video.c b/drivers/acpi/video.c
+index b8299f2..f8fa541 100644
+--- a/drivers/acpi/video.c
++++ b/drivers/acpi/video.c
+@@ -1543,12 +1543,12 @@ static int acpi_video_bus_put_devices(struct acpi_video_bus *video)
+ 
+ static int acpi_video_bus_start_devices(struct acpi_video_bus *video)
+ {
+-	return acpi_video_bus_DOS(video, 0, 0);
++	return acpi_video_bus_DOS(video, 0, 1);
+ }
+ 
+ static int acpi_video_bus_stop_devices(struct acpi_video_bus *video)
+ {
+-	return acpi_video_bus_DOS(video, 0, 1);
++	return acpi_video_bus_DOS(video, 0, 0);
+ }
+ 
+ static void acpi_video_bus_notify(struct acpi_device *device, u32 event)
+-- 
+1.8.3.3.gfada522
