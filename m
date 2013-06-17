@@ -1,81 +1,47 @@
-From: Aaron Lu <aaron.lu@intel.com>
-Subject: Re: [PATCH] acpi: video: no automatic brightness changes by firmware
-Date: Mon, 17 Jun 2013 23:01:50 +0800
-Message-ID: <51BF24DE.7090906@intel.com>
-References: <51B98CFD.7090409@intel.com> <51BE5FD6.6070405@intel.com> <29837409.i8Bi9MdLJI@vostro.rjw.lan>
+From: "Moore, Robert" <robert.moore@intel.com>
+Subject: RE: [PATCH 15/16] ACPICA: _CST repair: Handle null package entries
+Date: Mon, 17 Jun 2013 16:41:45 +0000
+Message-ID: <94F2FBAB4432B54E8AACC7DFDE6C92E36FE88016@ORSMSX103.amr.corp.intel.com>
+References: <cover.1369274558.git.lv.zheng@intel.com>
+	<f941986213920b382a8f43af43caec298cd16a5a.1369274559.git.lv.zheng@intel.com>
+ <CAJvTdKm06aCeLvV28=TSrv5wqoapUY0vh2=ppY5p5pFW0pUKFw@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga02.intel.com ([134.134.136.20]:42967 "EHLO mga02.intel.com"
+Received: from mga14.intel.com ([143.182.124.37]:35656 "EHLO mga14.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752237Ab3FQPBl (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 17 Jun 2013 11:01:41 -0400
-In-Reply-To: <29837409.i8Bi9MdLJI@vostro.rjw.lan>
+	id S1751062Ab3FQQlr convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 17 Jun 2013 12:41:47 -0400
+In-Reply-To: <CAJvTdKm06aCeLvV28=TSrv5wqoapUY0vh2=ppY5p5pFW0pUKFw@mail.gmail.com>
+Content-Language: en-US
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: Len Brown <lenb@kernel.org>, ACPI Devel Mailing List <linux-acpi@vger.kernel.org>, Zhang Rui <rui.zhang@intel.com>, Micael Dias <kam1kaz3@gmail.com>, Dan Garton <dan.garton@gmail.com>, Bob Ziuchkovski <bob.ziuchkovski@gmail.com>
+To: Len Brown <lenb@kernel.org>, "Zheng, Lv" <lv.zheng@intel.com>
+Cc: "Wysocki, Rafael J" <rafael.j.wysocki@intel.com>, "Brown, Len" <len.brown@intel.com>, linux acpi <linux-acpi@vger.kernel.org>
 
-On 06/17/2013 07:27 PM, Rafael J. Wysocki wrote:
-> On Monday, June 17, 2013 09:01:10 AM Aaron Lu wrote:
->> Starting from win8, MS backlight control driver will set bit 2 of the
->> parameter of control method _DOS, to inform firmware it should not
->> perform any automatic brightness changes. This mostly affects hotkey
->> notification deliver - if we do not set this bit, on hotkey press,
->> firmware may choose to adjust brightness level instead of sending out
->> notification and doing nothing.
->>
->> So this patch sets bit 2 when calling _DOS so that GUIs can show the
->> notification window on hotkey press.
->>
->> The MS document on win8 backlight control is here:
->> http://msdn.microsoft.com/en-US/library/windows/hardware/jj159305
->>
->> This patch solves problem for ASUS N56VZ and ASUS N56VJ, both for
->> notification delivery and for brightness control.
->>
->> Buglink: https://bugzilla.kernel.org/show_bug.cgi?id=52951
->> Buglink: https://bugzilla.kernel.org/show_bug.cgi?id=56711
->> Reported-and-tested-by: Micael Dias <kam1kaz3@gmail.com>
->> Reported-and-tested-by: Dan Garton <dan.garton@gmail.com>
->> Reported-and-tested-by: Bob Ziuchkovski <bob.ziuchkovski@gmail.com>
->> Signed-off-by: Aaron Lu <aaron.lu@intel.com>
+This one is just adding additional checks on the _CST that are obvious errors in the AML. The eventual goal of the "repair" code in ACPICA is to never return a bad package from things like _CST. In other words, an AE_OK guarantees that the return value is usable. 
+
+So, this is an additional implementation of this longer-range project.
+
+
+> -----Original Message-----
+> From: lenb417@gmail.com [mailto:lenb417@gmail.com] On Behalf Of Len Brown
+> Sent: Wednesday, June 12, 2013 11:00 AM
+> To: Zheng, Lv
+> Cc: Wysocki, Rafael J; Moore, Robert; Brown, Len; linux acpi
+> Subject: Re: [PATCH 15/16] ACPICA: _CST repair: Handle null package
+> entries
 > 
-> OK, do we need that in -stable and if so, which ones?
-
-Perhaps only for new kernels, since 3.7 and 3.8 are EOL-ed, so just
-for 3.9. I don't think older kernels need change the behavior.
-
-Thanks,
-Aaron
-
-> 
-> Rafael
+> On Fri, Jun 7, 2013 at 9:01 PM, Lv Zheng <lv.zheng@intel.com> wrote:
+> > Sort package only after null/bad elements have been removed.
+> > Lv Zheng.
 > 
 > 
->> ---
->>  drivers/acpi/video.c | 4 ++--
->>  1 file changed, 2 insertions(+), 2 deletions(-)
->>
->> diff --git a/drivers/acpi/video.c b/drivers/acpi/video.c
->> index b8299f2..f8fa541 100644
->> --- a/drivers/acpi/video.c
->> +++ b/drivers/acpi/video.c
->> @@ -1543,12 +1543,12 @@ static int acpi_video_bus_put_devices(struct acpi_video_bus *video)
->>  
->>  static int acpi_video_bus_start_devices(struct acpi_video_bus *video)
->>  {
->> -	return acpi_video_bus_DOS(video, 0, 0);
->> +	return acpi_video_bus_DOS(video, 0, 1);
->>  }
->>  
->>  static int acpi_video_bus_stop_devices(struct acpi_video_bus *video)
->>  {
->> -	return acpi_video_bus_DOS(video, 0, 1);
->> +	return acpi_video_bus_DOS(video, 0, 0);
->>  }
->>  
->>  static void acpi_video_bus_notify(struct acpi_device *device, u32 event)
->>
-
+> again, please explain WHY.
+> 
+> Every line of change to the kernel adds risk.
+> I see no justification in this commit message why any risk should be added
+> to the kernel.
+> 
+> Nacked-by: Len Brown <len.brown@intel.com>
