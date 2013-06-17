@@ -1,68 +1,84 @@
-From: Yinghai Lu <yinghai@kernel.org>
-Subject: Re: [Part1 PATCH v5 03/22] x86, ACPI, mm: Kill max_low_pfn_mapped
-Date: Mon, 17 Jun 2013 14:13:58 -0700
-Message-ID: <CAE9FiQXTAT69WKvzXe7FuuSqiA9epuSGPFP2ihhpDZkqYtn9_g@mail.gmail.com>
-References: <1371128589-8953-1-git-send-email-tangchen@cn.fujitsu.com>
-	<1371128589-8953-4-git-send-email-tangchen@cn.fujitsu.com>
-	<20130617210422.GN32663@mtj.dyndns.org>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: Re: [PATCH] acpi: video: no automatic brightness changes by firmware
+Date: Tue, 18 Jun 2013 00:19:05 +0200
+Message-ID: <3341487.qAzF7nzhrM@vostro.rjw.lan>
+References: <51B98CFD.7090409@intel.com> <29837409.i8Bi9MdLJI@vostro.rjw.lan> <51BF24DE.7090906@intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7Bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-ie0-f176.google.com ([209.85.223.176]:39966 "EHLO
-	mail-ie0-f176.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753923Ab3FQVN6 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 17 Jun 2013 17:13:58 -0400
-In-Reply-To: <20130617210422.GN32663@mtj.dyndns.org>
+Received: from hydra.sisk.pl ([212.160.235.94]:40648 "EHLO hydra.sisk.pl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751874Ab3FQWJu (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 17 Jun 2013 18:09:50 -0400
+In-Reply-To: <51BF24DE.7090906@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Tejun Heo <tj@kernel.org>
-Cc: Tang Chen <tangchen@cn.fujitsu.com>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@elte.hu>, "H. Peter Anvin" <hpa@zytor.com>, Andrew Morton <akpm@linux-foundation.org>, Thomas Renninger <trenn@suse.de>, Jiang Liu <jiang.liu@huawei.com>, Wen Congyang <wency@cn.fujitsu.com>, Lai Jiangshan <laijs@cn.fujitsu.com>, Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>, Mel Gorman <mgorman@suse.de>, Minchan Kim <minchan@kernel.org>, mina86@mina86.com, gong.chen@linux.intel.com, vasilis.liaskovitis@profitbricks.com, lwoodman@redhat.com, Rik van Riel <riel@redhat.com>, jweiner@redhat.com, Prarit Bhargava <prarit@redhat.com>, the arch/x86 maintainers <x86@kernel.org>, linux-doc@vger.kernel.org, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Linux MM <linux-mm@kvack.org>, "Rafael J. Wysocki" <rjw@sisk.pl>, Jacob Shin <jacob.shin@amd.com>
+To: Aaron Lu <aaron.lu@intel.com>
+Cc: Len Brown <lenb@kernel.org>, ACPI Devel Mailing List <linux-acpi@vger.kernel.org>, Zhang Rui <rui.zhang@intel.com>, Micael Dias <kam1kaz3@gmail.com>, Dan Garton <dan.garton@gmail.com>, Bob Ziuchkovski <bob.ziuchkovski@gmail.com>
 
-On Mon, Jun 17, 2013 at 2:04 PM, Tejun Heo <tj@kernel.org> wrote:
-> Hello,
->
-> On Thu, Jun 13, 2013 at 09:02:50PM +0800, Tang Chen wrote:
->> From: Yinghai Lu <yinghai@kernel.org>
->>
->> Now we have pfn_mapped[] array, and max_low_pfn_mapped should not
->> be used anymore. Users should use pfn_mapped[] or just
->> 1UL<<(32-PAGE_SHIFT) instead.
->>
->> The only user of max_low_pfn_mapped is ACPI_INITRD_TABLE_OVERRIDE.
->> We could change to use 1U<<(32_PAGE_SHIFT) with it, aka under 4G.
->
->                                 ^ typo
+On Monday, June 17, 2013 11:01:50 PM Aaron Lu wrote:
+> On 06/17/2013 07:27 PM, Rafael J. Wysocki wrote:
+> > On Monday, June 17, 2013 09:01:10 AM Aaron Lu wrote:
+> >> Starting from win8, MS backlight control driver will set bit 2 of the
+> >> parameter of control method _DOS, to inform firmware it should not
+> >> perform any automatic brightness changes. This mostly affects hotkey
+> >> notification deliver - if we do not set this bit, on hotkey press,
+> >> firmware may choose to adjust brightness level instead of sending out
+> >> notification and doing nothing.
+> >>
+> >> So this patch sets bit 2 when calling _DOS so that GUIs can show the
+> >> notification window on hotkey press.
+> >>
+> >> The MS document on win8 backlight control is here:
+> >> http://msdn.microsoft.com/en-US/library/windows/hardware/jj159305
+> >>
+> >> This patch solves problem for ASUS N56VZ and ASUS N56VJ, both for
+> >> notification delivery and for brightness control.
+> >>
+> >> Buglink: https://bugzilla.kernel.org/show_bug.cgi?id=52951
+> >> Buglink: https://bugzilla.kernel.org/show_bug.cgi?id=56711
+> >> Reported-and-tested-by: Micael Dias <kam1kaz3@gmail.com>
+> >> Reported-and-tested-by: Dan Garton <dan.garton@gmail.com>
+> >> Reported-and-tested-by: Bob Ziuchkovski <bob.ziuchkovski@gmail.com>
+> >> Signed-off-by: Aaron Lu <aaron.lu@intel.com>
+> > 
+> > OK, do we need that in -stable and if so, which ones?
+> 
+> Perhaps only for new kernels, since 3.7 and 3.8 are EOL-ed, so just
+> for 3.9. I don't think older kernels need change the behavior.
 
-ok.
+Well, 3.8 has become a long-term at least ...
 
->
-> ...
->> diff --git a/drivers/acpi/osl.c b/drivers/acpi/osl.c
->> index e721863..93e3194 100644
->> --- a/drivers/acpi/osl.c
->> +++ b/drivers/acpi/osl.c
->> @@ -624,9 +624,9 @@ void __init acpi_initrd_override(void *data, size_t size)
->>       if (table_nr == 0)
->>               return;
->>
->> -     acpi_tables_addr =
->> -             memblock_find_in_range(0, max_low_pfn_mapped << PAGE_SHIFT,
->> -                                    all_tables_size, PAGE_SIZE);
->> +     /* under 4G at first, then above 4G */
->> +     acpi_tables_addr = memblock_find_in_range(0, (1ULL<<32) - 1,
->> +                                     all_tables_size, PAGE_SIZE);
->
-> No bigge, but why (1ULL << 32) - 1?  Shouldn't it be just 1ULL << 32?
-> memblock deals with [@start, @end) areas, right?
+Thanks,
+Rafael
 
-that is for 32bit, when phys_addr_t is 32bit, in that case
-(1ULL<<32) cast to 32bit would be 0.
 
->
-> Other than that,
->
->  Acked-by: Tejun Heo <tj@kernel.org>
-
-Thanks
-
-Yinghai
+> >> ---
+> >>  drivers/acpi/video.c | 4 ++--
+> >>  1 file changed, 2 insertions(+), 2 deletions(-)
+> >>
+> >> diff --git a/drivers/acpi/video.c b/drivers/acpi/video.c
+> >> index b8299f2..f8fa541 100644
+> >> --- a/drivers/acpi/video.c
+> >> +++ b/drivers/acpi/video.c
+> >> @@ -1543,12 +1543,12 @@ static int acpi_video_bus_put_devices(struct acpi_video_bus *video)
+> >>  
+> >>  static int acpi_video_bus_start_devices(struct acpi_video_bus *video)
+> >>  {
+> >> -	return acpi_video_bus_DOS(video, 0, 0);
+> >> +	return acpi_video_bus_DOS(video, 0, 1);
+> >>  }
+> >>  
+> >>  static int acpi_video_bus_stop_devices(struct acpi_video_bus *video)
+> >>  {
+> >> -	return acpi_video_bus_DOS(video, 0, 1);
+> >> +	return acpi_video_bus_DOS(video, 0, 0);
+> >>  }
+> >>  
+> >>  static void acpi_video_bus_notify(struct acpi_device *device, u32 event)
+> >>
+> 
+-- 
+I speak only for myself.
+Rafael J. Wysocki, Intel Open Source Technology Center.
