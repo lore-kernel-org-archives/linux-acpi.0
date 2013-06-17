@@ -1,116 +1,132 @@
-From: Toshi Kani <toshi.kani@hp.com>
-Subject: Re: [PATCH v5 05/22] x86, ACPI: Increase override tables number
- limit
-Date: Mon, 17 Jun 2013 17:35:29 -0600
-Message-ID: <1371512129.27152.27.camel@misato.fc.hp.com>
+From: Yinghai Lu <yinghai@kernel.org>
+Subject: Re: [PATCH v5 03/22] x86, ACPI, mm: Kill max_low_pfn_mapped
+Date: Mon, 17 Jun 2013 16:36:12 -0700
+Message-ID: <CAE9FiQUsLp2p3yGV0oTzMvJK0YJQvibXg+LD+Dt+Q8D6cfUg_g@mail.gmail.com>
 References: <1371257800-11720-1-git-send-email-yinghai@kernel.org>
-	 <1371257800-11720-6-git-send-email-yinghai@kernel.org>
+	<1371257800-11720-4-git-send-email-yinghai@kernel.org>
+	<1371511164.27152.22.camel@misato.fc.hp.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1371257800-11720-6-git-send-email-yinghai@kernel.org>
+In-Reply-To: <1371511164.27152.22.camel@misato.fc.hp.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Yinghai Lu <yinghai@kernel.org>
-Cc: "H. Peter Anvin" <hpa@zytor.com>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@elte.hu>, Andrew Morton <akpm@linux-foundation.org>, Tejun Heo <tj@kernel.org>, Thomas Renninger <trenn@suse.de>, Tang Chen <tangchen@cn.fujitsu.com>, linux-kernel@vger.kernel.org, "Rafael J. Wysocki" <rjw@sisk.pl>, linux-acpi@vger.kernel.org
+To: Toshi Kani <toshi.kani@hp.com>
+Cc: "H. Peter Anvin" <hpa@zytor.com>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@elte.hu>, Andrew Morton <akpm@linux-foundation.org>, Tejun Heo <tj@kernel.org>, Thomas Renninger <trenn@suse.de>, Tang Chen <tangchen@cn.fujitsu.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, "Rafael J. Wysocki" <rjw@sisk.pl>, Jacob Shin <jacob.shin@amd.com>, Pekka Enberg <penberg@kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On Fri, 2013-06-14 at 17:56 -0700, Yinghai Lu wrote:
-> Current acpi tables in initrd is limited to 10, that is too small.
-> 64 should be good enough as we have 35 sigs and could have several
-> SSDT.
-> 
-> Two problems in current code prevent us from increasing limit:
-> 1. that cpio file info array is put in stack, as every element is 32
->    bytes, could run out of stack if we have that array size to 64.
->    We can move it out from stack, and make it as global and put it in
->    __initdata section.
-> 2. early_ioremap only can remap 256k one time. Current code is mapping
->    10 tables one time. If we increase that limit, whole size could be
->    more than 256k, early_ioremap will fail with that.
->    We can map table one by one during copying, instead of mapping
->    all them one time.
-> 
-> -v2: According to tj, split it out to separated patch, also
->      rename array name to acpi_initrd_files.
-> -v3: Add some comments about mapping table one by one during copying
->      per tj.
-> 
-> Signed-off-by: Yinghai <yinghai@kernel.org>
-> Cc: Rafael J. Wysocki <rjw@sisk.pl>
-> Cc: linux-acpi@vger.kernel.org
-> Acked-by: Tejun Heo <tj@kernel.org>
-> Tested-by: Thomas Renninger <trenn@suse.de>
-> Reviewed-by: Tang Chen <tangchen@cn.fujitsu.com>
-> Tested-by: Tang Chen <tangchen@cn.fujitsu.com>
+On Mon, Jun 17, 2013 at 4:19 PM, Toshi Kani <toshi.kani@hp.com> wrote:
+> On Fri, 2013-06-14 at 17:56 -0700, Yinghai Lu wrote:
+>> Now we have arch_pfn_mapped array, and max_low_pfn_mapped should not
+>> be used anymore.
+>
+> Can you describe why max_low_pfn_mapped should not be used?  Is this to
+> allow moving the code of acpi_initrd_override() up before
+> init_mem_mapping() in a succeeding patch, or is there also another
+> reason behind it?  Also, I think arch_pfn_mapped should be pfn_mapped[].
 
-Acked-by: Toshi Kani <toshi.kani@hp.com>
+ok, assumption that from [0, max_low_pfn_mapped) all mapped.
 
-Thanks,
--Toshi
+Now we only map the  RAM or KERNL_RESERVED, to prevent user from
+taking it granted that only check it is below max_low_pfn_mapped to assume
+it mapped.
 
+Yes, is should be pfn_mapped[]
 
-> ---
->  drivers/acpi/osl.c | 26 +++++++++++++++-----------
->  1 file changed, 15 insertions(+), 11 deletions(-)
-> 
-> diff --git a/drivers/acpi/osl.c b/drivers/acpi/osl.c
-> index 42c48fc..c4ea2b7 100644
-> --- a/drivers/acpi/osl.c
-> +++ b/drivers/acpi/osl.c
-> @@ -569,8 +569,8 @@ static const char * const table_sigs[] = {
->  
->  #define ACPI_HEADER_SIZE sizeof(struct acpi_table_header)
->  
-> -/* Must not increase 10 or needs code modification below */
-> -#define ACPI_OVERRIDE_TABLES 10
-> +#define ACPI_OVERRIDE_TABLES 64
-> +static struct cpio_data __initdata acpi_initrd_files[ACPI_OVERRIDE_TABLES];
->  
->  void __init acpi_initrd_override(void *data, size_t size)
->  {
-> @@ -579,7 +579,6 @@ void __init acpi_initrd_override(void *data, size_t size)
->  	struct acpi_table_header *table;
->  	char cpio_path[32] = "kernel/firmware/acpi/";
->  	struct cpio_data file;
-> -	struct cpio_data early_initrd_files[ACPI_OVERRIDE_TABLES];
->  	char *p;
->  
->  	if (data == NULL || size == 0)
-> @@ -617,8 +616,8 @@ void __init acpi_initrd_override(void *data, size_t size)
->  			table->signature, cpio_path, file.name, table->length);
->  
->  		all_tables_size += table->length;
-> -		early_initrd_files[table_nr].data = file.data;
-> -		early_initrd_files[table_nr].size = file.size;
-> +		acpi_initrd_files[table_nr].data = file.data;
-> +		acpi_initrd_files[table_nr].size = file.size;
->  		table_nr++;
->  	}
->  	if (table_nr == 0)
-> @@ -648,14 +647,19 @@ void __init acpi_initrd_override(void *data, size_t size)
->  	memblock_reserve(acpi_tables_addr, all_tables_size);
->  	arch_reserve_mem_area(acpi_tables_addr, all_tables_size);
->  
-> -	p = early_ioremap(acpi_tables_addr, all_tables_size);
-> -
-> +	/*
-> +	 * early_ioremap only can remap 256k one time. If we map all
-> +	 * tables one time, we will hit the limit. Need to map table
-> +	 * one by one during copying.
-> +	 */
->  	for (no = 0; no < table_nr; no++) {
-> -		memcpy(p + total_offset, early_initrd_files[no].data,
-> -		       early_initrd_files[no].size);
-> -		total_offset += early_initrd_files[no].size;
-> +		phys_addr_t size = acpi_initrd_files[no].size;
-> +
-> +		p = early_ioremap(acpi_tables_addr + total_offset, size);
-> +		memcpy(p, acpi_initrd_files[no].data, size);
-> +		early_iounmap(p, size);
-> +		total_offset += size;
->  	}
-> -	early_iounmap(p, all_tables_size);
->  }
->  #endif /* CONFIG_ACPI_INITRD_TABLE_OVERRIDE */
->  
+>
+> Thanks,
+> -Toshi
+>
+>
+>> User should use arch_pfn_mapped or just 1UL<<(32-PAGE_SHIFT) instead.
+>>
+>> Only user is ACPI_INITRD_TABLE_OVERRIDE, and it should not use that,
+>> as later accessing is using early_ioremap(). We could change to use
+>> 1U<<(32_PAGE_SHIFT) with it, aka under 4G.
+>>
+>> -v2: Leave alone max_low_pfn_mapped in i915 code according to tj.
+>>
+>> Suggested-by: H. Peter Anvin <hpa@zytor.com>
+>> Signed-off-by: Yinghai Lu <yinghai@kernel.org>
+>> Cc: "Rafael J. Wysocki" <rjw@sisk.pl>
+>> Cc: Jacob Shin <jacob.shin@amd.com>
+>> Cc: Pekka Enberg <penberg@kernel.org>
+>> Cc: linux-acpi@vger.kernel.org
+>> Tested-by: Thomas Renninger <trenn@suse.de>
+>> Reviewed-by: Tang Chen <tangchen@cn.fujitsu.com>
+>> Tested-by: Tang Chen <tangchen@cn.fujitsu.com>
+>> ---
+>>  arch/x86/include/asm/page_types.h | 1 -
+>>  arch/x86/kernel/setup.c           | 4 +---
+>>  arch/x86/mm/init.c                | 4 ----
+>>  drivers/acpi/osl.c                | 6 +++---
+>>  4 files changed, 4 insertions(+), 11 deletions(-)
+>>
+>> diff --git a/arch/x86/include/asm/page_types.h b/arch/x86/include/asm/page_types.h
+>> index 54c9787..b012b82 100644
+>> --- a/arch/x86/include/asm/page_types.h
+>> +++ b/arch/x86/include/asm/page_types.h
+>> @@ -43,7 +43,6 @@
+>>
+>>  extern int devmem_is_allowed(unsigned long pagenr);
+>>
+>> -extern unsigned long max_low_pfn_mapped;
+>>  extern unsigned long max_pfn_mapped;
+>>
+>>  static inline phys_addr_t get_max_mapped(void)
+>> diff --git a/arch/x86/kernel/setup.c b/arch/x86/kernel/setup.c
+>> index 66ab495..6ca5f2c 100644
+>> --- a/arch/x86/kernel/setup.c
+>> +++ b/arch/x86/kernel/setup.c
+>> @@ -112,13 +112,11 @@
+>>  #include <asm/prom.h>
+>>
+>>  /*
+>> - * max_low_pfn_mapped: highest direct mapped pfn under 4GB
+>> - * max_pfn_mapped:     highest direct mapped pfn over 4GB
+>> + * max_pfn_mapped:     highest direct mapped pfn
+>>   *
+>>   * The direct mapping only covers E820_RAM regions, so the ranges and gaps are
+>>   * represented by pfn_mapped
+>>   */
+>> -unsigned long max_low_pfn_mapped;
+>>  unsigned long max_pfn_mapped;
+>>
+>>  #ifdef CONFIG_DMI
+>> diff --git a/arch/x86/mm/init.c b/arch/x86/mm/init.c
+>> index eaac174..8554656 100644
+>> --- a/arch/x86/mm/init.c
+>> +++ b/arch/x86/mm/init.c
+>> @@ -313,10 +313,6 @@ static void add_pfn_range_mapped(unsigned long start_pfn, unsigned long end_pfn)
+>>       nr_pfn_mapped = clean_sort_range(pfn_mapped, E820_X_MAX);
+>>
+>>       max_pfn_mapped = max(max_pfn_mapped, end_pfn);
+>> -
+>> -     if (start_pfn < (1UL<<(32-PAGE_SHIFT)))
+>> -             max_low_pfn_mapped = max(max_low_pfn_mapped,
+>> -                                      min(end_pfn, 1UL<<(32-PAGE_SHIFT)));
+>>  }
+>>
+>>  bool pfn_range_is_mapped(unsigned long start_pfn, unsigned long end_pfn)
+>> diff --git a/drivers/acpi/osl.c b/drivers/acpi/osl.c
+>> index e721863..93e3194 100644
+>> --- a/drivers/acpi/osl.c
+>> +++ b/drivers/acpi/osl.c
+>> @@ -624,9 +624,9 @@ void __init acpi_initrd_override(void *data, size_t size)
+>>       if (table_nr == 0)
+>>               return;
+>>
+>> -     acpi_tables_addr =
+>> -             memblock_find_in_range(0, max_low_pfn_mapped << PAGE_SHIFT,
+>> -                                    all_tables_size, PAGE_SIZE);
+>> +     /* under 4G at first, then above 4G */
+>> +     acpi_tables_addr = memblock_find_in_range(0, (1ULL<<32) - 1,
+>> +                                     all_tables_size, PAGE_SIZE);
+>>       if (!acpi_tables_addr) {
+>>               WARN_ON(1);
+>>               return;
+>
+>
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
