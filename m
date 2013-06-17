@@ -1,40 +1,35 @@
-From: Matthew Garrett <matthew.garrett@nebula.com>
-Subject: Re: [PATCH 2/3] ACPICA: Add interface for getting latest OS version
- requested via _OSI
-Date: Mon, 17 Jun 2013 22:37:10 +0000
-Message-ID: <1371508629.523.3.camel@x230>
-References: <1370818899-8595-1-git-send-email-matthew.garrett@nebula.com>
-	 <1370818899-8595-3-git-send-email-matthew.garrett@nebula.com>
-	 <2212597.t9jOQU2YXi@vostro.rjw.lan>
+From: Matthew Garrett <mjg59@srcf.ucam.org>
+Subject: Re: [PATCH] acpi: video: no automatic brightness changes by
+ firmware
+Date: Mon, 17 Jun 2013 23:40:40 +0100
+Message-ID: <20130617224040.GB14793@srcf.ucam.org>
+References: <51B98CFD.7090409@intel.com>
+ <51BE5FD6.6070405@intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <2212597.t9jOQU2YXi@vostro.rjw.lan>
-Content-Language: en-US
-Content-ID: <48EC2C70E1EEA0488C95994175F333B9@namprd05.prod.outlook.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "seth.forshee@canonical.com" <seth.forshee@canonical.com>, "joeyli.kernel@gmail.com" <joeyli.kernel@gmail.com>, "daniel.vetter@ffwll.ch" <daniel.vetter@ffwll.ch>, "lenb@kernel.org" <lenb@kernel.org>, Bob Moore <robert.moore@intel.com>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from cavan.codon.org.uk ([93.93.128.6]:37764 "EHLO
+	cavan.codon.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751050Ab3FQWkx (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 17 Jun 2013 18:40:53 -0400
+Content-Disposition: inline
+In-Reply-To: <51BE5FD6.6070405@intel.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Aaron Lu <aaron.lu@intel.com>
+Cc: "Rafael J. Wysocki" <rjw@sisk.pl>, Len Brown <lenb@kernel.org>, ACPI Devel Mailing List <linux-acpi@vger.kernel.org>, Zhang Rui <rui.zhang@intel.com>, Micael Dias <kam1kaz3@gmail.com>, Dan Garton <dan.garton@gmail.com>, Bob Ziuchkovski <bob.ziuchkovski@gmail.com>
 
-T24gVHVlLCAyMDEzLTA2LTE4IGF0IDAwOjMxICswMjAwLCBSYWZhZWwgSi4gV3lzb2NraSB3cm90
-ZToNCj4gSGkgTWF0dGhldywNCj4gDQo+IE9uIFN1bmRheSwgSnVuZSAwOSwgMjAxMyAwNzowMToz
-OCBQTSBNYXR0aGV3IEdhcnJldHQgd3JvdGU6DQo+ID4gRHJpdmVycyBtYXkgbmVlZCB0byBtYWtl
-IHBvbGljeSBkZWNpc2lvbnMgYmFzZWQgb24gdGhlIE9TIHRoYXQgdGhlIGZpcm13YXJlDQo+ID4g
-YmVsaWV2ZXMgaXQncyBpbnRlcmFjdGluZyB3aXRoLiBBQ1BJIGZpcm13YXJlIHdpbGwgbWFrZSBh
-IHNlcmllcyBvZiBfT1NJDQo+ID4gY2FsbHMsIHN0YXJ0aW5nIGZyb20gdGhlIG9sZGVzdCBPUyB2
-ZXJzaW9uIHRoZXkgc3VwcG9ydCBhbmQgZW5kaW5nIHdpdGggdGhlDQo+ID4gbW9zdCByZWNlbnQu
-IEFkZCBhIGZ1bmN0aW9uIHRvIHJldHVybiB0aGUgbGFzdCBzdWNjZXNzZnVsIGNhbGwgc28gdGhh
-dA0KPiA+IGRyaXZlcnMga25vdyB3aGF0IHRoZSBmaXJtd2FyZSdzIGV4cGVjdGluZy4NCj4gPiAN
-Cj4gPiBCYXNlZCBvbiBhIHBhdGNoIGJ5IFNldGggRm9yc2hlZSA8c2V0aC5mb3JzaGVlQGNhbm9u
-aWNhbC5jb20+DQo+IA0KPiBCb2IgKENDZWQpIHdvdWxkIHByZWZlciB1cyB0byBhY2Nlc3MgYWNw
-aV9nYmxfb3NpX2RhdGEgZGlyZWN0bHkgaW5zdGVhZCBvZg0KPiBhZGRpbmcgdGhlIHdyYXBwZXIg
-dG8gQUNQSUNBLiAgSGUgYWxzbyB0aGlua3MgdGhhdCB0aGUgc3ltYm9sIGRlZmluaXRpb25zDQo+
-IHNob3VsZCBnbyBpbnRvIGluY2x1ZGUvYWNwaS9hY3R5cGVzLmggcmF0aGVyIHRoYW4gaW50byBh
-Y3BpeGYuaC4NCj4gDQo+IFRoZW4sIHRoZSBvbmx5IEFDUElDQSBjaGFuZ2Ugd291bGQgYmUgdG8g
-bW92ZSB0aGUgc3ltYm9scyBhbmQgd2UgY2FuDQo+IGFkZCBhIExpbnV4LXNwZWNpZmljIHBhdGNo
-IG9uIHRvcCBvZiB0aGF0IGFkZGluZyB0aGUgYWNwaV9nYmxfb3NpX2RhdGENCj4gd3JhcHBlci4N
-Cg0KVGhhdCBzb3VuZHMgZ29vZCB0byBtZS4gRG8geW91IHdhbnQgdG8gcmVzcGluIHRoYXQsIG9y
-IHNob3VsZCBJIHNlbmQgYW4NCnVwZGF0ZWQgc2V0Pw0KDQotLSANCk1hdHRoZXcgR2FycmV0dCB8
-IG1qZzU5QHNyY2YudWNhbS5vcmcNCg==
+On Mon, Jun 17, 2013 at 09:01:10AM +0800, Aaron Lu wrote:
+> Starting from win8, MS backlight control driver will set bit 2 of the
+> parameter of control method _DOS, to inform firmware it should not
+> perform any automatic brightness changes. This mostly affects hotkey
+> notification deliver - if we do not set this bit, on hotkey press,
+> firmware may choose to adjust brightness level instead of sending out
+> notification and doing nothing.
+
+It's worth noting that this is a change in behaviour, and there's at 
+least one VIA-based netbook where making this change breaks backlight 
+control.
+
+-- 
+Matthew Garrett | mjg59@srcf.ucam.org
