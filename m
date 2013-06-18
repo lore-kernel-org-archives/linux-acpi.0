@@ -1,44 +1,63 @@
-From: "Moore, Robert" <robert.moore@intel.com>
-Subject: RE: [PATCH 00/16] ACPICA: 20130517 release
-Date: Tue, 18 Jun 2013 18:55:33 +0000
-Message-ID: <94F2FBAB4432B54E8AACC7DFDE6C92E36FE885A7@ORSMSX103.amr.corp.intel.com>
-References: <cover.1369274558.git.lv.zheng@intel.com>
- <CAJvTdKkaH-T7FCnpWwPL+KMEWrdPRNArL9b9MK+D6yyGQ-JhLQ@mail.gmail.com>
- <1585522.1qyMjQu16g@vostro.rjw.lan>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: Re: [PATCH 00/16] ACPICA: 20130517 release
+Date: Tue, 18 Jun 2013 23:04:25 +0200
+Message-ID: <2920193.Fi63sGCWjD@vostro.rjw.lan>
+References: <cover.1369274558.git.lv.zheng@intel.com> <1585522.1qyMjQu16g@vostro.rjw.lan> <94F2FBAB4432B54E8AACC7DFDE6C92E36FE885A7@ORSMSX103.amr.corp.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Transfer-Encoding: 7Bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga01.intel.com ([192.55.52.88]:24735 "EHLO mga01.intel.com"
+Received: from hydra.sisk.pl ([212.160.235.94]:41784 "EHLO hydra.sisk.pl"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932912Ab3FRSzf (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 18 Jun 2013 14:55:35 -0400
-In-Reply-To: <1585522.1qyMjQu16g@vostro.rjw.lan>
-Content-Language: en-US
+	id S1756282Ab3FRUzJ (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 18 Jun 2013 16:55:09 -0400
+In-Reply-To: <94F2FBAB4432B54E8AACC7DFDE6C92E36FE885A7@ORSMSX103.amr.corp.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@sisk.pl>, "Zheng, Lv" <lv.zheng@intel.com>
-Cc: Len Brown <lenb@kernel.org>, "Wysocki, Rafael J" <rafael.j.wysocki@intel.com>, "Brown, Len" <len.brown@intel.com>, linux acpi <linux-acpi@vger.kernel.org>
+To: "Moore, Robert" <robert.moore@intel.com>
+Cc: "Zheng, Lv" <lv.zheng@intel.com>, Len Brown <lenb@kernel.org>, "Wysocki, Rafael J" <rafael.j.wysocki@intel.com>, "Brown, Len" <len.brown@intel.com>, linux acpi <linux-acpi@vger.kernel.org>
 
-DQoNCj4gLS0tLS1PcmlnaW5hbCBNZXNzYWdlLS0tLS0NCj4gRnJvbTogUmFmYWVsIEouIFd5c29j
-a2kgW21haWx0bzpyandAc2lzay5wbF0NCj4gU2VudDogU2F0dXJkYXksIEp1bmUgMTUsIDIwMTMg
-NDoyNSBQTQ0KPiBUbzogWmhlbmcsIEx2DQo+IENjOiBMZW4gQnJvd247IFd5c29ja2ksIFJhZmFl
-bCBKOyBNb29yZSwgUm9iZXJ0OyBCcm93biwgTGVuOyBsaW51eCBhY3BpDQo+IFN1YmplY3Q6IFJl
-OiBbUEFUQ0ggMDAvMTZdIEFDUElDQTogMjAxMzA1MTcgcmVsZWFzZQ0KPiANCj4gT24gV2VkbmVz
-ZGF5LCBKdW5lIDEyLCAyMDEzIDAyOjA0OjQ2IFBNIExlbiBCcm93biB3cm90ZToNCj4gPiBJIHdv
-dWxkIGxpa2UgdG8gc2VlIHRoaXMgc2VyaWVzIHJlLWZyZXNoZWQgYmVmb3JlIGl0IGdvZXMgdXAt
-c3RyZWFtLg0KPiA+IEdlbmVyYWxseSwgdGhlIGNvbW1pdCBtZXNzYWdlcyBuZWVkIHRvIGJlIGlt
-cHJvdmVkIGJlZm9yZSB0aGV5IGdvIGludG8NCj4gPiB0aGUgcGVybWFuZW50IGtlcm5lbCBoaXN0
-b3J5Lg0KPiANCj4gTHYsDQo+IA0KPiBJJ3ZlIGRyb3BwZWQgWzcvMTZdIA0KDQpBZ2FpbiwgdGhp
-cyBpcyBhIG5ldyB2ZXJzaW9uIG9mIGFjcGlkdW1wIGFuZCBzaG91bGQgcmVwbGFjZSB0aGUgZXhp
-c3RpbmcgdXRpbGl0eS4NCg0KDQphbmQgWzEyLzE2XSBwZXJtYW5lbnRseSAocGxlYXNlIGRvIG5v
-dCByZXNlbmQgdGhlbSkuDQoNCg0KVGhpcyBpcyB0aGUgbWFrZWZpbGUgY2hhbmdlIGZvciBhcHBs
-ZSwgeWVzPyBEZXBlbmRzIG9uIGhvdyB5b3Ugd2FudCB0byBoYW5kbGUgc3VjaCB0aGluZ3MuIElm
-IHlvdSBkb24ndCBhY2NlcHQgdGhlc2Uga2luZHMgb2YgY2hhbmdlcywgaXQgaW50cm9kdWNlcyBk
-aXZlcmdlbmNlIGZyb20gdGhlIEFDUElDQSBjb2RlLg0KDQoNCj4gDQo+IEknZCBsaWtlIHRvIHNl
-ZSBuZXcgdmVyc2lvbnMgb2YgWzEzLTE1LzE2XSB3aXRoIGltcHJvdmVkIGNoYW5nZWxvZ3MgYWxv
-bmcNCj4gd2l0aCBbMTYvMTZdLg0KPiANCj4gVGhlIHJlbWFpbmluZyBwYXRjaGVzIGZyb20gdGhl
-IHNlcmllcyAoWzEtNi8xNl0sIFs4LTExLzE2XSkgaGF2ZSBiZWVuDQo+IHF1ZXVlZCB1cCBmb3Ig
-My4xMSAocG9zc2libHkgd2l0aCBzb21lIGNoYW5nZWxvZyBmaXh1cHMpLg0KPiANCj4gVGhhbmtz
-LA0KPiBSYWZhZWwNCj4gDQo+IA0KPiAtLQ0KPiBJIHNwZWFrIG9ubHkgZm9yIG15c2VsZi4NCj4g
-UmFmYWVsIEouIFd5c29ja2ksIEludGVsIE9wZW4gU291cmNlIFRlY2hub2xvZ3kgQ2VudGVyLg0K
+On Tuesday, June 18, 2013 06:55:33 PM Moore, Robert wrote:
+> 
+> > -----Original Message-----
+> > From: Rafael J. Wysocki [mailto:rjw@sisk.pl]
+> > Sent: Saturday, June 15, 2013 4:25 PM
+> > To: Zheng, Lv
+> > Cc: Len Brown; Wysocki, Rafael J; Moore, Robert; Brown, Len; linux acpi
+> > Subject: Re: [PATCH 00/16] ACPICA: 20130517 release
+> > 
+> > On Wednesday, June 12, 2013 02:04:46 PM Len Brown wrote:
+> > > I would like to see this series re-freshed before it goes up-stream.
+> > > Generally, the commit messages need to be improved before they go into
+> > > the permanent kernel history.
+> > 
+> > Lv,
+> > 
+> > I've dropped [7/16] 
+> 
+> Again, this is a new version of acpidump and should replace the existing utility.
+
+OK, and how does the patch actually work?  That is, what is a user supposed to
+do to build the generic acpidump with the patch applied?
+
+> and [12/16] permanently (please do not resend them).
+> 
+> 
+> This is the makefile change for apple, yes? Depends on how you want to handle
+> such things. If you don't accept these kinds of changes, it introduces
+> divergence from the ACPICA code.
+
+Yes, it does, but on the other hand that change is not necessary in the kernel
+source.
+
+This is a policy issue and we don't seem to have a clear policy here: whether
+or not divergences related to things that don't have to be in the kernel need
+to be "fixed".  I don't think that they do and Len seems to agree with me.
+
+Thanks,
+Rafael
+
+
+-- 
+I speak only for myself.
+Rafael J. Wysocki, Intel Open Source Technology Center.
