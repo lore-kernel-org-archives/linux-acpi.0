@@ -1,70 +1,58 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: [BUGFIX v2 2/4] ACPI, DOCK: resolve possible deadlock scenarios
-Date: Tue, 18 Jun 2013 23:25:36 +0200
-Message-ID: <3943270.c6vnSkoz5G@vostro.rjw.lan>
-References: <1371238081-32260-1-git-send-email-jiang.liu@huawei.com> <2972274.Y9Nv7DUfsQ@vostro.rjw.lan> <51C084D9.50008@gmail.com>
+From: "Moore, Robert" <robert.moore@intel.com>
+Subject: RE: [PATCH 07/16] ACPICA: New: Portable acpidump utility (get
+ system ACPI tables)
+Date: Tue, 18 Jun 2013 21:21:22 +0000
+Message-ID: <94F2FBAB4432B54E8AACC7DFDE6C92E36FE886D5@ORSMSX103.amr.corp.intel.com>
+References: <cover.1369274558.git.lv.zheng@intel.com>
+ <4049831.iLWisgAOin@vostro.rjw.lan>
+ <94F2FBAB4432B54E8AACC7DFDE6C92E36FE8858A@ORSMSX103.amr.corp.intel.com>
+ <2334553.HBLCIvOtSu@vostro.rjw.lan>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7Bit
-Return-path: <stable-owner@vger.kernel.org>
-In-Reply-To: <51C084D9.50008@gmail.com>
-Sender: stable-owner@vger.kernel.org
-To: Jiang Liu <liuj97@gmail.com>
-Cc: Bjorn Helgaas <bhelgaas@google.com>, Yinghai Lu <yinghai@kernel.org>, "Alexander E . Patrakov" <patrakov@gmail.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Yijing Wang <wangyijing@huawei.com>, linux-acpi@vger.kernel.org, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, Len Brown <lenb@kernel.org>, stable@vger.kernel.org, Jiang Liu <jiang.liu@huawei.com>
+Content-Transfer-Encoding: base64
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mga02.intel.com ([134.134.136.20]:30839 "EHLO mga02.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S932442Ab3FRVVY (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 18 Jun 2013 17:21:24 -0400
+In-Reply-To: <2334553.HBLCIvOtSu@vostro.rjw.lan>
+Content-Language: en-US
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: Len Brown <lenb@kernel.org>, "Zheng, Lv" <lv.zheng@intel.com>, "Wysocki, Rafael J" <rafael.j.wysocki@intel.com>, "Brown, Len" <len.brown@intel.com>, linux acpi <linux-acpi@vger.kernel.org>
 
-On Wednesday, June 19, 2013 12:03:37 AM Jiang Liu wrote:
-> On 06/17/2013 07:40 PM, Rafael J. Wysocki wrote:
-> > On Monday, June 17, 2013 01:12:00 AM Jiang Liu wrote:
-> >> On 06/16/2013 06:54 AM, Rafael J. Wysocki wrote:
-> >>> On Saturday, June 15, 2013 11:20:40 PM Rafael J. Wysocki wrote:
-> >>>> On Saturday, June 15, 2013 10:17:42 PM Rafael J. Wysocki wrote:
-
-[...]
-
-> Hi Rafael,
-
-Hi,
-
->     I hope I could help to simplify the implementation too, but failed
-> until now:(. The PCI hotplug core has the same re-entrance issue too,
-> and I have struggled with that issue about one year now:(
-
-This sounds like a design issue and we're not likely to fix design issues
-in 2 weeks, with all due respect to everyone involved.  Even if someone has
-an "Eureka!" moment and comes up with a really clever way to fix that issue,
-we still need time to prepare patches, review them, test them etc.
-
->     I have tried another solution by removing ds->hp_lock and
-> hotplug_devices list, please refer to the attachment. It could be used
-> to solve the deadlock issue in acpiphp, but may not be used to support
-> the coming fix for an ATA driver
-> regression(https://bugzilla.kernel.org/show_bug.cgi?id=59871).
-
-Please stop generating patches in a hurry.  That's not really useful.
-
-Even if you think you know what you're doing, someone else has to understand
-that too and be able to review your patches.  Honestly, my experience with
-that code is kind of limited and I need more time.
-
->     The time window for 3.10 is closing, it would be great if we could
-> reach a quick solution here.
-
-That is clearly impossible.
-
-My suggestion would be to apply the patches that everyone is reasonably
-comfortable with at the moment and stop worrying about "time windows", because
-in fact there are none.  We're talking about fixes here and we can do -stable
-backports once we have a solid solution, but what matters is that this solution
-has to be acceptable to *all* of us.
-
-So please stop making it sound like the 3.10 release is a hard deadline or
-something.  It is not.
-
-Thanks,
-Rafael
-
-
--- 
-I speak only for myself.
-Rafael J. Wysocki, Intel Open Source Technology Center.
+SXQgd291bGQgYmUgYSBzaW1pbGFyIGdlbmVyYXRpb24gdG8gdGhlIGlBU0wgY29tcGlsZXIgb3Ig
+dGhlIGFjcGl4dHJhY3QgdXRpbGl0eS4NCg0KDQo+IC0tLS0tT3JpZ2luYWwgTWVzc2FnZS0tLS0t
+DQo+IEZyb206IFJhZmFlbCBKLiBXeXNvY2tpIFttYWlsdG86cmp3QHNpc2sucGxdDQo+IFNlbnQ6
+IFR1ZXNkYXksIEp1bmUgMTgsIDIwMTMgMjowNiBQTQ0KPiBUbzogTW9vcmUsIFJvYmVydA0KPiBD
+YzogTGVuIEJyb3duOyBaaGVuZywgTHY7IFd5c29ja2ksIFJhZmFlbCBKOyBCcm93biwgTGVuOyBs
+aW51eCBhY3BpDQo+IFN1YmplY3Q6IFJlOiBbUEFUQ0ggMDcvMTZdIEFDUElDQTogTmV3OiBQb3J0
+YWJsZSBhY3BpZHVtcCB1dGlsaXR5IChnZXQNCj4gc3lzdGVtIEFDUEkgdGFibGVzKQ0KPiANCj4g
+T24gVHVlc2RheSwgSnVuZSAxOCwgMjAxMyAwNjo1Mzo0MiBQTSBNb29yZSwgUm9iZXJ0IHdyb3Rl
+Og0KPiA+IFBsZWFzZSBkb24ndCBkcm9wIHRoaXMgaWYgaXQgaXMgaW5kZWVkIHRoZSBhY3BpZHVt
+cCB1dGlsaXR5Lg0KPiANCj4gV2VsbCwgdGhhdCdzIHVuY2xlYXIgdG8gbWUgdG8gYmUgaG9uZXN0
+LiA6LSkNCj4gDQo+ID4gVGhpcyB1dGlsaXR5IGlzIG5vdyBhIHBhcnQgb2YgQUNQSUNBIGFuZCBz
+aG91bGQgcmVwbGFjZSB0aGUgZXhpc3RpbmcNCj4gdXRpbGl0eS4NCj4gDQo+IE9LLCBidXQgd2Ug
+bmVlZCB0byB0ZWxsIHRoZSB1c2VycyBob3cgdG8gYnVpbGQgaXQuDQo+IA0KPiBUaGFua3MsDQo+
+IFJhZmFlbA0KPiANCj4gDQo+ID4gPiAtLS0tLU9yaWdpbmFsIE1lc3NhZ2UtLS0tLQ0KPiA+ID4g
+RnJvbTogUmFmYWVsIEouIFd5c29ja2kgW21haWx0bzpyandAc2lzay5wbF0NCj4gPiA+IFNlbnQ6
+IFNhdHVyZGF5LCBKdW5lIDE1LCAyMDEzIDQ6MTAgUE0NCj4gPiA+IFRvOiBMZW4gQnJvd24NCj4g
+PiA+IENjOiBaaGVuZywgTHY7IFd5c29ja2ksIFJhZmFlbCBKOyBNb29yZSwgUm9iZXJ0OyBCcm93
+biwgTGVuOyBsaW51eA0KPiA+ID4gYWNwaQ0KPiA+ID4gU3ViamVjdDogUmU6IFtQQVRDSCAwNy8x
+Nl0gQUNQSUNBOiBOZXc6IFBvcnRhYmxlIGFjcGlkdW1wIHV0aWxpdHkNCj4gPiA+IChnZXQgc3lz
+dGVtIEFDUEkgdGFibGVzKQ0KPiA+ID4NCj4gPiA+IE9uIFdlZG5lc2RheSwgSnVuZSAxMiwgMjAx
+MyAwMTowNzo1MCBQTSBMZW4gQnJvd24gd3JvdGU6DQo+ID4gPiA+ID4gVGhpcyB1dGlsaXR5IGR1
+bXBzIHRoZSBzeXN0ZW0gQUNQSSB0YWJsZXMgaW4gYW4gYXNjaWkgZm9ybWF0DQo+ID4gPiA+ID4g
+c3VpdGFibGUgZm9yIGV4dHJhY3Rpb24gdmlhIHRoZSBhY3BpeHRyYWN0IHV0aWxpdHkuDQo+ID4g
+PiA+DQo+ID4gPiA+IFRoaXMgY29tbWl0IG1lc3NhZ2UgZG9lcyBub3QgbWF0Y2ggdGhlIGNvbnRl
+bnRzIG9mIHRoZSBwYXRjaCwgb3INCj4gPiA+ID4gZXhwbGFpbiBob3cgdGhpcyBwYXRjaCBpcyBy
+ZWxhdGVkIChvciBub3QpIHRvIHRoZSBhY3BpZHVtcCB1dGlsaXR5DQo+ID4gPiA+IGFscmVhZHkg
+aW4gdGhlIGtlcm5lbCB0cmVlIHVuZGVyIHRvb2xzL3Bvd2VyL2FjcGkvYWNwaWR1bXAvDQo+ID4g
+PiA+DQo+ID4gPiA+IE5ha2VkLWJ5OiBMZW4gQnJvd24gPGxlbi5icm93bkBpbnRlbC5jb20+DQo+
+ID4gPg0KPiA+ID4gV2VsbCwgSSB3YXMgb24gdGhlIHZlcmdlIG9mIGRyb3BwaW5nIHRoaXMgb25l
+IGJlZm9yZSwgc28gZHJvcHBlZCBub3cuDQo+ID4gPg0KPiA+ID4gVGhhbmtzLA0KPiA+ID4gUmFm
+YWVsDQo+ID4gPg0KPiA+ID4NCj4gPiA+IC0tDQo+ID4gPiBJIHNwZWFrIG9ubHkgZm9yIG15c2Vs
+Zi4NCj4gPiA+IFJhZmFlbCBKLiBXeXNvY2tpLCBJbnRlbCBPcGVuIFNvdXJjZSBUZWNobm9sb2d5
+IENlbnRlci4NCj4gPg0KPiAtLQ0KPiBJIHNwZWFrIG9ubHkgZm9yIG15c2VsZi4NCj4gUmFmYWVs
+IEouIFd5c29ja2ksIEludGVsIE9wZW4gU291cmNlIFRlY2hub2xvZ3kgQ2VudGVyLg0K
