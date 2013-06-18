@@ -1,67 +1,35 @@
-From: Mika Westerberg <mika.westerberg@linux.intel.com>
-Subject: [PATCH] ACPI / LPSS: override SDIO device's private register space size
-Date: Tue, 18 Jun 2013 16:51:35 +0300
-Message-ID: <1371563495-7325-1-git-send-email-mika.westerberg@linux.intel.com>
+From: Jiang Liu <liuj97@gmail.com>
+Subject: Re: [BUGFIX v2 0/4] fix bug 56531, 59501 and 59581
+Date: Tue, 18 Jun 2013 23:13:13 +0800
+Message-ID: <51C07909.9030508@gmail.com>
+References: <1371238081-32260-1-git-send-email-jiang.liu@huawei.com> <CAN_LGv1itN=ADE-3LNCoBJFXmpWZffhQb6NQuoBzvONkX3brug@mail.gmail.com> <51BDF705.5090904@gmail.com> <CAN_LGv0yXhQi82ck3mvTbwuZv2dhnYB7Xnk9P4=5XVoAaAAeZQ@mail.gmail.com> <CAN_LGv2GTgMJB8NL7iPnyk9bMvbDKE9i6HP0UV5d_9CfytJ0pg@mail.gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga09.intel.com ([134.134.136.24]:49031 "EHLO mga09.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932561Ab3FRNst (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 18 Jun 2013 09:48:49 -0400
+Received: from mail-pa0-f44.google.com ([209.85.220.44]:33031 "EHLO
+	mail-pa0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754871Ab3FRPNT (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 18 Jun 2013 11:13:19 -0400
+In-Reply-To: <CAN_LGv2GTgMJB8NL7iPnyk9bMvbDKE9i6HP0UV5d_9CfytJ0pg@mail.gmail.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org
-Cc: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Len Brown <lenb@kernel.org>, Mika Westerberg <mika.westerberg@linux.intel.com>, linux-kernel@vger.kernel.org
+To: "Alexander E. Patrakov" <patrakov@gmail.com>
+Cc: Jiang Liu <jiang.liu@huawei.com>, alexdeucher@gmail.com, "Rafael J . Wysocki" <rjw@sisk.pl>, Bjorn Helgaas <bhelgaas@google.com>, Yinghai Lu <yinghai@kernel.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Yijing Wang <wangyijing@huawei.com>, linux-acpi@vger.kernel.org, "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
 
-The SDIO device in Lynxpoint has its LTR registers allocated for a WiFi
-device (a child of the SDIO device) instead in ACPI namespace even though
-they physically belong to the SDIO device. In order to be able to access
-the LTR registers from the ACPI LPSS driver for diagnostic purposes we need
-to enlarge size of this private register space.
+On 06/18/2013 01:07 AM, Alexander E. Patrakov wrote:
+> 2013/6/17 Alexander E. Patrakov <patrakov@gmail.com>:
+>> I am not 100% sure that the static key backtrace is the same in all
+>> cases. However, I do remember that it does appear both in the
+>> non-hotplug and hotplug cases.
+>>
+>> I will retest this after work, i.e. in ~12 hours.
+> 
+> Tried again, failed to reproduce this warning. Sorry :(
+Sounds like another memory corruption caused by race conditions:(
 
-Work around this by adding a possibility to override size of the private
-register space in the ACPI LPSS driver and set correct size for the SDIO
-device.
-
-Signed-off-by: Mika Westerberg <mika.westerberg@linux.intel.com>
----
-Applies on top of https://patchwork.kernel.org/patch/2742521/ (ACPI / LPSS:
-Power up LPSS devices during enumeration)
-
- drivers/acpi/acpi_lpss.c | 7 ++++++-
- 1 file changed, 6 insertions(+), 1 deletion(-)
-
-diff --git a/drivers/acpi/acpi_lpss.c b/drivers/acpi/acpi_lpss.c
-index a14d997..539aeae 100644
---- a/drivers/acpi/acpi_lpss.c
-+++ b/drivers/acpi/acpi_lpss.c
-@@ -44,6 +44,7 @@ struct lpss_device_desc {
- 	const char *clkdev_name;
- 	bool ltr_required;
- 	unsigned int prv_offset;
-+	size_t prv_size_override;
- 	bool clk_gate;
- 	struct lpss_shared_clock *shared_clock;
- };
-@@ -69,6 +70,7 @@ static struct lpss_device_desc lpt_dev_desc = {
- 
- static struct lpss_device_desc lpt_sdio_dev_desc = {
- 	.prv_offset = 0x1000,
-+	.prv_size_override = 0x1018,
- 	.ltr_required = true,
- };
- 
-@@ -226,7 +228,10 @@ static int acpi_lpss_create_device(struct acpi_device *adev,
- 
- 	list_for_each_entry(rentry, &resource_list, node)
- 		if (resource_type(&rentry->res) == IORESOURCE_MEM) {
--			pdata->mmio_size = resource_size(&rentry->res);
-+			if (dev_desc->prv_size_override)
-+				pdata->mmio_size = dev_desc->prv_size_override;
-+			else
-+				pdata->mmio_size = resource_size(&rentry->res);
- 			pdata->mmio_base = ioremap(rentry->res.start,
- 						   pdata->mmio_size);
- 			pdata->dev_desc = dev_desc;
--- 
-1.8.3.1
+> 
+> --
+> Alexander E. Patrakov
+> 
 
