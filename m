@@ -1,65 +1,91 @@
-From: Toshi Kani <toshi.kani@hp.com>
-Subject: Re: [PATCH v5 04/22] x86, ACPI: Search buffer above 4G in second
- try for acpi override tables
-Date: Mon, 17 Jun 2013 17:56:30 -0600
-Message-ID: <1371513390.13194.5.camel@misato.fc.hp.com>
-References: <1371257800-11720-1-git-send-email-yinghai@kernel.org>
-	 <1371257800-11720-5-git-send-email-yinghai@kernel.org>
-	 <1371511350.27152.25.camel@misato.fc.hp.com>
-	 <CAE9FiQWoTkH4YnS6PEKwVqAd1tB9+8d5gpnJ+qeySU2E30cegA@mail.gmail.com>
+From: Tejun Heo <tj@kernel.org>
+Subject: Re: [Part1 PATCH v5 08/22] x86, ACPI: Make acpi_initrd_override_find
+ work with 32bit flat mode
+Date: Mon, 17 Jun 2013 17:07:22 -0700
+Message-ID: <20130618000722.GR32663@mtj.dyndns.org>
+References: <1371128589-8953-1-git-send-email-tangchen@cn.fujitsu.com>
+ <1371128589-8953-9-git-send-email-tangchen@cn.fujitsu.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from g1t0029.austin.hp.com ([15.216.28.36]:16174 "EHLO
-	g1t0029.austin.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751361Ab3FQX4t (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 17 Jun 2013 19:56:49 -0400
-In-Reply-To: <CAE9FiQWoTkH4YnS6PEKwVqAd1tB9+8d5gpnJ+qeySU2E30cegA@mail.gmail.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <owner-linux-mm@kvack.org>
+Content-Disposition: inline
+In-Reply-To: <1371128589-8953-9-git-send-email-tangchen@cn.fujitsu.com>
+Sender: owner-linux-mm@kvack.org
+To: Tang Chen <tangchen@cn.fujitsu.com>
+Cc: tglx@linutronix.de, mingo@elte.hu, hpa@zytor.com, akpm@linux-foundation.org, trenn@suse.de, yinghai@kernel.org, jiang.liu@huawei.com, wency@cn.fujitsu.com, laijs@cn.fujitsu.com, isimatu.yasuaki@jp.fujitsu.com, mgorman@suse.de, minchan@kernel.org, mina86@mina86.com, gong.chen@linux.intel.com, vasilis.liaskovitis@profitbricks.com, lwoodman@redhat.com, riel@redhat.com, jweiner@redhat.com, prarit@redhat.com, x86@kernel.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-mm@kvack.org, Pekka Enberg <penberg@kernel.org>, Jacob Shin <jacob.shin@amd.com>, "Rafael J. Wysocki" <rjw@sisk.pl>, linux-acpi@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Yinghai Lu <yinghai@kernel.org>
-Cc: "H. Peter Anvin" <hpa@zytor.com>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@elte.hu>, Andrew Morton <akpm@linux-foundation.org>, Tejun Heo <tj@kernel.org>, Thomas Renninger <trenn@suse.de>, Tang Chen <tangchen@cn.fujitsu.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, "Rafael J. Wysocki" <rjw@sisk.pl>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>
 
-On Mon, 2013-06-17 at 16:38 -0700, Yinghai Lu wrote:
-> On Mon, Jun 17, 2013 at 4:22 PM, Toshi Kani <toshi.kani@hp.com> wrote:
-> > On Fri, 2013-06-14 at 17:56 -0700, Yinghai Lu wrote:
-> >> Now we only search buffer for override acpi table under 4G.
-> >> In some case, like user use memmap to exclude all low ram,
-> >> we may not find range for it under 4G.
-> >>
-> >> Do second try to search above 4G.
-> >>
-> >> Signed-off-by: Yinghai Lu <yinghai@kernel.org>
-> >> Cc: "Rafael J. Wysocki" <rjw@sisk.pl>
-> >> Cc: linux-acpi@vger.kernel.org
-> >> Tested-by: Thomas Renninger <trenn@suse.de>
-> >> Reviewed-by: Tang Chen <tangchen@cn.fujitsu.com>
-> >> Tested-by: Tang Chen <tangchen@cn.fujitsu.com>
-> >> ---
-> >>  drivers/acpi/osl.c | 4 ++++
-> >>  1 file changed, 4 insertions(+)
-> >>
-> >> diff --git a/drivers/acpi/osl.c b/drivers/acpi/osl.c
-> >> index 93e3194..42c48fc 100644
-> >> --- a/drivers/acpi/osl.c
-> >> +++ b/drivers/acpi/osl.c
-> >> @@ -627,6 +627,10 @@ void __init acpi_initrd_override(void *data, size_t size)
-> >>       /* under 4G at first, then above 4G */
-> >>       acpi_tables_addr = memblock_find_in_range(0, (1ULL<<32) - 1,
-> >>                                       all_tables_size, PAGE_SIZE);
-> >> +     if (!acpi_tables_addr)
-> >> +             acpi_tables_addr = memblock_find_in_range(0,
-> >> +                                     ~(phys_addr_t)0,
-> >> +                                     all_tables_size, PAGE_SIZE);
-> >
-> > Should this search start from 4G, instead of 0?
+On Thu, Jun 13, 2013 at 09:02:55PM +0800, Tang Chen wrote:
+> From: Yinghai Lu <yinghai@kernel.org>
 > 
-> should be ok, as memblock searching is top-down.
+> For finding procedure, it would be easy to access initrd in 32bit flat
+> mode, as we don't need to setup page table. That is from head_32.S, and
+> microcode updating already use this trick.
 
-I see.  Thanks for the clarification.
+It'd be really great if you can give a brief explanation of why this
+is happening at the beginning of the commit description so that when
+someone lands on this commit later on, [s]he can orient oneself.  It
+doesn't have to be long.  Open with something like,
 
-Acked-by: Toshi Kani <toshi.kani@hp.com>
+ To make NUMA info available early during boot for memory hotplug
+ support, acpi_initrd_override_find() needs to be used very early
+ during boot.
 
--Toshi
+and then continue to describe what's happening.  It'll make the commit
+a lot more approachable to people who just encountered it.
 
+> This patch does the following:
+> 
+> 1. Change acpi_initrd_override_find to use phys to access global variables.
+> 
+> 2. Pass a bool parameter "is_phys" to acpi_initrd_override_find() because
+>    we cannot tell if it is a pa or a va through the address itself with
+>    32bit. Boot loader could load initrd above max_low_pfn.
+
+Do you mean "from 32bit address boundary"?  Maybe "from 4G boundary"
+is clearer?
+
+> 
+> 3. Put table_sigs[] on stack, otherwise it is too messy to change string
+>    array to physaddr and still keep offset calculating correct. The size is
+>    about 36x4 bytes, and it is small to settle in stack.
+> 
+> 4. Also rewrite the MACRO INVALID_TABLE to be in a do {...} while(0) loop
+>    so that it is more readable.
+
+The important part is taking "continue" out of it, right?
+
+> +/*
+> + * acpi_initrd_override_find() is called from head_32.S and head64.c.
+> + * head_32.S calling path is with 32bit flat mode, so we can access
+
+When called from head_32.S, the CPU is in 32bit flat mode and the
+kernel virtual address space isn't available yet.
+
+> + * initrd early without setting pagetable or relocating initrd. For
+> + * global variables accessing, we need to use phys address instead of
+
+As initrd is in phys_addr, it can be accessed directly; however,
+global variables must be accessed by explicitly obtaining their
+physical addresses.
+
+> + * kernel virtual address, try to put table_sigs string array in stack,
+> + * so avoid switching for it.
+
+Note that table_sigs array is built on stack to avoid such address
+translations while accessing its members.
+
+> + * Also don't call printk as it uses global variables.
+> + */
+> +void __init acpi_initrd_override_find(void *data, size_t size, bool is_phys)
+
+Thanks.
+
+-- 
+tejun
+
+--
+To unsubscribe, send a message with 'unsubscribe linux-mm' in
+the body to majordomo@kvack.org.  For more info on Linux MM,
+see: http://www.linux-mm.org/ .
+Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
