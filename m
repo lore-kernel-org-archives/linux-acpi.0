@@ -1,61 +1,33 @@
-From: Tejun Heo <tj@kernel.org>
-Subject: Re: [Part1 PATCH v5 09/22] x86, ACPI: Find acpi tables in initrd
- early from head_32.S/head64.c
-Date: Mon, 17 Jun 2013 17:33:08 -0700
-Message-ID: <20130618003308.GS32663@mtj.dyndns.org>
-References: <1371128589-8953-1-git-send-email-tangchen@cn.fujitsu.com>
- <1371128589-8953-10-git-send-email-tangchen@cn.fujitsu.com>
+From: "Zheng, Lv" <lv.zheng@intel.com>
+Subject: RE: [PATCH 00/16] ACPICA: 20130517 release
+Date: Tue, 18 Jun 2013 01:39:14 +0000
+Message-ID: <1AE640813FDE7649BE1B193DEA596E8802417F36@SHSMSX101.ccr.corp.intel.com>
+References: <cover.1369274558.git.lv.zheng@intel.com>
+ <CAJvTdKkaH-T7FCnpWwPL+KMEWrdPRNArL9b9MK+D6yyGQ-JhLQ@mail.gmail.com>
+ <1585522.1qyMjQu16g@vostro.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <owner-linux-mm@kvack.org>
-Content-Disposition: inline
-In-Reply-To: <1371128589-8953-10-git-send-email-tangchen@cn.fujitsu.com>
-Sender: owner-linux-mm@kvack.org
-To: Tang Chen <tangchen@cn.fujitsu.com>
-Cc: tglx@linutronix.de, mingo@elte.hu, hpa@zytor.com, akpm@linux-foundation.org, trenn@suse.de, yinghai@kernel.org, jiang.liu@huawei.com, wency@cn.fujitsu.com, laijs@cn.fujitsu.com, isimatu.yasuaki@jp.fujitsu.com, mgorman@suse.de, minchan@kernel.org, mina86@mina86.com, gong.chen@linux.intel.com, vasilis.liaskovitis@profitbricks.com, lwoodman@redhat.com, riel@redhat.com, jweiner@redhat.com, prarit@redhat.com, x86@kernel.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-mm@kvack.org, Pekka Enberg <penberg@kernel.org>, Jacob Shin <jacob.shin@amd.com>, "Rafael J. Wysocki" <rjw@sisk.pl>, linux-acpi@vger.kernel.org
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mga11.intel.com ([192.55.52.93]:46448 "EHLO mga11.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752779Ab3FRBjU (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 17 Jun 2013 21:39:20 -0400
+In-Reply-To: <1585522.1qyMjQu16g@vostro.rjw.lan>
+Content-Language: en-US
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: Len Brown <lenb@kernel.org>, "Wysocki, Rafael J" <rafael.j.wysocki@intel.com>, "Moore, Robert" <robert.moore@intel.com>, "Brown, Len" <len.brown@intel.com>, linux acpi <linux-acpi@vger.kernel.org>
 
-On Thu, Jun 13, 2013 at 09:02:56PM +0800, Tang Chen wrote:
-> From: Yinghai Lu <yinghai@kernel.org>
-
-Ditto for the opening.  Probably not a must, I suppose, but would be
-very nice.
-
-> head64.c could use #PF handler setup page table to access initrd before
-> init mem mapping and initrd relocating.
-> 
-> head_32.S could use 32bit flat mode to access initrd before init mem
-> mapping initrd relocating.
-> 
-> This patch introduces x86_acpi_override_find(), which is called from
-> head_32.S/head64.c, to replace acpi_initrd_override_find(). So that we
-> can makes 32bit and 64 bit more consistent.
-> 
-> -v2: use inline function in header file instead according to tj.
->      also still need to keep #idef head_32.S to avoid compiling error.
-> -v3: need to move down reserve_initrd() after acpi_initrd_override_copy(),
->      to make sure we are using right address.
-> 
-> Signed-off-by: Yinghai Lu <yinghai@kernel.org>
-> Cc: Pekka Enberg <penberg@kernel.org>
-> Cc: Jacob Shin <jacob.shin@amd.com>
-> Cc: Rafael J. Wysocki <rjw@sisk.pl>
-> Cc: linux-acpi@vger.kernel.org
-> Tested-by: Thomas Renninger <trenn@suse.de>
-> Reviewed-by: Tang Chen <tangchen@cn.fujitsu.com>
-> Tested-by: Tang Chen <tangchen@cn.fujitsu.com>
-
-Other than that,
-
- Acked-by: Tejun Heo <tj@kernel.org>
-
-Thanks.
-
--- 
-tejun
-
---
-To unsubscribe, send a message with 'unsubscribe linux-mm' in
-the body to majordomo@kvack.org.  For more info on Linux MM,
-see: http://www.linux-mm.org/ .
-Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
+PiA+IEkgd291bGQgbGlrZSB0byBzZWUgdGhpcyBzZXJpZXMgcmUtZnJlc2hlZCBiZWZvcmUgaXQg
+Z29lcyB1cC1zdHJlYW0uDQo+ID4gR2VuZXJhbGx5LCB0aGUgY29tbWl0IG1lc3NhZ2VzIG5lZWQg
+dG8gYmUgaW1wcm92ZWQgYmVmb3JlIHRoZXkgZ28gaW50bw0KPiA+IHRoZSBwZXJtYW5lbnQga2Vy
+bmVsIGhpc3RvcnkuDQo+IA0KPiBMdiwNCj4gDQo+IEkndmUgZHJvcHBlZCBbNy8xNl0gYW5kIFsx
+Mi8xNl0gcGVybWFuZW50bHkgKHBsZWFzZSBkbyBub3QgcmVzZW5kIHRoZW0pLg0KDQpPSy4NCg0K
+PiBJJ2QgbGlrZSB0byBzZWUgbmV3IHZlcnNpb25zIG9mIFsxMy0xNS8xNl0gd2l0aCBpbXByb3Zl
+ZCBjaGFuZ2Vsb2dzIGFsb25nIHdpdGgNCj4gWzE2LzE2XS4NCg0KSSB0aGluayB0aGUgb25lIG5l
+ZWQgdG8gZG8gY2hhbmdlIGxvZyBlbmhhbmNlbWVudCBpcyB0aGUgUEFUQ0ggMDQvMTYsIG90aGVy
+cyBtaWdodCBiZSBPSy4NClBhdGNoIDA0IHNob3VsZCBiZSBhIGJhY2sgcG9ydCBwYXRjaCB3aGlj
+aCB3YXMgYWxyZWFkeSBpbiBMaW51eCwgdGhlIHdvcmQgImFkZCIgaXMgbm90IHByb3Blci4NCg0K
+VGhhbmtzIGFuZCBiZXN0IHJlZ2FyZHMNCi1Mdg0K
