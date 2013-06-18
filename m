@@ -1,257 +1,176 @@
-From: "Naveen N. Rao" <naveen.n.rao@linux.vnet.ibm.com>
-Subject: Re: [PATCH] Re: [Patch] MCE,
- APEI: Don't enable CMCI when Firmware First mode is set in
-Date: Tue, 18 Jun 2013 12:13:18 +0530
-Message-ID: <20130618063858.3645.75676.stgit@localhost.localdomain>
-References: <20130617082135.GB7203@pd.tnic>
+From: Aaron Lu <aaron.lu@intel.com>
+Subject: Re: [PATCH 4/4] ACPI / PM: Drop two functions that are not used any
+ more
+Date: Tue, 18 Jun 2013 17:20:36 +0800
+Message-ID: <51C02664.2050603@intel.com>
+References: <6895318.cKDBc4OdI0@vostro.rjw.lan> <2934743.cl2LaccKZx@vostro.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from e23smtp05.au.ibm.com ([202.81.31.147]:56347 "EHLO
-	e23smtp05.au.ibm.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752049Ab3FRGni (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 18 Jun 2013 02:43:38 -0400
-Received: from /spool/local
-	by e23smtp05.au.ibm.com with IBM ESMTP SMTP Gateway: Authorized Use Only! Violators will be prosecuted
-	for <linux-acpi@vger.kernel.org> from <naveen.n.rao@linux.vnet.ibm.com>;
-	Tue, 18 Jun 2013 16:37:31 +1000
-In-Reply-To: <20130617082135.GB7203@pd.tnic>
+Received: from mga09.intel.com ([134.134.136.24]:42909 "EHLO mga09.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755452Ab3FRJVH (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 18 Jun 2013 05:21:07 -0400
+In-Reply-To: <2934743.cl2LaccKZx@vostro.rjw.lan>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: bp@alien8.de
-Cc: tony.luck@intel.com, ananth@in.ibm.com, masbock@linux.vnet.ibm.com, lcm@linux.vnet.ibm.com, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, ying.huang@intel.com
+To: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>, Linux PM list <linux-pm@vger.kernel.org>, Lan Tianyu <tianyu.lan@intel.com>, Tejun Heo <tj@kernel.org>
 
-The Corrected Machine Check structure (CMC) in HEST has a flag which can be
-set by the firmware to indicate to the OS that it prefers to process the
-corrected error events first. In this scenario, the OS is expected to not
-monitor for corrected errors (through CMCI/polling). Instead, the firmware
-notifies the OS on corrected error events through GHES.
+On 06/14/2013 08:33 PM, Rafael J. Wysocki wrote:
+> From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+> 
+> Two functions defined in device_pm.c, acpi_dev_pm_add_dependent()
+> and acpi_dev_pm_remove_dependent(), have no callers and may be
+> dropped, so drop them.
 
-Linux already has support for GHES. This patch adds support for parsing CMC
-structure and to disable CMCI/polling if the firmware first flag is set.
+Please hold on for a moment, I would like to discuss the ATA ACPI
+binding with you and Tejun, the current binding with SCSI device tree
+doesn't buy us anything but introduced some nasty consequences. I think
+we should bind ACPI handle with ATA port/device, I have a draft patch
+for this and will send out soon. If we go binding with ATA port/device,
+then the two functions will be needed :-)
 
-Further, the list of machine check bank structures at the end of CMC is used
-to determine which MCA banks function in FF mode, so that we continue to
-monitor error events on the other banks.
+Thanks,
+Aaron
 
-
-- Naveen
-
-Signed-off-by: Naveen N. Rao <naveen.n.rao@linux.vnet.ibm.com>
----
- arch/x86/include/asm/mce.h                |    3 ++
- arch/x86/kernel/cpu/mcheck/mce-internal.h |    3 ++
- arch/x86/kernel/cpu/mcheck/mce.c          |   23 +++++++++++++++++
- arch/x86/kernel/cpu/mcheck/mce_intel.c    |   40 +++++++++++++++++++++++------
- drivers/acpi/apei/hest.c                  |   36 ++++++++++++++++++++++++++
- 5 files changed, 97 insertions(+), 8 deletions(-)
-
-diff --git a/arch/x86/include/asm/mce.h b/arch/x86/include/asm/mce.h
-index fa5f71e..380fff8 100644
---- a/arch/x86/include/asm/mce.h
-+++ b/arch/x86/include/asm/mce.h
-@@ -188,6 +188,9 @@ extern void register_mce_write_callback(ssize_t (*)(struct file *filp,
- 				    const char __user *ubuf,
- 				    size_t usize, loff_t *off));
- 
-+/* Disable CMCI/polling for MCA bank claimed by firmware */
-+extern void mce_disable_ce_bank(int bank);
-+
- /*
-  * Exception handler
-  */
-diff --git a/arch/x86/kernel/cpu/mcheck/mce-internal.h b/arch/x86/kernel/cpu/mcheck/mce-internal.h
-index 5b7d4fa..193edc1 100644
---- a/arch/x86/kernel/cpu/mcheck/mce-internal.h
-+++ b/arch/x86/kernel/cpu/mcheck/mce-internal.h
-@@ -25,6 +25,9 @@ int mce_severity(struct mce *a, int tolerant, char **msg);
- struct dentry *mce_get_debugfs_dir(void);
- 
- extern struct mce_bank *mce_banks;
-+extern mce_banks_t mce_banks_ce_disabled;
-+
-+void cmci_disable_bank(int bank);
- 
- #ifdef CONFIG_X86_MCE_INTEL
- unsigned long mce_intel_adjust_timer(unsigned long interval);
-diff --git a/arch/x86/kernel/cpu/mcheck/mce.c b/arch/x86/kernel/cpu/mcheck/mce.c
-index 9239504..4bd9973 100644
---- a/arch/x86/kernel/cpu/mcheck/mce.c
-+++ b/arch/x86/kernel/cpu/mcheck/mce.c
-@@ -94,6 +94,9 @@ DEFINE_PER_CPU(mce_banks_t, mce_poll_banks) = {
- 	[0 ... BITS_TO_LONGS(MAX_NR_BANKS)-1] = ~0UL
- };
- 
-+/* MCA banks controlled through firmware first for corrected errors */
-+mce_banks_t mce_banks_ce_disabled;
-+
- static DEFINE_PER_CPU(struct work_struct, mce_work);
- 
- static void (*quirk_no_way_out)(int bank, struct mce *m, struct pt_regs *regs);
-@@ -1932,6 +1935,26 @@ static struct miscdevice mce_chrdev_device = {
- 	&mce_chrdev_ops,
- };
- 
-+static void __mce_disable_ce_bank(void *arg)
-+{
-+	int bank = *((int *)arg);
-+
-+	/* Ensure we don't poll this bank */
-+	__clear_bit(bank, __get_cpu_var(mce_poll_banks));
-+	/* Disable CMCI */
-+	cmci_disable_bank(bank);
-+}
-+
-+void mce_disable_ce_bank(int bank)
-+{
-+	if (bank >= mca_cfg.banks) {
-+		pr_info("mce_disable_bank: Invalid MCA bank %d ignored.\n", bank);
-+		return;
-+	}
-+	set_bit(bank, mce_banks_ce_disabled);
-+	on_each_cpu(__mce_disable_ce_bank, &bank, 1);
-+}
-+
- /*
-  * mce=off Disables machine check
-  * mce=no_cmci Disables CMCI
-diff --git a/arch/x86/kernel/cpu/mcheck/mce_intel.c b/arch/x86/kernel/cpu/mcheck/mce_intel.c
-index ae1697c..78256c0 100644
---- a/arch/x86/kernel/cpu/mcheck/mce_intel.c
-+++ b/arch/x86/kernel/cpu/mcheck/mce_intel.c
-@@ -191,6 +191,10 @@ static void cmci_discover(int banks)
- 		if (test_bit(i, owned))
- 			continue;
- 
-+		/* Skip banks in firmware first mode */
-+		if (test_bit(i, mce_banks_ce_disabled))
-+			continue;
-+
- 		rdmsrl(MSR_IA32_MCx_CTL2(i), val);
- 
- 		/* Already owned by someone else? */
-@@ -259,6 +263,20 @@ void cmci_recheck(void)
- 	local_irq_restore(flags);
- }
- 
-+/* Caller must hold the lock on cmci_discover_lock */
-+static void __cmci_disable_bank(int bank)
-+{
-+	u64 val;
-+
-+	if (!test_bit(bank, __get_cpu_var(mce_banks_owned)))
-+		return;
-+	/* Disable CMCI */
-+	rdmsrl(MSR_IA32_MCx_CTL2(bank), val);
-+	val &= ~MCI_CTL2_CMCI_EN;
-+	wrmsrl(MSR_IA32_MCx_CTL2(bank), val);
-+	__clear_bit(bank, __get_cpu_var(mce_banks_owned));
-+}
-+
- /*
-  * Disable CMCI on this CPU for all banks it owns when it goes down.
-  * This allows other CPUs to claim the banks on rediscovery.
-@@ -268,19 +286,12 @@ void cmci_clear(void)
- 	unsigned long flags;
- 	int i;
- 	int banks;
--	u64 val;
- 
- 	if (!cmci_supported(&banks))
- 		return;
- 	raw_spin_lock_irqsave(&cmci_discover_lock, flags);
- 	for (i = 0; i < banks; i++) {
--		if (!test_bit(i, __get_cpu_var(mce_banks_owned)))
--			continue;
--		/* Disable CMCI */
--		rdmsrl(MSR_IA32_MCx_CTL2(i), val);
--		val &= ~MCI_CTL2_CMCI_EN;
--		wrmsrl(MSR_IA32_MCx_CTL2(i), val);
--		__clear_bit(i, __get_cpu_var(mce_banks_owned));
-+		__cmci_disable_bank(i);
- 	}
- 	raw_spin_unlock_irqrestore(&cmci_discover_lock, flags);
- }
-@@ -315,6 +326,19 @@ void cmci_reenable(void)
- 		cmci_discover(banks);
- }
- 
-+void cmci_disable_bank(int bank)
-+{
-+	int banks;
-+	unsigned long flags;
-+
-+	if (!cmci_supported(&banks))
-+		return;
-+
-+	raw_spin_lock_irqsave(&cmci_discover_lock, flags);
-+	__cmci_disable_bank(bank);
-+	raw_spin_unlock_irqrestore(&cmci_discover_lock, flags);
-+}
-+
- static void intel_init_cmci(void)
- {
- 	int banks;
-diff --git a/drivers/acpi/apei/hest.c b/drivers/acpi/apei/hest.c
-index f5ef5d5..d8c69ba 100644
---- a/drivers/acpi/apei/hest.c
-+++ b/drivers/acpi/apei/hest.c
-@@ -36,6 +36,7 @@
- #include <linux/io.h>
- #include <linux/platform_device.h>
- #include <acpi/apei.h>
-+#include <asm/mce.h>
- 
- #include "apei-internal.h"
- 
-@@ -121,6 +122,39 @@ int apei_hest_parse(apei_hest_func_t func, void *data)
- }
- EXPORT_SYMBOL_GPL(apei_hest_parse);
- 
-+/*
-+ * Check if firmware advertises firmware first mode. We need FF bit to be set
-+ * along with a set of MC banks which work in FF mode.
-+ */
-+static int __init hest_parse_cmc(struct acpi_hest_header *hest_hdr, void *data)
-+{
-+	int i;
-+	struct acpi_hest_ia_corrected *cmc;
-+	struct acpi_hest_ia_error_bank *mc_bank;
-+
-+	if (hest_hdr->type != ACPI_HEST_TYPE_IA32_CORRECTED_CHECK)
-+		return 0;
-+
-+	cmc = (struct acpi_hest_ia_corrected *)hest_hdr;
-+	if (!cmc->enabled || !(cmc->flags & ACPI_HEST_FIRMWARE_FIRST))
-+		return 0;
-+
-+	/*
-+	 * We expect HEST to provide a list of MC banks that
-+	 * report errors through firmware first mode.
-+	 */
-+	if (cmc->num_hardware_banks == 0)
-+		return 0;
-+
-+	pr_info(HEST_PFX "Enabling Firmware First mode for corrected errors.\n");
-+
-+	mc_bank = (struct acpi_hest_ia_error_bank *)(cmc + 1);
-+	for (i = 0; i < cmc->num_hardware_banks; i++, mc_bank++)
-+		mce_disable_ce_bank(mc_bank->bank_number);
-+
-+	return 0;
-+}
-+
- struct ghes_arr {
- 	struct platform_device **ghes_devs;
- 	unsigned int count;
-@@ -227,6 +261,8 @@ void __init acpi_hest_init(void)
- 		goto err;
- 	}
- 
-+	apei_hest_parse(hest_parse_cmc, NULL);
-+
- 	if (!ghes_disable) {
- 		rc = apei_hest_parse(hest_parse_ghes_count, &ghes_count);
- 		if (rc)
+> 
+> Moreover, they are the only functions adding entries to and removing
+> entries from the power_dependent list in struct acpi_device, so drop
+> that list and the loop walking it in acpi_power_resume_dependent()
+> too.
+> 
+> Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+> ---
+>  drivers/acpi/device_pm.c |   56 -----------------------------------------------
+>  drivers/acpi/power.c     |    3 --
+>  drivers/acpi/scan.c      |    1 
+>  include/acpi/acpi_bus.h  |    7 -----
+>  4 files changed, 67 deletions(-)
+> 
+> Index: linux-pm/include/acpi/acpi_bus.h
+> ===================================================================
+> --- linux-pm.orig/include/acpi/acpi_bus.h
+> +++ linux-pm/include/acpi/acpi_bus.h
+> @@ -308,7 +308,6 @@ struct acpi_device {
+>  	struct list_head physical_node_list;
+>  	struct mutex physical_node_lock;
+>  	DECLARE_BITMAP(physical_node_id_bitmap, ACPI_MAX_PHYSICAL_NODE);
+> -	struct list_head power_dependent;
+>  	void (*remove)(struct acpi_device *);
+>  };
+>  
+> @@ -461,8 +460,6 @@ acpi_status acpi_add_pm_notifier(struct
+>  acpi_status acpi_remove_pm_notifier(struct acpi_device *adev,
+>  				    acpi_notify_handler handler);
+>  int acpi_pm_device_sleep_state(struct device *, int *, int);
+> -void acpi_dev_pm_add_dependent(acpi_handle handle, struct device *depdev);
+> -void acpi_dev_pm_remove_dependent(acpi_handle handle, struct device *depdev);
+>  #else
+>  static inline acpi_status acpi_add_pm_notifier(struct acpi_device *adev,
+>  					       acpi_notify_handler handler,
+> @@ -482,10 +479,6 @@ static inline int acpi_pm_device_sleep_s
+>  
+>  	return (m >= ACPI_STATE_D0 && m <= ACPI_STATE_D3) ? m : ACPI_STATE_D0;
+>  }
+> -static inline void acpi_dev_pm_add_dependent(acpi_handle handle,
+> -					     struct device *depdev) {}
+> -static inline void acpi_dev_pm_remove_dependent(acpi_handle handle,
+> -						struct device *depdev) {}
+>  #endif
+>  
+>  #ifdef CONFIG_PM_RUNTIME
+> Index: linux-pm/drivers/acpi/device_pm.c
+> ===================================================================
+> --- linux-pm.orig/drivers/acpi/device_pm.c
+> +++ linux-pm/drivers/acpi/device_pm.c
+> @@ -994,60 +994,4 @@ void acpi_dev_pm_detach(struct device *d
+>  	}
+>  }
+>  EXPORT_SYMBOL_GPL(acpi_dev_pm_detach);
+> -
+> -/**
+> - * acpi_dev_pm_add_dependent - Add physical device depending for PM.
+> - * @handle: Handle of ACPI device node.
+> - * @depdev: Device depending on that node for PM.
+> - */
+> -void acpi_dev_pm_add_dependent(acpi_handle handle, struct device *depdev)
+> -{
+> -	struct acpi_device_physical_node *dep;
+> -	struct acpi_device *adev;
+> -
+> -	if (!depdev || acpi_bus_get_device(handle, &adev))
+> -		return;
+> -
+> -	mutex_lock(&adev->physical_node_lock);
+> -
+> -	list_for_each_entry(dep, &adev->power_dependent, node)
+> -		if (dep->dev == depdev)
+> -			goto out;
+> -
+> -	dep = kzalloc(sizeof(*dep), GFP_KERNEL);
+> -	if (dep) {
+> -		dep->dev = depdev;
+> -		list_add_tail(&dep->node, &adev->power_dependent);
+> -	}
+> -
+> - out:
+> -	mutex_unlock(&adev->physical_node_lock);
+> -}
+> -EXPORT_SYMBOL_GPL(acpi_dev_pm_add_dependent);
+> -
+> -/**
+> - * acpi_dev_pm_remove_dependent - Remove physical device depending for PM.
+> - * @handle: Handle of ACPI device node.
+> - * @depdev: Device depending on that node for PM.
+> - */
+> -void acpi_dev_pm_remove_dependent(acpi_handle handle, struct device *depdev)
+> -{
+> -	struct acpi_device_physical_node *dep;
+> -	struct acpi_device *adev;
+> -
+> -	if (!depdev || acpi_bus_get_device(handle, &adev))
+> -		return;
+> -
+> -	mutex_lock(&adev->physical_node_lock);
+> -
+> -	list_for_each_entry(dep, &adev->power_dependent, node)
+> -		if (dep->dev == depdev) {
+> -			list_del(&dep->node);
+> -			kfree(dep);
+> -			break;
+> -		}
+> -
+> -	mutex_unlock(&adev->physical_node_lock);
+> -}
+> -EXPORT_SYMBOL_GPL(acpi_dev_pm_remove_dependent);
+>  #endif /* CONFIG_PM */
+> Index: linux-pm/drivers/acpi/power.c
+> ===================================================================
+> --- linux-pm.orig/drivers/acpi/power.c
+> +++ linux-pm/drivers/acpi/power.c
+> @@ -253,9 +253,6 @@ static void acpi_power_resume_dependent(
+>  	list_for_each_entry(pn, &adev->physical_node_list, node)
+>  		pm_request_resume(pn->dev);
+>  
+> -	list_for_each_entry(pn, &adev->power_dependent, node)
+> -		pm_request_resume(pn->dev);
+> -
+>  	mutex_unlock(&adev->physical_node_lock);
+>  }
+>  
+> Index: linux-pm/drivers/acpi/scan.c
+> ===================================================================
+> --- linux-pm.orig/drivers/acpi/scan.c
+> +++ linux-pm/drivers/acpi/scan.c
+> @@ -1018,7 +1018,6 @@ int acpi_device_add(struct acpi_device *
+>  	INIT_LIST_HEAD(&device->wakeup_list);
+>  	INIT_LIST_HEAD(&device->physical_node_list);
+>  	mutex_init(&device->physical_node_lock);
+> -	INIT_LIST_HEAD(&device->power_dependent);
+>  
+>  	new_bus_id = kzalloc(sizeof(struct acpi_device_bus_id), GFP_KERNEL);
+>  	if (!new_bus_id) {
+> 
 
