@@ -1,33 +1,70 @@
-From: Toshi Kani <toshi.kani@hp.com>
-Subject: [PATCH] ACPI: Remove the use of CONFIG_ACPI_HOTPLUG_MEMORY_MODULE
-Date: Tue, 18 Jun 2013 15:06:45 -0600
-Message-ID: <1371589605-15638-1-git-send-email-toshi.kani@hp.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: rjw@sisk.pl
-Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Toshi Kani <toshi.kani@hp.com>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: Re: [BUGFIX v2 2/4] ACPI, DOCK: resolve possible deadlock scenarios
+Date: Tue, 18 Jun 2013 23:25:36 +0200
+Message-ID: <3943270.c6vnSkoz5G@vostro.rjw.lan>
+References: <1371238081-32260-1-git-send-email-jiang.liu@huawei.com> <2972274.Y9Nv7DUfsQ@vostro.rjw.lan> <51C084D9.50008@gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7Bit
+Return-path: <stable-owner@vger.kernel.org>
+In-Reply-To: <51C084D9.50008@gmail.com>
+Sender: stable-owner@vger.kernel.org
+To: Jiang Liu <liuj97@gmail.com>
+Cc: Bjorn Helgaas <bhelgaas@google.com>, Yinghai Lu <yinghai@kernel.org>, "Alexander E . Patrakov" <patrakov@gmail.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Yijing Wang <wangyijing@huawei.com>, linux-acpi@vger.kernel.org, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, Len Brown <lenb@kernel.org>, stable@vger.kernel.org, Jiang Liu <jiang.liu@huawei.com>
 List-Id: linux-acpi@vger.kernel.org
 
-config ACPI_HOTPLUG_MEMORY has been changed to bool (y/n), and
-its module option is no longer valid.  So, remove the use of
-CONFIG_ACPI_HOTPLUG_MEMORY_MODULE.
+On Wednesday, June 19, 2013 12:03:37 AM Jiang Liu wrote:
+> On 06/17/2013 07:40 PM, Rafael J. Wysocki wrote:
+> > On Monday, June 17, 2013 01:12:00 AM Jiang Liu wrote:
+> >> On 06/16/2013 06:54 AM, Rafael J. Wysocki wrote:
+> >>> On Saturday, June 15, 2013 11:20:40 PM Rafael J. Wysocki wrote:
+> >>>> On Saturday, June 15, 2013 10:17:42 PM Rafael J. Wysocki wrote:
 
-Signed-off-by: Toshi Kani <toshi.kani@hp.com>
----
- include/linux/acpi.h |    3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
+[...]
 
-diff --git a/include/linux/acpi.h b/include/linux/acpi.h
-index 17b5b59..353ba25 100644
---- a/include/linux/acpi.h
-+++ b/include/linux/acpi.h
-@@ -352,8 +352,7 @@ extern acpi_status acpi_pci_osc_control_set(acpi_handle handle,
- 
- /* Enable _OST when all relevant hotplug operations are enabled */
- #if defined(CONFIG_ACPI_HOTPLUG_CPU) &&			\
--	(defined(CONFIG_ACPI_HOTPLUG_MEMORY) ||		\
--	 defined(CONFIG_ACPI_HOTPLUG_MEMORY_MODULE)) &&	\
-+	defined(CONFIG_ACPI_HOTPLUG_MEMORY) &&		\
- 	defined(CONFIG_ACPI_CONTAINER)
- #define ACPI_HOTPLUG_OST
- #endif
+> Hi Rafael,
+
+Hi,
+
+>     I hope I could help to simplify the implementation too, but failed
+> until now:(. The PCI hotplug core has the same re-entrance issue too,
+> and I have struggled with that issue about one year now:(
+
+This sounds like a design issue and we're not likely to fix design issues
+in 2 weeks, with all due respect to everyone involved.  Even if someone has
+an "Eureka!" moment and comes up with a really clever way to fix that issue,
+we still need time to prepare patches, review them, test them etc.
+
+>     I have tried another solution by removing ds->hp_lock and
+> hotplug_devices list, please refer to the attachment. It could be used
+> to solve the deadlock issue in acpiphp, but may not be used to support
+> the coming fix for an ATA driver
+> regression(https://bugzilla.kernel.org/show_bug.cgi?id=59871).
+
+Please stop generating patches in a hurry.  That's not really useful.
+
+Even if you think you know what you're doing, someone else has to understand
+that too and be able to review your patches.  Honestly, my experience with
+that code is kind of limited and I need more time.
+
+>     The time window for 3.10 is closing, it would be great if we could
+> reach a quick solution here.
+
+That is clearly impossible.
+
+My suggestion would be to apply the patches that everyone is reasonably
+comfortable with at the moment and stop worrying about "time windows", because
+in fact there are none.  We're talking about fixes here and we can do -stable
+backports once we have a solid solution, but what matters is that this solution
+has to be acceptable to *all* of us.
+
+So please stop making it sound like the 3.10 release is a hard deadline or
+something.  It is not.
+
+Thanks,
+Rafael
+
+
+-- 
+I speak only for myself.
+Rafael J. Wysocki, Intel Open Source Technology Center.
