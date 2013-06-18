@@ -1,45 +1,181 @@
-From: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>
-Subject: Re: [PATCH 00/16] ACPICA: 20130517 release
-Date: Tue, 18 Jun 2013 12:35:21 +0200
-Message-ID: <51C037E9.6070900@intel.com>
-References: <cover.1369274558.git.lv.zheng@intel.com> <CAJvTdKkaH-T7FCnpWwPL+KMEWrdPRNArL9b9MK+D6yyGQ-JhLQ@mail.gmail.com> <1585522.1qyMjQu16g@vostro.rjw.lan> <1AE640813FDE7649BE1B193DEA596E8802417F36@SHSMSX101.ccr.corp.intel.com>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: Re: [PATCH 4/4] ACPI / PM: Drop two functions that are not used any more
+Date: Tue, 18 Jun 2013 15:00:28 +0200
+Message-ID: <2356401.FiBQpSHJGJ@vostro.rjw.lan>
+References: <6895318.cKDBc4OdI0@vostro.rjw.lan> <2934743.cl2LaccKZx@vostro.rjw.lan> <51C02664.2050603@intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"; format="flowed"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7Bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga09.intel.com ([134.134.136.24]:18363 "EHLO mga09.intel.com"
+Received: from hydra.sisk.pl ([212.160.235.94]:41415 "EHLO hydra.sisk.pl"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754308Ab3FRKf1 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 18 Jun 2013 06:35:27 -0400
-In-Reply-To: <1AE640813FDE7649BE1B193DEA596E8802417F36@SHSMSX101.ccr.corp.intel.com>
+	id S1751962Ab3FRMvN (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 18 Jun 2013 08:51:13 -0400
+In-Reply-To: <51C02664.2050603@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Zheng, Lv" <lv.zheng@intel.com>
-Cc: "Rafael J. Wysocki" <rjw@sisk.pl>, Len Brown <lenb@kernel.org>, "Moore, Robert" <robert.moore@intel.com>, "Brown, Len" <len.brown@intel.com>, linux acpi <linux-acpi@vger.kernel.org>
+To: Aaron Lu <aaron.lu@intel.com>
+Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>, Linux PM list <linux-pm@vger.kernel.org>, Lan Tianyu <tianyu.lan@intel.com>, Tejun Heo <tj@kernel.org>
 
-T24gNi8xOC8yMDEzIDM6MzkgQU0sIFpoZW5nLCBMdiB3cm90ZToKPj4+IEkgd291bGQgbGlrZSB0
-byBzZWUgdGhpcyBzZXJpZXMgcmUtZnJlc2hlZCBiZWZvcmUgaXQgZ29lcyB1cC1zdHJlYW0uCj4+
-PiBHZW5lcmFsbHksIHRoZSBjb21taXQgbWVzc2FnZXMgbmVlZCB0byBiZSBpbXByb3ZlZCBiZWZv
-cmUgdGhleSBnbyBpbnRvCj4+PiB0aGUgcGVybWFuZW50IGtlcm5lbCBoaXN0b3J5Lgo+PiBMdiwK
-Pj4KPj4gSSd2ZSBkcm9wcGVkIFs3LzE2XSBhbmQgWzEyLzE2XSBwZXJtYW5lbnRseSAocGxlYXNl
-IGRvIG5vdCByZXNlbmQgdGhlbSkuCj4gT0suCj4KPj4gSSdkIGxpa2UgdG8gc2VlIG5ldyB2ZXJz
-aW9ucyBvZiBbMTMtMTUvMTZdIHdpdGggaW1wcm92ZWQgY2hhbmdlbG9ncyBhbG9uZyB3aXRoCj4+
-IFsxNi8xNl0uCj4gSSB0aGluayB0aGUgb25lIG5lZWQgdG8gZG8gY2hhbmdlIGxvZyBlbmhhbmNl
-bWVudCBpcyB0aGUgUEFUQ0ggMDQvMTYsIG90aGVycyBtaWdodCBiZSBPSy4KPiBQYXRjaCAwNCBz
-aG91bGQgYmUgYSBiYWNrIHBvcnQgcGF0Y2ggd2hpY2ggd2FzIGFscmVhZHkgaW4gTGludXgsIHRo
-ZSB3b3JkICJhZGQiIGlzIG5vdCBwcm9wZXIuCgpQbGVhc2Ugc2VlIHRoZSBMZW4ncyBjb21tZW50
-cyB0byBwYXRjaGVzIFsxMy0xNS8xNl0gaW4gdGhlICRzdWJqZWN0IApzZXJpZXMuICBUaG9zZSBh
-bmQgWzE2LzE2XSBhcmUgdGhlIG9ubHkgcGF0Y2hlcyBJJ20gYXNraW5nIHlvdSB0byAKcmVzdWJt
-aXQgKFsxMy0xNS8xNl0gd2l0aCBpbXByb3ZlZCBjaGFuZ2Vsb2dzIGFzIHJlcXVlc3RlZCBieSBM
-ZW4pLgoKVGhhbmtzLApSYWZhZWwKCi0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
-LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLQpJbnRlbCBUZWNobm9sb2d5IFBvbGFu
-ZCBzcC4geiBvLm8uCnogc2llZHppYmEgdyBHZGFuc2t1CnVsLiBTbG93YWNraWVnbyAxNzMKODAt
-Mjk4IEdkYW5zawoKU2FkIFJlam9ub3d5IEdkYW5zayBQb2xub2MgdyBHZGFuc2t1LCAKVklJIFd5
-ZHppYWwgR29zcG9kYXJjenkgS3Jham93ZWdvIFJlamVzdHJ1IFNhZG93ZWdvLCAKbnVtZXIgS1JT
-IDEwMTg4MgoKTklQIDk1Ny0wNy01Mi0zMTYKS2FwaXRhbCB6YWtsYWRvd3kgMjAwLjAwMCB6bAoK
-VGhpcyBlLW1haWwgYW5kIGFueSBhdHRhY2htZW50cyBtYXkgY29udGFpbiBjb25maWRlbnRpYWwg
-bWF0ZXJpYWwgZm9yCnRoZSBzb2xlIHVzZSBvZiB0aGUgaW50ZW5kZWQgcmVjaXBpZW50KHMpLiBB
-bnkgcmV2aWV3IG9yIGRpc3RyaWJ1dGlvbgpieSBvdGhlcnMgaXMgc3RyaWN0bHkgcHJvaGliaXRl
-ZC4gSWYgeW91IGFyZSBub3QgdGhlIGludGVuZGVkCnJlY2lwaWVudCwgcGxlYXNlIGNvbnRhY3Qg
-dGhlIHNlbmRlciBhbmQgZGVsZXRlIGFsbCBjb3BpZXMuCg==
+On Tuesday, June 18, 2013 05:20:36 PM Aaron Lu wrote:
+> On 06/14/2013 08:33 PM, Rafael J. Wysocki wrote:
+> > From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+> > 
+> > Two functions defined in device_pm.c, acpi_dev_pm_add_dependent()
+> > and acpi_dev_pm_remove_dependent(), have no callers and may be
+> > dropped, so drop them.
+> 
+> Please hold on for a moment, I would like to discuss the ATA ACPI
+> binding with you and Tejun, the current binding with SCSI device tree
+> doesn't buy us anything but introduced some nasty consequences. I think
+> we should bind ACPI handle with ATA port/device, I have a draft patch
+> for this and will send out soon. If we go binding with ATA port/device,
+> then the two functions will be needed :-)
 
+OK, this change can wait.  I'll drop [4/4] for now.
+
+Thanks,
+Rafael
+
+
+> > Moreover, they are the only functions adding entries to and removing
+> > entries from the power_dependent list in struct acpi_device, so drop
+> > that list and the loop walking it in acpi_power_resume_dependent()
+> > too.
+> > 
+> > Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+> > ---
+> >  drivers/acpi/device_pm.c |   56 -----------------------------------------------
+> >  drivers/acpi/power.c     |    3 --
+> >  drivers/acpi/scan.c      |    1 
+> >  include/acpi/acpi_bus.h  |    7 -----
+> >  4 files changed, 67 deletions(-)
+> > 
+> > Index: linux-pm/include/acpi/acpi_bus.h
+> > ===================================================================
+> > --- linux-pm.orig/include/acpi/acpi_bus.h
+> > +++ linux-pm/include/acpi/acpi_bus.h
+> > @@ -308,7 +308,6 @@ struct acpi_device {
+> >  	struct list_head physical_node_list;
+> >  	struct mutex physical_node_lock;
+> >  	DECLARE_BITMAP(physical_node_id_bitmap, ACPI_MAX_PHYSICAL_NODE);
+> > -	struct list_head power_dependent;
+> >  	void (*remove)(struct acpi_device *);
+> >  };
+> >  
+> > @@ -461,8 +460,6 @@ acpi_status acpi_add_pm_notifier(struct
+> >  acpi_status acpi_remove_pm_notifier(struct acpi_device *adev,
+> >  				    acpi_notify_handler handler);
+> >  int acpi_pm_device_sleep_state(struct device *, int *, int);
+> > -void acpi_dev_pm_add_dependent(acpi_handle handle, struct device *depdev);
+> > -void acpi_dev_pm_remove_dependent(acpi_handle handle, struct device *depdev);
+> >  #else
+> >  static inline acpi_status acpi_add_pm_notifier(struct acpi_device *adev,
+> >  					       acpi_notify_handler handler,
+> > @@ -482,10 +479,6 @@ static inline int acpi_pm_device_sleep_s
+> >  
+> >  	return (m >= ACPI_STATE_D0 && m <= ACPI_STATE_D3) ? m : ACPI_STATE_D0;
+> >  }
+> > -static inline void acpi_dev_pm_add_dependent(acpi_handle handle,
+> > -					     struct device *depdev) {}
+> > -static inline void acpi_dev_pm_remove_dependent(acpi_handle handle,
+> > -						struct device *depdev) {}
+> >  #endif
+> >  
+> >  #ifdef CONFIG_PM_RUNTIME
+> > Index: linux-pm/drivers/acpi/device_pm.c
+> > ===================================================================
+> > --- linux-pm.orig/drivers/acpi/device_pm.c
+> > +++ linux-pm/drivers/acpi/device_pm.c
+> > @@ -994,60 +994,4 @@ void acpi_dev_pm_detach(struct device *d
+> >  	}
+> >  }
+> >  EXPORT_SYMBOL_GPL(acpi_dev_pm_detach);
+> > -
+> > -/**
+> > - * acpi_dev_pm_add_dependent - Add physical device depending for PM.
+> > - * @handle: Handle of ACPI device node.
+> > - * @depdev: Device depending on that node for PM.
+> > - */
+> > -void acpi_dev_pm_add_dependent(acpi_handle handle, struct device *depdev)
+> > -{
+> > -	struct acpi_device_physical_node *dep;
+> > -	struct acpi_device *adev;
+> > -
+> > -	if (!depdev || acpi_bus_get_device(handle, &adev))
+> > -		return;
+> > -
+> > -	mutex_lock(&adev->physical_node_lock);
+> > -
+> > -	list_for_each_entry(dep, &adev->power_dependent, node)
+> > -		if (dep->dev == depdev)
+> > -			goto out;
+> > -
+> > -	dep = kzalloc(sizeof(*dep), GFP_KERNEL);
+> > -	if (dep) {
+> > -		dep->dev = depdev;
+> > -		list_add_tail(&dep->node, &adev->power_dependent);
+> > -	}
+> > -
+> > - out:
+> > -	mutex_unlock(&adev->physical_node_lock);
+> > -}
+> > -EXPORT_SYMBOL_GPL(acpi_dev_pm_add_dependent);
+> > -
+> > -/**
+> > - * acpi_dev_pm_remove_dependent - Remove physical device depending for PM.
+> > - * @handle: Handle of ACPI device node.
+> > - * @depdev: Device depending on that node for PM.
+> > - */
+> > -void acpi_dev_pm_remove_dependent(acpi_handle handle, struct device *depdev)
+> > -{
+> > -	struct acpi_device_physical_node *dep;
+> > -	struct acpi_device *adev;
+> > -
+> > -	if (!depdev || acpi_bus_get_device(handle, &adev))
+> > -		return;
+> > -
+> > -	mutex_lock(&adev->physical_node_lock);
+> > -
+> > -	list_for_each_entry(dep, &adev->power_dependent, node)
+> > -		if (dep->dev == depdev) {
+> > -			list_del(&dep->node);
+> > -			kfree(dep);
+> > -			break;
+> > -		}
+> > -
+> > -	mutex_unlock(&adev->physical_node_lock);
+> > -}
+> > -EXPORT_SYMBOL_GPL(acpi_dev_pm_remove_dependent);
+> >  #endif /* CONFIG_PM */
+> > Index: linux-pm/drivers/acpi/power.c
+> > ===================================================================
+> > --- linux-pm.orig/drivers/acpi/power.c
+> > +++ linux-pm/drivers/acpi/power.c
+> > @@ -253,9 +253,6 @@ static void acpi_power_resume_dependent(
+> >  	list_for_each_entry(pn, &adev->physical_node_list, node)
+> >  		pm_request_resume(pn->dev);
+> >  
+> > -	list_for_each_entry(pn, &adev->power_dependent, node)
+> > -		pm_request_resume(pn->dev);
+> > -
+> >  	mutex_unlock(&adev->physical_node_lock);
+> >  }
+> >  
+> > Index: linux-pm/drivers/acpi/scan.c
+> > ===================================================================
+> > --- linux-pm.orig/drivers/acpi/scan.c
+> > +++ linux-pm/drivers/acpi/scan.c
+> > @@ -1018,7 +1018,6 @@ int acpi_device_add(struct acpi_device *
+> >  	INIT_LIST_HEAD(&device->wakeup_list);
+> >  	INIT_LIST_HEAD(&device->physical_node_list);
+> >  	mutex_init(&device->physical_node_lock);
+> > -	INIT_LIST_HEAD(&device->power_dependent);
+> >  
+> >  	new_bus_id = kzalloc(sizeof(struct acpi_device_bus_id), GFP_KERNEL);
+> >  	if (!new_bus_id) {
+> > 
+> 
+-- 
+I speak only for myself.
+Rafael J. Wysocki, Intel Open Source Technology Center.
