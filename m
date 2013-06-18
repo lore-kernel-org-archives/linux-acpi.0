@@ -1,181 +1,119 @@
 From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: [PATCH 4/4] ACPI / PM: Drop two functions that are not used any more
-Date: Tue, 18 Jun 2013 15:00:28 +0200
-Message-ID: <2356401.FiBQpSHJGJ@vostro.rjw.lan>
-References: <6895318.cKDBc4OdI0@vostro.rjw.lan> <2934743.cl2LaccKZx@vostro.rjw.lan> <51C02664.2050603@intel.com>
+Subject: [PATCH] ACPI / LPSS: Power up LPSS devices during enumeration
+Date: Tue, 18 Jun 2013 15:41:15 +0200
+Message-ID: <4947718.ocNqGGkags@vostro.rjw.lan>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7Bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from hydra.sisk.pl ([212.160.235.94]:41415 "EHLO hydra.sisk.pl"
+Received: from hydra.sisk.pl ([212.160.235.94]:41458 "EHLO hydra.sisk.pl"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751962Ab3FRMvN (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 18 Jun 2013 08:51:13 -0400
-In-Reply-To: <51C02664.2050603@intel.com>
+	id S1755725Ab3FRNb4 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 18 Jun 2013 09:31:56 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Aaron Lu <aaron.lu@intel.com>
-Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>, Linux PM list <linux-pm@vger.kernel.org>, Lan Tianyu <tianyu.lan@intel.com>, Tejun Heo <tj@kernel.org>
+To: ACPI Devel Maling List <linux-acpi@vger.kernel.org>
+Cc: LKML <linux-kernel@vger.kernel.org>, Mika Westerberg <mika.westerberg@linux.intel.com>
 
-On Tuesday, June 18, 2013 05:20:36 PM Aaron Lu wrote:
-> On 06/14/2013 08:33 PM, Rafael J. Wysocki wrote:
-> > From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
-> > 
-> > Two functions defined in device_pm.c, acpi_dev_pm_add_dependent()
-> > and acpi_dev_pm_remove_dependent(), have no callers and may be
-> > dropped, so drop them.
-> 
-> Please hold on for a moment, I would like to discuss the ATA ACPI
-> binding with you and Tejun, the current binding with SCSI device tree
-> doesn't buy us anything but introduced some nasty consequences. I think
-> we should bind ACPI handle with ATA port/device, I have a draft patch
-> for this and will send out soon. If we go binding with ATA port/device,
-> then the two functions will be needed :-)
+From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 
-OK, this change can wait.  I'll drop [4/4] for now.
+Commit 7cd8407 (ACPI / PM: Do not execute _PS0 for devices without
+_PSC during initialization) introduced a regression on some systems
+with Intel Low-Power Subsystem (LPSS) where some devices need to be
+powered up during initialization, but their device objects in the
+ACPI namespace have _PS0 and _PS3 only (without _PSC or power
+resources).
 
-Thanks,
-Rafael
+To work around this problem, make the ACPI LPSS driver power up
+devices it knows about by using a new helper function
+acpi_device_fix_up_power() that does all of the necessary
+sanity checks and calls acpi_dev_pm_explicit_set() to put the
+device into D0.
 
+Reported-and-tested-by: Mika Westerberg <mika.westerberg@linux.intel.com>
+Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+---
+ drivers/acpi/acpi_lpss.c |   21 +++++++++++++++------
+ drivers/acpi/device_pm.c |   20 ++++++++++++++++++++
+ include/acpi/acpi_bus.h  |    1 +
+ 3 files changed, 36 insertions(+), 6 deletions(-)
 
-> > Moreover, they are the only functions adding entries to and removing
-> > entries from the power_dependent list in struct acpi_device, so drop
-> > that list and the loop walking it in acpi_power_resume_dependent()
-> > too.
-> > 
-> > Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
-> > ---
-> >  drivers/acpi/device_pm.c |   56 -----------------------------------------------
-> >  drivers/acpi/power.c     |    3 --
-> >  drivers/acpi/scan.c      |    1 
-> >  include/acpi/acpi_bus.h  |    7 -----
-> >  4 files changed, 67 deletions(-)
-> > 
-> > Index: linux-pm/include/acpi/acpi_bus.h
-> > ===================================================================
-> > --- linux-pm.orig/include/acpi/acpi_bus.h
-> > +++ linux-pm/include/acpi/acpi_bus.h
-> > @@ -308,7 +308,6 @@ struct acpi_device {
-> >  	struct list_head physical_node_list;
-> >  	struct mutex physical_node_lock;
-> >  	DECLARE_BITMAP(physical_node_id_bitmap, ACPI_MAX_PHYSICAL_NODE);
-> > -	struct list_head power_dependent;
-> >  	void (*remove)(struct acpi_device *);
-> >  };
-> >  
-> > @@ -461,8 +460,6 @@ acpi_status acpi_add_pm_notifier(struct
-> >  acpi_status acpi_remove_pm_notifier(struct acpi_device *adev,
-> >  				    acpi_notify_handler handler);
-> >  int acpi_pm_device_sleep_state(struct device *, int *, int);
-> > -void acpi_dev_pm_add_dependent(acpi_handle handle, struct device *depdev);
-> > -void acpi_dev_pm_remove_dependent(acpi_handle handle, struct device *depdev);
-> >  #else
-> >  static inline acpi_status acpi_add_pm_notifier(struct acpi_device *adev,
-> >  					       acpi_notify_handler handler,
-> > @@ -482,10 +479,6 @@ static inline int acpi_pm_device_sleep_s
-> >  
-> >  	return (m >= ACPI_STATE_D0 && m <= ACPI_STATE_D3) ? m : ACPI_STATE_D0;
-> >  }
-> > -static inline void acpi_dev_pm_add_dependent(acpi_handle handle,
-> > -					     struct device *depdev) {}
-> > -static inline void acpi_dev_pm_remove_dependent(acpi_handle handle,
-> > -						struct device *depdev) {}
-> >  #endif
-> >  
-> >  #ifdef CONFIG_PM_RUNTIME
-> > Index: linux-pm/drivers/acpi/device_pm.c
-> > ===================================================================
-> > --- linux-pm.orig/drivers/acpi/device_pm.c
-> > +++ linux-pm/drivers/acpi/device_pm.c
-> > @@ -994,60 +994,4 @@ void acpi_dev_pm_detach(struct device *d
-> >  	}
-> >  }
-> >  EXPORT_SYMBOL_GPL(acpi_dev_pm_detach);
-> > -
-> > -/**
-> > - * acpi_dev_pm_add_dependent - Add physical device depending for PM.
-> > - * @handle: Handle of ACPI device node.
-> > - * @depdev: Device depending on that node for PM.
-> > - */
-> > -void acpi_dev_pm_add_dependent(acpi_handle handle, struct device *depdev)
-> > -{
-> > -	struct acpi_device_physical_node *dep;
-> > -	struct acpi_device *adev;
-> > -
-> > -	if (!depdev || acpi_bus_get_device(handle, &adev))
-> > -		return;
-> > -
-> > -	mutex_lock(&adev->physical_node_lock);
-> > -
-> > -	list_for_each_entry(dep, &adev->power_dependent, node)
-> > -		if (dep->dev == depdev)
-> > -			goto out;
-> > -
-> > -	dep = kzalloc(sizeof(*dep), GFP_KERNEL);
-> > -	if (dep) {
-> > -		dep->dev = depdev;
-> > -		list_add_tail(&dep->node, &adev->power_dependent);
-> > -	}
-> > -
-> > - out:
-> > -	mutex_unlock(&adev->physical_node_lock);
-> > -}
-> > -EXPORT_SYMBOL_GPL(acpi_dev_pm_add_dependent);
-> > -
-> > -/**
-> > - * acpi_dev_pm_remove_dependent - Remove physical device depending for PM.
-> > - * @handle: Handle of ACPI device node.
-> > - * @depdev: Device depending on that node for PM.
-> > - */
-> > -void acpi_dev_pm_remove_dependent(acpi_handle handle, struct device *depdev)
-> > -{
-> > -	struct acpi_device_physical_node *dep;
-> > -	struct acpi_device *adev;
-> > -
-> > -	if (!depdev || acpi_bus_get_device(handle, &adev))
-> > -		return;
-> > -
-> > -	mutex_lock(&adev->physical_node_lock);
-> > -
-> > -	list_for_each_entry(dep, &adev->power_dependent, node)
-> > -		if (dep->dev == depdev) {
-> > -			list_del(&dep->node);
-> > -			kfree(dep);
-> > -			break;
-> > -		}
-> > -
-> > -	mutex_unlock(&adev->physical_node_lock);
-> > -}
-> > -EXPORT_SYMBOL_GPL(acpi_dev_pm_remove_dependent);
-> >  #endif /* CONFIG_PM */
-> > Index: linux-pm/drivers/acpi/power.c
-> > ===================================================================
-> > --- linux-pm.orig/drivers/acpi/power.c
-> > +++ linux-pm/drivers/acpi/power.c
-> > @@ -253,9 +253,6 @@ static void acpi_power_resume_dependent(
-> >  	list_for_each_entry(pn, &adev->physical_node_list, node)
-> >  		pm_request_resume(pn->dev);
-> >  
-> > -	list_for_each_entry(pn, &adev->power_dependent, node)
-> > -		pm_request_resume(pn->dev);
-> > -
-> >  	mutex_unlock(&adev->physical_node_lock);
-> >  }
-> >  
-> > Index: linux-pm/drivers/acpi/scan.c
-> > ===================================================================
-> > --- linux-pm.orig/drivers/acpi/scan.c
-> > +++ linux-pm/drivers/acpi/scan.c
-> > @@ -1018,7 +1018,6 @@ int acpi_device_add(struct acpi_device *
-> >  	INIT_LIST_HEAD(&device->wakeup_list);
-> >  	INIT_LIST_HEAD(&device->physical_node_list);
-> >  	mutex_init(&device->physical_node_lock);
-> > -	INIT_LIST_HEAD(&device->power_dependent);
-> >  
-> >  	new_bus_id = kzalloc(sizeof(struct acpi_device_bus_id), GFP_KERNEL);
-> >  	if (!new_bus_id) {
-> > 
-> 
--- 
-I speak only for myself.
-Rafael J. Wysocki, Intel Open Source Technology Center.
+Index: linux-pm/drivers/acpi/acpi_lpss.c
+===================================================================
+--- linux-pm.orig/drivers/acpi/acpi_lpss.c
++++ linux-pm/drivers/acpi/acpi_lpss.c
+@@ -280,15 +280,24 @@ static int acpi_lpss_create_device(struc
+ 	if (dev_desc->clk_required) {
+ 		ret = register_device_clock(adev, pdata);
+ 		if (ret) {
+-			/*
+-			 * Skip the device, but don't terminate the namespace
+-			 * scan.
+-			 */
+-			kfree(pdata);
+-			return 0;
++			/* Skip the device, but continue the namespace scan. */
++			ret = 0;
++			goto err_out;
+ 		}
+ 	}
+ 
++	/*
++	 * This works around a known issue in ACPI tables where LPSS devices
++	 * have _PS0 and _PS3 without _PSC (and no power resources), so
++	 * acpi_bus_init_power() will assume that the BIOS has put them into D0.
++	 */
++	ret = acpi_device_fix_up_power(adev);
++	if (ret) {
++		/* Skip the device, but continue the namespace scan. */
++		ret = 0;
++		goto err_out;
++	}
++
+ 	adev->driver_data = pdata;
+ 	ret = acpi_create_platform_device(adev, id);
+ 	if (ret > 0)
+Index: linux-pm/drivers/acpi/device_pm.c
+===================================================================
+--- linux-pm.orig/drivers/acpi/device_pm.c
++++ linux-pm/drivers/acpi/device_pm.c
+@@ -288,6 +288,26 @@ int acpi_bus_init_power(struct acpi_devi
+ 	return 0;
+ }
+ 
++/**
++ * acpi_device_fix_up_power - Force device with missing _PSC into D0.
++ * @device: Device object whose power state is to be fixed up.
++ *
++ * Devices without power resources and _PSC, but having _PS0 and _PS3 defined,
++ * are assumed to be put into D0 by the BIOS.  However, in some cases that may
++ * not be the case and this function should be used then.
++ */
++int acpi_device_fix_up_power(struct acpi_device *device)
++{
++	int ret = 0;
++
++	if (!device->power.flags.power_resources
++	    && !device->power.flags.explicit_get
++	    && device->power.state == ACPI_STATE_D0)
++		ret = acpi_dev_pm_explicit_set(device, ACPI_STATE_D0);
++
++	return ret;
++}
++
+ int acpi_bus_update_power(acpi_handle handle, int *state_p)
+ {
+ 	struct acpi_device *device;
+Index: linux-pm/include/acpi/acpi_bus.h
+===================================================================
+--- linux-pm.orig/include/acpi/acpi_bus.h
++++ linux-pm/include/acpi/acpi_bus.h
+@@ -372,6 +372,7 @@ const char *acpi_power_state_string(int
+ int acpi_device_get_power(struct acpi_device *device, int *state);
+ int acpi_device_set_power(struct acpi_device *device, int state);
+ int acpi_bus_init_power(struct acpi_device *device);
++int acpi_device_fix_up_power(struct acpi_device *device);
+ int acpi_bus_update_power(acpi_handle handle, int *state_p);
+ bool acpi_bus_power_manageable(acpi_handle handle);
+ 
+
