@@ -1,44 +1,71 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: [BUGFIX v2 0/4] fix bug 56531, 59501 and 59581
-Date: Tue, 18 Jun 2013 23:35:01 +0200
-Message-ID: <1880810.6jIKdDRiJm@vostro.rjw.lan>
-References: <1371238081-32260-1-git-send-email-jiang.liu@huawei.com> <CAN_LGv1itN=ADE-3LNCoBJFXmpWZffhQb6NQuoBzvONkX3brug@mail.gmail.com> <CAN_LGv2Y6jebtNUQ1gJYfy8uG2pxtUjT1gqMPmL+6E7myELd3A@mail.gmail.com>
+From: Toshi Kani <toshi.kani@hp.com>
+Subject: Re: [PATCH] ACPI / dock: Take ACPI scan lock in write_undock()
+Date: Tue, 18 Jun 2013 15:28:37 -0600
+Message-ID: <1371590917.13194.8.camel@misato.fc.hp.com>
+References: <1886227.aipra45Zvt@vostro.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7Bit
-Return-path: <linux-pci-owner@vger.kernel.org>
-In-Reply-To: <CAN_LGv2Y6jebtNUQ1gJYfy8uG2pxtUjT1gqMPmL+6E7myELd3A@mail.gmail.com>
-Sender: linux-pci-owner@vger.kernel.org
-To: "Alexander E. Patrakov" <patrakov@gmail.com>
-Cc: Jiang Liu <jiang.liu@huawei.com>, alexdeucher@gmail.com, Bjorn Helgaas <bhelgaas@google.com>, Yinghai Lu <yinghai@kernel.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Yijing Wang <wangyijing@huawei.com>, linux-acpi@vger.kernel.org, Jiang Liu <liuj97@gmail.com>, "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from g1t0026.austin.hp.com ([15.216.28.33]:19115 "EHLO
+	g1t0026.austin.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932799Ab3FRV25 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 18 Jun 2013 17:28:57 -0400
+In-Reply-To: <1886227.aipra45Zvt@vostro.rjw.lan>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>, Jiang Liu <liuj97@gmail.com>, Yinghai Lu <yinghai@kernel.org>
 
-On Saturday, June 15, 2013 01:25:48 PM Alexander E. Patrakov wrote:
-> 2013/6/15 Alexander E. Patrakov <patrakov@gmail.com>:
-> > Note that the snd_hda_intel bug somehow didn't manifest itself today,
-> > probably because the TV that is connected to the HDMI output of the
-> > radeon card was off and because Xorg never really tried to use the
-> > card.
+On Sun, 2013-06-16 at 00:16 +0200, Rafael J. Wysocki wrote:
+> From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 > 
-> Well, it did. The sympthoms are the same as before: incomplete
-> undocking. The 16:00.1 device (HD audio controller on the radeon card)
-> has disappeared from lspci output, while 16:00.0 (the radeon card
-> itself) didn't, and the "Docked" LED didn't turn off. Fixed up by this
-> command:
+> Since commit 3757b94 (ACPI / hotplug: Fix concurrency issues and
+> memory leaks) acpi_bus_scan() and acpi_bus_trim() must always be
+> called under acpi_scan_lock, but currently the following scenario
+> violating that requirement is possible:
 > 
-> fuser -k /dev/snd/* ; rmmod snd-hda-intel
+>  write_undock()
+>   handle_eject_request()
+>    hotplug_dock_devices()
+>     dock_remove_acpi_device()
+>      acpi_bus_trim()
 > 
-> thus confirming again that the extra references that acpiphp waits to
-> go away are from open fds.
+> Fix that by making write_undock() acquire acpi_scan_lock before
+> calling handle_eject_request() as appropriate (begin_undock() is
+> under the lock too in analogy with acpi_dock_deferred_cb()).
+> 
+> Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 
-OK, let's try to untangle this a bit.
+Looks good.
 
-If you applyt patches [1/4] and [4/4] from the $subject series only, what
-does remain unfixed?
+Acked-by: Toshi Kani <toshi.kani@hp.com>
 
-Rafael
+Thanks,
+-Toshi
 
 
--- 
-I speak only for myself.
-Rafael J. Wysocki, Intel Open Source Technology Center.
+
+> Cc: 3.9+ <stable@vger.kernel.org>
+> ---
+>  drivers/acpi/dock.c |    2 ++
+>  1 file changed, 2 insertions(+)
+> 
+> Index: linux-pm/drivers/acpi/dock.c
+> ===================================================================
+> --- linux-pm.orig/drivers/acpi/dock.c
+> +++ linux-pm/drivers/acpi/dock.c
+> @@ -868,8 +868,10 @@ static ssize_t write_undock(struct devic
+>  	if (!count)
+>  		return -EINVAL;
+>  
+> +	acpi_scan_lock_acquire();
+>  	begin_undock(dock_station);
+>  	ret = handle_eject_request(dock_station, ACPI_NOTIFY_EJECT_REQUEST);
+> +	acpi_scan_lock_release();
+>  	return ret ? ret: count;
+>  }
+>  static DEVICE_ATTR(undock, S_IWUSR, NULL, write_undock);
+> 
+
+
