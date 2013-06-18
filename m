@@ -1,30 +1,257 @@
-From: "Zheng, Lv" <lv.zheng@intel.com>
-Subject: RE: [PATCH 00/16] ACPICA: 20130517 release
-Date: Tue, 18 Jun 2013 01:56:49 +0000
-Message-ID: <1AE640813FDE7649BE1B193DEA596E8802417F7D@SHSMSX101.ccr.corp.intel.com>
-References: <cover.1369274558.git.lv.zheng@intel.com>
- <CAJvTdKkaH-T7FCnpWwPL+KMEWrdPRNArL9b9MK+D6yyGQ-JhLQ@mail.gmail.com>
- <1585522.1qyMjQu16g@vostro.rjw.lan>
- <1AE640813FDE7649BE1B193DEA596E8802417F36@SHSMSX101.ccr.corp.intel.com>
+From: "Naveen N. Rao" <naveen.n.rao@linux.vnet.ibm.com>
+Subject: Re: [PATCH] Re: [Patch] MCE,
+ APEI: Don't enable CMCI when Firmware First mode is set in
+Date: Tue, 18 Jun 2013 12:13:18 +0530
+Message-ID: <20130618063858.3645.75676.stgit@localhost.localdomain>
+References: <20130617082135.GB7203@pd.tnic>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga02.intel.com ([134.134.136.20]:59155 "EHLO mga02.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752535Ab3FRB5A (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 17 Jun 2013 21:57:00 -0400
-In-Reply-To: <1AE640813FDE7649BE1B193DEA596E8802417F36@SHSMSX101.ccr.corp.intel.com>
-Content-Language: en-US
+Received: from e23smtp05.au.ibm.com ([202.81.31.147]:56347 "EHLO
+	e23smtp05.au.ibm.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752049Ab3FRGni (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 18 Jun 2013 02:43:38 -0400
+Received: from /spool/local
+	by e23smtp05.au.ibm.com with IBM ESMTP SMTP Gateway: Authorized Use Only! Violators will be prosecuted
+	for <linux-acpi@vger.kernel.org> from <naveen.n.rao@linux.vnet.ibm.com>;
+	Tue, 18 Jun 2013 16:37:31 +1000
+In-Reply-To: <20130617082135.GB7203@pd.tnic>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Zheng, Lv" <lv.zheng@intel.com>, "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: Len Brown <lenb@kernel.org>, "Wysocki, Rafael J" <rafael.j.wysocki@intel.com>, "Moore, Robert" <robert.moore@intel.com>, "Brown, Len" <len.brown@intel.com>, linux acpi <linux-acpi@vger.kernel.org>
+To: bp@alien8.de
+Cc: tony.luck@intel.com, ananth@in.ibm.com, masbock@linux.vnet.ibm.com, lcm@linux.vnet.ibm.com, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, ying.huang@intel.com
 
-PiA+IEknZCBsaWtlIHRvIHNlZSBuZXcgdmVyc2lvbnMgb2YgWzEzLTE1LzE2XSB3aXRoIGltcHJv
-dmVkIGNoYW5nZWxvZ3MNCj4gPiBhbG9uZyB3aXRoIFsxNi8xNl0uDQo+IA0KPiBJIHRoaW5rIHRo
-ZSBvbmUgbmVlZCB0byBkbyBjaGFuZ2UgbG9nIGVuaGFuY2VtZW50IGlzIHRoZSBQQVRDSCAwNC8x
-Niwgb3RoZXJzDQo+IG1pZ2h0IGJlIE9LLg0KPiBQYXRjaCAwNCBzaG91bGQgYmUgYSBiYWNrIHBv
-cnQgcGF0Y2ggd2hpY2ggd2FzIGFscmVhZHkgaW4gTGludXgsIHRoZSB3b3JkDQo+ICJhZGQiIGlz
-IG5vdCBwcm9wZXIuDQoNClNvcnJ5IHRoYXQgSSBkaWRuJ3Qgbm90aWNlIHRoZSBjb21tZW50cywg
-bGV0IG1lIGNoZWNrIExlbidzIGNvbW1lbnRzLg0KDQpUaGFua3MNCi1Mdg0K
+The Corrected Machine Check structure (CMC) in HEST has a flag which can be
+set by the firmware to indicate to the OS that it prefers to process the
+corrected error events first. In this scenario, the OS is expected to not
+monitor for corrected errors (through CMCI/polling). Instead, the firmware
+notifies the OS on corrected error events through GHES.
+
+Linux already has support for GHES. This patch adds support for parsing CMC
+structure and to disable CMCI/polling if the firmware first flag is set.
+
+Further, the list of machine check bank structures at the end of CMC is used
+to determine which MCA banks function in FF mode, so that we continue to
+monitor error events on the other banks.
+
+
+- Naveen
+
+Signed-off-by: Naveen N. Rao <naveen.n.rao@linux.vnet.ibm.com>
+---
+ arch/x86/include/asm/mce.h                |    3 ++
+ arch/x86/kernel/cpu/mcheck/mce-internal.h |    3 ++
+ arch/x86/kernel/cpu/mcheck/mce.c          |   23 +++++++++++++++++
+ arch/x86/kernel/cpu/mcheck/mce_intel.c    |   40 +++++++++++++++++++++++------
+ drivers/acpi/apei/hest.c                  |   36 ++++++++++++++++++++++++++
+ 5 files changed, 97 insertions(+), 8 deletions(-)
+
+diff --git a/arch/x86/include/asm/mce.h b/arch/x86/include/asm/mce.h
+index fa5f71e..380fff8 100644
+--- a/arch/x86/include/asm/mce.h
++++ b/arch/x86/include/asm/mce.h
+@@ -188,6 +188,9 @@ extern void register_mce_write_callback(ssize_t (*)(struct file *filp,
+ 				    const char __user *ubuf,
+ 				    size_t usize, loff_t *off));
+ 
++/* Disable CMCI/polling for MCA bank claimed by firmware */
++extern void mce_disable_ce_bank(int bank);
++
+ /*
+  * Exception handler
+  */
+diff --git a/arch/x86/kernel/cpu/mcheck/mce-internal.h b/arch/x86/kernel/cpu/mcheck/mce-internal.h
+index 5b7d4fa..193edc1 100644
+--- a/arch/x86/kernel/cpu/mcheck/mce-internal.h
++++ b/arch/x86/kernel/cpu/mcheck/mce-internal.h
+@@ -25,6 +25,9 @@ int mce_severity(struct mce *a, int tolerant, char **msg);
+ struct dentry *mce_get_debugfs_dir(void);
+ 
+ extern struct mce_bank *mce_banks;
++extern mce_banks_t mce_banks_ce_disabled;
++
++void cmci_disable_bank(int bank);
+ 
+ #ifdef CONFIG_X86_MCE_INTEL
+ unsigned long mce_intel_adjust_timer(unsigned long interval);
+diff --git a/arch/x86/kernel/cpu/mcheck/mce.c b/arch/x86/kernel/cpu/mcheck/mce.c
+index 9239504..4bd9973 100644
+--- a/arch/x86/kernel/cpu/mcheck/mce.c
++++ b/arch/x86/kernel/cpu/mcheck/mce.c
+@@ -94,6 +94,9 @@ DEFINE_PER_CPU(mce_banks_t, mce_poll_banks) = {
+ 	[0 ... BITS_TO_LONGS(MAX_NR_BANKS)-1] = ~0UL
+ };
+ 
++/* MCA banks controlled through firmware first for corrected errors */
++mce_banks_t mce_banks_ce_disabled;
++
+ static DEFINE_PER_CPU(struct work_struct, mce_work);
+ 
+ static void (*quirk_no_way_out)(int bank, struct mce *m, struct pt_regs *regs);
+@@ -1932,6 +1935,26 @@ static struct miscdevice mce_chrdev_device = {
+ 	&mce_chrdev_ops,
+ };
+ 
++static void __mce_disable_ce_bank(void *arg)
++{
++	int bank = *((int *)arg);
++
++	/* Ensure we don't poll this bank */
++	__clear_bit(bank, __get_cpu_var(mce_poll_banks));
++	/* Disable CMCI */
++	cmci_disable_bank(bank);
++}
++
++void mce_disable_ce_bank(int bank)
++{
++	if (bank >= mca_cfg.banks) {
++		pr_info("mce_disable_bank: Invalid MCA bank %d ignored.\n", bank);
++		return;
++	}
++	set_bit(bank, mce_banks_ce_disabled);
++	on_each_cpu(__mce_disable_ce_bank, &bank, 1);
++}
++
+ /*
+  * mce=off Disables machine check
+  * mce=no_cmci Disables CMCI
+diff --git a/arch/x86/kernel/cpu/mcheck/mce_intel.c b/arch/x86/kernel/cpu/mcheck/mce_intel.c
+index ae1697c..78256c0 100644
+--- a/arch/x86/kernel/cpu/mcheck/mce_intel.c
++++ b/arch/x86/kernel/cpu/mcheck/mce_intel.c
+@@ -191,6 +191,10 @@ static void cmci_discover(int banks)
+ 		if (test_bit(i, owned))
+ 			continue;
+ 
++		/* Skip banks in firmware first mode */
++		if (test_bit(i, mce_banks_ce_disabled))
++			continue;
++
+ 		rdmsrl(MSR_IA32_MCx_CTL2(i), val);
+ 
+ 		/* Already owned by someone else? */
+@@ -259,6 +263,20 @@ void cmci_recheck(void)
+ 	local_irq_restore(flags);
+ }
+ 
++/* Caller must hold the lock on cmci_discover_lock */
++static void __cmci_disable_bank(int bank)
++{
++	u64 val;
++
++	if (!test_bit(bank, __get_cpu_var(mce_banks_owned)))
++		return;
++	/* Disable CMCI */
++	rdmsrl(MSR_IA32_MCx_CTL2(bank), val);
++	val &= ~MCI_CTL2_CMCI_EN;
++	wrmsrl(MSR_IA32_MCx_CTL2(bank), val);
++	__clear_bit(bank, __get_cpu_var(mce_banks_owned));
++}
++
+ /*
+  * Disable CMCI on this CPU for all banks it owns when it goes down.
+  * This allows other CPUs to claim the banks on rediscovery.
+@@ -268,19 +286,12 @@ void cmci_clear(void)
+ 	unsigned long flags;
+ 	int i;
+ 	int banks;
+-	u64 val;
+ 
+ 	if (!cmci_supported(&banks))
+ 		return;
+ 	raw_spin_lock_irqsave(&cmci_discover_lock, flags);
+ 	for (i = 0; i < banks; i++) {
+-		if (!test_bit(i, __get_cpu_var(mce_banks_owned)))
+-			continue;
+-		/* Disable CMCI */
+-		rdmsrl(MSR_IA32_MCx_CTL2(i), val);
+-		val &= ~MCI_CTL2_CMCI_EN;
+-		wrmsrl(MSR_IA32_MCx_CTL2(i), val);
+-		__clear_bit(i, __get_cpu_var(mce_banks_owned));
++		__cmci_disable_bank(i);
+ 	}
+ 	raw_spin_unlock_irqrestore(&cmci_discover_lock, flags);
+ }
+@@ -315,6 +326,19 @@ void cmci_reenable(void)
+ 		cmci_discover(banks);
+ }
+ 
++void cmci_disable_bank(int bank)
++{
++	int banks;
++	unsigned long flags;
++
++	if (!cmci_supported(&banks))
++		return;
++
++	raw_spin_lock_irqsave(&cmci_discover_lock, flags);
++	__cmci_disable_bank(bank);
++	raw_spin_unlock_irqrestore(&cmci_discover_lock, flags);
++}
++
+ static void intel_init_cmci(void)
+ {
+ 	int banks;
+diff --git a/drivers/acpi/apei/hest.c b/drivers/acpi/apei/hest.c
+index f5ef5d5..d8c69ba 100644
+--- a/drivers/acpi/apei/hest.c
++++ b/drivers/acpi/apei/hest.c
+@@ -36,6 +36,7 @@
+ #include <linux/io.h>
+ #include <linux/platform_device.h>
+ #include <acpi/apei.h>
++#include <asm/mce.h>
+ 
+ #include "apei-internal.h"
+ 
+@@ -121,6 +122,39 @@ int apei_hest_parse(apei_hest_func_t func, void *data)
+ }
+ EXPORT_SYMBOL_GPL(apei_hest_parse);
+ 
++/*
++ * Check if firmware advertises firmware first mode. We need FF bit to be set
++ * along with a set of MC banks which work in FF mode.
++ */
++static int __init hest_parse_cmc(struct acpi_hest_header *hest_hdr, void *data)
++{
++	int i;
++	struct acpi_hest_ia_corrected *cmc;
++	struct acpi_hest_ia_error_bank *mc_bank;
++
++	if (hest_hdr->type != ACPI_HEST_TYPE_IA32_CORRECTED_CHECK)
++		return 0;
++
++	cmc = (struct acpi_hest_ia_corrected *)hest_hdr;
++	if (!cmc->enabled || !(cmc->flags & ACPI_HEST_FIRMWARE_FIRST))
++		return 0;
++
++	/*
++	 * We expect HEST to provide a list of MC banks that
++	 * report errors through firmware first mode.
++	 */
++	if (cmc->num_hardware_banks == 0)
++		return 0;
++
++	pr_info(HEST_PFX "Enabling Firmware First mode for corrected errors.\n");
++
++	mc_bank = (struct acpi_hest_ia_error_bank *)(cmc + 1);
++	for (i = 0; i < cmc->num_hardware_banks; i++, mc_bank++)
++		mce_disable_ce_bank(mc_bank->bank_number);
++
++	return 0;
++}
++
+ struct ghes_arr {
+ 	struct platform_device **ghes_devs;
+ 	unsigned int count;
+@@ -227,6 +261,8 @@ void __init acpi_hest_init(void)
+ 		goto err;
+ 	}
+ 
++	apei_hest_parse(hest_parse_cmc, NULL);
++
+ 	if (!ghes_disable) {
+ 		rc = apei_hest_parse(hest_parse_ghes_count, &ghes_count);
+ 		if (rc)
+
