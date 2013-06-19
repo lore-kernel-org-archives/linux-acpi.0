@@ -1,65 +1,111 @@
-From: "Moore, Robert" <robert.moore@intel.com>
-Subject: RE: [PATCH 00/16] ACPICA: 20130517 release
-Date: Wed, 19 Jun 2013 00:58:42 +0000
-Message-ID: <94F2FBAB4432B54E8AACC7DFDE6C92E36FE88797@ORSMSX103.amr.corp.intel.com>
-References: <cover.1369274558.git.lv.zheng@intel.com>
- <1585522.1qyMjQu16g@vostro.rjw.lan>
- <94F2FBAB4432B54E8AACC7DFDE6C92E36FE885A7@ORSMSX103.amr.corp.intel.com>
- <2920193.Fi63sGCWjD@vostro.rjw.lan>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+From: "John B. Wyatt IV" <sageofredondo@gmail.com>
+Subject: [PATCH] Acpi: acpica: acmacros: fixed a semicolon formatting issue.
+Date: Tue, 18 Jun 2013 20:17:40 -0700
+Message-ID: <1371611860-21056-1-git-send-email-sageofredondo@gmail.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga09.intel.com ([134.134.136.24]:1845 "EHLO mga09.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932860Ab3FSA6o (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 18 Jun 2013 20:58:44 -0400
-In-Reply-To: <2920193.Fi63sGCWjD@vostro.rjw.lan>
-Content-Language: en-US
+Received: from mail-ye0-f176.google.com ([209.85.213.176]:36314 "EHLO
+	mail-ye0-f176.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S934127Ab3FSDRy (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 18 Jun 2013 23:17:54 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: "Zheng, Lv" <lv.zheng@intel.com>, Len Brown <lenb@kernel.org>, "Wysocki, Rafael J" <rafael.j.wysocki@intel.com>, "Brown, Len" <len.brown@intel.com>, linux acpi <linux-acpi@vger.kernel.org>
+To: lenb@kernel.org
+Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, "John B. Wyatt IV" <sageofredondo@gmail.com>
 
-DQoNCj4gLS0tLS1PcmlnaW5hbCBNZXNzYWdlLS0tLS0NCj4gRnJvbTogUmFmYWVsIEouIFd5c29j
-a2kgW21haWx0bzpyandAc2lzay5wbF0NCj4gU2VudDogVHVlc2RheSwgSnVuZSAxOCwgMjAxMyAy
-OjA0IFBNDQo+IFRvOiBNb29yZSwgUm9iZXJ0DQo+IENjOiBaaGVuZywgTHY7IExlbiBCcm93bjsg
-V3lzb2NraSwgUmFmYWVsIEo7IEJyb3duLCBMZW47IGxpbnV4IGFjcGkNCj4gU3ViamVjdDogUmU6
-IFtQQVRDSCAwMC8xNl0gQUNQSUNBOiAyMDEzMDUxNyByZWxlYXNlDQo+IA0KPiBPbiBUdWVzZGF5
-LCBKdW5lIDE4LCAyMDEzIDA2OjU1OjMzIFBNIE1vb3JlLCBSb2JlcnQgd3JvdGU6DQo+ID4NCj4g
-PiA+IC0tLS0tT3JpZ2luYWwgTWVzc2FnZS0tLS0tDQo+ID4gPiBGcm9tOiBSYWZhZWwgSi4gV3lz
-b2NraSBbbWFpbHRvOnJqd0BzaXNrLnBsXQ0KPiA+ID4gU2VudDogU2F0dXJkYXksIEp1bmUgMTUs
-IDIwMTMgNDoyNSBQTQ0KPiA+ID4gVG86IFpoZW5nLCBMdg0KPiA+ID4gQ2M6IExlbiBCcm93bjsg
-V3lzb2NraSwgUmFmYWVsIEo7IE1vb3JlLCBSb2JlcnQ7IEJyb3duLCBMZW47IGxpbnV4DQo+ID4g
-PiBhY3BpDQo+ID4gPiBTdWJqZWN0OiBSZTogW1BBVENIIDAwLzE2XSBBQ1BJQ0E6IDIwMTMwNTE3
-IHJlbGVhc2UNCj4gPiA+DQo+ID4gPiBPbiBXZWRuZXNkYXksIEp1bmUgMTIsIDIwMTMgMDI6MDQ6
-NDYgUE0gTGVuIEJyb3duIHdyb3RlOg0KPiA+ID4gPiBJIHdvdWxkIGxpa2UgdG8gc2VlIHRoaXMg
-c2VyaWVzIHJlLWZyZXNoZWQgYmVmb3JlIGl0IGdvZXMgdXAtc3RyZWFtLg0KPiA+ID4gPiBHZW5l
-cmFsbHksIHRoZSBjb21taXQgbWVzc2FnZXMgbmVlZCB0byBiZSBpbXByb3ZlZCBiZWZvcmUgdGhl
-eSBnbw0KPiA+ID4gPiBpbnRvIHRoZSBwZXJtYW5lbnQga2VybmVsIGhpc3RvcnkuDQo+ID4gPg0K
-PiA+ID4gTHYsDQo+ID4gPg0KPiA+ID4gSSd2ZSBkcm9wcGVkIFs3LzE2XQ0KPiA+DQo+ID4gQWdh
-aW4sIHRoaXMgaXMgYSBuZXcgdmVyc2lvbiBvZiBhY3BpZHVtcCBhbmQgc2hvdWxkIHJlcGxhY2Ug
-dGhlIGV4aXN0aW5nDQo+IHV0aWxpdHkuDQo+IA0KPiBPSywgYW5kIGhvdyBkb2VzIHRoZSBwYXRj
-aCBhY3R1YWxseSB3b3JrPyAgVGhhdCBpcywgd2hhdCBpcyBhIHVzZXINCj4gc3VwcG9zZWQgdG8g
-ZG8gdG8gYnVpbGQgdGhlIGdlbmVyaWMgYWNwaWR1bXAgd2l0aCB0aGUgcGF0Y2ggYXBwbGllZD8N
-Cj4gDQo+ID4gYW5kIFsxMi8xNl0gcGVybWFuZW50bHkgKHBsZWFzZSBkbyBub3QgcmVzZW5kIHRo
-ZW0pLg0KPiA+DQo+ID4NCj4gPiBUaGlzIGlzIHRoZSBtYWtlZmlsZSBjaGFuZ2UgZm9yIGFwcGxl
-LCB5ZXM/IERlcGVuZHMgb24gaG93IHlvdSB3YW50IHRvDQo+ID4gaGFuZGxlIHN1Y2ggdGhpbmdz
-LiBJZiB5b3UgZG9uJ3QgYWNjZXB0IHRoZXNlIGtpbmRzIG9mIGNoYW5nZXMsIGl0DQo+ID4gaW50
-cm9kdWNlcyBkaXZlcmdlbmNlIGZyb20gdGhlIEFDUElDQSBjb2RlLg0KPiANCj4gWWVzLCBpdCBk
-b2VzLCBidXQgb24gdGhlIG90aGVyIGhhbmQgdGhhdCBjaGFuZ2UgaXMgbm90IG5lY2Vzc2FyeSBp
-biB0aGUNCj4ga2VybmVsIHNvdXJjZS4NCj4gDQo+IFRoaXMgaXMgYSBwb2xpY3kgaXNzdWUgYW5k
-IHdlIGRvbid0IHNlZW0gdG8gaGF2ZSBhIGNsZWFyIHBvbGljeSBoZXJlOg0KPiB3aGV0aGVyIG9y
-IG5vdCBkaXZlcmdlbmNlcyByZWxhdGVkIHRvIHRoaW5ncyB0aGF0IGRvbid0IGhhdmUgdG8gYmUg
-aW4gdGhlDQo+IGtlcm5lbCBuZWVkIHRvIGJlICJmaXhlZCIuICBJIGRvbid0IHRoaW5rIHRoYXQg
-dGhleSBkbyBhbmQgTGVuIHNlZW1zIHRvDQo+IGFncmVlIHdpdGggbWUuDQo+IA0KDQoNCk9mIGNv
-dXJzZSwgbm8gbWF0dGVyIGhvdyBpdCBpcyBqdXN0aWZpZWQsIGl0IGlzIHN0aWxsIGEgZGl2ZXJn
-ZW5jZSBmcm9tIEFDUElDQSBhbmQgaGFzIGFsbCBvZiB0aGUgYXNzb2NpYXRlZCBwcm9ibGVtcyB3
-aXRoIGNvbnRpbnVhbCBtYW51YWwgaW50ZWdyYXRpb24gYW5kIHRoZSBwb3NzaWJsZSBpbnRyb2R1
-Y3Rpb24gb2YgYnVncy4NCg0KRm9ydHVuYXRlbHksIHRoaXMgaXNzdWUgYXBwZWFycyBvbmx5IGlu
-IGEgZmV3IGFyZWFzIGR1ZSB0byB0aGUgZGVzaWduIG9mIEFDUElDQSAtIGJ1dCBtYWtlZmlsZXMg
-YW5kIGEgZmV3IG90aGVyIGZpbGVzIGRvIGluIGZhY3QgaGF2ZSBzb21lIE9TLXNwZWNpZmljIChh
-bmQgZXZlbiBjb21waWxlci1zcGVjaWZpYykgY29uZGl0aW9uYWxzLg0KDQpCb2INCg0KDQoNCg0K
-DQo+IFRoYW5rcywNCj4gUmFmYWVsDQo+IA0KPiANCj4gLS0NCj4gSSBzcGVhayBvbmx5IGZvciBt
-eXNlbGYuDQo+IFJhZmFlbCBKLiBXeXNvY2tpLCBJbnRlbCBPcGVuIFNvdXJjZSBUZWNobm9sb2d5
-IENlbnRlci4NCg==
+From: "John B. Wyatt IV" <sageofredondo@gmail.com>
+
+Formatting patch: fixes all "space required after that ';'" errors in
+acmarcos.h.
+
+Please note this only fixes 12 out of 64 errors as reported by
+./scripts/checkpatch.pl
+---
+ drivers/acpi/acpica/acmacros.h | 24 ++++++++++++------------
+ 1 file changed, 12 insertions(+), 12 deletions(-)
+
+diff --git a/drivers/acpi/acpica/acmacros.h b/drivers/acpi/acpica/acmacros.h
+index 53666bd..b916eed 100644
+--- a/drivers/acpi/acpica/acmacros.h
++++ b/drivers/acpi/acpica/acmacros.h
+@@ -93,15 +93,15 @@
+ /* 16-bit source, 16/32/64 destination */
+ 
+ #define ACPI_MOVE_16_TO_16(d, s)        {((  u8 *)(void *)(d))[0] = ((u8 *)(void *)(s))[1];\
+-			  ((  u8 *)(void *)(d))[1] = ((u8 *)(void *)(s))[0];}
++			  ((  u8 *)(void *)(d))[1] = ((u8 *)(void *)(s))[0]; }
+ 
+ #define ACPI_MOVE_16_TO_32(d, s)        {(*(u32 *)(void *)(d))=0;\
+ 					  ((u8 *)(void *)(d))[2] = ((u8 *)(void *)(s))[1];\
+-					  ((u8 *)(void *)(d))[3] = ((u8 *)(void *)(s))[0];}
++					  ((u8 *)(void *)(d))[3] = ((u8 *)(void *)(s))[0]; }
+ 
+ #define ACPI_MOVE_16_TO_64(d, s)        {(*(u64 *)(void *)(d))=0;\
+ 							   ((u8 *)(void *)(d))[6] = ((u8 *)(void *)(s))[1];\
+-							   ((u8 *)(void *)(d))[7] = ((u8 *)(void *)(s))[0];}
++							   ((u8 *)(void *)(d))[7] = ((u8 *)(void *)(s))[0]; }
+ 
+ /* 32-bit source, 16/32/64 destination */
+ 
+@@ -110,13 +110,13 @@
+ #define ACPI_MOVE_32_TO_32(d, s)        {((  u8 *)(void *)(d))[0] = ((u8 *)(void *)(s))[3];\
+ 									  ((  u8 *)(void *)(d))[1] = ((u8 *)(void *)(s))[2];\
+ 									  ((  u8 *)(void *)(d))[2] = ((u8 *)(void *)(s))[1];\
+-									  ((  u8 *)(void *)(d))[3] = ((u8 *)(void *)(s))[0];}
++									  ((  u8 *)(void *)(d))[3] = ((u8 *)(void *)(s))[0]; }
+ 
+ #define ACPI_MOVE_32_TO_64(d, s)        {(*(u64 *)(void *)(d))=0;\
+ 										   ((u8 *)(void *)(d))[4] = ((u8 *)(void *)(s))[3];\
+ 										   ((u8 *)(void *)(d))[5] = ((u8 *)(void *)(s))[2];\
+ 										   ((u8 *)(void *)(d))[6] = ((u8 *)(void *)(s))[1];\
+-										   ((u8 *)(void *)(d))[7] = ((u8 *)(void *)(s))[0];}
++										   ((u8 *)(void *)(d))[7] = ((u8 *)(void *)(s))[0]; }
+ 
+ /* 64-bit source, 16/32/64 destination */
+ 
+@@ -131,7 +131,7 @@
+ 										 ((  u8 *)(void *)(d))[4] = ((u8 *)(void *)(s))[3];\
+ 										 ((  u8 *)(void *)(d))[5] = ((u8 *)(void *)(s))[2];\
+ 										 ((  u8 *)(void *)(d))[6] = ((u8 *)(void *)(s))[1];\
+-										 ((  u8 *)(void *)(d))[7] = ((u8 *)(void *)(s))[0];}
++										 ((  u8 *)(void *)(d))[7] = ((u8 *)(void *)(s))[0]; }
+ #else
+ /*
+  * Macros for little-endian machines
+@@ -169,10 +169,10 @@
+ /* 16-bit source, 16/32/64 destination */
+ 
+ #define ACPI_MOVE_16_TO_16(d, s)        {((  u8 *)(void *)(d))[0] = ((u8 *)(void *)(s))[0];\
+-										 ((  u8 *)(void *)(d))[1] = ((u8 *)(void *)(s))[1];}
++										 ((  u8 *)(void *)(d))[1] = ((u8 *)(void *)(s))[1]; }
+ 
+-#define ACPI_MOVE_16_TO_32(d, s)        {(*(u32 *)(void *)(d)) = 0; ACPI_MOVE_16_TO_16(d, s);}
+-#define ACPI_MOVE_16_TO_64(d, s)        {(*(u64 *)(void *)(d)) = 0; ACPI_MOVE_16_TO_16(d, s);}
++#define ACPI_MOVE_16_TO_32(d, s)        {(*(u32 *)(void *)(d)) = 0; ACPI_MOVE_16_TO_16(d, s); }
++#define ACPI_MOVE_16_TO_64(d, s)        {(*(u64 *)(void *)(d)) = 0; ACPI_MOVE_16_TO_16(d, s); }
+ 
+ /* 32-bit source, 16/32/64 destination */
+ 
+@@ -181,9 +181,9 @@
+ #define ACPI_MOVE_32_TO_32(d, s)        {((  u8 *)(void *)(d))[0] = ((u8 *)(void *)(s))[0];\
+ 										 ((  u8 *)(void *)(d))[1] = ((u8 *)(void *)(s))[1];\
+ 										 ((  u8 *)(void *)(d))[2] = ((u8 *)(void *)(s))[2];\
+-										 ((  u8 *)(void *)(d))[3] = ((u8 *)(void *)(s))[3];}
++										 ((  u8 *)(void *)(d))[3] = ((u8 *)(void *)(s))[3]; }
+ 
+-#define ACPI_MOVE_32_TO_64(d, s)        {(*(u64 *)(void *)(d)) = 0; ACPI_MOVE_32_TO_32(d, s);}
++#define ACPI_MOVE_32_TO_64(d, s)        {(*(u64 *)(void *)(d)) = 0; ACPI_MOVE_32_TO_32(d, s); }
+ 
+ /* 64-bit source, 16/32/64 destination */
+ 
+@@ -196,7 +196,7 @@
+ 										 ((  u8 *)(void *)(d))[4] = ((u8 *)(void *)(s))[4];\
+ 										 ((  u8 *)(void *)(d))[5] = ((u8 *)(void *)(s))[5];\
+ 										 ((  u8 *)(void *)(d))[6] = ((u8 *)(void *)(s))[6];\
+-										 ((  u8 *)(void *)(d))[7] = ((u8 *)(void *)(s))[7];}
++										 ((  u8 *)(void *)(d))[7] = ((u8 *)(void *)(s))[7]; }
+ #endif
+ #endif
+ 
+-- 
+1.8.1.2
+
