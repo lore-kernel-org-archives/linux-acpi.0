@@ -1,8 +1,8 @@
-From: Borislav Petkov <bp@alien8.de>
-Subject: Re: [PATCH v2 2/2] mce: acpi/apei: Add a boot option to disable ff
+From: "Luck, Tony" <tony.luck@intel.com>
+Subject: RE: [PATCH v2 2/2] mce: acpi/apei: Add a boot option to disable ff
  mode for corrected errors
-Date: Wed, 19 Jun 2013 23:41:45 +0200
-Message-ID: <20130619214145.GS28300@pd.tnic>
+Date: Wed, 19 Jun 2013 22:08:53 +0000
+Message-ID: <3908561D78D1C84285E8C5FCA982C28F2DA885A5@ORSMSX106.amr.corp.intel.com>
 References: <20130619175438.2852.93449.stgit@localhost.localdomain>
  <20130619175728.2852.73156.stgit@localhost.localdomain>
  <20130619180441.GK28300@pd.tnic>
@@ -13,64 +13,35 @@ References: <20130619175438.2852.93449.stgit@localhost.localdomain>
  <3908561D78D1C84285E8C5FCA982C28F2DA8838B@ORSMSX106.amr.corp.intel.com>
  <20130619210706.GP28300@pd.tnic>
  <3908561D78D1C84285E8C5FCA982C28F2DA884F0@ORSMSX106.amr.corp.intel.com>
+ <20130619214145.GS28300@pd.tnic>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail.skyhub.de ([78.46.96.112]:50532 "EHLO mail.skyhub.de"
+Received: from mga02.intel.com ([134.134.136.20]:37507 "EHLO mga02.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S934987Ab3FSVlx (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 19 Jun 2013 17:41:53 -0400
-Content-Disposition: inline
-In-Reply-To: <3908561D78D1C84285E8C5FCA982C28F2DA884F0@ORSMSX106.amr.corp.intel.com>
+	id S935070Ab3FSWJT (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 19 Jun 2013 18:09:19 -0400
+In-Reply-To: <20130619214145.GS28300@pd.tnic>
+Content-Language: en-US
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Luck, Tony" <tony.luck@intel.com>
+To: Borislav Petkov <bp@alien8.de>
 Cc: "Naveen N. Rao" <naveen.n.rao@linux.vnet.ibm.com>, "ananth@in.ibm.com" <ananth@in.ibm.com>, "masbock@linux.vnet.ibm.com" <masbock@linux.vnet.ibm.com>, "lcm@linux.vnet.ibm.com" <lcm@linux.vnet.ibm.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "Huang, Ying" <ying.huang@intel.com>, Robert Richter <rric@kernel.org>
 
-On Wed, Jun 19, 2013 at 09:28:50PM +0000, Luck, Tony wrote:
-> > Ok, where is that semantics? What in a CPER record does say "this error
-> > should tell you that you need to offline the containing page and I'm
-> > telling you this exactly only once"? Error Severity 0, i.e. Recoverable?
-> 
-> Naveen - this one is for you (or for your BIOS team).  Can you get us a sample
-> CPER that you plan to provide when the BIOS decides that its threshold has
-> been exceeded?  How will it be different from what old WSM-EX platforms
-> were sending to us?  Hopefully the answer is encoded in the CPER record
-> and not in some code we have to put in Linux to say "if (IBMplatform) do_thing_1(); else ... "
-
-If we're going to be vendor-specific (which I'm pretty sure we will),
-we'd gonna have to export knobs to userspace which each vendor can tweak
-for themselves. Otherwise we'd get the DMI quirks ugliness all over
-again and we better nip it in the bud, while we can.
-
-> > Ok, we're talking about the S in RAS now. Do we have error recovery
-> > strategies specified anywhere? Are they per-platform or generic? Is this
-> > CPER strategy above, for example, only valid for some platforms or for
-> > all APEI-using hardware?
-> 
-> mcelog(8) daemon has been doing this for years ... but it used the "predictive
-> failure analysis" buzzwords that were popular way back then (today the
-> marketing people seem to prefer "self healing" ). Whatever the name, the
-> concept is the same ... take some set of corrected event reports and infer
-> from them that something worse may happen soon, and use that information
-> to try to avoid the (possibly) impending crash.
-
-Ok, so some sort of userspace is enforcing policy based on collected
-data/heuristics.
-
-The above question about what to do *without* going to userspace and
-back is maybe more interesting and we'd need a clean design there...
-we'll see.
-
-> > Questions over questions...
-> 
-> Questions are good - they help fill out gaps
-
-I know - that's why I'm trying to poke holes early...
-
--- 
-Regards/Gruss,
-    Boris.
-
-Sent from a fat crate under my desk. Formatting is fine.
---
+PiBUaGUgYWJvdmUgcXVlc3Rpb24gYWJvdXQgd2hhdCB0byBkbyAqd2l0aG91dCogZ29pbmcgdG8g
+dXNlcnNwYWNlIGFuZA0KPiBiYWNrIGlzIG1heWJlIG1vcmUgaW50ZXJlc3RpbmcgYW5kIHdlJ2Qg
+bmVlZCBhIGNsZWFuIGRlc2lnbiB0aGVyZS4uLg0KPiB3ZSdsbCBzZWUuDQoNClllcyAtIHRoaXMg
+Y2FzZSAod2hlcmUgdGhlIEJJT1MgZGlkIGFsbCB0aGUgdGhyZXNob2xkIG1hdGggYW5kIG1hZGUg
+dGhlIGRlY2lzaW9uKQ0Kc2hvdWxkIGJlIG9uZSB3aGVyZSBMaW51eCBrZXJuZWwgY291bGQganVz
+dCBpbXBsZW1lbnQgdGhlIGFjdGlvbiBkaXJlY3RseS4NClBlcmhhcHMgY29udHJvbGxlZCBieSBh
+IGtub2IgdG8gc2F5IHdoZXRoZXIgd2UgcmVhbGx5IHRydXN0IHRoZSBCSU9TIHRoYXQgbXVjaC4N
+Cg0KQnV0IHdlIHdpbGwgYWxzbyBoYXZlIGNhc2VzIHdoZXJlIGEgc21hcnQgdXNlciBhZ2VudCBj
+YW4gY29ycmVsYXRlIGRhdGENCmZyb20gbXVsdGlwbGUgc291cmNlcyB0byBpZGVudGlmeSB0aGUg
+cmVhbCByb290IGNhdXNlIChlLmcuIHNvbWUgdGVtcGVyYXR1cmUNCmFub21hbGllcyBhcm91bmQg
+dGhlIHNhbWUgdGltZSBhcyBzb21lIG1lbW9yeSBlcnJvcnMgdGhhdCBvY2N1ciBhdCAxMGFtDQpv
+biB0aGUgdGhpcmQgVHVlc2RheSBlYWNoIG1vbnRoIC0+IGNhdXNlIGlzIGFpciBjb25kaXRpb25l
+ciBtYWludGVuYW5jZSBndXkNCnRoYXQgc2h1dHMgZG93biB0aGUgYS9jIGZvciAxMCBtaW51dGVz
+IHRvIGNoYW5nZSB0aGUgZmlsdGVyKS4NCg0KSSdsbCBsZWF2ZSB3cml0aW5nIGFuIGFnZW50IHRo
+YXQgc21hcnQgYXMgYW4gZXhlcmNpc2UgZm9yIHRoZSBjb25jZXJuZWQgZGF0YQ0KY2VudGVyIG1h
+bmFnZXIgOi0pDQoNCi1Ub255DQo=
