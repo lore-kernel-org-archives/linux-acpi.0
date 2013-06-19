@@ -1,8 +1,8 @@
-From: "Luck, Tony" <tony.luck@intel.com>
-Subject: RE: [PATCH v2 2/2] mce: acpi/apei: Add a boot option to disable ff
+From: Borislav Petkov <bp@alien8.de>
+Subject: Re: [PATCH v2 2/2] mce: acpi/apei: Add a boot option to disable ff
  mode for corrected errors
-Date: Wed, 19 Jun 2013 21:28:50 +0000
-Message-ID: <3908561D78D1C84285E8C5FCA982C28F2DA884F0@ORSMSX106.amr.corp.intel.com>
+Date: Wed, 19 Jun 2013 23:41:45 +0200
+Message-ID: <20130619214145.GS28300@pd.tnic>
 References: <20130619175438.2852.93449.stgit@localhost.localdomain>
  <20130619175728.2852.73156.stgit@localhost.localdomain>
  <20130619180441.GK28300@pd.tnic>
@@ -12,43 +12,65 @@ References: <20130619175438.2852.93449.stgit@localhost.localdomain>
  <20130619201438.GM28300@pd.tnic>
  <3908561D78D1C84285E8C5FCA982C28F2DA8838B@ORSMSX106.amr.corp.intel.com>
  <20130619210706.GP28300@pd.tnic>
+ <3908561D78D1C84285E8C5FCA982C28F2DA884F0@ORSMSX106.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset=utf-8
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga11.intel.com ([192.55.52.93]:20365 "EHLO mga11.intel.com"
+Received: from mail.skyhub.de ([78.46.96.112]:50532 "EHLO mail.skyhub.de"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S934566Ab3FSV27 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 19 Jun 2013 17:28:59 -0400
-In-Reply-To: <20130619210706.GP28300@pd.tnic>
-Content-Language: en-US
+	id S934987Ab3FSVlx (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 19 Jun 2013 17:41:53 -0400
+Content-Disposition: inline
+In-Reply-To: <3908561D78D1C84285E8C5FCA982C28F2DA884F0@ORSMSX106.amr.corp.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Borislav Petkov <bp@alien8.de>
+To: "Luck, Tony" <tony.luck@intel.com>
 Cc: "Naveen N. Rao" <naveen.n.rao@linux.vnet.ibm.com>, "ananth@in.ibm.com" <ananth@in.ibm.com>, "masbock@linux.vnet.ibm.com" <masbock@linux.vnet.ibm.com>, "lcm@linux.vnet.ibm.com" <lcm@linux.vnet.ibm.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "Huang, Ying" <ying.huang@intel.com>, Robert Richter <rric@kernel.org>
 
-PiBPaywgd2hlcmUgaXMgdGhhdCBzZW1hbnRpY3M/IFdoYXQgaW4gYSBDUEVSIHJlY29yZCBkb2Vz
-IHNheSAidGhpcyBlcnJvcg0KPiBzaG91bGQgdGVsbCB5b3UgdGhhdCB5b3UgbmVlZCB0byBvZmZs
-aW5lIHRoZSBjb250YWluaW5nIHBhZ2UgYW5kIEknbQ0KPiB0ZWxsaW5nIHlvdSB0aGlzIGV4YWN0
-bHkgb25seSBvbmNlIj8gRXJyb3IgU2V2ZXJpdHkgMCwgaS5lLiBSZWNvdmVyYWJsZT8NCg0KTmF2
-ZWVuIC0gdGhpcyBvbmUgaXMgZm9yIHlvdSAob3IgZm9yIHlvdXIgQklPUyB0ZWFtKS4gIENhbiB5
-b3UgZ2V0IHVzIGEgc2FtcGxlDQpDUEVSIHRoYXQgeW91IHBsYW4gdG8gcHJvdmlkZSB3aGVuIHRo
-ZSBCSU9TIGRlY2lkZXMgdGhhdCBpdHMgdGhyZXNob2xkIGhhcw0KYmVlbiBleGNlZWRlZD8gIEhv
-dyB3aWxsIGl0IGJlIGRpZmZlcmVudCBmcm9tIHdoYXQgb2xkIFdTTS1FWCBwbGF0Zm9ybXMNCndl
-cmUgc2VuZGluZyB0byB1cz8gIEhvcGVmdWxseSB0aGUgYW5zd2VyIGlzIGVuY29kZWQgaW4gdGhl
-IENQRVIgcmVjb3JkDQphbmQgbm90IGluIHNvbWUgY29kZSB3ZSBoYXZlIHRvIHB1dCBpbiBMaW51
-eCB0byBzYXkgImlmIChJQk1wbGF0Zm9ybSkgZG9fdGhpbmdfMSgpOyBlbHNlIC4uLiAiDQoNCj4g
-T2ssIHdlJ3JlIHRhbGtpbmcgYWJvdXQgdGhlIFMgaW4gUkFTIG5vdy4gRG8gd2UgaGF2ZSBlcnJv
-ciByZWNvdmVyeQ0KPiBzdHJhdGVnaWVzIHNwZWNpZmllZCBhbnl3aGVyZT8gQXJlIHRoZXkgcGVy
-LXBsYXRmb3JtIG9yIGdlbmVyaWM/IElzIHRoaXMNCj4gQ1BFUiBzdHJhdGVneSBhYm92ZSwgZm9y
-IGV4YW1wbGUsIG9ubHkgdmFsaWQgZm9yIHNvbWUgcGxhdGZvcm1zIG9yIGZvcg0KPiBhbGwgQVBF
-SS11c2luZyBoYXJkd2FyZT8NCg0KbWNlbG9nKDgpIGRhZW1vbiBoYXMgYmVlbiBkb2luZyB0aGlz
-IGZvciB5ZWFycyAuLi4gYnV0IGl0IHVzZWQgdGhlICJwcmVkaWN0aXZlDQpmYWlsdXJlIGFuYWx5
-c2lzIiBidXp6d29yZHMgdGhhdCB3ZXJlIHBvcHVsYXIgd2F5IGJhY2sgdGhlbiAodG9kYXkgdGhl
-DQptYXJrZXRpbmcgcGVvcGxlIHNlZW0gdG8gcHJlZmVyICJzZWxmIGhlYWxpbmciICkuIFdoYXRl
-dmVyIHRoZSBuYW1lLCB0aGUNCmNvbmNlcHQgaXMgdGhlIHNhbWUgLi4uIHRha2Ugc29tZSBzZXQg
-b2YgY29ycmVjdGVkIGV2ZW50IHJlcG9ydHMgYW5kIGluZmVyDQpmcm9tIHRoZW0gdGhhdCBzb21l
-dGhpbmcgd29yc2UgbWF5IGhhcHBlbiBzb29uLCBhbmQgdXNlIHRoYXQgaW5mb3JtYXRpb24NCnRv
-IHRyeSB0byBhdm9pZCB0aGUgKHBvc3NpYmx5KSBpbXBlbmRpbmcgY3Jhc2guDQoNCj4gUXVlc3Rp
-b25zIG92ZXIgcXVlc3Rpb25zLi4uDQoNClF1ZXN0aW9ucyBhcmUgZ29vZCAtIHRoZXkgaGVscCBm
-aWxsIG91dCBnYXBzDQoNCi1Ub255DQo=
+On Wed, Jun 19, 2013 at 09:28:50PM +0000, Luck, Tony wrote:
+> > Ok, where is that semantics? What in a CPER record does say "this error
+> > should tell you that you need to offline the containing page and I'm
+> > telling you this exactly only once"? Error Severity 0, i.e. Recoverable?
+> 
+> Naveen - this one is for you (or for your BIOS team).  Can you get us a sample
+> CPER that you plan to provide when the BIOS decides that its threshold has
+> been exceeded?  How will it be different from what old WSM-EX platforms
+> were sending to us?  Hopefully the answer is encoded in the CPER record
+> and not in some code we have to put in Linux to say "if (IBMplatform) do_thing_1(); else ... "
+
+If we're going to be vendor-specific (which I'm pretty sure we will),
+we'd gonna have to export knobs to userspace which each vendor can tweak
+for themselves. Otherwise we'd get the DMI quirks ugliness all over
+again and we better nip it in the bud, while we can.
+
+> > Ok, we're talking about the S in RAS now. Do we have error recovery
+> > strategies specified anywhere? Are they per-platform or generic? Is this
+> > CPER strategy above, for example, only valid for some platforms or for
+> > all APEI-using hardware?
+> 
+> mcelog(8) daemon has been doing this for years ... but it used the "predictive
+> failure analysis" buzzwords that were popular way back then (today the
+> marketing people seem to prefer "self healing" ). Whatever the name, the
+> concept is the same ... take some set of corrected event reports and infer
+> from them that something worse may happen soon, and use that information
+> to try to avoid the (possibly) impending crash.
+
+Ok, so some sort of userspace is enforcing policy based on collected
+data/heuristics.
+
+The above question about what to do *without* going to userspace and
+back is maybe more interesting and we'd need a clean design there...
+we'll see.
+
+> > Questions over questions...
+> 
+> Questions are good - they help fill out gaps
+
+I know - that's why I'm trying to poke holes early...
+
+-- 
+Regards/Gruss,
+    Boris.
+
+Sent from a fat crate under my desk. Formatting is fine.
+--
