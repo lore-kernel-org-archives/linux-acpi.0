@@ -1,64 +1,39 @@
-From: Borislav Petkov <bp@alien8.de>
-Subject: Re: [PATCH v2 2/2] mce: acpi/apei: Add a boot option to disable ff
+From: "Luck, Tony" <tony.luck@intel.com>
+Subject: RE: [PATCH v2 2/2] mce: acpi/apei: Add a boot option to disable ff
  mode for corrected errors
-Date: Wed, 19 Jun 2013 20:36:40 +0200
-Message-ID: <20130619183640.GL28300@pd.tnic>
+Date: Wed, 19 Jun 2013 19:05:16 +0000
+Message-ID: <3908561D78D1C84285E8C5FCA982C28F2DA881C2@ORSMSX106.amr.corp.intel.com>
 References: <20130619175438.2852.93449.stgit@localhost.localdomain>
  <20130619175728.2852.73156.stgit@localhost.localdomain>
  <20130619180441.GK28300@pd.tnic>
  <3908561D78D1C84285E8C5FCA982C28F2DA88106@ORSMSX106.amr.corp.intel.com>
+ <20130619183640.GL28300@pd.tnic>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail.skyhub.de ([78.46.96.112]:49956 "EHLO mail.skyhub.de"
+Received: from mga03.intel.com ([143.182.124.21]:64423 "EHLO mga03.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S934714Ab3FSSgs (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 19 Jun 2013 14:36:48 -0400
-Content-Disposition: inline
-In-Reply-To: <3908561D78D1C84285E8C5FCA982C28F2DA88106@ORSMSX106.amr.corp.intel.com>
+	id S1757458Ab3FSTFT (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 19 Jun 2013 15:05:19 -0400
+In-Reply-To: <20130619183640.GL28300@pd.tnic>
+Content-Language: en-US
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Luck, Tony" <tony.luck@intel.com>
+To: Borislav Petkov <bp@alien8.de>
 Cc: "Naveen N. Rao" <naveen.n.rao@linux.vnet.ibm.com>, "ananth@in.ibm.com" <ananth@in.ibm.com>, "masbock@linux.vnet.ibm.com" <masbock@linux.vnet.ibm.com>, "lcm@linux.vnet.ibm.com" <lcm@linux.vnet.ibm.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "Huang, Ying" <ying.huang@intel.com>
 
-On Wed, Jun 19, 2013 at 06:19:25PM +0000, Luck, Tony wrote:
-> > Interesting, why? Why would we even need such an option? My impression
-> > is, if ACPI tells us FF, MCE code doesn't poll those banks anymore. So
-> > where do the duplicated reports come from?
-> 
-> The option is only disabling the Linux side of firmware first ... the BIOS
-> will still be doing it and generating records to feed to the OS using APEI.
-> 
-> So Linux may see the error in a bank and report it, and BIOS may report
-> the same error.  Though I'd expect that to be rare as whoever saw it first
-> would most likely clear the bank before the other could see it.
-> 
-> I asked for the option because I'm nervous about just skipping some banks
-> on the say-so of the BIOS ... what if the BIOS did something wrong. This
-> option gives us a way to return to the way things were before this patch.
-
-Yeah, the code I saw only disables the banks in the HEST:
-
-	mce_disable_ce_bank(mc_bank->bank_number)
-
-and leaving the rest in poll mode. But I agree, we need this as a
-fallback if BIOS is doing other crack smoking exercises and thus we want
-to ignore FF completely.
-
-> These parts are now looking good ... but we still need to tackle what
-> Linux does when it does get the CPER record. I suspect we need to
-> preserve the existing "fake an mcelog entry with just the address" on
-> old platforms, but need to do something smarter on new ones.
-
-Why, fill out struct mce and do mce_log(mce) does not suffice?
-
-I'll take a look at the rest of the stuff tomorrow, on a clear head.
-
-Thanks.
-
--- 
-Regards/Gruss,
-    Boris.
-
-Sent from a fat crate under my desk. Formatting is fine.
---
+PiBXaHksIGZpbGwgb3V0IHN0cnVjdCBtY2UgYW5kIGRvIG1jZV9sb2cobWNlKSBkb2VzIG5vdCBz
+dWZmaWNlPw0KDQpUaGVyZSBpcyAob3Igc2hvdWxkIGJlKSBhIGxvdCBtb3JlIGludGVyZXN0aW5n
+IHN0dWZmIGluIHRoZSBDUEVSIHRoYW4ganVzdCB0aGUgYWRkcmVzcy4gU3R1ZmYNCnRoYXQgd2Ug
+ZG9uJ3QgaGF2ZSBmaWVsZHMgZm9yIGluIHRoZSBleGlzdGluZyBtY2Vsb2cgc3RydWN0dXJlLiAg
+V2UgYWxzbyBuZWVkIHRvIHRyZWF0IGZpbHRlcmVkDQpyZWNvcmRzIGZyb20gbW9kZXJuIEFQRUkg
+aW1wbGVtZW50YXRpb25zIGEgYml0IGRpZmZlcmVudGx5IGZyb20gdGhlIG9sZCBzdHVmZi4gIFRo
+ZSBvcmlnaW5hbA0KdXNlciBvZiB0aGlzIGNvZGUgd2FzIFdlc3RtZXJlLUVYLCB3aGljaCB1c2Vk
+IGl0IGFzIGEgd29ya2Fyb3VuZCBmb3IgYSBtaXNzaW5nIGFkZHJlc3MgaW4NCk1DaV9BRERSIGZv
+ciBjb3JyZWN0ZWQgZXJyb3JzLiAgU28gaW4gdGhhdCBzY2VuYXJpbyB3ZSBoYWQgZXZlcnkgZXJy
+b3IgYmVpbmcgcmVwb3J0ZWQgYW5kDQptY2Vsb2coOCkgZGVhbW9uIGRvaW5nIHRoZSB0aHJlc2hv
+bGQgYW5hbHlzaXMgdG8gZGVjaWRlIHdoZW4gdG8gdGFrZSBhY3Rpb24uDQoNCkluIHRoaXMgbmV3
+IG1vZGVybiB3b3JsZCAtIE5hdmVlbiB3YW50cyB0byBoYXZlIHRoZSBCSU9TIGRlY2lkZSB0aGUg
+dGhyZXNob2xkLCBzbyB3ZSdkDQpsaWtlIExpbnV4IHRvIHRha2Ugc29tZSBhY3Rpb24gYXMgc29v
+biBhcyBpdCBzZWVzIGp1c3Qgb25lIENQRVIuDQoNCi1Ub255DQo=
