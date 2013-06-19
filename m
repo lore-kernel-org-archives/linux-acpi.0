@@ -1,42 +1,64 @@
-From: "Luck, Tony" <tony.luck@intel.com>
-Subject: RE: [PATCH v2 2/2] mce: acpi/apei: Add a boot option to disable ff
+From: Borislav Petkov <bp@alien8.de>
+Subject: Re: [PATCH v2 2/2] mce: acpi/apei: Add a boot option to disable ff
  mode for corrected errors
-Date: Wed, 19 Jun 2013 18:19:25 +0000
-Message-ID: <3908561D78D1C84285E8C5FCA982C28F2DA88106@ORSMSX106.amr.corp.intel.com>
+Date: Wed, 19 Jun 2013 20:36:40 +0200
+Message-ID: <20130619183640.GL28300@pd.tnic>
 References: <20130619175438.2852.93449.stgit@localhost.localdomain>
  <20130619175728.2852.73156.stgit@localhost.localdomain>
  <20130619180441.GK28300@pd.tnic>
+ <3908561D78D1C84285E8C5FCA982C28F2DA88106@ORSMSX106.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset=utf-8
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga14.intel.com ([143.182.124.37]:54751 "EHLO mga14.intel.com"
+Received: from mail.skyhub.de ([78.46.96.112]:49956 "EHLO mail.skyhub.de"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756845Ab3FSSTi (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 19 Jun 2013 14:19:38 -0400
-In-Reply-To: <20130619180441.GK28300@pd.tnic>
-Content-Language: en-US
+	id S934714Ab3FSSgs (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 19 Jun 2013 14:36:48 -0400
+Content-Disposition: inline
+In-Reply-To: <3908561D78D1C84285E8C5FCA982C28F2DA88106@ORSMSX106.amr.corp.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Borislav Petkov <bp@alien8.de>, "Naveen N. Rao" <naveen.n.rao@linux.vnet.ibm.com>
-Cc: "ananth@in.ibm.com" <ananth@in.ibm.com>, "masbock@linux.vnet.ibm.com" <masbock@linux.vnet.ibm.com>, "lcm@linux.vnet.ibm.com" <lcm@linux.vnet.ibm.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "Huang, Ying" <ying.huang@intel.com>
+To: "Luck, Tony" <tony.luck@intel.com>
+Cc: "Naveen N. Rao" <naveen.n.rao@linux.vnet.ibm.com>, "ananth@in.ibm.com" <ananth@in.ibm.com>, "masbock@linux.vnet.ibm.com" <masbock@linux.vnet.ibm.com>, "lcm@linux.vnet.ibm.com" <lcm@linux.vnet.ibm.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "Huang, Ying" <ying.huang@intel.com>
 
-PiBJbnRlcmVzdGluZywgd2h5PyBXaHkgd291bGQgd2UgZXZlbiBuZWVkIHN1Y2ggYW4gb3B0aW9u
-PyBNeSBpbXByZXNzaW9uDQo+IGlzLCBpZiBBQ1BJIHRlbGxzIHVzIEZGLCBNQ0UgY29kZSBkb2Vz
-bid0IHBvbGwgdGhvc2UgYmFua3MgYW55bW9yZS4gU28NCj4gd2hlcmUgZG8gdGhlIGR1cGxpY2F0
-ZWQgcmVwb3J0cyBjb21lIGZyb20/DQoNClRoZSBvcHRpb24gaXMgb25seSBkaXNhYmxpbmcgdGhl
-IExpbnV4IHNpZGUgb2YgZmlybXdhcmUgZmlyc3QgLi4uIHRoZSBCSU9TDQp3aWxsIHN0aWxsIGJl
-IGRvaW5nIGl0IGFuZCBnZW5lcmF0aW5nIHJlY29yZHMgdG8gZmVlZCB0byB0aGUgT1MgdXNpbmcg
-QVBFSS4NCg0KU28gTGludXggbWF5IHNlZSB0aGUgZXJyb3IgaW4gYSBiYW5rIGFuZCByZXBvcnQg
-aXQsIGFuZCBCSU9TIG1heSByZXBvcnQNCnRoZSBzYW1lIGVycm9yLiAgVGhvdWdoIEknZCBleHBl
-Y3QgdGhhdCB0byBiZSByYXJlIGFzIHdob2V2ZXIgc2F3IGl0IGZpcnN0DQp3b3VsZCBtb3N0IGxp
-a2VseSBjbGVhciB0aGUgYmFuayBiZWZvcmUgdGhlIG90aGVyIGNvdWxkIHNlZSBpdC4NCg0KSSBh
-c2tlZCBmb3IgdGhlIG9wdGlvbiBiZWNhdXNlIEknbSBuZXJ2b3VzIGFib3V0IGp1c3Qgc2tpcHBp
-bmcgc29tZSBiYW5rcw0Kb24gdGhlIHNheS1zbyBvZiB0aGUgQklPUyAuLi4gd2hhdCBpZiB0aGUg
-QklPUyBkaWQgc29tZXRoaW5nIHdyb25nLiBUaGlzDQpvcHRpb24gZ2l2ZXMgdXMgYSB3YXkgdG8g
-cmV0dXJuIHRvIHRoZSB3YXkgdGhpbmdzIHdlcmUgYmVmb3JlIHRoaXMgcGF0Y2guDQoNClRoZXNl
-IHBhcnRzIGFyZSBub3cgbG9va2luZyBnb29kIC4uLiBidXQgd2Ugc3RpbGwgbmVlZCB0byB0YWNr
-bGUgd2hhdCBMaW51eA0KZG9lcyB3aGVuIGl0IGRvZXMgZ2V0IHRoZSBDUEVSIHJlY29yZC4gIEkg
-c3VzcGVjdCB3ZSBuZWVkIHRvIHByZXNlcnZlDQp0aGUgZXhpc3RpbmcgImZha2UgYW4gbWNlbG9n
-IGVudHJ5IHdpdGgganVzdCB0aGUgYWRkcmVzcyIgb24gb2xkIHBsYXRmb3JtcywNCmJ1dCBuZWVk
-IHRvIGRvIHNvbWV0aGluZyBzbWFydGVyIG9uIG5ldyBvbmVzLg0KDQotVG9ueQ0KDQoNCg==
+On Wed, Jun 19, 2013 at 06:19:25PM +0000, Luck, Tony wrote:
+> > Interesting, why? Why would we even need such an option? My impression
+> > is, if ACPI tells us FF, MCE code doesn't poll those banks anymore. So
+> > where do the duplicated reports come from?
+> 
+> The option is only disabling the Linux side of firmware first ... the BIOS
+> will still be doing it and generating records to feed to the OS using APEI.
+> 
+> So Linux may see the error in a bank and report it, and BIOS may report
+> the same error.  Though I'd expect that to be rare as whoever saw it first
+> would most likely clear the bank before the other could see it.
+> 
+> I asked for the option because I'm nervous about just skipping some banks
+> on the say-so of the BIOS ... what if the BIOS did something wrong. This
+> option gives us a way to return to the way things were before this patch.
+
+Yeah, the code I saw only disables the banks in the HEST:
+
+	mce_disable_ce_bank(mc_bank->bank_number)
+
+and leaving the rest in poll mode. But I agree, we need this as a
+fallback if BIOS is doing other crack smoking exercises and thus we want
+to ignore FF completely.
+
+> These parts are now looking good ... but we still need to tackle what
+> Linux does when it does get the CPER record. I suspect we need to
+> preserve the existing "fake an mcelog entry with just the address" on
+> old platforms, but need to do something smarter on new ones.
+
+Why, fill out struct mce and do mce_log(mce) does not suffice?
+
+I'll take a look at the rest of the stuff tomorrow, on a clear head.
+
+Thanks.
+
+-- 
+Regards/Gruss,
+    Boris.
+
+Sent from a fat crate under my desk. Formatting is fine.
+--
