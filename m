@@ -1,111 +1,57 @@
-From: "John B. Wyatt IV" <sageofredondo@gmail.com>
-Subject: [PATCH] Acpi: acpica: acmacros: fixed a semicolon formatting issue.
-Date: Tue, 18 Jun 2013 20:17:40 -0700
-Message-ID: <1371611860-21056-1-git-send-email-sageofredondo@gmail.com>
+From: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
+Subject: Re: [PATCH] ACPI: Remove the use of CONFIG_ACPI_HOTPLUG_MEMORY_MODULE
+Date: Wed, 19 Jun 2013 13:43:47 +0900
+Message-ID: <51C13703.8040909@jp.fujitsu.com>
+References: <1371589605-15638-1-git-send-email-toshi.kani@hp.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="ISO-2022-JP"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-ye0-f176.google.com ([209.85.213.176]:36314 "EHLO
-	mail-ye0-f176.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S934127Ab3FSDRy (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 18 Jun 2013 23:17:54 -0400
+Received: from fgwmail6.fujitsu.co.jp ([192.51.44.36]:35130 "EHLO
+	fgwmail6.fujitsu.co.jp" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750884Ab3FSEo0 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 19 Jun 2013 00:44:26 -0400
+In-Reply-To: <1371589605-15638-1-git-send-email-toshi.kani@hp.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: lenb@kernel.org
-Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, "John B. Wyatt IV" <sageofredondo@gmail.com>
+To: Toshi Kani <toshi.kani@hp.com>
+Cc: rjw@sisk.pl, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 
-From: "John B. Wyatt IV" <sageofredondo@gmail.com>
+2013/06/19 6:06, Toshi Kani wrote:
+> config ACPI_HOTPLUG_MEMORY has been changed to bool (y/n), and
+> its module option is no longer valid.  So, remove the use of
+> CONFIG_ACPI_HOTPLUG_MEMORY_MODULE.
+> 
+> Signed-off-by: Toshi Kani <toshi.kani@hp.com>
+> ---
+>   include/linux/acpi.h |    3 +--
+>   1 file changed, 1 insertion(+), 2 deletions(-)
+> 
+> diff --git a/include/linux/acpi.h b/include/linux/acpi.h
+> index 17b5b59..353ba25 100644
+> --- a/include/linux/acpi.h
+> +++ b/include/linux/acpi.h
+> @@ -352,8 +352,7 @@ extern acpi_status acpi_pci_osc_control_set(acpi_handle handle,
+>   
+>   /* Enable _OST when all relevant hotplug operations are enabled */
+>   #if defined(CONFIG_ACPI_HOTPLUG_CPU) &&			\
+> -	(defined(CONFIG_ACPI_HOTPLUG_MEMORY) ||		\
+> -	 defined(CONFIG_ACPI_HOTPLUG_MEMORY_MODULE)) &&	\
+> +	defined(CONFIG_ACPI_HOTPLUG_MEMORY) &&		\
+>   	defined(CONFIG_ACPI_CONTAINER)
+>   #define ACPI_HOTPLUG_OST
+>   #endif
+> --
+Good catch!!
 
-Formatting patch: fixes all "space required after that ';'" errors in
-acmarcos.h.
+Acked-by: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
 
-Please note this only fixes 12 out of 64 errors as reported by
-./scripts/checkpatch.pl
----
- drivers/acpi/acpica/acmacros.h | 24 ++++++++++++------------
- 1 file changed, 12 insertions(+), 12 deletions(-)
+Thanks,
+Yasuaki Ishimatsu
 
-diff --git a/drivers/acpi/acpica/acmacros.h b/drivers/acpi/acpica/acmacros.h
-index 53666bd..b916eed 100644
---- a/drivers/acpi/acpica/acmacros.h
-+++ b/drivers/acpi/acpica/acmacros.h
-@@ -93,15 +93,15 @@
- /* 16-bit source, 16/32/64 destination */
- 
- #define ACPI_MOVE_16_TO_16(d, s)        {((  u8 *)(void *)(d))[0] = ((u8 *)(void *)(s))[1];\
--			  ((  u8 *)(void *)(d))[1] = ((u8 *)(void *)(s))[0];}
-+			  ((  u8 *)(void *)(d))[1] = ((u8 *)(void *)(s))[0]; }
- 
- #define ACPI_MOVE_16_TO_32(d, s)        {(*(u32 *)(void *)(d))=0;\
- 					  ((u8 *)(void *)(d))[2] = ((u8 *)(void *)(s))[1];\
--					  ((u8 *)(void *)(d))[3] = ((u8 *)(void *)(s))[0];}
-+					  ((u8 *)(void *)(d))[3] = ((u8 *)(void *)(s))[0]; }
- 
- #define ACPI_MOVE_16_TO_64(d, s)        {(*(u64 *)(void *)(d))=0;\
- 							   ((u8 *)(void *)(d))[6] = ((u8 *)(void *)(s))[1];\
--							   ((u8 *)(void *)(d))[7] = ((u8 *)(void *)(s))[0];}
-+							   ((u8 *)(void *)(d))[7] = ((u8 *)(void *)(s))[0]; }
- 
- /* 32-bit source, 16/32/64 destination */
- 
-@@ -110,13 +110,13 @@
- #define ACPI_MOVE_32_TO_32(d, s)        {((  u8 *)(void *)(d))[0] = ((u8 *)(void *)(s))[3];\
- 									  ((  u8 *)(void *)(d))[1] = ((u8 *)(void *)(s))[2];\
- 									  ((  u8 *)(void *)(d))[2] = ((u8 *)(void *)(s))[1];\
--									  ((  u8 *)(void *)(d))[3] = ((u8 *)(void *)(s))[0];}
-+									  ((  u8 *)(void *)(d))[3] = ((u8 *)(void *)(s))[0]; }
- 
- #define ACPI_MOVE_32_TO_64(d, s)        {(*(u64 *)(void *)(d))=0;\
- 										   ((u8 *)(void *)(d))[4] = ((u8 *)(void *)(s))[3];\
- 										   ((u8 *)(void *)(d))[5] = ((u8 *)(void *)(s))[2];\
- 										   ((u8 *)(void *)(d))[6] = ((u8 *)(void *)(s))[1];\
--										   ((u8 *)(void *)(d))[7] = ((u8 *)(void *)(s))[0];}
-+										   ((u8 *)(void *)(d))[7] = ((u8 *)(void *)(s))[0]; }
- 
- /* 64-bit source, 16/32/64 destination */
- 
-@@ -131,7 +131,7 @@
- 										 ((  u8 *)(void *)(d))[4] = ((u8 *)(void *)(s))[3];\
- 										 ((  u8 *)(void *)(d))[5] = ((u8 *)(void *)(s))[2];\
- 										 ((  u8 *)(void *)(d))[6] = ((u8 *)(void *)(s))[1];\
--										 ((  u8 *)(void *)(d))[7] = ((u8 *)(void *)(s))[0];}
-+										 ((  u8 *)(void *)(d))[7] = ((u8 *)(void *)(s))[0]; }
- #else
- /*
-  * Macros for little-endian machines
-@@ -169,10 +169,10 @@
- /* 16-bit source, 16/32/64 destination */
- 
- #define ACPI_MOVE_16_TO_16(d, s)        {((  u8 *)(void *)(d))[0] = ((u8 *)(void *)(s))[0];\
--										 ((  u8 *)(void *)(d))[1] = ((u8 *)(void *)(s))[1];}
-+										 ((  u8 *)(void *)(d))[1] = ((u8 *)(void *)(s))[1]; }
- 
--#define ACPI_MOVE_16_TO_32(d, s)        {(*(u32 *)(void *)(d)) = 0; ACPI_MOVE_16_TO_16(d, s);}
--#define ACPI_MOVE_16_TO_64(d, s)        {(*(u64 *)(void *)(d)) = 0; ACPI_MOVE_16_TO_16(d, s);}
-+#define ACPI_MOVE_16_TO_32(d, s)        {(*(u32 *)(void *)(d)) = 0; ACPI_MOVE_16_TO_16(d, s); }
-+#define ACPI_MOVE_16_TO_64(d, s)        {(*(u64 *)(void *)(d)) = 0; ACPI_MOVE_16_TO_16(d, s); }
- 
- /* 32-bit source, 16/32/64 destination */
- 
-@@ -181,9 +181,9 @@
- #define ACPI_MOVE_32_TO_32(d, s)        {((  u8 *)(void *)(d))[0] = ((u8 *)(void *)(s))[0];\
- 										 ((  u8 *)(void *)(d))[1] = ((u8 *)(void *)(s))[1];\
- 										 ((  u8 *)(void *)(d))[2] = ((u8 *)(void *)(s))[2];\
--										 ((  u8 *)(void *)(d))[3] = ((u8 *)(void *)(s))[3];}
-+										 ((  u8 *)(void *)(d))[3] = ((u8 *)(void *)(s))[3]; }
- 
--#define ACPI_MOVE_32_TO_64(d, s)        {(*(u64 *)(void *)(d)) = 0; ACPI_MOVE_32_TO_32(d, s);}
-+#define ACPI_MOVE_32_TO_64(d, s)        {(*(u64 *)(void *)(d)) = 0; ACPI_MOVE_32_TO_32(d, s); }
- 
- /* 64-bit source, 16/32/64 destination */
- 
-@@ -196,7 +196,7 @@
- 										 ((  u8 *)(void *)(d))[4] = ((u8 *)(void *)(s))[4];\
- 										 ((  u8 *)(void *)(d))[5] = ((u8 *)(void *)(s))[5];\
- 										 ((  u8 *)(void *)(d))[6] = ((u8 *)(void *)(s))[6];\
--										 ((  u8 *)(void *)(d))[7] = ((u8 *)(void *)(s))[7];}
-+										 ((  u8 *)(void *)(d))[7] = ((u8 *)(void *)(s))[7]; }
- #endif
- #endif
- 
--- 
-1.8.1.2
+> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
+
 
