@@ -1,8 +1,8 @@
-From: "Luck, Tony" <tony.luck@intel.com>
-Subject: RE: [PATCH v2 2/2] mce: acpi/apei: Add a boot option to disable ff
+From: Borislav Petkov <bp@alien8.de>
+Subject: Re: [PATCH v2 2/2] mce: acpi/apei: Add a boot option to disable ff
  mode for corrected errors
-Date: Wed, 19 Jun 2013 20:33:49 +0000
-Message-ID: <3908561D78D1C84285E8C5FCA982C28F2DA8838B@ORSMSX106.amr.corp.intel.com>
+Date: Wed, 19 Jun 2013 23:07:06 +0200
+Message-ID: <20130619210706.GP28300@pd.tnic>
 References: <20130619175438.2852.93449.stgit@localhost.localdomain>
  <20130619175728.2852.73156.stgit@localhost.localdomain>
  <20130619180441.GK28300@pd.tnic>
@@ -10,52 +10,78 @@ References: <20130619175438.2852.93449.stgit@localhost.localdomain>
  <20130619183640.GL28300@pd.tnic>
  <3908561D78D1C84285E8C5FCA982C28F2DA881C2@ORSMSX106.amr.corp.intel.com>
  <20130619201438.GM28300@pd.tnic>
+ <3908561D78D1C84285E8C5FCA982C28F2DA8838B@ORSMSX106.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset=utf-8
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga09.intel.com ([134.134.136.24]:65385 "EHLO mga09.intel.com"
+Received: from mail.skyhub.de ([78.46.96.112]:53531 "EHLO mail.skyhub.de"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S934714Ab3FSUd4 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 19 Jun 2013 16:33:56 -0400
-In-Reply-To: <20130619201438.GM28300@pd.tnic>
-Content-Language: en-US
+	id S935060Ab3FSVHP (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 19 Jun 2013 17:07:15 -0400
+Content-Disposition: inline
+In-Reply-To: <3908561D78D1C84285E8C5FCA982C28F2DA8838B@ORSMSX106.amr.corp.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Borislav Petkov <bp@alien8.de>
-Cc: "Naveen N. Rao" <naveen.n.rao@linux.vnet.ibm.com>, "ananth@in.ibm.com" <ananth@in.ibm.com>, "masbock@linux.vnet.ibm.com" <masbock@linux.vnet.ibm.com>, "lcm@linux.vnet.ibm.com" <lcm@linux.vnet.ibm.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "Huang, Ying" <ying.huang@intel.com>
+To: "Luck, Tony" <tony.luck@intel.com>
+Cc: "Naveen N. Rao" <naveen.n.rao@linux.vnet.ibm.com>, "ananth@in.ibm.com" <ananth@in.ibm.com>, "masbock@linux.vnet.ibm.com" <masbock@linux.vnet.ibm.com>, "lcm@linux.vnet.ibm.com" <lcm@linux.vnet.ibm.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "Huang, Ying" <ying.huang@intel.com>, Robert Richter <rric@kernel.org>
 
-Pj4gVGhlcmUgaXMgKG9yIHNob3VsZCBiZSkNCj4NCj4gSGEhDQoNCk9oIHllIG9mIGxpdHRsZSBm
-YWl0aCAtIEknbSBzdXJlIHRoZSBCSU9TIHdpbGwgZ2V0IHRoaXMgcmlnaHQgdGhpcyB0aW1lIDot
-KQ0KDQoNCj4gT2ssIHNlcmlvdXNseTogc28gdGhlIHNpdHVhdGlvbiBzaG91bGQgc3RpbGwgYmUg
-ZmluZSwgRkYgcmVwb3J0ZWQgZXJyb3JzDQo+IGdldCB0aGUgQ1BFUiBmb3JtYXQgd2hpbGUgdGhl
-IHJlc3QsIHRoZSAib2xkIiBNQ0UgZm9ybWF0Lg0KPg0KPiBjcGVyLmMgaXMgZG9pbmcgcHJpbnRr
-IHNvIEknbSBndWVzc2luZyBpdCB3b3VsZCBuZWVkIHRvIGdldCBpdHMgb3duDQo+IHRyYWNlcG9p
-bnQgYW5kIGNhcnJ5IHRoYXQgdG8gdXNlcnNwYWNlLg0KDQpZZXMgLSBhIHRyYWNlcG9pbnQgaXMg
-dGhlIHJpZ2h0IGFuc3dlciBoZXJlIGZvciBhbGwgdGhlIG5ldyBzdHVmZi4NCg0KPiBDb25jZXJu
-aW5nIHRoZSBSQVMgZGFlbW9uLCBSb2JlcnQgYW5kIEkgYXJlIG1ha2luZyBnb29kIHByb2dyZXNz
-IHNvIG9uY2UNCj4gd2UgaGF2ZSB0aGUgcGVyc2lzdGVudCBldmVudHMgaW4gcGVyZiwgd2UgY2Fu
-IHJlYWQgdGhhdCB0cmFjZXBvaW50IGluDQo+IHVzZXJzcGFjZSBhbmQgZG8gd2hhdGV2ZXIgd2Ug
-d2FudCB3aXRoIHRoZSBlcnJvciBpbmZvLg0KDQpNYXVybyBoYXMgYSByYXNkYWVtb24gaW4gcHJv
-Z3Jlc3MNCiAgICAgICBnaXQ6Ly9naXQuZmVkb3JhaG9zdGVkLm9yZy9yYXNkYWVtb24uZ2l0DQpq
-dXN0IHBpY2tzIHVwIHBlcmYvZXZlbnRzIGFuZCBsb2dzIHRvIGEgc3FsaXRlIGRhdGFiYXNlLg0K
-DQo+PiBJbiB0aGlzIG5ldyBtb2Rlcm4gd29ybGQgLSBOYXZlZW4gd2FudHMgdG8gaGF2ZSB0aGUg
-QklPUyBkZWNpZGUgdGhlDQo+PiB0aHJlc2hvbGQsIHNvIHdlJ2QgbGlrZSBMaW51eCB0byB0YWtl
-IHNvbWUgYWN0aW9uIGFzIHNvb24gYXMgaXQgc2Vlcw0KPj4ganVzdCBvbmUgQ1BFUi4NCj4NCj4g
-V2h5IHdvdWxkIExpbnV4IGhhdmUgdG8gaW50ZXJ2ZW5lIGlmIGl0IGlzIGRvaW5nIEZGIC0gd2Fz
-bid0IHRoZSBkZWFsDQo+IGJlaGluZCBGaXJtd2FyZSBGaXJzdCBmb3IgdGhlIGZpcm13YXJlIHRv
-IGdldCB0aGUgZXJyb3IgZmlyc3QgYW5kIGhhbmRsZQ0KPiBhY2NvcmRpbmdseT8NCg0KQmVjYXVz
-ZSBMaW51eCBjYW4gZG8gcnVudGltZSB0aGluZ3MgdGhhdCB0aGUgQklPUyBjYW4ndCAtIGxpa2Ug
-b2ZmbGluZSBhIDRLIHBhZ2UuDQpJZGVhIGhlcmUgaXMgdGhhdCBCSU9TIGRvZXMgd2hhdGV2ZXIg
-dGhlIE9FTSB0aGlua3MgaXMgdGhlIHJpZ2h0IGxldmVsIG9mDQp0aHJlc2hob2xkaW5nIC0gbm90
-IGJvdGhlcmluZyB0aGUgT1Mgd2l0aCBwZXR0eSBkZXRhaWxzIG9mIHJhbmRvbSBjb3JyZWN0ZWQN
-CmVyb3JycyB0aGF0IG1lYW4gbm90aGluZy4gIEJ1dCBpZiB0aGVyZSBpcyBzb21lIHJlcGVhdGVk
-IGVycm9yIChsaWtlIGEgc3R1Y2sgYml0KQ0KdGhlbiB0aGUgQklPUyBjYW4gcHJvdmlkZSBhIENQ
-RVIgdG8gdGhlIE9TIHRlbGxpbmcgaXQgdGhhdCBpdCB3b3VsZCBiZSBhIGdvb2QgaWRlYQ0KdG8g
-c3RvcCB1c2luZyB0aGF0IHBhZ2UuDQoNCkFuZCB0aGlzIGlzIHdoZXJlIHRoZSBzZW1hbnRpY3Mg
-b2YgYSBDUEVSIGNoYW5nZSBiZXR3ZWVuIHRoZSBvcmlnaW5hbCBXU00tRVgNCmltcGxlbWVudGF0
-aW9uIC4uLiB3aGVyZSBMaW51eCBleHBlY3RzIHRvIHNlZSBhbGwgdGhlIGVycm9ycyBhbmQgZG8g
-aXRzIG93bg0KdGhyZXNob2xkaW5nIG9ubHkgdGFraW5nIGEgcGFnZSBvZmZsaW5lIGlmIGl0IHNl
-ZXMgYSBsb3Qgb2YgQ1BFUiByZWZlciB0byB0aGUgc2FtZQ0KcGFnZTsgYW5kIG5vdyAtIHdoZXJl
-IHRoZSBCSU9TIGRvZXMgdGhlIGNvdW50aW5nIGFuZCB0ZWxscyBMaW51eCBqdXN0IG9uY2UgdG8N
-CnRha2UgdGhlIHBhZ2Ugb2ZmbGluZS4NCg0KLVRvbnkNCg==
+On Wed, Jun 19, 2013 at 08:33:49PM +0000, Luck, Tony wrote:
+> >> There is (or should be)
+> >
+> > Ha!
+> 
+> Oh ye of little faith - I'm sure the BIOS will get this right this time :-)
+> 
+> 
+> > Ok, seriously: so the situation should still be fine, FF reported errors
+> > get the CPER format while the rest, the "old" MCE format.
+> >
+> > cper.c is doing printk so I'm guessing it would need to get its own
+> > tracepoint and carry that to userspace.
+> 
+> Yes - a tracepoint is the right answer here for all the new stuff.
+> 
+> > Concerning the RAS daemon, Robert and I are making good progress so once
+> > we have the persistent events in perf, we can read that tracepoint in
+> > userspace and do whatever we want with the error info.
+> 
+> Mauro has a rasdaemon in progress
+>        git://git.fedorahosted.org/rasdaemon.git
+> just picks up perf/events and logs to a sqlite database.
+
+Actually it uses ftrace's facilities but it is a tracepoint in the end.
+
+And I asked him nicely not to call it rasdaemon because I already have a
+RAS daemon but hey, whatever. The more confusion, the better.
+
+> Because Linux can do runtime things that the BIOS can't - like offline
+> a 4K page. Idea here is that BIOS does whatever the OEM thinks is the
+> right level of threshholding - not bothering the OS with petty details
+> of random corrected erorrs that mean nothing. But if there is some
+> repeated error (like a stuck bit) then the BIOS can provide a CPER
+> to the OS telling it that it would be a good idea to stop using that
+> page.
+
+Ok, where is that semantics? What in a CPER record does say "this error
+should tell you that you need to offline the containing page and I'm
+telling you this exactly only once"? Error Severity 0, i.e. Recoverable?
+
+> And this is where the semantics of a CPER change between the original
+> WSM-EX implementation ... where Linux expects to see all the errors
+> and do its own thresholding only taking a page offline if it sees a
+> lot of CPER refer to the same page; and now - where the BIOS does the
+> counting and tells Linux just once to take the page offline.
+
+Ok, we're talking about the S in RAS now. Do we have error recovery
+strategies specified anywhere? Are they per-platform or generic? Is this
+CPER strategy above, for example, only valid for some platforms or for
+all APEI-using hardware?
+
+Questions over questions...
+
+-- 
+Regards/Gruss,
+    Boris.
+
+Sent from a fat crate under my desk. Formatting is fine.
+--
