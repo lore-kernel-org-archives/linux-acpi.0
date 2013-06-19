@@ -1,39 +1,69 @@
-From: "Luck, Tony" <tony.luck@intel.com>
-Subject: RE: [PATCH v2 2/2] mce: acpi/apei: Add a boot option to disable ff
+From: Borislav Petkov <bp@alien8.de>
+Subject: Re: [PATCH v2 2/2] mce: acpi/apei: Add a boot option to disable ff
  mode for corrected errors
-Date: Wed, 19 Jun 2013 19:05:16 +0000
-Message-ID: <3908561D78D1C84285E8C5FCA982C28F2DA881C2@ORSMSX106.amr.corp.intel.com>
+Date: Wed, 19 Jun 2013 22:14:38 +0200
+Message-ID: <20130619201438.GM28300@pd.tnic>
 References: <20130619175438.2852.93449.stgit@localhost.localdomain>
  <20130619175728.2852.73156.stgit@localhost.localdomain>
  <20130619180441.GK28300@pd.tnic>
  <3908561D78D1C84285E8C5FCA982C28F2DA88106@ORSMSX106.amr.corp.intel.com>
  <20130619183640.GL28300@pd.tnic>
+ <3908561D78D1C84285E8C5FCA982C28F2DA881C2@ORSMSX106.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset=utf-8
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga03.intel.com ([143.182.124.21]:64423 "EHLO mga03.intel.com"
+Received: from mail.skyhub.de ([78.46.96.112]:57994 "EHLO mail.skyhub.de"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1757458Ab3FSTFT (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 19 Jun 2013 15:05:19 -0400
-In-Reply-To: <20130619183640.GL28300@pd.tnic>
-Content-Language: en-US
+	id S1756847Ab3FSUOq (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 19 Jun 2013 16:14:46 -0400
+Content-Disposition: inline
+In-Reply-To: <3908561D78D1C84285E8C5FCA982C28F2DA881C2@ORSMSX106.amr.corp.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Borislav Petkov <bp@alien8.de>
+To: "Luck, Tony" <tony.luck@intel.com>
 Cc: "Naveen N. Rao" <naveen.n.rao@linux.vnet.ibm.com>, "ananth@in.ibm.com" <ananth@in.ibm.com>, "masbock@linux.vnet.ibm.com" <masbock@linux.vnet.ibm.com>, "lcm@linux.vnet.ibm.com" <lcm@linux.vnet.ibm.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "Huang, Ying" <ying.huang@intel.com>
 
-PiBXaHksIGZpbGwgb3V0IHN0cnVjdCBtY2UgYW5kIGRvIG1jZV9sb2cobWNlKSBkb2VzIG5vdCBz
-dWZmaWNlPw0KDQpUaGVyZSBpcyAob3Igc2hvdWxkIGJlKSBhIGxvdCBtb3JlIGludGVyZXN0aW5n
-IHN0dWZmIGluIHRoZSBDUEVSIHRoYW4ganVzdCB0aGUgYWRkcmVzcy4gU3R1ZmYNCnRoYXQgd2Ug
-ZG9uJ3QgaGF2ZSBmaWVsZHMgZm9yIGluIHRoZSBleGlzdGluZyBtY2Vsb2cgc3RydWN0dXJlLiAg
-V2UgYWxzbyBuZWVkIHRvIHRyZWF0IGZpbHRlcmVkDQpyZWNvcmRzIGZyb20gbW9kZXJuIEFQRUkg
-aW1wbGVtZW50YXRpb25zIGEgYml0IGRpZmZlcmVudGx5IGZyb20gdGhlIG9sZCBzdHVmZi4gIFRo
-ZSBvcmlnaW5hbA0KdXNlciBvZiB0aGlzIGNvZGUgd2FzIFdlc3RtZXJlLUVYLCB3aGljaCB1c2Vk
-IGl0IGFzIGEgd29ya2Fyb3VuZCBmb3IgYSBtaXNzaW5nIGFkZHJlc3MgaW4NCk1DaV9BRERSIGZv
-ciBjb3JyZWN0ZWQgZXJyb3JzLiAgU28gaW4gdGhhdCBzY2VuYXJpbyB3ZSBoYWQgZXZlcnkgZXJy
-b3IgYmVpbmcgcmVwb3J0ZWQgYW5kDQptY2Vsb2coOCkgZGVhbW9uIGRvaW5nIHRoZSB0aHJlc2hv
-bGQgYW5hbHlzaXMgdG8gZGVjaWRlIHdoZW4gdG8gdGFrZSBhY3Rpb24uDQoNCkluIHRoaXMgbmV3
-IG1vZGVybiB3b3JsZCAtIE5hdmVlbiB3YW50cyB0byBoYXZlIHRoZSBCSU9TIGRlY2lkZSB0aGUg
-dGhyZXNob2xkLCBzbyB3ZSdkDQpsaWtlIExpbnV4IHRvIHRha2Ugc29tZSBhY3Rpb24gYXMgc29v
-biBhcyBpdCBzZWVzIGp1c3Qgb25lIENQRVIuDQoNCi1Ub255DQo=
+On Wed, Jun 19, 2013 at 07:05:16PM +0000, Luck, Tony wrote:
+> > Why, fill out struct mce and do mce_log(mce) does not suffice?
+> 
+> There is (or should be)
+
+Ha!
+
+> a lot more interesting stuff in the CPER than just the address. Stuff
+> that we don't have fields for in the existing mcelog structure. We
+> also need to treat filtered records from modern APEI implementations a
+> bit differently from the old stuff.
+
+Great, the CPER record is described in the UEFI spec. Those BIOS people
+are all like a mafia.
+
+Ok, seriously: so the situation should still be fine, FF reported errors
+get the CPER format while the rest, the "old" MCE format.
+
+cper.c is doing printk so I'm guessing it would need to get its own
+tracepoint and carry that to userspace.
+
+Concerning the RAS daemon, Robert and I are making good progress so once
+we have the persistent events in perf, we can read that tracepoint in
+userspace and do whatever we want with the error info.
+
+> The original user of this code was Westmere-EX, which used it as a
+> workaround for a missing address in MCi_ADDR for corrected errors.
+> So in that scenario we had every error being reported and mcelog(8)
+> deamon doing the threshold analysis to decide when to take action.
+>
+> In this new modern world - Naveen wants to have the BIOS decide the
+> threshold, so we'd like Linux to take some action as soon as it sees
+> just one CPER.
+
+Why would Linux have to intervene if it is doing FF - wasn't the deal
+behind Firmware First for the firmware to get the error first and handle
+accordingly?
+
+-- 
+Regards/Gruss,
+    Boris.
+
+Sent from a fat crate under my desk. Formatting is fine.
+--
