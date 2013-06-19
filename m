@@ -1,55 +1,63 @@
-From: Toshi Kani <toshi.kani@hp.com>
-Subject: Re: [PATCH] ACPI: Remove the use of
- CONFIG_ACPI_HOTPLUG_MEMORY_MODULE
-Date: Wed, 19 Jun 2013 08:47:17 -0600
-Message-ID: <1371653237.22206.12.camel@misato.fc.hp.com>
-References: <1371589605-15638-1-git-send-email-toshi.kani@hp.com>
-	 <51C13703.8040909@jp.fujitsu.com>
+From: Tony Luck <tony.luck@gmail.com>
+Subject: Re: [PATCH 0/5] ACPI / scan: Make it possible to use the container
+ hotplug with other scan handlers
+Date: Wed, 19 Jun 2013 10:37:27 -0700
+Message-ID: <CA+8MBbLS9suFc4gdjbb1RQdYmEyNUUHhEKgSjMxJpQLcPPYN2g@mail.gmail.com>
+References: <1417592.vuSG0cUIGo@vostro.rjw.lan>
+	<3168584.RRBYoY5UXf@vostro.rjw.lan>
+	<CA+8MBbKZBvqVA+wKTK7GpXorpBvDLGCJURc+PQz+QfDiwA1a8A@mail.gmail.com>
+	<3321228.vG97AE80O6@vostro.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from g1t0029.austin.hp.com ([15.216.28.36]:5440 "EHLO
-	g1t0029.austin.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756637Ab3FSOrj (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 19 Jun 2013 10:47:39 -0400
-In-Reply-To: <51C13703.8040909@jp.fujitsu.com>
+Received: from mail-ve0-f173.google.com ([209.85.128.173]:34090 "EHLO
+	mail-ve0-f173.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756708Ab3FSRh2 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 19 Jun 2013 13:37:28 -0400
+In-Reply-To: <3321228.vG97AE80O6@vostro.rjw.lan>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
-Cc: rjw@sisk.pl, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: Toshi Kani <toshi.kani@hp.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>, "Lu, Aaron" <aaron.lu@intel.com>
 
-On Wed, 2013-06-19 at 13:43 +0900, Yasuaki Ishimatsu wrote:
-> 2013/06/19 6:06, Toshi Kani wrote:
-> > config ACPI_HOTPLUG_MEMORY has been changed to bool (y/n), and
-> > its module option is no longer valid.  So, remove the use of
-> > CONFIG_ACPI_HOTPLUG_MEMORY_MODULE.
-> > 
-> > Signed-off-by: Toshi Kani <toshi.kani@hp.com>
-> > ---
-> >   include/linux/acpi.h |    3 +--
-> >   1 file changed, 1 insertion(+), 2 deletions(-)
-> > 
-> > diff --git a/include/linux/acpi.h b/include/linux/acpi.h
-> > index 17b5b59..353ba25 100644
-> > --- a/include/linux/acpi.h
-> > +++ b/include/linux/acpi.h
-> > @@ -352,8 +352,7 @@ extern acpi_status acpi_pci_osc_control_set(acpi_handle handle,
-> >   
-> >   /* Enable _OST when all relevant hotplug operations are enabled */
-> >   #if defined(CONFIG_ACPI_HOTPLUG_CPU) &&			\
-> > -	(defined(CONFIG_ACPI_HOTPLUG_MEMORY) ||		\
-> > -	 defined(CONFIG_ACPI_HOTPLUG_MEMORY_MODULE)) &&	\
-> > +	defined(CONFIG_ACPI_HOTPLUG_MEMORY) &&		\
-> >   	defined(CONFIG_ACPI_CONTAINER)
-> >   #define ACPI_HOTPLUG_OST
-> >   #endif
-> > --
-> Good catch!!
-> 
-> Acked-by: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
+> Can you please apply the appended patch on top of it and see if the system
+> still works then?
 
-Thanks Yasuaki!
--Toshi
+Still works with this patch.
 
+-Tony
 
+> ---
+>  drivers/acpi/scan.c  |    3 +++
+>  drivers/acpi/video.c |    3 ---
+>  2 files changed, 3 insertions(+), 3 deletions(-)
+>
+> Index: linux-pm/drivers/acpi/scan.c
+> ===================================================================
+> --- linux-pm.orig/drivers/acpi/scan.c
+> +++ linux-pm/drivers/acpi/scan.c
+> @@ -939,6 +939,9 @@ static int acpi_device_probe(struct devi
+>         struct acpi_driver *acpi_drv = to_acpi_driver(dev->driver);
+>         int ret;
+>
+> +       if (acpi_dev->handler)
+> +               return -EINVAL;
+> +
+>         if (!acpi_drv->ops.add)
+>                 return -ENOSYS;
+>
+> Index: linux-pm/drivers/acpi/video.c
+> ===================================================================
+> --- linux-pm.orig/drivers/acpi/video.c
+> +++ linux-pm/drivers/acpi/video.c
+> @@ -1722,9 +1722,6 @@ static int acpi_video_bus_add(struct acp
+>         int error;
+>         acpi_status status;
+>
+> -       if (device->handler)
+> -               return -EINVAL;
+> -
+>         status = acpi_walk_namespace(ACPI_TYPE_DEVICE,
+>                                 device->parent->handle, 1,
+>                                 acpi_video_bus_match, NULL,
+>
