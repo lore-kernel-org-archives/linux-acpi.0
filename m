@@ -1,38 +1,35 @@
 From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: [PATCH 0/5] ACPI / scan: Make it possible to use the container hotplug with other scan handlers
-Date: Thu, 20 Jun 2013 01:35:42 +0200
-Message-ID: <11533663.1O1HHSYroG@vostro.rjw.lan>
-References: <1417592.vuSG0cUIGo@vostro.rjw.lan> <11631311.zzmyWFE0GU@vostro.rjw.lan> <1371684124.8433.2.camel@misato.fc.hp.com>
+Subject: Re: [PATCH 15/16] ACPICA: _CST repair: Handle null package entries
+Date: Thu, 20 Jun 2013 01:56:20 +0200
+Message-ID: <2094701.GVtPqEn0F7@vostro.rjw.lan>
+References: <cover.1369274558.git.lv.zheng@intel.com> <2701902.tBNGLava1W@vostro.rjw.lan> <94F2FBAB4432B54E8AACC7DFDE6C92E36FE8876B@ORSMSX103.amr.corp.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7Bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from hydra.sisk.pl ([212.160.235.94]:43432 "EHLO hydra.sisk.pl"
+Received: from hydra.sisk.pl ([212.160.235.94]:43445 "EHLO hydra.sisk.pl"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S934444Ab3FSX0V (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 19 Jun 2013 19:26:21 -0400
-In-Reply-To: <1371684124.8433.2.camel@misato.fc.hp.com>
+	id S934170Ab3FSXq7 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 19 Jun 2013 19:46:59 -0400
+In-Reply-To: <94F2FBAB4432B54E8AACC7DFDE6C92E36FE8876B@ORSMSX103.amr.corp.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Toshi Kani <toshi.kani@hp.com>
-Cc: Tony Luck <tony.luck@gmail.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>, "Lu, Aaron" <aaron.lu@intel.com>
+To: "Moore, Robert" <robert.moore@intel.com>
+Cc: Len Brown <lenb@kernel.org>, "Zheng, Lv" <lv.zheng@intel.com>, "Wysocki, Rafael J" <rafael.j.wysocki@intel.com>, "Brown, Len" <len.brown@intel.com>, linux acpi <linux-acpi@vger.kernel.org>
 
-On Wednesday, June 19, 2013 05:22:04 PM Toshi Kani wrote:
-> On Thu, 2013-06-20 at 00:24 +0200, Rafael J. Wysocki wrote:
-> > On Wednesday, June 19, 2013 10:37:27 AM Tony Luck wrote:
-> > > > Can you please apply the appended patch on top of it and see if the system
-> > > > still works then?
-> > > 
-> > > Still works with this patch.
-> > 
-> > Cool, thanks! :-)
-> > 
-> > If you don't mind, I'll queue up https://patchwork.kernel.org/patch/2712741/ and
-> > this for 3.11.
+On Wednesday, June 19, 2013 12:50:56 AM Moore, Robert wrote:
+> > > > Sort package only after null/bad elements have been removed.
+> This is the bug.
 > 
-> For both patches:
+> Lv, this should probably be something like:
 > 
-> Acked-by: Toshi Kani <toshi.kani@hp.com>
+> > > > Fixes a problem where the _CST sort was performed too early.
+> > > > This change sorts the package only after null/bad elements have
+> > > > been removed.
 
-Thanks!
+I've added this info to the changelog and queued up the patch for 3.11.
+
+Thanks Bob!
+
+Rafael
 
