@@ -1,34 +1,104 @@
-From: Tony Luck <tony.luck@gmail.com>
-Subject: Re: [PATCH] Re: [Patch] MCE, APEI: Don't enable CMCI when Firmware
- First mode is set in
-Date: Tue, 18 Jun 2013 15:29:22 -0700
-Message-ID: <CA+8MBbL+iLkAXp0ytQwydpuow05jMzSDFMogx1RcMN715yBFbQ@mail.gmail.com>
-References: <20130617082135.GB7203@pd.tnic>
-	<20130618063858.3645.75676.stgit@localhost.localdomain>
+From: "Moore, Robert" <robert.moore@intel.com>
+Subject: RE: [PATCH 07/16] ACPICA: New: Portable acpidump utility (get
+ system ACPI tables)
+Date: Wed, 19 Jun 2013 00:48:56 +0000
+Message-ID: <94F2FBAB4432B54E8AACC7DFDE6C92E36FE88750@ORSMSX103.amr.corp.intel.com>
+References: <cover.1369274558.git.lv.zheng@intel.com>
+ <2334553.HBLCIvOtSu@vostro.rjw.lan>
+ <94F2FBAB4432B54E8AACC7DFDE6C92E36FE886D5@ORSMSX103.amr.corp.intel.com>
+ <3314941.aQrPpJxYFk@vostro.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-ve0-f169.google.com ([209.85.128.169]:55978 "EHLO
-	mail-ve0-f169.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755449Ab3FRW3X (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 18 Jun 2013 18:29:23 -0400
-In-Reply-To: <20130618063858.3645.75676.stgit@localhost.localdomain>
+Received: from mga09.intel.com ([134.134.136.24]:33522 "EHLO mga09.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S933066Ab3FSAs6 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 18 Jun 2013 20:48:58 -0400
+In-Reply-To: <3314941.aQrPpJxYFk@vostro.rjw.lan>
+Content-Language: en-US
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Naveen N. Rao" <naveen.n.rao@linux.vnet.ibm.com>
-Cc: Borislav Petkov <bp@alien8.de>, ananth@in.ibm.com, masbock@linux.vnet.ibm.com, lcm@linux.vnet.ibm.com, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-acpi <linux-acpi@vger.kernel.org>, Huang Ying <ying.huang@intel.com>
+To: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: Len Brown <lenb@kernel.org>, "Zheng, Lv" <lv.zheng@intel.com>, "Wysocki, Rafael J" <rafael.j.wysocki@intel.com>, "Brown, Len" <len.brown@intel.com>, linux acpi <linux-acpi@vger.kernel.org>
 
-On Mon, Jun 17, 2013 at 11:43 PM, Naveen N. Rao
-<naveen.n.rao@linux.vnet.ibm.com> wrote:
-> +       if (bank >= mca_cfg.banks) {
-> +               pr_info("mce_disable_bank: Invalid MCA bank %d ignored.\n", bank);
-
-Let's have a FW_BUG in that message to point a finger at the source of
-the problem.
-
-
-+       apei_hest_parse(hest_parse_cmc, NULL);
-
-I think we want a boot command line option to opt out of this. "nohestcmc"??
-
--Tony
+U29ycnksIEkgZG9uJ3QgdGhpbmsgdGhlIExpbnV4IHZlcnNpb24gaGFzIGJlZW4gY29tcGxldGVk
+IGluIHZlcnNpb24gMjAxMzA1MTcgLS0gc28gcGVyaGFwcyB5b3Ugc2hvdWxkIGlnbm9yZSB0aGlz
+IHBhdGNoIGFmdGVyIGFsbCwgdW5sZXNzIHlvdSB3YW50IHRvIHNpbXBseSBlc3RhYmxpc2ggdGhl
+IGluZnJhc3RydWN0dXJlIGZvciB0aGUgZmluYWwgTGludXggdmVyc2lvbi4gVGhlIExpbnV4LXNw
+ZWNpZmljIGNvZGUgaXMgY29tcGxldGVkIGFuZCB3aWxsIGJlIHBhcnQgb2YgdGhlIEp1bmUgcmVs
+ZWFzZS4NCg0KSG93ZXZlciwgd2UgY2FuIHN0aWxsIGRpc2N1c3MgdGhlIGZ1dHVyZSBvZiB0aGUg
+Y2hhbmdlbG9nLCBldGMuIFdlIHNlZW0gdG8gaGF2ZSBhbiBvdmVyYWxsIHByb2JsZW0gd2hlcmUg
+dGhlIEFDUElDQSBjb21taXQgbG9nIGlzICJnZW5lcmljIiwgYnV0IEknbSBzZWVpbmcgaGVyZSBh
+IHJlcXVlc3QgdG8gbWFrZSB0aGUgYWN0dWFsIExpbnV4IHBhdGNoZXMgbW9yZSBzcGVjaWZpYyB0
+byBMaW51eC4NCg0KQXMgZmFyIGFzIGFjcGljYSBhbmQgYWNwaWR1bXAgaXMgY29uY2VybmVkLCBJ
+IHB1dCBzcGVjaWZpYyBnZW5lcmF0aW9uIGluc3RydWN0aW9ucyBpbiB0aGUgcmVmZXJlbmNlIG1h
+bnVhbC4uLg0KDQpPZiBjb3Vyc2UsIHRoZSBkZXRhaWxzIGZvciBhbnkgaW5kaXZpZHVhbCBvcGVy
+YXRpbmcgc3lzdGVtIG1heSBiZSBkaWZmZXJlbnQgKGVzcGVjaWFsbHkgZmlsZSBsb2NhdGlvbnMp
+LCBzbyBJIGhhdmUgdG8gbWFrZSB0aGUgYWNwaWNhIGNoYW5nZWxvZyBzb21ld2hhdCBnZW5lcmlj
+Lg0KDQoNCkhlcmUgaXMgdGhlIGFjdHVhbCBhY3BpY2EgY2hhbmdlbG9nIHRleHQgY29uY2Vybmlu
+ZyBhY3BpZHVtcCwgZm9yIHZlcnNpb24gMjAxMzA1MTc6DQoNCjIpIGlBU0wgQ29tcGlsZXIvRGlz
+YXNzZW1ibGVyIGFuZCBUb29sczoNCg0KTmV3IHV0aWxpdHk6IEltcGxlbWVudGVkIGFuIGVhc2ls
+eSBwb3J0YWJsZSB2ZXJzaW9uIG9mIHRoZSBhY3BpZHVtcCANCnV0aWxpdHkgdG8gZXh0cmFjdCBB
+Q1BJIHRhYmxlcyBmcm9tIHRoZSBzeXN0ZW0gKG9yIGEgZmlsZSkgaW4gYW4gQVNDSUkgaGV4IA0K
+ZHVtcCBmb3JtYXQuIFRoZSB0b3AtbGV2ZWwgY29kZSBpbXBsZW1lbnRzIHRoZSB2YXJpb3VzIGNv
+bW1hbmQgbGluZSANCm9wdGlvbnMsIGZpbGUgSS9PLCBhbmQgdGFibGUgZHVtcCByb3V0aW5lcy4g
+VG8gcG9ydCB0byBhIG5ldyBob3N0LCBvbmx5IA0KdGhyZWUgZnVuY3Rpb25zIG5lZWQgdG8gYmUg
+aW1wbGVtZW50ZWQgdG8gZ2V0IHRhYmxlcyAtLSBzaW5jZSB0aGlzIA0KZnVuY3Rpb25hbGl0eSBp
+cyBPUy1kZXBlbmRlbnQuIFNlZSB0aGUgdG9vbHMvYWNwaWR1bXAvYXBtYWluLmMgbW9kdWxlIGFu
+ZCANCnRoZSBBQ1BJQ0EgcmVmZXJlbmNlIGZvciBwb3J0aW5nIGluc3RydWN0aW9ucy4gQUNQSUNB
+IEJaIDg1OS4gTm90ZXM6DQoxKSBUaGUgV2luZG93cyB2ZXJzaW9uIG9idGFpbnMgdGhlIEFDUEkg
+dGFibGVzIGZyb20gdGhlIFJlZ2lzdHJ5Lg0KMikgVGhlIExpbnV4IHZlcnNpb24gaXMgdW5kZXIg
+ZGV2ZWxvcG1lbnQuDQozKSBPdGhlciBob3N0cyAtIElmIGFuIE9TLWRlcGVuZGVudCBtb2R1bGUg
+aXMgc3VibWl0dGVkLCBpdCB3aWxsIGJlIA0KZGlzdHJpYnV0ZWQgd2l0aCBBQ1BJQ0EuDQoNCg0K
+DQoNCg0KDQo+IC0tLS0tT3JpZ2luYWwgTWVzc2FnZS0tLS0tDQo+IEZyb206IFJhZmFlbCBKLiBX
+eXNvY2tpIFttYWlsdG86cmp3QHNpc2sucGxdDQo+IFNlbnQ6IFR1ZXNkYXksIEp1bmUgMTgsIDIw
+MTMgMjo0MSBQTQ0KPiBUbzogTW9vcmUsIFJvYmVydA0KPiBDYzogTGVuIEJyb3duOyBaaGVuZywg
+THY7IFd5c29ja2ksIFJhZmFlbCBKOyBCcm93biwgTGVuOyBsaW51eCBhY3BpDQo+IFN1YmplY3Q6
+IFJlOiBbUEFUQ0ggMDcvMTZdIEFDUElDQTogTmV3OiBQb3J0YWJsZSBhY3BpZHVtcCB1dGlsaXR5
+IChnZXQNCj4gc3lzdGVtIEFDUEkgdGFibGVzKQ0KPiANCj4gT24gVHVlc2RheSwgSnVuZSAxOCwg
+MjAxMyAwOToyMToyMiBQTSBNb29yZSwgUm9iZXJ0IHdyb3RlOg0KPiA+IEl0IHdvdWxkIGJlIGEg
+c2ltaWxhciBnZW5lcmF0aW9uIHRvIHRoZSBpQVNMIGNvbXBpbGVyIG9yIHRoZSBhY3BpeHRyYWN0
+DQo+IHV0aWxpdHkuDQo+IA0KPiBXZWxsLCBzbyB3aHkgZG9uJ3Qgd2Ugd3JpdGUgaW4gdGhlIGNo
+YW5nZWxvZzogIlRoaXMgY2hhbmdlIGFsbG93cyB0aGUgdXNlcg0KPiB0byBidWlsZCB0aGUgcG9y
+dGFibGUgYWNwaWR1bXAgdXRpbGl0eSBieSBleGVjdXRpbmcgdGhlIGZvbGxvd2luZyBjb21tYW5k
+Og0KPiAuLi4iDQo+IGFuZCBzbyBvbj8NCj4gDQo+IFJhZmFlbA0KPiANCj4gDQo+ID4gPiAtLS0t
+LU9yaWdpbmFsIE1lc3NhZ2UtLS0tLQ0KPiA+ID4gRnJvbTogUmFmYWVsIEouIFd5c29ja2kgW21h
+aWx0bzpyandAc2lzay5wbF0NCj4gPiA+IFNlbnQ6IFR1ZXNkYXksIEp1bmUgMTgsIDIwMTMgMjow
+NiBQTQ0KPiA+ID4gVG86IE1vb3JlLCBSb2JlcnQNCj4gPiA+IENjOiBMZW4gQnJvd247IFpoZW5n
+LCBMdjsgV3lzb2NraSwgUmFmYWVsIEo7IEJyb3duLCBMZW47IGxpbnV4IGFjcGkNCj4gPiA+IFN1
+YmplY3Q6IFJlOiBbUEFUQ0ggMDcvMTZdIEFDUElDQTogTmV3OiBQb3J0YWJsZSBhY3BpZHVtcCB1
+dGlsaXR5DQo+ID4gPiAoZ2V0IHN5c3RlbSBBQ1BJIHRhYmxlcykNCj4gPiA+DQo+ID4gPiBPbiBU
+dWVzZGF5LCBKdW5lIDE4LCAyMDEzIDA2OjUzOjQyIFBNIE1vb3JlLCBSb2JlcnQgd3JvdGU6DQo+
+ID4gPiA+IFBsZWFzZSBkb24ndCBkcm9wIHRoaXMgaWYgaXQgaXMgaW5kZWVkIHRoZSBhY3BpZHVt
+cCB1dGlsaXR5Lg0KPiA+ID4NCj4gPiA+IFdlbGwsIHRoYXQncyB1bmNsZWFyIHRvIG1lIHRvIGJl
+IGhvbmVzdC4gOi0pDQo+ID4gPg0KPiA+ID4gPiBUaGlzIHV0aWxpdHkgaXMgbm93IGEgcGFydCBv
+ZiBBQ1BJQ0EgYW5kIHNob3VsZCByZXBsYWNlIHRoZQ0KPiA+ID4gPiBleGlzdGluZw0KPiA+ID4g
+dXRpbGl0eS4NCj4gPiA+DQo+ID4gPiBPSywgYnV0IHdlIG5lZWQgdG8gdGVsbCB0aGUgdXNlcnMg
+aG93IHRvIGJ1aWxkIGl0Lg0KPiA+ID4NCj4gPiA+IFRoYW5rcywNCj4gPiA+IFJhZmFlbA0KPiA+
+ID4NCj4gPiA+DQo+ID4gPiA+ID4gLS0tLS1PcmlnaW5hbCBNZXNzYWdlLS0tLS0NCj4gPiA+ID4g
+PiBGcm9tOiBSYWZhZWwgSi4gV3lzb2NraSBbbWFpbHRvOnJqd0BzaXNrLnBsXQ0KPiA+ID4gPiA+
+IFNlbnQ6IFNhdHVyZGF5LCBKdW5lIDE1LCAyMDEzIDQ6MTAgUE0NCj4gPiA+ID4gPiBUbzogTGVu
+IEJyb3duDQo+ID4gPiA+ID4gQ2M6IFpoZW5nLCBMdjsgV3lzb2NraSwgUmFmYWVsIEo7IE1vb3Jl
+LCBSb2JlcnQ7IEJyb3duLCBMZW47DQo+ID4gPiA+ID4gbGludXggYWNwaQ0KPiA+ID4gPiA+IFN1
+YmplY3Q6IFJlOiBbUEFUQ0ggMDcvMTZdIEFDUElDQTogTmV3OiBQb3J0YWJsZSBhY3BpZHVtcA0K
+PiA+ID4gPiA+IHV0aWxpdHkgKGdldCBzeXN0ZW0gQUNQSSB0YWJsZXMpDQo+ID4gPiA+ID4NCj4g
+PiA+ID4gPiBPbiBXZWRuZXNkYXksIEp1bmUgMTIsIDIwMTMgMDE6MDc6NTAgUE0gTGVuIEJyb3du
+IHdyb3RlOg0KPiA+ID4gPiA+ID4gPiBUaGlzIHV0aWxpdHkgZHVtcHMgdGhlIHN5c3RlbSBBQ1BJ
+IHRhYmxlcyBpbiBhbiBhc2NpaSBmb3JtYXQNCj4gPiA+ID4gPiA+ID4gc3VpdGFibGUgZm9yIGV4
+dHJhY3Rpb24gdmlhIHRoZSBhY3BpeHRyYWN0IHV0aWxpdHkuDQo+ID4gPiA+ID4gPg0KPiA+ID4g
+PiA+ID4gVGhpcyBjb21taXQgbWVzc2FnZSBkb2VzIG5vdCBtYXRjaCB0aGUgY29udGVudHMgb2Yg
+dGhlIHBhdGNoLA0KPiA+ID4gPiA+ID4gb3IgZXhwbGFpbiBob3cgdGhpcyBwYXRjaCBpcyByZWxh
+dGVkIChvciBub3QpIHRvIHRoZSBhY3BpZHVtcA0KPiA+ID4gPiA+ID4gdXRpbGl0eSBhbHJlYWR5
+IGluIHRoZSBrZXJuZWwgdHJlZSB1bmRlcg0KPiA+ID4gPiA+ID4gdG9vbHMvcG93ZXIvYWNwaS9h
+Y3BpZHVtcC8NCj4gPiA+ID4gPiA+DQo+ID4gPiA+ID4gPiBOYWtlZC1ieTogTGVuIEJyb3duIDxs
+ZW4uYnJvd25AaW50ZWwuY29tPg0KPiA+ID4gPiA+DQo+ID4gPiA+ID4gV2VsbCwgSSB3YXMgb24g
+dGhlIHZlcmdlIG9mIGRyb3BwaW5nIHRoaXMgb25lIGJlZm9yZSwgc28gZHJvcHBlZA0KPiBub3cu
+DQo+ID4gPiA+ID4NCj4gPiA+ID4gPiBUaGFua3MsDQo+ID4gPiA+ID4gUmFmYWVsDQo+ID4gPiA+
+ID4NCj4gPiA+ID4gPg0KPiA+ID4gPiA+IC0tDQo+ID4gPiA+ID4gSSBzcGVhayBvbmx5IGZvciBt
+eXNlbGYuDQo+ID4gPiA+ID4gUmFmYWVsIEouIFd5c29ja2ksIEludGVsIE9wZW4gU291cmNlIFRl
+Y2hub2xvZ3kgQ2VudGVyLg0KPiA+ID4gPg0KPiA+ID4gLS0NCj4gPiA+IEkgc3BlYWsgb25seSBm
+b3IgbXlzZWxmLg0KPiA+ID4gUmFmYWVsIEouIFd5c29ja2ksIEludGVsIE9wZW4gU291cmNlIFRl
+Y2hub2xvZ3kgQ2VudGVyLg0KPiA+DQo+IC0tDQo+IEkgc3BlYWsgb25seSBmb3IgbXlzZWxmLg0K
+PiBSYWZhZWwgSi4gV3lzb2NraSwgSW50ZWwgT3BlbiBTb3VyY2UgVGVjaG5vbG9neSBDZW50ZXIu
+DQo=
