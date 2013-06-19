@@ -1,66 +1,35 @@
-From: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
-Subject: Re: [PATCH] ACPI / PM: Fix error code path for power resources initialization
-Date: Wed, 19 Jun 2013 13:45:28 +0900
-Message-ID: <51C13768.30000@jp.fujitsu.com>
-References: <8547354.D2OPcUytEB@vostro.rjw.lan>
+From: "Alexander E. Patrakov" <patrakov@gmail.com>
+Subject: Re: [BUGFIX v2 0/4] fix bug 56531, 59501 and 59581
+Date: Wed, 19 Jun 2013 11:18:41 +0600
+Message-ID: <CAN_LGv0DUH3o6=iCBcQDEOLQ3n=O=GR5BSQU5dLs306YeLVL7w@mail.gmail.com>
+References: <1371238081-32260-1-git-send-email-jiang.liu@huawei.com>
+	<CAN_LGv1itN=ADE-3LNCoBJFXmpWZffhQb6NQuoBzvONkX3brug@mail.gmail.com>
+	<CAN_LGv2Y6jebtNUQ1gJYfy8uG2pxtUjT1gqMPmL+6E7myELd3A@mail.gmail.com>
+	<1880810.6jIKdDRiJm@vostro.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from fgwmail6.fujitsu.co.jp ([192.51.44.36]:46162 "EHLO
-	fgwmail6.fujitsu.co.jp" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750884Ab3FSEpv (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 19 Jun 2013 00:45:51 -0400
-In-Reply-To: <8547354.D2OPcUytEB@vostro.rjw.lan>
+Received: from mail-qa0-f42.google.com ([209.85.216.42]:38619 "EHLO
+	mail-qa0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751089Ab3FSFSm (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 19 Jun 2013 01:18:42 -0400
+In-Reply-To: <1880810.6jIKdDRiJm@vostro.rjw.lan>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>, Linux PM list <linux-pm@vger.kernel.org>, Mika Westerberg <mika.westerberg@linux.intel.com>
+Cc: Jiang Liu <jiang.liu@huawei.com>, alexdeucher@gmail.com, Bjorn Helgaas <bhelgaas@google.com>, Yinghai Lu <yinghai@kernel.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Yijing Wang <wangyijing@huawei.com>, linux-acpi@vger.kernel.org, Jiang Liu <liuj97@gmail.com>, "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
 
-2013/06/18 7:37, Rafael J. Wysocki wrote:
-> From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+2013/6/19 Rafael J. Wysocki <rjw@sisk.pl>:
+> OK, let's try to untangle this a bit.
 >
-> Commit 781d737 (ACPI: Drop power resources driver) introduced a
-> bug in the power resources initialization error code path causing
-> a NULL pointer to be referenced in acpi_release_power_resource()
-> if there's an error triggering a jump to the 'err' label in
-> acpi_add_power_resource().  This happens because the list_node
-> field of struct acpi_power_resource has not been initialized yet
-> at this point and doing a list_del() on it is a bad idea.
->
-> To prevent this problem from occuring, initialize the list_node
-> field of struct acpi_power_resource upfront.
->
-> Reported-by: Mika Westerberg <mika.westerberg@linux.intel.com>
-> Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
-> Cc: 3.9+ <stable@vger.kernel.org>
+> If you applyt patches [1/4] and [4/4] from the $subject series only, what
+> does remain unfixed?
 
-Acked-by: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
+[not tested, can do so in 12 hours if needed]
 
-Thanks,
-Yasuaki Ishimatsu
+I think there will be problems on undocking and/or on the second
+docking, as described in comments #6 - #8 of
+https://bugzilla.kernel.org/show_bug.cgi?id=59501
 
-> ---
->   drivers/acpi/power.c |    1 +
->   1 file changed, 1 insertion(+)
->
-> Index: linux-pm/drivers/acpi/power.c
-> ===================================================================
-> --- linux-pm.orig/drivers/acpi/power.c
-> +++ linux-pm/drivers/acpi/power.c
-> @@ -882,6 +882,7 @@ int acpi_add_power_resource(acpi_handle
->   				ACPI_STA_DEFAULT);
->   	mutex_init(&resource->resource_lock);
->   	INIT_LIST_HEAD(&resource->dependent);
-> +	INIT_LIST_HEAD(&resource->list_node);
->   	resource->name = device->pnp.bus_id;
->   	strcpy(acpi_device_name(device), ACPI_POWER_DEVICE_NAME);
->   	strcpy(acpi_device_class(device), ACPI_POWER_CLASS);
->
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->
-
-
+-- 
+Alexander E. Patrakov
