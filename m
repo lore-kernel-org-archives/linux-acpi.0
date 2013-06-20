@@ -1,99 +1,96 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: [PATCH 07/16] ACPICA: New: Portable acpidump utility (get system ACPI tables)
-Date: Thu, 20 Jun 2013 21:42:21 +0200
-Message-ID: <1476146.YPydkeoMbM@vostro.rjw.lan>
-References: <cover.1369274558.git.lv.zheng@intel.com> <2723103.DgDP1L2HFo@vostro.rjw.lan> <94F2FBAB4432B54E8AACC7DFDE6C92E36FE88D97@ORSMSX103.amr.corp.intel.com>
+From: "Moore, Robert" <robert.moore@intel.com>
+Subject: RE: [PATCH 07/16] ACPICA: New: Portable acpidump utility (get
+ system ACPI tables)
+Date: Thu, 20 Jun 2013 19:43:21 +0000
+Message-ID: <94F2FBAB4432B54E8AACC7DFDE6C92E36FE89229@ORSMSX103.amr.corp.intel.com>
+References: <cover.1369274558.git.lv.zheng@intel.com>
+ <2723103.DgDP1L2HFo@vostro.rjw.lan>
+ <94F2FBAB4432B54E8AACC7DFDE6C92E36FE88D97@ORSMSX103.amr.corp.intel.com>
+ <1476146.YPydkeoMbM@vostro.rjw.lan>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7Bit
+Content-Transfer-Encoding: base64
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from hydra.sisk.pl ([212.160.235.94]:44585 "EHLO hydra.sisk.pl"
+Received: from mga03.intel.com ([143.182.124.21]:28504 "EHLO mga03.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S965491Ab3FTTdA (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 20 Jun 2013 15:33:00 -0400
-In-Reply-To: <94F2FBAB4432B54E8AACC7DFDE6C92E36FE88D97@ORSMSX103.amr.corp.intel.com>
+	id S965317Ab3FTTnY (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 20 Jun 2013 15:43:24 -0400
+In-Reply-To: <1476146.YPydkeoMbM@vostro.rjw.lan>
+Content-Language: en-US
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Moore, Robert" <robert.moore@intel.com>
+To: "Rafael J. Wysocki" <rjw@sisk.pl>
 Cc: Len Brown <lenb@kernel.org>, "Zheng, Lv" <lv.zheng@intel.com>, "Wysocki, Rafael J" <rafael.j.wysocki@intel.com>, "Brown, Len" <len.brown@intel.com>, linux acpi <linux-acpi@vger.kernel.org>
 
-On Thursday, June 20, 2013 04:57:04 AM Moore, Robert wrote:
-> 
-> > -----Original Message-----
-> > From: Rafael J. Wysocki [mailto:rjw@sisk.pl]
-> > Sent: Wednesday, June 19, 2013 4:11 PM
-> > To: Moore, Robert
-> > Cc: Len Brown; Zheng, Lv; Wysocki, Rafael J; Brown, Len; linux acpi
-> > Subject: Re: [PATCH 07/16] ACPICA: New: Portable acpidump utility (get
-> > system ACPI tables)
-> > 
-> > On Wednesday, June 19, 2013 12:48:56 AM Moore, Robert wrote:
-> > > Sorry, I don't think the Linux version has been completed in version
-> > > 20130517
-> > > -- so perhaps you should ignore this patch after all, unless you want
-> > > to simply establish the infrastructure for the final Linux version.
-> > > The Linux-specific code is completed and will be part of the June
-> > release.
-> > 
-> > Great, I'll take the patch at that time, then.
-> > 
-> > > However, we can still discuss the future of the changelog, etc. We
-> > > seem to have an overall problem where the ACPICA commit log is
-> > > "generic", but I'm seeing here a request to make the actual Linux
-> > > patches more specific to Linux.
-> > >
-> > > As far as acpica and acpidump is concerned, I put specific generation
-> > > instructions in the reference manual...
-> > >
-> > > Of course, the details for any individual operating system may be
-> > > different (especially file locations), so I have to make the acpica
-> > > changelog somewhat generic.
-> > >
-> > >
-> > > Here is the actual acpica changelog text concerning acpidump, for
-> > version 20130517:
-> > >
-> > > 2) iASL Compiler/Disassembler and Tools:
-> > >
-> > > New utility: Implemented an easily portable version of the acpidump
-> > > utility to extract ACPI tables from the system (or a file) in an ASCII
-> > > hex dump format. The top-level code implements the various command
-> > > line options, file I/O, and table dump routines. To port to a new
-> > > host, only three functions need to be implemented to get tables --
-> > > since this functionality is OS-dependent. See the
-> > > tools/acpidump/apmain.c module and the ACPICA reference for porting
-> > instructions. ACPICA BZ 859. Notes:
-> > > 1) The Windows version obtains the ACPI tables from the Registry.
-> > > 2) The Linux version is under development.
-> > > 3) Other hosts - If an OS-dependent module is submitted, it will be
-> > > distributed with ACPICA.
-> > 
-> > Well, this is much better than what Lv sent, actually.
-> > 
-> > We could use it for Linux too, I think, only without the "Notes" part.
-> > 
-> > My general opinion is that we can simply use the same changelogs as the
-> > ACPICA upstream does, possibly amended with a more detailed explanation of
-> > the motivation behind the patch.
-> > 
-> > In this case, however, the changelog wasn't even similar to the original
-> > one.
-> > 
-> 
-> This is the text from the release notes which end up in the "changes.txt" file.
-
-I see.  We don't get that information with the kernel patches, though.
-
-> I usually expand upon the major changes in a format that is longer than the
-> actual commit log.
-
-So perhaps Lv (or whoever generates the Linux patches for the given release)
-can simply add the information you put into "changes.txt" to the Linux patches
-changelogs?
-
-Rafael
-
-
--- 
-I speak only for myself.
-Rafael J. Wysocki, Intel Open Source Technology Center.
+DQoNCj4gLS0tLS1PcmlnaW5hbCBNZXNzYWdlLS0tLS0NCj4gRnJvbTogUmFmYWVsIEouIFd5c29j
+a2kgW21haWx0bzpyandAc2lzay5wbF0NCj4gU2VudDogVGh1cnNkYXksIEp1bmUgMjAsIDIwMTMg
+MTI6NDIgUE0NCj4gVG86IE1vb3JlLCBSb2JlcnQNCj4gQ2M6IExlbiBCcm93bjsgWmhlbmcsIEx2
+OyBXeXNvY2tpLCBSYWZhZWwgSjsgQnJvd24sIExlbjsgbGludXggYWNwaQ0KPiBTdWJqZWN0OiBS
+ZTogW1BBVENIIDA3LzE2XSBBQ1BJQ0E6IE5ldzogUG9ydGFibGUgYWNwaWR1bXAgdXRpbGl0eSAo
+Z2V0DQo+IHN5c3RlbSBBQ1BJIHRhYmxlcykNCj4gDQo+IE9uIFRodXJzZGF5LCBKdW5lIDIwLCAy
+MDEzIDA0OjU3OjA0IEFNIE1vb3JlLCBSb2JlcnQgd3JvdGU6DQo+ID4NCj4gPiA+IC0tLS0tT3Jp
+Z2luYWwgTWVzc2FnZS0tLS0tDQo+ID4gPiBGcm9tOiBSYWZhZWwgSi4gV3lzb2NraSBbbWFpbHRv
+OnJqd0BzaXNrLnBsXQ0KPiA+ID4gU2VudDogV2VkbmVzZGF5LCBKdW5lIDE5LCAyMDEzIDQ6MTEg
+UE0NCj4gPiA+IFRvOiBNb29yZSwgUm9iZXJ0DQo+ID4gPiBDYzogTGVuIEJyb3duOyBaaGVuZywg
+THY7IFd5c29ja2ksIFJhZmFlbCBKOyBCcm93biwgTGVuOyBsaW51eCBhY3BpDQo+ID4gPiBTdWJq
+ZWN0OiBSZTogW1BBVENIIDA3LzE2XSBBQ1BJQ0E6IE5ldzogUG9ydGFibGUgYWNwaWR1bXAgdXRp
+bGl0eQ0KPiA+ID4gKGdldCBzeXN0ZW0gQUNQSSB0YWJsZXMpDQo+ID4gPg0KPiA+ID4gT24gV2Vk
+bmVzZGF5LCBKdW5lIDE5LCAyMDEzIDEyOjQ4OjU2IEFNIE1vb3JlLCBSb2JlcnQgd3JvdGU6DQo+
+ID4gPiA+IFNvcnJ5LCBJIGRvbid0IHRoaW5rIHRoZSBMaW51eCB2ZXJzaW9uIGhhcyBiZWVuIGNv
+bXBsZXRlZCBpbg0KPiA+ID4gPiB2ZXJzaW9uDQo+ID4gPiA+IDIwMTMwNTE3DQo+ID4gPiA+IC0t
+IHNvIHBlcmhhcHMgeW91IHNob3VsZCBpZ25vcmUgdGhpcyBwYXRjaCBhZnRlciBhbGwsIHVubGVz
+cyB5b3UNCj4gPiA+ID4gd2FudCB0byBzaW1wbHkgZXN0YWJsaXNoIHRoZSBpbmZyYXN0cnVjdHVy
+ZSBmb3IgdGhlIGZpbmFsIExpbnV4DQo+IHZlcnNpb24uDQo+ID4gPiA+IFRoZSBMaW51eC1zcGVj
+aWZpYyBjb2RlIGlzIGNvbXBsZXRlZCBhbmQgd2lsbCBiZSBwYXJ0IG9mIHRoZSBKdW5lDQo+ID4g
+PiByZWxlYXNlLg0KPiA+ID4NCj4gPiA+IEdyZWF0LCBJJ2xsIHRha2UgdGhlIHBhdGNoIGF0IHRo
+YXQgdGltZSwgdGhlbi4NCj4gPiA+DQo+ID4gPiA+IEhvd2V2ZXIsIHdlIGNhbiBzdGlsbCBkaXNj
+dXNzIHRoZSBmdXR1cmUgb2YgdGhlIGNoYW5nZWxvZywgZXRjLiBXZQ0KPiA+ID4gPiBzZWVtIHRv
+IGhhdmUgYW4gb3ZlcmFsbCBwcm9ibGVtIHdoZXJlIHRoZSBBQ1BJQ0EgY29tbWl0IGxvZyBpcw0K
+PiA+ID4gPiAiZ2VuZXJpYyIsIGJ1dCBJJ20gc2VlaW5nIGhlcmUgYSByZXF1ZXN0IHRvIG1ha2Ug
+dGhlIGFjdHVhbCBMaW51eA0KPiA+ID4gPiBwYXRjaGVzIG1vcmUgc3BlY2lmaWMgdG8gTGludXgu
+DQo+ID4gPiA+DQo+ID4gPiA+IEFzIGZhciBhcyBhY3BpY2EgYW5kIGFjcGlkdW1wIGlzIGNvbmNl
+cm5lZCwgSSBwdXQgc3BlY2lmaWMNCj4gPiA+ID4gZ2VuZXJhdGlvbiBpbnN0cnVjdGlvbnMgaW4g
+dGhlIHJlZmVyZW5jZSBtYW51YWwuLi4NCj4gPiA+ID4NCj4gPiA+ID4gT2YgY291cnNlLCB0aGUg
+ZGV0YWlscyBmb3IgYW55IGluZGl2aWR1YWwgb3BlcmF0aW5nIHN5c3RlbSBtYXkgYmUNCj4gPiA+
+ID4gZGlmZmVyZW50IChlc3BlY2lhbGx5IGZpbGUgbG9jYXRpb25zKSwgc28gSSBoYXZlIHRvIG1h
+a2UgdGhlDQo+ID4gPiA+IGFjcGljYSBjaGFuZ2Vsb2cgc29tZXdoYXQgZ2VuZXJpYy4NCj4gPiA+
+ID4NCj4gPiA+ID4NCj4gPiA+ID4gSGVyZSBpcyB0aGUgYWN0dWFsIGFjcGljYSBjaGFuZ2Vsb2cg
+dGV4dCBjb25jZXJuaW5nIGFjcGlkdW1wLCBmb3INCj4gPiA+IHZlcnNpb24gMjAxMzA1MTc6DQo+
+ID4gPiA+DQo+ID4gPiA+IDIpIGlBU0wgQ29tcGlsZXIvRGlzYXNzZW1ibGVyIGFuZCBUb29sczoN
+Cj4gPiA+ID4NCj4gPiA+ID4gTmV3IHV0aWxpdHk6IEltcGxlbWVudGVkIGFuIGVhc2lseSBwb3J0
+YWJsZSB2ZXJzaW9uIG9mIHRoZQ0KPiA+ID4gPiBhY3BpZHVtcCB1dGlsaXR5IHRvIGV4dHJhY3Qg
+QUNQSSB0YWJsZXMgZnJvbSB0aGUgc3lzdGVtIChvciBhDQo+ID4gPiA+IGZpbGUpIGluIGFuIEFT
+Q0lJIGhleCBkdW1wIGZvcm1hdC4gVGhlIHRvcC1sZXZlbCBjb2RlIGltcGxlbWVudHMNCj4gPiA+
+ID4gdGhlIHZhcmlvdXMgY29tbWFuZCBsaW5lIG9wdGlvbnMsIGZpbGUgSS9PLCBhbmQgdGFibGUg
+ZHVtcA0KPiA+ID4gPiByb3V0aW5lcy4gVG8gcG9ydCB0byBhIG5ldyBob3N0LCBvbmx5IHRocmVl
+IGZ1bmN0aW9ucyBuZWVkIHRvIGJlDQo+ID4gPiA+IGltcGxlbWVudGVkIHRvIGdldCB0YWJsZXMg
+LS0gc2luY2UgdGhpcyBmdW5jdGlvbmFsaXR5IGlzDQo+ID4gPiA+IE9TLWRlcGVuZGVudC4gU2Vl
+IHRoZSB0b29scy9hY3BpZHVtcC9hcG1haW4uYyBtb2R1bGUgYW5kIHRoZQ0KPiA+ID4gPiBBQ1BJ
+Q0EgcmVmZXJlbmNlIGZvciBwb3J0aW5nDQo+ID4gPiBpbnN0cnVjdGlvbnMuIEFDUElDQSBCWiA4
+NTkuIE5vdGVzOg0KPiA+ID4gPiAxKSBUaGUgV2luZG93cyB2ZXJzaW9uIG9idGFpbnMgdGhlIEFD
+UEkgdGFibGVzIGZyb20gdGhlIFJlZ2lzdHJ5Lg0KPiA+ID4gPiAyKSBUaGUgTGludXggdmVyc2lv
+biBpcyB1bmRlciBkZXZlbG9wbWVudC4NCj4gPiA+ID4gMykgT3RoZXIgaG9zdHMgLSBJZiBhbiBP
+Uy1kZXBlbmRlbnQgbW9kdWxlIGlzIHN1Ym1pdHRlZCwgaXQgd2lsbA0KPiA+ID4gPiBiZSBkaXN0
+cmlidXRlZCB3aXRoIEFDUElDQS4NCj4gPiA+DQo+ID4gPiBXZWxsLCB0aGlzIGlzIG11Y2ggYmV0
+dGVyIHRoYW4gd2hhdCBMdiBzZW50LCBhY3R1YWxseS4NCj4gPiA+DQo+ID4gPiBXZSBjb3VsZCB1
+c2UgaXQgZm9yIExpbnV4IHRvbywgSSB0aGluaywgb25seSB3aXRob3V0IHRoZSAiTm90ZXMiIHBh
+cnQuDQo+ID4gPg0KPiA+ID4gTXkgZ2VuZXJhbCBvcGluaW9uIGlzIHRoYXQgd2UgY2FuIHNpbXBs
+eSB1c2UgdGhlIHNhbWUgY2hhbmdlbG9ncyBhcw0KPiA+ID4gdGhlIEFDUElDQSB1cHN0cmVhbSBk
+b2VzLCBwb3NzaWJseSBhbWVuZGVkIHdpdGggYSBtb3JlIGRldGFpbGVkDQo+ID4gPiBleHBsYW5h
+dGlvbiBvZiB0aGUgbW90aXZhdGlvbiBiZWhpbmQgdGhlIHBhdGNoLg0KPiA+ID4NCj4gPiA+IElu
+IHRoaXMgY2FzZSwgaG93ZXZlciwgdGhlIGNoYW5nZWxvZyB3YXNuJ3QgZXZlbiBzaW1pbGFyIHRv
+IHRoZQ0KPiA+ID4gb3JpZ2luYWwgb25lLg0KPiA+ID4NCj4gPg0KPiA+IFRoaXMgaXMgdGhlIHRl
+eHQgZnJvbSB0aGUgcmVsZWFzZSBub3RlcyB3aGljaCBlbmQgdXAgaW4gdGhlDQo+ICJjaGFuZ2Vz
+LnR4dCIgZmlsZS4NCj4gDQo+IEkgc2VlLiAgV2UgZG9uJ3QgZ2V0IHRoYXQgaW5mb3JtYXRpb24g
+d2l0aCB0aGUga2VybmVsIHBhdGNoZXMsIHRob3VnaC4NCj4gDQo+ID4gSSB1c3VhbGx5IGV4cGFu
+ZCB1cG9uIHRoZSBtYWpvciBjaGFuZ2VzIGluIGEgZm9ybWF0IHRoYXQgaXMgbG9uZ2VyDQo+ID4g
+dGhhbiB0aGUgYWN0dWFsIGNvbW1pdCBsb2cuDQo+IA0KPiBTbyBwZXJoYXBzIEx2IChvciB3aG9l
+dmVyIGdlbmVyYXRlcyB0aGUgTGludXggcGF0Y2hlcyBmb3IgdGhlIGdpdmVuDQo+IHJlbGVhc2Up
+IGNhbiBzaW1wbHkgYWRkIHRoZSBpbmZvcm1hdGlvbiB5b3UgcHV0IGludG8gImNoYW5nZXMudHh0
+IiB0byB0aGUNCj4gTGludXggcGF0Y2hlcyBjaGFuZ2Vsb2dzPw0KPiANCg0KDQpNYW55IHRpbWVz
+IHRoYXQgd291bGQgaGVscC4gSG93ZXZlciwgSSBkZXNjcmliZSBvbmx5IHRoZSBtYWpvciBjaGFu
+Z2VzIGluIHRoZSByZWxlYXNlIG5vdGVzOyBJIGRvbid0IG1lbnRpb24gdGhpbmdzIGxpa2UgY2xl
+YW51cHMgb3IgYW55IG90aGVyIGNoYW5nZXMgd2hpY2ggZG9uJ3QgYWZmZWN0IGZ1bmN0aW9uYWxp
+dHkuIEFsc28sIEkgZG9uJ3QgbWVudGlvbiByZWFsbHkgbWlub3IgYnVnIGZpeGVzLg0KDQoNCg0K
+DQo+IFJhZmFlbA0KPiANCj4gDQo+IC0tDQo+IEkgc3BlYWsgb25seSBmb3IgbXlzZWxmLg0KPiBS
+YWZhZWwgSi4gV3lzb2NraSwgSW50ZWwgT3BlbiBTb3VyY2UgVGVjaG5vbG9neSBDZW50ZXIuDQo=
