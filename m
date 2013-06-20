@@ -1,83 +1,40 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: [GIT PULL] ACPI fixes for v3.10-rc7
-Date: Thu, 20 Jun 2013 23:36 +0200
-Message-ID: <1547824.0XkuHTj9ed@vostro.rjw.lan>
+From: "Luck, Tony" <tony.luck@intel.com>
+Subject: RE: [PATCH v2 2/2] mce: acpi/apei: Add a boot option to disable ff
+ mode for corrected errors
+Date: Thu, 20 Jun 2013 22:11:27 +0000
+Message-ID: <3908561D78D1C84285E8C5FCA982C28F2DA8993C@ORSMSX106.amr.corp.intel.com>
+References: <20130619175438.2852.93449.stgit@localhost.localdomain>
+ <20130619175728.2852.73156.stgit@localhost.localdomain>
+ <20130619180441.GK28300@pd.tnic>
+ <3908561D78D1C84285E8C5FCA982C28F2DA88106@ORSMSX106.amr.corp.intel.com>
+ <20130619183640.GL28300@pd.tnic>
+ <3908561D78D1C84285E8C5FCA982C28F2DA881C2@ORSMSX106.amr.corp.intel.com>
+ <20130619201438.GM28300@pd.tnic>
+ <3908561D78D1C84285E8C5FCA982C28F2DA8838B@ORSMSX106.amr.corp.intel.com>
+ <20130619210706.GP28300@pd.tnic>
+ <3908561D78D1C84285E8C5FCA982C28F2DA884F0@ORSMSX106.amr.corp.intel.com>
+ <51C37251.4000008@linux.vnet.ibm.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7Bit
+Content-Transfer-Encoding: base64
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from hydra.sisk.pl ([212.160.235.94]:44704 "EHLO hydra.sisk.pl"
+Received: from mga03.intel.com ([143.182.124.21]:4857 "EHLO mga03.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S965555Ab3FTV0i (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 20 Jun 2013 17:26:38 -0400
+	id S1758431Ab3FTWLa (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 20 Jun 2013 18:11:30 -0400
+In-Reply-To: <51C37251.4000008@linux.vnet.ibm.com>
+Content-Language: en-US
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>, Mika Westerberg <mika.westerberg@linux.intel.com>
+To: "Naveen N. Rao" <naveen.n.rao@linux.vnet.ibm.com>
+Cc: Borislav Petkov <bp@alien8.de>, "ananth@in.ibm.com" <ananth@in.ibm.com>, "masbock@linux.vnet.ibm.com" <masbock@linux.vnet.ibm.com>, "lcm@linux.vnet.ibm.com" <lcm@linux.vnet.ibm.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "Huang, Ying" <ying.huang@intel.com>, Robert Richter <rric@kernel.org>
 
-Hi Linus,
-
-Please pull from the git repository at
-
-  git://git.kernel.org/pub/scm/linux/kernel/git/rafael/linux-pm.git acpi-3.10-rc7
-
-to receive ACPI fixes for v3.10-rc7 with top-most commit
-b9e95fc65ededbec083aa91b4faa58ad992c0891
-
-  ACPI / LPSS: Power up LPSS devices during enumeration
-
-on top of commit 7d132055814ef17a6c7b69f342244c410a5e000f
-
-  Linux 3.10-rc6
-
-One of them fixes a regression introduced on some systems by a recent revert
-of an ACPI PM change, two of them fix obvious bugs overlooked in 3.9, and
-one fixes a problem reported against the mainline just a couple of days
-ago, although the fix itself has been in linux-next since 3.10-rc3.
-
-Specifics:
-
-- Fix for a regression causing a failure to turn on some devices on
-  some systems during initialization introduced by a recent revert of
-  an ACPI PM change that broke something else.  Fortunately, we know
-  exactly what devices are affected, so we can add a fix just for
-  them leaving everyone else alone.
-
-- ACPI power resources initialization fix preventing a NULL pointer
-  from being dereferenced in the acpi_add_power_resource() error code
-  path.
-
-- ACPI dock station driver fix that adds missing locking to
-  write_undock().
-
-- ACPI resources allocation fix changing the scope of an old
-  workaround so that it doesn't affect systems that aren't actually
-  buggy.  This was reported a couple of days ago to fix DMA problems
-  on some new platforms so we need it in -stable.  From Mika Westerberg.
-
-Thanks!
-
-
----------------
-
-Mika Westerberg (1):
-      ACPI / resources: call acpi_get_override_irq() only for legacy IRQ resources
-
-Rafael J. Wysocki (3):
-      ACPI / dock: Take ACPI scan lock in write_undock()
-      ACPI / PM: Fix error code path for power resources initialization
-      ACPI / LPSS: Power up LPSS devices during enumeration
-
----------------
-
- drivers/acpi/acpi_lpss.c |   21 +++++++++++++++------
- drivers/acpi/device_pm.c |   20 ++++++++++++++++++++
- drivers/acpi/dock.c      |    2 ++
- drivers/acpi/power.c     |    1 +
- drivers/acpi/resource.c  |   16 +++++++++++-----
- include/acpi/acpi_bus.h  |    1 +
- 6 files changed, 50 insertions(+), 11 deletions(-)
-
--- 
-I speak only for myself.
-Rafael J. Wysocki, Intel Open Source Technology Center.
+PiAtIFR3bywgdGhlIEdlbmVyaWMgRXJyb3IgRGF0YSBFbnRyeSAoYWthIFVFRkkgU2VjdGlvbiBE
+ZXNjcmlwdG9yKSBoYXMgYSANCj4gZmxhZyB3aGljaCBpbmRpY2F0ZXMgJ0Vycm9yIFRocmVzaG9s
+ZCBFeGNlZWRlZCcuIEZyb20gdGhlIFVFRkkgc3BlYywgaXQgDQo+IGxvb2tzIGxpa2Ugd2UgY291
+bGQgY29uc2lkZXIgdGhpcyBhcyBhbiBpbmRpY2F0aW9uIHRvIG9mZmxpbmUgdGhlIHBhZ2U7IA0K
+PiB0aG91Z2ggSSBhbSBub3Qgc3VyZSBpZi9ob3cgdGhpcyByZWxhdGVzIHRvIHRoZSB0aHJlc2hv
+bGQgdmFsdWUgYWJvdmUuDQoNClRoaXMgb25lIHNvdW5kcyB0byBtYWtlIHNlbnNlIC4uLiB0aGUg
+ZmxhZyBkZXNjcmlwdGlvbiBzb3VuZHMgZXhhY3RseSB3aGF0DQp3ZSB3YW50IC0gSSB3b24ndCBm
+ZWVsIGVtYmFycmFzc2VkIGV4cGxhaW5pbmcgdG8gcGVvcGxlIHdoeSBMaW51eCB0YWtlcw0KYWN0
+aW9uIHdoZW4gaXQgc2VlcyBhIHJlY29yZCBsaWtlIHRoaXMuDQoNCi1Ub255DQo=
