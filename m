@@ -1,159 +1,327 @@
-From: Aaron Lu <aaron.lu@intel.com>
-Subject: [PATCH 3/3] ACPI / video: update video_extension.txt for backlight control
-Date: Thu, 20 Jun 2013 15:08:57 +0800
-Message-ID: <1371712137-4019-4-git-send-email-aaron.lu@intel.com>
-References: <1371712137-4019-1-git-send-email-aaron.lu@intel.com>
+From: Borislav Petkov <bp@alien8.de>
+Subject: Re: [PATCH v2 1/2] mce: acpi/apei: Honour Firmware First for MCA
+ banks listed in APEI HEST CMC
+Date: Thu, 20 Jun 2013 09:39:43 +0200
+Message-ID: <20130620073943.GE32694@pd.tnic>
+References: <20130619175438.2852.93449.stgit@localhost.localdomain>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga02.intel.com ([134.134.136.20]:42935 "EHLO mga02.intel.com"
+Received: from mail.skyhub.de ([78.46.96.112]:56146 "EHLO mail.skyhub.de"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753614Ab3FTHIh (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 20 Jun 2013 03:08:37 -0400
-In-Reply-To: <1371712137-4019-1-git-send-email-aaron.lu@intel.com>
+	id S1753968Ab3FTHjy (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 20 Jun 2013 03:39:54 -0400
+Content-Disposition: inline
+In-Reply-To: <20130619175438.2852.93449.stgit@localhost.localdomain>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: Micael Dias <kam1kaz3@gmail.com>, Zhang Rui <rui.zhang@intel.com>, linux-acpi@vger.kernel.org, Len Brown <lenb@kernel.org>
+To: "Naveen N. Rao" <naveen.n.rao@linux.vnet.ibm.com>
+Cc: tony.luck@intel.com, ananth@in.ibm.com, masbock@linux.vnet.ibm.com, lcm@linux.vnet.ibm.com, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, ying.huang@intel.com
 
-The ACPI video driver has changed a lot, and it doesn't export
-interfaces in /proc any more, so the documentation for it should
-be updated.
-This update focuses on ACPI video driver's backlight control.
+On Wed, Jun 19, 2013 at 11:27:17PM +0530, Naveen N. Rao wrote:
+> The Corrected Machine Check structure (CMC) in HEST has a flag which =
+can be
+> set by the firmware to indicate to the OS that it prefers to process =
+the
+> corrected error events first. In this scenario, the OS is expected to=
+ not
+> monitor for corrected errors (through CMCI/polling). Instead, the fir=
+mware
+> notifies the OS on corrected error events through GHES.
+>=20
+> Linux already has support for GHES. This patch adds support for parsi=
+ng CMC
+> structure and to disable CMCI/polling if the firmware first flag is s=
+et.
+>=20
+> Further, the list of machine check bank structures at the end of CMC =
+is used
+> to determine which MCA banks function in FF mode, so that we continue=
+ to
+> monitor error events on the other banks.
+>=20
+>=20
+> - Naveen
+>=20
+> --
+> Changes:
+> - Incorporated comments from Boris and Tony from the previous thread =
+at
+>   http://thread.gmane.org/gmane.linux.acpi.devel/60802
+> - Added patch to disable firmware first mode through a boot option.
+>=20
+>=20
+> Signed-off-by: Naveen N. Rao <naveen.n.rao@linux.vnet.ibm.com>
+> ---
+>  arch/x86/include/asm/mce.h                |    3 ++
+>  arch/x86/kernel/cpu/mcheck/mce-internal.h |    3 ++
+>  arch/x86/kernel/cpu/mcheck/mce.c          |   25 ++++++++++++++++++
+>  arch/x86/kernel/cpu/mcheck/mce_intel.c    |   40 +++++++++++++++++++=
+++++------
+>  drivers/acpi/apei/hest.c                  |   36 +++++++++++++++++++=
++++++++
+>  5 files changed, 99 insertions(+), 8 deletions(-)
+>=20
+> diff --git a/arch/x86/include/asm/mce.h b/arch/x86/include/asm/mce.h
+> index fa5f71e..380fff8 100644
+> --- a/arch/x86/include/asm/mce.h
+> +++ b/arch/x86/include/asm/mce.h
+> @@ -188,6 +188,9 @@ extern void register_mce_write_callback(ssize_t (=
+*)(struct file *filp,
+>  				    const char __user *ubuf,
+>  				    size_t usize, loff_t *off));
+> =20
+> +/* Disable CMCI/polling for MCA bank claimed by firmware */
+> +extern void mce_disable_ce_bank(int bank);
+> +
+>  /*
+>   * Exception handler
+>   */
+> diff --git a/arch/x86/kernel/cpu/mcheck/mce-internal.h b/arch/x86/ker=
+nel/cpu/mcheck/mce-internal.h
+> index 5b7d4fa..193edc1 100644
+> --- a/arch/x86/kernel/cpu/mcheck/mce-internal.h
+> +++ b/arch/x86/kernel/cpu/mcheck/mce-internal.h
+> @@ -25,6 +25,9 @@ int mce_severity(struct mce *a, int tolerant, char =
+**msg);
+>  struct dentry *mce_get_debugfs_dir(void);
+> =20
+>  extern struct mce_bank *mce_banks;
+> +extern mce_banks_t mce_banks_ce_disabled;
+> +
+> +void cmci_disable_bank(int bank);
+> =20
+>  #ifdef CONFIG_X86_MCE_INTEL
+>  unsigned long mce_intel_adjust_timer(unsigned long interval);
+> diff --git a/arch/x86/kernel/cpu/mcheck/mce.c b/arch/x86/kernel/cpu/m=
+check/mce.c
+> index 9239504..9512034 100644
+> --- a/arch/x86/kernel/cpu/mcheck/mce.c
+> +++ b/arch/x86/kernel/cpu/mcheck/mce.c
+> @@ -94,6 +94,9 @@ DEFINE_PER_CPU(mce_banks_t, mce_poll_banks) =3D {
+>  	[0 ... BITS_TO_LONGS(MAX_NR_BANKS)-1] =3D ~0UL
+>  };
+> =20
+> +/* MCA banks controlled through firmware first for corrected errors =
+*/
+> +mce_banks_t mce_banks_ce_disabled;
 
-Signed-off-by: Aaron Lu <aaron.lu@intel.com>
----
- Documentation/acpi/video_extension.txt | 121 ++++++++++++++++++++++++++-------
- 1 file changed, 95 insertions(+), 26 deletions(-)
+Why the second bitfield? The cleared bits in mce_poll_banks should be
+the banks which are handled in FF mode, no?
 
-diff --git a/Documentation/acpi/video_extension.txt b/Documentation/acpi/video_extension.txt
-index b2f9b15..78b32ac 100644
---- a/Documentation/acpi/video_extension.txt
-+++ b/Documentation/acpi/video_extension.txt
-@@ -8,30 +8,99 @@ defining the video POST device, retrieving EDID information or to
- setup a video output, etc.  Note that this is an ref. implementation
- only.  It may or may not work for your integrated video device.
- 
--Interfaces exposed to userland through /proc/acpi/video:
--
--VGA/info : display the supported video bus device capability like Video ROM, CRT/LCD/TV.
--VGA/ROM :  Used to get a copy of the display devices' ROM data (up to 4k).
--VGA/POST_info : Used to determine what options are implemented.
--VGA/POST : Used to get/set POST device.
--VGA/DOS : Used to get/set ownership of output switching:
--	Please refer ACPI spec B.4.1 _DOS
--VGA/CRT : CRT output
--VGA/LCD : LCD output
--VGA/TVO : TV output
--VGA/*/brightness : Used to get/set brightness of output device
--
--Notify event through /proc/acpi/event:
--
--#define ACPI_VIDEO_NOTIFY_SWITCH        0x80
--#define ACPI_VIDEO_NOTIFY_PROBE         0x81
--#define ACPI_VIDEO_NOTIFY_CYCLE         0x82
--#define ACPI_VIDEO_NOTIFY_NEXT_OUTPUT   0x83
--#define ACPI_VIDEO_NOTIFY_PREV_OUTPUT   0x84
--
--#define ACPI_VIDEO_NOTIFY_CYCLE_BRIGHTNESS      0x82
--#define ACPI_VIDEO_NOTIFY_INC_BRIGHTNESS        0x83
--#define ACPI_VIDEO_NOTIFY_DEC_BRIGHTNESS        0x84
--#define ACPI_VIDEO_NOTIFY_ZERO_BRIGHTNESS       0x85
--#define ACPI_VIDEO_NOTIFY_DISPLAY_OFF           0x86
-+The ACPI video driver does 3 things regarding backlight control:
- 
-+1 Export a sysfs interface for user space to control backlight level
-+
-+If the ACPI table has a video device, and acpi_backlight=vendor kernel
-+command line is not present, the driver will register a backlight device
-+and set the required backlight operation structure for it for the sysfs
-+interface control. For every registered class device, there will be a
-+directory named acpi_videoX under /sys/class/backlight.
-+
-+The backlight sysfs interface has a standard definition here:
-+Documentation/ABI/stable/sysfs-class-backlight.
-+
-+And what ACPI video driver does is:
-+actual_brightness: on read, control method _BQC will be evaluated to
-+get the brightness level the firmware thinks it is at;
-+bl_power: not implemented, will set the current brightness instead;
-+brightness: on write, control method _BCM will run to set the requested
-+brightness level;
-+max_brightness: Derived from the _BCL package(see below);
-+type: firmware
-+
-+Note that ACPI video backlight driver will always use index for
-+brightness, actual_brightness and max_brightness. So if we have
-+the following _BCL package:
-+
-+Method (_BCL, 0, NotSerialized)
-+{
-+	Return (Package (0x0C)
-+	{
-+		0x64,
-+		0x32,
-+		0x0A,
-+		0x14,
-+		0x1E,
-+		0x28,
-+		0x32,
-+		0x3C,
-+		0x46,
-+		0x50,
-+		0x5A,
-+		0x64
-+	})
-+}
-+
-+The first two levels are for when laptop are on AC or on battery and are
-+not used by Linux currently. The remaining 10 levels are supported levels
-+that we can choose from. The applicable index values are from 0 (that
-+corresponds to the 0x0A brightness value) to 9 (that corresponds to the
-+0x64 brightness value) inclusive. Each of those index values is regarded
-+as a "brightness level" indicator. Thus from the user space perspective
-+the range of available brightness levels is from 0 to 9 (max_brightness)
-+inclusive.
-+
-+2 Notify user space about hotkey event
-+
-+There are generally two cases for hotkey event reporting:
-+i) For some laptops, when user presses the hotkey, a scancode will be
-+   generated and sent to user space through the input device created by
-+   the keyboard driver as a key type input event, with proper remap, the
-+   following key code will appear to user space:
-+
-+	EV_KEY, KEY_BRIGHTNESSUP
-+	EV_KEY, KEY_BRIGHTNESSDOWN
-+	etc.
-+
-+For this case, ACPI video driver does not need to do anything(actually,
-+it doesn't even know this happened).
-+
-+ii) For some laptops, the press of the hotkey will not generate the
-+    scancode, instead, firmware will notify the video device ACPI node
-+    about the event. The event value is defined in the ACPI spec. ACPI
-+    video driver will generate an key type input event according to the
-+    notify value it received and send the event to user space through the
-+    input device it created:
-+
-+	event		keycode
-+	0x86		KEY_BRIGHTNESSUP
-+	0x87		KEY_BRIGHTNESSDOWN
-+	etc.
-+
-+so this would lead to the same effect as case i) now.
-+
-+Once user space tool receives this event, it can modify the backlight
-+level through the sysfs interface.
-+
-+3 Change backlight level in the kernel
-+
-+This works for machines covered by case ii) in Section 2. Once the driver
-+received a notification, it will set the backlight level accordingly. This does
-+not affect the sending of event to user space, they are always sent to user
-+space regardless of whether or not the video module controls the backlight level
-+directly. This behaviour can be controlled through the brightness_switch_enabled
-+module parameter as documented in kernel-parameters.txt. It is recommended to
-+disable this behaviour once a GUI environment starts up and wants to have full
-+control of the backlight level.
--- 
-1.8.3.3.gfada522
+> +
+>  static DEFINE_PER_CPU(struct work_struct, mce_work);
+> =20
+>  static void (*quirk_no_way_out)(int bank, struct mce *m, struct pt_r=
+egs *regs);
+> @@ -1932,6 +1935,28 @@ static struct miscdevice mce_chrdev_device =3D=
+ {
+>  	&mce_chrdev_ops,
+>  };
+> =20
+> +static void __mce_disable_ce_bank(void *arg)
+> +{
+> +	int bank =3D *((int *)arg);
+> +
+> +	/* Ensure we don't poll this bank */
 
+No need for that comment.
+
+> +	__clear_bit(bank, __get_cpu_var(mce_poll_banks));
+> +	/* Disable CMCI */
+
+No need for that comment either - function name cannot be more
+descriptive :-)
+
+> +	cmci_disable_bank(bank);
+> +}
+> +
+> +void mce_disable_ce_bank(int bank)
+
+Yeah, let's call it ...disable_poll_bank because we're disabling pollin=
+g
+for those banks. And yes, we poll for errors for which no MCE exception
+is generated and those happen to be corrected but still...
+
+> +{
+> +	if (bank >=3D mca_cfg.banks) {
+> +		pr_warning(FW_BUG=20
+> +			"Ignoring request to disable invalid MCA bank %d.\n",
+> +			bank);
+> +		return;
+> +	}
+> +	set_bit(bank, mce_banks_ce_disabled);
+> +	on_each_cpu(__mce_disable_ce_bank, &bank, 1);
+> +}
+> +
+>  /*
+>   * mce=3Doff Disables machine check
+>   * mce=3Dno_cmci Disables CMCI
+> diff --git a/arch/x86/kernel/cpu/mcheck/mce_intel.c b/arch/x86/kernel=
+/cpu/mcheck/mce_intel.c
+> index ae1697c..78256c0 100644
+> --- a/arch/x86/kernel/cpu/mcheck/mce_intel.c
+> +++ b/arch/x86/kernel/cpu/mcheck/mce_intel.c
+> @@ -191,6 +191,10 @@ static void cmci_discover(int banks)
+>  		if (test_bit(i, owned))
+>  			continue;
+> =20
+> +		/* Skip banks in firmware first mode */
+> +		if (test_bit(i, mce_banks_ce_disabled))
+> +			continue;
+> +
+>  		rdmsrl(MSR_IA32_MCx_CTL2(i), val);
+> =20
+>  		/* Already owned by someone else? */
+> @@ -259,6 +263,20 @@ void cmci_recheck(void)
+>  	local_irq_restore(flags);
+>  }
+> =20
+> +/* Caller must hold the lock on cmci_discover_lock */
+> +static void __cmci_disable_bank(int bank)
+> +{
+> +	u64 val;
+> +
+> +	if (!test_bit(bank, __get_cpu_var(mce_banks_owned)))
+> +		return;
+> +	/* Disable CMCI */
+> +	rdmsrl(MSR_IA32_MCx_CTL2(bank), val);
+> +	val &=3D ~MCI_CTL2_CMCI_EN;
+> +	wrmsrl(MSR_IA32_MCx_CTL2(bank), val);
+> +	__clear_bit(bank, __get_cpu_var(mce_banks_owned));
+> +}
+> +
+>  /*
+>   * Disable CMCI on this CPU for all banks it owns when it goes down.
+>   * This allows other CPUs to claim the banks on rediscovery.
+> @@ -268,19 +286,12 @@ void cmci_clear(void)
+>  	unsigned long flags;
+>  	int i;
+>  	int banks;
+> -	u64 val;
+> =20
+>  	if (!cmci_supported(&banks))
+>  		return;
+>  	raw_spin_lock_irqsave(&cmci_discover_lock, flags);
+>  	for (i =3D 0; i < banks; i++) {
+> -		if (!test_bit(i, __get_cpu_var(mce_banks_owned)))
+> -			continue;
+> -		/* Disable CMCI */
+> -		rdmsrl(MSR_IA32_MCx_CTL2(i), val);
+> -		val &=3D ~MCI_CTL2_CMCI_EN;
+> -		wrmsrl(MSR_IA32_MCx_CTL2(i), val);
+> -		__clear_bit(i, __get_cpu_var(mce_banks_owned));
+> +		__cmci_disable_bank(i);
+>  	}
+
+This leaves only one line so no need for the {} braces anymore.
+
+>  	raw_spin_unlock_irqrestore(&cmci_discover_lock, flags);
+>  }
+> @@ -315,6 +326,19 @@ void cmci_reenable(void)
+>  		cmci_discover(banks);
+>  }
+> =20
+> +void cmci_disable_bank(int bank)
+> +{
+> +	int banks;
+> +	unsigned long flags;
+> +
+> +	if (!cmci_supported(&banks))
+> +		return;
+> +
+> +	raw_spin_lock_irqsave(&cmci_discover_lock, flags);
+> +	__cmci_disable_bank(bank);
+> +	raw_spin_unlock_irqrestore(&cmci_discover_lock, flags);
+> +}
+
+You need a prototype for that if you're going to call it from mce.c but
+CONFIG_X86_MCE_INTEL is not set:
+
+arch/x86/built-in.o: In function `__mce_disable_ce_bank':
+/home/boris/kernel/linux-2.6/arch/x86/kernel/cpu/mcheck/mce.c:1945: und=
+efined reference to `cmci_disable_bank'
+make: *** [vmlinux] Error 1
+
+> +
+>  static void intel_init_cmci(void)
+>  {
+>  	int banks;
+> diff --git a/drivers/acpi/apei/hest.c b/drivers/acpi/apei/hest.c
+> index f5ef5d5..d8c69ba 100644
+> --- a/drivers/acpi/apei/hest.c
+> +++ b/drivers/acpi/apei/hest.c
+> @@ -36,6 +36,7 @@
+>  #include <linux/io.h>
+>  #include <linux/platform_device.h>
+>  #include <acpi/apei.h>
+> +#include <asm/mce.h>
+> =20
+>  #include "apei-internal.h"
+> =20
+> @@ -121,6 +122,39 @@ int apei_hest_parse(apei_hest_func_t func, void =
+*data)
+>  }
+>  EXPORT_SYMBOL_GPL(apei_hest_parse);
+> =20
+> +/*
+> + * Check if firmware advertises firmware first mode. We need FF bit =
+to be set
+> + * along with a set of MC banks which work in FF mode.
+> + */
+> +static int __init hest_parse_cmc(struct acpi_hest_header *hest_hdr, =
+void *data)
+> +{
+> +	int i;
+> +	struct acpi_hest_ia_corrected *cmc;
+> +	struct acpi_hest_ia_error_bank *mc_bank;
+> +
+> +	if (hest_hdr->type !=3D ACPI_HEST_TYPE_IA32_CORRECTED_CHECK)
+> +		return 0;
+> +
+> +	cmc =3D (struct acpi_hest_ia_corrected *)hest_hdr;
+> +	if (!cmc->enabled || !(cmc->flags & ACPI_HEST_FIRMWARE_FIRST))
+> +		return 0;
+> +
+> +	/*
+> +	 * We expect HEST to provide a list of MC banks that
+> +	 * report errors through firmware first mode.
+
+		     ... in firmware first mode.
+
+> +	 */
+> +	if (cmc->num_hardware_banks =3D=3D 0)
+
+	if (!cmc->num_hardware_banks)
+
+> +		return 0;
+
+Err, why does this function return 0 when the sanity checks above fail?
+apei_hest_parse actually looks at the retval and advances the hest_hdr.
+
+> +
+> +	pr_info(HEST_PFX "Enabling Firmware First mode for corrected errors=
+=2E\n");
+> +
+> +	mc_bank =3D (struct acpi_hest_ia_error_bank *)(cmc + 1);
+> +	for (i =3D 0; i < cmc->num_hardware_banks; i++, mc_bank++)
+> +		mce_disable_ce_bank(mc_bank->bank_number);
+> +
+> +	return 0;
+
+IOW, we should return 0 only here.
+
+[ =E2=80=A6 ]
+
+--=20
+Regards/Gruss,
+    Boris.
+
+Sent from a fat crate under my desk. Formatting is fine.
+--
+--
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
