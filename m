@@ -1,34 +1,39 @@
 From: Lv Zheng <lv.zheng@intel.com>
-Subject: [PATCH 0/3] ACPI: Documentation udpates
-Date: Thu, 20 Jun 2013 08:01:39 +0800
-Message-ID: <cover.1371619148.git.lv.zheng@intel.com>
-References: <1364824711-5193-1-git-send-email-rui.zhang@intel.com>
+Subject: [PATCH 1/3] ACPI: Update MAINTAINERS file to include Documentation/acpi
+Date: Thu, 20 Jun 2013 08:02:20 +0800
+Message-ID: <d18f9f44ae7516a17918d66c253dd265d6d68111.1371619148.git.lv.zheng@intel.com>
+References: <1364824711-5193-1-git-send-email-rui.zhang@intel.com> <cover.1371619148.git.lv.zheng@intel.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga14.intel.com ([143.182.124.37]:52109 "EHLO mga14.intel.com"
+Received: from mga09.intel.com ([134.134.136.24]:29905 "EHLO mga09.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S935056Ab3FTACL (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 19 Jun 2013 20:02:11 -0400
-In-Reply-To: <1364824711-5193-1-git-send-email-rui.zhang@intel.com>
+	id S934604Ab3FTACa (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 19 Jun 2013 20:02:30 -0400
+In-Reply-To: <cover.1371619148.git.lv.zheng@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Len Brown <len.brown@intel.com>
 Cc: Lv Zheng <lv.zheng@intel.com>, linux-acpi@vger.kernel.org
 
-This patch set adds 2 ACPI documentation files with MAINTAINERS updated.
+Documentation/acpi contains all of the Docunmentation for the
+Linux/ACPI subsystem.  Adds this to the MAINTAINERS file.
 
-Lv Zheng (3):
-  ACPI: Update MAINTAINERS file to include Documentation/acpi
-  ACPI: Add sysfs ABI documentation
-  ACPI: Add ACPI namespace documentation
+Signed-off-by: Lv Zheng <lv.zheng@intel.com>
+---
+ MAINTAINERS |    1 +
+ 1 file changed, 1 insertion(+)
 
- Documentation/ABI/testing/sysfs-bus-acpi    |   58 ++++
- Documentation/ABI/testing/sysfs-devices-sun |    2 +-
- Documentation/acpi/namespace.txt            |  395 +++++++++++++++++++++++++++
- MAINTAINERS                                 |    2 +
- 4 files changed, 456 insertions(+), 1 deletion(-)
- create mode 100644 Documentation/ABI/testing/sysfs-bus-acpi
- create mode 100644 Documentation/acpi/namespace.txt
-
+diff --git a/MAINTAINERS b/MAINTAINERS
+index 62bb9c9..2634a7b 100644
+--- a/MAINTAINERS
++++ b/MAINTAINERS
+@@ -242,6 +242,7 @@ F:	drivers/acpi/
+ F:	drivers/pnp/pnpacpi/
+ F:	include/linux/acpi.h
+ F:	include/acpi/
++F:	Documentation/acpi
+ 
+ ACPI FAN DRIVER
+ M:	Zhang Rui <rui.zhang@intel.com>
 -- 
 1.7.10
 
