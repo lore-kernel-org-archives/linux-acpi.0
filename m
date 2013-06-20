@@ -1,133 +1,127 @@
 From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: [PATCH] ACPI / LPSS: mask the UART TX completion interrupt
-Date: Thu, 20 Jun 2013 02:03:58 +0200
-Message-ID: <3948527.0xbfyAZL8z@vostro.rjw.lan>
-References: <1371464746-28500-1-git-send-email-heikki.krogerus@linux.intel.com>
+Subject: Re: [PATCH] Acpi: acpica: acmacros: fixed a semicolon formatting issue.
+Date: Thu, 20 Jun 2013 02:07:22 +0200
+Message-ID: <4489535.I8R2Jux4pG@vostro.rjw.lan>
+References: <1371611860-21056-1-git-send-email-sageofredondo@gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7Bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from hydra.sisk.pl ([212.160.235.94]:43466 "EHLO hydra.sisk.pl"
+Received: from hydra.sisk.pl ([212.160.235.94]:43476 "EHLO hydra.sisk.pl"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S934749Ab3FSXyg (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 19 Jun 2013 19:54:36 -0400
-In-Reply-To: <1371464746-28500-1-git-send-email-heikki.krogerus@linux.intel.com>
+	id S934375Ab3FSX6B (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 19 Jun 2013 19:58:01 -0400
+In-Reply-To: <1371611860-21056-1-git-send-email-sageofredondo@gmail.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Heikki Krogerus <heikki.krogerus@linux.intel.com>
-Cc: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Mika Westerberg <mika.westerberg@linux.intel.com>, linux-acpi@vger.kernel.org
+To: "John B. Wyatt IV" <sageofredondo@gmail.com>
+Cc: lenb@kernel.org, linux-acpi@vger.kernel.org, Lv Zheng <lv.zheng@intel.com>, Bob Moore <robert.moore@intel.com>
 
-On Monday, June 17, 2013 01:25:46 PM Heikki Krogerus wrote:
-> Intel LPSS provides an extra TX byte counter and an extra TX
-> completion interrupt for some of it's bus controllers. This
-> masks out the extra UART interrupt as there is no use for it.
+On Tuesday, June 18, 2013 08:17:40 PM John B. Wyatt IV wrote:
+> From: "John B. Wyatt IV" <sageofredondo@gmail.com>
 > 
-> Otherwise, if the firmware does not mask the interrupt and
-> the driver does not clear it, it may cause interrupt flood
-> that freezes the board.
-> 
-> Signed-off-by: Heikki Krogerus <heikki.krogerus@linux.intel.com>
+> Formatting patch: fixes all "space required after that ';'" errors in
+> acmarcos.h.
 
-Queued up for 3.11.
+That code comes from the ACPICA project and doesn't follow the usual Linux
+kernel coding style.
+
+> Please note this only fixes 12 out of 64 errors as reported by
+> ./scripts/checkpatch.pl
+
+Please do not run this on files under drivers/acpi/acpica/.
 
 Thanks,
 Rafael
 
 
 > ---
->  drivers/acpi/acpi_lpss.c | 30 ++++++++++++++++++++++++++++--
->  1 file changed, 28 insertions(+), 2 deletions(-)
+>  drivers/acpi/acpica/acmacros.h | 24 ++++++++++++------------
+>  1 file changed, 12 insertions(+), 12 deletions(-)
 > 
-> diff --git a/drivers/acpi/acpi_lpss.c b/drivers/acpi/acpi_lpss.c
-> index f6d7605..bd9867f 100644
-> --- a/drivers/acpi/acpi_lpss.c
-> +++ b/drivers/acpi/acpi_lpss.c
-> @@ -32,6 +32,8 @@ ACPI_MODULE_NAME("acpi_lpss");
->  #define LPSS_GENERAL_LTR_MODE_SW	BIT(2)
->  #define LPSS_SW_LTR			0x10
->  #define LPSS_AUTO_LTR			0x14
-> +#define LPSS_TX_INT			0x20
-> +#define LPSS_TX_INT_MASK		BIT(1)
+> diff --git a/drivers/acpi/acpica/acmacros.h b/drivers/acpi/acpica/acmacros.h
+> index 53666bd..b916eed 100644
+> --- a/drivers/acpi/acpica/acmacros.h
+> +++ b/drivers/acpi/acpica/acmacros.h
+> @@ -93,15 +93,15 @@
+>  /* 16-bit source, 16/32/64 destination */
 >  
->  struct lpss_shared_clock {
->  	const char *name;
-> @@ -39,6 +41,8 @@ struct lpss_shared_clock {
->  	struct clk *clk;
->  };
+>  #define ACPI_MOVE_16_TO_16(d, s)        {((  u8 *)(void *)(d))[0] = ((u8 *)(void *)(s))[1];\
+> -			  ((  u8 *)(void *)(d))[1] = ((u8 *)(void *)(s))[0];}
+> +			  ((  u8 *)(void *)(d))[1] = ((u8 *)(void *)(s))[0]; }
 >  
-> +struct lpss_private_data;
-> +
->  struct lpss_device_desc {
->  	bool clk_required;
->  	const char *clkdev_name;
-> @@ -46,6 +50,7 @@ struct lpss_device_desc {
->  	unsigned int prv_offset;
->  	bool clk_gate;
->  	struct lpss_shared_clock *shared_clock;
-> +	void (*setup)(struct lpss_private_data *pdata);
->  };
+>  #define ACPI_MOVE_16_TO_32(d, s)        {(*(u32 *)(void *)(d))=0;\
+>  					  ((u8 *)(void *)(d))[2] = ((u8 *)(void *)(s))[1];\
+> -					  ((u8 *)(void *)(d))[3] = ((u8 *)(void *)(s))[0];}
+> +					  ((u8 *)(void *)(d))[3] = ((u8 *)(void *)(s))[0]; }
 >  
->  static struct lpss_device_desc lpss_dma_desc = {
-> @@ -60,6 +65,15 @@ struct lpss_private_data {
->  	const struct lpss_device_desc *dev_desc;
->  };
+>  #define ACPI_MOVE_16_TO_64(d, s)        {(*(u64 *)(void *)(d))=0;\
+>  							   ((u8 *)(void *)(d))[6] = ((u8 *)(void *)(s))[1];\
+> -							   ((u8 *)(void *)(d))[7] = ((u8 *)(void *)(s))[0];}
+> +							   ((u8 *)(void *)(d))[7] = ((u8 *)(void *)(s))[0]; }
 >  
-> +static void lpss_uart_setup(struct lpss_private_data *pdata)
-> +{
-> +	unsigned int tx_int_offset = pdata->dev_desc->prv_offset + LPSS_TX_INT;
-> +	u32 reg;
-> +
-> +	reg = readl(pdata->mmio_base + tx_int_offset);
-> +	writel(reg | LPSS_TX_INT_MASK, pdata->mmio_base + tx_int_offset);
-> +}
-> +
->  static struct lpss_device_desc lpt_dev_desc = {
->  	.clk_required = true,
->  	.prv_offset = 0x800,
-> @@ -67,6 +81,14 @@ static struct lpss_device_desc lpt_dev_desc = {
->  	.clk_gate = true,
->  };
+>  /* 32-bit source, 16/32/64 destination */
 >  
-> +static struct lpss_device_desc lpt_uart_dev_desc = {
-> +	.clk_required = true,
-> +	.prv_offset = 0x800,
-> +	.ltr_required = true,
-> +	.clk_gate = true,
-> +	.setup = lpss_uart_setup,
-> +};
-> +
->  static struct lpss_device_desc lpt_sdio_dev_desc = {
->  	.prv_offset = 0x1000,
->  	.ltr_required = true,
-> @@ -82,6 +104,7 @@ static struct lpss_device_desc byt_uart_dev_desc = {
->  	.prv_offset = 0x800,
->  	.clk_gate = true,
->  	.shared_clock = &uart_clock,
-> +	.setup = lpss_uart_setup,
->  };
+> @@ -110,13 +110,13 @@
+>  #define ACPI_MOVE_32_TO_32(d, s)        {((  u8 *)(void *)(d))[0] = ((u8 *)(void *)(s))[3];\
+>  									  ((  u8 *)(void *)(d))[1] = ((u8 *)(void *)(s))[2];\
+>  									  ((  u8 *)(void *)(d))[2] = ((u8 *)(void *)(s))[1];\
+> -									  ((  u8 *)(void *)(d))[3] = ((u8 *)(void *)(s))[0];}
+> +									  ((  u8 *)(void *)(d))[3] = ((u8 *)(void *)(s))[0]; }
 >  
->  static struct lpss_shared_clock spi_clock = {
-> @@ -120,8 +143,8 @@ static const struct acpi_device_id acpi_lpss_device_ids[] = {
->  	{ "INT33C1", (unsigned long)&lpt_dev_desc },
->  	{ "INT33C2", (unsigned long)&lpt_dev_desc },
->  	{ "INT33C3", (unsigned long)&lpt_dev_desc },
-> -	{ "INT33C4", (unsigned long)&lpt_dev_desc },
-> -	{ "INT33C5", (unsigned long)&lpt_dev_desc },
-> +	{ "INT33C4", (unsigned long)&lpt_uart_dev_desc },
-> +	{ "INT33C5", (unsigned long)&lpt_uart_dev_desc },
->  	{ "INT33C6", (unsigned long)&lpt_sdio_dev_desc },
->  	{ "INT33C7", },
+>  #define ACPI_MOVE_32_TO_64(d, s)        {(*(u64 *)(void *)(d))=0;\
+>  										   ((u8 *)(void *)(d))[4] = ((u8 *)(void *)(s))[3];\
+>  										   ((u8 *)(void *)(d))[5] = ((u8 *)(void *)(s))[2];\
+>  										   ((u8 *)(void *)(d))[6] = ((u8 *)(void *)(s))[1];\
+> -										   ((u8 *)(void *)(d))[7] = ((u8 *)(void *)(s))[0];}
+> +										   ((u8 *)(void *)(d))[7] = ((u8 *)(void *)(s))[0]; }
 >  
-> @@ -247,6 +270,9 @@ static int acpi_lpss_create_device(struct acpi_device *adev,
->  		}
->  	}
+>  /* 64-bit source, 16/32/64 destination */
 >  
-> +	if (dev_desc->setup)
-> +		dev_desc->setup(pdata);
-> +
->  	adev->driver_data = pdata;
->  	ret = acpi_create_platform_device(adev, id);
->  	if (ret > 0)
+> @@ -131,7 +131,7 @@
+>  										 ((  u8 *)(void *)(d))[4] = ((u8 *)(void *)(s))[3];\
+>  										 ((  u8 *)(void *)(d))[5] = ((u8 *)(void *)(s))[2];\
+>  										 ((  u8 *)(void *)(d))[6] = ((u8 *)(void *)(s))[1];\
+> -										 ((  u8 *)(void *)(d))[7] = ((u8 *)(void *)(s))[0];}
+> +										 ((  u8 *)(void *)(d))[7] = ((u8 *)(void *)(s))[0]; }
+>  #else
+>  /*
+>   * Macros for little-endian machines
+> @@ -169,10 +169,10 @@
+>  /* 16-bit source, 16/32/64 destination */
+>  
+>  #define ACPI_MOVE_16_TO_16(d, s)        {((  u8 *)(void *)(d))[0] = ((u8 *)(void *)(s))[0];\
+> -										 ((  u8 *)(void *)(d))[1] = ((u8 *)(void *)(s))[1];}
+> +										 ((  u8 *)(void *)(d))[1] = ((u8 *)(void *)(s))[1]; }
+>  
+> -#define ACPI_MOVE_16_TO_32(d, s)        {(*(u32 *)(void *)(d)) = 0; ACPI_MOVE_16_TO_16(d, s);}
+> -#define ACPI_MOVE_16_TO_64(d, s)        {(*(u64 *)(void *)(d)) = 0; ACPI_MOVE_16_TO_16(d, s);}
+> +#define ACPI_MOVE_16_TO_32(d, s)        {(*(u32 *)(void *)(d)) = 0; ACPI_MOVE_16_TO_16(d, s); }
+> +#define ACPI_MOVE_16_TO_64(d, s)        {(*(u64 *)(void *)(d)) = 0; ACPI_MOVE_16_TO_16(d, s); }
+>  
+>  /* 32-bit source, 16/32/64 destination */
+>  
+> @@ -181,9 +181,9 @@
+>  #define ACPI_MOVE_32_TO_32(d, s)        {((  u8 *)(void *)(d))[0] = ((u8 *)(void *)(s))[0];\
+>  										 ((  u8 *)(void *)(d))[1] = ((u8 *)(void *)(s))[1];\
+>  										 ((  u8 *)(void *)(d))[2] = ((u8 *)(void *)(s))[2];\
+> -										 ((  u8 *)(void *)(d))[3] = ((u8 *)(void *)(s))[3];}
+> +										 ((  u8 *)(void *)(d))[3] = ((u8 *)(void *)(s))[3]; }
+>  
+> -#define ACPI_MOVE_32_TO_64(d, s)        {(*(u64 *)(void *)(d)) = 0; ACPI_MOVE_32_TO_32(d, s);}
+> +#define ACPI_MOVE_32_TO_64(d, s)        {(*(u64 *)(void *)(d)) = 0; ACPI_MOVE_32_TO_32(d, s); }
+>  
+>  /* 64-bit source, 16/32/64 destination */
+>  
+> @@ -196,7 +196,7 @@
+>  										 ((  u8 *)(void *)(d))[4] = ((u8 *)(void *)(s))[4];\
+>  										 ((  u8 *)(void *)(d))[5] = ((u8 *)(void *)(s))[5];\
+>  										 ((  u8 *)(void *)(d))[6] = ((u8 *)(void *)(s))[6];\
+> -										 ((  u8 *)(void *)(d))[7] = ((u8 *)(void *)(s))[7];}
+> +										 ((  u8 *)(void *)(d))[7] = ((u8 *)(void *)(s))[7]; }
+>  #endif
+>  #endif
+>  
 > 
 -- 
 I speak only for myself.
