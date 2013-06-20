@@ -1,96 +1,51 @@
-From: "Moore, Robert" <robert.moore@intel.com>
-Subject: RE: [PATCH 07/16] ACPICA: New: Portable acpidump utility (get
- system ACPI tables)
-Date: Thu, 20 Jun 2013 19:43:21 +0000
-Message-ID: <94F2FBAB4432B54E8AACC7DFDE6C92E36FE89229@ORSMSX103.amr.corp.intel.com>
-References: <cover.1369274558.git.lv.zheng@intel.com>
- <2723103.DgDP1L2HFo@vostro.rjw.lan>
- <94F2FBAB4432B54E8AACC7DFDE6C92E36FE88D97@ORSMSX103.amr.corp.intel.com>
- <1476146.YPydkeoMbM@vostro.rjw.lan>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: Re: [PATCH] Documentation / cpu hotplug: remove outdated description for MADT entries
+Date: Thu, 20 Jun 2013 21:52:51 +0200
+Message-ID: <3504197.mRYUAZnZ9p@vostro.rjw.lan>
+References: <1371718482-452-1-git-send-email-hanjun.guo@linaro.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga03.intel.com ([143.182.124.21]:28504 "EHLO mga03.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S965317Ab3FTTnY (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 20 Jun 2013 15:43:24 -0400
-In-Reply-To: <1476146.YPydkeoMbM@vostro.rjw.lan>
-Content-Language: en-US
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Transfer-Encoding: 7Bit
+Return-path: <linux-doc-owner@vger.kernel.org>
+In-Reply-To: <1371718482-452-1-git-send-email-hanjun.guo@linaro.org>
+Sender: linux-doc-owner@vger.kernel.org
+To: Hanjun Guo <hanjun.guo@linaro.org>
+Cc: Rob Landley <rob@landley.net>, Rusty Russell <rusty@rustcorp.com.au>, Srivatsa Vaddagiri <vatsa@in.ibm.com>, linux-acpi@vger.kernel.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, patches@linaro.org, linaro-kernel@lists.linaro.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: Len Brown <lenb@kernel.org>, "Zheng, Lv" <lv.zheng@intel.com>, "Wysocki, Rafael J" <rafael.j.wysocki@intel.com>, "Brown, Len" <len.brown@intel.com>, linux acpi <linux-acpi@vger.kernel.org>
 
-DQoNCj4gLS0tLS1PcmlnaW5hbCBNZXNzYWdlLS0tLS0NCj4gRnJvbTogUmFmYWVsIEouIFd5c29j
-a2kgW21haWx0bzpyandAc2lzay5wbF0NCj4gU2VudDogVGh1cnNkYXksIEp1bmUgMjAsIDIwMTMg
-MTI6NDIgUE0NCj4gVG86IE1vb3JlLCBSb2JlcnQNCj4gQ2M6IExlbiBCcm93bjsgWmhlbmcsIEx2
-OyBXeXNvY2tpLCBSYWZhZWwgSjsgQnJvd24sIExlbjsgbGludXggYWNwaQ0KPiBTdWJqZWN0OiBS
-ZTogW1BBVENIIDA3LzE2XSBBQ1BJQ0E6IE5ldzogUG9ydGFibGUgYWNwaWR1bXAgdXRpbGl0eSAo
-Z2V0DQo+IHN5c3RlbSBBQ1BJIHRhYmxlcykNCj4gDQo+IE9uIFRodXJzZGF5LCBKdW5lIDIwLCAy
-MDEzIDA0OjU3OjA0IEFNIE1vb3JlLCBSb2JlcnQgd3JvdGU6DQo+ID4NCj4gPiA+IC0tLS0tT3Jp
-Z2luYWwgTWVzc2FnZS0tLS0tDQo+ID4gPiBGcm9tOiBSYWZhZWwgSi4gV3lzb2NraSBbbWFpbHRv
-OnJqd0BzaXNrLnBsXQ0KPiA+ID4gU2VudDogV2VkbmVzZGF5LCBKdW5lIDE5LCAyMDEzIDQ6MTEg
-UE0NCj4gPiA+IFRvOiBNb29yZSwgUm9iZXJ0DQo+ID4gPiBDYzogTGVuIEJyb3duOyBaaGVuZywg
-THY7IFd5c29ja2ksIFJhZmFlbCBKOyBCcm93biwgTGVuOyBsaW51eCBhY3BpDQo+ID4gPiBTdWJq
-ZWN0OiBSZTogW1BBVENIIDA3LzE2XSBBQ1BJQ0E6IE5ldzogUG9ydGFibGUgYWNwaWR1bXAgdXRp
-bGl0eQ0KPiA+ID4gKGdldCBzeXN0ZW0gQUNQSSB0YWJsZXMpDQo+ID4gPg0KPiA+ID4gT24gV2Vk
-bmVzZGF5LCBKdW5lIDE5LCAyMDEzIDEyOjQ4OjU2IEFNIE1vb3JlLCBSb2JlcnQgd3JvdGU6DQo+
-ID4gPiA+IFNvcnJ5LCBJIGRvbid0IHRoaW5rIHRoZSBMaW51eCB2ZXJzaW9uIGhhcyBiZWVuIGNv
-bXBsZXRlZCBpbg0KPiA+ID4gPiB2ZXJzaW9uDQo+ID4gPiA+IDIwMTMwNTE3DQo+ID4gPiA+IC0t
-IHNvIHBlcmhhcHMgeW91IHNob3VsZCBpZ25vcmUgdGhpcyBwYXRjaCBhZnRlciBhbGwsIHVubGVz
-cyB5b3UNCj4gPiA+ID4gd2FudCB0byBzaW1wbHkgZXN0YWJsaXNoIHRoZSBpbmZyYXN0cnVjdHVy
-ZSBmb3IgdGhlIGZpbmFsIExpbnV4DQo+IHZlcnNpb24uDQo+ID4gPiA+IFRoZSBMaW51eC1zcGVj
-aWZpYyBjb2RlIGlzIGNvbXBsZXRlZCBhbmQgd2lsbCBiZSBwYXJ0IG9mIHRoZSBKdW5lDQo+ID4g
-PiByZWxlYXNlLg0KPiA+ID4NCj4gPiA+IEdyZWF0LCBJJ2xsIHRha2UgdGhlIHBhdGNoIGF0IHRo
-YXQgdGltZSwgdGhlbi4NCj4gPiA+DQo+ID4gPiA+IEhvd2V2ZXIsIHdlIGNhbiBzdGlsbCBkaXNj
-dXNzIHRoZSBmdXR1cmUgb2YgdGhlIGNoYW5nZWxvZywgZXRjLiBXZQ0KPiA+ID4gPiBzZWVtIHRv
-IGhhdmUgYW4gb3ZlcmFsbCBwcm9ibGVtIHdoZXJlIHRoZSBBQ1BJQ0EgY29tbWl0IGxvZyBpcw0K
-PiA+ID4gPiAiZ2VuZXJpYyIsIGJ1dCBJJ20gc2VlaW5nIGhlcmUgYSByZXF1ZXN0IHRvIG1ha2Ug
-dGhlIGFjdHVhbCBMaW51eA0KPiA+ID4gPiBwYXRjaGVzIG1vcmUgc3BlY2lmaWMgdG8gTGludXgu
-DQo+ID4gPiA+DQo+ID4gPiA+IEFzIGZhciBhcyBhY3BpY2EgYW5kIGFjcGlkdW1wIGlzIGNvbmNl
-cm5lZCwgSSBwdXQgc3BlY2lmaWMNCj4gPiA+ID4gZ2VuZXJhdGlvbiBpbnN0cnVjdGlvbnMgaW4g
-dGhlIHJlZmVyZW5jZSBtYW51YWwuLi4NCj4gPiA+ID4NCj4gPiA+ID4gT2YgY291cnNlLCB0aGUg
-ZGV0YWlscyBmb3IgYW55IGluZGl2aWR1YWwgb3BlcmF0aW5nIHN5c3RlbSBtYXkgYmUNCj4gPiA+
-ID4gZGlmZmVyZW50IChlc3BlY2lhbGx5IGZpbGUgbG9jYXRpb25zKSwgc28gSSBoYXZlIHRvIG1h
-a2UgdGhlDQo+ID4gPiA+IGFjcGljYSBjaGFuZ2Vsb2cgc29tZXdoYXQgZ2VuZXJpYy4NCj4gPiA+
-ID4NCj4gPiA+ID4NCj4gPiA+ID4gSGVyZSBpcyB0aGUgYWN0dWFsIGFjcGljYSBjaGFuZ2Vsb2cg
-dGV4dCBjb25jZXJuaW5nIGFjcGlkdW1wLCBmb3INCj4gPiA+IHZlcnNpb24gMjAxMzA1MTc6DQo+
-ID4gPiA+DQo+ID4gPiA+IDIpIGlBU0wgQ29tcGlsZXIvRGlzYXNzZW1ibGVyIGFuZCBUb29sczoN
-Cj4gPiA+ID4NCj4gPiA+ID4gTmV3IHV0aWxpdHk6IEltcGxlbWVudGVkIGFuIGVhc2lseSBwb3J0
-YWJsZSB2ZXJzaW9uIG9mIHRoZQ0KPiA+ID4gPiBhY3BpZHVtcCB1dGlsaXR5IHRvIGV4dHJhY3Qg
-QUNQSSB0YWJsZXMgZnJvbSB0aGUgc3lzdGVtIChvciBhDQo+ID4gPiA+IGZpbGUpIGluIGFuIEFT
-Q0lJIGhleCBkdW1wIGZvcm1hdC4gVGhlIHRvcC1sZXZlbCBjb2RlIGltcGxlbWVudHMNCj4gPiA+
-ID4gdGhlIHZhcmlvdXMgY29tbWFuZCBsaW5lIG9wdGlvbnMsIGZpbGUgSS9PLCBhbmQgdGFibGUg
-ZHVtcA0KPiA+ID4gPiByb3V0aW5lcy4gVG8gcG9ydCB0byBhIG5ldyBob3N0LCBvbmx5IHRocmVl
-IGZ1bmN0aW9ucyBuZWVkIHRvIGJlDQo+ID4gPiA+IGltcGxlbWVudGVkIHRvIGdldCB0YWJsZXMg
-LS0gc2luY2UgdGhpcyBmdW5jdGlvbmFsaXR5IGlzDQo+ID4gPiA+IE9TLWRlcGVuZGVudC4gU2Vl
-IHRoZSB0b29scy9hY3BpZHVtcC9hcG1haW4uYyBtb2R1bGUgYW5kIHRoZQ0KPiA+ID4gPiBBQ1BJ
-Q0EgcmVmZXJlbmNlIGZvciBwb3J0aW5nDQo+ID4gPiBpbnN0cnVjdGlvbnMuIEFDUElDQSBCWiA4
-NTkuIE5vdGVzOg0KPiA+ID4gPiAxKSBUaGUgV2luZG93cyB2ZXJzaW9uIG9idGFpbnMgdGhlIEFD
-UEkgdGFibGVzIGZyb20gdGhlIFJlZ2lzdHJ5Lg0KPiA+ID4gPiAyKSBUaGUgTGludXggdmVyc2lv
-biBpcyB1bmRlciBkZXZlbG9wbWVudC4NCj4gPiA+ID4gMykgT3RoZXIgaG9zdHMgLSBJZiBhbiBP
-Uy1kZXBlbmRlbnQgbW9kdWxlIGlzIHN1Ym1pdHRlZCwgaXQgd2lsbA0KPiA+ID4gPiBiZSBkaXN0
-cmlidXRlZCB3aXRoIEFDUElDQS4NCj4gPiA+DQo+ID4gPiBXZWxsLCB0aGlzIGlzIG11Y2ggYmV0
-dGVyIHRoYW4gd2hhdCBMdiBzZW50LCBhY3R1YWxseS4NCj4gPiA+DQo+ID4gPiBXZSBjb3VsZCB1
-c2UgaXQgZm9yIExpbnV4IHRvbywgSSB0aGluaywgb25seSB3aXRob3V0IHRoZSAiTm90ZXMiIHBh
-cnQuDQo+ID4gPg0KPiA+ID4gTXkgZ2VuZXJhbCBvcGluaW9uIGlzIHRoYXQgd2UgY2FuIHNpbXBs
-eSB1c2UgdGhlIHNhbWUgY2hhbmdlbG9ncyBhcw0KPiA+ID4gdGhlIEFDUElDQSB1cHN0cmVhbSBk
-b2VzLCBwb3NzaWJseSBhbWVuZGVkIHdpdGggYSBtb3JlIGRldGFpbGVkDQo+ID4gPiBleHBsYW5h
-dGlvbiBvZiB0aGUgbW90aXZhdGlvbiBiZWhpbmQgdGhlIHBhdGNoLg0KPiA+ID4NCj4gPiA+IElu
-IHRoaXMgY2FzZSwgaG93ZXZlciwgdGhlIGNoYW5nZWxvZyB3YXNuJ3QgZXZlbiBzaW1pbGFyIHRv
-IHRoZQ0KPiA+ID4gb3JpZ2luYWwgb25lLg0KPiA+ID4NCj4gPg0KPiA+IFRoaXMgaXMgdGhlIHRl
-eHQgZnJvbSB0aGUgcmVsZWFzZSBub3RlcyB3aGljaCBlbmQgdXAgaW4gdGhlDQo+ICJjaGFuZ2Vz
-LnR4dCIgZmlsZS4NCj4gDQo+IEkgc2VlLiAgV2UgZG9uJ3QgZ2V0IHRoYXQgaW5mb3JtYXRpb24g
-d2l0aCB0aGUga2VybmVsIHBhdGNoZXMsIHRob3VnaC4NCj4gDQo+ID4gSSB1c3VhbGx5IGV4cGFu
-ZCB1cG9uIHRoZSBtYWpvciBjaGFuZ2VzIGluIGEgZm9ybWF0IHRoYXQgaXMgbG9uZ2VyDQo+ID4g
-dGhhbiB0aGUgYWN0dWFsIGNvbW1pdCBsb2cuDQo+IA0KPiBTbyBwZXJoYXBzIEx2IChvciB3aG9l
-dmVyIGdlbmVyYXRlcyB0aGUgTGludXggcGF0Y2hlcyBmb3IgdGhlIGdpdmVuDQo+IHJlbGVhc2Up
-IGNhbiBzaW1wbHkgYWRkIHRoZSBpbmZvcm1hdGlvbiB5b3UgcHV0IGludG8gImNoYW5nZXMudHh0
-IiB0byB0aGUNCj4gTGludXggcGF0Y2hlcyBjaGFuZ2Vsb2dzPw0KPiANCg0KDQpNYW55IHRpbWVz
-IHRoYXQgd291bGQgaGVscC4gSG93ZXZlciwgSSBkZXNjcmliZSBvbmx5IHRoZSBtYWpvciBjaGFu
-Z2VzIGluIHRoZSByZWxlYXNlIG5vdGVzOyBJIGRvbid0IG1lbnRpb24gdGhpbmdzIGxpa2UgY2xl
-YW51cHMgb3IgYW55IG90aGVyIGNoYW5nZXMgd2hpY2ggZG9uJ3QgYWZmZWN0IGZ1bmN0aW9uYWxp
-dHkuIEFsc28sIEkgZG9uJ3QgbWVudGlvbiByZWFsbHkgbWlub3IgYnVnIGZpeGVzLg0KDQoNCg0K
-DQo+IFJhZmFlbA0KPiANCj4gDQo+IC0tDQo+IEkgc3BlYWsgb25seSBmb3IgbXlzZWxmLg0KPiBS
-YWZhZWwgSi4gV3lzb2NraSwgSW50ZWwgT3BlbiBTb3VyY2UgVGVjaG5vbG9neSBDZW50ZXIuDQo=
+On Thursday, June 20, 2013 04:54:42 PM Hanjun Guo wrote:
+> More than 256 entries in ACPI MADT is supported from ACPI 3.0 Specification,
+> So the outdated description for MADT entries should be removed.
+
+Well, it kind of is still valid for systems pre-dating ACPI 3.0, isn't it?
+
+So perhaps instead of simply removing that information it would be better to
+rephrase it?
+
+Thanks,
+Rafael
+
+
+> Signed-off-by: Hanjun Guo <hanjun.guo@linaro.org>
+> ---
+>  Documentation/cpu-hotplug.txt |    3 ---
+>  1 file changed, 3 deletions(-)
+> 
+> diff --git a/Documentation/cpu-hotplug.txt b/Documentation/cpu-hotplug.txt
+> index 9f40135..2e36e40 100644
+> --- a/Documentation/cpu-hotplug.txt
+> +++ b/Documentation/cpu-hotplug.txt
+> @@ -370,9 +370,6 @@ A: There is no clear spec defined way from ACPI that can give us that
+>     CPUs in MADT as hotpluggable CPUS.  In the case there are no disabled CPUS
+>     we assume 1/2 the number of CPUs currently present can be hotplugged.
+>  
+> -   Caveat: Today's ACPI MADT can only provide 256 entries since the apicid field
+> -   in MADT is only 8 bits.
+> -
+>  User Space Notification
+>  
+>  Hotplug support for devices is common in Linux today. Its being used today to
+> 
+-- 
+I speak only for myself.
+Rafael J. Wysocki, Intel Open Source Technology Center.
