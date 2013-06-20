@@ -1,74 +1,83 @@
-From: "Naveen N. Rao" <naveen.n.rao@linux.vnet.ibm.com>
-Subject: Re: [PATCH v2 1/2] mce: acpi/apei: Honour Firmware First for MCA
- banks listed in APEI HEST CMC
-Date: Fri, 21 Jun 2013 02:52:25 +0530
-Message-ID: <51C37291.40303@linux.vnet.ibm.com>
-References: <20130619175438.2852.93449.stgit@localhost.localdomain> <20130620073943.GE32694@pd.tnic> <51C3531D.3000600@linux.vnet.ibm.com> <20130620192928.GD19877@pd.tnic> <51C36288.4050405@linux.vnet.ibm.com> <20130620205726.GA20863@pd.tnic>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: [GIT PULL] ACPI fixes for v3.10-rc7
+Date: Thu, 20 Jun 2013 23:36 +0200
+Message-ID: <1547824.0XkuHTj9ed@vostro.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7Bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from e28smtp08.in.ibm.com ([122.248.162.8]:47200 "EHLO
-	e28smtp08.in.ibm.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758173Ab3FTVWg (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 20 Jun 2013 17:22:36 -0400
-Received: from /spool/local
-	by e28smtp08.in.ibm.com with IBM ESMTP SMTP Gateway: Authorized Use Only! Violators will be prosecuted
-	for <linux-acpi@vger.kernel.org> from <naveen.n.rao@linux.vnet.ibm.com>;
-	Fri, 21 Jun 2013 02:44:05 +0530
-In-Reply-To: <20130620205726.GA20863@pd.tnic>
+Received: from hydra.sisk.pl ([212.160.235.94]:44704 "EHLO hydra.sisk.pl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S965555Ab3FTV0i (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 20 Jun 2013 17:26:38 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Borislav Petkov <bp@alien8.de>
-Cc: tony.luck@intel.com, ananth@in.ibm.com, masbock@linux.vnet.ibm.com, lcm@linux.vnet.ibm.com, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, ying.huang@intel.com
+To: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>, Mika Westerberg <mika.westerberg@linux.intel.com>
 
-On 06/21/2013 02:27 AM, Borislav Petkov wrote:
-> On Fri, Jun 21, 2013 at 01:44:00AM +0530, Naveen N. Rao wrote:
->> This won't work across cpu offline/online, right? We will end up
->> _not_ enabling CMCI on certain banks where we should have.
->
-> Huh, don't understand. cmci_discover runs on each CPU. After you've run
-> hest_parse_cmc early during boot and cleared the mce_poll_banks bits,
-> nothing will set them again so CPU hotplug doesn't matter...
+Hi Linus,
 
-Exactly, but mce_poll_banks also doesn't have bits set for banks on 
-which CMCI is enabled.
+Please pull from the git repository at
 
-Let's say we have a cpu with 2 banks (not shared), none of which work in 
-FF mode. Both these banks support CMCI, so mce_poll_banks won't have 
-these bits set.
+  git://git.kernel.org/pub/scm/linux/kernel/git/rafael/linux-pm.git acpi-3.10-rc7
 
-On cpu offline, we call cmci_clear() which disables CMCI on these two 
-banks before offlining it.  When this cpu is brought online again, we 
-call cmci_discover() which sees that mce_poll_banks doesn't have these 
-two banks enabled and will skip enabling CMCI thinking these are in FF.
+to receive ACPI fixes for v3.10-rc7 with top-most commit
+b9e95fc65ededbec083aa91b4faa58ad992c0891
 
-Right?
+  ACPI / LPSS: Power up LPSS devices during enumeration
 
->
->> Another thing: for hest_parse_cmc(), does the below look good?
->>
->>          cmc = (struct acpi_hest_ia_corrected *)hest_hdr;
->>          if (!cmc->enabled)
->>                  return 0;
->>
->> #define ACPI_HEST_PARSING_DONE 1
->>          /*
->>           * We expect HEST to provide a list of MC banks that
->>           * report errors in firmware first mode.
->>           */
->>          if (!(cmc->flags & ACPI_HEST_FIRMWARE_FIRST) ||
->> !cmc->num_hardware_banks)
->>                  return ACPI_HEST_PARSING_DONE;
->>
->> The return value doesn't really matter since we don't check it, but
->> returning an error looked like the wrong thing to do as well.
->
-> I'd add a comment above the "return 1" statement to explain why I'm
-> doing this. It is much more verbose even than a well-named macro :)
+on top of commit 7d132055814ef17a6c7b69f342244c410a5e000f
 
-Okay :)
+  Linux 3.10-rc6
 
-Thanks,
-Naveen
+One of them fixes a regression introduced on some systems by a recent revert
+of an ACPI PM change, two of them fix obvious bugs overlooked in 3.9, and
+one fixes a problem reported against the mainline just a couple of days
+ago, although the fix itself has been in linux-next since 3.10-rc3.
 
+Specifics:
+
+- Fix for a regression causing a failure to turn on some devices on
+  some systems during initialization introduced by a recent revert of
+  an ACPI PM change that broke something else.  Fortunately, we know
+  exactly what devices are affected, so we can add a fix just for
+  them leaving everyone else alone.
+
+- ACPI power resources initialization fix preventing a NULL pointer
+  from being dereferenced in the acpi_add_power_resource() error code
+  path.
+
+- ACPI dock station driver fix that adds missing locking to
+  write_undock().
+
+- ACPI resources allocation fix changing the scope of an old
+  workaround so that it doesn't affect systems that aren't actually
+  buggy.  This was reported a couple of days ago to fix DMA problems
+  on some new platforms so we need it in -stable.  From Mika Westerberg.
+
+Thanks!
+
+
+---------------
+
+Mika Westerberg (1):
+      ACPI / resources: call acpi_get_override_irq() only for legacy IRQ resources
+
+Rafael J. Wysocki (3):
+      ACPI / dock: Take ACPI scan lock in write_undock()
+      ACPI / PM: Fix error code path for power resources initialization
+      ACPI / LPSS: Power up LPSS devices during enumeration
+
+---------------
+
+ drivers/acpi/acpi_lpss.c |   21 +++++++++++++++------
+ drivers/acpi/device_pm.c |   20 ++++++++++++++++++++
+ drivers/acpi/dock.c      |    2 ++
+ drivers/acpi/power.c     |    1 +
+ drivers/acpi/resource.c  |   16 +++++++++++-----
+ include/acpi/acpi_bus.h  |    1 +
+ 6 files changed, 50 insertions(+), 11 deletions(-)
+
+-- 
+I speak only for myself.
+Rafael J. Wysocki, Intel Open Source Technology Center.
