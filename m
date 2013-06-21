@@ -1,65 +1,154 @@
-From: "Naveen N. Rao" <naveen.n.rao@linux.vnet.ibm.com>
-Subject: Re: [PATCH v2 1/2] mce: acpi/apei: Honour Firmware First for MCA
- banks listed in APEI HEST CMC
-Date: Fri, 21 Jun 2013 13:16:50 +0530
-Message-ID: <51C404EA.10906@linux.vnet.ibm.com>
-References: <20130619175438.2852.93449.stgit@localhost.localdomain> <20130620073943.GE32694@pd.tnic> <51C3531D.3000600@linux.vnet.ibm.com> <20130620192928.GD19877@pd.tnic> <51C36288.4050405@linux.vnet.ibm.com> <20130620205726.GA20863@pd.tnic> <51C37291.40303@linux.vnet.ibm.com> <20130621073419.GC22006@pd.tnic>
+From: Zhang Rui <rui.zhang@intel.com>
+Subject: RE: [regression,bisected] restore of disks after suspend-to-disk
+ broken in 3.9.x
+Date: Fri, 21 Jun 2013 15:53:59 +0800
+Message-ID: <1371801239.2170.2.camel@rzhang1-mobl4>
+References: <CAPm-kmsTNz4niGXsWyhLwwBkQ48gHdq1vjPvSKKwQ0kbhHm=JQ@mail.gmail.com>
+	 <1369631226.2159.5.camel@rzhang1-mobl4>
+	 <CAPm-kmu4WmAKX4N5GTsG-J+oq95pLxB9=iLMf2dyK-p6RbwFXQ@mail.gmail.com>
+	 <1369878386.3368.16.camel@rzhang1-mobl4>
+	 <CAPm-kmtwxgDO24UmtmZ44-P2W-80tK11k1aE8M4Ty3t3LKu14Q@mail.gmail.com>
+	 <1369911036.2636.5.camel@rzhang1-mobl4>
+	 <CAPm-kmtdxjf1J0GUSMo+x1XY0BX7hFBsDQCjuAH=f65TfGHRbQ@mail.gmail.com>
+	 <CAPm-kmupuP-MKU5xQuReEagNz1EFzWyzjs1vPhKQYOkxg96_uA@mail.gmail.com>
+	 <744357E9AAD1214791ACBA4B0B9092630111E53C@SHSMSX101.ccr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from e28smtp07.in.ibm.com ([122.248.162.7]:53707 "EHLO
-	e28smtp07.in.ibm.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751072Ab3FUHrE (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 21 Jun 2013 03:47:04 -0400
-Received: from /spool/local
-	by e28smtp07.in.ibm.com with IBM ESMTP SMTP Gateway: Authorized Use Only! Violators will be prosecuted
-	for <linux-acpi@vger.kernel.org> from <naveen.n.rao@linux.vnet.ibm.com>;
-	Fri, 21 Jun 2013 13:10:06 +0530
-In-Reply-To: <20130621073419.GC22006@pd.tnic>
+Received: from mga03.intel.com ([143.182.124.21]:12270 "EHLO mga03.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1161469Ab3FUHyD (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 21 Jun 2013 03:54:03 -0400
+In-Reply-To: <744357E9AAD1214791ACBA4B0B9092630111E53C@SHSMSX101.ccr.corp.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Borislav Petkov <bp@alien8.de>
-Cc: tony.luck@intel.com, ananth@in.ibm.com, masbock@linux.vnet.ibm.com, lcm@linux.vnet.ibm.com, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, ying.huang@intel.com
+To: Giacomo Perale <giacomo.perale@gmail.com>
+Cc: "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-pm@vger.kernel.org" <linux-pm@vger.kernel.org>, "Rafael J. Wysocki" <rjw@sisk.pl>
 
-On 06/21/2013 01:04 PM, Borislav Petkov wrote:
-> On Fri, Jun 21, 2013 at 02:52:25AM +0530, Naveen N. Rao wrote:
->> Exactly, but mce_poll_banks also doesn't have bits set for banks on
->> which CMCI is enabled.
->>
->> Let's say we have a cpu with 2 banks (not shared), none of which work
->> in FF mode. Both these banks support CMCI, so mce_poll_banks won't
->> have these bits set.
->>
->> On cpu offline, we call cmci_clear() which disables CMCI on these two
->> banks before offlining it. When this cpu is brought online again, we
->> call cmci_discover() which sees that mce_poll_banks doesn't have these
->> two banks enabled and will skip enabling CMCI thinking these are in
->> FF.
->
-> Hmm, mce_intel has yet another bitfield - mce_banks_owned. (Btw, this is
-> why I have a problem with adding yet another bitfield).
->
-> The way I understand it is, if a bit is set in the owned bitfield, those
-> banks belong to CMCI and are not polled.
->
-> Now, can we use both mce_banks_owned and mce_poll_banks? If a bit in
-> both bifields is cleared, the corresponding bank is not polled *and* is
-> not owned by CMCI => it is in FF mode.
->
-> Makes sense?
->
+On Wed, 2013-06-05 at 13:23 +0000, Zhang, Rui wrote:
+>=20
+> > -----Original Message-----
+> > From: Giacomo Perale [mailto:giacomo.perale@gmail.com]
+> > Sent: Wednesday, June 05, 2013 5:09 PM
+> > To: Zhang, Rui
+> > Cc: linux-acpi@vger.kernel.org; linux-pm@vger.kernel.org; Rafael J.
+> > Wysocki
+> > Subject: Re: [regression,bisected] restore of disks after suspend-t=
+o-
+> > disk broken in 3.9.x
+> > Importance: High
+> >=20
+> > 2013/5/30 Giacomo Perale <giacomo.perale@gmail.com>:
+> > > 2013/5/30 Zhang Rui <rui.zhang@intel.com>:
+> > >> On Thu, 2013-05-30 at 10:04 +0200, Giacomo Perale wrote:
+> > >>> 2013/5/30 Zhang Rui <rui.zhang@intel.com>:
+> > >>> > On Mon, 2013-05-27 at 22:07 +0200, Giacomo Perale wrote:
+> > >>> >> 2013/5/27 Zhang Rui <rui.zhang@intel.com>:
+> > >>> >> > On Sun, 2013-05-26 at 15:51 +0200, Giacomo Perale wrote:
+> > >>> >> >> Hello,
+> > >>> >> >>
+> > >>> >> >> after upgrading from 3.8.7 to 3.9.x I noticed some slight=
+ly
+> > >>> >> >> longer delays when resuming from suspend-to-disk and a fe=
+w
+> > new
+> > >>> >> >> error messages in the logs:
+> > >>> >> >>
+> > >>> >> >>
+> > >>> >> >> Not having connected the issue with the previous error
+> > >>> >> >> messages I initially blamed the disk and replaced it with=
+ a
+> > >>> >> >> new one thinking it was broken, but the problem persisted=
+ so
+> > I
+> > >>> >> >> started a bisection run that pointed to this commit:
+> > >>> >> >>
+> > >>> >> >>
+> > >>> >> > I do not see how this would affect the sata hibernation/re=
+sume.
+> > >>> >> > but anyway, would you please try the four patches in comme=
+nt
+> > >>> >> > #10, #11,
+> > >>> >> > #12 and #13 in
+> > >>> >> > https://bugzilla.kernel.org/show_bug.cgi?id=3D58301
+> > >>> >> > and check if they help?
+> > >>> >> >
+> > >>> >> > thanks,
+> > >>> >> > rui
+> > >>> >> >
+> > >>> >>
+> > >>> >> No luck, with git head and those four patches hibernation is
+> > >>> >> completely broken, the system doesn't even shut down, it jus=
+t
+> > >>> >> loses the disks (I'm attaching what I could get from /proc/k=
+msg
+> > >>> >> to this email).
+> > >>> >>
+> > >>> > then can you please try the patch at
+> > >>> > https://patchwork.kernel.org/patch/2633071/
+> > >>> > on top of the four patches and see if it helps?
+> > >>> >
+> > >>> > thanks,
+> > >>> > rui
+> > >>> >
+> > >>>
+> > >>> Do you mean without Rafael's patch?
+> > >>>
+> > >> right.
+> > >>
+> > >> thanks,
+> > >> rui
+> > >
+> > > [cc-ing list]
+> > >
+> > > No difference, system doesn't shut down and disks become unavaila=
+ble.
+> > >
+> > > Giacomo
+> >=20
+> > Any news about this?
+> >=20
+>=20
+> I'm proposing a new patch set based on the problem found by Rafael's =
+patch.
+> And I'll send them out in a day or two, please wait for the update. :=
+)
+>=20
+sorry for the late response.
 
-Yes, but I'm afraid this won't work either - mce_banks_owned is cleared 
-during cpu offline. This is necessary since a cmci rediscover is 
-triggered on cpu offline, so that if this bank is shared across cores, a 
-different cpu can claim ownership of this bank.
+can you please check if the patch series at=20
+https://patchwork.kernel.org/patch/2733361/
+https://patchwork.kernel.org/patch/2733371/
+https://patchwork.kernel.org/patch/2733391/
+https://patchwork.kernel.org/patch/2733401/
+https://patchwork.kernel.org/patch/2733411/
+https://patchwork.kernel.org/patch/2733421/
+helps or not?
 
-The difference between the new bitfield and the existing bitfields is 
-that the new one is not per-cpu. This is a global list of banks across 
-cpus that we do not want enabled.
+thanks,
+rui
+
+> Thanks,
+> rui
+>=20
+>=20
+> > Thanks.
+> >=20
+> > Giacomo
+> N=EF=BF=BD=EF=BF=BD=EF=BF=BD=EF=BF=BD=EF=BF=BDr=EF=BF=BD=EF=BF=BDy=EF=
+=BF=BD=EF=BF=BD=EF=BF=BDb=EF=BF=BDX=EF=BF=BD=EF=BF=BD=C7=A7v=EF=BF=BD^=EF=
+=BF=BD)=DE=BA{.n=EF=BF=BD+=EF=BF=BD=EF=BF=BD=EF=BF=BD=EF=BF=BD{=EF=BF=BD=
+=EF=BF=BDh=EF=BF=BD=EF=BF=BD=17=EF=BF=BD=EF=BF=BD=DC=A8}=EF=BF=BD=EF=BF=
+=BD=EF=BF=BD=C6=A0z=EF=BF=BD&j:+v=EF=BF=BD=EF=BF=BD=EF=BF=BD=07=EF=BF=BD=
+=EF=BF=BD=EF=BF=BD=EF=BF=BDzZ+=EF=BF=BD=EF=BF=BD+zf=EF=BF=BD=EF=BF=BD=EF=
+=BF=BDh=EF=BF=BD=EF=BF=BD=EF=BF=BD~=EF=BF=BD=EF=BF=BD=EF=BF=BD=EF=BF=BD=
+i=EF=BF=BD=EF=BF=BD=EF=BF=BDz=EF=BF=BD=1E=EF=BF=BDw=EF=BF=BD=EF=BF=BD=EF=
+=BF=BD?=EF=BF=BD=EF=BF=BD=EF=BF=BD=EF=BF=BD&=EF=BF=BD)=DF=A2=1Bf
 
 
-Thanks,
-Naveen
-
+--
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
