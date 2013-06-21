@@ -1,40 +1,100 @@
-From: "Luck, Tony" <tony.luck@intel.com>
-Subject: RE: [PATCH v2 2/2] mce: acpi/apei: Add a boot option to disable ff
- mode for corrected errors
-Date: Thu, 20 Jun 2013 22:11:27 +0000
-Message-ID: <3908561D78D1C84285E8C5FCA982C28F2DA8993C@ORSMSX106.amr.corp.intel.com>
-References: <20130619175438.2852.93449.stgit@localhost.localdomain>
- <20130619175728.2852.73156.stgit@localhost.localdomain>
- <20130619180441.GK28300@pd.tnic>
- <3908561D78D1C84285E8C5FCA982C28F2DA88106@ORSMSX106.amr.corp.intel.com>
- <20130619183640.GL28300@pd.tnic>
- <3908561D78D1C84285E8C5FCA982C28F2DA881C2@ORSMSX106.amr.corp.intel.com>
- <20130619201438.GM28300@pd.tnic>
- <3908561D78D1C84285E8C5FCA982C28F2DA8838B@ORSMSX106.amr.corp.intel.com>
- <20130619210706.GP28300@pd.tnic>
- <3908561D78D1C84285E8C5FCA982C28F2DA884F0@ORSMSX106.amr.corp.intel.com>
- <51C37251.4000008@linux.vnet.ibm.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+From: Lan Tianyu <tianyu.lan@intel.com>
+Subject: [PATCH] PM/Qos: Update Documentation/power/pm_qos_interface.txt
+Date: Fri, 21 Jun 2013 09:50:48 +0800
+Message-ID: <1371779448-12808-1-git-send-email-tianyu.lan@intel.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga03.intel.com ([143.182.124.21]:4857 "EHLO mga03.intel.com"
+Received: from mga02.intel.com ([134.134.136.20]:24755 "EHLO mga02.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1758431Ab3FTWLa (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 20 Jun 2013 18:11:30 -0400
-In-Reply-To: <51C37251.4000008@linux.vnet.ibm.com>
-Content-Language: en-US
+	id S965573Ab3FUB54 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 20 Jun 2013 21:57:56 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Naveen N. Rao" <naveen.n.rao@linux.vnet.ibm.com>
-Cc: Borislav Petkov <bp@alien8.de>, "ananth@in.ibm.com" <ananth@in.ibm.com>, "masbock@linux.vnet.ibm.com" <masbock@linux.vnet.ibm.com>, "lcm@linux.vnet.ibm.com" <lcm@linux.vnet.ibm.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "Huang, Ying" <ying.huang@intel.com>, Robert Richter <rric@kernel.org>
+To: rjw@sisk.pl, lenb@kernel.org
+Cc: Lan Tianyu <tianyu.lan@intel.com>, linux-acpi@vger.kernel.org
 
-PiAtIFR3bywgdGhlIEdlbmVyaWMgRXJyb3IgRGF0YSBFbnRyeSAoYWthIFVFRkkgU2VjdGlvbiBE
-ZXNjcmlwdG9yKSBoYXMgYSANCj4gZmxhZyB3aGljaCBpbmRpY2F0ZXMgJ0Vycm9yIFRocmVzaG9s
-ZCBFeGNlZWRlZCcuIEZyb20gdGhlIFVFRkkgc3BlYywgaXQgDQo+IGxvb2tzIGxpa2Ugd2UgY291
-bGQgY29uc2lkZXIgdGhpcyBhcyBhbiBpbmRpY2F0aW9uIHRvIG9mZmxpbmUgdGhlIHBhZ2U7IA0K
-PiB0aG91Z2ggSSBhbSBub3Qgc3VyZSBpZi9ob3cgdGhpcyByZWxhdGVzIHRvIHRoZSB0aHJlc2hv
-bGQgdmFsdWUgYWJvdmUuDQoNClRoaXMgb25lIHNvdW5kcyB0byBtYWtlIHNlbnNlIC4uLiB0aGUg
-ZmxhZyBkZXNjcmlwdGlvbiBzb3VuZHMgZXhhY3RseSB3aGF0DQp3ZSB3YW50IC0gSSB3b24ndCBm
-ZWVsIGVtYmFycmFzc2VkIGV4cGxhaW5pbmcgdG8gcGVvcGxlIHdoeSBMaW51eCB0YWtlcw0KYWN0
-aW9uIHdoZW4gaXQgc2VlcyBhIHJlY29yZCBsaWtlIHRoaXMuDQoNCi1Ub255DQo=
+This patch updates new changes of PM QoS function.
+
+Signed-off-by: Lan Tianyu <tianyu.lan@intel.com>
+---
+ Documentation/power/pm_qos_interface.txt |   50 +++++++++++++++++++++++++-----
+ 1 file changed, 43 insertions(+), 7 deletions(-)
+
+diff --git a/Documentation/power/pm_qos_interface.txt b/Documentation/power/pm_qos_interface.txt
+index 79a2a58..4836320 100644
+--- a/Documentation/power/pm_qos_interface.txt
++++ b/Documentation/power/pm_qos_interface.txt
+@@ -7,7 +7,7 @@ one of the parameters.
+ Two different PM QoS frameworks are available:
+ 1. PM QoS classes for cpu_dma_latency, network_latency, network_throughput.
+ 2. the per-device PM QoS framework provides the API to manage the per-device latency
+-constraints.
++constraints and PM QoS flags.
+ 
+ Each parameters have defined units:
+  * latency: usec
+@@ -86,13 +86,17 @@ To remove the user mode request for a target value simply close the device
+ node.
+ 
+ 
+-2. PM QoS per-device latency framework
++2. PM QoS per-device latency and flags framework
++
++For each device, there are two lists of PM QoS requests. One is maintained
++along with the aggregated target of latency value and the other is for PM QoS
++flags. Values are updated in response to changes of the request list.
++
++Target latency value is simply the minimum of the request values held in the
++parameter list elements.  The PM QoS flags aggregate value is a gather (bitwise
++OR) of all list elements' values. Two device PM QoS flags are defined currently:
++PM_QOS_FLAG_NO_POWER_OFF and PM_QOS_FLAG_REMOTE_WAKEUP.
+ 
+-For each device a list of performance requests is maintained along with
+-an aggregated target value.  The aggregated target value is updated with
+-changes to the request list or elements of the list.  Typically the
+-aggregated target value is simply the max or min of the request values held
+-in the parameter list elements.
+ Note: the aggregated target value is implemented as an atomic variable so that
+ reading the aggregated value does not require any locking mechanism.
+ 
+@@ -119,6 +123,38 @@ the request.
+ s32 dev_pm_qos_read_value(device):
+ Returns the aggregated value for a given device's constraints list.
+ 
++enum pm_qos_flags_status dev_pm_qos_flags(device, mask)
++Check PM QoS flags of the given device against the given mask of flags.
++The meaning of the return values is as follows:
++	PM_QOS_FLAGS_ALL: All flags from the mask are set
++	PM_QOS_FLAGS_SOME: Some flags from the mask are set
++	PM_QOS_FLAGS_NONE: No flags from the mask are set
++	PM_QOS_FLAGS_UNDEFINED: The device's PM QoS structure has not been
++			initialized or the list of requests is empty.
++
++int dev_pm_qos_add_ancestor_request(dev, handle, value)
++Add a PM QoS request for the first direct ancestor of the given device whose
++power.ignore_children flag is unset.
++
++int dev_pm_qos_expose_latency_limit(device, value)
++Add a request to the device's PM QoS list of latency constraints and create
++a sysfs attribute pm_qos_resume_latency_us under the device's power directory
++allowing user space to manipulate that request.
++
++void dev_pm_qos_hide_latency_limit(device)
++Drop the request added by dev_pm_qos_expose_latency_limit() from the device's
++PM QoS list of latency constraints and remove sysfs attribute pm_qos_resume_latency_us
++from the device's power directory.
++
++int dev_pm_qos_expose_flags(device, value)
++Add a request to the device's PM QoS list of flags and create sysfs attributes
++pm_qos_no_power_off and pm_qos_remote_wakeup under the device's power directory
++allowing user space to change these flags' value.
++
++void dev_pm_qos_hide_flags(device)
++Drop the request added by dev_pm_qos_expose_flags() from the device's PM QoS list
++of flags and remove sysfs attributes pm_qos_no_power_off and pm_qos_remote_wakeup
++under the device's power directory.
+ 
+ Notification mechanisms:
+ The per-device PM QoS framework has 2 different and distinct notification trees:
+-- 
+1.7.10.4
+
