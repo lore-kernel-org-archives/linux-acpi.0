@@ -1,48 +1,44 @@
-From: Borislav Petkov <bp@alien8.de>
-Subject: Re: [PATCH v2 1/2] mce: acpi/apei: Honour Firmware First for MCA
- banks listed in APEI HEST CMC
-Date: Fri, 21 Jun 2013 16:08:04 +0200
-Message-ID: <20130621140804.GF22006@pd.tnic>
-References: <20130620073943.GE32694@pd.tnic>
- <51C3531D.3000600@linux.vnet.ibm.com>
- <20130620192928.GD19877@pd.tnic>
- <51C36288.4050405@linux.vnet.ibm.com>
- <20130620205726.GA20863@pd.tnic>
- <51C37291.40303@linux.vnet.ibm.com>
- <20130621073419.GC22006@pd.tnic>
- <51C404EA.10906@linux.vnet.ibm.com>
- <20130621083608.GE22006@pd.tnic>
- <51C41D94.1030201@linux.vnet.ibm.com>
+From: "Naveen N. Rao" <naveen.n.rao@linux.vnet.ibm.com>
+Subject: Re: [PATCH v2 2/2] mce: acpi/apei: Add a boot option to disable ff
+ mode for corrected errors
+Date: Fri, 21 Jun 2013 22:13:55 +0530
+Message-ID: <51C482CB.9040700@linux.vnet.ibm.com>
+References: <20130619180441.GK28300@pd.tnic> <3908561D78D1C84285E8C5FCA982C28F2DA88106@ORSMSX106.amr.corp.intel.com> <20130619183640.GL28300@pd.tnic> <3908561D78D1C84285E8C5FCA982C28F2DA881C2@ORSMSX106.amr.corp.intel.com> <20130619201438.GM28300@pd.tnic> <3908561D78D1C84285E8C5FCA982C28F2DA8838B@ORSMSX106.amr.corp.intel.com> <20130619210706.GP28300@pd.tnic> <3908561D78D1C84285E8C5FCA982C28F2DA884F0@ORSMSX106.amr.corp.intel.com> <51C37251.4000008@linux.vnet.ibm.com> <3908561D78D1C84285E8C5FCA982C28F2DA8993C@ORSMSX106.amr.corp.intel.com> <20130621072725.GB22006@pd.tnic>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail.skyhub.de ([78.46.96.112]:56668 "EHLO mail.skyhub.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1161446Ab3FUOIP (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 21 Jun 2013 10:08:15 -0400
-Content-Disposition: inline
-In-Reply-To: <51C41D94.1030201@linux.vnet.ibm.com>
+Received: from e23smtp06.au.ibm.com ([202.81.31.148]:41231 "EHLO
+	e23smtp06.au.ibm.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1161590Ab3FUQoI (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 21 Jun 2013 12:44:08 -0400
+Received: from /spool/local
+	by e23smtp06.au.ibm.com with IBM ESMTP SMTP Gateway: Authorized Use Only! Violators will be prosecuted
+	for <linux-acpi@vger.kernel.org> from <naveen.n.rao@linux.vnet.ibm.com>;
+	Sat, 22 Jun 2013 02:36:57 +1000
+In-Reply-To: <20130621072725.GB22006@pd.tnic>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Naveen N. Rao" <naveen.n.rao@linux.vnet.ibm.com>
-Cc: tony.luck@intel.com, ananth@in.ibm.com, masbock@linux.vnet.ibm.com, lcm@linux.vnet.ibm.com, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, ying.huang@intel.com
+To: Borislav Petkov <bp@alien8.de>, "Luck, Tony" <tony.luck@intel.com>
+Cc: "ananth@in.ibm.com" <ananth@in.ibm.com>, "masbock@linux.vnet.ibm.com" <masbock@linux.vnet.ibm.com>, "lcm@linux.vnet.ibm.com" <lcm@linux.vnet.ibm.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "Huang, Ying" <ying.huang@intel.com>, Robert Richter <rric@kernel.org>
 
-On Fri, Jun 21, 2013 at 03:02:04PM +0530, Naveen N. Rao wrote:
-> As an example, consider a hypothetical single-core Intel processor
-> with Hyperthreading. On init, let's say the first cpu ends up owning
-> banks 1, 2, 3 and 4; and the second cpu ends up owning banks 1 and
-> 2. This would mean that MC banks 1 and 2 are "hyperthread"-specific,
-> while banks 3 and 4 are shared. Now, if we offline the first cpu, it
-> disables CMCI on all 4 banks.
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+On 06/21/2013 12:57 PM, Borislav Petkov wrote:
+> On Thu, Jun 20, 2013 at 10:11:27PM +0000, Luck, Tony wrote:
+>>> - Two, the Generic Error Data Entry (aka UEFI Section Descriptor) has a
+>>> flag which indicates 'Error Threshold Exceeded'. From the UEFI spec, it
+>>> looks like we could consider this as an indication to offline the page;
+>>> though I am not sure if/how this relates to the threshold value above.
+>>
+>> This one sounds to make sense ... the flag description sounds exactly what
+>> we want - I won't feel embarrassed explaining to people why Linux takes
+>> action when it sees a record like this.
+>
+> Yep, and firmware can set that flag when it wants to, so decision when
+> to offline a page is left to the platform.
+>
 
-This is what I find strange - having to disable CMCI, especially on a
-shared bank, just to reenable it right back on the next core. But I
-guess this is a constraint dictated by the hardware...
+Ok, I will work towards a patch which does this.
 
--- 
-Regards/Gruss,
-    Boris.
+Thanks,
+Naveen
 
-Sent from a fat crate under my desk. Formatting is fine.
---
