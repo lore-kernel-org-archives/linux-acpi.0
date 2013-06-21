@@ -1,21 +1,19 @@
 From: Lan Tianyu <tianyu.lan@intel.com>
-Subject: [PATCH] PM/Qos: Update Documentation/power/pm_qos_interface.txt
-Date: Fri, 21 Jun 2013 09:50:48 +0800
-Message-ID: <1371779448-12808-1-git-send-email-tianyu.lan@intel.com>
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga02.intel.com ([134.134.136.20]:24755 "EHLO mga02.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S965573Ab3FUB54 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 20 Jun 2013 21:57:56 -0400
-Sender: linux-acpi-owner@vger.kernel.org
-List-Id: linux-acpi@vger.kernel.org
+Subject: [Resend PATCH] PM/Qos: Update Documentation/power/pm_qos_interface.txt
+Date: Fri, 21 Jun 2013 10:09:15 +0800
+Message-ID: <1371780555-13157-1-git-send-email-tianyu.lan@intel.com>
+Return-path: <linux-pm-owner@vger.kernel.org>
+Sender: linux-pm-owner@vger.kernel.org
 To: rjw@sisk.pl, lenb@kernel.org
-Cc: Lan Tianyu <tianyu.lan@intel.com>, linux-acpi@vger.kernel.org
+Cc: Lan Tianyu <tianyu.lan@intel.com>, linux-acpi@vger.kernel.org, linux-pm@vger.kernel.org
+List-Id: linux-acpi@vger.kernel.org
 
 This patch updates new changes of PM QoS function.
 
 Signed-off-by: Lan Tianyu <tianyu.lan@intel.com>
 ---
+Cc linux-pm maillist
+
  Documentation/power/pm_qos_interface.txt |   50 +++++++++++++++++++++++++-----
  1 file changed, 43 insertions(+), 7 deletions(-)
 
