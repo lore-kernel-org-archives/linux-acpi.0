@@ -1,59 +1,72 @@
-From: Nick Warne <nick@linicks.net>
-Subject: Re: Dmesg acpi warning message - question please
-Date: Sat, 22 Jun 2013 15:14:15 +0100
-Message-ID: <20130622141415.GA2077@sauron>
-References: <20130622112722.GA2196@sauron>
- <51C5ADC7.6050009@gmail.com>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: Re: [BUGFIX v2 0/4] fix bug 56531, 59501 and 59581
+Date: Sat, 22 Jun 2013 21:59:33 +0200
+Message-ID: <4437606.laqX8rCptb@vostro.rjw.lan>
+References: <1371238081-32260-1-git-send-email-jiang.liu@huawei.com> <2686036.58bcYhGNts@vostro.rjw.lan> <51C5103C.4030802@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from linicks.net ([87.127.191.50]:46741 "EHLO mail.linicks.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750986Ab3FVOOT (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Sat, 22 Jun 2013 10:14:19 -0400
-Content-Disposition: inline
-In-Reply-To: <51C5ADC7.6050009@gmail.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7Bit
+Return-path: <linux-pci-owner@vger.kernel.org>
+In-Reply-To: <51C5103C.4030802@gmail.com>
+Sender: linux-pci-owner@vger.kernel.org
+To: Jiang Liu <liuj97@gmail.com>
+Cc: "Alexander E. Patrakov" <patrakov@gmail.com>, Jiang Liu <jiang.liu@huawei.com>, alexdeucher@gmail.com, Bjorn Helgaas <bhelgaas@google.com>, Yinghai Lu <yinghai@kernel.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Yijing Wang <wangyijing@huawei.com>, linux-acpi@vger.kernel.org, "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
-To: Lan Tianyu <lantianyu1986@gmail.com>
-Cc: linux-acpi@vger.kernel.org
 
-Hi Lan,
+On Saturday, June 22, 2013 10:47:24 AM Jiang Liu wrote:
+> On 06/22/2013 08:13 AM, Rafael J. Wysocki wrote:
+> > On Saturday, June 22, 2013 12:54:21 AM Jiang Liu wrote:
+> >> On 06/21/2013 03:06 AM, Rafael J. Wysocki wrote:
+> >>> On Wednesday, June 19, 2013 11:18:41 AM Alexander E. Patrakov wrote:
+> >>>> 2013/6/19 Rafael J. Wysocki <rjw@sisk.pl>:
+> >>>>> OK, let's try to untangle this a bit.
+> >>>>>
+> >>>>> If you applyt patches [1/4] and [4/4] from the $subject series only, what
+> >>>>> does remain unfixed?
+> >>>>
+> >>>> [not tested, can do so in 12 hours if needed]
+> >>>>
+> >>>> I think there will be problems on undocking and/or on the second
+> >>>> docking, as described in comments #6 - #8 of
+> >>>> https://bugzilla.kernel.org/show_bug.cgi?id=59501
+> >>>
+> >>> OK, I think I have something that might work.  It may not solve all problems,
+> >>> but maybe it helps a bit.  Unfortunately, I can't really test it, so please do
+> >>> if you can.
+> >>>
+> >>> Please apply [1/4] and [4/4] and the one below and see what happens.
+> >>>
+> >>> Thanks,
+> >>> Rafael
+> >>>
+> >>>
+> >>> ---
+> >>> Rationale:
+> >>> 	acpiphp_glue.c:disable_device() trims the underlying ACPI device objects
+> >>> 	after removing the companion PCI devices, so the dock station code
+> >>> 	doesn't need to trim them separately for the dependent devices handled
+> >>> 	by acpiphp.
+> >>>
+> >>> 	Moreover, acpiphp_glue.c is the only user of
+> >>> 	[un]register_hotplug_dock_device(), so *all* devices on the
+> >>> 	ds->hotplug_devices list are handled by acpiphp and ops is set for all
+> >>> 	of them.
+> >> Hi Rafael,
+> >>     There's an ongoing patch to fix a disk bay hotplug regression, which
+> >> may add a second caller of register_hotplug_device(). Please refer to
+> >> bug 59871, and the proposed patch is at:
+> >> https://bugzilla.kernel.org/attachment.cgi?id=105581
+> Hi Rafael,
+>     You can find the proposed patch for ATA Bay hotplug at
+> https://bugzilla.kernel.org/attachment.cgi?id=105581
 
-On Sat, Jun 22, 2013 at 09:59:35PM +0800, Lan Tianyu wrote:
-> =E4=BA=8E 2013/6/22 19:27, Nick Warne =E5=86=99=E9=81=93:
-> >Dear Devs,
-> >
-> >Please could anybody explain what this message means in dmesg (and s=
-yslog) when I reboot my amdx86_64 machine:
-> >
-> >i2c i2c-3: nForce2 SMBus adapter at 0x1c00
-> >i2c i2c-4: nForce2 SMBus adapter at 0x1c40
-> >it87: Found IT8712F chip at 0x290, revision 8
-> >ACPI Warning: 0x0000000000000295-0x0000000000000296 SystemIO conflic=
-ts with Region \IP__ 1 (20130117/utaddress-251)
-> >ACPI: If an ACPI driver is available for this device, you should use=
- it instead of the native driver
-> >
-> Because it87 driver try to use io resource which
-> is used in the ACPI table. The it87 driver will not be
-> loaded successfully in this case.
+Well, maybe it'll have to be reworked slightly.
 
-Thank you - I just rebuilt kernel without it87 sensor driver and logs a=
-re clean, and lm-sensors/sensors work OK.
+Which BZ entry is that?
 
-So basically, even though I have that chip, I should just let acpi do i=
-t's stuff?  I think that is what confused me.
+Rafael
 
-Thanks,
 
-Nick
---=20
-=46ree Software Foundation Associate Member 5508
-http://linicks.net/
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+-- 
+I speak only for myself.
+Rafael J. Wysocki, Intel Open Source Technology Center.
