@@ -1,76 +1,23 @@
-From: Jiang Liu <liuj97@gmail.com>
-Subject: Re: [BUGFIX v2 0/4] fix bug 56531, 59501 and 59581
-Date: Sun, 23 Jun 2013 23:57:46 +0800
-Message-ID: <51C71AFA.4090102@gmail.com>
-References: <1371238081-32260-1-git-send-email-jiang.liu@huawei.com> <2686036.58bcYhGNts@vostro.rjw.lan> <51C5103C.4030802@gmail.com> <4437606.laqX8rCptb@vostro.rjw.lan>
+From: "Alexander E. Patrakov" <patrakov@gmail.com>
+Subject: Re: [PATCH 0/3] ACPI / dock / PCI: Fix problems with dock and PCI hotplug
+Date: Sun, 23 Jun 2013 23:50:15 +0600
+Message-ID: <CAN_LGv3LZbp-7JE=Lxo+53GxWTQ_D6nJ=w+OnuQ3JkmWfXOhxg@mail.gmail.com>
+References: <2737587.I0nULev1kj@vostro.rjw.lan>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-pci-owner@vger.kernel.org>
-In-Reply-To: <4437606.laqX8rCptb@vostro.rjw.lan>
-Sender: linux-pci-owner@vger.kernel.org
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <2737587.I0nULev1kj@vostro.rjw.lan>
+Sender: linux-kernel-owner@vger.kernel.org
 To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: "Alexander E. Patrakov" <patrakov@gmail.com>, Jiang Liu <jiang.liu@huawei.com>, alexdeucher@gmail.com, Bjorn Helgaas <bhelgaas@google.com>, Yinghai Lu <yinghai@kernel.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Yijing Wang <wangyijing@huawei.com>, linux-acpi@vger.kernel.org, "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
+Cc: linux-acpi@vger.kernel.org, Bjorn Helgaas <bhelgaas@google.com>, Yinghai Lu <yinghai@kernel.org>, Jiang Liu <jiang.liu@huawei.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Yijing Wang <wangyijing@huawei.com>, Jiang Liu <liuj97@gmail.com>, "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On 06/23/2013 03:59 AM, Rafael J. Wysocki wrote:
-> On Saturday, June 22, 2013 10:47:24 AM Jiang Liu wrote:
->> On 06/22/2013 08:13 AM, Rafael J. Wysocki wrote:
->>> On Saturday, June 22, 2013 12:54:21 AM Jiang Liu wrote:
->>>> On 06/21/2013 03:06 AM, Rafael J. Wysocki wrote:
->>>>> On Wednesday, June 19, 2013 11:18:41 AM Alexander E. Patrakov wrote:
->>>>>> 2013/6/19 Rafael J. Wysocki <rjw@sisk.pl>:
->>>>>>> OK, let's try to untangle this a bit.
->>>>>>>
->>>>>>> If you applyt patches [1/4] and [4/4] from the $subject series only, what
->>>>>>> does remain unfixed?
->>>>>>
->>>>>> [not tested, can do so in 12 hours if needed]
->>>>>>
->>>>>> I think there will be problems on undocking and/or on the second
->>>>>> docking, as described in comments #6 - #8 of
->>>>>> https://bugzilla.kernel.org/show_bug.cgi?id=59501
->>>>>
->>>>> OK, I think I have something that might work.  It may not solve all problems,
->>>>> but maybe it helps a bit.  Unfortunately, I can't really test it, so please do
->>>>> if you can.
->>>>>
->>>>> Please apply [1/4] and [4/4] and the one below and see what happens.
->>>>>
->>>>> Thanks,
->>>>> Rafael
->>>>>
->>>>>
->>>>> ---
->>>>> Rationale:
->>>>> 	acpiphp_glue.c:disable_device() trims the underlying ACPI device objects
->>>>> 	after removing the companion PCI devices, so the dock station code
->>>>> 	doesn't need to trim them separately for the dependent devices handled
->>>>> 	by acpiphp.
->>>>>
->>>>> 	Moreover, acpiphp_glue.c is the only user of
->>>>> 	[un]register_hotplug_dock_device(), so *all* devices on the
->>>>> 	ds->hotplug_devices list are handled by acpiphp and ops is set for all
->>>>> 	of them.
->>>> Hi Rafael,
->>>>     There's an ongoing patch to fix a disk bay hotplug regression, which
->>>> may add a second caller of register_hotplug_device(). Please refer to
->>>> bug 59871, and the proposed patch is at:
->>>> https://bugzilla.kernel.org/attachment.cgi?id=105581
->> Hi Rafael,
->>     You can find the proposed patch for ATA Bay hotplug at
->> https://bugzilla.kernel.org/attachment.cgi?id=105581
-> 
-> Well, maybe it'll have to be reworked slightly.
-> 
-> Which BZ entry is that?
-Hi Rafael,
-	It's bug 59871, please refer to:
-https://bugzilla.kernel.org/show_bug.cgi?id=59871
-Regards!
-Gerry
+2013/6/23 Rafael J. Wysocki <rjw@sisk.pl>:
+> Alexander, I've modified patch [3/3] a bit since you have tested it.
+> The modifications shouldn't affect the behavior, but if you could re-test it,
+> that would be great.
 
-> 
-> Rafael
-> 
-> 
+Retested, everything works just as with the previous version of your patch.
+
+--
+Alexander E. Patrakov
