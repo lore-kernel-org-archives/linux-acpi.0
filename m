@@ -1,16 +1,16 @@
 From: "Rafael J. Wysocki" <rjw@sisk.pl>
 Subject: Re: [BUGFIX v2 0/4] fix bug 56531, 59501 and 59581
-Date: Sun, 23 Jun 2013 23:51:08 +0200
-Message-ID: <4594257.0MqNgJk35h@vostro.rjw.lan>
+Date: Sun, 23 Jun 2013 23:52:32 +0200
+Message-ID: <1397053.iSJsVQ5uPZ@vostro.rjw.lan>
 References: <1371238081-32260-1-git-send-email-jiang.liu@huawei.com> <4437606.laqX8rCptb@vostro.rjw.lan> <51C71AFA.4090102@gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7Bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from hydra.sisk.pl ([212.160.235.94]:48343 "EHLO hydra.sisk.pl"
+Received: from hydra.sisk.pl ([212.160.235.94]:48352 "EHLO hydra.sisk.pl"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751838Ab3FWVlm (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Sun, 23 Jun 2013 17:41:42 -0400
+	id S1751426Ab3FWVnH (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Sun, 23 Jun 2013 17:43:07 -0400
 In-Reply-To: <51C71AFA.4090102@gmail.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
@@ -80,4 +80,3 @@ patchset.
 
 Thanks,
 Rafael
-
