@@ -1,104 +1,199 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: [PATCH 3/3] ACPI / dock / PCI: Synchronous handling of dock events for PCI devices
-Date: Sun, 23 Jun 2013 11:59:41 +0200
-Message-ID: <1410772.iYNzcAkY0L@vostro.rjw.lan>
-References: <2737587.I0nULev1kj@vostro.rjw.lan> <15269989.ojxutYs2L1@vostro.rjw.lan> <CAE9FiQV7R5mQKEFx+JhE7E1MjWSSxe2+WeK0aN_hVh6sZJ2GdQ@mail.gmail.com>
+From: Jiang Liu <liuj97@gmail.com>
+Subject: Re: [PATCH 3/3] ACPI / dock / PCI: Synchronous handling of dock events
+ for PCI devices
+Date: Sun, 23 Jun 2013 23:54:15 +0800
+Message-ID: <51C71A27.1040600@gmail.com>
+References: <2737587.I0nULev1kj@vostro.rjw.lan> <15269989.ojxutYs2L1@vostro.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7Bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <CAE9FiQV7R5mQKEFx+JhE7E1MjWSSxe2+WeK0aN_hVh6sZJ2GdQ@mail.gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Yinghai Lu <yinghai@kernel.org>
-Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Bjorn Helgaas <bhelgaas@google.com>, "Alexander E . Patrakov" <patrakov@gmail.com>, Jiang Liu <jiang.liu@huawei.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Yijing Wang <wangyijing@huawei.com>, Jiang Liu <liuj97@gmail.com>, "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-pci-owner@vger.kernel.org>
+In-Reply-To: <15269989.ojxutYs2L1@vostro.rjw.lan>
+Sender: linux-pci-owner@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: linux-acpi@vger.kernel.org, Bjorn Helgaas <bhelgaas@google.com>, Yinghai Lu <yinghai@kernel.org>, "Alexander E . Patrakov" <patrakov@gmail.com>, Jiang Liu <jiang.liu@huawei.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Yijing Wang <wangyijing@huawei.com>, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Saturday, June 22, 2013 05:22:20 PM Yinghai Lu wrote:
-> On Sat, Jun 22, 2013 at 2:25 PM, Rafael J. Wysocki <rjw@sisk.pl> wrote:
-> > From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
-> >
-> > To resolve that deadlock use the observation that
-> > unregister_hotplug_dock_device() won't need to acquire hp_lock
-> > if PCI bridges the devices on the dock station depend on are
-> > prevented from being removed prematurely while the first loop in
-> > hotplug_dock_devices() is in progress.
-> >
-> > To make that possible, introduce a mechanism by which the callers of
-> > register_hotplug_dock_device() can provide "init" and "release"
-> > routines that will be executed, respectively, after the addition
-> > and removal of the physical device object associated with the
-> > given ACPI device handle.  Make acpiphp use two new functions,
-> > acpiphp_dock_init() and acpiphp_dock_release(), respectively,
-> > calling get_bridge() and put_bridge() on the PCI bridge holding the
-> > given device, respectively, for this purpose.
-> >
-> > In addition to that, remove the dock station's list of
-> > "hotplug devices" and make the dock code always walk the whole list
-> > of "dependent devices" instead in such a way that the loops in
-> > hotplug_dock_devices() and dock_event() (replacing the loops over
-> > "hotplug devices") will take references to the list entries that
-> > register_hotplug_dock_device() has been called for.  That prevents
-> > the "release" routines associated with those entries from being
-> > called while the given entry is being processed and for PCI
-> > devices this means that their bridges won't be removed (by a
-> > concurrent thread) while hotplug_event_func() handling them is
-> > being executed.
-> ..
-> > -static void
-> > -dock_del_hotplug_device(struct dock_station *ds,
-> > -                       struct dock_dependent_device *dd)
-> > +static void dock_release_hotplug(struct dock_dependent_device *dd)
-> >  {
-> > -       mutex_lock(&ds->hp_lock);
-> > -       list_del(&dd->hotplug_list);
-> > -       mutex_unlock(&ds->hp_lock);
-> > +       void (*release)(void *) = NULL;
-> > +       void *context = NULL;
-> > +
-> > +       mutex_lock(&hotplug_lock);
-> > +
-> > +       if (dd->hp_context && !--dd->hp_refcount) {
-> > +               dd->hp_ops = NULL;
-> > +               context = dd->hp_context;
-> > +               dd->hp_context = NULL;
-> > +               release = dd->hp_release;
-> > +               dd->hp_release = NULL;
-> > +       }
-> > +
-> > +       if (release && context)
-> > +               release(context);
-> > +
-> > +       mutex_unlock(&hotplug_lock);
-> > +}
-> > +
-> > +static void dock_hotplug_event(struct dock_dependent_device *dd, u32 event,
-> > +                              bool uevent)
-> > +{
-> > +       acpi_notify_handler cb = NULL;
-> > +       bool run = false;
-> > +
-> > +       mutex_lock(&hotplug_lock);
-> > +
-> > +       if (dd->hp_context) {
-> > +               run = true;
-> > +               dd->hp_refcount++;
-> > +               if (dd->hp_ops)
-> > +                       cb = uevent ? dd->hp_ops->uevent : dd->hp_ops->handler;
-> > +       }
-> > +
-> > +       mutex_unlock(&hotplug_lock);
-> > +
-> > +       if (!run)
-> > +               return;
-> > +
-> > +       if (cb)
-> > +               cb(dd->handle, event, dd->hp_context);
-> > +
-> > +       dock_release_hotplug(dd);
+On 06/23/2013 05:25 AM, Rafael J. Wysocki wrote:
+> From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 > 
-> during DOCKING, dock_release_hotplug get called too?
+> The interactions between the ACPI dock driver and the ACPI-based PCI
+> hotplug (acpiphp) are currently problematic because of ordering
+> issues during hot-remove operations.
+> 
+> First of all, the current ACPI glue code expects that physical
+> devices will always be deleted before deleting the companion ACPI
+> device objects.  Otherwise, acpi_unbind_one() will fail with a
+> warning message printed to the kernel log, for example:
+> 
+> [  185.026073] usb usb5: Oops, 'acpi_handle' corrupt
+> [  185.035150] pci 0000:1b:00.0: Oops, 'acpi_handle' corrupt
+> [  185.035515] pci 0000:18:02.0: Oops, 'acpi_handle' corrupt
+> [  180.013656]  port1: Oops, 'acpi_handle' corrupt
+> 
+[...]
+> @@ -597,15 +654,11 @@ register_hotplug_dock_device(acpi_handle
+>  		 * ops
+>  		 */
+>  		dd = find_dock_dependent_device(dock_station, handle);
+> -		if (dd) {
+> -			dd->ops = ops;
+> -			dd->context = context;
+> -			dock_add_hotplug_device(dock_station, dd);
+> -			ret = 0;
+> -		}
+> +		if (dd)
+> +			return dock_init_hotplug(dd, ops, context,
+> +						 init, release);
+Hi Rafael,
+	Seems not an equivalent change.	According to the comment just above the
+code, we shouldn't return but continue here.
+/*
+ * An ATA bay can be in a dock and itself can be ejected
+ * separately, so there are two 'dock stations' which need the
+ * ops
+ */
 
-Yes, we need to drop down the refcount we've just bumped up.
+Regards!
+Gerry
 
-Thanks,
-Rafael
+>  
+> -
+> -	return ret;
+> +	return -EINVAL;
+>  }
+>  EXPORT_SYMBOL_GPL(register_hotplug_dock_device);
+>  
+> @@ -623,8 +676,10 @@ void unregister_hotplug_dock_device(acpi
+>  
+>  	list_for_each_entry(dock_station, &dock_stations, sibling) {
+>  		dd = find_dock_dependent_device(dock_station, handle);
+> -		if (dd)
+> -			dock_del_hotplug_device(dock_station, dd);
+> +		if (dd) {
+> +			dock_release_hotplug(dd);
+> +			return;
+> +		}
+>  	}
+>  }
+>  EXPORT_SYMBOL_GPL(unregister_hotplug_dock_device);
+> @@ -953,7 +1008,6 @@ static int __init dock_add(acpi_handle h
+>  	mutex_init(&dock_station->hp_lock);
+>  	spin_lock_init(&dock_station->dd_lock);
+>  	INIT_LIST_HEAD(&dock_station->sibling);
+> -	INIT_LIST_HEAD(&dock_station->hotplug_devices);
+>  	ATOMIC_INIT_NOTIFIER_HEAD(&dock_notifier_list);
+>  	INIT_LIST_HEAD(&dock_station->dependent_devices);
+>  
+> Index: linux-pm/include/acpi/acpi_drivers.h
+> ===================================================================
+> --- linux-pm.orig/include/acpi/acpi_drivers.h
+> +++ linux-pm/include/acpi/acpi_drivers.h
+> @@ -123,7 +123,9 @@ extern int register_dock_notifier(struct
+>  extern void unregister_dock_notifier(struct notifier_block *nb);
+>  extern int register_hotplug_dock_device(acpi_handle handle,
+>  					const struct acpi_dock_ops *ops,
+> -					void *context);
+> +					void *context,
+> +					void (*init)(void *),
+> +					void (*release)(void *));
+>  extern void unregister_hotplug_dock_device(acpi_handle handle);
+>  #else
+>  static inline int is_dock_device(acpi_handle handle)
+> Index: linux-pm/drivers/pci/hotplug/acpiphp_glue.c
+> ===================================================================
+> --- linux-pm.orig/drivers/pci/hotplug/acpiphp_glue.c
+> +++ linux-pm/drivers/pci/hotplug/acpiphp_glue.c
+> @@ -61,6 +61,7 @@ static DEFINE_MUTEX(bridge_mutex);
+>  static void handle_hotplug_event_bridge (acpi_handle, u32, void *);
+>  static void acpiphp_sanitize_bus(struct pci_bus *bus);
+>  static void acpiphp_set_hpp_values(struct pci_bus *bus);
+> +static void hotplug_event_func(acpi_handle handle, u32 type, void *context);
+>  static void handle_hotplug_event_func(acpi_handle handle, u32 type, void *context);
+>  static void free_bridge(struct kref *kref);
+>  
+> @@ -147,7 +148,7 @@ static int post_dock_fixups(struct notif
+>  
+>  
+>  static const struct acpi_dock_ops acpiphp_dock_ops = {
+> -	.handler = handle_hotplug_event_func,
+> +	.handler = hotplug_event_func,
+>  };
+>  
+>  /* Check whether the PCI device is managed by native PCIe hotplug driver */
+> @@ -179,6 +180,20 @@ static bool device_is_managed_by_native_
+>  	return true;
+>  }
+>  
+> +static void acpiphp_dock_init(void *data)
+> +{
+> +	struct acpiphp_func *func = data;
+> +
+> +	get_bridge(func->slot->bridge);
+> +}
+> +
+> +static void acpiphp_dock_release(void *data)
+> +{
+> +	struct acpiphp_func *func = data;
+> +
+> +	put_bridge(func->slot->bridge);
+> +}
+> +
+>  /* callback routine to register each ACPI PCI slot object */
+>  static acpi_status
+>  register_slot(acpi_handle handle, u32 lvl, void *context, void **rv)
+> @@ -298,7 +313,8 @@ register_slot(acpi_handle handle, u32 lv
+>  		 */
+>  		newfunc->flags &= ~FUNC_HAS_EJ0;
+>  		if (register_hotplug_dock_device(handle,
+> -			&acpiphp_dock_ops, newfunc))
+> +			&acpiphp_dock_ops, newfunc,
+> +			acpiphp_dock_init, acpiphp_dock_release))
+>  			dbg("failed to register dock device\n");
+>  
+>  		/* we need to be notified when dock events happen
+> @@ -1068,22 +1084,12 @@ static void handle_hotplug_event_bridge(
+>  	alloc_acpi_hp_work(handle, type, context, _handle_hotplug_event_bridge);
+>  }
+>  
+> -static void _handle_hotplug_event_func(struct work_struct *work)
+> +static void hotplug_event_func(acpi_handle handle, u32 type, void *context)
+>  {
+> -	struct acpiphp_func *func;
+> +	struct acpiphp_func *func = context;
+>  	char objname[64];
+>  	struct acpi_buffer buffer = { .length = sizeof(objname),
+>  				      .pointer = objname };
+> -	struct acpi_hp_work *hp_work;
+> -	acpi_handle handle;
+> -	u32 type;
+> -
+> -	hp_work = container_of(work, struct acpi_hp_work, work);
+> -	handle = hp_work->handle;
+> -	type = hp_work->type;
+> -	func = (struct acpiphp_func *)hp_work->context;
+> -
+> -	acpi_scan_lock_acquire();
+>  
+>  	acpi_get_name(handle, ACPI_FULL_PATHNAME, &buffer);
+>  
+> @@ -1116,6 +1122,18 @@ static void _handle_hotplug_event_func(s
+>  		warn("notify_handler: unknown event type 0x%x for %s\n", type, objname);
+>  		break;
+>  	}
+> +}
+> +
+> +static void _handle_hotplug_event_func(struct work_struct *work)
+> +{
+> +	struct acpi_hp_work *hp_work;
+> +	struct acpiphp_func *func;
+> +
+> +	hp_work = container_of(work, struct acpi_hp_work, work);
+> +	func = hp_work->context;
+> +	acpi_scan_lock_acquire();
+> +
+> +	hotplug_event_func(hp_work->handle, hp_work->type, func);
+>  
+>  	acpi_scan_lock_release();
+>  	kfree(hp_work); /* allocated in handle_hotplug_event_func */
+> 
