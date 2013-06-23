@@ -1,82 +1,131 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: [BUGFIX v2 0/4] fix bug 56531, 59501 and 59581
-Date: Sun, 23 Jun 2013 23:52:32 +0200
-Message-ID: <1397053.iSJsVQ5uPZ@vostro.rjw.lan>
-References: <1371238081-32260-1-git-send-email-jiang.liu@huawei.com> <4437606.laqX8rCptb@vostro.rjw.lan> <51C71AFA.4090102@gmail.com>
+From: Yinghai Lu <yinghai@kernel.org>
+Subject: Re: [Update][PATCH 3/3] ACPI / dock / PCI: Synchronous handling of
+ dock events for PCI devices
+Date: Sun, 23 Jun 2013 16:04:52 -0700
+Message-ID: <CAE9FiQUJh-u-yimuGpFiOO_-L7=+V-57W0Tn+cgR3ru=PQ+xvw@mail.gmail.com>
+References: <2737587.I0nULev1kj@vostro.rjw.lan>
+	<CAE9FiQVGz-BOq4LeZ-iNCAKqPF=Tzuq6uTZ=AAnO=8yMa22jYw@mail.gmail.com>
+	<CAE9FiQWf7_v0Mc2rdhg9ssk9NCFNqtv8LiCfayw00OqzbozvSw@mail.gmail.com>
+	<1528326.6SFofebmNT@vostro.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from hydra.sisk.pl ([212.160.235.94]:48352 "EHLO hydra.sisk.pl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751426Ab3FWVnH (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Sun, 23 Jun 2013 17:43:07 -0400
-In-Reply-To: <51C71AFA.4090102@gmail.com>
+Received: from mail-ie0-f179.google.com ([209.85.223.179]:62122 "EHLO
+	mail-ie0-f179.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751803Ab3FWXMi (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sun, 23 Jun 2013 19:12:38 -0400
+In-Reply-To: <1528326.6SFofebmNT@vostro.rjw.lan>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Jiang Liu <liuj97@gmail.com>
-Cc: "Alexander E. Patrakov" <patrakov@gmail.com>, Jiang Liu <jiang.liu@huawei.com>, alexdeucher@gmail.com, Bjorn Helgaas <bhelgaas@google.com>, Yinghai Lu <yinghai@kernel.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Yijing Wang <wangyijing@huawei.com>, linux-acpi@vger.kernel.org, "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
+To: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: Jiang Liu <liuj97@gmail.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Bjorn Helgaas <bhelgaas@google.com>, "Alexander E . Patrakov" <patrakov@gmail.com>, Jiang Liu <jiang.liu@huawei.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Yijing Wang <wangyijing@huawei.com>, "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
 
-On Sunday, June 23, 2013 11:57:46 PM Jiang Liu wrote:
-> On 06/23/2013 03:59 AM, Rafael J. Wysocki wrote:
-> > On Saturday, June 22, 2013 10:47:24 AM Jiang Liu wrote:
-> >> On 06/22/2013 08:13 AM, Rafael J. Wysocki wrote:
-> >>> On Saturday, June 22, 2013 12:54:21 AM Jiang Liu wrote:
-> >>>> On 06/21/2013 03:06 AM, Rafael J. Wysocki wrote:
-> >>>>> On Wednesday, June 19, 2013 11:18:41 AM Alexander E. Patrakov wrote:
-> >>>>>> 2013/6/19 Rafael J. Wysocki <rjw@sisk.pl>:
-> >>>>>>> OK, let's try to untangle this a bit.
-> >>>>>>>
-> >>>>>>> If you applyt patches [1/4] and [4/4] from the $subject series only, what
-> >>>>>>> does remain unfixed?
-> >>>>>>
-> >>>>>> [not tested, can do so in 12 hours if needed]
-> >>>>>>
-> >>>>>> I think there will be problems on undocking and/or on the second
-> >>>>>> docking, as described in comments #6 - #8 of
-> >>>>>> https://bugzilla.kernel.org/show_bug.cgi?id=59501
-> >>>>>
-> >>>>> OK, I think I have something that might work.  It may not solve all problems,
-> >>>>> but maybe it helps a bit.  Unfortunately, I can't really test it, so please do
-> >>>>> if you can.
-> >>>>>
-> >>>>> Please apply [1/4] and [4/4] and the one below and see what happens.
-> >>>>>
-> >>>>> Thanks,
-> >>>>> Rafael
-> >>>>>
-> >>>>>
-> >>>>> ---
-> >>>>> Rationale:
-> >>>>> 	acpiphp_glue.c:disable_device() trims the underlying ACPI device objects
-> >>>>> 	after removing the companion PCI devices, so the dock station code
-> >>>>> 	doesn't need to trim them separately for the dependent devices handled
-> >>>>> 	by acpiphp.
-> >>>>>
-> >>>>> 	Moreover, acpiphp_glue.c is the only user of
-> >>>>> 	[un]register_hotplug_dock_device(), so *all* devices on the
-> >>>>> 	ds->hotplug_devices list are handled by acpiphp and ops is set for all
-> >>>>> 	of them.
-> >>>> Hi Rafael,
-> >>>>     There's an ongoing patch to fix a disk bay hotplug regression, which
-> >>>> may add a second caller of register_hotplug_device(). Please refer to
-> >>>> bug 59871, and the proposed patch is at:
-> >>>> https://bugzilla.kernel.org/attachment.cgi?id=105581
-> >> Hi Rafael,
-> >>     You can find the proposed patch for ATA Bay hotplug at
-> >> https://bugzilla.kernel.org/attachment.cgi?id=105581
-> > 
-> > Well, maybe it'll have to be reworked slightly.
-> > 
-> > Which BZ entry is that?
-> Hi Rafael,
-> 	It's bug 59871, please refer to:
-> https://bugzilla.kernel.org/show_bug.cgi?id=59871
+On Sun, Jun 23, 2013 at 2:42 PM, Rafael J. Wysocki <rjw@sisk.pl> wrote:
+> On Sunday, June 23, 2013 01:29:19 PM Yinghai Lu wrote:
+>> On Sun, Jun 23, 2013 at 12:57 PM, Yinghai Lu <yinghai@kernel.org> wrote:
+>> > On Sun, Jun 23, 2013 at 8:54 AM, Jiang Liu <liuj97@gmail.com> wrote:
+>> >> On 06/23/2013 05:25 AM, Rafael J. Wysocki wrote:
+>> >>> From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+>> >>>
+>> >>> The interactions between the ACPI dock driver and the ACPI-based PCI
+>> >>> hotplug (acpiphp) are currently problematic because of ordering
+>> >>> issues during hot-remove operations.
+>> >>>
+>> >>> First of all, the current ACPI glue code expects that physical
+>> >>> devices will always be deleted before deleting the companion ACPI
+>> >>> device objects.  Otherwise, acpi_unbind_one() will fail with a
+>> >>> warning message printed to the kernel log, for example:
+>> >>>
+>> >>> [  185.026073] usb usb5: Oops, 'acpi_handle' corrupt
+>> >>> [  185.035150] pci 0000:1b:00.0: Oops, 'acpi_handle' corrupt
+>> >>> [  185.035515] pci 0000:18:02.0: Oops, 'acpi_handle' corrupt
+>> >>> [  180.013656]  port1: Oops, 'acpi_handle' corrupt
+>> >>>
+>> >> [...]
+>> >>> @@ -597,15 +654,11 @@ register_hotplug_dock_device(acpi_handle
+>> >>>                * ops
+>> >>>                */
+>> >>>               dd = find_dock_dependent_device(dock_station, handle);
+>> >>> -             if (dd) {
+>> >>> -                     dd->ops = ops;
+>> >>> -                     dd->context = context;
+>> >>> -                     dock_add_hotplug_device(dock_station, dd);
+>> >>> -                     ret = 0;
+>> >>> -             }
+>> >>> +             if (dd)
+>> >>> +                     return dock_init_hotplug(dd, ops, context,
+>> >>> +                                              init, release);
+>> >> Hi Rafael,
+>> >>         Seems not an equivalent change. According to the comment just above the
+>> >> code, we shouldn't return but continue here.
+>> >> /*
+>> >>  * An ATA bay can be in a dock and itself can be ejected
+>> >>  * separately, so there are two 'dock stations' which need the
+>> >>  * ops
+>> >>  */
+>> >
+>> > two dock stations:
+>> > Do you mean two dock station has same handle?
+>> >
+>> > dock_add should add correctly flags for IS_DOCK and IS_ATA.
+>> > if one handle has _DCK and _GTF etc.
+>> >
+>> > or do you mean there are two dependent devices with same handle?
+>> > like one is for acpiphp slot and one is for ATA?
+>>
+>> related commit:
+>> commit 61b836958371c717d1e6d4fea1d2c512969ad20b
+>> Author: Shaohua Li <shaohua.li@intel.com>
+>> Date:   Thu Aug 28 10:07:14 2008 +0800
+>>
+>>     dock: fix for ATA bay in a dock station
+>>
+>>     an ATA bay can be in a dock and itself can be ejected separately.
+>>     This patch handles such eject bay. Found by Holger.
+>>
+>>     Signed-off-by: Shaohua Li <shaohua.li@intel.com>
+>>     Signed-off-by: Len Brown <len.brown@intel.com>
+>> @@ -618,16 +619,21 @@ register_hotplug_dock_device(acpi_handle handle, struct ac
+>> pi_dock_ops *ops,
+>>          * this would include the dock station itself
+>>          */
+>>         list_for_each_entry(dock_station, &dock_stations, sibiling) {
+>> +               /*
+>> +                * An ATA bay can be in a dock and itself can be ejected
+>> +                * seperately, so there are two 'dock stations' which need the
+>> +                * ops
+>> +                */
+>>                 dd = find_dock_dependent_device(dock_station, handle);
+>>                 if (dd) {
+>>                         dd->ops = ops;
+>>                         dd->context = context;
+>>                         dock_add_hotplug_device(dock_station, dd);
+>> -                       return 0;
+>> +                       ret = 0;
+>>                 }
+>>         }
+>>
+>> -       return -EINVAL;
+>> +       return ret;
+>>  }
+>>
+>> so two doc station with different handle.
+>>
+>> and dependent devices in both...
+>>
+>> looks like Rafael's change can not handle this case anymore.
+>
+> Ah, I overlooked the fact that each dock station is on its own dependent_list
+> and can also be on another dock station's dependent_list.  I'm not sure if that
+> makes sense, but let's not break the backwards compatibility here.
 
-OK, thanks!
+wonder if dock_release_hotplug with second dock_station and dd will
+have problem.
 
-I suppose it would be most convenient to simply add that patch to this
-patchset.
+as first one dock_station/dd, could have hp_context release already,
+then second one could all release(context) again....
 
-Thanks,
-Rafael
+so looks like dock_release_hotplug should go over dock_station/dd list
+to clear hp_context in other dock_station/... if they are the same?
+
+Yinghai
