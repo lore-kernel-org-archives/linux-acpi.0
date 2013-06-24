@@ -1,50 +1,53 @@
-From: Yinghai Lu <yinghai@kernel.org>
-Subject: Re: [Update][PATCH 3/3] ACPI / dock / PCI: Synchronous handling of
- dock events for PCI devices
-Date: Sun, 23 Jun 2013 21:34:09 -0700
-Message-ID: <CAE9FiQVATSK+apf0qmQPuf7SQuEuXx6Wm1GtdKuakMGsfZ8c9A@mail.gmail.com>
-References: <2737587.I0nULev1kj@vostro.rjw.lan>
-	<1528326.6SFofebmNT@vostro.rjw.lan>
-	<CAE9FiQUJh-u-yimuGpFiOO_-L7=+V-57W0Tn+cgR3ru=PQ+xvw@mail.gmail.com>
-	<5632059.07cB6QdEcB@vostro.rjw.lan>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <linux-pci-owner@vger.kernel.org>
-In-Reply-To: <5632059.07cB6QdEcB@vostro.rjw.lan>
-Sender: linux-pci-owner@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: Jiang Liu <liuj97@gmail.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Bjorn Helgaas <bhelgaas@google.com>, "Alexander E . Patrakov" <patrakov@gmail.com>, Jiang Liu <jiang.liu@huawei.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Yijing Wang <wangyijing@huawei.com>, "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
+From: Hanjun Guo <hanjun.guo@linaro.org>
+Subject: [PATCH] ACPI / processor: Remove unused macros in processor_driver.c
+Date: Mon, 24 Jun 2013 15:36:33 +0800
+Message-ID: <1372059393-15996-1-git-send-email-hanjun.guo@linaro.org>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-pa0-f52.google.com ([209.85.220.52]:41694 "EHLO
+	mail-pa0-f52.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752660Ab3FXHhl (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 24 Jun 2013 03:37:41 -0400
+Received: by mail-pa0-f52.google.com with SMTP id kq13so10550031pab.25
+        for <linux-acpi@vger.kernel.org>; Mon, 24 Jun 2013 00:37:41 -0700 (PDT)
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, patches@linaro.org, linaro-kernel@lists.linaro.org, Hanjun Guo <hanjun.guo@linaro.org>
 
-On Sun, Jun 23, 2013 at 5:40 PM, Rafael J. Wysocki <rjw@sisk.pl> wrote:
-> On Sunday, June 23, 2013 04:04:52 PM Yinghai Lu wrote:
->> On Sun, Jun 23, 2013 at 2:42 PM, Rafael J. Wysocki <rjw@sisk.pl> wrote:
-...
->> > Ah, I overlooked the fact that each dock station is on its own dependent_list
->> > and can also be on another dock station's dependent_list.  I'm not sure if that
->> > makes sense, but let's not break the backwards compatibility here.
->>
->> wonder if dock_release_hotplug with second dock_station and dd will
->> have problem.
->>
->> as first one dock_station/dd, could have hp_context release already,
->> then second one could all release(context) again....
->>
->> so looks like dock_release_hotplug should go over dock_station/dd list
->> to clear hp_context in other dock_station/... if they are the same?
->
-> I'm not sure what you mean.  They are different dependent_device objects
-> and each of them has its own context pointer, although they both will point to
-> the same thing.
->
-> Both "init" and "release" will be called for each of them individually which
-> for for acpiphp (which is the only user of that ATM) actually means "get" and
-> "put", so it should be OK.
+ACPI_PROCESSOR_FILE_INFO, ACPI_PROCESSOR_FILE_THROTTLING and
+ACPI_PROCESSOR_FILE_LIMIT are used for procfs, but this feature was removed
+in commit d09fe555 (ACPI processor: remove deprecated ACPI procfs I/F) long
+ago. So, these macros should also be removed.
 
-yes, then hp_context can never be  the same, just the acpi handle is the same.
+ACPI_PROCESSOR_LIMIT_USER and ACPI_PROCESSOR_LIMIT_THERMAL are not used
+by any code, remove them too.
 
-Acked-by: Yinghai Lu <yinghai@kernel.org>
+Signed-off-by: Hanjun Guo <hanjun.guo@linaro.org>
+---
+ drivers/acpi/processor_driver.c |    6 ------
+ 1 file changed, 6 deletions(-)
 
-BTW, thank you very much for the whole acpi scan rework.
+diff --git a/drivers/acpi/processor_driver.c b/drivers/acpi/processor_driver.c
+index d93963f..823be116 100644
+--- a/drivers/acpi/processor_driver.c
++++ b/drivers/acpi/processor_driver.c
+@@ -43,16 +43,10 @@
+ 
+ #define PREFIX "ACPI: "
+ 
+-#define ACPI_PROCESSOR_FILE_INFO	"info"
+-#define ACPI_PROCESSOR_FILE_THROTTLING	"throttling"
+-#define ACPI_PROCESSOR_FILE_LIMIT	"limit"
+ #define ACPI_PROCESSOR_NOTIFY_PERFORMANCE 0x80
+ #define ACPI_PROCESSOR_NOTIFY_POWER	0x81
+ #define ACPI_PROCESSOR_NOTIFY_THROTTLING	0x82
+ 
+-#define ACPI_PROCESSOR_LIMIT_USER	0
+-#define ACPI_PROCESSOR_LIMIT_THERMAL	1
+-
+ #define _COMPONENT		ACPI_PROCESSOR_COMPONENT
+ ACPI_MODULE_NAME("processor_driver");
+ 
+-- 
+1.7.9.5
 
-Yinghai
