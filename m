@@ -1,78 +1,55 @@
 From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: [Update][PATCH 3/3] ACPI / dock / PCI: Synchronous handling of dock events for PCI devices
-Date: Mon, 24 Jun 2013 11:55:22 +0200
-Message-ID: <1508248.YJkd4pGgsJ@vostro.rjw.lan>
-References: <2737587.I0nULev1kj@vostro.rjw.lan> <5632059.07cB6QdEcB@vostro.rjw.lan> <CAE9FiQVATSK+apf0qmQPuf7SQuEuXx6Wm1GtdKuakMGsfZ8c9A@mail.gmail.com>
+Subject: Re: [PATCH v2] Documentation / cpu hotplug: Rephrase the outdated description for MADT entries
+Date: Mon, 24 Jun 2013 14:00:53 +0200
+Message-ID: <2689985.7MvxW2GhJV@vostro.rjw.lan>
+References: <1371805758-2841-1-git-send-email-hanjun.guo@linaro.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7Bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from hydra.sisk.pl ([212.160.235.94]:48871 "EHLO hydra.sisk.pl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751109Ab3FXJp4 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 24 Jun 2013 05:45:56 -0400
-In-Reply-To: <CAE9FiQVATSK+apf0qmQPuf7SQuEuXx6Wm1GtdKuakMGsfZ8c9A@mail.gmail.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Return-path: <linux-doc-owner@vger.kernel.org>
+In-Reply-To: <1371805758-2841-1-git-send-email-hanjun.guo@linaro.org>
+Sender: linux-doc-owner@vger.kernel.org
+To: Hanjun Guo <hanjun.guo@linaro.org>
+Cc: Rob Landley <rob@landley.net>, Rusty Russell <rusty@rustcorp.com.au>, Srivatsa Vaddagiri <vatsa@in.ibm.com>, linux-acpi@vger.kernel.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, patches@linaro.org, linaro-kernel@lists.linaro.org
 List-Id: linux-acpi@vger.kernel.org
-To: Yinghai Lu <yinghai@kernel.org>
-Cc: Jiang Liu <liuj97@gmail.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Bjorn Helgaas <bhelgaas@google.com>, "Alexander E . Patrakov" <patrakov@gmail.com>, Jiang Liu <jiang.liu@huawei.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Yijing Wang <wangyijing@huawei.com>, "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
 
-On Sunday, June 23, 2013 09:34:09 PM Yinghai Lu wrote:
-> On Sun, Jun 23, 2013 at 5:40 PM, Rafael J. Wysocki <rjw@sisk.pl> wrote:
-> > On Sunday, June 23, 2013 04:04:52 PM Yinghai Lu wrote:
-> >> On Sun, Jun 23, 2013 at 2:42 PM, Rafael J. Wysocki <rjw@sisk.pl> wrote:
-> ...
-> >> > Ah, I overlooked the fact that each dock station is on its own dependent_list
-> >> > and can also be on another dock station's dependent_list.  I'm not sure if that
-> >> > makes sense, but let's not break the backwards compatibility here.
-> >>
-> >> wonder if dock_release_hotplug with second dock_station and dd will
-> >> have problem.
-> >>
-> >> as first one dock_station/dd, could have hp_context release already,
-> >> then second one could all release(context) again....
-> >>
-> >> so looks like dock_release_hotplug should go over dock_station/dd list
-> >> to clear hp_context in other dock_station/... if they are the same?
-> >
-> > I'm not sure what you mean.  They are different dependent_device objects
-> > and each of them has its own context pointer, although they both will point to
-> > the same thing.
-> >
-> > Both "init" and "release" will be called for each of them individually which
-> > for for acpiphp (which is the only user of that ATM) actually means "get" and
-> > "put", so it should be OK.
+On Friday, June 21, 2013 05:09:18 PM Hanjun Guo wrote:
+> More than 256 entries in ACPI MADT is supported from ACPI 3.0, so the
+> information should be updated.
 > 
-> yes, then hp_context can never be  the same, just the acpi handle is the same.
-> 
-> Acked-by: Yinghai Lu <yinghai@kernel.org>
+> -v2: Rephrase the information instead of simply removing it according
+> to Rafael's advice.
 
-Thanks!
-
-> BTW, thank you very much for the whole acpi scan rework.
-
-Well, no problem, it was necessary for a number of reasons.
-
-And honestly I think more along those lines is still needed. :-)
-
-For example, the discussion here shows how fragile the design of acpiphp is.
-Take hotplug_dock_devices() for instance.  It shouldn't even need to use those
-"handlers", because ideally acpi_bus_trim() should automatically trigger the
-removal of "physical" device objects depending on the stuff being trimmed.
-And analogously for acpi_bus_scan().
-
-The "trim" part should be possible to implement even now, because
-struct acpi_device contains a "remove" callback pointer (that was added for
-power resources IIRC), although perhaps it'll need to be called from
-acpi_bus_device_detach().  The "scan" part should be doable too if we add
-an "add child" callback to struct acpi_device, so that acpi_bus_device_attach()
-can use it to handle devices that don't have scan handlers or ACPI drivers
-(like PCI devices).
+Queued up for 3.11.
 
 Thanks,
 Rafael
 
 
+> Suggested-by: Rafael J. Wysocki <rjw@sisk.pl>
+> Signed-off-by: Hanjun Guo <hanjun.guo@linaro.org>
+> ---
+>  Documentation/cpu-hotplug.txt |    6 ++++--
+>  1 file changed, 4 insertions(+), 2 deletions(-)
+> 
+> diff --git a/Documentation/cpu-hotplug.txt b/Documentation/cpu-hotplug.txt
+> index 9f40135..67f733d 100644
+> --- a/Documentation/cpu-hotplug.txt
+> +++ b/Documentation/cpu-hotplug.txt
+> @@ -370,8 +370,10 @@ A: There is no clear spec defined way from ACPI that can give us that
+>     CPUs in MADT as hotpluggable CPUS.  In the case there are no disabled CPUS
+>     we assume 1/2 the number of CPUs currently present can be hotplugged.
+>  
+> -   Caveat: Today's ACPI MADT can only provide 256 entries since the apicid field
+> -   in MADT is only 8 bits.
+> +   Caveat: ACPI MADT can only provide 256 entries in systems with only ACPI 2.0c
+> +   or earlier ACPI version supported, because the apicid field in MADT is only
+> +   8 bits. From ACPI 3.0, this limitation was removed since the apicid field
+> +   was extended to 32 bits with x2APIC introduced.
+>  
+>  User Space Notification
+>  
+> 
 -- 
 I speak only for myself.
 Rafael J. Wysocki, Intel Open Source Technology Center.
