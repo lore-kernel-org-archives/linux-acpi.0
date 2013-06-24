@@ -1,65 +1,64 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: [PATCH] ACPI / processor: Remove unused macros in processor_driver.c
-Date: Tue, 25 Jun 2013 00:32:58 +0200
-Message-ID: <4395311.6MOHcFYYSc@vostro.rjw.lan>
-References: <1372059393-15996-1-git-send-email-hanjun.guo@linaro.org>
+From: Tejun Heo <tj@kernel.org>
+Subject: Re: [PATCH] libata-acpi: add back ACPI based hotplug functionality
+Date: Mon, 24 Jun 2013 15:41:31 -0700
+Message-ID: <20130624224131.GM1918@mtj.dyndns.org>
+References: <1715067.uK3nZ8ehWr@vostro.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from hydra.sisk.pl ([212.160.235.94]:49496 "EHLO hydra.sisk.pl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750745Ab3FXWXc (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 24 Jun 2013 18:23:32 -0400
-In-Reply-To: <1372059393-15996-1-git-send-email-hanjun.guo@linaro.org>
+Received: from mail-qc0-f171.google.com ([209.85.216.171]:51673 "EHLO
+	mail-qc0-f171.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751223Ab3FXWlh (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 24 Jun 2013 18:41:37 -0400
+Content-Disposition: inline
+In-Reply-To: <1715067.uK3nZ8ehWr@vostro.rjw.lan>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Hanjun Guo <hanjun.guo@linaro.org>
-Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, patches@linaro.org, linaro-kernel@lists.linaro.org
+To: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: Aaron Lu <aaron.lu@intel.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>, Jiang Liu <liuj97@gmail.com>, Jiang Liu <jiang.liu@huawei.com>, Dirk Griesbach <spamthis@freenet.de>
 
-On Monday, June 24, 2013 03:36:33 PM Hanjun Guo wrote:
-> ACPI_PROCESSOR_FILE_INFO, ACPI_PROCESSOR_FILE_THROTTLING and
-> ACPI_PROCESSOR_FILE_LIMIT are used for procfs, but this feature was removed
-> in commit d09fe555 (ACPI processor: remove deprecated ACPI procfs I/F) long
-> ago. So, these macros should also be removed.
+Hello,
+
+On Mon, Jun 24, 2013 at 02:43:27PM +0200, Rafael J. Wysocki wrote:
+> From: Aaron Lu <aaron.lu@intel.com>
 > 
-> ACPI_PROCESSOR_LIMIT_USER and ACPI_PROCESSOR_LIMIT_THERMAL are not used
-> by any code, remove them too.
+> Commit 30dcf76acc69 "libata: migrate ACPI code over to new bindings"
+> mistakenly dropped the code to register hotplug notificaion handler
+> for ATA port/devices, causing regression for people using ATA bay,
+> as kernel bug #59871 shows.
 > 
-> Signed-off-by: Hanjun Guo <hanjun.guo@linaro.org>
-
-Queued up for 3.11.
-
-Thanks,
-Rafael
-
-
-> ---
->  drivers/acpi/processor_driver.c |    6 ------
->  1 file changed, 6 deletions(-)
+> Fix this by adding back the hotplug notification handler registration
+> code.  Since this code has to be run once and notification needs to
+> be installed on every ATA port/devices handle no matter if there is
+> actual device attached, we can't do this in binding time for ATA
+> device ACPI handle, as the binding only occurs when a SCSI device is
+> created, i.e. there is device attached.  So introduce the
+> ata_acpi_hotplug_init() function to loop scan all ATA ACPI handles
+> and if it is available, install the notificaion handler for it during
+> ATA init time.
 > 
-> diff --git a/drivers/acpi/processor_driver.c b/drivers/acpi/processor_driver.c
-> index d93963f..823be116 100644
-> --- a/drivers/acpi/processor_driver.c
-> +++ b/drivers/acpi/processor_driver.c
-> @@ -43,16 +43,10 @@
->  
->  #define PREFIX "ACPI: "
->  
-> -#define ACPI_PROCESSOR_FILE_INFO	"info"
-> -#define ACPI_PROCESSOR_FILE_THROTTLING	"throttling"
-> -#define ACPI_PROCESSOR_FILE_LIMIT	"limit"
->  #define ACPI_PROCESSOR_NOTIFY_PERFORMANCE 0x80
->  #define ACPI_PROCESSOR_NOTIFY_POWER	0x81
->  #define ACPI_PROCESSOR_NOTIFY_THROTTLING	0x82
->  
-> -#define ACPI_PROCESSOR_LIMIT_USER	0
-> -#define ACPI_PROCESSOR_LIMIT_THERMAL	1
-> -
->  #define _COMPONENT		ACPI_PROCESSOR_COMPONENT
->  ACPI_MODULE_NAME("processor_driver");
->  
+> With the ATA ACPI handle binding to SCSI device tree, it is possible
+> now that when the SCSI hotplug work removes the SCSI device, the ACPI
+> unbind function will find that the corresponding ACPI device has
+> already been deleted by dock driver, causing a scaring message like:
+> [  128.263966] scsi 4:0:0:0: Oops, 'acpi_handle' corrupt
+> Fix this by waiting for SCSI hotplug task finish in our notificaion
+> handler, so that the removal of ACPI device done in ACPI unbind
+> function triggered by the removal of SCSI device is run earlier when
+> ACPI device is still available.
 > 
+> [rjw: Rebased]
+> References: https://bugzilla.kernel.org/show_bug.cgi?id=59871
+> Reported-bisected-and-tested-by: Dirk Griesbach <spamthis@freenet.de>
+> Signed-off-by: Aaron Lu <aaron.lu@intel.com>
+
+Acked-by: Tejun Heo <tj@kernel.org>
+
+> May I add the $subject patch to that series and push along with it?
+
+Yes, please.
+
+Thanks a lot!
+
 -- 
-I speak only for myself.
-Rafael J. Wysocki, Intel Open Source Technology Center.
+tejun
