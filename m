@@ -1,133 +1,85 @@
-From: Lan Tianyu <tianyu.lan@intel.com>
-Subject: [PATCH 2/2] CPUFreq: Add new sysfs attribute freqdomain_cpus for acpi-freq driver
-Date: Tue, 25 Jun 2013 10:06:46 +0800
-Message-ID: <1372126006-4950-2-git-send-email-tianyu.lan@intel.com>
+From: Viresh Kumar <viresh.kumar@linaro.org>
+Subject: Re: [PATCH 2/2] CPUFreq: Add new sysfs attribute freqdomain_cpus for
+ acpi-freq driver
+Date: Tue, 25 Jun 2013 09:26:15 +0530
+Message-ID: <CAKohpokUmvkkGwCDDa1d8OCz8YcsE2J0GQkA-dJ=EE+6REm7Mg@mail.gmail.com>
 References: <1372126006-4950-1-git-send-email-tianyu.lan@intel.com>
+	<1372126006-4950-2-git-send-email-tianyu.lan@intel.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga02.intel.com ([134.134.136.20]:33523 "EHLO mga02.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750745Ab3FYCOo (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 24 Jun 2013 22:14:44 -0400
-In-Reply-To: <1372126006-4950-1-git-send-email-tianyu.lan@intel.com>
+Received: from mail-ob0-f170.google.com ([209.85.214.170]:46609 "EHLO
+	mail-ob0-f170.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751473Ab3FYD4Q (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 24 Jun 2013 23:56:16 -0400
+Received: by mail-ob0-f170.google.com with SMTP id ef5so11604643obb.1
+        for <linux-acpi@vger.kernel.org>; Mon, 24 Jun 2013 20:56:15 -0700 (PDT)
+In-Reply-To: <1372126006-4950-2-git-send-email-tianyu.lan@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: rjw@sisk.pl, lenb@kernel.org, viresh.kumar@linaro.org, jean-philippe.halimi@exascale-computing.eu
-Cc: Lan Tianyu <tianyu.lan@intel.com>, linux-acpi@vger.kernel.org, linux-pm@vger.kernel.org, cpufreq@vger.kernel.org
+To: Lan Tianyu <tianyu.lan@intel.com>
+Cc: rjw@sisk.pl, lenb@kernel.org, jean-philippe.halimi@exascale-computing.eu, linux-acpi@vger.kernel.org, linux-pm@vger.kernel.org, cpufreq@vger.kernel.org
 
-Commit aa77a52 and fcf8058 changes the content of "related_cpus" and user
-space can't get cpus which are in the same hardware coordination cpu domain
-(These info are provided by ACPI AML method _PSD) via "related_cpus". This
-change affects some users of original "related_cpus".
+On 25 June 2013 07:36, Lan Tianyu <tianyu.lan@intel.com> wrote:
+> diff --git a/Documentation/cpu-freq/user-guide.txt b/Documentation/cpu-freq/user-guide.txt
+> index ff2f283..0cc72f7 100644
+> --- a/Documentation/cpu-freq/user-guide.txt
+> +++ b/Documentation/cpu-freq/user-guide.txt
+> @@ -196,6 +196,10 @@ affected_cpus :                    List of Online CPUs that require software
+>  related_cpus :                 List of Online + Offline CPUs that need software
+>                                 coordination of frequency.
+>
+> +freqdomain_cpus :              List of Online + Offline CPUs in same CPU dependency
+> +                               domain. (This is only available for acpi-cpufreq
+> +                               driver)
+> +
 
-This patch is to add a new sysfs attribute "freqdomian_cpus" for acpi-cpufreq
-driver which exposes all cpus in the same domain regardless of hardware or
-software coordination to make up the info loss of previous change.
+This is generic file, don't add this information here. Add this in
+acpi-cpufreq file.
 
-Reference:https://bugzilla.kernel.org/show_bug.cgi?id=58761
-Reported-by: Jean-Philippe Halimi <jean-philippe.halimi@exascale-computing.eu>
-Signed-off-by: Lan Tianyu <tianyu.lan@intel.com>
----
- Documentation/cpu-freq/user-guide.txt |    4 ++++
- drivers/cpufreq/acpi-cpufreq.c        |   11 +++++++++++
- drivers/cpufreq/cpufreq.c             |    7 ++++---
- include/linux/cpufreq.h               |    3 +++
- 4 files changed, 22 insertions(+), 3 deletions(-)
+>  scaling_driver :               Hardware driver for cpufreq.
+>
+>  scaling_cur_freq :             Current frequency of the CPU as determined by
+> diff --git a/drivers/cpufreq/acpi-cpufreq.c b/drivers/cpufreq/acpi-cpufreq.c
+> index 17e3496..b859997 100644
+> --- a/drivers/cpufreq/acpi-cpufreq.c
+> +++ b/drivers/cpufreq/acpi-cpufreq.c
+> @@ -176,6 +176,16 @@ static struct global_attr global_boost = __ATTR(boost, 0644,
+>                                                 show_global_boost,
+>                                                 store_global_boost);
+>
+> +static ssize_t show_freqdomain_cpus(struct cpufreq_policy *policy, char *buf)
+> +{
+> +       struct acpi_cpufreq_data *data = per_cpu(acfreq_data, policy->cpu);
+> +       struct acpi_processor_performance *perf = data->acpi_data;
+> +
+> +       return cpufreq_show_cpus(perf->shared_cpu_map, buf);
+> +}
 
-diff --git a/Documentation/cpu-freq/user-guide.txt b/Documentation/cpu-freq/user-guide.txt
-index ff2f283..0cc72f7 100644
---- a/Documentation/cpu-freq/user-guide.txt
-+++ b/Documentation/cpu-freq/user-guide.txt
-@@ -196,6 +196,10 @@ affected_cpus :			List of Online CPUs that require software
- related_cpus :			List of Online + Offline CPUs that need software
- 				coordination of frequency.
- 
-+freqdomain_cpus :		List of Online + Offline CPUs in same CPU dependency
-+				domain. (This is only available for acpi-cpufreq
-+				driver)
-+
- scaling_driver :		Hardware driver for cpufreq.
- 
- scaling_cur_freq :		Current frequency of the CPU as determined by
+I am not sure if this is enough. Check this commit:
+
+aa77a52764a92216b61a6c8079b5c01937c046cd
+
+It had these changes:
+
 diff --git a/drivers/cpufreq/acpi-cpufreq.c b/drivers/cpufreq/acpi-cpufreq.c
-index 17e3496..b859997 100644
+index 937bc28..57a8774 100644
 --- a/drivers/cpufreq/acpi-cpufreq.c
 +++ b/drivers/cpufreq/acpi-cpufreq.c
-@@ -176,6 +176,16 @@ static struct global_attr global_boost = __ATTR(boost, 0644,
- 						show_global_boost,
- 						store_global_boost);
- 
-+static ssize_t show_freqdomain_cpus(struct cpufreq_policy *policy, char *buf)
-+{
-+	struct acpi_cpufreq_data *data = per_cpu(acfreq_data, policy->cpu);
-+	struct acpi_processor_performance *perf = data->acpi_data;
-+
-+	return cpufreq_show_cpus(perf->shared_cpu_map, buf);
-+}
-+
-+cpufreq_freq_attr_ro(freqdomain_cpus);
-+
- #ifdef CONFIG_X86_ACPI_CPUFREQ_CPB
- static ssize_t store_cpb(struct cpufreq_policy *policy, const char *buf,
- 			 size_t count)
-@@ -906,6 +916,7 @@ static int acpi_cpufreq_resume(struct cpufreq_policy *policy)
- 
- static struct freq_attr *acpi_cpufreq_attr[] = {
- 	&cpufreq_freq_attr_scaling_available_freqs,
-+	&freqdomain_cpus,
- 	NULL,	/* this is a placeholder for cpb, do not remove */
- 	NULL,
- };
-diff --git a/drivers/cpufreq/cpufreq.c b/drivers/cpufreq/cpufreq.c
-index f8c2860..d31feab 100644
---- a/drivers/cpufreq/cpufreq.c
-+++ b/drivers/cpufreq/cpufreq.c
-@@ -574,7 +574,7 @@ out:
- 	return i;
- }
- 
--static ssize_t show_cpus(const struct cpumask *mask, char *buf)
-+ssize_t cpufreq_show_cpus(const struct cpumask *mask, char *buf)
- {
- 	ssize_t i = 0;
- 	unsigned int cpu;
-@@ -589,6 +589,7 @@ static ssize_t show_cpus(const struct cpumask *mask, char *buf)
- 	i += sprintf(&buf[i], "\n");
- 	return i;
- }
-+EXPORT_SYMBOL_GPL(cpufreq_show_cpus);
- 
- /**
-  * show_related_cpus - show the CPUs affected by each transition even if
-@@ -596,7 +597,7 @@ static ssize_t show_cpus(const struct cpumask *mask, char *buf)
-  */
- static ssize_t show_related_cpus(struct cpufreq_policy *policy, char *buf)
- {
--	return show_cpus(policy->related_cpus, buf);
-+	return cpufreq_show_cpus(policy->related_cpus, buf);
- }
- 
- /**
-@@ -604,7 +605,7 @@ static ssize_t show_related_cpus(struct cpufreq_policy *policy, char *buf)
-  */
- static ssize_t show_affected_cpus(struct cpufreq_policy *policy, char *buf)
- {
--	return show_cpus(policy->cpus, buf);
-+	return cpufreq_show_cpus(policy->cpus, buf);
- }
- 
- static ssize_t store_scaling_setspeed(struct cpufreq_policy *policy,
-diff --git a/include/linux/cpufreq.h b/include/linux/cpufreq.h
-index d939056..70021f1 100644
---- a/include/linux/cpufreq.h
-+++ b/include/linux/cpufreq.h
-@@ -438,4 +438,7 @@ void cpufreq_frequency_table_get_attr(struct cpufreq_frequency_table *table,
- void cpufreq_frequency_table_update_policy_cpu(struct cpufreq_policy *policy);
- 
- void cpufreq_frequency_table_put_attr(unsigned int cpu);
-+
-+ssize_t cpufreq_show_cpus(const struct cpumask *mask, char *buf);
-+
- #endif /* _LINUX_CPUFREQ_H */
--- 
-1.7.10.4
+@@ -730,7 +730,6 @@ static int acpi_cpufreq_cpu_init(struct
+cpufreq_policy *policy)
+            policy->shared_type == CPUFREQ_SHARED_TYPE_ANY) {
+                cpumask_copy(policy->cpus, perf->shared_cpu_map);
+        }
+-       cpumask_copy(policy->related_cpus, perf->shared_cpu_map);
 
+ #ifdef CONFIG_SMP
+        dmi_check_system(sw_any_bug_dmi_table);
+@@ -742,7 +741,6 @@ static int acpi_cpufreq_cpu_init(struct
+cpufreq_policy *policy)
+        if (check_amd_hwpstate_cpu(cpu) && !acpi_pstate_strict) {
+                cpumask_clear(policy->cpus);
+                cpumask_set_cpu(cpu, policy->cpus);
+-               cpumask_copy(policy->related_cpus, cpu_sibling_mask(cpu));
+                policy->shared_type = CPUFREQ_SHARED_TYPE_HW;
+                pr_info_once(PFX "overriding BIOS provided _PSD data\n");
