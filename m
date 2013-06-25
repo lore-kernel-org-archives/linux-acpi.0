@@ -1,49 +1,38 @@
-From: Matthew Garrett <mjg59@srcf.ucam.org>
-Subject: Re: [PATCH 0/3] Fix backlight issues on some Windows 8 systems
-Date: Tue, 25 Jun 2013 22:49:14 +0100
-Message-ID: <20130625214914.GA3654@srcf.ucam.org>
-References: <1370818899-8595-1-git-send-email-matthew.garrett@nebula.com>
- <1371937599.17761.19.camel@scapa>
- <20130625160848.GA27123@srcf.ucam.org>
- <1372193037.8189.24.camel@scapa>
- <20130625205430.GA2438@srcf.ucam.org>
- <1372194611.8189.31.camel@scapa>
- <20130625211415.GA2899@srcf.ucam.org>
- <1372195837.8189.42.camel@scapa>
- <20130625213300.GA3296@srcf.ucam.org>
- <1372196761.8189.47.camel@scapa>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: Re: [PATCH 1/2] ACPI/Processor: Clear unuseful variable count in the acpi_processor_preregister_performance()
+Date: Wed, 26 Jun 2013 00:58:50 +0200
+Message-ID: <18573179.2IsDSHVV58@vostro.rjw.lan>
+References: <1372126006-4950-1-git-send-email-tianyu.lan@intel.com> <CAKohpo=jdP-WF4D+XO=Z9cYVvJpbM9EG6hKSCgURNMVBTGut5g@mail.gmail.com> <51C957E1.7080808@intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cavan.codon.org.uk ([93.93.128.6]:60092 "EHLO
-	cavan.codon.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751264Ab3FYVtR (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 25 Jun 2013 17:49:17 -0400
-Content-Disposition: inline
-In-Reply-To: <1372196761.8189.47.camel@scapa>
-Sender: linux-acpi-owner@vger.kernel.org
+Return-path: <cpufreq-owner@vger.kernel.org>
+In-Reply-To: <51C957E1.7080808@intel.com>
+Sender: cpufreq-owner@vger.kernel.org
+To: Lan Tianyu <tianyu.lan@intel.com>
+Cc: Viresh Kumar <viresh.kumar@linaro.org>, lenb@kernel.org, linux-acpi@vger.kernel.org, linux-pm@vger.kernel.org, cpufreq@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Yves-Alexis Perez <corsac@debian.org>
-Cc: linux-acpi@vger.kernel.org, seth.forshee@canonical.com, joeyli.kernel@gmail.com, daniel.vetter@ffwll.ch, intel-gfx@lists.freedesktop.org, dri-devel@lists.freedesktop.org, linux-kernel@vger.kernel.org, lenb@kernel.org, rjw@sisk.pl, Henrique de Moraes Holschuh <hmh@debian.org>
 
-On Tue, Jun 25, 2013 at 11:46:01PM +0200, Yves-Alexis Perez wrote:
-> But if that introduce regressions, shouldn't workarounds be found the=
-n?
-> Sorry if I keep repeating that but brightness keys handling in-kernel=
- is
-> quite a useful feature and losing it (because of the =E2=80=9Cbehave =
-exactly
-> like Windows 8 kernel=E2=80=9D policy) is indeed a regression.
+On Tuesday, June 25, 2013 04:42:09 PM Lan Tianyu wrote:
+> On 2013=E5=B9=B406=E6=9C=8825=E6=97=A5 15:45, Viresh Kumar wrote:
+> > On 25 June 2013 07:36, Lan Tianyu <tianyu.lan@intel.com> wrote:
+> >> The variable count in the acpi_processor_preregister_performance()=
+ is only initalized
+> >> as one for one cpu and increased by one when find another cpu that=
+ share same dependency
+> >> domain. Otherwise, it isn't referenced somewhere else.
+> >>
+> >> Signed-off-by: Lan Tianyu <tianyu.lan@intel.com>
+> >> ---
+> >>  drivers/acpi/processor_perflib.c |    4 +---
+> >>  1 file changed, 1 insertion(+), 3 deletions(-)
+> >=20
+> > Acked-by: Viresh Kumar <viresh.kumar@linaro.org>
+> >=20
+> Thanks.
 
-Your firmware behaves differently depending on whether the OS claims to=
-=20
-be Windows 8 or not. We can't make that invisible.
+Queued up for 3.11.
 
---=20
-Matthew Garrett | mjg59@srcf.ucam.org
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Thanks,
+Rafael
+
