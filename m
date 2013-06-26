@@ -1,47 +1,45 @@
-From: "Jan Beulich" <JBeulich@suse.com>
-Subject: Re: [PATCH v3 2/3] x86/tboot: Fail extended mode reduced
- hardware sleep
-Date: Wed, 26 Jun 2013 16:47:10 +0100
-Message-ID: <51CB291E02000078000E0DFB@nat28.tlf.novell.com>
-References: <1372255575-29567-1-git-send-email-benjamin.guthro@citrix.com>
- <1372255575-29567-3-git-send-email-benjamin.guthro@citrix.com>
- <51CB1A5902000078000E0D82@nat28.tlf.novell.com>
- <CAOvdn6UyPDBLPg5Q-RW-VZp5FBkj+qDWrNZV-HEY3oj05CovrQ@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <CAOvdn6UyPDBLPg5Q-RW-VZp5FBkj+qDWrNZV-HEY3oj05CovrQ@mail.gmail.com>
-Content-Disposition: inline
-Sender: linux-kernel-owner@vger.kernel.org
-To: Ben Guthro <benjamin.guthro@citrix.com>
-Cc: Gang Wei <gang.wei@intel.com>, tboot-devel@lists.sourceforge.net, xen-devel@lists.xen.org, Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>, "Rafaell J . Wysocki" <rjw@sisk.pl>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+From: Jiang Liu <liuj97@gmail.com>
+Subject: [PATCH v2 0/9] minor improvements for ACPI dock and acpiphp drivers
+Date: Thu, 27 Jun 2013 00:30:52 +0800
+Message-ID: <1372264261-17442-1-git-send-email-liuj97@gmail.com>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-pb0-f54.google.com ([209.85.160.54]:64354 "EHLO
+	mail-pb0-f54.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751285Ab3FZQdY (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 26 Jun 2013 12:33:24 -0400
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: "Rafael J . Wysocki" <rjw@sisk.pl>
+Cc: liuj97@gmail.com, Jiang Liu <jiang.liu@huawei.com>, Yijing Wang <wangyijing@huawei.com>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 
->>> On 26.06.13 at 16:55, Ben Guthro <benjamin.guthro@citrix.com> wrote:
-> On Wed, Jun 26, 2013 at 10:44 AM, Jan Beulich <JBeulich@suse.com> wrote:
->>>>> On 26.06.13 at 16:06, Ben Guthro <benjamin.guthro@citrix.com> wrote:
->>> --- a/arch/x86/kernel/tboot.c
->>> +++ b/arch/x86/kernel/tboot.c
->>> @@ -273,7 +273,8 @@ static void tboot_copy_fadt(const struct acpi_table_fadt 
-> *fadt)
->>>               offsetof(struct acpi_table_facs, firmware_waking_vector);
->>>  }
->>>
->>> -static int tboot_sleep(u8 sleep_state, u32 pm1a_control, u32 pm1b_control)
->>> +static int tboot_sleep(u8 sleep_state, u32 pm1a_control, u32 pm1b_control,
->>> +                    u8 extended)
->>
->> I don't see why this couldn't remain "bool" - the only complain was
->> that ACPI CA shouldn't use it.
-> 
-> I changed it, in order to keep the prototypes consistent.
-> Having the function pointer be defined with one signature in the
-> acpica code, and another in the os implementation seems like a
-> maintenance problem.
+From: Jiang Liu <jiang.liu@huawei.com>
 
-Of course the first patch would need adjustments too: The function
-pointer would also want to use bool then. Again - it's only the ACPI
-CA code that wants to get away without using bool/true/false.
+This is an following up patchset of "[PATCH 0/3] ACPI / dock / PCI: Fix
+problems with dock and PCI hotplug" with minor code cleanups and
+refinements. It applies to
+git://git.kernel.org/pub/scm/linux/kernel/git/rafael/linux-pm.git linux-next
 
-Jan
+Due to hardware resource limitation, I have only done compilation and
+boot tests.
+
+Jiang Liu (9):
+  ACPI, DOCK: avoid initializing acpi_dock_notifier_list multiple times
+  ACPI, DOCK: kill redundant spin lock in dock station object
+  ACPI, DOCK: mark initialization functions with __init
+  ACPI, DOCK: simplify implementation of dock_create_acpi_device()
+  ACPI: introduce three helper functions
+  ACPI: change acpi_[bay|dock]_match() in scan.c as global functions
+  ACPI: simplify dock driver with new interfaces
+  ACPI: simpilify scan.c with new interfaces
+  ACPI: simplify acpiphp driver with new interfaces
+
+ drivers/acpi/dock.c                | 152 ++++---------------------------
+ drivers/acpi/scan.c                | 182 ++++++++++++-------------------------
+ drivers/acpi/utils.c               |  72 +++++++++++++++
+ drivers/pci/hotplug/acpiphp_glue.c |  30 ++----
+ include/acpi/acpi_bus.h            |   8 ++
+ 5 files changed, 168 insertions(+), 276 deletions(-)
+
+-- 
+1.8.1.2
+
