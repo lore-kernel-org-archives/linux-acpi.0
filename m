@@ -1,21 +1,14 @@
 From: Yinghai Lu <yinghai@kernel.org>
-Subject: (unknown)
-Date: Wed, 26 Jun 2013 14:31:51 -0700
-Message-ID: <1372282311-7268-1-git-send-email-yinghai@kernel.org>
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from userp1040.oracle.com ([156.151.31.81]:23391 "EHLO
-	userp1040.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752372Ab3FZVcZ (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 26 Jun 2013 17:32:25 -0400
-Subject: 
-Sender: linux-acpi-owner@vger.kernel.org
-List-Id: linux-acpi@vger.kernel.org
+Subject: [PATCH v3.9 stable] PCI: acpiphp: Re-enumerate devices when host bridge receives Bus Check
+Date: Wed, 26 Jun 2013 14:34:29 -0700
+Message-ID: <1372282469-7364-1-git-send-email-yinghai@kernel.org>
+References: <20130605223852.GA16729@kroah.com>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20130605223852.GA16729@kroah.com>
+Sender: linux-kernel-owner@vger.kernel.org
 To: stable@vger.kernel.org, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Bjorn Helgaas <bhelgaas@google.com>, "Rafael J. Wysocki" <rjw@sisk.pl>, Jiang Liu <jiang.liu@huawei.com>
 Cc: Gavin Guo <tuffkidtt@gmail.com>, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Yinghai Lu <yinghai@kernel.org>
-
-From: Yinghai Lu <yinghai@kernel.org>
-Subject: [PATCH v3.9 stable] PCI: acpiphp: Re-enumerate devices when host bridge receives Bus Check
-In-Reply-To: <20130605223852.GA16729@kroah.com>
+List-Id: linux-acpi@vger.kernel.org
 
 Backporting for v3.9 for 3f327e39b4 (PCI: acpiphp: Re-enumerate devices when host bridge receives Bus Check).
 
@@ -129,4 +122,3 @@ Index: linux-3.9.4/include/linux/pci-acpi.h
  #ifdef CONFIG_ACPI_APEI
  extern bool aer_acpi_firmware_first(void);
  #else
-
