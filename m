@@ -1,60 +1,220 @@
 From: Jiang Liu <liuj97@gmail.com>
-Subject: [PATCH v2 4/9] ACPI, DOCK: simplify implementation of dock_create_acpi_device()
-Date: Thu, 27 Jun 2013 00:30:56 +0800
-Message-ID: <1372264261-17442-5-git-send-email-liuj97@gmail.com>
+Subject: [PATCH v2 7/9] ACPI: simplify dock driver with new interfaces
+Date: Thu, 27 Jun 2013 00:30:59 +0800
+Message-ID: <1372264261-17442-8-git-send-email-liuj97@gmail.com>
 References: <1372264261-17442-1-git-send-email-liuj97@gmail.com>
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-pb0-f46.google.com ([209.85.160.46]:34246 "EHLO
-	mail-pb0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751824Ab3FZQdy (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 26 Jun 2013 12:33:54 -0400
+Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <1372264261-17442-1-git-send-email-liuj97@gmail.com>
-Sender: linux-acpi-owner@vger.kernel.org
-List-Id: linux-acpi@vger.kernel.org
+Sender: linux-kernel-owner@vger.kernel.org
 To: "Rafael J . Wysocki" <rjw@sisk.pl>
 Cc: liuj97@gmail.com, Jiang Liu <jiang.liu@huawei.com>, Yijing Wang <wangyijing@huawei.com>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Len Brown <lenb@kernel.org>
+List-Id: linux-acpi@vger.kernel.org
 
 From: Jiang Liu <jiang.liu@huawei.com>
 
-The return value of dock_create_acpi_device() is not used at all,
-so change the signature to return void and simplify implementation.
+Use new helper functions to simpilify ACPI dock driver.
 
 Signed-off-by: Jiang Liu <jiang.liu@huawei.com>
+Cc: Jiang Liu <liuj97@gmail.com>
 Cc: Len Brown <lenb@kernel.org>
 Cc: "Rafael J. Wysocki" <rjw@sisk.pl>
 Cc: linux-acpi@vger.kernel.org
 Cc: linux-kernel@vger.kernel.org
 ---
- drivers/acpi/dock.c | 7 +------
- 1 file changed, 1 insertion(+), 6 deletions(-)
+ drivers/acpi/dock.c | 122 ++++++----------------------------------------------
+ 1 file changed, 12 insertions(+), 110 deletions(-)
 
 diff --git a/drivers/acpi/dock.c b/drivers/acpi/dock.c
-index 8c4214d..22183c4 100644
+index 22183c4..31ab001 100644
 --- a/drivers/acpi/dock.c
 +++ b/drivers/acpi/dock.c
-@@ -351,10 +351,8 @@ static int dock_present(struct dock_station *ds)
-  *  handle if one does not exist already.  This should cause
-  *  acpi to scan for drivers for the given devices, and call
-  *  matching driver's add routine.
+@@ -226,48 +226,6 @@ find_dock_dependent_device(struct dock_station *ds, acpi_handle handle)
+ /*****************************************************************************
+  *                         Dock functions                                    *
+  *****************************************************************************/
+-/**
+- * is_dock - see if a device is a dock station
+- * @handle: acpi handle of the device
 - *
-- *  Returns a pointer to the acpi_device corresponding to the handle.
-  */
--static struct acpi_device * dock_create_acpi_device(acpi_handle handle)
-+static void dock_create_acpi_device(acpi_handle handle)
- {
- 	struct acpi_device *device;
- 	int ret;
-@@ -367,10 +365,7 @@ static struct acpi_device * dock_create_acpi_device(acpi_handle handle)
- 		ret = acpi_bus_scan(handle);
- 		if (ret)
- 			pr_debug("error adding bus, %x\n", -ret);
+- * If an acpi object has a _DCK method, then it is by definition a dock
+- * station, so return true.
+- */
+-static int is_dock(acpi_handle handle)
+-{
+-	acpi_status status;
+-	acpi_handle tmp;
 -
--		acpi_bus_get_device(handle, &device);
- 	}
--	return device;
+-	status = acpi_get_handle(handle, "_DCK", &tmp);
+-	if (ACPI_FAILURE(status))
+-		return 0;
+-	return 1;
+-}
+-
+-static int __init is_ejectable(acpi_handle handle)
+-{
+-	acpi_status status;
+-	acpi_handle tmp;
+-
+-	status = acpi_get_handle(handle, "_EJ0", &tmp);
+-	if (ACPI_FAILURE(status))
+-		return 0;
+-	return 1;
+-}
+-
+-static int __init is_ata(acpi_handle handle)
+-{
+-	acpi_handle tmp;
+-
+-	if ((ACPI_SUCCESS(acpi_get_handle(handle, "_GTF", &tmp))) ||
+-	   (ACPI_SUCCESS(acpi_get_handle(handle, "_GTM", &tmp))) ||
+-	   (ACPI_SUCCESS(acpi_get_handle(handle, "_STM", &tmp))) ||
+-	   (ACPI_SUCCESS(acpi_get_handle(handle, "_SDD", &tmp))))
+-		return 1;
+-
+-	return 0;
+-}
+-
+ static int __init is_battery(acpi_handle handle)
+ {
+ 	struct acpi_device_info *info;
+@@ -284,17 +242,13 @@ static int __init is_battery(acpi_handle handle)
+ 	return ret;
+ }
+ 
+-static int __init is_ejectable_bay(acpi_handle handle)
++/* Check whether ACPI object is an ejectable battery or disk bay */
++static bool __init is_ejectable_bay(acpi_handle handle)
+ {
+-	acpi_handle phandle;
++	if (acpi_has_method(handle, "_EJ0") && is_battery(handle))
++		return true;
+ 
+-	if (!is_ejectable(handle))
+-		return 0;
+-	if (is_battery(handle) || is_ata(handle))
+-		return 1;
+-	if (!acpi_get_parent(handle, &phandle) && is_ata(phandle))
+-		return 1;
+-	return 0;
++	return acpi_bay_match(handle);
  }
  
  /**
+@@ -312,7 +266,7 @@ int is_dock_device(acpi_handle handle)
+ 	if (!dock_station_count)
+ 		return 0;
+ 
+-	if (is_dock(handle))
++	if (acpi_dock_match(handle))
+ 		return 1;
+ 
+ 	list_for_each_entry(dock_station, &dock_stations, sibling)
+@@ -447,37 +401,6 @@ static void dock_event(struct dock_station *ds, u32 event, int num)
+ }
+ 
+ /**
+- * eject_dock - respond to a dock eject request
+- * @ds: the dock station
+- *
+- * This is called after _DCK is called, to execute the dock station's
+- * _EJ0 method.
+- */
+-static void eject_dock(struct dock_station *ds)
+-{
+-	struct acpi_object_list arg_list;
+-	union acpi_object arg;
+-	acpi_status status;
+-	acpi_handle tmp;
+-
+-	/* all dock devices should have _EJ0, but check anyway */
+-	status = acpi_get_handle(ds->handle, "_EJ0", &tmp);
+-	if (ACPI_FAILURE(status)) {
+-		pr_debug("No _EJ0 support for dock device\n");
+-		return;
+-	}
+-
+-	arg_list.count = 1;
+-	arg_list.pointer = &arg;
+-	arg.type = ACPI_TYPE_INTEGER;
+-	arg.integer.value = 1;
+-
+-	status = acpi_evaluate_object(ds->handle, "_EJ0", &arg_list, NULL);
+-	if (ACPI_FAILURE(status))
+-		pr_debug("Failed to evaluate _EJ0!\n");
+-}
+-
+-/**
+  * handle_dock - handle a dock event
+  * @ds: the dock station
+  * @dock: to dock, or undock - that is the question
+@@ -537,27 +460,6 @@ static inline void complete_undock(struct dock_station *ds)
+ 	ds->flags &= ~(DOCK_UNDOCKING);
+ }
+ 
+-static void dock_lock(struct dock_station *ds, int lock)
+-{
+-	struct acpi_object_list arg_list;
+-	union acpi_object arg;
+-	acpi_status status;
+-
+-	arg_list.count = 1;
+-	arg_list.pointer = &arg;
+-	arg.type = ACPI_TYPE_INTEGER;
+-	arg.integer.value = !!lock;
+-	status = acpi_evaluate_object(ds->handle, "_LCK", &arg_list, NULL);
+-	if (ACPI_FAILURE(status) && status != AE_NOT_FOUND) {
+-		if (lock)
+-			acpi_handle_warn(ds->handle,
+-				"Locking device failed (0x%x)\n", status);
+-		else
+-			acpi_handle_warn(ds->handle,
+-				"Unlocking device failed (0x%x)\n", status);
+-	}
+-}
+-
+ /**
+  * dock_in_progress - see if we are in the middle of handling a dock event
+  * @ds: the dock station
+@@ -692,8 +594,8 @@ static int handle_eject_request(struct dock_station *ds, u32 event)
+ 
+ 	hotplug_dock_devices(ds, ACPI_NOTIFY_EJECT_REQUEST);
+ 	undock(ds);
+-	dock_lock(ds, 0);
+-	eject_dock(ds);
++	acpi_evaluate_lck(ds->handle, 0);
++	acpi_evaluate_ej0(ds->handle);
+ 	if (dock_present(ds)) {
+ 		acpi_handle_err(ds->handle, "Unable to undock!\n");
+ 		return -EBUSY;
+@@ -752,7 +654,7 @@ static void dock_notify(acpi_handle handle, u32 event, void *data)
+ 			hotplug_dock_devices(ds, event);
+ 			complete_dock(ds);
+ 			dock_event(ds, event, DOCK_EVENT);
+-			dock_lock(ds, 1);
++			acpi_evaluate_lck(ds->handle, 1);
+ 			acpi_update_all_gpes();
+ 			break;
+ 		}
+@@ -998,9 +900,9 @@ static int __init dock_add(acpi_handle handle)
+ 	/* we want the dock device to send uevents */
+ 	dev_set_uevent_suppress(&dd->dev, 0);
+ 
+-	if (is_dock(handle))
++	if (acpi_dock_match(handle))
+ 		dock_station->flags |= DOCK_IS_DOCK;
+-	if (is_ata(handle))
++	if (acpi_ata_match(handle))
+ 		dock_station->flags |= DOCK_IS_ATA;
+ 	if (is_battery(handle))
+ 		dock_station->flags |= DOCK_IS_BAT;
+@@ -1043,7 +945,7 @@ err_unregister:
+ static __init acpi_status
+ find_dock_and_bay(acpi_handle handle, u32 lvl, void *context, void **rv)
+ {
+-	if (is_dock(handle) || is_ejectable_bay(handle))
++	if (acpi_dock_match(handle) || is_ejectable_bay(handle))
+ 		dock_add(handle);
+ 
+ 	return AE_OK;
 -- 
 1.8.1.2
-
