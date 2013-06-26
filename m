@@ -1,70 +1,66 @@
-From: Lan Tianyu <tianyu.lan@intel.com>
-Subject: Re: [PATCH 2/2] CPUFreq: Add new sysfs attribute freqdomain_cpus
- for acpi-freq driver
-Date: Wed, 26 Jun 2013 14:57:38 +0800
-Message-ID: <51CA90E2.6080906@intel.com>
-References: <1372126006-4950-1-git-send-email-tianyu.lan@intel.com> <51C95282.3040305@intel.com> <CAKohpokU8MEFk8RsAmdraeX-SJPTFYwjkVSFFMMSGbUNmOm=Vg@mail.gmail.com> <4163057.9R6dzfOLVQ@vostro.rjw.lan> <51CA54E8.6070805@intel.com> <CAKohponndCHUuZusx5VEStyQNpja9WR_Ok-H8YeAL-Cf1RLZgA@mail.gmail.com>
+From: Jan Hinnerk Stosch <janhinnerk.stosch@gmail.com>
+Subject: Re: Backlight dark and wireless button not working on Fujitsu E753
+Date: Wed, 26 Jun 2013 11:17:15 +0200
+Message-ID: <CAO_aot5vTdwGvnMuvsNZ+kA882WKVMADSUUpqpDRqL5XKtotuw@mail.gmail.com>
+References: <CAO_aot70KoE=fvO11HJsg1OW-EGOreNVOcyjb8XsEMmbAbn=Pg@mail.gmail.com>
+	<CAOLK0pyPKHJFq+wRJrwBiPvAJiLORfT5jA2FwQ7t1gk8wnn0Gg@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <cpufreq-owner@vger.kernel.org>
-In-Reply-To: <CAKohponndCHUuZusx5VEStyQNpja9WR_Ok-H8YeAL-Cf1RLZgA@mail.gmail.com>
-Sender: cpufreq-owner@vger.kernel.org
-To: Viresh Kumar <viresh.kumar@linaro.org>
-Cc: "Rafael J. Wysocki" <rjw@sisk.pl>, lenb@kernel.org, jean-philippe.halimi@exascale-computing.eu, linux-acpi@vger.kernel.org, linux-pm@vger.kernel.org, cpufreq@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-qa0-f49.google.com ([209.85.216.49]:47917 "EHLO
+	mail-qa0-f49.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751506Ab3FZJRQ (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 26 Jun 2013 05:17:16 -0400
+Received: by mail-qa0-f49.google.com with SMTP id hu16so1364302qab.1
+        for <linux-acpi@vger.kernel.org>; Wed, 26 Jun 2013 02:17:15 -0700 (PDT)
+In-Reply-To: <CAOLK0pyPKHJFq+wRJrwBiPvAJiLORfT5jA2FwQ7t1gk8wnn0Gg@mail.gmail.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Lan Tianyu <lantianyu1986@gmail.com>
+Cc: linux-acpi@vger.kernel.org
 
-On 2013=E5=B9=B406=E6=9C=8826=E6=97=A5 14:54, Viresh Kumar wrote:
-> On 26 June 2013 08:11, Lan Tianyu <tianyu.lan@intel.com> wrote:
->> On 2013=E5=B9=B406=E6=9C=8826=E6=97=A5 07:03, Rafael J. Wysocki wrot=
-e:
->>> On Tuesday, June 25, 2013 09:01:03 PM Viresh Kumar wrote:
->>>> On 25 June 2013 13:49, Lan Tianyu <tianyu.lan@intel.com> wrote:
->>>>> Ok. From my opinion, the new attribute is an ABI and it's better =
-to add
->>>>> descriptor under Document directory. The user can be easy to find=
- how to
->>>>> use it.
->>>>
->>>> Hmm.. So maybe acpi-cpufreq file would be a good starting point. T=
-hen
->>>> it can have more details about the driver in future.
->>>>
->>>>> Please see the commit which add the code. Maybe, we should overwr=
-ite
->>>>> shared_cpu_map by sibling_cpus for this case?
->>>>
->>>> Not sure if changing shared_cpu_map has any other implications or =
-not.
->>>
->>> Well, I wouldn't change it, then.
->=20
-> Please add a blank line before and after your reply. It makes it more
-> readable.
+Ok, thanks,
+Here is a link FYI: https://bugzilla.kernel.org/show_bug.cgi?id=60161
+However, acpidump does not give any useful output: "Linux version not
+implemented yet"
 
-Thanks for reminder. I will notice this.
+Regards,
 
->=20
->> Ok. How about add new field "cpufreqdomain_cpus" in the  struct
->> acpi_cpufreq_data and expose its value for new attribute. For normal
->> case, copy the shared_cpu_map to it for normal case. For AMD case, c=
-opy
->> sibling_cpus to it.
->=20
-> This should work I guess.
+jhs
 
-Ok. I will follow this one.
-
->=20
->>    Another choice, just keeping what my patch has done. Wait for the=
- new
->> request since current patch can satisfy reporter and it's not clear
->> whether the patch is enough for AMD platform.(At last from my view).
->=20
-> NAK. We must keep it as it was before my patch.
->=20
-
-OK. Please ignore this one.
---=20
-Best regards
-Tianyu Lan
+2013/6/25 Lan Tianyu <lantianyu1986@gmail.com>:
+> 2013/6/25 Jan Hinnerk Stosch <janhinnerk.stosch@gmail.com>
+>>
+>> Hi,
+>>
+>> on my Fujitsu Lifebook E753 I experienced some "regressions" with
+>> current kernel versions compared to linux 3.5 (used in Ubuntu 12.04
+>> for instance):
+>> - on bootup backlight is extremely dark (I can change it though)
+>> - the wireless button does not work any more
+>> Today I did a bisect and found out, that the "regression" was
+>> introduced with commit "a57f7f9175b8ccbc9df83ac13860488913115de4".
+>> Searching the internet I read about a bootloader option
+>> "acpi_osi="!Windows 2012" which solved the issue for me.
+>> If you want/need some further information for a patch just tell me. I
+>> don't have any insight into ACPI escpecially the new Windows8 changes
+>> so if you can't do anything about it I apologize for the noise.
+>>
+> HI:
+>        Could you apply a bug on the https://bugzilla.kernel.org with the
+> output of  acpidump?
+>
+>> Regards
+>>
+>> jhs
+>> --
+>> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
+>> the body of a message to majordomo@vger.kernel.org
+>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>
+>
+>
+>
+> --
+> Best regards
+> Tianyu Lan
