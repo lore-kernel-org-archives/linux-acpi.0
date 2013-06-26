@@ -1,171 +1,85 @@
-From: Aaron Lu <aaron.lu@intel.com>
-Subject: Re: [PATCH] libata-acpi: add back ACPI based hotplug functionality
-Date: Wed, 26 Jun 2013 09:43:09 +0800
-Message-ID: <51CA472D.602@intel.com>
-References: <1715067.uK3nZ8ehWr@vostro.rjw.lan>
+From: Lan Tianyu <tianyu.lan@intel.com>
+Subject: Re: [PATCH 2/2] CPUFreq: Add new sysfs attribute freqdomain_cpus
+ for acpi-freq driver
+Date: Wed, 26 Jun 2013 10:17:53 +0800
+Message-ID: <51CA4F51.7090508@intel.com>
+References: <1372126006-4950-1-git-send-email-tianyu.lan@intel.com> <CAKohpo=K8fN=AhSKRRNRq-UXNhJ3YFVe6YKG+mAbq079TD4Yyg@mail.gmail.com> <51C95282.3040305@intel.com> <1453366.xvWmsCZd02@vostro.rjw.lan>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1715067.uK3nZ8ehWr@vostro.rjw.lan>
-Sender: linux-kernel-owner@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: Tejun Heo <tj@kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>, Jiang Liu <liuj97@gmail.com>, Jiang Liu <jiang.liu@huawei.com>, Dirk Griesbach <spamthis@freenet.de>
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mga03.intel.com ([143.182.124.21]:32886 "EHLO mga03.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751274Ab3FZCYz (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 25 Jun 2013 22:24:55 -0400
+In-Reply-To: <1453366.xvWmsCZd02@vostro.rjw.lan>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@sisk.pl>, Viresh Kumar <viresh.kumar@linaro.org>
+Cc: lenb@kernel.org, jean-philippe.halimi@exascale-computing.eu, linux-acpi@vger.kernel.org, linux-pm@vger.kernel.org, cpufreq@vger.kernel.org
 
-On 06/24/2013 08:43 PM, Rafael J. Wysocki wrote:
-> From: Aaron Lu <aaron.lu@intel.com>
-> 
-> Commit 30dcf76acc69 "libata: migrate ACPI code over to new bindings"
-> mistakenly dropped the code to register hotplug notificaion handler
-> for ATA port/devices, causing regression for people using ATA bay,
-> as kernel bug #59871 shows.
-> 
-> Fix this by adding back the hotplug notification handler registration
-> code.  Since this code has to be run once and notification needs to
-> be installed on every ATA port/devices handle no matter if there is
-> actual device attached, we can't do this in binding time for ATA
-> device ACPI handle, as the binding only occurs when a SCSI device is
-> created, i.e. there is device attached.  So introduce the
-> ata_acpi_hotplug_init() function to loop scan all ATA ACPI handles
-> and if it is available, install the notificaion handler for it during
-> ATA init time.
-> 
-> With the ATA ACPI handle binding to SCSI device tree, it is possible
-> now that when the SCSI hotplug work removes the SCSI device, the ACPI
-> unbind function will find that the corresponding ACPI device has
-> already been deleted by dock driver, causing a scaring message like:
-> [  128.263966] scsi 4:0:0:0: Oops, 'acpi_handle' corrupt
-> Fix this by waiting for SCSI hotplug task finish in our notificaion
-> handler, so that the removal of ACPI device done in ACPI unbind
-> function triggered by the removal of SCSI device is run earlier when
-> ACPI device is still available.
-> 
-> [rjw: Rebased]
-> References: https://bugzilla.kernel.org/show_bug.cgi?id=59871
-> Reported-bisected-and-tested-by: Dirk Griesbach <spamthis@freenet.de>
-> Signed-off-by: Aaron Lu <aaron.lu@intel.com>
+On 2013=E5=B9=B406=E6=9C=8826=E6=97=A5 07:02, Rafael J. Wysocki wrote:
+> On Tuesday, June 25, 2013 04:19:14 PM Lan Tianyu wrote:
+>> On 2013=E5=B9=B406=E6=9C=8825=E6=97=A5 15:48, Viresh Kumar wrote:
+>>> On 25 June 2013 12:24, Lan Tianyu <tianyu.lan@intel.com> wrote:
+>>>> On 2013=E5=B9=B406=E6=9C=8825=E6=97=A5 11:56, Viresh Kumar wrote:
+>>>
+>>>>> This is generic file, don't add this information here. Add this i=
+n
+>>>>> acpi-cpufreq file.
+>>>> I don't find acpi-cpufreq.txt under
+>>>> Documentation/cpu-freq/acpi-cpufreq.txt. So I should create it?
+>>>
+>>> I meant acpi-cpufreq.c file
+>> Ok. From my opinion, the new attribute is an ABI and it's better to =
+add
+>> descriptor under Document directory. The user can be easy to find ho=
+w to
+>> use it.
+>=20
+> Yes, this should be documented under Documentation/ABI/testing/.
 
-Sorry for replying late, I forgot to CC stable here.
-Hopefully it's not too late.
+I find the following descriptor in the
+Documentation/ABI/testing/sysfs-devices-system-cpu. So I originally put
+the new attribute descriptor in the user-guide.txt. Now, creating new
+acpi-cpufreq file under Documentation/cpu-freq/ and adding the
+descriptor in the new file maybe a good choice?
 
-Thanks,
-Aaron
 
-> ---
-> 
-> Hi Tejun,
-> 
-> If I'm not overlooking any hidden twists, it should be safe to add this
-> patch on top of the following three that I'm going to push for 3.10
-> in a couple of days (unless 3.10 is released first):
-> 
-> https://patchwork.kernel.org/patch/2766491/
-> https://patchwork.kernel.org/patch/2766501/
-> https://patchwork.kernel.org/patch/2768521/
-> 
-> May I add the $subject patch to that series and push along with it?
-> 
+What:           /sys/devices/system/cpu/cpu#/cpufreq/*
+Date:           pre-git history
+Contact:        cpufreq@vger.kernel.org
+Description:    Discover and change clock speed of CPUs
+
+                Clock scaling allows you to change the clock speed of t=
+he
+                CPUs on the fly. This is a nice method to save battery
+                power, because the lower the clock speed, the less powe=
+r
+                the CPU consumes.
+
+                There are many knobs to tweak in this directory.
+
+                See files in Documentation/cpu-freq/ for more informati=
+on.
+
+                In particular, read Documentation/cpu-freq/user-guide.t=
+xt
+                to learn how to control the knobs.
+
+
+>=20
+> Thanks,
 > Rafael
-> 
-> ---
->  drivers/ata/libata-acpi.c |   37 ++++++++++++++++++++++++++++++++++++-
->  drivers/ata/libata-core.c |    2 ++
->  drivers/ata/libata.h      |    2 ++
->  3 files changed, 40 insertions(+), 1 deletion(-)
-> 
-> Index: linux-pm/drivers/ata/libata-acpi.c
-> ===================================================================
-> --- linux-pm.orig/drivers/ata/libata-acpi.c
-> +++ linux-pm/drivers/ata/libata-acpi.c
-> @@ -156,8 +156,10 @@ static void ata_acpi_handle_hotplug(stru
->  
->  	spin_unlock_irqrestore(ap->lock, flags);
->  
-> -	if (wait)
-> +	if (wait) {
->  		ata_port_wait_eh(ap);
-> +		flush_work(&ap->hotplug_task.work);
-> +	}
->  }
->  
->  static void ata_acpi_dev_notify_dock(acpi_handle handle, u32 event, void *data)
-> @@ -214,6 +216,39 @@ static const struct acpi_dock_ops ata_ac
->  	.uevent = ata_acpi_ap_uevent,
->  };
->  
-> +void ata_acpi_hotplug_init(struct ata_host *host)
-> +{
-> +	int i;
-> +
-> +	for (i = 0; i < host->n_ports; i++) {
-> +		struct ata_port *ap = host->ports[i];
-> +		acpi_handle handle;
-> +		struct ata_device *dev;
-> +
-> +		if (!ap)
-> +			continue;
-> +
-> +		handle = ata_ap_acpi_handle(ap);
-> +		if (handle) {
-> +			/* we might be on a docking station */
-> +			register_hotplug_dock_device(handle,
-> +						     &ata_acpi_ap_dock_ops, ap,
-> +						     NULL, NULL);
-> +		}
-> +
-> +		ata_for_each_dev(dev, &ap->link, ALL) {
-> +			handle = ata_dev_acpi_handle(dev);
-> +			if (!handle)
-> +				continue;
-> +
-> +			/* we might be on a docking station */
-> +			register_hotplug_dock_device(handle,
-> +						     &ata_acpi_dev_dock_ops,
-> +						     dev, NULL, NULL);
-> +		}
-> +	}
-> +}
-> +
->  /**
->   * ata_acpi_dissociate - dissociate ATA host from ACPI objects
->   * @host: target ATA host
-> Index: linux-pm/drivers/ata/libata-core.c
-> ===================================================================
-> --- linux-pm.orig/drivers/ata/libata-core.c
-> +++ linux-pm/drivers/ata/libata-core.c
-> @@ -6148,6 +6148,8 @@ int ata_host_register(struct ata_host *h
->  	if (rc)
->  		goto err_tadd;
->  
-> +	ata_acpi_hotplug_init(host);
-> +
->  	/* set cable, sata_spd_limit and report */
->  	for (i = 0; i < host->n_ports; i++) {
->  		struct ata_port *ap = host->ports[i];
-> Index: linux-pm/drivers/ata/libata.h
-> ===================================================================
-> --- linux-pm.orig/drivers/ata/libata.h
-> +++ linux-pm/drivers/ata/libata.h
-> @@ -122,6 +122,7 @@ extern int ata_acpi_register(void);
->  extern void ata_acpi_unregister(void);
->  extern void ata_acpi_bind(struct ata_device *dev);
->  extern void ata_acpi_unbind(struct ata_device *dev);
-> +extern void ata_acpi_hotplug_init(struct ata_host *host);
->  #else
->  static inline void ata_acpi_dissociate(struct ata_host *host) { }
->  static inline int ata_acpi_on_suspend(struct ata_port *ap) { return 0; }
-> @@ -134,6 +135,7 @@ static inline int ata_acpi_register(void
->  static inline void ata_acpi_unregister(void) { }
->  static inline void ata_acpi_bind(struct ata_device *dev) { }
->  static inline void ata_acpi_unbind(struct ata_device *dev) { }
-> +static inline void ata_acpi_hotplug_init(struct ata_host *host) {}
->  #endif
->  
->  /* libata-scsi.c */
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
+>=20
+>=20
+
+
+--=20
+Best regards
+Tianyu Lan
+--
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
