@@ -1,108 +1,68 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: [GIT PULL] Late power management and ACPI fixes for v3.10
-Date: Wed, 26 Jun 2013 15:02:12 +0200
-Message-ID: <1540341.1JlJme4nI6@vostro.rjw.lan>
+From: Ben Guthro <benjamin.guthro@citrix.com>
+Subject: [PATCH v3 0/3] Xen/ACPI: support sleep state entering on hardware reduced systems
+Date: Wed, 26 Jun 2013 10:06:12 -0400
+Message-ID: <1372255575-29567-1-git-send-email-benjamin.guthro@citrix.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from hydra.sisk.pl ([212.160.235.94]:51823 "EHLO hydra.sisk.pl"
+Received: from smtp.citrix.com ([66.165.176.89]:54617 "EHLO SMTP.CITRIX.COM"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751349Ab3FZMwo (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 26 Jun 2013 08:52:44 -0400
+	id S1751368Ab3FZOG3 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 26 Jun 2013 10:06:29 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux PM list <linux-pm@vger.kernel.org>, Linux PCI <linux-pci@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>, Bjorn Helgaas <bhelgaas@google.com>, Tejun Heo <tj@kernel.org>
+To: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>, Jan Beulich <jbeulich@suse.com>, "Rafaell J . Wysocki" <rjw@sisk.pl>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, xen-devel@lists.xen.org
+Cc: Ben Guthro <benjamin.guthro@citrix.com>, Richard L Maliszewski <richard.l.maliszewski@intel.com>, Gang Wei <gang.wei@intel.com>, Shane Wang <shane.wang@intel.com>, Bob Moore <robert.moore@intel.com>, tboot-devel@lists.sourceforge.net
 
-Hi Linus,
-
-Please pull from the git repository at
-
-  git://git.kernel.org/pub/scm/linux/kernel/git/rafael/linux-pm.git pm+acpi-3.10-late
-
-to receive late power management and ACPI fixes for v3.10 with top-most commit
-45e00374db944b1c12987b501bcaa279b3e36d93
-
-  Merge branch 'pm-fixes'
-
-on top of commit 9e895ace5d82df8929b16f58e9f515f6d54ab82d
-
-  Linux 3.10-rc7
-
-Sorry about the timing of this, but ACPI-based docking stations with PCI
-devices on them and ATA bays would be hardly usable with 3.10 without it.
-We've been working on these fixes for the last couple of weeks and
-everyone involved appears to be reasonably comfortable with them now.
-
-The PM part is one fix for a cpufreq regression introduced recently.
-
-Specifics:
-
-- Fix for an ACPI dock regression introduced by the recent rework of
-  the ACPI-based PCI hotplug code (acpiphp) that caused it to be
-  initialized before the ACPI dock driver, which is incorrect (ACPI
-  dock has to be initialized before acpiphp so that acpiphp can
-  register PCI devices on docking stations with it for PCI hotplug on
-  re-dock to work).  From Jiang Liu.
-
-- Fix for PCI resources allocation in the ACPI-based PCI hotplug code
-  (acpiphp) that makes it use the same PCI resources assignment rules
-  during runtime hotplug that are used during boot (the BIOS' choices
-  are now respected in both cases).  This prevents PCI resource
-  allocation failures during hotplug from happening in some cases.
-  From Jiang Liu.
-
-- Fix for ordering and synchronization issues during hot-removal of
-  PCI devices on docking stations.  It makes the ACPI dock code carry
-  out the PCI devices removal synchronously during undock instead of
-  spawning a separate asynchronous work item to remove each of them
-  without even bothering to wait for all those work items to complete.
-  The hot-addition part is changed analogously.
-
-- Fix for a regression (introduced a few releases ago) that removed
-  the code to register a hotplug notificaion handler for for ATA
-  ports/devices inadvertently which prevented ATA bays hotplug from
-  working.  The missing code is added back with some improvements.
-  From Aaron Lu.
-
-- Fix for a recent cpufreq regression causing a NULL pointer
-  dereference to trigger in od_set_powersave_bias() in some
-  situations from Jacob Shin.
-
-Thanks!
+I have volunteered to take over the efforts of Jan Beulich in getting
+this patch series upstreamed. His original submission text is below,
+along with the v3 modifications.
 
 
----------------
+In version 3.4 acpi_os_prepare_sleep() got introduced in parallel with
+reduced hardware sleep support, and the two changes didn't get
+synchronized: The new code doesn't call the hook function (if so
+requested). Fix this, requiring a boolean parameter to be added to the
+hook function to distinguish "extended" from "legacy" sleep.
 
-Aaron Lu (1):
-      libata-acpi: add back ACPI based hotplug functionality
+This requires adjusting TXT, but the adjustments only go as far as
+failing the extended mode call (since, looking at the TXT interface,
+there doesn't even appear to be precautions to deal with that
+alternative interface).
 
-Jacob Shin (1):
-      cpufreq: fix NULL pointer deference at od_set_powersave_bias()
+The hypervisor change underlying this is commit 62d1a69 ("ACPI: support
+v5 (reduced HW) sleep interface") on the master branch of
+git://xenbits.xen.org/xen.git.
 
-Jiang Liu (2):
-      ACPI / dock: Initialize ACPI dock subsystem upfront
-      PCI / ACPI: Use boot-time resource allocation rules during hotplug
+Signed-off-by: Ben Guthro <benjamin.guthro@citrix.com>
+Signed-off-by: Jan Beulich <jbeulich@suse.com>
+Cc: Richard L Maliszewski <richard.l.maliszewski@intel.com>
+Cc: Gang Wei <gang.wei@intel.com>
+Cc: Shane Wang <shane.wang@intel.com>
+Cc: Bob Moore <robert.moore@intel.com>
+Cc: Rafaell J. Wysocki <rjw@sisk.pl>
+Cc: linux-acpi@vger.kernel.org
+Cc: tboot-devel@lists.sourceforge.net 
 
-Rafael J. Wysocki (1):
-      ACPI / dock / PCI: Synchronous handling of dock events for PCI devices
+v2: Extend description to include reference to hypervisor side change
+v3: Split into multiple patches, separating subsystems
+    Remove bool parameters, in favor of u8
 
----------------
+Ben Guthro (3):
+  acpi: Call acpi_os_prepare_sleep hook in reduced hardware sleep path
+  x86/tboot: Fail extended mode reduced hardware sleep
+  xen/acpi: notify xen when reduced hardware sleep is available
 
- drivers/acpi/dock.c                |  179 ++++++++++++++++++++++++--------------------
- drivers/acpi/internal.h            |    5 ++
- drivers/acpi/scan.c                |    1 +
- drivers/ata/libata-acpi.c          |   37 ++++++++-
- drivers/ata/libata-core.c          |    2 +
- drivers/ata/libata.h               |    2 +
- drivers/cpufreq/cpufreq_ondemand.c |   17 ++++-
- drivers/pci/hotplug/acpiphp_glue.c |   53 +++++++++----
- drivers/pci/pci.h                  |    5 ++
- drivers/pci/setup-bus.c            |    8 +-
- include/acpi/acpi_drivers.h        |    8 +-
- 11 files changed, 207 insertions(+), 110 deletions(-)
+ arch/x86/kernel/tboot.c          |    6 +++++-
+ drivers/acpi/acpica/hwesleep.c   |    8 ++++++++
+ drivers/acpi/acpica/hwsleep.c    |    2 +-
+ drivers/acpi/osl.c               |   16 ++++++++--------
+ drivers/xen/acpi.c               |   26 +++++++++++++-------------
+ include/linux/acpi.h             |   10 +++++-----
+ include/xen/acpi.h               |    4 ++--
+ include/xen/interface/platform.h |    7 ++++---
+ 8 files changed, 46 insertions(+), 33 deletions(-)
 
 -- 
-I speak only for myself.
-Rafael J. Wysocki, Intel Open Source Technology Center.
+1.7.9.5
+
