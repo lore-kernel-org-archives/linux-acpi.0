@@ -1,179 +1,194 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: [PATCH] libata-acpi: add back ACPI based hotplug functionality
-Date: Wed, 26 Jun 2013 14:49:39 +0200
-Message-ID: <1474315.5QoRfxBGK7@vostro.rjw.lan>
-References: <1715067.uK3nZ8ehWr@vostro.rjw.lan> <51CA472D.602@intel.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7Bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <51CA472D.602@intel.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Aaron Lu <aaron.lu@intel.com>
-Cc: Tejun Heo <tj@kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>, Jiang Liu <liuj97@gmail.com>, Jiang Liu <jiang.liu@huawei.com>, Dirk Griesbach <spamthis@freenet.de>
+From: Lan Tianyu <tianyu.lan@intel.com>
+Subject: [PATCH 2/2 V2] CPUFreq: Add new sysfs attribute freqdomain_cpus for acpi-freq driver
+Date: Wed, 26 Jun 2013 20:38:24 +0800
+Message-ID: <1372250304-20975-1-git-send-email-tianyu.lan@intel.com>
+Return-path: <cpufreq-owner@vger.kernel.org>
+Sender: cpufreq-owner@vger.kernel.org
+To: rjw@sisk.pl, lenb@kernel.org, viresh.kumar@linaro.org, jean-philippe.halimi@exascale-computing.eu
+Cc: Lan Tianyu <tianyu.lan@intel.com>, linux-acpi@vger.kernel.org, linux-pm@vger.kernel.org, cpufreq@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Wednesday, June 26, 2013 09:43:09 AM Aaron Lu wrote:
-> On 06/24/2013 08:43 PM, Rafael J. Wysocki wrote:
-> > From: Aaron Lu <aaron.lu@intel.com>
-> > 
-> > Commit 30dcf76acc69 "libata: migrate ACPI code over to new bindings"
-> > mistakenly dropped the code to register hotplug notificaion handler
-> > for ATA port/devices, causing regression for people using ATA bay,
-> > as kernel bug #59871 shows.
-> > 
-> > Fix this by adding back the hotplug notification handler registration
-> > code.  Since this code has to be run once and notification needs to
-> > be installed on every ATA port/devices handle no matter if there is
-> > actual device attached, we can't do this in binding time for ATA
-> > device ACPI handle, as the binding only occurs when a SCSI device is
-> > created, i.e. there is device attached.  So introduce the
-> > ata_acpi_hotplug_init() function to loop scan all ATA ACPI handles
-> > and if it is available, install the notificaion handler for it during
-> > ATA init time.
-> > 
-> > With the ATA ACPI handle binding to SCSI device tree, it is possible
-> > now that when the SCSI hotplug work removes the SCSI device, the ACPI
-> > unbind function will find that the corresponding ACPI device has
-> > already been deleted by dock driver, causing a scaring message like:
-> > [  128.263966] scsi 4:0:0:0: Oops, 'acpi_handle' corrupt
-> > Fix this by waiting for SCSI hotplug task finish in our notificaion
-> > handler, so that the removal of ACPI device done in ACPI unbind
-> > function triggered by the removal of SCSI device is run earlier when
-> > ACPI device is still available.
-> > 
-> > [rjw: Rebased]
-> > References: https://bugzilla.kernel.org/show_bug.cgi?id=59871
-> > Reported-bisected-and-tested-by: Dirk Griesbach <spamthis@freenet.de>
-> > Signed-off-by: Aaron Lu <aaron.lu@intel.com>
-> 
-> Sorry for replying late, I forgot to CC stable here.
-> Hopefully it's not too late.
+Commit aa77a52 and fcf8058 changes the content of "related_cpus" and user
+space can't get cpus which are in the same hardware coordination cpu domain
+(These info are provided by ACPI AML method _PSD) via "related_cpus". This
+change affects some users of original "related_cpus".
 
-I've added a CC to -stable to the commit log.
+This patch is to add a new sysfs attribute "freqdomian_cpus" for acpi-cpufreq
+driver which exposes all cpus in the same domain regardless of hardware or
+software coordination to make up the info loss of previous change.
 
-Thanks,
-Rafael
+Reference:https://bugzilla.kernel.org/show_bug.cgi?id=58761
+Reported-by: Jean-Philippe Halimi <jean-philippe.halimi@exascale-computing.eu>
+Signed-off-by: Lan Tianyu <tianyu.lan@intel.com>
+---
+Change since v1:
+     Create new file acpi-cpufreq.txt under Documentation/cpu-freq and
+move new attribute descriptor to it.
+     Add new field freqdomain_cpus in struct acpi_cpufreq_data and record
+cpu domain info in it. For AMD case, use sibling cpus info to overwrite
+cpu domain info from ACPI.        
 
+ Documentation/cpu-freq/acpi-cpufreq.txt |    7 +++++++
+ drivers/cpufreq/acpi-cpufreq.c          |   23 ++++++++++++++++++++++-
+ drivers/cpufreq/cpufreq.c               |    7 ++++---
+ include/linux/cpufreq.h                 |    3 +++
+ 4 files changed, 36 insertions(+), 4 deletions(-)
+ create mode 100644 Documentation/cpu-freq/acpi-cpufreq.txt
 
-> > ---
-> > 
-> > Hi Tejun,
-> > 
-> > If I'm not overlooking any hidden twists, it should be safe to add this
-> > patch on top of the following three that I'm going to push for 3.10
-> > in a couple of days (unless 3.10 is released first):
-> > 
-> > https://patchwork.kernel.org/patch/2766491/
-> > https://patchwork.kernel.org/patch/2766501/
-> > https://patchwork.kernel.org/patch/2768521/
-> > 
-> > May I add the $subject patch to that series and push along with it?
-> > 
-> > Rafael
-> > 
-> > ---
-> >  drivers/ata/libata-acpi.c |   37 ++++++++++++++++++++++++++++++++++++-
-> >  drivers/ata/libata-core.c |    2 ++
-> >  drivers/ata/libata.h      |    2 ++
-> >  3 files changed, 40 insertions(+), 1 deletion(-)
-> > 
-> > Index: linux-pm/drivers/ata/libata-acpi.c
-> > ===================================================================
-> > --- linux-pm.orig/drivers/ata/libata-acpi.c
-> > +++ linux-pm/drivers/ata/libata-acpi.c
-> > @@ -156,8 +156,10 @@ static void ata_acpi_handle_hotplug(stru
-> >  
-> >  	spin_unlock_irqrestore(ap->lock, flags);
-> >  
-> > -	if (wait)
-> > +	if (wait) {
-> >  		ata_port_wait_eh(ap);
-> > +		flush_work(&ap->hotplug_task.work);
-> > +	}
-> >  }
-> >  
-> >  static void ata_acpi_dev_notify_dock(acpi_handle handle, u32 event, void *data)
-> > @@ -214,6 +216,39 @@ static const struct acpi_dock_ops ata_ac
-> >  	.uevent = ata_acpi_ap_uevent,
-> >  };
-> >  
-> > +void ata_acpi_hotplug_init(struct ata_host *host)
-> > +{
-> > +	int i;
-> > +
-> > +	for (i = 0; i < host->n_ports; i++) {
-> > +		struct ata_port *ap = host->ports[i];
-> > +		acpi_handle handle;
-> > +		struct ata_device *dev;
-> > +
-> > +		if (!ap)
-> > +			continue;
-> > +
-> > +		handle = ata_ap_acpi_handle(ap);
-> > +		if (handle) {
-> > +			/* we might be on a docking station */
-> > +			register_hotplug_dock_device(handle,
-> > +						     &ata_acpi_ap_dock_ops, ap,
-> > +						     NULL, NULL);
-> > +		}
-> > +
-> > +		ata_for_each_dev(dev, &ap->link, ALL) {
-> > +			handle = ata_dev_acpi_handle(dev);
-> > +			if (!handle)
-> > +				continue;
-> > +
-> > +			/* we might be on a docking station */
-> > +			register_hotplug_dock_device(handle,
-> > +						     &ata_acpi_dev_dock_ops,
-> > +						     dev, NULL, NULL);
-> > +		}
-> > +	}
-> > +}
-> > +
-> >  /**
-> >   * ata_acpi_dissociate - dissociate ATA host from ACPI objects
-> >   * @host: target ATA host
-> > Index: linux-pm/drivers/ata/libata-core.c
-> > ===================================================================
-> > --- linux-pm.orig/drivers/ata/libata-core.c
-> > +++ linux-pm/drivers/ata/libata-core.c
-> > @@ -6148,6 +6148,8 @@ int ata_host_register(struct ata_host *h
-> >  	if (rc)
-> >  		goto err_tadd;
-> >  
-> > +	ata_acpi_hotplug_init(host);
-> > +
-> >  	/* set cable, sata_spd_limit and report */
-> >  	for (i = 0; i < host->n_ports; i++) {
-> >  		struct ata_port *ap = host->ports[i];
-> > Index: linux-pm/drivers/ata/libata.h
-> > ===================================================================
-> > --- linux-pm.orig/drivers/ata/libata.h
-> > +++ linux-pm/drivers/ata/libata.h
-> > @@ -122,6 +122,7 @@ extern int ata_acpi_register(void);
-> >  extern void ata_acpi_unregister(void);
-> >  extern void ata_acpi_bind(struct ata_device *dev);
-> >  extern void ata_acpi_unbind(struct ata_device *dev);
-> > +extern void ata_acpi_hotplug_init(struct ata_host *host);
-> >  #else
-> >  static inline void ata_acpi_dissociate(struct ata_host *host) { }
-> >  static inline int ata_acpi_on_suspend(struct ata_port *ap) { return 0; }
-> > @@ -134,6 +135,7 @@ static inline int ata_acpi_register(void
-> >  static inline void ata_acpi_unregister(void) { }
-> >  static inline void ata_acpi_bind(struct ata_device *dev) { }
-> >  static inline void ata_acpi_unbind(struct ata_device *dev) { }
-> > +static inline void ata_acpi_hotplug_init(struct ata_host *host) {}
-> >  #endif
-> >  
-> >  /* libata-scsi.c */
-> > 
-> > --
-> > To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
-> > the body of a message to majordomo@vger.kernel.org
-> > More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> > 
-> 
+diff --git a/Documentation/cpu-freq/acpi-cpufreq.txt b/Documentation/cpu-freq/acpi-cpufreq.txt
+new file mode 100644
+index 0000000..9c59d09
+--- /dev/null
++++ b/Documentation/cpu-freq/acpi-cpufreq.txt
+@@ -0,0 +1,7 @@
++Sysfs interface
++---------------------------
++(Interface locates in the directory /sys/devices/system/cpu/cpuN/cpufreq)
++
++freqdomain_cpus :               List of Online + Offline CPUs in same CPU dependency
++                                domain.
++
+diff --git a/drivers/cpufreq/acpi-cpufreq.c b/drivers/cpufreq/acpi-cpufreq.c
+index f4fef0a..3926402 100644
+--- a/drivers/cpufreq/acpi-cpufreq.c
++++ b/drivers/cpufreq/acpi-cpufreq.c
+@@ -70,6 +70,7 @@ struct acpi_cpufreq_data {
+ 	struct cpufreq_frequency_table *freq_table;
+ 	unsigned int resume;
+ 	unsigned int cpu_feature;
++	cpumask_var_t freqdomain_cpus;
+ };
+ 
+ static DEFINE_PER_CPU(struct acpi_cpufreq_data *, acfreq_data);
+@@ -176,6 +177,15 @@ static struct global_attr global_boost = __ATTR(boost, 0644,
+ 						show_global_boost,
+ 						store_global_boost);
+ 
++static ssize_t show_freqdomain_cpus(struct cpufreq_policy *policy, char *buf)
++{
++	struct acpi_cpufreq_data *data = per_cpu(acfreq_data, policy->cpu);
++
++	return cpufreq_show_cpus(data->freqdomain_cpus, buf);
++}
++
++cpufreq_freq_attr_ro(freqdomain_cpus);
++
+ #ifdef CONFIG_X86_ACPI_CPUFREQ_CPB
+ static ssize_t store_cpb(struct cpufreq_policy *policy, const char *buf,
+ 			 size_t count)
+@@ -704,6 +714,11 @@ static int acpi_cpufreq_cpu_init(struct cpufreq_policy *policy)
+ 	if (!data)
+ 		return -ENOMEM;
+ 
++	if (!zalloc_cpumask_var(&data->freqdomain_cpus, GFP_KERNEL)) {
++		result = -ENOMEM;
++		goto err_free;
++	}
++
+ 	data->acpi_data = per_cpu_ptr(acpi_perf_data, cpu);
+ 	per_cpu(acfreq_data, cpu) = data;
+ 
+@@ -712,7 +727,7 @@ static int acpi_cpufreq_cpu_init(struct cpufreq_policy *policy)
+ 
+ 	result = acpi_processor_register_performance(data->acpi_data, cpu);
+ 	if (result)
+-		goto err_free;
++		goto err_free_mask;
+ 
+ 	perf = data->acpi_data;
+ 	policy->shared_type = perf->shared_type;
+@@ -725,6 +740,7 @@ static int acpi_cpufreq_cpu_init(struct cpufreq_policy *policy)
+ 	    policy->shared_type == CPUFREQ_SHARED_TYPE_ANY) {
+ 		cpumask_copy(policy->cpus, perf->shared_cpu_map);
+ 	}
++	cpumask_copy(data->freqdomain_cpus, perf->shared_cpu_map);
+ 
+ #ifdef CONFIG_SMP
+ 	dmi_check_system(sw_any_bug_dmi_table);
+@@ -736,6 +752,7 @@ static int acpi_cpufreq_cpu_init(struct cpufreq_policy *policy)
+ 	if (check_amd_hwpstate_cpu(cpu) && !acpi_pstate_strict) {
+ 		cpumask_clear(policy->cpus);
+ 		cpumask_set_cpu(cpu, policy->cpus);
++		cpumask_copy(data->freqdomain_cpus, cpu_sibling_mask(cpu));
+ 		policy->shared_type = CPUFREQ_SHARED_TYPE_HW;
+ 		pr_info_once(PFX "overriding BIOS provided _PSD data\n");
+ 	}
+@@ -870,6 +887,8 @@ err_freqfree:
+ 	kfree(data->freq_table);
+ err_unreg:
+ 	acpi_processor_unregister_performance(perf, cpu);
++err_free_mask:
++	free_cpumask_var(data->freqdomain_cpus);
+ err_free:
+ 	kfree(data);
+ 	per_cpu(acfreq_data, cpu) = NULL;
+@@ -888,6 +907,7 @@ static int acpi_cpufreq_cpu_exit(struct cpufreq_policy *policy)
+ 		per_cpu(acfreq_data, policy->cpu) = NULL;
+ 		acpi_processor_unregister_performance(data->acpi_data,
+ 						      policy->cpu);
++		free_cpumask_var(data->freqdomain_cpus);
+ 		kfree(data->freq_table);
+ 		kfree(data);
+ 	}
+@@ -908,6 +928,7 @@ static int acpi_cpufreq_resume(struct cpufreq_policy *policy)
+ 
+ static struct freq_attr *acpi_cpufreq_attr[] = {
+ 	&cpufreq_freq_attr_scaling_available_freqs,
++	&freqdomain_cpus,
+ 	NULL,	/* this is a placeholder for cpb, do not remove */
+ 	NULL,
+ };
+diff --git a/drivers/cpufreq/cpufreq.c b/drivers/cpufreq/cpufreq.c
+index d976e22..adf12a9f 100644
+--- a/drivers/cpufreq/cpufreq.c
++++ b/drivers/cpufreq/cpufreq.c
+@@ -573,7 +573,7 @@ out:
+ 	return i;
+ }
+ 
+-static ssize_t show_cpus(const struct cpumask *mask, char *buf)
++ssize_t cpufreq_show_cpus(const struct cpumask *mask, char *buf)
+ {
+ 	ssize_t i = 0;
+ 	unsigned int cpu;
+@@ -588,6 +588,7 @@ static ssize_t show_cpus(const struct cpumask *mask, char *buf)
+ 	i += sprintf(&buf[i], "\n");
+ 	return i;
+ }
++EXPORT_SYMBOL_GPL(cpufreq_show_cpus);
+ 
+ /**
+  * show_related_cpus - show the CPUs affected by each transition even if
+@@ -595,7 +596,7 @@ static ssize_t show_cpus(const struct cpumask *mask, char *buf)
+  */
+ static ssize_t show_related_cpus(struct cpufreq_policy *policy, char *buf)
+ {
+-	return show_cpus(policy->related_cpus, buf);
++	return cpufreq_show_cpus(policy->related_cpus, buf);
+ }
+ 
+ /**
+@@ -603,7 +604,7 @@ static ssize_t show_related_cpus(struct cpufreq_policy *policy, char *buf)
+  */
+ static ssize_t show_affected_cpus(struct cpufreq_policy *policy, char *buf)
+ {
+-	return show_cpus(policy->cpus, buf);
++	return cpufreq_show_cpus(policy->cpus, buf);
+ }
+ 
+ static ssize_t store_scaling_setspeed(struct cpufreq_policy *policy,
+diff --git a/include/linux/cpufreq.h b/include/linux/cpufreq.h
+index 3c7ee2f..5fedb6c 100644
+--- a/include/linux/cpufreq.h
++++ b/include/linux/cpufreq.h
+@@ -438,4 +438,7 @@ void cpufreq_frequency_table_get_attr(struct cpufreq_frequency_table *table,
+ void cpufreq_frequency_table_update_policy_cpu(struct cpufreq_policy *policy);
+ 
+ void cpufreq_frequency_table_put_attr(unsigned int cpu);
++
++ssize_t cpufreq_show_cpus(const struct cpumask *mask, char *buf);
++
+ #endif /* _LINUX_CPUFREQ_H */
 -- 
-I speak only for myself.
-Rafael J. Wysocki, Intel Open Source Technology Center.
+1.7.10.4
+
