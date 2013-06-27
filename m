@@ -1,45 +1,51 @@
-From: Lan Tianyu <tianyu.lan@intel.com>
-Subject: Re: [PATCH 2/2 V3] CPUFreq: Add new sysfs attribute freqdomain_cpus
- for acpi-freq driver
-Date: Thu, 27 Jun 2013 16:20:44 +0800
-Message-ID: <51CBF5DC.5020806@intel.com>
-References: <1372316934-27225-1-git-send-email-tianyu.lan@intel.com> <CAKohponGDfjP6bFtXohb=h+_csmT49UJ=Dko_e4mUrkDBVN02g@mail.gmail.com>
+From: naresh.bhat@linaro.org
+Subject: [PATCH] ACPI/fan: Initialize acpi_state variable
+Date: Thu, 27 Jun 2013 15:58:49 +0530
+Message-ID: <1372328929-732-1-git-send-email-naresh.bhat@linaro.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-pm-owner@vger.kernel.org>
-In-Reply-To: <CAKohponGDfjP6bFtXohb=h+_csmT49UJ=Dko_e4mUrkDBVN02g@mail.gmail.com>
-Sender: linux-pm-owner@vger.kernel.org
-To: Viresh Kumar <viresh.kumar@linaro.org>
-Cc: rjw@sisk.pl, lenb@kernel.org, jean-philippe.halimi@exascale-computing.eu, linux-acpi@vger.kernel.org, linux-pm@vger.kernel.org, cpufreq@vger.kernel.org
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-pa0-f51.google.com ([209.85.220.51]:39945 "EHLO
+	mail-pa0-f51.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751784Ab3F0K3C (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 27 Jun 2013 06:29:02 -0400
+Received: by mail-pa0-f51.google.com with SMTP id lf11so854415pab.38
+        for <linux-acpi@vger.kernel.org>; Thu, 27 Jun 2013 03:29:01 -0700 (PDT)
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: linux-acpi@vger.kernel.org
+Cc: len.brown@intel.com, patches@linaro.org, linaro-kernel@lists.linaro.org, naresh.bhat@linaro.org
 
-On 2013=E5=B9=B406=E6=9C=8827=E6=97=A5 16:25, Viresh Kumar wrote:
-> On 27 June 2013 12:38, Lan Tianyu <tianyu.lan@intel.com> wrote:
->> Commit aa77a52 and fcf8058 changes the content of "related_cpus" and=
- user
->> space can't get cpus which are in the same hardware coordination cpu=
- domain
->> (These info are provided by ACPI AML method _PSD) via "related_cpus"=
-=2E This
->> change affects some users of original "related_cpus".
->>
->> This patch is to add a new sysfs attribute "freqdomian_cpus" for acp=
-i-cpufreq
->> driver which exposes all cpus in the same domain regardless of hardw=
-are or
->> software coordination to make up the info loss of previous change.
->>
->> Reference:https://bugzilla.kernel.org/show_bug.cgi?id=3D58761
->> Reported-by: Jean-Philippe Halimi <jean-philippe.halimi@exascale-com=
-puting.eu>
->> Signed-off-by: Lan Tianyu <tianyu.lan@intel.com>
->=20
-> Acked-by: Viresh Kumar <viresh.kumar@linaro.org>
->=20
+=46rom: Naresh Bhat <naresh.bhat@linaro.org>
 
-Thanks.
+  CC      drivers/acpi/fan.o
+drivers/acpi/fan.c: In function =E2=80=98fan_get_cur_state=E2=80=99:
+drivers/acpi/fan.c:96:9: warning: =E2=80=98acpi_state=E2=80=99 may be u=
+sed uninitialized in this function [-Wuninitialized]
+---
+ drivers/acpi/fan.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
+diff --git a/drivers/acpi/fan.c b/drivers/acpi/fan.c
+index f815da8..f61f7fd 100644
+--- a/drivers/acpi/fan.c
++++ b/drivers/acpi/fan.c
+@@ -84,7 +84,7 @@ static int fan_get_cur_state(struct thermal_cooling_d=
+evice *cdev, unsigned long
+ {
+ 	struct acpi_device *device =3D cdev->devdata;
+ 	int result;
+-	int acpi_state;
++	int acpi_state =3D 0;
+=20
+ 	if (!device)
+ 		return -EINVAL;
 --=20
-Best regards
-Tianyu Lan
+1.7.9.5
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
