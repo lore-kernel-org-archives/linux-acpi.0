@@ -1,73 +1,69 @@
-From: Naresh Bhat <naresh.bhat@linaro.org>
-Subject: Re: [PATCH] ACPI/fan: Initialize acpi_state variable
-Date: Thu, 27 Jun 2013 18:37:35 +0530
-Message-ID: <CAFoFrHaUbjHbvDDVO0+1j4WSTdhdrWF64MrNvzKNJXaLKSv_jw@mail.gmail.com>
-References: <1372331314-31010-1-git-send-email-naresh.bhat@linaro.org>
-	<6743122.cV0P3hQa28@vostro.rjw.lan>
+From: Ben Guthro <benjamin.guthro@citrix.com>
+Subject: [PATCH v4 0/5] Xen/ACPI: support sleep state entering on hardware reduced systems
+Date: Thu, 27 Jun 2013 11:01:58 -0400
+Message-ID: <1372345323-9266-1-git-send-email-benjamin.guthro@citrix.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-ob0-f170.google.com ([209.85.214.170]:59867 "EHLO
-	mail-ob0-f170.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752264Ab3F0NHg convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 27 Jun 2013 09:07:36 -0400
-Received: by mail-ob0-f170.google.com with SMTP id ef5so704994obb.15
-        for <linux-acpi@vger.kernel.org>; Thu, 27 Jun 2013 06:07:36 -0700 (PDT)
-In-Reply-To: <6743122.cV0P3hQa28@vostro.rjw.lan>
+Received: from smtp.citrix.com ([66.165.176.89]:31696 "EHLO SMTP.CITRIX.COM"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753453Ab3F0PCS (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 27 Jun 2013 11:02:18 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: linux-acpi@vger.kernel.org, len.brown@intel.com, patches@linaro.org, linaro-kernel@lists.linaro.org, linux-kernel@vger.kernel.org
+To: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>, Jan Beulich <jbeulich@suse.com>, "Rafaell J . Wysocki" <rjw@sisk.pl>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, xen-devel@lists.xen.org
+Cc: Ben Guthro <benjamin.guthro@citrix.com>, Richard L Maliszewski <richard.l.maliszewski@intel.com>, Gang Wei <gang.wei@intel.com>, Shane Wang <shane.wang@intel.com>, Bob Moore <robert.moore@intel.com>, tboot-devel@lists.sourceforge.net
 
-Hi Rafael,
+In version 3.4 acpi_os_prepare_sleep() got introduced in parallel with
+reduced hardware sleep support, and the two changes didn't get
+synchronized: The new code doesn't call the hook function (if so
+requested). Fix this, requiring a boolean parameter to be added to the
+hook function to distinguish "extended" from "legacy" sleep.
 
-You mean I need to initialize using ACPI_STATE_D0 ? and resend the patc=
-h ?
+This requires adjusting TXT, but the adjustments only go as far as
+failing the extended mode call (since, looking at the TXT interface,
+there doesn't even appear to be precautions to deal with that
+alternative interface).
 
-Thanks
--Naresh Bhat
+The hypervisor change underlying this is commit 62d1a69 ("ACPI: support
+v5 (reduced HW) sleep interface") on the master branch of
+git://xenbits.xen.org/xen.git.
 
-On 27 June 2013 17:58, Rafael J. Wysocki <rjw@sisk.pl> wrote:
-> On Thursday, June 27, 2013 04:38:34 PM naresh.bhat@linaro.org wrote:
->> From: Naresh Bhat <naresh.bhat@linaro.org>
->>
->>   CC      drivers/acpi/fan.o
->> drivers/acpi/fan.c: In function =91fan_get_cur_state=92:
->> drivers/acpi/fan.c:96:9: warning: =91acpi_state=92 may be used unini=
-tialized in this function [-Wuninitialized]
->> ---
->>  drivers/acpi/fan.c |    2 +-
->>  1 file changed, 1 insertion(+), 1 deletion(-)
->>
->> diff --git a/drivers/acpi/fan.c b/drivers/acpi/fan.c
->> index f815da8..f61f7fd 100644
->> --- a/drivers/acpi/fan.c
->> +++ b/drivers/acpi/fan.c
->> @@ -84,7 +84,7 @@ static int fan_get_cur_state(struct thermal_coolin=
-g_device *cdev, unsigned long
->>  {
->>       struct acpi_device *device =3D cdev->devdata;
->>       int result;
->> -     int acpi_state;
->> +     int acpi_state =3D 0;
->
-> Please use an appropriate symbol here.
->
->>
->>       if (!device)
->>               return -EINVAL;
->>
->
-> Thanks,
-> Rafael
->
->
-> --
-> I speak only for myself.
-> Rafael J. Wysocki, Intel Open Source Technology Center.
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Signed-off-by: Ben Guthro <benjamin.guthro@citrix.com>
+Signed-off-by: Jan Beulich <jbeulich@suse.com>
+Cc: Richard L Maliszewski <richard.l.maliszewski@intel.com>
+Cc: Gang Wei <gang.wei@intel.com>
+Cc: Shane Wang <shane.wang@intel.com>
+Cc: Bob Moore <robert.moore@intel.com>
+Cc: Rafaell J. Wysocki <rjw@sisk.pl>
+Cc: linux-acpi@vger.kernel.org
+Cc: tboot-devel@lists.sourceforge.net 
+
+v2: Extend description to include reference to hypervisor side change
+v3: Split into multiple patches, separating subsystems
+    Remove bool parameters, in favor of u8
+v4: Remove linux/acpi.h dependencies
+    Further patch split to break out acpica from OSL
+    More bool vs u8 fixes
+
+Ben Guthro (5):
+  acpi: Remove need to include linux/acpi.h in common acpica code
+  acpi: Call acpi_os_prepare_sleep hook in reduced hardware sleep path
+  acpi: Adjust linux acpi OS functions to new extended parameter
+  x86/tboot: Fail extended mode reduced hardware sleep
+  xen/acpi: notify xen when reduced hardware sleep is available
+
+ arch/x86/kernel/tboot.c          |    6 +++++-
+ drivers/acpi/acpica/hwesleep.c   |    7 +++++++
+ drivers/acpi/acpica/hwsleep.c    |    3 +--
+ drivers/acpi/osl.c               |   16 ++++++++--------
+ drivers/xen/acpi.c               |   26 +++++++++++++-------------
+ include/acpi/acpiosxf.h          |    6 ++++++
+ include/linux/acpi.h             |    9 +++------
+ include/xen/acpi.h               |    4 ++--
+ include/xen/interface/platform.h |    7 ++++---
+ 9 files changed, 49 insertions(+), 35 deletions(-)
+
+-- 
+1.7.9.5
+
