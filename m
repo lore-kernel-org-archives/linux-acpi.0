@@ -1,21 +1,21 @@
 From: naresh.bhat@linaro.org
 Subject: [PATCH] ACPI/fan: Initialize acpi_state variable
-Date: Thu, 27 Jun 2013 15:58:49 +0530
-Message-ID: <1372328929-732-1-git-send-email-naresh.bhat@linaro.org>
+Date: Thu, 27 Jun 2013 16:38:34 +0530
+Message-ID: <1372331314-31010-1-git-send-email-naresh.bhat@linaro.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-pa0-f51.google.com ([209.85.220.51]:39945 "EHLO
-	mail-pa0-f51.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751784Ab3F0K3C (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 27 Jun 2013 06:29:02 -0400
-Received: by mail-pa0-f51.google.com with SMTP id lf11so854415pab.38
-        for <linux-acpi@vger.kernel.org>; Thu, 27 Jun 2013 03:29:01 -0700 (PDT)
+Received: from mail-pb0-f43.google.com ([209.85.160.43]:52584 "EHLO
+	mail-pb0-f43.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750843Ab3F0LIs (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 27 Jun 2013 07:08:48 -0400
+Received: by mail-pb0-f43.google.com with SMTP id md12so772141pbc.16
+        for <linux-acpi@vger.kernel.org>; Thu, 27 Jun 2013 04:08:48 -0700 (PDT)
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: linux-acpi@vger.kernel.org
-Cc: len.brown@intel.com, patches@linaro.org, linaro-kernel@lists.linaro.org, naresh.bhat@linaro.org
+Cc: len.brown@intel.com, patches@linaro.org, linaro-kernel@lists.linaro.org, naresh.bhat@linaro.org, linux-kernel@vger.kernel.org
 
 =46rom: Naresh Bhat <naresh.bhat@linaro.org>
 
