@@ -1,212 +1,297 @@
-From: Lan Tianyu <tianyu.lan@intel.com>
-Subject: [PATCH 2/2 V3] CPUFreq: Add new sysfs attribute freqdomain_cpus for acpi-freq driver
-Date: Thu, 27 Jun 2013 15:08:54 +0800
-Message-ID: <1372316934-27225-1-git-send-email-tianyu.lan@intel.com>
+From: Aaron Lu <aaron.lu@intel.com>
+Subject: Re: [PATCH 3/4] ACPI / PM: Rework and clean up acpi_dev_pm_get_state()
+Date: Thu, 27 Jun 2013 16:11:22 +0800
+Message-ID: <51CBF3AA.2030508@intel.com>
+References: <6895318.cKDBc4OdI0@vostro.rjw.lan> <1756031.gcnLRAM3xz@vostro.rjw.lan>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-pm-owner@vger.kernel.org>
+In-Reply-To: <1756031.gcnLRAM3xz@vostro.rjw.lan>
 Sender: linux-pm-owner@vger.kernel.org
-To: rjw@sisk.pl, lenb@kernel.org, viresh.kumar@linaro.org, jean-philippe.halimi@exascale-computing.eu
-Cc: Lan Tianyu <tianyu.lan@intel.com>, linux-acpi@vger.kernel.org, linux-pm@vger.kernel.org, cpufreq@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>, Linux PM list <linux-pm@vger.kernel.org>, Lan Tianyu <tianyu.lan@intel.com>
 List-Id: linux-acpi@vger.kernel.org
 
-Commit aa77a52 and fcf8058 changes the content of "related_cpus" and user
-space can't get cpus which are in the same hardware coordination cpu domain
-(These info are provided by ACPI AML method _PSD) via "related_cpus". This
-change affects some users of original "related_cpus".
+On 06/14/2013 08:32 PM, Rafael J. Wysocki wrote:
+> From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+> 
+> The acpi_dev_pm_get_state() function defined in device_pm.c is quite
+> convoluted, which isn't really necessary, and it doesn't validate the
+> values returned by the ACPI methods executed by it appropriately.
+> 
+> To address these shortcomings modify it in the following way.
+> 
+>  (1) Make its return value only mean whether or not it succeeded and
+>      pass the device power states determined by it through pointers.
+> 
+>  (2) Drop the d_max_in argument, used by only one of its callers,
+>      from it, and move the code related to d_max_in into that caller,
+>      acpi_pm_device_sleep_state().
+> 
+>  (3) Make it always check the return value of acpi_evaluate_integer()
+>      and handle failures as appropriate.  Moreover, make it check if
+>      the values returned by the executed ACPI methods are not out of
+>      range.
+> 
+>  (4) Make it check if the values returned by the executed ACPI
+>      methods represent valid power states of the given device and
+>      handle situations in which that's not the case gracefully.
+> 
+> Also update the kerneldoc comments of acpi_dev_pm_get_state() and
+> acpi_pm_device_sleep_state() to reflect the code changes.
+> 
+> Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+> ---
+>  drivers/acpi/device_pm.c |  158 +++++++++++++++++++++++++++--------------------
+>  1 file changed, 92 insertions(+), 66 deletions(-)
+> 
+> Index: linux-pm/drivers/acpi/device_pm.c
+> ===================================================================
+> --- linux-pm.orig/drivers/acpi/device_pm.c
+> +++ linux-pm/drivers/acpi/device_pm.c
+> @@ -403,44 +403,37 @@ EXPORT_SYMBOL(acpi_bus_can_wakeup);
+>   * @dev: Device whose preferred target power state to return.
+>   * @adev: ACPI device node corresponding to @dev.
+>   * @target_state: System state to match the resultant device state.
+> - * @d_max_in: Deepest low-power state to take into consideration.
+> - * @d_min_p: Location to store the upper limit of the allowed states range.
+> - * Return value: Preferred power state of the device on success, -ENODEV
+> - * (if there's no 'struct acpi_device' for @dev) or -EINVAL on failure
+> + * @d_min_p: Location to store the highest power state available to the device.
+> + * @d_max_p: Location to store the lowest power state available to the device.
+>   *
+> - * Find the lowest power (highest number) ACPI device power state that the
+> - * device can be in while the system is in the state represented by
+> - * @target_state.  If @d_min_p is set, the highest power (lowest number) device
+> - * power state that @dev can be in for the given system sleep state is stored
+> - * at the location pointed to by it.
+> + * Find the lowest power (highest number) and highest power (lowest number) ACPI
+> + * device power states that the device can be in while the system is in the
+> + * state represented by @target_state.  Store the integer numbers representing
+> + * those stats in the memory locations pointed to by @d_max_p and @d_min_p,
+> + * respectively.
+>   *
+>   * Callers must ensure that @dev and @adev are valid pointers and that @adev
+>   * actually corresponds to @dev before using this function.
+> + *
+> + * Returns 0 on success or -ENODATA when one of the ACPI methods fails or
+> + * returns a value that doesn't make sense.  The memory locations pointed to by
+> + * @d_max_p and @d_min_p are only modified on success.
+>   */
+>  static int acpi_dev_pm_get_state(struct device *dev, struct acpi_device *adev,
+> -				 u32 target_state, int d_max_in, int *d_min_p)
+> +				 u32 target_state, int *d_min_p, int *d_max_p)
+>  {
+> -	char acpi_method[] = "_SxD";
+> -	unsigned long long d_min, d_max;
+> +	char method[] = { '_', 'S', '0' + target_state, 'D', '\0' };
+> +	acpi_handle handle = adev->handle;
+> +	unsigned long long ret;
+> +	int d_min, d_max;
+>  	bool wakeup = false;
+> +	acpi_status status;
+>  
+> -	if (d_max_in < ACPI_STATE_D0 || d_max_in > ACPI_STATE_D3_COLD)
+> -		return -EINVAL;
+> -
+> -	if (d_max_in > ACPI_STATE_D3_HOT) {
+> -		enum pm_qos_flags_status stat;
+> -
+> -		stat = dev_pm_qos_flags(dev, PM_QOS_FLAG_NO_POWER_OFF);
+> -		if (stat == PM_QOS_FLAGS_ALL)
+> -			d_max_in = ACPI_STATE_D3_HOT;
+> -	}
+> -
+> -	acpi_method[2] = '0' + target_state;
+>  	/*
+> -	 * If the sleep state is S0, the lowest limit from ACPI is D3,
+> -	 * but if the device has _S0W, we will use the value from _S0W
+> -	 * as the lowest limit from ACPI.  Finally, we will constrain
+> -	 * the lowest limit with the specified one.
+> +	 * If the system state is S0, the lowest power state the device can be
+> +	 * in is D3cold, unless the device has _S0W and is supposed to signal
+> +	 * wakeup, in which case the return value of _S0W has to be used as the
+> +	 * lowest power state available to the device.
+>  	 */
+>  	d_min = ACPI_STATE_D0;
+>  	d_max = ACPI_STATE_D3_COLD;
+> @@ -449,12 +442,30 @@ static int acpi_dev_pm_get_state(struct
+>  	 * If present, _SxD methods return the minimum D-state (highest power
+>  	 * state) we can use for the corresponding S-states.  Otherwise, the
+>  	 * minimum D-state is D0 (ACPI 3.x).
+> -	 *
+> -	 * NOTE: We rely on acpi_evaluate_integer() not clobbering the integer
+> -	 * provided -- that's our fault recovery, we ignore retval.
+>  	 */
+>  	if (target_state > ACPI_STATE_S0) {
+> -		acpi_evaluate_integer(adev->handle, acpi_method, NULL, &d_min);
+> +		/*
+> +		 * We rely on acpi_evaluate_integer() not clobbering the integer
+> +		 * provided if AE_NOT_FOUND is returned.
+> +		 */
+> +		ret = d_min;
+> +		status = acpi_evaluate_integer(handle, method, NULL, &ret);
+> +		if ((ACPI_FAILURE(status) && status != AE_NOT_FOUND)
+> +		    || ret > ACPI_STATE_D3_COLD)
+> +			return -ENODATA;
+> +
+> +		/*
+> +		 * We need to handle legacy systems where D3hot and D3cold are
+> +		 * the same and 3 is returned in both cases, so fall back to
+> +		 * D3cold if D3hot is not a valid state.
+> +		 */
+> +		if (!adev->power.states[ret].flags.valid) {
+> +			if (ret == ACPI_STATE_D3_HOT)
+> +				ret = ACPI_STATE_D3_COLD;
+> +			else
+> +				return -ENODATA;
+> +		}
+> +		d_min = ret;
+>  		wakeup = device_may_wakeup(dev) && adev->wakeup.flags.valid
+>  			&& adev->wakeup.sleep_state >= target_state;
+>  	} else if (dev_pm_qos_flags(dev, PM_QOS_FLAG_REMOTE_WAKEUP) !=
+> @@ -470,36 +481,29 @@ static int acpi_dev_pm_get_state(struct
+>  	 * can wake the system.  _S0W may be valid, too.
+>  	 */
+>  	if (wakeup) {
+> -		acpi_status status;
+> -
+> -		acpi_method[3] = 'W';
+> -		status = acpi_evaluate_integer(adev->handle, acpi_method, NULL,
+> -						&d_max);
+> -		if (ACPI_FAILURE(status)) {
+> -			if (target_state != ACPI_STATE_S0 ||
+> -			    status != AE_NOT_FOUND)
+> +		method[3] = 'W';
+> +		status = acpi_evaluate_integer(handle, method, NULL, &ret);
+> +		if (status == AE_NOT_FOUND) {
+> +			if (target_state > ACPI_STATE_S0)
+>  				d_max = d_min;
+> -		} else if (d_max < d_min) {
+> -			/* Warn the user of the broken DSDT */
+> -			printk(KERN_WARNING "ACPI: Wrong value from %s\n",
+> -				acpi_method);
+> -			/* Sanitize it */
+> -			d_min = d_max;
+> +		} else if (ACPI_SUCCESS(status) && ret <= ACPI_STATE_D3_COLD) {
+> +			/* Fall back to D3cold if ret is not a valid state. */
+> +			if (!adev->power.states[ret].flags.valid)
+> +				ret = ACPI_STATE_D3_COLD;
+> +
+> +			d_max = ret > d_min ? ret : d_min;
+> +		} else {
+> +			return -ENODATA;
+>  		}
+>  	}
+>  
+> -	if (d_max_in < d_min)
+> -		return -EINVAL;
+>  	if (d_min_p)
+>  		*d_min_p = d_min;
+> -	/* constrain d_max with specified lowest limit (max number) */
+> -	if (d_max > d_max_in) {
+> -		for (d_max = d_max_in; d_max > d_min; d_max--) {
+> -			if (adev->power.states[d_max].flags.valid)
+> -				break;
+> -		}
+> -	}
+> -	return d_max;
+> +
+> +	if (d_max_p)
+> +		*d_max_p = d_max;
+> +
+> +	return 0;
+>  }
+>  
+>  /**
+> @@ -508,7 +512,8 @@ static int acpi_dev_pm_get_state(struct
+>   * @d_min_p: Location to store the upper limit of the allowed states range.
+>   * @d_max_in: Deepest low-power state to take into consideration.
+>   * Return value: Preferred power state of the device on success, -ENODEV
+> - * (if there's no 'struct acpi_device' for @dev) or -EINVAL on failure
+> + * if there's no 'struct acpi_device' for @dev, -EINVAL if @d_max_in is
+> + * incorrect, or -ENODATA on ACPI method failure.
+>   *
+>   * The caller must ensure that @dev is valid before using this function.
+>   */
+> @@ -516,14 +521,39 @@ int acpi_pm_device_sleep_state(struct de
+>  {
+>  	acpi_handle handle = DEVICE_ACPI_HANDLE(dev);
+>  	struct acpi_device *adev;
+> +	int ret, d_max;
+> +
+> +	if (d_max_in < ACPI_STATE_D0 || d_max_in > ACPI_STATE_D3_COLD)
+> +		return -EINVAL;
+> +
+> +	if (d_max_in > ACPI_STATE_D3_HOT) {
+> +		enum pm_qos_flags_status stat;
+> +
+> +		stat = dev_pm_qos_flags(dev, PM_QOS_FLAG_NO_POWER_OFF);
+> +		if (stat == PM_QOS_FLAGS_ALL)
+> +			d_max_in = ACPI_STATE_D3_HOT;
+> +	}
+>  
+>  	if (!handle || acpi_bus_get_device(handle, &adev)) {
+>  		dev_dbg(dev, "ACPI handle without context in %s!\n", __func__);
+>  		return -ENODEV;
+>  	}
+>  
+> -	return acpi_dev_pm_get_state(dev, adev, acpi_target_system_state(),
+> -				     d_max_in, d_min_p);
+> +	ret = acpi_dev_pm_get_state(dev, adev, acpi_target_system_state(),
+> +				    d_min_p, &d_max);
+> +	if (ret)
+> +		return ret;
+> +
+> +	if (d_max_in < *d_min_p)
+> +		return -EINVAL;
 
-This patch is to add a new sysfs attribute "freqdomian_cpus" for acpi-cpufreq
-driver which exposes all cpus in the same domain regardless of hardware or
-software coordination to make up the info loss of previous change.
+d_min_p can be NULL here.
 
-Reference:https://bugzilla.kernel.org/show_bug.cgi?id=58761
-Reported-by: Jean-Philippe Halimi <jean-philippe.halimi@exascale-computing.eu>
-Signed-off-by: Lan Tianyu <tianyu.lan@intel.com>
----
-Change since v1:
-     Create new file acpi-cpufreq.txt under Documentation/cpu-freq and
-move new attribute descriptor to it.
-     Add new field freqdomain_cpus in struct acpi_cpufreq_data and record
-cpu domain info in it. For AMD case, use sibling cpus info to overwrite
-cpu domain info from ACPI.
+Call trace:
+acpi_pm_device_sleep_state, where d_min_p is passed as NULL
+acpi_pci_choose_state
+pci_choose_state
+atl1e_suspend
+atl1e_shutdown
+pci_device_shutdown
+device_shutdown
 
-Change since v2:
-     Move new attribute descriptor to Documentation/ABI/testing/
-sysfs-devices-system-cpu and update descriptor content according Viresh's
-comment.
-    http://www.spinics.net/lists/cpufreq/msg06119.html
+Thanks,
+Aaron
 
- Documentation/ABI/testing/sysfs-devices-system-cpu |   15 +++++++++++++
- drivers/cpufreq/acpi-cpufreq.c                     |   23 +++++++++++++++++++-
- drivers/cpufreq/cpufreq.c                          |    7 +++---
- include/linux/cpufreq.h                            |    3 +++
- 4 files changed, 44 insertions(+), 4 deletions(-)
-
-diff --git a/Documentation/ABI/testing/sysfs-devices-system-cpu b/Documentation/ABI/testing/sysfs-devices-system-cpu
-index 2447698..c72fccc 100644
---- a/Documentation/ABI/testing/sysfs-devices-system-cpu
-+++ b/Documentation/ABI/testing/sysfs-devices-system-cpu
-@@ -144,6 +144,21 @@ Description:	Discover and change clock speed of CPUs
- 		to learn how to control the knobs.
- 
- 
-+What:		/sys/devices/system/cpu/cpu#/cpufreq/freqdomain_cpus
-+Date:		June 2013
-+Contact:	cpufreq@vger.kernel.org
-+Description:	Discover CPUs in the same CPU frequency dependency domain
-+
-+		"freqdomain_cpus" are the list of cpus (online+offline) that share
-+		same clock/freq domain at hardware level. This information might
-+		be hidden from cpufreq core and so related_cpus can have different
-+		value compared to this. This is not used by kernel but userspace
-+		DVFS controllers to get better power/performance values for platforms
-+		using acpi-cpufreq.c driver.
-+
-+		This file is only present if the acpi-cpufreq driver is in use.
-+
-+
- What:		/sys/devices/system/cpu/cpu*/cache/index3/cache_disable_{0,1}
- Date:		August 2008
- KernelVersion:	2.6.27
-diff --git a/drivers/cpufreq/acpi-cpufreq.c b/drivers/cpufreq/acpi-cpufreq.c
-index f4fef0a..3926402 100644
---- a/drivers/cpufreq/acpi-cpufreq.c
-+++ b/drivers/cpufreq/acpi-cpufreq.c
-@@ -70,6 +70,7 @@ struct acpi_cpufreq_data {
- 	struct cpufreq_frequency_table *freq_table;
- 	unsigned int resume;
- 	unsigned int cpu_feature;
-+	cpumask_var_t freqdomain_cpus;
- };
- 
- static DEFINE_PER_CPU(struct acpi_cpufreq_data *, acfreq_data);
-@@ -176,6 +177,15 @@ static struct global_attr global_boost = __ATTR(boost, 0644,
- 						show_global_boost,
- 						store_global_boost);
- 
-+static ssize_t show_freqdomain_cpus(struct cpufreq_policy *policy, char *buf)
-+{
-+	struct acpi_cpufreq_data *data = per_cpu(acfreq_data, policy->cpu);
-+
-+	return cpufreq_show_cpus(data->freqdomain_cpus, buf);
-+}
-+
-+cpufreq_freq_attr_ro(freqdomain_cpus);
-+
- #ifdef CONFIG_X86_ACPI_CPUFREQ_CPB
- static ssize_t store_cpb(struct cpufreq_policy *policy, const char *buf,
- 			 size_t count)
-@@ -704,6 +714,11 @@ static int acpi_cpufreq_cpu_init(struct cpufreq_policy *policy)
- 	if (!data)
- 		return -ENOMEM;
- 
-+	if (!zalloc_cpumask_var(&data->freqdomain_cpus, GFP_KERNEL)) {
-+		result = -ENOMEM;
-+		goto err_free;
-+	}
-+
- 	data->acpi_data = per_cpu_ptr(acpi_perf_data, cpu);
- 	per_cpu(acfreq_data, cpu) = data;
- 
-@@ -712,7 +727,7 @@ static int acpi_cpufreq_cpu_init(struct cpufreq_policy *policy)
- 
- 	result = acpi_processor_register_performance(data->acpi_data, cpu);
- 	if (result)
--		goto err_free;
-+		goto err_free_mask;
- 
- 	perf = data->acpi_data;
- 	policy->shared_type = perf->shared_type;
-@@ -725,6 +740,7 @@ static int acpi_cpufreq_cpu_init(struct cpufreq_policy *policy)
- 	    policy->shared_type == CPUFREQ_SHARED_TYPE_ANY) {
- 		cpumask_copy(policy->cpus, perf->shared_cpu_map);
- 	}
-+	cpumask_copy(data->freqdomain_cpus, perf->shared_cpu_map);
- 
- #ifdef CONFIG_SMP
- 	dmi_check_system(sw_any_bug_dmi_table);
-@@ -736,6 +752,7 @@ static int acpi_cpufreq_cpu_init(struct cpufreq_policy *policy)
- 	if (check_amd_hwpstate_cpu(cpu) && !acpi_pstate_strict) {
- 		cpumask_clear(policy->cpus);
- 		cpumask_set_cpu(cpu, policy->cpus);
-+		cpumask_copy(data->freqdomain_cpus, cpu_sibling_mask(cpu));
- 		policy->shared_type = CPUFREQ_SHARED_TYPE_HW;
- 		pr_info_once(PFX "overriding BIOS provided _PSD data\n");
- 	}
-@@ -870,6 +887,8 @@ err_freqfree:
- 	kfree(data->freq_table);
- err_unreg:
- 	acpi_processor_unregister_performance(perf, cpu);
-+err_free_mask:
-+	free_cpumask_var(data->freqdomain_cpus);
- err_free:
- 	kfree(data);
- 	per_cpu(acfreq_data, cpu) = NULL;
-@@ -888,6 +907,7 @@ static int acpi_cpufreq_cpu_exit(struct cpufreq_policy *policy)
- 		per_cpu(acfreq_data, policy->cpu) = NULL;
- 		acpi_processor_unregister_performance(data->acpi_data,
- 						      policy->cpu);
-+		free_cpumask_var(data->freqdomain_cpus);
- 		kfree(data->freq_table);
- 		kfree(data);
- 	}
-@@ -908,6 +928,7 @@ static int acpi_cpufreq_resume(struct cpufreq_policy *policy)
- 
- static struct freq_attr *acpi_cpufreq_attr[] = {
- 	&cpufreq_freq_attr_scaling_available_freqs,
-+	&freqdomain_cpus,
- 	NULL,	/* this is a placeholder for cpb, do not remove */
- 	NULL,
- };
-diff --git a/drivers/cpufreq/cpufreq.c b/drivers/cpufreq/cpufreq.c
-index d976e22..adf12a9f 100644
---- a/drivers/cpufreq/cpufreq.c
-+++ b/drivers/cpufreq/cpufreq.c
-@@ -573,7 +573,7 @@ out:
- 	return i;
- }
- 
--static ssize_t show_cpus(const struct cpumask *mask, char *buf)
-+ssize_t cpufreq_show_cpus(const struct cpumask *mask, char *buf)
- {
- 	ssize_t i = 0;
- 	unsigned int cpu;
-@@ -588,6 +588,7 @@ static ssize_t show_cpus(const struct cpumask *mask, char *buf)
- 	i += sprintf(&buf[i], "\n");
- 	return i;
- }
-+EXPORT_SYMBOL_GPL(cpufreq_show_cpus);
- 
- /**
-  * show_related_cpus - show the CPUs affected by each transition even if
-@@ -595,7 +596,7 @@ static ssize_t show_cpus(const struct cpumask *mask, char *buf)
-  */
- static ssize_t show_related_cpus(struct cpufreq_policy *policy, char *buf)
- {
--	return show_cpus(policy->related_cpus, buf);
-+	return cpufreq_show_cpus(policy->related_cpus, buf);
- }
- 
- /**
-@@ -603,7 +604,7 @@ static ssize_t show_related_cpus(struct cpufreq_policy *policy, char *buf)
-  */
- static ssize_t show_affected_cpus(struct cpufreq_policy *policy, char *buf)
- {
--	return show_cpus(policy->cpus, buf);
-+	return cpufreq_show_cpus(policy->cpus, buf);
- }
- 
- static ssize_t store_scaling_setspeed(struct cpufreq_policy *policy,
-diff --git a/include/linux/cpufreq.h b/include/linux/cpufreq.h
-index 3c7ee2f..5fedb6c 100644
---- a/include/linux/cpufreq.h
-+++ b/include/linux/cpufreq.h
-@@ -438,4 +438,7 @@ void cpufreq_frequency_table_get_attr(struct cpufreq_frequency_table *table,
- void cpufreq_frequency_table_update_policy_cpu(struct cpufreq_policy *policy);
- 
- void cpufreq_frequency_table_put_attr(unsigned int cpu);
-+
-+ssize_t cpufreq_show_cpus(const struct cpumask *mask, char *buf);
-+
- #endif /* _LINUX_CPUFREQ_H */
--- 
-1.7.10.4
+> +
+> +	if (d_max > d_max_in) {
+> +		for (d_max = d_max_in; d_max > *d_min_p; d_max--) {
+> +			if (adev->power.states[d_max].flags.valid)
+> +				break;
+> +		}
+> +	}
+> +	return d_max;
+>  }
+>  EXPORT_SYMBOL(acpi_pm_device_sleep_state);
+>  
+> @@ -674,17 +704,13 @@ struct acpi_device *acpi_dev_pm_get_node
+>  static int acpi_dev_pm_low_power(struct device *dev, struct acpi_device *adev,
+>  				 u32 system_state)
+>  {
+> -	int power_state;
+> +	int ret, state;
+>  
+>  	if (!acpi_device_power_manageable(adev))
+>  		return 0;
+>  
+> -	power_state = acpi_dev_pm_get_state(dev, adev, system_state,
+> -					    ACPI_STATE_D3_COLD, NULL);
+> -	if (power_state < ACPI_STATE_D0 || power_state > ACPI_STATE_D3_COLD)
+> -		return -EIO;
+> -
+> -	return acpi_device_set_power(adev, power_state);
+> +	ret = acpi_dev_pm_get_state(dev, adev, system_state, NULL, &state);
+> +	return ret ? ret : acpi_device_set_power(adev, state);
+>  }
+>  
+>  /**
+> 
 
