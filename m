@@ -1,74 +1,58 @@
 From: Ben Guthro <benjamin.guthro@citrix.com>
-Subject: [PATCH v5 1/5] acpi: Remove need to include linux/acpi.h in common acpica code
-Date: Fri, 28 Jun 2013 09:46:20 -0400
-Message-ID: <1372427184-6197-2-git-send-email-benjamin.guthro@citrix.com>
+Subject: [PATCH v5 4/5] x86/tboot: Fail extended mode reduced
+	hardware sleep
+Date: Fri, 28 Jun 2013 09:46:23 -0400
+Message-ID: <1372427184-6197-5-git-send-email-benjamin.guthro@citrix.com>
 References: <1372427184-6197-1-git-send-email-benjamin.guthro@citrix.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp02.citrix.com ([66.165.176.63]:14174 "EHLO
-	SMTP02.CITRIX.COM" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754733Ab3F1Nqj (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 28 Jun 2013 09:46:39 -0400
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <tboot-devel-bounces@lists.sourceforge.net>
 In-Reply-To: <1372427184-6197-1-git-send-email-benjamin.guthro@citrix.com>
-Sender: linux-acpi-owner@vger.kernel.org
-List-Id: linux-acpi@vger.kernel.org
+List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/tboot-devel>,
+	<mailto:tboot-devel-request@lists.sourceforge.net?subject=unsubscribe>
+List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum_name=tboot-devel>
+List-Post: <mailto:tboot-devel@lists.sourceforge.net>
+List-Help: <mailto:tboot-devel-request@lists.sourceforge.net?subject=help>
+List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/tboot-devel>,
+	<mailto:tboot-devel-request@lists.sourceforge.net?subject=subscribe>
+Errors-To: tboot-devel-bounces@lists.sourceforge.net
 To: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>, Jan Beulich <jbeulich@suse.com>, "Rafael J . Wysocki" <rjw@sisk.pl>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, xen-devel@lists.xen.org
-Cc: Ben Guthro <benjamin.guthro@citrix.com>, Bob Moore <robert.moore@intel.com>
+Cc: tboot-devel@lists.sourceforge.net, Ben Guthro <benjamin.guthro@citrix.com>
+List-Id: linux-acpi@vger.kernel.org
 
-Move the definition of acpi_os_prepare_sleep into the OS services layer header,
-and remove the include of linux/acpi.h from common acpica code.
+As tboot currently does not support the reduced hardware sleep
+interface, fail this extended call.
 
+Signed-off-by: Jan Beulich <jbeulich@suse.com>
 Signed-off-by: Ben Guthro <benjamin.guthro@citrix.com>
-Cc: Rafael J. Wysocki <rjw@sisk.pl>
-Cc: Bob Moore <robert.moore@intel.com>
+Cc: tboot-devel@lists.sourceforge.net
+Cc: Gang Wei <gang.wei@intel.com>
 ---
- drivers/acpi/acpica/hwsleep.c |    1 -
- include/acpi/acpiosxf.h       |    6 ++++++
- include/linux/acpi.h          |    3 ---
- 3 files changed, 6 insertions(+), 4 deletions(-)
+ arch/x86/kernel/tboot.c |    3 +++
+ 1 file changed, 3 insertions(+)
 
-diff --git a/drivers/acpi/acpica/hwsleep.c b/drivers/acpi/acpica/hwsleep.c
-index e3828cc..867b947 100644
---- a/drivers/acpi/acpica/hwsleep.c
-+++ b/drivers/acpi/acpica/hwsleep.c
-@@ -43,7 +43,6 @@
-  */
+diff --git a/arch/x86/kernel/tboot.c b/arch/x86/kernel/tboot.c
+index d578c9c..57383b2 100644
+--- a/arch/x86/kernel/tboot.c
++++ b/arch/x86/kernel/tboot.c
+@@ -285,6 +285,9 @@ static int tboot_sleep(u8 sleep_state, u32 pm1a_control, u32 pm1b_control,
+ 	if (!tboot_enabled())
+ 		return 0;
  
- #include <acpi/acpi.h>
--#include <linux/acpi.h>
- #include "accommon.h"
- 
- #define _COMPONENT          ACPI_HARDWARE
-diff --git a/include/acpi/acpiosxf.h b/include/acpi/acpiosxf.h
-index 5b3d2bd..c68b779 100644
---- a/include/acpi/acpiosxf.h
-+++ b/include/acpi/acpiosxf.h
-@@ -276,4 +276,10 @@ char *acpi_os_get_next_filename(void *dir_handle);
- 
- void acpi_os_close_directory(void *dir_handle);
- 
-+/*
-+ * ACPI sleep preparation
-+ */
-+acpi_status acpi_os_prepare_sleep(u8 sleep_state,
-+				  u32 pm1a_control, u32 pm1b_control);
++	if (extended)
++		return -1;
 +
- #endif				/* __ACPIOSXF_H__ */
-diff --git a/include/linux/acpi.h b/include/linux/acpi.h
-index 17b5b59..709a2f2 100644
---- a/include/linux/acpi.h
-+++ b/include/linux/acpi.h
-@@ -479,9 +479,6 @@ static inline bool acpi_driver_match_device(struct device *dev,
- #ifdef CONFIG_ACPI
- void acpi_os_set_prepare_sleep(int (*func)(u8 sleep_state,
- 			       u32 pm1a_ctrl,  u32 pm1b_ctrl));
--
--acpi_status acpi_os_prepare_sleep(u8 sleep_state,
--				  u32 pm1a_control, u32 pm1b_control);
- #ifdef CONFIG_X86
- void arch_reserve_mem_area(acpi_physical_address addr, size_t size);
- #else
+ 	tboot_copy_fadt(&acpi_gbl_FADT);
+ 	tboot->acpi_sinfo.pm1a_cnt_val = pm1a_control;
+ 	tboot->acpi_sinfo.pm1b_cnt_val = pm1b_control;
 -- 
 1.7.9.5
 
+
+------------------------------------------------------------------------------
+This SF.net email is sponsored by Windows:
+
+Build for Windows Store.
+
+http://p.sf.net/sfu/windows-dev2dev
