@@ -1,58 +1,152 @@
 From: Ben Guthro <benjamin.guthro@citrix.com>
-Subject: [PATCH v5 4/5] x86/tboot: Fail extended mode reduced
-	hardware sleep
-Date: Fri, 28 Jun 2013 09:46:23 -0400
-Message-ID: <1372427184-6197-5-git-send-email-benjamin.guthro@citrix.com>
+Subject: [PATCH v5 3/5] acpi: Adjust linux acpi OS functions to
+	new extended parameter
+Date: Fri, 28 Jun 2013 09:46:22 -0400
+Message-ID: <1372427184-6197-4-git-send-email-benjamin.guthro@citrix.com>
 References: <1372427184-6197-1-git-send-email-benjamin.guthro@citrix.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <tboot-devel-bounces@lists.sourceforge.net>
+Return-path: <xen-devel-bounces@lists.xen.org>
 In-Reply-To: <1372427184-6197-1-git-send-email-benjamin.guthro@citrix.com>
-List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/tboot-devel>,
-	<mailto:tboot-devel-request@lists.sourceforge.net?subject=unsubscribe>
-List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum_name=tboot-devel>
-List-Post: <mailto:tboot-devel@lists.sourceforge.net>
-List-Help: <mailto:tboot-devel-request@lists.sourceforge.net?subject=help>
-List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/tboot-devel>,
-	<mailto:tboot-devel-request@lists.sourceforge.net?subject=subscribe>
-Errors-To: tboot-devel-bounces@lists.sourceforge.net
+List-Unsubscribe: <http://lists.xen.org/cgi-bin/mailman/options/xen-devel>,
+	<mailto:xen-devel-request@lists.xen.org?subject=unsubscribe>
+List-Post: <mailto:xen-devel@lists.xen.org>
+List-Help: <mailto:xen-devel-request@lists.xen.org?subject=help>
+List-Subscribe: <http://lists.xen.org/cgi-bin/mailman/listinfo/xen-devel>,
+	<mailto:xen-devel-request@lists.xen.org?subject=subscribe>
+Sender: xen-devel-bounces@lists.xen.org
+Errors-To: xen-devel-bounces@lists.xen.org
 To: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>, Jan Beulich <jbeulich@suse.com>, "Rafael J . Wysocki" <rjw@sisk.pl>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, xen-devel@lists.xen.org
-Cc: tboot-devel@lists.sourceforge.net, Ben Guthro <benjamin.guthro@citrix.com>
+Cc: Ben Guthro <benjamin.guthro@citrix.com>, Bob Moore <robert.moore@intel.com>
 List-Id: linux-acpi@vger.kernel.org
 
-As tboot currently does not support the reduced hardware sleep
-interface, fail this extended call.
+Change the function definitions of acpi_os_prepare_sleep() and
+acpi_os_set_prepare_sleep() to pass along the new extended sleep
+parameter.
 
 Signed-off-by: Jan Beulich <jbeulich@suse.com>
 Signed-off-by: Ben Guthro <benjamin.guthro@citrix.com>
-Cc: tboot-devel@lists.sourceforge.net
-Cc: Gang Wei <gang.wei@intel.com>
+Cc: Bob Moore <robert.moore@intel.com>
+Cc: Rafael J. Wysocki <rjw@sisk.pl>
+Cc: linux-acpi@vger.kernel.org
 ---
- arch/x86/kernel/tboot.c |    3 +++
- 1 file changed, 3 insertions(+)
+ arch/x86/kernel/tboot.c |    3 ++-
+ drivers/acpi/osl.c      |   16 ++++++++--------
+ drivers/xen/acpi.c      |    3 ++-
+ include/linux/acpi.h    |    6 +++---
+ include/xen/acpi.h      |    3 ++-
+ 5 files changed, 17 insertions(+), 14 deletions(-)
 
 diff --git a/arch/x86/kernel/tboot.c b/arch/x86/kernel/tboot.c
-index d578c9c..57383b2 100644
+index f84fe00..d578c9c 100644
 --- a/arch/x86/kernel/tboot.c
 +++ b/arch/x86/kernel/tboot.c
-@@ -285,6 +285,9 @@ static int tboot_sleep(u8 sleep_state, u32 pm1a_control, u32 pm1b_control,
- 	if (!tboot_enabled())
- 		return 0;
+@@ -273,7 +273,8 @@ static void tboot_copy_fadt(const struct acpi_table_fadt *fadt)
+ 		offsetof(struct acpi_table_facs, firmware_waking_vector);
+ }
  
-+	if (extended)
-+		return -1;
-+
- 	tboot_copy_fadt(&acpi_gbl_FADT);
- 	tboot->acpi_sinfo.pm1a_cnt_val = pm1a_control;
- 	tboot->acpi_sinfo.pm1b_cnt_val = pm1b_control;
+-static int tboot_sleep(u8 sleep_state, u32 pm1a_control, u32 pm1b_control)
++static int tboot_sleep(u8 sleep_state, u32 pm1a_control, u32 pm1b_control,
++		       bool extended)
+ {
+ 	static u32 acpi_shutdown_map[ACPI_S_STATE_COUNT] = {
+ 		/* S0,1,2: */ -1, -1, -1,
+diff --git a/drivers/acpi/osl.c b/drivers/acpi/osl.c
+index e721863..0251c9b 100644
+--- a/drivers/acpi/osl.c
++++ b/drivers/acpi/osl.c
+@@ -77,8 +77,8 @@ EXPORT_SYMBOL(acpi_in_debugger);
+ extern char line_buf[80];
+ #endif				/*ENABLE_DEBUGGER */
+ 
+-static int (*__acpi_os_prepare_sleep)(u8 sleep_state, u32 pm1a_ctrl,
+-				      u32 pm1b_ctrl);
++static int (*__acpi_os_prepare_sleep)(u8 sleep_state, u32 val_a, u32 val_b,
++				      bool extended);
+ 
+ static acpi_osd_handler acpi_irq_handler;
+ static void *acpi_irq_context;
+@@ -1757,13 +1757,13 @@ acpi_status acpi_os_terminate(void)
+ 	return AE_OK;
+ }
+ 
+-acpi_status acpi_os_prepare_sleep(u8 sleep_state, u32 pm1a_control,
+-				  u32 pm1b_control)
++acpi_status acpi_os_prepare_sleep(u8 sleep_state, u32 val_a, u32 val_b,
++				  u8 extended)
+ {
+ 	int rc = 0;
+ 	if (__acpi_os_prepare_sleep)
+-		rc = __acpi_os_prepare_sleep(sleep_state,
+-					     pm1a_control, pm1b_control);
++		rc = __acpi_os_prepare_sleep(sleep_state, val_a, val_b,
++					     extended);
+ 	if (rc < 0)
+ 		return AE_ERROR;
+ 	else if (rc > 0)
+@@ -1772,8 +1772,8 @@ acpi_status acpi_os_prepare_sleep(u8 sleep_state, u32 pm1a_control,
+ 	return AE_OK;
+ }
+ 
+-void acpi_os_set_prepare_sleep(int (*func)(u8 sleep_state,
+-			       u32 pm1a_ctrl, u32 pm1b_ctrl))
++void acpi_os_set_prepare_sleep(int (*func)(u8 sleep_state, u32 val_a,
++			       u32 val_b, bool extended))
+ {
+ 	__acpi_os_prepare_sleep = func;
+ }
+diff --git a/drivers/xen/acpi.c b/drivers/xen/acpi.c
+index 119d42a..36d2be1 100644
+--- a/drivers/xen/acpi.c
++++ b/drivers/xen/acpi.c
+@@ -36,7 +36,8 @@
+ #include <asm/xen/hypervisor.h>
+ 
+ int xen_acpi_notify_hypervisor_state(u8 sleep_state,
+-				     u32 pm1a_cnt, u32 pm1b_cnt)
++				     u32 pm1a_cnt, u32 pm1b_cnt,
++				     bool extended)
+ {
+ 	struct xen_platform_op op = {
+ 		.cmd = XENPF_enter_acpi_sleep,
+diff --git a/include/linux/acpi.h b/include/linux/acpi.h
+index 709a2f2..26f9996 100644
+--- a/include/linux/acpi.h
++++ b/include/linux/acpi.h
+@@ -477,8 +477,8 @@ static inline bool acpi_driver_match_device(struct device *dev,
+ #endif	/* !CONFIG_ACPI */
+ 
+ #ifdef CONFIG_ACPI
+-void acpi_os_set_prepare_sleep(int (*func)(u8 sleep_state,
+-			       u32 pm1a_ctrl,  u32 pm1b_ctrl));
++void acpi_os_set_prepare_sleep(int (*func)(u8 sleep_state, u32 val_a,
++			       u32 val_b, bool extended));
+ #ifdef CONFIG_X86
+ void arch_reserve_mem_area(acpi_physical_address addr, size_t size);
+ #else
+@@ -488,7 +488,7 @@ static inline void arch_reserve_mem_area(acpi_physical_address addr,
+ }
+ #endif /* CONFIG_X86 */
+ #else
+-#define acpi_os_set_prepare_sleep(func, pm1a_ctrl, pm1b_ctrl) do { } while (0)
++#define acpi_os_set_prepare_sleep(func, val_a, val_b, ext) do { } while (0)
+ #endif
+ 
+ #if defined(CONFIG_ACPI) && defined(CONFIG_PM_RUNTIME)
+diff --git a/include/xen/acpi.h b/include/xen/acpi.h
+index 68d73d0..9f7e2e6 100644
+--- a/include/xen/acpi.h
++++ b/include/xen/acpi.h
+@@ -76,7 +76,8 @@ static inline int xen_acpi_get_pxm(acpi_handle h)
+ }
+ 
+ int xen_acpi_notify_hypervisor_state(u8 sleep_state,
+-				     u32 pm1a_cnt, u32 pm1b_cnd);
++				     u32 pm1a_cnt, u32 pm1b_cnd,
++				     bool extended);
+ 
+ static inline void xen_acpi_sleep_register(void)
+ {
 -- 
 1.7.9.5
-
-
-------------------------------------------------------------------------------
-This SF.net email is sponsored by Windows:
-
-Build for Windows Store.
-
-http://p.sf.net/sfu/windows-dev2dev
