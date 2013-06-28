@@ -1,38 +1,86 @@
-From: Tony Luck <tony.luck@gmail.com>
-Subject: Re: [PATCH 1/1] ACPI: ghes: Remove redundant platform_set_drvdata()
-Date: Fri, 28 Jun 2013 11:47:30 -0700
-Message-ID: <CA+8MBbK2c1=egfx5Z7Oy6hQpuDU-YO2fFkyQqC1nL8Pz-LTs6Q@mail.gmail.com>
-References: <1369827977-29975-1-git-send-email-sachin.kamat@linaro.org>
-	<1557779.lOKEfHNnMB@vostro.rjw.lan>
-	<CAK9yfHxdfjxwr8jgS6YUBC0gkQ_yKwO0eBJgFK+eGaWoOPCkPQ@mail.gmail.com>
-	<2698240.JNzF6KSaOM@vostro.rjw.lan>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: [PATCH 4/4] ACPI / dock: Simplify dock_init_hotplug() and dock_release_hotplug()
+Date: Fri, 28 Jun 2013 21:48:12 +0200
+Message-ID: <6889707.ugqJleQ6Ld@vostro.rjw.lan>
+References: <1640211.P0jyS5muX2@vostro.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7Bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-vb0-f51.google.com ([209.85.212.51]:35979 "EHLO
-	mail-vb0-f51.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751443Ab3F1Srb (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 28 Jun 2013 14:47:31 -0400
-Received: by mail-vb0-f51.google.com with SMTP id x17so2015957vbf.24
-        for <linux-acpi@vger.kernel.org>; Fri, 28 Jun 2013 11:47:31 -0700 (PDT)
-In-Reply-To: <2698240.JNzF6KSaOM@vostro.rjw.lan>
+Received: from hydra.sisk.pl ([212.160.235.94]:54384 "EHLO hydra.sisk.pl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751124Ab3F1Tiq (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 28 Jun 2013 15:38:46 -0400
+In-Reply-To: <1640211.P0jyS5muX2@vostro.rjw.lan>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: Sachin Kamat <sachin.kamat@linaro.org>, linux-acpi <linux-acpi@vger.kernel.org>, MyungJoo Ham <myungjoo.ham@samsung.com>
+To: ACPI Devel Maling List <linux-acpi@vger.kernel.org>
+Cc: LKML <linux-kernel@vger.kernel.org>, Bjorn Helgaas <bhelgaas@google.com>, Jiang Liu <liuj97@gmail.com>, Yinghai Lu <yinghai@kernel.org>, "Alexander E. Patrakov" <patrakov@gmail.com>
 
-On Fri, Jun 28, 2013 at 3:44 AM, Rafael J. Wysocki <rjw@sisk.pl> wrote:
-> This particular patch has to go through the Tony Luck's RAS tree as it
-> modifies the APEI code.  I dropped it after we had a few patches in two trees
-> by mistake.
+From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 
-I'll be happy to look at it ... but I do agree with Chen Gong's comment that
-your commit message is missing some detail.  It would be nice to see a
-call stack that shows where ghes_remove() is called ... pointing out where
-we now write the NULL which is making this one redundant.  Since the callers
-are via function pointers through the ghes_platform_driver structure, some
-simple "grep" is insufficient to show where this function is called from.
+Make dock_init_hotplug() and dock_release_hotplug() slightly simpler
+and move some checks in those functions to the code paths where they
+are needed.
 
-Thanks
+Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+---
+ drivers/acpi/dock.c |   24 ++++++++----------------
+ 1 file changed, 8 insertions(+), 16 deletions(-)
 
--Tony
+Index: linux-pm/drivers/acpi/dock.c
+===================================================================
+--- linux-pm.orig/drivers/acpi/dock.c
++++ linux-pm/drivers/acpi/dock.c
+@@ -134,19 +134,16 @@ static int dock_init_hotplug(struct dock
+ 	int ret = 0;
+ 
+ 	mutex_lock(&hotplug_lock);
+-
+-	if (dd->hp_context) {
++	if (WARN_ON(dd->hp_context)) {
+ 		ret = -EEXIST;
+ 	} else {
+ 		dd->hp_refcount = 1;
+ 		dd->hp_ops = ops;
+ 		dd->hp_context = context;
+ 		dd->hp_release = release;
++		if (init)
++			init(context);
+ 	}
+-
+-	if (!WARN_ON(ret) && init)
+-		init(context);
+-
+ 	mutex_unlock(&hotplug_lock);
+ 	return ret;
+ }
+@@ -161,22 +158,17 @@ static int dock_init_hotplug(struct dock
+  */
+ static void dock_release_hotplug(struct dock_dependent_device *dd)
+ {
+-	void (*release)(void *) = NULL;
+-	void *context = NULL;
+-
+ 	mutex_lock(&hotplug_lock);
+-
+ 	if (dd->hp_context && !--dd->hp_refcount) {
++		void (*release)(void *) = dd->hp_release;
++		void *context = dd->hp_context;
++
+ 		dd->hp_ops = NULL;
+-		context = dd->hp_context;
+ 		dd->hp_context = NULL;
+-		release = dd->hp_release;
+ 		dd->hp_release = NULL;
++		if (release)
++			release(context);
+ 	}
+-
+-	if (release && context)
+-		release(context);
+-
+ 	mutex_unlock(&hotplug_lock);
+ }
+ 
+
