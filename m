@@ -1,23 +1,21 @@
 From: Jiang Liu <liuj97@gmail.com>
-Subject: [PATCH v3 07/10] ACPI: introduce two helper functions to simplify code
-Date: Sat, 29 Jun 2013 00:24:40 +0800
-Message-ID: <1372436683-31711-8-git-send-email-liuj97@gmail.com>
+Subject: [PATCH v3 08/10] ACPI: change acpi_[bay|dock]_match() in scan.c as global functions
+Date: Sat, 29 Jun 2013 00:24:41 +0800
+Message-ID: <1372436683-31711-9-git-send-email-liuj97@gmail.com>
 References: <1372436683-31711-1-git-send-email-liuj97@gmail.com>
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-pa0-f48.google.com ([209.85.220.48]:64711 "EHLO
-	mail-pa0-f48.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755663Ab3F1Q1k (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 28 Jun 2013 12:27:40 -0400
+Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <1372436683-31711-1-git-send-email-liuj97@gmail.com>
-Sender: linux-acpi-owner@vger.kernel.org
-List-Id: linux-acpi@vger.kernel.org
+Sender: linux-kernel-owner@vger.kernel.org
 To: "Rafael J . Wysocki" <rjw@sisk.pl>
 Cc: liuj97@gmail.com, Jiang Liu <jiang.liu@huawei.com>, Yijing Wang <wangyijing@huawei.com>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Len Brown <lenb@kernel.org>
+List-Id: linux-acpi@vger.kernel.org
 
 From: Jiang Liu <jiang.liu@huawei.com>
 
-Introduce two helper functions, acpi_evaluate_ej0() and acpi_evaluate_lck()
-to simplify code.
+Function acpi_[bay|dock]_match() in scan.c could be shared with dock.c
+to reduce duplicated code, so refine and change them as global functions.
+Also add a new function acpi_ata_match() to check whether an ACPI object
+device is an ATA device.
 
 Signed-off-by: Jiang Liu <jiang.liu@huawei.com>
 Cc: Jiang Liu <liuj97@gmail.com>
@@ -26,127 +24,153 @@ Cc: "Rafael J. Wysocki" <rjw@sisk.pl>
 Cc: linux-acpi@vger.kernel.org
 Cc: linux-kernel@vger.kernel.org
 ---
- drivers/acpi/scan.c     | 31 ++++++-------------------------
- drivers/acpi/utils.c    | 43 +++++++++++++++++++++++++++++++++++++++++++
- include/acpi/acpi_bus.h |  2 ++
- 3 files changed, 51 insertions(+), 25 deletions(-)
+ drivers/acpi/scan.c     | 77 +++++++++++++++++++++++--------------------------
+ include/acpi/acpi_bus.h |  3 ++
+ 2 files changed, 39 insertions(+), 41 deletions(-)
 
 diff --git a/drivers/acpi/scan.c b/drivers/acpi/scan.c
-index 84d88a0..101a267 100644
+index 101a267..e7fd101 100644
 --- a/drivers/acpi/scan.c
 +++ b/drivers/acpi/scan.c
-@@ -194,8 +194,6 @@ static acpi_status acpi_bus_online_companions(acpi_handle handle, u32 lvl,
- static int acpi_scan_hot_remove(struct acpi_device *device)
- {
- 	acpi_handle handle = device->handle;
--	struct acpi_object_list arg_list;
--	union acpi_object arg;
- 	struct device *errdev;
- 	acpi_status status;
- 	unsigned long long sta;
-@@ -258,32 +256,15 @@ static int acpi_scan_hot_remove(struct acpi_device *device)
- 	put_device(&device->dev);
- 	device = NULL;
- 
--	if (acpi_has_method(handle, "_LCK")) {
--		arg_list.count = 1;
--		arg_list.pointer = &arg;
--		arg.type = ACPI_TYPE_INTEGER;
--		arg.integer.value = 0;
--		acpi_evaluate_object(handle, "_LCK", &arg_list, NULL);
--	}
--
--	arg_list.count = 1;
--	arg_list.pointer = &arg;
--	arg.type = ACPI_TYPE_INTEGER;
--	arg.integer.value = 1;
--
-+	acpi_evaluate_lck(handle, 0);
- 	/*
- 	 * TBD: _EJD support.
- 	 */
--	status = acpi_evaluate_object(handle, "_EJ0", &arg_list, NULL);
--	if (ACPI_FAILURE(status)) {
--		if (status == AE_NOT_FOUND) {
--			return -ENODEV;
--		} else {
--			acpi_handle_warn(handle, "Eject failed (0x%x)\n",
--								status);
--			return -EIO;
--		}
--	}
-+	status = acpi_evaluate_ej0(handle);
-+	if (status == AE_NOT_FOUND)
-+		return -ENODEV;
-+	else if (ACPI_FAILURE(status))
-+		return -EIO;
- 
- 	/*
- 	 * Verify if eject was indeed successful.  If not, log an error
-diff --git a/drivers/acpi/utils.c b/drivers/acpi/utils.c
-index 87b8588..552248b 100644
---- a/drivers/acpi/utils.c
-+++ b/drivers/acpi/utils.c
-@@ -522,3 +522,46 @@ acpi_status acpi_execute_simple_method(acpi_handle handle, char *method,
- 	return acpi_evaluate_object(handle, method, &arg_list, NULL);
+@@ -1481,43 +1481,45 @@ static void acpi_device_get_busid(struct acpi_device *device)
  }
- EXPORT_SYMBOL(acpi_execute_simple_method);
-+
-+/**
-+ * acpi_evaluate_ej0: Evaluate _EJ0 method for hotplug operations
-+ * @handle: ACPI device handle
+ 
+ /*
++ * acpi_ata_match - see if an acpi object is an ATA device
 + *
-+ * Evaluate device's _EJ0 method for hotplug operations.
++ * If an acpi object has one of the ACPI ATA methods defined,
++ * then we can safely call it an ATA device.
 + */
-+acpi_status acpi_evaluate_ej0(acpi_handle handle)
++bool acpi_ata_match(acpi_handle handle)
 +{
-+	acpi_status status;
-+
-+	status = acpi_execute_simple_method(handle, "_EJ0", 1);
-+	if (status == AE_NOT_FOUND)
-+		acpi_handle_warn(handle, "No _EJ0 support for device\n");
-+	else if (ACPI_FAILURE(status))
-+		acpi_handle_warn(handle, "Eject failed (0x%x)\n", status);
-+
-+	return status;
++	return acpi_has_method(handle, "_GTF") ||
++	       acpi_has_method(handle, "_GTM") ||
++	       acpi_has_method(handle, "_STM") ||
++	       acpi_has_method(handle, "_SDD");
 +}
 +
-+/**
-+ * acpi_evaluate_lck: Evaluate _LCK method to lock/unlock device
-+ * @handle: ACPI device handle
-+ * @lock: lock device if non-zero, otherwise unlock device
-+ *
-+ * Evaluate device's _LCK method if present to lock/unlock device
-+ */
-+acpi_status acpi_evaluate_lck(acpi_handle handle, int lock)
-+{
-+	acpi_status status;
++/*
+  * acpi_bay_match - see if an acpi object is an ejectable driver bay
+  *
+  * If an acpi object is ejectable and has one of the ACPI ATA methods defined,
+  * then we can safely call it an ejectable drive bay
+  */
+-static int acpi_bay_match(acpi_handle handle)
++bool acpi_bay_match(acpi_handle handle)
+ {
+ 	acpi_handle phandle;
+ 
+ 	if (!acpi_has_method(handle, "_EJ0"))
+-		return -ENODEV;
++		return false;
++	if (acpi_ata_match(handle))
++		return true;
++	if (ACPI_FAILURE(acpi_get_parent(handle, &phandle)))
++		return false;
+ 
+-	if (acpi_has_method(handle, "_GTF") ||
+-	    acpi_has_method(handle, "_GTM") ||
+-	    acpi_has_method(handle, "_STM") ||
+-	    acpi_has_method(handle, "_SDD"))
+-		return 0;
+-
+-	if (acpi_get_parent(handle, &phandle))
+-		return -ENODEV;
+-
+-	if (acpi_has_method(phandle, "_GTF") ||
+-	    acpi_has_method(phandle, "_GTM") ||
+-	    acpi_has_method(phandle, "_STM") ||
+-	    acpi_has_method(phandle, "_SDD"))
+-                return 0;
+-
+-	return -ENODEV;
++	return acpi_ata_match(phandle);
+ }
+ 
+ /*
+  * acpi_dock_match - see if an acpi object has a _DCK method
+  */
+-static int acpi_dock_match(acpi_handle handle)
++bool acpi_dock_match(acpi_handle handle)
+ {
+-	acpi_handle tmp;
+-	return acpi_get_handle(handle, "_DCK", &tmp);
++	return acpi_has_method(handle, "_DCK");
+ }
+ 
+ const char *acpi_device_hid(struct acpi_device *device)
+@@ -1555,33 +1557,26 @@ static void acpi_add_id(struct acpi_device_pnp *pnp, const char *dev_id)
+  * lacks the SMBUS01 HID and the methods do not have the necessary "_"
+  * prefix.  Work around this.
+  */
+-static int acpi_ibm_smbus_match(acpi_handle handle)
++static bool acpi_ibm_smbus_match(acpi_handle handle)
+ {
+-	struct acpi_buffer path = {ACPI_ALLOCATE_BUFFER, NULL};
+-	int result;
++	char node_name[ACPI_PATH_SEGMENT_LENGTH];
++	struct acpi_buffer path = { sizeof(node_name), node_name };
+ 
+ 	if (!dmi_name_in_vendors("IBM"))
+-		return -ENODEV;
++		return false;
+ 
+ 	/* Look for SMBS object */
+-	result = acpi_get_name(handle, ACPI_SINGLE_NAME, &path);
+-	if (result)
+-		return result;
+-
+-	if (strcmp("SMBS", path.pointer)) {
+-		result = -ENODEV;
+-		goto out;
+-	}
++	if (ACPI_FAILURE(acpi_get_name(handle, ACPI_SINGLE_NAME, &path)) ||
++	    strcmp("SMBS", path.pointer))
++		return false;
+ 
+ 	/* Does it have the necessary (but misnamed) methods? */
+-	result = -ENODEV;
+ 	if (acpi_has_method(handle, "SBI") &&
+ 	    acpi_has_method(handle, "SBR") &&
+ 	    acpi_has_method(handle, "SBW"))
+-		result = 0;
+-out:
+-	kfree(path.pointer);
+-	return result;
++		return true;
 +
-+	status = acpi_execute_simple_method(handle, "_LCK", !!lock);
-+	if (ACPI_FAILURE(status) && status != AE_NOT_FOUND) {
-+		if (lock)
-+			acpi_handle_warn(handle,
-+				"Locking device failed (0x%x)\n", status);
-+		else
-+			acpi_handle_warn(handle,
-+				"Unlocking device failed (0x%x)\n", status);
-+	}
-+
-+	return status;
-+}
++	return false;
+ }
+ 
+ static void acpi_set_pnp_ids(acpi_handle handle, struct acpi_device_pnp *pnp,
+@@ -1629,11 +1624,11 @@ static void acpi_set_pnp_ids(acpi_handle handle, struct acpi_device_pnp *pnp,
+ 		 */
+ 		if (acpi_is_video_device(handle))
+ 			acpi_add_id(pnp, ACPI_VIDEO_HID);
+-		else if (ACPI_SUCCESS(acpi_bay_match(handle)))
++		else if (acpi_bay_match(handle))
+ 			acpi_add_id(pnp, ACPI_BAY_HID);
+-		else if (ACPI_SUCCESS(acpi_dock_match(handle)))
++		else if (acpi_dock_match(handle))
+ 			acpi_add_id(pnp, ACPI_DOCK_HID);
+-		else if (!acpi_ibm_smbus_match(handle))
++		else if (acpi_ibm_smbus_match(handle))
+ 			acpi_add_id(pnp, ACPI_SMBUS_IBM_HID);
+ 		else if (list_empty(&pnp->ids) && handle == ACPI_ROOT_OBJECT) {
+ 			acpi_add_id(pnp, ACPI_BUS_HID); /* \_SB, LNXSYBUS */
 diff --git a/include/acpi/acpi_bus.h b/include/acpi/acpi_bus.h
-index d3d5fc1..6c378d9 100644
+index 6c378d9..60fff75 100644
 --- a/include/acpi/acpi_bus.h
 +++ b/include/acpi/acpi_bus.h
-@@ -60,6 +60,8 @@ acpi_get_physical_device_location(acpi_handle handle, struct acpi_pld_info **pld
- bool acpi_has_method(acpi_handle handle, char *name);
- acpi_status acpi_execute_simple_method(acpi_handle handle, char *method,
+@@ -62,6 +62,9 @@ acpi_status acpi_execute_simple_method(acpi_handle handle, char *method,
  				       u64 arg);
-+acpi_status acpi_evaluate_ej0(acpi_handle handle);
-+acpi_status acpi_evaluate_lck(acpi_handle handle, int lock);
+ acpi_status acpi_evaluate_ej0(acpi_handle handle);
+ acpi_status acpi_evaluate_lck(acpi_handle handle, int lock);
++bool acpi_ata_match(acpi_handle handle);
++bool acpi_bay_match(acpi_handle handle);
++bool acpi_dock_match(acpi_handle handle);
  
  #ifdef CONFIG_ACPI
  
 -- 
 1.8.1.2
-
