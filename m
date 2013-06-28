@@ -1,60 +1,86 @@
 From: Jiang Liu <liuj97@gmail.com>
-Subject: [PATCH v3 00/10] minor improvements for ACPI dock and acpiphp drivers
-Date: Sat, 29 Jun 2013 00:24:33 +0800
-Message-ID: <1372436683-31711-1-git-send-email-liuj97@gmail.com>
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-pb0-f41.google.com ([209.85.160.41]:37577 "EHLO
-	mail-pb0-f41.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753912Ab3F1Q1D (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 28 Jun 2013 12:27:03 -0400
-Sender: linux-acpi-owner@vger.kernel.org
-List-Id: linux-acpi@vger.kernel.org
+Subject: [PATCH v3 03/10] ACPI, DOCK: mark initialization functions with __init
+Date: Sat, 29 Jun 2013 00:24:36 +0800
+Message-ID: <1372436683-31711-4-git-send-email-liuj97@gmail.com>
+References: <1372436683-31711-1-git-send-email-liuj97@gmail.com>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1372436683-31711-1-git-send-email-liuj97@gmail.com>
+Sender: linux-kernel-owner@vger.kernel.org
 To: "Rafael J . Wysocki" <rjw@sisk.pl>
-Cc: liuj97@gmail.com, Jiang Liu <jiang.liu@huawei.com>, Yijing Wang <wangyijing@huawei.com>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+Cc: liuj97@gmail.com, Jiang Liu <jiang.liu@huawei.com>, Yijing Wang <wangyijing@huawei.com>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Len Brown <lenb@kernel.org>
+List-Id: linux-acpi@vger.kernel.org
 
 From: Jiang Liu <jiang.liu@huawei.com>
 
-This is an following up patchset of "[PATCH 0/3] ACPI / dock / PCI: Fix
-problems with dock and PCI hotplug" with minor code cleanups and
-refinements. It applies to
-git://git.kernel.org/pub/scm/linux/kernel/git/rafael/linux-pm.git linux-next
+Mark all initialization functions with __init to reduce runtime memory
+consumption.
 
-Due to hardware resource limitation, I have only done compilation and
-boot tests.
+Signed-off-by: Jiang Liu <jiang.liu@huawei.com>
+Cc: Len Brown <lenb@kernel.org>
+Cc: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: linux-acpi@vger.kernel.org
+Cc: linux-kernel@vger.kernel.org
+---
+ drivers/acpi/dock.c | 12 ++++++------
+ 1 file changed, 6 insertions(+), 6 deletions(-)
 
-V2->V3:
-    The first four patches are the same as previous version and rework
-    all other patches according to review comments.
-
-Jiang Liu (10):
-  ACPI, DOCK: avoid initializing acpi_dock_notifier_list multiple times
-  ACPI, DOCK: kill redundant spin lock in dock station object
-  ACPI, DOCK: mark initialization functions with __init
-  ACPI, DOCK: simplify implementation of dock_create_acpi_device()
-  ACPI: introduce helper function acpi_has_method()
-  ACPI: introduce helper function acpi_execute_simple_method()
-  ACPI: introduce two helper functions to simplify code
-  ACPI: change acpi_[bay|dock]_match() in scan.c as global functions
-  ACPI: simplify dock driver with new helper functions
-  ACPI: simplify acpiphp driver with new helper functions
-
- drivers/acpi/battery.c             |  19 +---
- drivers/acpi/bus.c                 |   6 +-
- drivers/acpi/dock.c                | 152 ++++-------------------------
- drivers/acpi/ec.c                  |   4 +-
- drivers/acpi/power.c               |   4 +-
- drivers/acpi/processor_perflib.c   |  22 ++---
- drivers/acpi/resource.c            |   4 +-
- drivers/acpi/scan.c                | 189 +++++++++++++------------------------
- drivers/acpi/sleep.c               |   7 +-
- drivers/acpi/thermal.c             |  18 +---
- drivers/acpi/utils.c               |  70 ++++++++++++++
- drivers/acpi/video.c               |  56 ++++-------
- drivers/acpi/video_detect.c        |  19 ++--
- drivers/pci/hotplug/acpiphp_glue.c |  30 ++----
- include/acpi/acpi_bus.h            |  10 ++
- 15 files changed, 218 insertions(+), 392 deletions(-)
-
+diff --git a/drivers/acpi/dock.c b/drivers/acpi/dock.c
+index a73571f..8c4214d 100644
+--- a/drivers/acpi/dock.c
++++ b/drivers/acpi/dock.c
+@@ -100,7 +100,7 @@ struct dock_dependent_device {
+  *
+  * Add the dependent device to the dock's dependent device list.
+  */
+-static int
++static int __init
+ add_dock_dependent_device(struct dock_station *ds, acpi_handle handle)
+ {
+ 	struct dock_dependent_device *dd;
+@@ -244,7 +244,7 @@ static int is_dock(acpi_handle handle)
+ 	return 1;
+ }
+ 
+-static int is_ejectable(acpi_handle handle)
++static int __init is_ejectable(acpi_handle handle)
+ {
+ 	acpi_status status;
+ 	acpi_handle tmp;
+@@ -255,7 +255,7 @@ static int is_ejectable(acpi_handle handle)
+ 	return 1;
+ }
+ 
+-static int is_ata(acpi_handle handle)
++static int __init is_ata(acpi_handle handle)
+ {
+ 	acpi_handle tmp;
+ 
+@@ -268,7 +268,7 @@ static int is_ata(acpi_handle handle)
+ 	return 0;
+ }
+ 
+-static int is_battery(acpi_handle handle)
++static int __init is_battery(acpi_handle handle)
+ {
+ 	struct acpi_device_info *info;
+ 	int ret = 1;
+@@ -284,7 +284,7 @@ static int is_battery(acpi_handle handle)
+ 	return ret;
+ }
+ 
+-static int is_ejectable_bay(acpi_handle handle)
++static int __init is_ejectable_bay(acpi_handle handle)
+ {
+ 	acpi_handle phandle;
+ 
+@@ -848,7 +848,7 @@ static struct notifier_block dock_acpi_notifier = {
+  * check to see if an object has an _EJD method.  If it does, then it
+  * will see if it is dependent on the dock station.
+  */
+-static acpi_status
++static acpi_status __init
+ find_dock_devices(acpi_handle handle, u32 lvl, void *context, void **rv)
+ {
+ 	acpi_status status;
 -- 
 1.8.1.2
-
