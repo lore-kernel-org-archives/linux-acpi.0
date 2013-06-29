@@ -1,109 +1,55 @@
-From: Yinghai Lu <yinghai@kernel.org>
-Subject: Re: [PATCH 1/3] ACPI / dock: Rework the handling of notifications
-Date: Sat, 29 Jun 2013 09:12:59 -0700
-Message-ID: <CAE9FiQXc9WKDZdABOB8p0soT+OTcRbJb7JTgrPz6ffd2dyPEHA@mail.gmail.com>
-References: <1640211.P0jyS5muX2@vostro.rjw.lan>
-	<1771749.8rDXNf8giR@vostro.rjw.lan>
-	<CAE9FiQU8Zwm+8nrT4Sg9h7_P-YVNamg+udLjVaZ0PyNmm-t7bg@mail.gmail.com>
-	<2193112.vKUrhiifXu@vostro.rjw.lan>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+From: Tony Luck <tony.luck@gmail.com>
+Subject: Re: Parameter check for EINJ error injection - V3
+Date: Sat, 29 Jun 2013 11:29:56 -0700
+Message-ID: <07891708-A90B-4367-A391-C18F4DA8B3F1@gmail.com>
+References: <1369276323-31436-1-git-send-email-gong.chen@linux.intel.com> <20130629085846.GA4426@gchen.bj.intel.com>
+Mime-Version: 1.0 (1.0)
+Content-Type: text/plain;
+	charset=us-ascii
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-ie0-f171.google.com ([209.85.223.171]:33540 "EHLO
-	mail-ie0-f171.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751167Ab3F2QNA (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sat, 29 Jun 2013 12:13:00 -0400
-In-Reply-To: <2193112.vKUrhiifXu@vostro.rjw.lan>
+Received: from mail-pd0-f173.google.com ([209.85.192.173]:37327 "EHLO
+	mail-pd0-f173.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753102Ab3F2SaA (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sat, 29 Jun 2013 14:30:00 -0400
+Received: by mail-pd0-f173.google.com with SMTP id v14so1647348pde.32
+        for <linux-acpi@vger.kernel.org>; Sat, 29 Jun 2013 11:30:00 -0700 (PDT)
+In-Reply-To: <20130629085846.GA4426@gchen.bj.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>, Bjorn Helgaas <bhelgaas@google.com>, Jiang Liu <liuj97@gmail.com>, "Alexander E. Patrakov" <patrakov@gmail.com>
+To: Chen Gong <gong.chen@linux.intel.com>
+Cc: "tony.luck@intel.com" <tony.luck@intel.com>, "bp@alien8.de" <bp@alien8.de>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
 
-On Sat, Jun 29, 2013 at 4:16 AM, Rafael J. Wysocki <rjw@sisk.pl> wrote:
-> On Friday, June 28, 2013 04:34:21 PM Yinghai Lu wrote:
->> On Fri, Jun 28, 2013 at 3:53 PM, Rafael J. Wysocki <rjw@sisk.pl> wrote:
->> > From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
->> >
->> > The ACPI dock driver uses register_acpi_bus_notifier() which
->> > installs a notifier triggered globally for all system notifications.
->> > That first of all is inefficient, because the dock driver is only
->> > interested in notifications associated with the devices it handles,
->> > but it has to handle all system notifies for all devices.  Moreover,
->> > it does that even if no docking stations are present in the system
->> > (CONFIG_ACPI_DOCK set is sufficient for that to happen).  Besides,
->> > that is inconvenient, because it requires the driver to do extra work
->> > for each notification to find the target dock station object.
->> >
->> > For these reasons, rework the dock driver to install a notify
->> > handler individually for each dock station in the system using
->> > acpi_install_notify_handler().  This allows the dock station
->> > object to be passed directly to the notify handler and makes it
->> > possible to simplify the dock driver quite a bit.  It also
->> > reduces the overhead related to the handling of all system
->> > notifies when CONFIG_ACPI_DOCK is set.
->>
->> original change to use register_acpi_bus_notifier, have two assumption
->> 1.  two dock_station will have same handle.
->
-> Well, that would mean that dock_add() might be called twice for the same handle
-> and I don't see how that's possible.
->
-> Moreover, even if that were possible, the loop in acpi_dock_notifier_call()
-> would break after finding the *first* matching handle anyway, so
-> acpi_dock_deferred_cb() wouldn't be called for the second dock station with
-> the same handle, if there were two.
+Look in "tip" tree (x86/ras branch).
 
-related commit:
-commit 6bd00a61ab63d4ceb635ae0316353c11c900b8d8
-Author: Shaohua Li <shaohua.li@intel.com>
-Date:   Thu Aug 28 10:04:29 2008 +0800
+-Tony
 
-    ACPI: introduce notifier change to avoid duplicates
+Sent from my iPhone
 
-    The battery driver already registers notification handler.
-    To avoid registering notification handler again,
-    introduce a notifier chain in global system notifier handler
-    and use it in dock driver.
+On Jun 29, 2013, at 1:58, Chen Gong <gong.chen@linux.intel.com> wrote:
 
-so it is not two dock station have same handle. it is battery acpi driver.
-
-but notitifer installing is changed
-
-commit d94066910943837558d2a461c6766da981260bf0
-Author: Bjorn Helgaas <bjorn.helgaas@hp.com>
-Date:   Thu Apr 30 09:35:47 2009 -0600
-
-    ACPI: battery: use .notify method instead of installing handler directly
-
-    This patch adds a .notify() method.  The presence of .notify() causes
-    Linux/ACPI to manage event handlers and notify handlers on our behalf,
-    so we don't have to install and remove them ourselves.
-
-    This driver apparently relies on seeing ALL notify events, not just
-    device-specific ones (because it used ACPI_ALL_NOTIFY).  We use the
-    ACPI_DRIVER_ALL_NOTIFY_EVENTS driver flag to request all events.
-
-    Signed-off-by: Bjorn Helgaas <bjorn.helgaas@hp.com>
-    CC: Alexey Starikovskiy <alexey.y.starikovskiy@linux.intel.com>
-    Signed-off-by: Len Brown <len.brown@intel.com>
-
-
->
->> 2. acpi subsystem: non root acpi device only can have one system
->> notifier installed.
->
-> No, that limitation is long gone.  We removed it when we were working on ACPI
-> wakeup support for runtime PM.
-
-looks like i misread that...
-
- * NOTES:       The Root namespace object may have only one handler for each
- *              type of notify (System/Device). Device/Thermal/Processor objects
- *              may have one device notify handler, and multiple system notify
- *              handlers.
-
-device could have multiple system notify handlers.
-
-So
-
-Acked-by: Yinghai Lu <yinghai@kernel.org>
+> On Wed, May 22, 2013 at 10:32:01PM -0400, Chen Gong wrote:
+>> Date:    Wed, 22 May 2013 22:32:01 -0400
+>> From: Chen Gong <gong.chen@linux.intel.com>
+>> To: tony.luck@intel.com, bp@alien8.de
+>> Cc: linux-acpi@vger.kernel.org
+>> Subject: Parameter check for EINJ error injection - V3
+>> X-Mailer: git-send-email 1.7.10.4
+>> 
+>> [PATCH 1/2 V3] ACPI/APEI: Add parameter check before error injection
+>> [PATCH 2/2 V3] ACPI/APEI: Update einj documentation for param1/param2
+>> 
+>> These two patches are employed to enhance the check for param1/param2
+>> when einj is used. Param1/param2 are very subtle for the guy
+>> who lacks of experience. These two patches add some extra checks to
+>> avoid happening further errors to confuse users.
+>> 
+>> V3: only update the 1st patch based on Tony and Boris' suggestion.
+>> V2: only update the 1st patch based on Boris' suggestion.
+>> --
+> 
+> So Tony/Boris
+> 
+> Have you picked this patch series into some RAS branch? I just don't
+> find them.
+> 
