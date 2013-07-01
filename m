@@ -1,39 +1,50 @@
-From: "Naveen N. Rao" <naveen.n.rao@linux.vnet.ibm.com>
+From: Borislav Petkov <bp@alien8.de>
 Subject: Re: [PATCH v2 2/2] mce: acpi/apei: Add a boot option to disable ff
  mode for corrected errors
-Date: Mon, 01 Jul 2013 20:37:43 +0530
-Message-ID: <51D19B3F.3060405@linux.vnet.ibm.com>
-References: <20130621072725.GB22006@pd.tnic> <20130628120224.7781.45438.stgit@localhost.localdomain> <CA+8MBbJNY7G+q=kBgOA=+jVtugrfteoMvwLtfwvCno5xg+dm-Q@mail.gmail.com>
+Date: Mon, 1 Jul 2013 17:38:06 +0200
+Message-ID: <20130701153805.GB23539@pd.tnic>
+References: <20130621072725.GB22006@pd.tnic>
+ <20130628120224.7781.45438.stgit@localhost.localdomain>
+ <CA+8MBbJNY7G+q=kBgOA=+jVtugrfteoMvwLtfwvCno5xg+dm-Q@mail.gmail.com>
+ <51D19B3F.3060405@linux.vnet.ibm.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <CA+8MBbJNY7G+q=kBgOA=+jVtugrfteoMvwLtfwvCno5xg+dm-Q@mail.gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Tony Luck <tony.luck@gmail.com>
-Cc: Borislav Petkov <bp@alien8.de>, ananth@in.ibm.com, masbock@linux.vnet.ibm.com, lcm@linux.vnet.ibm.com, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-acpi <linux-acpi@vger.kernel.org>, Huang Ying <ying.huang@intel.com>
+Content-Type: text/plain; charset=utf-8
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail.skyhub.de ([78.46.96.112]:53876 "EHLO mail.skyhub.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751250Ab3GAPiN (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 1 Jul 2013 11:38:13 -0400
+Content-Disposition: inline
+In-Reply-To: <51D19B3F.3060405@linux.vnet.ibm.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: "Naveen N. Rao" <naveen.n.rao@linux.vnet.ibm.com>
+Cc: Tony Luck <tony.luck@gmail.com>, ananth@in.ibm.com, masbock@linux.vnet.ibm.com, lcm@linux.vnet.ibm.com, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-acpi <linux-acpi@vger.kernel.org>, Huang Ying <ying.huang@intel.com>
 
-On 06/28/2013 11:01 PM, Tony Luck wrote:
->> +                       if (sec_sev == GHES_SEV_CORRECTED &&
->> +                           (gdata->flags & CPER_SEC_ERROR_THRESHOLD_EXCEEDED) &&
->> +                           (mem_err->validation_bits & CPER_MEM_VALID_PHYSICAL_ADDRESS)) {
->> +                               unsigned long pfn;
->> +                               pfn = mem_err->physical_addr >> PAGE_SHIFT;
->
-> As Reagan said "Trust ... but verify" ... we should make sure BIOS
-> gave us a good pfn
->                                      if (pfn_valid(pfn))
->                                           soft_memory_failure_queue(pfn, 0, 0);
->                                      else
->                                           printk( ...something about
-> BIOS giving us bad pfn = %lu\n", pfn);
+On Mon, Jul 01, 2013 at 08:37:43PM +0530, Naveen N. Rao wrote:
+> On 06/28/2013 11:01 PM, Tony Luck wrote:
+> >>+                       if (sec_sev == GHES_SEV_CORRECTED &&
+> >>+                           (gdata->flags & CPER_SEC_ERROR_THRESHOLD_EXCEEDED) &&
+> >>+                           (mem_err->validation_bits & CPER_MEM_VALID_PHYSICAL_ADDRESS)) {
+> >>+                               unsigned long pfn;
+> >>+                               pfn = mem_err->physical_addr >> PAGE_SHIFT;
+> >
+> >As Reagan said "Trust ... but verify" ... we should make sure BIOS
+> >gave us a good pfn
+> >                                     if (pfn_valid(pfn))
+> >                                          soft_memory_failure_queue(pfn, 0, 0);
+> >                                     else
+> >                                          printk( ...something about
+> >BIOS giving us bad pfn = %lu\n", pfn);
+> 
+> Ah, nice catch - I thought soft_offline_page() takes care of this,
+> but it sure is good to point a finger at the firmware.
 
-Ah, nice catch - I thought soft_offline_page() takes care of this, but 
-it sure is good to point a finger at the firmware.
+While at it maybe make it pr_warning(FW_BUG or FW_WARN...
 
-Thanks!
-- Naveen
+-- 
+Regards/Gruss,
+    Boris.
 
->> +                       }
->
+Sent from a fat crate under my desk. Formatting is fine.
+--
