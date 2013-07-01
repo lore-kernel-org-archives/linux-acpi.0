@@ -1,51 +1,74 @@
-From: naresh.bhat@linaro.org
-Subject: [PATCH] ACPI/fan: Initialize acpi_state variable
-Date: Mon,  1 Jul 2013 19:51:00 +0530
-Message-ID: <1372688460-11010-1-git-send-email-naresh.bhat@linaro.org>
+From: Naresh Bhat <naresh.bhat@linaro.org>
+Subject: Re: [PATCH] ACPI/fan: Initialize acpi_state variable
+Date: Mon, 1 Jul 2013 19:55:40 +0530
+Message-ID: <CAFoFrHbkAbMsBGBh23=q=134BGm7vaGOHsRHvN9DUea-=DbKbA@mail.gmail.com>
+References: <1372362463-4186-1-git-send-email-naresh.bhat@linaro.org>
+	<CAFoFrHa_XsKaWDag_k3o_Lgizsf+qZUYPjBn9pvWSe83BY8sOg@mail.gmail.com>
+	<4129319.59EevnP3PH@vostro.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset=windows-1252
 Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-pb0-f42.google.com ([209.85.160.42]:57569 "EHLO
-	mail-pb0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752388Ab3GAOVO (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 1 Jul 2013 10:21:14 -0400
-Received: by mail-pb0-f42.google.com with SMTP id un1so4919659pbc.1
-        for <linux-acpi@vger.kernel.org>; Mon, 01 Jul 2013 07:21:13 -0700 (PDT)
+Received: from mail-oa0-f42.google.com ([209.85.219.42]:64986 "EHLO
+	mail-oa0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753491Ab3GAOZl convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 1 Jul 2013 10:25:41 -0400
+Received: by mail-oa0-f42.google.com with SMTP id j6so5018728oag.29
+        for <linux-acpi@vger.kernel.org>; Mon, 01 Jul 2013 07:25:41 -0700 (PDT)
+In-Reply-To: <4129319.59EevnP3PH@vostro.rjw.lan>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org
-Cc: len.brown@intel.com, patches@linaro.org, linaro-kernel@lists.linaro.org, naresh.bhat@linaro.org, linux-kernel@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: linux-acpi@vger.kernel.org, len.brown@intel.com, Patch Tracking <patches@linaro.org>, linaro-kernel@lists.linaro.org, linux-kernel@vger.kernel.org
 
-=46rom: Naresh Bhat <naresh.bhat@linaro.org>
+Opps sorry about that. I have added my sign-off and send the patch.
 
- CC      drivers/acpi/fan.o
-drivers/acpi/fan.c: In function =E2=80=98fan_get_cur_state=E2=80=99:
-drivers/acpi/fan.c:96:9: warning: =E2=80=98acpi_state=E2=80=99 may be u=
-sed uninitialized in this function [-Wuninitialized]
+Thanks
+Naresh Bhat
 
-Signed-off-by: Naresh Bhat <naresh.bhat@linaro.org>
----
- drivers/acpi/fan.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
-
-diff --git a/drivers/acpi/fan.c b/drivers/acpi/fan.c
-index 8d1c010..5b02a0a 100644
---- a/drivers/acpi/fan.c
-+++ b/drivers/acpi/fan.c
-@@ -84,7 +84,7 @@ static int fan_get_cur_state(struct thermal_cooling_d=
-evice *cdev, unsigned long
- {
- 	struct acpi_device *device =3D cdev->devdata;
- 	int result;
--	int acpi_state;
-+	int acpi_state =3D ACPI_STATE_D0;
-=20
- 	if (!device)
- 		return -EINVAL;
---=20
-1.7.9.5
-
+On 1 July 2013 19:29, Rafael J. Wysocki <rjw@sisk.pl> wrote:
+> On Monday, July 01, 2013 05:31:46 PM Naresh Bhat wrote:
+>> Hi Rafeal,
+>>
+>> I appreciate if you give any feedback on the provided patch.
+>
+> The patch is OK, but please add your sign-off.
+>
+> Thanks,
+> Rafael
+>
+>
+>> On 28 June 2013 01:17,  <naresh.bhat@linaro.org> wrote:
+>> > From: Naresh Bhat <naresh.bhat@linaro.org>
+>> >
+>> >   CC      drivers/acpi/fan.o
+>> > drivers/acpi/fan.c: In function =91fan_get_cur_state=92:
+>> > drivers/acpi/fan.c:96:9: warning: =91acpi_state=92 may be used uni=
+nitialized in this function [-Wuninitialized]
+>> > ---
+>> >  drivers/acpi/fan.c |    2 +-
+>> >  1 file changed, 1 insertion(+), 1 deletion(-)
+>> >
+>> > diff --git a/drivers/acpi/fan.c b/drivers/acpi/fan.c
+>> > index f815da8..f961435 100644
+>> > --- a/drivers/acpi/fan.c
+>> > +++ b/drivers/acpi/fan.c
+>> > @@ -84,7 +84,7 @@ static int fan_get_cur_state(struct thermal_cool=
+ing_device *cdev, unsigned long
+>> >  {
+>> >         struct acpi_device *device =3D cdev->devdata;
+>> >         int result;
+>> > -       int acpi_state;
+>> > +       int acpi_state =3D ACPI_STATE_D0;
+>> >
+>> >         if (!device)
+>> >                 return -EINVAL;
+>> > --
+>> > 1.7.9.5
+>> >
+> --
+> I speak only for myself.
+> Rafael J. Wysocki, Intel Open Source Technology Center.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
 n
