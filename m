@@ -1,65 +1,51 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: [PATCH] ACPI/fan: Initialize acpi_state variable
-Date: Mon, 01 Jul 2013 15:59:28 +0200
-Message-ID: <4129319.59EevnP3PH@vostro.rjw.lan>
-References: <1372362463-4186-1-git-send-email-naresh.bhat@linaro.org> <CAFoFrHa_XsKaWDag_k3o_Lgizsf+qZUYPjBn9pvWSe83BY8sOg@mail.gmail.com>
+From: naresh.bhat@linaro.org
+Subject: [PATCH] ACPI/fan: Initialize acpi_state variable
+Date: Mon,  1 Jul 2013 19:51:00 +0530
+Message-ID: <1372688460-11010-1-git-send-email-naresh.bhat@linaro.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from hydra.sisk.pl ([212.160.235.94]:56074 "EHLO hydra.sisk.pl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752945Ab3GANtz convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 1 Jul 2013 09:49:55 -0400
-In-Reply-To: <CAFoFrHa_XsKaWDag_k3o_Lgizsf+qZUYPjBn9pvWSe83BY8sOg@mail.gmail.com>
+Received: from mail-pb0-f42.google.com ([209.85.160.42]:57569 "EHLO
+	mail-pb0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752388Ab3GAOVO (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 1 Jul 2013 10:21:14 -0400
+Received: by mail-pb0-f42.google.com with SMTP id un1so4919659pbc.1
+        for <linux-acpi@vger.kernel.org>; Mon, 01 Jul 2013 07:21:13 -0700 (PDT)
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Naresh Bhat <naresh.bhat@linaro.org>
-Cc: linux-acpi@vger.kernel.org, len.brown@intel.com, Patch Tracking <patches@linaro.org>, linaro-kernel@lists.linaro.org, linux-kernel@vger.kernel.org
+To: linux-acpi@vger.kernel.org
+Cc: len.brown@intel.com, patches@linaro.org, linaro-kernel@lists.linaro.org, naresh.bhat@linaro.org, linux-kernel@vger.kernel.org
 
-On Monday, July 01, 2013 05:31:46 PM Naresh Bhat wrote:
-> Hi Rafeal,
->=20
-> I appreciate if you give any feedback on the provided patch.
+=46rom: Naresh Bhat <naresh.bhat@linaro.org>
 
-The patch is OK, but please add your sign-off.
+ CC      drivers/acpi/fan.o
+drivers/acpi/fan.c: In function =E2=80=98fan_get_cur_state=E2=80=99:
+drivers/acpi/fan.c:96:9: warning: =E2=80=98acpi_state=E2=80=99 may be u=
+sed uninitialized in this function [-Wuninitialized]
 
-Thanks,
-Rafael
+Signed-off-by: Naresh Bhat <naresh.bhat@linaro.org>
+---
+ drivers/acpi/fan.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-
-> On 28 June 2013 01:17,  <naresh.bhat@linaro.org> wrote:
-> > From: Naresh Bhat <naresh.bhat@linaro.org>
-> >
-> >   CC      drivers/acpi/fan.o
-> > drivers/acpi/fan.c: In function =E2=80=98fan_get_cur_state=E2=80=99=
-:
-> > drivers/acpi/fan.c:96:9: warning: =E2=80=98acpi_state=E2=80=99 may =
-be used uninitialized in this function [-Wuninitialized]
-> > ---
-> >  drivers/acpi/fan.c |    2 +-
-> >  1 file changed, 1 insertion(+), 1 deletion(-)
-> >
-> > diff --git a/drivers/acpi/fan.c b/drivers/acpi/fan.c
-> > index f815da8..f961435 100644
-> > --- a/drivers/acpi/fan.c
-> > +++ b/drivers/acpi/fan.c
-> > @@ -84,7 +84,7 @@ static int fan_get_cur_state(struct thermal_cooli=
-ng_device *cdev, unsigned long
-> >  {
-> >         struct acpi_device *device =3D cdev->devdata;
-> >         int result;
-> > -       int acpi_state;
-> > +       int acpi_state =3D ACPI_STATE_D0;
-> >
-> >         if (!device)
-> >                 return -EINVAL;
-> > --
-> > 1.7.9.5
-> >
+diff --git a/drivers/acpi/fan.c b/drivers/acpi/fan.c
+index 8d1c010..5b02a0a 100644
+--- a/drivers/acpi/fan.c
++++ b/drivers/acpi/fan.c
+@@ -84,7 +84,7 @@ static int fan_get_cur_state(struct thermal_cooling_d=
+evice *cdev, unsigned long
+ {
+ 	struct acpi_device *device =3D cdev->devdata;
+ 	int result;
+-	int acpi_state;
++	int acpi_state =3D ACPI_STATE_D0;
+=20
+ 	if (!device)
+ 		return -EINVAL;
 --=20
-I speak only for myself.
-Rafael J. Wysocki, Intel Open Source Technology Center.
+1.7.9.5
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
 n
