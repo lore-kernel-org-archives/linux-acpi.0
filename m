@@ -1,88 +1,61 @@
-From: Ben Guthro <benjamin.guthro@citrix.com>
-Subject: [PATCH v6 2/5] acpi: Call acpi_os_prepare_sleep hook in
-	reduced hardware sleep path
-Date: Mon, 1 Jul 2013 07:48:50 -0400
-Message-ID: <1372679333-8473-3-git-send-email-benjamin.guthro@citrix.com>
-References: <1372679333-8473-1-git-send-email-benjamin.guthro@citrix.com>
+From: Naresh Bhat <naresh.bhat@linaro.org>
+Subject: Re: [PATCH] ACPI/fan: Initialize acpi_state variable
+Date: Mon, 1 Jul 2013 17:31:46 +0530
+Message-ID: <CAFoFrHa_XsKaWDag_k3o_Lgizsf+qZUYPjBn9pvWSe83BY8sOg@mail.gmail.com>
+References: <1372362463-4186-1-git-send-email-naresh.bhat@linaro.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <xen-devel-bounces@lists.xen.org>
-In-Reply-To: <1372679333-8473-1-git-send-email-benjamin.guthro@citrix.com>
-List-Unsubscribe: <http://lists.xen.org/cgi-bin/mailman/options/xen-devel>,
-	<mailto:xen-devel-request@lists.xen.org?subject=unsubscribe>
-List-Post: <mailto:xen-devel@lists.xen.org>
-List-Help: <mailto:xen-devel-request@lists.xen.org?subject=help>
-List-Subscribe: <http://lists.xen.org/cgi-bin/mailman/listinfo/xen-devel>,
-	<mailto:xen-devel-request@lists.xen.org?subject=subscribe>
-Sender: xen-devel-bounces@lists.xen.org
-Errors-To: xen-devel-bounces@lists.xen.org
-To: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>, Jan Beulich <jbeulich@suse.com>, "Rafael J . Wysocki" <rjw@sisk.pl>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, xen-devel@lists.xen.org
-Cc: Ben Guthro <benjamin.guthro@citrix.com>, Bob Moore <robert.moore@intel.com>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-ob0-f169.google.com ([209.85.214.169]:53881 "EHLO
+	mail-ob0-f169.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752695Ab3GAMBr convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 1 Jul 2013 08:01:47 -0400
+Received: by mail-ob0-f169.google.com with SMTP id up14so4186789obb.0
+        for <linux-acpi@vger.kernel.org>; Mon, 01 Jul 2013 05:01:47 -0700 (PDT)
+In-Reply-To: <1372362463-4186-1-git-send-email-naresh.bhat@linaro.org>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: linux-acpi@vger.kernel.org
+Cc: len.brown@intel.com, Patch Tracking <patches@linaro.org>, linaro-kernel@lists.linaro.org, Naresh Bhat <naresh.bhat@linaro.org>, linux-kernel@vger.kernel.org, "Rafael J. Wysocki" <rjw@sisk.pl>
 
-In version 3.4 acpi_os_prepare_sleep() got introduced in parallel with
-reduced hardware sleep support, and the two changes didn't get
-synchronized: The new code doesn't call the hook function (if so
-requested). Fix this, requiring a parameter to be added to the
-hook function to distinguish "extended" from "legacy" sleep.
+Hi Rafeal,
 
-Signed-off-by: Jan Beulich <jbeulich@suse.com>
-Signed-off-by: Ben Guthro <benjamin.guthro@citrix.com>
-Cc: Bob Moore <robert.moore@intel.com>
-Cc: Rafael J. Wysocki <rjw@sisk.pl>
-Cc: linux-acpi@vger.kernel.org
-Reviewed-by: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
----
- drivers/acpi/acpica/hwesleep.c |    7 +++++++
- drivers/acpi/acpica/hwsleep.c  |    2 +-
- include/acpi/acpiosxf.h        |    4 ++--
- 3 files changed, 10 insertions(+), 3 deletions(-)
+I appreciate if you give any feedback on the provided patch.
 
-diff --git a/drivers/acpi/acpica/hwesleep.c b/drivers/acpi/acpica/hwesleep.c
-index 5e5f762..69b3e15 100644
---- a/drivers/acpi/acpica/hwesleep.c
-+++ b/drivers/acpi/acpica/hwesleep.c
-@@ -128,6 +128,13 @@ acpi_status acpi_hw_extended_sleep(u8 sleep_state)
- 
- 	ACPI_FLUSH_CPU_CACHE();
- 
-+	status = acpi_os_prepare_sleep(sleep_state, acpi_gbl_sleep_type_a,
-+				       acpi_gbl_sleep_type_b, TRUE);
-+	if (ACPI_SKIP(status))
-+		return_ACPI_STATUS(AE_OK);
-+	if (ACPI_FAILURE(status))
-+		return_ACPI_STATUS(status);
-+
- 	/*
- 	 * Set the SLP_TYP and SLP_EN bits.
- 	 *
-diff --git a/drivers/acpi/acpica/hwsleep.c b/drivers/acpi/acpica/hwsleep.c
-index 867b947..cf78157 100644
---- a/drivers/acpi/acpica/hwsleep.c
-+++ b/drivers/acpi/acpica/hwsleep.c
-@@ -152,7 +152,7 @@ acpi_status acpi_hw_legacy_sleep(u8 sleep_state)
- 	ACPI_FLUSH_CPU_CACHE();
- 
- 	status = acpi_os_prepare_sleep(sleep_state, pm1a_control,
--				       pm1b_control);
-+				       pm1b_control, FALSE);
- 	if (ACPI_SKIP(status))
- 		return_ACPI_STATUS(AE_OK);
- 	if (ACPI_FAILURE(status))
-diff --git a/include/acpi/acpiosxf.h b/include/acpi/acpiosxf.h
-index 7b402f2..3dc5ffa6 100644
---- a/include/acpi/acpiosxf.h
-+++ b/include/acpi/acpiosxf.h
-@@ -279,7 +279,7 @@ void acpi_os_close_directory(void *dir_handle);
- /*
-  * ACPI sleep preparation
-  */
--acpi_status acpi_os_prepare_sleep(u8 sleep_state,
--				  u32 pm1a_control, u32 pm1b_control);
-+acpi_status acpi_os_prepare_sleep(u8 sleep_state, u32 val_a, u32 val_b,
-+				  u8 extended);
- 
- #endif				/* __ACPIOSXF_H__ */
--- 
-1.7.9.5
+Thanks
+-Naresh Bhat
+
+On 28 June 2013 01:17,  <naresh.bhat@linaro.org> wrote:
+> From: Naresh Bhat <naresh.bhat@linaro.org>
+>
+>   CC      drivers/acpi/fan.o
+> drivers/acpi/fan.c: In function =91fan_get_cur_state=92:
+> drivers/acpi/fan.c:96:9: warning: =91acpi_state=92 may be used uninit=
+ialized in this function [-Wuninitialized]
+> ---
+>  drivers/acpi/fan.c |    2 +-
+>  1 file changed, 1 insertion(+), 1 deletion(-)
+>
+> diff --git a/drivers/acpi/fan.c b/drivers/acpi/fan.c
+> index f815da8..f961435 100644
+> --- a/drivers/acpi/fan.c
+> +++ b/drivers/acpi/fan.c
+> @@ -84,7 +84,7 @@ static int fan_get_cur_state(struct thermal_cooling=
+_device *cdev, unsigned long
+>  {
+>         struct acpi_device *device =3D cdev->devdata;
+>         int result;
+> -       int acpi_state;
+> +       int acpi_state =3D ACPI_STATE_D0;
+>
+>         if (!device)
+>                 return -EINVAL;
+> --
+> 1.7.9.5
+>
+--
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
