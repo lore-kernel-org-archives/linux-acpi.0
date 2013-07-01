@@ -1,111 +1,75 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: [PATCH 1/3] ACPI / dock: Rework the handling of notifications
-Date: Sun, 30 Jun 2013 16:18:42 +0200
-Message-ID: <1494881.y5W1zydDGl@vostro.rjw.lan>
-References: <1640211.P0jyS5muX2@vostro.rjw.lan> <2193112.vKUrhiifXu@vostro.rjw.lan> <CAE9FiQXc9WKDZdABOB8p0soT+OTcRbJb7JTgrPz6ffd2dyPEHA@mail.gmail.com>
+From: Ben Guthro <benjamin.guthro@citrix.com>
+Subject: [PATCH v6 0/5] Xen/ACPI: support sleep state entering on hardware reduced systems
+Date: Mon, 1 Jul 2013 07:48:48 -0400
+Message-ID: <1372679333-8473-1-git-send-email-benjamin.guthro@citrix.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from hydra.sisk.pl ([212.160.235.94]:55676 "EHLO hydra.sisk.pl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751638Ab3F3OJL (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Sun, 30 Jun 2013 10:09:11 -0400
-In-Reply-To: <CAE9FiQXc9WKDZdABOB8p0soT+OTcRbJb7JTgrPz6ffd2dyPEHA@mail.gmail.com>
+Received: from smtp02.citrix.com ([66.165.176.63]:14022 "EHLO
+	SMTP02.CITRIX.COM" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752347Ab3GALtC (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 1 Jul 2013 07:49:02 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Yinghai Lu <yinghai@kernel.org>
-Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>, Bjorn Helgaas <bhelgaas@google.com>, Jiang Liu <liuj97@gmail.com>, "Alexander E. Patrakov" <patrakov@gmail.com>
+To: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>, Jan Beulich <jbeulich@suse.com>, "Rafael J . Wysocki" <rjw@sisk.pl>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, xen-devel@lists.xen.org
+Cc: Ben Guthro <benjamin.guthro@citrix.com>, Richard L Maliszewski <richard.l.maliszewski@intel.com>, Gang Wei <gang.wei@intel.com>, Shane Wang <shane.wang@intel.com>, Bob Moore <robert.moore@intel.com>, tboot-devel@lists.sourceforge.net
 
-On Saturday, June 29, 2013 09:12:59 AM Yinghai Lu wrote:
-> On Sat, Jun 29, 2013 at 4:16 AM, Rafael J. Wysocki <rjw@sisk.pl> wrote:
-> > On Friday, June 28, 2013 04:34:21 PM Yinghai Lu wrote:
-> >> On Fri, Jun 28, 2013 at 3:53 PM, Rafael J. Wysocki <rjw@sisk.pl> wrote:
-> >> > From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
-> >> >
-> >> > The ACPI dock driver uses register_acpi_bus_notifier() which
-> >> > installs a notifier triggered globally for all system notifications.
-> >> > That first of all is inefficient, because the dock driver is only
-> >> > interested in notifications associated with the devices it handles,
-> >> > but it has to handle all system notifies for all devices.  Moreover,
-> >> > it does that even if no docking stations are present in the system
-> >> > (CONFIG_ACPI_DOCK set is sufficient for that to happen).  Besides,
-> >> > that is inconvenient, because it requires the driver to do extra work
-> >> > for each notification to find the target dock station object.
-> >> >
-> >> > For these reasons, rework the dock driver to install a notify
-> >> > handler individually for each dock station in the system using
-> >> > acpi_install_notify_handler().  This allows the dock station
-> >> > object to be passed directly to the notify handler and makes it
-> >> > possible to simplify the dock driver quite a bit.  It also
-> >> > reduces the overhead related to the handling of all system
-> >> > notifies when CONFIG_ACPI_DOCK is set.
-> >>
-> >> original change to use register_acpi_bus_notifier, have two assumption
-> >> 1.  two dock_station will have same handle.
-> >
-> > Well, that would mean that dock_add() might be called twice for the same handle
-> > and I don't see how that's possible.
-> >
-> > Moreover, even if that were possible, the loop in acpi_dock_notifier_call()
-> > would break after finding the *first* matching handle anyway, so
-> > acpi_dock_deferred_cb() wouldn't be called for the second dock station with
-> > the same handle, if there were two.
-> 
-> related commit:
-> commit 6bd00a61ab63d4ceb635ae0316353c11c900b8d8
-> Author: Shaohua Li <shaohua.li@intel.com>
-> Date:   Thu Aug 28 10:04:29 2008 +0800
-> 
->     ACPI: introduce notifier change to avoid duplicates
-> 
->     The battery driver already registers notification handler.
->     To avoid registering notification handler again,
->     introduce a notifier chain in global system notifier handler
->     and use it in dock driver.
-> 
-> so it is not two dock station have same handle. it is battery acpi driver.
-> 
-> but notitifer installing is changed
-> 
-> commit d94066910943837558d2a461c6766da981260bf0
-> Author: Bjorn Helgaas <bjorn.helgaas@hp.com>
-> Date:   Thu Apr 30 09:35:47 2009 -0600
-> 
->     ACPI: battery: use .notify method instead of installing handler directly
-> 
->     This patch adds a .notify() method.  The presence of .notify() causes
->     Linux/ACPI to manage event handlers and notify handlers on our behalf,
->     so we don't have to install and remove them ourselves.
-> 
->     This driver apparently relies on seeing ALL notify events, not just
->     device-specific ones (because it used ACPI_ALL_NOTIFY).  We use the
->     ACPI_DRIVER_ALL_NOTIFY_EVENTS driver flag to request all events.
-> 
->     Signed-off-by: Bjorn Helgaas <bjorn.helgaas@hp.com>
->     CC: Alexey Starikovskiy <alexey.y.starikovskiy@linux.intel.com>
->     Signed-off-by: Len Brown <len.brown@intel.com>
-> 
-> 
-> >
-> >> 2. acpi subsystem: non root acpi device only can have one system
-> >> notifier installed.
-> >
-> > No, that limitation is long gone.  We removed it when we were working on ACPI
-> > wakeup support for runtime PM.
-> 
-> looks like i misread that...
-> 
->  * NOTES:       The Root namespace object may have only one handler for each
->  *              type of notify (System/Device). Device/Thermal/Processor objects
->  *              may have one device notify handler, and multiple system notify
->  *              handlers.
-> 
-> device could have multiple system notify handlers.
-> 
-> So
-> 
-> Acked-by: Yinghai Lu <yinghai@kernel.org>
+In version 3.4 acpi_os_prepare_sleep() got introduced in parallel with
+reduced hardware sleep support, and the two changes didn't get
+synchronized: The new code doesn't call the hook function (if so
+requested). Fix this, requiring a boolean parameter to be added to the
+hook function to distinguish "extended" from "legacy" sleep.
 
-Thanks (and for the other ACKs too)!
+This requires adjusting TXT, but the adjustments only go as far as
+failing the extended mode call (since, looking at the TXT interface,
+there doesn't even appear to be precautions to deal with that
+alternative interface).
+
+The hypervisor change underlying this is commit 62d1a69 ("ACPI: support
+v5 (reduced HW) sleep interface") on the master branch of
+git://xenbits.xen.org/xen.git.
+
+Signed-off-by: Jan Beulich <jbeulich@suse.com>
+Signed-off-by: Ben Guthro <benjamin.guthro@citrix.com>
+Cc: Richard L Maliszewski <richard.l.maliszewski@intel.com>
+Cc: Gang Wei <gang.wei@intel.com>
+Cc: Shane Wang <shane.wang@intel.com>
+Cc: Bob Moore <robert.moore@intel.com>
+Cc: Rafael J. Wysocki <rjw@sisk.pl>
+Cc: linux-acpi@vger.kernel.org
+Cc: tboot-devel@lists.sourceforge.net 
+
+v2: Extend description to include reference to hypervisor side change
+v3: Split into multiple patches, separating subsystems
+    Remove bool parameters, in favor of u8
+v4: Remove linux/acpi.h dependencies
+    Further patch split to break out acpica from OSL
+    More bool vs u8 fixes
+v5: Fix build of consumers of acpi_os_prepare_sleep() interface change,
+    so intermediate builds of partial patch series will not fail.
+v6: Rebased to linux-pm linux-next branch
+    Added warning in tboot early return code
+    Added Reviewed-by lines
+
+Ben Guthro (5):
+  acpi: Remove need to include linux/acpi.h in common acpica code
+  acpi: Call acpi_os_prepare_sleep hook in reduced hardware sleep path
+  acpi/xen/tboot: Adjust linux acpi OS functions to new extended
+    parameter
+  x86/tboot: Fail extended mode reduced hardware sleep
+  xen/acpi: notify xen when reduced hardware sleep is available
+
+ arch/x86/kernel/tboot.c          |    9 ++++++++-
+ drivers/acpi/acpica/hwesleep.c   |    7 +++++++
+ drivers/acpi/acpica/hwsleep.c    |    3 +--
+ drivers/acpi/osl.c               |   16 ++++++++--------
+ drivers/xen/acpi.c               |   26 +++++++++++++-------------
+ include/acpi/acpiosxf.h          |    6 ++++++
+ include/linux/acpi.h             |    9 +++------
+ include/xen/acpi.h               |    4 ++--
+ include/xen/interface/platform.h |    7 ++++---
+ 9 files changed, 52 insertions(+), 35 deletions(-)
+
+-- 
+1.7.9.5
 
