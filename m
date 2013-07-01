@@ -1,75 +1,62 @@
 From: Ben Guthro <benjamin.guthro@citrix.com>
-Subject: [PATCH v6 0/5] Xen/ACPI: support sleep state entering on hardware reduced systems
-Date: Mon, 1 Jul 2013 07:48:48 -0400
-Message-ID: <1372679333-8473-1-git-send-email-benjamin.guthro@citrix.com>
+Subject: [PATCH v6 4/5] x86/tboot: Fail extended mode reduced
+	hardware sleep
+Date: Mon, 1 Jul 2013 07:48:52 -0400
+Message-ID: <1372679333-8473-5-git-send-email-benjamin.guthro@citrix.com>
+References: <1372679333-8473-1-git-send-email-benjamin.guthro@citrix.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp02.citrix.com ([66.165.176.63]:14022 "EHLO
-	SMTP02.CITRIX.COM" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752347Ab3GALtC (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 1 Jul 2013 07:49:02 -0400
-Sender: linux-acpi-owner@vger.kernel.org
-List-Id: linux-acpi@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <tboot-devel-bounces@lists.sourceforge.net>
+In-Reply-To: <1372679333-8473-1-git-send-email-benjamin.guthro@citrix.com>
+List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/tboot-devel>,
+	<mailto:tboot-devel-request@lists.sourceforge.net?subject=unsubscribe>
+List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum_name=tboot-devel>
+List-Post: <mailto:tboot-devel@lists.sourceforge.net>
+List-Help: <mailto:tboot-devel-request@lists.sourceforge.net?subject=help>
+List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/tboot-devel>,
+	<mailto:tboot-devel-request@lists.sourceforge.net?subject=subscribe>
+Errors-To: tboot-devel-bounces@lists.sourceforge.net
 To: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>, Jan Beulich <jbeulich@suse.com>, "Rafael J . Wysocki" <rjw@sisk.pl>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, xen-devel@lists.xen.org
-Cc: Ben Guthro <benjamin.guthro@citrix.com>, Richard L Maliszewski <richard.l.maliszewski@intel.com>, Gang Wei <gang.wei@intel.com>, Shane Wang <shane.wang@intel.com>, Bob Moore <robert.moore@intel.com>, tboot-devel@lists.sourceforge.net
+Cc: tboot-devel@lists.sourceforge.net, Ben Guthro <benjamin.guthro@citrix.com>
+List-Id: linux-acpi@vger.kernel.org
 
-In version 3.4 acpi_os_prepare_sleep() got introduced in parallel with
-reduced hardware sleep support, and the two changes didn't get
-synchronized: The new code doesn't call the hook function (if so
-requested). Fix this, requiring a boolean parameter to be added to the
-hook function to distinguish "extended" from "legacy" sleep.
-
-This requires adjusting TXT, but the adjustments only go as far as
-failing the extended mode call (since, looking at the TXT interface,
-there doesn't even appear to be precautions to deal with that
-alternative interface).
-
-The hypervisor change underlying this is commit 62d1a69 ("ACPI: support
-v5 (reduced HW) sleep interface") on the master branch of
-git://xenbits.xen.org/xen.git.
+As tboot currently does not support the reduced hardware sleep
+interface, fail this extended call.
 
 Signed-off-by: Jan Beulich <jbeulich@suse.com>
 Signed-off-by: Ben Guthro <benjamin.guthro@citrix.com>
-Cc: Richard L Maliszewski <richard.l.maliszewski@intel.com>
+Cc: tboot-devel@lists.sourceforge.net
 Cc: Gang Wei <gang.wei@intel.com>
-Cc: Shane Wang <shane.wang@intel.com>
-Cc: Bob Moore <robert.moore@intel.com>
-Cc: Rafael J. Wysocki <rjw@sisk.pl>
-Cc: linux-acpi@vger.kernel.org
-Cc: tboot-devel@lists.sourceforge.net 
+Reviewed-by: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
+---
+ arch/x86/kernel/tboot.c |    6 ++++++
+ 1 file changed, 6 insertions(+)
 
-v2: Extend description to include reference to hypervisor side change
-v3: Split into multiple patches, separating subsystems
-    Remove bool parameters, in favor of u8
-v4: Remove linux/acpi.h dependencies
-    Further patch split to break out acpica from OSL
-    More bool vs u8 fixes
-v5: Fix build of consumers of acpi_os_prepare_sleep() interface change,
-    so intermediate builds of partial patch series will not fail.
-v6: Rebased to linux-pm linux-next branch
-    Added warning in tboot early return code
-    Added Reviewed-by lines
-
-Ben Guthro (5):
-  acpi: Remove need to include linux/acpi.h in common acpica code
-  acpi: Call acpi_os_prepare_sleep hook in reduced hardware sleep path
-  acpi/xen/tboot: Adjust linux acpi OS functions to new extended
-    parameter
-  x86/tboot: Fail extended mode reduced hardware sleep
-  xen/acpi: notify xen when reduced hardware sleep is available
-
- arch/x86/kernel/tboot.c          |    9 ++++++++-
- drivers/acpi/acpica/hwesleep.c   |    7 +++++++
- drivers/acpi/acpica/hwsleep.c    |    3 +--
- drivers/acpi/osl.c               |   16 ++++++++--------
- drivers/xen/acpi.c               |   26 +++++++++++++-------------
- include/acpi/acpiosxf.h          |    6 ++++++
- include/linux/acpi.h             |    9 +++------
- include/xen/acpi.h               |    4 ++--
- include/xen/interface/platform.h |    7 ++++---
- 9 files changed, 52 insertions(+), 35 deletions(-)
-
+diff --git a/arch/x86/kernel/tboot.c b/arch/x86/kernel/tboot.c
+index d578c9c..76c284f 100644
+--- a/arch/x86/kernel/tboot.c
++++ b/arch/x86/kernel/tboot.c
+@@ -285,6 +285,12 @@ static int tboot_sleep(u8 sleep_state, u32 pm1a_control, u32 pm1b_control,
+ 	if (!tboot_enabled())
+ 		return 0;
+ 
++	if (extended)
++	if (WARN(extended,"tboot is not able to suspend on platforms with"
++	    " reduced hardware sleep (ACPIv5). Please contact"
++	    " tboot-devel@lists.sourceforge.net mailing list."))
++		return -1;
++
+ 	tboot_copy_fadt(&acpi_gbl_FADT);
+ 	tboot->acpi_sinfo.pm1a_cnt_val = pm1a_control;
+ 	tboot->acpi_sinfo.pm1b_cnt_val = pm1b_control;
 -- 
 1.7.9.5
 
+
+------------------------------------------------------------------------------
+This SF.net email is sponsored by Windows:
+
+Build for Windows Store.
+
+http://p.sf.net/sfu/windows-dev2dev
