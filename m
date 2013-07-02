@@ -1,37 +1,79 @@
-From: Bjorn Helgaas <bhelgaas@google.com>
-Subject: Re: [PATCH 0/8] PCI, ACPI, x86: Reserve fw allocated resource for
- hot-add root bus
-Date: Tue, 2 Jul 2013 15:31:01 -0600
-Message-ID: <CAErSpo7oeYUWS+jaJqm-4i+tN0HuOZrrxZt7GDmeRSmj4pzYYQ@mail.gmail.com>
-References: <20121030040237.GA10472@google.com> <1352003971-22278-1-git-send-email-yinghai@kernel.org>
- <CAE9FiQUn=bcgOLFzBwsBT1-O1poRNy9qYTb0w9EAya3_inKqAw@mail.gmail.com>
- <CAErSpo5Z57asEXbfesOjXMEPj4WM3YMbzQH3s-v_NBrnPNmuVQ@mail.gmail.com>
- <CAErSpo4LS7ShCbeOm1s9ob1MjPfUSWn9J96UHRBP6van54swQA@mail.gmail.com>
- <CAE9FiQV5x1S1BNHrXq0wMRDx7PD5BoCh3fOnq2vS_AOAGL8Rrw@mail.gmail.com>
- <CAErSpo5vEb=63jGsqfau1G=f54oqq17pc3ZzcpzhL7hQrtYhng@mail.gmail.com>
- <CAE9FiQUxxjZmd3C33_ujSeL1EjcKHHSoGusQwfBD+Zd=cwCDZA@mail.gmail.com> <CAErSpo6qX3ih9DXLqxqJw141OAeTFu0YfSih6LyD0sd2gS-Vyg@mail.gmail.com>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: [PATCH] ACPI / PM: Fix corner case in acpi_bus_update_power()
+Date: Wed, 03 Jul 2013 00:42:53 +0200
+Message-ID: <7100481.jeTkAIjIl8@vostro.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <CAErSpo6qX3ih9DXLqxqJw141OAeTFu0YfSih6LyD0sd2gS-Vyg@mail.gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Yinghai Lu <yinghai@kernel.org>
-Cc: "Rafael J. Wysocki" <rjw@sisk.pl>, Len Brown <lenb@kernel.org>, Taku Izumi <izumi.taku@jp.fujitsu.com>, Jiang Liu <jiang.liu@huawei.com>, "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7Bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from hydra.sisk.pl ([212.160.235.94]:56996 "EHLO hydra.sisk.pl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753583Ab3GBWdQ (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 2 Jul 2013 18:33:16 -0400
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: ACPI Devel Maling List <linux-acpi@vger.kernel.org>
+Cc: LKML <linux-kernel@vger.kernel.org>, Linux PM list <linux-pm@vger.kernel.org>
 
-On Wed, Jan 9, 2013 at 11:39 AM, Bjorn Helgaas <bhelgaas@google.com> wrote:
-> On Wed, Jan 9, 2013 at 10:53 AM, Yinghai Lu <yinghai@kernel.org> wrote:
+From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 
->> the reason why we need to change those codes for x86, we want to make it support
->> pci root bus hotplug. So it would be reasonable for us to align other
->> platform to x86
->> changes after pci root bus hotplug change is completely done.
->
-> OK, I opened https://bugzilla.kernel.org/show_bug.cgi?id=52531 as a
-> way to keep track of this consistency issue ...
+The role of acpi_bus_update_power() is to update the given ACPI
+device object's power.state field to reflect the current physical
+state of the device (as inferred from the configuration of power
+resources and _PSC, if available).  For this purpose it calls
+acpi_device_set_power() that should update the power resources'
+reference counters and set power.state as appropriate.  However,
+that doesn't work if the "new" state is D1, D2 or D3hot and the
+the current value of power.state means D3cold, because in that
+case acpi_device_set_power() will refuse to transition the device
+from D3cold to non-D0.
 
-What's your plan for this?  We desperately need more cross-arch
-consistency in how we manage resources, and I'd like to make some
-progress in this cycle.
+To address this problem, make acpi_bus_update_power() call
+acpi_power_transition() directly to update the power resources'
+reference counters and only use acpi_device_set_power() to put
+the device into D0 if the current physical state of it cannot
+be determined.
 
-Bjorn
+Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+---
+ drivers/acpi/device_pm.c |   23 ++++++++++++++++++-----
+ 1 file changed, 18 insertions(+), 5 deletions(-)
+
+Index: linux-pm/drivers/acpi/device_pm.c
+===================================================================
+--- linux-pm.orig/drivers/acpi/device_pm.c
++++ linux-pm/drivers/acpi/device_pm.c
+@@ -324,14 +324,27 @@ int acpi_bus_update_power(acpi_handle ha
+ 	if (result)
+ 		return result;
+ 
+-	if (state == ACPI_STATE_UNKNOWN)
++	if (state == ACPI_STATE_UNKNOWN) {
+ 		state = ACPI_STATE_D0;
+-
+-	result = acpi_device_set_power(device, state);
+-	if (!result && state_p)
++		result = acpi_device_set_power(device, state);
++		if (result)
++			return result;
++	} else {
++		if (device->power.flags.power_resources) {
++			/*
++			 * We don't need to really switch the state, bu we need
++			 * to update the power resources' reference counters.
++			 */
++			result = acpi_power_transition(device, state);
++			if (result)
++				return result;
++		}
++		device->power.state = state;
++	}
++	if (state_p)
+ 		*state_p = state;
+ 
+-	return result;
++	return 0;
+ }
+ EXPORT_SYMBOL_GPL(acpi_bus_update_power);
+ 
+
