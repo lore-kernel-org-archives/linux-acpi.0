@@ -1,128 +1,46 @@
-From: "Naveen N. Rao" <naveen.n.rao@linux.vnet.ibm.com>
-Subject: [PATCH 4] mce: acpi/apei: Add a sysctl to control page offlining on
- firmware report
-Date: Tue, 02 Jul 2013 18:24:00 +0530
-Message-ID: <20130702125137.7388.97225.stgit@localhost.localdomain>
-References: <20130701153728.6197.14022.stgit@localhost.localdomain>
+From: Aaron Lu <aaron.lu@intel.com>
+Subject: [PATCH 0/2] Expose OSI version
+Date: Tue, 02 Jul 2013 21:56:45 +0800
+Message-ID: <51D2DC1D.60101@intel.com>
+References: <1370818899-8595-1-git-send-email-matthew.garrett@nebula.com> <1371508629.523.3.camel@x230> <10189900.qsvQBSpnvI@vostro.rjw.lan> <2211483.MscZsfrrDc@vostro.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from e28smtp01.in.ibm.com ([122.248.162.1]:53376 "EHLO
-	e28smtp01.in.ibm.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751702Ab3GBMyH (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 2 Jul 2013 08:54:07 -0400
-Received: from /spool/local
-	by e28smtp01.in.ibm.com with IBM ESMTP SMTP Gateway: Authorized Use Only! Violators will be prosecuted
-	for <linux-acpi@vger.kernel.org> from <naveen.n.rao@linux.vnet.ibm.com>;
-	Tue, 2 Jul 2013 18:16:54 +0530
-In-Reply-To: <20130701153728.6197.14022.stgit@localhost.localdomain>
+Received: from mga01.intel.com ([192.55.52.88]:23072 "EHLO mga01.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750869Ab3GBN4Q (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 2 Jul 2013 09:56:16 -0400
+In-Reply-To: <2211483.MscZsfrrDc@vostro.rjw.lan>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: tony.luck@intel.com, bp@alien8.de
-Cc: ananth@in.ibm.com, masbock@linux.vnet.ibm.com, lcm@linux.vnet.ibm.com, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, ying.huang@intel.com
+To: Matthew Garrett <matthew.garrett@nebula.com>, "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "seth.forshee@canonical.com" <seth.forshee@canonical.com>, "joeyli.kernel@gmail.com" <joeyli.kernel@gmail.com>, "daniel.vetter@ffwll.ch" <daniel.vetter@ffwll.ch>, "lenb@kernel.org" <lenb@kernel.org>, Bob Moore <robert.moore@intel.com>
 
-I am adding another patch here to disable page offlining in case the firmware
-starts acting up.
+This is a re-spin of patch 2/3:
+ACPICA: Add interface for getting latest OS version requested via _OSI
+to address the comments suggested by Bob and Rafael.
 
-Thanks,
-Naveen
+To be exact, the patchset does:
+1 Expose acpi_gbl_osi_data through include/acpi/acpixf.h and move all
+  OSI definitions to include/acpi/actypes.h in patch 1;
+2 Add a wrapper function acpi_osi_version in osl.c to return
+  acpi_gbl_osi_data in patch 2.
 
---
+Matthew,
+I suppose you might be busy so I've done the re-spin for you,
+please let me know if you think something wrong, thanks.
 
-Add a sysctl memory_failure_soft_offline to control what is done on receipt of
-firmware ghes notification for a corrected error. By default, kernel tries
-to soft-offline the page immediately. If set to 0, no action is taken.
+Aaron Lu (2):
+  ACPICA: expose OSI version
+  ACPI / OSL: add a wrapper function to return OSI version
 
-Signed-off-by: Naveen N. Rao <naveen.n.rao@linux.vnet.ibm.com>
----
- Documentation/sysctl/vm.txt |   12 ++++++++++++
- include/linux/mm.h          |    1 +
- kernel/sysctl.c             |    9 +++++++++
- mm/memory-failure.c         |   10 +++++++---
- 4 files changed, 29 insertions(+), 3 deletions(-)
+ drivers/acpi/acpica/aclocal.h | 13 -------------
+ drivers/acpi/osl.c            |  6 ++++++
+ include/acpi/acpixf.h         |  1 +
+ include/acpi/actypes.h        | 15 +++++++++++++++
+ include/linux/acpi.h          |  6 ++++++
+ 5 files changed, 28 insertions(+), 13 deletions(-)
 
-diff --git a/Documentation/sysctl/vm.txt b/Documentation/sysctl/vm.txt
-index dcc75a9..6d0fcba 100644
---- a/Documentation/sysctl/vm.txt
-+++ b/Documentation/sysctl/vm.txt
-@@ -375,6 +375,18 @@ Enable memory failure recovery (when supported by the platform)
- 
- ==============================================================
- 
-+memory_failure_soft_offline
-+
-+Control soft-offlining of pages on receipt of appropriate firmware error
-+report through GHES. Note that this does not affect user-space initiated
-+soft-offlining.
-+
-+1: Attempt soft-offlining.
-+
-+0: No action.
-+
-+==============================================================
-+
- min_free_kbytes:
- 
- This is used to force the Linux VM to keep a minimum number
-diff --git a/include/linux/mm.h b/include/linux/mm.h
-index 958e9efd..2c16ca4 100644
---- a/include/linux/mm.h
-+++ b/include/linux/mm.h
-@@ -1791,6 +1791,7 @@ extern void memory_failure_queue(unsigned long pfn, int trapno, int flags);
- extern int unpoison_memory(unsigned long pfn);
- extern int sysctl_memory_failure_early_kill;
- extern int sysctl_memory_failure_recovery;
-+extern int sysctl_memory_failure_soft_offline;
- extern void shake_page(struct page *p, int access);
- extern atomic_long_t num_poisoned_pages;
- extern int soft_offline_page(struct page *page, int flags);
-diff --git a/kernel/sysctl.c b/kernel/sysctl.c
-index b0a1f99..cc4b794 100644
---- a/kernel/sysctl.c
-+++ b/kernel/sysctl.c
-@@ -1427,6 +1427,15 @@ static struct ctl_table vm_table[] = {
- 		.extra1		= &zero,
- 		.extra2		= &one,
- 	},
-+	{
-+		.procname	= "memory_failure_soft_offline",
-+		.data		= &sysctl_memory_failure_soft_offline,
-+		.maxlen		= sizeof(sysctl_memory_failure_soft_offline),
-+		.mode		= 0644,
-+		.proc_handler	= proc_dointvec_minmax,
-+		.extra1		= &zero,
-+		.extra2		= &one,
-+	},
- #endif
- 	{
- 		.procname	= "user_reserve_kbytes",
-diff --git a/mm/memory-failure.c b/mm/memory-failure.c
-index 0d6717e..ec4851c 100644
---- a/mm/memory-failure.c
-+++ b/mm/memory-failure.c
-@@ -61,6 +61,8 @@ int sysctl_memory_failure_early_kill __read_mostly = 0;
- 
- int sysctl_memory_failure_recovery __read_mostly = 1;
- 
-+int sysctl_memory_failure_soft_offline __read_mostly = 1;
-+
- atomic_long_t num_poisoned_pages __read_mostly = ATOMIC_LONG_INIT(0);
- 
- #if defined(CONFIG_HWPOISON_INJECT) || defined(CONFIG_HWPOISON_INJECT_MODULE)
-@@ -1286,9 +1288,11 @@ static void memory_failure_work_func(struct work_struct *work)
- 		spin_unlock_irqrestore(&mf_cpu->lock, proc_flags);
- 		if (!gotten)
- 			break;
--		if (entry.flags & MF_SOFT_OFFLINE)
--			soft_offline_page(pfn_to_page(entry.pfn), entry.flags);
--		else
-+		if (entry.flags & MF_SOFT_OFFLINE) {
-+			if (sysctl_memory_failure_soft_offline)
-+				soft_offline_page(pfn_to_page(entry.pfn),
-+						entry.flags);
-+		} else
- 			memory_failure(entry.pfn, entry.trapno, entry.flags);
- 	}
- }
-
+-- 
+1.8.3.2.10.g43d11f4
