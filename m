@@ -1,192 +1,45 @@
-From: Borislav Petkov <bp@alien8.de>
-Subject: Re: [PATCH v3 3/3] mce, acpi/apei: Soft-offline a page on firmware
- GHES notification
-Date: Tue, 2 Jul 2013 01:08:00 +0200
-Message-ID: <20130701230800.GO23515@pd.tnic>
-References: <20130701153728.6197.14022.stgit@localhost.localdomain>
- <20130701153859.6197.59186.stgit@localhost.localdomain>
+From: Wei Yongjun <weiyj.lk@gmail.com>
+Subject: [PATCH] efi_pstore: add missing iounmap() on error in erst_exec_move_data()
+Date: Tue, 2 Jul 2013 09:02:32 +0800
+Message-ID: <CAPgLHd-x4N6NVJUWz9Tr4onnBgEwLW6CNQqS1_upSQzPKSoX2Q@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
+Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail.skyhub.de ([78.46.96.112]:41821 "EHLO mail.skyhub.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755100Ab3GAXIK (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 1 Jul 2013 19:08:10 -0400
-Content-Disposition: inline
-In-Reply-To: <20130701153859.6197.59186.stgit@localhost.localdomain>
+Received: from mail-bk0-f52.google.com ([209.85.214.52]:55124 "EHLO
+	mail-bk0-f52.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755648Ab3GBBCe (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 1 Jul 2013 21:02:34 -0400
+Received: by mail-bk0-f52.google.com with SMTP id d7so2008168bkh.11
+        for <linux-acpi@vger.kernel.org>; Mon, 01 Jul 2013 18:02:32 -0700 (PDT)
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Naveen N. Rao" <naveen.n.rao@linux.vnet.ibm.com>
-Cc: tony.luck@intel.com, ananth@in.ibm.com, masbock@linux.vnet.ibm.com, lcm@linux.vnet.ibm.com, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, ying.huang@intel.com
+To: anton@enomsg.org, ccross@android.com, keescook@chromium.org, tony.luck@intel.com, lenb@kernel.org, rjw@sisk.pl
+Cc: yongjun_wei@trendmicro.com.cn, linux-acpi@vger.kernel.org
 
-On Mon, Jul 01, 2013 at 09:08:59PM +0530, Naveen N. Rao wrote:
-> If the firmware indicates in GHES error data entry that the error threshold
-> has exceeded for a corrected error event, then we try to soft-offline the
-> page. This could be called in interrupt context, so we queue this up similar
-> to how we handle memory failure scenarios.
-> 
-> 
-> Signed-off-by: Naveen N. Rao <naveen.n.rao@linux.vnet.ibm.com>
-> ---
->  drivers/acpi/apei/ghes.c |   12 ++++++++++
->  include/linux/mm.h       |    1 +
->  mm/memory-failure.c      |   53 ++++++++++++++++++++++++++++++----------------
->  3 files changed, 48 insertions(+), 18 deletions(-)
-> 
-> diff --git a/drivers/acpi/apei/ghes.c b/drivers/acpi/apei/ghes.c
-> index fcd7d91..5a630ed 100644
-> --- a/drivers/acpi/apei/ghes.c
-> +++ b/drivers/acpi/apei/ghes.c
-> @@ -429,6 +429,18 @@ static void ghes_do_proc(struct ghes *ghes,
->  						  mem_err);
->  #endif
->  #ifdef CONFIG_ACPI_APEI_MEMORY_FAILURE
-> +			if (sec_sev == GHES_SEV_CORRECTED &&
-> +			    (gdata->flags & CPER_SEC_ERROR_THRESHOLD_EXCEEDED) &&
-> +			    (mem_err->validation_bits & CPER_MEM_VALID_PHYSICAL_ADDRESS)) {
-> +				unsigned long pfn;
-> +				pfn = mem_err->physical_addr >> PAGE_SHIFT;
-> +				if (pfn_valid(pfn))
-> +					soft_memory_failure_queue(pfn, 0, 0);
-> +				else
-> +					pr_warning(FW_WARN GHES_PFX
-> +					"Invalid address in generic error data: %#lx\n",
-> +					mem_err->physical_addr);
-> +			}
+From: Wei Yongjun <yongjun_wei@trendmicro.com.cn>
 
-Yuck, this looks like BIOS code.
+Add the missing iounmap() before return from erst_exec_move_data()
+in the error handling case.
 
-Can we carve out this into a function and do
+Signed-off-by: Wei Yongjun <yongjun_wei@trendmicro.com.cn>
+---
+ drivers/acpi/apei/erst.c | 4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
 
-void function(.. )
-{
-#ifdef CONFIG_ACPI_APEI_MEMORY_FAILURE
+diff --git a/drivers/acpi/apei/erst.c b/drivers/acpi/apei/erst.c
+index f7b3b39..7af21ed 100644
+--- a/drivers/acpi/apei/erst.c
++++ b/drivers/acpi/apei/erst.c
+@@ -284,8 +284,10 @@ static int erst_exec_move_data(struct apei_exec_context *ctx,
+ 	if (!src)
+ 		return -ENOMEM;
+ 	dst = ioremap(ctx->dst_base + offset, ctx->var2);
+-	if (!dst)
++	if (!dst) {
++		iounmap(src);
+ 		return -ENOMEM;
++	}
+ 
+ 	memmove(dst, src, ctx->var2);
+ 
 
-	<code at 1st indentation, much more readable>
-
-#endif
-}
-
-so that we can nicely call it from ghes_do_proc()?
-
->  			if (sev == GHES_SEV_RECOVERABLE &&
->  			    sec_sev == GHES_SEV_RECOVERABLE &&
->  			    mem_err->validation_bits & CPER_MEM_VALID_PHYSICAL_ADDRESS) {
-> diff --git a/include/linux/mm.h b/include/linux/mm.h
-> index e0c8528..f9907d2 100644
-> --- a/include/linux/mm.h
-> +++ b/include/linux/mm.h
-> @@ -1787,6 +1787,7 @@ enum mf_flags {
->  };
->  extern int memory_failure(unsigned long pfn, int trapno, int flags);
->  extern void memory_failure_queue(unsigned long pfn, int trapno, int flags);
-> +extern void soft_memory_failure_queue(unsigned long pfn, int trapno, int flags);
->  extern int unpoison_memory(unsigned long pfn);
->  extern int sysctl_memory_failure_early_kill;
->  extern int sysctl_memory_failure_recovery;
-> diff --git a/mm/memory-failure.c b/mm/memory-failure.c
-> index ceb0c7f..50caefd 100644
-> --- a/mm/memory-failure.c
-> +++ b/mm/memory-failure.c
-> @@ -1222,6 +1222,7 @@ struct memory_failure_entry {
->  	unsigned long pfn;
->  	int trapno;
->  	int flags;
-> +	bool soft_offline;
-
-Why a new bool? This flags int looks nice above. :)
-
->  };
->  
->  struct memory_failure_cpu {
-> @@ -1233,6 +1234,28 @@ struct memory_failure_cpu {
->  
->  static DEFINE_PER_CPU(struct memory_failure_cpu, memory_failure_cpu);
->  
-> +void __memory_failure_queue(unsigned long pfn, int trapno, int flags, int soft_offline)
-> +{
-> +	struct memory_failure_cpu *mf_cpu;
-> +	unsigned long proc_flags;
-> +	struct memory_failure_entry entry = {
-> +		.pfn =		pfn,
-> +		.trapno =	trapno,
-> +		.flags =	flags,
-> +		.soft_offline = soft_offline
-> +	};
-> +
-> +	mf_cpu = &get_cpu_var(memory_failure_cpu);
-> +	spin_lock_irqsave(&mf_cpu->lock, proc_flags);
-> +	if (kfifo_put(&mf_cpu->fifo, &entry))
-> +		schedule_work_on(smp_processor_id(), &mf_cpu->work);
-> +	else
-> +		pr_err("Memory failure: buffer overflow when queuing memory failure at 0x%#lx\n",
-> +		       pfn);
-> +	spin_unlock_irqrestore(&mf_cpu->lock, proc_flags);
-> +	put_cpu_var(memory_failure_cpu);
-> +}
-> +
->  /**
->   * memory_failure_queue - Schedule handling memory failure of a page.
->   * @pfn: Page Number of the corrupted page
-> @@ -1250,28 +1273,19 @@ static DEFINE_PER_CPU(struct memory_failure_cpu, memory_failure_cpu);
->   *
->   * Can run in IRQ context.
->   */
-> +
->  void memory_failure_queue(unsigned long pfn, int trapno, int flags)
->  {
-> -	struct memory_failure_cpu *mf_cpu;
-> -	unsigned long proc_flags;
-> -	struct memory_failure_entry entry = {
-> -		.pfn =		pfn,
-> -		.trapno =	trapno,
-> -		.flags =	flags,
-> -	};
-> -
-> -	mf_cpu = &get_cpu_var(memory_failure_cpu);
-> -	spin_lock_irqsave(&mf_cpu->lock, proc_flags);
-> -	if (kfifo_put(&mf_cpu->fifo, &entry))
-> -		schedule_work_on(smp_processor_id(), &mf_cpu->work);
-> -	else
-> -		pr_err("Memory failure: buffer overflow when queuing memory failure at 0x%#lx\n",
-> -		       pfn);
-> -	spin_unlock_irqrestore(&mf_cpu->lock, proc_flags);
-> -	put_cpu_var(memory_failure_cpu);
-> +	__memory_failure_queue(pfn, trapno, flags, false);
->  }
->  EXPORT_SYMBOL_GPL(memory_failure_queue);
->  
-> +void soft_memory_failure_queue(unsigned long pfn, int trapno, int flags)
-> +{
-> +	__memory_failure_queue(pfn, trapno, flags, true);
-
-... which can save us this "true" thing there and maybe a bunch of code
-churn around here too.
-
-> +}
-> +EXPORT_SYMBOL_GPL(soft_memory_failure_queue);
-> +
->  static void memory_failure_work_func(struct work_struct *work)
->  {
->  	struct memory_failure_cpu *mf_cpu;
-> @@ -1286,7 +1300,10 @@ static void memory_failure_work_func(struct work_struct *work)
->  		spin_unlock_irqrestore(&mf_cpu->lock, proc_flags);
->  		if (!gotten)
->  			break;
-> -		memory_failure(entry.pfn, entry.trapno, entry.flags);
-> +		if (entry.soft_offline)
-> +			soft_offline_page(pfn_to_page(entry.pfn), entry.flags);
-> +		else
-> +			memory_failure(entry.pfn, entry.trapno, entry.flags);
->  	}
->  }
->  
-> 
-> 
-
--- 
-Regards/Gruss,
-    Boris.
-
-Sent from a fat crate under my desk. Formatting is fine.
---
