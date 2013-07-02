@@ -1,231 +1,193 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: [PATCH 1/3] ACPI / dock: Rework the handling of notifications
-Date: Tue, 02 Jul 2013 03:28:47 +0200
-Message-ID: <2422136.u47czoUUlJ@vostro.rjw.lan>
-References: <1640211.P0jyS5muX2@vostro.rjw.lan> <1771749.8rDXNf8giR@vostro.rjw.lan> <CAErSpo6965m7aWMkuuTrgkCRW6nmSbb14abAVXMFAYGrYZQjyQ@mail.gmail.com>
+From: "Zheng, Lv" <lv.zheng@intel.com>
+Subject: RE: [PATCH v3 1/3] acpi: Call acpi_os_prepare_sleep hook in reduced
+ hardware sleep path
+Date: Tue, 2 Jul 2013 06:19:22 +0000
+Message-ID: <1AE640813FDE7649BE1B193DEA596E880241B363@SHSMSX101.ccr.corp.intel.com>
+References: <1372255575-29567-1-git-send-email-benjamin.guthro@citrix.com>
+ <1372255575-29567-2-git-send-email-benjamin.guthro@citrix.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from hydra.sisk.pl ([212.160.235.94]:56544 "EHLO hydra.sisk.pl"
+Received: from mga11.intel.com ([192.55.52.93]:50587 "EHLO mga11.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755304Ab3GBBTO (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 1 Jul 2013 21:19:14 -0400
-In-Reply-To: <CAErSpo6965m7aWMkuuTrgkCRW6nmSbb14abAVXMFAYGrYZQjyQ@mail.gmail.com>
+	id S932116Ab3GBGT0 convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 2 Jul 2013 02:19:26 -0400
+In-Reply-To: <1372255575-29567-2-git-send-email-benjamin.guthro@citrix.com>
+Content-Language: en-US
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Bjorn Helgaas <bhelgaas@google.com>
-Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>, Jiang Liu <liuj97@gmail.com>, Yinghai Lu <yinghai@kernel.org>, "Alexander E. Patrakov" <patrakov@gmail.com>
+To: Ben Guthro <benjamin.guthro@citrix.com>, Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>, Jan Beulich <jbeulich@suse.com>, "Rafaell J . Wysocki" <rjw@sisk.pl>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "xen-devel@lists.xen.org" <xen-devel@lists.xen.org>
+Cc: "Moore, Robert" <robert.moore@intel.com>
 
-On Monday, July 01, 2013 02:21:45 PM Bjorn Helgaas wrote:
-> On Fri, Jun 28, 2013 at 4:53 PM, Rafael J. Wysocki <rjw@sisk.pl> wrote:
-> > From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
-> >
-> > The ACPI dock driver uses register_acpi_bus_notifier() which
-> > installs a notifier triggered globally for all system notifications.
-> > That first of all is inefficient, because the dock driver is only
-> > interested in notifications associated with the devices it handles,
-> > but it has to handle all system notifies for all devices.  Moreover,
-> > it does that even if no docking stations are present in the system
-> > (CONFIG_ACPI_DOCK set is sufficient for that to happen).  Besides,
-> > that is inconvenient, because it requires the driver to do extra work
-> > for each notification to find the target dock station object.
-> >
-> > For these reasons, rework the dock driver to install a notify
-> > handler individually for each dock station in the system using
-> > acpi_install_notify_handler().  This allows the dock station
-> > object to be passed directly to the notify handler and makes it
-> > possible to simplify the dock driver quite a bit.  It also
-> > reduces the overhead related to the handling of all system
-> > notifies when CONFIG_ACPI_DOCK is set.
+Thanks for your efforts!
+
+I wonder if it is possible to remove the argument - "u8 extended" and convert "pm1a_control, pm1b_control" into some u8 values that are equivalent to "acpi_gbl_sleep_type_a, acpi_gbl_sleep_type_b" in the legacy sleep path.
+It can also simplify Xen codes.
+
+As in ACPI specification, the bit definitions between the legacy sleep registers and the extended sleep registers are equivalent.
+
+The legacy sleep register definition:
+Table 4-16 PM1 Status Registers Fixed Hardware Feature Status Bits - WAK_STS(bit 15)
+Table 4-18 PM1 Control Registers Fixed Hardware Feature Control Bits - SLP_TYPx (bit 10-12), SLP_EN (bit 13)
+
+The extended sleep register definition:
+Table 4-24 Sleep Control Register - SLP_TYPx (3 bits from offset 2), SLP_EN (1 bit from offset 5), here 10-8 = 2, and 13-8 = 5, this definition is equivalent to Table 4-18.
+Table 4-25 Sleep Status Register - WAK_STS (1 bit 7), 15-8 = 7, this definition is equivalent to Table 4-16.
+
+Thanks and best regards
+-Lv
+
+> -----Original Message-----
+> From: linux-acpi-owner@vger.kernel.org
+> [mailto:linux-acpi-owner@vger.kernel.org] On Behalf Of Ben Guthro
+> Sent: Wednesday, June 26, 2013 10:06 PM
+> To: Konrad Rzeszutek Wilk; Jan Beulich; Rafaell J . Wysocki;
+> linux-kernel@vger.kernel.org; linux-acpi@vger.kernel.org;
+> xen-devel@lists.xen.org
+> Cc: Ben Guthro; Moore, Robert
+> Subject: [PATCH v3 1/3] acpi: Call acpi_os_prepare_sleep hook in reduced
+> hardware sleep path
 > 
-> I fully support what you're doing, even though I haven't read it in
-> enough detail to actually review it.  I'm pretty sure that whatever
-> you do, you won't make things worse :)
-
-Well, fair enough. :-)
-
-> It sounds like you are keeping the approach of "look for certain AML
-> features to identify a dock, and install notify handlers when you find
-> one."  I think acpiphp uses a similar approach, and I'm not sure it's
-> a good one.  The spec is not explicit about how the AML should be
-> organized, and AML writers are very creative.  I think acpiphp suffers
-> because it only works with certain arrangements of _ADR, _EJ0, _RMV,
-> etc., and I think that has led to a brittle design and possibly more
-> separation between dock and acpiphp than is necessary.
-
-I generally agree that this is not a robust approach, but for now I'm avoiding
-making changes that may just go too far.
-
-> I think it would be better if we *always* had a more generic notify
-> handler installed and figured out where to route the notification
-> based on its type and what services are configured in.  The ultimate
-> handler might do different things based on what methods are present,
-> of course.
+> In version 3.4 acpi_os_prepare_sleep() got introduced in parallel with
+> reduced hardware sleep support, and the two changes didn't get
+> synchronized: The new code doesn't call the hook function (if so
+> requested). Fix this, requiring a parameter to be added to the
+> hook function to distinguish "extended" from "legacy" sleep.
 > 
-> I don't know if this rambling makes sense for docks (or even for
-> acpiphp), so if it doesn't, feel free to just ignore it :)
-
-Well, ideally, it would be great if we could handle all of the bus check,
-device check and eject notifications through something like
-acpi_hotplug_notify_cb() and dispatch more specific handling from
-there depending on what's represented by the target handle.  That's why I
-introduced hotplug profiles.
-
-That said it's a long way to that point from where we are now. :-)
-
-Thanks,
-Rafael
-
-
-> > Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
-> > ---
-> >  drivers/acpi/dock.c |   69 ++++++++++++++++++----------------------------------
-> >  1 file changed, 25 insertions(+), 44 deletions(-)
-> >
-> > Index: linux-pm/drivers/acpi/dock.c
-> > ===================================================================
-> > --- linux-pm.orig/drivers/acpi/dock.c
-> > +++ linux-pm/drivers/acpi/dock.c
-> > @@ -718,18 +718,17 @@ static int handle_eject_request(struct d
-> >
-> >  /**
-> >   * dock_notify - act upon an acpi dock notification
-> > - * @handle: the dock station handle
-> > + * @ds: dock station
-> >   * @event: the acpi event
-> > - * @data: our driver data struct
-> >   *
-> >   * If we are notified to dock, then check to see if the dock is
-> >   * present and then dock.  Notify all drivers of the dock event,
-> >   * and then hotplug and devices that may need hotplugging.
-> >   */
-> > -static void dock_notify(acpi_handle handle, u32 event, void *data)
-> > +static void dock_notify(struct dock_station *ds, u32 event)
-> >  {
-> > -       struct dock_station *ds = data;
-> > -       struct acpi_device *tmp;
-> > +       acpi_handle handle = ds->handle;
-> > +       struct acpi_device *ad;
-> >         int surprise_removal = 0;
-> >
-> >         /*
-> > @@ -752,8 +751,7 @@ static void dock_notify(acpi_handle hand
-> >         switch (event) {
-> >         case ACPI_NOTIFY_BUS_CHECK:
-> >         case ACPI_NOTIFY_DEVICE_CHECK:
-> > -               if (!dock_in_progress(ds) && acpi_bus_get_device(ds->handle,
-> > -                  &tmp)) {
-> > +               if (!dock_in_progress(ds) && acpi_bus_get_device(handle, &ad)) {
-> >                         begin_dock(ds);
-> >                         dock(ds);
-> >                         if (!dock_present(ds)) {
-> > @@ -790,9 +788,8 @@ static void dock_notify(acpi_handle hand
-> >  }
-> >
-> >  struct dock_data {
-> > -       acpi_handle handle;
-> > -       unsigned long event;
-> >         struct dock_station *ds;
-> > +       u32 event;
-> >  };
-> >
-> >  static void acpi_dock_deferred_cb(void *context)
-> > @@ -800,52 +797,31 @@ static void acpi_dock_deferred_cb(void *
-> >         struct dock_data *data = context;
-> >
-> >         acpi_scan_lock_acquire();
-> > -       dock_notify(data->handle, data->event, data->ds);
-> > +       dock_notify(data->ds, data->event);
-> >         acpi_scan_lock_release();
-> >         kfree(data);
-> >  }
-> >
-> > -static int acpi_dock_notifier_call(struct notifier_block *this,
-> > -       unsigned long event, void *data)
-> > +static void dock_notify_handler(acpi_handle handle, u32 event, void *data)
-> >  {
-> > -       struct dock_station *dock_station;
-> > -       acpi_handle handle = data;
-> > +       struct dock_data *dd;
-> >
-> >         if (event != ACPI_NOTIFY_BUS_CHECK && event != ACPI_NOTIFY_DEVICE_CHECK
-> >            && event != ACPI_NOTIFY_EJECT_REQUEST)
-> > -               return 0;
-> > -
-> > -       acpi_scan_lock_acquire();
-> > +               return;
-> >
-> > -       list_for_each_entry(dock_station, &dock_stations, sibling) {
-> > -               if (dock_station->handle == handle) {
-> > -                       struct dock_data *dd;
-> > -                       acpi_status status;
-> > -
-> > -                       dd = kmalloc(sizeof(*dd), GFP_KERNEL);
-> > -                       if (!dd)
-> > -                               break;
-> > -
-> > -                       dd->handle = handle;
-> > -                       dd->event = event;
-> > -                       dd->ds = dock_station;
-> > -                       status = acpi_os_hotplug_execute(acpi_dock_deferred_cb,
-> > -                                                        dd);
-> > -                       if (ACPI_FAILURE(status))
-> > -                               kfree(dd);
-> > -
-> > -                       break;
-> > -               }
-> > +       dd = kmalloc(sizeof(*dd), GFP_KERNEL);
-> > +       if (dd) {
-> > +               acpi_status status;
-> > +
-> > +               dd->ds = data;
-> > +               dd->event = event;
-> > +               status = acpi_os_hotplug_execute(acpi_dock_deferred_cb, dd);
-> > +               if (ACPI_FAILURE(status))
-> > +                       kfree(dd);
-> >         }
-> > -
-> > -       acpi_scan_lock_release();
-> > -       return 0;
-> >  }
-> >
-> > -static struct notifier_block dock_acpi_notifier = {
-> > -       .notifier_call = acpi_dock_notifier_call,
-> > -};
-> > -
-> >  /**
-> >   * find_dock_devices - find devices on the dock station
-> >   * @handle: the handle of the device we are examining
-> > @@ -979,6 +955,7 @@ static int __init dock_add(acpi_handle h
-> >         int ret, id;
-> >         struct dock_station ds, *dock_station;
-> >         struct platform_device *dd;
-> > +       acpi_status status;
-> >
-> >         id = dock_station_count;
-> >         memset(&ds, 0, sizeof(ds));
-> > @@ -1021,6 +998,11 @@ static int __init dock_add(acpi_handle h
-> >         if (ret)
-> >                 goto err_rmgroup;
-> >
-> > +       status = acpi_install_notify_handler(handle, ACPI_SYSTEM_NOTIFY,
-> > +                                            dock_notify_handler, dock_station);
-> > +       if (ACPI_FAILURE(status))
-> > +               goto err_rmgroup;
-> > +
-> >         dock_station_count++;
-> >         list_add(&dock_station->sibling, &dock_stations);
-> >         return 0;
-> > @@ -1065,7 +1047,6 @@ int __init acpi_dock_init(void)
-> >                 return 0;
-> >         }
-> >
-> > -       register_acpi_bus_notifier(&dock_acpi_notifier);
-> >         pr_info(PREFIX "%s: %d docks/bays found\n",
-> >                 ACPI_DOCK_DRIVER_DESCRIPTION, dock_station_count);
-> >         return 0;
-> >
--- 
-I speak only for myself.
-Rafael J. Wysocki, Intel Open Source Technology Center.
+> Signed-off-by: Ben Guthro <benjamin.guthro@citrix.com>
+> Signed-off-by: Jan Beulich <jbeulich@suse.com>
+> Cc: Bob Moore <robert.moore@intel.com>
+> Cc: Rafaell J. Wysocki <rjw@sisk.pl>
+> Cc: linux-acpi@vger.kernel.org
+> ---
+>  drivers/acpi/acpica/hwesleep.c |    8 ++++++++
+>  drivers/acpi/acpica/hwsleep.c  |    2 +-
+>  drivers/acpi/osl.c             |   16 ++++++++--------
+>  include/linux/acpi.h           |   10 +++++-----
+>  4 files changed, 22 insertions(+), 14 deletions(-)
+> 
+> diff --git a/drivers/acpi/acpica/hwesleep.c b/drivers/acpi/acpica/hwesleep.c
+> index 5e5f762..6834dd7 100644
+> --- a/drivers/acpi/acpica/hwesleep.c
+> +++ b/drivers/acpi/acpica/hwesleep.c
+> @@ -43,6 +43,7 @@
+>   */
+> 
+>  #include <acpi/acpi.h>
+> +#include <linux/acpi.h>
+>  #include "accommon.h"
+> 
+>  #define _COMPONENT          ACPI_HARDWARE
+> @@ -128,6 +129,13 @@ acpi_status acpi_hw_extended_sleep(u8
+> sleep_state)
+> 
+>  	ACPI_FLUSH_CPU_CACHE();
+> 
+> +	status = acpi_os_prepare_sleep(sleep_state, acpi_gbl_sleep_type_a,
+> +				       acpi_gbl_sleep_type_b, true);
+> +	if (ACPI_SKIP(status))
+> +		return_ACPI_STATUS(AE_OK);
+> +	if (ACPI_FAILURE(status))
+> +		return_ACPI_STATUS(status);
+> +
+>  	/*
+>  	 * Set the SLP_TYP and SLP_EN bits.
+>  	 *
+> diff --git a/drivers/acpi/acpica/hwsleep.c b/drivers/acpi/acpica/hwsleep.c
+> index e3828cc..a93c299 100644
+> --- a/drivers/acpi/acpica/hwsleep.c
+> +++ b/drivers/acpi/acpica/hwsleep.c
+> @@ -153,7 +153,7 @@ acpi_status acpi_hw_legacy_sleep(u8 sleep_state)
+>  	ACPI_FLUSH_CPU_CACHE();
+> 
+>  	status = acpi_os_prepare_sleep(sleep_state, pm1a_control,
+> -				       pm1b_control);
+> +				       pm1b_control, false);
+>  	if (ACPI_SKIP(status))
+>  		return_ACPI_STATUS(AE_OK);
+>  	if (ACPI_FAILURE(status))
+> diff --git a/drivers/acpi/osl.c b/drivers/acpi/osl.c
+> index e721863..3fc2801 100644
+> --- a/drivers/acpi/osl.c
+> +++ b/drivers/acpi/osl.c
+> @@ -77,8 +77,8 @@ EXPORT_SYMBOL(acpi_in_debugger);
+>  extern char line_buf[80];
+>  #endif				/*ENABLE_DEBUGGER */
+> 
+> -static int (*__acpi_os_prepare_sleep)(u8 sleep_state, u32 pm1a_ctrl,
+> -				      u32 pm1b_ctrl);
+> +static int (*__acpi_os_prepare_sleep)(u8 sleep_state, u32 val_a, u32 val_b,
+> +				      u8 extended);
+> 
+>  static acpi_osd_handler acpi_irq_handler;
+>  static void *acpi_irq_context;
+> @@ -1757,13 +1757,13 @@ acpi_status acpi_os_terminate(void)
+>  	return AE_OK;
+>  }
+> 
+> -acpi_status acpi_os_prepare_sleep(u8 sleep_state, u32 pm1a_control,
+> -				  u32 pm1b_control)
+> +acpi_status acpi_os_prepare_sleep(u8 sleep_state, u32 val_a, u32 val_b,
+> +				  u8 extended)
+>  {
+>  	int rc = 0;
+>  	if (__acpi_os_prepare_sleep)
+> -		rc = __acpi_os_prepare_sleep(sleep_state,
+> -					     pm1a_control, pm1b_control);
+> +		rc = __acpi_os_prepare_sleep(sleep_state, val_a, val_b,
+> +					     extended);
+>  	if (rc < 0)
+>  		return AE_ERROR;
+>  	else if (rc > 0)
+> @@ -1772,8 +1772,8 @@ acpi_status acpi_os_prepare_sleep(u8 sleep_state,
+> u32 pm1a_control,
+>  	return AE_OK;
+>  }
+> 
+> -void acpi_os_set_prepare_sleep(int (*func)(u8 sleep_state,
+> -			       u32 pm1a_ctrl, u32 pm1b_ctrl))
+> +void acpi_os_set_prepare_sleep(int (*func)(u8 sleep_state, u32 val_a,
+> +					   u32 val_b, u8 extended))
+>  {
+>  	__acpi_os_prepare_sleep = func;
+>  }
+> diff --git a/include/linux/acpi.h b/include/linux/acpi.h
+> index 17b5b59..de99022 100644
+> --- a/include/linux/acpi.h
+> +++ b/include/linux/acpi.h
+> @@ -477,11 +477,11 @@ static inline bool acpi_driver_match_device(struct
+> device *dev,
+>  #endif	/* !CONFIG_ACPI */
+> 
+>  #ifdef CONFIG_ACPI
+> -void acpi_os_set_prepare_sleep(int (*func)(u8 sleep_state,
+> -			       u32 pm1a_ctrl,  u32 pm1b_ctrl));
+> +void acpi_os_set_prepare_sleep(int (*func)(u8 sleep_state, u32 val_a,
+> +					   u32 val_b, u8 extended));
+> 
+> -acpi_status acpi_os_prepare_sleep(u8 sleep_state,
+> -				  u32 pm1a_control, u32 pm1b_control);
+> +acpi_status acpi_os_prepare_sleep(u8 sleep_state, u32 val_a, u32 val_b,
+> +				  u8 extended);
+>  #ifdef CONFIG_X86
+>  void arch_reserve_mem_area(acpi_physical_address addr, size_t size);
+>  #else
+> @@ -491,7 +491,7 @@ static inline void
+> arch_reserve_mem_area(acpi_physical_address addr,
+>  }
+>  #endif /* CONFIG_X86 */
+>  #else
+> -#define acpi_os_set_prepare_sleep(func, pm1a_ctrl, pm1b_ctrl) do { } while
+> (0)
+> +#define acpi_os_set_prepare_sleep(func, val_a, val_b, ext) do { } while (0)
+>  #endif
+> 
+>  #if defined(CONFIG_ACPI) && defined(CONFIG_PM_RUNTIME)
+> --
+> 1.7.9.5
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
