@@ -1,96 +1,55 @@
-From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [PATCH v2 6/8] PCI: acpiphp: workaround for Thunderbolt on Acer Aspire S5
-Date: Wed, 03 Jul 2013 23:58:48 +0200
-Message-ID: <2379111.jZKlkkBZzV@vostro.rjw.lan>
-References: <1372860295-8306-1-git-send-email-mika.westerberg@linux.intel.com> <1372860295-8306-7-git-send-email-mika.westerberg@linux.intel.com> <CAErSpo5QQym0b828gq9sAjvh0SdbNhXo0mo8_dU1_52dTVO+GA@mail.gmail.com>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: [PATCH 4/4] ACPI / dock: Drop unnecessary local variable from dock_add()
+Date: Thu, 04 Jul 2013 01:28:08 +0200
+Message-ID: <1947347.R35Ynr5mt7@vostro.rjw.lan>
+References: <1640211.P0jyS5muX2@vostro.rjw.lan> <1515394.L46AJCfCTt@vostro.rjw.lan> <2759309.GsYqNLU1ac@vostro.rjw.lan>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7Bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from v094114.home.net.pl ([79.96.170.134]:61162 "HELO
-	v094114.home.net.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S932221Ab3GCVtK (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 3 Jul 2013 17:49:10 -0400
-In-Reply-To: <CAErSpo5QQym0b828gq9sAjvh0SdbNhXo0mo8_dU1_52dTVO+GA@mail.gmail.com>
+Received: from hydra.sisk.pl ([212.160.235.94]:57726 "EHLO hydra.sisk.pl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754891Ab3GCXSg (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 3 Jul 2013 19:18:36 -0400
+In-Reply-To: <2759309.GsYqNLU1ac@vostro.rjw.lan>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Bjorn Helgaas <bhelgaas@google.com>
-Cc: Mika Westerberg <mika.westerberg@linux.intel.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Jesse Barnes <jbarnes@virtuousgeek.org>, Yinghai Lu <yinghai@kernel.org>, "Ronciak, John" <john.ronciak@intel.com>, "Penner, Miles J" <miles.j.penner@intel.com>, Bruce Allan <bruce.w.allan@intel.com>, Heikki Krogerus <heikki.krogerus@linux.intel.com>, "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>, "x86@kernel.org" <x86@kernel.org>
+To: ACPI Devel Maling List <linux-acpi@vger.kernel.org>
+Cc: LKML <linux-kernel@vger.kernel.org>, Bjorn Helgaas <bhelgaas@google.com>, Jiang Liu <liuj97@gmail.com>, Yinghai Lu <yinghai@kernel.org>, "Alexander E. Patrakov" <patrakov@gmail.com>
 
-On Wednesday, July 03, 2013 03:45:50 PM Bjorn Helgaas wrote:
-> On Wed, Jul 3, 2013 at 8:04 AM, Mika Westerberg
-> <mika.westerberg@linux.intel.com> wrote:
-> > From: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
-> >
-> > Correct ACPI PCI hotplug imeplementation should have _RMV method in a
-> > PCI slot (device under pci bridge). In Acer Aspire S5 case we have it
-> > deeper in hierarchy:
-> >
-> > Device (RP05)
-> > {
-> >    // ...
-> >    Device (HRUP)
-> >    {
-> >        // ...
-> >        Device (HRDN)
-> >        {
-> >            // ...
-> >            Device (EPUP)
-> >            {
-> >                // ...
-> >                Method (_RMV, 0, NotSerialized)  // _RMV: Removal Status
-> >                {
-> >                    Return (One)
-> >                }
-> >            }
-> >        }
-> >    }
-> > }
-> >
-> > Signed-off-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
-> > Signed-off-by: Mika Westerberg <mika.westerberg@linux.intel.com>
-> > ---
-> >  drivers/pci/hotplug/acpi_pcihp.c | 13 +++++++++++++
-> >  1 file changed, 13 insertions(+)
-> >
-> > diff --git a/drivers/pci/hotplug/acpi_pcihp.c b/drivers/pci/hotplug/acpi_pcihp.c
-> > index 2a47e82..d92ebfb 100644
-> > --- a/drivers/pci/hotplug/acpi_pcihp.c
-> > +++ b/drivers/pci/hotplug/acpi_pcihp.c
-> > @@ -422,6 +422,19 @@ static int pcihp_is_ejectable(acpi_handle handle)
-> >         status = acpi_evaluate_integer(handle, "_RMV", NULL, &removable);
-> >         if (ACPI_SUCCESS(status) && removable)
-> >                 return 1;
-> > +
-> > +       /*
-> > +        * Workaround for Thunderbolt implementation on Acer Aspire S5.
-> > +        *
-> > +        * Correct ACPI PCI hotplug imeplementation has _RMV method in a PCI
-> > +        * slot (device under pci bridge). In Acer Aspire S5 case we have it
-> > +        * deeper in hierarchy.
-> 
-> s/imeplementation/implementation/
-> 
-> If you're casting aspersions on Acer for having an incorrect ACPI
-> implementation, you should probably provide a spec reference.  I think
-> it's likely that the Acer implementation is actually correct per the
-> spec, but Linux just isn't smart enough to handle it.
+From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 
-Agreed.
+The local variable id in dock_add() is not necessary, so drop it.
 
-> > +        */
-> > +       status = acpi_evaluate_integer(handle, "HRDN.EPUP._RMV", NULL,
-> > +                       &removable);
-> > +       if (ACPI_SUCCESS(status) && removable)
-> > +               return 1;
-> > +
-> >         return 0;
-> >  }
-> >
-> > --
-> > 1.8.3.2
-> >
+While we're at it, use an initializer to clear the local variable ds
+and drop the memset() used for this purpose.
 
--- 
-I speak only for myself.
-Rafael J. Wysocki, Intel Open Source Technology Center.
+Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+---
+ drivers/acpi/dock.c |    9 ++++-----
+ 1 file changed, 4 insertions(+), 5 deletions(-)
+
+Index: linux-pm/drivers/acpi/dock.c
+===================================================================
+--- linux-pm.orig/drivers/acpi/dock.c
++++ linux-pm/drivers/acpi/dock.c
+@@ -836,14 +836,13 @@ static struct attribute_group dock_attri
+  */
+ static int __init dock_add(acpi_handle handle)
+ {
+-	int ret, id;
+-	struct dock_station ds, *dock_station;
++	struct dock_station *dock_station, ds = { 0 };
+ 	struct platform_device *dd;
+ 	acpi_status status;
++	int ret;
+ 
+-	id = dock_station_count;
+-	memset(&ds, 0, sizeof(ds));
+-	dd = platform_device_register_data(NULL, "dock", id, &ds, sizeof(ds));
++	dd = platform_device_register_data(NULL, "dock", dock_station_count,
++					   &ds, sizeof(ds));
+ 	if (IS_ERR(dd))
+ 		return PTR_ERR(dd);
+ 
+
