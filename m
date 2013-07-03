@@ -1,49 +1,37 @@
 From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: [PATCH 2/4] ACPI / dock: Do not check CONFIG_ACPI_DOCK_MODULE
-Date: Thu, 04 Jul 2013 01:26:11 +0200
-Message-ID: <3875539.nz3LziUdX0@vostro.rjw.lan>
-References: <1640211.P0jyS5muX2@vostro.rjw.lan> <1515394.L46AJCfCTt@vostro.rjw.lan> <2759309.GsYqNLU1ac@vostro.rjw.lan>
+Subject: [PATCH 0/4] ACPI / dock: One fix and more cleanups
+Date: Thu, 04 Jul 2013 01:23:51 +0200
+Message-ID: <2759309.GsYqNLU1ac@vostro.rjw.lan>
+References: <1640211.P0jyS5muX2@vostro.rjw.lan> <1515394.L46AJCfCTt@vostro.rjw.lan>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7Bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <2759309.GsYqNLU1ac@vostro.rjw.lan>
+In-Reply-To: <1515394.L46AJCfCTt@vostro.rjw.lan>
 Sender: linux-kernel-owner@vger.kernel.org
 To: ACPI Devel Maling List <linux-acpi@vger.kernel.org>
 Cc: LKML <linux-kernel@vger.kernel.org>, Bjorn Helgaas <bhelgaas@google.com>, Jiang Liu <liuj97@gmail.com>, Yinghai Lu <yinghai@kernel.org>, "Alexander E. Patrakov" <patrakov@gmail.com>
 List-Id: linux-acpi@vger.kernel.org
 
-From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+Hi,
 
-Since commit 94add0f (ACPI / dock: Initialize ACPI dock subsystem
-upfront) the ACPI dock driver cannot be a module, so
-CONFIG_ACPI_DOCK_MODULE is never set.  For this reason, simplify
-the preprocessor conditional in include/acpi/acpi_drivers.h
-referring to that symbol unnecessarily.
+As I said before, the ACPI dock driver seems to be in an endless need for
+cleanups and fixes.  This time I found one oddity (patch [1/4]) a couple of
+nitpicks ([2/4] and [4/4]) and a notifier chain that can be dropped (unless
+I'm overlooking a reason why those things have to be done atomically - [3/4]).
 
-Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
----
- include/acpi/acpi_drivers.h |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+[1/4] Actually define acpi_dock_init() as void (-stable material).
+[2/4] Do not check if ACPI dock is a module (it can't be).
+[3/4] Drop ACPI dock notifier chain (and modify acpiphp to use something
+      different for fixups).
+[4/4] Drop unnecessary local variable from dock_add().
 
-Index: linux-pm/include/acpi/acpi_drivers.h
-===================================================================
---- linux-pm.orig/include/acpi/acpi_drivers.h
-+++ linux-pm/include/acpi/acpi_drivers.h
-@@ -117,7 +117,7 @@ struct acpi_dock_ops {
- 	acpi_notify_handler uevent;
- };
- 
--#if defined(CONFIG_ACPI_DOCK) || defined(CONFIG_ACPI_DOCK_MODULE)
-+#ifdef CONFIG_ACPI_DOCK
- extern int is_dock_device(acpi_handle handle);
- extern int register_dock_notifier(struct notifier_block *nb);
- extern void unregister_dock_notifier(struct notifier_block *nb);
-@@ -150,6 +150,6 @@ static inline int register_hotplug_dock_
- static inline void unregister_hotplug_dock_device(acpi_handle handle)
- {
- }
--#endif
-+#endif /* CONFIG_ACPI_DOCK */
- 
- #endif /*__ACPI_DRIVERS_H__*/
+All on top of the bleeding-edge branch of the linux-pm.git tree.
+
+Thanks,
+Rafael
+
+
+-- 
+I speak only for myself.
+Rafael J. Wysocki, Intel Open Source Technology Center.
