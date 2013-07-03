@@ -1,192 +1,91 @@
-From: Frederick van der Wyck <fvanderwyck@gmail.com>
-Subject: [PATCH] platform samsung-q10: use ACPI instead of direct EC calls
-Date: Wed, 3 Jul 2013 22:27:37 +0100
-Message-ID: <20130703212737.GC5579@lat.lan>
+From: Bjorn Helgaas <bhelgaas@google.com>
+Subject: Re: [PATCH v2 6/8] PCI: acpiphp: workaround for Thunderbolt on Acer
+ Aspire S5
+Date: Wed, 3 Jul 2013 15:45:50 -0600
+Message-ID: <CAErSpo5QQym0b828gq9sAjvh0SdbNhXo0mo8_dU1_52dTVO+GA@mail.gmail.com>
+References: <1372860295-8306-1-git-send-email-mika.westerberg@linux.intel.com> <1372860295-8306-7-git-send-email-mika.westerberg@linux.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-ee0-f48.google.com ([74.125.83.48]:41975 "EHLO
-	mail-ee0-f48.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932221Ab3GCVb2 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 3 Jul 2013 17:31:28 -0400
-Content-Disposition: inline
+Received: from mail-ob0-f169.google.com ([209.85.214.169]:58407 "EHLO
+	mail-ob0-f169.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752947Ab3GCVqL (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 3 Jul 2013 17:46:11 -0400
+Received: by mail-ob0-f169.google.com with SMTP id up14so786700obb.14
+        for <linux-acpi@vger.kernel.org>; Wed, 03 Jul 2013 14:46:10 -0700 (PDT)
+In-Reply-To: <1372860295-8306-7-git-send-email-mika.westerberg@linux.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: mjg59@srcf.ucam.org
-Cc: platform-driver-x86@vger.kernel.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
+To: Mika Westerberg <mika.westerberg@linux.intel.com>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Jesse Barnes <jbarnes@virtuousgeek.org>, Yinghai Lu <yinghai@kernel.org>, "Ronciak, John" <john.ronciak@intel.com>, "Penner, Miles J" <miles.j.penner@intel.com>, Bruce Allan <bruce.w.allan@intel.com>, Heikki Krogerus <heikki.krogerus@linux.intel.com>, "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>, "x86@kernel.org" <x86@kernel.org>
 
-[ re-sending CC linux-acpi@vger.ketnel.org ]
+On Wed, Jul 3, 2013 at 8:04 AM, Mika Westerberg
+<mika.westerberg@linux.intel.com> wrote:
+> From: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
+>
+> Correct ACPI PCI hotplug imeplementation should have _RMV method in a
+> PCI slot (device under pci bridge). In Acer Aspire S5 case we have it
+> deeper in hierarchy:
+>
+> Device (RP05)
+> {
+>    // ...
+>    Device (HRUP)
+>    {
+>        // ...
+>        Device (HRDN)
+>        {
+>            // ...
+>            Device (EPUP)
+>            {
+>                // ...
+>                Method (_RMV, 0, NotSerialized)  // _RMV: Removal Status
+>                {
+>                    Return (One)
+>                }
+>            }
+>        }
+>    }
+> }
+>
+> Signed-off-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
+> Signed-off-by: Mika Westerberg <mika.westerberg@linux.intel.com>
+> ---
+>  drivers/pci/hotplug/acpi_pcihp.c | 13 +++++++++++++
+>  1 file changed, 13 insertions(+)
+>
+> diff --git a/drivers/pci/hotplug/acpi_pcihp.c b/drivers/pci/hotplug/acpi_pcihp.c
+> index 2a47e82..d92ebfb 100644
+> --- a/drivers/pci/hotplug/acpi_pcihp.c
+> +++ b/drivers/pci/hotplug/acpi_pcihp.c
+> @@ -422,6 +422,19 @@ static int pcihp_is_ejectable(acpi_handle handle)
+>         status = acpi_evaluate_integer(handle, "_RMV", NULL, &removable);
+>         if (ACPI_SUCCESS(status) && removable)
+>                 return 1;
+> +
+> +       /*
+> +        * Workaround for Thunderbolt implementation on Acer Aspire S5.
+> +        *
+> +        * Correct ACPI PCI hotplug imeplementation has _RMV method in a PCI
+> +        * slot (device under pci bridge). In Acer Aspire S5 case we have it
+> +        * deeper in hierarchy.
 
-This patch changes the Samsung Q10 backlight driver to use ACPI methods 
-(the same ones as triggered by the brightness up/down function keys) 
-instead of direct EC calls. The advantage is that the brightness setting 
-is not lost on shutdown.
+s/imeplementation/implementation/
 
-Signed-off-by: Frederick van der Wyck <fvanderwyck@gmail.com>
----
- drivers/platform/x86/Kconfig       |    2 +-
- drivers/platform/x86/samsung-q10.c |   77 ++++++++++++++++--------------------
- 2 files changed, 35 insertions(+), 44 deletions(-)
+If you're casting aspersions on Acer for having an incorrect ACPI
+implementation, you should probably provide a spec reference.  I think
+it's likely that the Acer implementation is actually correct per the
+spec, but Linux just isn't smart enough to handle it.
 
-diff --git a/drivers/platform/x86/Kconfig b/drivers/platform/x86/Kconfig
-index 8577261..52aed6d 100644
---- a/drivers/platform/x86/Kconfig
-+++ b/drivers/platform/x86/Kconfig
-@@ -762,7 +762,7 @@ config INTEL_OAKTRAIL
- 
- config SAMSUNG_Q10
- 	tristate "Samsung Q10 Extras"
--	depends on SERIO_I8042
-+	depends on ACPI
- 	select BACKLIGHT_CLASS_DEVICE
- 	---help---
- 	  This driver provides support for backlight control on Samsung Q10
-diff --git a/drivers/platform/x86/samsung-q10.c b/drivers/platform/x86/samsung-q10.c
-index 1a90b62..e7caaa3 100644
---- a/drivers/platform/x86/samsung-q10.c
-+++ b/drivers/platform/x86/samsung-q10.c
-@@ -14,16 +14,14 @@
- #include <linux/init.h>
- #include <linux/platform_device.h>
- #include <linux/backlight.h>
--#include <linux/i8042.h>
- #include <linux/dmi.h>
-+#include <acpi/acpi_drivers.h>
- 
--#define SAMSUNGQ10_BL_MAX_INTENSITY      255
--#define SAMSUNGQ10_BL_DEFAULT_INTENSITY  185
-+#define SAMSUNGQ10_BL_MAX_INTENSITY 7
- 
--#define SAMSUNGQ10_BL_8042_CMD           0xbe
--#define SAMSUNGQ10_BL_8042_DATA          { 0x89, 0x91 }
-+#define EC_HID "PNP0C09"
- 
--static int samsungq10_bl_brightness;
-+static acpi_handle ec_handle;
- 
- static bool force;
- module_param(force, bool, 0);
-@@ -33,21 +31,26 @@ MODULE_PARM_DESC(force,
- static int samsungq10_bl_set_intensity(struct backlight_device *bd)
- {
- 
--	int brightness = bd->props.brightness;
--	unsigned char c[3] = SAMSUNGQ10_BL_8042_DATA;
-+	acpi_status status;
-+	int i;
- 
--	c[2] = (unsigned char)brightness;
--	i8042_lock_chip();
--	i8042_command(c, (0x30 << 8) | SAMSUNGQ10_BL_8042_CMD);
--	i8042_unlock_chip();
--	samsungq10_bl_brightness = brightness;
-+	for (i = 0; i < SAMSUNGQ10_BL_MAX_INTENSITY; i++) {
-+		status = acpi_evaluate_object(ec_handle, "_Q63", NULL, NULL);
-+		if (ACPI_FAILURE(status))
-+			return -EIO;
-+	}
-+	for (i = 0; i < bd->props.brightness; i++) {
-+		status = acpi_evaluate_object(ec_handle, "_Q64", NULL, NULL);
-+		if (ACPI_FAILURE(status))
-+			return -EIO;
-+	}
- 
- 	return 0;
- }
- 
- static int samsungq10_bl_get_intensity(struct backlight_device *bd)
- {
--	return samsungq10_bl_brightness;
-+	return bd->props.brightness;
- }
- 
- static const struct backlight_ops samsungq10_bl_ops = {
-@@ -55,28 +58,6 @@ static const struct backlight_ops samsungq10_bl_ops = {
- 	.update_status	= samsungq10_bl_set_intensity,
- };
- 
--#ifdef CONFIG_PM_SLEEP
--static int samsungq10_suspend(struct device *dev)
--{
--	return 0;
--}
--
--static int samsungq10_resume(struct device *dev)
--{
--
--	struct backlight_device *bd = dev_get_drvdata(dev);
--
--	samsungq10_bl_set_intensity(bd);
--	return 0;
--}
--#else
--#define samsungq10_suspend NULL
--#define samsungq10_resume  NULL
--#endif
--
--static SIMPLE_DEV_PM_OPS(samsungq10_pm_ops,
--			  samsungq10_suspend, samsungq10_resume);
--
- static int samsungq10_probe(struct platform_device *pdev)
- {
- 
-@@ -93,9 +74,6 @@ static int samsungq10_probe(struct platform_device *pdev)
- 
- 	platform_set_drvdata(pdev, bd);
- 
--	bd->props.brightness = SAMSUNGQ10_BL_DEFAULT_INTENSITY;
--	samsungq10_bl_set_intensity(bd);
--
- 	return 0;
- }
- 
-@@ -104,9 +82,6 @@ static int samsungq10_remove(struct platform_device *pdev)
- 
- 	struct backlight_device *bd = platform_get_drvdata(pdev);
- 
--	bd->props.brightness = SAMSUNGQ10_BL_DEFAULT_INTENSITY;
--	samsungq10_bl_set_intensity(bd);
--
- 	backlight_device_unregister(bd);
- 
- 	return 0;
-@@ -116,7 +91,6 @@ static struct platform_driver samsungq10_driver = {
- 	.driver		= {
- 		.name	= KBUILD_MODNAME,
- 		.owner	= THIS_MODULE,
--		.pm	= &samsungq10_pm_ops,
- 	},
- 	.probe		= samsungq10_probe,
- 	.remove		= samsungq10_remove,
-@@ -167,11 +141,28 @@ static struct dmi_system_id __initdata samsungq10_dmi_table[] = {
- };
- MODULE_DEVICE_TABLE(dmi, samsungq10_dmi_table);
- 
-+static acpi_status __init acpi_handle_locate_callback(acpi_handle handle,
-+			u32 level, void *context, void **return_value)
-+{
-+	*(acpi_handle *)return_value = handle;
-+
-+	return AE_CTRL_TERMINATE;
-+}
-+
- static int __init samsungq10_init(void)
- {
-+
-+	acpi_status status;
-+
- 	if (!force && !dmi_check_system(samsungq10_dmi_table))
- 		return -ENODEV;
- 
-+	status = acpi_get_devices(EC_HID, acpi_handle_locate_callback,
-+				  NULL, &ec_handle);
-+
-+	if (ACPI_FAILURE(status))
-+		return -ENODEV;
-+
- 	samsungq10_device = platform_create_bundle(&samsungq10_driver,
- 						   samsungq10_probe,
- 						   NULL, 0, NULL, 0);
--- 
-1.7.3.4
-
+> +        */
+> +       status = acpi_evaluate_integer(handle, "HRDN.EPUP._RMV", NULL,
+> +                       &removable);
+> +       if (ACPI_SUCCESS(status) && removable)
+> +               return 1;
+> +
+>         return 0;
+>  }
+>
+> --
+> 1.8.3.2
+>
