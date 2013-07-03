@@ -1,8 +1,8 @@
 From: Thomas Renninger <trenn-l3A5Bk7waGM@public.gmane.org>
-Subject: [PATCH 3/3] platform thinkpad: Remove deprecated
-	hotkey_report_mode parameter
-Date: Wed,  3 Jul 2013 14:48:39 +0200
-Message-ID: <1372855719-34315-4-git-send-email-trenn@suse.de>
+Subject: [PATCH 1/3] x86 microcode: Remove old
+	MICROCODE_OLD_INTERFACE
+Date: Wed,  3 Jul 2013 14:48:37 +0200
+Message-ID: <1372855719-34315-2-git-send-email-trenn@suse.de>
 References: <1372855719-34315-1-git-send-email-trenn@suse.de>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -17,204 +17,174 @@ List-Help: <mailto:ibm-acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@publi
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/ibm-acpi-devel>,
 	<mailto:ibm-acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 Errors-To: ibm-acpi-devel-bounces-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Cc: ibm-acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, platform-driver-x86-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Henrique de Moraes Holschuh <hmh-N3TV7GIv+o9fyO9Q7EP/yw@public.gmane.org>
+Cc: ibm-acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, platform-driver-x86-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, hpa-YMNOUZJC4hwAvxtiuMwx3w@public.gmane.org, Arjan van de Ven <arjan-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-It is somewhat strange that the default value to support the depracated
-interface is set (1).
-Anyway this exists for years. The previous patch already removed the
-functionality to still export specific events through /proc. Now this param
-is useless and should vanish as well.
+SLE11 nowadays makes use of the new interface without doing any modifications
+to the kernel in this area. That means the old interface is not needed at
+least since 3.0 or longer.
 
-CC: Henrique de Moraes Holschuh <hmh-N3TV7GIv+o9fyO9Q7EP/yw@public.gmane.org>
+Time to get rid of it.
+
+
+CC: Arjan van de Ven <arjan-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
+CC: hpa-YMNOUZJC4hwAvxtiuMwx3w@public.gmane.org
 Signed-off-by: Thomas Renninger <trenn-l3A5Bk7waGM@public.gmane.org>
 ---
- Documentation/laptops/thinkpad-acpi.txt |   73 +++----------------------------
- drivers/platform/x86/thinkpad_acpi.c    |   29 ------------
- 2 files changed, 6 insertions(+), 96 deletions(-)
+ arch/x86/Kconfig                 |    4 --
+ arch/x86/kernel/microcode_core.c |  103 --------------------------------------
+ 2 files changed, 0 insertions(+), 107 deletions(-)
 
-diff --git a/Documentation/laptops/thinkpad-acpi.txt b/Documentation/laptops/thinkpad-acpi.txt
-index cf7bc6c..86c5236 100644
---- a/Documentation/laptops/thinkpad-acpi.txt
-+++ b/Documentation/laptops/thinkpad-acpi.txt
-@@ -329,20 +329,6 @@ sysfs notes:
+diff --git a/arch/x86/Kconfig b/arch/x86/Kconfig
+index fe120da..01dae97 100644
+--- a/arch/x86/Kconfig
++++ b/arch/x86/Kconfig
+@@ -1049,10 +1049,6 @@ config MICROCODE_AMD
+ 	  If you select this option, microcode patch loading support for AMD
+ 	  processors will be enabled.
  
- 		This attribute has poll()/select() support.
- 
--	hotkey_report_mode:
--		Returns the state of the procfs ACPI event report mode
--		filter for hot keys.  If it is set to 1 (the default),
--		all hot key presses are reported both through the input
--		layer and also as ACPI events through procfs (but not
--		through netlink).  If it is set to 2, hot key presses
--		are reported only through the input layer.
+-config MICROCODE_OLD_INTERFACE
+-	def_bool y
+-	depends on MICROCODE
 -
--		This attribute is read-only in kernels 2.6.23 or later,
--		and read-write on earlier kernels.
--
--		May return -EPERM (write access locked out by module
--		parameter) or -EACCES (read-only).
--
- 	wakeup_reason:
- 		Set to 1 if the system is waking up because the user
- 		requested a bay ejection.  Set to 2 if the system is
-@@ -518,24 +504,21 @@ SW_TABLET_MODE	Tablet ThinkPads HKEY events 0x5009 and 0x500A
- Non hotkey ACPI HKEY event map:
- -------------------------------
- 
--Events that are not propagated by the driver, except for legacy
--compatibility purposes when hotkey_report_mode is set to 1:
--
--0x5001		Lid closed
--0x5002		Lid opened
--0x5009		Tablet swivel: switched to tablet mode
--0x500A		Tablet swivel: switched to normal mode
--0x7000		Radio Switch may have changed state
--
- Events that are never propagated by the driver:
- 
- 0x2304		System is waking up from suspend to undock
- 0x2305		System is waking up from suspend to eject bay
- 0x2404		System is waking up from hibernation to undock
- 0x2405		System is waking up from hibernation to eject bay
-+0x5001		Lid closed
-+0x5002		Lid opened
-+0x5009		Tablet swivel: switched to tablet mode
-+0x500A		Tablet swivel: switched to normal mode
- 0x5010		Brightness level changed/control event
- 0x6000		KEYBOARD: Numlock key pressed
- 0x6005		KEYBOARD: Fn key pressed (TO BE VERIFIED)
-+0x7000		Radio Switch may have changed state
-+
- 
- Events that are propagated by the driver to userspace:
- 
-@@ -574,50 +557,6 @@ operating system is to force either an immediate suspend or hibernate
- cycle, or a system shutdown.  Obviously, something is very wrong if this
- happens.
- 
--Compatibility notes:
--
--ibm-acpi and thinkpad-acpi 0.15 (mainline kernels before 2.6.23) never
--supported the input layer, and sent events over the procfs ACPI event
--interface.
--
--To avoid sending duplicate events over the input layer and the ACPI
--event interface, thinkpad-acpi 0.16 implements a module parameter
--(hotkey_report_mode), and also a sysfs device attribute with the same
--name.
--
--Make no mistake here: userspace is expected to switch to using the input
--layer interface of thinkpad-acpi, together with the ACPI netlink event
--interface in kernels 2.6.23 and later, or with the ACPI procfs event
--interface in kernels 2.6.22 and earlier.
--
--If no hotkey_report_mode module parameter is specified (or it is set to
--zero), the driver defaults to mode 1 (see below), and on kernels 2.6.22
--and earlier, also allows one to change the hotkey_report_mode through
--sysfs.  In kernels 2.6.23 and later, where the netlink ACPI event
--interface is available, hotkey_report_mode cannot be changed through
--sysfs (it is read-only).
--
--If the hotkey_report_mode module parameter is set to 1 or 2, it cannot
--be changed later through sysfs (any writes will return -EPERM to signal
--that hotkey_report_mode was locked.  On 2.6.23 and later, where
--hotkey_report_mode cannot be changed at all, writes will return -EACCES).
--
--hotkey_report_mode set to 1 makes the driver export through the procfs
--ACPI event interface all hot key presses (which are *also* sent to the
--input layer).  This is a legacy compatibility behaviour, and it is also
--the default mode of operation for the driver.
--
--hotkey_report_mode set to 2 makes the driver filter out the hot key
--presses from the procfs ACPI event interface, so these events will only
--be sent through the input layer.  Userspace that has been updated to use
--the thinkpad-acpi input layer interface should set hotkey_report_mode to
--2.
--
--Hot key press events are never sent to the ACPI netlink event interface.
--Really up-to-date userspace under kernel 2.6.23 and later is to use the
--netlink interface and the input layer interface, and don't bother at all
--with hotkey_report_mode.
--
- 
- Brightness hotkey notes:
- 
-diff --git a/drivers/platform/x86/thinkpad_acpi.c b/drivers/platform/x86/thinkpad_acpi.c
-index e946c0d..be67e5e 100644
---- a/drivers/platform/x86/thinkpad_acpi.c
-+++ b/drivers/platform/x86/thinkpad_acpi.c
-@@ -2022,8 +2022,6 @@ static u32 hotkey_driver_mask;		/* events needed by the driver */
- static u32 hotkey_user_mask;		/* events visible to userspace */
- static u32 hotkey_acpi_mask;		/* events enabled in firmware */
- 
--static unsigned int hotkey_report_mode;
--
- static u16 *hotkey_keycode_map;
- 
- static struct attribute_set *hotkey_dev_attributes;
-@@ -2878,18 +2876,6 @@ static void hotkey_tablet_mode_notify_change(void)
- 			     "hotkey_tablet_mode");
+ config MICROCODE_INTEL_LIB
+ 	def_bool y
+ 	depends on MICROCODE_INTEL
+diff --git a/arch/x86/kernel/microcode_core.c b/arch/x86/kernel/microcode_core.c
+index 22db92b..6a9fd04 100644
+--- a/arch/x86/kernel/microcode_core.c
++++ b/arch/x86/kernel/microcode_core.c
+@@ -180,99 +180,6 @@ static int apply_microcode_on_target(int cpu)
+ 	return ret;
  }
  
--/* sysfs hotkey report_mode -------------------------------------------- */
--static ssize_t hotkey_report_mode_show(struct device *dev,
--			   struct device_attribute *attr,
--			   char *buf)
+-#ifdef CONFIG_MICROCODE_OLD_INTERFACE
+-static int do_microcode_update(const void __user *buf, size_t size)
 -{
--	return snprintf(buf, PAGE_SIZE, "%d\n",
--		(hotkey_report_mode != 0) ? hotkey_report_mode : 1);
+-	int error = 0;
+-	int cpu;
+-
+-	for_each_online_cpu(cpu) {
+-		struct ucode_cpu_info *uci = ucode_cpu_info + cpu;
+-		enum ucode_state ustate;
+-
+-		if (!uci->valid)
+-			continue;
+-
+-		ustate = microcode_ops->request_microcode_user(cpu, buf, size);
+-		if (ustate == UCODE_ERROR) {
+-			error = -1;
+-			break;
+-		} else if (ustate == UCODE_OK)
+-			apply_microcode_on_target(cpu);
+-	}
+-
+-	return error;
 -}
 -
--static struct device_attribute dev_attr_hotkey_report_mode =
--	__ATTR(hotkey_report_mode, S_IRUGO, hotkey_report_mode_show, NULL);
+-static int microcode_open(struct inode *inode, struct file *file)
+-{
+-	return capable(CAP_SYS_RAWIO) ? nonseekable_open(inode, file) : -EPERM;
+-}
 -
- /* sysfs wakeup reason (pollable) -------------------------------------- */
- static ssize_t hotkey_wakeup_reason_show(struct device *dev,
- 			   struct device_attribute *attr,
-@@ -2931,7 +2917,6 @@ static struct attribute *hotkey_attributes[] __initdata = {
- 	&dev_attr_hotkey_enable.attr,
- 	&dev_attr_hotkey_bios_enabled.attr,
- 	&dev_attr_hotkey_bios_mask.attr,
--	&dev_attr_hotkey_report_mode.attr,
- 	&dev_attr_hotkey_wakeup_reason.attr,
- 	&dev_attr_hotkey_wakeup_hotunplug_complete.attr,
- 	&dev_attr_hotkey_mask.attr,
-@@ -3435,11 +3420,6 @@ static int __init hotkey_init(struct ibm_init_struct *iibm)
- 		"initial masks: user=0x%08x, fw=0x%08x, poll=0x%08x\n",
- 		hotkey_user_mask, hotkey_acpi_mask, hotkey_source_mask);
- 
--	dbg_printk(TPACPI_DBG_INIT | TPACPI_DBG_HKEY,
--			"legacy ibm/hotkey event reporting over procfs %s\n",
--			(hotkey_report_mode < 2) ?
--				"enabled" : "disabled");
+-static ssize_t microcode_write(struct file *file, const char __user *buf,
+-			       size_t len, loff_t *ppos)
+-{
+-	ssize_t ret = -EINVAL;
 -
- 	tpacpi_inputdev->open = &hotkey_inputdev_open;
- 	tpacpi_inputdev->close = &hotkey_inputdev_close;
- 
-@@ -8829,11 +8809,6 @@ module_param(brightness_enable, uint, 0444);
- MODULE_PARM_DESC(brightness_enable,
- 		 "Enables backlight control when 1, disables when 0");
- 
--module_param(hotkey_report_mode, uint, 0444);
--MODULE_PARM_DESC(hotkey_report_mode,
--		 "used for backwards compatibility with userspace, "
--		 "see documentation");
+-	if ((len >> PAGE_SHIFT) > totalram_pages) {
+-		pr_err("too much data (max %ld pages)\n", totalram_pages);
+-		return ret;
+-	}
 -
- #ifdef CONFIG_THINKPAD_ACPI_ALSA_SUPPORT
- module_param_named(volume_mode, volume_mode, uint, 0444);
- MODULE_PARM_DESC(volume_mode,
-@@ -8964,10 +8939,6 @@ static int __init thinkpad_acpi_module_init(void)
- 
- 	tpacpi_lifecycle = TPACPI_LIFE_INIT;
- 
--	/* Parameter checking */
--	if (hotkey_report_mode > 2)
--		return -EINVAL;
+-	get_online_cpus();
+-	mutex_lock(&microcode_mutex);
 -
- 	/* Driver-level probe */
+-	if (do_microcode_update(buf, len) == 0)
+-		ret = (ssize_t)len;
+-
+-	if (ret > 0)
+-		perf_check_microcode();
+-
+-	mutex_unlock(&microcode_mutex);
+-	put_online_cpus();
+-
+-	return ret;
+-}
+-
+-static const struct file_operations microcode_fops = {
+-	.owner			= THIS_MODULE,
+-	.write			= microcode_write,
+-	.open			= microcode_open,
+-	.llseek		= no_llseek,
+-};
+-
+-static struct miscdevice microcode_dev = {
+-	.minor			= MICROCODE_MINOR,
+-	.name			= "microcode",
+-	.nodename		= "cpu/microcode",
+-	.fops			= &microcode_fops,
+-};
+-
+-static int __init microcode_dev_init(void)
+-{
+-	int error;
+-
+-	error = misc_register(&microcode_dev);
+-	if (error) {
+-		pr_err("can't misc_register on minor=%d\n", MICROCODE_MINOR);
+-		return error;
+-	}
+-
+-	return 0;
+-}
+-
+-static void __exit microcode_dev_exit(void)
+-{
+-	misc_deregister(&microcode_dev);
+-}
+-
+-MODULE_ALIAS_MISCDEV(MICROCODE_MINOR);
+-MODULE_ALIAS("devname:cpu/microcode");
+-#else
+-#define microcode_dev_init()	0
+-#define microcode_dev_exit()	do { } while (0)
+-#endif
+-
+ /* fake device for request_firmware */
+ static struct platform_device	*microcode_pdev;
  
- 	ret = get_thinkpad_model_data(&thinkpad_id);
+@@ -581,10 +488,6 @@ static int __init microcode_init(void)
+ 		goto out_driver;
+ 	}
+ 
+-	error = microcode_dev_init();
+-	if (error)
+-		goto out_ucode_group;
+-
+ 	register_syscore_ops(&mc_syscore_ops);
+ 	register_hotcpu_notifier(&mc_cpu_notifier);
+ 
+@@ -593,10 +496,6 @@ static int __init microcode_init(void)
+ 
+ 	return 0;
+ 
+- out_ucode_group:
+-	sysfs_remove_group(&cpu_subsys.dev_root->kobj,
+-			   &cpu_root_microcode_group);
+-
+  out_driver:
+ 	get_online_cpus();
+ 	mutex_lock(&microcode_mutex);
+@@ -617,8 +516,6 @@ static void __exit microcode_exit(void)
+ {
+ 	struct cpuinfo_x86 *c = &cpu_data(0);
+ 
+-	microcode_dev_exit();
+-
+ 	unregister_hotcpu_notifier(&mc_cpu_notifier);
+ 	unregister_syscore_ops(&mc_syscore_ops);
+ 
 -- 
 1.7.6.1
 
