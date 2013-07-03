@@ -1,29 +1,84 @@
-From: Matthew Garrett <mjg59@srcf.ucam.org>
-Subject: Re: [PATCH v2 0/8] Thunderbolt workarounds
-Date: Wed, 3 Jul 2013 22:21:08 +0100
-Message-ID: <20130703212108.GA884@srcf.ucam.org>
-References: <1372860295-8306-1-git-send-email-mika.westerberg@linux.intel.com>
- <20130703182900.GA29079@srcf.ucam.org>
- <20130703183311.GA17340@kroah.com>
- <20130703184434.GA29587@srcf.ucam.org>
- <D38E8E86660E514AB505863C19C9287C73E5F07D@ORSMSX102.amr.corp.intel.com>
- <20130703203542.GA32736@srcf.ucam.org>
- <D38E8E86660E514AB505863C19C9287C73E5F18F@ORSMSX102.amr.corp.intel.com>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: Re: [PATCH v2 6/8] PCI: acpiphp: workaround for Thunderbolt on Acer Aspire S5
+Date: Wed, 03 Jul 2013 23:40:42 +0200
+Message-ID: <1444243.g9GbxN3NM0@vostro.rjw.lan>
+References: <1372860295-8306-1-git-send-email-mika.westerberg@linux.intel.com> <1372860295-8306-7-git-send-email-mika.westerberg@linux.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <D38E8E86660E514AB505863C19C9287C73E5F18F@ORSMSX102.amr.corp.intel.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: "Ronciak, John" <john.ronciak@intel.com>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Mika Westerberg <mika.westerberg@linux.intel.com>, Bjorn Helgaas <bhelgaas@google.com>, "Wysocki, Rafael J" <rafael.j.wysocki@intel.com>, Jesse Barnes <jbarnes@virtuousgeek.org>, Yinghai Lu <yinghai@kernel.org>, "Penner, Miles J" <miles.j.penner@intel.com>, "Allan, Bruce W" <bruce.w.allan@intel.com>, Heikki Krogerus <heikki.krogerus@linux.intel.com>, "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>, "x86@kernel.org" <x86@kernel.org>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7Bit
+Return-path: <linux-pci-owner@vger.kernel.org>
+In-Reply-To: <1372860295-8306-7-git-send-email-mika.westerberg@linux.intel.com>
+Sender: linux-pci-owner@vger.kernel.org
+To: Mika Westerberg <mika.westerberg@linux.intel.com>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Bjorn Helgaas <bhelgaas@google.com>, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Jesse Barnes <jbarnes@virtuousgeek.org>, Yinghai Lu <yinghai@kernel.org>, john.ronciak@intel.com, miles.j.penner@intel.com, bruce.w.allan@intel.com, Heikki Krogerus <heikki.krogerus@linux.intel.com>, "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, linux-pci@vger.kernel.org, x86@kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Wed, Jul 03, 2013 at 08:46:57PM +0000, Ronciak, John wrote:
-> Apple does their own thing and do not talk to Intel about it at all. This includes writing special drivers and user-space components.  So we (Intel) don't know so we can't comment about it.  Sorry.
+On Wednesday, July 03, 2013 05:04:53 PM Mika Westerberg wrote:
+> From: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
+> 
+> Correct ACPI PCI hotplug imeplementation should have _RMV method in a
+> PCI slot (device under pci bridge). In Acer Aspire S5 case we have it
+> deeper in hierarchy:
+> 
+> Device (RP05)
+> {
+>    // ...
+>    Device (HRUP)
+>    {
+>        // ...
+>        Device (HRDN)
+>        {
+>            // ...
+>            Device (EPUP)
+>            {
+>                // ...
+>                Method (_RMV, 0, NotSerialized)  // _RMV: Removal Status
+>                {
+>                    Return (One)
+>                }
+>            }
+>        }
+>    }
+> }
+> 
+> Signed-off-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
+> Signed-off-by: Mika Westerberg <mika.westerberg@linux.intel.com>
+> ---
+>  drivers/pci/hotplug/acpi_pcihp.c | 13 +++++++++++++
+>  1 file changed, 13 insertions(+)
+> 
+> diff --git a/drivers/pci/hotplug/acpi_pcihp.c b/drivers/pci/hotplug/acpi_pcihp.c
+> index 2a47e82..d92ebfb 100644
+> --- a/drivers/pci/hotplug/acpi_pcihp.c
+> +++ b/drivers/pci/hotplug/acpi_pcihp.c
+> @@ -422,6 +422,19 @@ static int pcihp_is_ejectable(acpi_handle handle)
+>  	status = acpi_evaluate_integer(handle, "_RMV", NULL, &removable);
+>  	if (ACPI_SUCCESS(status) && removable)
+>  		return 1;
+> +
+> +	/*
+> +	 * Workaround for Thunderbolt implementation on Acer Aspire S5.
+> +	 *
+> +	 * Correct ACPI PCI hotplug imeplementation has _RMV method in a PCI
+> +	 * slot (device under pci bridge). In Acer Aspire S5 case we have it
+> +	 * deeper in hierarchy.
+> +	 */
+> +	status = acpi_evaluate_integer(handle, "HRDN.EPUP._RMV", NULL,
+> +			&removable);
 
-The hardware has an Intel part number, so I'm pretty sure someone there 
-has some idea what the register map looks like.
+Well, calling stuff like this directly from a general function is kind of ugly.
+
+Can we use something like a quirk instead?  A DMI check or something?
+
+> +	if (ACPI_SUCCESS(status) && removable)
+> +		return 1;
+> +
+>  	return 0;
+>  }
+
+Rafael
+
 
 -- 
-Matthew Garrett | mjg59@srcf.ucam.org
+I speak only for myself.
+Rafael J. Wysocki, Intel Open Source Technology Center.
