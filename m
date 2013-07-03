@@ -1,54 +1,30 @@
-From: "Ronciak, John" <john.ronciak@intel.com>
-Subject: RE: [PATCH v2 0/8] Thunderbolt workarounds
-Date: Wed, 3 Jul 2013 19:57:21 +0000
-Message-ID: <D38E8E86660E514AB505863C19C9287C73E5F07D@ORSMSX102.amr.corp.intel.com>
+From: Matthew Garrett <mjg59@srcf.ucam.org>
+Subject: Re: [PATCH v2 0/8] Thunderbolt workarounds
+Date: Wed, 3 Jul 2013 21:35:42 +0100
+Message-ID: <20130703203542.GA32736@srcf.ucam.org>
 References: <1372860295-8306-1-git-send-email-mika.westerberg@linux.intel.com>
- <20130703182900.GA29079@srcf.ucam.org> <20130703183311.GA17340@kroah.com>
+ <20130703182900.GA29079@srcf.ucam.org>
+ <20130703183311.GA17340@kroah.com>
  <20130703184434.GA29587@srcf.ucam.org>
+ <D38E8E86660E514AB505863C19C9287C73E5F07D@ORSMSX102.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga03.intel.com ([143.182.124.21]:21843 "EHLO mga03.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756127Ab3GCT5X convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 3 Jul 2013 15:57:23 -0400
-In-Reply-To: <20130703184434.GA29587@srcf.ucam.org>
-Content-Language: en-US
+Received: from cavan.codon.org.uk ([93.93.128.6]:58669 "EHLO
+	cavan.codon.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756082Ab3GCUf5 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 3 Jul 2013 16:35:57 -0400
+Content-Disposition: inline
+In-Reply-To: <D38E8E86660E514AB505863C19C9287C73E5F07D@ORSMSX102.amr.corp.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Matthew Garrett <mjg59@srcf.ucam.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc: Mika Westerberg <mika.westerberg@linux.intel.com>, Bjorn Helgaas <bhelgaas@google.com>, "Wysocki, Rafael J" <rafael.j.wysocki@intel.com>, Jesse Barnes <jbarnes@virtuousgeek.org>, Yinghai Lu <yinghai@kernel.org>, "Penner, Miles J" <miles.j.penner@intel.com>, "Allan, Bruce W" <bruce.w.allan@intel.com>, Heikki Krogerus <heikki.krogerus@linux.intel.com>, "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>, "x86@kernel.org" <x86@kernel.org>
+To: "Ronciak, John" <john.ronciak@intel.com>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Mika Westerberg <mika.westerberg@linux.intel.com>, Bjorn Helgaas <bhelgaas@google.com>, "Wysocki, Rafael J" <rafael.j.wysocki@intel.com>, Jesse Barnes <jbarnes@virtuousgeek.org>, Yinghai Lu <yinghai@kernel.org>, "Penner, Miles J" <miles.j.penner@intel.com>, "Allan, Bruce W" <bruce.w.allan@intel.com>, Heikki Krogerus <heikki.krogerus@linux.intel.com>, "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>, "x86@kernel.org" <x86@kernel.org>
 
-Are you talking about Apple platforms specifically?
+On Wed, Jul 03, 2013 at 07:57:21PM +0000, Ronciak, John wrote:
+> Are you talking about Apple platforms specifically?
 
-Cheers,
-John
+Yeah, that's the specific example.
 
-
-> -----Original Message-----
-> From: Matthew Garrett [mailto:mjg59@srcf.ucam.org]
-> Sent: Wednesday, July 03, 2013 11:45 AM
-> To: Greg Kroah-Hartman
-> Cc: Mika Westerberg; Bjorn Helgaas; Wysocki, Rafael J; Jesse Barnes;
-> Yinghai Lu; Ronciak, John; Penner, Miles J; Allan, Bruce W; Heikki
-> Krogerus; Kirill A. Shutemov; linux-kernel@vger.kernel.org; linux-
-> acpi@vger.kernel.org; linux-pci@vger.kernel.org; x86@kernel.org
-> Subject: Re: [PATCH v2 0/8] Thunderbolt workarounds
-> 
-> On Wed, Jul 03, 2013 at 11:33:11AM -0700, Greg Kroah-Hartman wrote:
-> > On Wed, Jul 03, 2013 at 07:29:00PM +0100, Matthew Garrett wrote:
-> > > Are there any plans to provide native support for the Thunderbolt
-> > > controller, rather than relying on system management mode?
-> >
-> > For what specific hardware platform?  For the ones that this patchset
-> > controls, the OS doesn't have access to the Thunderbolt controller as
-> > far as I can tell, it all happens through the ACPI and PCI hotplug
-> > interface.
-> 
-> Given that there exist platforms without the SMM implementation,
-> there's presumably either a controller or chipset register that
-> controls whether SMIs are generated in response to Thunderbolt events.
-> 
-> --
-> Matthew Garrett | mjg59@srcf.ucam.org
+-- 
+Matthew Garrett | mjg59@srcf.ucam.org
