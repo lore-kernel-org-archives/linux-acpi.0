@@ -1,53 +1,29 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: [PATCH 3/3] acpi: remove unused LIST_HEAD(acpi_device_list)
-Date: Wed, 03 Jul 2013 23:24:03 +0200
-Message-ID: <2729967.3EomeQlnR1@vostro.rjw.lan>
-References: <1372864578-6925-1-git-send-email-haicheng.li@linux.intel.com> <1372864578-6925-3-git-send-email-haicheng.li@linux.intel.com>
+From: Matthew Garrett <mjg59@srcf.ucam.org>
+Subject: Re: [PATCH v2 0/8] Thunderbolt workarounds
+Date: Wed, 3 Jul 2013 22:21:08 +0100
+Message-ID: <20130703212108.GA884@srcf.ucam.org>
+References: <1372860295-8306-1-git-send-email-mika.westerberg@linux.intel.com>
+ <20130703182900.GA29079@srcf.ucam.org>
+ <20130703183311.GA17340@kroah.com>
+ <20130703184434.GA29587@srcf.ucam.org>
+ <D38E8E86660E514AB505863C19C9287C73E5F07D@ORSMSX102.amr.corp.intel.com>
+ <20130703203542.GA32736@srcf.ucam.org>
+ <D38E8E86660E514AB505863C19C9287C73E5F18F@ORSMSX102.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7Bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from hydra.sisk.pl ([212.160.235.94]:57659 "EHLO hydra.sisk.pl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752340Ab3GCVO2 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 3 Jul 2013 17:14:28 -0400
-In-Reply-To: <1372864578-6925-3-git-send-email-haicheng.li@linux.intel.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <D38E8E86660E514AB505863C19C9287C73E5F18F@ORSMSX102.amr.corp.intel.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: "Ronciak, John" <john.ronciak@intel.com>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Mika Westerberg <mika.westerberg@linux.intel.com>, Bjorn Helgaas <bhelgaas@google.com>, "Wysocki, Rafael J" <rafael.j.wysocki@intel.com>, Jesse Barnes <jbarnes@virtuousgeek.org>, Yinghai Lu <yinghai@kernel.org>, "Penner, Miles J" <miles.j.penner@intel.com>, "Allan, Bruce W" <bruce.w.allan@intel.com>, Heikki Krogerus <heikki.krogerus@linux.intel.com>, "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>, "x86@kernel.org" <x86@kernel.org>
 List-Id: linux-acpi@vger.kernel.org
-To: Haicheng Li <haicheng.li@linux.intel.com>
-Cc: linux-kernel@vger.kernel.org, Haicheng Li <haicheng.lee@gmail.com>, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org
 
-On Wednesday, July 03, 2013 11:16:18 PM Haicheng Li wrote:
-> Cc: Len Brown <lenb@kernel.org>
-> Cc: "Rafael J. Wysocki" <rjw@sisk.pl>
-> Cc: linux-acpi@vger.kernel.org
-> Signed-off-by: Haicheng Li <haicheng.li@linux.intel.com>
+On Wed, Jul 03, 2013 at 08:46:57PM +0000, Ronciak, John wrote:
+> Apple does their own thing and do not talk to Intel about it at all. This includes writing special drivers and user-space components.  So we (Intel) don't know so we can't comment about it.  Sorry.
 
--ENOCHANGELOG
+The hardware has an Intel part number, so I'm pretty sure someone there 
+has some idea what the register map looks like.
 
-Apart from this, please send the *whole* patchset to linux-acpi.
-
-Thanks,
-Rafael
-
-
-> ---
->  drivers/acpi/scan.c |    1 -
->  1 file changed, 1 deletion(-)
-> 
-> diff --git a/drivers/acpi/scan.c b/drivers/acpi/scan.c
-> index 27da630..fcc0cdc 100644
-> --- a/drivers/acpi/scan.c
-> +++ b/drivers/acpi/scan.c
-> @@ -29,7 +29,6 @@ extern struct acpi_device *acpi_root;
->  
->  static const char *dummy_hid = "device";
->  
-> -static LIST_HEAD(acpi_device_list);
->  static LIST_HEAD(acpi_bus_id_list);
->  static DEFINE_MUTEX(acpi_scan_lock);
->  static LIST_HEAD(acpi_scan_handlers_list);
-> 
 -- 
-I speak only for myself.
-Rafael J. Wysocki, Intel Open Source Technology Center.
+Matthew Garrett | mjg59@srcf.ucam.org
