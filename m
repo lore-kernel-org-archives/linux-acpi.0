@@ -1,47 +1,53 @@
-From: "Ronciak, John" <john.ronciak@intel.com>
-Subject: RE: [PATCH v2 0/8] Thunderbolt workarounds
-Date: Wed, 3 Jul 2013 20:46:57 +0000
-Message-ID: <D38E8E86660E514AB505863C19C9287C73E5F18F@ORSMSX102.amr.corp.intel.com>
-References: <1372860295-8306-1-git-send-email-mika.westerberg@linux.intel.com>
- <20130703182900.GA29079@srcf.ucam.org> <20130703183311.GA17340@kroah.com>
- <20130703184434.GA29587@srcf.ucam.org>
- <D38E8E86660E514AB505863C19C9287C73E5F07D@ORSMSX102.amr.corp.intel.com>
- <20130703203542.GA32736@srcf.ucam.org>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: Re: [PATCH 3/3] acpi: remove unused LIST_HEAD(acpi_device_list)
+Date: Wed, 03 Jul 2013 23:24:03 +0200
+Message-ID: <2729967.3EomeQlnR1@vostro.rjw.lan>
+References: <1372864578-6925-1-git-send-email-haicheng.li@linux.intel.com> <1372864578-6925-3-git-send-email-haicheng.li@linux.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7Bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga09.intel.com ([134.134.136.24]:57965 "EHLO mga09.intel.com"
+Received: from hydra.sisk.pl ([212.160.235.94]:57659 "EHLO hydra.sisk.pl"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S933124Ab3GCUq7 convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 3 Jul 2013 16:46:59 -0400
-In-Reply-To: <20130703203542.GA32736@srcf.ucam.org>
-Content-Language: en-US
+	id S1752340Ab3GCVO2 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 3 Jul 2013 17:14:28 -0400
+In-Reply-To: <1372864578-6925-3-git-send-email-haicheng.li@linux.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Matthew Garrett <mjg59@srcf.ucam.org>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Mika Westerberg <mika.westerberg@linux.intel.com>, Bjorn Helgaas <bhelgaas@google.com>, "Wysocki, Rafael J" <rafael.j.wysocki@intel.com>, Jesse Barnes <jbarnes@virtuousgeek.org>, Yinghai Lu <yinghai@kernel.org>, "Penner, Miles J" <miles.j.penner@intel.com>, "Allan, Bruce W" <bruce.w.allan@intel.com>, Heikki Krogerus <heikki.krogerus@linux.intel.com>, "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>, "x86@kernel.org" <x86@kernel.org>
+To: Haicheng Li <haicheng.li@linux.intel.com>
+Cc: linux-kernel@vger.kernel.org, Haicheng Li <haicheng.lee@gmail.com>, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org
 
-Apple does their own thing and do not talk to Intel about it at all. This includes writing special drivers and user-space components.  So we (Intel) don't know so we can't comment about it.  Sorry.
+On Wednesday, July 03, 2013 11:16:18 PM Haicheng Li wrote:
+> Cc: Len Brown <lenb@kernel.org>
+> Cc: "Rafael J. Wysocki" <rjw@sisk.pl>
+> Cc: linux-acpi@vger.kernel.org
+> Signed-off-by: Haicheng Li <haicheng.li@linux.intel.com>
 
-Cheers,
-John
+-ENOCHANGELOG
+
+Apart from this, please send the *whole* patchset to linux-acpi.
+
+Thanks,
+Rafael
 
 
-> -----Original Message-----
-> From: Matthew Garrett [mailto:mjg59@srcf.ucam.org]
-> Sent: Wednesday, July 03, 2013 1:36 PM
-> To: Ronciak, John
-> Cc: Greg Kroah-Hartman; Mika Westerberg; Bjorn Helgaas; Wysocki, Rafael
-> J; Jesse Barnes; Yinghai Lu; Penner, Miles J; Allan, Bruce W; Heikki
-> Krogerus; Kirill A. Shutemov; linux-kernel@vger.kernel.org; linux-
-> acpi@vger.kernel.org; linux-pci@vger.kernel.org; x86@kernel.org
-> Subject: Re: [PATCH v2 0/8] Thunderbolt workarounds
+> ---
+>  drivers/acpi/scan.c |    1 -
+>  1 file changed, 1 deletion(-)
 > 
-> On Wed, Jul 03, 2013 at 07:57:21PM +0000, Ronciak, John wrote:
-> > Are you talking about Apple platforms specifically?
+> diff --git a/drivers/acpi/scan.c b/drivers/acpi/scan.c
+> index 27da630..fcc0cdc 100644
+> --- a/drivers/acpi/scan.c
+> +++ b/drivers/acpi/scan.c
+> @@ -29,7 +29,6 @@ extern struct acpi_device *acpi_root;
+>  
+>  static const char *dummy_hid = "device";
+>  
+> -static LIST_HEAD(acpi_device_list);
+>  static LIST_HEAD(acpi_bus_id_list);
+>  static DEFINE_MUTEX(acpi_scan_lock);
+>  static LIST_HEAD(acpi_scan_handlers_list);
 > 
-> Yeah, that's the specific example.
-> 
-> --
-> Matthew Garrett | mjg59@srcf.ucam.org
+-- 
+I speak only for myself.
+Rafael J. Wysocki, Intel Open Source Technology Center.
