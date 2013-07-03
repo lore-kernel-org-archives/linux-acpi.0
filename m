@@ -1,95 +1,163 @@
 From: Mika Westerberg <mika.westerberg@linux.intel.com>
-Subject: [PATCH v2 0/8] Thunderbolt workarounds
-Date: Wed,  3 Jul 2013 17:04:47 +0300
-Message-ID: <1372860295-8306-1-git-send-email-mika.westerberg@linux.intel.com>
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga09.intel.com ([134.134.136.24]:7914 "EHLO mga09.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754666Ab3GCOCG (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 3 Jul 2013 10:02:06 -0400
-Sender: linux-acpi-owner@vger.kernel.org
-List-Id: linux-acpi@vger.kernel.org
+Subject: [PATCH v2 4/8] PCI: acpiphp: check for new devices on enabled host
+Date: Wed,  3 Jul 2013 17:04:51 +0300
+Message-ID: <1372860295-8306-5-git-send-email-mika.westerberg@linux.intel.com>
+References: <1372860295-8306-1-git-send-email-mika.westerberg@linux.intel.com>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1372860295-8306-1-git-send-email-mika.westerberg@linux.intel.com>
+Sender: linux-kernel-owner@vger.kernel.org
 To: Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Bjorn Helgaas <bhelgaas@google.com>, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>
 Cc: Jesse Barnes <jbarnes@virtuousgeek.org>, Yinghai Lu <yinghai@kernel.org>, john.ronciak@intel.com, miles.j.penner@intel.com, bruce.w.allan@intel.com, Heikki Krogerus <heikki.krogerus@linux.intel.com>, "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>, Mika Westerberg <mika.westerberg@linux.intel.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, linux-pci@vger.kernel.org, x86@kernel.org
+List-Id: linux-acpi@vger.kernel.org
 
-Here's the next revision of the workarounds for Thunderbolt machines. The
-previous revision can be found here:
+From: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
 
-  https://lkml.org/lkml/2013/6/25/400
+Current acpiphp_check_bridge() implementation is pretty dumb:
+ - it enables the slot if it's not enabled and the slot status is
+   ACPI_STA_ALL;
+ - it disables the slot if it's enabled and slot is not in ACPI_STA_ALL
+   state.
 
-The series fixes problems seen in ACPI hotplug driver and resource
-re-allocation issue in pcibios_resource_survey_bus(). With these applied we
-have been able to connect Thunderbolt chain as long as:
+This behavior is not enough to handle Thunderbolt chaining case
+properly. We need to actually rescan for new devices even if a device
+has already in the slot.
 
-  PC +--+ eSata Hub #0 +--+ eSata Hub #1 +--+ Apple Thunderbolt display +--+ Apple ethernet dongle
+The new implementation disables and stops the slot if it's not in
+ACPI_STA_ALL state.
 
-That's all Thunderbolt devices we have for testing. This results the
-following PCIe tree (output of lspci -tv):
+For ACPI_STA_ALL state we first trim devices which don't respond. In order
+to support that we introduce a new function pci_trim_stale_devices() that
+goes through the child devices of a given bus, check if the device is gone
+and in that case stop and remove the device.
 
-  +-1c.4-[06-80]----00.0-[07-80]--+-00.0-[08]--
-  |                               +-03.0-[09-7d]----00.0-[0a-7d]--+-03.0-[0b]----00.0  Marvell Technology Group Ltd. Device 9182
-  |                               |                               +-04.0-[0c-7c]----00.0-[0d-7c]--+-03.0-[0e]----00.0  Marvell Technology Group Ltd. Device 9182
-  |                               |                               |                               +-04.0-[0f-7b]----00.0-[10-7b]--+-00.0-[11-13]----00.0-[12-13]----03.0-[13]--+-00.0  Pericom Semiconductor Device 400e
-  |                               |                               |                               |                               |                                            +-00.1  Pericom Semiconductor Device 400e
-  |                               |                               |                               |                               |                                            \-00.2  Pericom Semiconductor Device 400f
-  |                               |                               |                               |                               +-01.0-[14]----00.0  Broadcom Corporation NetXtreme BCM57761 Gigabit Ethernet PCIe
-  |                               |                               |                               |                               +-02.0-[15]----00.0  Agere Systems FW643 PCI Express 1394b Controller (PHY/Link)
-  |                               |                               |                               |                               +-03.0-[16]--
-  |                               |                               |                               |                               +-04.0-[17-7a]----00.0-[18-7a]----00.0-[19]----00.0  Broadcom Corporation Device 1682
-  |                               |                               |                               |                               \-05.0-[7b]--
-  |                               |                               |                               \-05.0-[7c]--
-  |                               |                               \-05.0-[7d]--
-  |                               +-04.0-[7e]--
-  |                               +-05.0-[7f]--
-  |                               \-06.0-[80]--
+Once we have trimmed the bus we start looking for any new devices that
+might have appeared on the bus. We do that even if the slot is already
+enabled (SLOT_ENABLED).
 
-
-There are still problems with individual device drivers not handling the
-surprise hotplug nature of Thunderbolt devices correctly but that can be
-handled per driver later on.
-
-This has been tested on Acer Aspire S5 ultrabook and in addition to that on
-Intel DZ77RE-75K desktop.
-
-Changes to the previous version:
-  [1/8] A new patch that fixes pcibios_resource_survey_bus() to handle
-        re-allocation of resources properly. This patch should be first one
-	in the series because the following patches then enable things that
-	depend on this one.
-  [3/8] Dropped !dev->subordinate->is_added check. This is handled in [1/6].
-  [4/8] Removed 'continue' and call directly pci_trim_stale_devices() and
-        fold the pci_trim_stale_devices() to this patch.
-  [5/8] A new patch that removes SLOT_ENABLED flag completely from the
-        acpiphp driver. This is a separate patch to make reverting easy
-	in case there appears regressions but still make Thunderbolt
-	working.
-  [6/8] Use the original Kirill's workaround for Acer Aspire S5.
-  [7,8/8] New cleanups for acpiphp that were found during development.
-
-The series applies on top of v3.10.
-
-Kirill A. Shutemov (4):
-  PCI: acpiphp: do not check for SLOT_ENABLED in enable_device()
-  PCI: acpiphp: enable_device(): rescan even if no new devices on slot
-  PCI: acpiphp: check for new devices on enabled host
-  PCI: acpiphp: workaround for Thunderbolt on Acer Aspire S5
-
-Mika Westerberg (4):
-  x86/PCI: prevent re-allocation of already existing bridge and ROM
-    resources
-  PCI: acpiphp: kill SLOT_ENABLED in favor of always re-enumerating the
-    devices
-  PCI: acpiphp: get rid of unused constants in acpiphp.h
-  PCI: acpiphp: sanitize acpiphp_get_[latch|adapter]_status()
-
- arch/x86/pci/i386.c                |  4 ++
- drivers/pci/hotplug/acpi_pcihp.c   | 13 +++++
- drivers/pci/hotplug/acpiphp.h      |  5 --
- drivers/pci/hotplug/acpiphp_glue.c | 97 ++++++++++++--------------------------
- drivers/pci/remove.c               | 20 ++++++++
+Signed-off-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
+Signed-off-by: Mika Westerberg <mika.westerberg@linux.intel.com>
+---
+ drivers/pci/hotplug/acpiphp_glue.c | 55 ++++++++++++++++++--------------------
+ drivers/pci/remove.c               | 20 ++++++++++++++
  include/linux/pci.h                |  1 +
- 6 files changed, 69 insertions(+), 71 deletions(-)
+ 3 files changed, 47 insertions(+), 29 deletions(-)
 
+diff --git a/drivers/pci/hotplug/acpiphp_glue.c b/drivers/pci/hotplug/acpiphp_glue.c
+index 0f4da3b..c9ec06e 100644
+--- a/drivers/pci/hotplug/acpiphp_glue.c
++++ b/drivers/pci/hotplug/acpiphp_glue.c
+@@ -865,43 +865,40 @@ int acpiphp_eject_slot(struct acpiphp_slot *slot)
+  * Iterate over all slots under this bridge and make sure that if a
+  * card is present they are enabled, and if not they are disabled.
+  */
+-static int acpiphp_check_bridge(struct acpiphp_bridge *bridge)
++static void acpiphp_check_bridge(struct acpiphp_bridge *bridge)
+ {
+ 	struct acpiphp_slot *slot;
+-	int retval = 0;
+-	int enabled, disabled;
+-
+-	enabled = disabled = 0;
+ 
+ 	list_for_each_entry(slot, &bridge->slots, node) {
+-		unsigned int status = get_slot_status(slot);
+-		if (slot->flags & SLOT_ENABLED) {
+-			if (status == ACPI_STA_ALL)
+-				continue;
+-			retval = acpiphp_disable_slot(slot);
+-			if (retval) {
+-				err("Error occurred in disabling\n");
+-				goto err_exit;
+-			} else {
+-				acpiphp_eject_slot(slot);
++		struct pci_bus *bus = slot->bridge->pci_bus;
++		struct pci_dev *dev, *tmp;
++		int retval;
++
++		mutex_lock(&slot->crit_sect);
++		/* wake up all functions */
++		retval = power_on_slot(slot);
++		if (retval)
++			goto unlock;
++
++		if (get_slot_status(slot) == ACPI_STA_ALL) {
++			/* remove stale devices if any */
++			list_for_each_entry_safe(dev, tmp, &bus->devices,
++						 bus_list) {
++				if (PCI_SLOT(dev->devfn) == slot->device)
++					pci_trim_stale_devices(dev);
+ 			}
+-			disabled++;
++
++			/* configure all functions */
++			retval = enable_device(slot);
++			if (retval)
++				power_off_slot(slot);
+ 		} else {
+-			if (status != ACPI_STA_ALL)
+-				continue;
+-			retval = acpiphp_enable_slot(slot);
+-			if (retval) {
+-				err("Error occurred in enabling\n");
+-				goto err_exit;
+-			}
+-			enabled++;
++			disable_device(slot);
++			power_off_slot(slot);
+ 		}
++unlock:
++		mutex_unlock(&slot->crit_sect);
+ 	}
+-
+-	dbg("%s: %d enabled, %d disabled\n", __func__, enabled, disabled);
+-
+- err_exit:
+-	return retval;
+ }
+ 
+ static void acpiphp_set_hpp_values(struct pci_bus *bus)
+diff --git a/drivers/pci/remove.c b/drivers/pci/remove.c
+index 8fc54b7..77b7a64 100644
+--- a/drivers/pci/remove.c
++++ b/drivers/pci/remove.c
+@@ -112,6 +112,26 @@ void pci_stop_and_remove_bus_device(struct pci_dev *dev)
+ }
+ EXPORT_SYMBOL(pci_stop_and_remove_bus_device);
+ 
++/**
++ * pci_trim_stale_devices - remove stale device or any stale child
++ */
++void pci_trim_stale_devices(struct pci_dev *dev)
++{
++	struct pci_bus *bus = dev->subordinate;
++	struct pci_dev *child, *tmp;
++	bool alive;
++	u32 l;
++
++	/* check if the device responds */
++	alive = pci_bus_read_dev_vendor_id(dev->bus, dev->devfn, &l, 0);
++	if (!alive)
++		pci_stop_and_remove_bus_device(dev);
++
++	if (alive && bus)
++		list_for_each_entry_safe(child, tmp, &bus->devices, bus_list)
++			pci_trim_stale_devices(child);
++}
++
+ void pci_stop_root_bus(struct pci_bus *bus)
+ {
+ 	struct pci_dev *child, *tmp;
+diff --git a/include/linux/pci.h b/include/linux/pci.h
+index 3a24e4f..8f6e7a0 100644
+--- a/include/linux/pci.h
++++ b/include/linux/pci.h
+@@ -754,6 +754,7 @@ struct pci_dev *pci_dev_get(struct pci_dev *dev);
+ void pci_dev_put(struct pci_dev *dev);
+ void pci_remove_bus(struct pci_bus *b);
+ void pci_stop_and_remove_bus_device(struct pci_dev *dev);
++void pci_trim_stale_devices(struct pci_dev *dev);
+ void pci_stop_root_bus(struct pci_bus *bus);
+ void pci_remove_root_bus(struct pci_bus *bus);
+ void pci_setup_cardbus(struct pci_bus *bus);
 -- 
 1.8.3.2
-
