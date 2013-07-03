@@ -1,87 +1,89 @@
-From: Yinghai Lu <yinghai@kernel.org>
-Subject: Re: [PATCH 0/8] PCI, ACPI, x86: Reserve fw allocated resource for
- hot-add root bus
-Date: Tue, 2 Jul 2013 15:55:24 -0700
-Message-ID: <CAE9FiQWkecbt_+W1OGZNWk7MMaQZcNS-J2PkDvx6dxjaNKC32A@mail.gmail.com>
-References: <20121030040237.GA10472@google.com>
-	<1352003971-22278-1-git-send-email-yinghai@kernel.org>
-	<CAE9FiQUn=bcgOLFzBwsBT1-O1poRNy9qYTb0w9EAya3_inKqAw@mail.gmail.com>
-	<CAErSpo5Z57asEXbfesOjXMEPj4WM3YMbzQH3s-v_NBrnPNmuVQ@mail.gmail.com>
-	<CAErSpo4LS7ShCbeOm1s9ob1MjPfUSWn9J96UHRBP6van54swQA@mail.gmail.com>
-	<CAE9FiQV5x1S1BNHrXq0wMRDx7PD5BoCh3fOnq2vS_AOAGL8Rrw@mail.gmail.com>
-	<CAErSpo5vEb=63jGsqfau1G=f54oqq17pc3ZzcpzhL7hQrtYhng@mail.gmail.com>
-	<CAE9FiQUxxjZmd3C33_ujSeL1EjcKHHSoGusQwfBD+Zd=cwCDZA@mail.gmail.com>
-	<CAErSpo6qX3ih9DXLqxqJw141OAeTFu0YfSih6LyD0sd2gS-Vyg@mail.gmail.com>
-	<CAErSpo7oeYUWS+jaJqm-4i+tN0HuOZrrxZt7GDmeRSmj4pzYYQ@mail.gmail.com>
+From: Bjorn Helgaas <bhelgaas@google.com>
+Subject: [PATCH] ACPICA: acpi_read: update return_value atomically
+Date: Tue, 02 Jul 2013 18:30:05 -0600
+Message-ID: <20130703003005.27281.39531.stgit@bhelgaas-glaptop>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary=20cf3010ecc98d92fc04e08f3de3
-Return-path: <linux-pci-owner@vger.kernel.org>
-In-Reply-To: <CAErSpo7oeYUWS+jaJqm-4i+tN0HuOZrrxZt7GDmeRSmj4pzYYQ@mail.gmail.com>
-Sender: linux-pci-owner@vger.kernel.org
-To: Bjorn Helgaas <bhelgaas@google.com>
-Cc: "Rafael J. Wysocki" <rjw@sisk.pl>, Len Brown <lenb@kernel.org>, Taku Izumi <izumi.taku@jp.fujitsu.com>, Jiang Liu <jiang.liu@huawei.com>, "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-ie0-f169.google.com ([209.85.223.169]:34911 "EHLO
+	mail-ie0-f169.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752639Ab3GCAaI (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 2 Jul 2013 20:30:08 -0400
+Received: by mail-ie0-f169.google.com with SMTP id 10so14225893ied.0
+        for <linux-acpi@vger.kernel.org>; Tue, 02 Jul 2013 17:30:07 -0700 (PDT)
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Bob Moore <robert.moore@intel.com>
+Cc: "Rafael J. Wysocki" <rjw@sisk.pl>, linux-acpi@vger.kernel.org, Lv Zheng <lv.zheng@intel.com>, Len Brown <lenb@kernel.org>
 
---20cf3010ecc98d92fc04e08f3de3
-Content-Type: text/plain; charset=ISO-8859-1
+Accumulate the entire 64-bit value before updating the return_value.
+Previously, it was possible to update the low 32 bits, then return
+failure if reading the upper 32 bits failed, leaving a half-updated
+return_value.
 
-On Tue, Jul 2, 2013 at 2:31 PM, Bjorn Helgaas <bhelgaas@google.com> wrote:
-> On Wed, Jan 9, 2013 at 11:39 AM, Bjorn Helgaas <bhelgaas@google.com> wrote:
->> On Wed, Jan 9, 2013 at 10:53 AM, Yinghai Lu <yinghai@kernel.org> wrote:
->
->>> the reason why we need to change those codes for x86, we want to make it support
->>> pci root bus hotplug. So it would be reasonable for us to align other
->>> platform to x86
->>> changes after pci root bus hotplug change is completely done.
->>
->> OK, I opened https://bugzilla.kernel.org/show_bug.cgi?id=52531 as a
->> way to keep track of this consistency issue ...
->
-> What's your plan for this?  We desperately need more cross-arch
-> consistency in how we manage resources, and I'd like to make some
-> progress in this cycle.
+Signed-off-by: Bjorn Helgaas <bhelgaas@google.com>
+---
+ drivers/acpi/acpica/hwxface.c |   15 +++++++++------
+ 1 file changed, 9 insertions(+), 6 deletions(-)
 
-Ok, will work on that.
+diff --git a/drivers/acpi/acpica/hwxface.c b/drivers/acpi/acpica/hwxface.c
+index 04c2e16..2d64972 100644
+--- a/drivers/acpi/acpica/hwxface.c
++++ b/drivers/acpi/acpica/hwxface.c
+@@ -119,9 +119,10 @@ ACPI_EXPORT_SYMBOL(acpi_reset)
+  ******************************************************************************/
+ acpi_status acpi_read(u64 *return_value, struct acpi_generic_address *reg)
+ {
+-	u32 value;
++	u32 word;
+ 	u32 width;
+ 	u64 address;
++	u64 value;
+ 	acpi_status status;
+ 
+ 	ACPI_FUNCTION_NAME(acpi_read);
+@@ -141,6 +142,7 @@ acpi_status acpi_read(u64 *return_value, struct acpi_generic_address *reg)
+ 
+ 	*return_value = 0;
+ 	value = 0;
++	word = 0;
+ 
+ 	/*
+ 	 * Two address spaces supported: Memory or IO. PCI_Config is
+@@ -161,28 +163,29 @@ acpi_status acpi_read(u64 *return_value, struct acpi_generic_address *reg)
+ 		}
+ 
+ 		status = acpi_hw_read_port((acpi_io_address)
+-					   address, &value, width);
++					   address, &word, width);
+ 		if (ACPI_FAILURE(status)) {
+ 			return (status);
+ 		}
+-		*return_value = value;
++		value = word;
+ 
+ 		if (reg->bit_width == 64) {
+ 
+ 			/* Read the top 32 bits */
+ 
+ 			status = acpi_hw_read_port((acpi_io_address)
+-						   (address + 4), &value, 32);
++						   (address + 4), &word, 32);
+ 			if (ACPI_FAILURE(status)) {
+ 				return (status);
+ 			}
+-			*return_value |= ((u64)value << 32);
++			value |= ((u64)word << 32);
+ 		}
+ 	}
+ 
++	*return_value = value;
+ 	ACPI_DEBUG_PRINT((ACPI_DB_IO,
+ 			  "Read:  %8.8X%8.8X width %2d from %8.8X%8.8X (%s)\n",
+-			  ACPI_FORMAT_UINT64(*return_value), reg->bit_width,
++			  ACPI_FORMAT_UINT64(value), reg->bit_width,
+ 			  ACPI_FORMAT_UINT64(address),
+ 			  acpi_ut_get_region_name(reg->space_id)));
+ 
 
-but will on top of
-
-[PATCH v5 0/7] PCI: Change assign unassigned resources per root bus bassis
-and attached.
-
-will resend them after v3.11-rc1 is out.
-
-Thanks
-
-Yinghai
-
---20cf3010ecc98d92fc04e08f3de3
-Content-Type: application/octet-stream;
-	name="root_bus_ioport_skip_2_a.patch"
-Content-Disposition: attachment; filename="root_bus_ioport_skip_2_a.patch"
-Content-Transfer-Encoding: base64
-X-Attachment-Id: f_hinp268n0
-
-U3ViamVjdDogW1BBVENIXSBQQ0k6IGNoZWNrIHBjaSBidXMgYWRkcmVzcyBmb3IgdW5hc3NpZ25l
-ZCByZXMKCldlIHNob3VsZCBjb21wYXJlIHJlcy0+c3RhcnQgd2l0aCByb290IGJ1cyB3aW5kb3cg
-b2Zmc2V0LgpPdGhlcndpc2Ugd2lsbCBoYXZlIHByb2JsZW0gd2l0aCBhcmNoIHRoYXQgc3VwcG9y
-dCBob3N0YnJpZGdlCnJlc291cmNlIG9mZnNldC4KCkJlbkggcG9pbnRlZCBvdXQgdGhhdCBkdXJp
-bmcgcmV2aWV3aW5nIHBhdGNoc2V0IHRoYXQgc2VwYXJhdGUKYXNzaWduIHVuYXNzaWduZWQgdG8g
-cGVyIHJvb3QgYnVzZXMuCgpBY2NvcmRpbmcgdG8gQmpvcm4sIGhhdmUgaXQgaW4gc2VwYXJhdGVk
-IHBhdGNoLgoKVXNlIHBjaWJpb3NfcmVzb3VyY2VfdG9fYnVzIHRvIGdldCByZWdpb24gYXQgZmly
-c3QsIGFuZCBjaGVjawpyZWdpb24uc3RhcnQgaW5zdGVhZC4KClN1Z2dlc3RlZC1ieTogQmVuamFt
-aW4gSGVycmVuc2NobWlkdCA8YmVuaEBrZXJuZWwuY3Jhc2hpbmcub3JnPgpTaWduZWQtb2ZmLWJ5
-OiBZaW5naGFpIEx1IDx5aW5naGFpQGtlcm5lbC5vcmc+CgotLS0KIGRyaXZlcnMvcGNpL3NldHVw
-LWJ1cy5jIHwgICAgNyArKysrKystCiAxIGZpbGUgY2hhbmdlZCwgNiBpbnNlcnRpb25zKCspLCAx
-IGRlbGV0aW9uKC0pCgpJbmRleDogbGludXgtMi42L2RyaXZlcnMvcGNpL3NldHVwLWJ1cy5jCj09
-PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09
-PT09PT09PT0KLS0tIGxpbnV4LTIuNi5vcmlnL2RyaXZlcnMvcGNpL3NldHVwLWJ1cy5jCisrKyBs
-aW51eC0yLjYvZHJpdmVycy9wY2kvc2V0dXAtYnVzLmMKQEAgLTE0MjAsOSArMTQyMCwxNCBAQCBz
-dGF0aWMgaW50IGNoZWNrX3VuYXNzaWduZWRfcmVzb3VyY2VzKHN0CiAKIAlmb3IgKGkgPSBQQ0lf
-SU9WX1JFU09VUkNFUzsgaSA8PSBQQ0lfSU9WX1JFU09VUkNFX0VORDsgaSsrKSB7CiAJCXN0cnVj
-dCByZXNvdXJjZSAqciA9ICZkZXYtPnJlc291cmNlW2ldOworCQlzdHJ1Y3QgcGNpX2J1c19yZWdp
-b24gcmVnaW9uOwogCiAJCS8qIE5vdCBhc3NpZ25lZCwgb3IgcmVqZWN0ZWQgYnkga2VybmVsID8g
-Ki8KLQkJaWYgKHItPmZsYWdzICYmICFyLT5zdGFydCkgeworCQlpZiAoIXItPmZsYWdzKQorCQkJ
-Y29udGludWU7CisKKwkJcGNpYmlvc19yZXNvdXJjZV90b19idXMoZGV2LCAmcmVnaW9uLCByKTsK
-KwkJaWYgKCFyZWdpb24uc3RhcnQpIHsKIAkJCSgqdW5hc3NpZ25lZCkrKzsKIAkJCXJldHVybiAx
-OyAvKiByZXR1cm4gZWFybHkgZnJvbSBwY2lfd2Fsa19idXMgKi8KIAkJfQo=
---20cf3010ecc98d92fc04e08f3de3--
