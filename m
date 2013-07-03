@@ -1,7 +1,7 @@
 From: Mika Westerberg <mika.westerberg@linux.intel.com>
-Subject: [PATCH v2 8/8] PCI: acpiphp: sanitize acpiphp_get_[latch|adapter]_status()
-Date: Wed,  3 Jul 2013 17:04:55 +0300
-Message-ID: <1372860295-8306-9-git-send-email-mika.westerberg@linux.intel.com>
+Subject: [PATCH v2 3/8] PCI: acpiphp: enable_device(): rescan even if no new devices on slot
+Date: Wed,  3 Jul 2013 17:04:50 +0300
+Message-ID: <1372860295-8306-4-git-send-email-mika.westerberg@linux.intel.com>
 References: <1372860295-8306-1-git-send-email-mika.westerberg@linux.intel.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <1372860295-8306-1-git-send-email-mika.westerberg@linux.intel.com>
@@ -10,42 +10,59 @@ To: Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Bjorn Helgaas <bhelgaas@goo
 Cc: Jesse Barnes <jbarnes@virtuousgeek.org>, Yinghai Lu <yinghai@kernel.org>, john.ronciak@intel.com, miles.j.penner@intel.com, bruce.w.allan@intel.com, Heikki Krogerus <heikki.krogerus@linux.intel.com>, "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>, Mika Westerberg <mika.westerberg@linux.intel.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, linux-pci@vger.kernel.org, x86@kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-There is no need for a temporary variable and all the tricks with ternary
-operators. Change the functions to be a bit more straightforward.
+From: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
+
+pci_scan_slot() returns number of new devices connected *directly*
+connected to the slot. Current enable_device() checks the return value
+and stops if it doesn't see a new device.
+
+In Thunderbolt chaining case the new device can be deeper in hierarchy, so
+do the rescan anyway.
+
+Because of that we must make sure that pcibios_resource_survey_bus() and
+check_hotplug_bridge() get called only for a just found bus and not the
+ones already added to the system. Failure to do so will lead to resource
+conflicts.
 
 Signed-off-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
 Signed-off-by: Mika Westerberg <mika.westerberg@linux.intel.com>
 ---
- drivers/pci/hotplug/acpiphp_glue.c | 12 ++----------
- 1 file changed, 2 insertions(+), 10 deletions(-)
+ drivers/pci/hotplug/acpiphp_glue.c | 11 ++---------
+ 1 file changed, 2 insertions(+), 9 deletions(-)
 
 diff --git a/drivers/pci/hotplug/acpiphp_glue.c b/drivers/pci/hotplug/acpiphp_glue.c
-index 506f38f..810ca4c 100644
+index b983e29..0f4da3b 100644
 --- a/drivers/pci/hotplug/acpiphp_glue.c
 +++ b/drivers/pci/hotplug/acpiphp_glue.c
-@@ -1271,11 +1271,7 @@ u8 acpiphp_get_power_status(struct acpiphp_slot *slot)
-  */
- u8 acpiphp_get_latch_status(struct acpiphp_slot *slot)
- {
--	unsigned int sta;
+@@ -685,18 +685,13 @@ static int __ref enable_device(struct acpiphp_slot *slot)
+ 	struct pci_dev *dev;
+ 	struct pci_bus *bus = slot->bridge->pci_bus;
+ 	struct acpiphp_func *func;
+-	int num, max, pass;
++	int max, pass;
+ 	LIST_HEAD(add_list);
+ 
+ 	list_for_each_entry(func, &slot->funcs, sibling)
+ 		acpiphp_bus_add(func);
+ 
+-	num = pci_scan_slot(bus, PCI_DEVFN(slot->device, 0));
+-	if (num == 0) {
+-		/* Maybe only part of funcs are added. */
+-		dbg("No new device found\n");
+-		goto err_exit;
+-	}
++	pci_scan_slot(bus, PCI_DEVFN(slot->device, 0));
+ 
+ 	max = acpiphp_max_busnr(bus);
+ 	for (pass = 0; pass < 2; pass++) {
+@@ -742,8 +737,6 @@ static int __ref enable_device(struct acpiphp_slot *slot)
+ 		}
+ 	}
+ 
 -
--	sta = get_slot_status(slot);
--
--	return (sta & ACPI_STA_DEVICE_UI) ? 0 : 1;
-+	return !(get_slot_status(slot) & ACPI_STA_DEVICE_UI);
+- err_exit:
+ 	return 0;
  }
  
- 
-@@ -1285,9 +1281,5 @@ u8 acpiphp_get_latch_status(struct acpiphp_slot *slot)
-  */
- u8 acpiphp_get_adapter_status(struct acpiphp_slot *slot)
- {
--	unsigned int sta;
--
--	sta = get_slot_status(slot);
--
--	return (sta == 0) ? 0 : 1;
-+	return !!get_slot_status(slot);
- }
 -- 
 1.8.3.2
