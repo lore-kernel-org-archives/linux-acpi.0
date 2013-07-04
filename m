@@ -1,62 +1,89 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: [PATCH 1/4] ACPI / dock: Actually define acpi_dock_init() as void
-Date: Thu, 04 Jul 2013 01:25:16 +0200
-Message-ID: <13622907.v865rbM3rp@vostro.rjw.lan>
-References: <1640211.P0jyS5muX2@vostro.rjw.lan> <1515394.L46AJCfCTt@vostro.rjw.lan> <2759309.GsYqNLU1ac@vostro.rjw.lan>
+From: Aaron Lu <aaron.lu@intel.com>
+Subject: [PATCH 2/2] ACPI / OSL: add a wrapper function to return OSI version
+Date: Thu, 04 Jul 2013 09:24:03 +0800
+Message-ID: <51D4CEB3.5080709@intel.com>
+References: <1370818899-8595-1-git-send-email-matthew.garrett@nebula.com> <51D2DC1D.60101@intel.com> <51D2DD37.2040000@intel.com> <3141401.j726us1HYg@vostro.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <2759309.GsYqNLU1ac@vostro.rjw.lan>
+In-Reply-To: <3141401.j726us1HYg@vostro.rjw.lan>
 Sender: linux-kernel-owner@vger.kernel.org
-To: ACPI Devel Maling List <linux-acpi@vger.kernel.org>
-Cc: LKML <linux-kernel@vger.kernel.org>, Bjorn Helgaas <bhelgaas@google.com>, Jiang Liu <liuj97@gmail.com>, Yinghai Lu <yinghai@kernel.org>, "Alexander E. Patrakov" <patrakov@gmail.com>
+To: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: Matthew Garrett <matthew.garrett@nebula.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "seth.forshee@canonical.com" <seth.forshee@canonical.com>, "joeyli.kernel@gmail.com" <joeyli.kernel@gmail.com>, "daniel.vetter@ffwll.ch" <daniel.vetter@ffwll.ch>, "lenb@kernel.org" <lenb@kernel.org>, Bob Moore <robert.moore@intel.com>
 List-Id: linux-acpi@vger.kernel.org
 
-From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+On 07/04/2013 05:57 AM, Rafael J. Wysocki wrote:
+> On Tuesday, July 02, 2013 10:01:27 PM Aaron Lu wrote:
+>> Drivers may need to make policy decisions based on the OS that the firmware
+>> believes it's interacting with. ACPI firmware will make a series of _OSI
+>> calls, starting from the oldest OS version they support and ending with the
+>> most recent. This patchset adds a function in ACPI OSL layer to return the
+>> last successful call so that drivers know what the firmware's expecting.
+>>
+>> Based on a patch by Matthew Garrett <matthew.garrett@nebula.com>, which
+>> is again based on a patch by Seth Forshee <seth.forshee@canonical.com>.
+>>
+>> Changelog-by: Matthew Garrett <matthew.garrett@nebula.com>
+>> Signed-off-by: Aaron Lu <aaron.lu@intel.com>
+>> Cc: Matthew Garrett <matthew.garrett@nebula.com>
+>> Cc: Seth Forshee <seth.forshee@canonical.com>
+>> ---
+>>  drivers/acpi/osl.c   | 6 ++++++
+>>  include/linux/acpi.h | 6 ++++++
+>>  2 files changed, 12 insertions(+)
+>>
+>> diff --git a/drivers/acpi/osl.c b/drivers/acpi/osl.c
+>> index 6ab2c35..7ebf07d 100644
+>> --- a/drivers/acpi/osl.c
+>> +++ b/drivers/acpi/osl.c
+>> @@ -1799,3 +1799,9 @@ void alloc_acpi_hp_work(acpi_handle handle, u32 type, void *context,
+>>  		kfree(hp_work);
+>>  }
+>>  EXPORT_SYMBOL_GPL(alloc_acpi_hp_work);
+>> +
+>> +u8 acpi_osi_version(void)
+>> +{
+>> +	return acpi_gbl_osi_data;
+>> +}
+> 
+> Actually, is there a reason not to make this static inline and put it into
+> the header?
 
-Commit 94add0f (ACPI / dock: Initialize ACPI dock subsystem upfront)
-changed the header of acpi_dock_init() in internal.h so that it is
-supposed to be a void function now, but it forgot to update its
-actual definition in dock.c according to which it still is supposed
-to return int.
+Ah right, thanks for the suggestion.
+Patch updated:
 
-Although that didn't cause any visible breakage or even a compiler
-warning to be thrown, which is odd enough, fix it.
+From: Aaron Lu <aaron.lu@intel.com>
+Subject: [PATCH updated 2/2] ACPI / OSL: add a wrapper function to return OSI version
 
-Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
-Cc: 3.10+ <stable@vger.kernel.org>
+Drivers may need to make policy decisions based on the OS that the firmware
+believes it's interacting with. ACPI firmware will make a series of _OSI
+calls, starting from the oldest OS version they support and ending with the
+most recent. This patchset adds a function in ACPI OSL layer to return the
+last successful call so that drivers know what the firmware's expecting.
+
+Based on a patch by Matthew Garrett <matthew.garrett@nebula.com>, which
+is again based on a patch by Seth Forshee <seth.forshee@canonical.com>.
+
+Signed-off-by: Aaron Lu <aaron.lu@intel.com>
 ---
- drivers/acpi/dock.c |    7 +++----
- 1 file changed, 3 insertions(+), 4 deletions(-)
+ include/linux/acpi.h | 6 ++++++
+ 1 file changed, 6 insertions(+)
 
-Index: linux-pm/drivers/acpi/dock.c
-===================================================================
---- linux-pm.orig/drivers/acpi/dock.c
-+++ linux-pm/drivers/acpi/dock.c
-@@ -931,10 +931,10 @@ find_dock_and_bay(acpi_handle handle, u3
- 	return AE_OK;
- }
+diff --git a/include/linux/acpi.h b/include/linux/acpi.h
+index 353ba25..7969bf8 100644
+--- a/include/linux/acpi.h
++++ b/include/linux/acpi.h
+@@ -578,4 +578,10 @@ acpi_handle_printk(const char *level, void *handle, const char *fmt, ...) {}
+ })
+ #endif
  
--int __init acpi_dock_init(void)
-+void __init acpi_dock_init(void)
- {
- 	if (acpi_disabled)
--		return 0;
-+		return;
- 
- 	/* look for dock stations and bays */
- 	acpi_walk_namespace(ACPI_TYPE_DEVICE, ACPI_ROOT_OBJECT,
-@@ -942,11 +942,10 @@ int __init acpi_dock_init(void)
- 
- 	if (!dock_station_count) {
- 		pr_info(PREFIX "No dock devices found.\n");
--		return 0;
-+		return;
- 	}
- 
- 	ATOMIC_INIT_NOTIFIER_HEAD(&dock_notifier_list);
- 	pr_info(PREFIX "%s: %d docks/bays found\n",
- 		ACPI_DOCK_DRIVER_DESCRIPTION, dock_station_count);
--	return 0;
- }
++#ifdef CONFIG_ACPI
++static inline u8 acpi_osi_version(void) { return acpi_gbl_osi_data; }
++#else
++static inline u8 acpi_osi_version(void) { return 0; }
++#endif
++
+ #endif	/*_LINUX_ACPI_H*/
+-- 
+1.8.3.2.10.g43d11f4
