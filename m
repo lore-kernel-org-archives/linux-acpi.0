@@ -1,119 +1,242 @@
-From: "M. Barkindo" <valentino_richie931@outlook.com>
-Subject: Confidential: Reply Asap!
-Date: Thu, 4 Jul 2013 11:25:23 +0100
-Message-ID: <345756.9691.bm@smtp218.mail.bf1.yahoo.com>
-Reply-To: <mohammed_barkindo@aol.com>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: Re: [PATCH v2 6/8] PCI: acpiphp: workaround for Thunderbolt on Acer Aspire S5
+Date: Thu, 04 Jul 2013 14:36 +0200
+Message-ID: <6828518.UobQ5xLxzT@vostro.rjw.lan>
+References: <1372860295-8306-1-git-send-email-mika.westerberg@linux.intel.com> <1444243.g9GbxN3NM0@vostro.rjw.lan> <20130704085844.GF4898@intel.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed;
-	boundary="----=_NextPart_000_00A9_01C2A9A6.6EF14AC4"
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7Bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from nm16.bullet.mail.bf1.yahoo.com ([98.139.212.175]:28816 "EHLO
-	nm16.bullet.mail.bf1.yahoo.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753523Ab3GDKZL (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 4 Jul 2013 06:25:11 -0400
+Received: from hydra.sisk.pl ([212.160.235.94]:58209 "EHLO hydra.sisk.pl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751468Ab3GDM02 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 4 Jul 2013 08:26:28 -0400
+In-Reply-To: <20130704085844.GF4898@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Mika Westerberg <mika.westerberg@linux.intel.com>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Bjorn Helgaas <bhelgaas@google.com>, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Jesse Barnes <jbarnes@virtuousgeek.org>, Yinghai Lu <yinghai@kernel.org>, john.ronciak@intel.com, miles.j.penner@intel.com, bruce.w.allan@intel.com, Heikki Krogerus <heikki.krogerus@linux.intel.com>, "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, linux-pci@vger.kernel.org, x86@kernel.org
 
-This is a multi-part message in MIME format.
+On Thursday, July 04, 2013 11:58:44 AM Mika Westerberg wrote:
+> On Wed, Jul 03, 2013 at 11:40:42PM +0200, Rafael J. Wysocki wrote:
+> > On Wednesday, July 03, 2013 05:04:53 PM Mika Westerberg wrote:
+> > > From: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
+> > > 
+> > > Correct ACPI PCI hotplug imeplementation should have _RMV method in a
+> > > PCI slot (device under pci bridge). In Acer Aspire S5 case we have it
+> > > deeper in hierarchy:
+> > > 
+> > > Device (RP05)
+> > > {
+> > >    // ...
+> > >    Device (HRUP)
+> > >    {
+> > >        // ...
+> > >        Device (HRDN)
+> > >        {
+> > >            // ...
+> > >            Device (EPUP)
+> > >            {
+> > >                // ...
+> > >                Method (_RMV, 0, NotSerialized)  // _RMV: Removal Status
+> > >                {
+> > >                    Return (One)
+> > >                }
+> > >            }
+> > >        }
+> > >    }
+> > > }
+> > > 
+> > > Signed-off-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
+> > > Signed-off-by: Mika Westerberg <mika.westerberg@linux.intel.com>
+> > > ---
+> > >  drivers/pci/hotplug/acpi_pcihp.c | 13 +++++++++++++
+> > >  1 file changed, 13 insertions(+)
+> > > 
+> > > diff --git a/drivers/pci/hotplug/acpi_pcihp.c b/drivers/pci/hotplug/acpi_pcihp.c
+> > > index 2a47e82..d92ebfb 100644
+> > > --- a/drivers/pci/hotplug/acpi_pcihp.c
+> > > +++ b/drivers/pci/hotplug/acpi_pcihp.c
+> > > @@ -422,6 +422,19 @@ static int pcihp_is_ejectable(acpi_handle handle)
+> > >  	status = acpi_evaluate_integer(handle, "_RMV", NULL, &removable);
+> > >  	if (ACPI_SUCCESS(status) && removable)
+> > >  		return 1;
+> > > +
+> > > +	/*
+> > > +	 * Workaround for Thunderbolt implementation on Acer Aspire S5.
+> > > +	 *
+> > > +	 * Correct ACPI PCI hotplug imeplementation has _RMV method in a PCI
+> > > +	 * slot (device under pci bridge). In Acer Aspire S5 case we have it
+> > > +	 * deeper in hierarchy.
+> > > +	 */
+> > > +	status = acpi_evaluate_integer(handle, "HRDN.EPUP._RMV", NULL,
+> > > +			&removable);
+> > 
+> > Well, calling stuff like this directly from a general function is kind of ugly.
+> > 
+> > Can we use something like a quirk instead?  A DMI check or something?
+> 
+> Sure we can. How about something like the patch below?
 
-------=_NextPart_000_00A9_01C2A9A6.6EF14AC4
-Content-Type: text/plain;
-	charset="Windows-1251"
-Content-Transfer-Encoding: 7bit
+Well, it goes into the right (to me) direction. :-)
 
-For confidential reason, a letter has been attached. Review and respond
+Some comments below.
 
-------=_NextPart_000_00A9_01C2A9A6.6EF14AC4
-Content-Type: application/octet-stream;
-	name="Confidential Letter.rtf"
-Content-Transfer-Encoding: base64
-Content-Disposition: attachment;
-	filename="Confidential Letter.rtf"
+> From: Mika Westerberg <mika.westerberg@linux.intel.com>
+> Subject: [PATCH] PCI: acpiphp: workaround for Thunderbolt on Acer Aspire S5
+> 
+> The acpiphp driver finds out whether the device is removable by checking
+> whether it has _RMV method directly behind it (and if it returns 1).
+> However, at least on Acer Aspire S5 with Thunderbolt host router has this
+> method placed behind a device called EPUP (endpoint upstream port?) and not
+> in the usual place expected by the acpiphp driver. The ASL code below shows
+> how this is done on that machine:
+> 
+> Device (RP05)
+> {
+> 	...
+> 	Device (HRUP)
+> 	{
+> 		Name (_ADR, Zero)
+> 		Name (_PRW, Package (0x02)
+> 		{
+> 			0x09,
+> 			0x04
+> 		})
+> 		Device (HRDN)
+> 		{
+> 			Name (_ADR, 0x00040000)
+> 			Name (_PRW, Package (0x02)
+> 			{
+> 				0x09,
+> 				0x04
+> 			})
+> 			Device (EPUP)
+> 			{
+> 				Name (_ADR, Zero)
+> 				Method (_RMV, 0, NotSerialized)
+> 				{
+> 					Return (One)
+> 				}
+> 			}
+> 		}
+> 	}
+> 	...
+> 
+> Fix this by adding a DMI quirk for the Acer Aspire S5 machine that gives an
+> alternative path to the _RMV method.
+> 
+> Signed-off-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
+> Signed-off-by: Mika Westerberg <mika.westerberg@linux.intel.com>
+> ---
+>  drivers/pci/hotplug/acpi_pcihp.c | 57 ++++++++++++++++++++++++++++++++++++----
+>  1 file changed, 52 insertions(+), 5 deletions(-)
+> 
+> diff --git a/drivers/pci/hotplug/acpi_pcihp.c b/drivers/pci/hotplug/acpi_pcihp.c
+> index 2a47e82..99fccf3 100644
+> --- a/drivers/pci/hotplug/acpi_pcihp.c
+> +++ b/drivers/pci/hotplug/acpi_pcihp.c
+> @@ -33,6 +33,7 @@
+>  #include <linux/acpi.h>
+>  #include <linux/pci-acpi.h>
+>  #include <linux/slab.h>
+> +#include <linux/dmi.h>
+>  
+>  #define MY_NAME	"acpi_pcihp"
+>  
+> @@ -408,21 +409,67 @@ got_one:
+>  }
+>  EXPORT_SYMBOL(acpi_get_hp_hw_control_from_firmware);
+>  
+> +/**
+> + * pcihp_is_removable - is the given ACPI device removable
+> + * @handle: ACPI handle of the device
+> + *
+> + * Try to find out whether the given ACPI device is removable by evaluating
+> + * its _RMV and returning the result. If we can't find the _RMV directly
+> + * under the device use system specific quirks to locate it.
+> + */
+> +static bool pcihp_is_removable(acpi_handle handle)
+> +{
 
-e1xydGYxXGFuc2lcYW5zaWNwZzEyNTJcZGVmZjBcZGVmbGFuZzIwNTd7XGZv
-bnR0Ymx7XGYwXGZuaWxcZmNoYXJzZXQwIENhbGlicmk7fX0NCntcKlxnZW5l
-cmF0b3IgTXNmdGVkaXQgNS40MS4yMS4yNTEwO31cdmlld2tpbmQ0XHVjMVxw
-YXJkXHNsMjc2XHNsbXVsdDFcbGFuZzlcZjBcZnMyMiBOSUdFUklBTiBOQVRJ
-T05BTCBQRVRST0xFVU0gQ09SUE9SQVRJT04gXHBhcg0KXHBhcg0KIEZFREVS
-QUwgTUlOSVNUUlkgT0YgUEVUUk9MVUVNIFJFU09VUkNFUyAoRi5NLlAuUiks
-IFxwYXINCk5FVyBGRURFUkFMIFNFQ1JFVEFSSUFULCBTSEVIVSBTSEFHQVJJ
-IFdBWSAsIEFCVUpBIC5ccGFyDQpMQUdPUyBBTk5FWCBPRkZJQ0UsIExBR09T
-LU5JR0VSSUEuXHBhcg0KIFRlbDogLSArMjM0LTgxMzMwNTA5OTFccGFyDQog
-ICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAg
-ICAgICAgICAgICAgICAgICAgICBccGFyDQpPdXJSZWY6Tk5QQy9GUk4vMjAx
-MyAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAg
-ICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIFxwYXIN
-CiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAg
-ICAgIFxwYXINClxwYXINCkFUVE46IE1BTkFHSU5HIERJUkVDVE9SIFxwYXIN
-ClxwYXINCiAgXHBhcg0KXHBhcg0KREVBUiBTSVIvTUFEQU0sIFxwYXINClxw
-YXINCiAgICAgICAgICAgICAgIFJFUVVFU1RGT1IgQVNTSVNUQU5DRS0gU1RS
-SUNUTFkgQ09ORklERU5USUFMIFxwYXINClxwYXINCiAgXHBhcg0KXHBhcg0K
-IEkgYW0gTXIuIE1vaGFtbWVkIFNhbnVzaSBCYXJraW5kbywgQWNjb3VudGFu
-dCBHZW5lcmFsIE5pZ2VyaWEgTmF0aW9uYWwgUGV0cm9sZXVtIENvcnBvcmF0
-aW9uIGFuZCBhbHNvIGFuZCBhY2NvdW50YW50IHdpdGggRmVkZXJhbCBNaW5p
-c3RyeSBvZiBwZXRyb2xldW0gUmVzb3VyY2VzIChGTVBSKSBhbmQgYSBtZW1i
-ZXIgb2YgYSB0aHJlZS1tYW4gVGVuZGVyIEJvYXJkIGluIGNoYXJnZSBvZiBj
-b250cmFjdCByZXZpZXcgYW5kIHBheW1lbnQgYXBwcm92YWxzLiBJIGNhbWUg
-dG8ga25vdyBvZiB5b3UgaW4gbXkgc2VhcmNoIGZvciBhIHJlbGlhYmxlIHBl
-cnNvbiB0byBoYW5kbGUgYSB2ZXJ5IGNvbmZpZGVudGlhbCB0cmFuc2FjdGlv
-biB0aGF0IGludm9sdmVzIHRoZSB0cmFuc2ZlciBvZiBhIGh1Z2Ugc3VtIG9m
-IG1vbmV5IHRvIGEgZm9yZWlnbiBhY2NvdW50LiBJdCBtYXkgc291bmQgc3Ry
-YW5nZSBidXQgZXhlcmNpc2UgcGF0aWVuY2UgYW5kIHJlYWQgb24uIFRoZXJl
-IHdlcmUgc2VyaWVzIG9mIGNvbnRyYWN0cyBleGVjdXRlZCBieSBhIGNvbnNv
-cnRpdW0gTXVsdGluYXRpb25hbCBpbiB0aGUgT2lsIGluZHVzdHJ5IGluIGZh
-dm91ciBvZiBNaW5pc3RyeSBvZiBQZXRyb2xldW0gUmVzb3VyY2VzIGFtb25n
-IHdoaWNoIHdhczogXHBhcg0KXHBhcg0KICBccGFyDQpccGFyDQoxLiBUaGUg
-ZXh0ZW5zaW9uIG9mIHBpcGVsaW5lIG5ldHdvcmsgd2l0aGluIE5pZ2VyaWEg
-Zm9yIGNydWRlIG9pbCwgRG93biBzdHJlYW0gcHJvZHVjdHMgZGlzdHJpYnV0
-aW9uIGFuZCBzdWJzZXF1ZW50IGV2YWN1YXRpb24tIFVTJCAxOTUgTWlsbGlv
-bi4gXHBhcg0KXHBhcg0KMi4gQ29udHJhY3QgZm9yIHRoZSBUdXJuIGFyb3Vu
-ZCBNYWludGVuYW5jZSAoVEFNKSBvZiB0aGUgdmFyaW91cyByZWZpbmVyaWVz
-IGluIHRoZSBjb3VudHJ5fiBVUyQgMTUyTWlsbGlvbi4gXHBhcg0KXHBhcg0K
-My4gVGhlIGNvbnN0cnVjdGlvbiBvZiB0aGUgS2FkdW5hIFJlZmluZXJ5LCBz
-b21lIGNvbnRyYWN0b3JzIHdoZXJlIHBhaWQgdGhlaXIgY29udHJhY3Qgc3Vt
-IHdoaWxlIHNvbWUgaGFzIG5vdCBiZWVuIHBhaWQgYnkgdGhlIE5pZ2VyaWFu
-IEdvdmVybm1lbnQuIEZldyBkYXlzIGFnbywgdGhlIHByZXNpZGVudCBvZiB0
-aGUgZmVkZXJhbCByZXB1YmxpYyBvZiBOaWdlcmlhIGNhbGxlZCB0byB0aGUg
-QXNvLVJvY2sgVmlsbGEgQWJ1amEsIHdoZXJlIHdlIGhlYWQgbWVldGluZyBj
-b25jZXJuaW5nIGNvbnRyYWN0b3JzIHRoYXQgaGFzIG5vdCBiZWVuIHBhaWQg
-dGhlaXIgY29udHJhY3QgcGF5bWVudHMsIGFmdGVyIHRoZSBtZWV0aW5nLCBo
-ZSB0aGVuIGFza2VkIG1lIHRvIGJlIGluIGNoYXJnZSBieSBwcmVwYXJpbmcg
-dGhlIG5hbWUgb2YgdGhlIGNvbnRyYWN0b3IgdGhhdCBuZWVkZWQgdG8gYmUg
-cGFpZCB0aGVpciBjb250cmFjdCBwYXltZW50cyBhbmQgdGhlbiBzdWJtaXQg
-aXQgdG8gaGltIGZvciBhcHByb3ZhbC4gXHBhcg0KXHBhcg0KICBccGFyDQpc
-cGFyDQpXaHkgYW0gd3JpdGluZyB5b3UgdGhpcyBtYWlsLCBpcyBmb3IgdXMg
-dG8gZG8gdGhpcyBkZWFsLCBiZWNhdXNlIEkgd2lsbCBiZSBhcHByb3Zpbmcg
-dGhlIHN1bSBvZiBVU0QkMzguNU1pbGxpb24gaW4geW91ciBuYW1lIGFuZCBJ
-IHdhbnQgeW91IHRvIGFjdCBhcyBvbmUgb2YgdGhlIGNvbnRyYWN0b3JzIG93
-bmVkIGJ5IHRoZSBOaWdlcmlhbiBHb3Zlcm5tZW50LCBJIHdpbGwgaW5jbHVk
-ZSB5b3VyIG5hbWUgaW4gdGhlIGZpbGUgSSB3aWxsIHN1Ym1pdCB0byB0aGUg
-cHJlc2lkZW5jeSBmb3IgYXBwcm92YWwgYW5kIEkgYW0gcHJlcGFyZWQgdG8g
-Z2l2ZSB5b3UgMzAlIG9mIHRoZSB0b3RhbCBzdW0gYWZ0ZXIgdGhpcyBtb25l
-eSBpcyBiZWVuIHRyYW5zZmVycmVkIHRvIHlvdXIgYmFuayBhY2NvdW50LiBc
-cGFyDQpccGFyDQogIFxwYXINClxwYXINClNpci9NYWRhbSwgaWYgeW91IGFy
-ZSB3aWxsaW5nIHRvIGRvIHRoaXMgZGVhbCB3aXRoIG1lLCBraW5kbHkgY29u
-dGFjdCBtZSB2aWEgdGhlIHRlbGVwaG9uZSBudW1iZXJzIG9yIGVtYWlsIGFk
-ZHJlc3MgYWJvdmUgb3IgdmlhIHRoaXMgYWx0ZXJuYXRpdmUgZW1haWwgYWRk
-cmVzcyAobW9oYW1tZWRiYXJraW5kbzExMUBnbWFpbC5jb20gKSB0aGVuIEkg
-d2lsbCBub3cgdGVsbCB5b3UgdGhlIG5leHQgc3RlcCB0aGF0IHdlIGFyZSBn
-b2luZyB0byBmb2xsb3cgYW5kIHdoYXQgeW91IG5lZWQgdG8gc2VuZCB0byBt
-ZSBmb3IgbWUgdG8gc3RhcnQgcHJvY2Vzc2luZyBhbGwgdGhlIHBhcGVyIHdv
-cmtzIHRvIGJhY2sgdXAgdGhlIGNsYWltIG9mIHRoaXMgVVNEJDM4LjVNLiBQ
-bGVhc2UgZG9uXHJxdW90ZSB0IGZhaWwgdG8gaW5jbHVkZSB5b3VyIHByaXZh
-dGUgY29udGFjdHMgZGV0YWlscy4gUGxlYXNlIGRlc3Ryb3kgdGhpcyBsZXR0
-ZXIsIGlmIHlvdSBhcmUgbm90IHdpbGxpbmcgdG8gZG8gdGhpcyBkZWFsIHdp
-dGggbWUuIEkgd2lsbCBiZSBpbnZlc3RpbmcgbXkgb3duIHNoYXJlIG9mIHRo
-ZSBtb25leSB0aHJvdWdoIHlvdXIgZ3VpZGUgbGluZXMgaW4geW91ciBjb3Vu
-dHJ5IG9yIGlmIHlvdSBoYXZlIGEgY29tcGFueSwgSSBwcmVmZXIgdG8gZ28g
-aW50byBwYXJ0bmVyc2hpcCB3aXRoIHlvdS4gU28gcGxlYXNlIHRyZWF0IHRo
-aXMgZGVhbCB3aXRoIHV0bW9zdCBjb25maWRlbnRpYWxpdHkgaWYgeW91IGFy
-ZSB3aWxsaW5nIHRvIGRvIHRoaXMgZGVhbCB3aXRoIG1lLCBhbmQgYWZ0ZXIg
-YWxsIGRvY3VtZW50YXRpb25zLCBpdCB3aWxsIHRha2UganVzdCA3IGJhbmtp
-bmcgd29ya2luZyBkYXlzIHRvIGNvbmNsdWRlIGV2ZXJ5dGhpbmcuIFxwYXIN
-ClxwYXINCiAgXHBhcg0KXHBhcg0KVGhhbmtzIFxwYXINClxwYXINCiAgXHBh
-cg0KXHBhcg0KWW91cnMgRmFpdGhmdWxseSwgXHBhcg0KXHBhcg0KXHBhcg0K
-ICBccGFyDQpccGFyDQogTXIuIE1vaGFtbWVkIFNhbnVzaSBCYXJraW5kb1xw
-YXINClxwYXINCihGRURFUkFMIE1JTklTVFJZIE9GIFBFVFJPTEVVTSBSRVNP
-VVJDRVMsIE5OUEMpIFxwYXINCn0NCgA=
+People are generally used to seeing DMI lists outside of functions.
 
-------=_NextPart_000_00A9_01C2A9A6.6EF14AC4--
+> +	static const struct dmi_system_id rmv_paths[] = {
+> +		{
+> +			/*
+> +			 * On Acer Aspire S5 the _RMV method for the
+> +			 * Thunderbolt host router upstream port is not
+> +			 * located directly under the device but it is
+> +			 * instead placed a bit deeper in the hierarchy.
+> +			 */
+> +			.ident = "Acer Aspire S5",
+> +			.matches = {
+> +				DMI_MATCH(DMI_SYS_VENDOR, "Acer"),
+> +				DMI_MATCH(DMI_PRODUCT_NAME, "Aspire S5-391"),
+> +			},
+> +			.driver_data = "HRDN.EPUP._RMV",
+
+Use .callback instead? ->
+
+> +		},
+> +		{ }
+> +	};
+> +	const struct dmi_system_id *id;
+> +	unsigned long long removable;
+> +	acpi_status status;
+> +
+> +	status = acpi_evaluate_integer(handle, "_RMV", NULL, &removable);
+> +	if (ACPI_SUCCESS(status))
+> +		return !!removable;
+> +
+> +	/* Try system specific quirks */
+> +	id = dmi_first_match(rmv_paths);
+> +	if (id && id->driver_data) {
+
+-> And here do
+
+	if (id && id->callback)
+		return id->callback(id);
+
+> +		char path[64];
+> +
+> +		strlcpy(path, id->driver_data, sizeof(path));
+> +		status = acpi_evaluate_integer(handle, path, NULL, &removable);
+> +		if (ACPI_SUCCESS(status))
+> +			return !!removable;
+> +	}
+> +
+> +	return false;
+> +}
+> +
+>  static int pcihp_is_ejectable(acpi_handle handle)
+>  {
+>  	acpi_status status;
+>  	acpi_handle tmp;
+> -	unsigned long long removable;
+> +
+>  	status = acpi_get_handle(handle, "_ADR", &tmp);
+>  	if (ACPI_FAILURE(status))
+>  		return 0;
+>  	status = acpi_get_handle(handle, "_EJ0", &tmp);
+>  	if (ACPI_SUCCESS(status))
+>  		return 1;
+> -	status = acpi_evaluate_integer(handle, "_RMV", NULL, &removable);
+> -	if (ACPI_SUCCESS(status) && removable)
+> -		return 1;
+
+I'd keep the above unchanged and simply add a "platform check" function.
+
+> -	return 0;
+> +	return pcihp_is_removable(handle);
+>  }
+>  
+>  /**
+
+Thanks,
+Rafael
+
+
+-- 
+I speak only for myself.
+Rafael J. Wysocki, Intel Open Source Technology Center.
