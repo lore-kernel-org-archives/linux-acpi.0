@@ -1,47 +1,50 @@
 From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: [PATCH 2/3] ACPI: Remove old /proc/acpi/event interface
-Date: Thu, 04 Jul 2013 14:37:48 +0200
-Message-ID: <1935997.TsJ39x11ul@vostro.rjw.lan>
-References: <1372855719-34315-1-git-send-email-trenn@suse.de> <1545278.bq6oSR27Gq@vostro.rjw.lan> <1513052.oSjeLTGJqb@skinner.arch.suse.de>
+Subject: Re: [PATCH] acpi: remove unused LIST_HEAD(acpi_device_list)
+Date: Thu, 04 Jul 2013 14:50:53 +0200
+Message-ID: <41636089.XPqKizzent@vostro.rjw.lan>
+References: <20130704022730.GB3244@hli22-desktop> <1372910831-19721-1-git-send-email-haicheng.li@linux.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7Bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1513052.oSjeLTGJqb@skinner.arch.suse.de>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Thomas Renninger <trenn@suse.de>, Matthew Garrett <matthew.garrett@nebula.com>
-Cc: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, platform-driver-x86@vger.kernel.org, ibm-acpi-devel@lists.sourceforge.net, rui.zhang@intel.com, lenb@kernel.org, Henrique de Moraes Holschuh <hmh@hmh.eng.br>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from hydra.sisk.pl ([212.160.235.94]:58237 "EHLO hydra.sisk.pl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752167Ab3GDMlN (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 4 Jul 2013 08:41:13 -0400
+In-Reply-To: <1372910831-19721-1-git-send-email-haicheng.li@linux.intel.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Haicheng Li <haicheng.li@linux.intel.com>
+Cc: linux-acpi@vger.kernel.org, Len Brown <lenb@kernel.org>, linux-kernel@vger.kernel.org, Haicheng Li <haicheng.lee@gmail.com>
 
-On Thursday, July 04, 2013 09:49:02 AM Thomas Renninger wrote:
-> On Wednesday, July 03, 2013 11:56:27 PM Rafael J. Wysocki wrote:
-> > On Wednesday, July 03, 2013 02:48:38 PM Thomas Renninger wrote:
-> > > It is quite some time that this one is deprecated.
-> > > Get rid of it.
-> > > 
-> > > If there should really some important user be overseen it could get
-> > > reverted and worked on the userspace program first. But it is time to do
-> > > something to get rid of this old stuff...
-> > 
-> > Does this patch depend on the other patches in this series?
+On Thursday, July 04, 2013 12:07:11 PM Haicheng Li wrote:
+> acpi_device_list is not used by acpi code anymore, could be removed.
 > 
-> I should have split this up in two submit requests...:
-> 
-> [PATCH 1/3] x86 microcode: Remove old MICROCODE_OLD_INTERFACE
-> is independent from the other two, but
-> 
-> [PATCH 2/3] ACPI: Remove old /proc/acpi/event interface
-> and
-> [PATCH 3/3] platform thinkpad: Remove deprecated hotkey_report_mode parameter
-> should go in together.
+> Signed-off-by: Haicheng Li <haicheng.li@linux.intel.com>
 
-OK
+OK, applied.
 
-I can take [2/3] and [3/3] for 3.12 if Matthew has no objections.  Matthew?
-
+Thanks,
 Rafael
 
 
+> ---
+>  drivers/acpi/scan.c |    1 -
+>  1 file changed, 1 deletion(-)
+> 
+> diff --git a/drivers/acpi/scan.c b/drivers/acpi/scan.c
+> index 27da630..fcc0cdc 100644
+> --- a/drivers/acpi/scan.c
+> +++ b/drivers/acpi/scan.c
+> @@ -29,7 +29,6 @@ extern struct acpi_device *acpi_root;
+>  
+>  static const char *dummy_hid = "device";
+>  
+> -static LIST_HEAD(acpi_device_list);
+>  static LIST_HEAD(acpi_bus_id_list);
+>  static DEFINE_MUTEX(acpi_scan_lock);
+>  static LIST_HEAD(acpi_scan_handlers_list);
+> 
 -- 
 I speak only for myself.
 Rafael J. Wysocki, Intel Open Source Technology Center.
