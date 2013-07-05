@@ -1,48 +1,61 @@
-From: Mika Westerberg <mika.westerberg@linux.intel.com>
-Subject: [PATCH] ACPI / power: add missing newline to debug messages
-Date: Fri,  5 Jul 2013 12:15:56 +0300
-Message-ID: <1373015756-29635-1-git-send-email-mika.westerberg@linux.intel.com>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: Re: [PATCH] ACPI / power: add missing newline to debug messages
+Date: Fri, 05 Jul 2013 14:18:14 +0200
+Message-ID: <2462906.A69BgWcTke@vostro.rjw.lan>
+References: <1373015756-29635-1-git-send-email-mika.westerberg@linux.intel.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7Bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga14.intel.com ([143.182.124.37]:34382 "EHLO mga14.intel.com"
+Received: from hydra.sisk.pl ([212.160.235.94]:59407 "EHLO hydra.sisk.pl"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753718Ab3GEJNB (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 5 Jul 2013 05:13:01 -0400
+	id S1756596Ab3GEMIh (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 5 Jul 2013 08:08:37 -0400
+In-Reply-To: <1373015756-29635-1-git-send-email-mika.westerberg@linux.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>
-Cc: Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Mika Westerberg <mika.westerberg@linux.intel.com>
+To: Mika Westerberg <mika.westerberg@linux.intel.com>
+Cc: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 
-There are few places in power.c where debug messages have no newline at the
-end. Reading such debug messages from dmesg is not fun so fix this by
-adding the missing newlines.
+On Friday, July 05, 2013 12:15:56 PM Mika Westerberg wrote:
+> There are few places in power.c where debug messages have no newline at the
+> end. Reading such debug messages from dmesg is not fun so fix this by
+> adding the missing newlines.
+> 
+> Signed-off-by: Mika Westerberg <mika.westerberg@linux.intel.com>
 
-Signed-off-by: Mika Westerberg <mika.westerberg@linux.intel.com>
----
- drivers/acpi/power.c | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+Applied, thanks!
 
-diff --git a/drivers/acpi/power.c b/drivers/acpi/power.c
-index 288bb27..5c28c89 100644
---- a/drivers/acpi/power.c
-+++ b/drivers/acpi/power.c
-@@ -279,7 +279,7 @@ static int acpi_power_on_unlocked(struct acpi_power_resource *resource)
- 
- 	if (resource->ref_count++) {
- 		ACPI_DEBUG_PRINT((ACPI_DB_INFO,
--				  "Power resource [%s] already on",
-+				  "Power resource [%s] already on\n",
- 				  resource->name));
- 	} else {
- 		result = __acpi_power_on(resource);
-@@ -325,7 +325,7 @@ static int acpi_power_off_unlocked(struct acpi_power_resource *resource)
- 
- 	if (!resource->ref_count) {
- 		ACPI_DEBUG_PRINT((ACPI_DB_INFO,
--				  "Power resource [%s] already off",
-+				  "Power resource [%s] already off\n",
- 				  resource->name));
- 		return 0;
- 	}
+Rafael
+
+
+> ---
+>  drivers/acpi/power.c | 4 ++--
+>  1 file changed, 2 insertions(+), 2 deletions(-)
+> 
+> diff --git a/drivers/acpi/power.c b/drivers/acpi/power.c
+> index 288bb27..5c28c89 100644
+> --- a/drivers/acpi/power.c
+> +++ b/drivers/acpi/power.c
+> @@ -279,7 +279,7 @@ static int acpi_power_on_unlocked(struct acpi_power_resource *resource)
+>  
+>  	if (resource->ref_count++) {
+>  		ACPI_DEBUG_PRINT((ACPI_DB_INFO,
+> -				  "Power resource [%s] already on",
+> +				  "Power resource [%s] already on\n",
+>  				  resource->name));
+>  	} else {
+>  		result = __acpi_power_on(resource);
+> @@ -325,7 +325,7 @@ static int acpi_power_off_unlocked(struct acpi_power_resource *resource)
+>  
+>  	if (!resource->ref_count) {
+>  		ACPI_DEBUG_PRINT((ACPI_DB_INFO,
+> -				  "Power resource [%s] already off",
+> +				  "Power resource [%s] already off\n",
+>  				  resource->name));
+>  		return 0;
+>  	}
+> 
 -- 
-1.8.3.2
-
+I speak only for myself.
+Rafael J. Wysocki, Intel Open Source Technology Center.
