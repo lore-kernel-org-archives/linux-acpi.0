@@ -1,70 +1,115 @@
-From: Mika Westerberg <mika.westerberg@linux.intel.com>
-Subject: Re: ACPI errors from TPM PPI
-Date: Sat, 6 Jul 2013 14:10:25 +0300
-Message-ID: <20130706111025.GZ4898@intel.com>
-References: <CAMfhd9XWfp420M9wF-ACya9hbQGUSkneRB6sry9=nj1KtB_ygw@mail.gmail.com>
- <10172565.WQexNecTHe@vostro.rjw.lan>
- <CAMfhd9U6qvm2kTb2D8PgzR8qCqZnDWhLNC4Ojzftc8PdmKwjnA@mail.gmail.com>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: Re: [PATCH 3/3] i915: Don't provide ACPI backlight interface if firmware expects Windows 8
+Date: Sat, 06 Jul 2013 15:33:01 +0200
+Message-ID: <3467567.zOLDhye8QD@vostro.rjw.lan>
+References: <1370818899-8595-1-git-send-email-matthew.garrett@nebula.com> <2962350.laXfENfrac@vostro.rjw.lan> <51D7AF14.9050508@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7Bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga09.intel.com ([134.134.136.24]:47699 "EHLO mga09.intel.com"
+Received: from hydra.sisk.pl ([212.160.235.94]:60543 "EHLO hydra.sisk.pl"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752945Ab3GFLE7 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Sat, 6 Jul 2013 07:04:59 -0400
-Content-Disposition: inline
-In-Reply-To: <CAMfhd9U6qvm2kTb2D8PgzR8qCqZnDWhLNC4Ojzftc8PdmKwjnA@mail.gmail.com>
+	id S1750931Ab3GFNXX (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Sat, 6 Jul 2013 09:23:23 -0400
+In-Reply-To: <51D7AF14.9050508@gmail.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Adam Langley <agl@imperialviolet.org>
-Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, xiaoyan.zhang@intel.com, Bob Moore <robert.moore@intel.com>, Lv Zheng <lv.zheng@intel.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>
+To: Aaron Lu <aaron.lwe@gmail.com>
+Cc: Matthew Garrett <matthew.garrett@nebula.com>, daniel.vetter@ffwll.ch, linux-acpi@vger.kernel.org, seth.forshee@canonical.com, joeyli.kernel@gmail.com, intel-gfx@lists.freedesktop.org, dri-devel@lists.freedesktop.org, linux-kernel@vger.kernel.org, lenb@kernel.org
 
-On Fri, Jul 05, 2013 at 10:03:10AM -0400, Adam Langley wrote:
-> On Thu, Jul 4, 2013 at 9:07 PM, Rafael J. Wysocki <rjw@rjwysocki.net> wrote:
-> >> This appears to be coming from acpi_evaluate_object_typed in
-> >> http://git.kernel.org/cgit/linux/kernel/git/torvalds/linux.git/tree/drivers/char/tpm/tpm_ppi.c#n75,
-> >> so I added a printk to get the actual value of |status| when it fails
-> >> and it's 5 (aka AE_NOT_FOUND I believe).
+On Saturday, July 06, 2013 01:45:56 PM Aaron Lu wrote:
+> On 07/06/2013 06:23 AM, Rafael J. Wysocki wrote:
+> > On Friday, July 05, 2013 11:40:02 PM Rafael J. Wysocki wrote:
+> >> On Friday, July 05, 2013 10:00:55 PM Rafael J. Wysocki wrote:
+> >>> On Friday, July 05, 2013 02:20:14 PM Rafael J. Wysocki wrote:
+> >>>> On Sunday, June 09, 2013 07:01:39 PM Matthew Garrett wrote:
+> >>>>> Windows 8 leaves backlight control up to individual graphics drivers rather
+> >>>>> than making ACPI calls itself. There's plenty of evidence to suggest that
+> >>>>> the Intel driver for Windows doesn't use the ACPI interface, including the
+> >>>>> fact that it's broken on a bunch of machines when the OS claims to support
+> >>>>> Windows 8. The simplest thing to do appears to be to disable the ACPI
+> >>>>> backlight interface on these systems.
+> >>>>>
+> >>>>> Signed-off-by: Matthew Garrett <matthew.garrett@nebula.com>
+> >>>>> ---
+> >>>>>  drivers/gpu/drm/i915/i915_dma.c | 3 +++
+> >>>>>  1 file changed, 3 insertions(+)
+> >>>>>
+> >>>>> diff --git a/drivers/gpu/drm/i915/i915_dma.c b/drivers/gpu/drm/i915/i915_dma.c
+> >>>>> index 3b315ba..23b6292 100644
+> >>>>> --- a/drivers/gpu/drm/i915/i915_dma.c
+> >>>>> +++ b/drivers/gpu/drm/i915/i915_dma.c
+> >>>>> @@ -1661,6 +1661,9 @@ int i915_driver_load(struct drm_device *dev, unsigned long flags)
+> >>>>>  		/* Must be done after probing outputs */
+> >>>>>  		intel_opregion_init(dev);
+> >>>>>  		acpi_video_register();
+> >>>>> +		/* Don't use ACPI backlight functions on Windows 8 platforms */
+> >>>>> +		if (acpi_osi_version() >= ACPI_OSI_WIN_8)
+> >>>>> +			acpi_video_backlight_unregister();
+> >>>>>  	}
+> >>>>>  
+> >>>>>  	if (IS_GEN5(dev))
+> >>>>>
+> >>>>
+> >>>> Well, this causes build failures to happen when the ACPI video driver is
+> >>>> modular and the graphics driver is not.
+> >>>>
+> >>>> I'm not sure how to resolve that, so suggestions are welcome.
+> >>>
+> >>> Actually, that happened with the radeon patch.
+> >>>
+> >>> That said, ACPI_OSI_WIN_8 doesn't make much sense for !CONFIG_ACPI, for
+> >>> example.
+> >>>
+> >>> What about making acpi_video_register() do the quirk instead?  We could add an
+> >>> argument to it indicating whether or not quirks should be applied.
+> >>
+> >> Actually, I wonder what about the appended patch (on top of the Aaron's
+> >> https://patchwork.kernel.org/patch/2812951/) instead of [1-3/3] from this series.
+> > 
+> > Or even something as simple as this one.
+> > 
+> > ---
+> >  drivers/acpi/video_detect.c |    3 +++
+> >  1 file changed, 3 insertions(+)
+> > 
+> > Index: linux-pm/drivers/acpi/video_detect.c
+> > ===================================================================
+> > --- linux-pm.orig/drivers/acpi/video_detect.c
+> > +++ linux-pm/drivers/acpi/video_detect.c
+> > @@ -203,6 +203,9 @@ long acpi_video_get_capabilities(acpi_ha
+> >  		 */
+> >  
+> >  		dmi_check_system(video_detect_dmi_table);
+> > +
+> > +		if (acpi_gbl_osi_data >= ACPI_OSI_WIN_8)
+> > +			acpi_video_support |= ACPI_VIDEO_BACKLIGHT_FORCE_VENDOR;
 > 
-> In hindsight, the error was somewhat obvious. The driver is locating
-> the TPM object in the ACPI tables by walking the tables with a
-> callback [1]. The callback is using strstr to look for the substring
-> "TPM" in the handle of the object and returns the first that it finds.
-> On my system, if I alter the callback to print each match and not
-> abort the walk I find three values:
+> Then vendor driver(thinkpad_acpi) will step in and create a backlight
+> interface for the system, which, unfortunately, is also broken for those
+> win8 thinkpads.
 > 
-> \_SB_.PCI0.TPMX
-> \_SB_.PCI0.LPCB.TPM_
-> \_SB_.PCI0.ITPM
+> So we will need to do something in thinkpad_acpi to also not create
+> backlight interface for these systems too.
 > 
-> Of these, the second is the right one.
+> This actually doesn't feel bad to me, since the modules are blacklisting
+> their own interfaces. The downside is of course, two quirk code exist.
 > 
-> (I note that the callback also appears to have a memory leak in the
-> case that the string doesn't contain "TPM".)
-> 
-> I'm sure that the strstr() worked on the computer that it was
-> developed on, but it's rather fragile. I can get it working for me by
-> using "LPCB.TPM" as the argument to strstr(), but who's to say that
-> doesn't break someone else?
+> BTW, unregistering ACPI video's backlight interface in GPU driver doesn't
+> have this problem since it made the platform driver think the ACPI video
+> driver will control the backlight and then use the newly added API to
+> remove ACPI video created backlight interface.
 
-I wonder whether there is a real PNP Id associated with that device?
+Yes, I know this.
 
-I have one sample ASL code that looks like:
+I think I also know how to introduce that change in a slightly cleaner way.
 
-    Device (\_SB.PCI0.LPCB.TPM)
-    {
-        Name (_HID, EisaId ("PNP0C31"))
-        Name (_CID, EisaId ("PNP0C31"))
-        Name (_STR, Unicode ("TPM 1.2 Device"))
-        Name (_CRS, ResourceTemplate ()
-        {
-            Memory32Fixed (ReadOnly,
-                0xFED40000,         // Address Base
-                0x00005000,         // Address Length
-                )
-        })
+I'll post a patch for comments later today or tomorrow.
 
-Does your TPM_ device look similar?
+Thanks,
+Rafael
 
-That PNP0C31 can be matched in the TPM driver instead of trusting some
-random device names that might change from vendor to vendor.
+
+-- 
+I speak only for myself.
+Rafael J. Wysocki, Intel Open Source Technology Center.
