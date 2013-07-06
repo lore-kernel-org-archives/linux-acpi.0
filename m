@@ -1,49 +1,63 @@
-From: Henrique de Moraes Holschuh <hmh-N3TV7GIv+o9fyO9Q7EP/yw@public.gmane.org>
-Subject: Re: [PATCH 3/3] platform thinkpad: Remove
- deprecated hotkey_report_mode parameter
-Date: Sat, 6 Jul 2013 11:07:43 -0300
-Message-ID: <20130706140743.GA16737@khazad-dum.debian.net>
+From: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
+Subject: Re: [PATCH 2/3] ACPI: Remove old /proc/acpi/event interface
+Date: Sat, 6 Jul 2013 11:09:00 -0300
+Message-ID: <20130706140900.GB16737@khazad-dum.debian.net>
 References: <1372855719-34315-1-git-send-email-trenn@suse.de>
-	<1372855719-34315-4-git-send-email-trenn@suse.de>
+ <1372855719-34315-3-git-send-email-trenn@suse.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <ibm-acpi-devel-bounces-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <platform-driver-x86-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <1372855719-34315-4-git-send-email-trenn-l3A5Bk7waGM@public.gmane.org>
-List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/ibm-acpi-devel>,
-	<mailto:ibm-acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum_name=ibm-acpi-devel>
-List-Post: <mailto:ibm-acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-List-Help: <mailto:ibm-acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/ibm-acpi-devel>,
-	<mailto:ibm-acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
-Errors-To: ibm-acpi-devel-bounces-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-To: Thomas Renninger <trenn-l3A5Bk7waGM@public.gmane.org>
-Cc: linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, ibm-acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, platform-driver-x86-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+In-Reply-To: <1372855719-34315-3-git-send-email-trenn@suse.de>
+Sender: platform-driver-x86-owner@vger.kernel.org
+To: Thomas Renninger <trenn@suse.de>
+Cc: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, platform-driver-x86@vger.kernel.org, ibm-acpi-devel@lists.sourceforge.net, rui.zhang@intel.com, lenb@kernel.org, "Rafael J. Wysocki" <rjw@sisk.pl>, Matthew Garrett <matthew.garrett@nebula.com>
 List-Id: linux-acpi@vger.kernel.org
 
 On Wed, 03 Jul 2013, Thomas Renninger wrote:
-> It is somewhat strange that the default value to support the depracated
-> interface is set (1).
-> Anyway this exists for years. The previous patch already removed the
-> functionality to still export specific events through /proc. Now this param
-> is useless and should vanish as well.
+> It is quite some time that this one is deprecated.
+> Get rid of it.
 > 
-> CC: Henrique de Moraes Holschuh <hmh-N3TV7GIv+o9fyO9Q7EP/yw@public.gmane.org>
-> Signed-off-by: Thomas Renninger <trenn-l3A5Bk7waGM@public.gmane.org>
+> If there should really some important user be overseen it could get reverted
+> and worked on the userspace program first. But it is time to do something to
+> get rid of this old stuff...
+> 
+> CC: rui.zhang@intel.com
+> CC: lenb@kernel.org
+> CC: Rafael J. Wysocki <rjw@sisk.pl>
+> CC: Matthew Garrett <matthew.garrett@nebula.com>
+> CC: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
 
-Acked-by: Henrique de Moraes Holschuh <hmh-N3TV7GIv+o9fyO9Q7EP/yw@public.gmane.org>
+For the thinkpad-acpi hunks:
+Acked-by: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
+
+> Signed-off-by: Thomas Renninger <trenn@suse.de>
+> ---
+>  Documentation/laptops/asus-laptop.txt   |    8 +-
+>  Documentation/laptops/sony-laptop.txt   |    8 +-
+>  Documentation/power/video_extension.txt |   15 -----
+>  drivers/acpi/Kconfig                    |   18 -----
+>  drivers/acpi/ac.c                       |    1 -
+>  drivers/acpi/acpi_pad.c                 |    1 -
+>  drivers/acpi/battery.c                  |    2 -
+>  drivers/acpi/bus.c                      |   98 ----------------------------
+>  drivers/acpi/button.c                   |    2 -
+>  drivers/acpi/event.c                    |  106 -------------------------------
+>  drivers/acpi/processor_driver.c         |    4 -
+>  drivers/acpi/sbs.c                      |   15 +----
+>  drivers/acpi/thermal.c                  |    3 -
+>  drivers/acpi/video.c                    |   10 ---
+>  drivers/platform/x86/asus-laptop.c      |    1 -
+>  drivers/platform/x86/eeepc-laptop.c     |    1 -
+>  drivers/platform/x86/fujitsu-laptop.c   |    4 -
+>  drivers/platform/x86/panasonic-laptop.c |    3 -
+>  drivers/platform/x86/sony-laptop.c      |    4 -
+>  drivers/platform/x86/thinkpad_acpi.c    |   11 ---
+>  include/acpi/acpi_bus.h                 |    9 ---
+>  21 files changed, 10 insertions(+), 314 deletions(-)
 
 -- 
   "One disk to rule them all, One disk to find them. One disk to bring
   them all and in the darkness grind them. In the Land of Redmond
   where the shadows lie." -- The Silicon Valley Tarot
   Henrique Holschuh
-
-------------------------------------------------------------------------------
-This SF.net email is sponsored by Windows:
-
-Build for Windows Store.
-
-http://p.sf.net/sfu/windows-dev2dev
