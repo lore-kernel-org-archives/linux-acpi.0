@@ -1,31 +1,39 @@
 From: Tony Luck <tony.luck@gmail.com>
-Subject: Re: [PATCH] efi_pstore: add missing iounmap() on error in erst_exec_move_data()
-Date: Mon, 8 Jul 2013 11:34:44 -0700
-Message-ID: <CA+8MBbJt=PjXHkv_58yPt6k_8ch6BYuKmNcnKneCQ9cbhYffyg@mail.gmail.com>
-References: <CAPgLHd-x4N6NVJUWz9Tr4onnBgEwLW6CNQqS1_upSQzPKSoX2Q@mail.gmail.com>
-	<CAGXu5j+YYp_xm+hwaRt5HBpKMEb_gcepOm8Q0kyJSrGtKZMgfg@mail.gmail.com>
+Subject: Re: [PATCH v3 3/3] mce, acpi/apei: Soft-offline a page on firmware
+ GHES notification
+Date: Mon, 8 Jul 2013 12:00:41 -0700
+Message-ID: <CA+8MBbKU-YHrVvV6uxE2gJ8Ko=06o=_y90peUBsC4SvOXMLO_w@mail.gmail.com>
+References: <20130701230800.GO23515@pd.tnic>
+	<20130702112424.6401.11586.stgit@localhost.localdomain>
+	<20130703144447.GB13951@pd.tnic>
+	<51D445D2.50906@linux.vnet.ibm.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-vb0-f47.google.com ([209.85.212.47]:44663 "EHLO
-	mail-vb0-f47.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751648Ab3GHSep (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 8 Jul 2013 14:34:45 -0400
-Received: by mail-vb0-f47.google.com with SMTP id x14so3730219vbb.34
-        for <linux-acpi@vger.kernel.org>; Mon, 08 Jul 2013 11:34:44 -0700 (PDT)
-In-Reply-To: <CAGXu5j+YYp_xm+hwaRt5HBpKMEb_gcepOm8Q0kyJSrGtKZMgfg@mail.gmail.com>
+Received: from mail-ve0-f179.google.com ([209.85.128.179]:47445 "EHLO
+	mail-ve0-f179.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752971Ab3GHTAm (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 8 Jul 2013 15:00:42 -0400
+In-Reply-To: <51D445D2.50906@linux.vnet.ibm.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Kees Cook <keescook@chromium.org>
-Cc: Wei Yongjun <weiyj.lk@gmail.com>, Anton Vorontsov <anton@enomsg.org>, Colin Cross <ccross@android.com>, Len Brown <lenb@kernel.org>, "Rafael J. Wysocki" <rjw@sisk.pl>, yongjun_wei@trendmicro.com.cn, linux-acpi <linux-acpi@vger.kernel.org>
+To: "Naveen N. Rao" <naveen.n.rao@linux.vnet.ibm.com>
+Cc: Borislav Petkov <bp@alien8.de>, ananth@in.ibm.com, masbock@linux.vnet.ibm.com, lcm@linux.vnet.ibm.com, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-acpi <linux-acpi@vger.kernel.org>, Huang Ying <ying.huang@intel.com>
 
-On Tue, Jul 2, 2013 at 11:50 AM, Kees Cook <keescook@chromium.org> wrote:
-> On Mon, Jul 1, 2013 at 6:02 PM, Wei Yongjun <weiyj.lk@gmail.com> wrote:
->> From: Wei Yongjun <yongjun_wei@trendmicro.com.cn>
-> Good catch!
->
-> Acked-by: Kees Cook <keescook@chromium.org>
+On Wed, Jul 3, 2013 at 8:40 AM, Naveen N. Rao
+<naveen.n.rao@linux.vnet.ibm.com> wrote:
 
-Applied.  Thanks
+>>> +#ifdef CONFIG_ACPI_APEI_MEMORY_FAILURE
+>>> +       int sec_sev = ghes_severity(gdata->error_severity);
+>>> +       struct cper_sec_mem_err *mem_err;
+>>> +       mem_err = (struct cper_sec_mem_err *)(gdata+1);
+>>
+>>
+>> A newline here please. Also, spaces around '+'.
+
+I was off on vacation last week - looks like you got lots done without me :-)
+
+I have parts 1 & 2 applied to an internal tree. Looks like parts 3 & 4 need a
+few final polishes to get an Ack from Boris.
 
 -Tony
