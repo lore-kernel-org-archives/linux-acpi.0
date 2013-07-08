@@ -1,150 +1,56 @@
 From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: [PATCH 1/2] ACPI / PCI: Make bus registration and unregistration symmetric
-Date: Mon, 08 Jul 2013 01:17:53 +0200
-Message-ID: <16760289.CnqI28LtUE@vostro.rjw.lan>
-References: <1468174.eo7i60DZFT@vostro.rjw.lan>
+Subject: [PATCH] ACPI / scan: Always call acpi_bus_scan() for bus check notifications
+Date: Mon, 08 Jul 2013 02:10:13 +0200
+Message-ID: <2230821.QbNohsyO0O@vostro.rjw.lan>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7Bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1468174.eo7i60DZFT@vostro.rjw.lan>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Bjorn Helgaas <bhelgaas@google.com>
-Cc: LKML <linux-kernel@vger.kernel.org>, Linux PCI <linux-pci@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Yinghai Lu <yinghai@kernel.org>, Jiang Liu <liuj97@gmail.com>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from hydra.sisk.pl ([212.160.235.94]:33739 "EHLO hydra.sisk.pl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753254Ab3GHAAa (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Sun, 7 Jul 2013 20:00:30 -0400
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: ACPI Devel Maling List <linux-acpi@vger.kernel.org>
+Cc: LKML <linux-kernel@vger.kernel.org>, Toshi Kani <toshi.kani@hp.com>, Bjorn Helgaas <bhelgaas@google.com>, Yinghai Lu <yinghai@kernel.org>
 
 From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 
-Since acpi_pci_slot_enumerate() and acpiphp_enumerate_slots() can get
-the ACPI device handle they need from bus->bridge, it is not
-necessary to pass that handle to them as an argument.
+An ACPI_NOTIFY_BUS_CHECK notification means that we should scan the
+entire namespace starting from the given handle even if the device
+represented by that handle is present (other devices below it may
+just have been added).
 
-Drop the second argument of acpi_pci_slot_enumerate() and
-acpiphp_enumerate_slots(), rework them to obtain the ACPI handle
-from bus->bridge and make acpi_pci_add_bus() and
-acpi_pci_remove_bus() entirely symmetrical.
+For this reason, modify acpi_scan_bus_device_check() to always run
+acpi_bus_scan() if the notification being handled is of type
+ACPI_NOTIFY_BUS_CHECK.
 
 Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+Cc: 3.10+ <stable@vger.kernel.org>
 ---
- drivers/acpi/pci_slot.c            |   14 +++++++++-----
- drivers/pci/hotplug/acpiphp_glue.c |    7 ++++---
- drivers/pci/pci-acpi.c             |   16 ++++------------
- include/linux/pci-acpi.h           |   10 ++++------
- 4 files changed, 21 insertions(+), 26 deletions(-)
+ drivers/acpi/scan.c |   10 ++++++----
+ 1 file changed, 6 insertions(+), 4 deletions(-)
 
-Index: linux-pm/drivers/acpi/pci_slot.c
+Index: linux-pm/drivers/acpi/scan.c
 ===================================================================
---- linux-pm.orig/drivers/acpi/pci_slot.c
-+++ linux-pm/drivers/acpi/pci_slot.c
-@@ -159,12 +159,16 @@ register_slot(acpi_handle handle, u32 lv
- 	return AE_OK;
- }
+--- linux-pm.orig/drivers/acpi/scan.c
++++ linux-pm/drivers/acpi/scan.c
+@@ -353,10 +353,12 @@ static void acpi_scan_bus_device_check(a
+ 	mutex_lock(&acpi_scan_lock);
+ 	lock_device_hotplug();
  
--void acpi_pci_slot_enumerate(struct pci_bus *bus, acpi_handle handle)
-+void acpi_pci_slot_enumerate(struct pci_bus *bus)
- {
--	mutex_lock(&slot_list_lock);
--	acpi_walk_namespace(ACPI_TYPE_DEVICE, handle, 1,
--			    register_slot, NULL, bus, NULL);
--	mutex_unlock(&slot_list_lock);
-+	acpi_handle handle = ACPI_HANDLE(bus->bridge);
-+
-+	if (handle) {
-+		mutex_lock(&slot_list_lock);
-+		acpi_walk_namespace(ACPI_TYPE_DEVICE, handle, 1,
-+				    register_slot, NULL, bus, NULL);
-+		mutex_unlock(&slot_list_lock);
-+	}
- }
- 
- void acpi_pci_slot_remove(struct pci_bus *bus)
-Index: linux-pm/drivers/pci/hotplug/acpiphp_glue.c
-===================================================================
---- linux-pm.orig/drivers/pci/hotplug/acpiphp_glue.c
-+++ linux-pm/drivers/pci/hotplug/acpiphp_glue.c
-@@ -1169,15 +1169,16 @@ static void handle_hotplug_event_func(ac
-  * Create hotplug slots for the PCI bus.
-  * It should always return 0 to avoid skipping following notifiers.
-  */
--void acpiphp_enumerate_slots(struct pci_bus *bus, acpi_handle handle)
-+void acpiphp_enumerate_slots(struct pci_bus *bus)
- {
--	acpi_handle dummy_handle;
-+	acpi_handle handle, dummy_handle;
- 	struct acpiphp_bridge *bridge;
- 
- 	if (acpiphp_disabled)
- 		return;
- 
--	if (detect_ejectable_slots(handle) <= 0)
-+	handle = ACPI_HANDLE(bus->bridge);
-+	if (!handle || detect_ejectable_slots(handle) <= 0)
- 		return;
- 
- 	bridge = kzalloc(sizeof(struct acpiphp_bridge), GFP_KERNEL);
-Index: linux-pm/drivers/pci/pci-acpi.c
-===================================================================
---- linux-pm.orig/drivers/pci/pci-acpi.c
-+++ linux-pm/drivers/pci/pci-acpi.c
-@@ -290,24 +290,16 @@ static struct pci_platform_pm_ops acpi_p
- 
- void acpi_pci_add_bus(struct pci_bus *bus)
- {
--	acpi_handle handle = NULL;
--
--	if (bus->bridge)
--		handle = ACPI_HANDLE(bus->bridge);
--	if (acpi_pci_disabled || handle == NULL)
-+	if (acpi_pci_disabled || !bus->bridge)
- 		return;
- 
--	acpi_pci_slot_enumerate(bus, handle);
--	acpiphp_enumerate_slots(bus, handle);
-+	acpi_pci_slot_enumerate(bus);
-+	acpiphp_enumerate_slots(bus);
- }
- 
- void acpi_pci_remove_bus(struct pci_bus *bus)
- {
--	/*
--	 * bus->bridge->acpi_node.handle has already been reset to NULL
--	 * when acpi_pci_remove_bus() is called, so don't check ACPI handle.
--	 */
--	if (acpi_pci_disabled)
-+	if (acpi_pci_disabled || !bus->bridge)
- 		return;
- 
- 	acpiphp_remove_slots(bus);
-Index: linux-pm/include/linux/pci-acpi.h
-===================================================================
---- linux-pm.orig/include/linux/pci-acpi.h
-+++ linux-pm/include/linux/pci-acpi.h
-@@ -47,24 +47,22 @@ void acpi_pci_remove_bus(struct pci_bus
- 
- #ifdef	CONFIG_ACPI_PCI_SLOT
- void acpi_pci_slot_init(void);
--void acpi_pci_slot_enumerate(struct pci_bus *bus, acpi_handle handle);
-+void acpi_pci_slot_enumerate(struct pci_bus *bus);
- void acpi_pci_slot_remove(struct pci_bus *bus);
- #else
- static inline void acpi_pci_slot_init(void) { }
--static inline void acpi_pci_slot_enumerate(struct pci_bus *bus,
--					   acpi_handle handle) { }
-+static inline void acpi_pci_slot_enumerate(struct pci_bus *bus) { }
- static inline void acpi_pci_slot_remove(struct pci_bus *bus) { }
- #endif
- 
- #ifdef	CONFIG_HOTPLUG_PCI_ACPI
- void acpiphp_init(void);
--void acpiphp_enumerate_slots(struct pci_bus *bus, acpi_handle handle);
-+void acpiphp_enumerate_slots(struct pci_bus *bus);
- void acpiphp_remove_slots(struct pci_bus *bus);
- void acpiphp_check_host_bridge(acpi_handle handle);
- #else
- static inline void acpiphp_init(void) { }
--static inline void acpiphp_enumerate_slots(struct pci_bus *bus,
--					   acpi_handle handle) { }
-+static inline void acpiphp_enumerate_slots(struct pci_bus *bus) { }
- static inline void acpiphp_remove_slots(struct pci_bus *bus) { }
- static inline void acpiphp_check_host_bridge(acpi_handle handle) { }
- #endif
+-	acpi_bus_get_device(handle, &device);
+-	if (device) {
+-		dev_warn(&device->dev, "Attempt to re-insert\n");
+-		goto out;
++	if (ost_source != ACPI_NOTIFY_BUS_CHECK) {
++		acpi_bus_get_device(handle, &device);
++		if (device) {
++			dev_warn(&device->dev, "Attempt to re-insert\n");
++			goto out;
++		}
+ 	}
+ 	acpi_evaluate_hotplug_ost(handle, ost_source,
+ 				  ACPI_OST_SC_INSERT_IN_PROGRESS, NULL);
+
