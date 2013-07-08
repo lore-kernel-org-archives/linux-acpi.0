@@ -1,268 +1,77 @@
-From: Aaron Lu <aaron.lwe@gmail.com>
-Subject: Re: [PATCH 3/3] i915: Don't provide ACPI backlight interface if firmware
- expects Windows 8
-Date: Mon, 08 Jul 2013 16:00:16 +0800
-Message-ID: <51DA7190.6080208@gmail.com>
-References: <1370818899-8595-1-git-send-email-matthew.garrett@nebula.com> <51D7AF14.9050508@gmail.com> <3467567.zOLDhye8QD@vostro.rjw.lan> <12270512.1rshgKaUug@vostro.rjw.lan>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: Re: [Xen-devel] [PATCH v6 0/5] Xen/ACPI: support sleep state entering on hardware reduced systems
+Date: Mon, 08 Jul 2013 15:10:40 +0200
+Message-ID: <2101936.oHXzxvYCX4@vostro.rjw.lan>
+References: <1372679333-8473-1-git-send-email-benjamin.guthro@citrix.com> <CAOvdn6XcEwFa2CRGqUhsaTeTMKHsQeFHJ-KmyCTBZRLbAoimmQ@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-pa0-f44.google.com ([209.85.220.44]:53313 "EHLO
-	mail-pa0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751453Ab3GHH7n (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 8 Jul 2013 03:59:43 -0400
-In-Reply-To: <12270512.1rshgKaUug@vostro.rjw.lan>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7Bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <CAOvdn6XcEwFa2CRGqUhsaTeTMKHsQeFHJ-KmyCTBZRLbAoimmQ@mail.gmail.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Ben Guthro <benjamin.guthro@citrix.com>
+Cc: Bob Moore <robert.moore@intel.com>, Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>, Jan Beulich <jbeulich@suse.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, xen-devel@lists.xen.org, Shane Wang <shane.wang@intel.com>, tboot-devel@lists.sourceforge.net, Richard L Maliszewski <richard.l.maliszewski@intel.com>, Gang Wei <gang.wei@intel.com>
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: Matthew Garrett <matthew.garrett@nebula.com>, daniel.vetter@ffwll.ch, linux-acpi@vger.kernel.org, seth.forshee@canonical.com, joeyli.kernel@gmail.com, intel-gfx@lists.freedesktop.org, dri-devel@lists.freedesktop.org, linux-kernel@vger.kernel.org, lenb@kernel.org
 
-On 07/07/2013 09:19 PM, Rafael J. Wysocki wrote:
-> OK, the patch is appended.  Please have a look and tell me what you think.
+On Sunday, July 07, 2013 08:13:15 PM Ben Guthro wrote:
+> On Mon, Jul 1, 2013 at 7:48 AM, Ben Guthro <benjamin.guthro@citrix.com> wrote:
+> > In version 3.4 acpi_os_prepare_sleep() got introduced in parallel with
+> > reduced hardware sleep support, and the two changes didn't get
+> > synchronized: The new code doesn't call the hook function (if so
+> > requested). Fix this, requiring a boolean parameter to be added to the
+> > hook function to distinguish "extended" from "legacy" sleep.
+> >
+> > This requires adjusting TXT, but the adjustments only go as far as
+> > failing the extended mode call (since, looking at the TXT interface,
+> > there doesn't even appear to be precautions to deal with that
+> > alternative interface).
+> >
+> > The hypervisor change underlying this is commit 62d1a69 ("ACPI: support
+> > v5 (reduced HW) sleep interface") on the master branch of
+> > git://xenbits.xen.org/xen.git.
+> >
+> > Signed-off-by: Jan Beulich <jbeulich@suse.com>
+> > Signed-off-by: Ben Guthro <benjamin.guthro@citrix.com>
+> > Cc: Richard L Maliszewski <richard.l.maliszewski@intel.com>
+> > Cc: Gang Wei <gang.wei@intel.com>
+> > Cc: Shane Wang <shane.wang@intel.com>
+> > Cc: Bob Moore <robert.moore@intel.com>
+> > Cc: Rafael J. Wysocki <rjw@sisk.pl>
+> > Cc: linux-acpi@vger.kernel.org
+> > Cc: tboot-devel@lists.sourceforge.net
+> >
+> > v2: Extend description to include reference to hypervisor side change
+> > v3: Split into multiple patches, separating subsystems
+> >     Remove bool parameters, in favor of u8
+> > v4: Remove linux/acpi.h dependencies
+> >     Further patch split to break out acpica from OSL
+> >     More bool vs u8 fixes
+> > v5: Fix build of consumers of acpi_os_prepare_sleep() interface change,
+> >     so intermediate builds of partial patch series will not fail.
+> > v6: Rebased to linux-pm linux-next branch
+> >     Added warning in tboot early return code
+> >     Added Reviewed-by lines
+> >
+> > Ben Guthro (5):
+> >   acpi: Remove need to include linux/acpi.h in common acpica code
+> >   acpi: Call acpi_os_prepare_sleep hook in reduced hardware sleep path
+> >   acpi/xen/tboot: Adjust linux acpi OS functions to new extended
+> >     parameter
+> >   x86/tboot: Fail extended mode reduced hardware sleep
+> >   xen/acpi: notify xen when reduced hardware sleep is available
 > 
-> Thanks,
-> Rafael
+> Rafael, Bob -
 > 
-> 
-> ---
-> From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
-> Subject: ACPI / video / i915: Remove ACPI backlight if firmware expects Windows 8
-> 
-> According to Matthew Garrett, "Windows 8 leaves backlight control up
-> to individual graphics drivers rather than making ACPI calls itself.
-> There's plenty of evidence to suggest that the Intel driver for
-> Windows [8] doesn't use the ACPI interface, including the fact that
-> it's broken on a bunch of machines when the OS claims to support
-> Windows 8.  The simplest thing to do appears to be to disable the
-> ACPI backlight interface on these systems".
-> 
-> There's a problem with that approach, however, because simply
-> avoiding to register the ACPI backlight interface if the firmware
-> calls _OSI for Windows 8 may not work in the following situations:
->  (1) The ACPI backlight interface actually works on the given system
->      and the i915 driver is not loaded (e.g. another graphics driver
->      is used).
->  (2) The ACPI backlight interface doesn't work on the given system,
->      but there is a vendor platform driver that will register its
->      own, equally broken, backlight interface if the ACPI one is not
->      registered in advance.
+> Is this version of the series something that you may consider taking?
+> If not - is there something specific you would like to see addressed?
 
-The condition thinkpad_acpi checks to decide if it wants to create
-backlight control interface is acpi_video_backlight_support function,
-not that if ACPI video driver has registered previously. I'm sorry if my
-previous words gave you such a conclusion.
-
-> Therefore we need to keep the ACPI backlight interface registered
-> until the i915 driver is loaded which then will unregister it if
-> the firmware has called _OSI for Windows 8.
-> 
-> For this reason, introduce an alternative function for registering
-> ACPI video, acpi_video_register_with_quirks(), that will check
-> whether or not the ACPI video driver has already been registered
-> and whether or not the backlight Windows 8 quirk has to be applied.
-> If the quirk has to be applied, it will block the ACPI backlight
-> support and either unregister the backlight interface if the ACPI
-> video driver has already been registered, or register the ACPI
-> video driver without the backlight interface otherwise.  Make
-> the i915 driver use acpi_video_register_with_quirks() instead of
-> acpi_video_register() in i915_driver_load().
-> 
-> This change is based on earlier patches from Matthew Garrett,
-> Chun-Yi Lee and Seth Forshee.
-> 
-> Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
-> ---
->  drivers/acpi/video.c            |   61 ++++++++++++++++++++++++++++++++++++----
->  drivers/acpi/video_detect.c     |   11 +++++++
->  drivers/gpu/drm/i915/i915_dma.c |    2 -
->  include/acpi/video.h            |   11 ++++++-
->  include/linux/acpi.h            |    6 +++
->  5 files changed, 84 insertions(+), 7 deletions(-)
-> 
-> Index: linux-pm/drivers/acpi/video.c
-> ===================================================================
-> --- linux-pm.orig/drivers/acpi/video.c
-> +++ linux-pm/drivers/acpi/video.c
-> @@ -1854,6 +1854,46 @@ static int acpi_video_bus_remove(struct
->  	return 0;
->  }
->  
-> +static acpi_status video_unregister_backlight(acpi_handle handle, u32 lvl,
-> +					      void *context, void **rv)
-> +{
-> +	struct acpi_device *acpi_dev;
-> +	struct acpi_video_bus *video;
-> +	struct acpi_video_device *dev, *next;
-> +
-> +	if (acpi_bus_get_device(handle, &acpi_dev))
-> +		return AE_OK;
-> +
-> +	if (acpi_match_device_ids(acpi_dev, video_device_ids))
-> +		return AE_OK;
-> +
-> +	video = acpi_driver_data(acpi_dev);
-> +	if (!video)
-> +		return AE_OK;
-> +
-> +	acpi_video_bus_stop_devices(video);
-> +	mutex_lock(&video->device_list_lock);
-> +	list_for_each_entry_safe(dev, next, &video->video_device_list, entry) {
-> +		if (dev->backlight) {
-> +			backlight_device_unregister(dev->backlight);
-> +			dev->backlight = NULL;
-> +			kfree(dev->brightness->levels);
-> +			kfree(dev->brightness);
-> +		}
-> +		if (dev->cooling_dev) {
-> +			sysfs_remove_link(&dev->dev->dev.kobj,
-> +					  "thermal_cooling");
-> +			sysfs_remove_link(&dev->cooling_dev->device.kobj,
-> +					  "device");
-> +			thermal_cooling_device_unregister(dev->cooling_dev);
-> +			dev->cooling_dev = NULL;
-> +		}
-> +	}
-> +	mutex_unlock(&video->device_list_lock);
-> +	acpi_video_bus_start_devices(video);
-> +	return AE_OK;
-> +}
-> +
->  static int __init is_i740(struct pci_dev *dev)
->  {
->  	if (dev->device == 0x00D1)
-> @@ -1885,14 +1925,25 @@ static int __init intel_opregion_present
->  	return opregion;
->  }
->  
-> -int acpi_video_register(void)
-> +int __acpi_video_register(bool backlight_quirks)
->  {
-> -	int result = 0;
-> +	bool no_backlight;
-> +	int result;
-> +
-> +	no_backlight = backlight_quirks ? acpi_video_backlight_quirks() : false;
-> +
->  	if (register_count) {
->  		/*
-> -		 * if the function of acpi_video_register is already called,
-> -		 * don't register the acpi_vide_bus again and return no error.
-> +		 * If acpi_video_register() has been called already, don't try
-> +		 * to register acpi_video_bus, but unregister backlight devices
-> +		 * if no backlight support is requested.
->  		 */
-> +		if (no_backlight)
-> +			acpi_walk_namespace(ACPI_TYPE_DEVICE, ACPI_ROOT_OBJECT,
-> +					    ACPI_UINT32_MAX,
-> +					    video_unregister_backlight,
-> +					    NULL, NULL, NULL);
-> +
->  		return 0;
->  	}
->  
-> @@ -1908,7 +1959,7 @@ int acpi_video_register(void)
->  
->  	return 0;
->  }
-> -EXPORT_SYMBOL(acpi_video_register);
-> +EXPORT_SYMBOL(__acpi_video_register);
->  
->  void acpi_video_unregister(void)
->  {
-> Index: linux-pm/drivers/gpu/drm/i915/i915_dma.c
-> ===================================================================
-> --- linux-pm.orig/drivers/gpu/drm/i915/i915_dma.c
-> +++ linux-pm/drivers/gpu/drm/i915/i915_dma.c
-> @@ -1660,7 +1660,7 @@ int i915_driver_load(struct drm_device *
->  	if (INTEL_INFO(dev)->num_pipes) {
->  		/* Must be done after probing outputs */
->  		intel_opregion_init(dev);
-> -		acpi_video_register();
-> +		acpi_video_register_with_quirks();
->  	}
->  
->  	if (IS_GEN5(dev))
-> Index: linux-pm/include/acpi/video.h
-> ===================================================================
-> --- linux-pm.orig/include/acpi/video.h
-> +++ linux-pm/include/acpi/video.h
-> @@ -17,12 +17,21 @@ struct acpi_device;
->  #define ACPI_VIDEO_DISPLAY_LEGACY_TV      0x0200
->  
->  #if (defined CONFIG_ACPI_VIDEO || defined CONFIG_ACPI_VIDEO_MODULE)
-> -extern int acpi_video_register(void);
-> +extern int __acpi_video_register(bool backlight_quirks);
-> +static inline int acpi_video_register(void)
-> +{
-> +	return __acpi_video_register(false);
-> +}
-> +static inline int acpi_video_register_with_quirks(void)
-> +{
-> +	return __acpi_video_register(true);
-> +}
->  extern void acpi_video_unregister(void);
->  extern int acpi_video_get_edid(struct acpi_device *device, int type,
->  			       int device_id, void **edid);
->  #else
->  static inline int acpi_video_register(void) { return 0; }
-> +static inline int acpi_video_register_with_quirks(void) { return 0; }
->  static inline void acpi_video_unregister(void) { return; }
->  static inline int acpi_video_get_edid(struct acpi_device *device, int type,
->  				      int device_id, void **edid)
-> Index: linux-pm/drivers/acpi/video_detect.c
-> ===================================================================
-> --- linux-pm.orig/drivers/acpi/video_detect.c
-> +++ linux-pm/drivers/acpi/video_detect.c
-> @@ -234,6 +234,17 @@ static void acpi_video_caps_check(void)
->  		acpi_video_get_capabilities(NULL);
->  }
->  
-> +bool acpi_video_backlight_quirks(void)
-> +{
-> +	if (acpi_gbl_osi_data >= ACPI_OSI_WIN_8) {
-> +		acpi_video_caps_check();
-> +		acpi_video_support |= ACPI_VIDEO_BACKLIGHT_FORCE_VENDOR;
-
-If the ACPI_VIDEO_BACKLIGHT_FORCE_VENDOR flag is set,
-acpi_video_backlight_support will return 0, thinkpad_acpi will create
-backlight interface for the system, which is not what we want.
+Well, I'm afraid you need to give us some more time to process that,
+sorry.
 
 Thanks,
-Aaron
+Rafael
 
-> +		return true;
-> +	}
-> +	return false;
-> +}
-> +EXPORT_SYMBOL(acpi_video_backlight_quirks);
-> +
->  /* Promote the vendor interface instead of the generic video module.
->   * This function allow DMI blacklists to be implemented by externals
->   * platform drivers instead of putting a big blacklist in video_detect.c
-> Index: linux-pm/include/linux/acpi.h
-> ===================================================================
-> --- linux-pm.orig/include/linux/acpi.h
-> +++ linux-pm/include/linux/acpi.h
-> @@ -196,6 +196,7 @@ extern bool wmi_has_guid(const char *gui
->  
->  extern long acpi_video_get_capabilities(acpi_handle graphics_dev_handle);
->  extern long acpi_is_video_device(acpi_handle handle);
-> +extern bool acpi_video_backlight_quirks(void);
->  extern void acpi_video_dmi_promote_vendor(void);
->  extern void acpi_video_dmi_demote_vendor(void);
->  extern int acpi_video_backlight_support(void);
-> @@ -213,6 +214,11 @@ static inline long acpi_is_video_device(
->  	return 0;
->  }
->  
-> +static inline bool acpi_video_backlight_quirks(void)
-> +{
-> +	return false;
-> +}
-> +
->  static inline void acpi_video_dmi_promote_vendor(void)
->  {
->  }
-> 
 
+-- 
+I speak only for myself.
+Rafael J. Wysocki, Intel Open Source Technology Center.
