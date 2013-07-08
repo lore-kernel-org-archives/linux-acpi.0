@@ -1,56 +1,95 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: [PATCH] ACPI / scan: Always call acpi_bus_scan() for bus check notifications
-Date: Mon, 08 Jul 2013 02:10:13 +0200
-Message-ID: <2230821.QbNohsyO0O@vostro.rjw.lan>
+From: Ben Guthro <benjamin.guthro@citrix.com>
+Subject: Re: [Xen-devel] [PATCH v6 0/5] Xen/ACPI: support sleep state entering
+ on hardware reduced systems
+Date: Sun, 7 Jul 2013 20:13:15 -0400
+Message-ID: <CAOvdn6XcEwFa2CRGqUhsaTeTMKHsQeFHJ-KmyCTBZRLbAoimmQ@mail.gmail.com>
+References: <1372679333-8473-1-git-send-email-benjamin.guthro@citrix.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from hydra.sisk.pl ([212.160.235.94]:33739 "EHLO hydra.sisk.pl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753254Ab3GHAAa (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Sun, 7 Jul 2013 20:00:30 -0400
+Received: from mail-ve0-f174.google.com ([209.85.128.174]:46768 "EHLO
+	mail-ve0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753288Ab3GHANQ (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sun, 7 Jul 2013 20:13:16 -0400
+In-Reply-To: <1372679333-8473-1-git-send-email-benjamin.guthro@citrix.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: ACPI Devel Maling List <linux-acpi@vger.kernel.org>
-Cc: LKML <linux-kernel@vger.kernel.org>, Toshi Kani <toshi.kani@hp.com>, Bjorn Helgaas <bhelgaas@google.com>, Yinghai Lu <yinghai@kernel.org>
+To: "Rafael J . Wysocki" <rjw@sisk.pl>, Bob Moore <robert.moore@intel.com>
+Cc: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>, Jan Beulich <jbeulich@suse.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, xen-devel@lists.xen.org, Shane Wang <shane.wang@intel.com>, tboot-devel@lists.sourceforge.net, Richard L Maliszewski <richard.l.maliszewski@intel.com>, Gang Wei <gang.wei@intel.com>
 
-From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+On Mon, Jul 1, 2013 at 7:48 AM, Ben Guthro <benjamin.guthro@citrix.com> wrote:
+> In version 3.4 acpi_os_prepare_sleep() got introduced in parallel with
+> reduced hardware sleep support, and the two changes didn't get
+> synchronized: The new code doesn't call the hook function (if so
+> requested). Fix this, requiring a boolean parameter to be added to the
+> hook function to distinguish "extended" from "legacy" sleep.
+>
+> This requires adjusting TXT, but the adjustments only go as far as
+> failing the extended mode call (since, looking at the TXT interface,
+> there doesn't even appear to be precautions to deal with that
+> alternative interface).
+>
+> The hypervisor change underlying this is commit 62d1a69 ("ACPI: support
+> v5 (reduced HW) sleep interface") on the master branch of
+> git://xenbits.xen.org/xen.git.
+>
+> Signed-off-by: Jan Beulich <jbeulich@suse.com>
+> Signed-off-by: Ben Guthro <benjamin.guthro@citrix.com>
+> Cc: Richard L Maliszewski <richard.l.maliszewski@intel.com>
+> Cc: Gang Wei <gang.wei@intel.com>
+> Cc: Shane Wang <shane.wang@intel.com>
+> Cc: Bob Moore <robert.moore@intel.com>
+> Cc: Rafael J. Wysocki <rjw@sisk.pl>
+> Cc: linux-acpi@vger.kernel.org
+> Cc: tboot-devel@lists.sourceforge.net
+>
+> v2: Extend description to include reference to hypervisor side change
+> v3: Split into multiple patches, separating subsystems
+>     Remove bool parameters, in favor of u8
+> v4: Remove linux/acpi.h dependencies
+>     Further patch split to break out acpica from OSL
+>     More bool vs u8 fixes
+> v5: Fix build of consumers of acpi_os_prepare_sleep() interface change,
+>     so intermediate builds of partial patch series will not fail.
+> v6: Rebased to linux-pm linux-next branch
+>     Added warning in tboot early return code
+>     Added Reviewed-by lines
+>
+> Ben Guthro (5):
+>   acpi: Remove need to include linux/acpi.h in common acpica code
+>   acpi: Call acpi_os_prepare_sleep hook in reduced hardware sleep path
+>   acpi/xen/tboot: Adjust linux acpi OS functions to new extended
+>     parameter
+>   x86/tboot: Fail extended mode reduced hardware sleep
+>   xen/acpi: notify xen when reduced hardware sleep is available
 
-An ACPI_NOTIFY_BUS_CHECK notification means that we should scan the
-entire namespace starting from the given handle even if the device
-represented by that handle is present (other devices below it may
-just have been added).
+Rafael, Bob -
 
-For this reason, modify acpi_scan_bus_device_check() to always run
-acpi_bus_scan() if the notification being handled is of type
-ACPI_NOTIFY_BUS_CHECK.
+Is this version of the series something that you may consider taking?
+If not - is there something specific you would like to see addressed?
 
-Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
-Cc: 3.10+ <stable@vger.kernel.org>
----
- drivers/acpi/scan.c |   10 ++++++----
- 1 file changed, 6 insertions(+), 4 deletions(-)
+Thanks for your time.
 
-Index: linux-pm/drivers/acpi/scan.c
-===================================================================
---- linux-pm.orig/drivers/acpi/scan.c
-+++ linux-pm/drivers/acpi/scan.c
-@@ -353,10 +353,12 @@ static void acpi_scan_bus_device_check(a
- 	mutex_lock(&acpi_scan_lock);
- 	lock_device_hotplug();
- 
--	acpi_bus_get_device(handle, &device);
--	if (device) {
--		dev_warn(&device->dev, "Attempt to re-insert\n");
--		goto out;
-+	if (ost_source != ACPI_NOTIFY_BUS_CHECK) {
-+		acpi_bus_get_device(handle, &device);
-+		if (device) {
-+			dev_warn(&device->dev, "Attempt to re-insert\n");
-+			goto out;
-+		}
- 	}
- 	acpi_evaluate_hotplug_ost(handle, ost_source,
- 				  ACPI_OST_SC_INSERT_IN_PROGRESS, NULL);
 
+Ben
+
+>
+>  arch/x86/kernel/tboot.c          |    9 ++++++++-
+>  drivers/acpi/acpica/hwesleep.c   |    7 +++++++
+>  drivers/acpi/acpica/hwsleep.c    |    3 +--
+>  drivers/acpi/osl.c               |   16 ++++++++--------
+>  drivers/xen/acpi.c               |   26 +++++++++++++-------------
+>  include/acpi/acpiosxf.h          |    6 ++++++
+>  include/linux/acpi.h             |    9 +++------
+>  include/xen/acpi.h               |    4 ++--
+>  include/xen/interface/platform.h |    7 ++++---
+>  9 files changed, 52 insertions(+), 35 deletions(-)
+>
+> --
+> 1.7.9.5
+>
+>
+> _______________________________________________
+> Xen-devel mailing list
+> Xen-devel@lists.xen.org
+> http://lists.xen.org/xen-devel
