@@ -1,37 +1,190 @@
-From: "Luck, Tony" <tony.luck@intel.com>
-Subject: RE: [PATCH 4] mce: acpi/apei: Add a sysctl to control page
- offlining on firmware report
-Date: Mon, 8 Jul 2013 20:26:12 +0000
-Message-ID: <3908561D78D1C84285E8C5FCA982C28F31C76B19@ORSMSX106.amr.corp.intel.com>
-References: <20130701153728.6197.14022.stgit@localhost.localdomain>
- <20130702125137.7388.97225.stgit@localhost.localdomain>
- <20130703144641.GC13951@pd.tnic> <51D44752.3000303@linux.vnet.ibm.com>
+From: Frederick van der Wyck <fvanderwyck@gmail.com>
+Subject: Re: [PATCH] platform samsung-q10: use ACPI instead of direct EC
+ calls
+Date: Mon, 8 Jul 2013 22:34:56 +0100
+Message-ID: <20130708213456.GA5441@lat.lan>
+References: <20130703212737.GC5579@lat.lan>
+ <1373297814.24233.5.camel@x230.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga01.intel.com ([192.55.52.88]:5378 "EHLO mga01.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752680Ab3GHU0O (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 8 Jul 2013 16:26:14 -0400
-In-Reply-To: <51D44752.3000303@linux.vnet.ibm.com>
-Content-Language: en-US
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <platform-driver-x86-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <1373297814.24233.5.camel@x230.lan>
+Sender: platform-driver-x86-owner@vger.kernel.org
+To: Matthew Garrett <mjg59@srcf.ucam.org>
+Cc: platform-driver-x86@vger.kernel.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Naveen N. Rao" <naveen.n.rao@linux.vnet.ibm.com>, Borislav Petkov <bp@alien8.de>
-Cc: "ananth@in.ibm.com" <ananth@in.ibm.com>, "masbock@linux.vnet.ibm.com" <masbock@linux.vnet.ibm.com>, "lcm@linux.vnet.ibm.com" <lcm@linux.vnet.ibm.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "Huang, Ying" <ying.huang@intel.com>
 
-PiBOb3BlLCB0aGlzIGlzIGEganVzdC1pbi1jYXNlIHRoaW5nLiBJIHRoaW5rIHlvdSBvciBUb255
-IGFza2VkIHRvIGhhdmUgDQo+IHRoaXMgaW4gYSBwcmV2aW91cyBkaXNjdXNzaW9uIHNvIHRoYXQg
-d2UncmUgY292ZXJlZCBpZiBmaXJtd2FyZSBzdGFydHMgDQo+IGFjdGluZyB1cC4gT3RoZXIgdGhh
-biB0aGF0LCBJJ20gb2sgaWYgdGhpcyBpcyBsZWZ0IG91dC4NCg0KSSdtIHN0cnVnZ2xpbmcgdG8g
-dGhpbmsgb2YgYSBjYXNlIHdoZXJlIHRoaXMgd291bGQgaGVscC4gIEl0IGltcGxpZXMgdGhhdA0K
-d2UgYXJlIG9uIGEgcnVubmluZyBzeXN0ZW0sIGFuZCB3ZSBzb21laG93IG5vdGljZSB0aGF0IHRo
-ZSBCSU9TIGlzDQp0ZWxsaW5nIHVzIHRvIHRha2Ugc29tZSBwYWdlcyBvZmZsaW5lIC0gYW5kIHRo
-YXQgd2Uga25vdyBiZXR0ZXIgdGhhbiB0aGUNCkJJT1MgdGhhdCB3ZSdkIGxpa2UgdG8ganVzdCBp
-Z25vcmUgYW55IG1vcmUgc3VjaCBtZXNzYWdlcyBmcm9tIHRoZSBCSU9TLg0KDQpCdXQgd2Ugc3Rp
-bGwgbGVhdmUgdGhlIEJJT1MgaW4gY2hhcmdlIG9mIGxvZ2dpbmcgdGhlIGVycm9ycyBhbmQga2Vl
-cGluZw0KdHJhY2sgb2YgdGhlIHRocmVzaG9sZHMuDQoNCkknbSBoYXBweSB3aXRoIGp1c3QgdGhl
-IGFjcGk9bm9jbWNmZiB0byBhdm9pZCBhIEJJT1MgdGhhdCBkb2VzIHdlaXJkDQpzdHVmZi4gIE9y
-IGRvIHlvdSB0aGluayB3ZSBtaWdodCBzdGlsbCBoYXZlIHRvIGRlYWwgd2l0aCBhIHN0cmluZyBv
-ZiBBUEVJDQptZXNzYWdlcz8NCg0KLVRvbnkNCg0K
+On Mon, Jul 08, 2013 at 11:36:54AM -0400, Matthew Garrett wrote:
+
+> you should be able to just use first_ec directly rather than  
+> probing yourself.
+
+Thanks, I've made that change below.
+
+> > +	for (i = 0; i < SAMSUNGQ10_BL_MAX_INTENSITY; i++) {
+> > +		status = acpi_evaluate_object(ec_handle, "_Q63", NULL, NULL);
+> 
+> The potential problem here is that there's no guarantee that these event
+> numbers are stable, and a firmware upgrade could change them. Of course,
+> that's also true of the EC registers, but we haven't had anyone complain
+> about the driver suddenly breaking so I'm not hugely enthusiastic about
+> replacing one fragile but seemingly working method with a fragile but
+> unproven one. 
+
+That's true. On the other hand, imitating the action of the brightness keys at
+this higher level seems somewhat cleaner and has the advantage that the
+brightness setting is preserved on reboot (as the smi handler stores it in
+nvram). I did test that 63 and 64 are the appropriate event numbers on each of
+the models in the dmi table (although I only tested one firmware version per
+model).
+
+Signed-off-by: Frederick van der Wyck <fvanderwyck@gmail.com>
+---
+ drivers/platform/x86/Kconfig       |    2 +-
+ drivers/platform/x86/samsung-q10.c |   65 +++++++++++------------------------
+ 2 files changed, 22 insertions(+), 45 deletions(-)
+
+diff --git a/drivers/platform/x86/Kconfig b/drivers/platform/x86/Kconfig
+index 8577261..52aed6d 100644
+--- a/drivers/platform/x86/Kconfig
++++ b/drivers/platform/x86/Kconfig
+@@ -762,7 +762,7 @@ config INTEL_OAKTRAIL
+ 
+ config SAMSUNG_Q10
+ 	tristate "Samsung Q10 Extras"
+-	depends on SERIO_I8042
++	depends on ACPI
+ 	select BACKLIGHT_CLASS_DEVICE
+ 	---help---
+ 	  This driver provides support for backlight control on Samsung Q10
+diff --git a/drivers/platform/x86/samsung-q10.c b/drivers/platform/x86/samsung-q10.c
+index 1a90b62..9d6609d 100644
+--- a/drivers/platform/x86/samsung-q10.c
++++ b/drivers/platform/x86/samsung-q10.c
+@@ -14,16 +14,12 @@
+ #include <linux/init.h>
+ #include <linux/platform_device.h>
+ #include <linux/backlight.h>
+-#include <linux/i8042.h>
+ #include <linux/dmi.h>
++#include <acpi/acpi_drivers.h>
+ 
+-#define SAMSUNGQ10_BL_MAX_INTENSITY      255
+-#define SAMSUNGQ10_BL_DEFAULT_INTENSITY  185
++#define SAMSUNGQ10_BL_MAX_INTENSITY 7
+ 
+-#define SAMSUNGQ10_BL_8042_CMD           0xbe
+-#define SAMSUNGQ10_BL_8042_DATA          { 0x89, 0x91 }
+-
+-static int samsungq10_bl_brightness;
++static acpi_handle ec_handle;
+ 
+ static bool force;
+ module_param(force, bool, 0);
+@@ -33,21 +29,26 @@ MODULE_PARM_DESC(force,
+ static int samsungq10_bl_set_intensity(struct backlight_device *bd)
+ {
+ 
+-	int brightness = bd->props.brightness;
+-	unsigned char c[3] = SAMSUNGQ10_BL_8042_DATA;
++	acpi_status status;
++	int i;
+ 
+-	c[2] = (unsigned char)brightness;
+-	i8042_lock_chip();
+-	i8042_command(c, (0x30 << 8) | SAMSUNGQ10_BL_8042_CMD);
+-	i8042_unlock_chip();
+-	samsungq10_bl_brightness = brightness;
++	for (i = 0; i < SAMSUNGQ10_BL_MAX_INTENSITY; i++) {
++		status = acpi_evaluate_object(ec_handle, "_Q63", NULL, NULL);
++		if (ACPI_FAILURE(status))
++			return -EIO;
++	}
++	for (i = 0; i < bd->props.brightness; i++) {
++		status = acpi_evaluate_object(ec_handle, "_Q64", NULL, NULL);
++		if (ACPI_FAILURE(status))
++			return -EIO;
++	}
+ 
+ 	return 0;
+ }
+ 
+ static int samsungq10_bl_get_intensity(struct backlight_device *bd)
+ {
+-	return samsungq10_bl_brightness;
++	return bd->props.brightness;
+ }
+ 
+ static const struct backlight_ops samsungq10_bl_ops = {
+@@ -55,28 +56,6 @@ static const struct backlight_ops samsungq10_bl_ops = {
+ 	.update_status	= samsungq10_bl_set_intensity,
+ };
+ 
+-#ifdef CONFIG_PM_SLEEP
+-static int samsungq10_suspend(struct device *dev)
+-{
+-	return 0;
+-}
+-
+-static int samsungq10_resume(struct device *dev)
+-{
+-
+-	struct backlight_device *bd = dev_get_drvdata(dev);
+-
+-	samsungq10_bl_set_intensity(bd);
+-	return 0;
+-}
+-#else
+-#define samsungq10_suspend NULL
+-#define samsungq10_resume  NULL
+-#endif
+-
+-static SIMPLE_DEV_PM_OPS(samsungq10_pm_ops,
+-			  samsungq10_suspend, samsungq10_resume);
+-
+ static int samsungq10_probe(struct platform_device *pdev)
+ {
+ 
+@@ -93,9 +72,6 @@ static int samsungq10_probe(struct platform_device *pdev)
+ 
+ 	platform_set_drvdata(pdev, bd);
+ 
+-	bd->props.brightness = SAMSUNGQ10_BL_DEFAULT_INTENSITY;
+-	samsungq10_bl_set_intensity(bd);
+-
+ 	return 0;
+ }
+ 
+@@ -104,9 +80,6 @@ static int samsungq10_remove(struct platform_device *pdev)
+ 
+ 	struct backlight_device *bd = platform_get_drvdata(pdev);
+ 
+-	bd->props.brightness = SAMSUNGQ10_BL_DEFAULT_INTENSITY;
+-	samsungq10_bl_set_intensity(bd);
+-
+ 	backlight_device_unregister(bd);
+ 
+ 	return 0;
+@@ -116,7 +89,6 @@ static struct platform_driver samsungq10_driver = {
+ 	.driver		= {
+ 		.name	= KBUILD_MODNAME,
+ 		.owner	= THIS_MODULE,
+-		.pm	= &samsungq10_pm_ops,
+ 	},
+ 	.probe		= samsungq10_probe,
+ 	.remove		= samsungq10_remove,
+@@ -172,6 +144,11 @@ static int __init samsungq10_init(void)
+ 	if (!force && !dmi_check_system(samsungq10_dmi_table))
+ 		return -ENODEV;
+ 
++	ec_handle = ec_get_handle();
++
++	if (!ec_handle)
++		return -ENODEV;
++
+ 	samsungq10_device = platform_create_bundle(&samsungq10_driver,
+ 						   samsungq10_probe,
+ 						   NULL, 0, NULL, 0);
+-- 
+1.7.3.4
