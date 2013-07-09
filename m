@@ -1,68 +1,43 @@
 From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: [RFC][PATCH 6/8] ACPI / hotplug / PCI: Drop acpiphp_handle_to_bridge()
-Date: Wed, 10 Jul 2013 01:46:05 +0200
-Message-ID: <1584852.Uglv2uCyLO@vostro.rjw.lan>
-References: <26431283.HJCKsss0rt@vostro.rjw.lan> <3804403.VVlzfJfUyu@vostro.rjw.lan> <20130709093726.GK4898@intel.com>
+Subject: Re: [RFC][PATCH 5/8] ACPI / hotplug / PCI: Unified notify handler for hotplug events
+Date: Wed, 10 Jul 2013 01:49:19 +0200
+Message-ID: <2332413.CRuyXNEmFc@vostro.rjw.lan>
+References: <26431283.HJCKsss0rt@vostro.rjw.lan> <1475924.SZkPqZAdKY@vostro.rjw.lan> <20130709093045.GJ4898@intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7Bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from hydra.sisk.pl ([212.160.235.94]:36231 "EHLO hydra.sisk.pl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753920Ab3GIXgX (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 9 Jul 2013 19:36:23 -0400
-In-Reply-To: <20130709093726.GK4898@intel.com>
-Sender: linux-acpi-owner@vger.kernel.org
-List-Id: linux-acpi@vger.kernel.org
+Return-path: <linux-pci-owner@vger.kernel.org>
+In-Reply-To: <20130709093045.GJ4898@intel.com>
+Sender: linux-pci-owner@vger.kernel.org
 To: Mika Westerberg <mika.westerberg@linux.intel.com>
 Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Bjorn Helgaas <bhelgaas@google.com>, LKML <linux-kernel@vger.kernel.org>, Linux PCI <linux-pci@vger.kernel.org>, Yinghai Lu <yinghai@kernel.org>, Jiang Liu <liuj97@gmail.com>
+List-Id: linux-acpi@vger.kernel.org
 
-On Tuesday, July 09, 2013 12:37:26 PM Mika Westerberg wrote:
-> On Tue, Jul 09, 2013 at 02:20:31AM +0200, Rafael J. Wysocki wrote:
-> > @@ -953,37 +937,49 @@ static void acpiphp_sanitize_bus(struct
-> >   * ACPI event handlers
-> >   */
-> >  
-> > -static acpi_status
-> > -check_sub_bridges(acpi_handle handle, u32 lvl, void *context, void **rv)
-> > +static acpi_status check_sub_bridges(acpi_handle handle, u32 lvl, void *data,
-> > +				     void **rv)
-> >  {
-> > -	struct acpiphp_bridge *bridge;
-> > -	char objname[64];
-> > -	struct acpi_buffer buffer = { .length = sizeof(objname),
-> > -				      .pointer = objname };
-> > +	struct acpiphp_context *context = acpiphp_get_context(handle);
-> > +
-> > +	if (!context)
-> > +		return AE_OK;
-> >  
-> > -	bridge = acpiphp_handle_to_bridge(handle);
-> > -	if (bridge) {
-> > +	if (context->bridge) {
-> > +		struct acpiphp_bridge *bridge = context->bridge;
-> > +		char objname[64];
-> > +		struct acpi_buffer buffer = { .length = sizeof(objname),
-> > +					      .pointer = objname };
-> > +
-> > +		get_bridge(bridge);
-> >  		acpi_get_name(handle, ACPI_FULL_PATHNAME, &buffer);
-> > -		dbg("%s: re-enumerating slots under %s\n",
-> > -			__func__, objname);
-> > +		dbg("%s: re-enumerating slots under %s\n", __func__, objname);
+On Tuesday, July 09, 2013 12:30:45 PM Mika Westerberg wrote:
+> On Tue, Jul 09, 2013 at 02:19:04AM +0200, Rafael J. Wysocki wrote:
+> > Index: linux-pm/drivers/pci/hotplug/acpiphp.h
+> > ===================================================================
+> > --- linux-pm.orig/drivers/pci/hotplug/acpiphp.h
+> > +++ linux-pm/drivers/pci/hotplug/acpiphp.h
+> > @@ -137,6 +137,7 @@ struct acpiphp_context {
+> >  	acpi_handle handle;
+> >  	struct acpiphp_func *func;
+> >  	struct acpiphp_bridge *bridge;
+> > +	bool handler_for_func:1;
 > 
-> Although not related to this patch directly, how about using
-> acpi_handle_debug() or similar here?
+> Hmm, should it be just plain:
+> 
+> 	bool handler_for_func;
+> 
+> ? What's the reason using bitfields for bool?
 
-Well, we don't have acpi_handle_debug() and I remember there was a reason why,
-but I can't recall what the reason was at the moment. :-)
+If there are more of them, they can be stored together in one int (they are
+unsigned int under the hood).
 
-> >  		acpiphp_check_bridge(bridge);
-> >  		put_bridge(bridge);
-> >  	}
-> > +	acpiphp_put_context(context);
-> >  	return AE_OK ;
-> >  }
+I this particular case it doesn't matter and one of subsequent patches will
+remove that field anyway. :-)
+
+> >  };
 -- 
 I speak only for myself.
 Rafael J. Wysocki, Intel Open Source Technology Center.
