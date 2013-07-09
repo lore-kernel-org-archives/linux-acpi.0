@@ -1,59 +1,73 @@
-From: Mika Westerberg <mika.westerberg@linux.intel.com>
-Subject: Re: [RFC][PATCH 6/8] ACPI / hotplug / PCI: Drop
- acpiphp_handle_to_bridge()
-Date: Tue, 9 Jul 2013 12:37:26 +0300
-Message-ID: <20130709093726.GK4898@intel.com>
-References: <26431283.HJCKsss0rt@vostro.rjw.lan>
- <3804403.VVlzfJfUyu@vostro.rjw.lan>
+From: Toshi Kani <toshi.kani@hp.com>
+Subject: Re: [PATCH] ACPI / scan: Always call acpi_bus_scan() for bus check
+ notifications
+Date: Tue, 09 Jul 2013 13:32:42 -0600
+Message-ID: <1373398362.24916.4.camel@misato.fc.hp.com>
+References: <2230821.QbNohsyO0O@vostro.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-pci-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <3804403.VVlzfJfUyu@vostro.rjw.lan>
-Sender: linux-pci-owner@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Bjorn Helgaas <bhelgaas@google.com>, LKML <linux-kernel@vger.kernel.org>, Linux PCI <linux-pci@vger.kernel.org>, Yinghai Lu <yinghai@kernel.org>, Jiang Liu <liuj97@gmail.com>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from g5t0009.atlanta.hp.com ([15.192.0.46]:28103 "EHLO
+	g5t0009.atlanta.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752396Ab3GITdW (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 9 Jul 2013 15:33:22 -0400
+In-Reply-To: <2230821.QbNohsyO0O@vostro.rjw.lan>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>, Bjorn Helgaas <bhelgaas@google.com>, Yinghai Lu <yinghai@kernel.org>
 
-On Tue, Jul 09, 2013 at 02:20:31AM +0200, Rafael J. Wysocki wrote:
-> @@ -953,37 +937,49 @@ static void acpiphp_sanitize_bus(struct
->   * ACPI event handlers
->   */
->  
-> -static acpi_status
-> -check_sub_bridges(acpi_handle handle, u32 lvl, void *context, void **rv)
-> +static acpi_status check_sub_bridges(acpi_handle handle, u32 lvl, void *data,
-> +				     void **rv)
->  {
-> -	struct acpiphp_bridge *bridge;
-> -	char objname[64];
-> -	struct acpi_buffer buffer = { .length = sizeof(objname),
-> -				      .pointer = objname };
-> +	struct acpiphp_context *context = acpiphp_get_context(handle);
-> +
-> +	if (!context)
-> +		return AE_OK;
->  
-> -	bridge = acpiphp_handle_to_bridge(handle);
-> -	if (bridge) {
-> +	if (context->bridge) {
-> +		struct acpiphp_bridge *bridge = context->bridge;
-> +		char objname[64];
-> +		struct acpi_buffer buffer = { .length = sizeof(objname),
-> +					      .pointer = objname };
-> +
-> +		get_bridge(bridge);
->  		acpi_get_name(handle, ACPI_FULL_PATHNAME, &buffer);
-> -		dbg("%s: re-enumerating slots under %s\n",
-> -			__func__, objname);
-> +		dbg("%s: re-enumerating slots under %s\n", __func__, objname);
+On Mon, 2013-07-08 at 02:10 +0200, Rafael J. Wysocki wrote:
+> From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+> 
+> An ACPI_NOTIFY_BUS_CHECK notification means that we should scan the
+> entire namespace starting from the given handle even if the device
+> represented by that handle is present (other devices below it may
+> just have been added).
+> 
+> For this reason, modify acpi_scan_bus_device_check() to always run
+> acpi_bus_scan() if the notification being handled is of type
+> ACPI_NOTIFY_BUS_CHECK.
+> 
+> Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+> Cc: 3.10+ <stable@vger.kernel.org>
 
-Although not related to this patch directly, how about using
-acpi_handle_debug() or similar here?
+Acked-by: Toshi Kani <toshi.kani@hp.com>
 
->  		acpiphp_check_bridge(bridge);
->  		put_bridge(bridge);
->  	}
-> +	acpiphp_put_context(context);
->  	return AE_OK ;
->  }
+But, I think we need the additional patch below.
+
+Thanks,
+-Toshi
+
+=====
+From: Toshi Kani <toshi.kani@hp.com>
+Subject: [PATCH] ACPI: Do not call attach() if device is attached
+
+attach() of ACPI scan handlers does not expect to be called multiple
+times on a same device.  Also, the attached handler may not be changed
+without calling its detach().  Change acpi_scan_attach_handler() not
+to call attach() when the given device is already attached.
+
+Signed-off-by: Toshi Kani <toshi.kani@hp.com>
+---
+ drivers/acpi/scan.c |    3 +++
+ 1 file changed, 3 insertions(+)
+
+diff --git a/drivers/acpi/scan.c b/drivers/acpi/scan.c
+index 20757e0..2b9e867 100644
+--- a/drivers/acpi/scan.c
++++ b/drivers/acpi/scan.c
+@@ -1885,6 +1885,9 @@ static int acpi_scan_attach_handler(struct
+acpi_device *device)
+ 	struct acpi_hardware_id *hwid;
+ 	int ret = 0;
+ 
++	if (device->handler)
++		return 1;
++
+ 	list_for_each_entry(hwid, &device->pnp.ids, list) {
+ 		const struct acpi_device_id *devid;
+ 		struct acpi_scan_handler *handler;
+
+
