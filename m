@@ -1,45 +1,50 @@
 From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: [RFC][PATCH 0/8] ACPI / hotplug / PCI: Consolidation of handling notifications (in progress)
-Date: Tue, 09 Jul 2013 02:01:55 +0200
-Message-ID: <26431283.HJCKsss0rt@vostro.rjw.lan>
+Subject: [RFC][PATCH 3/8] ACPI / hotplug / PCI: Always return success after adding a function
+Date: Tue, 09 Jul 2013 02:17:34 +0200
+Message-ID: <3387129.165JytWxXq@vostro.rjw.lan>
+References: <26431283.HJCKsss0rt@vostro.rjw.lan>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7Bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ogre.sisk.pl ([193.178.161.156]:34575 "EHLO ogre.sisk.pl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753608Ab3GIANk (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 8 Jul 2013 20:13:40 -0400
-Sender: linux-acpi-owner@vger.kernel.org
-List-Id: linux-acpi@vger.kernel.org
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <26431283.HJCKsss0rt@vostro.rjw.lan>
+Sender: linux-kernel-owner@vger.kernel.org
 To: ACPI Devel Maling List <linux-acpi@vger.kernel.org>
 Cc: Bjorn Helgaas <bhelgaas@google.com>, LKML <linux-kernel@vger.kernel.org>, Linux PCI <linux-pci@vger.kernel.org>, Yinghai Lu <yinghai@kernel.org>, Jiang Liu <liuj97@gmail.com>, Mika Westerberg <mika.westerberg@linux.intel.com>
+List-Id: linux-acpi@vger.kernel.org
 
-Hi,
+From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 
-Following is the current set of acpiphp updates targeted at the consolidation
-of device notifications handling and removal of suprefluous infrastructure.
-Still on top of 3.10 with ACPI+PM 3.11 material merged on top (I'll rebase it
-on top of linux-pm.git/bleeding-edge eventually).
+When a new ACPIPHP function is added by register_slot() and the
+notify handler cannot be installed for it, register_slot() returns an
+error status without cleaning up, which causes the entire namespace
+walk in acpiphp_enumerate_slots() to be aborted, although it still
+may be possible to successfully install the function notify handler
+for other device objects under the given brigde.
 
-[1/8] Make bus registration and unregistration symmetric.  [Resend]
-[2/8] Consolidate acpiphp_enumerate_slots().  [Resend]
-[3/8] Fix error code path in register_slot().  [Resend]
-[4/8] Introduce hotplug context objects for ACPI device objects corresponding
-      to PCI hotplug devices.  [Update]
-[5/8] Unified notify handler for hotplug events.  [Resend]
-[6/8] Drop acpiphp_handle_to_bridge() and use context objects instead of it.
-[7/8] Pass entire hotplug context objects (instead of their fields
-      individually) to event handling work functions.
-[8/8] Merge hotplug event handling functions.
+To address this issue make register_slot() return success after
+a new function has been added, even if the addition of the notify
+handler for it has failed.
 
-Comments welcome.
+Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+---
+ drivers/pci/hotplug/acpiphp_glue.c |    5 ++---
+ 1 file changed, 2 insertions(+), 3 deletions(-)
 
-Thanks,
-Rafael
-
-
--- 
-I speak only for myself.
-Rafael J. Wysocki, Intel Open Source Technology Center.
-
+Index: linux-pm/drivers/pci/hotplug/acpiphp_glue.c
+===================================================================
+--- linux-pm.orig/drivers/pci/hotplug/acpiphp_glue.c
++++ linux-pm/drivers/pci/hotplug/acpiphp_glue.c
+@@ -335,10 +335,9 @@ register_slot(acpi_handle handle, u32 lv
+ 
+ 		if (ACPI_FAILURE(status))
+ 			err("failed to register interrupt notify handler\n");
+-	} else
+-		status = AE_OK;
++	}
+ 
+-	return status;
++	return AE_OK;
+ 
+  err_exit:
+ 	bridge->nr_slots--;
