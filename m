@@ -1,125 +1,35 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: [RFC][PATCH 6/8] ACPI / hotplug / PCI: Drop acpiphp_handle_to_bridge()
-Date: Tue, 09 Jul 2013 02:20:31 +0200
-Message-ID: <3804403.VVlzfJfUyu@vostro.rjw.lan>
-References: <26431283.HJCKsss0rt@vostro.rjw.lan>
+From: Mika Westerberg <mika.westerberg@linux.intel.com>
+Subject: Re: ACPI errors from TPM PPI
+Date: Tue, 9 Jul 2013 11:54:57 +0300
+Message-ID: <20130709085457.GG4898@intel.com>
+References: <CAMfhd9XWfp420M9wF-ACya9hbQGUSkneRB6sry9=nj1KtB_ygw@mail.gmail.com>
+ <10172565.WQexNecTHe@vostro.rjw.lan>
+ <CAMfhd9U6qvm2kTb2D8PgzR8qCqZnDWhLNC4Ojzftc8PdmKwjnA@mail.gmail.com>
+ <20130706111025.GZ4898@intel.com>
+ <20130708161301.GA611@srcf.ucam.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from hydra.sisk.pl ([212.160.235.94]:35121 "EHLO hydra.sisk.pl"
+Received: from mga09.intel.com ([134.134.136.24]:60585 "EHLO mga09.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753461Ab3GIANS (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 8 Jul 2013 20:13:18 -0400
-In-Reply-To: <26431283.HJCKsss0rt@vostro.rjw.lan>
+	id S1753167Ab3GIItb (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 9 Jul 2013 04:49:31 -0400
+Content-Disposition: inline
+In-Reply-To: <20130708161301.GA611@srcf.ucam.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: ACPI Devel Maling List <linux-acpi@vger.kernel.org>
-Cc: Bjorn Helgaas <bhelgaas@google.com>, LKML <linux-kernel@vger.kernel.org>, Linux PCI <linux-pci@vger.kernel.org>, Yinghai Lu <yinghai@kernel.org>, Jiang Liu <liuj97@gmail.com>, Mika Westerberg <mika.westerberg@linux.intel.com>
+To: Matthew Garrett <mjg59@srcf.ucam.org>
+Cc: Adam Langley <agl@imperialviolet.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, xiaoyan.zhang@intel.com, Bob Moore <robert.moore@intel.com>, Lv Zheng <lv.zheng@intel.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>
 
-From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+On Mon, Jul 08, 2013 at 05:13:01PM +0100, Matthew Garrett wrote:
+> On Sat, Jul 06, 2013 at 02:10:25PM +0300, Mika Westerberg wrote:
+> 
+> > I wonder whether there is a real PNP Id associated with that device?
+> 
+> You'd really hope so - it's certainly completely bogus to rely on the 
+> device name. On the other hand, this is basically re-probing for a 
+> device that the kernel already knows about. Just exporting the device 
+> from tpm_tis would make more sense.
 
-Using the hotplug context objects introduced previously rework the
-ACPI-based PCI hotplug (acpiphp) core code to get to acpiphp_bridge
-objects associated with hotplug bridges from those context objects
-rather than from the global list of hotplug bridges.
-
-After that the acpiphp_handle_to_bridge() is not necessary any more,
-so drop it.
-
-Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
----
- drivers/pci/hotplug/acpiphp_glue.c |   54 +++++++++++++++++--------------------
- 1 file changed, 25 insertions(+), 29 deletions(-)
-
-Index: linux-pm/drivers/pci/hotplug/acpiphp_glue.c
-===================================================================
---- linux-pm.orig/drivers/pci/hotplug/acpiphp_glue.c
-+++ linux-pm/drivers/pci/hotplug/acpiphp_glue.c
-@@ -441,22 +441,6 @@ static int detect_ejectable_slots(acpi_h
- 	return found;
- }
- 
--static struct acpiphp_bridge *acpiphp_handle_to_bridge(acpi_handle handle)
--{
--	struct acpiphp_bridge *bridge;
--
--	mutex_lock(&bridge_mutex);
--	list_for_each_entry(bridge, &bridge_list, list)
--		if (bridge->handle == handle) {
--			get_bridge(bridge);
--			mutex_unlock(&bridge_mutex);
--			return bridge;
--		}
--	mutex_unlock(&bridge_mutex);
--
--	return NULL;
--}
--
- static void cleanup_bridge(struct acpiphp_bridge *bridge)
- {
- 	struct acpiphp_slot *slot;
-@@ -953,37 +937,49 @@ static void acpiphp_sanitize_bus(struct
-  * ACPI event handlers
-  */
- 
--static acpi_status
--check_sub_bridges(acpi_handle handle, u32 lvl, void *context, void **rv)
-+static acpi_status check_sub_bridges(acpi_handle handle, u32 lvl, void *data,
-+				     void **rv)
- {
--	struct acpiphp_bridge *bridge;
--	char objname[64];
--	struct acpi_buffer buffer = { .length = sizeof(objname),
--				      .pointer = objname };
-+	struct acpiphp_context *context = acpiphp_get_context(handle);
-+
-+	if (!context)
-+		return AE_OK;
- 
--	bridge = acpiphp_handle_to_bridge(handle);
--	if (bridge) {
-+	if (context->bridge) {
-+		struct acpiphp_bridge *bridge = context->bridge;
-+		char objname[64];
-+		struct acpi_buffer buffer = { .length = sizeof(objname),
-+					      .pointer = objname };
-+
-+		get_bridge(bridge);
- 		acpi_get_name(handle, ACPI_FULL_PATHNAME, &buffer);
--		dbg("%s: re-enumerating slots under %s\n",
--			__func__, objname);
-+		dbg("%s: re-enumerating slots under %s\n", __func__, objname);
- 		acpiphp_check_bridge(bridge);
- 		put_bridge(bridge);
- 	}
-+	acpiphp_put_context(context);
- 	return AE_OK ;
- }
- 
- void acpiphp_check_host_bridge(acpi_handle handle)
- {
--	struct acpiphp_bridge *bridge;
-+	struct acpiphp_context *context = acpiphp_get_context(handle);
- 
--	bridge = acpiphp_handle_to_bridge(handle);
--	if (bridge) {
-+	if (!context)
-+		return;
-+
-+	if (context->bridge) {
-+		struct acpiphp_bridge *bridge = context->bridge;
-+
-+		get_bridge(bridge);
- 		acpiphp_check_bridge(bridge);
- 		put_bridge(bridge);
- 	}
- 
- 	acpi_walk_namespace(ACPI_TYPE_DEVICE, handle,
- 		ACPI_UINT32_MAX, check_sub_bridges, NULL, NULL, NULL);
-+
-+	acpiphp_put_context(context);
- }
- 
- static void _handle_hotplug_event_bridge(struct work_struct *work)
-
+Indeed, you are right. I didn't even check whether there already exists a
+driver for that.
