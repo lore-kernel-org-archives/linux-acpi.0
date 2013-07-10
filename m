@@ -1,85 +1,26 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: [PATCH] ACPI / scan: Always call acpi_bus_scan() for bus check notifications
-Date: Wed, 10 Jul 2013 02:11:05 +0200
-Message-ID: <19368029.jaCH7i2zvY@vostro.rjw.lan>
-References: <2230821.QbNohsyO0O@vostro.rjw.lan> <1373398362.24916.4.camel@misato.fc.hp.com>
+From: "Naveen N. Rao" <naveen.n.rao@linux.vnet.ibm.com>
+Subject: Re: [PATCH 4] mce: acpi/apei: Add a sysctl to control page offlining
+ on firmware report
+Date: Wed, 10 Jul 2013 14:47:13 +0530
+Message-ID: <51DD2699.7000804@linux.vnet.ibm.com>
+References: <20130701153728.6197.14022.stgit@localhost.localdomain> <20130702125137.7388.97225.stgit@localhost.localdomain> <20130703144641.GC13951@pd.tnic> <51D44752.3000303@linux.vnet.ibm.com> <3908561D78D1C84285E8C5FCA982C28F31C76B19@ORSMSX106.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7Bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from hydra.sisk.pl ([212.160.235.94]:36262 "EHLO hydra.sisk.pl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753342Ab3GJABV (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 9 Jul 2013 20:01:21 -0400
-In-Reply-To: <1373398362.24916.4.camel@misato.fc.hp.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <3908561D78D1C84285E8C5FCA982C28F31C76B19@ORSMSX106.amr.corp.intel.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: "Luck, Tony" <tony.luck@intel.com>
+Cc: Borislav Petkov <bp@alien8.de>, "ananth@in.ibm.com" <ananth@in.ibm.com>, "masbock@linux.vnet.ibm.com" <masbock@linux.vnet.ibm.com>, "lcm@linux.vnet.ibm.com" <lcm@linux.vnet.ibm.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "Huang, Ying" <ying.huang@intel.com>
 List-Id: linux-acpi@vger.kernel.org
-To: Toshi Kani <toshi.kani@hp.com>
-Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>, Bjorn Helgaas <bhelgaas@google.com>, Yinghai Lu <yinghai@kernel.org>
 
-On Tuesday, July 09, 2013 01:32:42 PM Toshi Kani wrote:
-> On Mon, 2013-07-08 at 02:10 +0200, Rafael J. Wysocki wrote:
-> > From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
-> > 
-> > An ACPI_NOTIFY_BUS_CHECK notification means that we should scan the
-> > entire namespace starting from the given handle even if the device
-> > represented by that handle is present (other devices below it may
-> > just have been added).
-> > 
-> > For this reason, modify acpi_scan_bus_device_check() to always run
-> > acpi_bus_scan() if the notification being handled is of type
-> > ACPI_NOTIFY_BUS_CHECK.
-> > 
-> > Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
-> > Cc: 3.10+ <stable@vger.kernel.org>
-> 
-> Acked-by: Toshi Kani <toshi.kani@hp.com>
-> 
-> But, I think we need the additional patch below.
+On 07/09/2013 01:56 AM, Luck, Tony wrote:
+> I'm happy with just the acpi=nocmcff to avoid a BIOS that does weird
+> stuff.  Or do you think we might still have to deal with a string of APEI
+> messages?
 
-Yes, I think you're right.
+Agreed - and I don't think this patch can help with a string of APEI 
+messages either. So yes, I think we can leave this out for now.
 
 Thanks,
-Rafael
-
-
-
-> =====
-> From: Toshi Kani <toshi.kani@hp.com>
-> Subject: [PATCH] ACPI: Do not call attach() if device is attached
-> 
-> attach() of ACPI scan handlers does not expect to be called multiple
-> times on a same device.  Also, the attached handler may not be changed
-> without calling its detach().  Change acpi_scan_attach_handler() not
-> to call attach() when the given device is already attached.
-> 
-> Signed-off-by: Toshi Kani <toshi.kani@hp.com>
-> ---
->  drivers/acpi/scan.c |    3 +++
->  1 file changed, 3 insertions(+)
-> 
-> diff --git a/drivers/acpi/scan.c b/drivers/acpi/scan.c
-> index 20757e0..2b9e867 100644
-> --- a/drivers/acpi/scan.c
-> +++ b/drivers/acpi/scan.c
-> @@ -1885,6 +1885,9 @@ static int acpi_scan_attach_handler(struct
-> acpi_device *device)
->  	struct acpi_hardware_id *hwid;
->  	int ret = 0;
->  
-> +	if (device->handler)
-> +		return 1;
-> +
->  	list_for_each_entry(hwid, &device->pnp.ids, list) {
->  		const struct acpi_device_id *devid;
->  		struct acpi_scan_handler *handler;
-> 
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-kernel" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> Please read the FAQ at  http://www.tux.org/lkml/
--- 
-I speak only for myself.
-Rafael J. Wysocki, Intel Open Source Technology Center.
+Naveen
