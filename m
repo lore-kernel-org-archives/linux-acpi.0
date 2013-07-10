@@ -1,34 +1,30 @@
-From: Toshi Kani <toshi.kani@hp.com>
-Subject: [PATCH] ACPI / memhotplug: Fix a stale pointer in error path
-Date: Wed, 10 Jul 2013 10:47:13 -0600
-Message-ID: <1373474833-14047-1-git-send-email-toshi.kani@hp.com>
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from g6t0187.atlanta.hp.com ([15.193.32.64]:30612 "EHLO
-	g6t0187.atlanta.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754211Ab3GJQr5 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 10 Jul 2013 12:47:57 -0400
-Sender: linux-acpi-owner@vger.kernel.org
+From: Tony Luck <tony.luck@gmail.com>
+Subject: Re: [PATCH v3 3/3] mce, acpi/apei: Soft-offline a page on firmware
+ GHES notification
+Date: Wed, 10 Jul 2013 13:05:33 -0700
+Message-ID: <CA+8MBb+maun-q=6o9vo5gqE0HtxKF=NoLs_eG8WEeH+=-Ojd1w@mail.gmail.com>
+References: <CA+8MBbKU-YHrVvV6uxE2gJ8Ko=06o=_y90peUBsC4SvOXMLO_w@mail.gmail.com>
+	<20130710092225.20744.63823.stgit@localhost.localdomain>
+	<20130710093844.GD14873@pd.tnic>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20130710093844.GD14873@pd.tnic>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Borislav Petkov <bp@alien8.de>
+Cc: "Naveen N. Rao" <naveen.n.rao@linux.vnet.ibm.com>, ananth@in.ibm.com, masbock@linux.vnet.ibm.com, lcm@linux.vnet.ibm.com, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-acpi <linux-acpi@vger.kernel.org>, Huang Ying <ying.huang@intel.com>
 List-Id: linux-acpi@vger.kernel.org
-To: rjw@sisk.pl
-Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Toshi Kani <toshi.kani@hp.com>
 
-device->driver_data needs to be cleared when releasing its data,
-mem_device, in an error path of acpi_memory_device_add().
+>> Signed-off-by: Naveen N. Rao <naveen.n.rao@linux.vnet.ibm.com>
+>
+> Acked-by: Borislav Petkov <bp@suse.de>
 
-Signed-off-by: Toshi Kani <toshi.kani@hp.com>
----
- drivers/acpi/acpi_memhotplug.c |    1 +
- 1 file changed, 1 insertion(+)
+Applied-by: Tony Luck :-)
 
-diff --git a/drivers/acpi/acpi_memhotplug.c b/drivers/acpi/acpi_memhotplug.c
-index c711d11..999adb5 100644
---- a/drivers/acpi/acpi_memhotplug.c
-+++ b/drivers/acpi/acpi_memhotplug.c
-@@ -323,6 +323,7 @@ static int acpi_memory_device_add(struct acpi_device *device,
- 	/* Get the range from the _CRS */
- 	result = acpi_memory_get_device_resources(mem_device);
- 	if (result) {
-+		device->driver_data = NULL;
- 		kfree(mem_device);
- 		return result;
- 	}
+Naveen: Thanks for having this idea, implementing it, and sticking
+with it through the review process.
+
+Once 3.11-rc1 is out I'll ask Ingo to pull this series to the tip tree
+... and then on to 3.12
+
+-Tony
