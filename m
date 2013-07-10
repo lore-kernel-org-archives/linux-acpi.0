@@ -1,30 +1,80 @@
-From: Tony Luck <tony.luck@gmail.com>
-Subject: Re: [PATCH v3 3/3] mce, acpi/apei: Soft-offline a page on firmware
- GHES notification
-Date: Wed, 10 Jul 2013 13:05:33 -0700
-Message-ID: <CA+8MBb+maun-q=6o9vo5gqE0HtxKF=NoLs_eG8WEeH+=-Ojd1w@mail.gmail.com>
-References: <CA+8MBbKU-YHrVvV6uxE2gJ8Ko=06o=_y90peUBsC4SvOXMLO_w@mail.gmail.com>
-	<20130710092225.20744.63823.stgit@localhost.localdomain>
-	<20130710093844.GD14873@pd.tnic>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: Re: [PATCH] ACPI / scan: Always call acpi_bus_scan() for bus check notifications
+Date: Thu, 11 Jul 2013 00:45:36 +0200
+Message-ID: <6189099.QeK4PsCIFb@vostro.rjw.lan>
+References: <2230821.QbNohsyO0O@vostro.rjw.lan> <1373398362.24916.4.camel@misato.fc.hp.com> <19368029.jaCH7i2zvY@vostro.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20130710093844.GD14873@pd.tnic>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Borislav Petkov <bp@alien8.de>
-Cc: "Naveen N. Rao" <naveen.n.rao@linux.vnet.ibm.com>, ananth@in.ibm.com, masbock@linux.vnet.ibm.com, lcm@linux.vnet.ibm.com, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-acpi <linux-acpi@vger.kernel.org>, Huang Ying <ying.huang@intel.com>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7Bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from hydra.sisk.pl ([212.160.235.94]:37389 "EHLO hydra.sisk.pl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754415Ab3GJWft (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 10 Jul 2013 18:35:49 -0400
+In-Reply-To: <19368029.jaCH7i2zvY@vostro.rjw.lan>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Toshi Kani <toshi.kani@hp.com>
+Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>, Bjorn Helgaas <bhelgaas@google.com>, Yinghai Lu <yinghai@kernel.org>
 
->> Signed-off-by: Naveen N. Rao <naveen.n.rao@linux.vnet.ibm.com>
->
-> Acked-by: Borislav Petkov <bp@suse.de>
+On Wednesday, July 10, 2013 02:11:05 AM Rafael J. Wysocki wrote:
+> On Tuesday, July 09, 2013 01:32:42 PM Toshi Kani wrote:
+> > On Mon, 2013-07-08 at 02:10 +0200, Rafael J. Wysocki wrote:
+> > > From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+> > > 
+> > > An ACPI_NOTIFY_BUS_CHECK notification means that we should scan the
+> > > entire namespace starting from the given handle even if the device
+> > > represented by that handle is present (other devices below it may
+> > > just have been added).
+> > > 
+> > > For this reason, modify acpi_scan_bus_device_check() to always run
+> > > acpi_bus_scan() if the notification being handled is of type
+> > > ACPI_NOTIFY_BUS_CHECK.
+> > > 
+> > > Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+> > > Cc: 3.10+ <stable@vger.kernel.org>
+> > 
+> > Acked-by: Toshi Kani <toshi.kani@hp.com>
+> > 
+> > But, I think we need the additional patch below.
+> 
+> Yes, I think you're right.
 
-Applied-by: Tony Luck :-)
+That said I'd prefer to put the check into acpi_bus_device_attach() like in
+the appended patch.
 
-Naveen: Thanks for having this idea, implementing it, and sticking
-with it through the review process.
+Thanks,
+Rafael
 
-Once 3.11-rc1 is out I'll ask Ingo to pull this series to the tip tree
-... and then on to 3.12
 
--Tony
+---
+From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+Subject: ACPI / scan: Do not try to attach scan handlers to devices having them
+
+In acpi_bus_device_attach(), if there is an ACPI device object
+for the given handle and that device object has a scan handler
+attached to it already, there's nothing more to do for that handle
+and the function should just return success immediately.  Make
+that happen.
+
+Reported-by: Toshi Kani <toshi.kani@hp.com>
+Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+---
+ drivers/acpi/scan.c |    3 +++
+ 1 file changed, 3 insertions(+)
+
+Index: linux-pm/drivers/acpi/scan.c
+===================================================================
+--- linux-pm.orig/drivers/acpi/scan.c
++++ linux-pm/drivers/acpi/scan.c
+@@ -1984,6 +1984,9 @@ static acpi_status acpi_bus_device_attac
+ 	if (acpi_bus_get_device(handle, &device))
+ 		return AE_CTRL_DEPTH;
+ 
++	if (device->handler)
++		return AE_OK;
++
+ 	ret = acpi_scan_attach_handler(device);
+ 	if (ret)
+ 		return ret > 0 ? AE_OK : AE_CTRL_DEPTH;
+
