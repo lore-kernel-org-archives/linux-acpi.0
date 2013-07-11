@@ -1,46 +1,184 @@
 From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: [RFC][PATCH 20/30] ACPI / hotplug / PCI: Drop redundant checks from check_hotplug_bridge()
-Date: Fri, 12 Jul 2013 01:58:42 +0200
-Message-ID: <5977843.5Tlt5SzyWq@vostro.rjw.lan>
+Subject: [RFC][PATCH 21/30] ACPI / hotplug / PCI: Consolidate slot disabling and ejecting
+Date: Fri, 12 Jul 2013 01:59:55 +0200
+Message-ID: <31949614.9GWyx1vXud@vostro.rjw.lan>
 References: <26431283.HJCKsss0rt@vostro.rjw.lan> <3718119.FLASu5DBx8@vostro.rjw.lan>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7Bit
-Return-path: <linux-pci-owner@vger.kernel.org>
+Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <3718119.FLASu5DBx8@vostro.rjw.lan>
-Sender: linux-pci-owner@vger.kernel.org
+Sender: linux-kernel-owner@vger.kernel.org
 To: ACPI Devel Maling List <linux-acpi@vger.kernel.org>
 Cc: Bjorn Helgaas <bhelgaas@google.com>, LKML <linux-kernel@vger.kernel.org>, Linux PCI <linux-pci@vger.kernel.org>, Yinghai Lu <yinghai@kernel.org>, Jiang Liu <liuj97@gmail.com>, Mika Westerberg <mika.westerberg@linux.intel.com>
 List-Id: linux-acpi@vger.kernel.org
 
-From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+From: Mika Westerberg <mika.westerberg@linux.intel.com>
 
-Two checks in check_hotplug_bridge() are redundant (they have been
-done by the caller already), so drop them.
+Both acpiphp_disable_slot() and acpiphp_eject_slot() are always
+called together so instead of calling each separately we can
+consolidate them into one function acpiphp_disable_and_eject_slot()
+that does both (but it will return success on _EJ0 failures that
+were ignored in the majority of call sites anyway).
 
+[rjw: Rebased plus minor tweaks]
+Signed-off-by: Mika Westerberg <mika.westerberg@linux.intel.com>
 Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 ---
- drivers/pci/hotplug/acpiphp_glue.c |    6 ------
- 1 file changed, 6 deletions(-)
+ drivers/pci/hotplug/acpiphp.h      |    3 -
+ drivers/pci/hotplug/acpiphp_core.c |    6 ---
+ drivers/pci/hotplug/acpiphp_glue.c |   74 +++++++++++++++----------------------
+ 3 files changed, 33 insertions(+), 50 deletions(-)
 
+Index: linux-pm/drivers/pci/hotplug/acpiphp.h
+===================================================================
+--- linux-pm.orig/drivers/pci/hotplug/acpiphp.h
++++ linux-pm/drivers/pci/hotplug/acpiphp.h
+@@ -186,8 +186,7 @@ void acpiphp_unregister_hotplug_slot(str
+ typedef int (*acpiphp_callback)(struct acpiphp_slot *slot, void *data);
+ 
+ int acpiphp_enable_slot(struct acpiphp_slot *slot);
+-int acpiphp_disable_slot(struct acpiphp_slot *slot);
+-int acpiphp_eject_slot(struct acpiphp_slot *slot);
++int acpiphp_disable_and_eject_slot(struct acpiphp_slot *slot);
+ u8 acpiphp_get_power_status(struct acpiphp_slot *slot);
+ u8 acpiphp_get_attention_status(struct acpiphp_slot *slot);
+ u8 acpiphp_get_latch_status(struct acpiphp_slot *slot);
+Index: linux-pm/drivers/pci/hotplug/acpiphp_core.c
+===================================================================
+--- linux-pm.orig/drivers/pci/hotplug/acpiphp_core.c
++++ linux-pm/drivers/pci/hotplug/acpiphp_core.c
+@@ -155,15 +155,11 @@ static int enable_slot(struct hotplug_sl
+ static int disable_slot(struct hotplug_slot *hotplug_slot)
+ {
+ 	struct slot *slot = hotplug_slot->private;
+-	int retval;
+ 
+ 	dbg("%s - physical_slot = %s\n", __func__, slot_name(slot));
+ 
+ 	/* disable the specified slot */
+-	retval = acpiphp_disable_slot(slot->acpi_slot);
+-	if (!retval)
+-		retval = acpiphp_eject_slot(slot->acpi_slot);
+-	return retval;
++	return acpiphp_disable_and_eject_slot(slot->acpi_slot);
+ }
+ 
+ 
 Index: linux-pm/drivers/pci/hotplug/acpiphp_glue.c
 ===================================================================
 --- linux-pm.orig/drivers/pci/hotplug/acpiphp_glue.c
 +++ linux-pm/drivers/pci/hotplug/acpiphp_glue.c
-@@ -598,16 +598,10 @@ static void check_hotplug_bridge(struct
+@@ -777,38 +777,6 @@ static unsigned int get_slot_status(stru
+ }
+ 
+ /**
+- * acpiphp_eject_slot - physically eject the slot
+- * @slot: ACPI PHP slot
+- */
+-int acpiphp_eject_slot(struct acpiphp_slot *slot)
+-{
+-	acpi_status status;
+-	struct acpiphp_func *func;
+-	struct acpi_object_list arg_list;
+-	union acpi_object arg;
+-
+-	list_for_each_entry(func, &slot->funcs, sibling) {
+-		/* We don't want to call _EJ0 on non-existing functions. */
+-		if ((func->flags & FUNC_HAS_EJ0)) {
+-			/* _EJ0 method take one argument */
+-			arg_list.count = 1;
+-			arg_list.pointer = &arg;
+-			arg.type = ACPI_TYPE_INTEGER;
+-			arg.integer.value = 1;
+-
+-			status = acpi_evaluate_object(func_to_handle(func),
+-						      "_EJ0", &arg_list, NULL);
+-			if (ACPI_FAILURE(status)) {
+-				warn("%s: _EJ0 failed\n", __func__);
+-				return -1;
+-			} else
+-				break;
+-		}
+-	}
+-	return 0;
+-}
+-
+-/**
+  * acpiphp_check_bridge - re-enumerate devices
+  * @bridge: where to begin re-enumeration
+  *
+@@ -828,13 +796,11 @@ static int acpiphp_check_bridge(struct a
+ 		if (slot->flags & SLOT_ENABLED) {
+ 			if (status == ACPI_STA_ALL)
+ 				continue;
+-			retval = acpiphp_disable_slot(slot);
+-			if (retval) {
+-				err("Error occurred in disabling\n");
++
++			retval = acpiphp_disable_and_eject_slot(slot);
++			if (retval)
+ 				goto err_exit;
+-			} else {
+-				acpiphp_eject_slot(slot);
+-			}
++
+ 			disabled++;
+ 		} else {
+ 			if (status != ACPI_STA_ALL)
+@@ -974,9 +940,7 @@ static void hotplug_event(acpi_handle ha
+ 	case ACPI_NOTIFY_EJECT_REQUEST:
+ 		/* request device eject */
+ 		dbg("%s: Device eject notify on %s\n", __func__, objname);
+-		if (!(acpiphp_disable_slot(func->slot)))
+-			acpiphp_eject_slot(func->slot);
+-
++		acpiphp_disable_and_eject_slot(func->slot);
+ 		break;
+ 
+ 	case ACPI_NOTIFY_FREQUENCY_MISMATCH:
+@@ -1171,11 +1135,14 @@ int acpiphp_enable_slot(struct acpiphp_s
+ }
+ 
+ /**
+- * acpiphp_disable_slot - power off slot
++ * acpiphp_disable_and_eject_slot - power off and eject slot
+  * @slot: ACPI PHP slot
+  */
+-int acpiphp_disable_slot(struct acpiphp_slot *slot)
++int acpiphp_disable_and_eject_slot(struct acpiphp_slot *slot)
  {
- 	struct acpiphp_func *func;
++	struct acpiphp_func *func;
++	struct acpi_object_list arg_list;
++	union acpi_object arg;
+ 	int retval = 0;
  
--	if (!dev->subordinate)
--		return;
--
- 	/* quirk, or pcie could set it already */
- 	if (dev->is_hotplug_bridge)
- 		return;
+ 	mutex_lock(&slot->crit_sect);
+@@ -1190,6 +1157,27 @@ int acpiphp_disable_slot(struct acpiphp_
+ 	if (retval)
+ 		goto err_exit;
  
--	if (PCI_SLOT(dev->devfn) != slot->device)
--		return;
--
- 	list_for_each_entry(func, &slot->funcs, sibling) {
- 		if (PCI_FUNC(dev->devfn) == func->function) {
- 			dev->is_hotplug_bridge = 1;
++	list_for_each_entry(func, &slot->funcs, sibling) {
++		/* We don't want to call _EJ0 on non-existing functions. */
++		if (func->flags & FUNC_HAS_EJ0) {
++			acpi_handle handle = func_to_handle(func);
++			acpi_status status;
++
++			/* _EJ0 method take one argument */
++			arg_list.count = 1;
++			arg_list.pointer = &arg;
++			arg.type = ACPI_TYPE_INTEGER;
++			arg.integer.value = 1;
++
++			status = acpi_evaluate_object(handle, "_EJ0", &arg_list,
++						      NULL);
++			if (ACPI_FAILURE(status))
++				acpi_handle_err(handle, "_EJ0 failed\n");
++
++			break;
++		}
++	}
++
+  err_exit:
+ 	mutex_unlock(&slot->crit_sect);
+ 	return retval;
