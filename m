@@ -1,77 +1,48 @@
-From: joeyli <jlee@suse.com>
-Subject: Re: [PATCH] ACPI:remove panic in case hardware has changed after S4
-Date: Fri, 12 Jul 2013 04:50:22 +0800
-Message-ID: <1373575822.7539.74.camel@linux-s257.site>
-References: <1373544870-15135-1-git-send-email-oliver@neukum.org>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: Re: [PATCH v2 3/8] PCI: acpiphp: enable_device(): rescan even if no new devices on slot
+Date: Fri, 12 Jul 2013 00:48:55 +0200
+Message-ID: <4143023.cHEf6DNHsh@vostro.rjw.lan>
+References: <1372860295-8306-1-git-send-email-mika.westerberg@linux.intel.com> <1827270.u1sYdQ8l8y@vostro.rjw.lan> <20130711051144.GF4898@intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7Bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp.nue.novell.com ([195.135.221.5]:57880 "EHLO
-	smtp.nue.novell.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756652Ab3GKUvb (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 11 Jul 2013 16:51:31 -0400
-In-Reply-To: <1373544870-15135-1-git-send-email-oliver@neukum.org>
+Received: from hydra.sisk.pl ([212.160.235.94]:38903 "EHLO hydra.sisk.pl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750976Ab3GKWjK (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 11 Jul 2013 18:39:10 -0400
+In-Reply-To: <20130711051144.GF4898@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: oliver@neukum.org
-Cc: lenb@kernel.org, rjw@sisk.pl, trenn@suse.de, linux-acpi@vger.kernel.org, Oliver Neukum <oneukum@suse.de>
+To: Mika Westerberg <mika.westerberg@linux.intel.com>
+Cc: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>, Bjorn Helgaas <bhelgaas@google.com>, Jesse Barnes <jbarnes@virtuousgeek.org>, Yinghai Lu <yinghai@kernel.org>, Heikki Krogerus <heikki.krogerus@linux.intel.com>, linux-acpi@vger.kernel.org, linux-pci@vger.kernel.org
 
-=E6=96=BC =E5=9B=9B=EF=BC=8C2013-07-11 =E6=96=BC 14:14 +0200=EF=BC=8Col=
-iver@neukum.org =E6=8F=90=E5=88=B0=EF=BC=9A
-> From: Oliver Neukum <oneukum@suse.de>
->=20
-> Some BIOSes change hardware based on the state of
-> a laptop's lid. If the lid is closed, the touchpad is
-> disabled and the checksum changes.
->=20
-> Signed-off-by: Oliver Neukum <oneukum@suse.de>
-> ---
->  drivers/acpi/sleep.c | 8 +++-----
->  1 file changed, 3 insertions(+), 5 deletions(-)
->=20
-> diff --git a/drivers/acpi/sleep.c b/drivers/acpi/sleep.c
-> index 9c1a435..14744e5 100644
-> --- a/drivers/acpi/sleep.c
-> +++ b/drivers/acpi/sleep.c
-> @@ -664,11 +664,9 @@ static void acpi_hibernation_leave(void)
->  	/* Reprogram control registers */
->  	acpi_leave_sleep_state_prep(ACPI_STATE_S4);
->  	/* Check the hardware signature */
-> -	if (facs && s4_hardware_signature !=3D facs->hardware_signature) {
-> -		printk(KERN_EMERG "ACPI: Hardware changed while hibernated, "
-> -			"cannot resume!\n");
-> -		panic("ACPI S4 hardware signature mismatch");
-> -	}
-> +	if (facs && s4_hardware_signature !=3D facs->hardware_signature)
-> +		printk(KERN_CRIT "ACPI: Hardware changed while hibernated, "
-> +			"success doubtful!\n");
+On Thursday, July 11, 2013 08:11:44 AM Mika Westerberg wrote:
+> On Thu, Jul 11, 2013 at 02:25:42AM +0200, Rafael J. Wysocki wrote:
+> > On Wednesday, July 03, 2013 05:04:50 PM Mika Westerberg wrote:
+> > > From: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
+> > > 
+> > > pci_scan_slot() returns number of new devices connected *directly*
+> > > connected to the slot. Current enable_device() checks the return value
+> > > and stops if it doesn't see a new device.
+> > > 
+> > > In Thunderbolt chaining case the new device can be deeper in hierarchy, so
+> > > do the rescan anyway.
+> > > 
+> > > Because of that we must make sure that pcibios_resource_survey_bus() and
+> > > check_hotplug_bridge() get called only for a just found bus and not the
+> > > ones already added to the system. Failure to do so will lead to resource
+> > > conflicts.
+> > 
+> > Well, I wonder what we're doing to this end, because there's nothing in that
+> > area in the patch?
+> 
+> We forgot to update the changelog of this patch. The last paragraph should
+> not be there.
 
-This panic is also reflect to the memory size changed by user when
-machine in S4 state, BIOS should update hardware_signature to raise
-memory changed.
-
-Does it a good idea don't panic here if memory size changed?
-
-Should we need try to detect the change of memory or touchpad for know
-should we panic or not?
-
->  	/* Restore the NVS memory area */
->  	suspend_nvs_restore();
->  	/* Allow EC transactions to happen. */
-
-On the other hand, I saw another BIOS changed hardware_signature becaus=
-e
-the VGA detect output resolution changed when S4 resume. It's a problem
-for sometimes BIOS widely used hardware_signature on non-critical
-hardware change.
+Yeah, I noticed that later.  Never mind. :-)
 
 
-Thanks a lot!
-Joey Lee
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+-- 
+I speak only for myself.
+Rafael J. Wysocki, Intel Open Source Technology Center.
