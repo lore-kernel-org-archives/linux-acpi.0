@@ -1,135 +1,99 @@
 From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: [RFC][PATCH 10/30] ACPI / hotplug / PCI: Refactor slot allocation code in register_slot()
-Date: Fri, 12 Jul 2013 01:49:13 +0200
-Message-ID: <9817058.VIV33rM5GL@vostro.rjw.lan>
+Subject: [RFC][PATCH 7/30] ACPI / hotplug / PCI: Pass hotplug context objects to event handlers
+Date: Fri, 12 Jul 2013 01:45:41 +0200
+Message-ID: <1557800.QvsP0qdoD8@vostro.rjw.lan>
 References: <26431283.HJCKsss0rt@vostro.rjw.lan> <3718119.FLASu5DBx8@vostro.rjw.lan>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7Bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from hydra.sisk.pl ([212.160.235.94]:39072 "EHLO hydra.sisk.pl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756767Ab3GKX7G (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 11 Jul 2013 19:59:06 -0400
 In-Reply-To: <3718119.FLASu5DBx8@vostro.rjw.lan>
-Sender: linux-kernel-owner@vger.kernel.org
+Sender: linux-acpi-owner@vger.kernel.org
+List-Id: linux-acpi@vger.kernel.org
 To: ACPI Devel Maling List <linux-acpi@vger.kernel.org>
 Cc: Bjorn Helgaas <bhelgaas@google.com>, LKML <linux-kernel@vger.kernel.org>, Linux PCI <linux-pci@vger.kernel.org>, Yinghai Lu <yinghai@kernel.org>, Jiang Liu <liuj97@gmail.com>, Mika Westerberg <mika.westerberg@linux.intel.com>
-List-Id: linux-acpi@vger.kernel.org
 
 From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 
-To make the code in register_slot() a bit easier to follow, change
-the way the slot allocation part is organized.  Drop one local
-variable that's not used any more after that modification.
+Modify handle_hotplug_event() to pass the entire context object
+(instead of its fields individually) to work functions started by it.
 
-This code change should not lead to any changes in behavior.
+This change makes the subsequent consolidation of the event handling
+work functions a bit more straightforward.
 
 Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 ---
- drivers/pci/hotplug/acpiphp_glue.c |   74 ++++++++++++++++++-------------------
- 1 file changed, 36 insertions(+), 38 deletions(-)
+ drivers/pci/hotplug/acpiphp_glue.c |   16 ++++++++--------
+ 1 file changed, 8 insertions(+), 8 deletions(-)
 
 Index: linux-pm/drivers/pci/hotplug/acpiphp_glue.c
 ===================================================================
 --- linux-pm.orig/drivers/pci/hotplug/acpiphp_glue.c
 +++ linux-pm/drivers/pci/hotplug/acpiphp_glue.c
-@@ -285,7 +285,7 @@ static acpi_status register_slot(acpi_ha
- 	acpi_handle tmp;
- 	acpi_status status = AE_OK;
- 	unsigned long long adr, sun;
--	int device, function, retval, found = 0;
-+	int device, function, retval;
- 	struct pci_bus *pbus = bridge->pci_bus;
- 	struct pci_dev *pdev;
- 	u32 val;
-@@ -354,44 +354,49 @@ static acpi_status register_slot(acpi_ha
- 		if (slot->device == device) {
- 			if (slot->sun != sun)
- 				warn("sibling found, but _SUN doesn't match!\n");
--			found = 1;
--			break;
--		}
+@@ -1011,6 +1011,7 @@ void acpiphp_check_host_bridge(acpi_hand
  
--	if (!found) {
--		slot = kzalloc(sizeof(struct acpiphp_slot), GFP_KERNEL);
--		if (!slot) {
--			status = AE_NO_MEMORY;
--			goto err_out;
-+			goto slot_found;
+ static void _handle_hotplug_event_bridge(struct work_struct *work)
+ {
++	struct acpiphp_context *context;
+ 	struct acpiphp_bridge *bridge;
+ 	char objname[64];
+ 	struct acpi_buffer buffer = { .length = sizeof(objname),
+@@ -1022,7 +1023,8 @@ static void _handle_hotplug_event_bridge
+ 	hp_work = container_of(work, struct acpi_hp_work, work);
+ 	handle = hp_work->handle;
+ 	type = hp_work->type;
+-	bridge = (struct acpiphp_bridge *)hp_work->context;
++	context = hp_work->context;
++	bridge = context->bridge;
+ 
+ 	acpi_scan_lock_acquire();
+ 
+@@ -1127,18 +1129,18 @@ static void hotplug_event_func(acpi_hand
+ 
+ static void _handle_hotplug_event_func(struct work_struct *work)
+ {
++	struct acpiphp_context *context;
+ 	struct acpi_hp_work *hp_work;
+-	struct acpiphp_func *func;
+ 
+ 	hp_work = container_of(work, struct acpi_hp_work, work);
+-	func = hp_work->context;
++	context = hp_work->context;
+ 	acpi_scan_lock_acquire();
+ 
+-	hotplug_event_func(hp_work->handle, hp_work->type, func);
++	hotplug_event_func(hp_work->handle, hp_work->type, context->func);
+ 
+ 	acpi_scan_lock_release();
+ 	kfree(hp_work); /* allocated in handle_hotplug_event_func */
+-	put_bridge(func->slot->bridge);
++	put_bridge(context->func->slot->bridge);
+ }
+ 
+ /**
+@@ -1159,11 +1161,9 @@ static void handle_hotplug_event(acpi_ha
+ 	if (context) {
+ 		if (context->bridge) {
+ 			get_bridge(context->bridge);
+-			data = context->bridge;
+ 			work_func = _handle_hotplug_event_bridge;
+ 		} else if (context->func) {
+ 			get_bridge(context->func->slot->bridge);
+-			data = context->func;
+ 			work_func = _handle_hotplug_event_func;
  		}
+ 		acpiphp_put_context(context);
+@@ -1179,7 +1179,7 @@ static void handle_hotplug_event(acpi_ha
+ 	 * don't deadlock on hotplug actions.
+ 	 */
+ 	if (work_func)
+-		alloc_acpi_hp_work(handle, type, data, work_func);
++		alloc_acpi_hp_work(handle, type, context, work_func);
+ }
  
--		slot->bridge = bridge;
--		slot->device = device;
--		slot->sun = sun;
--		INIT_LIST_HEAD(&slot->funcs);
--		mutex_init(&slot->crit_sect);
-+	slot = kzalloc(sizeof(struct acpiphp_slot), GFP_KERNEL);
-+	if (!slot) {
-+		status = AE_NO_MEMORY;
-+		goto err;
-+	}
- 
--		mutex_lock(&bridge_mutex);
--		list_add_tail(&slot->node, &bridge->slots);
--		mutex_unlock(&bridge_mutex);
--		bridge->nr_slots++;
-+	slot->bridge = bridge;
-+	slot->device = device;
-+	slot->sun = sun;
-+	INIT_LIST_HEAD(&slot->funcs);
-+	mutex_init(&slot->crit_sect);
- 
--		dbg("found ACPI PCI Hotplug slot %llu at PCI %04x:%02x:%02x\n",
--		    slot->sun, pci_domain_nr(pbus), pbus->number, device);
--		retval = acpiphp_register_hotplug_slot(slot);
--		if (retval) {
--			if (retval == -EBUSY)
--				warn("Slot %llu already registered by another "
--					"hotplug driver\n", slot->sun);
--			else
--				warn("acpiphp_register_hotplug_slot failed "
--					"(err code = 0x%x)\n", retval);
-+	mutex_lock(&bridge_mutex);
-+	list_add_tail(&slot->node, &bridge->slots);
-+	mutex_unlock(&bridge_mutex);
-+	bridge->nr_slots++;
- 
--			status = AE_OK;
--			goto err;
--		}
-+	dbg("found ACPI PCI Hotplug slot %llu at PCI %04x:%02x:%02x\n",
-+	    slot->sun, pci_domain_nr(pbus), pbus->number, device);
-+
-+	retval = acpiphp_register_hotplug_slot(slot);
-+	if (retval) {
-+		if (retval == -EBUSY)
-+			warn("Slot %llu already registered by another "
-+				"hotplug driver\n", slot->sun);
-+		else
-+			warn("acpiphp_register_hotplug_slot failed "
-+				"(err code = 0x%x)\n", retval);
-+
-+		bridge->nr_slots--;
-+		mutex_lock(&bridge_mutex);
-+		list_del(&slot->node);
-+		mutex_unlock(&bridge_mutex);
-+		kfree(slot);
-+		status = AE_OK;
-+		goto err;
- 	}
- 
-+ slot_found:
- 	newfunc->slot = slot;
- 	mutex_lock(&bridge_mutex);
- 	list_add_tail(&newfunc->sibling, &slot->funcs);
-@@ -435,13 +440,6 @@ static acpi_status register_slot(acpi_ha
- 	return AE_OK;
- 
-  err:
--	bridge->nr_slots--;
--	mutex_lock(&bridge_mutex);
--	list_del(&slot->node);
--	mutex_unlock(&bridge_mutex);
--	kfree(slot);
--
-- err_out:
- 	mutex_lock(&acpiphp_context_lock);
- 	context->func = NULL;
- 	acpiphp_put_context(context);
+ /*
+
