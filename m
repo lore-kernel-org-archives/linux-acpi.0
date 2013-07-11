@@ -1,64 +1,46 @@
 From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: [RFC][PATCH 24/30] ACPI / hotplug / PCI: Do not check SLOT_ENABLED in enable_device()
-Date: Fri, 12 Jul 2013 02:02:23 +0200
-Message-ID: <2002219.smES9ylgeU@vostro.rjw.lan>
+Subject: [RFC][PATCH 20/30] ACPI / hotplug / PCI: Drop redundant checks from check_hotplug_bridge()
+Date: Fri, 12 Jul 2013 01:58:42 +0200
+Message-ID: <5977843.5Tlt5SzyWq@vostro.rjw.lan>
 References: <26431283.HJCKsss0rt@vostro.rjw.lan> <3718119.FLASu5DBx8@vostro.rjw.lan>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7Bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Return-path: <linux-pci-owner@vger.kernel.org>
 In-Reply-To: <3718119.FLASu5DBx8@vostro.rjw.lan>
-Sender: linux-kernel-owner@vger.kernel.org
+Sender: linux-pci-owner@vger.kernel.org
 To: ACPI Devel Maling List <linux-acpi@vger.kernel.org>
 Cc: Bjorn Helgaas <bhelgaas@google.com>, LKML <linux-kernel@vger.kernel.org>, Linux PCI <linux-pci@vger.kernel.org>, Yinghai Lu <yinghai@kernel.org>, Jiang Liu <liuj97@gmail.com>, Mika Westerberg <mika.westerberg@linux.intel.com>
 List-Id: linux-acpi@vger.kernel.org
 
-From: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
+From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 
-With Thunderbolt you can daisy chain devices: connect new devices to
-an already plugged one.  In that case the "hotplug slot" is already
-enabled, but we still want to look for new PCI devices behind it.
+Two checks in check_hotplug_bridge() are redundant (they have been
+done by the caller already), so drop them.
 
-Reuse enable_device() to scan for new PCI devices on enabled slots
-and push the SLOT_ENABLED check up into acpiphp_enable_slot().
-
-[rjw: Rebased, modified the changelog]
-Signed-off-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
-Signed-off-by: Mika Westerberg <mika.westerberg@linux.intel.com>
 Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 ---
-drivers/pci/hotplug/acpiphp_glue.c | 5 ++---
- drivers/pci/hotplug/acpiphp_glue.c |   10 +++++-----
- 1 file changed, 5 insertions(+), 5 deletions(-)
+ drivers/pci/hotplug/acpiphp_glue.c |    6 ------
+ 1 file changed, 6 deletions(-)
 
 Index: linux-pm/drivers/pci/hotplug/acpiphp_glue.c
 ===================================================================
 --- linux-pm.orig/drivers/pci/hotplug/acpiphp_glue.c
 +++ linux-pm/drivers/pci/hotplug/acpiphp_glue.c
-@@ -557,9 +557,6 @@ static int __ref enable_device(struct ac
- 	int num, max, pass;
- 	LIST_HEAD(add_list);
- 
--	if (slot->flags & SLOT_ENABLED)
--		goto err_exit;
--
- 	list_for_each_entry(func, &slot->funcs, sibling)
- 		acpiphp_bus_add(func_to_handle(func));
- 
-@@ -1036,11 +1033,14 @@ void acpiphp_remove_slots(struct pci_bus
-  */
- int acpiphp_enable_slot(struct acpiphp_slot *slot)
+@@ -598,16 +598,10 @@ static void check_hotplug_bridge(struct
  {
--	int retval;
-+	int retval = 0;
+ 	struct acpiphp_func *func;
  
- 	mutex_lock(&slot->crit_sect);
-+
- 	/* configure all functions */
--	retval = enable_device(slot);
-+	if (!(slot->flags & SLOT_ENABLED))
-+		retval = enable_device(slot);
-+
- 	mutex_unlock(&slot->crit_sect);
- 	return retval;
- }
+-	if (!dev->subordinate)
+-		return;
+-
+ 	/* quirk, or pcie could set it already */
+ 	if (dev->is_hotplug_bridge)
+ 		return;
+ 
+-	if (PCI_SLOT(dev->devfn) != slot->device)
+-		return;
+-
+ 	list_for_each_entry(func, &slot->funcs, sibling) {
+ 		if (PCI_FUNC(dev->devfn) == func->function) {
+ 			dev->is_hotplug_bridge = 1;
