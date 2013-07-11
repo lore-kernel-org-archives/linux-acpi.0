@@ -1,127 +1,77 @@
-From: Toshi Kani <toshi.kani@hp.com>
-Subject: Re: [PATCH] ACPI / scan: Always call acpi_bus_scan() for bus check
- notifications
-Date: Thu, 11 Jul 2013 10:15:05 -0600
-Message-ID: <1373559305.24916.14.camel@misato.fc.hp.com>
-References: <2230821.QbNohsyO0O@vostro.rjw.lan>
-	 <6189099.QeK4PsCIFb@vostro.rjw.lan>
-	 <1373500106.24916.13.camel@misato.fc.hp.com>
-	 <8128042.hqqjriutNl@vostro.rjw.lan>
+From: joeyli <jlee@suse.com>
+Subject: Re: [PATCH] ACPI:remove panic in case hardware has changed after S4
+Date: Fri, 12 Jul 2013 04:50:22 +0800
+Message-ID: <1373575822.7539.74.camel@linux-s257.site>
+References: <1373544870-15135-1-git-send-email-oliver@neukum.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from g1t0026.austin.hp.com ([15.216.28.33]:42570 "EHLO
-	g1t0026.austin.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932183Ab3GKQPr (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 11 Jul 2013 12:15:47 -0400
-In-Reply-To: <8128042.hqqjriutNl@vostro.rjw.lan>
+Received: from smtp.nue.novell.com ([195.135.221.5]:57880 "EHLO
+	smtp.nue.novell.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756652Ab3GKUvb (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 11 Jul 2013 16:51:31 -0400
+In-Reply-To: <1373544870-15135-1-git-send-email-oliver@neukum.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>, Bjorn Helgaas <bhelgaas@google.com>, Yinghai Lu <yinghai@kernel.org>
+To: oliver@neukum.org
+Cc: lenb@kernel.org, rjw@sisk.pl, trenn@suse.de, linux-acpi@vger.kernel.org, Oliver Neukum <oneukum@suse.de>
 
-On Thu, 2013-07-11 at 02:39 +0200, Rafael J. Wysocki wrote:
-> On Wednesday, July 10, 2013 05:48:26 PM Toshi Kani wrote:
-> > On Thu, 2013-07-11 at 00:45 +0200, Rafael J. Wysocki wrote:
-> > > On Wednesday, July 10, 2013 02:11:05 AM Rafael J. Wysocki wrote:
-> > > > On Tuesday, July 09, 2013 01:32:42 PM Toshi Kani wrote:
-> > > > > On Mon, 2013-07-08 at 02:10 +0200, Rafael J. Wysocki wrote:
-> > > > > > From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
-> > > > > > 
-> > > > > > An ACPI_NOTIFY_BUS_CHECK notification means that we should scan the
-> > > > > > entire namespace starting from the given handle even if the device
-> > > > > > represented by that handle is present (other devices below it may
-> > > > > > just have been added).
-> > > > > > 
-> > > > > > For this reason, modify acpi_scan_bus_device_check() to always run
-> > > > > > acpi_bus_scan() if the notification being handled is of type
-> > > > > > ACPI_NOTIFY_BUS_CHECK.
-> > > > > > 
-> > > > > > Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
-> > > > > > Cc: 3.10+ <stable@vger.kernel.org>
-> > > > > 
-> > > > > Acked-by: Toshi Kani <toshi.kani@hp.com>
-> > > > > 
-> > > > > But, I think we need the additional patch below.
-> > > > 
-> > > > Yes, I think you're right.
-> > > 
-> > > That said I'd prefer to put the check into acpi_bus_device_attach() like in
-> > > the appended patch.
-> > 
-> > That's fine by me.  
-> > 
-> > Acked-by: Toshi Kani <toshi.kani@hp.com>
-> > 
-> > Just a minor point, though.  Isn't it a bit inconsistent with
-> > device_attach(), which checks dev->driver inside the function?
-> 
-> Well, device_attach() may be called from different places while this is
-> the only place where acpi_scan_attach_handler() is called.
-> 
-> The check in acpi_bus_device_attach() is easier to follow to me, because
-> it clearly means "we don't need to do anything more if there's a handler",
-> while the check in acpi_scan_attach_handler() makes you wonder "why do we
-> need to return 1 in that case?" and then you need to go to the caller and
-> look at the check of the return value to see "ah, because we don't want
-> that device_attach() to be called then!".
+=E6=96=BC =E5=9B=9B=EF=BC=8C2013-07-11 =E6=96=BC 14:14 +0200=EF=BC=8Col=
+iver@neukum.org =E6=8F=90=E5=88=B0=EF=BC=9A
+> From: Oliver Neukum <oneukum@suse.de>
+>=20
+> Some BIOSes change hardware based on the state of
+> a laptop's lid. If the lid is closed, the touchpad is
+> disabled and the checksum changes.
+>=20
+> Signed-off-by: Oliver Neukum <oneukum@suse.de>
+> ---
+>  drivers/acpi/sleep.c | 8 +++-----
+>  1 file changed, 3 insertions(+), 5 deletions(-)
+>=20
+> diff --git a/drivers/acpi/sleep.c b/drivers/acpi/sleep.c
+> index 9c1a435..14744e5 100644
+> --- a/drivers/acpi/sleep.c
+> +++ b/drivers/acpi/sleep.c
+> @@ -664,11 +664,9 @@ static void acpi_hibernation_leave(void)
+>  	/* Reprogram control registers */
+>  	acpi_leave_sleep_state_prep(ACPI_STATE_S4);
+>  	/* Check the hardware signature */
+> -	if (facs && s4_hardware_signature !=3D facs->hardware_signature) {
+> -		printk(KERN_EMERG "ACPI: Hardware changed while hibernated, "
+> -			"cannot resume!\n");
+> -		panic("ACPI S4 hardware signature mismatch");
+> -	}
+> +	if (facs && s4_hardware_signature !=3D facs->hardware_signature)
+> +		printk(KERN_CRIT "ACPI: Hardware changed while hibernated, "
+> +			"success doubtful!\n");
 
-Sounds good to me.
+This panic is also reflect to the memory size changed by user when
+machine in S4 state, BIOS should update hardware_signature to raise
+memory changed.
 
-Thanks,
--Toshi
+Does it a good idea don't panic here if memory size changed?
+
+Should we need try to detect the change of memory or touchpad for know
+should we panic or not?
+
+>  	/* Restore the NVS memory area */
+>  	suspend_nvs_restore();
+>  	/* Allow EC transactions to happen. */
+
+On the other hand, I saw another BIOS changed hardware_signature becaus=
+e
+the VGA detect output resolution changed when S4 resume. It's a problem
+for sometimes BIOS widely used hardware_signature on non-critical
+hardware change.
 
 
-> 
-> > That said, I am OK with either way.
-> 
-> Cool. :-)
-> 
-> Thanks,
-> Rafael
-> 
-> 
-> > > ---
-> > > From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
-> > > Subject: ACPI / scan: Do not try to attach scan handlers to devices having them
-> > > 
-> > > In acpi_bus_device_attach(), if there is an ACPI device object
-> > > for the given handle and that device object has a scan handler
-> > > attached to it already, there's nothing more to do for that handle
-> > > and the function should just return success immediately.  Make
-> > > that happen.
-> > > 
-> > > Reported-by: Toshi Kani <toshi.kani@hp.com>
-> > > Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
-> > > ---
-> > >  drivers/acpi/scan.c |    3 +++
-> > >  1 file changed, 3 insertions(+)
-> > > 
-> > > Index: linux-pm/drivers/acpi/scan.c
-> > > ===================================================================
-> > > --- linux-pm.orig/drivers/acpi/scan.c
-> > > +++ linux-pm/drivers/acpi/scan.c
-> > > @@ -1984,6 +1984,9 @@ static acpi_status acpi_bus_device_attac
-> > >  	if (acpi_bus_get_device(handle, &device))
-> > >  		return AE_CTRL_DEPTH;
-> > >  
-> > > +	if (device->handler)
-> > > +		return AE_OK;
-> > > +
-> > >  	ret = acpi_scan_attach_handler(device);
-> > >  	if (ret)
-> > >  		return ret > 0 ? AE_OK : AE_CTRL_DEPTH;
-> > > 
-> > > --
-> > > To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
-> > > the body of a message to majordomo@vger.kernel.org
-> > > More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> > 
-> > 
-> > --
-> > To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
-> > the body of a message to majordomo@vger.kernel.org
-> > More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Thanks a lot!
+Joey Lee
 
-
+--
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
