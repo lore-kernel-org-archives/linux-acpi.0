@@ -1,103 +1,76 @@
-From: Toshi Kani <toshi.kani@hp.com>
-Subject: Re: [PATCH] ACPI / scan: Always call acpi_bus_scan() for bus check
- notifications
-Date: Wed, 10 Jul 2013 17:48:26 -0600
-Message-ID: <1373500106.24916.13.camel@misato.fc.hp.com>
-References: <2230821.QbNohsyO0O@vostro.rjw.lan>
-	 <1373398362.24916.4.camel@misato.fc.hp.com>
-	 <19368029.jaCH7i2zvY@vostro.rjw.lan> <6189099.QeK4PsCIFb@vostro.rjw.lan>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: Re: [PATCH v2 3/8] PCI: acpiphp: enable_device(): rescan even if no new devices on slot
+Date: Thu, 11 Jul 2013 02:25:42 +0200
+Message-ID: <1827270.u1sYdQ8l8y@vostro.rjw.lan>
+References: <1372860295-8306-1-git-send-email-mika.westerberg@linux.intel.com> <1372860295-8306-4-git-send-email-mika.westerberg@linux.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from g5t0007.atlanta.hp.com ([15.192.0.44]:46464 "EHLO
-	g5t0007.atlanta.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754698Ab3GJXtJ (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 10 Jul 2013 19:49:09 -0400
-In-Reply-To: <6189099.QeK4PsCIFb@vostro.rjw.lan>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7Bit
+Return-path: <linux-pci-owner@vger.kernel.org>
+In-Reply-To: <1372860295-8306-4-git-send-email-mika.westerberg@linux.intel.com>
+Sender: linux-pci-owner@vger.kernel.org
+To: Mika Westerberg <mika.westerberg@linux.intel.com>, "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
+Cc: Bjorn Helgaas <bhelgaas@google.com>, Jesse Barnes <jbarnes@virtuousgeek.org>, Yinghai Lu <yinghai@kernel.org>, Heikki Krogerus <heikki.krogerus@linux.intel.com>, linux-acpi@vger.kernel.org, linux-pci@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>, Bjorn Helgaas <bhelgaas@google.com>, Yinghai Lu <yinghai@kernel.org>
 
-On Thu, 2013-07-11 at 00:45 +0200, Rafael J. Wysocki wrote:
-> On Wednesday, July 10, 2013 02:11:05 AM Rafael J. Wysocki wrote:
-> > On Tuesday, July 09, 2013 01:32:42 PM Toshi Kani wrote:
-> > > On Mon, 2013-07-08 at 02:10 +0200, Rafael J. Wysocki wrote:
-> > > > From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
-> > > > 
-> > > > An ACPI_NOTIFY_BUS_CHECK notification means that we should scan the
-> > > > entire namespace starting from the given handle even if the device
-> > > > represented by that handle is present (other devices below it may
-> > > > just have been added).
-> > > > 
-> > > > For this reason, modify acpi_scan_bus_device_check() to always run
-> > > > acpi_bus_scan() if the notification being handled is of type
-> > > > ACPI_NOTIFY_BUS_CHECK.
-> > > > 
-> > > > Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
-> > > > Cc: 3.10+ <stable@vger.kernel.org>
-> > > 
-> > > Acked-by: Toshi Kani <toshi.kani@hp.com>
-> > > 
-> > > But, I think we need the additional patch below.
-> > 
-> > Yes, I think you're right.
+On Wednesday, July 03, 2013 05:04:50 PM Mika Westerberg wrote:
+> From: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
 > 
-> That said I'd prefer to put the check into acpi_bus_device_attach() like in
-> the appended patch.
-
-That's fine by me.  
-
-Acked-by: Toshi Kani <toshi.kani@hp.com>
-
-Just a minor point, though.  Isn't it a bit inconsistent with
-device_attach(), which checks dev->driver inside the function?  That
-said, I am OK with either way.
-
-Thanks,
--Toshi
-
-
+> pci_scan_slot() returns number of new devices connected *directly*
+> connected to the slot. Current enable_device() checks the return value
+> and stops if it doesn't see a new device.
 > 
-> Thanks,
-> Rafael
+> In Thunderbolt chaining case the new device can be deeper in hierarchy, so
+> do the rescan anyway.
 > 
-> 
+> Because of that we must make sure that pcibios_resource_survey_bus() and
+> check_hotplug_bridge() get called only for a just found bus and not the
+> ones already added to the system. Failure to do so will lead to resource
+> conflicts.
+
+Well, I wonder what we're doing to this end, because there's nothing in that
+area in the patch?
+
+> Signed-off-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
+> Signed-off-by: Mika Westerberg <mika.westerberg@linux.intel.com>
 > ---
-> From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
-> Subject: ACPI / scan: Do not try to attach scan handlers to devices having them
+>  drivers/pci/hotplug/acpiphp_glue.c | 11 ++---------
+>  1 file changed, 2 insertions(+), 9 deletions(-)
 > 
-> In acpi_bus_device_attach(), if there is an ACPI device object
-> for the given handle and that device object has a scan handler
-> attached to it already, there's nothing more to do for that handle
-> and the function should just return success immediately.  Make
-> that happen.
-> 
-> Reported-by: Toshi Kani <toshi.kani@hp.com>
-> Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
-> ---
->  drivers/acpi/scan.c |    3 +++
->  1 file changed, 3 insertions(+)
-> 
-> Index: linux-pm/drivers/acpi/scan.c
-> ===================================================================
-> --- linux-pm.orig/drivers/acpi/scan.c
-> +++ linux-pm/drivers/acpi/scan.c
-> @@ -1984,6 +1984,9 @@ static acpi_status acpi_bus_device_attac
->  	if (acpi_bus_get_device(handle, &device))
->  		return AE_CTRL_DEPTH;
+> diff --git a/drivers/pci/hotplug/acpiphp_glue.c b/drivers/pci/hotplug/acpiphp_glue.c
+> index b983e29..0f4da3b 100644
+> --- a/drivers/pci/hotplug/acpiphp_glue.c
+> +++ b/drivers/pci/hotplug/acpiphp_glue.c
+> @@ -685,18 +685,13 @@ static int __ref enable_device(struct acpiphp_slot *slot)
+>  	struct pci_dev *dev;
+>  	struct pci_bus *bus = slot->bridge->pci_bus;
+>  	struct acpiphp_func *func;
+> -	int num, max, pass;
+> +	int max, pass;
+>  	LIST_HEAD(add_list);
 >  
-> +	if (device->handler)
-> +		return AE_OK;
-> +
->  	ret = acpi_scan_attach_handler(device);
->  	if (ret)
->  		return ret > 0 ? AE_OK : AE_CTRL_DEPTH;
+>  	list_for_each_entry(func, &slot->funcs, sibling)
+>  		acpiphp_bus_add(func);
+>  
+> -	num = pci_scan_slot(bus, PCI_DEVFN(slot->device, 0));
+> -	if (num == 0) {
+> -		/* Maybe only part of funcs are added. */
+> -		dbg("No new device found\n");
+> -		goto err_exit;
+> -	}
+> +	pci_scan_slot(bus, PCI_DEVFN(slot->device, 0));
+>  	max = acpiphp_max_busnr(bus);
+>  	for (pass = 0; pass < 2; pass++) {
+> @@ -742,8 +737,6 @@ static int __ref enable_device(struct acpiphp_slot *slot)
+>  		}
+>  	}
+>  
+> -
+> - err_exit:
+>  	return 0;
+>  }
+>  
 > 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-
-
+-- 
+I speak only for myself.
+Rafael J. Wysocki, Intel Open Source Technology Center.
