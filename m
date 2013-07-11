@@ -1,43 +1,47 @@
-From: Mika Westerberg <mika.westerberg@linux.intel.com>
-Subject: Re: [PATCH v2 3/8] PCI: acpiphp: enable_device(): rescan even if no
- new devices on slot
-Date: Thu, 11 Jul 2013 08:11:44 +0300
-Message-ID: <20130711051144.GF4898@intel.com>
-References: <1372860295-8306-1-git-send-email-mika.westerberg@linux.intel.com>
- <1372860295-8306-4-git-send-email-mika.westerberg@linux.intel.com>
- <1827270.u1sYdQ8l8y@vostro.rjw.lan>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+From: oliver@neukum.org
+Subject: [PATCH] ACPI:remove panic in case hardware has changed after S4
+Date: Thu, 11 Jul 2013 14:14:30 +0200
+Message-ID: <1373544870-15135-1-git-send-email-oliver@neukum.org>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga03.intel.com ([143.182.124.21]:26406 "EHLO mga03.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750811Ab3GKFGS (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 11 Jul 2013 01:06:18 -0400
-Content-Disposition: inline
-In-Reply-To: <1827270.u1sYdQ8l8y@vostro.rjw.lan>
+Received: from smtp-out003.kontent.com ([81.88.40.217]:38630 "EHLO
+	smtp-out003.kontent.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754518Ab3GKMM6 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 11 Jul 2013 08:12:58 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>, Bjorn Helgaas <bhelgaas@google.com>, Jesse Barnes <jbarnes@virtuousgeek.org>, Yinghai Lu <yinghai@kernel.org>, Heikki Krogerus <heikki.krogerus@linux.intel.com>, linux-acpi@vger.kernel.org, linux-pci@vger.kernel.org
+To: lenb@kernel.org, rjw@sisk.pl, trenn@suse.de, linux-acpi@vger.kernel.org
+Cc: Oliver Neukum <oneukum@suse.de>
 
-On Thu, Jul 11, 2013 at 02:25:42AM +0200, Rafael J. Wysocki wrote:
-> On Wednesday, July 03, 2013 05:04:50 PM Mika Westerberg wrote:
-> > From: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
-> > 
-> > pci_scan_slot() returns number of new devices connected *directly*
-> > connected to the slot. Current enable_device() checks the return value
-> > and stops if it doesn't see a new device.
-> > 
-> > In Thunderbolt chaining case the new device can be deeper in hierarchy, so
-> > do the rescan anyway.
-> > 
-> > Because of that we must make sure that pcibios_resource_survey_bus() and
-> > check_hotplug_bridge() get called only for a just found bus and not the
-> > ones already added to the system. Failure to do so will lead to resource
-> > conflicts.
-> 
-> Well, I wonder what we're doing to this end, because there's nothing in that
-> area in the patch?
+From: Oliver Neukum <oneukum@suse.de>
 
-We forgot to update the changelog of this patch. The last paragraph should
-not be there.
+Some BIOSes change hardware based on the state of
+a laptop's lid. If the lid is closed, the touchpad is
+disabled and the checksum changes.
+
+Signed-off-by: Oliver Neukum <oneukum@suse.de>
+---
+ drivers/acpi/sleep.c | 8 +++-----
+ 1 file changed, 3 insertions(+), 5 deletions(-)
+
+diff --git a/drivers/acpi/sleep.c b/drivers/acpi/sleep.c
+index 9c1a435..14744e5 100644
+--- a/drivers/acpi/sleep.c
++++ b/drivers/acpi/sleep.c
+@@ -664,11 +664,9 @@ static void acpi_hibernation_leave(void)
+ 	/* Reprogram control registers */
+ 	acpi_leave_sleep_state_prep(ACPI_STATE_S4);
+ 	/* Check the hardware signature */
+-	if (facs && s4_hardware_signature != facs->hardware_signature) {
+-		printk(KERN_EMERG "ACPI: Hardware changed while hibernated, "
+-			"cannot resume!\n");
+-		panic("ACPI S4 hardware signature mismatch");
+-	}
++	if (facs && s4_hardware_signature != facs->hardware_signature)
++		printk(KERN_CRIT "ACPI: Hardware changed while hibernated, "
++			"success doubtful!\n");
+ 	/* Restore the NVS memory area */
+ 	suspend_nvs_restore();
+ 	/* Allow EC transactions to happen. */
+-- 
+1.8.1.4
+
