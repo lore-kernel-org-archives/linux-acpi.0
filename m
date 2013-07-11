@@ -1,7 +1,7 @@
 From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: [RFC][PATCH 13/30] ACPI / hotplug / PCI: Use common slot count variable in register_slot()
-Date: Fri, 12 Jul 2013 01:52:30 +0200
-Message-ID: <1394590.kyA5M17lev@vostro.rjw.lan>
+Subject: [RFC][PATCH 14/30] ACPI / hotplug / PCI: Drop flags field from struct acpiphp_bridge
+Date: Fri, 12 Jul 2013 01:54:01 +0200
+Message-ID: <1762230.UBuO8qyPbi@vostro.rjw.lan>
 References: <26431283.HJCKsss0rt@vostro.rjw.lan> <3718119.FLASu5DBx8@vostro.rjw.lan>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
@@ -15,16 +15,21 @@ List-Id: linux-acpi@vger.kernel.org
 
 From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 
-It is not necessary to use per-bridge slot count fields just in
-order to label slots for devices without _SUN, so use a common
-static slot_count variable for this purpose and drop the nr_slots
-field from struct acpiphp_bridge.
+The only bridge flag used by the ACPI-based PCI hotplug (ACPIPHP)
+code is BRIDGE_HAS_EJ0, but it is only used by the event handling
+function hotplug_event() and if that flag is set, the corresponding
+function flag FUNC_HAS_EJ0 is set as well, so that bridge flag is
+redundant.
+
+For this reason, drop BRIDGE_HAS_EJ0 and all code referring to it
+and since it is the only bridge flag defined, drop the flags field
+from struct acpiphp_bridge entirely.
 
 Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 ---
- drivers/pci/hotplug/acpiphp.h      |    2 --
- drivers/pci/hotplug/acpiphp_glue.c |    7 ++++---
- 2 files changed, 4 insertions(+), 5 deletions(-)
+ drivers/pci/hotplug/acpiphp.h      |    5 -----
+ drivers/pci/hotplug/acpiphp_glue.c |    9 ---------
+ 2 files changed, 14 deletions(-)
 
 Index: linux-pm/drivers/pci/hotplug/acpiphp.h
 ===================================================================
@@ -34,37 +39,45 @@ Index: linux-pm/drivers/pci/hotplug/acpiphp.h
  
  	struct acpiphp_context *context;
  
--	int nr_slots;
+-	u32 flags;
 -
- 	u32 flags;
- 
  	/* This bus (host bridge) or Secondary bus (PCI-to-PCI bridge) */
+ 	struct pci_bus *pci_bus;
+ 
+@@ -152,9 +150,6 @@ struct acpiphp_attention_info
+ /* ACPI _STA method value (ignore bit 4; battery present) */
+ #define ACPI_STA_ALL			(0x0000000f)
+ 
+-/* bridge flags */
+-#define BRIDGE_HAS_EJ0		(0x00000001)
+-
+ /* slot flags */
+ 
+ #define SLOT_POWEREDON		(0x00000001)
 Index: linux-pm/drivers/pci/hotplug/acpiphp_glue.c
 ===================================================================
 --- linux-pm.orig/drivers/pci/hotplug/acpiphp_glue.c
 +++ linux-pm/drivers/pci/hotplug/acpiphp_glue.c
-@@ -346,20 +346,21 @@ static acpi_status register_slot(acpi_ha
+@@ -1009,9 +1009,6 @@ static void hotplug_event(acpi_handle ha
+ 	case ACPI_NOTIFY_EJECT_REQUEST:
+ 		/* request device eject */
+ 		dbg("%s: Device eject notify on %s\n", __func__, objname);
+-		if (bridge && !(bridge->flags & BRIDGE_HAS_EJ0))
+-			break;
+-
+ 		if (!(acpiphp_disable_slot(func->slot)))
+ 			acpiphp_eject_slot(func->slot);
  
- 	/* Register slots for ejectable funtions only. */
- 	if (acpi_pci_check_ejectable(pbus, handle)  || is_dock_device(handle)) {
-+		static unsigned int slot_count;
- 		unsigned long long sun;
- 		int retval;
+@@ -1148,12 +1145,6 @@ void acpiphp_enumerate_slots(struct pci_
+ 		mutex_unlock(&acpiphp_context_lock);
+ 	}
  
--		bridge->nr_slots++;
-+		slot_count++;
- 		status = acpi_evaluate_integer(handle, "_SUN", NULL, &sun);
- 		if (ACPI_FAILURE(status))
--			sun = bridge->nr_slots;
-+			sun = slot_count;
- 
- 		dbg("found ACPI PCI Hotplug slot %llu at PCI %04x:%02x:%02x\n",
- 		    sun, pci_domain_nr(pbus), pbus->number, device);
- 
- 		retval = acpiphp_register_hotplug_slot(slot, sun);
- 		if (retval) {
--			bridge->nr_slots--;
-+			slot_count--;
- 			if (retval == -EBUSY)
- 				warn("Slot %llu already registered by another "
- 					"hotplug driver\n", sun);
+-	status = acpi_get_handle(bridge->handle, "_EJ0", &handle);
+-	if (ACPI_SUCCESS(status)) {
+-		dbg("found ejectable p2p bridge\n");
+-		bridge->flags |= BRIDGE_HAS_EJ0;
+-	}
+-
+ 	/* must be added to the list prior to calling register_slot */
+ 	mutex_lock(&bridge_mutex);
+ 	list_add(&bridge->list, &bridge_list);
