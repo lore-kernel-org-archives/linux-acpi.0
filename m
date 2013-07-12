@@ -1,7 +1,7 @@
 From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: [RFC][PATCH 27/30] ACPI / hotplug / PCI: Get rid of unused constants in acpiphp.h
-Date: Fri, 12 Jul 2013 02:05:34 +0200
-Message-ID: <4232149.txtv09KINv@vostro.rjw.lan>
+Subject: [RFC][PATCH 28/30] ACPI / hotplug / PCI: Sanitize acpiphp_get_(latch)|(adapter)_status()
+Date: Fri, 12 Jul 2013 02:06:18 +0200
+Message-ID: <2428279.tYKV60tBAM@vostro.rjw.lan>
 References: <26431283.HJCKsss0rt@vostro.rjw.lan> <3718119.FLASu5DBx8@vostro.rjw.lan>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
@@ -15,37 +15,44 @@ List-Id: linux-acpi@vger.kernel.org
 
 From: Mika Westerberg <mika.westerberg@linux.intel.com>
 
-Drop some unused symbols from acpiphp.h and redefine SLOT_ENABLED
-(which is the only slot flag now) as 1.
+There is no need for a temporary variable and all the tricks with
+ternary operators in acpiphp_get_(latch)|(adapter)_status(). Change
+those functions to be a bit more straightforward.
 
-[rjw: Redefinition of SLOT_ENABLED, changelog]
-Signed-off-by: Mika Westerberg <mika.westerberg@linux.intel.com>
+[rjw: Changelog]
 Signed-off-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
+Signed-off-by: Mika Westerberg <mika.westerberg@linux.intel.com>
 Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 ---
-drivers/pci/hotplug/acpiphp.h | 4 ----
- drivers/pci/hotplug/acpiphp.h |    6 +-----
- 1 file changed, 1 insertion(+), 5 deletions(-)
+drivers/pci/hotplug/acpiphp_glue.c | 12 ++----------
+ drivers/pci/hotplug/acpiphp_glue.c |   12 ++----------
+ 1 file changed, 2 insertions(+), 10 deletions(-)
 
-Index: linux-pm/drivers/pci/hotplug/acpiphp.h
+Index: linux-pm/drivers/pci/hotplug/acpiphp_glue.c
 ===================================================================
---- linux-pm.orig/drivers/pci/hotplug/acpiphp.h
-+++ linux-pm/drivers/pci/hotplug/acpiphp.h
-@@ -152,16 +152,12 @@ struct acpiphp_attention_info
- 	struct module *owner;
- };
- 
--/* PCI bus bridge HID */
--#define ACPI_PCI_HOST_HID		"PNP0A03"
+--- linux-pm.orig/drivers/pci/hotplug/acpiphp_glue.c
++++ linux-pm/drivers/pci/hotplug/acpiphp_glue.c
+@@ -1092,11 +1092,7 @@ u8 acpiphp_get_power_status(struct acpip
+  */
+ u8 acpiphp_get_latch_status(struct acpiphp_slot *slot)
+ {
+-	unsigned int sta;
 -
- /* ACPI _STA method value (ignore bit 4; battery present) */
- #define ACPI_STA_ALL			(0x0000000f)
+-	sta = get_slot_status(slot);
+-
+-	return (sta & ACPI_STA_DEVICE_UI) ? 0 : 1;
++	return !(get_slot_status(slot) & ACPI_STA_DEVICE_UI);
+ }
  
- /* slot flags */
  
--#define SLOT_ENABLED		(0x00000002)
--#define SLOT_MULTIFUNCTION	(0x00000004)
-+#define SLOT_ENABLED		(0x00000001)
- 
- /* function flags */
- 
+@@ -1106,9 +1102,5 @@ u8 acpiphp_get_latch_status(struct acpip
+  */
+ u8 acpiphp_get_adapter_status(struct acpiphp_slot *slot)
+ {
+-	unsigned int sta;
+-
+-	sta = get_slot_status(slot);
+-
+-	return (sta == 0) ? 0 : 1;
++	return !!get_slot_status(slot);
+ }
