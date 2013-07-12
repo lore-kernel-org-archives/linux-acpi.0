@@ -1,49 +1,67 @@
 From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: [RFC][PATCH 0/30] ACPI / hotplug / PCI: Major rework + Thunderbolt workarounds
-Date: Fri, 12 Jul 2013 23:04:26 +0200
-Message-ID: <5687298.pUqv2oM5bn@vostro.rjw.lan>
-References: <26431283.HJCKsss0rt@vostro.rjw.lan> <3718119.FLASu5DBx8@vostro.rjw.lan> <20130712131850.GL4898@intel.com>
+Subject: Re: [RFC][PATCH 23/30] ACPI / hotplug / PCI: Do not exectute _PS0 and _PS3 directly
+Date: Fri, 12 Jul 2013 23:09:22 +0200
+Message-ID: <6400136.2GQyQFPMtH@vostro.rjw.lan>
+References: <26431283.HJCKsss0rt@vostro.rjw.lan> <1757750.sf0hy8txF5@vostro.rjw.lan> <20130712130508.GK4898@intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7Bit
-Return-path: <linux-pci-owner@vger.kernel.org>
-In-Reply-To: <20130712131850.GL4898@intel.com>
-Sender: linux-pci-owner@vger.kernel.org
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from hydra.sisk.pl ([212.160.235.94]:40352 "EHLO hydra.sisk.pl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S965443Ab3GLU7c (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 12 Jul 2013 16:59:32 -0400
+In-Reply-To: <20130712130508.GK4898@intel.com>
+Sender: linux-acpi-owner@vger.kernel.org
+List-Id: linux-acpi@vger.kernel.org
 To: Mika Westerberg <mika.westerberg@linux.intel.com>
 Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Bjorn Helgaas <bhelgaas@google.com>, LKML <linux-kernel@vger.kernel.org>, Linux PCI <linux-pci@vger.kernel.org>, Yinghai Lu <yinghai@kernel.org>, Jiang Liu <liuj97@gmail.com>
-List-Id: linux-acpi@vger.kernel.org
 
-On Friday, July 12, 2013 04:18:50 PM Mika Westerberg wrote:
-> On Fri, Jul 12, 2013 at 01:34:20AM +0200, Rafael J. Wysocki wrote:
-> > Hi,
-> > 
-> > I've made some progress with my ACPIPHP rework since I posted the series last
-> > time and here goes an update.
-> > 
-> > First off, the previous series was somewhat racy, which should be fixed now.
-> > Apart from this there's quite some new material on top of the patches I posted
-> > last time (or rather on top of their new versions) and I integrated the
-> > Thunderbolt series from Mika with that.  As a result,
-> > 
-> > https://patchwork.kernel.org/patch/2817341/
-> > 
-> > is required to be applied.
+On Friday, July 12, 2013 04:05:08 PM Mika Westerberg wrote:
+> On Fri, Jul 12, 2013 at 02:01:30AM +0200, Rafael J. Wysocki wrote:
+> > Index: linux-pm/drivers/pci/hotplug/acpiphp.h
+> > ===================================================================
+> > --- linux-pm.orig/drivers/pci/hotplug/acpiphp.h
+> > +++ linux-pm/drivers/pci/hotplug/acpiphp.h
+> > @@ -160,7 +160,6 @@ struct acpiphp_attention_info
+> >  
+> >  /* slot flags */
+> >  
+> > -#define SLOT_POWEREDON		(0x00000001)
+> >  #define SLOT_ENABLED		(0x00000002)
+> >  #define SLOT_MULTIFUNCTION	(0x00000004)
+> >  
+> > @@ -168,11 +167,7 @@ struct acpiphp_attention_info
+> >  
+> >  #define FUNC_HAS_STA		(0x00000001)
+> >  #define FUNC_HAS_EJ0		(0x00000002)
+> > -#define FUNC_HAS_PS0		(0x00000010)
+> > -#define FUNC_HAS_PS1		(0x00000020)
+> > -#define FUNC_HAS_PS2		(0x00000040)
+> > -#define FUNC_HAS_PS3		(0x00000080)
+> > -#define FUNC_HAS_DCK            (0x00000100)
+> > +#define FUNC_HAS_DCK            (0x00000003)
 > 
-> With the above mentioned patch applied + fix for patch [23/30], I tested
-> this series on Acer Aspire S5 and Intel DZ77RE-75K desktop and Thunderbolt
-> works just fine :-)
+> These are flags not enum so the above wants to be
 > 
-> You can add
+> 	#define FUNC_HAS_DCK            (0x00000004)
+
+Yeah, obviously.
+
+I guess it goes against the natural tendency to assign numbers to things
+sequentially, so I generally prefer the (1U << n) notation. :-)
+
+> otherwise we accidentally match checks like:
 > 
-> Tested-by: Mika Westerberg <mika.westerberg@linux.intel.com>
-> 
-> to the series.
+> 	/* install notify handler */
+> 	if (!(newfunc->flags & FUNC_HAS_DCK)) {
+> 		...
 
-Thanks a lot, that's really helpful!
+Yup.  Thanks for spotting that!
 
-Now I can rebase it on the previous cleanups and we'll see how that all
-together works on top of the Linus' current. :-)
+Rafael
 
-> Nice cleanup!
 
-Thanks!
+-- 
+I speak only for myself.
+Rafael J. Wysocki, Intel Open Source Technology Center.
