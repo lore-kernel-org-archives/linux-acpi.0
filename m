@@ -1,51 +1,43 @@
 From: Mika Westerberg <mika.westerberg@linux.intel.com>
-Subject: Re: [RFC][PATCH 23/30] ACPI / hotplug / PCI: Do not exectute _PS0
- and _PS3 directly
-Date: Fri, 12 Jul 2013 16:05:08 +0300
-Message-ID: <20130712130508.GK4898@intel.com>
+Subject: Re: [RFC][PATCH 0/30] ACPI / hotplug / PCI: Major rework +
+ Thunderbolt workarounds
+Date: Fri, 12 Jul 2013 16:18:50 +0300
+Message-ID: <20130712131850.GL4898@intel.com>
 References: <26431283.HJCKsss0rt@vostro.rjw.lan>
  <3718119.FLASu5DBx8@vostro.rjw.lan>
- <1757750.sf0hy8txF5@vostro.rjw.lan>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-pci-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <1757750.sf0hy8txF5@vostro.rjw.lan>
+In-Reply-To: <3718119.FLASu5DBx8@vostro.rjw.lan>
 Sender: linux-pci-owner@vger.kernel.org
 To: "Rafael J. Wysocki" <rjw@sisk.pl>
 Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Bjorn Helgaas <bhelgaas@google.com>, LKML <linux-kernel@vger.kernel.org>, Linux PCI <linux-pci@vger.kernel.org>, Yinghai Lu <yinghai@kernel.org>, Jiang Liu <liuj97@gmail.com>
 List-Id: linux-acpi@vger.kernel.org
 
-On Fri, Jul 12, 2013 at 02:01:30AM +0200, Rafael J. Wysocki wrote:
-> Index: linux-pm/drivers/pci/hotplug/acpiphp.h
-> ===================================================================
-> --- linux-pm.orig/drivers/pci/hotplug/acpiphp.h
-> +++ linux-pm/drivers/pci/hotplug/acpiphp.h
-> @@ -160,7 +160,6 @@ struct acpiphp_attention_info
->  
->  /* slot flags */
->  
-> -#define SLOT_POWEREDON		(0x00000001)
->  #define SLOT_ENABLED		(0x00000002)
->  #define SLOT_MULTIFUNCTION	(0x00000004)
->  
-> @@ -168,11 +167,7 @@ struct acpiphp_attention_info
->  
->  #define FUNC_HAS_STA		(0x00000001)
->  #define FUNC_HAS_EJ0		(0x00000002)
-> -#define FUNC_HAS_PS0		(0x00000010)
-> -#define FUNC_HAS_PS1		(0x00000020)
-> -#define FUNC_HAS_PS2		(0x00000040)
-> -#define FUNC_HAS_PS3		(0x00000080)
-> -#define FUNC_HAS_DCK            (0x00000100)
-> +#define FUNC_HAS_DCK            (0x00000003)
+On Fri, Jul 12, 2013 at 01:34:20AM +0200, Rafael J. Wysocki wrote:
+> Hi,
+> 
+> I've made some progress with my ACPIPHP rework since I posted the series last
+> time and here goes an update.
+> 
+> First off, the previous series was somewhat racy, which should be fixed now.
+> Apart from this there's quite some new material on top of the patches I posted
+> last time (or rather on top of their new versions) and I integrated the
+> Thunderbolt series from Mika with that.  As a result,
+> 
+> https://patchwork.kernel.org/patch/2817341/
+> 
+> is required to be applied.
 
-These are flags not enum so the above wants to be
+With the above mentioned patch applied + fix for patch [23/30], I tested
+this series on Acer Aspire S5 and Intel DZ77RE-75K desktop and Thunderbolt
+works just fine :-)
 
-	#define FUNC_HAS_DCK            (0x00000004)
+You can add
 
-otherwise we accidentally match checks like:
+Tested-by: Mika Westerberg <mika.westerberg@linux.intel.com>
 
-	/* install notify handler */
-	if (!(newfunc->flags & FUNC_HAS_DCK)) {
-		...
+to the series.
+
+Nice cleanup!
