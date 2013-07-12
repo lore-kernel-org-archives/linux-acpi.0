@@ -1,47 +1,39 @@
-From: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
-Subject: Re: [PATCH] ACPI / memhotplug: Fix a stale pointer in error path
-Date: Fri, 12 Jul 2013 09:24:22 +0900
-Message-ID: <51DF4CB6.4060903@jp.fujitsu.com>
-References: <1373474833-14047-1-git-send-email-toshi.kani@hp.com>
+From: Thomas Renninger <trenn@suse.de>
+Subject: Re: [PATCH] ACPI:remove panic in case hardware has changed after S4
+Date: Fri, 12 Jul 2013 09:31:25 +0200
+Message-ID: <9283251.hrxzW2Vm0I@skinner.arch.suse.de>
+References: <1373544870-15135-1-git-send-email-oliver@neukum.org> <1373575822.7539.74.camel@linux-s257.site>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-2022-JP"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1373474833-14047-1-git-send-email-toshi.kani@hp.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Toshi Kani <toshi.kani@hp.com>
-Cc: rjw@sisk.pl, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from cantor2.suse.de ([195.135.220.15]:48015 "EHLO mx2.suse.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1757201Ab3GLHbc convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 12 Jul 2013 03:31:32 -0400
+In-Reply-To: <1373575822.7539.74.camel@linux-s257.site>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: joeyli <jlee@suse.com>
+Cc: oliver@neukum.org, lenb@kernel.org, rjw@sisk.pl, linux-acpi@vger.kernel.org, Oliver Neukum <oneukum@suse.de>
 
-(2013/07/11 1:47), Toshi Kani wrote:
-> device->driver_data needs to be cleared when releasing its data,
-> mem_device, in an error path of acpi_memory_device_add().
-> 
-> Signed-off-by: Toshi Kani <toshi.kani@hp.com>
-> ---
+On Friday, July 12, 2013 04:50:22 AM joeyli wrote:
+> =E6=96=BC =E5=9B=9B=EF=BC=8C2013-07-11 =E6=96=BC 14:14 +0200=EF=BC=8C=
+oliver@neukum.org =E6=8F=90=E5=88=B0=EF=BC=9A
+=2E..
+=20
+> On the other hand, I saw another BIOS changed hardware_signature beca=
+use
+> the VGA detect output resolution changed when S4 resume. It's a probl=
+em
+> for sometimes BIOS widely used hardware_signature on non-critical
+> hardware change.
 
-Reviewed-by: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
+I wonder how Windows is handling that.
+The spec is rather clear about aborting the resuming:
 
-Thanks,
-Yasuaki Ishimatsu
-
->   drivers/acpi/acpi_memhotplug.c |    1 +
->   1 file changed, 1 insertion(+)
-> 
-> diff --git a/drivers/acpi/acpi_memhotplug.c b/drivers/acpi/acpi_memhotplug.c
-> index c711d11..999adb5 100644
-> --- a/drivers/acpi/acpi_memhotplug.c
-> +++ b/drivers/acpi/acpi_memhotplug.c
-> @@ -323,6 +323,7 @@ static int acpi_memory_device_add(struct acpi_device *device,
->   	/* Get the range from the _CRS */
->   	result = acpi_memory_get_device_resources(mem_device);
->   	if (result) {
-> +		device->driver_data = NULL;
->   		kfree(mem_device);
->   		return result;
->   	}
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
+--
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
