@@ -1,128 +1,79 @@
 From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: [RFC][PATCH 22/30] ACPI / hotplug / PCI: Do not queue up event handling work items in vain
-Date: Fri, 12 Jul 2013 02:00:46 +0200
-Message-ID: <3148946.a6Eeh6IYXM@vostro.rjw.lan>
+Subject: [RFC][PATCH 25/30] ACPI / hotplug / PCI: Allow slots without new devices to be rescanned
+Date: Fri, 12 Jul 2013 02:03:14 +0200
+Message-ID: <4646223.5BGkX74cI8@vostro.rjw.lan>
 References: <26431283.HJCKsss0rt@vostro.rjw.lan> <3718119.FLASu5DBx8@vostro.rjw.lan>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7Bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from hydra.sisk.pl ([212.160.235.94]:38994 "EHLO hydra.sisk.pl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756557Ab3GKX6u (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 11 Jul 2013 19:58:50 -0400
 In-Reply-To: <3718119.FLASu5DBx8@vostro.rjw.lan>
-Sender: linux-kernel-owner@vger.kernel.org
+Sender: linux-acpi-owner@vger.kernel.org
+List-Id: linux-acpi@vger.kernel.org
 To: ACPI Devel Maling List <linux-acpi@vger.kernel.org>
 Cc: Bjorn Helgaas <bhelgaas@google.com>, LKML <linux-kernel@vger.kernel.org>, Linux PCI <linux-pci@vger.kernel.org>, Yinghai Lu <yinghai@kernel.org>, Jiang Liu <liuj97@gmail.com>, Mika Westerberg <mika.westerberg@linux.intel.com>
-List-Id: linux-acpi@vger.kernel.org
 
-From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+From: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
 
-Modify handle_hotplug_event() to avoid queing up the execution of
-handle_hotplug_event_work_fn() as a work item on kacpi_hotplug_wq
-for non-hotplug events, such as ACPI_NOTIFY_DEVICE_WAKE.  Move
-the code printing diagnostic messages for those events into
-handle_hotplug_event().
+Currently, enable_device() checks the return value of pci_scan_slot()
+and returns immediately if that's 0 (meaning that no new functions
+have been found in the slot).  However, if one of the functions in
+the slot is a bridge, some new devices may appear below it even if
+the bridge itself is present continuously, so it generally is
+necessary to do the rescan anyway just in case.  [In particular,
+that's necessary with the Thunderbolt daisy chaining in which case
+new devices may be connected to the existing ones down the chain.]
 
-In addition to that, remove the bogus comment about how the core
-should distinguish between hotplug and non-hotplug events and
-queue them up on different workqueues.  The core clearly cannot
-know in advance what events will be interesting to the given
-caller of acpi_install_notify_handler().
+The correctness of this change relies on the ability of
+pcibios_resource_survey_bus() to detect if it has already been called
+for the given bus and to skip it if so.  Failure to do that will lead
+to resource allocation conflicts.
 
+[rjw: Changelog]
+Signed-off-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
+Signed-off-by: Mika Westerberg <mika.westerberg@linux.intel.com>
 Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 ---
- drivers/pci/hotplug/acpiphp_glue.c |   64 ++++++++++++++++---------------------
- 1 file changed, 29 insertions(+), 35 deletions(-)
+drivers/pci/hotplug/acpiphp_glue.c | 11 ++---------
+ drivers/pci/hotplug/acpiphp_glue.c |   11 ++---------
+ 1 file changed, 2 insertions(+), 9 deletions(-)
 
 Index: linux-pm/drivers/pci/hotplug/acpiphp_glue.c
 ===================================================================
 --- linux-pm.orig/drivers/pci/hotplug/acpiphp_glue.c
 +++ linux-pm/drivers/pci/hotplug/acpiphp_glue.c
-@@ -932,36 +932,11 @@ static void hotplug_event(acpi_handle ha
+@@ -554,18 +554,13 @@ static int __ref enable_device(struct ac
+ 	struct pci_dev *dev;
+ 	struct pci_bus *bus = slot->bus;
+ 	struct acpiphp_func *func;
+-	int num, max, pass;
++	int max, pass;
+ 	LIST_HEAD(add_list);
  
- 		break;
+ 	list_for_each_entry(func, &slot->funcs, sibling)
+ 		acpiphp_bus_add(func_to_handle(func));
  
--	case ACPI_NOTIFY_DEVICE_WAKE:
--		/* wake event */
--		dbg("%s: Device wake notify on %s\n", __func__, objname);
--		break;
--
- 	case ACPI_NOTIFY_EJECT_REQUEST:
- 		/* request device eject */
- 		dbg("%s: Device eject notify on %s\n", __func__, objname);
- 		acpiphp_disable_and_eject_slot(func->slot);
- 		break;
--
--	case ACPI_NOTIFY_FREQUENCY_MISMATCH:
--		printk(KERN_ERR "Device %s cannot be configured due"
--				" to a frequency mismatch\n", objname);
--		break;
--
--	case ACPI_NOTIFY_BUS_MODE_MISMATCH:
--		printk(KERN_ERR "Device %s cannot be configured due"
--				" to a bus mode mismatch\n", objname);
--		break;
--
--	case ACPI_NOTIFY_POWER_FAULT:
--		printk(KERN_ERR "Device %s has suffered a power fault\n",
--				objname);
--		break;
--
--	default:
--		warn("notify_handler: unknown event type 0x%x for %s\n", type,
--		     objname);
--		break;
+-	num = pci_scan_slot(bus, PCI_DEVFN(slot->device, 0));
+-	if (num == 0) {
+-		/* Maybe only part of funcs are added. */
+-		dbg("No new device found\n");
+-		goto err_exit;
+-	}
++	pci_scan_slot(bus, PCI_DEVFN(slot->device, 0));
+ 
+ 	max = acpiphp_max_busnr(bus);
+ 	for (pass = 0; pass < 2; pass++) {
+@@ -611,8 +606,6 @@ static int __ref enable_device(struct ac
+ 		}
  	}
  
- 	if (bridge)
-@@ -996,23 +971,42 @@ static void handle_hotplug_event(acpi_ha
- {
- 	struct acpiphp_context *context;
- 
-+	switch (type) {
-+	case ACPI_NOTIFY_BUS_CHECK:
-+	case ACPI_NOTIFY_DEVICE_CHECK:
-+	case ACPI_NOTIFY_EJECT_REQUEST:
-+		break;
-+
-+	case ACPI_NOTIFY_DEVICE_WAKE:
-+		return;
-+
-+	case ACPI_NOTIFY_FREQUENCY_MISMATCH:
-+		acpi_handle_err(handle, "Device cannot be configured due "
-+				"to a frequency mismatch\n");
-+		return;
-+
-+	case ACPI_NOTIFY_BUS_MODE_MISMATCH:
-+		acpi_handle_err(handle, "Device cannot be configured due "
-+				"to a bus mode mismatch\n");
-+		return;
-+
-+	case ACPI_NOTIFY_POWER_FAULT:
-+		acpi_handle_err(handle, "Device has suffered a power fault\n");
-+		return;
-+
-+	default:
-+		acpi_handle_warn(handle, "Unsupported event type 0x%x\n", type);
-+		return;
-+	}
-+
- 	mutex_lock(&acpiphp_context_lock);
- 	context = acpiphp_get_context(handle);
- 	if (context) {
- 		get_bridge(context->func.parent);
- 		acpiphp_put_context(context);
-+		alloc_acpi_hp_work(handle, type, context, hotplug_event_work);
- 	}
- 	mutex_unlock(&acpiphp_context_lock);
--	/*
--	 * Currently the code adds all hotplug events to the kacpid_wq
--	 * queue when it should add hotplug events to the kacpi_hotplug_wq.
--	 * The proper way to fix this is to reorganize the code so that
--	 * drivers (dock, etc.) do not call acpi_os_execute(), etc.
--	 * For now just re-add this work to the kacpi_hotplug_wq so we
--	 * don't deadlock on hotplug actions.
--	 */
--	if (context)
--		alloc_acpi_hp_work(handle, type, context, hotplug_event_work);
+-
+- err_exit:
+ 	return 0;
  }
  
- /*
+
