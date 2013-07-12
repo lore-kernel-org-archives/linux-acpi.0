@@ -1,78 +1,98 @@
-From: joeyli <jlee@suse.com>
-Subject: Re: [PATCH] ACPI:remove panic in case hardware has changed after S4
-Date: Fri, 12 Jul 2013 16:45:15 +0800
-Message-ID: <1373618715.7539.106.camel@linux-s257.site>
-References: <1373544870-15135-1-git-send-email-oliver@neukum.org>
-	 <1373575822.7539.74.camel@linux-s257.site>
-	 <6802146.fKe43BS873@skinner.arch.suse.de>
+From: Mika Westerberg <mika.westerberg@linux.intel.com>
+Subject: Re: [RFC][PATCH 11/30] ACPI / hotplug / PCI: Register all devices
+ under the given bridge
+Date: Fri, 12 Jul 2013 14:54:20 +0300
+Message-ID: <20130712115420.GH4898@intel.com>
+References: <26431283.HJCKsss0rt@vostro.rjw.lan>
+ <3718119.FLASu5DBx8@vostro.rjw.lan>
+ <1910839.UjS2m1ckUq@vostro.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp.nue.novell.com ([195.135.221.5]:49784 "EHLO
-	smtp.nue.novell.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757347Ab3GLIqY (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 12 Jul 2013 04:46:24 -0400
-In-Reply-To: <6802146.fKe43BS873@skinner.arch.suse.de>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-pci-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <1910839.UjS2m1ckUq@vostro.rjw.lan>
+Sender: linux-pci-owner@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Bjorn Helgaas <bhelgaas@google.com>, LKML <linux-kernel@vger.kernel.org>, Linux PCI <linux-pci@vger.kernel.org>, Yinghai Lu <yinghai@kernel.org>, Jiang Liu <liuj97@gmail.com>
 List-Id: linux-acpi@vger.kernel.org
-To: Thomas Renninger <trenn@suse.de>
-Cc: oliver@neukum.org, lenb@kernel.org, rjw@sisk.pl, linux-acpi@vger.kernel.org, Oliver Neukum <oneukum@suse.de>
 
-=E6=96=BC =E4=BA=94=EF=BC=8C2013-07-12 =E6=96=BC 09:37 +0200=EF=BC=8CTh=
-omas Renninger =E6=8F=90=E5=88=B0=EF=BC=9A
-> On Friday, July 12, 2013 04:50:22 AM joeyli wrote:
-> > =E6=96=BC =E5=9B=9B=EF=BC=8C2013-07-11 =E6=96=BC 14:14 +0200=EF=BC=8C=
-oliver@neukum.org =E6=8F=90=E5=88=B0=EF=BC=9A
-> ...
-> > On the other hand, I saw another BIOS changed hardware_signature be=
-cause
-> > the VGA detect output resolution changed when S4 resume. It's a pro=
-blem
-> > for sometimes BIOS widely used hardware_signature on non-critical
-> > hardware change.
->=20
-> I wonder how Windows is handling that.
-> The spec is rather clear and OS should abort the resuming:
-> ------
-> 5.2.10 Firmware ACPI Control Structure (FACS)
-> ...
-> If the values are not the same, OSPM assumes
-> that the saved non-volatile image is from a different hardware
-> configuration and cannot be restored.
+On Fri, Jul 12, 2013 at 01:50:29AM +0200, Rafael J. Wysocki wrote:
+> @@ -1210,6 +1125,35 @@ void acpiphp_enumerate_slots(struct pci_
+>  	 */
+>  	get_device(&bus->dev);
+>  
+> +	if (!pci_is_root_bus(bridge->pci_bus)) {
+> +		struct acpiphp_context *context;
+> +
+> +		/*
+> +		 * This bridge should have been registered as a hotplug function
+> +		 * under its parent, so the context has to be there.  If not, we
+> +		 * are in deep goo.
+> +		 */
+> +		mutex_lock(&acpiphp_context_lock);
+> +		context = acpiphp_get_context(handle);
+> +		if (WARN_ON(!context || !context->func)) {
+> +			mutex_unlock(&acpiphp_context_lock);
+> +			put_device(&bus->dev);
+> +			kfree(bridge);
+> +			return;
+> +		}
+> +		bridge->context = context;
+> +		context->bridge = bridge;
+> +		/* Get a reference to the parent bridge. */
+> +		get_bridge(context->func->slot->bridge);
+> +		mutex_unlock(&acpiphp_context_lock);
+> +	}
+> +
+> +	status = acpi_get_handle(bridge->handle, "_EJ0", &handle);
+> +	if (ACPI_SUCCESS(status)) {
+> +		dbg("found ejectable p2p bridge\n");
+> +		bridge->flags |= BRIDGE_HAS_EJ0;
+> +	}
+> +
+>  	/* must be added to the list prior to calling register_slot */
+>  	mutex_lock(&bridge_mutex);
+>  	list_add(&bridge->list, &bridge_list);
+> @@ -1220,34 +1164,9 @@ void acpiphp_enumerate_slots(struct pci_
+>  				     register_slot, NULL, bridge, NULL);
+>  	if (ACPI_FAILURE(status)) {
+>  		acpi_handle_err(bridge->handle, "failed to register slots\n");
+> -		goto err;
+> -	}
+> -
+> -	if (pci_is_root_bus(bridge->pci_bus))
+> -		return;
+> -
+> -	status = acpi_get_handle(bridge->handle, "_EJ0", &handle);
+> -	if (ACPI_SUCCESS(status)) {
+> -		dbg("found ejectable p2p bridge\n");
+> -		bridge->flags |= BRIDGE_HAS_EJ0;
+> -	}
+> -	if (context->handler_for_func) {
+> -		/* Notify handler already installed. */
+> -		get_bridge(context->func->slot->bridge);
+> -		return;
+> +		cleanup_bridge(bridge);
+> +		put_bridge(bridge);
+>  	}
+> -
+> -	/* install notify handler for P2P bridges */
+> -	status = acpi_install_notify_handler(bridge->handle, ACPI_SYSTEM_NOTIFY,
+> -					     handle_hotplug_event, NULL);
 
-Thanks for your kick.
+With this removed we now install notify handlers for the slot objects under
+this bridge but not for the bridge itself.
 
-Per information from OEM, Windows 8 didn't really block S4 resume when
-hardware_signature not match, I think as Oliver's patch.
+In case of Thunderbolt the BIOS will send the event for the root port ACPI
+device \_SB_.PCI0.RP05 and with the above change we don't handle it
+anymore.
 
-> ------
-> I would say either:
->    - someone checks Windows behavior and if they do it wrong
->      and still resume, resuming unconditionally is an option.
->      But they might fix this at some point of time and force vendors
->      to do things right, then we would still try to resume even we
->      must not.
->=20
->   - a boot parameter for the poor souls with such BIOS defects
->     so that they can still resume
->=20
->=20
-> My 2 cents,
->=20
->            Thomas
-> --
-
-I agreed your point, we should find a machine make sure the
-hardware_signature changed by BIOS then install Windows 8 to verify the
-behavior.
-
-
-Thanks a lot!
-Joey Lee
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> -	if (ACPI_SUCCESS(status))
+> -		return;
+> -
+> -	acpi_handle_err(bridge->handle, "failed to register notify handler\n");
+> -
+> - err:
+> -	cleanup_bridge(bridge);
+> -	put_bridge(bridge);
+>  }
