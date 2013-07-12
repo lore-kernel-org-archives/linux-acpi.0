@@ -1,43 +1,63 @@
-From: Mika Westerberg <mika.westerberg@linux.intel.com>
-Subject: Re: [RFC][PATCH 0/30] ACPI / hotplug / PCI: Major rework +
- Thunderbolt workarounds
-Date: Fri, 12 Jul 2013 16:18:50 +0300
-Message-ID: <20130712131850.GL4898@intel.com>
-References: <26431283.HJCKsss0rt@vostro.rjw.lan>
- <3718119.FLASu5DBx8@vostro.rjw.lan>
+From: Toshi Kani <toshi.kani@hp.com>
+Subject: Re: [PATCH] ACPI / memhotplug: Fix a stale pointer in error path
+Date: Fri, 12 Jul 2013 08:51:29 -0600
+Message-ID: <1373640689.24916.15.camel@misato.fc.hp.com>
+References: <1373474833-14047-1-git-send-email-toshi.kani@hp.com>
+	 <51DF4CB6.4060903@jp.fujitsu.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-pci-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <3718119.FLASu5DBx8@vostro.rjw.lan>
-Sender: linux-pci-owner@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Bjorn Helgaas <bhelgaas@google.com>, LKML <linux-kernel@vger.kernel.org>, Linux PCI <linux-pci@vger.kernel.org>, Yinghai Lu <yinghai@kernel.org>, Jiang Liu <liuj97@gmail.com>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from g1t0029.austin.hp.com ([15.216.28.36]:45883 "EHLO
+	g1t0029.austin.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932588Ab3GLOwV (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 12 Jul 2013 10:52:21 -0400
+In-Reply-To: <51DF4CB6.4060903@jp.fujitsu.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
+Cc: rjw@sisk.pl, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 
-On Fri, Jul 12, 2013 at 01:34:20AM +0200, Rafael J. Wysocki wrote:
-> Hi,
+On Fri, 2013-07-12 at 09:24 +0900, Yasuaki Ishimatsu wrote:
+> (2013/07/11 1:47), Toshi Kani wrote:
+> > device->driver_data needs to be cleared when releasing its data,
+> > mem_device, in an error path of acpi_memory_device_add().
+> > 
+> > Signed-off-by: Toshi Kani <toshi.kani@hp.com>
+> > ---
 > 
-> I've made some progress with my ACPIPHP rework since I posted the series last
-> time and here goes an update.
+> Reviewed-by: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
+
+Thanks Yasuaki!
+-Toshi
+
+
+
 > 
-> First off, the previous series was somewhat racy, which should be fixed now.
-> Apart from this there's quite some new material on top of the patches I posted
-> last time (or rather on top of their new versions) and I integrated the
-> Thunderbolt series from Mika with that.  As a result,
+> Thanks,
+> Yasuaki Ishimatsu
 > 
-> https://patchwork.kernel.org/patch/2817341/
+> >   drivers/acpi/acpi_memhotplug.c |    1 +
+> >   1 file changed, 1 insertion(+)
+> > 
+> > diff --git a/drivers/acpi/acpi_memhotplug.c b/drivers/acpi/acpi_memhotplug.c
+> > index c711d11..999adb5 100644
+> > --- a/drivers/acpi/acpi_memhotplug.c
+> > +++ b/drivers/acpi/acpi_memhotplug.c
+> > @@ -323,6 +323,7 @@ static int acpi_memory_device_add(struct acpi_device *device,
+> >   	/* Get the range from the _CRS */
+> >   	result = acpi_memory_get_device_resources(mem_device);
+> >   	if (result) {
+> > +		device->driver_data = NULL;
+> >   		kfree(mem_device);
+> >   		return result;
+> >   	}
+> > --
+> > To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
+> > the body of a message to majordomo@vger.kernel.org
+> > More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> > 
 > 
-> is required to be applied.
+> 
 
-With the above mentioned patch applied + fix for patch [23/30], I tested
-this series on Acer Aspire S5 and Intel DZ77RE-75K desktop and Thunderbolt
-works just fine :-)
 
-You can add
-
-Tested-by: Mika Westerberg <mika.westerberg@linux.intel.com>
-
-to the series.
-
-Nice cleanup!
