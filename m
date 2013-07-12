@@ -1,58 +1,47 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: [RFC][PATCH 28/30] ACPI / hotplug / PCI: Sanitize acpiphp_get_(latch)|(adapter)_status()
-Date: Fri, 12 Jul 2013 02:06:18 +0200
-Message-ID: <2428279.tYKV60tBAM@vostro.rjw.lan>
-References: <26431283.HJCKsss0rt@vostro.rjw.lan> <3718119.FLASu5DBx8@vostro.rjw.lan>
+From: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
+Subject: Re: [PATCH] ACPI / memhotplug: Fix a stale pointer in error path
+Date: Fri, 12 Jul 2013 09:24:22 +0900
+Message-ID: <51DF4CB6.4060903@jp.fujitsu.com>
+References: <1373474833-14047-1-git-send-email-toshi.kani@hp.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="ISO-2022-JP"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <3718119.FLASu5DBx8@vostro.rjw.lan>
+In-Reply-To: <1373474833-14047-1-git-send-email-toshi.kani@hp.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: ACPI Devel Maling List <linux-acpi@vger.kernel.org>
-Cc: Bjorn Helgaas <bhelgaas@google.com>, LKML <linux-kernel@vger.kernel.org>, Linux PCI <linux-pci@vger.kernel.org>, Yinghai Lu <yinghai@kernel.org>, Jiang Liu <liuj97@gmail.com>, Mika Westerberg <mika.westerberg@linux.intel.com>
+To: Toshi Kani <toshi.kani@hp.com>
+Cc: rjw@sisk.pl, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-From: Mika Westerberg <mika.westerberg@linux.intel.com>
+(2013/07/11 1:47), Toshi Kani wrote:
+> device->driver_data needs to be cleared when releasing its data,
+> mem_device, in an error path of acpi_memory_device_add().
+> 
+> Signed-off-by: Toshi Kani <toshi.kani@hp.com>
+> ---
 
-There is no need for a temporary variable and all the tricks with
-ternary operators in acpiphp_get_(latch)|(adapter)_status(). Change
-those functions to be a bit more straightforward.
+Reviewed-by: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
 
-[rjw: Changelog]
-Signed-off-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
-Signed-off-by: Mika Westerberg <mika.westerberg@linux.intel.com>
-Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
----
-drivers/pci/hotplug/acpiphp_glue.c | 12 ++----------
- drivers/pci/hotplug/acpiphp_glue.c |   12 ++----------
- 1 file changed, 2 insertions(+), 10 deletions(-)
+Thanks,
+Yasuaki Ishimatsu
 
-Index: linux-pm/drivers/pci/hotplug/acpiphp_glue.c
-===================================================================
---- linux-pm.orig/drivers/pci/hotplug/acpiphp_glue.c
-+++ linux-pm/drivers/pci/hotplug/acpiphp_glue.c
-@@ -1092,11 +1092,7 @@ u8 acpiphp_get_power_status(struct acpip
-  */
- u8 acpiphp_get_latch_status(struct acpiphp_slot *slot)
- {
--	unsigned int sta;
--
--	sta = get_slot_status(slot);
--
--	return (sta & ACPI_STA_DEVICE_UI) ? 0 : 1;
-+	return !(get_slot_status(slot) & ACPI_STA_DEVICE_UI);
- }
- 
- 
-@@ -1106,9 +1102,5 @@ u8 acpiphp_get_latch_status(struct acpip
-  */
- u8 acpiphp_get_adapter_status(struct acpiphp_slot *slot)
- {
--	unsigned int sta;
--
--	sta = get_slot_status(slot);
--
--	return (sta == 0) ? 0 : 1;
-+	return !!get_slot_status(slot);
- }
+>   drivers/acpi/acpi_memhotplug.c |    1 +
+>   1 file changed, 1 insertion(+)
+> 
+> diff --git a/drivers/acpi/acpi_memhotplug.c b/drivers/acpi/acpi_memhotplug.c
+> index c711d11..999adb5 100644
+> --- a/drivers/acpi/acpi_memhotplug.c
+> +++ b/drivers/acpi/acpi_memhotplug.c
+> @@ -323,6 +323,7 @@ static int acpi_memory_device_add(struct acpi_device *device,
+>   	/* Get the range from the _CRS */
+>   	result = acpi_memory_get_device_resources(mem_device);
+>   	if (result) {
+> +		device->driver_data = NULL;
+>   		kfree(mem_device);
+>   		return result;
+>   	}
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
