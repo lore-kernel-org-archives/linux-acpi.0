@@ -1,103 +1,201 @@
 From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: [PATCH] PCI / hotplug / ACPI: Get rid of check_sub_bridges()
-Date: Sat, 13 Jul 2013 23:47:26 +0200
-Message-ID: <3395919.UaDiFX78Zn@vostro.rjw.lan>
-References: <1373735399-28055-1-git-send-email-mika.westerberg@linux.intel.com>
+Subject: Re: [PATCH] platform samsung-q10: use ACPI instead of direct EC calls
+Date: Sun, 14 Jul 2013 01:02:06 +0200
+Message-ID: <1838309.R4dle7izpe@vostro.rjw.lan>
+References: <20130703212737.GC5579@lat.lan> <1373297814.24233.5.camel@x230.lan> <20130708213456.GA5441@lat.lan>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7Bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from hydra.sisk.pl ([212.160.235.94]:41525 "EHLO hydra.sisk.pl"
+Received: from hydra.sisk.pl ([212.160.235.94]:41608 "EHLO hydra.sisk.pl"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750944Ab3GMVhi (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Sat, 13 Jul 2013 17:37:38 -0400
-In-Reply-To: <1373735399-28055-1-git-send-email-mika.westerberg@linux.intel.com>
+	id S1751576Ab3GMWwQ (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Sat, 13 Jul 2013 18:52:16 -0400
+In-Reply-To: <20130708213456.GA5441@lat.lan>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Mika Westerberg <mika.westerberg@linux.intel.com>
-Cc: linux-acpi@vger.kernel.org, Bjorn Helgaas <bhelgaas@google.com>, linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, Yinghai Lu <yinghai@kernel.org>, Jiang Liu <liuj97@gmail.com>, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>
+To: Frederick van der Wyck <fvanderwyck@gmail.com>
+Cc: Matthew Garrett <mjg59@srcf.ucam.org>, platform-driver-x86@vger.kernel.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
 
-On Saturday, July 13, 2013 08:09:59 PM Mika Westerberg wrote:
-> Now that acpiphp_check_bridge() always enumerates devices behind the
-> bridge, there is no need to do that for each sub-bridge anymore like it is
-> done in the current ACPI-based PCI hotplug code. Given this we don't need
-> check_sub_bridges() anymore and can drop the function completely.
+On Monday, July 08, 2013 10:34:56 PM Frederick van der Wyck wrote:
+> On Mon, Jul 08, 2013 at 11:36:54AM -0400, Matthew Garrett wrote:
 > 
-> This also simplifies the ACPIPHP code a bit.
+> > you should be able to just use first_ec directly rather than  
+> > probing yourself.
 > 
-> Signed-off-by: Mika Westerberg <mika.westerberg@linux.intel.com>
-> ---
-> This applies on top of v3.10 with Rafael's ACPIPHP + Thunderbolt series
-> applied:
->
+> Thanks, I've made that change below.
+> 
+> > > +	for (i = 0; i < SAMSUNGQ10_BL_MAX_INTENSITY; i++) {
+> > > +		status = acpi_evaluate_object(ec_handle, "_Q63", NULL, NULL);
+> > 
+> > The potential problem here is that there's no guarantee that these event
+> > numbers are stable, and a firmware upgrade could change them. Of course,
+> > that's also true of the EC registers, but we haven't had anyone complain
+> > about the driver suddenly breaking so I'm not hugely enthusiastic about
+> > replacing one fragile but seemingly working method with a fragile but
+> > unproven one. 
+> 
+> That's true. On the other hand, imitating the action of the brightness keys at
+> this higher level seems somewhat cleaner and has the advantage that the
+> brightness setting is preserved on reboot (as the smi handler stores it in
+> nvram). I did test that 63 and 64 are the appropriate event numbers on each of
+> the models in the dmi table (although I only tested one firmware version per
+> model).
 
-OK, I added it to my bleeding-edge branch along with this series:
-
-> 	http://www.spinics.net/lists/linux-acpi/msg44480.html
-
-rebased on top of some previous ACPI cleanup commits.  I needed to make some
-changes in the process (and fixed up some breakage reported by the auto build
-testing), hopefully I didn't break anything.  If you're in an adventurous mood,
-testing would be welcome. ;-)  [That already includes the majority of 3.11
-material from Linus, though, so unexpected breakage elsewhere may happen.]
+I think we can make this change and if it breaks things for anyone, we'll
+revert it.
 
 Thanks,
 Rafael
 
 
->  drivers/pci/hotplug/acpiphp_glue.c | 25 -------------------------
->  1 file changed, 25 deletions(-)
+> Signed-off-by: Frederick van der Wyck <fvanderwyck@gmail.com>
+> ---
+>  drivers/platform/x86/Kconfig       |    2 +-
+>  drivers/platform/x86/samsung-q10.c |   65 +++++++++++------------------------
+>  2 files changed, 22 insertions(+), 45 deletions(-)
 > 
-> diff --git a/drivers/pci/hotplug/acpiphp_glue.c b/drivers/pci/hotplug/acpiphp_glue.c
-> index 62e09af..741504a 100644
-> --- a/drivers/pci/hotplug/acpiphp_glue.c
-> +++ b/drivers/pci/hotplug/acpiphp_glue.c
-> @@ -760,25 +760,6 @@ static void acpiphp_sanitize_bus(struct pci_bus *bus)
->   * ACPI event handlers
->   */
+> diff --git a/drivers/platform/x86/Kconfig b/drivers/platform/x86/Kconfig
+> index 8577261..52aed6d 100644
+> --- a/drivers/platform/x86/Kconfig
+> +++ b/drivers/platform/x86/Kconfig
+> @@ -762,7 +762,7 @@ config INTEL_OAKTRAIL
 >  
-> -static acpi_status
-> -check_sub_bridges(acpi_handle handle, u32 lvl, void *context, void **rv)
-> -{
-> -	struct acpiphp_bridge *bridge;
-> -	char objname[64];
-> -	struct acpi_buffer buffer = { .length = sizeof(objname),
-> -				      .pointer = objname };
+>  config SAMSUNG_Q10
+>  	tristate "Samsung Q10 Extras"
+> -	depends on SERIO_I8042
+> +	depends on ACPI
+>  	select BACKLIGHT_CLASS_DEVICE
+>  	---help---
+>  	  This driver provides support for backlight control on Samsung Q10
+> diff --git a/drivers/platform/x86/samsung-q10.c b/drivers/platform/x86/samsung-q10.c
+> index 1a90b62..9d6609d 100644
+> --- a/drivers/platform/x86/samsung-q10.c
+> +++ b/drivers/platform/x86/samsung-q10.c
+> @@ -14,16 +14,12 @@
+>  #include <linux/init.h>
+>  #include <linux/platform_device.h>
+>  #include <linux/backlight.h>
+> -#include <linux/i8042.h>
+>  #include <linux/dmi.h>
+> +#include <acpi/acpi_drivers.h>
+>  
+> -#define SAMSUNGQ10_BL_MAX_INTENSITY      255
+> -#define SAMSUNGQ10_BL_DEFAULT_INTENSITY  185
+> +#define SAMSUNGQ10_BL_MAX_INTENSITY 7
+>  
+> -#define SAMSUNGQ10_BL_8042_CMD           0xbe
+> -#define SAMSUNGQ10_BL_8042_DATA          { 0x89, 0x91 }
 > -
-> -	bridge = acpiphp_handle_to_bridge(handle);
-> -	if (bridge) {
-> -		acpi_get_name(handle, ACPI_FULL_PATHNAME, &buffer);
-> -		dbg("%s: re-enumerating slots under %s\n",
-> -			__func__, objname);
-> -		acpiphp_check_bridge(bridge);
-> -		put_bridge(bridge);
-> -	}
-> -	return AE_OK ;
-> -}
-> -
->  void acpiphp_check_host_bridge(acpi_handle handle)
+> -static int samsungq10_bl_brightness;
+> +static acpi_handle ec_handle;
+>  
+>  static bool force;
+>  module_param(force, bool, 0);
+> @@ -33,21 +29,26 @@ MODULE_PARM_DESC(force,
+>  static int samsungq10_bl_set_intensity(struct backlight_device *bd)
 >  {
->  	struct acpiphp_bridge *bridge;
-> @@ -788,9 +769,6 @@ void acpiphp_check_host_bridge(acpi_handle handle)
->  		acpiphp_check_bridge(bridge);
->  		put_bridge(bridge);
->  	}
-> -
-> -	acpi_walk_namespace(ACPI_TYPE_DEVICE, handle,
-> -		ACPI_UINT32_MAX, check_sub_bridges, NULL, NULL, NULL);
+>  
+> -	int brightness = bd->props.brightness;
+> -	unsigned char c[3] = SAMSUNGQ10_BL_8042_DATA;
+> +	acpi_status status;
+> +	int i;
+>  
+> -	c[2] = (unsigned char)brightness;
+> -	i8042_lock_chip();
+> -	i8042_command(c, (0x30 << 8) | SAMSUNGQ10_BL_8042_CMD);
+> -	i8042_unlock_chip();
+> -	samsungq10_bl_brightness = brightness;
+> +	for (i = 0; i < SAMSUNGQ10_BL_MAX_INTENSITY; i++) {
+> +		status = acpi_evaluate_object(ec_handle, "_Q63", NULL, NULL);
+> +		if (ACPI_FAILURE(status))
+> +			return -EIO;
+> +	}
+> +	for (i = 0; i < bd->props.brightness; i++) {
+> +		status = acpi_evaluate_object(ec_handle, "_Q64", NULL, NULL);
+> +		if (ACPI_FAILURE(status))
+> +			return -EIO;
+> +	}
+>  
+>  	return 0;
 >  }
 >  
->  static void hotplug_event(acpi_handle handle, u32 type, void *data)
-> @@ -818,9 +796,6 @@ static void hotplug_event(acpi_handle handle, u32 type, void *data)
->  		dbg("%s: re-enumerating slots under %s\n", __func__, objname);
->  		if (bridge) {
->  			acpiphp_check_bridge(bridge);
-> -			acpi_walk_namespace(ACPI_TYPE_DEVICE, handle,
-> -					    ACPI_UINT32_MAX, check_sub_bridges,
-> -					    NULL, NULL, NULL);
->  		} else {
->  			struct acpiphp_slot *slot = func->slot;
+>  static int samsungq10_bl_get_intensity(struct backlight_device *bd)
+>  {
+> -	return samsungq10_bl_brightness;
+> +	return bd->props.brightness;
+>  }
 >  
+>  static const struct backlight_ops samsungq10_bl_ops = {
+> @@ -55,28 +56,6 @@ static const struct backlight_ops samsungq10_bl_ops = {
+>  	.update_status	= samsungq10_bl_set_intensity,
+>  };
+>  
+> -#ifdef CONFIG_PM_SLEEP
+> -static int samsungq10_suspend(struct device *dev)
+> -{
+> -	return 0;
+> -}
+> -
+> -static int samsungq10_resume(struct device *dev)
+> -{
+> -
+> -	struct backlight_device *bd = dev_get_drvdata(dev);
+> -
+> -	samsungq10_bl_set_intensity(bd);
+> -	return 0;
+> -}
+> -#else
+> -#define samsungq10_suspend NULL
+> -#define samsungq10_resume  NULL
+> -#endif
+> -
+> -static SIMPLE_DEV_PM_OPS(samsungq10_pm_ops,
+> -			  samsungq10_suspend, samsungq10_resume);
+> -
+>  static int samsungq10_probe(struct platform_device *pdev)
+>  {
+>  
+> @@ -93,9 +72,6 @@ static int samsungq10_probe(struct platform_device *pdev)
+>  
+>  	platform_set_drvdata(pdev, bd);
+>  
+> -	bd->props.brightness = SAMSUNGQ10_BL_DEFAULT_INTENSITY;
+> -	samsungq10_bl_set_intensity(bd);
+> -
+>  	return 0;
+>  }
+>  
+> @@ -104,9 +80,6 @@ static int samsungq10_remove(struct platform_device *pdev)
+>  
+>  	struct backlight_device *bd = platform_get_drvdata(pdev);
+>  
+> -	bd->props.brightness = SAMSUNGQ10_BL_DEFAULT_INTENSITY;
+> -	samsungq10_bl_set_intensity(bd);
+> -
+>  	backlight_device_unregister(bd);
+>  
+>  	return 0;
+> @@ -116,7 +89,6 @@ static struct platform_driver samsungq10_driver = {
+>  	.driver		= {
+>  		.name	= KBUILD_MODNAME,
+>  		.owner	= THIS_MODULE,
+> -		.pm	= &samsungq10_pm_ops,
+>  	},
+>  	.probe		= samsungq10_probe,
+>  	.remove		= samsungq10_remove,
+> @@ -172,6 +144,11 @@ static int __init samsungq10_init(void)
+>  	if (!force && !dmi_check_system(samsungq10_dmi_table))
+>  		return -ENODEV;
+>  
+> +	ec_handle = ec_get_handle();
+> +
+> +	if (!ec_handle)
+> +		return -ENODEV;
+> +
+>  	samsungq10_device = platform_create_bundle(&samsungq10_driver,
+>  						   samsungq10_probe,
+>  						   NULL, 0, NULL, 0);
 > 
 -- 
 I speak only for myself.
