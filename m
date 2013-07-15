@@ -1,75 +1,52 @@
-From: Toshi Kani <toshi.kani@hp.com>
-Subject: Re: [PATCH] ACPI / memhotplug: Fix a stale pointer in error path
-Date: Mon, 15 Jul 2013 10:11:12 -0600
-Message-ID: <1373904672.24916.46.camel@misato.fc.hp.com>
-References: <1373474833-14047-1-git-send-email-toshi.kani@hp.com>
-	 <1907509.WiI0tI5uDZ@vostro.rjw.lan>
-	 <1373668116.24916.43.camel@misato.fc.hp.com>
-	 <1628443.pD3ROIrBQn@vostro.rjw.lan>
+From: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
+Subject: Re: [PATCH] ACPI:remove panic in case hardware has changed after S4
+Date: Mon, 15 Jul 2013 13:34:27 -0300
+Message-ID: <20130715163427.GG1074@khazad-dum.debian.net>
+References: <1373888637-20737-1-git-send-email-oliver@neukum.org>
+ <7120686.9AnYUBdZSM@skinner.arch.suse.de>
+ <20130715150611.GC1074@khazad-dum.debian.net>
+ <4740878.DpcUBhhgIN@linux-5eaq.site>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from g5t0009.atlanta.hp.com ([15.192.0.46]:43983 "EHLO
-	g5t0009.atlanta.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932272Ab3GOQMH (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 15 Jul 2013 12:12:07 -0400
-In-Reply-To: <1628443.pD3ROIrBQn@vostro.rjw.lan>
+Received: from out1-smtp.messagingengine.com ([66.111.4.25]:58315 "EHLO
+	out1-smtp.messagingengine.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S933394Ab3GOQea (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 15 Jul 2013 12:34:30 -0400
+Content-Disposition: inline
+In-Reply-To: <4740878.DpcUBhhgIN@linux-5eaq.site>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+To: Oliver Neukum <oneukum@suse.de>
+Cc: Thomas Renninger <trenn@suse.de>, lenb@kernel.org, rjw@sisk.pl, linux-acpi@vger.kernel.org
 
-On Sat, 2013-07-13 at 01:53 +0200, Rafael J. Wysocki wrote:
-> On Friday, July 12, 2013 04:28:36 PM Toshi Kani wrote:
-> > On Fri, 2013-07-12 at 23:40 +0200, Rafael J. Wysocki wrote:
-> > > On Friday, July 12, 2013 03:12:24 PM Toshi Kani wrote:
-> > > > On Fri, 2013-07-12 at 23:13 +0200, Rafael J. Wysocki wrote:
-> > > > > On Friday, July 12, 2013 03:01:15 PM Toshi Kani wrote:
-> > > > > > On Fri, 2013-07-12 at 22:42 +0200, Rafael J. Wysocki wrote:
-> > > > > > > On Friday, July 12, 2013 08:51:29 AM Toshi Kani wrote:
-> > > > > > > > On Fri, 2013-07-12 at 09:24 +0900, Yasuaki Ishimatsu wrote:
-> > > > > > > > > (2013/07/11 1:47), Toshi Kani wrote:
-> > > > > > > > > > device->driver_data needs to be cleared when releasing its data,
-> > > > > > > > > > mem_device, in an error path of acpi_memory_device_add().
-> > > > > > > > > > 
-> > > > > > > > > > Signed-off-by: Toshi Kani <toshi.kani@hp.com>
-> > > > > > > > > > ---
-> > > > > > > > > 
-> > > > > > > > > Reviewed-by: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
-> > > > > > > > 
-> > > > > > > > Thanks Yasuaki!
-> > > > > > > 
-> > > > > > > Queued up as a fix for 3.11.
-> > > > > > 
-> > > > > > Thanks!
-> > > > > > 
-> > > > > > > Do we need that in -stable as well?
-> > > > > > 
-> > > > > > Good point.  Yes, we need that in -stable as well.
-> > > > > 
-> > > > > What's the oldest mainline major release that fix is applicable to?
-> > > > 
-> > > > The fix is applicable all ways up to 2.6.32.
-> > > 
-> > > For -stable I'll need to say some more about what practical consequences of
-> > > the bug are.  Is it difficult to trigger?
+On Mon, 15 Jul 2013, Oliver Neukum wrote:
+> On Monday 15 July 2013 12:06:11 Henrique de Moraes Holschuh wrote:
+> > On Mon, 15 Jul 2013, Thomas Renninger wrote:
+> > > I would not make it too complicated.
+> > > Sticking to the latest Windows version should be enough for this one.
+> > > What bad should happen if we still try to resume and fail...
 > > 
-> > The function evaluates _CRS of memory device objects, and fails when it
-> > gets an unexpected resource or cannot allocate a memory.
+> > Hmm, why was that check added in the first place?
 > 
-> OK, so this is essentially about surviving unexpected external input, which
-> I suppose is serious enough.
->
-> > A kernel crash
-> > or data corruption may occur when the kernel accessed a stale pointer.
-> > That said, I am not sure how critical this issue is for old kernels
-> > since I do not think there are many platforms that support memory
-> > hotplug today.
+> Safety.
 > 
-> Which doesn't matter.  People may want to run 3.10.y on future hardware too.
+> > If it is useless,
+> > removing it for good is fine.  If it is _not_ useless, we should still do
+> > the checking when not operating in windows-8 firmware mode.
+> 
+> Firmware will only be tested against Windows 8 pretty soon.
+> We'd end up with a gigantic list of exceptions.
 
-Good point.  Thanks for the clarification!
--Toshi
+No, we won't.  We can query the ACPI core for the OSI compatibility level
+requested by the firmware, and ignore the test only for win8.
 
+We still have 10 to 15 years worth of users using non-win8 firmware boxes on
+x86/x86-64.
 
+-- 
+  "One disk to rule them all, One disk to find them. One disk to bring
+  them all and in the darkness grind them. In the Land of Redmond
+  where the shadows lie." -- The Silicon Valley Tarot
+  Henrique Holschuh
