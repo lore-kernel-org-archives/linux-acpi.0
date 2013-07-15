@@ -1,55 +1,68 @@
-From: joeyli <jlee@suse.com>
-Subject: Re: [PATCH] ACPI:remove panic in case hardware has changed after S4
-Date: Mon, 15 Jul 2013 21:59:33 +0800
-Message-ID: <1373896773.6260.28.camel@linux-s257.site>
-References: <1373544870-15135-1-git-send-email-oliver@neukum.org>
-	 <6802146.fKe43BS873@skinner.arch.suse.de>
-	 <1373618715.7539.106.camel@linux-s257.site>
-	 <5742401.D3Ye1zZPh5@linux-5eaq.site>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp.nue.novell.com ([195.135.221.5]:40114 "EHLO
-	smtp.nue.novell.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756735Ab3GON7f (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 15 Jul 2013 09:59:35 -0400
-In-Reply-To: <5742401.D3Ye1zZPh5@linux-5eaq.site>
-Sender: linux-acpi-owner@vger.kernel.org
+From: Prarit Bhargava <prarit@redhat.com>
+Subject: [PATCH] acpi, acpi_pci_irq_enable must return an error if ACPI cannot map an IRQ.
+Date: Mon, 15 Jul 2013 10:57:40 -0400
+Message-ID: <1373900260-1599-1-git-send-email-prarit@redhat.com>
+Return-path: <linux-pci-owner@vger.kernel.org>
+Sender: linux-pci-owner@vger.kernel.org
+To: linux-acpi@vger.kernel.org
+Cc: Prarit Bhargava <prarit@redhat.com>, Len Brown <lenb@kernel.org>, "Rafael J. Wysocki" <rjw@sisk.pl>, Bjorn Helgaas <bhelgaas@google.com>, Myron Stowe <mstowe@redhat.com>, linux-pci@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Oliver Neukum <oneukum@suse.de>
-Cc: Thomas Renninger <trenn@suse.de>, lenb@kernel.org, rjw@sisk.pl, linux-acpi@vger.kernel.org
 
-=E6=96=BC =E4=B8=80=EF=BC=8C2013-07-15 =E6=96=BC 13:29 +0200=EF=BC=8COl=
-iver Neukum =E6=8F=90=E5=88=B0=EF=BC=9A
-> On Friday 12 July 2013 16:45:15 joeyli wrote:
->=20
-> > Per information from OEM, Windows 8 didn't really block S4 resume w=
-hen
-> > hardware_signature not match, I think as Oliver's patch.
->=20
-> Is that confidential information?
-> =20
-> If it is indeed true, introducing a blacklist makes no sense. And I
-> see no alternative to my patch. Should I resubmit with an improved
-> comment?
->=20
-> 	Regards
-> 		Oliver
->=20
+Driver probe's currently do the following
 
-It's not confidential but non-official from OEM.
+	pci_enable_device();
+	/* ... do some other init stuff, and eventually call ... */
+	request_irq();
 
-I looking for a additional DRAM module to test this behavior on my Acer
-machine.=20
+After pci_enable_device() is called it is assumed that the device's irq
+value (pci_dev->irq) has been appropriately set on success.  This value
+is passed into the request_irq() call.
 
+In the case that ACPI is used to determine the irq value, it is possible
+that the ACPI IRQ look up for a specific device fails and success is
+returned by pci_enable_device().
 
-Thank
-Joey Lee
+The call sequence is:
 
+pci_enable_device();
+	-> pci_enable_device_flags();
+		->do_pci_enable_device();
+			-> pcibios_enable_device() which, if the device
+			   does not use MSI calls
+			   -> pcibios_enable_irq() which maps to
+			      acpi_pci_irq_enable()
+				-> acpi_pci_irq_lookup()
 
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+If acpi_pci_irq_lookup() cannot map the device's IRQ value it returns NULL
+as an error.  The error is returned to acpi_pci_irq_enable(), but is not
+propagated further.  This can result in the driver returning success for
+pci_enable_device() and the driver probe attempting to call request_irq()
+with dev->irq = 0.
+
+This patch modifies acpi_pci_irq_enable() to return an error in the case
+that an entry is not found in the ACPI tables.
+
+Signed-off-by: Prarit Bhargava <prarit@redhat.com>
+Cc: Len Brown <lenb@kernel.org>
+Cc: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: "Bjorn Helgaas" <bhelgaas@google.com>
+Cc: "Myron Stowe" <mstowe@redhat.com>
+Cc: linux-pci@vger.kernel.org
+---
+ drivers/acpi/pci_irq.c |    1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/drivers/acpi/pci_irq.c b/drivers/acpi/pci_irq.c
+index 41c5e1b..9681847 100644
+--- a/drivers/acpi/pci_irq.c
++++ b/drivers/acpi/pci_irq.c
+@@ -430,6 +430,7 @@ int acpi_pci_irq_enable(struct pci_dev *dev)
+ 		} else {
+ 			dev_warn(&dev->dev, "PCI INT %c: no GSI\n",
+ 				 pin_name(pin));
++			return -ENOENT;
+ 		}
+ 
+ 		return 0;
+-- 
+1.7.9.3
