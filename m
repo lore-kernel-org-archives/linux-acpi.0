@@ -1,52 +1,78 @@
-From: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
-Subject: Re: [PATCH] ACPI:remove panic in case hardware has changed after S4
-Date: Mon, 15 Jul 2013 13:34:27 -0300
-Message-ID: <20130715163427.GG1074@khazad-dum.debian.net>
-References: <1373888637-20737-1-git-send-email-oliver@neukum.org>
- <7120686.9AnYUBdZSM@skinner.arch.suse.de>
- <20130715150611.GC1074@khazad-dum.debian.net>
- <4740878.DpcUBhhgIN@linux-5eaq.site>
+From: Andy Lutomirski <luto@amacapital.net>
+Subject: Re: BGRT Pointer in System RAM
+Date: Mon, 15 Jul 2013 13:28:36 -0700
+Message-ID: <CALCETrVk=ovYjHwALtzB3E3nP4TMivhppM42yw7rMRpzA68cbw@mail.gmail.com>
+References: <CAOULuOY5VMiiuYmesaGxVWWKtby4Cj9Pc9ctQZeOKfoUzV46dA@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from out1-smtp.messagingengine.com ([66.111.4.25]:58315 "EHLO
-	out1-smtp.messagingengine.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S933394Ab3GOQea (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 15 Jul 2013 12:34:30 -0400
-Content-Disposition: inline
-In-Reply-To: <4740878.DpcUBhhgIN@linux-5eaq.site>
+Received: from mail-vb0-f53.google.com ([209.85.212.53]:38596 "EHLO
+	mail-vb0-f53.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755440Ab3GOU25 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 15 Jul 2013 16:28:57 -0400
+Received: by mail-vb0-f53.google.com with SMTP id p12so3418017vbe.26
+        for <linux-acpi@vger.kernel.org>; Mon, 15 Jul 2013 13:28:56 -0700 (PDT)
+In-Reply-To: <CAOULuOY5VMiiuYmesaGxVWWKtby4Cj9Pc9ctQZeOKfoUzV46dA@mail.gmail.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Oliver Neukum <oneukum@suse.de>
-Cc: Thomas Renninger <trenn@suse.de>, lenb@kernel.org, rjw@sisk.pl, linux-acpi@vger.kernel.org
+To: Parag Warudkar <parag.lkml@gmail.com>
+Cc: LKML <linux-kernel@vger.kernel.org>, linux-acpi@vger.kernel.org, josh@joshtriplett.org
 
-On Mon, 15 Jul 2013, Oliver Neukum wrote:
-> On Monday 15 July 2013 12:06:11 Henrique de Moraes Holschuh wrote:
-> > On Mon, 15 Jul 2013, Thomas Renninger wrote:
-> > > I would not make it too complicated.
-> > > Sticking to the latest Windows version should be enough for this one.
-> > > What bad should happen if we still try to resume and fail...
-> > 
-> > Hmm, why was that check added in the first place?
-> 
-> Safety.
-> 
-> > If it is useless,
-> > removing it for good is fine.  If it is _not_ useless, we should still do
-> > the checking when not operating in windows-8 firmware mode.
-> 
-> Firmware will only be tested against Windows 8 pretty soon.
-> We'd end up with a gigantic list of exceptions.
+On Sun, Jul 14, 2013 at 12:07 PM, Parag Warudkar <parag.lkml@gmail.com> wrote:
+> Saw this warning running latest git (Ubuntu daily mainline.) It looked
+> similar to what Andy saw on MSI hardware -
+> http://www.spinics.net/lists/linux-acpi/msg43410.html . The patch for
+> it doesn't seem to be merged, although it won't help in my case -
+> different hardware with valid status instead of invalid and image
+> address falling in system RAM instead of just being wild.
+>
+> Unsure  how this should be handled - moving the is_ram() check in
+> efi_bgrt_init and ignoring the BGRT in case where the check succeeds?
+> Doesn't sound completely right to me - since the BGRT is valid and
+> exists somewhere, but..
+>
+> [    0.015141] ------------[ cut here ]------------
+> [    0.015147] WARNING: CPU: 0 PID: 0 at
+> /home/apw/COD/linux/arch/x86/mm/ioremap.c:102
+> __ioremap_caller+0x312/0x390()
+> [ snip ]
+> [    0.015160] Call Trace:
+> [    0.015165]  [<ffffffff8170a704>] dump_stack+0x46/0x58
+> [    0.015169]  [<ffffffff8106406c>] warn_slowpath_common+0x8c/0xc0
+> [    0.015171]  [<ffffffff810640ba>] warn_slowpath_null+0x1a/0x20
+> [    0.015173]  [<ffffffff81054e32>] __ioremap_caller+0x312/0x390
+> [    0.015176]  [<ffffffff814013d4>] ? acpi_tb_verify_table+0x54/0x58
+> [    0.015179]  [<ffffffff81d35551>] ? efi_bgrt_init+0x8f/0x143
+> [    0.015181]  [<ffffffff81054f07>] ioremap_nocache+0x17/0x20
+> [    0.015183]  [<ffffffff81d35551>] efi_bgrt_init+0x8f/0x143
+> [    0.015186]  [<ffffffff81401d36>] ? acpi_tb_initialize_facs+0x32/0x34
+> [    0.015188]  [<ffffffff81d34e7f>] efi_late_init+0x9/0xb
+> [    0.015190]  [<ffffffff81d18f17>] start_kernel+0x3fd/0x419
+> [    0.015192]  [<ffffffff81d189ac>] ? do_early_param+0x87/0x87
+> [    0.015194]  [<ffffffff81d18120>] ? early_idt_handlers+0x120/0x120
+> [    0.015196]  [<ffffffff81d185e6>] x86_64_start_reservations+0x2a/0x2c
+>
+> ioremap.c:102
+>     /*
+>          * Don't allow anybody to remap normal RAM that we're using..
+>          */
+>         last_pfn = last_addr >> PAGE_SHIFT;
+>         for (pfn = phys_addr >> PAGE_SHIFT; pfn <= last_pfn; pfn++) {
+>                 int is_ram = page_is_ram(pfn);
+>
+>                 if (is_ram && pfn_valid(pfn) && !PageReserved(pfn_to_page(pfn)))
+>                         return NULL;
+>                 WARN_ON_ONCE(is_ram);
+>         }
+>
+> Looking at the BGRT table from IASL, the status seems to be valid but
+> the image address *seems* to me that is falling under system RAM.
 
-No, we won't.  We can query the ACPI core for the OSI compatibility level
-requested by the firmware, and ignore the test only for win8.
+Interesting.  My BGRT says:
 
-We still have 10 to 15 years worth of users using non-win8 firmware boxes on
-x86/x86-64.
+[028h 0040   8]                Image Address : 0D06801800000001
 
--- 
-  "One disk to rule them all, One disk to find them. One disk to bring
-  them all and in the darkness grind them. In the Land of Redmond
-  where the shadows lie." -- The Silicon Valley Tarot
-  Henrique Holschuh
+If I reverse the high and low 32-bit dwords, then I get an address in
+system RAM.
+
+--Andy
