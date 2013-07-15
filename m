@@ -1,48 +1,39 @@
-From: shuox.liu@intel.com
-Subject: [PATCH] pnp: avoid inaccurate resource name
-Date: Tue, 16 Jul 2013 16:23:44 +0800
-Message-ID: <1373963024-5237-1-git-send-email-shuox.liu@intel.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
-Cc: bhelgaas@google.com, rjw@sisk.pl, lenb@kernel.org, yanmin_zhang@linux.intel.com
+From: Oliver Neukum <oneukum@suse.de>
+Subject: Re: [PATCH] ACPI:remove panic in case hardware has changed after S4
+Date: Mon, 15 Jul 2013 13:44:32 +0200
+Message-ID: <3112212.MYoOumbSqn@linux-5eaq.site>
+References: <1373544870-15135-1-git-send-email-oliver@neukum.org> <5742401.D3Ye1zZPh5@linux-5eaq.site> <2772497.7moIZd7YLR@vostro.rjw.lan>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7Bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from cantor2.suse.de ([195.135.220.15]:53149 "EHLO mx2.suse.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753757Ab3GPKQN (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 16 Jul 2013 06:16:13 -0400
+In-Reply-To: <2772497.7moIZd7YLR@vostro.rjw.lan>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: joeyli <jlee@suse.com>, Thomas Renninger <trenn@suse.de>, lenb@kernel.org, linux-acpi@vger.kernel.org
 
-From: Liu ShuoX <shuox.liu@intel.com>
+On Monday 15 July 2013 13:40:09 Rafael J. Wysocki wrote:
+> On Monday, July 15, 2013 01:29:47 PM Oliver Neukum wrote:
+> > On Friday 12 July 2013 16:45:15 joeyli wrote:
+> > 
+> > > Per information from OEM, Windows 8 didn't really block S4 resume when
+> > > hardware_signature not match, I think as Oliver's patch.
+> > 
+> > Is that confidential information?
+> >  
+> > If it is indeed true, introducing a blacklist makes no sense. And I
+> > see no alternative to my patch. Should I resubmit with an improved
+> > comment?
+> 
+> Yes, it would be good to update the changelog with this info.
 
-Set temporary variable as 0 to avoid garbage string output from
-/proc/iomem after register resources, and reset to pnp dev name.
+Done.
 
-Signed-off-by: Liu ShuoX <shuox.liu@intel.com>
----
- drivers/pnp/pnpacpi/rsparser.c | 2 +-
- drivers/pnp/resource.c         | 1 +
- 2 files changed, 2 insertions(+), 1 deletion(-)
+	Regards
+		Oliver
 
-diff --git a/drivers/pnp/pnpacpi/rsparser.c b/drivers/pnp/pnpacpi/rsparser.c
-index 9847ab1..167f3d0 100644
---- a/drivers/pnp/pnpacpi/rsparser.c
-+++ b/drivers/pnp/pnpacpi/rsparser.c
-@@ -180,7 +180,7 @@ static acpi_status pnpacpi_allocated_resource(struct acpi_resource *res,
- 	struct pnp_dev *dev = data;
- 	struct acpi_resource_dma *dma;
- 	struct acpi_resource_vendor_typed *vendor_typed;
--	struct resource r;
-+	struct resource r = {0};
- 	int i, flags;
- 
- 	if (acpi_dev_resource_memory(res, &r)
-diff --git a/drivers/pnp/resource.c b/drivers/pnp/resource.c
-index 3e6db1c..d95e101 100644
---- a/drivers/pnp/resource.c
-+++ b/drivers/pnp/resource.c
-@@ -515,6 +515,7 @@ struct pnp_resource *pnp_add_resource(struct pnp_dev *dev,
- 	}
- 
- 	pnp_res->res = *res;
-+	pnp_res->res.name = dev->name;
- 	dev_dbg(&dev->dev, "%pR\n", res);
- 	return pnp_res;
- }
--- 
-1.8.3
