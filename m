@@ -1,54 +1,40 @@
-From: Mika Westerberg <mika.westerberg@linux.intel.com>
-Subject: Re: [PATCH] PCI / hotplug / ACPI: Get rid of check_sub_bridges()
-Date: Tue, 16 Jul 2013 08:36:41 +0300
-Message-ID: <20130716053641.GU4898@intel.com>
-References: <1373735399-28055-1-git-send-email-mika.westerberg@linux.intel.com>
- <3395919.UaDiFX78Zn@vostro.rjw.lan>
- <20130714070828.GS4898@intel.com>
- <59738946.aKFnLHMEA1@vostro.rjw.lan>
+From: Thomas Renninger <trenn@suse.de>
+Subject: Re: [PATCH] ACPI:remove panic in case hardware has changed after S4
+Date: Tue, 16 Jul 2013 09:30:32 +0200
+Message-ID: <1654161.p7sLd1rPau@hammer82.arch.suse.de>
+References: <1373888637-20737-1-git-send-email-oliver@neukum.org> <20130715163427.GG1074@khazad-dum.debian.net> <3454747.PmElQdFDGy@vostro.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-pci-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <59738946.aKFnLHMEA1@vostro.rjw.lan>
-Sender: linux-pci-owner@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, Bjorn Helgaas <bhelgaas@google.com>, Yinghai Lu <yinghai@kernel.org>, Jiang Liu <liuj97@gmail.com>, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7Bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from cantor2.suse.de ([195.135.220.15]:46595 "EHLO mx2.suse.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752198Ab3GPHai (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 16 Jul 2013 03:30:38 -0400
+In-Reply-To: <3454747.PmElQdFDGy@vostro.rjw.lan>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: Henrique de Moraes Holschuh <hmh@hmh.eng.br>, Oliver Neukum <oneukum@suse.de>, lenb@kernel.org, linux-acpi@vger.kernel.org
 
-On Tue, Jul 16, 2013 at 02:31:15AM +0200, Rafael J. Wysocki wrote:
-> On Sunday, July 14, 2013 10:08:28 AM Mika Westerberg wrote:
-> > On Sat, Jul 13, 2013 at 11:47:26PM +0200, Rafael J. Wysocki wrote:
-> > > On Saturday, July 13, 2013 08:09:59 PM Mika Westerberg wrote:
-> > > > Now that acpiphp_check_bridge() always enumerates devices behind the
-> > > > bridge, there is no need to do that for each sub-bridge anymore like it is
-> > > > done in the current ACPI-based PCI hotplug code. Given this we don't need
-> > > > check_sub_bridges() anymore and can drop the function completely.
-> > > > 
-> > > > This also simplifies the ACPIPHP code a bit.
-> > > > 
-> > > > Signed-off-by: Mika Westerberg <mika.westerberg@linux.intel.com>
-> > > > ---
-> > > > This applies on top of v3.10 with Rafael's ACPIPHP + Thunderbolt series
-> > > > applied:
-> > > >
-> > > 
-> > > OK, I added it to my bleeding-edge branch along with this series:
-> > > 
-> > > > 	http://www.spinics.net/lists/linux-acpi/msg44480.html
-> > > 
-> > > rebased on top of some previous ACPI cleanup commits.  I needed to make some
-> > > changes in the process (and fixed up some breakage reported by the auto build
-> > > testing), hopefully I didn't break anything.  If you're in an adventurous mood,
-> > > testing would be welcome. ;-)  [That already includes the majority of 3.11
-> > > material from Linus, though, so unexpected breakage elsewhere may happen.]
-> > 
-> > Tried the bleeding-edge branch on both of our test machines and Thunderbolt
-> > still works fine.
+On Tuesday, July 16, 2013 01:56:49 AM Rafael J. Wysocki wrote:
+> On Monday, July 15, 2013 01:34:27 PM Henrique de Moraes Holschuh wrote:
+...
+> > We still have 10 to 15 years worth of users using non-win8 firmware boxes
+> > on x86/x86-64.
 > 
-> Can you please apply the appended patch on top of the current
-> linux-pm.git/bleeding-edge and check if things still work then on the test
-> systems?
+> But what's the risk from removing the check exactly for those systems?
 
-Tested on both systems with the patch applied and Thunderbolt still works
-fine.
+Yeah, I guess this is the point.
+
+Is there a security or data corruption issue that might show up?
+And even if.., if you exchange HW you should do a real reboot, otherwise
+you have to blame yourself. The check is/was nice to at least give a hint
+and remember the user where the failure might have come from.
+But this does not work if Windows does not check for it.
+Maybe Windows never checked for it, but it's not worth trying out
+different versions, just for the sake of absolute Windows version
+compatibility.
+
+       Thomas
+
