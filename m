@@ -1,72 +1,68 @@
-From: Andy Lutomirski <luto@amacapital.net>
-Subject: Re: BGRT Pointer in System RAM
-Date: Tue, 16 Jul 2013 14:15:22 -0700
-Message-ID: <CALCETrWkja4k7AO1CFx=ev21Fg_6HO_unXbh=zGGdfPNRvLfcA@mail.gmail.com>
-References: <CAOULuOY5VMiiuYmesaGxVWWKtby4Cj9Pc9ctQZeOKfoUzV46dA@mail.gmail.com>
- <CALCETrVk=ovYjHwALtzB3E3nP4TMivhppM42yw7rMRpzA68cbw@mail.gmail.com>
- <20130715230418.GA2649@leaf> <CALCETrX_Qjmdo5JtRPzhW6kBaNgwAstG1g8p8pKNy4e+kPYdMQ@mail.gmail.com>
- <20130715232053.GB2649@leaf> <CALCETrUMrztJ1aTfvfMZyOSRFhDM52Fa3pSS8EuW3ByYGMNMpg@mail.gmail.com>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: Re: [Update][PATCH] ACPI / video / i915: Remove ACPI backlight if firmware expects Windows 8
+Date: Wed, 17 Jul 2013 00:01:24 +0200
+Message-ID: <2132122.eIEvjmIrrj@vostro.rjw.lan>
+References: <1370818899-8595-1-git-send-email-matthew.garrett@nebula.com> <1373981554.1956.5.camel@ThinkPad-X230.localdomain> <1373994495.9314.1.camel@x230>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <CALCETrUMrztJ1aTfvfMZyOSRFhDM52Fa3pSS8EuW3ByYGMNMpg@mail.gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Josh Triplett <josh@joshtriplett.org>
-Cc: Parag Warudkar <parag.lkml@gmail.com>, LKML <linux-kernel@vger.kernel.org>, linux-acpi@vger.kernel.org
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7Bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from hydra.sisk.pl ([212.160.235.94]:45541 "EHLO hydra.sisk.pl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S933561Ab3GPVv3 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 16 Jul 2013 17:51:29 -0400
+In-Reply-To: <1373994495.9314.1.camel@x230>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Igor Gnatenko <i.gnatenko.brain@gmail.com>
+Cc: Matthew Garrett <matthew.garrett@nebula.com>, Aaron Lu <aaron.lwe@gmail.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "daniel.vetter@ffwll.ch" <daniel.vetter@ffwll.ch>, "seth.forshee@canonical.com" <seth.forshee@canonical.com>, "joeyli.kernel@gmail.com" <joeyli.kernel@gmail.com>, "intel-gfx@lists.freedesktop.org" <intel-gfx@lists.freedesktop.org>, "dri-devel@lists.freedesktop.org" <dri-devel@lists.freedesktop.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "lenb@kernel.org" <lenb@kernel.org>
 
-On Mon, Jul 15, 2013 at 4:24 PM, Andy Lutomirski <luto@amacapital.net> =
-wrote:
-> On Mon, Jul 15, 2013 at 4:20 PM, Josh Triplett <josh@joshtriplett.org=
-> wrote:
->> On Mon, Jul 15, 2013 at 04:08:13PM -0700, Andy Lutomirski wrote:
->>> On Mon, Jul 15, 2013 at 4:04 PM, Josh Triplett <josh@joshtriplett.o=
-rg> wrote:
->>> > On Mon, Jul 15, 2013 at 01:28:36PM -0700, Andy Lutomirski wrote:
->>> >>
->>> >> Interesting.  My BGRT says:
->>> >>
->>> >> [028h 0040   8]                Image Address : 0D06801800000001
->>> >>
->>> >> If I reverse the high and low 32-bit dwords, then I get an addre=
-ss in
->>> >> system RAM.
->>> >
->>> > Does that address in RAM start with a BMP header?
->>>
->>> No idea.  I'd presumably have to modify the driver to find out --
->>> otherwise something else will overwrite it.
->>
->> You could boot with a mem=3D command-line argument that reserves tha=
-t
->> memory.
->
-> I'll see what I can do.
->
+On Tuesday, July 16, 2013 05:08:16 PM Matthew Garrett wrote:
+> On Tue, 2013-07-16 at 17:32 +0400, Igor Gnatenko wrote:
+> > Hmm. I found regression in user-space. In GNOME (maybe and other DEs) we no longer see switch status of backlight.
+> 
+> Yeah, I can duplicate that. Rafael, we have to call
+> acpi_video_init_brightness() even if we're not going to initialise the
+> backlight - Thinkpads seem to use this as the trigger for enabling ACPI
+> notifications rather than handling it in firmware. This seems to do the
+> job:
 
-I booted with mem=3D3G, and:
+Igor, does this additional patch from Matthew help?
 
-$ sudo dd bs=3D1 skip=3D4513853464 if=3D/dev/mem count=3D1
-dd: reading =91/dev/mem=92: Bad address
+Rafael
 
-The kernel log says nothing, which suggests that ioremap_cache is
-failing.  I don't know why.
 
-The address 4513853464 is 0x10D0BF018, which should be okay:
-
-[    0.000000] BIOS-e820: [mem 0x0000000100000000-0x000000045fffffff] u=
-sable
-[    0.000000] e820: remove [mem 0xc0000000-0xfffffffffffffffe] usable
-
-EFI agrees:
-[    0.000000] efi: mem213: type=3D7, attr=3D0xf,
-range=3D[0x0000000100000000-0x0000000460000000) (13824MB)
-
-This could be related to the fact that mtrr cleanup is failing,
-possibly due to bugs related to mem=3D.
-
-That's about my tolerance for debugging something that doesn't really
-deserve to work.
-
---Andy
+> diff --git a/drivers/acpi/video.c b/drivers/acpi/video.c
+> index 01b1a25..71865f7 100644
+> --- a/drivers/acpi/video.c
+> +++ b/drivers/acpi/video.c
+> @@ -900,6 +900,9 @@ static void acpi_video_device_find_cap(struct
+> acpi_video_device *device)
+>  		device->cap._DDC = 1;
+>  	}
+>  
+> +	if (acpi_video_init_brightness(device))
+> +		return;
+> +
+>  	if (acpi_video_verify_backlight_support()) {
+>  		struct backlight_properties props;
+>  		struct pci_dev *pdev;
+> @@ -909,9 +912,6 @@ static void acpi_video_device_find_cap(struct
+> acpi_video_device *device)
+>  		static int count = 0;
+>  		char *name;
+>  
+> -		result = acpi_video_init_brightness(device);
+> -		if (result)
+> -			return;
+>  		name = kasprintf(GFP_KERNEL, "acpi_video%d", count);
+>  		if (!name)
+>  			return;
+> 
+> 
+> -- 
+> Matthew Garrett | mjg59@srcf.ucam.org
+> 
+-- 
+I speak only for myself.
+Rafael J. Wysocki, Intel Open Source Technology Center.
