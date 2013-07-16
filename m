@@ -1,101 +1,33 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: [PATCH] ACPI:remove panic in case hardware has changed after S4
-Date: Tue, 16 Jul 2013 14:12:33 +0200
-Message-ID: <4340504.FEfpqvNZek@vostro.rjw.lan>
-References: <1373888637-20737-1-git-send-email-oliver@neukum.org> <1373959921.6260.61.camel@linux-s257.site>
+From: Igor Gnatenko <i.gnatenko.brain@gmail.com>
+Subject: Re: [Update][PATCH] ACPI / video / i915: Remove ACPI backlight if
+ firmware expects Windows 8
+Date: Tue, 16 Jul 2013 17:32:34 +0400
+Message-ID: <1373981554.1956.5.camel@ThinkPad-X230.localdomain>
+References: <1370818899-8595-1-git-send-email-matthew.garrett@nebula.com>
+	 <12270512.1rshgKaUug@vostro.rjw.lan> <51DA7190.6080208@gmail.com>
+	 <1683364.CdnoW81WLH@vostro.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from hydra.sisk.pl ([212.160.235.94]:44713 "EHLO hydra.sisk.pl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932077Ab3GPMCk convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 16 Jul 2013 08:02:40 -0400
-In-Reply-To: <1373959921.6260.61.camel@linux-s257.site>
+Received: from mail-lb0-f180.google.com ([209.85.217.180]:64554 "EHLO
+	mail-lb0-f180.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754229Ab3GPNcl (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 16 Jul 2013 09:32:41 -0400
+In-Reply-To: <1683364.CdnoW81WLH@vostro.rjw.lan>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: joeyli <jlee@suse.com>
-Cc: oliver@neukum.org, lenb@kernel.org, trenn@suse.de, linux-acpi@vger.kernel.org, Oliver Neukum <oneukum@suse.de>
+To: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: Aaron Lu <aaron.lwe@gmail.com>, linux-acpi@vger.kernel.org, Matthew Garrett <matthew.garrett@nebula.com>, daniel.vetter@ffwll.ch, seth.forshee@canonical.com, joeyli.kernel@gmail.com, intel-gfx@lists.freedesktop.org, dri-devel@lists.freedesktop.org, linux-kernel@vger.kernel.org, lenb@kernel.org
 
-On Tuesday, July 16, 2013 03:32:01 PM joeyli wrote:
-> =E6=96=BC =E4=B8=80=EF=BC=8C2013-07-15 =E6=96=BC 13:43 +0200=EF=BC=8C=
-oliver@neukum.org =E6=8F=90=E5=88=B0=EF=BC=9A
-> > From: Oliver Neukum <oneukum@suse.de>
-> >=20
-> > Some BIOSes change hardware based on the state of
-> > a laptop's lid. If the lid is closed, the touchpad is
-> > disabled and the checksum changes. Windows 8 no longer
-> > aborts resume if the checksum has changed.
-> >=20
-> > Signed-off-by: Oliver Neukum <oneukum@suse.de>
-> > ---
-> >  drivers/acpi/sleep.c | 8 +++-----
-> >  1 file changed, 3 insertions(+), 5 deletions(-)
-> >=20
-> > diff --git a/drivers/acpi/sleep.c b/drivers/acpi/sleep.c
-> > index 9c1a435..14744e5 100644
-> > --- a/drivers/acpi/sleep.c
-> > +++ b/drivers/acpi/sleep.c
-> > @@ -664,11 +664,9 @@ static void acpi_hibernation_leave(void)
-> >  	/* Reprogram control registers */
-> >  	acpi_leave_sleep_state_prep(ACPI_STATE_S4);
-> >  	/* Check the hardware signature */
-> > -	if (facs && s4_hardware_signature !=3D facs->hardware_signature) =
-{
-> > -		printk(KERN_EMERG "ACPI: Hardware changed while hibernated, "
-> > -			"cannot resume!\n");
-> > -		panic("ACPI S4 hardware signature mismatch");
-> > -	}
-> > +	if (facs && s4_hardware_signature !=3D facs->hardware_signature)
-> > +		printk(KERN_CRIT "ACPI: Hardware changed while hibernated, "
-> > +			"success doubtful!\n");
-> >  	/* Restore the NVS memory area */
-> >  	suspend_nvs_restore();
-> >  	/* Allow EC transactions to happen. */
->=20
-> This morning I tried to reproduce the hardware_signature change on my
-> Acer notebook, I hope can monitor the change on Linux then use Window=
-s 8
-> to check the behavior.
-> Unfortunately I can not reproduce the hardware_signature change by
-> remove memory or PCI device(wifi module) with Linux kernel.
->=20
-> For PCI device, as ACPI spec's declare, it didn't causes
-> hardware_signature change, I print out in acpi_hibernation_leave() to
-> confirm it.
->=20
-> For memory size, before the S4 resume path run to
-> acpi_hibernation_leave(), kernel check the physical memory pages numb=
-er
-> in snapshot_write_next() then -EPERM if physical pages change . So, i=
-t
-> doesn't have chance to check the hardware_signature changed.
->=20
-> Base on the above testing, correct my originally thinking, the
-> hardware_signature check could not detect the change of memory size
-> because it's too late.
->=20
-> Sorry for I didn't find out the actual behavior of Windows 8 to confi=
-rm
-> it ignore hardware_signature change. At least could not verify on my
-> machine.
-
-OK, so it looks like we still need somebody to confirm that indeed Wind=
-ows 8
-doesn't check the hardware signature during resume from hibernation, ri=
-ght?
-
-It is kind of important, because the *reason* for doing that change is =
-the
-reported Windows 8 compatibility issue.
-
-Thanks,
-Rafael
-
+Hmm. I found regression in user-space. In GNOME (maybe and other DEs) w=
+e no longer see switch status of backlight.
 
 --=20
-I speak only for myself.
-Rafael J. Wysocki, Intel Open Source Technology Center.
+Igor Gnatenko
+=46edora release 19 (Schr=C3=B6dinger=E2=80=99s Cat)
+Linux 3.11.0-0.rc0.git7.1.fc20.x86_64
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
 n
