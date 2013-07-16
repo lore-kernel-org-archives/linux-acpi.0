@@ -1,95 +1,103 @@
 From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: [Update][PATCH] ACPI / video / i915: Remove ACPI backlight if firmware expects Windows 8
-Date: Tue, 16 Jul 2013 13:54:45 +0200
-Message-ID: <1395450.6I3SUHCKW9@vostro.rjw.lan>
-References: <1370818899-8595-1-git-send-email-matthew.garrett@nebula.com> <196299995.fotXCOt3dc@vostro.rjw.lan> <51E4BCD5.8040106@gmail.com>
+Subject: Re: [PATCH] ACPI:remove panic in case hardware has changed after S4
+Date: Tue, 16 Jul 2013 14:12:33 +0200
+Message-ID: <4340504.FEfpqvNZek@vostro.rjw.lan>
+References: <1373888637-20737-1-git-send-email-oliver@neukum.org> <1373959921.6260.61.camel@linux-s257.site>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from hydra.sisk.pl ([212.160.235.94]:44682 "EHLO hydra.sisk.pl"
+Received: from hydra.sisk.pl ([212.160.235.94]:44713 "EHLO hydra.sisk.pl"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932151Ab3GPLow (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 16 Jul 2013 07:44:52 -0400
-In-Reply-To: <51E4BCD5.8040106@gmail.com>
+	id S932077Ab3GPMCk convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 16 Jul 2013 08:02:40 -0400
+In-Reply-To: <1373959921.6260.61.camel@linux-s257.site>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Aaron Lu <aaron.lwe@gmail.com>
-Cc: Aaron Lu <aaron.lu@intel.com>, linux-acpi@vger.kernel.org, Matthew Garrett <matthew.garrett@nebula.com>, daniel.vetter@ffwll.ch, seth.forshee@canonical.com, joeyli.kernel@gmail.com, intel-gfx@lists.freedesktop.org, dri-devel@lists.freedesktop.org, linux-kernel@vger.kernel.org, lenb@kernel.org, Igor Gnatenko <i.gnatenko.brain@gmail.com>
+To: joeyli <jlee@suse.com>
+Cc: oliver@neukum.org, lenb@kernel.org, trenn@suse.de, linux-acpi@vger.kernel.org, Oliver Neukum <oneukum@suse.de>
 
-On Tuesday, July 16, 2013 11:24:05 AM Aaron Lu wrote:
-> On 07/15/2013 07:42 PM, Rafael J. Wysocki wrote:
-> > On Monday, July 15, 2013 10:36:15 AM Aaron Lu wrote:
-> >> On 07/13/2013 08:46 AM, Rafael J. Wysocki wrote:
-> >>> From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
-> >>>
-> >>> According to Matthew Garrett, "Windows 8 leaves backlight control up
-> >>> to individual graphics drivers rather than making ACPI calls itself.
-> >>> There's plenty of evidence to suggest that the Intel driver for
-> >>> Windows [8] doesn't use the ACPI interface, including the fact that
-> >>> it's broken on a bunch of machines when the OS claims to support
-> >>> Windows 8.  The simplest thing to do appears to be to disable the
-> >>> ACPI backlight interface on these systems".
-> >>>
-> >>> There's a problem with that approach, however, because simply
-> >>> avoiding to register the ACPI backlight interface if the firmware
-> >>> calls _OSI for Windows 8 may not work in the following situations:
-> >>>  (1) The ACPI backlight interface actually works on the given system
-> >>>      and the i915 driver is not loaded (e.g. another graphics driver
-> >>>      is used).
-> >>>  (2) The ACPI backlight interface doesn't work on the given system,
-> >>>      but there is a vendor platform driver that will register its
-> >>>      own, equally broken, backlight interface if not prevented from
-> >>>      doing so by the ACPI subsystem.
-> >>> Therefore we need to allow the ACPI backlight interface to be
-> >>> registered until the i915 driver is loaded which then will unregister
-> >>> it if the firmware has called _OSI for Windows 8 (or will register
-> >>> the ACPI video driver without backlight support if not already
-> >>> present).
-> >>>
-> >>> For this reason, introduce an alternative function for registering
-> >>> ACPI video, acpi_video_register_with_quirks(), that will check
-> >>> whether or not the ACPI video driver has already been registered
-> >>> and whether or not the backlight Windows 8 quirk has to be applied.
-> >>> If the quirk has to be applied, it will block the ACPI backlight
-> >>> support and either unregister the backlight interface if the ACPI
-> >>> video driver has already been registered, or register the ACPI
-> >>> video driver without the backlight interface otherwise.  Make
-> >>> the i915 driver use acpi_video_register_with_quirks() instead of
-> >>> acpi_video_register() in i915_driver_load().
-> >>>
-> >>> This change is based on earlier patches from Matthew Garrett,
-> >>> Chun-Yi Lee and Seth Forshee and Aaron Lu's comments.
-> >>>
-> >>> Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
-> >>
-> >> Reviewed-by: Aaron Lu <aaron.lu@intel.com>
-> >>
-> >> BTW, I also tested on a Toshiba laptop Z830 where its AML code
-> >> claims support of win8, the result is as expected: ACPI video
-> >> interface is removed, i915 Xorg driver picks intel_backlight.
-> >>
-> >> Thanks for the fix.
-> > 
-> > Cool, thanks for testing this!
-> > 
-> > Can you please also ask bug reporters in the BZ entires related to this to test
-> > it too?
-> 
-> Sure.
-> 
-> To be clear, I actually tested the patch in your linux-next branch,
-> which turned out to be a little different in that you have fixed the
-> problem Igor raised here.
-> 
-> I'll ask reporters to test on a stable tree with the following two
-> patches on top:
-> https://patchwork.kernel.org/patch/2812951/ (expose OSI version)
-> https://patchwork.kernel.org/patch/2827793/ (your updated patch)
-> or your linux-next branch, whichever they like.
+On Tuesday, July 16, 2013 03:32:01 PM joeyli wrote:
+> =E6=96=BC =E4=B8=80=EF=BC=8C2013-07-15 =E6=96=BC 13:43 +0200=EF=BC=8C=
+oliver@neukum.org =E6=8F=90=E5=88=B0=EF=BC=9A
+> > From: Oliver Neukum <oneukum@suse.de>
+> >=20
+> > Some BIOSes change hardware based on the state of
+> > a laptop's lid. If the lid is closed, the touchpad is
+> > disabled and the checksum changes. Windows 8 no longer
+> > aborts resume if the checksum has changed.
+> >=20
+> > Signed-off-by: Oliver Neukum <oneukum@suse.de>
+> > ---
+> >  drivers/acpi/sleep.c | 8 +++-----
+> >  1 file changed, 3 insertions(+), 5 deletions(-)
+> >=20
+> > diff --git a/drivers/acpi/sleep.c b/drivers/acpi/sleep.c
+> > index 9c1a435..14744e5 100644
+> > --- a/drivers/acpi/sleep.c
+> > +++ b/drivers/acpi/sleep.c
+> > @@ -664,11 +664,9 @@ static void acpi_hibernation_leave(void)
+> >  	/* Reprogram control registers */
+> >  	acpi_leave_sleep_state_prep(ACPI_STATE_S4);
+> >  	/* Check the hardware signature */
+> > -	if (facs && s4_hardware_signature !=3D facs->hardware_signature) =
+{
+> > -		printk(KERN_EMERG "ACPI: Hardware changed while hibernated, "
+> > -			"cannot resume!\n");
+> > -		panic("ACPI S4 hardware signature mismatch");
+> > -	}
+> > +	if (facs && s4_hardware_signature !=3D facs->hardware_signature)
+> > +		printk(KERN_CRIT "ACPI: Hardware changed while hibernated, "
+> > +			"success doubtful!\n");
+> >  	/* Restore the NVS memory area */
+> >  	suspend_nvs_restore();
+> >  	/* Allow EC transactions to happen. */
+>=20
+> This morning I tried to reproduce the hardware_signature change on my
+> Acer notebook, I hope can monitor the change on Linux then use Window=
+s 8
+> to check the behavior.
+> Unfortunately I can not reproduce the hardware_signature change by
+> remove memory or PCI device(wifi module) with Linux kernel.
+>=20
+> For PCI device, as ACPI spec's declare, it didn't causes
+> hardware_signature change, I print out in acpi_hibernation_leave() to
+> confirm it.
+>=20
+> For memory size, before the S4 resume path run to
+> acpi_hibernation_leave(), kernel check the physical memory pages numb=
+er
+> in snapshot_write_next() then -EPERM if physical pages change . So, i=
+t
+> doesn't have chance to check the hardware_signature changed.
+>=20
+> Base on the above testing, correct my originally thinking, the
+> hardware_signature check could not detect the change of memory size
+> because it's too late.
+>=20
+> Sorry for I didn't find out the actual behavior of Windows 8 to confi=
+rm
+> it ignore hardware_signature change. At least could not verify on my
+> machine.
 
-OK
+OK, so it looks like we still need somebody to confirm that indeed Wind=
+ows 8
+doesn't check the hardware signature during resume from hibernation, ri=
+ght?
+
+It is kind of important, because the *reason* for doing that change is =
+the
+reported Windows 8 compatibility issue.
 
 Thanks,
 Rafael
 
+
+--=20
+I speak only for myself.
+Rafael J. Wysocki, Intel Open Source Technology Center.
+--
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
