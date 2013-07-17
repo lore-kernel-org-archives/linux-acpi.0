@@ -1,43 +1,57 @@
-From: Lv Zheng <lv.zheng@intel.com>
-Subject: [PATCH 6/6] ACPICA: Update version to 20130626
-Date: Wed, 17 Jul 2013 09:49:08 +0800
-Message-ID: <21ddb0590ec5fc99e6ab6c72ca46eefe9ff2b3a3.1374025121.git.lv.zheng@intel.com>
-References: <cover.1374025121.git.lv.zheng@intel.com>
+From: Myron Stowe <myron.stowe@gmail.com>
+Subject: Linux Plumbers ACPI/PM, PCI Microconference
+Date: Tue, 16 Jul 2013 20:21:26 -0600
+Message-ID: <CAL-B5D03ki8NHsM6EuESTH2K-Eh+XyFHNXPDYwgDq+oagDjtMQ@mail.gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga09.intel.com ([134.134.136.24]:51340 "EHLO mga09.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751179Ab3GQBuF (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 16 Jul 2013 21:50:05 -0400
-In-Reply-To: <cover.1374025121.git.lv.zheng@intel.com>
+Received: from mail-ob0-f173.google.com ([209.85.214.173]:37630 "EHLO
+	mail-ob0-f173.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751332Ab3GQCV1 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 16 Jul 2013 22:21:27 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Robert Moore <robert.moore@intel.com>, Len Brown <len.brown@intel.com>
-Cc: Lv Zheng <lv.zheng@intel.com>, linux-acpi@vger.kernel.org
+To: linux-pci <linux-pci@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, linux-arm-kernel@lists.infradead.org, iommu@lists.linux-foundation.org, virtualization@lists.linux-foundation.org, kvm@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>
 
-From: Bob Moore <robert.moore@intel.com>
+Linux Plumbers has approved an ACPI/PM, PCI microconference. The
+overview page is here:
 
-Version 20130626.
+http://wiki.linuxplumbersconf.org/2013:pci_subsystem
 
-Signed-off-by: Bob Moore <robert.moore@intel.com>
-Signed-off-by: Lv Zheng <lv.zheng@intel.com>
-Acked-by: Len Brown <len.brown@intel.com>
----
- include/acpi/acpixf.h |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+We would like to start receiving volunteers for presenting topics of
+interest.  There is a lot of activity in these subsystems so please
+respond by submitting presentation or discussion proposals that you
+would be willing to cover for consideration.  You should also feel
+free to submit ideas as proposals that others could cover.  The
+instructions for submitting ideas should be at:
 
-diff --git a/include/acpi/acpixf.h b/include/acpi/acpixf.h
-index 1b09300..60b583f 100644
---- a/include/acpi/acpixf.h
-+++ b/include/acpi/acpixf.h
-@@ -46,7 +46,7 @@
- 
- /* Current ACPICA subsystem version in YYYYMMDD format */
- 
--#define ACPI_CA_VERSION                 0x20130517
-+#define ACPI_CA_VERSION                 0x20130626
- 
- #include <acpi/acconfig.h>
- #include <acpi/actypes.h>
--- 
-1.7.10
+http://www.linuxplumbersconf.org/2013/submitting-topic/
 
+This is the "Plumbers" conference so topics concerning userspace
+interaction with the kernel and not just topics concerning pure kernel
+subsystem internals would be greatly welcomed.  As a possible aid
+towards promoting topics for submissions we have listed a few
+candidates that seem to meet the criteria in the microconference
+proposals wiki located at
+http://wiki.linuxplumbersconf.org/2013:pci_subsystem
+
+Last year, we had a good discussion on general issues in PCI space -
+that also might be worth giving updates on.
+
+If you have topics that you would like to add, wait until the
+instructions get posted at the link above. If you are impatient, feel
+free to email me directly (but probably best to drop the broad mailing
+lists from the reply).
+
+Thanks!
+
+Len, Bjorn, Myron, Rafael
+
+
+
+Yinghai - An update on host bridge hot-add capabilities, what is in
+place and what still remains to be done, would seem like a good topic.
+
+Shuah - You brought up the idea about "Converting drivers from Legacy
+PM ops to dev_pm_ops"; would you like to present what you have
+done/encountered so far?
