@@ -1,39 +1,66 @@
-From: Shuah Khan <shuahkhan@gmail.com>
-Subject: Re: Linux Plumbers ACPI/PM, PCI Microconference
-Date: Wed, 17 Jul 2013 08:31:55 -0600
-Message-ID: <CAKocOOOgEb5h1dZWP_2UqBKhSK9U-kxKUbvTdzHfds=RiDzNJg@mail.gmail.com>
-References: <CAL-B5D03ki8NHsM6EuESTH2K-Eh+XyFHNXPDYwgDq+oagDjtMQ@mail.gmail.com>
+From: Thomas Renninger <trenn@suse.de>
+Subject: Re: [PATCH] ACPI:remove panic in case hardware has changed after S4
+Date: Wed, 17 Jul 2013 16:58:34 +0200
+Message-ID: <1454582.aQCRT2GPRY@skinner.arch.suse.de>
+References: <1373888637-20737-1-git-send-email-oliver@neukum.org> <20130715150611.GC1074@khazad-dum.debian.net> <4740878.DpcUBhhgIN@linux-5eaq.site>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7Bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-vb0-f41.google.com ([209.85.212.41]:45281 "EHLO
-	mail-vb0-f41.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754741Ab3GQOb4 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 17 Jul 2013 10:31:56 -0400
-In-Reply-To: <CAL-B5D03ki8NHsM6EuESTH2K-Eh+XyFHNXPDYwgDq+oagDjtMQ@mail.gmail.com>
+Received: from cantor2.suse.de ([195.135.220.15]:52337 "EHLO mx2.suse.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755682Ab3GQO6k (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 17 Jul 2013 10:58:40 -0400
+In-Reply-To: <4740878.DpcUBhhgIN@linux-5eaq.site>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Myron Stowe <myron.stowe@gmail.com>
-Cc: linux-pci <linux-pci@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, linux-arm-kernel@lists.infradead.org, iommu@lists.linux-foundation.org, virtualization@lists.linux-foundation.org, kvm@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>, shuah.kh@samsung.com, Shuah Khan <shuahkhan@gmail.com>
+To: Oliver Neukum <oneukum@suse.de>
+Cc: Henrique de Moraes Holschuh <hmh@hmh.eng.br>, lenb@kernel.org, rjw@sisk.pl, linux-acpi@vger.kernel.org, Joey Lee <JLee@suse.com>
 
-Myron,
+On Monday, July 15, 2013 05:35:23 PM Oliver Neukum wrote:
+> On Monday 15 July 2013 12:06:11 Henrique de Moraes Holschuh wrote:
+> > On Mon, 15 Jul 2013, Thomas Renninger wrote:
+> > > I would not make it too complicated.
+> > > Sticking to the latest Windows version should be enough for this one.
+> > > What bad should happen if we still try to resume and fail...
+> > 
+> > Hmm, why was that check added in the first place?
+> 
+> Safety.
 
-On Tue, Jul 16, 2013 at 8:21 PM, Myron Stowe <myron.stowe@gmail.com> wrote:
+I expect it is there, because it is stated rather clear in the specs.
+ 
+> > If it is useless,
+> > removing it for good is fine.  If it is _not_ useless, we should still do
+> > the checking when not operating in windows-8 firmware mode.
+> 
+> Firmware will only be tested against Windows 8 pretty soon.
+> We'd end up with a gigantic list of exceptions.
 
->
-> Shuah - You brought up the idea about "Converting drivers from Legacy
-> PM ops to dev_pm_ops"; would you like to present what you have
-> done/encountered so far?
->
+Joey found an interessting paper about Win8 behavior:
+http://bizsupport2.austin.hp.com/bc/docs/support/SupportManual/c03654081/c03654081.pdf
 
-Awesome. Yes, I would like to present what I have done so far and I do
-have a couple of things that could benefit from a face to face
-discussion which would help me make progress on the rest of the work
-that needs to get done.
+It looks like Win8 behaves rather different compared to Linux and is providing
+"Hybrid Boot" where the user has to end all his apps. They have no big problem 
+when resume fails as the user will not lose any data or work he had done 
+before.
 
-Thanks for putting this item on the agenda.
+Joey also found the rather hidden acpi_sleep=s4_nohwsig boot option
+which helps as well.
+So Linux could do:
+   1) Invalidate suspend image and reboot  (disadvantage: message is gone)
+   2) Panic (current behavior) -> above boot param helps
+   3) Still try to resume with a "not so offending message"
+   4) ?
 
--- Shuah
+1. seem to be what Win8 is doing
+3. sounds best to me. It could be ugly if suspend fails and
+it always worked before and all your work/data is gone. So trying
+hard to resume sounds like a good idea
 
-Shuah Khan, Linux Kernel Developer - Open Source Group Samsung Research
-America (Silicon Valley) shuah.kh@samsung.com | (970) 672-0658
+I guess this still needs some discussion?
+
+At least some facts came up already and people have an idea what
+happens...
+
+       Thomas
