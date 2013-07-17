@@ -1,7 +1,7 @@
 From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: [PATCH 19/30] ACPI / hotplug / PCI: Drop redundant checks from check_hotplug_bridge()
-Date: Thu, 18 Jul 2013 01:27:57 +0200
-Message-ID: <2330807.Y9rEtlRl92@vostro.rjw.lan>
+Subject: [PATCH 21/30] ACPI / hotplug / PCI: Do not queue up event handling work items in vain
+Date: Thu, 18 Jul 2013 01:29:44 +0200
+Message-ID: <5427359.BFHA8nOGgM@vostro.rjw.lan>
 References: <26431283.HJCKsss0rt@vostro.rjw.lan> <3718119.FLASu5DBx8@vostro.rjw.lan> <2366394.4EoP1MXmG2@vostro.rjw.lan>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
@@ -15,32 +15,114 @@ List-Id: linux-acpi@vger.kernel.org
 
 From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 
-Two checks in check_hotplug_bridge() are redundant (they have been
-done by the caller already), so drop them.
+Modify handle_hotplug_event() to avoid queing up the execution of
+handle_hotplug_event_work_fn() as a work item on kacpi_hotplug_wq
+for non-hotplug events, such as ACPI_NOTIFY_DEVICE_WAKE.  Move
+the code printing diagnostic messages for those events into
+handle_hotplug_event().
+
+In addition to that, remove the bogus comment about how the core
+should distinguish between hotplug and non-hotplug events and
+queue them up on different workqueues.  The core clearly cannot
+know in advance what events will be interesting to the given
+caller of acpi_install_notify_handler().
 
 Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 ---
- drivers/pci/hotplug/acpiphp_glue.c |    6 ------
- 1 file changed, 6 deletions(-)
+ drivers/pci/hotplug/acpiphp_glue.c |   64 ++++++++++++++++---------------------
+ 1 file changed, 29 insertions(+), 35 deletions(-)
 
 Index: linux-pm/drivers/pci/hotplug/acpiphp_glue.c
 ===================================================================
 --- linux-pm.orig/drivers/pci/hotplug/acpiphp_glue.c
 +++ linux-pm/drivers/pci/hotplug/acpiphp_glue.c
-@@ -586,16 +586,10 @@ static void check_hotplug_bridge(struct
+@@ -920,36 +920,11 @@ static void hotplug_event(acpi_handle ha
+ 
+ 		break;
+ 
+-	case ACPI_NOTIFY_DEVICE_WAKE:
+-		/* wake event */
+-		dbg("%s: Device wake notify on %s\n", __func__, objname);
+-		break;
+-
+ 	case ACPI_NOTIFY_EJECT_REQUEST:
+ 		/* request device eject */
+ 		dbg("%s: Device eject notify on %s\n", __func__, objname);
+ 		acpiphp_disable_and_eject_slot(func->slot);
+ 		break;
+-
+-	case ACPI_NOTIFY_FREQUENCY_MISMATCH:
+-		printk(KERN_ERR "Device %s cannot be configured due"
+-				" to a frequency mismatch\n", objname);
+-		break;
+-
+-	case ACPI_NOTIFY_BUS_MODE_MISMATCH:
+-		printk(KERN_ERR "Device %s cannot be configured due"
+-				" to a bus mode mismatch\n", objname);
+-		break;
+-
+-	case ACPI_NOTIFY_POWER_FAULT:
+-		printk(KERN_ERR "Device %s has suffered a power fault\n",
+-				objname);
+-		break;
+-
+-	default:
+-		warn("notify_handler: unknown event type 0x%x for %s\n", type,
+-		     objname);
+-		break;
+ 	}
+ 
+ 	if (bridge)
+@@ -984,23 +959,42 @@ static void handle_hotplug_event(acpi_ha
  {
- 	struct acpiphp_func *func;
+ 	struct acpiphp_context *context;
  
--	if (!dev->subordinate)
--		return;
--
- 	/* quirk, or pcie could set it already */
- 	if (dev->is_hotplug_bridge)
- 		return;
++	switch (type) {
++	case ACPI_NOTIFY_BUS_CHECK:
++	case ACPI_NOTIFY_DEVICE_CHECK:
++	case ACPI_NOTIFY_EJECT_REQUEST:
++		break;
++
++	case ACPI_NOTIFY_DEVICE_WAKE:
++		return;
++
++	case ACPI_NOTIFY_FREQUENCY_MISMATCH:
++		acpi_handle_err(handle, "Device cannot be configured due "
++				"to a frequency mismatch\n");
++		return;
++
++	case ACPI_NOTIFY_BUS_MODE_MISMATCH:
++		acpi_handle_err(handle, "Device cannot be configured due "
++				"to a bus mode mismatch\n");
++		return;
++
++	case ACPI_NOTIFY_POWER_FAULT:
++		acpi_handle_err(handle, "Device has suffered a power fault\n");
++		return;
++
++	default:
++		acpi_handle_warn(handle, "Unsupported event type 0x%x\n", type);
++		return;
++	}
++
+ 	mutex_lock(&acpiphp_context_lock);
+ 	context = acpiphp_get_context(handle);
+ 	if (context) {
+ 		get_bridge(context->func.parent);
+ 		acpiphp_put_context(context);
++		alloc_acpi_hp_work(handle, type, context, hotplug_event_work);
+ 	}
+ 	mutex_unlock(&acpiphp_context_lock);
+-	/*
+-	 * Currently the code adds all hotplug events to the kacpid_wq
+-	 * queue when it should add hotplug events to the kacpi_hotplug_wq.
+-	 * The proper way to fix this is to reorganize the code so that
+-	 * drivers (dock, etc.) do not call acpi_os_execute(), etc.
+-	 * For now just re-add this work to the kacpi_hotplug_wq so we
+-	 * don't deadlock on hotplug actions.
+-	 */
+-	if (context)
+-		alloc_acpi_hp_work(handle, type, context, hotplug_event_work);
+ }
  
--	if (PCI_SLOT(dev->devfn) != slot->device)
--		return;
--
- 	list_for_each_entry(func, &slot->funcs, sibling) {
- 		if (PCI_FUNC(dev->devfn) == func->function) {
- 			dev->is_hotplug_bridge = 1;
+ /*
