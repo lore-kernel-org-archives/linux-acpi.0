@@ -1,75 +1,64 @@
 From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: [PATCH] ACPI:remove panic in case hardware has changed after S4
-Date: Thu, 18 Jul 2013 00:09:16 +0200
-Message-ID: <5649055.6Xlqb8sv3m@vostro.rjw.lan>
-References: <1373888637-20737-1-git-send-email-oliver@neukum.org> <4740878.DpcUBhhgIN@linux-5eaq.site> <1454582.aQCRT2GPRY@skinner.arch.suse.de>
+Subject: Re: [Fix PATCH] ACPI / video: ignore BIOS initial backlight value for Fujitsu E753
+Date: Thu, 18 Jul 2013 00:35 +0200
+Message-ID: <5965989.OyGfl3xY1D@vostro.rjw.lan>
+References: <1373940441-21875-1-git-send-email-tianyu.lan@intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7Bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from hydra.sisk.pl ([212.160.235.94]:47699 "EHLO hydra.sisk.pl"
+Received: from hydra.sisk.pl ([212.160.235.94]:47726 "EHLO hydra.sisk.pl"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755340Ab3GQV7U (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 17 Jul 2013 17:59:20 -0400
-In-Reply-To: <1454582.aQCRT2GPRY@skinner.arch.suse.de>
+	id S1755995Ab3GQWZF (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 17 Jul 2013 18:25:05 -0400
+In-Reply-To: <1373940441-21875-1-git-send-email-tianyu.lan@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Thomas Renninger <trenn@suse.de>
-Cc: Oliver Neukum <oneukum@suse.de>, Henrique de Moraes Holschuh <hmh@hmh.eng.br>, lenb@kernel.org, linux-acpi@vger.kernel.org, Joey Lee <JLee@suse.com>
+To: tianyu.lan@intel.com
+Cc: lenb@kernel.org, linux-acpi@vger.kernel.org
 
-On Wednesday, July 17, 2013 04:58:34 PM Thomas Renninger wrote:
-> On Monday, July 15, 2013 05:35:23 PM Oliver Neukum wrote:
-> > On Monday 15 July 2013 12:06:11 Henrique de Moraes Holschuh wrote:
-> > > On Mon, 15 Jul 2013, Thomas Renninger wrote:
-> > > > I would not make it too complicated.
-> > > > Sticking to the latest Windows version should be enough for this one.
-> > > > What bad should happen if we still try to resume and fail...
-> > > 
-> > > Hmm, why was that check added in the first place?
-> > 
-> > Safety.
+On Tuesday, July 16, 2013 10:07:21 AM tianyu.lan@intel.com wrote:
+> From: Lan Tianyu <tianyu.lan@intel.com>
 > 
-> I expect it is there, because it is stated rather clear in the specs.
->  
-> > > If it is useless,
-> > > removing it for good is fine.  If it is _not_ useless, we should still do
-> > > the checking when not operating in windows-8 firmware mode.
-> > 
-> > Firmware will only be tested against Windows 8 pretty soon.
-> > We'd end up with a gigantic list of exceptions.
+> The BIOS of FUjitsu E753 reports an incorrect initial backlight value
+> for WIN8 compatible OS, causing backlight dark during startup. This
+> patch ignores the incorrect initial value from BIOS.
 > 
-> Joey found an interessting paper about Win8 behavior:
-> http://bizsupport2.austin.hp.com/bc/docs/support/SupportManual/c03654081/c03654081.pdf
-> 
-> It looks like Win8 behaves rather different compared to Linux and is providing
-> "Hybrid Boot" where the user has to end all his apps. They have no big problem 
-> when resume fails as the user will not lose any data or work he had done 
-> before.
-> 
-> Joey also found the rather hidden acpi_sleep=s4_nohwsig boot option
-> which helps as well.
-> So Linux could do:
->    1) Invalidate suspend image and reboot  (disadvantage: message is gone)
->    2) Panic (current behavior) -> above boot param helps
->    3) Still try to resume with a "not so offending message"
->    4) ?
-> 
-> 1. seem to be what Win8 is doing
-> 3. sounds best to me. It could be ugly if suspend fails and
-> it always worked before and all your work/data is gone. So trying
-> hard to resume sounds like a good idea
+> Reference:https://bugzilla.kernel.org/show_bug.cgi?id=60161
+> Reported-and-tested-by: Jan Hinnerk Stosch <janhinnerk.stosch@gmail.com>
+> Signed-off-by: Lan Tianyu <tianyu.lan@intel.com>
 
-We can also blacklist systems that need acpi_sleep=s4_nohwsig due to idiotic
-hardware/BIOS design choices.
+Queued up as a fix for 3.11.
 
-In any case, if we remove the panic, we should also drop s4_nohwsig and since
-we have that (which I forgot about, by bad), the whole issue isn't so urgent,
-so I'm dropping the patch for the time being.
+What's the oldest mainline kernel release this patch is applicable to?
 
-Thanks,
 Rafael
 
 
+> ---
+>  drivers/acpi/video.c |    8 ++++++++
+>  1 file changed, 8 insertions(+)
+> 
+> diff --git a/drivers/acpi/video.c b/drivers/acpi/video.c
+> index 5d7075d..e441876 100644
+> --- a/drivers/acpi/video.c
+> +++ b/drivers/acpi/video.c
+> @@ -450,6 +450,14 @@ static struct dmi_system_id video_dmi_table[] __initdata = {
+>  	},
+>  	{
+>  	 .callback = video_ignore_initial_backlight,
+> +	 .ident = "Fujitsu E753",
+> +	 .matches = {
+> +		DMI_MATCH(DMI_BOARD_VENDOR, "FUJITSU"),
+> +		DMI_MATCH(DMI_PRODUCT_NAME, "LIFEBOOK E753"),
+> +		},
+> +	},
+> +	{
+> +	 .callback = video_ignore_initial_backlight,
+>  	 .ident = "HP Pavilion dm4",
+>  	 .matches = {
+>  		DMI_MATCH(DMI_BOARD_VENDOR, "Hewlett-Packard"),
+> 
 -- 
 I speak only for myself.
 Rafael J. Wysocki, Intel Open Source Technology Center.
