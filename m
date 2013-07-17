@@ -1,65 +1,59 @@
-From: Yves-Alexis Perez <corsac@debian.org>
-Subject: Re: [PATCH 0/3] Fix backlight issues on some Windows 8 systems
-Date: Wed, 17 Jul 2013 21:57:18 +0200
-Message-ID: <1374091038.3844.23.camel@scapa>
-References: <1370818899-8595-1-git-send-email-matthew.garrett@nebula.com>
-	 <1371937599.17761.19.camel@scapa>
-	 <CAMP44s3uz5fyXKLgS8TFroCVy7Rx-zpXYvX4TGFDX=65ki5T6w@mail.gmail.com>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: Re: [PATCH] acpi: blacklist win8 OSI for ASUS Zenbok Prime UX31A
+Date: Thu, 18 Jul 2013 00:04:41 +0200
+Message-ID: <13622439.arY5YlYVCP@vostro.rjw.lan>
+References: <1369037793-1559-1-git-send-email-felipe.contreras@gmail.com> <51CBA54C.6040703@intel.com> <CAMP44s2oq5+H=oCXjik4y_yaLm1YKL6nRgbwKNqfVmP4C8pthg@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg="pgp-sha256";
-	protocol="application/pgp-signature"; boundary="=-RgWotCFNINvcdOx3X3Ii"
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7Bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from pyr75-3-78-192-68-46.fbxo.proxad.net ([78.192.68.46]:60519 "EHLO
-	molly.corsac.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752264Ab3GQT52 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 17 Jul 2013 15:57:28 -0400
-In-Reply-To: <CAMP44s3uz5fyXKLgS8TFroCVy7Rx-zpXYvX4TGFDX=65ki5T6w@mail.gmail.com>
+Received: from hydra.sisk.pl ([212.160.235.94]:47691 "EHLO hydra.sisk.pl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756263Ab3GQVyq (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 17 Jul 2013 17:54:46 -0400
+In-Reply-To: <CAMP44s2oq5+H=oCXjik4y_yaLm1YKL6nRgbwKNqfVmP4C8pthg@mail.gmail.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: Felipe Contreras <felipe.contreras@gmail.com>
-Cc: Matthew Garrett <matthew.garrett@nebula.com>, linux-acpi@vger.kernel.org, seth.forshee@canonical.com, joeyli.kernel@gmail.com, daniel.vetter@ffwll.ch, intel-gfx@lists.freedesktop.org, dri-devel@lists.freedesktop.org, linux-kernel@vger.kernel.org, lenb@kernel.org, rjw@sisk.pl, Henrique de Moraes Holschuh <hmh@debian.org>
+Cc: Aaron Lu <aaron.lu@intel.com>, linux-acpi@vger.kernel.org, Len Brown <lenb@kernel.org>
+
+On Wednesday, July 17, 2013 10:42:35 AM Felipe Contreras wrote:
+> On Wed, Jun 26, 2013 at 9:37 PM, Aaron Lu <aaron.lu@intel.com> wrote:
+> 
+> > Please reference a similar bug where ACPI video driver can't work for
+> > some thinkpad win8 laptops:
+> > https://bugzilla.kernel.org/show_bug.cgi?id=51231
+> >
+> > And the proposed way to fix this issue is for all Win8 systems, the
+> > ACPI video backlight interface will be removed, leaving only GPU's
+> > backlight interface:
+> > https://lkml.org/lkml/2013/6/9/161
+
+No, that's obsolete already.
+
+I'll let you know what to try when other people confirm it works for them.
+
+> Thanks. I took a look at the thread and the patches, so essentially
+> when those patches are applied, I should expect the same behavior as
+> acpi_backlight=vendor, right?
+
+I'm not sure about the Matthew's version.
+
+> If so, that doesn't work correctly in
+> this laptop. In this laptop intel backlight works through X, but when
+> I set the level to 0 everything is black (it works fine in ACPI), and
+> the keyboard keys don't work.
+> 
+> ACPI works perfectly fine. So I think for this laptop (and possibly
+> others) ACPI without win8 mode is the way to go.
+
+While that may be the case, I'd like to avoid more blacklisting than we
+already have.
+
+Thanks,
+Rafael
 
 
---=-RgWotCFNINvcdOx3X3Ii
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
-
-On mer., 2013-07-17 at 10:51 -0500, Felipe Contreras wrote:
-> On Sat, Jun 22, 2013 at 4:46 PM, Yves-Alexis Perez <corsac@debian.org> wr=
-ote:
-> > Before Linux support for acpi_osi("Windows 2012") (and when booting wit=
-h
-> > acpi_osi=3D"!Windows 2012"), brightness keys were handled by the kernel
-> > just fine, whether in console, in the display manager or in my desktop
-> > environment (Xfce). xfce4-power-manager just needs to be told that the
-> > brightness keys are already handled and it doesn't need to do anything.
->=20
-> How do you tell xfce4-power-manager that?
-
-xfconf-query -c xfce4-power-manager
--p /xfce4-power-manager/change-brightness-on-key-events -s false
-
-You might have to create the key before. See
-https://bugzilla.xfce.org/show_bug.cgi?id=3D7541 for more information.
-
-Regards,
---=20
-Yves-Alexis
-
---=-RgWotCFNINvcdOx3X3Ii
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: This is a digitally signed message part
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2.0.20 (GNU/Linux)
-
-iQEcBAABCAAGBQJR5vceAAoJEG3bU/KmdcClIx8IAItqi0S7EP1eCnW+S00Mpdv1
-xKQC/b23auzglz51SFZ+CDtkRwysS7jB9/3CUBbYuilxYJrCqelsb2MtI+Zv7jaM
-2JgO1nF9KT3jlw43EUocZ8aXjhoel6y6DyTk8TLTVphm/IjMiqCZLbxiIXCqd7CR
-Wfs0NorlUgjtmuorNQzOuQychvYj9TA96GgcSm/l/rdNpgSEYq/mho+UdmlnJPFy
-MM6A1dTzl4HCg+mRurkIyjl1AW80zvjGS07G9Fpfx7vPBFJ3G3pWqzhAoZk2+S7X
-Jj5qk9ycocvY0zrjy4Es/WuN/JkOtTq0eoR4BLpbec2KDBKtBqilD32fcOwSRUg=
-=dxdM
------END PGP SIGNATURE-----
-
---=-RgWotCFNINvcdOx3X3Ii--
+-- 
+I speak only for myself.
+Rafael J. Wysocki, Intel Open Source Technology Center.
