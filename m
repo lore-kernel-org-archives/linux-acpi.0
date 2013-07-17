@@ -1,86 +1,99 @@
-From: Igor Gnatenko <i.gnatenko.brain@gmail.com>
-Subject: Re: [Update][PATCH] ACPI / video / i915: Remove ACPI backlight if
- firmware expects Windows 8
-Date: Wed, 17 Jul 2013 09:16:38 +0400
-Message-ID: <1374038198.1884.1.camel@ThinkPad-X230.localdomain>
-References: <1370818899-8595-1-git-send-email-matthew.garrett@nebula.com>
-	 <1373981554.1956.5.camel@ThinkPad-X230.localdomain>
-	 <1373994495.9314.1.camel@x230> <2132122.eIEvjmIrrj@vostro.rjw.lan>
+From: Aaron Lu <aaron.lu@intel.com>
+Subject: Re: [PATCH] acpi: video: no automatic brightness changes by firmware
+Date: Wed, 17 Jul 2013 14:27:21 +0800
+Message-ID: <51E63949.10705@intel.com>
+References: <51B98CFD.7090409@intel.com> <51BE5FD6.6070405@intel.com> <20130617224040.GB14793@srcf.ucam.org> <51BFA628.8000804@intel.com> <51D61E3B.2000205@intel.com> <51E4D535.10009@intel.com> <CAKw44fYBePZ-Qy5VsUUyJ5ob5SA34LNNCmBtqyCz5D_hCbYgUQ@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-la0-f42.google.com ([209.85.215.42]:48186 "EHLO
-	mail-la0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751112Ab3GQFQo (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 17 Jul 2013 01:16:44 -0400
-In-Reply-To: <2132122.eIEvjmIrrj@vostro.rjw.lan>
+Received: from mga14.intel.com ([143.182.124.37]:31918 "EHLO mga14.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751330Ab3GQG0k (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 17 Jul 2013 02:26:40 -0400
+In-Reply-To: <CAKw44fYBePZ-Qy5VsUUyJ5ob5SA34LNNCmBtqyCz5D_hCbYgUQ@mail.gmail.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: Matthew Garrett <matthew.garrett@nebula.com>, Aaron Lu <aaron.lwe@gmail.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "daniel.vetter@ffwll.ch" <daniel.vetter@ffwll.ch>, "seth.forshee@canonical.com" <seth.forshee@canonical.com>, "joeyli.kernel@gmail.com" <joeyli.kernel@gmail.com>, "intel-gfx@lists.freedesktop.org" <intel-gfx@lists.freedesktop.org>, "dri-devel@lists.freedesktop.org" <dri-devel@lists.freedesktop.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "lenb@kernel.org" <lenb@kernel.org>
+To: Micael <kam1kaz3@gmail.com>
+Cc: "Rafael J. Wysocki" <rjw@sisk.pl>, Matthew Garrett <mjg59@srcf.ucam.org>, Len Brown <lenb@kernel.org>, ACPI Devel Mailing List <linux-acpi@vger.kernel.org>, Zhang Rui <rui.zhang@intel.com>, Dan Garton <dan.garton@gmail.com>, Bob Ziuchkovski <bob.ziuchkovski@gmail.com>
 
-On Wed, 2013-07-17 at 00:01 +0200, Rafael J. Wysocki wrote:
-> On Tuesday, July 16, 2013 05:08:16 PM Matthew Garrett wrote:
-> > On Tue, 2013-07-16 at 17:32 +0400, Igor Gnatenko wrote:
-> > > Hmm. I found regression in user-space. In GNOME (maybe and other =
-DEs) we no longer see switch status of backlight.
-> >=20
-> > Yeah, I can duplicate that. Rafael, we have to call
-> > acpi_video_init_brightness() even if we're not going to initialise =
-the
-> > backlight - Thinkpads seem to use this as the trigger for enabling =
-ACPI
-> > notifications rather than handling it in firmware. This seems to do=
- the
-> > job:
->=20
-> Igor, does this additional patch from Matthew help?
-Yes. With this patch I have backlight switch indicator on my ThinkPad X=
-230.
->=20
-> Rafael
->=20
->=20
-Tested-by: Igor Gnatenko <i.gnatenko.brain@gmail.com>
-> > diff --git a/drivers/acpi/video.c b/drivers/acpi/video.c
-> > index 01b1a25..71865f7 100644
-> > --- a/drivers/acpi/video.c
-> > +++ b/drivers/acpi/video.c
-> > @@ -900,6 +900,9 @@ static void acpi_video_device_find_cap(struct
-> > acpi_video_device *device)
-> >  		device->cap._DDC =3D 1;
-> >  	}
-> > =20
-> > +	if (acpi_video_init_brightness(device))
-> > +		return;
-> > +
-> >  	if (acpi_video_verify_backlight_support()) {
-> >  		struct backlight_properties props;
-> >  		struct pci_dev *pdev;
-> > @@ -909,9 +912,6 @@ static void acpi_video_device_find_cap(struct
-> > acpi_video_device *device)
-> >  		static int count =3D 0;
-> >  		char *name;
-> > =20
-> > -		result =3D acpi_video_init_brightness(device);
-> > -		if (result)
-> > -			return;
-> >  		name =3D kasprintf(GFP_KERNEL, "acpi_video%d", count);
-> >  		if (!name)
-> >  			return;
-> >=20
-> >=20
-> > --=20
-> > Matthew Garrett | mjg59@srcf.ucam.org
-> >=20
---=20
-Igor Gnatenko
-=46edora release 19 (Schr=C3=B6dinger=E2=80=99s Cat)
-Linux 3.11.0-0.rc0.git7.1.fc20.x86_64
+On 07/16/2013 10:39 PM, Micael wrote:
+> Working fine here.
 
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Thanks for your testing!
+
+-Aaron
+
+> 
+> 
+> On Tue, Jul 16, 2013 at 6:08 AM, Aaron Lu <aaron.lu@intel.com> wrote:
+> 
+>> Starting from win8, MS backlight control driver will set bit 2 of the
+>> parameter of control method _DOS, to inform firmware it should not
+>> perform any automatic brightness changes. This mostly affects hotkey
+>> notification deliver - if we do not set this bit, on hotkey press,
+>> firmware may choose to adjust brightness level instead of sending out
+>> notification and doing nothing.
+>>
+>> So this patch sets bit 2 when calling _DOS so that GUIs can show the
+>> notification window on hotkey press. This behavior change is only
+>> necessary for win8 systems.
+>>
+>> The MS document on win8 backlight control is here:
+>> http://msdn.microsoft.com/en-US/library/windows/hardware/jj159305
+>>
+>> Buglink: https://bugzilla.kernel.org/show_bug.cgi?id=52951
+>> Buglink: https://bugzilla.kernel.org/show_bug.cgi?id=56711
+>> Reported-by: Micael Dias <kam1kaz3@gmail.com>
+>> Reported-by: Dan Garton <dan.garton@gmail.com>
+>> Reported-by: Bob Ziuchkovski <bob.ziuchkovski@gmail.com>
+>> Signed-off-by: Aaron Lu <aaron.lu@intel.com>
+>> ---
+>> Apply on top of:
+>> https://patchwork.kernel.org/patch/2812951/ (expose OSI version)
+>> https://patchwork.kernel.org/patch/2827793/ (win8 video quirk)
+>>
+>> Micael, Dan and Bob,
+>> Please give the patch a test if possible, thanks.
+>>
+>> v2: Make the behavior change only for win8 systems; use the newly added
+>>     function acpi_video_backlight_quirks as the condition check for win8.
+>>
+>>  drivers/acpi/video.c | 10 ++++++++--
+>>  1 file changed, 8 insertions(+), 2 deletions(-)
+>>
+>> diff --git a/drivers/acpi/video.c b/drivers/acpi/video.c
+>> index 01b1a25..bc2954b 100644
+>> --- a/drivers/acpi/video.c
+>> +++ b/drivers/acpi/video.c
+>> @@ -1534,14 +1534,20 @@ static int acpi_video_bus_put_devices(struct
+>> acpi_video_bus *video)
+>>
+>>  /* acpi_video interface */
+>>
+>> +/*
+>> + * Win8 requires setting bit2 of _DOS to let firmware know it shouldn't
+>> + * preform any automatic brightness change on receiving a notification.
+>> + */
+>>  static int acpi_video_bus_start_devices(struct acpi_video_bus *video)
+>>  {
+>> -       return acpi_video_bus_DOS(video, 0, 0);
+>> +       return acpi_video_bus_DOS(video, 0,
+>> +                                 acpi_video_backlight_quirks() ? 1 : 0);
+>>  }
+>>
+>>  static int acpi_video_bus_stop_devices(struct acpi_video_bus *video)
+>>  {
+>> -       return acpi_video_bus_DOS(video, 0, 1);
+>> +       return acpi_video_bus_DOS(video, 0,
+>> +                                 acpi_video_backlight_quirks() ? 0 : 1);
+>>  }
+>>
+>>  static void acpi_video_bus_notify(struct acpi_device *device, u32 event)
+>> --
+>> 1.8.3.2.10.g43d11f4
+>>
+> 
+> 
+> 
+
