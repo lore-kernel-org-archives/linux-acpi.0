@@ -1,7 +1,7 @@
 From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: [PATCH 6/30] ACPI / hotplug / PCI: Rework acpiphp_handle_to_bridge()
-Date: Thu, 18 Jul 2013 01:19:17 +0200
-Message-ID: <1809031.kCVl1K84Fl@vostro.rjw.lan>
+Subject: [PATCH 26/30] ACPI / hotplug / PCI: Get rid of unused constants in acpiphp.h
+Date: Thu, 18 Jul 2013 01:33:35 +0200
+Message-ID: <1974915.VDAFJRxMt9@vostro.rjw.lan>
 References: <26431283.HJCKsss0rt@vostro.rjw.lan> <3718119.FLASu5DBx8@vostro.rjw.lan> <2366394.4EoP1MXmG2@vostro.rjw.lan>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
@@ -13,49 +13,39 @@ To: ACPI Devel Maling List <linux-acpi@vger.kernel.org>
 Cc: Bjorn Helgaas <bhelgaas@google.com>, LKML <linux-kernel@vger.kernel.org>, Linux PCI <linux-pci@vger.kernel.org>, Yinghai Lu <yinghai@kernel.org>, Jiang Liu <liuj97@gmail.com>, Mika Westerberg <mika.westerberg@linux.intel.com>, "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
 List-Id: linux-acpi@vger.kernel.org
 
-From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+From: Mika Westerberg <mika.westerberg@linux.intel.com>
 
-Using the hotplug context objects introduced previously rework the
-ACPI-based PCI hotplug (ACPIPHP) core code to get to acpiphp_bridge
-objects associated with hotplug bridges from those context objects
-rather than from the global list of hotplug bridges.
+Drop some unused symbols from acpiphp.h and redefine SLOT_ENABLED
+(which is the only slot flag now) as 1.
 
+[rjw: Redefinition of SLOT_ENABLED, changelog]
+Signed-off-by: Mika Westerberg <mika.westerberg@linux.intel.com>
+Signed-off-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
 Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 ---
- drivers/pci/hotplug/acpiphp_glue.c |   20 +++++++++++---------
- 1 file changed, 11 insertions(+), 9 deletions(-)
+drivers/pci/hotplug/acpiphp.h | 4 ----
+ drivers/pci/hotplug/acpiphp.h |    6 +-----
+ 1 file changed, 1 insertion(+), 5 deletions(-)
 
-Index: linux-pm/drivers/pci/hotplug/acpiphp_glue.c
+Index: linux-pm/drivers/pci/hotplug/acpiphp.h
 ===================================================================
---- linux-pm.orig/drivers/pci/hotplug/acpiphp_glue.c
-+++ linux-pm/drivers/pci/hotplug/acpiphp_glue.c
-@@ -454,18 +454,20 @@ static int detect_ejectable_slots(acpi_h
+--- linux-pm.orig/drivers/pci/hotplug/acpiphp.h
++++ linux-pm/drivers/pci/hotplug/acpiphp.h
+@@ -154,16 +154,12 @@ struct acpiphp_attention_info
+ 	struct module *owner;
+ };
  
- static struct acpiphp_bridge *acpiphp_handle_to_bridge(acpi_handle handle)
- {
--	struct acpiphp_bridge *bridge;
-+	struct acpiphp_context *context;
-+	struct acpiphp_bridge *bridge = NULL;
+-/* PCI bus bridge HID */
+-#define ACPI_PCI_HOST_HID		"PNP0A03"
+-
+ /* ACPI _STA method value (ignore bit 4; battery present) */
+ #define ACPI_STA_ALL			(0x0000000f)
  
--	mutex_lock(&bridge_mutex);
--	list_for_each_entry(bridge, &bridge_list, list)
--		if (bridge->handle == handle) {
-+	mutex_lock(&acpiphp_context_lock);
-+	context = acpiphp_get_context(handle);
-+	if (context) {
-+		bridge = context->bridge;
-+		if (bridge)
- 			get_bridge(bridge);
--			mutex_unlock(&bridge_mutex);
--			return bridge;
--		}
--	mutex_unlock(&bridge_mutex);
+ /* slot flags */
  
--	return NULL;
-+		acpiphp_put_context(context);
-+	}
-+	mutex_unlock(&acpiphp_context_lock);
-+	return bridge;
- }
+-#define SLOT_ENABLED		(0x00000002)
+-#define SLOT_MULTIFUNCTION	(0x00000004)
++#define SLOT_ENABLED		(0x00000001)
  
- static void cleanup_bridge(struct acpiphp_bridge *bridge)
+ /* function flags */
+ 
