@@ -1,43 +1,66 @@
 From: Felipe Contreras <felipe.contreras@gmail.com>
-Subject: Re: [PATCH] acpi: blacklist win8 OSI for ASUS Zenbok Prime UX31A
-Date: Wed, 17 Jul 2013 10:42:57 -0500
-Message-ID: <CAMP44s0PbR9PX3FnUE4OU=6Xnk+UK484PudNcBtpq9CxOridjA@mail.gmail.com>
-References: <1369037793-1559-1-git-send-email-felipe.contreras@gmail.com>
-	<CAMP44s3M=LtOfPp+AS0dv=eud1rVSzDOjYbkw+cTAQPzLsK2wg@mail.gmail.com>
-	<4224252.tpDZo1Wai9@vostro.rjw.lan>
+Subject: Re: [PATCH 0/3] Fix backlight issues on some Windows 8 systems
+Date: Wed, 17 Jul 2013 10:51:07 -0500
+Message-ID: <CAMP44s3uz5fyXKLgS8TFroCVy7Rx-zpXYvX4TGFDX=65ki5T6w@mail.gmail.com>
+References: <1370818899-8595-1-git-send-email-matthew.garrett@nebula.com>
+	<1371937599.17761.19.camel@scapa>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-wi0-f179.google.com ([209.85.212.179]:54598 "EHLO
-	mail-wi0-f179.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754572Ab3GQPm7 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 17 Jul 2013 11:42:59 -0400
-Received: by mail-wi0-f179.google.com with SMTP id hj3so2144432wib.0
-        for <linux-acpi@vger.kernel.org>; Wed, 17 Jul 2013 08:42:58 -0700 (PDT)
-In-Reply-To: <4224252.tpDZo1Wai9@vostro.rjw.lan>
+Received: from mail-wi0-f180.google.com ([209.85.212.180]:46040 "EHLO
+	mail-wi0-f180.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755280Ab3GQPvI (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 17 Jul 2013 11:51:08 -0400
+In-Reply-To: <1371937599.17761.19.camel@scapa>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: linux-acpi@vger.kernel.org, Len Brown <lenb@kernel.org>
+To: Yves-Alexis Perez <corsac@debian.org>
+Cc: Matthew Garrett <matthew.garrett@nebula.com>, linux-acpi@vger.kernel.org, seth.forshee@canonical.com, joeyli.kernel@gmail.com, daniel.vetter@ffwll.ch, intel-gfx@lists.freedesktop.org, dri-devel@lists.freedesktop.org, linux-kernel@vger.kernel.org, lenb@kernel.org, rjw@sisk.pl, Henrique de Moraes Holschuh <hmh@debian.org>
 
-On Wed, Jun 26, 2013 at 7:42 AM, Rafael J. Wysocki <rjw@sisk.pl> wrote:
-> On Wednesday, June 26, 2013 05:41:01 AM Felipe Contreras wrote:
->> On Mon, May 20, 2013 at 3:16 AM, Felipe Contreras
->> <felipe.contreras@gmail.com> wrote:
->> > Otherwise the backlight can't be changed, presumably because the DSDT
->> > contains stub code when in conjunction with Windows 8.
->> >
->> > https://wiki.archlinux.org/index.php/ASUS_Zenbook_Prime_UX31A
->> >
->> > Signed-off-by: Felipe Contreras <felipe.contreras@gmail.com>
->>
->> Hello?
->>
->> Is there anything wrong with this patch?
+On Sat, Jun 22, 2013 at 4:46 PM, Yves-Alexis Perez <corsac@debian.org> wrote:
+> On dim., 2013-06-09 at 19:01 -0400, Matthew Garrett wrote:
+>> The first two patches in this series are picked from other patchesets aimed at
+>> solving similar problems. The last simply unregisters ACPI backlight control
+>> on Windows 8 systems when using an Intel GPU. Similar code could be added to
+>> other drivers, but I'm reluctant to do so without further investigation as
+>> to the behaviour of the vendor drivers under Windows.
 >
-> We're going to fix this issue in a different way.
+> Hi,
+>
+> I've read this thread coming from
+> https://bugzilla.kernel.org/show_bug.cgi?id=51231 and tried the patches
+> on a Lenovo ThinkPad X230 with intel graphics.
+>
+> The problem with thoses fixes is that they still introduce a regression
+> in how the brightness is handled, at least for me.
 
-That "different way" doesn't work correctly.
+For me too.
+
+> Before Linux support for acpi_osi("Windows 2012") (and when booting with
+> acpi_osi="!Windows 2012"), brightness keys were handled by the kernel
+> just fine, whether in console, in the display manager or in my desktop
+> environment (Xfce). xfce4-power-manager just needs to be told that the
+> brightness keys are already handled and it doesn't need to do anything.
+
+How do you tell xfce4-power-manager that?
+
+For me everything works fine when acpi_osi="!Windows 2012", which is
+why I wrote a patch for this particular laptop.
+
+http://article.gmane.org/gmane.linux.acpi.devel/60969
+
+> So can the previous behavior be actually restored?
+
+It *should*. The #1 rule of the Linux kernel is to never ever break
+user-space, isn't it?
+
+> Please keep me on CC: on replies, I'm not subscribed to the various
+> lists.
+
+You don't need to ask that in mailing lists that don't have reply-to
+munged (sane ones), and vger ones don't.
+
+Cheers.
 
 -- 
 Felipe Contreras
