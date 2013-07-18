@@ -1,104 +1,78 @@
 From: Igor Gnatenko <i.gnatenko.brain@gmail.com>
-Subject: Re: [PATCH 1/3] ACPICA: expose OSI version
-Date: Thu, 18 Jul 2013 09:38:47 +0400
-Message-ID: <1374125927.6123.1.camel@ThinkPad-X230.localdomain>
+Subject: Re: [PATCH 2/3] ACPI / video: Always call
+ acpi_video_init_brightness() on init
+Date: Thu, 18 Jul 2013 09:40:11 +0400
+Message-ID: <1374126011.6123.2.camel@ThinkPad-X230.localdomain>
 References: <1370818899-8595-1-git-send-email-matthew.garrett@nebula.com>
-	 <1448863.3slS729B6b@vostro.rjw.lan> <1577214.QYL5SKYFj8@vostro.rjw.lan>
+	 <1448863.3slS729B6b@vostro.rjw.lan> <2754766.4uAbGBBbb8@vostro.rjw.lan>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-lb0-f176.google.com ([209.85.217.176]:54110 "EHLO
-	mail-lb0-f176.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755872Ab3GRFjA (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 18 Jul 2013 01:39:00 -0400
-In-Reply-To: <1577214.QYL5SKYFj8@vostro.rjw.lan>
+Received: from mail-la0-f47.google.com ([209.85.215.47]:52519 "EHLO
+	mail-la0-f47.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751629Ab3GRFkU (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 18 Jul 2013 01:40:20 -0400
+In-Reply-To: <2754766.4uAbGBBbb8@vostro.rjw.lan>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: "Rafael J. Wysocki" <rjw@sisk.pl>
 Cc: linux-acpi@vger.kernel.org, Matthew Garrett <matthew.garrett@nebula.com>, seth.forshee@canonical.com, joeyli.kernel@gmail.com, daniel.vetter@ffwll.ch, intel-gfx@lists.freedesktop.org, dri-devel@lists.freedesktop.org, linux-kernel@vger.kernel.org, lenb@kernel.org, Aaron Lu <aaron.lu@intel.com>, Yves-Alexis Perez <corsac@debian.org>, Felipe Contreras <felipe.contreras@gmail.com>, "Lee, Chun-Yi" <jlee@suse.com>, Henrique de Moraes Holschuh <hmh@hmh.eng.br>
 
-=46rom: Aaron Lu <aaron.lu@intel.com>
+=46rom: Matthew Garrett <matthew.garrett@nebula.com>
 
-Expose acpi_gbl_osi_data so that code outside of ACPICA can check
-the value of the last successfull _OSI call.  The definitions for
-OSI versions are moved to actypes.h so that other components can
-access them too.
+We have to call acpi_video_init_brightness() even if we're not going
+to initialise the backlight - Thinkpads seem to use this as the
+trigger for enabling ACPI notifications rather than handling it in
+firmware.
 
-Based on a patch from Matthew Garrett which in turn was based on
-an earlier patch from Seth Forshee.
-
-[rjw: Changelog]
-Signed-off-by: Aaron Lu <aaron.lu@intel.com>
+[rjw: Drop the brightness object created by
+ acpi_video_init_brightness() if we are not going to use it.]
+Signed-off-by: Matthew Garrett <matthew.garrett@nebula.com>
 Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 Tested-by: Igor Gnatenko <i.gnatenko.brain@gmail.com>
 ---
-drivers/acpi/acpica/aclocal.h | 13 -------------
- include/acpi/acpixf.h         |  1 +
- include/acpi/actypes.h        | 15 +++++++++++++++
- 3 files changed, 16 insertions(+), 13 deletions(-)
+ drivers/acpi/video.c |   11 ++++++++---
+ 1 file changed, 8 insertions(+), 3 deletions(-)
 
-diff --git a/drivers/acpi/acpica/aclocal.h b/drivers/acpi/acpica/acloca=
-l.h
-index dfed265..d4a49016 100644
---- a/drivers/acpi/acpica/aclocal.h
-+++ b/drivers/acpi/acpica/aclocal.h
-@@ -931,19 +931,6 @@ struct acpi_bit_register_info {
+Index: linux-pm/drivers/acpi/video.c
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
+--- linux-pm.orig/drivers/acpi/video.c
++++ linux-pm/drivers/acpi/video.c
+@@ -884,6 +884,9 @@ static void acpi_video_device_find_cap(s
+ 	if (acpi_has_method(device->dev->handle, "_DDC"))
+ 		device->cap._DDC =3D 1;
 =20
- /* Structs and definitions for _OSI support and I/O port validation */
-=20
--#define ACPI_OSI_WIN_2000               0x01
--#define ACPI_OSI_WIN_XP                 0x02
--#define ACPI_OSI_WIN_XP_SP1             0x03
--#define ACPI_OSI_WINSRV_2003            0x04
--#define ACPI_OSI_WIN_XP_SP2             0x05
--#define ACPI_OSI_WINSRV_2003_SP1        0x06
--#define ACPI_OSI_WIN_VISTA              0x07
--#define ACPI_OSI_WINSRV_2008            0x08
--#define ACPI_OSI_WIN_VISTA_SP1          0x09
--#define ACPI_OSI_WIN_VISTA_SP2          0x0A
--#define ACPI_OSI_WIN_7                  0x0B
--#define ACPI_OSI_WIN_8                  0x0C
--
- #define ACPI_ALWAYS_ILLEGAL             0x00
-=20
- struct acpi_interface_info {
-diff --git a/include/acpi/acpixf.h b/include/acpi/acpixf.h
-index 1b09300..22d497e 100644
---- a/include/acpi/acpixf.h
-+++ b/include/acpi/acpixf.h
-@@ -62,6 +62,7 @@ extern u32 acpi_current_gpe_count;
- extern struct acpi_table_fadt acpi_gbl_FADT;
- extern u8 acpi_gbl_system_awake_and_running;
- extern u8 acpi_gbl_reduced_hardware;	/* ACPI 5.0 */
-+extern u8 acpi_gbl_osi_data;
-=20
- /* Runtime configuration of debug print levels */
-=20
-diff --git a/include/acpi/actypes.h b/include/acpi/actypes.h
-index a64adcc..22b03c9 100644
---- a/include/acpi/actypes.h
-+++ b/include/acpi/actypes.h
-@@ -1144,4 +1144,19 @@ struct acpi_memory_list {
- #endif
- };
-=20
-+/* Definitions for _OSI support */
++	if (acpi_video_init_brightness(device))
++		return;
 +
-+#define ACPI_OSI_WIN_2000               0x01
-+#define ACPI_OSI_WIN_XP                 0x02
-+#define ACPI_OSI_WIN_XP_SP1             0x03
-+#define ACPI_OSI_WINSRV_2003            0x04
-+#define ACPI_OSI_WIN_XP_SP2             0x05
-+#define ACPI_OSI_WINSRV_2003_SP1        0x06
-+#define ACPI_OSI_WIN_VISTA              0x07
-+#define ACPI_OSI_WINSRV_2008            0x08
-+#define ACPI_OSI_WIN_VISTA_SP1          0x09
-+#define ACPI_OSI_WIN_VISTA_SP2          0x0A
-+#define ACPI_OSI_WIN_7                  0x0B
-+#define ACPI_OSI_WIN_8                  0x0C
-+
- #endif				/* __ACTYPES_H__ */
+ 	if (acpi_video_backlight_support()) {
+ 		struct backlight_properties props;
+ 		struct pci_dev *pdev;
+@@ -893,9 +896,6 @@ static void acpi_video_device_find_cap(s
+ 		static int count =3D 0;
+ 		char *name;
+=20
+-		result =3D acpi_video_init_brightness(device);
+-		if (result)
+-			return;
+ 		name =3D kasprintf(GFP_KERNEL, "acpi_video%d", count);
+ 		if (!name)
+ 			return;
+@@ -955,6 +955,11 @@ static void acpi_video_device_find_cap(s
+ 		if (result)
+ 			printk(KERN_ERR PREFIX "Create sysfs link\n");
+=20
++	} else {
++		/* Remove the brightness object. */
++		kfree(device->brightness->levels);
++		kfree(device->brightness);
++		device->brightness =3D NULL;
+ 	}
+ }
+=20
 
 --=20
 Igor Gnatenko
