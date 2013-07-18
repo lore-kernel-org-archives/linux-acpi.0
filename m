@@ -1,82 +1,152 @@
-From: Lan Tianyu <tianyu.lan@intel.com>
-Subject: Re: [Fix PATCH] ACPI / video: ignore BIOS initial backlight value
- for Fujitsu E753
-Date: Thu, 18 Jul 2013 09:12:15 +0800
-Message-ID: <51E740EF.5010700@intel.com>
-References: <1373940441-21875-1-git-send-email-tianyu.lan@intel.com> <5965989.OyGfl3xY1D@vostro.rjw.lan>
+From: Yinghai Lu <yinghai@kernel.org>
+Subject: Re: [PATCH 2/30] ACPI / hotplug / PCI: Consolidate acpiphp_enumerate_slots()
+Date: Wed, 17 Jul 2013 18:40:10 -0700
+Message-ID: <CAE9FiQXcLeNxjmh-6+jtpOmgC-NB3=Pwh1vZnb+DNLnoKzZQaQ@mail.gmail.com>
+References: <26431283.HJCKsss0rt@vostro.rjw.lan>
+	<3718119.FLASu5DBx8@vostro.rjw.lan>
+	<2366394.4EoP1MXmG2@vostro.rjw.lan>
+	<10121200.vQGTlJqFtd@vostro.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga02.intel.com ([134.134.136.20]:5146 "EHLO mga02.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756379Ab3GRBTz (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 17 Jul 2013 21:19:55 -0400
-In-Reply-To: <5965989.OyGfl3xY1D@vostro.rjw.lan>
-Sender: linux-acpi-owner@vger.kernel.org
-List-Id: linux-acpi@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Return-path: <linux-pci-owner@vger.kernel.org>
+In-Reply-To: <10121200.vQGTlJqFtd@vostro.rjw.lan>
+Sender: linux-pci-owner@vger.kernel.org
 To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: lenb@kernel.org, linux-acpi@vger.kernel.org
+Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Bjorn Helgaas <bhelgaas@google.com>, LKML <linux-kernel@vger.kernel.org>, Linux PCI <linux-pci@vger.kernel.org>, Jiang Liu <liuj97@gmail.com>, Mika Westerberg <mika.westerberg@linux.intel.com>, "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
+List-Id: linux-acpi@vger.kernel.org
 
-On 2013=E5=B9=B407=E6=9C=8818=E6=97=A5 06:35, Rafael J. Wysocki wrote:
-> On Tuesday, July 16, 2013 10:07:21 AM tianyu.lan@intel.com wrote:
->> From: Lan Tianyu <tianyu.lan@intel.com>
->>
->> The BIOS of FUjitsu E753 reports an incorrect initial backlight valu=
-e
->> for WIN8 compatible OS, causing backlight dark during startup. This
->> patch ignores the incorrect initial value from BIOS.
->>
->> Reference:https://bugzilla.kernel.org/show_bug.cgi?id=3D60161
->> Reported-and-tested-by: Jan Hinnerk Stosch <janhinnerk.stosch@gmail.=
-com>
->> Signed-off-by: Lan Tianyu <tianyu.lan@intel.com>
->=20
-> Queued up as a fix for 3.11.
->=20
-> What's the oldest mainline kernel release this patch is applicable to=
-?
+On Wed, Jul 17, 2013 at 4:16 PM, Rafael J. Wysocki <rjw@sisk.pl> wrote:
+> From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+>
+> The acpiphp_enumerate_slots() function is now split into two parts,
+> acpiphp_enumerate_slots() proper and init_bridge_misc() which is
+> only called by the former.  If these functions are combined,
+> it is possible to make the code easier to follow and to clean up
+> the error handling (to prevent memory leaks on error from
+> happening in particular), so do that.
+>
+> Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+> ---
+>  drivers/pci/hotplug/acpiphp_glue.c |   92 ++++++++++++++++++-------------------
+>  1 file changed, 45 insertions(+), 47 deletions(-)
+>
+> Index: linux-pm/drivers/pci/hotplug/acpiphp_glue.c
+> ===================================================================
+> --- linux-pm.orig/drivers/pci/hotplug/acpiphp_glue.c
+> +++ linux-pm/drivers/pci/hotplug/acpiphp_glue.c
+> @@ -353,46 +353,6 @@ static int detect_ejectable_slots(acpi_h
+>         return found;
+>  }
+>
+> -/* initialize miscellaneous stuff for both root and PCI-to-PCI bridge */
+> -static void init_bridge_misc(struct acpiphp_bridge *bridge)
+> -{
+> -       acpi_status status;
+> -
+> -       /* must be added to the list prior to calling register_slot */
+> -       mutex_lock(&bridge_mutex);
+> -       list_add(&bridge->list, &bridge_list);
+> -       mutex_unlock(&bridge_mutex);
+> -
+> -       /* register all slot objects under this bridge */
+> -       status = acpi_walk_namespace(ACPI_TYPE_DEVICE, bridge->handle, (u32)1,
+> -                                    register_slot, NULL, bridge, NULL);
+> -       if (ACPI_FAILURE(status)) {
+> -               mutex_lock(&bridge_mutex);
+> -               list_del(&bridge->list);
+> -               mutex_unlock(&bridge_mutex);
+> -               return;
+> -       }
+> -
+> -       /* install notify handler for P2P bridges */
+> -       if (!pci_is_root_bus(bridge->pci_bus)) {
+> -               if ((bridge->flags & BRIDGE_HAS_EJ0) && bridge->func) {
+> -                       status = acpi_remove_notify_handler(bridge->func->handle,
+> -                                               ACPI_SYSTEM_NOTIFY,
+> -                                               handle_hotplug_event_func);
+> -                       if (ACPI_FAILURE(status))
+> -                               err("failed to remove notify handler\n");
+> -               }
+> -               status = acpi_install_notify_handler(bridge->handle,
+> -                                            ACPI_SYSTEM_NOTIFY,
+> -                                            handle_hotplug_event_bridge,
+> -                                            bridge);
+> -
+> -               if (ACPI_FAILURE(status)) {
+> -                       err("failed to register interrupt notify handler\n");
+> -               }
+> -       }
+> -}
+> -
+>
+>  /* find acpiphp_func from acpiphp_bridge */
+>  static struct acpiphp_func *acpiphp_bridge_handle_to_function(acpi_handle handle)
+> @@ -1149,8 +1109,9 @@ static void handle_hotplug_event_func(ac
+>   */
+>  void acpiphp_enumerate_slots(struct pci_bus *bus)
+>  {
+> -       acpi_handle handle;
+>         struct acpiphp_bridge *bridge;
+> +       acpi_handle handle;
+> +       acpi_status status;
+>
+>         if (acpiphp_disabled)
+>                 return;
+> @@ -1178,14 +1139,51 @@ void acpiphp_enumerate_slots(struct pci_
+>          */
+>         get_device(&bus->dev);
+>
+> -       if (!pci_is_root_bus(bridge->pci_bus) &&
+> -           acpi_has_method(bridge->handle, "_EJ0")) {
+> -               dbg("found ejectable p2p bridge\n");
+> -               bridge->flags |= BRIDGE_HAS_EJ0;
+> -               bridge->func = acpiphp_bridge_handle_to_function(handle);
+> +       /* must be added to the list prior to calling register_slot */
+> +       mutex_lock(&bridge_mutex);
+> +       list_add(&bridge->list, &bridge_list);
+> +       mutex_unlock(&bridge_mutex);
+> +
+> +       /* register all slot objects under this bridge */
+> +       status = acpi_walk_namespace(ACPI_TYPE_DEVICE, bridge->handle, 1,
+> +                                    register_slot, NULL, bridge, NULL);
+> +       if (ACPI_FAILURE(status)) {
+> +               acpi_handle_err(bridge->handle, "failed to register slots\n");
+> +               goto err;
+> +       }
+> +
+> +       if (pci_is_root_bus(bridge->pci_bus))
+> +               return;
+> +
+> +       /* install notify handler for P2P bridges */
+> +       status = acpi_install_notify_handler(bridge->handle, ACPI_SYSTEM_NOTIFY,
+> +                                            handle_hotplug_event_bridge,
+> +                                            bridge);
+> +       if (ACPI_FAILURE(status)) {
+> +               acpi_handle_err(bridge->handle,
+> +                               "failed to register notify handler\n");
+> +               goto err;
+>         }
+>
+> -       init_bridge_misc(bridge);
+> +       if (!acpi_has_method(bridge->handle, "_EJ0"))
+> +               return;
+> +
+> +       dbg("found ejectable p2p bridge\n");
+> +       bridge->flags |= BRIDGE_HAS_EJ0;
+> +       bridge->func = acpiphp_bridge_handle_to_function(bridge->handle);
+> +       if (bridge->func) {
+> +               status = acpi_remove_notify_handler(bridge->func->handle,
+> +                                                   ACPI_SYSTEM_NOTIFY,
+> +                                                   handle_hotplug_event_func);
+> +               if (ACPI_FAILURE(status))
+> +                       acpi_handle_err(bridge->func->handle,
+> +                                       "failed to remove notify handler\n");
+> +       }
 
-This should be backport to 3.7+ kernel.
+looks little weird that you change to install bridge notifier handler and remove
+bridge func notifier handler.
+actually these two handles is the same one.
 
-Cc: <stable@vger.kernel.org> # 3.7+
+I would prefer to keeping the old sequence.
 
->=20
-> Rafael
->=20
->=20
->> ---
->>  drivers/acpi/video.c |    8 ++++++++
->>  1 file changed, 8 insertions(+)
->>
->> diff --git a/drivers/acpi/video.c b/drivers/acpi/video.c
->> index 5d7075d..e441876 100644
->> --- a/drivers/acpi/video.c
->> +++ b/drivers/acpi/video.c
->> @@ -450,6 +450,14 @@ static struct dmi_system_id video_dmi_table[] _=
-_initdata =3D {
->>  	},
->>  	{
->>  	 .callback =3D video_ignore_initial_backlight,
->> +	 .ident =3D "Fujitsu E753",
->> +	 .matches =3D {
->> +		DMI_MATCH(DMI_BOARD_VENDOR, "FUJITSU"),
->> +		DMI_MATCH(DMI_PRODUCT_NAME, "LIFEBOOK E753"),
->> +		},
->> +	},
->> +	{
->> +	 .callback =3D video_ignore_initial_backlight,
->>  	 .ident =3D "HP Pavilion dm4",
->>  	 .matches =3D {
->>  		DMI_MATCH(DMI_BOARD_VENDOR, "Hewlett-Packard"),
->>
-
-
---=20
-Best regards
-Tianyu Lan
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Yinghai
