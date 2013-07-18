@@ -1,50 +1,160 @@
-From: Felipe Contreras <felipe.contreras@gmail.com>
-Subject: Re: [PATCH] acpi: blacklist win8 OSI for ASUS Zenbok Prime UX31A
-Date: Wed, 17 Jul 2013 19:53:10 -0500
-Message-ID: <CAMP44s2zi6veCv3WQ8-jkmJQ1YQYRPc5xSm8U6Urg_ZZYnAcTQ@mail.gmail.com>
-References: <1369037793-1559-1-git-send-email-felipe.contreras@gmail.com>
-	<13622439.arY5YlYVCP@vostro.rjw.lan>
-	<CAMP44s0cz+sjzZngRpKvfKEpoG+0DO40qSY9nvC86YW78gASnQ@mail.gmail.com>
-	<171780940.xlcaD3V5sZ@vostro.rjw.lan>
+From: Yinghai Lu <yinghai@kernel.org>
+Subject: Re: [PATCH 1/30] ACPI / PCI: Make bus registration and unregistration symmetric
+Date: Wed, 17 Jul 2013 18:00:23 -0700
+Message-ID: <CAE9FiQW-Hvi-_OrTZDXPvGajY9nDybwRbXRkiy1kp1YEeiDqKQ@mail.gmail.com>
+References: <26431283.HJCKsss0rt@vostro.rjw.lan>
+	<3718119.FLASu5DBx8@vostro.rjw.lan>
+	<2366394.4EoP1MXmG2@vostro.rjw.lan>
+	<1395739.1IFp3cq75N@vostro.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-lb0-f179.google.com ([209.85.217.179]:33308 "EHLO
-	mail-lb0-f179.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756503Ab3GRAxM (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 17 Jul 2013 20:53:12 -0400
-Received: by mail-lb0-f179.google.com with SMTP id w20so2055000lbh.10
-        for <linux-acpi@vger.kernel.org>; Wed, 17 Jul 2013 17:53:10 -0700 (PDT)
-In-Reply-To: <171780940.xlcaD3V5sZ@vostro.rjw.lan>
+Received: from mail-ie0-f180.google.com ([209.85.223.180]:49710 "EHLO
+	mail-ie0-f180.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757723Ab3GRBAX (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 17 Jul 2013 21:00:23 -0400
+In-Reply-To: <1395739.1IFp3cq75N@vostro.rjw.lan>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: Aaron Lu <aaron.lu@intel.com>, linux-acpi@vger.kernel.org, Len Brown <lenb@kernel.org>
+Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Bjorn Helgaas <bhelgaas@google.com>, LKML <linux-kernel@vger.kernel.org>, Linux PCI <linux-pci@vger.kernel.org>, Jiang Liu <liuj97@gmail.com>, Mika Westerberg <mika.westerberg@linux.intel.com>, "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
 
-On Wed, Jul 17, 2013 at 7:31 PM, Rafael J. Wysocki <rjw@sisk.pl> wrote:
-> On Wednesday, July 17, 2013 07:20:41 PM Felipe Contreras wrote:
->> On Wed, Jul 17, 2013 at 5:04 PM, Rafael J. Wysocki <rjw@sisk.pl> wrote:
->> > On Wednesday, July 17, 2013 10:42:35 AM Felipe Contreras wrote:
->>
->> >> If so, that doesn't work correctly in
->> >> this laptop. In this laptop intel backlight works through X, but when
->> >> I set the level to 0 everything is black (it works fine in ACPI), and
->> >> the keyboard keys don't work.
->> >>
->> >> ACPI works perfectly fine. So I think for this laptop (and possibly
->> >> others) ACPI without win8 mode is the way to go.
->> >
->> > While that may be the case, I'd like to avoid more blacklisting than we
->> > already have.
->>
->> Unless your version makes it work without regression from user-space,
->> I don't see any other option.
+On Wed, Jul 17, 2013 at 4:15 PM, Rafael J. Wysocki <rjw@sisk.pl> wrote:
+> From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 >
-> Well, does your machine work correctly with 3.10 with any additional changes?
+> Since acpi_pci_slot_enumerate() and acpiphp_enumerate_slots() can get
+> the ACPI device handle they need from bus->bridge, it is not
+> necessary to pass that handle to them as an argument.
+>
+> Drop the second argument of acpi_pci_slot_enumerate() and
+> acpiphp_enumerate_slots(), rework them to obtain the ACPI handle
+> from bus->bridge and make acpi_pci_add_bus() and
+> acpi_pci_remove_bus() entirely symmetrical.
+>
+> Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+> ---
+>  drivers/acpi/pci_slot.c            |   14 +++++++++-----
+>  drivers/pci/hotplug/acpiphp_glue.c |    6 ++++--
+>  drivers/pci/pci-acpi.c             |   16 ++++------------
+>  include/linux/pci-acpi.h           |   10 ++++------
+>  4 files changed, 21 insertions(+), 25 deletions(-)
+>
+> Index: linux-pm/drivers/acpi/pci_slot.c
+> ===================================================================
+> --- linux-pm.orig/drivers/acpi/pci_slot.c
+> +++ linux-pm/drivers/acpi/pci_slot.c
+> @@ -159,12 +159,16 @@ register_slot(acpi_handle handle, u32 lv
+>         return AE_OK;
+>  }
+>
+> -void acpi_pci_slot_enumerate(struct pci_bus *bus, acpi_handle handle)
+> +void acpi_pci_slot_enumerate(struct pci_bus *bus)
+>  {
+> -       mutex_lock(&slot_list_lock);
+> -       acpi_walk_namespace(ACPI_TYPE_DEVICE, handle, 1,
+> -                           register_slot, NULL, bus, NULL);
+> -       mutex_unlock(&slot_list_lock);
+> +       acpi_handle handle = ACPI_HANDLE(bus->bridge);
+> +
+> +       if (handle) {
+> +               mutex_lock(&slot_list_lock);
+> +               acpi_walk_namespace(ACPI_TYPE_DEVICE, handle, 1,
+> +                                   register_slot, NULL, bus, NULL);
+> +               mutex_unlock(&slot_list_lock);
+> +       }
+>  }
+>
+>  void acpi_pci_slot_remove(struct pci_bus *bus)
+> Index: linux-pm/drivers/pci/hotplug/acpiphp_glue.c
+> ===================================================================
+> --- linux-pm.orig/drivers/pci/hotplug/acpiphp_glue.c
+> +++ linux-pm/drivers/pci/hotplug/acpiphp_glue.c
+> @@ -1147,14 +1147,16 @@ static void handle_hotplug_event_func(ac
+>   * Create hotplug slots for the PCI bus.
+>   * It should always return 0 to avoid skipping following notifiers.
+>   */
+> -void acpiphp_enumerate_slots(struct pci_bus *bus, acpi_handle handle)
+> +void acpiphp_enumerate_slots(struct pci_bus *bus)
+>  {
+> +       acpi_handle handle;
+>         struct acpiphp_bridge *bridge;
+>
+>         if (acpiphp_disabled)
+>                 return;
+>
+> -       if (detect_ejectable_slots(handle) <= 0)
+> +       handle = ACPI_HANDLE(bus->bridge);
+> +       if (!handle || detect_ejectable_slots(handle) <= 0)
+>                 return;
+>
+>         bridge = kzalloc(sizeof(struct acpiphp_bridge), GFP_KERNEL);
+> Index: linux-pm/drivers/pci/pci-acpi.c
+> ===================================================================
+> --- linux-pm.orig/drivers/pci/pci-acpi.c
+> +++ linux-pm/drivers/pci/pci-acpi.c
+> @@ -290,24 +290,16 @@ static struct pci_platform_pm_ops acpi_p
+>
+>  void acpi_pci_add_bus(struct pci_bus *bus)
+>  {
+> -       acpi_handle handle = NULL;
+> -
+> -       if (bus->bridge)
+> -               handle = ACPI_HANDLE(bus->bridge);
+> -       if (acpi_pci_disabled || handle == NULL)
+> +       if (acpi_pci_disabled || !bus->bridge)
+>                 return;
+>
+> -       acpi_pci_slot_enumerate(bus, handle);
+> -       acpiphp_enumerate_slots(bus, handle);
+> +       acpi_pci_slot_enumerate(bus);
+> +       acpiphp_enumerate_slots(bus);
+>  }
+>
+>  void acpi_pci_remove_bus(struct pci_bus *bus)
+>  {
+> -       /*
+> -        * bus->bridge->acpi_node.handle has already been reset to NULL
+> -        * when acpi_pci_remove_bus() is called, so don't check ACPI handle.
+> -        */
+> -       if (acpi_pci_disabled)
+> +       if (acpi_pci_disabled || !bus->bridge)
+>                 return;
 
-With my patch, yes. I will try the patches you just sent, but my guess
-is that it would work the same as acpi_backlight=vendor (not
-correctly).
+Acked-by: Yinghai Lu <yinghai@kernel.org>
 
--- 
-Felipe Contreras
+>
+>         acpiphp_remove_slots(bus);
+> Index: linux-pm/include/linux/pci-acpi.h
+> ===================================================================
+> --- linux-pm.orig/include/linux/pci-acpi.h
+> +++ linux-pm/include/linux/pci-acpi.h
+> @@ -47,24 +47,22 @@ void acpi_pci_remove_bus(struct pci_bus
+>
+>  #ifdef CONFIG_ACPI_PCI_SLOT
+>  void acpi_pci_slot_init(void);
+> -void acpi_pci_slot_enumerate(struct pci_bus *bus, acpi_handle handle);
+> +void acpi_pci_slot_enumerate(struct pci_bus *bus);
+>  void acpi_pci_slot_remove(struct pci_bus *bus);
+>  #else
+>  static inline void acpi_pci_slot_init(void) { }
+> -static inline void acpi_pci_slot_enumerate(struct pci_bus *bus,
+> -                                          acpi_handle handle) { }
+> +static inline void acpi_pci_slot_enumerate(struct pci_bus *bus) { }
+>  static inline void acpi_pci_slot_remove(struct pci_bus *bus) { }
+>  #endif
+>
+>  #ifdef CONFIG_HOTPLUG_PCI_ACPI
+>  void acpiphp_init(void);
+> -void acpiphp_enumerate_slots(struct pci_bus *bus, acpi_handle handle);
+> +void acpiphp_enumerate_slots(struct pci_bus *bus);
+>  void acpiphp_remove_slots(struct pci_bus *bus);
+>  void acpiphp_check_host_bridge(acpi_handle handle);
+>  #else
+>  static inline void acpiphp_init(void) { }
+> -static inline void acpiphp_enumerate_slots(struct pci_bus *bus,
+> -                                          acpi_handle handle) { }
+> +static inline void acpiphp_enumerate_slots(struct pci_bus *bus) { }
+>  static inline void acpiphp_remove_slots(struct pci_bus *bus) { }
+>  static inline void acpiphp_check_host_bridge(acpi_handle handle) { }
+>  #endif
+>
