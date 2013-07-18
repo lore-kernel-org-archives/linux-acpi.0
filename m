@@ -1,58 +1,55 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: [PATCH 4/30] ACPI / hotplug / PCI: Hotplug context objects for bridges and functions
-Date: Thu, 18 Jul 2013 22:06:16 +0200
-Message-ID: <2397558.EsSCoq8A3j@vostro.rjw.lan>
-References: <26431283.HJCKsss0rt@vostro.rjw.lan> <CAE9FiQWjzZ6b1aGgL9OjNZF00hvwaEZJb7ABxjaVbS5FwNwpSQ@mail.gmail.com> <3688658.K73mT4hj2a@vostro.rjw.lan>
+From: Felipe Contreras <felipe.contreras@gmail.com>
+Subject: Re: [PATCH] acpi: blacklist win8 OSI for ASUS Zenbok Prime UX31A
+Date: Thu, 18 Jul 2013 16:36:34 -0500
+Message-ID: <CAMP44s3gfAzCc8_aCcngsDyxeCHvjSRcPcnV-C=T00tnku+-AA@mail.gmail.com>
+References: <1369037793-1559-1-git-send-email-felipe.contreras@gmail.com>
+	<171780940.xlcaD3V5sZ@vostro.rjw.lan>
+	<CAMP44s2zi6veCv3WQ8-jkmJQ1YQYRPc5xSm8U6Urg_ZZYnAcTQ@mail.gmail.com>
+	<2222874.MofdN148Ee@vostro.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7Bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <3688658.K73mT4hj2a@vostro.rjw.lan>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Yinghai Lu <yinghai@kernel.org>
-Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Bjorn Helgaas <bhelgaas@google.com>, LKML <linux-kernel@vger.kernel.org>, Linux PCI <linux-pci@vger.kernel.org>, Jiang Liu <liuj97@gmail.com>, Mika Westerberg <mika.westerberg@linux.intel.com>, "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-lb0-f172.google.com ([209.85.217.172]:33134 "EHLO
+	mail-lb0-f172.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S965429Ab3GRVgg (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 18 Jul 2013 17:36:36 -0400
+Received: by mail-lb0-f172.google.com with SMTP id v20so2952196lbc.3
+        for <linux-acpi@vger.kernel.org>; Thu, 18 Jul 2013 14:36:34 -0700 (PDT)
+In-Reply-To: <2222874.MofdN148Ee@vostro.rjw.lan>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: Aaron Lu <aaron.lu@intel.com>, linux-acpi@vger.kernel.org, Len Brown <lenb@kernel.org>
 
-On Thursday, July 18, 2013 09:04:11 PM Rafael J. Wysocki wrote:
-> On Wednesday, July 17, 2013 07:00:33 PM Yinghai Lu wrote:
-> > On Wed, Jul 17, 2013 at 4:17 PM, Rafael J. Wysocki <rjw@sisk.pl> wrote:
-> > > From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
-> > >
-> > > When either a new hotplug bridge or a new hotplug function is added
-> > > by the ACPI-based PCI hotplug (ACPIPHP) code, attach a context object
-> > > to its ACPI handle to store hotplug-related information in it.  To
-> > > start with, put the handle's bridge and function pointers into that
-> > > object.  Count references to the context objects and drop them when
-> > > they are not needed any more.
-> > >
-> > > First of all, this makes it possible to find out if the given bridge
-> > > has been registered as a function already in a much more
-> > > straightforward way and acpiphp_bridge_handle_to_function() can be
-> > > dropped (Yay!).
-> > >
-> > > This also will allow some more simplifications to be made going
-> > > forward.
-> > >
-> > > Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
-> > > ---
-> > >  drivers/pci/hotplug/acpiphp.h      |   10 ++
-> > >  drivers/pci/hotplug/acpiphp_glue.c |  179 ++++++++++++++++++++++++++++---------
-> > >  2 files changed, 146 insertions(+), 43 deletions(-)
-> > 
-> > no, more lines are added.
-> 
-> Well, that's what 'quilt refresh --diffstat' tells me, quite consistently.
-> 
-> Have you actually counted them?
+On Thu, Jul 18, 2013 at 2:19 PM, Rafael J. Wysocki <rjw@sisk.pl> wrote:
+> On Wednesday, July 17, 2013 07:53:10 PM Felipe Contreras wrote:
+>> On Wed, Jul 17, 2013 at 7:31 PM, Rafael J. Wysocki <rjw@sisk.pl> wrote:
+>> > On Wednesday, July 17, 2013 07:20:41 PM Felipe Contreras wrote:
+>> >> On Wed, Jul 17, 2013 at 5:04 PM, Rafael J. Wysocki <rjw@sisk.pl> wrote:
+>> >> > On Wednesday, July 17, 2013 10:42:35 AM Felipe Contreras wrote:
+>> >>
+>> >> >> If so, that doesn't work correctly in
+>> >> >> this laptop. In this laptop intel backlight works through X, but when
+>> >> >> I set the level to 0 everything is black (it works fine in ACPI), and
+>> >> >> the keyboard keys don't work.
+>> >> >>
+>> >> >> ACPI works perfectly fine. So I think for this laptop (and possibly
+>> >> >> others) ACPI without win8 mode is the way to go.
+>> >> >
+>> >> > While that may be the case, I'd like to avoid more blacklisting than we
+>> >> > already have.
+>> >>
+>> >> Unless your version makes it work without regression from user-space,
+>> >> I don't see any other option.
+>> >
+>> > Well, does your machine work correctly with 3.10 with any additional changes?
+>>
+>> With my patch, yes.
+>
+> And without your patch?  It is not there in 3.10, is it?
 
-Now I have done that (using "grep '^+' | wc -l") and that indeed turns out ot
-the right number.
-
-What gives?
-
-Rafael
-
+Without my patch backlight control doesn't work at all (unless you do
+acpi_osi="!Windows 2012").
 
 -- 
-I speak only for myself.
-Rafael J. Wysocki, Intel Open Source Technology Center.
+Felipe Contreras
