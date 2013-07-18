@@ -1,66 +1,42 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: [PATCH 2/3] ACPI / video: Always call acpi_video_init_brightness() on init
-Date: Thu, 18 Jul 2013 02:21:03 +0200
-Message-ID: <2754766.4uAbGBBbb8@vostro.rjw.lan>
-References: <1370818899-8595-1-git-send-email-matthew.garrett@nebula.com> <1448863.3slS729B6b@vostro.rjw.lan>
+From: Felipe Contreras <felipe.contreras@gmail.com>
+Subject: Re: [PATCH] acpi: blacklist win8 OSI for ASUS Zenbok Prime UX31A
+Date: Wed, 17 Jul 2013 19:20:41 -0500
+Message-ID: <CAMP44s0cz+sjzZngRpKvfKEpoG+0DO40qSY9nvC86YW78gASnQ@mail.gmail.com>
+References: <1369037793-1559-1-git-send-email-felipe.contreras@gmail.com>
+	<51CBA54C.6040703@intel.com>
+	<CAMP44s2oq5+H=oCXjik4y_yaLm1YKL6nRgbwKNqfVmP4C8pthg@mail.gmail.com>
+	<13622439.arY5YlYVCP@vostro.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7Bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1448863.3slS729B6b@vostro.rjw.lan>
-Sender: linux-kernel-owner@vger.kernel.org
-To: linux-acpi@vger.kernel.org
-Cc: Matthew Garrett <matthew.garrett@nebula.com>, seth.forshee@canonical.com, joeyli.kernel@gmail.com, daniel.vetter@ffwll.ch, intel-gfx@lists.freedesktop.org, dri-devel@lists.freedesktop.org, linux-kernel@vger.kernel.org, lenb@kernel.org, Aaron Lu <aaron.lu@intel.com>, Igor Gnatenko <i.gnatenko.brain@gmail.com>, Yves-Alexis Perez <corsac@debian.org>, Felipe Contreras <felipe.contreras@gmail.com>, "Lee, Chun-Yi" <jlee@suse.com>, Henrique de Moraes Holschuh <hmh@hmh.eng.br>
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-la0-f41.google.com ([209.85.215.41]:45467 "EHLO
+	mail-la0-f41.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752087Ab3GRAUm (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 17 Jul 2013 20:20:42 -0400
+Received: by mail-la0-f41.google.com with SMTP id fn20so2000883lab.14
+        for <linux-acpi@vger.kernel.org>; Wed, 17 Jul 2013 17:20:41 -0700 (PDT)
+In-Reply-To: <13622439.arY5YlYVCP@vostro.rjw.lan>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: Aaron Lu <aaron.lu@intel.com>, linux-acpi@vger.kernel.org, Len Brown <lenb@kernel.org>
 
-From: Matthew Garrett <matthew.garrett@nebula.com>
+On Wed, Jul 17, 2013 at 5:04 PM, Rafael J. Wysocki <rjw@sisk.pl> wrote:
+> On Wednesday, July 17, 2013 10:42:35 AM Felipe Contreras wrote:
 
-We have to call acpi_video_init_brightness() even if we're not going
-to initialise the backlight - Thinkpads seem to use this as the
-trigger for enabling ACPI notifications rather than handling it in
-firmware.
+>> If so, that doesn't work correctly in
+>> this laptop. In this laptop intel backlight works through X, but when
+>> I set the level to 0 everything is black (it works fine in ACPI), and
+>> the keyboard keys don't work.
+>>
+>> ACPI works perfectly fine. So I think for this laptop (and possibly
+>> others) ACPI without win8 mode is the way to go.
+>
+> While that may be the case, I'd like to avoid more blacklisting than we
+> already have.
 
-[rjw: Drop the brightness object created by
- acpi_video_init_brightness() if we are not going to use it.]
-Signed-off-by: Matthew Garrett <matthew.garrett@nebula.com>
-Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
----
- drivers/acpi/video.c |   11 ++++++++---
- 1 file changed, 8 insertions(+), 3 deletions(-)
+Unless your version makes it work without regression from user-space,
+I don't see any other option.
 
-Index: linux-pm/drivers/acpi/video.c
-===================================================================
---- linux-pm.orig/drivers/acpi/video.c
-+++ linux-pm/drivers/acpi/video.c
-@@ -884,6 +884,9 @@ static void acpi_video_device_find_cap(s
- 	if (acpi_has_method(device->dev->handle, "_DDC"))
- 		device->cap._DDC = 1;
- 
-+	if (acpi_video_init_brightness(device))
-+		return;
-+
- 	if (acpi_video_backlight_support()) {
- 		struct backlight_properties props;
- 		struct pci_dev *pdev;
-@@ -893,9 +896,6 @@ static void acpi_video_device_find_cap(s
- 		static int count = 0;
- 		char *name;
- 
--		result = acpi_video_init_brightness(device);
--		if (result)
--			return;
- 		name = kasprintf(GFP_KERNEL, "acpi_video%d", count);
- 		if (!name)
- 			return;
-@@ -955,6 +955,11 @@ static void acpi_video_device_find_cap(s
- 		if (result)
- 			printk(KERN_ERR PREFIX "Create sysfs link\n");
- 
-+	} else {
-+		/* Remove the brightness object. */
-+		kfree(device->brightness->levels);
-+		kfree(device->brightness);
-+		device->brightness = NULL;
- 	}
- }
- 
+-- 
+Felipe Contreras
