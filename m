@@ -1,168 +1,48 @@
 From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: [PATCH 2/30] ACPI / hotplug / PCI: Consolidate acpiphp_enumerate_slots()
-Date: Thu, 18 Jul 2013 21:09:39 +0200
-Message-ID: <2875178.oTVLArQBaT@vostro.rjw.lan>
-References: <26431283.HJCKsss0rt@vostro.rjw.lan> <10121200.vQGTlJqFtd@vostro.rjw.lan> <CAE9FiQXcLeNxjmh-6+jtpOmgC-NB3=Pwh1vZnb+DNLnoKzZQaQ@mail.gmail.com>
+Subject: Re: [PATCH] acpi: blacklist win8 OSI for ASUS Zenbok Prime UX31A
+Date: Thu, 18 Jul 2013 21:19:15 +0200
+Message-ID: <2222874.MofdN148Ee@vostro.rjw.lan>
+References: <1369037793-1559-1-git-send-email-felipe.contreras@gmail.com> <171780940.xlcaD3V5sZ@vostro.rjw.lan> <CAMP44s2zi6veCv3WQ8-jkmJQ1YQYRPc5xSm8U6Urg_ZZYnAcTQ@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7Bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from hydra.sisk.pl ([212.160.235.94]:49674 "EHLO hydra.sisk.pl"
+Received: from hydra.sisk.pl ([212.160.235.94]:49693 "EHLO hydra.sisk.pl"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S933460Ab3GRS7m (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 18 Jul 2013 14:59:42 -0400
-In-Reply-To: <CAE9FiQXcLeNxjmh-6+jtpOmgC-NB3=Pwh1vZnb+DNLnoKzZQaQ@mail.gmail.com>
+	id S964817Ab3GRTJT (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 18 Jul 2013 15:09:19 -0400
+In-Reply-To: <CAMP44s2zi6veCv3WQ8-jkmJQ1YQYRPc5xSm8U6Urg_ZZYnAcTQ@mail.gmail.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Yinghai Lu <yinghai@kernel.org>
-Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Bjorn Helgaas <bhelgaas@google.com>, LKML <linux-kernel@vger.kernel.org>, Linux PCI <linux-pci@vger.kernel.org>, Jiang Liu <liuj97@gmail.com>, Mika Westerberg <mika.westerberg@linux.intel.com>, "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
+To: Felipe Contreras <felipe.contreras@gmail.com>
+Cc: Aaron Lu <aaron.lu@intel.com>, linux-acpi@vger.kernel.org, Len Brown <lenb@kernel.org>
 
-On Wednesday, July 17, 2013 06:40:10 PM Yinghai Lu wrote:
-> On Wed, Jul 17, 2013 at 4:16 PM, Rafael J. Wysocki <rjw@sisk.pl> wrote:
-> > From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+On Wednesday, July 17, 2013 07:53:10 PM Felipe Contreras wrote:
+> On Wed, Jul 17, 2013 at 7:31 PM, Rafael J. Wysocki <rjw@sisk.pl> wrote:
+> > On Wednesday, July 17, 2013 07:20:41 PM Felipe Contreras wrote:
+> >> On Wed, Jul 17, 2013 at 5:04 PM, Rafael J. Wysocki <rjw@sisk.pl> wrote:
+> >> > On Wednesday, July 17, 2013 10:42:35 AM Felipe Contreras wrote:
+> >>
+> >> >> If so, that doesn't work correctly in
+> >> >> this laptop. In this laptop intel backlight works through X, but when
+> >> >> I set the level to 0 everything is black (it works fine in ACPI), and
+> >> >> the keyboard keys don't work.
+> >> >>
+> >> >> ACPI works perfectly fine. So I think for this laptop (and possibly
+> >> >> others) ACPI without win8 mode is the way to go.
+> >> >
+> >> > While that may be the case, I'd like to avoid more blacklisting than we
+> >> > already have.
+> >>
+> >> Unless your version makes it work without regression from user-space,
+> >> I don't see any other option.
 > >
-> > The acpiphp_enumerate_slots() function is now split into two parts,
-> > acpiphp_enumerate_slots() proper and init_bridge_misc() which is
-> > only called by the former.  If these functions are combined,
-> > it is possible to make the code easier to follow and to clean up
-> > the error handling (to prevent memory leaks on error from
-> > happening in particular), so do that.
-> >
-> > Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
-> > ---
-> >  drivers/pci/hotplug/acpiphp_glue.c |   92 ++++++++++++++++++-------------------
-> >  1 file changed, 45 insertions(+), 47 deletions(-)
-> >
-> > Index: linux-pm/drivers/pci/hotplug/acpiphp_glue.c
-> > ===================================================================
-> > --- linux-pm.orig/drivers/pci/hotplug/acpiphp_glue.c
-> > +++ linux-pm/drivers/pci/hotplug/acpiphp_glue.c
-> > @@ -353,46 +353,6 @@ static int detect_ejectable_slots(acpi_h
-> >         return found;
-> >  }
-> >
-> > -/* initialize miscellaneous stuff for both root and PCI-to-PCI bridge */
-> > -static void init_bridge_misc(struct acpiphp_bridge *bridge)
-> > -{
-> > -       acpi_status status;
-> > -
-> > -       /* must be added to the list prior to calling register_slot */
-> > -       mutex_lock(&bridge_mutex);
-> > -       list_add(&bridge->list, &bridge_list);
-> > -       mutex_unlock(&bridge_mutex);
-> > -
-> > -       /* register all slot objects under this bridge */
-> > -       status = acpi_walk_namespace(ACPI_TYPE_DEVICE, bridge->handle, (u32)1,
-> > -                                    register_slot, NULL, bridge, NULL);
-> > -       if (ACPI_FAILURE(status)) {
-> > -               mutex_lock(&bridge_mutex);
-> > -               list_del(&bridge->list);
-> > -               mutex_unlock(&bridge_mutex);
-> > -               return;
-> > -       }
-> > -
-> > -       /* install notify handler for P2P bridges */
-> > -       if (!pci_is_root_bus(bridge->pci_bus)) {
-> > -               if ((bridge->flags & BRIDGE_HAS_EJ0) && bridge->func) {
-> > -                       status = acpi_remove_notify_handler(bridge->func->handle,
-> > -                                               ACPI_SYSTEM_NOTIFY,
-> > -                                               handle_hotplug_event_func);
-> > -                       if (ACPI_FAILURE(status))
-> > -                               err("failed to remove notify handler\n");
-> > -               }
-> > -               status = acpi_install_notify_handler(bridge->handle,
-> > -                                            ACPI_SYSTEM_NOTIFY,
-> > -                                            handle_hotplug_event_bridge,
-> > -                                            bridge);
-> > -
-> > -               if (ACPI_FAILURE(status)) {
-> > -                       err("failed to register interrupt notify handler\n");
-> > -               }
-> > -       }
-> > -}
-> > -
-> >
-> >  /* find acpiphp_func from acpiphp_bridge */
-> >  static struct acpiphp_func *acpiphp_bridge_handle_to_function(acpi_handle handle)
-> > @@ -1149,8 +1109,9 @@ static void handle_hotplug_event_func(ac
-> >   */
-> >  void acpiphp_enumerate_slots(struct pci_bus *bus)
-> >  {
-> > -       acpi_handle handle;
-> >         struct acpiphp_bridge *bridge;
-> > +       acpi_handle handle;
-> > +       acpi_status status;
-> >
-> >         if (acpiphp_disabled)
-> >                 return;
-> > @@ -1178,14 +1139,51 @@ void acpiphp_enumerate_slots(struct pci_
-> >          */
-> >         get_device(&bus->dev);
-> >
-> > -       if (!pci_is_root_bus(bridge->pci_bus) &&
-> > -           acpi_has_method(bridge->handle, "_EJ0")) {
-> > -               dbg("found ejectable p2p bridge\n");
-> > -               bridge->flags |= BRIDGE_HAS_EJ0;
-> > -               bridge->func = acpiphp_bridge_handle_to_function(handle);
-> > +       /* must be added to the list prior to calling register_slot */
-> > +       mutex_lock(&bridge_mutex);
-> > +       list_add(&bridge->list, &bridge_list);
-> > +       mutex_unlock(&bridge_mutex);
-> > +
-> > +       /* register all slot objects under this bridge */
-> > +       status = acpi_walk_namespace(ACPI_TYPE_DEVICE, bridge->handle, 1,
-> > +                                    register_slot, NULL, bridge, NULL);
-> > +       if (ACPI_FAILURE(status)) {
-> > +               acpi_handle_err(bridge->handle, "failed to register slots\n");
-> > +               goto err;
-> > +       }
-> > +
-> > +       if (pci_is_root_bus(bridge->pci_bus))
-> > +               return;
-> > +
-> > +       /* install notify handler for P2P bridges */
-> > +       status = acpi_install_notify_handler(bridge->handle, ACPI_SYSTEM_NOTIFY,
-> > +                                            handle_hotplug_event_bridge,
-> > +                                            bridge);
-> > +       if (ACPI_FAILURE(status)) {
-> > +               acpi_handle_err(bridge->handle,
-> > +                               "failed to register notify handler\n");
-> > +               goto err;
-> >         }
-> >
-> > -       init_bridge_misc(bridge);
-> > +       if (!acpi_has_method(bridge->handle, "_EJ0"))
-> > +               return;
-> > +
-> > +       dbg("found ejectable p2p bridge\n");
-> > +       bridge->flags |= BRIDGE_HAS_EJ0;
-> > +       bridge->func = acpiphp_bridge_handle_to_function(bridge->handle);
-> > +       if (bridge->func) {
-> > +               status = acpi_remove_notify_handler(bridge->func->handle,
-> > +                                                   ACPI_SYSTEM_NOTIFY,
-> > +                                                   handle_hotplug_event_func);
-> > +               if (ACPI_FAILURE(status))
-> > +                       acpi_handle_err(bridge->func->handle,
-> > +                                       "failed to remove notify handler\n");
-> > +       }
+> > Well, does your machine work correctly with 3.10 with any additional changes?
 > 
-> looks little weird that you change to install bridge notifier handler and remove
-> bridge func notifier handler.
-> actually these two handles is the same one.
-> 
-> I would prefer to keeping the old sequence.
+> With my patch, yes.
 
-First, it doesn't matter because one of the notifiers goes away in the
-subsequent patches and it would complicate those patches without any real
-reason if I did that.
+And without your patch?  It is not there in 3.10, is it?
 
-Second, it doesn't matter because there can be multiple notify handlers for the
-same handle and if one of the above two triggers, the second one won't really
-do anything.
-
-So no, I'm not going to do that, sorry.
-
-Thanks,
 Rafael
 
 
