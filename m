@@ -1,182 +1,313 @@
 From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: [PATCH 25/30] ACPI / hotplug / PCI: Check for new devices on enabled slots
-Date: Thu, 18 Jul 2013 01:32:52 +0200
-Message-ID: <1818424.8fNkf5pBy3@vostro.rjw.lan>
-References: <26431283.HJCKsss0rt@vostro.rjw.lan> <3718119.FLASu5DBx8@vostro.rjw.lan> <2366394.4EoP1MXmG2@vostro.rjw.lan>
+Subject: [PATCH 3/3] ACPI / video / i915: No ACPI backlight if firmware expects Windows 8
+Date: Thu, 18 Jul 2013 02:22:06 +0200
+Message-ID: <2144602.m0nUanLZuL@vostro.rjw.lan>
+References: <1370818899-8595-1-git-send-email-matthew.garrett@nebula.com> <1448863.3slS729B6b@vostro.rjw.lan>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7Bit
-Return-path: <linux-pci-owner@vger.kernel.org>
-In-Reply-To: <2366394.4EoP1MXmG2@vostro.rjw.lan>
-Sender: linux-pci-owner@vger.kernel.org
-To: ACPI Devel Maling List <linux-acpi@vger.kernel.org>
-Cc: Bjorn Helgaas <bhelgaas@google.com>, LKML <linux-kernel@vger.kernel.org>, Linux PCI <linux-pci@vger.kernel.org>, Yinghai Lu <yinghai@kernel.org>, Jiang Liu <liuj97@gmail.com>, Mika Westerberg <mika.westerberg@linux.intel.com>, "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from hydra.sisk.pl ([212.160.235.94]:47969 "EHLO hydra.sisk.pl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1757792Ab3GRAMe (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 17 Jul 2013 20:12:34 -0400
+In-Reply-To: <1448863.3slS729B6b@vostro.rjw.lan>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: linux-acpi@vger.kernel.org
+Cc: Matthew Garrett <matthew.garrett@nebula.com>, seth.forshee@canonical.com, joeyli.kernel@gmail.com, daniel.vetter@ffwll.ch, intel-gfx@lists.freedesktop.org, dri-devel@lists.freedesktop.org, linux-kernel@vger.kernel.org, lenb@kernel.org, Aaron Lu <aaron.lu@intel.com>, Igor Gnatenko <i.gnatenko.brain@gmail.com>, Yves-Alexis Perez <corsac@debian.org>, Felipe Contreras <felipe.contreras@gmail.com>, "Lee, Chun-Yi" <jlee@suse.com>, Henrique de Moraes Holschuh <hmh@hmh.eng.br>
 
 From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 
-The current implementation of acpiphp_check_bridge() is pretty dumb:
- - It enables a slot if it's not enabled and the slot status is
-   ACPI_STA_ALL.
- - It disables a slot if it's enabled and the slot status is not
-   ACPI_STA_ALL.
+According to Matthew Garrett, "Windows 8 leaves backlight control up
+to individual graphics drivers rather than making ACPI calls itself.
+There's plenty of evidence to suggest that the Intel driver for
+Windows [8] doesn't use the ACPI interface, including the fact that
+it's broken on a bunch of machines when the OS claims to support
+Windows 8.  The simplest thing to do appears to be to disable the
+ACPI backlight interface on these systems".
 
-This behavior is not sufficient to handle the Thunderbolt daisy
-chaining case properly, however, because in that case the bus
-behind the already enabled slot needs to be rescanned for new
-devices.
+There's a problem with that approach, however, because simply
+avoiding to register the ACPI backlight interface if the firmware
+calls _OSI for Windows 8 may not work in the following situations:
+ (1) The ACPI backlight interface actually works on the given system
+     and the i915 driver is not loaded (e.g. another graphics driver
+     is used).
+ (2) The ACPI backlight interface doesn't work on the given system,
+     but there is a vendor platform driver that will register its
+     own, equally broken, backlight interface if not prevented from
+     doing so by the ACPI subsystem.
+Therefore we need to allow the ACPI backlight interface to be
+registered until the i915 driver is loaded which then will unregister
+it if the firmware has called _OSI for Windows 8 (or will register
+the ACPI video driver without backlight support if not already
+present).
 
-For this reason, modify acpiphp_check_bridge() so that slots are
-disabled and stopped if they are not in the ACPI_STA_ALL state.
+For this reason, introduce an alternative function for registering
+ACPI video, acpi_video_register_with_quirks(), that will check
+whether or not the ACPI video driver has already been registered
+and whether or not the backlight Windows 8 quirk has to be applied.
+If the quirk has to be applied, it will block the ACPI backlight
+support and either unregister the backlight interface if the ACPI
+video driver has already been registered, or register the ACPI
+video driver without the backlight interface otherwise.  Make
+the i915 driver use acpi_video_register_with_quirks() instead of
+acpi_video_register() in i915_driver_load().
 
-For slots in the ACPI_STA_ALL state, devices behind them that don't
-respond are trimmed using a new function, trim_stale_devices(),
-introduced specifically for this purpose.  That function walks
-the given bus and checks each device on it.  If the device doesn't
-respond, it is assumed to be gone and is removed.
+This change is based on earlier patches from Matthew Garrett,
+Chun-Yi Lee and Seth Forshee and includes a fix from Aaron Lu's.
 
-Once all of the stale devices directy behind the slot have been
-removed, acpiphp_check_bridge() will start looking for new devices
-that might have appeared on the given bus.  It will do that even if
-the slot is already enabled (SLOT_ENABLED is set for it).
-
-In addition to that, make the bus check notification ignore
-SLOT_ENABLED and go for enable_device() directly if bridge is NULL,
-so that devices behind the slot are re-enumerated in that case too.
-
-This change is based on earlier patches from Kirill A Shutemov
-and Mika Westerberg.
-
+References: https://bugzilla.kernel.org/show_bug.cgi?id=51231
+Tested-by: Aaron Lu <aaron.lu@intel.com>
+Tested-by: Igor Gnatenko <i.gnatenko.brain@gmail.com>
+Tested-by: Yves-Alexis Perez <corsac@debian.org>
 Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
-Tested-by: Mika Westerberg <mika.westerberg@linux.intel.com>
+Reviewed-by: Aaron Lu <aaron.lu@intel.com>
+Acked-by: Matthew Garrett <matthew.garrett@nebula.com>
 ---
- drivers/pci/hotplug/acpiphp_glue.c |   87 +++++++++++++++++++++++++------------
- 1 file changed, 60 insertions(+), 27 deletions(-)
+ drivers/acpi/internal.h         |   11 ++++++
+ drivers/acpi/video.c            |   69 +++++++++++++++++++++++++++++++++++-----
+ drivers/acpi/video_detect.c     |   21 ++++++++++++
+ drivers/gpu/drm/i915/i915_dma.c |    2 -
+ include/acpi/video.h            |   11 +++++-
+ include/linux/acpi.h            |    1 
+ 6 files changed, 105 insertions(+), 10 deletions(-)
 
-Index: linux-pm/drivers/pci/hotplug/acpiphp_glue.c
+Index: linux-pm/drivers/acpi/video.c
 ===================================================================
---- linux-pm.orig/drivers/pci/hotplug/acpiphp_glue.c
-+++ linux-pm/drivers/pci/hotplug/acpiphp_glue.c
-@@ -46,6 +46,7 @@
- #include <linux/pci.h>
- #include <linux/pci_hotplug.h>
- #include <linux/pci-acpi.h>
-+#include <linux/pm_runtime.h>
- #include <linux/mutex.h>
- #include <linux/slab.h>
- #include <linux/acpi.h>
-@@ -687,47 +688,75 @@ static unsigned int get_slot_status(stru
+--- linux-pm.orig/drivers/acpi/video.c
++++ linux-pm/drivers/acpi/video.c
+@@ -44,6 +44,8 @@
+ #include <linux/suspend.h>
+ #include <acpi/video.h>
+ 
++#include "internal.h"
++
+ #define PREFIX "ACPI: "
+ 
+ #define ACPI_VIDEO_BUS_NAME		"Video Bus"
+@@ -887,7 +889,7 @@ static void acpi_video_device_find_cap(s
+ 	if (acpi_video_init_brightness(device))
+ 		return;
+ 
+-	if (acpi_video_backlight_support()) {
++	if (acpi_video_verify_backlight_support()) {
+ 		struct backlight_properties props;
+ 		struct pci_dev *pdev;
+ 		acpi_handle acpi_parent;
+@@ -1334,8 +1336,8 @@ acpi_video_switch_brightness(struct acpi
+ 	unsigned long long level_current, level_next;
+ 	int result = -EINVAL;
+ 
+-	/* no warning message if acpi_backlight=vendor is used */
+-	if (!acpi_video_backlight_support())
++	/* no warning message if acpi_backlight=vendor or a quirk is used */
++	if (!acpi_video_verify_backlight_support())
+ 		return 0;
+ 
+ 	if (!device->brightness)
+@@ -1837,6 +1839,46 @@ static int acpi_video_bus_remove(struct
+ 	return 0;
  }
  
- /**
-+ * trim_stale_devices - remove PCI devices that are not responding.
-+ * @dev: PCI device to start walking the hierarchy from.
-+ */
-+static void trim_stale_devices(struct pci_dev *dev)
++static acpi_status video_unregister_backlight(acpi_handle handle, u32 lvl,
++					      void *context, void **rv)
 +{
-+	acpi_handle handle = ACPI_HANDLE(&dev->dev);
-+	struct pci_bus *bus = dev->subordinate;
-+	bool alive = false;
++	struct acpi_device *acpi_dev;
++	struct acpi_video_bus *video;
++	struct acpi_video_device *dev, *next;
 +
-+	if (handle) {
-+		acpi_status status;
-+		unsigned long long sta;
++	if (acpi_bus_get_device(handle, &acpi_dev))
++		return AE_OK;
 +
-+		status = acpi_evaluate_integer(handle, "_STA", NULL, &sta);
-+		alive = ACPI_SUCCESS(status) && sta == ACPI_STA_ALL;
++	if (acpi_match_device_ids(acpi_dev, video_device_ids))
++		return AE_OK;
++
++	video = acpi_driver_data(acpi_dev);
++	if (!video)
++		return AE_OK;
++
++	acpi_video_bus_stop_devices(video);
++	mutex_lock(&video->device_list_lock);
++	list_for_each_entry_safe(dev, next, &video->video_device_list, entry) {
++		if (dev->backlight) {
++			backlight_device_unregister(dev->backlight);
++			dev->backlight = NULL;
++			kfree(dev->brightness->levels);
++			kfree(dev->brightness);
++		}
++		if (dev->cooling_dev) {
++			sysfs_remove_link(&dev->dev->dev.kobj,
++					  "thermal_cooling");
++			sysfs_remove_link(&dev->cooling_dev->device.kobj,
++					  "device");
++			thermal_cooling_device_unregister(dev->cooling_dev);
++			dev->cooling_dev = NULL;
++		}
 +	}
-+	if (!alive) {
-+		u32 v;
-+
-+		/* Check if the device responds. */
-+		alive = pci_bus_read_dev_vendor_id(dev->bus, dev->devfn, &v, 0);
-+	}
-+	if (!alive) {
-+		pci_stop_and_remove_bus_device(dev);
-+		if (handle)
-+			acpiphp_bus_trim(handle);
-+	} else if (bus) {
-+		struct pci_dev *child, *tmp;
-+
-+		/* The device is a bridge. so check the bus below it. */
-+		pm_runtime_get_sync(&dev->dev);
-+		list_for_each_entry_safe(child, tmp, &bus->devices, bus_list)
-+			trim_stale_devices(child);
-+
-+		pm_runtime_put(&dev->dev);
-+	}
++	mutex_unlock(&video->device_list_lock);
++	acpi_video_bus_start_devices(video);
++	return AE_OK;
 +}
 +
-+/**
-  * acpiphp_check_bridge - re-enumerate devices
-  * @bridge: where to begin re-enumeration
-  *
-  * Iterate over all slots under this bridge and make sure that if a
-  * card is present they are enabled, and if not they are disabled.
-  */
--static int acpiphp_check_bridge(struct acpiphp_bridge *bridge)
-+static void acpiphp_check_bridge(struct acpiphp_bridge *bridge)
+ static int __init is_i740(struct pci_dev *dev)
  {
- 	struct acpiphp_slot *slot;
--	int retval = 0;
--	int enabled, disabled;
--
--	enabled = disabled = 0;
- 
- 	list_for_each_entry(slot, &bridge->slots, node) {
--		unsigned int status = get_slot_status(slot);
--		if (slot->flags & SLOT_ENABLED) {
--			if (status == ACPI_STA_ALL)
--				continue;
-+		struct pci_bus *bus = slot->bus;
-+		struct pci_dev *dev, *tmp;
- 
--			retval = acpiphp_disable_and_eject_slot(slot);
--			if (retval)
--				goto err_exit;
-+		mutex_lock(&slot->crit_sect);
-+		/* wake up all functions */
-+		if (get_slot_status(slot) == ACPI_STA_ALL) {
-+			/* remove stale devices if any */
-+			list_for_each_entry_safe(dev, tmp, &bus->devices,
-+						 bus_list)
-+				if (PCI_SLOT(dev->devfn) == slot->device)
-+					trim_stale_devices(dev);
- 
--			disabled++;
-+			/* configure all functions */
-+			enable_device(slot);
- 		} else {
--			if (status != ACPI_STA_ALL)
--				continue;
--			retval = acpiphp_enable_slot(slot);
--			if (retval) {
--				err("Error occurred in enabling\n");
--				goto err_exit;
--			}
--			enabled++;
-+			disable_device(slot);
- 		}
-+		mutex_unlock(&slot->crit_sect);
- 	}
--
--	dbg("%s: %d enabled, %d disabled\n", __func__, enabled, disabled);
--
-- err_exit:
--	return retval;
+ 	if (dev->device == 0x00D1)
+@@ -1868,14 +1910,25 @@ static int __init intel_opregion_present
+ 	return opregion;
  }
  
- static void acpiphp_set_hpp_values(struct pci_bus *bus)
-@@ -828,7 +857,11 @@ static void hotplug_event(acpi_handle ha
- 					    ACPI_UINT32_MAX, check_sub_bridges,
- 					    NULL, NULL, NULL);
- 		} else {
--			acpiphp_enable_slot(func->slot);
-+			struct acpiphp_slot *slot = func->slot;
+-int acpi_video_register(void)
++int __acpi_video_register(bool backlight_quirks)
+ {
+-	int result = 0;
++	bool no_backlight;
++	int result;
 +
-+			mutex_lock(&slot->crit_sect);
-+			enable_device(slot);
-+			mutex_unlock(&slot->crit_sect);
- 		}
- 		break;
++	no_backlight = backlight_quirks ? acpi_video_backlight_quirks() : false;
++
+ 	if (register_count) {
+ 		/*
+-		 * if the function of acpi_video_register is already called,
+-		 * don't register the acpi_vide_bus again and return no error.
++		 * If acpi_video_register() has been called already, don't try
++		 * to register acpi_video_bus, but unregister backlight devices
++		 * if no backlight support is requested.
+ 		 */
++		if (no_backlight)
++			acpi_walk_namespace(ACPI_TYPE_DEVICE, ACPI_ROOT_OBJECT,
++					    ACPI_UINT32_MAX,
++					    video_unregister_backlight,
++					    NULL, NULL, NULL);
++
+ 		return 0;
+ 	}
  
+@@ -1891,7 +1944,7 @@ int acpi_video_register(void)
+ 
+ 	return 0;
+ }
+-EXPORT_SYMBOL(acpi_video_register);
++EXPORT_SYMBOL(__acpi_video_register);
+ 
+ void acpi_video_unregister(void)
+ {
+Index: linux-pm/drivers/gpu/drm/i915/i915_dma.c
+===================================================================
+--- linux-pm.orig/drivers/gpu/drm/i915/i915_dma.c
++++ linux-pm/drivers/gpu/drm/i915/i915_dma.c
+@@ -1648,7 +1648,7 @@ int i915_driver_load(struct drm_device *
+ 	if (INTEL_INFO(dev)->num_pipes) {
+ 		/* Must be done after probing outputs */
+ 		intel_opregion_init(dev);
+-		acpi_video_register();
++		acpi_video_register_with_quirks();
+ 	}
+ 
+ 	if (IS_GEN5(dev))
+Index: linux-pm/include/acpi/video.h
+===================================================================
+--- linux-pm.orig/include/acpi/video.h
++++ linux-pm/include/acpi/video.h
+@@ -17,12 +17,21 @@ struct acpi_device;
+ #define ACPI_VIDEO_DISPLAY_LEGACY_TV      0x0200
+ 
+ #if (defined CONFIG_ACPI_VIDEO || defined CONFIG_ACPI_VIDEO_MODULE)
+-extern int acpi_video_register(void);
++extern int __acpi_video_register(bool backlight_quirks);
++static inline int acpi_video_register(void)
++{
++	return __acpi_video_register(false);
++}
++static inline int acpi_video_register_with_quirks(void)
++{
++	return __acpi_video_register(true);
++}
+ extern void acpi_video_unregister(void);
+ extern int acpi_video_get_edid(struct acpi_device *device, int type,
+ 			       int device_id, void **edid);
+ #else
+ static inline int acpi_video_register(void) { return 0; }
++static inline int acpi_video_register_with_quirks(void) { return 0; }
+ static inline void acpi_video_unregister(void) { return; }
+ static inline int acpi_video_get_edid(struct acpi_device *device, int type,
+ 				      int device_id, void **edid)
+Index: linux-pm/drivers/acpi/video_detect.c
+===================================================================
+--- linux-pm.orig/drivers/acpi/video_detect.c
++++ linux-pm/drivers/acpi/video_detect.c
+@@ -38,6 +38,8 @@
+ #include <linux/dmi.h>
+ #include <linux/pci.h>
+ 
++#include "internal.h"
++
+ #define PREFIX "ACPI: "
+ 
+ ACPI_MODULE_NAME("video");
+@@ -231,6 +233,17 @@ static void acpi_video_caps_check(void)
+ 		acpi_video_get_capabilities(NULL);
+ }
+ 
++bool acpi_video_backlight_quirks(void)
++{
++	if (acpi_gbl_osi_data >= ACPI_OSI_WIN_8) {
++		acpi_video_caps_check();
++		acpi_video_support |= ACPI_VIDEO_SKIP_BACKLIGHT;
++		return true;
++	}
++	return false;
++}
++EXPORT_SYMBOL(acpi_video_backlight_quirks);
++
+ /* Promote the vendor interface instead of the generic video module.
+  * This function allow DMI blacklists to be implemented by externals
+  * platform drivers instead of putting a big blacklist in video_detect.c
+@@ -275,6 +288,14 @@ int acpi_video_backlight_support(void)
+ }
+ EXPORT_SYMBOL(acpi_video_backlight_support);
+ 
++/* For the ACPI video driver use only. */
++bool acpi_video_verify_backlight_support(void)
++{
++	return (acpi_video_support & ACPI_VIDEO_SKIP_BACKLIGHT) ?
++		false : acpi_video_backlight_support();
++}
++EXPORT_SYMBOL(acpi_video_verify_backlight_support);
++
+ /*
+  * Use acpi_backlight=vendor/video to force that backlight switching
+  * is processed by vendor specific acpi drivers or video.ko driver.
+Index: linux-pm/include/linux/acpi.h
+===================================================================
+--- linux-pm.orig/include/linux/acpi.h
++++ linux-pm/include/linux/acpi.h
+@@ -191,6 +191,7 @@ extern bool wmi_has_guid(const char *gui
+ #define ACPI_VIDEO_BACKLIGHT_DMI_VIDEO			0x0200
+ #define ACPI_VIDEO_OUTPUT_SWITCHING_DMI_VENDOR		0x0400
+ #define ACPI_VIDEO_OUTPUT_SWITCHING_DMI_VIDEO		0x0800
++#define ACPI_VIDEO_SKIP_BACKLIGHT			0x1000
+ 
+ #if defined(CONFIG_ACPI_VIDEO) || defined(CONFIG_ACPI_VIDEO_MODULE)
+ 
+Index: linux-pm/drivers/acpi/internal.h
+===================================================================
+--- linux-pm.orig/drivers/acpi/internal.h
++++ linux-pm/drivers/acpi/internal.h
+@@ -164,4 +164,15 @@ struct platform_device;
+ int acpi_create_platform_device(struct acpi_device *adev,
+ 				const struct acpi_device_id *id);
+ 
++/*--------------------------------------------------------------------------
++					Video
++  -------------------------------------------------------------------------- */
++#if defined(CONFIG_ACPI_VIDEO) || defined(CONFIG_ACPI_VIDEO_MODULE)
++bool acpi_video_backlight_quirks(void);
++bool acpi_video_verify_backlight_support(void);
++#else
++static inline bool acpi_video_backlight_quirks(void) { return false; }
++static inline bool acpi_video_verify_backlight_support(void) { return false; }
++#endif
++
+ #endif /* _ACPI_INTERNAL_H_ */
+
