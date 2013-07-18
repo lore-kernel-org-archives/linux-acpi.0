@@ -1,86 +1,53 @@
-From: Igor Gnatenko <i.gnatenko.brain@gmail.com>
-Subject: Re: [PATCH 2/3] ACPI / video: Always call
- acpi_video_init_brightness() on init
-Date: Thu, 18 Jul 2013 09:40:11 +0400
-Message-ID: <1374126011.6123.2.camel@ThinkPad-X230.localdomain>
-References: <1370818899-8595-1-git-send-email-matthew.garrett@nebula.com>
-	 <1448863.3slS729B6b@vostro.rjw.lan> <2754766.4uAbGBBbb8@vostro.rjw.lan>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: Re: [PATCH 5/30] ACPI / hotplug / PCI: Unified notify handler for hotplug events
+Date: Thu, 18 Jul 2013 20:59:25 +0200
+Message-ID: <1752714.boAZzg4FTs@vostro.rjw.lan>
+References: <26431283.HJCKsss0rt@vostro.rjw.lan> <1551099.EAQDd0lEcY@vostro.rjw.lan> <CAE9FiQU99a=BeHCrt0FWSeNs8NORg85C4uwQyY7Ky+-nqaSfxg@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-la0-f47.google.com ([209.85.215.47]:52519 "EHLO
-	mail-la0-f47.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751629Ab3GRFkU (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 18 Jul 2013 01:40:20 -0400
-In-Reply-To: <2754766.4uAbGBBbb8@vostro.rjw.lan>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7Bit
+Return-path: <linux-pci-owner@vger.kernel.org>
+In-Reply-To: <CAE9FiQU99a=BeHCrt0FWSeNs8NORg85C4uwQyY7Ky+-nqaSfxg@mail.gmail.com>
+Sender: linux-pci-owner@vger.kernel.org
+To: Yinghai Lu <yinghai@kernel.org>
+Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Bjorn Helgaas <bhelgaas@google.com>, LKML <linux-kernel@vger.kernel.org>, Linux PCI <linux-pci@vger.kernel.org>, Jiang Liu <liuj97@gmail.com>, Mika Westerberg <mika.westerberg@linux.intel.com>, "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: linux-acpi@vger.kernel.org, Matthew Garrett <matthew.garrett@nebula.com>, seth.forshee@canonical.com, joeyli.kernel@gmail.com, daniel.vetter@ffwll.ch, intel-gfx@lists.freedesktop.org, dri-devel@lists.freedesktop.org, linux-kernel@vger.kernel.org, lenb@kernel.org, Aaron Lu <aaron.lu@intel.com>, Yves-Alexis Perez <corsac@debian.org>, Felipe Contreras <felipe.contreras@gmail.com>, "Lee, Chun-Yi" <jlee@suse.com>, Henrique de Moraes Holschuh <hmh@hmh.eng.br>
 
-=46rom: Matthew Garrett <matthew.garrett@nebula.com>
+On Wednesday, July 17, 2013 07:07:02 PM Yinghai Lu wrote:
+> On Wed, Jul 17, 2013 at 4:18 PM, Rafael J. Wysocki <rjw@sisk.pl> wrote:
+> > From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+> >
+> > Using the hotplug context objects introduced previously rework the
+> > ACPI-based PCI hotplug (ACPIPHP) core code so that all notifications
+> > for ACPI device objects corresponding to the hotplug PCI devices are
+> > handled by one function, handle_hotplug_event(), which recognizes
+> > whether it has to handle a bridge or a function.
+> >
+> > In addition to code size reduction it allows some ugly pieces of code
+> > where notify handlers have to be uninstalled and installed again to
+> > go away.  Moreover, it fixes a theoretically possible race between
+> > handle_hotplug_event() and free_bridge() tearing down data structures
+> > for the same handle.
+> >
+> > Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+> > ---
+> >  drivers/pci/hotplug/acpiphp.h      |    1
+> >  drivers/pci/hotplug/acpiphp_glue.c |  132 ++++++++++++++-----------------------
+> >  2 files changed, 53 insertions(+), 80 deletions(-)
+> 
+> Can you put this patches in one temp branch ?
 
-We have to call acpi_video_init_brightness() even if we're not going
-to initialise the backlight - Thinkpads seem to use this as the
-trigger for enabling ACPI notifications rather than handling it in
-firmware.
+They are in linux-pm.git/bleeding-edge.
 
-[rjw: Drop the brightness object created by
- acpi_video_init_brightness() if we are not going to use it.]
-Signed-off-by: Matthew Garrett <matthew.garrett@nebula.com>
-Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
-Tested-by: Igor Gnatenko <i.gnatenko.brain@gmail.com>
----
- drivers/acpi/video.c |   11 ++++++++---
- 1 file changed, 8 insertions(+), 3 deletions(-)
+> 
+> Like to check final bits.
 
-Index: linux-pm/drivers/acpi/video.c
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
---- linux-pm.orig/drivers/acpi/video.c
-+++ linux-pm/drivers/acpi/video.c
-@@ -884,6 +884,9 @@ static void acpi_video_device_find_cap(s
- 	if (acpi_has_method(device->dev->handle, "_DDC"))
- 		device->cap._DDC =3D 1;
-=20
-+	if (acpi_video_init_brightness(device))
-+		return;
-+
- 	if (acpi_video_backlight_support()) {
- 		struct backlight_properties props;
- 		struct pci_dev *pdev;
-@@ -893,9 +896,6 @@ static void acpi_video_device_find_cap(s
- 		static int count =3D 0;
- 		char *name;
-=20
--		result =3D acpi_video_init_brightness(device);
--		if (result)
--			return;
- 		name =3D kasprintf(GFP_KERNEL, "acpi_video%d", count);
- 		if (!name)
- 			return;
-@@ -955,6 +955,11 @@ static void acpi_video_device_find_cap(s
- 		if (result)
- 			printk(KERN_ERR PREFIX "Create sysfs link\n");
-=20
-+	} else {
-+		/* Remove the brightness object. */
-+		kfree(device->brightness->levels);
-+		kfree(device->brightness);
-+		device->brightness =3D NULL;
- 	}
- }
-=20
+Sure.
 
---=20
-Igor Gnatenko
-=46edora release 19 (Schr=C3=B6dinger=E2=80=99s Cat)
-Linux 3.9.9-302.fc19.x86_64
+Thanks,
+Rafael
 
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
+-- 
+I speak only for myself.
+Rafael J. Wysocki, Intel Open Source Technology Center.
