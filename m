@@ -1,7 +1,7 @@
 From: Tang Chen <tangchen@cn.fujitsu.com>
-Subject: [PATCH 15/21] x86, acpi, numa: Don't reserve memory on nodes the kernel resides in.
-Date: Fri, 19 Jul 2013 15:59:28 +0800
-Message-ID: <1374220774-29974-16-git-send-email-tangchen@cn.fujitsu.com>
+Subject: [PATCH 08/21] x86, acpi: Also initialize signature and length when parsing root table.
+Date: Fri, 19 Jul 2013 15:59:21 +0800
+Message-ID: <1374220774-29974-9-git-send-email-tangchen@cn.fujitsu.com>
 References: <1374220774-29974-1-git-send-email-tangchen@cn.fujitsu.com>
 Return-path: <owner-linux-mm@kvack.org>
 In-Reply-To: <1374220774-29974-1-git-send-email-tangchen@cn.fujitsu.com>
@@ -10,82 +10,66 @@ To: tglx@linutronix.de, mingo@elte.hu, hpa@zytor.com, akpm@linux-foundation.org,
 Cc: x86@kernel.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-mm@kvack.org, linux-acpi@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-If all the memory ranges in SRAT are hotpluggable, we should not reserve all
-of them in memblock. Otherwise the kernel won't have enough memory to boot.
+Besides the phys addr of the acpi tables, it will be very convenient if
+we also have the signature of each table in acpi_gbl_root_table_list at
+early time. We can find SRAT easily by comparing the signature.
 
-And also, memblock will reserve some memory at early time, such initrd file,
-kernel code and data segments, and so on. We cannot avoid these anyway.
-
-So we make any node which the kernel resides in un-hotpluggable.
-
-This patch introduces kernel_resides_in_range() to check if the kernel resides
-in a memory range. And we can use this function to iterate memblock.reserve[],
-and find out which node the kernel resides in. And then, even if the memory in
-that node is hotpluggable, we don't reserve it.
+This patch alse record signature and some other info in
+acpi_gbl_root_table_list at early time.
 
 Signed-off-by: Tang Chen <tangchen@cn.fujitsu.com>
 ---
- drivers/acpi/osl.c |   40 ++++++++++++++++++++++++++++++++++++++++
- 1 files changed, 40 insertions(+), 0 deletions(-)
+ drivers/acpi/acpica/tbutils.c |   23 +++++++++++++++++++++++
+ 1 files changed, 23 insertions(+), 0 deletions(-)
 
-diff --git a/drivers/acpi/osl.c b/drivers/acpi/osl.c
-index 02a39e2..dfbe6ba 100644
---- a/drivers/acpi/osl.c
-+++ b/drivers/acpi/osl.c
-@@ -774,6 +774,43 @@ phys_addr_t __init early_acpi_firmware_srat()
- }
+diff --git a/drivers/acpi/acpica/tbutils.c b/drivers/acpi/acpica/tbutils.c
+index 9d68ffc..37cc5e4 100644
+--- a/drivers/acpi/acpica/tbutils.c
++++ b/drivers/acpi/acpica/tbutils.c
+@@ -514,6 +514,7 @@ acpi_tb_install_table(acpi_physical_address address,
+ 	 * fully mapped later (in verify table). In any case, we must
+ 	 * unmap the header that was mapped above.
+ 	 */
++	table_desc = &acpi_gbl_root_table_list.tables[table_index];
+ 	final_table = acpi_tb_table_override(table, table_desc);
+ 	if (!final_table) {
+ 		final_table = table;	/* There was no override */
+@@ -627,6 +628,7 @@ acpi_tb_parse_root_table(acpi_physical_address rsdp_address)
+ 	u32 i;
+ 	u32 table_count;
+ 	struct acpi_table_header *table;
++	struct acpi_table_desc *table_desc;
+ 	acpi_physical_address address;
+ 	acpi_physical_address uninitialized_var(rsdt_address);
+ 	u32 length;
+@@ -766,6 +768,27 @@ acpi_tb_parse_root_table(acpi_physical_address rsdp_address)
+ 	 */
+ 	acpi_os_unmap_memory(table, length);
  
- /*
-+ * kernel_resides_in_range - Check if kernel resides in a memory range.
-+ * @base: The base address of the memory range.
-+ * @length: The length of the memory range.
-+ *
-+ * memblock reserves some memory for the kernel at very early time, such
-+ * as kernel code and data segments, initrd file, and so on. So this
-+ * function iterates memblock.reserved[] and check if any memory range with
-+ * flag MEMBLK_FLAGS_DEFAULT overlaps [@base, @length). If so, the kernel
-+ * resides in this memory range.
-+ *
-+ * Return true if the kernel resides in the memory range, false otherwise.
-+ */
-+static bool __init kernel_resides_in_range(phys_addr_t base, u64 length)
-+{
-+	int i;
-+	struct memblock_type *reserved = &memblock.reserved;
-+	struct memblock_region *region;
-+	phys_addr_t start, end;
++	/*
++	 * Also initialize the table entries here, so that later we can use them
++	 * to find SRAT at very eraly time to reserve hotpluggable memory.
++	 */
++	for (i = 2; i < table_count; i++) {
++		table = acpi_os_map_memory(
++				acpi_gbl_root_table_list.tables[i].address,
++				sizeof(struct acpi_table_header));
++		if (!table)
++			return_ACPI_STATUS(AE_NO_MEMORY);
 +
-+	for (i = 0; i < reserved->cnt; i++) {
-+		region = &reserved->regions[i];
++		table_desc = &acpi_gbl_root_table_list.tables[i];
 +
-+		if (region->flags != MEMBLK_FLAGS_DEFAULT)
-+			continue;
++		table_desc->pointer = NULL;
++		table_desc->length = table->length;
++		table_desc->flags = ACPI_TABLE_ORIGIN_MAPPED;
++		ACPI_MOVE_32_TO_32(table_desc->signature.ascii, table->signature);
 +
-+		start = region->base;
-+		end = region->base + region->size;
-+		if (end <= base || start >= base + length)
-+			continue;
-+
-+		return true;
++		acpi_os_unmap_memory(table, sizeof(struct acpi_table_header));
 +	}
 +
-+	return false;
-+}
-+
-+/*
-  * acpi_reserve_hotpluggable_memory - Reserve hotpluggable memory in memblock.
-  * @srat_vaddr: The virtual address of SRAT.
-  *
-@@ -817,6 +854,9 @@ void __init acpi_reserve_hotpluggable_memory(void *srat_vaddr)
- 		length = ma->length;
- 		pxm = ma->proximity_domain;
+ 	return_ACPI_STATUS(AE_OK);
+ }
  
-+		if (kernel_resides_in_range(base_address, length))
-+			goto next;
-+
- 		/*
- 		 * In such an early time, we don't have nid. We specify pxm
- 		 * instead of MAX_NUMNODES to prevent memblock merging regions
 -- 
 1.7.1
 
