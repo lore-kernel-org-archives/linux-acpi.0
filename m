@@ -1,7 +1,7 @@
 From: Tang Chen <tangchen@cn.fujitsu.com>
-Subject: [PATCH 04/21] acpi: Remove "continue" in macro INVALID_TABLE().
-Date: Fri, 19 Jul 2013 15:59:17 +0800
-Message-ID: <1374220774-29974-5-git-send-email-tangchen@cn.fujitsu.com>
+Subject: [PATCH 21/21] doc, page_alloc, acpi, mem-hotplug: Add doc for movablecore=acpi boot option.
+Date: Fri, 19 Jul 2013 15:59:34 +0800
+Message-ID: <1374220774-29974-22-git-send-email-tangchen@cn.fujitsu.com>
 References: <1374220774-29974-1-git-send-email-tangchen@cn.fujitsu.com>
 Return-path: <owner-linux-mm@kvack.org>
 In-Reply-To: <1374220774-29974-1-git-send-email-tangchen@cn.fujitsu.com>
@@ -10,99 +10,35 @@ To: tglx@linutronix.de, mingo@elte.hu, hpa@zytor.com, akpm@linux-foundation.org,
 Cc: x86@kernel.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-mm@kvack.org, linux-acpi@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-The macro INVALID_TABLE() is defined like this:
-
- #define INVALID_TABLE(x, path, name)                                    \
-         { pr_err("ACPI OVERRIDE: " x " [%s%s]\n", path, name); continue; }
-
-And it is used like this:
-
-	for (...) {
-		...
-		if (...)
-			INVALID_TABLE()
-		...
-	}
-
-The "continue" in the macro makes the code hard to understand.
-Change it to the style like other macros:
-
- #define INVALID_TABLE(x, path, name)                                    \
-         do { pr_err("ACPI OVERRIDE: " x " [%s%s]\n", path, name); } while (0)
-
-So after this patch, this macro should be used like this:
-
-	for (...) {
-		...
-		if (...) {
-			INVALID_TABLE()
-			continue;
-		}
-		...
-	}
-
-Add the "continue" wherever the macro is called.
-(For now, it is only called in acpi_initrd_override().)
-
-The idea is from Yinghai Lu <yinghai@kernel.org>.
+Since we modify movablecore boot option to support
+"movablecore=acpi", this patch adds doc for it.
 
 Signed-off-by: Tang Chen <tangchen@cn.fujitsu.com>
-Signed-off-by: Yinghai Lu <yinghai@kernel.org>
 ---
- drivers/acpi/osl.c |   18 +++++++++++++-----
- 1 files changed, 13 insertions(+), 5 deletions(-)
+ Documentation/kernel-parameters.txt |   10 ++++++++++
+ 1 files changed, 10 insertions(+), 0 deletions(-)
 
-diff --git a/drivers/acpi/osl.c b/drivers/acpi/osl.c
-index e721863..91d9f54 100644
---- a/drivers/acpi/osl.c
-+++ b/drivers/acpi/osl.c
-@@ -565,7 +565,7 @@ static const char * const table_sigs[] = {
+diff --git a/Documentation/kernel-parameters.txt b/Documentation/kernel-parameters.txt
+index 2fe6e76..7aa1099 100644
+--- a/Documentation/kernel-parameters.txt
++++ b/Documentation/kernel-parameters.txt
+@@ -1714,6 +1714,16 @@ bytes respectively. Such letter suffixes can also be entirely omitted.
+ 			that the amount of memory usable for all allocations
+ 			is not too small.
  
- /* Non-fatal errors: Affected tables/files are ignored */
- #define INVALID_TABLE(x, path, name)					\
--	{ pr_err("ACPI OVERRIDE: " x " [%s%s]\n", path, name); continue; }
-+	do { pr_err("ACPI OVERRIDE: " x " [%s%s]\n", path, name); } while (0)
++	movablecore=acpi	[KNL,X86] The SRAT (System Resource Affinity
++			Table) in ACPI provides the NUMA info of the system.
++			And also, there is a Hotpluggable field in the memory
++			affinity of the table specifying which memory is
++			hotpluggable. This option enables the kernel to arrange
++			hotpluggable memory in SRAT as ZONE_MOVABLE.
++			NOTE: Any node which the kernel resides in will
++			      always be un-hotpluggable so that the kernel
++			      will always have enough memory to boot.
++
+ 	MTD_Partition=	[MTD]
+ 			Format: <name>,<region-number>,<size>,<offset>
  
- #define ACPI_HEADER_SIZE sizeof(struct acpi_table_header)
- 
-@@ -593,9 +593,11 @@ void __init acpi_initrd_override(void *data, size_t size)
- 		data += offset;
- 		size -= offset;
- 
--		if (file.size < sizeof(struct acpi_table_header))
-+		if (file.size < sizeof(struct acpi_table_header)) {
- 			INVALID_TABLE("Table smaller than ACPI header",
- 				      cpio_path, file.name);
-+			continue;
-+		}
- 
- 		table = file.data;
- 
-@@ -603,15 +605,21 @@ void __init acpi_initrd_override(void *data, size_t size)
- 			if (!memcmp(table->signature, table_sigs[sig], 4))
- 				break;
- 
--		if (!table_sigs[sig])
-+		if (!table_sigs[sig]) {
- 			INVALID_TABLE("Unknown signature",
- 				      cpio_path, file.name);
--		if (file.size != table->length)
-+			continue;
-+		}
-+		if (file.size != table->length) {
- 			INVALID_TABLE("File length does not match table length",
- 				      cpio_path, file.name);
--		if (acpi_table_checksum(file.data, table->length))
-+			continue;
-+		}
-+		if (acpi_table_checksum(file.data, table->length)) {
- 			INVALID_TABLE("Bad table checksum",
- 				      cpio_path, file.name);
-+			continue;
-+		}
- 
- 		pr_info("%4.4s ACPI table found in initrd [%s%s][0x%x]\n",
- 			table->signature, cpio_path, file.name, table->length);
 -- 
 1.7.1
 
