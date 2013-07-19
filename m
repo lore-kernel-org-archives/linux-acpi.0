@@ -1,7 +1,7 @@
 From: Tang Chen <tangchen@cn.fujitsu.com>
-Subject: [PATCH 06/21] x86, acpi: Split acpi_boot_table_init() into two parts.
-Date: Fri, 19 Jul 2013 15:59:19 +0800
-Message-ID: <1374220774-29974-7-git-send-email-tangchen@cn.fujitsu.com>
+Subject: [PATCH 07/21] x86, acpi: Initialize ACPI root table list earlier.
+Date: Fri, 19 Jul 2013 15:59:20 +0800
+Message-ID: <1374220774-29974-8-git-send-email-tangchen@cn.fujitsu.com>
 References: <1374220774-29974-1-git-send-email-tangchen@cn.fujitsu.com>
 Return-path: <owner-linux-mm@kvack.org>
 In-Reply-To: <1374220774-29974-1-git-send-email-tangchen@cn.fujitsu.com>
@@ -10,121 +10,136 @@ To: tglx@linutronix.de, mingo@elte.hu, hpa@zytor.com, akpm@linux-foundation.org,
 Cc: x86@kernel.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-mm@kvack.org, linux-acpi@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-In ACPI, SRAT(System Resource Affinity Table) contains NUMA info.
-The memory affinities in SRAT record every memory range in the
-system, and also, flags specifying if the memory range is
-hotpluggable.
-(Please refer to ACPI spec 5.0 5.2.16)
+We have split acpi_table_init() into two steps:
+1. Pares RSDT or XSDT, and initialize acpi_gbl_root_table_list.
+   This step will record all tables' physical address in memory.
+2. Check acpi initrd table override and install all tables into
+   acpi_gbl_root_table_list.
 
-memblock starts to work at very early time, and SRAT has not been
-parsed. So we don't know which memory is hotpluggable. In order
-to use memblock to reserve hotpluggable memory, we need to obtain
-SRAT memory affinity info earlier.
+This patch does step 1 earlier, right after memblock is ready.
 
-In the current acpi_boot_table_init(), it does the following:
-1. Parse RSDT, so that we can find all the tables.
-2. Initialize acpi_gbl_root_table_list, an array of acpi table
-   descriptorsused to store each table's address, length, signature,
-   and so on.
-3. Check if there is any table in initrd intending to override
-   tables from firmware. If so, override the firmware tables.
-4. Initialize all the data in acpi_gbl_root_table_list.
+When memblock_x86_fill() is called to fulfill memblock.memory[],
+memblock is able to allocate memory.
 
-In order to parse SRAT at early time, we need to do similar job as
-step 1 and 2 above earlier to obtain SRAT. It will be very convenient
-if we have acpi_gbl_root_table_list initialized. We can use address
-and signature to find SRAT.
-
-Since step 1 and 2 allocates no memory, it is OK to do these two
-steps earlier.
-
-But step 3 will check acpi initrd table override, not just SRAT,
-but also all the other tables. So it is better to keep it untouched.
-
-This patch splits acpi_boot_table_init() into two steps:
-1. Parse RSDT, which cannot be overrided, and initialize
-   acpi_gbl_root_table_list. (step 1 + 2 above)
-2. Install all ACPI tables into acpi_gbl_root_table_list.
-   (step 3 + 4 above)
-
-In later patches, we will do step 1 + 2 earlier.
+This patch introduces a new function acpi_root_table_init() to
+do step 1, and call this function right after memblock_x86_fill()
+is called.
 
 Signed-off-by: Tang Chen <tangchen@cn.fujitsu.com>
 ---
- drivers/acpi/acpica/tbutils.c |   25 ++++++++++++++++++++++---
- drivers/acpi/tables.c         |    2 ++
- include/acpi/acpixf.h         |    2 ++
- 3 files changed, 26 insertions(+), 3 deletions(-)
+ arch/x86/kernel/acpi/boot.c |   38 +++++++++++++++++++++++---------------
+ arch/x86/kernel/setup.c     |    3 +++
+ drivers/acpi/tables.c       |    7 +++++--
+ include/linux/acpi.h        |    2 ++
+ 4 files changed, 33 insertions(+), 17 deletions(-)
 
-diff --git a/drivers/acpi/acpica/tbutils.c b/drivers/acpi/acpica/tbutils.c
-index ce3d5db..9d68ffc 100644
---- a/drivers/acpi/acpica/tbutils.c
-+++ b/drivers/acpi/acpica/tbutils.c
-@@ -766,9 +766,30 @@ acpi_tb_parse_root_table(acpi_physical_address rsdp_address)
- 	 */
- 	acpi_os_unmap_memory(table, length);
+diff --git a/arch/x86/kernel/acpi/boot.c b/arch/x86/kernel/acpi/boot.c
+index 230c8ea..3da5b3c 100644
+--- a/arch/x86/kernel/acpi/boot.c
++++ b/arch/x86/kernel/acpi/boot.c
+@@ -1491,6 +1491,28 @@ static struct dmi_system_id __initdata acpi_dmi_table_late[] = {
+ };
  
-+	return_ACPI_STATUS(AE_OK);
+ /*
++ * acpi_root_table_init - Initialize acpi_gbl_root_table_list.
++ *
++ * This function will parse RSDT or XSDT, find all tables' phys addr,
++ * initialize acpi_gbl_root_table_list, and record all tables' phys addr
++ * in acpi_gbl_root_table_list.
++ */
++void __init acpi_root_table_init(void)
++{
++	dmi_check_system(acpi_dmi_table);
++
++	/* If acpi_disabled, bail out */
++	if (acpi_disabled)
++		return;
++
++	/* Initialize the ACPI boot-time table parser */
++	if (acpi_table_init()) {
++		disable_acpi();
++		return;
++	}
 +}
 +
-+/*******************************************************************************
-+ *
-+ * FUNCTION:    acpi_tb_install_root_table
-+ *
-+ * DESCRIPTION: This function installs all the ACPI tables in RSDT into
-+ *              acpi_gbl_root_table_list.
-+ *
-+ ******************************************************************************/
-+
-+void __init
-+acpi_tb_install_root_table()
-+{
-+	int i;
++/*
+  * acpi_boot_table_init() and acpi_boot_init()
+  *  called from setup_arch(), always.
+  *	1. checksums all tables
+@@ -1511,21 +1533,7 @@ static struct dmi_system_id __initdata acpi_dmi_table_late[] = {
+ 
+ void __init acpi_boot_table_init(void)
+ {
+-	dmi_check_system(acpi_dmi_table);
+-
+-	/*
+-	 * If acpi_disabled, bail out
+-	 */
+-	if (acpi_disabled)
+-		return; 
+-
+-	/*
+-	 * Initialize the ACPI boot-time table parser.
+-	 */
+-	if (acpi_table_init()) {
+-		disable_acpi();
+-		return;
+-	}
++	acpi_install_root_table();
+ 
+ 	acpi_table_parse(ACPI_SIG_BOOT, acpi_parse_sbf);
+ 
+diff --git a/arch/x86/kernel/setup.c b/arch/x86/kernel/setup.c
+index 56f7fcf..38a5952 100644
+--- a/arch/x86/kernel/setup.c
++++ b/arch/x86/kernel/setup.c
+@@ -1075,6 +1075,9 @@ void __init setup_arch(char **cmdline_p)
+ 	memblock.current_limit = ISA_END_ADDRESS;
+ 	memblock_x86_fill();
+ 
++	/* Initialize ACPI root table */
++	acpi_root_table_init();
 +
  	/*
- 	 * Complete the initialization of the root table array by examining
--	 * the header of each table
-+	 * the header of each table.
-+	 *
-+	 * First two entries in the table array are reserved for the DSDT
-+	 * and FACS, which are not actually present in the RSDT/XSDT - they
-+	 * come from the FADT.
- 	 */
- 	for (i = 2; i < acpi_gbl_root_table_list.current_table_count; i++) {
- 		acpi_tb_install_table(acpi_gbl_root_table_list.tables[i].
-@@ -782,6 +803,4 @@ acpi_tb_parse_root_table(acpi_physical_address rsdp_address)
- 			acpi_tb_parse_fadt(i);
- 		}
- 	}
--
--	return_ACPI_STATUS(AE_OK);
- }
+ 	 * The EFI specification says that boot service code won't be called
+ 	 * after ExitBootServices(). This is, in fact, a lie.
 diff --git a/drivers/acpi/tables.c b/drivers/acpi/tables.c
-index d67a1fe..8860e79 100644
+index 8860e79..60ecbb8 100644
 --- a/drivers/acpi/tables.c
 +++ b/drivers/acpi/tables.c
-@@ -353,6 +353,8 @@ int __init acpi_table_init(void)
+@@ -353,10 +353,13 @@ int __init acpi_table_init(void)
  	if (ACPI_FAILURE(status))
  		return 1;
  
+-	acpi_tb_install_root_table();
++	return 0;
++}
+ 
++void __init acpi_install_root_table(void)
++{
 +	acpi_tb_install_root_table();
-+
  	check_multiple_madt();
- 	return 0;
+-	return 0;
  }
-diff --git a/include/acpi/acpixf.h b/include/acpi/acpixf.h
-index 454881e..f5549b5 100644
---- a/include/acpi/acpixf.h
-+++ b/include/acpi/acpixf.h
-@@ -116,6 +116,8 @@ acpi_status
- acpi_initialize_tables(struct acpi_table_desc *initial_storage,
- 		       u32 initial_table_count, u8 allow_resize);
  
-+void acpi_tb_install_root_table(void);
-+
- acpi_status __init acpi_initialize_subsystem(void);
+ static int __init acpi_parse_apic_instance(char *str)
+diff --git a/include/linux/acpi.h b/include/linux/acpi.h
+index 17b5b59..95f600c 100644
+--- a/include/linux/acpi.h
++++ b/include/linux/acpi.h
+@@ -92,10 +92,12 @@ void __acpi_unmap_table(char *map, unsigned long size);
+ int early_acpi_boot_init(void);
+ int acpi_boot_init (void);
+ void acpi_boot_table_init (void);
++void acpi_root_table_init(void);
+ int acpi_mps_check (void);
+ int acpi_numa_init (void);
  
- acpi_status acpi_enable_subsystem(u32 flags);
+ int acpi_table_init (void);
++void acpi_install_root_table(void);
+ int acpi_table_parse(char *id, acpi_tbl_table_handler handler);
+ int __init acpi_table_parse_entries(char *id, unsigned long table_size,
+ 				    int entry_id,
 -- 
 1.7.1
 
