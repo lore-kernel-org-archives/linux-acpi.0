@@ -1,7 +1,7 @@
 From: Tang Chen <tangchen@cn.fujitsu.com>
-Subject: [PATCH 08/21] x86, acpi: Also initialize signature and length when parsing root table.
-Date: Fri, 19 Jul 2013 15:59:21 +0800
-Message-ID: <1374220774-29974-9-git-send-email-tangchen@cn.fujitsu.com>
+Subject: [PATCH 19/21] x86, numa: Save nid when reserve memory into memblock.reserved[].
+Date: Fri, 19 Jul 2013 15:59:32 +0800
+Message-ID: <1374220774-29974-20-git-send-email-tangchen@cn.fujitsu.com>
 References: <1374220774-29974-1-git-send-email-tangchen@cn.fujitsu.com>
 Return-path: <owner-linux-mm@kvack.org>
 In-Reply-To: <1374220774-29974-1-git-send-email-tangchen@cn.fujitsu.com>
@@ -10,66 +10,80 @@ To: tglx@linutronix.de, mingo@elte.hu, hpa@zytor.com, akpm@linux-foundation.org,
 Cc: x86@kernel.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-mm@kvack.org, linux-acpi@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-Besides the phys addr of the acpi tables, it will be very convenient if
-we also have the signature of each table in acpi_gbl_root_table_list at
-early time. We can find SRAT easily by comparing the signature.
+We have introduced numa_sync_memblock_nid to synchronize nid info in
+memblock.reserved[] and numa_meminfo. But memblock_reserve() always
+reserve memory with MAX_NUMNODES, even after numa_meminfo has been
+initialized.
 
-This patch alse record signature and some other info in
-acpi_gbl_root_table_list at early time.
+So this patch improves memblock_reserve() to reserve memory with
+correct nid.
 
+Reported-by: Vasilis Liaskovitis <vasilis.liaskovitis@profitbricks.com>
 Signed-off-by: Tang Chen <tangchen@cn.fujitsu.com>
 ---
- drivers/acpi/acpica/tbutils.c |   23 +++++++++++++++++++++++
- 1 files changed, 23 insertions(+), 0 deletions(-)
+ include/linux/memblock.h |    1 +
+ include/linux/mm.h       |    9 +++++++++
+ mm/memblock.c            |   11 +++++++++--
+ 3 files changed, 19 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/acpi/acpica/tbutils.c b/drivers/acpi/acpica/tbutils.c
-index 9d68ffc..37cc5e4 100644
---- a/drivers/acpi/acpica/tbutils.c
-+++ b/drivers/acpi/acpica/tbutils.c
-@@ -514,6 +514,7 @@ acpi_tb_install_table(acpi_physical_address address,
- 	 * fully mapped later (in verify table). In any case, we must
- 	 * unmap the header that was mapped above.
- 	 */
-+	table_desc = &acpi_gbl_root_table_list.tables[table_index];
- 	final_table = acpi_tb_table_override(table, table_desc);
- 	if (!final_table) {
- 		final_table = table;	/* There was no override */
-@@ -627,6 +628,7 @@ acpi_tb_parse_root_table(acpi_physical_address rsdp_address)
- 	u32 i;
- 	u32 table_count;
- 	struct acpi_table_header *table;
-+	struct acpi_table_desc *table_desc;
- 	acpi_physical_address address;
- 	acpi_physical_address uninitialized_var(rsdt_address);
- 	u32 length;
-@@ -766,6 +768,27 @@ acpi_tb_parse_root_table(acpi_physical_address rsdp_address)
- 	 */
- 	acpi_os_unmap_memory(table, length);
+diff --git a/include/linux/memblock.h b/include/linux/memblock.h
+index 8d71795..d520015 100644
+--- a/include/linux/memblock.h
++++ b/include/linux/memblock.h
+@@ -63,6 +63,7 @@ int memblock_remove(phys_addr_t base, phys_addr_t size);
+ int memblock_free(phys_addr_t base, phys_addr_t size);
+ int memblock_reserve(phys_addr_t base, phys_addr_t size);
+ int memblock_reserve_hotpluggable(phys_addr_t base, phys_addr_t size, int nid);
++int memblock_reserve_node(phys_addr_t base, phys_addr_t size, int nid);
+ void memblock_free_hotpluggable(void);
+ void memblock_trim_memory(phys_addr_t align);
  
-+	/*
-+	 * Also initialize the table entries here, so that later we can use them
-+	 * to find SRAT at very eraly time to reserve hotpluggable memory.
-+	 */
-+	for (i = 2; i < table_count; i++) {
-+		table = acpi_os_map_memory(
-+				acpi_gbl_root_table_list.tables[i].address,
-+				sizeof(struct acpi_table_header));
-+		if (!table)
-+			return_ACPI_STATUS(AE_NO_MEMORY);
+diff --git a/include/linux/mm.h b/include/linux/mm.h
+index e0c8528..baa1aac 100644
+--- a/include/linux/mm.h
++++ b/include/linux/mm.h
+@@ -1665,6 +1665,15 @@ unsigned long change_prot_numa(struct vm_area_struct *vma,
+ 			unsigned long start, unsigned long end);
+ #endif
+ 
++#ifdef CONFIG_NUMA
++int __init early_numa_find_range_nid(u64 start, u64 size);
++#else
++static inline int __init early_numa_find_range_nid(u64 start, u64 size)
++{
++	return 0;
++}
++#endif
 +
-+		table_desc = &acpi_gbl_root_table_list.tables[i];
-+
-+		table_desc->pointer = NULL;
-+		table_desc->length = table->length;
-+		table_desc->flags = ACPI_TABLE_ORIGIN_MAPPED;
-+		ACPI_MOVE_32_TO_32(table_desc->signature.ascii, table->signature);
-+
-+		acpi_os_unmap_memory(table, sizeof(struct acpi_table_header));
-+	}
-+
- 	return_ACPI_STATUS(AE_OK);
+ struct vm_area_struct *find_extend_vma(struct mm_struct *, unsigned long addr);
+ int remap_pfn_range(struct vm_area_struct *, unsigned long addr,
+ 			unsigned long pfn, unsigned long size, pgprot_t);
+diff --git a/mm/memblock.c b/mm/memblock.c
+index 631b727..1f5dc12 100644
+--- a/mm/memblock.c
++++ b/mm/memblock.c
+@@ -597,12 +597,19 @@ static int __init_memblock memblock_reserve_region(phys_addr_t base,
+ 	return memblock_add_region(_rgn, base, size, nid, flags);
  }
  
+-int __init_memblock memblock_reserve(phys_addr_t base, phys_addr_t size)
++int __init_memblock memblock_reserve_node(phys_addr_t base,
++					  phys_addr_t size, int nid)
+ {
+-	return memblock_reserve_region(base, size, MAX_NUMNODES,
++	return memblock_reserve_region(base, size, nid,
+ 				       MEMBLK_FLAGS_DEFAULT);
+ }
+ 
++int __init_memblock memblock_reserve(phys_addr_t base, phys_addr_t size)
++{
++	int nid = early_numa_find_range_nid(base, size);
++	return memblock_reserve_node(base, size, nid);
++}
++
+ int __init_memblock memblock_reserve_hotpluggable(phys_addr_t base,
+ 						  phys_addr_t size, int nid)
+ {
 -- 
 1.7.1
 
