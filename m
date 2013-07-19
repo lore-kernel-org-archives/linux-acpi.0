@@ -1,97 +1,66 @@
-From: Robert Hancock <hancockrwd@gmail.com>
-Subject: Re: [PATCH v2 6/8] PCI: acpiphp: workaround for Thunderbolt on Acer
- Aspire S5
-Date: Thu, 18 Jul 2013 21:57:23 -0600
-Message-ID: <51E8B923.5090201@gmail.com>
-References: <1372860295-8306-1-git-send-email-mika.westerberg@linux.intel.com> <1372860295-8306-7-git-send-email-mika.westerberg@linux.intel.com> <1444243.g9GbxN3NM0@vostro.rjw.lan>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-ie0-f173.google.com ([209.85.223.173]:36613 "EHLO
-	mail-ie0-f173.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754625Ab3GSD51 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 18 Jul 2013 23:57:27 -0400
-In-Reply-To: <1444243.g9GbxN3NM0@vostro.rjw.lan>
-Sender: linux-acpi-owner@vger.kernel.org
+From: Tang Chen <tangchen@cn.fujitsu.com>
+Subject: [PATCH 01/21] acpi: Print Hot-Pluggable Field in SRAT.
+Date: Fri, 19 Jul 2013 15:59:14 +0800
+Message-ID: <1374220774-29974-2-git-send-email-tangchen@cn.fujitsu.com>
+References: <1374220774-29974-1-git-send-email-tangchen@cn.fujitsu.com>
+Return-path: <owner-linux-mm@kvack.org>
+In-Reply-To: <1374220774-29974-1-git-send-email-tangchen@cn.fujitsu.com>
+Sender: owner-linux-mm@kvack.org
+To: tglx@linutronix.de, mingo@elte.hu, hpa@zytor.com, akpm@linux-foundation.org, tj@kernel.org, trenn@suse.de, yinghai@kernel.org, jiang.liu@huawei.com, wency@cn.fujitsu.com, laijs@cn.fujitsu.com, isimatu.yasuaki@jp.fujitsu.com, izumi.taku@jp.fujitsu.com, mgorman@suse.de, minchan@kernel.org, mina86@mina86.com, gong.chen@linux.intel.com, vasilis.liaskovitis@profitbricks.com, lwoodman@redhat.com, riel@redhat.com, jweiner@redhat.com, prarit@redhat.com, zhangyanfei@cn.fujitsu.com, yanghy@cn.fujitsu.com
+Cc: x86@kernel.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-mm@kvack.org, linux-acpi@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: Mika Westerberg <mika.westerberg@linux.intel.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Bjorn Helgaas <bhelgaas@google.com>, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Jesse Barnes <jbarnes@virtuousgeek.org>, Yinghai Lu <yinghai@kernel.org>, john.ronciak@intel.com, miles.j.penner@intel.com, bruce.w.allan@intel.com, Heikki Krogerus <heikki.krogerus@linux.intel.com>, "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, linux-pci@vger.kernel.org, x86@kernel.org
 
-On 07/03/2013 03:40 PM, Rafael J. Wysocki wrote:
-> On Wednesday, July 03, 2013 05:04:53 PM Mika Westerberg wrote:
->> From: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
->>
->> Correct ACPI PCI hotplug imeplementation should have _RMV method in a
->> PCI slot (device under pci bridge). In Acer Aspire S5 case we have it
->> deeper in hierarchy:
->>
->> Device (RP05)
->> {
->>     // ...
->>     Device (HRUP)
->>     {
->>         // ...
->>         Device (HRDN)
->>         {
->>             // ...
->>             Device (EPUP)
->>             {
->>                 // ...
->>                 Method (_RMV, 0, NotSerialized)  // _RMV: Removal Status
->>                 {
->>                     Return (One)
->>                 }
->>             }
->>         }
->>     }
->> }
->>
->> Signed-off-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
->> Signed-off-by: Mika Westerberg <mika.westerberg@linux.intel.com>
->> ---
->>   drivers/pci/hotplug/acpi_pcihp.c | 13 +++++++++++++
->>   1 file changed, 13 insertions(+)
->>
->> diff --git a/drivers/pci/hotplug/acpi_pcihp.c b/drivers/pci/hotplug/acpi_pcihp.c
->> index 2a47e82..d92ebfb 100644
->> --- a/drivers/pci/hotplug/acpi_pcihp.c
->> +++ b/drivers/pci/hotplug/acpi_pcihp.c
->> @@ -422,6 +422,19 @@ static int pcihp_is_ejectable(acpi_handle handle)
->>   	status = acpi_evaluate_integer(handle, "_RMV", NULL, &removable);
->>   	if (ACPI_SUCCESS(status) && removable)
->>   		return 1;
->> +
->> +	/*
->> +	 * Workaround for Thunderbolt implementation on Acer Aspire S5.
->> +	 *
->> +	 * Correct ACPI PCI hotplug imeplementation has _RMV method in a PCI
->> +	 * slot (device under pci bridge). In Acer Aspire S5 case we have it
->> +	 * deeper in hierarchy.
->> +	 */
->> +	status = acpi_evaluate_integer(handle, "HRDN.EPUP._RMV", NULL,
->> +			&removable);
->
-> Well, calling stuff like this directly from a general function is kind of ugly.
->
-> Can we use something like a quirk instead?  A DMI check or something?
+The Hot-Pluggable field in SRAT suggests if the memory could be
+hotplugged while the system is running. Print it as well when
+parsing SRAT will help users to know which memory is hotpluggable.
 
-Presumably this device functions under Windows so clearly Windows is 
-capable of dealing with this case, so we should too.
+Signed-off-by: Tang Chen <tangchen@cn.fujitsu.com>
+Reviewed-by: Wanpeng Li <liwanp@linux.vnet.ibm.com>
+---
+ arch/x86/mm/srat.c |   11 +++++++----
+ 1 files changed, 7 insertions(+), 4 deletions(-)
 
-There are way too many of these silly DMI checks in the kernel - we 
-should be way more hesitant to add more of them. They're almost 
-guaranteed to be incomplete. I would say they should be avoided whenever 
-possible unless there's some reason why a general workaround can't be used.
+diff --git a/arch/x86/mm/srat.c b/arch/x86/mm/srat.c
+index cdd0da9..15ba3a9 100644
+--- a/arch/x86/mm/srat.c
++++ b/arch/x86/mm/srat.c
+@@ -146,6 +146,7 @@ int __init
+ acpi_numa_memory_affinity_init(struct acpi_srat_mem_affinity *ma)
+ {
+ 	u64 start, end;
++	u32 hotpluggable;
+ 	int node, pxm;
+ 
+ 	if (srat_disabled())
+@@ -154,7 +155,8 @@ acpi_numa_memory_affinity_init(struct acpi_srat_mem_affinity *ma)
+ 		goto out_err_bad_srat;
+ 	if ((ma->flags & ACPI_SRAT_MEM_ENABLED) == 0)
+ 		goto out_err;
+-	if ((ma->flags & ACPI_SRAT_MEM_HOT_PLUGGABLE) && !save_add_info())
++	hotpluggable = ma->flags & ACPI_SRAT_MEM_HOT_PLUGGABLE;
++	if (hotpluggable && !save_add_info())
+ 		goto out_err;
+ 
+ 	start = ma->base_address;
+@@ -174,9 +176,10 @@ acpi_numa_memory_affinity_init(struct acpi_srat_mem_affinity *ma)
+ 
+ 	node_set(node, numa_nodes_parsed);
+ 
+-	printk(KERN_INFO "SRAT: Node %u PXM %u [mem %#010Lx-%#010Lx]\n",
+-	       node, pxm,
+-	       (unsigned long long) start, (unsigned long long) end - 1);
++	pr_info("SRAT: Node %u PXM %u [mem %#010Lx-%#010Lx] %s\n",
++		node, pxm,
++		(unsigned long long) start, (unsigned long long) end - 1,
++		hotpluggable ? "Hot Pluggable" : "");
+ 
+ 	return 0;
+ out_err_bad_srat:
+-- 
+1.7.1
 
->
->> +	if (ACPI_SUCCESS(status) && removable)
->> +		return 1;
->> +
->>   	return 0;
->>   }
->
-> Rafael
->
->
-
+--
+To unsubscribe, send a message with 'unsubscribe linux-mm' in
+the body to majordomo@kvack.org.  For more info on Linux MM,
+see: http://www.linux-mm.org/ .
+Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
