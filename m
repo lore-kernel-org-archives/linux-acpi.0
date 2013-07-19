@@ -1,7 +1,7 @@
 From: Tang Chen <tangchen@cn.fujitsu.com>
-Subject: [PATCH 02/21] memblock, numa: Introduce flag into memblock.
-Date: Fri, 19 Jul 2013 15:59:15 +0800
-Message-ID: <1374220774-29974-3-git-send-email-tangchen@cn.fujitsu.com>
+Subject: [PATCH 20/21] x86, numa, acpi, memory-hotplug: Make movablecore=acpi have higher priority.
+Date: Fri, 19 Jul 2013 15:59:33 +0800
+Message-ID: <1374220774-29974-21-git-send-email-tangchen@cn.fujitsu.com>
 References: <1374220774-29974-1-git-send-email-tangchen@cn.fujitsu.com>
 Return-path: <owner-linux-mm@kvack.org>
 In-Reply-To: <1374220774-29974-1-git-send-email-tangchen@cn.fujitsu.com>
@@ -10,249 +10,109 @@ To: tglx@linutronix.de, mingo@elte.hu, hpa@zytor.com, akpm@linux-foundation.org,
 Cc: x86@kernel.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-mm@kvack.org, linux-acpi@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-There is no flag in memblock to describe what type the memory is.
-Sometimes, we may use memblock to reserve some memory for special usage.
-And we want to know what kind of memory it is. So we need a way to
-differentiate memory for different usage.
+Arrange hotpluggable memory as ZONE_MOVABLE will cause NUMA performance down
+because the kernel cannot use movable memory. For users who don't use memory
+hotplug and who don't want to lose their NUMA performance, they need a way to
+disable this functionality. So we improved movablecore boot option.
 
-In hotplug environment, we want to reserve hotpluggable memory so the
-kernel won't be able to use it. And when the system is up, we have to
-free these hotpluggable memory to buddy. So we need to mark these memory
-first.
+If users specify the original movablecore=nn@ss boot option, the kernel will
+arrange [ss, ss+nn) as ZONE_MOVABLE. The kernelcore=nn@ss boot option is similar
+except it specifies ZONE_NORMAL ranges.
 
-In order to do so, we need to mark out these special memory in memblock.
-In this patch, we introduce a new "flags" member into memblock_region:
-   struct memblock_region {
-           phys_addr_t base;
-           phys_addr_t size;
-           unsigned long flags;		/* This is new. */
-   #ifdef CONFIG_HAVE_MEMBLOCK_NODE_MAP
-           int nid;
-   #endif
-   };
+Now, if users specify "movablecore=acpi" in kernel commandline, the kernel will
+arrange hotpluggable memory in SRAT as ZONE_MOVABLE. And if users do this, all
+the other movablecore=nn@ss and kernelcore=nn@ss options should be ignored.
 
-This patch does the following things:
-1) Add "flags" member to memblock_region, and MEMBLK_DEFAULT flag for common usage.
-2) Modify the following APIs' prototype:
-	memblock_add_region()
-	memblock_insert_region()
-3) Add memblock_reserve_region() to support reserve memory with flags, and keep
-   memblock_reserve()'s prototype unmodified.
-4) Modify other APIs to support flags, but keep their prototype unmodified.
+For those who don't want this, just specify nothing. The kernel will act as
+before.
 
-The idea is from Wen Congyang <wency@cn.fujitsu.com> and Liu Jiang <jiang.liu@huawei.com>.
-
-Suggested-by: Wen Congyang <wency@cn.fujitsu.com>
-Suggested-by: Liu Jiang <jiang.liu@huawei.com>
 Signed-off-by: Tang Chen <tangchen@cn.fujitsu.com>
+Reviewed-by: Wanpeng Li <liwanp@linux.vnet.ibm.com>
 ---
- include/linux/memblock.h |    4 +++
- mm/memblock.c            |   55 +++++++++++++++++++++++++++++++++------------
- 2 files changed, 44 insertions(+), 15 deletions(-)
+ include/linux/memblock.h |    1 +
+ mm/memblock.c            |    5 +++++
+ mm/page_alloc.c          |   31 +++++++++++++++++++++++++++++--
+ 3 files changed, 35 insertions(+), 2 deletions(-)
 
 diff --git a/include/linux/memblock.h b/include/linux/memblock.h
-index f388203..93f3453 100644
+index d520015..28ba511 100644
 --- a/include/linux/memblock.h
 +++ b/include/linux/memblock.h
-@@ -19,9 +19,13 @@
+@@ -64,6 +64,7 @@ int memblock_free(phys_addr_t base, phys_addr_t size);
+ int memblock_reserve(phys_addr_t base, phys_addr_t size);
+ int memblock_reserve_hotpluggable(phys_addr_t base, phys_addr_t size, int nid);
+ int memblock_reserve_node(phys_addr_t base, phys_addr_t size, int nid);
++bool memblock_is_hotpluggable(struct memblock_region *region);
+ void memblock_free_hotpluggable(void);
+ void memblock_trim_memory(phys_addr_t align);
  
- #define INIT_MEMBLOCK_REGIONS	128
- 
-+/* Definition of memblock flags. */
-+#define MEMBLK_FLAGS_DEFAULT	0x0	/* default flag */
-+
- struct memblock_region {
- 	phys_addr_t base;
- 	phys_addr_t size;
-+	unsigned long flags;
- #ifdef CONFIG_HAVE_MEMBLOCK_NODE_MAP
- 	int nid;
- #endif
 diff --git a/mm/memblock.c b/mm/memblock.c
-index c5fad93..9e871e9 100644
+index 1f5dc12..fd3ded8 100644
 --- a/mm/memblock.c
 +++ b/mm/memblock.c
-@@ -157,6 +157,7 @@ static void __init_memblock memblock_remove_region(struct memblock_type *type, u
- 		type->cnt = 1;
- 		type->regions[0].base = 0;
- 		type->regions[0].size = 0;
-+		type->regions[0].flags = 0;
- 		memblock_set_region_node(&type->regions[0], MAX_NUMNODES);
- 	}
+@@ -616,6 +616,11 @@ int __init_memblock memblock_reserve_hotpluggable(phys_addr_t base,
+ 	return memblock_reserve_region(base, size, nid, MEMBLK_HOTPLUGGABLE);
  }
-@@ -307,7 +308,8 @@ static void __init_memblock memblock_merge_regions(struct memblock_type *type)
  
- 		if (this->base + this->size != next->base ||
- 		    memblock_get_region_node(this) !=
--		    memblock_get_region_node(next)) {
-+		    memblock_get_region_node(next) ||
-+		    this->flags != next->flags) {
- 			BUG_ON(this->base + this->size > next->base);
- 			i++;
- 			continue;
-@@ -327,13 +329,15 @@ static void __init_memblock memblock_merge_regions(struct memblock_type *type)
-  * @base:	base address of the new region
-  * @size:	size of the new region
-  * @nid:	node id of the new region
-+ * @flags:	flags of the new region
-  *
-  * Insert new memblock region [@base,@base+@size) into @type at @idx.
-  * @type must already have extra room to accomodate the new region.
-  */
- static void __init_memblock memblock_insert_region(struct memblock_type *type,
- 						   int idx, phys_addr_t base,
--						   phys_addr_t size, int nid)
-+						   phys_addr_t size,
-+						   int nid, unsigned long flags)
- {
- 	struct memblock_region *rgn = &type->regions[idx];
- 
-@@ -341,6 +345,7 @@ static void __init_memblock memblock_insert_region(struct memblock_type *type,
- 	memmove(rgn + 1, rgn, (type->cnt - idx) * sizeof(*rgn));
- 	rgn->base = base;
- 	rgn->size = size;
-+	rgn->flags = flags;
- 	memblock_set_region_node(rgn, nid);
- 	type->cnt++;
- 	type->total_size += size;
-@@ -352,6 +357,7 @@ static void __init_memblock memblock_insert_region(struct memblock_type *type,
-  * @base: base address of the new region
-  * @size: size of the new region
-  * @nid: nid of the new region
-+ * @flags: flags of the new region
-  *
-  * Add new memblock region [@base,@base+@size) into @type.  The new region
-  * is allowed to overlap with existing ones - overlaps don't affect already
-@@ -362,7 +368,8 @@ static void __init_memblock memblock_insert_region(struct memblock_type *type,
-  * 0 on success, -errno on failure.
-  */
- static int __init_memblock memblock_add_region(struct memblock_type *type,
--				phys_addr_t base, phys_addr_t size, int nid)
-+				phys_addr_t base, phys_addr_t size,
-+				int nid, unsigned long flags)
- {
- 	bool insert = false;
- 	phys_addr_t obase = base;
-@@ -377,6 +384,7 @@ static int __init_memblock memblock_add_region(struct memblock_type *type,
- 		WARN_ON(type->cnt != 1 || type->total_size);
- 		type->regions[0].base = base;
- 		type->regions[0].size = size;
-+		type->regions[0].flags = flags;
- 		memblock_set_region_node(&type->regions[0], nid);
- 		type->total_size = size;
- 		return 0;
-@@ -407,7 +415,8 @@ repeat:
- 			nr_new++;
- 			if (insert)
- 				memblock_insert_region(type, i++, base,
--						       rbase - base, nid);
-+						       rbase - base, nid,
-+						       flags);
- 		}
- 		/* area below @rend is dealt with, forget about it */
- 		base = min(rend, end);
-@@ -417,7 +426,8 @@ repeat:
- 	if (base < end) {
- 		nr_new++;
- 		if (insert)
--			memblock_insert_region(type, i, base, end - base, nid);
-+			memblock_insert_region(type, i, base, end - base,
-+					       nid, flags);
- 	}
++bool __init_memblock memblock_is_hotpluggable(struct memblock_region *region)
++{
++	return region->flags & MEMBLK_HOTPLUGGABLE;
++}
++
+ /**
+  * __next_free_mem_range - next function for for_each_free_mem_range()
+  * @idx: pointer to u64 loop variable
+diff --git a/mm/page_alloc.c b/mm/page_alloc.c
+index 6271c36..cdb7919 100644
+--- a/mm/page_alloc.c
++++ b/mm/page_alloc.c
+@@ -4880,9 +4880,37 @@ static void __init find_zone_movable_pfns_for_nodes(void)
+ 	nodemask_t saved_node_state = node_states[N_MEMORY];
+ 	unsigned long totalpages = early_calculate_totalpages();
+ 	int usable_nodes = nodes_weight(node_states[N_MEMORY]);
++	struct memblock_type *reserved = &memblock.reserved;
  
  	/*
-@@ -439,12 +449,14 @@ repeat:
- int __init_memblock memblock_add_node(phys_addr_t base, phys_addr_t size,
- 				       int nid)
- {
--	return memblock_add_region(&memblock.memory, base, size, nid);
-+	return memblock_add_region(&memblock.memory, base, size,
-+				   nid, MEMBLK_FLAGS_DEFAULT);
- }
- 
- int __init_memblock memblock_add(phys_addr_t base, phys_addr_t size)
- {
--	return memblock_add_region(&memblock.memory, base, size, MAX_NUMNODES);
-+	return memblock_add_region(&memblock.memory, base, size,
-+				   MAX_NUMNODES, MEMBLK_FLAGS_DEFAULT);
- }
- 
- /**
-@@ -499,7 +511,8 @@ static int __init_memblock memblock_isolate_range(struct memblock_type *type,
- 			rgn->size -= base - rbase;
- 			type->total_size -= base - rbase;
- 			memblock_insert_region(type, i, rbase, base - rbase,
--					       memblock_get_region_node(rgn));
-+					       memblock_get_region_node(rgn),
-+					       rgn->flags);
- 		} else if (rend > end) {
- 			/*
- 			 * @rgn intersects from above.  Split and redo the
-@@ -509,7 +522,8 @@ static int __init_memblock memblock_isolate_range(struct memblock_type *type,
- 			rgn->size -= end - rbase;
- 			type->total_size -= end - rbase;
- 			memblock_insert_region(type, i--, rbase, end - rbase,
--					       memblock_get_region_node(rgn));
-+					       memblock_get_region_node(rgn),
-+					       rgn->flags);
- 		} else {
- 			/* @rgn is fully contained, record it */
- 			if (!*end_rgn)
-@@ -551,16 +565,25 @@ int __init_memblock memblock_free(phys_addr_t base, phys_addr_t size)
- 	return __memblock_remove(&memblock.reserved, base, size);
- }
- 
--int __init_memblock memblock_reserve(phys_addr_t base, phys_addr_t size)
-+static int __init_memblock memblock_reserve_region(phys_addr_t base,
-+						   phys_addr_t size,
-+						   int nid,
-+						   unsigned long flags)
- {
- 	struct memblock_type *_rgn = &memblock.reserved;
- 
--	memblock_dbg("memblock_reserve: [%#016llx-%#016llx] %pF\n",
-+	memblock_dbg("memblock_reserve: [%#016llx-%#016llx] with flags %#016lx %pF\n",
- 		     (unsigned long long)base,
- 		     (unsigned long long)base + size,
--		     (void *)_RET_IP_);
-+		     flags, (void *)_RET_IP_);
+-	 * If movablecore was specified, calculate what size of
++	 * Need to find movable_zone earlier in case movablecore=acpi is
++	 * specified.
++	 */
++	find_usable_zone_for_movable();
 +
-+	return memblock_add_region(_rgn, base, size, nid, flags);
-+}
++	/*
++	 * If movablecore=acpi was specified, then zone_movable_pfn[] has been
++	 * initialized, and no more work needs to do.
++	 * NOTE: In this case, we ignore kernelcore option.
++	 */
++	if (movablecore_enable_srat) {
++		for (i = 0; i < reserved->cnt; i++) {
++			if (!memblock_is_hotpluggable(&reserved->regions[i]))
++				continue;
++
++			nid = reserved->regions[i].nid;
++
++			usable_startpfn = PFN_DOWN(reserved->regions[i].base);
++			zone_movable_pfn[nid] = zone_movable_pfn[nid] ?
++				min(usable_startpfn, zone_movable_pfn[nid]) :
++				usable_startpfn;
++		}
++
++		goto out;
++	}
++
++	/*
++	 * If movablecore=nn[KMG] was specified, calculate what size of
+ 	 * kernelcore that corresponds so that memory usable for
+ 	 * any allocation type is evenly spread. If both kernelcore
+ 	 * and movablecore are specified, then the value of kernelcore
+@@ -4908,7 +4936,6 @@ static void __init find_zone_movable_pfns_for_nodes(void)
+ 		goto out;
  
--	return memblock_add_region(_rgn, base, size, MAX_NUMNODES);
-+int __init_memblock memblock_reserve(phys_addr_t base, phys_addr_t size)
-+{
-+	return memblock_reserve_region(base, size, MAX_NUMNODES,
-+				       MEMBLK_FLAGS_DEFAULT);
- }
+ 	/* usable_startpfn is the lowest possible pfn ZONE_MOVABLE can be at */
+-	find_usable_zone_for_movable();
+ 	usable_startpfn = arch_zone_lowest_possible_pfn[movable_zone];
  
- /**
-@@ -985,6 +1008,7 @@ void __init_memblock memblock_set_current_limit(phys_addr_t limit)
- static void __init_memblock memblock_dump(struct memblock_type *type, char *name)
- {
- 	unsigned long long base, size;
-+	unsigned long flags;
- 	int i;
- 
- 	pr_info(" %s.cnt  = 0x%lx\n", name, type->cnt);
-@@ -995,13 +1019,14 @@ static void __init_memblock memblock_dump(struct memblock_type *type, char *name
- 
- 		base = rgn->base;
- 		size = rgn->size;
-+		flags = rgn->flags;
- #ifdef CONFIG_HAVE_MEMBLOCK_NODE_MAP
- 		if (memblock_get_region_node(rgn) != MAX_NUMNODES)
- 			snprintf(nid_buf, sizeof(nid_buf), " on node %d",
- 				 memblock_get_region_node(rgn));
- #endif
--		pr_info(" %s[%#x]\t[%#016llx-%#016llx], %#llx bytes%s\n",
--			name, i, base, base + size - 1, size, nid_buf);
-+		pr_info(" %s[%#x]\t[%#016llx-%#016llx], %#llx bytes%s flags: %#lx\n",
-+			name, i, base, base + size - 1, size, nid_buf, flags);
- 	}
- }
- 
+ restart:
 -- 
 1.7.1
 
