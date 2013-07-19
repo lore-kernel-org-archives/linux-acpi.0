@@ -1,130 +1,102 @@
 From: Tang Chen <tangchen@cn.fujitsu.com>
-Subject: [PATCH 05/21] acpi: Introduce acpi_invalid_table() to check if a table is invalid.
-Date: Fri, 19 Jul 2013 15:59:18 +0800
-Message-ID: <1374220774-29974-6-git-send-email-tangchen@cn.fujitsu.com>
+Subject: [PATCH 18/21] x86, numa: Synchronize nid info in memblock.reserve with numa_meminfo.
+Date: Fri, 19 Jul 2013 15:59:31 +0800
+Message-ID: <1374220774-29974-19-git-send-email-tangchen@cn.fujitsu.com>
 References: <1374220774-29974-1-git-send-email-tangchen@cn.fujitsu.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Return-path: <owner-linux-mm@kvack.org>
 In-Reply-To: <1374220774-29974-1-git-send-email-tangchen@cn.fujitsu.com>
-Sender: linux-kernel-owner@vger.kernel.org
+Sender: owner-linux-mm@kvack.org
 To: tglx@linutronix.de, mingo@elte.hu, hpa@zytor.com, akpm@linux-foundation.org, tj@kernel.org, trenn@suse.de, yinghai@kernel.org, jiang.liu@huawei.com, wency@cn.fujitsu.com, laijs@cn.fujitsu.com, isimatu.yasuaki@jp.fujitsu.com, izumi.taku@jp.fujitsu.com, mgorman@suse.de, minchan@kernel.org, mina86@mina86.com, gong.chen@linux.intel.com, vasilis.liaskovitis@profitbricks.com, lwoodman@redhat.com, riel@redhat.com, jweiner@redhat.com, prarit@redhat.com, zhangyanfei@cn.fujitsu.com, yanghy@cn.fujitsu.com
 Cc: x86@kernel.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-mm@kvack.org, linux-acpi@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-In acpi_initrd_override(), it checks several things to ensure the
-table it found is valid. In later patches, we need to do these check
-somewhere else. So this patch introduces a common function
-acpi_invalid_table() to do all these checks, and reuse it in different
-places. The function will be used in the subsequent patches.
+Vasilis Liaskovitis found that before we parse SRAT and fulfill numa_meminfo,
+the nids of all the regions in memblock.reserve[] are MAX_NUMNODES. That is
+because nids have not been mapped at that time.
+
+When we arrange ZONE_MOVABLE in each node later, we need nid in memblock. So
+after we parse SRAT and fulfill nume_meminfo, synchronize the nid info to
+memblock.reserve[] immediately.
 
 Signed-off-by: Tang Chen <tangchen@cn.fujitsu.com>
+Signed-off-by: Vasilis Liaskovitis <vasilis.liaskovitis@profitbricks.com>
 ---
- drivers/acpi/osl.c |   82 ++++++++++++++++++++++++++++++++++++----------------
- 1 files changed, 57 insertions(+), 25 deletions(-)
+ arch/x86/mm/numa.c |   50 ++++++++++++++++++++++++++++++++++++++++++++++++++
+ 1 files changed, 50 insertions(+), 0 deletions(-)
 
-diff --git a/drivers/acpi/osl.c b/drivers/acpi/osl.c
-index 91d9f54..4531920 100644
---- a/drivers/acpi/osl.c
-+++ b/drivers/acpi/osl.c
-@@ -572,9 +572,64 @@ static const char * const table_sigs[] = {
- /* Must not increase 10 or needs code modification below */
- #define ACPI_OVERRIDE_TABLES 10
+diff --git a/arch/x86/mm/numa.c b/arch/x86/mm/numa.c
+index 5013583..f2a3984 100644
+--- a/arch/x86/mm/numa.c
++++ b/arch/x86/mm/numa.c
+@@ -548,6 +548,48 @@ static void __init numa_init_array(void)
+ 	}
+ }
  
-+/**
-+ * acpi_invalid_table - Check if an acpi table found in initrd is invalid.
-+ * @file: The cpio file returned by find_cpio_data().
-+ * @path: The path storing acpi overriding tables in cpio file.
-+ * @signature: The table signature to be checked.
++/*
++ * early_numa_find_range_nid - Find nid for a memory range at early time.
++ * @start: start address of the memory range (physaddr)
++ * @size: size of the memory range
 + *
-+ * @signature can be NULL. If it is NULL, the function will check if the
-+ * table signature matches any signature in table_sigs[].
++ * Return nid of the memory range, or MAX_NUMNODES if it failed to find the nid.
 + *
-+ * Return 0 if it passes all the checks, -EINVAL if any check fails.
++ * NOTE: This function uses numa_meminfo to find the range's nid, so it should
++ *       be called after numa_meminfo has been initialized.
 + */
-+int __init acpi_invalid_table(struct cpio_data *file,
-+			      const char *path, const char *signature)
++int __init early_numa_find_range_nid(u64 start, u64 size)
 +{
-+	int idx;
-+	struct acpi_table_header *table = file->data;
++	int i;
++	struct numa_meminfo *mi = &numa_meminfo;
 +
-+	if (file->size < sizeof(struct acpi_table_header)) {
-+		INVALID_TABLE("Table smaller than ACPI header",
-+			      path, file->name);
-+		return -EINVAL;
-+	}
++	for (i = 0; i < mi->nr_blks; i++)
++		if (start >= mi->blk[i].start &&
++		    (start + size - 1) <= mi->blk[i].end)
++			return mi->blk[i].nid;
 +
-+	if (signature) {
-+		if (memcmp(table->signature, signature, 4)) {
-+			INVALID_TABLE("Table signature does not match",
-+				      path, file->name);
-+			return -EINVAL;
-+		}
-+	} else {
-+		for (idx = 0; table_sigs[idx]; idx++)
-+			if (!memcmp(table->signature, table_sigs[idx], 4))
-+				break;
-+
-+		if (!table_sigs[idx]) {
-+			INVALID_TABLE("Unknown signature", path, file->name);
-+			return -EINVAL;
-+		}
-+	}
-+
-+	if (file->size != table->length) {
-+		INVALID_TABLE("File length does not match table length",
-+			      path, file->name);
-+		return -EINVAL;
-+	}
-+
-+	if (acpi_table_checksum(file->data, table->length)) {
-+		INVALID_TABLE("Bad table checksum",
-+			      path, file->name);
-+		return -EINVAL;
-+	}
-+
-+	return 0;
++	return MAX_NUMNODES;
 +}
 +
- void __init acpi_initrd_override(void *data, size_t size)
++/*
++ * numa_sync_memblock_nid - Synchronize nid info in memblock.reserve[] to
++ *                          numa_meminfo.
++ *
++ * This function will synchronize the nid fields of regions in
++ * memblock.reserve[] to numa_meminfo.
++ */
++static void __init numa_sync_memblock_nid()
++{
++	int i, nid;
++	struct memblock_type *res = &memblock.reserved;
++
++	for (i = 0; i < res->cnt; i++) {
++		nid = early_numa_find_range_nid(res->regions[i].base,
++						res->regions[i].size);
++		memblock_set_region_node(&res->regions[i], nid);
++	}
++}
++
+ static int __init numa_init(int (*init_func)(void))
  {
--	int sig, no, table_nr = 0, total_offset = 0;
-+	int no, table_nr = 0, total_offset = 0;
- 	long offset = 0;
- 	struct acpi_table_header *table;
- 	char cpio_path[32] = "kernel/firmware/acpi/";
-@@ -593,33 +648,10 @@ void __init acpi_initrd_override(void *data, size_t size)
- 		data += offset;
- 		size -= offset;
+ 	int i;
+@@ -585,6 +627,14 @@ static int __init numa_init(int (*init_func)(void))
+ 			numa_clear_node(i);
+ 	}
+ 	numa_init_array();
++
++	/*
++	 * Before fulfilling numa_meminfo, all regions allocated by memblock
++	 * are reserved with nid MAX_NUMNODES because there is no numa node
++	 * info at such an early time. Now, fill the correct nid into memblock.
++	 */
++	numa_sync_memblock_nid();
++
+ 	return 0;
+ }
  
--		if (file.size < sizeof(struct acpi_table_header)) {
--			INVALID_TABLE("Table smaller than ACPI header",
--				      cpio_path, file.name);
--			continue;
--		}
--
- 		table = file.data;
- 
--		for (sig = 0; table_sigs[sig]; sig++)
--			if (!memcmp(table->signature, table_sigs[sig], 4))
--				break;
--
--		if (!table_sigs[sig]) {
--			INVALID_TABLE("Unknown signature",
--				      cpio_path, file.name);
--			continue;
--		}
--		if (file.size != table->length) {
--			INVALID_TABLE("File length does not match table length",
--				      cpio_path, file.name);
--			continue;
--		}
--		if (acpi_table_checksum(file.data, table->length)) {
--			INVALID_TABLE("Bad table checksum",
--				      cpio_path, file.name);
-+		if (acpi_invalid_table(&file, cpio_path, NULL))
- 			continue;
--		}
- 
- 		pr_info("%4.4s ACPI table found in initrd [%s%s][0x%x]\n",
- 			table->signature, cpio_path, file.name, table->length);
 -- 
 1.7.1
+
+--
+To unsubscribe, send a message with 'unsubscribe linux-mm' in
+the body to majordomo@kvack.org.  For more info on Linux MM,
+see: http://www.linux-mm.org/ .
+Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
