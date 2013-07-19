@@ -1,119 +1,82 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: [GIT PULL] ACPI and power management fixes for v3.11-rc2
-Date: Fri, 19 Jul 2013 15:11 +0200
-Message-ID: <10849265.6UBS59mCp5@vostro.rjw.lan>
+From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Subject: Re: [PATCH 3.11-rc1] crypto: Fix boot failure due to module dependency.
+Date: Fri, 19 Jul 2013 23:38:04 +0200
+Message-ID: <4295105.1txhDL4OOg@vostro.rjw.lan>
+References: <201307180550.BDB51536.LHMQOOOVFJFSFt@I-love.SAKURA.ne.jp> <2493652.fjZLqTL8IF@vostro.rjw.lan> <1374257329.22432.382.camel@schen9-DESK>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7Bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from hydra.sisk.pl ([212.160.235.94]:52097 "EHLO hydra.sisk.pl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752300Ab3GSNBD (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 19 Jul 2013 09:01:03 -0400
+Received: from v094114.home.net.pl ([79.96.170.134]:64629 "HELO
+	v094114.home.net.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S1751617Ab3GSV2H (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 19 Jul 2013 17:28:07 -0400
+In-Reply-To: <1374257329.22432.382.camel@schen9-DESK>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>, Linux PM list <linux-pm@vger.kernel.org>
+To: Tim Chen <tim.c.chen@linux.intel.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: Herbert Xu <herbert@gondor.apana.org.au>, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Tetsuo Handa <penguin-kernel@i-love.sakura.ne.jp>, linux-kernel@vger.kernel.org, linux-crypto@vger.kernel.org, ak <ak@linux.intel.com>, "H. Peter Anvin" <hpa@zytor.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>
 
-Hi Linus,
+On Friday, July 19, 2013 11:08:49 AM Tim Chen wrote:
+> On Fri, 2013-07-19 at 16:49 +0200, Rafael J. Wysocki wrote:
+> > > > > > This should cause udev to load the crct10dif_pclml module when cpu
+> > > > > > support the PCLMULQDQ (feature code 0081).  I did my testing during
+> > > > > > development on 3.10 and the module was indeed loaded.
+> > > > > >
+> > > > > > However, I found that the following commit under 3.11-rc1 broke
+> > > > > > the mechanism after some bisection.
+> > > > > >
+> > > > > > commit ac212b6980d8d5eda705864fc5a8ecddc6d6eacc
+> > > > > > Author: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+> > > > > > Date:   Fri May 3 00:26:22 2013 +0200
+> > > > > >
+> > > > > >      ACPI / processor: Use common hotplug infrastructure
+> > > > > >      
+> > > > > >      Split the ACPI processor driver into two parts, one that is
+> > > > > >      non-modular, resides in the ACPI core and handles the enumeration
+> > > > > >      and hotplug of processors and one that implements the rest of the
+> > > > > >      existing processor driver functionality.
+> > > > > >      
+> > > > > > Rafael, can you check and see if this can be fixed so those optimized
+> > > > > > crypto modules for Intel cpu that support them can be loaded?
+> > > > > 
+> > > > > I think this is an ordering issue between udev startup and the time when 
+> > > > > devices are registered.
+> > > > 
+> > > > Something that can be fixed?
+> > > 
+> > > I'm sure it can be fixes, but I'm not sure whether it's a udev bug or real
+> > > breakage in the kernel yet.  I need to figure out that part.
+> > 
+> > OK
+> > 
+> > I wonder if the appended patch makes the issue go away for you?
+> > 
+> 
+> Rafael, the patch did fix the cpu feature based module loading issue.
+> Thanks for your quick response.
 
-Please pull from the git repository at
+Alas, this is not the one I'd like to apply.
 
-  git://git.kernel.org/pub/scm/linux/kernel/git/rafael/linux-pm.git pm+acpi-3.11-rc2
+With that patch applied, new device objects are created to avoid binding the
+processor driver directly to the cpu system device objects, because that
+apparently confuses udev and it starts to ignore the cpu modalias once the
+driver has been bound to any of those objects.
 
-to receive ACPI and power management fixes for v3.11-rc2 with
-top-most commit 5a8d2815593007d4eb59f337ef919c871c2649ab
+I've verified in the meantime that this indeed is the case.
 
-  Merge branch 'pm-fixes'
+A link to the patch in question: https://patchwork.kernel.org/patch/2830561/
 
-on top of commit ad81f0545ef01ea651886dddac4bef6cec930092
+Greg, I asked you some time ago whether or not it was possible for udev to stop
+autoloading modules that matched the cpu modalias after a driver had been bound
+to the cpu system device objects and you said "no".  However, this time I can
+say with certainty that that really is the case.  So, the question now is
+whether or not we can do anything in the kernel to avoid that confusion in udev
+instead of applying the patch linked above (which is beyond ugly in my not so
+humble opinion)?
 
-  Linux 3.11-rc1
+Rafael
 
-These are fixes collected over the last week, most importnatly two cpufreq
-reverts fixing regressions introduced in 3.10, an autoseelp fix preventing
-systems using it from crashing during shutdown and two ACPI scan fixes
-related to hotplug.
-
-Specifics:
-
-- Two cpufreq commits from the 3.10 cycle introduced regressions.
-  The first of them was buggy (it did way much more than it needed
-  to do) and the second one attempted to fix an issue introduced by
-  the first one.  Fixes from Srivatsa S Bhat revert both.
-
-- If autosleep triggers during system shutdown and the shutdown
-  callbacks of some device drivers have been called already, it may
-  crash the system.  Fix from Liu Shuo prevents that from happening
-  by making try_to_suspend() check system_state.
-
-- The ACPI memory hotplug driver doesn't clear its driver_data on
-  errors which may cause a NULL poiter dereference to happen later.
-  Fix from Toshi Kani.
-
-- The ACPI namespace scanning code should not try to attach scan
-  handlers to device objects that have them already, which may confuse
-  things quite a bit, and it should rescan the whole namespace branch
-  starting at the given node after receiving a bus check notify event
-  even if the device at that particular node has been discovered
-  already.  Fixes from yours truly.
-
-- New ACPI video blacklist entry for a system whose initial backlight
-  setting from the BIOS doesn't make sense.  From Lan Tianyu.
-
-- Garbage string output avoindance for ACPI PNP from Liu Shuo.
-
-- Two Kconfig fixes for issues introduced recently in the s3c24xx
-  cpufreq driver (when moving the driver to drivers/cpufreq) from
-  Paul Bolle.
-
-- Trivial comment fix in pm_wakeup.h from Chanwoo Choi.
-
-Thanks!
-
-
----------------
-
-Chanwoo Choi (1):
-      PM / Sleep: Fix comment typo in pm_wakeup.h
-
-Lan Tianyu (1):
-      ACPI / video: ignore BIOS initial backlight value for Fujitsu E753
-
-Liu ShuoX (2):
-      PM / Sleep: avoid 'autosleep' in shutdown progress
-      PNP / ACPI: avoid garbage in resource name
-
-Paul Bolle (2):
-      cpufreq: s3c24xx: rename CONFIG_CPU_FREQ_S3C24XX_DEBUGFS
-      cpufreq: s3c24xx: fix "depends on ARM_S3C24XX" in Kconfig
-
-Rafael J. Wysocki (2):
-      ACPI / scan: Do not try to attach scan handlers to devices having them
-      ACPI / scan: Always call acpi_bus_scan() for bus check notifications
-
-Srivatsa S. Bhat (2):
-      cpufreq: Revert commit a66b2e to fix suspend/resume regression
-      cpufreq: Revert commit 2f7021a8 to fix CPU hotplug regression
-
-Toshi Kani (1):
-      ACPI / memhotplug: Fix a stale pointer in error path
-
----------------
-
- arch/arm/mach-s3c24xx/Kconfig      |    2 +-
- drivers/acpi/acpi_memhotplug.c     |    1 +
- drivers/acpi/scan.c                |   13 +++++++++----
- drivers/acpi/video.c               |    8 ++++++++
- drivers/cpufreq/cpufreq.c          |    4 +++-
- drivers/cpufreq/cpufreq_governor.c |    3 ---
- drivers/cpufreq/cpufreq_stats.c    |    6 ++----
- drivers/cpufreq/s3c24xx-cpufreq.c  |    4 ++--
- drivers/pnp/pnpacpi/rsparser.c     |    2 +-
- drivers/pnp/resource.c             |    1 +
- include/linux/pm_wakeup.h          |    4 ++--
- kernel/power/autosleep.c           |    3 ++-
- 12 files changed, 32 insertions(+), 19 deletions(-)
 
 -- 
 I speak only for myself.
