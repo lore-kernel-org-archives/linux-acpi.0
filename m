@@ -1,55 +1,97 @@
-From: Felipe Contreras <felipe.contreras@gmail.com>
-Subject: Re: [PATCH] acpi: blacklist win8 OSI for ASUS Zenbok Prime UX31A
-Date: Thu, 18 Jul 2013 16:36:34 -0500
-Message-ID: <CAMP44s3gfAzCc8_aCcngsDyxeCHvjSRcPcnV-C=T00tnku+-AA@mail.gmail.com>
-References: <1369037793-1559-1-git-send-email-felipe.contreras@gmail.com>
-	<171780940.xlcaD3V5sZ@vostro.rjw.lan>
-	<CAMP44s2zi6veCv3WQ8-jkmJQ1YQYRPc5xSm8U6Urg_ZZYnAcTQ@mail.gmail.com>
-	<2222874.MofdN148Ee@vostro.rjw.lan>
+From: Robert Hancock <hancockrwd@gmail.com>
+Subject: Re: [PATCH v2 6/8] PCI: acpiphp: workaround for Thunderbolt on Acer
+ Aspire S5
+Date: Thu, 18 Jul 2013 21:57:23 -0600
+Message-ID: <51E8B923.5090201@gmail.com>
+References: <1372860295-8306-1-git-send-email-mika.westerberg@linux.intel.com> <1372860295-8306-7-git-send-email-mika.westerberg@linux.intel.com> <1444243.g9GbxN3NM0@vostro.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-lb0-f172.google.com ([209.85.217.172]:33134 "EHLO
-	mail-lb0-f172.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S965429Ab3GRVgg (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 18 Jul 2013 17:36:36 -0400
-Received: by mail-lb0-f172.google.com with SMTP id v20so2952196lbc.3
-        for <linux-acpi@vger.kernel.org>; Thu, 18 Jul 2013 14:36:34 -0700 (PDT)
-In-Reply-To: <2222874.MofdN148Ee@vostro.rjw.lan>
+Received: from mail-ie0-f173.google.com ([209.85.223.173]:36613 "EHLO
+	mail-ie0-f173.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754625Ab3GSD51 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 18 Jul 2013 23:57:27 -0400
+In-Reply-To: <1444243.g9GbxN3NM0@vostro.rjw.lan>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: Aaron Lu <aaron.lu@intel.com>, linux-acpi@vger.kernel.org, Len Brown <lenb@kernel.org>
+Cc: Mika Westerberg <mika.westerberg@linux.intel.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Bjorn Helgaas <bhelgaas@google.com>, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Jesse Barnes <jbarnes@virtuousgeek.org>, Yinghai Lu <yinghai@kernel.org>, john.ronciak@intel.com, miles.j.penner@intel.com, bruce.w.allan@intel.com, Heikki Krogerus <heikki.krogerus@linux.intel.com>, "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, linux-pci@vger.kernel.org, x86@kernel.org
 
-On Thu, Jul 18, 2013 at 2:19 PM, Rafael J. Wysocki <rjw@sisk.pl> wrote:
-> On Wednesday, July 17, 2013 07:53:10 PM Felipe Contreras wrote:
->> On Wed, Jul 17, 2013 at 7:31 PM, Rafael J. Wysocki <rjw@sisk.pl> wrote:
->> > On Wednesday, July 17, 2013 07:20:41 PM Felipe Contreras wrote:
->> >> On Wed, Jul 17, 2013 at 5:04 PM, Rafael J. Wysocki <rjw@sisk.pl> wrote:
->> >> > On Wednesday, July 17, 2013 10:42:35 AM Felipe Contreras wrote:
->> >>
->> >> >> If so, that doesn't work correctly in
->> >> >> this laptop. In this laptop intel backlight works through X, but when
->> >> >> I set the level to 0 everything is black (it works fine in ACPI), and
->> >> >> the keyboard keys don't work.
->> >> >>
->> >> >> ACPI works perfectly fine. So I think for this laptop (and possibly
->> >> >> others) ACPI without win8 mode is the way to go.
->> >> >
->> >> > While that may be the case, I'd like to avoid more blacklisting than we
->> >> > already have.
->> >>
->> >> Unless your version makes it work without regression from user-space,
->> >> I don't see any other option.
->> >
->> > Well, does your machine work correctly with 3.10 with any additional changes?
+On 07/03/2013 03:40 PM, Rafael J. Wysocki wrote:
+> On Wednesday, July 03, 2013 05:04:53 PM Mika Westerberg wrote:
+>> From: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
 >>
->> With my patch, yes.
+>> Correct ACPI PCI hotplug imeplementation should have _RMV method in a
+>> PCI slot (device under pci bridge). In Acer Aspire S5 case we have it
+>> deeper in hierarchy:
+>>
+>> Device (RP05)
+>> {
+>>     // ...
+>>     Device (HRUP)
+>>     {
+>>         // ...
+>>         Device (HRDN)
+>>         {
+>>             // ...
+>>             Device (EPUP)
+>>             {
+>>                 // ...
+>>                 Method (_RMV, 0, NotSerialized)  // _RMV: Removal Status
+>>                 {
+>>                     Return (One)
+>>                 }
+>>             }
+>>         }
+>>     }
+>> }
+>>
+>> Signed-off-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
+>> Signed-off-by: Mika Westerberg <mika.westerberg@linux.intel.com>
+>> ---
+>>   drivers/pci/hotplug/acpi_pcihp.c | 13 +++++++++++++
+>>   1 file changed, 13 insertions(+)
+>>
+>> diff --git a/drivers/pci/hotplug/acpi_pcihp.c b/drivers/pci/hotplug/acpi_pcihp.c
+>> index 2a47e82..d92ebfb 100644
+>> --- a/drivers/pci/hotplug/acpi_pcihp.c
+>> +++ b/drivers/pci/hotplug/acpi_pcihp.c
+>> @@ -422,6 +422,19 @@ static int pcihp_is_ejectable(acpi_handle handle)
+>>   	status = acpi_evaluate_integer(handle, "_RMV", NULL, &removable);
+>>   	if (ACPI_SUCCESS(status) && removable)
+>>   		return 1;
+>> +
+>> +	/*
+>> +	 * Workaround for Thunderbolt implementation on Acer Aspire S5.
+>> +	 *
+>> +	 * Correct ACPI PCI hotplug imeplementation has _RMV method in a PCI
+>> +	 * slot (device under pci bridge). In Acer Aspire S5 case we have it
+>> +	 * deeper in hierarchy.
+>> +	 */
+>> +	status = acpi_evaluate_integer(handle, "HRDN.EPUP._RMV", NULL,
+>> +			&removable);
 >
-> And without your patch?  It is not there in 3.10, is it?
+> Well, calling stuff like this directly from a general function is kind of ugly.
+>
+> Can we use something like a quirk instead?  A DMI check or something?
 
-Without my patch backlight control doesn't work at all (unless you do
-acpi_osi="!Windows 2012").
+Presumably this device functions under Windows so clearly Windows is 
+capable of dealing with this case, so we should too.
 
--- 
-Felipe Contreras
+There are way too many of these silly DMI checks in the kernel - we 
+should be way more hesitant to add more of them. They're almost 
+guaranteed to be incomplete. I would say they should be avoided whenever 
+possible unless there's some reason why a general workaround can't be used.
+
+>
+>> +	if (ACPI_SUCCESS(status) && removable)
+>> +		return 1;
+>> +
+>>   	return 0;
+>>   }
+>
+> Rafael
+>
+>
+
