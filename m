@@ -1,7 +1,7 @@
 From: Tang Chen <tangchen@cn.fujitsu.com>
-Subject: [PATCH 17/21] page_alloc, mem-hotplug: Improve movablecore to {en|dis}able using SRAT.
-Date: Fri, 19 Jul 2013 15:59:30 +0800
-Message-ID: <1374220774-29974-18-git-send-email-tangchen@cn.fujitsu.com>
+Subject: [PATCH 03/21] x86, acpi, numa, mem-hotplug: Introduce MEMBLK_HOTPLUGGABLE to reserve hotpluggable memory.
+Date: Fri, 19 Jul 2013 15:59:16 +0800
+Message-ID: <1374220774-29974-4-git-send-email-tangchen@cn.fujitsu.com>
 References: <1374220774-29974-1-git-send-email-tangchen@cn.fujitsu.com>
 Return-path: <owner-linux-mm@kvack.org>
 In-Reply-To: <1374220774-29974-1-git-send-email-tangchen@cn.fujitsu.com>
@@ -10,108 +10,64 @@ To: tglx@linutronix.de, mingo@elte.hu, hpa@zytor.com, akpm@linux-foundation.org,
 Cc: x86@kernel.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-mm@kvack.org, linux-acpi@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-The Hot-Pluggable fired in SRAT specifies which memory is hotpluggable.
-As we mentioned before, if hotpluggable memory is used by the kernel,
-it cannot be hot-removed. So memory hotplug users may want to set all
-hotpluggable memory in ZONE_MOVABLE so that the kernel won't use it.
+Pages used by the kernel cannot be migrated. As a result, hotpluggable
+memory used by the kernel cannot be hot-removed. So for memory
+hotplug users, the kernel should not use hotpluggable memory.
 
-Memory hotplug users may also set a node as movable node, which has
-ZONE_MOVABLE only, so that the whole node can be hot-removed.
+Since now we have flags in memblock, we introduce a MEMBLK_HOTPLUGGABLE
+flag to mark hotpluggable memory. At the early time, we use memblock to
+reserve hotpluggable memory, and mark it with MEMBLK_HOTPLUGGABLE flag.
+When the system is up, we free these memory with MEMBLK_HOTPLUGGABLE
+flag to the buddy, and arrange them into ZONE_MOVABLE. In this way, the
+kernel won't be able to use it.
 
-But the kernel cannot use memory in ZONE_MOVABLE. By doing this, the
-kernel cannot use memory in movable nodes. This will cause NUMA
-performance down. And other users may be unhappy.
+This patch introduces MEMBLK_HOTPLUGGABLE flag, and an API to reserve
+memory with MEMBLK_HOTPLUGGABLE flag. This is a preparation for the
+coming patches.
 
-So we need a way to allow users to enable and disable this functionality.
-In this patch, we improve movablecore boot option to allow users to
-choose to reserve hotpluggable memory and set it as ZONE_MOVABLE or not.
-
-Users can specify "movablecore=acpi" in kernel commandline to enable this
-functionality. For those who don't use memory hotplug or who don't want
-to lose their NUMA performance, just don't specify anything. The kernel
-will work as before.
-
-Suggested-by: Kamezawa Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 Signed-off-by: Tang Chen <tangchen@cn.fujitsu.com>
-Reviewed-by: Wanpeng Li <liwanp@linux.vnet.ibm.com>
 ---
- arch/x86/kernel/setup.c        |    8 +++++++-
- include/linux/memory_hotplug.h |    3 +++
- mm/page_alloc.c                |   13 +++++++++++++
- 3 files changed, 23 insertions(+), 1 deletions(-)
+ include/linux/memblock.h |    2 ++
+ mm/memblock.c            |    6 ++++++
+ 2 files changed, 8 insertions(+), 0 deletions(-)
 
-diff --git a/arch/x86/kernel/setup.c b/arch/x86/kernel/setup.c
-index 9717760..9d08a03 100644
---- a/arch/x86/kernel/setup.c
-+++ b/arch/x86/kernel/setup.c
-@@ -1083,8 +1083,14 @@ void __init setup_arch(char **cmdline_p)
- 	 * Linux kernel cannot migrate kernel pages, as a result, memory used
- 	 * by the kernel cannot be hot-removed. Reserve hotpluggable memory to
- 	 * prevent memblock from allocating hotpluggable memory for the kernel.
-+	 *
-+	 * If all the memory in a node is hotpluggable, then the kernel won't
-+	 * be able to use memory on that node. This will cause NUMA performance
-+	 * down. So by default, we don't reserve any hotpluggable memory. users
-+	 * may use "movablecore=acpi" boot option to enable this functionality.
- 	 */
--	reserve_hotpluggable_memory();
-+	if (movablecore_enable_srat)
-+		reserve_hotpluggable_memory();
- #endif
+diff --git a/include/linux/memblock.h b/include/linux/memblock.h
+index 93f3453..90b49ee 100644
+--- a/include/linux/memblock.h
++++ b/include/linux/memblock.h
+@@ -21,6 +21,7 @@
  
- 	/*
-diff --git a/include/linux/memory_hotplug.h b/include/linux/memory_hotplug.h
-index 681b97f..9f26e29 100644
---- a/include/linux/memory_hotplug.h
-+++ b/include/linux/memory_hotplug.h
-@@ -33,6 +33,9 @@ enum {
- 	ONLINE_MOVABLE,
- };
+ /* Definition of memblock flags. */
+ #define MEMBLK_FLAGS_DEFAULT	0x0	/* default flag */
++#define MEMBLK_HOTPLUGGABLE	0x1	/* hotpluggable region */
  
-+/* Enable/disable SRAT in movablecore boot option */
-+extern bool movablecore_enable_srat;
-+
- /*
-  * pgdat resizing functions
-  */
-diff --git a/mm/page_alloc.c b/mm/page_alloc.c
-index c3edb62..6271c36 100644
---- a/mm/page_alloc.c
-+++ b/mm/page_alloc.c
-@@ -209,6 +209,8 @@ static unsigned long __initdata required_kernelcore;
- static unsigned long __initdata required_movablecore;
- static unsigned long __meminitdata zone_movable_pfn[MAX_NUMNODES];
+ struct memblock_region {
+ 	phys_addr_t base;
+@@ -61,6 +62,7 @@ int memblock_add(phys_addr_t base, phys_addr_t size);
+ int memblock_remove(phys_addr_t base, phys_addr_t size);
+ int memblock_free(phys_addr_t base, phys_addr_t size);
+ int memblock_reserve(phys_addr_t base, phys_addr_t size);
++int memblock_reserve_hotpluggable(phys_addr_t base, phys_addr_t size, int nid);
+ void memblock_trim_memory(phys_addr_t align);
  
-+bool __initdata movablecore_enable_srat;
-+
- /* movable_zone is the "real" zone pages in ZONE_MOVABLE are taken from */
- int movable_zone;
- EXPORT_SYMBOL(movable_zone);
-@@ -5112,6 +5114,12 @@ void __init free_area_init_nodes(unsigned long *max_zone_pfn)
- 	}
+ #ifdef CONFIG_HAVE_MEMBLOCK_NODE_MAP
+diff --git a/mm/memblock.c b/mm/memblock.c
+index 9e871e9..73fe62d 100644
+--- a/mm/memblock.c
++++ b/mm/memblock.c
+@@ -586,6 +586,12 @@ int __init_memblock memblock_reserve(phys_addr_t base, phys_addr_t size)
+ 				       MEMBLK_FLAGS_DEFAULT);
  }
  
-+static void __init cmdline_movablecore_srat(char *p)
++int __init_memblock memblock_reserve_hotpluggable(phys_addr_t base,
++						  phys_addr_t size, int nid)
 +{
-+	if (p && !strcmp(p, "acpi"))
-+		movablecore_enable_srat = true;
++	return memblock_reserve_region(base, size, nid, MEMBLK_HOTPLUGGABLE);
 +}
 +
- static int __init cmdline_parse_core(char *p, unsigned long *core)
- {
- 	unsigned long long coremem;
-@@ -5142,6 +5150,11 @@ static int __init cmdline_parse_kernelcore(char *p)
-  */
- static int __init cmdline_parse_movablecore(char *p)
- {
-+	cmdline_movablecore_srat(p);
-+
-+	if (movablecore_enable_srat)
-+		return 0;
-+
- 	return cmdline_parse_core(p, &required_movablecore);
- }
- 
+ /**
+  * __next_free_mem_range - next function for for_each_free_mem_range()
+  * @idx: pointer to u64 loop variable
 -- 
 1.7.1
 
