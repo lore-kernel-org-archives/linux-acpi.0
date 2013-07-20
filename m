@@ -1,69 +1,74 @@
-From: Felipe Contreras <felipe.contreras@gmail.com>
-Subject: Re: [Update][PATCH 0/3] Fix backlight issues on some Windows 8 systems
-Date: Sat, 20 Jul 2013 08:16:56 -0500
-Message-ID: <CAMP44s2fT8C=wfF-uadxTOSzqLLfjFTJMQ767qy6teJZh_SS6w@mail.gmail.com>
-References: <1370818899-8595-1-git-send-email-matthew.garrett@nebula.com>
-	<1448863.3slS729B6b@vostro.rjw.lan>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: Re: udev: New default rule for autoloading kernel modules matching CPU modalias
+Date: Sat, 20 Jul 2013 22:42:17 +0200
+Message-ID: <19098975.zxpI9DIBHH@vostro.rjw.lan>
+References: <1623844.aKWlCHQqy1@vostro.rjw.lan> <CAPXgP122sX2eMYEhYam5AUaissw1r4g8PuZajSF7J_rVMFv+Ng@mail.gmail.com> <CAPXgP10cU4AVDEi+ninamvfK_HtKghJL-fJX=E-Y9UPJRrtWAQ@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7Bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-lb0-f181.google.com ([209.85.217.181]:47512 "EHLO
-	mail-lb0-f181.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753723Ab3GTNQ7 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sat, 20 Jul 2013 09:16:59 -0400
-In-Reply-To: <1448863.3slS729B6b@vostro.rjw.lan>
+Received: from hydra.sisk.pl ([212.160.235.94]:56768 "EHLO hydra.sisk.pl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754837Ab3GTUcW (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Sat, 20 Jul 2013 16:32:22 -0400
+In-Reply-To: <CAPXgP10cU4AVDEi+ninamvfK_HtKghJL-fJX=E-Y9UPJRrtWAQ@mail.gmail.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: linux-acpi@vger.kernel.org, Matthew Garrett <matthew.garrett@nebula.com>, seth.forshee@canonical.com, joeyli.kernel@gmail.com, daniel.vetter@ffwll.ch, intel-gfx@lists.freedesktop.org, dri-devel@lists.freedesktop.org, linux-kernel@vger.kernel.org, lenb@kernel.org, Aaron Lu <aaron.lu@intel.com>, Igor Gnatenko <i.gnatenko.brain@gmail.com>, Yves-Alexis Perez <corsac@debian.org>, "Lee, Chun-Yi" <jlee@suse.com>, Henrique de Moraes Holschuh <hmh@hmh.eng.br>
+To: Kay Sievers <kay@vrfy.org>
+Cc: LKML <linux-kernel@vger.kernel.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Tim Chen <tim.c.chen@linux.intel.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, "H. Peter Anvin" <hpa@zytor.com>, systemd-devel@lists.freedesktop.org
 
-On Wed, Jul 17, 2013 at 7:16 PM, Rafael J. Wysocki <rjw@sisk.pl> wrote:
-> On Sunday, June 09, 2013 07:01:36 PM Matthew Garrett wrote:
->> Windows 8 introduced new policy for backlight control by pushing it out to
->> graphics drivers. This appears to have coincided with a range of vendors
->> adding Windows 8 checks to their backlight control code which trigger either
->> awkward behaviour (Lenovo) or complete brokenness (some Dells). The simplest
->> thing to do would be to just disable ACPI backlight control entirely if the
->> firmware indicates Windows 8 support, but it's entirely possible that
->> individual graphics drivers might still make use of the ACPI functionality in
->> preference to native control.
->>
->> The first two patches in this series are picked from other patchesets aimed at
->> solving similar problems. The last simply unregisters ACPI backlight control
->> on Windows 8 systems when using an Intel GPU. Similar code could be added to
->> other drivers, but I'm reluctant to do so without further investigation as
->> to the behaviour of the vendor drivers under Windows.
->
-> Well, after some more time spent on that, we now have a series of 3 patches
-> (different from the $subject one) that we think may be used to address this
-> issue.  As far as I can say, it has been tested by multiple people whose
-> systems have those problems and they generally saw improvement.
->
-> It is not my ideal approach, but it seems to be the least intrusive and/or
-> with the least amount of possible side effects that we can do right now
-> as a general measure (alternatively, we could create a possibly long
-> blacklist table of affected systems with different workarounds for them,
-> but let's just say that is not overwhelmingly attractive).
->
-> [1/3] Make ACPICA export things that we need for checking OSI(Win8).
->
-> [2/3] Make acpi_video_device_find_cap() call acpi_video_init_brightness() even
->       if it is not going to register the backlight interface (needed for
->       Thinkpads).
->
-> [3/3] Avoid using ACPI backlight if i915 is in use and the firmware believes
->       we are Windows 8.
->
-> Many thanks to everyone involved!
+On Saturday, July 20, 2013 02:34:58 PM Kay Sievers wrote:
+> On Sat, Jul 20, 2013 at 1:47 PM, Kay Sievers <kay@vrfy.org> wrote:
+> > On Sat, Jul 20, 2013 at 12:56 PM, Rafael J. Wysocki <rjw@sisk.pl> wrote:
+> >
+> >> After a recent change present in 3.11-rc1 there is a driver, called processor,
+> >> that can be bound to the CPU devices whose sysfs directories are located under
+> >> /sys/devices/system/cpu/.  A side effect of this is that, after the driver has
+> >> been bound to those devices, the kernel adds DRIVER=processor to ENV for CPU
+> >> uevents and they don't match the default rule for autoloading modules matching
+> >> MODALIAS:
+> >>
+> >> DRIVER!="?*", ENV{MODALIAS}=="?*", IMPORT{builtin}="kmod load $env{MODALIAS}"
+> >>
+> >> any more.  However, there are some modules whose module aliases match specific
+> >> CPU features through the modalias string and those modules should be loaded
+> >> automatically if a compatible CPU is present.  Yet, with the processor driver
+> >> bound to the CPU devices the above rule is not sufficient for that, so we need
+> >> a new default udev rule allowing those modules to be autoloaded even if the
+> >> CPU devices have drivers.
+> >>
+> >> On my test systems I added the following rule for that:
+> >>
+> >> ACTION="add", SUBSYSTEM=="cpu", ENV{MODALIAS}=="?*", IMPORT{builtin}="kmod load $env{MODALIAS}"
+> >>
+> >> in a separate file, but I'm not a udev expert, so I guess it may be done in a
+> >> better way.
+> >>
+> >> Can you please consider adding such a rule to the default set of udev rules?
+> >
+> > The DRIVER!="?*" is an optimization which made a huge difference at
+> > the time we called out to /sbin/modprobe from udev rules and all the
+> > devices which already had a driver would not cause needless execution
+> > of the rather expensive modprobe binary.
+> >
+> > This obviously can't do the right thing for the completely generic,
+> > not bound to a driver-state, CPU modaliases when they have a driver
+> > now. :)
+> >
+> > These days we load the entire kmod modalias database into the udev
+> > process, and lookup what we need to load and load the module from
+> > within the udev worker process. It could be, that the optimization is
+> > not measurable on today's systems, if that's the case I'll remove it,
+> > which would be the simplest and most future proof option. Otherwise
+> > I'll add the CPU specific rule.
+> >
+> > I'll find that out and let you know.
+> 
+> I cannot see any measurable difference here that justifies that
+> optimization, so I removed it:
+>   http://cgit.freedesktop.org/systemd/systemd/commit/?id=bf7f800f2b3e93ccd1229d4717166f3a4d3af72f
 
-I tried this patch series and it's as I expected, it's the same as
-acpi_backlight=vendor, and the intel backlight driver doesn't work
-correctly in this machine. If you are actually serious about the
-mantra of "no user-space regressions", then for this machine at least,
-you need to use the ACPI backlight with Windows8 OSI disabled, until
-the intel backlight driver is fixed. My patch does that:
+Many thanks!
 
-http://article.gmane.org/gmane.linux.acpi.devel/60969
+Rafael
 
--- 
-Felipe Contreras
