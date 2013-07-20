@@ -1,85 +1,68 @@
-From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [PATCH 3.11-rc1] crypto: Fix boot failure due to module dependency.
-Date: Sat, 20 Jul 2013 13:01:43 +0200
-Message-ID: <9823557.ylACl3Z50l@vostro.rjw.lan>
-References: <201307180550.BDB51536.LHMQOOOVFJFSFt@I-love.SAKURA.ne.jp> <6518656.400qriFEKQ@vostro.rjw.lan> <8043923.9cbosS4r2b@vostro.rjw.lan>
+From: Kay Sievers <kay@vrfy.org>
+Subject: Re: udev: New default rule for autoloading kernel modules matching
+ CPU modalias
+Date: Sat, 20 Jul 2013 13:47:37 +0200
+Message-ID: <CAPXgP122sX2eMYEhYam5AUaissw1r4g8PuZajSF7J_rVMFv+Ng@mail.gmail.com>
+References: <1623844.aKWlCHQqy1@vostro.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from v094114.home.net.pl ([79.96.170.134]:52998 "HELO
-	v094114.home.net.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1753733Ab3GTKvo (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sat, 20 Jul 2013 06:51:44 -0400
-In-Reply-To: <8043923.9cbosS4r2b@vostro.rjw.lan>
+Received: from mail-ie0-f181.google.com ([209.85.223.181]:44167 "EHLO
+	mail-ie0-f181.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751628Ab3GTLr6 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sat, 20 Jul 2013 07:47:58 -0400
+Received: by mail-ie0-f181.google.com with SMTP id x12so11391714ief.40
+        for <linux-acpi@vger.kernel.org>; Sat, 20 Jul 2013 04:47:57 -0700 (PDT)
+In-Reply-To: <1623844.aKWlCHQqy1@vostro.rjw.lan>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc: Tim Chen <tim.c.chen@linux.intel.com>, Herbert Xu <herbert@gondor.apana.org.au>, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Tetsuo Handa <penguin-kernel@i-love.sakura.ne.jp>, linux-kernel@vger.kernel.org, linux-crypto@vger.kernel.org, ak <ak@linux.intel.com>, "H. Peter Anvin" <hpa@zytor.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>
+To: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: LKML <linux-kernel@vger.kernel.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Tim Chen <tim.c.chen@linux.intel.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, "H. Peter Anvin" <hpa@zytor.com>, systemd-devel@lists.freedesktop.org
 
-On Saturday, July 20, 2013 11:51:55 AM Rafael J. Wysocki wrote:
-> On Saturday, July 20, 2013 05:06:29 AM Rafael J. Wysocki wrote:
-> > On Saturday, July 20, 2013 02:00:44 AM Rafael J. Wysocki wrote:
-> > > On Friday, July 19, 2013 04:16:30 PM Greg Kroah-Hartman wrote:
-> > > > On Fri, Jul 19, 2013 at 11:38:04PM +0200, Rafael J. Wysocki wrote:
-> > > > > Alas, this is not the one I'd like to apply.
-> > > > > 
-> > > > > With that patch applied, new device objects are created to avoid binding the
-> > > > > processor driver directly to the cpu system device objects, because that
-> > > > > apparently confuses udev and it starts to ignore the cpu modalias once the
-> > > > > driver has been bound to any of those objects.
-> > > > > 
-> > > > > I've verified in the meantime that this indeed is the case.
-> > > > > 
-> > > > > A link to the patch in question: https://patchwork.kernel.org/patch/2830561/
-> > > > > 
-> > > > > Greg, I asked you some time ago whether or not it was possible for udev to stop
-> > > > > autoloading modules that matched the cpu modalias after a driver had been bound
-> > > > > to the cpu system device objects and you said "no".  However, this time I can
-> > > > > say with certainty that that really is the case.  So, the question now is
-> > > > > whether or not we can do anything in the kernel to avoid that confusion in udev
-> > > > > instead of applying the patch linked above (which is beyond ugly in my not so
-> > > > > humble opinion)?
-> > > > 
-> > > > udev isn't doing any module loading, 'modprobe' is just being called for
-> > > > any new module alias that shows up in the system, and all of the drivers
-> > > > that match it then get loaded.
-> > > 
-> > > The problem is that that doesn't happen when a driver is bound to the
-> > > cpu system device objects.  modprobe is just not called for modules that
-> > > match the cpu modalias in that case.
-> > > 
-> > > If I call modprobe manually for any of the modules in question, it loads
-> > > and works no problem.
-> > 
-> > OK, I know what's up.  udev has no rule that would allow it to load stuff on
-> > the basis of MODALIAS if DRIVER is set in the event properties.
-> > 
-> > So, the following rule needs to be added to udev rules for things to work
-> > as before:
-> > 
-> > DRIVER=="processor", ENV{MODALIAS}=="?*", IMPORT{builtin}="kmod load $env{MODALIAS}"
-> > 
-> > To be precise, I added a file called 80-drivers.rules to /etc/udev/rules.d/
-> 
-> Well, that wasn't a good idea, because the original 80-drivers.rules didn't
-> work then, but I renamed the new file (in /etc/udev/rules.d/) to 80-cpu.rules
-> and put this line (alone) into it:
-> 
+On Sat, Jul 20, 2013 at 12:56 PM, Rafael J. Wysocki <rjw@sisk.pl> wrote:
+
+> After a recent change present in 3.11-rc1 there is a driver, called processor,
+> that can be bound to the CPU devices whose sysfs directories are located under
+> /sys/devices/system/cpu/.  A side effect of this is that, after the driver has
+> been bound to those devices, the kernel adds DRIVER=processor to ENV for CPU
+> uevents and they don't match the default rule for autoloading modules matching
+> MODALIAS:
+>
+> DRIVER!="?*", ENV{MODALIAS}=="?*", IMPORT{builtin}="kmod load $env{MODALIAS}"
+>
+> any more.  However, there are some modules whose module aliases match specific
+> CPU features through the modalias string and those modules should be loaded
+> automatically if a compatible CPU is present.  Yet, with the processor driver
+> bound to the CPU devices the above rule is not sufficient for that, so we need
+> a new default udev rule allowing those modules to be autoloaded even if the
+> CPU devices have drivers.
+>
+> On my test systems I added the following rule for that:
+>
 > ACTION="add", SUBSYSTEM=="cpu", ENV{MODALIAS}=="?*", IMPORT{builtin}="kmod load $env{MODALIAS}"
+>
+> in a separate file, but I'm not a udev expert, so I guess it may be done in a
+> better way.
+>
+> Can you please consider adding such a rule to the default set of udev rules?
 
-I made a mistake in the above, which should be:
+The DRIVER!="?*" is an optimization which made a huge difference at
+the time we called out to /sbin/modprobe from udev rules and all the
+devices which already had a driver would not cause needless execution
+of the rather expensive modprobe binary.
 
-ACTION=="add", SUBSYSTEM=="cpu", ENV{MODALIAS}=="?*", IMPORT{builtin}="kmod load $env{MODALIAS}"
+This obviously can't do the right thing for the completely generic,
+not bound to a driver-state, CPU modaliases when they have a driver
+now. :)
 
-sorry about that.
+These days we load the entire kmod modalias database into the udev
+process, and lookup what we need to load and load the module from
+within the udev worker process. It could be, that the optimization is
+not measurable on today's systems, if that's the case I'll remove it,
+which would be the simplest and most future proof option. Otherwise
+I'll add the CPU specific rule.
 
-> After that change everything works happily again.
+I'll find that out and let you know.
 
 Thanks,
-Rafael
-
-
--- 
-I speak only for myself.
-Rafael J. Wysocki, Intel Open Source Technology Center.
+Kay
