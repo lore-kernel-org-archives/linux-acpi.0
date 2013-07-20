@@ -1,53 +1,78 @@
-From: Tetsuo Handa <penguin-kernel@I-love.SAKURA.ne.jp>
-Subject: Re: [PATCH 3.11-rc1] crypto: Fix boot failure due to moduledependency.
-Date: Sat, 20 Jul 2013 11:19:17 +0900
-Message-ID: <201307201119.FHF34361.FLFOJHFQVSOOMt@I-love.SAKURA.ne.jp>
-References: <20130719231630.GC1701@kroah.com>
-	<51E9C9E5.2060602@zytor.com>
-	<20130719232459.GA18039@gondor.apana.org.au>
-	<1374277033.22432.384.camel@schen9-DESK>
-	<1374283864.22432.393.camel@schen9-DESK>
+From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Subject: Re: [PATCH 3.11-rc1] crypto: Fix boot failure due to module dependency.
+Date: Sat, 20 Jul 2013 05:06:29 +0200
+Message-ID: <6518656.400qriFEKQ@vostro.rjw.lan>
+References: <201307180550.BDB51536.LHMQOOOVFJFSFt@I-love.SAKURA.ne.jp> <20130719231630.GC1701@kroah.com> <2745724.Y86yAFA8gy@vostro.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-crypto-owner@vger.kernel.org>
-In-Reply-To: <1374283864.22432.393.camel@schen9-DESK>
-Sender: linux-crypto-owner@vger.kernel.org
-To: tim.c.chen@linux.intel.com, herbert@gondor.apana.org.au
-Cc: hpa@zytor.com, gregkh@linuxfoundation.org, rjw@rjwysocki.net, rafael.j.wysocki@intel.com, linux-kernel@vger.kernel.org, linux-crypto@vger.kernel.org, ak@linux.intel.com, linux-acpi@vger.kernel.org
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7Bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from v094114.home.net.pl ([79.96.170.134]:50155 "HELO
+	v094114.home.net.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S1753618Ab3GTC4c (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 19 Jul 2013 22:56:32 -0400
+In-Reply-To: <2745724.Y86yAFA8gy@vostro.rjw.lan>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Tim Chen <tim.c.chen@linux.intel.com>
+Cc: Herbert Xu <herbert@gondor.apana.org.au>, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Tetsuo Handa <penguin-kernel@i-love.sakura.ne.jp>, linux-kernel@vger.kernel.org, linux-crypto@vger.kernel.org, ak <ak@linux.intel.com>, "H. Peter Anvin" <hpa@zytor.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>
 
-Tim Chen wrote:
-> On Fri, 2013-07-19 at 16:37 -0700, Tim Chen wrote:
-> > Herbert,
+On Saturday, July 20, 2013 02:00:44 AM Rafael J. Wysocki wrote:
+> On Friday, July 19, 2013 04:16:30 PM Greg Kroah-Hartman wrote:
+> > On Fri, Jul 19, 2013 at 11:38:04PM +0200, Rafael J. Wysocki wrote:
+> > > Alas, this is not the one I'd like to apply.
+> > > 
+> > > With that patch applied, new device objects are created to avoid binding the
+> > > processor driver directly to the cpu system device objects, because that
+> > > apparently confuses udev and it starts to ignore the cpu modalias once the
+> > > driver has been bound to any of those objects.
+> > > 
+> > > I've verified in the meantime that this indeed is the case.
+> > > 
+> > > A link to the patch in question: https://patchwork.kernel.org/patch/2830561/
+> > > 
+> > > Greg, I asked you some time ago whether or not it was possible for udev to stop
+> > > autoloading modules that matched the cpu modalias after a driver had been bound
+> > > to the cpu system device objects and you said "no".  However, this time I can
+> > > say with certainty that that really is the case.  So, the question now is
+> > > whether or not we can do anything in the kernel to avoid that confusion in udev
+> > > instead of applying the patch linked above (which is beyond ugly in my not so
+> > > humble opinion)?
 > > 
-> > I've tried the module alias approach (see my earlier mail with patch) 
-> > but it didn't seem to load things properly.  Can you check to see if 
-> > there's anything I did incorrectly.
-> > 
-> > Tim
+> > udev isn't doing any module loading, 'modprobe' is just being called for
+> > any new module alias that shows up in the system, and all of the drivers
+> > that match it then get loaded.
 > 
-> I fixed a missing request_module statement in crct10dif library.  
-> So now things work if I have the following config:
+> The problem is that that doesn't happen when a driver is bound to the
+> cpu system device objects.  modprobe is just not called for modules that
+> match the cpu modalias in that case.
 > 
-> CONFIG_CRYPTO_CRCT10DIF=m
-> CONFIG_CRYPTO_CRCT10DIF_PCLMUL=m
-> CONFIG_CRC_T10DIF=m
-> 
-> However, when I have the library and generic algorithm compiled in,
-> I do not see the PCLMULQDQ version loaded.
-> 
-> CONFIG_CRYPTO_CRCT10DIF=y
-> CONFIG_CRYPTO_CRCT10DIF_PCLMUL=m
-> CONFIG_CRC_T10DIF=y
-> 
-> Perhaps I am initiating the crct10dif library at a really early
-> stage when things are compiled in, where the module is not in 
-> initramfs?  In that case, perhaps we should only allow 
-> PCLMUL version to be compiled in
-> and not exist as a module?
+> If I call modprobe manually for any of the modules in question, it loads
+> and works no problem.
 
-I think that use of request_module("crct10dif") does not help loading
-crct10dif-pclmul.ko when CONFIG_CRC_T10DIF=y CONFIG_CRYPTO_CRCT10DIF_PCLMUL=m ,
-for there is no / directory (note that the initramfs is not yet mounted as /
-for loading modules which are not in vmlinux) when any module_init() functions
-which are in vmlinux are called.
+OK, I know what's up.  udev has no rule that would allow it to load stuff on
+the basis of MODALIAS if DRIVER is set in the event properties.
+
+So, the following rule needs to be added to udev rules for things to work
+as before:
+
+DRIVER=="processor", ENV{MODALIAS}=="?*", IMPORT{builtin}="kmod load $env{MODALIAS}"
+
+To be precise, I added a file called 80-drivers.rules to /etc/udev/rules.d/
+with the following contents:
+
+ACTION=="remove", GOTO="drivers_end"
+
+DRIVER=="processor", ENV{MODALIAS}=="?*", IMPORT{builtin}="kmod load $env{MODALIAS}"
+
+LABEL="drivers_end"
+
+but I'm not sure how to propagate this to the udev maintainers.
+
+Thanks,
+Rafael
+
+
+-- 
+I speak only for myself.
+Rafael J. Wysocki, Intel Open Source Technology Center.
