@@ -1,74 +1,118 @@
 From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: udev: New default rule for autoloading kernel modules matching CPU modalias
-Date: Sat, 20 Jul 2013 22:42:17 +0200
-Message-ID: <19098975.zxpI9DIBHH@vostro.rjw.lan>
-References: <1623844.aKWlCHQqy1@vostro.rjw.lan> <CAPXgP122sX2eMYEhYam5AUaissw1r4g8PuZajSF7J_rVMFv+Ng@mail.gmail.com> <CAPXgP10cU4AVDEi+ninamvfK_HtKghJL-fJX=E-Y9UPJRrtWAQ@mail.gmail.com>
+Subject: [GIT PULL] ACPI video support fixes for v3.11
+Date: Sun, 21 Jul 2013 02:22:09 +0200
+Message-ID: <32735792.sAmhGYT8HA@vostro.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7Bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from hydra.sisk.pl ([212.160.235.94]:56768 "EHLO hydra.sisk.pl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754837Ab3GTUcW (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Sat, 20 Jul 2013 16:32:22 -0400
-In-Reply-To: <CAPXgP10cU4AVDEi+ninamvfK_HtKghJL-fJX=E-Y9UPJRrtWAQ@mail.gmail.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <intel-gfx-bounces+gcfxdi-intel-gfx=m.gmane.org@lists.freedesktop.org>
+List-Unsubscribe: <http://lists.freedesktop.org/mailman/options/intel-gfx>,
+	<mailto:intel-gfx-request@lists.freedesktop.org?subject=unsubscribe>
+List-Archive: <http://lists.freedesktop.org/archives/intel-gfx>
+List-Post: <mailto:intel-gfx@lists.freedesktop.org>
+List-Help: <mailto:intel-gfx-request@lists.freedesktop.org?subject=help>
+List-Subscribe: <http://lists.freedesktop.org/mailman/listinfo/intel-gfx>,
+	<mailto:intel-gfx-request@lists.freedesktop.org?subject=subscribe>
+Sender: intel-gfx-bounces+gcfxdi-intel-gfx=m.gmane.org@lists.freedesktop.org
+Errors-To: intel-gfx-bounces+gcfxdi-intel-gfx=m.gmane.org@lists.freedesktop.org
+To: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, intel-gfx@lists.freedesktop.org, LKML <linux-kernel@vger.kernel.org>, Matthew Garrett <mjg59@srcf.ucam.org>
 List-Id: linux-acpi@vger.kernel.org
-To: Kay Sievers <kay@vrfy.org>
-Cc: LKML <linux-kernel@vger.kernel.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Tim Chen <tim.c.chen@linux.intel.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, "H. Peter Anvin" <hpa@zytor.com>, systemd-devel@lists.freedesktop.org
 
-On Saturday, July 20, 2013 02:34:58 PM Kay Sievers wrote:
-> On Sat, Jul 20, 2013 at 1:47 PM, Kay Sievers <kay@vrfy.org> wrote:
-> > On Sat, Jul 20, 2013 at 12:56 PM, Rafael J. Wysocki <rjw@sisk.pl> wrote:
-> >
-> >> After a recent change present in 3.11-rc1 there is a driver, called processor,
-> >> that can be bound to the CPU devices whose sysfs directories are located under
-> >> /sys/devices/system/cpu/.  A side effect of this is that, after the driver has
-> >> been bound to those devices, the kernel adds DRIVER=processor to ENV for CPU
-> >> uevents and they don't match the default rule for autoloading modules matching
-> >> MODALIAS:
-> >>
-> >> DRIVER!="?*", ENV{MODALIAS}=="?*", IMPORT{builtin}="kmod load $env{MODALIAS}"
-> >>
-> >> any more.  However, there are some modules whose module aliases match specific
-> >> CPU features through the modalias string and those modules should be loaded
-> >> automatically if a compatible CPU is present.  Yet, with the processor driver
-> >> bound to the CPU devices the above rule is not sufficient for that, so we need
-> >> a new default udev rule allowing those modules to be autoloaded even if the
-> >> CPU devices have drivers.
-> >>
-> >> On my test systems I added the following rule for that:
-> >>
-> >> ACTION="add", SUBSYSTEM=="cpu", ENV{MODALIAS}=="?*", IMPORT{builtin}="kmod load $env{MODALIAS}"
-> >>
-> >> in a separate file, but I'm not a udev expert, so I guess it may be done in a
-> >> better way.
-> >>
-> >> Can you please consider adding such a rule to the default set of udev rules?
-> >
-> > The DRIVER!="?*" is an optimization which made a huge difference at
-> > the time we called out to /sbin/modprobe from udev rules and all the
-> > devices which already had a driver would not cause needless execution
-> > of the rather expensive modprobe binary.
-> >
-> > This obviously can't do the right thing for the completely generic,
-> > not bound to a driver-state, CPU modaliases when they have a driver
-> > now. :)
-> >
-> > These days we load the entire kmod modalias database into the udev
-> > process, and lookup what we need to load and load the module from
-> > within the udev worker process. It could be, that the optimization is
-> > not measurable on today's systems, if that's the case I'll remove it,
-> > which would be the simplest and most future proof option. Otherwise
-> > I'll add the CPU specific rule.
-> >
-> > I'll find that out and let you know.
-> 
-> I cannot see any measurable difference here that justifies that
-> optimization, so I removed it:
->   http://cgit.freedesktop.org/systemd/systemd/commit/?id=bf7f800f2b3e93ccd1229d4717166f3a4d3af72f
+Hi Linus,
 
-Many thanks!
+Please consider pulling from the git repository at
 
-Rafael
+  git://git.kernel.org/pub/scm/linux/kernel/git/rafael/linux-pm.git acpi-video-3.11
 
+to receive fixes for some problems related to ACPI backlight support and
+Windows 8 compatibility with top-most commit
+efaa14c7e981bdf8d3c8d39d3ed12bdc60faabb8
+
+  ACPI / video: no automatic brightness changes by win8-compatible firmware
+
+on top of commit ad81f0545ef01ea651886dddac4bef6cec930092
+
+  Linux 3.11-rc1
+
+I'm sending a separate pull request for this as it may be somewhat
+controversial.  The breakage addressed here is not really new and the fixes may
+not satisfy all users of the affected systems, but we've had so much back and
+forth dance in this area over the last several weeks that I think it's time
+to actually make some progress.
+
+The source of the problem is that about a year ago we started to tell
+BIOSes that we're compatible with Windows 8, which we really need to do,
+because some systems shipping with Windows 8 are tested with it and
+nothing else, so if we tell their BIOSes that we aren't compatible with
+Windows 8, we expose our users to untested BIOS/AML code paths.
+
+However, as it turns out, some Windows 8-specific AML code paths are not
+tested either, because Windows 8 actually doesn't use the ACPI methods
+containing them, so if we declare Windows 8 compatibility and attempt to
+use those ACPI methods, things break.  That occurs mostly in the
+backlight support area where in particular the _BCM and _BQC methods are
+plain unusable on some systems if the OS declares Windows 8 compatibility.
+[The additional twist is that they actually become usable if the OS says
+ it is not compatible with Windows 8, but that may cause problems to
+ show up elsewhere.]
+
+Investigation carried out by Matthew Garrett indicates that what Windows 8
+does about backlight is to leave backlight control up to individual
+graphics drivers.  At least there's evidence that it does that if the
+Intel graphics driver is used, so we've decided to follow Windows 8 in
+that respect and allow i915 to control backlight (Daniel likes that part).
+
+The first commit from Aaron Lu makes ACPICA export the variable from
+which we can infer whether or not the BIOS believes that we are compatible
+with Windows 8.
+
+The second commit from Matthew Garrett prepares the ACPI video driver
+by making it initialize the ACPI backlight even if it is not going to be
+used afterward (that is needed for backlight control to work on Thinkpads).
+
+The third commit implements the actual workaround making i915 take over
+bakclight control if the firmware thinks it's dealing with Windows 8
+and is based on the work of multiple developers, including Matthew Garrett,
+Chun-Yi Lee, Seth Forshee, and Aaron Lu.
+
+The final commit from Aaron Lu makes us follow Windows 8 by informing
+the firmware through the _DOS method that it should not carry out
+automatic brightness changes, so that brightness can be controlled by
+GUI.
+
+Hopefully, this approach will allow us to avoid using blacklists
+of systems that should not declare Windows 8 compatibility just to
+avoid backlight control problems in the future.
+
+Thanks!
+
+
+---------------
+
+Aaron Lu (2):
+      ACPICA: expose OSI version
+      ACPI / video: no automatic brightness changes by win8-compatible firmware
+
+Matthew Garrett (1):
+      ACPI / video: Always call acpi_video_init_brightness() on init
+
+Rafael J. Wysocki (1):
+      ACPI / video / i915: No ACPI backlight if firmware expects Windows 8
+
+---------------
+
+ drivers/acpi/acpica/aclocal.h   |   13 -------
+ drivers/acpi/internal.h         |   11 ++++++
+ drivers/acpi/video.c            |   90 ++++++++++++++++++++++++++++++++++++++++-------
+ drivers/acpi/video_detect.c     |   21 +++++++++++
+ drivers/gpu/drm/i915/i915_dma.c |    2 +-
+ include/acpi/acpixf.h           |    1 +
+ include/acpi/actypes.h          |   15 ++++++++
+ include/acpi/video.h            |   11 +++++-
+ include/linux/acpi.h            |    1 +
+ 9 files changed, 137 insertions(+), 28 deletions(-)
+
+-- 
+I speak only for myself.
+Rafael J. Wysocki, Intel Open Source Technology Center.
