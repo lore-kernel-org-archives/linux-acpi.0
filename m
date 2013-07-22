@@ -1,33 +1,44 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: Linux 3.11-rc2
-Date: Mon, 22 Jul 2013 21:56:15 +0200
-Message-ID: <1943327.gJaLv781Zb@vostro.rjw.lan>
-References: <CA+55aFy330bSRjK5HT1n0wXioPykL3RquHXyBPjm5GpTz_Y=DQ@mail.gmail.com> <5728692.GlhGgHY92H@vostro.rjw.lan> <1374516979.2641.0.camel@x230>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7Bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from hydra.sisk.pl ([212.160.235.94]:33177 "EHLO hydra.sisk.pl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932820Ab3GVTqM (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 22 Jul 2013 15:46:12 -0400
-In-Reply-To: <1374516979.2641.0.camel@x230>
-Sender: linux-acpi-owner@vger.kernel.org
+From: Borislav Petkov <bp@alien8.de>
+Subject: [PATCH] APEI/ERST: Fix error message formatting
+Date: Mon, 22 Jul 2013 23:01:06 +0200
+Message-ID: <1374526866-6813-1-git-send-email-bp@alien8.de>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: LKML <linux-kernel@vger.kernel.org>
+Cc: Borislav Petkov <bp@suse.de>, Anton Vorontsov <anton@enomsg.org>, Colin Cross <ccross@android.com>, Kees Cook <keescook@chromium.org>, Tony Luck <tony.luck@intel.com>, Len Brown <lenb@kernel.org>, "Rafael J. Wysocki" <rjw@sisk.pl>, linux-acpi@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Matthew Garrett <matthew.garrett@nebula.com>, Steven Newbury <steve@snewbury.org.uk>
-Cc: James Hogan <james@albanarts.com>, Linus Torvalds <torvalds@linux-foundation.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Kamal Mostafa <kamal@canonical.com>, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>
 
-On Monday, July 22, 2013 06:16:20 PM Matthew Garrett wrote:
-> On Mon, 2013-07-22 at 15:02 +0200, Rafael J. Wysocki wrote:
-> 
-> > In the meantime I received a report from Steven Newbury that these changes
-> > broke things for him too, so we need to revert commits 8c5bd7a and efaa14c.
-> > The other two commits in the series should be benign.
-> 
-> Could you let me know the details of this problem?
+From: Borislav Petkov <bp@suse.de>
 
-Steven, can you please describe the problem you're seeing to Matthew and
-the other people on the list?
+[    5.525861] ERST: Can not request iomem region <0x        c7eff000-0x        c7f00000> for ERST.
 
-Rafael
+This needs to have leading zeroes. Make it so.
 
+Signed-off-by: Borislav Petkov <bp@suse.de>
+Cc: Anton Vorontsov <anton@enomsg.org>
+Cc: Colin Cross <ccross@android.com>
+Cc: Kees Cook <keescook@chromium.org>
+Cc: Tony Luck <tony.luck@intel.com>
+Cc: Len Brown <lenb@kernel.org>
+Cc: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: linux-acpi@vger.kernel.org
+Cc: linux-kernel@vger.kernel.org
+---
+ drivers/acpi/apei/erst.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/drivers/acpi/apei/erst.c b/drivers/acpi/apei/erst.c
+index 88d0b0f9f92b..1126afeb7e22 100644
+--- a/drivers/acpi/apei/erst.c
++++ b/drivers/acpi/apei/erst.c
+@@ -1168,7 +1168,7 @@ static int __init erst_init(void)
+ 	r = request_mem_region(erst_erange.base, erst_erange.size, "APEI ERST");
+ 	if (!r) {
+ 		pr_err(ERST_PFX
+-		"Can not request iomem region <0x%16llx-0x%16llx> for ERST.\n",
++		"Can not request iomem region <0x%016llx-0x%016llx> for ERST.\n",
+ 		(unsigned long long)erst_erange.base,
+ 		(unsigned long long)erst_erange.base + erst_erange.size);
+ 		rc = -EIO;
+-- 
+1.8.3
