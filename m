@@ -1,110 +1,116 @@
-From: Lv Zheng <lv.zheng@intel.com>
-Subject: [PATCH 3/3] ACPI: Add facility to remove all _OSI strings
-Date: Mon, 22 Jul 2013 16:08:36 +0800
-Message-ID: <c9f8ce77de33f95598bd7063933502e849a1ecdb.1374474116.git.lv.zheng@intel.com>
-References: <cover.1369380671.git.lv.zheng@intel.com> <cover.1374474116.git.lv.zheng@intel.com>
+From: Ben Guthro <benjamin.guthro@citrix.com>
+Subject: Re: [Xen-devel] [PATCH v6 0/5] Xen/ACPI: support sleep state entering
+ on hardware reduced systems
+Date: Mon, 22 Jul 2013 08:44:08 -0400
+Message-ID: <CAOvdn6Wv1mXD-RDCZ750YQFEFf7GR0QxVARACEg0jNrUEEkBYA@mail.gmail.com>
+References: <1372679333-8473-1-git-send-email-benjamin.guthro@citrix.com>
+	<CAOvdn6XcEwFa2CRGqUhsaTeTMKHsQeFHJ-KmyCTBZRLbAoimmQ@mail.gmail.com>
+	<2101936.oHXzxvYCX4@vostro.rjw.lan>
+	<51DAB9B8.7060303@citrix.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga09.intel.com ([134.134.136.24]:47882 "EHLO mga09.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756025Ab3GVIIu (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 22 Jul 2013 04:08:50 -0400
-In-Reply-To: <cover.1374474116.git.lv.zheng@intel.com>
+Received: from mail-ve0-f176.google.com ([209.85.128.176]:48136 "EHLO
+	mail-ve0-f176.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752024Ab3GVMoJ (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 22 Jul 2013 08:44:09 -0400
+In-Reply-To: <51DAB9B8.7060303@citrix.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Len Brown <len.brown@intel.com>
-Cc: Lv Zheng <lv.zheng@intel.com>, linux-acpi@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: Bob Moore <robert.moore@intel.com>, Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>, Jan Beulich <jbeulich@suse.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, xen-devel@lists.xen.org, Shane Wang <shane.wang@intel.com>, tboot-devel@lists.sourceforge.net, Richard L Maliszewski <richard.l.maliszewski@intel.com>, Gang Wei <gang.wei@intel.com>
 
-This patch changes the "acpi_osi=" boot parameter implementation so that:
-1. "acpi_osi=!" can be used to disable all _OSI OS vendor strings by
-   default.  It is meaningless to specify "acpi_osi=!" multiple times as
-   it can only affect the default state of the target _OSI strings.
-2. "acpi_osi=!*" can be used to more all _OSI OS vendor strings and all
-   _OSI feature group strings.  It is useful to specify "acpi_osi=!*"
-   multiple times through kernel command line to override the current
-   state of the target _OSI strings.
+On Mon, Jul 8, 2013 at 9:08 AM, Ben Guthro <Benjamin.Guthro@citrix.com> wrote:
+>
+>
+> On 07/08/2013 09:10 AM, Rafael J. Wysocki wrote:
+>> On Sunday, July 07, 2013 08:13:15 PM Ben Guthro wrote:
+>>> On Mon, Jul 1, 2013 at 7:48 AM, Ben Guthro <benjamin.guthro@citrix.com> wrote:
+>>>> In version 3.4 acpi_os_prepare_sleep() got introduced in parallel with
+>>>> reduced hardware sleep support, and the two changes didn't get
+>>>> synchronized: The new code doesn't call the hook function (if so
+>>>> requested). Fix this, requiring a boolean parameter to be added to the
+>>>> hook function to distinguish "extended" from "legacy" sleep.
+>>>>
+>>>> This requires adjusting TXT, but the adjustments only go as far as
+>>>> failing the extended mode call (since, looking at the TXT interface,
+>>>> there doesn't even appear to be precautions to deal with that
+>>>> alternative interface).
+>>>>
+>>>> The hypervisor change underlying this is commit 62d1a69 ("ACPI: support
+>>>> v5 (reduced HW) sleep interface") on the master branch of
+>>>> git://xenbits.xen.org/xen.git.
+>>>>
+>>>> Signed-off-by: Jan Beulich <jbeulich@suse.com>
+>>>> Signed-off-by: Ben Guthro <benjamin.guthro@citrix.com>
+>>>> Cc: Richard L Maliszewski <richard.l.maliszewski@intel.com>
+>>>> Cc: Gang Wei <gang.wei@intel.com>
+>>>> Cc: Shane Wang <shane.wang@intel.com>
+>>>> Cc: Bob Moore <robert.moore@intel.com>
+>>>> Cc: Rafael J. Wysocki <rjw@sisk.pl>
+>>>> Cc: linux-acpi@vger.kernel.org
+>>>> Cc: tboot-devel@lists.sourceforge.net
+>>>>
+>>>> v2: Extend description to include reference to hypervisor side change
+>>>> v3: Split into multiple patches, separating subsystems
+>>>>     Remove bool parameters, in favor of u8
+>>>> v4: Remove linux/acpi.h dependencies
+>>>>     Further patch split to break out acpica from OSL
+>>>>     More bool vs u8 fixes
+>>>> v5: Fix build of consumers of acpi_os_prepare_sleep() interface change,
+>>>>     so intermediate builds of partial patch series will not fail.
+>>>> v6: Rebased to linux-pm linux-next branch
+>>>>     Added warning in tboot early return code
+>>>>     Added Reviewed-by lines
+>>>>
+>>>> Ben Guthro (5):
+>>>>   acpi: Remove need to include linux/acpi.h in common acpica code
+>>>>   acpi: Call acpi_os_prepare_sleep hook in reduced hardware sleep path
+>>>>   acpi/xen/tboot: Adjust linux acpi OS functions to new extended
+>>>>     parameter
+>>>>   x86/tboot: Fail extended mode reduced hardware sleep
+>>>>   xen/acpi: notify xen when reduced hardware sleep is available
+>>>
+>>> Rafael, Bob -
+>>>
+>>> Is this version of the series something that you may consider taking?
+>>> If not - is there something specific you would like to see addressed?
+>>
+>> Well, I'm afraid you need to give us some more time to process that,
+>> sorry.
+>
+> My apologies - I know it is a busy time during the merge window. I did
+> not mean to seem impatient.
+>
+> With the volume of things on the mailing list, I merely wanted to try to
+> avoid the series getting buried. If a week is too frequent to re-bump a
+> series, do you have a set of recommendations of how to best interact
+> with your workflow?
 
-This patch has passed the test brought by an ACPICA commit for the unit
-test purpose.
+Rafael (et al.)
 
-Signed-off-by: Lv Zheng <lv.zheng@intel.com>
-Reviewed-by: Zhang Rui <rui.zhang@intel.com>
-Acked-by: Len Brown <len.brown@intel.com>
----
- Documentation/kernel-parameters.txt |   28 +++++++++++++++++++++++++++-
- drivers/acpi/osl.c                  |    7 +++++++
- 2 files changed, 34 insertions(+), 1 deletion(-)
+I never heard back on this point of how you prefer your workflow to
+proceed - that is, if I haven't heard anything in a couple weeks -
+should I try to re-bump the thread?
 
-diff --git a/Documentation/kernel-parameters.txt b/Documentation/kernel-parameters.txt
-index 131394f..4bec7a5 100644
---- a/Documentation/kernel-parameters.txt
-+++ b/Documentation/kernel-parameters.txt
-@@ -237,6 +237,7 @@ bytes respectively. Such letter suffixes can also be entirely omitted.
- 	acpi_osi=	[HW,ACPI] Modify list of supported OS interface strings
- 			acpi_osi="string1"	# add string1
- 			acpi_osi="!string2"	# remove string2
-+			acpi_osi=!*		# remove all strings
- 			acpi_osi=!		# disable all built-in OS vendor
- 						  strings
- 			acpi_osi=		# disable all strings
-@@ -248,7 +249,9 @@ bytes respectively. Such letter suffixes can also be entirely omitted.
- 			it cannot affect the default state of the feature group
- 			strings and the current state of the OS vendor strings,
- 			specifying it multiple times through kernel command line
--			is meaningless.
-+			is meaningless.  This command is useful when one do not
-+			care about the state of the feature group strings which
-+			should be controlled by the OSPM.
- 			Examples:
- 			  1. 'acpi_osi=! acpi_osi="Windows 2000"' is equivalent
- 			     to 'acpi_osi="Windows 2000" acpi_osi=!', they all
-@@ -264,6 +267,29 @@ bytes respectively. Such letter suffixes can also be entirely omitted.
- 			  1. 'acpi_osi=' can make 'CondRefOf(_OSI, Local1)'
- 			     FALSE.
- 
-+			'acpi_osi=!*' can be used in combination with single or
-+			multiple 'acpi_osi="string1"' to support specific
-+			string(s).  Note that such command can affect the
-+			current state of both the OS vendor strings and the
-+			feature group strings, thus specifying it multiple times
-+			through kernel command line is meaningful.  But it may
-+			still not able to affect the final state of a string if
-+			there are quirks related to this string.  This command
-+			is useful when one want to control the state of the
-+			feature group strings to debug BIOS issues related to
-+			the OSPM features.
-+			Examples:
-+			  1. 'acpi_osi="Module Device" acpi_osi=!*' can make
-+			     '_OSI("Module Device")' FALSE.
-+			  2. 'acpi_osi=!* acpi_osi="Module Device"' can make
-+			     '_OSI("Module Device")' TRUE.
-+			  3. 'acpi_osi=! acpi_osi=!* acpi_osi="Windows 2000"' is
-+			     equivalent to
-+			     'acpi_osi=!* acpi_osi=! acpi_osi="Windows 2000"'
-+			     and
-+			     'acpi_osi=!* acpi_osi="Windows 2000" acpi_osi=!',
-+			     they all will make '_OSI("Windows 2000")' TRUE.
-+
- 	acpi_pm_good	[X86]
- 			Override the pmtimer bug detection: force the kernel
- 			to assume that this machine's pmtimer latches its value
-diff --git a/drivers/acpi/osl.c b/drivers/acpi/osl.c
-index 5dc311d..4b75e46 100644
---- a/drivers/acpi/osl.c
-+++ b/drivers/acpi/osl.c
-@@ -1390,6 +1390,13 @@ void __init acpi_osi_setup(char *str)
- 		if (*str == '\0') {
- 			osi_linux.default_disabling = 1;
- 			return;
-+		} else if (*str == '*') {
-+			acpi_update_interfaces(ACPI_DISABLE_ALL_STRINGS);
-+			for (i = 0; i < OSI_STRING_ENTRIES_MAX; i++) {
-+				osi = &osi_setup_entries[i];
-+				osi->enable = false;
-+			}
-+			return;
- 		}
- 		enable = false;
- 	}
--- 
-1.7.10
+Since this was sent around the time of the merge window, I realize
+there were other things to occupy people's time.
+Now that rc2 is out - I'm hoping that the dust has settled a bit, such
+that there may be a cycle, or two to review this series.
 
+Thanks for your time
+
+Ben
+
+>
+> I'm just trying to balance people's time to review such things, with the
+> volume of the list.
+>
+> Thanks for your time.
+>
+> Ben
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-kernel" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> Please read the FAQ at  http://www.tux.org/lkml/
