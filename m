@@ -1,38 +1,64 @@
-From: "xavier.gnata@gmail.com" <xavier.gnata@gmail.com>
-Subject: macbook air 2013 boot stuck at "smpboot: Booting Node 0, Processors
- #1"
-Date: Tue, 23 Jul 2013 00:56:48 +0200
-Message-ID: <51EDB8B0.5000101@gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+From: Kuppuswamy Sathyanarayanan
+	<sathyanarayanan.kuppuswamy@linux.intel.com>
+Subject: [PATCH v1 1/1] ACPI: Allow platform device creation without any IO resource
+Date: Mon, 22 Jul 2013 16:51:20 -0700
+Message-ID: <91404e863a8ce7bc9a757a085dea0c2a8a9b7986.1374536906.git.sathyanarayanan.kuppuswamy@linux.intel.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-ea0-f174.google.com ([209.85.215.174]:58629 "EHLO
-	mail-ea0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751387Ab3GVW4u (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 22 Jul 2013 18:56:50 -0400
-Received: by mail-ea0-f174.google.com with SMTP id o10so4065788eaj.19
-        for <linux-acpi@vger.kernel.org>; Mon, 22 Jul 2013 15:56:48 -0700 (PDT)
-Received: from ?IPv6:2001:a60:2514:1901:223:14ff:fe22:3e48? ([2001:a60:2514:1901:223:14ff:fe22:3e48])
-        by mx.google.com with ESMTPSA id n45sm54387160eew.1.2013.07.22.15.56.47
-        for <linux-acpi@vger.kernel.org>
-        (version=TLSv1 cipher=ECDHE-RSA-RC4-SHA bits=128/128);
-        Mon, 22 Jul 2013 15:56:48 -0700 (PDT)
+Received: from mga09.intel.com ([134.134.136.24]:8346 "EHLO mga09.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751717Ab3GVXmL (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 22 Jul 2013 19:42:11 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: linux-acpi@vger.kernel.org
+Cc: rjw@sisk.pl, lenb@kernel.org, linux-kernel@vger.kernel.org, Kuppuswamy Sathyanarayanan <sathyanarayanan.kuppuswamy@linux.intel.com>
 
-Hi,
+Currently, ACPI platform device creation is aborted when there
+are no valid IO resources. This approach will not work if the
+device has only GPIO as its resource or some custom resources.
+So this patch removes zero resource check and allows platform
+device creation even without any valid IO resource.
 
-Vanila kernels 3.9.11, 3.10.2 and 3.11-rc2 don't boot on a macbook air 2013.
-They get completely stuck early at "smpboot: Booting Node 0, Processors #1"
-See https://launchpadlibrarian.net/145295798/3.11-rc1_boot_stuck.jpg
+Signed-off-by: Kuppuswamy Sathyanarayanan <sathyanarayanan.kuppuswamy@linux.intel.com>
+---
+ drivers/acpi/acpi_platform.c |    8 ++++++--
+ 1 file changed, 6 insertions(+), 2 deletions(-)
 
-acpi=off does not help because then it crashes most of the time in 
-clockevents_config
-Screenshot and dump of the hardware config at 
-https://bugs.launchpad.net/ubuntu/+source/linux/+bug/1197451
+diff --git a/drivers/acpi/acpi_platform.c b/drivers/acpi/acpi_platform.c
+index fafec5d..32136b8 100644
+--- a/drivers/acpi/acpi_platform.c
++++ b/drivers/acpi/acpi_platform.c
+@@ -52,7 +52,7 @@ int acpi_create_platform_device(struct acpi_device *adev,
+ 	struct platform_device_info pdevinfo;
+ 	struct resource_list_entry *rentry;
+ 	struct list_head resource_list;
+-	struct resource *resources;
++	struct resource *resources = NULL;
+ 	int count;
+ 
+ 	/* If the ACPI node already has a physical device attached, skip it. */
+@@ -61,9 +61,12 @@ int acpi_create_platform_device(struct acpi_device *adev,
+ 
+ 	INIT_LIST_HEAD(&resource_list);
+ 	count = acpi_dev_get_resources(adev, &resource_list, NULL, NULL);
+-	if (count <= 0)
++	if (count < 0)
+ 		return 0;
+ 
++	if (!count)
++		goto create_dev;
++
+ 	resources = kmalloc(count * sizeof(struct resource), GFP_KERNEL);
+ 	if (!resources) {
+ 		dev_err(&adev->dev, "No memory for resources\n");
+@@ -76,6 +79,7 @@ int acpi_create_platform_device(struct acpi_device *adev,
+ 
+ 	acpi_dev_free_resource_list(&resource_list);
+ 
++create_dev:
+ 	memset(&pdevinfo, 0, sizeof(pdevinfo));
+ 	/*
+ 	 * If the ACPI node has a parent and that parent has a physical device
+-- 
+1.7.9.5
 
-What else could help to know were the problem is?
-
-Xavier
