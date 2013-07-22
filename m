@@ -1,266 +1,173 @@
 From: Lv Zheng <lv.zheng@intel.com>
-Subject: [PATCH 1/3] ACPICA: Add acpi_update_interfaces public interface
-Date: Mon, 22 Jul 2013 16:08:16 +0800
-Message-ID: <7f53bb4cfcc97f5c9c560882751cc78cde121d27.1374474116.git.lv.zheng@intel.com>
+Subject: [PATCH 2/3] ACPI: Add facility to disable all _OSI OS vendor strings
+Date: Mon, 22 Jul 2013 16:08:25 +0800
+Message-ID: <9501e427ee7b753e5fd3fe4da5d929ca7262079e.1374474116.git.lv.zheng@intel.com>
 References: <cover.1369380671.git.lv.zheng@intel.com> <cover.1374474116.git.lv.zheng@intel.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga11.intel.com ([192.55.52.93]:12396 "EHLO mga11.intel.com"
+Received: from mga11.intel.com ([192.55.52.93]:32350 "EHLO mga11.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751880Ab3GVIIX (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 22 Jul 2013 04:08:23 -0400
+	id S1753255Ab3GVIIe (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 22 Jul 2013 04:08:34 -0400
 In-Reply-To: <cover.1374474116.git.lv.zheng@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Len Brown <len.brown@intel.com>
-Cc: Lv Zheng <lv.zheng@intel.com>, linux-acpi@vger.kernel.org, Bob Moore <robert.moore@intel.com>
+Cc: Lv Zheng <lv.zheng@intel.com>, linux-acpi@vger.kernel.org
 
-Add new API to allow OSPM to disable/enable specific types of _OSI
-interface strings.
+This patch introduces "acpi_osi=!" command line to force Linux replying
+"UNSUPPORTED" to all of the _OSI strings.  This patch is based on an
+ACPICA enhancement - the new API acpi_update_interfaces().
 
-ACPICA does not have the knowledge about whether an _OSI interface string
-is an OS vendor string or a feature group string and there isn't any API
-interface to allow OSPM to install a new interface string as a feature
-group string.
-This patch simply adds all feature group strings defined by ACPI
-specification into the acpi_default_supported_interfaces with
-ACPI_OSI_FEATURE flag set to fix this gap.  This patch also adds codes to
-keep their default states as ACPI_OSI_INVALID before the initialization and
-after the termination.
+The _OSI object provides the platform with the ability to query OSPM to
+determine the set of ACPI related interfaces, behaviors, or features that
+the operating system supports.  The argument passed to the _OSI is a
+string like the followings:
+1. Feature Group String, examples include
+   Module Device
+   Processor Device
+   3.0 _SCP Extensions
+   Processor Aggregator Device
+   ...
+2. OS Vendor String, examples include
+   Linux
+   FreeBSD
+   Windows
+   ...
 
-Reported by Lv Zheng.
+There are AML codes provided in the ACPI namespace written in the following
+style to determine OSPM interfaces / features:
+    Method(OSCK)
+    {
+        if (CondRefOf(_OSI, Local0))
+        {
+            if (\_OSI("Windows"))
+            {
+                Return (One)
+            }
+            if (\_OSI("Windows 2006"))
+            {
+                Return (Ones)
+            }
+            Return (Zero)
+        }
+        Return (Zero)
+    }
+
+There is a debugging facility implemented in the Linux.  Users can pass
+"acpi_osi=" boot parameters to the kernel to tune the _OSI evaluation
+result so that certain AML codes can be executed.  Current implementation
+includes:
+1. 'acpi_osi=' - this makes CondRefOf(_OSI, Local0) TRUE
+2. 'acpi_osi="Windows"' - this makes \_OSI("Windows") TRUE
+3. 'acpi_osi="!Windows"' - this makes \_OSI("Windows") FALSE
+The function to implement this feature is also used as a quirk mechanism
+in the Linux ACPI subystem.
+
+When _OSI is evaluatated by the AML codes, ACPICA replies "SUPPORTED" to
+all Windows operating system vendor strings.  This is because Windows
+operating systems return "SUPPORTED" if the argument to the _OSI method
+specifies an earlier version of Windows.  Please refer to the following
+MSDN document:
+How to Identify the Windows Version in ACPI by Using _OSI
+http://msdn.microsoft.com/en-us/library/hardware/gg463275.aspx
+
+This adds difficulties when developers want to feed specific Windows
+operating system vendor string to the BIOS codes for debugging purpose,
+multiple acpi_osi="!xxx" should be specified in the command line to
+force Linux replying "UNSUPPORTED" to the Windows OS vendor strings
+listed in the AML codes.
+
+This patch has passed a unit test carried out by AcpiExec.
 
 Signed-off-by: Lv Zheng <lv.zheng@intel.com>
 Reviewed-by: Zhang Rui <rui.zhang@intel.com>
-Signed-off-by: Bob Moore <robert.moore@intel.com>
 Acked-by: Len Brown <len.brown@intel.com>
 ---
- drivers/acpi/acpica/aclocal.h |    3 ++
- drivers/acpi/acpica/acutils.h |    2 ++
- drivers/acpi/acpica/utosi.c   |   77 ++++++++++++++++++++++++++++++++++-------
- drivers/acpi/acpica/utxface.c |   29 ++++++++++++++++
- include/acpi/acpixf.h         |    2 ++
- include/acpi/actypes.h        |   14 ++++++++
- 6 files changed, 114 insertions(+), 13 deletions(-)
+ Documentation/kernel-parameters.txt |   29 +++++++++++++++++++++++++++--
+ drivers/acpi/osl.c                  |   14 +++++++++++++-
+ 2 files changed, 40 insertions(+), 3 deletions(-)
 
-diff --git a/drivers/acpi/acpica/aclocal.h b/drivers/acpi/acpica/aclocal.h
-index dfed265..42f1be3 100644
---- a/drivers/acpi/acpica/aclocal.h
-+++ b/drivers/acpi/acpica/aclocal.h
-@@ -955,6 +955,9 @@ struct acpi_interface_info {
+diff --git a/Documentation/kernel-parameters.txt b/Documentation/kernel-parameters.txt
+index 7f64e0f..131394f 100644
+--- a/Documentation/kernel-parameters.txt
++++ b/Documentation/kernel-parameters.txt
+@@ -235,10 +235,35 @@ bytes respectively. Such letter suffixes can also be entirely omitted.
+ 			Format: To spoof as Windows 98: ="Microsoft Windows"
  
- #define ACPI_OSI_INVALID                0x01
- #define ACPI_OSI_DYNAMIC                0x02
-+#define ACPI_OSI_FEATURE                0x04
-+#define ACPI_OSI_DEFAULT_INVALID        0x08
-+#define ACPI_OSI_OPTIONAL_FEATURE       (ACPI_OSI_FEATURE | ACPI_OSI_DEFAULT_INVALID | ACPI_OSI_INVALID)
+ 	acpi_osi=	[HW,ACPI] Modify list of supported OS interface strings
+-			acpi_osi="string1"	# add string1 -- only one string
+-			acpi_osi="!string2"	# remove built-in string2
++			acpi_osi="string1"	# add string1
++			acpi_osi="!string2"	# remove string2
++			acpi_osi=!		# disable all built-in OS vendor
++						  strings
+ 			acpi_osi=		# disable all strings
  
- struct acpi_port_info {
- 	char *name;
-diff --git a/drivers/acpi/acpica/acutils.h b/drivers/acpi/acpica/acutils.h
-index 3c76ede..f7b3f68 100644
---- a/drivers/acpi/acpica/acutils.h
-+++ b/drivers/acpi/acpica/acutils.h
-@@ -470,6 +470,8 @@ acpi_status acpi_ut_install_interface(acpi_string interface_name);
- 
- acpi_status acpi_ut_remove_interface(acpi_string interface_name);
- 
-+acpi_status acpi_ut_update_interfaces(u8 action);
++			'acpi_osi=!' can be used in combination with single or
++			multiple 'acpi_osi="string1"' to support specific OS
++			vendor string(s).  Note that such command can only
++			affect the default state of the OS vendor strings, thus
++			it cannot affect the default state of the feature group
++			strings and the current state of the OS vendor strings,
++			specifying it multiple times through kernel command line
++			is meaningless.
++			Examples:
++			  1. 'acpi_osi=! acpi_osi="Windows 2000"' is equivalent
++			     to 'acpi_osi="Windows 2000" acpi_osi=!', they all
++			     can make '_OSI("Windows 2000")' TRUE.
 +
- struct acpi_interface_info *acpi_ut_get_interface(acpi_string interface_name);
++			'acpi_osi=' cannot be used in combination with other
++			'acpi_osi=' command lines, the _OSI method will not
++			exist in the ACPI namespace.  NOTE that such command can
++			only affect the _OSI support state, thus specifying it
++			multiple times through kernel command line is also
++			meaningless.
++			Examples:
++			  1. 'acpi_osi=' can make 'CondRefOf(_OSI, Local1)'
++			     FALSE.
++
+ 	acpi_pm_good	[X86]
+ 			Override the pmtimer bug detection: force the kernel
+ 			to assume that this machine's pmtimer latches its value
+diff --git a/drivers/acpi/osl.c b/drivers/acpi/osl.c
+index da6b663..5dc311d 100644
+--- a/drivers/acpi/osl.c
++++ b/drivers/acpi/osl.c
+@@ -140,7 +140,8 @@ static struct osi_linux {
+ 	unsigned int	enable:1;
+ 	unsigned int	dmi:1;
+ 	unsigned int	cmdline:1;
+-} osi_linux = {0, 0, 0};
++	unsigned int	default_disabling:1;
++} osi_linux = {0, 0, 0, 0};
  
- acpi_status acpi_ut_osi_implementation(struct acpi_walk_state *walk_state);
-diff --git a/drivers/acpi/acpica/utosi.c b/drivers/acpi/acpica/utosi.c
-index 7e80772..8856bd3 100644
---- a/drivers/acpi/acpica/utosi.c
-+++ b/drivers/acpi/acpica/utosi.c
-@@ -77,21 +77,20 @@ static struct acpi_interface_info acpi_default_supported_interfaces[] = {
+ static u32 acpi_osi_handler(acpi_string interface, u32 supported)
+ {
+@@ -1386,6 +1387,10 @@ void __init acpi_osi_setup(char *str)
  
- 	/* Feature Group Strings */
- 
--	{"Extended Address Space Descriptor", NULL, 0, 0}
-+	{"Extended Address Space Descriptor", NULL, ACPI_OSI_FEATURE, 0},
- 
- 	/*
- 	 * All "optional" feature group strings (features that are implemented
--	 * by the host) should be dynamically added by the host via
--	 * acpi_install_interface and should not be manually added here.
--	 *
--	 * Examples of optional feature group strings:
--	 *
--	 * "Module Device"
--	 * "Processor Device"
--	 * "3.0 Thermal Model"
--	 * "3.0 _SCP Extensions"
--	 * "Processor Aggregator Device"
-+	 * by the host) should be dynamically modified to VALID by the host via
-+	 * acpi_install_interface or acpi_update_interfaces. Such optional feature
-+	 * group strings are set as INVALID by default here.
- 	 */
-+
-+	{"Module Device", NULL, ACPI_OSI_OPTIONAL_FEATURE, 0},
-+	{"Processor Device", NULL, ACPI_OSI_OPTIONAL_FEATURE, 0},
-+	{"3.0 Thermal Model", NULL, ACPI_OSI_OPTIONAL_FEATURE, 0},
-+	{"3.0 _SCP Extensions", NULL, ACPI_OSI_OPTIONAL_FEATURE, 0},
-+	{"Processor Aggregator Device", NULL, ACPI_OSI_OPTIONAL_FEATURE, 0}
- };
- 
- /*******************************************************************************
-@@ -158,11 +157,20 @@ acpi_status acpi_ut_interface_terminate(void)
- 	while (next_interface) {
- 		acpi_gbl_supported_interfaces = next_interface->next;
- 
--		/* Only interfaces added at runtime can be freed */
--
- 		if (next_interface->flags & ACPI_OSI_DYNAMIC) {
-+
-+			/* Only interfaces added at runtime can be freed */
-+
- 			ACPI_FREE(next_interface->name);
- 			ACPI_FREE(next_interface);
-+		} else {
-+			/* Interface is in static list. Reset it to invalid or valid. */
-+
-+			if (next_interface->flags & ACPI_OSI_DEFAULT_INVALID) {
-+				next_interface->flags |= ACPI_OSI_INVALID;
-+			} else {
-+				next_interface->flags &= ~ACPI_OSI_INVALID;
-+			}
- 		}
- 
- 		next_interface = acpi_gbl_supported_interfaces;
-@@ -278,6 +286,49 @@ acpi_status acpi_ut_remove_interface(acpi_string interface_name)
- 
- /*******************************************************************************
-  *
-+ * FUNCTION:    acpi_ut_update_interfaces
-+ *
-+ * PARAMETERS:  action              - Actions to be performed during the
-+ *                                    update
-+ *
-+ * RETURN:      Status
-+ *
-+ * DESCRIPTION: Update _OSI interface strings, disabling or enabling OS vendor
-+ *              strings or/and feature group strings.
-+ *              Caller MUST hold acpi_gbl_osi_mutex
-+ *
-+ ******************************************************************************/
-+
-+acpi_status acpi_ut_update_interfaces(u8 action)
-+{
-+	struct acpi_interface_info *next_interface;
-+
-+	next_interface = acpi_gbl_supported_interfaces;
-+	while (next_interface) {
-+		if (((next_interface->flags & ACPI_OSI_FEATURE) &&
-+		     (action & ACPI_FEATURE_STRINGS)) ||
-+		    (!(next_interface->flags & ACPI_OSI_FEATURE) &&
-+		     (action & ACPI_VENDOR_STRINGS))) {
-+			if (action & ACPI_DISABLE_INTERFACES) {
-+
-+				/* Mark the interfaces as invalid */
-+
-+				next_interface->flags |= ACPI_OSI_INVALID;
-+			} else {
-+				/* Mark the interfaces as valid */
-+
-+				next_interface->flags &= ~ACPI_OSI_INVALID;
-+			}
+ 	if (*str == '!') {
+ 		str++;
++		if (*str == '\0') {
++			osi_linux.default_disabling = 1;
++			return;
 +		}
+ 		enable = false;
+ 	}
+ 
+@@ -1451,6 +1456,13 @@ static void __init acpi_osi_setup_late(void)
+ 	int i;
+ 	acpi_status status;
+ 
++	if (osi_linux.default_disabling) {
++		status = acpi_update_interfaces(ACPI_DISABLE_ALL_VENDOR_STRINGS);
 +
-+		next_interface = next_interface->next;
++		if (ACPI_SUCCESS(status))
++			printk(KERN_INFO PREFIX "Disabled all _OSI OS vendors\n");
 +	}
 +
-+	return (AE_OK);
-+}
-+
-+/*******************************************************************************
-+ *
-  * FUNCTION:    acpi_ut_get_interface
-  *
-  * PARAMETERS:  interface_name      - The interface to find
-diff --git a/drivers/acpi/acpica/utxface.c b/drivers/acpi/acpica/utxface.c
-index 6505774..03a211e 100644
---- a/drivers/acpi/acpica/utxface.c
-+++ b/drivers/acpi/acpica/utxface.c
-@@ -389,6 +389,34 @@ ACPI_EXPORT_SYMBOL(acpi_install_interface_handler)
- 
- /*****************************************************************************
-  *
-+ * FUNCTION:    acpi_update_interfaces
-+ *
-+ * PARAMETERS:  action              - Actions to be performed during the
-+ *                                    update
-+ *
-+ * RETURN:      Status
-+ *
-+ * DESCRIPTION: Update _OSI interface strings, disabling or enabling OS vendor
-+ *              string or/and feature group strings.
-+ *
-+ ****************************************************************************/
-+acpi_status acpi_update_interfaces(u8 action)
-+{
-+	acpi_status status;
-+
-+	status = acpi_os_acquire_mutex(acpi_gbl_osi_mutex, ACPI_WAIT_FOREVER);
-+	if (ACPI_FAILURE(status)) {
-+		return (status);
-+	}
-+
-+	status = acpi_ut_update_interfaces(action);
-+
-+	acpi_os_release_mutex(acpi_gbl_osi_mutex);
-+	return (status);
-+}
-+
-+/*****************************************************************************
-+ *
-  * FUNCTION:    acpi_check_address_range
-  *
-  * PARAMETERS:  space_id            - Address space ID
-@@ -402,6 +430,7 @@ ACPI_EXPORT_SYMBOL(acpi_install_interface_handler)
-  *              ASL operation region address ranges.
-  *
-  ****************************************************************************/
-+
- u32
- acpi_check_address_range(acpi_adr_space_type space_id,
- 			 acpi_physical_address address,
-diff --git a/include/acpi/acpixf.h b/include/acpi/acpixf.h
-index 1b09300..c2705e8 100644
---- a/include/acpi/acpixf.h
-+++ b/include/acpi/acpixf.h
-@@ -146,6 +146,8 @@ acpi_status acpi_install_interface(acpi_string interface_name);
- 
- acpi_status acpi_remove_interface(acpi_string interface_name);
- 
-+acpi_status acpi_update_interfaces(u8 action);
-+
- u32
- acpi_check_address_range(acpi_adr_space_type space_id,
- 			 acpi_physical_address address,
-diff --git a/include/acpi/actypes.h b/include/acpi/actypes.h
-index a64adcc..549bdfb 100644
---- a/include/acpi/actypes.h
-+++ b/include/acpi/actypes.h
-@@ -1144,4 +1144,18 @@ struct acpi_memory_list {
- #endif
- };
- 
-+/* _OSI update actions */
-+
-+#define ACPI_VENDOR_STRINGS                 0x01
-+#define ACPI_FEATURE_STRINGS                0x02
-+#define ACPI_ENABLE_INTERFACES              0x00
-+#define ACPI_DISABLE_INTERFACES             0x04
-+
-+#define ACPI_DISABLE_ALL_VENDOR_STRINGS     (ACPI_DISABLE_INTERFACES | ACPI_VENDOR_STRINGS)
-+#define ACPI_DISABLE_ALL_FEATURE_STRINGS    (ACPI_DISABLE_INTERFACES | ACPI_FEATURE_STRINGS)
-+#define ACPI_DISABLE_ALL_STRINGS            (ACPI_DISABLE_INTERFACES | ACPI_VENDOR_STRINGS | ACPI_FEATURE_STRINGS)
-+#define ACPI_ENABLE_ALL_VENDOR_STRINGS      (ACPI_ENABLE_INTERFACES | ACPI_VENDOR_STRINGS)
-+#define ACPI_ENABLE_ALL_FEATURE_STRINGS     (ACPI_ENABLE_INTERFACES | ACPI_FEATURE_STRINGS)
-+#define ACPI_ENABLE_ALL_STRINGS             (ACPI_ENABLE_INTERFACES | ACPI_VENDOR_STRINGS | ACPI_FEATURE_STRINGS)
-+
- #endif				/* __ACTYPES_H__ */
+ 	for (i = 0; i < OSI_STRING_ENTRIES_MAX; i++) {
+ 		osi = &osi_setup_entries[i];
+ 		str = osi->string;
 -- 
 1.7.10
 
