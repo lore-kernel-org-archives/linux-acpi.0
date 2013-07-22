@@ -1,45 +1,42 @@
-From: Tobias Klausmann <tobias.johannes.klausmann@mni.thm.de>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
 Subject: Re: Linux 3.11-rc2
-Date: Mon, 22 Jul 2013 17:43:13 +0200
-Message-ID: <51ED5311.7070200@mni.thm.de>
-References: <CA+55aFy330bSRjK5HT1n0wXioPykL3RquHXyBPjm5GpTz_Y=DQ@mail.gmail.com> <51EC4D77.2010502@mni.thm.de> <2494093.OzngazxDQW@vostro.rjw.lan>
+Date: Mon, 22 Jul 2013 21:54:21 +0200
+Message-ID: <9012759.Alzqtdvh5b@vostro.rjw.lan>
+References: <CA+55aFy330bSRjK5HT1n0wXioPykL3RquHXyBPjm5GpTz_Y=DQ@mail.gmail.com> <5728692.GlhGgHY92H@vostro.rjw.lan> <CA+55aFyrMRDD8qe9DYXixaSLJXEURMYYku1azABA72m71_X+cA@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <2494093.OzngazxDQW@vostro.rjw.lan>
-Sender: linux-kernel-owner@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7Bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from hydra.sisk.pl ([212.160.235.94]:33170 "EHLO hydra.sisk.pl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S932820Ab3GVToX (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 22 Jul 2013 15:44:23 -0400
+In-Reply-To: <CA+55aFyrMRDD8qe9DYXixaSLJXEURMYYku1azABA72m71_X+cA@mail.gmail.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: James Hogan <james@albanarts.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Kamal Mostafa <kamal@canonical.com>, Matthew Garrett <matthew.garrett@nebula.com>, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Steven Newbury <steve@snewbury.org.uk>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>
 
-On 22.07.2013 15:08, Rafael J. Wysocki wrote:
-> On Sunday, July 21, 2013 11:07:03 PM Tobias Klausmann wrote:
->> On 21.07.2013 21:53, Linus Torvalds wrote:
->>> So it's been another week, and -rc2 is out there.
->> ...
->>>    (b) we had a late change to how ACPI backlight handling is done on
->>> certain machines, and while this kind of thing really shouldn't be
->>> done outside the merge window, I ended up pulling it anyway. But I'd
->>> *really* like to have people test this thing particularly on laptops
->>> with intel-based graphics. It should only matter (and hopefully
->>> improve things) for the newer ones with BIOSes designed for Windows 8,
->>> but hey, the more testing, the better. Backlight handling has been
->>> painful before, so I'm mentioning this explicitly.
->>>
->> This pach finally fixes my backlight control!
-> Yes, it fixes that for a number of people, which is the reason why I send
-> the pull request in the first place, but it also turns out to break things
-> for some people and therefore it'll have to be reverted.
->
-> We're still going to work on that, though.
->
-> Thanks,
-> Rafael
->
->
-If you have new patches ready for this and you want them to be tested, 
-let me know!
+On Monday, July 22, 2013 11:11:54 AM Linus Torvalds wrote:
+> On Mon, Jul 22, 2013 at 6:02 AM, Rafael J. Wysocki <rjw@sisk.pl> wrote:
+> >
+> > Linus, do you want me to send a pull request reverting 8c5bd7a and efaa14c?
+> 
+> Yes, but let's wait a while. Not because I think we'll fix the problem
+> (hey, miracles might happen), but because I think it would be useful
+> to couple the reverts with information about the particular machines
+> that broke (and the people who reported it). So that when we
+> inevitably try again, we can perhaps get some testing effort with
+> those machines/people.
+> 
+> It doesn't seem to be a show-stopped for a large number of people, so
+> there's no huge hurry. I'd suggest doing the revert just in time for
+> rc3, but waiting until then to gather info about people who see
+> breakage.
+> 
+> Sound like a plan?
 
-Thanks,
-Tobias
+Yes, it does.
+
+Rafael
+
