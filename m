@@ -1,88 +1,92 @@
 From: Bjorn Helgaas <bhelgaas@google.com>
 Subject: Re: [PATCH v2 1/8] x86/PCI: prevent re-allocation of already existing
  bridge and ROM resources
-Date: Mon, 22 Jul 2013 18:08:28 -0600
-Message-ID: <CAErSpo7=ed3=P7ab9zYB23qnwe8Z-ghRfCEurskpcNW5m86j8g@mail.gmail.com>
-References: <1372860295-8306-1-git-send-email-mika.westerberg@linux.intel.com> <1372860295-8306-2-git-send-email-mika.westerberg@linux.intel.com>
+Date: Mon, 22 Jul 2013 19:18:38 -0600
+Message-ID: <CAErSpo5=-32QSZ_RtLgU_67gMF6RVcnTAG6oKJ_Uz7uf4pXRkA@mail.gmail.com>
+References: <1372860295-8306-1-git-send-email-mika.westerberg@linux.intel.com>
+ <1372860295-8306-2-git-send-email-mika.westerberg@linux.intel.com> <CAErSpo7=ed3=P7ab9zYB23qnwe8Z-ghRfCEurskpcNW5m86j8g@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-ie0-f175.google.com ([209.85.223.175]:33034 "EHLO
+Received: from mail-ie0-f175.google.com ([209.85.223.175]:54848 "EHLO
 	mail-ie0-f175.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752364Ab3GWAIt (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 22 Jul 2013 20:08:49 -0400
-Received: by mail-ie0-f175.google.com with SMTP id a11so16793453iee.20
-        for <linux-acpi@vger.kernel.org>; Mon, 22 Jul 2013 17:08:49 -0700 (PDT)
-In-Reply-To: <1372860295-8306-2-git-send-email-mika.westerberg@linux.intel.com>
+	with ESMTP id S1750798Ab3GWBS7 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 22 Jul 2013 21:18:59 -0400
+Received: by mail-ie0-f175.google.com with SMTP id a11so17225542iee.34
+        for <linux-acpi@vger.kernel.org>; Mon, 22 Jul 2013 18:18:59 -0700 (PDT)
+In-Reply-To: <CAErSpo7=ed3=P7ab9zYB23qnwe8Z-ghRfCEurskpcNW5m86j8g@mail.gmail.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: Mika Westerberg <mika.westerberg@linux.intel.com>
 Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Jesse Barnes <jbarnes@virtuousgeek.org>, Yinghai Lu <yinghai@kernel.org>, "Ronciak, John" <john.ronciak@intel.com>, "Penner, Miles J" <miles.j.penner@intel.com>, Bruce Allan <bruce.w.allan@intel.com>, Heikki Krogerus <heikki.krogerus@linux.intel.com>, "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>, "x86@kernel.org" <x86@kernel.org>
 
-On Wed, Jul 3, 2013 at 8:04 AM, Mika Westerberg
-<mika.westerberg@linux.intel.com> wrote:
-> In hotplug case (especially with Thunderbolt enabled systems) we might need
-> to call pcibios_resource_survey_bus() several times for a bus. The function
-> ends up calling pci_claim_resource() for each bridge resource that then
-> fails claiming that the resource exists already (which it does). Once this
-> happens the resource is invalidated thus preventing devices behind the
-> bridge to allocate their resources.
+On Mon, Jul 22, 2013 at 6:08 PM, Bjorn Helgaas <bhelgaas@google.com> wrote:
+> On Wed, Jul 3, 2013 at 8:04 AM, Mika Westerberg
+> <mika.westerberg@linux.intel.com> wrote:
+>> In hotplug case (especially with Thunderbolt enabled systems) we might need
+>> to call pcibios_resource_survey_bus() several times for a bus. The function
+>> ends up calling pci_claim_resource() for each bridge resource that then
+>> fails claiming that the resource exists already (which it does). Once this
+>> happens the resource is invalidated thus preventing devices behind the
+>> bridge to allocate their resources.
+>>
+>> To fix this we do what has been done in pcibios_allocate_dev_resources()
+>> and check 'parent' of the given resource. If it is non-NULL it means that
+>> the resource has been allocated already and we can skip it. We do the same
+>> for ROM resources as well.
+>>
+>> Signed-off-by: Mika Westerberg <mika.westerberg@linux.intel.com>
 >
-> To fix this we do what has been done in pcibios_allocate_dev_resources()
-> and check 'parent' of the given resource. If it is non-NULL it means that
-> the resource has been allocated already and we can skip it. We do the same
-> for ROM resources as well.
+> This looks reasonable to me.
+
+Acked-by: Bjorn Helgaas <bhelgaas@google.com>
+
+> However, the use of "r->parent" to determine whether the resource is
+> already allocated is nothing specific to x86.  So I think we might be
+> missing an opportunity to make this more consistent across
+> architectures.  I looked at other callers of pci_claim_resource() for
+> bridge and ROM resources, and it looks like we might be able to make
+> similar changes in:
 >
-> Signed-off-by: Mika Westerberg <mika.westerberg@linux.intel.com>
-
-This looks reasonable to me.
-
-However, the use of "r->parent" to determine whether the resource is
-already allocated is nothing specific to x86.  So I think we might be
-missing an opportunity to make this more consistent across
-architectures.  I looked at other callers of pci_claim_resource() for
-bridge and ROM resources, and it looks like we might be able to make
-similar changes in:
-
-  frv pcibios_allocate_bus_resources()
-  ia64 pcibios_fixup_resources() (via pcibios_fixup_bridge_resources())
-  mn10300 pcibios_allocate_bus_resources()
-  mn10300 pcibios_assign_resources() (ROM)
-  mn10300 pcibios_fixup_device_resources()
-  parisc lba_fixup_bus()
-
-I really hate the idea of fixing something for x86 but not for other
-arches, so maybe somebody could take a deeper look at this and see if
-it would make sense to change the other arches, too.
-
-Bjorn
-
-> ---
->  arch/x86/pci/i386.c | 4 ++++
->  1 file changed, 4 insertions(+)
+>   frv pcibios_allocate_bus_resources()
+>   ia64 pcibios_fixup_resources() (via pcibios_fixup_bridge_resources())
+>   mn10300 pcibios_allocate_bus_resources()
+>   mn10300 pcibios_assign_resources() (ROM)
+>   mn10300 pcibios_fixup_device_resources()
+>   parisc lba_fixup_bus()
 >
-> diff --git a/arch/x86/pci/i386.c b/arch/x86/pci/i386.c
-> index 94919e3..db6b1ab 100644
-> --- a/arch/x86/pci/i386.c
-> +++ b/arch/x86/pci/i386.c
-> @@ -210,6 +210,8 @@ static void pcibios_allocate_bridge_resources(struct pci_dev *dev)
->                 r = &dev->resource[idx];
->                 if (!r->flags)
->                         continue;
-> +               if (r->parent)  /* Already allocated */
-> +                       continue;
->                 if (!r->start || pci_claim_resource(dev, idx) < 0) {
->                         /*
->                          * Something is wrong with the region.
-> @@ -318,6 +320,8 @@ static void pcibios_allocate_dev_rom_resource(struct pci_dev *dev)
->         r = &dev->resource[PCI_ROM_RESOURCE];
->         if (!r->flags || !r->start)
->                 return;
-> +       if (r->parent) /* Already allocated */
-> +               return;
+> I really hate the idea of fixing something for x86 but not for other
+> arches, so maybe somebody could take a deeper look at this and see if
+> it would make sense to change the other arches, too.
 >
->         if (pci_claim_resource(dev, PCI_ROM_RESOURCE) < 0) {
->                 r->end -= r->start;
-> --
-> 1.8.3.2
+> Bjorn
 >
+>> ---
+>>  arch/x86/pci/i386.c | 4 ++++
+>>  1 file changed, 4 insertions(+)
+>>
+>> diff --git a/arch/x86/pci/i386.c b/arch/x86/pci/i386.c
+>> index 94919e3..db6b1ab 100644
+>> --- a/arch/x86/pci/i386.c
+>> +++ b/arch/x86/pci/i386.c
+>> @@ -210,6 +210,8 @@ static void pcibios_allocate_bridge_resources(struct pci_dev *dev)
+>>                 r = &dev->resource[idx];
+>>                 if (!r->flags)
+>>                         continue;
+>> +               if (r->parent)  /* Already allocated */
+>> +                       continue;
+>>                 if (!r->start || pci_claim_resource(dev, idx) < 0) {
+>>                         /*
+>>                          * Something is wrong with the region.
+>> @@ -318,6 +320,8 @@ static void pcibios_allocate_dev_rom_resource(struct pci_dev *dev)
+>>         r = &dev->resource[PCI_ROM_RESOURCE];
+>>         if (!r->flags || !r->start)
+>>                 return;
+>> +       if (r->parent) /* Already allocated */
+>> +               return;
+>>
+>>         if (pci_claim_resource(dev, PCI_ROM_RESOURCE) < 0) {
+>>                 r->end -= r->start;
+>> --
+>> 1.8.3.2
+>>
