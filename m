@@ -1,33 +1,48 @@
-From: Matthew Garrett <matthew.garrett@nebula.com>
-Subject: Re: Linux 3.11-rc2
-Date: Tue, 23 Jul 2013 19:51:54 +0000
-Message-ID: <1374609113.2641.2.camel@x230>
-References: <CA+55aFy330bSRjK5HT1n0wXioPykL3RquHXyBPjm5GpTz_Y=DQ@mail.gmail.com>
-	 <5728692.GlhGgHY92H@vostro.rjw.lan> <1374516979.2641.0.camel@x230>
-	 <1943327.gJaLv781Zb@vostro.rjw.lan> <1374601675.29964.15.camel@artifact>
+From: Tejun Heo <tj@kernel.org>
+Subject: Re: [PATCH 09/21] x86: Make get_ramdisk_{image|size}() global.
+Date: Tue, 23 Jul 2013 15:56:04 -0400
+Message-ID: <20130723195604.GN21100@mtj.dyndns.org>
+References: <1374220774-29974-1-git-send-email-tangchen@cn.fujitsu.com>
+ <1374220774-29974-10-git-send-email-tangchen@cn.fujitsu.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-bn1lp0155.outbound.protection.outlook.com ([207.46.163.155]:33717
-	"EHLO na01-bn1-obe.outbound.protection.outlook.com"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S933930Ab3GWTv7 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 23 Jul 2013 15:51:59 -0400
-In-Reply-To: <1374601675.29964.15.camel@artifact>
-Content-Language: en-US
-Content-ID: <C0BFE3F5A1902B4E8EA4563F717ED5B4@namprd05.prod.outlook.com>
+Received: from mail-yh0-f46.google.com ([209.85.213.46]:55610 "EHLO
+	mail-yh0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933353Ab3GWT4L (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 23 Jul 2013 15:56:11 -0400
+Content-Disposition: inline
+In-Reply-To: <1374220774-29974-10-git-send-email-tangchen@cn.fujitsu.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Steven Newbury <steve@snewbury.org.uk>
-Cc: "Rafael J. Wysocki" <rjw@sisk.pl>, James Hogan <james@albanarts.com>, Linus Torvalds <torvalds@linux-foundation.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Kamal Mostafa <kamal@canonical.com>, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>
+To: Tang Chen <tangchen@cn.fujitsu.com>
+Cc: tglx@linutronix.de, mingo@elte.hu, hpa@zytor.com, akpm@linux-foundation.org, trenn@suse.de, yinghai@kernel.org, jiang.liu@huawei.com, wency@cn.fujitsu.com, laijs@cn.fujitsu.com, isimatu.yasuaki@jp.fujitsu.com, izumi.taku@jp.fujitsu.com, mgorman@suse.de, minchan@kernel.org, mina86@mina86.com, gong.chen@linux.intel.com, vasilis.liaskovitis@profitbricks.com, lwoodman@redhat.com, riel@redhat.com, jweiner@redhat.com, prarit@redhat.com, zhangyanfei@cn.fujitsu.com, yanghy@cn.fujitsu.com, x86@kernel.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-mm@kvack.org, linux-acpi@vger.kernel.org
 
-T24gVHVlLCAyMDEzLTA3LTIzIGF0IDE4OjQ3ICswMTAwLCBTdGV2ZW4gTmV3YnVyeSB3cm90ZToN
-Cg0KPiBJbiB0aGUgY29kZSBhcyB3YXMgcHJlc2VudCBpbiB0aGUgbGludXgtcG0vYmxlZWRpbmct
-ZWRnZSB0cmVlIEkgd291bGQNCj4gZW5jb3VudGVyIGEgaGFyZCBsb2NrdXAgb24ga2V5Ym9hcmQg
-YnJpZ2h0bmVzcyB0cmlnZ2VyLiAgVGhpcyBhbHNvIG9jY3VycmVkIHdpdGgNCj4gdGhlIGNvZGUg
-YXMgaXQgaW5pdGlhbGx5IGhpdCBtYWlubGluZSwgYnV0IGEgbGF0ZXIgY29tbWl0IGZpeGVkIHRo
-ZSBjcmFzaCosIGJ1dA0KPiByZXN1bHRlZCBpbiBubyBiYWNrbGlnaHQgY29udHJvbHMgYmVpbmcg
-YXZhaWxhYmxlIGF0IGFsbC4NCj4gL3N5cy9jbGFzcy9iYWNrbGlnaHQgIGlzIGVtcHR5Lg0KDQpU
-aGlzIGlzIGFuIEludGVsIHN5c3RlbSB1c2luZyB0aGUgaTkxNSBkcml2ZXI/DQoNCi0tIA0KTWF0
-dGhldyBHYXJyZXR0IHwgbWpnNTlAc3JjZi51Y2FtLm9yZw0K
+On Fri, Jul 19, 2013 at 03:59:22PM +0800, Tang Chen wrote:
+> In the following patches, we need to call get_ramdisk_{image|size}()
+> to get initrd file's address and size. So make these two functions
+> global.
+> 
+> Signed-off-by: Tang Chen <tangchen@cn.fujitsu.com>
+> ---
+>  arch/x86/include/asm/setup.h |    3 +++
+>  arch/x86/kernel/setup.c      |    4 ++--
+>  2 files changed, 5 insertions(+), 2 deletions(-)
+> 
+> diff --git a/arch/x86/include/asm/setup.h b/arch/x86/include/asm/setup.h
+> index b7bf350..69de7a1 100644
+> --- a/arch/x86/include/asm/setup.h
+> +++ b/arch/x86/include/asm/setup.h
+> @@ -106,6 +106,9 @@ void *extend_brk(size_t size, size_t align);
+>  	RESERVE_BRK(name, sizeof(type) * entries)
+>  
+>  extern void probe_roms(void);
+> +u64 get_ramdisk_image(void);
+> +u64 get_ramdisk_size(void);
+
+Might as well make these accessors inline functions.
+
+Thanks.
+
+-- 
+tejun
