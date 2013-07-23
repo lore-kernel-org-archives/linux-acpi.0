@@ -1,64 +1,88 @@
-From: Kuppuswamy Sathyanarayanan
-	<sathyanarayanan.kuppuswamy@linux.intel.com>
-Subject: [PATCH v1 1/1] ACPI: Allow platform device creation without any IO resource
-Date: Mon, 22 Jul 2013 16:51:20 -0700
-Message-ID: <91404e863a8ce7bc9a757a085dea0c2a8a9b7986.1374536906.git.sathyanarayanan.kuppuswamy@linux.intel.com>
+From: Bjorn Helgaas <bhelgaas@google.com>
+Subject: Re: [PATCH v2 1/8] x86/PCI: prevent re-allocation of already existing
+ bridge and ROM resources
+Date: Mon, 22 Jul 2013 18:08:28 -0600
+Message-ID: <CAErSpo7=ed3=P7ab9zYB23qnwe8Z-ghRfCEurskpcNW5m86j8g@mail.gmail.com>
+References: <1372860295-8306-1-git-send-email-mika.westerberg@linux.intel.com> <1372860295-8306-2-git-send-email-mika.westerberg@linux.intel.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga09.intel.com ([134.134.136.24]:8346 "EHLO mga09.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751717Ab3GVXmL (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 22 Jul 2013 19:42:11 -0400
+Received: from mail-ie0-f175.google.com ([209.85.223.175]:33034 "EHLO
+	mail-ie0-f175.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752364Ab3GWAIt (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 22 Jul 2013 20:08:49 -0400
+Received: by mail-ie0-f175.google.com with SMTP id a11so16793453iee.20
+        for <linux-acpi@vger.kernel.org>; Mon, 22 Jul 2013 17:08:49 -0700 (PDT)
+In-Reply-To: <1372860295-8306-2-git-send-email-mika.westerberg@linux.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org
-Cc: rjw@sisk.pl, lenb@kernel.org, linux-kernel@vger.kernel.org, Kuppuswamy Sathyanarayanan <sathyanarayanan.kuppuswamy@linux.intel.com>
+To: Mika Westerberg <mika.westerberg@linux.intel.com>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Jesse Barnes <jbarnes@virtuousgeek.org>, Yinghai Lu <yinghai@kernel.org>, "Ronciak, John" <john.ronciak@intel.com>, "Penner, Miles J" <miles.j.penner@intel.com>, Bruce Allan <bruce.w.allan@intel.com>, Heikki Krogerus <heikki.krogerus@linux.intel.com>, "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>, "x86@kernel.org" <x86@kernel.org>
 
-Currently, ACPI platform device creation is aborted when there
-are no valid IO resources. This approach will not work if the
-device has only GPIO as its resource or some custom resources.
-So this patch removes zero resource check and allows platform
-device creation even without any valid IO resource.
+On Wed, Jul 3, 2013 at 8:04 AM, Mika Westerberg
+<mika.westerberg@linux.intel.com> wrote:
+> In hotplug case (especially with Thunderbolt enabled systems) we might need
+> to call pcibios_resource_survey_bus() several times for a bus. The function
+> ends up calling pci_claim_resource() for each bridge resource that then
+> fails claiming that the resource exists already (which it does). Once this
+> happens the resource is invalidated thus preventing devices behind the
+> bridge to allocate their resources.
+>
+> To fix this we do what has been done in pcibios_allocate_dev_resources()
+> and check 'parent' of the given resource. If it is non-NULL it means that
+> the resource has been allocated already and we can skip it. We do the same
+> for ROM resources as well.
+>
+> Signed-off-by: Mika Westerberg <mika.westerberg@linux.intel.com>
 
-Signed-off-by: Kuppuswamy Sathyanarayanan <sathyanarayanan.kuppuswamy@linux.intel.com>
----
- drivers/acpi/acpi_platform.c |    8 ++++++--
- 1 file changed, 6 insertions(+), 2 deletions(-)
+This looks reasonable to me.
 
-diff --git a/drivers/acpi/acpi_platform.c b/drivers/acpi/acpi_platform.c
-index fafec5d..32136b8 100644
---- a/drivers/acpi/acpi_platform.c
-+++ b/drivers/acpi/acpi_platform.c
-@@ -52,7 +52,7 @@ int acpi_create_platform_device(struct acpi_device *adev,
- 	struct platform_device_info pdevinfo;
- 	struct resource_list_entry *rentry;
- 	struct list_head resource_list;
--	struct resource *resources;
-+	struct resource *resources = NULL;
- 	int count;
- 
- 	/* If the ACPI node already has a physical device attached, skip it. */
-@@ -61,9 +61,12 @@ int acpi_create_platform_device(struct acpi_device *adev,
- 
- 	INIT_LIST_HEAD(&resource_list);
- 	count = acpi_dev_get_resources(adev, &resource_list, NULL, NULL);
--	if (count <= 0)
-+	if (count < 0)
- 		return 0;
- 
-+	if (!count)
-+		goto create_dev;
-+
- 	resources = kmalloc(count * sizeof(struct resource), GFP_KERNEL);
- 	if (!resources) {
- 		dev_err(&adev->dev, "No memory for resources\n");
-@@ -76,6 +79,7 @@ int acpi_create_platform_device(struct acpi_device *adev,
- 
- 	acpi_dev_free_resource_list(&resource_list);
- 
-+create_dev:
- 	memset(&pdevinfo, 0, sizeof(pdevinfo));
- 	/*
- 	 * If the ACPI node has a parent and that parent has a physical device
--- 
-1.7.9.5
+However, the use of "r->parent" to determine whether the resource is
+already allocated is nothing specific to x86.  So I think we might be
+missing an opportunity to make this more consistent across
+architectures.  I looked at other callers of pci_claim_resource() for
+bridge and ROM resources, and it looks like we might be able to make
+similar changes in:
 
+  frv pcibios_allocate_bus_resources()
+  ia64 pcibios_fixup_resources() (via pcibios_fixup_bridge_resources())
+  mn10300 pcibios_allocate_bus_resources()
+  mn10300 pcibios_assign_resources() (ROM)
+  mn10300 pcibios_fixup_device_resources()
+  parisc lba_fixup_bus()
+
+I really hate the idea of fixing something for x86 but not for other
+arches, so maybe somebody could take a deeper look at this and see if
+it would make sense to change the other arches, too.
+
+Bjorn
+
+> ---
+>  arch/x86/pci/i386.c | 4 ++++
+>  1 file changed, 4 insertions(+)
+>
+> diff --git a/arch/x86/pci/i386.c b/arch/x86/pci/i386.c
+> index 94919e3..db6b1ab 100644
+> --- a/arch/x86/pci/i386.c
+> +++ b/arch/x86/pci/i386.c
+> @@ -210,6 +210,8 @@ static void pcibios_allocate_bridge_resources(struct pci_dev *dev)
+>                 r = &dev->resource[idx];
+>                 if (!r->flags)
+>                         continue;
+> +               if (r->parent)  /* Already allocated */
+> +                       continue;
+>                 if (!r->start || pci_claim_resource(dev, idx) < 0) {
+>                         /*
+>                          * Something is wrong with the region.
+> @@ -318,6 +320,8 @@ static void pcibios_allocate_dev_rom_resource(struct pci_dev *dev)
+>         r = &dev->resource[PCI_ROM_RESOURCE];
+>         if (!r->flags || !r->start)
+>                 return;
+> +       if (r->parent) /* Already allocated */
+> +               return;
+>
+>         if (pci_claim_resource(dev, PCI_ROM_RESOURCE) < 0) {
+>                 r->end -= r->start;
+> --
+> 1.8.3.2
+>
