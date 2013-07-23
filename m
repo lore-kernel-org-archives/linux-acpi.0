@@ -1,49 +1,26 @@
-From: Tejun Heo <tj@kernel.org>
+From: Joe Perches <joe@perches.com>
 Subject: Re: [PATCH 01/21] acpi: Print Hot-Pluggable Field in SRAT.
-Date: Tue, 23 Jul 2013 15:20:09 -0400
-Message-ID: <20130723192009.GL21100@mtj.dyndns.org>
+Date: Tue, 23 Jul 2013 12:26:36 -0700
+Message-ID: <1374607596.10171.4.camel@joe-AO722>
 References: <1374220774-29974-1-git-send-email-tangchen@cn.fujitsu.com>
- <1374220774-29974-2-git-send-email-tangchen@cn.fujitsu.com>
- <20130723184843.GG21100@mtj.dyndns.org>
- <1374606958.10171.2.camel@joe-AO722>
+	 <1374220774-29974-2-git-send-email-tangchen@cn.fujitsu.com>
+	 <20130723184843.GG21100@mtj.dyndns.org>
+	 <20130723192009.GL21100@mtj.dyndns.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <owner-linux-mm@kvack.org>
-Content-Disposition: inline
-In-Reply-To: <1374606958.10171.2.camel@joe-AO722>
-Sender: owner-linux-mm@kvack.org
-To: Joe Perches <joe@perches.com>
+Content-Type: text/plain; charset="ISO-8859-1"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-doc-owner@vger.kernel.org>
+In-Reply-To: <20130723192009.GL21100@mtj.dyndns.org>
+Sender: linux-doc-owner@vger.kernel.org
+To: Tejun Heo <tj@kernel.org>
 Cc: Tang Chen <tangchen@cn.fujitsu.com>, tglx@linutronix.de, mingo@elte.hu, hpa@zytor.com, akpm@linux-foundation.org, trenn@suse.de, yinghai@kernel.org, jiang.liu@huawei.com, wency@cn.fujitsu.com, laijs@cn.fujitsu.com, isimatu.yasuaki@jp.fujitsu.com, izumi.taku@jp.fujitsu.com, mgorman@suse.de, minchan@kernel.org, mina86@mina86.com, gong.chen@linux.intel.com, vasilis.liaskovitis@profitbricks.com, lwoodman@redhat.com, riel@redhat.com, jweiner@redhat.com, prarit@redhat.com, zhangyanfei@cn.fujitsu.com, yanghy@cn.fujitsu.com, x86@kernel.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-mm@kvack.org, linux-acpi@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Tue, Jul 23, 2013 at 12:15:58PM -0700, Joe Perches wrote:
-> > The following would be more conventional.
-> > 
-> >   "...10Lx]%s\n", ..., hotpluggable ? " Hot Pluggable" : ""
-> > 
-> > Also, isn't "Hot Pluggable" a bit too verbose?  "hotplug" should be
-> > fine, I think.
-> 
-> It's also a tiny nit better to use:
-> 
-> 	pr_info("SRAT: Node %u PXM %u [mem %#010Lx-%#010Lx]%s\n",
-> 		node, pxm,
-> 		(unsigned long long) start, (unsigned long long) end - 1,
-> 		hotpluggable ? " Hot Pluggable" : "");
-> 
-> (or " hotplug")
-> 
-> so there's no space before newline.
+On Tue, 2013-07-23 at 15:20 -0400, Tejun Heo wrote:
+> On Tue, Jul 23, 2013 at 12:15:58PM -0700, Joe Perches wrote:
+[]
+> > so there's no space before newline.
+> Which was my first point which apparently wasn't clear enough. :)
 
-Which was my first point which apparently wasn't clear enough. :)
+Nah, I just constantly need to relearn how to read...
 
-Thanks.
-
--- 
-tejun
-
---
-To unsubscribe, send a message with 'unsubscribe linux-mm' in
-the body to majordomo@kvack.org.  For more info on Linux MM,
-see: http://www.linux-mm.org/ .
-Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
