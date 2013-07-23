@@ -1,39 +1,51 @@
-From: Bjorn Helgaas <bhelgaas@google.com>
-Subject: Re: Linux Plumbers ACPI/PM, PCI Microconference
-Date: Tue, 23 Jul 2013 10:06:26 -0600
-Message-ID: <CAErSpo7TexM5-7Z=8H+B5=49-GzoKd_prn=LbMFZWV9rpdn__A@mail.gmail.com>
-References: <CAL-B5D03ki8NHsM6EuESTH2K-Eh+XyFHNXPDYwgDq+oagDjtMQ@mail.gmail.com>
+From: Steven Newbury <steve@snewbury.org.uk>
+Subject: Re: Linux 3.11-rc2
+Date: Tue, 23 Jul 2013 18:47:55 +0100
+Message-ID: <1374601675.29964.15.camel@artifact>
+References: <CA+55aFy330bSRjK5HT1n0wXioPykL3RquHXyBPjm5GpTz_Y=DQ@mail.gmail.com>
+	 <5728692.GlhGgHY92H@vostro.rjw.lan> <1374516979.2641.0.camel@x230>
+	 <1943327.gJaLv781Zb@vostro.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <linux-pci-owner@vger.kernel.org>
-In-Reply-To: <CAL-B5D03ki8NHsM6EuESTH2K-Eh+XyFHNXPDYwgDq+oagDjtMQ@mail.gmail.com>
-Sender: linux-pci-owner@vger.kernel.org
-To: Myron Stowe <myron.stowe@gmail.com>
-Cc: linux-pci <linux-pci@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, linux-arm <linux-arm-kernel@lists.infradead.org>, "open list:INTEL IOMMU (VT-d)" <iommu@lists.linux-foundation.org>, virtualization@lists.linux-foundation.org, "kvm@vger.kernel.org" <kvm@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from know-smtprelay-omc-1.server.virginmedia.net ([80.0.253.65]:48313
+	"EHLO know-smtprelay-omc-1.server.virginmedia.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S933677Ab3GWRxt (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 23 Jul 2013 13:53:49 -0400
+In-Reply-To: <1943327.gJaLv781Zb@vostro.rjw.lan>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: Matthew Garrett <matthew.garrett@nebula.com>, James Hogan <james@albanarts.com>, Linus Torvalds <torvalds@linux-foundation.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Kamal Mostafa <kamal@canonical.com>, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>
 
-On Tue, Jul 16, 2013 at 8:21 PM, Myron Stowe <myron.stowe@gmail.com> wrote:
-> Linux Plumbers has approved an ACPI/PM, PCI microconference. The
-> overview page is here:
->
-> http://wiki.linuxplumbersconf.org/2013:pci_subsystem
->
-> We would like to start receiving volunteers for presenting topics of
-> interest.  There is a lot of activity in these subsystems so please
-> respond by submitting presentation or discussion proposals that you
-> would be willing to cover for consideration.  You should also feel
-> free to submit ideas as proposals that others could cover.
+On Mon, 2013-07-22 at 21:56 +0200, Rafael J. Wysocki wrote:
+> On Monday, July 22, 2013 06:16:20 PM Matthew Garrett wrote:
+> > On Mon, 2013-07-22 at 15:02 +0200, Rafael J. Wysocki wrote:
+> > 
+> > > In the meantime I received a report from Steven Newbury that these changes
+> > > broke things for him too, so we need to revert commits 8c5bd7a and efaa14c.
+> > > The other two commits in the series should be benign.
+> > 
+> > Could you let me know the details of this problem?
+> 
+> Steven, can you please describe the problem you're seeing to Matthew and
+> the other people on the list?
+> 
+> Rafael
+> 
 
-Somebody else privately suggested these ARM/PCI topics:
+Before the changes backlight was working fine using the ACPI method: 
+/sys/class/backlight/acpi_video0/ is present and the keyboard function keys
+control brightness with notifications working in GNOME.
 
-> -> how it's been cleaned up to be more common across arm-32 machines
-> -> dependencies on dtb
-> -> future use/dependency(s) on ACPI
-> -> hotplug support issues (if any; acpi (host-bridge) vs <whatever ARM uses> ?)
+In the code as was present in the linux-pm/bleeding-edge tree I would
+encounter a hard lockup on keyboard brightness trigger.  This also occurred with
+the code as it initially hit mainline, but a later commit fixed the crash*, but
+resulted in no backlight controls being available at all.
+/sys/class/backlight  is empty.
 
-and I'm interested in those as well.  There seems to be a lot of
-activity in that area.  In addition, I'm interested in ARM IOMMU
-support.  I see drivers/iommu/arm-smmu.c, but it's brand-new and I
-haven't looked at it at all.
+*not actually sure if /sys/class/backlight contained anything before this
 
-Bjorn
+
