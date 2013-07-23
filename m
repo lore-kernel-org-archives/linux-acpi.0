@@ -1,44 +1,33 @@
-From: Tejun Heo <tj@kernel.org>
-Subject: Re: [PATCH 08/21] x86, acpi: Also initialize signature and length
- when parsing root table.
-Date: Tue, 23 Jul 2013 15:45:40 -0400
-Message-ID: <20130723194540.GM21100@mtj.dyndns.org>
-References: <1374220774-29974-1-git-send-email-tangchen@cn.fujitsu.com>
- <1374220774-29974-9-git-send-email-tangchen@cn.fujitsu.com>
+From: Matthew Garrett <matthew.garrett@nebula.com>
+Subject: Re: Linux 3.11-rc2
+Date: Tue, 23 Jul 2013 19:51:54 +0000
+Message-ID: <1374609113.2641.2.camel@x230>
+References: <CA+55aFy330bSRjK5HT1n0wXioPykL3RquHXyBPjm5GpTz_Y=DQ@mail.gmail.com>
+	 <5728692.GlhGgHY92H@vostro.rjw.lan> <1374516979.2641.0.camel@x230>
+	 <1943327.gJaLv781Zb@vostro.rjw.lan> <1374601675.29964.15.camel@artifact>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <owner-linux-mm@kvack.org>
-Content-Disposition: inline
-In-Reply-To: <1374220774-29974-9-git-send-email-tangchen@cn.fujitsu.com>
-Sender: owner-linux-mm@kvack.org
-To: Tang Chen <tangchen@cn.fujitsu.com>
-Cc: tglx@linutronix.de, mingo@elte.hu, hpa@zytor.com, akpm@linux-foundation.org, trenn@suse.de, yinghai@kernel.org, jiang.liu@huawei.com, wency@cn.fujitsu.com, laijs@cn.fujitsu.com, isimatu.yasuaki@jp.fujitsu.com, izumi.taku@jp.fujitsu.com, mgorman@suse.de, minchan@kernel.org, mina86@mina86.com, gong.chen@linux.intel.com, vasilis.liaskovitis@profitbricks.com, lwoodman@redhat.com, riel@redhat.com, jweiner@redhat.com, prarit@redhat.com, zhangyanfei@cn.fujitsu.com, yanghy@cn.fujitsu.com, x86@kernel.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-mm@kvack.org, linux-acpi@vger.kernel.org
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-bn1lp0155.outbound.protection.outlook.com ([207.46.163.155]:33717
+	"EHLO na01-bn1-obe.outbound.protection.outlook.com"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S933930Ab3GWTv7 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 23 Jul 2013 15:51:59 -0400
+In-Reply-To: <1374601675.29964.15.camel@artifact>
+Content-Language: en-US
+Content-ID: <C0BFE3F5A1902B4E8EA4563F717ED5B4@namprd05.prod.outlook.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Steven Newbury <steve@snewbury.org.uk>
+Cc: "Rafael J. Wysocki" <rjw@sisk.pl>, James Hogan <james@albanarts.com>, Linus Torvalds <torvalds@linux-foundation.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Kamal Mostafa <kamal@canonical.com>, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>
 
-On Fri, Jul 19, 2013 at 03:59:21PM +0800, Tang Chen wrote:
-> @@ -514,6 +514,7 @@ acpi_tb_install_table(acpi_physical_address address,
->  	 * fully mapped later (in verify table). In any case, we must
->  	 * unmap the header that was mapped above.
->  	 */
-> +	table_desc = &acpi_gbl_root_table_list.tables[table_index];
->  	final_table = acpi_tb_table_override(table, table_desc);
->  	if (!final_table) {
->  		final_table = table;	/* There was no override */
-
-Is this chunk correct?  Why is @table_desc being assigned twice in
-this function?
-
-> +	/*
-> +	 * Also initialize the table entries here, so that later we can use them
-> +	 * to find SRAT at very eraly time to reserve hotpluggable memory.
-                                ^ typo
-Thanks.
-
--- 
-tejun
-
---
-To unsubscribe, send a message with 'unsubscribe linux-mm' in
-the body to majordomo@kvack.org.  For more info on Linux MM,
-see: http://www.linux-mm.org/ .
-Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
+T24gVHVlLCAyMDEzLTA3LTIzIGF0IDE4OjQ3ICswMTAwLCBTdGV2ZW4gTmV3YnVyeSB3cm90ZToN
+Cg0KPiBJbiB0aGUgY29kZSBhcyB3YXMgcHJlc2VudCBpbiB0aGUgbGludXgtcG0vYmxlZWRpbmct
+ZWRnZSB0cmVlIEkgd291bGQNCj4gZW5jb3VudGVyIGEgaGFyZCBsb2NrdXAgb24ga2V5Ym9hcmQg
+YnJpZ2h0bmVzcyB0cmlnZ2VyLiAgVGhpcyBhbHNvIG9jY3VycmVkIHdpdGgNCj4gdGhlIGNvZGUg
+YXMgaXQgaW5pdGlhbGx5IGhpdCBtYWlubGluZSwgYnV0IGEgbGF0ZXIgY29tbWl0IGZpeGVkIHRo
+ZSBjcmFzaCosIGJ1dA0KPiByZXN1bHRlZCBpbiBubyBiYWNrbGlnaHQgY29udHJvbHMgYmVpbmcg
+YXZhaWxhYmxlIGF0IGFsbC4NCj4gL3N5cy9jbGFzcy9iYWNrbGlnaHQgIGlzIGVtcHR5Lg0KDQpU
+aGlzIGlzIGFuIEludGVsIHN5c3RlbSB1c2luZyB0aGUgaTkxNSBkcml2ZXI/DQoNCi0tIA0KTWF0
+dGhldyBHYXJyZXR0IHwgbWpnNTlAc3JjZi51Y2FtLm9yZw0K
