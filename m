@@ -1,7 +1,7 @@
 From: Lv Zheng <lv.zheng@intel.com>
-Subject: [PATCH 10/13] ACPI/IPMI: Cleanup some inclusion codes
-Date: Tue, 23 Jul 2013 16:10:22 +0800
-Message-ID: <71a378e26c90346665f244f6d505f74f3341394a.1374566394.git.lv.zheng@intel.com>
+Subject: [PATCH 12/13] Testing: Add module load/unload test suite
+Date: Tue, 23 Jul 2013 16:10:36 +0800
+Message-ID: <b4ea2d9d566206e14e33ddceeb39a2fa3fa541e1.1374566394.git.lv.zheng@intel.com>
 References: <cover.1370652213.git.lv.zheng@intel.com> <cover.1374566394.git.lv.zheng@intel.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <cover.1374566394.git.lv.zheng@intel.com>
@@ -10,45 +10,146 @@ To: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Len Brown <len.brown@intel
 Cc: Lv Zheng <lv.zheng@intel.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, openipmi-developer@lists.sourceforge.net
 List-Id: linux-acpi@vger.kernel.org
 
-This is a trivial patch:
-1. Deletes several useless header inclusions.
-2. Kernel codes should always include <linux/acpi.h> instead of
-   <acpi/acpi_bus.h> or <acpi/acpi_drivers.h> where many conditional
-   declarations are handled.
+This patch contains two test scripts for module load/unload race testing.
+
+Follow the following steps to use this test suite:
+1. Run several instances invoking endless_cat.sh to access the sysfs files
+   that exported by the module.
+2. Run endless_mod.sh to load/unload the module frequently to see if races
+   will happen.
 
 Signed-off-by: Lv Zheng <lv.zheng@intel.com>
-Reviewed-by: Huang Ying <ying.huang@intel.com>
 ---
- drivers/acpi/acpi_ipmi.c |   15 +--------------
- 1 file changed, 1 insertion(+), 14 deletions(-)
+ tools/testing/module-unloading/endless_cat.sh |   32 ++++++++++
+ tools/testing/module-unloading/endless_mod.sh |   81 +++++++++++++++++++++++++
+ 2 files changed, 113 insertions(+)
+ create mode 100755 tools/testing/module-unloading/endless_cat.sh
+ create mode 100755 tools/testing/module-unloading/endless_mod.sh
 
-diff --git a/drivers/acpi/acpi_ipmi.c b/drivers/acpi/acpi_ipmi.c
-index 2d31003..e56b1f8 100644
---- a/drivers/acpi/acpi_ipmi.c
-+++ b/drivers/acpi/acpi_ipmi.c
-@@ -24,22 +24,9 @@
-  * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-  */
- 
--#include <linux/kernel.h>
- #include <linux/module.h>
--#include <linux/init.h>
--#include <linux/types.h>
--#include <linux/delay.h>
--#include <linux/proc_fs.h>
--#include <linux/seq_file.h>
--#include <linux/interrupt.h>
--#include <linux/list.h>
--#include <linux/spinlock.h>
--#include <linux/io.h>
--#include <acpi/acpi_bus.h>
--#include <acpi/acpi_drivers.h>
-+#include <linux/acpi.h>
- #include <linux/ipmi.h>
--#include <linux/device.h>
--#include <linux/pnp.h>
- #include <linux/spinlock.h>
- 
- MODULE_AUTHOR("Zhao Yakui");
+diff --git a/tools/testing/module-unloading/endless_cat.sh b/tools/testing/module-unloading/endless_cat.sh
+new file mode 100755
+index 0000000..72e035c
+--- /dev/null
++++ b/tools/testing/module-unloading/endless_cat.sh
+@@ -0,0 +1,32 @@
++#!/bin/sh
++
++fatal() {
++	echo $1
++	exit 1
++}
++
++usage() {
++	echo "Usage: `basename $0` <file>"
++	echo "Where:"
++	echo " file: file to cat"
++}
++
++fatal_usage() {
++	usage
++	exit 1
++}
++
++if [ "x$1" = "x" ]; then
++	echo "Missing <file> paraemter."
++	fatal_usage
++fi
++if [ ! -f $1 ]; then
++	echo "$1 is not an accessible file."
++	fatal_usage
++fi
++
++while :
++do
++	cat $1
++	echo "-----------------------------------"
++done
+diff --git a/tools/testing/module-unloading/endless_mod.sh b/tools/testing/module-unloading/endless_mod.sh
+new file mode 100755
+index 0000000..359b0c0
+--- /dev/null
++++ b/tools/testing/module-unloading/endless_mod.sh
+@@ -0,0 +1,81 @@
++#!/bin/sh
++
++fatal() {
++	echo $1
++	exit 1
++}
++
++usage() {
++	echo "Usage: `basename $0` [-t second] <module>"
++	echo "Where:"
++	echo " second: seconds to sleep between module actions"
++	echo " module: name of module to test"
++}
++
++fatal_usage() {
++	usage
++	exit 1
++}
++
++SLEEPSEC=10
++
++while getopts "t:" opt
++do
++	case $opt in
++	t) SLEEPSEC=$OPTARG;;
++	?) echo "Invalid argument $opt"
++	   fatal_usage;;
++	esac
++done
++shift $(($OPTIND - 1))
++
++if [ "x$1" = "x" ]; then
++	echo "Missing <module> paraemter."
++	fatal_usage
++fi
++
++find_module() {
++	curr_modules=`lsmod | cut -d " " -f1`
++
++	for m in $curr_modules; do
++		if [ "x$m" = "x$1" ]; then
++			return 0
++		fi
++	done
++	return 1
++}
++
++remove_module() {
++	while :
++	do
++		find_module $1
++		if [ $? -eq 0 ]; then
++			rmmod $1
++			echo "Removing $1 ..."
++		else
++			break
++		fi
++	done
++}
++
++insert_module() {
++	while :
++	do
++		find_module $1
++		if [ ! $? -eq 0 ]; then
++			modprobe $1
++			echo "Inserting $1 ..."
++		else
++			break
++		fi
++	done
++}
++
++while :
++do
++	echo "-----------------------------------"
++	insert_module $1
++	sleep $SLEEPSEC
++	remove_module $1
++	sleep $SLEEPSEC
++done
 -- 
 1.7.10
