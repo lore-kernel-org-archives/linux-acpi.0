@@ -1,266 +1,167 @@
 From: Lv Zheng <lv.zheng@intel.com>
-Subject: [PATCH 01/13] ACPI/IPMI: Fix potential response buffer overflow
-Date: Tue, 23 Jul 2013 16:08:59 +0800
-Message-ID: <be902a592144313dbf382876965166166bf81438.1374566394.git.lv.zheng@intel.com>
+Subject: [PATCH 02/13] ACPI/IPMI: Fix atomic context requirement of ipmi_msg_handler()
+Date: Tue, 23 Jul 2013 16:09:08 +0800
+Message-ID: <8a21a77c2672cc91d8de13bb33c51104dc42affa.1374566394.git.lv.zheng@intel.com>
 References: <cover.1370652213.git.lv.zheng@intel.com> <cover.1374566394.git.lv.zheng@intel.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga03.intel.com ([143.182.124.21]:9945 "EHLO mga03.intel.com"
+Received: from mga11.intel.com ([192.55.52.93]:44454 "EHLO mga11.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754281Ab3GWIJJ (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 23 Jul 2013 04:09:09 -0400
+	id S1754918Ab3GWIJO (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 23 Jul 2013 04:09:14 -0400
 In-Reply-To: <cover.1374566394.git.lv.zheng@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Len Brown <len.brown@intel.com>, Corey Minyard <minyard@acm.org>, Zhao Yakui <yakui.zhao@intel.com>
 Cc: Lv Zheng <lv.zheng@intel.com>, linux-kernel@vger.kernel.org, stable@vger.kernel.org, linux-acpi@vger.kernel.org, openipmi-developer@lists.sourceforge.net
 
-This patch enhances sanity checks on message size to avoid potential buffer
-overflow.
+This patch quick fixes the issues indicated by the test results that
+ipmi_msg_handler() is invoked in atomic context.
 
-The kernel IPMI message size is IPMI_MAX_MSG_LENGTH(272 bytes) while the
-ACPI specification defined IPMI message size is 64 bytes.  The difference
-is not handled by the original codes.  This may cause crash in the response
-handling codes.
-This patch fixes this gap and also combines rx_data/tx_data to use single
-data/len pair since they need not be seperated.
+BUG: scheduling while atomic: kipmi0/18933/0x10000100
+Modules linked in: ipmi_si acpi_ipmi ...
+CPU: 3 PID: 18933 Comm: kipmi0 Tainted: G       AW    3.10.0-rc7+ #2
+Hardware name: QCI QSSC-S4R/QSSC-S4R, BIOS QSSC-S4R.QCI.01.00.0027.070120100606 07/01/2010
+ ffff8838245eea00 ffff88103fc63c98 ffffffff814c4a1e ffff88103fc63ca8
+ ffffffff814bfbab ffff88103fc63d28 ffffffff814c73e0 ffff88103933cbd4
+ 0000000000000096 ffff88103fc63ce8 ffff88102f618000 ffff881035c01fd8
+Call Trace:
+ <IRQ>  [<ffffffff814c4a1e>] dump_stack+0x19/0x1b
+ [<ffffffff814bfbab>] __schedule_bug+0x46/0x54
+ [<ffffffff814c73e0>] __schedule+0x83/0x59c
+ [<ffffffff81058853>] __cond_resched+0x22/0x2d
+ [<ffffffff814c794b>] _cond_resched+0x14/0x1d
+ [<ffffffff814c6d82>] mutex_lock+0x11/0x32
+ [<ffffffff8101e1e9>] ? __default_send_IPI_dest_field.constprop.0+0x53/0x58
+ [<ffffffffa09e3f9c>] ipmi_msg_handler+0x23/0x166 [ipmi_si]
+ [<ffffffff812bf6e4>] deliver_response+0x55/0x5a
+ [<ffffffff812c0fd4>] handle_new_recv_msgs+0xb67/0xc65
+ [<ffffffff81007ad1>] ? read_tsc+0x9/0x19
+ [<ffffffff814c8620>] ? _raw_spin_lock_irq+0xa/0xc
+ [<ffffffffa09e1128>] ipmi_thread+0x5c/0x146 [ipmi_si]
+ ...
+
+Known issues:
+- Replacing tx_msg_lock with spinlock is not performance friendly
+  Current solution works but does not have the best performance because it
+  is better to make atomic context run as fast as possible.  Given there
+  are no many IPMI messages created by ACPI, performance of current
+  solution may be OK.  It can be better via linking ipmi_recv_msg into an
+  RX message queue and process it in other contexts.
 
 Signed-off-by: Lv Zheng <lv.zheng@intel.com>
 Reviewed-by: Huang Ying <ying.huang@intel.com>
 ---
- drivers/acpi/acpi_ipmi.c |  100 ++++++++++++++++++++++++++++------------------
- 1 file changed, 61 insertions(+), 39 deletions(-)
+ drivers/acpi/acpi_ipmi.c |   24 ++++++++++++++----------
+ 1 file changed, 14 insertions(+), 10 deletions(-)
 
 diff --git a/drivers/acpi/acpi_ipmi.c b/drivers/acpi/acpi_ipmi.c
-index f40acef..28e2b4c 100644
+index 28e2b4c..b37c189 100644
 --- a/drivers/acpi/acpi_ipmi.c
 +++ b/drivers/acpi/acpi_ipmi.c
-@@ -51,6 +51,7 @@ MODULE_LICENSE("GPL");
- #define ACPI_IPMI_UNKNOWN		0x07
- /* the IPMI timeout is 5s */
- #define IPMI_TIMEOUT			(5 * HZ)
-+#define ACPI_IPMI_MAX_MSG_LENGTH	64
+@@ -39,6 +39,7 @@
+ #include <linux/ipmi.h>
+ #include <linux/device.h>
+ #include <linux/pnp.h>
++#include <linux/spinlock.h>
  
- struct acpi_ipmi_device {
- 	/* the device list attached to driver_data.ipmi_devices */
-@@ -89,11 +90,9 @@ struct acpi_ipmi_msg {
- 	struct completion tx_complete;
- 	struct kernel_ipmi_msg tx_message;
- 	int	msg_done;
--	/* tx data . And copy it from ACPI object buffer */
--	u8	tx_data[64];
--	int	tx_len;
--	u8	rx_data[64];
--	int	rx_len;
-+	/* tx/rx data . And copy it from/to ACPI object buffer */
-+	u8	data[ACPI_IPMI_MAX_MSG_LENGTH];
-+	u8	rx_len;
- 	struct acpi_ipmi_device *device;
- };
- 
-@@ -101,7 +100,7 @@ struct acpi_ipmi_msg {
- struct acpi_ipmi_buffer {
- 	u8 status;
- 	u8 length;
--	u8 data[64];
-+	u8 data[ACPI_IPMI_MAX_MSG_LENGTH];
- };
- 
- static void ipmi_register_bmc(int iface, struct device *dev);
-@@ -140,9 +139,9 @@ static struct acpi_ipmi_msg *acpi_alloc_ipmi_msg(struct acpi_ipmi_device *ipmi)
- 
- #define		IPMI_OP_RGN_NETFN(offset)	((offset >> 8) & 0xff)
- #define		IPMI_OP_RGN_CMD(offset)		(offset & 0xff)
--static void acpi_format_ipmi_msg(struct acpi_ipmi_msg *tx_msg,
--				acpi_physical_address address,
--				acpi_integer *value)
-+static int acpi_format_ipmi_request(struct acpi_ipmi_msg *tx_msg,
-+				    acpi_physical_address address,
-+				    acpi_integer *value)
- {
+ MODULE_AUTHOR("Zhao Yakui");
+ MODULE_DESCRIPTION("ACPI IPMI Opregion driver");
+@@ -58,7 +59,7 @@ struct acpi_ipmi_device {
+ 	struct list_head head;
+ 	/* the IPMI request message list */
+ 	struct list_head tx_msg_list;
+-	struct mutex	tx_msg_lock;
++	spinlock_t	tx_msg_lock;
+ 	acpi_handle handle;
+ 	struct pnp_dev *pnp_dev;
+ 	ipmi_user_t	user_interface;
+@@ -146,6 +147,7 @@ static int acpi_format_ipmi_request(struct acpi_ipmi_msg *tx_msg,
  	struct kernel_ipmi_msg *msg;
  	struct acpi_ipmi_buffer *buffer;
-@@ -155,15 +154,21 @@ static void acpi_format_ipmi_msg(struct acpi_ipmi_msg *tx_msg,
- 	 */
- 	msg->netfn = IPMI_OP_RGN_NETFN(address);
- 	msg->cmd = IPMI_OP_RGN_CMD(address);
--	msg->data = tx_msg->tx_data;
-+	msg->data = tx_msg->data;
+ 	struct acpi_ipmi_device *device;
++	unsigned long flags;
+ 
+ 	msg = &tx_msg->tx_message;
  	/*
- 	 * value is the parameter passed by the IPMI opregion space handler.
- 	 * It points to the IPMI request message buffer
- 	 */
- 	buffer = (struct acpi_ipmi_buffer *)value;
- 	/* copy the tx message data */
-+	if (buffer->length > ACPI_IPMI_MAX_MSG_LENGTH) {
-+		dev_WARN_ONCE(&tx_msg->device->pnp_dev->dev, true,
-+			      "Unexpected request (msg len %d).\n",
-+			      buffer->length);
-+		return -EINVAL;
-+	}
- 	msg->data_len = buffer->length;
--	memcpy(tx_msg->tx_data, buffer->data, msg->data_len);
-+	memcpy(tx_msg->data, buffer->data, msg->data_len);
- 	/*
- 	 * now the default type is SYSTEM_INTERFACE and channel type is BMC.
- 	 * If the netfn is APP_REQUEST and the cmd is SEND_MESSAGE,
-@@ -181,10 +186,12 @@ static void acpi_format_ipmi_msg(struct acpi_ipmi_msg *tx_msg,
+@@ -182,10 +184,10 @@ static int acpi_format_ipmi_request(struct acpi_ipmi_msg *tx_msg,
+ 
+ 	/* Get the msgid */
+ 	device = tx_msg->device;
+-	mutex_lock(&device->tx_msg_lock);
++	spin_lock_irqsave(&device->tx_msg_lock, flags);
  	device->curr_msgid++;
  	tx_msg->tx_msgid = device->curr_msgid;
- 	mutex_unlock(&device->tx_msg_lock);
-+
-+	return 0;
+-	mutex_unlock(&device->tx_msg_lock);
++	spin_unlock_irqrestore(&device->tx_msg_lock, flags);
+ 
+ 	return 0;
  }
- 
- static void acpi_format_ipmi_response(struct acpi_ipmi_msg *msg,
--		acpi_integer *value, int rem_time)
-+				      acpi_integer *value, int rem_time)
- {
- 	struct acpi_ipmi_buffer *buffer;
- 
-@@ -206,13 +213,14 @@ static void acpi_format_ipmi_response(struct acpi_ipmi_msg *msg,
- 		buffer->status = ACPI_IPMI_UNKNOWN;
- 		return;
- 	}
-+
- 	/*
- 	 * If the IPMI response message is obtained correctly, the status code
- 	 * will be ACPI_IPMI_OK
- 	 */
- 	buffer->status = ACPI_IPMI_OK;
- 	buffer->length = msg->rx_len;
--	memcpy(buffer->data, msg->rx_data, msg->rx_len);
-+	memcpy(buffer->data, msg->data, msg->rx_len);
- }
- 
- static void ipmi_flush_tx_msg(struct acpi_ipmi_device *ipmi)
-@@ -244,12 +252,12 @@ static void ipmi_msg_handler(struct ipmi_recv_msg *msg, void *user_msg_data)
+@@ -250,6 +252,7 @@ static void ipmi_msg_handler(struct ipmi_recv_msg *msg, void *user_msg_data)
+ 	int msg_found = 0;
+ 	struct acpi_ipmi_msg *tx_msg;
  	struct pnp_dev *pnp_dev = ipmi_device->pnp_dev;
++	unsigned long flags;
  
  	if (msg->user != ipmi_device->user_interface) {
--		dev_warn(&pnp_dev->dev, "Unexpected response is returned. "
--			"returned user %p, expected user %p\n",
--			msg->user, ipmi_device->user_interface);
--		ipmi_free_recv_msg(msg);
--		return;
-+		dev_warn(&pnp_dev->dev,
-+			 "Unexpected response is returned. returned user %p, expected user %p\n",
-+			 msg->user, ipmi_device->user_interface);
-+		goto out_msg;
+ 		dev_warn(&pnp_dev->dev,
+@@ -258,14 +261,14 @@ static void ipmi_msg_handler(struct ipmi_recv_msg *msg, void *user_msg_data)
+ 		goto out_msg;
  	}
-+
- 	mutex_lock(&ipmi_device->tx_msg_lock);
+ 
+-	mutex_lock(&ipmi_device->tx_msg_lock);
++	spin_lock_irqsave(&ipmi_device->tx_msg_lock, flags);
  	list_for_each_entry(tx_msg, &ipmi_device->tx_msg_list, head) {
  		if (msg->msgid == tx_msg->tx_msgid) {
-@@ -257,24 +265,31 @@ static void ipmi_msg_handler(struct ipmi_recv_msg *msg, void *user_msg_data)
+ 			msg_found = 1;
  			break;
  		}
  	}
--
- 	mutex_unlock(&ipmi_device->tx_msg_lock);
-+
+-	mutex_unlock(&ipmi_device->tx_msg_lock);
++	spin_unlock_irqrestore(&ipmi_device->tx_msg_lock, flags);
+ 
  	if (!msg_found) {
--		dev_warn(&pnp_dev->dev, "Unexpected response (msg id %ld) is "
--			"returned.\n", msg->msgid);
--		ipmi_free_recv_msg(msg);
--		return;
-+		dev_warn(&pnp_dev->dev,
-+			 "Unexpected response (msg id %ld) is returned.\n",
-+			 msg->msgid);
-+		goto out_msg;
- 	}
- 
--	if (msg->msg.data_len) {
--		/* copy the response data to Rx_data buffer */
--		memcpy(tx_msg->rx_data, msg->msg_data, msg->msg.data_len);
--		tx_msg->rx_len = msg->msg.data_len;
--		tx_msg->msg_done = 1;
-+	/* copy the response data to Rx_data buffer */
-+	if (msg->msg.data_len > ACPI_IPMI_MAX_MSG_LENGTH) {
-+		dev_WARN_ONCE(&pnp_dev->dev, true,
-+			      "Unexpected response (msg len %d).\n",
-+			      msg->msg.data_len);
-+		goto out_comp;
- 	}
-+	tx_msg->rx_len = msg->msg.data_len;
-+	memcpy(tx_msg->data, msg->msg.data, tx_msg->rx_len);
-+	tx_msg->msg_done = 1;
-+
-+out_comp:
- 	complete(&tx_msg->tx_complete);
-+out_msg:
- 	ipmi_free_recv_msg(msg);
--};
-+}
- 
- static void ipmi_register_bmc(int iface, struct device *dev)
- {
-@@ -353,6 +368,7 @@ static void ipmi_bmc_gone(int iface)
- 	}
- 	mutex_unlock(&driver_data.ipmi_lock);
- }
-+
- /* --------------------------------------------------------------------------
-  *			Address Space Management
-  * -------------------------------------------------------------------------- */
-@@ -371,13 +387,14 @@ static void ipmi_bmc_gone(int iface)
- 
- static acpi_status
- acpi_ipmi_space_handler(u32 function, acpi_physical_address address,
--		      u32 bits, acpi_integer *value,
--		      void *handler_context, void *region_context)
-+			u32 bits, acpi_integer *value,
-+			void *handler_context, void *region_context)
- {
- 	struct acpi_ipmi_msg *tx_msg;
+ 		dev_warn(&pnp_dev->dev,
+@@ -394,6 +397,7 @@ acpi_ipmi_space_handler(u32 function, acpi_physical_address address,
  	struct acpi_ipmi_device *ipmi_device = handler_context;
  	int err, rem_time;
  	acpi_status status;
-+
++	unsigned long flags;
+ 
  	/*
  	 * IPMI opregion message.
- 	 * IPMI message is firstly written to the BMC and system software
-@@ -394,28 +411,33 @@ acpi_ipmi_space_handler(u32 function, acpi_physical_address address,
- 	if (!tx_msg)
- 		return AE_NO_MEMORY;
- 
--	acpi_format_ipmi_msg(tx_msg, address, value);
-+	if (acpi_format_ipmi_request(tx_msg, address, value) != 0) {
-+		status = AE_TYPE;
-+		goto out_msg;
-+	}
-+
- 	mutex_lock(&ipmi_device->tx_msg_lock);
- 	list_add_tail(&tx_msg->head, &ipmi_device->tx_msg_list);
- 	mutex_unlock(&ipmi_device->tx_msg_lock);
- 	err = ipmi_request_settime(ipmi_device->user_interface,
--					&tx_msg->addr,
--					tx_msg->tx_msgid,
--					&tx_msg->tx_message,
--					NULL, 0, 0, 0);
-+				   &tx_msg->addr,
-+				   tx_msg->tx_msgid,
-+				   &tx_msg->tx_message,
-+				   NULL, 0, 0, 0);
- 	if (err) {
- 		status = AE_ERROR;
--		goto end_label;
-+		goto out_list;
+@@ -416,9 +420,9 @@ acpi_ipmi_space_handler(u32 function, acpi_physical_address address,
+ 		goto out_msg;
  	}
- 	rem_time = wait_for_completion_timeout(&tx_msg->tx_complete,
--					IPMI_TIMEOUT);
-+					       IPMI_TIMEOUT);
- 	acpi_format_ipmi_response(tx_msg, value, rem_time);
+ 
+-	mutex_lock(&ipmi_device->tx_msg_lock);
++	spin_lock_irqsave(&ipmi_device->tx_msg_lock, flags);
+ 	list_add_tail(&tx_msg->head, &ipmi_device->tx_msg_list);
+-	mutex_unlock(&ipmi_device->tx_msg_lock);
++	spin_unlock_irqrestore(&ipmi_device->tx_msg_lock, flags);
+ 	err = ipmi_request_settime(ipmi_device->user_interface,
+ 				   &tx_msg->addr,
+ 				   tx_msg->tx_msgid,
+@@ -434,9 +438,9 @@ acpi_ipmi_space_handler(u32 function, acpi_physical_address address,
  	status = AE_OK;
  
--end_label:
-+out_list:
- 	mutex_lock(&ipmi_device->tx_msg_lock);
+ out_list:
+-	mutex_lock(&ipmi_device->tx_msg_lock);
++	spin_lock_irqsave(&ipmi_device->tx_msg_lock, flags);
  	list_del(&tx_msg->head);
- 	mutex_unlock(&ipmi_device->tx_msg_lock);
-+out_msg:
+-	mutex_unlock(&ipmi_device->tx_msg_lock);
++	spin_unlock_irqrestore(&ipmi_device->tx_msg_lock, flags);
+ out_msg:
  	kfree(tx_msg);
  	return status;
- }
+@@ -479,7 +483,7 @@ static void acpi_add_ipmi_device(struct acpi_ipmi_device *ipmi_device)
+ 
+ 	INIT_LIST_HEAD(&ipmi_device->head);
+ 
+-	mutex_init(&ipmi_device->tx_msg_lock);
++	spin_lock_init(&ipmi_device->tx_msg_lock);
+ 	INIT_LIST_HEAD(&ipmi_device->tx_msg_list);
+ 	ipmi_install_space_handler(ipmi_device);
+ 
 -- 
 1.7.10
 
