@@ -1,37 +1,41 @@
-From: Steven Newbury <steve@snewbury.org.uk>
-Subject: Re: Linux 3.11-rc2
-Date: Tue, 23 Jul 2013 22:10:38 +0100
-Message-ID: <1374613838.5355.5.camel@artifact>
-References: <CA+55aFy330bSRjK5HT1n0wXioPykL3RquHXyBPjm5GpTz_Y=DQ@mail.gmail.com>
-	 <5728692.GlhGgHY92H@vostro.rjw.lan> <1374516979.2641.0.camel@x230>
-	 <1943327.gJaLv781Zb@vostro.rjw.lan> <1374601675.29964.15.camel@artifact>
-	 <1374609113.2641.2.camel@x230>
+From: Tejun Heo <tj@kernel.org>
+Subject: Re: [PATCH 17/21] page_alloc, mem-hotplug: Improve movablecore to
+ {en|dis}able using SRAT.
+Date: Tue, 23 Jul 2013 17:11:19 -0400
+Message-ID: <20130723211119.GW21100@mtj.dyndns.org>
+References: <1374220774-29974-1-git-send-email-tangchen@cn.fujitsu.com>
+ <1374220774-29974-18-git-send-email-tangchen@cn.fujitsu.com>
+ <20130723210435.GV21100@mtj.dyndns.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from know-smtprelay-omc-1.server.virginmedia.net ([80.0.253.65]:58955
-	"EHLO know-smtprelay-omc-1.server.virginmedia.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1757721Ab3GWVKu (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 23 Jul 2013 17:10:50 -0400
-In-Reply-To: <1374609113.2641.2.camel@x230>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <owner-linux-mm@kvack.org>
+Content-Disposition: inline
+In-Reply-To: <20130723210435.GV21100@mtj.dyndns.org>
+Sender: owner-linux-mm@kvack.org
+To: Tang Chen <tangchen@cn.fujitsu.com>
+Cc: tglx@linutronix.de, mingo@elte.hu, hpa@zytor.com, akpm@linux-foundation.org, trenn@suse.de, yinghai@kernel.org, jiang.liu@huawei.com, wency@cn.fujitsu.com, laijs@cn.fujitsu.com, isimatu.yasuaki@jp.fujitsu.com, izumi.taku@jp.fujitsu.com, mgorman@suse.de, minchan@kernel.org, mina86@mina86.com, gong.chen@linux.intel.com, vasilis.liaskovitis@profitbricks.com, lwoodman@redhat.com, riel@redhat.com, jweiner@redhat.com, prarit@redhat.com, zhangyanfei@cn.fujitsu.com, yanghy@cn.fujitsu.com, x86@kernel.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-mm@kvack.org, linux-acpi@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Matthew Garrett <matthew.garrett@nebula.com>
-Cc: "Rafael J. Wysocki" <rjw@sisk.pl>, James Hogan <james@albanarts.com>, Linus Torvalds <torvalds@linux-foundation.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Kamal Mostafa <kamal@canonical.com>, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>
 
-On Tue, 2013-07-23 at 19:51 +0000, Matthew Garrett wrote:
-> On Tue, 2013-07-23 at 18:47 +0100, Steven Newbury wrote:
+On Tue, Jul 23, 2013 at 05:04:35PM -0400, Tejun Heo wrote:
+> On Fri, Jul 19, 2013 at 03:59:30PM +0800, Tang Chen wrote:
+> ...
+> > Users can specify "movablecore=acpi" in kernel commandline to enable this
+> > functionality. For those who don't use memory hotplug or who don't want
+> > to lose their NUMA performance, just don't specify anything. The kernel
+> > will work as before.
 > 
-> > In the code as was present in the linux-pm/bleeding-edge tree I would
-> > encounter a hard lockup on keyboard brightness trigger.  This also occurred with
-> > the code as it initially hit mainline, but a later commit fixed the crash*, but
-> > resulted in no backlight controls being available at all.
-> > /sys/class/backlight  is empty.
-> 
-> This is an Intel system using the i915 driver?
-> 
+> The param name is pretty obscure and why would the user care where
 
-Yes, IVB i7-3840QM.  CLEVO W270EUQ.
+I mean, having movable zone is required for having any decent chance
+of memory hotplug and movable zone implies worse affinity for kernel
+data structures, so there's no point in distinguishing memory hotplug
+enable/disable and this, right?
 
+-- 
+tejun
+
+--
+To unsubscribe, send a message with 'unsubscribe linux-mm' in
+the body to majordomo@kvack.org.  For more info on Linux MM,
+see: http://www.linux-mm.org/ .
+Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
