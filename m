@@ -1,31 +1,66 @@
 From: Tejun Heo <tj@kernel.org>
-Subject: Re: [PATCH 14/21] x86, acpi, numa: Reserve hotpluggable memory at
- early time.
-Date: Tue, 23 Jul 2013 16:55:57 -0400
-Message-ID: <20130723205557.GS21100@mtj.dyndns.org>
+Subject: Re: [PATCH 15/21] x86, acpi, numa: Don't reserve memory on nodes the
+ kernel resides in.
+Date: Tue, 23 Jul 2013 16:59:19 -0400
+Message-ID: <20130723205919.GT21100@mtj.dyndns.org>
 References: <1374220774-29974-1-git-send-email-tangchen@cn.fujitsu.com>
- <1374220774-29974-15-git-send-email-tangchen@cn.fujitsu.com>
+ <1374220774-29974-16-git-send-email-tangchen@cn.fujitsu.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <owner-linux-mm@kvack.org>
 Content-Disposition: inline
-In-Reply-To: <1374220774-29974-15-git-send-email-tangchen@cn.fujitsu.com>
+In-Reply-To: <1374220774-29974-16-git-send-email-tangchen@cn.fujitsu.com>
 Sender: owner-linux-mm@kvack.org
 To: Tang Chen <tangchen@cn.fujitsu.com>
 Cc: tglx@linutronix.de, mingo@elte.hu, hpa@zytor.com, akpm@linux-foundation.org, trenn@suse.de, yinghai@kernel.org, jiang.liu@huawei.com, wency@cn.fujitsu.com, laijs@cn.fujitsu.com, isimatu.yasuaki@jp.fujitsu.com, izumi.taku@jp.fujitsu.com, mgorman@suse.de, minchan@kernel.org, mina86@mina86.com, gong.chen@linux.intel.com, vasilis.liaskovitis@profitbricks.com, lwoodman@redhat.com, riel@redhat.com, jweiner@redhat.com, prarit@redhat.com, zhangyanfei@cn.fujitsu.com, yanghy@cn.fujitsu.com, x86@kernel.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-mm@kvack.org, linux-acpi@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Fri, Jul 19, 2013 at 03:59:27PM +0800, Tang Chen wrote:
-> +		/*
-> +		 * In such an early time, we don't have nid. We specify pxm
-> +		 * instead of MAX_NUMNODES to prevent memblock merging regions
-> +		 * on different nodes. And later modify pxm to nid when nid is
-> +		 * mapped so that we can arrange ZONE_MOVABLE on different
-> +		 * nodes.
-> +		 */
-> +		memblock_reserve_hotpluggable(base_address, length, pxm);
+Hello,
 
-This is rather hacky.  Why not just introduce MEMBLOCK_NO_MERGE flag?
+On Fri, Jul 19, 2013 at 03:59:28PM +0800, Tang Chen wrote:
+>  /*
+> + * kernel_resides_in_range - Check if kernel resides in a memory range.
+> + * @base: The base address of the memory range.
+> + * @length: The length of the memory range.
+> + *
+> + * memblock reserves some memory for the kernel at very early time, such
+> + * as kernel code and data segments, initrd file, and so on. So this
+> + * function iterates memblock.reserved[] and check if any memory range with
+> + * flag MEMBLK_FLAGS_DEFAULT overlaps [@base, @length). If so, the kernel
+> + * resides in this memory range.
+> + *
+> + * Return true if the kernel resides in the memory range, false otherwise.
+> + */
+> +static bool __init kernel_resides_in_range(phys_addr_t base, u64 length)
+> +{
+> +	int i;
+> +	struct memblock_type *reserved = &memblock.reserved;
+> +	struct memblock_region *region;
+> +	phys_addr_t start, end;
+> +
+> +	for (i = 0; i < reserved->cnt; i++) {
+> +		region = &reserved->regions[i];
+> +
+> +		if (region->flags != MEMBLK_FLAGS_DEFAULT)
+> +			continue;
+> +
+> +		start = region->base;
+> +		end = region->base + region->size;
+> +		if (end <= base || start >= base + length)
+> +			continue;
+> +
+> +		return true;
+> +	}
+> +
+> +	return false;
+> +}
+
+This being in acpi/osl.c is rather weird.  Overall, the acpi and
+memblock parts don't seem very well split.  It'd best if acpi just
+indicates which regions are hotpluggable and the rest is handled by
+x86 boot or memblock code as appropriate.
+
+Thanks.
 
 -- 
 tejun
