@@ -1,60 +1,68 @@
-From: Igor Gnatenko <i.gnatenko.brain@gmail.com>
-Subject: Re: Linux 3.11-rc2 (acpi backlight)
-Date: Wed, 24 Jul 2013 11:19:10 +0400
-Message-ID: <1374650350.1824.2.camel@ThinkPad-X230.localdomain>
-References: <CA+55aFy330bSRjK5HT1n0wXioPykL3RquHXyBPjm5GpTz_Y=DQ@mail.gmail.com>
-	 <9012759.Alzqtdvh5b@vostro.rjw.lan> <1374605189.31029.25.camel@fourier>
-	 <1657635.t6GA9ja9Ss@vostro.rjw.lan>
-	 <CAAG0J98G64DGvtA3HtY7B2-rvOordrzam+jjy=kjgLTW0WPgew@mail.gmail.com>
+From: Tang Chen <tangchen@cn.fujitsu.com>
+Subject: Re: [PATCH 13/21] x86, acpi: Try to find SRAT in firmware earlier.
+Date: Wed, 24 Jul 2013 18:12:03 +0800
+Message-ID: <51EFA873.9050300@cn.fujitsu.com>
+References: <1374220774-29974-1-git-send-email-tangchen@cn.fujitsu.com> <1374220774-29974-14-git-send-email-tangchen@cn.fujitsu.com> <20130723204949.GR21100@mtj.dyndns.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-la0-f42.google.com ([209.85.215.42]:64375 "EHLO
-	mail-la0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751828Ab3GXHTQ (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 24 Jul 2013 03:19:16 -0400
-In-Reply-To: <CAAG0J98G64DGvtA3HtY7B2-rvOordrzam+jjy=kjgLTW0WPgew@mail.gmail.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <owner-linux-mm@kvack.org>
+In-Reply-To: <20130723204949.GR21100@mtj.dyndns.org>
+Sender: owner-linux-mm@kvack.org
+To: Tejun Heo <tj@kernel.org>
+Cc: tglx@linutronix.de, mingo@elte.hu, hpa@zytor.com, akpm@linux-foundation.org, trenn@suse.de, yinghai@kernel.org, jiang.liu@huawei.com, wency@cn.fujitsu.com, laijs@cn.fujitsu.com, isimatu.yasuaki@jp.fujitsu.com, izumi.taku@jp.fujitsu.com, mgorman@suse.de, minchan@kernel.org, mina86@mina86.com, gong.chen@linux.intel.com, vasilis.liaskovitis@profitbricks.com, lwoodman@redhat.com, riel@redhat.com, jweiner@redhat.com, prarit@redhat.com, zhangyanfei@cn.fujitsu.com, yanghy@cn.fujitsu.com, x86@kernel.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-mm@kvack.org, linux-acpi@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: James Hogan <james@albanarts.com>
-Cc: "Rafael J. Wysocki" <rjw@sisk.pl>, Kamal Mostafa <kamal@canonical.com>, Steven Newbury <steve@snewbury.org.uk>, Martin Steigerwald <Martin@lichtvoll.de>, =?ISO-8859-1?Q?J=F6rg?= Otte <jrg.otte@gmail.com>, Linus Torvalds <torvalds@linux-foundation.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Matthew Garrett <matthew.garrett@nebula.com>, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Aaron Lu <aaron.lwe@gmail.com>
 
-On Wed, 2013-07-24 at 07:49 +0100, James Hogan wrote:
-> On 24 July 2013 01:05, Rafael J. Wysocki <rjw@sisk.pl> wrote:
-> > I'd like to collect some information on the systems having problems=
- with those
-> > two commits (to see if they are similar somehow).
-> >
-> > It seems that one common symptom is that brightness cannot be contr=
-olled
-> > through function keys.  Is that correct for all of you?  If so, did=
- you try
-> > any other way to control brightness, like a GUI-based?
->=20
-> For me both the Fn keys and the gui slider (kde) now control
-> /sys/class/backlight/intel_backlight/brightness (which has no effect)=
-=2E
-> Previously they both controlled the acpi one (that on -rc2 doesn't
-> exist).
-I think this problem in i915 drivers.
-Rafael, Mathew, Aaron, fix me please
->=20
-> >
-> > Also, can you all please send me (a) the output of dmidecode and (b=
-) the
-> > contents of /proc/cpuinfo from your systems?
->=20
-> attached
+On 07/24/2013 04:49 AM, Tejun Heo wrote:
+> On Fri, Jul 19, 2013 at 03:59:26PM +0800, Tang Chen wrote:
+......
+>> +	for (pos = 0;
+>> +	     pos<  acpi_gbl_root_table_list.current_table_count;
+>> +	     pos++) {
+>> +		if (!ACPI_COMPARE_NAME
+>> +		    (&(acpi_gbl_root_table_list.tables[pos].signature),
+>> +		    signature))
+>
+> Hohumm... creative formatting.  Can't you just cache the tables
+> pointer in a local variable with short name and avoid the creativity?
 
+OK, followed.
 
---=20
-Igor Gnatenko
-=46edora release 19 (Schr=C3=B6dinger=E2=80=99s Cat)
-Linux 3.9.9-302.fc19.x86_64
+>
+>> +			continue;
+>> +
+>> +		memcpy(out_desc,&acpi_gbl_root_table_list.tables[pos],
+>> +		       sizeof(struct acpi_table_desc));
+>> +
+>> +		return_ACPI_STATUS(AE_OK);
+>> +	}
+>> +
+>> +	return_ACPI_STATUS(AE_NOT_FOUND);
+>
+> Also, if we already know that SRAT is what we want, I wonder whether
+> it'd be simpler to store the location of SRAT somewhere instead of
+> trying to be generic with the early processing.
+
+Do you mean get the SRAT's address without touching any ACPI global
+variables, such as acpi_gbl_root_table_list ?
+
+The physical addresses of all tables is stored in RSDT (Root System
+Description Table), which is the root table. We need to parse RSDT
+to get SRAT address.
+
+Using acpi_gbl_root_table_list is very convenient. The initialization
+of acpi_gbl_root_table_list is using acpi_os_map_memory(), so it can be
+done before init_mem_mapping() and relocate_initrd().
+
+With acpi_gbl_root_table_list initialized, we can iterate it and find
+SRAT easily. Otherwise, we have to do the same procedure to parse RSDT,
+and find SRAT, which I don't think could be any simpler. I think reuse
+the existing acpi_gbl_root_table_list code is better.
+
+Thanks.
 
 --
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+To unsubscribe, send a message with 'unsubscribe linux-mm' in
+the body to majordomo@kvack.org.  For more info on Linux MM,
+see: http://www.linux-mm.org/ .
+Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
