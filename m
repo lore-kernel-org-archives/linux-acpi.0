@@ -1,89 +1,318 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: [PATCH 0/30] ACPI / hotplug / PCI: Major rework + Thunderbolt workarounds
-Date: Wed, 24 Jul 2013 14:58:38 +0200
-Message-ID: <6958813.eThhpoh5QO@vostro.rjw.lan>
-References: <26431283.HJCKsss0rt@vostro.rjw.lan> <3215120.cRBBS5jciE@vostro.rjw.lan> <CAE9FiQURY5WFFJekPHV_s0HPi8uhKzSDOLSXHAkyLPf1=i8oAw@mail.gmail.com>
+From: "Moore, Robert" <robert.moore@intel.com>
+Subject: RE: [PATCH v3 1/3] acpi: Call acpi_os_prepare_sleep hook in reduced
+ hardware sleep path
+Date: Wed, 24 Jul 2013 13:18:37 +0000
+Message-ID: <94F2FBAB4432B54E8AACC7DFDE6C92E36FEA87FF@ORSMSX103.amr.corp.intel.com>
+References: <1372255575-29567-1-git-send-email-benjamin.guthro@citrix.com>
+ <1372255575-29567-2-git-send-email-benjamin.guthro@citrix.com>
+ <1AE640813FDE7649BE1B193DEA596E880241B363@SHSMSX101.ccr.corp.intel.com>
+ <51D2BCB7.5040105@citrix.com>
+ <1AE640813FDE7649BE1B193DEA596E88024352D2@SHSMSX101.ccr.corp.intel.com>
+ <51EFC1FE.5000609@citrix.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7Bit
-Return-path: <linux-pci-owner@vger.kernel.org>
-In-Reply-To: <CAE9FiQURY5WFFJekPHV_s0HPi8uhKzSDOLSXHAkyLPf1=i8oAw@mail.gmail.com>
-Sender: linux-pci-owner@vger.kernel.org
-To: Yinghai Lu <yinghai@kernel.org>
-Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Bjorn Helgaas <bhelgaas@google.com>, LKML <linux-kernel@vger.kernel.org>, Linux PCI <linux-pci@vger.kernel.org>, Jiang Liu <liuj97@gmail.com>, Mika Westerberg <mika.westerberg@linux.intel.com>, "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mga14.intel.com ([143.182.124.37]:56216 "EHLO mga14.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750795Ab3GXNSk convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 24 Jul 2013 09:18:40 -0400
+In-Reply-To: <51EFC1FE.5000609@citrix.com>
+Content-Language: en-US
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Ben Guthro <Benjamin.Guthro@citrix.com>, "Zheng, Lv" <lv.zheng@intel.com>
+Cc: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>, Jan Beulich <jbeulich@suse.com>, "Rafael J . Wysocki" <rjw@sisk.pl>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "xen-devel@lists.xen.org" <xen-devel@lists.xen.org>
 
-On Tuesday, July 23, 2013 07:20:53 PM Yinghai Lu wrote:
-> On Tue, Jul 23, 2013 at 2:39 PM, Rafael J. Wysocki <rjw@sisk.pl> wrote:
-
-[...]
-
-> [  102.631369] pci_host_bridge pci0000:00: freeing pci_host_bridge info
-
-By the way this looks fishy:
-
-> [  102.633091] ACPI: Device does not support D3cold
-> [  102.633915] ACPI: Device does not support D3cold
-> [  102.635221] ACPI: Device does not support D3cold
-> [  102.636103] ACPI: Device does not support D3cold
-> [  102.636902] ACPI: Device does not support D3cold
-> [  102.637685] ACPI: Device does not support D3cold
-> [  102.638467] ACPI: Device does not support D3cold
-> [  102.639631] ACPI: Device does not support D3cold
-> [  102.640472] ACPI: Device does not support D3cold
-> [  102.641310] ACPI: Device does not support D3cold
-> [  102.642105] ACPI: Device does not support D3cold
-> [  102.642928] ACPI: Device does not support D3cold
-> [  102.643725] ACPI: Device does not support D3cold
-> [  102.644544] ACPI: Device does not support D3cold
-> [  102.645344] ACPI: Device does not support D3cold
-> [  102.646126] ACPI: Device does not support D3cold
-> [  102.646902] ACPI: Device does not support D3cold
-> [  102.647677] ACPI: Device does not support D3cold
-> [  102.648485] ACPI: Device does not support D3cold
-> [  102.649269] ACPI: Device does not support D3cold
-> [  102.650065] ACPI: Device does not support D3cold
-> [  102.650822] ACPI: Device does not support D3cold
-> [  102.652483] ACPI: Device does not support D3cold
-> [  102.654157] ACPI: Device does not support D3cold
-> [  102.655803] ACPI: Device does not support D3cold
-> [  102.657419] ACPI: Device does not support D3cold
-> [  102.658528] ACPI: Device does not support D3cold
-> [  102.659255] ACPI: Device does not support D3cold
-> [  102.659973] ACPI: Device does not support D3cold
-> [  102.661807] ACPI: Device does not support D3cold
-> [  102.661925] ACPI: Device does not support D3cold
-> [  102.662047] ACPI: Device does not support D3cold
-> [  102.662148] ACPI: Device does not support D3cold
-> [  102.662258] ACPI: Device does not support D3cold
-> [  102.662374] ACPI: Device does not support D3cold
-> [  102.662486] ACPI: Device does not support D3cold
-> [  102.662597] ACPI: Device does not support D3cold
-> [  102.662711] ACPI: Device does not support D3cold
-> [  102.662814] ACPI: Device does not support D3cold
-> [  102.662918] ACPI: Device does not support D3cold
-> [  102.663019] ACPI: Device does not support D3cold
-
-Can you please check if it goes away with the patch below applied?
-
-> [  102.663039] ACPI: \_SB_.PCI0: No _EJ0 support for device
+I have not looked closely at this, but we typically do things like this in ACPICA so that they only need to be implemented once to support all of the various acpica-hosted operating systems - linux, solaris, hp-ux, apple, freebsd, etc. -- even if they could be implemented "cleaner" in some way on any given host.
 
 
----
- drivers/acpi/device_pm.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
 
-Index: linux-pm/drivers/acpi/device_pm.c
-===================================================================
---- linux-pm.orig/drivers/acpi/device_pm.c
-+++ linux-pm/drivers/acpi/device_pm.c
-@@ -159,7 +159,8 @@ int acpi_device_set_power(struct acpi_de
- 	int result = 0;
- 	bool cut_power = false;
- 
--	if (!device || (state < ACPI_STATE_D0) || (state > ACPI_STATE_D3_COLD))
-+	if (!device || !device->flags.power_manageable
-+	    || (state < ACPI_STATE_D0) || (state > ACPI_STATE_D3_COLD))
- 		return -EINVAL;
- 
- 	/* Make sure this is a valid target state */
+> -----Original Message-----
+> From: Ben Guthro [mailto:Benjamin.Guthro@citrix.com]
+> Sent: Wednesday, July 24, 2013 5:01 AM
+> To: Zheng, Lv
+> Cc: Konrad Rzeszutek Wilk; Jan Beulich; Rafael J . Wysocki; linux-
+> kernel@vger.kernel.org; linux-acpi@vger.kernel.org; xen-
+> devel@lists.xen.org; Moore, Robert
+> Subject: Re: [PATCH v3 1/3] acpi: Call acpi_os_prepare_sleep hook in
+> reduced hardware sleep path
+> 
+> 
+> 
+> On 07/24/2013 02:24 AM, Zheng, Lv wrote:
+> > Hi,
+> >
+> > Sorry for the delayed response.
+> >
+> >> From: Ben Guthro [mailto:Benjamin.Guthro@citrix.com]
+> >> Sent: Tuesday, July 02, 2013 7:43 PM
+> >>
+> >>
+> >> On 07/02/2013 02:19 AM, Zheng, Lv wrote:
+> >>> Thanks for your efforts!
+> >>>
+> >>> I wonder if it is possible to remove the argument - "u8 extended"
+> >>> and convert
+> >> "pm1a_control, pm1b_control" into some u8 values that are equivalent
+> >> to "acpi_gbl_sleep_type_a, acpi_gbl_sleep_type_b" in the legacy sleep
+> path.
+> >>> It can also simplify Xen codes.
+> >>
+> >> Thanks for your time to review this.
+> >>
+> >> I'm not sure that this simplifies things. I think that, in fact, it
+> >> would make them quite a bit more complicated, but perhaps I
+> misunderstand.
+> >>
+> >> Is it not preferred to use the reduced hardware sleep, over the old
+> method?
+> >> While these register definitions may be equivalent below, doing the
+> >> translation in linux, only to translate them back again at a lower
+> layer seems unnecessary.
+> >>
+> >
+> > Yes, it would require tboot layer to be able to be aware of how such
+> fields locate in the PM registers.
+> > So I think you can pass the register address of the field and the field
+> name/value pair to the tboot, this could simplify things, no lower layer
+> effort will be needed.
+> > Please don't worry about the case that a register field could be split
+> into PM1a and PM1b, it could be a hardware design issue.
+> > IMO, one field should always be in one register, either PM1a or PM1b.
+> > Or there could be hardware issues cannot be addressed by the ACPICA
+> architecture (something like natural atomicity).
+> > But maybe I'm wrong.
+> 
+> Again, I don't think this simplifies things, but complicates them
+> unnecessarily. Converting the reduced hardware sleep to the legacy sleep
+> seems like it would be an unnecessary layer of translation.
+> 
+> The interface now simply passes the information from ACPICA down to the
+> lower layers (xen, tboot) - and then lets them worry about the reduced
+> hardware implementation.
+> 
+> FWIW, xen has shipped with this implemetation, and enterprise kernels
+> using the traditional xen kernel (like Suse) are making use of it.
+> 
+> It may benefit tboot, in this case, but not Xen.
+> 
+> I personally see it as an undesirable complication.
+> 
+> Best regards,
+> Ben
+> 
+> >
+> > Thanks and best regards
+> > -Lv
+> >
+> >> The hypervisor knows how to deal with both the reduced hardware sleep
+> >> as well as the legacy sleep path - it merely need to distinguish
+> >> these two paths, when performing the hypercall.
+> >>
+> >> Since there are two paths through the higher level ACPICA code - that
+> >> in hwsleep.c, and hwesleep.c - there needs to be some distinction
+> >> between the two paths, when calling through to the lower level
+> >> acpi_os_prepare_sleep() call.
+> >>
+> >> An alternate method would be to create another interface named
+> >> acpi_os_prepare_esleep() which would do the equivalent of this patch
+> >> series, with an "extended" parameter hidden from upper level
+> interfaces.
+> >>
+> >> This, however, would also add another function to
+> >> include/acpi/acpiosxf.h - which, I thought was undesirable, in the
+> >> impression that I got from Bob Moore, and Rafael Wysocki (though,
+> >> please correct me on this point, if I have
+> >> misunderstood)
+> >>
+> >> Best Regards
+> >>
+> >> Ben
+> >>
+> >>>
+> >>> As in ACPI specification, the bit definitions between the legacy
+> >>> sleep registers
+> >> and the extended sleep registers are equivalent.
+> >>>
+> >>> The legacy sleep register definition:
+> >>> Table 4-16 PM1 Status Registers Fixed Hardware Feature Status Bits -
+> >>> WAK_STS(bit 15) Table 4-18 PM1 Control Registers Fixed Hardware
+> >>> Feature Control Bits - SLP_TYPx (bit 10-12), SLP_EN (bit 13)
+> >>>
+> >>> The extended sleep register definition:
+> >>> Table 4-24 Sleep Control Register - SLP_TYPx (3 bits from offset 2),
+> >>> SLP_EN (1
+> >> bit from offset 5), here 10-8 = 2, and 13-8 = 5, this definition is
+> >> equivalent to Table 4-18.
+> >>> Table 4-25 Sleep Status Register - WAK_STS (1 bit 7), 15-8 = 7, this
+> >>> definition is
+> >> equivalent to Table 4-16.
+> >>>
+> >>> Thanks and best regards
+> >>> -Lv
+> >>>
+> >>>> -----Original Message-----
+> >>>> From: linux-acpi-owner@vger.kernel.org
+> >>>> [mailto:linux-acpi-owner@vger.kernel.org] On Behalf Of Ben Guthro
+> >>>> Sent: Wednesday, June 26, 2013 10:06 PM
+> >>>> To: Konrad Rzeszutek Wilk; Jan Beulich; Rafaell J . Wysocki;
+> >>>> linux-kernel@vger.kernel.org; linux-acpi@vger.kernel.org;
+> >>>> xen-devel@lists.xen.org
+> >>>> Cc: Ben Guthro; Moore, Robert
+> >>>> Subject: [PATCH v3 1/3] acpi: Call acpi_os_prepare_sleep hook in
+> >>>> reduced hardware sleep path
+> >>>>
+> >>>> In version 3.4 acpi_os_prepare_sleep() got introduced in parallel
+> >>>> with reduced hardware sleep support, and the two changes didn't get
+> >>>> synchronized: The new code doesn't call the hook function (if so
+> >>>> requested). Fix this, requiring a parameter to be added to the hook
+> >>>> function to distinguish "extended" from "legacy" sleep.
+> >>>>
+> >>>> Signed-off-by: Ben Guthro <benjamin.guthro@citrix.com>
+> >>>> Signed-off-by: Jan Beulich <jbeulich@suse.com>
+> >>>> Cc: Bob Moore <robert.moore@intel.com>
+> >>>> Cc: Rafaell J. Wysocki <rjw@sisk.pl>
+> >>>> Cc: linux-acpi@vger.kernel.org
+> >>>> ---
+> >>>>   drivers/acpi/acpica/hwesleep.c |    8 ++++++++
+> >>>>   drivers/acpi/acpica/hwsleep.c  |    2 +-
+> >>>>   drivers/acpi/osl.c             |   16 ++++++++--------
+> >>>>   include/linux/acpi.h           |   10 +++++-----
+> >>>>   4 files changed, 22 insertions(+), 14 deletions(-)
+> >>>>
+> >>>> diff --git a/drivers/acpi/acpica/hwesleep.c
+> >>>> b/drivers/acpi/acpica/hwesleep.c index 5e5f762..6834dd7 100644
+> >>>> --- a/drivers/acpi/acpica/hwesleep.c
+> >>>> +++ b/drivers/acpi/acpica/hwesleep.c
+> >>>> @@ -43,6 +43,7 @@
+> >>>>    */
+> >>>>
+> >>>>   #include <acpi/acpi.h>
+> >>>> +#include <linux/acpi.h>
+> >>>>   #include "accommon.h"
+> >>>>
+> >>>>   #define _COMPONENT          ACPI_HARDWARE
+> >>>> @@ -128,6 +129,13 @@ acpi_status acpi_hw_extended_sleep(u8
+> >>>> sleep_state)
+> >>>>
+> >>>>   	ACPI_FLUSH_CPU_CACHE();
+> >>>>
+> >>>> +	status = acpi_os_prepare_sleep(sleep_state,
+> acpi_gbl_sleep_type_a,
+> >>>> +				       acpi_gbl_sleep_type_b, true);
+> >>>> +	if (ACPI_SKIP(status))
+> >>>> +		return_ACPI_STATUS(AE_OK);
+> >>>> +	if (ACPI_FAILURE(status))
+> >>>> +		return_ACPI_STATUS(status);
+> >>>> +
+> >>>>   	/*
+> >>>>   	 * Set the SLP_TYP and SLP_EN bits.
+> >>>>   	 *
+> >>>> diff --git a/drivers/acpi/acpica/hwsleep.c
+> >>>> b/drivers/acpi/acpica/hwsleep.c index e3828cc..a93c299 100644
+> >>>> --- a/drivers/acpi/acpica/hwsleep.c
+> >>>> +++ b/drivers/acpi/acpica/hwsleep.c
+> >>>> @@ -153,7 +153,7 @@ acpi_status acpi_hw_legacy_sleep(u8 sleep_state)
+> >>>>   	ACPI_FLUSH_CPU_CACHE();
+> >>>>
+> >>>>   	status = acpi_os_prepare_sleep(sleep_state, pm1a_control,
+> >>>> -				       pm1b_control);
+> >>>> +				       pm1b_control, false);
+> >>>>   	if (ACPI_SKIP(status))
+> >>>>   		return_ACPI_STATUS(AE_OK);
+> >>>>   	if (ACPI_FAILURE(status))
+> >>>> diff --git a/drivers/acpi/osl.c b/drivers/acpi/osl.c index
+> >>>> e721863..3fc2801 100644
+> >>>> --- a/drivers/acpi/osl.c
+> >>>> +++ b/drivers/acpi/osl.c
+> >>>> @@ -77,8 +77,8 @@ EXPORT_SYMBOL(acpi_in_debugger);
+> >>>>   extern char line_buf[80];
+> >>>>   #endif				/*ENABLE_DEBUGGER */
+> >>>>
+> >>>> -static int (*__acpi_os_prepare_sleep)(u8 sleep_state, u32 pm1a_ctrl,
+> >>>> -				      u32 pm1b_ctrl);
+> >>>> +static int (*__acpi_os_prepare_sleep)(u8 sleep_state, u32 val_a,
+> >>>> +u32
+> >> val_b,
+> >>>> +				      u8 extended);
+> >>>>
+> >>>>   static acpi_osd_handler acpi_irq_handler;
+> >>>>   static void *acpi_irq_context;
+> >>>> @@ -1757,13 +1757,13 @@ acpi_status acpi_os_terminate(void)
+> >>>>   	return AE_OK;
+> >>>>   }
+> >>>>
+> >>>> -acpi_status acpi_os_prepare_sleep(u8 sleep_state, u32 pm1a_control,
+> >>>> -				  u32 pm1b_control)
+> >>>> +acpi_status acpi_os_prepare_sleep(u8 sleep_state, u32 val_a, u32
+> val_b,
+> >>>> +				  u8 extended)
+> >>>>   {
+> >>>>   	int rc = 0;
+> >>>>   	if (__acpi_os_prepare_sleep)
+> >>>> -		rc = __acpi_os_prepare_sleep(sleep_state,
+> >>>> -					     pm1a_control, pm1b_control);
+> >>>> +		rc = __acpi_os_prepare_sleep(sleep_state, val_a, val_b,
+> >>>> +					     extended);
+> >>>>   	if (rc < 0)
+> >>>>   		return AE_ERROR;
+> >>>>   	else if (rc > 0)
+> >>>> @@ -1772,8 +1772,8 @@ acpi_status acpi_os_prepare_sleep(u8
+> >>>> sleep_state,
+> >>>> u32 pm1a_control,
+> >>>>   	return AE_OK;
+> >>>>   }
+> >>>>
+> >>>> -void acpi_os_set_prepare_sleep(int (*func)(u8 sleep_state,
+> >>>> -			       u32 pm1a_ctrl, u32 pm1b_ctrl))
+> >>>> +void acpi_os_set_prepare_sleep(int (*func)(u8 sleep_state, u32
+> val_a,
+> >>>> +					   u32 val_b, u8 extended))
+> >>>>   {
+> >>>>   	__acpi_os_prepare_sleep = func;
+> >>>>   }
+> >>>> diff --git a/include/linux/acpi.h b/include/linux/acpi.h index
+> >>>> 17b5b59..de99022 100644
+> >>>> --- a/include/linux/acpi.h
+> >>>> +++ b/include/linux/acpi.h
+> >>>> @@ -477,11 +477,11 @@ static inline bool
+> >>>> acpi_driver_match_device(struct device *dev,
+> >>>>   #endif	/* !CONFIG_ACPI */
+> >>>>
+> >>>>   #ifdef CONFIG_ACPI
+> >>>> -void acpi_os_set_prepare_sleep(int (*func)(u8 sleep_state,
+> >>>> -			       u32 pm1a_ctrl,  u32 pm1b_ctrl));
+> >>>> +void acpi_os_set_prepare_sleep(int (*func)(u8 sleep_state, u32
+> val_a,
+> >>>> +					   u32 val_b, u8 extended));
+> >>>>
+> >>>> -acpi_status acpi_os_prepare_sleep(u8 sleep_state,
+> >>>> -				  u32 pm1a_control, u32 pm1b_control);
+> >>>> +acpi_status acpi_os_prepare_sleep(u8 sleep_state, u32 val_a, u32
+> val_b,
+> >>>> +				  u8 extended);
+> >>>>   #ifdef CONFIG_X86
+> >>>>   void arch_reserve_mem_area(acpi_physical_address addr, size_t
+> size);
+> >>>>   #else
+> >>>> @@ -491,7 +491,7 @@ static inline void
+> >>>> arch_reserve_mem_area(acpi_physical_address addr,
+> >>>>   }
+> >>>>   #endif /* CONFIG_X86 */
+> >>>>   #else
+> >>>> -#define acpi_os_set_prepare_sleep(func, pm1a_ctrl, pm1b_ctrl) do {
+> >>>> } while
+> >>>> (0)
+> >>>> +#define acpi_os_set_prepare_sleep(func, val_a, val_b, ext) do { }
+> >>>> +while (0)
+> >>>>   #endif
+> >>>>
+> >>>>   #if defined(CONFIG_ACPI) && defined(CONFIG_PM_RUNTIME)
+> >>>> --
+> >>>> 1.7.9.5
+> >>>>
+> >>>> --
+> >>>> To unsubscribe from this list: send the line "unsubscribe linux-acpi"
+> >>>> in the body of a message to majordomo@vger.kernel.org More
+> >>>> majordomo info at  http://vger.kernel.org/majordomo-info.html
