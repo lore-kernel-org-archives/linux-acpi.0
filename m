@@ -1,65 +1,64 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: Linux 3.11-rc2 (acpi backlight)
-Date: Wed, 24 Jul 2013 02:05:48 +0200
-Message-ID: <1657635.t6GA9ja9Ss@vostro.rjw.lan>
-References: <CA+55aFy330bSRjK5HT1n0wXioPykL3RquHXyBPjm5GpTz_Y=DQ@mail.gmail.com> <9012759.Alzqtdvh5b@vostro.rjw.lan> <1374605189.31029.25.camel@fourier>
+From: "Zheng, Lv" <lv.zheng@intel.com>
+Subject: RE: [PATCH 01/13] ACPI/IPMI: Fix potential response buffer overflow
+Date: Wed, 24 Jul 2013 00:21:42 +0000
+Message-ID: <1AE640813FDE7649BE1B193DEA596E88024350EA@SHSMSX101.ccr.corp.intel.com>
+References: <cover.1370652213.git.lv.zheng@intel.com>
+ <cover.1374566394.git.lv.zheng@intel.com>
+ <be902a592144313dbf382876965166166bf81438.1374566394.git.lv.zheng@intel.com>
+ <20130723145419.GA12065@kroah.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from hydra.sisk.pl ([212.160.235.94]:36637 "EHLO hydra.sisk.pl"
+Received: from mga11.intel.com ([192.55.52.93]:21922 "EHLO mga11.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S934085Ab3GWXzr (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 23 Jul 2013 19:55:47 -0400
-In-Reply-To: <1374605189.31029.25.camel@fourier>
+	id S1752681Ab3GXAV7 convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 23 Jul 2013 20:21:59 -0400
+In-Reply-To: <20130723145419.GA12065@kroah.com>
+Content-Language: en-US
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Kamal Mostafa <kamal@canonical.com>, James Hogan <james@albanarts.com>, Steven Newbury <steve@snewbury.org.uk>, Martin Steigerwald <Martin@lichtvoll.de>, =?ISO-8859-1?Q?J=F6rg?= Otte <jrg.otte@gmail.com>
-Cc: Linus Torvalds <torvalds@linux-foundation.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Matthew Garrett <matthew.garrett@nebula.com>, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>
+To: Greg KH <gregkh@linuxfoundation.org>
+Cc: "Wysocki, Rafael J" <rafael.j.wysocki@intel.com>, "Brown, Len" <len.brown@intel.com>, Corey Minyard <minyard@acm.org>, "Zhao, Yakui" <yakui.zhao@intel.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "stable@vger.kernel.org" <stable@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "openipmi-developer@lists.sourceforge.net" <openipmi-developer@lists.sourceforge.net>
 
-On Tuesday, July 23, 2013 11:46:29 AM Kamal Mostafa wrote:
-> On Mon, 2013-07-22 at 21:54 +0200, Rafael J. Wysocki wrote:
-> > On Monday, July 22, 2013 11:11:54 AM Linus Torvalds wrote:
-> > > On Mon, Jul 22, 2013 at 6:02 AM, Rafael J. Wysocki <rjw@sisk.pl> wrote:
-> > > >
-> > > > Linus, do you want me to send a pull request reverting 8c5bd7a and efaa14c?
-> > > 
-> > > Yes, but [...] I'd suggest doing the revert just in time for
-> > > rc3, but waiting until then to gather info about people who see
-> > > breakage.
-> > > 
-> > > Sound like a plan?
-> > 
-> > Yes, it does.
-> > 
-> > Rafael
+> From: linux-acpi-owner@vger.kernel.org
+> [mailto:linux-acpi-owner@vger.kernel.org] On Behalf Of Greg KH
+> Sent: Tuesday, July 23, 2013 10:54 PM
 > 
+> On Tue, Jul 23, 2013 at 04:08:59PM +0800, Lv Zheng wrote:
+> > This patch enhances sanity checks on message size to avoid potential
+> > buffer overflow.
+> >
+> > The kernel IPMI message size is IPMI_MAX_MSG_LENGTH(272 bytes) while
+> > the ACPI specification defined IPMI message size is 64 bytes.  The
+> > difference is not handled by the original codes.  This may cause crash
+> > in the response handling codes.
+> > This patch fixes this gap and also combines rx_data/tx_data to use
+> > single data/len pair since they need not be seperated.
+> >
+> > Signed-off-by: Lv Zheng <lv.zheng@intel.com>
+> > Reviewed-by: Huang Ying <ying.huang@intel.com>
+> > ---
+> >  drivers/acpi/acpi_ipmi.c |  100
+> > ++++++++++++++++++++++++++++------------------
+> >  1 file changed, 61 insertions(+), 39 deletions(-)
 > 
-> Hi Rafael-
+> <formletter>
 > 
-> For your reference...
+> This is not the correct way to submit patches for inclusion in the stable kernel
+> tree.  Please read Documentation/stable_kernel_rules.txt
+> for how to do this properly.
 > 
-> As James Hogan reported, those ACPI changes break backlight control on
-> the "Dell XPS13" Ivy Bridge models (the Sandy Bridge XPS13 model is not
-> affected).
+> </formletter>
 > 
-> I confirm that reverting 8c5bd7a and efaa14c fixes it again.
+> Same goes for the other patches you sent in this thread...
 
-Thanks!
+OK, I'll add prerequisites for each that want to be accepted by the stable queue and re-send them (PATCH 01-06).
 
-I'd like to collect some information on the systems having problems with those
-two commits (to see if they are similar somehow).
+Thanks and best regards
+-Lv
 
-It seems that one common symptom is that brightness cannot be controlled
-through function keys.  Is that correct for all of you?  If so, did you try
-any other way to control brightness, like a GUI-based?
-
-Also, can you all please send me (a) the output of dmidecode and (b) the
-contents of /proc/cpuinfo from your systems?
-
-Rafael
-
-
--- 
-I speak only for myself.
-Rafael J. Wysocki, Intel Open Source Technology Center.
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in the body
+> of a message to majordomo@vger.kernel.org More majordomo info at
+> http://vger.kernel.org/majordomo-info.html
