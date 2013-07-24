@@ -1,87 +1,102 @@
 From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: [PATCH] acpi, acpi_pci_irq_enable must return an error if ACPI cannot map an IRQ.
-Date: Thu, 25 Jul 2013 01:35 +0200
-Message-ID: <4699269.a9aFxdNOHD@vostro.rjw.lan>
-References: <1373900260-1599-1-git-send-email-prarit@redhat.com>
+Subject: Re: [PATCH 03/13] ACPI/IPMI: Fix race caused by the unprotected ACPI IPMI transfers
+Date: Thu, 25 Jul 2013 01:38:15 +0200
+Message-ID: <1520893.BbRK6T3F73@vostro.rjw.lan>
+References: <cover.1370652213.git.lv.zheng@intel.com> <cover.1374566394.git.lv.zheng@intel.com> <970a8a7108e4c95ce09e34eee03eb5731645729f.1374566394.git.lv.zheng@intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7Bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from hydra.sisk.pl ([212.160.235.94]:38662 "EHLO hydra.sisk.pl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752871Ab3GXXY4 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 24 Jul 2013 19:24:56 -0400
-In-Reply-To: <1373900260-1599-1-git-send-email-prarit@redhat.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Return-path: <stable-owner@vger.kernel.org>
+In-Reply-To: <970a8a7108e4c95ce09e34eee03eb5731645729f.1374566394.git.lv.zheng@intel.com>
+Sender: stable-owner@vger.kernel.org
+To: Lv Zheng <lv.zheng@intel.com>
+Cc: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Len Brown <len.brown@intel.com>, Corey Minyard <minyard@acm.org>, Zhao Yakui <yakui.zhao@intel.com>, linux-kernel@vger.kernel.org, stable@vger.kernel.org, linux-acpi@vger.kernel.org, openipmi-developer@lists.sourceforge.net
 List-Id: linux-acpi@vger.kernel.org
-To: Prarit Bhargava <prarit@redhat.com>
-Cc: linux-acpi@vger.kernel.org, Len Brown <lenb@kernel.org>, Bjorn Helgaas <bhelgaas@google.com>, Myron Stowe <mstowe@redhat.com>, linux-pci@vger.kernel.org
 
-On Monday, July 15, 2013 10:57:40 AM Prarit Bhargava wrote:
-> Driver probe's currently do the following
+On Tuesday, July 23, 2013 04:09:15 PM Lv Zheng wrote:
+> This patch fixes races caused by unprotected ACPI IPMI transfers.
 > 
-> 	pci_enable_device();
-> 	/* ... do some other init stuff, and eventually call ... */
-> 	request_irq();
+> We can see the following crashes may occur:
+> 1. There is no tx_msg_lock held for iterating tx_msg_list in
+>    ipmi_flush_tx_msg() while it is parellel unlinked on failure in
+>    acpi_ipmi_space_handler() under protection of tx_msg_lock.
+> 2. There is no lock held for freeing tx_msg in acpi_ipmi_space_handler()
+>    while it is parellel accessed in ipmi_flush_tx_msg() and
+>    ipmi_msg_handler().
 > 
-> After pci_enable_device() is called it is assumed that the device's irq
-> value (pci_dev->irq) has been appropriately set on success.  This value
-> is passed into the request_irq() call.
+> This patch enhances tx_msg_lock to protect all tx_msg accesses to solve
+> this issue.  Then tx_msg_lock is always held around complete() and tx_msg
+> accesses.
+> Calling smp_wmb() before setting msg_done flag so that messages completed
+> due to flushing will not be handled as 'done' messages while their contents
+> are not vaild.
 > 
-> In the case that ACPI is used to determine the irq value, it is possible
-> that the ACPI IRQ look up for a specific device fails and success is
-> returned by pci_enable_device().
+> Signed-off-by: Lv Zheng <lv.zheng@intel.com>
+> Cc: Zhao Yakui <yakui.zhao@intel.com>
+> Reviewed-by: Huang Ying <ying.huang@intel.com>
+> ---
+>  drivers/acpi/acpi_ipmi.c |   10 ++++++++--
+>  1 file changed, 8 insertions(+), 2 deletions(-)
 > 
-> The call sequence is:
-> 
-> pci_enable_device();
-> 	-> pci_enable_device_flags();
-> 		->do_pci_enable_device();
-> 			-> pcibios_enable_device() which, if the device
-> 			   does not use MSI calls
-> 			   -> pcibios_enable_irq() which maps to
-> 			      acpi_pci_irq_enable()
-> 				-> acpi_pci_irq_lookup()
-> 
-> If acpi_pci_irq_lookup() cannot map the device's IRQ value it returns NULL
-> as an error.  The error is returned to acpi_pci_irq_enable(), but is not
-> propagated further.  This can result in the driver returning success for
-> pci_enable_device() and the driver probe attempting to call request_irq()
-> with dev->irq = 0.
-> 
-> This patch modifies acpi_pci_irq_enable() to return an error in the case
-> that an entry is not found in the ACPI tables.
+> diff --git a/drivers/acpi/acpi_ipmi.c b/drivers/acpi/acpi_ipmi.c
+> index b37c189..527ee43 100644
+> --- a/drivers/acpi/acpi_ipmi.c
+> +++ b/drivers/acpi/acpi_ipmi.c
+> @@ -230,11 +230,14 @@ static void ipmi_flush_tx_msg(struct acpi_ipmi_device *ipmi)
+>  	struct acpi_ipmi_msg *tx_msg, *temp;
+>  	int count = HZ / 10;
+>  	struct pnp_dev *pnp_dev = ipmi->pnp_dev;
+> +	unsigned long flags;
+>  
+> +	spin_lock_irqsave(&ipmi->tx_msg_lock, flags);
+>  	list_for_each_entry_safe(tx_msg, temp, &ipmi->tx_msg_list, head) {
+>  		/* wake up the sleep thread on the Tx msg */
+>  		complete(&tx_msg->tx_complete);
+>  	}
+> +	spin_unlock_irqrestore(&ipmi->tx_msg_lock, flags);
+>  
+>  	/* wait for about 100ms to flush the tx message list */
+>  	while (count--) {
+> @@ -268,13 +271,12 @@ static void ipmi_msg_handler(struct ipmi_recv_msg *msg, void *user_msg_data)
+>  			break;
+>  		}
+>  	}
+> -	spin_unlock_irqrestore(&ipmi_device->tx_msg_lock, flags);
+>  
+>  	if (!msg_found) {
+>  		dev_warn(&pnp_dev->dev,
+>  			 "Unexpected response (msg id %ld) is returned.\n",
+>  			 msg->msgid);
+> -		goto out_msg;
+> +		goto out_lock;
+>  	}
+>  
+>  	/* copy the response data to Rx_data buffer */
+> @@ -286,10 +288,14 @@ static void ipmi_msg_handler(struct ipmi_recv_msg *msg, void *user_msg_data)
+>  	}
+>  	tx_msg->rx_len = msg->msg.data_len;
+>  	memcpy(tx_msg->data, msg->msg.data, tx_msg->rx_len);
+> +	/* tx_msg content must be valid before setting msg_done flag */
+> +	smp_wmb();
 
-Is there any known system on which this leads to observable misbehavior?
+That's suspicious.
 
-If so, what's that system?
+If you need the write barrier here, you'll most likely need a read barrier
+somewhere else.  Where's that?
+
+>  	tx_msg->msg_done = 1;
+>  
+>  out_comp:
+>  	complete(&tx_msg->tx_complete);
+> +out_lock:
+> +	spin_unlock_irqrestore(&ipmi_device->tx_msg_lock, flags);
+>  out_msg:
+>  	ipmi_free_recv_msg(msg);
+>  }
 
 Rafael
 
 
-> Signed-off-by: Prarit Bhargava <prarit@redhat.com>
-> Cc: Len Brown <lenb@kernel.org>
-> Cc: "Rafael J. Wysocki" <rjw@sisk.pl>
-> Cc: "Bjorn Helgaas" <bhelgaas@google.com>
-> Cc: "Myron Stowe" <mstowe@redhat.com>
-> Cc: linux-pci@vger.kernel.org
-> ---
->  drivers/acpi/pci_irq.c |    1 +
->  1 file changed, 1 insertion(+)
-> 
-> diff --git a/drivers/acpi/pci_irq.c b/drivers/acpi/pci_irq.c
-> index 41c5e1b..9681847 100644
-> --- a/drivers/acpi/pci_irq.c
-> +++ b/drivers/acpi/pci_irq.c
-> @@ -430,6 +430,7 @@ int acpi_pci_irq_enable(struct pci_dev *dev)
->  		} else {
->  			dev_warn(&dev->dev, "PCI INT %c: no GSI\n",
->  				 pin_name(pin));
-> +			return -ENOENT;
->  		}
->  
->  		return 0;
-> 
 -- 
 I speak only for myself.
 Rafael J. Wysocki, Intel Open Source Technology Center.
