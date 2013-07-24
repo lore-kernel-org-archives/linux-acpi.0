@@ -1,104 +1,75 @@
-From: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
-Subject: Re: [PATCH v3 1/3] acpi: Call acpi_os_prepare_sleep hook in reduced
- hardware sleep path
-Date: Wed, 24 Jul 2013 12:32:14 -0400
-Message-ID: <20130724163214.GB6308@phenom.dumpdata.com>
-References: <1372255575-29567-1-git-send-email-benjamin.guthro@citrix.com>
- <1372255575-29567-2-git-send-email-benjamin.guthro@citrix.com>
- <1AE640813FDE7649BE1B193DEA596E880241B363@SHSMSX101.ccr.corp.intel.com>
- <51D2BCB7.5040105@citrix.com>
- <1AE640813FDE7649BE1B193DEA596E88024352D2@SHSMSX101.ccr.corp.intel.com>
- <51EFC1FE.5000609@citrix.com>
- <94F2FBAB4432B54E8AACC7DFDE6C92E36FEA87FF@ORSMSX103.amr.corp.intel.com>
- <51EFD536.8070209@citrix.com>
- <94F2FBAB4432B54E8AACC7DFDE6C92E36FEA884D@ORSMSX103.amr.corp.intel.com>
- <51EFEF3E.8020001@citrix.com>
+From: "Naveen N. Rao" <naveen.n.rao@linux.vnet.ibm.com>
+Subject: Re: [PATCH] APEI/ERST: Fix error message formatting
+Date: Wed, 24 Jul 2013 22:43:47 +0530
+Message-ID: <20130724171347.GB29756@naverao1-tp.watson.ibm.com>
+References: <1374526866-6813-1-git-send-email-bp@alien8.de>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from aserp1040.oracle.com ([141.146.126.69]:32810 "EHLO
-	aserp1040.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750986Ab3GXQcf (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 24 Jul 2013 12:32:35 -0400
+Received: from e23smtp02.au.ibm.com ([202.81.31.144]:54831 "EHLO
+	e23smtp02.au.ibm.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751005Ab3GXROT (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 24 Jul 2013 13:14:19 -0400
+Received: from /spool/local
+	by e23smtp02.au.ibm.com with IBM ESMTP SMTP Gateway: Authorized Use Only! Violators will be prosecuted
+	for <linux-acpi@vger.kernel.org> from <naveen.n.rao@linux.vnet.ibm.com>;
+	Thu, 25 Jul 2013 03:03:50 +1000
 Content-Disposition: inline
-In-Reply-To: <51EFEF3E.8020001@citrix.com>
+In-Reply-To: <1374526866-6813-1-git-send-email-bp@alien8.de>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Ben Guthro <Benjamin.Guthro@citrix.com>
-Cc: "Moore, Robert" <robert.moore@intel.com>, "Zheng, Lv" <lv.zheng@intel.com>, Jan Beulich <jbeulich@suse.com>, "Rafael J . Wysocki" <rjw@sisk.pl>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "xen-devel@lists.xen.org" <xen-devel@lists.xen.org>
+To: Borislav Petkov <bp@alien8.de>
+Cc: LKML <linux-kernel@vger.kernel.org>, Borislav Petkov <bp@suse.de>, Anton Vorontsov <anton@enomsg.org>, Colin Cross <ccross@android.com>, Kees Cook <keescook@chromium.org>, Tony Luck <tony.luck@intel.com>, Len Brown <lenb@kernel.org>, "Rafael J. Wysocki" <rjw@sisk.pl>, linux-acpi@vger.kernel.org
 
-On Wed, Jul 24, 2013 at 11:14:06AM -0400, Ben Guthro wrote:
+On 2013/07/22 11:01PM, Borislav Petkov wrote:
+> From: Borislav Petkov <bp@suse.de>
 > 
+> [    5.525861] ERST: Can not request iomem region <0x        c7eff000-0x        c7f00000> for ERST.
 > 
-> On 07/24/2013 10:38 AM, Moore, Robert wrote:
-> > I haven't found a high-level description of "acpi_os_prepare_sleep", perhaps I missed it.
-> > 
-> > Can someone point me to the overall description of this change and why it is being considered?
+> This needs to have leading zeroes. Make it so.
 > 
-> Hi Bob,
+> Signed-off-by: Borislav Petkov <bp@suse.de>
+> Cc: Anton Vorontsov <anton@enomsg.org>
+> Cc: Colin Cross <ccross@android.com>
+> Cc: Kees Cook <keescook@chromium.org>
+> Cc: Tony Luck <tony.luck@intel.com>
+> Cc: Len Brown <lenb@kernel.org>
+> Cc: "Rafael J. Wysocki" <rjw@sisk.pl>
+> Cc: linux-acpi@vger.kernel.org
+> Cc: linux-kernel@vger.kernel.org
+> ---
+>  drivers/acpi/apei/erst.c | 2 +-
+>  1 file changed, 1 insertion(+), 1 deletion(-)
 > 
-> For this series, the v6 of this series does a decent job of what it is
-> trying to accomplish:
-> https://lkml.org/lkml/2013/7/1/205
+> diff --git a/drivers/acpi/apei/erst.c b/drivers/acpi/apei/erst.c
+> index 88d0b0f9f92b..1126afeb7e22 100644
+> --- a/drivers/acpi/apei/erst.c
+> +++ b/drivers/acpi/apei/erst.c
+> @@ -1168,7 +1168,7 @@ static int __init erst_init(void)
+>  	r = request_mem_region(erst_erange.base, erst_erange.size, "APEI ERST");
+>  	if (!r) {
+>  		pr_err(ERST_PFX
+> -		"Can not request iomem region <0x%16llx-0x%16llx> for ERST.\n",
+> +		"Can not request iomem region <0x%016llx-0x%016llx> for ERST.\n",
+>  		(unsigned long long)erst_erange.base,
+>  		(unsigned long long)erst_erange.base + erst_erange.size);
+>  		rc = -EIO;
+
+Acked-by: Naveen N. Rao <naveen.n.rao@linux.vnet.ibm.com>
+
+While looking at this, I noticed that we seem to be using varying field
+widths in our APEI code:
+- einj.c has two instances using %#010llx.
+- apei-base.c uses widths of 10 (4 bytes) and 6 (2 bytes).
+
+Not sure if these are intentional and those fields truly aren't 64-bit
+(as suggested by the usage of long long int).
+
+
+Regards,
+Naveen
+
+> -- 
+> 1.8.3
 > 
-> However, I recognize that this does not really describe *why*
-> acpi_os_prepare_sleep is necessary to begin with. For that, we need to
-> go back a little more.
-> 
-> The summary for the series that introduced it is a good description, of
-> the reasons it is necessary:
-> http://lkml.indiana.edu/hypermail/linux/kernel/1112.2/00450.html
-> 
-> In summary though - in the case of Xen (and I believe this is also true
-> in tboot) a value inappropriate for a VM (which dom0 is a special case
-> of) was being written to cr3, and the physical machine would never come
-> out of S3.
-> 
-> This mechanism gives an os specific hook to do something else down at
-> the lower levels, while still being able to take advantage of the large
-> amount of OS independent code in ACPICA.
-
-It might be also prudent to look at original 'hook' that was added by
-Intel in the Linux code to support TXT:
-
-
-commit 86886e55b273f565935491816c7c96b82469d4f8
-Author: Joseph Cihula <joseph.cihula@intel.com>
-Date:   Tue Jun 30 19:31:07 2009 -0700
-
-    x86, intel_txt: Intel TXT Sx shutdown support
-    
-    Support for graceful handling of sleep states (S3/S4/S5) after an Intel(R) TXT launch.
-    
-    Without this patch, attempting to place the system in one of the ACPI sleep
-    states (S3/S4/S5) will cause the TXT hardware to treat this as an attack and
-    will cause a system reset, with memory locked.  Not only may the subsequent
-    memory scrub take some time, but the platform will be unable to enter the
-    requested power state.
-    
-    This patch calls back into the tboot so that it may properly and securely clean
-    up system state and clear the secrets-in-memory flag, after which it will place
-    the system into the requested sleep state using ACPI information passed by the kernel.
-    
-     arch/x86/kernel/smpboot.c     |    2 ++
-     drivers/acpi/acpica/hwsleep.c |    3 +++
-     kernel/cpu.c                  |    7 ++++++-
-     3 files changed, 11 insertions(+), 1 deletion(-)
-    
-    Signed-off-by: Joseph Cihula <joseph.cihula@intel.com>
-    Signed-off-by: Shane Wang <shane.wang@intel.com>
-    Signed-off-by: H. Peter Anvin <hpa@zytor.com>
-
-I suspect that if tboot was used with a different OS (Solaris?) it would hit
-the same case and a similar hook would be needed.
-
-Said 'hook' (which was a call to tboot_sleep) was converted to be a more neutral
-'acpi_os_prepare_sleep' which tboot can use (and incidently Xen too).
-
-I think what Bob is saying that if said hook is neccessary (and I believe 
-it is - and Intel TXT maintainer thinks so too since he added it in the first place),
-then the right way of adding it is via the ACPICA tree.
-
-Should the discussion for this be moved there ? (https://acpica.org/community)
-and an generic 'os_prepare_sleep' patch added in git://github.com/acpica/acpica.git?
 
