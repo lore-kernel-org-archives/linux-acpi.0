@@ -1,112 +1,38 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: [PATCH 0/30] ACPI / hotplug / PCI: Major rework + Thunderbolt workarounds
-Date: Wed, 24 Jul 2013 22:02:35 +0200
-Message-ID: <1393554.usuhpOuYgm@vostro.rjw.lan>
-References: <26431283.HJCKsss0rt@vostro.rjw.lan> <6958813.eThhpoh5QO@vostro.rjw.lan> <CAErSpo6z9CqCyLFbXpuJMtHHjLRNbo=gx87W_0_7TCHbvwrCRw@mail.gmail.com>
+From: Linus Torvalds <torvalds@linux-foundation.org>
+Subject: Re: Linux 3.11-rc2 [backlight] [ASUS N56VZ]
+Date: Wed, 24 Jul 2013 13:39:35 -0700
+Message-ID: <CA+55aFzDgAcrzkkq06Qe9CBbBv6xKMYwPqtwv+ACryRSTRDOSQ@mail.gmail.com>
+References: <BLU0-SMTP125E791F01E26C3D60D7353A6680@phx.gbl>
+	<17420057.BAULu67LQ3@vostro.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from hydra.sisk.pl ([212.160.235.94]:38368 "EHLO hydra.sisk.pl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752775Ab3GXTwb (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 24 Jul 2013 15:52:31 -0400
-In-Reply-To: <CAErSpo6z9CqCyLFbXpuJMtHHjLRNbo=gx87W_0_7TCHbvwrCRw@mail.gmail.com>
+Received: from mail-ea0-f179.google.com ([209.85.215.179]:53767 "EHLO
+	mail-ea0-f179.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752155Ab3GXUjm (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 24 Jul 2013 16:39:42 -0400
+In-Reply-To: <17420057.BAULu67LQ3@vostro.rjw.lan>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Bjorn Helgaas <bhelgaas@google.com>
-Cc: Yinghai Lu <yinghai@kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>, Linux PCI <linux-pci@vger.kernel.org>, Jiang Liu <liuj97@gmail.com>, Mika Westerberg <mika.westerberg@linux.intel.com>, "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
+To: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: =?UTF-8?B?KiBTQU3DjSAq?= <miaousami@hotmail.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>, Matthew Garrett <mjg59@srcf.ucam.org>, Aaron Lu <aaron.lu@intel.com>, Igor Gnatenko <i.gnatenko.brain@gmail.com>, Daniel Vetter <daniel.vetter@ffwll.ch>, intel-gfx <intel-gfx@lists.freedesktop.org>
 
-On Wednesday, July 24, 2013 10:06:01 AM Bjorn Helgaas wrote:
-> On Wed, Jul 24, 2013 at 6:58 AM, Rafael J. Wysocki <rjw@sisk.pl> wrote:
-> > On Tuesday, July 23, 2013 07:20:53 PM Yinghai Lu wrote:
-> >> On Tue, Jul 23, 2013 at 2:39 PM, Rafael J. Wysocki <rjw@sisk.pl> wrote:
-> >
-> > [...]
-> >
-> >> [  102.631369] pci_host_bridge pci0000:00: freeing pci_host_bridge info
-> >
-> > By the way this looks fishy:
-> >
-> >> [  102.633091] ACPI: Device does not support D3cold
-> 
-> This and other printks in that function don't give any clue what
-> device is involved, even though we have an acpi_device pointer.  It'd
-> be nice to fix that, too.
+On Wed, Jul 24, 2013 at 12:39 PM, Rafael J. Wysocki <rjw@sisk.pl> wrote:
+>
+> Well, there seems to be a number of people who'll be equally unhappy if I don't
+> do that.  Unfortunately for you, things work for them without that patch.
 
-As it turns out, I have that patch ready as well.  Appended for completeness.
+So I think we have to revert the behavior back, but I wonder if we
+could keep the logic and have a i915 kernel command line option to
+enable it.
 
-Thanks,
-Rafael
+We did that for a long time with "drm.modeset" and the
+"i915.enable_rc6" mess. We still have the "i915.invert_brightness"
+thing, although I don't know who actually uses it. But that option is
+itself an indication that the i915 driver still has some backlight
+issues.
 
+But if that kind of "revert behavior" isn't easy, we need to just
+revert the patches entirely.
 
----
-From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
-Subject: ACPI / PM: Make messages in acpi_device_set_power() print device name
-
-Modify acpi_device_set_power() so that diagnostic messages printed by
-it to the kernel log always contain the name of the device to make it
-possible to identify the device if need be.  Also replace
-printk(KERN_WARNING ) with dev_warn() everywhere in that function.
-
-Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
----
- drivers/acpi/device_pm.c |   22 ++++++++++------------
- 1 file changed, 10 insertions(+), 12 deletions(-)
-
-Index: linux-pm/drivers/acpi/device_pm.c
-===================================================================
---- linux-pm.orig/drivers/acpi/device_pm.c
-+++ linux-pm/drivers/acpi/device_pm.c
-@@ -166,20 +166,20 @@ int acpi_device_set_power(struct acpi_de
- 	/* Make sure this is a valid target state */
- 
- 	if (state == device->power.state) {
--		ACPI_DEBUG_PRINT((ACPI_DB_INFO, "Device is already at %s\n",
-+		ACPI_DEBUG_PRINT((ACPI_DB_INFO, "Device [%s] already in %s\n",
-+				  device->pnp.bus_id,
- 				  acpi_power_state_string(state)));
- 		return 0;
- 	}
- 
- 	if (!device->power.states[state].flags.valid) {
--		printk(KERN_WARNING PREFIX "Device does not support %s\n",
--		       acpi_power_state_string(state));
-+		dev_warn(&device->dev, "Power state %s not supported\n",
-+			 acpi_power_state_string(state));
- 		return -ENODEV;
- 	}
- 	if (device->parent && (state < device->parent->power.state)) {
--		printk(KERN_WARNING PREFIX
--			      "Cannot set device to a higher-powered"
--			      " state than parent\n");
-+		dev_warn(&device->dev, "Cannot transition to a higher-powered "
-+			 "state than parent\n");
- 		return -ENODEV;
- 	}
- 
-@@ -192,8 +192,8 @@ int acpi_device_set_power(struct acpi_de
- 
- 	if (state < device->power.state && state != ACPI_STATE_D0
- 	    && device->power.state >= ACPI_STATE_D3_HOT) {
--		printk(KERN_WARNING PREFIX
--			"Cannot transition to non-D0 state from D3\n");
-+		dev_warn(&device->dev,
-+			 "Cannot transition to non-D0 state from D3\n");
- 		return -ENODEV;
- 	}
- 
-@@ -220,10 +220,8 @@ int acpi_device_set_power(struct acpi_de
- 
-  end:
- 	if (result) {
--		printk(KERN_WARNING PREFIX
--			      "Device [%s] failed to transition to %s\n",
--			      device->pnp.bus_id,
--			      acpi_power_state_string(state));
-+		dev_warn(&device->dev, "Failed to change power state to %s\n",
-+			 acpi_power_state_string(state));
- 	} else {
- 		device->power.state = state;
- 		ACPI_DEBUG_PRINT((ACPI_DB_INFO,
-
+               Linus
