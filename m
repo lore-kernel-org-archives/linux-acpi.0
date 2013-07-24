@@ -1,172 +1,65 @@
-From: Cody P Schafer <cody@linux.vnet.ibm.com>
-Subject: Re: [PATCH 13/21] x86, acpi: Try to find SRAT in firmware earlier.
-Date: Tue, 23 Jul 2013 16:26:59 -0700
-Message-ID: <51EF1143.1020503@linux.vnet.ibm.com>
-References: <1374220774-29974-1-git-send-email-tangchen@cn.fujitsu.com> <1374220774-29974-14-git-send-email-tangchen@cn.fujitsu.com>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: Re: Linux 3.11-rc2 (acpi backlight)
+Date: Wed, 24 Jul 2013 02:05:48 +0200
+Message-ID: <1657635.t6GA9ja9Ss@vostro.rjw.lan>
+References: <CA+55aFy330bSRjK5HT1n0wXioPykL3RquHXyBPjm5GpTz_Y=DQ@mail.gmail.com> <9012759.Alzqtdvh5b@vostro.rjw.lan> <1374605189.31029.25.camel@fourier>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <owner-linux-mm@kvack.org>
-In-Reply-To: <1374220774-29974-14-git-send-email-tangchen@cn.fujitsu.com>
-Sender: owner-linux-mm@kvack.org
-To: Tang Chen <tangchen@cn.fujitsu.com>
-Cc: tglx@linutronix.de, mingo@elte.hu, hpa@zytor.com, akpm@linux-foundation.org, tj@kernel.org, trenn@suse.de, yinghai@kernel.org, jiang.liu@huawei.com, wency@cn.fujitsu.com, laijs@cn.fujitsu.com, isimatu.yasuaki@jp.fujitsu.com, izumi.taku@jp.fujitsu.com, mgorman@suse.de, minchan@kernel.org, mina86@mina86.com, gong.chen@linux.intel.com, vasilis.liaskovitis@profitbricks.com, lwoodman@redhat.com, riel@redhat.com, jweiner@redhat.com, prarit@redhat.com, zhangyanfei@cn.fujitsu.com, yanghy@cn.fujitsu.com, x86@kernel.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-mm@kvack.org, linux-acpi@vger.kernel.org
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7Bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from hydra.sisk.pl ([212.160.235.94]:36637 "EHLO hydra.sisk.pl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S934085Ab3GWXzr (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 23 Jul 2013 19:55:47 -0400
+In-Reply-To: <1374605189.31029.25.camel@fourier>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Kamal Mostafa <kamal@canonical.com>, James Hogan <james@albanarts.com>, Steven Newbury <steve@snewbury.org.uk>, Martin Steigerwald <Martin@lichtvoll.de>, =?ISO-8859-1?Q?J=F6rg?= Otte <jrg.otte@gmail.com>
+Cc: Linus Torvalds <torvalds@linux-foundation.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Matthew Garrett <matthew.garrett@nebula.com>, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>
 
-On 07/19/2013 12:59 AM, Tang Chen wrote:
-> This patch introduce early_acpi_firmware_srat() to find the
-> phys addr of SRAT provided by firmware. And call it in
-> reserve_hotpluggable_memory().
->
-> Since we have initialized acpi_gbl_root_table_list earlier,
-> and store all the tables' phys addrs and signatures in it,
-> it is easy to find the SRAT.
->
-> Signed-off-by: Tang Chen <tangchen@cn.fujitsu.com>
-> ---
->   drivers/acpi/acpica/tbxface.c |   34 ++++++++++++++++++++++++++++++++++
->   drivers/acpi/osl.c            |   24 ++++++++++++++++++++++++
->   include/acpi/acpixf.h         |    4 ++++
->   include/linux/acpi.h          |    4 ++++
->   mm/memory_hotplug.c           |   10 +++++++---
->   5 files changed, 73 insertions(+), 3 deletions(-)
->
-> diff --git a/drivers/acpi/acpica/tbxface.c b/drivers/acpi/acpica/tbxface.c
-> index ad11162..95f8d1b 100644
-> --- a/drivers/acpi/acpica/tbxface.c
-> +++ b/drivers/acpi/acpica/tbxface.c
-> @@ -181,6 +181,40 @@ acpi_status acpi_reallocate_root_table(void)
->   	return_ACPI_STATUS(status);
->   }
->
-> +/*
-> + * acpi_get_table_desc - Get the acpi table descriptor of a specific table.
-> + * @signature: The signature of the table to be found.
-> + * @out_desc: The out returned descriptor.
+On Tuesday, July 23, 2013 11:46:29 AM Kamal Mostafa wrote:
+> On Mon, 2013-07-22 at 21:54 +0200, Rafael J. Wysocki wrote:
+> > On Monday, July 22, 2013 11:11:54 AM Linus Torvalds wrote:
+> > > On Mon, Jul 22, 2013 at 6:02 AM, Rafael J. Wysocki <rjw@sisk.pl> wrote:
+> > > >
+> > > > Linus, do you want me to send a pull request reverting 8c5bd7a and efaa14c?
+> > > 
+> > > Yes, but [...] I'd suggest doing the revert just in time for
+> > > rc3, but waiting until then to gather info about people who see
+> > > breakage.
+> > > 
+> > > Sound like a plan?
+> > 
+> > Yes, it does.
+> > 
+> > Rafael
+> 
+> 
+> Hi Rafael-
+> 
+> For your reference...
+> 
+> As James Hogan reported, those ACPI changes break backlight control on
+> the "Dell XPS13" Ivy Bridge models (the Sandy Bridge XPS13 model is not
+> affected).
+> 
+> I confirm that reverting 8c5bd7a and efaa14c fixes it again.
 
-The "@out_desc:" line looks funky. Also, I believe changes to this file 
-need to go in via acpica & probably conform to their commenting standards?
+Thanks!
 
-> + *
-> + * This function iterates acpi_gbl_root_table_list and find the specified
-> + * table's descriptor.
-> + *
-> + * NOTE: The caller has the responsibility to allocate memory for @out_desc.
-> + *
-> + * Return AE_OK on success, AE_NOT_FOUND if the table is not found.
-> + */
-> +acpi_status acpi_get_table_desc(char *signature,
-> +				struct acpi_table_desc *out_desc)
-> +{
-> +	int pos;
-> +
-> +	for (pos = 0;
-> +	     pos < acpi_gbl_root_table_list.current_table_count;
-> +	     pos++) {
-> +		if (!ACPI_COMPARE_NAME
-> +		    (&(acpi_gbl_root_table_list.tables[pos].signature),
-> +		    signature))
-> +			continue;
-> +
-> +		memcpy(out_desc, &acpi_gbl_root_table_list.tables[pos],
-> +		       sizeof(struct acpi_table_desc));
-> +
-> +		return_ACPI_STATUS(AE_OK);
-> +	}
-> +
-> +	return_ACPI_STATUS(AE_NOT_FOUND);
-> +}
-> +
->   /*******************************************************************************
->    *
->    * FUNCTION:    acpi_get_table_header
-> diff --git a/drivers/acpi/osl.c b/drivers/acpi/osl.c
-> index fa6b973..a2e4596 100644
-> --- a/drivers/acpi/osl.c
-> +++ b/drivers/acpi/osl.c
-> @@ -53,6 +53,7 @@
->   #include <acpi/acpi.h>
->   #include <acpi/acpi_bus.h>
->   #include <acpi/processor.h>
-> +#include <acpi/acpixf.h>
->
->   #define _COMPONENT		ACPI_OS_SERVICES
->   ACPI_MODULE_NAME("osl");
-> @@ -750,6 +751,29 @@ void __init acpi_initrd_override(void *data, size_t size)
->   }
->   #endif /* CONFIG_ACPI_INITRD_TABLE_OVERRIDE */
->
-> +#ifdef CONFIG_ACPI_NUMA
-> +#include <asm/numa.h>
-> +#include <linux/memblock.h>
-> +
-> +/*
-> + * early_acpi_firmware_srat - Get the phys addr of SRAT provide by firmware.
+I'd like to collect some information on the systems having problems with those
+two commits (to see if they are similar somehow).
 
-s/provide/provided/
+It seems that one common symptom is that brightness cannot be controlled
+through function keys.  Is that correct for all of you?  If so, did you try
+any other way to control brightness, like a GUI-based?
 
-> + *
-> + * This function iterate acpi_gbl_root_table_list, find SRAT and return the
+Also, can you all please send me (a) the output of dmidecode and (b) the
+contents of /proc/cpuinfo from your systems?
 
-Perhaps: "Iterate over acpi_gbl_root_table_list to find SRAT then return 
-its phys addr"
-
-Though I wonder if this comment is even needed, as the iteration is done 
-in acpi_get_table_desc() (added above).
-
-> + * phys addr of SRAT.
-> + *
-> + * Return the phys addr of SRAT, or 0 on error.
+Rafael
 
 
-
-> + */
-> +phys_addr_t __init early_acpi_firmware_srat()
-> +{
-> +	struct acpi_table_desc table_desc;
-> +
-> +	if (acpi_get_table_desc(ACPI_SIG_SRAT, &table_desc))
-> +		return 0;
-> +
-> +	return table_desc.address;
-> +}
-> +#endif	/* CONFIG_ACPI_NUMA */
-> +
->   static void acpi_table_taint(struct acpi_table_header *table)
->   {
->   	pr_warn(PREFIX
-
-[...]
-
-> diff --git a/mm/memory_hotplug.c b/mm/memory_hotplug.c
-> index 066873e..15b11d3 100644
-> --- a/mm/memory_hotplug.c
-> +++ b/mm/memory_hotplug.c
-> @@ -106,10 +106,14 @@ void __init reserve_hotpluggable_memory(void)
->   {
->   	phys_addr_t srat_paddr;
->
-> -	/* Try to find if SRAT is overrided */
-> +	/* Try to find out if SRAT is overrided */
->   	srat_paddr = early_acpi_override_srat();
-> -	if (!srat_paddr)
-> -		return;
-> +	if (!srat_paddr) {
-> +		/* Try to find SRAT from firmware if it wasn't overrided */
-
-s/overrided/overridden/
-
-> +		srat_paddr = early_acpi_firmware_srat();
-> +		if (!srat_paddr)
-> +			return;
-> +	}
->
->   	/* Will reserve hotpluggable memory here */
->   }
->
-
---
-To unsubscribe, send a message with 'unsubscribe linux-mm' in
-the body to majordomo@kvack.org.  For more info on Linux MM,
-see: http://www.linux-mm.org/ .
-Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
+-- 
+I speak only for myself.
+Rafael J. Wysocki, Intel Open Source Technology Center.
