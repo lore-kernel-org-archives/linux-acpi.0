@@ -1,75 +1,42 @@
-From: "Naveen N. Rao" <naveen.n.rao@linux.vnet.ibm.com>
+From: Joe Perches <joe@perches.com>
 Subject: Re: [PATCH] APEI/ERST: Fix error message formatting
-Date: Wed, 24 Jul 2013 22:43:47 +0530
-Message-ID: <20130724171347.GB29756@naverao1-tp.watson.ibm.com>
+Date: Wed, 24 Jul 2013 10:23:18 -0700
+Message-ID: <1374686598.18818.18.camel@joe-AO722>
 References: <1374526866-6813-1-git-send-email-bp@alien8.de>
+	 <20130724171347.GB29756@naverao1-tp.watson.ibm.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="ISO-8859-1"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from e23smtp02.au.ibm.com ([202.81.31.144]:54831 "EHLO
-	e23smtp02.au.ibm.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751005Ab3GXROT (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 24 Jul 2013 13:14:19 -0400
-Received: from /spool/local
-	by e23smtp02.au.ibm.com with IBM ESMTP SMTP Gateway: Authorized Use Only! Violators will be prosecuted
-	for <linux-acpi@vger.kernel.org> from <naveen.n.rao@linux.vnet.ibm.com>;
-	Thu, 25 Jul 2013 03:03:50 +1000
-Content-Disposition: inline
-In-Reply-To: <1374526866-6813-1-git-send-email-bp@alien8.de>
+Received: from perches-mx.perches.com ([206.117.179.246]:54721 "EHLO
+	labridge.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1751585Ab3GXRXT (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 24 Jul 2013 13:23:19 -0400
+In-Reply-To: <20130724171347.GB29756@naverao1-tp.watson.ibm.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Borislav Petkov <bp@alien8.de>
-Cc: LKML <linux-kernel@vger.kernel.org>, Borislav Petkov <bp@suse.de>, Anton Vorontsov <anton@enomsg.org>, Colin Cross <ccross@android.com>, Kees Cook <keescook@chromium.org>, Tony Luck <tony.luck@intel.com>, Len Brown <lenb@kernel.org>, "Rafael J. Wysocki" <rjw@sisk.pl>, linux-acpi@vger.kernel.org
+To: "Naveen N. Rao" <naveen.n.rao@linux.vnet.ibm.com>
+Cc: Borislav Petkov <bp@alien8.de>, LKML <linux-kernel@vger.kernel.org>, Borislav Petkov <bp@suse.de>, Anton Vorontsov <anton@enomsg.org>, Colin Cross <ccross@android.com>, Kees Cook <keescook@chromium.org>, Tony Luck <tony.luck@intel.com>, Len Brown <lenb@kernel.org>, "Rafael J. Wysocki" <rjw@sisk.pl>, linux-acpi@vger.kernel.org
 
-On 2013/07/22 11:01PM, Borislav Petkov wrote:
-> From: Borislav Petkov <bp@suse.de>
+On Wed, 2013-07-24 at 22:43 +0530, Naveen N. Rao wrote:
+> On 2013/07/22 11:01PM, Borislav Petkov wrote:
+> > From: Borislav Petkov <bp@suse.de>
+> > 
+> > [    5.525861] ERST: Can not request iomem region <0x        c7eff000-0x        c7f00000> for ERST.
+> > 
+> > This needs to have leading zeroes. Make it so.
+
+Why does it need leading zeros?
+
+> While looking at this, I noticed that we seem to be using varying field
+> widths in our APEI code:
+> - einj.c has two instances using %#010llx.
+> - apei-base.c uses widths of 10 (4 bytes) and 6 (2 bytes).
 > 
-> [    5.525861] ERST: Can not request iomem region <0x        c7eff000-0x        c7f00000> for ERST.
-> 
-> This needs to have leading zeroes. Make it so.
-> 
-> Signed-off-by: Borislav Petkov <bp@suse.de>
-> Cc: Anton Vorontsov <anton@enomsg.org>
-> Cc: Colin Cross <ccross@android.com>
-> Cc: Kees Cook <keescook@chromium.org>
-> Cc: Tony Luck <tony.luck@intel.com>
-> Cc: Len Brown <lenb@kernel.org>
-> Cc: "Rafael J. Wysocki" <rjw@sisk.pl>
-> Cc: linux-acpi@vger.kernel.org
-> Cc: linux-kernel@vger.kernel.org
-> ---
->  drivers/acpi/apei/erst.c | 2 +-
->  1 file changed, 1 insertion(+), 1 deletion(-)
-> 
-> diff --git a/drivers/acpi/apei/erst.c b/drivers/acpi/apei/erst.c
-> index 88d0b0f9f92b..1126afeb7e22 100644
-> --- a/drivers/acpi/apei/erst.c
-> +++ b/drivers/acpi/apei/erst.c
-> @@ -1168,7 +1168,7 @@ static int __init erst_init(void)
->  	r = request_mem_region(erst_erange.base, erst_erange.size, "APEI ERST");
->  	if (!r) {
->  		pr_err(ERST_PFX
-> -		"Can not request iomem region <0x%16llx-0x%16llx> for ERST.\n",
-> +		"Can not request iomem region <0x%016llx-0x%016llx> for ERST.\n",
->  		(unsigned long long)erst_erange.base,
->  		(unsigned long long)erst_erange.base + erst_erange.size);
->  		rc = -EIO;
+> Not sure if these are intentional and those fields truly aren't 64-bit
+> (as suggested by the usage of long long int).
 
-Acked-by: Naveen N. Rao <naveen.n.rao@linux.vnet.ibm.com>
+I suggest using "0x%llx" everywhere unless there's a
+compelling reason like columnar alignment for them.
 
-While looking at this, I noticed that we seem to be using varying field
-widths in our APEI code:
-- einj.c has two instances using %#010llx.
-- apei-base.c uses widths of 10 (4 bytes) and 6 (2 bytes).
-
-Not sure if these are intentional and those fields truly aren't 64-bit
-(as suggested by the usage of long long int).
-
-
-Regards,
-Naveen
-
-> -- 
-> 1.8.3
-> 
 
