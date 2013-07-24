@@ -1,119 +1,89 @@
 From: "Rafael J. Wysocki" <rjw@sisk.pl>
 Subject: Re: [PATCH 0/30] ACPI / hotplug / PCI: Major rework + Thunderbolt workarounds
-Date: Wed, 24 Jul 2013 14:22:50 +0200
-Message-ID: <3731352.ObxOHG6eQe@vostro.rjw.lan>
+Date: Wed, 24 Jul 2013 14:58:38 +0200
+Message-ID: <6958813.eThhpoh5QO@vostro.rjw.lan>
 References: <26431283.HJCKsss0rt@vostro.rjw.lan> <3215120.cRBBS5jciE@vostro.rjw.lan> <CAE9FiQURY5WFFJekPHV_s0HPi8uhKzSDOLSXHAkyLPf1=i8oAw@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7Bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from hydra.sisk.pl ([212.160.235.94]:37650 "EHLO hydra.sisk.pl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750909Ab3GXMMr (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 24 Jul 2013 08:12:47 -0400
+Return-path: <linux-pci-owner@vger.kernel.org>
 In-Reply-To: <CAE9FiQURY5WFFJekPHV_s0HPi8uhKzSDOLSXHAkyLPf1=i8oAw@mail.gmail.com>
-Sender: linux-acpi-owner@vger.kernel.org
-List-Id: linux-acpi@vger.kernel.org
+Sender: linux-pci-owner@vger.kernel.org
 To: Yinghai Lu <yinghai@kernel.org>
 Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Bjorn Helgaas <bhelgaas@google.com>, LKML <linux-kernel@vger.kernel.org>, Linux PCI <linux-pci@vger.kernel.org>, Jiang Liu <liuj97@gmail.com>, Mika Westerberg <mika.westerberg@linux.intel.com>, "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
+List-Id: linux-acpi@vger.kernel.org
 
 On Tuesday, July 23, 2013 07:20:53 PM Yinghai Lu wrote:
 > On Tue, Jul 23, 2013 at 2:39 PM, Rafael J. Wysocki <rjw@sisk.pl> wrote:
-> >
-> > Ugh, stupid bug, sorry about it.  We try to unregister something that may have
-> > not been registered.
-> >
-> > Can you please check if the appended patch helps (on top of
-> > linux-pm.git/linux-next)?
-> >
-> > Rafael
-> >
-> >
-> > ---
-> >  drivers/pci/hotplug/acpiphp_glue.c |    4 +++-
-> >  1 file changed, 3 insertions(+), 1 deletion(-)
-> >
-> > Index: linux-pm/drivers/pci/hotplug/acpiphp_glue.c
-> > ===================================================================
-> > --- linux-pm.orig/drivers/pci/hotplug/acpiphp_glue.c
-> > +++ linux-pm/drivers/pci/hotplug/acpiphp_glue.c
-> > @@ -340,6 +340,7 @@ static acpi_status register_slot(acpi_ha
-> >
-> >                 retval = acpiphp_register_hotplug_slot(slot, sun);
-> >                 if (retval) {
-> > +                       slot->slot = NULL;
-> >                         bridge->nr_slots--;
-> >                         if (retval == -EBUSY)
-> >                                 warn("Slot %llu already registered by another "
-> > @@ -429,7 +430,8 @@ static void cleanup_bridge(struct acpiph
-> >                                         err("failed to remove notify handler\n");
-> >                         }
-> >                 }
-> > -               acpiphp_unregister_hotplug_slot(slot);
-> > +               if (slot->slot)
-> > +                       acpiphp_unregister_hotplug_slot(slot);
-> >         }
-> >
-> >         mutex_lock(&bridge_mutex);
-> >
-> 
-> yes, that fixes the problem. Thanks
 
-Great, thanks for testing!
+[...]
 
-I'm adding this to the series (after commit 7342798):
+> [  102.631369] pci_host_bridge pci0000:00: freeing pci_host_bridge info
+
+By the way this looks fishy:
+
+> [  102.633091] ACPI: Device does not support D3cold
+> [  102.633915] ACPI: Device does not support D3cold
+> [  102.635221] ACPI: Device does not support D3cold
+> [  102.636103] ACPI: Device does not support D3cold
+> [  102.636902] ACPI: Device does not support D3cold
+> [  102.637685] ACPI: Device does not support D3cold
+> [  102.638467] ACPI: Device does not support D3cold
+> [  102.639631] ACPI: Device does not support D3cold
+> [  102.640472] ACPI: Device does not support D3cold
+> [  102.641310] ACPI: Device does not support D3cold
+> [  102.642105] ACPI: Device does not support D3cold
+> [  102.642928] ACPI: Device does not support D3cold
+> [  102.643725] ACPI: Device does not support D3cold
+> [  102.644544] ACPI: Device does not support D3cold
+> [  102.645344] ACPI: Device does not support D3cold
+> [  102.646126] ACPI: Device does not support D3cold
+> [  102.646902] ACPI: Device does not support D3cold
+> [  102.647677] ACPI: Device does not support D3cold
+> [  102.648485] ACPI: Device does not support D3cold
+> [  102.649269] ACPI: Device does not support D3cold
+> [  102.650065] ACPI: Device does not support D3cold
+> [  102.650822] ACPI: Device does not support D3cold
+> [  102.652483] ACPI: Device does not support D3cold
+> [  102.654157] ACPI: Device does not support D3cold
+> [  102.655803] ACPI: Device does not support D3cold
+> [  102.657419] ACPI: Device does not support D3cold
+> [  102.658528] ACPI: Device does not support D3cold
+> [  102.659255] ACPI: Device does not support D3cold
+> [  102.659973] ACPI: Device does not support D3cold
+> [  102.661807] ACPI: Device does not support D3cold
+> [  102.661925] ACPI: Device does not support D3cold
+> [  102.662047] ACPI: Device does not support D3cold
+> [  102.662148] ACPI: Device does not support D3cold
+> [  102.662258] ACPI: Device does not support D3cold
+> [  102.662374] ACPI: Device does not support D3cold
+> [  102.662486] ACPI: Device does not support D3cold
+> [  102.662597] ACPI: Device does not support D3cold
+> [  102.662711] ACPI: Device does not support D3cold
+> [  102.662814] ACPI: Device does not support D3cold
+> [  102.662918] ACPI: Device does not support D3cold
+> [  102.663019] ACPI: Device does not support D3cold
+
+Can you please check if it goes away with the patch below applied?
+
+> [  102.663039] ACPI: \_SB_.PCI0: No _EJ0 support for device
+
 
 ---
-From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
-Subject: ACPI / hotplug / PCI: Fix NULL pointer dereference in cleanup_bridge()
+ drivers/acpi/device_pm.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-After commit bbd34fc (ACPI / hotplug / PCI: Register all devices
-under the given bridge) register_slot() is called for all PCI
-devices under a given bridge that have corresponding objects in
-the ACPI namespace, but it calls acpiphp_register_hotplug_slot()
-only for devices satisfying specific criteria.  Still,
-cleanup_bridge() calls acpiphp_unregister_hotplug_slot() for all
-objects created by register_slot(), although it should only call it
-for the ones that acpiphp_register_hotplug_slot() has been called
-for (successfully).  This causes a NULL pointer to be dereferenced
-by the acpiphp_unregister_hotplug_slot() executed by cleanup_bridge()
-if the object it is called for has not been passed to
-acpiphp_register_hotplug_slot().
-
-To fix this problem, check if the 'slot' field of the object passed
-to acpiphp_unregister_hotplug_slot() in cleanup_bridge() is not NULL,
-which only is the case if acpiphp_register_hotplug_slot() has been
-executed for that object.  In addition to that, make register_slot()
-reset the 'slot' field to NULL if acpiphp_register_hotplug_slot() has
-failed for the given object to prevent stale pointers from being
-used by acpiphp_unregister_hotplug_slot().
-
-Reported-and-tested-by: Yinghai Lu <yinghai@kernel.org>
-Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
----
- drivers/pci/hotplug/acpiphp_glue.c |    4 +++-
- 1 file changed, 3 insertions(+), 1 deletion(-)
-
-Index: linux-pm/drivers/pci/hotplug/acpiphp_glue.c
+Index: linux-pm/drivers/acpi/device_pm.c
 ===================================================================
---- linux-pm.orig/drivers/pci/hotplug/acpiphp_glue.c
-+++ linux-pm/drivers/pci/hotplug/acpiphp_glue.c
-@@ -340,6 +340,7 @@ static acpi_status register_slot(acpi_ha
+--- linux-pm.orig/drivers/acpi/device_pm.c
++++ linux-pm/drivers/acpi/device_pm.c
+@@ -159,7 +159,8 @@ int acpi_device_set_power(struct acpi_de
+ 	int result = 0;
+ 	bool cut_power = false;
  
- 		retval = acpiphp_register_hotplug_slot(slot, sun);
- 		if (retval) {
-+			slot->slot = NULL;
- 			bridge->nr_slots--;
- 			if (retval == -EBUSY)
- 				warn("Slot %llu already registered by another "
-@@ -429,7 +430,8 @@ static void cleanup_bridge(struct acpiph
- 					err("failed to remove notify handler\n");
- 			}
- 		}
--		acpiphp_unregister_hotplug_slot(slot);
-+		if (slot->slot)
-+			acpiphp_unregister_hotplug_slot(slot);
- 	}
+-	if (!device || (state < ACPI_STATE_D0) || (state > ACPI_STATE_D3_COLD))
++	if (!device || !device->flags.power_manageable
++	    || (state < ACPI_STATE_D0) || (state > ACPI_STATE_D3_COLD))
+ 		return -EINVAL;
  
- 	mutex_lock(&bridge_mutex);
-
+ 	/* Make sure this is a valid target state */
