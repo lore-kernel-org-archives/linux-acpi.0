@@ -1,43 +1,36 @@
-From: Tejun Heo <tj@kernel.org>
-Subject: Re: [PATCH 11/21] x86: get pg_data_t's memory from other node
-Date: Wed, 24 Jul 2013 12:03:42 -0400
-Message-ID: <20130724160342.GC20377@mtj.dyndns.org>
-References: <1374220774-29974-1-git-send-email-tangchen@cn.fujitsu.com>
- <1374220774-29974-12-git-send-email-tangchen@cn.fujitsu.com>
- <20130723200924.GP21100@mtj.dyndns.org>
- <51EF4F95.1050308@cn.fujitsu.com>
+From: Bjorn Helgaas <bhelgaas@google.com>
+Subject: Re: [PATCH 0/30] ACPI / hotplug / PCI: Major rework + Thunderbolt workarounds
+Date: Wed, 24 Jul 2013 10:06:01 -0600
+Message-ID: <CAErSpo6z9CqCyLFbXpuJMtHHjLRNbo=gx87W_0_7TCHbvwrCRw@mail.gmail.com>
+References: <26431283.HJCKsss0rt@vostro.rjw.lan> <3215120.cRBBS5jciE@vostro.rjw.lan>
+ <CAE9FiQURY5WFFJekPHV_s0HPi8uhKzSDOLSXHAkyLPf1=i8oAw@mail.gmail.com> <6958813.eThhpoh5QO@vostro.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <owner-linux-mm@kvack.org>
-Content-Disposition: inline
-In-Reply-To: <51EF4F95.1050308@cn.fujitsu.com>
-Sender: owner-linux-mm@kvack.org
-To: Tang Chen <tangchen@cn.fujitsu.com>
-Cc: tglx@linutronix.de, mingo@elte.hu, hpa@zytor.com, akpm@linux-foundation.org, trenn@suse.de, yinghai@kernel.org, jiang.liu@huawei.com, wency@cn.fujitsu.com, laijs@cn.fujitsu.com, isimatu.yasuaki@jp.fujitsu.com, izumi.taku@jp.fujitsu.com, mgorman@suse.de, minchan@kernel.org, mina86@mina86.com, gong.chen@linux.intel.com, vasilis.liaskovitis@profitbricks.com, lwoodman@redhat.com, riel@redhat.com, jweiner@redhat.com, prarit@redhat.com, zhangyanfei@cn.fujitsu.com, yanghy@cn.fujitsu.com, x86@kernel.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-mm@kvack.org, linux-acpi@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-ob0-f173.google.com ([209.85.214.173]:41332 "EHLO
+	mail-ob0-f173.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752090Ab3GXQGX (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 24 Jul 2013 12:06:23 -0400
+Received: by mail-ob0-f173.google.com with SMTP id er7so4923330obc.32
+        for <linux-acpi@vger.kernel.org>; Wed, 24 Jul 2013 09:06:23 -0700 (PDT)
+In-Reply-To: <6958813.eThhpoh5QO@vostro.rjw.lan>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: Yinghai Lu <yinghai@kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>, Linux PCI <linux-pci@vger.kernel.org>, Jiang Liu <liuj97@gmail.com>, Mika Westerberg <mika.westerberg@linux.intel.com>, "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
 
-Hello, Tang.
+On Wed, Jul 24, 2013 at 6:58 AM, Rafael J. Wysocki <rjw@sisk.pl> wrote:
+> On Tuesday, July 23, 2013 07:20:53 PM Yinghai Lu wrote:
+>> On Tue, Jul 23, 2013 at 2:39 PM, Rafael J. Wysocki <rjw@sisk.pl> wrote:
+>
+> [...]
+>
+>> [  102.631369] pci_host_bridge pci0000:00: freeing pci_host_bridge info
+>
+> By the way this looks fishy:
+>
+>> [  102.633091] ACPI: Device does not support D3cold
 
-On Wed, Jul 24, 2013 at 11:52:53AM +0800, Tang Chen wrote:
-> The node data should be on local, I agree with that. I'm not saying I
-> won't do it. Just for now, it will be complicated to fix memory hot-remove
-> path. So I think pushing this patch for now, and do the local node things
-> in the next step.
-
-I see.  As long as it's clearly noted in the patch description and as
-comment && the behavior is off unless explicitly enabled, it should be
-fine for now, I think.  As currently implemented, the users of memory
-hotplug would have to pay pretty heavy price in terms of memory
-locality overhead in general and it could be that the ones missed here
-might not make noticeable difference anyway.
-
-Thanks.
-
--- 
-tejun
-
---
-To unsubscribe, send a message with 'unsubscribe linux-mm' in
-the body to majordomo@kvack.org.  For more info on Linux MM,
-see: http://www.linux-mm.org/ .
-Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
+This and other printks in that function don't give any clue what
+device is involved, even though we have an acpi_device pointer.  It'd
+be nice to fix that, too.
