@@ -1,75 +1,63 @@
-From: =?UTF-8?Q?J=C3=B6rg_Otte?= <jrg.otte@gmail.com>
-Subject: Re: Linux 3.11-rc2 (acpi backlight, revert)
-Date: Thu, 25 Jul 2013 17:52:00 +0200
-Message-ID: <CADDKRnBJ8Whe5AEux=Zu9jsNHU0mRtgwgfC59ZMNXi_pRfhk9g@mail.gmail.com>
-References: <CA+55aFy330bSRjK5HT1n0wXioPykL3RquHXyBPjm5GpTz_Y=DQ@mail.gmail.com>
-	<CA+55aFyrMRDD8qe9DYXixaSLJXEURMYYku1azABA72m71_X+cA@mail.gmail.com>
-	<9012759.Alzqtdvh5b@vostro.rjw.lan>
-	<2218913.HKGjJcYT1G@vostro.rjw.lan>
-	<CADDKRnAwipzeYsrx7vyTYToPvQkhCg1PgxzCWqvbW_w+Qd9Oeg@mail.gmail.com>
+From: Bjorn Helgaas <bhelgaas@google.com>
+Subject: Re: [PATCH] APEI/ERST: Fix error message formatting
+Date: Thu, 25 Jul 2013 11:32:06 -0600
+Message-ID: <CAErSpo5vLbsM5BXjrCVy1AKBxRRSH33TthyyK3O35Mghqw81nQ@mail.gmail.com>
+References: <1374526866-6813-1-git-send-email-bp@alien8.de>
+ <20130724171347.GB29756@naverao1-tp.watson.ibm.com> <1374686598.18818.18.camel@joe-AO722>
+ <51F10AA8.2050901@linux.vnet.ibm.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-oa0-f41.google.com ([209.85.219.41]:56050 "EHLO
-	mail-oa0-f41.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755609Ab3GYPwB convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 25 Jul 2013 11:52:01 -0400
-In-Reply-To: <CADDKRnAwipzeYsrx7vyTYToPvQkhCg1PgxzCWqvbW_w+Qd9Oeg@mail.gmail.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <51F10AA8.2050901@linux.vnet.ibm.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: "Naveen N. Rao" <naveen.n.rao@linux.vnet.ibm.com>
+Cc: Joe Perches <joe@perches.com>, Borislav Petkov <bp@alien8.de>, LKML <linux-kernel@vger.kernel.org>, Borislav Petkov <bp@suse.de>, Anton Vorontsov <anton@enomsg.org>, Colin Cross <ccross@android.com>, Kees Cook <keescook@chromium.org>, Tony Luck <tony.luck@intel.com>, Len Brown <lenb@kernel.org>, "Rafael J. Wysocki" <rjw@sisk.pl>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "Huang, Ying" <ying.huang@intel.com>
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: James Hogan <james@albanarts.com>, Kamal Mostafa <kamal@canonical.com>, Aaron Lu <aaron.lu@intel.com>, Kalle Valo <kvalo@adurom.com>, Linus Torvalds <torvalds@linux-foundation.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Matthew Garrett <matthew.garrett@nebula.com>, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Steven Newbury <steve@snewbury.org.uk>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Martin Steigerwald <Martin@lichtvoll.de>, Daniel Vetter <daniel.vetter@ffwll.ch>, intel-gfx <intel-gfx@lists.freedesktop.org>, Jani Nikula <jani.nikula@linux.intel.com>
 
-2013/7/25 J=C3=B6rg Otte <jrg.otte@gmail.com>:
-> 2013/7/25 Rafael J. Wysocki <rjw@sisk.pl>:
->> On Monday, July 22, 2013 09:54:21 PM Rafael J. Wysocki wrote:
->>> On Monday, July 22, 2013 11:11:54 AM Linus Torvalds wrote:
->>> > On Mon, Jul 22, 2013 at 6:02 AM, Rafael J. Wysocki <rjw@sisk.pl> =
-wrote:
->>> > >
->>> > > Linus, do you want me to send a pull request reverting 8c5bd7a =
-and efaa14c?
->>> >
->>> > Yes, but let's wait a while. Not because I think we'll fix the pr=
-oblem
->>> > (hey, miracles might happen), but because I think it would be use=
-ful
->>> > to couple the reverts with information about the particular machi=
-nes
->>> > that broke (and the people who reported it). So that when we
->>> > inevitably try again, we can perhaps get some testing effort with
->>> > those machines/people.
->>> >
->>> > It doesn't seem to be a show-stopped for a large number of people=
-, so
->>> > there's no huge hurry. I'd suggest doing the revert just in time =
-for
->>> > rc3, but waiting until then to gather info about people who see
->>> > breakage.
->>> >
->>> > Sound like a plan?
+On Thu, Jul 25, 2013 at 5:23 AM, Naveen N. Rao
+<naveen.n.rao@linux.vnet.ibm.com> wrote:
+> On 07/24/2013 10:53 PM, Joe Perches wrote:
+>>
+>> On Wed, 2013-07-24 at 22:43 +0530, Naveen N. Rao wrote:
 >>>
->>> Yes, it does.
+>>> On 2013/07/22 11:01PM, Borislav Petkov wrote:
+>>>>
+>>>> From: Borislav Petkov <bp@suse.de>
+>>>>
+>>>> [    5.525861] ERST: Can not request iomem region <0x        c7eff000-0x
+>>>> c7f00000> for ERST.
+>>>>
+>>>> This needs to have leading zeroes. Make it so.
 >>
->> OK, time to revert I guess.
 >>
->> James, Kamal, Steven, J=C3=B6rg, Martin, Kalle, please check if the =
-apppended patch
->> fixes the backlight for you.
+>> Why does it need leading zeros?
 >>
+>>> While looking at this, I noticed that we seem to be using varying field
+>>> widths in our APEI code:
+>>> - einj.c has two instances using %#010llx.
+>>> - apei-base.c uses widths of 10 (4 bytes) and 6 (2 bytes).
+>>>
+>>> Not sure if these are intentional and those fields truly aren't 64-bit
+>>> (as suggested by the usage of long long int).
+>>
+>>
+>> I suggest using "0x%llx" everywhere unless there's a
+>> compelling reason like columnar alignment for them.
 >
-> Problems, problems :-) I tried to apply on top of 3.11-rc2:
 >
+> I think that might be better. I see that these changes were done in commit
+> 46b91e37. Copying Bjorn Helgaas.
 
-Ok, with the help of Kamal I got my source tree back to a consistent
-state. The patch now applies successfully.
+As the 46b91e37 changelog says, it was done to use "the normal
+%pR-like format".  I think that's a valid goal.  When we're printing
+the same sort of information, we should use the same sort of format.
 
-Rafael, I now can confirm the patch fixes the problems for me.
+But I don't think the "Can not request iomem region <0x
+c7eff000-0x        c7f00000> for ERST" output mentioned in the
+original post was affected by 46b91e37.  I would suggest a change
+similar to 46b91e37 for ERST, and I would suggest using the leading
+zeros, with %#010llx for physical memory addresses and %#06llx for
+ioport addresses.  That's what %pR uses, and it produces columnar
+alignment in many cases (though not this one).
 
-Thanks, J=C3=B6rg
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Bjorn
