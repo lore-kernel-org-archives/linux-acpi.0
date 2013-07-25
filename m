@@ -1,70 +1,118 @@
-From: Jani Nikula <jani.nikula@linux.intel.com>
-Subject: Re: Linux 3.11-rc2 [backlight] [ASUS N56VZ]
-Date: Thu, 25 Jul 2013 11:09:27 +0300
-Message-ID: <87hafjxdqg.fsf@intel.com>
-References: <BLU0-SMTP125E791F01E26C3D60D7353A6680@phx.gbl>
-	<20130724210200.GY5939@phenom.ffwll.local>
-	<CA+55aFxvLox_iwPAg=iJx4F9M_FpMPY3ettFtAJOUk78d4+0pw@mail.gmail.com>
-	<6051153.b6TE1dlrel@vostro.rjw.lan>
+From: Prarit Bhargava <prarit@redhat.com>
+Subject: Re: [PATCH] acpi, acpi_pci_irq_enable must return an error if ACPI
+ cannot map an IRQ.
+Date: Thu, 25 Jul 2013 05:57:19 -0400
+Message-ID: <51F0F67F.8070200@redhat.com>
+References: <1373900260-1599-1-git-send-email-prarit@redhat.com> <4699269.a9aFxdNOHD@vostro.rjw.lan> <51F06AE4.9010606@redhat.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 7bit
-Return-path: <intel-gfx-bounces+gcfxdi-intel-gfx=m.gmane.org@lists.freedesktop.org>
-In-Reply-To: <6051153.b6TE1dlrel@vostro.rjw.lan>
-List-Unsubscribe: <http://lists.freedesktop.org/mailman/options/intel-gfx>,
-	<mailto:intel-gfx-request@lists.freedesktop.org?subject=unsubscribe>
-List-Archive: <http://lists.freedesktop.org/archives/intel-gfx>
-List-Post: <mailto:intel-gfx@lists.freedesktop.org>
-List-Help: <mailto:intel-gfx-request@lists.freedesktop.org?subject=help>
-List-Subscribe: <http://lists.freedesktop.org/mailman/listinfo/intel-gfx>,
-	<mailto:intel-gfx-request@lists.freedesktop.org?subject=subscribe>
-Sender: intel-gfx-bounces+gcfxdi-intel-gfx=m.gmane.org@lists.freedesktop.org
-Errors-To: intel-gfx-bounces+gcfxdi-intel-gfx=m.gmane.org@lists.freedesktop.org
-To: "Rafael J. Wysocki" <rjw@sisk.pl>, Linus Torvalds <torvalds@linux-foundation.org>
-Cc: Aaron Lu <aaron.lu@intel.com>, Matthew Garrett <mjg59@srcf.ucam.org>, * =?utf-8?Q?SAM=C3=8D?= * <miaousami@hotmail.com>, intel-gfx <intel-gfx@lists.freedesktop.org>, LKML <linux-kernel@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Igor Gnatenko <i.gnatenko.brain@gmail.com>
+Return-path: <linux-pci-owner@vger.kernel.org>
+In-Reply-To: <51F06AE4.9010606@redhat.com>
+Sender: linux-pci-owner@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: linux-acpi@vger.kernel.org, Len Brown <lenb@kernel.org>, Bjorn Helgaas <bhelgaas@google.com>, Myron Stowe <mstowe@redhat.com>, linux-pci@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Thu, 25 Jul 2013, "Rafael J. Wysocki" <rjw@sisk.pl> wrote:
-> On Wednesday, July 24, 2013 02:05:15 PM Linus Torvalds wrote:
->> On Wed, Jul 24, 2013 at 2:02 PM, Daniel Vetter <daniel.vetter@ffwll.ch> wrote:
->> >
->> > I think a i915 module option should be doable, otoh people seem to have a
->> > viable workaround by setting a different acpi os version already.
->> 
->> At least the original claim was that if you set a non-windows8 acpi os
->> version, you hit other bugs..
->> 
->> But yeah, if we just do a plain revert, that may be the only option
->> for the people for whom the current (to-be-reverted) patches made
->> things work.
->
-> Well, I wonder what about the appended (untested) patch?
 
-Rafael, before going there, I've been trying to wrap my (poor, rusty
-after vacation) head around
 
-commit 8c5bd7adb2ce47e6aa39d17b2375f69b0c0aa255
-Author: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
-Date:   Thu Jul 18 02:08:06 2013 +0200
+On 07/24/2013 08:01 PM, Prarit Bhargava wrote:
+> 
+> 
+> On 07/24/2013 07:35 PM, Rafael J. Wysocki wrote:
+>> On Monday, July 15, 2013 10:57:40 AM Prarit Bhargava wrote:
+>>> Driver probe's currently do the following
+>>>
+>>> 	pci_enable_device();
+>>> 	/* ... do some other init stuff, and eventually call ... */
+>>> 	request_irq();
+>>>
+>>> After pci_enable_device() is called it is assumed that the device's irq
+>>> value (pci_dev->irq) has been appropriately set on success.  This value
+>>> is passed into the request_irq() call.
+>>>
+>>> In the case that ACPI is used to determine the irq value, it is possible
+>>> that the ACPI IRQ look up for a specific device fails and success is
+>>> returned by pci_enable_device().
+>>>
+>>> The call sequence is:
+>>>
+>>> pci_enable_device();
+>>> 	-> pci_enable_device_flags();
+>>> 		->do_pci_enable_device();
+>>> 			-> pcibios_enable_device() which, if the device
+>>> 			   does not use MSI calls
+>>> 			   -> pcibios_enable_irq() which maps to
+>>> 			      acpi_pci_irq_enable()
+>>> 				-> acpi_pci_irq_lookup()
+>>>
+>>> If acpi_pci_irq_lookup() cannot map the device's IRQ value it returns NULL
+>>> as an error.  The error is returned to acpi_pci_irq_enable(), but is not
+>>> propagated further.  This can result in the driver returning success for
+>>> pci_enable_device() and the driver probe attempting to call request_irq()
+>>> with dev->irq = 0.
+>>>
+>>> This patch modifies acpi_pci_irq_enable() to return an error in the case
+>>> that an entry is not found in the ACPI tables.
+>>
+>> Is there any known system on which this leads to observable misbehavior?
+>>
+>> If so, what's that system?
+>>
+> 
+> Dell PowerEdge 840.  The end result is an genirq warning about the irq flags of
+> irq 0:
+> 
+> [   14.126845] i801_smbus 0000:00:1f.3: can't derive routing for PCI INT B
+> [   14.133473] i801_smbus 0000:00:1f.3: PCI INT B: no GSI
+> [   14.795122] genirq: Flags mismatch irq 0. 00000080 (i801_smbus) vs. 00015a20
+> (timer)
+> [   14.796037] CPU: 0 PID: 427 Comm: systemd-udevd Tainted: G        W
+> --------------   3.10.0-0.rc4.60.el7.x86_64.debug #1
+> [   14.796037] Hardware name: Dell Computer Corporation PowerEdge 840/0RH822,
+> BIOS A05 10/04/2007
+> [   14.796037]  ffff880075643b80 ffff88007a743aa8 ffffffff816b8bbd ffff88007a743af8
+> [   14.796037]  ffffffff8111ed8d ffffffff811bf5d1 0000000000000296 ffff880075b93800
+> [   14.796037]  ffffffffa03d2240 0000000000000080 0000000000000000 ffff88007ad7e000
+> [   14.796037] Call Trace:
+> [   14.796037]  [<ffffffff816b8bbd>] dump_stack+0x19/0x1b
+> [   14.796037]  [<ffffffff8111ed8d>] __setup_irq+0x51d/0x550
+> [   14.796037]  [<ffffffff811bf5d1>] ? kmem_cache_alloc_trace+0x111/0x340
+> [   14.796037]  [<ffffffffa03d2240>] ? i801_check_pre.isra.6+0xe0/0xe0 [i2c_i801]
+> [   14.796037]  [<ffffffff8111ef1c>] request_threaded_irq+0xcc/0x170
+> [   14.796037]  [<ffffffffa03d388d>] i801_probe+0x34d/0x52c [i2c_i801]
+> [   14.796037]  [<ffffffff810ddecd>] ? trace_hardirqs_on+0xd/0x10
+> [   14.796037]  [<ffffffff813876be>] local_pci_probe+0x3e/0x70
+> [   14.796037]  [<ffffffff813889a1>] pci_device_probe+0x111/0x120
+> [   14.796037]  [<ffffffff8144ff77>] driver_probe_device+0x87/0x390
+> [   14.796037]  [<ffffffff81450353>] __driver_attach+0x93/0xa0
+> [   14.796037]  [<ffffffff814502c0>] ? __device_attach+0x40/0x40
+> [   14.796037]  [<ffffffff8144de93>] bus_for_each_dev+0x63/0xa0
+> [   14.796037]  [<ffffffff8144f9ae>] driver_attach+0x1e/0x20
+> [   14.796037]  [<ffffffff8144f540>] bus_add_driver+0x1f0/0x2a0
+> [   14.796037]  [<ffffffffa03d8000>] ? 0xffffffffa03d7fff
+> [   14.796037]  [<ffffffff814509d1>] driver_register+0x71/0x150
+> [   14.796037]  [<ffffffffa03d8000>] ? 0xffffffffa03d7fff
+> [   14.796037]  [<ffffffff81387540>] __pci_register_driver+0x60/0x70
+> [   14.796037]  [<ffffffffa03d80af>] i2c_i801_init+0xaf/0x1000 [i2c_i801]
+> [   14.796037]  [<ffffffffa03d8000>] ? 0xffffffffa03d7fff
+> [   14.796037]  [<ffffffff810020e2>] do_one_initcall+0xe2/0x1a0
+> [   14.796037]  [<ffffffff810ee09f>] load_module+0xf4f/0x14d0
+> [   14.796037]  [<ffffffff81375d20>] ? ddebug_proc_write+0xf0/0xf0
+> [   14.796037]  [<ffffffff8136088d>] ? trace_hardirqs_off_thunk+0x3a/0x3c
+> [   14.796037]  [<ffffffff810ee6e1>] SyS_init_module+0xc1/0x110
+> [   14.796037]  [<ffffffff816ca299>] system_call_fastpath+0x16/0x1b
+> 
 
-    ACPI / video / i915: No ACPI backlight if firmware expects Windows 8
+Rafael,
 
-and I can't see how it could work.
+One other thing -- the core issue here is that the BIOS is broken and does not
+supply an ACPI entry for the IRQ.  I think the kernel should do a better job of
+reacting to that instead of just continuing down a broken path.
 
-First, the ACPI_VIDEO_SKIP_BACKLIGHT flag seems to be checked before
-it's actually set anywhere. Buried deep in the calls from
-acpi_video_bus_add(), acpi_video_verify_backlight_support() is used
-before acpi_video_backlight_quirks() gets called. (Perhaps if i915 is
-reloaded, this goes right as the flags are already set.)
+In either case, the end result is the same -- the i801 driver does not load, but
+with my patch the warning is not displayed, which IMO is the correct way to fail.
 
-Second, with i915 that has opregion support, __acpi_video_register()
-should only ever get called once. Which means the acpi_walk_namespace()
-with video_unregister_backlight() should never get called in register.
+P.
 
-Please enlighten me.
-
-BR,
-Jani.
-
--- 
-Jani Nikula, Intel Open Source Technology Center
+> P.
