@@ -1,8 +1,8 @@
-From: Ben Guthro <Ben.Guthro@citrix.com>
-Subject: Re: [PATCH v3 1/3] acpi: Call acpi_os_prepare_sleep hook in reduced
+From: "Zheng, Lv" <lv.zheng@intel.com>
+Subject: RE: [PATCH v3 1/3] acpi: Call acpi_os_prepare_sleep hook in reduced
  hardware sleep path
-Date: Thu, 25 Jul 2013 01:19:31 +0000
-Message-ID: <0B4C846C-B333-492B-9DC4-8B7E07054B0F@citrix.com>
+Date: Thu, 25 Jul 2013 01:28:49 +0000
+Message-ID: <1AE640813FDE7649BE1B193DEA596E88024356ED@SHSMSX101.ccr.corp.intel.com>
 References: <1372255575-29567-1-git-send-email-benjamin.guthro@citrix.com>
  <1372255575-29567-2-git-send-email-benjamin.guthro@citrix.com>
  <1AE640813FDE7649BE1B193DEA596E880241B363@SHSMSX101.ccr.corp.intel.com>
@@ -12,432 +12,196 @@ References: <1372255575-29567-1-git-send-email-benjamin.guthro@citrix.com>
  <94F2FBAB4432B54E8AACC7DFDE6C92E36FEA87FF@ORSMSX103.amr.corp.intel.com>
  <51EFD536.8070209@citrix.com>
  <94F2FBAB4432B54E8AACC7DFDE6C92E36FEA884D@ORSMSX103.amr.corp.intel.com>
- <1AE640813FDE7649BE1B193DEA596E88024356C3@SHSMSX101.ccr.corp.intel.com>
+ <51EFEF3E.8020001@citrix.com> <20130724163214.GB6308@phenom.dumpdata.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 8BIT
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp.citrix.com ([66.165.176.89]:19942 "EHLO SMTP.CITRIX.COM"
+Received: from mga09.intel.com ([134.134.136.24]:37333 "EHLO mga09.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752801Ab3GYBTe convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 24 Jul 2013 21:19:34 -0400
-In-Reply-To: <1AE640813FDE7649BE1B193DEA596E88024356C3@SHSMSX101.ccr.corp.intel.com>
+	id S1752871Ab3GYB3U convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 24 Jul 2013 21:29:20 -0400
+In-Reply-To: <20130724163214.GB6308@phenom.dumpdata.com>
 Content-Language: en-US
-Content-ID: <F8D270A50514074DA73BD1C2AA675EB7@citrix.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Zheng, Lv" <lv.zheng@intel.com>
-Cc: "Moore, Robert" <robert.moore@intel.com>, Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>, Jan Beulich <jbeulich@suse.com>, "Rafael J . Wysocki" <rjw@sisk.pl>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "xen-devel@lists.xen.org" <xen-devel@lists.xen.org>
+To: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>, Ben Guthro <Benjamin.Guthro@citrix.com>
+Cc: "Moore, Robert" <robert.moore@intel.com>, Jan Beulich <jbeulich@suse.com>, "Rafael J . Wysocki" <rjw@sisk.pl>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "xen-devel@lists.xen.org" <xen-devel@lists.xen.org>
 
+Let me just give an example to let you know the difficulties for ACPICA developers to merge Xen's acpi_os_prepare_sleep.
 
-On Jul 24, 2013, at 9:01 PM, "Zheng, Lv" <lv.zheng@intel.com>
- wrote:
+The original logic in the acpi_hw_legacy_sleep is:
+111         /* Get current value of PM1A control */
+112 
+113         status = acpi_hw_register_read(ACPI_REGISTER_PM1_CONTROL,
+114                                        &pm1a_control);
+115         if (ACPI_FAILURE(status)) {
+116                 return_ACPI_STATUS(status);
+117         }
+118         ACPI_DEBUG_PRINT((ACPI_DB_INIT,
+119                           "Entering sleep state [S%u]\n", sleep_state));
+120 
+121         /* Clear the SLP_EN and SLP_TYP fields */
+122 
+123         pm1a_control &= ~(sleep_type_reg_info->access_bit_mask |
+124                           sleep_enable_reg_info->access_bit_mask);
+125         pm1b_control = pm1a_control;
+126 
+127         /* Insert the SLP_TYP bits */
+128 
+129         pm1a_control |=
+130             (acpi_gbl_sleep_type_a << sleep_type_reg_info->bit_position);
+131         pm1b_control |=
+132             (acpi_gbl_sleep_type_b << sleep_type_reg_info->bit_position);
+133 
+134         /*
+135          * We split the writes of SLP_TYP and SLP_EN to workaround
+136          * poorly implemented hardware.
+137          */
+138 
+139         /* Write #1: write the SLP_TYP data to the PM1 Control registers */
+140 
+141         status = acpi_hw_write_pm1_control(pm1a_control, pm1b_control);
+142         if (ACPI_FAILURE(status)) {
+143                 return_ACPI_STATUS(status);
+144         }
+145 
+146         /* Insert the sleep enable (SLP_EN) bit */
+147 
+148         pm1a_control |= sleep_enable_reg_info->access_bit_mask;
+149         pm1b_control |= sleep_enable_reg_info->access_bit_mask;
+150 
+151         /* Flush caches, as per ACPI specification */
+152 
+153         ACPI_FLUSH_CPU_CACHE();
+154 
+=======
+[Now Xen's hook appears here)
+=======
+161         /* Write #2: Write both SLP_TYP + SLP_EN */
+162 
+163         status = acpi_hw_write_pm1_control(pm1a_control, pm1b_control);
+164         if (ACPI_FAILURE(status)) {
+165                 return_ACPI_STATUS(status);
+166         }
 
->> From: Moore, Robert
->> Sent: Wednesday, July 24, 2013 10:39 PM
->> 
->> I haven't found a high-level description of "acpi_os_prepare_sleep", perhaps I
->> missed it.
+If the whole block is re-implemented by ACPICA in the future:
+
+Acpi_hw_write_field_register(ACPI_SLEEP_REGISTER, ACPI_SLP_TYPE | ACPI_SLP_EN, slp_type | slp_en);
+
+Then where should ACPICA put this hook under the new design?
+Can it go inside acpi_hw_write_field_register?
+If the hook is in the current position, then future ACPICA development work on the suspend/resume codes are likely broken.
+
+IMO,
+1. acpi_os_preapre_sleep() should be put before Line 111
+2. acpi_os_preapre_sleep()'s parameters should be re-designed
+3. Xen only register hacking logic should be put inside acpi_os_prepare_sleep().
+
+Hope the above example can make my concern clearer now. :-)
+
+Thanks
+-Lv
+
+> -----Original Message-----
+> From: linux-acpi-owner@vger.kernel.org
+> [mailto:linux-acpi-owner@vger.kernel.org] On Behalf Of Konrad Rzeszutek Wilk
+> Sent: Thursday, July 25, 2013 12:32 AM
+> To: Ben Guthro
+> Cc: Moore, Robert; Zheng, Lv; Jan Beulich; Rafael J . Wysocki;
+> linux-kernel@vger.kernel.org; linux-acpi@vger.kernel.org;
+> xen-devel@lists.xen.org
+> Subject: Re: [PATCH v3 1/3] acpi: Call acpi_os_prepare_sleep hook in reduced
+> hardware sleep path
 > 
-> If we take a look at the declaration of this new OSL API, its name is acpi_os_prepare_sleep, but originally it only hacks two registers' values.
-> It is more like a Xen only hacking logic rather than an OSL API from ACPICA's perspective.
-
-The feature was introduced by Intel, for tboot, not Xen.
-As pointed out by Konrad - If you implemented tboot on another OS, like Solaris, etc - this would be necessary.
-
-> So the API declaration is just looking ugly to ACPICA, this has prevented this OSL API from being back ported to ACPICA for long time.
-> If ACPICA merged this codes, then it could be very hard for ACPICA to do any future enhancement to modify the logic in the acpi_hw_legacy_sleep/acpi_hw_extended_sleep.
-> Thus this is not clean for ACPICA, it will introduce unwanted software entropy to ACPICA.
+> On Wed, Jul 24, 2013 at 11:14:06AM -0400, Ben Guthro wrote:
+> >
+> >
+> > On 07/24/2013 10:38 AM, Moore, Robert wrote:
+> > > I haven't found a high-level description of "acpi_os_prepare_sleep",
+> perhaps I missed it.
+> > >
+> > > Can someone point me to the overall description of this change and why it is
+> being considered?
+> >
+> > Hi Bob,
+> >
+> > For this series, the v6 of this series does a decent job of what it is
+> > trying to accomplish:
+> > https://lkml.org/lkml/2013/7/1/205
+> >
+> > However, I recognize that this does not really describe *why*
+> > acpi_os_prepare_sleep is necessary to begin with. For that, we need to
+> > go back a little more.
+> >
+> > The summary for the series that introduced it is a good description,
+> > of the reasons it is necessary:
+> > http://lkml.indiana.edu/hypermail/linux/kernel/1112.2/00450.html
+> >
+> > In summary though - in the case of Xen (and I believe this is also
+> > true in tboot) a value inappropriate for a VM (which dom0 is a special
+> > case
+> > of) was being written to cr3, and the physical machine would never
+> > come out of S3.
+> >
+> > This mechanism gives an os specific hook to do something else down at
+> > the lower levels, while still being able to take advantage of the
+> > large amount of OS independent code in ACPICA.
 > 
-> This patchset enhances the OSL API, but doesn't make it cleaner, and just add a new parameter, it is a hack on top of the original hack.
-
-The original hack, as you call it is abstracted away in other parts of ACPICA, in all of the acpi_os_* code, if I read it correctly.
-I'm not sure what makes this any different.
-
-> IMO, from ACPICA's perspective, the OSL API should be designed to be re-used by any other OSPMs and might have more meaningful function declaration to ACPICA.
-> OSPM codes like Xen can implement this OSL API.  The Xen only hacking logic should be put inside the OSL API implementation.
-> 
-
-Again - not just for Xen.
-
-> Hers is just a suggestion and I don't know if this can work for Xen:
-> 
-> status = acpi_os_prepare_sleep(u8 sleep_state);
-> if (ACPI_SKIP(status))
-> ...
-> 
-> And export:
-> 1. acpi_gbl_sleep_type_a/acpi_gbl_sleep_type_b
-> 2. acpi_gbl_reduced_hardware
-> 3. acpi_hw_get_bit_register_info
-> to be used by acpi_os_prepare_sleep.
-> At least you can just copy the logic in the acpi_hw_legacy_sleep/acpi_hw_extended_sleep to the acpi_os_prepare_sleep.
-> That kind of complexity is Xen's complexity, you shouldn't move this complexity to ACPICA just because you want Xen side codes to be simpler.
-> If Xen and tboot already have knowledge about above what will actually happen to the "sleep_state", we don't need to export them.
-
-I'm sorry, I don't follow you here.
-
-I moved no complexity into ACPICA in order to make Xen simpler.
-In fact, I am arguing for the simpler interface, and smaller change in ACPICA.
-It merely needs to also happen in the new reduced hardware sleep path, as it is broken for existing systems...and indeed would also be broken for the tboot path.
-
-
-
-
-> 
-> This way might be better for both parties.
-> 
-> Thanks and best regards
-> -Lv
+> It might be also prudent to look at original 'hook' that was added by Intel in the
+> Linux code to support TXT:
 > 
 > 
->> 
->> Can someone point me to the overall description of this change and why it is
->> being considered?
->> 
->> Thanks,
->> Bob
->> 
->> 
->>> -----Original Message-----
->>> From: Ben Guthro [mailto:Benjamin.Guthro@citrix.com]
->>> Sent: Wednesday, July 24, 2013 6:23 AM
->>> To: Moore, Robert
->>> Cc: Zheng, Lv; Konrad Rzeszutek Wilk; Jan Beulich; Rafael J . Wysocki;
->>> linux-kernel@vger.kernel.org; linux-acpi@vger.kernel.org; xen-
->>> devel@lists.xen.org
->>> Subject: Re: [PATCH v3 1/3] acpi: Call acpi_os_prepare_sleep hook in
->>> reduced hardware sleep path
->>> 
->>> On 07/24/2013 09:18 AM, Moore, Robert wrote:
->>>> I have not looked closely at this, but we typically do things like
->>>> this
->>> in ACPICA so that they only need to be implemented once to support all
->>> of the various acpica-hosted operating systems - linux, solaris,
->>> hp-ux, apple, freebsd, etc. -- even if they could be implemented
->>> "cleaner" in some way on any given host.
->>> 
->>> Even when the resulting "simplification" results in reduced functionality?
->>> 
->>> Maybe I am misunderstanding the suggestion...but it sounded like it
->>> was basically to mimic the traditional behavior, and mask out the
->>> reduced hardware capabilities on these system types.
->>> 
->>> It seems to me that if the system supports the reduced hardware ACPI
->>> sleep, you would want to make use of it...
->>> 
->>> 
->>> 
->>>> 
->>>> 
->>>> 
->>>>> -----Original Message-----
->>>>> From: Ben Guthro [mailto:Benjamin.Guthro@citrix.com]
->>>>> Sent: Wednesday, July 24, 2013 5:01 AM
->>>>> To: Zheng, Lv
->>>>> Cc: Konrad Rzeszutek Wilk; Jan Beulich; Rafael J . Wysocki; linux-
->>>>> kernel@vger.kernel.org; linux-acpi@vger.kernel.org; xen-
->>>>> devel@lists.xen.org; Moore, Robert
->>>>> Subject: Re: [PATCH v3 1/3] acpi: Call acpi_os_prepare_sleep hook
->>>>> in reduced hardware sleep path
->>>>> 
->>>>> 
->>>>> 
->>>>> On 07/24/2013 02:24 AM, Zheng, Lv wrote:
->>>>>> Hi,
->>>>>> 
->>>>>> Sorry for the delayed response.
->>>>>> 
->>>>>>> From: Ben Guthro [mailto:Benjamin.Guthro@citrix.com]
->>>>>>> Sent: Tuesday, July 02, 2013 7:43 PM
->>>>>>> 
->>>>>>> 
->>>>>>> On 07/02/2013 02:19 AM, Zheng, Lv wrote:
->>>>>>>> Thanks for your efforts!
->>>>>>>> 
->>>>>>>> I wonder if it is possible to remove the argument - "u8 extended"
->>>>>>>> and convert
->>>>>>> "pm1a_control, pm1b_control" into some u8 values that are
->>>>>>> equivalent to "acpi_gbl_sleep_type_a, acpi_gbl_sleep_type_b" in
->>>>>>> the legacy sleep
->>>>> path.
->>>>>>>> It can also simplify Xen codes.
->>>>>>> 
->>>>>>> Thanks for your time to review this.
->>>>>>> 
->>>>>>> I'm not sure that this simplifies things. I think that, in fact,
->>>>>>> it would make them quite a bit more complicated, but perhaps I
->>>>> misunderstand.
->>>>>>> 
->>>>>>> Is it not preferred to use the reduced hardware sleep, over the
->>>>>>> old
->>>>> method?
->>>>>>> While these register definitions may be equivalent below, doing
->>>>>>> the translation in linux, only to translate them back again at a
->>>>>>> lower
->>>>> layer seems unnecessary.
->>>>>>> 
->>>>>> 
->>>>>> Yes, it would require tboot layer to be able to be aware of how
->>>>>> such
->>>>> fields locate in the PM registers.
->>>>>> So I think you can pass the register address of the field and the
->>>>>> field
->>>>> name/value pair to the tboot, this could simplify things, no lower
->>>>> layer effort will be needed.
->>>>>> Please don't worry about the case that a register field could be
->>>>>> split
->>>>> into PM1a and PM1b, it could be a hardware design issue.
->>>>>> IMO, one field should always be in one register, either PM1a or PM1b.
->>>>>> Or there could be hardware issues cannot be addressed by the
->>>>>> ACPICA
->>>>> architecture (something like natural atomicity).
->>>>>> But maybe I'm wrong.
->>>>> 
->>>>> Again, I don't think this simplifies things, but complicates them
->>>>> unnecessarily. Converting the reduced hardware sleep to the legacy
->>>>> sleep seems like it would be an unnecessary layer of translation.
->>>>> 
->>>>> The interface now simply passes the information from ACPICA down to
->>>>> the lower layers (xen, tboot) - and then lets them worry about the
->>>>> reduced hardware implementation.
->>>>> 
->>>>> FWIW, xen has shipped with this implemetation, and enterprise
->>>>> kernels using the traditional xen kernel (like Suse) are making use of it.
->>>>> 
->>>>> It may benefit tboot, in this case, but not Xen.
->>>>> 
->>>>> I personally see it as an undesirable complication.
->>>>> 
->>>>> Best regards,
->>>>> Ben
->>>>> 
->>>>>> 
->>>>>> Thanks and best regards
->>>>>> -Lv
->>>>>> 
->>>>>>> The hypervisor knows how to deal with both the reduced hardware
->>>>>>> sleep as well as the legacy sleep path - it merely need to
->>>>>>> distinguish these two paths, when performing the hypercall.
->>>>>>> 
->>>>>>> Since there are two paths through the higher level ACPICA code -
->>>>>>> that in hwsleep.c, and hwesleep.c - there needs to be some
->>>>>>> distinction between the two paths, when calling through to the
->>>>>>> lower level
->>>>>>> acpi_os_prepare_sleep() call.
->>>>>>> 
->>>>>>> An alternate method would be to create another interface named
->>>>>>> acpi_os_prepare_esleep() which would do the equivalent of this
->>>>>>> patch series, with an "extended" parameter hidden from upper
->>>>>>> level
->>>>> interfaces.
->>>>>>> 
->>>>>>> This, however, would also add another function to
->>>>>>> include/acpi/acpiosxf.h - which, I thought was undesirable, in
->>>>>>> the impression that I got from Bob Moore, and Rafael Wysocki
->>>>>>> (though, please correct me on this point, if I have
->>>>>>> misunderstood)
->>>>>>> 
->>>>>>> Best Regards
->>>>>>> 
->>>>>>> Ben
->>>>>>> 
->>>>>>>> 
->>>>>>>> As in ACPI specification, the bit definitions between the legacy
->>>>>>>> sleep registers
->>>>>>> and the extended sleep registers are equivalent.
->>>>>>>> 
->>>>>>>> The legacy sleep register definition:
->>>>>>>> Table 4-16 PM1 Status Registers Fixed Hardware Feature Status
->>>>>>>> Bits
->>>>>>>> - WAK_STS(bit 15) Table 4-18 PM1 Control Registers Fixed
->>>>>>>> Hardware Feature Control Bits - SLP_TYPx (bit 10-12), SLP_EN
->>>>>>>> (bit 13)
->>>>>>>> 
->>>>>>>> The extended sleep register definition:
->>>>>>>> Table 4-24 Sleep Control Register - SLP_TYPx (3 bits from offset
->>>>>>>> 2), SLP_EN (1
->>>>>>> bit from offset 5), here 10-8 = 2, and 13-8 = 5, this definition
->>>>>>> is equivalent to Table 4-18.
->>>>>>>> Table 4-25 Sleep Status Register - WAK_STS (1 bit 7), 15-8 = 7,
->>>>>>>> this definition is
->>>>>>> equivalent to Table 4-16.
->>>>>>>> 
->>>>>>>> Thanks and best regards
->>>>>>>> -Lv
->>>>>>>> 
->>>>>>>>> -----Original Message-----
->>>>>>>>> From: linux-acpi-owner@vger.kernel.org
->>>>>>>>> [mailto:linux-acpi-owner@vger.kernel.org] On Behalf Of Ben
->>>>>>>>> Guthro
->>>>>>>>> Sent: Wednesday, June 26, 2013 10:06 PM
->>>>>>>>> To: Konrad Rzeszutek Wilk; Jan Beulich; Rafaell J . Wysocki;
->>>>>>>>> linux-kernel@vger.kernel.org; linux-acpi@vger.kernel.org;
->>>>>>>>> xen-devel@lists.xen.org
->>>>>>>>> Cc: Ben Guthro; Moore, Robert
->>>>>>>>> Subject: [PATCH v3 1/3] acpi: Call acpi_os_prepare_sleep hook
->>>>>>>>> in reduced hardware sleep path
->>>>>>>>> 
->>>>>>>>> In version 3.4 acpi_os_prepare_sleep() got introduced in
->>>>>>>>> parallel with reduced hardware sleep support, and the two
->>>>>>>>> changes didn't get
->>>>>>>>> synchronized: The new code doesn't call the hook function (if
->>>>>>>>> so requested). Fix this, requiring a parameter to be added to
->>>>>>>>> the hook function to distinguish "extended" from "legacy" sleep.
->>>>>>>>> 
->>>>>>>>> Signed-off-by: Ben Guthro <benjamin.guthro@citrix.com>
->>>>>>>>> Signed-off-by: Jan Beulich <jbeulich@suse.com>
->>>>>>>>> Cc: Bob Moore <robert.moore@intel.com>
->>>>>>>>> Cc: Rafaell J. Wysocki <rjw@sisk.pl>
->>>>>>>>> Cc: linux-acpi@vger.kernel.org
->>>>>>>>> ---
->>>>>>>>>  drivers/acpi/acpica/hwesleep.c |    8 ++++++++
->>>>>>>>>  drivers/acpi/acpica/hwsleep.c  |    2 +-
->>>>>>>>>  drivers/acpi/osl.c             |   16 ++++++++--------
->>>>>>>>>  include/linux/acpi.h           |   10 +++++-----
->>>>>>>>>  4 files changed, 22 insertions(+), 14 deletions(-)
->>>>>>>>> 
->>>>>>>>> diff --git a/drivers/acpi/acpica/hwesleep.c
->>>>>>>>> b/drivers/acpi/acpica/hwesleep.c index 5e5f762..6834dd7 100644
->>>>>>>>> --- a/drivers/acpi/acpica/hwesleep.c
->>>>>>>>> +++ b/drivers/acpi/acpica/hwesleep.c
->>>>>>>>> @@ -43,6 +43,7 @@
->>>>>>>>>   */
->>>>>>>>> 
->>>>>>>>>  #include <acpi/acpi.h>
->>>>>>>>> +#include <linux/acpi.h>
->>>>>>>>>  #include "accommon.h"
->>>>>>>>> 
->>>>>>>>>  #define _COMPONENT          ACPI_HARDWARE
->>>>>>>>> @@ -128,6 +129,13 @@ acpi_status acpi_hw_extended_sleep(u8
->>>>>>>>> sleep_state)
->>>>>>>>> 
->>>>>>>>>  	ACPI_FLUSH_CPU_CACHE();
->>>>>>>>> 
->>>>>>>>> +	status = acpi_os_prepare_sleep(sleep_state,
->>>>> acpi_gbl_sleep_type_a,
->>>>>>>>> +				       acpi_gbl_sleep_type_b, true);
->>>>>>>>> +	if (ACPI_SKIP(status))
->>>>>>>>> +		return_ACPI_STATUS(AE_OK);
->>>>>>>>> +	if (ACPI_FAILURE(status))
->>>>>>>>> +		return_ACPI_STATUS(status);
->>>>>>>>> +
->>>>>>>>>  	/*
->>>>>>>>>  	 * Set the SLP_TYP and SLP_EN bits.
->>>>>>>>>  	 *
->>>>>>>>> diff --git a/drivers/acpi/acpica/hwsleep.c
->>>>>>>>> b/drivers/acpi/acpica/hwsleep.c index e3828cc..a93c299 100644
->>>>>>>>> --- a/drivers/acpi/acpica/hwsleep.c
->>>>>>>>> +++ b/drivers/acpi/acpica/hwsleep.c
->>>>>>>>> @@ -153,7 +153,7 @@ acpi_status acpi_hw_legacy_sleep(u8
->>> sleep_state)
->>>>>>>>>  	ACPI_FLUSH_CPU_CACHE();
->>>>>>>>> 
->>>>>>>>>  	status = acpi_os_prepare_sleep(sleep_state, pm1a_control,
->>>>>>>>> -				       pm1b_control);
->>>>>>>>> +				       pm1b_control, false);
->>>>>>>>>  	if (ACPI_SKIP(status))
->>>>>>>>>  		return_ACPI_STATUS(AE_OK);
->>>>>>>>>  	if (ACPI_FAILURE(status))
->>>>>>>>> diff --git a/drivers/acpi/osl.c b/drivers/acpi/osl.c index
->>>>>>>>> e721863..3fc2801 100644
->>>>>>>>> --- a/drivers/acpi/osl.c
->>>>>>>>> +++ b/drivers/acpi/osl.c
->>>>>>>>> @@ -77,8 +77,8 @@ EXPORT_SYMBOL(acpi_in_debugger);
->>>>>>>>>  extern char line_buf[80];
->>>>>>>>>  #endif				/*ENABLE_DEBUGGER */
->>>>>>>>> 
->>>>>>>>> -static int (*__acpi_os_prepare_sleep)(u8 sleep_state, u32
->>> pm1a_ctrl,
->>>>>>>>> -				      u32 pm1b_ctrl);
->>>>>>>>> +static int (*__acpi_os_prepare_sleep)(u8 sleep_state, u32
->>>>>>>>> +val_a,
->>>>>>>>> +u32
->>>>>>> val_b,
->>>>>>>>> +				      u8 extended);
->>>>>>>>> 
->>>>>>>>>  static acpi_osd_handler acpi_irq_handler;
->>>>>>>>>  static void *acpi_irq_context; @@ -1757,13 +1757,13 @@
->>>>>>>>> acpi_status acpi_os_terminate(void)
->>>>>>>>>  	return AE_OK;
->>>>>>>>>  }
->>>>>>>>> 
->>>>>>>>> -acpi_status acpi_os_prepare_sleep(u8 sleep_state, u32
->>> pm1a_control,
->>>>>>>>> -				  u32 pm1b_control)
->>>>>>>>> +acpi_status acpi_os_prepare_sleep(u8 sleep_state, u32 val_a,
->>>>>>>>> +u32
->>>>> val_b,
->>>>>>>>> +				  u8 extended)
->>>>>>>>>  {
->>>>>>>>>  	int rc = 0;
->>>>>>>>>  	if (__acpi_os_prepare_sleep)
->>>>>>>>> -		rc = __acpi_os_prepare_sleep(sleep_state,
->>>>>>>>> -					     pm1a_control, pm1b_control);
->>>>>>>>> +		rc = __acpi_os_prepare_sleep(sleep_state, val_a, val_b,
->>>>>>>>> +					     extended);
->>>>>>>>>  	if (rc < 0)
->>>>>>>>>  		return AE_ERROR;
->>>>>>>>>  	else if (rc > 0)
->>>>>>>>> @@ -1772,8 +1772,8 @@ acpi_status acpi_os_prepare_sleep(u8
->>>>>>>>> sleep_state,
->>>>>>>>> u32 pm1a_control,
->>>>>>>>>  	return AE_OK;
->>>>>>>>>  }
->>>>>>>>> 
->>>>>>>>> -void acpi_os_set_prepare_sleep(int (*func)(u8 sleep_state,
->>>>>>>>> -			       u32 pm1a_ctrl, u32 pm1b_ctrl))
->>>>>>>>> +void acpi_os_set_prepare_sleep(int (*func)(u8 sleep_state, u32
->>>>> val_a,
->>>>>>>>> +					   u32 val_b, u8 extended))
->>>>>>>>>  {
->>>>>>>>>  	__acpi_os_prepare_sleep = func;
->>>>>>>>>  }
->>>>>>>>> diff --git a/include/linux/acpi.h b/include/linux/acpi.h index
->>>>>>>>> 17b5b59..de99022 100644
->>>>>>>>> --- a/include/linux/acpi.h
->>>>>>>>> +++ b/include/linux/acpi.h
->>>>>>>>> @@ -477,11 +477,11 @@ static inline bool
->>>>>>>>> acpi_driver_match_device(struct device *dev,
->>>>>>>>>  #endif	/* !CONFIG_ACPI */
->>>>>>>>> 
->>>>>>>>>  #ifdef CONFIG_ACPI
->>>>>>>>> -void acpi_os_set_prepare_sleep(int (*func)(u8 sleep_state,
->>>>>>>>> -			       u32 pm1a_ctrl,  u32 pm1b_ctrl));
->>>>>>>>> +void acpi_os_set_prepare_sleep(int (*func)(u8 sleep_state, u32
->>>>> val_a,
->>>>>>>>> +					   u32 val_b, u8 extended));
->>>>>>>>> 
->>>>>>>>> -acpi_status acpi_os_prepare_sleep(u8 sleep_state,
->>>>>>>>> -				  u32 pm1a_control, u32 pm1b_control);
->>>>>>>>> +acpi_status acpi_os_prepare_sleep(u8 sleep_state, u32 val_a,
->>>>>>>>> +u32
->>>>> val_b,
->>>>>>>>> +				  u8 extended);
->>>>>>>>>  #ifdef CONFIG_X86
->>>>>>>>>  void arch_reserve_mem_area(acpi_physical_address addr, size_t
->>>>> size);
->>>>>>>>>  #else
->>>>>>>>> @@ -491,7 +491,7 @@ static inline void
->>>>>>>>> arch_reserve_mem_area(acpi_physical_address addr,
->>>>>>>>>  }
->>>>>>>>>  #endif /* CONFIG_X86 */
->>>>>>>>>  #else
->>>>>>>>> -#define acpi_os_set_prepare_sleep(func, pm1a_ctrl, pm1b_ctrl)
->>>>>>>>> do { } while
->>>>>>>>> (0)
->>>>>>>>> +#define acpi_os_set_prepare_sleep(func, val_a, val_b, ext) do
->>>>>>>>> +{ } while (0)
->>>>>>>>>  #endif
->>>>>>>>> 
->>>>>>>>>  #if defined(CONFIG_ACPI) && defined(CONFIG_PM_RUNTIME)
->>>>>>>>> --
->>>>>>>>> 1.7.9.5
->>>>>>>>> 
->>>>>>>>> --
->>>>>>>>> To unsubscribe from this list: send the line "unsubscribe
->>>>>>>>> linux-
->>> acpi"
->>>>>>>>> in the body of a message to majordomo@vger.kernel.org More
->>>>>>>>> majordomo info at  http://vger.kernel.org/majordomo-info.html
-
+> commit 86886e55b273f565935491816c7c96b82469d4f8
+> Author: Joseph Cihula <joseph.cihula@intel.com>
+> Date:   Tue Jun 30 19:31:07 2009 -0700
+> 
+>     x86, intel_txt: Intel TXT Sx shutdown support
+> 
+>     Support for graceful handling of sleep states (S3/S4/S5) after an Intel(R)
+> TXT launch.
+> 
+>     Without this patch, attempting to place the system in one of the ACPI
+> sleep
+>     states (S3/S4/S5) will cause the TXT hardware to treat this as an attack
+> and
+>     will cause a system reset, with memory locked.  Not only may the
+> subsequent
+>     memory scrub take some time, but the platform will be unable to enter
+> the
+>     requested power state.
+> 
+>     This patch calls back into the tboot so that it may properly and securely
+> clean
+>     up system state and clear the secrets-in-memory flag, after which it will
+> place
+>     the system into the requested sleep state using ACPI information passed
+> by the kernel.
+> 
+>      arch/x86/kernel/smpboot.c     |    2 ++
+>      drivers/acpi/acpica/hwsleep.c |    3 +++
+>      kernel/cpu.c                  |    7 ++++++-
+>      3 files changed, 11 insertions(+), 1 deletion(-)
+> 
+>     Signed-off-by: Joseph Cihula <joseph.cihula@intel.com>
+>     Signed-off-by: Shane Wang <shane.wang@intel.com>
+>     Signed-off-by: H. Peter Anvin <hpa@zytor.com>
+> 
+> I suspect that if tboot was used with a different OS (Solaris?) it would hit the
+> same case and a similar hook would be needed.
+> 
+> Said 'hook' (which was a call to tboot_sleep) was converted to be a more
+> neutral 'acpi_os_prepare_sleep' which tboot can use (and incidently Xen too).
+> 
+> I think what Bob is saying that if said hook is neccessary (and I believe it is - and
+> Intel TXT maintainer thinks so too since he added it in the first place), then the
+> right way of adding it is via the ACPICA tree.
+> 
+> Should the discussion for this be moved there ? (https://acpica.org/community)
+> and an generic 'os_prepare_sleep' patch added in
+> git://github.com/acpica/acpica.git?
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in the body
+> of a message to majordomo@vger.kernel.org More majordomo info at
+> http://vger.kernel.org/majordomo-info.html
