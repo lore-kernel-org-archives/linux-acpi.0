@@ -1,114 +1,54 @@
-From: Kamal Mostafa <kamal@canonical.com>
-Subject: Re: Linux 3.11-rc2 (acpi backlight, revert)
-Date: Thu, 25 Jul 2013 07:59:33 -0700
-Message-ID: <1374764373.5374.42.camel@fourier>
-References: <CA+55aFy330bSRjK5HT1n0wXioPykL3RquHXyBPjm5GpTz_Y=DQ@mail.gmail.com>
-	 <CA+55aFyrMRDD8qe9DYXixaSLJXEURMYYku1azABA72m71_X+cA@mail.gmail.com>
-	 <9012759.Alzqtdvh5b@vostro.rjw.lan> <2218913.HKGjJcYT1G@vostro.rjw.lan>
-	 <1374763397.5374.30.camel@fourier>
-	 <20130725144625.GO5939@phenom.ffwll.local>
+From: Tejun Heo <tj@kernel.org>
+Subject: Re: [PATCH 18/21] x86, numa: Synchronize nid info in
+ memblock.reserve with numa_meminfo.
+Date: Thu, 25 Jul 2013 11:05:54 -0400
+Message-ID: <20130725150554.GC26107@mtj.dyndns.org>
+References: <1374220774-29974-1-git-send-email-tangchen@cn.fujitsu.com>
+ <1374220774-29974-19-git-send-email-tangchen@cn.fujitsu.com>
+ <20130723212548.GZ21100@mtj.dyndns.org>
+ <51F0A4F9.2060802@cn.fujitsu.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg="pgp-sha256";
-	protocol="application/pgp-signature"; boundary="=-ylRWJXiniZUHIcCQ9j2b"
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from youngberry.canonical.com ([91.189.89.112]:47229 "EHLO
-	youngberry.canonical.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755994Ab3GYO7o (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 25 Jul 2013 10:59:44 -0400
-In-Reply-To: <20130725144625.GO5939@phenom.ffwll.local>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <owner-linux-mm@kvack.org>
+Content-Disposition: inline
+In-Reply-To: <51F0A4F9.2060802@cn.fujitsu.com>
+Sender: owner-linux-mm@kvack.org
+To: Tang Chen <tangchen@cn.fujitsu.com>
+Cc: tglx@linutronix.de, mingo@elte.hu, hpa@zytor.com, akpm@linux-foundation.org, trenn@suse.de, yinghai@kernel.org, jiang.liu@huawei.com, wency@cn.fujitsu.com, laijs@cn.fujitsu.com, isimatu.yasuaki@jp.fujitsu.com, izumi.taku@jp.fujitsu.com, mgorman@suse.de, minchan@kernel.org, mina86@mina86.com, gong.chen@linux.intel.com, vasilis.liaskovitis@profitbricks.com, lwoodman@redhat.com, riel@redhat.com, jweiner@redhat.com, prarit@redhat.com, zhangyanfei@cn.fujitsu.com, yanghy@cn.fujitsu.com, x86@kernel.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-mm@kvack.org, linux-acpi@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Daniel Vetter <daniel@ffwll.ch>
-Cc: "Rafael J. Wysocki" <rjw@sisk.pl>, James Hogan <james@albanarts.com>, Aaron Lu <aaron.lu@intel.com>, Kalle Valo <kvalo@adurom.com>, Linus Torvalds <torvalds@linux-foundation.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Matthew Garrett <matthew.garrett@nebula.com>, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Steven Newbury <steve@snewbury.org.uk>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, =?ISO-8859-1?Q?J=F6rg?= Otte <jrg.otte@gmail.com>, Martin Steigerwald <Martin@lichtvoll.de>, Daniel Vetter <daniel.vetter@ffwll.ch>, intel-gfx <intel-gfx@lists.freedesktop.org>, Jani Nikula <jani.nikula@linux.intel.com>
 
+Hello, Tang.
 
---=-ylRWJXiniZUHIcCQ9j2b
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+On Thu, Jul 25, 2013 at 12:09:29PM +0800, Tang Chen wrote:
+> And as in [patch 14/21], when reserving hotpluggable memory, we use
+> pxm. So my
 
-On Thu, 2013-07-25 at 16:46 +0200, Daniel Vetter wrote:
-> On Thu, Jul 25, 2013 at 07:43:17AM -0700, Kamal Mostafa wrote:
-> > On Thu, 2013-07-25 at 15:00 +0200, Rafael J. Wysocki wrote:
-> > > On Monday, July 22, 2013 09:54:21 PM Rafael J. Wysocki wrote:
-> > > > On Monday, July 22, 2013 11:11:54 AM Linus Torvalds wrote:
-> > > > > On Mon, Jul 22, 2013 at 6:02 AM, Rafael J. Wysocki <rjw@sisk.pl> =
-wrote:
-> > > > > >
-> > > > > > Linus, do you want me to send a pull request reverting 8c5bd7a =
-and efaa14c?
-> > > > >=20
-> > > > > Yes, but let's wait a while. Not because I think we'll fix the pr=
-oblem
-> > > > > (hey, miracles might happen), but because I think it would be use=
-ful
-> > > > > to couple the reverts with information about the particular machi=
-nes
-> > > > > that broke (and the people who reported it). So that when we
-> > > > > inevitably try again, we can perhaps get some testing effort with
-> > > > > those machines/people.
-> > > > >=20
-> > > > > It doesn't seem to be a show-stopped for a large number of people=
-, so
-> > > > > there's no huge hurry. I'd suggest doing the revert just in time =
-for
-> > > > > rc3, but waiting until then to gather info about people who see
-> > > > > breakage.
-> > > > >=20
-> > > > > Sound like a plan?
-> > > >=20
-> > > > Yes, it does.
-> > >=20
-> > > OK, time to revert I guess.
-> > >=20
-> > > James, Kamal, Steven, J=C3=B6rg, Martin, Kalle, please check if the a=
-pppended patch
-> > > fixes the backlight for you.
-> >=20
-> > Yes, this revert patch does re-enable backlight control for the affecte=
-d
-> > Dell XPS13 models.
->=20
-> Are these the same models that neeed the special quirk to not write
-> PCH_PWM_ENABLE? Or do they need both?
+Which is kinda nasty.
 
-Hi Daniel-
+> idea was to do a nid sync in numa_init(). After this, memblock will
+> set nid when
+> it allocates memory.
 
-Yes, these are the same models (Dell XPS13) that need the PCH_PWM_ENABLE
-quirk, but that's not related to this ACPI problem...
+Sure, that's the only place we can set the numa node IDs but my point
+is that you don't need to add another interface.  Jet let
+memblock_set_node() handle both memblock.memory and .reserved ranges.
+That way, you can make memblock simpler to use and less error-prone.
 
-All of the XPS13 models still need the PCH_PWM_ENABLE quirk which is now
-present in mainline (e85843b "drm/i915: quirk no PCH_PWM_ENABLE for Dell
-XPS13 backlight").
+> If we want to let memblock_set_node() and alloc functions set nid on
+> the reserved
+> regions, we should setup nid <-> pxm mapping when we parst SRAT for
+> the first time.
 
-Separately from that, some of the XPS13 models were _also_ adversely
-affected (as were some other machines) by the ACPI changes that are
-about to be reverted.
+I don't follow why it has to be different.  Why do you need to do
+anything differently?  What am I missing here?
 
- -Kamal
+Thanks.
 
+-- 
+tejun
 
---=-ylRWJXiniZUHIcCQ9j2b
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: This is a digitally signed message part
-Content-Transfer-Encoding: 7bit
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.12 (GNU/Linux)
-
-iQIcBAABCAAGBQJR8T1VAAoJEHqwmdxYrXhZ3BcP/361yS+awomMVvSAQK0NnkC2
-a1MbWxrlK1Ck1KXvkk0Xx5JZrQ7X+Kfsjc8apDaX+WAYmAnymzAH5NmMF7PEKQaP
-mtJ6RGZOAO6K/I/pZpNGTPXcUic+r51E/dkjlfFTe1kDYGVXe5T76urx1UoeCemS
-kX+WfsJZYHxfA/1yXAgyDK0wcAwSDNgcT9jL0KE7EWLwawmzrdXNAiF3HgKSSyz3
-EjMSAAVLj8dMeitQE1V9oIH3d5Ig43aWHI7D1wi2ZFGRn2Q7XZ5ORm5AvZVqGa+9
-JOMjIdZ//4HXcgLxv5n4UHSRxNn50Mm15NWSjNhsfx+z3nbZcRi/2V9lglB2yhhk
-bT4QxkfmYwlmYbEoSRZk6bTjeJxAeCli+BLYyDmHyiXmhz19uPbs+N5JLh4DlBea
-0/O+1pemW3Z+8qGO88F+mSgsxip1nEbcqtuuY40NHfWquPo9R6LXRgTXSy3g3tsh
-AvZ5KXQsIteLCNgv2veiBV1GUhLaLtwdw63vSgsVpsLYZDUfmVqzNi+9O9bUVRpI
-oOdmTg1TlyVzIJH4pQaskxbi0o/J+CgyWt0KAHKiCel5bmbdExotrao870A5yk9b
-5IOBVMMxtyLka12QcjxSvup01OTt+7DxbHMChWMxWpVMvQqW9h7Bd47rpRV8/UJ1
-ZeNL1Df3eRW6lK9DX/NV
-=wJNb
------END PGP SIGNATURE-----
-
---=-ylRWJXiniZUHIcCQ9j2b--
-
+--
+To unsubscribe, send a message with 'unsubscribe linux-mm' in
+the body to majordomo@kvack.org.  For more info on Linux MM,
+see: http://www.linux-mm.org/ .
+Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
