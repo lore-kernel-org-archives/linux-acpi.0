@@ -1,118 +1,62 @@
-From: Prarit Bhargava <prarit@redhat.com>
-Subject: Re: [PATCH] acpi, acpi_pci_irq_enable must return an error if ACPI
- cannot map an IRQ.
-Date: Thu, 25 Jul 2013 05:57:19 -0400
-Message-ID: <51F0F67F.8070200@redhat.com>
-References: <1373900260-1599-1-git-send-email-prarit@redhat.com> <4699269.a9aFxdNOHD@vostro.rjw.lan> <51F06AE4.9010606@redhat.com>
+From: "Naveen N. Rao" <naveen.n.rao@linux.vnet.ibm.com>
+Subject: Re: [PATCH] APEI/ERST: Fix error message formatting
+Date: Thu, 25 Jul 2013 16:53:20 +0530
+Message-ID: <51F10AA8.2050901@linux.vnet.ibm.com>
+References: <1374526866-6813-1-git-send-email-bp@alien8.de> <20130724171347.GB29756@naverao1-tp.watson.ibm.com> <1374686598.18818.18.camel@joe-AO722>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-pci-owner@vger.kernel.org>
-In-Reply-To: <51F06AE4.9010606@redhat.com>
-Sender: linux-pci-owner@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: linux-acpi@vger.kernel.org, Len Brown <lenb@kernel.org>, Bjorn Helgaas <bhelgaas@google.com>, Myron Stowe <mstowe@redhat.com>, linux-pci@vger.kernel.org
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from e28smtp02.in.ibm.com ([122.248.162.2]:48626 "EHLO
+	e28smtp02.in.ibm.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755860Ab3GYLXr (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 25 Jul 2013 07:23:47 -0400
+Received: from /spool/local
+	by e28smtp02.in.ibm.com with IBM ESMTP SMTP Gateway: Authorized Use Only! Violators will be prosecuted
+	for <linux-acpi@vger.kernel.org> from <naveen.n.rao@linux.vnet.ibm.com>;
+	Thu, 25 Jul 2013 16:44:40 +0530
+In-Reply-To: <1374686598.18818.18.camel@joe-AO722>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Joe Perches <joe@perches.com>, Borislav Petkov <bp@alien8.de>, bhelgaas@google.com
+Cc: LKML <linux-kernel@vger.kernel.org>, Borislav Petkov <bp@suse.de>, Anton Vorontsov <anton@enomsg.org>, Colin Cross <ccross@android.com>, Kees Cook <keescook@chromium.org>, Tony Luck <tony.luck@intel.com>, Len Brown <lenb@kernel.org>, "Rafael J. Wysocki" <rjw@sisk.pl>, linux-acpi@vger.kernel.org, "Huang, Ying" <ying.huang@intel.com>
 
-
-
-On 07/24/2013 08:01 PM, Prarit Bhargava wrote:
-> 
-> 
-> On 07/24/2013 07:35 PM, Rafael J. Wysocki wrote:
->> On Monday, July 15, 2013 10:57:40 AM Prarit Bhargava wrote:
->>> Driver probe's currently do the following
+On 07/24/2013 10:53 PM, Joe Perches wrote:
+> On Wed, 2013-07-24 at 22:43 +0530, Naveen N. Rao wrote:
+>> On 2013/07/22 11:01PM, Borislav Petkov wrote:
+>>> From: Borislav Petkov <bp@suse.de>
 >>>
->>> 	pci_enable_device();
->>> 	/* ... do some other init stuff, and eventually call ... */
->>> 	request_irq();
+>>> [    5.525861] ERST: Can not request iomem region <0x        c7eff000-0x        c7f00000> for ERST.
 >>>
->>> After pci_enable_device() is called it is assumed that the device's irq
->>> value (pci_dev->irq) has been appropriately set on success.  This value
->>> is passed into the request_irq() call.
->>>
->>> In the case that ACPI is used to determine the irq value, it is possible
->>> that the ACPI IRQ look up for a specific device fails and success is
->>> returned by pci_enable_device().
->>>
->>> The call sequence is:
->>>
->>> pci_enable_device();
->>> 	-> pci_enable_device_flags();
->>> 		->do_pci_enable_device();
->>> 			-> pcibios_enable_device() which, if the device
->>> 			   does not use MSI calls
->>> 			   -> pcibios_enable_irq() which maps to
->>> 			      acpi_pci_irq_enable()
->>> 				-> acpi_pci_irq_lookup()
->>>
->>> If acpi_pci_irq_lookup() cannot map the device's IRQ value it returns NULL
->>> as an error.  The error is returned to acpi_pci_irq_enable(), but is not
->>> propagated further.  This can result in the driver returning success for
->>> pci_enable_device() and the driver probe attempting to call request_irq()
->>> with dev->irq = 0.
->>>
->>> This patch modifies acpi_pci_irq_enable() to return an error in the case
->>> that an entry is not found in the ACPI tables.
+>>> This needs to have leading zeroes. Make it so.
+>
+> Why does it need leading zeros?
+>
+>> While looking at this, I noticed that we seem to be using varying field
+>> widths in our APEI code:
+>> - einj.c has two instances using %#010llx.
+>> - apei-base.c uses widths of 10 (4 bytes) and 6 (2 bytes).
 >>
->> Is there any known system on which this leads to observable misbehavior?
->>
->> If so, what's that system?
->>
-> 
-> Dell PowerEdge 840.  The end result is an genirq warning about the irq flags of
-> irq 0:
-> 
-> [   14.126845] i801_smbus 0000:00:1f.3: can't derive routing for PCI INT B
-> [   14.133473] i801_smbus 0000:00:1f.3: PCI INT B: no GSI
-> [   14.795122] genirq: Flags mismatch irq 0. 00000080 (i801_smbus) vs. 00015a20
-> (timer)
-> [   14.796037] CPU: 0 PID: 427 Comm: systemd-udevd Tainted: G        W
-> --------------   3.10.0-0.rc4.60.el7.x86_64.debug #1
-> [   14.796037] Hardware name: Dell Computer Corporation PowerEdge 840/0RH822,
-> BIOS A05 10/04/2007
-> [   14.796037]  ffff880075643b80 ffff88007a743aa8 ffffffff816b8bbd ffff88007a743af8
-> [   14.796037]  ffffffff8111ed8d ffffffff811bf5d1 0000000000000296 ffff880075b93800
-> [   14.796037]  ffffffffa03d2240 0000000000000080 0000000000000000 ffff88007ad7e000
-> [   14.796037] Call Trace:
-> [   14.796037]  [<ffffffff816b8bbd>] dump_stack+0x19/0x1b
-> [   14.796037]  [<ffffffff8111ed8d>] __setup_irq+0x51d/0x550
-> [   14.796037]  [<ffffffff811bf5d1>] ? kmem_cache_alloc_trace+0x111/0x340
-> [   14.796037]  [<ffffffffa03d2240>] ? i801_check_pre.isra.6+0xe0/0xe0 [i2c_i801]
-> [   14.796037]  [<ffffffff8111ef1c>] request_threaded_irq+0xcc/0x170
-> [   14.796037]  [<ffffffffa03d388d>] i801_probe+0x34d/0x52c [i2c_i801]
-> [   14.796037]  [<ffffffff810ddecd>] ? trace_hardirqs_on+0xd/0x10
-> [   14.796037]  [<ffffffff813876be>] local_pci_probe+0x3e/0x70
-> [   14.796037]  [<ffffffff813889a1>] pci_device_probe+0x111/0x120
-> [   14.796037]  [<ffffffff8144ff77>] driver_probe_device+0x87/0x390
-> [   14.796037]  [<ffffffff81450353>] __driver_attach+0x93/0xa0
-> [   14.796037]  [<ffffffff814502c0>] ? __device_attach+0x40/0x40
-> [   14.796037]  [<ffffffff8144de93>] bus_for_each_dev+0x63/0xa0
-> [   14.796037]  [<ffffffff8144f9ae>] driver_attach+0x1e/0x20
-> [   14.796037]  [<ffffffff8144f540>] bus_add_driver+0x1f0/0x2a0
-> [   14.796037]  [<ffffffffa03d8000>] ? 0xffffffffa03d7fff
-> [   14.796037]  [<ffffffff814509d1>] driver_register+0x71/0x150
-> [   14.796037]  [<ffffffffa03d8000>] ? 0xffffffffa03d7fff
-> [   14.796037]  [<ffffffff81387540>] __pci_register_driver+0x60/0x70
-> [   14.796037]  [<ffffffffa03d80af>] i2c_i801_init+0xaf/0x1000 [i2c_i801]
-> [   14.796037]  [<ffffffffa03d8000>] ? 0xffffffffa03d7fff
-> [   14.796037]  [<ffffffff810020e2>] do_one_initcall+0xe2/0x1a0
-> [   14.796037]  [<ffffffff810ee09f>] load_module+0xf4f/0x14d0
-> [   14.796037]  [<ffffffff81375d20>] ? ddebug_proc_write+0xf0/0xf0
-> [   14.796037]  [<ffffffff8136088d>] ? trace_hardirqs_off_thunk+0x3a/0x3c
-> [   14.796037]  [<ffffffff810ee6e1>] SyS_init_module+0xc1/0x110
-> [   14.796037]  [<ffffffff816ca299>] system_call_fastpath+0x16/0x1b
-> 
+>> Not sure if these are intentional and those fields truly aren't 64-bit
+>> (as suggested by the usage of long long int).
+>
+> I suggest using "0x%llx" everywhere unless there's a
+> compelling reason like columnar alignment for them.
 
-Rafael,
+I think that might be better. I see that these changes were done in 
+commit 46b91e37. Copying Bjorn Helgaas.
 
-One other thing -- the core issue here is that the BIOS is broken and does not
-supply an ACPI entry for the IRQ.  I think the kernel should do a better job of
-reacting to that instead of just continuing down a broken path.
+On 07/24/2013 11:40 PM, Borislav Petkov wrote:
+ > That's an interesting question but I think you're better fitted to
+ > answer it - I try to avoid the APEI spec as much as possible.
+ >
+ > :-)
+ >
 
-In either case, the end result is the same -- the i801 driver does not load, but
-with my patch the warning is not displayed, which IMO is the correct way to fail.
+Oh, I've hardly scratched the surface w.r.t APEI. I think I'll let the 
+experts comment on this :)
 
-P.
 
-> P.
+Thanks,
+Naveen
+
