@@ -1,54 +1,37 @@
-From: Aaron Lu <aaron.lu@intel.com>
-Subject: [RFC PATCH 0/2] Rework ATA ACPI binding code
-Date: Thu, 25 Jul 2013 13:47:01 +0800
-Message-ID: <1374731223-28685-1-git-send-email-aaron.lu@intel.com>
-Return-path: <linux-scsi-owner@vger.kernel.org>
-Sender: linux-scsi-owner@vger.kernel.org
-To: Tejun Heo <tj@kernel.org>, "Rafael J. Wysocki" <rjw@sisk.pl>, James Bottomley <James.Bottomley@HansenPartnership.com>
-Cc: Jeff Wu <jeff.wu@amd.com>, Shane Huang <shane.huang@amd.com>, Matthew Garrett <mjg@redhat.com>, Holger Macht <holger@homac.de>, Aaron Lu <aaron.lu@intel.com>, Zhang Rui <rui.zhang@intel.com>, linux-ide@vger.kernel.org, linux-acpi@vger.kernel.org, linux-scsi@vger.kernel.org
+From: Tang Chen <tangchen@cn.fujitsu.com>
+Subject: Re: [PATCH 02/21] memblock, numa: Introduce flag into memblock.
+Date: Thu, 25 Jul 2013 14:42:53 +0800
+Message-ID: <51F0C8ED.3070200@cn.fujitsu.com>
+References: <1374220774-29974-1-git-send-email-tangchen@cn.fujitsu.com> <1374220774-29974-3-git-send-email-tangchen@cn.fujitsu.com> <20130723190928.GH21100@mtj.dyndns.org> <51EF4196.8050303@cn.fujitsu.com> <20130724155458.GA20377@mtj.dyndns.org>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <owner-linux-mm@kvack.org>
+In-Reply-To: <20130724155458.GA20377@mtj.dyndns.org>
+Sender: owner-linux-mm@kvack.org
+To: Tejun Heo <tj@kernel.org>
+Cc: tglx@linutronix.de, mingo@elte.hu, hpa@zytor.com, akpm@linux-foundation.org, trenn@suse.de, yinghai@kernel.org, jiang.liu@huawei.com, wency@cn.fujitsu.com, laijs@cn.fujitsu.com, isimatu.yasuaki@jp.fujitsu.com, izumi.taku@jp.fujitsu.com, mgorman@suse.de, minchan@kernel.org, mina86@mina86.com, gong.chen@linux.intel.com, vasilis.liaskovitis@profitbricks.com, lwoodman@redhat.com, riel@redhat.com, jweiner@redhat.com, prarit@redhat.com, zhangyanfei@cn.fujitsu.com, yanghy@cn.fujitsu.com, x86@kernel.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-mm@kvack.org, linux-acpi@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-Binding ACPI handle to SCSI device has several drawbacks, namely:
-1 During ATA device initialization time, ACPI handle will be needed
-  while SCSI devices are not created yet. So each time ACPI handle is
-  needed, instead of retrieving the handle by ACPI_HANDLE macro,
-  a namespace scan is performed to find the handle for the corresponding
-  ATA device. This is inefficient, and also expose a restriction on
-  calling path not holding any lock.
-2 The binding to SCSI device tree makes code complex, while in the
-  meantime doesn't buy us anything. All ACPI handlings are still done
-  in ATA module, not in SCSI.
+On 07/24/2013 11:54 PM, Tejun Heo wrote:
+> On Wed, Jul 24, 2013 at 10:53:10AM +0800, Tang Chen wrote:
+>>> Let's please drop "with" and do we really need to print full 16
+>>> digits?
+>>
+>> Sure, will remove "with". But I think printing out the full flags is batter.
+>> The output seems more tidy.
+>
+> I mean, padding is fine but you can just print out 4 or even 2 digits
+> and will be fine for the foreseeable future.
 
-This patchset does ACPI binding to ATA transport port/devices when the
-devices are created, so that all later operations that require ACPI
-handle will simply be a pointer access by the ACPI_HANDLE macro.
-This simplies code a lot and also removes the restriction of calling
-thread has to be sleep-able.
+OK. In this patch-set, there won't more than two flags. I think one 
+hexadecimal
+number is enough. I'll print two digits for the foreseeable future.
 
-With the new binding, when ACPI handle will be needed in a function, ATA
-transport device should be used like in acpi_pm_device_run_wake etc. When
-runtime PM API is used, the SCSI device object should be used. In a word,
-runtime PM is still triggered from SCSI device tree, but all ACPI handling
-are done in ATA with ATA transport devices.
+Thanks.
 
-Tested on an Intel platform, ZPODD and runtime power off of a SATA disk
-works OK. More testing by other people is needed/appreciated.
-
-Aaron Lu (2):
-  ata: acpi: remove dead code for ata_acpi_(un)bind
-  ata: acpi: rework the ata acpi bind support
-
- drivers/ata/libata-acpi.c      | 278 ++++++++++++-----------------------------
- drivers/ata/libata-core.c      |   5 -
- drivers/ata/libata-scsi.c      |  13 +-
- drivers/ata/libata-transport.c |   2 +
- drivers/ata/libata-zpodd.c     |  12 +-
- drivers/ata/libata.h           |  20 +--
- drivers/ata/pata_acpi.c        |   4 +-
- drivers/scsi/scsi_lib.c        |  22 ----
- include/linux/libata.h         |   2 -
- 9 files changed, 106 insertions(+), 252 deletions(-)
-
--- 
-1.8.3.2.10.g43d11f4
-
+--
+To unsubscribe, send a message with 'unsubscribe linux-mm' in
+the body to majordomo@kvack.org.  For more info on Linux MM,
+see: http://www.linux-mm.org/ .
+Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
