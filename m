@@ -1,80 +1,98 @@
 From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: Linux 3.11-rc2 (acpi backlight, revert)
-Date: Thu, 25 Jul 2013 21:47:10 +0200
-Message-ID: <9711528.yIoJy2i1iX@vostro.rjw.lan>
-References: <CA+55aFy330bSRjK5HT1n0wXioPykL3RquHXyBPjm5GpTz_Y=DQ@mail.gmail.com> <2218913.HKGjJcYT1G@vostro.rjw.lan> <CAAG0J98i-XaO_3sPWsnyEGDX77T=WiNf1K=YMhe5DvkwKotorw@mail.gmail.com>
+Subject: Re: [PATCH 0/30] ACPI / hotplug / PCI: Major rework + Thunderbolt workarounds
+Date: Thu, 25 Jul 2013 21:57:47 +0200
+Message-ID: <1658856.3PiOm7PIQU@vostro.rjw.lan>
+References: <26431283.HJCKsss0rt@vostro.rjw.lan> <6958813.eThhpoh5QO@vostro.rjw.lan> <CAE9FiQVOKv-EBPFoVUi5HBPmDDrjmc9nuww68Tm865fkCJeWkA@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from hydra.sisk.pl ([212.160.235.94]:40185 "EHLO hydra.sisk.pl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754806Ab3GYThH convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 25 Jul 2013 15:37:07 -0400
-In-Reply-To: <CAAG0J98i-XaO_3sPWsnyEGDX77T=WiNf1K=YMhe5DvkwKotorw@mail.gmail.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7Bit
+Return-path: <linux-pci-owner@vger.kernel.org>
+In-Reply-To: <CAE9FiQVOKv-EBPFoVUi5HBPmDDrjmc9nuww68Tm865fkCJeWkA@mail.gmail.com>
+Sender: linux-pci-owner@vger.kernel.org
+To: Yinghai Lu <yinghai@kernel.org>
+Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Bjorn Helgaas <bhelgaas@google.com>, LKML <linux-kernel@vger.kernel.org>, Linux PCI <linux-pci@vger.kernel.org>, Jiang Liu <liuj97@gmail.com>, Mika Westerberg <mika.westerberg@linux.intel.com>, "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
 List-Id: linux-acpi@vger.kernel.org
-To: James Hogan <james@albanarts.com>, Kamal Mostafa <kamal@canonical.com>, =?ISO-8859-1?Q?J=F6rg?= Otte <jrg.otte@gmail.com>
-Cc: Aaron Lu <aaron.lu@intel.com>, Kalle Valo <kvalo@adurom.com>, Linus Torvalds <torvalds@linux-foundation.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Matthew Garrett <matthew.garrett@nebula.com>, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Steven Newbury <steve@snewbury.org.uk>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Martin Steigerwald <Martin@lichtvoll.de>, Daniel Vetter <daniel.vetter@ffwll.ch>, intel-gfx <intel-gfx@lists.freedesktop.org>, Jani Nikula <jani.nikula@linux.intel.com>
 
-On Thursday, July 25, 2013 08:14:08 PM James Hogan wrote:
-> On 25 July 2013 14:00, Rafael J. Wysocki <rjw@sisk.pl> wrote:
-> > On Monday, July 22, 2013 09:54:21 PM Rafael J. Wysocki wrote:
-> >> On Monday, July 22, 2013 11:11:54 AM Linus Torvalds wrote:
-> >> > On Mon, Jul 22, 2013 at 6:02 AM, Rafael J. Wysocki <rjw@sisk.pl>=
- wrote:
-> >> > >
-> >> > > Linus, do you want me to send a pull request reverting 8c5bd7a=
- and efaa14c?
-> >> >
-> >> > Yes, but let's wait a while. Not because I think we'll fix the p=
-roblem
-> >> > (hey, miracles might happen), but because I think it would be us=
-eful
-> >> > to couple the reverts with information about the particular mach=
-ines
-> >> > that broke (and the people who reported it). So that when we
-> >> > inevitably try again, we can perhaps get some testing effort wit=
-h
-> >> > those machines/people.
-> >> >
-> >> > It doesn't seem to be a show-stopped for a large number of peopl=
-e, so
-> >> > there's no huge hurry. I'd suggest doing the revert just in time=
- for
-> >> > rc3, but waiting until then to gather info about people who see
-> >> > breakage.
-> >> >
-> >> > Sound like a plan?
-> >>
-> >> Yes, it does.
+On Thursday, July 25, 2013 06:25:06 AM Yinghai Lu wrote:
+> On Wed, Jul 24, 2013 at 5:58 AM, Rafael J. Wysocki <rjw@sisk.pl> wrote:
+> > On Tuesday, July 23, 2013 07:20:53 PM Yinghai Lu wrote:
+> >> On Tue, Jul 23, 2013 at 2:39 PM, Rafael J. Wysocki <rjw@sisk.pl> wrote:
 > >
-> > OK, time to revert I guess.
+> > [...]
 > >
-> > James, Kamal, Steven, J=C3=B6rg, Martin, Kalle, please check if the=
- apppended patch
-> > fixes the backlight for you.
->=20
-> Works for me
+> >> [  102.631369] pci_host_bridge pci0000:00: freeing pci_host_bridge info
+> >
+> > By the way this looks fishy:
+> >
+> >> [  102.633091] ACPI: Device does not support D3cold
+> >> [  102.633915] ACPI: Device does not support D3cold
+> >> [  102.635221] ACPI: Device does not support D3cold
+> >> [  102.636103] ACPI: Device does not support D3cold
+> >> [  102.636902] ACPI: Device does not support D3cold
+> >> [  102.637685] ACPI: Device does not support D3cold
+> >> [  102.638467] ACPI: Device does not support D3cold
+> >> [  102.639631] ACPI: Device does not support D3cold
+> >> [  102.640472] ACPI: Device does not support D3cold
+> >> [  102.641310] ACPI: Device does not support D3cold
+> >> [  102.642105] ACPI: Device does not support D3cold
+> >> [  102.642928] ACPI: Device does not support D3cold
+> >> [  102.643725] ACPI: Device does not support D3cold
+> >> [  102.644544] ACPI: Device does not support D3cold
+> >> [  102.645344] ACPI: Device does not support D3cold
+> >> [  102.646126] ACPI: Device does not support D3cold
+> >> [  102.646902] ACPI: Device does not support D3cold
+> >> [  102.647677] ACPI: Device does not support D3cold
+> >> [  102.648485] ACPI: Device does not support D3cold
+> >> [  102.649269] ACPI: Device does not support D3cold
+> >> [  102.650065] ACPI: Device does not support D3cold
+> >> [  102.650822] ACPI: Device does not support D3cold
+> >> [  102.652483] ACPI: Device does not support D3cold
+> >> [  102.654157] ACPI: Device does not support D3cold
+> >> [  102.655803] ACPI: Device does not support D3cold
+> >> [  102.657419] ACPI: Device does not support D3cold
+> >> [  102.658528] ACPI: Device does not support D3cold
+> >> [  102.659255] ACPI: Device does not support D3cold
+> >> [  102.659973] ACPI: Device does not support D3cold
+> >> [  102.661807] ACPI: Device does not support D3cold
+> >> [  102.661925] ACPI: Device does not support D3cold
+> >> [  102.662047] ACPI: Device does not support D3cold
+> >> [  102.662148] ACPI: Device does not support D3cold
+> >> [  102.662258] ACPI: Device does not support D3cold
+> >> [  102.662374] ACPI: Device does not support D3cold
+> >> [  102.662486] ACPI: Device does not support D3cold
+> >> [  102.662597] ACPI: Device does not support D3cold
+> >> [  102.662711] ACPI: Device does not support D3cold
+> >> [  102.662814] ACPI: Device does not support D3cold
+> >> [  102.662918] ACPI: Device does not support D3cold
+> >> [  102.663019] ACPI: Device does not support D3cold
+> >
+> > Can you please check if it goes away with the patch below applied?
+> >
+> >> [  102.663039] ACPI: \_SB_.PCI0: No _EJ0 support for device
+> >
+> >
+> > ---
+> >  drivers/acpi/device_pm.c |    3 ++-
+> >  1 file changed, 2 insertions(+), 1 deletion(-)
+> >
+> > Index: linux-pm/drivers/acpi/device_pm.c
+> > ===================================================================
+> > --- linux-pm.orig/drivers/acpi/device_pm.c
+> > +++ linux-pm/drivers/acpi/device_pm.c
+> > @@ -159,7 +159,8 @@ int acpi_device_set_power(struct acpi_de
+> >         int result = 0;
+> >         bool cut_power = false;
+> >
+> > -       if (!device || (state < ACPI_STATE_D0) || (state > ACPI_STATE_D3_COLD))
+> > +       if (!device || !device->flags.power_manageable
+> > +           || (state < ACPI_STATE_D0) || (state > ACPI_STATE_D3_COLD))
+> >                 return -EINVAL;
+> >
+> >         /* Make sure this is a valid target state */
+> >
+> 
+> yes, with this change, those print out are gone.
 
-Great!
-
-James, Kamal, J=C3=B6rg, thanks for confirmations.  I'll tentatively pu=
-t the revert
-into linux-next in a while.
-
-Other people who experienced problems with backlight in 3.11-rc2, pleas=
-e let me
-know whether or not the revert works for you too if you can.
+Cool, thanks!
 
 Rafael
-
-
---=20
-I speak only for myself.
-Rafael J. Wysocki, Intel Open Source Technology Center.
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
