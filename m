@@ -1,48 +1,70 @@
-From: Tang Chen <tangchen@cn.fujitsu.com>
-Subject: Re: [PATCH 08/21] x86, acpi: Also initialize signature and length
- when parsing root table.
-Date: Thu, 25 Jul 2013 14:50:55 +0800
-Message-ID: <51F0CACF.6030606@cn.fujitsu.com>
-References: <1374220774-29974-1-git-send-email-tangchen@cn.fujitsu.com> <1374220774-29974-9-git-send-email-tangchen@cn.fujitsu.com> <20130723194540.GM21100@mtj.dyndns.org>
+From: Jani Nikula <jani.nikula@linux.intel.com>
+Subject: Re: Linux 3.11-rc2 [backlight] [ASUS N56VZ]
+Date: Thu, 25 Jul 2013 11:09:27 +0300
+Message-ID: <87hafjxdqg.fsf@intel.com>
+References: <BLU0-SMTP125E791F01E26C3D60D7353A6680@phx.gbl>
+	<20130724210200.GY5939@phenom.ffwll.local>
+	<CA+55aFxvLox_iwPAg=iJx4F9M_FpMPY3ettFtAJOUk78d4+0pw@mail.gmail.com>
+	<6051153.b6TE1dlrel@vostro.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <owner-linux-mm@kvack.org>
-In-Reply-To: <20130723194540.GM21100@mtj.dyndns.org>
-Sender: owner-linux-mm@kvack.org
-To: Tejun Heo <tj@kernel.org>
-Cc: tglx@linutronix.de, mingo@elte.hu, hpa@zytor.com, akpm@linux-foundation.org, trenn@suse.de, yinghai@kernel.org, jiang.liu@huawei.com, wency@cn.fujitsu.com, laijs@cn.fujitsu.com, isimatu.yasuaki@jp.fujitsu.com, izumi.taku@jp.fujitsu.com, mgorman@suse.de, minchan@kernel.org, mina86@mina86.com, gong.chen@linux.intel.com, vasilis.liaskovitis@profitbricks.com, lwoodman@redhat.com, riel@redhat.com, jweiner@redhat.com, prarit@redhat.com, zhangyanfei@cn.fujitsu.com, yanghy@cn.fujitsu.com, x86@kernel.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-mm@kvack.org, linux-acpi@vger.kernel.org
+Return-path: <intel-gfx-bounces+gcfxdi-intel-gfx=m.gmane.org@lists.freedesktop.org>
+In-Reply-To: <6051153.b6TE1dlrel@vostro.rjw.lan>
+List-Unsubscribe: <http://lists.freedesktop.org/mailman/options/intel-gfx>,
+	<mailto:intel-gfx-request@lists.freedesktop.org?subject=unsubscribe>
+List-Archive: <http://lists.freedesktop.org/archives/intel-gfx>
+List-Post: <mailto:intel-gfx@lists.freedesktop.org>
+List-Help: <mailto:intel-gfx-request@lists.freedesktop.org?subject=help>
+List-Subscribe: <http://lists.freedesktop.org/mailman/listinfo/intel-gfx>,
+	<mailto:intel-gfx-request@lists.freedesktop.org?subject=subscribe>
+Sender: intel-gfx-bounces+gcfxdi-intel-gfx=m.gmane.org@lists.freedesktop.org
+Errors-To: intel-gfx-bounces+gcfxdi-intel-gfx=m.gmane.org@lists.freedesktop.org
+To: "Rafael J. Wysocki" <rjw@sisk.pl>, Linus Torvalds <torvalds@linux-foundation.org>
+Cc: Aaron Lu <aaron.lu@intel.com>, Matthew Garrett <mjg59@srcf.ucam.org>, * =?utf-8?Q?SAM=C3=8D?= * <miaousami@hotmail.com>, intel-gfx <intel-gfx@lists.freedesktop.org>, LKML <linux-kernel@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Igor Gnatenko <i.gnatenko.brain@gmail.com>
 List-Id: linux-acpi@vger.kernel.org
 
-On 07/24/2013 03:45 AM, Tejun Heo wrote:
-> On Fri, Jul 19, 2013 at 03:59:21PM +0800, Tang Chen wrote:
->> @@ -514,6 +514,7 @@ acpi_tb_install_table(acpi_physical_address address,
->>   	 * fully mapped later (in verify table). In any case, we must
->>   	 * unmap the header that was mapped above.
->>   	 */
->> +	table_desc =&acpi_gbl_root_table_list.tables[table_index];
->>   	final_table = acpi_tb_table_override(table, table_desc);
->>   	if (!final_table) {
->>   		final_table = table;	/* There was no override */
+On Thu, 25 Jul 2013, "Rafael J. Wysocki" <rjw@sisk.pl> wrote:
+> On Wednesday, July 24, 2013 02:05:15 PM Linus Torvalds wrote:
+>> On Wed, Jul 24, 2013 at 2:02 PM, Daniel Vetter <daniel.vetter@ffwll.ch> wrote:
+>> >
+>> > I think a i915 module option should be doable, otoh people seem to have a
+>> > viable workaround by setting a different acpi os version already.
+>> 
+>> At least the original claim was that if you set a non-windows8 acpi os
+>> version, you hit other bugs..
+>> 
+>> But yeah, if we just do a plain revert, that may be the only option
+>> for the people for whom the current (to-be-reverted) patches made
+>> things work.
 >
-> Is this chunk correct?  Why is @table_desc being assigned twice in
-> this function?
+> Well, I wonder what about the appended (untested) patch?
 
-Oh, my mistake. The second assignment is redundant. Only the first one is
-useful. Will remove the redundant assignment in this patch.
+Rafael, before going there, I've been trying to wrap my (poor, rusty
+after vacation) head around
 
-Thanks.
+commit 8c5bd7adb2ce47e6aa39d17b2375f69b0c0aa255
+Author: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+Date:   Thu Jul 18 02:08:06 2013 +0200
 
->
->> +	/*
->> +	 * Also initialize the table entries here, so that later we can use them
->> +	 * to find SRAT at very eraly time to reserve hotpluggable memory.
->                                  ^ typo
-> Thanks.
->
+    ACPI / video / i915: No ACPI backlight if firmware expects Windows 8
 
---
-To unsubscribe, send a message with 'unsubscribe linux-mm' in
-the body to majordomo@kvack.org.  For more info on Linux MM,
-see: http://www.linux-mm.org/ .
-Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
+and I can't see how it could work.
+
+First, the ACPI_VIDEO_SKIP_BACKLIGHT flag seems to be checked before
+it's actually set anywhere. Buried deep in the calls from
+acpi_video_bus_add(), acpi_video_verify_backlight_support() is used
+before acpi_video_backlight_quirks() gets called. (Perhaps if i915 is
+reloaded, this goes right as the flags are already set.)
+
+Second, with i915 that has opregion support, __acpi_video_register()
+should only ever get called once. Which means the acpi_walk_namespace()
+with video_unregister_backlight() should never get called in register.
+
+Please enlighten me.
+
+BR,
+Jani.
+
+-- 
+Jani Nikula, Intel Open Source Technology Center
