@@ -1,98 +1,373 @@
 From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: [PATCH 0/30] ACPI / hotplug / PCI: Major rework + Thunderbolt workarounds
-Date: Thu, 25 Jul 2013 21:57:47 +0200
-Message-ID: <1658856.3PiOm7PIQU@vostro.rjw.lan>
-References: <26431283.HJCKsss0rt@vostro.rjw.lan> <6958813.eThhpoh5QO@vostro.rjw.lan> <CAE9FiQVOKv-EBPFoVUi5HBPmDDrjmc9nuww68Tm865fkCJeWkA@mail.gmail.com>
+Subject: Re: [PATCH 06/13] ACPI/IPMI: Add reference counting for ACPI operation region handlers
+Date: Thu, 25 Jul 2013 22:27:15 +0200
+Message-ID: <1597566.Nfc7r37F3q@vostro.rjw.lan>
+References: <cover.1370652213.git.lv.zheng@intel.com> <cover.1374566394.git.lv.zheng@intel.com> <d9d5acba01eb80580e7696c50db4263ded86a86c.1374566394.git.lv.zheng@intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7Bit
-Return-path: <linux-pci-owner@vger.kernel.org>
-In-Reply-To: <CAE9FiQVOKv-EBPFoVUi5HBPmDDrjmc9nuww68Tm865fkCJeWkA@mail.gmail.com>
-Sender: linux-pci-owner@vger.kernel.org
-To: Yinghai Lu <yinghai@kernel.org>
-Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Bjorn Helgaas <bhelgaas@google.com>, LKML <linux-kernel@vger.kernel.org>, Linux PCI <linux-pci@vger.kernel.org>, Jiang Liu <liuj97@gmail.com>, Mika Westerberg <mika.westerberg@linux.intel.com>, "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
+Return-path: <stable-owner@vger.kernel.org>
+In-Reply-To: <d9d5acba01eb80580e7696c50db4263ded86a86c.1374566394.git.lv.zheng@intel.com>
+Sender: stable-owner@vger.kernel.org
+To: Lv Zheng <lv.zheng@intel.com>
+Cc: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Len Brown <len.brown@intel.com>, Corey Minyard <minyard@acm.org>, Zhao Yakui <yakui.zhao@intel.com>, linux-kernel@vger.kernel.org, stable@vger.kernel.org, linux-acpi@vger.kernel.org, openipmi-developer@lists.sourceforge.net
 List-Id: linux-acpi@vger.kernel.org
 
-On Thursday, July 25, 2013 06:25:06 AM Yinghai Lu wrote:
-> On Wed, Jul 24, 2013 at 5:58 AM, Rafael J. Wysocki <rjw@sisk.pl> wrote:
-> > On Tuesday, July 23, 2013 07:20:53 PM Yinghai Lu wrote:
-> >> On Tue, Jul 23, 2013 at 2:39 PM, Rafael J. Wysocki <rjw@sisk.pl> wrote:
-> >
-> > [...]
-> >
-> >> [  102.631369] pci_host_bridge pci0000:00: freeing pci_host_bridge info
-> >
-> > By the way this looks fishy:
-> >
-> >> [  102.633091] ACPI: Device does not support D3cold
-> >> [  102.633915] ACPI: Device does not support D3cold
-> >> [  102.635221] ACPI: Device does not support D3cold
-> >> [  102.636103] ACPI: Device does not support D3cold
-> >> [  102.636902] ACPI: Device does not support D3cold
-> >> [  102.637685] ACPI: Device does not support D3cold
-> >> [  102.638467] ACPI: Device does not support D3cold
-> >> [  102.639631] ACPI: Device does not support D3cold
-> >> [  102.640472] ACPI: Device does not support D3cold
-> >> [  102.641310] ACPI: Device does not support D3cold
-> >> [  102.642105] ACPI: Device does not support D3cold
-> >> [  102.642928] ACPI: Device does not support D3cold
-> >> [  102.643725] ACPI: Device does not support D3cold
-> >> [  102.644544] ACPI: Device does not support D3cold
-> >> [  102.645344] ACPI: Device does not support D3cold
-> >> [  102.646126] ACPI: Device does not support D3cold
-> >> [  102.646902] ACPI: Device does not support D3cold
-> >> [  102.647677] ACPI: Device does not support D3cold
-> >> [  102.648485] ACPI: Device does not support D3cold
-> >> [  102.649269] ACPI: Device does not support D3cold
-> >> [  102.650065] ACPI: Device does not support D3cold
-> >> [  102.650822] ACPI: Device does not support D3cold
-> >> [  102.652483] ACPI: Device does not support D3cold
-> >> [  102.654157] ACPI: Device does not support D3cold
-> >> [  102.655803] ACPI: Device does not support D3cold
-> >> [  102.657419] ACPI: Device does not support D3cold
-> >> [  102.658528] ACPI: Device does not support D3cold
-> >> [  102.659255] ACPI: Device does not support D3cold
-> >> [  102.659973] ACPI: Device does not support D3cold
-> >> [  102.661807] ACPI: Device does not support D3cold
-> >> [  102.661925] ACPI: Device does not support D3cold
-> >> [  102.662047] ACPI: Device does not support D3cold
-> >> [  102.662148] ACPI: Device does not support D3cold
-> >> [  102.662258] ACPI: Device does not support D3cold
-> >> [  102.662374] ACPI: Device does not support D3cold
-> >> [  102.662486] ACPI: Device does not support D3cold
-> >> [  102.662597] ACPI: Device does not support D3cold
-> >> [  102.662711] ACPI: Device does not support D3cold
-> >> [  102.662814] ACPI: Device does not support D3cold
-> >> [  102.662918] ACPI: Device does not support D3cold
-> >> [  102.663019] ACPI: Device does not support D3cold
-> >
-> > Can you please check if it goes away with the patch below applied?
-> >
-> >> [  102.663039] ACPI: \_SB_.PCI0: No _EJ0 support for device
-> >
-> >
-> > ---
-> >  drivers/acpi/device_pm.c |    3 ++-
-> >  1 file changed, 2 insertions(+), 1 deletion(-)
-> >
-> > Index: linux-pm/drivers/acpi/device_pm.c
-> > ===================================================================
-> > --- linux-pm.orig/drivers/acpi/device_pm.c
-> > +++ linux-pm/drivers/acpi/device_pm.c
-> > @@ -159,7 +159,8 @@ int acpi_device_set_power(struct acpi_de
-> >         int result = 0;
-> >         bool cut_power = false;
-> >
-> > -       if (!device || (state < ACPI_STATE_D0) || (state > ACPI_STATE_D3_COLD))
-> > +       if (!device || !device->flags.power_manageable
-> > +           || (state < ACPI_STATE_D0) || (state > ACPI_STATE_D3_COLD))
-> >                 return -EINVAL;
-> >
-> >         /* Make sure this is a valid target state */
-> >
+On Tuesday, July 23, 2013 04:09:43 PM Lv Zheng wrote:
+> This patch adds reference couting for ACPI operation region handlers to fix
+> races caused by the ACPICA address space callback invocations.
 > 
-> yes, with this change, those print out are gone.
+> ACPICA address space callback invocation is not suitable for Linux
+> CONFIG_MODULE=y execution environment.  This patch tries to protect the
+> address space callbacks by invoking them under a module safe environment.
+> The IPMI address space handler is also upgraded in this patch.
+> The acpi_unregister_region() is designed to meet the following
+> requirements:
+> 1. It acts as a barrier for operation region callbacks - no callback will
+>    happen after acpi_unregister_region().
+> 2. acpi_unregister_region() is safe to be called in moudle->exit()
+>    functions.
+> Using reference counting rather than module referencing allows
+> such benefits to be achieved even when acpi_unregister_region() is called
+> in the environments other than module->exit().
+> The header file of include/acpi/acpi_bus.h should contain the declarations
+> that have references to some ACPICA defined types.
+> 
+> Signed-off-by: Lv Zheng <lv.zheng@intel.com>
+> Reviewed-by: Huang Ying <ying.huang@intel.com>
+> ---
+>  drivers/acpi/acpi_ipmi.c |   16 ++--
+>  drivers/acpi/osl.c       |  224 ++++++++++++++++++++++++++++++++++++++++++++++
+>  include/acpi/acpi_bus.h  |    5 ++
+>  3 files changed, 235 insertions(+), 10 deletions(-)
+> 
+> diff --git a/drivers/acpi/acpi_ipmi.c b/drivers/acpi/acpi_ipmi.c
+> index 5f8f495..2a09156 100644
+> --- a/drivers/acpi/acpi_ipmi.c
+> +++ b/drivers/acpi/acpi_ipmi.c
+> @@ -539,20 +539,18 @@ out_ref:
+>  static int __init acpi_ipmi_init(void)
+>  {
+>  	int result = 0;
+> -	acpi_status status;
+>  
+>  	if (acpi_disabled)
+>  		return result;
+>  
+>  	mutex_init(&driver_data.ipmi_lock);
+>  
+> -	status = acpi_install_address_space_handler(ACPI_ROOT_OBJECT,
+> -						    ACPI_ADR_SPACE_IPMI,
+> -						    &acpi_ipmi_space_handler,
+> -						    NULL, NULL);
+> -	if (ACPI_FAILURE(status)) {
+> +	result = acpi_register_region(ACPI_ADR_SPACE_IPMI,
+> +				      &acpi_ipmi_space_handler,
+> +				      NULL, NULL);
+> +	if (result) {
+>  		pr_warn("Can't register IPMI opregion space handle\n");
+> -		return -EINVAL;
+> +		return result;
+>  	}
+>  
+>  	result = ipmi_smi_watcher_register(&driver_data.bmc_events);
+> @@ -596,9 +594,7 @@ static void __exit acpi_ipmi_exit(void)
+>  	}
+>  	mutex_unlock(&driver_data.ipmi_lock);
+>  
+> -	acpi_remove_address_space_handler(ACPI_ROOT_OBJECT,
+> -					  ACPI_ADR_SPACE_IPMI,
+> -					  &acpi_ipmi_space_handler);
+> +	acpi_unregister_region(ACPI_ADR_SPACE_IPMI);
+>  }
+>  
+>  module_init(acpi_ipmi_init);
+> diff --git a/drivers/acpi/osl.c b/drivers/acpi/osl.c
+> index 6ab2c35..8398e51 100644
+> --- a/drivers/acpi/osl.c
+> +++ b/drivers/acpi/osl.c
+> @@ -86,6 +86,42 @@ static struct workqueue_struct *kacpid_wq;
+>  static struct workqueue_struct *kacpi_notify_wq;
+>  static struct workqueue_struct *kacpi_hotplug_wq;
+>  
+> +struct acpi_region {
+> +	unsigned long flags;
+> +#define ACPI_REGION_DEFAULT		0x01
+> +#define ACPI_REGION_INSTALLED		0x02
+> +#define ACPI_REGION_REGISTERED		0x04
+> +#define ACPI_REGION_UNREGISTERING	0x08
+> +#define ACPI_REGION_INSTALLING		0x10
 
-Cool, thanks!
+What about (1UL << 1), (1UL << 2) etc.?
 
+Also please remove the #defines out of the struct definition.
+
+> +	/*
+> +	 * NOTE: Upgrading All Region Handlers
+> +	 * This flag is only used during the period where not all of the
+> +	 * region handers are upgraded to the new interfaces.
+> +	 */
+> +#define ACPI_REGION_MANAGED		0x80
+> +	acpi_adr_space_handler handler;
+> +	acpi_adr_space_setup setup;
+> +	void *context;
+> +	/* Invoking references */
+> +	atomic_t refcnt;
+
+Actually, why don't you use krefs?
+
+> +};
+> +
+> +static struct acpi_region acpi_regions[ACPI_NUM_PREDEFINED_REGIONS] = {
+> +	[ACPI_ADR_SPACE_SYSTEM_MEMORY] = {
+> +		.flags = ACPI_REGION_DEFAULT,
+> +	},
+> +	[ACPI_ADR_SPACE_SYSTEM_IO] = {
+> +		.flags = ACPI_REGION_DEFAULT,
+> +	},
+> +	[ACPI_ADR_SPACE_PCI_CONFIG] = {
+> +		.flags = ACPI_REGION_DEFAULT,
+> +	},
+> +	[ACPI_ADR_SPACE_IPMI] = {
+> +		.flags = ACPI_REGION_MANAGED,
+> +	},
+> +};
+> +static DEFINE_MUTEX(acpi_mutex_region);
+> +
+>  /*
+>   * This list of permanent mappings is for memory that may be accessed from
+>   * interrupt context, where we can't do the ioremap().
+> @@ -1799,3 +1835,191 @@ void alloc_acpi_hp_work(acpi_handle handle, u32 type, void *context,
+>  		kfree(hp_work);
+>  }
+>  EXPORT_SYMBOL_GPL(alloc_acpi_hp_work);
+> +
+> +static bool acpi_region_managed(struct acpi_region *rgn)
+> +{
+> +	/*
+> +	 * NOTE: Default and Managed
+> +	 * We only need to avoid region management on the regions managed
+> +	 * by ACPICA (ACPI_REGION_DEFAULT).  Currently, we need additional
+> +	 * check as many operation region handlers are not upgraded, so
+> +	 * only those known to be safe are managed (ACPI_REGION_MANAGED).
+> +	 */
+> +	return !(rgn->flags & ACPI_REGION_DEFAULT) &&
+> +	       (rgn->flags & ACPI_REGION_MANAGED);
+> +}
+> +
+> +static bool acpi_region_callable(struct acpi_region *rgn)
+> +{
+> +	return (rgn->flags & ACPI_REGION_REGISTERED) &&
+> +	       !(rgn->flags & ACPI_REGION_UNREGISTERING);
+> +}
+> +
+> +static acpi_status
+> +acpi_region_default_handler(u32 function,
+> +			    acpi_physical_address address,
+> +			    u32 bit_width, u64 *value,
+> +			    void *handler_context, void *region_context)
+> +{
+> +	acpi_adr_space_handler handler;
+> +	struct acpi_region *rgn = (struct acpi_region *)handler_context;
+> +	void *context;
+> +	acpi_status status = AE_NOT_EXIST;
+> +
+> +	mutex_lock(&acpi_mutex_region);
+> +	if (!acpi_region_callable(rgn) || !rgn->handler) {
+> +		mutex_unlock(&acpi_mutex_region);
+> +		return status;
+> +	}
+> +
+> +	atomic_inc(&rgn->refcnt);
+> +	handler = rgn->handler;
+> +	context = rgn->context;
+> +	mutex_unlock(&acpi_mutex_region);
+> +
+> +	status = handler(function, address, bit_width, value, context,
+> +			 region_context);
+
+Why don't we call the handler under the mutex?
+
+What exactly prevents context from becoming NULL before the call above?
+
+> +	atomic_dec(&rgn->refcnt);
+> +
+> +	return status;
+> +}
+> +
+> +static acpi_status
+> +acpi_region_default_setup(acpi_handle handle, u32 function,
+> +			  void *handler_context, void **region_context)
+> +{
+> +	acpi_adr_space_setup setup;
+> +	struct acpi_region *rgn = (struct acpi_region *)handler_context;
+> +	void *context;
+> +	acpi_status status = AE_OK;
+> +
+> +	mutex_lock(&acpi_mutex_region);
+> +	if (!acpi_region_callable(rgn) || !rgn->setup) {
+> +		mutex_unlock(&acpi_mutex_region);
+> +		return status;
+> +	}
+> +
+> +	atomic_inc(&rgn->refcnt);
+> +	setup = rgn->setup;
+> +	context = rgn->context;
+> +	mutex_unlock(&acpi_mutex_region);
+> +
+> +	status = setup(handle, function, context, region_context);
+
+Can setup drop rgn->refcnt ?
+
+> +	atomic_dec(&rgn->refcnt);
+> +
+> +	return status;
+> +}
+> +
+> +static int __acpi_install_region(struct acpi_region *rgn,
+> +				 acpi_adr_space_type space_id)
+> +{
+> +	int res = 0;
+> +	acpi_status status;
+> +	int installing = 0;
+> +
+> +	mutex_lock(&acpi_mutex_region);
+> +	if (rgn->flags & ACPI_REGION_INSTALLED)
+> +		goto out_lock;
+> +	if (rgn->flags & ACPI_REGION_INSTALLING) {
+> +		res = -EBUSY;
+> +		goto out_lock;
+> +	}
+> +
+> +	installing = 1;
+> +	rgn->flags |= ACPI_REGION_INSTALLING;
+> +	status = acpi_install_address_space_handler(ACPI_ROOT_OBJECT, space_id,
+> +						    acpi_region_default_handler,
+> +						    acpi_region_default_setup,
+> +						    rgn);
+> +	rgn->flags &= ~ACPI_REGION_INSTALLING;
+> +	if (ACPI_FAILURE(status))
+> +		res = -EINVAL;
+> +	else
+> +		rgn->flags |= ACPI_REGION_INSTALLED;
+> +
+> +out_lock:
+> +	mutex_unlock(&acpi_mutex_region);
+> +	if (installing) {
+> +		if (res)
+> +			pr_err("Failed to install region %d\n", space_id);
+> +		else
+> +			pr_info("Region %d installed\n", space_id);
+> +	}
+> +	return res;
+> +}
+> +
+> +int acpi_register_region(acpi_adr_space_type space_id,
+> +			 acpi_adr_space_handler handler,
+> +			 acpi_adr_space_setup setup, void *context)
+> +{
+> +	int res;
+> +	struct acpi_region *rgn;
+> +
+> +	if (space_id >= ACPI_NUM_PREDEFINED_REGIONS)
+> +		return -EINVAL;
+> +
+> +	rgn = &acpi_regions[space_id];
+> +	if (!acpi_region_managed(rgn))
+> +		return -EINVAL;
+> +
+> +	res = __acpi_install_region(rgn, space_id);
+> +	if (res)
+> +		return res;
+> +
+> +	mutex_lock(&acpi_mutex_region);
+> +	if (rgn->flags & ACPI_REGION_REGISTERED) {
+> +		mutex_unlock(&acpi_mutex_region);
+> +		return -EBUSY;
+> +	}
+> +
+> +	rgn->handler = handler;
+> +	rgn->setup = setup;
+> +	rgn->context = context;
+> +	rgn->flags |= ACPI_REGION_REGISTERED;
+> +	atomic_set(&rgn->refcnt, 1);
+> +	mutex_unlock(&acpi_mutex_region);
+> +
+> +	pr_info("Region %d registered\n", space_id);
+> +
+> +	return 0;
+> +}
+> +EXPORT_SYMBOL_GPL(acpi_register_region);
+> +
+> +void acpi_unregister_region(acpi_adr_space_type space_id)
+> +{
+> +	struct acpi_region *rgn;
+> +
+> +	if (space_id >= ACPI_NUM_PREDEFINED_REGIONS)
+> +		return;
+> +
+> +	rgn = &acpi_regions[space_id];
+> +	if (!acpi_region_managed(rgn))
+> +		return;
+> +
+> +	mutex_lock(&acpi_mutex_region);
+> +	if (!(rgn->flags & ACPI_REGION_REGISTERED)) {
+> +		mutex_unlock(&acpi_mutex_region);
+> +		return;
+> +	}
+> +	if (rgn->flags & ACPI_REGION_UNREGISTERING) {
+> +		mutex_unlock(&acpi_mutex_region);
+> +		return;
+
+What about
+
+	if ((rgn->flags & ACPI_REGION_UNREGISTERING)
+	    || !(rgn->flags & ACPI_REGION_REGISTERED)) {
+		mutex_unlock(&acpi_mutex_region);
+		return;
+	}
+
+> +	}
+> +
+> +	rgn->flags |= ACPI_REGION_UNREGISTERING;
+> +	rgn->handler = NULL;
+> +	rgn->setup = NULL;
+> +	rgn->context = NULL;
+> +	mutex_unlock(&acpi_mutex_region);
+> +
+> +	while (atomic_read(&rgn->refcnt) > 1)
+> +		schedule_timeout_uninterruptible(usecs_to_jiffies(5));
+
+Wouldn't it be better to use a wait queue here?
+
+> +	atomic_dec(&rgn->refcnt);
+> +
+> +	mutex_lock(&acpi_mutex_region);
+> +	rgn->flags &= ~(ACPI_REGION_REGISTERED | ACPI_REGION_UNREGISTERING);
+> +	mutex_unlock(&acpi_mutex_region);
+> +
+> +	pr_info("Region %d unregistered\n", space_id);
+> +}
+> +EXPORT_SYMBOL_GPL(acpi_unregister_region);
+> diff --git a/include/acpi/acpi_bus.h b/include/acpi/acpi_bus.h
+> index a2c2fbb..15fad0d 100644
+> --- a/include/acpi/acpi_bus.h
+> +++ b/include/acpi/acpi_bus.h
+> @@ -542,4 +542,9 @@ static inline int unregister_acpi_bus_type(void *bus) { return 0; }
+>  
+>  #endif				/* CONFIG_ACPI */
+>  
+> +int acpi_register_region(acpi_adr_space_type space_id,
+> +			 acpi_adr_space_handler handler,
+> +			 acpi_adr_space_setup setup, void *context);
+> +void acpi_unregister_region(acpi_adr_space_type space_id);
+> +
+>  #endif /*__ACPI_BUS_H__*/
+
+Thanks,
 Rafael
+
+
+-- 
+I speak only for myself.
+Rafael J. Wysocki, Intel Open Source Technology Center.
