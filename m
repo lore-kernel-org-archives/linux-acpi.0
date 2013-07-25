@@ -1,36 +1,186 @@
-From: Tang Chen <tangchen@cn.fujitsu.com>
-Subject: Re: [PATCH 16/21] x86, memblock, mem-hotplug: Free hotpluggable memory
- reserved by memblock.
-Date: Thu, 25 Jul 2013 10:35:41 +0800
-Message-ID: <51F08EFD.2080708@cn.fujitsu.com>
-References: <1374220774-29974-1-git-send-email-tangchen@cn.fujitsu.com> <1374220774-29974-17-git-send-email-tangchen@cn.fujitsu.com> <20130723210053.GU21100@mtj.dyndns.org>
+From: "Zheng, Lv" <lv.zheng@intel.com>
+Subject: Re: [PATCH 03/13] ACPI/IPMI: Fix race caused
+ by the unprotected ACPI IPMI transfers
+Date: Thu, 25 Jul 2013 03:09:35 +0000
+Message-ID: <1AE640813FDE7649BE1B193DEA596E88024357A9@SHSMSX101.ccr.corp.intel.com>
+References: <cover.1370652213.git.lv.zheng@intel.com>
+	<cover.1374566394.git.lv.zheng@intel.com>
+	<970a8a7108e4c95ce09e34eee03eb5731645729f.1374566394.git.lv.zheng@intel.com>
+	<1520893.BbRK6T3F73@vostro.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <owner-linux-mm@kvack.org>
-In-Reply-To: <20130723210053.GU21100@mtj.dyndns.org>
-Sender: owner-linux-mm@kvack.org
-To: Tejun Heo <tj@kernel.org>
-Cc: tglx@linutronix.de, mingo@elte.hu, hpa@zytor.com, akpm@linux-foundation.org, trenn@suse.de, yinghai@kernel.org, jiang.liu@huawei.com, wency@cn.fujitsu.com, laijs@cn.fujitsu.com, isimatu.yasuaki@jp.fujitsu.com, izumi.taku@jp.fujitsu.com, mgorman@suse.de, minchan@kernel.org, mina86@mina86.com, gong.chen@linux.intel.com, vasilis.liaskovitis@profitbricks.com, lwoodman@redhat.com, riel@redhat.com, jweiner@redhat.com, prarit@redhat.com, zhangyanfei@cn.fujitsu.com, yanghy@cn.fujitsu.com, x86@kernel.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-mm@kvack.org, linux-acpi@vger.kernel.org
+Return-path: <openipmi-developer-bounces@lists.sourceforge.net>
+In-Reply-To: <1520893.BbRK6T3F73@vostro.rjw.lan>
+Content-Language: en-US
+List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/openipmi-developer>,
+	<mailto:openipmi-developer-request@lists.sourceforge.net?subject=unsubscribe>
+List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum_name=openipmi-developer>
+List-Post: <mailto:openipmi-developer@lists.sourceforge.net>
+List-Help: <mailto:openipmi-developer-request@lists.sourceforge.net?subject=help>
+List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/openipmi-developer>,
+	<mailto:openipmi-developer-request@lists.sourceforge.net?subject=subscribe>
+Errors-To: openipmi-developer-bounces@lists.sourceforge.net
+To: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: "Brown, Len" <len.brown@intel.com>, Corey Minyard <minyard@acm.org>, "Wysocki, Rafael J" <rafael.j.wysocki@intel.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "Zhao, Yakui" <yakui.zhao@intel.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "openipmi-developer@lists.sourceforge.net" <openipmi-developer@lists.sourceforge.net>
 List-Id: linux-acpi@vger.kernel.org
 
-On 07/24/2013 05:00 AM, Tejun Heo wrote:
-> On Fri, Jul 19, 2013 at 03:59:29PM +0800, Tang Chen wrote:
->> We reserved hotpluggable memory in memblock at early time. And when memory
->> initialization is done, we have to free it to buddy system.
->>
->> This patch free memory reserved by memblock with flag MEMBLK_HOTPLUGGABLE.
->
-> Sequencing patches this way means machines will run with hotpluggable
-> regions reserved inbetween.  Please put the reserving and freeing into
-> the same patch.
+-stable according to the previous conversation.
 
-Sure, followed.
+> From: Rafael J. Wysocki [mailto:rjw@sisk.pl]
+> Sent: Thursday, July 25, 2013 7:38 AM
+> 
+> On Tuesday, July 23, 2013 04:09:15 PM Lv Zheng wrote:
+> > This patch fixes races caused by unprotected ACPI IPMI transfers.
+> >
+> > We can see the following crashes may occur:
+> > 1. There is no tx_msg_lock held for iterating tx_msg_list in
+> >    ipmi_flush_tx_msg() while it is parellel unlinked on failure in
+> >    acpi_ipmi_space_handler() under protection of tx_msg_lock.
+> > 2. There is no lock held for freeing tx_msg in acpi_ipmi_space_handler()
+> >    while it is parellel accessed in ipmi_flush_tx_msg() and
+> >    ipmi_msg_handler().
+> >
+> > This patch enhances tx_msg_lock to protect all tx_msg accesses to
+> > solve this issue.  Then tx_msg_lock is always held around complete()
+> > and tx_msg accesses.
+> > Calling smp_wmb() before setting msg_done flag so that messages
+> > completed due to flushing will not be handled as 'done' messages while
+> > their contents are not vaild.
+> >
+> > Signed-off-by: Lv Zheng <lv.zheng@intel.com>
+> > Cc: Zhao Yakui <yakui.zhao@intel.com>
+> > Reviewed-by: Huang Ying <ying.huang@intel.com>
+> > ---
+> >  drivers/acpi/acpi_ipmi.c |   10 ++++++++--
+> >  1 file changed, 8 insertions(+), 2 deletions(-)
+> >
+> > diff --git a/drivers/acpi/acpi_ipmi.c b/drivers/acpi/acpi_ipmi.c index
+> > b37c189..527ee43 100644
+> > --- a/drivers/acpi/acpi_ipmi.c
+> > +++ b/drivers/acpi/acpi_ipmi.c
+> > @@ -230,11 +230,14 @@ static void ipmi_flush_tx_msg(struct
+> acpi_ipmi_device *ipmi)
+> >  	struct acpi_ipmi_msg *tx_msg, *temp;
+> >  	int count = HZ / 10;
+> >  	struct pnp_dev *pnp_dev = ipmi->pnp_dev;
+> > +	unsigned long flags;
+> >
+> > +	spin_lock_irqsave(&ipmi->tx_msg_lock, flags);
+> >  	list_for_each_entry_safe(tx_msg, temp, &ipmi->tx_msg_list, head) {
+> >  		/* wake up the sleep thread on the Tx msg */
+> >  		complete(&tx_msg->tx_complete);
+> >  	}
+> > +	spin_unlock_irqrestore(&ipmi->tx_msg_lock, flags);
+> >
+> >  	/* wait for about 100ms to flush the tx message list */
+> >  	while (count--) {
+> > @@ -268,13 +271,12 @@ static void ipmi_msg_handler(struct
+> ipmi_recv_msg *msg, void *user_msg_data)
+> >  			break;
+> >  		}
+> >  	}
+> > -	spin_unlock_irqrestore(&ipmi_device->tx_msg_lock, flags);
+> >
+> >  	if (!msg_found) {
+> >  		dev_warn(&pnp_dev->dev,
+> >  			 "Unexpected response (msg id %ld) is returned.\n",
+> >  			 msg->msgid);
+> > -		goto out_msg;
+> > +		goto out_lock;
+> >  	}
+> >
+> >  	/* copy the response data to Rx_data buffer */ @@ -286,10 +288,14 @@
+> > static void ipmi_msg_handler(struct ipmi_recv_msg *msg, void
+> *user_msg_data)
+> >  	}
+> >  	tx_msg->rx_len = msg->msg.data_len;
+> >  	memcpy(tx_msg->data, msg->msg.data, tx_msg->rx_len);
+> > +	/* tx_msg content must be valid before setting msg_done flag */
+> > +	smp_wmb();
+> 
+> That's suspicious.
+> 
+> If you need the write barrier here, you'll most likely need a read barrier
+> somewhere else.  Where's that?
 
-Thanks.
+It might depend on whether the content written before the smp_wmb() is used or not by the other side codes under the condition set after the smp_wmb().
 
---
-To unsubscribe, send a message with 'unsubscribe linux-mm' in
-the body to majordomo@kvack.org.  For more info on Linux MM,
-see: http://www.linux-mm.org/ .
-Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
+So comment could be treated as 2 parts:
+1. do we need a paired smp_rmb().
+2. do we need a smp_wmb().
+
+For 1.
+If we want a paired smp_rmb(), then it will appear in this function:
+
+186 static void acpi_format_ipmi_response(struct acpi_ipmi_msg *msg,
+187                 acpi_integer *value, int rem_time)
+188 {
+189         struct acpi_ipmi_buffer *buffer;
+190 
+191         /*
+192          * value is also used as output parameter. It represents the response
+193          * IPMI message returned by IPMI command.
+194          */
+195         buffer = (struct acpi_ipmi_buffer *)value;
+196         if (!rem_time && !msg->msg_done) {
+197                 buffer->status = ACPI_IPMI_TIMEOUT;
+198                 return;
+199         }
+200         /*
+201          * If the flag of msg_done is not set or the recv length is zero, it
+202          * means that the IPMI command is not executed correctly.
+203          * The status code will be ACPI_IPMI_UNKNOWN.
+204          */
+205         if (!msg->msg_done || !msg->rx_len) {
+206                 buffer->status = ACPI_IPMI_UNKNOWN;
+207                 return;
+208         }
++         smp_rmb();
+209         /*
+210          * If the IPMI response message is obtained correctly, the status code
+211          * will be ACPI_IPMI_OK
+212          */
+213         buffer->status = ACPI_IPMI_OK;
+214         buffer->length = msg->rx_len;
+215         memcpy(buffer->data, msg->rx_data, msg->rx_len);
+216 }
+
+If we don't then there will only be msg content not correctly read from msg->rx_data.
+Note that the rx_len is 0 during initialization and will never exceed the sizeof(buffer->data), so the read is safe.
+
+Being without smp_rmb() is also OK in this case, since:
+1. buffer->data will never be used when buffer->status is not ACPI_IPMI_OK and
+2. the smp_rmb()/smp_wmb() added in this patch will be deleted in [PATCH 07].
+
+So IMO, we needn't add the smp_rmb(), what do you think of this?
+
+For 2.
+If we don't add smp_wmb() in the ipmi_msg_handler(), then the codes running on other thread in the acpi_format_ipmi_response() may read wrong msg->rx_data (a timeout triggers this function, but when acpi_format_ipmi_response() is entered, the msg->msg_done flag could be seen as 1 but the msg->rx_data is not ready), this is what we want to avoid in this quick fix.
+
+Thanks and best regards
+-Lv
+
+> 
+> >  	tx_msg->msg_done = 1;
+> >
+> >  out_comp:
+> >  	complete(&tx_msg->tx_complete);
+> > +out_lock:
+> > +	spin_unlock_irqrestore(&ipmi_device->tx_msg_lock, flags);
+> >  out_msg:
+> >  	ipmi_free_recv_msg(msg);
+> >  }
+> 
+> Rafael
+> 
+> 
+> --
+> I speak only for myself.
+> Rafael J. Wysocki, Intel Open Source Technology Center.
+------------------------------------------------------------------------------
+See everything from the browser to the database with AppDynamics
+Get end-to-end visibility with application monitoring from AppDynamics
+Isolate bottlenecks and diagnose root cause in seconds.
+Start your free trial of AppDynamics Pro today!
+http://pubads.g.doubleclick.net/gampad/clk?id=48808831&iu=/4140/ostg.clktrk
