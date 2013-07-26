@@ -1,58 +1,30 @@
-From: Tang Chen <tangchen@cn.fujitsu.com>
-Subject: Re: [PATCH 18/21] x86, numa: Synchronize nid info in memblock.reserve
- with numa_meminfo.
-Date: Fri, 26 Jul 2013 12:00:19 +0800
-Message-ID: <51F1F453.8060602@cn.fujitsu.com>
-References: <1374220774-29974-1-git-send-email-tangchen@cn.fujitsu.com> <1374220774-29974-19-git-send-email-tangchen@cn.fujitsu.com> <20130723212548.GZ21100@mtj.dyndns.org> <51F0A4F9.2060802@cn.fujitsu.com> <20130725150554.GC26107@mtj.dyndns.org>
+From: Joerg Platte <jplatte@naasa.net>
+Subject: Re: Linux 3.11-rc2 (acpi backlight, revert)
+Date: Fri, 26 Jul 2013 06:23:14 +0200
+Message-ID: <51F1F9B2.9000302@naasa.net>
+References: <CA+55aFy330bSRjK5HT1n0wXioPykL3RquHXyBPjm5GpTz_Y=DQ@mail.gmail.com> <2218913.HKGjJcYT1G@vostro.rjw.lan> <CAAG0J98i-XaO_3sPWsnyEGDX77T=WiNf1K=YMhe5DvkwKotorw@mail.gmail.com> <9711528.yIoJy2i1iX@vostro.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: text/plain; charset=UTF-8; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <owner-linux-mm@kvack.org>
-In-Reply-To: <20130725150554.GC26107@mtj.dyndns.org>
-Sender: owner-linux-mm@kvack.org
-To: Tejun Heo <tj@kernel.org>
-Cc: tglx@linutronix.de, mingo@elte.hu, hpa@zytor.com, akpm@linux-foundation.org, trenn@suse.de, yinghai@kernel.org, jiang.liu@huawei.com, wency@cn.fujitsu.com, laijs@cn.fujitsu.com, isimatu.yasuaki@jp.fujitsu.com, izumi.taku@jp.fujitsu.com, mgorman@suse.de, minchan@kernel.org, mina86@mina86.com, gong.chen@linux.intel.com, vasilis.liaskovitis@profitbricks.com, lwoodman@redhat.com, riel@redhat.com, jweiner@redhat.com, prarit@redhat.com, zhangyanfei@cn.fujitsu.com, yanghy@cn.fujitsu.com, x86@kernel.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-mm@kvack.org, linux-acpi@vger.kernel.org
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from s15372268.onlinehome-server.info ([87.106.227.76]:41900 "EHLO
+	ferdi.naasa.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750793Ab3GZEdJ (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 26 Jul 2013 00:33:09 -0400
+In-Reply-To: <9711528.yIoJy2i1iX@vostro.rjw.lan>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: James Hogan <james@albanarts.com>, Kamal Mostafa <kamal@canonical.com>, =?UTF-8?B?SsO2cmcgT3R0ZQ==?= <jrg.otte@gmail.com>, Aaron Lu <aaron.lu@intel.com>, Kalle Valo <kvalo@adurom.com>, Linus Torvalds <torvalds@linux-foundation.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Matthew Garrett <matthew.garrett@nebula.com>, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Steven Newbury <steve@snewbury.org.uk>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Martin Steigerwald <Martin@lichtvoll.de>, Daniel Vetter <daniel.vetter@ffwll.ch>, intel-gfx <intel-gfx@lists.freedesktop.org>, Jani Nikula <jani.nikula@linux.intel.com>
 
-On 07/25/2013 11:05 PM, Tejun Heo wrote:
-> Hello, Tang.
->
-> On Thu, Jul 25, 2013 at 12:09:29PM +0800, Tang Chen wrote:
->> And as in [patch 14/21], when reserving hotpluggable memory, we use
->> pxm. So my
->
-> Which is kinda nasty.
+On 25.07.2013 21:47, Rafael J. Wysocki wrote:
 
-Yes, will remove it.
+> Other people who experienced problems with backlight in 3.11-rc2, please let me
+> know whether or not the revert works for you too if you can.
 
->
->> idea was to do a nid sync in numa_init(). After this, memblock will
->> set nid when
->> it allocates memory.
->
-> Sure, that's the only place we can set the numa node IDs but my point
-> is that you don't need to add another interface.  Jet let
-> memblock_set_node() handle both memblock.memory and .reserved ranges.
-> That way, you can make memblock simpler to use and less error-prone.
+Before reverting the patch /sys/class/backlight was empty and backlight 
+brightness was set to max, now it again contains a link to acpi_video0 
+on my Thinkpad 420s with intel video and adjusting the backlight works 
+again.
 
-Yes, I missed the isolation phase in memblock_set_node().
-So followed.
-
->
->> If we want to let memblock_set_node() and alloc functions set nid on
->> the reserved
->> regions, we should setup nid<->  pxm mapping when we parst SRAT for
->> the first time.
->
-> I don't follow why it has to be different.  Why do you need to do
-> anything differently?  What am I missing here?
-
-No, it was me who missed the isolation phase in memblock_set_node().
-
-Thanks.
-
---
-To unsubscribe, send a message with 'unsubscribe linux-mm' in
-the body to majordomo@kvack.org.  For more info on Linux MM,
-see: http://www.linux-mm.org/ .
-Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
+Joerg
