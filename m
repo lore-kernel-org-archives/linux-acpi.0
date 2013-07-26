@@ -1,70 +1,46 @@
-From: "Zheng, Lv" <lv.zheng@intel.com>
-Subject: RE: [PATCH 06/13] ACPI/IPMI: Add reference counting for ACPI
- operation region handlers
-Date: Fri, 26 Jul 2013 08:15:56 +0000
-Message-ID: <1AE640813FDE7649BE1B193DEA596E8802435E11@SHSMSX101.ccr.corp.intel.com>
-References: <cover.1370652213.git.lv.zheng@intel.com>
- <cover.1374566394.git.lv.zheng@intel.com>
- <d9d5acba01eb80580e7696c50db4263ded86a86c.1374566394.git.lv.zheng@intel.com>
- <2501577.sf07PMEtR1@vostro.rjw.lan>
- <1AE640813FDE7649BE1B193DEA596E8802435B7C@SHSMSX101.ccr.corp.intel.com>
+From: Tejun Heo <tj@kernel.org>
+Subject: Re: [PATCH 14/21] x86, acpi, numa: Reserve hotpluggable memory at
+ early time.
+Date: Fri, 26 Jul 2013 06:26:09 -0400
+Message-ID: <20130726102609.GB30786@mtj.dyndns.org>
+References: <1374220774-29974-1-git-send-email-tangchen@cn.fujitsu.com>
+ <1374220774-29974-15-git-send-email-tangchen@cn.fujitsu.com>
+ <20130723205557.GS21100@mtj.dyndns.org>
+ <20130723213212.GA21100@mtj.dyndns.org>
+ <51F089C1.4010402@cn.fujitsu.com>
+ <20130725151719.GE26107@mtj.dyndns.org>
+ <51F1F0E0.7040800@cn.fujitsu.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga14.intel.com ([143.182.124.37]:34591 "EHLO mga14.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751781Ab3GZIQR (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 26 Jul 2013 04:16:17 -0400
-In-Reply-To: <1AE640813FDE7649BE1B193DEA596E8802435B7C@SHSMSX101.ccr.corp.intel.com>
-Content-Language: en-US
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-doc-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <51F1F0E0.7040800@cn.fujitsu.com>
+Sender: linux-doc-owner@vger.kernel.org
+To: Tang Chen <tangchen@cn.fujitsu.com>
+Cc: tglx@linutronix.de, mingo@elte.hu, hpa@zytor.com, akpm@linux-foundation.org, trenn@suse.de, yinghai@kernel.org, jiang.liu@huawei.com, wency@cn.fujitsu.com, laijs@cn.fujitsu.com, isimatu.yasuaki@jp.fujitsu.com, izumi.taku@jp.fujitsu.com, mgorman@suse.de, minchan@kernel.org, mina86@mina86.com, gong.chen@linux.intel.com, vasilis.liaskovitis@profitbricks.com, lwoodman@redhat.com, riel@redhat.com, jweiner@redhat.com, prarit@redhat.com, zhangyanfei@cn.fujitsu.com, yanghy@cn.fujitsu.com, x86@kernel.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-mm@kvack.org, linux-acpi@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Zheng, Lv" <lv.zheng@intel.com>, "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: "Wysocki, Rafael J" <rafael.j.wysocki@intel.com>, "Brown, Len" <len.brown@intel.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
 
-PiBGcm9tOiBsaW51eC1hY3BpLW93bmVyQHZnZXIua2VybmVsLm9yZw0KPiBbbWFpbHRvOmxpbnV4
-LWFjcGktb3duZXJAdmdlci5rZXJuZWwub3JnXSBPbiBCZWhhbGYgT2YgWmhlbmcsIEx2DQo+IFNl
-bnQ6IEZyaWRheSwgSnVseSAyNiwgMjAxMyA5OjU0IEFNDQo+IFRvOiBSYWZhZWwgSi4gV3lzb2Nr
-aQ0KPiBDYzogV3lzb2NraSwgUmFmYWVsIEo7IEJyb3duLCBMZW47IGxpbnV4LWtlcm5lbEB2Z2Vy
-Lmtlcm5lbC5vcmc7DQo+IGxpbnV4LWFjcGlAdmdlci5rZXJuZWwub3JnDQo+IFN1YmplY3Q6IFJF
-OiBbUEFUQ0ggMDYvMTNdIEFDUEkvSVBNSTogQWRkIHJlZmVyZW5jZSBjb3VudGluZyBmb3IgQUNQ
-SQ0KPiBvcGVyYXRpb24gcmVnaW9uIGhhbmRsZXJzDQo+IA0KPiA+IEZyb206IFJhZmFlbCBKLiBX
-eXNvY2tpIFttYWlsdG86cmp3QHNpc2sucGxdDQo+ID4gU2VudDogRnJpZGF5LCBKdWx5IDI2LCAy
-MDEzIDU6MjkgQU0NCj4gPg0KPiA+IE9uIFR1ZXNkYXksIEp1bHkgMjMsIDIwMTMgMDQ6MDk6NDMg
-UE0gTHYgWmhlbmcgd3JvdGU6DQo+ID4gPiBUaGlzIHBhdGNoIGFkZHMgcmVmZXJlbmNlIGNvdXRp
-bmcgZm9yIEFDUEkgb3BlcmF0aW9uIHJlZ2lvbiBoYW5kbGVycw0KPiA+ID4gdG8gZml4IHJhY2Vz
-IGNhdXNlZCBieSB0aGUgQUNQSUNBIGFkZHJlc3Mgc3BhY2UgY2FsbGJhY2sgaW52b2NhdGlvbnMu
-DQo+ID4gPg0KPiA+ID4gQUNQSUNBIGFkZHJlc3Mgc3BhY2UgY2FsbGJhY2sgaW52b2NhdGlvbiBp
-cyBub3Qgc3VpdGFibGUgZm9yIExpbnV4DQo+ID4gPiBDT05GSUdfTU9EVUxFPXkgZXhlY3V0aW9u
-IGVudmlyb25tZW50Lg0KPiA+DQo+ID4gQWN0dWFsbHksIGNhbiB5b3UgcGxlYXNlIGV4cGxhaW4g
-dG8gbWUgd2hhdCAqZXhhY3RseSogdGhlIHByb2JsZW0gaXM/DQo+IA0KPiBPSy4gIEknbGwgYWRk
-IHJhY2UgZXhwbGFuYXRpb25zIGluIHRoZSBuZXh0IHJldmlzaW9uLg0KPiANCj4gVGhlIHByb2Js
-ZW0gaXMgdGhlcmUgaXMgbm8gImxvY2siIGhlbGQgaW5zaWRlIEFDUElDQSBmb3IgaW52b2tpbmcg
-b3BlcmF0aW9uDQo+IHJlZ2lvbiBoYW5kbGVycy4NCj4gVGh1cyByYWNlcyBoYXBwZW5zIGJldHdl
-ZW4gdGhlIGFjcGlfcmVtb3ZlL2luc3RhbGxfYWRkcmVzc19zcGFjZV9oYW5kbGVyDQo+IGFuZCB0
-aGUgaGFuZGxlci9zZXR1cCBjYWxsYmFja3MuDQoNClRoaXMgc2VlbXMgbm90IGEgZ29vZCBleHBs
-YW5hdGlvbiBvZiB0aGUgaW50ZW50IG9mIHRoaXMgcGF0Y2guDQpJIHRoaW5rIHRoZSBpbnRlbnQg
-aXMgaGVyZSBpbiB0aGUgcGF0Y2ggZGVzY3JpcHRpb246DQoNCjEuIEl0IGFjdHMgYXMgYSBiYXJy
-aWVyIGZvciBvcGVyYXRpb24gcmVnaW9uIGNhbGxiYWNrcyAtIG5vIGNhbGxiYWNrIHdpbGwNCiAg
-IGhhcHBlbiBhZnRlciBhY3BpX3VucmVnaXN0ZXJfcmVnaW9uKCkuDQoyLiBhY3BpX3VucmVnaXN0
-ZXJfcmVnaW9uKCkgaXMgc2FmZSB0byBiZSBjYWxsZWQgaW4gbW91ZGxlLT5leGl0KCkNCiAgIGZ1
-bmN0aW9ucy4NCg0KSG1tLCBtYXliZSBJIG5lZWQgdG8gcmUtb3JkZXIgdGhlIHBhdGNoIGRlc2Ny
-aXB0aW9uIGZvciB0aGlzIHBhdGNoLg0KDQpUaGFua3MgZm9yIGNvbW1lbnRpbmcuDQoNCkJlc3Qg
-cmVnYXJkcw0KLUx2DQoNCj4gDQo+IFRoaXMgaXMgY29ycmVjdCBwZXIgQUNQSSBzcGVjaWZpY2F0
-aW9uLg0KPiBBcyBpZiB0aGVyZSBpcyBpbnRlcnByZXRlciBsb2NrcyBoZWxkIGZvciBpbnZva2lu
-ZyBvcGVyYXRpb24gcmVnaW9uIGhhbmRsZXJzLCB0aGUNCj4gdGltZW91dCBpbXBsZW1lbnRlZCBp
-bnNpZGUgdGhlIG9wZXJhdGlvbiByZWdpb24gaGFuZGxlcnMgd2lsbCBtYWtlIGFsbCBsb2NraW5n
-DQo+IGZhY2lsaXRpZXMgKEFjcXVpcmUgb3IgU2xlZXAsLi4uKSB0aW1lZCBvdXQuDQo+IFBsZWFz
-ZSByZWZlciB0byBBQ1BJIHNwZWNpZmljYXRpb24gIjUuNS4yIENvbnRyb2wgTWV0aG9kIEV4ZWN1
-dGlvbiI6DQo+IEludGVycHJldGF0aW9uIG9mIGEgQ29udHJvbCBNZXRob2QgaXMgbm90IHByZWVt
-cHRpdmUsIGJ1dCBpdCBjYW4gYmxvY2suIFdoZW4gYQ0KPiBjb250cm9sIG1ldGhvZCBkb2VzIGJs
-b2NrLCBPU1BNIGNhbiBpbml0aWF0ZSBvciBjb250aW51ZSB0aGUgZXhlY3V0aW9uIG9mIGENCj4g
-ZGlmZmVyZW50IGNvbnRyb2wgbWV0aG9kLiBBIGNvbnRyb2wgbWV0aG9kIGNhbiBvbmx5IGFzc3Vt
-ZSB0aGF0IGFjY2VzcyB0bw0KPiBnbG9iYWwgb2JqZWN0cyBpcyBleGNsdXNpdmUgZm9yIGFueSBw
-ZXJpb2QgdGhlIGNvbnRyb2wgbWV0aG9kIGRvZXMgbm90IGJsb2NrLg0KPiANCj4gU28gaXQgaXMg
-cHJldHR5IG11Y2ggbGlrZWx5IHRoYXQgQUNQSSBJTyB0cmFuc2ZlcnMgYXJlIGxvY2tlZCBpbnNp
-ZGUgdGhlIG9wZXJhdGlvbg0KPiByZWdpb24gY2FsbGJhY2sgaW1wbGVtZW50YXRpb25zLg0KPiBV
-c2luZyBsb2NraW5nIGZhY2lsaXR5IHRvIHByb3RlY3QgdGhlIGNhbGxiYWNrIGludm9jYXRpb24g
-d2lsbCByaXNrIGRlYWQgbG9ja3MuDQo+IA0KPiBUaGFua3MNCj4gLUx2DQo+IA0KPiA+IFJhZmFl
-bA0K
+On Fri, Jul 26, 2013 at 11:45:36AM +0800, Tang Chen wrote:
+> I just don't want to any new variables to store the hotpluggable regions.
+> But without a new shared variable, it seems difficult to achieve the goal
+> you said below.
+
+Why can't it be done with the .flags field that was added anyway?
+
+> So how about this.
+> 1. Introduce a new global list used to store hotpluggable regions.
+> 2. On acpi side, find and fulfill the list.
+> 3. On memblock side, make the default allocation function stay away from
+>    these regions.
+
+I was thinking more along the line of
+
+1. Mark hotpluggable regions with a flag in memblock.
+2. On ACPI side, find and mark hotpluggable regions.
+3. Make memblock avoid giving out hotpluggable regions for normal
+   allocations.
+
+Thanks.
+
+-- 
+tejun
