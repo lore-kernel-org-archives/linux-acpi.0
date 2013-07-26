@@ -1,156 +1,236 @@
 From: "Zheng, Lv" <lv.zheng@intel.com>
-Subject: RE: [PATCH 03/13] ACPI/IPMI: Fix race caused by the unprotected
- ACPI IPMI transfers
-Date: Fri, 26 Jul 2013 00:09:32 +0000
-Message-ID: <1AE640813FDE7649BE1B193DEA596E8802435A63@SHSMSX101.ccr.corp.intel.com>
+Subject: Re: [PATCH 03/13] ACPI/IPMI: Fix race caused
+ by the unprotected ACPI IPMI transfers
+Date: Fri, 26 Jul 2013 00:16:55 +0000
+Message-ID: <1AE640813FDE7649BE1B193DEA596E8802435A78@SHSMSX101.ccr.corp.intel.com>
 References: <cover.1370652213.git.lv.zheng@intel.com>
- <1520893.BbRK6T3F73@vostro.rjw.lan>
- <1AE640813FDE7649BE1B193DEA596E88024357A9@SHSMSX101.ccr.corp.intel.com>
- <76401540.gtU1MiBxPY@vostro.rjw.lan>
+	<1520893.BbRK6T3F73@vostro.rjw.lan>
+	<1AE640813FDE7649BE1B193DEA596E88024357A9@SHSMSX101.ccr.corp.intel.com>
+	<76401540.gtU1MiBxPY@vostro.rjw.lan> <51F16A96.6040706@acm.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga09.intel.com ([134.134.136.24]:21028 "EHLO mga09.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753586Ab3GZAKL (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 25 Jul 2013 20:10:11 -0400
-In-Reply-To: <76401540.gtU1MiBxPY@vostro.rjw.lan>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <openipmi-developer-bounces@lists.sourceforge.net>
+In-Reply-To: <51F16A96.6040706@acm.org>
 Content-Language: en-US
-Sender: linux-acpi-owner@vger.kernel.org
+List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/openipmi-developer>,
+	<mailto:openipmi-developer-request@lists.sourceforge.net?subject=unsubscribe>
+List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum_name=openipmi-developer>
+List-Post: <mailto:openipmi-developer@lists.sourceforge.net>
+List-Help: <mailto:openipmi-developer-request@lists.sourceforge.net?subject=help>
+List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/openipmi-developer>,
+	<mailto:openipmi-developer-request@lists.sourceforge.net?subject=subscribe>
+Errors-To: openipmi-developer-bounces@lists.sourceforge.net
+To: "minyard@acm.org" <minyard@acm.org>, "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: "Brown, Len" <len.brown@intel.com>, "Wysocki,
+	Rafael J" <rafael.j.wysocki@intel.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "Zhao, Yakui" <yakui.zhao@intel.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "openipmi-developer@lists.sourceforge.net" <openipmi-developer@lists.sourceforge.net>
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: "Wysocki, Rafael J" <rafael.j.wysocki@intel.com>, "Brown, Len" <len.brown@intel.com>, Corey Minyard <minyard@acm.org>, "Zhao, Yakui" <yakui.zhao@intel.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "openipmi-developer@lists.sourceforge.net" <openipmi-developer@lists.sourceforge.net>
 
-DQoNCj4gRnJvbTogUmFmYWVsIEouIFd5c29ja2kgW21haWx0bzpyandAc2lzay5wbF0NCj4gU2Vu
-dDogVGh1cnNkYXksIEp1bHkgMjUsIDIwMTMgODowNyBQTQ0KPiANCj4gT24gVGh1cnNkYXksIEp1
-bHkgMjUsIDIwMTMgMDM6MDk6MzUgQU0gWmhlbmcsIEx2IHdyb3RlOg0KPiA+IC1zdGFibGUgYWNj
-b3JkaW5nIHRvIHRoZSBwcmV2aW91cyBjb252ZXJzYXRpb24uDQo+ID4NCj4gPiA+IEZyb206IFJh
-ZmFlbCBKLiBXeXNvY2tpIFttYWlsdG86cmp3QHNpc2sucGxdDQo+ID4gPiBTZW50OiBUaHVyc2Rh
-eSwgSnVseSAyNSwgMjAxMyA3OjM4IEFNDQo+ID4gPg0KPiA+ID4gT24gVHVlc2RheSwgSnVseSAy
-MywgMjAxMyAwNDowOToxNSBQTSBMdiBaaGVuZyB3cm90ZToNCj4gPiA+ID4gVGhpcyBwYXRjaCBm
-aXhlcyByYWNlcyBjYXVzZWQgYnkgdW5wcm90ZWN0ZWQgQUNQSSBJUE1JIHRyYW5zZmVycy4NCj4g
-PiA+ID4NCj4gPiA+ID4gV2UgY2FuIHNlZSB0aGUgZm9sbG93aW5nIGNyYXNoZXMgbWF5IG9jY3Vy
-Og0KPiA+ID4gPiAxLiBUaGVyZSBpcyBubyB0eF9tc2dfbG9jayBoZWxkIGZvciBpdGVyYXRpbmcg
-dHhfbXNnX2xpc3QgaW4NCj4gPiA+ID4gICAgaXBtaV9mbHVzaF90eF9tc2coKSB3aGlsZSBpdCBp
-cyBwYXJlbGxlbCB1bmxpbmtlZCBvbiBmYWlsdXJlIGluDQo+ID4gPiA+ICAgIGFjcGlfaXBtaV9z
-cGFjZV9oYW5kbGVyKCkgdW5kZXIgcHJvdGVjdGlvbiBvZiB0eF9tc2dfbG9jay4NCj4gPiA+ID4g
-Mi4gVGhlcmUgaXMgbm8gbG9jayBoZWxkIGZvciBmcmVlaW5nIHR4X21zZyBpbiBhY3BpX2lwbWlf
-c3BhY2VfaGFuZGxlcigpDQo+ID4gPiA+ICAgIHdoaWxlIGl0IGlzIHBhcmVsbGVsIGFjY2Vzc2Vk
-IGluIGlwbWlfZmx1c2hfdHhfbXNnKCkgYW5kDQo+ID4gPiA+ICAgIGlwbWlfbXNnX2hhbmRsZXIo
-KS4NCj4gPiA+ID4NCj4gPiA+ID4gVGhpcyBwYXRjaCBlbmhhbmNlcyB0eF9tc2dfbG9jayB0byBw
-cm90ZWN0IGFsbCB0eF9tc2cgYWNjZXNzZXMgdG8NCj4gPiA+ID4gc29sdmUgdGhpcyBpc3N1ZS4g
-IFRoZW4gdHhfbXNnX2xvY2sgaXMgYWx3YXlzIGhlbGQgYXJvdW5kDQo+ID4gPiA+IGNvbXBsZXRl
-KCkgYW5kIHR4X21zZyBhY2Nlc3Nlcy4NCj4gPiA+ID4gQ2FsbGluZyBzbXBfd21iKCkgYmVmb3Jl
-IHNldHRpbmcgbXNnX2RvbmUgZmxhZyBzbyB0aGF0IG1lc3NhZ2VzDQo+ID4gPiA+IGNvbXBsZXRl
-ZCBkdWUgdG8gZmx1c2hpbmcgd2lsbCBub3QgYmUgaGFuZGxlZCBhcyAnZG9uZScgbWVzc2FnZXMN
-Cj4gPiA+ID4gd2hpbGUgdGhlaXIgY29udGVudHMgYXJlIG5vdCB2YWlsZC4NCj4gPiA+ID4NCj4g
-PiA+ID4gU2lnbmVkLW9mZi1ieTogTHYgWmhlbmcgPGx2LnpoZW5nQGludGVsLmNvbT4NCj4gPiA+
-ID4gQ2M6IFpoYW8gWWFrdWkgPHlha3VpLnpoYW9AaW50ZWwuY29tPg0KPiA+ID4gPiBSZXZpZXdl
-ZC1ieTogSHVhbmcgWWluZyA8eWluZy5odWFuZ0BpbnRlbC5jb20+DQo+ID4gPiA+IC0tLQ0KPiA+
-ID4gPiAgZHJpdmVycy9hY3BpL2FjcGlfaXBtaS5jIHwgICAxMCArKysrKysrKy0tDQo+ID4gPiA+
-ICAxIGZpbGUgY2hhbmdlZCwgOCBpbnNlcnRpb25zKCspLCAyIGRlbGV0aW9ucygtKQ0KPiA+ID4g
-Pg0KPiA+ID4gPiBkaWZmIC0tZ2l0IGEvZHJpdmVycy9hY3BpL2FjcGlfaXBtaS5jIGIvZHJpdmVy
-cy9hY3BpL2FjcGlfaXBtaS5jDQo+ID4gPiA+IGluZGV4DQo+ID4gPiA+IGIzN2MxODkuLjUyN2Vl
-NDMgMTAwNjQ0DQo+ID4gPiA+IC0tLSBhL2RyaXZlcnMvYWNwaS9hY3BpX2lwbWkuYw0KPiA+ID4g
-PiArKysgYi9kcml2ZXJzL2FjcGkvYWNwaV9pcG1pLmMNCj4gPiA+ID4gQEAgLTIzMCwxMSArMjMw
-LDE0IEBAIHN0YXRpYyB2b2lkIGlwbWlfZmx1c2hfdHhfbXNnKHN0cnVjdA0KPiA+ID4gYWNwaV9p
-cG1pX2RldmljZSAqaXBtaSkNCj4gPiA+ID4gIAlzdHJ1Y3QgYWNwaV9pcG1pX21zZyAqdHhfbXNn
-LCAqdGVtcDsNCj4gPiA+ID4gIAlpbnQgY291bnQgPSBIWiAvIDEwOw0KPiA+ID4gPiAgCXN0cnVj
-dCBwbnBfZGV2ICpwbnBfZGV2ID0gaXBtaS0+cG5wX2RldjsNCj4gPiA+ID4gKwl1bnNpZ25lZCBs
-b25nIGZsYWdzOw0KPiA+ID4gPg0KPiA+ID4gPiArCXNwaW5fbG9ja19pcnFzYXZlKCZpcG1pLT50
-eF9tc2dfbG9jaywgZmxhZ3MpOw0KPiA+ID4gPiAgCWxpc3RfZm9yX2VhY2hfZW50cnlfc2FmZSh0
-eF9tc2csIHRlbXAsICZpcG1pLT50eF9tc2dfbGlzdCwgaGVhZCkgew0KPiA+ID4gPiAgCQkvKiB3
-YWtlIHVwIHRoZSBzbGVlcCB0aHJlYWQgb24gdGhlIFR4IG1zZyAqLw0KPiA+ID4gPiAgCQljb21w
-bGV0ZSgmdHhfbXNnLT50eF9jb21wbGV0ZSk7DQo+ID4gPiA+ICAJfQ0KPiA+ID4gPiArCXNwaW5f
-dW5sb2NrX2lycXJlc3RvcmUoJmlwbWktPnR4X21zZ19sb2NrLCBmbGFncyk7DQo+ID4gPiA+DQo+
-ID4gPiA+ICAJLyogd2FpdCBmb3IgYWJvdXQgMTAwbXMgdG8gZmx1c2ggdGhlIHR4IG1lc3NhZ2Ug
-bGlzdCAqLw0KPiA+ID4gPiAgCXdoaWxlIChjb3VudC0tKSB7DQo+ID4gPiA+IEBAIC0yNjgsMTMg
-KzI3MSwxMiBAQCBzdGF0aWMgdm9pZCBpcG1pX21zZ19oYW5kbGVyKHN0cnVjdA0KPiA+ID4gaXBt
-aV9yZWN2X21zZyAqbXNnLCB2b2lkICp1c2VyX21zZ19kYXRhKQ0KPiA+ID4gPiAgCQkJYnJlYWs7
-DQo+ID4gPiA+ICAJCX0NCj4gPiA+ID4gIAl9DQo+ID4gPiA+IC0Jc3Bpbl91bmxvY2tfaXJxcmVz
-dG9yZSgmaXBtaV9kZXZpY2UtPnR4X21zZ19sb2NrLCBmbGFncyk7DQo+ID4gPiA+DQo+ID4gPiA+
-ICAJaWYgKCFtc2dfZm91bmQpIHsNCj4gPiA+ID4gIAkJZGV2X3dhcm4oJnBucF9kZXYtPmRldiwN
-Cj4gPiA+ID4gIAkJCSAiVW5leHBlY3RlZCByZXNwb25zZSAobXNnIGlkICVsZCkgaXMgcmV0dXJu
-ZWQuXG4iLA0KPiA+ID4gPiAgCQkJIG1zZy0+bXNnaWQpOw0KPiA+ID4gPiAtCQlnb3RvIG91dF9t
-c2c7DQo+ID4gPiA+ICsJCWdvdG8gb3V0X2xvY2s7DQo+ID4gPiA+ICAJfQ0KPiA+ID4gPg0KPiA+
-ID4gPiAgCS8qIGNvcHkgdGhlIHJlc3BvbnNlIGRhdGEgdG8gUnhfZGF0YSBidWZmZXIgKi8gQEAg
-LTI4NiwxMA0KPiA+ID4gPiArMjg4LDE0IEBAIHN0YXRpYyB2b2lkIGlwbWlfbXNnX2hhbmRsZXIo
-c3RydWN0IGlwbWlfcmVjdl9tc2cgKm1zZywNCj4gPiA+ID4gdm9pZA0KPiA+ID4gKnVzZXJfbXNn
-X2RhdGEpDQo+ID4gPiA+ICAJfQ0KPiA+ID4gPiAgCXR4X21zZy0+cnhfbGVuID0gbXNnLT5tc2cu
-ZGF0YV9sZW47DQo+ID4gPiA+ICAJbWVtY3B5KHR4X21zZy0+ZGF0YSwgbXNnLT5tc2cuZGF0YSwg
-dHhfbXNnLT5yeF9sZW4pOw0KPiA+ID4gPiArCS8qIHR4X21zZyBjb250ZW50IG11c3QgYmUgdmFs
-aWQgYmVmb3JlIHNldHRpbmcgbXNnX2RvbmUgZmxhZyAqLw0KPiA+ID4gPiArCXNtcF93bWIoKTsN
-Cj4gPiA+DQo+ID4gPiBUaGF0J3Mgc3VzcGljaW91cy4NCj4gPiA+DQo+ID4gPiBJZiB5b3UgbmVl
-ZCB0aGUgd3JpdGUgYmFycmllciBoZXJlLCB5b3UnbGwgbW9zdCBsaWtlbHkgbmVlZCBhIHJlYWQN
-Cj4gPiA+IGJhcnJpZXIgc29tZXdoZXJlIGVsc2UuICBXaGVyZSdzIHRoYXQ/DQo+ID4NCj4gPiBJ
-dCBtaWdodCBkZXBlbmQgb24gd2hldGhlciB0aGUgY29udGVudCB3cml0dGVuIGJlZm9yZSB0aGUg
-c21wX3dtYigpIGlzDQo+IHVzZWQgb3Igbm90IGJ5IHRoZSBvdGhlciBzaWRlIGNvZGVzIHVuZGVy
-IHRoZSBjb25kaXRpb24gc2V0IGFmdGVyIHRoZQ0KPiBzbXBfd21iKCkuDQo+ID4NCj4gPiBTbyBj
-b21tZW50IGNvdWxkIGJlIHRyZWF0ZWQgYXMgMiBwYXJ0czoNCj4gPiAxLiBkbyB3ZSBuZWVkIGEg
-cGFpcmVkIHNtcF9ybWIoKS4NCj4gPiAyLiBkbyB3ZSBuZWVkIGEgc21wX3dtYigpLg0KPiA+DQo+
-ID4gRm9yIDEuDQo+ID4gSWYgd2Ugd2FudCBhIHBhaXJlZCBzbXBfcm1iKCksIHRoZW4gaXQgd2ls
-bCBhcHBlYXIgaW4gdGhpcyBmdW5jdGlvbjoNCj4gPg0KPiA+IDE4NiBzdGF0aWMgdm9pZCBhY3Bp
-X2Zvcm1hdF9pcG1pX3Jlc3BvbnNlKHN0cnVjdCBhY3BpX2lwbWlfbXNnICptc2csDQo+ID4gMTg3
-ICAgICAgICAgICAgICAgICBhY3BpX2ludGVnZXIgKnZhbHVlLCBpbnQgcmVtX3RpbWUpDQo+ID4g
-MTg4IHsNCj4gPiAxODkgICAgICAgICBzdHJ1Y3QgYWNwaV9pcG1pX2J1ZmZlciAqYnVmZmVyOw0K
-PiA+IDE5MA0KPiA+IDE5MSAgICAgICAgIC8qDQo+ID4gMTkyICAgICAgICAgICogdmFsdWUgaXMg
-YWxzbyB1c2VkIGFzIG91dHB1dCBwYXJhbWV0ZXIuIEl0IHJlcHJlc2VudHMgdGhlDQo+IHJlc3Bv
-bnNlDQo+ID4gMTkzICAgICAgICAgICogSVBNSSBtZXNzYWdlIHJldHVybmVkIGJ5IElQTUkgY29t
-bWFuZC4NCj4gPiAxOTQgICAgICAgICAgKi8NCj4gPiAxOTUgICAgICAgICBidWZmZXIgPSAoc3Ry
-dWN0IGFjcGlfaXBtaV9idWZmZXIgKil2YWx1ZTsNCj4gPiAxOTYgICAgICAgICBpZiAoIXJlbV90
-aW1lICYmICFtc2ctPm1zZ19kb25lKSB7DQo+ID4gMTk3ICAgICAgICAgICAgICAgICBidWZmZXIt
-PnN0YXR1cyA9IEFDUElfSVBNSV9USU1FT1VUOw0KPiA+IDE5OCAgICAgICAgICAgICAgICAgcmV0
-dXJuOw0KPiA+IDE5OSAgICAgICAgIH0NCj4gPiAyMDAgICAgICAgICAvKg0KPiA+IDIwMSAgICAg
-ICAgICAqIElmIHRoZSBmbGFnIG9mIG1zZ19kb25lIGlzIG5vdCBzZXQgb3IgdGhlIHJlY3YgbGVu
-Z3RoIGlzIHplcm8sDQo+IGl0DQo+ID4gMjAyICAgICAgICAgICogbWVhbnMgdGhhdCB0aGUgSVBN
-SSBjb21tYW5kIGlzIG5vdCBleGVjdXRlZCBjb3JyZWN0bHkuDQo+ID4gMjAzICAgICAgICAgICog
-VGhlIHN0YXR1cyBjb2RlIHdpbGwgYmUgQUNQSV9JUE1JX1VOS05PV04uDQo+ID4gMjA0ICAgICAg
-ICAgICovDQo+ID4gMjA1ICAgICAgICAgaWYgKCFtc2ctPm1zZ19kb25lIHx8ICFtc2ctPnJ4X2xl
-bikgew0KPiA+IDIwNiAgICAgICAgICAgICAgICAgYnVmZmVyLT5zdGF0dXMgPSBBQ1BJX0lQTUlf
-VU5LTk9XTjsNCj4gPiAyMDcgICAgICAgICAgICAgICAgIHJldHVybjsNCj4gPiAyMDggICAgICAg
-ICB9DQo+ID4gKyAgICAgICAgIHNtcF9ybWIoKTsNCj4gPiAyMDkgICAgICAgICAvKg0KPiA+IDIx
-MCAgICAgICAgICAqIElmIHRoZSBJUE1JIHJlc3BvbnNlIG1lc3NhZ2UgaXMgb2J0YWluZWQgY29y
-cmVjdGx5LCB0aGUNCj4gc3RhdHVzIGNvZGUNCj4gPiAyMTEgICAgICAgICAgKiB3aWxsIGJlIEFD
-UElfSVBNSV9PSw0KPiA+IDIxMiAgICAgICAgICAqLw0KPiA+IDIxMyAgICAgICAgIGJ1ZmZlci0+
-c3RhdHVzID0gQUNQSV9JUE1JX09LOw0KPiA+IDIxNCAgICAgICAgIGJ1ZmZlci0+bGVuZ3RoID0g
-bXNnLT5yeF9sZW47DQo+ID4gMjE1ICAgICAgICAgbWVtY3B5KGJ1ZmZlci0+ZGF0YSwgbXNnLT5y
-eF9kYXRhLCBtc2ctPnJ4X2xlbik7DQo+ID4gMjE2IH0NCj4gPg0KPiA+IElmIHdlIGRvbid0IHRo
-ZW4gdGhlcmUgd2lsbCBvbmx5IGJlIG1zZyBjb250ZW50IG5vdCBjb3JyZWN0bHkgcmVhZCBmcm9t
-DQo+IG1zZy0+cnhfZGF0YS4NCj4gPiBOb3RlIHRoYXQgdGhlIHJ4X2xlbiBpcyAwIGR1cmluZyBp
-bml0aWFsaXphdGlvbiBhbmQgd2lsbCBuZXZlciBleGNlZWQgdGhlDQo+IHNpemVvZihidWZmZXIt
-PmRhdGEpLCBzbyB0aGUgcmVhZCBpcyBzYWZlLg0KPiA+DQo+ID4gQmVpbmcgd2l0aG91dCBzbXBf
-cm1iKCkgaXMgYWxzbyBPSyBpbiB0aGlzIGNhc2UsIHNpbmNlOg0KPiA+IDEuIGJ1ZmZlci0+ZGF0
-YSB3aWxsIG5ldmVyIGJlIHVzZWQgd2hlbiBidWZmZXItPnN0YXR1cyBpcyBub3QNCj4gPiBBQ1BJ
-X0lQTUlfT0sgYW5kIDIuIHRoZSBzbXBfcm1iKCkvc21wX3dtYigpIGFkZGVkIGluIHRoaXMgcGF0
-Y2ggd2lsbCBiZQ0KPiBkZWxldGVkIGluIFtQQVRDSCAwN10uDQo+ID4NCj4gPiBTbyBJTU8sIHdl
-IG5lZWRuJ3QgYWRkIHRoZSBzbXBfcm1iKCksIHdoYXQgZG8geW91IHRoaW5rIG9mIHRoaXM/DQo+
-ID4NCj4gPiBGb3IgMi4NCj4gPiBJZiB3ZSBkb24ndCBhZGQgc21wX3dtYigpIGluIHRoZSBpcG1p
-X21zZ19oYW5kbGVyKCksIHRoZW4gdGhlIGNvZGVzDQo+IHJ1bm5pbmcgb24gb3RoZXIgdGhyZWFk
-IGluIHRoZSBhY3BpX2Zvcm1hdF9pcG1pX3Jlc3BvbnNlKCkgbWF5IHJlYWQgd3JvbmcNCj4gbXNn
-LT5yeF9kYXRhIChhIHRpbWVvdXQgdHJpZ2dlcnMgdGhpcyBmdW5jdGlvbiwgYnV0IHdoZW4NCj4g
-YWNwaV9mb3JtYXRfaXBtaV9yZXNwb25zZSgpIGlzIGVudGVyZWQsIHRoZSBtc2ctPm1zZ19kb25l
-IGZsYWcgY291bGQgYmUNCj4gc2VlbiBhcyAxIGJ1dCB0aGUgbXNnLT5yeF9kYXRhIGlzIG5vdCBy
-ZWFkeSksIHRoaXMgaXMgd2hhdCB3ZSB3YW50IHRvIGF2b2lkIGluDQo+IHRoaXMgcXVpY2sgZml4
-Lg0KPiANCj4gVXNpbmcgc21wX3dtYigpIHdpdGhvdXQgdGhlIGNvbXBsZW1lbnRhcnkgc21wX3Jt
-YigpIGRvZXNuJ3QgbWFrZXMgc2Vuc2UsDQo+IGJlY2F1c2UgZWFjaCBvZiB0aGVtIHByZXZlbnRz
-IG9ubHkgb25lIGZsb3cgb2YgY29udHJvbCBmcm9tIGJlaW5nDQo+IHNwZWN1bGF0aXZlbHkgcmVv
-cmRlcmVkLCBlaXRoZXIgYnkgdGhlIENQVSBvciBieSB0aGUgY29tcGlsZXIuICBJZiBvbmx5IG9u
-ZSBvZg0KPiB0aGVtIGlzIHVzZWQgd2l0aG91dCB0aGUgb3RoZXIsIHRoZW4gdGhlIGZsb3cgb2Yg
-Y29udHJvbCB3aXRob3V0IHRoZSBiYXJyaWVyDQo+IG1heSBiZSByZW9yZGVyZWQgaW4gYSB3YXkg
-dGhhdCB3aWxsIGVmZmVjdGl2ZWx5IGNhbmNlbCB0aGUgZWZmZWN0IG9mIHRoZSBiYXJyaWVyIGlu
-DQo+IHRoZSBzZWNvbmQgZmxvdyBvZiBjb250cm9sLg0KPiANCj4gU28sIGVpdGhlciB3ZSBuZWVk
-ICpib3RoKiBzbXBfd21iKCkgYW5kIHNtcF9ybWIoKSwgb3Igd2UgZG9uJ3QgbmVlZCB0aGVtDQo+
-IGF0IGFsbC4NCg0KSSB0aGluayB5b3UgYXJlIHJpZ2h0LCBpdCBpcyBhYm91dCBvcmRlciBvZiBM
-MSBjYWNoZSBmbHVzaGluZy4NCg0KVGhlIHNtcF93bWIoKS9zbXBfcm1iKCkgaXMgbm90IGEgdXNl
-ZnVsIGFwcHJvYWNoIGZvciBub24tdHVuaW5nIGltcGxlbWVudGF0aW9ucy4NCg0KSXQncyBoZXJl
-IGJlY2F1c2UgdGhlIGNvZGUgdXNlZCBhIGNvbWJpbmVkIHByb2dyYW1pbmcgbW9kZWwsIGFuZCB0
-aHVzIGEgYnVnLg0KU3VjaCBidWdzIGNhbiBiZSBhdm9pZGVkIGJ5Og0KMS4gZWl0aGVyIHVzaW5n
-IGJpZ2dlciBncmFudWxhcml0eSBsb2NrcywgaW4gdGhpcyBjYXNlLCB0eF9tc2dfbG9jayBzaG91
-bGQgYmUgaGVsZCBhcm91bmQgYWNwaV9mb3JtYXRfaXBtaV9yZXNwb25zZSgpDQoyLiBvciB1c2lu
-ZyBzbWFsbGVyIGdyYW51bGFyaXR5IGxvY2tzLCByYWNlcyBhcmUgYXV0b21hdGljYWxseSBhdm9p
-ZGVkIGJ5IHRoZSBleGNsdWRlZCBydW5uaW5nIGZsb3dzIChsaWtlIHdoYXQgdGhlIFBBVENIIDA3
-IHNob3dzKQ0KDQpJJ2xsIHVwZGF0ZSB0aGlzIHBhdGNoIG9yIGV2ZW4gZHJvcCBpdC4NCg0KVGhh
-bmtzIGFuZCBiZXN0IHJlZ2FyZHMNCi1Mdg0KDQo+IA0KPiBUaGFua3MsDQo+IFJhZmFlbA0KPiAN
-Cj4gDQo+IC0tDQo+IEkgc3BlYWsgb25seSBmb3IgbXlzZWxmLg0KPiBSYWZhZWwgSi4gV3lzb2Nr
-aSwgSW50ZWwgT3BlbiBTb3VyY2UgVGVjaG5vbG9neSBDZW50ZXIuDQo=
+> From: Corey Minyard [mailto:tcminyard@gmail.com]
+> Sent: Friday, July 26, 2013 2:13 AM
+> 
+> On 07/25/2013 07:06 AM, Rafael J. Wysocki wrote:
+> > On Thursday, July 25, 2013 03:09:35 AM Zheng, Lv wrote:
+> >> -stable according to the previous conversation.
+> >>
+> >>> From: Rafael J. Wysocki [mailto:rjw@sisk.pl]
+> >>> Sent: Thursday, July 25, 2013 7:38 AM
+> >>>
+> >>> On Tuesday, July 23, 2013 04:09:15 PM Lv Zheng wrote:
+> >>>> This patch fixes races caused by unprotected ACPI IPMI transfers.
+> >>>>
+> >>>> We can see the following crashes may occur:
+> >>>> 1. There is no tx_msg_lock held for iterating tx_msg_list in
+> >>>>     ipmi_flush_tx_msg() while it is parellel unlinked on failure in
+> >>>>     acpi_ipmi_space_handler() under protection of tx_msg_lock.
+> >>>> 2. There is no lock held for freeing tx_msg in acpi_ipmi_space_handler()
+> >>>>     while it is parellel accessed in ipmi_flush_tx_msg() and
+> >>>>     ipmi_msg_handler().
+> >>>>
+> >>>> This patch enhances tx_msg_lock to protect all tx_msg accesses to
+> >>>> solve this issue.  Then tx_msg_lock is always held around
+> >>>> complete() and tx_msg accesses.
+> >>>> Calling smp_wmb() before setting msg_done flag so that messages
+> >>>> completed due to flushing will not be handled as 'done' messages
+> >>>> while their contents are not vaild.
+> >>>>
+> >>>> Signed-off-by: Lv Zheng <lv.zheng@intel.com>
+> >>>> Cc: Zhao Yakui <yakui.zhao@intel.com>
+> >>>> Reviewed-by: Huang Ying <ying.huang@intel.com>
+> >>>> ---
+> >>>>   drivers/acpi/acpi_ipmi.c |   10 ++++++++--
+> >>>>   1 file changed, 8 insertions(+), 2 deletions(-)
+> >>>>
+> >>>> diff --git a/drivers/acpi/acpi_ipmi.c b/drivers/acpi/acpi_ipmi.c
+> >>>> index
+> >>>> b37c189..527ee43 100644
+> >>>> --- a/drivers/acpi/acpi_ipmi.c
+> >>>> +++ b/drivers/acpi/acpi_ipmi.c
+> >>>> @@ -230,11 +230,14 @@ static void ipmi_flush_tx_msg(struct
+> >>> acpi_ipmi_device *ipmi)
+> >>>>   	struct acpi_ipmi_msg *tx_msg, *temp;
+> >>>>   	int count = HZ / 10;
+> >>>>   	struct pnp_dev *pnp_dev = ipmi->pnp_dev;
+> >>>> +	unsigned long flags;
+> >>>>
+> >>>> +	spin_lock_irqsave(&ipmi->tx_msg_lock, flags);
+> >>>>   	list_for_each_entry_safe(tx_msg, temp, &ipmi->tx_msg_list, head) {
+> >>>>   		/* wake up the sleep thread on the Tx msg */
+> >>>>   		complete(&tx_msg->tx_complete);
+> >>>>   	}
+> >>>> +	spin_unlock_irqrestore(&ipmi->tx_msg_lock, flags);
+> >>>>
+> >>>>   	/* wait for about 100ms to flush the tx message list */
+> >>>>   	while (count--) {
+> >>>> @@ -268,13 +271,12 @@ static void ipmi_msg_handler(struct
+> >>> ipmi_recv_msg *msg, void *user_msg_data)
+> >>>>   			break;
+> >>>>   		}
+> >>>>   	}
+> >>>> -	spin_unlock_irqrestore(&ipmi_device->tx_msg_lock, flags);
+> >>>>
+> >>>>   	if (!msg_found) {
+> >>>>   		dev_warn(&pnp_dev->dev,
+> >>>>   			 "Unexpected response (msg id %ld) is returned.\n",
+> >>>>   			 msg->msgid);
+> >>>> -		goto out_msg;
+> >>>> +		goto out_lock;
+> >>>>   	}
+> >>>>
+> >>>>   	/* copy the response data to Rx_data buffer */ @@ -286,10
+> >>>> +288,14 @@ static void ipmi_msg_handler(struct ipmi_recv_msg *msg,
+> >>>> void
+> >>> *user_msg_data)
+> >>>>   	}
+> >>>>   	tx_msg->rx_len = msg->msg.data_len;
+> >>>>   	memcpy(tx_msg->data, msg->msg.data, tx_msg->rx_len);
+> >>>> +	/* tx_msg content must be valid before setting msg_done flag */
+> >>>> +	smp_wmb();
+> >>> That's suspicious.
+> >>>
+> >>> If you need the write barrier here, you'll most likely need a read
+> >>> barrier somewhere else.  Where's that?
+> >> It might depend on whether the content written before the smp_wmb() is
+> used or not by the other side codes under the condition set after the
+> smp_wmb().
+> >>
+> >> So comment could be treated as 2 parts:
+> >> 1. do we need a paired smp_rmb().
+> >> 2. do we need a smp_wmb().
+> >>
+> >> For 1.
+> >> If we want a paired smp_rmb(), then it will appear in this function:
+> >>
+> >> 186 static void acpi_format_ipmi_response(struct acpi_ipmi_msg *msg,
+> >> 187                 acpi_integer *value, int rem_time)
+> >> 188 {
+> >> 189         struct acpi_ipmi_buffer *buffer;
+> >> 190
+> >> 191         /*
+> >> 192          * value is also used as output parameter. It represents the
+> response
+> >> 193          * IPMI message returned by IPMI command.
+> >> 194          */
+> >> 195         buffer = (struct acpi_ipmi_buffer *)value;
+> >> 196         if (!rem_time && !msg->msg_done) {
+> >> 197                 buffer->status = ACPI_IPMI_TIMEOUT;
+> >> 198                 return;
+> >> 199         }
+> >> 200         /*
+> >> 201          * If the flag of msg_done is not set or the recv length is zero,
+> it
+> >> 202          * means that the IPMI command is not executed correctly.
+> >> 203          * The status code will be ACPI_IPMI_UNKNOWN.
+> >> 204          */
+> >> 205         if (!msg->msg_done || !msg->rx_len) {
+> >> 206                 buffer->status = ACPI_IPMI_UNKNOWN;
+> >> 207                 return;
+> >> 208         }
+> >> +         smp_rmb();
+> >> 209         /*
+> >> 210          * If the IPMI response message is obtained correctly, the
+> status code
+> >> 211          * will be ACPI_IPMI_OK
+> >> 212          */
+> >> 213         buffer->status = ACPI_IPMI_OK;
+> >> 214         buffer->length = msg->rx_len;
+> >> 215         memcpy(buffer->data, msg->rx_data, msg->rx_len);
+> >> 216 }
+> >>
+> >> If we don't then there will only be msg content not correctly read from
+> msg->rx_data.
+> >> Note that the rx_len is 0 during initialization and will never exceed the
+> sizeof(buffer->data), so the read is safe.
+> >>
+> >> Being without smp_rmb() is also OK in this case, since:
+> >> 1. buffer->data will never be used when buffer->status is not
+> >> ACPI_IPMI_OK and 2. the smp_rmb()/smp_wmb() added in this patch will be
+> deleted in [PATCH 07].
+> >>
+> >> So IMO, we needn't add the smp_rmb(), what do you think of this?
+> >>
+> >> For 2.
+> >> If we don't add smp_wmb() in the ipmi_msg_handler(), then the codes
+> running on other thread in the acpi_format_ipmi_response() may read wrong
+> msg->rx_data (a timeout triggers this function, but when
+> acpi_format_ipmi_response() is entered, the msg->msg_done flag could be
+> seen as 1 but the msg->rx_data is not ready), this is what we want to avoid in
+> this quick fix.
+> > Using smp_wmb() without the complementary smp_rmb() doesn't makes
+> > sense, because each of them prevents only one flow of control from
+> > being speculatively reordered, either by the CPU or by the compiler.
+> > If only one of them is used without the other, then the flow of
+> > control without the barrier may be reordered in a way that will
+> > effectively cancel the effect of the barrier in the second flow of control.
+> >
+> > So, either we need *both* smp_wmb() and smp_rmb(), or we don't need
+> them at all.
+> 
+> If I understand this correctly, the problem would be if:
+> 
+> rem_time = wait_for_completion_timeout(&tx_msg->tx_complete,
+>                                          IPMI_TIMEOUT);
+> 
+> returns on a timeout, then checks msg_done and races with something setting
+> msg_done.  If that is the case, you would need the smp_rmb() before checking
+> msg_done.
+> 
+> However, the timeout above is unnecessary.  You are using
+> ipmi_request_settime(), so you can set the timeout when the IPMI command
+> fails and returns a failure message.  The driver guarantees a return message
+> for each request.  Just remove the timeout from the completion, set the
+> timeout and retries in the ipmi request, and the completion should handle the
+> barrier issues.
+
+It's just difficult for me to determine retry count and timeout value, maybe retry=0, timeout=IPMI_TIMEOUT is OK.
+The code of the timeout completion is already there, I think the quick fix code should not introduce this logic.
+I'll add a new patch to apply your comment.
+
+> 
+> Plus, from a quick glance at the code, it doesn't look like it will properly handle a
+> situation where the timeout occurs and is handled then the response comes in
+> later.
+
+PATCH 07 fixed this issue.
+Here we just need the smp_rmb() or holding tx_msg_lock() around the acpi_format_ipmi_response().
+
+Thanks for commenting.
+
+Best regards
+-Lv
+
+> 
+> -corey
+> 
+> >
+> > Thanks,
+> > Rafael
+> >
+> >
+
+------------------------------------------------------------------------------
+See everything from the browser to the database with AppDynamics
+Get end-to-end visibility with application monitoring from AppDynamics
+Isolate bottlenecks and diagnose root cause in seconds.
+Start your free trial of AppDynamics Pro today!
+http://pubads.g.doubleclick.net/gampad/clk?id=48808831&iu=/4140/ostg.clktrk
