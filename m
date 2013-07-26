@@ -1,62 +1,187 @@
 From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: [RFC PATCH 2/2] ata: acpi: rework the ata acpi bind support
-Date: Fri, 26 Jul 2013 14:48:24 +0200
-Message-ID: <3280105.XAGTl9YUDR@vostro.rjw.lan>
-References: <1374731223-28685-1-git-send-email-aaron.lu@intel.com> <20130725145229.GB26107@mtj.dyndns.org> <51F1D2C5.1050809@intel.com>
+Subject: Re: [PATCH 08/13] ACPI/IPMI: Cleanup several acpi_ipmi_device members
+Date: Fri, 26 Jul 2013 15:38:27 +0200
+Message-ID: <1877208.aj3aZU16C0@vostro.rjw.lan>
+References: <cover.1370652213.git.lv.zheng@intel.com> <1882662.xsnVH6Carz@vostro.rjw.lan> <1AE640813FDE7649BE1B193DEA596E8802435B14@SHSMSX101.ccr.corp.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7Bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from hydra.sisk.pl ([212.160.235.94]:41576 "EHLO hydra.sisk.pl"
+Received: from hydra.sisk.pl ([212.160.235.94]:41637 "EHLO hydra.sisk.pl"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1757321Ab3GZMiT (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 26 Jul 2013 08:38:19 -0400
-In-Reply-To: <51F1D2C5.1050809@intel.com>
+	id S1756753Ab3GZN2X (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 26 Jul 2013 09:28:23 -0400
+In-Reply-To: <1AE640813FDE7649BE1B193DEA596E8802435B14@SHSMSX101.ccr.corp.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Aaron Lu <aaron.lu@intel.com>
-Cc: Tejun Heo <tj@kernel.org>, James Bottomley <James.Bottomley@hansenpartnership.com>, Jeff Wu <jeff.wu@amd.com>, Shane Huang <shane.huang@amd.com>, Matthew Garrett <mjg@redhat.com>, Holger Macht <holger@homac.de>, Zhang Rui <rui.zhang@intel.com>, linux-ide@vger.kernel.org, linux-acpi@vger.kernel.org, linux-scsi@vger.kernel.org
+To: "Zheng, Lv" <lv.zheng@intel.com>
+Cc: "Wysocki, Rafael J" <rafael.j.wysocki@intel.com>, "Brown, Len" <len.brown@intel.com>, Corey Minyard <minyard@acm.org>, "Zhao, Yakui" <yakui.zhao@intel.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "openipmi-developer@lists.sourceforge.net" <openipmi-developer@lists.sourceforge.net>
 
-On Friday, July 26, 2013 09:37:09 AM Aaron Lu wrote:
-> On 07/25/2013 10:52 PM, Tejun Heo wrote:
-> > On Thu, Jul 25, 2013 at 01:47:03PM +0800, Aaron Lu wrote:
-> >> Binding ACPI handle to SCSI device has several drawbacks, namely:
-> >> 1 During ATA device initialization time, ACPI handle will be needed
-> >>   while SCSI devices are not created yet. So each time ACPI handle is
-> >>   needed, instead of retrieving the handle by ACPI_HANDLE macro,
-> >>   a namespace scan is performed to find the handle for the corresponding
-> >>   ATA device. This is inefficient, and also expose a restriction on
-> >>   calling path not holding any lock.
-> >> 2 The binding to SCSI device tree makes code complex, while at the same
-> >>   time doesn't bring us any benefit. All ACPI handlings are still done
-> >>   in ATA module, not in SCSI.
-> >>
-> >> Rework the ATA ACPI binding code to bind ACPI handle to ATA transport
-> >> devices(ATA port and ATA device). The binding needs to be done only once,
-> >> since the ATA transport devices do not go away with hotplug. And due to
-> >> this, the flush_work call in hotplug handler for ATA bay is no longer
-> >> needed.
+On Friday, July 26, 2013 01:25:12 AM Zheng, Lv wrote:
+> > From: Rafael J. Wysocki [mailto:rjw@sisk.pl]
+> > Sent: Friday, July 26, 2013 6:26 AM
 > > 
-> > I like it but am wondering why we weren't doing this before.  Was the
-> > acpi support added before we made ata objects proper devices?
+> > On Tuesday, July 23, 2013 04:10:06 PM Lv Zheng wrote:
+> > > This is a trivial patch:
+> > > 1. Deletes a member of the acpi_ipmi_device - smi_data which is not
+> > >    actually used.
+> > > 2. Updates a member of the acpi_ipmi_device - pnp_dev which is only used
+> > >    by dev_warn() invocations, so changes it to struct device.
+> > >
+> > > Signed-off-by: Lv Zheng <lv.zheng@intel.com>
+> > > Reviewed-by: Huang Ying <ying.huang@intel.com>
+> > > ---
+> > >  drivers/acpi/acpi_ipmi.c |   30 ++++++++++++++----------------
+> > >  1 file changed, 14 insertions(+), 16 deletions(-)
+> > >
+> > > diff --git a/drivers/acpi/acpi_ipmi.c b/drivers/acpi/acpi_ipmi.c index
+> > > 0ee1ea6..7f93ffd 100644
+> > > --- a/drivers/acpi/acpi_ipmi.c
+> > > +++ b/drivers/acpi/acpi_ipmi.c
+> > > @@ -63,11 +63,10 @@ struct acpi_ipmi_device {
+> > >  	struct list_head tx_msg_list;
+> > >  	spinlock_t	tx_msg_lock;
+> > >  	acpi_handle handle;
+> > > -	struct pnp_dev *pnp_dev;
+> > > +	struct device *dev;
+> > >  	ipmi_user_t	user_interface;
+> > >  	int ipmi_ifnum; /* IPMI interface number */
+> > >  	long curr_msgid;
+> > > -	struct ipmi_smi_info smi_data;
+> > >  	atomic_t refcnt;
+> > >  };
+> > >
+> > > @@ -132,7 +131,7 @@ static struct ipmi_driver_data driver_data = {  };
+> > >
+> > >  static struct acpi_ipmi_device *
+> > > -ipmi_dev_alloc(int iface, struct ipmi_smi_info *smi_data, acpi_handle
+> > > handle)
+> > > +ipmi_dev_alloc(int iface, struct device *pdev, acpi_handle handle)
+> > 
+> > Why is the second arg called pdev?
 > 
-> I think so. But since I didn't do the original binding, I can only guess
-> :-)
-> 
-> At the time of the original binding, ACPI binding logic requires the
-> binding device has a bus type, which these ATA transport devices don't
-> have.
-> 
-> Later, the ACPI binding code evolves and no such limitation exists
-> anymore. As you can see, we can simply set the ACPI handle before this
-> device is added in driver core, and the binding will be done.
+> OK, I will change it to dev.
 
-Yeah, we made that change in the ACPI core around 3.8 IIRC.
+OK, thanks.
 
-Thanks,
+> > 
+> > >  {
+> > >  	struct acpi_ipmi_device *ipmi_device;
+> > >  	int err;
+> > > @@ -148,14 +147,13 @@ ipmi_dev_alloc(int iface, struct ipmi_smi_info
+> > *smi_data, acpi_handle handle)
+> > >  	spin_lock_init(&ipmi_device->tx_msg_lock);
+> > >
+> > >  	ipmi_device->handle = handle;
+> > > -	ipmi_device->pnp_dev = to_pnp_dev(get_device(smi_data->dev));
+> > > -	memcpy(&ipmi_device->smi_data, smi_data, sizeof(struct
+> > ipmi_smi_info));
+> > > +	ipmi_device->dev = get_device(pdev);
+> > >  	ipmi_device->ipmi_ifnum = iface;
+> > >
+> > >  	err = ipmi_create_user(iface, &driver_data.ipmi_hndlrs,
+> > >  			       ipmi_device, &user);
+> > >  	if (err) {
+> > > -		put_device(smi_data->dev);
+> > > +		put_device(pdev);
+> > >  		kfree(ipmi_device);
+> > >  		return NULL;
+> > >  	}
+> > > @@ -175,7 +173,7 @@ acpi_ipmi_dev_get(struct acpi_ipmi_device
+> > > *ipmi_device)  static void ipmi_dev_release(struct acpi_ipmi_device
+> > > *ipmi_device)  {
+> > >  	ipmi_destroy_user(ipmi_device->user_interface);
+> > > -	put_device(ipmi_device->smi_data.dev);
+> > > +	put_device(ipmi_device->dev);
+> > >  	kfree(ipmi_device);
+> > >  }
+> > >
+> > > @@ -263,7 +261,7 @@ static int acpi_format_ipmi_request(struct
+> > acpi_ipmi_msg *tx_msg,
+> > >  	buffer = (struct acpi_ipmi_buffer *)value;
+> > >  	/* copy the tx message data */
+> > >  	if (buffer->length > ACPI_IPMI_MAX_MSG_LENGTH) {
+> > > -		dev_WARN_ONCE(&tx_msg->device->pnp_dev->dev, true,
+> > > +		dev_WARN_ONCE(tx_msg->device->dev, true,
+> > >  			      "Unexpected request (msg len %d).\n",
+> > >  			      buffer->length);
+> > >  		return -EINVAL;
+> > > @@ -382,11 +380,11 @@ static void ipmi_msg_handler(struct
+> > ipmi_recv_msg *msg, void *user_msg_data)
+> > >  	struct acpi_ipmi_device *ipmi_device = user_msg_data;
+> > >  	int msg_found = 0;
+> > >  	struct acpi_ipmi_msg *tx_msg;
+> > > -	struct pnp_dev *pnp_dev = ipmi_device->pnp_dev;
+> > > +	struct device *dev = ipmi_device->dev;
+> > >  	unsigned long flags;
+> > >
+> > >  	if (msg->user != ipmi_device->user_interface) {
+> > > -		dev_warn(&pnp_dev->dev,
+> > > +		dev_warn(dev,
+> > >  			 "Unexpected response is returned. returned user %p, expected
+> > user %p\n",
+> > >  			 msg->user, ipmi_device->user_interface);
+> > >  		goto out_msg;
+> > > @@ -404,7 +402,7 @@ static void ipmi_msg_handler(struct ipmi_recv_msg
+> > *msg, void *user_msg_data)
+> > >  	spin_unlock_irqrestore(&ipmi_device->tx_msg_lock, flags);
+> > >
+> > >  	if (!msg_found) {
+> > > -		dev_warn(&pnp_dev->dev,
+> > > +		dev_warn(dev,
+> > >  			 "Unexpected response (msg id %ld) is returned.\n",
+> > >  			 msg->msgid);
+> > >  		goto out_msg;
+> > > @@ -412,7 +410,7 @@ static void ipmi_msg_handler(struct ipmi_recv_msg
+> > > *msg, void *user_msg_data)
+> > >
+> > >  	/* copy the response data to Rx_data buffer */
+> > >  	if (msg->msg.data_len > ACPI_IPMI_MAX_MSG_LENGTH) {
+> > > -		dev_WARN_ONCE(&pnp_dev->dev, true,
+> > > +		dev_WARN_ONCE(dev, true,
+> > >  			      "Unexpected response (msg len %d).\n",
+> > >  			      msg->msg.data_len);
+> > >  		goto out_comp;
+> > > @@ -431,7 +429,7 @@ out_msg:
+> > >  static void ipmi_register_bmc(int iface, struct device *dev)  {
+> > >  	struct acpi_ipmi_device *ipmi_device, *temp;
+> > > -	struct pnp_dev *pnp_dev;
+> > > +	struct device *pdev;
+> > 
+> > And here?
+> 
+> The dev is the parameter of the ipmi_register_bmc(), it is not possible to name the "struct ipmi_smi_info " as dev here for this quick fix.
+
+Right.  What about smi_dev?  Or just use smi_data.dev directly?  It's just two
+places and shouldn't cause any line wraps to happen.
+
 Rafael
 
 
+> > >  	int err;
+> > >  	struct ipmi_smi_info smi_data;
+> > >  	acpi_handle handle;
+> > > @@ -445,11 +443,11 @@ static void ipmi_register_bmc(int iface, struct
+> > device *dev)
+> > >  	handle = smi_data.addr_info.acpi_info.acpi_handle;
+> > >  	if (!handle)
+> > >  		goto err_ref;
+> > > -	pnp_dev = to_pnp_dev(smi_data.dev);
+> > > +	pdev = smi_data.dev;
+> > >
+> > > -	ipmi_device = ipmi_dev_alloc(iface, &smi_data, handle);
+> > > +	ipmi_device = ipmi_dev_alloc(iface, pdev, handle);
+> > >  	if (!ipmi_device) {
+> > > -		dev_warn(&pnp_dev->dev, "Can't create IPMI user interface\n");
+> > > +		dev_warn(pdev, "Can't create IPMI user interface\n");
+> > >  		goto err_ref;
+> > >  	}
+> > >
+> > >
+> > --
+> > I speak only for myself.
+> > Rafael J. Wysocki, Intel Open Source Technology Center.
+> 
 -- 
 I speak only for myself.
 Rafael J. Wysocki, Intel Open Source Technology Center.
