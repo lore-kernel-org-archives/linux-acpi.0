@@ -1,90 +1,72 @@
-From: Bjorn Helgaas <bhelgaas@google.com>
-Subject: Re: [RFC 0/3] IO Hook: Method for emulating h/w events
-Date: Fri, 26 Jul 2013 13:38:53 -0600
-Message-ID: <CAErSpo653opkF_ROupSOYoP21LGwm023430Pyj_thbFeDXRq9w@mail.gmail.com>
-References: <1374821475-3196-1-git-send-email-rui.y.wang@intel.com>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: [GIT PULL] ACPI and power management fixes for v3.11-rc3
+Date: Fri, 26 Jul 2013 23:25:06 +0200
+Message-ID: <3457206.NODt6ENkDb@vostro.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <linux-pci-owner@vger.kernel.org>
-In-Reply-To: <1374821475-3196-1-git-send-email-rui.y.wang@intel.com>
-Sender: linux-pci-owner@vger.kernel.org
-To: Rui Wang <ruiv.wang@gmail.com>
-Cc: Tony Luck <tony.luck@intel.com>, chaohong.guo@intel.com, Chen Gong <gong.chen@linux.intel.com>, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Rui Wang <rui.y.wang@intel.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7Bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from hydra.sisk.pl ([212.160.235.94]:42317 "EHLO hydra.sisk.pl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S932979Ab3GZVPE (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 26 Jul 2013 17:15:04 -0400
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>, intel-gfx@lists.freedesktop.org
 
-[+cc linux-acpi]
+Hi Linus,
 
-On Fri, Jul 26, 2013 at 12:51 AM, Rui Wang <ruiv.wang@gmail.com> wrote:
-> Hi Bjorn,
->
-> This was originally the method I used to test hotplug on Intel SDV machines
-> which are not capable of doing hotplug. I would like to present it here in
-> case it interests the community, then it can be made available to a wider
-> range of developers who are working on hotplug.
->
-> I used it to generate desired ACPI events, PCI interrupts, and more. So
-> things like CPU hotplug, IOH hotplug, memory hotplug, PCI native hotplug,
-> PCI AER injection can be emulated and tested easily.
->
-> The best thing is that, it doesn't require any modification to those drivers
-> involved. It works with whatever hardware events that the user can imagine.
-> Further development in user-space using scripts may help simplify the usage
-> model and add more software-defined logic on hardware.
->
-> Because it modifies the heart of all h/w access functions, I used Jump Label
-> to reduce the performance penalty to effectively zero.
+Please pull from the git repository at
 
-This is a cool idea.
+  git://git.kernel.org/pub/scm/linux/kernel/git/rafael/linux-pm.git pm+acpi-3.11-rc3
 
-I don't know if you want to merge this upstream, or if it's just a "I
-found this useful; here it is in case it's useful to you" sort of
-thing.  So the comments below are only relevant if you want to try to
-merge it upstream.
+to receive ACPI and power management fixes for v3.11-rc3 with
+top-most commit 8e5c2b776ae4c35f54547c017e0a943429f5748a
 
-I wouldn't really want all the gunk in drivers/pci/access.c.  Most of
-it isn't related to PCI, and some of it is even x86-specific.  It'd be
-nicer if you could factor it out so just the generic PCI-related
-things go in drivers/pci.
+  Revert "ACPI / video / i915: No ACPI backlight if firmware expects Windows 8"
 
-It appears to be implemented only for x86.  The MMIO & I/O port parts
-are x86-specific, but the PCI config stuff should work on any arch.
+on top of commit 3b2f64d00c46e1e4e9bd0bb9bb12619adac27a4b
 
-I don't know whether it's worth supporting as a module.  It seems like
-a development aid where building in statically would probably be fine.
- If it didn't have to work as a module, you wouldn't have to export
-any symbols.
+  Linux 3.11-rc2
 
-> I tested the performance by repeatedly running lspci, which calls into the
-> pci access functions. There's no added overhead observed.
->
-> Regards,
-> Rui Wang
-> Intel Open Source Technology Center
->
-> Rui Wang (3):
->   IO Hook: core functions and Register Override
->   IO Hook: kernel interface to manage the hook
->   IO Hook: sysfs interface to emulate h/w events
->
->  Documentation/PCI/iohook.txt      |  290 +++++++++++++++++
->  arch/x86/Kconfig                  |    7 +
->  arch/x86/boot/compressed/Makefile |    1 +
->  arch/x86/include/asm/io.h         |   58 ++++-
->  arch/x86/vdso/Makefile            |    2 +
->  drivers/misc/Kconfig              |    1 +
->  drivers/misc/Makefile             |    1 +
->  drivers/misc/iohook/Kconfig       |    5 +
->  drivers/misc/iohook/Makefile      |    1 +
->  drivers/misc/iohook/iohook.c      |  503 +++++++++++++++++++++++++++++
->  drivers/pci/access.c              |  630 +++++++++++++++++++++++++++++++++++++
->  include/linux/reg_ovrd.h          |   55 ++++
->  12 files changed, 1552 insertions(+), 2 deletions(-)
->  create mode 100644 Documentation/PCI/iohook.txt
->  create mode 100644 drivers/misc/iohook/Kconfig
->  create mode 100644 drivers/misc/iohook/Makefile
->  create mode 100644 drivers/misc/iohook/iohook.c
->  create mode 100644 include/linux/reg_ovrd.h
->
-> --
-> 1.7.5.4
->
+These are just two fixes, a revert of the would-be backlight fix that didn't
+work and an intel_pstate fix for two problems related to maximum P-state
+selection.
+
+Specifics:
+
+- Revert of the ACPI video commit that I hoped would help fix
+  backlight problems related to Windows 8 compatibility on some
+  systems.  Unfortunately, it turned out to cause problems to happen
+  too.
+
+- Fix for two problems in intel_pstate, a possible failure to respond
+  to a load change on a quiet system and a possible failure to select
+  the highest available P-state on some systems.  From Dirk Brandewie.
+
+Thanks!
+
+
+---------------
+
+Dirk Brandewie (1):
+      cpufreq / intel_pstate: Change to scale off of max P-state
+
+Rafael J. Wysocki (1):
+      Revert "ACPI / video / i915: No ACPI backlight if firmware expects Windows 8"
+
+---------------
+
+ drivers/acpi/internal.h         |    2 --
+ drivers/acpi/video.c            |   67 ++++++-----------------------------------------
+ drivers/acpi/video_detect.c     |   15 +----------
+ drivers/cpufreq/intel_pstate.c  |   12 ++++-----
+ drivers/gpu/drm/i915/i915_dma.c |    2 +-
+ include/acpi/video.h            |   11 +-------
+ include/linux/acpi.h            |    1 -
+ 7 files changed, 17 insertions(+), 93 deletions(-)
+
+-- 
+I speak only for myself.
+Rafael J. Wysocki, Intel Open Source Technology Center.
