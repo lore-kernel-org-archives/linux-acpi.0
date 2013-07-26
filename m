@@ -1,159 +1,156 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: [PATCH 08/13] ACPI/IPMI: Cleanup several acpi_ipmi_device members
-Date: Fri, 26 Jul 2013 00:25:50 +0200
-Message-ID: <1882662.xsnVH6Carz@vostro.rjw.lan>
-References: <cover.1370652213.git.lv.zheng@intel.com> <cover.1374566394.git.lv.zheng@intel.com> <b70ad0fe8c19e25eae9cef6fba21dfce237051bb.1374566394.git.lv.zheng@intel.com>
+From: "Zheng, Lv" <lv.zheng@intel.com>
+Subject: RE: [PATCH 03/13] ACPI/IPMI: Fix race caused by the unprotected
+ ACPI IPMI transfers
+Date: Fri, 26 Jul 2013 00:09:32 +0000
+Message-ID: <1AE640813FDE7649BE1B193DEA596E8802435A63@SHSMSX101.ccr.corp.intel.com>
+References: <cover.1370652213.git.lv.zheng@intel.com>
+ <1520893.BbRK6T3F73@vostro.rjw.lan>
+ <1AE640813FDE7649BE1B193DEA596E88024357A9@SHSMSX101.ccr.corp.intel.com>
+ <76401540.gtU1MiBxPY@vostro.rjw.lan>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7Bit
+Content-Transfer-Encoding: base64
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from hydra.sisk.pl ([212.160.235.94]:40489 "EHLO hydra.sisk.pl"
+Received: from mga09.intel.com ([134.134.136.24]:21028 "EHLO mga09.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756803Ab3GYWPp (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 25 Jul 2013 18:15:45 -0400
-In-Reply-To: <b70ad0fe8c19e25eae9cef6fba21dfce237051bb.1374566394.git.lv.zheng@intel.com>
+	id S1753586Ab3GZAKL (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 25 Jul 2013 20:10:11 -0400
+In-Reply-To: <76401540.gtU1MiBxPY@vostro.rjw.lan>
+Content-Language: en-US
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Lv Zheng <lv.zheng@intel.com>
-Cc: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Len Brown <len.brown@intel.com>, Corey Minyard <minyard@acm.org>, Zhao Yakui <yakui.zhao@intel.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, openipmi-developer@lists.sourceforge.net
+To: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: "Wysocki, Rafael J" <rafael.j.wysocki@intel.com>, "Brown, Len" <len.brown@intel.com>, Corey Minyard <minyard@acm.org>, "Zhao, Yakui" <yakui.zhao@intel.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "openipmi-developer@lists.sourceforge.net" <openipmi-developer@lists.sourceforge.net>
 
-On Tuesday, July 23, 2013 04:10:06 PM Lv Zheng wrote:
-> This is a trivial patch:
-> 1. Deletes a member of the acpi_ipmi_device - smi_data which is not
->    actually used.
-> 2. Updates a member of the acpi_ipmi_device - pnp_dev which is only used
->    by dev_warn() invocations, so changes it to struct device.
-> 
-> Signed-off-by: Lv Zheng <lv.zheng@intel.com>
-> Reviewed-by: Huang Ying <ying.huang@intel.com>
-> ---
->  drivers/acpi/acpi_ipmi.c |   30 ++++++++++++++----------------
->  1 file changed, 14 insertions(+), 16 deletions(-)
-> 
-> diff --git a/drivers/acpi/acpi_ipmi.c b/drivers/acpi/acpi_ipmi.c
-> index 0ee1ea6..7f93ffd 100644
-> --- a/drivers/acpi/acpi_ipmi.c
-> +++ b/drivers/acpi/acpi_ipmi.c
-> @@ -63,11 +63,10 @@ struct acpi_ipmi_device {
->  	struct list_head tx_msg_list;
->  	spinlock_t	tx_msg_lock;
->  	acpi_handle handle;
-> -	struct pnp_dev *pnp_dev;
-> +	struct device *dev;
->  	ipmi_user_t	user_interface;
->  	int ipmi_ifnum; /* IPMI interface number */
->  	long curr_msgid;
-> -	struct ipmi_smi_info smi_data;
->  	atomic_t refcnt;
->  };
->  
-> @@ -132,7 +131,7 @@ static struct ipmi_driver_data driver_data = {
->  };
->  
->  static struct acpi_ipmi_device *
-> -ipmi_dev_alloc(int iface, struct ipmi_smi_info *smi_data, acpi_handle handle)
-> +ipmi_dev_alloc(int iface, struct device *pdev, acpi_handle handle)
-
-Why is the second arg called pdev?
-
->  {
->  	struct acpi_ipmi_device *ipmi_device;
->  	int err;
-> @@ -148,14 +147,13 @@ ipmi_dev_alloc(int iface, struct ipmi_smi_info *smi_data, acpi_handle handle)
->  	spin_lock_init(&ipmi_device->tx_msg_lock);
->  
->  	ipmi_device->handle = handle;
-> -	ipmi_device->pnp_dev = to_pnp_dev(get_device(smi_data->dev));
-> -	memcpy(&ipmi_device->smi_data, smi_data, sizeof(struct ipmi_smi_info));
-> +	ipmi_device->dev = get_device(pdev);
->  	ipmi_device->ipmi_ifnum = iface;
->  
->  	err = ipmi_create_user(iface, &driver_data.ipmi_hndlrs,
->  			       ipmi_device, &user);
->  	if (err) {
-> -		put_device(smi_data->dev);
-> +		put_device(pdev);
->  		kfree(ipmi_device);
->  		return NULL;
->  	}
-> @@ -175,7 +173,7 @@ acpi_ipmi_dev_get(struct acpi_ipmi_device *ipmi_device)
->  static void ipmi_dev_release(struct acpi_ipmi_device *ipmi_device)
->  {
->  	ipmi_destroy_user(ipmi_device->user_interface);
-> -	put_device(ipmi_device->smi_data.dev);
-> +	put_device(ipmi_device->dev);
->  	kfree(ipmi_device);
->  }
->  
-> @@ -263,7 +261,7 @@ static int acpi_format_ipmi_request(struct acpi_ipmi_msg *tx_msg,
->  	buffer = (struct acpi_ipmi_buffer *)value;
->  	/* copy the tx message data */
->  	if (buffer->length > ACPI_IPMI_MAX_MSG_LENGTH) {
-> -		dev_WARN_ONCE(&tx_msg->device->pnp_dev->dev, true,
-> +		dev_WARN_ONCE(tx_msg->device->dev, true,
->  			      "Unexpected request (msg len %d).\n",
->  			      buffer->length);
->  		return -EINVAL;
-> @@ -382,11 +380,11 @@ static void ipmi_msg_handler(struct ipmi_recv_msg *msg, void *user_msg_data)
->  	struct acpi_ipmi_device *ipmi_device = user_msg_data;
->  	int msg_found = 0;
->  	struct acpi_ipmi_msg *tx_msg;
-> -	struct pnp_dev *pnp_dev = ipmi_device->pnp_dev;
-> +	struct device *dev = ipmi_device->dev;
->  	unsigned long flags;
->  
->  	if (msg->user != ipmi_device->user_interface) {
-> -		dev_warn(&pnp_dev->dev,
-> +		dev_warn(dev,
->  			 "Unexpected response is returned. returned user %p, expected user %p\n",
->  			 msg->user, ipmi_device->user_interface);
->  		goto out_msg;
-> @@ -404,7 +402,7 @@ static void ipmi_msg_handler(struct ipmi_recv_msg *msg, void *user_msg_data)
->  	spin_unlock_irqrestore(&ipmi_device->tx_msg_lock, flags);
->  
->  	if (!msg_found) {
-> -		dev_warn(&pnp_dev->dev,
-> +		dev_warn(dev,
->  			 "Unexpected response (msg id %ld) is returned.\n",
->  			 msg->msgid);
->  		goto out_msg;
-> @@ -412,7 +410,7 @@ static void ipmi_msg_handler(struct ipmi_recv_msg *msg, void *user_msg_data)
->  
->  	/* copy the response data to Rx_data buffer */
->  	if (msg->msg.data_len > ACPI_IPMI_MAX_MSG_LENGTH) {
-> -		dev_WARN_ONCE(&pnp_dev->dev, true,
-> +		dev_WARN_ONCE(dev, true,
->  			      "Unexpected response (msg len %d).\n",
->  			      msg->msg.data_len);
->  		goto out_comp;
-> @@ -431,7 +429,7 @@ out_msg:
->  static void ipmi_register_bmc(int iface, struct device *dev)
->  {
->  	struct acpi_ipmi_device *ipmi_device, *temp;
-> -	struct pnp_dev *pnp_dev;
-> +	struct device *pdev;
-
-And here?
-
->  	int err;
->  	struct ipmi_smi_info smi_data;
->  	acpi_handle handle;
-> @@ -445,11 +443,11 @@ static void ipmi_register_bmc(int iface, struct device *dev)
->  	handle = smi_data.addr_info.acpi_info.acpi_handle;
->  	if (!handle)
->  		goto err_ref;
-> -	pnp_dev = to_pnp_dev(smi_data.dev);
-> +	pdev = smi_data.dev;
->  
-> -	ipmi_device = ipmi_dev_alloc(iface, &smi_data, handle);
-> +	ipmi_device = ipmi_dev_alloc(iface, pdev, handle);
->  	if (!ipmi_device) {
-> -		dev_warn(&pnp_dev->dev, "Can't create IPMI user interface\n");
-> +		dev_warn(pdev, "Can't create IPMI user interface\n");
->  		goto err_ref;
->  	}
->  
-> 
--- 
-I speak only for myself.
-Rafael J. Wysocki, Intel Open Source Technology Center.
+DQoNCj4gRnJvbTogUmFmYWVsIEouIFd5c29ja2kgW21haWx0bzpyandAc2lzay5wbF0NCj4gU2Vu
+dDogVGh1cnNkYXksIEp1bHkgMjUsIDIwMTMgODowNyBQTQ0KPiANCj4gT24gVGh1cnNkYXksIEp1
+bHkgMjUsIDIwMTMgMDM6MDk6MzUgQU0gWmhlbmcsIEx2IHdyb3RlOg0KPiA+IC1zdGFibGUgYWNj
+b3JkaW5nIHRvIHRoZSBwcmV2aW91cyBjb252ZXJzYXRpb24uDQo+ID4NCj4gPiA+IEZyb206IFJh
+ZmFlbCBKLiBXeXNvY2tpIFttYWlsdG86cmp3QHNpc2sucGxdDQo+ID4gPiBTZW50OiBUaHVyc2Rh
+eSwgSnVseSAyNSwgMjAxMyA3OjM4IEFNDQo+ID4gPg0KPiA+ID4gT24gVHVlc2RheSwgSnVseSAy
+MywgMjAxMyAwNDowOToxNSBQTSBMdiBaaGVuZyB3cm90ZToNCj4gPiA+ID4gVGhpcyBwYXRjaCBm
+aXhlcyByYWNlcyBjYXVzZWQgYnkgdW5wcm90ZWN0ZWQgQUNQSSBJUE1JIHRyYW5zZmVycy4NCj4g
+PiA+ID4NCj4gPiA+ID4gV2UgY2FuIHNlZSB0aGUgZm9sbG93aW5nIGNyYXNoZXMgbWF5IG9jY3Vy
+Og0KPiA+ID4gPiAxLiBUaGVyZSBpcyBubyB0eF9tc2dfbG9jayBoZWxkIGZvciBpdGVyYXRpbmcg
+dHhfbXNnX2xpc3QgaW4NCj4gPiA+ID4gICAgaXBtaV9mbHVzaF90eF9tc2coKSB3aGlsZSBpdCBp
+cyBwYXJlbGxlbCB1bmxpbmtlZCBvbiBmYWlsdXJlIGluDQo+ID4gPiA+ICAgIGFjcGlfaXBtaV9z
+cGFjZV9oYW5kbGVyKCkgdW5kZXIgcHJvdGVjdGlvbiBvZiB0eF9tc2dfbG9jay4NCj4gPiA+ID4g
+Mi4gVGhlcmUgaXMgbm8gbG9jayBoZWxkIGZvciBmcmVlaW5nIHR4X21zZyBpbiBhY3BpX2lwbWlf
+c3BhY2VfaGFuZGxlcigpDQo+ID4gPiA+ICAgIHdoaWxlIGl0IGlzIHBhcmVsbGVsIGFjY2Vzc2Vk
+IGluIGlwbWlfZmx1c2hfdHhfbXNnKCkgYW5kDQo+ID4gPiA+ICAgIGlwbWlfbXNnX2hhbmRsZXIo
+KS4NCj4gPiA+ID4NCj4gPiA+ID4gVGhpcyBwYXRjaCBlbmhhbmNlcyB0eF9tc2dfbG9jayB0byBw
+cm90ZWN0IGFsbCB0eF9tc2cgYWNjZXNzZXMgdG8NCj4gPiA+ID4gc29sdmUgdGhpcyBpc3N1ZS4g
+IFRoZW4gdHhfbXNnX2xvY2sgaXMgYWx3YXlzIGhlbGQgYXJvdW5kDQo+ID4gPiA+IGNvbXBsZXRl
+KCkgYW5kIHR4X21zZyBhY2Nlc3Nlcy4NCj4gPiA+ID4gQ2FsbGluZyBzbXBfd21iKCkgYmVmb3Jl
+IHNldHRpbmcgbXNnX2RvbmUgZmxhZyBzbyB0aGF0IG1lc3NhZ2VzDQo+ID4gPiA+IGNvbXBsZXRl
+ZCBkdWUgdG8gZmx1c2hpbmcgd2lsbCBub3QgYmUgaGFuZGxlZCBhcyAnZG9uZScgbWVzc2FnZXMN
+Cj4gPiA+ID4gd2hpbGUgdGhlaXIgY29udGVudHMgYXJlIG5vdCB2YWlsZC4NCj4gPiA+ID4NCj4g
+PiA+ID4gU2lnbmVkLW9mZi1ieTogTHYgWmhlbmcgPGx2LnpoZW5nQGludGVsLmNvbT4NCj4gPiA+
+ID4gQ2M6IFpoYW8gWWFrdWkgPHlha3VpLnpoYW9AaW50ZWwuY29tPg0KPiA+ID4gPiBSZXZpZXdl
+ZC1ieTogSHVhbmcgWWluZyA8eWluZy5odWFuZ0BpbnRlbC5jb20+DQo+ID4gPiA+IC0tLQ0KPiA+
+ID4gPiAgZHJpdmVycy9hY3BpL2FjcGlfaXBtaS5jIHwgICAxMCArKysrKysrKy0tDQo+ID4gPiA+
+ICAxIGZpbGUgY2hhbmdlZCwgOCBpbnNlcnRpb25zKCspLCAyIGRlbGV0aW9ucygtKQ0KPiA+ID4g
+Pg0KPiA+ID4gPiBkaWZmIC0tZ2l0IGEvZHJpdmVycy9hY3BpL2FjcGlfaXBtaS5jIGIvZHJpdmVy
+cy9hY3BpL2FjcGlfaXBtaS5jDQo+ID4gPiA+IGluZGV4DQo+ID4gPiA+IGIzN2MxODkuLjUyN2Vl
+NDMgMTAwNjQ0DQo+ID4gPiA+IC0tLSBhL2RyaXZlcnMvYWNwaS9hY3BpX2lwbWkuYw0KPiA+ID4g
+PiArKysgYi9kcml2ZXJzL2FjcGkvYWNwaV9pcG1pLmMNCj4gPiA+ID4gQEAgLTIzMCwxMSArMjMw
+LDE0IEBAIHN0YXRpYyB2b2lkIGlwbWlfZmx1c2hfdHhfbXNnKHN0cnVjdA0KPiA+ID4gYWNwaV9p
+cG1pX2RldmljZSAqaXBtaSkNCj4gPiA+ID4gIAlzdHJ1Y3QgYWNwaV9pcG1pX21zZyAqdHhfbXNn
+LCAqdGVtcDsNCj4gPiA+ID4gIAlpbnQgY291bnQgPSBIWiAvIDEwOw0KPiA+ID4gPiAgCXN0cnVj
+dCBwbnBfZGV2ICpwbnBfZGV2ID0gaXBtaS0+cG5wX2RldjsNCj4gPiA+ID4gKwl1bnNpZ25lZCBs
+b25nIGZsYWdzOw0KPiA+ID4gPg0KPiA+ID4gPiArCXNwaW5fbG9ja19pcnFzYXZlKCZpcG1pLT50
+eF9tc2dfbG9jaywgZmxhZ3MpOw0KPiA+ID4gPiAgCWxpc3RfZm9yX2VhY2hfZW50cnlfc2FmZSh0
+eF9tc2csIHRlbXAsICZpcG1pLT50eF9tc2dfbGlzdCwgaGVhZCkgew0KPiA+ID4gPiAgCQkvKiB3
+YWtlIHVwIHRoZSBzbGVlcCB0aHJlYWQgb24gdGhlIFR4IG1zZyAqLw0KPiA+ID4gPiAgCQljb21w
+bGV0ZSgmdHhfbXNnLT50eF9jb21wbGV0ZSk7DQo+ID4gPiA+ICAJfQ0KPiA+ID4gPiArCXNwaW5f
+dW5sb2NrX2lycXJlc3RvcmUoJmlwbWktPnR4X21zZ19sb2NrLCBmbGFncyk7DQo+ID4gPiA+DQo+
+ID4gPiA+ICAJLyogd2FpdCBmb3IgYWJvdXQgMTAwbXMgdG8gZmx1c2ggdGhlIHR4IG1lc3NhZ2Ug
+bGlzdCAqLw0KPiA+ID4gPiAgCXdoaWxlIChjb3VudC0tKSB7DQo+ID4gPiA+IEBAIC0yNjgsMTMg
+KzI3MSwxMiBAQCBzdGF0aWMgdm9pZCBpcG1pX21zZ19oYW5kbGVyKHN0cnVjdA0KPiA+ID4gaXBt
+aV9yZWN2X21zZyAqbXNnLCB2b2lkICp1c2VyX21zZ19kYXRhKQ0KPiA+ID4gPiAgCQkJYnJlYWs7
+DQo+ID4gPiA+ICAJCX0NCj4gPiA+ID4gIAl9DQo+ID4gPiA+IC0Jc3Bpbl91bmxvY2tfaXJxcmVz
+dG9yZSgmaXBtaV9kZXZpY2UtPnR4X21zZ19sb2NrLCBmbGFncyk7DQo+ID4gPiA+DQo+ID4gPiA+
+ICAJaWYgKCFtc2dfZm91bmQpIHsNCj4gPiA+ID4gIAkJZGV2X3dhcm4oJnBucF9kZXYtPmRldiwN
+Cj4gPiA+ID4gIAkJCSAiVW5leHBlY3RlZCByZXNwb25zZSAobXNnIGlkICVsZCkgaXMgcmV0dXJu
+ZWQuXG4iLA0KPiA+ID4gPiAgCQkJIG1zZy0+bXNnaWQpOw0KPiA+ID4gPiAtCQlnb3RvIG91dF9t
+c2c7DQo+ID4gPiA+ICsJCWdvdG8gb3V0X2xvY2s7DQo+ID4gPiA+ICAJfQ0KPiA+ID4gPg0KPiA+
+ID4gPiAgCS8qIGNvcHkgdGhlIHJlc3BvbnNlIGRhdGEgdG8gUnhfZGF0YSBidWZmZXIgKi8gQEAg
+LTI4NiwxMA0KPiA+ID4gPiArMjg4LDE0IEBAIHN0YXRpYyB2b2lkIGlwbWlfbXNnX2hhbmRsZXIo
+c3RydWN0IGlwbWlfcmVjdl9tc2cgKm1zZywNCj4gPiA+ID4gdm9pZA0KPiA+ID4gKnVzZXJfbXNn
+X2RhdGEpDQo+ID4gPiA+ICAJfQ0KPiA+ID4gPiAgCXR4X21zZy0+cnhfbGVuID0gbXNnLT5tc2cu
+ZGF0YV9sZW47DQo+ID4gPiA+ICAJbWVtY3B5KHR4X21zZy0+ZGF0YSwgbXNnLT5tc2cuZGF0YSwg
+dHhfbXNnLT5yeF9sZW4pOw0KPiA+ID4gPiArCS8qIHR4X21zZyBjb250ZW50IG11c3QgYmUgdmFs
+aWQgYmVmb3JlIHNldHRpbmcgbXNnX2RvbmUgZmxhZyAqLw0KPiA+ID4gPiArCXNtcF93bWIoKTsN
+Cj4gPiA+DQo+ID4gPiBUaGF0J3Mgc3VzcGljaW91cy4NCj4gPiA+DQo+ID4gPiBJZiB5b3UgbmVl
+ZCB0aGUgd3JpdGUgYmFycmllciBoZXJlLCB5b3UnbGwgbW9zdCBsaWtlbHkgbmVlZCBhIHJlYWQN
+Cj4gPiA+IGJhcnJpZXIgc29tZXdoZXJlIGVsc2UuICBXaGVyZSdzIHRoYXQ/DQo+ID4NCj4gPiBJ
+dCBtaWdodCBkZXBlbmQgb24gd2hldGhlciB0aGUgY29udGVudCB3cml0dGVuIGJlZm9yZSB0aGUg
+c21wX3dtYigpIGlzDQo+IHVzZWQgb3Igbm90IGJ5IHRoZSBvdGhlciBzaWRlIGNvZGVzIHVuZGVy
+IHRoZSBjb25kaXRpb24gc2V0IGFmdGVyIHRoZQ0KPiBzbXBfd21iKCkuDQo+ID4NCj4gPiBTbyBj
+b21tZW50IGNvdWxkIGJlIHRyZWF0ZWQgYXMgMiBwYXJ0czoNCj4gPiAxLiBkbyB3ZSBuZWVkIGEg
+cGFpcmVkIHNtcF9ybWIoKS4NCj4gPiAyLiBkbyB3ZSBuZWVkIGEgc21wX3dtYigpLg0KPiA+DQo+
+ID4gRm9yIDEuDQo+ID4gSWYgd2Ugd2FudCBhIHBhaXJlZCBzbXBfcm1iKCksIHRoZW4gaXQgd2ls
+bCBhcHBlYXIgaW4gdGhpcyBmdW5jdGlvbjoNCj4gPg0KPiA+IDE4NiBzdGF0aWMgdm9pZCBhY3Bp
+X2Zvcm1hdF9pcG1pX3Jlc3BvbnNlKHN0cnVjdCBhY3BpX2lwbWlfbXNnICptc2csDQo+ID4gMTg3
+ICAgICAgICAgICAgICAgICBhY3BpX2ludGVnZXIgKnZhbHVlLCBpbnQgcmVtX3RpbWUpDQo+ID4g
+MTg4IHsNCj4gPiAxODkgICAgICAgICBzdHJ1Y3QgYWNwaV9pcG1pX2J1ZmZlciAqYnVmZmVyOw0K
+PiA+IDE5MA0KPiA+IDE5MSAgICAgICAgIC8qDQo+ID4gMTkyICAgICAgICAgICogdmFsdWUgaXMg
+YWxzbyB1c2VkIGFzIG91dHB1dCBwYXJhbWV0ZXIuIEl0IHJlcHJlc2VudHMgdGhlDQo+IHJlc3Bv
+bnNlDQo+ID4gMTkzICAgICAgICAgICogSVBNSSBtZXNzYWdlIHJldHVybmVkIGJ5IElQTUkgY29t
+bWFuZC4NCj4gPiAxOTQgICAgICAgICAgKi8NCj4gPiAxOTUgICAgICAgICBidWZmZXIgPSAoc3Ry
+dWN0IGFjcGlfaXBtaV9idWZmZXIgKil2YWx1ZTsNCj4gPiAxOTYgICAgICAgICBpZiAoIXJlbV90
+aW1lICYmICFtc2ctPm1zZ19kb25lKSB7DQo+ID4gMTk3ICAgICAgICAgICAgICAgICBidWZmZXIt
+PnN0YXR1cyA9IEFDUElfSVBNSV9USU1FT1VUOw0KPiA+IDE5OCAgICAgICAgICAgICAgICAgcmV0
+dXJuOw0KPiA+IDE5OSAgICAgICAgIH0NCj4gPiAyMDAgICAgICAgICAvKg0KPiA+IDIwMSAgICAg
+ICAgICAqIElmIHRoZSBmbGFnIG9mIG1zZ19kb25lIGlzIG5vdCBzZXQgb3IgdGhlIHJlY3YgbGVu
+Z3RoIGlzIHplcm8sDQo+IGl0DQo+ID4gMjAyICAgICAgICAgICogbWVhbnMgdGhhdCB0aGUgSVBN
+SSBjb21tYW5kIGlzIG5vdCBleGVjdXRlZCBjb3JyZWN0bHkuDQo+ID4gMjAzICAgICAgICAgICog
+VGhlIHN0YXR1cyBjb2RlIHdpbGwgYmUgQUNQSV9JUE1JX1VOS05PV04uDQo+ID4gMjA0ICAgICAg
+ICAgICovDQo+ID4gMjA1ICAgICAgICAgaWYgKCFtc2ctPm1zZ19kb25lIHx8ICFtc2ctPnJ4X2xl
+bikgew0KPiA+IDIwNiAgICAgICAgICAgICAgICAgYnVmZmVyLT5zdGF0dXMgPSBBQ1BJX0lQTUlf
+VU5LTk9XTjsNCj4gPiAyMDcgICAgICAgICAgICAgICAgIHJldHVybjsNCj4gPiAyMDggICAgICAg
+ICB9DQo+ID4gKyAgICAgICAgIHNtcF9ybWIoKTsNCj4gPiAyMDkgICAgICAgICAvKg0KPiA+IDIx
+MCAgICAgICAgICAqIElmIHRoZSBJUE1JIHJlc3BvbnNlIG1lc3NhZ2UgaXMgb2J0YWluZWQgY29y
+cmVjdGx5LCB0aGUNCj4gc3RhdHVzIGNvZGUNCj4gPiAyMTEgICAgICAgICAgKiB3aWxsIGJlIEFD
+UElfSVBNSV9PSw0KPiA+IDIxMiAgICAgICAgICAqLw0KPiA+IDIxMyAgICAgICAgIGJ1ZmZlci0+
+c3RhdHVzID0gQUNQSV9JUE1JX09LOw0KPiA+IDIxNCAgICAgICAgIGJ1ZmZlci0+bGVuZ3RoID0g
+bXNnLT5yeF9sZW47DQo+ID4gMjE1ICAgICAgICAgbWVtY3B5KGJ1ZmZlci0+ZGF0YSwgbXNnLT5y
+eF9kYXRhLCBtc2ctPnJ4X2xlbik7DQo+ID4gMjE2IH0NCj4gPg0KPiA+IElmIHdlIGRvbid0IHRo
+ZW4gdGhlcmUgd2lsbCBvbmx5IGJlIG1zZyBjb250ZW50IG5vdCBjb3JyZWN0bHkgcmVhZCBmcm9t
+DQo+IG1zZy0+cnhfZGF0YS4NCj4gPiBOb3RlIHRoYXQgdGhlIHJ4X2xlbiBpcyAwIGR1cmluZyBp
+bml0aWFsaXphdGlvbiBhbmQgd2lsbCBuZXZlciBleGNlZWQgdGhlDQo+IHNpemVvZihidWZmZXIt
+PmRhdGEpLCBzbyB0aGUgcmVhZCBpcyBzYWZlLg0KPiA+DQo+ID4gQmVpbmcgd2l0aG91dCBzbXBf
+cm1iKCkgaXMgYWxzbyBPSyBpbiB0aGlzIGNhc2UsIHNpbmNlOg0KPiA+IDEuIGJ1ZmZlci0+ZGF0
+YSB3aWxsIG5ldmVyIGJlIHVzZWQgd2hlbiBidWZmZXItPnN0YXR1cyBpcyBub3QNCj4gPiBBQ1BJ
+X0lQTUlfT0sgYW5kIDIuIHRoZSBzbXBfcm1iKCkvc21wX3dtYigpIGFkZGVkIGluIHRoaXMgcGF0
+Y2ggd2lsbCBiZQ0KPiBkZWxldGVkIGluIFtQQVRDSCAwN10uDQo+ID4NCj4gPiBTbyBJTU8sIHdl
+IG5lZWRuJ3QgYWRkIHRoZSBzbXBfcm1iKCksIHdoYXQgZG8geW91IHRoaW5rIG9mIHRoaXM/DQo+
+ID4NCj4gPiBGb3IgMi4NCj4gPiBJZiB3ZSBkb24ndCBhZGQgc21wX3dtYigpIGluIHRoZSBpcG1p
+X21zZ19oYW5kbGVyKCksIHRoZW4gdGhlIGNvZGVzDQo+IHJ1bm5pbmcgb24gb3RoZXIgdGhyZWFk
+IGluIHRoZSBhY3BpX2Zvcm1hdF9pcG1pX3Jlc3BvbnNlKCkgbWF5IHJlYWQgd3JvbmcNCj4gbXNn
+LT5yeF9kYXRhIChhIHRpbWVvdXQgdHJpZ2dlcnMgdGhpcyBmdW5jdGlvbiwgYnV0IHdoZW4NCj4g
+YWNwaV9mb3JtYXRfaXBtaV9yZXNwb25zZSgpIGlzIGVudGVyZWQsIHRoZSBtc2ctPm1zZ19kb25l
+IGZsYWcgY291bGQgYmUNCj4gc2VlbiBhcyAxIGJ1dCB0aGUgbXNnLT5yeF9kYXRhIGlzIG5vdCBy
+ZWFkeSksIHRoaXMgaXMgd2hhdCB3ZSB3YW50IHRvIGF2b2lkIGluDQo+IHRoaXMgcXVpY2sgZml4
+Lg0KPiANCj4gVXNpbmcgc21wX3dtYigpIHdpdGhvdXQgdGhlIGNvbXBsZW1lbnRhcnkgc21wX3Jt
+YigpIGRvZXNuJ3QgbWFrZXMgc2Vuc2UsDQo+IGJlY2F1c2UgZWFjaCBvZiB0aGVtIHByZXZlbnRz
+IG9ubHkgb25lIGZsb3cgb2YgY29udHJvbCBmcm9tIGJlaW5nDQo+IHNwZWN1bGF0aXZlbHkgcmVv
+cmRlcmVkLCBlaXRoZXIgYnkgdGhlIENQVSBvciBieSB0aGUgY29tcGlsZXIuICBJZiBvbmx5IG9u
+ZSBvZg0KPiB0aGVtIGlzIHVzZWQgd2l0aG91dCB0aGUgb3RoZXIsIHRoZW4gdGhlIGZsb3cgb2Yg
+Y29udHJvbCB3aXRob3V0IHRoZSBiYXJyaWVyDQo+IG1heSBiZSByZW9yZGVyZWQgaW4gYSB3YXkg
+dGhhdCB3aWxsIGVmZmVjdGl2ZWx5IGNhbmNlbCB0aGUgZWZmZWN0IG9mIHRoZSBiYXJyaWVyIGlu
+DQo+IHRoZSBzZWNvbmQgZmxvdyBvZiBjb250cm9sLg0KPiANCj4gU28sIGVpdGhlciB3ZSBuZWVk
+ICpib3RoKiBzbXBfd21iKCkgYW5kIHNtcF9ybWIoKSwgb3Igd2UgZG9uJ3QgbmVlZCB0aGVtDQo+
+IGF0IGFsbC4NCg0KSSB0aGluayB5b3UgYXJlIHJpZ2h0LCBpdCBpcyBhYm91dCBvcmRlciBvZiBM
+MSBjYWNoZSBmbHVzaGluZy4NCg0KVGhlIHNtcF93bWIoKS9zbXBfcm1iKCkgaXMgbm90IGEgdXNl
+ZnVsIGFwcHJvYWNoIGZvciBub24tdHVuaW5nIGltcGxlbWVudGF0aW9ucy4NCg0KSXQncyBoZXJl
+IGJlY2F1c2UgdGhlIGNvZGUgdXNlZCBhIGNvbWJpbmVkIHByb2dyYW1pbmcgbW9kZWwsIGFuZCB0
+aHVzIGEgYnVnLg0KU3VjaCBidWdzIGNhbiBiZSBhdm9pZGVkIGJ5Og0KMS4gZWl0aGVyIHVzaW5n
+IGJpZ2dlciBncmFudWxhcml0eSBsb2NrcywgaW4gdGhpcyBjYXNlLCB0eF9tc2dfbG9jayBzaG91
+bGQgYmUgaGVsZCBhcm91bmQgYWNwaV9mb3JtYXRfaXBtaV9yZXNwb25zZSgpDQoyLiBvciB1c2lu
+ZyBzbWFsbGVyIGdyYW51bGFyaXR5IGxvY2tzLCByYWNlcyBhcmUgYXV0b21hdGljYWxseSBhdm9p
+ZGVkIGJ5IHRoZSBleGNsdWRlZCBydW5uaW5nIGZsb3dzIChsaWtlIHdoYXQgdGhlIFBBVENIIDA3
+IHNob3dzKQ0KDQpJJ2xsIHVwZGF0ZSB0aGlzIHBhdGNoIG9yIGV2ZW4gZHJvcCBpdC4NCg0KVGhh
+bmtzIGFuZCBiZXN0IHJlZ2FyZHMNCi1Mdg0KDQo+IA0KPiBUaGFua3MsDQo+IFJhZmFlbA0KPiAN
+Cj4gDQo+IC0tDQo+IEkgc3BlYWsgb25seSBmb3IgbXlzZWxmLg0KPiBSYWZhZWwgSi4gV3lzb2Nr
+aSwgSW50ZWwgT3BlbiBTb3VyY2UgVGVjaG5vbG9neSBDZW50ZXIuDQo=
