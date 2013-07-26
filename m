@@ -1,192 +1,69 @@
 From: "Zheng, Lv" <lv.zheng@intel.com>
-Subject: Re: [PATCH 08/13] ACPI/IPMI: Cleanup several
- acpi_ipmi_device members
-Date: Fri, 26 Jul 2013 01:25:12 +0000
-Message-ID: <1AE640813FDE7649BE1B193DEA596E8802435B14@SHSMSX101.ccr.corp.intel.com>
+Subject: RE: [PATCH 03/13] ACPI/IPMI: Fix race caused by the unprotected
+ ACPI IPMI transfers
+Date: Fri, 26 Jul 2013 01:30:05 +0000
+Message-ID: <1AE640813FDE7649BE1B193DEA596E8802435B2C@SHSMSX101.ccr.corp.intel.com>
 References: <cover.1370652213.git.lv.zheng@intel.com>
-	<cover.1374566394.git.lv.zheng@intel.com>
-	<b70ad0fe8c19e25eae9cef6fba21dfce237051bb.1374566394.git.lv.zheng@intel.com>
-	<1882662.xsnVH6Carz@vostro.rjw.lan>
+ <1520893.BbRK6T3F73@vostro.rjw.lan>
+ <1AE640813FDE7649BE1B193DEA596E88024357A9@SHSMSX101.ccr.corp.intel.com>
+ <76401540.gtU1MiBxPY@vostro.rjw.lan> <51F16A96.6040706@acm.org>
+ <1AE640813FDE7649BE1B193DEA596E8802435A78@SHSMSX101.ccr.corp.intel.com>
+ <51F1C745.60800@acm.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <openipmi-developer-bounces@lists.sourceforge.net>
-In-Reply-To: <1882662.xsnVH6Carz@vostro.rjw.lan>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mga09.intel.com ([134.134.136.24]:56691 "EHLO mga09.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756215Ab3GZBaU (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 25 Jul 2013 21:30:20 -0400
+In-Reply-To: <51F1C745.60800@acm.org>
 Content-Language: en-US
-List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/openipmi-developer>,
-	<mailto:openipmi-developer-request@lists.sourceforge.net?subject=unsubscribe>
-List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum_name=openipmi-developer>
-List-Post: <mailto:openipmi-developer@lists.sourceforge.net>
-List-Help: <mailto:openipmi-developer-request@lists.sourceforge.net?subject=help>
-List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/openipmi-developer>,
-	<mailto:openipmi-developer-request@lists.sourceforge.net?subject=subscribe>
-Errors-To: openipmi-developer-bounces@lists.sourceforge.net
-To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: "Brown, Len" <len.brown@intel.com>, Corey Minyard <minyard@acm.org>, "Wysocki, Rafael J" <rafael.j.wysocki@intel.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "Zhao, Yakui" <yakui.zhao@intel.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "openipmi-developer@lists.sourceforge.net" <openipmi-developer@lists.sourceforge.net>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: "minyard@acm.org" <minyard@acm.org>
+Cc: "Rafael J. Wysocki" <rjw@sisk.pl>, "Wysocki, Rafael J" <rafael.j.wysocki@intel.com>, "Brown, Len" <len.brown@intel.com>, "Zhao, Yakui" <yakui.zhao@intel.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "openipmi-developer@lists.sourceforge.net" <openipmi-developer@lists.sourceforge.net>
 
-> From: Rafael J. Wysocki [mailto:rjw@sisk.pl]
-> Sent: Friday, July 26, 2013 6:26 AM
-> 
-> On Tuesday, July 23, 2013 04:10:06 PM Lv Zheng wrote:
-> > This is a trivial patch:
-> > 1. Deletes a member of the acpi_ipmi_device - smi_data which is not
-> >    actually used.
-> > 2. Updates a member of the acpi_ipmi_device - pnp_dev which is only used
-> >    by dev_warn() invocations, so changes it to struct device.
-> >
-> > Signed-off-by: Lv Zheng <lv.zheng@intel.com>
-> > Reviewed-by: Huang Ying <ying.huang@intel.com>
-> > ---
-> >  drivers/acpi/acpi_ipmi.c |   30 ++++++++++++++----------------
-> >  1 file changed, 14 insertions(+), 16 deletions(-)
-> >
-> > diff --git a/drivers/acpi/acpi_ipmi.c b/drivers/acpi/acpi_ipmi.c index
-> > 0ee1ea6..7f93ffd 100644
-> > --- a/drivers/acpi/acpi_ipmi.c
-> > +++ b/drivers/acpi/acpi_ipmi.c
-> > @@ -63,11 +63,10 @@ struct acpi_ipmi_device {
-> >  	struct list_head tx_msg_list;
-> >  	spinlock_t	tx_msg_lock;
-> >  	acpi_handle handle;
-> > -	struct pnp_dev *pnp_dev;
-> > +	struct device *dev;
-> >  	ipmi_user_t	user_interface;
-> >  	int ipmi_ifnum; /* IPMI interface number */
-> >  	long curr_msgid;
-> > -	struct ipmi_smi_info smi_data;
-> >  	atomic_t refcnt;
-> >  };
-> >
-> > @@ -132,7 +131,7 @@ static struct ipmi_driver_data driver_data = {  };
-> >
-> >  static struct acpi_ipmi_device *
-> > -ipmi_dev_alloc(int iface, struct ipmi_smi_info *smi_data, acpi_handle
-> > handle)
-> > +ipmi_dev_alloc(int iface, struct device *pdev, acpi_handle handle)
-> 
-> Why is the second arg called pdev?
-
-OK, I will change it to dev.
-
-> 
-> >  {
-> >  	struct acpi_ipmi_device *ipmi_device;
-> >  	int err;
-> > @@ -148,14 +147,13 @@ ipmi_dev_alloc(int iface, struct ipmi_smi_info
-> *smi_data, acpi_handle handle)
-> >  	spin_lock_init(&ipmi_device->tx_msg_lock);
-> >
-> >  	ipmi_device->handle = handle;
-> > -	ipmi_device->pnp_dev = to_pnp_dev(get_device(smi_data->dev));
-> > -	memcpy(&ipmi_device->smi_data, smi_data, sizeof(struct
-> ipmi_smi_info));
-> > +	ipmi_device->dev = get_device(pdev);
-> >  	ipmi_device->ipmi_ifnum = iface;
-> >
-> >  	err = ipmi_create_user(iface, &driver_data.ipmi_hndlrs,
-> >  			       ipmi_device, &user);
-> >  	if (err) {
-> > -		put_device(smi_data->dev);
-> > +		put_device(pdev);
-> >  		kfree(ipmi_device);
-> >  		return NULL;
-> >  	}
-> > @@ -175,7 +173,7 @@ acpi_ipmi_dev_get(struct acpi_ipmi_device
-> > *ipmi_device)  static void ipmi_dev_release(struct acpi_ipmi_device
-> > *ipmi_device)  {
-> >  	ipmi_destroy_user(ipmi_device->user_interface);
-> > -	put_device(ipmi_device->smi_data.dev);
-> > +	put_device(ipmi_device->dev);
-> >  	kfree(ipmi_device);
-> >  }
-> >
-> > @@ -263,7 +261,7 @@ static int acpi_format_ipmi_request(struct
-> acpi_ipmi_msg *tx_msg,
-> >  	buffer = (struct acpi_ipmi_buffer *)value;
-> >  	/* copy the tx message data */
-> >  	if (buffer->length > ACPI_IPMI_MAX_MSG_LENGTH) {
-> > -		dev_WARN_ONCE(&tx_msg->device->pnp_dev->dev, true,
-> > +		dev_WARN_ONCE(tx_msg->device->dev, true,
-> >  			      "Unexpected request (msg len %d).\n",
-> >  			      buffer->length);
-> >  		return -EINVAL;
-> > @@ -382,11 +380,11 @@ static void ipmi_msg_handler(struct
-> ipmi_recv_msg *msg, void *user_msg_data)
-> >  	struct acpi_ipmi_device *ipmi_device = user_msg_data;
-> >  	int msg_found = 0;
-> >  	struct acpi_ipmi_msg *tx_msg;
-> > -	struct pnp_dev *pnp_dev = ipmi_device->pnp_dev;
-> > +	struct device *dev = ipmi_device->dev;
-> >  	unsigned long flags;
-> >
-> >  	if (msg->user != ipmi_device->user_interface) {
-> > -		dev_warn(&pnp_dev->dev,
-> > +		dev_warn(dev,
-> >  			 "Unexpected response is returned. returned user %p, expected
-> user %p\n",
-> >  			 msg->user, ipmi_device->user_interface);
-> >  		goto out_msg;
-> > @@ -404,7 +402,7 @@ static void ipmi_msg_handler(struct ipmi_recv_msg
-> *msg, void *user_msg_data)
-> >  	spin_unlock_irqrestore(&ipmi_device->tx_msg_lock, flags);
-> >
-> >  	if (!msg_found) {
-> > -		dev_warn(&pnp_dev->dev,
-> > +		dev_warn(dev,
-> >  			 "Unexpected response (msg id %ld) is returned.\n",
-> >  			 msg->msgid);
-> >  		goto out_msg;
-> > @@ -412,7 +410,7 @@ static void ipmi_msg_handler(struct ipmi_recv_msg
-> > *msg, void *user_msg_data)
-> >
-> >  	/* copy the response data to Rx_data buffer */
-> >  	if (msg->msg.data_len > ACPI_IPMI_MAX_MSG_LENGTH) {
-> > -		dev_WARN_ONCE(&pnp_dev->dev, true,
-> > +		dev_WARN_ONCE(dev, true,
-> >  			      "Unexpected response (msg len %d).\n",
-> >  			      msg->msg.data_len);
-> >  		goto out_comp;
-> > @@ -431,7 +429,7 @@ out_msg:
-> >  static void ipmi_register_bmc(int iface, struct device *dev)  {
-> >  	struct acpi_ipmi_device *ipmi_device, *temp;
-> > -	struct pnp_dev *pnp_dev;
-> > +	struct device *pdev;
-> 
-> And here?
-
-The dev is the parameter of the ipmi_register_bmc(), it is not possible to name the "struct ipmi_smi_info " as dev here for this quick fix.
-
-Thanks
--Lv
-
-> 
-> >  	int err;
-> >  	struct ipmi_smi_info smi_data;
-> >  	acpi_handle handle;
-> > @@ -445,11 +443,11 @@ static void ipmi_register_bmc(int iface, struct
-> device *dev)
-> >  	handle = smi_data.addr_info.acpi_info.acpi_handle;
-> >  	if (!handle)
-> >  		goto err_ref;
-> > -	pnp_dev = to_pnp_dev(smi_data.dev);
-> > +	pdev = smi_data.dev;
-> >
-> > -	ipmi_device = ipmi_dev_alloc(iface, &smi_data, handle);
-> > +	ipmi_device = ipmi_dev_alloc(iface, pdev, handle);
-> >  	if (!ipmi_device) {
-> > -		dev_warn(&pnp_dev->dev, "Can't create IPMI user interface\n");
-> > +		dev_warn(pdev, "Can't create IPMI user interface\n");
-> >  		goto err_ref;
-> >  	}
-> >
-> >
-> --
-> I speak only for myself.
-> Rafael J. Wysocki, Intel Open Source Technology Center.
-------------------------------------------------------------------------------
-See everything from the browser to the database with AppDynamics
-Get end-to-end visibility with application monitoring from AppDynamics
-Isolate bottlenecks and diagnose root cause in seconds.
-Start your free trial of AppDynamics Pro today!
-http://pubads.g.doubleclick.net/gampad/clk?id=48808831&iu=/4140/ostg.clktrk
+PiBGcm9tOiBDb3JleSBNaW55YXJkIFttYWlsdG86dGNtaW55YXJkQGdtYWlsLmNvbV0NCj4gU2Vu
+dDogRnJpZGF5LCBKdWx5IDI2LCAyMDEzIDg6NDggQU0NCj4gDQo+IE9uIDA3LzI1LzIwMTMgMDc6
+MTYgUE0sIFpoZW5nLCBMdiB3cm90ZToNCj4gPj4NCj4gPj4gSWYgSSB1bmRlcnN0YW5kIHRoaXMg
+Y29ycmVjdGx5LCB0aGUgcHJvYmxlbSB3b3VsZCBiZSBpZjoNCj4gPj4NCj4gPj4gcmVtX3RpbWUg
+PSB3YWl0X2Zvcl9jb21wbGV0aW9uX3RpbWVvdXQoJnR4X21zZy0+dHhfY29tcGxldGUsDQo+ID4+
+ICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIElQTUlfVElNRU9VVCk7
+DQo+ID4+DQo+ID4+IHJldHVybnMgb24gYSB0aW1lb3V0LCB0aGVuIGNoZWNrcyBtc2dfZG9uZSBh
+bmQgcmFjZXMgd2l0aCBzb21ldGhpbmcNCj4gPj4gc2V0dGluZyBtc2dfZG9uZS4gIElmIHRoYXQg
+aXMgdGhlIGNhc2UsIHlvdSB3b3VsZCBuZWVkIHRoZSBzbXBfcm1iKCkNCj4gPj4gYmVmb3JlIGNo
+ZWNraW5nIG1zZ19kb25lLg0KPiA+Pg0KPiA+PiBIb3dldmVyLCB0aGUgdGltZW91dCBhYm92ZSBp
+cyB1bm5lY2Vzc2FyeS4gIFlvdSBhcmUgdXNpbmcNCj4gPj4gaXBtaV9yZXF1ZXN0X3NldHRpbWUo
+KSwgc28geW91IGNhbiBzZXQgdGhlIHRpbWVvdXQgd2hlbiB0aGUgSVBNSQ0KPiA+PiBjb21tYW5k
+IGZhaWxzIGFuZCByZXR1cm5zIGEgZmFpbHVyZSBtZXNzYWdlLiAgVGhlIGRyaXZlciBndWFyYW50
+ZWVzIGENCj4gPj4gcmV0dXJuIG1lc3NhZ2UgZm9yIGVhY2ggcmVxdWVzdC4gIEp1c3QgcmVtb3Zl
+IHRoZSB0aW1lb3V0IGZyb20gdGhlDQo+ID4+IGNvbXBsZXRpb24sIHNldCB0aGUgdGltZW91dCBh
+bmQgcmV0cmllcyBpbiB0aGUgaXBtaSByZXF1ZXN0LCBhbmQgdGhlDQo+ID4+IGNvbXBsZXRpb24g
+c2hvdWxkIGhhbmRsZSB0aGUgYmFycmllciBpc3N1ZXMuDQo+ID4gSXQncyBqdXN0IGRpZmZpY3Vs
+dCBmb3IgbWUgdG8gZGV0ZXJtaW5lIHJldHJ5IGNvdW50IGFuZCB0aW1lb3V0IHZhbHVlLCBtYXli
+ZQ0KPiByZXRyeT0wLCB0aW1lb3V0PUlQTUlfVElNRU9VVCBpcyBPSy4NCj4gPiBUaGUgY29kZSBv
+ZiB0aGUgdGltZW91dCBjb21wbGV0aW9uIGlzIGFscmVhZHkgdGhlcmUsIEkgdGhpbmsgdGhlIHF1
+aWNrIGZpeCBjb2RlDQo+IHNob3VsZCBub3QgaW50cm9kdWNlIHRoaXMgbG9naWMuDQo+ID4gSSds
+bCBhZGQgYSBuZXcgcGF0Y2ggdG8gYXBwbHkgeW91ciBjb21tZW50Lg0KPiANCj4gU2luY2UgaXQg
+aXMgYSBsb2NhbCBCTUMsIEkgZG91YnQgYSByZXRyeSBpcyByZXF1aXJlZC4gIFRoYXQgaXMgcHJv
+YmFibHkgZmluZS4gIE9yDQo+IHlvdSBjb3VsZCBzZXQgcmV0cnk9MSBhbmQgdGltZW91dD1JUE1J
+X1RJTUVPVVQvMiBpZiB5b3Ugd2FudGVkIHRvIGJlIG1vcmUNCj4gc3VyZSwgYnV0IEkgZG91YnQg
+aXQgd291bGQgbWFrZSBhIGRpZmZlcmVuY2UuICBUaGUgb25seSB0aW1lIHlvdSByZWFsbHkgbmVl
+ZCB0bw0KPiB3b3JyeSBhYm91dCByZXRyaWVzIGlzIGlmIHlvdSBhcmUgcmVzZXR0aW5nIHRoZSBC
+TUMgb3IgaXQgaXMgYmVpbmcgb3ZlcmxvYWRlZC4NCg0KSSB0aGluayBmb3IgQUNQSSBJUE1JIG9w
+ZXJhdGlvbiByZWdpb24sIHJldHJpZXMgY2FuIGJlIGltcGxlbWVudGVkIGluIHRoZSBBU0wgY29k
+ZXMgYnkgdGhlIEJJT1MuDQpJJ2xsIGNoZWNrIGlmIHJldHJ5PTAgaXMgY29ycmVjdC4NCg0KPiAN
+Cj4gPg0KPiA+PiBQbHVzLCBmcm9tIGEgcXVpY2sgZ2xhbmNlIGF0IHRoZSBjb2RlLCBpdCBkb2Vz
+bid0IGxvb2sgbGlrZSBpdCB3aWxsDQo+ID4+IHByb3Blcmx5IGhhbmRsZSBhIHNpdHVhdGlvbiB3
+aGVyZSB0aGUgdGltZW91dCBvY2N1cnMgYW5kIGlzIGhhbmRsZWQNCj4gPj4gdGhlbiB0aGUgcmVz
+cG9uc2UgY29tZXMgaW4gbGF0ZXIuDQo+ID4gUEFUQ0ggMDcgZml4ZWQgdGhpcyBpc3N1ZS4NCj4g
+PiBIZXJlIHdlIGp1c3QgbmVlZCB0aGUgc21wX3JtYigpIG9yIGhvbGRpbmcgdHhfbXNnX2xvY2so
+KSBhcm91bmQgdGhlDQo+IGFjcGlfZm9ybWF0X2lwbWlfcmVzcG9uc2UoKS4NCj4gDQo+IElmIHlv
+dSBhcHBseSB0aGUgZml4IGxpa2UgSSBzdWdnZXN0LCB0aGVuIHRoZSByYWNlIGdvZXMgYXdheS4g
+IElmIHRoZXJlJ3Mgbm8NCj4gdGltZW91dCBhbmQgaXQganVzdCB3YWl0cyBmb3IgdGhlIGNvbXBs
+ZXRpb24sIHRoaW5ncyBnZXQgYSBsb3Qgc2ltcGxlci4NCg0KRXhhY3RseS4gIEknbGwgdHJ5IHRv
+IGFwcGx5IHRoaXMgaW4gdGhpcyBwYXRjaCwgdGhlbiB0aGUgUEFUQ0ggMDcgaXMgYWxzbyBuZWVk
+IHRvIGJlIHJlLXdvcmtlZC4NCg0KVGhhbmtzIGFuZCBiZXN0IHJlZ2FyZHMNCi1Mdg0KDQoNCj4g
+Pg0KPiA+IFRoYW5rcyBmb3IgY29tbWVudGluZy4NCj4gDQo+IE5vIHByb2JsZW0sIHRoYW5rcyBm
+b3Igd29ya2luZyBvbiB0aGlzLg0KPiANCj4gLWNvcmV5DQo=
