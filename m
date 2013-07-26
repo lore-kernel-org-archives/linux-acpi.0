@@ -1,451 +1,107 @@
 From: "Rafael J. Wysocki" <rjw@sisk.pl>
 Subject: Re: [PATCH 06/13] ACPI/IPMI: Add reference counting for ACPI operation region handlers
-Date: Fri, 26 Jul 2013 16:00:33 +0200
-Message-ID: <1987717.sOM7MZMJ53@vostro.rjw.lan>
-References: <cover.1370652213.git.lv.zheng@intel.com> <1597566.Nfc7r37F3q@vostro.rjw.lan> <1AE640813FDE7649BE1B193DEA596E8802435AB5@SHSMSX101.ccr.corp.intel.com>
+Date: Fri, 26 Jul 2013 16:49:23 +0200
+Message-ID: <3196577.UQScsUKI1B@vostro.rjw.lan>
+References: <cover.1370652213.git.lv.zheng@intel.com> <2501577.sf07PMEtR1@vostro.rjw.lan> <1AE640813FDE7649BE1B193DEA596E8802435B7C@SHSMSX101.ccr.corp.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7Bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from hydra.sisk.pl ([212.160.235.94]:41665 "EHLO hydra.sisk.pl"
+Received: from hydra.sisk.pl ([212.160.235.94]:41762 "EHLO hydra.sisk.pl"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754324Ab3GZNu3 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 26 Jul 2013 09:50:29 -0400
-In-Reply-To: <1AE640813FDE7649BE1B193DEA596E8802435AB5@SHSMSX101.ccr.corp.intel.com>
+	id S1757011Ab3GZOjS (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 26 Jul 2013 10:39:18 -0400
+In-Reply-To: <1AE640813FDE7649BE1B193DEA596E8802435B7C@SHSMSX101.ccr.corp.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: "Zheng, Lv" <lv.zheng@intel.com>
-Cc: "Wysocki, Rafael J" <rafael.j.wysocki@intel.com>, "Brown, Len" <len.brown@intel.com>, Corey Minyard <minyard@acm.org>, "Zhao, Yakui" <yakui.zhao@intel.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "stable@vger.kernel.org" <stable@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "openipmi-developer@lists.sourceforge.net" <openipmi-developer@lists.sourceforge.net>
+Cc: "Wysocki, Rafael J" <rafael.j.wysocki@intel.com>, "Brown, Len" <len.brown@intel.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
 
-On Friday, July 26, 2013 12:47:44 AM Zheng, Lv wrote:
-> 
+On Friday, July 26, 2013 01:54:00 AM Zheng, Lv wrote:
 > > From: Rafael J. Wysocki [mailto:rjw@sisk.pl]
-> > Sent: Friday, July 26, 2013 4:27 AM
+> > Sent: Friday, July 26, 2013 5:29 AM
 > > 
 > > On Tuesday, July 23, 2013 04:09:43 PM Lv Zheng wrote:
-> > > This patch adds reference couting for ACPI operation region handlers
-> > > to fix races caused by the ACPICA address space callback invocations.
+> > > This patch adds reference couting for ACPI operation region handlers to fix
+> > > races caused by the ACPICA address space callback invocations.
 > > >
 > > > ACPICA address space callback invocation is not suitable for Linux
-> > > CONFIG_MODULE=y execution environment.  This patch tries to protect
-> > > the address space callbacks by invoking them under a module safe
-> > environment.
-> > > The IPMI address space handler is also upgraded in this patch.
-> > > The acpi_unregister_region() is designed to meet the following
-> > > requirements:
-> > > 1. It acts as a barrier for operation region callbacks - no callback will
-> > >    happen after acpi_unregister_region().
-> > > 2. acpi_unregister_region() is safe to be called in moudle->exit()
-> > >    functions.
-> > > Using reference counting rather than module referencing allows such
-> > > benefits to be achieved even when acpi_unregister_region() is called
-> > > in the environments other than module->exit().
-> > > The header file of include/acpi/acpi_bus.h should contain the
-> > > declarations that have references to some ACPICA defined types.
-> > >
-> > > Signed-off-by: Lv Zheng <lv.zheng@intel.com>
-> > > Reviewed-by: Huang Ying <ying.huang@intel.com>
-> > > ---
-> > >  drivers/acpi/acpi_ipmi.c |   16 ++--
-> > >  drivers/acpi/osl.c       |  224
-> > ++++++++++++++++++++++++++++++++++++++++++++++
-> > >  include/acpi/acpi_bus.h  |    5 ++
-> > >  3 files changed, 235 insertions(+), 10 deletions(-)
-> > >
-> > > diff --git a/drivers/acpi/acpi_ipmi.c b/drivers/acpi/acpi_ipmi.c index
-> > > 5f8f495..2a09156 100644
-> > > --- a/drivers/acpi/acpi_ipmi.c
-> > > +++ b/drivers/acpi/acpi_ipmi.c
-> > > @@ -539,20 +539,18 @@ out_ref:
-> > >  static int __init acpi_ipmi_init(void)  {
-> > >  	int result = 0;
-> > > -	acpi_status status;
-> > >
-> > >  	if (acpi_disabled)
-> > >  		return result;
-> > >
-> > >  	mutex_init(&driver_data.ipmi_lock);
-> > >
-> > > -	status = acpi_install_address_space_handler(ACPI_ROOT_OBJECT,
-> > > -						    ACPI_ADR_SPACE_IPMI,
-> > > -						    &acpi_ipmi_space_handler,
-> > > -						    NULL, NULL);
-> > > -	if (ACPI_FAILURE(status)) {
-> > > +	result = acpi_register_region(ACPI_ADR_SPACE_IPMI,
-> > > +				      &acpi_ipmi_space_handler,
-> > > +				      NULL, NULL);
-> > > +	if (result) {
-> > >  		pr_warn("Can't register IPMI opregion space handle\n");
-> > > -		return -EINVAL;
-> > > +		return result;
-> > >  	}
-> > >
-> > >  	result = ipmi_smi_watcher_register(&driver_data.bmc_events);
-> > > @@ -596,9 +594,7 @@ static void __exit acpi_ipmi_exit(void)
-> > >  	}
-> > >  	mutex_unlock(&driver_data.ipmi_lock);
-> > >
-> > > -	acpi_remove_address_space_handler(ACPI_ROOT_OBJECT,
-> > > -					  ACPI_ADR_SPACE_IPMI,
-> > > -					  &acpi_ipmi_space_handler);
-> > > +	acpi_unregister_region(ACPI_ADR_SPACE_IPMI);
-> > >  }
-> > >
-> > >  module_init(acpi_ipmi_init);
-> > > diff --git a/drivers/acpi/osl.c b/drivers/acpi/osl.c index
-> > > 6ab2c35..8398e51 100644
-> > > --- a/drivers/acpi/osl.c
-> > > +++ b/drivers/acpi/osl.c
-> > > @@ -86,6 +86,42 @@ static struct workqueue_struct *kacpid_wq;  static
-> > > struct workqueue_struct *kacpi_notify_wq;  static struct
-> > > workqueue_struct *kacpi_hotplug_wq;
-> > >
-> > > +struct acpi_region {
-> > > +	unsigned long flags;
-> > > +#define ACPI_REGION_DEFAULT		0x01
-> > > +#define ACPI_REGION_INSTALLED		0x02
-> > > +#define ACPI_REGION_REGISTERED		0x04
-> > > +#define ACPI_REGION_UNREGISTERING	0x08
-> > > +#define ACPI_REGION_INSTALLING		0x10
+> > > CONFIG_MODULE=y execution environment.
 > > 
-> > What about (1UL << 1), (1UL << 2) etc.?
-> > 
-> > Also please remove the #defines out of the struct definition.
+> > Actually, can you please explain to me what *exactly* the problem is?
 > 
-> OK.
+> OK.  I'll add race explanations in the next revision.
 > 
-> > 
-> > > +	/*
-> > > +	 * NOTE: Upgrading All Region Handlers
-> > > +	 * This flag is only used during the period where not all of the
-> > > +	 * region handers are upgraded to the new interfaces.
-> > > +	 */
-> > > +#define ACPI_REGION_MANAGED		0x80
-> > > +	acpi_adr_space_handler handler;
-> > > +	acpi_adr_space_setup setup;
-> > > +	void *context;
-> > > +	/* Invoking references */
-> > > +	atomic_t refcnt;
-> > 
-> > Actually, why don't you use krefs?
+> The problem is there is no "lock" held inside ACPICA for invoking operation
+> region handlers.
+> Thus races happens between the acpi_remove/install_address_space_handler and
+> the handler/setup callbacks.
+
+I see.  Now you're trying to introduce something that would prevent those
+races from happening, right?
+
+> This is correct per ACPI specification.
+> As if there is interpreter locks held for invoking operation region handlers,
+> the timeout implemented inside the operation region handlers will make all
+> locking facilities (Acquire or Sleep,...) timed out.
+> Please refer to ACPI specification "5.5.2 Control Method Execution":
+> Interpretation of a Control Method is not preemptive, but it can block. When
+> a control method does block, OSPM can initiate or continue the execution of
+> a different control method. A control method can only assume that access to
+> global objects is exclusive for any period the control method does not block.
 > 
-> If you take a look at other piece of my codes, you'll find there are two reasons:
-> 
-> 1. I'm using while (atomic_read() > 1) to implement the objects' flushing and there is no kref API to do so.
+> So it is pretty much likely that ACPI IO transfers are locked inside the
+> operation region callback implementations.
+> Using locking facility to protect the callback invocation will risk dead locks.
 
-No, there's not any, but you can read kref.refcount directly, can't you?
+No.  If you use a single global lock around all invocations of operation region
+handlers, it won't deadlock, but it will *serialize* things.  This means that
+there won't be two handlers executing in parallel.  That may or may not be bad
+depending on what those handlers actually do.
 
-Moreover, it is not entirely clear to me that doing the while (atomic_read() > 1)
-is actually correct.
+Your concern seems to be that if one address space handler is buggy and it
+blocks indefinitely, executing it under such a lock would affect the other
+address space handlers and in my opinion this is a valid concern.
 
->   I just think it is not suitable for me to introduce such an API into kref.h and start another argument around kref designs in this bug fix patch. :-)
->   I'll start a discussion about kref design using another thread.
+So the idea seems to be to add wrappers around acpi_install_address_space_handler()
+and acpi_remove_address_space_handler (but I don't see where the latter is called
+after the change?), such that they will know when it is safe to unregister the
+handler.  That is simple enough.
 
-You don't need to do that at all.
+However, I'm not sure it is needed in the context of IPMI.  Your address space
+handler's context is NULL, so even it if is executed after
+acpi_remove_address_space_handler() has been called for it (or in parallel),
+it doesn't depend on anything passed by the caller, so I don't see why the
+issue can't be addressed by a proper synchronization between
+acpi_ipmi_exit() and acpi_ipmi_space_handler().
 
-> 2. I'm using ipmi_dev|msg_release() as a pair of ipmi_dev|msg_alloc(), it's kind of atomic_t coding style.
->   If atomic_t is changed to struct kref, I will need to implement two API, __ipmi_dev_release() to take a struct kref as parameter and call ipmi_dev_release inside it.
->   By not using kref, I needn't write codes to implement such API.
+Clearly, acpi_ipmi_exit() should wait for all already running instances of
+acpi_ipmi_space_handler() to complete and all acpi_ipmi_space_handler()
+instances started after acpi_ipmi_exit() has been called must return
+immediately.
 
-I'm not following you, sorry.
+I would imagine an algorithm like this:
 
-Please just use krefs for reference counting, the same way as you use
-struct list_head for implementing lists.  This is the way everyone does
-that in the kernel and that's for a reason.
+acpi_ipmi_exit()
+ 1. Take "address space handler lock".
+ 2. Set "unregistering address space handler" flag.
+ 3. Check if "count of currently running handlers" is 0.  If so,
+    call acpi_remove_address_space_handler(), drop the lock (possibly clear the
+    flag) and return.
+ 4. Otherwise drop the lock and go to sleep in "address space handler wait queue".
+ 5. When woken up, take "address space handler lock" and go to 3.
 
-Unless you do your reference counting under a lock, in which case using
-atomic_t isn't necessary at all and you can use a non-atomic counter.
-
-> > > +};
-> > > +
-> > > +static struct acpi_region acpi_regions[ACPI_NUM_PREDEFINED_REGIONS]
-> > = {
-> > > +	[ACPI_ADR_SPACE_SYSTEM_MEMORY] = {
-> > > +		.flags = ACPI_REGION_DEFAULT,
-> > > +	},
-> > > +	[ACPI_ADR_SPACE_SYSTEM_IO] = {
-> > > +		.flags = ACPI_REGION_DEFAULT,
-> > > +	},
-> > > +	[ACPI_ADR_SPACE_PCI_CONFIG] = {
-> > > +		.flags = ACPI_REGION_DEFAULT,
-> > > +	},
-> > > +	[ACPI_ADR_SPACE_IPMI] = {
-> > > +		.flags = ACPI_REGION_MANAGED,
-> > > +	},
-> > > +};
-> > > +static DEFINE_MUTEX(acpi_mutex_region);
-> > > +
-> > >  /*
-> > >   * This list of permanent mappings is for memory that may be accessed
-> > from
-> > >   * interrupt context, where we can't do the ioremap().
-> > > @@ -1799,3 +1835,191 @@ void alloc_acpi_hp_work(acpi_handle handle,
-> > u32 type, void *context,
-> > >  		kfree(hp_work);
-> > >  }
-> > >  EXPORT_SYMBOL_GPL(alloc_acpi_hp_work);
-> > > +
-> > > +static bool acpi_region_managed(struct acpi_region *rgn) {
-> > > +	/*
-> > > +	 * NOTE: Default and Managed
-> > > +	 * We only need to avoid region management on the regions managed
-> > > +	 * by ACPICA (ACPI_REGION_DEFAULT).  Currently, we need additional
-> > > +	 * check as many operation region handlers are not upgraded, so
-> > > +	 * only those known to be safe are managed (ACPI_REGION_MANAGED).
-> > > +	 */
-> > > +	return !(rgn->flags & ACPI_REGION_DEFAULT) &&
-> > > +	       (rgn->flags & ACPI_REGION_MANAGED); }
-> > > +
-> > > +static bool acpi_region_callable(struct acpi_region *rgn) {
-> > > +	return (rgn->flags & ACPI_REGION_REGISTERED) &&
-> > > +	       !(rgn->flags & ACPI_REGION_UNREGISTERING); }
-> > > +
-> > > +static acpi_status
-> > > +acpi_region_default_handler(u32 function,
-> > > +			    acpi_physical_address address,
-> > > +			    u32 bit_width, u64 *value,
-> > > +			    void *handler_context, void *region_context) {
-> > > +	acpi_adr_space_handler handler;
-> > > +	struct acpi_region *rgn = (struct acpi_region *)handler_context;
-> > > +	void *context;
-> > > +	acpi_status status = AE_NOT_EXIST;
-> > > +
-> > > +	mutex_lock(&acpi_mutex_region);
-> > > +	if (!acpi_region_callable(rgn) || !rgn->handler) {
-> > > +		mutex_unlock(&acpi_mutex_region);
-> > > +		return status;
-> > > +	}
-> > > +
-> > > +	atomic_inc(&rgn->refcnt);
-> > > +	handler = rgn->handler;
-> > > +	context = rgn->context;
-> > > +	mutex_unlock(&acpi_mutex_region);
-> > > +
-> > > +	status = handler(function, address, bit_width, value, context,
-> > > +			 region_context);
-> > 
-> > Why don't we call the handler under the mutex?
-> > 
-> > What exactly prevents context from becoming NULL before the call above?
-> 
-> It's a kind of programming style related concern.
-> IMO, using locks around callback function is a buggy programming style that could lead to dead locks.
-> Let me explain this using an example.
-> 
-> Object A exports a register/unregister API for other objects.
-> Object B calls A's register/unregister API to register/unregister B's callback.
-> It's likely that object B will hold lock_of_B around unregister/register when object B is destroyed/created, the lock_of_B is likely also used inside the callback.
-
-Why is it likely to be used inside the callback?  Clearly, if a callback is
-executed under a lock, that lock can't be acquired by that callback.
-
-> So when object A holds the lock_of_A around the callback invocation, it leads to dead lock since:
-> 1. the locking order for the register/unregister side will be: lock(lock_of_B), lock(lock_of_A)
-> 2. the locking order for the callback side will be: lock(lock_of_A), lock(lock_of_B)
-> They are in the reversed order!
-> 
-> IMO, Linux may need to introduce __callback, __api as decelerators for the functions, and use sparse to enforce this rule, sparse knows if a callback is invoked under some locks.
-
-Oh, dear.  Yes, sparse knows such things, and so what?
-
-> In the case of ACPICA space_handlers, as you may know, when an ACPI operation region handler is invoked, there will be no lock held inside ACPICA (interpreter lock must be freed before executing operation region handlers).
-> So the likelihood of the dead lock is pretty much high here!
-
-Sorry, what are you talking about?
-
-Please let me rephrase my question: What *practical* problems would it lead to
-if we executed this particular callback under this particular mutex?
-
-Not *theoretical* in the general theory of everything, *practical* in this
-particular piece of code.
-
-And we are talking about a *global* mutex here, not something object-specific.
-
-> > > +	atomic_dec(&rgn->refcnt);
-> > > +
-> > > +	return status;
-> > > +}
-> > > +
-> > > +static acpi_status
-> > > +acpi_region_default_setup(acpi_handle handle, u32 function,
-> > > +			  void *handler_context, void **region_context) {
-> > > +	acpi_adr_space_setup setup;
-> > > +	struct acpi_region *rgn = (struct acpi_region *)handler_context;
-> > > +	void *context;
-> > > +	acpi_status status = AE_OK;
-> > > +
-> > > +	mutex_lock(&acpi_mutex_region);
-> > > +	if (!acpi_region_callable(rgn) || !rgn->setup) {
-> > > +		mutex_unlock(&acpi_mutex_region);
-> > > +		return status;
-> > > +	}
-> > > +
-> > > +	atomic_inc(&rgn->refcnt);
-> > > +	setup = rgn->setup;
-> > > +	context = rgn->context;
-> > > +	mutex_unlock(&acpi_mutex_region);
-> > > +
-> > > +	status = setup(handle, function, context, region_context);
-> > 
-> > Can setup drop rgn->refcnt ?
-> 
-> The reason is same as the handler, as a setup is also a callback.
-
-Let me rephrase: Is it legitimate for setup to modify rgn->refcnt?
-If so, then why?
-
-> > 
-> > > +	atomic_dec(&rgn->refcnt);
-> > > +
-> > > +	return status;
-> > > +}
-> > > +
-> > > +static int __acpi_install_region(struct acpi_region *rgn,
-> > > +				 acpi_adr_space_type space_id)
-> > > +{
-> > > +	int res = 0;
-> > > +	acpi_status status;
-> > > +	int installing = 0;
-> > > +
-> > > +	mutex_lock(&acpi_mutex_region);
-> > > +	if (rgn->flags & ACPI_REGION_INSTALLED)
-> > > +		goto out_lock;
-> > > +	if (rgn->flags & ACPI_REGION_INSTALLING) {
-> > > +		res = -EBUSY;
-> > > +		goto out_lock;
-> > > +	}
-> > > +
-> > > +	installing = 1;
-> > > +	rgn->flags |= ACPI_REGION_INSTALLING;
-> > > +	status = acpi_install_address_space_handler(ACPI_ROOT_OBJECT,
-> > space_id,
-> > > +						    acpi_region_default_handler,
-> > > +						    acpi_region_default_setup,
-> > > +						    rgn);
-> > > +	rgn->flags &= ~ACPI_REGION_INSTALLING;
-> > > +	if (ACPI_FAILURE(status))
-> > > +		res = -EINVAL;
-> > > +	else
-> > > +		rgn->flags |= ACPI_REGION_INSTALLED;
-> > > +
-> > > +out_lock:
-> > > +	mutex_unlock(&acpi_mutex_region);
-> > > +	if (installing) {
-> > > +		if (res)
-> > > +			pr_err("Failed to install region %d\n", space_id);
-> > > +		else
-> > > +			pr_info("Region %d installed\n", space_id);
-> > > +	}
-> > > +	return res;
-> > > +}
-> > > +
-> > > +int acpi_register_region(acpi_adr_space_type space_id,
-> > > +			 acpi_adr_space_handler handler,
-> > > +			 acpi_adr_space_setup setup, void *context) {
-> > > +	int res;
-> > > +	struct acpi_region *rgn;
-> > > +
-> > > +	if (space_id >= ACPI_NUM_PREDEFINED_REGIONS)
-> > > +		return -EINVAL;
-> > > +
-> > > +	rgn = &acpi_regions[space_id];
-> > > +	if (!acpi_region_managed(rgn))
-> > > +		return -EINVAL;
-> > > +
-> > > +	res = __acpi_install_region(rgn, space_id);
-> > > +	if (res)
-> > > +		return res;
-> > > +
-> > > +	mutex_lock(&acpi_mutex_region);
-> > > +	if (rgn->flags & ACPI_REGION_REGISTERED) {
-> > > +		mutex_unlock(&acpi_mutex_region);
-> > > +		return -EBUSY;
-> > > +	}
-> > > +
-> > > +	rgn->handler = handler;
-> > > +	rgn->setup = setup;
-> > > +	rgn->context = context;
-> > > +	rgn->flags |= ACPI_REGION_REGISTERED;
-> > > +	atomic_set(&rgn->refcnt, 1);
-> > > +	mutex_unlock(&acpi_mutex_region);
-> > > +
-> > > +	pr_info("Region %d registered\n", space_id);
-> > > +
-> > > +	return 0;
-> > > +}
-> > > +EXPORT_SYMBOL_GPL(acpi_register_region);
-> > > +
-> > > +void acpi_unregister_region(acpi_adr_space_type space_id) {
-> > > +	struct acpi_region *rgn;
-> > > +
-> > > +	if (space_id >= ACPI_NUM_PREDEFINED_REGIONS)
-> > > +		return;
-> > > +
-> > > +	rgn = &acpi_regions[space_id];
-> > > +	if (!acpi_region_managed(rgn))
-> > > +		return;
-> > > +
-> > > +	mutex_lock(&acpi_mutex_region);
-> > > +	if (!(rgn->flags & ACPI_REGION_REGISTERED)) {
-> > > +		mutex_unlock(&acpi_mutex_region);
-> > > +		return;
-> > > +	}
-> > > +	if (rgn->flags & ACPI_REGION_UNREGISTERING) {
-> > > +		mutex_unlock(&acpi_mutex_region);
-> > > +		return;
-> > 
-> > What about
-> > 
-> > 	if ((rgn->flags & ACPI_REGION_UNREGISTERING)
-> > 	    || !(rgn->flags & ACPI_REGION_REGISTERED)) {
-> > 		mutex_unlock(&acpi_mutex_region);
-> > 		return;
-> > 	}
-> > 
-> 
-> OK.
-> 
-> > > +	}
-> > > +
-> > > +	rgn->flags |= ACPI_REGION_UNREGISTERING;
-> > > +	rgn->handler = NULL;
-> > > +	rgn->setup = NULL;
-> > > +	rgn->context = NULL;
-> > > +	mutex_unlock(&acpi_mutex_region);
-> > > +
-> > > +	while (atomic_read(&rgn->refcnt) > 1)
-> > > +		schedule_timeout_uninterruptible(usecs_to_jiffies(5));
-> > 
-> > Wouldn't it be better to use a wait queue here?
-> 
-> Yes, I'll try.
-
-By the way, we do we need to do that?
-
-> > > +	atomic_dec(&rgn->refcnt);
-> > > +
-> > > +	mutex_lock(&acpi_mutex_region);
-> > > +	rgn->flags &= ~(ACPI_REGION_REGISTERED |
-> > ACPI_REGION_UNREGISTERING);
-> > > +	mutex_unlock(&acpi_mutex_region);
-> > > +
-> > > +	pr_info("Region %d unregistered\n", space_id); }
-> > > +EXPORT_SYMBOL_GPL(acpi_unregister_region);
-> > > diff --git a/include/acpi/acpi_bus.h b/include/acpi/acpi_bus.h index
-> > > a2c2fbb..15fad0d 100644
-> > > --- a/include/acpi/acpi_bus.h
-> > > +++ b/include/acpi/acpi_bus.h
-> > > @@ -542,4 +542,9 @@ static inline int unregister_acpi_bus_type(void
-> > > *bus) { return 0; }
-> > >
-> > >  #endif				/* CONFIG_ACPI */
-> > >
-> > > +int acpi_register_region(acpi_adr_space_type space_id,
-> > > +			 acpi_adr_space_handler handler,
-> > > +			 acpi_adr_space_setup setup, void *context); void
-> > > +acpi_unregister_region(acpi_adr_space_type space_id);
-> > > +
-> > >  #endif /*__ACPI_BUS_H__*/
+acpi_ipmi_space_handler()
+ 1. Take "address space handler lock".
+ 2. Check "unregistering address space handler" flag.  If set, drop the lock
+    and return.
+ 3. Increment "count of currently running handlers".
+ 4. Drop the lock.
+ 5. Do your work.
+ 6. Take "address space handler lock".
+ 7. Decrement "count of currently running handlers" and if 0, signal the
+    tasks waiting on it to wake up.
+ 8. Drop the lock.
 
 Thanks,
 Rafael
