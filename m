@@ -1,69 +1,51 @@
-From: "Zheng, Lv" <lv.zheng@intel.com>
-Subject: RE: [PATCH 03/13] ACPI/IPMI: Fix race caused by the unprotected
- ACPI IPMI transfers
-Date: Fri, 26 Jul 2013 01:30:05 +0000
-Message-ID: <1AE640813FDE7649BE1B193DEA596E8802435B2C@SHSMSX101.ccr.corp.intel.com>
-References: <cover.1370652213.git.lv.zheng@intel.com>
- <1520893.BbRK6T3F73@vostro.rjw.lan>
- <1AE640813FDE7649BE1B193DEA596E88024357A9@SHSMSX101.ccr.corp.intel.com>
- <76401540.gtU1MiBxPY@vostro.rjw.lan> <51F16A96.6040706@acm.org>
- <1AE640813FDE7649BE1B193DEA596E8802435A78@SHSMSX101.ccr.corp.intel.com>
- <51F1C745.60800@acm.org>
+From: Aaron Lu <aaron.lu@intel.com>
+Subject: Re: [RFC PATCH 2/2] ata: acpi: rework the ata acpi bind support
+Date: Fri, 26 Jul 2013 09:37:09 +0800
+Message-ID: <51F1D2C5.1050809@intel.com>
+References: <1374731223-28685-1-git-send-email-aaron.lu@intel.com> <1374731223-28685-3-git-send-email-aaron.lu@intel.com> <20130725145229.GB26107@mtj.dyndns.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga09.intel.com ([134.134.136.24]:56691 "EHLO mga09.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756215Ab3GZBaU (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 25 Jul 2013 21:30:20 -0400
-In-Reply-To: <51F1C745.60800@acm.org>
-Content-Language: en-US
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-ide-owner@vger.kernel.org>
+In-Reply-To: <20130725145229.GB26107@mtj.dyndns.org>
+Sender: linux-ide-owner@vger.kernel.org
+To: Tejun Heo <tj@kernel.org>
+Cc: "Rafael J. Wysocki" <rjw@sisk.pl>, James Bottomley <James.Bottomley@HansenPartnership.com>, Jeff Wu <jeff.wu@amd.com>, Shane Huang <shane.huang@amd.com>, Matthew Garrett <mjg@redhat.com>, Holger Macht <holger@homac.de>, Zhang Rui <rui.zhang@intel.com>, linux-ide@vger.kernel.org, linux-acpi@vger.kernel.org, linux-scsi@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "minyard@acm.org" <minyard@acm.org>
-Cc: "Rafael J. Wysocki" <rjw@sisk.pl>, "Wysocki, Rafael J" <rafael.j.wysocki@intel.com>, "Brown, Len" <len.brown@intel.com>, "Zhao, Yakui" <yakui.zhao@intel.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "openipmi-developer@lists.sourceforge.net" <openipmi-developer@lists.sourceforge.net>
 
-PiBGcm9tOiBDb3JleSBNaW55YXJkIFttYWlsdG86dGNtaW55YXJkQGdtYWlsLmNvbV0NCj4gU2Vu
-dDogRnJpZGF5LCBKdWx5IDI2LCAyMDEzIDg6NDggQU0NCj4gDQo+IE9uIDA3LzI1LzIwMTMgMDc6
-MTYgUE0sIFpoZW5nLCBMdiB3cm90ZToNCj4gPj4NCj4gPj4gSWYgSSB1bmRlcnN0YW5kIHRoaXMg
-Y29ycmVjdGx5LCB0aGUgcHJvYmxlbSB3b3VsZCBiZSBpZjoNCj4gPj4NCj4gPj4gcmVtX3RpbWUg
-PSB3YWl0X2Zvcl9jb21wbGV0aW9uX3RpbWVvdXQoJnR4X21zZy0+dHhfY29tcGxldGUsDQo+ID4+
-ICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIElQTUlfVElNRU9VVCk7
-DQo+ID4+DQo+ID4+IHJldHVybnMgb24gYSB0aW1lb3V0LCB0aGVuIGNoZWNrcyBtc2dfZG9uZSBh
-bmQgcmFjZXMgd2l0aCBzb21ldGhpbmcNCj4gPj4gc2V0dGluZyBtc2dfZG9uZS4gIElmIHRoYXQg
-aXMgdGhlIGNhc2UsIHlvdSB3b3VsZCBuZWVkIHRoZSBzbXBfcm1iKCkNCj4gPj4gYmVmb3JlIGNo
-ZWNraW5nIG1zZ19kb25lLg0KPiA+Pg0KPiA+PiBIb3dldmVyLCB0aGUgdGltZW91dCBhYm92ZSBp
-cyB1bm5lY2Vzc2FyeS4gIFlvdSBhcmUgdXNpbmcNCj4gPj4gaXBtaV9yZXF1ZXN0X3NldHRpbWUo
-KSwgc28geW91IGNhbiBzZXQgdGhlIHRpbWVvdXQgd2hlbiB0aGUgSVBNSQ0KPiA+PiBjb21tYW5k
-IGZhaWxzIGFuZCByZXR1cm5zIGEgZmFpbHVyZSBtZXNzYWdlLiAgVGhlIGRyaXZlciBndWFyYW50
-ZWVzIGENCj4gPj4gcmV0dXJuIG1lc3NhZ2UgZm9yIGVhY2ggcmVxdWVzdC4gIEp1c3QgcmVtb3Zl
-IHRoZSB0aW1lb3V0IGZyb20gdGhlDQo+ID4+IGNvbXBsZXRpb24sIHNldCB0aGUgdGltZW91dCBh
-bmQgcmV0cmllcyBpbiB0aGUgaXBtaSByZXF1ZXN0LCBhbmQgdGhlDQo+ID4+IGNvbXBsZXRpb24g
-c2hvdWxkIGhhbmRsZSB0aGUgYmFycmllciBpc3N1ZXMuDQo+ID4gSXQncyBqdXN0IGRpZmZpY3Vs
-dCBmb3IgbWUgdG8gZGV0ZXJtaW5lIHJldHJ5IGNvdW50IGFuZCB0aW1lb3V0IHZhbHVlLCBtYXli
-ZQ0KPiByZXRyeT0wLCB0aW1lb3V0PUlQTUlfVElNRU9VVCBpcyBPSy4NCj4gPiBUaGUgY29kZSBv
-ZiB0aGUgdGltZW91dCBjb21wbGV0aW9uIGlzIGFscmVhZHkgdGhlcmUsIEkgdGhpbmsgdGhlIHF1
-aWNrIGZpeCBjb2RlDQo+IHNob3VsZCBub3QgaW50cm9kdWNlIHRoaXMgbG9naWMuDQo+ID4gSSds
-bCBhZGQgYSBuZXcgcGF0Y2ggdG8gYXBwbHkgeW91ciBjb21tZW50Lg0KPiANCj4gU2luY2UgaXQg
-aXMgYSBsb2NhbCBCTUMsIEkgZG91YnQgYSByZXRyeSBpcyByZXF1aXJlZC4gIFRoYXQgaXMgcHJv
-YmFibHkgZmluZS4gIE9yDQo+IHlvdSBjb3VsZCBzZXQgcmV0cnk9MSBhbmQgdGltZW91dD1JUE1J
-X1RJTUVPVVQvMiBpZiB5b3Ugd2FudGVkIHRvIGJlIG1vcmUNCj4gc3VyZSwgYnV0IEkgZG91YnQg
-aXQgd291bGQgbWFrZSBhIGRpZmZlcmVuY2UuICBUaGUgb25seSB0aW1lIHlvdSByZWFsbHkgbmVl
-ZCB0bw0KPiB3b3JyeSBhYm91dCByZXRyaWVzIGlzIGlmIHlvdSBhcmUgcmVzZXR0aW5nIHRoZSBC
-TUMgb3IgaXQgaXMgYmVpbmcgb3ZlcmxvYWRlZC4NCg0KSSB0aGluayBmb3IgQUNQSSBJUE1JIG9w
-ZXJhdGlvbiByZWdpb24sIHJldHJpZXMgY2FuIGJlIGltcGxlbWVudGVkIGluIHRoZSBBU0wgY29k
-ZXMgYnkgdGhlIEJJT1MuDQpJJ2xsIGNoZWNrIGlmIHJldHJ5PTAgaXMgY29ycmVjdC4NCg0KPiAN
-Cj4gPg0KPiA+PiBQbHVzLCBmcm9tIGEgcXVpY2sgZ2xhbmNlIGF0IHRoZSBjb2RlLCBpdCBkb2Vz
-bid0IGxvb2sgbGlrZSBpdCB3aWxsDQo+ID4+IHByb3Blcmx5IGhhbmRsZSBhIHNpdHVhdGlvbiB3
-aGVyZSB0aGUgdGltZW91dCBvY2N1cnMgYW5kIGlzIGhhbmRsZWQNCj4gPj4gdGhlbiB0aGUgcmVz
-cG9uc2UgY29tZXMgaW4gbGF0ZXIuDQo+ID4gUEFUQ0ggMDcgZml4ZWQgdGhpcyBpc3N1ZS4NCj4g
-PiBIZXJlIHdlIGp1c3QgbmVlZCB0aGUgc21wX3JtYigpIG9yIGhvbGRpbmcgdHhfbXNnX2xvY2so
-KSBhcm91bmQgdGhlDQo+IGFjcGlfZm9ybWF0X2lwbWlfcmVzcG9uc2UoKS4NCj4gDQo+IElmIHlv
-dSBhcHBseSB0aGUgZml4IGxpa2UgSSBzdWdnZXN0LCB0aGVuIHRoZSByYWNlIGdvZXMgYXdheS4g
-IElmIHRoZXJlJ3Mgbm8NCj4gdGltZW91dCBhbmQgaXQganVzdCB3YWl0cyBmb3IgdGhlIGNvbXBs
-ZXRpb24sIHRoaW5ncyBnZXQgYSBsb3Qgc2ltcGxlci4NCg0KRXhhY3RseS4gIEknbGwgdHJ5IHRv
-IGFwcGx5IHRoaXMgaW4gdGhpcyBwYXRjaCwgdGhlbiB0aGUgUEFUQ0ggMDcgaXMgYWxzbyBuZWVk
-IHRvIGJlIHJlLXdvcmtlZC4NCg0KVGhhbmtzIGFuZCBiZXN0IHJlZ2FyZHMNCi1Mdg0KDQoNCj4g
-Pg0KPiA+IFRoYW5rcyBmb3IgY29tbWVudGluZy4NCj4gDQo+IE5vIHByb2JsZW0sIHRoYW5rcyBm
-b3Igd29ya2luZyBvbiB0aGlzLg0KPiANCj4gLWNvcmV5DQo=
+On 07/25/2013 10:52 PM, Tejun Heo wrote:
+> On Thu, Jul 25, 2013 at 01:47:03PM +0800, Aaron Lu wrote:
+>> Binding ACPI handle to SCSI device has several drawbacks, namely:
+>> 1 During ATA device initialization time, ACPI handle will be needed
+>>   while SCSI devices are not created yet. So each time ACPI handle is
+>>   needed, instead of retrieving the handle by ACPI_HANDLE macro,
+>>   a namespace scan is performed to find the handle for the corresponding
+>>   ATA device. This is inefficient, and also expose a restriction on
+>>   calling path not holding any lock.
+>> 2 The binding to SCSI device tree makes code complex, while at the same
+>>   time doesn't bring us any benefit. All ACPI handlings are still done
+>>   in ATA module, not in SCSI.
+>>
+>> Rework the ATA ACPI binding code to bind ACPI handle to ATA transport
+>> devices(ATA port and ATA device). The binding needs to be done only once,
+>> since the ATA transport devices do not go away with hotplug. And due to
+>> this, the flush_work call in hotplug handler for ATA bay is no longer
+>> needed.
+> 
+> I like it but am wondering why we weren't doing this before.  Was the
+> acpi support added before we made ata objects proper devices?
+
+I think so. But since I didn't do the original binding, I can only guess
+:-)
+
+At the time of the original binding, ACPI binding logic requires the
+binding device has a bus type, which these ATA transport devices don't
+have.
+
+Later, the ACPI binding code evolves and no such limitation exists
+anymore. As you can see, we can simply set the ACPI handle before this
+device is added in driver core, and the binding will be done.
+
+
+Thanks,
+Aaron
