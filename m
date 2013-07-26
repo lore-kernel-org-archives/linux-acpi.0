@@ -1,51 +1,53 @@
-From: Aaron Lu <aaron.lu@intel.com>
-Subject: Re: [RFC PATCH 2/2] ata: acpi: rework the ata acpi bind support
-Date: Fri, 26 Jul 2013 09:37:09 +0800
-Message-ID: <51F1D2C5.1050809@intel.com>
-References: <1374731223-28685-1-git-send-email-aaron.lu@intel.com> <1374731223-28685-3-git-send-email-aaron.lu@intel.com> <20130725145229.GB26107@mtj.dyndns.org>
+From: "Zheng, Lv" <lv.zheng@intel.com>
+Subject: RE: [PATCH 06/13] ACPI/IPMI: Add reference counting for ACPI
+ operation region handlers
+Date: Fri, 26 Jul 2013 01:54:00 +0000
+Message-ID: <1AE640813FDE7649BE1B193DEA596E8802435B7C@SHSMSX101.ccr.corp.intel.com>
+References: <cover.1370652213.git.lv.zheng@intel.com>
+ <cover.1374566394.git.lv.zheng@intel.com>
+ <d9d5acba01eb80580e7696c50db4263ded86a86c.1374566394.git.lv.zheng@intel.com>
+ <2501577.sf07PMEtR1@vostro.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-ide-owner@vger.kernel.org>
-In-Reply-To: <20130725145229.GB26107@mtj.dyndns.org>
-Sender: linux-ide-owner@vger.kernel.org
-To: Tejun Heo <tj@kernel.org>
-Cc: "Rafael J. Wysocki" <rjw@sisk.pl>, James Bottomley <James.Bottomley@HansenPartnership.com>, Jeff Wu <jeff.wu@amd.com>, Shane Huang <shane.huang@amd.com>, Matthew Garrett <mjg@redhat.com>, Holger Macht <holger@homac.de>, Zhang Rui <rui.zhang@intel.com>, linux-ide@vger.kernel.org, linux-acpi@vger.kernel.org, linux-scsi@vger.kernel.org
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mga01.intel.com ([192.55.52.88]:11898 "EHLO mga01.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1757384Ab3GZByE (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 25 Jul 2013 21:54:04 -0400
+In-Reply-To: <2501577.sf07PMEtR1@vostro.rjw.lan>
+Content-Language: en-US
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: "Wysocki, Rafael J" <rafael.j.wysocki@intel.com>, "Brown, Len" <len.brown@intel.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
 
-On 07/25/2013 10:52 PM, Tejun Heo wrote:
-> On Thu, Jul 25, 2013 at 01:47:03PM +0800, Aaron Lu wrote:
->> Binding ACPI handle to SCSI device has several drawbacks, namely:
->> 1 During ATA device initialization time, ACPI handle will be needed
->>   while SCSI devices are not created yet. So each time ACPI handle is
->>   needed, instead of retrieving the handle by ACPI_HANDLE macro,
->>   a namespace scan is performed to find the handle for the corresponding
->>   ATA device. This is inefficient, and also expose a restriction on
->>   calling path not holding any lock.
->> 2 The binding to SCSI device tree makes code complex, while at the same
->>   time doesn't bring us any benefit. All ACPI handlings are still done
->>   in ATA module, not in SCSI.
->>
->> Rework the ATA ACPI binding code to bind ACPI handle to ATA transport
->> devices(ATA port and ATA device). The binding needs to be done only once,
->> since the ATA transport devices do not go away with hotplug. And due to
->> this, the flush_work call in hotplug handler for ATA bay is no longer
->> needed.
-> 
-> I like it but am wondering why we weren't doing this before.  Was the
-> acpi support added before we made ata objects proper devices?
-
-I think so. But since I didn't do the original binding, I can only guess
-:-)
-
-At the time of the original binding, ACPI binding logic requires the
-binding device has a bus type, which these ATA transport devices don't
-have.
-
-Later, the ACPI binding code evolves and no such limitation exists
-anymore. As you can see, we can simply set the ACPI handle before this
-device is added in driver core, and the binding will be done.
-
-
-Thanks,
-Aaron
+PiBGcm9tOiBSYWZhZWwgSi4gV3lzb2NraSBbbWFpbHRvOnJqd0BzaXNrLnBsXQ0KPiBTZW50OiBG
+cmlkYXksIEp1bHkgMjYsIDIwMTMgNToyOSBBTQ0KPiANCj4gT24gVHVlc2RheSwgSnVseSAyMywg
+MjAxMyAwNDowOTo0MyBQTSBMdiBaaGVuZyB3cm90ZToNCj4gPiBUaGlzIHBhdGNoIGFkZHMgcmVm
+ZXJlbmNlIGNvdXRpbmcgZm9yIEFDUEkgb3BlcmF0aW9uIHJlZ2lvbiBoYW5kbGVycyB0byBmaXgN
+Cj4gPiByYWNlcyBjYXVzZWQgYnkgdGhlIEFDUElDQSBhZGRyZXNzIHNwYWNlIGNhbGxiYWNrIGlu
+dm9jYXRpb25zLg0KPiA+DQo+ID4gQUNQSUNBIGFkZHJlc3Mgc3BhY2UgY2FsbGJhY2sgaW52b2Nh
+dGlvbiBpcyBub3Qgc3VpdGFibGUgZm9yIExpbnV4DQo+ID4gQ09ORklHX01PRFVMRT15IGV4ZWN1
+dGlvbiBlbnZpcm9ubWVudC4NCj4gDQo+IEFjdHVhbGx5LCBjYW4geW91IHBsZWFzZSBleHBsYWlu
+IHRvIG1lIHdoYXQgKmV4YWN0bHkqIHRoZSBwcm9ibGVtIGlzPw0KDQpPSy4gIEknbGwgYWRkIHJh
+Y2UgZXhwbGFuYXRpb25zIGluIHRoZSBuZXh0IHJldmlzaW9uLg0KDQpUaGUgcHJvYmxlbSBpcyB0
+aGVyZSBpcyBubyAibG9jayIgaGVsZCBpbnNpZGUgQUNQSUNBIGZvciBpbnZva2luZyBvcGVyYXRp
+b24gcmVnaW9uIGhhbmRsZXJzLg0KVGh1cyByYWNlcyBoYXBwZW5zIGJldHdlZW4gdGhlIGFjcGlf
+cmVtb3ZlL2luc3RhbGxfYWRkcmVzc19zcGFjZV9oYW5kbGVyIGFuZCB0aGUgaGFuZGxlci9zZXR1
+cCBjYWxsYmFja3MuDQoNClRoaXMgaXMgY29ycmVjdCBwZXIgQUNQSSBzcGVjaWZpY2F0aW9uLg0K
+QXMgaWYgdGhlcmUgaXMgaW50ZXJwcmV0ZXIgbG9ja3MgaGVsZCBmb3IgaW52b2tpbmcgb3BlcmF0
+aW9uIHJlZ2lvbiBoYW5kbGVycywgdGhlIHRpbWVvdXQgaW1wbGVtZW50ZWQgaW5zaWRlIHRoZSBv
+cGVyYXRpb24gcmVnaW9uIGhhbmRsZXJzIHdpbGwgbWFrZSBhbGwgbG9ja2luZyBmYWNpbGl0aWVz
+IChBY3F1aXJlIG9yIFNsZWVwLC4uLikgdGltZWQgb3V0Lg0KUGxlYXNlIHJlZmVyIHRvIEFDUEkg
+c3BlY2lmaWNhdGlvbiAiNS41LjIgQ29udHJvbCBNZXRob2QgRXhlY3V0aW9uIjoNCkludGVycHJl
+dGF0aW9uIG9mIGEgQ29udHJvbCBNZXRob2QgaXMgbm90IHByZWVtcHRpdmUsIGJ1dCBpdCBjYW4g
+YmxvY2suIFdoZW4gYSBjb250cm9sIG1ldGhvZCBkb2VzIGJsb2NrLCBPU1BNIGNhbiBpbml0aWF0
+ZSBvciBjb250aW51ZSB0aGUgZXhlY3V0aW9uIG9mIGEgZGlmZmVyZW50IGNvbnRyb2wgbWV0aG9k
+LiBBIGNvbnRyb2wgbWV0aG9kIGNhbiBvbmx5IGFzc3VtZSB0aGF0IGFjY2VzcyB0byBnbG9iYWwg
+b2JqZWN0cyBpcyBleGNsdXNpdmUgZm9yIGFueSBwZXJpb2QgdGhlIGNvbnRyb2wgbWV0aG9kIGRv
+ZXMgbm90IGJsb2NrLg0KDQpTbyBpdCBpcyBwcmV0dHkgbXVjaCBsaWtlbHkgdGhhdCBBQ1BJIElP
+IHRyYW5zZmVycyBhcmUgbG9ja2VkIGluc2lkZSB0aGUgb3BlcmF0aW9uIHJlZ2lvbiBjYWxsYmFj
+ayBpbXBsZW1lbnRhdGlvbnMuDQpVc2luZyBsb2NraW5nIGZhY2lsaXR5IHRvIHByb3RlY3QgdGhl
+IGNhbGxiYWNrIGludm9jYXRpb24gd2lsbCByaXNrIGRlYWQgbG9ja3MuDQoNClRoYW5rcw0KLUx2
+DQoNCj4gUmFmYWVsDQoNCg==
