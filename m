@@ -1,50 +1,90 @@
-From: Tejun Heo <tj@kernel.org>
-Subject: Re: [PATCH 14/21] x86, acpi, numa: Reserve hotpluggable memory at
- early time.
-Date: Fri, 26 Jul 2013 06:27:14 -0400
-Message-ID: <20130726102714.GC30786@mtj.dyndns.org>
-References: <1374220774-29974-1-git-send-email-tangchen@cn.fujitsu.com>
- <1374220774-29974-15-git-send-email-tangchen@cn.fujitsu.com>
- <20130723205557.GS21100@mtj.dyndns.org>
- <20130723213212.GA21100@mtj.dyndns.org>
- <51F089C1.4010402@cn.fujitsu.com>
- <20130725151719.GE26107@mtj.dyndns.org>
- <51F1F0E0.7040800@cn.fujitsu.com>
- <20130726102609.GB30786@mtj.dyndns.org>
+From: Igor Gnatenko <i.gnatenko.brain@gmail.com>
+Subject: Re: Linux 3.11-rc2 (acpi backlight, revert)
+Date: Fri, 26 Jul 2013 15:22:44 +0400
+Message-ID: <1374837764.18839.3.camel@ThinkPad-X230.localdomain>
+References: <CA+55aFy330bSRjK5HT1n0wXioPykL3RquHXyBPjm5GpTz_Y=DQ@mail.gmail.com>
+	 <2218913.HKGjJcYT1G@vostro.rjw.lan>
+	 <CAAG0J98i-XaO_3sPWsnyEGDX77T=WiNf1K=YMhe5DvkwKotorw@mail.gmail.com>
+	 <9711528.yIoJy2i1iX@vostro.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <owner-linux-mm@kvack.org>
-Content-Disposition: inline
-In-Reply-To: <20130726102609.GB30786@mtj.dyndns.org>
-Sender: owner-linux-mm@kvack.org
-To: Tang Chen <tangchen@cn.fujitsu.com>
-Cc: tglx@linutronix.de, mingo@elte.hu, hpa@zytor.com, akpm@linux-foundation.org, trenn@suse.de, yinghai@kernel.org, jiang.liu@huawei.com, wency@cn.fujitsu.com, laijs@cn.fujitsu.com, isimatu.yasuaki@jp.fujitsu.com, izumi.taku@jp.fujitsu.com, mgorman@suse.de, minchan@kernel.org, mina86@mina86.com, gong.chen@linux.intel.com, vasilis.liaskovitis@profitbricks.com, lwoodman@redhat.com, riel@redhat.com, jweiner@redhat.com, prarit@redhat.com, zhangyanfei@cn.fujitsu.com, yanghy@cn.fujitsu.com, x86@kernel.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-mm@kvack.org, linux-acpi@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-la0-f47.google.com ([209.85.215.47]:52805 "EHLO
+	mail-la0-f47.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756914Ab3GZLWv (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 26 Jul 2013 07:22:51 -0400
+In-Reply-To: <9711528.yIoJy2i1iX@vostro.rjw.lan>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: James Hogan <james@albanarts.com>, Kamal Mostafa <kamal@canonical.com>, =?ISO-8859-1?Q?J=F6rg?= Otte <jrg.otte@gmail.com>, Aaron Lu <aaron.lu@intel.com>, Kalle Valo <kvalo@adurom.com>, Linus Torvalds <torvalds@linux-foundation.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Matthew Garrett <matthew.garrett@nebula.com>, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Steven Newbury <steve@snewbury.org.uk>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Martin Steigerwald <Martin@lichtvoll.de>, Daniel Vetter <daniel.vetter@ffwll.ch>, intel-gfx <intel-gfx@lists.freedesktop.org>, Jani Nikula <jani.nikula@linux.intel.com>
 
-On Fri, Jul 26, 2013 at 06:26:09AM -0400, Tejun Heo wrote:
-> > So how about this.
-> > 1. Introduce a new global list used to store hotpluggable regions.
-> > 2. On acpi side, find and fulfill the list.
-> > 3. On memblock side, make the default allocation function stay away from
-> >    these regions.
-> 
-> I was thinking more along the line of
-> 
-> 1. Mark hotpluggable regions with a flag in memblock.
-> 2. On ACPI side, find and mark hotpluggable regions.
-> 3. Make memblock avoid giving out hotpluggable regions for normal
->    allocations.
+On Thu, 2013-07-25 at 21:47 +0200, Rafael J. Wysocki wrote:
+> On Thursday, July 25, 2013 08:14:08 PM James Hogan wrote:
+> > On 25 July 2013 14:00, Rafael J. Wysocki <rjw@sisk.pl> wrote:
+> > > On Monday, July 22, 2013 09:54:21 PM Rafael J. Wysocki wrote:
+> > >> On Monday, July 22, 2013 11:11:54 AM Linus Torvalds wrote:
+> > >> > On Mon, Jul 22, 2013 at 6:02 AM, Rafael J. Wysocki <rjw@sisk.p=
+l> wrote:
+> > >> > >
+> > >> > > Linus, do you want me to send a pull request reverting 8c5bd=
+7a and efaa14c?
+> > >> >
+> > >> > Yes, but let's wait a while. Not because I think we'll fix the=
+ problem
+> > >> > (hey, miracles might happen), but because I think it would be =
+useful
+> > >> > to couple the reverts with information about the particular ma=
+chines
+> > >> > that broke (and the people who reported it). So that when we
+> > >> > inevitably try again, we can perhaps get some testing effort w=
+ith
+> > >> > those machines/people.
+> > >> >
+> > >> > It doesn't seem to be a show-stopped for a large number of peo=
+ple, so
+> > >> > there's no huge hurry. I'd suggest doing the revert just in ti=
+me for
+> > >> > rc3, but waiting until then to gather info about people who se=
+e
+> > >> > breakage.
+> > >> >
+> > >> > Sound like a plan?
+> > >>
+> > >> Yes, it does.
+> > >
+> > > OK, time to revert I guess.
+> > >
+> > > James, Kamal, Steven, J=C3=B6rg, Martin, Kalle, please check if t=
+he apppended patch
+> > > fixes the backlight for you.
+> >=20
+> > Works for me
+>=20
+> Great!
+>=20
+> James, Kamal, J=C3=B6rg, thanks for confirmations.  I'll tentatively =
+put the revert
+> into linux-next in a while.
+>=20
+> Other people who experienced problems with backlight in 3.11-rc2, ple=
+ase let me
+> know whether or not the revert works for you too if you can.
+>=20
+> Rafael
+>=20
+>=20
 
-But adding new regions array is more convenient / cleaner, that's fine
-too.  Those arrays are dynamically sized anyway.
-
-Thanks.
-
--- 
-tejun
+Rafael, feel free to CC me in messages with backlight ;) I want to test
+its)
+--=20
+Igor Gnatenko
+=46edora release 19 (Schr=C3=B6dinger=E2=80=99s Cat)
+Linux 3.9.9-302.fc19.x86_64
 
 --
-To unsubscribe, send a message with 'unsubscribe linux-mm' in
-the body to majordomo@kvack.org.  For more info on Linux MM,
-see: http://www.linux-mm.org/ .
-Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
