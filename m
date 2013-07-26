@@ -1,208 +1,192 @@
 From: "Zheng, Lv" <lv.zheng@intel.com>
-Subject: RE: [PATCH 07/13] ACPI/IPMI: Add reference counting for ACPI IPMI
- transfers
-Date: Fri, 26 Jul 2013 01:21:18 +0000
-Message-ID: <1AE640813FDE7649BE1B193DEA596E8802435AFE@SHSMSX101.ccr.corp.intel.com>
+Subject: Re: [PATCH 08/13] ACPI/IPMI: Cleanup several
+ acpi_ipmi_device members
+Date: Fri, 26 Jul 2013 01:25:12 +0000
+Message-ID: <1AE640813FDE7649BE1B193DEA596E8802435B14@SHSMSX101.ccr.corp.intel.com>
 References: <cover.1370652213.git.lv.zheng@intel.com>
- <cover.1374566394.git.lv.zheng@intel.com>
- <2a9be056a4a8bff4458b2e6b922b32d8b0af1abe.1374566394.git.lv.zheng@intel.com>
- <4808924.gkxOzGhztB@vostro.rjw.lan>
+	<cover.1374566394.git.lv.zheng@intel.com>
+	<b70ad0fe8c19e25eae9cef6fba21dfce237051bb.1374566394.git.lv.zheng@intel.com>
+	<1882662.xsnVH6Carz@vostro.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga09.intel.com ([134.134.136.24]:51740 "EHLO mga09.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756858Ab3GZBVY (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 25 Jul 2013 21:21:24 -0400
-In-Reply-To: <4808924.gkxOzGhztB@vostro.rjw.lan>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <openipmi-developer-bounces@lists.sourceforge.net>
+In-Reply-To: <1882662.xsnVH6Carz@vostro.rjw.lan>
 Content-Language: en-US
-Sender: linux-acpi-owner@vger.kernel.org
-List-Id: linux-acpi@vger.kernel.org
+List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/openipmi-developer>,
+	<mailto:openipmi-developer-request@lists.sourceforge.net?subject=unsubscribe>
+List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum_name=openipmi-developer>
+List-Post: <mailto:openipmi-developer@lists.sourceforge.net>
+List-Help: <mailto:openipmi-developer-request@lists.sourceforge.net?subject=help>
+List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/openipmi-developer>,
+	<mailto:openipmi-developer-request@lists.sourceforge.net?subject=subscribe>
+Errors-To: openipmi-developer-bounces@lists.sourceforge.net
 To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: "Wysocki, Rafael J" <rafael.j.wysocki@intel.com>, "Brown, Len" <len.brown@intel.com>, Corey Minyard <minyard@acm.org>, "Zhao, Yakui" <yakui.zhao@intel.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "openipmi-developer@lists.sourceforge.net" <openipmi-developer@lists.sourceforge.net>
+Cc: "Brown, Len" <len.brown@intel.com>, Corey Minyard <minyard@acm.org>, "Wysocki, Rafael J" <rafael.j.wysocki@intel.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "Zhao, Yakui" <yakui.zhao@intel.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "openipmi-developer@lists.sourceforge.net" <openipmi-developer@lists.sourceforge.net>
+List-Id: linux-acpi@vger.kernel.org
 
-PiBGcm9tOiBsaW51eC1hY3BpLW93bmVyQHZnZXIua2VybmVsLm9yZw0KPiBbbWFpbHRvOmxpbnV4
-LWFjcGktb3duZXJAdmdlci5rZXJuZWwub3JnXSBPbiBCZWhhbGYgT2YgUmFmYWVsIEouIFd5c29j
-a2kNCj4gU2VudDogRnJpZGF5LCBKdWx5IDI2LCAyMDEzIDY6MjMgQU0NCj4gDQo+IE9uIFR1ZXNk
-YXksIEp1bHkgMjMsIDIwMTMgMDQ6MDk6NTQgUE0gTHYgWmhlbmcgd3JvdGU6DQo+ID4gVGhpcyBw
-YXRjaCBhZGRzIHJlZmVyZW5jZSBjb3VudGluZyBmb3IgQUNQSSBJUE1JIHRyYW5zZmVycyB0byB0
-dW5lIHRoZQ0KPiA+IGxvY2tpbmcgZ3JhbnVsYXJpdHkgb2YgdHhfbXNnX2xvY2suDQo+ID4NCj4g
-PiBUaGUgYWNwaV9pcG1pX21zZyBoYW5kbGluZyBpcyByZS1kZXNpZ25lZCB1c2luZyByZWZlcmVj
-ZSBjb3VudGluZy4NCj4gPiAxLiB0eF9tc2cgaXMgYWx3YXlzIHVubGlua2VkIGJlZm9yZSBjb21w
-bGV0ZSgpLCBzbyB0aGF0Og0KPiA+ICAgIDEuMS4gaXQgaXMgc2FmZSB0byBwdXQgY29tcGxldGUo
-KSBvdXQgc2lkZSBvZiB0eF9tc2dfbG9jazsNCj4gPiAgICAxLjIuIGNvbXBsZXRlKCkgY2FuIG9u
-bHkgaGFwcGVuIG9uY2UsIHRodXMgc21wX3dtYigpIGlzIG5vdCByZXF1aXJlZC4NCj4gPiAyLiBJ
-bmNyZWFzaW5nIHRoZSByZWZlcmVuY2Ugb2YgdHhfbXNnIGJlZm9yZSBjYWxsaW5nDQo+ID4gICAg
-aXBtaV9yZXF1ZXN0X3NldHRpbWUoKSBhbmQgaW50cm9kdWNpbmcgdHhfbXNnX2xvY2sgcHJvdGVj
-dGVkDQo+ID4gICAgaXBtaV9jYW5jZWxfdHhfbXNnKCkgc28gdGhhdCBhIGNvbXBsZXRlKCkgY2Fu
-IGhhcHBlbiBpbiBwYXJlbGxlbCB3aXRoDQo+ID4gICAgdHhfbXNnIHVubGlua2luZyBpbiB0aGUg
-ZmFpbHVyZSBjYXNlcy4NCj4gPiAzLiB0eF9tc2cgaG9sZHMgdGhlIHJlZmVyZW5jZSBvZiBhY3Bp
-X2lwbWlfZGV2aWNlIHNvIHRoYXQgaXQgY2FuIGJlIGZsdXNoZWQNCj4gPiAgICBhbmQgZnJlZWQg
-aW4gdGhlIGNvbnRleHRzIG90aGVyIHRoYW4gYWNwaV9pcG1pX3NwYWNlX2hhbmRsZXIoKS4NCj4g
-Pg0KPiA+IFRoZSBsb2NrZGVwX2NoYWlucyBzaG93cyBhbGwgYWNwaV9pcG1pIGxvY2tzIGFyZSBs
-ZWFmIGxvY2tzIGFmdGVyIHRoZQ0KPiA+IHR1bmluZzoNCj4gPiAxLiBpcG1pX2xvY2sgaXMgYWx3
-YXlzIGxlYWY6DQo+ID4gICAgaXJxX2NvbnRleHQ6IDANCj4gPiAgICBbZmZmZmZmZmY4MWE5NDNm
-OF0gc21pX3dhdGNoZXJzX211dGV4DQo+ID4gICAgW2ZmZmZmZmZmYTA2ZWNhNjBdIGRyaXZlcl9k
-YXRhLmlwbWlfbG9jaw0KPiA+ICAgIGlycV9jb250ZXh0OiAwDQo+ID4gICAgW2ZmZmZmZmZmODI3
-NjdiNDBdICZidWZmZXItPm11dGV4DQo+ID4gICAgW2ZmZmZmZmZmYTAwYTY2NzhdIHNfYWN0aXZl
-IzEwMw0KPiA+ICAgIFtmZmZmZmZmZmEwNmVjYTYwXSBkcml2ZXJfZGF0YS5pcG1pX2xvY2sNCj4g
-PiAyLiB3aXRob3V0IHRoaXMgcGF0Y2ggYXBwbGllZCwgbG9jayB1c2VkIGJ5IGNvbXBsZXRlKCkg
-aXMgaGVsZCBhZnRlcg0KPiA+ICAgIGhvbGRpbmcgdHhfbXNnX2xvY2s6DQo+ID4gICAgaXJxX2Nv
-bnRleHQ6IDANCj4gPiAgICBbZmZmZmZmZmY4Mjc2N2I0MF0gJmJ1ZmZlci0+bXV0ZXgNCj4gPiAg
-ICBbZmZmZmZmZmZhMDBhNjY3OF0gc19hY3RpdmUjMTAzDQo+ID4gICAgW2ZmZmZmZmZmYTA2ZWNj
-ZThdICYoJmlwbWlfZGV2aWNlLT50eF9tc2dfbG9jayktPnJsb2NrDQo+ID4gICAgaXJxX2NvbnRl
-eHQ6IDENCj4gPiAgICBbZmZmZmZmZmZhMDZlY2NlOF0gJigmaXBtaV9kZXZpY2UtPnR4X21zZ19s
-b2NrKS0+cmxvY2sNCj4gPiAgICBpcnFfY29udGV4dDogMQ0KPiA+ICAgIFtmZmZmZmZmZmEwNmVj
-Y2U4XSAmKCZpcG1pX2RldmljZS0+dHhfbXNnX2xvY2spLT5ybG9jaw0KPiA+ICAgIFtmZmZmZmZm
-ZmEwNmVjY2YwXSAmeC0+d2FpdCMyNQ0KPiA+ICAgIGlycV9jb250ZXh0OiAxDQo+ID4gICAgW2Zm
-ZmZmZmZmYTA2ZWNjZThdICYoJmlwbWlfZGV2aWNlLT50eF9tc2dfbG9jayktPnJsb2NrDQo+ID4g
-ICAgW2ZmZmZmZmZmYTA2ZWNjZjBdICZ4LT53YWl0IzI1DQo+ID4gICAgW2ZmZmZmZmZmODFlMzY2
-MjBdICZwLT5waV9sb2NrDQo+ID4gICAgaXJxX2NvbnRleHQ6IDENCj4gPiAgICBbZmZmZmZmZmZh
-MDZlY2NlOF0gJigmaXBtaV9kZXZpY2UtPnR4X21zZ19sb2NrKS0+cmxvY2sNCj4gPiAgICBbZmZm
-ZmZmZmZhMDZlY2NmMF0gJngtPndhaXQjMjUNCj4gPiAgICBbZmZmZmZmZmY4MWUzNjYyMF0gJnAt
-PnBpX2xvY2sNCj4gPiAgICBbZmZmZmZmZmY4MWU1ZDBhOF0gJnJxLT5sb2NrDQo+ID4gMy4gd2l0
-aCB0aGlzIHBhdGNoIGFwcGxpZWQsIHR4X21zZ19sb2NrIGlzIGFsd2F5cyBsZWFmOg0KPiA+ICAg
-IGlycV9jb250ZXh0OiAwDQo+ID4gICAgW2ZmZmZmZmZmODI3NjdiNDBdICZidWZmZXItPm11dGV4
-DQo+ID4gICAgW2ZmZmZmZmZmYTAwYTY2ZDhdIHNfYWN0aXZlIzEwNw0KPiA+ICAgIFtmZmZmZmZm
-ZmEwN2VjZGM4XSAmKCZpcG1pX2RldmljZS0+dHhfbXNnX2xvY2spLT5ybG9jaw0KPiA+ICAgIGly
-cV9jb250ZXh0OiAxDQo+ID4gICAgW2ZmZmZmZmZmYTA3ZWNkYzhdICYoJmlwbWlfZGV2aWNlLT50
-eF9tc2dfbG9jayktPnJsb2NrDQo+ID4NCj4gPiBTaWduZWQtb2ZmLWJ5OiBMdiBaaGVuZyA8bHYu
-emhlbmdAaW50ZWwuY29tPg0KPiA+IENjOiBaaGFvIFlha3VpIDx5YWt1aS56aGFvQGludGVsLmNv
-bT4NCj4gPiBSZXZpZXdlZC1ieTogSHVhbmcgWWluZyA8eWluZy5odWFuZ0BpbnRlbC5jb20+DQo+
-ID4gLS0tDQo+ID4gIGRyaXZlcnMvYWNwaS9hY3BpX2lwbWkuYyB8ICAxMDcNCj4gKysrKysrKysr
-KysrKysrKysrKysrKysrKysrKysrKysrLS0tLS0tLS0tLS0tLQ0KPiA+ICAxIGZpbGUgY2hhbmdl
-ZCwgNzcgaW5zZXJ0aW9ucygrKSwgMzAgZGVsZXRpb25zKC0pDQo+ID4NCj4gPiBkaWZmIC0tZ2l0
-IGEvZHJpdmVycy9hY3BpL2FjcGlfaXBtaS5jIGIvZHJpdmVycy9hY3BpL2FjcGlfaXBtaS5jDQo+
-ID4gaW5kZXggMmEwOTE1Ni4uMGVlMWVhNiAxMDA2NDQNCj4gPiAtLS0gYS9kcml2ZXJzL2FjcGkv
-YWNwaV9pcG1pLmMNCj4gPiArKysgYi9kcml2ZXJzL2FjcGkvYWNwaV9pcG1pLmMNCj4gPiBAQCAt
-MTA1LDYgKzEwNSw3IEBAIHN0cnVjdCBhY3BpX2lwbWlfbXNnIHsNCj4gPiAgCXU4CWRhdGFbQUNQ
-SV9JUE1JX01BWF9NU0dfTEVOR1RIXTsNCj4gPiAgCXU4CXJ4X2xlbjsNCj4gPiAgCXN0cnVjdCBh
-Y3BpX2lwbWlfZGV2aWNlICpkZXZpY2U7DQo+ID4gKwlhdG9taWNfdAlyZWZjbnQ7DQo+IA0KPiBB
-Z2Fpbjoga3JlZiwgcGxlYXNlPw0KDQpQbGVhc2Ugc2VlIHRoZSBjb25jZXJucyBpbiBhbm90aGVy
-IGVtYWlsLg0KDQo+IA0KPiA+ICB9Ow0KPiA+DQo+ID4gIC8qIElQTUkgcmVxdWVzdC9yZXNwb25z
-ZSBidWZmZXIgcGVyIEFDUEkgNC4wLCBzZWMgNS41LjIuNC4zLjIgKi8NCj4gPiBAQCAtMTk1LDIy
-ICsxOTYsNDcgQEAgc3RhdGljIHN0cnVjdCBhY3BpX2lwbWlfZGV2aWNlDQo+ICphY3BpX2lwbWlf
-Z2V0X3NlbGVjdGVkX3NtaSh2b2lkKQ0KPiA+ICAJcmV0dXJuIGlwbWlfZGV2aWNlOw0KPiA+ICB9
-DQo+ID4NCj4gPiAtc3RhdGljIHN0cnVjdCBhY3BpX2lwbWlfbXNnICphY3BpX2FsbG9jX2lwbWlf
-bXNnKHN0cnVjdCBhY3BpX2lwbWlfZGV2aWNlDQo+ICppcG1pKQ0KPiA+ICtzdGF0aWMgc3RydWN0
-IGFjcGlfaXBtaV9tc2cgKmlwbWlfbXNnX2FsbG9jKHZvaWQpDQo+ID4gIHsNCj4gPiArCXN0cnVj
-dCBhY3BpX2lwbWlfZGV2aWNlICppcG1pOw0KPiA+ICAJc3RydWN0IGFjcGlfaXBtaV9tc2cgKmlw
-bWlfbXNnOw0KPiA+IC0Jc3RydWN0IHBucF9kZXYgKnBucF9kZXYgPSBpcG1pLT5wbnBfZGV2Ow0K
-PiA+DQo+ID4gKwlpcG1pID0gYWNwaV9pcG1pX2dldF9zZWxlY3RlZF9zbWkoKTsNCj4gPiArCWlm
-ICghaXBtaSkNCj4gPiArCQlyZXR1cm4gTlVMTDsNCj4gPiAgCWlwbWlfbXNnID0ga3phbGxvYyhz
-aXplb2Yoc3RydWN0IGFjcGlfaXBtaV9tc2cpLCBHRlBfS0VSTkVMKTsNCj4gPiAtCWlmICghaXBt
-aV9tc2cpCXsNCj4gPiAtCQlkZXZfd2FybigmcG5wX2Rldi0+ZGV2LCAiQ2FuJ3QgYWxsb2NhdGUg
-bWVtb3J5IGZvciBpcG1pX21zZ1xuIik7DQo+ID4gKwlpZiAoIWlwbWlfbXNnKSB7DQo+ID4gKwkJ
-YWNwaV9pcG1pX2Rldl9wdXQoaXBtaSk7DQo+ID4gIAkJcmV0dXJuIE5VTEw7DQo+ID4gIAl9DQo+
-ID4gKwlhdG9taWNfc2V0KCZpcG1pX21zZy0+cmVmY250LCAxKTsNCj4gPiAgCWluaXRfY29tcGxl
-dGlvbigmaXBtaV9tc2ctPnR4X2NvbXBsZXRlKTsNCj4gPiAgCUlOSVRfTElTVF9IRUFEKCZpcG1p
-X21zZy0+aGVhZCk7DQo+ID4gIAlpcG1pX21zZy0+ZGV2aWNlID0gaXBtaTsNCj4gPiArDQo+ID4g
-IAlyZXR1cm4gaXBtaV9tc2c7DQo+ID4gIH0NCj4gPg0KPiA+ICtzdGF0aWMgc3RydWN0IGFjcGlf
-aXBtaV9tc2cgKg0KPiA+ICthY3BpX2lwbWlfbXNnX2dldChzdHJ1Y3QgYWNwaV9pcG1pX21zZyAq
-dHhfbXNnKQ0KPiA+ICt7DQo+ID4gKwlpZiAodHhfbXNnKQ0KPiA+ICsJCWF0b21pY19pbmMoJnR4
-X21zZy0+cmVmY250KTsNCj4gPiArCXJldHVybiB0eF9tc2c7DQo+ID4gK30NCj4gPiArDQo+ID4g
-K3N0YXRpYyB2b2lkIGlwbWlfbXNnX3JlbGVhc2Uoc3RydWN0IGFjcGlfaXBtaV9tc2cgKnR4X21z
-ZykNCj4gPiArew0KPiA+ICsJYWNwaV9pcG1pX2Rldl9wdXQodHhfbXNnLT5kZXZpY2UpOw0KPiA+
-ICsJa2ZyZWUodHhfbXNnKTsNCj4gPiArfQ0KPiA+ICsNCj4gPiArc3RhdGljIHZvaWQgYWNwaV9p
-cG1pX21zZ19wdXQoc3RydWN0IGFjcGlfaXBtaV9tc2cgKnR4X21zZykNCj4gPiArew0KPiA+ICsJ
-aWYgKHR4X21zZyAmJiBhdG9taWNfZGVjX2FuZF90ZXN0KCZ0eF9tc2ctPnJlZmNudCkpDQo+ID4g
-KwkJaXBtaV9tc2dfcmVsZWFzZSh0eF9tc2cpOw0KPiA+ICt9DQo+ID4gKw0KPiA+ICAjZGVmaW5l
-CQlJUE1JX09QX1JHTl9ORVRGTihvZmZzZXQpCSgob2Zmc2V0ID4+IDgpICYgMHhmZikNCj4gPiAg
-I2RlZmluZQkJSVBNSV9PUF9SR05fQ01EKG9mZnNldCkJCShvZmZzZXQgJiAweGZmKQ0KPiA+ICBz
-dGF0aWMgaW50IGFjcGlfZm9ybWF0X2lwbWlfcmVxdWVzdChzdHJ1Y3QgYWNwaV9pcG1pX21zZyAq
-dHhfbXNnLA0KPiA+IEBAIC0zMDAsNyArMzI2LDcgQEAgc3RhdGljIHZvaWQgYWNwaV9mb3JtYXRf
-aXBtaV9yZXNwb25zZShzdHJ1Y3QNCj4gYWNwaV9pcG1pX21zZyAqbXNnLA0KPiA+DQo+ID4gIHN0
-YXRpYyB2b2lkIGlwbWlfZmx1c2hfdHhfbXNnKHN0cnVjdCBhY3BpX2lwbWlfZGV2aWNlICppcG1p
-KQ0KPiA+ICB7DQo+ID4gLQlzdHJ1Y3QgYWNwaV9pcG1pX21zZyAqdHhfbXNnLCAqdGVtcDsNCj4g
-PiArCXN0cnVjdCBhY3BpX2lwbWlfbXNnICp0eF9tc2c7DQo+ID4gIAl1bnNpZ25lZCBsb25nIGZs
-YWdzOw0KPiA+DQo+ID4gIAkvKg0KPiA+IEBAIC0zMTEsMTYgKzMzNyw0NiBAQCBzdGF0aWMgdm9p
-ZCBpcG1pX2ZsdXNoX3R4X21zZyhzdHJ1Y3QNCj4gYWNwaV9pcG1pX2RldmljZSAqaXBtaSkNCj4g
-PiAgCSAqLw0KPiA+ICAJd2hpbGUgKGF0b21pY19yZWFkKCZpcG1pLT5yZWZjbnQpID4gMSkgew0K
-PiA+ICAJCXNwaW5fbG9ja19pcnFzYXZlKCZpcG1pLT50eF9tc2dfbG9jaywgZmxhZ3MpOw0KPiA+
-IC0JCWxpc3RfZm9yX2VhY2hfZW50cnlfc2FmZSh0eF9tc2csIHRlbXAsDQo+ID4gLQkJCQkJICZp
-cG1pLT50eF9tc2dfbGlzdCwgaGVhZCkgew0KPiA+ICsJCXdoaWxlICghbGlzdF9lbXB0eSgmaXBt
-aS0+dHhfbXNnX2xpc3QpKSB7DQo+ID4gKwkJCXR4X21zZyA9IGxpc3RfZmlyc3RfZW50cnkoJmlw
-bWktPnR4X21zZ19saXN0LA0KPiA+ICsJCQkJCQkgIHN0cnVjdCBhY3BpX2lwbWlfbXNnLA0KPiA+
-ICsJCQkJCQkgIGhlYWQpOw0KPiA+ICsJCQlsaXN0X2RlbCgmdHhfbXNnLT5oZWFkKTsNCj4gPiAr
-CQkJc3Bpbl91bmxvY2tfaXJxcmVzdG9yZSgmaXBtaS0+dHhfbXNnX2xvY2ssIGZsYWdzKTsNCj4g
-PiArDQo+ID4gIAkJCS8qIHdha2UgdXAgdGhlIHNsZWVwIHRocmVhZCBvbiB0aGUgVHggbXNnICov
-DQo+ID4gIAkJCWNvbXBsZXRlKCZ0eF9tc2ctPnR4X2NvbXBsZXRlKTsNCj4gPiArCQkJYWNwaV9p
-cG1pX21zZ19wdXQodHhfbXNnKTsNCj4gPiArCQkJc3Bpbl9sb2NrX2lycXNhdmUoJmlwbWktPnR4
-X21zZ19sb2NrLCBmbGFncyk7DQo+ID4gIAkJfQ0KPiA+ICAJCXNwaW5fdW5sb2NrX2lycXJlc3Rv
-cmUoJmlwbWktPnR4X21zZ19sb2NrLCBmbGFncyk7DQo+ID4gKw0KPiA+ICAJCXNjaGVkdWxlX3Rp
-bWVvdXRfdW5pbnRlcnJ1cHRpYmxlKG1zZWNzX3RvX2ppZmZpZXMoMSkpOw0KPiA+ICAJfQ0KPiA+
-ICB9DQo+ID4NCj4gPiArc3RhdGljIHZvaWQgaXBtaV9jYW5jZWxfdHhfbXNnKHN0cnVjdCBhY3Bp
-X2lwbWlfZGV2aWNlICppcG1pLA0KPiA+ICsJCQkgICAgICAgc3RydWN0IGFjcGlfaXBtaV9tc2cg
-Km1zZykNCj4gPiArew0KPiA+ICsJc3RydWN0IGFjcGlfaXBtaV9tc2cgKnR4X21zZzsNCj4gPiAr
-CWludCBtc2dfZm91bmQgPSAwOw0KPiANCj4gVXNlIGJvb2w/DQoNCk9LLg0KVGhlcmUgYXJlIG90
-aGVyIGludCBmbGFncyBpbiB0aGUgb3JpZ2luYWwgY29kZXMsIGRvIEkgbmVlZCB0byBkbyBhIGNs
-ZWFudXAgZm9yIGFsbCBvZiB0aGVtIChkZXZfZm91bmQpPw0KDQo+IA0KPiA+ICsJdW5zaWduZWQg
-bG9uZyBmbGFnczsNCj4gPiArDQo+ID4gKwlzcGluX2xvY2tfaXJxc2F2ZSgmaXBtaS0+dHhfbXNn
-X2xvY2ssIGZsYWdzKTsNCj4gPiArCWxpc3RfZm9yX2VhY2hfZW50cnkodHhfbXNnLCAmaXBtaS0+
-dHhfbXNnX2xpc3QsIGhlYWQpIHsNCj4gPiArCQlpZiAobXNnID09IHR4X21zZykgew0KPiA+ICsJ
-CQltc2dfZm91bmQgPSAxOw0KPiA+ICsJCQlicmVhazsNCj4gPiArCQl9DQo+ID4gKwl9DQo+ID4g
-KwlpZiAobXNnX2ZvdW5kKQ0KPiA+ICsJCWxpc3RfZGVsKCZ0eF9tc2ctPmhlYWQpOw0KPiANCj4g
-VGhlIGxpc3RfZGVsKCkgY2FuIGJlIGRvbmUgd2hlbiB5b3Ugc2V0IG1zZ19mb3VuZC4NCg0KUGxl
-YXNlIHNlZSBteSBjb25jZXJucyBpbiBhbm90aGVyIGVtYWlsLg0KDQpUaGFua3MgYW5kIGJlc3Qg
-cmVnYXJkcw0KLUx2DQoNCj4gDQo+ID4gKwlzcGluX3VubG9ja19pcnFyZXN0b3JlKCZpcG1pLT50
-eF9tc2dfbG9jaywgZmxhZ3MpOw0KPiA+ICsNCj4gPiArCWlmIChtc2dfZm91bmQpDQo+ID4gKwkJ
-YWNwaV9pcG1pX21zZ19wdXQodHhfbXNnKTsNCj4gPiArfQ0KPiA+ICsNCj4gPiAgc3RhdGljIHZv
-aWQgaXBtaV9tc2dfaGFuZGxlcihzdHJ1Y3QgaXBtaV9yZWN2X21zZyAqbXNnLCB2b2lkDQo+ICp1
-c2VyX21zZ19kYXRhKQ0KPiA+ICB7DQo+ID4gIAlzdHJ1Y3QgYWNwaV9pcG1pX2RldmljZSAqaXBt
-aV9kZXZpY2UgPSB1c2VyX21zZ19kYXRhOw0KPiA+IEBAIC0zNDMsMTIgKzM5OSwxNSBAQCBzdGF0
-aWMgdm9pZCBpcG1pX21zZ19oYW5kbGVyKHN0cnVjdA0KPiBpcG1pX3JlY3ZfbXNnICptc2csIHZv
-aWQgKnVzZXJfbXNnX2RhdGEpDQo+ID4gIAkJCWJyZWFrOw0KPiA+ICAJCX0NCj4gPiAgCX0NCj4g
-PiArCWlmIChtc2dfZm91bmQpDQo+ID4gKwkJbGlzdF9kZWwoJnR4X21zZy0+aGVhZCk7DQo+ID4g
-KwlzcGluX3VubG9ja19pcnFyZXN0b3JlKCZpcG1pX2RldmljZS0+dHhfbXNnX2xvY2ssIGZsYWdz
-KTsNCj4gPg0KPiA+ICAJaWYgKCFtc2dfZm91bmQpIHsNCj4gPiAgCQlkZXZfd2FybigmcG5wX2Rl
-di0+ZGV2LA0KPiA+ICAJCQkgIlVuZXhwZWN0ZWQgcmVzcG9uc2UgKG1zZyBpZCAlbGQpIGlzIHJl
-dHVybmVkLlxuIiwNCj4gPiAgCQkJIG1zZy0+bXNnaWQpOw0KPiA+IC0JCWdvdG8gb3V0X2xvY2s7
-DQo+ID4gKwkJZ290byBvdXRfbXNnOw0KPiA+ICAJfQ0KPiA+DQo+ID4gIAkvKiBjb3B5IHRoZSBy
-ZXNwb25zZSBkYXRhIHRvIFJ4X2RhdGEgYnVmZmVyICovDQo+ID4gQEAgLTM2MCwxNCArNDE5LDEx
-IEBAIHN0YXRpYyB2b2lkIGlwbWlfbXNnX2hhbmRsZXIoc3RydWN0DQo+IGlwbWlfcmVjdl9tc2cg
-Km1zZywgdm9pZCAqdXNlcl9tc2dfZGF0YSkNCj4gPiAgCX0NCj4gPiAgCXR4X21zZy0+cnhfbGVu
-ID0gbXNnLT5tc2cuZGF0YV9sZW47DQo+ID4gIAltZW1jcHkodHhfbXNnLT5kYXRhLCBtc2ctPm1z
-Zy5kYXRhLCB0eF9tc2ctPnJ4X2xlbik7DQo+ID4gLQkvKiB0eF9tc2cgY29udGVudCBtdXN0IGJl
-IHZhbGlkIGJlZm9yZSBzZXR0aW5nIG1zZ19kb25lIGZsYWcgKi8NCj4gPiAtCXNtcF93bWIoKTsN
-Cj4gPiAgCXR4X21zZy0+bXNnX2RvbmUgPSAxOw0KPiA+DQo+ID4gIG91dF9jb21wOg0KPiA+ICAJ
-Y29tcGxldGUoJnR4X21zZy0+dHhfY29tcGxldGUpOw0KPiA+IC1vdXRfbG9jazoNCj4gPiAtCXNw
-aW5fdW5sb2NrX2lycXJlc3RvcmUoJmlwbWlfZGV2aWNlLT50eF9tc2dfbG9jaywgZmxhZ3MpOw0K
-PiA+ICsJYWNwaV9pcG1pX21zZ19wdXQodHhfbXNnKTsNCj4gPiAgb3V0X21zZzoNCj4gPiAgCWlw
-bWlfZnJlZV9yZWN2X21zZyhtc2cpOw0KPiA+ICB9DQo+ID4gQEAgLTQ5MywyMSArNTQ5LDE3IEBA
-IGFjcGlfaXBtaV9zcGFjZV9oYW5kbGVyKHUzMiBmdW5jdGlvbiwNCj4gYWNwaV9waHlzaWNhbF9h
-ZGRyZXNzIGFkZHJlc3MsDQo+ID4gIAlpZiAoKGZ1bmN0aW9uICYgQUNQSV9JT19NQVNLKSA9PSBB
-Q1BJX1JFQUQpDQo+ID4gIAkJcmV0dXJuIEFFX1RZUEU7DQo+ID4NCj4gPiAtCWlwbWlfZGV2aWNl
-ID0gYWNwaV9pcG1pX2dldF9zZWxlY3RlZF9zbWkoKTsNCj4gPiAtCWlmICghaXBtaV9kZXZpY2Up
-DQo+ID4gKwl0eF9tc2cgPSBpcG1pX21zZ19hbGxvYygpOw0KPiA+ICsJaWYgKCF0eF9tc2cpDQo+
-ID4gIAkJcmV0dXJuIEFFX05PVF9FWElTVDsNCj4gPiAtDQo+ID4gLQl0eF9tc2cgPSBhY3BpX2Fs
-bG9jX2lwbWlfbXNnKGlwbWlfZGV2aWNlKTsNCj4gPiAtCWlmICghdHhfbXNnKSB7DQo+ID4gLQkJ
-c3RhdHVzID0gQUVfTk9fTUVNT1JZOw0KPiA+IC0JCWdvdG8gb3V0X3JlZjsNCj4gPiAtCX0NCj4g
-PiArCWlwbWlfZGV2aWNlID0gdHhfbXNnLT5kZXZpY2U7DQo+ID4NCj4gPiAgCWlmIChhY3BpX2Zv
-cm1hdF9pcG1pX3JlcXVlc3QodHhfbXNnLCBhZGRyZXNzLCB2YWx1ZSkgIT0gMCkgew0KPiA+IC0J
-CXN0YXR1cyA9IEFFX1RZUEU7DQo+ID4gLQkJZ290byBvdXRfbXNnOw0KPiA+ICsJCWlwbWlfbXNn
-X3JlbGVhc2UodHhfbXNnKTsNCj4gPiArCQlyZXR1cm4gQUVfVFlQRTsNCj4gPiAgCX0NCj4gPg0K
-PiA+ICsJYWNwaV9pcG1pX21zZ19nZXQodHhfbXNnKTsNCj4gPiAgCXNwaW5fbG9ja19pcnFzYXZl
-KCZpcG1pX2RldmljZS0+dHhfbXNnX2xvY2ssIGZsYWdzKTsNCj4gPiAgCWxpc3RfYWRkX3RhaWwo
-JnR4X21zZy0+aGVhZCwgJmlwbWlfZGV2aWNlLT50eF9tc2dfbGlzdCk7DQo+ID4gIAlzcGluX3Vu
-bG9ja19pcnFyZXN0b3JlKCZpcG1pX2RldmljZS0+dHhfbXNnX2xvY2ssIGZsYWdzKTsNCj4gPiBA
-QCAtNTE4LDIxICs1NzAsMTYgQEAgYWNwaV9pcG1pX3NwYWNlX2hhbmRsZXIodTMyIGZ1bmN0aW9u
-LA0KPiBhY3BpX3BoeXNpY2FsX2FkZHJlc3MgYWRkcmVzcywNCj4gPiAgCQkJCSAgIE5VTEwsIDAs
-IDAsIDApOw0KPiA+ICAJaWYgKGVycikgew0KPiA+ICAJCXN0YXR1cyA9IEFFX0VSUk9SOw0KPiA+
-IC0JCWdvdG8gb3V0X2xpc3Q7DQo+ID4gKwkJZ290byBvdXRfbXNnOw0KPiA+ICAJfQ0KPiA+ICAJ
-cmVtX3RpbWUgPSB3YWl0X2Zvcl9jb21wbGV0aW9uX3RpbWVvdXQoJnR4X21zZy0+dHhfY29tcGxl
-dGUsDQo+ID4gIAkJCQkJICAgICAgIElQTUlfVElNRU9VVCk7DQo+ID4gIAlhY3BpX2Zvcm1hdF9p
-cG1pX3Jlc3BvbnNlKHR4X21zZywgdmFsdWUsIHJlbV90aW1lKTsNCj4gPiAgCXN0YXR1cyA9IEFF
-X09LOw0KPiA+DQo+ID4gLW91dF9saXN0Og0KPiA+IC0Jc3Bpbl9sb2NrX2lycXNhdmUoJmlwbWlf
-ZGV2aWNlLT50eF9tc2dfbG9jaywgZmxhZ3MpOw0KPiA+IC0JbGlzdF9kZWwoJnR4X21zZy0+aGVh
-ZCk7DQo+ID4gLQlzcGluX3VubG9ja19pcnFyZXN0b3JlKCZpcG1pX2RldmljZS0+dHhfbXNnX2xv
-Y2ssIGZsYWdzKTsNCj4gPiAgb3V0X21zZzoNCj4gPiAtCWtmcmVlKHR4X21zZyk7DQo+ID4gLW91
-dF9yZWY6DQo+ID4gLQlhY3BpX2lwbWlfZGV2X3B1dChpcG1pX2RldmljZSk7DQo+ID4gKwlpcG1p
-X2NhbmNlbF90eF9tc2coaXBtaV9kZXZpY2UsIHR4X21zZyk7DQo+ID4gKwlhY3BpX2lwbWlfbXNn
-X3B1dCh0eF9tc2cpOw0KPiA+ICAJcmV0dXJuIHN0YXR1czsNCj4gPiAgfQ0KPiA+DQo+ID4NCj4g
-LS0NCj4gSSBzcGVhayBvbmx5IGZvciBteXNlbGYuDQo+IFJhZmFlbCBKLiBXeXNvY2tpLCBJbnRl
-bCBPcGVuIFNvdXJjZSBUZWNobm9sb2d5IENlbnRlci4NCj4gLS0NCj4gVG8gdW5zdWJzY3JpYmUg
-ZnJvbSB0aGlzIGxpc3Q6IHNlbmQgdGhlIGxpbmUgInVuc3Vic2NyaWJlIGxpbnV4LWFjcGkiIGlu
-DQo+IHRoZSBib2R5IG9mIGEgbWVzc2FnZSB0byBtYWpvcmRvbW9Admdlci5rZXJuZWwub3JnDQo+
-IE1vcmUgbWFqb3Jkb21vIGluZm8gYXQgIGh0dHA6Ly92Z2VyLmtlcm5lbC5vcmcvbWFqb3Jkb21v
-LWluZm8uaHRtbA0K
+> From: Rafael J. Wysocki [mailto:rjw@sisk.pl]
+> Sent: Friday, July 26, 2013 6:26 AM
+> 
+> On Tuesday, July 23, 2013 04:10:06 PM Lv Zheng wrote:
+> > This is a trivial patch:
+> > 1. Deletes a member of the acpi_ipmi_device - smi_data which is not
+> >    actually used.
+> > 2. Updates a member of the acpi_ipmi_device - pnp_dev which is only used
+> >    by dev_warn() invocations, so changes it to struct device.
+> >
+> > Signed-off-by: Lv Zheng <lv.zheng@intel.com>
+> > Reviewed-by: Huang Ying <ying.huang@intel.com>
+> > ---
+> >  drivers/acpi/acpi_ipmi.c |   30 ++++++++++++++----------------
+> >  1 file changed, 14 insertions(+), 16 deletions(-)
+> >
+> > diff --git a/drivers/acpi/acpi_ipmi.c b/drivers/acpi/acpi_ipmi.c index
+> > 0ee1ea6..7f93ffd 100644
+> > --- a/drivers/acpi/acpi_ipmi.c
+> > +++ b/drivers/acpi/acpi_ipmi.c
+> > @@ -63,11 +63,10 @@ struct acpi_ipmi_device {
+> >  	struct list_head tx_msg_list;
+> >  	spinlock_t	tx_msg_lock;
+> >  	acpi_handle handle;
+> > -	struct pnp_dev *pnp_dev;
+> > +	struct device *dev;
+> >  	ipmi_user_t	user_interface;
+> >  	int ipmi_ifnum; /* IPMI interface number */
+> >  	long curr_msgid;
+> > -	struct ipmi_smi_info smi_data;
+> >  	atomic_t refcnt;
+> >  };
+> >
+> > @@ -132,7 +131,7 @@ static struct ipmi_driver_data driver_data = {  };
+> >
+> >  static struct acpi_ipmi_device *
+> > -ipmi_dev_alloc(int iface, struct ipmi_smi_info *smi_data, acpi_handle
+> > handle)
+> > +ipmi_dev_alloc(int iface, struct device *pdev, acpi_handle handle)
+> 
+> Why is the second arg called pdev?
+
+OK, I will change it to dev.
+
+> 
+> >  {
+> >  	struct acpi_ipmi_device *ipmi_device;
+> >  	int err;
+> > @@ -148,14 +147,13 @@ ipmi_dev_alloc(int iface, struct ipmi_smi_info
+> *smi_data, acpi_handle handle)
+> >  	spin_lock_init(&ipmi_device->tx_msg_lock);
+> >
+> >  	ipmi_device->handle = handle;
+> > -	ipmi_device->pnp_dev = to_pnp_dev(get_device(smi_data->dev));
+> > -	memcpy(&ipmi_device->smi_data, smi_data, sizeof(struct
+> ipmi_smi_info));
+> > +	ipmi_device->dev = get_device(pdev);
+> >  	ipmi_device->ipmi_ifnum = iface;
+> >
+> >  	err = ipmi_create_user(iface, &driver_data.ipmi_hndlrs,
+> >  			       ipmi_device, &user);
+> >  	if (err) {
+> > -		put_device(smi_data->dev);
+> > +		put_device(pdev);
+> >  		kfree(ipmi_device);
+> >  		return NULL;
+> >  	}
+> > @@ -175,7 +173,7 @@ acpi_ipmi_dev_get(struct acpi_ipmi_device
+> > *ipmi_device)  static void ipmi_dev_release(struct acpi_ipmi_device
+> > *ipmi_device)  {
+> >  	ipmi_destroy_user(ipmi_device->user_interface);
+> > -	put_device(ipmi_device->smi_data.dev);
+> > +	put_device(ipmi_device->dev);
+> >  	kfree(ipmi_device);
+> >  }
+> >
+> > @@ -263,7 +261,7 @@ static int acpi_format_ipmi_request(struct
+> acpi_ipmi_msg *tx_msg,
+> >  	buffer = (struct acpi_ipmi_buffer *)value;
+> >  	/* copy the tx message data */
+> >  	if (buffer->length > ACPI_IPMI_MAX_MSG_LENGTH) {
+> > -		dev_WARN_ONCE(&tx_msg->device->pnp_dev->dev, true,
+> > +		dev_WARN_ONCE(tx_msg->device->dev, true,
+> >  			      "Unexpected request (msg len %d).\n",
+> >  			      buffer->length);
+> >  		return -EINVAL;
+> > @@ -382,11 +380,11 @@ static void ipmi_msg_handler(struct
+> ipmi_recv_msg *msg, void *user_msg_data)
+> >  	struct acpi_ipmi_device *ipmi_device = user_msg_data;
+> >  	int msg_found = 0;
+> >  	struct acpi_ipmi_msg *tx_msg;
+> > -	struct pnp_dev *pnp_dev = ipmi_device->pnp_dev;
+> > +	struct device *dev = ipmi_device->dev;
+> >  	unsigned long flags;
+> >
+> >  	if (msg->user != ipmi_device->user_interface) {
+> > -		dev_warn(&pnp_dev->dev,
+> > +		dev_warn(dev,
+> >  			 "Unexpected response is returned. returned user %p, expected
+> user %p\n",
+> >  			 msg->user, ipmi_device->user_interface);
+> >  		goto out_msg;
+> > @@ -404,7 +402,7 @@ static void ipmi_msg_handler(struct ipmi_recv_msg
+> *msg, void *user_msg_data)
+> >  	spin_unlock_irqrestore(&ipmi_device->tx_msg_lock, flags);
+> >
+> >  	if (!msg_found) {
+> > -		dev_warn(&pnp_dev->dev,
+> > +		dev_warn(dev,
+> >  			 "Unexpected response (msg id %ld) is returned.\n",
+> >  			 msg->msgid);
+> >  		goto out_msg;
+> > @@ -412,7 +410,7 @@ static void ipmi_msg_handler(struct ipmi_recv_msg
+> > *msg, void *user_msg_data)
+> >
+> >  	/* copy the response data to Rx_data buffer */
+> >  	if (msg->msg.data_len > ACPI_IPMI_MAX_MSG_LENGTH) {
+> > -		dev_WARN_ONCE(&pnp_dev->dev, true,
+> > +		dev_WARN_ONCE(dev, true,
+> >  			      "Unexpected response (msg len %d).\n",
+> >  			      msg->msg.data_len);
+> >  		goto out_comp;
+> > @@ -431,7 +429,7 @@ out_msg:
+> >  static void ipmi_register_bmc(int iface, struct device *dev)  {
+> >  	struct acpi_ipmi_device *ipmi_device, *temp;
+> > -	struct pnp_dev *pnp_dev;
+> > +	struct device *pdev;
+> 
+> And here?
+
+The dev is the parameter of the ipmi_register_bmc(), it is not possible to name the "struct ipmi_smi_info " as dev here for this quick fix.
+
+Thanks
+-Lv
+
+> 
+> >  	int err;
+> >  	struct ipmi_smi_info smi_data;
+> >  	acpi_handle handle;
+> > @@ -445,11 +443,11 @@ static void ipmi_register_bmc(int iface, struct
+> device *dev)
+> >  	handle = smi_data.addr_info.acpi_info.acpi_handle;
+> >  	if (!handle)
+> >  		goto err_ref;
+> > -	pnp_dev = to_pnp_dev(smi_data.dev);
+> > +	pdev = smi_data.dev;
+> >
+> > -	ipmi_device = ipmi_dev_alloc(iface, &smi_data, handle);
+> > +	ipmi_device = ipmi_dev_alloc(iface, pdev, handle);
+> >  	if (!ipmi_device) {
+> > -		dev_warn(&pnp_dev->dev, "Can't create IPMI user interface\n");
+> > +		dev_warn(pdev, "Can't create IPMI user interface\n");
+> >  		goto err_ref;
+> >  	}
+> >
+> >
+> --
+> I speak only for myself.
+> Rafael J. Wysocki, Intel Open Source Technology Center.
+------------------------------------------------------------------------------
+See everything from the browser to the database with AppDynamics
+Get end-to-end visibility with application monitoring from AppDynamics
+Isolate bottlenecks and diagnose root cause in seconds.
+Start your free trial of AppDynamics Pro today!
+http://pubads.g.doubleclick.net/gampad/clk?id=48808831&iu=/4140/ostg.clktrk
