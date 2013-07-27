@@ -1,72 +1,34 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: [GIT PULL] ACPI and power management fixes for v3.11-rc3
-Date: Fri, 26 Jul 2013 23:25:06 +0200
-Message-ID: <3457206.NODt6ENkDb@vostro.rjw.lan>
+From: Kalle Valo <kvalo@adurom.com>
+Subject: Re: Linux 3.11-rc2 (acpi backlight, revert)
+Date: Sat, 27 Jul 2013 08:34:13 +0300
+Message-ID: <871u6ky3ai.fsf@purkki.adurom.net>
+References: <CA+55aFy330bSRjK5HT1n0wXioPykL3RquHXyBPjm5GpTz_Y=DQ@mail.gmail.com>
+	<CA+55aFyrMRDD8qe9DYXixaSLJXEURMYYku1azABA72m71_X+cA@mail.gmail.com>
+	<9012759.Alzqtdvh5b@vostro.rjw.lan>
+	<2218913.HKGjJcYT1G@vostro.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7Bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from hydra.sisk.pl ([212.160.235.94]:42317 "EHLO hydra.sisk.pl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932979Ab3GZVPE (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 26 Jul 2013 17:15:04 -0400
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <2218913.HKGjJcYT1G@vostro.rjw.lan> (Rafael J. Wysocki's message
+	of "Thu, 25 Jul 2013 15:00:26 +0200")
+Sender: linux-kernel-owner@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: James Hogan <james@albanarts.com>, Kamal Mostafa <kamal@canonical.com>, Aaron Lu <aaron.lu@intel.com>, Linus Torvalds <torvalds@linux-foundation.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Matthew Garrett <matthew.garrett@nebula.com>, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Steven Newbury <steve@snewbury.org.uk>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, =?utf-8?Q?J=C3=B6r?= =?utf-8?Q?g?= Otte <jrg.otte@gmail.com>, Martin Steigerwald <Martin@lichtvoll.de>, Daniel Vetter <daniel.vetter@ffwll.ch>, intel-gfx <intel-gfx@lists.freedesktop.org>, Jani Nikula <jani.nikula@linux.intel.com>
 List-Id: linux-acpi@vger.kernel.org
-To: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>, intel-gfx@lists.freedesktop.org
 
-Hi Linus,
+"Rafael J. Wysocki" <rjw@sisk.pl> writes:
 
-Please pull from the git repository at
+> James, Kamal, Steven, J=C3=B6rg, Martin, Kalle, please check if the a=
+pppended patch
+> fixes the backlight for you.
 
-  git://git.kernel.org/pub/scm/linux/kernel/git/rafael/linux-pm.git pm+acpi-3.11-rc3
+I did three suspend-resume cycles and didn't notice anything wrong so
+this patch fixes the issue for me. I'll continue testing and will repor=
+t
+if I spot any problems.
 
-to receive ACPI and power management fixes for v3.11-rc3 with
-top-most commit 8e5c2b776ae4c35f54547c017e0a943429f5748a
+Tested-by: Kalle Valo <kvalo@adurom.com>
 
-  Revert "ACPI / video / i915: No ACPI backlight if firmware expects Windows 8"
-
-on top of commit 3b2f64d00c46e1e4e9bd0bb9bb12619adac27a4b
-
-  Linux 3.11-rc2
-
-These are just two fixes, a revert of the would-be backlight fix that didn't
-work and an intel_pstate fix for two problems related to maximum P-state
-selection.
-
-Specifics:
-
-- Revert of the ACPI video commit that I hoped would help fix
-  backlight problems related to Windows 8 compatibility on some
-  systems.  Unfortunately, it turned out to cause problems to happen
-  too.
-
-- Fix for two problems in intel_pstate, a possible failure to respond
-  to a load change on a quiet system and a possible failure to select
-  the highest available P-state on some systems.  From Dirk Brandewie.
-
-Thanks!
-
-
----------------
-
-Dirk Brandewie (1):
-      cpufreq / intel_pstate: Change to scale off of max P-state
-
-Rafael J. Wysocki (1):
-      Revert "ACPI / video / i915: No ACPI backlight if firmware expects Windows 8"
-
----------------
-
- drivers/acpi/internal.h         |    2 --
- drivers/acpi/video.c            |   67 ++++++-----------------------------------------
- drivers/acpi/video_detect.c     |   15 +----------
- drivers/cpufreq/intel_pstate.c  |   12 ++++-----
- drivers/gpu/drm/i915/i915_dma.c |    2 +-
- include/acpi/video.h            |   11 +-------
- include/linux/acpi.h            |    1 -
- 7 files changed, 17 insertions(+), 93 deletions(-)
-
--- 
-I speak only for myself.
-Rafael J. Wysocki, Intel Open Source Technology Center.
+--=20
+Kalle Valo
