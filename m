@@ -1,105 +1,104 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: [Xen-devel] [PATCH v6 0/5] Xen/ACPI: support sleep state entering on hardware reduced systems
-Date: Sat, 27 Jul 2013 16:08:16 +0200
-Message-ID: <2587213.aUKYcW3xhW@vostro.rjw.lan>
-References: <1372679333-8473-1-git-send-email-benjamin.guthro@citrix.com> <51DAB9B8.7060303@citrix.com> <CAOvdn6Wv1mXD-RDCZ750YQFEFf7GR0QxVARACEg0jNrUEEkBYA@mail.gmail.com>
+From: Ben Guthro <Ben.Guthro@citrix.com>
+Subject: Re: [PATCH v4 0/5] Xen/ACPI: support sleep state entering on
+ hardware reduced systems
+Date: Sat, 27 Jul 2013 15:33:31 +0000
+Message-ID: <2A50FCBD-CD54-4C8D-A780-1CA7ACBC4E0B@citrix.com>
+References: <1372345323-9266-1-git-send-email-benjamin.guthro@citrix.com>,<2455068.P7gO5JL6M7@vostro.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from hydra.sisk.pl ([212.160.235.94]:43389 "EHLO hydra.sisk.pl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751792Ab3G0N6K (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Sat, 27 Jul 2013 09:58:10 -0400
-In-Reply-To: <CAOvdn6Wv1mXD-RDCZ750YQFEFf7GR0QxVARACEg0jNrUEEkBYA@mail.gmail.com>
+Received: from smtp02.citrix.com ([66.165.176.63]:47942 "EHLO
+	SMTP02.CITRIX.COM" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752071Ab3G0Pdc convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sat, 27 Jul 2013 11:33:32 -0400
+In-Reply-To: <2455068.P7gO5JL6M7@vostro.rjw.lan>
+Content-Language: en-US
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Ben Guthro <benjamin.guthro@citrix.com>, Richard L Maliszewski <richard.l.maliszewski@intel.com>
-Cc: Bob Moore <robert.moore@intel.com>, Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>, Jan Beulich <jbeulich@suse.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, xen-devel@lists.xen.org, Shane Wang <shane.wang@intel.com>, Gang Wei <gang.wei@intel.com>
+To: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: Ben Guthro <Ben.Guthro@citrix.com>, Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>, Jan Beulich <jbeulich@suse.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "xen-devel@lists.xen.org" <xen-devel@lists.xen.org>, Richard L Maliszewski <richard.l.maliszewski@intel.com>, Gang Wei <gang.wei@intel.com>, Shane Wang <shane.wang@intel.com>, Bob Moore <robert.moore@intel.com>, "tboot-devel@lists.sourceforge.net" <tboot-devel@lists.sourceforge.net>
 
-On Monday, July 22, 2013 08:44:08 AM Ben Guthro wrote:
-> On Mon, Jul 8, 2013 at 9:08 AM, Ben Guthro <Benjamin.Guthro@citrix.com> wrote:
-> >
-> >
-> > On 07/08/2013 09:10 AM, Rafael J. Wysocki wrote:
-> >> On Sunday, July 07, 2013 08:13:15 PM Ben Guthro wrote:
-> >>> On Mon, Jul 1, 2013 at 7:48 AM, Ben Guthro <benjamin.guthro@citrix.com> wrote:
-> >>>> In version 3.4 acpi_os_prepare_sleep() got introduced in parallel with
-> >>>> reduced hardware sleep support, and the two changes didn't get
-> >>>> synchronized: The new code doesn't call the hook function (if so
-> >>>> requested). Fix this, requiring a boolean parameter to be added to the
-> >>>> hook function to distinguish "extended" from "legacy" sleep.
-> >>>>
-> >>>> This requires adjusting TXT, but the adjustments only go as far as
-> >>>> failing the extended mode call (since, looking at the TXT interface,
-> >>>> there doesn't even appear to be precautions to deal with that
-> >>>> alternative interface).
-> >>>>
-> >>>> The hypervisor change underlying this is commit 62d1a69 ("ACPI: support
-> >>>> v5 (reduced HW) sleep interface") on the master branch of
-> >>>> git://xenbits.xen.org/xen.git.
-> >>>>
-> >>>> Signed-off-by: Jan Beulich <jbeulich@suse.com>
-> >>>> Signed-off-by: Ben Guthro <benjamin.guthro@citrix.com>
-> >>>> Cc: Richard L Maliszewski <richard.l.maliszewski@intel.com>
-> >>>> Cc: Gang Wei <gang.wei@intel.com>
-> >>>> Cc: Shane Wang <shane.wang@intel.com>
-> >>>> Cc: Bob Moore <robert.moore@intel.com>
-> >>>> Cc: Rafael J. Wysocki <rjw@sisk.pl>
-> >>>> Cc: linux-acpi@vger.kernel.org
-> >>>> Cc: tboot-devel@lists.sourceforge.net
-> >>>>
-> >>>> v2: Extend description to include reference to hypervisor side change
-> >>>> v3: Split into multiple patches, separating subsystems
-> >>>>     Remove bool parameters, in favor of u8
-> >>>> v4: Remove linux/acpi.h dependencies
-> >>>>     Further patch split to break out acpica from OSL
-> >>>>     More bool vs u8 fixes
-> >>>> v5: Fix build of consumers of acpi_os_prepare_sleep() interface change,
-> >>>>     so intermediate builds of partial patch series will not fail.
-> >>>> v6: Rebased to linux-pm linux-next branch
-> >>>>     Added warning in tboot early return code
-> >>>>     Added Reviewed-by lines
-> >>>>
-> >>>> Ben Guthro (5):
-> >>>>   acpi: Remove need to include linux/acpi.h in common acpica code
-> >>>>   acpi: Call acpi_os_prepare_sleep hook in reduced hardware sleep path
-> >>>>   acpi/xen/tboot: Adjust linux acpi OS functions to new extended
-> >>>>     parameter
-> >>>>   x86/tboot: Fail extended mode reduced hardware sleep
-> >>>>   xen/acpi: notify xen when reduced hardware sleep is available
-> >>>
-> >>> Rafael, Bob -
-> >>>
-> >>> Is this version of the series something that you may consider taking?
-> >>> If not - is there something specific you would like to see addressed?
-> >>
-> >> Well, I'm afraid you need to give us some more time to process that,
-> >> sorry.
-> >
-> > My apologies - I know it is a busy time during the merge window. I did
-> > not mean to seem impatient.
-> >
-> > With the volume of things on the mailing list, I merely wanted to try to
-> > avoid the series getting buried. If a week is too frequent to re-bump a
-> > series, do you have a set of recommendations of how to best interact
-> > with your workflow?
+
+
+On Jul 27, 2013, at 9:51 AM, "Rafael J. Wysocki" <rjw@sisk.pl> wrote:
+
+> On Thursday, June 27, 2013 11:01:58 AM Ben Guthro wrote:
+>> In version 3.4 acpi_os_prepare_sleep() got introduced in parallel with
+>> reduced hardware sleep support, and the two changes didn't get
+>> synchronized: The new code doesn't call the hook function (if so
+>> requested). Fix this, requiring a boolean parameter to be added to the
+>> hook function to distinguish "extended" from "legacy" sleep.
+>> 
+>> This requires adjusting TXT, but the adjustments only go as far as
+>> failing the extended mode call (since, looking at the TXT interface,
+>> there doesn't even appear to be precautions to deal with that
+>> alternative interface).
+>> 
+>> The hypervisor change underlying this is commit 62d1a69 ("ACPI: support
+>> v5 (reduced HW) sleep interface") on the master branch of
+>> git://xenbits.xen.org/xen.git.
+>> 
+>> Signed-off-by: Ben Guthro <benjamin.guthro@citrix.com>
+>> Signed-off-by: Jan Beulich <jbeulich@suse.com>
+>> Cc: Richard L Maliszewski <richard.l.maliszewski@intel.com>
+>> Cc: Gang Wei <gang.wei@intel.com>
+>> Cc: Shane Wang <shane.wang@intel.com>
+>> Cc: Bob Moore <robert.moore@intel.com>
+>> Cc: Rafaell J. Wysocki <rjw@sisk.pl>
+>> Cc: linux-acpi@vger.kernel.org
+>> Cc: tboot-devel@lists.sourceforge.net 
+>> 
+>> v2: Extend description to include reference to hypervisor side change
+>> v3: Split into multiple patches, separating subsystems
+>>    Remove bool parameters, in favor of u8
+>> v4: Remove linux/acpi.h dependencies
+>>    Further patch split to break out acpica from OSL
+>>    More bool vs u8 fixes
+>> 
+>> Ben Guthro (5):
+>>  acpi: Remove need to include linux/acpi.h in common acpica code
+>>  acpi: Call acpi_os_prepare_sleep hook in reduced hardware sleep path
+>>  acpi: Adjust linux acpi OS functions to new extended parameter
+>>  x86/tboot: Fail extended mode reduced hardware sleep
+>>  xen/acpi: notify xen when reduced hardware sleep is available
 > 
-> Rafael (et al.)
+> The ongoing discussion means to me that the ACPICA maintainers don't want
+> acpi_os_prepare_sleep() and quite frankly I understand them, because ACPICA
+> is about implementing the spec and not about things beyond it.
 > 
-> I never heard back on this point of how you prefer your workflow to
-> proceed - that is, if I haven't heard anything in a couple weeks -
-> should I try to re-bump the thread?
+> This means that patch [1/5] goes away.
 > 
-> Since this was sent around the time of the merge window, I realize
-> there were other things to occupy people's time.
-> Now that rc2 is out - I'm hoping that the dust has settled a bit, such
-> that there may be a cycle, or two to review this series.
+> That said, at the same time we need to address the problem at hand, which
+> is to make Xen work with the reduced HW sleep.
+> 
+> For that, I don't honestly think that modifying acpi_os_prepare_sleep() the
+> way the patchset is doing it is appropriate and the change of the meaning of
+> the arguments is simply disgusting.
+> 
+> To me, it would be much cleaner to add acpi_os_prepare_extended_sleep()
+> specifically to be called by acpi_hw_extended_sleep() and make tboot and Xen
+> use that.
+> 
+> This way or another, we'll need to live with one more divergence between the
+> upstream ACPICA and the Linux ACPICA code because of that, but that'd be just
+> a few added lines in acpi_hw_extended_sleep(), so I suppose it wouldn't be
+> such a big deal.
+> 
 
-I've just replied to a [0/5] from a previous series, here:
+Ok, thank you for the review, and being open to addressing the problem at hand, without a full architecture rework (not to say that that discussion is not also needed)
 
-http://marc.info/?l=linux-acpi&m=137493312722239&w=2
+I will try to make some time next week to rework the patch set to address these concerns, and submit a new series. 
 
-Thanks,
-Rafael
+Thanks
+Ben
 
+
+
+> Thanks,
+> Rafael
+> 
+> 
+> -- 
+> I speak only for myself.
+> Rafael J. Wysocki, Intel Open Source Technology Center.
