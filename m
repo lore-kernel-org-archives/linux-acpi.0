@@ -1,123 +1,84 @@
 From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: [PATCH] ACPI: Move acpi_bus_get_device() from bus.c to scan.c
-Date: Sat, 27 Jul 2013 15:24:19 +0200
-Message-ID: <3314440.iryh4ZRtRb@vostro.rjw.lan>
+Subject: Re: [PATCH v4 0/5] Xen/ACPI: support sleep state entering on hardware reduced systems
+Date: Sat, 27 Jul 2013 16:01:38 +0200
+Message-ID: <2455068.P7gO5JL6M7@vostro.rjw.lan>
+References: <1372345323-9266-1-git-send-email-benjamin.guthro@citrix.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7Bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from hydra.sisk.pl ([212.160.235.94]:43323 "EHLO hydra.sisk.pl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751640Ab3G0NOM (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Sat, 27 Jul 2013 09:14:12 -0400
-Sender: linux-acpi-owner@vger.kernel.org
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1372345323-9266-1-git-send-email-benjamin.guthro@citrix.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Ben Guthro <benjamin.guthro@citrix.com>
+Cc: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>, Jan Beulich <jbeulich@suse.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, xen-devel@lists.xen.org, Richard L Maliszewski <richard.l.maliszewski@intel.com>, Gang Wei <gang.wei@intel.com>, Shane Wang <shane.wang@intel.com>, Bob Moore <robert.moore@intel.com>, tboot-devel@lists.sourceforge.net
 List-Id: linux-acpi@vger.kernel.org
-To: ACPI Devel Maling List <linux-acpi@vger.kernel.org>
-Cc: LKML <linux-kernel@vger.kernel.org>
 
-From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
-Subject: ACPI: Move acpi_bus_get_device() from bus.c to scan.c
+On Thursday, June 27, 2013 11:01:58 AM Ben Guthro wrote:
+> In version 3.4 acpi_os_prepare_sleep() got introduced in parallel with
+> reduced hardware sleep support, and the two changes didn't get
+> synchronized: The new code doesn't call the hook function (if so
+> requested). Fix this, requiring a boolean parameter to be added to the
+> hook function to distinguish "extended" from "legacy" sleep.
+> 
+> This requires adjusting TXT, but the adjustments only go as far as
+> failing the extended mode call (since, looking at the TXT interface,
+> there doesn't even appear to be precautions to deal with that
+> alternative interface).
+> 
+> The hypervisor change underlying this is commit 62d1a69 ("ACPI: support
+> v5 (reduced HW) sleep interface") on the master branch of
+> git://xenbits.xen.org/xen.git.
+> 
+> Signed-off-by: Ben Guthro <benjamin.guthro@citrix.com>
+> Signed-off-by: Jan Beulich <jbeulich@suse.com>
+> Cc: Richard L Maliszewski <richard.l.maliszewski@intel.com>
+> Cc: Gang Wei <gang.wei@intel.com>
+> Cc: Shane Wang <shane.wang@intel.com>
+> Cc: Bob Moore <robert.moore@intel.com>
+> Cc: Rafaell J. Wysocki <rjw@sisk.pl>
+> Cc: linux-acpi@vger.kernel.org
+> Cc: tboot-devel@lists.sourceforge.net 
+> 
+> v2: Extend description to include reference to hypervisor side change
+> v3: Split into multiple patches, separating subsystems
+>     Remove bool parameters, in favor of u8
+> v4: Remove linux/acpi.h dependencies
+>     Further patch split to break out acpica from OSL
+>     More bool vs u8 fixes
+> 
+> Ben Guthro (5):
+>   acpi: Remove need to include linux/acpi.h in common acpica code
+>   acpi: Call acpi_os_prepare_sleep hook in reduced hardware sleep path
+>   acpi: Adjust linux acpi OS functions to new extended parameter
+>   x86/tboot: Fail extended mode reduced hardware sleep
+>   xen/acpi: notify xen when reduced hardware sleep is available
 
-Move acpi_bus_get_device() from bus.c to scan.c which allows
-acpi_bus_data_handler() to become static and clean up the latter.
+The ongoing discussion means to me that the ACPICA maintainers don't want
+acpi_os_prepare_sleep() and quite frankly I understand them, because ACPICA
+is about implementing the spec and not about things beyond it.
 
-Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
----
- drivers/acpi/bus.c      |   21 ---------------------
- drivers/acpi/scan.c     |   30 ++++++++++++++++++++++--------
- include/acpi/acpi_bus.h |    1 -
- 3 files changed, 22 insertions(+), 30 deletions(-)
+This means that patch [1/5] goes away.
 
-Index: linux-pm/drivers/acpi/bus.c
-===================================================================
---- linux-pm.orig/drivers/acpi/bus.c
-+++ linux-pm/drivers/acpi/bus.c
-@@ -89,27 +89,6 @@ static struct dmi_system_id dsdt_dmi_tab
-                                 Device Management
-    -------------------------------------------------------------------------- */
- 
--int acpi_bus_get_device(acpi_handle handle, struct acpi_device **device)
--{
--	acpi_status status;
--
--	if (!device)
--		return -EINVAL;
--
--	/* TBD: Support fixed-feature devices */
--
--	status = acpi_get_data(handle, acpi_bus_data_handler, (void **)device);
--	if (ACPI_FAILURE(status) || !*device) {
--		ACPI_DEBUG_PRINT((ACPI_DB_INFO, "No context for object [%p]\n",
--				  handle));
--		return -ENODEV;
--	}
--
--	return 0;
--}
--
--EXPORT_SYMBOL(acpi_bus_get_device);
--
- acpi_status acpi_bus_get_status_handle(acpi_handle handle,
- 				       unsigned long long *sta)
- {
-Index: linux-pm/drivers/acpi/scan.c
-===================================================================
---- linux-pm.orig/drivers/acpi/scan.c
-+++ linux-pm/drivers/acpi/scan.c
-@@ -970,6 +970,28 @@ struct bus_type acpi_bus_type = {
- 	.uevent		= acpi_device_uevent,
- };
- 
-+static void acpi_bus_data_handler(acpi_handle handle, void *context)
-+{
-+	/* Intentionally empty. */
-+}
-+
-+int acpi_bus_get_device(acpi_handle handle, struct acpi_device **device)
-+{
-+	acpi_status status;
-+
-+	if (!device)
-+		return -EINVAL;
-+
-+	status = acpi_get_data(handle, acpi_bus_data_handler, (void **)device);
-+	if (ACPI_FAILURE(status) || !*device) {
-+		ACPI_DEBUG_PRINT((ACPI_DB_INFO, "No context for object [%p]\n",
-+				  handle));
-+		return -ENODEV;
-+	}
-+	return 0;
-+}
-+EXPORT_SYMBOL_GPL(acpi_bus_get_device);
-+
- int acpi_device_add(struct acpi_device *device,
- 		    void (*release)(struct device *))
- {
-@@ -1181,14 +1203,6 @@ acpi_bus_get_ejd(acpi_handle handle, acp
- }
- EXPORT_SYMBOL_GPL(acpi_bus_get_ejd);
- 
--void acpi_bus_data_handler(acpi_handle handle, void *context)
--{
--
--	/* TBD */
--
--	return;
--}
--
- static int acpi_bus_extract_wakeup_device_power_package(acpi_handle handle,
- 					struct acpi_device_wakeup *wakeup)
- {
-Index: linux-pm/include/acpi/acpi_bus.h
-===================================================================
---- linux-pm.orig/include/acpi/acpi_bus.h
-+++ linux-pm/include/acpi/acpi_bus.h
-@@ -371,7 +371,6 @@ extern int unregister_acpi_notifier(stru
-  */
- 
- int acpi_bus_get_device(acpi_handle handle, struct acpi_device **device);
--void acpi_bus_data_handler(acpi_handle handle, void *context);
- acpi_status acpi_bus_get_status_handle(acpi_handle handle,
- 				       unsigned long long *sta);
- int acpi_bus_get_status(struct acpi_device *device);
+That said, at the same time we need to address the problem at hand, which
+is to make Xen work with the reduced HW sleep.
 
+For that, I don't honestly think that modifying acpi_os_prepare_sleep() the
+way the patchset is doing it is appropriate and the change of the meaning of
+the arguments is simply disgusting.
+
+To me, it would be much cleaner to add acpi_os_prepare_extended_sleep()
+specifically to be called by acpi_hw_extended_sleep() and make tboot and Xen
+use that.
+
+This way or another, we'll need to live with one more divergence between the
+upstream ACPICA and the Linux ACPICA code because of that, but that'd be just
+a few added lines in acpi_hw_extended_sleep(), so I suppose it wouldn't be
+such a big deal.
+
+Thanks,
+Rafael
+
+
+-- 
+I speak only for myself.
+Rafael J. Wysocki, Intel Open Source Technology Center.
