@@ -1,93 +1,98 @@
-From: rui wang <ruiv.wang@gmail.com>
-Subject: Re: [RFC 0/3] IO Hook: Method for emulating h/w events
-Date: Sun, 28 Jul 2013 00:54:20 +0800
-Message-ID: <CANVTcTaJdhBXRYDCPJ+UouPQZUzXSity+9mL8QJTCpz=ZugZLA@mail.gmail.com>
-References: <1374821475-3196-1-git-send-email-rui.y.wang@intel.com>
-	<CAErSpo653opkF_ROupSOYoP21LGwm023430Pyj_thbFeDXRq9w@mail.gmail.com>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: Re: [PATCH v4 0/5] Xen/ACPI: support sleep state entering on hardware reduced systems
+Date: Sun, 28 Jul 2013 01:31:52 +0200
+Message-ID: <4416509.Jzyj46NPce@vostro.rjw.lan>
+References: <1372345323-9266-1-git-send-email-benjamin.guthro@citrix.com> <2455068.P7gO5JL6M7@vostro.rjw.lan> <2A50FCBD-CD54-4C8D-A780-1CA7ACBC4E0B@citrix.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <linux-pci-owner@vger.kernel.org>
-In-Reply-To: <CAErSpo653opkF_ROupSOYoP21LGwm023430Pyj_thbFeDXRq9w@mail.gmail.com>
-Sender: linux-pci-owner@vger.kernel.org
-To: Bjorn Helgaas <bhelgaas@google.com>
-Cc: Tony Luck <tony.luck@intel.com>, chaohong.guo@intel.com, Chen Gong <gong.chen@linux.intel.com>, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Rui Wang <rui.y.wang@intel.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7Bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <2A50FCBD-CD54-4C8D-A780-1CA7ACBC4E0B@citrix.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Ben Guthro <Ben.Guthro@citrix.com>
+Cc: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>, Jan Beulich <jbeulich@suse.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "xen-devel@lists.xen.org" <xen-devel@lists.xen.org>, Richard L Maliszewski <richard.l.maliszewski@intel.com>, Gang Wei <gang.wei@intel.com>, Shane Wang <shane.wang@intel.com>, Bob Moore <robert.moore@intel.com>, "tboot-devel@lists.sourceforge.net" <tboot-devel@lists.sourceforge.net>
 List-Id: linux-acpi@vger.kernel.org
 
->
-> This is a cool idea.
->
-> I don't know if you want to merge this upstream, or if it's just a "I
-> found this useful; here it is in case it's useful to you" sort of
-> thing.  So the comments below are only relevant if you want to try to
-> merge it upstream.
->
+On Saturday, July 27, 2013 03:33:31 PM Ben Guthro wrote:
+> 
+> On Jul 27, 2013, at 9:51 AM, "Rafael J. Wysocki" <rjw@sisk.pl> wrote:
+> 
+> > On Thursday, June 27, 2013 11:01:58 AM Ben Guthro wrote:
+> >> In version 3.4 acpi_os_prepare_sleep() got introduced in parallel with
+> >> reduced hardware sleep support, and the two changes didn't get
+> >> synchronized: The new code doesn't call the hook function (if so
+> >> requested). Fix this, requiring a boolean parameter to be added to the
+> >> hook function to distinguish "extended" from "legacy" sleep.
+> >> 
+> >> This requires adjusting TXT, but the adjustments only go as far as
+> >> failing the extended mode call (since, looking at the TXT interface,
+> >> there doesn't even appear to be precautions to deal with that
+> >> alternative interface).
+> >> 
+> >> The hypervisor change underlying this is commit 62d1a69 ("ACPI: support
+> >> v5 (reduced HW) sleep interface") on the master branch of
+> >> git://xenbits.xen.org/xen.git.
+> >> 
+> >> Signed-off-by: Ben Guthro <benjamin.guthro@citrix.com>
+> >> Signed-off-by: Jan Beulich <jbeulich@suse.com>
+> >> Cc: Richard L Maliszewski <richard.l.maliszewski@intel.com>
+> >> Cc: Gang Wei <gang.wei@intel.com>
+> >> Cc: Shane Wang <shane.wang@intel.com>
+> >> Cc: Bob Moore <robert.moore@intel.com>
+> >> Cc: Rafaell J. Wysocki <rjw@sisk.pl>
+> >> Cc: linux-acpi@vger.kernel.org
+> >> Cc: tboot-devel@lists.sourceforge.net 
+> >> 
+> >> v2: Extend description to include reference to hypervisor side change
+> >> v3: Split into multiple patches, separating subsystems
+> >>    Remove bool parameters, in favor of u8
+> >> v4: Remove linux/acpi.h dependencies
+> >>    Further patch split to break out acpica from OSL
+> >>    More bool vs u8 fixes
+> >> 
+> >> Ben Guthro (5):
+> >>  acpi: Remove need to include linux/acpi.h in common acpica code
+> >>  acpi: Call acpi_os_prepare_sleep hook in reduced hardware sleep path
+> >>  acpi: Adjust linux acpi OS functions to new extended parameter
+> >>  x86/tboot: Fail extended mode reduced hardware sleep
+> >>  xen/acpi: notify xen when reduced hardware sleep is available
+> > 
+> > The ongoing discussion means to me that the ACPICA maintainers don't want
+> > acpi_os_prepare_sleep() and quite frankly I understand them, because ACPICA
+> > is about implementing the spec and not about things beyond it.
+> > 
+> > This means that patch [1/5] goes away.
+> > 
+> > That said, at the same time we need to address the problem at hand, which
+> > is to make Xen work with the reduced HW sleep.
+> > 
+> > For that, I don't honestly think that modifying acpi_os_prepare_sleep() the
+> > way the patchset is doing it is appropriate and the change of the meaning of
+> > the arguments is simply disgusting.
+> > 
+> > To me, it would be much cleaner to add acpi_os_prepare_extended_sleep()
+> > specifically to be called by acpi_hw_extended_sleep() and make tboot and Xen
+> > use that.
+> > 
+> > This way or another, we'll need to live with one more divergence between the
+> > upstream ACPICA and the Linux ACPICA code because of that, but that'd be just
+> > a few added lines in acpi_hw_extended_sleep(), so I suppose it wouldn't be
+> > such a big deal.
+> > 
+> 
+> Ok, thank you for the review, and being open to addressing the problem at
+> hand,
 
-Thanks. If you think it's a cool idea, then I would like to see it
-merged upstream.
+No problem, although I'm not exactly happy with it.
 
-> I wouldn't really want all the gunk in drivers/pci/access.c.  Most of
-> it isn't related to PCI, and some of it is even x86-specific.  It'd be
-> nicer if you could factor it out so just the generic PCI-related
-> things go in drivers/pci.
->
+> without a full architecture rework (not to say that that discussion is not
+> also needed)
 
-Sure. I'll keep only the PCI-related things in drivers/pci and move
-other things out.
+Sure, it is needed.
 
-> It appears to be implemented only for x86.  The MMIO & I/O port parts
-> are x86-specific, but the PCI config stuff should work on any arch.
->
+> I will try to make some time next week to rework the patch set to address
+> these concerns, and submit a new series. 
 
-I had only x86 in mind. But yes it should be made platform neutral.
-I'll split it into neutral and arch-specific parts, so that other
-archs can be supported easily.
+Thanks!
 
-> I don't know whether it's worth supporting as a module.  It seems like
-> a development aid where building in statically would probably be fine.
->  If it didn't have to work as a module, you wouldn't have to export
-> any symbols.
->
-
-Yes building it statically in the kernel would be cleaner and easier
-to use. I'll roll out a new version for you to review.
-
-Thanks
-Rui
-
->> I tested the performance by repeatedly running lspci, which calls into
->> the
->> pci access functions. There's no added overhead observed.
->>
->> Regards,
->> Rui Wang
->> Intel Open Source Technology Center
->>
->> Rui Wang (3):
->>   IO Hook: core functions and Register Override
->>   IO Hook: kernel interface to manage the hook
->>   IO Hook: sysfs interface to emulate h/w events
->>
->>  Documentation/PCI/iohook.txt      |  290 +++++++++++++++++
->>  arch/x86/Kconfig                  |    7 +
->>  arch/x86/boot/compressed/Makefile |    1 +
->>  arch/x86/include/asm/io.h         |   58 ++++-
->>  arch/x86/vdso/Makefile            |    2 +
->>  drivers/misc/Kconfig              |    1 +
->>  drivers/misc/Makefile             |    1 +
->>  drivers/misc/iohook/Kconfig       |    5 +
->>  drivers/misc/iohook/Makefile      |    1 +
->>  drivers/misc/iohook/iohook.c      |  503 +++++++++++++++++++++++++++++
->>  drivers/pci/access.c              |  630
->> +++++++++++++++++++++++++++++++++++++
->>  include/linux/reg_ovrd.h          |   55 ++++
->>  12 files changed, 1552 insertions(+), 2 deletions(-)
->>  create mode 100644 Documentation/PCI/iohook.txt
->>  create mode 100644 drivers/misc/iohook/Kconfig
->>  create mode 100644 drivers/misc/iohook/Makefile
->>  create mode 100644 drivers/misc/iohook/iohook.c
->>  create mode 100644 include/linux/reg_ovrd.h
->>
->> --
->> 1.7.5.4
->>
->
+Rafael
