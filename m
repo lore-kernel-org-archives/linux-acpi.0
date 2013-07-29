@@ -1,43 +1,104 @@
-From: Joe Perches <joe@perches.com>
-Subject: Re: [PATCH 2/3] include: Convert ethernet mac address declarations
- to use ETH_ALEN
-Date: Mon, 29 Jul 2013 12:34:24 -0700
-Message-ID: <1375126464.2075.46.camel@joe-AO722>
-References: <cover.1375075325.git.joe@perches.com>
-	 <a769aba61c43967257854413f16d2b935cc54972.1375075325.git.joe@perches.com>
-	 <2929374.frUlkyTFNL@vostro.rjw.lan>
+From: =?UTF-8?B?KiBTQU3DjSAq?= <miaousami@hotmail.com>
+Subject: Re: [Intel-gfx] Linux 3.11-rc2 [backlight] [ASUS N56VZ]
+Date: Mon, 29 Jul 2013 21:36:31 +0200
+Message-ID: <BLU0-SMTP272CC1C4BE207873BCD0CFFA6550@phx.gbl>
+References: <BLU0-SMTP125E791F01E26C3D60D7353A6680@phx.gbl> <2024506.rXjN91yI0W@vostro.rjw.lan> <877ggeyg1p.fsf@intel.com> <5730704.o2aLKRMvVz@vostro.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
+Content-Type: text/plain; charset="UTF-8"; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <2929374.frUlkyTFNL@vostro.rjw.lan>
+In-Reply-To: <5730704.o2aLKRMvVz@vostro.rjw.lan>
 Sender: linux-kernel-owner@vger.kernel.org
 To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: netdev@vger.kernel.org, Len Brown <lenb@kernel.org>, Pantelis Antoniou <pantelis.antoniou@gmail.com>, Vitaly Bordug <vbordug@ru.mvista.com>, Steve Glendinning <steve.glendinning@shawell.net>, Mauro Carvalho Chehab <m.chehab@samsung.com>, Samuel Ortiz <samuel@sortiz.org>, "David S. Miller" <davem@davemloft.net>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, linux-usb@vger.kernel.org, linux-media@vger.kernel.org
+Cc: Jani Nikula <jani.nikula@linux.intel.com>, Linus Torvalds <torvalds@linux-foundation.org>, Aaron Lu <aaron.lu@intel.com>, Matthew Garrett <mjg59@srcf.ucam.org>, intel-gfx <intel-gfx@lists.freedesktop.org>, LKML <linux-kernel@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Igor Gnatenko <i.gnatenko.brain@gmail.com>
 List-Id: linux-acpi@vger.kernel.org
 
-On Mon, 2013-07-29 at 13:59 +0200, Rafael J. Wysocki wrote:
-> On Sunday, July 28, 2013 10:29:04 PM Joe Perches wrote:
-> > It's convenient to have ethernet mac addresses use
-> > ETH_ALEN to be able to grep for them a bit easier and
-> > also to ensure that the addresses are __aligned(2).
-[]
-> > diff --git a/include/acpi/actbl2.h b/include/acpi/actbl2.h
-[]
-> > @@ -44,6 +44,8 @@
-[]
-> > +#include <linux/if_ether.h>
-> > +
-[]
-> > @@ -605,7 +607,7 @@ struct acpi_ibft_nic {
-[]
-> > -	u8 mac_address[6];
-> > +	u8 mac_address[ETH_ALEN];
+Hi Rafael,
 
-> Please don't touch this file.
-> 
-> It comes from a code base outside of the kernel and should be kept in sync with
-> the upstream.
 
-Which files in include/acpi have this characteristic?
-Perhaps an include/acpi/README is appropriate.
+did you commit a full revert?
+Because I am experiencing quite weird things in rc3.
+Do we have a bug opened to discuss about it?
+
+Here is what I can observe:
+1) During boot, probably when loading the driver, backlight gets off (or 
+to a level low enough to make me feel it is off)
+2) When I am playing with my Fn+x keys, I am getting a completely full / 
+completely low brightness with no intermediate steps
+3) When I am playing with my Fn+x keys while gnome brightness settings 
+panel is open, I am recovering intermediate steps but the Fn+x keys 
+behavior is inverted (the key supposed to lower the brightness make it 
+increase and vice-versa. Note that the gnome brightness indicator also 
+gets inverted).
+4) Playing with the mouse on gnome brightness settings is working, 
+except that on the minimum level, backlight gets off
+5) Writing to /sys/class/backlight/intel_backlight/brightness works
+
+
+Regards
+
+On 07/25/2013 02:57 PM, Rafael J. Wysocki wrote:
+> On Thursday, July 25, 2013 03:34:10 PM Jani Nikula wrote:
+>> On Thu, 25 Jul 2013, "Rafael J. Wysocki" <rjw@sisk.pl> wrote:
+>>> On Thursday, July 25, 2013 11:09:27 AM Jani Nikula wrote:
+>>>> On Thu, 25 Jul 2013, "Rafael J. Wysocki" <rjw@sisk.pl> wrote:
+>>>>> Well, I wonder what about the appended (untested) patch?
+>>>> Rafael, before going there, I've been trying to wrap my (poor, rusty
+>>>> after vacation) head around
+>>>>
+>>>> commit 8c5bd7adb2ce47e6aa39d17b2375f69b0c0aa255
+>>>> Author: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+>>>> Date:   Thu Jul 18 02:08:06 2013 +0200
+>>>>
+>>>>      ACPI / video / i915: No ACPI backlight if firmware expects Windows 8
+>>>>
+>>>> and I can't see how it could work.
+>>> Well, if it didn't work, people wouldn't see either improvement or breakage
+>>> from it, but they do see that, so it evidently works. :-)
+>> I didn't claim it didn't work, just that *I* didn't see how it could. ;)
+>>
+>>>> First, the ACPI_VIDEO_SKIP_BACKLIGHT flag seems to be checked before
+>>>> it's actually set anywhere.
+>>> Are you sure about that?
+>>>
+>>> acpi_video_bus_add() is the .add() callback routine for acpi_video_bus which
+>>> in fact is an ACPI driver (the naming sucks, but I didn't invent it).  This
+>>> means that acpi_video_bus_add() can only be called *after* acpi_video_bus
+>>> has been registered with the ACPI subsystem (and the driver core).  That
+>>> is done by acpi_bus_register_driver() and, guess what?, this happens in
+>>> __acpi_video_register().  So clearly, acpi_video_bus_add() *cannot* run before
+>>> __acpi_video_register().
+>> Right. I totally missed the call within the ternary operator. Thanks for
+>> the explanation, and apologies for the noise.
+>>
+>>>> Second, with i915 that has opregion support, __acpi_video_register()
+>>>> should only ever get called once. Which means the acpi_walk_namespace()
+>>>> with video_unregister_backlight() should never get called in register.
+>>>>
+>>>> Please enlighten me.
+>>> Actually, that's correct, so we don't need the whole
+>>> video_unregister_backlight() thing, calling acpi_video_backlight_quirks() would
+>>> be sufficient.
+>>>
+>>> Ah, one more reason to do a full revert.  I'm thinking, though, that I'll leave
+>>> acpi_video_backlight_quirks() as is so that it can be used by
+>>> acpi_video_bus_(start)|(stop)_devices(), because that doesn't seem to cause
+>>> problems to happen.
+>> I observe that for the regular non-quirk acpi_video_register() call,
+>> acpi_video_backlight_quirks() won't be called during register, but it
+>> will get called later. This might have subtle effects later on, don't
+>> you think?
+> Yes, it might, but after dropping ACPI_VIDEO_SKIP_BACKLIGHT it should be OK.
+>
+>> As to the original problem, and your patch in this thread, what do you
+>> think about having another value in acpi_backlight kernel parameter for
+>> it? Having an i915 module parameter to tell acpi to use or not use
+>> quirks seems odd, since the i915 is not really taking over
+>> anything. It's just passing the info on to acpi.
+> I agree, I'm going to send a full revert in a while and we'll think what to
+> do about all that later.
+>
+> Thanks,
+> Rafael
+>
+>
