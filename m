@@ -1,168 +1,183 @@
-From: =?UTF-8?B?KiBTQU3DjSAq?= <miaousami@hotmail.com>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
 Subject: Re: [Intel-gfx] Linux 3.11-rc2 [backlight] [ASUS N56VZ]
-Date: Mon, 29 Jul 2013 23:53:59 +0200
-Message-ID: <BLU0-SMTP140D7F45ED3DD21F0C0ECE3A6550@phx.gbl>
-References: <BLU0-SMTP125E791F01E26C3D60D7353A6680@phx.gbl> <5730704.o2aLKRMvVz@vostro.rjw.lan> <BLU0-SMTP272CC1C4BE207873BCD0CFFA6550@phx.gbl> <1472278.oeeviaMfXH@vostro.rjw.lan>
+Date: Tue, 30 Jul 2013 00:11:44 +0200
+Message-ID: <2885333.INd1NEtEGR@vostro.rjw.lan>
+References: <BLU0-SMTP125E791F01E26C3D60D7353A6680@phx.gbl> <1472278.oeeviaMfXH@vostro.rjw.lan> <BLU0-SMTP140D7F45ED3DD21F0C0ECE3A6550@phx.gbl>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8;
-	format=flowed
+Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from blu0-omc1-s2.blu0.hotmail.com ([65.55.116.13]:62609 "EHLO
-	blu0-omc1-s2.blu0.hotmail.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754600Ab3G2VyH convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 29 Jul 2013 17:54:07 -0400
-In-Reply-To: <1472278.oeeviaMfXH@vostro.rjw.lan>
+Received: from hydra.sisk.pl ([212.160.235.94]:46550 "EHLO hydra.sisk.pl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754891Ab3G2WBf convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 29 Jul 2013 18:01:35 -0400
+In-Reply-To: <BLU0-SMTP140D7F45ED3DD21F0C0ECE3A6550@phx.gbl>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@sisk.pl>
+To: * =?ISO-8859-1?Q?SAM=CD?= * <miaousami@hotmail.com>
 Cc: Jani Nikula <jani.nikula@linux.intel.com>, Linus Torvalds <torvalds@linux-foundation.org>, Aaron Lu <aaron.lu@intel.com>, Matthew Garrett <mjg59@srcf.ucam.org>, intel-gfx <intel-gfx@lists.freedesktop.org>, LKML <linux-kernel@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Igor Gnatenko <i.gnatenko.brain@gmail.com>
 
-When I make acpi_video_backlight_quirks() return false:
-- the Fn+x keys are not working anymore (remember that they didn't work=
-=20
-in 3.10 nor 3.9)
-- At least the backlight remains on at boot.
-- Gnome brightness settings do not work anymore. Neither do xbacklight.
-- Writing to /sys/class/backlight/intel_backlight/brightness works
+On Monday, July 29, 2013 11:53:59 PM * SAM=C3=8D * wrote:
+> When I make acpi_video_backlight_quirks() return false:
+> - the Fn+x keys are not working anymore (remember that they didn't wo=
+rk=20
+> in 3.10 nor 3.9)
+> - At least the backlight remains on at boot.
+> - Gnome brightness settings do not work anymore. Neither do xbackligh=
+t.
+> - Writing to /sys/class/backlight/intel_backlight/brightness works
 
-Regards,
-Sam
+Well, you're better off with acpi_video_backlight_quirks() as is, then.=
+ :-)
 
-On 07/29/2013 10:03 PM, Rafael J. Wysocki wrote:
-> On Monday, July 29, 2013 09:36:31 PM * SAM=C3=8D * wrote:
->> Hi Rafael,
->>
->>
->> did you commit a full revert?
-> Yes, but I left acpi_video_backlight_quirks() (in drivers/acpi/video_=
-detect.c)
-> that is used to decide what to do with _DOS.
->
-> Can you please check if making that function always return 'false' ma=
-kes any
-> difference?
->
-> Rafael
->
->
->> Because I am experiencing quite weird things in rc3.
->> Do we have a bug opened to discuss about it?
->>
->> Here is what I can observe:
->> 1) During boot, probably when loading the driver, backlight gets off=
- (or
->> to a level low enough to make me feel it is off)
->> 2) When I am playing with my Fn+x keys, I am getting a completely fu=
-ll /
->> completely low brightness with no intermediate steps
->> 3) When I am playing with my Fn+x keys while gnome brightness settin=
-gs
->> panel is open, I am recovering intermediate steps but the Fn+x keys
->> behavior is inverted (the key supposed to lower the brightness make =
-it
->> increase and vice-versa. Note that the gnome brightness indicator al=
-so
->> gets inverted).
->> 4) Playing with the mouse on gnome brightness settings is working,
->> except that on the minimum level, backlight gets off
->> 5) Writing to /sys/class/backlight/intel_backlight/brightness works
->>
->>
->> Regards
->>
->> On 07/25/2013 02:57 PM, Rafael J. Wysocki wrote:
->>> On Thursday, July 25, 2013 03:34:10 PM Jani Nikula wrote:
->>>> On Thu, 25 Jul 2013, "Rafael J. Wysocki" <rjw@sisk.pl> wrote:
->>>>> On Thursday, July 25, 2013 11:09:27 AM Jani Nikula wrote:
->>>>>> On Thu, 25 Jul 2013, "Rafael J. Wysocki" <rjw@sisk.pl> wrote:
->>>>>>> Well, I wonder what about the appended (untested) patch?
->>>>>> Rafael, before going there, I've been trying to wrap my (poor, r=
-usty
->>>>>> after vacation) head around
->>>>>>
->>>>>> commit 8c5bd7adb2ce47e6aa39d17b2375f69b0c0aa255
->>>>>> Author: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
->>>>>> Date:   Thu Jul 18 02:08:06 2013 +0200
->>>>>>
->>>>>>       ACPI / video / i915: No ACPI backlight if firmware expects=
- Windows 8
->>>>>>
->>>>>> and I can't see how it could work.
->>>>> Well, if it didn't work, people wouldn't see either improvement o=
-r breakage
->>>>> from it, but they do see that, so it evidently works. :-)
->>>> I didn't claim it didn't work, just that *I* didn't see how it cou=
-ld. ;)
->>>>
->>>>>> First, the ACPI_VIDEO_SKIP_BACKLIGHT flag seems to be checked be=
-fore
->>>>>> it's actually set anywhere.
->>>>> Are you sure about that?
->>>>>
->>>>> acpi_video_bus_add() is the .add() callback routine for acpi_vide=
-o_bus which
->>>>> in fact is an ACPI driver (the naming sucks, but I didn't invent =
-it).  This
->>>>> means that acpi_video_bus_add() can only be called *after* acpi_v=
-ideo_bus
->>>>> has been registered with the ACPI subsystem (and the driver core)=
-=2E  That
->>>>> is done by acpi_bus_register_driver() and, guess what?, this happ=
-ens in
->>>>> __acpi_video_register().  So clearly, acpi_video_bus_add() *canno=
-t* run before
->>>>> __acpi_video_register().
->>>> Right. I totally missed the call within the ternary operator. Than=
-ks for
->>>> the explanation, and apologies for the noise.
->>>>
->>>>>> Second, with i915 that has opregion support, __acpi_video_regist=
-er()
->>>>>> should only ever get called once. Which means the acpi_walk_name=
-space()
->>>>>> with video_unregister_backlight() should never get called in reg=
-ister.
->>>>>>
->>>>>> Please enlighten me.
->>>>> Actually, that's correct, so we don't need the whole
->>>>> video_unregister_backlight() thing, calling acpi_video_backlight_=
-quirks() would
->>>>> be sufficient.
->>>>>
->>>>> Ah, one more reason to do a full revert.  I'm thinking, though, t=
-hat I'll leave
->>>>> acpi_video_backlight_quirks() as is so that it can be used by
->>>>> acpi_video_bus_(start)|(stop)_devices(), because that doesn't see=
-m to cause
->>>>> problems to happen.
->>>> I observe that for the regular non-quirk acpi_video_register() cal=
-l,
->>>> acpi_video_backlight_quirks() won't be called during register, but=
- it
->>>> will get called later. This might have subtle effects later on, do=
-n't
->>>> you think?
->>> Yes, it might, but after dropping ACPI_VIDEO_SKIP_BACKLIGHT it shou=
-ld be OK.
->>>
->>>> As to the original problem, and your patch in this thread, what do=
- you
->>>> think about having another value in acpi_backlight kernel paramete=
-r for
->>>> it? Having an i915 module parameter to tell acpi to use or not use
->>>> quirks seems odd, since the i915 is not really taking over
->>>> anything. It's just passing the info on to acpi.
->>> I agree, I'm going to send a full revert in a while and we'll think=
- what to
->>> do about all that later.
->>>
->>> Thanks,
->>> Rafael
->>>
->>>
+I'm afraid we can't help you by revering anything more at this point.
 
+Please file a bug in the kernel BZ to further track the issues you're
+seeing.
+
+Thanks,
+Rafael
+
+
+> On 07/29/2013 10:03 PM, Rafael J. Wysocki wrote:
+> > On Monday, July 29, 2013 09:36:31 PM * SAM=C3=8D * wrote:
+> >> Hi Rafael,
+> >>
+> >>
+> >> did you commit a full revert?
+> > Yes, but I left acpi_video_backlight_quirks() (in drivers/acpi/vide=
+o_detect.c)
+> > that is used to decide what to do with _DOS.
+> >
+> > Can you please check if making that function always return 'false' =
+makes any
+> > difference?
+> >
+> > Rafael
+> >
+> >
+> >> Because I am experiencing quite weird things in rc3.
+> >> Do we have a bug opened to discuss about it?
+> >>
+> >> Here is what I can observe:
+> >> 1) During boot, probably when loading the driver, backlight gets o=
+ff (or
+> >> to a level low enough to make me feel it is off)
+> >> 2) When I am playing with my Fn+x keys, I am getting a completely =
+full /
+> >> completely low brightness with no intermediate steps
+> >> 3) When I am playing with my Fn+x keys while gnome brightness sett=
+ings
+> >> panel is open, I am recovering intermediate steps but the Fn+x key=
+s
+> >> behavior is inverted (the key supposed to lower the brightness mak=
+e it
+> >> increase and vice-versa. Note that the gnome brightness indicator =
+also
+> >> gets inverted).
+> >> 4) Playing with the mouse on gnome brightness settings is working,
+> >> except that on the minimum level, backlight gets off
+> >> 5) Writing to /sys/class/backlight/intel_backlight/brightness work=
+s
+> >>
+> >>
+> >> Regards
+> >>
+> >> On 07/25/2013 02:57 PM, Rafael J. Wysocki wrote:
+> >>> On Thursday, July 25, 2013 03:34:10 PM Jani Nikula wrote:
+> >>>> On Thu, 25 Jul 2013, "Rafael J. Wysocki" <rjw@sisk.pl> wrote:
+> >>>>> On Thursday, July 25, 2013 11:09:27 AM Jani Nikula wrote:
+> >>>>>> On Thu, 25 Jul 2013, "Rafael J. Wysocki" <rjw@sisk.pl> wrote:
+> >>>>>>> Well, I wonder what about the appended (untested) patch?
+> >>>>>> Rafael, before going there, I've been trying to wrap my (poor,=
+ rusty
+> >>>>>> after vacation) head around
+> >>>>>>
+> >>>>>> commit 8c5bd7adb2ce47e6aa39d17b2375f69b0c0aa255
+> >>>>>> Author: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+> >>>>>> Date:   Thu Jul 18 02:08:06 2013 +0200
+> >>>>>>
+> >>>>>>       ACPI / video / i915: No ACPI backlight if firmware expec=
+ts Windows 8
+> >>>>>>
+> >>>>>> and I can't see how it could work.
+> >>>>> Well, if it didn't work, people wouldn't see either improvement=
+ or breakage
+> >>>>> from it, but they do see that, so it evidently works. :-)
+> >>>> I didn't claim it didn't work, just that *I* didn't see how it c=
+ould. ;)
+> >>>>
+> >>>>>> First, the ACPI_VIDEO_SKIP_BACKLIGHT flag seems to be checked =
+before
+> >>>>>> it's actually set anywhere.
+> >>>>> Are you sure about that?
+> >>>>>
+> >>>>> acpi_video_bus_add() is the .add() callback routine for acpi_vi=
+deo_bus which
+> >>>>> in fact is an ACPI driver (the naming sucks, but I didn't inven=
+t it).  This
+> >>>>> means that acpi_video_bus_add() can only be called *after* acpi=
+_video_bus
+> >>>>> has been registered with the ACPI subsystem (and the driver cor=
+e).  That
+> >>>>> is done by acpi_bus_register_driver() and, guess what?, this ha=
+ppens in
+> >>>>> __acpi_video_register().  So clearly, acpi_video_bus_add() *can=
+not* run before
+> >>>>> __acpi_video_register().
+> >>>> Right. I totally missed the call within the ternary operator. Th=
+anks for
+> >>>> the explanation, and apologies for the noise.
+> >>>>
+> >>>>>> Second, with i915 that has opregion support, __acpi_video_regi=
+ster()
+> >>>>>> should only ever get called once. Which means the acpi_walk_na=
+mespace()
+> >>>>>> with video_unregister_backlight() should never get called in r=
+egister.
+> >>>>>>
+> >>>>>> Please enlighten me.
+> >>>>> Actually, that's correct, so we don't need the whole
+> >>>>> video_unregister_backlight() thing, calling acpi_video_backligh=
+t_quirks() would
+> >>>>> be sufficient.
+> >>>>>
+> >>>>> Ah, one more reason to do a full revert.  I'm thinking, though,=
+ that I'll leave
+> >>>>> acpi_video_backlight_quirks() as is so that it can be used by
+> >>>>> acpi_video_bus_(start)|(stop)_devices(), because that doesn't s=
+eem to cause
+> >>>>> problems to happen.
+> >>>> I observe that for the regular non-quirk acpi_video_register() c=
+all,
+> >>>> acpi_video_backlight_quirks() won't be called during register, b=
+ut it
+> >>>> will get called later. This might have subtle effects later on, =
+don't
+> >>>> you think?
+> >>> Yes, it might, but after dropping ACPI_VIDEO_SKIP_BACKLIGHT it sh=
+ould be OK.
+> >>>
+> >>>> As to the original problem, and your patch in this thread, what =
+do you
+> >>>> think about having another value in acpi_backlight kernel parame=
+ter for
+> >>>> it? Having an i915 module parameter to tell acpi to use or not u=
+se
+> >>>> quirks seems odd, since the i915 is not really taking over
+> >>>> anything. It's just passing the info on to acpi.
+> >>> I agree, I'm going to send a full revert in a while and we'll thi=
+nk what to
+> >>> do about all that later.
+> >>>
+> >>> Thanks,
+> >>> Rafael
+> >>>
+> >>>
+>=20
+--=20
+I speak only for myself.
+Rafael J. Wysocki, Intel Open Source Technology Center.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
 n
