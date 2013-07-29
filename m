@@ -1,204 +1,68 @@
-From: Borislav Petkov <bp@alien8.de>
-Subject: Re: [PATCH] APEI/ERST: Fix error message formatting
-Date: Mon, 29 Jul 2013 15:58:12 +0200
-Message-ID: <20130729135812.GD6634@pd.tnic>
-References: <1374526866-6813-1-git-send-email-bp@alien8.de>
- <20130724171347.GB29756@naverao1-tp.watson.ibm.com>
- <1374686598.18818.18.camel@joe-AO722>
- <51F10AA8.2050901@linux.vnet.ibm.com>
- <CAErSpo5vLbsM5BXjrCVy1AKBxRRSH33TthyyK3O35Mghqw81nQ@mail.gmail.com>
+From: Aaron Lu <aaron.lu@intel.com>
+Subject: Re: [PATCH 1/3] ACPI / PM: Only set power states of devices that
+ are power manageable
+Date: Mon, 29 Jul 2013 22:09:53 +0800
+Message-ID: <51F677B1.9090502@intel.com>
+References: <10433383.dueoNg39qi@vostro.rjw.lan> <1657971.1utElu0Hzo@vostro.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail.skyhub.de ([78.46.96.112]:55324 "EHLO mail.skyhub.de"
+Received: from mga03.intel.com ([143.182.124.21]:59106 "EHLO mga03.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750906Ab3G2N6Q (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 29 Jul 2013 09:58:16 -0400
-Content-Disposition: inline
-In-Reply-To: <CAErSpo5vLbsM5BXjrCVy1AKBxRRSH33TthyyK3O35Mghqw81nQ@mail.gmail.com>
+	id S1756409Ab3G2OJ3 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 29 Jul 2013 10:09:29 -0400
+In-Reply-To: <1657971.1utElu0Hzo@vostro.rjw.lan>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Bjorn Helgaas <bhelgaas@google.com>
-Cc: "Naveen N. Rao" <naveen.n.rao@linux.vnet.ibm.com>, Joe Perches <joe@perches.com>, LKML <linux-kernel@vger.kernel.org>, Borislav Petkov <bp@suse.de>, Anton Vorontsov <anton@enomsg.org>, Colin Cross <ccross@android.com>, Kees Cook <keescook@chromium.org>, Tony Luck <tony.luck@intel.com>, Len Brown <lenb@kernel.org>, "Rafael J. Wysocki" <rjw@sisk.pl>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "Huang, Ying" <ying.huang@intel.com>
+To: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>, Linux PM list <linux-pm@vger.kernel.org>, Yinghai Lu <yinghai@kernel.org>, Bjorn Helgaas <bhelgaas@google.com>, Tejun Heo <tj@kernel.org>, linux-ide@vger.kernel.org
 
-On Thu, Jul 25, 2013 at 11:32:06AM -0600, Bjorn Helgaas wrote:
-> I would suggest a change similar to 46b91e37 for ERST, and I would
-> suggest using the leading zeros, with %#010llx for physical memory
-> addresses and %#06llx for ioport addresses. That's what %pR uses, and
-> it produces columnar alignment in many cases (though not this one).
+On 07/27/2013 09:10 PM, Rafael J. Wysocki wrote:
+> From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+> 
+> Make acpi_device_set_power() check if the given device is power
+> manageable before checking if the given power state is valid for that
+> device.  Otherwise it will print that "Device does not support" that
+> power state into the kernel log, which may not make sense for some
+> power states (D0 and D3cold are supported by all devices by
+> definition).
 
-How's that:
+It will not print "Device does not support" that power state if that
+power state is D0 or D3cold since we have unconditionally set those two
+power state's valid flag.
 
---
-From: Borislav Petkov <bp@suse.de>
-Date: Mon, 29 Jul 2013 15:51:35 +0200
-Subject: [PATCH] [PATCH] APEI/ERST: Fix error message formatting
+OTOH, what value should we return for a device node that is not power
+manageable in acpi_device_set_power when the target state is D0 or D3
+cold? The old behavior is to return 0, meanning success without taking
+any actual action.
 
-... according to acpi/apei/ conventions. Use standard pr_fmt prefix
-while at it.
+In acpi_bus_set_power, if the device is not power manageable, we will
+return -ENODEV; in acpi_dev_pm_full/low_power, we will return 0 as in
+the original acpi_device_set_power. So return -EINVAL here is correct?
 
-Signed-off-by: Borislav Petkov <bp@suse.de>
----
- drivers/acpi/apei/erst.c | 43 +++++++++++++++++++------------------------
- 1 file changed, 19 insertions(+), 24 deletions(-)
+-Aaron
 
-diff --git a/drivers/acpi/apei/erst.c b/drivers/acpi/apei/erst.c
-index 88d0b0f9f92b..853e4cf1bc9e 100644
---- a/drivers/acpi/apei/erst.c
-+++ b/drivers/acpi/apei/erst.c
-@@ -39,7 +39,8 @@
- 
- #include "apei-internal.h"
- 
--#define ERST_PFX "ERST: "
-+#undef pr_fmt
-+#define pr_fmt(fmt) "ERST: " fmt
- 
- /* ERST command status */
- #define ERST_STATUS_SUCCESS			0x0
-@@ -109,8 +110,7 @@ static inline int erst_errno(int command_status)
- static int erst_timedout(u64 *t, u64 spin_unit)
- {
- 	if ((s64)*t < spin_unit) {
--		pr_warning(FW_WARN ERST_PFX
--			   "Firmware does not respond in time\n");
-+		pr_warn(FW_WARN "Firmware does not respond in time\n");
- 		return 1;
- 	}
- 	*t -= spin_unit;
-@@ -186,7 +186,7 @@ static int erst_exec_stall(struct apei_exec_context *ctx,
- 
- 	if (ctx->value > FIRMWARE_MAX_STALL) {
- 		if (!in_nmi())
--			pr_warning(FW_WARN ERST_PFX
-+			pr_warn(FW_WARN
- 			"Too long stall time for stall instruction: %llx.\n",
- 				   ctx->value);
- 		stall_time = FIRMWARE_MAX_STALL;
-@@ -206,7 +206,7 @@ static int erst_exec_stall_while_true(struct apei_exec_context *ctx,
- 
- 	if (ctx->var1 > FIRMWARE_MAX_STALL) {
- 		if (!in_nmi())
--			pr_warning(FW_WARN ERST_PFX
-+			pr_warn(FW_WARN
- 		"Too long stall time for stall while true instruction: %llx.\n",
- 				   ctx->var1);
- 		stall_time = FIRMWARE_MAX_STALL;
-@@ -271,8 +271,7 @@ static int erst_exec_move_data(struct apei_exec_context *ctx,
- 
- 	/* ioremap does not work in interrupt context */
- 	if (in_interrupt()) {
--		pr_warning(ERST_PFX
--			   "MOVE_DATA can not be used in interrupt context");
-+		pr_warn("MOVE_DATA can not be used in interrupt context");
- 		return -EBUSY;
- 	}
- 
-@@ -522,8 +521,7 @@ retry:
- 				     ERST_RECORD_ID_CACHE_SIZE_MAX);
- 		if (new_size <= erst_record_id_cache.size) {
- 			if (printk_ratelimit())
--				pr_warning(FW_WARN ERST_PFX
--					   "too many record ID!\n");
-+				pr_warn(FW_WARN "too many record IDs!\n");
- 			return 0;
- 		}
- 		alloc_size = new_size * sizeof(entries[0]);
-@@ -759,8 +757,7 @@ static int __erst_clear_from_storage(u64 record_id)
- static void pr_unimpl_nvram(void)
- {
- 	if (printk_ratelimit())
--		pr_warning(ERST_PFX
--		"NVRAM ERST Log Address Range is not implemented yet\n");
-+		pr_warn("NVRAM ERST Log Address Range is not implemented yet\n");
- }
- 
- static int __erst_write_to_nvram(const struct cper_record_header *record)
-@@ -1120,7 +1117,7 @@ static int __init erst_init(void)
- 		goto err;
- 
- 	if (erst_disable) {
--		pr_info(ERST_PFX
-+		pr_info(
- 	"Error Record Serialization Table (ERST) support is disabled.\n");
- 		goto err;
- 	}
-@@ -1131,14 +1128,14 @@ static int __init erst_init(void)
- 		goto err;
- 	else if (ACPI_FAILURE(status)) {
- 		const char *msg = acpi_format_exception(status);
--		pr_err(ERST_PFX "Failed to get table, %s\n", msg);
-+		pr_err("Failed to get table, %s\n", msg);
- 		rc = -EINVAL;
- 		goto err;
- 	}
- 
- 	rc = erst_check_table(erst_tab);
- 	if (rc) {
--		pr_err(FW_BUG ERST_PFX "ERST table is invalid\n");
-+		pr_err(FW_BUG "ERST table is invalid\n");
- 		goto err;
- 	}
- 
-@@ -1156,21 +1153,19 @@ static int __init erst_init(void)
- 	rc = erst_get_erange(&erst_erange);
- 	if (rc) {
- 		if (rc == -ENODEV)
--			pr_info(ERST_PFX
-+			pr_info(
- 	"The corresponding hardware device or firmware implementation "
- 	"is not available.\n");
- 		else
--			pr_err(ERST_PFX
--			       "Failed to get Error Log Address Range.\n");
-+			pr_err("Failed to get Error Log Address Range.\n");
- 		goto err_unmap_reg;
- 	}
- 
- 	r = request_mem_region(erst_erange.base, erst_erange.size, "APEI ERST");
- 	if (!r) {
--		pr_err(ERST_PFX
--		"Can not request iomem region <0x%16llx-0x%16llx> for ERST.\n",
--		(unsigned long long)erst_erange.base,
--		(unsigned long long)erst_erange.base + erst_erange.size);
-+		pr_err("Can not request [mem %#010llx-%#010llx] for ERST.\n",
-+		       (unsigned long long)erst_erange.base,
-+		       (unsigned long long)erst_erange.base + erst_erange.size);
- 		rc = -EIO;
- 		goto err_unmap_reg;
- 	}
-@@ -1180,7 +1175,7 @@ static int __init erst_init(void)
- 	if (!erst_erange.vaddr)
- 		goto err_release_erange;
- 
--	pr_info(ERST_PFX
-+	pr_info(
- 	"Error Record Serialization Table (ERST) support is initialized.\n");
- 
- 	buf = kmalloc(erst_erange.size, GFP_KERNEL);
-@@ -1192,14 +1187,14 @@ static int __init erst_init(void)
- 		rc = pstore_register(&erst_info);
- 		if (rc) {
- 			if (rc != -EPERM)
--				pr_info(ERST_PFX
-+				pr_info(
- 				"Could not register with persistent store\n");
- 			erst_info.buf = NULL;
- 			erst_info.bufsize = 0;
- 			kfree(buf);
- 		}
- 	} else
--		pr_err(ERST_PFX
-+		pr_err(
- 		"Failed to allocate %lld bytes for persistent store error log\n",
- 		erst_erange.size);
- 
--- 
-1.8.3
+> 
+> Tested-by: Yinghai Lu <yinghai@kernel.org>
+> Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+> ---
+>  drivers/acpi/device_pm.c |    3 ++-
+>  1 file changed, 2 insertions(+), 1 deletion(-)
+> 
+> Index: linux-pm/drivers/acpi/device_pm.c
+> ===================================================================
+> --- linux-pm.orig/drivers/acpi/device_pm.c
+> +++ linux-pm/drivers/acpi/device_pm.c
+> @@ -159,7 +159,8 @@ int acpi_device_set_power(struct acpi_de
+>  	int result = 0;
+>  	bool cut_power = false;
+>  
+> -	if (!device || (state < ACPI_STATE_D0) || (state > ACPI_STATE_D3_COLD))
+> +	if (!device || !device->flags.power_manageable
+> +	    || (state < ACPI_STATE_D0) || (state > ACPI_STATE_D3_COLD))
+>  		return -EINVAL;
+>  
+>  	/* Make sure this is a valid target state */
+> 
 
--- 
-Regards/Gruss,
-    Boris.
-
-Sent from a fat crate under my desk. Formatting is fine.
---
