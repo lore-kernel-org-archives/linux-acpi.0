@@ -1,36 +1,63 @@
 From: Joe Perches <joe@perches.com>
-Subject: Re: [PATCH 2/3] ACPI / PM: Make messages in acpi_device_set_power()
- print device names
-Date: Sun, 28 Jul 2013 20:11:53 -0700
-Message-ID: <1375067513.2075.27.camel@joe-AO722>
-References: <10433383.dueoNg39qi@vostro.rjw.lan>
-	 <1895563.95T8SxMegu@vostro.rjw.lan>
-	 <CAOLK0pyBsD8vR0a2mcSucnD8zFTz8ZB72OPE0R9Z67SxH9VHRw@mail.gmail.com>
+Subject: [PATCH 0/3] networking: Use ETH_ALEN where appropriate
+Date: Sun, 28 Jul 2013 22:29:02 -0700
+Message-ID: <cover.1375075325.git.joe@perches.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-pm-owner@vger.kernel.org>
-In-Reply-To: <CAOLK0pyBsD8vR0a2mcSucnD8zFTz8ZB72OPE0R9Z67SxH9VHRw@mail.gmail.com>
-Sender: linux-pm-owner@vger.kernel.org
-To: Lan Tianyu <lantianyu1986@gmail.com>
-Cc: "Rafael J. Wysocki" <rjw@sisk.pl>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>, Linux PM list <linux-pm@vger.kernel.org>, Yinghai Lu <yinghai@kernel.org>, Bjorn Helgaas <bhelgaas@google.com>, Aaron Lu <aaron.lu@intel.com>, Tejun Heo <tj@kernel.org>, linux-ide@vger.kernel.org
+Return-path: <virtualization-bounces@lists.linux-foundation.org>
+List-Unsubscribe: <https://lists.linuxfoundation.org/mailman/options/virtualization>,
+	<mailto:virtualization-request@lists.linux-foundation.org?subject=unsubscribe>
+List-Archive: <http://lists.linuxfoundation.org/pipermail/virtualization/>
+List-Post: <mailto:virtualization@lists.linux-foundation.org>
+List-Help: <mailto:virtualization-request@lists.linux-foundation.org?subject=help>
+List-Subscribe: <https://lists.linuxfoundation.org/mailman/listinfo/virtualization>,
+	<mailto:virtualization-request@lists.linux-foundation.org?subject=subscribe>
+Sender: virtualization-bounces@lists.linux-foundation.org
+Errors-To: virtualization-bounces@lists.linux-foundation.org
+To: netdev@vger.kernel.org
+Cc: wimax@linuxwimax.org, linux-usb@vger.kernel.org, linux-kernel@vger.kernel.org, virtualization@lists.linux-foundation.org, linux-acpi@vger.kernel.org, netfilter-devel@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Mon, 2013-07-29 at 11:06 +0800, Lan Tianyu wrote:
-> 2013/7/27 Rafael J. Wysocki <rjw@sisk.pl>:
-> > From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
-[]
-> >  drivers/acpi/device_pm.c |   22 ++++++++++------------
-[]
-> > @@ -166,20 +166,20 @@ int acpi_device_set_power(struct acpi_de
-[]
-> >         if (device->parent && (state < device->parent->power.state)) {
-> > -               printk(KERN_WARNING PREFIX
-> > -                             "Cannot set device to a higher-powered"
-> > -                             " state than parent\n");
-> > +               dev_warn(&device->dev, "Cannot transition to a higher-powered "
-> > +                        "state than parent\n");
+Convert the uses mac addresses to ETH_ALEN so
+it's easier to find and verify where mac addresses
+need to be __aligned(2)
 
-coalesce format please.
+Joe Perches (3):
+  uapi: Convert some uses of 6 to ETH_ALEN
+  include: Convert ethernet mac address declarations to use ETH_ALEN
+  ethernet: Convert mac address uses of 6 to ETH_ALEN
 
+ drivers/net/ethernet/8390/ax88796.c                |  4 +-
+ drivers/net/ethernet/amd/pcnet32.c                 |  6 +--
+ drivers/net/ethernet/broadcom/cnic_if.h            |  6 +--
+ drivers/net/ethernet/dec/tulip/tulip_core.c        |  8 +--
+ drivers/net/ethernet/i825xx/sun3_82586.h           |  4 +-
+ drivers/net/ethernet/myricom/myri10ge/myri10ge.c   |  2 +-
+ drivers/net/ethernet/nuvoton/w90p910_ether.c       |  4 +-
+ drivers/net/ethernet/pasemi/pasemi_mac.c           | 13 ++---
+ drivers/net/ethernet/pasemi/pasemi_mac.h           |  4 +-
+ drivers/net/ethernet/qlogic/netxen/netxen_nic_hw.c |  4 +-
+ drivers/net/ethernet/qlogic/qlge/qlge.h            |  2 +-
+ include/acpi/actbl2.h                              |  4 +-
+ include/linux/dm9000.h                             |  4 +-
+ include/linux/fs_enet_pd.h                         |  3 +-
+ include/linux/ieee80211.h                          | 59 +++++++++++-----------
+ include/linux/mlx4/device.h                        | 11 ++--
+ include/linux/mlx4/qp.h                            |  5 +-
+ include/linux/mv643xx_eth.h                        |  3 +-
+ include/linux/sh_eth.h                             |  3 +-
+ include/linux/smsc911x.h                           |  3 +-
+ include/linux/uwb/spec.h                           |  5 +-
+ include/media/tveeprom.h                           |  4 +-
+ include/net/irda/irlan_common.h                    |  3 +-
+ include/uapi/linux/dn.h                            |  3 +-
+ include/uapi/linux/if_bridge.h                     |  3 +-
+ include/uapi/linux/netfilter_bridge/ebt_802_3.h    |  5 +-
+ include/uapi/linux/netfilter_ipv4/ipt_CLUSTERIP.h  |  3 +-
+ include/uapi/linux/virtio_net.h                    |  2 +-
+ include/uapi/linux/wimax/i2400m.h                  |  4 +-
+ 29 files changed, 103 insertions(+), 81 deletions(-)
 
+-- 
+1.8.1.2.459.gbcd45b4.dirty
