@@ -1,98 +1,108 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: [PATCH v4 0/5] Xen/ACPI: support sleep state entering on hardware reduced systems
-Date: Sun, 28 Jul 2013 01:31:52 +0200
-Message-ID: <4416509.Jzyj46NPce@vostro.rjw.lan>
-References: <1372345323-9266-1-git-send-email-benjamin.guthro@citrix.com> <2455068.P7gO5JL6M7@vostro.rjw.lan> <2A50FCBD-CD54-4C8D-A780-1CA7ACBC4E0B@citrix.com>
+From: Aaron Lu <aaron.lwe@gmail.com>
+Subject: Re: acpi_backlight=vendor no longer working around buggy laptop from
+ hell
+Date: Mon, 29 Jul 2013 09:05:58 +0800
+Message-ID: <51F5BFF6.7080506@gmail.com>
+References: <51F40114.9060607@opensuse.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7Bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <2A50FCBD-CD54-4C8D-A780-1CA7ACBC4E0B@citrix.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Ben Guthro <Ben.Guthro@citrix.com>
-Cc: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>, Jan Beulich <jbeulich@suse.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "xen-devel@lists.xen.org" <xen-devel@lists.xen.org>, Richard L Maliszewski <richard.l.maliszewski@intel.com>, Gang Wei <gang.wei@intel.com>, Shane Wang <shane.wang@intel.com>, Bob Moore <robert.moore@intel.com>, "tboot-devel@lists.sourceforge.net" <tboot-devel@lists.sourceforge.net>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-pd0-f180.google.com ([209.85.192.180]:61993 "EHLO
+	mail-pd0-f180.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751812Ab3G2BFU (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sun, 28 Jul 2013 21:05:20 -0400
+In-Reply-To: <51F40114.9060607@opensuse.org>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: =?UTF-8?B?Q3Jpc3RpYW4gUm9kcsOtZ3Vleg==?= <crrodriguez@opensuse.org>
+Cc: linux-kernel@vger.kernel.org, ACPI Devel Mailing List <linux-acpi@vger.kernel.org>
 
-On Saturday, July 27, 2013 03:33:31 PM Ben Guthro wrote:
-> 
-> On Jul 27, 2013, at 9:51 AM, "Rafael J. Wysocki" <rjw@sisk.pl> wrote:
-> 
-> > On Thursday, June 27, 2013 11:01:58 AM Ben Guthro wrote:
-> >> In version 3.4 acpi_os_prepare_sleep() got introduced in parallel with
-> >> reduced hardware sleep support, and the two changes didn't get
-> >> synchronized: The new code doesn't call the hook function (if so
-> >> requested). Fix this, requiring a boolean parameter to be added to the
-> >> hook function to distinguish "extended" from "legacy" sleep.
-> >> 
-> >> This requires adjusting TXT, but the adjustments only go as far as
-> >> failing the extended mode call (since, looking at the TXT interface,
-> >> there doesn't even appear to be precautions to deal with that
-> >> alternative interface).
-> >> 
-> >> The hypervisor change underlying this is commit 62d1a69 ("ACPI: support
-> >> v5 (reduced HW) sleep interface") on the master branch of
-> >> git://xenbits.xen.org/xen.git.
-> >> 
-> >> Signed-off-by: Ben Guthro <benjamin.guthro@citrix.com>
-> >> Signed-off-by: Jan Beulich <jbeulich@suse.com>
-> >> Cc: Richard L Maliszewski <richard.l.maliszewski@intel.com>
-> >> Cc: Gang Wei <gang.wei@intel.com>
-> >> Cc: Shane Wang <shane.wang@intel.com>
-> >> Cc: Bob Moore <robert.moore@intel.com>
-> >> Cc: Rafaell J. Wysocki <rjw@sisk.pl>
-> >> Cc: linux-acpi@vger.kernel.org
-> >> Cc: tboot-devel@lists.sourceforge.net 
-> >> 
-> >> v2: Extend description to include reference to hypervisor side change
-> >> v3: Split into multiple patches, separating subsystems
-> >>    Remove bool parameters, in favor of u8
-> >> v4: Remove linux/acpi.h dependencies
-> >>    Further patch split to break out acpica from OSL
-> >>    More bool vs u8 fixes
-> >> 
-> >> Ben Guthro (5):
-> >>  acpi: Remove need to include linux/acpi.h in common acpica code
-> >>  acpi: Call acpi_os_prepare_sleep hook in reduced hardware sleep path
-> >>  acpi: Adjust linux acpi OS functions to new extended parameter
-> >>  x86/tboot: Fail extended mode reduced hardware sleep
-> >>  xen/acpi: notify xen when reduced hardware sleep is available
-> > 
-> > The ongoing discussion means to me that the ACPICA maintainers don't want
-> > acpi_os_prepare_sleep() and quite frankly I understand them, because ACPICA
-> > is about implementing the spec and not about things beyond it.
-> > 
-> > This means that patch [1/5] goes away.
-> > 
-> > That said, at the same time we need to address the problem at hand, which
-> > is to make Xen work with the reduced HW sleep.
-> > 
-> > For that, I don't honestly think that modifying acpi_os_prepare_sleep() the
-> > way the patchset is doing it is appropriate and the change of the meaning of
-> > the arguments is simply disgusting.
-> > 
-> > To me, it would be much cleaner to add acpi_os_prepare_extended_sleep()
-> > specifically to be called by acpi_hw_extended_sleep() and make tboot and Xen
-> > use that.
-> > 
-> > This way or another, we'll need to live with one more divergence between the
-> > upstream ACPICA and the Linux ACPICA code because of that, but that'd be just
-> > a few added lines in acpi_hw_extended_sleep(), so I suppose it wouldn't be
-> > such a big deal.
-> > 
-> 
-> Ok, thank you for the review, and being open to addressing the problem at
-> hand,
+On 07/28/2013 01:19 AM, Cristian Rodr=C3=ADguez wrote:
+> Hi:
+>=20
+> I have a DELL XPS 15z laptop with the latest BIOS (A12).
+>=20
+> This piece of crap have never worked properly without special boot=20
+> parameters. Up to kernel 3.10, passing acpi_backlight=3Dvendor was en=
+ough=20
+> to allow the machine to complete boot and be usable.
+>=20
+> Now with 3.11 rc2 (also with today's linus tree) unbootable machine=20
+> problem is back.
+>=20
+> In the past I spent many hours figuring out workarounds and they go=20
+> _now_ as the following.
+>=20
+> Booting with:
+>=20
+> "nox2apic" --> machine works, flawless.
 
-No problem, although I'm not exactly happy with it.
+I've seen bug report with similar symptom:
+https://bugzilla.kernel.org/show_bug.cgi?id=3D56051
 
-> without a full architecture rework (not to say that that discussion is not
-> also needed)
+It is possible the BIOS is not x2apic aware while Linux enabled x2apic,
+then some ACPI control method to do things like change backlight
+brightness level triggered SMI handler and freeze would occur. This
+might be the reason why adding acpi_backlight=3Dvendor fixed your probl=
+em,
+since it would block ACPI video module's handling of backlight.
 
-Sure, it is needed.
+So does adding nox2apic still work for you with latest Linus' tree?
 
-> I will try to make some time next week to rework the patch set to address
-> these concerns, and submit a new series. 
+>=20
+> "x2apic_phys acpi_backlight=3Dvendor" --> machine works, except for t=
+he=20
+> big problem that the laptop keyboard and touchpad are unresponsive, I=
+=20
+> have to plug USB keyboard/mouse to get anything done.
+>=20
+> With no boot parameters the machine hangs at random points in the boo=
+t=20
+> sequence either:
+>=20
+> -Very early at boot and there is no way to retrieve any useful debug=20
+> info. [OR]
 
-Thanks!
+Maybe this is when video.ko is loaded.
 
-Rafael
+>=20
+> - Somehow it looses "connection" with the ATA controller and the=20
+> filesystems cannot be mounted. [OR]
+>=20
+> - In very few ocassions, the boot proceeds with no keyboard or touchp=
+ad=20
+> then the iwlwifi wireless card does something stupid (firmware error.=
+=2E.)
+
+All sounds like related to irq problem.
+
+>=20
+> The only possible hint in the logs I could ever find is:
+>=20
+> [    3.844586] [Firmware Bug]: ACPI(PEGP) defines _DOD but not _DOS
+
+This is subtle, meaning the BIOS doesn't provide the required method.
+
+-Aaron
+
+>=20
+>=20
+> I tried in the past to obtain any debug information, with no luck.
+>=20
+> Help is appreciated to get to the bottom of the problem. ;)
+>=20
+>=20
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-kerne=
+l" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> Please read the FAQ at  http://www.tux.org/lkml/
+>=20
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
