@@ -1,143 +1,101 @@
-From: "Zheng, Lv" <lv.zheng@intel.com>
-Subject: RE: [PATCH 06/13] ACPI/IPMI: Add reference counting for ACPI
- operation region handlers
-Date: Mon, 29 Jul 2013 01:56:38 +0000
-Message-ID: <1AE640813FDE7649BE1B193DEA596E880243628D@SHSMSX101.ccr.corp.intel.com>
-References: <cover.1370652213.git.lv.zheng@intel.com>
- <2501577.sf07PMEtR1@vostro.rjw.lan>
- <1AE640813FDE7649BE1B193DEA596E8802435B7C@SHSMSX101.ccr.corp.intel.com>
- <3196577.UQScsUKI1B@vostro.rjw.lan>
+From: Tang Chen <tangchen@cn.fujitsu.com>
+Subject: Re: [PATCH 14/21] x86, acpi, numa: Reserve hotpluggable memory at
+ early time.
+Date: Mon, 29 Jul 2013 10:12:40 +0800
+Message-ID: <51F5CF98.1080101@cn.fujitsu.com>
+References: <1374220774-29974-1-git-send-email-tangchen@cn.fujitsu.com> <1374220774-29974-15-git-send-email-tangchen@cn.fujitsu.com> <20130723205557.GS21100@mtj.dyndns.org> <20130723213212.GA21100@mtj.dyndns.org> <51F089C1.4010402@cn.fujitsu.com> <20130725151719.GE26107@mtj.dyndns.org> <51F1F0E0.7040800@cn.fujitsu.com> <20130726102609.GB30786@mtj.dyndns.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga02.intel.com ([134.134.136.20]:52620 "EHLO mga02.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752037Ab3G2B4n (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Sun, 28 Jul 2013 21:56:43 -0400
-In-Reply-To: <3196577.UQScsUKI1B@vostro.rjw.lan>
-Content-Language: en-US
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <owner-linux-mm@kvack.org>
+In-Reply-To: <20130726102609.GB30786@mtj.dyndns.org>
+Sender: owner-linux-mm@kvack.org
+To: Tejun Heo <tj@kernel.org>
+Cc: tglx@linutronix.de, mingo@elte.hu, hpa@zytor.com, akpm@linux-foundation.org, trenn@suse.de, yinghai@kernel.org, jiang.liu@huawei.com, wency@cn.fujitsu.com, laijs@cn.fujitsu.com, isimatu.yasuaki@jp.fujitsu.com, izumi.taku@jp.fujitsu.com, mgorman@suse.de, minchan@kernel.org, mina86@mina86.com, gong.chen@linux.intel.com, vasilis.liaskovitis@profitbricks.com, lwoodman@redhat.com, riel@redhat.com, jweiner@redhat.com, prarit@redhat.com, zhangyanfei@cn.fujitsu.com, yanghy@cn.fujitsu.com, x86@kernel.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-mm@kvack.org, linux-acpi@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: "Wysocki, Rafael J" <rafael.j.wysocki@intel.com>, "Brown, Len" <len.brown@intel.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
 
-PiBPbiBGcmlkYXksIEp1bHkgMjYsIDIwMTMgMTA6NDkgUE0gUmFmYWVsIEouIFd5c29ja2kgd3Jv
-dGU6DQo+ID4gT24gRnJpZGF5LCBKdWx5IDI2LCAyMDEzIDAxOjU0OjAwIEFNIFpoZW5nLCBMdiB3
-cm90ZToNCj4gPiA+IE9uIEZyaWRheSwgSnVseSAyNiwgMjAxMyA1OjI5IEFNIFJhZmFlbCBKLiBX
-eXNvY2tpIHdyb3RlOg0KPiA+ID4gT24gVHVlc2RheSwgSnVseSAyMywgMjAxMyAwNDowOTo0MyBQ
-TSBMdiBaaGVuZyB3cm90ZToNCj4gPiA+ID4gVGhpcyBwYXRjaCBhZGRzIHJlZmVyZW5jZSBjb3V0
-aW5nIGZvciBBQ1BJIG9wZXJhdGlvbiByZWdpb24NCj4gPiA+ID4gaGFuZGxlcnMgdG8gZml4IHJh
-Y2VzIGNhdXNlZCBieSB0aGUgQUNQSUNBIGFkZHJlc3Mgc3BhY2UgY2FsbGJhY2sNCj4gaW52b2Nh
-dGlvbnMuDQo+ID4gPiA+DQo+ID4gPiA+IEFDUElDQSBhZGRyZXNzIHNwYWNlIGNhbGxiYWNrIGlu
-dm9jYXRpb24gaXMgbm90IHN1aXRhYmxlIGZvciBMaW51eA0KPiA+ID4gPiBDT05GSUdfTU9EVUxF
-PXkgZXhlY3V0aW9uIGVudmlyb25tZW50Lg0KPiA+ID4NCj4gPiA+IEFjdHVhbGx5LCBjYW4geW91
-IHBsZWFzZSBleHBsYWluIHRvIG1lIHdoYXQgKmV4YWN0bHkqIHRoZSBwcm9ibGVtIGlzPw0KPiA+
-DQo+ID4gT0suICBJJ2xsIGFkZCByYWNlIGV4cGxhbmF0aW9ucyBpbiB0aGUgbmV4dCByZXZpc2lv
-bi4NCj4gPg0KPiA+IFRoZSBwcm9ibGVtIGlzIHRoZXJlIGlzIG5vICJsb2NrIiBoZWxkIGluc2lk
-ZSBBQ1BJQ0EgZm9yIGludm9raW5nDQo+ID4gb3BlcmF0aW9uIHJlZ2lvbiBoYW5kbGVycy4NCj4g
-PiBUaHVzIHJhY2VzIGhhcHBlbnMgYmV0d2VlbiB0aGUNCj4gPiBhY3BpX3JlbW92ZS9pbnN0YWxs
-X2FkZHJlc3Nfc3BhY2VfaGFuZGxlciBhbmQgdGhlIGhhbmRsZXIvc2V0dXANCj4gY2FsbGJhY2tz
-Lg0KPiANCj4gSSBzZWUuICBOb3cgeW91J3JlIHRyeWluZyB0byBpbnRyb2R1Y2Ugc29tZXRoaW5n
-IHRoYXQgd291bGQgcHJldmVudCB0aG9zZQ0KPiByYWNlcyBmcm9tIGhhcHBlbmluZywgcmlnaHQ/
-DQoNClllcy4gTGV0IG1lIGV4cGxhaW4gdGhpcyBsYXRlciBpbiB0aGlzIGVtYWlsLg0KDQo+IA0K
-PiA+IFRoaXMgaXMgY29ycmVjdCBwZXIgQUNQSSBzcGVjaWZpY2F0aW9uLg0KPiA+IEFzIGlmIHRo
-ZXJlIGlzIGludGVycHJldGVyIGxvY2tzIGhlbGQgZm9yIGludm9raW5nIG9wZXJhdGlvbiByZWdp
-b24NCj4gPiBoYW5kbGVycywgdGhlIHRpbWVvdXQgaW1wbGVtZW50ZWQgaW5zaWRlIHRoZSBvcGVy
-YXRpb24gcmVnaW9uIGhhbmRsZXJzDQo+ID4gd2lsbCBtYWtlIGFsbCBsb2NraW5nIGZhY2lsaXRp
-ZXMgKEFjcXVpcmUgb3IgU2xlZXAsLi4uKSB0aW1lZCBvdXQuDQo+ID4gUGxlYXNlIHJlZmVyIHRv
-IEFDUEkgc3BlY2lmaWNhdGlvbiAiNS41LjIgQ29udHJvbCBNZXRob2QgRXhlY3V0aW9uIjoNCj4g
-PiBJbnRlcnByZXRhdGlvbiBvZiBhIENvbnRyb2wgTWV0aG9kIGlzIG5vdCBwcmVlbXB0aXZlLCBi
-dXQgaXQgY2FuDQo+ID4gYmxvY2suIFdoZW4gYSBjb250cm9sIG1ldGhvZCBkb2VzIGJsb2NrLCBP
-U1BNIGNhbiBpbml0aWF0ZSBvciBjb250aW51ZQ0KPiA+IHRoZSBleGVjdXRpb24gb2YgYSBkaWZm
-ZXJlbnQgY29udHJvbCBtZXRob2QuIEEgY29udHJvbCBtZXRob2QgY2FuIG9ubHkNCj4gPiBhc3N1
-bWUgdGhhdCBhY2Nlc3MgdG8gZ2xvYmFsIG9iamVjdHMgaXMgZXhjbHVzaXZlIGZvciBhbnkgcGVy
-aW9kIHRoZSBjb250cm9sDQo+IG1ldGhvZCBkb2VzIG5vdCBibG9jay4NCj4gPg0KPiA+IFNvIGl0
-IGlzIHByZXR0eSBtdWNoIGxpa2VseSB0aGF0IEFDUEkgSU8gdHJhbnNmZXJzIGFyZSBsb2NrZWQg
-aW5zaWRlDQo+ID4gdGhlIG9wZXJhdGlvbiByZWdpb24gY2FsbGJhY2sgaW1wbGVtZW50YXRpb25z
-Lg0KPiA+IFVzaW5nIGxvY2tpbmcgZmFjaWxpdHkgdG8gcHJvdGVjdCB0aGUgY2FsbGJhY2sgaW52
-b2NhdGlvbiB3aWxsIHJpc2sgZGVhZCBsb2Nrcy4NCj4gDQo+IE5vLiAgSWYgeW91IHVzZSBhIHNp
-bmdsZSBnbG9iYWwgbG9jayBhcm91bmQgYWxsIGludm9jYXRpb25zIG9mIG9wZXJhdGlvbiByZWdp
-b24NCj4gaGFuZGxlcnMsIGl0IHdvbid0IGRlYWRsb2NrLCBidXQgaXQgd2lsbCAqc2VyaWFsaXpl
-KiB0aGluZ3MuICBUaGlzIG1lYW5zIHRoYXQNCj4gdGhlcmUgd29uJ3QgYmUgdHdvIGhhbmRsZXJz
-IGV4ZWN1dGluZyBpbiBwYXJhbGxlbC4gIFRoYXQgbWF5IG9yIG1heSBub3QgYmUNCj4gYmFkIGRl
-cGVuZGluZyBvbiB3aGF0IHRob3NlIGhhbmRsZXJzIGFjdHVhbGx5IGRvLg0KPiANCj4gWW91ciBj
-b25jZXJuIHNlZW1zIHRvIGJlIHRoYXQgaWYgb25lIGFkZHJlc3Mgc3BhY2UgaGFuZGxlciBpcyBi
-dWdneSBhbmQgaXQNCj4gYmxvY2tzIGluZGVmaW5pdGVseSwgZXhlY3V0aW5nIGl0IHVuZGVyIHN1
-Y2ggYSBsb2NrIHdvdWxkIGFmZmVjdCB0aGUgb3RoZXIgYWRkcmVzcw0KPiBzcGFjZSBoYW5kbGVy
-cyBhbmQgaW4gbXkgb3BpbmlvbiB0aGlzIGlzIGEgdmFsaWQgY29uY2Vybi4NCg0KSXQgY2FuIGJl
-IGV4cHJlc3NlZCBpbiBtb3JlIGRldGFpbGVkIHdheXM6DQoNClRoZSBpbnRlcnByZXRlciBydW5z
-IGNvbnRyb2wgbWV0aG9kcyBpbiB0aGUgZm9sbG93aW5nIHN0eWxlIGFjY29yZGluZyB0byB0aGUg
-QUNQSSBzcGVjLg0KQ00xX0VudGVyIC0+IEVudGVySW50ZXIgLT4gQ00xX1J1bm5pbmcgLT4gT3BS
-ZWdpb24xIC0+IEV4aXRJbnRlciAtPiBFbnRlckludGVyICAgICAgICAgICAgICAgICAgICAgICAg
-ICAgIC0+IENNMV9ydW5uaW5nIC0+IEV4aXRJbnRlciAtPiBDTTFfRXhpdA0KQ00yX0VudGVyIC0+
-IEVudGVySW50ZXIgLT4gICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAtPiBD
-TTJfUnVubmluZyAtPiBPcFJlZ2lvbjEgLT4gRXhpdEludGVyIC0+IEVudGVySW50ZXIgICAgICAg
-ICAgICAgICAtPiBDTTJfcnVubmluZyAtPiBFeGl0SW50ZXIgLT4gQ00yX0V4aXQNCg0KRW50ZXJJ
-bnRlcjogRW50ZXIgaW50ZXJwcmV0ZXIgbG9jaw0KRXhpdEludGVyOiBMZWF2ZSBpbnRlcnByZXRl
-ciBsb2NrDQoNCkxldCBtZSBpbnRyb2R1Y2UgdHdvIHNpdHVhdGlvbnM6DQoNCjEuIElmIHdlIGhv
-bGQgZ2xvYmFsICJtdXRleCIgYmVmb3JlICJFbnRlckludGVyIiwgdGhlbiBubyBzZWNvbmQgY29u
-dHJvbCBtZXRob2QgY2FuIGJlIHJ1biAiTm90U2VyaWFsaXplZCIuDQpJZiB0aGUgQ00xIGp1c3Qg
-aGF2ZSBzb21lIGNvZGVzIHdhaXRpbmcgZm9yIGEgaGFyZHdhcmUgZmxhZyBhbmQgQ00yIGNhbiBh
-Y2Nlc3Mgb3RoZXIgaGFyZHdhcmUgSU9zIHRvIHRyaWdnZXIgdGhpcyBmbGFnLCB0aGVuIG5vdGhp
-bmcgY2FuIGhhcHBlbiBhbnkgbG9uZ2VyLg0KVGhpcyBpcyBhIHByYWN0aWNhbCBidWcgYXMgd2hh
-dCB3ZSBoYXZlIGFscmVhZHkgc2VlbiBpbiAiTm90U2VyaWFsaXplZCIgbWFya2VkIEFDUEkgY29u
-dHJvbCBtZXRob2RzIGJlaGF2ZSBpbiB0aGUgaW50ZXJwcmV0ZXIgbW9kZSBleGVjdXRlZCBpbiBz
-ZXJpYWxpemVkIHdheSAtIGtlcm5lbCBwYXJhbWV0ZXIgImFjcGlfc2VyaWFsaXplIi4NCg0KMi4g
-SWYgd2UgaG9sZCBnbG9iYWwgIm11dGV4IiBhZnRlciAiRW50ZXJJbnRlciIgYW5kIEJlZm9yZSBP
-cFJlZ2lvbjENCklmIHdlIGRvIHRoaW5ncyB0aGlzIHdheSwgdGhlbiBhbGwgSU8gYWNjZXNzZXMg
-YXJlIHNlcmlhbGl6ZWQsIGlmIHdlIGhhdmUgc29tZXRoaW5nIGluIGFuIElQTUkgb3BlcmF0aW9u
-IHJlZ2lvbiBmYWlsZWQgZHVlIHRvIHRpbWVvdXQsIHRoZW4gYW55IG90aGVyIHN5c3RlbSBJT3Mg
-dGhhdCBzaG91bGQgaGFwcGVuIGluIHBhcmFsbGVsIHdpbGwganVzdCBoYXBwZW4gYWZ0ZXIgNSBz
-ZWNvbmRzLiAgVGhpcyBpcyBub3QgYW4gYWNjZXB0YWJsZSBleHBlcmllbmNlLg0KDQo+IA0KPiBT
-byB0aGUgaWRlYSBzZWVtcyB0byBiZSB0byBhZGQgd3JhcHBlcnMgYXJvdW5kDQo+IGFjcGlfaW5z
-dGFsbF9hZGRyZXNzX3NwYWNlX2hhbmRsZXIoKQ0KPiBhbmQgYWNwaV9yZW1vdmVfYWRkcmVzc19z
-cGFjZV9oYW5kbGVyIChidXQgSSBkb24ndCBzZWUgd2hlcmUgdGhlIGxhdHRlciBpcw0KPiBjYWxs
-ZWQgYWZ0ZXIgdGhlIGNoYW5nZT8pLCBzdWNoIHRoYXQgdGhleSB3aWxsIGtub3cgd2hlbiBpdCBp
-cyBzYWZlIHRvIHVucmVnaXN0ZXINCj4gdGhlIGhhbmRsZXIuICBUaGF0IGlzIHNpbXBsZSBlbm91
-Z2guDQoNCkFuIG9idmlvdXMgYnVnLCBpdCBzaG91bGQgYmUgcHV0IGJldHdlZW4gdGhlIHdoaWxl
-IChhdG9taWNfcmVhZCgpID4gMSkgYmxvY2sgYW5kIHRoZSBmaW5hbCBhdG9taWNfZGVjKCkuDQoN
-Cj4gSG93ZXZlciwgSSdtIG5vdCBzdXJlIGl0IGlzIG5lZWRlZCBpbiB0aGUgY29udGV4dCBvZiBJ
-UE1JLg0KDQpJIHRoaW5rIEkgZG8gdGhpcyBqdXN0IGJlY2F1c2UgSSBuZWVkIGEgcXVpY2sgZml4
-IHRvIHRlc3QgSVBNSSBidWctZml4IHNlcmllcy4NClRoZSBpc3N1ZSBpcyBoaWdobHkgcmVsYXRl
-ZCB0byBBQ1BJIGludGVycHJldGVyIGRlc2lnbiwgYW5kIGNvZGVzIHNob3VsZCBiZSBpbXBsZW1l
-bnRlZCBpbnNpZGUgQUNQSUNBLg0KQW5kIHRoZXJlIGlzIG5vdCBvbmx5IEFDUElfUk9PVF9PQkpF
-Q1QgYmFzZWQgYWRkcmVzcyBzcGFjZSBoYW5kbGVycywgYnV0IGFsc28gbm9uLUFDUElfUk9PVF9P
-QkpFQ1QgYmFzZWQgYWRkcmVzcyBzcGFjZSBoYW5kbGVycywgdGhpcyBwYXRjaCBjYW4ndCBwcm90
-ZWN0IHRoZSBsYXR0ZXIgb25lcy4NCg0KPiBZb3VyIGFkZHJlc3Mgc3BhY2UNCj4gaGFuZGxlcidz
-IGNvbnRleHQgaXMgTlVMTCwgc28gZXZlbiBpdCBpZiBpcyBleGVjdXRlZCBhZnRlcg0KPiBhY3Bp
-X3JlbW92ZV9hZGRyZXNzX3NwYWNlX2hhbmRsZXIoKSBoYXMgYmVlbiBjYWxsZWQgZm9yIGl0IChv
-ciBpbiBwYXJhbGxlbCksIGl0DQo+IGRvZXNuJ3QgZGVwZW5kIG9uIGFueXRoaW5nIHBhc3NlZCBi
-eSB0aGUgY2FsbGVyLCBzbyBJIGRvbid0IHNlZSB3aHkgdGhlIGlzc3VlDQo+IGNhbid0IGJlIGFk
-ZHJlc3NlZCBieSBhIHByb3BlciBzeW5jaHJvbml6YXRpb24gYmV0d2Vlbg0KPiBhY3BpX2lwbWlf
-ZXhpdCgpIGFuZCBhY3BpX2lwbWlfc3BhY2VfaGFuZGxlcigpLg0KPiANCj4gQ2xlYXJseSwgYWNw
-aV9pcG1pX2V4aXQoKSBzaG91bGQgd2FpdCBmb3IgYWxsIGFscmVhZHkgcnVubmluZyBpbnN0YW5j
-ZXMgb2YNCj4gYWNwaV9pcG1pX3NwYWNlX2hhbmRsZXIoKSB0byBjb21wbGV0ZSBhbmQgYWxsIGFj
-cGlfaXBtaV9zcGFjZV9oYW5kbGVyKCkNCj4gaW5zdGFuY2VzIHN0YXJ0ZWQgYWZ0ZXIgYWNwaV9p
-cG1pX2V4aXQoKSBoYXMgYmVlbiBjYWxsZWQgbXVzdCByZXR1cm4NCj4gaW1tZWRpYXRlbHkuDQo+
-IA0KPiBJIHdvdWxkIGltYWdpbmUgYW4gYWxnb3JpdGhtIGxpa2UgdGhpczoNCj4gDQo+IGFjcGlf
-aXBtaV9leGl0KCkNCj4gIDEuIFRha2UgImFkZHJlc3Mgc3BhY2UgaGFuZGxlciBsb2NrIi4NCj4g
-IDIuIFNldCAidW5yZWdpc3RlcmluZyBhZGRyZXNzIHNwYWNlIGhhbmRsZXIiIGZsYWcuDQo+ICAz
-LiBDaGVjayBpZiAiY291bnQgb2YgY3VycmVudGx5IHJ1bm5pbmcgaGFuZGxlcnMiIGlzIDAuICBJ
-ZiBzbywNCj4gICAgIGNhbGwgYWNwaV9yZW1vdmVfYWRkcmVzc19zcGFjZV9oYW5kbGVyKCksIGRy
-b3AgdGhlIGxvY2sgKHBvc3NpYmx5IGNsZWFyDQo+IHRoZQ0KPiAgICAgZmxhZykgYW5kIHJldHVy
-bi4NCj4gIDQuIE90aGVyd2lzZSBkcm9wIHRoZSBsb2NrIGFuZCBnbyB0byBzbGVlcCBpbiAiYWRk
-cmVzcyBzcGFjZSBoYW5kbGVyIHdhaXQNCj4gcXVldWUiLg0KPiAgNS4gV2hlbiB3b2tlbiB1cCwg
-dGFrZSAiYWRkcmVzcyBzcGFjZSBoYW5kbGVyIGxvY2siIGFuZCBnbyB0byAzLg0KPiANCj4gYWNw
-aV9pcG1pX3NwYWNlX2hhbmRsZXIoKQ0KPiAgMS4gVGFrZSAiYWRkcmVzcyBzcGFjZSBoYW5kbGVy
-IGxvY2siLg0KPiAgMi4gQ2hlY2sgInVucmVnaXN0ZXJpbmcgYWRkcmVzcyBzcGFjZSBoYW5kbGVy
-IiBmbGFnLiAgSWYgc2V0LCBkcm9wIHRoZSBsb2NrDQo+ICAgICBhbmQgcmV0dXJuLg0KPiAgMy4g
-SW5jcmVtZW50ICJjb3VudCBvZiBjdXJyZW50bHkgcnVubmluZyBoYW5kbGVycyIuDQo+ICA0LiBE
-cm9wIHRoZSBsb2NrLg0KPiAgNS4gRG8geW91ciB3b3JrLg0KPiAgNi4gVGFrZSAiYWRkcmVzcyBz
-cGFjZSBoYW5kbGVyIGxvY2siLg0KPiAgNy4gRGVjcmVtZW50ICJjb3VudCBvZiBjdXJyZW50bHkg
-cnVubmluZyBoYW5kbGVycyIgYW5kIGlmIDAsIHNpZ25hbCB0aGUNCj4gICAgIHRhc2tzIHdhaXRp
-bmcgb24gaXQgdG8gd2FrZSB1cC4NCj4gIDguIERyb3AgdGhlIGxvY2suDQoNClllcywgaXQgY2Fu
-IGFsc28gd29yaywgYnV0IHRoZSBmaXggd2lsbCBnbyBpbnNpZGUgSVBNSS4NCkFuZCBJIGFncmVl
-IHRoYXQgdGhlIGNvZGVzIHNob3VsZCBub3QgYXBwZWFyIGluIHRoZSBJUE1JIGNvbnRleHQgc2lu
-Y2UgdGhlIGlzc3VlIGlzIGhpZ2hseSBBQ1BJIGludGVycHJldGVyIHJlbGF0ZWQuDQpXaGF0IGlm
-IHdlIGp1c3Qgc3RvcCBkb2luZyBhbnkgZnVydGhlciB3b3JrIG9uIHRoaXMgcGF0Y2ggYW5kIGp1
-c3QgbWFyayBpdCBhcyBSRkMgb3IgYSB0ZXN0IHBhdGNoIGZvciBpbmZvcm1hdGlvbiBwdXJwb3Nl
-Lg0KSXQgaXMgb25seSB1c2VmdWwgZm9yIHRoZSB0ZXN0ZXJzLg0KDQpUaGFua3MgYW5kIGJlc3Qg
-cmVnYXJkcw0KLUx2DQoNCj4gDQo+IFRoYW5rcywNCj4gUmFmYWVsDQo+IA0KPiANCj4gLS0NCj4g
-SSBzcGVhayBvbmx5IGZvciBteXNlbGYuDQo+IFJhZmFlbCBKLiBXeXNvY2tpLCBJbnRlbCBPcGVu
-IFNvdXJjZSBUZWNobm9sb2d5IENlbnRlci4NCg==
+On 07/26/2013 06:26 PM, Tejun Heo wrote:
+> On Fri, Jul 26, 2013 at 11:45:36AM +0800, Tang Chen wrote:
+>> I just don't want to any new variables to store the hotpluggable regions.
+>> But without a new shared variable, it seems difficult to achieve the goal
+>> you said below.
+>
+> Why can't it be done with the .flags field that was added anyway?
+
+I'm sorry but I'm a little misunderstanding here. There are some more 
+things I
+want to confirm, thanks for your patient. :)
+
+By "the goal" above, I mean making ACPI and memblock parts more 
+independent from
+each other. I think in this patch-set, I called memblock_reserve() which 
+made
+these two parts interactive.
+
+So the point is, how to mark the hotpluggable regions and at the same 
+time, make
+ACPI and memblock parts independent, right ?
+
+But, please see below.
+
+>
+>> So how about this.
+>> 1. Introduce a new global list used to store hotpluggable regions.
+>> 2. On acpi side, find and fulfill the list.
+>> 3. On memblock side, make the default allocation function stay away from
+>>     these regions.
+>
+> I was thinking more along the line of
+>
+> 1. Mark hotpluggable regions with a flag in memblock.
+> 2. On ACPI side, find and mark hotpluggable regions.
+
+But marking hotpluggable regions on ACPI side will also make ACPI and 
+memblock
+parts more interactive. In this patch-set, I just called memblock_reserve()
+directly on ACPI side.
+
+I think marking hotpluggable regions on ACPI side is much the same as 
+reserving
+the regions. I will just call something like memblock_mark_flags() to 
+mark the
+regions. The only difference will be a different memblock_xxx() function 
+call,
+right ?
+
+In the last mail, I suggested a global array. So both sides will just 
+use the
+array, and it seems to be independent. But I think the global array and 
+the flags
+in memblock are redundant. They are for the same goal.
+
+Actually I want to use flags. I think it is also useful when we try to 
+put thins
+on local node, such as node_data.
+
+So, is it OK to mark the hotpluggable regions on ACPI side ?
+
+
+> 3. Make memblock avoid giving out hotpluggable regions for normal
+>     allocations.
+
+This step3 is different from this patch-set. I reserved hotpluggable 
+regions in
+memblock.reserved.
+
+So are you saying mark the hotpluggable regions in memblock.memory, but not
+reserve them in memblock.reserved, and make the default allocate 
+function avoid
+the hotpluggable regions in memblock.memory ?
+
+This way will be convenient when we put the node_data on local node 
+(don't need
+to free regions from memblock.reserved, as you mentioned before), right?
+
+Thanks.
+
+--
+To unsubscribe, send a message with 'unsubscribe linux-mm' in
+the body to majordomo@kvack.org.  For more info on Linux MM,
+see: http://www.linux-mm.org/ .
+Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
