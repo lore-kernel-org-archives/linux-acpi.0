@@ -1,155 +1,89 @@
 From: Aaron Lu <aaron.lu@intel.com>
-Subject: Re: [Intel-gfx] Linux 3.11-rc2 [backlight] [ASUS N56VZ]
-Date: Tue, 30 Jul 2013 07:38:05 +0800
-Message-ID: <51F6FCDD.3010300@intel.com>
-References: <BLU0-SMTP125E791F01E26C3D60D7353A6680@phx.gbl> <2024506.rXjN91yI0W@vostro.rjw.lan> <877ggeyg1p.fsf@intel.com> <5730704.o2aLKRMvVz@vostro.rjw.lan> <BLU0-SMTP272CC1C4BE207873BCD0CFFA6550@phx.gbl>
+Subject: Re: [PATCH 1/3] ACPI / PM: Only set power states of devices that
+ are power manageable
+Date: Tue, 30 Jul 2013 07:43:48 +0800
+Message-ID: <51F6FE34.2020703@intel.com>
+References: <10433383.dueoNg39qi@vostro.rjw.lan> <1657971.1utElu0Hzo@vostro.rjw.lan> <51F677B1.9090502@intel.com> <3386345.rYEkrXssx8@vostro.rjw.lan>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga02.intel.com ([134.134.136.20]:23457 "EHLO mga02.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750946Ab3G2Xhh (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 29 Jul 2013 19:37:37 -0400
-In-Reply-To: <BLU0-SMTP272CC1C4BE207873BCD0CFFA6550@phx.gbl>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-ide-owner@vger.kernel.org>
+In-Reply-To: <3386345.rYEkrXssx8@vostro.rjw.lan>
+Sender: linux-ide-owner@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>, Linux PM list <linux-pm@vger.kernel.org>, Yinghai Lu <yinghai@kernel.org>, Bjorn Helgaas <bhelgaas@google.com>, Tejun Heo <tj@kernel.org>, linux-ide@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: =?UTF-8?B?KiBTQU3DjSAq?= <miaousami@hotmail.com>
-Cc: "Rafael J. Wysocki" <rjw@sisk.pl>, Jani Nikula <jani.nikula@linux.intel.com>, Linus Torvalds <torvalds@linux-foundation.org>, Matthew Garrett <mjg59@srcf.ucam.org>, intel-gfx <intel-gfx@lists.freedesktop.org>, LKML <linux-kernel@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Igor Gnatenko <i.gnatenko.brain@gmail.com>
 
-On 07/30/2013 03:36 AM, * SAM=C3=8D * wrote:
-> Hi Rafael,
->=20
->=20
-> did you commit a full revert?
-> Because I am experiencing quite weird things in rc3.
-> Do we have a bug opened to discuss about it?
+On 07/30/2013 06:21 AM, Rafael J. Wysocki wrote:
+> On Monday, July 29, 2013 10:09:53 PM Aaron Lu wrote:
+>> On 07/27/2013 09:10 PM, Rafael J. Wysocki wrote:
+>>> From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+>>>
+>>> Make acpi_device_set_power() check if the given device is power
+>>> manageable before checking if the given power state is valid for that
+>>> device.  Otherwise it will print that "Device does not support" that
+>>> power state into the kernel log, which may not make sense for some
+>>> power states (D0 and D3cold are supported by all devices by
+>>> definition).
+>>
+>> It will not print "Device does not support" that power state if that
+>> power state is D0 or D3cold since we have unconditionally set those two
+>> power state's valid flag.
+> 
+> So you didn't actually looked at acpi_bus_get_power_flags() that set the
+> power.states[].flags.valid flag, because If you had looked at it, you would
+> have seen that that's not the case.
+> 
+> No, we don't set the valid flag for devices that aren't power manageable
+> (i.e. have flags.power_manageable unset), which is the *whole* *point* of
+> this change.
 
-Yes we have:
-https://bugzilla.kernel.org/show_bug.cgi?id=3D52951
+Right, I missed this. Sorry for the noise.
 
-I'll look into this issue.
+> 
+>> OTOH, what value should we return for a device node that is not power
+>> manageable in acpi_device_set_power when the target state is D0 or D3
+>> cold? The old behavior is to return 0, meanning success without taking
+>> any actual action.
+>>
+>> In acpi_bus_set_power, if the device is not power manageable, we will
+>> return -ENODEV; in acpi_dev_pm_full/low_power, we will return 0 as in
+>> the original acpi_device_set_power. So return -EINVAL here is correct?
+> 
+> No, the original acpi_device_set_power() will return -ENODEV then, but
+> in my opinion returning -EINVAL is more accurate, because "power
+> manageable" means "you can change power state of it".
+
+Shall I prepare a patch to update the errno in acpi_bus_set_power?
 
 Thanks,
 Aaron
 
->=20
-> Here is what I can observe:
-> 1) During boot, probably when loading the driver, backlight gets off =
-(or=20
-> to a level low enough to make me feel it is off)
-> 2) When I am playing with my Fn+x keys, I am getting a completely ful=
-l /=20
-> completely low brightness with no intermediate steps
-> 3) When I am playing with my Fn+x keys while gnome brightness setting=
-s=20
-> panel is open, I am recovering intermediate steps but the Fn+x keys=20
-> behavior is inverted (the key supposed to lower the brightness make i=
-t=20
-> increase and vice-versa. Note that the gnome brightness indicator als=
-o=20
-> gets inverted).
-> 4) Playing with the mouse on gnome brightness settings is working,=20
-> except that on the minimum level, backlight gets off
-> 5) Writing to /sys/class/backlight/intel_backlight/brightness works
->=20
->=20
-> Regards
->=20
-> On 07/25/2013 02:57 PM, Rafael J. Wysocki wrote:
->> On Thursday, July 25, 2013 03:34:10 PM Jani Nikula wrote:
->>> On Thu, 25 Jul 2013, "Rafael J. Wysocki" <rjw@sisk.pl> wrote:
->>>> On Thursday, July 25, 2013 11:09:27 AM Jani Nikula wrote:
->>>>> On Thu, 25 Jul 2013, "Rafael J. Wysocki" <rjw@sisk.pl> wrote:
->>>>>> Well, I wonder what about the appended (untested) patch?
->>>>> Rafael, before going there, I've been trying to wrap my (poor, ru=
-sty
->>>>> after vacation) head around
->>>>>
->>>>> commit 8c5bd7adb2ce47e6aa39d17b2375f69b0c0aa255
->>>>> Author: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
->>>>> Date:   Thu Jul 18 02:08:06 2013 +0200
->>>>>
->>>>>      ACPI / video / i915: No ACPI backlight if firmware expects W=
-indows 8
->>>>>
->>>>> and I can't see how it could work.
->>>> Well, if it didn't work, people wouldn't see either improvement or=
- breakage
->>>> from it, but they do see that, so it evidently works. :-)
->>> I didn't claim it didn't work, just that *I* didn't see how it coul=
-d. ;)
+> 
+> Thanks,
+> Rafael
+> 
+> 
+>>> Tested-by: Yinghai Lu <yinghai@kernel.org>
+>>> Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+>>> ---
+>>>  drivers/acpi/device_pm.c |    3 ++-
+>>>  1 file changed, 2 insertions(+), 1 deletion(-)
 >>>
->>>>> First, the ACPI_VIDEO_SKIP_BACKLIGHT flag seems to be checked bef=
-ore
->>>>> it's actually set anywhere.
->>>> Are you sure about that?
->>>>
->>>> acpi_video_bus_add() is the .add() callback routine for acpi_video=
-_bus which
->>>> in fact is an ACPI driver (the naming sucks, but I didn't invent i=
-t).  This
->>>> means that acpi_video_bus_add() can only be called *after* acpi_vi=
-deo_bus
->>>> has been registered with the ACPI subsystem (and the driver core).=
-  That
->>>> is done by acpi_bus_register_driver() and, guess what?, this happe=
-ns in
->>>> __acpi_video_register().  So clearly, acpi_video_bus_add() *cannot=
-* run before
->>>> __acpi_video_register().
->>> Right. I totally missed the call within the ternary operator. Thank=
-s for
->>> the explanation, and apologies for the noise.
+>>> Index: linux-pm/drivers/acpi/device_pm.c
+>>> ===================================================================
+>>> --- linux-pm.orig/drivers/acpi/device_pm.c
+>>> +++ linux-pm/drivers/acpi/device_pm.c
+>>> @@ -159,7 +159,8 @@ int acpi_device_set_power(struct acpi_de
+>>>  	int result = 0;
+>>>  	bool cut_power = false;
+>>>  
+>>> -	if (!device || (state < ACPI_STATE_D0) || (state > ACPI_STATE_D3_COLD))
+>>> +	if (!device || !device->flags.power_manageable
+>>> +	    || (state < ACPI_STATE_D0) || (state > ACPI_STATE_D3_COLD))
+>>>  		return -EINVAL;
+>>>  
+>>>  	/* Make sure this is a valid target state */
 >>>
->>>>> Second, with i915 that has opregion support, __acpi_video_registe=
-r()
->>>>> should only ever get called once. Which means the acpi_walk_names=
-pace()
->>>>> with video_unregister_backlight() should never get called in regi=
-ster.
->>>>>
->>>>> Please enlighten me.
->>>> Actually, that's correct, so we don't need the whole
->>>> video_unregister_backlight() thing, calling acpi_video_backlight_q=
-uirks() would
->>>> be sufficient.
->>>>
->>>> Ah, one more reason to do a full revert.  I'm thinking, though, th=
-at I'll leave
->>>> acpi_video_backlight_quirks() as is so that it can be used by
->>>> acpi_video_bus_(start)|(stop)_devices(), because that doesn't seem=
- to cause
->>>> problems to happen.
->>> I observe that for the regular non-quirk acpi_video_register() call=
-,
->>> acpi_video_backlight_quirks() won't be called during register, but =
-it
->>> will get called later. This might have subtle effects later on, don=
-'t
->>> you think?
->> Yes, it might, but after dropping ACPI_VIDEO_SKIP_BACKLIGHT it shoul=
-d be OK.
 >>
->>> As to the original problem, and your patch in this thread, what do =
-you
->>> think about having another value in acpi_backlight kernel parameter=
- for
->>> it? Having an i915 module parameter to tell acpi to use or not use
->>> quirks seems odd, since the i915 is not really taking over
->>> anything. It's just passing the info on to acpi.
->> I agree, I'm going to send a full revert in a while and we'll think =
-what to
->> do about all that later.
->>
->> Thanks,
->> Rafael
->>
->>
->=20
 
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
