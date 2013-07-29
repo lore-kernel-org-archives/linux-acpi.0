@@ -1,233 +1,70 @@
-From: Bjorn Helgaas <bhelgaas@google.com>
-Subject: Re: [PATCH] APEI/ERST: Fix error message formatting
-Date: Mon, 29 Jul 2013 10:12:56 -0600
-Message-ID: <CAErSpo7fmr9tsvA2fWgVWaOO9=hzHt8=hhr49BPrW3KxZtGLuw@mail.gmail.com>
-References: <1374526866-6813-1-git-send-email-bp@alien8.de>
- <20130724171347.GB29756@naverao1-tp.watson.ibm.com> <1374686598.18818.18.camel@joe-AO722>
- <51F10AA8.2050901@linux.vnet.ibm.com> <CAErSpo5vLbsM5BXjrCVy1AKBxRRSH33TthyyK3O35Mghqw81nQ@mail.gmail.com>
- <20130729135812.GD6634@pd.tnic> <CAErSpo6fbMmicX95j_wYkJRnQeJEZ_jQSm76j9ZN4sHP0C2Yhg@mail.gmail.com>
- <20130729144046.GE6634@pd.tnic> <CAErSpo69wNc1h6PyJhFfhdFzz0GOiM=SCCfrm-WO5XDFTFzcHw@mail.gmail.com>
- <20130729152230.GG6634@pd.tnic>
+From: Tejun Heo <tj@kernel.org>
+Subject: Re: [PATCH 14/21] x86, acpi, numa: Reserve hotpluggable memory at
+ early time.
+Date: Mon, 29 Jul 2013 13:10:25 -0400
+Message-ID: <20130729171025.GH22605@mtj.dyndns.org>
+References: <1374220774-29974-1-git-send-email-tangchen@cn.fujitsu.com>
+ <1374220774-29974-15-git-send-email-tangchen@cn.fujitsu.com>
+ <20130723205557.GS21100@mtj.dyndns.org>
+ <20130723213212.GA21100@mtj.dyndns.org>
+ <51F089C1.4010402@cn.fujitsu.com>
+ <20130725151719.GE26107@mtj.dyndns.org>
+ <51F1F0E0.7040800@cn.fujitsu.com>
+ <20130726102609.GB30786@mtj.dyndns.org>
+ <51F5CF98.1080101@cn.fujitsu.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-oa0-f50.google.com ([209.85.219.50]:63452 "EHLO
-	mail-oa0-f50.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752400Ab3G2QNS (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 29 Jul 2013 12:13:18 -0400
-Received: by mail-oa0-f50.google.com with SMTP id i4so737275oah.37
-        for <linux-acpi@vger.kernel.org>; Mon, 29 Jul 2013 09:13:17 -0700 (PDT)
-In-Reply-To: <20130729152230.GG6634@pd.tnic>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <owner-linux-mm@kvack.org>
+Content-Disposition: inline
+In-Reply-To: <51F5CF98.1080101@cn.fujitsu.com>
+Sender: owner-linux-mm@kvack.org
+To: Tang Chen <tangchen@cn.fujitsu.com>
+Cc: tglx@linutronix.de, mingo@elte.hu, hpa@zytor.com, akpm@linux-foundation.org, trenn@suse.de, yinghai@kernel.org, jiang.liu@huawei.com, wency@cn.fujitsu.com, laijs@cn.fujitsu.com, isimatu.yasuaki@jp.fujitsu.com, izumi.taku@jp.fujitsu.com, mgorman@suse.de, minchan@kernel.org, mina86@mina86.com, gong.chen@linux.intel.com, vasilis.liaskovitis@profitbricks.com, lwoodman@redhat.com, riel@redhat.com, jweiner@redhat.com, prarit@redhat.com, zhangyanfei@cn.fujitsu.com, yanghy@cn.fujitsu.com, x86@kernel.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-mm@kvack.org, linux-acpi@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Borislav Petkov <bp@alien8.de>
-Cc: "Naveen N. Rao" <naveen.n.rao@linux.vnet.ibm.com>, Joe Perches <joe@perches.com>, LKML <linux-kernel@vger.kernel.org>, Borislav Petkov <bp@suse.de>, Anton Vorontsov <anton@enomsg.org>, Colin Cross <ccross@android.com>, Kees Cook <keescook@chromium.org>, Tony Luck <tony.luck@intel.com>, Len Brown <lenb@kernel.org>, "Rafael J. Wysocki" <rjw@sisk.pl>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "Huang, Ying" <ying.huang@intel.com>
 
-On Mon, Jul 29, 2013 at 9:22 AM, Borislav Petkov <bp@alien8.de> wrote:
-> On Mon, Jul 29, 2013 at 08:50:19AM -0600, Bjorn Helgaas wrote:
->> If I were the firmware developer and got a report about this message,
->> I think the information I would want is ctx->ip, so I could identify
->> the corresponding source code. But I don't know much about the ERST
->> interpreter, so I don't know if "ctx->ip" is the right place to look.
->
-> Well, __apei_exec_run() really does update ctx->ip when executing
-> actions but if you read the comment in that function, it says it
-> actually points to the next RIP to be executed. Which is not what we
-> want in that case, IMO.
->
->> Maybe there's a method name or table name that would be needed in
->> addition.
->>
->> It just seems like "ERST: Too long stall time for stall instruction:
->> 4732." all by itself doesn't really contain any actionable
->> information.
->
-> Right, I'll make it be a hex "0x" in both stall-functions and leave it
-> to someone more ACPI-knowledgeable to decide what goes in there - my
-> patch is a simple cleanup anyway.
+Hello, Tang.
 
-Yep, fair enough.  Looks good to me.
+On Mon, Jul 29, 2013 at 10:12:40AM +0800, Tang Chen wrote:
+> So the point is, how to mark the hotpluggable regions and at the
+> same time, make
+> ACPI and memblock parts independent, right ?
 
-> Here's an updated version:
+No, not at all.  My point is that the roles need to be divided
+clearly.  The firmware (be that ACPI or whatever) knows memory areas
+are hotpluggable but it shouldn't be making policy decisions like not
+dispending hotpluggable memory through memblock allocator because that
+part of logic has *nothing* to do with ACPI.  That is the generic
+kernel memory management policy which will apply regardless of what
+type of firmware the machine happens to be running on top of.
+
+So, please make ACPI inform memblock of the hotpluggable regions and
+implement the allocation policies inside memblock proper.
+
+> So are you saying mark the hotpluggable regions in memblock.memory, but not
+> reserve them in memblock.reserved, and make the default allocate
+> function avoid
+> the hotpluggable regions in memblock.memory ?
 >
-> ---
-> From: Borislav Petkov <bp@suse.de>
-> Date: Mon, 29 Jul 2013 15:51:35 +0200
-> Subject: [PATCH] [PATCH] APEI/ERST: Fix error message formatting
->
-> ... according to acpi/apei/ conventions. Use standard pr_fmt prefix
-> while at it.
->
-> Also, make add the "0x" prefix to the stalled instruction functions
-> error path and make the iomem region closed on both ends.
->
-> Signed-off-by: Borislav Petkov <bp@suse.de>
-> ---
->  drivers/acpi/apei/erst.c | 47 +++++++++++++++++++++--------------------------
->  1 file changed, 21 insertions(+), 26 deletions(-)
->
-> diff --git a/drivers/acpi/apei/erst.c b/drivers/acpi/apei/erst.c
-> index 88d0b0f9f92b..4e342692d304 100644
-> --- a/drivers/acpi/apei/erst.c
-> +++ b/drivers/acpi/apei/erst.c
-> @@ -39,7 +39,8 @@
->
->  #include "apei-internal.h"
->
-> -#define ERST_PFX "ERST: "
-> +#undef pr_fmt
-> +#define pr_fmt(fmt) "ERST: " fmt
->
->  /* ERST command status */
->  #define ERST_STATUS_SUCCESS                    0x0
-> @@ -109,8 +110,7 @@ static inline int erst_errno(int command_status)
->  static int erst_timedout(u64 *t, u64 spin_unit)
->  {
->         if ((s64)*t < spin_unit) {
-> -               pr_warning(FW_WARN ERST_PFX
-> -                          "Firmware does not respond in time\n");
-> +               pr_warn(FW_WARN "Firmware does not respond in time\n");
->                 return 1;
->         }
->         *t -= spin_unit;
-> @@ -186,8 +186,8 @@ static int erst_exec_stall(struct apei_exec_context *ctx,
->
->         if (ctx->value > FIRMWARE_MAX_STALL) {
->                 if (!in_nmi())
-> -                       pr_warning(FW_WARN ERST_PFX
-> -                       "Too long stall time for stall instruction: %llx.\n",
-> +                       pr_warn(FW_WARN
-> +                       "Too long stall time for stall instruction: 0x%llx.\n",
->                                    ctx->value);
->                 stall_time = FIRMWARE_MAX_STALL;
->         } else
-> @@ -206,8 +206,8 @@ static int erst_exec_stall_while_true(struct apei_exec_context *ctx,
->
->         if (ctx->var1 > FIRMWARE_MAX_STALL) {
->                 if (!in_nmi())
-> -                       pr_warning(FW_WARN ERST_PFX
-> -               "Too long stall time for stall while true instruction: %llx.\n",
-> +                       pr_warn(FW_WARN
-> +               "Too long stall time for stall while true instruction: 0x%llx.\n",
->                                    ctx->var1);
->                 stall_time = FIRMWARE_MAX_STALL;
->         } else
-> @@ -271,8 +271,7 @@ static int erst_exec_move_data(struct apei_exec_context *ctx,
->
->         /* ioremap does not work in interrupt context */
->         if (in_interrupt()) {
-> -               pr_warning(ERST_PFX
-> -                          "MOVE_DATA can not be used in interrupt context");
-> +               pr_warn("MOVE_DATA can not be used in interrupt context");
->                 return -EBUSY;
->         }
->
-> @@ -522,8 +521,7 @@ retry:
->                                      ERST_RECORD_ID_CACHE_SIZE_MAX);
->                 if (new_size <= erst_record_id_cache.size) {
->                         if (printk_ratelimit())
-> -                               pr_warning(FW_WARN ERST_PFX
-> -                                          "too many record ID!\n");
-> +                               pr_warn(FW_WARN "too many record IDs!\n");
->                         return 0;
->                 }
->                 alloc_size = new_size * sizeof(entries[0]);
-> @@ -759,8 +757,7 @@ static int __erst_clear_from_storage(u64 record_id)
->  static void pr_unimpl_nvram(void)
->  {
->         if (printk_ratelimit())
-> -               pr_warning(ERST_PFX
-> -               "NVRAM ERST Log Address Range is not implemented yet\n");
-> +               pr_warn("NVRAM ERST Log Address Range is not implemented yet\n");
->  }
->
->  static int __erst_write_to_nvram(const struct cper_record_header *record)
-> @@ -1120,7 +1117,7 @@ static int __init erst_init(void)
->                 goto err;
->
->         if (erst_disable) {
-> -               pr_info(ERST_PFX
-> +               pr_info(
->         "Error Record Serialization Table (ERST) support is disabled.\n");
->                 goto err;
->         }
-> @@ -1131,14 +1128,14 @@ static int __init erst_init(void)
->                 goto err;
->         else if (ACPI_FAILURE(status)) {
->                 const char *msg = acpi_format_exception(status);
-> -               pr_err(ERST_PFX "Failed to get table, %s\n", msg);
-> +               pr_err("Failed to get table, %s\n", msg);
->                 rc = -EINVAL;
->                 goto err;
->         }
->
->         rc = erst_check_table(erst_tab);
->         if (rc) {
-> -               pr_err(FW_BUG ERST_PFX "ERST table is invalid\n");
-> +               pr_err(FW_BUG "ERST table is invalid\n");
->                 goto err;
->         }
->
-> @@ -1156,21 +1153,19 @@ static int __init erst_init(void)
->         rc = erst_get_erange(&erst_erange);
->         if (rc) {
->                 if (rc == -ENODEV)
-> -                       pr_info(ERST_PFX
-> +                       pr_info(
->         "The corresponding hardware device or firmware implementation "
->         "is not available.\n");
->                 else
-> -                       pr_err(ERST_PFX
-> -                              "Failed to get Error Log Address Range.\n");
-> +                       pr_err("Failed to get Error Log Address Range.\n");
->                 goto err_unmap_reg;
->         }
->
->         r = request_mem_region(erst_erange.base, erst_erange.size, "APEI ERST");
->         if (!r) {
-> -               pr_err(ERST_PFX
-> -               "Can not request iomem region <0x%16llx-0x%16llx> for ERST.\n",
-> -               (unsigned long long)erst_erange.base,
-> -               (unsigned long long)erst_erange.base + erst_erange.size);
-> +               pr_err("Can not request [mem %#010llx-%#010llx] for ERST.\n",
-> +                      (unsigned long long)erst_erange.base,
-> +                      (unsigned long long)erst_erange.base + erst_erange.size - 1);
->                 rc = -EIO;
->                 goto err_unmap_reg;
->         }
-> @@ -1180,7 +1175,7 @@ static int __init erst_init(void)
->         if (!erst_erange.vaddr)
->                 goto err_release_erange;
->
-> -       pr_info(ERST_PFX
-> +       pr_info(
->         "Error Record Serialization Table (ERST) support is initialized.\n");
->
->         buf = kmalloc(erst_erange.size, GFP_KERNEL);
-> @@ -1192,14 +1187,14 @@ static int __init erst_init(void)
->                 rc = pstore_register(&erst_info);
->                 if (rc) {
->                         if (rc != -EPERM)
-> -                               pr_info(ERST_PFX
-> +                               pr_info(
->                                 "Could not register with persistent store\n");
->                         erst_info.buf = NULL;
->                         erst_info.bufsize = 0;
->                         kfree(buf);
->                 }
->         } else
-> -               pr_err(ERST_PFX
-> +               pr_err(
->                 "Failed to allocate %lld bytes for persistent store error log\n",
->                 erst_erange.size);
->
-> --
-> 1.8.3
->
->
->
-> --
-> Regards/Gruss,
->     Boris.
->
-> Sent from a fat crate under my desk. Formatting is fine. --
+> This way will be convenient when we put the node_data on local node
+> (don't need
+> to free regions from memblock.reserved, as you mentioned before), right?
+
+I don't care too much about the specifics and it's likely that you'll
+find out which way (flag in memblock.memory, separate region array or
+whatever) is better as implementation progresses, but let's please put
+things where they belong; otherwise, we end up with weird mess, and,
+later on, have to do things like freeing part of reserved hotpluggable
+memory for node data from firmware side as you said above, which
+basically moves part of memory allocation logic into ACPI, which is
+just horrible.
+
+Thanks.
+
+-- 
+tejun
+
+--
+To unsubscribe, send a message with 'unsubscribe linux-mm' in
+the body to majordomo@kvack.org.  For more info on Linux MM,
+see: http://www.linux-mm.org/ .
+Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
