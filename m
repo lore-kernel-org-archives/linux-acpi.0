@@ -1,76 +1,115 @@
 From: Ben Guthro <benjamin.guthro@citrix.com>
-Subject: [PATCH v7 2/3] x86/tboot: Fail extended mode reduced
-	hardware sleep
-Date: Mon, 29 Jul 2013 13:14:14 -0400
-Message-ID: <1375118055-15942-3-git-send-email-benjamin.guthro@citrix.com>
+Subject: [PATCH v7 1/3] x86/acpi: Introduce acpi_os_prepare_extended_sleep callback for extended sleep path
+Date: Mon, 29 Jul 2013 13:14:13 -0400
+Message-ID: <1375118055-15942-2-git-send-email-benjamin.guthro@citrix.com>
 References: <1375118055-15942-1-git-send-email-benjamin.guthro@citrix.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <tboot-devel-bounces@lists.sourceforge.net>
+Content-Type: text/plain
+Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <1375118055-15942-1-git-send-email-benjamin.guthro@citrix.com>
-List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/tboot-devel>,
-	<mailto:tboot-devel-request@lists.sourceforge.net?subject=unsubscribe>
-List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum_name=tboot-devel>
-List-Post: <mailto:tboot-devel@lists.sourceforge.net>
-List-Help: <mailto:tboot-devel-request@lists.sourceforge.net?subject=help>
-List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/tboot-devel>,
-	<mailto:tboot-devel-request@lists.sourceforge.net?subject=subscribe>
-Errors-To: tboot-devel-bounces@lists.sourceforge.net
+Sender: linux-kernel-owner@vger.kernel.org
 To: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>, Jan Beulich <jbeulich@suse.com>, "Rafael J . Wysocki" <rjw@sisk.pl>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, xen-devel@lists.xen.org
-Cc: tboot-devel@lists.sourceforge.net, Ben Guthro <benjamin.guthro@citrix.com>
+Cc: Ben Guthro <benjamin.guthro@citrix.com>
 List-Id: linux-acpi@vger.kernel.org
 
-Register for the extended sleep callback from acpi.
-As tboot currently does not support the reduced hardware sleep
-interface, fail this extended call.
+Like acpi_os_prepare_sleep, register a callback for use in systems like
+tboot, and xen, which have system specific requirements outside of acpica.
+This mirrors the functionality in acpi_os_prepare_sleep(), called from
+acpi_hw_sleep()
 
-Signed-off-by: Jan Beulich <jbeulich@suse.com>
 Signed-off-by: Ben Guthro <benjamin.guthro@citrix.com>
-Cc: tboot-devel@lists.sourceforge.net
-Cc: Gang Wei <gang.wei@intel.com>
-Reviewed-by: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
 ---
- arch/x86/kernel/tboot.c |   12 ++++++++++++
- 1 file changed, 12 insertions(+)
+ drivers/acpi/acpica/hwesleep.c |    9 +++++++++
+ drivers/acpi/osl.c             |   24 ++++++++++++++++++++++++
+ include/linux/acpi.h           |    7 +++++++
+ 3 files changed, 40 insertions(+)
 
-diff --git a/arch/x86/kernel/tboot.c b/arch/x86/kernel/tboot.c
-index addf7b5..760f431 100644
---- a/arch/x86/kernel/tboot.c
-+++ b/arch/x86/kernel/tboot.c
-@@ -301,6 +301,17 @@ static int tboot_sleep(u8 sleep_state, u32 pm1a_control, u32 pm1b_control)
- 	return 0;
+diff --git a/drivers/acpi/acpica/hwesleep.c b/drivers/acpi/acpica/hwesleep.c
+index 5e5f762..4140768 100644
+--- a/drivers/acpi/acpica/hwesleep.c
++++ b/drivers/acpi/acpica/hwesleep.c
+@@ -43,6 +43,7 @@
+  */
+ 
+ #include <acpi/acpi.h>
++#include <linux/acpi.h>
+ #include "accommon.h"
+ 
+ #define _COMPONENT          ACPI_HARDWARE
+@@ -128,6 +129,14 @@ acpi_status acpi_hw_extended_sleep(u8 sleep_state)
+ 
+ 	ACPI_FLUSH_CPU_CACHE();
+ 
++	status = acpi_os_prepare_extended_sleep(sleep_state,
++						acpi_gbl_sleep_type_a,
++						acpi_gbl_sleep_type_b);
++	if (ACPI_SKIP(status))
++		return_ACPI_STATUS(AE_OK);
++	if (ACPI_FAILURE(status))
++		return_ACPI_STATUS(status);
++
+ 	/*
+ 	 * Set the SLP_TYP and SLP_EN bits.
+ 	 *
+diff --git a/drivers/acpi/osl.c b/drivers/acpi/osl.c
+index 6ab2c35..a934950 100644
+--- a/drivers/acpi/osl.c
++++ b/drivers/acpi/osl.c
+@@ -79,6 +79,8 @@ extern char line_buf[80];
+ 
+ static int (*__acpi_os_prepare_sleep)(u8 sleep_state, u32 pm1a_ctrl,
+ 				      u32 pm1b_ctrl);
++static int (*__acpi_os_prepare_extended_sleep)(u8 sleep_state, u32 val_a,
++				      u32 val_b);
+ 
+ static acpi_osd_handler acpi_irq_handler;
+ static void *acpi_irq_context;
+@@ -1779,6 +1781,28 @@ void acpi_os_set_prepare_sleep(int (*func)(u8 sleep_state,
+ 	__acpi_os_prepare_sleep = func;
  }
  
-+static int tboot_extended_sleep(u8 sleep_state, u32 val_a, u32 val_b)
++acpi_status acpi_os_prepare_extended_sleep(u8 sleep_state, u32 val_a,
++				  u32 val_b)
 +{
-+	if (!tboot_enabled())
-+		return 0;
++	int rc = 0;
++	if (__acpi_os_prepare_extended_sleep)
++		rc = __acpi_os_prepare_extended_sleep(sleep_state,
++					     val_a, val_b);
++	if (rc < 0)
++		return AE_ERROR;
++	else if (rc > 0)
++		return AE_CTRL_SKIP;
 +
-+	pr_warning("tboot is not able to suspend on platforms with"
-+		   " reduced hardware sleep (ACPIv5). Please contact"
-+		   " tboot-devel@lists.sourceforge.net mailing list.");
-+	return -1;
++	return AE_OK;
 +}
 +
- static atomic_t ap_wfs_count;
++void acpi_os_set_prepare_extended_sleep(int (*func)(u8 sleep_state,
++			       u32 val_a, u32 val_b))
++{
++	__acpi_os_prepare_extended_sleep = func;
++}
++
++
+ void alloc_acpi_hp_work(acpi_handle handle, u32 type, void *context,
+ 			void (*func)(struct work_struct *work))
+ {
+diff --git a/include/linux/acpi.h b/include/linux/acpi.h
+index 353ba25..a5db4ae 100644
+--- a/include/linux/acpi.h
++++ b/include/linux/acpi.h
+@@ -481,6 +481,13 @@ void acpi_os_set_prepare_sleep(int (*func)(u8 sleep_state,
  
- static int tboot_wait_for_aps(int num_aps)
-@@ -422,6 +433,7 @@ static __init int tboot_late_init(void)
- #endif
- 
- 	acpi_os_set_prepare_sleep(&tboot_sleep);
-+	acpi_os_set_prepare_extended_sleep(&tboot_extended_sleep);
- 	return 0;
- }
- 
+ acpi_status acpi_os_prepare_sleep(u8 sleep_state,
+ 				  u32 pm1a_control, u32 pm1b_control);
++
++void acpi_os_set_prepare_extended_sleep(int (*func)(u8 sleep_state,
++				        u32 val_a,  u32 val_b));
++
++acpi_status acpi_os_prepare_extended_sleep(u8 sleep_state,
++					   u32 val_a, u32 val_b);
++
+ #ifdef CONFIG_X86
+ void arch_reserve_mem_area(acpi_physical_address addr, size_t size);
+ #else
 -- 
 1.7.9.5
-
-
-------------------------------------------------------------------------------
-Get your SQL database under version control now!
-Version control is standard for application code, but databases havent 
-caught up. So what steps can you take to put your SQL databases under 
-version control? Why should you start doing it? Read more to find out.
-http://pubads.g.doubleclick.net/gampad/clk?id=49501711&iu=/4140/ostg.clktrk
