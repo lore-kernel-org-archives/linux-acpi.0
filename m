@@ -1,219 +1,105 @@
-From: Ben Guthro <benjamin.guthro@citrix.com>
-Subject: Re: [PATCH v8.1] x86/tboot: Fail extended mode
-	reduced hardware sleep
-Date: Tue, 30 Jul 2013 09:26:38 -0400
-Message-ID: <CAOvdn6WvEkBymkWAZTFBbjTYaVkmZZNyMLUBioPkap6FqFZ-ww@mail.gmail.com>
-References: <1411346.4e01ECe1J5@vostro.rjw.lan>
-	<1375190557-21474-1-git-send-email-benjamin.guthro@citrix.com>
-	<2818910.x0MegAqoff@vostro.rjw.lan>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: Re: [REGRESSION/PATCH] acpi: blacklist win8 OSI for ASUS Zenbok Prime UX31A
+Date: Tue, 30 Jul 2013 15:42:58 +0200
+Message-ID: <3453253.oZLO1ChPbL@vostro.rjw.lan>
+References: <1375125658-1223-1-git-send-email-felipe.contreras@gmail.com> <51F7546C.9030901@gmail.com> <51F755E3.8040706@gmail.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="===============4132084688881388402=="
-Return-path: <tboot-devel-bounces@lists.sourceforge.net>
-In-Reply-To: <2818910.x0MegAqoff@vostro.rjw.lan>
-List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/tboot-devel>,
-	<mailto:tboot-devel-request@lists.sourceforge.net?subject=unsubscribe>
-List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum_name=tboot-devel>
-List-Post: <mailto:tboot-devel@lists.sourceforge.net>
-List-Help: <mailto:tboot-devel-request@lists.sourceforge.net?subject=help>
-List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/tboot-devel>,
-	<mailto:tboot-devel-request@lists.sourceforge.net?subject=subscribe>
-Errors-To: tboot-devel-bounces@lists.sourceforge.net
-To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: Ben Guthro <benjamin.guthro@citrix.com>, Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>, linux-kernel@vger.kernel.org, xen-devel@lists.xen.org, linux-acpi@vger.kernel.org, tboot-devel@lists.sourceforge.net, Jan Beulich <jbeulich@suse.com>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7Bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from hydra.sisk.pl ([212.160.235.94]:47423 "EHLO hydra.sisk.pl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753332Ab3G3Ncs (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 30 Jul 2013 09:32:48 -0400
+In-Reply-To: <51F755E3.8040706@gmail.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Aaron Lu <aaron.lwe@gmail.com>
+Cc: Felipe Contreras <felipe.contreras@gmail.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Len Brown <lenb@kernel.org>, Linus Torvalds <torvalds@linux-foundation.org>
 
---===============4132084688881388402==
-Content-Type: multipart/alternative; boundary=001a11c1e9800e161f04e2ba8f28
+On Tuesday, July 30, 2013 01:57:55 PM Aaron Lu wrote:
+> On 07/30/2013 01:51 PM, Aaron Lu wrote:
+> > On 07/30/2013 11:44 AM, Felipe Contreras wrote:
+> >> On Mon, Jul 29, 2013 at 10:11 PM, Aaron Lu <aaron.lwe@gmail.com> wrote:
+> >>> On 07/30/2013 03:20 AM, Felipe Contreras wrote:
+> >>>> Since v3.7 the acpi backlight driver doesn't work at all on this machine
+> >>>> because presumably the ACPI code contains stub code when Windows 8 OSI is
+> >>>> reported.
+> >>>>
+> >>>> The commit ea45ea7 (in v3.11-rc2) tried to fix this problem by using the intel
+> >>>> backlight driver, however, on this machine it turns the backlight completely
+> >>>> off when it reaches level 0%, after which the user might have a lot trouble
+> >>>> trying to bring it back.
+> >>>
+> >>> What do you mean by a lot of trouble? If you press hotkey to increase
+> >>> backlight brightness level, does it work?
+> >>
+> >> I guess so, *if* there is indeed a user-space power manager handling
+> >> that, *and* the keyboard has such keys, *or* the user has set custom
+> >> hotkeys.
+> > 
+> > Right, for a GUI environment this may not be a big problem(user uses Fn
+> > key to decrease brightness level and then hit the black screen, it's
+> > natural he will use Fn key to increase brightness level).
+> > 
+> >>
+> >>> If so, the screen should not
+> >>> be black any more, it's not that user has to blindly enter some command
+> >>> to get out of the black screen.
+> >>>
+> >>> And I'm not sure if this is a bug of intel_backlight(setting a low level
+> >>> makes the screen almost off), I see different models with different
+> >>> vendors having this behavior.
+> >>
+> >> I mean, the screen is completely off, I cannot see absolutely
+> >> anything. I don't see this behavior with the ACPI backlight driver,
+> >> nor do I see that in Windows 7.
+> >>
+> >>> If this is deemed a bug, then I'm afraid
+> >>> intel_backlight interface is useless for a lot of systems...perhaps we
+> >>> can only say, intel_backlight's interpretation of low levels are
+> >>> different with ACPI video's, and that's probably why its type is named
+> >>> as raw :-)
+> >>
+> >> Well, a bug is defined as unexpected behavior -- as a user, if I'm
+> >> changing the brightness of the screen, I certainly don't expect the
+> >> screen to turn off, and I think that's the expectation from most
+> >> people. It's the first time I see something like that.
+> > 
+> > I agree this is kind of un-expected. At the same time, this seems to be
+> > the normal behavior for intel_backlight. I don't know what the correct
+> > thing to do here if this is something we want to avoid - modify intel
+> > backlight handling code not to set too low value or change the user
+> > space tool not to set a too low value if they are interacting with a
+> > raw type interface. Neither of them sounds cool... Or, users may get
+> > used to it, I for example, don't find this to be very annoying, but
+> > maybe I'm already used to it.
+> 
+> BTW, for the complete screen off problem, I don't see there is anything
+> wrong with it from code's point of view. It's not that there is an error
+> in code or this is a broken hardware that caused the screen off when
+> setting a very low or 0 brightness level, it is simply the expected
+> behavior of what this interface can provide. It can really set the
+> brightness level to minimum(zero) or maximum. Don't get me wrong, I
+> didn't mean this is a good user experience, I don't know that. I just
+> don't think this is a program bug, and I don't know if this should be
+> fixed or not - obviously this interface did what it is asked to do,
+> correctly.
 
---001a11c1e9800e161f04e2ba8f28
-Content-Type: text/plain; charset=ISO-8859-1
+Precisely, user space asks for 0 and the kernel delivers.
 
-On Tue, Jul 30, 2013 at 9:34 AM, Rafael J. Wysocki <rjw@sisk.pl> wrote:
+And there are reasons why 0 should be "screen off", like power management
+(when you have a policy to dim the screen completely after a period of
+inactivity, for example).
 
-> On Tuesday, July 30, 2013 09:22:37 AM Ben Guthro wrote:
-> > Register for the extended sleep callback from acpi.
-> > As tboot currently does not support the reduced hardware sleep
-> > interface, fail this extended call.
-> >
-> > Signed-off-by: Jan Beulich <jbeulich@suse.com>
-> > Signed-off-by: Ben Guthro <benjamin.guthro@citrix.com>
-> > Cc: tboot-devel@lists.sourceforge.net
-> > Cc: Gang Wei <gang.wei@intel.com>
-> > Reviewed-by: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
->
-> Looks OK, thanks!
->
-> I'll queue up the patchset for 3.12.
->
+So in my opinion, if that's a problem for anyone, it has to be addressed in
+user space and if there are any vendors who try to address *that* in their ACPI
+tables, that's one more reason to avoid using ACPI for backlight control.
 
-Great!
-Thanks for your patience on so many rounds of this.
-
-Ben
-
-
->
-> Thanks,
-> Rafael
->
->
-> > ---
-> >  arch/x86/kernel/tboot.c |   10 ++++++++++
-> >  1 file changed, 10 insertions(+)
-> >
-> > diff --git a/arch/x86/kernel/tboot.c b/arch/x86/kernel/tboot.c
-> > index addf7b5..91a4496 100644
-> > --- a/arch/x86/kernel/tboot.c
-> > +++ b/arch/x86/kernel/tboot.c
-> > @@ -301,6 +301,15 @@ static int tboot_sleep(u8 sleep_state, u32
-> pm1a_control, u32 pm1b_control)
-> >       return 0;
-> >  }
-> >
-> > +static int tboot_extended_sleep(u8 sleep_state, u32 val_a, u32 val_b)
-> > +{
-> > +     if (!tboot_enabled())
-> > +             return 0;
-> > +
-> > +     pr_warning("tboot is not able to suspend on platforms with reduced
-> hardware sleep (ACPIv5)");
-> > +     return -ENODEV;
-> > +}
-> > +
-> >  static atomic_t ap_wfs_count;
-> >
-> >  static int tboot_wait_for_aps(int num_aps)
-> > @@ -422,6 +431,7 @@ static __init int tboot_late_init(void)
-> >  #endif
-> >
-> >       acpi_os_set_prepare_sleep(&tboot_sleep);
-> > +     acpi_os_set_prepare_extended_sleep(&tboot_extended_sleep);
-> >       return 0;
-> >  }
-> >
-> >
-> --
-> I speak only for myself.
-> Rafael J. Wysocki, Intel Open Source Technology Center.
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-kernel" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> Please read the FAQ at  http://www.tux.org/lkml/
->
-
---001a11c1e9800e161f04e2ba8f28
-Content-Type: text/html; charset=ISO-8859-1
-Content-Transfer-Encoding: quoted-printable
-
-<br><br><div class=3D"gmail_quote">On Tue, Jul 30, 2013 at 9:34 AM, Rafael =
-J. Wysocki <span dir=3D"ltr">&lt;<a href=3D"mailto:rjw@sisk.pl" target=3D"_=
-blank">rjw@sisk.pl</a>&gt;</span> wrote:<br><blockquote class=3D"gmail_quot=
-e" style=3D"margin:0 0 0 .8ex;border-left:1px #ccc solid;padding-left:1ex">
-<div class=3D"im">On Tuesday, July 30, 2013 09:22:37 AM Ben Guthro wrote:<b=
-r>
-&gt; Register for the extended sleep callback from acpi.<br>
-&gt; As tboot currently does not support the reduced hardware sleep<br>
-&gt; interface, fail this extended call.<br>
-&gt;<br>
-&gt; Signed-off-by: Jan Beulich &lt;<a href=3D"mailto:jbeulich@suse.com">jb=
-eulich@suse.com</a>&gt;<br>
-&gt; Signed-off-by: Ben Guthro &lt;<a href=3D"mailto:benjamin.guthro@citrix=
-.com">benjamin.guthro@citrix.com</a>&gt;<br>
-&gt; Cc: <a href=3D"mailto:tboot-devel@lists.sourceforge.net">tboot-devel@l=
-ists.sourceforge.net</a><br>
-&gt; Cc: Gang Wei &lt;<a href=3D"mailto:gang.wei@intel.com">gang.wei@intel.=
-com</a>&gt;<br>
-&gt; Reviewed-by: Konrad Rzeszutek Wilk &lt;<a href=3D"mailto:konrad.wilk@o=
-racle.com">konrad.wilk@oracle.com</a>&gt;<br>
-<br>
-</div>Looks OK, thanks!<br>
-<br>
-I&#39;ll queue up the patchset for 3.12.<br></blockquote><div><br></div><di=
-v>Great!</div><div>Thanks for your patience on so many rounds of this.</div=
-><div><br></div><div>Ben</div><div>=A0</div><blockquote class=3D"gmail_quot=
-e" style=3D"margin:0 0 0 .8ex;border-left:1px #ccc solid;padding-left:1ex">
-
-<br>
-Thanks,<br>
-Rafael<br>
-<div class=3D"HOEnZb"><div class=3D"h5"><br>
-<br>
-&gt; ---<br>
-&gt; =A0arch/x86/kernel/tboot.c | =A0 10 ++++++++++<br>
-&gt; =A01 file changed, 10 insertions(+)<br>
-&gt;<br>
-&gt; diff --git a/arch/x86/kernel/tboot.c b/arch/x86/kernel/tboot.c<br>
-&gt; index addf7b5..91a4496 100644<br>
-&gt; --- a/arch/x86/kernel/tboot.c<br>
-&gt; +++ b/arch/x86/kernel/tboot.c<br>
-&gt; @@ -301,6 +301,15 @@ static int tboot_sleep(u8 sleep_state, u32 pm1a_c=
-ontrol, u32 pm1b_control)<br>
-&gt; =A0 =A0 =A0 return 0;<br>
-&gt; =A0}<br>
-&gt;<br>
-&gt; +static int tboot_extended_sleep(u8 sleep_state, u32 val_a, u32 val_b)=
-<br>
-&gt; +{<br>
-&gt; + =A0 =A0 if (!tboot_enabled())<br>
-&gt; + =A0 =A0 =A0 =A0 =A0 =A0 return 0;<br>
-&gt; +<br>
-&gt; + =A0 =A0 pr_warning(&quot;tboot is not able to suspend on platforms w=
-ith reduced hardware sleep (ACPIv5)&quot;);<br>
-&gt; + =A0 =A0 return -ENODEV;<br>
-&gt; +}<br>
-&gt; +<br>
-&gt; =A0static atomic_t ap_wfs_count;<br>
-&gt;<br>
-&gt; =A0static int tboot_wait_for_aps(int num_aps)<br>
-&gt; @@ -422,6 +431,7 @@ static __init int tboot_late_init(void)<br>
-&gt; =A0#endif<br>
-&gt;<br>
-&gt; =A0 =A0 =A0 acpi_os_set_prepare_sleep(&amp;tboot_sleep);<br>
-&gt; + =A0 =A0 acpi_os_set_prepare_extended_sleep(&amp;tboot_extended_sleep=
-);<br>
-&gt; =A0 =A0 =A0 return 0;<br>
-&gt; =A0}<br>
-&gt;<br>
-&gt;<br>
---<br>
-</div></div><div class=3D"im HOEnZb">I speak only for myself.<br>
-Rafael J. Wysocki, Intel Open Source Technology Center.<br>
-</div><div class=3D"HOEnZb"><div class=3D"h5">--<br>
-To unsubscribe from this list: send the line &quot;unsubscribe linux-kernel=
-&quot; in<br>
-the body of a message to <a href=3D"mailto:majordomo@vger.kernel.org">major=
-domo@vger.kernel.org</a><br>
-More majordomo info at =A0<a href=3D"http://vger.kernel.org/majordomo-info.=
-html" target=3D"_blank">http://vger.kernel.org/majordomo-info.html</a><br>
-Please read the FAQ at =A0<a href=3D"http://www.tux.org/lkml/" target=3D"_b=
-lank">http://www.tux.org/lkml/</a><br>
-</div></div></blockquote></div><br>
-
---001a11c1e9800e161f04e2ba8f28--
+Thanks,
+Rafael
 
 
---===============4132084688881388402==
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-
-------------------------------------------------------------------------------
-Get your SQL database under version control now!
-Version control is standard for application code, but databases havent 
-caught up. So what steps can you take to put your SQL databases under 
-version control? Why should you start doing it? Read more to find out.
-http://pubads.g.doubleclick.net/gampad/clk?id=49501711&iu=/4140/ostg.clktrk
---===============4132084688881388402==
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-
-_______________________________________________
-tboot-devel mailing list
-tboot-devel@lists.sourceforge.net
-https://lists.sourceforge.net/lists/listinfo/tboot-devel
-
---===============4132084688881388402==--
+-- 
+I speak only for myself.
+Rafael J. Wysocki, Intel Open Source Technology Center.
