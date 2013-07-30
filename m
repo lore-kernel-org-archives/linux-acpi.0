@@ -1,69 +1,65 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: [PATCH 1/3] ACPI / PM: Only set power states of devices that are power manageable
-Date: Tue, 30 Jul 2013 16:04:47 +0200
-Message-ID: <1738639.5UcWLydKxR@vostro.rjw.lan>
-References: <10433383.dueoNg39qi@vostro.rjw.lan> <3386345.rYEkrXssx8@vostro.rjw.lan> <51F6FE34.2020703@intel.com>
+From: Bjorn Helgaas <bhelgaas@google.com>
+Subject: Re: [PATCH] PCI/ACPI: Change dev_info() to dev_dbg() in the acpi_pci_set_power_state()
+Date: Tue, 30 Jul 2013 09:40:18 -0600
+Message-ID: <CAErSpo7XGa+t0g3Zp+4tXwS8JdAa5UonN7rt6dSZpEmDZuXP7w@mail.gmail.com>
+References: <1375151550-28632-1-git-send-email-tianyu.lan@intel.com> <8048720.q4LxpIqNkE@vostro.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7Bit
-Return-path: <linux-pm-owner@vger.kernel.org>
-In-Reply-To: <51F6FE34.2020703@intel.com>
-Sender: linux-pm-owner@vger.kernel.org
-To: Aaron Lu <aaron.lu@intel.com>
-Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>, Linux PM list <linux-pm@vger.kernel.org>, Yinghai Lu <yinghai@kernel.org>, Bjorn Helgaas <bhelgaas@google.com>, Tejun Heo <tj@kernel.org>, linux-ide@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-ob0-f178.google.com ([209.85.214.178]:55569 "EHLO
+	mail-ob0-f178.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756589Ab3G3Pkj (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 30 Jul 2013 11:40:39 -0400
+Received: by mail-ob0-f178.google.com with SMTP id ef5so4609725obb.37
+        for <linux-acpi@vger.kernel.org>; Tue, 30 Jul 2013 08:40:39 -0700 (PDT)
+In-Reply-To: <8048720.q4LxpIqNkE@vostro.rjw.lan>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: "lan,Tianyu" <tianyu.lan@intel.com>, Len Brown <lenb@kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>, Alan Stern <stern@rowland.harvard.edu>
 
-On Tuesday, July 30, 2013 07:43:48 AM Aaron Lu wrote:
-> On 07/30/2013 06:21 AM, Rafael J. Wysocki wrote:
-> > On Monday, July 29, 2013 10:09:53 PM Aaron Lu wrote:
-> >> On 07/27/2013 09:10 PM, Rafael J. Wysocki wrote:
-> >>> From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
-> >>>
-> >>> Make acpi_device_set_power() check if the given device is power
-> >>> manageable before checking if the given power state is valid for that
-> >>> device.  Otherwise it will print that "Device does not support" that
-> >>> power state into the kernel log, which may not make sense for some
-> >>> power states (D0 and D3cold are supported by all devices by
-> >>> definition).
-> >>
-> >> It will not print "Device does not support" that power state if that
-> >> power state is D0 or D3cold since we have unconditionally set those two
-> >> power state's valid flag.
-> > 
-> > So you didn't actually looked at acpi_bus_get_power_flags() that set the
-> > power.states[].flags.valid flag, because If you had looked at it, you would
-> > have seen that that's not the case.
-> > 
-> > No, we don't set the valid flag for devices that aren't power manageable
-> > (i.e. have flags.power_manageable unset), which is the *whole* *point* of
-> > this change.
-> 
-> Right, I missed this. Sorry for the noise.
-> 
-> > 
-> >> OTOH, what value should we return for a device node that is not power
-> >> manageable in acpi_device_set_power when the target state is D0 or D3
-> >> cold? The old behavior is to return 0, meanning success without taking
-> >> any actual action.
-> >>
-> >> In acpi_bus_set_power, if the device is not power manageable, we will
-> >> return -ENODEV; in acpi_dev_pm_full/low_power, we will return 0 as in
-> >> the original acpi_device_set_power. So return -EINVAL here is correct?
-> > 
-> > No, the original acpi_device_set_power() will return -ENODEV then, but
-> > in my opinion returning -EINVAL is more accurate, because "power
-> > manageable" means "you can change power state of it".
-> 
-> Shall I prepare a patch to update the errno in acpi_bus_set_power?
+On Tue, Jul 30, 2013 at 7:59 AM, Rafael J. Wysocki <rjw@sisk.pl> wrote:
+> On Tuesday, July 30, 2013 10:32:30 AM tianyu.lan@intel.com wrote:
+>> From: Lan Tianyu <tianyu.lan@intel.com>
+>>
+>> acpi_pci_set_power_state() produces log of device power state changing.
+>> Now the log is produced by dev_info(). This seems make no sense when user
+>> doesn't open debug option. So change it to dev_dbg() and prevent kernel
+>> log from being.
+>>
+>> Reference: https://bugzilla.kernel.org/show_bug.cgi?id=60636
+>> Suggested-by: Alan Stern <stern@rowland.harvard.edu>
+>> Signed-off-by: Lan Tianyu <tianyu.lan@intel.com>
+>
+> Bjorn, what do you think about this?
 
-In fact, it doesn't need to check flags.power_manageable after this patch
-and the debug message won't be missed I think, so please just remove
-the whole if () from there, if that's not a problem.
+It's fine with me.  For information that I want in the dmesg log all
+the time, with no special action from the user, I personally avoid
+dev_dbg() because I can never figure out whether it's enabled or not.
+But I don't use the information from this printk, so it's completely
+up to you.  Just let me know what you want.  If you have other pending
+changes to this file, you can take it, or I can put it in my tree.
 
-Thanks,
-Rafael
+Bjorn
 
-
--- 
-I speak only for myself.
-Rafael J. Wysocki, Intel Open Source Technology Center.
+>> ---
+>>  drivers/pci/pci-acpi.c | 2 +-
+>>  1 file changed, 1 insertion(+), 1 deletion(-)
+>>
+>> diff --git a/drivers/pci/pci-acpi.c b/drivers/pci/pci-acpi.c
+>> index c78cc43..fb3522957 100644
+>> --- a/drivers/pci/pci-acpi.c
+>> +++ b/drivers/pci/pci-acpi.c
+>> @@ -210,7 +210,7 @@ static int acpi_pci_set_power_state(struct pci_dev *dev, pci_power_t state)
+>>       }
+>>
+>>       if (!error)
+>> -             dev_info(&dev->dev, "power state changed by ACPI to %s\n",
+>> +             dev_dbg(&dev->dev, "power state changed by ACPI to %s\n",
+>>                        acpi_power_state_string(state_conv[state]));
+>>
+>>       return error;
+>>
+> --
+> I speak only for myself.
+> Rafael J. Wysocki, Intel Open Source Technology Center.
