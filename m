@@ -1,72 +1,76 @@
 From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: [PATCH v8 2/3] x86/tboot: Fail extended mode reduced hardware sleep
-Date: Tue, 30 Jul 2013 15:14:53 +0200
-Message-ID: <1411346.4e01ECe1J5@vostro.rjw.lan>
-References: <1375187094-19357-1-git-send-email-benjamin.guthro@citrix.com> <1375187094-19357-3-git-send-email-benjamin.guthro@citrix.com>
+Subject: Re: [PATCH v8 0/3] Xen/ACPI: support sleep state entering on hardware reduced systems
+Date: Tue, 30 Jul 2013 15:16:44 +0200
+Message-ID: <1712849.Df3Hfvh1Az@vostro.rjw.lan>
+References: <1375187094-19357-1-git-send-email-benjamin.guthro@citrix.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7Bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from hydra.sisk.pl ([212.160.235.94]:47364 "EHLO hydra.sisk.pl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752968Ab3G3NEy (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 30 Jul 2013 09:04:54 -0400
-In-Reply-To: <1375187094-19357-3-git-send-email-benjamin.guthro@citrix.com>
-Sender: linux-acpi-owner@vger.kernel.org
-List-Id: linux-acpi@vger.kernel.org
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1375187094-19357-1-git-send-email-benjamin.guthro@citrix.com>
+Sender: linux-kernel-owner@vger.kernel.org
 To: Ben Guthro <benjamin.guthro@citrix.com>
-Cc: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>, Jan Beulich <jbeulich@suse.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, xen-devel@lists.xen.org, tboot-devel@lists.sourceforge.net, Gang Wei <gang.wei@intel.com>
+Cc: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>, Jan Beulich <jbeulich@suse.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, xen-devel@lists.xen.org, Richard L Maliszewski <richard.l.maliszewski@intel.com>, Gang Wei <gang.wei@intel.com>, Shane Wang <shane.wang@intel.com>, Bob Moore <robert.moore@intel.com>, tboot-devel@lists.sourceforge.net
+List-Id: linux-acpi@vger.kernel.org
 
-On Tuesday, July 30, 2013 08:24:53 AM Ben Guthro wrote:
-> Register for the extended sleep callback from acpi.
-> As tboot currently does not support the reduced hardware sleep
-> interface, fail this extended call.
+On Tuesday, July 30, 2013 08:24:51 AM Ben Guthro wrote:
+> In version 3.4 acpi_os_prepare_sleep() got introduced in parallel with
+> reduced hardware sleep support, and the two changes didn't get
+> synchronized: The new code doesn't call the hook function (if so
+> requested). Fix this, requiring a new callback to be added to acpica
+> to be called back during this reduced hardware sleep.
+> 
+> This requires adjusting TXT, but the adjustments only go as far as
+> failing the extended mode call (since, looking at the TXT interface,
+> there doesn't even appear to be precautions to deal with that
+> alternative interface).
+> 
+> The xen hypervisor change underlying this is commit 62d1a69 ("ACPI: support
+> v5 (reduced HW) sleep interface") on the master branch of
+> git://xenbits.xen.org/xen.git.
 > 
 > Signed-off-by: Jan Beulich <jbeulich@suse.com>
 > Signed-off-by: Ben Guthro <benjamin.guthro@citrix.com>
-> Cc: tboot-devel@lists.sourceforge.net
+> Cc: Richard L Maliszewski <richard.l.maliszewski@intel.com>
 > Cc: Gang Wei <gang.wei@intel.com>
-> Reviewed-by: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
-> ---
->  arch/x86/kernel/tboot.c |   12 ++++++++++++
->  1 file changed, 12 insertions(+)
+> Cc: Shane Wang <shane.wang@intel.com>
+> Cc: Bob Moore <robert.moore@intel.com>
+> Cc: Rafael J. Wysocki <rjw@sisk.pl>
+> Cc: linux-acpi@vger.kernel.org
+> Cc: tboot-devel@lists.sourceforge.net 
 > 
-> diff --git a/arch/x86/kernel/tboot.c b/arch/x86/kernel/tboot.c
-> index addf7b5..ade00c8 100644
-> --- a/arch/x86/kernel/tboot.c
-> +++ b/arch/x86/kernel/tboot.c
-> @@ -301,6 +301,17 @@ static int tboot_sleep(u8 sleep_state, u32 pm1a_control, u32 pm1b_control)
->  	return 0;
->  }
->  
-> +static int tboot_extended_sleep(u8 sleep_state, u32 val_a, u32 val_b)
-> +{
-> +	if (!tboot_enabled())
-> +		return 0;
-> +
-> +	pr_warning("tboot is not able to suspend on platforms with"
-> +		   " reduced hardware sleep (ACPIv5). Please contact"
-> +		   " tboot-devel@lists.sourceforge.net mailing list.");
+> v2: Extend description to include reference to hypervisor side change
+> v3: Split into multiple patches, separating subsystems
+>     Remove bool parameters, in favor of u8
+> v4: Remove linux/acpi.h dependencies
+>     Further patch split to break out acpica from OSL
+>     More bool vs u8 fixes
+> v5: Fix build of consumers of acpi_os_prepare_sleep() interface change,
+>     so intermediate builds of partial patch series will not fail.
+> v6: Rebased to linux-pm linux-next branch
+>     Added warning in tboot early return code
+>     Added Reviewed-by lines
+> v7: Add separate acpi_os_prepare_extended_sleep() interface
+>     Remove OSL acpica changes introduced in v4
+> v8: Return meaningful error code in tboot error path
+> 
+> Ben Guthro (3):
+>   x86/acpi: Introduce acpi_os_prepare_extended_sleep callback for
+>     extended sleep path
+>   x86/tboot: Fail extended mode reduced hardware sleep
+>   xen/acpi: notify xen when reduced hardware sleep is available
+> 
+>  arch/x86/kernel/tboot.c          |   12 +++++++++++
+>  drivers/acpi/acpica/hwesleep.c   |    9 +++++++++
+>  drivers/acpi/osl.c               |   24 ++++++++++++++++++++++
+>  drivers/xen/acpi.c               |   41 ++++++++++++++++++++++++++------------
+>  include/linux/acpi.h             |    7 +++++++
+>  include/xen/acpi.h               |    8 ++++++--
+>  include/xen/interface/platform.h |    7 ++++---
+>  7 files changed, 90 insertions(+), 18 deletions(-)
 
-I'm told that string literals should be continuous now even if they cross the 80
-columns boundary, so let's make that happen here.
-
-Also please drop the "Please contact ..." part, it is unnecessary and unuseful
-(I forgot about this particular thing last time, sorry about that).
-
-> +	return -ENODEV;
-> +}
-> +
->  static atomic_t ap_wfs_count;
->  
->  static int tboot_wait_for_aps(int num_aps)
-> @@ -422,6 +433,7 @@ static __init int tboot_late_init(void)
->  #endif
->  
->  	acpi_os_set_prepare_sleep(&tboot_sleep);
-> +	acpi_os_set_prepare_extended_sleep(&tboot_extended_sleep);
->  	return 0;
->  }
+Please modify [2/3] as requested in the other message, [1/3] and [3/3] are OK
+and don't need to be resent.
 
 Thanks,
 Rafael
