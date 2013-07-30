@@ -1,90 +1,74 @@
-From: Aaron Lu <aaron.lwe@gmail.com>
-Subject: Re: [REGRESSION/PATCH] acpi: blacklist win8 OSI for ASUS Zenbok Prime
- UX31A
-Date: Tue, 30 Jul 2013 13:57:55 +0800
-Message-ID: <51F755E3.8040706@gmail.com>
-References: <1375125658-1223-1-git-send-email-felipe.contreras@gmail.com> <51F72EF3.8080706@gmail.com> <CAMP44s2Wysia0qHGcnGbBBgrzEvsys_0A1X=t8WT52XwojG7Og@mail.gmail.com> <51F7546C.9030901@gmail.com>
+From: Ben Guthro <benjamin.guthro@citrix.com>
+Subject: [PATCH v8 0/3] Xen/ACPI: support sleep state entering on hardware reduced systems
+Date: Tue, 30 Jul 2013 08:24:51 -0400
+Message-ID: <1375187094-19357-1-git-send-email-benjamin.guthro@citrix.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-pa0-f42.google.com ([209.85.220.42]:56914 "EHLO
-	mail-pa0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750976Ab3G3F5R (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 30 Jul 2013 01:57:17 -0400
-In-Reply-To: <51F7546C.9030901@gmail.com>
+Received: from smtp02.citrix.com ([66.165.176.63]:15861 "EHLO
+	SMTP02.CITRIX.COM" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751747Ab3G3MZN (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 30 Jul 2013 08:25:13 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Felipe Contreras <felipe.contreras@gmail.com>
-Cc: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, "Rafael J. Wysocki" <rjw@sisk.pl>, Len Brown <lenb@kernel.org>, Linus Torvalds <torvalds@linux-foundation.org>
+To: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>, Jan Beulich <jbeulich@suse.com>, "Rafael J . Wysocki" <rjw@sisk.pl>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, xen-devel@lists.xen.org
+Cc: Ben Guthro <benjamin.guthro@citrix.com>, Richard L Maliszewski <richard.l.maliszewski@intel.com>, Gang Wei <gang.wei@intel.com>, Shane Wang <shane.wang@intel.com>, Bob Moore <robert.moore@intel.com>, tboot-devel@lists.sourceforge.net
 
-On 07/30/2013 01:51 PM, Aaron Lu wrote:
-> On 07/30/2013 11:44 AM, Felipe Contreras wrote:
->> On Mon, Jul 29, 2013 at 10:11 PM, Aaron Lu <aaron.lwe@gmail.com> wrote:
->>> On 07/30/2013 03:20 AM, Felipe Contreras wrote:
->>>> Since v3.7 the acpi backlight driver doesn't work at all on this machine
->>>> because presumably the ACPI code contains stub code when Windows 8 OSI is
->>>> reported.
->>>>
->>>> The commit ea45ea7 (in v3.11-rc2) tried to fix this problem by using the intel
->>>> backlight driver, however, on this machine it turns the backlight completely
->>>> off when it reaches level 0%, after which the user might have a lot trouble
->>>> trying to bring it back.
->>>
->>> What do you mean by a lot of trouble? If you press hotkey to increase
->>> backlight brightness level, does it work?
->>
->> I guess so, *if* there is indeed a user-space power manager handling
->> that, *and* the keyboard has such keys, *or* the user has set custom
->> hotkeys.
-> 
-> Right, for a GUI environment this may not be a big problem(user uses Fn
-> key to decrease brightness level and then hit the black screen, it's
-> natural he will use Fn key to increase brightness level).
-> 
->>
->>> If so, the screen should not
->>> be black any more, it's not that user has to blindly enter some command
->>> to get out of the black screen.
->>>
->>> And I'm not sure if this is a bug of intel_backlight(setting a low level
->>> makes the screen almost off), I see different models with different
->>> vendors having this behavior.
->>
->> I mean, the screen is completely off, I cannot see absolutely
->> anything. I don't see this behavior with the ACPI backlight driver,
->> nor do I see that in Windows 7.
->>
->>> If this is deemed a bug, then I'm afraid
->>> intel_backlight interface is useless for a lot of systems...perhaps we
->>> can only say, intel_backlight's interpretation of low levels are
->>> different with ACPI video's, and that's probably why its type is named
->>> as raw :-)
->>
->> Well, a bug is defined as unexpected behavior -- as a user, if I'm
->> changing the brightness of the screen, I certainly don't expect the
->> screen to turn off, and I think that's the expectation from most
->> people. It's the first time I see something like that.
-> 
-> I agree this is kind of un-expected. At the same time, this seems to be
-> the normal behavior for intel_backlight. I don't know what the correct
-> thing to do here if this is something we want to avoid - modify intel
-> backlight handling code not to set too low value or change the user
-> space tool not to set a too low value if they are interacting with a
-> raw type interface. Neither of them sounds cool... Or, users may get
-> used to it, I for example, don't find this to be very annoying, but
-> maybe I'm already used to it.
+In version 3.4 acpi_os_prepare_sleep() got introduced in parallel with
+reduced hardware sleep support, and the two changes didn't get
+synchronized: The new code doesn't call the hook function (if so
+requested). Fix this, requiring a new callback to be added to acpica
+to be called back during this reduced hardware sleep.
 
-BTW, for the complete screen off problem, I don't see there is anything
-wrong with it from code's point of view. It's not that there is an error
-in code or this is a broken hardware that caused the screen off when
-setting a very low or 0 brightness level, it is simply the expected
-behavior of what this interface can provide. It can really set the
-brightness level to minimum(zero) or maximum. Don't get me wrong, I
-didn't mean this is a good user experience, I don't know that. I just
-don't think this is a program bug, and I don't know if this should be
-fixed or not - obviously this interface did what it is asked to do,
-correctly.
+This requires adjusting TXT, but the adjustments only go as far as
+failing the extended mode call (since, looking at the TXT interface,
+there doesn't even appear to be precautions to deal with that
+alternative interface).
 
-Thanks,
-Aaron
+The xen hypervisor change underlying this is commit 62d1a69 ("ACPI: support
+v5 (reduced HW) sleep interface") on the master branch of
+git://xenbits.xen.org/xen.git.
+
+Signed-off-by: Jan Beulich <jbeulich@suse.com>
+Signed-off-by: Ben Guthro <benjamin.guthro@citrix.com>
+Cc: Richard L Maliszewski <richard.l.maliszewski@intel.com>
+Cc: Gang Wei <gang.wei@intel.com>
+Cc: Shane Wang <shane.wang@intel.com>
+Cc: Bob Moore <robert.moore@intel.com>
+Cc: Rafael J. Wysocki <rjw@sisk.pl>
+Cc: linux-acpi@vger.kernel.org
+Cc: tboot-devel@lists.sourceforge.net 
+
+v2: Extend description to include reference to hypervisor side change
+v3: Split into multiple patches, separating subsystems
+    Remove bool parameters, in favor of u8
+v4: Remove linux/acpi.h dependencies
+    Further patch split to break out acpica from OSL
+    More bool vs u8 fixes
+v5: Fix build of consumers of acpi_os_prepare_sleep() interface change,
+    so intermediate builds of partial patch series will not fail.
+v6: Rebased to linux-pm linux-next branch
+    Added warning in tboot early return code
+    Added Reviewed-by lines
+v7: Add separate acpi_os_prepare_extended_sleep() interface
+    Remove OSL acpica changes introduced in v4
+v8: Return meaningful error code in tboot error path
+
+Ben Guthro (3):
+  x86/acpi: Introduce acpi_os_prepare_extended_sleep callback for
+    extended sleep path
+  x86/tboot: Fail extended mode reduced hardware sleep
+  xen/acpi: notify xen when reduced hardware sleep is available
+
+ arch/x86/kernel/tboot.c          |   12 +++++++++++
+ drivers/acpi/acpica/hwesleep.c   |    9 +++++++++
+ drivers/acpi/osl.c               |   24 ++++++++++++++++++++++
+ drivers/xen/acpi.c               |   41 ++++++++++++++++++++++++++------------
+ include/linux/acpi.h             |    7 +++++++
+ include/xen/acpi.h               |    8 ++++++--
+ include/xen/interface/platform.h |    7 ++++---
+ 7 files changed, 90 insertions(+), 18 deletions(-)
+
+-- 
+1.7.9.5
+
