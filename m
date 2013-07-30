@@ -1,69 +1,69 @@
 From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: [PATCH] ACPI/Battery: Fix parsing _BIX return value
-Date: Tue, 30 Jul 2013 16:01:33 +0200
-Message-ID: <14636369.9qhdcKOf8e@vostro.rjw.lan>
-References: <1375149298-28206-1-git-send-email-tianyu.lan@intel.com>
+Subject: Re: [PATCH 1/3] ACPI / PM: Only set power states of devices that are power manageable
+Date: Tue, 30 Jul 2013 16:04:47 +0200
+Message-ID: <1738639.5UcWLydKxR@vostro.rjw.lan>
+References: <10433383.dueoNg39qi@vostro.rjw.lan> <3386345.rYEkrXssx8@vostro.rjw.lan> <51F6FE34.2020703@intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7Bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from hydra.sisk.pl ([212.160.235.94]:47459 "EHLO hydra.sisk.pl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753494Ab3G3NvW (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 30 Jul 2013 09:51:22 -0400
-In-Reply-To: <1375149298-28206-1-git-send-email-tianyu.lan@intel.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Return-path: <linux-pm-owner@vger.kernel.org>
+In-Reply-To: <51F6FE34.2020703@intel.com>
+Sender: linux-pm-owner@vger.kernel.org
+To: Aaron Lu <aaron.lu@intel.com>
+Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>, Linux PM list <linux-pm@vger.kernel.org>, Yinghai Lu <yinghai@kernel.org>, Bjorn Helgaas <bhelgaas@google.com>, Tejun Heo <tj@kernel.org>, linux-ide@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: tianyu.lan@intel.com
-Cc: lenb@kernel.org, linux-acpi@vger.kernel.org, jan.christian.hoffmann@gmail.com, LKML <linux-kernel@vger.kernel.org>
 
-On Tuesday, July 30, 2013 09:54:58 AM tianyu.lan@intel.com wrote:
-> From: Lan Tianyu <tianyu.lan@intel.com>
+On Tuesday, July 30, 2013 07:43:48 AM Aaron Lu wrote:
+> On 07/30/2013 06:21 AM, Rafael J. Wysocki wrote:
+> > On Monday, July 29, 2013 10:09:53 PM Aaron Lu wrote:
+> >> On 07/27/2013 09:10 PM, Rafael J. Wysocki wrote:
+> >>> From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+> >>>
+> >>> Make acpi_device_set_power() check if the given device is power
+> >>> manageable before checking if the given power state is valid for that
+> >>> device.  Otherwise it will print that "Device does not support" that
+> >>> power state into the kernel log, which may not make sense for some
+> >>> power states (D0 and D3cold are supported by all devices by
+> >>> definition).
+> >>
+> >> It will not print "Device does not support" that power state if that
+> >> power state is D0 or D3cold since we have unconditionally set those two
+> >> power state's valid flag.
+> > 
+> > So you didn't actually looked at acpi_bus_get_power_flags() that set the
+> > power.states[].flags.valid flag, because If you had looked at it, you would
+> > have seen that that's not the case.
+> > 
+> > No, we don't set the valid flag for devices that aren't power manageable
+> > (i.e. have flags.power_manageable unset), which is the *whole* *point* of
+> > this change.
 > 
-> The _BIX method returns extended battery info as a package. According
-> ACPI spec 10.2.2.2, the first member should be "Revision". However,
-> current acpi battery driver treats the first member as "Power Unit"
-> which should be the second member. So the parsing operation is mismatch.
-> This patch is to fix it.
+> Right, I missed this. Sorry for the noise.
 > 
-> Reported-and-tested-by: Jan Hoffmann <jan.christian.hoffmann@gmail.com>
-> Reference: http://bugzilla.kernel.org/show_bug.cgi?id=60519
-> CC: stable@vger.kernel.org  #v2.6.34+
-> Signed-off-by: Lan Tianyu <tianyu.lan@intel.com>
+> > 
+> >> OTOH, what value should we return for a device node that is not power
+> >> manageable in acpi_device_set_power when the target state is D0 or D3
+> >> cold? The old behavior is to return 0, meanning success without taking
+> >> any actual action.
+> >>
+> >> In acpi_bus_set_power, if the device is not power manageable, we will
+> >> return -ENODEV; in acpi_dev_pm_full/low_power, we will return 0 as in
+> >> the original acpi_device_set_power. So return -EINVAL here is correct?
+> > 
+> > No, the original acpi_device_set_power() will return -ENODEV then, but
+> > in my opinion returning -EINVAL is more accurate, because "power
+> > manageable" means "you can change power state of it".
+> 
+> Shall I prepare a patch to update the errno in acpi_bus_set_power?
 
-Well, that's one of the most embarrassing bugs I've ever seen. :-)
-
-Queued up as a fix for 3.11.
+In fact, it doesn't need to check flags.power_manageable after this patch
+and the debug message won't be missed I think, so please just remove
+the whole if () from there, if that's not a problem.
 
 Thanks,
 Rafael
 
 
-> ---
->  drivers/acpi/battery.c | 2 ++
->  1 file changed, 2 insertions(+)
-> 
-> diff --git a/drivers/acpi/battery.c b/drivers/acpi/battery.c
-> index c760b61..2c9958c 100644
-> --- a/drivers/acpi/battery.c
-> +++ b/drivers/acpi/battery.c
-> @@ -117,6 +117,7 @@ struct acpi_battery {
->  	struct acpi_device *device;
->  	struct notifier_block pm_nb;
->  	unsigned long update_time;
-> +	int revision;
->  	int rate_now;
->  	int capacity_now;
->  	int voltage_now;
-> @@ -359,6 +360,7 @@ static struct acpi_offsets info_offsets[] = {
->  };
->  
->  static struct acpi_offsets extended_info_offsets[] = {
-> +	{offsetof(struct acpi_battery, revision), 0},
->  	{offsetof(struct acpi_battery, power_unit), 0},
->  	{offsetof(struct acpi_battery, design_capacity), 0},
->  	{offsetof(struct acpi_battery, full_charge_capacity), 0},
-> 
 -- 
 I speak only for myself.
 Rafael J. Wysocki, Intel Open Source Technology Center.
