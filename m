@@ -1,65 +1,124 @@
-From: Bjorn Helgaas <bhelgaas@google.com>
-Subject: Re: [PATCH] PCI/ACPI: Change dev_info() to dev_dbg() in the acpi_pci_set_power_state()
-Date: Tue, 30 Jul 2013 09:40:18 -0600
-Message-ID: <CAErSpo7XGa+t0g3Zp+4tXwS8JdAa5UonN7rt6dSZpEmDZuXP7w@mail.gmail.com>
-References: <1375151550-28632-1-git-send-email-tianyu.lan@intel.com> <8048720.q4LxpIqNkE@vostro.rjw.lan>
+From: Felipe Contreras <felipe.contreras@gmail.com>
+Subject: Re: [REGRESSION/PATCH] acpi: blacklist win8 OSI for ASUS Zenbok Prime UX31A
+Date: Tue, 30 Jul 2013 15:59:26 -0500
+Message-ID: <CAMP44s02V_FO1BPJZqo6MB9RMknXYdV7AXDqbJzYHpgK1GUuJw@mail.gmail.com>
+References: <1375125658-1223-1-git-send-email-felipe.contreras@gmail.com>
+	<51F7546C.9030901@gmail.com>
+	<51F755E3.8040706@gmail.com>
+	<3453253.oZLO1ChPbL@vostro.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-ob0-f178.google.com ([209.85.214.178]:55569 "EHLO
-	mail-ob0-f178.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756589Ab3G3Pkj (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 30 Jul 2013 11:40:39 -0400
-Received: by mail-ob0-f178.google.com with SMTP id ef5so4609725obb.37
-        for <linux-acpi@vger.kernel.org>; Tue, 30 Jul 2013 08:40:39 -0700 (PDT)
-In-Reply-To: <8048720.q4LxpIqNkE@vostro.rjw.lan>
+Received: from mail-lb0-f171.google.com ([209.85.217.171]:49511 "EHLO
+	mail-lb0-f171.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756991Ab3G3U72 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 30 Jul 2013 16:59:28 -0400
+In-Reply-To: <3453253.oZLO1ChPbL@vostro.rjw.lan>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: "lan,Tianyu" <tianyu.lan@intel.com>, Len Brown <lenb@kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>, Alan Stern <stern@rowland.harvard.edu>
+Cc: Aaron Lu <aaron.lwe@gmail.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Len Brown <lenb@kernel.org>, Linus Torvalds <torvalds@linux-foundation.org>
 
-On Tue, Jul 30, 2013 at 7:59 AM, Rafael J. Wysocki <rjw@sisk.pl> wrote:
-> On Tuesday, July 30, 2013 10:32:30 AM tianyu.lan@intel.com wrote:
->> From: Lan Tianyu <tianyu.lan@intel.com>
+On Tue, Jul 30, 2013 at 8:42 AM, Rafael J. Wysocki <rjw@sisk.pl> wrote:
+> On Tuesday, July 30, 2013 01:57:55 PM Aaron Lu wrote:
+>> On 07/30/2013 01:51 PM, Aaron Lu wrote:
+>> > On 07/30/2013 11:44 AM, Felipe Contreras wrote:
+>> >> On Mon, Jul 29, 2013 at 10:11 PM, Aaron Lu <aaron.lwe@gmail.com> wrote:
+>> >>> On 07/30/2013 03:20 AM, Felipe Contreras wrote:
+>> >>>> Since v3.7 the acpi backlight driver doesn't work at all on this machine
+>> >>>> because presumably the ACPI code contains stub code when Windows 8 OSI is
+>> >>>> reported.
+>> >>>>
+>> >>>> The commit ea45ea7 (in v3.11-rc2) tried to fix this problem by using the intel
+>> >>>> backlight driver, however, on this machine it turns the backlight completely
+>> >>>> off when it reaches level 0%, after which the user might have a lot trouble
+>> >>>> trying to bring it back.
+>> >>>
+>> >>> What do you mean by a lot of trouble? If you press hotkey to increase
+>> >>> backlight brightness level, does it work?
+>> >>
+>> >> I guess so, *if* there is indeed a user-space power manager handling
+>> >> that, *and* the keyboard has such keys, *or* the user has set custom
+>> >> hotkeys.
+>> >
+>> > Right, for a GUI environment this may not be a big problem(user uses Fn
+>> > key to decrease brightness level and then hit the black screen, it's
+>> > natural he will use Fn key to increase brightness level).
+>> >
+>> >>
+>> >>> If so, the screen should not
+>> >>> be black any more, it's not that user has to blindly enter some command
+>> >>> to get out of the black screen.
+>> >>>
+>> >>> And I'm not sure if this is a bug of intel_backlight(setting a low level
+>> >>> makes the screen almost off), I see different models with different
+>> >>> vendors having this behavior.
+>> >>
+>> >> I mean, the screen is completely off, I cannot see absolutely
+>> >> anything. I don't see this behavior with the ACPI backlight driver,
+>> >> nor do I see that in Windows 7.
+>> >>
+>> >>> If this is deemed a bug, then I'm afraid
+>> >>> intel_backlight interface is useless for a lot of systems...perhaps we
+>> >>> can only say, intel_backlight's interpretation of low levels are
+>> >>> different with ACPI video's, and that's probably why its type is named
+>> >>> as raw :-)
+>> >>
+>> >> Well, a bug is defined as unexpected behavior -- as a user, if I'm
+>> >> changing the brightness of the screen, I certainly don't expect the
+>> >> screen to turn off, and I think that's the expectation from most
+>> >> people. It's the first time I see something like that.
+>> >
+>> > I agree this is kind of un-expected. At the same time, this seems to be
+>> > the normal behavior for intel_backlight. I don't know what the correct
+>> > thing to do here if this is something we want to avoid - modify intel
+>> > backlight handling code not to set too low value or change the user
+>> > space tool not to set a too low value if they are interacting with a
+>> > raw type interface. Neither of them sounds cool... Or, users may get
+>> > used to it, I for example, don't find this to be very annoying, but
+>> > maybe I'm already used to it.
 >>
->> acpi_pci_set_power_state() produces log of device power state changing.
->> Now the log is produced by dev_info(). This seems make no sense when user
->> doesn't open debug option. So change it to dev_dbg() and prevent kernel
->> log from being.
->>
->> Reference: https://bugzilla.kernel.org/show_bug.cgi?id=60636
->> Suggested-by: Alan Stern <stern@rowland.harvard.edu>
->> Signed-off-by: Lan Tianyu <tianyu.lan@intel.com>
+>> BTW, for the complete screen off problem, I don't see there is anything
+>> wrong with it from code's point of view. It's not that there is an error
+>> in code or this is a broken hardware that caused the screen off when
+>> setting a very low or 0 brightness level, it is simply the expected
+>> behavior of what this interface can provide. It can really set the
+>> brightness level to minimum(zero) or maximum. Don't get me wrong, I
+>> didn't mean this is a good user experience, I don't know that. I just
+>> don't think this is a program bug, and I don't know if this should be
+>> fixed or not - obviously this interface did what it is asked to do,
+>> correctly.
 >
-> Bjorn, what do you think about this?
+> Precisely, user space asks for 0 and the kernel delivers.
+>
+> And there are reasons why 0 should be "screen off", like power management
+> (when you have a policy to dim the screen completely after a period of
+> inactivity, for example).
 
-It's fine with me.  For information that I want in the dmesg log all
-the time, with no special action from the user, I personally avoid
-dev_dbg() because I can never figure out whether it's enabled or not.
-But I don't use the information from this printk, so it's completely
-up to you.  Just let me know what you want.  If you have other pending
-changes to this file, you can take it, or I can put it in my tree.
+There is another interface the turn the screen off.
 
-Bjorn
+If 0 turns the screen off with the intel driver, 0 should turn the
+screen off with the ACPI driver, having inconsistent behavior
+depending on which driver is used is a bug.
 
->> ---
->>  drivers/pci/pci-acpi.c | 2 +-
->>  1 file changed, 1 insertion(+), 1 deletion(-)
->>
->> diff --git a/drivers/pci/pci-acpi.c b/drivers/pci/pci-acpi.c
->> index c78cc43..fb3522957 100644
->> --- a/drivers/pci/pci-acpi.c
->> +++ b/drivers/pci/pci-acpi.c
->> @@ -210,7 +210,7 @@ static int acpi_pci_set_power_state(struct pci_dev *dev, pci_power_t state)
->>       }
->>
->>       if (!error)
->> -             dev_info(&dev->dev, "power state changed by ACPI to %s\n",
->> +             dev_dbg(&dev->dev, "power state changed by ACPI to %s\n",
->>                        acpi_power_state_string(state_conv[state]));
->>
->>       return error;
->>
-> --
-> I speak only for myself.
-> Rafael J. Wysocki, Intel Open Source Technology Center.
+If 0 did not turn off the screen in v3.10, 0 should not turn off the
+screen in v3.11, to do so would be a *regression*.
+
+> So in my opinion, if that's a problem for anyone, it has to be addressed in
+> user space and if there are any vendors who try to address *that* in their ACPI
+> tables, that's one more reason to avoid using ACPI for backlight control.
+
+If you think it's the user-space responsibility to deal with kernel
+bugs, I think it's only a matter of time before you receive one of
+these [1].
+
+"If a change results in user programs breaking, it's a bug in the
+kernel. We never EVER blame the user programs. How hard can this be to
+understand?"
+
+"WE DO NOT BREAK USERSPACE!"
+
+[1] https://lkml.org/lkml/2012/12/23/75
+
+-- 
+Felipe Contreras
