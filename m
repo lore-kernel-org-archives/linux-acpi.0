@@ -1,107 +1,77 @@
 From: Aaron Lu <aaron.lu@intel.com>
-Subject: Re: [PATCH 2/3] ACPI / PM: Make messages in acpi_device_set_power()
- print device names
-Date: Wed, 31 Jul 2013 14:52:53 +0800
-Message-ID: <51F8B445.1070000@intel.com>
-References: <10433383.dueoNg39qi@vostro.rjw.lan> <1895563.95T8SxMegu@vostro.rjw.lan> <51F5D390.5040506@intel.com> <4285597.UpTJrMA8Fu@vostro.rjw.lan>
+Subject: Re: [Update][PATCH 0/3] Fix backlight issues on some Windows 8 systems
+Date: Wed, 31 Jul 2013 17:08:20 +0800
+Message-ID: <51F8D404.8090208@intel.com>
+References: <1370818899-8595-1-git-send-email-matthew.garrett@nebula.com> <1448863.3slS729B6b@vostro.rjw.lan> <3500424.KqMOhglylx@vostro.rjw.lan>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-ide-owner@vger.kernel.org>
-In-Reply-To: <4285597.UpTJrMA8Fu@vostro.rjw.lan>
-Sender: linux-ide-owner@vger.kernel.org
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <3500424.KqMOhglylx@vostro.rjw.lan>
+Sender: linux-kernel-owner@vger.kernel.org
 To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>, Linux PM list <linux-pm@vger.kernel.org>, Yinghai Lu <yinghai@kernel.org>, Bjorn Helgaas <bhelgaas@google.com>, Tejun Heo <tj@kernel.org>, linux-ide@vger.kernel.org
+Cc: Matthew Garrett <matthew.garrett@nebula.com>, daniel.vetter@ffwll.ch, Aaron Lu <aaron.lu@intel.com>, Jani Nikula <jani.nikula@linux.intel.com>, linux-acpi@vger.kernel.org, seth.forshee@canonical.com, joeyli.kernel@gmail.com, intel-gfx@lists.freedesktop.org, dri-devel@lists.freedesktop.org, linux-kernel@vger.kernel.org, lenb@kernel.org, Igor Gnatenko <i.gnatenko.brain@gmail.com>, Yves-Alexis Perez <corsac@debian.org>, "Lee, Chun-Yi" <jlee@suse.com>, Henrique de Moraes Holschuh <hmh@hmh.eng.br>
 List-Id: linux-acpi@vger.kernel.org
 
-On 07/29/2013 08:20 PM, Rafael J. Wysocki wrote:
-> On Monday, July 29, 2013 10:29:36 AM Aaron Lu wrote:
->> On 07/27/2013 09:11 PM, Rafael J. Wysocki wrote:
->>> From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+On 07/31/2013 08:01 AM, Rafael J. Wysocki wrote:
+> On Thursday, July 18, 2013 02:16:09 AM Rafael J. Wysocki wrote:
+>> On Sunday, June 09, 2013 07:01:36 PM Matthew Garrett wrote:
+>>> Windows 8 introduced new policy for backlight control by pushing it out to
+>>> graphics drivers. This appears to have coincided with a range of vendors
+>>> adding Windows 8 checks to their backlight control code which trigger either
+>>> awkward behaviour (Lenovo) or complete brokenness (some Dells). The simplest
+>>> thing to do would be to just disable ACPI backlight control entirely if the
+>>> firmware indicates Windows 8 support, but it's entirely possible that
+>>> individual graphics drivers might still make use of the ACPI functionality in
+>>> preference to native control.
 >>>
->>> Modify acpi_device_set_power() so that diagnostic messages printed by
->>> it to the kernel log always contain the name of the device concerned
->>> to make it possible to identify the device that triggered the message
->>> if need be.
->>>
->>> Also replace printk(KERN_WARNING ) with dev_warn() everywhere in that
->>> function.
->>>
->>> Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
->>> ---
->>>  drivers/acpi/device_pm.c |   22 ++++++++++------------
->>>  1 file changed, 10 insertions(+), 12 deletions(-)
->>>
->>> Index: linux-pm/drivers/acpi/device_pm.c
->>> ===================================================================
->>> --- linux-pm.orig/drivers/acpi/device_pm.c
->>> +++ linux-pm/drivers/acpi/device_pm.c
->>> @@ -166,20 +166,20 @@ int acpi_device_set_power(struct acpi_de
->>>  	/* Make sure this is a valid target state */
->>>  
->>>  	if (state == device->power.state) {
->>> -		ACPI_DEBUG_PRINT((ACPI_DB_INFO, "Device is already at %s\n",
->>> +		ACPI_DEBUG_PRINT((ACPI_DB_INFO, "Device [%s] already in %s\n",
->>> +				  device->pnp.bus_id,
->>>  				  acpi_power_state_string(state)));
->>>  		return 0;
->>>  	}
->>>  
->>>  	if (!device->power.states[state].flags.valid) {
->>> -		printk(KERN_WARNING PREFIX "Device does not support %s\n",
->>> -		       acpi_power_state_string(state));
->>> +		dev_warn(&device->dev, "Power state %s not supported\n",
->>> +			 acpi_power_state_string(state));
->>>  		return -ENODEV;
->>>  	}
->>>  	if (device->parent && (state < device->parent->power.state)) {
->>> -		printk(KERN_WARNING PREFIX
->>> -			      "Cannot set device to a higher-powered"
->>> -			      " state than parent\n");
->>> +		dev_warn(&device->dev, "Cannot transition to a higher-powered "
->>> +			 "state than parent\n");
+>>> The first two patches in this series are picked from other patchesets aimed at
+>>> solving similar problems. The last simply unregisters ACPI backlight control
+>>> on Windows 8 systems when using an Intel GPU. Similar code could be added to
+>>> other drivers, but I'm reluctant to do so without further investigation as
+>>> to the behaviour of the vendor drivers under Windows.
 >>
->> I think the state information would also be useful here:
+>> Well, after some more time spent on that, we now have a series of 3 patches
+>> (different from the $subject one) that we think may be used to address this
+>> issue.  As far as I can say, it has been tested by multiple people whose
+>> systems have those problems and they generally saw improvement.
 >>
->> 		dev_warn(&device->dev, "Cannot transition to a higher-powereed "
->> 		         "state %d than paeren's state %d\n", state,
->> 			 device->parent->power.state);
+>> It is not my ideal approach, but it seems to be the least intrusive and/or
+>> with the least amount of possible side effects that we can do right now
+>> as a general measure (alternatively, we could create a possibly long
+>> blacklist table of affected systems with different workarounds for them,
+>> but let's just say that is not overwhelmingly attractive).
+>>
+>> [1/3] Make ACPICA export things that we need for checking OSI(Win8).
+>>
+>> [2/3] Make acpi_video_device_find_cap() call acpi_video_init_brightness() even
+>>       if it is not going to register the backlight interface (needed for
+>>       Thinkpads).
+>>
+>> [3/3] Avoid using ACPI backlight if i915 is in use and the firmware believes
+>>       we are Windows 8.
+>>
+>> Many thanks to everyone involved!
 > 
-> This is not the scope of this patch, please send another one on top of it.
+> So this didn't work, as we had to revert [3/3], but I think we should try to
+> make some progress with this nevertheless.  A way forward I'm seeing now could
+> be to
+> (1) Split the ACPI video driver so that it is possible to register the
+>     backlight control separately from the event interface.
+> (2) Add a command line option to i915 to make it use the native backlight
+>     control (without registering the ACPI one) if set.  Make unset the
+>     default initially.
+> (3) Fix i915 backlight control issues for all systems known to have them
+>     (that may take a while) and flip the defailt for that option to set when we
+>     think we're ready.
+> (4) If there still are problem reports, flip the default back to unset and
+>     repeat (3).
 > 
+> If this converges, everyone will be using the native backlight control by
+> default and the original problem will go away automatically.
+> 
+> Thoughts?
 
-Patch to add state information in error message, apply on top of this
-one.
+Sounds good to me.
 
-From: Aaron Lu <aaron.lu@intel.com>
-Subject: [PATCH] ACPI / PM: Add state information in error message for
- acpi_device_set_power
-
-The state information can be useful to know what the problem is when it
-appeared in an error message about a device can not being set to a higher
-power state than its parent, so this patch adds such state information
-for both the target state of the device failed to be set and the current
-parent's state.
-
-Signed-off-by: Aaron Lu <aaron.lu@intel.com>
----
- drivers/acpi/device_pm.c | 3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
-
-diff --git a/drivers/acpi/device_pm.c b/drivers/acpi/device_pm.c
-index beb9625..707258b 100644
---- a/drivers/acpi/device_pm.c
-+++ b/drivers/acpi/device_pm.c
-@@ -179,7 +179,8 @@ int acpi_device_set_power(struct acpi_device *device, int state)
- 	}
- 	if (device->parent && (state < device->parent->power.state)) {
- 		dev_warn(&device->dev,
--			 "Cannot transition to a higher-powered state than parent\n");
-+			 "Cannot transition to a higher-powered state %d than parent's state %d\n",
-+			 state, device->parent->power.state);
- 		return -ENODEV;
- 	}
- 
--- 
-1.8.3.2.10.g43d11f4
-
+-Aaron
