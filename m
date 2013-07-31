@@ -1,108 +1,58 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: [PATCH 1/3] ACPI / PM: Only set power states of devices that are power manageable
-Date: Wed, 31 Jul 2013 12:29:02 +0200
-Message-ID: <5221650.Ris8idu00z@vostro.rjw.lan>
-References: <10433383.dueoNg39qi@vostro.rjw.lan> <1738639.5UcWLydKxR@vostro.rjw.lan> <51F8B35A.6000804@intel.com>
+From: "Rafael J. Wysocki" <rjw-KKrjLPT3xs0@public.gmane.org>
+Subject: [Announcement] Linux Plumbers ACPI/PM, PCI Microconference
+Date: Wed, 31 Jul 2013 13:40:14 +0200
+Message-ID: <1755363.sGc8nLIQOW@vostro.rjw.lan>
+References: <CAL-B5D03ki8NHsM6EuESTH2K-Eh+XyFHNXPDYwgDq+oagDjtMQ@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7Bit
-Return-path: <linux-ide-owner@vger.kernel.org>
-In-Reply-To: <51F8B35A.6000804@intel.com>
-Sender: linux-ide-owner@vger.kernel.org
-To: Aaron Lu <aaron.lu@intel.com>
-Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>, Linux PM list <linux-pm@vger.kernel.org>, Yinghai Lu <yinghai@kernel.org>, Bjorn Helgaas <bhelgaas@google.com>, Tejun Heo <tj@kernel.org>, linux-ide@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
+In-Reply-To: <CAL-B5D03ki8NHsM6EuESTH2K-Eh+XyFHNXPDYwgDq+oagDjtMQ-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+List-Unsubscribe: <https://lists.linuxfoundation.org/mailman/options/iommu>,
+	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.linuxfoundation.org/pipermail/iommu/>
+List-Post: <mailto:iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
+List-Help: <mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.linuxfoundation.org/mailman/listinfo/iommu>,
+	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=subscribe>
+Sender: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
+Errors-To: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
+To: linux-pci <linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, ACPI Devel Maling List <linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linux PM list <linux-pm-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Cc: kvm-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, LKML <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, virtualization-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org, iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org, Myron Stowe <myron.stowe-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Bjorn Helgaas <bhelgaas-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org>, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Wednesday, July 31, 2013 02:48:58 PM Aaron Lu wrote:
-> On 07/30/2013 10:04 PM, Rafael J. Wysocki wrote:
-> > On Tuesday, July 30, 2013 07:43:48 AM Aaron Lu wrote:
-> >> On 07/30/2013 06:21 AM, Rafael J. Wysocki wrote:
-> >>> On Monday, July 29, 2013 10:09:53 PM Aaron Lu wrote:
-> >>>> On 07/27/2013 09:10 PM, Rafael J. Wysocki wrote:
-> >>>>> From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
-> >>>>>
-> >>>>> Make acpi_device_set_power() check if the given device is power
-> >>>>> manageable before checking if the given power state is valid for that
-> >>>>> device.  Otherwise it will print that "Device does not support" that
-> >>>>> power state into the kernel log, which may not make sense for some
-> >>>>> power states (D0 and D3cold are supported by all devices by
-> >>>>> definition).
-> >>>>
-> >>>> It will not print "Device does not support" that power state if that
-> >>>> power state is D0 or D3cold since we have unconditionally set those two
-> >>>> power state's valid flag.
-> >>>
-> >>> So you didn't actually looked at acpi_bus_get_power_flags() that set the
-> >>> power.states[].flags.valid flag, because If you had looked at it, you would
-> >>> have seen that that's not the case.
-> >>>
-> >>> No, we don't set the valid flag for devices that aren't power manageable
-> >>> (i.e. have flags.power_manageable unset), which is the *whole* *point* of
-> >>> this change.
-> >>
-> >> Right, I missed this. Sorry for the noise.
-> >>
-> >>>
-> >>>> OTOH, what value should we return for a device node that is not power
-> >>>> manageable in acpi_device_set_power when the target state is D0 or D3
-> >>>> cold? The old behavior is to return 0, meanning success without taking
-> >>>> any actual action.
-> >>>>
-> >>>> In acpi_bus_set_power, if the device is not power manageable, we will
-> >>>> return -ENODEV; in acpi_dev_pm_full/low_power, we will return 0 as in
-> >>>> the original acpi_device_set_power. So return -EINVAL here is correct?
-> >>>
-> >>> No, the original acpi_device_set_power() will return -ENODEV then, but
-> >>> in my opinion returning -EINVAL is more accurate, because "power
-> >>> manageable" means "you can change power state of it".
-> >>
-> >> Shall I prepare a patch to update the errno in acpi_bus_set_power?
-> > 
-> > In fact, it doesn't need to check flags.power_manageable after this patch
-> > and the debug message won't be missed I think, so please just remove
-> > the whole if () from there, if that's not a problem.
-> 
-> Patch to remove the redundant check, apply on top of this one.
-> 
-> From: Aaron Lu <aaron.lu@intel.com>
-> Subject: [PATCH 1/3] ACPI / PM: Remove redundant check for power manageable in
->  acpi_bus_set_power
-> 
-> Now that we will check if a device is power manageable in
-> acpi_device_set_power, it is no longer necessary to do this check in
-> acpi_bus_set_power, so remove it.
-> 
-> Signed-off-by: Aaron Lu <aaron.lu@intel.com>
+Hi All,
 
-Looks good, I'll queue it up for 3.12.
+The original announcement didn't go to linux-pm, so again:
+
+On Tuesday, July 16, 2013 08:21:26 PM Myron Stowe wrote:
+> Linux Plumbers has approved an ACPI/PM, PCI microconference. The
+> overview page is here:
+> 
+> http://wiki.linuxplumbersconf.org/2013:pci_subsystem
+> 
+> We would like to start receiving volunteers for presenting topics of
+> interest.  There is a lot of activity in these subsystems so please
+> respond by submitting presentation or discussion proposals that you
+> would be willing to cover for consideration.  You should also feel
+> free to submit ideas as proposals that others could cover.  The
+> instructions for submitting ideas should be at:
+> 
+> http://www.linuxplumbersconf.org/2013/submitting-topic/
+
+If anyone who's going to attend the Linux Plumbers Conf this year is interested
+in any particular topic for discussion during the ACPI/PM+PCI uconf, please
+submit a formal topic proposal at:
+
+http://www.linuxplumbersconf.org/2013/ocw/events/LPC2013/proposals/new
+
+If you submit a topic, that doesn't mean you'll be expected to present anything
+(if accepted).  In fact, we are mostly interested in discussion topics and we'd
+like to know what is important to people.
+
+That said if you have a (short) presentation to make, please submit it too.
+
+We'll appreciate all submissions very much.
 
 Thanks,
 Rafael
-
-
-> ---
->  drivers/acpi/device_pm.c | 7 -------
->  1 file changed, 7 deletions(-)
-> 
-> diff --git a/drivers/acpi/device_pm.c b/drivers/acpi/device_pm.c
-> index 63324b8..8270711 100644
-> --- a/drivers/acpi/device_pm.c
-> +++ b/drivers/acpi/device_pm.c
-> @@ -245,13 +245,6 @@ int acpi_bus_set_power(acpi_handle handle, int state)
->  	if (result)
->  		return result;
->  
-> -	if (!device->flags.power_manageable) {
-> -		ACPI_DEBUG_PRINT((ACPI_DB_INFO,
-> -				"Device [%s] is not power manageable\n",
-> -				dev_name(&device->dev)));
-> -		return -ENODEV;
-> -	}
-> -
->  	return acpi_device_set_power(device, state);
->  }
->  EXPORT_SYMBOL(acpi_bus_set_power);
-> 
--- 
-I speak only for myself.
-Rafael J. Wysocki, Intel Open Source Technology Center.
