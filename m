@@ -1,49 +1,70 @@
-From: Shuah Khan <shuah.kh@samsung.com>
-Subject: Re: Linux Plumbers ACPI/PM, PCI Microconference
-Date: Wed, 31 Jul 2013 00:02:46 +0000
-Message-ID: <B8EFE96D1287C24090BAD9D858E15E6174F0B5@sisaex01sj>
-References: <CAL-B5D03ki8NHsM6EuESTH2K-Eh+XyFHNXPDYwgDq+oagDjtMQ@mail.gmail.com>
- <CAKocOOOgEb5h1dZWP_2UqBKhSK9U-kxKUbvTdzHfds=RiDzNJg@mail.gmail.com>
- <1476124.sWE2ygoo2D@vostro.rjw.lan>
+From: Felipe Contreras <felipe.contreras@gmail.com>
+Subject: Re: [REGRESSION/PATCH] acpi: blacklist win8 OSI for ASUS Zenbok Prime UX31A
+Date: Tue, 30 Jul 2013 19:11:06 -0500
+Message-ID: <CAMP44s2LqiEGtS72FuTjsHUa1MH2kfaYHmcpNKMmAm2LnbFCCQ@mail.gmail.com>
+References: <1375125658-1223-1-git-send-email-felipe.contreras@gmail.com>
+	<3453253.oZLO1ChPbL@vostro.rjw.lan>
+	<CAMP44s02V_FO1BPJZqo6MB9RMknXYdV7AXDqbJzYHpgK1GUuJw@mail.gmail.com>
+	<37178266.QXgbv9rq0i@vostro.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-language: en-US
+In-Reply-To: <37178266.QXgbv9rq0i@vostro.rjw.lan>
 Sender: linux-kernel-owner@vger.kernel.org
 To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: Shuah Khan <shuahkhan@gmail.com>, Myron Stowe <myron.stowe@gmail.com>, linux-pci <linux-pci@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "iommu@lists.linux-foundation.org" <iommu@lists.linux-foundation.org>, "virtualization@lists.linux-foundation.org" <virtualization@lists.linux-foundation.org>, "kvm@vger.kernel.org" <kvm@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>, Shuah Khan <shuah.kh@samsung.com>
+Cc: Aaron Lu <aaron.lwe@gmail.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Len Brown <lenb@kernel.org>, Linus Torvalds <torvalds@linux-foundation.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On 07/30/2013 05:38 PM, Rafael J. Wysocki wrote:
-> On Wednesday, July 17, 2013 08:31:55 AM Shuah Khan wrote:
->> Myron,
->>
->> On Tue, Jul 16, 2013 at 8:21 PM, Myron Stowe <myron.stowe@gmail.com> wrote:
->>
->>>
->>> Shuah - You brought up the idea about "Converting drivers from Legacy
->>> PM ops to dev_pm_ops"; would you like to present what you have
->>> done/encountered so far?
->>>
->>
->> Awesome. Yes, I would like to present what I have done so far and I do
->> have a couple of things that could benefit from a face to face
->> discussion which would help me make progress on the rest of the work
->> that needs to get done.
->
-> Care to sumbit a formal proposal through the LPC web page?
->
-> Rafael
->
->
+On Tue, Jul 30, 2013 at 6:13 PM, Rafael J. Wysocki <rjw@sisk.pl> wrote:
 
-Rafael,
+>> If 0 turns the screen off with the intel driver, 0 should turn the
+>> screen off with the ACPI driver, having inconsistent behavior
+>> depending on which driver is used is a bug.
+>
+> The ACPI driver simply exposes and interface to interact with the AML methods
+> in the BIOS directly.
 
-I did submit a formal talk proposal to LinuxCon/LPC and it was rejected. 
-Submission is closed now as far as I know.
+No, the ACPI driver is exposing a backlight interface, which has a
+defined stable API.
 
--- Shuah
+Documentation/ABI/stable/sysfs-class-backlight
 
-Shuah Khan, Linux Kernel Developer - Open Source Group Samsung Research 
-America (Silicon Valley) shuah.kh@samsung.com | (970) 672-0658
+Yes, the interface doesn't define what should happen at 0, that is a
+bug in the interface definition.
+
+*How* it achieves that is an implementation detail.
+
+> Yes, this is a mistake and shouldn't be designed this way.
+>
+> However, incidentally, this makes backlight control work on your machine.
+>
+> Anyway, we need all backlight drivers to work consistently and don't tempt me
+> to rip the ACPI driver entirely from the kernel for what it's worth.
+
+Yes, they should work consistently, and go ahead, rip the ACPI driver,
+*then* you'll see many more people complaining about the Linux kernel
+breaking user-space, which should never happen. Mistakes happen, but
+if you do this willingly and knowingly, I think there would be
+repercussions for you.
+
+> Yes, that will break backlight on your system and *then* you can complain to
+> Linus if you wish.
+
+It is already broken in v3.11-rc3, in fact I just booted that to try
+it out and it booted with the screen completely black (fortunately I
+knew exactly what to type to change that).
+
+Apparently this commit also needs to be reverted: efaa14c (ACPI /
+video: no automatic brightness changes by win8-compatible firmware).
+In this machine it makes the backlight work again (without
+acpi_osi="!Windows 2012"), but by doing so the ACPI driver also turns
+off the screen completely at level 0. Also, each time I change the
+backlight level from X, the screen blinks as if going 100%, 0%, and
+then the desired level.
+
+For this particular machine simply applying the attached patch would
+solve all those regressions, but who knows in other machines, I think
+it's safer to revert efaa14c.
+
+-- 
+Felipe Contreras
