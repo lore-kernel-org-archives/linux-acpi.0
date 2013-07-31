@@ -1,71 +1,45 @@
-From: Bjorn Helgaas <bhelgaas@google.com>
-Subject: Re: [PATCH] PCI/ACPI: Change dev_info() to dev_dbg() in the acpi_pci_set_power_state()
-Date: Wed, 31 Jul 2013 11:26:14 -0600
-Message-ID: <CAErSpo5qqXjnSgOaj_EAu2JbvpYsC+uOOYdH0hzkFL+zPy1CEQ@mail.gmail.com>
-References: <1375151550-28632-1-git-send-email-tianyu.lan@intel.com>
- <8048720.q4LxpIqNkE@vostro.rjw.lan> <CAErSpo7XGa+t0g3Zp+4tXwS8JdAa5UonN7rt6dSZpEmDZuXP7w@mail.gmail.com>
- <3509301.e8ST4r5R4A@vostro.rjw.lan>
+From: Felipe Contreras <felipe.contreras@gmail.com>
+Subject: Re: [REGRESSION/PATCH] acpi: blacklist win8 OSI for ASUS Zenbok Prime UX31A
+Date: Wed, 31 Jul 2013 12:46:04 -0500
+Message-ID: <CAMP44s1cLou9TMfLS+FHwPM_b3bG5HN1-hzgvhz0fVRCZ8XqWw@mail.gmail.com>
+References: <1375125658-1223-1-git-send-email-felipe.contreras@gmail.com>
+	<3453253.oZLO1ChPbL@vostro.rjw.lan>
+	<CAMP44s02V_FO1BPJZqo6MB9RMknXYdV7AXDqbJzYHpgK1GUuJw@mail.gmail.com>
+	<37178266.QXgbv9rq0i@vostro.rjw.lan>
+	<CAMP44s2LqiEGtS72FuTjsHUa1MH2kfaYHmcpNKMmAm2LnbFCCQ@mail.gmail.com>
+	<20130731051421.GA15766@srcf.ucam.org>
+	<CAMP44s2B=nQLnZm7gyYAJZgt_x3KszRZLUC=fom0t9=Eze+smA@mail.gmail.com>
+	<20130731140010.GA24560@srcf.ucam.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <linux-pci-owner@vger.kernel.org>
-In-Reply-To: <3509301.e8ST4r5R4A@vostro.rjw.lan>
-Sender: linux-pci-owner@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: "lan,Tianyu" <tianyu.lan@intel.com>, Len Brown <lenb@kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>, Alan Stern <stern@rowland.harvard.edu>
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20130731140010.GA24560@srcf.ucam.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Matthew Garrett <mjg59@srcf.ucam.org>
+Cc: "Rafael J. Wysocki" <rjw@sisk.pl>, Aaron Lu <aaron.lwe@gmail.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Len Brown <lenb@kernel.org>, Linus Torvalds <torvalds@linux-foundation.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On Tue, Jul 30, 2013 at 5:31 PM, Rafael J. Wysocki <rjw@sisk.pl> wrote:
-> On Tuesday, July 30, 2013 09:40:18 AM Bjorn Helgaas wrote:
->> On Tue, Jul 30, 2013 at 7:59 AM, Rafael J. Wysocki <rjw@sisk.pl> wrote:
->> > On Tuesday, July 30, 2013 10:32:30 AM tianyu.lan@intel.com wrote:
->> >> From: Lan Tianyu <tianyu.lan@intel.com>
->> >>
->> >> acpi_pci_set_power_state() produces log of device power state changing.
->> >> Now the log is produced by dev_info(). This seems make no sense when user
->> >> doesn't open debug option. So change it to dev_dbg() and prevent kernel
->> >> log from being.
->> >>
->> >> Reference: https://bugzilla.kernel.org/show_bug.cgi?id=60636
->> >> Suggested-by: Alan Stern <stern@rowland.harvard.edu>
->> >> Signed-off-by: Lan Tianyu <tianyu.lan@intel.com>
->> >
->> > Bjorn, what do you think about this?
+On Wed, Jul 31, 2013 at 9:00 AM, Matthew Garrett <mjg59@srcf.ucam.org> wrote:
+> On Wed, Jul 31, 2013 at 06:32:47AM -0500, Felipe Contreras wrote:
+>> On Wed, Jul 31, 2013 at 12:14 AM, Matthew Garrett <mjg59@srcf.ucam.org> wrote:
+>> > There's no mechanism for an OS to know whether or not a firmware
+>> > implementation will actually turn the backlight off at 0, so there's no
+>> > way the OS can define the lowest backlight state as anything other than
+>> > "May or may not turn the screen off".
 >>
->> It's fine with me.  For information that I want in the dmesg log all
->> the time, with no special action from the user, I personally avoid
->> dev_dbg() because I can never figure out whether it's enabled or not.
->> But I don't use the information from this printk, so it's completely
->> up to you.  Just let me know what you want.  If you have other pending
->> changes to this file, you can take it, or I can put it in my tree.
+>> Yes there is; quirks.
 >
-> Yes, I have one change to this file in my queue for 3.12, so I can take this
-> patch.
+> We aren't going to maintain a quirk list in order to support a guarantee
+> that was never made. "0" as a backlight level has potentially meant
+> "screen off" since the interface was first introduced.
 
-OK.
+That doesn't change the fact that you were wrong, and there *is*
+actually a way. The fact that you don't want to go there doesn't mean
+it's not there.
 
-Acked-by: Bjorn Helgaas <bhelgaas@google.com>
+Here's another: device tree.
 
->> >> ---
->> >>  drivers/pci/pci-acpi.c | 2 +-
->> >>  1 file changed, 1 insertion(+), 1 deletion(-)
->> >>
->> >> diff --git a/drivers/pci/pci-acpi.c b/drivers/pci/pci-acpi.c
->> >> index c78cc43..fb3522957 100644
->> >> --- a/drivers/pci/pci-acpi.c
->> >> +++ b/drivers/pci/pci-acpi.c
->> >> @@ -210,7 +210,7 @@ static int acpi_pci_set_power_state(struct pci_dev *dev, pci_power_t state)
->> >>       }
->> >>
->> >>       if (!error)
->> >> -             dev_info(&dev->dev, "power state changed by ACPI to %s\n",
->> >> +             dev_dbg(&dev->dev, "power state changed by ACPI to %s\n",
->> >>                        acpi_power_state_string(state_conv[state]));
->> >>
->> >>       return error;
->> >>
->> > --
->> > I speak only for myself.
->> > Rafael J. Wysocki, Intel Open Source Technology Center.
-> --
-> I speak only for myself.
-> Rafael J. Wysocki, Intel Open Source Technology Center.
+There are ways to provide a consistent backlight interface to user-space.
+
+-- 
+Felipe Contreras
