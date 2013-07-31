@@ -1,58 +1,87 @@
-From: Alex Williamson <alex.williamson-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: Linux Plumbers ACPI/PM, PCI Microconference
-Date: Tue, 30 Jul 2013 18:36:32 -0600
-Message-ID: <1375230992.31262.87.camel@ul30vt.home>
-References: <CAL-B5D03ki8NHsM6EuESTH2K-Eh+XyFHNXPDYwgDq+oagDjtMQ@mail.gmail.com>
-	<CAKocOOOgEb5h1dZWP_2UqBKhSK9U-kxKUbvTdzHfds=RiDzNJg@mail.gmail.com>
-	<1476124.sWE2ygoo2D@vostro.rjw.lan>
-	<B8EFE96D1287C24090BAD9D858E15E6174F0B5@sisaex01sj>
+From: Aaron Lu <aaron.lwe@gmail.com>
+Subject: Re: [REGRESSION/PATCH] acpi: blacklist win8 OSI for ASUS Zenbok Prime
+ UX31A
+Date: Wed, 31 Jul 2013 09:36:32 +0800
+Message-ID: <51F86A20.3060309@gmail.com>
+References: <1375125658-1223-1-git-send-email-felipe.contreras@gmail.com> <3453253.oZLO1ChPbL@vostro.rjw.lan> <CAMP44s02V_FO1BPJZqo6MB9RMknXYdV7AXDqbJzYHpgK1GUuJw@mail.gmail.com> <37178266.QXgbv9rq0i@vostro.rjw.lan> <CAMP44s2LqiEGtS72FuTjsHUa1MH2kfaYHmcpNKMmAm2LnbFCCQ@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 7bit
-Return-path: <iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
-In-Reply-To: <B8EFE96D1287C24090BAD9D858E15E6174F0B5@sisaex01sj>
-List-Unsubscribe: <https://lists.linuxfoundation.org/mailman/options/iommu>,
-	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.linuxfoundation.org/pipermail/iommu/>
-List-Post: <mailto:iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
-List-Help: <mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.linuxfoundation.org/mailman/listinfo/iommu>,
-	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=subscribe>
-Sender: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
-Errors-To: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
-To: Shuah Khan <shuah.kh-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org>
-Cc: "kvm-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <kvm-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-pci <linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, LKML <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "virtualization-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org" <virtualization-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>, "Rafael J. Wysocki" <rjw-KKrjLPT3xs0@public.gmane.org>, "linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org" <iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>, Myron Stowe <myron.stowe-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Shuah Khan <shuahkhan-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, "linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org" <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-pb0-f49.google.com ([209.85.160.49]:61656 "EHLO
+	mail-pb0-f49.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754785Ab3GaBgW (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 30 Jul 2013 21:36:22 -0400
+In-Reply-To: <CAMP44s2LqiEGtS72FuTjsHUa1MH2kfaYHmcpNKMmAm2LnbFCCQ@mail.gmail.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Felipe Contreras <felipe.contreras@gmail.com>
+Cc: "Rafael J. Wysocki" <rjw@sisk.pl>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Len Brown <lenb@kernel.org>, Linus Torvalds <torvalds@linux-foundation.org>
 
-On Wed, 2013-07-31 at 00:02 +0000, Shuah Khan wrote:
-> On 07/30/2013 05:38 PM, Rafael J. Wysocki wrote:
-> > On Wednesday, July 17, 2013 08:31:55 AM Shuah Khan wrote:
-> >> Myron,
-> >>
-> >> On Tue, Jul 16, 2013 at 8:21 PM, Myron Stowe <myron.stowe-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org> wrote:
-> >>
-> >>>
-> >>> Shuah - You brought up the idea about "Converting drivers from Legacy
-> >>> PM ops to dev_pm_ops"; would you like to present what you have
-> >>> done/encountered so far?
-> >>>
-> >>
-> >> Awesome. Yes, I would like to present what I have done so far and I do
-> >> have a couple of things that could benefit from a face to face
-> >> discussion which would help me make progress on the rest of the work
-> >> that needs to get done.
-> >
-> > Care to sumbit a formal proposal through the LPC web page?
-> >
-> > Rafael
-> >
-> >
+On 07/31/2013 08:11 AM, Felipe Contreras wrote:
+> On Tue, Jul 30, 2013 at 6:13 PM, Rafael J. Wysocki <rjw@sisk.pl> wrote:
 > 
-> Rafael,
+>>> If 0 turns the screen off with the intel driver, 0 should turn the
+>>> screen off with the ACPI driver, having inconsistent behavior
+>>> depending on which driver is used is a bug.
+>>
+>> The ACPI driver simply exposes and interface to interact with the AML methods
+>> in the BIOS directly.
 > 
-> I did submit a formal talk proposal to LinuxCon/LPC and it was rejected. 
-> Submission is closed now as far as I know.
+> No, the ACPI driver is exposing a backlight interface, which has a
+> defined stable API.
+> 
+> Documentation/ABI/stable/sysfs-class-backlight
+> 
+> Yes, the interface doesn't define what should happen at 0, that is a
+> bug in the interface definition.
+> 
+> *How* it achieves that is an implementation detail.
+> 
+>> Yes, this is a mistake and shouldn't be designed this way.
+>>
+>> However, incidentally, this makes backlight control work on your machine.
+>>
+>> Anyway, we need all backlight drivers to work consistently and don't tempt me
+>> to rip the ACPI driver entirely from the kernel for what it's worth.
+> 
+> Yes, they should work consistently, and go ahead, rip the ACPI driver,
+> *then* you'll see many more people complaining about the Linux kernel
+> breaking user-space, which should never happen. Mistakes happen, but
+> if you do this willingly and knowingly, I think there would be
+> repercussions for you.
+> 
+>> Yes, that will break backlight on your system and *then* you can complain to
+>> Linus if you wish.
+> 
+> It is already broken in v3.11-rc3, in fact I just booted that to try
+> it out and it booted with the screen completely black (fortunately I
+> knew exactly what to type to change that).
 
-Microconference topics should be submitted here:
+That is bad, can you please file a bug for that? I'll need to take a
+look at your ACPI tables, thanks.
 
-http://www.linuxplumbersconf.org/2013/ocw/events/LPC2013/proposals/new
+> 
+> Apparently this commit also needs to be reverted: efaa14c (ACPI /
+> video: no automatic brightness changes by win8-compatible firmware).
+> In this machine it makes the backlight work again (without
+> acpi_osi="!Windows 2012"), but by doing so the ACPI driver also turns
+> off the screen completely at level 0. Also, each time I change the
+
+So with rc3 and commit efaa14c reverted, when you set level 0 to ACPI
+video's backlight interface, the screen will be off now? And this is not
+the case in 3.10, right?
+
+> backlight level from X, the screen blinks as if going 100%, 0%, and
+> then the desired level.
+
+Please attach acpidump output to the to be opened bugzilla page, thanks.
+
+-Aaron
+
+> 
+> For this particular machine simply applying the attached patch would
+> solve all those regressions, but who knows in other machines, I think
+> it's safer to revert efaa14c.
+> 
+
