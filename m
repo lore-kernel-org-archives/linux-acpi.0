@@ -1,47 +1,61 @@
-From: Bjorn Helgaas <bhelgaas@google.com>
-Subject: Re: [PATCH] APEI/ERST: Fix error message formatting
-Date: Wed, 31 Jul 2013 12:00:13 -0600
-Message-ID: <CAErSpo6hcjL_A9Vr1R0GqobUysdskd8B1S_9r7-zBSUvELFPXw@mail.gmail.com>
-References: <1374526866-6813-1-git-send-email-bp@alien8.de>
- <20130724171347.GB29756@naverao1-tp.watson.ibm.com> <1374686598.18818.18.camel@joe-AO722>
- <51F10AA8.2050901@linux.vnet.ibm.com> <CAErSpo5vLbsM5BXjrCVy1AKBxRRSH33TthyyK3O35Mghqw81nQ@mail.gmail.com>
- <51F8DCFC.9050205@linux.vnet.ibm.com>
+From: Felipe Contreras <felipe.contreras@gmail.com>
+Subject: Re: [REGRESSION/PATCH] acpi: blacklist win8 OSI for ASUS Zenbok Prime UX31A
+Date: Wed, 31 Jul 2013 13:07:57 -0500
+Message-ID: <CAMP44s1c5pmiC2fvmRi9vFrJXb2zYUT_F=paM2LR_V+7THnFVg@mail.gmail.com>
+References: <1375125658-1223-1-git-send-email-felipe.contreras@gmail.com>
+	<3453253.oZLO1ChPbL@vostro.rjw.lan>
+	<CAMP44s02V_FO1BPJZqo6MB9RMknXYdV7AXDqbJzYHpgK1GUuJw@mail.gmail.com>
+	<37178266.QXgbv9rq0i@vostro.rjw.lan>
+	<CAMP44s2LqiEGtS72FuTjsHUa1MH2kfaYHmcpNKMmAm2LnbFCCQ@mail.gmail.com>
+	<20130731051421.GA15766@srcf.ucam.org>
+	<CAMP44s2B=nQLnZm7gyYAJZgt_x3KszRZLUC=fom0t9=Eze+smA@mail.gmail.com>
+	<20130731140010.GA24560@srcf.ucam.org>
+	<CAMP44s1cLou9TMfLS+FHwPM_b3bG5HN1-hzgvhz0fVRCZ8XqWw@mail.gmail.com>
+	<20130731175232.GA29987@srcf.ucam.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-oa0-f53.google.com ([209.85.219.53]:64512 "EHLO
-	mail-oa0-f53.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755071Ab3GaSAe (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 31 Jul 2013 14:00:34 -0400
-Received: by mail-oa0-f53.google.com with SMTP id k18so1255707oag.40
-        for <linux-acpi@vger.kernel.org>; Wed, 31 Jul 2013 11:00:33 -0700 (PDT)
-In-Reply-To: <51F8DCFC.9050205@linux.vnet.ibm.com>
+Received: from mail-lb0-f170.google.com ([209.85.217.170]:48434 "EHLO
+	mail-lb0-f170.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755202Ab3GaSH7 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 31 Jul 2013 14:07:59 -0400
+In-Reply-To: <20130731175232.GA29987@srcf.ucam.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Naveen N. Rao" <naveen.n.rao@linux.vnet.ibm.com>
-Cc: Joe Perches <joe@perches.com>, Borislav Petkov <bp@alien8.de>, LKML <linux-kernel@vger.kernel.org>, Borislav Petkov <bp@suse.de>, Anton Vorontsov <anton@enomsg.org>, Colin Cross <ccross@android.com>, Kees Cook <keescook@chromium.org>, Tony Luck <tony.luck@intel.com>, Len Brown <lenb@kernel.org>, "Rafael J. Wysocki" <rjw@sisk.pl>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "Huang, Ying" <ying.huang@intel.com>
+To: Matthew Garrett <mjg59@srcf.ucam.org>
+Cc: "Rafael J. Wysocki" <rjw@sisk.pl>, Aaron Lu <aaron.lwe@gmail.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Len Brown <lenb@kernel.org>, Linus Torvalds <torvalds@linux-foundation.org>
 
-On Wed, Jul 31, 2013 at 3:46 AM, Naveen N. Rao
-<naveen.n.rao@linux.vnet.ibm.com> wrote:
+On Wed, Jul 31, 2013 at 12:52 PM, Matthew Garrett <mjg59@srcf.ucam.org> wrote:
+> On Wed, Jul 31, 2013 at 12:46:04PM -0500, Felipe Contreras wrote:
+>
+>> That doesn't change the fact that you were wrong, and there *is*
+>> actually a way. The fact that you don't want to go there doesn't mean
+>> it's not there.
+>
+> A quirk list will be incomplete, and as such there's no way to guarantee
+> whether or not a value of 0 will turn off the backlight. This is why the
+> interface doesn't make that guarantee, and why any userspace that
+> depends upon that behaviour is behaving incorrectly.
 
-> My key question was about why we are using a field width of 10 implying a
-> 32-bit value, rather than a field width of 18 as suggested by the data type?
-> This shouldn't truncate the value, but if we are specifying the field width
-> for alignment, seems to me it is better to match the data type.
+There's no "guarantee" of anything. There is no "guarantee" that your
+computer won't freeze when you boot Linux.
 
-%pR uses a field width of 10 (two for "0x", eight for the value)
-simply because the majority of resource values fit in 32 bits.  Larger
-values extend the width, so it's not a question of truncating any
-data.  But it's no fun to read memory addresses when most of them have
-eight extra leading zeros (the high 32-bits of a 64-bit value).  I
-think the same applies here; most ACPI table addresses still fit in 32
-bits.
+>> Here's another: device tree.
+>
+> There's no functional distinction between device tree and a quirk list
+> on x86 - they're both static data sources provided by something other
+> than the system firmware. As a result, they will both be incomplete.
 
-We *do* use a field width of 18 for the e820 table, even though many
-of those regions fit in 32 bits.  But that's sort of an exception
-because it's a table where addresses above 4GB are pretty common.
+So? If something can't be perfect that means we shouldn't even try?
 
-But at the end of the day, I guess I'm just stating my personal
-preferences and yours might be different.
+If we can make the software behave consistently for 99% of the
+machines out there instead of only 90%, that's better.
 
-Bjorn
+>> There are ways to provide a consistent backlight interface to user-space.
+>
+> No, there aren't.
+
+Yes there are. Not perfectly, nothing is ever perfect, but there are ways.
+
+-- 
+Felipe Contreras
