@@ -1,98 +1,38 @@
-From: Bjorn Helgaas <bhelgaas@google.com>
-Subject: [PATCH v2] ACPICA: acpi_read: update return_value atomically
-Date: Wed, 31 Jul 2013 13:28:37 -0600
-Message-ID: <20130731192837.8393.78635.stgit@bhelgaas-glaptop>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: Re: i915 backlight
+Date: Wed, 31 Jul 2013 23:16:52 +0200
+Message-ID: <1419236.138PcnXVBh@vostro.rjw.lan>
+References: <20130731162252.GC4724@pd.tnic> <20130731163623.GD4724@pd.tnic>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 7Bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-yh0-f46.google.com ([209.85.213.46]:57790 "EHLO
-	mail-yh0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751888Ab3GaT2n (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 31 Jul 2013 15:28:43 -0400
-Received: by mail-yh0-f46.google.com with SMTP id i57so525642yha.33
-        for <linux-acpi@vger.kernel.org>; Wed, 31 Jul 2013 12:28:41 -0700 (PDT)
+Received: from hydra.sisk.pl ([212.160.235.94]:49441 "EHLO hydra.sisk.pl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1757336Ab3GaVGl (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 31 Jul 2013 17:06:41 -0400
+In-Reply-To: <20130731163623.GD4724@pd.tnic>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Bob Moore <robert.moore@intel.com>
-Cc: "Rafael J. Wysocki" <rjw@sisk.pl>, linux-acpi@vger.kernel.org, Lv Zheng <lv.zheng@intel.com>, Len Brown <lenb@kernel.org>
+To: Borislav Petkov <bp@alien8.de>
+Cc: intel-gfx@lists.freedesktop.org, dri-devel@lists.freedesktop.org, lkml <linux-kernel@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Aaron Lu <aaron.lu@intel.com>
 
-Accumulate the entire 64-bit value before updating the return_value.
-Previously, it was possible to update the low 32 bits, then return
-failure if reading the upper 32 bits failed, leaving a half-updated
-return_value.
+On Wednesday, July 31, 2013 06:36:23 PM Borislav Petkov wrote:
+> On Wed, Jul 31, 2013 at 06:22:52PM +0200, Borislav Petkov wrote:
+> > Dudes,
+> > 
+> > has anyone already reported this (happens on Linus of today +
+> > tip/master):
+> 
+> Oh, one more thing: I can't control the backlight anymore on this x230
+> with the Fn-Fx keys and this is most probably related to that recent
+> backlight revert story. If there is a new approach I can test, please
+> let me know.
+> 
+> Btw, it worked before on this machine with "acpi_backlight=vendor" on
+> the cmdline.
 
-Signed-off-by: Bjorn Helgaas <bhelgaas@google.com>
----
- drivers/acpi/acpica/hwxface.c |   20 ++++++++++----------
- 1 file changed, 10 insertions(+), 10 deletions(-)
+Does reverting efaa14c help?
 
-diff --git a/drivers/acpi/acpica/hwxface.c b/drivers/acpi/acpica/hwxface.c
-index 5ee7a81..3cf7b86 100644
---- a/drivers/acpi/acpica/hwxface.c
-+++ b/drivers/acpi/acpica/hwxface.c
-@@ -119,9 +119,10 @@ ACPI_EXPORT_SYMBOL(acpi_reset)
-  ******************************************************************************/
- acpi_status acpi_read(u64 *return_value, struct acpi_generic_address *reg)
- {
--	u32 value;
-+	u32 word;
- 	u32 width;
- 	u64 address;
-+	u64 value;
- 	acpi_status status;
- 
- 	ACPI_FUNCTION_NAME(acpi_read);
-@@ -137,10 +138,8 @@ acpi_status acpi_read(u64 *return_value, struct acpi_generic_address *reg)
- 		return (status);
- 	}
- 
--	/* Initialize entire 64-bit return value to zero */
--
--	*return_value = 0;
- 	value = 0;
-+	word = 0;
- 
- 	/*
- 	 * Two address spaces supported: Memory or IO. PCI_Config is
-@@ -161,32 +160,33 @@ acpi_status acpi_read(u64 *return_value, struct acpi_generic_address *reg)
- 		}
- 
- 		status = acpi_hw_read_port((acpi_io_address)
--					   address, &value, width);
-+					   address, &word, width);
- 		if (ACPI_FAILURE(status)) {
- 			return (status);
- 		}
--		*return_value = value;
-+		value = word;
- 
- 		if (reg->bit_width == 64) {
- 
- 			/* Read the top 32 bits */
- 
- 			status = acpi_hw_read_port((acpi_io_address)
--						   (address + 4), &value, 32);
-+						   (address + 4), &word, 32);
- 			if (ACPI_FAILURE(status)) {
- 				return (status);
- 			}
--			*return_value |= ((u64)value << 32);
-+			value |= ((u64)word << 32);
- 		}
- 	}
- 
-+	*return_value = value;
- 	ACPI_DEBUG_PRINT((ACPI_DB_IO,
- 			  "Read:  %8.8X%8.8X width %2d from %8.8X%8.8X (%s)\n",
--			  ACPI_FORMAT_UINT64(*return_value), reg->bit_width,
-+			  ACPI_FORMAT_UINT64(value), reg->bit_width,
- 			  ACPI_FORMAT_UINT64(address),
- 			  acpi_ut_get_region_name(reg->space_id)));
- 
--	return (status);
-+	return (AE_OK);
- }
- 
- ACPI_EXPORT_SYMBOL(acpi_read)
+Rafael
 
