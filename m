@@ -1,83 +1,53 @@
 From: "Naveen N. Rao" <naveen.n.rao@linux.vnet.ibm.com>
 Subject: Re: [PATCH] APEI/ERST: Fix error message formatting
-Date: Wed, 31 Jul 2013 15:16:36 +0530
-Message-ID: <51F8DCFC.9050205@linux.vnet.ibm.com>
-References: <1374526866-6813-1-git-send-email-bp@alien8.de> <20130724171347.GB29756@naverao1-tp.watson.ibm.com> <1374686598.18818.18.camel@joe-AO722> <51F10AA8.2050901@linux.vnet.ibm.com> <CAErSpo5vLbsM5BXjrCVy1AKBxRRSH33TthyyK3O35Mghqw81nQ@mail.gmail.com>
+Date: Wed, 31 Jul 2013 15:27:09 +0530
+Message-ID: <51F8DF75.1030306@linux.vnet.ibm.com>
+References: <1374526866-6813-1-git-send-email-bp@alien8.de> <20130724171347.GB29756@naverao1-tp.watson.ibm.com> <1374686598.18818.18.camel@joe-AO722> <51F10AA8.2050901@linux.vnet.ibm.com> <CAErSpo5vLbsM5BXjrCVy1AKBxRRSH33TthyyK3O35Mghqw81nQ@mail.gmail.com> <20130729135812.GD6634@pd.tnic> <CAErSpo6fbMmicX95j_wYkJRnQeJEZ_jQSm76j9ZN4sHP0C2Yhg@mail.gmail.com> <20130729144046.GE6634@pd.tnic> <CAErSpo69wNc1h6PyJhFfhdFzz0GOiM=SCCfrm-WO5XDFTFzcHw@mail.gmail.com> <20130729152230.GG6634@pd.tnic>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: text/plain; charset=UTF-8; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from e28smtp05.in.ibm.com ([122.248.162.5]:57969 "EHLO
-	e28smtp05.in.ibm.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1759071Ab3GaJrK (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 31 Jul 2013 05:47:10 -0400
+Received: from e23smtp04.au.ibm.com ([202.81.31.146]:44707 "EHLO
+	e23smtp04.au.ibm.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753069Ab3GaJ5c (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 31 Jul 2013 05:57:32 -0400
 Received: from /spool/local
-	by e28smtp05.in.ibm.com with IBM ESMTP SMTP Gateway: Authorized Use Only! Violators will be prosecuted
+	by e23smtp04.au.ibm.com with IBM ESMTP SMTP Gateway: Authorized Use Only! Violators will be prosecuted
 	for <linux-acpi@vger.kernel.org> from <naveen.n.rao@linux.vnet.ibm.com>;
-	Wed, 31 Jul 2013 15:11:08 +0530
-In-Reply-To: <CAErSpo5vLbsM5BXjrCVy1AKBxRRSH33TthyyK3O35Mghqw81nQ@mail.gmail.com>
+	Wed, 31 Jul 2013 19:41:27 +1000
+In-Reply-To: <20130729152230.GG6634@pd.tnic>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Bjorn Helgaas <bhelgaas@google.com>
-Cc: Joe Perches <joe@perches.com>, Borislav Petkov <bp@alien8.de>, LKML <linux-kernel@vger.kernel.org>, Borislav Petkov <bp@suse.de>, Anton Vorontsov <anton@enomsg.org>, Colin Cross <ccross@android.com>, Kees Cook <keescook@chromium.org>, Tony Luck <tony.luck@intel.com>, Len Brown <lenb@kernel.org>, "Rafael J. Wysocki" <rjw@sisk.pl>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "Huang, Ying" <ying.huang@intel.com>
+To: Borislav Petkov <bp@alien8.de>
+Cc: Bjorn Helgaas <bhelgaas@google.com>, Joe Perches <joe@perches.com>, LKML <linux-kernel@vger.kernel.org>, Borislav Petkov <bp@suse.de>, Anton Vorontsov <anton@enomsg.org>, Colin Cross <ccross@android.com>, Kees Cook <keescook@chromium.org>, Tony Luck <tony.luck@intel.com>, Len Brown <lenb@kernel.org>, "Rafael J. Wysocki" <rjw@sisk.pl>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "Huang, Ying" <ying.huang@intel.com>
 
-On 07/25/2013 11:02 PM, Bjorn Helgaas wrote:
-> On Thu, Jul 25, 2013 at 5:23 AM, Naveen N. Rao
-> <naveen.n.rao@linux.vnet.ibm.com> wrote:
->> On 07/24/2013 10:53 PM, Joe Perches wrote:
->>>
->>> On Wed, 2013-07-24 at 22:43 +0530, Naveen N. Rao wrote:
->>>>
->>>> On 2013/07/22 11:01PM, Borislav Petkov wrote:
->>>>>
->>>>> From: Borislav Petkov <bp@suse.de>
->>>>>
->>>>> [    5.525861] ERST: Can not request iomem region <0x        c7eff000-0x
->>>>> c7f00000> for ERST.
->>>>>
->>>>> This needs to have leading zeroes. Make it so.
->>>
->>>
->>> Why does it need leading zeros?
->>>
->>>> While looking at this, I noticed that we seem to be using varying field
->>>> widths in our APEI code:
->>>> - einj.c has two instances using %#010llx.
->>>> - apei-base.c uses widths of 10 (4 bytes) and 6 (2 bytes).
->>>>
->>>> Not sure if these are intentional and those fields truly aren't 64-bit
->>>> (as suggested by the usage of long long int).
->>>
->>>
->>> I suggest using "0x%llx" everywhere unless there's a
->>> compelling reason like columnar alignment for them.
->>
->>
->> I think that might be better. I see that these changes were done in commit
->> 46b91e37. Copying Bjorn Helgaas.
+On 07/29/2013 08:52 PM, Borislav Petkov wrote:
+> @@ -186,8 +186,8 @@ static int erst_exec_stall(struct apei_exec_context *ctx,
 >
-> As the 46b91e37 changelog says, it was done to use "the normal
-> %pR-like format".  I think that's a valid goal.  When we're printing
-> the same sort of information, we should use the same sort of format.
+>   	if (ctx->value > FIRMWARE_MAX_STALL) {
+>   		if (!in_nmi())
+> -			pr_warning(FW_WARN ERST_PFX
+> -			"Too long stall time for stall instruction: %llx.\n",
+> +			pr_warn(FW_WARN
+> +			"Too long stall time for stall instruction: 0x%llx.\n",
 
-Bjorn,
-My key question was about why we are using a field width of 10 implying 
-a 32-bit value, rather than a field width of 18 as suggested by the data 
-type? This shouldn't truncate the value, but if we are specifying the 
-field width for alignment, seems to me it is better to match the data type.
+A minor nit: %#llx to stay consistent with the other changes later on.
+
+>   				   ctx->value);
+>   		stall_time = FIRMWARE_MAX_STALL;
+>   	} else
+> @@ -206,8 +206,8 @@ static int erst_exec_stall_while_true(struct apei_exec_context *ctx,
+>
+>   	if (ctx->var1 > FIRMWARE_MAX_STALL) {
+>   		if (!in_nmi())
+> -			pr_warning(FW_WARN ERST_PFX
+> -		"Too long stall time for stall while true instruction: %llx.\n",
+> +			pr_warn(FW_WARN
+> +		"Too long stall time for stall while true instruction: 0x%llx.\n",
+
+Ditto.
+
 
 Thanks,
 Naveen
-
->
-> But I don't think the "Can not request iomem region <0x
-> c7eff000-0x        c7f00000> for ERST" output mentioned in the
-> original post was affected by 46b91e37.  I would suggest a change
-> similar to 46b91e37 for ERST, and I would suggest using the leading
-> zeros, with %#010llx for physical memory addresses and %#06llx for
-> ioport addresses.  That's what %pR uses, and it produces columnar
-> alignment in many cases (though not this one).
->
-> Bjorn
->
 
