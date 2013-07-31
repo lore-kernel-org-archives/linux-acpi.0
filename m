@@ -1,41 +1,67 @@
-From: Matthew Garrett <mjg59@srcf.ucam.org>
-Subject: Re: [REGRESSION/PATCH] acpi: blacklist win8 OSI for ASUS Zenbok
- Prime UX31A
-Date: Wed, 31 Jul 2013 15:00:10 +0100
-Message-ID: <20130731140010.GA24560@srcf.ucam.org>
-References: <1375125658-1223-1-git-send-email-felipe.contreras@gmail.com>
- <3453253.oZLO1ChPbL@vostro.rjw.lan>
- <CAMP44s02V_FO1BPJZqo6MB9RMknXYdV7AXDqbJzYHpgK1GUuJw@mail.gmail.com>
- <37178266.QXgbv9rq0i@vostro.rjw.lan>
- <CAMP44s2LqiEGtS72FuTjsHUa1MH2kfaYHmcpNKMmAm2LnbFCCQ@mail.gmail.com>
- <20130731051421.GA15766@srcf.ucam.org>
- <CAMP44s2B=nQLnZm7gyYAJZgt_x3KszRZLUC=fom0t9=Eze+smA@mail.gmail.com>
+From: Shuah Khan <shuahkhan-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: Re: [Announcement] Linux Plumbers ACPI/PM, PCI Microconference
+Date: Wed, 31 Jul 2013 10:35:05 -0600
+Message-ID: <CAKocOOPOqqS80D23z6xTVSNYYYWZ7ACg9MtSMz_hTqVA3Duo0w@mail.gmail.com>
+References: <CAL-B5D03ki8NHsM6EuESTH2K-Eh+XyFHNXPDYwgDq+oagDjtMQ@mail.gmail.com>
+	<1755363.sGc8nLIQOW@vostro.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cavan.codon.org.uk ([93.93.128.6]:38135 "EHLO
-	cavan.codon.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752686Ab3GaOAP (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 31 Jul 2013 10:00:15 -0400
-Content-Disposition: inline
-In-Reply-To: <CAMP44s2B=nQLnZm7gyYAJZgt_x3KszRZLUC=fom0t9=Eze+smA@mail.gmail.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
+In-Reply-To: <1755363.sGc8nLIQOW-sKB8Sp2ER+y1GS7QM15AGw@public.gmane.org>
+List-Unsubscribe: <https://lists.linuxfoundation.org/mailman/options/iommu>,
+	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.linuxfoundation.org/pipermail/iommu/>
+List-Post: <mailto:iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
+List-Help: <mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.linuxfoundation.org/mailman/listinfo/iommu>,
+	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=subscribe>
+Sender: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
+Errors-To: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
+To: "Rafael J. Wysocki" <rjw-KKrjLPT3xs0@public.gmane.org>
+Cc: shuah.kh-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org, kvm-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Linux PM list <linux-pm-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-pci <linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, LKML <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, virtualization-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org, ACPI Devel Maling List <linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org, Myron Stowe <myron.stowe-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Bjorn Helgaas <bhelgaas-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org>, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
-To: Felipe Contreras <felipe.contreras@gmail.com>
-Cc: "Rafael J. Wysocki" <rjw@sisk.pl>, Aaron Lu <aaron.lwe@gmail.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Len Brown <lenb@kernel.org>, Linus Torvalds <torvalds@linux-foundation.org>
 
-On Wed, Jul 31, 2013 at 06:32:47AM -0500, Felipe Contreras wrote:
-> On Wed, Jul 31, 2013 at 12:14 AM, Matthew Garrett <mjg59@srcf.ucam.org> wrote:
-> > There's no mechanism for an OS to know whether or not a firmware
-> > implementation will actually turn the backlight off at 0, so there's no
-> > way the OS can define the lowest backlight state as anything other than
-> > "May or may not turn the screen off".
-> 
-> Yes there is; quirks.
+On Wed, Jul 31, 2013 at 5:40 AM, Rafael J. Wysocki <rjw-KKrjLPT3xs0@public.gmane.org> wrote:
+> Hi All,
+>
+> The original announcement didn't go to linux-pm, so again:
+>
+> On Tuesday, July 16, 2013 08:21:26 PM Myron Stowe wrote:
+>> Linux Plumbers has approved an ACPI/PM, PCI microconference. The
+>> overview page is here:
+>>
+>> http://wiki.linuxplumbersconf.org/2013:pci_subsystem
+>>
+>> We would like to start receiving volunteers for presenting topics of
+>> interest.  There is a lot of activity in these subsystems so please
+>> respond by submitting presentation or discussion proposals that you
+>> would be willing to cover for consideration.  You should also feel
+>> free to submit ideas as proposals that others could cover.  The
+>> instructions for submitting ideas should be at:
+>>
+>> http://www.linuxplumbersconf.org/2013/submitting-topic/
+>
+> If anyone who's going to attend the Linux Plumbers Conf this year is interested
+> in any particular topic for discussion during the ACPI/PM+PCI uconf, please
+> submit a formal topic proposal at:
+>
+> http://www.linuxplumbersconf.org/2013/ocw/events/LPC2013/proposals/new
+>
+> If you submit a topic, that doesn't mean you'll be expected to present anything
+> (if accepted).  In fact, we are mostly interested in discussion topics and we'd
+> like to know what is important to people.
+>
+> That said if you have a (short) presentation to make, please submit it too.
+>
+> We'll appreciate all submissions very much.
+>
 
-We aren't going to maintain a quirk list in order to support a guarantee 
-that was never made. "0" as a backlight level has potentially meant 
-"screen off" since the interface was first introduced.
+What I have mind is a discussion topic for the Mini-conference, which
+in-line with what you are asking for.
+I will add it to the web. Thanks for pinging me on this.
 
--- 
-Matthew Garrett | mjg59@srcf.ucam.org
+-- Shuah
+
+Shuah Khan, Linux Kernel Developer - Open Source Group Samsung Research
+America (Silicon Valley) shuah.kh-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org | (970) 672-0658
