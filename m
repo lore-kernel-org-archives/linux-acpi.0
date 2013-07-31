@@ -1,40 +1,98 @@
-From: Matthew Garrett <mjg59@srcf.ucam.org>
-Subject: Re: [REGRESSION/PATCH] acpi: blacklist win8 OSI for ASUS Zenbok
- Prime UX31A
-Date: Wed, 31 Jul 2013 19:47:24 +0100
-Message-ID: <20130731184724.GA30896@srcf.ucam.org>
-References: <3453253.oZLO1ChPbL@vostro.rjw.lan>
- <CAMP44s02V_FO1BPJZqo6MB9RMknXYdV7AXDqbJzYHpgK1GUuJw@mail.gmail.com>
- <37178266.QXgbv9rq0i@vostro.rjw.lan>
- <CAMP44s2LqiEGtS72FuTjsHUa1MH2kfaYHmcpNKMmAm2LnbFCCQ@mail.gmail.com>
- <20130731051421.GA15766@srcf.ucam.org>
- <CAMP44s2B=nQLnZm7gyYAJZgt_x3KszRZLUC=fom0t9=Eze+smA@mail.gmail.com>
- <20130731140010.GA24560@srcf.ucam.org>
- <CAMP44s1cLou9TMfLS+FHwPM_b3bG5HN1-hzgvhz0fVRCZ8XqWw@mail.gmail.com>
- <20130731175232.GA29987@srcf.ucam.org>
- <CAMP44s1c5pmiC2fvmRi9vFrJXb2zYUT_F=paM2LR_V+7THnFVg@mail.gmail.com>
+From: Bjorn Helgaas <bhelgaas@google.com>
+Subject: [PATCH v2] ACPICA: acpi_read: update return_value atomically
+Date: Wed, 31 Jul 2013 13:28:37 -0600
+Message-ID: <20130731192837.8393.78635.stgit@bhelgaas-glaptop>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cavan.codon.org.uk ([93.93.128.6]:42299 "EHLO
-	cavan.codon.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755226Ab3GaSr3 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 31 Jul 2013 14:47:29 -0400
-Content-Disposition: inline
-In-Reply-To: <CAMP44s1c5pmiC2fvmRi9vFrJXb2zYUT_F=paM2LR_V+7THnFVg@mail.gmail.com>
+Received: from mail-yh0-f46.google.com ([209.85.213.46]:57790 "EHLO
+	mail-yh0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751888Ab3GaT2n (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 31 Jul 2013 15:28:43 -0400
+Received: by mail-yh0-f46.google.com with SMTP id i57so525642yha.33
+        for <linux-acpi@vger.kernel.org>; Wed, 31 Jul 2013 12:28:41 -0700 (PDT)
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Felipe Contreras <felipe.contreras@gmail.com>
-Cc: "Rafael J. Wysocki" <rjw@sisk.pl>, Aaron Lu <aaron.lwe@gmail.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Len Brown <lenb@kernel.org>, Linus Torvalds <torvalds@linux-foundation.org>
+To: Bob Moore <robert.moore@intel.com>
+Cc: "Rafael J. Wysocki" <rjw@sisk.pl>, linux-acpi@vger.kernel.org, Lv Zheng <lv.zheng@intel.com>, Len Brown <lenb@kernel.org>
 
-On Wed, Jul 31, 2013 at 01:07:57PM -0500, Felipe Contreras wrote:
-> If we can make the software behave consistently for 99% of the
-> machines out there instead of only 90%, that's better.
+Accumulate the entire 64-bit value before updating the return_value.
+Previously, it was possible to update the low 32 bits, then return
+failure if reading the upper 32 bits failed, leaving a half-updated
+return_value.
 
-If we can't make an interface 100% consistent, we shouldn't pretend that 
-the interface is 100% consistent. We can't, and so we don't. Setting a 
-backlight value of 0 may turn the screen off, and userspace needs to 
-deal with that.
+Signed-off-by: Bjorn Helgaas <bhelgaas@google.com>
+---
+ drivers/acpi/acpica/hwxface.c |   20 ++++++++++----------
+ 1 file changed, 10 insertions(+), 10 deletions(-)
 
--- 
-Matthew Garrett | mjg59@srcf.ucam.org
+diff --git a/drivers/acpi/acpica/hwxface.c b/drivers/acpi/acpica/hwxface.c
+index 5ee7a81..3cf7b86 100644
+--- a/drivers/acpi/acpica/hwxface.c
++++ b/drivers/acpi/acpica/hwxface.c
+@@ -119,9 +119,10 @@ ACPI_EXPORT_SYMBOL(acpi_reset)
+  ******************************************************************************/
+ acpi_status acpi_read(u64 *return_value, struct acpi_generic_address *reg)
+ {
+-	u32 value;
++	u32 word;
+ 	u32 width;
+ 	u64 address;
++	u64 value;
+ 	acpi_status status;
+ 
+ 	ACPI_FUNCTION_NAME(acpi_read);
+@@ -137,10 +138,8 @@ acpi_status acpi_read(u64 *return_value, struct acpi_generic_address *reg)
+ 		return (status);
+ 	}
+ 
+-	/* Initialize entire 64-bit return value to zero */
+-
+-	*return_value = 0;
+ 	value = 0;
++	word = 0;
+ 
+ 	/*
+ 	 * Two address spaces supported: Memory or IO. PCI_Config is
+@@ -161,32 +160,33 @@ acpi_status acpi_read(u64 *return_value, struct acpi_generic_address *reg)
+ 		}
+ 
+ 		status = acpi_hw_read_port((acpi_io_address)
+-					   address, &value, width);
++					   address, &word, width);
+ 		if (ACPI_FAILURE(status)) {
+ 			return (status);
+ 		}
+-		*return_value = value;
++		value = word;
+ 
+ 		if (reg->bit_width == 64) {
+ 
+ 			/* Read the top 32 bits */
+ 
+ 			status = acpi_hw_read_port((acpi_io_address)
+-						   (address + 4), &value, 32);
++						   (address + 4), &word, 32);
+ 			if (ACPI_FAILURE(status)) {
+ 				return (status);
+ 			}
+-			*return_value |= ((u64)value << 32);
++			value |= ((u64)word << 32);
+ 		}
+ 	}
+ 
++	*return_value = value;
+ 	ACPI_DEBUG_PRINT((ACPI_DB_IO,
+ 			  "Read:  %8.8X%8.8X width %2d from %8.8X%8.8X (%s)\n",
+-			  ACPI_FORMAT_UINT64(*return_value), reg->bit_width,
++			  ACPI_FORMAT_UINT64(value), reg->bit_width,
+ 			  ACPI_FORMAT_UINT64(address),
+ 			  acpi_ut_get_region_name(reg->space_id)));
+ 
+-	return (status);
++	return (AE_OK);
+ }
+ 
+ ACPI_EXPORT_SYMBOL(acpi_read)
+
