@@ -1,67 +1,71 @@
-From: Shuah Khan <shuahkhan-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: Re: [Announcement] Linux Plumbers ACPI/PM, PCI Microconference
-Date: Wed, 31 Jul 2013 10:35:05 -0600
-Message-ID: <CAKocOOPOqqS80D23z6xTVSNYYYWZ7ACg9MtSMz_hTqVA3Duo0w@mail.gmail.com>
-References: <CAL-B5D03ki8NHsM6EuESTH2K-Eh+XyFHNXPDYwgDq+oagDjtMQ@mail.gmail.com>
-	<1755363.sGc8nLIQOW@vostro.rjw.lan>
+From: Bjorn Helgaas <bhelgaas@google.com>
+Subject: Re: [PATCH] PCI/ACPI: Change dev_info() to dev_dbg() in the acpi_pci_set_power_state()
+Date: Wed, 31 Jul 2013 11:26:14 -0600
+Message-ID: <CAErSpo5qqXjnSgOaj_EAu2JbvpYsC+uOOYdH0hzkFL+zPy1CEQ@mail.gmail.com>
+References: <1375151550-28632-1-git-send-email-tianyu.lan@intel.com>
+ <8048720.q4LxpIqNkE@vostro.rjw.lan> <CAErSpo7XGa+t0g3Zp+4tXwS8JdAa5UonN7rt6dSZpEmDZuXP7w@mail.gmail.com>
+ <3509301.e8ST4r5R4A@vostro.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
-In-Reply-To: <1755363.sGc8nLIQOW-sKB8Sp2ER+y1GS7QM15AGw@public.gmane.org>
-List-Unsubscribe: <https://lists.linuxfoundation.org/mailman/options/iommu>,
-	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.linuxfoundation.org/pipermail/iommu/>
-List-Post: <mailto:iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
-List-Help: <mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.linuxfoundation.org/mailman/listinfo/iommu>,
-	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=subscribe>
-Sender: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
-Errors-To: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
-To: "Rafael J. Wysocki" <rjw-KKrjLPT3xs0@public.gmane.org>
-Cc: shuah.kh-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org, kvm-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Linux PM list <linux-pm-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-pci <linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, LKML <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, virtualization-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org, ACPI Devel Maling List <linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org, Myron Stowe <myron.stowe-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Bjorn Helgaas <bhelgaas-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org>, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
+Content-Type: text/plain; charset=ISO-8859-1
+Return-path: <linux-pci-owner@vger.kernel.org>
+In-Reply-To: <3509301.e8ST4r5R4A@vostro.rjw.lan>
+Sender: linux-pci-owner@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: "lan,Tianyu" <tianyu.lan@intel.com>, Len Brown <lenb@kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>, Alan Stern <stern@rowland.harvard.edu>
 List-Id: linux-acpi@vger.kernel.org
 
-On Wed, Jul 31, 2013 at 5:40 AM, Rafael J. Wysocki <rjw-KKrjLPT3xs0@public.gmane.org> wrote:
-> Hi All,
->
-> The original announcement didn't go to linux-pm, so again:
->
-> On Tuesday, July 16, 2013 08:21:26 PM Myron Stowe wrote:
->> Linux Plumbers has approved an ACPI/PM, PCI microconference. The
->> overview page is here:
+On Tue, Jul 30, 2013 at 5:31 PM, Rafael J. Wysocki <rjw@sisk.pl> wrote:
+> On Tuesday, July 30, 2013 09:40:18 AM Bjorn Helgaas wrote:
+>> On Tue, Jul 30, 2013 at 7:59 AM, Rafael J. Wysocki <rjw@sisk.pl> wrote:
+>> > On Tuesday, July 30, 2013 10:32:30 AM tianyu.lan@intel.com wrote:
+>> >> From: Lan Tianyu <tianyu.lan@intel.com>
+>> >>
+>> >> acpi_pci_set_power_state() produces log of device power state changing.
+>> >> Now the log is produced by dev_info(). This seems make no sense when user
+>> >> doesn't open debug option. So change it to dev_dbg() and prevent kernel
+>> >> log from being.
+>> >>
+>> >> Reference: https://bugzilla.kernel.org/show_bug.cgi?id=60636
+>> >> Suggested-by: Alan Stern <stern@rowland.harvard.edu>
+>> >> Signed-off-by: Lan Tianyu <tianyu.lan@intel.com>
+>> >
+>> > Bjorn, what do you think about this?
 >>
->> http://wiki.linuxplumbersconf.org/2013:pci_subsystem
->>
->> We would like to start receiving volunteers for presenting topics of
->> interest.  There is a lot of activity in these subsystems so please
->> respond by submitting presentation or discussion proposals that you
->> would be willing to cover for consideration.  You should also feel
->> free to submit ideas as proposals that others could cover.  The
->> instructions for submitting ideas should be at:
->>
->> http://www.linuxplumbersconf.org/2013/submitting-topic/
+>> It's fine with me.  For information that I want in the dmesg log all
+>> the time, with no special action from the user, I personally avoid
+>> dev_dbg() because I can never figure out whether it's enabled or not.
+>> But I don't use the information from this printk, so it's completely
+>> up to you.  Just let me know what you want.  If you have other pending
+>> changes to this file, you can take it, or I can put it in my tree.
 >
-> If anyone who's going to attend the Linux Plumbers Conf this year is interested
-> in any particular topic for discussion during the ACPI/PM+PCI uconf, please
-> submit a formal topic proposal at:
->
-> http://www.linuxplumbersconf.org/2013/ocw/events/LPC2013/proposals/new
->
-> If you submit a topic, that doesn't mean you'll be expected to present anything
-> (if accepted).  In fact, we are mostly interested in discussion topics and we'd
-> like to know what is important to people.
->
-> That said if you have a (short) presentation to make, please submit it too.
->
-> We'll appreciate all submissions very much.
->
+> Yes, I have one change to this file in my queue for 3.12, so I can take this
+> patch.
 
-What I have mind is a discussion topic for the Mini-conference, which
-in-line with what you are asking for.
-I will add it to the web. Thanks for pinging me on this.
+OK.
 
--- Shuah
+Acked-by: Bjorn Helgaas <bhelgaas@google.com>
 
-Shuah Khan, Linux Kernel Developer - Open Source Group Samsung Research
-America (Silicon Valley) shuah.kh-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org | (970) 672-0658
+>> >> ---
+>> >>  drivers/pci/pci-acpi.c | 2 +-
+>> >>  1 file changed, 1 insertion(+), 1 deletion(-)
+>> >>
+>> >> diff --git a/drivers/pci/pci-acpi.c b/drivers/pci/pci-acpi.c
+>> >> index c78cc43..fb3522957 100644
+>> >> --- a/drivers/pci/pci-acpi.c
+>> >> +++ b/drivers/pci/pci-acpi.c
+>> >> @@ -210,7 +210,7 @@ static int acpi_pci_set_power_state(struct pci_dev *dev, pci_power_t state)
+>> >>       }
+>> >>
+>> >>       if (!error)
+>> >> -             dev_info(&dev->dev, "power state changed by ACPI to %s\n",
+>> >> +             dev_dbg(&dev->dev, "power state changed by ACPI to %s\n",
+>> >>                        acpi_power_state_string(state_conv[state]));
+>> >>
+>> >>       return error;
+>> >>
+>> > --
+>> > I speak only for myself.
+>> > Rafael J. Wysocki, Intel Open Source Technology Center.
+> --
+> I speak only for myself.
+> Rafael J. Wysocki, Intel Open Source Technology Center.
