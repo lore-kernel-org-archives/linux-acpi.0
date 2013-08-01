@@ -1,91 +1,50 @@
-From: Aaron Lu <aaron.lu@intel.com>
-Subject: [PATCH updated] ACPI / PM: Add state information in error message
- for acpi_device_set_power
-Date: Thu, 01 Aug 2013 08:49:45 +0800
-Message-ID: <51F9B0A9.8000207@intel.com>
-References: <10433383.dueoNg39qi@vostro.rjw.lan> <4285597.UpTJrMA8Fu@vostro.rjw.lan> <51F8B445.1070000@intel.com> <1858303.iaJrUSpF87@vostro.rjw.lan>
+From: Takao Indoh <indou.takao@jp.fujitsu.com>
+Subject: Re: [PATCH v2] PCI: Reset PCIe devices to stop ongoing DMA
+Date: Thu, 01 Aug 2013 15:34:06 +0900
+Message-ID: <51FA015E.10901@jp.fujitsu.com>
+References: <1368509365-2260-1-git-send-email-indou.takao@jp.fujitsu.com> <51F85BCC.2070103@jp.fujitsu.com> <CAErSpo4yJ2yqCWv7GT7jWSVd_8SktU=xJXT78m8Vxp_wLA4Fow@mail.gmail.com> <1699397.FXoFYIGzbk@vostro.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset=ISO-2022-JP
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-pm-owner@vger.kernel.org>
-In-Reply-To: <1858303.iaJrUSpF87@vostro.rjw.lan>
-Sender: linux-pm-owner@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>, Linux PM list <linux-pm@vger.kernel.org>, Yinghai Lu <yinghai@kernel.org>, Bjorn Helgaas <bhelgaas@google.com>, Tejun Heo <tj@kernel.org>, linux-ide@vger.kernel.org
+Return-path: <linux-pci-owner@vger.kernel.org>
+In-Reply-To: <1699397.FXoFYIGzbk@vostro.rjw.lan>
+Sender: linux-pci-owner@vger.kernel.org
+To: bhelgaas@google.com
+Cc: rjw@sisk.pl, vgoyal@redhat.com, linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, iommu@lists.linux-foundation.org, kexec@lists.infradead.org, ishii.hironobu@jp.fujitsu.com, ddutile@redhat.com, bill.sumner@hp.com, alex.williamson@redhat.com, hbabu@us.ibm.com, linux-acpi@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-On 07/31/2013 06:27 PM, Rafael J. Wysocki wrote:
->> Patch to add state information in error message, apply on top of this
->> > one.
->> > 
->> > From: Aaron Lu <aaron.lu@intel.com>
->> > Subject: [PATCH] ACPI / PM: Add state information in error message for
->> >  acpi_device_set_power
->> > 
->> > The state information can be useful to know what the problem is when it
->> > appeared in an error message about a device can not being set to a higher
->> > power state than its parent, so this patch adds such state information
->> > for both the target state of the device failed to be set and the current
->> > parent's state.
->> > 
->> > Signed-off-by: Aaron Lu <aaron.lu@intel.com>
->> > ---
->> >  drivers/acpi/device_pm.c | 3 ++-
->> >  1 file changed, 2 insertions(+), 1 deletion(-)
->> > 
->> > diff --git a/drivers/acpi/device_pm.c b/drivers/acpi/device_pm.c
->> > index beb9625..707258b 100644
->> > --- a/drivers/acpi/device_pm.c
->> > +++ b/drivers/acpi/device_pm.c
->> > @@ -179,7 +179,8 @@ int acpi_device_set_power(struct acpi_device *device, int state)
->> >  	}
->> >  	if (device->parent && (state < device->parent->power.state)) {
->> >  		dev_warn(&device->dev,
->> > -			 "Cannot transition to a higher-powered state than parent\n");
->> > +			 "Cannot transition to a higher-powered state %d than parent's state %d\n",
-> This message will look a little odd I think ->
+(2013/08/01 6:23), Rafael J. Wysocki wrote:
+> On Wednesday, July 31, 2013 03:08:03 PM Bjorn Helgaas wrote:
+>> [+cc Rafael, linux-acpi]
+>>
+>> On Tue, Jul 30, 2013 at 6:35 PM, Takao Indoh <indou.takao@jp.fujitsu.com> wrote:
+>>
+>>> On x86, currently IOMMU initialization run *after* PCI enumeration, but
+>>> what you are talking about is that it should be changed so that x86
+>>> IOMMU initialization is done *before* PCI enumeration like sparc, right?
+>>
+>> Yes.  I don't know whether or when that initialization order will ever
+>> be changed, but I do think we should avoid building more
+>> infrastructure that depends on the current order.
+>>
+>> Changing the order is a pretty big deal because it's a lot more than
+>> just the IOMMU.  Basically I think we should be enumerating ACPI
+>> devices, including the IOMMU, before PCI devices, but there's a lot of
+>> legacy involved in that area.  Added Rafael in case he has any
+>> thoughts.
 > 
->> > +			 state, device->parent->power.state);
-> -> and please don't use raw numbers in such messages.
+> Well, actually, I'm not really familiar with IOMMUs, sorry.
 > 
-> What about
-> 
-> 	"Cannot transition to power state %s for parent in %s\n",
-> 	acpi_power_state_string(state),
-> 	acpi_power_state_string(device->parent->power.state)
+> I do think that initializing IOMMU before PCI enumeration would be better,
+> however.  At least if the ordering should be the same on all architectures,
+> which I suppose is the case, that's the one I'd choose.
 
+Ok guys. If x86 IOMMU maintainer also thinks changing order is
+necessary, maybe I need to give up device reset in kdump kernel and
+consider doing it in panic kernel.
 
-Thanks for the suggestion, updated patch here:
+Either way, I need bus reset interface to reset devices. Bjorn, could
+you review the bus reset patches Alex posted yesterday?
 
-From: Aaron Lu <aaron.lu@intel.com>
-Subject: [PATCH] ACPI / PM: Add state information in error message for
- acpi_device_set_power
-
-The state information can be useful to know what the problem is when an
-error message about a device can not being set to a higher power state
-than its parent appeared, so this patch adds such state information
-for both the target state of the device and the current state of its
-parent.
-
-Signed-off-by: Aaron Lu <aaron.lu@intel.com>
----
- drivers/acpi/device_pm.c | 4 +++-
- 1 file changed, 3 insertions(+), 1 deletion(-)
-
-diff --git a/drivers/acpi/device_pm.c b/drivers/acpi/device_pm.c
-index beb9625..59d3202 100644
---- a/drivers/acpi/device_pm.c
-+++ b/drivers/acpi/device_pm.c
-@@ -179,7 +179,9 @@ int acpi_device_set_power(struct acpi_device *device, int state)
- 	}
- 	if (device->parent && (state < device->parent->power.state)) {
- 		dev_warn(&device->dev,
--			 "Cannot transition to a higher-powered state than parent\n");
-+			 "Cannot transition to power state %s for parent in %s\n",
-+			 acpi_power_state_string(state),
-+			 acpi_power_state_string(device->parent->power.state));
- 		return -ENODEV;
- 	}
- 
--- 
-1.8.3.2.10.g43d11f4
+Thanks,
+Takao Indoh
