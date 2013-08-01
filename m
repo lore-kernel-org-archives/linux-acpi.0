@@ -1,78 +1,246 @@
 From: Tang Chen <tangchen@cn.fujitsu.com>
-Subject: [PATCH v2 08/18] x86: get pg_data_t's memory from other node
-Date: Thu, 1 Aug 2013 15:06:30 +0800
-Message-ID: <1375340800-19332-9-git-send-email-tangchen@cn.fujitsu.com>
+Subject: [PATCH v2 10/18] x86, acpi: Try to find if SRAT is overrided earlier.
+Date: Thu, 1 Aug 2013 15:06:32 +0800
+Message-ID: <1375340800-19332-11-git-send-email-tangchen@cn.fujitsu.com>
 References: <1375340800-19332-1-git-send-email-tangchen@cn.fujitsu.com>
-Return-path: <owner-linux-mm@kvack.org>
+Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <1375340800-19332-1-git-send-email-tangchen@cn.fujitsu.com>
-Sender: owner-linux-mm@kvack.org
+Sender: linux-kernel-owner@vger.kernel.org
 To: rjw@sisk.pl, lenb@kernel.org, tglx@linutronix.de, mingo@elte.hu, hpa@zytor.com, akpm@linux-foundation.org, tj@kernel.org, trenn@suse.de, yinghai@kernel.org, jiang.liu@huawei.com, wency@cn.fujitsu.com, laijs@cn.fujitsu.com, isimatu.yasuaki@jp.fujitsu.com, izumi.taku@jp.fujitsu.com, mgorman@suse.de, minchan@kernel.org, mina86@mina86.com, gong.chen@linux.intel.com, vasilis.liaskovitis@profitbricks.com, lwoodman@redhat.com, riel@redhat.com, jweiner@redhat.com, prarit@redhat.com, zhangyanfei@cn.fujitsu.com, yanghy@cn.fujitsu.com
 Cc: x86@kernel.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-mm@kvack.org, linux-acpi@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-From: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
+Linux cannot migrate pages used by the kernel due to the direct mapping
+(va = pa + PAGE_OFFSET), any memory used by the kernel cannot be hot-removed.
+So when using memory hotplug, we have to prevent the kernel from using
+hotpluggable memory.
 
-If system can create movable node which all memory of the node is allocated
-as ZONE_MOVABLE, setup_node_data() cannot allocate memory for the node's
-pg_data_t. So, use memblock_alloc_try_nid() instead of memblock_alloc_nid()
-to retry when the first allocation fails. Otherwise, the system could failed
-to boot.
+The ACPI table SRAT (System Resource Affinity Table) contains info to specify
+which memory is hotpluggble. After SRAT is parsed, we are aware of which
+memory is hotpluggable.
 
-The node_data could be on hotpluggable node. And so could pagetable and
-vmemmap. But for now, doing so will break memory hot-remove path.
+At the early time when system is booting, SRAT has not been parsed. The boot
+memory allocator memblock will allocate any memory to the kernel. So we need
+SRAT parsed before memblock starts to work.
 
-A node could have several memory devices. And the device who holds node
-data should be hot-removed in the last place. But in NUAM level, we don't
-know which memory_block (/sys/devices/system/node/nodeX/memoryXXX) belongs
-to which memory device. We only have node. So we can only do node hotplug.
+In this patch, we are going to parse SRAT earlier, right after memblock is ready.
 
-But in virtualization, developers are now developing memory hotplug in qemu,
-which support a single memory device hotplug. So a whole node hotplug will
-not satisfy virtualization users.
+Generally speaking, tables such as SRAT are provided by firmware. But
+ACPI_INITRD_TABLE_OVERRIDE functionality allows users to customize their own
+tables in initrd, and override the ones from firmware. So if we want to parse
+SRAT earlier, we also need to do SRAT override earlier.
 
-So at last, we concluded that we'd better do memory hotplug and local node
-things (local node node data, pagetable, vmemmap, ...) in two steps.
-Please refer to https://lkml.org/lkml/2013/6/19/73
+First, we introduce early_acpi_override_srat() to check if SRAT will be overridden
+from initrd.
 
-For now, we put node_data of movable node to another node, and then improve
-it in the future.
+Second, we introduce find_hotpluggable_memory() to reserve hotpluggable memory,
+which will firstly call early_acpi_override_srat() to find out which memory is
+hotpluggable in the override SRAT.
 
-In the later patches, a boot option will be introduced to enable/disable this
-functionality. If users disable it, the node_data will still be put on the
-local node.
-
-Signed-off-by: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
-Signed-off-by: Lai Jiangshan <laijs@cn.fujitsu.com>
 Signed-off-by: Tang Chen <tangchen@cn.fujitsu.com>
-Signed-off-by: Jiang Liu <jiang.liu@huawei.com>
-Reviewed-by: Wanpeng Li <liwanp@linux.vnet.ibm.com>
 Reviewed-by: Zhang Yanfei <zhangyanfei@cn.fujitsu.com>
 ---
- arch/x86/mm/numa.c |    5 ++---
- 1 files changed, 2 insertions(+), 3 deletions(-)
+ arch/x86/kernel/setup.c        |   10 +++++++
+ drivers/acpi/osl.c             |   58 ++++++++++++++++++++++++++++++++++++++++
+ include/linux/acpi.h           |   14 ++++++++-
+ include/linux/memory_hotplug.h |    2 +
+ mm/memory_hotplug.c            |   25 ++++++++++++++++-
+ 5 files changed, 106 insertions(+), 3 deletions(-)
 
-diff --git a/arch/x86/mm/numa.c b/arch/x86/mm/numa.c
-index a71c4e2..5013583 100644
---- a/arch/x86/mm/numa.c
-+++ b/arch/x86/mm/numa.c
-@@ -209,10 +209,9 @@ static void __init setup_node_data(int nid, u64 start, u64 end)
- 	 * Allocate node data.  Try node-local memory and then any node.
- 	 * Never allocate in DMA zone.
- 	 */
--	nd_pa = memblock_alloc_nid(nd_size, SMP_CACHE_BYTES, nid);
-+	nd_pa = memblock_alloc_try_nid(nd_size, SMP_CACHE_BYTES, nid);
- 	if (!nd_pa) {
--		pr_err("Cannot find %zu bytes in node %d\n",
--		       nd_size, nid);
-+		pr_err("Cannot find %zu bytes in any node\n", nd_size);
- 		return;
- 	}
- 	nd = __va(nd_pa);
+diff --git a/arch/x86/kernel/setup.c b/arch/x86/kernel/setup.c
+index c8f5d1a..8b1bddd 100644
+--- a/arch/x86/kernel/setup.c
++++ b/arch/x86/kernel/setup.c
+@@ -1060,6 +1060,16 @@ void __init setup_arch(char **cmdline_p)
+ 	/* Initialize ACPI root table */
+ 	acpi_root_table_init();
+ 
++#ifdef CONFIG_ACPI_NUMA
++	/*
++	 * Linux kernel cannot migrate kernel pages, as a result, memory used
++	 * by the kernel cannot be hot-removed. Find and mark hotpluggable
++	 * memory in memblock to prevent memblock from allocating hotpluggable
++	 * memory for the kernel.
++	 */
++	find_hotpluggable_memory();
++#endif
++
+ 	/*
+ 	 * The EFI specification says that boot service code won't be called
+ 	 * after ExitBootServices(). This is, in fact, a lie.
+diff --git a/drivers/acpi/osl.c b/drivers/acpi/osl.c
+index 8df8a93..d0b687c 100644
+--- a/drivers/acpi/osl.c
++++ b/drivers/acpi/osl.c
+@@ -48,6 +48,7 @@
+ 
+ #include <asm/io.h>
+ #include <asm/uaccess.h>
++#include <asm/setup.h>
+ 
+ #include <acpi/acpi.h>
+ #include <acpi/acpi_bus.h>
+@@ -631,6 +632,63 @@ int __init acpi_invalid_table(struct cpio_data *file,
+ 	return 0;
+ }
+ 
++#ifdef CONFIG_ACPI_NUMA
++/*******************************************************************************
++ *
++ * FUNCTION:    early_acpi_override_srat
++ *
++ * RETURN:      Phys addr of SRAT on success, 0 on error.
++ *
++ * DESCRIPTION: Try to get the phys addr of SRAT in initrd.
++ *              The ACPI_INITRD_TABLE_OVERRIDE procedure is able to use tables
++ *              in initrd file to override the ones provided by firmware. This
++ *              function checks if there is a SRAT in initrd at early time. If
++ *              so, return the phys addr of the SRAT.
++ *
++ ******************************************************************************/
++phys_addr_t __init early_acpi_override_srat(void)
++{
++	int i;
++	u32 length;
++	long offset;
++	void *ramdisk_vaddr;
++	struct acpi_table_header *table;
++	struct cpio_data file;
++	unsigned long map_step = NR_FIX_BTMAPS << PAGE_SHIFT;
++	phys_addr_t ramdisk_image = get_ramdisk_image();
++	char cpio_path[32] = "kernel/firmware/acpi/";
++
++	/* Try to find if SRAT is overrided */
++	for (i = 0; i < ACPI_OVERRIDE_TABLES; i++) {
++		ramdisk_vaddr = early_ioremap(ramdisk_image, map_step);
++
++		file = find_cpio_data(cpio_path, ramdisk_vaddr,
++				      map_step, &offset);
++		if (!file.data) {
++			early_iounmap(ramdisk_vaddr, map_step);
++			return 0;
++		}
++
++		table = file.data;
++		length = table->length;
++
++		if (acpi_invalid_table(&file, cpio_path, ACPI_SIG_SRAT)) {
++			ramdisk_image += offset;
++			early_iounmap(ramdisk_vaddr, map_step);
++			continue;
++		}
++
++		/* Found SRAT */
++		early_iounmap(ramdisk_vaddr, map_step);
++		ramdisk_image = ramdisk_image + offset - length;
++
++		break;
++	}
++
++	return ramdisk_image;
++}
++#endif	/* CONFIG_ACPI_NUMA */
++
+ void __init acpi_initrd_override(void *data, size_t size)
+ {
+ 	int no, table_nr = 0, total_offset = 0;
+diff --git a/include/linux/acpi.h b/include/linux/acpi.h
+index 95f600c..17155bc 100644
+--- a/include/linux/acpi.h
++++ b/include/linux/acpi.h
+@@ -81,11 +81,21 @@ typedef int (*acpi_tbl_entry_handler)(struct acpi_subtable_header *header,
+ 
+ #ifdef CONFIG_ACPI_INITRD_TABLE_OVERRIDE
+ void acpi_initrd_override(void *data, size_t size);
+-#else
++
++#ifdef CONFIG_ACPI_NUMA
++phys_addr_t early_acpi_override_srat(void);
++#endif	/* CONFIG_ACPI_NUMA */
++
++#else	/* CONFIG_ACPI_INITRD_TABLE_OVERRIDE */
+ static inline void acpi_initrd_override(void *data, size_t size)
+ {
+ }
+-#endif
++
++static inline phys_addr_t early_acpi_override_srat(void)
++{
++	return 0;
++}
++#endif	/* CONFIG_ACPI_INITRD_TABLE_OVERRIDE */
+ 
+ char * __acpi_map_table (unsigned long phys_addr, unsigned long size);
+ void __acpi_unmap_table(char *map, unsigned long size);
+diff --git a/include/linux/memory_hotplug.h b/include/linux/memory_hotplug.h
+index 3e622c6..c32af49 100644
+--- a/include/linux/memory_hotplug.h
++++ b/include/linux/memory_hotplug.h
+@@ -104,6 +104,7 @@ extern int __remove_pages(struct zone *zone, unsigned long start_pfn,
+ /* reasonably generic interface to expand the physical pages in a zone  */
+ extern int __add_pages(int nid, struct zone *zone, unsigned long start_pfn,
+ 	unsigned long nr_pages);
++extern void find_hotpluggable_memory(void);
+ 
+ #ifdef CONFIG_NUMA
+ extern int memory_add_physaddr_to_nid(u64 start);
+@@ -181,6 +182,7 @@ static inline void register_page_bootmem_info_node(struct pglist_data *pgdat)
+ {
+ }
+ #endif
++
+ extern void put_page_bootmem(struct page *page);
+ extern void get_page_bootmem(unsigned long ingo, struct page *page,
+ 			     unsigned long type);
+diff --git a/mm/memory_hotplug.c b/mm/memory_hotplug.c
+index 1ad92b4..48964bf 100644
+--- a/mm/memory_hotplug.c
++++ b/mm/memory_hotplug.c
+@@ -30,6 +30,7 @@
+ #include <linux/mm_inline.h>
+ #include <linux/firmware-map.h>
+ #include <linux/stop_machine.h>
++#include <linux/acpi.h>
+ 
+ #include <asm/tlbflush.h>
+ 
+@@ -62,7 +63,6 @@ void unlock_memory_hotplug(void)
+ 	mutex_unlock(&mem_hotplug_mutex);
+ }
+ 
+-
+ /* add this memory to iomem resource */
+ static struct resource *register_memory_resource(u64 start, u64 size)
+ {
+@@ -91,6 +91,29 @@ static void release_memory_resource(struct resource *res)
+ 	return;
+ }
+ 
++#ifdef CONFIG_ACPI_NUMA
++/**
++ * find_hotpluggable_memory - Find out hotpluggable memory from ACPI SRAT.
++ *
++ * This function did the following:
++ * 1. Try to find if there is a SRAT in initrd file used to override the one
++ *    provided by firmware. If so, get its phys addr.
++ * 2. If there is no override SRAT, get the phys addr of the SRAT in firmware.
++ * 3. Parse SRAT, find out which memory is hotpluggable.
++ */
++void __init find_hotpluggable_memory(void)
++{
++	phys_addr_t srat_paddr;
++
++	/* Try to find if SRAT is overridden */
++	srat_paddr = early_acpi_override_srat();
++	if (!srat_paddr)
++		return;
++
++	/* Will parse SRAT and find out hotpluggable memory here */
++}
++#endif	/* CONFIG_ACPI_NUMA */
++
+ #ifdef CONFIG_MEMORY_HOTPLUG_SPARSE
+ void get_page_bootmem(unsigned long info,  struct page *page,
+ 		      unsigned long type)
 -- 
 1.7.1
-
---
-To unsubscribe, send a message with 'unsubscribe linux-mm' in
-the body to majordomo@kvack.org.  For more info on Linux MM,
-see: http://www.linux-mm.org/ .
-Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
