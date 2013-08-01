@@ -1,59 +1,99 @@
 From: Felipe Contreras <felipe.contreras@gmail.com>
 Subject: Re: [REGRESSION/PATCH] acpi: blacklist win8 OSI for ASUS Zenbok Prime UX31A
-Date: Thu, 1 Aug 2013 13:11:31 -0500
-Message-ID: <CAMP44s2OOX8=tumzwiK3_PRJCxfLfDECrz3dPbzNPiUOuYT8TA@mail.gmail.com>
-References: <20130731051421.GA15766@srcf.ucam.org>
-	<CAMP44s2B=nQLnZm7gyYAJZgt_x3KszRZLUC=fom0t9=Eze+smA@mail.gmail.com>
-	<20130731140010.GA24560@srcf.ucam.org>
-	<CAMP44s1cLou9TMfLS+FHwPM_b3bG5HN1-hzgvhz0fVRCZ8XqWw@mail.gmail.com>
-	<20130731175232.GA29987@srcf.ucam.org>
-	<CAMP44s1c5pmiC2fvmRi9vFrJXb2zYUT_F=paM2LR_V+7THnFVg@mail.gmail.com>
-	<20130731184724.GA30896@srcf.ucam.org>
-	<CAMP44s25aRcK2bB=WLMkuD45fztFBNug8prArczRqZqzeEvj3A@mail.gmail.com>
-	<20130801174237.GA20121@srcf.ucam.org>
-	<CAMP44s3EgZBtv-ifO9b+VzmTBE2wejNK7RN3ERL0+imrXzgBCg@mail.gmail.com>
-	<20130801180144.GA20520@srcf.ucam.org>
+Date: Thu, 1 Aug 2013 13:50:49 -0500
+Message-ID: <CAMP44s1LT_07o7191R4qLM5=cv1qyLXmeiPCbJKRU-5o0c3AxA@mail.gmail.com>
+References: <1375125658-1223-1-git-send-email-felipe.contreras@gmail.com>
+	<3453253.oZLO1ChPbL@vostro.rjw.lan>
+	<CAMP44s02V_FO1BPJZqo6MB9RMknXYdV7AXDqbJzYHpgK1GUuJw@mail.gmail.com>
+	<37178266.QXgbv9rq0i@vostro.rjw.lan>
+	<CAMP44s2LqiEGtS72FuTjsHUa1MH2kfaYHmcpNKMmAm2LnbFCCQ@mail.gmail.com>
+	<51F86A20.3060309@gmail.com>
+	<CAMP44s3z7M9omEkc23JNuVpCAKi=gqdBCThCdBcBrW-QYpuzkg@mail.gmail.com>
+	<51F874D0.8040500@gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-lb0-f170.google.com ([209.85.217.170]:54127 "EHLO
-	mail-lb0-f170.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753558Ab3HASLe (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 1 Aug 2013 14:11:34 -0400
-In-Reply-To: <20130801180144.GA20520@srcf.ucam.org>
+Received: from mail-la0-f52.google.com ([209.85.215.52]:64599 "EHLO
+	mail-la0-f52.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752050Ab3HASuv (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 1 Aug 2013 14:50:51 -0400
+In-Reply-To: <51F874D0.8040500@gmail.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Matthew Garrett <mjg59@srcf.ucam.org>
-Cc: "Rafael J. Wysocki" <rjw@sisk.pl>, Aaron Lu <aaron.lwe@gmail.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Len Brown <lenb@kernel.org>, Linus Torvalds <torvalds@linux-foundation.org>
+To: Aaron Lu <aaron.lwe@gmail.com>
+Cc: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
 
-On Thu, Aug 1, 2013 at 1:01 PM, Matthew Garrett <mjg59@srcf.ucam.org> wrote:
-> On Thu, Aug 01, 2013 at 12:50:18PM -0500, Felipe Contreras wrote:
->> On Thu, Aug 1, 2013 at 12:42 PM, Matthew Garrett <mjg59@srcf.ucam.org> wrote:
->> > An interface that describes reality is better than one that doesn't. But
->> > hey, feel free to disagree and post a patch for the ABI docs.
+On Tue, Jul 30, 2013 at 9:22 PM, Aaron Lu <aaron.lwe@gmail.com> wrote:
+> On 07/31/2013 10:07 AM, Felipe Contreras wrote:
+>> On Tue, Jul 30, 2013 at 8:36 PM, Aaron Lu <aaron.lwe@gmail.com> wrote:
+>>> On 07/31/2013 08:11 AM, Felipe Contreras wrote:
+>>>> On Tue, Jul 30, 2013 at 6:13 PM, Rafael J. Wysocki <rjw@sisk.pl> wrote:
+
+>>>>> Yes, that will break backlight on your system and *then* you can complain to
+>>>>> Linus if you wish.
+>>>>
+>>>> It is already broken in v3.11-rc3, in fact I just booted that to try
+>>>> it out and it booted with the screen completely black (fortunately I
+>>>> knew exactly what to type to change that).
+>>>
+>>> That is bad, can you please file a bug for that? I'll need to take a
+>>> look at your ACPI tables, thanks.
 >>
->> An interface that is useful to the user is better than one that is not.
+>> File a bug where?
 >
-> The interface is useful.
+> https://bugzilla.kernel.org/
+> For component, please choose ACPI->Power_Video.
 
-Not 100% useful.
+Here you go:
+https://bugzilla.kernel.org/show_bug.cgi?id=60677
 
-If you are going to claim that 99% true is not true, then useful but
-inconsistent is not useful.
+>>>> Apparently this commit also needs to be reverted: efaa14c (ACPI /
+>>>> video: no automatic brightness changes by win8-compatible firmware).
+>>>> In this machine it makes the backlight work again (without
+>>>> acpi_osi="!Windows 2012"), but by doing so the ACPI driver also turns
+>>>> off the screen completely at level 0. Also, each time I change the
+>>>
+>>> So with rc3 and commit efaa14c reverted, when you set level 0 to ACPI
+>>> video's backlight interface, the screen will be off now? And this is not
+>>> the case in 3.10, right?
+>>
+>> No, setting level 0 turns it off if efaa14c is *not* reverted. In 3.10
+>> 0 doesn't turn it off.
+>
+> AFAIK, Win8 firmware will check a flag to decide what to do on hotkey
+> press and backlight brightness level change. Common behavior is:
+> If that flag is set:
+>   - on hotkey press, send out event;
+>   - on brightness level change, use GPU driver's interface to change
+>     backlight level following operation region spec.
+> If that flag is not set:
+>   - on hotkey press, adjust the brightness level without sending out
+>     event;
+>   - on brightness level change, use EC to change the brightness level.
+>
+> The said commit sets the flag, so it seems with the flag set now,
+> it is possible the firmware interface will also give a screen off
+> result. But since we want to have notification event, we will have to
+> set that flag I think.
 
-I think it is useful, and I think it can be consistent if we want it to.
+Probably, but changing the brightness should still work even without
+the flag, right? It doesn't work here.
 
-> There are plenty of machines out there that
-> disable the backlight at minimum brightness setting (see every Apple,
-> for example), and assuming otherwise has always been incorrect. But,
-> like I said, send the patch.
+Setting the flag makes it work, but not properly.
 
-The key word in "every Apple" is *every*; what level 0 does in every
-apple is consistent. If 0 should turn off the screen, it should do so
-on all Linux machines.
+>>> Please attach acpidump output to the to be opened bugzilla page, thanks.
+>>
+>> I looked at the code in the DCDT, it appears to me that they store
+>> different levels depending on the OSI version, so I don't think the
+>> problem is in the ACPI driver. Yet, the issue remains there.
+>
+> It's good to know what is the problem, so I would like to see the table.
+> Most of the bugs I solved in ACPI video driver's backlight control are
+> caused by firmware, so yes, it's very unlikely a bug of the ACPI video
+> driver itself.
 
-I will investigate and prepare an update to the documentation and the
-quirks to do so.
+I hope you meant the output of this:
+https://aur.archlinux.org/packages/acpidump/
 
 -- 
 Felipe Contreras
