@@ -1,191 +1,135 @@
 From: Tang Chen <tangchen@cn.fujitsu.com>
-Subject: [PATCH v2 12/18] x86, acpi, numa, mem_hotplug: Find hotpluggable memory in SRAT memory affinities.
-Date: Thu, 1 Aug 2013 15:06:34 +0800
-Message-ID: <1375340800-19332-13-git-send-email-tangchen@cn.fujitsu.com>
+Subject: [PATCH v2 17/18] mem-hotplug: Introduce movablenode boot option to {en|dis}able using SRAT.
+Date: Thu, 1 Aug 2013 15:06:39 +0800
+Message-ID: <1375340800-19332-18-git-send-email-tangchen@cn.fujitsu.com>
 References: <1375340800-19332-1-git-send-email-tangchen@cn.fujitsu.com>
-Return-path: <owner-linux-mm@kvack.org>
+Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <1375340800-19332-1-git-send-email-tangchen@cn.fujitsu.com>
-Sender: owner-linux-mm@kvack.org
+Sender: linux-kernel-owner@vger.kernel.org
 To: rjw@sisk.pl, lenb@kernel.org, tglx@linutronix.de, mingo@elte.hu, hpa@zytor.com, akpm@linux-foundation.org, tj@kernel.org, trenn@suse.de, yinghai@kernel.org, jiang.liu@huawei.com, wency@cn.fujitsu.com, laijs@cn.fujitsu.com, isimatu.yasuaki@jp.fujitsu.com, izumi.taku@jp.fujitsu.com, mgorman@suse.de, minchan@kernel.org, mina86@mina86.com, gong.chen@linux.intel.com, vasilis.liaskovitis@profitbricks.com, lwoodman@redhat.com, riel@redhat.com, jweiner@redhat.com, prarit@redhat.com, zhangyanfei@cn.fujitsu.com, yanghy@cn.fujitsu.com
 Cc: x86@kernel.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-mm@kvack.org, linux-acpi@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-In ACPI SRAT(System Resource Affinity Table), there is a memory affinity for each
-memory range in the system. In each memory affinity, there is a field indicating
-that if the memory range is hotpluggable.
+The Hot-Pluggable fired in SRAT specifies which memory is hotpluggable.
+As we mentioned before, if hotpluggable memory is used by the kernel,
+it cannot be hot-removed. So memory hotplug users may want to set all
+hotpluggable memory in ZONE_MOVABLE so that the kernel won't use it.
 
-This patch parses all the memory affinities in SRAT only, and find out all the
-hotpluggable memory ranges in the system.
+Memory hotplug users may also set a node as movable node, which has
+ZONE_MOVABLE only, so that the whole node can be hot-removed.
 
-This patch doesn't mark hotpluggable memory in memblock. Memory marked as hotplug
-won't be allocated to the kernel. If all the memory in the system is hotpluggable,
-then the system won't have enough memory to boot. The basic idea to solve this
-problem is making the nodes the kerenl resides in unhotpluggable. So, before we do
-this, we don't mark any hotpluggable memory in memory so that to keep memblock
-working as before.
+But the kernel cannot use memory in ZONE_MOVABLE. By doing this, the
+kernel cannot use memory in movable nodes. This will cause NUMA
+performance down. And other users may be unhappy.
 
+So we need a way to allow users to enable and disable this functionality.
+In this patch, we introduce movablenode boot option to allow users to
+choose to reserve hotpluggable memory and set it as ZONE_MOVABLE or not.
+
+Users can specify "movablenode" in kernel commandline to enable this
+functionality. For those who don't use memory hotplug or who don't want
+to lose their NUMA performance, just don't specify anything. The kernel
+will work as before.
+
+Suggested-by: Kamezawa Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 Signed-off-by: Tang Chen <tangchen@cn.fujitsu.com>
+Reviewed-by: Wanpeng Li <liwanp@linux.vnet.ibm.com>
 Reviewed-by: Zhang Yanfei <zhangyanfei@cn.fujitsu.com>
 ---
- drivers/acpi/osl.c   |   85 ++++++++++++++++++++++++++++++++++++++++++++++++++
- include/linux/acpi.h |    2 +
- mm/memory_hotplug.c  |   22 ++++++++++++-
- 3 files changed, 107 insertions(+), 2 deletions(-)
+ Documentation/kernel-parameters.txt |   15 +++++++++++++++
+ arch/x86/kernel/setup.c             |   10 ++++++++--
+ include/linux/memory_hotplug.h      |    3 +++
+ mm/memory_hotplug.c                 |   11 +++++++++++
+ 4 files changed, 37 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/acpi/osl.c b/drivers/acpi/osl.c
-index 319a274..5063574 100644
---- a/drivers/acpi/osl.c
-+++ b/drivers/acpi/osl.c
-@@ -777,6 +777,91 @@ phys_addr_t __init early_acpi_firmware_srat(void)
+diff --git a/Documentation/kernel-parameters.txt b/Documentation/kernel-parameters.txt
+index 2fe6e76..3f77ba3 100644
+--- a/Documentation/kernel-parameters.txt
++++ b/Documentation/kernel-parameters.txt
+@@ -1714,6 +1714,21 @@ bytes respectively. Such letter suffixes can also be entirely omitted.
+ 			that the amount of memory usable for all allocations
+ 			is not too small.
  
- 	return table_desc.address;
- }
++	movablenode		[KNL,X86] This parameter enables/disables the
++			kernel to arrange hotpluggable memory ranges recorded
++			in ACPI SRAT(System Resource Affinity Table) as
++			ZONE_MOVABLE. And these memory can be hot-removed when
++			the system is up.
++			By specifying this option, all the hotpluggable memory
++			will be in ZONE_MOVABLE, which the kernel cannot use.
++			This will cause NUMA performance down. For users who
++			care about NUMA performance, just don't use it.
++			If all the memory ranges in the system are hotpluggable,
++			then the ones used by the kernel at early time, such as
++			kernel code and data segments, initrd file and so on,
++			won't be set as ZONE_MOVABLE, and won't be hotpluggable.
++			Otherwise the kernel won't have enough memory to boot.
 +
-+/*******************************************************************************
-+ *
-+ * FUNCTION:    acpi_hotplug_mem_affinity
-+ *
-+ * PARAMETERS:  Srat_vaddr         - Virt addr of SRAT
-+ *              Base               - The base address of the found hotpluggable
-+ *                                   memory region
-+ *              Size               - The size of the found hotpluggable memory
-+ *                                   region
-+ *              Offset             - Offset of the found memory affinity
-+ *
-+ * RETURN:      Status
-+ *
-+ * DESCRIPTION: This function iterates SRAT affinities list to find memory
-+ *              affinities with hotpluggable memory one by one. Return the
-+ *              offset of the found memory affinity through @offset. @offset
-+ *              can be used to iterate the SRAT affinities list to find all the
-+ *              hotpluggable memory affinities. If @offset is 0, it is the first
-+ *              time of the iteration.
-+ *
-+ ******************************************************************************/
-+acpi_status __init
-+acpi_hotplug_mem_affinity(void *srat_vaddr, u64 *base, u64 *size,
-+			  unsigned long *offset)
-+{
-+	struct acpi_table_header *table_header;
-+	struct acpi_subtable_header *entry;
-+	struct acpi_srat_mem_affinity *ma;
-+	unsigned long table_end, curr;
-+
-+	if (!offset)
-+		return_ACPI_STATUS(AE_BAD_PARAMETER);
-+
-+	table_header = (struct acpi_table_header *)srat_vaddr;
-+	table_end = (unsigned long)table_header + table_header->length;
-+
-+	entry = (struct acpi_subtable_header *)
-+		((unsigned long)table_header + *offset);
-+
-+	if (*offset) {
-+		/*
-+		 * @offset is the offset of the last affinity found in the
-+		 * last call. So need to move to the next affinity.
-+		 */
-+		entry = (struct acpi_subtable_header *)
-+			((unsigned long)entry + entry->length);
-+	} else {
-+		/*
-+		 * Offset of the first affinity is the size of SRAT
-+		 * table header.
-+		 */
-+		entry = (struct acpi_subtable_header *)
-+			((unsigned long)entry + sizeof(struct acpi_table_srat));
-+	}
-+
-+	while (((unsigned long)entry) + sizeof(struct acpi_subtable_header) <
-+	       table_end) {
-+		if (entry->length == 0)
-+			break;
-+
-+		if (entry->type != ACPI_SRAT_TYPE_MEMORY_AFFINITY)
-+			goto next;
-+
-+		ma = (struct acpi_srat_mem_affinity *)entry;
-+
-+		if (!(ma->flags & ACPI_SRAT_MEM_HOT_PLUGGABLE))
-+			goto next;
-+
-+		if (base)
-+			*base = ma->base_address;
-+
-+		if (size)
-+			*size = ma->length;
-+
-+		*offset = (unsigned long)entry - (unsigned long)srat_vaddr;
-+		return_ACPI_STATUS(AE_OK);
-+
-+next:
-+		entry = (struct acpi_subtable_header *)
-+			((unsigned long)entry + entry->length);
-+	}
-+
-+	return_ACPI_STATUS(AE_NOT_FOUND);
-+}
- #endif	/* CONFIG_ACPI_NUMA */
+ 	MTD_Partition=	[MTD]
+ 			Format: <name>,<region-number>,<size>,<offset>
  
- static void acpi_table_taint(struct acpi_table_header *table)
-diff --git a/include/linux/acpi.h b/include/linux/acpi.h
-index 6fa7543..06f6e15 100644
---- a/include/linux/acpi.h
-+++ b/include/linux/acpi.h
-@@ -99,6 +99,8 @@ static inline phys_addr_t early_acpi_override_srat(void)
+diff --git a/arch/x86/kernel/setup.c b/arch/x86/kernel/setup.c
+index 8b1bddd..7c94e92 100644
+--- a/arch/x86/kernel/setup.c
++++ b/arch/x86/kernel/setup.c
+@@ -1060,14 +1060,20 @@ void __init setup_arch(char **cmdline_p)
+ 	/* Initialize ACPI root table */
+ 	acpi_root_table_init();
  
- #ifdef CONFIG_ACPI_NUMA
- phys_addr_t early_acpi_firmware_srat(void);
-+acpi_status acpi_hotplug_mem_affinity(void *srat_vaddr, u64 *base,
-+				      u64 *size, unsigned long *offset);
- #endif  /* CONFIG_ACPI_NUMA */
+-#ifdef CONFIG_ACPI_NUMA
++#if defined(CONFIG_ACPI_NUMA) && defined(CONFIG_MOVABLE_NODE)
+ 	/*
+ 	 * Linux kernel cannot migrate kernel pages, as a result, memory used
+ 	 * by the kernel cannot be hot-removed. Find and mark hotpluggable
+ 	 * memory in memblock to prevent memblock from allocating hotpluggable
+ 	 * memory for the kernel.
++	 *
++	 * If all the memory in a node is hotpluggable, then the kernel won't
++	 * be able to use memory on that node. This will cause NUMA performance
++	 * down. So by default, we don't reserve any hotpluggable memory. Users
++	 * may use "movablenode" boot option to enable this functionality.
+ 	 */
+-	find_hotpluggable_memory();
++	if (movablenode_enable_srat)
++		find_hotpluggable_memory();
+ #endif
  
- char * __acpi_map_table (unsigned long phys_addr, unsigned long size);
+ 	/*
+diff --git a/include/linux/memory_hotplug.h b/include/linux/memory_hotplug.h
+index c32af49..65b2a48 100644
+--- a/include/linux/memory_hotplug.h
++++ b/include/linux/memory_hotplug.h
+@@ -33,6 +33,9 @@ enum {
+ 	ONLINE_MOVABLE,
+ };
+ 
++/* Enable/disable SRAT in movablenode boot option */
++extern bool movablenode_enable_srat;
++
+ /*
+  * pgdat resizing functions
+  */
 diff --git a/mm/memory_hotplug.c b/mm/memory_hotplug.c
-index 4ccffe6..326e2f2 100644
+index 3e95fe5..97eb26b 100644
 --- a/mm/memory_hotplug.c
 +++ b/mm/memory_hotplug.c
-@@ -103,7 +103,11 @@ static void release_memory_resource(struct resource *res)
-  */
- void __init find_hotpluggable_memory(void)
- {
--	phys_addr_t srat_paddr;
-+	void *srat_vaddr;
-+	phys_addr_t srat_paddr, base, size;
-+	u32 length;
-+	struct acpi_table_header *srat_header;
-+	unsigned long offset = 0;
- 
- 	/* Try to find if SRAT is overridden */
- 	srat_paddr = early_acpi_override_srat();
-@@ -114,7 +118,21 @@ void __init find_hotpluggable_memory(void)
- 			return;
- 	}
- 
--	/* Will parse SRAT and find out hotpluggable memory here */
-+	/* Get the length of SRAT */
-+	srat_header = early_ioremap(srat_paddr,
-+				    sizeof(struct acpi_table_header));
-+	length = srat_header->length;
-+	early_iounmap(srat_header, sizeof(struct acpi_table_header));
-+
-+	/* Find all the hotpluggable memory regions */
-+	srat_vaddr = early_ioremap(srat_paddr, length);
-+
-+	while (ACPI_SUCCESS(acpi_hotplug_mem_affinity(srat_vaddr, &base,
-+						      &size, &offset))) {
-+		/* Will mark hotpluggable memory regions here */
-+	}
-+
-+	early_iounmap(srat_vaddr, length);
+@@ -93,6 +93,17 @@ static void release_memory_resource(struct resource *res)
  }
- #endif	/* CONFIG_ACPI_NUMA */
  
+ #ifdef CONFIG_ACPI_NUMA
++#ifdef CONFIG_MOVABLE_NODE
++bool __initdata movablenode_enable_srat;
++
++static int __init cmdline_parse_movablenode(char *p)
++{
++	movablenode_enable_srat = true;
++	return 0;
++}
++early_param("movablenode", cmdline_parse_movablenode);
++#endif	/* CONFIG_MOVABLE_NODE */
++
+ /**
+  * kernel_resides_in_range - Check if kernel resides in a memory region.
+  * @base: The base address of the memory region.
 -- 
 1.7.1
-
---
-To unsubscribe, send a message with 'unsubscribe linux-mm' in
-the body to majordomo@kvack.org.  For more info on Linux MM,
-see: http://www.linux-mm.org/ .
-Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
