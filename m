@@ -1,72 +1,156 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: [PATCH] ACPI: Do not fail acpi_bind_one() if device is already bound correctly
-Date: Fri, 02 Aug 2013 00:33:42 +0200
-Message-ID: <1888947.F5IBMfDKlY@vostro.rjw.lan>
+From: Toshi Kani <toshi.kani@hp.com>
+Subject: Re: [PATCH v2 04/18] acpi: Introduce acpi_invalid_table() to check
+ if a table is invalid.
+Date: Thu, 01 Aug 2013 16:26:59 -0600
+Message-ID: <1375396019.10300.32.camel@misato.fc.hp.com>
+References: <1375340800-19332-1-git-send-email-tangchen@cn.fujitsu.com>
+	 <1375340800-19332-5-git-send-email-tangchen@cn.fujitsu.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from hydra.sisk.pl ([212.160.235.94]:51181 "EHLO hydra.sisk.pl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1758006Ab3HAWXb (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 1 Aug 2013 18:23:31 -0400
+Received: from g1t0027.austin.hp.com ([15.216.28.34]:14604 "EHLO
+	g1t0027.austin.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755118Ab3HAW2I (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 1 Aug 2013 18:28:08 -0400
+In-Reply-To: <1375340800-19332-5-git-send-email-tangchen@cn.fujitsu.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: ACPI Devel Maling List <linux-acpi@vger.kernel.org>
-Cc: LKML <linux-kernel@vger.kernel.org>, Bjorn Helgaas <bhelgaas@google.com>, Toshi Kani <toshi.kani@hp.com>
+To: Tang Chen <tangchen@cn.fujitsu.com>
+Cc: rjw@sisk.pl, lenb@kernel.org, tglx@linutronix.de, mingo@elte.hu, hpa@zytor.com, akpm@linux-foundation.org, tj@kernel.org, trenn@suse.de, yinghai@kernel.org, jiang.liu@huawei.com, wency@cn.fujitsu.com, laijs@cn.fujitsu.com, isimatu.yasuaki@jp.fujitsu.com, izumi.taku@jp.fujitsu.com, mgorman@suse.de, minchan@kernel.org, mina86@mina86.com, gong.chen@linux.intel.com, vasilis.liaskovitis@profitbricks.com, lwoodman@redhat.com, riel@redhat.com, jweiner@redhat.com, prarit@redhat.com, zhangyanfei@cn.fujitsu.com, yanghy@cn.fujitsu.com, x86@kernel.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-mm@kvack.org, linux-acpi@vger.kernel.org
 
-From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+On Thu, 2013-08-01 at 15:06 +0800, Tang Chen wrote:
+> In acpi_initrd_override(), it checks several things to ensure the
+> table it found is valid. In later patches, we need to do these check
+> somewhere else. So this patch introduces a common function
+> acpi_invalid_table() to do all these checks, and reuse it in different
+> places. The function will be used in the subsequent patches.
+> 
+> Signed-off-by: Tang Chen <tangchen@cn.fujitsu.com>
+> Reviewed-by: Zhang Yanfei <zhangyanfei@cn.fujitsu.com>
+> ---
+>  drivers/acpi/osl.c |   86 +++++++++++++++++++++++++++++++++++++---------------
+>  1 files changed, 61 insertions(+), 25 deletions(-)
+> 
+> diff --git a/drivers/acpi/osl.c b/drivers/acpi/osl.c
+> index 91d9f54..8df8a93 100644
+> --- a/drivers/acpi/osl.c
+> +++ b/drivers/acpi/osl.c
+> @@ -572,9 +572,68 @@ static const char * const table_sigs[] = {
+>  /* Must not increase 10 or needs code modification below */
+>  #define ACPI_OVERRIDE_TABLES 10
+>  
+> +/*******************************************************************************
+> + *
+> + * FUNCTION:    acpi_invalid_table
+> + *
+> + * PARAMETERS:  File               - The initrd file
+> + *              Path               - Path to acpi overriding tables in cpio file
+> + *              Signature          - Signature of the table
+> + *
+> + * RETURN:      0 if it passes all the checks, -EINVAL if any check fails.
+> + *
+> + * DESCRIPTION: Check if an acpi table found in initrd is invalid.
+> + *              @signature can be NULL. If it is NULL, the function will check
+> + *              if the table signature matches any signature in table_sigs[].
+> + *
+> + ******************************************************************************/
+> +int __init acpi_invalid_table(struct cpio_data *file,
+> +			      const char *path, const char *signature)
 
-Modify acpi_bind_one() so that it doesn't fail if the device
-represented by its first argument has already been bound to the
-given ACPI handle (second argument), because that is not a good
-enough reason for returning an error code.
+Since this function verifies a given acpi table in initrd (not that the
+table is invalid), I'd suggest to rename it something like
+acpi_verify_initrd().  Otherwise, it looks good to me.
 
-Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
----
- drivers/acpi/glue.c |   15 +++++++++++----
- 1 file changed, 11 insertions(+), 4 deletions(-)
+Acked-by: Toshi Kani <toshi.kani@hp.com>
 
-Index: linux-pm/drivers/acpi/glue.c
-===================================================================
---- linux-pm.orig/drivers/acpi/glue.c
-+++ linux-pm/drivers/acpi/glue.c
-@@ -143,7 +143,10 @@ int acpi_bind_one(struct device *dev, ac
- 	list_for_each_entry(pn, &acpi_dev->physical_node_list, node)
- 		if (pn->dev == dev) {
- 			dev_warn(dev, "Already associated with ACPI node\n");
--			goto err_free;
-+			if (ACPI_HANDLE(dev) == handle)
-+				retval = 0;
-+
-+			goto out_free;
- 		}
- 
- 	/* allocate physical node id according to physical_node_id_bitmap */
-@@ -152,7 +155,7 @@ int acpi_bind_one(struct device *dev, ac
- 		ACPI_MAX_PHYSICAL_NODE);
- 	if (physical_node->node_id >= ACPI_MAX_PHYSICAL_NODE) {
- 		retval = -ENOSPC;
--		goto err_free;
-+		goto out_free;
- 	}
- 
- 	set_bit(physical_node->node_id, acpi_dev->physical_node_id_bitmap);
-@@ -185,10 +188,14 @@ int acpi_bind_one(struct device *dev, ac
- 	put_device(dev);
- 	return retval;
- 
-- err_free:
-+ out_free:
- 	mutex_unlock(&acpi_dev->physical_node_lock);
- 	kfree(physical_node);
--	goto err;
-+	if (retval)
-+		goto err;
-+
-+	put_device(dev);
-+	return 0;
- }
- EXPORT_SYMBOL_GPL(acpi_bind_one);
- 
+Thanks,
+-Toshi
+
+
+> +{
+> +	int idx;
+> +	struct acpi_table_header *table = file->data;
+> +
+> +	if (file->size < sizeof(struct acpi_table_header)) {
+> +		INVALID_TABLE("Table smaller than ACPI header",
+> +			      path, file->name);
+> +		return -EINVAL;
+> +	}
+> +
+> +	if (signature) {
+> +		if (memcmp(table->signature, signature, 4)) {
+> +			INVALID_TABLE("Table signature does not match",
+> +				      path, file->name);
+> +			return -EINVAL;
+> +		}
+> +	} else {
+> +		for (idx = 0; table_sigs[idx]; idx++)
+> +			if (!memcmp(table->signature, table_sigs[idx], 4))
+> +				break;
+> +
+> +		if (!table_sigs[idx]) {
+> +			INVALID_TABLE("Unknown signature", path, file->name);
+> +			return -EINVAL;
+> +		}
+> +	}
+> +
+> +	if (file->size != table->length) {
+> +		INVALID_TABLE("File length does not match table length",
+> +			      path, file->name);
+> +		return -EINVAL;
+> +	}
+> +
+> +	if (acpi_table_checksum(file->data, table->length)) {
+> +		INVALID_TABLE("Bad table checksum",
+> +			      path, file->name);
+> +		return -EINVAL;
+> +	}
+> +
+> +	return 0;
+> +}
+> +
+>  void __init acpi_initrd_override(void *data, size_t size)
+>  {
+> -	int sig, no, table_nr = 0, total_offset = 0;
+> +	int no, table_nr = 0, total_offset = 0;
+>  	long offset = 0;
+>  	struct acpi_table_header *table;
+>  	char cpio_path[32] = "kernel/firmware/acpi/";
+> @@ -593,33 +652,10 @@ void __init acpi_initrd_override(void *data, size_t size)
+>  		data += offset;
+>  		size -= offset;
+>  
+> -		if (file.size < sizeof(struct acpi_table_header)) {
+> -			INVALID_TABLE("Table smaller than ACPI header",
+> -				      cpio_path, file.name);
+> -			continue;
+> -		}
+> -
+>  		table = file.data;
+>  
+> -		for (sig = 0; table_sigs[sig]; sig++)
+> -			if (!memcmp(table->signature, table_sigs[sig], 4))
+> -				break;
+> -
+> -		if (!table_sigs[sig]) {
+> -			INVALID_TABLE("Unknown signature",
+> -				      cpio_path, file.name);
+> +		if (acpi_invalid_table(&file, cpio_path, NULL))
+>  			continue;
+> -		}
+> -		if (file.size != table->length) {
+> -			INVALID_TABLE("File length does not match table length",
+> -				      cpio_path, file.name);
+> -			continue;
+> -		}
+> -		if (acpi_table_checksum(file.data, table->length)) {
+> -			INVALID_TABLE("Bad table checksum",
+> -				      cpio_path, file.name);
+> -			continue;
+> -		}
+>  
+>  		pr_info("%4.4s ACPI table found in initrd [%s%s][0x%x]\n",
+>  			table->signature, cpio_path, file.name, table->length);
+
 
