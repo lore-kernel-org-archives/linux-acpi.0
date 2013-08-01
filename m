@@ -1,57 +1,48 @@
-From: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
-Subject: Cannot hot remove a memory device
-Date: Thu, 1 Aug 2013 17:37:21 +0900
-Message-ID: <51FA1E41.20304@jp.fujitsu.com>
+From: "Naveen N. Rao" <naveen.n.rao@linux.vnet.ibm.com>
+Subject: Re: [PATCH] APEI/ERST: Fix error message formatting
+Date: Thu, 01 Aug 2013 15:40:34 +0530
+Message-ID: <51FA341A.7060307@linux.vnet.ibm.com>
+References: <1374526866-6813-1-git-send-email-bp@alien8.de> <20130724171347.GB29756@naverao1-tp.watson.ibm.com> <1374686598.18818.18.camel@joe-AO722> <51F10AA8.2050901@linux.vnet.ibm.com> <CAErSpo5vLbsM5BXjrCVy1AKBxRRSH33TthyyK3O35Mghqw81nQ@mail.gmail.com> <51F8DCFC.9050205@linux.vnet.ibm.com> <CAErSpo6hcjL_A9Vr1R0GqobUysdskd8B1S_9r7-zBSUvELFPXw@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-2022-JP"
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from fgwmail6.fujitsu.co.jp ([192.51.44.36]:55825 "EHLO
-	fgwmail6.fujitsu.co.jp" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750742Ab3HAIiG (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 1 Aug 2013 04:38:06 -0400
-Sender: linux-acpi-owner@vger.kernel.org
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <CAErSpo6hcjL_A9Vr1R0GqobUysdskd8B1S_9r7-zBSUvELFPXw@mail.gmail.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Bjorn Helgaas <bhelgaas@google.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
+Cc: Joe Perches <joe@perches.com>, Borislav Petkov <bp@alien8.de>, LKML <linux-kernel@vger.kernel.org>, Borislav Petkov <bp@suse.de>, Anton Vorontsov <anton@enomsg.org>, Colin Cross <ccross@android.com>, Kees Cook <keescook@chromium.org>, Tony Luck <tony.luck@intel.com>, Len Brown <lenb@kernel.org>, "Rafael J. Wysocki" <rjw@sisk.pl>, "Huang, Ying" <ying.huang@intel.com>
 List-Id: linux-acpi@vger.kernel.org
-To: rafael.j.wysocki@intel.com, vasilis.liaskovitis@profitbricks.com, toshi.kani@hp.com
-Cc: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, tangchen@cn.fujitsu.com, wency@cn.fujitsu.com
 
-By following commit, I cannot hot remove a memory device.
+On 07/31/2013 11:30 PM, Bjorn Helgaas wrote:
+> On Wed, Jul 31, 2013 at 3:46 AM, Naveen N. Rao
+> <naveen.n.rao@linux.vnet.ibm.com> wrote:
+>
+>> My key question was about why we are using a field width of 10 implying a
+>> 32-bit value, rather than a field width of 18 as suggested by the data type?
+>> This shouldn't truncate the value, but if we are specifying the field width
+>> for alignment, seems to me it is better to match the data type.
+>
+> %pR uses a field width of 10 (two for "0x", eight for the value)
+> simply because the majority of resource values fit in 32 bits.  Larger
+> values extend the width, so it's not a question of truncating any
+> data.  But it's no fun to read memory addresses when most of them have
+> eight extra leading zeros (the high 32-bits of a 64-bit value).  I
+> think the same applies here; most ACPI table addresses still fit in 32
+> bits.
+>
+> We *do* use a field width of 18 for the e820 table, even though many
+> of those regions fit in 32 bits.  But that's sort of an exception
+> because it's a table where addresses above 4GB are pretty common.
 
-ACPI / memhotplug: Bind removable memory blocks to ACPI device nodes
-commit e2ff39400d81233374e780b133496a2296643d7d
+Makes sense, thanks for the explanation.
 
-Details are follows:
-When I add a memory device, acpi_memory_enable_device() always fails
-as follows:
+>
+> But at the end of the day, I guess I'm just stating my personal
+> preferences and yours might be different.
 
-...
-[ 1271.114116]  [ffffea121c400000-ffffea121c7fffff] PMD -> [ffff880813c00000-ffff880813ffffff] on node 3
-[ 1271.128682]  [ffffea121c800000-ffffea121cbfffff] PMD -> [ffff880813800000-ffff880813bfffff] on node 3
-[ 1271.143298]  [ffffea121cc00000-ffffea121cffffff] PMD -> [ffff880813000000-ffff8808133fffff] on node 3
-[ 1271.157799]  [ffffea121d000000-ffffea121d3fffff] PMD -> [ffff880812c00000-ffff880812ffffff] on node 3
-[ 1271.172341]  [ffffea121d400000-ffffea121d7fffff] PMD -> [ffff880812800000-ffff880812bfffff] on node 3
-[ 1271.186872]  [ffffea121d800000-ffffea121dbfffff] PMD -> [ffff880812400000-ffff8808127fffff] on node 3
-[ 1271.201481]  [ffffea121dc00000-ffffea121dffffff] PMD -> [ffff880812000000-ffff8808123fffff] on node 3
-[ 1271.216041]  [ffffea121e000000-ffffea121e3fffff] PMD -> [ffff880811c00000-ffff880811ffffff] on node 3
-[ 1271.230623]  [ffffea121e400000-ffffea121e7fffff] PMD -> [ffff880811800000-ffff880811bfffff] on node 3
-[ 1271.245148]  [ffffea121e800000-ffffea121ebfffff] PMD -> [ffff880811400000-ffff8808117fffff] on node 3
-[ 1271.259683]  [ffffea121ec00000-ffffea121effffff] PMD -> [ffff880811000000-ffff8808113fffff] on node 3
-[ 1271.274194]  [ffffea121f000000-ffffea121f3fffff] PMD -> [ffff880810c00000-ffff880810ffffff] on node 3
-[ 1271.288764]  [ffffea121f400000-ffffea121f7fffff] PMD -> [ffff880810800000-ffff880810bfffff] on node 3
-...	
-[ 1271.325841] acpi PNP0C80:03: acpi_memory_enable_device() error
-...	
+Right - I'd probably prefer just %#llx. But yeah, the currently used 
+field width of 10 looks fine too.
 
-By this failure, hot added acpi_memory_info->enalbed is not set to 1.
-So when hot removing the memory device, acpi_memory_remove_memory() does
-nothing, since acpi_memory_info->enabled is 0. Thus I cannot hot remove
-the memory device.
-
-According to the messages, add_memory() succeeded. So I think that it is
-caused by failing acpi_bind_memory_blocks().
-
-I'm now investigating why acpi_bind_memory_blocks() fails.
 
 Thanks,
-Yasuaki Ishimatsu
-
+Naveen
