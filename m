@@ -1,254 +1,106 @@
-From: Felipe Contreras <felipe.contreras@gmail.com>
-Subject: [PATCH 2/3] acpi: video: trivial style cleanups
-Date: Thu,  1 Aug 2013 18:44:00 -0500
-Message-ID: <1375400641-1694-3-git-send-email-felipe.contreras@gmail.com>
-References: <1375400641-1694-1-git-send-email-felipe.contreras@gmail.com>
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-ob0-f172.google.com ([209.85.214.172]:42329 "EHLO
-	mail-ob0-f172.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758090Ab3HAXrn (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 1 Aug 2013 19:47:43 -0400
-In-Reply-To: <1375400641-1694-1-git-send-email-felipe.contreras@gmail.com>
-Sender: linux-acpi-owner@vger.kernel.org
+From: Toshi Kani <toshi.kani@hp.com>
+Subject: Re: [PATCH v2 06/18] x86, acpi: Initialize ACPI root table list
+ earlier.
+Date: Thu, 01 Aug 2013 17:54:11 -0600
+Message-ID: <1375401251.10300.53.camel@misato.fc.hp.com>
+References: <1375340800-19332-1-git-send-email-tangchen@cn.fujitsu.com>
+	 <1375340800-19332-7-git-send-email-tangchen@cn.fujitsu.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-doc-owner@vger.kernel.org>
+In-Reply-To: <1375340800-19332-7-git-send-email-tangchen@cn.fujitsu.com>
+Sender: linux-doc-owner@vger.kernel.org
+To: Tang Chen <tangchen@cn.fujitsu.com>
+Cc: rjw@sisk.pl, lenb@kernel.org, tglx@linutronix.de, mingo@elte.hu, hpa@zytor.com, akpm@linux-foundation.org, tj@kernel.org, trenn@suse.de, yinghai@kernel.org, jiang.liu@huawei.com, wency@cn.fujitsu.com, laijs@cn.fujitsu.com, isimatu.yasuaki@jp.fujitsu.com, izumi.taku@jp.fujitsu.com, mgorman@suse.de, minchan@kernel.org, mina86@mina86.com, gong.chen@linux.intel.com, vasilis.liaskovitis@profitbricks.com, lwoodman@redhat.com, riel@redhat.com, jweiner@redhat.com, prarit@redhat.com, zhangyanfei@cn.fujitsu.com, yanghy@cn.fujitsu.com, x86@kernel.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-mm@kvack.org, linux-acpi@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
-Cc: "Rafael J. Wysocki" <rjw@sisk.pl>, Len Brown <lenb@kernel.org>, Zhang Rui <rui.zhang@intel.com>, Jiri Kosina <trivial@kernel.org>, Felipe Contreras <felipe.contreras@gmail.com>
 
-Signed-off-by: Felipe Contreras <felipe.contreras@gmail.com>
----
- drivers/acpi/video.c | 90 +++++++++++++++++++++++-----------------------------
- 1 file changed, 40 insertions(+), 50 deletions(-)
+On Thu, 2013-08-01 at 15:06 +0800, Tang Chen wrote:
+> We have split acpi_table_init() into two steps:
+> 1. Pares RSDT or XSDT, and initialize acpi_gbl_root_table_list.
+>    This step will record all tables' physical address in memory.
+> 2. Check acpi initrd table override and install all tables into
+>    acpi_gbl_root_table_list.
+> 
+> This patch does step 1 earlier, right after memblock is ready.
+> 
+> When memblock_x86_fill() is called to fulfill memblock.memory[],
+> memblock is able to allocate memory.
+> 
+> This patch introduces a new function acpi_root_table_init() to
+> do step 1, and call this function right after memblock_x86_fill()
+> is called.
+> 
+> Signed-off-by: Tang Chen <tangchen@cn.fujitsu.com>
+> Reviewed-by: Zhang Yanfei <zhangyanfei@cn.fujitsu.com>
+> ---
+>  arch/x86/kernel/acpi/boot.c |   38 +++++++++++++++++++++++---------------
+>  arch/x86/kernel/setup.c     |    3 +++
+>  drivers/acpi/tables.c       |    7 +++++--
+>  include/linux/acpi.h        |    2 ++
+>  4 files changed, 33 insertions(+), 17 deletions(-)
+> 
+> diff --git a/arch/x86/kernel/acpi/boot.c b/arch/x86/kernel/acpi/boot.c
+> index 230c8ea..3da5b3c 100644
+> --- a/arch/x86/kernel/acpi/boot.c
+> +++ b/arch/x86/kernel/acpi/boot.c
+> @@ -1491,6 +1491,28 @@ static struct dmi_system_id __initdata acpi_dmi_table_late[] = {
+>  };
+>  
+>  /*
+> + * acpi_root_table_init - Initialize acpi_gbl_root_table_list.
+> + *
+> + * This function will parse RSDT or XSDT, find all tables' phys addr,
+> + * initialize acpi_gbl_root_table_list, and record all tables' phys addr
+> + * in acpi_gbl_root_table_list.
+> + */
+> +void __init acpi_root_table_init(void)
 
-diff --git a/drivers/acpi/video.c b/drivers/acpi/video.c
-index f021bf4..b07573f 100644
---- a/drivers/acpi/video.c
-+++ b/drivers/acpi/video.c
-@@ -88,7 +88,7 @@ module_param(allow_duplicates, bool, 0644);
- static bool use_bios_initial_backlight = 1;
- module_param(use_bios_initial_backlight, bool, 0644);
- 
--static int register_count = 0;
-+static int register_count;
- static int acpi_video_bus_add(struct acpi_device *device);
- static int acpi_video_bus_remove(struct acpi_device *device);
- static void acpi_video_bus_notify(struct acpi_device *device, u32 event);
-@@ -247,7 +247,7 @@ static int acpi_video_get_brightness(struct backlight_device *bd)
- 			 * The first two entries are special - see page 575
- 			 * of the ACPI spec 3.0
- 			 */
--			return i-2;
-+			return i - 2;
- 	}
- 	return 0;
- }
-@@ -304,11 +304,11 @@ video_set_cur_state(struct thermal_cooling_device *cooling_dev, unsigned long st
- 	struct acpi_video_device *video = acpi_driver_data(device);
- 	int level;
- 
--	if ( state >= video->brightness->count - 2)
-+	if (state >= video->brightness->count - 2)
- 		return -EINVAL;
- 
- 	state = video->brightness->count - state;
--	level = video->brightness->levels[state -1];
-+	level = video->brightness->levels[state - 1];
- 	return acpi_video_device_lcd_set_level(video, level);
- }
- 
-@@ -349,7 +349,7 @@ acpi_video_device_lcd_query_levels(struct acpi_video_device *device,
- 
- 	return 0;
- 
--      err:
-+err:
- 	kfree(buffer.pointer);
- 
- 	return status;
-@@ -550,7 +550,7 @@ acpi_video_device_lcd_get_level_current(struct acpi_video_device *device,
- 				if (device->brightness->levels[i] == *level) {
- 					device->brightness->curr = *level;
- 					return 0;
--			}
-+				}
- 			/*
- 			 * BQC returned an invalid level.
- 			 * Stop using it.
-@@ -892,16 +892,13 @@ static void acpi_video_device_find_cap(struct acpi_video_device *device)
- {
- 	acpi_handle h_dummy1;
- 
--	if (ACPI_SUCCESS(acpi_get_handle(device->dev->handle, "_ADR", &h_dummy1))) {
-+	if (ACPI_SUCCESS(acpi_get_handle(device->dev->handle, "_ADR", &h_dummy1)))
- 		device->cap._ADR = 1;
--	}
--	if (ACPI_SUCCESS(acpi_get_handle(device->dev->handle, "_BCL", &h_dummy1))) {
-+	if (ACPI_SUCCESS(acpi_get_handle(device->dev->handle, "_BCL", &h_dummy1)))
- 		device->cap._BCL = 1;
--	}
--	if (ACPI_SUCCESS(acpi_get_handle(device->dev->handle, "_BCM", &h_dummy1))) {
-+	if (ACPI_SUCCESS(acpi_get_handle(device->dev->handle, "_BCM", &h_dummy1)))
- 		device->cap._BCM = 1;
--	}
--	if (ACPI_SUCCESS(acpi_get_handle(device->dev->handle,"_BQC",&h_dummy1)))
-+	if (ACPI_SUCCESS(acpi_get_handle(device->dev->handle, "_BQC", &h_dummy1)))
- 		device->cap._BQC = 1;
- 	else if (ACPI_SUCCESS(acpi_get_handle(device->dev->handle, "_BCQ",
- 				&h_dummy1))) {
-@@ -909,9 +906,8 @@ static void acpi_video_device_find_cap(struct acpi_video_device *device)
- 		device->cap._BCQ = 1;
- 	}
- 
--	if (ACPI_SUCCESS(acpi_get_handle(device->dev->handle, "_DDC", &h_dummy1))) {
-+	if (ACPI_SUCCESS(acpi_get_handle(device->dev->handle, "_DDC", &h_dummy1)))
- 		device->cap._DDC = 1;
--	}
- 
- 	if (acpi_video_init_brightness(device))
- 		return;
-@@ -922,7 +918,7 @@ static void acpi_video_device_find_cap(struct acpi_video_device *device)
- 		acpi_handle acpi_parent;
- 		struct device *parent = NULL;
- 		int result;
--		static int count = 0;
-+		static int count;
- 		char *name;
- 
- 		name = kasprintf(GFP_KERNEL, "acpi_video%d", count);
-@@ -1006,24 +1002,18 @@ static void acpi_video_bus_find_cap(struct acpi_video_bus *video)
- {
- 	acpi_handle h_dummy1;
- 
--	if (ACPI_SUCCESS(acpi_get_handle(video->device->handle, "_DOS", &h_dummy1))) {
-+	if (ACPI_SUCCESS(acpi_get_handle(video->device->handle, "_DOS", &h_dummy1)))
- 		video->cap._DOS = 1;
--	}
--	if (ACPI_SUCCESS(acpi_get_handle(video->device->handle, "_DOD", &h_dummy1))) {
-+	if (ACPI_SUCCESS(acpi_get_handle(video->device->handle, "_DOD", &h_dummy1)))
- 		video->cap._DOD = 1;
--	}
--	if (ACPI_SUCCESS(acpi_get_handle(video->device->handle, "_ROM", &h_dummy1))) {
-+	if (ACPI_SUCCESS(acpi_get_handle(video->device->handle, "_ROM", &h_dummy1)))
- 		video->cap._ROM = 1;
--	}
--	if (ACPI_SUCCESS(acpi_get_handle(video->device->handle, "_GPD", &h_dummy1))) {
-+	if (ACPI_SUCCESS(acpi_get_handle(video->device->handle, "_GPD", &h_dummy1)))
- 		video->cap._GPD = 1;
--	}
--	if (ACPI_SUCCESS(acpi_get_handle(video->device->handle, "_SPD", &h_dummy1))) {
-+	if (ACPI_SUCCESS(acpi_get_handle(video->device->handle, "_SPD", &h_dummy1)))
- 		video->cap._SPD = 1;
--	}
--	if (ACPI_SUCCESS(acpi_get_handle(video->device->handle, "_VPO", &h_dummy1))) {
-+	if (ACPI_SUCCESS(acpi_get_handle(video->device->handle, "_VPO", &h_dummy1)))
- 		video->cap._VPO = 1;
--	}
- }
- 
- /*
-@@ -1082,7 +1072,7 @@ static int acpi_video_bus_check(struct acpi_video_bus *video)
-  */
- 
- /* device interface */
--static struct acpi_video_device_attrib*
-+static struct acpi_video_device_attrib *
- acpi_video_get_device_attr(struct acpi_video_bus *video, unsigned long device_id)
- {
- 	struct acpi_video_enumerated_device *ids;
-@@ -1120,7 +1110,7 @@ acpi_video_bus_get_one_device(struct acpi_device *device,
- 	unsigned long long device_id;
- 	int status, device_type;
- 	struct acpi_video_device *data;
--	struct acpi_video_device_attrib* attribute;
-+	struct acpi_video_device_attrib *attribute;
- 
- 	status =
- 	    acpi_evaluate_integer(device->handle, "_ADR", NULL, &device_id);
-@@ -1142,7 +1132,7 @@ acpi_video_bus_get_one_device(struct acpi_device *device,
- 
- 	attribute = acpi_video_get_device_attr(video, device_id);
- 
--	if((attribute != NULL) && attribute->device_id_scheme) {
-+	if (attribute && attribute->device_id_scheme) {
- 		switch (attribute->display_type) {
- 		case ACPI_VIDEO_DISPLAY_CRT:
- 			data->flags.crt = 1;
-@@ -1160,24 +1150,24 @@ acpi_video_bus_get_one_device(struct acpi_device *device,
- 			data->flags.unknown = 1;
- 			break;
- 		}
--		if(attribute->bios_can_detect)
-+		if (attribute->bios_can_detect)
- 			data->flags.bios = 1;
- 	} else {
- 		/* Check for legacy IDs */
- 		device_type = acpi_video_get_device_type(video, device_id);
- 		/* Ignore bits 16 and 18-20 */
- 		switch (device_type & 0xffe2ffff) {
--			case ACPI_VIDEO_DISPLAY_LEGACY_MONITOR:
--				data->flags.crt = 1;
--				break;
--			case ACPI_VIDEO_DISPLAY_LEGACY_PANEL:
--				data->flags.lcd = 1;
--				break;
--			case ACPI_VIDEO_DISPLAY_LEGACY_TV:
--				data->flags.tvout = 1;
--				break;
--			default:
--				data->flags.unknown = 1;
-+		case ACPI_VIDEO_DISPLAY_LEGACY_MONITOR:
-+			data->flags.crt = 1;
-+			break;
-+		case ACPI_VIDEO_DISPLAY_LEGACY_PANEL:
-+			data->flags.lcd = 1;
-+			break;
-+		case ACPI_VIDEO_DISPLAY_LEGACY_TV:
-+			data->flags.tvout = 1;
-+			break;
-+		default:
-+			data->flags.unknown = 1;
- 		}
- 	}
- 
-@@ -1318,7 +1308,7 @@ static int acpi_video_device_enumerate(struct acpi_video_bus *video)
- 	video->attached_array = active_list;
- 	video->attached_count = count;
- 
-- out:
-+out:
- 	kfree(buffer.pointer);
- 	return status;
- }
-@@ -1773,7 +1763,7 @@ static int acpi_video_bus_add(struct acpi_device *device)
- 	if (!strcmp(device->pnp.bus_id, "VID")) {
- 		if (instance)
- 			device->pnp.bus_id[3] = '0' + instance;
--		instance ++;
-+		instance++;
- 	}
- 	/* a hack to fix the duplicate name "VGA" problem on Pa 3553 */
- 	if (!strcmp(device->pnp.bus_id, "VGA")) {
-@@ -1845,16 +1835,16 @@ static int acpi_video_bus_add(struct acpi_device *device)
- 
- 	return 0;
- 
-- err_unregister_pm_notifier:
-+err_unregister_pm_notifier:
- 	unregister_pm_notifier(&video->pm_nb);
-- err_stop_video:
-+err_stop_video:
- 	acpi_video_bus_stop_devices(video);
-- err_free_input_dev:
-+err_free_input_dev:
- 	input_free_device(input);
-- err_put_video:
-+err_put_video:
- 	acpi_video_bus_put_devices(video);
- 	kfree(video->attached_array);
-- err_free_video:
-+err_free_video:
- 	kfree(video);
- 	device->driver_data = NULL;
- 
--- 
-1.8.3.4
+I think acpi_root_table_init() is a bit confusing with
+acpi_boot_table_init().  Perhaps, something like
+acpi_boot_table_pre_init() or early_acpi_boot_table_init() is better to
+indicate that this new function is called before acpi_boot_table_init().
+
+> +{
+> +	dmi_check_system(acpi_dmi_table);
+> +
+> +	/* If acpi_disabled, bail out */
+> +	if (acpi_disabled)
+> +		return;
+> +
+> +	/* Initialize the ACPI boot-time table parser */
+> +	if (acpi_table_init()) {
+> +		disable_acpi();
+> +		return;
+> +	}
+> +}
+> +
+> +/*
+>   * acpi_boot_table_init() and acpi_boot_init()
+>   *  called from setup_arch(), always.
+>   *	1. checksums all tables
+> @@ -1511,21 +1533,7 @@ static struct dmi_system_id __initdata acpi_dmi_table_late[] = {
+>  
+>  void __init acpi_boot_table_init(void)
+
+The comment of this function needs to be updated.  For instance, it
+describes acpi_table_init(), which you just relocated.
+
+ * acpi_table_init() is separate to allow reading SRAT without
+ * other side effects.
+ *
+
+>  {
+> -	dmi_check_system(acpi_dmi_table);
+> -
+> -	/*
+> -	 * If acpi_disabled, bail out
+> -	 */
+> -	if (acpi_disabled)
+> -		return; 
+
+I think this check is still necessary.
+
+Thanks,
+-Toshi
 
