@@ -1,48 +1,58 @@
-From: "Naveen N. Rao" <naveen.n.rao@linux.vnet.ibm.com>
-Subject: Re: [PATCH] APEI/ERST: Fix error message formatting
-Date: Thu, 01 Aug 2013 15:40:34 +0530
-Message-ID: <51FA341A.7060307@linux.vnet.ibm.com>
-References: <1374526866-6813-1-git-send-email-bp@alien8.de> <20130724171347.GB29756@naverao1-tp.watson.ibm.com> <1374686598.18818.18.camel@joe-AO722> <51F10AA8.2050901@linux.vnet.ibm.com> <CAErSpo5vLbsM5BXjrCVy1AKBxRRSH33TthyyK3O35Mghqw81nQ@mail.gmail.com> <51F8DCFC.9050205@linux.vnet.ibm.com> <CAErSpo6hcjL_A9Vr1R0GqobUysdskd8B1S_9r7-zBSUvELFPXw@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <CAErSpo6hcjL_A9Vr1R0GqobUysdskd8B1S_9r7-zBSUvELFPXw@mail.gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Bjorn Helgaas <bhelgaas@google.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
-Cc: Joe Perches <joe@perches.com>, Borislav Petkov <bp@alien8.de>, LKML <linux-kernel@vger.kernel.org>, Borislav Petkov <bp@suse.de>, Anton Vorontsov <anton@enomsg.org>, Colin Cross <ccross@android.com>, Kees Cook <keescook@chromium.org>, Tony Luck <tony.luck@intel.com>, Len Brown <lenb@kernel.org>, "Rafael J. Wysocki" <rjw@sisk.pl>, "Huang, Ying" <ying.huang@intel.com>
+From: Rui Wang <ruiv.wang@gmail.com>
+Subject: [RFC v2 0/3] I/O Hook: Method for emulating h/w events
+Date: Thu,  1 Aug 2013 18:31:30 +0800
+Message-ID: <1375353093-3206-1-git-send-email-rui.y.wang@intel.com>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-pb0-f42.google.com ([209.85.160.42]:55270 "EHLO
+	mail-pb0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752407Ab3HAKgo (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 1 Aug 2013 06:36:44 -0400
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: bhelgaas@google.com
+Cc: tony.luck@intel.com, chaohong.guo@intel.com, gong.chen@linux.intel.com, rafael.j.wysocki@intel.com, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Rui Wang <rui.y.wang@intel.com>
 
-On 07/31/2013 11:30 PM, Bjorn Helgaas wrote:
-> On Wed, Jul 31, 2013 at 3:46 AM, Naveen N. Rao
-> <naveen.n.rao@linux.vnet.ibm.com> wrote:
->
->> My key question was about why we are using a field width of 10 implying a
->> 32-bit value, rather than a field width of 18 as suggested by the data type?
->> This shouldn't truncate the value, but if we are specifying the field width
->> for alignment, seems to me it is better to match the data type.
->
-> %pR uses a field width of 10 (two for "0x", eight for the value)
-> simply because the majority of resource values fit in 32 bits.  Larger
-> values extend the width, so it's not a question of truncating any
-> data.  But it's no fun to read memory addresses when most of them have
-> eight extra leading zeros (the high 32-bits of a 64-bit value).  I
-> think the same applies here; most ACPI table addresses still fit in 32
-> bits.
->
-> We *do* use a field width of 18 for the e820 table, even though many
-> of those regions fit in 32 bits.  But that's sort of an exception
-> because it's a table where addresses above 4GB are pretty common.
+Hi Bjorn,
 
-Makes sense, thanks for the explanation.
+In this v2, I made the following changes according to your suggestion:
 
->
-> But at the end of the day, I guess I'm just stating my personal
-> preferences and yours might be different.
+	1) The iohook driver is now built-in so we have alot fewer exported
+	   symbols. But we still need to export two functions because the
+	   loadable modules need to call into the I/O Hook.
+	2) Non-PCI part moved from drivers/pci into drivers/misc/iohook
+	3) It's now platform neutral. The PCI part should now work on all
+	   platforms. The memory mapped I/O part can be easily extened later
+	   to non-x86 platforms by modifying their part under arch/
 
-Right - I'd probably prefer just %#llx. But yeah, the currently used 
-field width of 10 looks fine too.
+I tested this new version on Westmere-EX. It worked as expected.
 
+Regards,
+Rui Wang
+Intel Open Source Technology Center
 
-Thanks,
-Naveen
+Rui Wang (3):
+  I/O Hook: core functions and Register Override
+  I/O Hook: kernel interface to manage the hook
+  I/O Hook: sysfs interface to emulate h/w events
+
+ Documentation/PCI/iohook.txt      |  282 ++++++++++
+ arch/Kconfig                      |   10 +
+ arch/x86/boot/compressed/Makefile |    1 +
+ arch/x86/include/asm/io.h         |   57 ++-
+ arch/x86/vdso/Makefile            |    2 +
+ drivers/misc/Makefile             |    1 +
+ drivers/misc/iohook/Makefile      |    1 +
+ drivers/misc/iohook/iohook.c      | 1025 +++++++++++++++++++++++++++++++++++++
+ drivers/misc/iohook/iohook.h      |    6 +
+ drivers/pci/access.c              |   66 +++
+ include/linux/reg_ovrd.h          |   51 ++
+ 11 files changed, 1500 insertions(+), 2 deletions(-)
+ create mode 100644 Documentation/PCI/iohook.txt
+ create mode 100644 drivers/misc/iohook/Makefile
+ create mode 100644 drivers/misc/iohook/iohook.c
+ create mode 100644 drivers/misc/iohook/iohook.h
+ create mode 100644 include/linux/reg_ovrd.h
+
+-- 
+1.7.5.4
+
