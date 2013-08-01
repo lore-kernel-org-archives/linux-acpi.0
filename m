@@ -1,135 +1,117 @@
 From: Tang Chen <tangchen@cn.fujitsu.com>
-Subject: [PATCH v2 17/18] mem-hotplug: Introduce movablenode boot option to {en|dis}able using SRAT.
-Date: Thu, 1 Aug 2013 15:06:39 +0800
-Message-ID: <1375340800-19332-18-git-send-email-tangchen@cn.fujitsu.com>
+Subject: [PATCH v2 13/18] x86, numa, mem_hotplug: Skip all the regions the kernel resides in.
+Date: Thu, 1 Aug 2013 15:06:35 +0800
+Message-ID: <1375340800-19332-14-git-send-email-tangchen@cn.fujitsu.com>
 References: <1375340800-19332-1-git-send-email-tangchen@cn.fujitsu.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: quoted-printable
+Return-path: <owner-linux-mm@kvack.org>
 In-Reply-To: <1375340800-19332-1-git-send-email-tangchen@cn.fujitsu.com>
-Sender: linux-kernel-owner@vger.kernel.org
+Sender: owner-linux-mm@kvack.org
 To: rjw@sisk.pl, lenb@kernel.org, tglx@linutronix.de, mingo@elte.hu, hpa@zytor.com, akpm@linux-foundation.org, tj@kernel.org, trenn@suse.de, yinghai@kernel.org, jiang.liu@huawei.com, wency@cn.fujitsu.com, laijs@cn.fujitsu.com, isimatu.yasuaki@jp.fujitsu.com, izumi.taku@jp.fujitsu.com, mgorman@suse.de, minchan@kernel.org, mina86@mina86.com, gong.chen@linux.intel.com, vasilis.liaskovitis@profitbricks.com, lwoodman@redhat.com, riel@redhat.com, jweiner@redhat.com, prarit@redhat.com, zhangyanfei@cn.fujitsu.com, yanghy@cn.fujitsu.com
 Cc: x86@kernel.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-mm@kvack.org, linux-acpi@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-The Hot-Pluggable fired in SRAT specifies which memory is hotpluggable.
-As we mentioned before, if hotpluggable memory is used by the kernel,
-it cannot be hot-removed. So memory hotplug users may want to set all
-hotpluggable memory in ZONE_MOVABLE so that the kernel won't use it.
+At early time, memblock will reserve some memory for the kernel,
+such as the kernel code and data segments, initrd file, and so on=EF=BC=8C
+which means the kernel resides in these memory regions.
 
-Memory hotplug users may also set a node as movable node, which has
-ZONE_MOVABLE only, so that the whole node can be hot-removed.
+Even if these memory regions are hotpluggable, we should not
+mark them as hotpluggable. Otherwise the kernel won't have enough
+memory to boot.
 
-But the kernel cannot use memory in ZONE_MOVABLE. By doing this, the
-kernel cannot use memory in movable nodes. This will cause NUMA
-performance down. And other users may be unhappy.
+This patch finds out which memory regions the kernel resides in,
+and skip them when finding all hotpluggable memory regions.
 
-So we need a way to allow users to enable and disable this functionality.
-In this patch, we introduce movablenode boot option to allow users to
-choose to reserve hotpluggable memory and set it as ZONE_MOVABLE or not.
-
-Users can specify "movablenode" in kernel commandline to enable this
-functionality. For those who don't use memory hotplug or who don't want
-to lose their NUMA performance, just don't specify anything. The kernel
-will work as before.
-
-Suggested-by: Kamezawa Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 Signed-off-by: Tang Chen <tangchen@cn.fujitsu.com>
-Reviewed-by: Wanpeng Li <liwanp@linux.vnet.ibm.com>
 Reviewed-by: Zhang Yanfei <zhangyanfei@cn.fujitsu.com>
 ---
- Documentation/kernel-parameters.txt |   15 +++++++++++++++
- arch/x86/kernel/setup.c             |   10 ++++++++--
- include/linux/memory_hotplug.h      |    3 +++
- mm/memory_hotplug.c                 |   11 +++++++++++
- 4 files changed, 37 insertions(+), 2 deletions(-)
+ mm/memory=5Fhotplug.c |   45 +++++++++++++++++++++++++++++++++++++++++++++
+ 1 files changed, 45 insertions(+), 0 deletions(-)
 
-diff --git a/Documentation/kernel-parameters.txt b/Documentation/kernel-parameters.txt
-index 2fe6e76..3f77ba3 100644
---- a/Documentation/kernel-parameters.txt
-+++ b/Documentation/kernel-parameters.txt
-@@ -1714,6 +1714,21 @@ bytes respectively. Such letter suffixes can also be entirely omitted.
- 			that the amount of memory usable for all allocations
- 			is not too small.
- 
-+	movablenode		[KNL,X86] This parameter enables/disables the
-+			kernel to arrange hotpluggable memory ranges recorded
-+			in ACPI SRAT(System Resource Affinity Table) as
-+			ZONE_MOVABLE. And these memory can be hot-removed when
-+			the system is up.
-+			By specifying this option, all the hotpluggable memory
-+			will be in ZONE_MOVABLE, which the kernel cannot use.
-+			This will cause NUMA performance down. For users who
-+			care about NUMA performance, just don't use it.
-+			If all the memory ranges in the system are hotpluggable,
-+			then the ones used by the kernel at early time, such as
-+			kernel code and data segments, initrd file and so on,
-+			won't be set as ZONE_MOVABLE, and won't be hotpluggable.
-+			Otherwise the kernel won't have enough memory to boot.
-+
- 	MTD_Partition=	[MTD]
- 			Format: <name>,<region-number>,<size>,<offset>
- 
-diff --git a/arch/x86/kernel/setup.c b/arch/x86/kernel/setup.c
-index 8b1bddd..7c94e92 100644
---- a/arch/x86/kernel/setup.c
-+++ b/arch/x86/kernel/setup.c
-@@ -1060,14 +1060,20 @@ void __init setup_arch(char **cmdline_p)
- 	/* Initialize ACPI root table */
- 	acpi_root_table_init();
- 
--#ifdef CONFIG_ACPI_NUMA
-+#if defined(CONFIG_ACPI_NUMA) && defined(CONFIG_MOVABLE_NODE)
- 	/*
- 	 * Linux kernel cannot migrate kernel pages, as a result, memory used
- 	 * by the kernel cannot be hot-removed. Find and mark hotpluggable
- 	 * memory in memblock to prevent memblock from allocating hotpluggable
- 	 * memory for the kernel.
-+	 *
-+	 * If all the memory in a node is hotpluggable, then the kernel won't
-+	 * be able to use memory on that node. This will cause NUMA performance
-+	 * down. So by default, we don't reserve any hotpluggable memory. Users
-+	 * may use "movablenode" boot option to enable this functionality.
- 	 */
--	find_hotpluggable_memory();
-+	if (movablenode_enable_srat)
-+		find_hotpluggable_memory();
- #endif
- 
- 	/*
-diff --git a/include/linux/memory_hotplug.h b/include/linux/memory_hotplug.h
-index c32af49..65b2a48 100644
---- a/include/linux/memory_hotplug.h
-+++ b/include/linux/memory_hotplug.h
-@@ -33,6 +33,9 @@ enum {
- 	ONLINE_MOVABLE,
- };
- 
-+/* Enable/disable SRAT in movablenode boot option */
-+extern bool movablenode_enable_srat;
-+
- /*
-  * pgdat resizing functions
-  */
-diff --git a/mm/memory_hotplug.c b/mm/memory_hotplug.c
-index 3e95fe5..97eb26b 100644
---- a/mm/memory_hotplug.c
-+++ b/mm/memory_hotplug.c
-@@ -93,6 +93,17 @@ static void release_memory_resource(struct resource *res)
- }
- 
- #ifdef CONFIG_ACPI_NUMA
-+#ifdef CONFIG_MOVABLE_NODE
-+bool __initdata movablenode_enable_srat;
-+
-+static int __init cmdline_parse_movablenode(char *p)
-+{
-+	movablenode_enable_srat = true;
-+	return 0;
-+}
-+early_param("movablenode", cmdline_parse_movablenode);
-+#endif	/* CONFIG_MOVABLE_NODE */
-+
+diff --git a/mm/memory=5Fhotplug.c b/mm/memory=5Fhotplug.c
+index 326e2f2..b800c9c 100644
+--- a/mm/memory=5Fhotplug.c
++++ b/mm/memory=5Fhotplug.c
+@@ -31,6 +31,7 @@
+ #include <linux/firmware-map.h>
+ #include <linux/stop=5Fmachine.h>
+ #include <linux/acpi.h>
++#include <linux/memblock.h>
+=20
+ #include <asm/tlbflush.h>
+=20
+@@ -93,6 +94,40 @@ static void release=5Fmemory=5Fresource(struct resource =
+*res)
+=20
+ #ifdef CONFIG=5FACPI=5FNUMA
  /**
-  * kernel_resides_in_range - Check if kernel resides in a memory region.
-  * @base: The base address of the memory region.
--- 
++ * kernel=5Fresides=5Fin=5Frange - Check if kernel resides in a memory reg=
+ion.
++ * @base: The base address of the memory region.
++ * @length: The length of the memory region.
++ *
++ * This function is used at early time. It iterates memblock.reserved and =
+check
++ * if the kernel has used any memory in [@base, @base + @length).
++ *
++ * Return true if the kernel resides in the memory region, false otherwise.
++ */
++static bool =5F=5Finit kernel=5Fresides=5Fin=5Fregion(phys=5Faddr=5Ft base=
+, u64 length)
++{
++	int i;
++	phys=5Faddr=5Ft start, end;
++	struct memblock=5Fregion *region;
++	struct memblock=5Ftype *reserved =3D &memblock.reserved;
++
++	for (i =3D 0; i < reserved->cnt; i++) {
++		region =3D &reserved->regions[i];
++
++		if (region->flags !=3D MEMBLOCK=5FHOTPLUG)
++			continue;
++
++		start =3D region->base;
++		end =3D region->base + region->size;
++		if (end <=3D base || start >=3D base + length)
++			continue;
++
++		return true;
++	}
++
++	return false;
++}
++
++/**
+  * find=5Fhotpluggable=5Fmemory - Find out hotpluggable memory from ACPI S=
+RAT.
+  *
+  * This function did the following:
+@@ -129,6 +164,16 @@ void =5F=5Finit find=5Fhotpluggable=5Fmemory(void)
+=20
+ 	while (ACPI=5FSUCCESS(acpi=5Fhotplug=5Fmem=5Faffinity(srat=5Fvaddr, &base,
+ 						      &size, &offset))) {
++		/*
++		 * At early time, memblock will reserve some memory for the
++		 * kernel, such as the kernel code and data segments, initrd
++		 * file, and so on=EF=BC=8Cwhich means the kernel resides in these
++		 * memory regions. These regions should not be hotpluggable.
++		 * So do not mark them as hotpluggable.
++		 */
++		if (kernel=5Fresides=5Fin=5Fregion(base, size))
++			continue;
++
+ 		/* Will mark hotpluggable memory regions here */
+ 	}
+=20
+--=20
 1.7.1
+
+=
+
+--
+To unsubscribe, send a message with 'unsubscribe linux-mm' in
+the body to majordomo@kvack.org.  For more info on Linux MM,
+see: http://www.linux-mm.org/ .
+Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
