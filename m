@@ -1,131 +1,72 @@
-From: Toshi Kani <toshi.kani@hp.com>
-Subject: Re: [PATCH v2 03/18] acpi: Remove "continue" in macro
- INVALID_TABLE().
-Date: Thu, 01 Aug 2013 16:06:46 -0600
-Message-ID: <1375394806.10300.24.camel@misato.fc.hp.com>
-References: <1375340800-19332-1-git-send-email-tangchen@cn.fujitsu.com>
-	 <1375340800-19332-4-git-send-email-tangchen@cn.fujitsu.com>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: [PATCH] ACPI: Do not fail acpi_bind_one() if device is already bound correctly
+Date: Fri, 02 Aug 2013 00:33:42 +0200
+Message-ID: <1888947.F5IBMfDKlY@vostro.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
-Return-path: <owner-linux-mm@kvack.org>
-In-Reply-To: <1375340800-19332-4-git-send-email-tangchen@cn.fujitsu.com>
-Sender: owner-linux-mm@kvack.org
-To: Tang Chen <tangchen@cn.fujitsu.com>
-Cc: rjw@sisk.pl, lenb@kernel.org, tglx@linutronix.de, mingo@elte.hu, hpa@zytor.com, akpm@linux-foundation.org, tj@kernel.org, trenn@suse.de, yinghai@kernel.org, jiang.liu@huawei.com, wency@cn.fujitsu.com, laijs@cn.fujitsu.com, isimatu.yasuaki@jp.fujitsu.com, izumi.taku@jp.fujitsu.com, mgorman@suse.de, minchan@kernel.org, mina86@mina86.com, gong.chen@linux.intel.com, vasilis.liaskovitis@profitbricks.com, lwoodman@redhat.com, riel@redhat.com, jweiner@redhat.com, prarit@redhat.com, zhangyanfei@cn.fujitsu.com, yanghy@cn.fujitsu.com, x86@kernel.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-mm@kvack.org, linux-acpi@vger.kernel.org
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7Bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from hydra.sisk.pl ([212.160.235.94]:51181 "EHLO hydra.sisk.pl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1758006Ab3HAWXb (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 1 Aug 2013 18:23:31 -0400
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: ACPI Devel Maling List <linux-acpi@vger.kernel.org>
+Cc: LKML <linux-kernel@vger.kernel.org>, Bjorn Helgaas <bhelgaas@google.com>, Toshi Kani <toshi.kani@hp.com>
 
-On Thu, 2013-08-01 at 15:06 +0800, Tang Chen wrote:
-> The macro INVALID_TABLE() is defined like this:
-> 
->  #define INVALID_TABLE(x, path, name)                                    \
->          { pr_err("ACPI OVERRIDE: " x " [%s%s]\n", path, name); continue; }
-> 
-> And it is used like this:
-> 
-> 	for (...) {
-> 		...
-> 		if (...)
-> 			INVALID_TABLE()
-> 		...
-> 	}
-> 
-> The "continue" in the macro makes the code hard to understand.
-> Change it to the style like other macros:
-> 
->  #define INVALID_TABLE(x, path, name)                                    \
->          do { pr_err("ACPI OVERRIDE: " x " [%s%s]\n", path, name); } while (0)
-> 
-> So after this patch, this macro should be used like this:
-> 
-> 	for (...) {
-> 		...
-> 		if (...) {
-> 			INVALID_TABLE()
-> 			continue;
-> 		}
-> 		...
-> 	}
-> 
-> Add the "continue" wherever the macro is called.
-> (For now, it is only called in acpi_initrd_override().)
-> 
-> The idea is from Yinghai Lu <yinghai@kernel.org>.
-> 
-> Signed-off-by: Tang Chen <tangchen@cn.fujitsu.com>
-> Signed-off-by: Yinghai Lu <yinghai@kernel.org>
-> Acked-by: Tejun Heo <tj@kernel.org>
-> Reviewed-by: Zhang Yanfei <zhangyanfei@cn.fujitsu.com>
-> ---
->  drivers/acpi/osl.c |   18 +++++++++++++-----
->  1 files changed, 13 insertions(+), 5 deletions(-)
-> 
-> diff --git a/drivers/acpi/osl.c b/drivers/acpi/osl.c
-> index e721863..91d9f54 100644
-> --- a/drivers/acpi/osl.c
-> +++ b/drivers/acpi/osl.c
-> @@ -565,7 +565,7 @@ static const char * const table_sigs[] = {
->  
->  /* Non-fatal errors: Affected tables/files are ignored */
->  #define INVALID_TABLE(x, path, name)					\
+From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 
-Since you are touching this macro, I'd suggest to rename it something
-like ACPI_INVALID_TABLE().  INVALID_TABLE() sounds too generic to me.
-Otherwise, it looks good.
+Modify acpi_bind_one() so that it doesn't fail if the device
+represented by its first argument has already been bound to the
+given ACPI handle (second argument), because that is not a good
+enough reason for returning an error code.
 
-Acked-by: Toshi Kani <toshi.kani@hp.com>
+Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+---
+ drivers/acpi/glue.c |   15 +++++++++++----
+ 1 file changed, 11 insertions(+), 4 deletions(-)
 
-Thanks,
--Toshi
+Index: linux-pm/drivers/acpi/glue.c
+===================================================================
+--- linux-pm.orig/drivers/acpi/glue.c
++++ linux-pm/drivers/acpi/glue.c
+@@ -143,7 +143,10 @@ int acpi_bind_one(struct device *dev, ac
+ 	list_for_each_entry(pn, &acpi_dev->physical_node_list, node)
+ 		if (pn->dev == dev) {
+ 			dev_warn(dev, "Already associated with ACPI node\n");
+-			goto err_free;
++			if (ACPI_HANDLE(dev) == handle)
++				retval = 0;
++
++			goto out_free;
+ 		}
+ 
+ 	/* allocate physical node id according to physical_node_id_bitmap */
+@@ -152,7 +155,7 @@ int acpi_bind_one(struct device *dev, ac
+ 		ACPI_MAX_PHYSICAL_NODE);
+ 	if (physical_node->node_id >= ACPI_MAX_PHYSICAL_NODE) {
+ 		retval = -ENOSPC;
+-		goto err_free;
++		goto out_free;
+ 	}
+ 
+ 	set_bit(physical_node->node_id, acpi_dev->physical_node_id_bitmap);
+@@ -185,10 +188,14 @@ int acpi_bind_one(struct device *dev, ac
+ 	put_device(dev);
+ 	return retval;
+ 
+- err_free:
++ out_free:
+ 	mutex_unlock(&acpi_dev->physical_node_lock);
+ 	kfree(physical_node);
+-	goto err;
++	if (retval)
++		goto err;
++
++	put_device(dev);
++	return 0;
+ }
+ EXPORT_SYMBOL_GPL(acpi_bind_one);
+ 
 
-
-> -	{ pr_err("ACPI OVERRIDE: " x " [%s%s]\n", path, name); continue; }
-> +	do { pr_err("ACPI OVERRIDE: " x " [%s%s]\n", path, name); } while (0)
->  
->  #define ACPI_HEADER_SIZE sizeof(struct acpi_table_header)
->  
-> @@ -593,9 +593,11 @@ void __init acpi_initrd_override(void *data, size_t size)
->  		data += offset;
->  		size -= offset;
->  
-> -		if (file.size < sizeof(struct acpi_table_header))
-> +		if (file.size < sizeof(struct acpi_table_header)) {
->  			INVALID_TABLE("Table smaller than ACPI header",
->  				      cpio_path, file.name);
-> +			continue;
-> +		}
->  
->  		table = file.data;
->  
-> @@ -603,15 +605,21 @@ void __init acpi_initrd_override(void *data, size_t size)
->  			if (!memcmp(table->signature, table_sigs[sig], 4))
->  				break;
->  
-> -		if (!table_sigs[sig])
-> +		if (!table_sigs[sig]) {
->  			INVALID_TABLE("Unknown signature",
->  				      cpio_path, file.name);
-> -		if (file.size != table->length)
-> +			continue;
-> +		}
-> +		if (file.size != table->length) {
->  			INVALID_TABLE("File length does not match table length",
->  				      cpio_path, file.name);
-> -		if (acpi_table_checksum(file.data, table->length))
-> +			continue;
-> +		}
-> +		if (acpi_table_checksum(file.data, table->length)) {
->  			INVALID_TABLE("Bad table checksum",
->  				      cpio_path, file.name);
-> +			continue;
-> +		}
->  
->  		pr_info("%4.4s ACPI table found in initrd [%s%s][0x%x]\n",
->  			table->signature, cpio_path, file.name, table->length);
-
-
---
-To unsubscribe, send a message with 'unsubscribe linux-mm' in
-the body to majordomo@kvack.org.  For more info on Linux MM,
-see: http://www.linux-mm.org/ .
-Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
