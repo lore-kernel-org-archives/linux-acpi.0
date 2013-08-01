@@ -1,156 +1,150 @@
 From: Toshi Kani <toshi.kani@hp.com>
-Subject: Re: [PATCH v2 04/18] acpi: Introduce acpi_invalid_table() to check
- if a table is invalid.
-Date: Thu, 01 Aug 2013 16:26:59 -0600
-Message-ID: <1375396019.10300.32.camel@misato.fc.hp.com>
+Subject: Re: [PATCH v2 05/18] x86, acpi: Split acpi_boot_table_init() into
+ two parts.
+Date: Thu, 01 Aug 2013 17:32:11 -0600
+Message-ID: <1375399931.10300.36.camel@misato.fc.hp.com>
 References: <1375340800-19332-1-git-send-email-tangchen@cn.fujitsu.com>
-	 <1375340800-19332-5-git-send-email-tangchen@cn.fujitsu.com>
+	 <1375340800-19332-6-git-send-email-tangchen@cn.fujitsu.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from g1t0027.austin.hp.com ([15.216.28.34]:14604 "EHLO
-	g1t0027.austin.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755118Ab3HAW2I (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 1 Aug 2013 18:28:08 -0400
-In-Reply-To: <1375340800-19332-5-git-send-email-tangchen@cn.fujitsu.com>
-Sender: linux-acpi-owner@vger.kernel.org
-List-Id: linux-acpi@vger.kernel.org
+Return-path: <owner-linux-mm@kvack.org>
+In-Reply-To: <1375340800-19332-6-git-send-email-tangchen@cn.fujitsu.com>
+Sender: owner-linux-mm@kvack.org
 To: Tang Chen <tangchen@cn.fujitsu.com>
-Cc: rjw@sisk.pl, lenb@kernel.org, tglx@linutronix.de, mingo@elte.hu, hpa@zytor.com, akpm@linux-foundation.org, tj@kernel.org, trenn@suse.de, yinghai@kernel.org, jiang.liu@huawei.com, wency@cn.fujitsu.com, laijs@cn.fujitsu.com, isimatu.yasuaki@jp.fujitsu.com, izumi.taku@jp.fujitsu.com, mgorman@suse.de, minchan@kernel.org, mina86@mina86.com, gong.chen@linux.intel.com, vasilis.liaskovitis@profitbricks.com, lwoodman@redhat.com, riel@redhat.com, jweiner@redhat.com, prarit@redhat.com, zhangyanfei@cn.fujitsu.com, yanghy@cn.fujitsu.com, x86@kernel.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-mm@kvack.org, linux-acpi@vger.kernel.org
+Cc: rjw@sisk.pl, lenb@kernel.org, tglx@linutronix.de, mingo@elte.hu, hpa@zytor.com, akpm@linux-foundation.org, tj@kernel.org, trenn@suse.de, yinghai@kernel.org, jiang.liu@huawei.com, wency@cn.fujitsu.com, laijs@cn.fujitsu.com, isimatu.yasuaki@jp.fujitsu.com, izumi.taku@jp.fujitsu.com, mgorman@suse.de, minchan@kernel.org, mina86@mina86.com, gong.chen@linux.intel.com, vasilis.liaskovitis@profitbricks.com, lwoodman@redhat.com, riel@redhat.com, jweiner@redhat.com, prarit@redhat.com, zhangyanfei@cn.fujitsu.com, yanghy@cn.fujitsu.com, x86@kernel.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-mm@kvack.org, linux-acpi@vger.kernel.org, robert.moore@intel.com
+List-Id: linux-acpi@vger.kernel.org
 
 On Thu, 2013-08-01 at 15:06 +0800, Tang Chen wrote:
-> In acpi_initrd_override(), it checks several things to ensure the
-> table it found is valid. In later patches, we need to do these check
-> somewhere else. So this patch introduces a common function
-> acpi_invalid_table() to do all these checks, and reuse it in different
-> places. The function will be used in the subsequent patches.
+> In ACPI, SRAT(System Resource Affinity Table) contains NUMA info.
+> The memory affinities in SRAT record every memory range in the
+> system, and also, flags specifying if the memory range is
+> hotpluggable.
+> (Please refer to ACPI spec 5.0 5.2.16)
+> 
+> memblock starts to work at very early time, and SRAT has not been
+> parsed. So we don't know which memory is hotpluggable. In order
+> to use memblock to reserve hotpluggable memory, we need to obtain
+> SRAT memory affinity info earlier.
+> 
+> In the current acpi_boot_table_init(), it does the following:
+> 1. Parse RSDT, so that we can find all the tables.
+> 2. Initialize acpi_gbl_root_table_list, an array of acpi table
+>    descriptorsused to store each table's address, length, signature,
+>    and so on.
+> 3. Check if there is any table in initrd intending to override
+>    tables from firmware. If so, override the firmware tables.
+> 4. Initialize all the data in acpi_gbl_root_table_list.
+> 
+> In order to parse SRAT at early time, we need to do similar job as
+> step 1 and 2 above earlier to obtain SRAT. It will be very convenient
+> if we have acpi_gbl_root_table_list initialized. We can use address
+> and signature to find SRAT.
+> 
+> Since step 1 and 2 allocates no memory, it is OK to do these two
+> steps earlier.
+> 
+> But step 3 will check acpi initrd table override, not just SRAT,
+> but also all the other tables. So it is better to keep it untouched.
+> 
+> This patch splits acpi_boot_table_init() into two steps:
+> 1. Parse RSDT, which cannot be overrided, and initialize
+>    acpi_gbl_root_table_list. (step 1 + 2 above)
+> 2. Install all ACPI tables into acpi_gbl_root_table_list.
+>    (step 3 + 4 above)
+> 
+> In later patches, we will do step 1 + 2 earlier.
 > 
 > Signed-off-by: Tang Chen <tangchen@cn.fujitsu.com>
 > Reviewed-by: Zhang Yanfei <zhangyanfei@cn.fujitsu.com>
 > ---
->  drivers/acpi/osl.c |   86 +++++++++++++++++++++++++++++++++++++---------------
->  1 files changed, 61 insertions(+), 25 deletions(-)
+>  drivers/acpi/acpica/tbutils.c |   25 ++++++++++++++++++++++---
+>  drivers/acpi/tables.c         |    2 ++
+>  include/acpi/acpixf.h         |    2 ++
+>  3 files changed, 26 insertions(+), 3 deletions(-)
 > 
-> diff --git a/drivers/acpi/osl.c b/drivers/acpi/osl.c
-> index 91d9f54..8df8a93 100644
-> --- a/drivers/acpi/osl.c
-> +++ b/drivers/acpi/osl.c
-> @@ -572,9 +572,68 @@ static const char * const table_sigs[] = {
->  /* Must not increase 10 or needs code modification below */
->  #define ACPI_OVERRIDE_TABLES 10
->  
-> +/*******************************************************************************
-> + *
-> + * FUNCTION:    acpi_invalid_table
-> + *
-> + * PARAMETERS:  File               - The initrd file
-> + *              Path               - Path to acpi overriding tables in cpio file
-> + *              Signature          - Signature of the table
-> + *
-> + * RETURN:      0 if it passes all the checks, -EINVAL if any check fails.
-> + *
-> + * DESCRIPTION: Check if an acpi table found in initrd is invalid.
-> + *              @signature can be NULL. If it is NULL, the function will check
-> + *              if the table signature matches any signature in table_sigs[].
-> + *
-> + ******************************************************************************/
-> +int __init acpi_invalid_table(struct cpio_data *file,
-> +			      const char *path, const char *signature)
+> diff --git a/drivers/acpi/acpica/tbutils.c b/drivers/acpi/acpica/tbutils.c
 
-Since this function verifies a given acpi table in initrd (not that the
-table is invalid), I'd suggest to rename it something like
-acpi_verify_initrd().  Otherwise, it looks good to me.
-
-Acked-by: Toshi Kani <toshi.kani@hp.com>
+This patch needs to be reviewed by ACPICA folks.  I'd suggest to change
+the patch title to "x86, ACPICA:".  I added Bob to the list.
 
 Thanks,
 -Toshi
 
 
-> +{
-> +	int idx;
-> +	struct acpi_table_header *table = file->data;
-> +
-> +	if (file->size < sizeof(struct acpi_table_header)) {
-> +		INVALID_TABLE("Table smaller than ACPI header",
-> +			      path, file->name);
-> +		return -EINVAL;
-> +	}
-> +
-> +	if (signature) {
-> +		if (memcmp(table->signature, signature, 4)) {
-> +			INVALID_TABLE("Table signature does not match",
-> +				      path, file->name);
-> +			return -EINVAL;
-> +		}
-> +	} else {
-> +		for (idx = 0; table_sigs[idx]; idx++)
-> +			if (!memcmp(table->signature, table_sigs[idx], 4))
-> +				break;
-> +
-> +		if (!table_sigs[idx]) {
-> +			INVALID_TABLE("Unknown signature", path, file->name);
-> +			return -EINVAL;
-> +		}
-> +	}
-> +
-> +	if (file->size != table->length) {
-> +		INVALID_TABLE("File length does not match table length",
-> +			      path, file->name);
-> +		return -EINVAL;
-> +	}
-> +
-> +	if (acpi_table_checksum(file->data, table->length)) {
-> +		INVALID_TABLE("Bad table checksum",
-> +			      path, file->name);
-> +		return -EINVAL;
-> +	}
-> +
-> +	return 0;
+
+> index ce3d5db..9d68ffc 100644
+> --- a/drivers/acpi/acpica/tbutils.c
+> +++ b/drivers/acpi/acpica/tbutils.c
+> @@ -766,9 +766,30 @@ acpi_tb_parse_root_table(acpi_physical_address rsdp_address)
+>  	 */
+>  	acpi_os_unmap_memory(table, length);
+>  
+> +	return_ACPI_STATUS(AE_OK);
 > +}
 > +
->  void __init acpi_initrd_override(void *data, size_t size)
->  {
-> -	int sig, no, table_nr = 0, total_offset = 0;
-> +	int no, table_nr = 0, total_offset = 0;
->  	long offset = 0;
->  	struct acpi_table_header *table;
->  	char cpio_path[32] = "kernel/firmware/acpi/";
-> @@ -593,33 +652,10 @@ void __init acpi_initrd_override(void *data, size_t size)
->  		data += offset;
->  		size -= offset;
->  
-> -		if (file.size < sizeof(struct acpi_table_header)) {
-> -			INVALID_TABLE("Table smaller than ACPI header",
-> -				      cpio_path, file.name);
-> -			continue;
-> -		}
+> +/*******************************************************************************
+> + *
+> + * FUNCTION:    acpi_tb_install_root_table
+> + *
+> + * DESCRIPTION: This function installs all the ACPI tables in RSDT into
+> + *              acpi_gbl_root_table_list.
+> + *
+> + ******************************************************************************/
+> +
+> +void __init
+> +acpi_tb_install_root_table()
+> +{
+> +	int i;
+> +
+>  	/*
+>  	 * Complete the initialization of the root table array by examining
+> -	 * the header of each table
+> +	 * the header of each table.
+> +	 *
+> +	 * First two entries in the table array are reserved for the DSDT
+> +	 * and FACS, which are not actually present in the RSDT/XSDT - they
+> +	 * come from the FADT.
+>  	 */
+>  	for (i = 2; i < acpi_gbl_root_table_list.current_table_count; i++) {
+>  		acpi_tb_install_table(acpi_gbl_root_table_list.tables[i].
+> @@ -782,6 +803,4 @@ acpi_tb_parse_root_table(acpi_physical_address rsdp_address)
+>  			acpi_tb_parse_fadt(i);
+>  		}
+>  	}
 > -
->  		table = file.data;
+> -	return_ACPI_STATUS(AE_OK);
+>  }
+> diff --git a/drivers/acpi/tables.c b/drivers/acpi/tables.c
+> index d67a1fe..8860e79 100644
+> --- a/drivers/acpi/tables.c
+> +++ b/drivers/acpi/tables.c
+> @@ -353,6 +353,8 @@ int __init acpi_table_init(void)
+>  	if (ACPI_FAILURE(status))
+>  		return 1;
 >  
-> -		for (sig = 0; table_sigs[sig]; sig++)
-> -			if (!memcmp(table->signature, table_sigs[sig], 4))
-> -				break;
-> -
-> -		if (!table_sigs[sig]) {
-> -			INVALID_TABLE("Unknown signature",
-> -				      cpio_path, file.name);
-> +		if (acpi_invalid_table(&file, cpio_path, NULL))
->  			continue;
-> -		}
-> -		if (file.size != table->length) {
-> -			INVALID_TABLE("File length does not match table length",
-> -				      cpio_path, file.name);
-> -			continue;
-> -		}
-> -		if (acpi_table_checksum(file.data, table->length)) {
-> -			INVALID_TABLE("Bad table checksum",
-> -				      cpio_path, file.name);
-> -			continue;
-> -		}
+> +	acpi_tb_install_root_table();
+> +
+>  	check_multiple_madt();
+>  	return 0;
+>  }
+> diff --git a/include/acpi/acpixf.h b/include/acpi/acpixf.h
+> index 454881e..f5549b5 100644
+> --- a/include/acpi/acpixf.h
+> +++ b/include/acpi/acpixf.h
+> @@ -116,6 +116,8 @@ acpi_status
+>  acpi_initialize_tables(struct acpi_table_desc *initial_storage,
+>  		       u32 initial_table_count, u8 allow_resize);
 >  
->  		pr_info("%4.4s ACPI table found in initrd [%s%s][0x%x]\n",
->  			table->signature, cpio_path, file.name, table->length);
+> +void acpi_tb_install_root_table(void);
+> +
+>  acpi_status __init acpi_initialize_subsystem(void);
+>  
+>  acpi_status acpi_enable_subsystem(u32 flags);
 
 
+--
+To unsubscribe, send a message with 'unsubscribe linux-mm' in
+the body to majordomo@kvack.org.  For more info on Linux MM,
+see: http://www.linux-mm.org/ .
+Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
