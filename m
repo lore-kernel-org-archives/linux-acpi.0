@@ -1,50 +1,95 @@
-From: Takao Indoh <indou.takao@jp.fujitsu.com>
-Subject: Re: [PATCH v2] PCI: Reset PCIe devices to stop ongoing DMA
-Date: Thu, 01 Aug 2013 15:34:06 +0900
-Message-ID: <51FA015E.10901@jp.fujitsu.com>
-References: <1368509365-2260-1-git-send-email-indou.takao@jp.fujitsu.com> <51F85BCC.2070103@jp.fujitsu.com> <CAErSpo4yJ2yqCWv7GT7jWSVd_8SktU=xJXT78m8Vxp_wLA4Fow@mail.gmail.com> <1699397.FXoFYIGzbk@vostro.rjw.lan>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-2022-JP
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-pci-owner@vger.kernel.org>
-In-Reply-To: <1699397.FXoFYIGzbk@vostro.rjw.lan>
-Sender: linux-pci-owner@vger.kernel.org
-To: bhelgaas@google.com
-Cc: rjw@sisk.pl, vgoyal@redhat.com, linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, iommu@lists.linux-foundation.org, kexec@lists.infradead.org, ishii.hironobu@jp.fujitsu.com, ddutile@redhat.com, bill.sumner@hp.com, alex.williamson@redhat.com, hbabu@us.ibm.com, linux-acpi@vger.kernel.org
+From: Tang Chen <tangchen@cn.fujitsu.com>
+Subject: [PATCH v2 02/18] earlycpio.c: Fix the confusing comment of find_cpio_data().
+Date: Thu, 1 Aug 2013 15:06:24 +0800
+Message-ID: <1375340800-19332-3-git-send-email-tangchen@cn.fujitsu.com>
+References: <1375340800-19332-1-git-send-email-tangchen@cn.fujitsu.com>
+Return-path: <owner-linux-mm@kvack.org>
+In-Reply-To: <1375340800-19332-1-git-send-email-tangchen@cn.fujitsu.com>
+Sender: owner-linux-mm@kvack.org
+To: rjw@sisk.pl, lenb@kernel.org, tglx@linutronix.de, mingo@elte.hu, hpa@zytor.com, akpm@linux-foundation.org, tj@kernel.org, trenn@suse.de, yinghai@kernel.org, jiang.liu@huawei.com, wency@cn.fujitsu.com, laijs@cn.fujitsu.com, isimatu.yasuaki@jp.fujitsu.com, izumi.taku@jp.fujitsu.com, mgorman@suse.de, minchan@kernel.org, mina86@mina86.com, gong.chen@linux.intel.com, vasilis.liaskovitis@profitbricks.com, lwoodman@redhat.com, riel@redhat.com, jweiner@redhat.com, prarit@redhat.com, zhangyanfei@cn.fujitsu.com, yanghy@cn.fujitsu.com
+Cc: x86@kernel.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-mm@kvack.org, linux-acpi@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-(2013/08/01 6:23), Rafael J. Wysocki wrote:
-> On Wednesday, July 31, 2013 03:08:03 PM Bjorn Helgaas wrote:
->> [+cc Rafael, linux-acpi]
->>
->> On Tue, Jul 30, 2013 at 6:35 PM, Takao Indoh <indou.takao@jp.fujitsu.com> wrote:
->>
->>> On x86, currently IOMMU initialization run *after* PCI enumeration, but
->>> what you are talking about is that it should be changed so that x86
->>> IOMMU initialization is done *before* PCI enumeration like sparc, right?
->>
->> Yes.  I don't know whether or when that initialization order will ever
->> be changed, but I do think we should avoid building more
->> infrastructure that depends on the current order.
->>
->> Changing the order is a pretty big deal because it's a lot more than
->> just the IOMMU.  Basically I think we should be enumerating ACPI
->> devices, including the IOMMU, before PCI devices, but there's a lot of
->> legacy involved in that area.  Added Rafael in case he has any
->> thoughts.
-> 
-> Well, actually, I'm not really familiar with IOMMUs, sorry.
-> 
-> I do think that initializing IOMMU before PCI enumeration would be better,
-> however.  At least if the ordering should be the same on all architectures,
-> which I suppose is the case, that's the one I'd choose.
+The comments of find_cpio_data() says:
 
-Ok guys. If x86 IOMMU maintainer also thinks changing order is
-necessary, maybe I need to give up device reset in kdump kernel and
-consider doing it in panic kernel.
+  * @offset: When a matching file is found, this is the offset to the
+  *          beginning of the cpio. ......
 
-Either way, I need bus reset interface to reset devices. Bjorn, could
-you review the bus reset patches Alex posted yesterday?
+But according to the code,
 
-Thanks,
-Takao Indoh
+  dptr = PTR_ALIGN(p + ch[C_NAMESIZE], 4);
+  nptr = PTR_ALIGN(dptr + ch[C_FILESIZE], 4);
+  ....
+  *offset = (long)nptr - (long)data;	/* data is the cpio file */
+
+@offset is the offset of the next file, not the matching file itself.
+This is confused and may cause unnecessary waste of time to debug.
+So fix it.
+
+v1 -> v2:
+As tj suggested, rename @offset to @nextoff which is more clear to
+users. And also adjust the new comments.
+
+Signed-off-by: Tang Chen <tangchen@cn.fujitsu.com>
+Reviewed-by: Zhang Yanfei <zhangyanfei@cn.fujitsu.com>
+---
+ lib/earlycpio.c |   27 ++++++++++++++-------------
+ 1 files changed, 14 insertions(+), 13 deletions(-)
+
+diff --git a/lib/earlycpio.c b/lib/earlycpio.c
+index 8078ef4..7affac0 100644
+--- a/lib/earlycpio.c
++++ b/lib/earlycpio.c
+@@ -49,22 +49,23 @@ enum cpio_fields {
+ 
+ /**
+  * cpio_data find_cpio_data - Search for files in an uncompressed cpio
+- * @path:   The directory to search for, including a slash at the end
+- * @data:   Pointer to the the cpio archive or a header inside
+- * @len:    Remaining length of the cpio based on data pointer
+- * @offset: When a matching file is found, this is the offset to the
+- *          beginning of the cpio. It can be used to iterate through
+- *          the cpio to find all files inside of a directory path
++ * @path:       The directory to search for, including a slash at the end
++ * @data:       Pointer to the the cpio archive or a header inside
++ * @len:        Remaining length of the cpio based on data pointer
++ * @nextoff:    When a matching file is found, this is the offset from the
++ *              beginning of the cpio to the beginning of the next file, not the
++ *              matching file itself. It can be used to iterate through the cpio
++ *              to find all files inside of a directory path
+  *
+- * @return: struct cpio_data containing the address, length and
+- *          filename (with the directory path cut off) of the found file.
+- *          If you search for a filename and not for files in a directory,
+- *          pass the absolute path of the filename in the cpio and make sure
+- *          the match returned an empty filename string.
++ * @return:     struct cpio_data containing the address, length and
++ *              filename (with the directory path cut off) of the found file.
++ *              If you search for a filename and not for files in a directory,
++ *              pass the absolute path of the filename in the cpio and make sure
++ *              the match returned an empty filename string.
+  */
+ 
+ struct cpio_data __cpuinit find_cpio_data(const char *path, void *data,
+-					  size_t len,  long *offset)
++					  size_t len,  long *nextoff)
+ {
+ 	const size_t cpio_header_len = 8*C_NFIELDS - 2;
+ 	struct cpio_data cd = { NULL, 0, "" };
+@@ -124,7 +125,7 @@ struct cpio_data __cpuinit find_cpio_data(const char *path, void *data,
+ 		if ((ch[C_MODE] & 0170000) == 0100000 &&
+ 		    ch[C_NAMESIZE] >= mypathsize &&
+ 		    !memcmp(p, path, mypathsize)) {
+-			*offset = (long)nptr - (long)data;
++			*nextoff = (long)nptr - (long)data;
+ 			if (ch[C_NAMESIZE] - mypathsize >= MAX_CPIO_FILE_NAME) {
+ 				pr_warn(
+ 				"File %s exceeding MAX_CPIO_FILE_NAME [%d]\n",
+-- 
+1.7.1
+
+--
+To unsubscribe, send a message with 'unsubscribe linux-mm' in
+the body to majordomo@kvack.org.  For more info on Linux MM,
+see: http://www.linux-mm.org/ .
+Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
