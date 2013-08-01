@@ -1,71 +1,79 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: Cannot hot remove a memory device
-Date: Thu, 01 Aug 2013 23:43:55 +0200
-Message-ID: <2995879.KDC1gYpzij@vostro.rjw.lan>
-References: <51FA1E41.20304@jp.fujitsu.com>
+From: Toshi Kani <toshi.kani@hp.com>
+Subject: Re: [PATCH v2 01/18] acpi: Print Hot-Pluggable Field in SRAT.
+Date: Thu, 01 Aug 2013 15:55:08 -0600
+Message-ID: <1375394108.10300.15.camel@misato.fc.hp.com>
+References: <1375340800-19332-1-git-send-email-tangchen@cn.fujitsu.com>
+	 <1375340800-19332-2-git-send-email-tangchen@cn.fujitsu.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7Bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from hydra.sisk.pl ([212.160.235.94]:51136 "EHLO hydra.sisk.pl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753272Ab3HAVdp (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 1 Aug 2013 17:33:45 -0400
-In-Reply-To: <51FA1E41.20304@jp.fujitsu.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
+Return-path: <owner-linux-mm@kvack.org>
+In-Reply-To: <1375340800-19332-2-git-send-email-tangchen@cn.fujitsu.com>
+Sender: owner-linux-mm@kvack.org
+To: Tang Chen <tangchen@cn.fujitsu.com>
+Cc: rjw@sisk.pl, lenb@kernel.org, tglx@linutronix.de, mingo@elte.hu, hpa@zytor.com, akpm@linux-foundation.org, tj@kernel.org, trenn@suse.de, yinghai@kernel.org, jiang.liu@huawei.com, wency@cn.fujitsu.com, laijs@cn.fujitsu.com, isimatu.yasuaki@jp.fujitsu.com, izumi.taku@jp.fujitsu.com, mgorman@suse.de, minchan@kernel.org, mina86@mina86.com, gong.chen@linux.intel.com, vasilis.liaskovitis@profitbricks.com, lwoodman@redhat.com, riel@redhat.com, jweiner@redhat.com, prarit@redhat.com, zhangyanfei@cn.fujitsu.com, yanghy@cn.fujitsu.com, x86@kernel.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-mm@kvack.org, linux-acpi@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
-Cc: rafael.j.wysocki@intel.com, vasilis.liaskovitis@profitbricks.com, toshi.kani@hp.com, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, tangchen@cn.fujitsu.com, wency@cn.fujitsu.com
 
-Hi,
-
-Thanks for your report.
-
-On Thursday, August 01, 2013 05:37:21 PM Yasuaki Ishimatsu wrote:
-> By following commit, I cannot hot remove a memory device.
+On Thu, 2013-08-01 at 15:06 +0800, Tang Chen wrote:
+> The Hot-Pluggable field in SRAT suggests if the memory could be
+> hotplugged while the system is running. Print it as well when
+> parsing SRAT will help users to know which memory is hotpluggable.
 > 
-> ACPI / memhotplug: Bind removable memory blocks to ACPI device nodes
-> commit e2ff39400d81233374e780b133496a2296643d7d
-> 
-> Details are follows:
-> When I add a memory device, acpi_memory_enable_device() always fails
-> as follows:
-> 
-> ...
-> [ 1271.114116]  [ffffea121c400000-ffffea121c7fffff] PMD -> [ffff880813c00000-ffff880813ffffff] on node 3
-> [ 1271.128682]  [ffffea121c800000-ffffea121cbfffff] PMD -> [ffff880813800000-ffff880813bfffff] on node 3
-> [ 1271.143298]  [ffffea121cc00000-ffffea121cffffff] PMD -> [ffff880813000000-ffff8808133fffff] on node 3
-> [ 1271.157799]  [ffffea121d000000-ffffea121d3fffff] PMD -> [ffff880812c00000-ffff880812ffffff] on node 3
-> [ 1271.172341]  [ffffea121d400000-ffffea121d7fffff] PMD -> [ffff880812800000-ffff880812bfffff] on node 3
-> [ 1271.186872]  [ffffea121d800000-ffffea121dbfffff] PMD -> [ffff880812400000-ffff8808127fffff] on node 3
-> [ 1271.201481]  [ffffea121dc00000-ffffea121dffffff] PMD -> [ffff880812000000-ffff8808123fffff] on node 3
-> [ 1271.216041]  [ffffea121e000000-ffffea121e3fffff] PMD -> [ffff880811c00000-ffff880811ffffff] on node 3
-> [ 1271.230623]  [ffffea121e400000-ffffea121e7fffff] PMD -> [ffff880811800000-ffff880811bfffff] on node 3
-> [ 1271.245148]  [ffffea121e800000-ffffea121ebfffff] PMD -> [ffff880811400000-ffff8808117fffff] on node 3
-> [ 1271.259683]  [ffffea121ec00000-ffffea121effffff] PMD -> [ffff880811000000-ffff8808113fffff] on node 3
-> [ 1271.274194]  [ffffea121f000000-ffffea121f3fffff] PMD -> [ffff880810c00000-ffff880810ffffff] on node 3
-> [ 1271.288764]  [ffffea121f400000-ffffea121f7fffff] PMD -> [ffff880810800000-ffff880810bfffff] on node 3
-> ...	
-> [ 1271.325841] acpi PNP0C80:03: acpi_memory_enable_device() error
+> Signed-off-by: Tang Chen <tangchen@cn.fujitsu.com>
+> Reviewed-by: Wanpeng Li <liwanp@linux.vnet.ibm.com>
+> Reviewed-by: Zhang Yanfei <zhangyanfei@cn.fujitsu.com>
+> Acked-by: Tejun Heo <tj@kernel.org>
 
-Well, the only new way acpi_memory_enable_device() can fail after that commit
-is a failure in acpi_bind_memory_blocks().
-
-This means that either handle is NULL, which I think we can exclude, because
-acpi_memory_enable_device() wouldn't be called at all if that were the case, or
-there's a more subtle error in acpi_bind_one().
-
-One that comes to mind is that we may be calling acpi_bind_one() twice for the
-same memory region, in which it will trigger -EINVAL from the sanity check in
-there.
-
-Also you may try to increase ACPI_MAX_PHYSICAL_NODE (in acpi_bus.h) and see if
-that helps.
+Acked-by: Toshi Kani <toshi.kani@hp.com>
 
 Thanks,
-Rafael
+-Toshi
 
 
--- 
-I speak only for myself.
-Rafael J. Wysocki, Intel Open Source Technology Center.
+> ---
+>  arch/x86/mm/srat.c |   11 +++++++----
+>  1 files changed, 7 insertions(+), 4 deletions(-)
+> 
+> diff --git a/arch/x86/mm/srat.c b/arch/x86/mm/srat.c
+> index cdd0da9..d44c8a4 100644
+> --- a/arch/x86/mm/srat.c
+> +++ b/arch/x86/mm/srat.c
+> @@ -146,6 +146,7 @@ int __init
+>  acpi_numa_memory_affinity_init(struct acpi_srat_mem_affinity *ma)
+>  {
+>  	u64 start, end;
+> +	u32 hotpluggable;
+>  	int node, pxm;
+>  
+>  	if (srat_disabled())
+> @@ -154,7 +155,8 @@ acpi_numa_memory_affinity_init(struct acpi_srat_mem_affinity *ma)
+>  		goto out_err_bad_srat;
+>  	if ((ma->flags & ACPI_SRAT_MEM_ENABLED) == 0)
+>  		goto out_err;
+> -	if ((ma->flags & ACPI_SRAT_MEM_HOT_PLUGGABLE) && !save_add_info())
+> +	hotpluggable = ma->flags & ACPI_SRAT_MEM_HOT_PLUGGABLE;
+> +	if (hotpluggable && !save_add_info())
+>  		goto out_err;
+>  
+>  	start = ma->base_address;
+> @@ -174,9 +176,10 @@ acpi_numa_memory_affinity_init(struct acpi_srat_mem_affinity *ma)
+>  
+>  	node_set(node, numa_nodes_parsed);
+>  
+> -	printk(KERN_INFO "SRAT: Node %u PXM %u [mem %#010Lx-%#010Lx]\n",
+> -	       node, pxm,
+> -	       (unsigned long long) start, (unsigned long long) end - 1);
+> +	pr_info("SRAT: Node %u PXM %u [mem %#010Lx-%#010Lx]%s\n",
+> +		node, pxm,
+> +		(unsigned long long) start, (unsigned long long) end - 1,
+> +		hotpluggable ? " Hot Pluggable" : "");
+>  
+>  	return 0;
+>  out_err_bad_srat:
+
+
+--
+To unsubscribe, send a message with 'unsubscribe linux-mm' in
+the body to majordomo@kvack.org.  For more info on Linux MM,
+see: http://www.linux-mm.org/ .
+Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
