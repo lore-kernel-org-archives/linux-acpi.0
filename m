@@ -1,104 +1,127 @@
 From: Toshi Kani <toshi.kani@hp.com>
-Subject: Re: [PATCH v2 02/18] earlycpio.c: Fix the confusing comment of
- find_cpio_data().
-Date: Thu, 01 Aug 2013 15:57:51 -0600
-Message-ID: <1375394271.10300.18.camel@misato.fc.hp.com>
+Subject: Re: [PATCH v2 03/18] acpi: Remove "continue" in macro
+ INVALID_TABLE().
+Date: Thu, 01 Aug 2013 16:06:46 -0600
+Message-ID: <1375394806.10300.24.camel@misato.fc.hp.com>
 References: <1375340800-19332-1-git-send-email-tangchen@cn.fujitsu.com>
-	 <1375340800-19332-3-git-send-email-tangchen@cn.fujitsu.com>
+	 <1375340800-19332-4-git-send-email-tangchen@cn.fujitsu.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <owner-linux-mm@kvack.org>
-In-Reply-To: <1375340800-19332-3-git-send-email-tangchen@cn.fujitsu.com>
+In-Reply-To: <1375340800-19332-4-git-send-email-tangchen@cn.fujitsu.com>
 Sender: owner-linux-mm@kvack.org
 To: Tang Chen <tangchen@cn.fujitsu.com>
 Cc: rjw@sisk.pl, lenb@kernel.org, tglx@linutronix.de, mingo@elte.hu, hpa@zytor.com, akpm@linux-foundation.org, tj@kernel.org, trenn@suse.de, yinghai@kernel.org, jiang.liu@huawei.com, wency@cn.fujitsu.com, laijs@cn.fujitsu.com, isimatu.yasuaki@jp.fujitsu.com, izumi.taku@jp.fujitsu.com, mgorman@suse.de, minchan@kernel.org, mina86@mina86.com, gong.chen@linux.intel.com, vasilis.liaskovitis@profitbricks.com, lwoodman@redhat.com, riel@redhat.com, jweiner@redhat.com, prarit@redhat.com, zhangyanfei@cn.fujitsu.com, yanghy@cn.fujitsu.com, x86@kernel.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-mm@kvack.org, linux-acpi@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
 On Thu, 2013-08-01 at 15:06 +0800, Tang Chen wrote:
-> The comments of find_cpio_data() says:
+> The macro INVALID_TABLE() is defined like this:
 > 
->   * @offset: When a matching file is found, this is the offset to the
->   *          beginning of the cpio. ......
+>  #define INVALID_TABLE(x, path, name)                                    \
+>          { pr_err("ACPI OVERRIDE: " x " [%s%s]\n", path, name); continue; }
 > 
-> But according to the code,
+> And it is used like this:
 > 
->   dptr = PTR_ALIGN(p + ch[C_NAMESIZE], 4);
->   nptr = PTR_ALIGN(dptr + ch[C_FILESIZE], 4);
->   ....
->   *offset = (long)nptr - (long)data;	/* data is the cpio file */
+> 	for (...) {
+> 		...
+> 		if (...)
+> 			INVALID_TABLE()
+> 		...
+> 	}
 > 
-> @offset is the offset of the next file, not the matching file itself.
-> This is confused and may cause unnecessary waste of time to debug.
-> So fix it.
+> The "continue" in the macro makes the code hard to understand.
+> Change it to the style like other macros:
 > 
-> v1 -> v2:
-> As tj suggested, rename @offset to @nextoff which is more clear to
-> users. And also adjust the new comments.
+>  #define INVALID_TABLE(x, path, name)                                    \
+>          do { pr_err("ACPI OVERRIDE: " x " [%s%s]\n", path, name); } while (0)
+> 
+> So after this patch, this macro should be used like this:
+> 
+> 	for (...) {
+> 		...
+> 		if (...) {
+> 			INVALID_TABLE()
+> 			continue;
+> 		}
+> 		...
+> 	}
+> 
+> Add the "continue" wherever the macro is called.
+> (For now, it is only called in acpi_initrd_override().)
+> 
+> The idea is from Yinghai Lu <yinghai@kernel.org>.
 > 
 > Signed-off-by: Tang Chen <tangchen@cn.fujitsu.com>
+> Signed-off-by: Yinghai Lu <yinghai@kernel.org>
+> Acked-by: Tejun Heo <tj@kernel.org>
 > Reviewed-by: Zhang Yanfei <zhangyanfei@cn.fujitsu.com>
 > ---
->  lib/earlycpio.c |   27 ++++++++++++++-------------
->  1 files changed, 14 insertions(+), 13 deletions(-)
+>  drivers/acpi/osl.c |   18 +++++++++++++-----
+>  1 files changed, 13 insertions(+), 5 deletions(-)
 > 
-> diff --git a/lib/earlycpio.c b/lib/earlycpio.c
-> index 8078ef4..7affac0 100644
-> --- a/lib/earlycpio.c
-> +++ b/lib/earlycpio.c
-> @@ -49,22 +49,23 @@ enum cpio_fields {
+> diff --git a/drivers/acpi/osl.c b/drivers/acpi/osl.c
+> index e721863..91d9f54 100644
+> --- a/drivers/acpi/osl.c
+> +++ b/drivers/acpi/osl.c
+> @@ -565,7 +565,7 @@ static const char * const table_sigs[] = {
 >  
->  /**
->   * cpio_data find_cpio_data - Search for files in an uncompressed cpio
-> - * @path:   The directory to search for, including a slash at the end
-> - * @data:   Pointer to the the cpio archive or a header inside
-> - * @len:    Remaining length of the cpio based on data pointer
-> - * @offset: When a matching file is found, this is the offset to the
-> - *          beginning of the cpio. It can be used to iterate through
-> - *          the cpio to find all files inside of a directory path
-> + * @path:       The directory to search for, including a slash at the end
-> + * @data:       Pointer to the the cpio archive or a header inside
-> + * @len:        Remaining length of the cpio based on data pointer
-> + * @nextoff:    When a matching file is found, this is the offset from the
-> + *              beginning of the cpio to the beginning of the next file, not the
-> + *              matching file itself. It can be used to iterate through the cpio
-> + *              to find all files inside of a directory path
->   *
-> - * @return: struct cpio_data containing the address, length and
-> - *          filename (with the directory path cut off) of the found file.
-> - *          If you search for a filename and not for files in a directory,
-> - *          pass the absolute path of the filename in the cpio and make sure
-> - *          the match returned an empty filename string.
-> + * @return:     struct cpio_data containing the address, length and
-> + *              filename (with the directory path cut off) of the found file.
-> + *              If you search for a filename and not for files in a directory,
-> + *              pass the absolute path of the filename in the cpio and make sure
-> + *              the match returned an empty filename string.
->   */
->  
->  struct cpio_data __cpuinit find_cpio_data(const char *path, void *data,
+>  /* Non-fatal errors: Affected tables/files are ignored */
+>  #define INVALID_TABLE(x, path, name)					\
 
-This patch does not apply cleanly.  It seems that your branch does not
-have 0db0628d90125193280eabb501c94feaf48fa9ab.
+Since you are touching this macro, I'd suggest to rename it something
+like ACPI_INVALID_TABLE().  INVALID_TABLE() sounds too generic to me.
+Otherwise, it looks good.
+
+Acked-by: Toshi Kani <toshi.kani@hp.com>
 
 Thanks,
 -Toshi
 
 
-> -					  size_t len,  long *offset)
-> +					  size_t len,  long *nextoff)
->  {
->  	const size_t cpio_header_len = 8*C_NFIELDS - 2;
->  	struct cpio_data cd = { NULL, 0, "" };
-> @@ -124,7 +125,7 @@ struct cpio_data __cpuinit find_cpio_data(const char *path, void *data,
->  		if ((ch[C_MODE] & 0170000) == 0100000 &&
->  		    ch[C_NAMESIZE] >= mypathsize &&
->  		    !memcmp(p, path, mypathsize)) {
-> -			*offset = (long)nptr - (long)data;
-> +			*nextoff = (long)nptr - (long)data;
->  			if (ch[C_NAMESIZE] - mypathsize >= MAX_CPIO_FILE_NAME) {
->  				pr_warn(
->  				"File %s exceeding MAX_CPIO_FILE_NAME [%d]\n",
+> -	{ pr_err("ACPI OVERRIDE: " x " [%s%s]\n", path, name); continue; }
+> +	do { pr_err("ACPI OVERRIDE: " x " [%s%s]\n", path, name); } while (0)
+>  
+>  #define ACPI_HEADER_SIZE sizeof(struct acpi_table_header)
+>  
+> @@ -593,9 +593,11 @@ void __init acpi_initrd_override(void *data, size_t size)
+>  		data += offset;
+>  		size -= offset;
+>  
+> -		if (file.size < sizeof(struct acpi_table_header))
+> +		if (file.size < sizeof(struct acpi_table_header)) {
+>  			INVALID_TABLE("Table smaller than ACPI header",
+>  				      cpio_path, file.name);
+> +			continue;
+> +		}
+>  
+>  		table = file.data;
+>  
+> @@ -603,15 +605,21 @@ void __init acpi_initrd_override(void *data, size_t size)
+>  			if (!memcmp(table->signature, table_sigs[sig], 4))
+>  				break;
+>  
+> -		if (!table_sigs[sig])
+> +		if (!table_sigs[sig]) {
+>  			INVALID_TABLE("Unknown signature",
+>  				      cpio_path, file.name);
+> -		if (file.size != table->length)
+> +			continue;
+> +		}
+> +		if (file.size != table->length) {
+>  			INVALID_TABLE("File length does not match table length",
+>  				      cpio_path, file.name);
+> -		if (acpi_table_checksum(file.data, table->length))
+> +			continue;
+> +		}
+> +		if (acpi_table_checksum(file.data, table->length)) {
+>  			INVALID_TABLE("Bad table checksum",
+>  				      cpio_path, file.name);
+> +			continue;
+> +		}
+>  
+>  		pr_info("%4.4s ACPI table found in initrd [%s%s][0x%x]\n",
+>  			table->signature, cpio_path, file.name, table->length);
 
 
 --
