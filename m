@@ -1,55 +1,59 @@
-From: Tejun Heo <tj@kernel.org>
-Subject: Re: [PATCH v2 13/18] x86, numa, mem_hotplug: Skip all the regions
- the kernel resides in.
-Date: Thu, 1 Aug 2013 09:42:18 -0400
-Message-ID: <20130801134218.GA29323@htj.dyndns.org>
-References: <1375340800-19332-1-git-send-email-tangchen@cn.fujitsu.com>
- <1375340800-19332-14-git-send-email-tangchen@cn.fujitsu.com>
+From: Felipe Contreras <felipe.contreras@gmail.com>
+Subject: Re: [REGRESSION/PATCH] acpi: blacklist win8 OSI for ASUS Zenbok Prime UX31A
+Date: Thu, 1 Aug 2013 12:37:04 -0500
+Message-ID: <CAMP44s25aRcK2bB=WLMkuD45fztFBNug8prArczRqZqzeEvj3A@mail.gmail.com>
+References: <3453253.oZLO1ChPbL@vostro.rjw.lan>
+	<CAMP44s02V_FO1BPJZqo6MB9RMknXYdV7AXDqbJzYHpgK1GUuJw@mail.gmail.com>
+	<37178266.QXgbv9rq0i@vostro.rjw.lan>
+	<CAMP44s2LqiEGtS72FuTjsHUa1MH2kfaYHmcpNKMmAm2LnbFCCQ@mail.gmail.com>
+	<20130731051421.GA15766@srcf.ucam.org>
+	<CAMP44s2B=nQLnZm7gyYAJZgt_x3KszRZLUC=fom0t9=Eze+smA@mail.gmail.com>
+	<20130731140010.GA24560@srcf.ucam.org>
+	<CAMP44s1cLou9TMfLS+FHwPM_b3bG5HN1-hzgvhz0fVRCZ8XqWw@mail.gmail.com>
+	<20130731175232.GA29987@srcf.ucam.org>
+	<CAMP44s1c5pmiC2fvmRi9vFrJXb2zYUT_F=paM2LR_V+7THnFVg@mail.gmail.com>
+	<20130731184724.GA30896@srcf.ucam.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-doc-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <1375340800-19332-14-git-send-email-tangchen@cn.fujitsu.com>
-Sender: linux-doc-owner@vger.kernel.org
-To: Tang Chen <tangchen@cn.fujitsu.com>
-Cc: rjw@sisk.pl, lenb@kernel.org, tglx@linutronix.de, mingo@elte.hu, hpa@zytor.com, akpm@linux-foundation.org, trenn@suse.de, yinghai@kernel.org, jiang.liu@huawei.com, wency@cn.fujitsu.com, laijs@cn.fujitsu.com, isimatu.yasuaki@jp.fujitsu.com, izumi.taku@jp.fujitsu.com, mgorman@suse.de, minchan@kernel.org, mina86@mina86.com, gong.chen@linux.intel.com, vasilis.liaskovitis@profitbricks.com, lwoodman@redhat.com, riel@redhat.com, jweiner@redhat.com, prarit@redhat.com, zhangyanfei@cn.fujitsu.com, yanghy@cn.fujitsu.com, x86@kernel.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-mm@kvack.org, linux-acpi@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-la0-f44.google.com ([209.85.215.44]:38479 "EHLO
+	mail-la0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752245Ab3HARhF (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 1 Aug 2013 13:37:05 -0400
+In-Reply-To: <20130731184724.GA30896@srcf.ucam.org>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Matthew Garrett <mjg59@srcf.ucam.org>
+Cc: "Rafael J. Wysocki" <rjw@sisk.pl>, Aaron Lu <aaron.lwe@gmail.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Len Brown <lenb@kernel.org>, Linus Torvalds <torvalds@linux-foundation.org>
 
-> On Thu, Aug 01, 2013 at 03:06:35PM +0800, Tang Chen wrote:
-> 
-> At early time, memblock will reserve some memory for the kernel,
-> such as the kernel code and data segments, initrd file, and so on=EF=BC=8C
-> which means the kernel resides in these memory regions.
-> 
-> Even if these memory regions are hotpluggable, we should not
-> mark them as hotpluggable. Otherwise the kernel won't have enough
-> memory to boot.
-> 
-> This patch finds out which memory regions the kernel resides in,
-> and skip them when finding all hotpluggable memory regions.
-> 
-> Signed-off-by: Tang Chen <tangchen@cn.fujitsu.com>
-> Reviewed-by: Zhang Yanfei <zhangyanfei@cn.fujitsu.com>
-> ---
->  mm/memory=5Fhotplug.c |   45 +++++++++++++++++++++++++++++++++++++++++++++
->   1 files changed, 45 insertions(+), 0 deletions(-)
-> 
-> diff --git a/mm/memory=5Fhotplug.c b/mm/memory=5Fhotplug.c
-> index 326e2f2..b800c9c 100644
-> --- a/mm/memory=5Fhotplug.c
-> +++ b/mm/memory=5Fhotplug.c
-> @@ -31,6 +31,7 @@
->  #include <linux/firmware-map.h>
->  #include <linux/stop=5Fmachine.h>
->  #include <linux/acpi.h>
-> +#include <linux/memblock.h>
-> =20
->  #include <asm/tlbflush.h>
-> =20
+On Wed, Jul 31, 2013 at 1:47 PM, Matthew Garrett <mjg59@srcf.ucam.org> wrote:
+> On Wed, Jul 31, 2013 at 01:07:57PM -0500, Felipe Contreras wrote:
+>> If we can make the software behave consistently for 99% of the
+>> machines out there instead of only 90%, that's better.
+>
+> If we can't make an interface 100% consistent, we shouldn't pretend that
+> the interface is 100% consistent. We can't, and so we don't. Setting a
+> backlight value of 0 may turn the screen off, and userspace needs to
+> deal with that.
 
-This patch is contaminated.  Can you please resend?
+This is insanity; we can never guarantee 100% of anything.
 
-Thanks.
+Better is better. And 99% is better than 90%
+
+% git grep quirks | wc -l
+1585
+
+Moreover, Linux already does quirks, and when there are quirks it
+means there's no 100% guarantee of the thing working as it should;
+hence the need for quirks, which is never complete, never 100%.
+
+Anyway, screw the users, right? All you care about is that the code
+looks good to you.
+
+If we care about the users, we would provide a consistent interface,
+where 0 means the same thing on all the backlight drivers. If all we
+can do is provide this consistency 99% of the time through quirks,
+that is the way to go.
 
 -- 
-tejun
+Felipe Contreras
