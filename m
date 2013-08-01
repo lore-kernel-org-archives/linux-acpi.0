@@ -1,150 +1,71 @@
 From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: [PATCH v2 04/18] acpi: Introduce acpi_invalid_table() to check if a table is invalid.
-Date: Thu, 01 Aug 2013 22:27:13 +0200
-Message-ID: <2933065.Fj6XrC3sr2@vostro.rjw.lan>
-References: <1375340800-19332-1-git-send-email-tangchen@cn.fujitsu.com> <1375340800-19332-5-git-send-email-tangchen@cn.fujitsu.com>
+Subject: Re: Cannot hot remove a memory device
+Date: Thu, 01 Aug 2013 23:43:55 +0200
+Message-ID: <2995879.KDC1gYpzij@vostro.rjw.lan>
+References: <51FA1E41.20304@jp.fujitsu.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7Bit
-Return-path: <owner-linux-mm@kvack.org>
-In-Reply-To: <1375340800-19332-5-git-send-email-tangchen@cn.fujitsu.com>
-Sender: owner-linux-mm@kvack.org
-To: Tang Chen <tangchen@cn.fujitsu.com>
-Cc: lenb@kernel.org, tglx@linutronix.de, mingo@elte.hu, hpa@zytor.com, akpm@linux-foundation.org, tj@kernel.org, trenn@suse.de, yinghai@kernel.org, jiang.liu@huawei.com, wency@cn.fujitsu.com, laijs@cn.fujitsu.com, isimatu.yasuaki@jp.fujitsu.com, izumi.taku@jp.fujitsu.com, mgorman@suse.de, minchan@kernel.org, mina86@mina86.com, gong.chen@linux.intel.com, vasilis.liaskovitis@profitbricks.com, lwoodman@redhat.com, riel@redhat.com, jweiner@redhat.com, prarit@redhat.com, zhangyanfei@cn.fujitsu.com, yanghy@cn.fujitsu.com, x86@kernel.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-mm@kvack.org, linux-acpi@vger.kernel.org
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from hydra.sisk.pl ([212.160.235.94]:51136 "EHLO hydra.sisk.pl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753272Ab3HAVdp (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 1 Aug 2013 17:33:45 -0400
+In-Reply-To: <51FA1E41.20304@jp.fujitsu.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
+Cc: rafael.j.wysocki@intel.com, vasilis.liaskovitis@profitbricks.com, toshi.kani@hp.com, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, tangchen@cn.fujitsu.com, wency@cn.fujitsu.com
 
-On Thursday, August 01, 2013 03:06:26 PM Tang Chen wrote:
-> In acpi_initrd_override(), it checks several things to ensure the
-> table it found is valid. In later patches, we need to do these check
-> somewhere else. So this patch introduces a common function
-> acpi_invalid_table() to do all these checks, and reuse it in different
-> places. The function will be used in the subsequent patches.
-> 
-> Signed-off-by: Tang Chen <tangchen@cn.fujitsu.com>
-> Reviewed-by: Zhang Yanfei <zhangyanfei@cn.fujitsu.com>
+Hi,
 
-Acked-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+Thanks for your report.
 
-> ---
->  drivers/acpi/osl.c |   86 +++++++++++++++++++++++++++++++++++++---------------
->  1 files changed, 61 insertions(+), 25 deletions(-)
+On Thursday, August 01, 2013 05:37:21 PM Yasuaki Ishimatsu wrote:
+> By following commit, I cannot hot remove a memory device.
 > 
-> diff --git a/drivers/acpi/osl.c b/drivers/acpi/osl.c
-> index 91d9f54..8df8a93 100644
-> --- a/drivers/acpi/osl.c
-> +++ b/drivers/acpi/osl.c
-> @@ -572,9 +572,68 @@ static const char * const table_sigs[] = {
->  /* Must not increase 10 or needs code modification below */
->  #define ACPI_OVERRIDE_TABLES 10
->  
-> +/*******************************************************************************
-> + *
-> + * FUNCTION:    acpi_invalid_table
-> + *
-> + * PARAMETERS:  File               - The initrd file
-> + *              Path               - Path to acpi overriding tables in cpio file
-> + *              Signature          - Signature of the table
-> + *
-> + * RETURN:      0 if it passes all the checks, -EINVAL if any check fails.
-> + *
-> + * DESCRIPTION: Check if an acpi table found in initrd is invalid.
-> + *              @signature can be NULL. If it is NULL, the function will check
-> + *              if the table signature matches any signature in table_sigs[].
-> + *
-> + ******************************************************************************/
-> +int __init acpi_invalid_table(struct cpio_data *file,
-> +			      const char *path, const char *signature)
-> +{
-> +	int idx;
-> +	struct acpi_table_header *table = file->data;
-> +
-> +	if (file->size < sizeof(struct acpi_table_header)) {
-> +		INVALID_TABLE("Table smaller than ACPI header",
-> +			      path, file->name);
-> +		return -EINVAL;
-> +	}
-> +
-> +	if (signature) {
-> +		if (memcmp(table->signature, signature, 4)) {
-> +			INVALID_TABLE("Table signature does not match",
-> +				      path, file->name);
-> +			return -EINVAL;
-> +		}
-> +	} else {
-> +		for (idx = 0; table_sigs[idx]; idx++)
-> +			if (!memcmp(table->signature, table_sigs[idx], 4))
-> +				break;
-> +
-> +		if (!table_sigs[idx]) {
-> +			INVALID_TABLE("Unknown signature", path, file->name);
-> +			return -EINVAL;
-> +		}
-> +	}
-> +
-> +	if (file->size != table->length) {
-> +		INVALID_TABLE("File length does not match table length",
-> +			      path, file->name);
-> +		return -EINVAL;
-> +	}
-> +
-> +	if (acpi_table_checksum(file->data, table->length)) {
-> +		INVALID_TABLE("Bad table checksum",
-> +			      path, file->name);
-> +		return -EINVAL;
-> +	}
-> +
-> +	return 0;
-> +}
-> +
->  void __init acpi_initrd_override(void *data, size_t size)
->  {
-> -	int sig, no, table_nr = 0, total_offset = 0;
-> +	int no, table_nr = 0, total_offset = 0;
->  	long offset = 0;
->  	struct acpi_table_header *table;
->  	char cpio_path[32] = "kernel/firmware/acpi/";
-> @@ -593,33 +652,10 @@ void __init acpi_initrd_override(void *data, size_t size)
->  		data += offset;
->  		size -= offset;
->  
-> -		if (file.size < sizeof(struct acpi_table_header)) {
-> -			INVALID_TABLE("Table smaller than ACPI header",
-> -				      cpio_path, file.name);
-> -			continue;
-> -		}
-> -
->  		table = file.data;
->  
-> -		for (sig = 0; table_sigs[sig]; sig++)
-> -			if (!memcmp(table->signature, table_sigs[sig], 4))
-> -				break;
-> -
-> -		if (!table_sigs[sig]) {
-> -			INVALID_TABLE("Unknown signature",
-> -				      cpio_path, file.name);
-> +		if (acpi_invalid_table(&file, cpio_path, NULL))
->  			continue;
-> -		}
-> -		if (file.size != table->length) {
-> -			INVALID_TABLE("File length does not match table length",
-> -				      cpio_path, file.name);
-> -			continue;
-> -		}
-> -		if (acpi_table_checksum(file.data, table->length)) {
-> -			INVALID_TABLE("Bad table checksum",
-> -				      cpio_path, file.name);
-> -			continue;
-> -		}
->  
->  		pr_info("%4.4s ACPI table found in initrd [%s%s][0x%x]\n",
->  			table->signature, cpio_path, file.name, table->length);
+> ACPI / memhotplug: Bind removable memory blocks to ACPI device nodes
+> commit e2ff39400d81233374e780b133496a2296643d7d
 > 
+> Details are follows:
+> When I add a memory device, acpi_memory_enable_device() always fails
+> as follows:
+> 
+> ...
+> [ 1271.114116]  [ffffea121c400000-ffffea121c7fffff] PMD -> [ffff880813c00000-ffff880813ffffff] on node 3
+> [ 1271.128682]  [ffffea121c800000-ffffea121cbfffff] PMD -> [ffff880813800000-ffff880813bfffff] on node 3
+> [ 1271.143298]  [ffffea121cc00000-ffffea121cffffff] PMD -> [ffff880813000000-ffff8808133fffff] on node 3
+> [ 1271.157799]  [ffffea121d000000-ffffea121d3fffff] PMD -> [ffff880812c00000-ffff880812ffffff] on node 3
+> [ 1271.172341]  [ffffea121d400000-ffffea121d7fffff] PMD -> [ffff880812800000-ffff880812bfffff] on node 3
+> [ 1271.186872]  [ffffea121d800000-ffffea121dbfffff] PMD -> [ffff880812400000-ffff8808127fffff] on node 3
+> [ 1271.201481]  [ffffea121dc00000-ffffea121dffffff] PMD -> [ffff880812000000-ffff8808123fffff] on node 3
+> [ 1271.216041]  [ffffea121e000000-ffffea121e3fffff] PMD -> [ffff880811c00000-ffff880811ffffff] on node 3
+> [ 1271.230623]  [ffffea121e400000-ffffea121e7fffff] PMD -> [ffff880811800000-ffff880811bfffff] on node 3
+> [ 1271.245148]  [ffffea121e800000-ffffea121ebfffff] PMD -> [ffff880811400000-ffff8808117fffff] on node 3
+> [ 1271.259683]  [ffffea121ec00000-ffffea121effffff] PMD -> [ffff880811000000-ffff8808113fffff] on node 3
+> [ 1271.274194]  [ffffea121f000000-ffffea121f3fffff] PMD -> [ffff880810c00000-ffff880810ffffff] on node 3
+> [ 1271.288764]  [ffffea121f400000-ffffea121f7fffff] PMD -> [ffff880810800000-ffff880810bfffff] on node 3
+> ...	
+> [ 1271.325841] acpi PNP0C80:03: acpi_memory_enable_device() error
+
+Well, the only new way acpi_memory_enable_device() can fail after that commit
+is a failure in acpi_bind_memory_blocks().
+
+This means that either handle is NULL, which I think we can exclude, because
+acpi_memory_enable_device() wouldn't be called at all if that were the case, or
+there's a more subtle error in acpi_bind_one().
+
+One that comes to mind is that we may be calling acpi_bind_one() twice for the
+same memory region, in which it will trigger -EINVAL from the sanity check in
+there.
+
+Also you may try to increase ACPI_MAX_PHYSICAL_NODE (in acpi_bus.h) and see if
+that helps.
+
+Thanks,
+Rafael
+
+
 -- 
 I speak only for myself.
 Rafael J. Wysocki, Intel Open Source Technology Center.
-
---
-To unsubscribe, send a message with 'unsubscribe linux-mm' in
-the body to majordomo@kvack.org.  For more info on Linux MM,
-see: http://www.linux-mm.org/ .
-Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
