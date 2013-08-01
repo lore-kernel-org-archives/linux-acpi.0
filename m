@@ -1,99 +1,69 @@
-From: Felipe Contreras <felipe.contreras@gmail.com>
-Subject: Re: [REGRESSION/PATCH] acpi: blacklist win8 OSI for ASUS Zenbok Prime UX31A
-Date: Thu, 1 Aug 2013 13:50:49 -0500
-Message-ID: <CAMP44s1LT_07o7191R4qLM5=cv1qyLXmeiPCbJKRU-5o0c3AxA@mail.gmail.com>
-References: <1375125658-1223-1-git-send-email-felipe.contreras@gmail.com>
-	<3453253.oZLO1ChPbL@vostro.rjw.lan>
-	<CAMP44s02V_FO1BPJZqo6MB9RMknXYdV7AXDqbJzYHpgK1GUuJw@mail.gmail.com>
-	<37178266.QXgbv9rq0i@vostro.rjw.lan>
-	<CAMP44s2LqiEGtS72FuTjsHUa1MH2kfaYHmcpNKMmAm2LnbFCCQ@mail.gmail.com>
-	<51F86A20.3060309@gmail.com>
-	<CAMP44s3z7M9omEkc23JNuVpCAKi=gqdBCThCdBcBrW-QYpuzkg@mail.gmail.com>
-	<51F874D0.8040500@gmail.com>
+From: Shuah Khan <shuah.kh@samsung.com>
+Subject: Re: [Announcement] Linux Plumbers ACPI/PM, PCI Microconference
+Date: Thu, 01 Aug 2013 19:45:35 +0000
+Message-ID: <B8EFE96D1287C24090BAD9D858E15E617505EB@sisaex01sj>
+References: <CAL-B5D03ki8NHsM6EuESTH2K-Eh+XyFHNXPDYwgDq+oagDjtMQ@mail.gmail.com>
+ <1755363.sGc8nLIQOW@vostro.rjw.lan>
+ <CAKocOOPOqqS80D23z6xTVSNYYYWZ7ACg9MtSMz_hTqVA3Duo0w@mail.gmail.com>
+ <7183196.Ov6Qetq3lO@vostro.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-la0-f52.google.com ([209.85.215.52]:64599 "EHLO
-	mail-la0-f52.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752050Ab3HASuv (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 1 Aug 2013 14:50:51 -0400
-In-Reply-To: <51F874D0.8040500@gmail.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-pm-owner@vger.kernel.org>
+Content-language: en-US
+Sender: linux-pm-owner@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: Shuah Khan <shuahkhan@gmail.com>, linux-pci <linux-pci@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux PM list <linux-pm@vger.kernel.org>, Myron Stowe <myron.stowe@gmail.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "iommu@lists.linux-foundation.org" <iommu@lists.linux-foundation.org>, "virtualization@lists.linux-foundation.org" <virtualization@lists.linux-foundation.org>, "kvm@vger.kernel.org" <kvm@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>, Bjorn Helgaas <bhelgaas@google.com>, Shuah Khan <shuah.kh@samsung.com>
 List-Id: linux-acpi@vger.kernel.org
-To: Aaron Lu <aaron.lwe@gmail.com>
-Cc: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
 
-On Tue, Jul 30, 2013 at 9:22 PM, Aaron Lu <aaron.lwe@gmail.com> wrote:
-> On 07/31/2013 10:07 AM, Felipe Contreras wrote:
->> On Tue, Jul 30, 2013 at 8:36 PM, Aaron Lu <aaron.lwe@gmail.com> wrote:
->>> On 07/31/2013 08:11 AM, Felipe Contreras wrote:
->>>> On Tue, Jul 30, 2013 at 6:13 PM, Rafael J. Wysocki <rjw@sisk.pl> wrote:
-
->>>>> Yes, that will break backlight on your system and *then* you can complain to
->>>>> Linus if you wish.
+On 07/31/2013 03:07 PM, Rafael J. Wysocki wrote:
+> On Wednesday, July 31, 2013 10:35:05 AM Shuah Khan wrote:
+>> On Wed, Jul 31, 2013 at 5:40 AM, Rafael J. Wysocki <rjw@sisk.pl> wrote:
+>>> Hi All,
+>>>
+>>> The original announcement didn't go to linux-pm, so again:
+>>>
+>>> On Tuesday, July 16, 2013 08:21:26 PM Myron Stowe wrote:
+>>>> Linux Plumbers has approved an ACPI/PM, PCI microconference. The
+>>>> overview page is here:
 >>>>
->>>> It is already broken in v3.11-rc3, in fact I just booted that to try
->>>> it out and it booted with the screen completely black (fortunately I
->>>> knew exactly what to type to change that).
+>>>> http://wiki.linuxplumbersconf.org/2013:pci_subsystem
+>>>>
+>>>> We would like to start receiving volunteers for presenting topics of
+>>>> interest.  There is a lot of activity in these subsystems so please
+>>>> respond by submitting presentation or discussion proposals that you
+>>>> would be willing to cover for consideration.  You should also feel
+>>>> free to submit ideas as proposals that others could cover.  The
+>>>> instructions for submitting ideas should be at:
+>>>>
+>>>> http://www.linuxplumbersconf.org/2013/submitting-topic/
 >>>
->>> That is bad, can you please file a bug for that? I'll need to take a
->>> look at your ACPI tables, thanks.
->>
->> File a bug where?
->
-> https://bugzilla.kernel.org/
-> For component, please choose ACPI->Power_Video.
-
-Here you go:
-https://bugzilla.kernel.org/show_bug.cgi?id=60677
-
->>>> Apparently this commit also needs to be reverted: efaa14c (ACPI /
->>>> video: no automatic brightness changes by win8-compatible firmware).
->>>> In this machine it makes the backlight work again (without
->>>> acpi_osi="!Windows 2012"), but by doing so the ACPI driver also turns
->>>> off the screen completely at level 0. Also, each time I change the
+>>> If anyone who's going to attend the Linux Plumbers Conf this year is interested
+>>> in any particular topic for discussion during the ACPI/PM+PCI uconf, please
+>>> submit a formal topic proposal at:
 >>>
->>> So with rc3 and commit efaa14c reverted, when you set level 0 to ACPI
->>> video's backlight interface, the screen will be off now? And this is not
->>> the case in 3.10, right?
+>>> http://www.linuxplumbersconf.org/2013/ocw/events/LPC2013/proposals/new
+>>>
+>>> If you submit a topic, that doesn't mean you'll be expected to present anything
+>>> (if accepted).  In fact, we are mostly interested in discussion topics and we'd
+>>> like to know what is important to people.
+>>>
+>>> That said if you have a (short) presentation to make, please submit it too.
+>>>
+>>> We'll appreciate all submissions very much.
+>>>
 >>
->> No, setting level 0 turns it off if efaa14c is *not* reverted. In 3.10
->> 0 doesn't turn it off.
+>> What I have mind is a discussion topic for the Mini-conference, which
+>> in-line with what you are asking for.
+>> I will add it to the web.
 >
-> AFAIK, Win8 firmware will check a flag to decide what to do on hotkey
-> press and backlight brightness level change. Common behavior is:
-> If that flag is set:
->   - on hotkey press, send out event;
->   - on brightness level change, use GPU driver's interface to change
->     backlight level following operation region spec.
-> If that flag is not set:
->   - on hotkey press, adjust the brightness level without sending out
->     event;
->   - on brightness level change, use EC to change the brightness level.
->
-> The said commit sets the flag, so it seems with the flag set now,
-> it is possible the firmware interface will also give a screen off
-> result. But since we want to have notification event, we will have to
-> set that flag I think.
+> Thank you!
 
-Probably, but changing the brightness should still work even without
-the flag, right? It doesn't work here.
+Rafael,
 
-Setting the flag makes it work, but not properly.
+Done. I submitted a topic for discussion.
 
->>> Please attach acpidump output to the to be opened bugzilla page, thanks.
->>
->> I looked at the code in the DCDT, it appears to me that they store
->> different levels depending on the OSI version, so I don't think the
->> problem is in the ACPI driver. Yet, the issue remains there.
->
-> It's good to know what is the problem, so I would like to see the table.
-> Most of the bugs I solved in ACPI video driver's backlight control are
-> caused by firmware, so yes, it's very unlikely a bug of the ACPI video
-> driver itself.
+-- Shuah
 
-I hope you meant the output of this:
-https://aur.archlinux.org/packages/acpidump/
-
--- 
-Felipe Contreras
+Shuah Khan, Linux Kernel Developer - Open Source Group Samsung Research 
+America (Silicon Valley) shuah.kh@samsung.com | (970) 672-0658
