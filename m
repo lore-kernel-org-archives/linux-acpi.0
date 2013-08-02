@@ -1,112 +1,90 @@
-From: Josep Lladonosa <jlladono@gmail.com>
-Subject: Re: i915 backlight
-Date: Fri, 2 Aug 2013 09:25:09 +0200
-Message-ID: <CAPBO7TZ2nHoF_oZCgSfy0Vs=phqpLT3tWC35kSi9tUQWe3vc9A@mail.gmail.com>
-References: <20130731162252.GC4724@pd.tnic>
-	<20130731163623.GD4724@pd.tnic>
-	<1419236.138PcnXVBh@vostro.rjw.lan>
-	<20130801080724.GA3448@nazgul.tnic>
-	<51FB4B0A.7060706@intel.com>
-	<CAPBO7TaPxa_13FBDE5Z=Aoa+ePPfLRH0+oWSQyEmO00xSfGqYg@mail.gmail.com>
-	<51FB5373.9040307@intel.com>
+From: Tang Chen <tangchen@cn.fujitsu.com>
+Subject: Re: [PATCH v2 06/18] x86, acpi: Initialize ACPI root table list earlier.
+Date: Fri, 02 Aug 2013 15:49:03 +0800
+Message-ID: <51FB646F.30604@cn.fujitsu.com>
+References: <1375340800-19332-1-git-send-email-tangchen@cn.fujitsu.com>  <1375340800-19332-7-git-send-email-tangchen@cn.fujitsu.com> <1375401251.10300.53.camel@misato.fc.hp.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-oa0-f44.google.com ([209.85.219.44]:56064 "EHLO
-	mail-oa0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755794Ab3HBHZK (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 2 Aug 2013 03:25:10 -0400
-In-Reply-To: <51FB5373.9040307@intel.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <owner-linux-mm@kvack.org>
+In-Reply-To: <1375401251.10300.53.camel@misato.fc.hp.com>
+Sender: owner-linux-mm@kvack.org
+To: Toshi Kani <toshi.kani@hp.com>
+Cc: rjw@sisk.pl, lenb@kernel.org, tglx@linutronix.de, mingo@elte.hu, hpa@zytor.com, akpm@linux-foundation.org, tj@kernel.org, trenn@suse.de, yinghai@kernel.org, jiang.liu@huawei.com, wency@cn.fujitsu.com, laijs@cn.fujitsu.com, isimatu.yasuaki@jp.fujitsu.com, izumi.taku@jp.fujitsu.com, mgorman@suse.de, minchan@kernel.org, mina86@mina86.com, gong.chen@linux.intel.com, vasilis.liaskovitis@profitbricks.com, lwoodman@redhat.com, riel@redhat.com, jweiner@redhat.com, prarit@redhat.com, zhangyanfei@cn.fujitsu.com, yanghy@cn.fujitsu.com, x86@kernel.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-mm@kvack.org, linux-acpi@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Aaron Lu <aaron.lu@intel.com>
-Cc: Borislav Petkov <bp@alien8.de>, "Rafael J. Wysocki" <rjw@sisk.pl>, intel-gfx@lists.freedesktop.org, dri-devel@lists.freedesktop.org, lkml <linux-kernel@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>
 
-Hello,
-
-Yes, it works! I get now 11 levels from all black to the brightest.
-
-acpi_listen shows messages
-
-Josep
-
-On 2 August 2013 08:36, Aaron Lu <aaron.lu@intel.com> wrote:
-> On 08/02/2013 02:25 PM, Josep Lladonosa wrote:
->> Hello,
->>
->> I am using a Lenovo Edge E530 and, with kernel 3.11.0-rc3, I had to
->> change to this parameter to the kernel boot:
->>
->>
->> GRUB_CMDLINE_LINUX="acpi_osi=\"!Windows 2012\""
+On 08/02/2013 07:54 AM, Toshi Kani wrote:
+......
+>>   /*
+>> + * acpi_root_table_init - Initialize acpi_gbl_root_table_list.
+>> + *
+>> + * This function will parse RSDT or XSDT, find all tables' phys addr,
+>> + * initialize acpi_gbl_root_table_list, and record all tables' phys addr
+>> + * in acpi_gbl_root_table_list.
+>> + */
+>> +void __init acpi_root_table_init(void)
 >
-> What if you remove the above from kernel command line, and add
-> video.brightness_switch_enabled=0 to kernel command line, then set the
-> following in xorg.conf:
-> $ cat /etc/X11/xorg.conf
-> Section "Device"
->         Option     "Backlight"  "intel_backlight"
->         Identifier  "Card0"
->         Driver      "intel"
->         BusID       "PCI:0:2:0"
-> EndSection
->
-> Does everything work?
->
-> If not, please test if manually change brightness level through sysfs
-> works:
-> # cd /sys/calss/backlight/intel_backlight
-> # echo xxx > brightness
->
-> And also test if hotkey event is sent out or not by running acpi_listen
-> and then press the hotkey.
->
-> Thanks,
-> Aaron
->
->>
->>
->> instead of previous
->>
->> GRUB_CMDLINE_LINUX="acpi_osi=Linux acpi_backlight=vendor"
->>
->> to be able to change brightness. In some kernel versions before, it
->> worked, but with 15 levels, but in graphical system brightness bar was
->> not moving.
->>
->>
->> Now I have, though, 8 possible values for brightness and brightness
->> bar shows its correct position.
->>
->> Josep
->>
->> On 2 August 2013 08:00, Aaron Lu <aaron.lu@intel.com> wrote:
->>> On 08/01/2013 04:07 PM, Borislav Petkov wrote:
->>>> On Wed, Jul 31, 2013 at 11:16:52PM +0200, Rafael J. Wysocki wrote:
->>>>> Does reverting efaa14c help?
->>>>
->>>> Nope.
->>>>
->>>> But see my other reply to Aaron.
->>>
->>> Assume you have specified to use intel_backlight in xorg.conf, does
->>> booting with video.brightness_switch_enabled=0 help?
->>>
->>> Thanks,
->>> Aaron
->>> --
->>> To unsubscribe from this list: send the line "unsubscribe linux-kernel" in
->>> the body of a message to majordomo@vger.kernel.org
->>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->>> Please read the FAQ at  http://www.tux.org/lkml/
->>
->>
->>
+> I think acpi_root_table_init() is a bit confusing with
+> acpi_boot_table_init().  Perhaps, something like
+> acpi_boot_table_pre_init() or early_acpi_boot_table_init() is better to
+> indicate that this new function is called before acpi_boot_table_init().
 >
 
+OK, will change it to early_acpi_boot_table_init().
 
+>> +{
+>> +	dmi_check_system(acpi_dmi_table);
+>> +
+>> +	/* If acpi_disabled, bail out */
+>> +	if (acpi_disabled)
+>> +		return;
+>> +
+>> +	/* Initialize the ACPI boot-time table parser */
+>> +	if (acpi_table_init()) {
+>> +		disable_acpi();
+>> +		return;
+>> +	}
+>> +}
+>> +
+>> +/*
+>>    * acpi_boot_table_init() and acpi_boot_init()
+>>    *  called from setup_arch(), always.
+>>    *	1. checksums all tables
+>> @@ -1511,21 +1533,7 @@ static struct dmi_system_id __initdata acpi_dmi_table_late[] = {
+>>
+>>   void __init acpi_boot_table_init(void)
+>
+> The comment of this function needs to be updated.  For instance, it
+> describes acpi_table_init(), which you just relocated.
+>
+>   * acpi_table_init() is separate to allow reading SRAT without
+>   * other side effects.
+>   *
 
--- 
+Sure. But I don't quite understand this comment. It seems that
+acpi_table_init() has nothing to do with SRAT.
+
+Do you know anything about this ?
+
+>
+>>   {
+>> -	dmi_check_system(acpi_dmi_table);
+>> -
+>> -	/*
+>> -	 * If acpi_disabled, bail out
+>> -	 */
+>> -	if (acpi_disabled)
+>> -		return;
+>
+> I think this check is still necessary.
+>
+
+Yes. Will add it.
+
+Thanks.
+
 --
-Salutacions...Josep
---
+To unsubscribe, send a message with 'unsubscribe linux-mm' in
+the body to majordomo@kvack.org.  For more info on Linux MM,
+see: http://www.linux-mm.org/ .
+Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
