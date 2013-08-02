@@ -1,72 +1,56 @@
-From: Felipe Contreras <felipe.contreras@gmail.com>
-Subject: Re: [PATCH] acpi: video: fix reversed indexed BQC
-Date: Fri, 2 Aug 2013 03:14:02 -0500
-Message-ID: <CAMP44s3mgbis8BO-kmwwQk+GKG60HMN1q1u6x67pD7Vj3OKU=Q@mail.gmail.com>
-References: <1375400042-989-1-git-send-email-felipe.contreras@gmail.com>
-	<51FB137D.7070000@gmail.com>
-	<CAMP44s1A+z4=DGJLK1qf5LPc1vbYvtJwjFiMt17vzyZFRU0qmg@mail.gmail.com>
-	<51FB35CD.7040709@intel.com>
-	<CAMP44s1honSdnoMnmpEcsXtdkJuPYgQgnLwcN+oxs5f=a+3Stg@mail.gmail.com>
-	<51FB3C9C.6070002@intel.com>
-	<CAMP44s1RkwTfxdoiARHgREy-fwLuRu2tKbM-4kB3+Xf3Sme5Uw@mail.gmail.com>
-	<51FB5826.80305@intel.com>
-	<CAMP44s3+L8ZY9tcUbNhia8sRx+KJ1w44Jn7n=RMdPfeQqvPaqw@mail.gmail.com>
-	<51FB689F.30100@intel.com>
+From: Borislav Petkov <bp@alien8.de>
+Subject: Re: i915 backlight
+Date: Fri, 2 Aug 2013 10:16:29 +0200
+Message-ID: <20130802081628.GA11566@pd.tnic>
+References: <20130731162252.GC4724@pd.tnic>
+ <20130731163623.GD4724@pd.tnic>
+ <1419236.138PcnXVBh@vostro.rjw.lan>
+ <20130801080724.GA3448@nazgul.tnic>
+ <51FB4B0A.7060706@intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset=utf-8
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-la0-f54.google.com ([209.85.215.54]:44791 "EHLO
-	mail-la0-f54.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754082Ab3HBIOG (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 2 Aug 2013 04:14:06 -0400
-In-Reply-To: <51FB689F.30100@intel.com>
+Received: from mail.skyhub.de ([78.46.96.112]:57513 "EHLO mail.skyhub.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754469Ab3HBIQb (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 2 Aug 2013 04:16:31 -0400
+Content-Disposition: inline
+In-Reply-To: <51FB4B0A.7060706@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: Aaron Lu <aaron.lu@intel.com>
-Cc: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, "Rafael J. Wysocki" <rjw@sisk.pl>, Len Brown <lenb@kernel.org>, Zhang Rui <rui.zhang@intel.com>
+Cc: "Rafael J. Wysocki" <rjw@sisk.pl>, intel-gfx@lists.freedesktop.org, dri-devel@lists.freedesktop.org, lkml <linux-kernel@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>
 
-On Fri, Aug 2, 2013 at 3:06 AM, Aaron Lu <aaron.lu@intel.com> wrote:
-> On 08/02/2013 03:59 PM, Felipe Contreras wrote:
->> On Fri, Aug 2, 2013 at 1:56 AM, Aaron Lu <aaron.lu@intel.com> wrote:
->>> On 08/02/2013 02:44 PM, Felipe Contreras wrote:
->>
->>>> The initial _BCM commands don't work, so the level remains at 100%.
->>>> Since the level is max_level, acpi_video_bqc_quirk() tries with the
->>>> first level, which is 0, and 0 happens to be the index of 100.
->>>>
->>>> So _BQC is returning 100, which is not the index of 0 (what we tested
->>>> for), but actually 100.
->>>>
->>>> I think the current code is correct, but acpi_video_bqc_quirk() should
->>>> be testing br->levels[3], or anything other than 0/100 which can be
->>>> easily confused.
->>>>
->>>> If so, the code would find that _BQC doesn't work on this machine (in
->>>> win8 mode)... at least initially. My guess is that it only starts to
->>>> work after acpi_video_bus_start_devices() is called.
->>>>
->>>> Forcing br->flags._BQC_use_index = 0 seems to work.
->>>
->>> Seems ASUS machines tend to have this issue:
->>> https://bugzilla.kernel.org/show_bug.cgi?id=52951
->>> https://bugzilla.kernel.org/show_bug.cgi?id=56711
->>
->> I don't see any real solution for the ACPI driver.
->>
->>> I have a patch to enhance the quirk some time ago:
->>> https://github.com/aaronlu/linux/commit/0a3d2c5b59caf80ae5bb1ca1fda0f7bf448b38c9
->>
->> I think this is unnecessarily complicated; the comment makes it clear
->
-> For your system, yes it is unnecessarily complicated. But since this is
-> a quirk, it better solves as many potential problems as possible, or we
-> would simply use a DMI entry to do the quirk.
+On Fri, Aug 02, 2013 at 02:00:42PM +0800, Aaron Lu wrote:
+> Assume you have specified to use intel_backlight in xorg.conf
 
-The only difference between my patch and yours is that your patch
-checks that br->level[i] is not the current level, but that check is
-not necessary. If _BQC always returns the max level, all we need to do
-is pick another value, any other value, and br->level[3] works just
-fine.
+Right, I have:
+
+Section "Device"
+        Option "Backlight"      "intel_backlight"
+        Identifier  "Card0"
+        Driver      "intel"
+        BusID       "PCI:0:2:0"
+EndSection
+
+in there currently.
+
+> does booting with video.brightness_switch_enabled=0 help?
+
+Nope.
+
+Kernel command line is like this:
+
+[    0.000000] Command line: BOOT_IMAGE=/boot/vmlinuz-3.11.0-rc3+ root=/dev/sdb2 ro root=/dev/sdb2 ignore_loglevel log_buf_len=10M resume=/dev/sdb1 acpi_backlight=vendor video.brightness_switch_enabled=0 i915.i915_enable_rc6=4 i915.i915_enable_fbc=1 i915.lvds_downclock=1 i915.powersave=1
+
+and acpi_backlight=vendor doesn't make any difference. It still works
+over sysfs though.
+
+Thanks.
 
 -- 
-Felipe Contreras
+Regards/Gruss,
+    Boris.
+
+Sent from a fat crate under my desk. Formatting is fine.
+--
