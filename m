@@ -1,169 +1,168 @@
-From: Aaron Lu <aaron.lu@intel.com>
-Subject: Re: i915 backlight
-Date: Fri, 02 Aug 2013 09:16:03 +0800
-Message-ID: <51FB0853.9090105@intel.com>
-References: <20130731162252.GC4724@pd.tnic> <20130731163623.GD4724@pd.tnic> <51F9B63F.7060509@intel.com> <20130801081215.GB3448@nazgul.tnic> <51FA2537.5040208@intel.com>
+From: Toshi Kani <toshi.kani@hp.com>
+Subject: Re: [PATCH v2 10/18] x86, acpi: Try to find if SRAT is overrided
+ earlier.
+Date: Thu, 01 Aug 2013 19:19:13 -0600
+Message-ID: <1375406353.10300.73.camel@misato.fc.hp.com>
+References: <1375340800-19332-1-git-send-email-tangchen@cn.fujitsu.com>
+	 <1375340800-19332-11-git-send-email-tangchen@cn.fujitsu.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga14.intel.com ([143.182.124.37]:19919 "EHLO mga14.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751544Ab3HBBPR (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 1 Aug 2013 21:15:17 -0400
-In-Reply-To: <51FA2537.5040208@intel.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Return-path: <owner-linux-mm@kvack.org>
+In-Reply-To: <1375340800-19332-11-git-send-email-tangchen@cn.fujitsu.com>
+Sender: owner-linux-mm@kvack.org
+To: Tang Chen <tangchen@cn.fujitsu.com>
+Cc: rjw@sisk.pl, lenb@kernel.org, tglx@linutronix.de, mingo@elte.hu, hpa@zytor.com, akpm@linux-foundation.org, tj@kernel.org, trenn@suse.de, yinghai@kernel.org, jiang.liu@huawei.com, wency@cn.fujitsu.com, laijs@cn.fujitsu.com, isimatu.yasuaki@jp.fujitsu.com, izumi.taku@jp.fujitsu.com, mgorman@suse.de, minchan@kernel.org, mina86@mina86.com, gong.chen@linux.intel.com, vasilis.liaskovitis@profitbricks.com, lwoodman@redhat.com, riel@redhat.com, jweiner@redhat.com, prarit@redhat.com, zhangyanfei@cn.fujitsu.com, yanghy@cn.fujitsu.com, x86@kernel.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-mm@kvack.org, linux-acpi@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Daniel Vetter <daniel.vetter@ffwll.ch>, Jani Nikula <jani.nikula@intel.com>, Borislav Petkov <bp@alien8.de>
-Cc: intel-gfx@lists.freedesktop.org, dri-devel@lists.freedesktop.org, lkml <linux-kernel@vger.kernel.org>, "Rafael J. Wysocki" <rjw@sisk.pl>, ACPI Devel Mailing List <linux-acpi@vger.kernel.org>
 
-On 08/01/2013 05:07 PM, Aaron Lu wrote:
-> On 08/01/2013 04:12 PM, Borislav Petkov wrote:
->> On Thu, Aug 01, 2013 at 09:13:35AM +0800, Aaron Lu wrote:
->>> Can you please run acpi_listen and then press the Fn-Fx key, see if the
->>> events are correctly sent out?
->>
->> Like this?
->>
->> # acpi_listen
->> video/brightnessdown BRTDN 00000087 00000000
->> video/brightnessup BRTUP 00000086 00000000
->> video/brightnessdown BRTDN 00000087 00000000
->> video/brightnessup BRTUP 00000086 00000000
->> video/brightnessdown BRTDN 00000087 00000000
->> video/brightnessup BRTUP 00000086 00000000
->> video/brightnessdown BRTDN 00000087 00000000
->> video/brightnessup BRTUP 00000086 00000000
->> video/brightnessdown BRTDN 00000087 00000000
->> ^C
+On Thu, 2013-08-01 at 15:06 +0800, Tang Chen wrote:
+> Linux cannot migrate pages used by the kernel due to the direct mapping
+> (va = pa + PAGE_OFFSET), any memory used by the kernel cannot be hot-removed.
+> So when using memory hotplug, we have to prevent the kernel from using
+> hotpluggable memory.
 > 
-> Yes, so the event is correctly sent out.
+> The ACPI table SRAT (System Resource Affinity Table) contains info to specify
+> which memory is hotpluggble. After SRAT is parsed, we are aware of which
+> memory is hotpluggable.
 > 
->>
->>> From the bug page:
->>> https://bugzilla.kernel.org/show_bug.cgi?id=51231#c80
->>> I got the impression that both the acpi_video interface and the vendor
->>> interface thinkpad_screen are broken. So adding this cmdline here works
->>> suggests that either thinkpad_screen works or thinkpad vendor driver
->>> doesn't get loaded or doesn't create that interface for some reason.
->>>
->>> Alternatively, if the intel_backlight interface works(highly possible),
->>> you can use xorg.conf to specify the that backlight interface for X.
->>>
->>> Section "Device"
->>>         Option     "Backlight"	"intel_backlight"
->>> 	Identifier  "Card0"
->>> 	Driver      "intel"
->>> 	BusID       "PCI:0:2:0"
->>> EndSection
->>
->> Yeah, that didn't work *but* manually writing to both:
->>
->> /sys/class/backlight/acpi_video0/brightness
->>
->> and
->>
->> /sys/class/backlight/intel_backlight/brightness
->>
->> works.
+> At the early time when system is booting, SRAT has not been parsed. The boot
+> memory allocator memblock will allocate any memory to the kernel. So we need
+> SRAT parsed before memblock starts to work.
 > 
-> Err...we have the event sent out on hotkey press and the interface also
-> works, but still, using hotkey to adjust brightness level is broken...
+> In this patch, we are going to parse SRAT earlier, right after memblock is ready.
 > 
-> I just found an old acer laptop that has similar issue(or even worse: on
-> X starts, an almost black screen is shown and hotkey adjust doesn't
-> work), I'll look into this.
+> Generally speaking, tables such as SRAT are provided by firmware. But
+> ACPI_INITRD_TABLE_OVERRIDE functionality allows users to customize their own
+> tables in initrd, and override the ones from firmware. So if we want to parse
+> SRAT earlier, we also need to do SRAT override earlier.
+> 
+> First, we introduce early_acpi_override_srat() to check if SRAT will be overridden
+> from initrd.
+> 
+> Second, we introduce find_hotpluggable_memory() to reserve hotpluggable memory,
+> which will firstly call early_acpi_override_srat() to find out which memory is
+> hotpluggable in the override SRAT.
+> 
+> Signed-off-by: Tang Chen <tangchen@cn.fujitsu.com>
+> Reviewed-by: Zhang Yanfei <zhangyanfei@cn.fujitsu.com>
+> ---
+>  arch/x86/kernel/setup.c        |   10 +++++++
+>  drivers/acpi/osl.c             |   58 ++++++++++++++++++++++++++++++++++++++++
+>  include/linux/acpi.h           |   14 ++++++++-
+>  include/linux/memory_hotplug.h |    2 +
+>  mm/memory_hotplug.c            |   25 ++++++++++++++++-
+>  5 files changed, 106 insertions(+), 3 deletions(-)
+> 
+> diff --git a/arch/x86/kernel/setup.c b/arch/x86/kernel/setup.c
+> index c8f5d1a..8b1bddd 100644
+> --- a/arch/x86/kernel/setup.c
+> +++ b/arch/x86/kernel/setup.c
+> @@ -1060,6 +1060,16 @@ void __init setup_arch(char **cmdline_p)
+>  	/* Initialize ACPI root table */
+>  	acpi_root_table_init();
+>  
+> +#ifdef CONFIG_ACPI_NUMA
+> +	/*
+> +	 * Linux kernel cannot migrate kernel pages, as a result, memory used
+> +	 * by the kernel cannot be hot-removed. Find and mark hotpluggable
+> +	 * memory in memblock to prevent memblock from allocating hotpluggable
+> +	 * memory for the kernel.
+> +	 */
+> +	find_hotpluggable_memory();
+> +#endif
+> +
+>  	/*
+>  	 * The EFI specification says that boot service code won't be called
+>  	 * after ExitBootServices(). This is, in fact, a lie.
+> diff --git a/drivers/acpi/osl.c b/drivers/acpi/osl.c
+> index 8df8a93..d0b687c 100644
+> --- a/drivers/acpi/osl.c
+> +++ b/drivers/acpi/osl.c
+> @@ -48,6 +48,7 @@
+>  
+>  #include <asm/io.h>
+>  #include <asm/uaccess.h>
+> +#include <asm/setup.h>
+>  
+>  #include <acpi/acpi.h>
+>  #include <acpi/acpi_bus.h>
+> @@ -631,6 +632,63 @@ int __init acpi_invalid_table(struct cpio_data *file,
+>  	return 0;
+>  }
+>  
+> +#ifdef CONFIG_ACPI_NUMA
+> +/*******************************************************************************
+> + *
+> + * FUNCTION:    early_acpi_override_srat
+> + *
+> + * RETURN:      Phys addr of SRAT on success, 0 on error.
+> + *
+> + * DESCRIPTION: Try to get the phys addr of SRAT in initrd.
+> + *              The ACPI_INITRD_TABLE_OVERRIDE procedure is able to use tables
+> + *              in initrd file to override the ones provided by firmware. This
+> + *              function checks if there is a SRAT in initrd at early time. If
+> + *              so, return the phys addr of the SRAT.
+> + *
+> + ******************************************************************************/
+> +phys_addr_t __init early_acpi_override_srat(void)
+> +{
+> +	int i;
+> +	u32 length;
+> +	long offset;
+> +	void *ramdisk_vaddr;
+> +	struct acpi_table_header *table;
+> +	struct cpio_data file;
+> +	unsigned long map_step = NR_FIX_BTMAPS << PAGE_SHIFT;
+> +	phys_addr_t ramdisk_image = get_ramdisk_image();
+> +	char cpio_path[32] = "kernel/firmware/acpi/";
 
-Hi Jani & Daniel,
+Don't you need to check if ramdisk is present before parsing the table?
+You may need something like:
 
-It turned out there is an integer overflow problem, and the below patch
-fixed this problem on Acer Aspire 4732Z and thinkpad R61i.
+  if (!ramdisk_image || !get_ramdisk_size())
+        return 0;
 
-From: Aaron Lu <aaron.lu@intel.com>
-Subject: [PATCH] drm/i915: avoid brightness overflow when doing scale
+> +
+> +	/* Try to find if SRAT is overrided */
 
-Some card's max brightness level is pretty large, e.g. on Acer Aspire
-4732Z, the max level is 989910. If user space set a large enough level
-then the current scale done in intel_panel_set_backlight will cause an
-integer overflow and the scaled level will be mistakenly small, leaving
-user with an almost black screen. This patch fixes this problem.
+overrided -> overridden
 
-Signed-off-by: Aaron Lu <aaron.lu@intel.com>
----
-Since the only external user of intel_panel_set_backlight is operation
-region code where the max will be a constant of 255, this patch fixes
-the problem by comparing freq and max and then do things accordingly
-instead of converting to 64 bits.
+> +	for (i = 0; i < ACPI_OVERRIDE_TABLES; i++) {
+> +		ramdisk_vaddr = early_ioremap(ramdisk_image, map_step);
+> +
+> +		file = find_cpio_data(cpio_path, ramdisk_vaddr,
+> +				      map_step, &offset);
+> +		if (!file.data) {
+> +			early_iounmap(ramdisk_vaddr, map_step);
+> +			return 0;
+> +		}
+> +
+> +		table = file.data;
+> +		length = table->length;
+> +
+> +		if (acpi_invalid_table(&file, cpio_path, ACPI_SIG_SRAT)) {
+> +			ramdisk_image += offset;
+> +			early_iounmap(ramdisk_vaddr, map_step);
+> +			continue;
+> +		}
+> +
+> +		/* Found SRAT */
+> +		early_iounmap(ramdisk_vaddr, map_step);
+> +		ramdisk_image = ramdisk_image + offset - length;
+> +
+> +		break;
+> +	}
+> +
+> +	return ramdisk_image;
 
- drivers/gpu/drm/i915/intel_panel.c | 5 ++++-
- 1 file changed, 4 insertions(+), 1 deletion(-)
-
-diff --git a/drivers/gpu/drm/i915/intel_panel.c b/drivers/gpu/drm/i915/intel_panel.c
-index 67e2c1f..7c674f0 100644
---- a/drivers/gpu/drm/i915/intel_panel.c
-+++ b/drivers/gpu/drm/i915/intel_panel.c
-@@ -498,7 +498,10 @@ void intel_panel_set_backlight(struct drm_device *dev, u32 level, u32 max)
- 	}
- 
- 	/* scale to hardware */
--	level = level * freq / max;
-+	if (freq < max)
-+		level = level * freq / max;
-+	else
-+		level = freq / max * level;
- 
- 	dev_priv->backlight.level = level;
- 	if (dev_priv->backlight.device)
--- 
-1.8.3.1
-
-
-Hi Boris,
-
-Since the sysfs interface works on your system, I think your problem
-should be different. Can you please file a bug for this? I can provide
-you with a debug patch and then see what happened. Please attach
-acpidump when filing the bug.
-
-https://bugzilla.kernel.org, ACPI/Power-Video.
+Doesn't this function return a physical address regardless of SRAT if a
+ramdisk is present?
 
 Thanks,
-Aaron
+-Toshi
 
-> 
->>
->> The ranges are different, though:
->>
->> intel_backlight/actual_brightness:1000
->> intel_backlight/bl_power:0
->> intel_backlight/brightness:1000
->> intel_backlight/max_brightness:4437
->> intel_backlight/type:raw
->>
->> acpi_video0/actual_brightness:41
->> acpi_video0/bl_power:0
->> acpi_video0/brightness:41
->> acpi_video0/max_brightness:100
->> acpi_video0/type:firmware
-> 
-> Yes, different interface has different brightness ranges and a value in
-> one range may turn out to be the same actual brightness level of another
-> value in another range.
-> 
->>
->> I guess I need to write me a dirty script for now ... :-)
-> 
-> :-)
-> 
->>
->> Thanks guys.
->>
-> Thanks,
-> Aaron
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-kernel" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> Please read the FAQ at  http://www.tux.org/lkml/
-> 
-
+--
+To unsubscribe, send a message with 'unsubscribe linux-mm' in
+the body to majordomo@kvack.org.  For more info on Linux MM,
+see: http://www.linux-mm.org/ .
+Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
