@@ -1,43 +1,36 @@
 From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: i915 backlight
-Date: Fri, 02 Aug 2013 16:03 +0200
-Message-ID: <1544218.2BR9ul04Pj@vostro.rjw.lan>
-References: <20130731162252.GC4724@pd.tnic> <CAPBO7TaPxa_13FBDE5Z=Aoa+ePPfLRH0+oWSQyEmO00xSfGqYg@mail.gmail.com> <CAMP44s1WMMXcGfF6Ta0CFthY3-7tkpqXEPx1iZhVU-XpS6KUWw@mail.gmail.com>
+Subject: Re: [PATCH 1/3] acpi: video: trivial costmetic cleanups
+Date: Fri, 02 Aug 2013 16:05:17 +0200
+Message-ID: <2368382.8sxrvVTxSB@vostro.rjw.lan>
+References: <1375400641-1694-1-git-send-email-felipe.contreras@gmail.com> <51FB107D.8020804@gmail.com> <CAMP44s0cGyv+2xM1m+qp0oZxjmPGv1-0Me7Afeqmbb6ms=rFHQ@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7Bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <CAMP44s1WMMXcGfF6Ta0CFthY3-7tkpqXEPx1iZhVU-XpS6KUWw@mail.gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Felipe Contreras <felipe.contreras@gmail.com>
-Cc: Josep Lladonosa <jlladono@gmail.com>, Aaron Lu <aaron.lu@intel.com>, Borislav Petkov <bp@alien8.de>, intel-gfx@lists.freedesktop.org, dri-devel@lists.freedesktop.org, lkml <linux-kernel@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from hydra.sisk.pl ([212.160.235.94]:52124 "EHLO hydra.sisk.pl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753106Ab3HBNzD (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 2 Aug 2013 09:55:03 -0400
+In-Reply-To: <CAMP44s0cGyv+2xM1m+qp0oZxjmPGv1-0Me7Afeqmbb6ms=rFHQ@mail.gmail.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Felipe Contreras <felipe.contreras@gmail.com>
+Cc: Aaron Lu <aaron.lwe@gmail.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Len Brown <lenb@kernel.org>, Zhang Rui <rui.zhang@intel.com>, Jiri Kosina <trivial@kernel.org>
 
-On Friday, August 02, 2013 01:48:37 AM Felipe Contreras wrote:
-> On Fri, Aug 2, 2013 at 1:25 AM, Josep Lladonosa <jlladono@gmail.com> wrote:
-> > Hello,
+On Thursday, August 01, 2013 11:15:38 PM Felipe Contreras wrote:
+> On Thu, Aug 1, 2013 at 8:50 PM, Aaron Lu <aaron.lwe@gmail.com> wrote:
+> > On 08/02/2013 07:43 AM, Felipe Contreras wrote:
+> >> Signed-off-by: Felipe Contreras <felipe.contreras@gmail.com>
 > >
-> > I am using a Lenovo Edge E530 and, with kernel 3.11.0-rc3, I had to
-> > change to this parameter to the kernel boot:
-> >
-> >
-> > GRUB_CMDLINE_LINUX="acpi_osi=\"!Windows 2012\""
+> > Please add change log explaining what you have changed.
+> > It seems that the patch modify comment style only, some add a space and
+> > some change spaces to tab, is it the case?
 > 
-> I think it's pretty obvious that for the time being we need to
-> blacklist a ton of machines so they boot without this OSI. In fact, in
-> might make sense to simply remove the OSI completely for all machines
-> (for now).
+> The commit message already explains what the change is; trivial
+> cosmetic cleanups. Cosmetic means it's completely superficial.
 
-That would have made sense 6 months ago, but not today.
+And I have a rule not to apply patches without changelogs.  So either I'll
+need to write it for you, or can you add one pretty please?
 
-The reason is that you don't really know what's affected by that and I'm
-pretty sure it's not only backlight.
-
-So no, we won't do that.
-
-We *might* blacklist machines that shipped with Windows 7, but whose BIOSes
-call the Windows 8 OSI, because there's a good chance they weren't really
-tested with Windows 8.
-
-Thanks,
 Rafael
+
