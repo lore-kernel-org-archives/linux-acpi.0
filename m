@@ -1,7 +1,7 @@
 From: Tang Chen <tangchen@cn.fujitsu.com>
-Subject: [PATCH v2 RESEND 18/18] x86, numa, acpi, memory-hotplug: Make movablenode have higher priority.
-Date: Fri, 2 Aug 2013 17:14:37 +0800
-Message-ID: <1375434877-20704-19-git-send-email-tangchen@cn.fujitsu.com>
+Subject: [PATCH v2 RESEND 12/18] x86, acpi, numa, mem_hotplug: Find hotpluggable memory in SRAT memory affinities.
+Date: Fri, 2 Aug 2013 17:14:31 +0800
+Message-ID: <1375434877-20704-13-git-send-email-tangchen@cn.fujitsu.com>
 References: <1375434877-20704-1-git-send-email-tangchen@cn.fujitsu.com>
 Return-path: <owner-linux-mm@kvack.org>
 In-Reply-To: <1375434877-20704-1-git-send-email-tangchen@cn.fujitsu.com>
@@ -10,122 +10,177 @@ To: robert.moore@intel.com, lv.zheng@intel.com, rjw@sisk.pl, lenb@kernel.org, tg
 Cc: x86@kernel.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-mm@kvack.org, linux-acpi@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-Arrange hotpluggable memory as ZONE_MOVABLE will cause NUMA performance down
-because the kernel cannot use movable memory. For users who don't use memory
-hotplug and who don't want to lose their NUMA performance, they need a way to
-disable this functionality. So we improved movablecore boot option.
+In ACPI SRAT(System Resource Affinity Table), there is a memory affinity for each
+memory range in the system. In each memory affinity, there is a field indicating
+that if the memory range is hotpluggable.
 
-If users specify the original movablecore=nn@ss boot option, the kernel will
-arrange [ss, ss+nn) as ZONE_MOVABLE. The kernelcore=nn@ss boot option is similar
-except it specifies ZONE_NORMAL ranges.
+This patch parses all the memory affinities in SRAT only, and find out all the
+hotpluggable memory ranges in the system.
 
-Now, if users specify "movablenode" in kernel commandline, the kernel will
-arrange hotpluggable memory in SRAT as ZONE_MOVABLE. And if users do this, all
-the other movablecore=nn@ss and kernelcore=nn@ss options should be ignored.
-
-For those who don't want this, just specify nothing. The kernel will act as
-before.
+This patch doesn't mark hotpluggable memory in memblock. Memory marked as hotplug
+won't be allocated to the kernel. If all the memory in the system is hotpluggable,
+then the system won't have enough memory to boot. The basic idea to solve this
+problem is making the nodes the kerenl resides in unhotpluggable. So, before we do
+this, we don't mark any hotpluggable memory in memory so that to keep memblock
+working as before.
 
 Signed-off-by: Tang Chen <tangchen@cn.fujitsu.com>
-Reviewed-by: Wanpeng Li <liwanp@linux.vnet.ibm.com>
 Reviewed-by: Zhang Yanfei <zhangyanfei@cn.fujitsu.com>
 ---
- include/linux/memblock.h |    1 +
- mm/memblock.c            |    5 +++++
- mm/page_alloc.c          |   31 ++++++++++++++++++++++++++++---
- 3 files changed, 34 insertions(+), 3 deletions(-)
+ drivers/acpi/osl.c   |   85 ++++++++++++++++++++++++++++++++++++++++++++++++++
+ include/linux/acpi.h |    2 +
+ mm/memory_hotplug.c  |   22 ++++++++++++-
+ 3 files changed, 107 insertions(+), 2 deletions(-)
 
-diff --git a/include/linux/memblock.h b/include/linux/memblock.h
-index c0bd31c..e78e32f 100644
---- a/include/linux/memblock.h
-+++ b/include/linux/memblock.h
-@@ -64,6 +64,7 @@ int memblock_reserve(phys_addr_t base, phys_addr_t size);
- void memblock_trim_memory(phys_addr_t align);
+diff --git a/drivers/acpi/osl.c b/drivers/acpi/osl.c
+index ec490fe..d01202d 100644
+--- a/drivers/acpi/osl.c
++++ b/drivers/acpi/osl.c
+@@ -780,6 +780,91 @@ phys_addr_t __init early_acpi_firmware_srat(void)
  
- int memblock_mark_hotplug(phys_addr_t base, phys_addr_t size);
-+bool memblock_is_hotpluggable(struct memblock_region *region);
- 
- #ifdef CONFIG_HAVE_MEMBLOCK_NODE_MAP
- void __next_mem_pfn_range(int *idx, int nid, unsigned long *out_start_pfn,
-diff --git a/mm/memblock.c b/mm/memblock.c
-index 3ea4301..c8eb5d2 100644
---- a/mm/memblock.c
-+++ b/mm/memblock.c
-@@ -610,6 +610,11 @@ int __init_memblock memblock_mark_hotplug(phys_addr_t base, phys_addr_t size)
- 	return 0;
+ 	return table_desc.address;
  }
- 
-+bool __init_memblock memblock_is_hotpluggable(struct memblock_region *region)
++
++/*******************************************************************************
++ *
++ * FUNCTION:    acpi_hotplug_mem_affinity
++ *
++ * PARAMETERS:  Srat_vaddr         - Virt addr of SRAT
++ *              Base               - The base address of the found hotpluggable
++ *                                   memory region
++ *              Size               - The size of the found hotpluggable memory
++ *                                   region
++ *              Offset             - Offset of the found memory affinity
++ *
++ * RETURN:      Status
++ *
++ * DESCRIPTION: This function iterates SRAT affinities list to find memory
++ *              affinities with hotpluggable memory one by one. Return the
++ *              offset of the found memory affinity through @offset. @offset
++ *              can be used to iterate the SRAT affinities list to find all the
++ *              hotpluggable memory affinities. If @offset is 0, it is the first
++ *              time of the iteration.
++ *
++ ******************************************************************************/
++acpi_status __init
++acpi_hotplug_mem_affinity(void *srat_vaddr, u64 *base, u64 *size,
++			  unsigned long *offset)
 +{
-+	return region->flags & MEMBLOCK_HOTPLUG;
-+}
++	struct acpi_table_header *table_header;
++	struct acpi_subtable_header *entry;
++	struct acpi_srat_mem_affinity *ma;
++	unsigned long table_end, curr;
 +
- /**
-  * __next_free_mem_range - next function for for_each_free_mem_range()
-  * @idx: pointer to u64 loop variable
-diff --git a/mm/page_alloc.c b/mm/page_alloc.c
-index b100255..86d4381 100644
---- a/mm/page_alloc.c
-+++ b/mm/page_alloc.c
-@@ -4948,9 +4948,35 @@ static void __init find_zone_movable_pfns_for_nodes(void)
- 	nodemask_t saved_node_state = node_states[N_MEMORY];
- 	unsigned long totalpages = early_calculate_totalpages();
- 	int usable_nodes = nodes_weight(node_states[N_MEMORY]);
-+	struct memblock_type *type = &memblock.memory;
- 
-+	/* Need to find movable_zone earlier when movablenode is specified. */
-+	find_usable_zone_for_movable();
++	if (!offset)
++		return_ACPI_STATUS(AE_BAD_PARAMETER);
 +
-+#ifdef CONFIG_MOVABLE_NODE
- 	/*
--	 * If movablecore was specified, calculate what size of
-+	 * If movablenode is specified, ignore kernelcore and movablecore
-+	 * options.
-+	 */
-+	if (movablenode_enable_srat) {
-+		for (i = 0; i < type->cnt; i++) {
-+			if (!memblock_is_hotpluggable(&type->regions[i]))
-+				continue;
++	table_header = (struct acpi_table_header *)srat_vaddr;
++	table_end = (unsigned long)table_header + table_header->length;
 +
-+			nid = type->regions[i].nid;
++	entry = (struct acpi_subtable_header *)
++		((unsigned long)table_header + *offset);
 +
-+			usable_startpfn = PFN_DOWN(type->regions[i].base);
-+			zone_movable_pfn[nid] = zone_movable_pfn[nid] ?
-+				min(usable_startpfn, zone_movable_pfn[nid]) :
-+				usable_startpfn;
-+		}
-+
-+		goto out;
++	if (*offset) {
++		/*
++		 * @offset is the offset of the last affinity found in the
++		 * last call. So need to move to the next affinity.
++		 */
++		entry = (struct acpi_subtable_header *)
++			((unsigned long)entry + entry->length);
++	} else {
++		/*
++		 * Offset of the first affinity is the size of SRAT
++		 * table header.
++		 */
++		entry = (struct acpi_subtable_header *)
++			((unsigned long)entry + sizeof(struct acpi_table_srat));
 +	}
-+#endif
 +
-+	/*
-+	 * If movablecore=nn[KMG] was specified, calculate what size of
- 	 * kernelcore that corresponds so that memory usable for
- 	 * any allocation type is evenly spread. If both kernelcore
- 	 * and movablecore are specified, then the value of kernelcore
-@@ -4976,7 +5002,6 @@ static void __init find_zone_movable_pfns_for_nodes(void)
- 		goto out;
++	while (((unsigned long)entry) + sizeof(struct acpi_subtable_header) <
++	       table_end) {
++		if (entry->length == 0)
++			break;
++
++		if (entry->type != ACPI_SRAT_TYPE_MEMORY_AFFINITY)
++			goto next;
++
++		ma = (struct acpi_srat_mem_affinity *)entry;
++
++		if (!(ma->flags & ACPI_SRAT_MEM_HOT_PLUGGABLE))
++			goto next;
++
++		if (base)
++			*base = ma->base_address;
++
++		if (size)
++			*size = ma->length;
++
++		*offset = (unsigned long)entry - (unsigned long)srat_vaddr;
++		return_ACPI_STATUS(AE_OK);
++
++next:
++		entry = (struct acpi_subtable_header *)
++			((unsigned long)entry + entry->length);
++	}
++
++	return_ACPI_STATUS(AE_NOT_FOUND);
++}
+ #endif	/* CONFIG_ACPI_NUMA */
  
- 	/* usable_startpfn is the lowest possible pfn ZONE_MOVABLE can be at */
--	find_usable_zone_for_movable();
- 	usable_startpfn = arch_zone_lowest_possible_pfn[movable_zone];
+ static void acpi_table_taint(struct acpi_table_header *table)
+diff --git a/include/linux/acpi.h b/include/linux/acpi.h
+index 10dfda7..590559a 100644
+--- a/include/linux/acpi.h
++++ b/include/linux/acpi.h
+@@ -99,6 +99,8 @@ static inline phys_addr_t early_acpi_override_srat(void)
  
- restart:
-@@ -5067,12 +5092,12 @@ restart:
- 	if (usable_nodes && required_kernelcore > usable_nodes)
- 		goto restart;
+ #ifdef CONFIG_ACPI_NUMA
+ phys_addr_t early_acpi_firmware_srat(void);
++acpi_status acpi_hotplug_mem_affinity(void *srat_vaddr, u64 *base,
++				      u64 *size, unsigned long *offset);
+ #endif  /* CONFIG_ACPI_NUMA */
  
-+out:
- 	/* Align start of ZONE_MOVABLE on all nids to MAX_ORDER_NR_PAGES */
- 	for (nid = 0; nid < MAX_NUMNODES; nid++)
- 		zone_movable_pfn[nid] =
- 			roundup(zone_movable_pfn[nid], MAX_ORDER_NR_PAGES);
+ char * __acpi_map_table (unsigned long phys_addr, unsigned long size);
+diff --git a/mm/memory_hotplug.c b/mm/memory_hotplug.c
+index 2dfb06f..ef9ccf8 100644
+--- a/mm/memory_hotplug.c
++++ b/mm/memory_hotplug.c
+@@ -103,7 +103,11 @@ static void release_memory_resource(struct resource *res)
+  */
+ void __init find_hotpluggable_memory(void)
+ {
+-	phys_addr_t srat_paddr;
++	void *srat_vaddr;
++	phys_addr_t srat_paddr, base, size;
++	u32 length;
++	struct acpi_table_header *srat_header;
++	unsigned long offset = 0;
  
--out:
- 	/* restore the node_state */
- 	node_states[N_MEMORY] = saved_node_state;
+ 	/* Try to find if SRAT is overridden */
+ 	srat_paddr = early_acpi_override_srat();
+@@ -114,7 +118,21 @@ void __init find_hotpluggable_memory(void)
+ 			return;
+ 	}
+ 
+-	/* Will parse SRAT and find out hotpluggable memory here */
++	/* Get the length of SRAT */
++	srat_header = early_ioremap(srat_paddr,
++				    sizeof(struct acpi_table_header));
++	length = srat_header->length;
++	early_iounmap(srat_header, sizeof(struct acpi_table_header));
++
++	/* Find all the hotpluggable memory regions */
++	srat_vaddr = early_ioremap(srat_paddr, length);
++
++	while (ACPI_SUCCESS(acpi_hotplug_mem_affinity(srat_vaddr, &base,
++						      &size, &offset))) {
++		/* Will mark hotpluggable memory regions here */
++	}
++
++	early_iounmap(srat_vaddr, length);
  }
+ #endif	/* CONFIG_ACPI_NUMA */
+ 
 -- 
 1.7.1
 
