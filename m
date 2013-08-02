@@ -1,33 +1,58 @@
 From: Felipe Contreras <felipe.contreras@gmail.com>
-Subject: Re: [PATCH 1/3] acpi: video: trivial costmetic cleanups
-Date: Thu, 1 Aug 2013 23:15:38 -0500
-Message-ID: <CAMP44s0cGyv+2xM1m+qp0oZxjmPGv1-0Me7Afeqmbb6ms=rFHQ@mail.gmail.com>
+Subject: Re: [PATCH 2/3] acpi: video: trivial style cleanups
+Date: Thu, 1 Aug 2013 23:18:34 -0500
+Message-ID: <CAMP44s2KijzXcYyU_fOD2YB4rU5wuFCfte4fR3HXoriTKE2wuA@mail.gmail.com>
 References: <1375400641-1694-1-git-send-email-felipe.contreras@gmail.com>
-	<1375400641-1694-2-git-send-email-felipe.contreras@gmail.com>
-	<51FB107D.8020804@gmail.com>
+	<1375400641-1694-3-git-send-email-felipe.contreras@gmail.com>
+	<51FB118D.8040205@gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-lb0-f171.google.com ([209.85.217.171]:43165 "EHLO
-	mail-lb0-f171.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750978Ab3HBEPk (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 2 Aug 2013 00:15:40 -0400
-In-Reply-To: <51FB107D.8020804@gmail.com>
+Received: from mail-la0-f50.google.com ([209.85.215.50]:65154 "EHLO
+	mail-la0-f50.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750853Ab3HBESg (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 2 Aug 2013 00:18:36 -0400
+In-Reply-To: <51FB118D.8040205@gmail.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: Aaron Lu <aaron.lwe@gmail.com>
 Cc: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, "Rafael J. Wysocki" <rjw@sisk.pl>, Len Brown <lenb@kernel.org>, Zhang Rui <rui.zhang@intel.com>, Jiri Kosina <trivial@kernel.org>
 
-On Thu, Aug 1, 2013 at 8:50 PM, Aaron Lu <aaron.lwe@gmail.com> wrote:
-> On 08/02/2013 07:43 AM, Felipe Contreras wrote:
+On Thu, Aug 1, 2013 at 8:55 PM, Aaron Lu <aaron.lwe@gmail.com> wrote:
+> On 08/02/2013 07:44 AM, Felipe Contreras wrote:
 >> Signed-off-by: Felipe Contreras <felipe.contreras@gmail.com>
 >
-> Please add change log explaining what you have changed.
-> It seems that the patch modify comment style only, some add a space and
-> some change spaces to tab, is it the case?
+> Change log please.
 
-The commit message already explains what the change is; trivial
-cosmetic cleanups. Cosmetic means it's completely superficial.
+You mean a commit message? That's what it's called in Git lingo, and
+it's right there:
+
+acpi: video: trivial style cleanups
+
+>> ---
+>>  drivers/acpi/video.c | 90 +++++++++++++++++++++++-----------------------------
+>>  1 file changed, 40 insertions(+), 50 deletions(-)
+>>
+>> diff --git a/drivers/acpi/video.c b/drivers/acpi/video.c
+>> index f021bf4..b07573f 100644
+>> --- a/drivers/acpi/video.c
+>> +++ b/drivers/acpi/video.c
+>> @@ -88,7 +88,7 @@ module_param(allow_duplicates, bool, 0644);
+>>  static bool use_bios_initial_backlight = 1;
+>>  module_param(use_bios_initial_backlight, bool, 0644);
+>>
+>> -static int register_count = 0;
+>> +static int register_count;
+>
+> This isn't a style clean up.
+
+It is.
+
+There's no difference before and after, the only difference is the style.
+
+ERROR: do not initialise statics to 0 or NULL
+#91: FILE: acpi/video.c:91:
++static int register_count = 0;
 
 -- 
 Felipe Contreras
