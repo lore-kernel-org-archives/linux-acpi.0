@@ -1,72 +1,46 @@
-From: Aaron Lu <aaron.lu@intel.com>
-Subject: Re: [PATCH] acpi: video: fix reversed indexed BQC
-Date: Fri, 02 Aug 2013 16:25:49 +0800
-Message-ID: <51FB6D0D.4060407@intel.com>
-References: <1375400042-989-1-git-send-email-felipe.contreras@gmail.com> <51FB137D.7070000@gmail.com> <CAMP44s1A+z4=DGJLK1qf5LPc1vbYvtJwjFiMt17vzyZFRU0qmg@mail.gmail.com> <51FB35CD.7040709@intel.com> <CAMP44s1honSdnoMnmpEcsXtdkJuPYgQgnLwcN+oxs5f=a+3Stg@mail.gmail.com> <51FB3C9C.6070002@intel.com> <CAMP44s1RkwTfxdoiARHgREy-fwLuRu2tKbM-4kB3+Xf3Sme5Uw@mail.gmail.com> <51FB5826.80305@intel.com> <CAMP44s3+L8ZY9tcUbNhia8sRx+KJ1w44Jn7n=RMdPfeQqvPaqw@mail.gmail.com> <51FB689F.30100@intel.com> <CAMP44s3mgbis8BO-kmwwQk+GKG60HMN1q1u6x67pD7Vj3OKU=Q@mail.gmail.com>
+From: Tang Chen <tangchen@cn.fujitsu.com>
+Subject: Re: [PATCH v2 05/18] x86, acpi: Split acpi_boot_table_init() into
+ two parts.
+Date: Fri, 02 Aug 2013 16:29:26 +0800
+Message-ID: <51FB6DE6.6040200@cn.fujitsu.com>
+References: <1375340800-19332-1-git-send-email-tangchen@cn.fujitsu.com>  <1375340800-19332-6-git-send-email-tangchen@cn.fujitsu.com> <1375399931.10300.36.camel@misato.fc.hp.com> <1AE640813FDE7649BE1B193DEA596E8802437AC8@SHSMSX101.ccr.corp.intel.com> <51FB5948.6080802@cn.fujitsu.com> <1AE640813FDE7649BE1B193DEA596E8802437C47@SHSMSX101.ccr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga01.intel.com ([192.55.52.88]:8706 "EHLO mga01.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754911Ab3HBIZD (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 2 Aug 2013 04:25:03 -0400
-In-Reply-To: <CAMP44s3mgbis8BO-kmwwQk+GKG60HMN1q1u6x67pD7Vj3OKU=Q@mail.gmail.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: quoted-printable
+Return-path: <owner-linux-mm@kvack.org>
+In-Reply-To: <1AE640813FDE7649BE1B193DEA596E8802437C47@SHSMSX101.ccr.corp.intel.com>
+Sender: owner-linux-mm@kvack.org
+To: "Zheng, Lv" <lv.zheng@intel.com>
+Cc: Toshi Kani <toshi.kani@hp.com>, "rjw@sisk.pl" <rjw@sisk.pl>, "lenb@kernel.org" <lenb@kernel.org>, "tglx@linutronix.de" <tglx@linutronix.de>, "mingo@elte.hu" <mingo@elte.hu>, "hpa@zytor.com" <hpa@zytor.com>, "akpm@linux-foundation.org" <akpm@linux-foundation.org>, "tj@kernel.org" <tj@kernel.org>, "trenn@suse.de" <trenn@suse.de>, "yinghai@kernel.org" <yinghai@kernel.org>, "jiang.liu@huawei.com" <jiang.liu@huawei.com>, "wency@cn.fujitsu.com" <wency@cn.fujitsu.com>, "laijs@cn.fujitsu.com" <laijs@cn.fujitsu.com>, "isimatu.yasuaki@jp.fujitsu.com" <isimatu.yasuaki@jp.fujitsu.com>, "izumi.taku@jp.fujitsu.com" <izumi.taku@jp.fujitsu.com>, "mgorman@suse.de" <mgorman@suse.de>, "minchan@kernel.org" <minchan@kernel.org>, "mina86@mina86.com" <mina86@mina86.com>, gong.chen@linux.
 List-Id: linux-acpi@vger.kernel.org
-To: Felipe Contreras <felipe.contreras@gmail.com>
-Cc: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, "Rafael J. Wysocki" <rjw@sisk.pl>, Len Brown <lenb@kernel.org>, Zhang Rui <rui.zhang@intel.com>
 
-On 08/02/2013 04:14 PM, Felipe Contreras wrote:
-> On Fri, Aug 2, 2013 at 3:06 AM, Aaron Lu <aaron.lu@intel.com> wrote:
->> On 08/02/2013 03:59 PM, Felipe Contreras wrote:
->>> On Fri, Aug 2, 2013 at 1:56 AM, Aaron Lu <aaron.lu@intel.com> wrote:
->>>> On 08/02/2013 02:44 PM, Felipe Contreras wrote:
->>>
->>>>> The initial _BCM commands don't work, so the level remains at 100%.
->>>>> Since the level is max_level, acpi_video_bqc_quirk() tries with the
->>>>> first level, which is 0, and 0 happens to be the index of 100.
->>>>>
->>>>> So _BQC is returning 100, which is not the index of 0 (what we tested
->>>>> for), but actually 100.
->>>>>
->>>>> I think the current code is correct, but acpi_video_bqc_quirk() should
->>>>> be testing br->levels[3], or anything other than 0/100 which can be
->>>>> easily confused.
->>>>>
->>>>> If so, the code would find that _BQC doesn't work on this machine (in
->>>>> win8 mode)... at least initially. My guess is that it only starts to
->>>>> work after acpi_video_bus_start_devices() is called.
->>>>>
->>>>> Forcing br->flags._BQC_use_index = 0 seems to work.
->>>>
->>>> Seems ASUS machines tend to have this issue:
->>>> https://bugzilla.kernel.org/show_bug.cgi?id=52951
->>>> https://bugzilla.kernel.org/show_bug.cgi?id=56711
->>>
->>> I don't see any real solution for the ACPI driver.
->>>
->>>> I have a patch to enhance the quirk some time ago:
->>>> https://github.com/aaronlu/linux/commit/0a3d2c5b59caf80ae5bb1ca1fda0f7bf448b38c9
->>>
->>> I think this is unnecessarily complicated; the comment makes it clear
->>
->> For your system, yes it is unnecessarily complicated. But since this is
->> a quirk, it better solves as many potential problems as possible, or we
->> would simply use a DMI entry to do the quirk.
-> 
-> The only difference between my patch and yours is that your patch
-> checks that br->level[i] is not the current level, but that check is
-> not necessary. If _BQC always returns the max level, all we need to do
+On 08/02/2013 04:23 PM, Zheng, Lv wrote:
+......
+>> According to what you've explained, what you didn=E2=80=99t want to be c=
+alled
+>> earlier is exactly "acpi initrd table override", please split only this =
+logic to
+>> the step 2 and leave the others remained.
+>> I think you should write a function named as acpi=5Foverride=5Ftables() =
+or
+>> likewise in tbxface.c to be executed as the OSPM entry of the step 2.
+>> Inside this function, acpi=5Ftb=5Ftable=5Foverride() should be called.
+......
 
-_BQC does not always returns the max level.
+OK, I understand what you are suggesting now. It is reasonable.
+I'll update the patch-set in the next version.
 
-> is pick another value, any other value, and br->level[3] works just
-> fine.
+But today, I just rebased it to the latest kernel. I'll resend this
+rebased v2 patch-set so that Tj and other guys can review it.
 
-For a _BCL only having 4 elements { 100, 40, 40, 100 }, the br->levels[3]
-will be the max level. The example here may be too crazy to be true, but
-since we are dealing with firmware, I tend to believe anything could
-happen.
+I'll include all of your comments in the v3 patch-set. Thank you very=20
+much. :)
 
--Aaron
+Thanks.
+=
+
+--
+To unsubscribe, send a message with 'unsubscribe linux-mm' in
+the body to majordomo@kvack.org.  For more info on Linux MM,
+see: http://www.linux-mm.org/ .
+Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
