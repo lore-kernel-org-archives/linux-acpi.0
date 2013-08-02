@@ -1,90 +1,184 @@
-From: Aaron Lu <aaron.lu@intel.com>
-Subject: Re: [PATCH 5/5] acpi_video: Don't handle ACPI brightness notifications
- by default
-Date: Fri, 02 Aug 2013 22:52:09 +0800
-Message-ID: <51FBC799.4070204@intel.com>
-References: <20130307193812.GD24233@thinkpad-t410> <1362685180-7768-5-git-send-email-seth.forshee@canonical.com> <51FB49E3.50604@intel.com> <1559797.9EdEoD0Bgy@vostro.rjw.lan>
+From: Lan Tianyu <lantianyu1986@gmail.com>
+Subject: Re: [PATCH] ACPI: Do not fail acpi_bind_one() if device is already
+ bound correctly
+Date: Fri, 2 Aug 2013 23:16:27 +0800
+Message-ID: <CAOLK0pw_VipEwfPTOP_bKCT8yH9ZH0XAz9-40SM7ZTO-evsExQ@mail.gmail.com>
+References: <1888947.F5IBMfDKlY@vostro.rjw.lan>
+	<CAOLK0pxJM6ip-dzcEfswULnJR-qb=X_EXnBbdeSNMRKExPxq3Q@mail.gmail.com>
+	<2560973.EJVuxm6PHt@vostro.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga14.intel.com ([143.182.124.37]:10577 "EHLO mga14.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751855Ab3HBOvX (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 2 Aug 2013 10:51:23 -0400
-In-Reply-To: <1559797.9EdEoD0Bgy@vostro.rjw.lan>
-Sender: linux-acpi-owner@vger.kernel.org
-List-Id: linux-acpi@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <2560973.EJVuxm6PHt@vostro.rjw.lan>
+Sender: linux-kernel-owner@vger.kernel.org
 To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: Seth Forshee <seth.forshee@canonical.com>, Matthew Garrett <mjg59@srcf.ucam.org>, linux-acpi@vger.kernel.org, Len Brown <lenb@kernel.org>, Ben Jencks <ben@bjencks.net>, joeyli <jlee@suse.com>, Micael Dias <kam1kaz3@gmail.com>, =?UTF-8?B?KiBT?= =?UTF-8?B?QU3DjSAq?= <miaousami@hotmail.com>, Yves-Alexis Perez <corsac@debian.org>
+Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>, Bjorn Helgaas <bhelgaas@google.com>, Toshi Kani <toshi.kani@hp.com>
+List-Id: linux-acpi@vger.kernel.org
 
-On 08/02/2013 10:41 PM, Rafael J. Wysocki wrote:
-> On Friday, August 02, 2013 01:55:47 PM Aaron Lu wrote:
->> On 03/08/2013 03:39 AM, Seth Forshee wrote:
->>> Windows 8 requires all backlight interfaces to report 101 brightness
->>> values, and as a result we're starting to see machines with that many
->>> brightness levels in _BCL. For machines which send these notifications
->>> when the brightness up/down keys are pressed this means a lot of key
->>> presses to get any kind of noticeable change in brightness.
->>>
->>> For a while now we've had the ability to disable in-kernel handling of
->>> notifications via the video.brightness_switch_enabled parameter. Change
->>> this to default to off, and let userspace choose more reasonable
->>> increments for changing the brightness.
+2013/8/2 Rafael J. Wysocki <rjw@sisk.pl>:
+> On Friday, August 02, 2013 10:48:49 AM Lan Tianyu wrote:
+>> 2013/8/2 Rafael J. Wysocki <rjw@sisk.pl>:
+>> > From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+>> >
+>> > Modify acpi_bind_one() so that it doesn't fail if the device
+>> > represented by its first argument has already been bound to the
+>> > given ACPI handle (second argument), because that is not a good
+>> > enough reason for returning an error code.
+>> >
+>> > Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+>> > ---
+>> >  drivers/acpi/glue.c |   15 +++++++++++----
+>> >  1 file changed, 11 insertions(+), 4 deletions(-)
+>> >
+>> > Index: linux-pm/drivers/acpi/glue.c
+>> > ===================================================================
+>> > --- linux-pm.orig/drivers/acpi/glue.c
+>> > +++ linux-pm/drivers/acpi/glue.c
+>> > @@ -143,7 +143,10 @@ int acpi_bind_one(struct device *dev, ac
+>> >         list_for_each_entry(pn, &acpi_dev->physical_node_list, node)
+>> >                 if (pn->dev == dev) {
+>> >                         dev_warn(dev, "Already associated with ACPI node\n");
+>> > -                       goto err_free;
+>> > +                       if (ACPI_HANDLE(dev) == handle)
+>> > +                               retval = 0;
+>> > +
+>> > +                       goto out_free;
+>> >                 }
+>> >
+>> >         /* allocate physical node id according to physical_node_id_bitmap */
+>> > @@ -152,7 +155,7 @@ int acpi_bind_one(struct device *dev, ac
+>> >                 ACPI_MAX_PHYSICAL_NODE);
+>> >         if (physical_node->node_id >= ACPI_MAX_PHYSICAL_NODE) {
+>> >                 retval = -ENOSPC;
+>> > -               goto err_free;
+>> > +               goto out_free;
+>> >         }
+>> >
+>> >         set_bit(physical_node->node_id, acpi_dev->physical_node_id_bitmap);
+>> > @@ -185,10 +188,14 @@ int acpi_bind_one(struct device *dev, ac
+>> >         put_device(dev);
+>> >         return retval;
+>> >
+>> > - err_free:
+>> > + out_free:
+>> >         mutex_unlock(&acpi_dev->physical_node_lock);
+>> >         kfree(physical_node);
+>> > -       goto err;
+>> > +       if (retval)
+>> > +               goto err;
+>> > +
+>> > +       put_device(dev);
+>> > +       return 0;
+>> >  }
+>> >  EXPORT_SYMBOL_GPL(acpi_bind_one);
 >>
->> I just found one more reason for this param to default 0.
-> 
-> Do you mean video.brightness_switch_enabled?
+>> Hi Rafael:
+>>             How about the following change?
+>
+> It is incorrect, because the "problem" it attempts to "fix" is actually
+> intentional behavior.  [And you could ask if it was intentional in the first
+> place instead of assuming that it was a mistake.  It wasn't.]
+>
 
-Yes.
+Ok.
 
-> 
->> We are going to separate the backlight interface control and event
->> notification functionalities of the ACPI video module, it is highly
->> possible a lot of systems will use a combination of the event
->> notification handler and intel_backlight interface. So it doesn't make
->> sense to let video module to do any adjustment on its own if user space
->> has chosen a different interface to use. Actually, it can cause problems
->> as in ASUS's case:
->> https://bugzilla.kernel.org/show_bug.cgi?id=52951
->>
->> The problem there is, on hotkey brightness up, the video module will
->> adjust the brightness level first and since its _BQC is broken, it gets
->> a wrong number(too low or too high or whatever) and then does the _BCM
->> call. The _BCM method works. Then user space picks the intel_backlight
->> to do the adjustment, but since the _BCM already sets a wrong value, the
->> user space's adjustment is affected too. The result is, user has only
->> two visible levels, very low and very high.
->>
->> This only occurs on -rc3, since we removed the
->> acpi_video_verify_backlight_support from acpi_video_switch_brightness
->> function.
-> 
-> What did we do before -rc2?  Did we address that in any way?
+> Do you have any problems with my $subject patch?
 
-No, before rc2, backlight is broken on that system.
+No, I have no problem now.
 
-In rc2, we added the win8 patch and a fix patch for the hotkey, then
-the ACPI video module's backlight control and in kernel brightness
-handling is disabled. With the working hotkey and intel_backlight, rc2
-works for the system. Then with the revert in rc3, user needs to choose
-intel_backlight in xorg.conf but the in kernel brightness handling from
-ACPI video module is back. Since video module is broken, it breaks the
-backlight hotkey functionality.
+Reviewed-by: Lan Tianyu <tianyu.lan@intel.com>
 
-Thanks,
-Aaron
-
-> 
->> So either we make this param default to 0, or we make a new
->> function to avoid brightness switch in video module for Win8 systems.
->>
->> I prefer to set this param to 0 by default. What do you guys think?
-> 
-> That depends on what we did earlier.
-> 
-> Thanks,
+>
 > Rafael
-> 
-> 
+>
+>
+>>
+>> diff --git a/drivers/acpi/glue.c b/drivers/acpi/glue.c
+>> index f70cc45..35f375e 100644
+>> --- a/drivers/acpi/glue.c
+>> +++ b/drivers/acpi/glue.c
+>> @@ -183,19 +183,15 @@ int acpi_bind_one(struct device *dev, acpi_handle handle)
+>>
+>>         return 0;
+>>
+>> - err:
+>> -       ACPI_HANDLE_SET(dev, NULL);
+>> -       put_device(dev);
+>> -       return retval;
+>> -
+>>   out_free:
+>>         mutex_unlock(&acpi_dev->physical_node_lock);
+>>         kfree(physical_node);
+>> -       if (retval)
+>> -               goto err;
+>>
+>> + err:
+>> +       if (retval)
+>> +               ACPI_HANDLE_SET(dev, NULL);
+>>         put_device(dev);
+>> -       return 0;
+>> +       return retval;
+>>  }
+>>  EXPORT_SYMBOL_GPL(acpi_bind_one);
+>> ---------------
+>>
+>> When I reviewed this patch, found the dev's acpi handle always
+>> is set  to NULL if there is error. This seems make no sense for
+>> the case that the handle has been set to dev before binding.
+>>
+>> For this case, the acpi handle has been found before binding.
+>> Actually, the device driver could control any resources under ACPI
+>> node even if the binding failed. So adding one flag to differentiate
+>> it.
+>>
+>> diff --git a/drivers/acpi/glue.c b/drivers/acpi/glue.c
+>> index 35f375e..c868e51 100644
+>> --- a/drivers/acpi/glue.c
+>> +++ b/drivers/acpi/glue.c
+>> @@ -113,6 +113,7 @@ int acpi_bind_one(struct device *dev, acpi_handle handle)
+>>         acpi_status status;
+>>         struct acpi_device_physical_node *physical_node, *pn;
+>>         char physical_node_name[sizeof(PHYSICAL_NODE_STRING) + 2];
+>> +       bool has_handle = false;
+>>         int retval = -EINVAL;
+>>
+>>         if (ACPI_HANDLE(dev)) {
+>> @@ -121,6 +122,7 @@ int acpi_bind_one(struct device *dev, acpi_handle handle)
+>>                         return -EINVAL;
+>>                 } else {
+>>                         handle = ACPI_HANDLE(dev);
+>> +                       has_handle = true;
+>>                 }
+>>         }
+>>         if (!handle)
+>> @@ -188,7 +190,7 @@ int acpi_bind_one(struct device *dev, acpi_handle handle)
+>>         kfree(physical_node);
+>>
+>>   err:
+>> -       if (retval)
+>> +       if (retval && !has_handle)
+>>                 ACPI_HANDLE_SET(dev, NULL);
+>>         put_device(dev);
+>>         return retval;
+>>
+>>
+>>
+>> >
+>> >
+>> > --
+>> > To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
+>> > the body of a message to majordomo@vger.kernel.org
+>> > More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>>
+>>
+>>
+>>
+> --
+> I speak only for myself.
+> Rafael J. Wysocki, Intel Open Source Technology Center.
 
+
+
+-- 
+Best regards
+Tianyu Lan
