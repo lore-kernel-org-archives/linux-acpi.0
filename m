@@ -1,59 +1,64 @@
 From: Aaron Lu <aaron.lwe@gmail.com>
-Subject: Re: [PATCH 3/3] acpi: video: remove unnecessary casting
-Date: Fri, 02 Aug 2013 09:58:32 +0800
-Message-ID: <51FB1248.8040107@gmail.com>
-References: <1375400641-1694-1-git-send-email-felipe.contreras@gmail.com> <1375400641-1694-4-git-send-email-felipe.contreras@gmail.com>
+Subject: Re: [PATCH] acpi: video: fix reversed indexed BQC
+Date: Fri, 02 Aug 2013 10:03:41 +0800
+Message-ID: <51FB137D.7070000@gmail.com>
+References: <1375400042-989-1-git-send-email-felipe.contreras@gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-pa0-f44.google.com ([209.85.220.44]:64199 "EHLO
-	mail-pa0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753037Ab3HBB5s (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 1 Aug 2013 21:57:48 -0400
-In-Reply-To: <1375400641-1694-4-git-send-email-felipe.contreras@gmail.com>
+Received: from mail-pb0-f52.google.com ([209.85.160.52]:47929 "EHLO
+	mail-pb0-f52.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751622Ab3HBCDS (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 1 Aug 2013 22:03:18 -0400
+In-Reply-To: <1375400042-989-1-git-send-email-felipe.contreras@gmail.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: Felipe Contreras <felipe.contreras@gmail.com>
-Cc: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, "Rafael J. Wysocki" <rjw@sisk.pl>, Len Brown <lenb@kernel.org>, Zhang Rui <rui.zhang@intel.com>, Jiri Kosina <trivial@kernel.org>
+Cc: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, "Rafael J. Wysocki" <rjw@sisk.pl>, Len Brown <lenb@kernel.org>, Zhang Rui <rui.zhang@intel.com>
 
-On 08/02/2013 07:44 AM, Felipe Contreras wrote:
+On 08/02/2013 07:34 AM, Felipe Contreras wrote:
+> Commit 1a7c618 (ACPI video: support _BQC/_BCL/_BCM methods that use
+> index values) assumed that bl->levels were not reverted, but at this
+> point they already are, so there's no need to revert them yet again.
+
+When acpi_video_bqc_value_to_level is called, bl->levels is not
+reverted. Can you please point me the code path when it is called and
+bl->levels were still reverted? I think we will need to fix that then.
+
+-Aaron
+
+> 
 > Signed-off-by: Felipe Contreras <felipe.contreras@gmail.com>
-
-Looks good to me, except that no change log feels a little weird.
-
-Reviewed-by: Aaron Lu <aaron.lu@intel.com>
-
-Thanks,
-Aaron
-
 > ---
->  drivers/acpi/video.c | 6 ++----
->  1 file changed, 2 insertions(+), 4 deletions(-)
+>  drivers/acpi/video.c | 13 ++-----------
+>  1 file changed, 2 insertions(+), 11 deletions(-)
 > 
 > diff --git a/drivers/acpi/video.c b/drivers/acpi/video.c
-> index b07573f..11bafbe 100644
+> index 0ec434d..b27c049 100644
 > --- a/drivers/acpi/video.c
 > +++ b/drivers/acpi/video.c
-> @@ -236,8 +236,7 @@ static int acpi_video_get_brightness(struct backlight_device *bd)
+> @@ -499,19 +499,10 @@ acpi_video_bqc_value_to_level(struct acpi_video_device *device,
 >  {
->  	unsigned long long cur_level;
->  	int i;
-> -	struct acpi_video_device *vd =
-> -		(struct acpi_video_device *)bl_get_data(bd);
-> +	struct acpi_video_device *vd = bl_get_data(bd);
+>  	unsigned long long level;
 >  
->  	if (acpi_video_device_lcd_get_level_current(vd, &cur_level, false))
->  		return -EINVAL;
-> @@ -255,8 +254,7 @@ static int acpi_video_get_brightness(struct backlight_device *bd)
->  static int acpi_video_set_brightness(struct backlight_device *bd)
->  {
->  	int request_level = bd->props.brightness + 2;
-> -	struct acpi_video_device *vd =
-> -		(struct acpi_video_device *)bl_get_data(bd);
-> +	struct acpi_video_device *vd = bl_get_data(bd);
+> -	if (device->brightness->flags._BQC_use_index) {
+> -		/*
+> -		 * _BQC returns an index that doesn't account for
+> -		 * the first 2 items with special meaning, so we need
+> -		 * to compensate for that by offsetting ourselves
+> -		 */
+> -		if (device->brightness->flags._BCL_reversed)
+> -			bqc_value = device->brightness->count - 3 - bqc_value;
+> -
+> +	if (device->brightness->flags._BQC_use_index)
+>  		level = device->brightness->levels[bqc_value + 2];
+> -	} else {
+> +	else
+>  		level = bqc_value;
+> -	}
 >  
->  	return acpi_video_device_lcd_set_level(vd,
->  				vd->brightness->levels[request_level]);
+>  	level += bqc_offset_aml_bug_workaround;
+>  
 > 
 
