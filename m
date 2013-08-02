@@ -1,86 +1,153 @@
-From: Felipe Contreras <felipe.contreras@gmail.com>
-Subject: Re: [PATCH] acpi: video: fix reversed indexed BQC
-Date: Fri, 2 Aug 2013 06:20:12 -0500
-Message-ID: <CAMP44s2PhrgRH9vsn9r89A4+qwD3PZku35NUh6x18cNme7Go=w@mail.gmail.com>
-References: <1375400042-989-1-git-send-email-felipe.contreras@gmail.com>
-	<51FB137D.7070000@gmail.com>
-	<CAMP44s1A+z4=DGJLK1qf5LPc1vbYvtJwjFiMt17vzyZFRU0qmg@mail.gmail.com>
-	<51FB35CD.7040709@intel.com>
-	<CAMP44s1honSdnoMnmpEcsXtdkJuPYgQgnLwcN+oxs5f=a+3Stg@mail.gmail.com>
-	<51FB3C9C.6070002@intel.com>
-	<CAMP44s1RkwTfxdoiARHgREy-fwLuRu2tKbM-4kB3+Xf3Sme5Uw@mail.gmail.com>
-	<51FB5826.80305@intel.com>
-	<CAMP44s3+L8ZY9tcUbNhia8sRx+KJ1w44Jn7n=RMdPfeQqvPaqw@mail.gmail.com>
-	<51FB689F.30100@intel.com>
-	<CAMP44s3mgbis8BO-kmwwQk+GKG60HMN1q1u6x67pD7Vj3OKU=Q@mail.gmail.com>
-	<51FB6D0D.4060407@intel.com>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: Re: [PATCH v2 RESEND 05/18] x86, ACPICA: Split acpi_boot_table_init() into two parts.
+Date: Fri, 02 Aug 2013 15:00:06 +0200
+Message-ID: <7364455.HW1C4G1skW@vostro.rjw.lan>
+References: <1375434877-20704-1-git-send-email-tangchen@cn.fujitsu.com> <1375434877-20704-6-git-send-email-tangchen@cn.fujitsu.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <51FB6D0D.4060407@intel.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Aaron Lu <aaron.lu@intel.com>
-Cc: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, "Rafael J. Wysocki" <rjw@sisk.pl>, Len Brown <lenb@kernel.org>, Zhang Rui <rui.zhang@intel.com>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7Bit
+Return-path: <owner-linux-mm@kvack.org>
+In-Reply-To: <1375434877-20704-6-git-send-email-tangchen@cn.fujitsu.com>
+Sender: owner-linux-mm@kvack.org
+To: Tang Chen <tangchen@cn.fujitsu.com>
+Cc: robert.moore@intel.com, lv.zheng@intel.com, lenb@kernel.org, tglx@linutronix.de, mingo@elte.hu, hpa@zytor.com, akpm@linux-foundation.org, tj@kernel.org, trenn@suse.de, yinghai@kernel.org, jiang.liu@huawei.com, wency@cn.fujitsu.com, laijs@cn.fujitsu.com, isimatu.yasuaki@jp.fujitsu.com, izumi.taku@jp.fujitsu.com, mgorman@suse.de, minchan@kernel.org, mina86@mina86.com, gong.chen@linux.intel.com, vasilis.liaskovitis@profitbricks.com, lwoodman@redhat.com, riel@redhat.com, jweiner@redhat.com, prarit@redhat.com, zhangyanfei@cn.fujitsu.com, yanghy@cn.fujitsu.com, x86@kernel.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-mm@kvack.org, linux-acpi@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Fri, Aug 2, 2013 at 3:25 AM, Aaron Lu <aaron.lu@intel.com> wrote:
-> On 08/02/2013 04:14 PM, Felipe Contreras wrote:
->> On Fri, Aug 2, 2013 at 3:06 AM, Aaron Lu <aaron.lu@intel.com> wrote:
->>> On 08/02/2013 03:59 PM, Felipe Contreras wrote:
->>>> On Fri, Aug 2, 2013 at 1:56 AM, Aaron Lu <aaron.lu@intel.com> wrote:
->>>>> On 08/02/2013 02:44 PM, Felipe Contreras wrote:
->>>>
->>>>>> The initial _BCM commands don't work, so the level remains at 100%.
->>>>>> Since the level is max_level, acpi_video_bqc_quirk() tries with the
->>>>>> first level, which is 0, and 0 happens to be the index of 100.
->>>>>>
->>>>>> So _BQC is returning 100, which is not the index of 0 (what we tested
->>>>>> for), but actually 100.
->>>>>>
->>>>>> I think the current code is correct, but acpi_video_bqc_quirk() should
->>>>>> be testing br->levels[3], or anything other than 0/100 which can be
->>>>>> easily confused.
->>>>>>
->>>>>> If so, the code would find that _BQC doesn't work on this machine (in
->>>>>> win8 mode)... at least initially. My guess is that it only starts to
->>>>>> work after acpi_video_bus_start_devices() is called.
->>>>>>
->>>>>> Forcing br->flags._BQC_use_index = 0 seems to work.
->>>>>
->>>>> Seems ASUS machines tend to have this issue:
->>>>> https://bugzilla.kernel.org/show_bug.cgi?id=52951
->>>>> https://bugzilla.kernel.org/show_bug.cgi?id=56711
->>>>
->>>> I don't see any real solution for the ACPI driver.
->>>>
->>>>> I have a patch to enhance the quirk some time ago:
->>>>> https://github.com/aaronlu/linux/commit/0a3d2c5b59caf80ae5bb1ca1fda0f7bf448b38c9
->>>>
->>>> I think this is unnecessarily complicated; the comment makes it clear
->>>
->>> For your system, yes it is unnecessarily complicated. But since this is
->>> a quirk, it better solves as many potential problems as possible, or we
->>> would simply use a DMI entry to do the quirk.
->>
->> The only difference between my patch and yours is that your patch
->> checks that br->level[i] is not the current level, but that check is
->> not necessary. If _BQC always returns the max level, all we need to do
->
-> _BQC does not always returns the max level.
->
->> is pick another value, any other value, and br->level[3] works just
->> fine.
->
-> For a _BCL only having 4 elements { 100, 40, 40, 100 }, the br->levels[3]
-> will be the max level. The example here may be too crazy to be true, but
-> since we are dealing with firmware, I tend to believe anything could
-> happen.
+On Friday, August 02, 2013 05:14:24 PM Tang Chen wrote:
+> In ACPI, SRAT(System Resource Affinity Table) contains NUMA info.
+> The memory affinities in SRAT record every memory range in the
+> system, and also, flags specifying if the memory range is
+> hotpluggable.
+> (Please refer to ACPI spec 5.0 5.2.16)
+> 
+> memblock starts to work at very early time, and SRAT has not been
+> parsed. So we don't know which memory is hotpluggable. In order
+> to use memblock to reserve hotpluggable memory, we need to obtain
+> SRAT memory affinity info earlier.
+> 
+> In the current acpi_boot_table_init(), it does the following:
+> 1. Parse RSDT, so that we can find all the tables.
+> 2. Initialize acpi_gbl_root_table_list, an array of acpi table
+>    descriptors used to store each table's address, length, signature,
+>    and so on.
+> 3. Check if there is any table in initrd intending to override
+>    tables from firmware. If so, override the firmware tables.
+> 4. Initialize all the data in acpi_gbl_root_table_list.
+> 
+> In order to parse SRAT at early time, we need to do similar job as
+> step 1 and 2 above earlier to obtain SRAT. It will be very convenient
+> if we have acpi_gbl_root_table_list initialized. We can use address
+> and signature to find SRAT.
+> 
+> Since step 1 and 2 allocates no memory, it is OK to do these two
+> steps earlier.
+> 
+> But step 3 will check acpi initrd table override, not just SRAT,
+> but also all the other tables. So it is better to keep it untouched.
+> 
+> This patch splits acpi_boot_table_init() into two steps:
+> 1. Parse RSDT, which cannot be overrided, and initialize
+>    acpi_gbl_root_table_list. (step 1 + 2 above)
+> 2. Install all ACPI tables into acpi_gbl_root_table_list.
+>    (step 3 + 4 above)
+> 
+> In later patches, we will do step 1 + 2 earlier.
 
-That can be fixed easily by checking test_level == current_level and
-do the same your patch does, but I actually don't think we should do
-that. It might make sense to test two values instead of only one, that
-way we can we properly test _BQC, while your patch simply assumes it
-doesn't work, even though it might.
+Please note that Linux is not the only user of the code you're modifying, so
+you need to make it possible to use the existing functions.
+
+In particular, acpi_tb_parse_root_table() can't be modified the way you did it,
+because that would require all of the users of ACPICA to be modified.
+
+> Signed-off-by: Tang Chen <tangchen@cn.fujitsu.com>
+> Reviewed-by: Zhang Yanfei <zhangyanfei@cn.fujitsu.com>
+> ---
+>  drivers/acpi/acpica/tbutils.c |   25 ++++++++++++++++++++++---
+>  drivers/acpi/tables.c         |    2 ++
+>  include/acpi/acpixf.h         |    2 ++
+>  3 files changed, 26 insertions(+), 3 deletions(-)
+> 
+> diff --git a/drivers/acpi/acpica/tbutils.c b/drivers/acpi/acpica/tbutils.c
+> index bffdfc7..e3621cf 100644
+> --- a/drivers/acpi/acpica/tbutils.c
+> +++ b/drivers/acpi/acpica/tbutils.c
+> @@ -577,9 +577,30 @@ acpi_tb_parse_root_table(acpi_physical_address rsdp_address)
+>  	 */
+>  	acpi_os_unmap_memory(table, length);
+>  
+> +	return_ACPI_STATUS(AE_OK);
+> +}
+> +
+> +/*******************************************************************************
+> + *
+> + * FUNCTION:    acpi_tb_install_root_table
+> + *
+> + * DESCRIPTION: This function installs all the ACPI tables in RSDT into
+> + *              acpi_gbl_root_table_list.
+> + *
+> + ******************************************************************************/
+> +
+> +void __init
+> +acpi_tb_install_root_table()
+> +{
+> +	int i;
+> +
+>  	/*
+>  	 * Complete the initialization of the root table array by examining
+> -	 * the header of each table
+> +	 * the header of each table.
+> +	 *
+> +	 * First two entries in the table array are reserved for the DSDT
+> +	 * and FACS, which are not actually present in the RSDT/XSDT - they
+> +	 * come from the FADT.
+>  	 */
+>  	for (i = 2; i < acpi_gbl_root_table_list.current_table_count; i++) {
+>  		acpi_tb_install_table(acpi_gbl_root_table_list.tables[i].
+> @@ -593,6 +614,4 @@ acpi_tb_parse_root_table(acpi_physical_address rsdp_address)
+>  			acpi_tb_parse_fadt(i);
+>  		}
+>  	}
+> -
+> -	return_ACPI_STATUS(AE_OK);
+>  }
+> diff --git a/drivers/acpi/tables.c b/drivers/acpi/tables.c
+> index d67a1fe..8860e79 100644
+> --- a/drivers/acpi/tables.c
+> +++ b/drivers/acpi/tables.c
+> @@ -353,6 +353,8 @@ int __init acpi_table_init(void)
+>  	if (ACPI_FAILURE(status))
+>  		return 1;
+>  
+> +	acpi_tb_install_root_table();
+> +
+>  	check_multiple_madt();
+>  	return 0;
+>  }
+> diff --git a/include/acpi/acpixf.h b/include/acpi/acpixf.h
+> index 22d497e..e9c9b88 100644
+> --- a/include/acpi/acpixf.h
+> +++ b/include/acpi/acpixf.h
+> @@ -118,6 +118,8 @@ acpi_status
+>  acpi_initialize_tables(struct acpi_table_desc *initial_storage,
+>  		       u32 initial_table_count, u8 allow_resize);
+>  
+> +void acpi_tb_install_root_table(void);
+> +
+>  acpi_status __init acpi_initialize_subsystem(void);
+>  
+>  acpi_status acpi_enable_subsystem(u32 flags);
+> 
+
+Thanks,
+Rafael
+
 
 -- 
-Felipe Contreras
+I speak only for myself.
+Rafael J. Wysocki, Intel Open Source Technology Center.
+
+--
+To unsubscribe, send a message with 'unsubscribe linux-mm' in
+the body to majordomo@kvack.org.  For more info on Linux MM,
+see: http://www.linux-mm.org/ .
+Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
