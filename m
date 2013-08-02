@@ -1,56 +1,32 @@
-From: Felipe Contreras <felipe.contreras@gmail.com>
-Subject: Re: [PATCH] acpi: video: fix reversed indexed BQC
-Date: Thu, 1 Aug 2013 23:50:04 -0500
-Message-ID: <CAMP44s1honSdnoMnmpEcsXtdkJuPYgQgnLwcN+oxs5f=a+3Stg@mail.gmail.com>
-References: <1375400042-989-1-git-send-email-felipe.contreras@gmail.com>
-	<51FB137D.7070000@gmail.com>
-	<CAMP44s1A+z4=DGJLK1qf5LPc1vbYvtJwjFiMt17vzyZFRU0qmg@mail.gmail.com>
-	<51FB35CD.7040709@intel.com>
+From: Tang Chen <tangchen@cn.fujitsu.com>
+Subject: Re: [PATCH v2 02/18] earlycpio.c: Fix the confusing comment of find_cpio_data().
+Date: Fri, 02 Aug 2013 12:48:54 +0800
+Message-ID: <51FB3A36.2080209@cn.fujitsu.com>
+References: <1375340800-19332-1-git-send-email-tangchen@cn.fujitsu.com>  <1375340800-19332-3-git-send-email-tangchen@cn.fujitsu.com> <1375394271.10300.18.camel@misato.fc.hp.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <51FB35CD.7040709@intel.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Aaron Lu <aaron.lu@intel.com>
-Cc: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, "Rafael J. Wysocki" <rjw@sisk.pl>, Len Brown <lenb@kernel.org>, Zhang Rui <rui.zhang@intel.com>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <owner-linux-mm@kvack.org>
+In-Reply-To: <1375394271.10300.18.camel@misato.fc.hp.com>
+Sender: owner-linux-mm@kvack.org
+To: Toshi Kani <toshi.kani@hp.com>
+Cc: rjw@sisk.pl, lenb@kernel.org, tglx@linutronix.de, mingo@elte.hu, hpa@zytor.com, akpm@linux-foundation.org, tj@kernel.org, trenn@suse.de, yinghai@kernel.org, jiang.liu@huawei.com, wency@cn.fujitsu.com, laijs@cn.fujitsu.com, isimatu.yasuaki@jp.fujitsu.com, izumi.taku@jp.fujitsu.com, mgorman@suse.de, minchan@kernel.org, mina86@mina86.com, gong.chen@linux.intel.com, vasilis.liaskovitis@profitbricks.com, lwoodman@redhat.com, riel@redhat.com, jweiner@redhat.com, prarit@redhat.com, zhangyanfei@cn.fujitsu.com, yanghy@cn.fujitsu.com, x86@kernel.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-mm@kvack.org, linux-acpi@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Thu, Aug 1, 2013 at 11:30 PM, Aaron Lu <aaron.lu@intel.com> wrote:
-> On 08/02/2013 12:11 PM, Felipe Contreras wrote:
->> On Thu, Aug 1, 2013 at 9:03 PM, Aaron Lu <aaron.lwe@gmail.com> wrote:
->>> On 08/02/2013 07:34 AM, Felipe Contreras wrote:
->>>> Commit 1a7c618 (ACPI video: support _BQC/_BCL/_BCM methods that use
->>>> index values) assumed that bl->levels were not reverted, but at this
->>>> point they already are, so there's no need to revert them yet again.
->>>
->>> When acpi_video_bqc_value_to_level is called, bl->levels is not
->>> reverted.
->>
->> This is the code that turns br->flags._BCL_reversed on:
->>
->>       if (max_level == br->levels[2]) {
->>               br->flags._BCL_reversed = 1;
->>               sort(&br->levels[2], count - 2, sizeof(br->levels[2]),
->>                       acpi_video_cmp_level, NULL);
->>       }
->>
->> Now tell me how br->flags._BCL_reversed can be on, and the br->levels
->> *not* reverted.
+On 08/02/2013 05:57 AM, Toshi Kani wrote:
+......
+>>   struct cpio_data __cpuinit find_cpio_data(const char *path, void *data,
 >
-> Oh yes, it is reverted to be in increase order, so it is not in reverse
-> order. I'm a little confused by these words.
+> This patch does not apply cleanly.  It seems that your branch does not
+> have 0db0628d90125193280eabb501c94feaf48fa9ab.
+>
 
-br->levels is always ascending, but that doesn't mean _BCL is.
+I have rebased the patch-set to linux 3.11-rc3. And will resend it later.
 
-> Please see acpi_video_bqc_quirk, we set _BQC_use_index by revert the
-> level on a reversed _BCL, so we will need to revert level here too.
+Thanks.
 
-I cannot parse that sentence, but nothing needs to change there; to
-find out if _BQC is using an index, we need to see if the returned
-value is the index of the level we are looking for, and to find that
-out we need the original list of levels, which can be found by
-reverting the already reverted list. If this wasn't the case there
-would not be any need for the _BCL_reversed flag.
-
--- 
-Felipe Contreras
+--
+To unsubscribe, send a message with 'unsubscribe linux-mm' in
+the body to majordomo@kvack.org.  For more info on Linux MM,
+see: http://www.linux-mm.org/ .
+Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
