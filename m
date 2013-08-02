@@ -1,46 +1,88 @@
 From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: [PATCH 2/3] acpi: video: trivial style cleanups
-Date: Fri, 02 Aug 2013 16:09:48 +0200
-Message-ID: <2112254.EC1eeAtOxW@vostro.rjw.lan>
-References: <1375400641-1694-1-git-send-email-felipe.contreras@gmail.com> <51FB118D.8040205@gmail.com> <CAMP44s2KijzXcYyU_fOD2YB4rU5wuFCfte4fR3HXoriTKE2wuA@mail.gmail.com>
+Subject: [GIT PULL] ACPI and power management fixes for v3.11-rc4
+Date: Fri, 02 Aug 2013 16:29:31 +0200
+Message-ID: <2052880.bHfzt6NKt5@vostro.rjw.lan>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7Bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from hydra.sisk.pl ([212.160.235.94]:52135 "EHLO hydra.sisk.pl"
+Received: from hydra.sisk.pl ([212.160.235.94]:52157 "EHLO hydra.sisk.pl"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753106Ab3HBN7e (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 2 Aug 2013 09:59:34 -0400
-In-Reply-To: <CAMP44s2KijzXcYyU_fOD2YB4rU5wuFCfte4fR3HXoriTKE2wuA@mail.gmail.com>
+	id S1753452Ab3HBOTU (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 2 Aug 2013 10:19:20 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Felipe Contreras <felipe.contreras@gmail.com>
-Cc: Aaron Lu <aaron.lwe@gmail.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Len Brown <lenb@kernel.org>, Zhang Rui <rui.zhang@intel.com>, Jiri Kosina <trivial@kernel.org>
+To: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>, Linux PM list <linux-pm@vger.kernel.org>
 
-On Thursday, August 01, 2013 11:18:34 PM Felipe Contreras wrote:
-> On Thu, Aug 1, 2013 at 8:55 PM, Aaron Lu <aaron.lwe@gmail.com> wrote:
-> > On 08/02/2013 07:44 AM, Felipe Contreras wrote:
-> >> Signed-off-by: Felipe Contreras <felipe.contreras@gmail.com>
-> >
-> > Change log please.
-> 
-> You mean a commit message?
+Hi Linus,
 
-No.  He meant the part that goes between the subject and the signoff.
-This is called a change log (or changelog).
+Please pull from the git repository at
 
-> That's what it's called in Git lingo, and
-> it's right there:
-> 
-> acpi: video: trivial style cleanups
+  git://git.kernel.org/pub/scm/linux/kernel/git/rafael/linux-pm.git pm+acpi-3.11-rc4
 
-And that's not sufficient, because it doesn't explain *what* cleanups are
-being made.
+to receive ACPI and power management fixes for v3.11-rc4 with
+top-most commit 2b44c4db2e2f1765d35163a861d301038e0c8a75
 
-Thanks,
-Rafael
+  freezer: set PF_SUSPEND_TASK flag on tasks that call freeze_processes
+
+on top of commit 5ae90d8e467e625e447000cb4335c4db973b1095
+
+  Linux 3.11-rc3
+
+These revert two cpuidle commits from 3.8 that turn out to hurt performance,
+fix a recent s2disk regression related to the freezer, fix cpufreq reference
+couting problem uncovered by one of the recent reverts and fix a particularly
+embarrassing bug in the ACPI battery driver.
+
+Specifics:
+
+- Revert two cpuidle commits added during the 3.8 development cycle that
+  turn out to have introduced a significant performance regression as
+  requested by Jeremy Eder.
+
+- The recent patches that made the freezer less heavy-weight introduced
+  a regression causing user-space-driven hibernation using the ioctl()
+  interface to block indefinitely when the hibernate process executes
+  try_to_freeze().  Fix from Colin Cross addresses this by adding a
+  process flag to mark the hibernate/suspend process to inform the
+  freezer that that process should be ignored.
+
+- One of the recent cpufreq reverts uncovered a problem in the core
+  causing the cpufreq driver module refcount to become negative after
+  a system suspend-resume cycle.  Fix from yours truly.
+
+- The evaluation of the ACPI battery _BIX method has never worked
+  correctly, because the commit that added support for it forgot to
+  take the "Revision" field in the return package into account.  As
+  a result, the reading of battery info doesn't work at all on some
+  systems, which is addressed by a fix from Lan Tianyu.
+
+Thanks!
 
 
--- 
-I speak only for myself.
-Rafael J. Wysocki, Intel Open Source Technology Center.
+---------------
+
+Colin Cross (1):
+      freezer: set PF_SUSPEND_TASK flag on tasks that call freeze_processes
+
+Lan Tianyu (1):
+      ACPI / battery: Fix parsing _BIX return value
+
+Rafael J. Wysocki (3):
+      Revert "cpuidle: Quickly notice prediction failure in general case"
+      Revert "cpuidle: Quickly notice prediction failure for repeat mode"
+      cpufreq: Fix cpufreq driver module refcount balance after suspend/resume
+
+---------------
+
+ drivers/acpi/battery.c           |    2 +
+ drivers/cpufreq/cpufreq.c        |   19 +++++----
+ drivers/cpuidle/governors/menu.c |  106 ++--------------------------------------------
+ include/linux/sched.h            |    1 +
+ include/linux/tick.h             |    6 ---
+ kernel/freezer.c                 |    2 +-
+ kernel/power/process.c           |   11 +++++
+ kernel/time/tick-sched.c         |    9 +---
+ 8 files changed, 31 insertions(+), 125 deletions(-)
+
