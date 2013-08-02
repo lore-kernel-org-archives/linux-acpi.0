@@ -1,92 +1,169 @@
-From: Toshi Kani <toshi.kani@hp.com>
-Subject: Re: [PATCH v2 08/18] x86: get pg_data_t's memory from other node
-Date: Thu, 01 Aug 2013 18:23:02 -0600
-Message-ID: <1375402982.10300.59.camel@misato.fc.hp.com>
-References: <1375340800-19332-1-git-send-email-tangchen@cn.fujitsu.com>
-	 <1375340800-19332-9-git-send-email-tangchen@cn.fujitsu.com>
+From: Aaron Lu <aaron.lu@intel.com>
+Subject: Re: i915 backlight
+Date: Fri, 02 Aug 2013 09:16:03 +0800
+Message-ID: <51FB0853.9090105@intel.com>
+References: <20130731162252.GC4724@pd.tnic> <20130731163623.GD4724@pd.tnic> <51F9B63F.7060509@intel.com> <20130801081215.GB3448@nazgul.tnic> <51FA2537.5040208@intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 7bit
-Return-path: <owner-linux-mm@kvack.org>
-In-Reply-To: <1375340800-19332-9-git-send-email-tangchen@cn.fujitsu.com>
-Sender: owner-linux-mm@kvack.org
-To: Tang Chen <tangchen@cn.fujitsu.com>
-Cc: rjw@sisk.pl, lenb@kernel.org, tglx@linutronix.de, mingo@elte.hu, hpa@zytor.com, akpm@linux-foundation.org, tj@kernel.org, trenn@suse.de, yinghai@kernel.org, jiang.liu@huawei.com, wency@cn.fujitsu.com, laijs@cn.fujitsu.com, isimatu.yasuaki@jp.fujitsu.com, izumi.taku@jp.fujitsu.com, mgorman@suse.de, minchan@kernel.org, mina86@mina86.com, gong.chen@linux.intel.com, vasilis.liaskovitis@profitbricks.com, lwoodman@redhat.com, riel@redhat.com, jweiner@redhat.com, prarit@redhat.com, zhangyanfei@cn.fujitsu.com, yanghy@cn.fujitsu.com, x86@kernel.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-mm@kvack.org, linux-acpi@vger.kernel.org
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mga14.intel.com ([143.182.124.37]:19919 "EHLO mga14.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751544Ab3HBBPR (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 1 Aug 2013 21:15:17 -0400
+In-Reply-To: <51FA2537.5040208@intel.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Daniel Vetter <daniel.vetter@ffwll.ch>, Jani Nikula <jani.nikula@intel.com>, Borislav Petkov <bp@alien8.de>
+Cc: intel-gfx@lists.freedesktop.org, dri-devel@lists.freedesktop.org, lkml <linux-kernel@vger.kernel.org>, "Rafael J. Wysocki" <rjw@sisk.pl>, ACPI Devel Mailing List <linux-acpi@vger.kernel.org>
 
-On Thu, 2013-08-01 at 15:06 +0800, Tang Chen wrote:
-> From: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
+On 08/01/2013 05:07 PM, Aaron Lu wrote:
+> On 08/01/2013 04:12 PM, Borislav Petkov wrote:
+>> On Thu, Aug 01, 2013 at 09:13:35AM +0800, Aaron Lu wrote:
+>>> Can you please run acpi_listen and then press the Fn-Fx key, see if the
+>>> events are correctly sent out?
+>>
+>> Like this?
+>>
+>> # acpi_listen
+>> video/brightnessdown BRTDN 00000087 00000000
+>> video/brightnessup BRTUP 00000086 00000000
+>> video/brightnessdown BRTDN 00000087 00000000
+>> video/brightnessup BRTUP 00000086 00000000
+>> video/brightnessdown BRTDN 00000087 00000000
+>> video/brightnessup BRTUP 00000086 00000000
+>> video/brightnessdown BRTDN 00000087 00000000
+>> video/brightnessup BRTUP 00000086 00000000
+>> video/brightnessdown BRTDN 00000087 00000000
+>> ^C
 > 
-> If system can create movable node which all memory of the node is allocated
-> as ZONE_MOVABLE, setup_node_data() cannot allocate memory for the node's
-> pg_data_t. So, use memblock_alloc_try_nid() instead of memblock_alloc_nid()
-> to retry when the first allocation fails. Otherwise, the system could failed
-> to boot.
+> Yes, so the event is correctly sent out.
 > 
-> The node_data could be on hotpluggable node. And so could pagetable and
-> vmemmap. But for now, doing so will break memory hot-remove path.
+>>
+>>> From the bug page:
+>>> https://bugzilla.kernel.org/show_bug.cgi?id=51231#c80
+>>> I got the impression that both the acpi_video interface and the vendor
+>>> interface thinkpad_screen are broken. So adding this cmdline here works
+>>> suggests that either thinkpad_screen works or thinkpad vendor driver
+>>> doesn't get loaded or doesn't create that interface for some reason.
+>>>
+>>> Alternatively, if the intel_backlight interface works(highly possible),
+>>> you can use xorg.conf to specify the that backlight interface for X.
+>>>
+>>> Section "Device"
+>>>         Option     "Backlight"	"intel_backlight"
+>>> 	Identifier  "Card0"
+>>> 	Driver      "intel"
+>>> 	BusID       "PCI:0:2:0"
+>>> EndSection
+>>
+>> Yeah, that didn't work *but* manually writing to both:
+>>
+>> /sys/class/backlight/acpi_video0/brightness
+>>
+>> and
+>>
+>> /sys/class/backlight/intel_backlight/brightness
+>>
+>> works.
 > 
-> A node could have several memory devices. And the device who holds node
-> data should be hot-removed in the last place. But in NUAM level, we don't
+> Err...we have the event sent out on hotkey press and the interface also
+> works, but still, using hotkey to adjust brightness level is broken...
+> 
+> I just found an old acer laptop that has similar issue(or even worse: on
+> X starts, an almost black screen is shown and hotkey adjust doesn't
+> work), I'll look into this.
 
-NUAM -> NUMA
+Hi Jani & Daniel,
 
-> know which memory_block (/sys/devices/system/node/nodeX/memoryXXX) belongs
-> to which memory device. We only have node. So we can only do node hotplug.
-> 
-> But in virtualization, developers are now developing memory hotplug in qemu,
-> which support a single memory device hotplug. So a whole node hotplug will
-> not satisfy virtualization users.
-> 
-> So at last, we concluded that we'd better do memory hotplug and local node
-> things (local node node data, pagetable, vmemmap, ...) in two steps.
-> Please refer to https://lkml.org/lkml/2013/6/19/73
-> 
-> For now, we put node_data of movable node to another node, and then improve
-> it in the future.
-> 
-> In the later patches, a boot option will be introduced to enable/disable this
-> functionality. If users disable it, the node_data will still be put on the
-> local node.
-> 
-> Signed-off-by: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
-> Signed-off-by: Lai Jiangshan <laijs@cn.fujitsu.com>
-> Signed-off-by: Tang Chen <tangchen@cn.fujitsu.com>
-> Signed-off-by: Jiang Liu <jiang.liu@huawei.com>
-> Reviewed-by: Wanpeng Li <liwanp@linux.vnet.ibm.com>
-> Reviewed-by: Zhang Yanfei <zhangyanfei@cn.fujitsu.com>
+It turned out there is an integer overflow problem, and the below patch
+fixed this problem on Acer Aspire 4732Z and thinkpad R61i.
 
-Acked-by: Toshi Kani <toshi.kani@hp.com>
+From: Aaron Lu <aaron.lu@intel.com>
+Subject: [PATCH] drm/i915: avoid brightness overflow when doing scale
+
+Some card's max brightness level is pretty large, e.g. on Acer Aspire
+4732Z, the max level is 989910. If user space set a large enough level
+then the current scale done in intel_panel_set_backlight will cause an
+integer overflow and the scaled level will be mistakenly small, leaving
+user with an almost black screen. This patch fixes this problem.
+
+Signed-off-by: Aaron Lu <aaron.lu@intel.com>
+---
+Since the only external user of intel_panel_set_backlight is operation
+region code where the max will be a constant of 255, this patch fixes
+the problem by comparing freq and max and then do things accordingly
+instead of converting to 64 bits.
+
+ drivers/gpu/drm/i915/intel_panel.c | 5 ++++-
+ 1 file changed, 4 insertions(+), 1 deletion(-)
+
+diff --git a/drivers/gpu/drm/i915/intel_panel.c b/drivers/gpu/drm/i915/intel_panel.c
+index 67e2c1f..7c674f0 100644
+--- a/drivers/gpu/drm/i915/intel_panel.c
++++ b/drivers/gpu/drm/i915/intel_panel.c
+@@ -498,7 +498,10 @@ void intel_panel_set_backlight(struct drm_device *dev, u32 level, u32 max)
+ 	}
+ 
+ 	/* scale to hardware */
+-	level = level * freq / max;
++	if (freq < max)
++		level = level * freq / max;
++	else
++		level = freq / max * level;
+ 
+ 	dev_priv->backlight.level = level;
+ 	if (dev_priv->backlight.device)
+-- 
+1.8.3.1
+
+
+Hi Boris,
+
+Since the sysfs interface works on your system, I think your problem
+should be different. Can you please file a bug for this? I can provide
+you with a debug patch and then see what happened. Please attach
+acpidump when filing the bug.
+
+https://bugzilla.kernel.org, ACPI/Power-Video.
 
 Thanks,
--Toshi
+Aaron
 
-
-> ---
->  arch/x86/mm/numa.c |    5 ++---
->  1 files changed, 2 insertions(+), 3 deletions(-)
 > 
-> diff --git a/arch/x86/mm/numa.c b/arch/x86/mm/numa.c
-> index a71c4e2..5013583 100644
-> --- a/arch/x86/mm/numa.c
-> +++ b/arch/x86/mm/numa.c
-> @@ -209,10 +209,9 @@ static void __init setup_node_data(int nid, u64 start, u64 end)
->  	 * Allocate node data.  Try node-local memory and then any node.
->  	 * Never allocate in DMA zone.
->  	 */
-> -	nd_pa = memblock_alloc_nid(nd_size, SMP_CACHE_BYTES, nid);
-> +	nd_pa = memblock_alloc_try_nid(nd_size, SMP_CACHE_BYTES, nid);
->  	if (!nd_pa) {
-> -		pr_err("Cannot find %zu bytes in node %d\n",
-> -		       nd_size, nid);
-> +		pr_err("Cannot find %zu bytes in any node\n", nd_size);
->  		return;
->  	}
->  	nd = __va(nd_pa);
+>>
+>> The ranges are different, though:
+>>
+>> intel_backlight/actual_brightness:1000
+>> intel_backlight/bl_power:0
+>> intel_backlight/brightness:1000
+>> intel_backlight/max_brightness:4437
+>> intel_backlight/type:raw
+>>
+>> acpi_video0/actual_brightness:41
+>> acpi_video0/bl_power:0
+>> acpi_video0/brightness:41
+>> acpi_video0/max_brightness:100
+>> acpi_video0/type:firmware
+> 
+> Yes, different interface has different brightness ranges and a value in
+> one range may turn out to be the same actual brightness level of another
+> value in another range.
+> 
+>>
+>> I guess I need to write me a dirty script for now ... :-)
+> 
+> :-)
+> 
+>>
+>> Thanks guys.
+>>
+> Thanks,
+> Aaron
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-kernel" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> Please read the FAQ at  http://www.tux.org/lkml/
+> 
 
-
---
-To unsubscribe, send a message with 'unsubscribe linux-mm' in
-the body to majordomo@kvack.org.  For more info on Linux MM,
-see: http://www.linux-mm.org/ .
-Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
