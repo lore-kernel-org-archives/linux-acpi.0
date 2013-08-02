@@ -1,46 +1,40 @@
-From: Tang Chen <tangchen@cn.fujitsu.com>
-Subject: Re: [PATCH v2 05/18] x86, acpi: Split acpi_boot_table_init() into
- two parts.
-Date: Fri, 02 Aug 2013 16:29:26 +0800
-Message-ID: <51FB6DE6.6040200@cn.fujitsu.com>
-References: <1375340800-19332-1-git-send-email-tangchen@cn.fujitsu.com>  <1375340800-19332-6-git-send-email-tangchen@cn.fujitsu.com> <1375399931.10300.36.camel@misato.fc.hp.com> <1AE640813FDE7649BE1B193DEA596E8802437AC8@SHSMSX101.ccr.corp.intel.com> <51FB5948.6080802@cn.fujitsu.com> <1AE640813FDE7649BE1B193DEA596E8802437C47@SHSMSX101.ccr.corp.intel.com>
+From: Borislav Petkov <bp@alien8.de>
+Subject: Re: i915 backlight
+Date: Fri, 2 Aug 2013 10:34:24 +0200
+Message-ID: <20130802083424.GB11566@pd.tnic>
+References: <20130731162252.GC4724@pd.tnic>
+ <20130731163623.GD4724@pd.tnic>
+ <51F9B63F.7060509@intel.com>
+ <20130801081215.GB3448@nazgul.tnic>
+ <51FA2537.5040208@intel.com>
+ <51FB0853.9090105@intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: quoted-printable
-Return-path: <owner-linux-mm@kvack.org>
-In-Reply-To: <1AE640813FDE7649BE1B193DEA596E8802437C47@SHSMSX101.ccr.corp.intel.com>
-Sender: owner-linux-mm@kvack.org
-To: "Zheng, Lv" <lv.zheng@intel.com>
-Cc: Toshi Kani <toshi.kani@hp.com>, "rjw@sisk.pl" <rjw@sisk.pl>, "lenb@kernel.org" <lenb@kernel.org>, "tglx@linutronix.de" <tglx@linutronix.de>, "mingo@elte.hu" <mingo@elte.hu>, "hpa@zytor.com" <hpa@zytor.com>, "akpm@linux-foundation.org" <akpm@linux-foundation.org>, "tj@kernel.org" <tj@kernel.org>, "trenn@suse.de" <trenn@suse.de>, "yinghai@kernel.org" <yinghai@kernel.org>, "jiang.liu@huawei.com" <jiang.liu@huawei.com>, "wency@cn.fujitsu.com" <wency@cn.fujitsu.com>, "laijs@cn.fujitsu.com" <laijs@cn.fujitsu.com>, "isimatu.yasuaki@jp.fujitsu.com" <isimatu.yasuaki@jp.fujitsu.com>, "izumi.taku@jp.fujitsu.com" <izumi.taku@jp.fujitsu.com>, "mgorman@suse.de" <mgorman@suse.de>, "minchan@kernel.org" <minchan@kernel.org>, "mina86@mina86.com" <mina86@mina86.com>, gong.chen@linux.
+Content-Type: text/plain; charset=utf-8
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <51FB0853.9090105@intel.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Aaron Lu <aaron.lu@intel.com>
+Cc: Daniel Vetter <daniel.vetter@ffwll.ch>, Jani Nikula <jani.nikula@intel.com>, intel-gfx@lists.freedesktop.org, dri-devel@lists.freedesktop.org, lkml <linux-kernel@vger.kernel.org>, "Rafael J. Wysocki" <rjw@sisk.pl>, ACPI Devel Mailing List <linux-acpi@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On 08/02/2013 04:23 PM, Zheng, Lv wrote:
-......
->> According to what you've explained, what you didn=E2=80=99t want to be c=
-alled
->> earlier is exactly "acpi initrd table override", please split only this =
-logic to
->> the step 2 and leave the others remained.
->> I think you should write a function named as acpi=5Foverride=5Ftables() =
-or
->> likewise in tbxface.c to be executed as the OSPM entry of the step 2.
->> Inside this function, acpi=5Ftb=5Ftable=5Foverride() should be called.
-......
+On Fri, Aug 02, 2013 at 09:16:03AM +0800, Aaron Lu wrote:
+> Since the sysfs interface works on your system, I think your problem
+> should be different. Can you please file a bug for this? I can provide
+> you with a debug patch and then see what happened. Please attach
+> acpidump when filing the bug.
+>
+> https://bugzilla.kernel.org, ACPI/Power-Video.
 
-OK, I understand what you are suggesting now. It is reasonable.
-I'll update the patch-set in the next version.
+Done: https://bugzilla.kernel.org/show_bug.cgi?id=60680
 
-But today, I just rebased it to the latest kernel. I'll resend this
-rebased v2 patch-set so that Tj and other guys can review it.
+I did acpidump by hand but it should be ok.
 
-I'll include all of your comments in the v3 patch-set. Thank you very=20
-much. :)
+Thanks for looking into this Aaron! :)
 
-Thanks.
-=
+-- 
+Regards/Gruss,
+    Boris.
 
+Sent from a fat crate under my desk. Formatting is fine.
 --
-To unsubscribe, send a message with 'unsubscribe linux-mm' in
-the body to majordomo@kvack.org.  For more info on Linux MM,
-see: http://www.linux-mm.org/ .
-Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
