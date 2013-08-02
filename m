@@ -1,91 +1,63 @@
-From: Aaron Lu <aaron.lu@intel.com>
-Subject: Re: i915 backlight
-Date: Fri, 02 Aug 2013 14:36:35 +0800
-Message-ID: <51FB5373.9040307@intel.com>
-References: <20130731162252.GC4724@pd.tnic> <20130731163623.GD4724@pd.tnic> <1419236.138PcnXVBh@vostro.rjw.lan> <20130801080724.GA3448@nazgul.tnic> <51FB4B0A.7060706@intel.com> <CAPBO7TaPxa_13FBDE5Z=Aoa+ePPfLRH0+oWSQyEmO00xSfGqYg@mail.gmail.com>
+From: Felipe Contreras <felipe.contreras@gmail.com>
+Subject: Re: [PATCH] acpi: video: fix reversed indexed BQC
+Date: Fri, 2 Aug 2013 01:44:51 -0500
+Message-ID: <CAMP44s1RkwTfxdoiARHgREy-fwLuRu2tKbM-4kB3+Xf3Sme5Uw@mail.gmail.com>
+References: <1375400042-989-1-git-send-email-felipe.contreras@gmail.com>
+	<51FB137D.7070000@gmail.com>
+	<CAMP44s1A+z4=DGJLK1qf5LPc1vbYvtJwjFiMt17vzyZFRU0qmg@mail.gmail.com>
+	<51FB35CD.7040709@intel.com>
+	<CAMP44s1honSdnoMnmpEcsXtdkJuPYgQgnLwcN+oxs5f=a+3Stg@mail.gmail.com>
+	<51FB3C9C.6070002@intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga09.intel.com ([134.134.136.24]:37704 "EHLO mga09.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754448Ab3HBGfs (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 2 Aug 2013 02:35:48 -0400
-In-Reply-To: <CAPBO7TaPxa_13FBDE5Z=Aoa+ePPfLRH0+oWSQyEmO00xSfGqYg@mail.gmail.com>
+Received: from mail-la0-f48.google.com ([209.85.215.48]:49426 "EHLO
+	mail-la0-f48.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755016Ab3HBGox (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 2 Aug 2013 02:44:53 -0400
+In-Reply-To: <51FB3C9C.6070002@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Josep Lladonosa <jlladono@gmail.com>
-Cc: Borislav Petkov <bp@alien8.de>, "Rafael J. Wysocki" <rjw@sisk.pl>, intel-gfx@lists.freedesktop.org, dri-devel@lists.freedesktop.org, lkml <linux-kernel@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>
+To: Aaron Lu <aaron.lu@intel.com>
+Cc: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, "Rafael J. Wysocki" <rjw@sisk.pl>, Len Brown <lenb@kernel.org>, Zhang Rui <rui.zhang@intel.com>
 
-On 08/02/2013 02:25 PM, Josep Lladonosa wrote:
-> Hello,
-> 
-> I am using a Lenovo Edge E530 and, with kernel 3.11.0-rc3, I had to
-> change to this parameter to the kernel boot:
-> 
-> 
-> GRUB_CMDLINE_LINUX="acpi_osi=\"!Windows 2012\""
+On Thu, Aug 1, 2013 at 11:59 PM, Aaron Lu <aaron.lu@intel.com> wrote:
+> On 08/02/2013 12:50 PM, Felipe Contreras wrote:
+>> On Thu, Aug 1, 2013 at 11:30 PM, Aaron Lu <aaron.lu@intel.com> wrote:
 
-What if you remove the above from kernel command line, and add
-video.brightness_switch_enabled=0 to kernel command line, then set the
-following in xorg.conf:
-$ cat /etc/X11/xorg.conf
-Section "Device"
-        Option     "Backlight"	"intel_backlight"
-	Identifier  "Card0"
-	Driver      "intel"
-	BusID       "PCI:0:2:0"
-EndSection
-
-Does everything work?
-
-If not, please test if manually change brightness level through sysfs
-works:
-# cd /sys/calss/backlight/intel_backlight
-# echo xxx > brightness
-
-And also test if hotkey event is sent out or not by running acpi_listen
-and then press the hotkey.
-
-Thanks,
-Aaron
-
-> 
-> 
-> instead of previous
-> 
-> GRUB_CMDLINE_LINUX="acpi_osi=Linux acpi_backlight=vendor"
-> 
-> to be able to change brightness. In some kernel versions before, it
-> worked, but with 15 levels, but in graphical system brightness bar was
-> not moving.
-> 
-> 
-> Now I have, though, 8 possible values for brightness and brightness
-> bar shows its correct position.
-> 
-> Josep
-> 
-> On 2 August 2013 08:00, Aaron Lu <aaron.lu@intel.com> wrote:
->> On 08/01/2013 04:07 PM, Borislav Petkov wrote:
->>> On Wed, Jul 31, 2013 at 11:16:52PM +0200, Rafael J. Wysocki wrote:
->>>> Does reverting efaa14c help?
->>>
->>> Nope.
->>>
->>> But see my other reply to Aaron.
+>>> Please see acpi_video_bqc_quirk, we set _BQC_use_index by revert the
+>>> level on a reversed _BCL, so we will need to revert level here too.
 >>
->> Assume you have specified to use intel_backlight in xorg.conf, does
->> booting with video.brightness_switch_enabled=0 help?
->>
->> Thanks,
->> Aaron
->> --
->> To unsubscribe from this list: send the line "unsubscribe linux-kernel" in
->> the body of a message to majordomo@vger.kernel.org
->> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->> Please read the FAQ at  http://www.tux.org/lkml/
-> 
-> 
-> 
+>> I cannot parse that sentence, but nothing needs to change there; to
+>> find out if _BQC is using an index, we need to see if the returned
+>> value is the index of the level we are looking for, and to find that
+>> out we need the original list of levels, which can be found by
+>> reverting the already reverted list. If this wasn't the case there
+>
+> Yes, but instead of reverting the already reverted list, we revert the
+> returned value to get the correct index in the reverted list. But your
+> patch removes the revert, is it correct?
 
+It removes the revert in acpi_video_bqc_value_to_level(), not
+acpi_video_bqc_quirk(). If I remove both reverts it doesn't work on
+this machine, however, I think it works by accident.
+
+The initial _BCM commands don't work, so the level remains at 100%.
+Since the level is max_level, acpi_video_bqc_quirk() tries with the
+first level, which is 0, and 0 happens to be the index of 100.
+
+So _BQC is returning 100, which is not the index of 0 (what we tested
+for), but actually 100.
+
+I think the current code is correct, but acpi_video_bqc_quirk() should
+be testing br->levels[3], or anything other than 0/100 which can be
+easily confused.
+
+If so, the code would find that _BQC doesn't work on this machine (in
+win8 mode)... at least initially. My guess is that it only starts to
+work after acpi_video_bus_start_devices() is called.
+
+Forcing br->flags._BQC_use_index = 0 seems to work.
+
+-- 
+Felipe Contreras
