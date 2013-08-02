@@ -1,78 +1,80 @@
-From: Toshi Kani <toshi.kani@hp.com>
-Subject: Re: Cannot hot remove a memory device
-Date: Fri, 02 Aug 2013 15:46:15 -0600
-Message-ID: <1375479975.10300.105.camel@misato.fc.hp.com>
-References: <51FA1E41.20304@jp.fujitsu.com>
-	 <2995879.KDC1gYpzij@vostro.rjw.lan>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: Re: [GIT PULL] ACPI and power management fixes for v3.11-rc4
+Date: Sat, 03 Aug 2013 00:21:19 +0200
+Message-ID: <6100577.WGRZRabKGy@vostro.rjw.lan>
+References: <2052880.bHfzt6NKt5@vostro.rjw.lan> <1820071.Lqgn6ZcLbB@vostro.rjw.lan> <CAMP44s2DNkkBP4G2oD+yRwxPYUDx6HAQyAEetLkBTe3mEpLR=A@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from g1t0028.austin.hp.com ([15.216.28.35]:47390 "EHLO
-	g1t0028.austin.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751870Ab3HBVrW (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 2 Aug 2013 17:47:22 -0400
-In-Reply-To: <2995879.KDC1gYpzij@vostro.rjw.lan>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7Bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <CAMP44s2DNkkBP4G2oD+yRwxPYUDx6HAQyAEetLkBTe3mEpLR=A@mail.gmail.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Felipe Contreras <felipe.contreras@gmail.com>
+Cc: Linus Torvalds <torvalds@linux-foundation.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>, Linux PM list <linux-pm@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>, rafael.j.wysocki@intel.com, vasilis.liaskovitis@profitbricks.com, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, tangchen@cn.fujitsu.com, wency@cn.fujitsu.com
 
-On Thu, 2013-08-01 at 23:43 +0200, Rafael J. Wysocki wrote:
-> Hi,
+On Friday, August 02, 2013 04:31:37 PM Felipe Contreras wrote:
+> On Fri, Aug 2, 2013 at 4:21 PM, Rafael J. Wysocki <rjw@sisk.pl> wrote:
+> > On Friday, August 02, 2013 02:12:49 PM Felipe Contreras wrote:
 > 
-> Thanks for your report.
+> >> You forgot this patch:
+> >>
+> >> https://git.kernel.org/cgit/linux/kernel/git/rafael/linux-pm.git/commit/?h=linux-next&id=3706231332d57072e0e2c0e59975443f3f18e673
+> >>
+> >> Or do you think it's fine to boot these machines into a black screen?
+> >
+> > Seriously, what's wrong with you?!
+> >
+> > I didn't forget about it, I just didn't include it into this particular
+> > pull request.
+> >
+> > And I'm not even sure I will push it for 3.11, because I prefer to revert
+> > efaa14c for 3.11 if that's necessary to make your broken box work as before.
 > 
-> On Thursday, August 01, 2013 05:37:21 PM Yasuaki Ishimatsu wrote:
-> > By following commit, I cannot hot remove a memory device.
-> > 
-> > ACPI / memhotplug: Bind removable memory blocks to ACPI device nodes
-> > commit e2ff39400d81233374e780b133496a2296643d7d
-> > 
-> > Details are follows:
-> > When I add a memory device, acpi_memory_enable_device() always fails
-> > as follows:
-> > 
-> > ...
-> > [ 1271.114116]  [ffffea121c400000-ffffea121c7fffff] PMD -> [ffff880813c00000-ffff880813ffffff] on node 3
-> > [ 1271.128682]  [ffffea121c800000-ffffea121cbfffff] PMD -> [ffff880813800000-ffff880813bfffff] on node 3
-> > [ 1271.143298]  [ffffea121cc00000-ffffea121cffffff] PMD -> [ffff880813000000-ffff8808133fffff] on node 3
-> > [ 1271.157799]  [ffffea121d000000-ffffea121d3fffff] PMD -> [ffff880812c00000-ffff880812ffffff] on node 3
-> > [ 1271.172341]  [ffffea121d400000-ffffea121d7fffff] PMD -> [ffff880812800000-ffff880812bfffff] on node 3
-> > [ 1271.186872]  [ffffea121d800000-ffffea121dbfffff] PMD -> [ffff880812400000-ffff8808127fffff] on node 3
-> > [ 1271.201481]  [ffffea121dc00000-ffffea121dffffff] PMD -> [ffff880812000000-ffff8808123fffff] on node 3
-> > [ 1271.216041]  [ffffea121e000000-ffffea121e3fffff] PMD -> [ffff880811c00000-ffff880811ffffff] on node 3
-> > [ 1271.230623]  [ffffea121e400000-ffffea121e7fffff] PMD -> [ffff880811800000-ffff880811bfffff] on node 3
-> > [ 1271.245148]  [ffffea121e800000-ffffea121ebfffff] PMD -> [ffff880811400000-ffff8808117fffff] on node 3
-> > [ 1271.259683]  [ffffea121ec00000-ffffea121effffff] PMD -> [ffff880811000000-ffff8808113fffff] on node 3
-> > [ 1271.274194]  [ffffea121f000000-ffffea121f3fffff] PMD -> [ffff880810c00000-ffff880810ffffff] on node 3
-> > [ 1271.288764]  [ffffea121f400000-ffffea121f7fffff] PMD -> [ffff880810800000-ffff880810bfffff] on node 3
-
-It appears that each memory object only has 64MB of memory.  This is
-less than the memory block size, which is 128MB.  This means that a
-single memory block associates with two ACPI memory device objects.
-
-> > ...	
-> > [ 1271.325841] acpi PNP0C80:03: acpi_memory_enable_device() error
+> The issue happens in more than just "my broken box", and yes,
+> reverting that patch would help (in more than just my box), in the
+> sense that at least Linux won't boot into a black screen.
 > 
-> Well, the only new way acpi_memory_enable_device() can fail after that commit
-> is a failure in acpi_bind_memory_blocks().
+> But the backlight control still wouldn't work, as it hasn't worked
+> since v3.7, possibly in many ASUS laptops, for that you need more than
+> just reverting efaa14c.
 
-Agreed.
+Yes, last time it worked in 3.6 and in particular it doesn't work in 3.10.
+My current goal is bring things back to the 3.10 state first, possibly without
+introducing any new problems, because we're kind of late in the cycle.
+That's better done by reverting stuff known to have introduced problems in
+the first place and not by doing things that may introduce more of them.
 
-> This means that either handle is NULL, which I think we can exclude, because
-> acpi_memory_enable_device() wouldn't be called at all if that were the case, or
-> there's a more subtle error in acpi_bind_one().
+And your blacklisting patch has potential to introduce problems.  Your goal is
+to bring backlight control to the 3.6 state on that particular machine, but
+the blacklist is done at the *system* level and very well may affect more
+things than just backlight.  You may not see any problems resulting from it
+and you may not care even if there are some, but other users of it may use
+different user space, for example, and may see problems that you're not seeing.
+
+That's why I'd very much prefer to do the revert at this point.
+
+> > Well, perhaps I just won't push it at all so that you actually can go and
+> > complain to Linus about that ...
 > 
-> One that comes to mind is that we may be calling acpi_bind_one() twice for the
-> same memory region, in which it will trigger -EINVAL from the sanity check in
-> there.
+> That is very responsible from you. Screw the users, right?
 
-I think it fails with -EINVAL at the place with dev_warn(dev, "ACPI
-handle is already set\n").  When two ACPI memory objects associate with
-a same memory block, the bind procedure of the 2nd ACPI memory object
-sees that ACPI_HANDLE(dev) is already set to the 1st ACPI memory object.
+No, that's not my goal, sorry for disappointing you.
 
-Thanks,
--Toshi
+The problem is that I'm not really convinced about the validity of the
+blacklisting approach to begin with.  As I said, the blacklisting is done
+on the system level and the goal is to work around backlight control problems.
+That sounds like a sledgehammer approach to me, which I don't really like.
+If the blacklisting was more targeted, done at the video driver level etc.,
+I wouldn't really have any concerns about it, but that's not the case.
 
+And since people evidently could live for over 6 months with the backlight
+control problems, maybe they'll survive some more time still and allow us to
+find a better approach?
+
+Rafael
+
+
+-- 
+I speak only for myself.
+Rafael J. Wysocki, Intel Open Source Technology Center.
