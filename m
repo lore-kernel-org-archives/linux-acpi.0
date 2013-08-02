@@ -1,61 +1,91 @@
-From: Josep Lladonosa <jlladono@gmail.com>
-Subject: Re: i915 backlight
-Date: Sat, 3 Aug 2013 00:23:00 +0200
-Message-ID: <CAPBO7TZsGPMtLgwGz7WvpdQdb2KXdRbR1Xqu8aCWYjb71faBGA@mail.gmail.com>
-References: <20130731162252.GC4724@pd.tnic>
-	<CAPBO7TaPxa_13FBDE5Z=Aoa+ePPfLRH0+oWSQyEmO00xSfGqYg@mail.gmail.com>
-	<CAMP44s1WMMXcGfF6Ta0CFthY3-7tkpqXEPx1iZhVU-XpS6KUWw@mail.gmail.com>
-	<1544218.2BR9ul04Pj@vostro.rjw.lan>
-	<CAMP44s16-_KA+3JPSzD1CrzcNCuCk4xjOvU6E=gVRxkKiAGr0Q@mail.gmail.com>
-	<CAPBO7TZT3hX67aX-2aG5f2mcVqOyka2xbTPvMWvHzTG-x+UBLA@mail.gmail.com>
-	<CAMP44s3018jWPywQixcgD2UuM58oKYgs+D=aADTQvTyZqJsULA@mail.gmail.com>
-	<CAPBO7TYOe3EAoWhhzwMH5o5qmDPw0dp0upWH=h62ruHR4m3A0g@mail.gmail.com>
-	<CAMP44s3VyEPK-veHD5kUUPQcDeAKP82tN_px+A6k+BgxXJ270A@mail.gmail.com>
+From: Toshi Kani <toshi.kani@hp.com>
+Subject: Re: [PATCH] ACPI: Do not fail acpi_bind_one() if device is already
+ bound correctly
+Date: Fri, 02 Aug 2013 16:38:38 -0600
+Message-ID: <1375483118.10300.113.camel@misato.fc.hp.com>
+References: <1888947.F5IBMfDKlY@vostro.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-ob0-f173.google.com ([209.85.214.173]:42657 "EHLO
-	mail-ob0-f173.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753431Ab3HBWXC (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 2 Aug 2013 18:23:02 -0400
-In-Reply-To: <CAMP44s3VyEPK-veHD5kUUPQcDeAKP82tN_px+A6k+BgxXJ270A@mail.gmail.com>
+Received: from g4t0016.houston.hp.com ([15.201.24.19]:33081 "EHLO
+	g4t0016.houston.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751573Ab3HBWjn (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 2 Aug 2013 18:39:43 -0400
+In-Reply-To: <1888947.F5IBMfDKlY@vostro.rjw.lan>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Felipe Contreras <felipe.contreras@gmail.com>
-Cc: "Rafael J. Wysocki" <rjw@sisk.pl>, Borislav Petkov <bp@alien8.de>, intel-gfx@lists.freedesktop.org, dri-devel@lists.freedesktop.org, lkml <linux-kernel@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>
+To: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>, Bjorn Helgaas <bhelgaas@google.com>
 
-On 2 August 2013 23:25, Felipe Contreras <felipe.contreras@gmail.com> wrote:
-> On Fri, Aug 2, 2013 at 3:11 PM, Josep Lladonosa <jlladono@gmail.com> wrote:
->> "Before" means with previous kernels that worked with
->>
->> GRUB_CMDLINE_LINUX="acpi_osi=Linux acpi_backlight=vendor"
->
-> That's probably a different issue. You would need to bisect the problem.
->
->> I have not checked this issue with acpi_osi="!Windows 2012".
->
-> Please do.
+On Fri, 2013-08-02 at 00:33 +0200, Rafael J. Wysocki wrote:
+> From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+> 
+> Modify acpi_bind_one() so that it doesn't fail if the device
+> represented by its first argument has already been bound to the
+> given ACPI handle (second argument), because that is not a good
+> enough reason for returning an error code.
 
-Hello, checking with acpi_osi="!Windows 2012" in the cmdline for
-kernel 3.11.0-rc3 (and without the section you gave for the xorg.conf)
-i get:
+While it seems reasonable to allow such case, I do not think we will hit
+this case under the normal scenarios.  So, I do not think we need to
+make this change now unless it actually solves Yasuaki's issue (which I
+am guessing not).
 
-- brightness can be set among 16 levels.
-- brightness recovers fine after a standby.
-- brightness can be managed before entering xorg (during lightdm
-screen, in my case. With the configuration of xorg.conf and
-video.brightness_switch_enabled=0 it is not possible, only until xorg
-has started).
+Thanks,
+-Toshi
 
-Josep
 
->
+> Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+> ---
+>  drivers/acpi/glue.c |   15 +++++++++++----
+>  1 file changed, 11 insertions(+), 4 deletions(-)
+> 
+> Index: linux-pm/drivers/acpi/glue.c
+> ===================================================================
+> --- linux-pm.orig/drivers/acpi/glue.c
+> +++ linux-pm/drivers/acpi/glue.c
+> @@ -143,7 +143,10 @@ int acpi_bind_one(struct device *dev, ac
+>  	list_for_each_entry(pn, &acpi_dev->physical_node_list, node)
+>  		if (pn->dev == dev) {
+>  			dev_warn(dev, "Already associated with ACPI node\n");
+> -			goto err_free;
+> +			if (ACPI_HANDLE(dev) == handle)
+> +				retval = 0;
+> +
+> +			goto out_free;
+>  		}
+>  
+>  	/* allocate physical node id according to physical_node_id_bitmap */
+> @@ -152,7 +155,7 @@ int acpi_bind_one(struct device *dev, ac
+>  		ACPI_MAX_PHYSICAL_NODE);
+>  	if (physical_node->node_id >= ACPI_MAX_PHYSICAL_NODE) {
+>  		retval = -ENOSPC;
+> -		goto err_free;
+> +		goto out_free;
+>  	}
+>  
+>  	set_bit(physical_node->node_id, acpi_dev->physical_node_id_bitmap);
+> @@ -185,10 +188,14 @@ int acpi_bind_one(struct device *dev, ac
+>  	put_device(dev);
+>  	return retval;
+>  
+> - err_free:
+> + out_free:
+>  	mutex_unlock(&acpi_dev->physical_node_lock);
+>  	kfree(physical_node);
+> -	goto err;
+> +	if (retval)
+> +		goto err;
+> +
+> +	put_device(dev);
+> +	return 0;
+>  }
+>  EXPORT_SYMBOL_GPL(acpi_bind_one);
+>  
+> 
 > --
-> Felipe Contreras
+> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
 
-
--- 
---
-Salutacions...Josep
---
