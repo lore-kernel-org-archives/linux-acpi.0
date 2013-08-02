@@ -1,80 +1,61 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: [GIT PULL] ACPI and power management fixes for v3.11-rc4
-Date: Sat, 03 Aug 2013 00:21:19 +0200
-Message-ID: <6100577.WGRZRabKGy@vostro.rjw.lan>
-References: <2052880.bHfzt6NKt5@vostro.rjw.lan> <1820071.Lqgn6ZcLbB@vostro.rjw.lan> <CAMP44s2DNkkBP4G2oD+yRwxPYUDx6HAQyAEetLkBTe3mEpLR=A@mail.gmail.com>
+From: Josep Lladonosa <jlladono@gmail.com>
+Subject: Re: i915 backlight
+Date: Sat, 3 Aug 2013 00:23:00 +0200
+Message-ID: <CAPBO7TZsGPMtLgwGz7WvpdQdb2KXdRbR1Xqu8aCWYjb71faBGA@mail.gmail.com>
+References: <20130731162252.GC4724@pd.tnic>
+	<CAPBO7TaPxa_13FBDE5Z=Aoa+ePPfLRH0+oWSQyEmO00xSfGqYg@mail.gmail.com>
+	<CAMP44s1WMMXcGfF6Ta0CFthY3-7tkpqXEPx1iZhVU-XpS6KUWw@mail.gmail.com>
+	<1544218.2BR9ul04Pj@vostro.rjw.lan>
+	<CAMP44s16-_KA+3JPSzD1CrzcNCuCk4xjOvU6E=gVRxkKiAGr0Q@mail.gmail.com>
+	<CAPBO7TZT3hX67aX-2aG5f2mcVqOyka2xbTPvMWvHzTG-x+UBLA@mail.gmail.com>
+	<CAMP44s3018jWPywQixcgD2UuM58oKYgs+D=aADTQvTyZqJsULA@mail.gmail.com>
+	<CAPBO7TYOe3EAoWhhzwMH5o5qmDPw0dp0upWH=h62ruHR4m3A0g@mail.gmail.com>
+	<CAMP44s3VyEPK-veHD5kUUPQcDeAKP82tN_px+A6k+BgxXJ270A@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7Bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <CAMP44s2DNkkBP4G2oD+yRwxPYUDx6HAQyAEetLkBTe3mEpLR=A@mail.gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Felipe Contreras <felipe.contreras@gmail.com>
-Cc: Linus Torvalds <torvalds@linux-foundation.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>, Linux PM list <linux-pm@vger.kernel.org>
+Content-Type: text/plain; charset=ISO-8859-1
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-ob0-f173.google.com ([209.85.214.173]:42657 "EHLO
+	mail-ob0-f173.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753431Ab3HBWXC (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 2 Aug 2013 18:23:02 -0400
+In-Reply-To: <CAMP44s3VyEPK-veHD5kUUPQcDeAKP82tN_px+A6k+BgxXJ270A@mail.gmail.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Felipe Contreras <felipe.contreras@gmail.com>
+Cc: "Rafael J. Wysocki" <rjw@sisk.pl>, Borislav Petkov <bp@alien8.de>, intel-gfx@lists.freedesktop.org, dri-devel@lists.freedesktop.org, lkml <linux-kernel@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>
 
-On Friday, August 02, 2013 04:31:37 PM Felipe Contreras wrote:
-> On Fri, Aug 2, 2013 at 4:21 PM, Rafael J. Wysocki <rjw@sisk.pl> wrote:
-> > On Friday, August 02, 2013 02:12:49 PM Felipe Contreras wrote:
-> 
-> >> You forgot this patch:
-> >>
-> >> https://git.kernel.org/cgit/linux/kernel/git/rafael/linux-pm.git/commit/?h=linux-next&id=3706231332d57072e0e2c0e59975443f3f18e673
-> >>
-> >> Or do you think it's fine to boot these machines into a black screen?
-> >
-> > Seriously, what's wrong with you?!
-> >
-> > I didn't forget about it, I just didn't include it into this particular
-> > pull request.
-> >
-> > And I'm not even sure I will push it for 3.11, because I prefer to revert
-> > efaa14c for 3.11 if that's necessary to make your broken box work as before.
-> 
-> The issue happens in more than just "my broken box", and yes,
-> reverting that patch would help (in more than just my box), in the
-> sense that at least Linux won't boot into a black screen.
-> 
-> But the backlight control still wouldn't work, as it hasn't worked
-> since v3.7, possibly in many ASUS laptops, for that you need more than
-> just reverting efaa14c.
+On 2 August 2013 23:25, Felipe Contreras <felipe.contreras@gmail.com> wrote:
+> On Fri, Aug 2, 2013 at 3:11 PM, Josep Lladonosa <jlladono@gmail.com> wrote:
+>> "Before" means with previous kernels that worked with
+>>
+>> GRUB_CMDLINE_LINUX="acpi_osi=Linux acpi_backlight=vendor"
+>
+> That's probably a different issue. You would need to bisect the problem.
+>
+>> I have not checked this issue with acpi_osi="!Windows 2012".
+>
+> Please do.
 
-Yes, last time it worked in 3.6 and in particular it doesn't work in 3.10.
-My current goal is bring things back to the 3.10 state first, possibly without
-introducing any new problems, because we're kind of late in the cycle.
-That's better done by reverting stuff known to have introduced problems in
-the first place and not by doing things that may introduce more of them.
+Hello, checking with acpi_osi="!Windows 2012" in the cmdline for
+kernel 3.11.0-rc3 (and without the section you gave for the xorg.conf)
+i get:
 
-And your blacklisting patch has potential to introduce problems.  Your goal is
-to bring backlight control to the 3.6 state on that particular machine, but
-the blacklist is done at the *system* level and very well may affect more
-things than just backlight.  You may not see any problems resulting from it
-and you may not care even if there are some, but other users of it may use
-different user space, for example, and may see problems that you're not seeing.
+- brightness can be set among 16 levels.
+- brightness recovers fine after a standby.
+- brightness can be managed before entering xorg (during lightdm
+screen, in my case. With the configuration of xorg.conf and
+video.brightness_switch_enabled=0 it is not possible, only until xorg
+has started).
 
-That's why I'd very much prefer to do the revert at this point.
+Josep
 
-> > Well, perhaps I just won't push it at all so that you actually can go and
-> > complain to Linus about that ...
-> 
-> That is very responsible from you. Screw the users, right?
+>
+> --
+> Felipe Contreras
 
-No, that's not my goal, sorry for disappointing you.
-
-The problem is that I'm not really convinced about the validity of the
-blacklisting approach to begin with.  As I said, the blacklisting is done
-on the system level and the goal is to work around backlight control problems.
-That sounds like a sledgehammer approach to me, which I don't really like.
-If the blacklisting was more targeted, done at the video driver level etc.,
-I wouldn't really have any concerns about it, but that's not the case.
-
-And since people evidently could live for over 6 months with the backlight
-control problems, maybe they'll survive some more time still and allow us to
-find a better approach?
-
-Rafael
 
 
 -- 
-I speak only for myself.
-Rafael J. Wysocki, Intel Open Source Technology Center.
+--
+Salutacions...Josep
+--
