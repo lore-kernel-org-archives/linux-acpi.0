@@ -1,66 +1,56 @@
-From: Aaron Lu <aaron.lu@intel.com>
-Subject: Re: [PATCH] acpi: video: fix reversed indexed BQC
-Date: Fri, 02 Aug 2013 12:59:08 +0800
-Message-ID: <51FB3C9C.6070002@intel.com>
-References: <1375400042-989-1-git-send-email-felipe.contreras@gmail.com> <51FB137D.7070000@gmail.com> <CAMP44s1A+z4=DGJLK1qf5LPc1vbYvtJwjFiMt17vzyZFRU0qmg@mail.gmail.com> <51FB35CD.7040709@intel.com> <CAMP44s1honSdnoMnmpEcsXtdkJuPYgQgnLwcN+oxs5f=a+3Stg@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+From: Felipe Contreras <felipe.contreras@gmail.com>
+Subject: [PATCH v2] acpi: video: remove unused code
+Date: Fri,  2 Aug 2013 00:12:22 -0500
+Message-ID: <1375420342-10629-1-git-send-email-felipe.contreras@gmail.com>
+References: <1375419177-10431-1-git-send-email-felipe.contreras@gmail.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga03.intel.com ([143.182.124.21]:37402 "EHLO mga03.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753982Ab3HBE6V (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 2 Aug 2013 00:58:21 -0400
-In-Reply-To: <CAMP44s1honSdnoMnmpEcsXtdkJuPYgQgnLwcN+oxs5f=a+3Stg@mail.gmail.com>
+Received: from mail-oa0-f53.google.com ([209.85.219.53]:41054 "EHLO
+	mail-oa0-f53.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752871Ab3HBFP4 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 2 Aug 2013 01:15:56 -0400
+In-Reply-To: <1375419177-10431-1-git-send-email-felipe.contreras@gmail.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Felipe Contreras <felipe.contreras@gmail.com>
-Cc: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, "Rafael J. Wysocki" <rjw@sisk.pl>, Len Brown <lenb@kernel.org>, Zhang Rui <rui.zhang@intel.com>
+To: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
+Cc: "Rafael J. Wysocki" <rjw@sisk.pl>, Len Brown <lenb@kernel.org>, Zhang Rui <rui.zhang@intel.com>, Aaron Lu <aaron.lwe@gmail.com>, Felipe Contreras <felipe.contreras@gmail.com>
 
-On 08/02/2013 12:50 PM, Felipe Contreras wrote:
-> On Thu, Aug 1, 2013 at 11:30 PM, Aaron Lu <aaron.lu@intel.com> wrote:
->> On 08/02/2013 12:11 PM, Felipe Contreras wrote:
->>> On Thu, Aug 1, 2013 at 9:03 PM, Aaron Lu <aaron.lwe@gmail.com> wrote:
->>>> On 08/02/2013 07:34 AM, Felipe Contreras wrote:
->>>>> Commit 1a7c618 (ACPI video: support _BQC/_BCL/_BCM methods that use
->>>>> index values) assumed that bl->levels were not reverted, but at this
->>>>> point they already are, so there's no need to revert them yet again.
->>>>
->>>> When acpi_video_bqc_value_to_level is called, bl->levels is not
->>>> reverted.
->>>
->>> This is the code that turns br->flags._BCL_reversed on:
->>>
->>>       if (max_level == br->levels[2]) {
->>>               br->flags._BCL_reversed = 1;
->>>               sort(&br->levels[2], count - 2, sizeof(br->levels[2]),
->>>                       acpi_video_cmp_level, NULL);
->>>       }
->>>
->>> Now tell me how br->flags._BCL_reversed can be on, and the br->levels
->>> *not* reverted.
->>
->> Oh yes, it is reverted to be in increase order, so it is not in reverse
->> order. I'm a little confused by these words.
-> 
-> br->levels is always ascending, but that doesn't mean _BCL is.
+_BCM_use_index and _BCL_use_index are never used and probably never will.
 
-Right.
+Signed-off-by: Felipe Contreras <felipe.contreras@gmail.com>
+---
+ drivers/acpi/video.c | 12 ------------
+ 1 file changed, 12 deletions(-)
 
-> 
->> Please see acpi_video_bqc_quirk, we set _BQC_use_index by revert the
->> level on a reversed _BCL, so we will need to revert level here too.
-> 
-> I cannot parse that sentence, but nothing needs to change there; to
-> find out if _BQC is using an index, we need to see if the returned
-> value is the index of the level we are looking for, and to find that
-> out we need the original list of levels, which can be found by
-> reverting the already reverted list. If this wasn't the case there
+diff --git a/drivers/acpi/video.c b/drivers/acpi/video.c
+index 0ec434d..1a04dfe 100644
+--- a/drivers/acpi/video.c
++++ b/drivers/acpi/video.c
+@@ -185,8 +185,6 @@ struct acpi_video_device_cap {
+ struct acpi_video_brightness_flags {
+ 	u8 _BCL_no_ac_battery_levels:1;	/* no AC/Battery levels in _BCL */
+ 	u8 _BCL_reversed:1;		/* _BCL package is in a reversed order*/
+-	u8 _BCL_use_index:1;		/* levels in _BCL are index values */
+-	u8 _BCM_use_index:1;		/* input of _BCM is an index value */
+ 	u8 _BQC_use_index:1;		/* _BQC returns an index value */
+ };
+ 
+@@ -806,16 +804,6 @@ acpi_video_init_brightness(struct acpi_video_device *device)
+ 	br->count = count;
+ 	device->brightness = br;
+ 
+-	/* Check the input/output of _BQC/_BCL/_BCM */
+-	if ((max_level < 100) && (max_level <= (count - 2)))
+-		br->flags._BCL_use_index = 1;
+-
+-	/*
+-	 * _BCM is always consistent with _BCL,
+-	 * at least for all the laptops we have ever seen.
+-	 */
+-	br->flags._BCM_use_index = br->flags._BCL_use_index;
+-
+ 	/* _BQC uses INDEX while _BCL uses VALUE in some laptops */
+ 	br->curr = level = max_level;
+ 
+-- 
+1.8.3.4
 
-Yes, but instead of reverting the already reverted list, we revert the
-returned value to get the correct index in the reverted list. But your
-patch removes the revert, is it correct?
-
-> would not be any need for the _BCL_reversed flag.
-> 
--Aaron
