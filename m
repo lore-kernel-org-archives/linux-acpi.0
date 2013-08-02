@@ -1,191 +1,86 @@
-From: Tang Chen <tangchen@cn.fujitsu.com>
-Subject: [PATCH v2 RESEND 12/18] x86, acpi, numa, mem_hotplug: Find hotpluggable memory in SRAT memory affinities.
-Date: Fri, 2 Aug 2013 17:14:31 +0800
-Message-ID: <1375434877-20704-13-git-send-email-tangchen@cn.fujitsu.com>
-References: <1375434877-20704-1-git-send-email-tangchen@cn.fujitsu.com>
-Return-path: <owner-linux-mm@kvack.org>
-In-Reply-To: <1375434877-20704-1-git-send-email-tangchen@cn.fujitsu.com>
-Sender: owner-linux-mm@kvack.org
-To: robert.moore@intel.com, lv.zheng@intel.com, rjw@sisk.pl, lenb@kernel.org, tglx@linutronix.de, mingo@elte.hu, hpa@zytor.com, akpm@linux-foundation.org, tj@kernel.org, trenn@suse.de, yinghai@kernel.org, jiang.liu@huawei.com, wency@cn.fujitsu.com, laijs@cn.fujitsu.com, isimatu.yasuaki@jp.fujitsu.com, izumi.taku@jp.fujitsu.com, mgorman@suse.de, minchan@kernel.org, mina86@mina86.com, gong.chen@linux.intel.com, vasilis.liaskovitis@profitbricks.com, lwoodman@redhat.com, riel@redhat.com, jweiner@redhat.com, prarit@redhat.com, zhangyanfei@cn.fujitsu.com, yanghy@cn.fujitsu.com
-Cc: x86@kernel.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-mm@kvack.org, linux-acpi@vger.kernel.org
+From: Felipe Contreras <felipe.contreras@gmail.com>
+Subject: Re: [PATCH] acpi: video: fix reversed indexed BQC
+Date: Fri, 2 Aug 2013 06:20:12 -0500
+Message-ID: <CAMP44s2PhrgRH9vsn9r89A4+qwD3PZku35NUh6x18cNme7Go=w@mail.gmail.com>
+References: <1375400042-989-1-git-send-email-felipe.contreras@gmail.com>
+	<51FB137D.7070000@gmail.com>
+	<CAMP44s1A+z4=DGJLK1qf5LPc1vbYvtJwjFiMt17vzyZFRU0qmg@mail.gmail.com>
+	<51FB35CD.7040709@intel.com>
+	<CAMP44s1honSdnoMnmpEcsXtdkJuPYgQgnLwcN+oxs5f=a+3Stg@mail.gmail.com>
+	<51FB3C9C.6070002@intel.com>
+	<CAMP44s1RkwTfxdoiARHgREy-fwLuRu2tKbM-4kB3+Xf3Sme5Uw@mail.gmail.com>
+	<51FB5826.80305@intel.com>
+	<CAMP44s3+L8ZY9tcUbNhia8sRx+KJ1w44Jn7n=RMdPfeQqvPaqw@mail.gmail.com>
+	<51FB689F.30100@intel.com>
+	<CAMP44s3mgbis8BO-kmwwQk+GKG60HMN1q1u6x67pD7Vj3OKU=Q@mail.gmail.com>
+	<51FB6D0D.4060407@intel.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <51FB6D0D.4060407@intel.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Aaron Lu <aaron.lu@intel.com>
+Cc: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, "Rafael J. Wysocki" <rjw@sisk.pl>, Len Brown <lenb@kernel.org>, Zhang Rui <rui.zhang@intel.com>
 List-Id: linux-acpi@vger.kernel.org
 
-In ACPI SRAT(System Resource Affinity Table), there is a memory affinity for each
-memory range in the system. In each memory affinity, there is a field indicating
-that if the memory range is hotpluggable.
+On Fri, Aug 2, 2013 at 3:25 AM, Aaron Lu <aaron.lu@intel.com> wrote:
+> On 08/02/2013 04:14 PM, Felipe Contreras wrote:
+>> On Fri, Aug 2, 2013 at 3:06 AM, Aaron Lu <aaron.lu@intel.com> wrote:
+>>> On 08/02/2013 03:59 PM, Felipe Contreras wrote:
+>>>> On Fri, Aug 2, 2013 at 1:56 AM, Aaron Lu <aaron.lu@intel.com> wrote:
+>>>>> On 08/02/2013 02:44 PM, Felipe Contreras wrote:
+>>>>
+>>>>>> The initial _BCM commands don't work, so the level remains at 100%.
+>>>>>> Since the level is max_level, acpi_video_bqc_quirk() tries with the
+>>>>>> first level, which is 0, and 0 happens to be the index of 100.
+>>>>>>
+>>>>>> So _BQC is returning 100, which is not the index of 0 (what we tested
+>>>>>> for), but actually 100.
+>>>>>>
+>>>>>> I think the current code is correct, but acpi_video_bqc_quirk() should
+>>>>>> be testing br->levels[3], or anything other than 0/100 which can be
+>>>>>> easily confused.
+>>>>>>
+>>>>>> If so, the code would find that _BQC doesn't work on this machine (in
+>>>>>> win8 mode)... at least initially. My guess is that it only starts to
+>>>>>> work after acpi_video_bus_start_devices() is called.
+>>>>>>
+>>>>>> Forcing br->flags._BQC_use_index = 0 seems to work.
+>>>>>
+>>>>> Seems ASUS machines tend to have this issue:
+>>>>> https://bugzilla.kernel.org/show_bug.cgi?id=52951
+>>>>> https://bugzilla.kernel.org/show_bug.cgi?id=56711
+>>>>
+>>>> I don't see any real solution for the ACPI driver.
+>>>>
+>>>>> I have a patch to enhance the quirk some time ago:
+>>>>> https://github.com/aaronlu/linux/commit/0a3d2c5b59caf80ae5bb1ca1fda0f7bf448b38c9
+>>>>
+>>>> I think this is unnecessarily complicated; the comment makes it clear
+>>>
+>>> For your system, yes it is unnecessarily complicated. But since this is
+>>> a quirk, it better solves as many potential problems as possible, or we
+>>> would simply use a DMI entry to do the quirk.
+>>
+>> The only difference between my patch and yours is that your patch
+>> checks that br->level[i] is not the current level, but that check is
+>> not necessary. If _BQC always returns the max level, all we need to do
+>
+> _BQC does not always returns the max level.
+>
+>> is pick another value, any other value, and br->level[3] works just
+>> fine.
+>
+> For a _BCL only having 4 elements { 100, 40, 40, 100 }, the br->levels[3]
+> will be the max level. The example here may be too crazy to be true, but
+> since we are dealing with firmware, I tend to believe anything could
+> happen.
 
-This patch parses all the memory affinities in SRAT only, and find out all the
-hotpluggable memory ranges in the system.
+That can be fixed easily by checking test_level == current_level and
+do the same your patch does, but I actually don't think we should do
+that. It might make sense to test two values instead of only one, that
+way we can we properly test _BQC, while your patch simply assumes it
+doesn't work, even though it might.
 
-This patch doesn't mark hotpluggable memory in memblock. Memory marked as hotplug
-won't be allocated to the kernel. If all the memory in the system is hotpluggable,
-then the system won't have enough memory to boot. The basic idea to solve this
-problem is making the nodes the kerenl resides in unhotpluggable. So, before we do
-this, we don't mark any hotpluggable memory in memory so that to keep memblock
-working as before.
-
-Signed-off-by: Tang Chen <tangchen@cn.fujitsu.com>
-Reviewed-by: Zhang Yanfei <zhangyanfei@cn.fujitsu.com>
----
- drivers/acpi/osl.c   |   85 ++++++++++++++++++++++++++++++++++++++++++++++++++
- include/linux/acpi.h |    2 +
- mm/memory_hotplug.c  |   22 ++++++++++++-
- 3 files changed, 107 insertions(+), 2 deletions(-)
-
-diff --git a/drivers/acpi/osl.c b/drivers/acpi/osl.c
-index ec490fe..d01202d 100644
---- a/drivers/acpi/osl.c
-+++ b/drivers/acpi/osl.c
-@@ -780,6 +780,91 @@ phys_addr_t __init early_acpi_firmware_srat(void)
- 
- 	return table_desc.address;
- }
-+
-+/*******************************************************************************
-+ *
-+ * FUNCTION:    acpi_hotplug_mem_affinity
-+ *
-+ * PARAMETERS:  Srat_vaddr         - Virt addr of SRAT
-+ *              Base               - The base address of the found hotpluggable
-+ *                                   memory region
-+ *              Size               - The size of the found hotpluggable memory
-+ *                                   region
-+ *              Offset             - Offset of the found memory affinity
-+ *
-+ * RETURN:      Status
-+ *
-+ * DESCRIPTION: This function iterates SRAT affinities list to find memory
-+ *              affinities with hotpluggable memory one by one. Return the
-+ *              offset of the found memory affinity through @offset. @offset
-+ *              can be used to iterate the SRAT affinities list to find all the
-+ *              hotpluggable memory affinities. If @offset is 0, it is the first
-+ *              time of the iteration.
-+ *
-+ ******************************************************************************/
-+acpi_status __init
-+acpi_hotplug_mem_affinity(void *srat_vaddr, u64 *base, u64 *size,
-+			  unsigned long *offset)
-+{
-+	struct acpi_table_header *table_header;
-+	struct acpi_subtable_header *entry;
-+	struct acpi_srat_mem_affinity *ma;
-+	unsigned long table_end, curr;
-+
-+	if (!offset)
-+		return_ACPI_STATUS(AE_BAD_PARAMETER);
-+
-+	table_header = (struct acpi_table_header *)srat_vaddr;
-+	table_end = (unsigned long)table_header + table_header->length;
-+
-+	entry = (struct acpi_subtable_header *)
-+		((unsigned long)table_header + *offset);
-+
-+	if (*offset) {
-+		/*
-+		 * @offset is the offset of the last affinity found in the
-+		 * last call. So need to move to the next affinity.
-+		 */
-+		entry = (struct acpi_subtable_header *)
-+			((unsigned long)entry + entry->length);
-+	} else {
-+		/*
-+		 * Offset of the first affinity is the size of SRAT
-+		 * table header.
-+		 */
-+		entry = (struct acpi_subtable_header *)
-+			((unsigned long)entry + sizeof(struct acpi_table_srat));
-+	}
-+
-+	while (((unsigned long)entry) + sizeof(struct acpi_subtable_header) <
-+	       table_end) {
-+		if (entry->length == 0)
-+			break;
-+
-+		if (entry->type != ACPI_SRAT_TYPE_MEMORY_AFFINITY)
-+			goto next;
-+
-+		ma = (struct acpi_srat_mem_affinity *)entry;
-+
-+		if (!(ma->flags & ACPI_SRAT_MEM_HOT_PLUGGABLE))
-+			goto next;
-+
-+		if (base)
-+			*base = ma->base_address;
-+
-+		if (size)
-+			*size = ma->length;
-+
-+		*offset = (unsigned long)entry - (unsigned long)srat_vaddr;
-+		return_ACPI_STATUS(AE_OK);
-+
-+next:
-+		entry = (struct acpi_subtable_header *)
-+			((unsigned long)entry + entry->length);
-+	}
-+
-+	return_ACPI_STATUS(AE_NOT_FOUND);
-+}
- #endif	/* CONFIG_ACPI_NUMA */
- 
- static void acpi_table_taint(struct acpi_table_header *table)
-diff --git a/include/linux/acpi.h b/include/linux/acpi.h
-index 10dfda7..590559a 100644
---- a/include/linux/acpi.h
-+++ b/include/linux/acpi.h
-@@ -99,6 +99,8 @@ static inline phys_addr_t early_acpi_override_srat(void)
- 
- #ifdef CONFIG_ACPI_NUMA
- phys_addr_t early_acpi_firmware_srat(void);
-+acpi_status acpi_hotplug_mem_affinity(void *srat_vaddr, u64 *base,
-+				      u64 *size, unsigned long *offset);
- #endif  /* CONFIG_ACPI_NUMA */
- 
- char * __acpi_map_table (unsigned long phys_addr, unsigned long size);
-diff --git a/mm/memory_hotplug.c b/mm/memory_hotplug.c
-index 2dfb06f..ef9ccf8 100644
---- a/mm/memory_hotplug.c
-+++ b/mm/memory_hotplug.c
-@@ -103,7 +103,11 @@ static void release_memory_resource(struct resource *res)
-  */
- void __init find_hotpluggable_memory(void)
- {
--	phys_addr_t srat_paddr;
-+	void *srat_vaddr;
-+	phys_addr_t srat_paddr, base, size;
-+	u32 length;
-+	struct acpi_table_header *srat_header;
-+	unsigned long offset = 0;
- 
- 	/* Try to find if SRAT is overridden */
- 	srat_paddr = early_acpi_override_srat();
-@@ -114,7 +118,21 @@ void __init find_hotpluggable_memory(void)
- 			return;
- 	}
- 
--	/* Will parse SRAT and find out hotpluggable memory here */
-+	/* Get the length of SRAT */
-+	srat_header = early_ioremap(srat_paddr,
-+				    sizeof(struct acpi_table_header));
-+	length = srat_header->length;
-+	early_iounmap(srat_header, sizeof(struct acpi_table_header));
-+
-+	/* Find all the hotpluggable memory regions */
-+	srat_vaddr = early_ioremap(srat_paddr, length);
-+
-+	while (ACPI_SUCCESS(acpi_hotplug_mem_affinity(srat_vaddr, &base,
-+						      &size, &offset))) {
-+		/* Will mark hotpluggable memory regions here */
-+	}
-+
-+	early_iounmap(srat_vaddr, length);
- }
- #endif	/* CONFIG_ACPI_NUMA */
- 
 -- 
-1.7.1
-
---
-To unsubscribe, send a message with 'unsubscribe linux-mm' in
-the body to majordomo@kvack.org.  For more info on Linux MM,
-see: http://www.linux-mm.org/ .
-Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
+Felipe Contreras
