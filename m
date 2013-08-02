@@ -1,58 +1,47 @@
-From: Felipe Contreras <felipe.contreras@gmail.com>
-Subject: Re: [PATCH 2/3] acpi: video: trivial style cleanups
-Date: Thu, 1 Aug 2013 23:18:34 -0500
-Message-ID: <CAMP44s2KijzXcYyU_fOD2YB4rU5wuFCfte4fR3HXoriTKE2wuA@mail.gmail.com>
-References: <1375400641-1694-1-git-send-email-felipe.contreras@gmail.com>
-	<1375400641-1694-3-git-send-email-felipe.contreras@gmail.com>
-	<51FB118D.8040205@gmail.com>
+From: Aaron Lu <aaron.lu@intel.com>
+Subject: Re: [PATCH] acpi: video: fix reversed indexed BQC
+Date: Fri, 02 Aug 2013 12:30:05 +0800
+Message-ID: <51FB35CD.7040709@intel.com>
+References: <1375400042-989-1-git-send-email-felipe.contreras@gmail.com> <51FB137D.7070000@gmail.com> <CAMP44s1A+z4=DGJLK1qf5LPc1vbYvtJwjFiMt17vzyZFRU0qmg@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-la0-f50.google.com ([209.85.215.50]:65154 "EHLO
-	mail-la0-f50.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750853Ab3HBESg (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 2 Aug 2013 00:18:36 -0400
-In-Reply-To: <51FB118D.8040205@gmail.com>
+Received: from mga03.intel.com ([143.182.124.21]:33420 "EHLO mga03.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750853Ab3HBE3S (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 2 Aug 2013 00:29:18 -0400
+In-Reply-To: <CAMP44s1A+z4=DGJLK1qf5LPc1vbYvtJwjFiMt17vzyZFRU0qmg@mail.gmail.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Aaron Lu <aaron.lwe@gmail.com>
-Cc: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, "Rafael J. Wysocki" <rjw@sisk.pl>, Len Brown <lenb@kernel.org>, Zhang Rui <rui.zhang@intel.com>, Jiri Kosina <trivial@kernel.org>
+To: Felipe Contreras <felipe.contreras@gmail.com>
+Cc: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, "Rafael J. Wysocki" <rjw@sisk.pl>, Len Brown <lenb@kernel.org>, Zhang Rui <rui.zhang@intel.com>
 
-On Thu, Aug 1, 2013 at 8:55 PM, Aaron Lu <aaron.lwe@gmail.com> wrote:
-> On 08/02/2013 07:44 AM, Felipe Contreras wrote:
->> Signed-off-by: Felipe Contreras <felipe.contreras@gmail.com>
->
-> Change log please.
-
-You mean a commit message? That's what it's called in Git lingo, and
-it's right there:
-
-acpi: video: trivial style cleanups
-
->> ---
->>  drivers/acpi/video.c | 90 +++++++++++++++++++++++-----------------------------
->>  1 file changed, 40 insertions(+), 50 deletions(-)
+On 08/02/2013 12:11 PM, Felipe Contreras wrote:
+> On Thu, Aug 1, 2013 at 9:03 PM, Aaron Lu <aaron.lwe@gmail.com> wrote:
+>> On 08/02/2013 07:34 AM, Felipe Contreras wrote:
+>>> Commit 1a7c618 (ACPI video: support _BQC/_BCL/_BCM methods that use
+>>> index values) assumed that bl->levels were not reverted, but at this
+>>> point they already are, so there's no need to revert them yet again.
 >>
->> diff --git a/drivers/acpi/video.c b/drivers/acpi/video.c
->> index f021bf4..b07573f 100644
->> --- a/drivers/acpi/video.c
->> +++ b/drivers/acpi/video.c
->> @@ -88,7 +88,7 @@ module_param(allow_duplicates, bool, 0644);
->>  static bool use_bios_initial_backlight = 1;
->>  module_param(use_bios_initial_backlight, bool, 0644);
->>
->> -static int register_count = 0;
->> +static int register_count;
->
-> This isn't a style clean up.
+>> When acpi_video_bqc_value_to_level is called, bl->levels is not
+>> reverted.
+> 
+> This is the code that turns br->flags._BCL_reversed on:
+> 
+> 	if (max_level == br->levels[2]) {
+> 		br->flags._BCL_reversed = 1;
+> 		sort(&br->levels[2], count - 2, sizeof(br->levels[2]),
+> 			acpi_video_cmp_level, NULL);
+> 	}
+> 
+> Now tell me how br->flags._BCL_reversed can be on, and the br->levels
+> *not* reverted.
 
-It is.
+Oh yes, it is reverted to be in increase order, so it is not in reverse
+order. I'm a little confused by these words.
 
-There's no difference before and after, the only difference is the style.
+Please see acpi_video_bqc_quirk, we set _BQC_use_index by revert the
+level on a reversed _BCL, so we will need to revert level here too.
 
-ERROR: do not initialise statics to 0 or NULL
-#91: FILE: acpi/video.c:91:
-+static int register_count = 0;
-
--- 
-Felipe Contreras
+-Aaron
