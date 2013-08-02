@@ -1,90 +1,104 @@
-From: Tang Chen <tangchen@cn.fujitsu.com>
-Subject: Re: [PATCH v2 06/18] x86, acpi: Initialize ACPI root table list earlier.
-Date: Fri, 02 Aug 2013 15:49:03 +0800
-Message-ID: <51FB646F.30604@cn.fujitsu.com>
-References: <1375340800-19332-1-git-send-email-tangchen@cn.fujitsu.com>  <1375340800-19332-7-git-send-email-tangchen@cn.fujitsu.com> <1375401251.10300.53.camel@misato.fc.hp.com>
+From: Felipe Contreras <felipe.contreras@gmail.com>
+Subject: Re: [PATCH] acpi: video: fix reversed indexed BQC
+Date: Fri, 2 Aug 2013 02:59:22 -0500
+Message-ID: <CAMP44s3+L8ZY9tcUbNhia8sRx+KJ1w44Jn7n=RMdPfeQqvPaqw@mail.gmail.com>
+References: <1375400042-989-1-git-send-email-felipe.contreras@gmail.com>
+	<51FB137D.7070000@gmail.com>
+	<CAMP44s1A+z4=DGJLK1qf5LPc1vbYvtJwjFiMt17vzyZFRU0qmg@mail.gmail.com>
+	<51FB35CD.7040709@intel.com>
+	<CAMP44s1honSdnoMnmpEcsXtdkJuPYgQgnLwcN+oxs5f=a+3Stg@mail.gmail.com>
+	<51FB3C9C.6070002@intel.com>
+	<CAMP44s1RkwTfxdoiARHgREy-fwLuRu2tKbM-4kB3+Xf3Sme5Uw@mail.gmail.com>
+	<51FB5826.80305@intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <owner-linux-mm@kvack.org>
-In-Reply-To: <1375401251.10300.53.camel@misato.fc.hp.com>
-Sender: owner-linux-mm@kvack.org
-To: Toshi Kani <toshi.kani@hp.com>
-Cc: rjw@sisk.pl, lenb@kernel.org, tglx@linutronix.de, mingo@elte.hu, hpa@zytor.com, akpm@linux-foundation.org, tj@kernel.org, trenn@suse.de, yinghai@kernel.org, jiang.liu@huawei.com, wency@cn.fujitsu.com, laijs@cn.fujitsu.com, isimatu.yasuaki@jp.fujitsu.com, izumi.taku@jp.fujitsu.com, mgorman@suse.de, minchan@kernel.org, mina86@mina86.com, gong.chen@linux.intel.com, vasilis.liaskovitis@profitbricks.com, lwoodman@redhat.com, riel@redhat.com, jweiner@redhat.com, prarit@redhat.com, zhangyanfei@cn.fujitsu.com, yanghy@cn.fujitsu.com, x86@kernel.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-mm@kvack.org, linux-acpi@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-la0-f47.google.com ([209.85.215.47]:39889 "EHLO
+	mail-la0-f47.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751349Ab3HBH7Y (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 2 Aug 2013 03:59:24 -0400
+In-Reply-To: <51FB5826.80305@intel.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Aaron Lu <aaron.lu@intel.com>
+Cc: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, "Rafael J. Wysocki" <rjw@sisk.pl>, Len Brown <lenb@kernel.org>, Zhang Rui <rui.zhang@intel.com>
 
-On 08/02/2013 07:54 AM, Toshi Kani wrote:
-......
->>   /*
->> + * acpi_root_table_init - Initialize acpi_gbl_root_table_list.
->> + *
->> + * This function will parse RSDT or XSDT, find all tables' phys addr,
->> + * initialize acpi_gbl_root_table_list, and record all tables' phys addr
->> + * in acpi_gbl_root_table_list.
->> + */
->> +void __init acpi_root_table_init(void)
->
-> I think acpi_root_table_init() is a bit confusing with
-> acpi_boot_table_init().  Perhaps, something like
-> acpi_boot_table_pre_init() or early_acpi_boot_table_init() is better to
-> indicate that this new function is called before acpi_boot_table_init().
->
+On Fri, Aug 2, 2013 at 1:56 AM, Aaron Lu <aaron.lu@intel.com> wrote:
+> On 08/02/2013 02:44 PM, Felipe Contreras wrote:
 
-OK, will change it to early_acpi_boot_table_init().
-
->> +{
->> +	dmi_check_system(acpi_dmi_table);
->> +
->> +	/* If acpi_disabled, bail out */
->> +	if (acpi_disabled)
->> +		return;
->> +
->> +	/* Initialize the ACPI boot-time table parser */
->> +	if (acpi_table_init()) {
->> +		disable_acpi();
->> +		return;
->> +	}
->> +}
->> +
->> +/*
->>    * acpi_boot_table_init() and acpi_boot_init()
->>    *  called from setup_arch(), always.
->>    *	1. checksums all tables
->> @@ -1511,21 +1533,7 @@ static struct dmi_system_id __initdata acpi_dmi_table_late[] = {
+>> The initial _BCM commands don't work, so the level remains at 100%.
+>> Since the level is max_level, acpi_video_bqc_quirk() tries with the
+>> first level, which is 0, and 0 happens to be the index of 100.
 >>
->>   void __init acpi_boot_table_init(void)
+>> So _BQC is returning 100, which is not the index of 0 (what we tested
+>> for), but actually 100.
+>>
+>> I think the current code is correct, but acpi_video_bqc_quirk() should
+>> be testing br->levels[3], or anything other than 0/100 which can be
+>> easily confused.
+>>
+>> If so, the code would find that _BQC doesn't work on this machine (in
+>> win8 mode)... at least initially. My guess is that it only starts to
+>> work after acpi_video_bus_start_devices() is called.
+>>
+>> Forcing br->flags._BQC_use_index = 0 seems to work.
 >
-> The comment of this function needs to be updated.  For instance, it
-> describes acpi_table_init(), which you just relocated.
->
->   * acpi_table_init() is separate to allow reading SRAT without
->   * other side effects.
->   *
+> Seems ASUS machines tend to have this issue:
+> https://bugzilla.kernel.org/show_bug.cgi?id=52951
+> https://bugzilla.kernel.org/show_bug.cgi?id=56711
 
-Sure. But I don't quite understand this comment. It seems that
-acpi_table_init() has nothing to do with SRAT.
+I don't see any real solution for the ACPI driver.
 
-Do you know anything about this ?
+> I have a patch to enhance the quirk some time ago:
+> https://github.com/aaronlu/linux/commit/0a3d2c5b59caf80ae5bb1ca1fda0f7bf448b38c9
 
->
->>   {
->> -	dmi_check_system(acpi_dmi_table);
->> -
->> -	/*
->> -	 * If acpi_disabled, bail out
->> -	 */
->> -	if (acpi_disabled)
->> -		return;
->
-> I think this check is still necessary.
->
+I think this is unnecessarily complicated; the comment makes it clear
+that the purpose is to find out if _BQC is working, and this does the
+trick:
 
-Yes. Will add it.
+>From 2bfa401b0a50fcde292ac0eb60cb6f857caf2fc6 Mon Sep 17 00:00:00 2001
+From: Felipe Contreras <felipe.contreras@gmail.com>
+Date: Fri, 2 Aug 2013 02:27:44 -0500
+Subject: [PATCH] acpi: video: improve quirk check
 
-Thanks.
+If the _BCL package is descending, the first level (br->levels[2]) will
+be 0, and if the number of levels matches the number of steps, we might
+confuse a returned level to mean the index.
 
---
-To unsubscribe, send a message with 'unsubscribe linux-mm' in
-the body to majordomo@kvack.org.  For more info on Linux MM,
-see: http://www.linux-mm.org/ .
-Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
+For example:
+
+  current_level = max_level = 100
+  test_level = 0
+  returned level = 100
+
+In this case 100 means the level, not the index, and _BCM failed. But if
+the _BCL package is descending, the index of level 0 is also 100, so we
+assume _BQC is indexed, when it's not.
+
+The solution is simple; test anything other than the first level (e.g.
+1).
+
+Signed-off-by: Felipe Contreras <felipe.contreras@gmail.com>
+---
+ drivers/acpi/video.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/drivers/acpi/video.c b/drivers/acpi/video.c
+index 0ec434d..e1284b8 100644
+--- a/drivers/acpi/video.c
++++ b/drivers/acpi/video.c
+@@ -689,7 +689,7 @@ static int acpi_video_bqc_quirk(struct
+acpi_video_device *device,
+ 	 * Some systems always report current brightness level as maximum
+ 	 * through _BQC, we need to test another value for them.
+ 	 */
+-	test_level = current_level == max_level ? br->levels[2] : max_level;
++	test_level = current_level == max_level ? br->levels[3] : max_level;
+
+ 	result = acpi_video_device_lcd_set_level(device, test_level);
+ 	if (result)
+-- 
+1.8.3.4
+
+-- 
+Felipe Contreras
