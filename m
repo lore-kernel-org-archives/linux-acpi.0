@@ -1,48 +1,56 @@
-From: "Zheng, Lv" <lv.zheng@intel.com>
-Subject: RE: [PATCH v2 05/18] x86, acpi: Split acpi_boot_table_init() into
+From: Tang Chen <tangchen@cn.fujitsu.com>
+Subject: Re: [PATCH v2 05/18] x86, acpi: Split acpi_boot_table_init() into
  two parts.
-Date: Fri, 2 Aug 2013 08:54:24 +0000
-Message-ID: <1AE640813FDE7649BE1B193DEA596E8802437C78@SHSMSX101.ccr.corp.intel.com>
-References: <1375340800-19332-1-git-send-email-tangchen@cn.fujitsu.com>
-  <1375340800-19332-6-git-send-email-tangchen@cn.fujitsu.com>
- <1375399931.10300.36.camel@misato.fc.hp.com>
- <1AE640813FDE7649BE1B193DEA596E8802437AC8@SHSMSX101.ccr.corp.intel.com>
- <51FB5948.6080802@cn.fujitsu.com>
- <1AE640813FDE7649BE1B193DEA596E8802437C47@SHSMSX101.ccr.corp.intel.com>
- <51FB6DE6.6040200@cn.fujitsu.com>
+Date: Fri, 02 Aug 2013 17:13:26 +0800
+Message-ID: <51FB7836.3040202@cn.fujitsu.com>
+References: <1375340800-19332-1-git-send-email-tangchen@cn.fujitsu.com>  <1375340800-19332-6-git-send-email-tangchen@cn.fujitsu.com> <1375399931.10300.36.camel@misato.fc.hp.com> <1AE640813FDE7649BE1B193DEA596E8802437AC8@SHSMSX101.ccr.corp.intel.com> <51FB5948.6080802@cn.fujitsu.com> <1AE640813FDE7649BE1B193DEA596E8802437C47@SHSMSX101.ccr.corp.intel.com> <51FB6DE6.6040200@cn.fujitsu.com> <1AE640813FDE7649BE1B193DEA596E8802437C78@SHSMSX101.ccr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: quoted-printable
 Return-path: <owner-linux-mm@kvack.org>
-In-Reply-To: <51FB6DE6.6040200@cn.fujitsu.com>
-Content-Language: en-US
+In-Reply-To: <1AE640813FDE7649BE1B193DEA596E8802437C78@SHSMSX101.ccr.corp.intel.com>
 Sender: owner-linux-mm@kvack.org
-To: Tang Chen <tangchen@cn.fujitsu.com>
-Cc: Toshi Kani <toshi.kani@hp.com>, "rjw@sisk.pl" <rjw@sisk.pl>, "lenb@kernel.org" <lenb@kernel.org>, "tglx@linutronix.de" <tglx@linutronix.de>, "mingo@elte.hu" <mingo@elte.hu>, "hpa@zytor.com" <hpa@zytor.com>, "akpm@linux-foundation.org" <akpm@linux-foundation.org>, "tj@kernel.org" <tj@kernel.org>, "trenn@suse.de" <trenn@suse.de>, "yinghai@kernel.org" <yinghai@kernel.org>, "jiang.liu@huawei.com" <jiang.liu@huawei.com>, "wency@cn.fujitsu.com" <wency@cn.fujitsu.com>, "laijs@cn.fujitsu.com" <laijs@cn.fujitsu.com>, "isimatu.yasuaki@jp.fujitsu.com" <isimatu.yasuaki@jp.fujitsu.com>, "izumi.taku@jp.fujitsu.com" <izumi.taku@jp.fujitsu.com>, "mgorman@suse.de" <mgorman@suse.de>, "minchan@kernel.org" <minchan@kernel.org>, "mina86@mina86.com" <mina86@mina86.com>, "gong.chen@linux.intel.com" <gong.chen@linux.intel.com>, "vasilis.liaskovitis@profitbricks.com" <vasilis.liaskovitis@profitb>
+To: "Zheng, Lv" <lv.zheng@intel.com>
+Cc: Toshi Kani <toshi.kani@hp.com>, "rjw@sisk.pl" <rjw@sisk.pl>, "lenb@kernel.org" <lenb@kernel.org>, "tglx@linutronix.de" <tglx@linutronix.de>, "mingo@elte.hu" <mingo@elte.hu>, "hpa@zytor.com" <hpa@zytor.com>, "akpm@linux-foundation.org" <akpm@linux-foundation.org>, "tj@kernel.org" <tj@kernel.org>, "trenn@suse.de" <trenn@suse.de>, "yinghai@kernel.org" <yinghai@kernel.org>, "jiang.liu@huawei.com" <jiang.liu@huawei.com>, "wency@cn.fujitsu.com" <wency@cn.fujitsu.com>, "laijs@cn.fujitsu.com" <laijs@cn.fujitsu.com>, "isimatu.yasuaki@jp.fujitsu.com" <isimatu.yasuaki@jp.fujitsu.com>, "izumi.taku@jp.fujitsu.com" <izumi.taku@jp.fujitsu.com>, "mgorman@suse.de" <mgorman@suse.de>, "minchan@kernel.org" <minchan@kernel.org>, "mina86@mina86.com" <mina86@mina86.com>, gong.chen@linux.
 List-Id: linux-acpi@vger.kernel.org
 
-PiBGcm9tOiBUYW5nIENoZW4gW21haWx0bzp0YW5nY2hlbkBjbi5mdWppdHN1LmNvbV0NCj4gU2Vu
-dDogRnJpZGF5LCBBdWd1c3QgMDIsIDIwMTMgNDoyOSBQTQ0KPiANCj4gT24gMDgvMDIvMjAxMyAw
-NDoyMyBQTSwgWmhlbmcsIEx2IHdyb3RlOg0KPiAuLi4uLi4NCj4gPj4gQWNjb3JkaW5nIHRvIHdo
-YXQgeW91J3ZlIGV4cGxhaW5lZCwgd2hhdCB5b3UgZGlkbuKAmXQgd2FudCB0byBiZQ0KPiBjYWxs
-ZWQNCj4gPj4gZWFybGllciBpcyBleGFjdGx5ICJhY3BpIGluaXRyZCB0YWJsZSBvdmVycmlkZSIs
-IHBsZWFzZSBzcGxpdCBvbmx5IHRoaXMgbG9naWMNCj4gdG8NCj4gPj4gdGhlIHN0ZXAgMiBhbmQg
-bGVhdmUgdGhlIG90aGVycyByZW1haW5lZC4NCj4gPj4gSSB0aGluayB5b3Ugc2hvdWxkIHdyaXRl
-IGEgZnVuY3Rpb24gbmFtZWQgYXMgYWNwaV9vdmVycmlkZV90YWJsZXMoKSBvcg0KPiA+PiBsaWtl
-d2lzZSBpbiB0YnhmYWNlLmMgdG8gYmUgZXhlY3V0ZWQgYXMgdGhlIE9TUE0gZW50cnkgb2YgdGhl
-IHN0ZXAgMi4NCj4gPj4gSW5zaWRlIHRoaXMgZnVuY3Rpb24sIGFjcGlfdGJfdGFibGVfb3ZlcnJp
-ZGUoKSBzaG91bGQgYmUgY2FsbGVkLg0KPiAuLi4uLi4NCj4gDQo+IE9LLCBJIHVuZGVyc3RhbmQg
-d2hhdCB5b3UgYXJlIHN1Z2dlc3Rpbmcgbm93LiBJdCBpcyByZWFzb25hYmxlLg0KPiBJJ2xsIHVw
-ZGF0ZSB0aGUgcGF0Y2gtc2V0IGluIHRoZSBuZXh0IHZlcnNpb24uDQo+IA0KPiBCdXQgdG9kYXks
-IEkganVzdCByZWJhc2VkIGl0IHRvIHRoZSBsYXRlc3Qga2VybmVsLiBJJ2xsIHJlc2VuZCB0aGlz
-DQo+IHJlYmFzZWQgdjIgcGF0Y2gtc2V0IHNvIHRoYXQgVGogYW5kIG90aGVyIGd1eXMgY2FuIHJl
-dmlldyBpdC4NCj4gDQo+IEknbGwgaW5jbHVkZSBhbGwgb2YgeW91ciBjb21tZW50cyBpbiB0aGUg
-djMgcGF0Y2gtc2V0LiBUaGFuayB5b3UgdmVyeQ0KPiBtdWNoLiA6KQ0KDQpJZiB0aGUgcmV2aWV3
-IHByb2Nlc3MgdGFrZXMgbG9uZ2VyIHRpbWUsIHlvdSBjb3VsZCBhbHNvIGxldCBBQ1BJQ0EgZm9s
-a3MgdG8gZG8gdGhpcyBmaXJzdCBpbiBBQ1BJQ0EsIHlvdSdsbCBmaW5kIHRoZSBjb21taXQgaW4g
-dGhlIG5leHQgcmVsZWFzZSBjeWNsZS4NCkluIHRoaXMgd2F5LCB0aGVyZSB3b24ndCBiZSBzb3Vy
-Y2UgY29kZSBkaXZlcmdlbmNlcyBiZXR3ZWVuIExpbnV4IGFuZCBBQ1BJQ0EuDQoNClRoYW5rcw0K
-LUx2DQoNCj4gDQo+IFRoYW5rcy4NCg0K
+On 08/02/2013 04:54 PM, Zheng, Lv wrote:
+>> From: Tang Chen [mailto:tangchen@cn.fujitsu.com]
+>> Sent: Friday, August 02, 2013 4:29 PM
+>>
+>> On 08/02/2013 04:23 PM, Zheng, Lv wrote:
+>> ......
+>>>> According to what you've explained, what you didn=E2=80=99t want to be
+>> called
+>>>> earlier is exactly "acpi initrd table override", please split only thi=
+s logic
+>> to
+>>>> the step 2 and leave the others remained.
+>>>> I think you should write a function named as acpi=5Foverride=5Ftables(=
+) or
+>>>> likewise in tbxface.c to be executed as the OSPM entry of the step 2.
+>>>> Inside this function, acpi=5Ftb=5Ftable=5Foverride() should be called.
+>> ......
+>>
+>> OK, I understand what you are suggesting now. It is reasonable.
+>> I'll update the patch-set in the next version.
+>>
+>> But today, I just rebased it to the latest kernel. I'll resend this
+>> rebased v2 patch-set so that Tj and other guys can review it.
+>>
+>> I'll include all of your comments in the v3 patch-set. Thank you very
+>> much. :)
+>
+> If the review process takes longer time, you could also let ACPICA folks =
+to do this first in ACPICA, you'll find the commit in the next release cycl=
+e.
+> In this way, there won't be source code divergences between Linux and ACP=
+ICA.
+
+Thank you very much. Will add you and Bob to the cc list.
+
+Thanks.
+=
 
 --
 To unsubscribe, send a message with 'unsubscribe linux-mm' in
