@@ -1,84 +1,171 @@
 From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: [PATCH v2 RESEND 07/18] x86, ACPI: Also initialize signature and length when parsing root table.
-Date: Fri, 02 Aug 2013 15:03:56 +0200
-Message-ID: <3299662.WAS8YLIUlv@vostro.rjw.lan>
-References: <1375434877-20704-1-git-send-email-tangchen@cn.fujitsu.com> <1375434877-20704-8-git-send-email-tangchen@cn.fujitsu.com>
+Subject: Re: [PATCH] ACPI: Do not fail acpi_bind_one() if device is already bound correctly
+Date: Fri, 02 Aug 2013 15:43:58 +0200
+Message-ID: <2560973.EJVuxm6PHt@vostro.rjw.lan>
+References: <1888947.F5IBMfDKlY@vostro.rjw.lan> <CAOLK0pxJM6ip-dzcEfswULnJR-qb=X_EXnBbdeSNMRKExPxq3Q@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7Bit
-Return-path: <linux-doc-owner@vger.kernel.org>
-In-Reply-To: <1375434877-20704-8-git-send-email-tangchen@cn.fujitsu.com>
-Sender: linux-doc-owner@vger.kernel.org
-To: Tang Chen <tangchen@cn.fujitsu.com>
-Cc: robert.moore@intel.com, lv.zheng@intel.com, lenb@kernel.org, tglx@linutronix.de, mingo@elte.hu, hpa@zytor.com, akpm@linux-foundation.org, tj@kernel.org, trenn@suse.de, yinghai@kernel.org, jiang.liu@huawei.com, wency@cn.fujitsu.com, laijs@cn.fujitsu.com, isimatu.yasuaki@jp.fujitsu.com, izumi.taku@jp.fujitsu.com, mgorman@suse.de, minchan@kernel.org, mina86@mina86.com, gong.chen@linux.intel.com, vasilis.liaskovitis@profitbricks.com, lwoodman@redhat.com, riel@redhat.com, jweiner@redhat.com, prarit@redhat.com, zhangyanfei@cn.fujitsu.com, yanghy@cn.fujitsu.com, x86@kernel.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-mm@kvack.org, linux-acpi@vger.kernel.org
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from hydra.sisk.pl ([212.160.235.94]:52098 "EHLO hydra.sisk.pl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751729Ab3HBNdq (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 2 Aug 2013 09:33:46 -0400
+In-Reply-To: <CAOLK0pxJM6ip-dzcEfswULnJR-qb=X_EXnBbdeSNMRKExPxq3Q@mail.gmail.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Lan Tianyu <lantianyu1986@gmail.com>
+Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>, Bjorn Helgaas <bhelgaas@google.com>, Toshi Kani <toshi.kani@hp.com>
 
-On Friday, August 02, 2013 05:14:26 PM Tang Chen wrote:
-> Besides the phys addr of the acpi tables, it will be very convenient if
-> we also have the signature of each table in acpi_gbl_root_table_list at
-> early time. We can find SRAT easily by comparing the signature.
+On Friday, August 02, 2013 10:48:49 AM Lan Tianyu wrote:
+> 2013/8/2 Rafael J. Wysocki <rjw@sisk.pl>:
+> > From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+> >
+> > Modify acpi_bind_one() so that it doesn't fail if the device
+> > represented by its first argument has already been bound to the
+> > given ACPI handle (second argument), because that is not a good
+> > enough reason for returning an error code.
+> >
+> > Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+> > ---
+> >  drivers/acpi/glue.c |   15 +++++++++++----
+> >  1 file changed, 11 insertions(+), 4 deletions(-)
+> >
+> > Index: linux-pm/drivers/acpi/glue.c
+> > ===================================================================
+> > --- linux-pm.orig/drivers/acpi/glue.c
+> > +++ linux-pm/drivers/acpi/glue.c
+> > @@ -143,7 +143,10 @@ int acpi_bind_one(struct device *dev, ac
+> >         list_for_each_entry(pn, &acpi_dev->physical_node_list, node)
+> >                 if (pn->dev == dev) {
+> >                         dev_warn(dev, "Already associated with ACPI node\n");
+> > -                       goto err_free;
+> > +                       if (ACPI_HANDLE(dev) == handle)
+> > +                               retval = 0;
+> > +
+> > +                       goto out_free;
+> >                 }
+> >
+> >         /* allocate physical node id according to physical_node_id_bitmap */
+> > @@ -152,7 +155,7 @@ int acpi_bind_one(struct device *dev, ac
+> >                 ACPI_MAX_PHYSICAL_NODE);
+> >         if (physical_node->node_id >= ACPI_MAX_PHYSICAL_NODE) {
+> >                 retval = -ENOSPC;
+> > -               goto err_free;
+> > +               goto out_free;
+> >         }
+> >
+> >         set_bit(physical_node->node_id, acpi_dev->physical_node_id_bitmap);
+> > @@ -185,10 +188,14 @@ int acpi_bind_one(struct device *dev, ac
+> >         put_device(dev);
+> >         return retval;
+> >
+> > - err_free:
+> > + out_free:
+> >         mutex_unlock(&acpi_dev->physical_node_lock);
+> >         kfree(physical_node);
+> > -       goto err;
+> > +       if (retval)
+> > +               goto err;
+> > +
+> > +       put_device(dev);
+> > +       return 0;
+> >  }
+> >  EXPORT_SYMBOL_GPL(acpi_bind_one);
 > 
-> This patch alse record signature and some other info in
-> acpi_gbl_root_table_list at early time.
-> 
-> Signed-off-by: Tang Chen <tangchen@cn.fujitsu.com>
-> Reviewed-by: Zhang Yanfei <zhangyanfei@cn.fujitsu.com>
+> Hi Rafael:
+>             How about the following change?
 
-The subject is misleading, as the change is in ACPICA and therefore affects not
-only x86.
+It is incorrect, because the "problem" it attempts to "fix" is actually
+intentional behavior.  [And you could ask if it was intentional in the first
+place instead of assuming that it was a mistake.  It wasn't.]
 
-Also I think the same comments as for the other ACPICA patch is this series
-applies: You shouldn't modify acpi_tbl_parse_root_table() in ways that would
-require the other OSes using ACPICA to be modified.
+Do you have any problems with my $subject patch?
 
-> ---
->  drivers/acpi/acpica/tbutils.c |   22 ++++++++++++++++++++++
->  1 files changed, 22 insertions(+), 0 deletions(-)
-> 
-> diff --git a/drivers/acpi/acpica/tbutils.c b/drivers/acpi/acpica/tbutils.c
-> index e3621cf..af942fe 100644
-> --- a/drivers/acpi/acpica/tbutils.c
-> +++ b/drivers/acpi/acpica/tbutils.c
-> @@ -438,6 +438,7 @@ acpi_tb_parse_root_table(acpi_physical_address rsdp_address)
->  	u32 i;
->  	u32 table_count;
->  	struct acpi_table_header *table;
-> +	struct acpi_table_desc *table_desc;
->  	acpi_physical_address address;
->  	acpi_physical_address uninitialized_var(rsdt_address);
->  	u32 length;
-> @@ -577,6 +578,27 @@ acpi_tb_parse_root_table(acpi_physical_address rsdp_address)
->  	 */
->  	acpi_os_unmap_memory(table, length);
->  
-> +	/*
-> +	 * Also initialize the table entries here, so that later we can use them
-> +	 * to find SRAT at very eraly time to reserve hotpluggable memory.
-> +	 */
-> +	for (i = 2; i < acpi_gbl_root_table_list.current_table_count; i++) {
-> +		table = acpi_os_map_memory(
-> +				acpi_gbl_root_table_list.tables[i].address,
-> +				sizeof(struct acpi_table_header));
-> +		if (!table)
-> +			return_ACPI_STATUS(AE_NO_MEMORY);
-> +
-> +		table_desc = &acpi_gbl_root_table_list.tables[i];
-> +
-> +		table_desc->pointer = NULL;
-> +		table_desc->length = table->length;
-> +		table_desc->flags = ACPI_TABLE_ORIGIN_MAPPED;
-> +		ACPI_MOVE_32_TO_32(table_desc->signature.ascii, table->signature);
-> +
-> +		acpi_os_unmap_memory(table, sizeof(struct acpi_table_header));
-> +	}
-> +
->  	return_ACPI_STATUS(AE_OK);
->  }
-
-Thanks,
 Rafael
 
 
+> 
+> diff --git a/drivers/acpi/glue.c b/drivers/acpi/glue.c
+> index f70cc45..35f375e 100644
+> --- a/drivers/acpi/glue.c
+> +++ b/drivers/acpi/glue.c
+> @@ -183,19 +183,15 @@ int acpi_bind_one(struct device *dev, acpi_handle handle)
+> 
+>         return 0;
+> 
+> - err:
+> -       ACPI_HANDLE_SET(dev, NULL);
+> -       put_device(dev);
+> -       return retval;
+> -
+>   out_free:
+>         mutex_unlock(&acpi_dev->physical_node_lock);
+>         kfree(physical_node);
+> -       if (retval)
+> -               goto err;
+> 
+> + err:
+> +       if (retval)
+> +               ACPI_HANDLE_SET(dev, NULL);
+>         put_device(dev);
+> -       return 0;
+> +       return retval;
+>  }
+>  EXPORT_SYMBOL_GPL(acpi_bind_one);
+> ---------------
+> 
+> When I reviewed this patch, found the dev's acpi handle always
+> is set  to NULL if there is error. This seems make no sense for
+> the case that the handle has been set to dev before binding.
+> 
+> For this case, the acpi handle has been found before binding.
+> Actually, the device driver could control any resources under ACPI
+> node even if the binding failed. So adding one flag to differentiate
+> it.
+> 
+> diff --git a/drivers/acpi/glue.c b/drivers/acpi/glue.c
+> index 35f375e..c868e51 100644
+> --- a/drivers/acpi/glue.c
+> +++ b/drivers/acpi/glue.c
+> @@ -113,6 +113,7 @@ int acpi_bind_one(struct device *dev, acpi_handle handle)
+>         acpi_status status;
+>         struct acpi_device_physical_node *physical_node, *pn;
+>         char physical_node_name[sizeof(PHYSICAL_NODE_STRING) + 2];
+> +       bool has_handle = false;
+>         int retval = -EINVAL;
+> 
+>         if (ACPI_HANDLE(dev)) {
+> @@ -121,6 +122,7 @@ int acpi_bind_one(struct device *dev, acpi_handle handle)
+>                         return -EINVAL;
+>                 } else {
+>                         handle = ACPI_HANDLE(dev);
+> +                       has_handle = true;
+>                 }
+>         }
+>         if (!handle)
+> @@ -188,7 +190,7 @@ int acpi_bind_one(struct device *dev, acpi_handle handle)
+>         kfree(physical_node);
+> 
+>   err:
+> -       if (retval)
+> +       if (retval && !has_handle)
+>                 ACPI_HANDLE_SET(dev, NULL);
+>         put_device(dev);
+>         return retval;
+> 
+> 
+> 
+> >
+> >
+> > --
+> > To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
+> > the body of a message to majordomo@vger.kernel.org
+> > More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
+> 
+> 
+> 
 -- 
 I speak only for myself.
 Rafael J. Wysocki, Intel Open Source Technology Center.
