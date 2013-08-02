@@ -1,91 +1,111 @@
-From: Toshi Kani <toshi.kani@hp.com>
-Subject: Re: [PATCH] ACPI: Do not fail acpi_bind_one() if device is already
- bound correctly
-Date: Fri, 02 Aug 2013 16:38:38 -0600
-Message-ID: <1375483118.10300.113.camel@misato.fc.hp.com>
-References: <1888947.F5IBMfDKlY@vostro.rjw.lan>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: Re: i915 backlight
+Date: Sat, 03 Aug 2013 01:35:13 +0200
+Message-ID: <1542692.FHVXYzeOeb@vostro.rjw.lan>
+References: <20130731162252.GC4724@pd.tnic> <1544218.2BR9ul04Pj@vostro.rjw.lan> <CAMP44s16-_KA+3JPSzD1CrzcNCuCk4xjOvU6E=gVRxkKiAGr0Q@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7Bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from g4t0016.houston.hp.com ([15.201.24.19]:33081 "EHLO
-	g4t0016.houston.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751573Ab3HBWjn (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 2 Aug 2013 18:39:43 -0400
-In-Reply-To: <1888947.F5IBMfDKlY@vostro.rjw.lan>
+Received: from hydra.sisk.pl ([212.160.235.94]:52772 "EHLO hydra.sisk.pl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752124Ab3HBXZB (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 2 Aug 2013 19:25:01 -0400
+In-Reply-To: <CAMP44s16-_KA+3JPSzD1CrzcNCuCk4xjOvU6E=gVRxkKiAGr0Q@mail.gmail.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>, Bjorn Helgaas <bhelgaas@google.com>
+To: Felipe Contreras <felipe.contreras@gmail.com>, Aaron Lu <aaron.lu@intel.com>, Matthew Garrett <mjg59@srcf.ucam.org>, Zhang Rui <rui.zhang@intel.com>
+Cc: Josep Lladonosa <jlladono@gmail.com>, Borislav Petkov <bp@alien8.de>, intel-gfx@lists.freedesktop.org, dri-devel@lists.freedesktop.org, lkml <linux-kernel@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>
 
-On Fri, 2013-08-02 at 00:33 +0200, Rafael J. Wysocki wrote:
-> From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+On Friday, August 02, 2013 01:58:55 PM Felipe Contreras wrote:
+> On Fri, Aug 2, 2013 at 9:03 AM, Rafael J. Wysocki <rjw@sisk.pl> wrote:
+> > On Friday, August 02, 2013 01:48:37 AM Felipe Contreras wrote:
+> >> On Fri, Aug 2, 2013 at 1:25 AM, Josep Lladonosa <jlladono@gmail.com> wrote:
+> >> > Hello,
+> >> >
+> >> > I am using a Lenovo Edge E530 and, with kernel 3.11.0-rc3, I had to
+> >> > change to this parameter to the kernel boot:
+> >> >
+> >> >
+> >> > GRUB_CMDLINE_LINUX="acpi_osi=\"!Windows 2012\""
+> >>
+> >> I think it's pretty obvious that for the time being we need to
+> >> blacklist a ton of machines so they boot without this OSI. In fact, in
+> >> might make sense to simply remove the OSI completely for all machines
+> >> (for now).
+> >
+> > That would have made sense 6 months ago, but not today.
 > 
-> Modify acpi_bind_one() so that it doesn't fail if the device
-> represented by its first argument has already been bound to the
-> given ACPI handle (second argument), because that is not a good
-> enough reason for returning an error code.
+> Today, like 6 months ago these machines remain broken, and it will be
+> the same tomorrow, presumably on v3.11, and at least v3.12 as well.
 
-While it seems reasonable to allow such case, I do not think we will hit
-this case under the normal scenarios.  So, I do not think we need to
-make this change now unless it actually solves Yasuaki's issue (which I
-am guessing not).
+Can you possibly look at things from a bit broader perspective than just the
+broken backlight?
 
-Thanks,
--Toshi
+[I'm talking about "simply removing the OSI completely for all machines" if
+that's not clear.]
 
+The problem is that for the last 6 months the kernel has responded to
+OSI(Windows 2012) with a "yes" and now, after that time, you want it to
+make a U turn and start saying "no" even though that may cause problems to
+happen on other people's machines.  That's simply irresponsible.
 
-> Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
-> ---
->  drivers/acpi/glue.c |   15 +++++++++++----
->  1 file changed, 11 insertions(+), 4 deletions(-)
+> > The reason is that you don't really know what's affected by that and I'm
+> > pretty sure it's not only backlight.
 > 
-> Index: linux-pm/drivers/acpi/glue.c
-> ===================================================================
-> --- linux-pm.orig/drivers/acpi/glue.c
-> +++ linux-pm/drivers/acpi/glue.c
-> @@ -143,7 +143,10 @@ int acpi_bind_one(struct device *dev, ac
->  	list_for_each_entry(pn, &acpi_dev->physical_node_list, node)
->  		if (pn->dev == dev) {
->  			dev_warn(dev, "Already associated with ACPI node\n");
-> -			goto err_free;
-> +			if (ACPI_HANDLE(dev) == handle)
-> +				retval = 0;
-> +
-> +			goto out_free;
->  		}
->  
->  	/* allocate physical node id according to physical_node_id_bitmap */
-> @@ -152,7 +155,7 @@ int acpi_bind_one(struct device *dev, ac
->  		ACPI_MAX_PHYSICAL_NODE);
->  	if (physical_node->node_id >= ACPI_MAX_PHYSICAL_NODE) {
->  		retval = -ENOSPC;
-> -		goto err_free;
-> +		goto out_free;
->  	}
->  
->  	set_bit(physical_node->node_id, acpi_dev->physical_node_id_bitmap);
-> @@ -185,10 +188,14 @@ int acpi_bind_one(struct device *dev, ac
->  	put_device(dev);
->  	return retval;
->  
-> - err_free:
-> + out_free:
->  	mutex_unlock(&acpi_dev->physical_node_lock);
->  	kfree(physical_node);
-> -	goto err;
-> +	if (retval)
-> +		goto err;
-> +
-> +	put_device(dev);
-> +	return 0;
->  }
->  EXPORT_SYMBOL_GPL(acpi_bind_one);
->  
+> I haven't heard a single comment that says acpi_osi="!Windows 2012"
+> breaks other things. OTOH everybody is saying it fixes the backlight
+> problem (if indeed it's the same problem).
 > 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> Are you claiming that those users are wrong?
+
+No, they are saying what they see and they are the people having the backlight
+problem in the first place.  You have no data from people for whom things work
+now.
+
+> > So no, we won't do that.
+> 
+> Yeah, because that would fix the backlight problems, not tomorrow, or
+> several months from now, *today*. Geez, who would want that?
+> 
+> Here is the patch to fix the problem, *today*.
+
+It doesn't "fix" anything.  It just creates a blacklist of systems where
+acpi_osi="!Windows 2012" happens to help with the backlight control problem.
+
+You don't even know why exactly it happens to work on those machines in the
+first place and you don't know what is affected by that apart from backlight
+(you can't be sure that nothing is affected in particular).
+
+> https://bugzilla.kernel.org/show_bug.cgi?id=60682
+> 
+> This is what we should do:
+> 
+> 1) Improve that blacklist list
+> 2) Fix the Intel driver issues
+> 3) Enable your patch that uses the Intel driver instead
+> 4) Remove that patch
+> 
+> Anything else is not be good for the users.
+
+Actually, the users can easily put the acpi_osi="!Windows 2012" into the
+kernel command line (which is what they have been doing already for some
+time I suppose).  However, if we add the blacklist to the kernel, that will
+mean we kind of give up fixing the backlight control for them (because they
+won't have any incentive to test anything else then).
+
+That said this is a controverisal matter and we evidently don't agree with
+each other.  I have my reasons, you have your arguments and it doesn't look
+like any of us is likely to change his mind, so why don't we do what's
+normally done in such cases: Why don't we ask others?
+
+Matthew, Aaron, Rui, what do you think about this?  Should we create an
+acpi_osi="!Windows 2012" blacklist of systems where this workaround is known
+to help with backlight control issues?  Is this a good idea in your opinion?
+
+Rafael
 
 
+-- 
+I speak only for myself.
+Rafael J. Wysocki, Intel Open Source Technology Center.
