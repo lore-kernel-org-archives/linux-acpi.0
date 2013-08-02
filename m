@@ -1,64 +1,71 @@
 From: Felipe Contreras <felipe.contreras@gmail.com>
-Subject: Re: [PATCH 2/3] acpi: video: trivial style cleanups
-Date: Fri, 2 Aug 2013 12:56:09 -0500
-Message-ID: <CAMP44s2oYm+iE-BYu93-bniTRPiu_LZWSAmAd8xEoNSZJbjemQ@mail.gmail.com>
-References: <1375400641-1694-1-git-send-email-felipe.contreras@gmail.com>
-	<51FB118D.8040205@gmail.com>
-	<CAMP44s2KijzXcYyU_fOD2YB4rU5wuFCfte4fR3HXoriTKE2wuA@mail.gmail.com>
-	<2112254.EC1eeAtOxW@vostro.rjw.lan>
+Subject: Re: i915 backlight
+Date: Fri, 2 Aug 2013 13:58:55 -0500
+Message-ID: <CAMP44s16-_KA+3JPSzD1CrzcNCuCk4xjOvU6E=gVRxkKiAGr0Q@mail.gmail.com>
+References: <20130731162252.GC4724@pd.tnic>
+	<CAPBO7TaPxa_13FBDE5Z=Aoa+ePPfLRH0+oWSQyEmO00xSfGqYg@mail.gmail.com>
+	<CAMP44s1WMMXcGfF6Ta0CFthY3-7tkpqXEPx1iZhVU-XpS6KUWw@mail.gmail.com>
+	<1544218.2BR9ul04Pj@vostro.rjw.lan>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-lb0-f169.google.com ([209.85.217.169]:33316 "EHLO
-	mail-lb0-f169.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753161Ab3HBR4L convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 2 Aug 2013 13:56:11 -0400
-In-Reply-To: <2112254.EC1eeAtOxW@vostro.rjw.lan>
+Received: from mail-lb0-f182.google.com ([209.85.217.182]:43938 "EHLO
+	mail-lb0-f182.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751655Ab3HBS64 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 2 Aug 2013 14:58:56 -0400
+In-Reply-To: <1544218.2BR9ul04Pj@vostro.rjw.lan>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: Aaron Lu <aaron.lwe@gmail.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Len Brown <lenb@kernel.org>, Zhang Rui <rui.zhang@intel.com>, Jiri Kosina <trivial@kernel.org>
+Cc: Josep Lladonosa <jlladono@gmail.com>, Aaron Lu <aaron.lu@intel.com>, Borislav Petkov <bp@alien8.de>, intel-gfx@lists.freedesktop.org, dri-devel@lists.freedesktop.org, lkml <linux-kernel@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>
 
-On Fri, Aug 2, 2013 at 9:09 AM, Rafael J. Wysocki <rjw@sisk.pl> wrote:
-> On Thursday, August 01, 2013 11:18:34 PM Felipe Contreras wrote:
->> On Thu, Aug 1, 2013 at 8:55 PM, Aaron Lu <aaron.lwe@gmail.com> wrote=
-:
->> > On 08/02/2013 07:44 AM, Felipe Contreras wrote:
->> >> Signed-off-by: Felipe Contreras <felipe.contreras@gmail.com>
+On Fri, Aug 2, 2013 at 9:03 AM, Rafael J. Wysocki <rjw@sisk.pl> wrote:
+> On Friday, August 02, 2013 01:48:37 AM Felipe Contreras wrote:
+>> On Fri, Aug 2, 2013 at 1:25 AM, Josep Lladonosa <jlladono@gmail.com> wrote:
+>> > Hello,
 >> >
->> > Change log please.
+>> > I am using a Lenovo Edge E530 and, with kernel 3.11.0-rc3, I had to
+>> > change to this parameter to the kernel boot:
+>> >
+>> >
+>> > GRUB_CMDLINE_LINUX="acpi_osi=\"!Windows 2012\""
 >>
->> You mean a commit message?
+>> I think it's pretty obvious that for the time being we need to
+>> blacklist a ton of machines so they boot without this OSI. In fact, in
+>> might make sense to simply remove the OSI completely for all machines
+>> (for now).
 >
-> No.  He meant the part that goes between the subject and the signoff.
-> This is called a change log (or changelog).
+> That would have made sense 6 months ago, but not today.
 
-Not in Git lingo.
+Today, like 6 months ago these machines remain broken, and it will be
+the same tomorrow, presumably on v3.11, and at least v3.12 as well.
 
-% man git commit
+> The reason is that you don't really know what's affected by that and I'm
+> pretty sure it's not only backlight.
 
-"Though not required, it=E2=80=99s a good idea to begin the commit mess=
-age
-with a single short (less than 50 character) line summarizing the
-change, followed by a blank line and then a more thorough
-description."
+I haven't heard a single comment that says acpi_osi="!Windows 2012"
+breaks other things. OTOH everybody is saying it fixes the backlight
+problem (if indeed it's the same problem).
 
->> That's what it's called in Git lingo, and
->> it's right there:
->>
->> acpi: video: trivial style cleanups
->
-> And that's not sufficient, because it doesn't explain *what* cleanups=
- are
-> being made.
+Are you claiming that those users are wrong?
 
-Yes it does; *style* cleanups (coding-style).
+> So no, we won't do that.
 
---=20
-=46elipe Contreras
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Yeah, because that would fix the backlight problems, not tomorrow, or
+several months from now, *today*. Geez, who would want that?
+
+Here is the patch to fix the problem, *today*.
+
+https://bugzilla.kernel.org/show_bug.cgi?id=60682
+
+This is what we should do:
+
+1) Improve that blacklist list
+2) Fix the Intel driver issues
+3) Enable your patch that uses the Intel driver instead
+4) Remove that patch
+
+Anything else is not be good for the users.
+
+-- 
+Felipe Contreras
