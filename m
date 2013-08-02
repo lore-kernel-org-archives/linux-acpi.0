@@ -1,75 +1,112 @@
-From: Tang Chen <tangchen@cn.fujitsu.com>
-Subject: Re: [PATCH v2 05/18] x86, acpi: Split acpi_boot_table_init() into
- two parts.
-Date: Fri, 02 Aug 2013 15:01:28 +0800
-Message-ID: <51FB5948.6080802@cn.fujitsu.com>
-References: <1375340800-19332-1-git-send-email-tangchen@cn.fujitsu.com>  <1375340800-19332-6-git-send-email-tangchen@cn.fujitsu.com> <1375399931.10300.36.camel@misato.fc.hp.com> <1AE640813FDE7649BE1B193DEA596E8802437AC8@SHSMSX101.ccr.corp.intel.com>
+From: Josep Lladonosa <jlladono@gmail.com>
+Subject: Re: i915 backlight
+Date: Fri, 2 Aug 2013 09:25:09 +0200
+Message-ID: <CAPBO7TZ2nHoF_oZCgSfy0Vs=phqpLT3tWC35kSi9tUQWe3vc9A@mail.gmail.com>
+References: <20130731162252.GC4724@pd.tnic>
+	<20130731163623.GD4724@pd.tnic>
+	<1419236.138PcnXVBh@vostro.rjw.lan>
+	<20130801080724.GA3448@nazgul.tnic>
+	<51FB4B0A.7060706@intel.com>
+	<CAPBO7TaPxa_13FBDE5Z=Aoa+ePPfLRH0+oWSQyEmO00xSfGqYg@mail.gmail.com>
+	<51FB5373.9040307@intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <owner-linux-mm@kvack.org>
-In-Reply-To: <1AE640813FDE7649BE1B193DEA596E8802437AC8@SHSMSX101.ccr.corp.intel.com>
-Sender: owner-linux-mm@kvack.org
-To: "Zheng, Lv" <lv.zheng@intel.com>
-Cc: Toshi Kani <toshi.kani@hp.com>, "rjw@sisk.pl" <rjw@sisk.pl>, "lenb@kernel.org" <lenb@kernel.org>, "tglx@linutronix.de" <tglx@linutronix.de>, "mingo@elte.hu" <mingo@elte.hu>, "hpa@zytor.com" <hpa@zytor.com>, "akpm@linux-foundation.org" <akpm@linux-foundation.org>, "tj@kernel.org" <tj@kernel.org>, "trenn@suse.de" <trenn@suse.de>, "yinghai@kernel.org" <yinghai@kernel.org>, "jiang.liu@huawei.com" <jiang.liu@huawei.com>, "wency@cn.fujitsu.com" <wency@cn.fujitsu.com>, "laijs@cn.fujitsu.com" <laijs@cn.fujitsu.com>, "isimatu.yasuaki@jp.fujitsu.com" <isimatu.yasuaki@jp.fujitsu.com>, "izumi.taku@jp.fujitsu.com" <izumi.taku@jp.fujitsu.com>, "mgorman@suse.de" <mgorman@suse.de>, "minchan@kernel.org" <minchan@kernel.org>, "mina86@mina86.com" <mina86@mina86.com>, gong.chen@linux.
+Content-Type: text/plain; charset=ISO-8859-1
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-oa0-f44.google.com ([209.85.219.44]:56064 "EHLO
+	mail-oa0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755794Ab3HBHZK (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 2 Aug 2013 03:25:10 -0400
+In-Reply-To: <51FB5373.9040307@intel.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Aaron Lu <aaron.lu@intel.com>
+Cc: Borislav Petkov <bp@alien8.de>, "Rafael J. Wysocki" <rjw@sisk.pl>, intel-gfx@lists.freedesktop.org, dri-devel@lists.freedesktop.org, lkml <linux-kernel@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>
 
-On 08/02/2013 01:25 PM, Zheng, Lv wrote:
-......
->>> index ce3d5db..9d68ffc 100644
->>> --- a/drivers/acpi/acpica/tbutils.c
->>> +++ b/drivers/acpi/acpica/tbutils.c
->>> @@ -766,9 +766,30 @@
->> acpi_tb_parse_root_table(acpi_physical_address rsdp_address)
->>>   	*/
->>>   	acpi_os_unmap_memory(table, length);
->>>
->>> +	return_ACPI_STATUS(AE_OK);
->>> +}
->>> +
->>>
+Hello,
+
+Yes, it works! I get now 11 levels from all black to the brightest.
+
+acpi_listen shows messages
+
+Josep
+
+On 2 August 2013 08:36, Aaron Lu <aaron.lu@intel.com> wrote:
+> On 08/02/2013 02:25 PM, Josep Lladonosa wrote:
+>> Hello,
+>>
+>> I am using a Lenovo Edge E530 and, with kernel 3.11.0-rc3, I had to
+>> change to this parameter to the kernel boot:
+>>
+>>
+>> GRUB_CMDLINE_LINUX="acpi_osi=\"!Windows 2012\""
 >
-> I don't think you can split the function here.
-> ACPICA still need to continue to parse the table using the logic implemented in the acpi_tb_install_table() and acpi_tb_parse_fadt(). (for example, endianess of the signature).
-> You'd better to keep them as is and split some codes from 'acpi_tb_install_table' to form another function: acpi_tb_override_table().
-
-I'm sorry, I don't quite follow this.
-
-I split acpi_tb_parse_root_table(), not acpi_tb_install_table() and 
-acpi_tb_parse_fadt().
-If ACPICA wants to use these two functions somewhere else, I think it is 
-OK, isn't it?
-
-And the reason I did this, please see below.
-
-......
->>> + *
->>> + * FUNCTION:    acpi_tb_install_root_table
+> What if you remove the above from kernel command line, and add
+> video.brightness_switch_enabled=0 to kernel command line, then set the
+> following in xorg.conf:
+> $ cat /etc/X11/xorg.conf
+> Section "Device"
+>         Option     "Backlight"  "intel_backlight"
+>         Identifier  "Card0"
+>         Driver      "intel"
+>         BusID       "PCI:0:2:0"
+> EndSection
 >
-> I think this function should be acpi_tb_override_tables, and call acpi_tb_override_table() inside this function for each table.
+> Does everything work?
+>
+> If not, please test if manually change brightness level through sysfs
+> works:
+> # cd /sys/calss/backlight/intel_backlight
+> # echo xxx > brightness
+>
+> And also test if hotkey event is sent out or not by running acpi_listen
+> and then press the hotkey.
+>
+> Thanks,
+> Aaron
+>
+>>
+>>
+>> instead of previous
+>>
+>> GRUB_CMDLINE_LINUX="acpi_osi=Linux acpi_backlight=vendor"
+>>
+>> to be able to change brightness. In some kernel versions before, it
+>> worked, but with 15 levels, but in graphical system brightness bar was
+>> not moving.
+>>
+>>
+>> Now I have, though, 8 possible values for brightness and brightness
+>> bar shows its correct position.
+>>
+>> Josep
+>>
+>> On 2 August 2013 08:00, Aaron Lu <aaron.lu@intel.com> wrote:
+>>> On 08/01/2013 04:07 PM, Borislav Petkov wrote:
+>>>> On Wed, Jul 31, 2013 at 11:16:52PM +0200, Rafael J. Wysocki wrote:
+>>>>> Does reverting efaa14c help?
+>>>>
+>>>> Nope.
+>>>>
+>>>> But see my other reply to Aaron.
+>>>
+>>> Assume you have specified to use intel_backlight in xorg.conf, does
+>>> booting with video.brightness_switch_enabled=0 help?
+>>>
+>>> Thanks,
+>>> Aaron
+>>> --
+>>> To unsubscribe from this list: send the line "unsubscribe linux-kernel" in
+>>> the body of a message to majordomo@vger.kernel.org
+>>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>>> Please read the FAQ at  http://www.tux.org/lkml/
+>>
+>>
+>>
+>
 
-It is not just about acpi initrd table override.
 
-acpi_tb_parse_root_table() was split into two steps:
-1. initialize acpi_gbl_root_table_list
-2. install tables into acpi_gbl_root_table_list
 
-I need step1 earlier because I want to find SRAT at early time.
-But I don't want step2 earlier because before install the tables in 
-firmware,
-acpi initrd table override could happen. I want only SRAT, I don't want to
-touch much existing code.
-
-Would you please explain more about your comment ? I think maybe I 
-missed something
-important to you guys. :)
-
-And all the other ACPICA rules will be followed in the next version.
-
-Thanks.
-
+-- 
 --
-To unsubscribe, send a message with 'unsubscribe linux-mm' in
-the body to majordomo@kvack.org.  For more info on Linux MM,
-see: http://www.linux-mm.org/ .
-Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
+Salutacions...Josep
+--
