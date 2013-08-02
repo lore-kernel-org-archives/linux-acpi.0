@@ -1,65 +1,84 @@
 From: Toshi Kani <toshi.kani@hp.com>
-Subject: Re: [PATCH v2 10/18] x86, acpi: Try to find if SRAT is overrided
+Subject: Re: [PATCH v2 06/18] x86, acpi: Initialize ACPI root table list
  earlier.
-Date: Fri, 02 Aug 2013 10:05:27 -0600
-Message-ID: <1375459527.10300.77.camel@misato.fc.hp.com>
+Date: Fri, 02 Aug 2013 10:57:42 -0600
+Message-ID: <1375462662.10300.91.camel@misato.fc.hp.com>
 References: <1375340800-19332-1-git-send-email-tangchen@cn.fujitsu.com>
-	  <1375340800-19332-11-git-send-email-tangchen@cn.fujitsu.com>
-	 <1375406353.10300.73.camel@misato.fc.hp.com>
-	 <51FB485A.9070801@cn.fujitsu.com>
+	  <1375340800-19332-7-git-send-email-tangchen@cn.fujitsu.com>
+	 <1375401251.10300.53.camel@misato.fc.hp.com>
+	 <51FB646F.30604@cn.fujitsu.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-doc-owner@vger.kernel.org>
-In-Reply-To: <51FB485A.9070801@cn.fujitsu.com>
+In-Reply-To: <51FB646F.30604@cn.fujitsu.com>
 Sender: linux-doc-owner@vger.kernel.org
 To: Tang Chen <tangchen@cn.fujitsu.com>
 Cc: rjw@sisk.pl, lenb@kernel.org, tglx@linutronix.de, mingo@elte.hu, hpa@zytor.com, akpm@linux-foundation.org, tj@kernel.org, trenn@suse.de, yinghai@kernel.org, jiang.liu@huawei.com, wency@cn.fujitsu.com, laijs@cn.fujitsu.com, isimatu.yasuaki@jp.fujitsu.com, izumi.taku@jp.fujitsu.com, mgorman@suse.de, minchan@kernel.org, mina86@mina86.com, gong.chen@linux.intel.com, vasilis.liaskovitis@profitbricks.com, lwoodman@redhat.com, riel@redhat.com, jweiner@redhat.com, prarit@redhat.com, zhangyanfei@cn.fujitsu.com, yanghy@cn.fujitsu.com, x86@kernel.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-mm@kvack.org, linux-acpi@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Fri, 2013-08-02 at 13:49 +0800, Tang Chen wrote:
-> On 08/02/2013 09:19 AM, Toshi Kani wrote:
+On Fri, 2013-08-02 at 15:49 +0800, Tang Chen wrote:
+> On 08/02/2013 07:54 AM, Toshi Kani wrote:
 > ......
-> >> +phys_addr_t __init early_acpi_override_srat(void)
-> >> +{
-> >> +	int i;
-> >> +	u32 length;
-> >> +	long offset;
-> >> +	void *ramdisk_vaddr;
-> >> +	struct acpi_table_header *table;
-> >> +	struct cpio_data file;
-> >> +	unsigned long map_step = NR_FIX_BTMAPS<<  PAGE_SHIFT;
-> >> +	phys_addr_t ramdisk_image = get_ramdisk_image();
-> >> +	char cpio_path[32] = "kernel/firmware/acpi/";
+> >>   /*
+> >> + * acpi_root_table_init - Initialize acpi_gbl_root_table_list.
+> >> + *
+> >> + * This function will parse RSDT or XSDT, find all tables' phys addr,
+> >> + * initialize acpi_gbl_root_table_list, and record all tables' phys addr
+> >> + * in acpi_gbl_root_table_list.
+> >> + */
+> >> +void __init acpi_root_table_init(void)
 > >
-> > Don't you need to check if ramdisk is present before parsing the table?
-> > You may need something like:
+> > I think acpi_root_table_init() is a bit confusing with
+> > acpi_boot_table_init().  Perhaps, something like
+> > acpi_boot_table_pre_init() or early_acpi_boot_table_init() is better to
+> > indicate that this new function is called before acpi_boot_table_init().
 > >
-> >    if (!ramdisk_image || !get_ramdisk_size())
-> >          return 0;
 > 
-> Yes, it is better to do such a check here. But is there a possibility that
-> no ramdisk is present and we come to setup_arch() ?
+> OK, will change it to early_acpi_boot_table_init().
+> 
+> >> +{
+> >> +	dmi_check_system(acpi_dmi_table);
+> >> +
+> >> +	/* If acpi_disabled, bail out */
+> >> +	if (acpi_disabled)
+> >> +		return;
+> >> +
+> >> +	/* Initialize the ACPI boot-time table parser */
+> >> +	if (acpi_table_init()) {
+> >> +		disable_acpi();
+> >> +		return;
+> >> +	}
+> >> +}
+> >> +
+> >> +/*
+> >>    * acpi_boot_table_init() and acpi_boot_init()
+> >>    *  called from setup_arch(), always.
+> >>    *	1. checksums all tables
+> >> @@ -1511,21 +1533,7 @@ static struct dmi_system_id __initdata acpi_dmi_table_late[] = {
+> >>
+> >>   void __init acpi_boot_table_init(void)
+> >
+> > The comment of this function needs to be updated.  For instance, it
+> > describes acpi_table_init(), which you just relocated.
+> >
+> >   * acpi_table_init() is separate to allow reading SRAT without
+> >   * other side effects.
+> >   *
+> 
+> Sure. But I don't quite understand this comment. It seems that
+> acpi_table_init() has nothing to do with SRAT.
+> 
+> Do you know anything about this ?
 
-Without a ramdisk, the boot procedure will likely fail in mounting the
-root disk due to missing drivers.  But it should come to setup_arch()
-without it.
+Well, I do not know, either.  But if I have to guess, it might mean that
+"acpi_table_init() is separated from acpi_boot_init() to allow reading
+SRAT without the conditional flags, ex. acpi_lapic and acpi_ioapic, in
+acpi_boot_init()."
+
+I'd suggest you simply rephrase it to match with your change, instead of
+trying to keep such old history.
 
 Thanks,
 -Toshi
-
-
-> 
-> ......
-> >> +
-> >> +	return ramdisk_image;
-> >
-> > Doesn't this function return a physical address regardless of SRAT if a
-> > ramdisk is present?
-> 
-> Yes, and it is not good. I'll add the check above so that this won't happen.
-> 
-> Thanks.
-> 
-
 
