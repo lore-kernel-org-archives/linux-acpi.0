@@ -1,56 +1,135 @@
-From: Felipe Contreras <felipe.contreras@gmail.com>
-Subject: [PATCH v2] acpi: video: remove unused code
-Date: Fri,  2 Aug 2013 00:12:22 -0500
-Message-ID: <1375420342-10629-1-git-send-email-felipe.contreras@gmail.com>
-References: <1375419177-10431-1-git-send-email-felipe.contreras@gmail.com>
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-oa0-f53.google.com ([209.85.219.53]:41054 "EHLO
-	mail-oa0-f53.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752871Ab3HBFP4 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 2 Aug 2013 01:15:56 -0400
-In-Reply-To: <1375419177-10431-1-git-send-email-felipe.contreras@gmail.com>
-Sender: linux-acpi-owner@vger.kernel.org
+From: "Zheng, Lv" <lv.zheng@intel.com>
+Subject: RE: [PATCH v2 05/18] x86, acpi: Split acpi_boot_table_init() into
+ two parts.
+Date: Fri, 2 Aug 2013 05:25:53 +0000
+Message-ID: <1AE640813FDE7649BE1B193DEA596E8802437AC8@SHSMSX101.ccr.corp.intel.com>
+References: <1375340800-19332-1-git-send-email-tangchen@cn.fujitsu.com>
+	 <1375340800-19332-6-git-send-email-tangchen@cn.fujitsu.com>
+ <1375399931.10300.36.camel@misato.fc.hp.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <owner-linux-mm@kvack.org>
+In-Reply-To: <1375399931.10300.36.camel@misato.fc.hp.com>
+Content-Language: en-US
+Sender: owner-linux-mm@kvack.org
+To: Toshi Kani <toshi.kani@hp.com>, Tang Chen <tangchen@cn.fujitsu.com>
+Cc: "rjw@sisk.pl" <rjw@sisk.pl>, "lenb@kernel.org" <lenb@kernel.org>, "tglx@linutronix.de" <tglx@linutronix.de>, "mingo@elte.hu" <mingo@elte.hu>, "hpa@zytor.com" <hpa@zytor.com>, "akpm@linux-foundation.org" <akpm@linux-foundation.org>, "tj@kernel.org" <tj@kernel.org>, "trenn@suse.de" <trenn@suse.de>, "yinghai@kernel.org" <yinghai@kernel.org>, "jiang.liu@huawei.com" <jiang.liu@huawei.com>, "wency@cn.fujitsu.com" <wency@cn.fujitsu.com>, "laijs@cn.fujitsu.com" <laijs@cn.fujitsu.com>, "isimatu.yasuaki@jp.fujitsu.com" <isimatu.yasuaki@jp.fujitsu.com>, "izumi.taku@jp.fujitsu.com" <izumi.taku@jp.fujitsu.com>, "mgorman@suse.de" <mgorman@suse.de>, "minchan@kernel.org" <minchan@kernel.org>, "mina86@mina86.com" <mina86@mina86.com>, "gong.chen@linux.intel.com" <gong.chen@linux.intel.com>, "vasilis.liaskovitis@profitbricks.com" <vasilis.liaskovitis@profitbricks.com>, lwoodman@redhat.com
 List-Id: linux-acpi@vger.kernel.org
-To: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
-Cc: "Rafael J. Wysocki" <rjw@sisk.pl>, Len Brown <lenb@kernel.org>, Zhang Rui <rui.zhang@intel.com>, Aaron Lu <aaron.lwe@gmail.com>, Felipe Contreras <felipe.contreras@gmail.com>
 
-_BCM_use_index and _BCL_use_index are never used and probably never will.
+PiBGcm9tOiBsaW51eC1hY3BpLW93bmVyQHZnZXIua2VybmVsLm9yZw0KPiBTZW50OiBGcmlkYXks
+IEF1Z3VzdCAwMiwgMjAxMyA3OjMyIEFNDQo+IA0KPiBPbiBUaHUsIDIwMTMtMDgtMDEgYXQgMTU6
+MDYgKzA4MDAsIFRhbmcgQ2hlbiB3cm90ZToNCj4gPiBJbiBBQ1BJLCBTUkFUKFN5c3RlbSBSZXNv
+dXJjZSBBZmZpbml0eSBUYWJsZSkgY29udGFpbnMgTlVNQSBpbmZvLg0KPiA+IFRoZSBtZW1vcnkg
+YWZmaW5pdGllcyBpbiBTUkFUIHJlY29yZCBldmVyeSBtZW1vcnkgcmFuZ2UgaW4gdGhlDQo+ID4g
+c3lzdGVtLCBhbmQgYWxzbywgZmxhZ3Mgc3BlY2lmeWluZyBpZiB0aGUgbWVtb3J5IHJhbmdlIGlz
+DQo+ID4gaG90cGx1Z2dhYmxlLg0KPiA+IChQbGVhc2UgcmVmZXIgdG8gQUNQSSBzcGVjIDUuMCA1
+LjIuMTYpDQo+ID4NCj4gPiBtZW1ibG9jayBzdGFydHMgdG8gd29yayBhdCB2ZXJ5IGVhcmx5IHRp
+bWUsIGFuZCBTUkFUIGhhcyBub3QgYmVlbg0KPiA+IHBhcnNlZC4gU28gd2UgZG9uJ3Qga25vdyB3
+aGljaCBtZW1vcnkgaXMgaG90cGx1Z2dhYmxlLiBJbiBvcmRlcg0KPiA+IHRvIHVzZSBtZW1ibG9j
+ayB0byByZXNlcnZlIGhvdHBsdWdnYWJsZSBtZW1vcnksIHdlIG5lZWQgdG8gb2J0YWluDQo+ID4g
+U1JBVCBtZW1vcnkgYWZmaW5pdHkgaW5mbyBlYXJsaWVyLg0KPiA+DQo+ID4gSW4gdGhlIGN1cnJl
+bnQgYWNwaV9ib290X3RhYmxlX2luaXQoKSwgaXQgZG9lcyB0aGUgZm9sbG93aW5nOg0KPiA+IDEu
+IFBhcnNlIFJTRFQsIHNvIHRoYXQgd2UgY2FuIGZpbmQgYWxsIHRoZSB0YWJsZXMuDQo+ID4gMi4g
+SW5pdGlhbGl6ZSBhY3BpX2dibF9yb290X3RhYmxlX2xpc3QsIGFuIGFycmF5IG9mIGFjcGkgdGFi
+bGUNCj4gPiAgICBkZXNjcmlwdG9yc3VzZWQgdG8gc3RvcmUgZWFjaCB0YWJsZSdzIGFkZHJlc3Ms
+IGxlbmd0aCwgc2lnbmF0dXJlLA0KDQpBIG1pc3Npbmcgc3BhY2UgaGVyZS4NCg0KPiA+ICAgIGFu
+ZCBzbyBvbi4NCj4gPiAzLiBDaGVjayBpZiB0aGVyZSBpcyBhbnkgdGFibGUgaW4gaW5pdHJkIGlu
+dGVuZGluZyB0byBvdmVycmlkZQ0KPiA+ICAgIHRhYmxlcyBmcm9tIGZpcm13YXJlLiBJZiBzbywg
+b3ZlcnJpZGUgdGhlIGZpcm13YXJlIHRhYmxlcy4NCj4gPiA0LiBJbml0aWFsaXplIGFsbCB0aGUg
+ZGF0YSBpbiBhY3BpX2dibF9yb290X3RhYmxlX2xpc3QuDQo+ID4NCj4gPiBJbiBvcmRlciB0byBw
+YXJzZSBTUkFUIGF0IGVhcmx5IHRpbWUsIHdlIG5lZWQgdG8gZG8gc2ltaWxhciBqb2IgYXMNCj4g
+PiBzdGVwIDEgYW5kIDIgYWJvdmUgZWFybGllciB0byBvYnRhaW4gU1JBVC4gSXQgd2lsbCBiZSB2
+ZXJ5IGNvbnZlbmllbnQNCj4gPiBpZiB3ZSBoYXZlIGFjcGlfZ2JsX3Jvb3RfdGFibGVfbGlzdCBp
+bml0aWFsaXplZC4gV2UgY2FuIHVzZSBhZGRyZXNzDQo+ID4gYW5kIHNpZ25hdHVyZSB0byBmaW5k
+IFNSQVQuDQo+ID4NCj4gPiBTaW5jZSBzdGVwIDEgYW5kIDIgYWxsb2NhdGVzIG5vIG1lbW9yeSwg
+aXQgaXMgT0sgdG8gZG8gdGhlc2UgdHdvDQo+ID4gc3RlcHMgZWFybGllci4NCj4gPg0KPiA+IEJ1
+dCBzdGVwIDMgd2lsbCBjaGVjayBhY3BpIGluaXRyZCB0YWJsZSBvdmVycmlkZSwgbm90IGp1c3Qg
+U1JBVCwNCj4gPiBidXQgYWxzbyBhbGwgdGhlIG90aGVyIHRhYmxlcy4gU28gaXQgaXMgYmV0dGVy
+IHRvIGtlZXAgaXQgdW50b3VjaGVkLg0KPiA+DQo+ID4gVGhpcyBwYXRjaCBzcGxpdHMgYWNwaV9i
+b290X3RhYmxlX2luaXQoKSBpbnRvIHR3byBzdGVwczoNCj4gPiAxLiBQYXJzZSBSU0RULCB3aGlj
+aCBjYW5ub3QgYmUgb3ZlcnJpZGVkLCBhbmQgaW5pdGlhbGl6ZQ0KPiA+ICAgIGFjcGlfZ2JsX3Jv
+b3RfdGFibGVfbGlzdC4gKHN0ZXAgMSArIDIgYWJvdmUpDQo+ID4gMi4gSW5zdGFsbCBhbGwgQUNQ
+SSB0YWJsZXMgaW50byBhY3BpX2dibF9yb290X3RhYmxlX2xpc3QuDQo+ID4gICAgKHN0ZXAgMyAr
+IDQgYWJvdmUpDQo+ID4NCj4gPiBJbiBsYXRlciBwYXRjaGVzLCB3ZSB3aWxsIGRvIHN0ZXAgMSAr
+IDIgZWFybGllci4NCj4gPg0KPiA+IFNpZ25lZC1vZmYtYnk6IFRhbmcgQ2hlbiA8dGFuZ2NoZW5A
+Y24uZnVqaXRzdS5jb20+DQo+ID4gUmV2aWV3ZWQtYnk6IFpoYW5nIFlhbmZlaSA8emhhbmd5YW5m
+ZWlAY24uZnVqaXRzdS5jb20+DQo+ID4gLS0tDQo+ID4gIGRyaXZlcnMvYWNwaS9hY3BpY2EvdGJ1
+dGlscy5jIHwgICAyNSArKysrKysrKysrKysrKysrKysrKysrLS0tDQo+ID4gIGRyaXZlcnMvYWNw
+aS90YWJsZXMuYyAgICAgICAgIHwgICAgMiArKw0KPiA+ICBpbmNsdWRlL2FjcGkvYWNwaXhmLmgg
+ICAgICAgICB8ICAgIDIgKysNCj4gPiAgMyBmaWxlcyBjaGFuZ2VkLCAyNiBpbnNlcnRpb25zKCsp
+LCAzIGRlbGV0aW9ucygtKQ0KPiA+DQo+ID4gZGlmZiAtLWdpdCBhL2RyaXZlcnMvYWNwaS9hY3Bp
+Y2EvdGJ1dGlscy5jIGIvZHJpdmVycy9hY3BpL2FjcGljYS90YnV0aWxzLmMNCj4gDQo+IFRoaXMg
+cGF0Y2ggbmVlZHMgdG8gYmUgcmV2aWV3ZWQgYnkgQUNQSUNBIGZvbGtzLiAgSSdkIHN1Z2dlc3Qg
+dG8gY2hhbmdlDQo+IHRoZSBwYXRjaCB0aXRsZSB0byAieDg2LCBBQ1BJQ0E6Ii4gIEkgYWRkZWQg
+Qm9iIHRvIHRoZSBsaXN0Lg0KPiANCj4gVGhhbmtzLA0KPiAtVG9zaGkNCj4gDQo+IA0KPiANCj4g
+PiBpbmRleCBjZTNkNWRiLi45ZDY4ZmZjIDEwMDY0NA0KPiA+IC0tLSBhL2RyaXZlcnMvYWNwaS9h
+Y3BpY2EvdGJ1dGlscy5jDQo+ID4gKysrIGIvZHJpdmVycy9hY3BpL2FjcGljYS90YnV0aWxzLmMN
+Cj4gPiBAQCAtNzY2LDkgKzc2NiwzMCBAQA0KPiBhY3BpX3RiX3BhcnNlX3Jvb3RfdGFibGUoYWNw
+aV9waHlzaWNhbF9hZGRyZXNzIHJzZHBfYWRkcmVzcykNCj4gPiAgCSAqLw0KPiA+ICAJYWNwaV9v
+c191bm1hcF9tZW1vcnkodGFibGUsIGxlbmd0aCk7DQo+ID4NCj4gPiArCXJldHVybl9BQ1BJX1NU
+QVRVUyhBRV9PSyk7DQo+ID4gK30NCj4gPiArDQo+ID4NCg0KSSBkb24ndCB0aGluayB5b3UgY2Fu
+IHNwbGl0IHRoZSBmdW5jdGlvbiBoZXJlLg0KQUNQSUNBIHN0aWxsIG5lZWQgdG8gY29udGludWUg
+dG8gcGFyc2UgdGhlIHRhYmxlIHVzaW5nIHRoZSBsb2dpYyBpbXBsZW1lbnRlZCBpbiB0aGUgYWNw
+aV90Yl9pbnN0YWxsX3RhYmxlKCkgYW5kIGFjcGlfdGJfcGFyc2VfZmFkdCgpLiAoZm9yIGV4YW1w
+bGUsIGVuZGlhbmVzcyBvZiB0aGUgc2lnbmF0dXJlKS4NCllvdSdkIGJldHRlciB0byBrZWVwIHRo
+ZW0gYXMgaXMgYW5kIHNwbGl0IHNvbWUgY29kZXMgZnJvbSAnYWNwaV90Yl9pbnN0YWxsX3RhYmxl
+JyB0byBmb3JtIGFub3RoZXIgZnVuY3Rpb246IGFjcGlfdGJfb3ZlcnJpZGVfdGFibGUoKS4NCg0K
+PiArLyoqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioq
+KioqKg0KPiAqKioqKioqKioqKioqKioqKioqKioqDQo+ID4gKyAqDQo+ID4gKyAqIEZVTkNUSU9O
+OiAgICBhY3BpX3RiX2luc3RhbGxfcm9vdF90YWJsZQ0KDQpJIHRoaW5rIHRoaXMgZnVuY3Rpb24g
+c2hvdWxkIGJlIGFjcGlfdGJfb3ZlcnJpZGVfdGFibGVzLCBhbmQgY2FsbCBhY3BpX3RiX292ZXJy
+aWRlX3RhYmxlKCkgaW5zaWRlIHRoaXMgZnVuY3Rpb24gZm9yIGVhY2ggdGFibGUuDQoNCj4gPiAr
+ICoNCj4gPiArICogREVTQ1JJUFRJT046IFRoaXMgZnVuY3Rpb24gaW5zdGFsbHMgYWxsIHRoZSBB
+Q1BJIHRhYmxlcyBpbiBSU0RUIGludG8NCj4gPiArICogICAgICAgICAgICAgIGFjcGlfZ2JsX3Jv
+b3RfdGFibGVfbGlzdC4NCj4gPiArICoNCj4gPiArDQo+ICoqKioqKioqKioqKioqKioqKioqKioq
+KioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioNCj4gKioqKioqKioqKioqKioqKioq
+KiovDQo+ID4gKw0KPiA+ICt2b2lkIF9faW5pdA0KDQpCYXNpY2FsbHksIEFDUElDQSB3aWxsIHVz
+ZSBhY3BpX3N0YXR1cyBhcyByZXR1cm4gdmFsdWUuDQoNCj4gPiArYWNwaV90Yl9pbnN0YWxsX3Jv
+b3RfdGFibGUoKQ0KDQoodm9pZCk/DQoNCj4gPiArew0KPiA+ICsJaW50IGk7DQoNClBsZWFzZSB1
+c2UgdTMyIGluc3RlYWQgb2YgaW50Lg0KDQo+ID4gKw0KPiA+ICAJLyoNCj4gPiAgCSAqIENvbXBs
+ZXRlIHRoZSBpbml0aWFsaXphdGlvbiBvZiB0aGUgcm9vdCB0YWJsZSBhcnJheSBieSBleGFtaW5p
+bmcNCj4gPiAtCSAqIHRoZSBoZWFkZXIgb2YgZWFjaCB0YWJsZQ0KPiA+ICsJICogdGhlIGhlYWRl
+ciBvZiBlYWNoIHRhYmxlLg0KPiA+ICsJICoNCj4gPiArCSAqIEZpcnN0IHR3byBlbnRyaWVzIGlu
+IHRoZSB0YWJsZSBhcnJheSBhcmUgcmVzZXJ2ZWQgZm9yIHRoZSBEU0RUDQo+ID4gKwkgKiBhbmQg
+RkFDUywgd2hpY2ggYXJlIG5vdCBhY3R1YWxseSBwcmVzZW50IGluIHRoZSBSU0RUL1hTRFQgLSB0
+aGV5DQo+ID4gKwkgKiBjb21lIGZyb20gdGhlIEZBRFQuDQo+ID4gIAkgKi8NCj4gPiAgCWZvciAo
+aSA9IDI7IGkgPCBhY3BpX2dibF9yb290X3RhYmxlX2xpc3QuY3VycmVudF90YWJsZV9jb3VudDsg
+aSsrKSB7DQo+ID4gIAkJYWNwaV90Yl9pbnN0YWxsX3RhYmxlKGFjcGlfZ2JsX3Jvb3RfdGFibGVf
+bGlzdC50YWJsZXNbaV0uDQo+ID4gQEAgLTc4Miw2ICs4MDMsNCBAQA0KPiBhY3BpX3RiX3BhcnNl
+X3Jvb3RfdGFibGUoYWNwaV9waHlzaWNhbF9hZGRyZXNzIHJzZHBfYWRkcmVzcykNCj4gPiAgCQkJ
+YWNwaV90Yl9wYXJzZV9mYWR0KGkpOw0KPiA+ICAJCX0NCj4gPiAgCX0NCj4gPiAtDQo+ID4gLQly
+ZXR1cm5fQUNQSV9TVEFUVVMoQUVfT0spOw0KPiA+ICB9DQo+ID4gZGlmZiAtLWdpdCBhL2RyaXZl
+cnMvYWNwaS90YWJsZXMuYyBiL2RyaXZlcnMvYWNwaS90YWJsZXMuYw0KPiA+IGluZGV4IGQ2N2Ex
+ZmUuLjg4NjBlNzkgMTAwNjQ0DQo+ID4gLS0tIGEvZHJpdmVycy9hY3BpL3RhYmxlcy5jDQo+ID4g
+KysrIGIvZHJpdmVycy9hY3BpL3RhYmxlcy5jDQo+ID4gQEAgLTM1Myw2ICszNTMsOCBAQCBpbnQg
+X19pbml0IGFjcGlfdGFibGVfaW5pdCh2b2lkKQ0KPiA+ICAJaWYgKEFDUElfRkFJTFVSRShzdGF0
+dXMpKQ0KPiA+ICAJCXJldHVybiAxOw0KPiA+DQo+ID4gKwlhY3BpX3RiX2luc3RhbGxfcm9vdF90
+YWJsZSgpOw0KPiA+ICsNCg0KSSB0aGluayB5b3Ugc2hvdWxkbid0IGNhbGwgYSBmdW5jdGlvbiBu
+YW1lZCBhcyBhY3BpX3RiX3h4eCBkaXJlY3RseSBpbiBhIGZpbGUgYmVsb25ncyB0byBkcml2ZXJz
+L2FjcGkgbm90IGRyaXZlcnMvYWNwaS9hY3BpY2EuDQpUaGlzIGtpbmQgb2YgYSBmdW5jdGlvbiBu
+YW1lIGNhbiBvbmx5IGJlIHVzZWQgaW5zaWRlIEFDUElDQS4NCllvdSBuZWVkIGFuIGludGVyZmFj
+ZSB3cmFwcGVyIGluIGRyaXZlcnMvYWNwaS9hY3BpY2EvdGJ4ZmFjZS5jIHRvIGNhbGwgc3VjaCBp
+bnRlcm5hbCBmdW5jdGlvbnMuDQoNCj4gPiAgCWNoZWNrX211bHRpcGxlX21hZHQoKTsNCj4gPiAg
+CXJldHVybiAwOw0KPiA+ICB9DQo+ID4gZGlmZiAtLWdpdCBhL2luY2x1ZGUvYWNwaS9hY3BpeGYu
+aCBiL2luY2x1ZGUvYWNwaS9hY3BpeGYuaA0KPiA+IGluZGV4IDQ1NDg4MWUuLmY1NTQ5YjUgMTAw
+NjQ0DQo+ID4gLS0tIGEvaW5jbHVkZS9hY3BpL2FjcGl4Zi5oDQo+ID4gKysrIGIvaW5jbHVkZS9h
+Y3BpL2FjcGl4Zi5oDQo+ID4gQEAgLTExNiw2ICsxMTYsOCBAQCBhY3BpX3N0YXR1cw0KPiA+ICBh
+Y3BpX2luaXRpYWxpemVfdGFibGVzKHN0cnVjdCBhY3BpX3RhYmxlX2Rlc2MgKmluaXRpYWxfc3Rv
+cmFnZSwNCj4gPiAgCQkgICAgICAgdTMyIGluaXRpYWxfdGFibGVfY291bnQsIHU4IGFsbG93X3Jl
+c2l6ZSk7DQo+ID4NCj4gPiArdm9pZCBhY3BpX3RiX2luc3RhbGxfcm9vdF90YWJsZSh2b2lkKTsN
+Cj4gPiArDQoNClRoZSByZWFzb24gaXMgc2FtZSBhcyB0aGUgYWJvdmUuDQpJdCBkb2Vzbid0IG1h
+a2Ugc2Vuc2UgdGhhdCBhIGZ1bmN0aW9uIHdpdGggc3VjaCBuYW1lIGFwcGVhcnMgaW4gdGhlIGFj
+cGl4Zi5oLg0KDQpUaGFua3MgYW5kIGJlc3QgcmVnYXJkcw0KLUx2DQoNCj4gPiAgYWNwaV9zdGF0
+dXMgX19pbml0IGFjcGlfaW5pdGlhbGl6ZV9zdWJzeXN0ZW0odm9pZCk7DQo+ID4NCj4gPiAgYWNw
+aV9zdGF0dXMgYWNwaV9lbmFibGVfc3Vic3lzdGVtKHUzMiBmbGFncyk7DQo+IA0KPiANCj4gLS0N
+Cj4gVG8gdW5zdWJzY3JpYmUgZnJvbSB0aGlzIGxpc3Q6IHNlbmQgdGhlIGxpbmUgInVuc3Vic2Ny
+aWJlIGxpbnV4LWFjcGkiIGluDQo+IHRoZSBib2R5IG9mIGEgbWVzc2FnZSB0byBtYWpvcmRvbW9A
+dmdlci5rZXJuZWwub3JnDQo+IE1vcmUgbWFqb3Jkb21vIGluZm8gYXQgIGh0dHA6Ly92Z2VyLmtl
+cm5lbC5vcmcvbWFqb3Jkb21vLWluZm8uaHRtbA0K
 
-Signed-off-by: Felipe Contreras <felipe.contreras@gmail.com>
----
- drivers/acpi/video.c | 12 ------------
- 1 file changed, 12 deletions(-)
-
-diff --git a/drivers/acpi/video.c b/drivers/acpi/video.c
-index 0ec434d..1a04dfe 100644
---- a/drivers/acpi/video.c
-+++ b/drivers/acpi/video.c
-@@ -185,8 +185,6 @@ struct acpi_video_device_cap {
- struct acpi_video_brightness_flags {
- 	u8 _BCL_no_ac_battery_levels:1;	/* no AC/Battery levels in _BCL */
- 	u8 _BCL_reversed:1;		/* _BCL package is in a reversed order*/
--	u8 _BCL_use_index:1;		/* levels in _BCL are index values */
--	u8 _BCM_use_index:1;		/* input of _BCM is an index value */
- 	u8 _BQC_use_index:1;		/* _BQC returns an index value */
- };
- 
-@@ -806,16 +804,6 @@ acpi_video_init_brightness(struct acpi_video_device *device)
- 	br->count = count;
- 	device->brightness = br;
- 
--	/* Check the input/output of _BQC/_BCL/_BCM */
--	if ((max_level < 100) && (max_level <= (count - 2)))
--		br->flags._BCL_use_index = 1;
--
--	/*
--	 * _BCM is always consistent with _BCL,
--	 * at least for all the laptops we have ever seen.
--	 */
--	br->flags._BCM_use_index = br->flags._BCL_use_index;
--
- 	/* _BQC uses INDEX while _BCL uses VALUE in some laptops */
- 	br->curr = level = max_level;
- 
--- 
-1.8.3.4
-
+--
+To unsubscribe, send a message with 'unsubscribe linux-mm' in
+the body to majordomo@kvack.org.  For more info on Linux MM,
+see: http://www.linux-mm.org/ .
+Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
