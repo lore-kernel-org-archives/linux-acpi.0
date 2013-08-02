@@ -1,88 +1,73 @@
 From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: [GIT PULL] ACPI and power management fixes for v3.11-rc4
-Date: Fri, 02 Aug 2013 16:29:31 +0200
-Message-ID: <2052880.bHfzt6NKt5@vostro.rjw.lan>
+Subject: Re: [PATCH 5/5] acpi_video: Don't handle ACPI brightness notifications by default
+Date: Fri, 02 Aug 2013 16:41:31 +0200
+Message-ID: <1559797.9EdEoD0Bgy@vostro.rjw.lan>
+References: <20130307193812.GD24233@thinkpad-t410> <1362685180-7768-5-git-send-email-seth.forshee@canonical.com> <51FB49E3.50604@intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7Bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from hydra.sisk.pl ([212.160.235.94]:52157 "EHLO hydra.sisk.pl"
+Received: from hydra.sisk.pl ([212.160.235.94]:52167 "EHLO hydra.sisk.pl"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753452Ab3HBOTU (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 2 Aug 2013 10:19:20 -0400
+	id S1750976Ab3HBObT (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 2 Aug 2013 10:31:19 -0400
+In-Reply-To: <51FB49E3.50604@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>, Linux PM list <linux-pm@vger.kernel.org>
+To: Aaron Lu <aaron.lu@intel.com>
+Cc: Seth Forshee <seth.forshee@canonical.com>, Matthew Garrett <mjg59@srcf.ucam.org>, linux-acpi@vger.kernel.org, Len Brown <lenb@kernel.org>, Ben Jencks <ben@bjencks.net>, joeyli <jlee@suse.com>, Micael Dias <kam1kaz3@gmail.com>, * =?ISO-8859-1?Q?SAM=CD?= * <miaousami@hotmail.com>, Yves-Alexis Perez <corsac@debian.org>
 
-Hi Linus,
+On Friday, August 02, 2013 01:55:47 PM Aaron Lu wrote:
+> On 03/08/2013 03:39 AM, Seth Forshee wrote:
+> > Windows 8 requires all backlight interfaces to report 101 brightness
+> > values, and as a result we're starting to see machines with that many
+> > brightness levels in _BCL. For machines which send these notifications
+> > when the brightness up/down keys are pressed this means a lot of key
+> > presses to get any kind of noticeable change in brightness.
+> > 
+> > For a while now we've had the ability to disable in-kernel handling of
+> > notifications via the video.brightness_switch_enabled parameter. Change
+> > this to default to off, and let userspace choose more reasonable
+> > increments for changing the brightness.
+> 
+> I just found one more reason for this param to default 0.
 
-Please pull from the git repository at
+Do you mean video.brightness_switch_enabled?
 
-  git://git.kernel.org/pub/scm/linux/kernel/git/rafael/linux-pm.git pm+acpi-3.11-rc4
+> We are going to separate the backlight interface control and event
+> notification functionalities of the ACPI video module, it is highly
+> possible a lot of systems will use a combination of the event
+> notification handler and intel_backlight interface. So it doesn't make
+> sense to let video module to do any adjustment on its own if user space
+> has chosen a different interface to use. Actually, it can cause problems
+> as in ASUS's case:
+> https://bugzilla.kernel.org/show_bug.cgi?id=52951
+> 
+> The problem there is, on hotkey brightness up, the video module will
+> adjust the brightness level first and since its _BQC is broken, it gets
+> a wrong number(too low or too high or whatever) and then does the _BCM
+> call. The _BCM method works. Then user space picks the intel_backlight
+> to do the adjustment, but since the _BCM already sets a wrong value, the
+> user space's adjustment is affected too. The result is, user has only
+> two visible levels, very low and very high.
+> 
+> This only occurs on -rc3, since we removed the
+> acpi_video_verify_backlight_support from acpi_video_switch_brightness
+> function.
 
-to receive ACPI and power management fixes for v3.11-rc4 with
-top-most commit 2b44c4db2e2f1765d35163a861d301038e0c8a75
+What did we do before -rc2?  Did we address that in any way?
 
-  freezer: set PF_SUSPEND_TASK flag on tasks that call freeze_processes
+> So either we make this param default to 0, or we make a new
+> function to avoid brightness switch in video module for Win8 systems.
+> 
+> I prefer to set this param to 0 by default. What do you guys think?
 
-on top of commit 5ae90d8e467e625e447000cb4335c4db973b1095
+That depends on what we did earlier.
 
-  Linux 3.11-rc3
-
-These revert two cpuidle commits from 3.8 that turn out to hurt performance,
-fix a recent s2disk regression related to the freezer, fix cpufreq reference
-couting problem uncovered by one of the recent reverts and fix a particularly
-embarrassing bug in the ACPI battery driver.
-
-Specifics:
-
-- Revert two cpuidle commits added during the 3.8 development cycle that
-  turn out to have introduced a significant performance regression as
-  requested by Jeremy Eder.
-
-- The recent patches that made the freezer less heavy-weight introduced
-  a regression causing user-space-driven hibernation using the ioctl()
-  interface to block indefinitely when the hibernate process executes
-  try_to_freeze().  Fix from Colin Cross addresses this by adding a
-  process flag to mark the hibernate/suspend process to inform the
-  freezer that that process should be ignored.
-
-- One of the recent cpufreq reverts uncovered a problem in the core
-  causing the cpufreq driver module refcount to become negative after
-  a system suspend-resume cycle.  Fix from yours truly.
-
-- The evaluation of the ACPI battery _BIX method has never worked
-  correctly, because the commit that added support for it forgot to
-  take the "Revision" field in the return package into account.  As
-  a result, the reading of battery info doesn't work at all on some
-  systems, which is addressed by a fix from Lan Tianyu.
-
-Thanks!
+Thanks,
+Rafael
 
 
----------------
-
-Colin Cross (1):
-      freezer: set PF_SUSPEND_TASK flag on tasks that call freeze_processes
-
-Lan Tianyu (1):
-      ACPI / battery: Fix parsing _BIX return value
-
-Rafael J. Wysocki (3):
-      Revert "cpuidle: Quickly notice prediction failure in general case"
-      Revert "cpuidle: Quickly notice prediction failure for repeat mode"
-      cpufreq: Fix cpufreq driver module refcount balance after suspend/resume
-
----------------
-
- drivers/acpi/battery.c           |    2 +
- drivers/cpufreq/cpufreq.c        |   19 +++++----
- drivers/cpuidle/governors/menu.c |  106 ++--------------------------------------------
- include/linux/sched.h            |    1 +
- include/linux/tick.h             |    6 ---
- kernel/freezer.c                 |    2 +-
- kernel/power/process.c           |   11 +++++
- kernel/time/tick-sched.c         |    9 +---
- 8 files changed, 31 insertions(+), 125 deletions(-)
-
+-- 
+I speak only for myself.
+Rafael J. Wysocki, Intel Open Source Technology Center.
