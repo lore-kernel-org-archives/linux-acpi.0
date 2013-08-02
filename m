@@ -1,54 +1,34 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: [GIT PULL] ACPI and power management fixes for v3.11-rc4
-Date: Fri, 02 Aug 2013 23:21:37 +0200
-Message-ID: <1820071.Lqgn6ZcLbB@vostro.rjw.lan>
-References: <2052880.bHfzt6NKt5@vostro.rjw.lan> <CAMP44s2a2HqohWL9d+i3cpifJiUfidTw_ZfO3PttvhMn_hGE1A@mail.gmail.com>
+From: Felipe Contreras <felipe.contreras@gmail.com>
+Subject: Re: i915 backlight
+Date: Fri, 2 Aug 2013 16:25:12 -0500
+Message-ID: <CAMP44s3VyEPK-veHD5kUUPQcDeAKP82tN_px+A6k+BgxXJ270A@mail.gmail.com>
+References: <20130731162252.GC4724@pd.tnic>
+	<CAPBO7TaPxa_13FBDE5Z=Aoa+ePPfLRH0+oWSQyEmO00xSfGqYg@mail.gmail.com>
+	<CAMP44s1WMMXcGfF6Ta0CFthY3-7tkpqXEPx1iZhVU-XpS6KUWw@mail.gmail.com>
+	<1544218.2BR9ul04Pj@vostro.rjw.lan>
+	<CAMP44s16-_KA+3JPSzD1CrzcNCuCk4xjOvU6E=gVRxkKiAGr0Q@mail.gmail.com>
+	<CAPBO7TZT3hX67aX-2aG5f2mcVqOyka2xbTPvMWvHzTG-x+UBLA@mail.gmail.com>
+	<CAMP44s3018jWPywQixcgD2UuM58oKYgs+D=aADTQvTyZqJsULA@mail.gmail.com>
+	<CAPBO7TYOe3EAoWhhzwMH5o5qmDPw0dp0upWH=h62ruHR4m3A0g@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7Bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from hydra.sisk.pl ([212.160.235.94]:52652 "EHLO hydra.sisk.pl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751665Ab3HBVL1 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 2 Aug 2013 17:11:27 -0400
-In-Reply-To: <CAMP44s2a2HqohWL9d+i3cpifJiUfidTw_ZfO3PttvhMn_hGE1A@mail.gmail.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <CAPBO7TYOe3EAoWhhzwMH5o5qmDPw0dp0upWH=h62ruHR4m3A0g@mail.gmail.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Josep Lladonosa <jlladono@gmail.com>
+Cc: "Rafael J. Wysocki" <rjw@sisk.pl>, Borislav Petkov <bp@alien8.de>, intel-gfx@lists.freedesktop.org, dri-devel@lists.freedesktop.org, lkml <linux-kernel@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
-To: Felipe Contreras <felipe.contreras@gmail.com>
-Cc: Linus Torvalds <torvalds@linux-foundation.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>, Linux PM list <linux-pm@vger.kernel.org>
 
-On Friday, August 02, 2013 02:12:49 PM Felipe Contreras wrote:
-> On Fri, Aug 2, 2013 at 9:29 AM, Rafael J. Wysocki <rjw@sisk.pl> wrote:
-> 
-> > ---------------
-> >
-> > Colin Cross (1):
-> >       freezer: set PF_SUSPEND_TASK flag on tasks that call freeze_processes
-> >
-> > Lan Tianyu (1):
-> >       ACPI / battery: Fix parsing _BIX return value
-> >
-> > Rafael J. Wysocki (3):
-> >       Revert "cpuidle: Quickly notice prediction failure in general case"
-> >       Revert "cpuidle: Quickly notice prediction failure for repeat mode"
-> >       cpufreq: Fix cpufreq driver module refcount balance after suspend/resume
-> >
-> > ---------------
-> 
-> You forgot this patch:
-> 
-> https://git.kernel.org/cgit/linux/kernel/git/rafael/linux-pm.git/commit/?h=linux-next&id=3706231332d57072e0e2c0e59975443f3f18e673
-> 
-> Or do you think it's fine to boot these machines into a black screen?
+On Fri, Aug 2, 2013 at 3:11 PM, Josep Lladonosa <jlladono@gmail.com> wrote:
+> "Before" means with previous kernels that worked with
+>
+> GRUB_CMDLINE_LINUX="acpi_osi=Linux acpi_backlight=vendor"
 
-Seriously, what's wrong with you?!
+That's probably a different issue. You would need to bisect the problem.
 
-I didn't forget about it, I just didn't include it into this particular
-pull request.
+> I have not checked this issue with acpi_osi="!Windows 2012".
 
-And I'm not even sure I will push it for 3.11, because I prefer to revert
-efaa14c for 3.11 if that's necessary to make your broken box work as before.
+Please do.
 
-Well, perhaps I just won't push it at all so that you actually can go and
-complain to Linus about that ...
-
+-- 
+Felipe Contreras
