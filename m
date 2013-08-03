@@ -1,93 +1,62 @@
 From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: [PATCH 5/5] acpi_video: Don't handle ACPI brightness notifications by default
-Date: Sat, 03 Aug 2013 13:23:03 +0200
-Message-ID: <17431934.NpphB5cAgA@vostro.rjw.lan>
-References: <20130307193812.GD24233@thinkpad-t410> <3782838.Kt7QkcqcbN@vostro.rjw.lan> <51FCD15A.30800@intel.com>
+Subject: Re: [PATCH] acpi: video: improve quirk check
+Date: Sat, 03 Aug 2013 13:34:23 +0200
+Message-ID: <13505759.IqzsRNCUnN@vostro.rjw.lan>
+References: <1375472229-1563-1-git-send-email-felipe.contreras@gmail.com> <3682340.ddGL4l7l22@vostro.rjw.lan> <51FCBBCC.6060307@gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7Bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from hydra.sisk.pl ([212.160.235.94]:53491 "EHLO hydra.sisk.pl"
+Received: from hydra.sisk.pl ([212.160.235.94]:53508 "EHLO hydra.sisk.pl"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751461Ab3HCLMy (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Sat, 3 Aug 2013 07:12:54 -0400
-In-Reply-To: <51FCD15A.30800@intel.com>
+	id S1751506Ab3HCLYL (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Sat, 3 Aug 2013 07:24:11 -0400
+In-Reply-To: <51FCBBCC.6060307@gmail.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Aaron Lu <aaron.lu@intel.com>
-Cc: Seth Forshee <seth.forshee@canonical.com>, Matthew Garrett <mjg59@srcf.ucam.org>, linux-acpi@vger.kernel.org, Len Brown <lenb@kernel.org>, Ben Jencks <ben@bjencks.net>, joeyli <jlee@suse.com>, Micael Dias <kam1kaz3@gmail.com>, * =?ISO-8859-1?Q?SAM=CD?= * <miaousami@hotmail.com>, Yves-Alexis Perez <corsac@debian.org>
+To: Aaron Lu <aaron.lwe@gmail.com>
+Cc: Felipe Contreras <felipe.contreras@gmail.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Len Brown <lenb@kernel.org>, Zhang Rui <rui.zhang@intel.com>
 
-On Saturday, August 03, 2013 05:46:02 PM Aaron Lu wrote:
-> On 08/03/2013 08:26 AM, Rafael J. Wysocki wrote:
-> > On Friday, August 02, 2013 10:52:09 PM Aaron Lu wrote:
-> >> On 08/02/2013 10:41 PM, Rafael J. Wysocki wrote:
-> >>> On Friday, August 02, 2013 01:55:47 PM Aaron Lu wrote:
-> >>>> On 03/08/2013 03:39 AM, Seth Forshee wrote:
-> >>>>> Windows 8 requires all backlight interfaces to report 101 brightness
-> >>>>> values, and as a result we're starting to see machines with that many
-> >>>>> brightness levels in _BCL. For machines which send these notifications
-> >>>>> when the brightness up/down keys are pressed this means a lot of key
-> >>>>> presses to get any kind of noticeable change in brightness.
-> >>>>>
-> >>>>> For a while now we've had the ability to disable in-kernel handling of
-> >>>>> notifications via the video.brightness_switch_enabled parameter. Change
-> >>>>> this to default to off, and let userspace choose more reasonable
-> >>>>> increments for changing the brightness.
-> >>>>
-> >>>> I just found one more reason for this param to default 0.
-> >>>
-> >>> Do you mean video.brightness_switch_enabled?
+On Saturday, August 03, 2013 04:14:04 PM Aaron Lu wrote:
+> On 08/03/2013 07:47 AM, Rafael J. Wysocki wrote:
+> > On Friday, August 02, 2013 02:37:09 PM Felipe Contreras wrote:
+> >> If the _BCL package is descending, the first level (br->levels[2]) will
+> >> be 0, and if the number of levels matches the number of steps, we might
+> >> confuse a returned level to mean the index.
 > >>
-> >> Yes.
+> >> For example:
 > >>
-> >>>
-> >>>> We are going to separate the backlight interface control and event
-> >>>> notification functionalities of the ACPI video module, it is highly
-> >>>> possible a lot of systems will use a combination of the event
-> >>>> notification handler and intel_backlight interface. So it doesn't make
-> >>>> sense to let video module to do any adjustment on its own if user space
-> >>>> has chosen a different interface to use. Actually, it can cause problems
-> >>>> as in ASUS's case:
-> >>>> https://bugzilla.kernel.org/show_bug.cgi?id=52951
-> >>>>
-> >>>> The problem there is, on hotkey brightness up, the video module will
-> >>>> adjust the brightness level first and since its _BQC is broken, it gets
-> >>>> a wrong number(too low or too high or whatever) and then does the _BCM
-> >>>> call. The _BCM method works. Then user space picks the intel_backlight
-> >>>> to do the adjustment, but since the _BCM already sets a wrong value, the
-> >>>> user space's adjustment is affected too. The result is, user has only
-> >>>> two visible levels, very low and very high.
-> >>>>
-> >>>> This only occurs on -rc3, since we removed the
-> >>>> acpi_video_verify_backlight_support from acpi_video_switch_brightness
-> >>>> function.
-> >>>
-> >>> What did we do before -rc2?  Did we address that in any way?
+> >>   current_level = max_level = 100
+> >>   test_level = 0
+> >>   returned level = 100
 > >>
-> >> No, before rc2, backlight is broken on that system.
+> >> In this case 100 means the level, not the index, and _BCM failed. But if
+> >> the _BCL package is descending, the index of level 0 is also 100, so we
+> >> assume _BQC is indexed, when it's not.
+> >>
+> >> This causes all _BQC calls to return bogus values causing weird behavior
+> >> from the user's perspective. For example: xbacklight -set 10; xbacklight
+> >> -set 20; would flash to 90% and then slowly down to the desired level
+> >> (20).
+> >>
+> >> The solution is simple; test anything other than the first level (e.g.
+> >> 1).
+> >>
+> >> Signed-off-by: Felipe Contreras <felipe.contreras@gmail.com>
 > > 
-> > Well, it will have to stay that way in 3.11 I'm afraid, unless we have a fix
-> > or a workaround that is *guaranteed* not to introduce any new issues on any
-> > systems.
+> > Looks reasonable.
 > > 
-> >> In rc2, we added the win8 patch and a fix patch for the hotkey, then
-> >> the ACPI video module's backlight control and in kernel brightness
-> >> handling is disabled. With the working hotkey and intel_backlight, rc2
-> >> works for the system. Then with the revert in rc3, user needs to choose
-> >> intel_backlight in xorg.conf but the in kernel brightness handling from
-> >> ACPI video module is back. Since video module is broken, it breaks the
-> >> backlight hotkey functionality.
-> > 
-> > I guess we need to revert the hotkey fix too (that is efaa14c, right?)
-> > then, is that correct?  And try to do something smarter for 3.12?
+> > Aaron, what do you think?
 > 
-> With or without commit efaa14c, hotkey for backlight is broken out of
-> box for the affected systems(ASUS N56VZ and N56VJ). But with that commit,
-> user has a chance of getting a working backlight with hotkey by specifying
-> intel_backlight and adding the video.brightness_switch_enabled=0. So I
-> think we can keep that commit.
+> Yes, the patch is correct, but I still prefer my own version :-)
+> https://github.com/aaronlu/linux/commit/0a3d2c5b59caf80ae5bb1ca1fda0f7bf448b38c9
+> 
+> In case you want to take mine and mine needs refresh, please let me know
+> and I can do the re-base, thanks.
 
-What about the "boot to black screen" problem, then?
+Well, I prefer simpler, unless there's a good reason to use more complicated.
+
+Why exactly do you think your version is better?
 
 Rafael
 
