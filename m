@@ -1,97 +1,175 @@
-From: Aaron Lu <aaron.lu@intel.com>
-Subject: Re: [PATCH 5/5] acpi_video: Don't handle ACPI brightness notifications
- by default
-Date: Sat, 03 Aug 2013 20:10:12 +0800
-Message-ID: <51FCF324.6030304@intel.com>
-References: <20130307193812.GD24233@thinkpad-t410> <3782838.Kt7QkcqcbN@vostro.rjw.lan> <51FCD15A.30800@intel.com> <17431934.NpphB5cAgA@vostro.rjw.lan>
+From: Igor Gnatenko <i.gnatenko.brain@gmail.com>
+Subject: Re: [GIT PULL] ACPI and power management fixes for v3.11-rc4
+Date: Sat, 03 Aug 2013 20:08:06 +0400
+Message-ID: <1375546086.1988.2.camel@ThinkPad-X230.localdomain>
+References: <2052880.bHfzt6NKt5@vostro.rjw.lan>
+	 <6100577.WGRZRabKGy@vostro.rjw.lan>
+	 <CAMP44s1Knox3oVt3-ePkDHxa2uNQAFVFRwmVTATNknWA46b_Uw@mail.gmail.com>
+	 <1963015.Y2AObmEn2f@vostro.rjw.lan>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga11.intel.com ([192.55.52.93]:37694 "EHLO mga11.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751607Ab3HCMJ2 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Sat, 3 Aug 2013 08:09:28 -0400
-In-Reply-To: <17431934.NpphB5cAgA@vostro.rjw.lan>
+Received: from mail-lb0-f182.google.com ([209.85.217.182]:34998 "EHLO
+	mail-lb0-f182.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752194Ab3HCQIM (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sat, 3 Aug 2013 12:08:12 -0400
+In-Reply-To: <1963015.Y2AObmEn2f@vostro.rjw.lan>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: Seth Forshee <seth.forshee@canonical.com>, Matthew Garrett <mjg59@srcf.ucam.org>, linux-acpi@vger.kernel.org, Len Brown <lenb@kernel.org>, Ben Jencks <ben@bjencks.net>, joeyli <jlee@suse.com>, Micael Dias <kam1kaz3@gmail.com>, =?UTF-8?B?KiBT?= =?UTF-8?B?QU3DjSAq?= <miaousami@hotmail.com>, Yves-Alexis Perez <corsac@debian.org>
+Cc: Felipe Contreras <felipe.contreras@gmail.com>, Linus Torvalds <torvalds@linux-foundation.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>, Linux PM list <linux-pm@vger.kernel.org>
 
-On 08/03/2013 07:23 PM, Rafael J. Wysocki wrote:
-> On Saturday, August 03, 2013 05:46:02 PM Aaron Lu wrote:
->> On 08/03/2013 08:26 AM, Rafael J. Wysocki wrote:
->>> On Friday, August 02, 2013 10:52:09 PM Aaron Lu wrote:
->>>> On 08/02/2013 10:41 PM, Rafael J. Wysocki wrote:
->>>>> On Friday, August 02, 2013 01:55:47 PM Aaron Lu wrote:
->>>>>> On 03/08/2013 03:39 AM, Seth Forshee wrote:
->>>>>>> Windows 8 requires all backlight interfaces to report 101 brightness
->>>>>>> values, and as a result we're starting to see machines with that many
->>>>>>> brightness levels in _BCL. For machines which send these notifications
->>>>>>> when the brightness up/down keys are pressed this means a lot of key
->>>>>>> presses to get any kind of noticeable change in brightness.
->>>>>>>
->>>>>>> For a while now we've had the ability to disable in-kernel handling of
->>>>>>> notifications via the video.brightness_switch_enabled parameter. Change
->>>>>>> this to default to off, and let userspace choose more reasonable
->>>>>>> increments for changing the brightness.
->>>>>>
->>>>>> I just found one more reason for this param to default 0.
->>>>>
->>>>> Do you mean video.brightness_switch_enabled?
->>>>
->>>> Yes.
->>>>
->>>>>
->>>>>> We are going to separate the backlight interface control and event
->>>>>> notification functionalities of the ACPI video module, it is highly
->>>>>> possible a lot of systems will use a combination of the event
->>>>>> notification handler and intel_backlight interface. So it doesn't make
->>>>>> sense to let video module to do any adjustment on its own if user space
->>>>>> has chosen a different interface to use. Actually, it can cause problems
->>>>>> as in ASUS's case:
->>>>>> https://bugzilla.kernel.org/show_bug.cgi?id=52951
->>>>>>
->>>>>> The problem there is, on hotkey brightness up, the video module will
->>>>>> adjust the brightness level first and since its _BQC is broken, it gets
->>>>>> a wrong number(too low or too high or whatever) and then does the _BCM
->>>>>> call. The _BCM method works. Then user space picks the intel_backlight
->>>>>> to do the adjustment, but since the _BCM already sets a wrong value, the
->>>>>> user space's adjustment is affected too. The result is, user has only
->>>>>> two visible levels, very low and very high.
->>>>>>
->>>>>> This only occurs on -rc3, since we removed the
->>>>>> acpi_video_verify_backlight_support from acpi_video_switch_brightness
->>>>>> function.
->>>>>
->>>>> What did we do before -rc2?  Did we address that in any way?
->>>>
->>>> No, before rc2, backlight is broken on that system.
->>>
->>> Well, it will have to stay that way in 3.11 I'm afraid, unless we have a fix
->>> or a workaround that is *guaranteed* not to introduce any new issues on any
->>> systems.
->>>
->>>> In rc2, we added the win8 patch and a fix patch for the hotkey, then
->>>> the ACPI video module's backlight control and in kernel brightness
->>>> handling is disabled. With the working hotkey and intel_backlight, rc2
->>>> works for the system. Then with the revert in rc3, user needs to choose
->>>> intel_backlight in xorg.conf but the in kernel brightness handling from
->>>> ACPI video module is back. Since video module is broken, it breaks the
->>>> backlight hotkey functionality.
->>>
->>> I guess we need to revert the hotkey fix too (that is efaa14c, right?)
->>> then, is that correct?  And try to do something smarter for 3.12?
->>
->> With or without commit efaa14c, hotkey for backlight is broken out of
->> box for the affected systems(ASUS N56VZ and N56VJ). But with that commit,
->> user has a chance of getting a working backlight with hotkey by specifying
->> intel_backlight and adding the video.brightness_switch_enabled=0. So I
->> think we can keep that commit.
-> 
-> What about the "boot to black screen" problem, then?
+On Sat, 2013-08-03 at 13:54 +0200, Rafael J. Wysocki wrote:
+> On Friday, August 02, 2013 08:48:09 PM Felipe Contreras wrote:
+> > On Fri, Aug 2, 2013 at 5:21 PM, Rafael J. Wysocki <rjw@sisk.pl> wro=
+te:
+> > > On Friday, August 02, 2013 04:31:37 PM Felipe Contreras wrote:
+> > >> On Fri, Aug 2, 2013 at 4:21 PM, Rafael J. Wysocki <rjw@sisk.pl> =
+wrote:
+> > >> > On Friday, August 02, 2013 02:12:49 PM Felipe Contreras wrote:
+> > >>
+> > >> >> You forgot this patch:
+> > >> >>
+> > >> >> https://git.kernel.org/cgit/linux/kernel/git/rafael/linux-pm.=
+git/commit/?h=3Dlinux-next&id=3D3706231332d57072e0e2c0e59975443f3f18e67=
+3
+> > >> >>
+> > >> >> Or do you think it's fine to boot these machines into a black=
+ screen?
+> > >> >
+> > >> > Seriously, what's wrong with you?!
+> > >> >
+> > >> > I didn't forget about it, I just didn't include it into this p=
+articular
+> > >> > pull request.
+> > >> >
+> > >> > And I'm not even sure I will push it for 3.11, because I prefe=
+r to revert
+> > >> > efaa14c for 3.11 if that's necessary to make your broken box w=
+ork as before.
+> > >>
+> > >> The issue happens in more than just "my broken box", and yes,
+> > >> reverting that patch would help (in more than just my box), in t=
+he
+> > >> sense that at least Linux won't boot into a black screen.
+> > >>
+> > >> But the backlight control still wouldn't work, as it hasn't work=
+ed
+> > >> since v3.7, possibly in many ASUS laptops, for that you need mor=
+e than
+> > >> just reverting efaa14c.
+> > >
+> > > Yes, last time it worked in 3.6 and in particular it doesn't work=
+ in 3.10.
+> > > My current goal is bring things back to the 3.10 state first, pos=
+sibly without
+> > > introducing any new problems, because we're kind of late in the c=
+ycle.
+> > > That's better done by reverting stuff known to have introduced pr=
+oblems in
+> > > the first place and not by doing things that may introduce more o=
+f them.
+> > >
+> > > And your blacklisting patch has potential to introduce problems. =
+ Your goal is
+> > > to bring backlight control to the 3.6 state on that particular ma=
+chine, but
+> > > the blacklist is done at the *system* level and very well may aff=
+ect more
+> > > things than just backlight.  You may not see any problems resulti=
+ng from it
+> > > and you may not care even if there are some, but other users of i=
+t may use
+> > > different user space, for example, and may see problems that you'=
+re not seeing.
+> > >
+> > > That's why I'd very much prefer to do the revert at this point.
+> >=20
+> > Yes, that's fine, either the revert, or the patch I mentioned, or
+> > something else, but something has to be done, and it was better to =
+do
+> > it in v3.11-rc4 than in v3.11-rc5, because that change itself can
+> > cause further problems.
+>=20
+> A revert can be done in -rc5 just fine.  If we don't have a working f=
+ix this
+> week, I'll do the revert.
+>=20
+> > >> > Well, perhaps I just won't push it at all so that you actually=
+ can go and
+> > >> > complain to Linus about that ...
+> > >>
+> > >> That is very responsible from you. Screw the users, right?
+> > >
+> > > No, that's not my goal, sorry for disappointing you.
+> > >
+> > > The problem is that I'm not really convinced about the validity o=
+f the
+> > > blacklisting approach to begin with.  As I said, the blacklisting=
+ is done
+> > > on the system level and the goal is to work around backlight cont=
+rol problems.
+> > > That sounds like a sledgehammer approach to me, which I don't rea=
+lly like.
+> > > If the blacklisting was more targeted, done at the video driver l=
+evel etc.,
+> > > I wouldn't really have any concerns about it, but that's not the =
+case.
+> > >
+> > > And since people evidently could live for over 6 months with the =
+backlight
+> > > control problems, maybe they'll survive some more time still and =
+allow us to
+> > > find a better approach?
+> >=20
+> > They probably can survive without Linux at all, that doesn't mean w=
+e
+> > are doing our job.
+> >=20
+> > Let's do a though experiment, let's say you are right, and they can
+> > survive the 6 months it would take you to find the "perfect" soluti=
+on,
+> > say in v3.13. What's wrong with having a partial solution in v3.12?=
+ If
+> > the blacklisting doesn't work properly (there's absolutely no evide=
+nce
+> > for that), then you revert it on v3.12.1.
+> >=20
+> > What's wrong with that approach?
+>=20
+> If the blacklisting leads to problems, they may not be reported in th=
+e 3.12
+> time frame, but much later.  For example because people won't realize=
+ that
+> the problems are caused by the blacklisting until much much later.  A=
+nd then
+> we'll be in a spot where whatever we do will break things for someone=
+=2E
+>=20
+> And we had situations like that in the past, which is the source of m=
+y concern.
+> You obviously don't have that experience, or you won't be so eager to=
+ inflict
+> the blacklisting on everyone.
+>=20
+> Anyway, as you know, but conveniently don't mention, I asked some exp=
+erienced
+> people for opinions about that.  If they agree with you, we will add =
+the
+> blacklist.  If they don't, we won't add it.
+>=20
+> Rafael
+>=20
+I am opposed to this patch. On ThinkPad X230 I had problems with it.
+=46elipe, come over to dark side. They have cookies.
+--=20
+Igor Gnatenko
+=46edora release 19 (Schr=C3=B6dinger=E2=80=99s Cat)
+Linux 3.10.4-300.fc19.x86_64
 
-You mean this one?
-https://lkml.org/lkml/2013/7/30/814
-
--Aaron
+--
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
