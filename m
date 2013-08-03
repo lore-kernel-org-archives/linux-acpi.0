@@ -1,54 +1,101 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: [PATCH 1/3] acpi: video: trivial costmetic cleanups
-Date: Sat, 03 Aug 2013 02:07:28 +0200
-Message-ID: <2947185.O65YUjZvxL@vostro.rjw.lan>
-References: <1375400641-1694-1-git-send-email-felipe.contreras@gmail.com> <2368382.8sxrvVTxSB@vostro.rjw.lan> <CAMP44s0Qk7GyKFtfe3f19ruafsfu7u3bN-_O-EBhZMBvcUyCNg@mail.gmail.com>
+From: Toshi Kani <toshi.kani@hp.com>
+Subject: Re: Cannot hot remove a memory device
+Date: Fri, 02 Aug 2013 18:04:40 -0600
+Message-ID: <1375488280.10300.124.camel@misato.fc.hp.com>
+References: <51FA1E41.20304@jp.fujitsu.com>
+	 <2995879.KDC1gYpzij@vostro.rjw.lan>
+	 <1375479975.10300.105.camel@misato.fc.hp.com>
+	 <2124016.41i4c3lbD4@vostro.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7Bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <CAMP44s0Qk7GyKFtfe3f19ruafsfu7u3bN-_O-EBhZMBvcUyCNg@mail.gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Felipe Contreras <felipe.contreras@gmail.com>
-Cc: Aaron Lu <aaron.lwe@gmail.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Len Brown <lenb@kernel.org>, Zhang Rui <rui.zhang@intel.com>, Jiri Kosina <trivial@kernel.org>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from g5t0006.atlanta.hp.com ([15.192.0.43]:8802 "EHLO
+	g5t0006.atlanta.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754790Ab3HCAFp (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 2 Aug 2013 20:05:45 -0400
+In-Reply-To: <2124016.41i4c3lbD4@vostro.rjw.lan>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>, rafael.j.wysocki@intel.com, vasilis.liaskovitis@profitbricks.com, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, tangchen@cn.fujitsu.com, wency@cn.fujitsu.com
 
-On Friday, August 02, 2013 12:52:18 PM Felipe Contreras wrote:
-> On Fri, Aug 2, 2013 at 9:05 AM, Rafael J. Wysocki <rjw@sisk.pl> wrote:
-> > On Thursday, August 01, 2013 11:15:38 PM Felipe Contreras wrote:
-> >> On Thu, Aug 1, 2013 at 8:50 PM, Aaron Lu <aaron.lwe@gmail.com> wrote:
-> >> > On 08/02/2013 07:43 AM, Felipe Contreras wrote:
-> >> >> Signed-off-by: Felipe Contreras <felipe.contreras@gmail.com>
-> >> >
-> >> > Please add change log explaining what you have changed.
-> >> > It seems that the patch modify comment style only, some add a space and
-> >> > some change spaces to tab, is it the case?
-> >>
-> >> The commit message already explains what the change is; trivial
-> >> cosmetic cleanups. Cosmetic means it's completely superficial.
-> >
-> > And I have a rule not to apply patches without changelogs.  So either I'll
-> > need to write it for you, or can you add one pretty please?
+On Sat, 2013-08-03 at 01:43 +0200, Rafael J. Wysocki wrote:
+> On Friday, August 02, 2013 03:46:15 PM Toshi Kani wrote:
+> > On Thu, 2013-08-01 at 23:43 +0200, Rafael J. Wysocki wrote:
+> > > Hi,
+> > > 
+> > > Thanks for your report.
+> > > 
+> > > On Thursday, August 01, 2013 05:37:21 PM Yasuaki Ishimatsu wrote:
+> > > > By following commit, I cannot hot remove a memory device.
+> > > > 
+> > > > ACPI / memhotplug: Bind removable memory blocks to ACPI device nodes
+> > > > commit e2ff39400d81233374e780b133496a2296643d7d
+> > > > 
+> > > > Details are follows:
+> > > > When I add a memory device, acpi_memory_enable_device() always fails
+> > > > as follows:
+> > > > 
+> > > > ...
+> > > > [ 1271.114116]  [ffffea121c400000-ffffea121c7fffff] PMD -> [ffff880813c00000-ffff880813ffffff] on node 3
+> > > > [ 1271.128682]  [ffffea121c800000-ffffea121cbfffff] PMD -> [ffff880813800000-ffff880813bfffff] on node 3
+> > > > [ 1271.143298]  [ffffea121cc00000-ffffea121cffffff] PMD -> [ffff880813000000-ffff8808133fffff] on node 3
+> > > > [ 1271.157799]  [ffffea121d000000-ffffea121d3fffff] PMD -> [ffff880812c00000-ffff880812ffffff] on node 3
+> > > > [ 1271.172341]  [ffffea121d400000-ffffea121d7fffff] PMD -> [ffff880812800000-ffff880812bfffff] on node 3
+> > > > [ 1271.186872]  [ffffea121d800000-ffffea121dbfffff] PMD -> [ffff880812400000-ffff8808127fffff] on node 3
+> > > > [ 1271.201481]  [ffffea121dc00000-ffffea121dffffff] PMD -> [ffff880812000000-ffff8808123fffff] on node 3
+> > > > [ 1271.216041]  [ffffea121e000000-ffffea121e3fffff] PMD -> [ffff880811c00000-ffff880811ffffff] on node 3
+> > > > [ 1271.230623]  [ffffea121e400000-ffffea121e7fffff] PMD -> [ffff880811800000-ffff880811bfffff] on node 3
+> > > > [ 1271.245148]  [ffffea121e800000-ffffea121ebfffff] PMD -> [ffff880811400000-ffff8808117fffff] on node 3
+> > > > [ 1271.259683]  [ffffea121ec00000-ffffea121effffff] PMD -> [ffff880811000000-ffff8808113fffff] on node 3
+> > > > [ 1271.274194]  [ffffea121f000000-ffffea121f3fffff] PMD -> [ffff880810c00000-ffff880810ffffff] on node 3
+> > > > [ 1271.288764]  [ffffea121f400000-ffffea121f7fffff] PMD -> [ffff880810800000-ffff880810bfffff] on node 3
+> > 
+> > It appears that each memory object only has 64MB of memory.  This is
+> > less than the memory block size, which is 128MB.  This means that a
+> > single memory block associates with two ACPI memory device objects.
 > 
-> The commit message is right there. Maybe Jiri can apply it then, if
-> not, then stay happy with your untidy code.
+> That'd be bad.
+> 
+> How did that work before if that indeed is the case?
 
-First of all, I didn't say I wouldn't apply the patch, did I?
+Well, it looks to me that it has never worked before...
 
-Second, I asked you *nicely* to add a changelog so that I don't need to write
-it for you.
+> > > > ...	
+> > > > [ 1271.325841] acpi PNP0C80:03: acpi_memory_enable_device() error
+> > > 
+> > > Well, the only new way acpi_memory_enable_device() can fail after that commit
+> > > is a failure in acpi_bind_memory_blocks().
+> > 
+> > Agreed.
+> > 
+> > > This means that either handle is NULL, which I think we can exclude, because
+> > > acpi_memory_enable_device() wouldn't be called at all if that were the case, or
+> > > there's a more subtle error in acpi_bind_one().
+> > > 
+> > > One that comes to mind is that we may be calling acpi_bind_one() twice for the
+> > > same memory region, in which it will trigger -EINVAL from the sanity check in
+> > > there.
+> > 
+> > I think it fails with -EINVAL at the place with dev_warn(dev, "ACPI
+> > handle is already set\n").  When two ACPI memory objects associate with
+> > a same memory block, the bind procedure of the 2nd ACPI memory object
+> > sees that ACPI_HANDLE(dev) is already set to the 1st ACPI memory object.
+> 
+> That sound's plausible, but I wonder how we can fix that?
+> 
+> There's no way for a single physical device to have two different ACPI
+> "companions".  It looks like the memory blocks should be 64 M each in that
+> case.  Or we need to create two child devices for each memory block and
+> associate each of them with an ACPI object.  That would lead to complications
+> in the user space interface, though.
 
-I don't know what made it difficult to understand.
-
-Anyway, I ask everyone to write changelogs and nobody has had any problems with
-that so far.  I don't see why I should avoid asking you to follow the rules
-that everybody else is asked to follow.  If those rules are too difficult for
-you to follow, I'm sorry.
+Right.  Even bigger issue is that I do not think __add_pages() and
+__remove_pages() can add / delete a memory chunk that is less than
+128MB.  128MB is the granularity of them.  So, we may just have to fail
+this case gracefully.
 
 Thanks,
-Rafael
+-Toshi
 
-
--- 
-I speak only for myself.
-Rafael J. Wysocki, Intel Open Source Technology Center.
