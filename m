@@ -1,68 +1,114 @@
 From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: [PATCH 1/3] acpi: video: trivial costmetic cleanups
-Date: Sat, 03 Aug 2013 13:38:47 +0200
-Message-ID: <1714177.6pDg1Dt5hn@vostro.rjw.lan>
-References: <1375400641-1694-1-git-send-email-felipe.contreras@gmail.com> <2947185.O65YUjZvxL@vostro.rjw.lan> <CAMP44s0J4gjcnFhL=+oz0Wkrd5edeDhFc39bOdbf4aaefuDmNQ@mail.gmail.com>
+Subject: Re: [GIT PULL] ACPI and power management fixes for v3.11-rc4
+Date: Sat, 03 Aug 2013 13:54:05 +0200
+Message-ID: <1963015.Y2AObmEn2f@vostro.rjw.lan>
+References: <2052880.bHfzt6NKt5@vostro.rjw.lan> <6100577.WGRZRabKGy@vostro.rjw.lan> <CAMP44s1Knox3oVt3-ePkDHxa2uNQAFVFRwmVTATNknWA46b_Uw@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7Bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from hydra.sisk.pl ([212.160.235.94]:53512 "EHLO hydra.sisk.pl"
+Received: from hydra.sisk.pl ([212.160.235.94]:53539 "EHLO hydra.sisk.pl"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751506Ab3HCL2d (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Sat, 3 Aug 2013 07:28:33 -0400
-In-Reply-To: <CAMP44s0J4gjcnFhL=+oz0Wkrd5edeDhFc39bOdbf4aaefuDmNQ@mail.gmail.com>
+	id S1751662Ab3HCLnw (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Sat, 3 Aug 2013 07:43:52 -0400
+In-Reply-To: <CAMP44s1Knox3oVt3-ePkDHxa2uNQAFVFRwmVTATNknWA46b_Uw@mail.gmail.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: Felipe Contreras <felipe.contreras@gmail.com>
-Cc: Aaron Lu <aaron.lwe@gmail.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Len Brown <lenb@kernel.org>, Zhang Rui <rui.zhang@intel.com>, Jiri Kosina <trivial@kernel.org>
+Cc: Linus Torvalds <torvalds@linux-foundation.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>, Linux PM list <linux-pm@vger.kernel.org>
 
-On Friday, August 02, 2013 08:34:29 PM Felipe Contreras wrote:
-> On Fri, Aug 2, 2013 at 7:07 PM, Rafael J. Wysocki <rjw@sisk.pl> wrote:
-> > On Friday, August 02, 2013 12:52:18 PM Felipe Contreras wrote:
-> >> On Fri, Aug 2, 2013 at 9:05 AM, Rafael J. Wysocki <rjw@sisk.pl> wrote:
-> >> > On Thursday, August 01, 2013 11:15:38 PM Felipe Contreras wrote:
-> >> >> On Thu, Aug 1, 2013 at 8:50 PM, Aaron Lu <aaron.lwe@gmail.com> wrote:
-> >> >> > On 08/02/2013 07:43 AM, Felipe Contreras wrote:
-> >> >> >> Signed-off-by: Felipe Contreras <felipe.contreras@gmail.com>
-> >> >> >
-> >> >> > Please add change log explaining what you have changed.
-> >> >> > It seems that the patch modify comment style only, some add a space and
-> >> >> > some change spaces to tab, is it the case?
-> >> >>
-> >> >> The commit message already explains what the change is; trivial
-> >> >> cosmetic cleanups. Cosmetic means it's completely superficial.
-> >> >
-> >> > And I have a rule not to apply patches without changelogs.  So either I'll
-> >> > need to write it for you, or can you add one pretty please?
+On Friday, August 02, 2013 08:48:09 PM Felipe Contreras wrote:
+> On Fri, Aug 2, 2013 at 5:21 PM, Rafael J. Wysocki <rjw@sisk.pl> wrote:
+> > On Friday, August 02, 2013 04:31:37 PM Felipe Contreras wrote:
+> >> On Fri, Aug 2, 2013 at 4:21 PM, Rafael J. Wysocki <rjw@sisk.pl> wrote:
+> >> > On Friday, August 02, 2013 02:12:49 PM Felipe Contreras wrote:
 > >>
-> >> The commit message is right there. Maybe Jiri can apply it then, if
-> >> not, then stay happy with your untidy code.
+> >> >> You forgot this patch:
+> >> >>
+> >> >> https://git.kernel.org/cgit/linux/kernel/git/rafael/linux-pm.git/commit/?h=linux-next&id=3706231332d57072e0e2c0e59975443f3f18e673
+> >> >>
+> >> >> Or do you think it's fine to boot these machines into a black screen?
+> >> >
+> >> > Seriously, what's wrong with you?!
+> >> >
+> >> > I didn't forget about it, I just didn't include it into this particular
+> >> > pull request.
+> >> >
+> >> > And I'm not even sure I will push it for 3.11, because I prefer to revert
+> >> > efaa14c for 3.11 if that's necessary to make your broken box work as before.
+> >>
+> >> The issue happens in more than just "my broken box", and yes,
+> >> reverting that patch would help (in more than just my box), in the
+> >> sense that at least Linux won't boot into a black screen.
+> >>
+> >> But the backlight control still wouldn't work, as it hasn't worked
+> >> since v3.7, possibly in many ASUS laptops, for that you need more than
+> >> just reverting efaa14c.
 > >
-> > First of all, I didn't say I wouldn't apply the patch, did I?
+> > Yes, last time it worked in 3.6 and in particular it doesn't work in 3.10.
+> > My current goal is bring things back to the 3.10 state first, possibly without
+> > introducing any new problems, because we're kind of late in the cycle.
+> > That's better done by reverting stuff known to have introduced problems in
+> > the first place and not by doing things that may introduce more of them.
 > >
-> > Second, I asked you *nicely* to add a changelog so that I don't need to write
-> > it for you.
+> > And your blacklisting patch has potential to introduce problems.  Your goal is
+> > to bring backlight control to the 3.6 state on that particular machine, but
+> > the blacklist is done at the *system* level and very well may affect more
+> > things than just backlight.  You may not see any problems resulting from it
+> > and you may not care even if there are some, but other users of it may use
+> > different user space, for example, and may see problems that you're not seeing.
 > >
-> > I don't know what made it difficult to understand.
-> >
-> > Anyway, I ask everyone to write changelogs and nobody has had any problems with
-> > that so far.  I don't see why I should avoid asking you to follow the rules
-> > that everybody else is asked to follow.  If those rules are too difficult for
-> > you to follow, I'm sorry.
+> > That's why I'd very much prefer to do the revert at this point.
 > 
-> The patch has a commit message that describes exactly what it does.
+> Yes, that's fine, either the revert, or the patch I mentioned, or
+> something else, but something has to be done, and it was better to do
+> it in v3.11-rc4 than in v3.11-rc5, because that change itself can
+> cause further problems.
 
-No, it doesn't describe it exactly.  You're contradicting facts.
+A revert can be done in -rc5 just fine.  If we don't have a working fix this
+week, I'll do the revert.
 
-> Unless there is valid feedback I will not send another version.
+> >> > Well, perhaps I just won't push it at all so that you actually can go and
+> >> > complain to Linus about that ...
+> >>
+> >> That is very responsible from you. Screw the users, right?
+> >
+> > No, that's not my goal, sorry for disappointing you.
+> >
+> > The problem is that I'm not really convinced about the validity of the
+> > blacklisting approach to begin with.  As I said, the blacklisting is done
+> > on the system level and the goal is to work around backlight control problems.
+> > That sounds like a sledgehammer approach to me, which I don't really like.
+> > If the blacklisting was more targeted, done at the video driver level etc.,
+> > I wouldn't really have any concerns about it, but that's not the case.
+> >
+> > And since people evidently could live for over 6 months with the backlight
+> > control problems, maybe they'll survive some more time still and allow us to
+> > find a better approach?
 > 
-> To me, a valid criticism to the commit message would be: "I read X,
-> but I thought it would do Y". For example; "I didn't expect the patch
-> to do white-space cleanups", but I think that's exactly what people
-> expect when they read "trivial costmetic cleanups'.
+> They probably can survive without Linux at all, that doesn't mean we
+> are doing our job.
+> 
+> Let's do a though experiment, let's say you are right, and they can
+> survive the 6 months it would take you to find the "perfect" solution,
+> say in v3.13. What's wrong with having a partial solution in v3.12? If
+> the blacklisting doesn't work properly (there's absolutely no evidence
+> for that), then you revert it on v3.12.1.
+> 
+> What's wrong with that approach?
 
-If what you're saying was correct, then it would be sufficient to use a
-"this patch fixes a bug" commit message for every bug fix, but quite evidently
-that is not the case.
+If the blacklisting leads to problems, they may not be reported in the 3.12
+time frame, but much later.  For example because people won't realize that
+the problems are caused by the blacklisting until much much later.  And then
+we'll be in a spot where whatever we do will break things for someone.
+
+And we had situations like that in the past, which is the source of my concern.
+You obviously don't have that experience, or you won't be so eager to inflict
+the blacklisting on everyone.
+
+Anyway, as you know, but conveniently don't mention, I asked some experienced
+people for opinions about that.  If they agree with you, we will add the
+blacklist.  If they don't, we won't add it.
+
+Rafael
 
