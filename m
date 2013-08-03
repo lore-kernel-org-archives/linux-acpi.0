@@ -1,99 +1,84 @@
-From: Felipe Contreras <felipe.contreras@gmail.com>
-Subject: Re: [GIT PULL] ACPI and power management fixes for v3.11-rc4
-Date: Fri, 2 Aug 2013 20:48:09 -0500
-Message-ID: <CAMP44s1Knox3oVt3-ePkDHxa2uNQAFVFRwmVTATNknWA46b_Uw@mail.gmail.com>
-References: <2052880.bHfzt6NKt5@vostro.rjw.lan>
-	<1820071.Lqgn6ZcLbB@vostro.rjw.lan>
-	<CAMP44s2DNkkBP4G2oD+yRwxPYUDx6HAQyAEetLkBTe3mEpLR=A@mail.gmail.com>
-	<6100577.WGRZRabKGy@vostro.rjw.lan>
+From: Aaron Lu <aaron.lwe@gmail.com>
+Subject: Re: [PATCH] acpi: video: improve quirk check
+Date: Sat, 03 Aug 2013 16:14:04 +0800
+Message-ID: <51FCBBCC.6060307@gmail.com>
+References: <1375472229-1563-1-git-send-email-felipe.contreras@gmail.com> <3682340.ddGL4l7l22@vostro.rjw.lan>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-lb0-f169.google.com ([209.85.217.169]:47703 "EHLO
-	mail-lb0-f169.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753617Ab3HCBsM (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 2 Aug 2013 21:48:12 -0400
-In-Reply-To: <6100577.WGRZRabKGy@vostro.rjw.lan>
+Received: from mail-pb0-f41.google.com ([209.85.160.41]:43624 "EHLO
+	mail-pb0-f41.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751307Ab3HCINX (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sat, 3 Aug 2013 04:13:23 -0400
+In-Reply-To: <3682340.ddGL4l7l22@vostro.rjw.lan>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: Linus Torvalds <torvalds@linux-foundation.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>, Linux PM list <linux-pm@vger.kernel.org>
+Cc: Felipe Contreras <felipe.contreras@gmail.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Len Brown <lenb@kernel.org>, Zhang Rui <rui.zhang@intel.com>
 
-On Fri, Aug 2, 2013 at 5:21 PM, Rafael J. Wysocki <rjw@sisk.pl> wrote:
-> On Friday, August 02, 2013 04:31:37 PM Felipe Contreras wrote:
->> On Fri, Aug 2, 2013 at 4:21 PM, Rafael J. Wysocki <rjw@sisk.pl> wrote:
->> > On Friday, August 02, 2013 02:12:49 PM Felipe Contreras wrote:
+On 08/03/2013 07:47 AM, Rafael J. Wysocki wrote:
+> On Friday, August 02, 2013 02:37:09 PM Felipe Contreras wrote:
+>> If the _BCL package is descending, the first level (br->levels[2]) will
+>> be 0, and if the number of levels matches the number of steps, we might
+>> confuse a returned level to mean the index.
 >>
->> >> You forgot this patch:
->> >>
->> >> https://git.kernel.org/cgit/linux/kernel/git/rafael/linux-pm.git/commit/?h=linux-next&id=3706231332d57072e0e2c0e59975443f3f18e673
->> >>
->> >> Or do you think it's fine to boot these machines into a black screen?
->> >
->> > Seriously, what's wrong with you?!
->> >
->> > I didn't forget about it, I just didn't include it into this particular
->> > pull request.
->> >
->> > And I'm not even sure I will push it for 3.11, because I prefer to revert
->> > efaa14c for 3.11 if that's necessary to make your broken box work as before.
+>> For example:
 >>
->> The issue happens in more than just "my broken box", and yes,
->> reverting that patch would help (in more than just my box), in the
->> sense that at least Linux won't boot into a black screen.
+>>   current_level = max_level = 100
+>>   test_level = 0
+>>   returned level = 100
 >>
->> But the backlight control still wouldn't work, as it hasn't worked
->> since v3.7, possibly in many ASUS laptops, for that you need more than
->> just reverting efaa14c.
->
-> Yes, last time it worked in 3.6 and in particular it doesn't work in 3.10.
-> My current goal is bring things back to the 3.10 state first, possibly without
-> introducing any new problems, because we're kind of late in the cycle.
-> That's better done by reverting stuff known to have introduced problems in
-> the first place and not by doing things that may introduce more of them.
->
-> And your blacklisting patch has potential to introduce problems.  Your goal is
-> to bring backlight control to the 3.6 state on that particular machine, but
-> the blacklist is done at the *system* level and very well may affect more
-> things than just backlight.  You may not see any problems resulting from it
-> and you may not care even if there are some, but other users of it may use
-> different user space, for example, and may see problems that you're not seeing.
->
-> That's why I'd very much prefer to do the revert at this point.
-
-Yes, that's fine, either the revert, or the patch I mentioned, or
-something else, but something has to be done, and it was better to do
-it in v3.11-rc4 than in v3.11-rc5, because that change itself can
-cause further problems.
-
->> > Well, perhaps I just won't push it at all so that you actually can go and
->> > complain to Linus about that ...
+>> In this case 100 means the level, not the index, and _BCM failed. But if
+>> the _BCL package is descending, the index of level 0 is also 100, so we
+>> assume _BQC is indexed, when it's not.
 >>
->> That is very responsible from you. Screw the users, right?
->
-> No, that's not my goal, sorry for disappointing you.
->
-> The problem is that I'm not really convinced about the validity of the
-> blacklisting approach to begin with.  As I said, the blacklisting is done
-> on the system level and the goal is to work around backlight control problems.
-> That sounds like a sledgehammer approach to me, which I don't really like.
-> If the blacklisting was more targeted, done at the video driver level etc.,
-> I wouldn't really have any concerns about it, but that's not the case.
->
-> And since people evidently could live for over 6 months with the backlight
-> control problems, maybe they'll survive some more time still and allow us to
-> find a better approach?
+>> This causes all _BQC calls to return bogus values causing weird behavior
+>> from the user's perspective. For example: xbacklight -set 10; xbacklight
+>> -set 20; would flash to 90% and then slowly down to the desired level
+>> (20).
+>>
+>> The solution is simple; test anything other than the first level (e.g.
+>> 1).
+>>
+>> Signed-off-by: Felipe Contreras <felipe.contreras@gmail.com>
+> 
+> Looks reasonable.
+> 
+> Aaron, what do you think?
 
-They probably can survive without Linux at all, that doesn't mean we
-are doing our job.
+Yes, the patch is correct, but I still prefer my own version :-)
+https://github.com/aaronlu/linux/commit/0a3d2c5b59caf80ae5bb1ca1fda0f7bf448b38c9
 
-Let's do a though experiment, let's say you are right, and they can
-survive the 6 months it would take you to find the "perfect" solution,
-say in v3.13. What's wrong with having a partial solution in v3.12? If
-the blacklisting doesn't work properly (there's absolutely no evidence
-for that), then you revert it on v3.12.1.
+In case you want to take mine and mine needs refresh, please let me know
+and I can do the re-base, thanks.
 
-What's wrong with that approach?
+-Aaron
 
--- 
-Felipe Contreras
+> 
+> Rafael
+> 
+> 
+>> ---
+>>
+>> On top of this we might want to test yet another value, because br->levels[3]
+>> might be the current value (although very unlikely).
+>>
+>>  drivers/acpi/video.c | 2 +-
+>>  1 file changed, 1 insertion(+), 1 deletion(-)
+>>
+>> diff --git a/drivers/acpi/video.c b/drivers/acpi/video.c
+>> index 0ec434d..e1284b8 100644
+>> --- a/drivers/acpi/video.c
+>> +++ b/drivers/acpi/video.c
+>> @@ -689,7 +689,7 @@ static int acpi_video_bqc_quirk(struct acpi_video_device *device,
+>>  	 * Some systems always report current brightness level as maximum
+>>  	 * through _BQC, we need to test another value for them.
+>>  	 */
+>> -	test_level = current_level == max_level ? br->levels[2] : max_level;
+>> +	test_level = current_level == max_level ? br->levels[3] : max_level;
+>>  
+>>  	result = acpi_video_device_lcd_set_level(device, test_level);
+>>  	if (result)
+>>
+
