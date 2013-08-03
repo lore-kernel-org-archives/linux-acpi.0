@@ -1,98 +1,114 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: [PATCH 5/5] acpi_video: Don't handle ACPI brightness notifications by default
-Date: Sun, 04 Aug 2013 00:07:51 +0200
-Message-ID: <1842221.DqbnaT4T1E@vostro.rjw.lan>
-References: <20130307193812.GD24233@thinkpad-t410> <17431934.NpphB5cAgA@vostro.rjw.lan> <51FCF324.6030304@intel.com>
+From: Felipe Contreras <felipe.contreras@gmail.com>
+Subject: Re: [GIT PULL] ACPI and power management fixes for v3.11-rc4
+Date: Sat, 3 Aug 2013 17:06:10 -0500
+Message-ID: <CAMP44s3LC2XzDrQmJ9iPuT04=WnxZcNj7grx9pE=NTxqG=kSvQ@mail.gmail.com>
+References: <2052880.bHfzt6NKt5@vostro.rjw.lan>
+	<1963015.Y2AObmEn2f@vostro.rjw.lan>
+	<CAMP44s2dbNBbKwLd9hGaYVPL_Z6-v_S0xZpmz8cwicg1wgMr+Q@mail.gmail.com>
+	<2185529.xKyHXi1s1o@vostro.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from hydra.sisk.pl ([212.160.235.94]:54262 "EHLO hydra.sisk.pl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752586Ab3HCV5j (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Sat, 3 Aug 2013 17:57:39 -0400
-In-Reply-To: <51FCF324.6030304@intel.com>
+Received: from mail-lb0-f179.google.com ([209.85.217.179]:61560 "EHLO
+	mail-lb0-f179.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752586Ab3HCWGM (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sat, 3 Aug 2013 18:06:12 -0400
+In-Reply-To: <2185529.xKyHXi1s1o@vostro.rjw.lan>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Aaron Lu <aaron.lu@intel.com>
-Cc: Seth Forshee <seth.forshee@canonical.com>, Matthew Garrett <mjg59@srcf.ucam.org>, linux-acpi@vger.kernel.org, Len Brown <lenb@kernel.org>, Ben Jencks <ben@bjencks.net>, joeyli <jlee@suse.com>, Micael Dias <kam1kaz3@gmail.com>, * =?ISO-8859-1?Q?SAM=CD?= * <miaousami@hotmail.com>, Yves-Alexis Perez <corsac@debian.org>
+To: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: Linus Torvalds <torvalds@linux-foundation.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>, Linux PM list <linux-pm@vger.kernel.org>, Igor Gnatenko <i.gnatenko.brain@gmail.com>
 
-On Saturday, August 03, 2013 08:10:12 PM Aaron Lu wrote:
-> On 08/03/2013 07:23 PM, Rafael J. Wysocki wrote:
-> > On Saturday, August 03, 2013 05:46:02 PM Aaron Lu wrote:
-> >> On 08/03/2013 08:26 AM, Rafael J. Wysocki wrote:
-> >>> On Friday, August 02, 2013 10:52:09 PM Aaron Lu wrote:
-> >>>> On 08/02/2013 10:41 PM, Rafael J. Wysocki wrote:
-> >>>>> On Friday, August 02, 2013 01:55:47 PM Aaron Lu wrote:
-> >>>>>> On 03/08/2013 03:39 AM, Seth Forshee wrote:
-> >>>>>>> Windows 8 requires all backlight interfaces to report 101 brightness
-> >>>>>>> values, and as a result we're starting to see machines with that many
-> >>>>>>> brightness levels in _BCL. For machines which send these notifications
-> >>>>>>> when the brightness up/down keys are pressed this means a lot of key
-> >>>>>>> presses to get any kind of noticeable change in brightness.
-> >>>>>>>
-> >>>>>>> For a while now we've had the ability to disable in-kernel handling of
-> >>>>>>> notifications via the video.brightness_switch_enabled parameter. Change
-> >>>>>>> this to default to off, and let userspace choose more reasonable
-> >>>>>>> increments for changing the brightness.
-> >>>>>>
-> >>>>>> I just found one more reason for this param to default 0.
-> >>>>>
-> >>>>> Do you mean video.brightness_switch_enabled?
-> >>>>
-> >>>> Yes.
-> >>>>
-> >>>>>
-> >>>>>> We are going to separate the backlight interface control and event
-> >>>>>> notification functionalities of the ACPI video module, it is highly
-> >>>>>> possible a lot of systems will use a combination of the event
-> >>>>>> notification handler and intel_backlight interface. So it doesn't make
-> >>>>>> sense to let video module to do any adjustment on its own if user space
-> >>>>>> has chosen a different interface to use. Actually, it can cause problems
-> >>>>>> as in ASUS's case:
-> >>>>>> https://bugzilla.kernel.org/show_bug.cgi?id=52951
-> >>>>>>
-> >>>>>> The problem there is, on hotkey brightness up, the video module will
-> >>>>>> adjust the brightness level first and since its _BQC is broken, it gets
-> >>>>>> a wrong number(too low or too high or whatever) and then does the _BCM
-> >>>>>> call. The _BCM method works. Then user space picks the intel_backlight
-> >>>>>> to do the adjustment, but since the _BCM already sets a wrong value, the
-> >>>>>> user space's adjustment is affected too. The result is, user has only
-> >>>>>> two visible levels, very low and very high.
-> >>>>>>
-> >>>>>> This only occurs on -rc3, since we removed the
-> >>>>>> acpi_video_verify_backlight_support from acpi_video_switch_brightness
-> >>>>>> function.
-> >>>>>
-> >>>>> What did we do before -rc2?  Did we address that in any way?
-> >>>>
-> >>>> No, before rc2, backlight is broken on that system.
-> >>>
-> >>> Well, it will have to stay that way in 3.11 I'm afraid, unless we have a fix
-> >>> or a workaround that is *guaranteed* not to introduce any new issues on any
-> >>> systems.
-> >>>
-> >>>> In rc2, we added the win8 patch and a fix patch for the hotkey, then
-> >>>> the ACPI video module's backlight control and in kernel brightness
-> >>>> handling is disabled. With the working hotkey and intel_backlight, rc2
-> >>>> works for the system. Then with the revert in rc3, user needs to choose
-> >>>> intel_backlight in xorg.conf but the in kernel brightness handling from
-> >>>> ACPI video module is back. Since video module is broken, it breaks the
-> >>>> backlight hotkey functionality.
-> >>>
-> >>> I guess we need to revert the hotkey fix too (that is efaa14c, right?)
-> >>> then, is that correct?  And try to do something smarter for 3.12?
-> >>
-> >> With or without commit efaa14c, hotkey for backlight is broken out of
-> >> box for the affected systems(ASUS N56VZ and N56VJ). But with that commit,
-> >> user has a chance of getting a working backlight with hotkey by specifying
-> >> intel_backlight and adding the video.brightness_switch_enabled=0. So I
-> >> think we can keep that commit.
-> > 
-> > What about the "boot to black screen" problem, then?
-> 
-> You mean this one?
-> https://lkml.org/lkml/2013/7/30/814
+On Sat, Aug 3, 2013 at 4:59 PM, Rafael J. Wysocki <rjw@sisk.pl> wrote:
+> On Saturday, August 03, 2013 03:20:22 PM Felipe Contreras wrote:
+>> On Sat, Aug 3, 2013 at 6:54 AM, Rafael J. Wysocki <rjw@sisk.pl> wrote:
+>> > On Friday, August 02, 2013 08:48:09 PM Felipe Contreras wrote:
+>>
+>> >> Yes, that's fine, either the revert, or the patch I mentioned, or
+>> >> something else, but something has to be done, and it was better to do
+>> >> it in v3.11-rc4 than in v3.11-rc5, because that change itself can
+>> >> cause further problems.
+>> >
+>> > A revert can be done in -rc5 just fine.  If we don't have a working fix this
+>> > week, I'll do the revert.
+>>
+>> I think you are waiting for miracles. But whatever.
+>>
+>> >> Let's do a though experiment, let's say you are right, and they can
+>> >> survive the 6 months it would take you to find the "perfect" solution,
+>> >> say in v3.13. What's wrong with having a partial solution in v3.12? If
+>> >> the blacklisting doesn't work properly (there's absolutely no evidence
+>> >> for that), then you revert it on v3.12.1.
+>> >>
+>> >> What's wrong with that approach?
+>> >
+>> > If the blacklisting leads to problems, they may not be reported in the 3.12
+>> > time frame, but much later.  For example because people won't realize that
+>> > the problems are caused by the blacklisting until much much later.  And then
+>> > we'll be in a spot where whatever we do will break things for someone.
+>>
+>> The key word is *may*, you don't *know*. Why do you insist in
+>> committing this reification fallacy?
+>>
+>> This threat is not real, it's theoretical.
+>
+> I believe it is real.
 
-Yes. :-)
+That is called wishful thinking. Believing so doesn't make it so.
 
+> Igor has told you that already, hasn't he?
+
+He said he "had problems", that doesn't mean much. What kind of
+problems? Did he have those problems in v3.10? Does v3.11-rc3 work
+correctly? Did he boot without any boot arguments?
+
+"I had problems" is almost meaningless.
+
+>> But let's suppose you are right, and there are issues, and those don't
+>> get reported in v3.12. That is actually GOOD, if people don't report
+>> issues, it means the issues are not that big, or not even *there*.
+>
+> You don't even realize how wrong you are.  The issues that aren't visible
+> in testing from the start are often much *worse* than those we can see
+> immediately, because usually they are much more difficult to fix and they
+> cause much more pain overall as a result.
+
+How convenient. In other words; there's absolutely no empirical way to
+prove you wrong.
+
+It's like trying to prove that your invisible pink unicorn doesn't exist.
+
+If we don't find evidence of problems, that is evidence that there are
+no problems. And even if there are "invisible" "worse" issues, it
+doesn't matter, because you will fix them properly in six months,
+right?
+
+I'd say, fix the visible (aka. real) issues, don't worry about the
+invisible (aka. imaginary) ones. Worry when they are visible.
+
+>> And no, we won't be in a spot where whatever we do will break things,
+>> because if the intel backlight driver works correctly, that solution
+>> would work for everyone. And if it doesn't, we should stay with what
+>> works best.
+>>
+>> > And we had situations like that in the past, which is the source of my concern.
+>> > You obviously don't have that experience, or you won't be so eager to inflict
+>> > the blacklisting on everyone.
+>> >
+>> > Anyway, as you know, but conveniently don't mention, I asked some experienced
+>> > people for opinions about that.  If they agree with you, we will add the
+>> > blacklist.  If they don't, we won't add it.
+>>
+>> Again, screw the users. We are stuck with broken backlight for several
+>> more months to come. Great.
+>
+> Whatever you are thinking you will achieve this way, it doesn't work.
+
+It is the reality: v3.7 is broken, v3.8 is broken, v3.9 is broken,
+v3.10 is broken, v3.11 is going to be broken, v3.12 will probably be
+broken too, and perhaps even v3.13.
+
+Who benefits from this?
+
+-- 
+Felipe Contreras
