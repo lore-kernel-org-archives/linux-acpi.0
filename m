@@ -1,72 +1,38 @@
-From: Felipe Contreras <felipe.contreras@gmail.com>
-Subject: Re: [PATCH] acpi: video: improve quirk check
-Date: Sat, 3 Aug 2013 17:37:16 -0500
-Message-ID: <CAMP44s3pda+p+Oyo3X3+pazqee5pFx9OhYdKLuK3SkqycLyhrg@mail.gmail.com>
-References: <1375472229-1563-1-git-send-email-felipe.contreras@gmail.com>
-	<2483450.yz2brWbP8X@vostro.rjw.lan>
-	<CAMP44s3kacF57gsJzyL6-4JWfWpdfJbJYW-nWQ92Yn1VimnYug@mail.gmail.com>
-	<5977534.o64DLE8ToP@vostro.rjw.lan>
+From: Igor Gnatenko <i.gnatenko.brain@gmail.com>
+Subject: Re: [GIT PULL] ACPI and power management fixes for v3.11-rc4
+Date: Sun, 04 Aug 2013 03:27:44 +0400
+Message-ID: <1375572464.1988.4.camel@ThinkPad-X230.localdomain>
+References: <2052880.bHfzt6NKt5@vostro.rjw.lan>
+	 <6100577.WGRZRabKGy@vostro.rjw.lan>
+	 <CAMP44s1Knox3oVt3-ePkDHxa2uNQAFVFRwmVTATNknWA46b_Uw@mail.gmail.com>
+	 <1963015.Y2AObmEn2f@vostro.rjw.lan>
+	 <1375546086.1988.2.camel@ThinkPad-X230.localdomain>
+	 <CAMP44s2HSEnhWfgtvSmu3K-nrWzHnxfj44hpvAVerRQq-dUABg@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <5977534.o64DLE8ToP@vostro.rjw.lan>
-Sender: linux-kernel-owner@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: Aaron Lu <aaron.lwe@gmail.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Len Brown <lenb@kernel.org>, Zhang Rui <rui.zhang@intel.com>, Linus Torvalds <torvalds@linux-foundation.org>, Matthew Garrett <mjg59@srcf.ucam.org>, Igor Gnatenko <i.gnatenko.brain@gmail.com>
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-pm-owner@vger.kernel.org>
+In-Reply-To: <CAMP44s2HSEnhWfgtvSmu3K-nrWzHnxfj44hpvAVerRQq-dUABg@mail.gmail.com>
+Sender: linux-pm-owner@vger.kernel.org
+To: Felipe Contreras <felipe.contreras@gmail.com>
+Cc: "Rafael J. Wysocki" <rjw@sisk.pl>, Linus Torvalds <torvalds@linux-foundation.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>, Linux PM list <linux-pm@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On Sat, Aug 3, 2013 at 5:38 PM, Rafael J. Wysocki <rjw@sisk.pl> wrote:
-> On Saturday, August 03, 2013 05:20:33 PM Felipe Contreras wrote:
->> On Sat, Aug 3, 2013 at 4:40 PM, Rafael J. Wysocki <rjw@sisk.pl> wrote:
->> > On Saturday, August 03, 2013 03:24:16 PM Felipe Contreras wrote:
->> >> On Sat, Aug 3, 2013 at 6:34 AM, Rafael J. Wysocki <rjw@sisk.pl> wrote:
->> >> > On Saturday, August 03, 2013 04:14:04 PM Aaron Lu wrote:
->> >>
->> >> >> Yes, the patch is correct, but I still prefer my own version :-)
->> >> >> https://github.com/aaronlu/linux/commit/0a3d2c5b59caf80ae5bb1ca1fda0f7bf448b38c9
->> >> >>
->> >> >> In case you want to take mine and mine needs refresh, please let me know
->> >> >> and I can do the re-base, thanks.
->> >> >
->> >> > Well, I prefer simpler, unless there's a good reason to use more complicated.
->> >>
->> >> Note that these are not exclusionary; his patch can be applied on top
->> >> of mine. I don't think his patch is needed though.
->> >
->> > OK
->> >
->> > Do we still need to revert commit efaa14c if this patch is applied?
->>
->> I guess not. At least in this machine changing the backlight works
->> correctly, whereas in v3.11-rc3 it was all weird, and v3.7-v3.10
->> didn't work at all. I cannot see how it would affect negatively other
->> machines.
->>
->> That being said, the blacklisting is still needed, because 1. the
->> level is not preserved between boots, and 2. level 0 turns off the
->> screen, which I personally consider a regression.
->>
->> At least it boots to level 100 instead of 0.
->
-> OK
->
-> I'll push this patch to Linus for -rc5 then without the revert of commit
-> commit efaa14c.  That's all I'm going to do for 3.11 in the ACPI video
-> area at this point.
+On Sat, 2013-08-03 at 15:21 -0500, Felipe Contreras wrote:
+> On Sat, Aug 3, 2013 at 11:08 AM, Igor Gnatenko
+> <i.gnatenko.brain@gmail.com> wrote:
+>=20
+> > I am opposed to this patch. On ThinkPad X230 I had problems with it=
+=2E
+> > Felipe, come over to dark side. They have cookies.
+>=20
+> And v3.11-rc3 works's fine out-of-the box?
+>=20
 
-That seems fair.
+rc2 work's fine. Since rc3 Rafael reverted patch and I think backlight
+broken again (I don't have time to check rc3 yet).
+--=20
+Igor Gnatenko
+=46edora release 19 (Schr=C3=B6dinger=E2=80=99s Cat)
+Linux 3.10.4-300.fc19.x86_64
 
-> As far as the blacklisting is concerned, I still have the blacklist of
-> your Asus machine queued up for 3.12.  Since you're claiming that it
-> doesn't have any side effects on that machine, I think I can apply it.
->
-> However, for other machines to be added to that blacklist I need to see
-> requests from their users with confirmation that there are no visible side
-> effects there.
-
-Good, that's the purpose of bug 60682.
-
-https://bugzilla.kernel.org/show_bug.cgi?id=60682
-
--- 
-Felipe Contreras
