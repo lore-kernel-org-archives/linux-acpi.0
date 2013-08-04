@@ -1,83 +1,62 @@
-From: Martin Steigerwald <Martin@lichtvoll.de>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
 Subject: Re: Linux 3.11-rc2 (acpi backlight, revert)
-Date: Sun, 04 Aug 2013 21:33:43 +0200
-Message-ID: <1514588.PZegN9olxR@merkaba>
-References: <CA+55aFy330bSRjK5HT1n0wXioPykL3RquHXyBPjm5GpTz_Y=DQ@mail.gmail.com> <1991250.FX2pHCjA6v@merkaba> <1854576.vakuIzNrby@vostro.rjw.lan>
+Date: Mon, 05 Aug 2013 00:15:03 +0200
+Message-ID: <2172124.xGLVSKhdfZ@vostro.rjw.lan>
+References: <CA+55aFy330bSRjK5HT1n0wXioPykL3RquHXyBPjm5GpTz_Y=DQ@mail.gmail.com>
+	<1854576.vakuIzNrby@vostro.rjw.lan> <1514588.PZegN9olxR@merkaba>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mondschein.lichtvoll.de ([194.150.191.11]:38517 "EHLO
-	mail.lichtvoll.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753439Ab3HDTdp convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sun, 4 Aug 2013 15:33:45 -0400
-In-Reply-To: <1854576.vakuIzNrby@vostro.rjw.lan>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <intel-gfx-bounces+gcfxdi-intel-gfx=m.gmane.org@lists.freedesktop.org>
+In-Reply-To: <1514588.PZegN9olxR@merkaba>
+List-Unsubscribe: <http://lists.freedesktop.org/mailman/options/intel-gfx>,
+	<mailto:intel-gfx-request@lists.freedesktop.org?subject=unsubscribe>
+List-Archive: <http://lists.freedesktop.org/archives/intel-gfx>
+List-Post: <mailto:intel-gfx@lists.freedesktop.org>
+List-Help: <mailto:intel-gfx-request@lists.freedesktop.org?subject=help>
+List-Subscribe: <http://lists.freedesktop.org/mailman/listinfo/intel-gfx>,
+	<mailto:intel-gfx-request@lists.freedesktop.org?subject=subscribe>
+Sender: intel-gfx-bounces+gcfxdi-intel-gfx=m.gmane.org@lists.freedesktop.org
+Errors-To: intel-gfx-bounces+gcfxdi-intel-gfx=m.gmane.org@lists.freedesktop.org
+To: Martin Steigerwald <Martin@lichtvoll.de>
+Cc: Aaron Lu <aaron.lu@intel.com>, James Hogan <james@albanarts.com>, Joerg Platte <jplatte@naasa.net>, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, =?ISO-8859-1?Q?J=F6rg?= Otte <jrg.otte@gmail.com>, Daniel Vetter <daniel.vetter@ffwll.ch>, intel-gfx <intel-gfx@lists.freedesktop.org>, Matthew Garrett <matthew.garrett@nebula.com>, Linus Torvalds <torvalds@linux-foundation.org>, Kalle Valo <kvalo@adurom.com>
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: Steven Newbury <steve@snewbury.org.uk>, Joerg Platte <jplatte@naasa.net>, James Hogan <james@albanarts.com>, Kamal Mostafa <kamal@canonical.com>, Aaron Lu <aaron.lu@intel.com>, Kalle Valo <kvalo@adurom.com>, Linus Torvalds <torvalds@linux-foundation.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Matthew Garrett <matthew.garrett@nebula.com>, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, =?ISO-8859-1?Q?J=F6rg?= Otte <jrg.otte@gmail.com>, Daniel Vetter <daniel.vetter@ffwll.ch>, intel-gfx <intel-gfx@lists.freedesktop.org>, Jani Nikula <jani.nikula@linux.intel.com>
 
-Am Freitag, 26. Juli 2013, 14:40:58 schrieb Rafael J. Wysocki:
-> On Friday, July 26, 2013 02:09:08 PM Martin Steigerwald wrote:
-> > Am Donnerstag, 25. Juli 2013, 15:00:26 schrieb Rafael J. Wysocki:
-> > > On Monday, July 22, 2013 09:54:21 PM Rafael J. Wysocki wrote:
-> > > > On Monday, July 22, 2013 11:11:54 AM Linus Torvalds wrote:
-> > > > > On Mon, Jul 22, 2013 at 6:02 AM, Rafael J. Wysocki <rjw@sisk.=
-pl>=20
-wrote:
-> > > > > > Linus, do you want me to send a pull request reverting 8c5b=
-d7a and
-> > > > > > efaa14c?
-> > > > >=20
-> > > > > Yes, but let's wait a while. Not because I think we'll fix th=
-e
-> > > > > problem
-> > > > > (hey, miracles might happen), but because I think it would be=
- useful
-> > > > > to couple the reverts with information about the particular m=
-achines
-> > > > > that broke (and the people who reported it). So that when we
-> > > > > inevitably try again, we can perhaps get some testing effort =
-with
-> > > > > those machines/people.
-> > > > >=20
-> > > > > It doesn't seem to be a show-stopped for a large number of pe=
-ople,
-> > > > > so
-> > > > > there's no huge hurry. I'd suggest doing the revert just in t=
-ime for
-> > > > > rc3, but waiting until then to gather info about people who s=
-ee
-> > > > > breakage.
-> > > > >=20
-> > > > > Sound like a plan?
-> > > >=20
-> > > > Yes, it does.
-> > >=20
-> > > OK, time to revert I guess.
-> > >=20
-> > > James, Kamal, Steven, J=F6rg, Martin, Kalle, please check if the =
-apppended
-> > > patch fixes the backlight for you.
-> >=20
-> > Rafael, do you still need more testing urgently? Otherwise I=B4d wa=
-it till
-> > its in some next 3.11 rc and test then.
->=20
-> Well, it seems to work for everybody else (Steven, Joerg, thanks for =
-your
-> reports!), so I don't think you need to test it urgently.
-
-Just a late confirmation: With 3.11-rc3 back light stuff is working nic=
-ely on=20
-this ThinkPad T520.
-
-Thanks,
---=20
-Martin 'Helios' Steigerwald - http://www.Lichtvoll.de
-GPG: 03B0 0D6C 0040 0710 4AFA  B82F 991B EAAC A599 84C7
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+T24gU3VuZGF5LCBBdWd1c3QgMDQsIDIwMTMgMDk6MzM6NDMgUE0gTWFydGluIFN0ZWlnZXJ3YWxk
+IHdyb3RlOgo+IEFtIEZyZWl0YWcsIDI2LiBKdWxpIDIwMTMsIDE0OjQwOjU4IHNjaHJpZWIgUmFm
+YWVsIEouIFd5c29ja2k6Cj4gPiBPbiBGcmlkYXksIEp1bHkgMjYsIDIwMTMgMDI6MDk6MDggUE0g
+TWFydGluIFN0ZWlnZXJ3YWxkIHdyb3RlOgo+ID4gPiBBbSBEb25uZXJzdGFnLCAyNS4gSnVsaSAy
+MDEzLCAxNTowMDoyNiBzY2hyaWViIFJhZmFlbCBKLiBXeXNvY2tpOgo+ID4gPiA+IE9uIE1vbmRh
+eSwgSnVseSAyMiwgMjAxMyAwOTo1NDoyMSBQTSBSYWZhZWwgSi4gV3lzb2NraSB3cm90ZToKPiA+
+ID4gPiA+IE9uIE1vbmRheSwgSnVseSAyMiwgMjAxMyAxMToxMTo1NCBBTSBMaW51cyBUb3J2YWxk
+cyB3cm90ZToKPiA+ID4gPiA+ID4gT24gTW9uLCBKdWwgMjIsIDIwMTMgYXQgNjowMiBBTSwgUmFm
+YWVsIEouIFd5c29ja2kgPHJqd0BzaXNrLnBsPiAKPiB3cm90ZToKPiA+ID4gPiA+ID4gPiBMaW51
+cywgZG8geW91IHdhbnQgbWUgdG8gc2VuZCBhIHB1bGwgcmVxdWVzdCByZXZlcnRpbmcgOGM1YmQ3
+YSBhbmQKPiA+ID4gPiA+ID4gPiBlZmFhMTRjPwo+ID4gPiA+ID4gPiAKPiA+ID4gPiA+ID4gWWVz
+LCBidXQgbGV0J3Mgd2FpdCBhIHdoaWxlLiBOb3QgYmVjYXVzZSBJIHRoaW5rIHdlJ2xsIGZpeCB0
+aGUKPiA+ID4gPiA+ID4gcHJvYmxlbQo+ID4gPiA+ID4gPiAoaGV5LCBtaXJhY2xlcyBtaWdodCBo
+YXBwZW4pLCBidXQgYmVjYXVzZSBJIHRoaW5rIGl0IHdvdWxkIGJlIHVzZWZ1bAo+ID4gPiA+ID4g
+PiB0byBjb3VwbGUgdGhlIHJldmVydHMgd2l0aCBpbmZvcm1hdGlvbiBhYm91dCB0aGUgcGFydGlj
+dWxhciBtYWNoaW5lcwo+ID4gPiA+ID4gPiB0aGF0IGJyb2tlIChhbmQgdGhlIHBlb3BsZSB3aG8g
+cmVwb3J0ZWQgaXQpLiBTbyB0aGF0IHdoZW4gd2UKPiA+ID4gPiA+ID4gaW5ldml0YWJseSB0cnkg
+YWdhaW4sIHdlIGNhbiBwZXJoYXBzIGdldCBzb21lIHRlc3RpbmcgZWZmb3J0IHdpdGgKPiA+ID4g
+PiA+ID4gdGhvc2UgbWFjaGluZXMvcGVvcGxlLgo+ID4gPiA+ID4gPiAKPiA+ID4gPiA+ID4gSXQg
+ZG9lc24ndCBzZWVtIHRvIGJlIGEgc2hvdy1zdG9wcGVkIGZvciBhIGxhcmdlIG51bWJlciBvZiBw
+ZW9wbGUsCj4gPiA+ID4gPiA+IHNvCj4gPiA+ID4gPiA+IHRoZXJlJ3Mgbm8gaHVnZSBodXJyeS4g
+SSdkIHN1Z2dlc3QgZG9pbmcgdGhlIHJldmVydCBqdXN0IGluIHRpbWUgZm9yCj4gPiA+ID4gPiA+
+IHJjMywgYnV0IHdhaXRpbmcgdW50aWwgdGhlbiB0byBnYXRoZXIgaW5mbyBhYm91dCBwZW9wbGUg
+d2hvIHNlZQo+ID4gPiA+ID4gPiBicmVha2FnZS4KPiA+ID4gPiA+ID4gCj4gPiA+ID4gPiA+IFNv
+dW5kIGxpa2UgYSBwbGFuPwo+ID4gPiA+ID4gCj4gPiA+ID4gPiBZZXMsIGl0IGRvZXMuCj4gPiA+
+ID4gCj4gPiA+ID4gT0ssIHRpbWUgdG8gcmV2ZXJ0IEkgZ3Vlc3MuCj4gPiA+ID4gCj4gPiA+ID4g
+SmFtZXMsIEthbWFsLCBTdGV2ZW4sIErDtnJnLCBNYXJ0aW4sIEthbGxlLCBwbGVhc2UgY2hlY2sg
+aWYgdGhlIGFwcHBlbmRlZAo+ID4gPiA+IHBhdGNoIGZpeGVzIHRoZSBiYWNrbGlnaHQgZm9yIHlv
+dS4KPiA+ID4gCj4gPiA+IFJhZmFlbCwgZG8geW91IHN0aWxsIG5lZWQgbW9yZSB0ZXN0aW5nIHVy
+Z2VudGx5PyBPdGhlcndpc2UgScK0ZCB3YWl0IHRpbGwKPiA+ID4gaXRzIGluIHNvbWUgbmV4dCAz
+LjExIHJjIGFuZCB0ZXN0IHRoZW4uCj4gPiAKPiA+IFdlbGwsIGl0IHNlZW1zIHRvIHdvcmsgZm9y
+IGV2ZXJ5Ym9keSBlbHNlIChTdGV2ZW4sIEpvZXJnLCB0aGFua3MgZm9yIHlvdXIKPiA+IHJlcG9y
+dHMhKSwgc28gSSBkb24ndCB0aGluayB5b3UgbmVlZCB0byB0ZXN0IGl0IHVyZ2VudGx5Lgo+IAo+
+IEp1c3QgYSBsYXRlIGNvbmZpcm1hdGlvbjogV2l0aCAzLjExLXJjMyBiYWNrIGxpZ2h0IHN0dWZm
+IGlzIHdvcmtpbmcgbmljZWx5IG9uIAo+IHRoaXMgVGhpbmtQYWQgVDUyMC4KClRoYW5rcyEKCl9f
+X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fCkludGVsLWdmeCBt
+YWlsaW5nIGxpc3QKSW50ZWwtZ2Z4QGxpc3RzLmZyZWVkZXNrdG9wLm9yZwpodHRwOi8vbGlzdHMu
+ZnJlZWRlc2t0b3Aub3JnL21haWxtYW4vbGlzdGluZm8vaW50ZWwtZ2Z4Cg==
