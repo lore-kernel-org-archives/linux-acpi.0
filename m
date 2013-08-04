@@ -1,62 +1,128 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: Linux 3.11-rc2 (acpi backlight, revert)
-Date: Mon, 05 Aug 2013 00:15:03 +0200
-Message-ID: <2172124.xGLVSKhdfZ@vostro.rjw.lan>
-References: <CA+55aFy330bSRjK5HT1n0wXioPykL3RquHXyBPjm5GpTz_Y=DQ@mail.gmail.com>
-	<1854576.vakuIzNrby@vostro.rjw.lan> <1514588.PZegN9olxR@merkaba>
+From: Prarit Bhargava <prarit@redhat.com>
+Subject: Re: [PATCH] acpi, acpi_pci_irq_enable must return an error if ACPI
+ cannot map an IRQ.
+Date: Sun, 04 Aug 2013 19:35:37 -0400
+Message-ID: <51FEE549.3050001@redhat.com>
+References: <1373900260-1599-1-git-send-email-prarit@redhat.com> <4699269.a9aFxdNOHD@vostro.rjw.lan> <51F06AE4.9010606@redhat.com> <51F0F67F.8070200@redhat.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <intel-gfx-bounces+gcfxdi-intel-gfx=m.gmane.org@lists.freedesktop.org>
-In-Reply-To: <1514588.PZegN9olxR@merkaba>
-List-Unsubscribe: <http://lists.freedesktop.org/mailman/options/intel-gfx>,
-	<mailto:intel-gfx-request@lists.freedesktop.org?subject=unsubscribe>
-List-Archive: <http://lists.freedesktop.org/archives/intel-gfx>
-List-Post: <mailto:intel-gfx@lists.freedesktop.org>
-List-Help: <mailto:intel-gfx-request@lists.freedesktop.org?subject=help>
-List-Subscribe: <http://lists.freedesktop.org/mailman/listinfo/intel-gfx>,
-	<mailto:intel-gfx-request@lists.freedesktop.org?subject=subscribe>
-Sender: intel-gfx-bounces+gcfxdi-intel-gfx=m.gmane.org@lists.freedesktop.org
-Errors-To: intel-gfx-bounces+gcfxdi-intel-gfx=m.gmane.org@lists.freedesktop.org
-To: Martin Steigerwald <Martin@lichtvoll.de>
-Cc: Aaron Lu <aaron.lu@intel.com>, James Hogan <james@albanarts.com>, Joerg Platte <jplatte@naasa.net>, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, =?ISO-8859-1?Q?J=F6rg?= Otte <jrg.otte@gmail.com>, Daniel Vetter <daniel.vetter@ffwll.ch>, intel-gfx <intel-gfx@lists.freedesktop.org>, Matthew Garrett <matthew.garrett@nebula.com>, Linus Torvalds <torvalds@linux-foundation.org>, Kalle Valo <kvalo@adurom.com>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-pci-owner@vger.kernel.org>
+In-Reply-To: <51F0F67F.8070200@redhat.com>
+Sender: linux-pci-owner@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: linux-acpi@vger.kernel.org, Len Brown <lenb@kernel.org>, Bjorn Helgaas <bhelgaas@google.com>, Myron Stowe <mstowe@redhat.com>, linux-pci@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-T24gU3VuZGF5LCBBdWd1c3QgMDQsIDIwMTMgMDk6MzM6NDMgUE0gTWFydGluIFN0ZWlnZXJ3YWxk
-IHdyb3RlOgo+IEFtIEZyZWl0YWcsIDI2LiBKdWxpIDIwMTMsIDE0OjQwOjU4IHNjaHJpZWIgUmFm
-YWVsIEouIFd5c29ja2k6Cj4gPiBPbiBGcmlkYXksIEp1bHkgMjYsIDIwMTMgMDI6MDk6MDggUE0g
-TWFydGluIFN0ZWlnZXJ3YWxkIHdyb3RlOgo+ID4gPiBBbSBEb25uZXJzdGFnLCAyNS4gSnVsaSAy
-MDEzLCAxNTowMDoyNiBzY2hyaWViIFJhZmFlbCBKLiBXeXNvY2tpOgo+ID4gPiA+IE9uIE1vbmRh
-eSwgSnVseSAyMiwgMjAxMyAwOTo1NDoyMSBQTSBSYWZhZWwgSi4gV3lzb2NraSB3cm90ZToKPiA+
-ID4gPiA+IE9uIE1vbmRheSwgSnVseSAyMiwgMjAxMyAxMToxMTo1NCBBTSBMaW51cyBUb3J2YWxk
-cyB3cm90ZToKPiA+ID4gPiA+ID4gT24gTW9uLCBKdWwgMjIsIDIwMTMgYXQgNjowMiBBTSwgUmFm
-YWVsIEouIFd5c29ja2kgPHJqd0BzaXNrLnBsPiAKPiB3cm90ZToKPiA+ID4gPiA+ID4gPiBMaW51
-cywgZG8geW91IHdhbnQgbWUgdG8gc2VuZCBhIHB1bGwgcmVxdWVzdCByZXZlcnRpbmcgOGM1YmQ3
-YSBhbmQKPiA+ID4gPiA+ID4gPiBlZmFhMTRjPwo+ID4gPiA+ID4gPiAKPiA+ID4gPiA+ID4gWWVz
-LCBidXQgbGV0J3Mgd2FpdCBhIHdoaWxlLiBOb3QgYmVjYXVzZSBJIHRoaW5rIHdlJ2xsIGZpeCB0
-aGUKPiA+ID4gPiA+ID4gcHJvYmxlbQo+ID4gPiA+ID4gPiAoaGV5LCBtaXJhY2xlcyBtaWdodCBo
-YXBwZW4pLCBidXQgYmVjYXVzZSBJIHRoaW5rIGl0IHdvdWxkIGJlIHVzZWZ1bAo+ID4gPiA+ID4g
-PiB0byBjb3VwbGUgdGhlIHJldmVydHMgd2l0aCBpbmZvcm1hdGlvbiBhYm91dCB0aGUgcGFydGlj
-dWxhciBtYWNoaW5lcwo+ID4gPiA+ID4gPiB0aGF0IGJyb2tlIChhbmQgdGhlIHBlb3BsZSB3aG8g
-cmVwb3J0ZWQgaXQpLiBTbyB0aGF0IHdoZW4gd2UKPiA+ID4gPiA+ID4gaW5ldml0YWJseSB0cnkg
-YWdhaW4sIHdlIGNhbiBwZXJoYXBzIGdldCBzb21lIHRlc3RpbmcgZWZmb3J0IHdpdGgKPiA+ID4g
-PiA+ID4gdGhvc2UgbWFjaGluZXMvcGVvcGxlLgo+ID4gPiA+ID4gPiAKPiA+ID4gPiA+ID4gSXQg
-ZG9lc24ndCBzZWVtIHRvIGJlIGEgc2hvdy1zdG9wcGVkIGZvciBhIGxhcmdlIG51bWJlciBvZiBw
-ZW9wbGUsCj4gPiA+ID4gPiA+IHNvCj4gPiA+ID4gPiA+IHRoZXJlJ3Mgbm8gaHVnZSBodXJyeS4g
-SSdkIHN1Z2dlc3QgZG9pbmcgdGhlIHJldmVydCBqdXN0IGluIHRpbWUgZm9yCj4gPiA+ID4gPiA+
-IHJjMywgYnV0IHdhaXRpbmcgdW50aWwgdGhlbiB0byBnYXRoZXIgaW5mbyBhYm91dCBwZW9wbGUg
-d2hvIHNlZQo+ID4gPiA+ID4gPiBicmVha2FnZS4KPiA+ID4gPiA+ID4gCj4gPiA+ID4gPiA+IFNv
-dW5kIGxpa2UgYSBwbGFuPwo+ID4gPiA+ID4gCj4gPiA+ID4gPiBZZXMsIGl0IGRvZXMuCj4gPiA+
-ID4gCj4gPiA+ID4gT0ssIHRpbWUgdG8gcmV2ZXJ0IEkgZ3Vlc3MuCj4gPiA+ID4gCj4gPiA+ID4g
-SmFtZXMsIEthbWFsLCBTdGV2ZW4sIErDtnJnLCBNYXJ0aW4sIEthbGxlLCBwbGVhc2UgY2hlY2sg
-aWYgdGhlIGFwcHBlbmRlZAo+ID4gPiA+IHBhdGNoIGZpeGVzIHRoZSBiYWNrbGlnaHQgZm9yIHlv
-dS4KPiA+ID4gCj4gPiA+IFJhZmFlbCwgZG8geW91IHN0aWxsIG5lZWQgbW9yZSB0ZXN0aW5nIHVy
-Z2VudGx5PyBPdGhlcndpc2UgScK0ZCB3YWl0IHRpbGwKPiA+ID4gaXRzIGluIHNvbWUgbmV4dCAz
-LjExIHJjIGFuZCB0ZXN0IHRoZW4uCj4gPiAKPiA+IFdlbGwsIGl0IHNlZW1zIHRvIHdvcmsgZm9y
-IGV2ZXJ5Ym9keSBlbHNlIChTdGV2ZW4sIEpvZXJnLCB0aGFua3MgZm9yIHlvdXIKPiA+IHJlcG9y
-dHMhKSwgc28gSSBkb24ndCB0aGluayB5b3UgbmVlZCB0byB0ZXN0IGl0IHVyZ2VudGx5Lgo+IAo+
-IEp1c3QgYSBsYXRlIGNvbmZpcm1hdGlvbjogV2l0aCAzLjExLXJjMyBiYWNrIGxpZ2h0IHN0dWZm
-IGlzIHdvcmtpbmcgbmljZWx5IG9uIAo+IHRoaXMgVGhpbmtQYWQgVDUyMC4KClRoYW5rcyEKCl9f
-X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fCkludGVsLWdmeCBt
-YWlsaW5nIGxpc3QKSW50ZWwtZ2Z4QGxpc3RzLmZyZWVkZXNrdG9wLm9yZwpodHRwOi8vbGlzdHMu
-ZnJlZWRlc2t0b3Aub3JnL21haWxtYW4vbGlzdGluZm8vaW50ZWwtZ2Z4Cg==
+
+
+On 07/25/2013 05:57 AM, Prarit Bhargava wrote:
+> 
+> 
+> On 07/24/2013 08:01 PM, Prarit Bhargava wrote:
+>>
+>>
+>> On 07/24/2013 07:35 PM, Rafael J. Wysocki wrote:
+>>> On Monday, July 15, 2013 10:57:40 AM Prarit Bhargava wrote:
+>>>> Driver probe's currently do the following
+>>>>
+>>>> 	pci_enable_device();
+>>>> 	/* ... do some other init stuff, and eventually call ... */
+>>>> 	request_irq();
+>>>>
+>>>> After pci_enable_device() is called it is assumed that the device's irq
+>>>> value (pci_dev->irq) has been appropriately set on success.  This value
+>>>> is passed into the request_irq() call.
+>>>>
+>>>> In the case that ACPI is used to determine the irq value, it is possible
+>>>> that the ACPI IRQ look up for a specific device fails and success is
+>>>> returned by pci_enable_device().
+>>>>
+>>>> The call sequence is:
+>>>>
+>>>> pci_enable_device();
+>>>> 	-> pci_enable_device_flags();
+>>>> 		->do_pci_enable_device();
+>>>> 			-> pcibios_enable_device() which, if the device
+>>>> 			   does not use MSI calls
+>>>> 			   -> pcibios_enable_irq() which maps to
+>>>> 			      acpi_pci_irq_enable()
+>>>> 				-> acpi_pci_irq_lookup()
+>>>>
+>>>> If acpi_pci_irq_lookup() cannot map the device's IRQ value it returns NULL
+>>>> as an error.  The error is returned to acpi_pci_irq_enable(), but is not
+>>>> propagated further.  This can result in the driver returning success for
+>>>> pci_enable_device() and the driver probe attempting to call request_irq()
+>>>> with dev->irq = 0.
+>>>>
+>>>> This patch modifies acpi_pci_irq_enable() to return an error in the case
+>>>> that an entry is not found in the ACPI tables.
+>>>
+>>> Is there any known system on which this leads to observable misbehavior?
+>>>
+>>> If so, what's that system?
+>>>
+>>
+>> Dell PowerEdge 840.  The end result is an genirq warning about the irq flags of
+>> irq 0:
+>>
+>> [   14.126845] i801_smbus 0000:00:1f.3: can't derive routing for PCI INT B
+>> [   14.133473] i801_smbus 0000:00:1f.3: PCI INT B: no GSI
+>> [   14.795122] genirq: Flags mismatch irq 0. 00000080 (i801_smbus) vs. 00015a20
+>> (timer)
+>> [   14.796037] CPU: 0 PID: 427 Comm: systemd-udevd Tainted: G        W
+>> --------------   3.10.0-0.rc4.60.el7.x86_64.debug #1
+>> [   14.796037] Hardware name: Dell Computer Corporation PowerEdge 840/0RH822,
+>> BIOS A05 10/04/2007
+>> [   14.796037]  ffff880075643b80 ffff88007a743aa8 ffffffff816b8bbd ffff88007a743af8
+>> [   14.796037]  ffffffff8111ed8d ffffffff811bf5d1 0000000000000296 ffff880075b93800
+>> [   14.796037]  ffffffffa03d2240 0000000000000080 0000000000000000 ffff88007ad7e000
+>> [   14.796037] Call Trace:
+>> [   14.796037]  [<ffffffff816b8bbd>] dump_stack+0x19/0x1b
+>> [   14.796037]  [<ffffffff8111ed8d>] __setup_irq+0x51d/0x550
+>> [   14.796037]  [<ffffffff811bf5d1>] ? kmem_cache_alloc_trace+0x111/0x340
+>> [   14.796037]  [<ffffffffa03d2240>] ? i801_check_pre.isra.6+0xe0/0xe0 [i2c_i801]
+>> [   14.796037]  [<ffffffff8111ef1c>] request_threaded_irq+0xcc/0x170
+>> [   14.796037]  [<ffffffffa03d388d>] i801_probe+0x34d/0x52c [i2c_i801]
+>> [   14.796037]  [<ffffffff810ddecd>] ? trace_hardirqs_on+0xd/0x10
+>> [   14.796037]  [<ffffffff813876be>] local_pci_probe+0x3e/0x70
+>> [   14.796037]  [<ffffffff813889a1>] pci_device_probe+0x111/0x120
+>> [   14.796037]  [<ffffffff8144ff77>] driver_probe_device+0x87/0x390
+>> [   14.796037]  [<ffffffff81450353>] __driver_attach+0x93/0xa0
+>> [   14.796037]  [<ffffffff814502c0>] ? __device_attach+0x40/0x40
+>> [   14.796037]  [<ffffffff8144de93>] bus_for_each_dev+0x63/0xa0
+>> [   14.796037]  [<ffffffff8144f9ae>] driver_attach+0x1e/0x20
+>> [   14.796037]  [<ffffffff8144f540>] bus_add_driver+0x1f0/0x2a0
+>> [   14.796037]  [<ffffffffa03d8000>] ? 0xffffffffa03d7fff
+>> [   14.796037]  [<ffffffff814509d1>] driver_register+0x71/0x150
+>> [   14.796037]  [<ffffffffa03d8000>] ? 0xffffffffa03d7fff
+>> [   14.796037]  [<ffffffff81387540>] __pci_register_driver+0x60/0x70
+>> [   14.796037]  [<ffffffffa03d80af>] i2c_i801_init+0xaf/0x1000 [i2c_i801]
+>> [   14.796037]  [<ffffffffa03d8000>] ? 0xffffffffa03d7fff
+>> [   14.796037]  [<ffffffff810020e2>] do_one_initcall+0xe2/0x1a0
+>> [   14.796037]  [<ffffffff810ee09f>] load_module+0xf4f/0x14d0
+>> [   14.796037]  [<ffffffff81375d20>] ? ddebug_proc_write+0xf0/0xf0
+>> [   14.796037]  [<ffffffff8136088d>] ? trace_hardirqs_off_thunk+0x3a/0x3c
+>> [   14.796037]  [<ffffffff810ee6e1>] SyS_init_module+0xc1/0x110
+>> [   14.796037]  [<ffffffff816ca299>] system_call_fastpath+0x16/0x1b
+>>
+> 
+> Rafael,
+> 
+> One other thing -- the core issue here is that the BIOS is broken and does not
+> supply an ACPI entry for the IRQ.  I think the kernel should do a better job of
+> reacting to that instead of just continuing down a broken path.
+> 
+> In either case, the end result is the same -- the i801 driver does not load, but
+> with my patch the warning is not displayed, which IMO is the correct way to fail.
+> 
+> P.
+
+Hey Rafael,
+
+I know you're busy but I was just wondering if this was queued up anywhere or if
+you had any other questions?
+
+Thanks,
+
+P.
