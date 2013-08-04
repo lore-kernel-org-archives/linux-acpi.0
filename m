@@ -1,69 +1,88 @@
-From: Aaron Lu <aaron.lwe@gmail.com>
+From: Felipe Contreras <felipe.contreras@gmail.com>
 Subject: Re: [PATCH] acpi: video: improve quirk check
-Date: Sun, 4 Aug 2013 09:47:12 +0800
-Message-ID: <CAOzJMDQwte=7VtfQzW9DyQpt+pbe48STDEGhLis62Y0tG78G1w@mail.gmail.com>
+Date: Sun, 4 Aug 2013 01:42:49 -0500
+Message-ID: <CAMP44s0+VKH_vTRiXvhKz8gGUwAa+_Hgf_dN3UddYE1Z7DLPAA@mail.gmail.com>
 References: <1375472229-1563-1-git-send-email-felipe.contreras@gmail.com>
+	<3682340.ddGL4l7l22@vostro.rjw.lan>
+	<51FCBBCC.6060307@gmail.com>
 	<13505759.IqzsRNCUnN@vostro.rjw.lan>
-	<CAMP44s1SobAmSwth+=-pHYN77u-yEumqMfes1w3Bj-8sLTpWng@mail.gmail.com>
-	<2483450.yz2brWbP8X@vostro.rjw.lan>
-	<CAMP44s3kacF57gsJzyL6-4JWfWpdfJbJYW-nWQ92Yn1VimnYug@mail.gmail.com>
+	<51FDABFD.3070601@gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-wg0-f53.google.com ([74.125.82.53]:39656 "EHLO
-	mail-wg0-f53.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752639Ab3HDBrN (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sat, 3 Aug 2013 21:47:13 -0400
-In-Reply-To: <CAMP44s3kacF57gsJzyL6-4JWfWpdfJbJYW-nWQ92Yn1VimnYug@mail.gmail.com>
+Received: from mail-la0-f54.google.com ([209.85.215.54]:43949 "EHLO
+	mail-la0-f54.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751565Ab3HDGmv (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sun, 4 Aug 2013 02:42:51 -0400
+In-Reply-To: <51FDABFD.3070601@gmail.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Felipe Contreras <felipe.contreras@gmail.com>
-Cc: "Rafael J. Wysocki" <rjw@sisk.pl>, Kernel development list <linux-kernel@vger.kernel.org>, linux-acpi@vger.kernel.org, Len Brown <lenb@kernel.org>, Zhang Rui <rui.zhang@intel.com>
+To: Aaron Lu <aaron.lwe@gmail.com>
+Cc: "Rafael J. Wysocki" <rjw@sisk.pl>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Len Brown <lenb@kernel.org>, Zhang Rui <rui.zhang@intel.com>
 
-On Sun, Aug 4, 2013 at 6:20 AM, Felipe Contreras
-<felipe.contreras@gmail.com> wrote:
-> On Sat, Aug 3, 2013 at 4:40 PM, Rafael J. Wysocki <rjw@sisk.pl> wrote:
->> On Saturday, August 03, 2013 03:24:16 PM Felipe Contreras wrote:
->>> On Sat, Aug 3, 2013 at 6:34 AM, Rafael J. Wysocki <rjw@sisk.pl> wrote:
->>> > On Saturday, August 03, 2013 04:14:04 PM Aaron Lu wrote:
+On Sat, Aug 3, 2013 at 8:18 PM, Aaron Lu <aaron.lwe@gmail.com> wrote:
+> On 08/03/2013 07:34 PM, Rafael J. Wysocki wrote:
+>> On Saturday, August 03, 2013 04:14:04 PM Aaron Lu wrote:
+>>> On 08/03/2013 07:47 AM, Rafael J. Wysocki wrote:
+>>>> On Friday, August 02, 2013 02:37:09 PM Felipe Contreras wrote:
+>>>>> If the _BCL package is descending, the first level (br->levels[2]) will
+>>>>> be 0, and if the number of levels matches the number of steps, we might
+>>>>> confuse a returned level to mean the index.
+>>>>>
+>>>>> For example:
+>>>>>
+>>>>>   current_level = max_level = 100
+>>>>>   test_level = 0
+>>>>>   returned level = 100
+>>>>>
+>>>>> In this case 100 means the level, not the index, and _BCM failed. But if
+>>>>> the _BCL package is descending, the index of level 0 is also 100, so we
+>>>>> assume _BQC is indexed, when it's not.
+>>>>>
+>>>>> This causes all _BQC calls to return bogus values causing weird behavior
+>>>>> from the user's perspective. For example: xbacklight -set 10; xbacklight
+>>>>> -set 20; would flash to 90% and then slowly down to the desired level
+>>>>> (20).
+>>>>>
+>>>>> The solution is simple; test anything other than the first level (e.g.
+>>>>> 1).
+>>>>>
+>>>>> Signed-off-by: Felipe Contreras <felipe.contreras@gmail.com>
+>>>>
+>>>> Looks reasonable.
+>>>>
+>>>> Aaron, what do you think?
 >>>
->>> >> Yes, the patch is correct, but I still prefer my own version :-)
->>> >> https://github.com/aaronlu/linux/commit/0a3d2c5b59caf80ae5bb1ca1fda0f7bf448b38c9
->>> >>
->>> >> In case you want to take mine and mine needs refresh, please let me know
->>> >> and I can do the re-base, thanks.
->>> >
->>> > Well, I prefer simpler, unless there's a good reason to use more complicated.
+>>> Yes, the patch is correct, but I still prefer my own version :-)
+>>> https://github.com/aaronlu/linux/commit/0a3d2c5b59caf80ae5bb1ca1fda0f7bf448b38c9
 >>>
->>> Note that these are not exclusionary; his patch can be applied on top
->>> of mine. I don't think his patch is needed though.
+>>> In case you want to take mine and mine needs refresh, please let me know
+>>> and I can do the re-base, thanks.
 >>
->> OK
+>> Well, I prefer simpler, unless there's a good reason to use more complicated.
 >>
->> Do we still need to revert commit efaa14c if this patch is applied?
+>> Why exactly do you think your version is better?
 >
-> I guess not. At least in this machine changing the backlight works
-> correctly, whereas in v3.11-rc3 it was all weird, and v3.7-v3.10
-> didn't work at all. I cannot see how it would affect negatively other
-> machines.
-
-That commit makes hotkey emit notifications, and it's not the
-problem of "booting into a black screen", that problem is due to
-broken _BQC.
-
-BTW, the efaa14c will also make screen off at level 0 according
-to Felipe, who consider this is a bug. But since it is required to
-let firmware emit notifications on hotkey press, I think user will
-want it.
-
--Aaron
-
+> As explained here:
+> https://lkml.org/lkml/2013/8/2/81
+> https://lkml.org/lkml/2013/8/2/112
 >
-> That being said, the blacklisting is still needed, because 1. the
-> level is not preserved between boots, and 2. level 0 turns off the
-> screen, which I personally consider a regression.
->
-> At least it boots to level 100 instead of 0.
->
-> --
-> Felipe Contreras
+> And for the demo broken _BQC, mine patch will disable _BQC while still
+> make the backlight work, and this patch here is testing the max
+> brightness level and may fail.
+
+Yes, but that problem can *only* happen in such a simplified _BCL,
+which is very very unlikely. Still, it would make sense to fix the
+code for that case.
+
+However, we can fix the problem first for the real known cases with my
+simple one-liner patch that can even be merged for v3.11, and *later*
+fix the issue for the synthetic unlikely case.
+
+Personally I think there are better ways to fix the code for the
+synthetic case than what you patch does, which will also make _BQC
+work. That can be discussed later though, the one-liner is simple, and
+it works.
+
+-- 
+Felipe Contreras
