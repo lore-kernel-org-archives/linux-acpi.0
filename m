@@ -1,61 +1,57 @@
-From: Felipe Contreras <felipe.contreras@gmail.com>
-Subject: Re: [PATCH] acpi: video: improve quirk check
-Date: Sun, 4 Aug 2013 01:54:21 -0500
-Message-ID: <CAMP44s2CnJ5O5wspeG3-hYOTKwBLHbaZ1AbfHQ=rYEQRpeJW2g@mail.gmail.com>
-References: <1375472229-1563-1-git-send-email-felipe.contreras@gmail.com>
-	<13505759.IqzsRNCUnN@vostro.rjw.lan>
-	<CAMP44s1SobAmSwth+=-pHYN77u-yEumqMfes1w3Bj-8sLTpWng@mail.gmail.com>
-	<2483450.yz2brWbP8X@vostro.rjw.lan>
-	<CAMP44s3kacF57gsJzyL6-4JWfWpdfJbJYW-nWQ92Yn1VimnYug@mail.gmail.com>
-	<CAOzJMDQwte=7VtfQzW9DyQpt+pbe48STDEGhLis62Y0tG78G1w@mail.gmail.com>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: Re: [PATCH] ACPI: Do not fail acpi_bind_one() if device is already bound correctly
+Date: Sun, 04 Aug 2013 16:03:27 +0200
+Message-ID: <1981183.omDzKl0aqK@vostro.rjw.lan>
+References: <1888947.F5IBMfDKlY@vostro.rjw.lan> <3596381.TNBAQz9C67@vostro.rjw.lan> <1375576322.10300.146.camel@misato.fc.hp.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <CAOzJMDQwte=7VtfQzW9DyQpt+pbe48STDEGhLis62Y0tG78G1w@mail.gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Aaron Lu <aaron.lwe@gmail.com>
-Cc: "Rafael J. Wysocki" <rjw@sisk.pl>, Kernel development list <linux-kernel@vger.kernel.org>, linux-acpi@vger.kernel.org, Len Brown <lenb@kernel.org>, Zhang Rui <rui.zhang@intel.com>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7Bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from hydra.sisk.pl ([212.160.235.94]:55101 "EHLO hydra.sisk.pl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751680Ab3HDNxP (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Sun, 4 Aug 2013 09:53:15 -0400
+In-Reply-To: <1375576322.10300.146.camel@misato.fc.hp.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Toshi Kani <toshi.kani@hp.com>
+Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>, Bjorn Helgaas <bhelgaas@google.com>
 
-On Sat, Aug 3, 2013 at 8:47 PM, Aaron Lu <aaron.lwe@gmail.com> wrote:
-> On Sun, Aug 4, 2013 at 6:20 AM, Felipe Contreras
-> <felipe.contreras@gmail.com> wrote:
->> On Sat, Aug 3, 2013 at 4:40 PM, Rafael J. Wysocki <rjw@sisk.pl> wrote:
+On Saturday, August 03, 2013 06:32:02 PM Toshi Kani wrote:
+> On Sat, 2013-08-03 at 02:47 +0200, Rafael J. Wysocki wrote:
+> > On Friday, August 02, 2013 04:38:38 PM Toshi Kani wrote:
+> > > On Fri, 2013-08-02 at 00:33 +0200, Rafael J. Wysocki wrote:
+> > > > From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+> > > > 
+> > > > Modify acpi_bind_one() so that it doesn't fail if the device
+> > > > represented by its first argument has already been bound to the
+> > > > given ACPI handle (second argument), because that is not a good
+> > > > enough reason for returning an error code.
+> > > 
+> > > While it seems reasonable to allow such case, I do not think we will hit
+> > > this case under the normal scenarios.  So, I do not think we need to
+> > > make this change now unless it actually solves Yasuaki's issue (which I
+> > > am guessing not).
+> > 
+> > In theory it should be possible to call acpi_bind_one() twice in a row
+> > for the same dev and the same handle without failure, that simply is
+> > logical.  The patch may not fix any problems visible now, but returning an
+> > error code in such a case is simply incorrect.
+> 
+> We changed acpi_bus_device_attach() to not call the handler or driver
+> again if it is already bound.  So, I was under impression that we
+> prevent from attaching a same device twice.  But I may be missing
+> something...
 
->>> Do we still need to revert commit efaa14c if this patch is applied?
->>
->> I guess not. At least in this machine changing the backlight works
->> correctly, whereas in v3.11-rc3 it was all weird, and v3.7-v3.10
->> didn't work at all. I cannot see how it would affect negatively other
->> machines.
->
-> That commit makes hotkey emit notifications, and it's not the
-> problem of "booting into a black screen", that problem is due to
-> broken _BQC.
+acpi_bind_one() may be called in code paths that don't start from
+acpi_bus_device_attach(), like acpi_platform_notify(), where the result
+depends on how .find_device() is implemented by the the given bus type,
+for example.
 
-The broken _BQC has been there for quite some time, hasn't it?
+Thanks,
+Rafael
 
-Either way, without efaa14c, changing the backlight doesn't work at
-all either way, so there's no black screen, because there cannot be.
-
-> BTW, the efaa14c will also make screen off at level 0 according
-> to Felipe, who consider this is a bug. But since it is required to
-> let firmware emit notifications on hotkey press, I think user will
-> want it.
-
-With or without efaa14c, level 0 makes the screen off, or at least it
-would, if the control worked at all. So efaa14c is one step forward,
-but two back, my patch removes the two steps back, but we are still
-not at the level of what my blacklisting patch does, for that we would
-need to fix two issues:
-
-1. Fix the retrieval of the last level at boot
-2. Fix level 0 (yes, I consider that a regression)
-
-But we cannot achieve either of those for v3.11, the only
-possibilities seem to be either a) revert efaa14c, or b) keep it and
-apply my patch. Anything else doesn't seem to be a possible or
-sensible option, and I vote for b).
 
 -- 
-Felipe Contreras
+I speak only for myself.
+Rafael J. Wysocki, Intel Open Source Technology Center.
