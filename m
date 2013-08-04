@@ -1,128 +1,104 @@
-From: Toshi Kani <toshi.kani@hp.com>
-Subject: Re: Cannot hot remove a memory device
-Date: Sat, 03 Aug 2013 18:37:26 -0600
-Message-ID: <1375576646.10300.150.camel@misato.fc.hp.com>
-References: <51FA1E41.20304@jp.fujitsu.com>
-	 <2124016.41i4c3lbD4@vostro.rjw.lan>
-	 <1375488280.10300.124.camel@misato.fc.hp.com>
-	 <3856529.sQXzdEem7D@vostro.rjw.lan>
+From: Aaron Lu <aaron.lu@intel.com>
+Subject: Re: [PATCH 5/5] acpi_video: Don't handle ACPI brightness notifications
+ by default
+Date: Sun, 04 Aug 2013 09:08:27 +0800
+Message-ID: <51FDA98B.8090904@intel.com>
+References: <20130307193812.GD24233@thinkpad-t410> <17431934.NpphB5cAgA@vostro.rjw.lan> <51FCF324.6030304@intel.com> <1842221.DqbnaT4T1E@vostro.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from g5t0006.atlanta.hp.com ([15.192.0.43]:20991 "EHLO
-	g5t0006.atlanta.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751867Ab3HDAid (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sat, 3 Aug 2013 20:38:33 -0400
-In-Reply-To: <3856529.sQXzdEem7D@vostro.rjw.lan>
+Received: from mga09.intel.com ([134.134.136.24]:3166 "EHLO mga09.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751670Ab3HDBHm (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Sat, 3 Aug 2013 21:07:42 -0400
+In-Reply-To: <1842221.DqbnaT4T1E@vostro.rjw.lan>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>, rafael.j.wysocki@intel.com, vasilis.liaskovitis@profitbricks.com, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, tangchen@cn.fujitsu.com, wency@cn.fujitsu.com
+Cc: Seth Forshee <seth.forshee@canonical.com>, Matthew Garrett <mjg59@srcf.ucam.org>, linux-acpi@vger.kernel.org, Len Brown <lenb@kernel.org>, Ben Jencks <ben@bjencks.net>, joeyli <jlee@suse.com>, Micael Dias <kam1kaz3@gmail.com>, =?UTF-8?B?KiBT?= =?UTF-8?B?QU3DjSAq?= <miaousami@hotmail.com>, Yves-Alexis Perez <corsac@debian.org>
 
-On Sat, 2013-08-03 at 03:01 +0200, Rafael J. Wysocki wrote:
-> On Friday, August 02, 2013 06:04:40 PM Toshi Kani wrote:
-> > On Sat, 2013-08-03 at 01:43 +0200, Rafael J. Wysocki wrote:
-> > > On Friday, August 02, 2013 03:46:15 PM Toshi Kani wrote:
-> > > > On Thu, 2013-08-01 at 23:43 +0200, Rafael J. Wysocki wrote:
-> > > > > Hi,
-> > > > > 
-> > > > > Thanks for your report.
-> > > > > 
-> > > > > On Thursday, August 01, 2013 05:37:21 PM Yasuaki Ishimatsu wrote:
-> > > > > > By following commit, I cannot hot remove a memory device.
-> > > > > > 
-> > > > > > ACPI / memhotplug: Bind removable memory blocks to ACPI device nodes
-> > > > > > commit e2ff39400d81233374e780b133496a2296643d7d
-> > > > > > 
-> > > > > > Details are follows:
-> > > > > > When I add a memory device, acpi_memory_enable_device() always fails
-> > > > > > as follows:
-> > > > > > 
-> > > > > > ...
-> > > > > > [ 1271.114116]  [ffffea121c400000-ffffea121c7fffff] PMD -> [ffff880813c00000-ffff880813ffffff] on node 3
-> > > > > > [ 1271.128682]  [ffffea121c800000-ffffea121cbfffff] PMD -> [ffff880813800000-ffff880813bfffff] on node 3
-> > > > > > [ 1271.143298]  [ffffea121cc00000-ffffea121cffffff] PMD -> [ffff880813000000-ffff8808133fffff] on node 3
-> > > > > > [ 1271.157799]  [ffffea121d000000-ffffea121d3fffff] PMD -> [ffff880812c00000-ffff880812ffffff] on node 3
-> > > > > > [ 1271.172341]  [ffffea121d400000-ffffea121d7fffff] PMD -> [ffff880812800000-ffff880812bfffff] on node 3
-> > > > > > [ 1271.186872]  [ffffea121d800000-ffffea121dbfffff] PMD -> [ffff880812400000-ffff8808127fffff] on node 3
-> > > > > > [ 1271.201481]  [ffffea121dc00000-ffffea121dffffff] PMD -> [ffff880812000000-ffff8808123fffff] on node 3
-> > > > > > [ 1271.216041]  [ffffea121e000000-ffffea121e3fffff] PMD -> [ffff880811c00000-ffff880811ffffff] on node 3
-> > > > > > [ 1271.230623]  [ffffea121e400000-ffffea121e7fffff] PMD -> [ffff880811800000-ffff880811bfffff] on node 3
-> > > > > > [ 1271.245148]  [ffffea121e800000-ffffea121ebfffff] PMD -> [ffff880811400000-ffff8808117fffff] on node 3
-> > > > > > [ 1271.259683]  [ffffea121ec00000-ffffea121effffff] PMD -> [ffff880811000000-ffff8808113fffff] on node 3
-> > > > > > [ 1271.274194]  [ffffea121f000000-ffffea121f3fffff] PMD -> [ffff880810c00000-ffff880810ffffff] on node 3
-> > > > > > [ 1271.288764]  [ffffea121f400000-ffffea121f7fffff] PMD -> [ffff880810800000-ffff880810bfffff] on node 3
-> > > > 
-> > > > It appears that each memory object only has 64MB of memory.  This is
-> > > > less than the memory block size, which is 128MB.  This means that a
-> > > > single memory block associates with two ACPI memory device objects.
-> > > 
-> > > That'd be bad.
-> > > 
-> > > How did that work before if that indeed is the case?
-> > 
-> > Well, it looks to me that it has never worked before...
-> > 
-> > > > > > ...	
-> > > > > > [ 1271.325841] acpi PNP0C80:03: acpi_memory_enable_device() error
-> > > > > 
-> > > > > Well, the only new way acpi_memory_enable_device() can fail after that commit
-> > > > > is a failure in acpi_bind_memory_blocks().
-> > > > 
-> > > > Agreed.
-> > > > 
-> > > > > This means that either handle is NULL, which I think we can exclude, because
-> > > > > acpi_memory_enable_device() wouldn't be called at all if that were the case, or
-> > > > > there's a more subtle error in acpi_bind_one().
-> > > > > 
-> > > > > One that comes to mind is that we may be calling acpi_bind_one() twice for the
-> > > > > same memory region, in which it will trigger -EINVAL from the sanity check in
-> > > > > there.
-> > > > 
-> > > > I think it fails with -EINVAL at the place with dev_warn(dev, "ACPI
-> > > > handle is already set\n").  When two ACPI memory objects associate with
-> > > > a same memory block, the bind procedure of the 2nd ACPI memory object
-> > > > sees that ACPI_HANDLE(dev) is already set to the 1st ACPI memory object.
-> > > 
-> > > That sound's plausible, but I wonder how we can fix that?
-> > > 
-> > > There's no way for a single physical device to have two different ACPI
-> > > "companions".  It looks like the memory blocks should be 64 M each in that
-> > > case.  Or we need to create two child devices for each memory block and
-> > > associate each of them with an ACPI object.  That would lead to complications
-> > > in the user space interface, though.
-> > 
-> > Right.  Even bigger issue is that I do not think __add_pages() and
-> > __remove_pages() can add / delete a memory chunk that is less than
-> > 128MB.  128MB is the granularity of them.  So, we may just have to fail
-> > this case gracefully.
+On 08/04/2013 06:07 AM, Rafael J. Wysocki wrote:
+> On Saturday, August 03, 2013 08:10:12 PM Aaron Lu wrote:
+>> On 08/03/2013 07:23 PM, Rafael J. Wysocki wrote:
+>>> On Saturday, August 03, 2013 05:46:02 PM Aaron Lu wrote:
+>>>> On 08/03/2013 08:26 AM, Rafael J. Wysocki wrote:
+>>>>> On Friday, August 02, 2013 10:52:09 PM Aaron Lu wrote:
+>>>>>> On 08/02/2013 10:41 PM, Rafael J. Wysocki wrote:
+>>>>>>> On Friday, August 02, 2013 01:55:47 PM Aaron Lu wrote:
+>>>>>>>> On 03/08/2013 03:39 AM, Seth Forshee wrote:
+>>>>>>>>> Windows 8 requires all backlight interfaces to report 101 brightness
+>>>>>>>>> values, and as a result we're starting to see machines with that many
+>>>>>>>>> brightness levels in _BCL. For machines which send these notifications
+>>>>>>>>> when the brightness up/down keys are pressed this means a lot of key
+>>>>>>>>> presses to get any kind of noticeable change in brightness.
+>>>>>>>>>
+>>>>>>>>> For a while now we've had the ability to disable in-kernel handling of
+>>>>>>>>> notifications via the video.brightness_switch_enabled parameter. Change
+>>>>>>>>> this to default to off, and let userspace choose more reasonable
+>>>>>>>>> increments for changing the brightness.
+>>>>>>>>
+>>>>>>>> I just found one more reason for this param to default 0.
+>>>>>>>
+>>>>>>> Do you mean video.brightness_switch_enabled?
+>>>>>>
+>>>>>> Yes.
+>>>>>>
+>>>>>>>
+>>>>>>>> We are going to separate the backlight interface control and event
+>>>>>>>> notification functionalities of the ACPI video module, it is highly
+>>>>>>>> possible a lot of systems will use a combination of the event
+>>>>>>>> notification handler and intel_backlight interface. So it doesn't make
+>>>>>>>> sense to let video module to do any adjustment on its own if user space
+>>>>>>>> has chosen a different interface to use. Actually, it can cause problems
+>>>>>>>> as in ASUS's case:
+>>>>>>>> https://bugzilla.kernel.org/show_bug.cgi?id=52951
+>>>>>>>>
+>>>>>>>> The problem there is, on hotkey brightness up, the video module will
+>>>>>>>> adjust the brightness level first and since its _BQC is broken, it gets
+>>>>>>>> a wrong number(too low or too high or whatever) and then does the _BCM
+>>>>>>>> call. The _BCM method works. Then user space picks the intel_backlight
+>>>>>>>> to do the adjustment, but since the _BCM already sets a wrong value, the
+>>>>>>>> user space's adjustment is affected too. The result is, user has only
+>>>>>>>> two visible levels, very low and very high.
+>>>>>>>>
+>>>>>>>> This only occurs on -rc3, since we removed the
+>>>>>>>> acpi_video_verify_backlight_support from acpi_video_switch_brightness
+>>>>>>>> function.
+>>>>>>>
+>>>>>>> What did we do before -rc2?  Did we address that in any way?
+>>>>>>
+>>>>>> No, before rc2, backlight is broken on that system.
+>>>>>
+>>>>> Well, it will have to stay that way in 3.11 I'm afraid, unless we have a fix
+>>>>> or a workaround that is *guaranteed* not to introduce any new issues on any
+>>>>> systems.
+>>>>>
+>>>>>> In rc2, we added the win8 patch and a fix patch for the hotkey, then
+>>>>>> the ACPI video module's backlight control and in kernel brightness
+>>>>>> handling is disabled. With the working hotkey and intel_backlight, rc2
+>>>>>> works for the system. Then with the revert in rc3, user needs to choose
+>>>>>> intel_backlight in xorg.conf but the in kernel brightness handling from
+>>>>>> ACPI video module is back. Since video module is broken, it breaks the
+>>>>>> backlight hotkey functionality.
+>>>>>
+>>>>> I guess we need to revert the hotkey fix too (that is efaa14c, right?)
+>>>>> then, is that correct?  And try to do something smarter for 3.12?
+>>>>
+>>>> With or without commit efaa14c, hotkey for backlight is broken out of
+>>>> box for the affected systems(ASUS N56VZ and N56VJ). But with that commit,
+>>>> user has a chance of getting a working backlight with hotkey by specifying
+>>>> intel_backlight and adding the video.brightness_switch_enabled=0. So I
+>>>> think we can keep that commit.
+>>>
+>>> What about the "boot to black screen" problem, then?
+>>
+>> You mean this one?
+>> https://lkml.org/lkml/2013/7/30/814
 > 
-> Sigh.
-> 
-> BTW, why do you think they are 64 M each (it's late and I'm obviously tired)?
+> Yes. :-)
 
-Oops!  Sorry, I had confused the above messages with the one in
-init_memory_mapping(), which shows a memory range being added, i.e. the
-size of an ACPI memory device object.  But the above messages actually
-came from vmemmap_populate_hugepages(), which was called during boot-up.
-So, these messages have nothing to do with ACPI memory device objects.
-And even worse, I do not seem to be able to count a number of zeros...
-In the above messages, each memory range is 4MB (0x400000), not 64MB
-(0x4000000)...  My bad. :-(
+That is due to the broken _BQC provided by firmware, not that commit.
+After we enhance the quirk for _BQC, the problem will be gone.
 
-So, while we may still need to do something for the less-than-128MB
-issue, Yasuaki may be hitting a different one.  Let's wait for Yasuaki
-to give us more info.
-
-Thanks,
--Toshi
-
-
-
-
-
-
-
-
-
+-Aaron
