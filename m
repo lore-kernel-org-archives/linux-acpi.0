@@ -1,51 +1,38 @@
-From: Felipe Contreras <felipe.contreras@gmail.com>
-Subject: Re: [PATCH] acpi: video: improve quirk check
-Date: Mon, 5 Aug 2013 09:41:04 -0500
-Message-ID: <CAMP44s0+d2ffXC-k8+kxQ4XCfF8M_VSBZ02M5seDSj99oPkXZw@mail.gmail.com>
-References: <1375472229-1563-1-git-send-email-felipe.contreras@gmail.com>
-	<1861338.WxIinvfTH6@vostro.rjw.lan>
-	<CAMP44s0EwO11to-nfjhKkUidQKe6h=y0o-V7gYmF_mJeKhMRtQ@mail.gmail.com>
-	<23723258.099Re4s3PJ@vostro.rjw.lan>
+From: Tejun Heo <tj@kernel.org>
+Subject: Re: [PATCH v2 RESEND 13/18] x86, numa, mem_hotplug: Skip all the
+ regions the kernel resides in.
+Date: Mon, 5 Aug 2013 10:52:12 -0400
+Message-ID: <20130805145212.GA19631@mtj.dyndns.org>
+References: <1375434877-20704-1-git-send-email-tangchen@cn.fujitsu.com>
+ <1375434877-20704-14-git-send-email-tangchen@cn.fujitsu.com>
+ <51FF44B7.8050704@cn.fujitsu.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-la0-f51.google.com ([209.85.215.51]:64333 "EHLO
-	mail-la0-f51.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753303Ab3HEOlG (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 5 Aug 2013 10:41:06 -0400
-In-Reply-To: <23723258.099Re4s3PJ@vostro.rjw.lan>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <owner-linux-mm@kvack.org>
+Content-Disposition: inline
+In-Reply-To: <51FF44B7.8050704@cn.fujitsu.com>
+Sender: owner-linux-mm@kvack.org
+To: Tang Chen <tangchen@cn.fujitsu.com>
+Cc: robert.moore@intel.com, lv.zheng@intel.com, rjw@sisk.pl, lenb@kernel.org, tglx@linutronix.de, mingo@elte.hu, hpa@zytor.com, akpm@linux-foundation.org, trenn@suse.de, yinghai@kernel.org, jiang.liu@huawei.com, wency@cn.fujitsu.com, laijs@cn.fujitsu.com, isimatu.yasuaki@jp.fujitsu.com, izumi.taku@jp.fujitsu.com, mgorman@suse.de, minchan@kernel.org, mina86@mina86.com, gong.chen@linux.intel.com, vasilis.liaskovitis@profitbricks.com, lwoodman@redhat.com, riel@redhat.com, jweiner@redhat.com, prarit@redhat.com, zhangyanfei@cn.fujitsu.com, yanghy@cn.fujitsu.com, x86@kernel.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-mm@kvack.org, linux-acpi@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: Aaron Lu <aaron.lwe@gmail.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Len Brown <lenb@kernel.org>, Zhang Rui <rui.zhang@intel.com>
 
-On Mon, Aug 5, 2013 at 9:04 AM, Rafael J. Wysocki <rjw@sisk.pl> wrote:
+On Mon, Aug 05, 2013 at 02:22:47PM +0800, Tang Chen wrote:
+> I have resent the v2 patch-set. Would you please give some more
+> comments about the memblock and x86 booting code modification ?
 
->> In my machine I think the issue is slightly different, I think _BCM is
->> failing, at least until enabling the _DOS thing, but at the end of the
->> day it's the same thing for the check; _BQC is always returning the
->> same value, and the code above will find that out, regardless of which
->> values are tested.
->>
->> For my particular machine though, I think it's more interesting to
->> find out why _BCM is failing before _DOS, and why efaa14c made it
->> work. If that is actually the case.
->
-> That depends on how the BIOS+platform is designed and that may change from
-> one system to another quite a bit.
+Patch 13 still seems corrupt.  Is it a problem on my side maybe?
+Nope, gmane raw message is corrupt too.
 
-Maybe, but it seems there's at least another ASUS machine with the
-same behavior, and it seems a lot of ASUS machines behave very
-similarly.
+ http://article.gmane.org/gmane.linux.kernel.mm/104549/raw
 
-> The only common denominator is what Windows expects (and that unfortunately
-> depends on the version of Windows too), because that's the functionality
-> which is likely to have been tested.  Anything else is likely to be untested
-> and therefore most probably buggy.
-
-Maybe, or maybe we are doing something wrong.
-
-It's worth to try to find that out.
+Can you please verify your mail setup?  It's not very nice to repeat
+the same problem.
 
 -- 
-Felipe Contreras
+tejun
+
+--
+To unsubscribe, send a message with 'unsubscribe linux-mm' in
+the body to majordomo@kvack.org.  For more info on Linux MM,
+see: http://www.linux-mm.org/ .
+Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
