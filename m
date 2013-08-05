@@ -1,81 +1,51 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: [PATCH] ACPI / platform: Drop unnecessary label
-Date: Mon, 05 Aug 2013 16:15:13 +0200
-Message-ID: <1419437.ogYYmboGdh@vostro.rjw.lan>
+From: Felipe Contreras <felipe.contreras@gmail.com>
+Subject: Re: [PATCH] acpi: video: improve quirk check
+Date: Mon, 5 Aug 2013 09:41:04 -0500
+Message-ID: <CAMP44s0+d2ffXC-k8+kxQ4XCfF8M_VSBZ02M5seDSj99oPkXZw@mail.gmail.com>
+References: <1375472229-1563-1-git-send-email-felipe.contreras@gmail.com>
+	<1861338.WxIinvfTH6@vostro.rjw.lan>
+	<CAMP44s0EwO11to-nfjhKkUidQKe6h=y0o-V7gYmF_mJeKhMRtQ@mail.gmail.com>
+	<23723258.099Re4s3PJ@vostro.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from hydra.sisk.pl ([212.160.235.94]:56612 "EHLO hydra.sisk.pl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753213Ab3HEOE4 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 5 Aug 2013 10:04:56 -0400
+Received: from mail-la0-f51.google.com ([209.85.215.51]:64333 "EHLO
+	mail-la0-f51.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753303Ab3HEOlG (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 5 Aug 2013 10:41:06 -0400
+In-Reply-To: <23723258.099Re4s3PJ@vostro.rjw.lan>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: ACPI Devel Maling List <linux-acpi@vger.kernel.org>
-Cc: LKML <linux-kernel@vger.kernel.org>
+To: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: Aaron Lu <aaron.lwe@gmail.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Len Brown <lenb@kernel.org>, Zhang Rui <rui.zhang@intel.com>
 
-From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+On Mon, Aug 5, 2013 at 9:04 AM, Rafael J. Wysocki <rjw@sisk.pl> wrote:
 
-The create_dev label in acpi_create_platform_device() is not
-necessary, because the if statement causing the jump to it to
-happen may be rearranged to avoid that jump.
+>> In my machine I think the issue is slightly different, I think _BCM is
+>> failing, at least until enabling the _DOS thing, but at the end of the
+>> day it's the same thing for the check; _BQC is always returning the
+>> same value, and the code above will find that out, regardless of which
+>> values are tested.
+>>
+>> For my particular machine though, I think it's more interesting to
+>> find out why _BCM is failing before _DOS, and why efaa14c made it
+>> work. If that is actually the case.
+>
+> That depends on how the BIOS+platform is designed and that may change from
+> one system to another quite a bit.
 
-Rework the code accordingly (no functional changes should result
-from that).
+Maybe, but it seems there's at least another ASUS machine with the
+same behavior, and it seems a lot of ASUS machines behave very
+similarly.
 
-Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
----
+> The only common denominator is what Windows expects (and that unfortunately
+> depends on the version of Windows too), because that's the functionality
+> which is likely to have been tested.  Anything else is likely to be untested
+> and therefore most probably buggy.
 
-For 3.12, on top of linux-next.
+Maybe, or maybe we are doing something wrong.
 
-Thanks,
-Rafael
+It's worth to try to find that out.
 
----
- drivers/acpi/acpi_platform.c |   26 ++++++++++++--------------
- 1 file changed, 12 insertions(+), 14 deletions(-)
-
-Index: linux-pm/drivers/acpi/acpi_platform.c
-===================================================================
---- linux-pm.orig/drivers/acpi/acpi_platform.c
-+++ linux-pm/drivers/acpi/acpi_platform.c
-@@ -61,25 +61,23 @@ int acpi_create_platform_device(struct a
- 
- 	INIT_LIST_HEAD(&resource_list);
- 	count = acpi_dev_get_resources(adev, &resource_list, NULL, NULL);
--	if (count < 0)
-+	if (count < 0) {
- 		return 0;
-+	} else if (count > 0) {
-+		resources = kmalloc(count * sizeof(struct resource),
-+				    GFP_KERNEL);
-+		if (!resources) {
-+			dev_err(&adev->dev, "No memory for resources\n");
-+			acpi_dev_free_resource_list(&resource_list);
-+			return -ENOMEM;
-+		}
-+		count = 0;
-+		list_for_each_entry(rentry, &resource_list, node)
-+			resources[count++] = rentry->res;
- 
--	if (!count)
--		goto create_dev;
--
--	resources = kmalloc(count * sizeof(struct resource), GFP_KERNEL);
--	if (!resources) {
--		dev_err(&adev->dev, "No memory for resources\n");
- 		acpi_dev_free_resource_list(&resource_list);
--		return -ENOMEM;
- 	}
--	count = 0;
--	list_for_each_entry(rentry, &resource_list, node)
--		resources[count++] = rentry->res;
--
--	acpi_dev_free_resource_list(&resource_list);
- 
--create_dev:
- 	memset(&pdevinfo, 0, sizeof(pdevinfo));
- 	/*
- 	 * If the ACPI node has a parent and that parent has a physical device
-
+-- 
+Felipe Contreras
