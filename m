@@ -1,67 +1,82 @@
 From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: [PATCH] acpi: video: improve quirk check
-Date: Mon, 05 Aug 2013 16:04:11 +0200
-Message-ID: <23723258.099Re4s3PJ@vostro.rjw.lan>
-References: <1375472229-1563-1-git-send-email-felipe.contreras@gmail.com> <1861338.WxIinvfTH6@vostro.rjw.lan> <CAMP44s0EwO11to-nfjhKkUidQKe6h=y0o-V7gYmF_mJeKhMRtQ@mail.gmail.com>
+Subject: [PATCH] ACPI / PM: Walk physical_node_list under physical_node_lock
+Date: Mon, 05 Aug 2013 16:10:08 +0200
+Message-ID: <4934962.0gqQfGrEzP@vostro.rjw.lan>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7Bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from hydra.sisk.pl ([212.160.235.94]:56576 "EHLO hydra.sisk.pl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752831Ab3HENxz (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 5 Aug 2013 09:53:55 -0400
-In-Reply-To: <CAMP44s0EwO11to-nfjhKkUidQKe6h=y0o-V7gYmF_mJeKhMRtQ@mail.gmail.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Return-path: <linux-pm-owner@vger.kernel.org>
+Sender: linux-pm-owner@vger.kernel.org
+To: ACPI Devel Maling List <linux-acpi@vger.kernel.org>
+Cc: LKML <linux-kernel@vger.kernel.org>, Linux PM list <linux-pm@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
-To: Felipe Contreras <felipe.contreras@gmail.com>
-Cc: Aaron Lu <aaron.lwe@gmail.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Len Brown <lenb@kernel.org>, Zhang Rui <rui.zhang@intel.com>
 
-On Sunday, August 04, 2013 09:19:56 AM Felipe Contreras wrote:
-> On Sun, Aug 4, 2013 at 9:19 AM, Rafael J. Wysocki <rjw@sisk.pl> wrote:
-> > On Sunday, August 04, 2013 01:42:49 AM Felipe Contreras wrote:
-> 
-> >> Personally I think there are better ways to fix the code for the
-> >> synthetic case than what you patch does, which will also make _BQC
-> >> work. That can be discussed later though, the one-liner is simple, and
-> >> it works.
-> >
-> > So, let's assume that the one-liner goes into 3.11 and work further with that
-> > assumption.
-> >
-> > How would you address the sythetic case (on top of the one-liner)?
-> 
-> I would write and read two values instead of one. The code is trying
-> to check if _BQC is always returning the maximum, and if you try with
-> two values you can be absolutely certain if that's happening or not;
-> it doesn't even matter which values you choose. Even in the synthetic
-> case that only has two values the check would work correctly and
-> detect that _BQC works correctly (or not).
+From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 
-I like that.
+The list of physical devices corresponding to an ACPI device
+object is walked by acpi_system_wakeup_device_seq_show() and
+physical_device_enable_wakeup() without taking that object's
+physical_node_lock mutex.  Since each of those functions may be
+run at any time as a result of a user space action, the lack of
+appropriate locking in them may lead to a kernel crash if that
+happens during device hot-add or hot-remove involving the device
+object in question.
 
-> In my machine I think the issue is slightly different, I think _BCM is
-> failing, at least until enabling the _DOS thing, but at the end of the
-> day it's the same thing for the check; _BQC is always returning the
-> same value, and the code above will find that out, regardless of which
-> values are tested.
-> 
-> For my particular machine though, I think it's more interesting to
-> find out why _BCM is failing before _DOS, and why efaa14c made it
-> work. If that is actually the case.
+Fix the issue by modifying acpi_system_wakeup_device_seq_show() and
+physical_device_enable_wakeup() to use physical_node_lock as
+appropriate.
 
-That depends on how the BIOS+platform is designed and that may change from
-one system to another quite a bit.
+Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+Cc: All <stable@vger.kernel.org>
+---
 
-The only common denominator is what Windows expects (and that unfortunately
-depends on the version of Windows too), because that's the functionality
-which is likely to have been tested.  Anything else is likely to be untested
-and therefore most probably buggy.
+This is urgent stuff, so if anyone has any objections against this or sees
+any problems with it, please let me know immediately.
 
 Thanks,
 Rafael
 
+---
+ drivers/acpi/proc.c |    8 ++++++++
+ 1 file changed, 8 insertions(+)
 
--- 
-I speak only for myself.
-Rafael J. Wysocki, Intel Open Source Technology Center.
+Index: linux-pm/drivers/acpi/proc.c
+===================================================================
+--- linux-pm.orig/drivers/acpi/proc.c
++++ linux-pm/drivers/acpi/proc.c
+@@ -311,6 +311,8 @@ acpi_system_wakeup_device_seq_show(struc
+ 			   dev->pnp.bus_id,
+ 			   (u32) dev->wakeup.sleep_state);
+ 
++		mutex_lock(&dev->physical_node_lock);
++
+ 		if (!dev->physical_node_count) {
+ 			seq_printf(seq, "%c%-8s\n",
+ 				dev->wakeup.flags.run_wake ? '*' : ' ',
+@@ -338,6 +340,8 @@ acpi_system_wakeup_device_seq_show(struc
+ 				put_device(ldev);
+ 			}
+ 		}
++
++		mutex_unlock(&dev->physical_node_lock);
+ 	}
+ 	mutex_unlock(&acpi_device_lock);
+ 	return 0;
+@@ -347,12 +351,16 @@ static void physical_device_enable_wakeu
+ {
+ 	struct acpi_device_physical_node *entry;
+ 
++	mutex_lock(&adev->physical_node_lock);
++
+ 	list_for_each_entry(entry,
+ 		&adev->physical_node_list, node)
+ 		if (entry->dev && device_can_wakeup(entry->dev)) {
+ 			bool enable = !device_may_wakeup(entry->dev);
+ 			device_set_wakeup_enable(entry->dev, enable);
+ 		}
++
++	mutex_unlock(&adev->physical_node_lock);
+ }
+ 
+ static ssize_t
+
