@@ -1,69 +1,59 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: [PATCH] ACPI: Do not fail acpi_bind_one() if device is already bound correctly
-Date: Tue, 06 Aug 2013 00:47:11 +0200
-Message-ID: <14340982.ePfLp2GYsD@vostro.rjw.lan>
-References: <1888947.F5IBMfDKlY@vostro.rjw.lan> <1981183.omDzKl0aqK@vostro.rjw.lan> <1375741219.10300.172.camel@misato.fc.hp.com>
+From: Toshi Kani <toshi.kani@hp.com>
+Subject: Re: Cannot hot remove a memory device (patch)
+Date: Mon, 05 Aug 2013 17:19:56 -0600
+Message-ID: <1375744796.10300.175.camel@misato.fc.hp.com>
+References: <51FA1E41.20304@jp.fujitsu.com>
+	 <51FF2368.9060206@jp.fujitsu.com> <51FF5B58.7050701@jp.fujitsu.com>
+	 <1456797.BR6oLAipWK@vostro.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from hydra.sisk.pl ([212.160.235.94]:57153 "EHLO hydra.sisk.pl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755130Ab3HEWgz (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 5 Aug 2013 18:36:55 -0400
-In-Reply-To: <1375741219.10300.172.camel@misato.fc.hp.com>
+Received: from g4t0016.houston.hp.com ([15.201.24.19]:8994 "EHLO
+	g4t0016.houston.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754911Ab3HEXVF (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 5 Aug 2013 19:21:05 -0400
+In-Reply-To: <1456797.BR6oLAipWK@vostro.rjw.lan>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Toshi Kani <toshi.kani@hp.com>
-Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>, Bjorn Helgaas <bhelgaas@google.com>
+To: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>, rafael.j.wysocki@intel.com, vasilis.liaskovitis@profitbricks.com, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, tangchen@cn.fujitsu.com, wency@cn.fujitsu.com
 
-On Monday, August 05, 2013 04:20:19 PM Toshi Kani wrote:
-> On Sun, 2013-08-04 at 16:03 +0200, Rafael J. Wysocki wrote:
-> > On Saturday, August 03, 2013 06:32:02 PM Toshi Kani wrote:
-> > > On Sat, 2013-08-03 at 02:47 +0200, Rafael J. Wysocki wrote:
-> > > > On Friday, August 02, 2013 04:38:38 PM Toshi Kani wrote:
-> > > > > On Fri, 2013-08-02 at 00:33 +0200, Rafael J. Wysocki wrote:
-> > > > > > From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
-> > > > > > 
-> > > > > > Modify acpi_bind_one() so that it doesn't fail if the device
-> > > > > > represented by its first argument has already been bound to the
-> > > > > > given ACPI handle (second argument), because that is not a good
-> > > > > > enough reason for returning an error code.
-> > > > > 
-> > > > > While it seems reasonable to allow such case, I do not think we will hit
-> > > > > this case under the normal scenarios.  So, I do not think we need to
-> > > > > make this change now unless it actually solves Yasuaki's issue (which I
-> > > > > am guessing not).
-> > > > 
-> > > > In theory it should be possible to call acpi_bind_one() twice in a row
-> > > > for the same dev and the same handle without failure, that simply is
-> > > > logical.  The patch may not fix any problems visible now, but returning an
-> > > > error code in such a case is simply incorrect.
-> > > 
-> > > We changed acpi_bus_device_attach() to not call the handler or driver
-> > > again if it is already bound.  So, I was under impression that we
-> > > prevent from attaching a same device twice.  But I may be missing
-> > > something...
-> > 
-> > acpi_bind_one() may be called in code paths that don't start from
-> > acpi_bus_device_attach(), like acpi_platform_notify(), where the result
-> > depends on how .find_device() is implemented by the the given bus type,
-> > for example.
+On Mon, 2013-08-05 at 15:14 +0200, Rafael J. Wysocki wrote:
+  :
+> Can you please test the appended patch?  I tested it somewhat, but since the
+> greatest number of physical nodes per ACPI device object I can get on my test
+> machines is 2 (and even that after hacking the kernel somewhat), that was kind
+> of unconclusive.
 > 
-> acpi_bind_one() always returns with 0 when it sets a handle to the
-> device.  So, acpi_platform_notify() should not call .find_device() in
-> this case.  acpi_bus_check_add() is also protected from adding a same
-> device twice.  But I see your point that the callers of acpi_bind_one()
-> could be changed / implementation dependent.  So, I agree that it would
-> be prudent to have this change. 
+> Thanks,
+> Rafael
 > 
-> Acked-by: Toshi Kani <toshi.kani@hp.com>
+> 
+> ---
+> From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+> Subject: ACPI: Drop physical_node_id_bitmap from struct acpi_device
+> 
+> The physical_node_id_bitmap in struct acpi_device is only used for
+> looking up the first currently unused phyiscal dependent node ID
+> by acpi_bind_one().  It is not really necessary, however, because
+> acpi_bind_one() walks the entire physical_node_list of the given
+> device object for sanity checking anyway and if that list is always
+> sorted by node_id, it is straightforward to find the first gap
+> between the currently used node IDs and use that number as the ID
+> of the new list node.
+> 
+> This also removes the artificial limit of the maximum number of
+> dependent physical devices per ACPI device object, which now depends
+> only on the capacity of unsigend int.
+> 
+> Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 
-Thanks!
+I like the change. Much better :-)
 
-I wonder what you think about this patch:
+Acked-by: Toshi Kani <toshi.kani@hp.com>
 
-https://patchwork.kernel.org/patch/2838675/
+Thanks,
+-Toshi
 
-Rafael
 
