@@ -1,59 +1,67 @@
-From: Tang Chen <tangchen@cn.fujitsu.com>
-Subject: Re: [PATCH v2 00/18] Arrange hotpluggable memory as ZONE_MOVABLE.
-Date: Mon, 05 Aug 2013 21:38:25 +0800
-Message-ID: <51FFAAD1.9040405@cn.fujitsu.com>
-References: <1375340800-19332-1-git-send-email-tangchen@cn.fujitsu.com> <51FFA393.2080301@zytor.com>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: Re: [PATCH] acpi: video: improve quirk check
+Date: Mon, 05 Aug 2013 16:04:11 +0200
+Message-ID: <23723258.099Re4s3PJ@vostro.rjw.lan>
+References: <1375472229-1563-1-git-send-email-felipe.contreras@gmail.com> <1861338.WxIinvfTH6@vostro.rjw.lan> <CAMP44s0EwO11to-nfjhKkUidQKe6h=y0o-V7gYmF_mJeKhMRtQ@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <owner-linux-mm@kvack.org>
-In-Reply-To: <51FFA393.2080301@zytor.com>
-Sender: owner-linux-mm@kvack.org
-To: "H. Peter Anvin" <hpa@zytor.com>
-Cc: rjw@sisk.pl, lenb@kernel.org, tglx@linutronix.de, mingo@elte.hu, akpm@linux-foundation.org, tj@kernel.org, trenn@suse.de, yinghai@kernel.org, jiang.liu@huawei.com, wency@cn.fujitsu.com, laijs@cn.fujitsu.com, isimatu.yasuaki@jp.fujitsu.com, izumi.taku@jp.fujitsu.com, mgorman@suse.de, minchan@kernel.org, mina86@mina86.com, gong.chen@linux.intel.com, vasilis.liaskovitis@profitbricks.com, lwoodman@redhat.com, riel@redhat.com, jweiner@redhat.com, prarit@redhat.com, zhangyanfei@cn.fujitsu.com, yanghy@cn.fujitsu.com, x86@kernel.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-mm@kvack.org, linux-acpi@vger.kernel.org
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7Bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from hydra.sisk.pl ([212.160.235.94]:56576 "EHLO hydra.sisk.pl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752831Ab3HENxz (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 5 Aug 2013 09:53:55 -0400
+In-Reply-To: <CAMP44s0EwO11to-nfjhKkUidQKe6h=y0o-V7gYmF_mJeKhMRtQ@mail.gmail.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Felipe Contreras <felipe.contreras@gmail.com>
+Cc: Aaron Lu <aaron.lwe@gmail.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Len Brown <lenb@kernel.org>, Zhang Rui <rui.zhang@intel.com>
+
+On Sunday, August 04, 2013 09:19:56 AM Felipe Contreras wrote:
+> On Sun, Aug 4, 2013 at 9:19 AM, Rafael J. Wysocki <rjw@sisk.pl> wrote:
+> > On Sunday, August 04, 2013 01:42:49 AM Felipe Contreras wrote:
+> 
+> >> Personally I think there are better ways to fix the code for the
+> >> synthetic case than what you patch does, which will also make _BQC
+> >> work. That can be discussed later though, the one-liner is simple, and
+> >> it works.
+> >
+> > So, let's assume that the one-liner goes into 3.11 and work further with that
+> > assumption.
+> >
+> > How would you address the sythetic case (on top of the one-liner)?
+> 
+> I would write and read two values instead of one. The code is trying
+> to check if _BQC is always returning the maximum, and if you try with
+> two values you can be absolutely certain if that's happening or not;
+> it doesn't even matter which values you choose. Even in the synthetic
+> case that only has two values the check would work correctly and
+> detect that _BQC works correctly (or not).
+
+I like that.
+
+> In my machine I think the issue is slightly different, I think _BCM is
+> failing, at least until enabling the _DOS thing, but at the end of the
+> day it's the same thing for the check; _BQC is always returning the
+> same value, and the code above will find that out, regardless of which
+> values are tested.
+> 
+> For my particular machine though, I think it's more interesting to
+> find out why _BCM is failing before _DOS, and why efaa14c made it
+> work. If that is actually the case.
+
+That depends on how the BIOS+platform is designed and that may change from
+one system to another quite a bit.
+
+The only common denominator is what Windows expects (and that unfortunately
+depends on the version of Windows too), because that's the functionality
+which is likely to have been tested.  Anything else is likely to be untested
+and therefore most probably buggy.
+
+Thanks,
+Rafael
 
 
-Hi hpa,
-
-I'm sorry but I don't quite following it.
-
-On 08/05/2013 09:07 PM, H. Peter Anvin wrote:
-> On 08/01/2013 12:06 AM, Tang Chen wrote:
->> This patch-set aims to solve some problems at system boot time
->> to enhance memory hotplug functionality.
->>
->> [Background]
->>
->> The Linux kernel cannot migrate pages used by the kernel because
->> of the kernel direct mapping. Since va = pa + PAGE_OFFSET, if the
->> physical address is changed, we cannot simply update the kernel
->> pagetable. On the contrary, we have to update all the pointers
->> pointing to the virtual address, which is very difficult to do.
->>
->
-> It does beg the question if that "since" statement should be changed ...
-
-Do you mean we are going to do kernel page migration in the future ?
-
-> we already have it handled differently on Xen PV, but that is kind of
-> "special".  There are a whole bunch of other issues with moving kernel
-> memory around: you have to worry what might have a physical address
-> cached somewhere and what might be in active use and so on...
-
-The current solution is to hotplug ZONE_MOVABLE, which the kernel won't
-use. So do you mean if I want to do kernel page migration (which I'm not
-doing), I need to worry about what you said above ?
-
->I am not
-> really suggesting it as anything but food for thought at this time.
-
-Sorry for my poor English, and I really cannot understand this one.
-
-Thanks.
-
---
-To unsubscribe, send a message with 'unsubscribe linux-mm' in
-the body to majordomo@kvack.org.  For more info on Linux MM,
-see: http://www.linux-mm.org/ .
-Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
+-- 
+I speak only for myself.
+Rafael J. Wysocki, Intel Open Source Technology Center.
