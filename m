@@ -1,278 +1,43 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: Cannot hot remove a memory device (patch)
-Date: Mon, 05 Aug 2013 15:14 +0200
-Message-ID: <1456797.BR6oLAipWK@vostro.rjw.lan>
-References: <51FA1E41.20304@jp.fujitsu.com> <51FF2368.9060206@jp.fujitsu.com> <51FF5B58.7050701@jp.fujitsu.com>
+From: "H. Peter Anvin" <hpa@zytor.com>
+Subject: Re: [PATCH v2 00/18] Arrange hotpluggable memory as ZONE_MOVABLE.
+Date: Mon, 05 Aug 2013 06:07:31 -0700
+Message-ID: <51FFA393.2080301@zytor.com>
+References: <1375340800-19332-1-git-send-email-tangchen@cn.fujitsu.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7Bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from hydra.sisk.pl ([212.160.235.94]:56498 "EHLO hydra.sisk.pl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752438Ab3HENDp (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 5 Aug 2013 09:03:45 -0400
-In-Reply-To: <51FF5B58.7050701@jp.fujitsu.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
+Return-path: <owner-linux-mm@kvack.org>
+In-Reply-To: <1375340800-19332-1-git-send-email-tangchen@cn.fujitsu.com>
+Sender: owner-linux-mm@kvack.org
+To: Tang Chen <tangchen@cn.fujitsu.com>
+Cc: rjw@sisk.pl, lenb@kernel.org, tglx@linutronix.de, mingo@elte.hu, akpm@linux-foundation.org, tj@kernel.org, trenn@suse.de, yinghai@kernel.org, jiang.liu@huawei.com, wency@cn.fujitsu.com, laijs@cn.fujitsu.com, isimatu.yasuaki@jp.fujitsu.com, izumi.taku@jp.fujitsu.com, mgorman@suse.de, minchan@kernel.org, mina86@mina86.com, gong.chen@linux.intel.com, vasilis.liaskovitis@profitbricks.com, lwoodman@redhat.com, riel@redhat.com, jweiner@redhat.com, prarit@redhat.com, zhangyanfei@cn.fujitsu.com, yanghy@cn.fujitsu.com, x86@kernel.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-mm@kvack.org, linux-acpi@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
-Cc: Toshi Kani <toshi.kani@hp.com>, rafael.j.wysocki@intel.com, vasilis.liaskovitis@profitbricks.com, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, tangchen@cn.fujitsu.com, wency@cn.fujitsu.com
 
-On Monday, August 05, 2013 04:59:20 PM Yasuaki Ishimatsu wrote:
-> (2013/08/05 13:00), Yasuaki Ishimatsu wrote:
-> > (2013/08/04 9:37), Toshi Kani wrote:
-> >> On Sat, 2013-08-03 at 03:01 +0200, Rafael J. Wysocki wrote:
-> >>> On Friday, August 02, 2013 06:04:40 PM Toshi Kani wrote:
-> >>>> On Sat, 2013-08-03 at 01:43 +0200, Rafael J. Wysocki wrote:
-> >>>>> On Friday, August 02, 2013 03:46:15 PM Toshi Kani wrote:
-> >>>>>> On Thu, 2013-08-01 at 23:43 +0200, Rafael J. Wysocki wrote:
-> >>>>>>> Hi,
-> >>>>>>>
-> >>>>>>> Thanks for your report.
-> >>>>>>>
-> >>>>>>> On Thursday, August 01, 2013 05:37:21 PM Yasuaki Ishimatsu wrote:
-> >>>>>>>> By following commit, I cannot hot remove a memory device.
-> >>>>>>>>
-> >>>>>>>> ACPI / memhotplug: Bind removable memory blocks to ACPI device nodes
-> >>>>>>>> commit e2ff39400d81233374e780b133496a2296643d7d
-> >>>>>>>>
-> >>>>>>>> Details are follows:
-> >>>>>>>> When I add a memory device, acpi_memory_enable_device() always fails
-> >>>>>>>> as follows:
-> >>>>>>>>
-> >>>>>>>> ...
-> >>>>>>>> [ 1271.114116]  [ffffea121c400000-ffffea121c7fffff] PMD -> [ffff880813c00000-ffff880813ffffff] on node 3
-> >>>>>>>> [ 1271.128682]  [ffffea121c800000-ffffea121cbfffff] PMD -> [ffff880813800000-ffff880813bfffff] on node 3
-> >>>>>>>> [ 1271.143298]  [ffffea121cc00000-ffffea121cffffff] PMD -> [ffff880813000000-ffff8808133fffff] on node 3
-> >>>>>>>> [ 1271.157799]  [ffffea121d000000-ffffea121d3fffff] PMD -> [ffff880812c00000-ffff880812ffffff] on node 3
-> >>>>>>>> [ 1271.172341]  [ffffea121d400000-ffffea121d7fffff] PMD -> [ffff880812800000-ffff880812bfffff] on node 3
-> >>>>>>>> [ 1271.186872]  [ffffea121d800000-ffffea121dbfffff] PMD -> [ffff880812400000-ffff8808127fffff] on node 3
-> >>>>>>>> [ 1271.201481]  [ffffea121dc00000-ffffea121dffffff] PMD -> [ffff880812000000-ffff8808123fffff] on node 3
-> >>>>>>>> [ 1271.216041]  [ffffea121e000000-ffffea121e3fffff] PMD -> [ffff880811c00000-ffff880811ffffff] on node 3
-> >>>>>>>> [ 1271.230623]  [ffffea121e400000-ffffea121e7fffff] PMD -> [ffff880811800000-ffff880811bfffff] on node 3
-> >>>>>>>> [ 1271.245148]  [ffffea121e800000-ffffea121ebfffff] PMD -> [ffff880811400000-ffff8808117fffff] on node 3
-> >>>>>>>> [ 1271.259683]  [ffffea121ec00000-ffffea121effffff] PMD -> [ffff880811000000-ffff8808113fffff] on node 3
-> >>>>>>>> [ 1271.274194]  [ffffea121f000000-ffffea121f3fffff] PMD -> [ffff880810c00000-ffff880810ffffff] on node 3
-> >>>>>>>> [ 1271.288764]  [ffffea121f400000-ffffea121f7fffff] PMD -> [ffff880810800000-ffff880810bfffff] on node 3
-> >>>>>>
-> >>>>>> It appears that each memory object only has 64MB of memory.  This is
-> >>>>>> less than the memory block size, which is 128MB.  This means that a
-> >>>>>> single memory block associates with two ACPI memory device objects.
-> >>>>>
-> >>>>> That'd be bad.
-> >>>>>
-> >>>>> How did that work before if that indeed is the case?
-> >>>>
-> >>>> Well, it looks to me that it has never worked before...
-> >>>>
-> >>>>>>>> ...
-> >>>>>>>> [ 1271.325841] acpi PNP0C80:03: acpi_memory_enable_device() error
-> >>>>>>>
-> >>>>>>> Well, the only new way acpi_memory_enable_device() can fail after that commit
-> >>>>>>> is a failure in acpi_bind_memory_blocks().
-> >>>>>>
-> >>>>>> Agreed.
-> >>>>>>
-> >>>>>>> This means that either handle is NULL, which I think we can exclude, because
-> >>>>>>> acpi_memory_enable_device() wouldn't be called at all if that were the case, or
-> >>>>>>> there's a more subtle error in acpi_bind_one().
-> >>>>>>>
-> >>>>>>> One that comes to mind is that we may be calling acpi_bind_one() twice for the
-> >>>>>>> same memory region, in which it will trigger -EINVAL from the sanity check in
-> >>>>>>> there.
-> >>>>>>
-> >>>>>> I think it fails with -EINVAL at the place with dev_warn(dev, "ACPI
-> >>>>>> handle is already set\n").  When two ACPI memory objects associate with
-> >>>>>> a same memory block, the bind procedure of the 2nd ACPI memory object
-> >>>>>> sees that ACPI_HANDLE(dev) is already set to the 1st ACPI memory object.
-> >>>>>
-> >>>>> That sound's plausible, but I wonder how we can fix that?
-> >>>>>
-> >>>>> There's no way for a single physical device to have two different ACPI
-> >>>>> "companions".  It looks like the memory blocks should be 64 M each in that
-> >>>>> case.  Or we need to create two child devices for each memory block and
-> >>>>> associate each of them with an ACPI object.  That would lead to complications
-> >>>>> in the user space interface, though.
-> >>>>
-> >>>> Right.  Even bigger issue is that I do not think __add_pages() and
-> >>>> __remove_pages() can add / delete a memory chunk that is less than
-> >>>> 128MB.  128MB is the granularity of them.  So, we may just have to fail
-> >>>> this case gracefully.
-> >>>
-> >>> Sigh.
-> >>>
-> >>> BTW, why do you think they are 64 M each (it's late and I'm obviously tired)?
-> >>
-> >> Oops!  Sorry, I had confused the above messages with the one in
-> >> init_memory_mapping(), which shows a memory range being added, i.e. the
-> >> size of an ACPI memory device object.  But the above messages actually
-> >> came from vmemmap_populate_hugepages(), which was called during boot-up.
-> >> So, these messages have nothing to do with ACPI memory device objects.
-> >> And even worse, I do not seem to be able to count a number of zeros...
-> >> In the above messages, each memory range is 4MB (0x400000), not 64MB
-> >> (0x4000000)...  My bad. :-(
-> >>
-> >> So, while we may still need to do something for the less-than-128MB
-> >> issue, Yasuaki may be hitting a different one.  Let's wait for Yasuaki
-> >> to give us more info.
-> >
-> > acpi_bind_memory_blocks() failed with -ENOSPC.
-> >
-> > int acpi_bind_one(struct device *dev, acpi_handle handle)
-> > {
-> > ...
-> >      /* allocate physical node id according to physical_node_id_bitmap */
-> >      physical_node->node_id =
-> >          find_first_zero_bit(acpi_dev->physical_node_id_bitmap,
-> >          ACPI_MAX_PHYSICAL_NODE);
-> >      if (physical_node->node_id >= ACPI_MAX_PHYSICAL_NODE) {
-> >          retval = -ENOSPC; => here
-> >          goto err_free;
-> >      }
-> >
-> > When adding memory device, acpi_bind_memroy_blocks() calls acpi_bind_one()
-> > "memory device size / 128MiB" times. So ACPI_MAX_PHYSICAL_NODE need to
-> > be set "memory device size / 128MiB" or more. But ACPI_MAX_PHYSICAL_NODE is 32.
-> > So acpi_bind_memory_blocks() always failed with -ENOSPC.
-> >
+On 08/01/2013 12:06 AM, Tang Chen wrote:
+> This patch-set aims to solve some problems at system boot time
+> to enhance memory hotplug functionality.
 > 
-> > I'll test again after increasing ACPI_MAX_PHYSICAL_NODE to enough size.
+> [Background]
 > 
-> Additional info:
-> When I increased ACPI_MAX_PHYSICAL_NODE to 1024 and change size of
-> acpi_device_physical_node->node_it into u32, I could hot remove memory
-> device. But even if ACPI_MAX_PHYSICAL_NODE is set to 1024, same problem
-> will occurs since it just supports 124GiB memory. So we need a way to change
-> ACPI_MAX_PHYSICAL_NODE dynamically.
+> The Linux kernel cannot migrate pages used by the kernel because
+> of the kernel direct mapping. Since va = pa + PAGE_OFFSET, if the
+> physical address is changed, we cannot simply update the kernel
+> pagetable. On the contrary, we have to update all the pointers
+> pointing to the virtual address, which is very difficult to do.
+> 
 
-Can you please test the appended patch?  I tested it somewhat, but since the
-greatest number of physical nodes per ACPI device object I can get on my test
-machines is 2 (and even that after hacking the kernel somewhat), that was kind
-of unconclusive.
+It does beg the question if that "since" statement should be changed ...
+we already have it handled differently on Xen PV, but that is kind of
+"special".  There are a whole bunch of other issues with moving kernel
+memory around: you have to worry what might have a physical address
+cached somewhere and what might be in active use and so on... I am not
+really suggesting it as anything but food for thought at this time.
 
-Thanks,
-Rafael
+	-hpa
 
 
----
-From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
-Subject: ACPI: Drop physical_node_id_bitmap from struct acpi_device
-
-The physical_node_id_bitmap in struct acpi_device is only used for
-looking up the first currently unused phyiscal dependent node ID
-by acpi_bind_one().  It is not really necessary, however, because
-acpi_bind_one() walks the entire physical_node_list of the given
-device object for sanity checking anyway and if that list is always
-sorted by node_id, it is straightforward to find the first gap
-between the currently used node IDs and use that number as the ID
-of the new list node.
-
-This also removes the artificial limit of the maximum number of
-dependent physical devices per ACPI device object, which now depends
-only on the capacity of unsigend int.
-
-Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
----
- drivers/acpi/glue.c     |   31 +++++++++++++++++--------------
- include/acpi/acpi_bus.h |    8 ++------
- 2 files changed, 19 insertions(+), 20 deletions(-)
-
-Index: linux-pm/drivers/acpi/glue.c
-===================================================================
---- linux-pm.orig/drivers/acpi/glue.c
-+++ linux-pm/drivers/acpi/glue.c
-@@ -112,7 +112,9 @@ int acpi_bind_one(struct device *dev, ac
- 	struct acpi_device *acpi_dev;
- 	acpi_status status;
- 	struct acpi_device_physical_node *physical_node, *pn;
--	char physical_node_name[sizeof(PHYSICAL_NODE_STRING) + 2];
-+	struct list_head *physnode_list;
-+	unsigned int node_id;
-+	char physical_node_name[sizeof(PHYSICAL_NODE_STRING) + 10];
- 	int retval = -EINVAL;
- 
- 	if (ACPI_HANDLE(dev)) {
-@@ -139,8 +141,14 @@ int acpi_bind_one(struct device *dev, ac
- 
- 	mutex_lock(&acpi_dev->physical_node_lock);
- 
--	/* Sanity check. */
--	list_for_each_entry(pn, &acpi_dev->physical_node_list, node)
-+	/*
-+	 * Keep the list sorted by node_id so that node_ids of removed nodes can be
-+	 * recycled.
-+	 */
-+	physnode_list = &acpi_dev->physical_node_list;
-+	node_id = 0;
-+	list_for_each_entry(pn, &acpi_dev->physical_node_list, node) {
-+		/* Sanity check. */
- 		if (pn->dev == dev) {
- 			dev_warn(dev, "Already associated with ACPI node\n");
- 			if (ACPI_HANDLE(dev) == handle)
-@@ -148,19 +156,15 @@ int acpi_bind_one(struct device *dev, ac
- 
- 			goto out_free;
- 		}
--
--	/* allocate physical node id according to physical_node_id_bitmap */
--	physical_node->node_id =
--		find_first_zero_bit(acpi_dev->physical_node_id_bitmap,
--		ACPI_MAX_PHYSICAL_NODE);
--	if (physical_node->node_id >= ACPI_MAX_PHYSICAL_NODE) {
--		retval = -ENOSPC;
--		goto out_free;
-+		if (pn->node_id == node_id) {
-+			physnode_list = &pn->node;
-+			node_id++;
-+		}
- 	}
- 
--	set_bit(physical_node->node_id, acpi_dev->physical_node_id_bitmap);
-+	physical_node->node_id = node_id;
- 	physical_node->dev = dev;
--	list_add_tail(&physical_node->node, &acpi_dev->physical_node_list);
-+	list_add(&physical_node->node, physnode_list);
- 	acpi_dev->physical_node_count++;
- 
- 	mutex_unlock(&acpi_dev->physical_node_lock);
-@@ -223,7 +227,6 @@ int acpi_unbind_one(struct device *dev)
- 			continue;
- 
- 		list_del(node);
--		clear_bit(entry->node_id, acpi_dev->physical_node_id_bitmap);
- 
- 		acpi_dev->physical_node_count--;
- 
-Index: linux-pm/include/acpi/acpi_bus.h
-===================================================================
---- linux-pm.orig/include/acpi/acpi_bus.h
-+++ linux-pm/include/acpi/acpi_bus.h
-@@ -284,15 +284,12 @@ struct acpi_device_wakeup {
- };
- 
- struct acpi_device_physical_node {
--	u8 node_id;
-+	unsigned int node_id;
- 	struct list_head node;
- 	struct device *dev;
- 	bool put_online:1;
- };
- 
--/* set maximum of physical nodes to 32 for expansibility */
--#define ACPI_MAX_PHYSICAL_NODE	32
--
- /* Device */
- struct acpi_device {
- 	int device_type;
-@@ -312,10 +309,9 @@ struct acpi_device {
- 	struct acpi_driver *driver;
- 	void *driver_data;
- 	struct device dev;
--	u8 physical_node_count;
-+	unsigned int physical_node_count;
- 	struct list_head physical_node_list;
- 	struct mutex physical_node_lock;
--	DECLARE_BITMAP(physical_node_id_bitmap, ACPI_MAX_PHYSICAL_NODE);
- 	struct list_head power_dependent;
- 	void (*remove)(struct acpi_device *);
- };
-
+--
+To unsubscribe, send a message with 'unsubscribe linux-mm' in
+the body to majordomo@kvack.org.  For more info on Linux MM,
+see: http://www.linux-mm.org/ .
+Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
