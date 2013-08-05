@@ -1,46 +1,59 @@
 From: Tang Chen <tangchen@cn.fujitsu.com>
-Subject: Re: [PATCH v2 RESEND 05/18] x86, ACPICA: Split acpi_boot_table_init()
- into two parts.
-Date: Mon, 05 Aug 2013 21:23:20 +0800
-Message-ID: <51FFA748.50800@cn.fujitsu.com>
-References: <1375434877-20704-1-git-send-email-tangchen@cn.fujitsu.com> <7364455.HW1C4G1skW@vostro.rjw.lan> <51FF1A4F.1050309@cn.fujitsu.com> <2500845.tndtCsERty@vostro.rjw.lan>
+Subject: Re: [PATCH v2 00/18] Arrange hotpluggable memory as ZONE_MOVABLE.
+Date: Mon, 05 Aug 2013 21:38:25 +0800
+Message-ID: <51FFAAD1.9040405@cn.fujitsu.com>
+References: <1375340800-19332-1-git-send-email-tangchen@cn.fujitsu.com> <51FFA393.2080301@zytor.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-doc-owner@vger.kernel.org>
-In-Reply-To: <2500845.tndtCsERty@vostro.rjw.lan>
-Sender: linux-doc-owner@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: robert.moore@intel.com, lv.zheng@intel.com, lenb@kernel.org, tglx@linutronix.de, mingo@elte.hu, hpa@zytor.com, akpm@linux-foundation.org, tj@kernel.org, trenn@suse.de, yinghai@kernel.org, jiang.liu@huawei.com, wency@cn.fujitsu.com, laijs@cn.fujitsu.com, isimatu.yasuaki@jp.fujitsu.com, izumi.taku@jp.fujitsu.com, mgorman@suse.de, minchan@kernel.org, mina86@mina86.com, gong.chen@linux.intel.com, vasilis.liaskovitis@profitbricks.com, lwoodman@redhat.com, riel@redhat.com, jweiner@redhat.com, prarit@redhat.com, zhangyanfei@cn.fujitsu.com, yanghy@cn.fujitsu.com, x86@kernel.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-mm@kvack.org, linux-acpi@vger.kernel.org
+Return-path: <owner-linux-mm@kvack.org>
+In-Reply-To: <51FFA393.2080301@zytor.com>
+Sender: owner-linux-mm@kvack.org
+To: "H. Peter Anvin" <hpa@zytor.com>
+Cc: rjw@sisk.pl, lenb@kernel.org, tglx@linutronix.de, mingo@elte.hu, akpm@linux-foundation.org, tj@kernel.org, trenn@suse.de, yinghai@kernel.org, jiang.liu@huawei.com, wency@cn.fujitsu.com, laijs@cn.fujitsu.com, isimatu.yasuaki@jp.fujitsu.com, izumi.taku@jp.fujitsu.com, mgorman@suse.de, minchan@kernel.org, mina86@mina86.com, gong.chen@linux.intel.com, vasilis.liaskovitis@profitbricks.com, lwoodman@redhat.com, riel@redhat.com, jweiner@redhat.com, prarit@redhat.com, zhangyanfei@cn.fujitsu.com, yanghy@cn.fujitsu.com, x86@kernel.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-mm@kvack.org, linux-acpi@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hi Rafael,
 
-On 08/05/2013 09:26 PM, Rafael J. Wysocki wrote:
-......
->
-> I think I understand what you're trying to achieve and I don't have objections
-> agaist the goal, but the matter is *how* to do that.
->
-> Why don't you do something like this:
-> (1) Introduce two new functions that will each do part of
->      acpi_tb_parse_root_table() such that calling them in sequence, one right
->      after the other, will be exactly equivalent to the current
->      acpi_tb_parse_root_table().
-> (2) Redefine acpi_tb_parse_root_table() as a wrapper calling those two new
->      function one right after the other.
-> (3) Make Linux use the two new functions directly instead of calling
->      acpi_tb_parse_root_table()?
->
-> Then, Linux will use your new functions and won't call acpi_tb_parse_root_table()
-> at all, but the other existing users of ACPICA may still call it without any
-> modifications.
->
-> Does this make sense to you?
+Hi hpa,
 
-Thank you for you advice. It does make sense. I'll try your idea.
+I'm sorry but I don't quite following it.
+
+On 08/05/2013 09:07 PM, H. Peter Anvin wrote:
+> On 08/01/2013 12:06 AM, Tang Chen wrote:
+>> This patch-set aims to solve some problems at system boot time
+>> to enhance memory hotplug functionality.
+>>
+>> [Background]
+>>
+>> The Linux kernel cannot migrate pages used by the kernel because
+>> of the kernel direct mapping. Since va = pa + PAGE_OFFSET, if the
+>> physical address is changed, we cannot simply update the kernel
+>> pagetable. On the contrary, we have to update all the pointers
+>> pointing to the virtual address, which is very difficult to do.
+>>
+>
+> It does beg the question if that "since" statement should be changed ...
+
+Do you mean we are going to do kernel page migration in the future ?
+
+> we already have it handled differently on Xen PV, but that is kind of
+> "special".  There are a whole bunch of other issues with moving kernel
+> memory around: you have to worry what might have a physical address
+> cached somewhere and what might be in active use and so on...
+
+The current solution is to hotplug ZONE_MOVABLE, which the kernel won't
+use. So do you mean if I want to do kernel page migration (which I'm not
+doing), I need to worry about what you said above ?
+
+>I am not
+> really suggesting it as anything but food for thought at this time.
+
+Sorry for my poor English, and I really cannot understand this one.
 
 Thanks.
 
-
-
+--
+To unsubscribe, send a message with 'unsubscribe linux-mm' in
+the body to majordomo@kvack.org.  For more info on Linux MM,
+see: http://www.linux-mm.org/ .
+Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
