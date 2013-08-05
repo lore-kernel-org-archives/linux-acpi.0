@@ -1,128 +1,167 @@
-From: Daniel Vetter <daniel@ffwll.ch>
-Subject: Re: i915 backlight
-Date: Mon, 5 Aug 2013 09:34:10 +0200
-Message-ID: <20130805073409.GW22035@phenom.ffwll.local>
-References: <20130731162252.GC4724@pd.tnic>
- <20130731163623.GD4724@pd.tnic>
- <51F9B63F.7060509@intel.com>
- <20130801081215.GB3448@nazgul.tnic>
- <51FA2537.5040208@intel.com>
- <51FB0853.9090105@intel.com>
+From: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
+Subject: Re: Cannot hot remove a memory device
+Date: Mon, 5 Aug 2013 16:59:20 +0900
+Message-ID: <51FF5B58.7050701@jp.fujitsu.com>
+References: <51FA1E41.20304@jp.fujitsu.com>  <2124016.41i4c3lbD4@vostro.rjw.lan>  <1375488280.10300.124.camel@misato.fc.hp.com>  <3856529.sQXzdEem7D@vostro.rjw.lan> <1375576646.10300.150.camel@misato.fc.hp.com> <51FF2368.9060206@jp.fujitsu.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="UTF-8"; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-wi0-f180.google.com ([209.85.212.180]:48715 "EHLO
-	mail-wi0-f180.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754845Ab3HEHeF (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 5 Aug 2013 03:34:05 -0400
-Received: by mail-wi0-f180.google.com with SMTP id f14so1169902wiw.1
-        for <linux-acpi@vger.kernel.org>; Mon, 05 Aug 2013 00:34:03 -0700 (PDT)
-Content-Disposition: inline
-In-Reply-To: <51FB0853.9090105@intel.com>
+Received: from fgwmail5.fujitsu.co.jp ([192.51.44.35]:45739 "EHLO
+	fgwmail5.fujitsu.co.jp" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755017Ab3HEIAf (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 5 Aug 2013 04:00:35 -0400
+In-Reply-To: <51FF2368.9060206@jp.fujitsu.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Aaron Lu <aaron.lu@intel.com>
-Cc: Daniel Vetter <daniel.vetter@ffwll.ch>, Jani Nikula <jani.nikula@intel.com>, Borislav Petkov <bp@alien8.de>, intel-gfx@lists.freedesktop.org, dri-devel@lists.freedesktop.org, lkml <linux-kernel@vger.kernel.org>, "Rafael J. Wysocki" <rjw@sisk.pl>, ACPI Devel Mailing List <linux-acpi@vger.kernel.org>
+To: Toshi Kani <toshi.kani@hp.com>, "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: rafael.j.wysocki@intel.com, vasilis.liaskovitis@profitbricks.com, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, tangchen@cn.fujitsu.com, wency@cn.fujitsu.com
 
-On Fri, Aug 02, 2013 at 09:16:03AM +0800, Aaron Lu wrote:
-> Hi Jani & Daniel,
-> 
-> It turned out there is an integer overflow problem, and the below patch
-> fixed this problem on Acer Aspire 4732Z and thinkpad R61i.
-> 
-> From: Aaron Lu <aaron.lu@intel.com>
-> Subject: [PATCH] drm/i915: avoid brightness overflow when doing scale
-> 
-> Some card's max brightness level is pretty large, e.g. on Acer Aspire
-> 4732Z, the max level is 989910. If user space set a large enough level
-> then the current scale done in intel_panel_set_backlight will cause an
-> integer overflow and the scaled level will be mistakenly small, leaving
-> user with an almost black screen. This patch fixes this problem.
-> 
-> Signed-off-by: Aaron Lu <aaron.lu@intel.com>
-> ---
-> Since the only external user of intel_panel_set_backlight is operation
-> region code where the max will be a constant of 255, this patch fixes
-> the problem by comparing freq and max and then do things accordingly
-> instead of converting to 64 bits.
+(2013/08/05 13:00), Yasuaki Ishimatsu wrote:
+> (2013/08/04 9:37), Toshi Kani wrote:
+>> On Sat, 2013-08-03 at 03:01 +0200, Rafael J. Wysocki wrote:
+>>> On Friday, August 02, 2013 06:04:40 PM Toshi Kani wrote:
+>>>> On Sat, 2013-08-03 at 01:43 +0200, Rafael J. Wysocki wrote:
+>>>>> On Friday, August 02, 2013 03:46:15 PM Toshi Kani wrote:
+>>>>>> On Thu, 2013-08-01 at 23:43 +0200, Rafael J. Wysocki wrote:
+>>>>>>> Hi,
+>>>>>>>
+>>>>>>> Thanks for your report.
+>>>>>>>
+>>>>>>> On Thursday, August 01, 2013 05:37:21 PM Yasuaki Ishimatsu wrote:
+>>>>>>>> By following commit, I cannot hot remove a memory device.
+>>>>>>>>
+>>>>>>>> ACPI / memhotplug: Bind removable memory blocks to ACPI device nodes
+>>>>>>>> commit e2ff39400d81233374e780b133496a2296643d7d
+>>>>>>>>
+>>>>>>>> Details are follows:
+>>>>>>>> When I add a memory device, acpi_memory_enable_device() always fails
+>>>>>>>> as follows:
+>>>>>>>>
+>>>>>>>> ...
+>>>>>>>> [ 1271.114116]  [ffffea121c400000-ffffea121c7fffff] PMD -> [ffff880813c00000-ffff880813ffffff] on node 3
+>>>>>>>> [ 1271.128682]  [ffffea121c800000-ffffea121cbfffff] PMD -> [ffff880813800000-ffff880813bfffff] on node 3
+>>>>>>>> [ 1271.143298]  [ffffea121cc00000-ffffea121cffffff] PMD -> [ffff880813000000-ffff8808133fffff] on node 3
+>>>>>>>> [ 1271.157799]  [ffffea121d000000-ffffea121d3fffff] PMD -> [ffff880812c00000-ffff880812ffffff] on node 3
+>>>>>>>> [ 1271.172341]  [ffffea121d400000-ffffea121d7fffff] PMD -> [ffff880812800000-ffff880812bfffff] on node 3
+>>>>>>>> [ 1271.186872]  [ffffea121d800000-ffffea121dbfffff] PMD -> [ffff880812400000-ffff8808127fffff] on node 3
+>>>>>>>> [ 1271.201481]  [ffffea121dc00000-ffffea121dffffff] PMD -> [ffff880812000000-ffff8808123fffff] on node 3
+>>>>>>>> [ 1271.216041]  [ffffea121e000000-ffffea121e3fffff] PMD -> [ffff880811c00000-ffff880811ffffff] on node 3
+>>>>>>>> [ 1271.230623]  [ffffea121e400000-ffffea121e7fffff] PMD -> [ffff880811800000-ffff880811bfffff] on node 3
+>>>>>>>> [ 1271.245148]  [ffffea121e800000-ffffea121ebfffff] PMD -> [ffff880811400000-ffff8808117fffff] on node 3
+>>>>>>>> [ 1271.259683]  [ffffea121ec00000-ffffea121effffff] PMD -> [ffff880811000000-ffff8808113fffff] on node 3
+>>>>>>>> [ 1271.274194]  [ffffea121f000000-ffffea121f3fffff] PMD -> [ffff880810c00000-ffff880810ffffff] on node 3
+>>>>>>>> [ 1271.288764]  [ffffea121f400000-ffffea121f7fffff] PMD -> [ffff880810800000-ffff880810bfffff] on node 3
+>>>>>>
+>>>>>> It appears that each memory object only has 64MB of memory.  This is
+>>>>>> less than the memory block size, which is 128MB.  This means that a
+>>>>>> single memory block associates with two ACPI memory device objects.
+>>>>>
+>>>>> That'd be bad.
+>>>>>
+>>>>> How did that work before if that indeed is the case?
+>>>>
+>>>> Well, it looks to me that it has never worked before...
+>>>>
+>>>>>>>> ...
+>>>>>>>> [ 1271.325841] acpi PNP0C80:03: acpi_memory_enable_device() error
+>>>>>>>
+>>>>>>> Well, the only new way acpi_memory_enable_device() can fail after that commit
+>>>>>>> is a failure in acpi_bind_memory_blocks().
+>>>>>>
+>>>>>> Agreed.
+>>>>>>
+>>>>>>> This means that either handle is NULL, which I think we can exclude, because
+>>>>>>> acpi_memory_enable_device() wouldn't be called at all if that were the case, or
+>>>>>>> there's a more subtle error in acpi_bind_one().
+>>>>>>>
+>>>>>>> One that comes to mind is that we may be calling acpi_bind_one() twice for the
+>>>>>>> same memory region, in which it will trigger -EINVAL from the sanity check in
+>>>>>>> there.
+>>>>>>
+>>>>>> I think it fails with -EINVAL at the place with dev_warn(dev, "ACPI
+>>>>>> handle is already set\n").  When two ACPI memory objects associate with
+>>>>>> a same memory block, the bind procedure of the 2nd ACPI memory object
+>>>>>> sees that ACPI_HANDLE(dev) is already set to the 1st ACPI memory object.
+>>>>>
+>>>>> That sound's plausible, but I wonder how we can fix that?
+>>>>>
+>>>>> There's no way for a single physical device to have two different ACPI
+>>>>> "companions".  It looks like the memory blocks should be 64 M each in that
+>>>>> case.  Or we need to create two child devices for each memory block and
+>>>>> associate each of them with an ACPI object.  That would lead to complications
+>>>>> in the user space interface, though.
+>>>>
+>>>> Right.  Even bigger issue is that I do not think __add_pages() and
+>>>> __remove_pages() can add / delete a memory chunk that is less than
+>>>> 128MB.  128MB is the granularity of them.  So, we may just have to fail
+>>>> this case gracefully.
+>>>
+>>> Sigh.
+>>>
+>>> BTW, why do you think they are 64 M each (it's late and I'm obviously tired)?
+>>
+>> Oops!  Sorry, I had confused the above messages with the one in
+>> init_memory_mapping(), which shows a memory range being added, i.e. the
+>> size of an ACPI memory device object.  But the above messages actually
+>> came from vmemmap_populate_hugepages(), which was called during boot-up.
+>> So, these messages have nothing to do with ACPI memory device objects.
+>> And even worse, I do not seem to be able to count a number of zeros...
+>> In the above messages, each memory range is 4MB (0x400000), not 64MB
+>> (0x4000000)...  My bad. :-(
+>>
+>> So, while we may still need to do something for the less-than-128MB
+>> issue, Yasuaki may be hitting a different one.  Let's wait for Yasuaki
+>> to give us more info.
+>
+> acpi_bind_memory_blocks() failed with -ENOSPC.
+>
+> int acpi_bind_one(struct device *dev, acpi_handle handle)
+> {
+> ...
+>      /* allocate physical node id according to physical_node_id_bitmap */
+>      physical_node->node_id =
+>          find_first_zero_bit(acpi_dev->physical_node_id_bitmap,
+>          ACPI_MAX_PHYSICAL_NODE);
+>      if (physical_node->node_id >= ACPI_MAX_PHYSICAL_NODE) {
+>          retval = -ENOSPC; => here
+>          goto err_free;
+>      }
+>
+> When adding memory device, acpi_bind_memroy_blocks() calls acpi_bind_one()
+> "memory device size / 128MiB" times. So ACPI_MAX_PHYSICAL_NODE need to
+> be set "memory device size / 128MiB" or more. But ACPI_MAX_PHYSICAL_NODE is 32.
+> So acpi_bind_memory_blocks() always failed with -ENOSPC.
+>
 
-Yeah, makes sense. Picked up for -fixes, thanks for the patch.
--Daniel
-> 
->  drivers/gpu/drm/i915/intel_panel.c | 5 ++++-
->  1 file changed, 4 insertions(+), 1 deletion(-)
-> 
-> diff --git a/drivers/gpu/drm/i915/intel_panel.c b/drivers/gpu/drm/i915/intel_panel.c
-> index 67e2c1f..7c674f0 100644
-> --- a/drivers/gpu/drm/i915/intel_panel.c
-> +++ b/drivers/gpu/drm/i915/intel_panel.c
-> @@ -498,7 +498,10 @@ void intel_panel_set_backlight(struct drm_device *dev, u32 level, u32 max)
->  	}
->  
->  	/* scale to hardware */
-> -	level = level * freq / max;
-> +	if (freq < max)
-> +		level = level * freq / max;
-> +	else
-> +		level = freq / max * level;
->  
->  	dev_priv->backlight.level = level;
->  	if (dev_priv->backlight.device)
-> -- 
-> 1.8.3.1
-> 
-> 
-> Hi Boris,
-> 
-> Since the sysfs interface works on your system, I think your problem
-> should be different. Can you please file a bug for this? I can provide
-> you with a debug patch and then see what happened. Please attach
-> acpidump when filing the bug.
-> 
-> https://bugzilla.kernel.org, ACPI/Power-Video.
-> 
+> I'll test again after increasing ACPI_MAX_PHYSICAL_NODE to enough size.
+
+Additional info:
+When I increased ACPI_MAX_PHYSICAL_NODE to 1024 and change size of
+acpi_device_physical_node->node_it into u32, I could hot remove memory
+device. But even if ACPI_MAX_PHYSICAL_NODE is set to 1024, same problem
+will occurs since it just supports 124GiB memory. So we need a way to change
+ACPI_MAX_PHYSICAL_NODE dynamically.
+
+Thanks,
+Yasuaki Ishimatsu
+
+>
 > Thanks,
-> Aaron
-> 
-> > 
-> >>
-> >> The ranges are different, though:
-> >>
-> >> intel_backlight/actual_brightness:1000
-> >> intel_backlight/bl_power:0
-> >> intel_backlight/brightness:1000
-> >> intel_backlight/max_brightness:4437
-> >> intel_backlight/type:raw
-> >>
-> >> acpi_video0/actual_brightness:41
-> >> acpi_video0/bl_power:0
-> >> acpi_video0/brightness:41
-> >> acpi_video0/max_brightness:100
-> >> acpi_video0/type:firmware
-> > 
-> > Yes, different interface has different brightness ranges and a value in
-> > one range may turn out to be the same actual brightness level of another
-> > value in another range.
-> > 
-> >>
-> >> I guess I need to write me a dirty script for now ... :-)
-> > 
-> > :-)
-> > 
-> >>
-> >> Thanks guys.
-> >>
-> > Thanks,
-> > Aaron
-> > --
-> > To unsubscribe from this list: send the line "unsubscribe linux-kernel" in
-> > the body of a message to majordomo@vger.kernel.org
-> > More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> > Please read the FAQ at  http://www.tux.org/lkml/
-> > 
-> 
+> Yasuaki Ishimatsu
+>
+>>
+>> Thanks,
+>> -Toshi
+>>
+>>
+>>
+>>
+>>
+>>
+>>
+>>
+>>
+>
 
--- 
-Daniel Vetter
-Software Engineer, Intel Corporation
-+41 (0) 79 365 57 48 - http://blog.ffwll.ch
+
