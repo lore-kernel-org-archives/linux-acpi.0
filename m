@@ -1,37 +1,62 @@
-From: Jeffery To <jeffery.to@gmail.com>
-Subject: Re: Bluetooth re-enabled after resume from hibernation (Lenovo ThinkPad,
- X201 3626)
-Date: Tue, 06 Aug 2013 02:33:25 +0800
-Message-ID: <51FFEFF5.8080503@gmail.com>
-References: <51FEA4C7.8060007@gmail.com> <CAOLK0pyBywaRBahntSMvdQsnMdYEoEdx=oiRcWHRrCfpcmQx-w@mail.gmail.com>
+From: Toshi Kani <toshi.kani@hp.com>
+Subject: Re: [PATCH] ACPI: Do not fail acpi_bind_one() if device is already
+ bound correctly
+Date: Mon, 05 Aug 2013 16:20:19 -0600
+Message-ID: <1375741219.10300.172.camel@misato.fc.hp.com>
+References: <1888947.F5IBMfDKlY@vostro.rjw.lan>
+	 <3596381.TNBAQz9C67@vostro.rjw.lan>
+	 <1375576322.10300.146.camel@misato.fc.hp.com>
+	 <1981183.omDzKl0aqK@vostro.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-pa0-f49.google.com ([209.85.220.49]:33726 "EHLO
-	mail-pa0-f49.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753154Ab3HEScs (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 5 Aug 2013 14:32:48 -0400
-Received: by mail-pa0-f49.google.com with SMTP id bi5so3605191pad.36
-        for <linux-acpi@vger.kernel.org>; Mon, 05 Aug 2013 11:32:48 -0700 (PDT)
-In-Reply-To: <CAOLK0pyBywaRBahntSMvdQsnMdYEoEdx=oiRcWHRrCfpcmQx-w@mail.gmail.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1981183.omDzKl0aqK@vostro.rjw.lan>
+Sender: linux-kernel-owner@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>, Bjorn Helgaas <bhelgaas@google.com>
 List-Id: linux-acpi@vger.kernel.org
-To: Lan Tianyu <lantianyu1986@gmail.com>
-Cc: linux-acpi@vger.kernel.org, Bob Moore <robert.moore@intel.com>, 1179823@bugs.launchpad.net
 
-On 5/8/13 9:31 AM, Lan Tianyu wrote:
+On Sun, 2013-08-04 at 16:03 +0200, Rafael J. Wysocki wrote:
+> On Saturday, August 03, 2013 06:32:02 PM Toshi Kani wrote:
+> > On Sat, 2013-08-03 at 02:47 +0200, Rafael J. Wysocki wrote:
+> > > On Friday, August 02, 2013 04:38:38 PM Toshi Kani wrote:
+> > > > On Fri, 2013-08-02 at 00:33 +0200, Rafael J. Wysocki wrote:
+> > > > > From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+> > > > > 
+> > > > > Modify acpi_bind_one() so that it doesn't fail if the device
+> > > > > represented by its first argument has already been bound to the
+> > > > > given ACPI handle (second argument), because that is not a good
+> > > > > enough reason for returning an error code.
+> > > > 
+> > > > While it seems reasonable to allow such case, I do not think we will hit
+> > > > this case under the normal scenarios.  So, I do not think we need to
+> > > > make this change now unless it actually solves Yasuaki's issue (which I
+> > > > am guessing not).
+> > > 
+> > > In theory it should be possible to call acpi_bind_one() twice in a row
+> > > for the same dev and the same handle without failure, that simply is
+> > > logical.  The patch may not fix any problems visible now, but returning an
+> > > error code in such a case is simply incorrect.
+> > 
+> > We changed acpi_bus_device_attach() to not call the handler or driver
+> > again if it is already bound.  So, I was under impression that we
+> > prevent from attaching a same device twice.  But I may be missing
+> > something...
 > 
-> Hi,
->          Could you apply a bug on the kernel bugzilla and attach the
-> output of acpidump with these info?
->          https://bugzilla.kernel.org
-> 
+> acpi_bind_one() may be called in code paths that don't start from
+> acpi_bus_device_attach(), like acpi_platform_notify(), where the result
+> depends on how .find_device() is implemented by the the given bus type,
+> for example.
 
-It's done: http://bugzilla.kernel.org/show_bug.cgi?id=60697
+acpi_bind_one() always returns with 0 when it sets a handle to the
+device.  So, acpi_platform_notify() should not call .find_device() in
+this case.  acpi_bus_check_add() is also protected from adding a same
+device twice.  But I see your point that the callers of acpi_bind_one()
+could be changed / implementation dependent.  So, I agree that it would
+be prudent to have this change. 
 
-(though I'm not sure I picked the right component)
+Acked-by: Toshi Kani <toshi.kani@hp.com>
 
 Thanks,
-Jeff
-
+-Toshi
