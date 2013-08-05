@@ -1,45 +1,37 @@
-From: Zhang Yanfei <zhangyanfei.yes@gmail.com>
-Subject: Re: [PATCH v2 RESEND 13/18] x86, numa, mem_hotplug: Skip all the
- regions the kernel resides in.
-Date: Mon, 05 Aug 2013 23:12:44 +0800
-Message-ID: <51FFC0EC.6060805@gmail.com>
-References: <1375434877-20704-1-git-send-email-tangchen@cn.fujitsu.com> <1375434877-20704-14-git-send-email-tangchen@cn.fujitsu.com> <51FF44B7.8050704@cn.fujitsu.com> <20130805145212.GA19631@mtj.dyndns.org>
+From: Jeffery To <jeffery.to@gmail.com>
+Subject: Re: Bluetooth re-enabled after resume from hibernation (Lenovo ThinkPad,
+ X201 3626)
+Date: Tue, 06 Aug 2013 02:33:25 +0800
+Message-ID: <51FFEFF5.8080503@gmail.com>
+References: <51FEA4C7.8060007@gmail.com> <CAOLK0pyBywaRBahntSMvdQsnMdYEoEdx=oiRcWHRrCfpcmQx-w@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-doc-owner@vger.kernel.org>
-In-Reply-To: <20130805145212.GA19631@mtj.dyndns.org>
-Sender: linux-doc-owner@vger.kernel.org
-To: Tejun Heo <tj@kernel.org>
-Cc: Tang Chen <tangchen@cn.fujitsu.com>, robert.moore@intel.com, lv.zheng@intel.com, rjw@sisk.pl, lenb@kernel.org, tglx@linutronix.de, mingo@elte.hu, hpa@zytor.com, akpm@linux-foundation.org, trenn@suse.de, yinghai@kernel.org, jiang.liu@huawei.com, wency@cn.fujitsu.com, laijs@cn.fujitsu.com, isimatu.yasuaki@jp.fujitsu.com, izumi.taku@jp.fujitsu.com, mgorman@suse.de, minchan@kernel.org, mina86@mina86.com, gong.chen@linux.intel.com, vasilis.liaskovitis@profitbricks.com, lwoodman@redhat.com, riel@redhat.com, jweiner@redhat.com, prarit@redhat.com, zhangyanfei@cn.fujitsu.com, yanghy@cn.fujitsu.com, x86@kernel.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-mm@kvack.org, linux-acpi@vger.kernel.org
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-pa0-f49.google.com ([209.85.220.49]:33726 "EHLO
+	mail-pa0-f49.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753154Ab3HEScs (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 5 Aug 2013 14:32:48 -0400
+Received: by mail-pa0-f49.google.com with SMTP id bi5so3605191pad.36
+        for <linux-acpi@vger.kernel.org>; Mon, 05 Aug 2013 11:32:48 -0700 (PDT)
+In-Reply-To: <CAOLK0pyBywaRBahntSMvdQsnMdYEoEdx=oiRcWHRrCfpcmQx-w@mail.gmail.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Lan Tianyu <lantianyu1986@gmail.com>
+Cc: linux-acpi@vger.kernel.org, Bob Moore <robert.moore@intel.com>, 1179823@bugs.launchpad.net
 
-Hi tj,
-
-On 08/05/2013 10:52 PM, Tejun Heo wrote:
-> On Mon, Aug 05, 2013 at 02:22:47PM +0800, Tang Chen wrote:
->> I have resent the v2 patch-set. Would you please give some more
->> comments about the memblock and x86 booting code modification ?
+On 5/8/13 9:31 AM, Lan Tianyu wrote:
 > 
-> Patch 13 still seems corrupt.  Is it a problem on my side maybe?
-> Nope, gmane raw message is corrupt too.
-> 
->  http://article.gmane.org/gmane.linux.kernel.mm/104549/raw
-> 
-> Can you please verify your mail setup?  It's not very nice to repeat
-> the same problem.
+> Hi,
+>          Could you apply a bug on the kernel bugzilla and attach the
+> output of acpidump with these info?
+>          https://bugzilla.kernel.org
 > 
 
-Sorry for this format problem again. Maybe our mail client does have some
-problem. We will check tomorrow when we go to our company since we are at
-night now....
+It's done: http://bugzilla.kernel.org/show_bug.cgi?id=60697
 
-And could you please kindly help reviewing other memblock and bootstrap related
-patches, so we could have a discussion with you and come to an agreement as soon
-as possible.
+(though I'm not sure I picked the right component)
 
-Thanks in advance!
+Thanks,
+Jeff
 
--- 
-Thanks.
-Zhang Yanfei
