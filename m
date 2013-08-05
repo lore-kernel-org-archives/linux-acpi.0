@@ -1,82 +1,108 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: [PATCH] ACPI / PM: Walk physical_node_list under physical_node_lock
-Date: Mon, 05 Aug 2013 16:10:08 +0200
-Message-ID: <4934962.0gqQfGrEzP@vostro.rjw.lan>
+From: Heikki Krogerus <heikki.krogerus@linux.intel.com>
+Subject: Re: [PATCH] acpi, acpi_pci_irq_enable must return an error if ACPI
+ cannot map an IRQ.
+Date: Mon, 5 Aug 2013 17:04:16 +0300
+Message-ID: <20130805140416.GA3882@xps8300>
+References: <1373900260-1599-1-git-send-email-prarit@redhat.com>
+ <51F0F67F.8070200@redhat.com>
+ <51FEE549.3050001@redhat.com>
+ <2316212.cUEmm9I6aI@vostro.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7Bit
-Return-path: <linux-pm-owner@vger.kernel.org>
-Sender: linux-pm-owner@vger.kernel.org
-To: ACPI Devel Maling List <linux-acpi@vger.kernel.org>
-Cc: LKML <linux-kernel@vger.kernel.org>, Linux PM list <linux-pm@vger.kernel.org>
+Content-Type: multipart/mixed; boundary="M9NhX3UHpAaciwkO"
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mga09.intel.com ([134.134.136.24]:46076 "EHLO mga09.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753213Ab3HEOEh (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 5 Aug 2013 10:04:37 -0400
+Content-Disposition: inline
+In-Reply-To: <2316212.cUEmm9I6aI@vostro.rjw.lan>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Prarit Bhargava <prarit@redhat.com>, "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: linux-acpi@vger.kernel.org, Len Brown <lenb@kernel.org>, Bjorn Helgaas <bhelgaas@google.com>, Myron Stowe <mstowe@redhat.com>, linux-pci@vger.kernel.org
 
-From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 
-The list of physical devices corresponding to an ACPI device
-object is walked by acpi_system_wakeup_device_seq_show() and
-physical_device_enable_wakeup() without taking that object's
-physical_node_lock mutex.  Since each of those functions may be
-run at any time as a result of a user space action, the lack of
-appropriate locking in them may lead to a kernel crash if that
-happens during device hot-add or hot-remove involving the device
-object in question.
+--M9NhX3UHpAaciwkO
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
-Fix the issue by modifying acpi_system_wakeup_device_seq_show() and
-physical_device_enable_wakeup() to use physical_node_lock as
-appropriate.
+Hi,
 
-Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
-Cc: All <stable@vger.kernel.org>
----
+On Mon, Aug 05, 2013 at 03:30:16PM +0200, Rafael J. Wysocki wrote:
+> On Sunday, August 04, 2013 07:35:37 PM Prarit Bhargava wrote:
+> > Hey Rafael,
+> > 
+> > I know you're busy but I was just wondering if this was queued up anywhere or if
+> > you had any other questions?
+> 
+> Should be qeued up for 3.12 (currently in linux-next).
 
-This is urgent stuff, so if anyone has any objections against this or sees
-any problems with it, please let me know immediately.
+This breaks my xHCI :(
+
+If the issues is that you are not getting any interrupt, then should
+it not be checked separately and only fail in that case? I'm attaching
+a patch that I made on top of linux-next, where I do just that. Would
+that work for you?
 
 Thanks,
-Rafael
 
+-- 
+heikki
+
+--M9NhX3UHpAaciwkO
+Content-Type: text/x-diff; charset=us-ascii
+Content-Disposition: attachment; filename="0001-ACPI-fix-the-behaviour-of-acpi_pci_irq_enable.patch"
+
+>From fdf8fbe4e75e7e320eba86ec51c9ede2495f30cd Mon Sep 17 00:00:00 2001
+From: Heikki Krogerus <heikki.krogerus@linux.intel.com>
+Date: Mon, 5 Aug 2013 15:48:43 +0300
+Subject: [PATCH] ACPI: fix the behaviour of acpi_pci_irq_enable()
+
+acpi_pci_irq_enable() should not return error when PCI
+provides an IRQ for the device even if ACPI does not know
+the IRQ. This will change this case so that the function
+only return error when there is no IRQ at all.
+
+Without this the xHCI controller on my PC is allocated an
+IRQ but still fails to be probed as pci_enable_device()
+returns an error.
+
+Signed-off-by: Heikki Krogerus <heikki.krogerus@linux.intel.com>
 ---
- drivers/acpi/proc.c |    8 ++++++++
- 1 file changed, 8 insertions(+)
+ drivers/acpi/pci_irq.c | 10 ++++++++--
+ 1 file changed, 8 insertions(+), 2 deletions(-)
 
-Index: linux-pm/drivers/acpi/proc.c
-===================================================================
---- linux-pm.orig/drivers/acpi/proc.c
-+++ linux-pm/drivers/acpi/proc.c
-@@ -311,6 +311,8 @@ acpi_system_wakeup_device_seq_show(struc
- 			   dev->pnp.bus_id,
- 			   (u32) dev->wakeup.sleep_state);
- 
-+		mutex_lock(&dev->physical_node_lock);
+diff --git a/drivers/acpi/pci_irq.c b/drivers/acpi/pci_irq.c
+index 9681847..3c0b474 100644
+--- a/drivers/acpi/pci_irq.c
++++ b/drivers/acpi/pci_irq.c
+@@ -419,8 +419,15 @@ int acpi_pci_irq_enable(struct pci_dev *dev)
+ 	 */
+ 	if (gsi < 0) {
+ 		u32 dev_gsi;
 +
- 		if (!dev->physical_node_count) {
- 			seq_printf(seq, "%c%-8s\n",
- 				dev->wakeup.flags.run_wake ? '*' : ' ',
-@@ -338,6 +340,8 @@ acpi_system_wakeup_device_seq_show(struc
- 				put_device(ldev);
- 			}
++		if (!dev->irq) {
++			dev_err(&dev->dev, "PCI INT %c: no IRQ\n",
++				pin_name(pin));
++			return -ENOENT;
++		}
++
+ 		/* Interrupt Line values above 0xF are forbidden */
+-		if (dev->irq > 0 && (dev->irq <= 0xF) &&
++		if ((dev->irq <= 0xF) &&
+ 		    (acpi_isa_irq_to_gsi(dev->irq, &dev_gsi) == 0)) {
+ 			dev_warn(&dev->dev, "PCI INT %c: no GSI - using ISA IRQ %d\n",
+ 				 pin_name(pin), dev->irq);
+@@ -430,7 +437,6 @@ int acpi_pci_irq_enable(struct pci_dev *dev)
+ 		} else {
+ 			dev_warn(&dev->dev, "PCI INT %c: no GSI\n",
+ 				 pin_name(pin));
+-			return -ENOENT;
  		}
-+
-+		mutex_unlock(&dev->physical_node_lock);
- 	}
- 	mutex_unlock(&acpi_device_lock);
- 	return 0;
-@@ -347,12 +351,16 @@ static void physical_device_enable_wakeu
- {
- 	struct acpi_device_physical_node *entry;
  
-+	mutex_lock(&adev->physical_node_lock);
-+
- 	list_for_each_entry(entry,
- 		&adev->physical_node_list, node)
- 		if (entry->dev && device_can_wakeup(entry->dev)) {
- 			bool enable = !device_may_wakeup(entry->dev);
- 			device_set_wakeup_enable(entry->dev, enable);
- 		}
-+
-+	mutex_unlock(&adev->physical_node_lock);
- }
- 
- static ssize_t
+ 		return 0;
+-- 
+1.8.3.2
 
+
+--M9NhX3UHpAaciwkO--
