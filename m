@@ -1,53 +1,153 @@
-From: Tang Chen <tangchen@cn.fujitsu.com>
-Subject: Re: [PATCH v2 RESEND 05/18] x86, ACPICA: Split acpi_boot_table_init()
- into two parts.
-Date: Mon, 05 Aug 2013 11:21:51 +0800
-Message-ID: <51FF1A4F.1050309@cn.fujitsu.com>
-References: <1375434877-20704-1-git-send-email-tangchen@cn.fujitsu.com> <1375434877-20704-6-git-send-email-tangchen@cn.fujitsu.com> <7364455.HW1C4G1skW@vostro.rjw.lan>
+From: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
+Subject: Re: Cannot hot remove a memory device
+Date: Mon, 5 Aug 2013 13:00:40 +0900
+Message-ID: <51FF2368.9060206@jp.fujitsu.com>
+References: <51FA1E41.20304@jp.fujitsu.com>  <2124016.41i4c3lbD4@vostro.rjw.lan>  <1375488280.10300.124.camel@misato.fc.hp.com>  <3856529.sQXzdEem7D@vostro.rjw.lan> <1375576646.10300.150.camel@misato.fc.hp.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Type: text/plain; charset="UTF-8"; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-doc-owner@vger.kernel.org>
-In-Reply-To: <7364455.HW1C4G1skW@vostro.rjw.lan>
-Sender: linux-doc-owner@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: robert.moore@intel.com, lv.zheng@intel.com, lenb@kernel.org, tglx@linutronix.de, mingo@elte.hu, hpa@zytor.com, akpm@linux-foundation.org, tj@kernel.org, trenn@suse.de, yinghai@kernel.org, jiang.liu@huawei.com, wency@cn.fujitsu.com, laijs@cn.fujitsu.com, isimatu.yasuaki@jp.fujitsu.com, izumi.taku@jp.fujitsu.com, mgorman@suse.de, minchan@kernel.org, mina86@mina86.com, gong.chen@linux.intel.com, vasilis.liaskovitis@profitbricks.com, lwoodman@redhat.com, riel@redhat.com, jweiner@redhat.com, prarit@redhat.com, zhangyanfei@cn.fujitsu.com, yanghy@cn.fujitsu.com, x86@kernel.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-mm@kvack.org, linux-acpi@vger.kernel.org
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from fgwmail5.fujitsu.co.jp ([192.51.44.35]:42191 "EHLO
+	fgwmail5.fujitsu.co.jp" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751324Ab3HEEBc (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 5 Aug 2013 00:01:32 -0400
+In-Reply-To: <1375576646.10300.150.camel@misato.fc.hp.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Toshi Kani <toshi.kani@hp.com>
+Cc: "Rafael J. Wysocki" <rjw@sisk.pl>, rafael.j.wysocki@intel.com, vasilis.liaskovitis@profitbricks.com, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, tangchen@cn.fujitsu.com, wency@cn.fujitsu.com
 
-Hi Rafael,
-
-On 08/02/2013 09:00 PM, Rafael J. Wysocki wrote:
-......
->> This patch splits acpi_boot_table_init() into two steps:
->> 1. Parse RSDT, which cannot be overrided, and initialize
->>     acpi_gbl_root_table_list. (step 1 + 2 above)
->> 2. Install all ACPI tables into acpi_gbl_root_table_list.
->>     (step 3 + 4 above)
+(2013/08/04 9:37), Toshi Kani wrote:
+> On Sat, 2013-08-03 at 03:01 +0200, Rafael J. Wysocki wrote:
+>> On Friday, August 02, 2013 06:04:40 PM Toshi Kani wrote:
+>>> On Sat, 2013-08-03 at 01:43 +0200, Rafael J. Wysocki wrote:
+>>>> On Friday, August 02, 2013 03:46:15 PM Toshi Kani wrote:
+>>>>> On Thu, 2013-08-01 at 23:43 +0200, Rafael J. Wysocki wrote:
+>>>>>> Hi,
+>>>>>>
+>>>>>> Thanks for your report.
+>>>>>>
+>>>>>> On Thursday, August 01, 2013 05:37:21 PM Yasuaki Ishimatsu wrote:
+>>>>>>> By following commit, I cannot hot remove a memory device.
+>>>>>>>
+>>>>>>> ACPI / memhotplug: Bind removable memory blocks to ACPI device nodes
+>>>>>>> commit e2ff39400d81233374e780b133496a2296643d7d
+>>>>>>>
+>>>>>>> Details are follows:
+>>>>>>> When I add a memory device, acpi_memory_enable_device() always fails
+>>>>>>> as follows:
+>>>>>>>
+>>>>>>> ...
+>>>>>>> [ 1271.114116]  [ffffea121c400000-ffffea121c7fffff] PMD -> [ffff880813c00000-ffff880813ffffff] on node 3
+>>>>>>> [ 1271.128682]  [ffffea121c800000-ffffea121cbfffff] PMD -> [ffff880813800000-ffff880813bfffff] on node 3
+>>>>>>> [ 1271.143298]  [ffffea121cc00000-ffffea121cffffff] PMD -> [ffff880813000000-ffff8808133fffff] on node 3
+>>>>>>> [ 1271.157799]  [ffffea121d000000-ffffea121d3fffff] PMD -> [ffff880812c00000-ffff880812ffffff] on node 3
+>>>>>>> [ 1271.172341]  [ffffea121d400000-ffffea121d7fffff] PMD -> [ffff880812800000-ffff880812bfffff] on node 3
+>>>>>>> [ 1271.186872]  [ffffea121d800000-ffffea121dbfffff] PMD -> [ffff880812400000-ffff8808127fffff] on node 3
+>>>>>>> [ 1271.201481]  [ffffea121dc00000-ffffea121dffffff] PMD -> [ffff880812000000-ffff8808123fffff] on node 3
+>>>>>>> [ 1271.216041]  [ffffea121e000000-ffffea121e3fffff] PMD -> [ffff880811c00000-ffff880811ffffff] on node 3
+>>>>>>> [ 1271.230623]  [ffffea121e400000-ffffea121e7fffff] PMD -> [ffff880811800000-ffff880811bfffff] on node 3
+>>>>>>> [ 1271.245148]  [ffffea121e800000-ffffea121ebfffff] PMD -> [ffff880811400000-ffff8808117fffff] on node 3
+>>>>>>> [ 1271.259683]  [ffffea121ec00000-ffffea121effffff] PMD -> [ffff880811000000-ffff8808113fffff] on node 3
+>>>>>>> [ 1271.274194]  [ffffea121f000000-ffffea121f3fffff] PMD -> [ffff880810c00000-ffff880810ffffff] on node 3
+>>>>>>> [ 1271.288764]  [ffffea121f400000-ffffea121f7fffff] PMD -> [ffff880810800000-ffff880810bfffff] on node 3
+>>>>>
+>>>>> It appears that each memory object only has 64MB of memory.  This is
+>>>>> less than the memory block size, which is 128MB.  This means that a
+>>>>> single memory block associates with two ACPI memory device objects.
+>>>>
+>>>> That'd be bad.
+>>>>
+>>>> How did that work before if that indeed is the case?
+>>>
+>>> Well, it looks to me that it has never worked before...
+>>>
+>>>>>>> ...	
+>>>>>>> [ 1271.325841] acpi PNP0C80:03: acpi_memory_enable_device() error
+>>>>>>
+>>>>>> Well, the only new way acpi_memory_enable_device() can fail after that commit
+>>>>>> is a failure in acpi_bind_memory_blocks().
+>>>>>
+>>>>> Agreed.
+>>>>>
+>>>>>> This means that either handle is NULL, which I think we can exclude, because
+>>>>>> acpi_memory_enable_device() wouldn't be called at all if that were the case, or
+>>>>>> there's a more subtle error in acpi_bind_one().
+>>>>>>
+>>>>>> One that comes to mind is that we may be calling acpi_bind_one() twice for the
+>>>>>> same memory region, in which it will trigger -EINVAL from the sanity check in
+>>>>>> there.
+>>>>>
+>>>>> I think it fails with -EINVAL at the place with dev_warn(dev, "ACPI
+>>>>> handle is already set\n").  When two ACPI memory objects associate with
+>>>>> a same memory block, the bind procedure of the 2nd ACPI memory object
+>>>>> sees that ACPI_HANDLE(dev) is already set to the 1st ACPI memory object.
+>>>>
+>>>> That sound's plausible, but I wonder how we can fix that?
+>>>>
+>>>> There's no way for a single physical device to have two different ACPI
+>>>> "companions".  It looks like the memory blocks should be 64 M each in that
+>>>> case.  Or we need to create two child devices for each memory block and
+>>>> associate each of them with an ACPI object.  That would lead to complications
+>>>> in the user space interface, though.
+>>>
+>>> Right.  Even bigger issue is that I do not think __add_pages() and
+>>> __remove_pages() can add / delete a memory chunk that is less than
+>>> 128MB.  128MB is the granularity of them.  So, we may just have to fail
+>>> this case gracefully.
 >>
->> In later patches, we will do step 1 + 2 earlier.
+>> Sigh.
+>>
+>> BTW, why do you think they are 64 M each (it's late and I'm obviously tired)?
 >
-> Please note that Linux is not the only user of the code you're modifying, so
-> you need to make it possible to use the existing functions.
+> Oops!  Sorry, I had confused the above messages with the one in
+> init_memory_mapping(), which shows a memory range being added, i.e. the
+> size of an ACPI memory device object.  But the above messages actually
+> came from vmemmap_populate_hugepages(), which was called during boot-up.
+> So, these messages have nothing to do with ACPI memory device objects.
+> And even worse, I do not seem to be able to count a number of zeros...
+> In the above messages, each memory range is 4MB (0x400000), not 64MB
+> (0x4000000)...  My bad. :-(
 >
-> In particular, acpi_tb_parse_root_table() can't be modified the way you did it,
-> because that would require all of the users of ACPICA to be modified.
+> So, while we may still need to do something for the less-than-128MB
+> issue, Yasuaki may be hitting a different one.  Let's wait for Yasuaki
+> to give us more info.
 
-OK, I understand it. Then how about acpi_tb_install_table() ?
+acpi_bind_memory_blocks() failed with -ENOSPC.
 
-acpi_tb_install_table() is also an ACPICA API. But can we split the
-acpi_initrd_table_override part out ? Like the following:
+int acpi_bind_one(struct device *dev, acpi_handle handle)
+{
+...
+	/* allocate physical node id according to physical_node_id_bitmap */
+	physical_node->node_id =
+		find_first_zero_bit(acpi_dev->physical_node_id_bitmap,
+		ACPI_MAX_PHYSICAL_NODE);
+	if (physical_node->node_id >= ACPI_MAX_PHYSICAL_NODE) {
+		retval = -ENOSPC; => here
+		goto err_free;
+	}
 
-1. Initialize acpi_gbl_root_table_list earlier, and install all tables
-    provided by firmware.
-2. Find SRAT in initrd. If no overridden SRAT, get the SRAT in 
-acpi_gbl_root_table_list
-    directly. And mark hotpluggable memory. (This the job I want to do.)
-3. DO acpi_initrd_table_override job.
+When adding memory device, acpi_bind_memroy_blocks() calls acpi_bind_one()
+"memory device size / 128MiB" times. So ACPI_MAX_PHYSICAL_NODE need to
+be set "memory device size / 128MiB" or more. But ACPI_MAX_PHYSICAL_NODE is 32.
+So acpi_bind_memory_blocks() always failed with -ENOSPC.
 
-Finally it will work like the current kernel. The only difference is:
-Before the patch-set, it try to do override first, and then install 
-firmware tables.
-After the patch-set, it installs firmware tables, and then do the override.
+I'll test again after increasing ACPI_MAX_PHYSICAL_NODE to enough size.
 
-Thanks.
+Thanks,
+Yasuaki Ishimatsu
+
+>
+> Thanks,
+> -Toshi
+>
+>
+>
+>
+>
+>
+>
+>
+>
+
 
