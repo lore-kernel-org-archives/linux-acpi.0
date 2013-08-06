@@ -1,45 +1,70 @@
-From: Tang Chen <tangchen@cn.fujitsu.com>
-Subject: Re: [PATCH v2 RESEND 13/18] x86, numa, mem_hotplug: Skip all the
- regions the kernel resides in.
-Date: Tue, 06 Aug 2013 10:29:16 +0800
-Message-ID: <52005F7C.6080004@cn.fujitsu.com>
-References: <1375434877-20704-1-git-send-email-tangchen@cn.fujitsu.com> <1375434877-20704-14-git-send-email-tangchen@cn.fujitsu.com> <51FF44B7.8050704@cn.fujitsu.com> <20130805145212.GA19631@mtj.dyndns.org>
+From: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
+Subject: acpi_bus_trim does not detach devices in post order
+Date: Tue, 6 Aug 2013 12:07:52 +0900
+Message-ID: <52006888.5030203@jp.fujitsu.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: text/plain; charset="ISO-2022-JP"
 Content-Transfer-Encoding: 7bit
-Return-path: <owner-linux-mm@kvack.org>
-In-Reply-To: <20130805145212.GA19631@mtj.dyndns.org>
-Sender: owner-linux-mm@kvack.org
-To: Tejun Heo <tj@kernel.org>
-Cc: robert.moore@intel.com, lv.zheng@intel.com, rjw@sisk.pl, lenb@kernel.org, tglx@linutronix.de, mingo@elte.hu, hpa@zytor.com, akpm@linux-foundation.org, trenn@suse.de, yinghai@kernel.org, jiang.liu@huawei.com, wency@cn.fujitsu.com, laijs@cn.fujitsu.com, isimatu.yasuaki@jp.fujitsu.com, izumi.taku@jp.fujitsu.com, mgorman@suse.de, minchan@kernel.org, mina86@mina86.com, gong.chen@linux.intel.com, vasilis.liaskovitis@profitbricks.com, lwoodman@redhat.com, riel@redhat.com, jweiner@redhat.com, prarit@redhat.com, zhangyanfei@cn.fujitsu.com, yanghy@cn.fujitsu.com, x86@kernel.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-mm@kvack.org, linux-acpi@vger.kernel.org
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from fgwmail5.fujitsu.co.jp ([192.51.44.35]:36967 "EHLO
+	fgwmail5.fujitsu.co.jp" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753678Ab3HFDIb (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 5 Aug 2013 23:08:31 -0400
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: rafael.j.wysocki@intel.com, yinghai@kernel.org, toshi.kani@hp.com
+Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 
-On 08/05/2013 10:52 PM, Tejun Heo wrote:
-> On Mon, Aug 05, 2013 at 02:22:47PM +0800, Tang Chen wrote:
->> I have resent the v2 patch-set. Would you please give some more
->> comments about the memblock and x86 booting code modification ?
->
-> Patch 13 still seems corrupt.  Is it a problem on my side maybe?
-> Nope, gmane raw message is corrupt too.
->
->   http://article.gmane.org/gmane.linux.kernel.mm/104549/raw
->
-> Can you please verify your mail setup?  It's not very nice to repeat
-> the same problem.
 
-Hi tj,
+I acked the following commit but I hit a problem by the commit.
+So I report it.
 
-I'm sorry but seeing from lkml, it is OK. And the patch was formatted
-by git and sent by git send-email.
+commit cecdb193c8d91a42d9489d00618cc3dfff92e55a
+Author: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+Date:   Tue Jan 15 13:24:02 2013 +0100
 
-   https://lkml.org/lkml/2013/8/2/135
+    ACPI / scan: Change the implementation of acpi_bus_trim()
 
-I'll redo and resend this patch again.
+Before applying the commit, acpi_bus_trim() detachs devices in post order.
 
-Thanks.
+When I hot add memory devices and processor devices by container device
+in my x86 box, memory devices are added first and processor devices are added
+second. So I expect that processor devices are removed first and memory
+devices are removed second when I remove them. And before applying the
+commit, acpi_bus_trim() did so.
 
---
-To unsubscribe, send a message with 'unsubscribe linux-mm' in
-the body to majordomo@kvack.org.  For more info on Linux MM,
-see: http://www.linux-mm.org/ .
-Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
+But after appling the commit, acpi_bus_trim() does not detach devices in
+post order. So when I remove them, memory devices are removed first and
+processor devices are removed second.
+
+By this, I hit a problem.
+
+In Linux on x86 arch, NUMA node is depend on memory devices. So new NUMA
+node is created at memory hot adding. Thus when I hot add memory devices and
+processor devices, we must hot add memory device first. Otherwise, processor
+devices are not set to correct NUMA node number.
+
+And Linux expects that when removing them, processor devices are removed
+first before removing memory devices. But acpi_bus_trim() does not do so.
+By this, NUMA node is not cleared in my x86 box when hot removing memory device
+and processor devices. When removing memory devices, NUMA node is cleared.
+But if there are processor devices related with the NUMA node, NUMA node is
+not be cleared at memory hot removing.
+
+So when I remove them, NUMA node's sysfs file remained as follows:
+
+# ls /sys/devices/system/node/node1/
+compact  cpumap    meminfo   power                   subsystem  vmstat
+cpulist  distance  numastat  scan_unevictable_pages  uevent
+
+CPU and memory sysfs files are removed correctly. But node1 sysfs file
+remained.
+
+Thanks,
+Yasuaki Ishimatsu
+
+
+
+
+
+
