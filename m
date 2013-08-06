@@ -1,91 +1,74 @@
 From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: Cannot hot remove a memory device (patch, updated)
-Date: Tue, 06 Aug 2013 16:17:22 +0200
-Message-ID: <6353598.sj7IaxTFSj@vostro.rjw.lan>
-References: <51FA1E41.20304@jp.fujitsu.com> <4117925.f4JeZH8kGN@vostro.rjw.lan> <52005BA3.9020303@jp.fujitsu.com>
+Subject: Re: acpi_bus_trim does not detach devices in post order
+Date: Tue, 06 Aug 2013 16:26:03 +0200
+Message-ID: <8453998.khIH1RyxM0@vostro.rjw.lan>
+References: <52006888.5030203@jp.fujitsu.com> <5200CAAD.5080102@jp.fujitsu.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7Bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from hydra.sisk.pl ([212.160.235.94]:58006 "EHLO hydra.sisk.pl"
+Received: from hydra.sisk.pl ([212.160.235.94]:58024 "EHLO hydra.sisk.pl"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752653Ab3HFOHF (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 6 Aug 2013 10:07:05 -0400
-In-Reply-To: <52005BA3.9020303@jp.fujitsu.com>
+	id S1753363Ab3HFOPq (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 6 Aug 2013 10:15:46 -0400
+In-Reply-To: <5200CAAD.5080102@jp.fujitsu.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
-Cc: Toshi Kani <toshi.kani@hp.com>, rafael.j.wysocki@intel.com, vasilis.liaskovitis@profitbricks.com, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, tangchen@cn.fujitsu.com, wency@cn.fujitsu.com
+Cc: rafael.j.wysocki@intel.com, yinghai@kernel.org, toshi.kani@hp.com, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 
-On Tuesday, August 06, 2013 11:12:51 AM Yasuaki Ishimatsu wrote:
-> (2013/08/06 9:15), Rafael J. Wysocki wrote:
-> > On Monday, August 05, 2013 05:19:56 PM Toshi Kani wrote:
-> >> On Mon, 2013-08-05 at 15:14 +0200, Rafael J. Wysocki wrote:
-> >>    :
-> >>> Can you please test the appended patch?  I tested it somewhat, but since the
-> >>> greatest number of physical nodes per ACPI device object I can get on my test
-> >>> machines is 2 (and even that after hacking the kernel somewhat), that was kind
-> >>> of unconclusive.
-> >>>
-> >>> Thanks,
-> >>> Rafael
-> >>>
-> >>>
-> >>> ---
-> >>> From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
-> >>> Subject: ACPI: Drop physical_node_id_bitmap from struct acpi_device
-> >>>
-> >>> The physical_node_id_bitmap in struct acpi_device is only used for
-> >>> looking up the first currently unused phyiscal dependent node ID
-> >>> by acpi_bind_one().  It is not really necessary, however, because
-> >>> acpi_bind_one() walks the entire physical_node_list of the given
-> >>> device object for sanity checking anyway and if that list is always
-> >>> sorted by node_id, it is straightforward to find the first gap
-> >>> between the currently used node IDs and use that number as the ID
-> >>> of the new list node.
-> >>>
-> >>> This also removes the artificial limit of the maximum number of
-> >>> dependent physical devices per ACPI device object, which now depends
-> >>> only on the capacity of unsigend int.
-> >>>
-> >>> Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
-> >>
-> >> I like the change. Much better :-)
-> >>
-> >> Acked-by: Toshi Kani <toshi.kani@hp.com>
-> >
-> > However, it introduces a bug in acpi_unbind_one(), because the size of the name
-> > array in there has to be increased too.  Updated patch follows.
-> >
-> > Thanks,
-> > Rafael
-> >
-> >
-> > ---
-> > From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
-> > Subject: ACPI: Drop physical_node_id_bitmap from struct acpi_device
-> >
-> > The physical_node_id_bitmap in struct acpi_device is only used for
-> > looking up the first currently unused dependent phyiscal node ID
-> > by acpi_bind_one().  It is not really necessary, however, because
-> > acpi_bind_one() walks the entire physical_node_list of the given
-> > device object for sanity checking anyway and if that list is always
-> > sorted by node_id, it is straightforward to find the first gap
-> > between the currently used node IDs and use that number as the ID
-> > of the new list node.
-> >
-> > This also removes the artificial limit of the maximum number of
-> > dependent physical devices per ACPI device object, which now depends
-> > only on the capacity of unsigend int.
-> >
-> > Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+On Tuesday, August 06, 2013 07:06:37 PM Yasuaki Ishimatsu wrote:
+> (2013/08/06 12:07), Yasuaki Ishimatsu wrote:
+> > 
+> > I acked the following commit but I hit a problem by the commit.
+> > So I report it.
+> > 
+> > commit cecdb193c8d91a42d9489d00618cc3dfff92e55a
+> > Author: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+> > Date:   Tue Jan 15 13:24:02 2013 +0100
+> > 
+> >      ACPI / scan: Change the implementation of acpi_bus_trim()
+> > 
+> > Before applying the commit, acpi_bus_trim() detachs devices in post order.
+> > 
+> > When I hot add memory devices and processor devices by container device
+> > in my x86 box, memory devices are added first and processor devices are added
+> > second. So I expect that processor devices are removed first and memory
+> > devices are removed second when I remove them. And before applying the
+> > commit, acpi_bus_trim() did so.
+> > 
+> > But after appling the commit, acpi_bus_trim() does not detach devices in
+> > post order. So when I remove them, memory devices are removed first and
+> > processor devices are removed second.
+> > 
+> > By this, I hit a problem.
+> > 
+> > In Linux on x86 arch, NUMA node is depend on memory devices. So new NUMA
+> > node is created at memory hot adding. Thus when I hot add memory devices and
+> > processor devices, we must hot add memory device first. Otherwise, processor
+> > devices are not set to correct NUMA node number.
+> > 
+> > And Linux expects that when removing them, processor devices are removed
+> > first before removing memory devices. But acpi_bus_trim() does not do so.
+> > By this, NUMA node is not cleared in my x86 box when hot removing memory device
+> > and processor devices. When removing memory devices, NUMA node is cleared.
+> > But if there are processor devices related with the NUMA node, NUMA node is
+> > not be cleared at memory hot removing.
+> > 
+> > So when I remove them, NUMA node's sysfs file remained as follows:
 > 
-> Reviewed-by: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
-> Tested-by: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
-> 
-> I confirmed that I can add and remove a memory device correctly.
+> I had little mistake. CPU also tries to clear NUMA node.
+> But current implementation has bug. So I'll fix it.
 
-Great, thanks for the confirmation!
+Do I understand correctly that with your fix at
+
+https://patchwork.kernel.org/patch/2839298/
+
+the current acpi_bus_trim() implementation will be sufficient?
 
 Rafael
 
+
+-- 
+I speak only for myself.
+Rafael J. Wysocki, Intel Open Source Technology Center.
