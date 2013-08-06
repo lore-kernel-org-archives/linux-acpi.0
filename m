@@ -1,43 +1,67 @@
-From: Tejun Heo <tj@kernel.org>
-Subject: Re: [PATCH v2 RESEND 13/18] x86, numa, mem_hotplug: Skip all the
- regions the kernel resides in.
-Date: Tue, 6 Aug 2013 11:10:58 -0400
-Message-ID: <20130806151058.GA10779@mtj.dyndns.org>
-References: <1375434877-20704-1-git-send-email-tangchen@cn.fujitsu.com>
- <1375434877-20704-14-git-send-email-tangchen@cn.fujitsu.com>
- <51FF44B7.8050704@cn.fujitsu.com>
- <20130805145212.GA19631@mtj.dyndns.org>
- <52005F7C.6080004@cn.fujitsu.com>
+From: Toshi Kani <toshi.kani@hp.com>
+Subject: Re: Cannot hot remove a memory device (patch, updated)
+Date: Tue, 06 Aug 2013 09:28:10 -0600
+Message-ID: <1375802890.10300.179.camel@misato.fc.hp.com>
+References: <51FA1E41.20304@jp.fujitsu.com>
+	 <1456797.BR6oLAipWK@vostro.rjw.lan>
+	 <1375744796.10300.175.camel@misato.fc.hp.com>
+	 <4117925.f4JeZH8kGN@vostro.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <owner-linux-mm@kvack.org>
-Content-Disposition: inline
-In-Reply-To: <52005F7C.6080004@cn.fujitsu.com>
-Sender: owner-linux-mm@kvack.org
-To: Tang Chen <tangchen@cn.fujitsu.com>
-Cc: robert.moore@intel.com, lv.zheng@intel.com, rjw@sisk.pl, lenb@kernel.org, tglx@linutronix.de, mingo@elte.hu, hpa@zytor.com, akpm@linux-foundation.org, trenn@suse.de, yinghai@kernel.org, jiang.liu@huawei.com, wency@cn.fujitsu.com, laijs@cn.fujitsu.com, isimatu.yasuaki@jp.fujitsu.com, izumi.taku@jp.fujitsu.com, mgorman@suse.de, minchan@kernel.org, mina86@mina86.com, gong.chen@linux.intel.com, vasilis.liaskovitis@profitbricks.com, lwoodman@redhat.com, riel@redhat.com, jweiner@redhat.com, prarit@redhat.com, zhangyanfei@cn.fujitsu.com, yanghy@cn.fujitsu.com, x86@kernel.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-mm@kvack.org, linux-acpi@vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from g1t0028.austin.hp.com ([15.216.28.35]:26652 "EHLO
+	g1t0028.austin.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752867Ab3HFP3T (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 6 Aug 2013 11:29:19 -0400
+In-Reply-To: <4117925.f4JeZH8kGN@vostro.rjw.lan>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>, rafael.j.wysocki@intel.com, vasilis.liaskovitis@profitbricks.com, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, tangchen@cn.fujitsu.com, wency@cn.fujitsu.com
 
-On Tue, Aug 06, 2013 at 10:29:16AM +0800, Tang Chen wrote:
-> I'm sorry but seeing from lkml, it is OK. And the patch was formatted
-> by git and sent by git send-email.
+On Tue, 2013-08-06 at 02:15 +0200, Rafael J. Wysocki wrote:
+> On Monday, August 05, 2013 05:19:56 PM Toshi Kani wrote:
+> > On Mon, 2013-08-05 at 15:14 +0200, Rafael J. Wysocki wrote:
+> >   :
+> > > Can you please test the appended patch?  I tested it somewhat, but since the
+> > > greatest number of physical nodes per ACPI device object I can get on my test
+> > > machines is 2 (and even that after hacking the kernel somewhat), that was kind
+> > > of unconclusive.
+> > > 
+> > > Thanks,
+> > > Rafael
+> > > 
+> > > 
+> > > ---
+> > > From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+> > > Subject: ACPI: Drop physical_node_id_bitmap from struct acpi_device
+> > > 
+> > > The physical_node_id_bitmap in struct acpi_device is only used for
+> > > looking up the first currently unused phyiscal dependent node ID
+> > > by acpi_bind_one().  It is not really necessary, however, because
+> > > acpi_bind_one() walks the entire physical_node_list of the given
+> > > device object for sanity checking anyway and if that list is always
+> > > sorted by node_id, it is straightforward to find the first gap
+> > > between the currently used node IDs and use that number as the ID
+> > > of the new list node.
+> > > 
+> > > This also removes the artificial limit of the maximum number of
+> > > dependent physical devices per ACPI device object, which now depends
+> > > only on the capacity of unsigend int.
+> > > 
+> > > Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+> > 
+> > I like the change. Much better :-)
+> > 
+> > Acked-by: Toshi Kani <toshi.kani@hp.com>
 > 
->   https://lkml.org/lkml/2013/8/2/135
+> However, it introduces a bug in acpi_unbind_one(), because the size of the name
+> array in there has to be increased too.  Updated patch follows.
 
-Yeah, I checked that too but I think lkml.org is doing the QP
-decoding.  The raw link from gmane shows the raw message received so
-I'm relatively sure that something on the sending side is doing QP
-encoding as the mail travels out.  Can you please try sending it via
-gmail?  gmail does smtp and you can set the sender address to whatever
-you want too as long as you can receive messages on that address.
+Right.  Sorry, I overlooked this one.  Please apply my ask to this new
+version. 
 
-Thanks.
+Thanks,
+-Toshi
 
--- 
-tejun
-
---
-To unsubscribe, send a message with 'unsubscribe linux-mm' in
-the body to majordomo@kvack.org.  For more info on Linux MM,
-see: http://www.linux-mm.org/ .
-Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
