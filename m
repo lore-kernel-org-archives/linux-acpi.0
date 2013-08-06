@@ -1,56 +1,91 @@
-From: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
-Subject: [PATCH] ACPI, cpu hotplug: move try_offline_node() after acpi_unmap_lsapic()
-Date: Tue, 6 Aug 2013 19:11:11 +0900
-Message-ID: <5200CBBF.1090904@jp.fujitsu.com>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: Re: Cannot hot remove a memory device (patch, updated)
+Date: Tue, 06 Aug 2013 16:17:22 +0200
+Message-ID: <6353598.sj7IaxTFSj@vostro.rjw.lan>
+References: <51FA1E41.20304@jp.fujitsu.com> <4117925.f4JeZH8kGN@vostro.rjw.lan> <52005BA3.9020303@jp.fujitsu.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-2022-JP"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7Bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from fgwmail5.fujitsu.co.jp ([192.51.44.35]:41610 "EHLO
-	fgwmail5.fujitsu.co.jp" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755618Ab3HFKLb (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 6 Aug 2013 06:11:31 -0400
+Received: from hydra.sisk.pl ([212.160.235.94]:58006 "EHLO hydra.sisk.pl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752653Ab3HFOHF (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 6 Aug 2013 10:07:05 -0400
+In-Reply-To: <52005BA3.9020303@jp.fujitsu.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: rafael.j.wysocki@intel.com, toshi.kani@hp.com
-Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+To: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
+Cc: Toshi Kani <toshi.kani@hp.com>, rafael.j.wysocki@intel.com, vasilis.liaskovitis@profitbricks.com, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, tangchen@cn.fujitsu.com, wency@cn.fujitsu.com
 
-try_offline_node() checks that all cpus related with removed node have been
-removed by using cpu_present_bits. If all cpus related with removed node have
-been removed, try_offline_node() clears the node information.
+On Tuesday, August 06, 2013 11:12:51 AM Yasuaki Ishimatsu wrote:
+> (2013/08/06 9:15), Rafael J. Wysocki wrote:
+> > On Monday, August 05, 2013 05:19:56 PM Toshi Kani wrote:
+> >> On Mon, 2013-08-05 at 15:14 +0200, Rafael J. Wysocki wrote:
+> >>    :
+> >>> Can you please test the appended patch?  I tested it somewhat, but since the
+> >>> greatest number of physical nodes per ACPI device object I can get on my test
+> >>> machines is 2 (and even that after hacking the kernel somewhat), that was kind
+> >>> of unconclusive.
+> >>>
+> >>> Thanks,
+> >>> Rafael
+> >>>
+> >>>
+> >>> ---
+> >>> From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+> >>> Subject: ACPI: Drop physical_node_id_bitmap from struct acpi_device
+> >>>
+> >>> The physical_node_id_bitmap in struct acpi_device is only used for
+> >>> looking up the first currently unused phyiscal dependent node ID
+> >>> by acpi_bind_one().  It is not really necessary, however, because
+> >>> acpi_bind_one() walks the entire physical_node_list of the given
+> >>> device object for sanity checking anyway and if that list is always
+> >>> sorted by node_id, it is straightforward to find the first gap
+> >>> between the currently used node IDs and use that number as the ID
+> >>> of the new list node.
+> >>>
+> >>> This also removes the artificial limit of the maximum number of
+> >>> dependent physical devices per ACPI device object, which now depends
+> >>> only on the capacity of unsigend int.
+> >>>
+> >>> Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+> >>
+> >> I like the change. Much better :-)
+> >>
+> >> Acked-by: Toshi Kani <toshi.kani@hp.com>
+> >
+> > However, it introduces a bug in acpi_unbind_one(), because the size of the name
+> > array in there has to be increased too.  Updated patch follows.
+> >
+> > Thanks,
+> > Rafael
+> >
+> >
+> > ---
+> > From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+> > Subject: ACPI: Drop physical_node_id_bitmap from struct acpi_device
+> >
+> > The physical_node_id_bitmap in struct acpi_device is only used for
+> > looking up the first currently unused dependent phyiscal node ID
+> > by acpi_bind_one().  It is not really necessary, however, because
+> > acpi_bind_one() walks the entire physical_node_list of the given
+> > device object for sanity checking anyway and if that list is always
+> > sorted by node_id, it is straightforward to find the first gap
+> > between the currently used node IDs and use that number as the ID
+> > of the new list node.
+> >
+> > This also removes the artificial limit of the maximum number of
+> > dependent physical devices per ACPI device object, which now depends
+> > only on the capacity of unsigend int.
+> >
+> > Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+> 
+> Reviewed-by: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
+> Tested-by: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
+> 
+> I confirmed that I can add and remove a memory device correctly.
 
-But try_offline_node() called from acpi_processor_remove() never clears
-the node information. For disabling cpu_present_bits, acpi_unmap_lsapic()
-need be called. But acpi_unmap_lsapic() is called after try_offline_node()
-runs. So when try_offline_node() runs, the cpu's cpu_present_bits is always
-set.
+Great, thanks for the confirmation!
 
-This patch moves try_offline_node() after acpi_unmap_lsapic().
-
-Signed-off-by: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
----
- drivers/acpi/acpi_processor.c |    3 ++-
- 1 files changed, 2 insertions(+), 1 deletions(-)
-
-diff --git a/drivers/acpi/acpi_processor.c b/drivers/acpi/acpi_processor.c
-index fd6c51c..5a74a9c 100644
---- a/drivers/acpi/acpi_processor.c
-+++ b/drivers/acpi/acpi_processor.c
-@@ -451,7 +451,6 @@ static void acpi_processor_remove(struct acpi_device *device)
- 	/* Clean up. */
- 	per_cpu(processor_device_array, pr->id) = NULL;
- 	per_cpu(processors, pr->id) = NULL;
--	try_offline_node(cpu_to_node(pr->id));
-
- 	/* Remove the CPU. */
- 	get_online_cpus();
-@@ -459,6 +458,8 @@ static void acpi_processor_remove(struct acpi_device *device)
- 	acpi_unmap_lsapic(pr->id);
- 	put_online_cpus();
-
-+	try_offline_node(cpu_to_node(pr->id));
-+
-  out:
- 	free_cpumask_var(pr->throttling.shared_cpu_map);
- 	kfree(pr);
+Rafael
 
