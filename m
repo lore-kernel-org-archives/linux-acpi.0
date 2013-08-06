@@ -1,66 +1,43 @@
 From: Toshi Kani <toshi.kani@hp.com>
-Subject: Re: Cannot hot remove a memory device (patch, updated)
-Date: Tue, 06 Aug 2013 09:28:10 -0600
-Message-ID: <1375802890.10300.179.camel@misato.fc.hp.com>
-References: <51FA1E41.20304@jp.fujitsu.com>
-	 <1456797.BR6oLAipWK@vostro.rjw.lan>
-	 <1375744796.10300.175.camel@misato.fc.hp.com>
-	 <4117925.f4JeZH8kGN@vostro.rjw.lan>
+Subject: Re: [PATCH] ACPI, cpu hotplug: move try_offline_node() after
+ acpi_unmap_lsapic()
+Date: Tue, 06 Aug 2013 10:56:18 -0600
+Message-ID: <1375808178.10300.181.camel@misato.fc.hp.com>
+References: <5200CBBF.1090904@jp.fujitsu.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from g1t0028.austin.hp.com ([15.216.28.35]:26652 "EHLO
-	g1t0028.austin.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752867Ab3HFP3T (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 6 Aug 2013 11:29:19 -0400
-In-Reply-To: <4117925.f4JeZH8kGN@vostro.rjw.lan>
+Received: from g4t0016.houston.hp.com ([15.201.24.19]:17172 "EHLO
+	g4t0016.houston.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755686Ab3HFQ5Z (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 6 Aug 2013 12:57:25 -0400
+In-Reply-To: <5200CBBF.1090904@jp.fujitsu.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>, rafael.j.wysocki@intel.com, vasilis.liaskovitis@profitbricks.com, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, tangchen@cn.fujitsu.com, wency@cn.fujitsu.com
+To: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
+Cc: rafael.j.wysocki@intel.com, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 
-On Tue, 2013-08-06 at 02:15 +0200, Rafael J. Wysocki wrote:
-> On Monday, August 05, 2013 05:19:56 PM Toshi Kani wrote:
-> > On Mon, 2013-08-05 at 15:14 +0200, Rafael J. Wysocki wrote:
-> >   :
-> > > Can you please test the appended patch?  I tested it somewhat, but since the
-> > > greatest number of physical nodes per ACPI device object I can get on my test
-> > > machines is 2 (and even that after hacking the kernel somewhat), that was kind
-> > > of unconclusive.
-> > > 
-> > > Thanks,
-> > > Rafael
-> > > 
-> > > 
-> > > ---
-> > > From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
-> > > Subject: ACPI: Drop physical_node_id_bitmap from struct acpi_device
-> > > 
-> > > The physical_node_id_bitmap in struct acpi_device is only used for
-> > > looking up the first currently unused phyiscal dependent node ID
-> > > by acpi_bind_one().  It is not really necessary, however, because
-> > > acpi_bind_one() walks the entire physical_node_list of the given
-> > > device object for sanity checking anyway and if that list is always
-> > > sorted by node_id, it is straightforward to find the first gap
-> > > between the currently used node IDs and use that number as the ID
-> > > of the new list node.
-> > > 
-> > > This also removes the artificial limit of the maximum number of
-> > > dependent physical devices per ACPI device object, which now depends
-> > > only on the capacity of unsigend int.
-> > > 
-> > > Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
-> > 
-> > I like the change. Much better :-)
-> > 
-> > Acked-by: Toshi Kani <toshi.kani@hp.com>
+On Tue, 2013-08-06 at 19:11 +0900, Yasuaki Ishimatsu wrote:
+> try_offline_node() checks that all cpus related with removed node have been
+> removed by using cpu_present_bits. If all cpus related with removed node have
+> been removed, try_offline_node() clears the node information.
 > 
-> However, it introduces a bug in acpi_unbind_one(), because the size of the name
-> array in there has to be increased too.  Updated patch follows.
+> But try_offline_node() called from acpi_processor_remove() never clears
+> the node information. For disabling cpu_present_bits, acpi_unmap_lsapic()
+> need be called. But acpi_unmap_lsapic() is called after try_offline_node()
+> runs. So when try_offline_node() runs, the cpu's cpu_present_bits is always
+> set.
+> 
+> This patch moves try_offline_node() after acpi_unmap_lsapic().
+> 
+> Signed-off-by: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
 
-Right.  Sorry, I overlooked this one.  Please apply my ask to this new
-version. 
+The change looks good to me.
+
+Acked-by: Toshi Kani <toshi.kani@hp.com>
+
+BTW, do you know why try_offline_node() has to use stop_machine()?
 
 Thanks,
 -Toshi
