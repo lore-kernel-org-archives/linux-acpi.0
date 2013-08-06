@@ -1,52 +1,43 @@
 From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: [PATCH 0/5] ACPI: acpi_bind_one()/acpi_unbind_one() cleanups
-Date: Wed, 07 Aug 2013 00:29:49 +0200
-Message-ID: <7035316.4VkUaO4qFC@vostro.rjw.lan>
-References: <3015032.qfOqgEVZKP@vostro.rjw.lan> <1375823736.10300.196.camel@misato.fc.hp.com>
+Subject: Re: [PATCH] acpi, acpi_pci_irq_enable must return an error if ACPI cannot map an IRQ.
+Date: Wed, 07 Aug 2013 00:44:21 +0200
+Message-ID: <86005101.W2j5ifU8yA@vostro.rjw.lan>
+References: <1373900260-1599-1-git-send-email-prarit@redhat.com> <20130805140416.GA3882@xps8300> <52010A40.1040409@redhat.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7Bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from hydra.sisk.pl ([212.160.235.94]:58465 "EHLO hydra.sisk.pl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755714Ab3HFWTf (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 6 Aug 2013 18:19:35 -0400
-In-Reply-To: <1375823736.10300.196.camel@misato.fc.hp.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Return-path: <linux-pci-owner@vger.kernel.org>
+In-Reply-To: <52010A40.1040409@redhat.com>
+Sender: linux-pci-owner@vger.kernel.org
+To: Prarit Bhargava <prarit@redhat.com>
+Cc: Heikki Krogerus <heikki.krogerus@linux.intel.com>, linux-acpi@vger.kernel.org, Len Brown <lenb@kernel.org>, Bjorn Helgaas <bhelgaas@google.com>, Myron Stowe <mstowe@redhat.com>, linux-pci@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Toshi Kani <toshi.kani@hp.com>
-Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>
 
-On Tuesday, August 06, 2013 03:15:36 PM Toshi Kani wrote:
-> On Tue, 2013-08-06 at 02:22 +0200, Rafael J. Wysocki wrote:
-> > Hi All,
+On Tuesday, August 06, 2013 10:37:52 AM Prarit Bhargava wrote:
+> On 08/05/2013 10:04 AM, Heikki Krogerus wrote:
+> > Hi,
 > > 
-> > The following 5 patches clean up a little mess in acpi_bind_one() and
-> > acpi_unbind_one().  They are on top of current linux-next plus the patch
-> > at https://patchwork.kernel.org/patch/2839101/ .
+> > On Mon, Aug 05, 2013 at 03:30:16PM +0200, Rafael J. Wysocki wrote:
+> >> On Sunday, August 04, 2013 07:35:37 PM Prarit Bhargava wrote:
+> >>> Hey Rafael,
+> >>>
+> >>> I know you're busy but I was just wondering if this was queued up anywhere or if
+> >>> you had any other questions?
+> >>
+> >> Should be qeued up for 3.12 (currently in linux-next).
 > > 
-> > [1/5] Move duplicated code from acpi_bind_one()/acpi_unbind_one() to a separate
-> >       function.
+> > This breaks my xHCI :(
+> > 
+> > If the issues is that you are not getting any interrupt, then should
+> > it not be checked separately and only fail in that case? I'm attaching
+> > a patch that I made on top of linux-next, where I do just that. Would
+> > that work for you?
+> > 
 > 
-> I think the name of acpi_bind_physnode_name() is a bit confusing as if
-> it would make some persistent binding.  So, I'd suggest to rename it to
-> acpi_set_physnode_name().
+> Testing this right now ... I'll get back to everyone when I have results.
 
-In fact, the plan was to make it mean "physical node name for acpi_bind", but
-the execution was somewhat sloppy. ;-)
+In the meantime I've dropped that commit from linux-next as it caused the xHCI
+breakage to happen.
 
-I think I'll call it acpi_physnode_link_name(), that should be clear enough.
-
-> > [2/5] Create symlinks in acpi_bind_one() under physical_node_lock.
-> > [3/5] Clean up inconsistent use of whitespace in acpi_bind_one()/acpi_unbind_one().
-> > [4/5] Use list_for_each_entry() to walk the list in acpi_unbind_one().
-> > [5/5] Clean up the error code path in acpi_unbind_one().
-> 
-> All changes look good.  For the series:
-> 
-> Acked-by: Toshi Kani <toshi.kani@hp.com>
-
-Thanks!
-
+Thanks,
 Rafael
-
