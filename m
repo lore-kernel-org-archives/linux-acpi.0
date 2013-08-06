@@ -1,47 +1,70 @@
 From: Toshi Kani <toshi.kani@hp.com>
-Subject: Re: [PATCH 0/5] ACPI: acpi_bind_one()/acpi_unbind_one() cleanups
-Date: Tue, 06 Aug 2013 16:51:21 -0600
-Message-ID: <1375829481.10300.197.camel@misato.fc.hp.com>
-References: <3015032.qfOqgEVZKP@vostro.rjw.lan>
-	 <1375823736.10300.196.camel@misato.fc.hp.com>
-	 <7035316.4VkUaO4qFC@vostro.rjw.lan>
+Subject: Re: [PATCH v2 RESEND 04/18] acpi: Introduce acpi_verify_initrd() to
+ check if a table is invalid.
+Date: Tue, 06 Aug 2013 17:02:34 -0600
+Message-ID: <1375830154.10300.200.camel@misato.fc.hp.com>
+References: <1375434877-20704-1-git-send-email-tangchen@cn.fujitsu.com>
+	 <1375434877-20704-5-git-send-email-tangchen@cn.fujitsu.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from g6t0187.atlanta.hp.com ([15.193.32.64]:36848 "EHLO
-	g6t0187.atlanta.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756693Ab3HFWwa (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 6 Aug 2013 18:52:30 -0400
-In-Reply-To: <7035316.4VkUaO4qFC@vostro.rjw.lan>
-Sender: linux-acpi-owner@vger.kernel.org
+Return-path: <owner-linux-mm@kvack.org>
+In-Reply-To: <1375434877-20704-5-git-send-email-tangchen@cn.fujitsu.com>
+Sender: owner-linux-mm@kvack.org
+To: Tang Chen <tangchen@cn.fujitsu.com>
+Cc: robert.moore@intel.com, lv.zheng@intel.com, rjw@sisk.pl, lenb@kernel.org, tglx@linutronix.de, mingo@elte.hu, hpa@zytor.com, akpm@linux-foundation.org, tj@kernel.org, trenn@suse.de, yinghai@kernel.org, jiang.liu@huawei.com, wency@cn.fujitsu.com, laijs@cn.fujitsu.com, isimatu.yasuaki@jp.fujitsu.com, izumi.taku@jp.fujitsu.com, mgorman@suse.de, minchan@kernel.org, mina86@mina86.com, gong.chen@linux.intel.com, vasilis.liaskovitis@profitbricks.com, lwoodman@redhat.com, riel@redhat.com, jweiner@redhat.com, prarit@redhat.com, zhangyanfei@cn.fujitsu.com, yanghy@cn.fujitsu.com, x86@kernel.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-mm@kvack.org, linux-acpi@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>
 
-On Wed, 2013-08-07 at 00:29 +0200, Rafael J. Wysocki wrote:
-> On Tuesday, August 06, 2013 03:15:36 PM Toshi Kani wrote:
-> > On Tue, 2013-08-06 at 02:22 +0200, Rafael J. Wysocki wrote:
-> > > Hi All,
-> > > 
-> > > The following 5 patches clean up a little mess in acpi_bind_one() and
-> > > acpi_unbind_one().  They are on top of current linux-next plus the patch
-> > > at https://patchwork.kernel.org/patch/2839101/ .
-> > > 
-> > > [1/5] Move duplicated code from acpi_bind_one()/acpi_unbind_one() to a separate
-> > >       function.
-> > 
-> > I think the name of acpi_bind_physnode_name() is a bit confusing as if
-> > it would make some persistent binding.  So, I'd suggest to rename it to
-> > acpi_set_physnode_name().
-> 
-> In fact, the plan was to make it mean "physical node name for acpi_bind", but
-> the execution was somewhat sloppy. ;-)
-> 
-> I think I'll call it acpi_physnode_link_name(), that should be clear enough.
+On Fri, 2013-08-02 at 17:14 +0800, Tang Chen wrote:
+> In acpi_initrd_override(), it checks several things to ensure the
+> table it found is valid. In later patches, we need to do these check
+> somewhere else. So this patch introduces a common function
+> acpi_verify_initrd() to do all these checks, and reuse it in different
 
-Sounds good to me.
+Typo: acpi_verify_initrd() -> acpi_verify_table()
 
-Thanks,
 -Toshi
 
+
+> places. The function will be used in the subsequent patches.
+> 
+> Signed-off-by: Tang Chen <tangchen@cn.fujitsu.com>
+> Reviewed-by: Zhang Yanfei <zhangyanfei@cn.fujitsu.com>
+> Acked-by: Toshi Kani <toshi.kani@hp.com>
+> Acked-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+> ---
+>  drivers/acpi/osl.c |   86 +++++++++++++++++++++++++++++++++++++---------------
+>  1 files changed, 61 insertions(+), 25 deletions(-)
+> 
+> diff --git a/drivers/acpi/osl.c b/drivers/acpi/osl.c
+> index 3b8bab2..0043e9f 100644
+> --- a/drivers/acpi/osl.c
+> +++ b/drivers/acpi/osl.c
+> @@ -572,9 +572,68 @@ static const char * const table_sigs[] = {
+>  /* Must not increase 10 or needs code modification below */
+>  #define ACPI_OVERRIDE_TABLES 10
+>  
+> +/*******************************************************************************
+> + *
+> + * FUNCTION:    acpi_verify_table
+> + *
+> + * PARAMETERS:  File               - The initrd file
+> + *              Path               - Path to acpi overriding tables in cpio file
+> + *              Signature          - Signature of the table
+> + *
+> + * RETURN:      0 if it passes all the checks, -EINVAL if any check fails.
+> + *
+> + * DESCRIPTION: Check if an acpi table found in initrd is invalid.
+> + *              @signature can be NULL. If it is NULL, the function will check
+> + *              if the table signature matches any signature in table_sigs[].
+> + *
+> + ******************************************************************************/
+> +int __init acpi_verify_table(struct cpio_data *file,
+ :
+
+
+--
+To unsubscribe, send a message with 'unsubscribe linux-mm' in
+the body to majordomo@kvack.org.  For more info on Linux MM,
+see: http://www.linux-mm.org/ .
+Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
