@@ -1,7 +1,7 @@
 From: Tang Chen <tangchen@cn.fujitsu.com>
-Subject: [PATCH v3 08/25] acpi, acpica: Call two new functions instead of acpi_tb_parse_root_table() in acpi_initialize_tables().
-Date: Wed, 7 Aug 2013 18:51:59 +0800
-Message-ID: <1375872736-4822-9-git-send-email-tangchen@cn.fujitsu.com>
+Subject: [PATCH v3 23/25] memblock, mem_hotplug: Make memblock skip hotpluggable regions by default.
+Date: Wed, 7 Aug 2013 18:52:14 +0800
+Message-ID: <1375872736-4822-24-git-send-email-tangchen@cn.fujitsu.com>
 References: <1375872736-4822-1-git-send-email-tangchen@cn.fujitsu.com>
 Return-path: <owner-linux-mm@kvack.org>
 In-Reply-To: <1375872736-4822-1-git-send-email-tangchen@cn.fujitsu.com>
@@ -10,55 +10,66 @@ To: robert.moore@intel.com, lv.zheng@intel.com, rjw@sisk.pl, lenb@kernel.org, tg
 Cc: x86@kernel.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-mm@kvack.org, linux-acpi@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-The previous patch introduces two new functions:
-    acpi_tb_root_table_install() and acpi_tb_root_table_override(),
-which work just the same as acpi_tb_parse_root_table() if they are
-called in sequence.
+Linux kernel cannot migrate pages used by the kernel. As a result, hotpluggable
+memory used by the kernel won't be able to be hot-removed. To solve this
+problem, the basic idea is to prevent memblock from allocating hotpluggable
+memory for the kernel at early time, and arrange all hotpluggable memory in
+ACPI SRAT(System Resource Affinity Table) as ZONE_MOVABLE when initializing
+zones.
 
-In order to split acpi_initialize_tables(), call thes two functions
-in acpi_initialize_tables(). This will keep acpi_initialize_tables()
-works as before.
+In the previous patches, we have marked hotpluggable memory regions with
+MEMBLOCK_HOTPLUG flag in memblock.memory.
+
+In this patch, we make memblock skip these hotpluggable memory regions in
+the default allocate function.
+
+memblock_find_in_range_node()
+  |-->for_each_free_mem_range_reverse()
+        |-->__next_free_mem_range_rev()
+
+The above is the only place where __next_free_mem_range_rev() is used. So
+skip hotpluggable memory regions when iterating memblock.memory to find
+free memory.
+
+In the later patches, a boot option named "movablenode" will be introduced
+to enable/disable using SRAT to arrange ZONE_MOVABLE.
+
+NOTE: This check will always be done. It is OK because if users didn't specify
+      movablenode option, the hotpluggable memory won't be marked. So this
+      check won't skip any memory, which means the kernel will act as before.
 
 Signed-off-by: Tang Chen <tangchen@cn.fujitsu.com>
 Reviewed-by: Zhang Yanfei <zhangyanfei@cn.fujitsu.com>
 ---
- drivers/acpi/acpica/actables.h |    2 ++
- drivers/acpi/acpica/tbxface.c  |    9 +++++++--
- 2 files changed, 9 insertions(+), 2 deletions(-)
+ mm/memblock.c |    8 ++++++++
+ 1 files changed, 8 insertions(+), 0 deletions(-)
 
-diff --git a/drivers/acpi/acpica/actables.h b/drivers/acpi/acpica/actables.h
-index 7755e91..641796e 100644
---- a/drivers/acpi/acpica/actables.h
-+++ b/drivers/acpi/acpica/actables.h
-@@ -120,6 +120,8 @@ void
- acpi_tb_install_table(acpi_physical_address address,
- 		      char *signature, u32 table_index);
+diff --git a/mm/memblock.c b/mm/memblock.c
+index ecd8568..3ea4301 100644
+--- a/mm/memblock.c
++++ b/mm/memblock.c
+@@ -695,6 +695,10 @@ void __init_memblock __next_free_mem_range(u64 *idx, int nid,
+  * @out_nid: ptr to int for nid of the range, can be %NULL
+  *
+  * Reverse of __next_free_mem_range().
++ *
++ * Linux kernel cannot migrate pages used by itself. Memory hotplug users won't
++ * be able to hot-remove hotpluggable memory used by the kernel. So this
++ * function skip hotpluggable regions when allocating memory for the kernel.
+  */
+ void __init_memblock __next_free_mem_range_rev(u64 *idx, int nid,
+ 					   phys_addr_t *out_start,
+@@ -719,6 +723,10 @@ void __init_memblock __next_free_mem_range_rev(u64 *idx, int nid,
+ 		if (nid != MAX_NUMNODES && nid != memblock_get_region_node(m))
+ 			continue;
  
-+acpi_status acpi_tb_root_table_install(acpi_physical_address rsdp_address);
-+void acpi_tb_root_table_override(void);
- acpi_status acpi_tb_parse_root_table(acpi_physical_address rsdp_address);
- 
- #endif				/* __ACTABLES_H__ */
-diff --git a/drivers/acpi/acpica/tbxface.c b/drivers/acpi/acpica/tbxface.c
-index ad11162..98e4cad 100644
---- a/drivers/acpi/acpica/tbxface.c
-+++ b/drivers/acpi/acpica/tbxface.c
-@@ -143,8 +143,13 @@ acpi_initialize_tables(struct acpi_table_desc * initial_table_array,
- 	 * Root Table Array. This array contains the information of the RSDT/XSDT
- 	 * in a common, more useable format.
- 	 */
--	status = acpi_tb_parse_root_table(rsdp_address);
--	return_ACPI_STATUS(status);
-+	status = acpi_tb_root_table_install(rsdp_address);
-+	if (ACPI_FAILURE(status))
-+		return_ACPI_STATUS(status);
++		/* skip hotpluggable memory regions */
++		if (m->flags & MEMBLOCK_HOTPLUG)
++			continue;
 +
-+	acpi_tb_root_table_override();
-+
-+	return_ACPI_STATUS(AE_OK);
- }
- 
- /*******************************************************************************
+ 		/* scan areas before each reservation for intersection */
+ 		for ( ; ri >= 0; ri--) {
+ 			struct memblock_region *r = &rsv->regions[ri];
 -- 
 1.7.1
 
