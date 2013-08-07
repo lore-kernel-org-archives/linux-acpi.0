@@ -1,52 +1,72 @@
-From: Borislav Petkov <bp@alien8.de>
-Subject: Re: Backlight control only in the kernel?
-Date: Wed, 7 Aug 2013 13:04:06 +0200
-Message-ID: <20130807110406.GD17920@pd.tnic>
-References: <1370818899-8595-1-git-send-email-matthew.garrett@nebula.com>
- <20130807074405.GA18272@pd.tnic>
- <1375871766.10292.7.camel@x230.lan>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <1375871766.10292.7.camel@x230.lan>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Matthew Garrett <matthew.garrett@nebula.com>
-Cc: "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "seth.forshee@canonical.com" <seth.forshee@canonical.com>, "joeyli.kernel@gmail.com" <joeyli.kernel@gmail.com>, "daniel.vetter@ffwll.ch" <daniel.vetter@ffwll.ch>, "intel-gfx@lists.freedesktop.org" <intel-gfx@lists.freedesktop.org>, "dri-devel@lists.freedesktop.org" <dri-devel@lists.freedesktop.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "lenb@kernel.org" <lenb@kernel.org>, "rjw@sisk.pl" <rjw@sisk.pl>, Aaron Lu <aaron.lu@intel.com>
+From: Tang Chen <tangchen@cn.fujitsu.com>
+Subject: [PATCH v3 12/25] x86, acpi: Rename check_multiple_madt() and make it global.
+Date: Wed, 7 Aug 2013 18:52:03 +0800
+Message-ID: <1375872736-4822-13-git-send-email-tangchen@cn.fujitsu.com>
+References: <1375872736-4822-1-git-send-email-tangchen@cn.fujitsu.com>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from cn.fujitsu.com ([222.73.24.84]:1839 "EHLO song.cn.fujitsu.com"
+	rhost-flags-OK-FAIL-OK-OK) by vger.kernel.org with ESMTP
+	id S1757307Ab3HGLNj (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 7 Aug 2013 07:13:39 -0400
+In-Reply-To: <1375872736-4822-1-git-send-email-tangchen@cn.fujitsu.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: robert.moore@intel.com, lv.zheng@intel.com, rjw@sisk.pl, lenb@kernel.org, tglx@linutronix.de, mingo@elte.hu, hpa@zytor.com, akpm@linux-foundation.org, tj@kernel.org, trenn@suse.de, yinghai@kernel.org, jiang.liu@huawei.com, wency@cn.fujitsu.com, laijs@cn.fujitsu.com, isimatu.yasuaki@jp.fujitsu.com, izumi.taku@jp.fujitsu.com, mgorman@suse.de, minchan@kernel.org, mina86@mina86.com, gong.chen@linux.intel.com, vasilis.liaskovitis@profitbricks.com, lwoodman@redhat.com, riel@redhat.com, jweiner@redhat.com, prarit@redhat.com, zhangyanfei@cn.fujitsu.com, yanghy@cn.fujitsu.com
+Cc: x86@kernel.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-mm@kvack.org, linux-acpi@vger.kernel.org
 
-On Wed, Aug 07, 2013 at 10:36:08AM +0000, Matthew Garrett wrote:
-> Not really. The ACPI driver is able to do this because the events and
-> the backlight are associated with the same device.
+Since we split acpi_table_init() into two steps, and want to do
+the two steps separately, we need to do check_multiple_madt() after
+acpi_table_init_override().
 
-Well, it doesn't work at least in my case.
+But we also have to keep acpi_table_init() as before because it
+is also used in ia64, we have to do check_multiple_madt() directly
+in acpi_boot_table_init() in x86.
 
-I need to echo stuff into /sys/class/backlight/intel_backlight :(
+This patch make check_multiple_madt() global, and rename it to
+acpi_check_multiple_madt() because all interfaces provided by
+drivers/acpi/tables.c begins with "acpi_".
 
-> We could potentially make something work with GPU backlight drivers
-> since their PCI device should also be associated with the backlight
-> device, but things get complicated quickly - once ddcci support
-> is hooked up you'll also have kernel backlight devices for some
-> external monitors, and now you need to make a policy decision about
-> which display should be controlled in response to the keypress. One
-> reasonable choice would be whichever display contains the currently
-> focused window, which is obviously out of scope for the kernel.
->
-> So if we're going to do this then we need a generalised mechanism
-> in-kernel for connecting input devices to backlight devices, and we
-> need a mechanism for disabling it when userspace knows better. This
-> sounds like a lot of work for something that should really just be
-> handled by userspace already.
+Signed-off-by: Tang Chen <tangchen@cn.fujitsu.com>
+Reviewed-by: Zhang Yanfei <zhangyanfei@cn.fujitsu.com>
+---
+ drivers/acpi/tables.c |    4 ++--
+ include/linux/acpi.h  |    1 +
+ 2 files changed, 3 insertions(+), 2 deletions(-)
 
-That's easy: single-monitor setups have it enabled by default. So every
-laptop out there will just work, without any userspace intervention.
-
-More complicated situations are presented with the opportunity to
-disable the kernel-side control and do it themselves.
-
+diff --git a/drivers/acpi/tables.c b/drivers/acpi/tables.c
+index 4913a85..45727b2 100644
+--- a/drivers/acpi/tables.c
++++ b/drivers/acpi/tables.c
+@@ -314,7 +314,7 @@ int __init acpi_table_parse(char *id, acpi_tbl_table_handler handler)
+  * but some report two.  Provide a knob to use either.
+  * (don't you wish instance 0 and 1 were not the same?)
+  */
+-static void __init check_multiple_madt(void)
++void __init acpi_check_multiple_madt(void)
+ {
+ 	struct acpi_table_header *table = NULL;
+ 	acpi_size tbl_size;
+@@ -369,7 +369,7 @@ int __init acpi_table_init(void)
+ 
+ 	acpi_table_init_override();
+ 
+-	check_multiple_madt();
++	acpi_check_multiple_madt();
+ 
+ 	return 0;
+ }
+diff --git a/include/linux/acpi.h b/include/linux/acpi.h
+index 9704179..44a3e5f 100644
+--- a/include/linux/acpi.h
++++ b/include/linux/acpi.h
+@@ -95,6 +95,7 @@ void acpi_boot_table_init (void);
+ int acpi_mps_check (void);
+ int acpi_numa_init (void);
+ 
++void acpi_check_multiple_madt(void);
+ int acpi_table_init_firmware(void);
+ void acpi_table_init_override(void);
+ int acpi_table_init (void);
 -- 
-Regards/Gruss,
-    Boris.
+1.7.1
 
-Sent from a fat crate under my desk. Formatting is fine.
---
