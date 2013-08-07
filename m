@@ -1,100 +1,95 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: acpi_bus_trim does not detach devices in post order
-Date: Wed, 07 Aug 2013 02:57:22 +0200
-Message-ID: <11026265.tBv8b0WrJO@vostro.rjw.lan>
-References: <52006888.5030203@jp.fujitsu.com> <8453998.khIH1RyxM0@vostro.rjw.lan> <52019667.3010405@jp.fujitsu.com>
+From: Tang Chen <tangchen@cn.fujitsu.com>
+Subject: Re: [PATCH v2 RESEND 11/18] x86, acpi: Try to find SRAT in firmware
+ earlier.
+Date: Wed, 07 Aug 2013 09:37:59 +0800
+Message-ID: <5201A4F7.4080306@cn.fujitsu.com>
+References: <1375434877-20704-1-git-send-email-tangchen@cn.fujitsu.com>  <1375434877-20704-12-git-send-email-tangchen@cn.fujitsu.com> <1375832015.10300.206.camel@misato.fc.hp.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7Bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from hydra.sisk.pl ([212.160.235.94]:58596 "EHLO hydra.sisk.pl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756631Ab3HGArG (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 6 Aug 2013 20:47:06 -0400
-In-Reply-To: <52019667.3010405@jp.fujitsu.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <owner-linux-mm@kvack.org>
+In-Reply-To: <1375832015.10300.206.camel@misato.fc.hp.com>
+Sender: owner-linux-mm@kvack.org
+To: Toshi Kani <toshi.kani@hp.com>
+Cc: robert.moore@intel.com, lv.zheng@intel.com, rjw@sisk.pl, lenb@kernel.org, tglx@linutronix.de, mingo@elte.hu, hpa@zytor.com, akpm@linux-foundation.org, tj@kernel.org, trenn@suse.de, yinghai@kernel.org, jiang.liu@huawei.com, wency@cn.fujitsu.com, laijs@cn.fujitsu.com, isimatu.yasuaki@jp.fujitsu.com, izumi.taku@jp.fujitsu.com, mgorman@suse.de, minchan@kernel.org, mina86@mina86.com, gong.chen@linux.intel.com, vasilis.liaskovitis@profitbricks.com, lwoodman@redhat.com, riel@redhat.com, jweiner@redhat.com, prarit@redhat.com, zhangyanfei@cn.fujitsu.com, yanghy@cn.fujitsu.com, x86@kernel.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-mm@kvack.org, linux-acpi@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
-Cc: rafael.j.wysocki@intel.com, yinghai@kernel.org, toshi.kani@hp.com, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 
-On Wednesday, August 07, 2013 09:35:51 AM Yasuaki Ishimatsu wrote:
-> (2013/08/06 23:26), Rafael J. Wysocki wrote:
-> > On Tuesday, August 06, 2013 07:06:37 PM Yasuaki Ishimatsu wrote:
-> >> (2013/08/06 12:07), Yasuaki Ishimatsu wrote:
-> >>>
-> >>> I acked the following commit but I hit a problem by the commit.
-> >>> So I report it.
-> >>>
-> >>> commit cecdb193c8d91a42d9489d00618cc3dfff92e55a
-> >>> Author: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
-> >>> Date:   Tue Jan 15 13:24:02 2013 +0100
-> >>>
-> >>>       ACPI / scan: Change the implementation of acpi_bus_trim()
-> >>>
-> >>> Before applying the commit, acpi_bus_trim() detachs devices in post order.
-> >>>
-> >>> When I hot add memory devices and processor devices by container device
-> >>> in my x86 box, memory devices are added first and processor devices are added
-> >>> second. So I expect that processor devices are removed first and memory
-> >>> devices are removed second when I remove them. And before applying the
-> >>> commit, acpi_bus_trim() did so.
-> >>>
-> >>> But after appling the commit, acpi_bus_trim() does not detach devices in
-> >>> post order. So when I remove them, memory devices are removed first and
-> >>> processor devices are removed second.
-> >>>
-> >>> By this, I hit a problem.
-> >>>
-> >>> In Linux on x86 arch, NUMA node is depend on memory devices. So new NUMA
-> >>> node is created at memory hot adding. Thus when I hot add memory devices and
-> >>> processor devices, we must hot add memory device first. Otherwise, processor
-> >>> devices are not set to correct NUMA node number.
-> >>>
-> >>> And Linux expects that when removing them, processor devices are removed
-> >>> first before removing memory devices. But acpi_bus_trim() does not do so.
-> >>> By this, NUMA node is not cleared in my x86 box when hot removing memory device
-> >>> and processor devices. When removing memory devices, NUMA node is cleared.
-> >>> But if there are processor devices related with the NUMA node, NUMA node is
-> >>> not be cleared at memory hot removing.
-> >>>
-> >>> So when I remove them, NUMA node's sysfs file remained as follows:
-> >>
-> >> I had little mistake. CPU also tries to clear NUMA node.
-> >> But current implementation has bug. So I'll fix it.
-> >
-> 
-> > Do I understand correctly that with your fix at
-> >
-> > https://patchwork.kernel.org/patch/2839298/
-> >
-> > the current acpi_bus_trim() implementation will be sufficient?
-> 
-> No. The patch just fixed implementation of CPU hotplug.
+On 08/07/2013 07:33 AM, Toshi Kani wrote:
+> On Fri, 2013-08-02 at 17:14 +0800, Tang Chen wrote:
+>> This patch introduce early_acpi_firmware_srat() to find the
+>> phys addr of SRAT provided by firmware. And call it in
+>> find_hotpluggable_memory().
+>>
+>> Since we have initialized acpi_gbl_root_table_list earlier,
+>> and store all the tables' phys addrs and signatures in it,
+>> it is easy to find the SRAT.
+>>
+>> Signed-off-by: Tang Chen<tangchen@cn.fujitsu.com>
+>> Reviewed-by: Zhang Yanfei<zhangyanfei@cn.fujitsu.com>
+>> ---
+>>   drivers/acpi/acpica/tbxface.c |   32 ++++++++++++++++++++++++++++++++
+>>   drivers/acpi/osl.c            |   22 ++++++++++++++++++++++
+>>   include/acpi/acpixf.h         |    4 ++++
+>>   include/linux/acpi.h          |    4 ++++
+>>   mm/memory_hotplug.c           |    8 ++++++--
+>>   5 files changed, 68 insertions(+), 2 deletions(-)
+>>
+>> diff --git a/drivers/acpi/acpica/tbxface.c b/drivers/acpi/acpica/tbxface.c
+>
+> Please add "ACPICA" to the patch title.  This patch also needs to be
+> reviewed by ACPICA folks.
 
-My question was not sufficiently precise. :-)
+OK, followed.
 
-I wanted to ask if your patch was sufficient to address the specific breakage
-you were seeing without modifying acpi_bus_trim().
+>
+>> index ad11162..6a92f12 100644
+>> --- a/drivers/acpi/acpica/tbxface.c
+>> +++ b/drivers/acpi/acpica/tbxface.c
+>
+>   :
+>
+>> diff --git a/drivers/acpi/osl.c b/drivers/acpi/osl.c
+>> index dcbca3e..ec490fe 100644
+>> --- a/drivers/acpi/osl.c
+>> +++ b/drivers/acpi/osl.c
+>> @@ -53,6 +53,7 @@
+>>   #include<acpi/acpi.h>
+>>   #include<acpi/acpi_bus.h>
+>>   #include<acpi/processor.h>
+>> +#include<acpi/acpixf.h>
+>>
+>>   #define _COMPONENT		ACPI_OS_SERVICES
+>>   ACPI_MODULE_NAME("osl");
+>> @@ -760,6 +761,27 @@ void __init acpi_initrd_override(void *data, size_t size)
+>>   }
+>>   #endif /* CONFIG_ACPI_INITRD_TABLE_OVERRIDE */
+>>
+>> +#ifdef CONFIG_ACPI_NUMA
+>> +/*******************************************************************************
+>> + *
+>> + * FUNCTION:    early_acpi_firmware_srat
+>> + *
+>> + * RETURN:      Phys addr of SRAT on success, 0 on error.
+>> + *
+>> + * DESCRIPTION: Get the phys addr of SRAT provided by firmware.
+>> + *
+>> + ******************************************************************************/
+>> +phys_addr_t __init early_acpi_firmware_srat(void)
+>> +{
+>> +	struct acpi_table_desc table_desc;
+>> +
+>> +	if (acpi_get_table_desc(ACPI_SIG_SRAT,&table_desc))
+>
+> This check should use ACPI_FAILURE() macro:
+>
+>    if (ACPI_FAILURE(acpi_get_table_desc(ACPI_SIG_SRAT,&table_desc))
 
-> A problem I think is that acpi_bus_trim() does not detach devices in
-> post-order.
+OK, will change it.
 
-That is not exactly post-order, but children are guaranteed to be processed
-before their parents.  If that guarantee is sufficient, there's no problem.
-Otherwise, acpi_bus_trim() may need to be modified, but first I'd like to
-see a real life example where that really matters.
+Thanks.
 
-> And my patch does not fix it. So if some device has dependency
-> of other device, similar problem will occur.
-
-If there is a dependency that is not a parent-child one, we'll have a problem,
-but in that case relying on ordering will not be robust enough anyway in my
-opinion.
-
-Thanks,
-Rafael
-
-
--- 
-I speak only for myself.
-Rafael J. Wysocki, Intel Open Source Technology Center.
+--
+To unsubscribe, send a message with 'unsubscribe linux-mm' in
+the body to majordomo@kvack.org.  For more info on Linux MM,
+see: http://www.linux-mm.org/ .
+Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
