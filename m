@@ -1,109 +1,56 @@
 From: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
-Subject: Re: acpi_bus_trim does not detach devices in post order
-Date: Wed, 7 Aug 2013 12:21:10 +0900
-Message-ID: <5201BD26.8000404@jp.fujitsu.com>
-References: <52006888.5030203@jp.fujitsu.com> <8453998.khIH1RyxM0@vostro.rjw.lan> <52019667.3010405@jp.fujitsu.com> <11026265.tBv8b0WrJO@vostro.rjw.lan>
+Subject: Re: [PATCH] ACPI, cpu hotplug: move try_offline_node() after acpi_unmap_lsapic()
+Date: Wed, 7 Aug 2013 12:23:37 +0900
+Message-ID: <5201BDB9.8050301@jp.fujitsu.com>
+References: <5200CBBF.1090904@jp.fujitsu.com> <1375808178.10300.181.camel@misato.fc.hp.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from fgwmail5.fujitsu.co.jp ([192.51.44.35]:35059 "EHLO
+Received: from fgwmail5.fujitsu.co.jp ([192.51.44.35]:35108 "EHLO
 	fgwmail5.fujitsu.co.jp" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756894Ab3HGDVr (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 6 Aug 2013 23:21:47 -0400
-In-Reply-To: <11026265.tBv8b0WrJO@vostro.rjw.lan>
+	with ESMTP id S1756870Ab3HGDYE (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 6 Aug 2013 23:24:04 -0400
+In-Reply-To: <1375808178.10300.181.camel@misato.fc.hp.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: rafael.j.wysocki@intel.com, yinghai@kernel.org, toshi.kani@hp.com, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+To: Toshi Kani <toshi.kani@hp.com>
+Cc: rafael.j.wysocki@intel.com, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 
-(2013/08/07 9:57), Rafael J. Wysocki wrote:
-> On Wednesday, August 07, 2013 09:35:51 AM Yasuaki Ishimatsu wrote:
->> (2013/08/06 23:26), Rafael J. Wysocki wrote:
->>> On Tuesday, August 06, 2013 07:06:37 PM Yasuaki Ishimatsu wrote:
->>>> (2013/08/06 12:07), Yasuaki Ishimatsu wrote:
->>>>>
->>>>> I acked the following commit but I hit a problem by the commit.
->>>>> So I report it.
->>>>>
->>>>> commit cecdb193c8d91a42d9489d00618cc3dfff92e55a
->>>>> Author: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
->>>>> Date:   Tue Jan 15 13:24:02 2013 +0100
->>>>>
->>>>>        ACPI / scan: Change the implementation of acpi_bus_trim()
->>>>>
->>>>> Before applying the commit, acpi_bus_trim() detachs devices in post order.
->>>>>
->>>>> When I hot add memory devices and processor devices by container device
->>>>> in my x86 box, memory devices are added first and processor devices are added
->>>>> second. So I expect that processor devices are removed first and memory
->>>>> devices are removed second when I remove them. And before applying the
->>>>> commit, acpi_bus_trim() did so.
->>>>>
->>>>> But after appling the commit, acpi_bus_trim() does not detach devices in
->>>>> post order. So when I remove them, memory devices are removed first and
->>>>> processor devices are removed second.
->>>>>
->>>>> By this, I hit a problem.
->>>>>
->>>>> In Linux on x86 arch, NUMA node is depend on memory devices. So new NUMA
->>>>> node is created at memory hot adding. Thus when I hot add memory devices and
->>>>> processor devices, we must hot add memory device first. Otherwise, processor
->>>>> devices are not set to correct NUMA node number.
->>>>>
->>>>> And Linux expects that when removing them, processor devices are removed
->>>>> first before removing memory devices. But acpi_bus_trim() does not do so.
->>>>> By this, NUMA node is not cleared in my x86 box when hot removing memory device
->>>>> and processor devices. When removing memory devices, NUMA node is cleared.
->>>>> But if there are processor devices related with the NUMA node, NUMA node is
->>>>> not be cleared at memory hot removing.
->>>>>
->>>>> So when I remove them, NUMA node's sysfs file remained as follows:
->>>>
->>>> I had little mistake. CPU also tries to clear NUMA node.
->>>> But current implementation has bug. So I'll fix it.
->>>
+(2013/08/07 1:56), Toshi Kani wrote:
+> On Tue, 2013-08-06 at 19:11 +0900, Yasuaki Ishimatsu wrote:
+>> try_offline_node() checks that all cpus related with removed node have been
+>> removed by using cpu_present_bits. If all cpus related with removed node have
+>> been removed, try_offline_node() clears the node information.
 >>
->>> Do I understand correctly that with your fix at
->>>
->>> https://patchwork.kernel.org/patch/2839298/
->>>
->>> the current acpi_bus_trim() implementation will be sufficient?
+>> But try_offline_node() called from acpi_processor_remove() never clears
+>> the node information. For disabling cpu_present_bits, acpi_unmap_lsapic()
+>> need be called. But acpi_unmap_lsapic() is called after try_offline_node()
+>> runs. So when try_offline_node() runs, the cpu's cpu_present_bits is always
+>> set.
 >>
->> No. The patch just fixed implementation of CPU hotplug.
+>> This patch moves try_offline_node() after acpi_unmap_lsapic().
+>>
+>> Signed-off-by: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
 >
-> My question was not sufficiently precise. :-)
+> The change looks good to me.
 >
+> Acked-by: Toshi Kani <toshi.kani@hp.com>
 
-> I wanted to ask if your patch was sufficient to address the specific breakage
-> you were seeing without modifying acpi_bus_trim().
+Thanks, Toshi!
 
-Ah. Yes. By my patch, node sysfs is deleted correctly.
+> BTW, do you know why try_offline_node() has to use stop_machine()?
 
->
->> A problem I think is that acpi_bus_trim() does not detach devices in
->> post-order.
->
-> That is not exactly post-order, but children are guaranteed to be processed
-> before their parents.  If that guarantee is sufficient, there's no problem.
-> Otherwise, acpi_bus_trim() may need to be modified, but first I'd like to
-> see a real life example where that really matters.
-
-Currently I have no idea.
+I don't know the reason.
 
 Thanks,
 Yasuaki Ishimatsu
 
->> And my patch does not fix it. So if some device has dependency
->> of other device, similar problem will occur.
->
-> If there is a dependency that is not a parent-child one, we'll have a problem,
-> but in that case relying on ordering will not be robust enough anyway in my
-> opinion.
+
+
 >
 > Thanks,
-> Rafael
->
+> -Toshi
 >
 
 
