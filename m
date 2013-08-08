@@ -1,35 +1,114 @@
-From: Toshi Kani <toshi.kani@hp.com>
-Subject: Re: [PATCH 0/2] ACPI: More acpi_bind_one() cleanups
-Date: Thu, 08 Aug 2013 13:33:25 -0600
-Message-ID: <1375990405.10300.213.camel@misato.fc.hp.com>
-References: <5685060.iNWFUGc9at@vostro.rjw.lan>
+From: Mauro Carvalho Chehab <m.chehab@samsung.com>
+Subject: Re: [PATCH 3/3] mce: acpi/apei: trace: Enable ghes memory error trace
+ event
+Date: Thu, 08 Aug 2013 16:38:22 -0300
+Message-ID: <20130808163822.67e0828a@samsung.com>
+References: <1375986471-27113-1-git-send-email-naveen.n.rao@linux.vnet.ibm.com>
+ <1375986471-27113-4-git-send-email-naveen.n.rao@linux.vnet.ibm.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from g1t0028.austin.hp.com ([15.216.28.35]:28105 "EHLO
-	g1t0028.austin.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S965496Ab3HHTeg (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 8 Aug 2013 15:34:36 -0400
-In-Reply-To: <5685060.iNWFUGc9at@vostro.rjw.lan>
+Received: from mailout3.w2.samsung.com ([211.189.100.13]:57381 "EHLO
+	usmailout3.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752563Ab3HHTib (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 8 Aug 2013 15:38:31 -0400
+In-reply-to: <1375986471-27113-4-git-send-email-naveen.n.rao@linux.vnet.ibm.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>, Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
+To: "Naveen N. Rao" <naveen.n.rao@linux.vnet.ibm.com>
+Cc: tony.luck@intel.com, bp@alien8.de, bhelgaas@google.com, rostedt@goodmis.org, rjw@sisk.pl, lance.ortiz@hp.com, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 
-On Thu, 2013-08-08 at 01:54 +0200, Rafael J. Wysocki wrote:
-> Hi All,
+Em Thu, 08 Aug 2013 23:57:51 +0530
+"Naveen N. Rao" <naveen.n.rao@linux.vnet.ibm.com> escreveu:
+
+> Enable memory error trace event in cper.c
+
+Why do we need to do that? Memory error events are already handled
+via edac_ghes module, in a standard way that allows the same
+tracing to be used by either BIOS or by direct hardware error
+report mechanism.
+
+Adding an extra tracing for the same thing here will just make
+userspace more complex, and will create duplicated error events
+for the very same error.
+
+Ok, if the interface there is poor, let's improve it, but adding
+yet another interface to report the same error doesn't sound
+reasonable on my eyes.
+
+Regards,
+Mauro
 > 
-> Two more cleanups for acpi_bind_one() on top of linux-pm.git/linux-next
-> follow:
+> Signed-off-by: Naveen N. Rao <naveen.n.rao@linux.vnet.ibm.com>
+> ---
+>  drivers/acpi/apei/cper.c | 21 ++++++++++++++++-----
+>  1 file changed, 16 insertions(+), 5 deletions(-)
 > 
-> [1/2] Drop unnecessary label from acpi_bind_one().
-> [2/2] Print diagnostic messages if device links cannot be created.
+> diff --git a/drivers/acpi/apei/cper.c b/drivers/acpi/apei/cper.c
+> index 33dc6a0..19a9c0b 100644
+> --- a/drivers/acpi/apei/cper.c
+> +++ b/drivers/acpi/apei/cper.c
+> @@ -32,6 +32,10 @@
+>  #include <linux/pci.h>
+>  #include <linux/aer.h>
+>  
+> +#define CREATE_TRACE_POINTS
+> +#define TRACE_EVENT_GHES
+> +#include <trace/events/ras.h>
+> +
+>  /*
+>   * CPER record ID need to be unique even after reboot, because record
+>   * ID is used as index for ERST storage, while CPER records from
+> @@ -193,8 +197,13 @@ static const char *cper_mem_err_type_strs[] = {
+>  	"scrub uncorrected error",
+>  };
+>  
+> -static void cper_print_mem(const char *pfx, const struct cper_sec_mem_err *mem)
+> +static void cper_print_mem(const char *pfx,
+> +		const struct acpi_hest_generic_status *estatus,
+> +		const struct acpi_hest_generic_data *gdata,
+> +		const struct cper_sec_mem_err *mem)
+>  {
+> +	trace_ghes_platform_memory_event(estatus, gdata, mem);
+> +
+>  	if (mem->validation_bits & CPER_MEM_VALID_ERROR_STATUS)
+>  		printk("%s""error_status: 0x%016llx\n", pfx, mem->error_status);
+>  	if (mem->validation_bits & CPER_MEM_VALID_PHYSICAL_ADDRESS)
+> @@ -292,8 +301,10 @@ static const char *apei_estatus_section_flag_strs[] = {
+>  	"latent error",
+>  };
+>  
+> -static void apei_estatus_print_section(
+> -	const char *pfx, const struct acpi_hest_generic_data *gdata, int sec_no)
+> +static void apei_estatus_print_section(const char *pfx,
+> +		const struct acpi_hest_generic_status *estatus,
+> +		const struct acpi_hest_generic_data *gdata,
+> +		int sec_no)
+>  {
+>  	uuid_le *sec_type = (uuid_le *)gdata->section_type;
+>  	__u16 severity;
+> @@ -320,7 +331,7 @@ static void apei_estatus_print_section(
+>  		struct cper_sec_mem_err *mem_err = (void *)(gdata + 1);
+>  		printk("%s""section_type: memory error\n", pfx);
+>  		if (gdata->error_data_length >= sizeof(*mem_err))
+> -			cper_print_mem(pfx, mem_err);
+> +			cper_print_mem(pfx, estatus, gdata, mem_err);
+>  		else
+>  			goto err_section_too_small;
+>  	} else if (!uuid_le_cmp(*sec_type, CPER_SEC_PCIE)) {
+> @@ -355,7 +366,7 @@ void apei_estatus_print(const char *pfx,
+>  	gdata = (struct acpi_hest_generic_data *)(estatus + 1);
+>  	while (data_len > sizeof(*gdata)) {
+>  		gedata_len = gdata->error_data_length;
+> -		apei_estatus_print_section(pfx, gdata, sec_no);
+> +		apei_estatus_print_section(pfx, estatus, gdata, sec_no);
+>  		data_len -= gedata_len + sizeof(*gdata);
+>  		gdata = (void *)(gdata + 1) + gedata_len;
+>  		sec_no++;
 
-Looks good.
 
-Acked-by: Toshi Kani <toshi.kani@hp.com>
+-- 
 
-Thanks,
--Toshi
-
+Cheers,
+Mauro
