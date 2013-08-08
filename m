@@ -1,48 +1,27 @@
-From: Toshi Kani <toshi.kani@hp.com>
-Subject: Re: Cannot hot remove a memory device
-Date: Thu, 08 Aug 2013 11:15:20 -0600
-Message-ID: <1375982120.10300.212.camel@misato.fc.hp.com>
-References: <51FA1E41.20304@jp.fujitsu.com>
-	 <2995879.KDC1gYpzij@vostro.rjw.lan>
-	 <1375479975.10300.105.camel@misato.fc.hp.com>
-	 <2124016.41i4c3lbD4@vostro.rjw.lan>
-	 <1375488280.10300.124.camel@misato.fc.hp.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1375488280.10300.124.camel@misato.fc.hp.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>, rafael.j.wysocki@intel.com, vasilis.liaskovitis@profitbricks.com, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, tangchen@cn.fujitsu.com, wency@cn.fujitsu.com
+From: "Naveen N. Rao" <naveen.n.rao@linux.vnet.ibm.com>
+Subject: [PATCH 0/3] Add trace event for ghes memory error
+Date: Thu,  8 Aug 2013 23:57:48 +0530
+Message-ID: <1375986471-27113-1-git-send-email-naveen.n.rao@linux.vnet.ibm.com>
+Return-path: <linux-pci-owner@vger.kernel.org>
+Sender: linux-pci-owner@vger.kernel.org
+To: tony.luck@intel.com, bp@alien8.de, bhelgaas@google.com, rostedt@goodmis.org, rjw@sisk.pl, lance.ortiz@hp.com, m.chehab@samsung.com
+Cc: linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, "Naveen N. Rao" <naveen.n.rao@linux.vnet.ibm.com>
 List-Id: linux-acpi@vger.kernel.org
 
-On Fri, 2013-08-02 at 18:04 -0600, Toshi Kani wrote:
-> On Sat, 2013-08-03 at 01:43 +0200, Rafael J. Wysocki wrote:
-> > On Friday, August 02, 2013 03:46:15 PM Toshi Kani wrote:
-> > > On Thu, 2013-08-01 at 23:43 +0200, Rafael J. Wysocki wrote:
- :
-> > > I think it fails with -EINVAL at the place with dev_warn(dev, "ACPI
-> > > handle is already set\n").  When two ACPI memory objects associate with
-> > > a same memory block, the bind procedure of the 2nd ACPI memory object
-> > > sees that ACPI_HANDLE(dev) is already set to the 1st ACPI memory object.
-> > 
-> > That sound's plausible, but I wonder how we can fix that?
-> > 
-> > There's no way for a single physical device to have two different ACPI
-> > "companions".  It looks like the memory blocks should be 64 M each in that
-> > case.  Or we need to create two child devices for each memory block and
-> > associate each of them with an ACPI object.  That would lead to complications
-> > in the user space interface, though.
-> 
-> Right.  Even bigger issue is that I do not think __add_pages() and
-> __remove_pages() can add / delete a memory chunk that is less than
-> 128MB.  128MB is the granularity of them.  So, we may just have to fail
-> this case gracefully.
+This patch series adds a new trace event for memory errors reported via APEI
+generic hardware error source.
 
-FYI: I have submitted the patch blow to close this part of the issue...
+- Naveen
 
-https://lkml.org/lkml/2013/8/8/396
+Naveen N. Rao (3):
+  mce: acpi/apei: trace: Include PCIe AER trace event conditionally
+  mce: acpi/apei: trace: Add trace event for ghes memory error
+  mce: acpi/apei: trace: Enable ghes memory error trace event
 
-Thanks,
--Toshi
+ drivers/acpi/apei/cper.c               |  21 +++--
+ drivers/pci/pcie/aer/aerdrv_errprint.c |   1 +
+ include/trace/events/ras.h             | 159 ++++++++++++++++++++++++++++++++-
+ 3 files changed, 175 insertions(+), 6 deletions(-)
+
+-- 
+1.8.3.4
