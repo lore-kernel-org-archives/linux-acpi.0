@@ -1,39 +1,48 @@
-From: Yinghai Lu <yinghai@kernel.org>
-Subject: Re: [PATCH part4 4/4] x86, acpi, numa, mem_hotplug: Find hotpluggable
- memory in SRAT memory affinities.
-Date: Thu, 8 Aug 2013 09:41:25 -0700
-Message-ID: <CAE9FiQXwAkGU96Oe5YNErTXs-OHGHTAfVo4oyrF-WUZ97X7pQA@mail.gmail.com>
-References: <1375954883-30225-1-git-send-email-tangchen@cn.fujitsu.com>
-	<1375954883-30225-5-git-send-email-tangchen@cn.fujitsu.com>
+From: Toshi Kani <toshi.kani@hp.com>
+Subject: Re: Cannot hot remove a memory device
+Date: Thu, 08 Aug 2013 11:15:20 -0600
+Message-ID: <1375982120.10300.212.camel@misato.fc.hp.com>
+References: <51FA1E41.20304@jp.fujitsu.com>
+	 <2995879.KDC1gYpzij@vostro.rjw.lan>
+	 <1375479975.10300.105.camel@misato.fc.hp.com>
+	 <2124016.41i4c3lbD4@vostro.rjw.lan>
+	 <1375488280.10300.124.camel@misato.fc.hp.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <owner-linux-mm@kvack.org>
-In-Reply-To: <1375954883-30225-5-git-send-email-tangchen@cn.fujitsu.com>
-Sender: owner-linux-mm@kvack.org
-To: Tang Chen <tangchen@cn.fujitsu.com>
-Cc: Bob Moore <robert.moore@intel.com>, Lv Zheng <lv.zheng@intel.com>, "Rafael J. Wysocki" <rjw@sisk.pl>, Len Brown <lenb@kernel.org>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@elte.hu>, "H. Peter Anvin" <hpa@zytor.com>, Andrew Morton <akpm@linux-foundation.org>, Tejun Heo <tj@kernel.org>, Thomas Renninger <trenn@suse.de>, Jiang Liu <jiang.liu@huawei.com>, Wen Congyang <wency@cn.fujitsu.com>, Lai Jiangshan <laijs@cn.fujitsu.com>, Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>, Taku Izumi <izumi.taku@jp.fujitsu.com>, Mel Gorman <mgorman@suse.de>, Minchan Kim <minchan@kernel.org>, mina86@mina86.com, gong.chen@linux.intel.com, Vasilis Liaskovitis <vasilis.liaskovitis@profitbricks.com>, lwoodman@redhat.com, Rik van Riel <riel@redhat.com>, jweiner@redhat.com, Prarit Bhargava <prarit@redhat.com>, Zhang Yanfei <zhangyanfei@cn.fujitsu.com>, yanghy@cn.fujits
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1375488280.10300.124.camel@misato.fc.hp.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>, rafael.j.wysocki@intel.com, vasilis.liaskovitis@profitbricks.com, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, tangchen@cn.fujitsu.com, wency@cn.fujitsu.com
 List-Id: linux-acpi@vger.kernel.org
 
-On Thu, Aug 8, 2013 at 2:41 AM, Tang Chen <tangchen@cn.fujitsu.com> wrote:
-> In ACPI SRAT(System Resource Affinity Table), there is a memory affinity for each
-> memory range in the system. In each memory affinity, there is a field indicating
-> that if the memory range is hotpluggable.
->
-> This patch parses all the memory affinities in SRAT only, and find out all the
-> hotpluggable memory ranges in the system.
+On Fri, 2013-08-02 at 18:04 -0600, Toshi Kani wrote:
+> On Sat, 2013-08-03 at 01:43 +0200, Rafael J. Wysocki wrote:
+> > On Friday, August 02, 2013 03:46:15 PM Toshi Kani wrote:
+> > > On Thu, 2013-08-01 at 23:43 +0200, Rafael J. Wysocki wrote:
+ :
+> > > I think it fails with -EINVAL at the place with dev_warn(dev, "ACPI
+> > > handle is already set\n").  When two ACPI memory objects associate with
+> > > a same memory block, the bind procedure of the 2nd ACPI memory object
+> > > sees that ACPI_HANDLE(dev) is already set to the 1st ACPI memory object.
+> > 
+> > That sound's plausible, but I wonder how we can fix that?
+> > 
+> > There's no way for a single physical device to have two different ACPI
+> > "companions".  It looks like the memory blocks should be 64 M each in that
+> > case.  Or we need to create two child devices for each memory block and
+> > associate each of them with an ACPI object.  That would lead to complications
+> > in the user space interface, though.
+> 
+> Right.  Even bigger issue is that I do not think __add_pages() and
+> __remove_pages() can add / delete a memory chunk that is less than
+> 128MB.  128MB is the granularity of them.  So, we may just have to fail
+> this case gracefully.
 
-oh, no.
+FYI: I have submitted the patch blow to close this part of the issue...
 
-How do you make sure the SRAT's entries are right ?
-later numa_init could reject srat table if srat ranges does not cover
-e820 memmap.
+https://lkml.org/lkml/2013/8/8/396
 
-Also parse srat table two times looks silly.
-
-Yinghai
-
---
-To unsubscribe, send a message with 'unsubscribe linux-mm' in
-the body to majordomo@kvack.org.  For more info on Linux MM,
-see: http://www.linux-mm.org/ .
-Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
+Thanks,
+-Toshi
