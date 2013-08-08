@@ -1,79 +1,35 @@
-From: Steven Rostedt <rostedt@goodmis.org>
-Subject: Re: [PATCH 1/3] mce: acpi/apei: trace: Include PCIe AER trace event
- conditionally
-Date: Thu, 8 Aug 2013 15:23:29 -0400
-Message-ID: <20130808152329.1f98b5e0@gandalf.local.home>
-References: <1375986471-27113-1-git-send-email-naveen.n.rao@linux.vnet.ibm.com>
-	<1375986471-27113-2-git-send-email-naveen.n.rao@linux.vnet.ibm.com>
+From: Toshi Kani <toshi.kani@hp.com>
+Subject: Re: [PATCH 0/2] ACPI: More acpi_bind_one() cleanups
+Date: Thu, 08 Aug 2013 13:33:25 -0600
+Message-ID: <1375990405.10300.213.camel@misato.fc.hp.com>
+References: <5685060.iNWFUGc9at@vostro.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from hrndva-omtalb.mail.rr.com ([71.74.56.122]:14390 "EHLO
-	hrndva-omtalb.mail.rr.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S966189Ab3HHTXc (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 8 Aug 2013 15:23:32 -0400
-In-Reply-To: <1375986471-27113-2-git-send-email-naveen.n.rao@linux.vnet.ibm.com>
+Received: from g1t0028.austin.hp.com ([15.216.28.35]:28105 "EHLO
+	g1t0028.austin.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S965496Ab3HHTeg (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 8 Aug 2013 15:34:36 -0400
+In-Reply-To: <5685060.iNWFUGc9at@vostro.rjw.lan>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Naveen N. Rao" <naveen.n.rao@linux.vnet.ibm.com>
-Cc: tony.luck@intel.com, bp@alien8.de, bhelgaas@google.com, rjw@sisk.pl, lance.ortiz@hp.com, m.chehab@samsung.com, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>, Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
 
-[ attempting to try out claws-mail, hopefully this messages isn't
-scrambled ;-) ]
-
-On Thu,  8 Aug 2013 23:57:49 +0530
-"Naveen N. Rao" <naveen.n.rao@linux.vnet.ibm.com> wrote:
-
-> Since we'll be adding multiple trace events to ras.h, we need to protect
-> each block appropriately so that they only get included in the right
-> places. Update PCIe AER trace event for this purpose.
-
-Why not make a separate file for each? You will have to define
-TRACE_EVENT_PCIE_AER for the users as well. That is, the places that
-include ras.h and use the trace_aer_*() tracepoints.
-
-
+On Thu, 2013-08-08 at 01:54 +0200, Rafael J. Wysocki wrote:
+> Hi All,
 > 
-> Signed-off-by: Naveen N. Rao <naveen.n.rao@linux.vnet.ibm.com>
-> ---
->  drivers/pci/pcie/aer/aerdrv_errprint.c | 1 +
->  include/trace/events/ras.h             | 2 +-
->  2 files changed, 2 insertions(+), 1 deletion(-)
+> Two more cleanups for acpi_bind_one() on top of linux-pm.git/linux-next
+> follow:
 > 
-> diff --git a/drivers/pci/pcie/aer/aerdrv_errprint.c b/drivers/pci/pcie/aer/aerdrv_errprint.c
-> index 2c7c9f5..4d06859 100644
-> --- a/drivers/pci/pcie/aer/aerdrv_errprint.c
-> +++ b/drivers/pci/pcie/aer/aerdrv_errprint.c
-> @@ -24,6 +24,7 @@
->  #include "aerdrv.h"
->  
->  #define CREATE_TRACE_POINTS
-> +#define TRACE_EVENT_PCIE_AER
->  #include <trace/events/ras.h>
->  
->  #define AER_AGENT_RECEIVER		0
-> diff --git a/include/trace/events/ras.h b/include/trace/events/ras.h
-> index 88b8783..4a66142 100644
-> --- a/include/trace/events/ras.h
-> +++ b/include/trace/events/ras.h
-> @@ -1,7 +1,7 @@
->  #undef TRACE_SYSTEM
->  #define TRACE_SYSTEM ras
->  
-> -#if !defined(_TRACE_AER_H) || defined(TRACE_HEADER_MULTI_READ)
-> +#if (!defined(_TRACE_AER_H) || defined(TRACE_HEADER_MULTI_READ)) && defined()
+> [1/2] Drop unnecessary label from acpi_bind_one().
+> [2/2] Print diagnostic messages if device links cannot be created.
 
-I think it would look cleaner to encapsulate the one define with the
-other:
+Looks good.
 
-#ifdef TRACE_EVENT_PCIE_AER
-#if !defined(_TRACE_AER_H) || defined(TRACE_HEADER_MULTI_READ)
+Acked-by: Toshi Kani <toshi.kani@hp.com>
 
-
--- Steve
-
->  #define _TRACE_AER_H
->  
->  #include <linux/tracepoint.h>
+Thanks,
+-Toshi
 
