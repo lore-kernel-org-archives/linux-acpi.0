@@ -1,114 +1,52 @@
-From: Mauro Carvalho Chehab <m.chehab@samsung.com>
-Subject: Re: [PATCH 3/3] mce: acpi/apei: trace: Enable ghes memory error trace
- event
-Date: Thu, 08 Aug 2013 16:38:22 -0300
-Message-ID: <20130808163822.67e0828a@samsung.com>
-References: <1375986471-27113-1-git-send-email-naveen.n.rao@linux.vnet.ibm.com>
- <1375986471-27113-4-git-send-email-naveen.n.rao@linux.vnet.ibm.com>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: Re: Cannot hot remove a memory device
+Date: Fri, 09 Aug 2013 00:12:22 +0200
+Message-ID: <13789925.vhhiTlyGIy@vostro.rjw.lan>
+References: <51FA1E41.20304@jp.fujitsu.com> <1375488280.10300.124.camel@misato.fc.hp.com> <1375982120.10300.212.camel@misato.fc.hp.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7Bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mailout3.w2.samsung.com ([211.189.100.13]:57381 "EHLO
-	usmailout3.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752563Ab3HHTib (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 8 Aug 2013 15:38:31 -0400
-In-reply-to: <1375986471-27113-4-git-send-email-naveen.n.rao@linux.vnet.ibm.com>
+Received: from hydra.sisk.pl ([212.160.235.94]:33033 "EHLO hydra.sisk.pl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1758174Ab3HHWNg (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 8 Aug 2013 18:13:36 -0400
+In-Reply-To: <1375982120.10300.212.camel@misato.fc.hp.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Naveen N. Rao" <naveen.n.rao@linux.vnet.ibm.com>
-Cc: tony.luck@intel.com, bp@alien8.de, bhelgaas@google.com, rostedt@goodmis.org, rjw@sisk.pl, lance.ortiz@hp.com, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+To: Toshi Kani <toshi.kani@hp.com>
+Cc: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>, rafael.j.wysocki@intel.com, vasilis.liaskovitis@profitbricks.com, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, tangchen@cn.fujitsu.com, wency@cn.fujitsu.com
 
-Em Thu, 08 Aug 2013 23:57:51 +0530
-"Naveen N. Rao" <naveen.n.rao@linux.vnet.ibm.com> escreveu:
-
-> Enable memory error trace event in cper.c
-
-Why do we need to do that? Memory error events are already handled
-via edac_ghes module, in a standard way that allows the same
-tracing to be used by either BIOS or by direct hardware error
-report mechanism.
-
-Adding an extra tracing for the same thing here will just make
-userspace more complex, and will create duplicated error events
-for the very same error.
-
-Ok, if the interface there is poor, let's improve it, but adding
-yet another interface to report the same error doesn't sound
-reasonable on my eyes.
-
-Regards,
-Mauro
+On Thursday, August 08, 2013 11:15:20 AM Toshi Kani wrote:
+> On Fri, 2013-08-02 at 18:04 -0600, Toshi Kani wrote:
+> > On Sat, 2013-08-03 at 01:43 +0200, Rafael J. Wysocki wrote:
+> > > On Friday, August 02, 2013 03:46:15 PM Toshi Kani wrote:
+> > > > On Thu, 2013-08-01 at 23:43 +0200, Rafael J. Wysocki wrote:
+>  :
+> > > > I think it fails with -EINVAL at the place with dev_warn(dev, "ACPI
+> > > > handle is already set\n").  When two ACPI memory objects associate with
+> > > > a same memory block, the bind procedure of the 2nd ACPI memory object
+> > > > sees that ACPI_HANDLE(dev) is already set to the 1st ACPI memory object.
+> > > 
+> > > That sound's plausible, but I wonder how we can fix that?
+> > > 
+> > > There's no way for a single physical device to have two different ACPI
+> > > "companions".  It looks like the memory blocks should be 64 M each in that
+> > > case.  Or we need to create two child devices for each memory block and
+> > > associate each of them with an ACPI object.  That would lead to complications
+> > > in the user space interface, though.
+> > 
+> > Right.  Even bigger issue is that I do not think __add_pages() and
+> > __remove_pages() can add / delete a memory chunk that is less than
+> > 128MB.  128MB is the granularity of them.  So, we may just have to fail
+> > this case gracefully.
 > 
-> Signed-off-by: Naveen N. Rao <naveen.n.rao@linux.vnet.ibm.com>
-> ---
->  drivers/acpi/apei/cper.c | 21 ++++++++++++++++-----
->  1 file changed, 16 insertions(+), 5 deletions(-)
+> FYI: I have submitted the patch blow to close this part of the issue...
 > 
-> diff --git a/drivers/acpi/apei/cper.c b/drivers/acpi/apei/cper.c
-> index 33dc6a0..19a9c0b 100644
-> --- a/drivers/acpi/apei/cper.c
-> +++ b/drivers/acpi/apei/cper.c
-> @@ -32,6 +32,10 @@
->  #include <linux/pci.h>
->  #include <linux/aer.h>
->  
-> +#define CREATE_TRACE_POINTS
-> +#define TRACE_EVENT_GHES
-> +#include <trace/events/ras.h>
-> +
->  /*
->   * CPER record ID need to be unique even after reboot, because record
->   * ID is used as index for ERST storage, while CPER records from
-> @@ -193,8 +197,13 @@ static const char *cper_mem_err_type_strs[] = {
->  	"scrub uncorrected error",
->  };
->  
-> -static void cper_print_mem(const char *pfx, const struct cper_sec_mem_err *mem)
-> +static void cper_print_mem(const char *pfx,
-> +		const struct acpi_hest_generic_status *estatus,
-> +		const struct acpi_hest_generic_data *gdata,
-> +		const struct cper_sec_mem_err *mem)
->  {
-> +	trace_ghes_platform_memory_event(estatus, gdata, mem);
-> +
->  	if (mem->validation_bits & CPER_MEM_VALID_ERROR_STATUS)
->  		printk("%s""error_status: 0x%016llx\n", pfx, mem->error_status);
->  	if (mem->validation_bits & CPER_MEM_VALID_PHYSICAL_ADDRESS)
-> @@ -292,8 +301,10 @@ static const char *apei_estatus_section_flag_strs[] = {
->  	"latent error",
->  };
->  
-> -static void apei_estatus_print_section(
-> -	const char *pfx, const struct acpi_hest_generic_data *gdata, int sec_no)
-> +static void apei_estatus_print_section(const char *pfx,
-> +		const struct acpi_hest_generic_status *estatus,
-> +		const struct acpi_hest_generic_data *gdata,
-> +		int sec_no)
->  {
->  	uuid_le *sec_type = (uuid_le *)gdata->section_type;
->  	__u16 severity;
-> @@ -320,7 +331,7 @@ static void apei_estatus_print_section(
->  		struct cper_sec_mem_err *mem_err = (void *)(gdata + 1);
->  		printk("%s""section_type: memory error\n", pfx);
->  		if (gdata->error_data_length >= sizeof(*mem_err))
-> -			cper_print_mem(pfx, mem_err);
-> +			cper_print_mem(pfx, estatus, gdata, mem_err);
->  		else
->  			goto err_section_too_small;
->  	} else if (!uuid_le_cmp(*sec_type, CPER_SEC_PCIE)) {
-> @@ -355,7 +366,7 @@ void apei_estatus_print(const char *pfx,
->  	gdata = (struct acpi_hest_generic_data *)(estatus + 1);
->  	while (data_len > sizeof(*gdata)) {
->  		gedata_len = gdata->error_data_length;
-> -		apei_estatus_print_section(pfx, gdata, sec_no);
-> +		apei_estatus_print_section(pfx, estatus, gdata, sec_no);
->  		data_len -= gedata_len + sizeof(*gdata);
->  		gdata = (void *)(gdata + 1) + gedata_len;
->  		sec_no++;
+> https://lkml.org/lkml/2013/8/8/396
 
+That looks good to me, but we'd still need to make it possible to have
+memory blocks smaller than 128 MB ...
 
--- 
+Rafael
 
-Cheers,
-Mauro
