@@ -1,42 +1,71 @@
-From: Lv Zheng <lv.zheng@intel.com>
-Subject: [PATCH 9/9] ACPICA: Update version to 20130725.
-Date: Thu,  8 Aug 2013 15:30:11 +0800
-Message-ID: <10e0278c49fce3c252b23b4a43e2983374e5d186.1375946725.git.lv.zheng@intel.com>
-References: <cover.1375946725.git.lv.zheng@intel.com>
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga02.intel.com ([134.134.136.20]:35581 "EHLO mga02.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S933825Ab3HHHaa (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 8 Aug 2013 03:30:30 -0400
-In-Reply-To: <cover.1375946725.git.lv.zheng@intel.com>
-Sender: linux-acpi-owner@vger.kernel.org
+From: Tang Chen <tangchen@cn.fujitsu.com>
+Subject: [PATCH part3 1/5] x86, acpi: Call two new functions instead of acpi_initialize_tables() in acpi_table_init().
+Date: Thu, 8 Aug 2013 16:54:02 +0800
+Message-ID: <1375952046-28490-2-git-send-email-tangchen@cn.fujitsu.com>
+References: <1375952046-28490-1-git-send-email-tangchen@cn.fujitsu.com>
+Return-path: <owner-linux-mm@kvack.org>
+In-Reply-To: <1375952046-28490-1-git-send-email-tangchen@cn.fujitsu.com>
+Sender: owner-linux-mm@kvack.org
+To: robert.moore@intel.com, lv.zheng@intel.com, rjw@sisk.pl, lenb@kernel.org, tglx@linutronix.de, mingo@elte.hu, hpa@zytor.com, akpm@linux-foundation.org, tj@kernel.org, trenn@suse.de, yinghai@kernel.org, jiang.liu@huawei.com, wency@cn.fujitsu.com, laijs@cn.fujitsu.com, isimatu.yasuaki@jp.fujitsu.com, izumi.taku@jp.fujitsu.com, mgorman@suse.de, minchan@kernel.org, mina86@mina86.com, gong.chen@linux.intel.com, vasilis.liaskovitis@profitbricks.com, lwoodman@redhat.com, riel@redhat.com, jweiner@redhat.com, prarit@redhat.com, zhangyanfei@cn.fujitsu.com, yanghy@cn.fujitsu.com
+Cc: x86@kernel.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-mm@kvack.org, linux-acpi@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Robert Moore <robert.moore@intel.com>, Len Brown <len.brown@intel.com>
-Cc: Lv Zheng <lv.zheng@intel.com>, linux-acpi@vger.kernel.org
 
-From: Bob Moore <robert.moore@intel.com>
+The previous patches introduces two new functions:
+    acpi_initialize_tables_firmware() and acpi_initialize_tables_override(),
+which work just the same as acpi_initialize_tables() if they are called
+in sequence.
 
-Version 20130725.
+In order to split acpi_table_init() on acpi side, call these two functions
+in acpi_table_init().
 
-Signed-off-by: Bob Moore <robert.moore@intel.com>
-Signed-off-by: Lv Zheng <lv.zheng@intel.com>
+Since acpi_table_init() is also used in ia64, we keep it works as before.
+
+Signed-off-by: Tang Chen <tangchen@cn.fujitsu.com>
+Reviewed-by: Zhang Yanfei <zhangyanfei@cn.fujitsu.com>
 ---
- include/acpi/acpixf.h |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/acpi/tables.c |    5 ++++-
+ include/acpi/acpixf.h |    4 ++++
+ 2 files changed, 8 insertions(+), 1 deletions(-)
 
+diff --git a/drivers/acpi/tables.c b/drivers/acpi/tables.c
+index d67a1fe..c8f2d01 100644
+--- a/drivers/acpi/tables.c
++++ b/drivers/acpi/tables.c
+@@ -349,10 +349,13 @@ int __init acpi_table_init(void)
+ {
+ 	acpi_status status;
+ 
+-	status = acpi_initialize_tables(initial_tables, ACPI_MAX_TABLES, 0);
++	status = acpi_initialize_tables_firmware(initial_tables,
++						 ACPI_MAX_TABLES, 0);
+ 	if (ACPI_FAILURE(status))
+ 		return 1;
+ 
++	acpi_initialize_tables_override();
++
+ 	check_multiple_madt();
+ 	return 0;
+ }
 diff --git a/include/acpi/acpixf.h b/include/acpi/acpixf.h
-index e53f16a..85bfdbe 100644
+index 22d497e..99c9d7b 100644
 --- a/include/acpi/acpixf.h
 +++ b/include/acpi/acpixf.h
-@@ -46,7 +46,7 @@
+@@ -115,6 +115,10 @@ extern u32 acpi_rsdt_forced;
+  * Initialization
+  */
+ acpi_status
++acpi_initialize_tables_firmware(struct acpi_table_desc *initial_storage,
++				u32 initial_table_count, u8 allow_resize);
++void acpi_initialize_tables_override(void);
++acpi_status
+ acpi_initialize_tables(struct acpi_table_desc *initial_storage,
+ 		       u32 initial_table_count, u8 allow_resize);
  
- /* Current ACPICA subsystem version in YYYYMMDD format */
- 
--#define ACPI_CA_VERSION                 0x20130626
-+#define ACPI_CA_VERSION                 0x20130725
- 
- #include <acpi/acconfig.h>
- #include <acpi/actypes.h>
 -- 
-1.7.10
+1.7.1
 
+--
+To unsubscribe, send a message with 'unsubscribe linux-mm' in
+the body to majordomo@kvack.org.  For more info on Linux MM,
+see: http://www.linux-mm.org/ .
+Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
