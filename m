@@ -1,74 +1,79 @@
-From: Borislav Petkov <bp@alien8.de>
-Subject: Re: [PATCH 2/3] mce: acpi/apei: trace: Add trace event for ghes
- memory error
-Date: Thu, 8 Aug 2013 21:17:32 +0200
-Message-ID: <20130808191732.GE27974@pd.tnic>
+From: Steven Rostedt <rostedt@goodmis.org>
+Subject: Re: [PATCH 1/3] mce: acpi/apei: trace: Include PCIe AER trace event
+ conditionally
+Date: Thu, 8 Aug 2013 15:23:29 -0400
+Message-ID: <20130808152329.1f98b5e0@gandalf.local.home>
 References: <1375986471-27113-1-git-send-email-naveen.n.rao@linux.vnet.ibm.com>
- <1375986471-27113-3-git-send-email-naveen.n.rao@linux.vnet.ibm.com>
+	<1375986471-27113-2-git-send-email-naveen.n.rao@linux.vnet.ibm.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Return-path: <linux-pci-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <1375986471-27113-3-git-send-email-naveen.n.rao@linux.vnet.ibm.com>
-Sender: linux-pci-owner@vger.kernel.org
-To: "Naveen N. Rao" <naveen.n.rao@linux.vnet.ibm.com>
-Cc: tony.luck@intel.com, bhelgaas@google.com, rostedt@goodmis.org, rjw@sisk.pl, lance.ortiz@hp.com, m.chehab@samsung.com, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from hrndva-omtalb.mail.rr.com ([71.74.56.122]:14390 "EHLO
+	hrndva-omtalb.mail.rr.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S966189Ab3HHTXc (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 8 Aug 2013 15:23:32 -0400
+In-Reply-To: <1375986471-27113-2-git-send-email-naveen.n.rao@linux.vnet.ibm.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: "Naveen N. Rao" <naveen.n.rao@linux.vnet.ibm.com>
+Cc: tony.luck@intel.com, bp@alien8.de, bhelgaas@google.com, rjw@sisk.pl, lance.ortiz@hp.com, m.chehab@samsung.com, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 
-On Thu, Aug 08, 2013 at 11:57:50PM +0530, Naveen N. Rao wrote:
-> +TRACE_EVENT(ghes_platform_memory_event,
-> +	TP_PROTO(const struct acpi_hest_generic_status *estatus,
-> +		 const struct acpi_hest_generic_data *gdata,
-> +		 const struct cper_sec_mem_err *mem),
-> +
-> +	TP_ARGS(estatus, gdata, mem),
-> +
-> +	TP_STRUCT__entry(
-> +		__field(	u32,	estatus_block_status		)
-> +		__field(	u32,	estatus_raw_data_offset		)
-> +		__field(	u32,	estatus_raw_data_length		)
-> +		__field(	u32,	estatus_data_length		)
-> +		__field(	u32,	estatus_error_severity		)
-> +		__array(	u8,	gdata_section_type,	16	)
-> +		__field(	u32,	gdata_error_severity		)
-> +		__field(	u16,	gdata_revision			)
-> +		__field(	u8,	gdata_validation_bits		)
-> +		__field(	u8,	gdata_flags			)
-> +		__field(	u32,	gdata_error_data_length		)
-> +		__array(	u8,	gdata_fru_id,		16	)
-> +		__array(	u8,	gdata_fru_text,		20	)
-> +		__field(	u64,	mem_validation_bits		)
-> +		__field(	u64,	mem_error_status		)
-> +		__field(	u64,	mem_physical_addr		)
-> +		__field(	u64,	mem_physical_addr_mask		)
-> +		__field(	u16,	mem_node			)
-> +		__field(	u16,	mem_card			)
-> +		__field(	u16,	mem_module			)
-> +		__field(	u16,	mem_bank			)
-> +		__field(	u16,	mem_device			)
-> +		__field(	u16,	mem_row				)
-> +		__field(	u16,	mem_column			)
-> +		__field(	u16,	mem_bit_pos			)
-> +		__field(	u64,	mem_requestor_id		)
-> +		__field(	u64,	mem_responder_id		)
-> +		__field(	u64,	mem_target_id			)
-> +		__field(	u8,	mem_error_type			)
-> +	),
+[ attempting to try out claws-mail, hopefully this messages isn't
+scrambled ;-) ]
 
-Without looking at the rest, a trace record from this tracepoint is
-going to be 160 bytes IINM, which looks kinda fat to me. And during an
-error storm we're probably not going to be able to log them all, maybe?
-Yes, no, maybe I'm off base...
+On Thu,  8 Aug 2013 23:57:49 +0530
+"Naveen N. Rao" <naveen.n.rao@linux.vnet.ibm.com> wrote:
 
-In any case, are we sure we want all those fields above? Can we make
-them smaller, drop some of them from the tracepoint, etc, etc? Can we
-compute some of them in userspace with information we already have?
+> Since we'll be adding multiple trace events to ras.h, we need to protect
+> each block appropriately so that they only get included in the right
+> places. Update PCIe AER trace event for this purpose.
 
-Hmmm.
+Why not make a separate file for each? You will have to define
+TRACE_EVENT_PCIE_AER for the users as well. That is, the places that
+include ras.h and use the trace_aer_*() tracepoints.
 
--- 
-Regards/Gruss,
-    Boris.
 
-Sent from a fat crate under my desk. Formatting is fine.
---
+> 
+> Signed-off-by: Naveen N. Rao <naveen.n.rao@linux.vnet.ibm.com>
+> ---
+>  drivers/pci/pcie/aer/aerdrv_errprint.c | 1 +
+>  include/trace/events/ras.h             | 2 +-
+>  2 files changed, 2 insertions(+), 1 deletion(-)
+> 
+> diff --git a/drivers/pci/pcie/aer/aerdrv_errprint.c b/drivers/pci/pcie/aer/aerdrv_errprint.c
+> index 2c7c9f5..4d06859 100644
+> --- a/drivers/pci/pcie/aer/aerdrv_errprint.c
+> +++ b/drivers/pci/pcie/aer/aerdrv_errprint.c
+> @@ -24,6 +24,7 @@
+>  #include "aerdrv.h"
+>  
+>  #define CREATE_TRACE_POINTS
+> +#define TRACE_EVENT_PCIE_AER
+>  #include <trace/events/ras.h>
+>  
+>  #define AER_AGENT_RECEIVER		0
+> diff --git a/include/trace/events/ras.h b/include/trace/events/ras.h
+> index 88b8783..4a66142 100644
+> --- a/include/trace/events/ras.h
+> +++ b/include/trace/events/ras.h
+> @@ -1,7 +1,7 @@
+>  #undef TRACE_SYSTEM
+>  #define TRACE_SYSTEM ras
+>  
+> -#if !defined(_TRACE_AER_H) || defined(TRACE_HEADER_MULTI_READ)
+> +#if (!defined(_TRACE_AER_H) || defined(TRACE_HEADER_MULTI_READ)) && defined()
+
+I think it would look cleaner to encapsulate the one define with the
+other:
+
+#ifdef TRACE_EVENT_PCIE_AER
+#if !defined(_TRACE_AER_H) || defined(TRACE_HEADER_MULTI_READ)
+
+
+-- Steve
+
+>  #define _TRACE_AER_H
+>  
+>  #include <linux/tracepoint.h>
+
