@@ -1,86 +1,70 @@
 From: Lv Zheng <lv.zheng@intel.com>
-Subject: [PATCH 3/9] ACPICA: DeRefOf operator: Update to fully resolve FieldUnit and BufferField refs.
-Date: Thu,  8 Aug 2013 15:29:32 +0800
-Message-ID: <63cc99e2f68493f903a51998bb20c802f65e037f.1375946725.git.lv.zheng@intel.com>
-References: <cover.1375946725.git.lv.zheng@intel.com>
+Subject: [PATCH 0/9] ACPICA 20130725 Release
+Date: Thu,  8 Aug 2013 15:29:16 +0800
+Message-ID: <cover.1375946725.git.lv.zheng@intel.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
 Received: from mga02.intel.com ([134.134.136.20]:14895 "EHLO mga02.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S933531Ab3HHH3s (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 8 Aug 2013 03:29:48 -0400
-In-Reply-To: <cover.1375946725.git.lv.zheng@intel.com>
+	id S933531Ab3HHH3x (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 8 Aug 2013 03:29:53 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Robert Moore <robert.moore@intel.com>, Len Brown <len.brown@intel.com>
 Cc: Lv Zheng <lv.zheng@intel.com>, linux-acpi@vger.kernel.org
 
-From: Bob Moore <robert.moore@intel.com>
+The 20130725 ACPICA kernel resident system updates is linuxized based on
+the pm/linux-next branch.
 
-Previously, references to these objects were resolved only to the actual
-FieldUnit or BufferField object. The correct behavior is to resolve these
-references to an actual value.
-The problem is that DerefOf did not resolve these objects to actual
-values.  An "Integer" object is simple, return the value.  But a field in
-an operation region will require a read operation.  For a BufferField, the
-appropriate data must be extracted from the parent buffer.
+The patch set has passed a build/boot test on the following machines:
+Dell Inspiron Mini 1010 (i386)
+HP Compaq 8200 Elite SFF PC (x86-64)
+With the following kernel configuration items enabled:
+  CONFIG_ACPI_AC
+  CONFIG_ACPI_BATTERY
+  CONFIG_ACPI_NUMA
+  CONFIG_ACPI_PROCESSOR
+  CONFIG_ACPI_THERMAL
+  CONFIG_ACPI_VIDEO
+  CONFIG_CPU_FREQ
+  CONFIG_I2C_SCMI
+  CONFIG_SENSORS_ACPI_POWER
+  CONFIG_PANASONIC_LAPTOP
+  CONFIG_XO15_EBOOK
+No new divergences are introduced in this release.
 
-NOTE: It appears that this issues is present in Windows7 but not
-Windows8.
+Please review.
 
-Signed-off-by: Bob Moore <robert.moore@intel.com>
-Signed-off-by: Lv Zheng <lv.zheng@intel.com>
----
- drivers/acpi/acpica/exoparg1.c |   35 ++++++++++++++++++++++++++++++++---
- 1 file changed, 32 insertions(+), 3 deletions(-)
+Bob Moore (8):
+  ACPICA: Export acpi_tb_validate_rsdp().
+  ACPICA: Emit all unresolved method externals in a text block
+  ACPICA: DeRefOf operator: Update to fully resolve FieldUnit and
+    BufferField refs.
+  ACPICA: Fix possible fault for methods that optionally have no return
+    value.
+  ACPICA: Make ACPI Power Management Timer (PM Timer) optional.
+  ACPICA: Return error if DerefOf resolves to a null package element.
+  ACPICA: Update names for walk_namespace callbacks to clarify usage.
+  ACPICA: Update version to 20130725.
 
-diff --git a/drivers/acpi/acpica/exoparg1.c b/drivers/acpi/acpica/exoparg1.c
-index 814b4a3..3482df4 100644
---- a/drivers/acpi/acpica/exoparg1.c
-+++ b/drivers/acpi/acpica/exoparg1.c
-@@ -990,11 +990,40 @@ acpi_status acpi_ex_opcode_1A_0T_1R(struct acpi_walk_state *walk_state)
- 									 acpi_namespace_node
- 									 *)
- 									return_desc);
--				}
-+					if (!return_desc) {
-+						break;
-+					}
-+
-+					/*
-+					 * June 2013:
-+					 * buffer_fields/field_units require additional resolution
-+					 */
-+					switch (return_desc->common.type) {
-+					case ACPI_TYPE_BUFFER_FIELD:
-+					case ACPI_TYPE_LOCAL_REGION_FIELD:
-+					case ACPI_TYPE_LOCAL_BANK_FIELD:
-+					case ACPI_TYPE_LOCAL_INDEX_FIELD:
-+
-+						status =
-+						    acpi_ex_read_data_from_field
-+						    (walk_state, return_desc,
-+						     &temp_desc);
-+						if (ACPI_FAILURE(status)) {
-+							goto cleanup;
-+						}
- 
--				/* Add another reference to the object! */
-+						return_desc = temp_desc;
-+						break;
- 
--				acpi_ut_add_reference(return_desc);
-+					default:
-+
-+						/* Add another reference to the object */
-+
-+						acpi_ut_add_reference
-+						    (return_desc);
-+						break;
-+					}
-+				}
- 				break;
- 
- 			default:
+Lv Zheng (1):
+  ACPICA: Fix divergences of the commit - ACPICA: Expose OSI version.
+
+ drivers/acpi/acpica/acglobal.h |    7 +++++-
+ drivers/acpi/acpica/aclocal.h  |    1 +
+ drivers/acpi/acpica/acnamesp.h |    4 ++--
+ drivers/acpi/acpica/actables.h |    2 ++
+ drivers/acpi/acpica/exoparg1.c |   48 +++++++++++++++++++++++++++++++++++-----
+ drivers/acpi/acpica/hwtimer.c  |   13 ++++++++++-
+ drivers/acpi/acpica/nspredef.c |   16 +++++++++++++-
+ drivers/acpi/acpica/nswalk.c   |   26 +++++++++++-----------
+ drivers/acpi/acpica/nsxfeval.c |   16 +++++++-------
+ drivers/acpi/acpica/tbfadt.c   |    4 ++--
+ drivers/acpi/acpica/tbxfroot.c |    8 ++-----
+ drivers/acpi/acpica/utglobal.c |    1 -
+ include/acpi/acpixf.h          |    6 ++---
+ include/acpi/actypes.h         |   28 +++++++++++------------
+ 14 files changed, 121 insertions(+), 59 deletions(-)
+
 -- 
 1.7.10
 
