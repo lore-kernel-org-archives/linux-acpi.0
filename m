@@ -1,74 +1,105 @@
 From: Tang Chen <tangchen@cn.fujitsu.com>
-Subject: [PATCH part4 0/4] Parse SRAT memory affinities earlier.
-Date: Thu, 8 Aug 2013 17:41:19 +0800
-Message-ID: <1375954883-30225-1-git-send-email-tangchen@cn.fujitsu.com>
+Subject: [PATCH part5 0/7] Arrange hotpluggable memory as ZONE_MOVABLE.
+Date: Thu, 8 Aug 2013 18:16:12 +0800
+Message-ID: <1375956979-31877-1-git-send-email-tangchen@cn.fujitsu.com>
 Return-path: <owner-linux-mm@kvack.org>
 Sender: owner-linux-mm@kvack.org
 To: robert.moore@intel.com, lv.zheng@intel.com, rjw@sisk.pl, lenb@kernel.org, tglx@linutronix.de, mingo@elte.hu, hpa@zytor.com, akpm@linux-foundation.org, tj@kernel.org, trenn@suse.de, yinghai@kernel.org, jiang.liu@huawei.com, wency@cn.fujitsu.com, laijs@cn.fujitsu.com, isimatu.yasuaki@jp.fujitsu.com, izumi.taku@jp.fujitsu.com, mgorman@suse.de, minchan@kernel.org, mina86@mina86.com, gong.chen@linux.intel.com, vasilis.liaskovitis@profitbricks.com, lwoodman@redhat.com, riel@redhat.com, jweiner@redhat.com, prarit@redhat.com, zhangyanfei@cn.fujitsu.com, yanghy@cn.fujitsu.com
 Cc: x86@kernel.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-mm@kvack.org, linux-acpi@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-The current Linux cannot migrate pages used by the kernel. When doing
-memory hotplug, if the memory is used by the kernel, it cannot be 
-hot-removed.
+[Problem]
 
-In order to prevent bootmem allocator (memblock) from allocating memory 
-for the kernel, we have to parse SRAT at earlier time. 
+The current Linux cannot migrate pages used by the kerenl because
+of the kernel direct mapping. In Linux kernel space, va = pa + PAGE_OFFSET.
+When the pa is changed, we cannot simply update the pagetable and
+keep the va unmodified. So the kernel pages are not migratable.
 
-When parsing ACPI tables at the system boot time, the current kernel 
-works like this:
+There are also some other issues will cause the kernel pages not migratable.
+For example, the physical address may be cached somewhere and will be used.
+It is not to update all the caches.
 
-setup_arch()
- |->memblock_x86_fill()            /* memblock is ready. */
- |......
- |->acpi_initrd_override()         /* Find all tables specified by users in initrd,
- |                                    and store them in acpi_tables_addr array. */
- |......
- |->acpi_boot_table_init()         /* Find all tables in firmware and install them
-                                      into acpi_gbl_root_table_list. Check acpi_tables_addr,
-                                      if any table needs to be overrided, override it. */
+When doing memory hotplug in Linux, we first migrate all the pages in one
+memory device somewhere else, and then remove the device. But if pages are
+used by the kernel, they are not migratable. As a result, memory used by
+the kernel cannot be hot-removed.
 
-In previous part3 patches modified it like this:
-
-setup_arch()
- |->memblock_x86_fill()            /* memblock is ready. */
- |......
- |->early_acpi_boot_table_init()   /* Find all tables in firmware and install them 
- |                                    into acpi_gbl_root_table_list. No override. */
- |......
- |->acpi_initrd_override()         /* Find all tables specified by users in initrd,
- |                                    and store them in acpi_tables_addr array. */
- |......
- |->acpi_boot_table_init()         /* Check acpi_tables_addr, if any table needs to 
-                                      be overrided, override it. */
-
-We can obtain SRAT earlier now. So this patch-set will do the following things:
-
-1. Try to find user specified SRAT in initrd file, if any, get it.
-2. If there is no user specified SRAT in initrd file, to find SRAT 
-   in firmware.
-3. Parse all memory affinities in SRAT, and find all hotpluggable memory.
-
-In later patches, we will improve memblock to mark and skip hotpluggable
-memory when allocating memory.
+Modifying the kernel direct mapping mechanism is too difficult to do. And
+it may cause the kernel performance down and unstable. So we use the following
+way to do memory hotplug.
 
 
-Tang Chen (4):
-  x86: Make get_ramdisk_{image|size}() global.
-  x86, acpica, acpi: Try to find if SRAT is overrided earlier.
-  x86, acpica, acpi: Try to find SRAT in firmware earlier.
-  x86, acpi, numa, mem_hotplug: Find hotpluggable memory in SRAT memory
-    affinities.
+[What we are doing]
 
- arch/x86/include/asm/setup.h   |   21 +++++
- arch/x86/kernel/setup.c        |   28 +++----
- drivers/acpi/acpica/tbxface.c  |   32 ++++++++
- drivers/acpi/osl.c             |  168 ++++++++++++++++++++++++++++++++++++++++
- include/acpi/acpixf.h          |    4 +
- include/linux/acpi.h           |   20 ++++-
- include/linux/memory_hotplug.h |    2 +
- mm/memory_hotplug.c            |   47 +++++++++++-
- 8 files changed, 301 insertions(+), 21 deletions(-)
+In Linux, memory in one numa node is divided into several zones. One of the
+zones is ZONE_MOVABLE, which the kernel won't use.
+
+In order to implement memory hotplug in Linux, we are going to arrange all
+hotpluggable memory in ZONE_MOVABLE so that the kernel won't use these memory.
+
+To do this, we need ACPI's help.
+
+
+[How we do this]
+
+In ACPI, SRAT(System Resource Affinity Table) contains NUMA info. The memory
+affinities in SRAT record every memory range in the system, and also, flags
+specifying if the memory range is hotpluggable.
+(Please refer to ACPI spec 5.0 5.2.16)
+
+With the help of SRAT, we have to do the following two things to achieve our
+goal:
+
+1. When doing memory hot-add, allow the users arranging hotpluggable as
+   ZONE_MOVABLE.
+   (This has been done by the MOVABLE_NODE functionality in Linux.)
+
+2. when the system is booting, prevent bootmem allocator from allocating
+   hotpluggable memory for the kernel before the memory initialization
+   finishes.
+   (This is what we are going to do. See below.)
+
+
+[About this patch-set]
+
+In previous parts' patches, we have obtained SRAT earlier enough, right after
+memblock is ready. So this patch-set does the following things:
+
+1. Improve memblock to support flags, which are used to indicate different 
+   memory type.
+
+2. Mark all hotpluggable memory in memblock.memory[].
+
+3. Make the default memblock allocator skip hotpluggable memory.
+
+4. Introduce "movablenode" boot option to allow users to enable/disable this
+   functionality.
+
+
+Tang Chen (6):
+  x86, numa, mem_hotplug: Skip all the regions the kernel resides in.
+  memblock, numa: Introduce flag into memblock.
+  memblock, mem_hotplug: Introduce MEMBLOCK_HOTPLUG flag to mark
+    hotpluggable regions.
+  memblock, mem_hotplug: Make memblock skip hotpluggable regions by
+    default.
+  mem-hotplug: Introduce movablenode boot option to {en|dis}able using
+    SRAT.
+  x86, numa, acpi, memory-hotplug: Make movablenode have higher
+    priority.
+
+Yasuaki Ishimatsu (1):
+  x86: get pg_data_t's memory from other node
+
+ Documentation/kernel-parameters.txt |   15 ++++++
+ arch/x86/kernel/setup.c             |   10 +++-
+ arch/x86/mm/numa.c                  |    5 +-
+ include/linux/memblock.h            |   13 +++++
+ include/linux/memory_hotplug.h      |    3 +
+ mm/memblock.c                       |   92 +++++++++++++++++++++++++++++------
+ mm/memory_hotplug.c                 |   56 +++++++++++++++++++++-
+ mm/page_alloc.c                     |   31 +++++++++++-
+ 8 files changed, 201 insertions(+), 24 deletions(-)
 
 --
 To unsubscribe, send a message with 'unsubscribe linux-mm' in
