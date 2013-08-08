@@ -1,7 +1,7 @@
 From: Tang Chen <tangchen@cn.fujitsu.com>
-Subject: [PATCH part5 2/7] x86, numa, mem_hotplug: Skip all the regions the kernel resides in.
-Date: Thu, 8 Aug 2013 18:16:14 +0800
-Message-ID: <1375956979-31877-3-git-send-email-tangchen@cn.fujitsu.com>
+Subject: [PATCH part5 5/7] memblock, mem_hotplug: Make memblock skip hotpluggable regions by default.
+Date: Thu, 8 Aug 2013 18:16:17 +0800
+Message-ID: <1375956979-31877-6-git-send-email-tangchen@cn.fujitsu.com>
 References: <1375956979-31877-1-git-send-email-tangchen@cn.fujitsu.com>
 Return-path: <owner-linux-mm@kvack.org>
 In-Reply-To: <1375956979-31877-1-git-send-email-tangchen@cn.fujitsu.com>
@@ -10,90 +10,66 @@ To: robert.moore@intel.com, lv.zheng@intel.com, rjw@sisk.pl, lenb@kernel.org, tg
 Cc: x86@kernel.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-mm@kvack.org, linux-acpi@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-At early time, memblock will reserve some memory for the kernel,
-such as the kernel code and data segments, initrd file, and so on,
-which means the kernel resides in these memory regions.
+Linux kernel cannot migrate pages used by the kernel. As a result, hotpluggable
+memory used by the kernel won't be able to be hot-removed. To solve this
+problem, the basic idea is to prevent memblock from allocating hotpluggable
+memory for the kernel at early time, and arrange all hotpluggable memory in
+ACPI SRAT(System Resource Affinity Table) as ZONE_MOVABLE when initializing
+zones.
 
-Even if these memory regions are hotpluggable, we should not
-mark them as hotpluggable. Otherwise the kernel won't have enough
-memory to boot.
+In the previous patches, we have marked hotpluggable memory regions with
+MEMBLOCK_HOTPLUG flag in memblock.memory.
 
-This patch finds out which memory regions the kernel resides in,
-and skip them when finding all hotpluggable memory regions.
+In this patch, we make memblock skip these hotpluggable memory regions in
+the default allocate function.
+
+memblock_find_in_range_node()
+  |-->for_each_free_mem_range_reverse()
+        |-->__next_free_mem_range_rev()
+
+The above is the only place where __next_free_mem_range_rev() is used. So
+skip hotpluggable memory regions when iterating memblock.memory to find
+free memory.
+
+In the later patches, a boot option named "movablenode" will be introduced
+to enable/disable using SRAT to arrange ZONE_MOVABLE.
+
+NOTE: This check will always be done. It is OK because if users didn't specify
+      movablenode option, the hotpluggable memory won't be marked. So this
+      check won't skip any memory, which means the kernel will act as before.
 
 Signed-off-by: Tang Chen <tangchen@cn.fujitsu.com>
 Reviewed-by: Zhang Yanfei <zhangyanfei@cn.fujitsu.com>
 ---
- mm/memory_hotplug.c |   42 ++++++++++++++++++++++++++++++++++++++++++
- 1 files changed, 42 insertions(+), 0 deletions(-)
+ mm/memblock.c |    8 ++++++++
+ 1 files changed, 8 insertions(+), 0 deletions(-)
 
-diff --git a/mm/memory_hotplug.c b/mm/memory_hotplug.c
-index ef9ccf8..e63f947 100644
---- a/mm/memory_hotplug.c
-+++ b/mm/memory_hotplug.c
-@@ -31,6 +31,7 @@
- #include <linux/firmware-map.h>
- #include <linux/stop_machine.h>
- #include <linux/acpi.h>
-+#include <linux/memblock.h>
- 
- #include <asm/tlbflush.h>
- 
-@@ -93,6 +94,37 @@ static void release_memory_resource(struct resource *res)
- 
- #ifdef CONFIG_ACPI_NUMA
- /**
-+ * kernel_resides_in_range - Check if kernel resides in a memory region.
-+ * @base: The base address of the memory region.
-+ * @length: The length of the memory region.
-+ *
-+ * This function is used at early time. It iterates memblock.reserved and check
-+ * if the kernel has used any memory in [@base, @base + @length).
-+ *
-+ * Return true if the kernel resides in the memory region, false otherwise.
-+ */
-+static bool __init kernel_resides_in_region(phys_addr_t base, u64 length)
-+{
-+	int i;
-+	phys_addr_t start, end;
-+	struct memblock_region *region;
-+	struct memblock_type *reserved = &memblock.reserved;
-+
-+	for (i = 0; i < reserved->cnt; i++) {
-+		region = &reserved->regions[i];
-+
-+		start = region->base;
-+		end = region->base + region->size;
-+		if (end <= base || start >= base + length)
-+			continue;
-+
-+		return true;
-+	}
-+
-+	return false;
-+}
-+
-+/**
-  * find_hotpluggable_memory - Find out hotpluggable memory from ACPI SRAT.
+diff --git a/mm/memblock.c b/mm/memblock.c
+index ecd8568..3ea4301 100644
+--- a/mm/memblock.c
++++ b/mm/memblock.c
+@@ -695,6 +695,10 @@ void __init_memblock __next_free_mem_range(u64 *idx, int nid,
+  * @out_nid: ptr to int for nid of the range, can be %NULL
   *
-  * This function did the following:
-@@ -129,6 +161,16 @@ void __init find_hotpluggable_memory(void)
+  * Reverse of __next_free_mem_range().
++ *
++ * Linux kernel cannot migrate pages used by itself. Memory hotplug users won't
++ * be able to hot-remove hotpluggable memory used by the kernel. So this
++ * function skip hotpluggable regions when allocating memory for the kernel.
+  */
+ void __init_memblock __next_free_mem_range_rev(u64 *idx, int nid,
+ 					   phys_addr_t *out_start,
+@@ -719,6 +723,10 @@ void __init_memblock __next_free_mem_range_rev(u64 *idx, int nid,
+ 		if (nid != MAX_NUMNODES && nid != memblock_get_region_node(m))
+ 			continue;
  
- 	while (ACPI_SUCCESS(acpi_hotplug_mem_affinity(srat_vaddr, &base,
- 						      &size, &offset))) {
-+		/*
-+		 * At early time, memblock will reserve some memory for the
-+		 * kernel, such as the kernel code and data segments, initrd
-+		 * file, and so on, which means the kernel resides in these
-+		 * memory regions. These regions should not be hotpluggable.
-+		 * So do not mark them as hotpluggable.
-+		 */
-+		if (kernel_resides_in_region(base, size))
++		/* skip hotpluggable memory regions */
++		if (m->flags & MEMBLOCK_HOTPLUG)
 +			continue;
 +
- 		/* Will mark hotpluggable memory regions here */
- 	}
- 
+ 		/* scan areas before each reservation for intersection */
+ 		for ( ; ri >= 0; ri--) {
+ 			struct memblock_region *r = &rsv->regions[ri];
 -- 
 1.7.1
 
