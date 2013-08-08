@@ -1,57 +1,92 @@
 From: Tang Chen <tangchen@cn.fujitsu.com>
-Subject: Re: [PATCH v3 00/25] Arrange hotpluggable memory as ZONE_MOVABLE.
-Date: Thu, 08 Aug 2013 11:41:43 +0800
-Message-ID: <52031377.6050508@cn.fujitsu.com>
-References: <1375872736-4822-1-git-send-email-tangchen@cn.fujitsu.com> <1786839.lAdBpJ22ie@vostro.rjw.lan> <94F2FBAB4432B54E8AACC7DFDE6C92E36FEAC85B@ORSMSX103.amr.corp.intel.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
+Subject: [PATCH part2 2/4] earlycpio.c: Fix the confusing comment of find_cpio_data().
+Date: Thu, 8 Aug 2013 13:03:57 +0800
+Message-ID: <1375938239-18769-3-git-send-email-tangchen@cn.fujitsu.com>
+References: <1375938239-18769-1-git-send-email-tangchen@cn.fujitsu.com>
 Return-path: <owner-linux-mm@kvack.org>
-In-Reply-To: <94F2FBAB4432B54E8AACC7DFDE6C92E36FEAC85B@ORSMSX103.amr.corp.intel.com>
+In-Reply-To: <1375938239-18769-1-git-send-email-tangchen@cn.fujitsu.com>
 Sender: owner-linux-mm@kvack.org
-To: "Moore, Robert" <robert.moore@intel.com>
-Cc: "Rafael J. Wysocki" <rjw@sisk.pl>, "Zheng, Lv" <lv.zheng@intel.com>, "lenb@kernel.org" <lenb@kernel.org>, "tglx@linutronix.de" <tglx@linutronix.de>, "mingo@elte.hu" <mingo@elte.hu>, "hpa@zytor.com" <hpa@zytor.com>, "akpm@linux-foundation.org" <akpm@linux-foundation.org>, "tj@kernel.org" <tj@kernel.org>, "trenn@suse.de" <trenn@suse.de>, "yinghai@kernel.org" <yinghai@kernel.org>, "jiang.liu@huawei.com" <jiang.liu@huawei.com>, "wency@cn.fujitsu.com" <wency@cn.fujitsu.com>, "laijs@cn.fujitsu.com" <laijs@cn.fujitsu.com>, "isimatu.yasuaki@jp.fujitsu.com" <isimatu.yasuaki@jp.fujitsu.com>, "izumi.taku@jp.fujitsu.com" <izumi.taku@jp.fujitsu.com>, "mgorman@suse.de" <mgorman@suse.de>, "minchan@kernel.org" <minchan@kernel.org>, "mina86@mina86.com" <mina86@mina86.com>, gong.che
+To: robert.moore@intel.com, lv.zheng@intel.com, rjw@sisk.pl, lenb@kernel.org, tglx@linutronix.de, mingo@elte.hu, hpa@zytor.com, akpm@linux-foundation.org, tj@kernel.org, trenn@suse.de, yinghai@kernel.org, jiang.liu@huawei.com, wency@cn.fujitsu.com, laijs@cn.fujitsu.com, isimatu.yasuaki@jp.fujitsu.com, izumi.taku@jp.fujitsu.com, mgorman@suse.de, minchan@kernel.org, mina86@mina86.com, gong.chen@linux.intel.com, vasilis.liaskovitis@profitbricks.com, lwoodman@redhat.com, riel@redhat.com, jweiner@redhat.com, prarit@redhat.com, zhangyanfei@cn.fujitsu.com, yanghy@cn.fujitsu.com
+Cc: x86@kernel.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-mm@kvack.org, linux-acpi@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hi Bob, Rafael,
+The comments of find_cpio_data() says:
 
-I have resent all 5 ACPICA side patches separately.
-Some other patches are not in ACPICA side, but they may still
-need you guys to help to review.
+  * @offset: When a matching file is found, this is the offset to the
+  *          beginning of the cpio. ......
 
-I'll send them later.
+But according to the code,
 
-Thanks.:)
+  dptr = PTR_ALIGN(p + ch[C_NAMESIZE], 4);
+  nptr = PTR_ALIGN(dptr + ch[C_FILESIZE], 4);
+  ....
+  *offset = (long)nptr - (long)data;	/* data is the cpio file */
 
-On 08/08/2013 11:01 AM, Moore, Robert wrote:
->
->
-......
->>
->> This looks a bit more manageable than before, but please do one more
->> thing:
->> Please split all of the ACPICA changes out into separate patches and put
->> those patched in front of everything else.
->>
->> The reason is we may need to merge them through upstream ACPICA as the
->> first step (if they are accepted by the ACPICA maintainers).
->>
->
->
-> Yes, we (ACPICA) would like to see them all together in one place so that we can review.
-> Thanks,
-> Bob
->
->
->
->
->> Thanks,
->> Rafael
->>
->>
->> --
->> I speak only for myself.
->> Rafael J. Wysocki, Intel Open Source Technology Center.
+@offset is the offset of the next file, not the matching file itself.
+This is confused and may cause unnecessary waste of time to debug.
+So fix it.
+
+v1 -> v2:
+As tj suggested, rename @offset to @nextoff which is more clear to
+users. And also adjust the new comments.
+
+Signed-off-by: Tang Chen <tangchen@cn.fujitsu.com>
+Reviewed-by: Zhang Yanfei <zhangyanfei@cn.fujitsu.com>
+---
+ lib/earlycpio.c |   27 ++++++++++++++-------------
+ 1 files changed, 14 insertions(+), 13 deletions(-)
+
+diff --git a/lib/earlycpio.c b/lib/earlycpio.c
+index 7aa7ce2..c7ae5ed 100644
+--- a/lib/earlycpio.c
++++ b/lib/earlycpio.c
+@@ -49,22 +49,23 @@ enum cpio_fields {
+ 
+ /**
+  * cpio_data find_cpio_data - Search for files in an uncompressed cpio
+- * @path:   The directory to search for, including a slash at the end
+- * @data:   Pointer to the the cpio archive or a header inside
+- * @len:    Remaining length of the cpio based on data pointer
+- * @offset: When a matching file is found, this is the offset to the
+- *          beginning of the cpio. It can be used to iterate through
+- *          the cpio to find all files inside of a directory path
++ * @path:       The directory to search for, including a slash at the end
++ * @data:       Pointer to the the cpio archive or a header inside
++ * @len:        Remaining length of the cpio based on data pointer
++ * @nextoff:    When a matching file is found, this is the offset from the
++ *              beginning of the cpio to the beginning of the next file, not the
++ *              matching file itself. It can be used to iterate through the cpio
++ *              to find all files inside of a directory path 
+  *
+- * @return: struct cpio_data containing the address, length and
+- *          filename (with the directory path cut off) of the found file.
+- *          If you search for a filename and not for files in a directory,
+- *          pass the absolute path of the filename in the cpio and make sure
+- *          the match returned an empty filename string.
++ * @return:     struct cpio_data containing the address, length and
++ *              filename (with the directory path cut off) of the found file.
++ *              If you search for a filename and not for files in a directory,
++ *              pass the absolute path of the filename in the cpio and make sure
++ *              the match returned an empty filename string.
+  */
+ 
+ struct cpio_data find_cpio_data(const char *path, void *data,
+-					  size_t len,  long *offset)
++				size_t len,  long *nextoff)
+ {
+ 	const size_t cpio_header_len = 8*C_NFIELDS - 2;
+ 	struct cpio_data cd = { NULL, 0, "" };
+@@ -124,7 +125,7 @@ struct cpio_data find_cpio_data(const char *path, void *data,
+ 		if ((ch[C_MODE] & 0170000) == 0100000 &&
+ 		    ch[C_NAMESIZE] >= mypathsize &&
+ 		    !memcmp(p, path, mypathsize)) {
+-			*offset = (long)nptr - (long)data;
++			*nextoff = (long)nptr - (long)data;
+ 			if (ch[C_NAMESIZE] - mypathsize >= MAX_CPIO_FILE_NAME) {
+ 				pr_warn(
+ 				"File %s exceeding MAX_CPIO_FILE_NAME [%d]\n",
+-- 
+1.7.1
 
 --
 To unsubscribe, send a message with 'unsubscribe linux-mm' in
