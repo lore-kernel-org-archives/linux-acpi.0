@@ -1,66 +1,57 @@
 From: Tang Chen <tangchen@cn.fujitsu.com>
-Subject: [PATCH part1 4/5] acpi, acpica: Call two new functions instead of acpi_tb_parse_root_table() in acpi_initialize_tables().
-Date: Thu, 8 Aug 2013 11:39:35 +0800
-Message-ID: <1375933176-15003-5-git-send-email-tangchen@cn.fujitsu.com>
-References: <1375933176-15003-1-git-send-email-tangchen@cn.fujitsu.com>
+Subject: Re: [PATCH v3 00/25] Arrange hotpluggable memory as ZONE_MOVABLE.
+Date: Thu, 08 Aug 2013 11:41:43 +0800
+Message-ID: <52031377.6050508@cn.fujitsu.com>
+References: <1375872736-4822-1-git-send-email-tangchen@cn.fujitsu.com> <1786839.lAdBpJ22ie@vostro.rjw.lan> <94F2FBAB4432B54E8AACC7DFDE6C92E36FEAC85B@ORSMSX103.amr.corp.intel.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <owner-linux-mm@kvack.org>
-In-Reply-To: <1375933176-15003-1-git-send-email-tangchen@cn.fujitsu.com>
+In-Reply-To: <94F2FBAB4432B54E8AACC7DFDE6C92E36FEAC85B@ORSMSX103.amr.corp.intel.com>
 Sender: owner-linux-mm@kvack.org
-To: robert.moore@intel.com, lv.zheng@intel.com, rjw@sisk.pl, lenb@kernel.org, tglx@linutronix.de, mingo@elte.hu, hpa@zytor.com, akpm@linux-foundation.org, tj@kernel.org, trenn@suse.de, yinghai@kernel.org, jiang.liu@huawei.com, wency@cn.fujitsu.com, laijs@cn.fujitsu.com, isimatu.yasuaki@jp.fujitsu.com, izumi.taku@jp.fujitsu.com, mgorman@suse.de, minchan@kernel.org, mina86@mina86.com, gong.chen@linux.intel.com, vasilis.liaskovitis@profitbricks.com, lwoodman@redhat.com, riel@redhat.com, jweiner@redhat.com, prarit@redhat.com, zhangyanfei@cn.fujitsu.com, yanghy@cn.fujitsu.com
-Cc: x86@kernel.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-mm@kvack.org, linux-acpi@vger.kernel.org
+To: "Moore, Robert" <robert.moore@intel.com>
+Cc: "Rafael J. Wysocki" <rjw@sisk.pl>, "Zheng, Lv" <lv.zheng@intel.com>, "lenb@kernel.org" <lenb@kernel.org>, "tglx@linutronix.de" <tglx@linutronix.de>, "mingo@elte.hu" <mingo@elte.hu>, "hpa@zytor.com" <hpa@zytor.com>, "akpm@linux-foundation.org" <akpm@linux-foundation.org>, "tj@kernel.org" <tj@kernel.org>, "trenn@suse.de" <trenn@suse.de>, "yinghai@kernel.org" <yinghai@kernel.org>, "jiang.liu@huawei.com" <jiang.liu@huawei.com>, "wency@cn.fujitsu.com" <wency@cn.fujitsu.com>, "laijs@cn.fujitsu.com" <laijs@cn.fujitsu.com>, "isimatu.yasuaki@jp.fujitsu.com" <isimatu.yasuaki@jp.fujitsu.com>, "izumi.taku@jp.fujitsu.com" <izumi.taku@jp.fujitsu.com>, "mgorman@suse.de" <mgorman@suse.de>, "minchan@kernel.org" <minchan@kernel.org>, "mina86@mina86.com" <mina86@mina86.com>, gong.che
 List-Id: linux-acpi@vger.kernel.org
 
-The previous patch introduces two new functions:
-    acpi_tb_root_table_install() and acpi_tb_root_table_override(),
-which work just the same as acpi_tb_parse_root_table() if they are
-called in sequence.
+Hi Bob, Rafael,
 
-In order to split acpi_initialize_tables(), call thes two functions
-in acpi_initialize_tables(). This will keep acpi_initialize_tables()
-works as before.
+I have resent all 5 ACPICA side patches separately.
+Some other patches are not in ACPICA side, but they may still
+need you guys to help to review.
 
-Signed-off-by: Tang Chen <tangchen@cn.fujitsu.com>
-Reviewed-by: Zhang Yanfei <zhangyanfei@cn.fujitsu.com>
----
- drivers/acpi/acpica/actables.h |    2 ++
- drivers/acpi/acpica/tbxface.c  |    9 +++++++--
- 2 files changed, 9 insertions(+), 2 deletions(-)
+I'll send them later.
 
-diff --git a/drivers/acpi/acpica/actables.h b/drivers/acpi/acpica/actables.h
-index 7755e91..641796e 100644
---- a/drivers/acpi/acpica/actables.h
-+++ b/drivers/acpi/acpica/actables.h
-@@ -120,6 +120,8 @@ void
- acpi_tb_install_table(acpi_physical_address address,
- 		      char *signature, u32 table_index);
- 
-+acpi_status acpi_tb_root_table_install(acpi_physical_address rsdp_address);
-+void acpi_tb_root_table_override(void);
- acpi_status acpi_tb_parse_root_table(acpi_physical_address rsdp_address);
- 
- #endif				/* __ACTABLES_H__ */
-diff --git a/drivers/acpi/acpica/tbxface.c b/drivers/acpi/acpica/tbxface.c
-index ad11162..98e4cad 100644
---- a/drivers/acpi/acpica/tbxface.c
-+++ b/drivers/acpi/acpica/tbxface.c
-@@ -143,8 +143,13 @@ acpi_initialize_tables(struct acpi_table_desc * initial_table_array,
- 	 * Root Table Array. This array contains the information of the RSDT/XSDT
- 	 * in a common, more useable format.
- 	 */
--	status = acpi_tb_parse_root_table(rsdp_address);
--	return_ACPI_STATUS(status);
-+	status = acpi_tb_root_table_install(rsdp_address);
-+	if (ACPI_FAILURE(status))
-+		return_ACPI_STATUS(status);
-+
-+	acpi_tb_root_table_override();
-+
-+	return_ACPI_STATUS(AE_OK);
- }
- 
- /*******************************************************************************
--- 
-1.7.1
+Thanks.:)
+
+On 08/08/2013 11:01 AM, Moore, Robert wrote:
+>
+>
+......
+>>
+>> This looks a bit more manageable than before, but please do one more
+>> thing:
+>> Please split all of the ACPICA changes out into separate patches and put
+>> those patched in front of everything else.
+>>
+>> The reason is we may need to merge them through upstream ACPICA as the
+>> first step (if they are accepted by the ACPICA maintainers).
+>>
+>
+>
+> Yes, we (ACPICA) would like to see them all together in one place so that we can review.
+> Thanks,
+> Bob
+>
+>
+>
+>
+>> Thanks,
+>> Rafael
+>>
+>>
+>> --
+>> I speak only for myself.
+>> Rafael J. Wysocki, Intel Open Source Technology Center.
 
 --
 To unsubscribe, send a message with 'unsubscribe linux-mm' in
