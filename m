@@ -1,70 +1,114 @@
 From: Lv Zheng <lv.zheng@intel.com>
-Subject: [PATCH 0/9] ACPICA 20130725 Release
-Date: Thu,  8 Aug 2013 15:29:16 +0800
-Message-ID: <cover.1375946725.git.lv.zheng@intel.com>
+Subject: [PATCH 5/9] ACPICA: Fix divergences of the commit - ACPICA: Expose OSI version.
+Date: Thu,  8 Aug 2013 15:29:46 +0800
+Message-ID: <d0a80bba5aff802467c2430565fe210c0a3232b0.1375946725.git.lv.zheng@intel.com>
+References: <cover.1375946725.git.lv.zheng@intel.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga02.intel.com ([134.134.136.20]:14895 "EHLO mga02.intel.com"
+Received: from mga01.intel.com ([192.55.52.88]:29434 "EHLO mga01.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S933531Ab3HHH3x (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 8 Aug 2013 03:29:53 -0400
+	id S933825Ab3HHH37 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 8 Aug 2013 03:29:59 -0400
+In-Reply-To: <cover.1375946725.git.lv.zheng@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Robert Moore <robert.moore@intel.com>, Len Brown <len.brown@intel.com>
-Cc: Lv Zheng <lv.zheng@intel.com>, linux-acpi@vger.kernel.org
+Cc: Lv Zheng <lv.zheng@intel.com>, linux-acpi@vger.kernel.org, Aaron Lu <aaron.lu@intel.com>
 
-The 20130725 ACPICA kernel resident system updates is linuxized based on
-the pm/linux-next branch.
+The original commit 242b2287cd7f27521c8b54a4101d569e53e7a0ca "ACPICA:
+expose OSI version" triggers build errors in ACPICA when it is back
+ported.  The patch removes the divergences between Linux and upstream
+ACPICA resulting from that.
 
-The patch set has passed a build/boot test on the following machines:
-Dell Inspiron Mini 1010 (i386)
-HP Compaq 8200 Elite SFF PC (x86-64)
-With the following kernel configuration items enabled:
-  CONFIG_ACPI_AC
-  CONFIG_ACPI_BATTERY
-  CONFIG_ACPI_NUMA
-  CONFIG_ACPI_PROCESSOR
-  CONFIG_ACPI_THERMAL
-  CONFIG_ACPI_VIDEO
-  CONFIG_CPU_FREQ
-  CONFIG_I2C_SCMI
-  CONFIG_SENSORS_ACPI_POWER
-  CONFIG_PANASONIC_LAPTOP
-  CONFIG_XO15_EBOOK
-No new divergences are introduced in this release.
-
-Please review.
-
-Bob Moore (8):
-  ACPICA: Export acpi_tb_validate_rsdp().
-  ACPICA: Emit all unresolved method externals in a text block
-  ACPICA: DeRefOf operator: Update to fully resolve FieldUnit and
-    BufferField refs.
-  ACPICA: Fix possible fault for methods that optionally have no return
-    value.
-  ACPICA: Make ACPI Power Management Timer (PM Timer) optional.
-  ACPICA: Return error if DerefOf resolves to a null package element.
-  ACPICA: Update names for walk_namespace callbacks to clarify usage.
-  ACPICA: Update version to 20130725.
-
-Lv Zheng (1):
-  ACPICA: Fix divergences of the commit - ACPICA: Expose OSI version.
-
- drivers/acpi/acpica/acglobal.h |    7 +++++-
- drivers/acpi/acpica/aclocal.h  |    1 +
- drivers/acpi/acpica/acnamesp.h |    4 ++--
- drivers/acpi/acpica/actables.h |    2 ++
- drivers/acpi/acpica/exoparg1.c |   48 +++++++++++++++++++++++++++++++++++-----
- drivers/acpi/acpica/hwtimer.c  |   13 ++++++++++-
- drivers/acpi/acpica/nspredef.c |   16 +++++++++++++-
- drivers/acpi/acpica/nswalk.c   |   26 +++++++++++-----------
- drivers/acpi/acpica/nsxfeval.c |   16 +++++++-------
- drivers/acpi/acpica/tbfadt.c   |    4 ++--
- drivers/acpi/acpica/tbxfroot.c |    8 ++-----
+Signed-off-by: Lv Zheng <lv.zheng@intel.com>
+Signed-off-by: Bob Moore <robert.moore@intel.com>
+Cc: Aaron Lu <aaron.lu@intel.com>
+---
+ drivers/acpi/acpica/acglobal.h |    7 ++++++-
  drivers/acpi/acpica/utglobal.c |    1 -
- include/acpi/acpixf.h          |    6 ++---
- include/acpi/actypes.h         |   28 +++++++++++------------
- 14 files changed, 121 insertions(+), 59 deletions(-)
+ include/acpi/actypes.h         |   28 +++++++++++++---------------
+ 3 files changed, 19 insertions(+), 17 deletions(-)
 
+diff --git a/drivers/acpi/acpica/acglobal.h b/drivers/acpi/acpica/acglobal.h
+index b8d3811..90e846f 100644
+--- a/drivers/acpi/acpica/acglobal.h
++++ b/drivers/acpi/acpica/acglobal.h
+@@ -138,6 +138,12 @@ u8 ACPI_INIT_GLOBAL(acpi_gbl_disable_auto_repair, FALSE);
+  */
+ u8 ACPI_INIT_GLOBAL(acpi_gbl_disable_ssdt_table_load, FALSE);
+ 
++/*
++ * We keep track of the latest version of Windows that has been requested by
++ * the BIOS.
++ */
++u8 ACPI_INIT_GLOBAL(acpi_gbl_osi_data, 0);
++
+ /* acpi_gbl_FADT is a local copy of the FADT, converted to a common format. */
+ 
+ struct acpi_table_fadt acpi_gbl_FADT;
+@@ -285,7 +291,6 @@ ACPI_EXTERN u8 acpi_gbl_debugger_configuration;
+ ACPI_EXTERN u8 acpi_gbl_step_to_next_call;
+ ACPI_EXTERN u8 acpi_gbl_acpi_hardware_present;
+ ACPI_EXTERN u8 acpi_gbl_events_initialized;
+-ACPI_EXTERN u8 acpi_gbl_osi_data;
+ ACPI_EXTERN struct acpi_interface_info *acpi_gbl_supported_interfaces;
+ ACPI_EXTERN struct acpi_address_range
+     *acpi_gbl_address_range_list[ACPI_ADDRESS_RANGE_MAX];
+diff --git a/drivers/acpi/acpica/utglobal.c b/drivers/acpi/acpica/utglobal.c
+index f736448..d6f26bf 100644
+--- a/drivers/acpi/acpica/utglobal.c
++++ b/drivers/acpi/acpica/utglobal.c
+@@ -336,7 +336,6 @@ acpi_status acpi_ut_init_globals(void)
+ 	acpi_gbl_trace_dbg_layer = 0;
+ 	acpi_gbl_debugger_configuration = DEBUGGER_THREADING;
+ 	acpi_gbl_db_output_flags = ACPI_DB_CONSOLE_OUTPUT;
+-	acpi_gbl_osi_data = 0;
+ 	acpi_gbl_osi_mutex = NULL;
+ 	acpi_gbl_reg_methods_executed = FALSE;
+ 
+diff --git a/include/acpi/actypes.h b/include/acpi/actypes.h
+index eae55fb..b748aef 100644
+--- a/include/acpi/actypes.h
++++ b/include/acpi/actypes.h
+@@ -1137,7 +1137,19 @@ struct acpi_memory_list {
+ #endif
+ };
+ 
+-/* Definitions for _OSI support */
++/* Definitions of _OSI support */
++
++#define ACPI_VENDOR_STRINGS                 0x01
++#define ACPI_FEATURE_STRINGS                0x02
++#define ACPI_ENABLE_INTERFACES              0x00
++#define ACPI_DISABLE_INTERFACES             0x04
++
++#define ACPI_DISABLE_ALL_VENDOR_STRINGS     (ACPI_DISABLE_INTERFACES | ACPI_VENDOR_STRINGS)
++#define ACPI_DISABLE_ALL_FEATURE_STRINGS    (ACPI_DISABLE_INTERFACES | ACPI_FEATURE_STRINGS)
++#define ACPI_DISABLE_ALL_STRINGS            (ACPI_DISABLE_INTERFACES | ACPI_VENDOR_STRINGS | ACPI_FEATURE_STRINGS)
++#define ACPI_ENABLE_ALL_VENDOR_STRINGS      (ACPI_ENABLE_INTERFACES | ACPI_VENDOR_STRINGS)
++#define ACPI_ENABLE_ALL_FEATURE_STRINGS     (ACPI_ENABLE_INTERFACES | ACPI_FEATURE_STRINGS)
++#define ACPI_ENABLE_ALL_STRINGS             (ACPI_ENABLE_INTERFACES | ACPI_VENDOR_STRINGS | ACPI_FEATURE_STRINGS)
+ 
+ #define ACPI_OSI_WIN_2000               0x01
+ #define ACPI_OSI_WIN_XP                 0x02
+@@ -1152,18 +1164,4 @@ struct acpi_memory_list {
+ #define ACPI_OSI_WIN_7                  0x0B
+ #define ACPI_OSI_WIN_8                  0x0C
+ 
+-/* _OSI update actions */
+-
+-#define ACPI_VENDOR_STRINGS                 0x01
+-#define ACPI_FEATURE_STRINGS                0x02
+-#define ACPI_ENABLE_INTERFACES              0x00
+-#define ACPI_DISABLE_INTERFACES             0x04
+-
+-#define ACPI_DISABLE_ALL_VENDOR_STRINGS     (ACPI_DISABLE_INTERFACES | ACPI_VENDOR_STRINGS)
+-#define ACPI_DISABLE_ALL_FEATURE_STRINGS    (ACPI_DISABLE_INTERFACES | ACPI_FEATURE_STRINGS)
+-#define ACPI_DISABLE_ALL_STRINGS            (ACPI_DISABLE_INTERFACES | ACPI_VENDOR_STRINGS | ACPI_FEATURE_STRINGS)
+-#define ACPI_ENABLE_ALL_VENDOR_STRINGS      (ACPI_ENABLE_INTERFACES | ACPI_VENDOR_STRINGS)
+-#define ACPI_ENABLE_ALL_FEATURE_STRINGS     (ACPI_ENABLE_INTERFACES | ACPI_FEATURE_STRINGS)
+-#define ACPI_ENABLE_ALL_STRINGS             (ACPI_ENABLE_INTERFACES | ACPI_VENDOR_STRINGS | ACPI_FEATURE_STRINGS)
+-
+ #endif				/* __ACTYPES_H__ */
 -- 
 1.7.10
 
