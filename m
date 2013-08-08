@@ -1,58 +1,82 @@
 From: "Naveen N. Rao" <naveen.n.rao@linux.vnet.ibm.com>
-Subject: [PATCH 1/3] mce: acpi/apei: trace: Include PCIe AER trace event conditionally
-Date: Thu,  8 Aug 2013 23:57:49 +0530
-Message-ID: <1375986471-27113-2-git-send-email-naveen.n.rao@linux.vnet.ibm.com>
+Subject: [PATCH 3/3] mce: acpi/apei: trace: Enable ghes memory error trace event
+Date: Thu,  8 Aug 2013 23:57:51 +0530
+Message-ID: <1375986471-27113-4-git-send-email-naveen.n.rao@linux.vnet.ibm.com>
 References: <1375986471-27113-1-git-send-email-naveen.n.rao@linux.vnet.ibm.com>
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from e23smtp07.au.ibm.com ([202.81.31.140]:39688 "EHLO
-	e23smtp07.au.ibm.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S966108Ab3HHS3x (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 8 Aug 2013 14:29:53 -0400
-Received: from /spool/local
-	by e23smtp07.au.ibm.com with IBM ESMTP SMTP Gateway: Authorized Use Only! Violators will be prosecuted
-	for <linux-acpi@vger.kernel.org> from <naveen.n.rao@linux.vnet.ibm.com>;
-	Fri, 9 Aug 2013 04:16:49 +1000
+Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <1375986471-27113-1-git-send-email-naveen.n.rao@linux.vnet.ibm.com>
-Sender: linux-acpi-owner@vger.kernel.org
-List-Id: linux-acpi@vger.kernel.org
+Sender: linux-kernel-owner@vger.kernel.org
 To: tony.luck@intel.com, bp@alien8.de, bhelgaas@google.com, rostedt@goodmis.org, rjw@sisk.pl, lance.ortiz@hp.com, m.chehab@samsung.com
 Cc: linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, "Naveen N. Rao" <naveen.n.rao@linux.vnet.ibm.com>
+List-Id: linux-acpi@vger.kernel.org
 
-Since we'll be adding multiple trace events to ras.h, we need to protect
-each block appropriately so that they only get included in the right
-places. Update PCIe AER trace event for this purpose.
+Enable memory error trace event in cper.c
 
 Signed-off-by: Naveen N. Rao <naveen.n.rao@linux.vnet.ibm.com>
 ---
- drivers/pci/pcie/aer/aerdrv_errprint.c | 1 +
- include/trace/events/ras.h             | 2 +-
- 2 files changed, 2 insertions(+), 1 deletion(-)
+ drivers/acpi/apei/cper.c | 21 ++++++++++++++++-----
+ 1 file changed, 16 insertions(+), 5 deletions(-)
 
-diff --git a/drivers/pci/pcie/aer/aerdrv_errprint.c b/drivers/pci/pcie/aer/aerdrv_errprint.c
-index 2c7c9f5..4d06859 100644
---- a/drivers/pci/pcie/aer/aerdrv_errprint.c
-+++ b/drivers/pci/pcie/aer/aerdrv_errprint.c
-@@ -24,6 +24,7 @@
- #include "aerdrv.h"
+diff --git a/drivers/acpi/apei/cper.c b/drivers/acpi/apei/cper.c
+index 33dc6a0..19a9c0b 100644
+--- a/drivers/acpi/apei/cper.c
++++ b/drivers/acpi/apei/cper.c
+@@ -32,6 +32,10 @@
+ #include <linux/pci.h>
+ #include <linux/aer.h>
  
- #define CREATE_TRACE_POINTS
-+#define TRACE_EVENT_PCIE_AER
- #include <trace/events/ras.h>
++#define CREATE_TRACE_POINTS
++#define TRACE_EVENT_GHES
++#include <trace/events/ras.h>
++
+ /*
+  * CPER record ID need to be unique even after reboot, because record
+  * ID is used as index for ERST storage, while CPER records from
+@@ -193,8 +197,13 @@ static const char *cper_mem_err_type_strs[] = {
+ 	"scrub uncorrected error",
+ };
  
- #define AER_AGENT_RECEIVER		0
-diff --git a/include/trace/events/ras.h b/include/trace/events/ras.h
-index 88b8783..4a66142 100644
---- a/include/trace/events/ras.h
-+++ b/include/trace/events/ras.h
-@@ -1,7 +1,7 @@
- #undef TRACE_SYSTEM
- #define TRACE_SYSTEM ras
+-static void cper_print_mem(const char *pfx, const struct cper_sec_mem_err *mem)
++static void cper_print_mem(const char *pfx,
++		const struct acpi_hest_generic_status *estatus,
++		const struct acpi_hest_generic_data *gdata,
++		const struct cper_sec_mem_err *mem)
+ {
++	trace_ghes_platform_memory_event(estatus, gdata, mem);
++
+ 	if (mem->validation_bits & CPER_MEM_VALID_ERROR_STATUS)
+ 		printk("%s""error_status: 0x%016llx\n", pfx, mem->error_status);
+ 	if (mem->validation_bits & CPER_MEM_VALID_PHYSICAL_ADDRESS)
+@@ -292,8 +301,10 @@ static const char *apei_estatus_section_flag_strs[] = {
+ 	"latent error",
+ };
  
--#if !defined(_TRACE_AER_H) || defined(TRACE_HEADER_MULTI_READ)
-+#if (!defined(_TRACE_AER_H) || defined(TRACE_HEADER_MULTI_READ)) && defined(TRACE_EVENT_PCIE_AER)
- #define _TRACE_AER_H
- 
- #include <linux/tracepoint.h>
+-static void apei_estatus_print_section(
+-	const char *pfx, const struct acpi_hest_generic_data *gdata, int sec_no)
++static void apei_estatus_print_section(const char *pfx,
++		const struct acpi_hest_generic_status *estatus,
++		const struct acpi_hest_generic_data *gdata,
++		int sec_no)
+ {
+ 	uuid_le *sec_type = (uuid_le *)gdata->section_type;
+ 	__u16 severity;
+@@ -320,7 +331,7 @@ static void apei_estatus_print_section(
+ 		struct cper_sec_mem_err *mem_err = (void *)(gdata + 1);
+ 		printk("%s""section_type: memory error\n", pfx);
+ 		if (gdata->error_data_length >= sizeof(*mem_err))
+-			cper_print_mem(pfx, mem_err);
++			cper_print_mem(pfx, estatus, gdata, mem_err);
+ 		else
+ 			goto err_section_too_small;
+ 	} else if (!uuid_le_cmp(*sec_type, CPER_SEC_PCIE)) {
+@@ -355,7 +366,7 @@ void apei_estatus_print(const char *pfx,
+ 	gdata = (struct acpi_hest_generic_data *)(estatus + 1);
+ 	while (data_len > sizeof(*gdata)) {
+ 		gedata_len = gdata->error_data_length;
+-		apei_estatus_print_section(pfx, gdata, sec_no);
++		apei_estatus_print_section(pfx, estatus, gdata, sec_no);
+ 		data_len -= gedata_len + sizeof(*gdata);
+ 		gdata = (void *)(gdata + 1) + gedata_len;
+ 		sec_no++;
 -- 
 1.8.3.4
-
