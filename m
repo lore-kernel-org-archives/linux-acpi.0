@@ -1,44 +1,79 @@
-From: Tang Chen <tangchen@cn.fujitsu.com>
-Subject: Re: [PATCH part2 0/4] acpi: Trivial fix and improving for memory
- hotplug.
-Date: Fri, 09 Aug 2013 08:37:29 +0800
-Message-ID: <520439C9.3080601@cn.fujitsu.com>
-References: <1375938239-18769-1-git-send-email-tangchen@cn.fujitsu.com> <1851799.n4moZnvj4u@vostro.rjw.lan>
+From: Gu Zheng <guz.fnst@cn.fujitsu.com>
+Subject: Re: [PATCH] ACPI, cpu hotplug: move try_offline_node() after acpi_unmap_lsapic()
+Date: Fri, 09 Aug 2013 10:43:19 +0800
+Message-ID: <52045747.2060207@cn.fujitsu.com>
+References: <5200CBBF.1090904@jp.fujitsu.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Type: text/plain; charset=ISO-2022-JP
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cn.fujitsu.com ([222.73.24.84]:20461 "EHLO song.cn.fujitsu.com"
+Received: from cn.fujitsu.com ([222.73.24.84]:41037 "EHLO song.cn.fujitsu.com"
 	rhost-flags-OK-FAIL-OK-OK) by vger.kernel.org with ESMTP
-	id S1758211Ab3HIAi4 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 8 Aug 2013 20:38:56 -0400
-In-Reply-To: <1851799.n4moZnvj4u@vostro.rjw.lan>
+	id S1753233Ab3HICrU (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 8 Aug 2013 22:47:20 -0400
+In-Reply-To: <5200CBBF.1090904@jp.fujitsu.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: robert.moore@intel.com, lv.zheng@intel.com, lenb@kernel.org, tglx@linutronix.de, mingo@elte.hu, hpa@zytor.com, akpm@linux-foundation.org, tj@kernel.org, trenn@suse.de, yinghai@kernel.org, jiang.liu@huawei.com, wency@cn.fujitsu.com, laijs@cn.fujitsu.com, isimatu.yasuaki@jp.fujitsu.com, izumi.taku@jp.fujitsu.com, mgorman@suse.de, minchan@kernel.org, mina86@mina86.com, gong.chen@linux.intel.com, vasilis.liaskovitis@profitbricks.com, lwoodman@redhat.com, riel@redhat.com, jweiner@redhat.com, prarit@redhat.com, zhangyanfei@cn.fujitsu.com, yanghy@cn.fujitsu.com, x86@kernel.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-mm@kvack.org, linux-acpi@vger.kernel.org
+To: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
+Cc: rafael.j.wysocki@intel.com, toshi.kani@hp.com, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 
-On 08/08/2013 10:09 PM, Rafael J. Wysocki wrote:
-> On Thursday, August 08, 2013 01:03:55 PM Tang Chen wrote:
->> This patch-set does some trivial fix and improving in ACPI code
->> for memory hotplug.
->>
->> Patch 1,3,4 have been acked.
->>
->> Tang Chen (4):
->>    acpi: Print Hot-Pluggable Field in SRAT.
->>    earlycpio.c: Fix the confusing comment of find_cpio_data().
->>    acpi: Remove "continue" in macro INVALID_TABLE().
->>    acpi: Introduce acpi_verify_initrd() to check if a table is invalid.
->>
->>   arch/x86/mm/srat.c |   11 ++++--
->>   drivers/acpi/osl.c |   84 +++++++++++++++++++++++++++++++++++++++------------
->>   lib/earlycpio.c    |   27 ++++++++--------
->>   3 files changed, 85 insertions(+), 37 deletions(-)
->
-> It looks like this part doesn't depend on the other parts, is that correct?
+Hi Ishimatsu-san,
+On 08/06/2013 06:11 PM, Yasuaki Ishimatsu wrote:
 
-No, it doesn't. And this patch-set can be merged first.
+> try_offline_node() checks that all cpus related with removed node have been
+> removed by using cpu_present_bits. If all cpus related with removed node have
+> been removed, try_offline_node() clears the node information.
+> 
+> But try_offline_node() called from acpi_processor_remove() never clears
+> the node information. For disabling cpu_present_bits, acpi_unmap_lsapic()
+> need be called. But acpi_unmap_lsapic() is called after try_offline_node()
+> runs. So when try_offline_node() runs, the cpu's cpu_present_bits is always
+> set.
+> 
+> This patch moves try_offline_node() after acpi_unmap_lsapic().
 
-Thanks.
+It works well.
+
+> 
+> Signed-off-by: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
+
+
+Tested-by: Gu Zheng <guz.fnst@cn.fujitsu.com>
+
+Thanks,
+Gu
+
+> ---
+>  drivers/acpi/acpi_processor.c |    3 ++-
+>  1 files changed, 2 insertions(+), 1 deletions(-)
+> 
+> diff --git a/drivers/acpi/acpi_processor.c b/drivers/acpi/acpi_processor.c
+> index fd6c51c..5a74a9c 100644
+> --- a/drivers/acpi/acpi_processor.c
+> +++ b/drivers/acpi/acpi_processor.c
+> @@ -451,7 +451,6 @@ static void acpi_processor_remove(struct acpi_device *device)
+>  	/* Clean up. */
+>  	per_cpu(processor_device_array, pr->id) = NULL;
+>  	per_cpu(processors, pr->id) = NULL;
+> -	try_offline_node(cpu_to_node(pr->id));
+> 
+>  	/* Remove the CPU. */
+>  	get_online_cpus();
+> @@ -459,6 +458,8 @@ static void acpi_processor_remove(struct acpi_device *device)
+>  	acpi_unmap_lsapic(pr->id);
+>  	put_online_cpus();
+> 
+> +	try_offline_node(cpu_to_node(pr->id));
+> +
+>   out:
+>  	free_cpumask_var(pr->throttling.shared_cpu_map);
+>  	kfree(pr);
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-kernel" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> Please read the FAQ at  http://www.tux.org/lkml/
+> 
+
 
