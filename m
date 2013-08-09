@@ -1,60 +1,57 @@
 From: Tang Chen <tangchen@cn.fujitsu.com>
-Subject: Re: [PATCH] ACPI, cpu hotplug: move try_offline_node() after acpi_unmap_lsapic()
-Date: Fri, 09 Aug 2013 15:28:46 +0800
-Message-ID: <52049A2E.8080101@cn.fujitsu.com>
-References: <5200CBBF.1090904@jp.fujitsu.com> <1375808178.10300.181.camel@misato.fc.hp.com>
+Subject: Re: [PATCH part4 4/4] x86, acpi, numa, mem_hotplug: Find hotpluggable
+ memory in SRAT memory affinities.
+Date: Fri, 09 Aug 2013 17:32:59 +0800
+Message-ID: <5204B74B.4050805@cn.fujitsu.com>
+References: <1375954883-30225-1-git-send-email-tangchen@cn.fujitsu.com> <1375954883-30225-5-git-send-email-tangchen@cn.fujitsu.com> <CAE9FiQXwAkGU96Oe5YNErTXs-OHGHTAfVo4oyrF-WUZ97X7pQA@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cn.fujitsu.com ([222.73.24.84]:9175 "EHLO song.cn.fujitsu.com"
-	rhost-flags-OK-FAIL-OK-OK) by vger.kernel.org with ESMTP
-	id S1030401Ab3HIHaL (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 9 Aug 2013 03:30:11 -0400
-In-Reply-To: <1375808178.10300.181.camel@misato.fc.hp.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Return-path: <owner-linux-mm@kvack.org>
+In-Reply-To: <CAE9FiQXwAkGU96Oe5YNErTXs-OHGHTAfVo4oyrF-WUZ97X7pQA@mail.gmail.com>
+Sender: owner-linux-mm@kvack.org
+To: Yinghai Lu <yinghai@kernel.org>
+Cc: Bob Moore <robert.moore@intel.com>, Lv Zheng <lv.zheng@intel.com>, "Rafael J. Wysocki" <rjw@sisk.pl>, Len Brown <lenb@kernel.org>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@elte.hu>, "H. Peter Anvin" <hpa@zytor.com>, Andrew Morton <akpm@linux-foundation.org>, Tejun Heo <tj@kernel.org>, Thomas Renninger <trenn@suse.de>, Jiang Liu <jiang.liu@huawei.com>, Wen Congyang <wency@cn.fujitsu.com>, Lai Jiangshan <laijs@cn.fujitsu.com>, Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>, Taku Izumi <izumi.taku@jp.fujitsu.com>, Mel Gorman <mgorman@suse.de>, Minchan Kim <minchan@kernel.org>, mina86@mina86.com, gong.chen@linux.intel.com, Vasilis Liaskovitis <vasilis.liaskovitis@profitbricks.com>, lwoodman@redhat.com, Rik van Riel <riel@redhat.com>, jweiner@redhat.com, Prar
 List-Id: linux-acpi@vger.kernel.org
-To: Toshi Kani <toshi.kani@hp.com>
-Cc: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>, rafael.j.wysocki@intel.com, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Wen Congyang <wency@cn.fujitsu.com>
 
-On 08/07/2013 12:56 AM, Toshi Kani wrote:
-> On Tue, 2013-08-06 at 19:11 +0900, Yasuaki Ishimatsu wrote:
->> try_offline_node() checks that all cpus related with removed node have been
->> removed by using cpu_present_bits. If all cpus related with removed node have
->> been removed, try_offline_node() clears the node information.
+On 08/09/2013 12:41 AM, Yinghai Lu wrote:
+> On Thu, Aug 8, 2013 at 2:41 AM, Tang Chen<tangchen@cn.fujitsu.com>  wrote:
+>> In ACPI SRAT(System Resource Affinity Table), there is a memory affinity for each
+>> memory range in the system. In each memory affinity, there is a field indicating
+>> that if the memory range is hotpluggable.
 >>
->> But try_offline_node() called from acpi_processor_remove() never clears
->> the node information. For disabling cpu_present_bits, acpi_unmap_lsapic()
->> need be called. But acpi_unmap_lsapic() is called after try_offline_node()
->> runs. So when try_offline_node() runs, the cpu's cpu_present_bits is always
->> set.
->>
->> This patch moves try_offline_node() after acpi_unmap_lsapic().
->>
->> Signed-off-by: Yasuaki Ishimatsu<isimatu.yasuaki@jp.fujitsu.com>
+>> This patch parses all the memory affinities in SRAT only, and find out all the
+>> hotpluggable memory ranges in the system.
 >
-> The change looks good to me.
+> oh, no.
 >
-> Acked-by: Toshi Kani<toshi.kani@hp.com>
+> How do you make sure the SRAT's entries are right ?
+> later numa_init could reject srat table if srat ranges does not cover
+> e820 memmap.
+
+In numa_meminfo_cover_memory(), it checks if SRAT covers the e820 ranges.
+And it uses
+     e820ram = max_pfn - absent_pages_in_range(0, max_pfn)
+to calculate the e820 ram size.
+
+Since max_pfn is initialized before memblock.memory is fulfilled, I think
+we can also do this check at earlier time.
+
 >
-> BTW, do you know why try_offline_node() has to use stop_machine()?
+> Also parse srat table two times looks silly.
 
-try_offline_node() is used to check if the node could be hot-removed
-after each memory or cpu hot-remove operation.
+By parsing SRAT twice, I can avoid memory allocation for acpi_tables_addr
+in acpi_initrd_override_copy() procedure at such an early time. This memory
+could also be in hotpluggable area.
 
-In memory hot-remove path, we have lock_memory_hotplug() to series all
-the memory hot-remove options.
-
-But when doing cpu hot-remove,
-
-acpi_processor_remove()
-  |->try_offline_node()
-
-There is no lock to protect it. I think, when we are going to hot-remove
-a node, others should not do any memory or cpu hotplug operation. In memory
-hotplug path, we have lock_memory_hotplug(). But in cpu hotplug path, I
-didn't find any lock. So we used stop_machine() to call check_cpu_on_node().
-If we find any cpu still present, we return and do not remove the node.
+I think, parsing SRAT memory affinities one more time is clean, no memory
+allocation, no global variable initialization. All the current numa init
+pathes will work as before.
 
 Thanks.
 
+--
+To unsubscribe, send a message with 'unsubscribe linux-mm' in
+the body to majordomo@kvack.org.  For more info on Linux MM,
+see: http://www.linux-mm.org/ .
+Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
