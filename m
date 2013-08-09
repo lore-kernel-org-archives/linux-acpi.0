@@ -1,26 +1,24 @@
-From: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
+From: Tang Chen <tangchen@cn.fujitsu.com>
 Subject: Re: [PATCH] ACPI, cpu hotplug: move try_offline_node() after acpi_unmap_lsapic()
-Date: Fri, 9 Aug 2013 14:53:59 +0900
-Message-ID: <520483F7.9010408@jp.fujitsu.com>
-References: <5200CBBF.1090904@jp.fujitsu.com> <52045747.2060207@cn.fujitsu.com>
+Date: Fri, 09 Aug 2013 15:28:46 +0800
+Message-ID: <52049A2E.8080101@cn.fujitsu.com>
+References: <5200CBBF.1090904@jp.fujitsu.com> <1375808178.10300.181.camel@misato.fc.hp.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-2022-JP"
+Content-Type: text/plain; charset=UTF-8; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from fgwmail5.fujitsu.co.jp ([192.51.44.35]:49779 "EHLO
-	fgwmail5.fujitsu.co.jp" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S966964Ab3HIFy0 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 9 Aug 2013 01:54:26 -0400
-In-Reply-To: <52045747.2060207@cn.fujitsu.com>
+Received: from cn.fujitsu.com ([222.73.24.84]:9175 "EHLO song.cn.fujitsu.com"
+	rhost-flags-OK-FAIL-OK-OK) by vger.kernel.org with ESMTP
+	id S1030401Ab3HIHaL (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 9 Aug 2013 03:30:11 -0400
+In-Reply-To: <1375808178.10300.181.camel@misato.fc.hp.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Gu Zheng <guz.fnst@cn.fujitsu.com>
-Cc: rafael.j.wysocki@intel.com, toshi.kani@hp.com, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+To: Toshi Kani <toshi.kani@hp.com>
+Cc: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>, rafael.j.wysocki@intel.com, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Wen Congyang <wency@cn.fujitsu.com>
 
-(2013/08/09 11:43), Gu Zheng wrote:
-> Hi Ishimatsu-san,
-> On 08/06/2013 06:11 PM, Yasuaki Ishimatsu wrote:
-> 
+On 08/07/2013 12:56 AM, Toshi Kani wrote:
+> On Tue, 2013-08-06 at 19:11 +0900, Yasuaki Ishimatsu wrote:
 >> try_offline_node() checks that all cpus related with removed node have been
 >> removed by using cpu_present_bits. If all cpus related with removed node have
 >> been removed, try_offline_node() clears the node information.
@@ -32,57 +30,31 @@ Cc: rafael.j.wysocki@intel.com, toshi.kani@hp.com, linux-acpi@vger.kernel.org, l
 >> set.
 >>
 >> This patch moves try_offline_node() after acpi_unmap_lsapic().
-> 
-> It works well.
-> 
 >>
->> Signed-off-by: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
-> 
-> 
-> Tested-by: Gu Zheng <guz.fnst@cn.fujitsu.com>
+>> Signed-off-by: Yasuaki Ishimatsu<isimatu.yasuaki@jp.fujitsu.com>
+>
+> The change looks good to me.
+>
+> Acked-by: Toshi Kani<toshi.kani@hp.com>
+>
+> BTW, do you know why try_offline_node() has to use stop_machine()?
 
-Thank you for testing.
+try_offline_node() is used to check if the node could be hot-removed
+after each memory or cpu hot-remove operation.
 
-Thanks,
-Yasuaki Ishimatsu
+In memory hot-remove path, we have lock_memory_hotplug() to series all
+the memory hot-remove options.
 
-> 
-> Thanks,
-> Gu
-> 
->> ---
->>   drivers/acpi/acpi_processor.c |    3 ++-
->>   1 files changed, 2 insertions(+), 1 deletions(-)
->>
->> diff --git a/drivers/acpi/acpi_processor.c b/drivers/acpi/acpi_processor.c
->> index fd6c51c..5a74a9c 100644
->> --- a/drivers/acpi/acpi_processor.c
->> +++ b/drivers/acpi/acpi_processor.c
->> @@ -451,7 +451,6 @@ static void acpi_processor_remove(struct acpi_device *device)
->>   	/* Clean up. */
->>   	per_cpu(processor_device_array, pr->id) = NULL;
->>   	per_cpu(processors, pr->id) = NULL;
->> -	try_offline_node(cpu_to_node(pr->id));
->>
->>   	/* Remove the CPU. */
->>   	get_online_cpus();
->> @@ -459,6 +458,8 @@ static void acpi_processor_remove(struct acpi_device *device)
->>   	acpi_unmap_lsapic(pr->id);
->>   	put_online_cpus();
->>
->> +	try_offline_node(cpu_to_node(pr->id));
->> +
->>    out:
->>   	free_cpumask_var(pr->throttling.shared_cpu_map);
->>   	kfree(pr);
->>
->> --
->> To unsubscribe from this list: send the line "unsubscribe linux-kernel" in
->> the body of a message to majordomo@vger.kernel.org
->> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->> Please read the FAQ at  http://www.tux.org/lkml/
->>
-> 
-> 
+But when doing cpu hot-remove,
 
+acpi_processor_remove()
+  |->try_offline_node()
+
+There is no lock to protect it. I think, when we are going to hot-remove
+a node, others should not do any memory or cpu hotplug operation. In memory
+hotplug path, we have lock_memory_hotplug(). But in cpu hotplug path, I
+didn't find any lock. So we used stop_machine() to call check_cpu_on_node().
+If we find any cpu still present, we return and do not remove the node.
+
+Thanks.
 
