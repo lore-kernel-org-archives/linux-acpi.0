@@ -1,81 +1,65 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: [PATCH] ACPI, cpu hotplug: move try_offline_node() after acpi_unmap_lsapic()
-Date: Sat, 10 Aug 2013 01:29:08 +0200
-Message-ID: <7919266.6MVd1N6sIX@vostro.rjw.lan>
-References: <5200CBBF.1090904@jp.fujitsu.com> <52049A2E.8080101@cn.fujitsu.com> <1376086616.10300.302.camel@misato.fc.hp.com>
+From: Yinghai Lu <yinghai@kernel.org>
+Subject: Re: [PATCH part4 2/4] x86, acpica, acpi: Try to find if SRAT is
+ overrided earlier.
+Date: Fri, 9 Aug 2013 16:34:13 -0700
+Message-ID: <CAE9FiQWSjkrFHBr3UrTYSpaCa8ThVrtPPVcaCyJrD0sGHcei3w@mail.gmail.com>
+References: <1375954883-30225-1-git-send-email-tangchen@cn.fujitsu.com>
+	<1375954883-30225-3-git-send-email-tangchen@cn.fujitsu.com>
+	<CAE9FiQXUS9+heHagD45WAyO22NiGDMo3j2JumzvscypVhnjn9A@mail.gmail.com>
+	<5204B93A.6030409@cn.fujitsu.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from hydra.sisk.pl ([212.160.235.94]:34690 "EHLO hydra.sisk.pl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1031447Ab3HIXSt (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 9 Aug 2013 19:18:49 -0400
-In-Reply-To: <1376086616.10300.302.camel@misato.fc.hp.com>
+Received: from mail-ob0-f174.google.com ([209.85.214.174]:49651 "EHLO
+	mail-ob0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1031474Ab3HIXeO (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 9 Aug 2013 19:34:14 -0400
+In-Reply-To: <5204B93A.6030409@cn.fujitsu.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Toshi Kani <toshi.kani@hp.com>
-Cc: Tang Chen <tangchen@cn.fujitsu.com>, Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>, rafael.j.wysocki@intel.com, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Wen Congyang <wency@cn.fujitsu.com>
+To: Tang Chen <tangchen@cn.fujitsu.com>
+Cc: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>, Bob Moore <robert.moore@intel.com>, Lv Zheng <lv.zheng@intel.com>, "Rafael J. Wysocki" <rjw@sisk.pl>, Len Brown <lenb@kernel.org>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@elte.hu>, "H. Peter Anvin" <hpa@zytor.com>, Andrew Morton <akpm@linux-foundation.org>, Tejun Heo <tj@kernel.org>, Thomas Renninger <trenn@suse.de>, Jiang Liu <jiang.liu@huawei.com>, Zhang Yanfei <zhangyanfei@cn.fujitsu.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>
 
-On Friday, August 09, 2013 04:16:56 PM Toshi Kani wrote:
-> On Fri, 2013-08-09 at 15:28 +0800, Tang Chen wrote:
-> > On 08/07/2013 12:56 AM, Toshi Kani wrote:
-> > > On Tue, 2013-08-06 at 19:11 +0900, Yasuaki Ishimatsu wrote:
-> > >> try_offline_node() checks that all cpus related with removed node have been
-> > >> removed by using cpu_present_bits. If all cpus related with removed node have
-> > >> been removed, try_offline_node() clears the node information.
-> > >>
-> > >> But try_offline_node() called from acpi_processor_remove() never clears
-> > >> the node information. For disabling cpu_present_bits, acpi_unmap_lsapic()
-> > >> need be called. But acpi_unmap_lsapic() is called after try_offline_node()
-> > >> runs. So when try_offline_node() runs, the cpu's cpu_present_bits is always
-> > >> set.
-> > >>
-> > >> This patch moves try_offline_node() after acpi_unmap_lsapic().
-> > >>
-> > >> Signed-off-by: Yasuaki Ishimatsu<isimatu.yasuaki@jp.fujitsu.com>
-> > >
-> > > The change looks good to me.
-> > >
-> > > Acked-by: Toshi Kani<toshi.kani@hp.com>
-> > >
-> > > BTW, do you know why try_offline_node() has to use stop_machine()?
-> > 
-> > try_offline_node() is used to check if the node could be hot-removed
-> > after each memory or cpu hot-remove operation.
-> > 
-> > In memory hot-remove path, we have lock_memory_hotplug() to series all
-> > the memory hot-remove options.
-> > 
-> > But when doing cpu hot-remove,
-> > 
-> > acpi_processor_remove()
-> >   |->try_offline_node()
-> > 
-> > There is no lock to protect it. I think, when we are going to hot-remove
-> > a node, others should not do any memory or cpu hotplug operation. In memory
-> > hotplug path, we have lock_memory_hotplug(). But in cpu hotplug path, I
-> > didn't find any lock. So we used stop_machine() to call check_cpu_on_node().
-> > If we find any cpu still present, we return and do not remove the node.
-> 
-> CPU/Memory hotplug operations and sysfs eject are serialized with
-> acpi_os_hotplug_execute().  CPU online/offline is protected by
-> cpu_hotplug_[begin|done]() and [get|put]_online_cpus().  But, yes,
-> online/offline and hotplug operations are not serialized.  I tried to
-> serialize them before, but that framework was not well received.
+On Fri, Aug 9, 2013 at 2:41 AM, Tang Chen <tangchen@cn.fujitsu.com> wrote:
+> On 08/09/2013 12:29 AM, Yinghai Lu wrote:
+> ......
+>
+>>
+>> Please check if you can reuse first half of my patchset, so find and copy
+>> override table earlier. the copied acpi tables could be near kernel code
+>> range.
+>>
+>
+> I don't think we need to do the finding step at that early time, in
+> head64.c stage.
+>
+> Before pagetables are setup, we can use early_ioremap() to map the
+> memory we want to access. We don't need to use phys addr. We can do
+> it in setup_arch(), which has nothing to do with 32bit or 64bit.
 
-What about lock_device_hotplug()?  It is taken by both online/offline and
-the ACPI hotplug code, isn't it?
+if override the acpi tables early, you don't need to check firmware srat and
+then override srat.
+just check last one will be used by kernel.
 
-> Anyway, it looks to me that cpu_up()->mem_online_node() path can race
-> with try_offline_node().
+So you don't need to dig initrd to find srat anymore.
 
-It can in principle, but I'm not sure if there's a way to trigger that
-race.  Do you have an example?
+>
+>
+>> Move finding in head64.c stage could help xen/dom0 a bit.
+>> as Konrad is working on patchset with acpi override in xen hypervisor.
+>> We can avoid override acpi table two times. Esp xen like to change
+>> DMAR to XMAR.
+>
+>
+> Would you please give some more info about this, and explain why finding
+> override tables in head64.c stage is helpful for xen ?
 
-Rafael
+xen usually can change acpi tables and pass to dom0 kernel. like change DMAR
+to hide it to dom0 kernel.
 
+also distribution could have same kernel to support bare metal and dom0.
 
--- 
-I speak only for myself.
-Rafael J. Wysocki, Intel Open Source Technology Center.
+so if we find the override kernel early in head64.c, dom0 path will not copy
+actually as no one try to find that for them.
+
+Yinghai
