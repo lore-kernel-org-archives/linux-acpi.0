@@ -1,49 +1,123 @@
 From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: [PATCH part2 0/4] acpi: Trivial fix and improving for memory hotplug.
-Date: Fri, 09 Aug 2013 15:36:16 +0200
-Message-ID: <1792540.pdAYjdHnnL@vostro.rjw.lan>
-References: <1375938239-18769-1-git-send-email-tangchen@cn.fujitsu.com> <1851799.n4moZnvj4u@vostro.rjw.lan> <520439C9.3080601@cn.fujitsu.com>
+Subject: [GIT PULL] ACPI and power management fixes for v3.11-rc5
+Date: Fri, 09 Aug 2013 17:06:04 +0200
+Message-ID: <4211268.BVlRV6dqfO@vostro.rjw.lan>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7Bit
-Return-path: <owner-linux-mm@kvack.org>
-In-Reply-To: <520439C9.3080601@cn.fujitsu.com>
-Sender: owner-linux-mm@kvack.org
-To: Tang Chen <tangchen@cn.fujitsu.com>
-Cc: robert.moore@intel.com, lv.zheng@intel.com, lenb@kernel.org, tglx@linutronix.de, mingo@elte.hu, hpa@zytor.com, akpm@linux-foundation.org, tj@kernel.org, trenn@suse.de, yinghai@kernel.org, jiang.liu@huawei.com, wency@cn.fujitsu.com, laijs@cn.fujitsu.com, isimatu.yasuaki@jp.fujitsu.com, izumi.taku@jp.fujitsu.com, mgorman@suse.de, minchan@kernel.org, mina86@mina86.com, gong.chen@linux.intel.com, vasilis.liaskovitis@profitbricks.com, lwoodman@redhat.com, riel@redhat.com, jweiner@redhat.com, prarit@redhat.com, zhangyanfei@cn.fujitsu.com, yanghy@cn.fujitsu.com, x86@kernel.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-mm@kvack.org, linux-acpi@vger.kernel.org
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: Linux PM list <linux-pm@vger.kernel.org>, Linux PCI <linux-pci@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On Friday, August 09, 2013 08:37:29 AM Tang Chen wrote:
-> On 08/08/2013 10:09 PM, Rafael J. Wysocki wrote:
-> > On Thursday, August 08, 2013 01:03:55 PM Tang Chen wrote:
-> >> This patch-set does some trivial fix and improving in ACPI code
-> >> for memory hotplug.
-> >>
-> >> Patch 1,3,4 have been acked.
-> >>
-> >> Tang Chen (4):
-> >>    acpi: Print Hot-Pluggable Field in SRAT.
-> >>    earlycpio.c: Fix the confusing comment of find_cpio_data().
-> >>    acpi: Remove "continue" in macro INVALID_TABLE().
-> >>    acpi: Introduce acpi_verify_initrd() to check if a table is invalid.
-> >>
-> >>   arch/x86/mm/srat.c |   11 ++++--
-> >>   drivers/acpi/osl.c |   84 +++++++++++++++++++++++++++++++++++++++------------
-> >>   lib/earlycpio.c    |   27 ++++++++--------
-> >>   3 files changed, 85 insertions(+), 37 deletions(-)
-> >
-> > It looks like this part doesn't depend on the other parts, is that correct?
-> 
-> No, it doesn't. And this patch-set can be merged first.
+Hi Linus,
 
-OK, so if nobody objects, I can take patches [1,3-4/4], but I don't think I'm
-the right maintainer to handle [2/4].
+Please pull from the git repository at
 
-Thanks,
-Rafael
+  git://git.kernel.org/pub/scm/linux/kernel/git/rafael/linux-pm.git pm+acpi-3.11-rc5
 
---
-To unsubscribe, send a message with 'unsubscribe linux-mm' in
-the body to majordomo@kvack.org.  For more info on Linux MM,
-see: http://www.linux-mm.org/ .
-Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
+to receive ACPI and power management fixes for v3.11-rc5 with
+top-most commit 69fdadfd2200e0bf3d10a7a7925db8e9fc5a46fd
+
+  Merge branch 'pm-fixes'
+
+on top of commit c095ba7224d8edc71dcef0d655911399a8bd4a3f
+
+  Linux 3.11-rc4
+
+These fix a couple of recent regressions introduced during this cycle,
+a few regressions introduced in 3.9 and 3.10 and one locking bug
+that's always been there.
+ 
+Specifics:
+
+- ACPI-based memory hotplug stopped working after a recent change,
+  because it's not possible to associate sufficiently many "physical"
+  devices with one ACPI device object due to an artificial limit.
+  Fix from yours truly removes that limit and makes memory hotplug
+  work again.
+
+- A change made in 3.9 uncovered a bug in the ACPI processor driver
+  preventing NUMA nodes from being put offline due to an ordering
+  issue.  Fix from Yasuaki Ishimatsu changes the ordering to make
+  things work again.
+
+- One of the recent ACPI video commits (that hasn't been reverted
+  so far) uncovered a bug in the code handling quirky BIOSes that
+  caused some Asus machines to boot with backlight completely off
+  which made it quite difficult to use them afterward.  Fix from
+  Felipe Contreras improves the quirk to cover this particular
+  case correctly.
+
+- A cpufreq user space interface change made in 3.10 inadvertently
+  renamed ignore_nice_load to ignore_nice which resulted in some
+  confusion.  Fix from Viresh Kumar changes the name back to
+  ignore_nice_load.
+
+- An initialization ordering change made in 3.9 broke cpufreq on
+  loongson2 boards.  Fix from Aaro Koskinen restores the correct
+  initialization ordering there.
+
+- Another chapter from "ACPI Horror Stories".  Some BIOS writers
+  apparently expect us to always be able to handle the unbelievable
+  garbage they put into their ACPI tables.  Well, we do our best,
+  but sometimes we break one of these cases when we try to address
+  another one.
+
+  In this particular case the breakage resulted from a mistake made
+  in 3.9 and caused the detection of some graphics adapters (that were
+  detected successfully before) to fail.  It turned out that there
+  were two objects representing the same PCIe port in the ACPI tables
+  of the affected systems.  Both appeared as "enabled" and we were
+  expected to guess which one to use.  We used to choose the right one
+  before by pure luck, but when we tried to address another similar
+  corner case, the luck went away.  This time we try to make our
+  guessing a bit more educated which is reported to work on those
+  systems.
+
+- The /proc/acpi/wakeup interface code is missing some locking
+  which may lead to breakage if that file is written or read during
+  hotplug of wakeup devices.  That should be rare but still possible,
+  so it's better to start using the appropriate locking there.
+
+Thanks!
+
+
+---------------
+
+Aaro Koskinen (1):
+      cpufreq: loongson2: fix regression related to clock management
+
+Felipe Contreras (1):
+      ACPI / video: improve quirk check in acpi_video_bqc_quirk()
+
+Rafael J. Wysocki (3):
+      ACPI / PM: Walk physical_node_list under physical_node_lock
+      ACPI: Drop physical_node_id_bitmap from struct acpi_device
+      ACPI: Try harder to resolve _ADR collisions for bridges
+
+Viresh Kumar (1):
+      cpufreq: rename ignore_nice as ignore_nice_load
+
+Yasuaki Ishimatsu (1):
+      ACPI / processor: move try_offline_node() after acpi_unmap_lsapic()
+
+---------------
+
+ drivers/acpi/acpi_processor.c          |    3 +-
+ drivers/acpi/glue.c                    |  133 ++++++++++++++++++++++++--------
+ drivers/acpi/proc.c                    |    8 ++
+ drivers/acpi/video.c                   |    2 +-
+ drivers/cpufreq/cpufreq_conservative.c |   20 ++---
+ drivers/cpufreq/cpufreq_governor.c     |    8 +-
+ drivers/cpufreq/cpufreq_governor.h     |    4 +-
+ drivers/cpufreq/cpufreq_ondemand.c     |   20 ++---
+ drivers/cpufreq/loongson2_cpufreq.c    |   11 +--
+ drivers/pci/pci-acpi.c                 |   15 +++-
+ include/acpi/acpi_bus.h                |   14 ++--
+ 11 files changed, 162 insertions(+), 76 deletions(-)
+
+-- 
+I speak only for myself.
+Rafael J. Wysocki, Intel Open Source Technology Center.
