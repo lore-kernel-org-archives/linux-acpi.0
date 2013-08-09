@@ -1,33 +1,74 @@
-From: Tejun Heo <tj@kernel.org>
-Subject: Re: [PATCH part5 0/7] Arrange hotpluggable memory as ZONE_MOVABLE.
-Date: Fri, 9 Aug 2013 12:32:20 -0400
-Message-ID: <20130809163220.GU20515@mtj.dyndns.org>
-References: <1375956979-31877-1-git-send-email-tangchen@cn.fujitsu.com>
+From: Toshi Kani <toshi.kani@hp.com>
+Subject: Re: [PATCH] ACPI, cpu hotplug: move try_offline_node() after
+ acpi_unmap_lsapic()
+Date: Fri, 09 Aug 2013 16:16:56 -0600
+Message-ID: <1376086616.10300.302.camel@misato.fc.hp.com>
+References: <5200CBBF.1090904@jp.fujitsu.com>
+	 <1375808178.10300.181.camel@misato.fc.hp.com>
+	 <52049A2E.8080101@cn.fujitsu.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <owner-linux-mm@kvack.org>
-Content-Disposition: inline
-In-Reply-To: <1375956979-31877-1-git-send-email-tangchen@cn.fujitsu.com>
-Sender: owner-linux-mm@kvack.org
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <52049A2E.8080101@cn.fujitsu.com>
+Sender: linux-kernel-owner@vger.kernel.org
 To: Tang Chen <tangchen@cn.fujitsu.com>
-Cc: robert.moore@intel.com, lv.zheng@intel.com, rjw@sisk.pl, lenb@kernel.org, tglx@linutronix.de, mingo@elte.hu, hpa@zytor.com, akpm@linux-foundation.org, trenn@suse.de, yinghai@kernel.org, jiang.liu@huawei.com, wency@cn.fujitsu.com, laijs@cn.fujitsu.com, isimatu.yasuaki@jp.fujitsu.com, izumi.taku@jp.fujitsu.com, mgorman@suse.de, minchan@kernel.org, mina86@mina86.com, gong.chen@linux.intel.com, vasilis.liaskovitis@profitbricks.com, lwoodman@redhat.com, riel@redhat.com, jweiner@redhat.com, prarit@redhat.com, zhangyanfei@cn.fujitsu.com, yanghy@cn.fujitsu.com, x86@kernel.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-mm@kvack.org, linux-acpi@vger.kernel.org
+Cc: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>, rafael.j.wysocki@intel.com, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Wen Congyang <wency@cn.fujitsu.com>
 List-Id: linux-acpi@vger.kernel.org
 
-Hello,
+On Fri, 2013-08-09 at 15:28 +0800, Tang Chen wrote:
+> On 08/07/2013 12:56 AM, Toshi Kani wrote:
+> > On Tue, 2013-08-06 at 19:11 +0900, Yasuaki Ishimatsu wrote:
+> >> try_offline_node() checks that all cpus related with removed node have been
+> >> removed by using cpu_present_bits. If all cpus related with removed node have
+> >> been removed, try_offline_node() clears the node information.
+> >>
+> >> But try_offline_node() called from acpi_processor_remove() never clears
+> >> the node information. For disabling cpu_present_bits, acpi_unmap_lsapic()
+> >> need be called. But acpi_unmap_lsapic() is called after try_offline_node()
+> >> runs. So when try_offline_node() runs, the cpu's cpu_present_bits is always
+> >> set.
+> >>
+> >> This patch moves try_offline_node() after acpi_unmap_lsapic().
+> >>
+> >> Signed-off-by: Yasuaki Ishimatsu<isimatu.yasuaki@jp.fujitsu.com>
+> >
+> > The change looks good to me.
+> >
+> > Acked-by: Toshi Kani<toshi.kani@hp.com>
+> >
+> > BTW, do you know why try_offline_node() has to use stop_machine()?
+> 
+> try_offline_node() is used to check if the node could be hot-removed
+> after each memory or cpu hot-remove operation.
+> 
+> In memory hot-remove path, we have lock_memory_hotplug() to series all
+> the memory hot-remove options.
+> 
+> But when doing cpu hot-remove,
+> 
+> acpi_processor_remove()
+>   |->try_offline_node()
+> 
+> There is no lock to protect it. I think, when we are going to hot-remove
+> a node, others should not do any memory or cpu hotplug operation. In memory
+> hotplug path, we have lock_memory_hotplug(). But in cpu hotplug path, I
+> didn't find any lock. So we used stop_machine() to call check_cpu_on_node().
+> If we find any cpu still present, we return and do not remove the node.
 
-On Thu, Aug 08, 2013 at 06:16:12PM +0800, Tang Chen wrote:
-> In previous parts' patches, we have obtained SRAT earlier enough, right after
-> memblock is ready. So this patch-set does the following things:
+CPU/Memory hotplug operations and sysfs eject are serialized with
+acpi_os_hotplug_execute().  CPU online/offline is protected by
+cpu_hotplug_[begin|done]() and [get|put]_online_cpus().  But, yes,
+online/offline and hotplug operations are not serialized.  I tried to
+serialize them before, but that framework was not well received.
 
-Can you please set up a git branch with all patches?
+Anyway, it looks to me that cpu_up()->mem_online_node() path can race
+with try_offline_node().  And I do not think stop_machine() protects
+this case, either.  try_offline_node() stops the execution of
+num_online_node() during stop_machine(), but then lets it continues to
+run after that.  I think they need to be protected by a lock.
 
-Thanks.
+I will look further to see if I can come up with some solution.
 
--- 
-tejun
-
---
-To unsubscribe, send a message with 'unsubscribe linux-mm' in
-the body to majordomo@kvack.org.  For more info on Linux MM,
-see: http://www.linux-mm.org/ .
-Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
+Thanks,
+-Toshi
