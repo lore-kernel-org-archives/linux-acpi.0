@@ -1,96 +1,71 @@
-From: Toshi Kani <toshi.kani@hp.com>
-Subject: Re: [PATCH] ACPI, cpu hotplug: move try_offline_node() after
- acpi_unmap_lsapic()
-Date: Fri, 09 Aug 2013 20:11:19 -0600
-Message-ID: <1376100679.10300.333.camel@misato.fc.hp.com>
-References: <5200CBBF.1090904@jp.fujitsu.com>
-	 <52049A2E.8080101@cn.fujitsu.com>
-	 <1376086616.10300.302.camel@misato.fc.hp.com>
-	 <7919266.6MVd1N6sIX@vostro.rjw.lan>
+From: Viresh Kumar <viresh.kumar@linaro.org>
+Subject: Re: cpufreq crash in pm/linux-next 08-07-2013
+Date: Sat, 10 Aug 2013 08:20:58 +0530
+Message-ID: <CAKohpomyvT=5HK=EaO3aY7hVj3yHAyS_WTFTHPQZiVGv1anWrQ@mail.gmail.com>
+References: <CAE9FiQWizduY9w=nOiUOcgo1Got5k8J_ouvgEnygtNXTDe5V9Q@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from g4t0015.houston.hp.com ([15.201.24.18]:44337 "EHLO
-	g4t0015.houston.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1031757Ab3HJCMb (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 9 Aug 2013 22:12:31 -0400
-In-Reply-To: <7919266.6MVd1N6sIX@vostro.rjw.lan>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <CAE9FiQWizduY9w=nOiUOcgo1Got5k8J_ouvgEnygtNXTDe5V9Q@mail.gmail.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Yinghai Lu <yinghai@kernel.org>
+Cc: "Rafael J. Wysocki" <rjw@sisk.pl>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: Tang Chen <tangchen@cn.fujitsu.com>, Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>, rafael.j.wysocki@intel.com, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Wen Congyang <wency@cn.fujitsu.com>
 
-On Sat, 2013-08-10 at 01:29 +0200, Rafael J. Wysocki wrote:
-> On Friday, August 09, 2013 04:16:56 PM Toshi Kani wrote:
-> > On Fri, 2013-08-09 at 15:28 +0800, Tang Chen wrote:
-> > > On 08/07/2013 12:56 AM, Toshi Kani wrote:
-> > > > On Tue, 2013-08-06 at 19:11 +0900, Yasuaki Ishimatsu wrote:
-> > > >> try_offline_node() checks that all cpus related with removed node have been
-> > > >> removed by using cpu_present_bits. If all cpus related with removed node have
-> > > >> been removed, try_offline_node() clears the node information.
-> > > >>
-> > > >> But try_offline_node() called from acpi_processor_remove() never clears
-> > > >> the node information. For disabling cpu_present_bits, acpi_unmap_lsapic()
-> > > >> need be called. But acpi_unmap_lsapic() is called after try_offline_node()
-> > > >> runs. So when try_offline_node() runs, the cpu's cpu_present_bits is always
-> > > >> set.
-> > > >>
-> > > >> This patch moves try_offline_node() after acpi_unmap_lsapic().
-> > > >>
-> > > >> Signed-off-by: Yasuaki Ishimatsu<isimatu.yasuaki@jp.fujitsu.com>
-> > > >
-> > > > The change looks good to me.
-> > > >
-> > > > Acked-by: Toshi Kani<toshi.kani@hp.com>
-> > > >
-> > > > BTW, do you know why try_offline_node() has to use stop_machine()?
-> > > 
-> > > try_offline_node() is used to check if the node could be hot-removed
-> > > after each memory or cpu hot-remove operation.
-> > > 
-> > > In memory hot-remove path, we have lock_memory_hotplug() to series all
-> > > the memory hot-remove options.
-> > > 
-> > > But when doing cpu hot-remove,
-> > > 
-> > > acpi_processor_remove()
-> > >   |->try_offline_node()
-> > > 
-> > > There is no lock to protect it. I think, when we are going to hot-remove
-> > > a node, others should not do any memory or cpu hotplug operation. In memory
-> > > hotplug path, we have lock_memory_hotplug(). But in cpu hotplug path, I
-> > > didn't find any lock. So we used stop_machine() to call check_cpu_on_node().
-> > > If we find any cpu still present, we return and do not remove the node.
-> > 
-> > CPU/Memory hotplug operations and sysfs eject are serialized with
-> > acpi_os_hotplug_execute().  CPU online/offline is protected by
-> > cpu_hotplug_[begin|done]() and [get|put]_online_cpus().  But, yes,
-> > online/offline and hotplug operations are not serialized.  I tried to
-> > serialize them before, but that framework was not well received.
-> 
-> What about lock_device_hotplug()?  It is taken by both online/offline and
-> the ACPI hotplug code, isn't it?
+On 10 August 2013 05:56, Yinghai Lu <yinghai@kernel.org> wrote:
+> from your pm/linux-next
+>
+>
+> [    7.918603] calling  acpi_cpufreq_init+0x0/0x1df @ 1
+> [    7.923917] BUG: unable to handle kernel NULL pointer dereference
+> at           (null)
+> [    7.926780] IP: [<ffffffff8151b277>] __list_del_entry+0xb7/0xe0
+> [    7.927799] PGD 0
+> [    7.927799] Oops: 0000 [#1] SMP
+> [    7.927799] Modules linked in:
+> [    7.927799] CPU: 0 PID: 1 Comm: swapper/0 Not tainted
+> 3.11.0-rc4-yh-00839-g7a8b387-dirty #1840
+> [    7.927799] Hardware name: Bochs Bochs, BIOS Bochs 01/01/2011
+> [    7.927799] task: ffff88007ab60000 ti: ffff88007ab5c000 task.ti:
+> ffff88007ab5c000
+> [    7.927799] RIP: 0010:[<ffffffff8151b277>]  [<ffffffff8151b277>]
+> __list_del_entry+0xb7/0xe0
+> [    7.927799] RSP: 0018:ffff88007ab5dc98  EFLAGS: 00010007
+> [    7.927799] RAX: 0000000000000000 RBX: ffff880115c85ab8 RCX: dead000000200200
+> [    7.927799] RDX: 0000000000000000 RSI: ffffffff82b96718 RDI: ffff880115c85ab8
+> [    7.927799] RBP: ffff88007ab5dc98 R08: 0000000000000001 R09: 0000000000000001
+> [    7.927799] R10: 0000000000000000 R11: 0000000000000000 R12: 0000000000000286
+> [    7.927799] R13: 00000000fffffffb R14: ffff88007b80b548 R15: ffff880115c85a00
+> [    7.927799] FS:  0000000000000000(0000) GS:ffff88007b800000(0000)
+> knlGS:0000000000000000
+> [    7.927799] CS:  0010 DS: 0000 ES: 0000 CR0: 000000008005003b
+> [    7.927799] CR2: 0000000000000000 CR3: 0000000002a14000 CR4: 00000000000006f0
+> [    7.927799] Stack:
+> [    7.927799]  ffff88007ab5dcb8 ffffffff8151b2b1 0000000000000000
+> ffff880115c85a00
+> [    7.927799]  ffff88007ab5dcd8 ffffffff81e1ef03 0000000000000000
+> 0000000000000000
+> [    7.927799]  ffff88007ab5dd48 ffffffff81e21829 ffff88007ab5dd70
+> ffff88007ab5dd70
+> [    7.927799] Call Trace:
+> [    7.927799]  [<ffffffff8151b2b1>] list_del+0x11/0x40
+> [    7.927799]  [<ffffffff81e1ef03>] cpufreq_policy_free+0x33/0x70
+> [    7.927799]  [<ffffffff81e21829>] __cpufreq_add_dev.isra.3+0x6b9/0x760
+> [    7.927799]  [<ffffffff81e218e0>] cpufreq_add_dev+0x10/0x20
+> [    7.927799]  [<ffffffff81762e49>] subsys_interface_register+0x99/0xf0
+> [    7.927799]  [<ffffffff81e1fc52>] cpufreq_register_driver+0xb2/0x1a0
+> [    7.927799]  [<ffffffff82e18ff3>] acpi_cpufreq_init+0xbd/0x1df
+> [    7.927799]  [<ffffffff810ee56a>] ? ktime_get+0x6a/0xe0
+> [    7.927799]  [<ffffffff82e18f36>] ? cpufreq_gov_dbs_init+0x12/0x12
+> [    7.927799]  [<ffffffff81000272>] do_one_initcall+0x72/0x170
+> [    7.927799]  [<ffffffff810bac00>] ? parse_args+0x150/0x350
+> [    7.927799]  [<ffffffff820b9830>] ? printk+0x4d/0x4f
+> [    7.927799]  [<ffffffff82dc2370>] kernel_init_freeable+0x1bf/0x251
+> [    7.927799]  [<ffffffff82dc1a9c>] ? loglevel+0x31/0x31
+> [    7.927799]  [<ffffffff820aef50>] ? rest_init+0xd0/0xd0
+> [    7.927799]  [<ffffffff820aef5e>] kernel_init+0xe/0xf0
+> [    7.927799]  [<ffffffff820dd25c>] ret_from_fork+0x7c/0xb0
+> [    7.927799]  [<ffffffff820aef50>] ? rest_init+0xd0/0xd0
 
-Oh, that's right!  I forgot about this one.  Yes, lock_device_hotplug()
-nicely protects online/offline and hotplug operations. :-)
-
-> > Anyway, it looks to me that cpu_up()->mem_online_node() path can race
-> > with try_offline_node().
-> 
-> It can in principle, but I'm not sure if there's a way to trigger that
-> race.  Do you have an example?
-
-With lock_device_hotplug(), I agree that we do not have this race
-condition -- cpu_up() may not run while other hotplug is running.
-store_online() will be blocked at lock_device_hotplug() in such case.
-When store_online() acquired the lock, this CPU may have been deleted.
-So, we still need to make sure that this case is handled properly.  I
-suppose sysfs keeps *dev valid with ref_count (Is that right?).  I think
-cpu_up() needs to check with cpu_present(), not cpu_possible(), at the
-top.  Otherwise, cpu_to_node(cpu) may return NUMA_NO_NODE (-1), which is
-probably not a good value for node_online(nid).
-
-Thanks,
--Toshi
-
+I am surprised that I didn't see it while testing.. And I did removed
+all CPUs from one of my policies.
