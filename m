@@ -1,65 +1,86 @@
 From: Yinghai Lu <yinghai@kernel.org>
-Subject: Re: [PATCH part4 4/4] x86, acpi, numa, mem_hotplug: Find hotpluggable
- memory in SRAT memory affinities.
-Date: Fri, 9 Aug 2013 17:12:26 -0700
-Message-ID: <CAE9FiQW3+hrBA9e7DEeSLqwjaUzAkdox78aUpqEMxXEPH6onWQ@mail.gmail.com>
-References: <1375954883-30225-1-git-send-email-tangchen@cn.fujitsu.com>
-	<1375954883-30225-5-git-send-email-tangchen@cn.fujitsu.com>
-	<CAE9FiQXwAkGU96Oe5YNErTXs-OHGHTAfVo4oyrF-WUZ97X7pQA@mail.gmail.com>
-	<5204B74B.4050805@cn.fujitsu.com>
-	<CAE9FiQXe2SXN6KxfNBFZhZqJANZoVUprY2g=BYDzeYBUPWp-4A@mail.gmail.com>
-	<52057E8A.70601@zytor.com>
-	<CAE9FiQWQ1mWdg=JPfuoxaGOGftt25xQL6Oo-40M8PZqB-Ee_Rg@mail.gmail.com>
-	<520581BF.5080404@zytor.com>
+Subject: cpufreq crash in pm/linux-next 08-07-2013
+Date: Fri, 9 Aug 2013 17:26:15 -0700
+Message-ID: <CAE9FiQWizduY9w=nOiUOcgo1Got5k8J_ouvgEnygtNXTDe5V9Q@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <owner-linux-mm@kvack.org>
-In-Reply-To: <520581BF.5080404@zytor.com>
-Sender: owner-linux-mm@kvack.org
-To: "H. Peter Anvin" <hpa@zytor.com>
-Cc: Tang Chen <tangchen@cn.fujitsu.com>, Bob Moore <robert.moore@intel.com>, Lv Zheng <lv.zheng@intel.com>, "Rafael J. Wysocki" <rjw@sisk.pl>, Len Brown <lenb@kernel.org>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@elte.hu>, Andrew Morton <akpm@linux-foundation.org>, Tejun Heo <tj@kernel.org>, Thomas Renninger <trenn@suse.de>, Jiang Liu <jiang.liu@huawei.com>, Wen Congyang <wency@cn.fujitsu.com>, Lai Jiangshan <laijs@cn.fujitsu.com>, Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>, Taku Izumi <izumi.taku@jp.fujitsu.com>, Mel Gorman <mgorman@suse.de>, Minchan Kim <minchan@kernel.org>, mina86@mina86.com, gong.chen@linux.intel.com, Vasilis Liaskovitis <vasilis.liaskovitis@profitbricks.com>, lwoodman@redhat.com, Rik van Riel <riel@redhat.com>, jweiner@redhat.com, Prarit Bhargava <prarit@redhat.com>, Zhang Yanfei <zhangyanfei@cn.fujitsu.com>, yanghy@cn.f
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-oa0-f51.google.com ([209.85.219.51]:54364 "EHLO
+	mail-oa0-f51.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S967978Ab3HJA0Q (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 9 Aug 2013 20:26:16 -0400
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@sisk.pl>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Viresh Kumar <viresh.kumar@linaro.org>
 
-On Fri, Aug 9, 2013 at 4:56 PM, H. Peter Anvin <hpa@zytor.com> wrote:
-> On 08/09/2013 04:53 PM, Yinghai Lu wrote:
->> On Fri, Aug 9, 2013 at 4:43 PM, H. Peter Anvin <hpa@zytor.com> wrote:
->>> On 08/09/2013 04:39 PM, Yinghai Lu wrote:
->>>>>>
->>>>>> Also parse srat table two times looks silly.
->>>>>
->>>>> By parsing SRAT twice, I can avoid memory allocation for acpi_tables_addr
->>>>> in acpi_initrd_override_copy() procedure at such an early time. This memory
->>>>> could also be in hotpluggable area.
->>>>
->>>> You already mark kernel position to be not hot-plugged,  so near the
->>>> kernel range should be safe to be put override acpi tables.
->>>>
->>>> also what I mean parse srat two times:
->>>> parse to get hotplug range, and late parse other numa info again.
->>>>
->>>
->>> Doing two passes over a small data structure (SRAT) would seem more
->>> sensible than allocating memory just to avoid that...
->>
->> for x86 there is some numa info discovery path, and there are chance
->> srat is wrong but still have hotplug range there, or numa finally is using other
->> way or not used. Inconsistency looks weird.
->>
->> numa_meminfo is static struct, we have way to get final numa info early enough
->> before we need use memblock to alloc buffer with it.
->>
->
-> Now, for kernel-generated data if you can define a sensible maximum you
-> can put it in brk, if not, you have a serious problem.
+from your pm/linux-next
 
-Yes, that could be even better, we just can numa_info parsing early but just
-make them to use brk if it need extra buffer.
-In the way we may not need to split things to two steps or two pass etc.
+
+[    7.918603] calling  acpi_cpufreq_init+0x0/0x1df @ 1
+[    7.923917] BUG: unable to handle kernel NULL pointer dereference
+at           (null)
+[    7.926780] IP: [<ffffffff8151b277>] __list_del_entry+0xb7/0xe0
+[    7.927799] PGD 0
+[    7.927799] Oops: 0000 [#1] SMP
+[    7.927799] Modules linked in:
+[    7.927799] CPU: 0 PID: 1 Comm: swapper/0 Not tainted
+3.11.0-rc4-yh-00839-g7a8b387-dirty #1840
+[    7.927799] Hardware name: Bochs Bochs, BIOS Bochs 01/01/2011
+[    7.927799] task: ffff88007ab60000 ti: ffff88007ab5c000 task.ti:
+ffff88007ab5c000
+[    7.927799] RIP: 0010:[<ffffffff8151b277>]  [<ffffffff8151b277>]
+__list_del_entry+0xb7/0xe0
+[    7.927799] RSP: 0018:ffff88007ab5dc98  EFLAGS: 00010007
+[    7.927799] RAX: 0000000000000000 RBX: ffff880115c85ab8 RCX: dead000000200200
+[    7.927799] RDX: 0000000000000000 RSI: ffffffff82b96718 RDI: ffff880115c85ab8
+[    7.927799] RBP: ffff88007ab5dc98 R08: 0000000000000001 R09: 0000000000000001
+[    7.927799] R10: 0000000000000000 R11: 0000000000000000 R12: 0000000000000286
+[    7.927799] R13: 00000000fffffffb R14: ffff88007b80b548 R15: ffff880115c85a00
+[    7.927799] FS:  0000000000000000(0000) GS:ffff88007b800000(0000)
+knlGS:0000000000000000
+[    7.927799] CS:  0010 DS: 0000 ES: 0000 CR0: 000000008005003b
+[    7.927799] CR2: 0000000000000000 CR3: 0000000002a14000 CR4: 00000000000006f0
+[    7.927799] Stack:
+[    7.927799]  ffff88007ab5dcb8 ffffffff8151b2b1 0000000000000000
+ffff880115c85a00
+[    7.927799]  ffff88007ab5dcd8 ffffffff81e1ef03 0000000000000000
+0000000000000000
+[    7.927799]  ffff88007ab5dd48 ffffffff81e21829 ffff88007ab5dd70
+ffff88007ab5dd70
+[    7.927799] Call Trace:
+[    7.927799]  [<ffffffff8151b2b1>] list_del+0x11/0x40
+[    7.927799]  [<ffffffff81e1ef03>] cpufreq_policy_free+0x33/0x70
+[    7.927799]  [<ffffffff81e21829>] __cpufreq_add_dev.isra.3+0x6b9/0x760
+[    7.927799]  [<ffffffff81e218e0>] cpufreq_add_dev+0x10/0x20
+[    7.927799]  [<ffffffff81762e49>] subsys_interface_register+0x99/0xf0
+[    7.927799]  [<ffffffff81e1fc52>] cpufreq_register_driver+0xb2/0x1a0
+[    7.927799]  [<ffffffff82e18ff3>] acpi_cpufreq_init+0xbd/0x1df
+[    7.927799]  [<ffffffff810ee56a>] ? ktime_get+0x6a/0xe0
+[    7.927799]  [<ffffffff82e18f36>] ? cpufreq_gov_dbs_init+0x12/0x12
+[    7.927799]  [<ffffffff81000272>] do_one_initcall+0x72/0x170
+[    7.927799]  [<ffffffff810bac00>] ? parse_args+0x150/0x350
+[    7.927799]  [<ffffffff820b9830>] ? printk+0x4d/0x4f
+[    7.927799]  [<ffffffff82dc2370>] kernel_init_freeable+0x1bf/0x251
+[    7.927799]  [<ffffffff82dc1a9c>] ? loglevel+0x31/0x31
+[    7.927799]  [<ffffffff820aef50>] ? rest_init+0xd0/0xd0
+[    7.927799]  [<ffffffff820aef5e>] kernel_init+0xe/0xf0
+[    7.927799]  [<ffffffff820dd25c>] ret_from_fork+0x7c/0xb0
+[    7.927799]  [<ffffffff820aef50>] ? rest_init+0xd0/0xd0
+[    7.927799] Code: 84 82 be 3e 00 00 00 48 c7 c7 16 ca 84 82 31 c0
+e8 7f c8 b7 ff eb 2c 0f 1f 44 00 00 48 b9 00 02 20 00 00 00 ad de 48
+39 c8 74 8c <4c> 8b 00 4c 39 c7 75 a6 4c 8b 42 08 4c 39 c7 75 bc 48 89
+42 08
+[    7.927799] RIP  [<ffffffff8151b277>] __list_del_entry+0xb7/0xe0
+[    7.927799]  RSP <ffff88007ab5dc98>
+[    7.927799] CR2: 0000000000000000
+[    7.927799] ---[ end trace 3db50d3cbca4646d ]---
+[    8.003780] Kernel panic - not syncing: Attempted to kill init!
+exitcode=0x00000009
+[    8.003780]
+
+
+looks like it caused by patches from Viresh Kumar around Aug 6.
+
+Thanks
 
 Yinghai
-
---
-To unsubscribe, send a message with 'unsubscribe linux-mm' in
-the body to majordomo@kvack.org.  For more info on Linux MM,
-see: http://www.linux-mm.org/ .
-Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
