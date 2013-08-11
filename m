@@ -1,53 +1,43 @@
 From: Yinghai Lu <yinghai@kernel.org>
-Subject: [PATCH v4 09/28] ia64, irq: Add dummy create_irq_nr()
-Date: Sat, 10 Aug 2013 19:47:55 -0700
-Message-ID: <1376189294-32022-10-git-send-email-yinghai@kernel.org>
+Subject: [PATCH v4 06/28] x86, irq: Show MSI-X clearly in debug message
+Date: Sat, 10 Aug 2013 19:47:52 -0700
+Message-ID: <1376189294-32022-7-git-send-email-yinghai@kernel.org>
 References: <1376189294-32022-1-git-send-email-yinghai@kernel.org>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from userp1040.oracle.com ([156.151.31.81]:25740 "EHLO
+Received: from userp1040.oracle.com ([156.151.31.81]:25748 "EHLO
 	userp1040.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753036Ab3HKCsx (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sat, 10 Aug 2013 22:48:53 -0400
+	with ESMTP id S1753040Ab3HKCsy (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sat, 10 Aug 2013 22:48:54 -0400
 In-Reply-To: <1376189294-32022-1-git-send-email-yinghai@kernel.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@elte.hu>, "H. Peter Anvin" <hpa@zytor.com>, Tony Luck <tony.luck@intel.com>, Bjorn Helgaas <bhelgaas@google.com>, "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Yinghai Lu <yinghai@kernel.org>, Fenghua Yu <fenghua.yu@intel.com>, linux-ia64@vger.kernel.org, stable@vger.kernel.org
+Cc: linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Yinghai Lu <yinghai@kernel.org>, Joerg Roedel <joro@8bytes.org>, Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>, Sebastian Andrzej Siewior <sebastian@breakpoint.cc>
 
-create_irq() will return -1 when fail to allocate.
-create_irq_nr() will return 0 when fail to allocate.
-
-Will use it to fix one return value checking for dmar_msi irq.
+Print out exact MSI or MSI-X instead of MSI/MSI-X.
 
 Signed-off-by: Yinghai Lu <yinghai@kernel.org>
-Cc: Fenghua Yu <fenghua.yu@intel.com>
-Cc: linux-ia64@vger.kernel.org
-Cc: stable@vger.kernel.org
+Cc: Joerg Roedel <joro@8bytes.org>
+Cc: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
+Cc: Sebastian Andrzej Siewior <sebastian@breakpoint.cc>
 ---
- arch/ia64/kernel/irq_ia64.c | 10 ++++++++++
- 1 file changed, 10 insertions(+)
+ arch/x86/kernel/apic/io_apic.c | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff --git a/arch/ia64/kernel/irq_ia64.c b/arch/ia64/kernel/irq_ia64.c
-index 1034884..38e46df 100644
---- a/arch/ia64/kernel/irq_ia64.c
-+++ b/arch/ia64/kernel/irq_ia64.c
-@@ -429,6 +429,16 @@ int create_irq(void)
- 	return irq;
- }
+diff --git a/arch/x86/kernel/apic/io_apic.c b/arch/x86/kernel/apic/io_apic.c
+index eda56ad..119fdf8 100644
+--- a/arch/x86/kernel/apic/io_apic.c
++++ b/arch/x86/kernel/apic/io_apic.c
+@@ -3125,7 +3125,8 @@ int setup_msi_irq(struct pci_dev *dev, struct msi_desc *msidesc,
  
-+unsigned int create_irq_nr(unsigned int from, int node)
-+{
-+	int irq = create_irq();
-+
-+	if (irq < 0)
-+		irq = 0;
-+
-+	return irq;
-+}
-+
- void destroy_irq(unsigned int irq)
- {
- 	dynamic_irq_cleanup(irq);
+ 	irq_set_chip_and_handler_name(irq, chip, handle_edge_irq, "edge");
+ 
+-	dev_printk(KERN_DEBUG, &dev->dev, "irq %d for MSI/MSI-X\n", irq);
++	dev_printk(KERN_DEBUG, &dev->dev, "irq %d for MSI%s\n", irq,
++			 msidesc->msi_attrib.is_msix ? "-X" : "");
+ 
+ 	return 0;
+ }
 -- 
 1.8.1.4
 
