@@ -1,138 +1,96 @@
 From: Yinghai Lu <yinghai@kernel.org>
-Subject: [PATCH v4 01/28] genirq: Split __irq_reserve_irqs from irq_alloc_descs
-Date: Sat, 10 Aug 2013 19:47:47 -0700
-Message-ID: <1376189294-32022-2-git-send-email-yinghai@kernel.org>
+Subject: [PATCH v4 02/28] genirq: Add irq_alloc_reserved_desc()
+Date: Sat, 10 Aug 2013 19:47:48 -0700
+Message-ID: <1376189294-32022-3-git-send-email-yinghai@kernel.org>
 References: <1376189294-32022-1-git-send-email-yinghai@kernel.org>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <1376189294-32022-1-git-send-email-yinghai@kernel.org>
 Sender: linux-kernel-owner@vger.kernel.org
 To: Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@elte.hu>, "H. Peter Anvin" <hpa@zytor.com>, Tony Luck <tony.luck@intel.com>, Bjorn Helgaas <bhelgaas@google.com>, "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Yinghai Lu <yinghai@kernel.org>, Alexander Gordeev <agordeev@redhat.com>
+Cc: linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Yinghai Lu <yinghai@kernel.org>, Joerg Roedel <joro@8bytes.org>, Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>, Sebastian Andrzej Siewior <sebastian@breakpoint.cc>
 List-Id: linux-acpi@vger.kernel.org
 
-irq_alloc_descs and irq_reserve_irqs are almost the same.
-Separate code out to __irq_reserved_irqs, and other two reuse
-__irq_reserve_irqs.
+For ioapic hot-add support, it would be easy if we have continuous
+irq numbers for hot added ioapic controller.
 
-We will use __irq_reserve_irqs for coming ioapic hotplug support.
+We can reserve irq range at first, and later allocate desc for those
+pre-reserved irqs when they are needed.
 
--v2: fix func docbook related comments, pointed out by tglx.
+The reasons for not allocating them during reserving:
+1. only several pins of one ioapic are used, allocate for all pins, will
+   waste memory for not used pins.
+2. allocate later when is needed could make sure irq_desc is allocated
+   on local node ram, as dev->node is set at that point.
+
+-v2: update changelog by adding reasons, requested by Konrad.
+-v3: according to tglx:
+       separate core code change with arch code change.
+       change function name to irq_alloc_reserved_desc.
+       kill __irq_is_reserved().
+       remove not need exports.
+     according to Sebastian:
+       spare one comments by put two functions together.
 
 Signed-off-by: Yinghai Lu <yinghai@kernel.org>
-Cc: Alexander Gordeev <agordeev@redhat.com>
-Reviewed-by: Alexander Gordeev <agordeev@redhat.com>
+Cc: Joerg Roedel <joro@8bytes.org>
+Cc: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
+Cc: Sebastian Andrzej Siewior <sebastian@breakpoint.cc>
 ---
- include/linux/irq.h  |  1 +
- kernel/irq/irqdesc.c | 54 ++++++++++++++++++++++++++++++----------------------
- 2 files changed, 32 insertions(+), 23 deletions(-)
+ include/linux/irq.h  |  3 +++
+ kernel/irq/irqdesc.c | 23 +++++++++++++++++++++++
+ 2 files changed, 26 insertions(+)
 
 diff --git a/include/linux/irq.h b/include/linux/irq.h
-index f04d3ba..8c46cb2 100644
+index 8c46cb2..b998ea7 100644
 --- a/include/linux/irq.h
 +++ b/include/linux/irq.h
-@@ -611,6 +611,7 @@ int __irq_alloc_descs(int irq, unsigned int from, unsigned int cnt, int node,
+@@ -592,10 +592,13 @@ static inline u32 irq_get_trigger_type(unsigned int irq)
  
- void irq_free_descs(unsigned int irq, unsigned int cnt);
- int irq_reserve_irqs(unsigned int from, unsigned int cnt);
-+int __irq_reserve_irqs(int irq, unsigned int from, unsigned int cnt);
+ int __irq_alloc_descs(int irq, unsigned int from, unsigned int cnt, int node,
+ 		struct module *owner);
++int __irq_alloc_reserved_desc(int at, int node, struct module *owner);
  
- static inline void irq_free_desc(unsigned int irq)
- {
+ /* use macros to avoid needing export.h for THIS_MODULE */
+ #define irq_alloc_descs(irq, from, cnt, node)	\
+ 	__irq_alloc_descs(irq, from, cnt, node, THIS_MODULE)
++#define irq_alloc_reserved_desc_at(at, node)	\
++	__irq_alloc_reserved_desc(at, node, THIS_MODULE)
+ 
+ #define irq_alloc_desc(node)			\
+ 	irq_alloc_descs(-1, 0, 1, node)
 diff --git a/kernel/irq/irqdesc.c b/kernel/irq/irqdesc.c
-index 192a302..a151db6 100644
+index a151db6..1166545 100644
 --- a/kernel/irq/irqdesc.c
 +++ b/kernel/irq/irqdesc.c
-@@ -340,18 +340,15 @@ void irq_free_descs(unsigned int from, unsigned int cnt)
- EXPORT_SYMBOL_GPL(irq_free_descs);
- 
- /**
-- * irq_alloc_descs - allocate and initialize a range of irq descriptors
-- * @irq:	Allocate for specific irq number if irq >= 0
-+ * __irq_reserve_irqs - reserve a range of irqs
-+ * @irq:	Reserve for specific irq number if irq >= 0
-  * @from:	Start the search from this irq number
-- * @cnt:	Number of consecutive irqs to allocate.
-- * @node:	Preferred node on which the irq descriptor should be allocated
-- * @owner:	Owning module (can be NULL)
-+ * @cnt:	Number of consecutive irqs to reserve.
-  *
-  * Returns the first irq number or error code
-  */
- int __ref
--__irq_alloc_descs(int irq, unsigned int from, unsigned int cnt, int node,
--		  struct module *owner)
-+__irq_reserve_irqs(int irq, unsigned int from, unsigned int cnt)
- {
- 	int start, ret;
- 
-@@ -369,7 +366,7 @@ __irq_alloc_descs(int irq, unsigned int from, unsigned int cnt, int node,
- 	start = bitmap_find_next_zero_area(allocated_irqs, IRQ_BITMAP_BITS,
- 					   from, cnt, 0);
- 	ret = -EEXIST;
--	if (irq >=0 && start != irq)
-+	if (irq >= 0 && start != irq)
- 		goto err;
- 
- 	if (start + cnt > nr_irqs) {
-@@ -380,12 +377,36 @@ __irq_alloc_descs(int irq, unsigned int from, unsigned int cnt, int node,
- 
- 	bitmap_set(allocated_irqs, start, cnt);
- 	mutex_unlock(&sparse_irq_lock);
--	return alloc_descs(start, cnt, node, owner);
-+	return start;
- 
- err:
- 	mutex_unlock(&sparse_irq_lock);
- 	return ret;
- }
-+
-+/**
-+ * __irq_alloc_descs - allocate and initialize a range of irq descriptors
-+ * @irq:	Allocate for specific irq number if irq >= 0
-+ * @from:	Start the search from this irq number
-+ * @cnt:	Number of consecutive irqs to allocate.
-+ * @node:	Preferred node on which the irq descriptor should be allocated
-+ * @owner:	Owning module (can be NULL)
-+ *
-+ * Returns the first irq number or error code
-+ */
-+int __ref
-+__irq_alloc_descs(int irq, unsigned int from, unsigned int cnt, int node,
-+		  struct module *owner)
-+{
-+	int start;
-+
-+	start = __irq_reserve_irqs(irq, from, cnt);
-+
-+	if (start < 0)
-+		return start;
-+
-+	return alloc_descs(start, cnt, node, owner);
-+}
+@@ -410,6 +410,29 @@ __irq_alloc_descs(int irq, unsigned int from, unsigned int cnt, int node,
  EXPORT_SYMBOL_GPL(__irq_alloc_descs);
  
  /**
-@@ -397,20 +418,7 @@ EXPORT_SYMBOL_GPL(__irq_alloc_descs);
-  */
- int irq_reserve_irqs(unsigned int from, unsigned int cnt)
- {
--	unsigned int start;
--	int ret = 0;
--
--	if (!cnt || (from + cnt) > nr_irqs)
--		return -EINVAL;
--
--	mutex_lock(&sparse_irq_lock);
--	start = bitmap_find_next_zero_area(allocated_irqs, nr_irqs, from, cnt, 0);
--	if (start == from)
--		bitmap_set(allocated_irqs, start, cnt);
--	else
--		ret = -EEXIST;
--	mutex_unlock(&sparse_irq_lock);
--	return ret;
-+	return __irq_reserve_irqs(from, from, cnt);
- }
- 
- /**
++ * __irq_alloc_reserved_desc - allocate irq descriptor for irq that is already reserved
++ * @irq:	Allocate for specific irq number if irq >= 0
++ * @node:	Preferred node on which the irq descriptor should be allocated
++ * @owner:	Owning module (can be NULL)
++ *
++ * Returns the irq number or error code
++ */
++int __ref __irq_alloc_reserved_desc(int irq, int node, struct module *owner)
++{
++	mutex_lock(&sparse_irq_lock);
++	if (!test_bit(irq, allocated_irqs)) {
++		mutex_unlock(&sparse_irq_lock);
++		return -EINVAL;
++	}
++	mutex_unlock(&sparse_irq_lock);
++
++	if (irq_to_desc(irq))
++		return irq;
++
++	return alloc_descs(irq, 1, node, owner);
++}
++
++/**
+  * irq_reserve_irqs - mark irqs allocated
+  * @from:	mark from irq number
+  * @cnt:	number of irqs to mark
 -- 
 1.8.1.4
