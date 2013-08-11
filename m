@@ -1,13 +1,13 @@
 From: Yinghai Lu <yinghai@kernel.org>
-Subject: [PATCH 04/28] x86, irq: Change irq_remap_modify_chip_defaults() to static
-Date: Sat, 10 Aug 2013 19:45:14 -0700
-Message-ID: <1376189139-31856-5-git-send-email-yinghai@kernel.org>
+Subject: [PATCH 04/28] x86, irqi: Change irq_remap_modify_chip_defaults() to static
+Date: Sat, 10 Aug 2013 19:45:15 -0700
+Message-ID: <1376189139-31856-6-git-send-email-yinghai@kernel.org>
 References: <1376189139-31856-1-git-send-email-yinghai@kernel.org>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from aserp1040.oracle.com ([141.146.126.69]:34496 "EHLO
-	aserp1040.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751768Ab3HKCqJ (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sat, 10 Aug 2013 22:46:09 -0400
+Received: from userp1040.oracle.com ([156.151.31.81]:25525 "EHLO
+	userp1040.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751807Ab3HKCqL (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sat, 10 Aug 2013 22:46:11 -0400
 In-Reply-To: <1376189139-31856-1-git-send-email-yinghai@kernel.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
