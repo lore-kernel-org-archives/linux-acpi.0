@@ -1,90 +1,55 @@
 From: Yinghai Lu <yinghai@kernel.org>
-Subject: [PATCH v4 13/28] x86, irq: Add alloc_reserved_irq_and_cfg_at()
-Date: Sat, 10 Aug 2013 19:47:59 -0700
-Message-ID: <1376189294-32022-14-git-send-email-yinghai@kernel.org>
+Subject: [PATCH v4 11/28] x86, irq: Kill create_irq()
+Date: Sat, 10 Aug 2013 19:47:57 -0700
+Message-ID: <1376189294-32022-12-git-send-email-yinghai@kernel.org>
 References: <1376189294-32022-1-git-send-email-yinghai@kernel.org>
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from aserp1040.oracle.com ([141.146.126.69]:34820 "EHLO
-	aserp1040.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753299Ab3HKCtK (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sat, 10 Aug 2013 22:49:10 -0400
+Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <1376189294-32022-1-git-send-email-yinghai@kernel.org>
-Sender: linux-acpi-owner@vger.kernel.org
-List-Id: linux-acpi@vger.kernel.org
+Sender: linux-kernel-owner@vger.kernel.org
 To: Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@elte.hu>, "H. Peter Anvin" <hpa@zytor.com>, Tony Luck <tony.luck@intel.com>, Bjorn Helgaas <bhelgaas@google.com>, "Rafael J. Wysocki" <rjw@sisk.pl>
 Cc: linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Yinghai Lu <yinghai@kernel.org>, Joerg Roedel <joro@8bytes.org>, Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>, Sebastian Andrzej Siewior <sebastian@breakpoint.cc>
+List-Id: linux-acpi@vger.kernel.org
 
-For ioapic hot-add support, it would be easy if we have continuous
-irq numbers for new added ioapic controller.
+create_irq() will return -1 when failing to allocate.
+create_irq_nr() will return 0 when failing to allocate.
 
-We can reserve irq range at first, then allocate those
-pre-reserved one when it is needed.
+It only causes confusion.
 
-Add alloc_reserved_irq_and_cfg_at() to really allocate irq_desc and cfg,
-because pre-reserved only mark bits in allocate_irqs bit maps.
-
-Also fallback to alloc_irq_and_cfg_at(), and it is needed as
-we do not actually reserved irq for io apic irq yet.
-
-This patch is x86 arch code.
-
--v2: update changelog by adding reasons, requested by Konrad.
--v3: according to tglx, separate to another patch, and use
-     alloc_reserved_... instead of realloc_...
-     also add handling for one possible path in
-       alloc_reserved_irq_and_cfg_at().
+Now we have no user for create_irq(), so remove create_irq() for x86.
 
 Signed-off-by: Yinghai Lu <yinghai@kernel.org>
 Cc: Joerg Roedel <joro@8bytes.org>
 Cc: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
 Cc: Sebastian Andrzej Siewior <sebastian@breakpoint.cc>
 ---
- arch/x86/kernel/apic/io_apic.c | 25 ++++++++++++++++++++++++-
- 1 file changed, 24 insertions(+), 1 deletion(-)
+ arch/x86/kernel/apic/io_apic.c | 15 ---------------
+ 1 file changed, 15 deletions(-)
 
 diff --git a/arch/x86/kernel/apic/io_apic.c b/arch/x86/kernel/apic/io_apic.c
-index ef2d530..c883da9 100644
+index 47add1a..ccfb1d3 100644
 --- a/arch/x86/kernel/apic/io_apic.c
 +++ b/arch/x86/kernel/apic/io_apic.c
-@@ -301,6 +301,29 @@ static void free_irq_at(unsigned int at, struct irq_cfg *cfg)
- 	irq_free_desc(at);
+@@ -2968,21 +2968,6 @@ unsigned int create_irq_nr(unsigned int from, int node)
+ 	return __create_irqs(from, 1, node);
  }
  
-+static struct irq_cfg *alloc_reserved_irq_and_cfg_at(unsigned int at, int node)
-+{
-+	struct irq_cfg *cfg;
-+	int res;
-+
-+	res = irq_alloc_reserved_desc_at(at, node);
-+
-+	if (res >= 0) {
-+		cfg = irq_desc_get_chip_data(irq_to_desc(at));
-+		if (cfg)
-+			return cfg;
-+
-+		cfg = alloc_irq_cfg(at, node);
-+		if (cfg)
-+			irq_set_chip_data(at, cfg);
-+		else
-+			irq_free_desc(at);
-+
-+		return cfg;
-+	}
-+
-+	return alloc_irq_and_cfg_at(at, node);
-+}
- 
- struct io_apic {
- 	unsigned int index;
-@@ -3352,7 +3375,7 @@ int arch_setup_ht_irq(unsigned int irq, struct pci_dev *dev)
- static int
- io_apic_setup_irq_pin(unsigned int irq, int node, struct io_apic_irq_attr *attr)
+-int create_irq(void)
+-{
+-	int node = cpu_to_node(0);
+-	unsigned int irq_want;
+-	int irq;
+-
+-	irq_want = nr_irqs_gsi;
+-	irq = create_irq_nr(irq_want, node);
+-
+-	if (irq == 0)
+-		irq = -1;
+-
+-	return irq;
+-}
+-
+ void destroy_irq(unsigned int irq)
  {
--	struct irq_cfg *cfg = alloc_irq_and_cfg_at(irq, node);
-+	struct irq_cfg *cfg = alloc_reserved_irq_and_cfg_at(irq, node);
- 	int ret;
- 
- 	if (!cfg)
+ 	struct irq_cfg *cfg = irq_get_chip_data(irq);
 -- 
 1.8.1.4
-
