@@ -1,73 +1,48 @@
 From: Yinghai Lu <yinghai@kernel.org>
-Subject: [PATCH v4 07/28] x86, irq: Show MSI-X in /proc/interrupt
-Date: Sat, 10 Aug 2013 19:47:53 -0700
-Message-ID: <1376189294-32022-8-git-send-email-yinghai@kernel.org>
+Subject: [PATCH v4 08/28] x86, irq: Make dmar_msi/hpet_msi irq_chip name consistent
+Date: Sat, 10 Aug 2013 19:47:54 -0700
+Message-ID: <1376189294-32022-9-git-send-email-yinghai@kernel.org>
 References: <1376189294-32022-1-git-send-email-yinghai@kernel.org>
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Return-path: <linux-pci-owner@vger.kernel.org>
 In-Reply-To: <1376189294-32022-1-git-send-email-yinghai@kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
+Sender: linux-pci-owner@vger.kernel.org
 To: Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@elte.hu>, "H. Peter Anvin" <hpa@zytor.com>, Tony Luck <tony.luck@intel.com>, Bjorn Helgaas <bhelgaas@google.com>, "Rafael J. Wysocki" <rjw@sisk.pl>
 Cc: linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Yinghai Lu <yinghai@kernel.org>, Joerg Roedel <joro@8bytes.org>, Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>, Sebastian Andrzej Siewior <sebastian@breakpoint.cc>
 List-Id: linux-acpi@vger.kernel.org
 
-Now MSI-X is shown as MSI in /proc/interrupt.
+All others are using "-" instead of "_".
 
-We could use new added irq_print_chip() interface to append -X for MSI-X.
-
-After this patch, we will have PCI-MSI-X-edge IR-PCI-MSI-X-edge for MSI-X
-instead of PCI-MSI-edge IR-PCI-MSI-edge in the /proc/interrupt.
-
--v2: do not need to check if msi_desc is null in msi_irq_print_chip().
+Change dmar_msi and hpet_msi to use "-".
 
 Signed-off-by: Yinghai Lu <yinghai@kernel.org>
 Cc: Joerg Roedel <joro@8bytes.org>
 Cc: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
 Cc: Sebastian Andrzej Siewior <sebastian@breakpoint.cc>
 ---
- arch/x86/kernel/apic/io_apic.c | 7 +++++++
- drivers/iommu/irq_remapping.c  | 5 ++++-
- 2 files changed, 11 insertions(+), 1 deletion(-)
+ arch/x86/kernel/apic/io_apic.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
 diff --git a/arch/x86/kernel/apic/io_apic.c b/arch/x86/kernel/apic/io_apic.c
-index 119fdf8..cf320fb 100644
+index cf320fb..47add1a 100644
 --- a/arch/x86/kernel/apic/io_apic.c
 +++ b/arch/x86/kernel/apic/io_apic.c
-@@ -3087,6 +3087,12 @@ msi_set_affinity(struct irq_data *data, const struct cpumask *mask, bool force)
- 	return IRQ_SET_MASK_OK_NOCOPY;
+@@ -3199,7 +3199,7 @@ dmar_msi_set_affinity(struct irq_data *data, const struct cpumask *mask,
  }
  
-+static void msi_irq_print_chip(struct irq_data *data, struct seq_file *p)
-+{
-+	seq_printf(p, " %s%s", data->chip->name,
-+			data->msi_desc->msi_attrib.is_msix ? "-X" : "");
-+}
-+
- /*
-  * IRQ Chip for MSI PCI/PCI-X/PCI-Express Devices,
-  * which implement the MSI or MSI-X Capability Structure.
-@@ -3098,6 +3104,7 @@ struct irq_chip msi_chip = {
+ static struct irq_chip dmar_msi_type = {
+-	.name			= "DMAR_MSI",
++	.name			= "DMAR-MSI",
+ 	.irq_unmask		= dmar_msi_unmask,
+ 	.irq_mask		= dmar_msi_mask,
  	.irq_ack		= ack_apic_edge,
- 	.irq_set_affinity	= msi_set_affinity,
- 	.irq_retrigger		= ioapic_retrigger_irq,
-+	.irq_print_chip		= msi_irq_print_chip,
- };
- 
- int setup_msi_irq(struct pci_dev *dev, struct msi_desc *msidesc,
-diff --git a/drivers/iommu/irq_remapping.c b/drivers/iommu/irq_remapping.c
-index 8e4e3af..6893d75 100644
---- a/drivers/iommu/irq_remapping.c
-+++ b/drivers/iommu/irq_remapping.c
-@@ -372,7 +372,10 @@ static void ir_ack_apic_level(struct irq_data *data)
- 
- static void ir_print_prefix(struct irq_data *data, struct seq_file *p)
- {
--	seq_printf(p, " IR-%s", data->chip->name);
-+	seq_printf(p, " IR-%s%s", data->chip->name,
-+			data->msi_desc ?
-+			 (data->msi_desc->msi_attrib.is_msix ? "-X" : "")
-+			 : "");
+@@ -3247,7 +3247,7 @@ static int hpet_msi_set_affinity(struct irq_data *data,
  }
  
- static void __init irq_remap_modify_chip_defaults(struct irq_chip *chip)
+ struct irq_chip hpet_msi_type = {
+-	.name = "HPET_MSI",
++	.name = "HPET-MSI",
+ 	.irq_unmask = hpet_msi_unmask,
+ 	.irq_mask = hpet_msi_mask,
+ 	.irq_ack = ack_apic_edge,
 -- 
 1.8.1.4
