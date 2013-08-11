@@ -1,55 +1,51 @@
 From: Yinghai Lu <yinghai@kernel.org>
-Subject: [PATCH v4 11/28] x86, irq: Kill create_irq()
-Date: Sat, 10 Aug 2013 19:47:57 -0700
-Message-ID: <1376189294-32022-12-git-send-email-yinghai@kernel.org>
+Subject: [PATCH v4 10/28] iommu, irq: Allocate irq_desc for dmar_msi with local node
+Date: Sat, 10 Aug 2013 19:47:56 -0700
+Message-ID: <1376189294-32022-11-git-send-email-yinghai@kernel.org>
 References: <1376189294-32022-1-git-send-email-yinghai@kernel.org>
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from userp1040.oracle.com ([156.151.31.81]:25819 "EHLO
+	userp1040.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753218Ab3HKCtF (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sat, 10 Aug 2013 22:49:05 -0400
 In-Reply-To: <1376189294-32022-1-git-send-email-yinghai@kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@elte.hu>, "H. Peter Anvin" <hpa@zytor.com>, Tony Luck <tony.luck@intel.com>, Bjorn Helgaas <bhelgaas@google.com>, "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Yinghai Lu <yinghai@kernel.org>, Joerg Roedel <joro@8bytes.org>, Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>, Sebastian Andrzej Siewior <sebastian@breakpoint.cc>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@elte.hu>, "H. Peter Anvin" <hpa@zytor.com>, Tony Luck <tony.luck@intel.com>, Bjorn Helgaas <bhelgaas@google.com>, "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Yinghai Lu <yinghai@kernel.org>, Joerg Roedel <joro@8bytes.org>, Donald Dutile <ddutile@redhat.com>, Sebastian Andrzej Siewior <sebastian@breakpoint.cc>, stable@vger.kernel.org
 
-create_irq() will return -1 when failing to allocate.
-create_irq_nr() will return 0 when failing to allocate.
+iommu irq's irq_desc should be on local node ram.
 
-It only causes confusion.
+Fix the return value checking problem.
+  create_irq() will return -1 when fail to allocate.
+  create_irq_nr() will return 0 when fail to allocate.
+here only check !irq, so need to change it to use create_irq_nr instead.
 
-Now we have no user for create_irq(), so remove create_irq() for x86.
+-v2: According to Sebastian, add cc to stable.
 
 Signed-off-by: Yinghai Lu <yinghai@kernel.org>
 Cc: Joerg Roedel <joro@8bytes.org>
-Cc: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
+Cc: Donald Dutile <ddutile@redhat.com>
+Acked-by: Donald Dutile <ddutile@redhat.com>
 Cc: Sebastian Andrzej Siewior <sebastian@breakpoint.cc>
+Cc: stable@vger.kernel.org
 ---
- arch/x86/kernel/apic/io_apic.c | 15 ---------------
- 1 file changed, 15 deletions(-)
+ drivers/iommu/dmar.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/arch/x86/kernel/apic/io_apic.c b/arch/x86/kernel/apic/io_apic.c
-index 47add1a..ccfb1d3 100644
---- a/arch/x86/kernel/apic/io_apic.c
-+++ b/arch/x86/kernel/apic/io_apic.c
-@@ -2968,21 +2968,6 @@ unsigned int create_irq_nr(unsigned int from, int node)
- 	return __create_irqs(from, 1, node);
- }
+diff --git a/drivers/iommu/dmar.c b/drivers/iommu/dmar.c
+index 785675a..db41e36 100644
+--- a/drivers/iommu/dmar.c
++++ b/drivers/iommu/dmar.c
+@@ -1277,7 +1277,7 @@ int dmar_set_interrupt(struct intel_iommu *iommu)
+ 	if (iommu->irq)
+ 		return 0;
  
--int create_irq(void)
--{
--	int node = cpu_to_node(0);
--	unsigned int irq_want;
--	int irq;
--
--	irq_want = nr_irqs_gsi;
--	irq = create_irq_nr(irq_want, node);
--
--	if (irq == 0)
--		irq = -1;
--
--	return irq;
--}
--
- void destroy_irq(unsigned int irq)
- {
- 	struct irq_cfg *cfg = irq_get_chip_data(irq);
+-	irq = create_irq();
++	irq = create_irq_nr(0, iommu->node);
+ 	if (!irq) {
+ 		pr_err("IOMMU: no free vectors\n");
+ 		return -EINVAL;
 -- 
 1.8.1.4
+
