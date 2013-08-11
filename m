@@ -1,51 +1,63 @@
 From: Yinghai Lu <yinghai@kernel.org>
-Subject: [PATCH v4 10/28] iommu, irq: Allocate irq_desc for dmar_msi with local node
-Date: Sat, 10 Aug 2013 19:47:56 -0700
-Message-ID: <1376189294-32022-11-git-send-email-yinghai@kernel.org>
+Subject: [PATCH v4 04/28] x86, irq: Change irq_remap_modify_chip_defaults() to static
+Date: Sat, 10 Aug 2013 19:47:50 -0700
+Message-ID: <1376189294-32022-5-git-send-email-yinghai@kernel.org>
 References: <1376189294-32022-1-git-send-email-yinghai@kernel.org>
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from userp1040.oracle.com ([156.151.31.81]:25819 "EHLO
-	userp1040.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753218Ab3HKCtF (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sat, 10 Aug 2013 22:49:05 -0400
+Return-path: <linux-pci-owner@vger.kernel.org>
 In-Reply-To: <1376189294-32022-1-git-send-email-yinghai@kernel.org>
-Sender: linux-acpi-owner@vger.kernel.org
-List-Id: linux-acpi@vger.kernel.org
+Sender: linux-pci-owner@vger.kernel.org
 To: Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@elte.hu>, "H. Peter Anvin" <hpa@zytor.com>, Tony Luck <tony.luck@intel.com>, Bjorn Helgaas <bhelgaas@google.com>, "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Yinghai Lu <yinghai@kernel.org>, Joerg Roedel <joro@8bytes.org>, Donald Dutile <ddutile@redhat.com>, Sebastian Andrzej Siewior <sebastian@breakpoint.cc>, stable@vger.kernel.org
+Cc: linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Yinghai Lu <yinghai@kernel.org>, Joerg Roedel <joro@8bytes.org>, Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>, Sebastian Andrzej Siewior <sebastian@breakpoint.cc>
+List-Id: linux-acpi@vger.kernel.org
 
-iommu irq's irq_desc should be on local node ram.
-
-Fix the return value checking problem.
-  create_irq() will return -1 when fail to allocate.
-  create_irq_nr() will return 0 when fail to allocate.
-here only check !irq, so need to change it to use create_irq_nr instead.
-
--v2: According to Sebastian, add cc to stable.
+Change irq_remap_modify_chip_defaults() to static, as we have no
+outside user.
 
 Signed-off-by: Yinghai Lu <yinghai@kernel.org>
 Cc: Joerg Roedel <joro@8bytes.org>
-Cc: Donald Dutile <ddutile@redhat.com>
-Acked-by: Donald Dutile <ddutile@redhat.com>
+Cc: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
 Cc: Sebastian Andrzej Siewior <sebastian@breakpoint.cc>
-Cc: stable@vger.kernel.org
 ---
- drivers/iommu/dmar.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ arch/x86/include/asm/irq_remapping.h | 6 ------
+ drivers/iommu/irq_remapping.c        | 2 +-
+ 2 files changed, 1 insertion(+), 7 deletions(-)
 
-diff --git a/drivers/iommu/dmar.c b/drivers/iommu/dmar.c
-index 785675a..db41e36 100644
---- a/drivers/iommu/dmar.c
-+++ b/drivers/iommu/dmar.c
-@@ -1277,7 +1277,7 @@ int dmar_set_interrupt(struct intel_iommu *iommu)
- 	if (iommu->irq)
- 		return 0;
+diff --git a/arch/x86/include/asm/irq_remapping.h b/arch/x86/include/asm/irq_remapping.h
+index d806b22..606f42e 100644
+--- a/arch/x86/include/asm/irq_remapping.h
++++ b/arch/x86/include/asm/irq_remapping.h
+@@ -56,8 +56,6 @@ extern bool setup_remapped_irq(int irq,
+ 			       struct irq_cfg *cfg,
+ 			       struct irq_chip *chip);
  
--	irq = create_irq();
-+	irq = create_irq_nr(0, iommu->node);
- 	if (!irq) {
- 		pr_err("IOMMU: no free vectors\n");
- 		return -EINVAL;
+-void irq_remap_modify_chip_defaults(struct irq_chip *chip);
+-
+ #else  /* CONFIG_IRQ_REMAP */
+ 
+ static inline void setup_irq_remapping_ops(void) { }
+@@ -91,10 +89,6 @@ static inline void panic_if_irq_remap(const char *msg)
+ {
+ }
+ 
+-static inline void irq_remap_modify_chip_defaults(struct irq_chip *chip)
+-{
+-}
+-
+ static inline bool setup_remapped_irq(int irq,
+ 				      struct irq_cfg *cfg,
+ 				      struct irq_chip *chip)
+diff --git a/drivers/iommu/irq_remapping.c b/drivers/iommu/irq_remapping.c
+index 39f81ae..85ae2cf 100644
+--- a/drivers/iommu/irq_remapping.c
++++ b/drivers/iommu/irq_remapping.c
+@@ -375,7 +375,7 @@ static void ir_print_prefix(struct irq_data *data, struct seq_file *p)
+ 	seq_printf(p, " IR-%s", data->chip->name);
+ }
+ 
+-void irq_remap_modify_chip_defaults(struct irq_chip *chip)
++static void irq_remap_modify_chip_defaults(struct irq_chip *chip)
+ {
+ 	chip->irq_print_chip = ir_print_prefix;
+ 	chip->irq_ack = ir_ack_apic_edge;
 -- 
 1.8.1.4
-
