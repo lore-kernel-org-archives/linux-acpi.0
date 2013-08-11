@@ -1,7 +1,7 @@
 From: Yinghai Lu <yinghai@kernel.org>
-Subject: [PATCH 02/28] genirq: Add irq_alloc_reserved_desc()
-Date: Sat, 10 Aug 2013 19:45:12 -0700
-Message-ID: <1376189139-31856-3-git-send-email-yinghai@kernel.org>
+Subject: [PATCH 07/28] x86, irq: Show MSI-X in /proc/interrupt
+Date: Sat, 10 Aug 2013 19:45:18 -0700
+Message-ID: <1376189139-31856-9-git-send-email-yinghai@kernel.org>
 References: <1376189139-31856-1-git-send-email-yinghai@kernel.org>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <1376189139-31856-1-git-send-email-yinghai@kernel.org>
@@ -10,87 +10,64 @@ To: Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@elte.hu>, "H. Peter
 Cc: linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Yinghai Lu <yinghai@kernel.org>, Joerg Roedel <joro@8bytes.org>, Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>, Sebastian Andrzej Siewior <sebastian@breakpoint.cc>
 List-Id: linux-acpi@vger.kernel.org
 
-For ioapic hot-add support, it would be easy if we have continuous
-irq numbers for hot added ioapic controller.
+Now MSI-X is shown as MSI in /proc/interrupt.
 
-We can reserve irq range at first, and later allocate desc for those
-pre-reserved irqs when they are needed.
+We could use new added irq_print_chip() interface to append -X for MSI-X.
 
-The reasons for not allocating them during reserving:
-1. only several pins of one ioapic are used, allocate for all pins, will
-   waste memory for not used pins.
-2. allocate later when is needed could make sure irq_desc is allocated
-   on local node ram, as dev->node is set at that point.
+After this patch, we will have PCI-MSI-X-edge IR-PCI-MSI-X-edge for MSI-X
+instead of PCI-MSI-edge IR-PCI-MSI-edge in the /proc/interrupt.
 
--v2: update changelog by adding reasons, requested by Konrad.
--v3: according to tglx:
-       separate core code change with arch code change.
-       change function name to irq_alloc_reserved_desc.
-       kill __irq_is_reserved().
-       remove not need exports.
-     according to Sebastian:
-       spare one comments by put two functions together.
+-v2: do not need to check if msi_desc is null in msi_irq_print_chip().
 
 Signed-off-by: Yinghai Lu <yinghai@kernel.org>
 Cc: Joerg Roedel <joro@8bytes.org>
 Cc: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
 Cc: Sebastian Andrzej Siewior <sebastian@breakpoint.cc>
 ---
- include/linux/irq.h  |  3 +++
- kernel/irq/irqdesc.c | 23 +++++++++++++++++++++++
- 2 files changed, 26 insertions(+)
+ arch/x86/kernel/apic/io_apic.c | 7 +++++++
+ drivers/iommu/irq_remapping.c  | 5 ++++-
+ 2 files changed, 11 insertions(+), 1 deletion(-)
 
-diff --git a/include/linux/irq.h b/include/linux/irq.h
-index 8c46cb2..b998ea7 100644
---- a/include/linux/irq.h
-+++ b/include/linux/irq.h
-@@ -592,10 +592,13 @@ static inline u32 irq_get_trigger_type(unsigned int irq)
+diff --git a/arch/x86/kernel/apic/io_apic.c b/arch/x86/kernel/apic/io_apic.c
+index 119fdf8..cf320fb 100644
+--- a/arch/x86/kernel/apic/io_apic.c
++++ b/arch/x86/kernel/apic/io_apic.c
+@@ -3087,6 +3087,12 @@ msi_set_affinity(struct irq_data *data, const struct cpumask *mask, bool force)
+ 	return IRQ_SET_MASK_OK_NOCOPY;
+ }
  
- int __irq_alloc_descs(int irq, unsigned int from, unsigned int cnt, int node,
- 		struct module *owner);
-+int __irq_alloc_reserved_desc(int at, int node, struct module *owner);
- 
- /* use macros to avoid needing export.h for THIS_MODULE */
- #define irq_alloc_descs(irq, from, cnt, node)	\
- 	__irq_alloc_descs(irq, from, cnt, node, THIS_MODULE)
-+#define irq_alloc_reserved_desc_at(at, node)	\
-+	__irq_alloc_reserved_desc(at, node, THIS_MODULE)
- 
- #define irq_alloc_desc(node)			\
- 	irq_alloc_descs(-1, 0, 1, node)
-diff --git a/kernel/irq/irqdesc.c b/kernel/irq/irqdesc.c
-index a151db6..1166545 100644
---- a/kernel/irq/irqdesc.c
-+++ b/kernel/irq/irqdesc.c
-@@ -410,6 +410,29 @@ __irq_alloc_descs(int irq, unsigned int from, unsigned int cnt, int node,
- EXPORT_SYMBOL_GPL(__irq_alloc_descs);
- 
- /**
-+ * __irq_alloc_reserved_desc - allocate irq descriptor for irq that is already reserved
-+ * @irq:	Allocate for specific irq number if irq >= 0
-+ * @node:	Preferred node on which the irq descriptor should be allocated
-+ * @owner:	Owning module (can be NULL)
-+ *
-+ * Returns the irq number or error code
-+ */
-+int __ref __irq_alloc_reserved_desc(int irq, int node, struct module *owner)
++static void msi_irq_print_chip(struct irq_data *data, struct seq_file *p)
 +{
-+	mutex_lock(&sparse_irq_lock);
-+	if (!test_bit(irq, allocated_irqs)) {
-+		mutex_unlock(&sparse_irq_lock);
-+		return -EINVAL;
-+	}
-+	mutex_unlock(&sparse_irq_lock);
-+
-+	if (irq_to_desc(irq))
-+		return irq;
-+
-+	return alloc_descs(irq, 1, node, owner);
++	seq_printf(p, " %s%s", data->chip->name,
++			data->msi_desc->msi_attrib.is_msix ? "-X" : "");
 +}
 +
-+/**
-  * irq_reserve_irqs - mark irqs allocated
-  * @from:	mark from irq number
-  * @cnt:	number of irqs to mark
+ /*
+  * IRQ Chip for MSI PCI/PCI-X/PCI-Express Devices,
+  * which implement the MSI or MSI-X Capability Structure.
+@@ -3098,6 +3104,7 @@ struct irq_chip msi_chip = {
+ 	.irq_ack		= ack_apic_edge,
+ 	.irq_set_affinity	= msi_set_affinity,
+ 	.irq_retrigger		= ioapic_retrigger_irq,
++	.irq_print_chip		= msi_irq_print_chip,
+ };
+ 
+ int setup_msi_irq(struct pci_dev *dev, struct msi_desc *msidesc,
+diff --git a/drivers/iommu/irq_remapping.c b/drivers/iommu/irq_remapping.c
+index 8e4e3af..6893d75 100644
+--- a/drivers/iommu/irq_remapping.c
++++ b/drivers/iommu/irq_remapping.c
+@@ -372,7 +372,10 @@ static void ir_ack_apic_level(struct irq_data *data)
+ 
+ static void ir_print_prefix(struct irq_data *data, struct seq_file *p)
+ {
+-	seq_printf(p, " IR-%s", data->chip->name);
++	seq_printf(p, " IR-%s%s", data->chip->name,
++			data->msi_desc ?
++			 (data->msi_desc->msi_attrib.is_msix ? "-X" : "")
++			 : "");
+ }
+ 
+ static void __init irq_remap_modify_chip_defaults(struct irq_chip *chip)
 -- 
 1.8.1.4
