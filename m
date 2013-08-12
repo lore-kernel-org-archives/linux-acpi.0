@@ -1,117 +1,124 @@
-From: Tang Chen <imtangchen@gmail.com>
-Subject: Re: [PATCH part5 0/7] Arrange hotpluggable memory as ZONE_MOVABLE.
-Date: Tue, 13 Aug 2013 02:23:13 +0800
-Message-ID: <52092811.3020105@gmail.com>
-References: <1375956979-31877-1-git-send-email-tangchen@cn.fujitsu.com> <20130812145016.GI15892@htj.dyndns.org> <5208FBBC.2080304@zytor.com> <20130812152343.GK15892@htj.dyndns.org> <52090D7F.6060600@gmail.com> <20130812164650.GN15892@htj.dyndns.org>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <owner-linux-mm@kvack.org>
-In-Reply-To: <20130812164650.GN15892@htj.dyndns.org>
-Sender: owner-linux-mm@kvack.org
-To: Tejun Heo <tj@kernel.org>, "H. Peter Anvin" <hpa@zytor.com>
-Cc: Tang Chen <tangchen@cn.fujitsu.com>, robert.moore@intel.com, lv.zheng@intel.com, rjw@sisk.pl, lenb@kernel.org, tglx@linutronix.de, mingo@elte.hu, akpm@linux-foundation.org, trenn@suse.de, yinghai@kernel.org, jiang.liu@huawei.com, wency@cn.fujitsu.com, laijs@cn.fujitsu.com, isimatu.yasuaki@jp.fujitsu.com, izumi.taku@jp.fujitsu.com, mgorman@suse.de, minchan@kernel.org, mina86@mina86.com, gong.chen@linux.intel.com, vasilis.liaskovitis@profitbricks.com, lwoodman@redhat.com, riel@redhat.com, jweiner@redhat.com, prarit@redhat.com, zhangyanfei@cn.fujitsu.com, yanghy@cn.fujitsu.com, x86@kernel.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-mm@kvack.org, linux-acpi@vger.kernel.org, "Luck, Tony (tony.luck@intel.com)" <tony.luck@intel.com>
+From: Toshi Kani <toshi.kani@hp.com>
+Subject: [PATCH] mm/hotplug: Remove stop_machine() from try_offline_node()
+Date: Mon, 12 Aug 2013 13:34:31 -0600
+Message-ID: <1376336071-9128-1-git-send-email-toshi.kani@hp.com>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from g1t0028.austin.hp.com ([15.216.28.35]:14226 "EHLO
+	g1t0028.austin.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751915Ab3HLTgB (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 12 Aug 2013 15:36:01 -0400
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: akpm@linux-foundation.org
+Cc: linux-mm@kvack.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, rjw@sisk.pl, kosaki.motohiro@jp.fujitsu.com, kamezawa.hiroyu@jp.fujitsu.com, tangchen@cn.fujitsu.com, isimatu.yasuaki@jp.fujitsu.com, liwanp@linux.vnet.ibm.com, Toshi Kani <toshi.kani@hp.com>
 
-On 08/13/2013 12:46 AM, Tejun Heo wrote:
-> Hello, Tang.
-......
->
->> But, different users have different ways to use memory hotplug.
->>
->> Hotswaping any particular chunk of memory is the goal we will reach
->> finally. But it is on specific hardware. In most current machines, we
->> can use movable node to manage resource in node unit.
->>
->> And also, without this movablenode boot option, the MOVABLE_NODE
->> functionality, which is already in the kernel, will not be able to
->> work. All nodes has kernel memory means no movable node.
->>
->> So, how about this: Just like MOVABLE_NODE functionality, introduce
->> a new config option. When we have better solutions for memory hotplug,
->> we shutoff or remove the config and related code.
->>
->> For now, at least make movable node work.
+lock_device_hotplug() serializes hotplug & online/offline operations.
+The lock is held in common sysfs online/offline interfaces and ACPI
+hotplug code paths.
 
-Hi tj,
-cc hpa,
+try_offline_node() off-lines a node if all memory sections and cpus
+are removed on the node.  It is called from acpi_processor_remove()
+and acpi_memory_remove_memory()->remove_memory() paths, both of which
+are in the ACPI hotplug code.
 
-I explained above because hpa said he thought the whole approach is
-wrong. I think node hotplug is meaningful for users. And without this
-patch-set, MOVABLE_NODE means nothing. This is all above.
+try_offline_node() calls stop_machine() to stop all cpus while checking
+all cpu status with the assumption that the caller is not protected from
+CPU hotplug or CPU online/offline operations.  However, the caller is
+always serialized with lock_device_hotplug().  Also, the code needs to
+be properly serialized with a lock, not by stopping all cpus at a random
+place with stop_machine().
 
-Since you replied his email in previous emails, I just replied to
-answer both of you. Sorry for the misunderstanding. :)
+This patch removes the use of stop_machine() in try_offline_node() and
+adds comments to try_offline_node() and remove_memory() that
+lock_device_hotplug() is required.
 
->
-> We are talking completely past each other.  I'll just try to clarify
-> what I was saying.  Can you please do the same?  Let's re-sync on the
-> discussion.
->
-> * Adding an option to tell the kernel to try to stay away from
->    hotpluggable nodes is fine.  I have no problem with that at all.
+Signed-off-by: Toshi Kani <toshi.kani@hp.com>
+---
+ mm/memory_hotplug.c |   31 ++++++++++++++++++++++---------
+ 1 file changed, 22 insertions(+), 9 deletions(-)
 
-Agreed.
-
->
-> * The patchsets upto this point have been somehow trying to reorder
->    operations shomehow such that *no* memory allocation happens before
->    memblock is populated with hotplug information.
-
-Yes, this is exactly what I want to do.
-
->
-> * However, we already *know* that the memory the kernel image is
->    occupying won't be removeable.  It's highly likely that the amount
->    of memory allocation before NUMA / hotplug information is fully
->    populated is pretty small.  Also, it's highly likely that small
->    amount of memory right after the kernel image is contained in the
->    same NUMA node, so if we allocate memory close to the kernel image,
->    it's likely that we don't contaminate hotpluggable node.  We're
->    talking about few megs at most right after the kernel image.  I
->    can't see how that would make any noticeable difference.
-
-This point, I don't quite agree. What you said is highly likely, but
-not definitely. Users may find they lost hotpluggable memory.
-
-The node the kernel resides in won't be removable. This is agreed.
-But I still want SRAT earlier for the following reasons:
-
-1. For a production provided to users, the firmware specified how
-    many nodes are hotpluggable. When the system is up, if users
-    found they lost movable nodes, I think it could be messy.
-
-2. Reorder SRAT parsing earlier is not that difficult to do. The
-    only procedures reordered are acpi tables initialization and
-    acpi_initrd_override. The acpi part patches are being reviewed.
-    And it is better solution. If possible, I think we should do it.
-
-In summary, I don't want early memory allocation with hotpluggable
-memory to be opportunistic.
-
->
-> * Once hotplug information is available, allocation can happen as
->    usual and the kernel can report the nodes which are actually
->    hotpluggable - marked as hotpluggable by the firmware&&  didn't get
->    contaminated during early alloc&&  didn't get overflow allocations
->    afterwards.  Note that we need such mechanism no matter what as the
->    kernel image can be loaded into hotpluggable nodes and reporting
->    that to userland is the only thing the kernel can do for cases like
->    that short of denying memory unplug on such nodes.
-
-Agreed.
-
->
-> The whole thing would be a lot simpler and generic.  It doesn't even
-> have to care about which mechanism is being used to acquire all those
-> information.  What am I missing here?
-
-Sorry for the misunderstanding.
-
-Thanks. :)
-
---
-To unsubscribe, send a message with 'unsubscribe linux-mm' in
-the body to majordomo@kvack.org.  For more info on Linux MM,
-see: http://www.linux-mm.org/ .
-Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
+diff --git a/mm/memory_hotplug.c b/mm/memory_hotplug.c
+index ca1dd3a..0b4b0f7 100644
+--- a/mm/memory_hotplug.c
++++ b/mm/memory_hotplug.c
+@@ -1674,9 +1674,8 @@ static int is_memblock_offlined_cb(struct memory_block *mem, void *arg)
+ 	return ret;
+ }
+ 
+-static int check_cpu_on_node(void *data)
++static int check_cpu_on_node(pg_data_t *pgdat)
+ {
+-	struct pglist_data *pgdat = data;
+ 	int cpu;
+ 
+ 	for_each_present_cpu(cpu) {
+@@ -1691,10 +1690,9 @@ static int check_cpu_on_node(void *data)
+ 	return 0;
+ }
+ 
+-static void unmap_cpu_on_node(void *data)
++static void unmap_cpu_on_node(pg_data_t *pgdat)
+ {
+ #ifdef CONFIG_ACPI_NUMA
+-	struct pglist_data *pgdat = data;
+ 	int cpu;
+ 
+ 	for_each_possible_cpu(cpu)
+@@ -1703,10 +1701,11 @@ static void unmap_cpu_on_node(void *data)
+ #endif
+ }
+ 
+-static int check_and_unmap_cpu_on_node(void *data)
++static int check_and_unmap_cpu_on_node(pg_data_t *pgdat)
+ {
+-	int ret = check_cpu_on_node(data);
++	int ret;
+ 
++	ret = check_cpu_on_node(pgdat);
+ 	if (ret)
+ 		return ret;
+ 
+@@ -1715,11 +1714,18 @@ static int check_and_unmap_cpu_on_node(void *data)
+ 	 * the cpu_to_node() now.
+ 	 */
+ 
+-	unmap_cpu_on_node(data);
++	unmap_cpu_on_node(pgdat);
+ 	return 0;
+ }
+ 
+-/* offline the node if all memory sections of this node are removed */
++/**
++ * try_offline_node
++ *
++ * Offline a node if all memory sections and cpus of the node are removed.
++ *
++ * NOTE: The caller must call lock_device_hotplug() to serialize hotplug
++ * and online/offline operations before this call.
++ */
+ void try_offline_node(int nid)
+ {
+ 	pg_data_t *pgdat = NODE_DATA(nid);
+@@ -1745,7 +1751,7 @@ void try_offline_node(int nid)
+ 		return;
+ 	}
+ 
+-	if (stop_machine(check_and_unmap_cpu_on_node, pgdat, NULL))
++	if (check_and_unmap_cpu_on_node(pgdat))
+ 		return;
+ 
+ 	/*
+@@ -1782,6 +1788,13 @@ void try_offline_node(int nid)
+ }
+ EXPORT_SYMBOL(try_offline_node);
+ 
++/**
++ * remove_memory
++ *
++ * NOTE: The caller must call lock_device_hotplug() to serialize hotplug
++ * and online/offline operations before this call, as required by
++ * try_offline_node().
++ */
+ void __ref remove_memory(int nid, u64 start, u64 size)
+ {
+ 	int ret;
