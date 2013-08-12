@@ -1,32 +1,37 @@
-From: Tang Chen <imtangchen@gmail.com>
-Subject: Re: [PATCH part2 1/4] acpi: Print Hot-Pluggable Field in SRAT.
-Date: Mon, 12 Aug 2013 22:25:07 +0800
-Message-ID: <5208F043.7020409@gmail.com>
-References: <1375938239-18769-1-git-send-email-tangchen@cn.fujitsu.com> <1375938239-18769-2-git-send-email-tangchen@cn.fujitsu.com> <20130812141551.GD15892@htj.dyndns.org>
+From: Tejun Heo <tj@kernel.org>
+Subject: Re: [PATCH part4 1/4] x86: Make get_ramdisk_{image|size}() global.
+Date: Mon, 12 Aug 2013 10:25:50 -0400
+Message-ID: <20130812142550.GG15892@htj.dyndns.org>
+References: <1375954883-30225-1-git-send-email-tangchen@cn.fujitsu.com>
+ <1375954883-30225-2-git-send-email-tangchen@cn.fujitsu.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <owner-linux-mm@kvack.org>
-In-Reply-To: <20130812141551.GD15892@htj.dyndns.org>
+Content-Disposition: inline
+In-Reply-To: <1375954883-30225-2-git-send-email-tangchen@cn.fujitsu.com>
 Sender: owner-linux-mm@kvack.org
-To: Tejun Heo <tj@kernel.org>
-Cc: Tang Chen <tangchen@cn.fujitsu.com>, robert.moore@intel.com, lv.zheng@intel.com, rjw@sisk.pl, lenb@kernel.org, tglx@linutronix.de, mingo@elte.hu, hpa@zytor.com, akpm@linux-foundation.org, trenn@suse.de, yinghai@kernel.org, jiang.liu@huawei.com, wency@cn.fujitsu.com, laijs@cn.fujitsu.com, isimatu.yasuaki@jp.fujitsu.com, izumi.taku@jp.fujitsu.com, mgorman@suse.de, minchan@kernel.org, mina86@mina86.com, gong.chen@linux.intel.com, vasilis.liaskovitis@profitbricks.com, lwoodman@redhat.com, riel@redhat.com, jweiner@redhat.com, prarit@redhat.com, zhangyanfei@cn.fujitsu.com, yanghy@cn.fujitsu.com, x86@kernel.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-mm@kvack.org, linux-acpi@vger.kernel.org, imtangchen@gmail.com
+To: Tang Chen <tangchen@cn.fujitsu.com>
+Cc: robert.moore@intel.com, lv.zheng@intel.com, rjw@sisk.pl, lenb@kernel.org, tglx@linutronix.de, mingo@elte.hu, hpa@zytor.com, akpm@linux-foundation.org, trenn@suse.de, yinghai@kernel.org, jiang.liu@huawei.com, wency@cn.fujitsu.com, laijs@cn.fujitsu.com, isimatu.yasuaki@jp.fujitsu.com, izumi.taku@jp.fujitsu.com, mgorman@suse.de, minchan@kernel.org, mina86@mina86.com, gong.chen@linux.intel.com, vasilis.liaskovitis@profitbricks.com, lwoodman@redhat.com, riel@redhat.com, jweiner@redhat.com, prarit@redhat.com, zhangyanfei@cn.fujitsu.com, yanghy@cn.fujitsu.com, x86@kernel.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-mm@kvack.org, linux-acpi@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-On 08/12/2013 10:15 PM, Tejun Heo wrote:
-> On Thu, Aug 08, 2013 at 01:03:56PM +0800, Tang Chen wrote:
->> +	pr_info("SRAT: Node %u PXM %u [mem %#010Lx-%#010Lx]%s\n",
->> +		node, pxm,
->> +		(unsigned long long) start, (unsigned long long) end - 1,
->> +		hotpluggable ? " Hot Pluggable" : "");
->
-> Wouldn't it be better to just print "hotplug"?
+On Thu, Aug 08, 2013 at 05:41:20PM +0800, Tang Chen wrote:
+> In the following patches, we need to call get_ramdisk_{image|size}()
+> to get initrd file's address and size. So make these two functions
+> global.
+> 
+> v1 -> v2:
+> As tj suggested, make these two function static inline in
+> arch/x86/include/asm/setup.h.
+> 
+> Signed-off-by: Tang Chen <tangchen@cn.fujitsu.com>
+> Reviewed-by: Zhang Yanfei <zhangyanfei@cn.fujitsu.com>
 
-Sure, followed.
+Reviewed-by: Tejun Heo <tj@kernel.org>
 
 Thanks.
 
-
+-- 
+tejun
 
 --
 To unsubscribe, send a message with 'unsubscribe linux-mm' in
