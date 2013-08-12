@@ -1,91 +1,95 @@
-From: "Alexandra N. Kossovsky" <Alexandra.Kossovsky@oktetlabs.ru>
-Subject: kmemleak in apei_res_add
-Date: Mon, 12 Aug 2013 06:45:58 +0400
-Message-ID: <20130812024556.GB29956@sanechka.spb.ru>
+From: Tang Chen <imtangchen@gmail.com>
+Subject: Re: [PATCH part5 0/7] Arrange hotpluggable memory as ZONE_MOVABLE.
+Date: Mon, 12 Aug 2013 14:33:17 +0800
+Message-ID: <520881AD.1020800@gmail.com>
+References: <1375956979-31877-1-git-send-email-tangchen@cn.fujitsu.com> <20130809163220.GU20515@mtj.dyndns.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-Sender: linux-kernel-owner@vger.kernel.org
-To: Len Brown <lenb@kernel.org>, "Rafael J. Wysocki" <rjw@sisk.pl>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+Content-Type: multipart/alternative;
+ boundary="------------080605040401010200060007"
+Return-path: <owner-linux-mm@kvack.org>
+In-Reply-To: <20130809163220.GU20515@mtj.dyndns.org>
+Sender: owner-linux-mm@kvack.org
+To: Tejun Heo <tj@kernel.org>
+Cc: Tang Chen <tangchen@cn.fujitsu.com>, robert.moore@intel.com, lv.zheng@intel.com, rjw@sisk.pl, lenb@kernel.org, tglx@linutronix.de, mingo@elte.hu, hpa@zytor.com, akpm@linux-foundation.org, trenn@suse.de, yinghai@kernel.org, jiang.liu@huawei.com, wency@cn.fujitsu.com, laijs@cn.fujitsu.com, isimatu.yasuaki@jp.fujitsu.com, izumi.taku@jp.fujitsu.com, mgorman@suse.de, minchan@kernel.org, mina86@mina86.com, gong.chen@linux.intel.com, vasilis.liaskovitis@profitbricks.com, lwoodman@redhat.com, riel@redhat.com, jweiner@redhat.com, prarit@redhat.com, zhangyanfei@cn.fujitsu.com, yanghy@cn.fujitsu.com, x86@kernel.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-mm@kvack.org, linux-acpi@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-When running 3.10.3 with kmemleak enabled, I see following warnings from
-kmemleak:
+This is a multi-part message in MIME format.
+--------------080605040401010200060007
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 
-unreferenced object 0xffff88024d2219a0 (size 32):
-  comm "swapper/0", pid 1, jiffies 4294894532 (age 26865.180s)
-  hex dump (first 32 bytes):
-    58 de 0c 73 02 88 ff ff 58 de 0c 73 02 88 ff ff  X..s....X..s....
-    18 50 fd 7d 00 00 00 00 3f 50 fd 7d 00 00 00 00  .P.}....?P.}....
-  backtrace:
-    [<ffffffff813ddf40>] kmemleak_alloc+0x21/0x3e
-    [<ffffffff8111cb99>] kmemleak_alloc_recursive.constprop.58+0x16/0x18
-    [<ffffffff8111efac>] kmem_cache_alloc_trace+0xe6/0x12f
-    [<ffffffff81278f0e>] apei_res_add+0xb9/0xe8
-    [<ffffffff81278faa>] collect_res_callback+0x6d/0x7c
-    [<ffffffff812788ed>] apei_exec_for_each_entry+0x78/0x93
-    [<ffffffff8127891d>] apei_exec_collect_resources+0x15/0x17
-    [<ffffffff81b010e5>] erst_init+0x278/0x2a3
-    [<ffffffff810020b5>] do_one_initcall+0x7b/0x116
-    [<ffffffff81ac9ee7>] kernel_init_freeable+0x13f/0x1cc
-    [<ffffffff813db19f>] kernel_init+0x9/0xd6
-    [<ffffffff813fe5bc>] ret_from_fork+0x7c/0xb0
-    [<ffffffffffffffff>] 0xffffffffffffffff
-unreferenced object 0xffff88024d221980 (size 32):
-  comm "swapper/0", pid 1, jiffies 4294894532 (age 26865.180s)
-  hex dump (first 32 bytes):
-    68 de 0c 73 02 88 ff ff 68 de 0c 73 02 88 ff ff  h..s....h..s....
-    b2 00 00 00 00 00 00 00 b3 00 00 00 00 00 00 00  ................
-  backtrace:
-    [<ffffffff813ddf40>] kmemleak_alloc+0x21/0x3e
-    [<ffffffff8111cb99>] kmemleak_alloc_recursive.constprop.58+0x16/0x18
-    [<ffffffff8111efac>] kmem_cache_alloc_trace+0xe6/0x12f
-    [<ffffffff81278f0e>] apei_res_add+0xb9/0xe8
-    [<ffffffff81278faa>] collect_res_callback+0x6d/0x7c
-    [<ffffffff812788ed>] apei_exec_for_each_entry+0x78/0x93
-    [<ffffffff8127891d>] apei_exec_collect_resources+0x15/0x17
-    [<ffffffff81b010e5>] erst_init+0x278/0x2a3
-    [<ffffffff810020b5>] do_one_initcall+0x7b/0x116
-    [<ffffffff81ac9ee7>] kernel_init_freeable+0x13f/0x1cc
-    [<ffffffff813db19f>] kernel_init+0x9/0xd6
-    [<ffffffff813fe5bc>] ret_from_fork+0x7c/0xb0
-    [<ffffffffffffffff>] 0xffffffffffffffff
-unreferenced object 0xffff88024d221960 (size 32):
-  comm "swapper/0", pid 1, jiffies 4294894532 (age 26865.180s)
-  hex dump (first 32 bytes):
-    00 de 0c 73 02 88 ff ff 40 19 22 4d 02 88 ff ff  ...s....@."M....
-    00 50 09 7e 00 00 00 00 00 90 29 7e 00 00 00 00  .P.~......)~....
-  backtrace:
-    [<ffffffff813ddf40>] kmemleak_alloc+0x21/0x3e
-    [<ffffffff8111cb99>] kmemleak_alloc_recursive.constprop.58+0x16/0x18
-    [<ffffffff8111efac>] kmem_cache_alloc_trace+0xe6/0x12f
-    [<ffffffff81278f0e>] apei_res_add+0xb9/0xe8
-    [<ffffffff81278fce>] apei_get_nvs_callback+0x15/0x17
-    [<ffffffff8125197d>] acpi_nvs_for_each_region+0x25/0x46
-    [<ffffffff8127903b>] apei_resources_request+0x56/0x217
-    [<ffffffff81b00f28>] erst_init+0xbb/0x2a3
-    [<ffffffff810020b5>] do_one_initcall+0x7b/0x116
-    [<ffffffff81ac9ee7>] kernel_init_freeable+0x13f/0x1cc
-    [<ffffffff813db19f>] kernel_init+0x9/0xd6
-    [<ffffffff813fe5bc>] ret_from_fork+0x7c/0xb0
-    [<ffffffffffffffff>] 0xffffffffffffffff
-unreferenced object 0xffff88024d221940 (size 32):
-  comm "swapper/0", pid 1, jiffies 4294894532 (age 26865.180s)
-  hex dump (first 32 bytes):
-    60 19 22 4d 02 88 ff ff 00 de 0c 73 02 88 ff ff  `."M.......s....
-    00 00 37 7f 00 00 00 00 00 60 3f 7f 00 00 00 00  ..7......`?.....
-  backtrace:
-    [<ffffffff813ddf40>] kmemleak_alloc+0x21/0x3e
-    [<ffffffff8111cb99>] kmemleak_alloc_recursive.constprop.58+0x16/0x18
-    [<ffffffff8111efac>] kmem_cache_alloc_trace+0xe6/0x12f
-    [<ffffffff81278f0e>] apei_res_add+0xb9/0xe8
-    [<ffffffff81278fce>] apei_get_nvs_callback+0x15/0x17
-    [<ffffffff8125197d>] acpi_nvs_for_each_region+0x25/0x46
-    [<ffffffff8127903b>] apei_resources_request+0x56/0x217
-    [<ffffffff81b00f28>] erst_init+0xbb/0x2a3
-    [<ffffffff810020b5>] do_one_initcall+0x7b/0x116
-    [<ffffffff81ac9ee7>] kernel_init_freeable+0x13f/0x1cc
-    [<ffffffff813db19f>] kernel_init+0x9/0xd6
-    [<ffffffff813fe5bc>] ret_from_fork+0x7c/0xb0
-    [<ffffffffffffffff>] 0xffffffffffffffff
+On 08/10/2013 12:32 AM, Tejun Heo wrote:
+> Hello,
+>
+> On Thu, Aug 08, 2013 at 06:16:12PM +0800, Tang Chen wrote:
+>> In previous parts' patches, we have obtained SRAT earlier enough, right after
+>> memblock is ready. So this patch-set does the following things:
+> Can you please set up a git branch with all patches?
+Hi tj,
+
+Please refer to the following tree:
+https://github.com/imtangchen/linux movablenode-boot-option
+
+It contains all 5 parts patches.
+
+Thanks.
+
+>
+>
+
+
+--------------080605040401010200060007
+Content-Type: text/html; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+
+<html>
+  <head>
+    <meta content="text/html; charset=ISO-8859-1"
+      http-equiv="Content-Type">
+  </head>
+  <body bgcolor="#FFFFFF" text="#000000">
+    On 08/10/2013 12:32 AM, Tejun Heo wrote:
+    <blockquote cite="mid:20130809163220.GU20515@mtj.dyndns.org"
+      type="cite">
+      <pre wrap="">Hello,
+
+On Thu, Aug 08, 2013 at 06:16:12PM +0800, Tang Chen wrote:
+</pre>
+      <blockquote type="cite">
+        <pre wrap="">In previous parts' patches, we have obtained SRAT earlier enough, right after
+memblock is ready. So this patch-set does the following things:
+</pre>
+      </blockquote>
+      <pre wrap="">
+Can you please set up a git branch with all patches?</pre>
+    </blockquote>
+    Hi tj,<br>
+    <br>
+    Please refer to the following tree:<br>
+    <meta http-equiv="content-type" content="text/html;
+      charset=ISO-8859-1">
+    <a href="https://github.com/imtangchen/linux">https://github.com/imtangchen/linux</a>
+    movablenode-boot-option<br>
+    <br>
+    It contains all 5 parts patches.<br>
+    <br>
+    Thanks.<br>
+    <br>
+    <blockquote cite="mid:20130809163220.GU20515@mtj.dyndns.org"
+      type="cite">
+      <pre wrap="">
+
+
+</pre>
+    </blockquote>
+    <br>
+  </body>
+</html>
+
+--------------080605040401010200060007--
+
+--
+To unsubscribe, send a message with 'unsubscribe linux-mm' in
+the body to majordomo@kvack.org.  For more info on Linux MM,
+see: http://www.linux-mm.org/ .
+Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
