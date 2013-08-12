@@ -1,39 +1,51 @@
-From: Tejun Heo <tj@kernel.org>
-Subject: Re: [PATCH part5 0/7] Arrange hotpluggable memory as ZONE_MOVABLE.
-Date: Mon, 12 Aug 2013 17:14:54 -0400
-Message-ID: <20130812211454.GE8288@mtj.dyndns.org>
-References: <52090D7F.6060600@gmail.com>
- <20130812164650.GN15892@htj.dyndns.org>
- <52092811.3020105@gmail.com>
- <20130812202029.GB8288@mtj.dyndns.org>
- <3908561D78D1C84285E8C5FCA982C28F31CB74A1@ORSMSX106.amr.corp.intel.com>
- <20130812205456.GC8288@mtj.dyndns.org>
- <52094C30.7070204@zytor.com>
- <CAE9FiQVb2Z+9kJ_gK22KJZ_hm7yVfM910mxaj+njcWTMf4f+yw@mail.gmail.com>
- <20130812210852.GD8288@mtj.dyndns.org>
- <52094FB9.1030508@zytor.com>
+From: Bjorn Helgaas <bhelgaas@google.com>
+Subject: Re: [PATCH 2/2] ACPI / PCI: remove an extra check from acpi_pci_irq_enable()
+Date: Mon, 12 Aug 2013 15:15:15 -0600
+Message-ID: <CAErSpo5ow1=mtCDKp=3F72hVzLSo_am=puO5N3w0x1JRsztsFQ@mail.gmail.com>
+References: <1375965314-24232-1-git-send-email-heikki.krogerus@linux.intel.com>
+ <1375965314-24232-3-git-send-email-heikki.krogerus@linux.intel.com> <2190379.Yl0SdRsOJp@vostro.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <owner-linux-mm@kvack.org>
-Content-Disposition: inline
-In-Reply-To: <52094FB9.1030508@zytor.com>
-Sender: owner-linux-mm@kvack.org
-To: "H. Peter Anvin" <hpa@zytor.com>
-Cc: Yinghai Lu <yinghai@kernel.org>, "Luck, Tony" <tony.luck@intel.com>, Tang Chen <imtangchen@gmail.com>, Tang Chen <tangchen@cn.fujitsu.com>, "Moore, Robert" <robert.moore@intel.com>, "Zheng, Lv" <lv.zheng@intel.com>, "rjw@sisk.pl" <rjw@sisk.pl>, "lenb@kernel.org" <lenb@kernel.org>, "tglx@linutronix.de" <tglx@linutronix.de>, "mingo@elte.hu" <mingo@elte.hu>, "akpm@linux-foundation.org" <akpm@linux-foundation.org>, "trenn@suse.de" <trenn@suse.de>, "jiang.liu@huawei.com" <jiang.liu@huawei.com>, "wency@cn.fujitsu.com" <wency@cn.fujitsu.com>, "laijs@cn.fujitsu.com" <laijs@cn.fujitsu.com>, "isimatu.yasuaki@jp.fujitsu.com" <isimatu.yasuaki@jp.fujitsu.com>, "izumi.taku@jp.fujitsu.com" <izumi.taku@jp.fujitsu.com>, "mgorman@suse.de" <mgorman@suse.de>, "minchan@kernel.org" <minchan@kernel.org>, "mina86@mina86.com" <mina86@mina86.com>, "gong.chen@linux.intel.com" <gong.chen@linux>
+Content-Type: text/plain; charset=ISO-8859-1
+Return-path: <linux-pci-owner@vger.kernel.org>
+In-Reply-To: <2190379.Yl0SdRsOJp@vostro.rjw.lan>
+Sender: linux-pci-owner@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: Heikki Krogerus <heikki.krogerus@linux.intel.com>, Prarit Bhargava <prarit@redhat.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, Linux PCI <linux-pci@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On Mon, Aug 12, 2013 at 02:12:25PM -0700, H. Peter Anvin wrote:
-> The BRK is what we know is free.  Beyond that point you need
-> understanding of the memory map.
+On Thu, Aug 8, 2013 at 7:58 AM, Rafael J. Wysocki <rjw@sisk.pl> wrote:
+> On Thursday, August 08, 2013 03:35:14 PM Heikki Krogerus wrote:
+>> acpi_isa_irq_to_gsi() will check if the irq is within
+>> accepted rage so there is no need to check it separately.
+>>
+>> Signed-off-by: Heikki Krogerus <heikki.krogerus@linux.intel.com>
+>
+> Hi Bjorn,
+>
+> Does this look OK to you?
 
-Hmmm?  All this happens after e820.  We *know* which memory is useable
-and free.  We just don't know which nodes they belong to.
+Acked-by: Bjorn Helgaas <bhelgaas@google.com>
 
--- 
-tejun
-
---
-To unsubscribe, send a message with 'unsubscribe linux-mm' in
-the body to majordomo@kvack.org.  For more info on Linux MM,
-see: http://www.linux-mm.org/ .
-Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
+>> ---
+>>  drivers/acpi/pci_irq.c | 4 +---
+>>  1 file changed, 1 insertion(+), 3 deletions(-)
+>>
+>> diff --git a/drivers/acpi/pci_irq.c b/drivers/acpi/pci_irq.c
+>> index 902ed1c..e71e7fa 100644
+>> --- a/drivers/acpi/pci_irq.c
+>> +++ b/drivers/acpi/pci_irq.c
+>> @@ -427,9 +427,7 @@ int acpi_pci_irq_enable(struct pci_dev *dev)
+>>                       return -ENOENT;
+>>               }
+>>
+>> -             /* Interrupt Line values above 0xF are forbidden */
+>> -             if ((dev->irq <= 0xF) &&
+>> -                 (acpi_isa_irq_to_gsi(dev->irq, &dev_gsi) == 0)) {
+>> +             if (acpi_isa_irq_to_gsi(dev->irq, &dev_gsi) == 0) {
+>>                       dev_warn(&dev->dev, "PCI INT %c: no GSI - using ISA IRQ %d\n",
+>>                                pin_name(pin), dev->irq);
+>>                       acpi_register_gsi(&dev->dev, dev_gsi,
+>>
+> --
+> I speak only for myself.
+> Rafael J. Wysocki, Intel Open Source Technology Center.
