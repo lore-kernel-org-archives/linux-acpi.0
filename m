@@ -1,124 +1,94 @@
 From: Toshi Kani <toshi.kani@hp.com>
-Subject: [PATCH] mm/hotplug: Remove stop_machine() from try_offline_node()
-Date: Mon, 12 Aug 2013 13:34:31 -0600
-Message-ID: <1376336071-9128-1-git-send-email-toshi.kani@hp.com>
+Subject: Re: [PATCH] ACPI, cpu hotplug: move try_offline_node() after
+ acpi_unmap_lsapic()
+Date: Mon, 12 Aug 2013 14:08:23 -0600
+Message-ID: <1376338103.10300.336.camel@misato.fc.hp.com>
+References: <5200CBBF.1090904@jp.fujitsu.com>
+	 <7919266.6MVd1N6sIX@vostro.rjw.lan>
+	 <1376100679.10300.333.camel@misato.fc.hp.com>
+	 <33585791.CVfk6FmZRF@vostro.rjw.lan>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from g1t0028.austin.hp.com ([15.216.28.35]:14226 "EHLO
-	g1t0028.austin.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751915Ab3HLTgB (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 12 Aug 2013 15:36:01 -0400
+Received: from g4t0014.houston.hp.com ([15.201.24.17]:24379 "EHLO
+	g4t0014.houston.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751142Ab3HLUJi (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 12 Aug 2013 16:09:38 -0400
+In-Reply-To: <33585791.CVfk6FmZRF@vostro.rjw.lan>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: akpm@linux-foundation.org
-Cc: linux-mm@kvack.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, rjw@sisk.pl, kosaki.motohiro@jp.fujitsu.com, kamezawa.hiroyu@jp.fujitsu.com, tangchen@cn.fujitsu.com, isimatu.yasuaki@jp.fujitsu.com, liwanp@linux.vnet.ibm.com, Toshi Kani <toshi.kani@hp.com>
+To: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: Tang Chen <tangchen@cn.fujitsu.com>, Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>, rafael.j.wysocki@intel.com, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Wen Congyang <wency@cn.fujitsu.com>
 
-lock_device_hotplug() serializes hotplug & online/offline operations.
-The lock is held in common sysfs online/offline interfaces and ACPI
-hotplug code paths.
+On Sun, 2013-08-11 at 22:42 +0200, Rafael J. Wysocki wrote:
+> On Friday, August 09, 2013 08:11:19 PM Toshi Kani wrote:
+> > On Sat, 2013-08-10 at 01:29 +0200, Rafael J. Wysocki wrote:
+> > > On Friday, August 09, 2013 04:16:56 PM Toshi Kani wrote:
+> > > > On Fri, 2013-08-09 at 15:28 +0800, Tang Chen wrote:
+> > > > > On 08/07/2013 12:56 AM, Toshi Kani wrote:
+ :
+> > > > > > BTW, do you know why try_offline_node() has to use stop_machine()?
+> > > > > 
+> > > > > try_offline_node() is used to check if the node could be hot-removed
+> > > > > after each memory or cpu hot-remove operation.
+> > > > > 
+> > > > > In memory hot-remove path, we have lock_memory_hotplug() to series all
+> > > > > the memory hot-remove options.
+> > > > > 
+> > > > > But when doing cpu hot-remove,
+> > > > > 
+> > > > > acpi_processor_remove()
+> > > > >   |->try_offline_node()
+> > > > > 
+> > > > > There is no lock to protect it. I think, when we are going to hot-remove
+> > > > > a node, others should not do any memory or cpu hotplug operation. In memory
+> > > > > hotplug path, we have lock_memory_hotplug(). But in cpu hotplug path, I
+> > > > > didn't find any lock. So we used stop_machine() to call check_cpu_on_node().
+> > > > > If we find any cpu still present, we return and do not remove the node.
+> > > > 
+> > > > CPU/Memory hotplug operations and sysfs eject are serialized with
+> > > > acpi_os_hotplug_execute().  CPU online/offline is protected by
+> > > > cpu_hotplug_[begin|done]() and [get|put]_online_cpus().  But, yes,
+> > > > online/offline and hotplug operations are not serialized.  I tried to
+> > > > serialize them before, but that framework was not well received.
+> > > 
+> > > What about lock_device_hotplug()?  It is taken by both online/offline and
+> > > the ACPI hotplug code, isn't it?
+> > 
+> > Oh, that's right!  I forgot about this one.  Yes, lock_device_hotplug()
+> > nicely protects online/offline and hotplug operations. :-)
+> > 
+> > > > Anyway, it looks to me that cpu_up()->mem_online_node() path can race
+> > > > with try_offline_node().
+> > > 
+> > > It can in principle, but I'm not sure if there's a way to trigger that
+> > > race.  Do you have an example?
+> > 
+> > With lock_device_hotplug(), I agree that we do not have this race
+> > condition -- cpu_up() may not run while other hotplug is running.
+> > store_online() will be blocked at lock_device_hotplug() in such case.
+> > When store_online() acquired the lock, this CPU may have been deleted.
+> > So, we still need to make sure that this case is handled properly.
+> 
+> Yes.
+> 
+> > I suppose sysfs keeps *dev valid with ref_count (Is that right?).
+> 
+> Yes, it does.
+> 
+> > I think cpu_up() needs to check with cpu_present(), not cpu_possible(), at
+> > the top.  Otherwise, cpu_to_node(cpu) may return NUMA_NO_NODE (-1), which is
+> > probably not a good value for node_online(nid).
+> 
+> We do cpu_to_node(cpuid) in cpu_subsys_online() before that, so maybe
+> it's better to check the result already there and bail out if that's
+> negative?
+> 
+> Something like the patch below.
 
-try_offline_node() off-lines a node if all memory sections and cpus
-are removed on the node.  It is called from acpi_processor_remove()
-and acpi_memory_remove_memory()->remove_memory() paths, both of which
-are in the ACPI hotplug code.
+That looks good to me.
 
-try_offline_node() calls stop_machine() to stop all cpus while checking
-all cpu status with the assumption that the caller is not protected from
-CPU hotplug or CPU online/offline operations.  However, the caller is
-always serialized with lock_device_hotplug().  Also, the code needs to
-be properly serialized with a lock, not by stopping all cpus at a random
-place with stop_machine().
+Thanks,
+-Toshi
 
-This patch removes the use of stop_machine() in try_offline_node() and
-adds comments to try_offline_node() and remove_memory() that
-lock_device_hotplug() is required.
-
-Signed-off-by: Toshi Kani <toshi.kani@hp.com>
----
- mm/memory_hotplug.c |   31 ++++++++++++++++++++++---------
- 1 file changed, 22 insertions(+), 9 deletions(-)
-
-diff --git a/mm/memory_hotplug.c b/mm/memory_hotplug.c
-index ca1dd3a..0b4b0f7 100644
---- a/mm/memory_hotplug.c
-+++ b/mm/memory_hotplug.c
-@@ -1674,9 +1674,8 @@ static int is_memblock_offlined_cb(struct memory_block *mem, void *arg)
- 	return ret;
- }
- 
--static int check_cpu_on_node(void *data)
-+static int check_cpu_on_node(pg_data_t *pgdat)
- {
--	struct pglist_data *pgdat = data;
- 	int cpu;
- 
- 	for_each_present_cpu(cpu) {
-@@ -1691,10 +1690,9 @@ static int check_cpu_on_node(void *data)
- 	return 0;
- }
- 
--static void unmap_cpu_on_node(void *data)
-+static void unmap_cpu_on_node(pg_data_t *pgdat)
- {
- #ifdef CONFIG_ACPI_NUMA
--	struct pglist_data *pgdat = data;
- 	int cpu;
- 
- 	for_each_possible_cpu(cpu)
-@@ -1703,10 +1701,11 @@ static void unmap_cpu_on_node(void *data)
- #endif
- }
- 
--static int check_and_unmap_cpu_on_node(void *data)
-+static int check_and_unmap_cpu_on_node(pg_data_t *pgdat)
- {
--	int ret = check_cpu_on_node(data);
-+	int ret;
- 
-+	ret = check_cpu_on_node(pgdat);
- 	if (ret)
- 		return ret;
- 
-@@ -1715,11 +1714,18 @@ static int check_and_unmap_cpu_on_node(void *data)
- 	 * the cpu_to_node() now.
- 	 */
- 
--	unmap_cpu_on_node(data);
-+	unmap_cpu_on_node(pgdat);
- 	return 0;
- }
- 
--/* offline the node if all memory sections of this node are removed */
-+/**
-+ * try_offline_node
-+ *
-+ * Offline a node if all memory sections and cpus of the node are removed.
-+ *
-+ * NOTE: The caller must call lock_device_hotplug() to serialize hotplug
-+ * and online/offline operations before this call.
-+ */
- void try_offline_node(int nid)
- {
- 	pg_data_t *pgdat = NODE_DATA(nid);
-@@ -1745,7 +1751,7 @@ void try_offline_node(int nid)
- 		return;
- 	}
- 
--	if (stop_machine(check_and_unmap_cpu_on_node, pgdat, NULL))
-+	if (check_and_unmap_cpu_on_node(pgdat))
- 		return;
- 
- 	/*
-@@ -1782,6 +1788,13 @@ void try_offline_node(int nid)
- }
- EXPORT_SYMBOL(try_offline_node);
- 
-+/**
-+ * remove_memory
-+ *
-+ * NOTE: The caller must call lock_device_hotplug() to serialize hotplug
-+ * and online/offline operations before this call, as required by
-+ * try_offline_node().
-+ */
- void __ref remove_memory(int nid, u64 start, u64 size)
- {
- 	int ret;
