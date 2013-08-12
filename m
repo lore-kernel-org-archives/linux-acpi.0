@@ -1,81 +1,93 @@
-From: Tejun Heo <tj@kernel.org>
-Subject: Re: [PATCH part5 0/7] Arrange hotpluggable memory as ZONE_MOVABLE.
-Date: Mon, 12 Aug 2013 16:20:29 -0400
-Message-ID: <20130812202029.GB8288@mtj.dyndns.org>
-References: <1375956979-31877-1-git-send-email-tangchen@cn.fujitsu.com>
- <20130812145016.GI15892@htj.dyndns.org>
- <5208FBBC.2080304@zytor.com>
- <20130812152343.GK15892@htj.dyndns.org>
- <52090D7F.6060600@gmail.com>
- <20130812164650.GN15892@htj.dyndns.org>
- <52092811.3020105@gmail.com>
+From: Toshi Kani <toshi.kani@hp.com>
+Subject: Re: Cannot hot remove a memory device
+Date: Mon, 12 Aug 2013 14:40:43 -0600
+Message-ID: <1376340043.10300.360.camel@misato.fc.hp.com>
+References: <51FA1E41.20304@jp.fujitsu.com>
+	 <13789925.vhhiTlyGIy@vostro.rjw.lan>
+	 <1376002242.10300.235.camel@misato.fc.hp.com>
+	 <1637752.e6s4mPrvSE@vostro.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <owner-linux-mm@kvack.org>
-Content-Disposition: inline
-In-Reply-To: <52092811.3020105@gmail.com>
-Sender: owner-linux-mm@kvack.org
-To: Tang Chen <imtangchen@gmail.com>
-Cc: "H. Peter Anvin" <hpa@zytor.com>, Tang Chen <tangchen@cn.fujitsu.com>, robert.moore@intel.com, lv.zheng@intel.com, rjw@sisk.pl, lenb@kernel.org, tglx@linutronix.de, mingo@elte.hu, akpm@linux-foundation.org, trenn@suse.de, yinghai@kernel.org, jiang.liu@huawei.com, wency@cn.fujitsu.com, laijs@cn.fujitsu.com, isimatu.yasuaki@jp.fujitsu.com, izumi.taku@jp.fujitsu.com, mgorman@suse.de, minchan@kernel.org, mina86@mina86.com, gong.chen@linux.intel.com, vasilis.liaskovitis@profitbricks.com, lwoodman@redhat.com, riel@redhat.com, jweiner@redhat.com, prarit@redhat.com, zhangyanfei@cn.fujitsu.com, yanghy@cn.fujitsu.com, x86@kernel.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-mm@kvack.org, linux-acpi@vger.kernel.org, "Luck, Tony (tony.luck@intel.com)" <tony.luck@intel.com>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1637752.e6s4mPrvSE@vostro.rjw.lan>
+Sender: linux-kernel-owner@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>, rafael.j.wysocki@intel.com, vasilis.liaskovitis@profitbricks.com, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, tangchen@cn.fujitsu.com, wency@cn.fujitsu.com
 List-Id: linux-acpi@vger.kernel.org
 
-Hello,
-
-On Tue, Aug 13, 2013 at 02:23:13AM +0800, Tang Chen wrote:
-> >* However, we already *know* that the memory the kernel image is
-> >   occupying won't be removeable.  It's highly likely that the amount
-> >   of memory allocation before NUMA / hotplug information is fully
-> >   populated is pretty small.  Also, it's highly likely that small
-> >   amount of memory right after the kernel image is contained in the
-> >   same NUMA node, so if we allocate memory close to the kernel image,
-> >   it's likely that we don't contaminate hotpluggable node.  We're
-> >   talking about few megs at most right after the kernel image.  I
-> >   can't see how that would make any noticeable difference.
+On Sun, 2013-08-11 at 23:13 +0200, Rafael J. Wysocki wrote:
+> On Thursday, August 08, 2013 04:50:42 PM Toshi Kani wrote:
+> > On Fri, 2013-08-09 at 00:12 +0200, Rafael J. Wysocki wrote:
+> > > On Thursday, August 08, 2013 11:15:20 AM Toshi Kani wrote:
+> > > > On Fri, 2013-08-02 at 18:04 -0600, Toshi Kani wrote:
+> > > > > On Sat, 2013-08-03 at 01:43 +0200, Rafael J. Wysocki wrote:
+> > > > > > On Friday, August 02, 2013 03:46:15 PM Toshi Kani wrote:
+> > > > > > > On Thu, 2013-08-01 at 23:43 +0200, Rafael J. Wysocki wrote:
+> > > >  :
+> > > > > > > I think it fails with -EINVAL at the place with dev_warn(dev, "ACPI
+> > > > > > > handle is already set\n").  When two ACPI memory objects associate with
+> > > > > > > a same memory block, the bind procedure of the 2nd ACPI memory object
+> > > > > > > sees that ACPI_HANDLE(dev) is already set to the 1st ACPI memory object.
+> > > > > > 
+> > > > > > That sound's plausible, but I wonder how we can fix that?
+> > > > > > 
+> > > > > > There's no way for a single physical device to have two different ACPI
+> > > > > > "companions".  It looks like the memory blocks should be 64 M each in that
+> > > > > > case.  Or we need to create two child devices for each memory block and
+> > > > > > associate each of them with an ACPI object.  That would lead to complications
+> > > > > > in the user space interface, though.
+> > > > > 
+> > > > > Right.  Even bigger issue is that I do not think __add_pages() and
+> > > > > __remove_pages() can add / delete a memory chunk that is less than
+> > > > > 128MB.  128MB is the granularity of them.  So, we may just have to fail
+> > > > > this case gracefully.
+> > > > 
+> > > > FYI: I have submitted the patch blow to close this part of the issue...
+> > > > 
+> > > > https://lkml.org/lkml/2013/8/8/396
+> > > 
+> > > That looks good to me, but we'd still need to make it possible to have
+> > > memory blocks smaller than 128 MB ...
+> > 
+> > Do you mean acpi_bind_one() needs to be able to handle such case?  If
+> > so, it should not be a problem since a memory block device won't be
+> > created when add_memory() fails with the change above.  So, there is no
+> > binding to be done.  If you mean add_memory() needs to be able to handle
+> > a smaller range, that's quite a tough one unless we make the section
+> > size smaller.
+> > 
+> > BTW, when add_memory() fails, the memory hot-add request still succeeds
+> > with no driver attached.  This seems logical, but the added device is
+> > useless when no handler is attached.  And it does not allow ejecting the
+> > device with no handler.  I am not too worry about this since this is a
+> > rare case, but it reminded me that the framework won't handle rollback.
 > 
-> This point, I don't quite agree. What you said is highly likely, but
-> not definitely. Users may find they lost hotpluggable memory.
+> I'm not sure which rollback you mean.  During removal?
 
-I'm having difficult time buying that.  NUMA node granularity is
-usually pretty large - it's in the range of gigabytes.  By comparison,
-the area occupied by the kernel image is *tiny* and it's just highly
-unlikely that allocating a bit more memory afterwards would lead to
-any meaningful difference in hotunplug support.  The amount of memory
-we're talking about is likely to be less than a meg, right?
+I meant rollback during hot-add.  Ideally, a device should be either
+added in usable state (success) or failed back to the original state
+(rollback).  Added in un-usable state is not really a success for users,
+and creates an odd state to deal with.  But it is still a LOT better
+than crashing the system.  So, I think this outcome is reasonable on
+this framework because adding rollback at this point will complicate the
+things unnecessarily.
 
-> The node the kernel resides in won't be removable. This is agreed.
-> But I still want SRAT earlier for the following reasons:
-> 
-> 1. For a production provided to users, the firmware specified how
->    many nodes are hotpluggable. When the system is up, if users
->    found they lost movable nodes, I think it could be messy.
+> There are two slight problems here in my view.  First, even if the device
+> cannot be ejected directly, it still will be removed when its parent is
+> ejected, so it may be more consistent to just allow everything to be ejected
+> regardless of whether or not it has a scan handler.  
 
-How is that different from the memory occupied by kernel image?
-Simply allocating early memory near kernel image is extremely unlikely
-to change the situation.  Again, we're talking about tiny allocation
-here.  It should be no different from having *slightly* larger kernel
-image.  How is that material in any way?
+Agreed.
 
-> 2. Reorder SRAT parsing earlier is not that difficult to do. The
->    only procedures reordered are acpi tables initialization and
->    acpi_initrd_override. The acpi part patches are being reviewed.
->    And it is better solution. If possible, I think we should do it.
+> Second, I guess the
+> removal is undesirable for memory devices for which the registration of the
+> scan handler failed, so it would be good to fail the "offline" of such devices
+> regardless of how we get there.  That's why I thought it would be good to have
+> an "offline disabled" flag in struct acpi_device.
 
-I don't think it's a better solution.  It's fragile and fiddly and
-without much, if any, additional benefit.  Why should we do that when
-we can almost trivially solve the problem almost in memblock proper in
-a way which is completely firmware-agnostic?
+I see.  But when attach() failed, the memory device may not be used by
+the kernel.  So, I think it should be safe to remove it.
 
-But, what's the extra benefit of doing that?  Why would reserving less
-than a megabyte after the kernel be so problematic to require this
-invasive solution?
-
-Thanks.
-
--- 
-tejun
-
---
-To unsubscribe, send a message with 'unsubscribe linux-mm' in
-the body to majordomo@kvack.org.  For more info on Linux MM,
-see: http://www.linux-mm.org/ .
-Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
+Thanks,
+-Toshi
