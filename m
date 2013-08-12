@@ -1,50 +1,71 @@
-From: Borislav Petkov <bp@alien8.de>
-Subject: Re: [PATCH 3/3] mce: acpi/apei: trace: Enable ghes memory error
- trace event
-Date: Mon, 12 Aug 2013 19:56:31 +0200
-Message-ID: <20130812175631.GI18018@pd.tnic>
-References: <1375986471-27113-1-git-send-email-naveen.n.rao@linux.vnet.ibm.com>
- <1375986471-27113-4-git-send-email-naveen.n.rao@linux.vnet.ibm.com>
- <20130808163822.67e0828a@samsung.com>
- <20130810180322.GC4155@pd.tnic>
- <20130812083355.47c1bae8@samsung.com>
- <20130812123813.GD18018@pd.tnic>
- <20130812114932.52bb0314@samsung.com>
- <20130812150424.GH18018@pd.tnic>
- <20130812142557.2a43f155@samsung.com>
+From: Tejun Heo <tj@kernel.org>
+Subject: Re: [PATCH part5 0/7] Arrange hotpluggable memory as ZONE_MOVABLE.
+Date: Mon, 12 Aug 2013 14:07:58 -0400
+Message-ID: <20130812180758.GA8288@mtj.dyndns.org>
+References: <1375956979-31877-1-git-send-email-tangchen@cn.fujitsu.com>
+ <20130812145016.GI15892@htj.dyndns.org>
+ <52090225.6070208@gmail.com>
+ <20130812154623.GL15892@htj.dyndns.org>
+ <52090AF6.6020206@gmail.com>
+ <20130812162247.GM15892@htj.dyndns.org>
+ <520914D5.7080501@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <owner-linux-mm@kvack.org>
 Content-Disposition: inline
-In-Reply-To: <20130812142557.2a43f155@samsung.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Mauro Carvalho Chehab <m.chehab@samsung.com>, "Naveen N. Rao" <naveen.n.rao@linux.vnet.ibm.com>
-Cc: tony.luck@intel.com, bhelgaas@google.com, rostedt@goodmis.org, rjw@sisk.pl, lance.ortiz@hp.com, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+In-Reply-To: <520914D5.7080501@gmail.com>
+Sender: owner-linux-mm@kvack.org
+To: Tang Chen <imtangchen@gmail.com>
+Cc: Tang Chen <tangchen@cn.fujitsu.com>, robert.moore@intel.com, lv.zheng@intel.com, rjw@sisk.pl, lenb@kernel.org, tglx@linutronix.de, mingo@elte.hu, hpa@zytor.com, akpm@linux-foundation.org, trenn@suse.de, yinghai@kernel.org, jiang.liu@huawei.com, wency@cn.fujitsu.com, laijs@cn.fujitsu.com, isimatu.yasuaki@jp.fujitsu.com, izumi.taku@jp.fujitsu.com, mgorman@suse.de, minchan@kernel.org, mina86@mina86.com, gong.chen@linux.intel.com, vasilis.liaskovitis@profitbricks.com, lwoodman@redhat.com, riel@redhat.com, jweiner@redhat.com, prarit@redhat.com, zhangyanfei@cn.fujitsu.com, yanghy@cn.fujitsu.com, x86@kernel.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-mm@kvack.org, linux-acpi@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Mon, Aug 12, 2013 at 02:25:57PM -0300, Mauro Carvalho Chehab wrote:
-> Userspace still needs the EDAC sysfs, in order to identify how the
-> memory is organized, and do the proper memory labels association.
->
-> What edac_ghes does is to fill those sysfs nodes, and to call the
-> existing tracing to report errors.
+Hey,
 
-This is the only reason which justifies EDAC's existence. Naveen, can
-your BIOS directly report the silkscreen label of the DIMM in error?
-Generally, can any BIOS do that?
+On Tue, Aug 13, 2013 at 01:01:09AM +0800, Tang Chen wrote:
+> Sorry for the misunderstanding.
+> 
+> I was trying to answer your question: "Why can't the kenrel allocate
+> hotpluggable memory opportunistic ?".
 
-More specifically, what are those gdata_fru_id and gdata_fru_text
-things?
+I've used the wrong word, I was meaning best-effort, which is the only
+thing we can do anyway given that we have no control over where the
+kernel image is linked in relation to NUMA nodes.
 
-Because if it can, then having the memory error tracepoint come direct
-from APEI should be enough. The ghes_edac functionality could be then
-fallback for BIOSes which cannot report the silkscreen label and in such
-case I can imagine keeping both tracepoints, but disabling one of the
-two...
+> If the kernel has any opportunity to allocate hotpluggable memory in
+> SRAT, then the kernel should tell users which memory is hotpluggable.
+> 
+> But in what way ?  I think node is the best for now. But a node could
+> have a lot of memory. If the kernel uses only a little memory, we will
+> lose the whole movable node, which I don't want to do.
+> 
+> So, I don't want to allow the kenrel allocating hotpluggable memory
+> opportunistic.
+
+What I was saying was that the kernel should try !hotpluggable memory
+first then fall back to hotpluggable memory instead of failing boot as
+nothing really is worse than failing to boot.
+
+> >Short of being able to remap memory under the kernel, I don't think
+> >this can be very generic and as a compromise trying to keep as many
+> >hotpluggable nodes as possible doesn't sound too bad.
+> 
+> I think making one of the node hotpluggable is better. But OK, it is
+> no big deal. There won't be such machine in reality, I think. :)
+
+Hmmm... but allocating close to kernel image will keep the number of
+nodes which are made un-removeable via permanent allocation to
+minimum.  In most configurations that I can recall, I don't think we'd
+lose anything really and the code will be much simpler and generic.
+It seems like a good trade-off to me given that we need to report
+which nodes are hot unpluggable no matter what.
+
+Thanks.
 
 -- 
-Regards/Gruss,
-    Boris.
+tejun
 
-Sent from a fat crate under my desk. Formatting is fine.
 --
+To unsubscribe, send a message with 'unsubscribe linux-mm' in
+the body to majordomo@kvack.org.  For more info on Linux MM,
+see: http://www.linux-mm.org/ .
+Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
