@@ -1,52 +1,57 @@
-From: "H. Peter Anvin" <hpa@zytor.com>
-Subject: Re: [PATCH part5 0/7] Arrange hotpluggable memory as ZONE_MOVABLE.
-Date: Mon, 12 Aug 2013 10:23:28 -0700
-Message-ID: <52091A10.4030501@zytor.com>
-References: <1375956979-31877-1-git-send-email-tangchen@cn.fujitsu.com> <20130812145016.GI15892@htj.dyndns.org> <52090225.6070208@gmail.com> <20130812154623.GL15892@htj.dyndns.org> <52090AF6.6020206@gmail.com> <20130812162247.GM15892@htj.dyndns.org> <520914D5.7080501@gmail.com>
+From: Mauro Carvalho Chehab <m.chehab@samsung.com>
+Subject: Re: [PATCH 3/3] mce: acpi/apei: trace: Enable ghes memory error trace
+ event
+Date: Mon, 12 Aug 2013 14:25:57 -0300
+Message-ID: <20130812142557.2a43f155@samsung.com>
+References: <1375986471-27113-1-git-send-email-naveen.n.rao@linux.vnet.ibm.com>
+ <1375986471-27113-4-git-send-email-naveen.n.rao@linux.vnet.ibm.com>
+ <20130808163822.67e0828a@samsung.com> <20130810180322.GC4155@pd.tnic>
+ <20130812083355.47c1bae8@samsung.com> <20130812123813.GD18018@pd.tnic>
+ <20130812114932.52bb0314@samsung.com> <20130812150424.GH18018@pd.tnic>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
-Return-path: <owner-linux-mm@kvack.org>
-In-Reply-To: <520914D5.7080501@gmail.com>
-Sender: owner-linux-mm@kvack.org
-To: Tang Chen <imtangchen@gmail.com>
-Cc: Tejun Heo <tj@kernel.org>, Tang Chen <tangchen@cn.fujitsu.com>, robert.moore@intel.com, lv.zheng@intel.com, rjw@sisk.pl, lenb@kernel.org, tglx@linutronix.de, mingo@elte.hu, akpm@linux-foundation.org, trenn@suse.de, yinghai@kernel.org, jiang.liu@huawei.com, wency@cn.fujitsu.com, laijs@cn.fujitsu.com, isimatu.yasuaki@jp.fujitsu.com, izumi.taku@jp.fujitsu.com, mgorman@suse.de, minchan@kernel.org, mina86@mina86.com, gong.chen@linux.intel.com, vasilis.liaskovitis@profitbricks.com, lwoodman@redhat.com, riel@redhat.com, jweiner@redhat.com, prarit@redhat.com, zhangyanfei@cn.fujitsu.com, yanghy@cn.fujitsu.com, x86@kernel.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-mm@kvack.org, linux-acpi@vger.kernel.org
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mailout3.w2.samsung.com ([211.189.100.13]:27519 "EHLO
+	usmailout3.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757243Ab3HLR0G (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 12 Aug 2013 13:26:06 -0400
+In-reply-to: <20130812150424.GH18018@pd.tnic>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Borislav Petkov <bp@alien8.de>
+Cc: "Naveen N. Rao" <naveen.n.rao@linux.vnet.ibm.com>, tony.luck@intel.com, bhelgaas@google.com, rostedt@goodmis.org, rjw@sisk.pl, lance.ortiz@hp.com, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 
-On 08/12/2013 10:01 AM, Tang Chen wrote:
->>
->>> I'm just thinking of a more extreme case. For example, if a machine
->>> has only one node hotpluggable, and the kernel resides in that node.
->>> Then the system has no hotpluggable node.
->>
->> Yeah, sure, then there's no way that node can be hotpluggable and the
->> right thing to do is booting up the machine and informing the userland
->> that memory is not hotpluggable.
->>
->>> If we can prevent the kernel from using hotpluggable memory, in such
->>> a machine, users can still do memory hotplug.
->>>
->>> I wanted to do it as generic as possible. But yes, finding out the
->>> nodes the kernel resides in and make it unhotpluggable can work.
->>
->> Short of being able to remap memory under the kernel, I don't think
->> this can be very generic and as a compromise trying to keep as many
->> hotpluggable nodes as possible doesn't sound too bad.
+Em Mon, 12 Aug 2013 17:04:24 +0200
+Borislav Petkov <bp@alien8.de> escreveu:
+
+> On Mon, Aug 12, 2013 at 11:49:32AM -0300, Mauro Carvalho Chehab wrote:
+> > Clear win from what PoV? Userspace will need to decode a different type
+> > of tracing, and implement a different logic for APEI.
 > 
-> I think making one of the node hotpluggable is better. But OK, it is
-> no big deal. There won't be such machine in reality, I think. :)
+> There's no different type of tracing - it is the same info as in both
+> cases it comes from APEI.
+
+Well, patch 2/3 is defining a different type of tracing for memory errors,
+instead of re-using the existing one.
+
+> And if it can be done in the APEI layer, then
+> we don't need the next layer.
+
+Userspace still needs the EDAC sysfs, in order to identify how the memory
+is organized, and do the proper memory labels association.
+
+What edac_ghes does is to fill those sysfs nodes, and to call the
+existing tracing to report errors.
+
+> > Also, if both ghes_edac and this new tracing is enabled, userspace
+> > will receive twice the same event, as two traces will be received for
+> > the same thing.
 > 
+> We are, of course, going to have only one tracepoint which reports
+> memory errors, not two.
 
-The user may very well have configured a system with mirrored memory for
-the kernel node as that will be non-hotpluggable, but not for the
-others.  One can wonder how much that actually buys in real life, but
-still...
+Yes, that's my point.
 
-	-hpa
-
-
---
-To unsubscribe, send a message with 'unsubscribe linux-mm' in
-the body to majordomo@kvack.org.  For more info on Linux MM,
-see: http://www.linux-mm.org/ .
-Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
+Regards,
+Mauro
