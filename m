@@ -1,34 +1,46 @@
-From: "H. Peter Anvin" <hpa@zytor.com>
-Subject: Re: [PATCH part5 0/7] Arrange hotpluggable memory as ZONE_MOVABLE.
-Date: Mon, 12 Aug 2013 14:28:06 -0700
-Message-ID: <52095366.4020106@zytor.com>
-References: <1375956979-31877-1-git-send-email-tangchen@cn.fujitsu.com> <20130812145016.GI15892@htj.dyndns.org> <5208FBBC.2080304@zytor.com> <20130812152343.GK15892@htj.dyndns.org> <52090D7F.6060600@gmail.com> <20130812164650.GN15892@htj.dyndns.org> <52092811.3020105@gmail.com> <20130812202029.GB8288@mtj.dyndns.org> <3908561D78D1C84285E8C5FCA982C28F31CB74A1@ORSMSX106.amr.corp.intel.com> <20130812205456.GC8288@mtj.dyndns.org> <3908561D78D1C84285E8C5FCA982C28F31CB7552@ORSMSX106.amr.corp.intel.com> <CAE9FiQVB18Rzf0nHi_1=TK8oHZ=tttOZRfrmVK=UqzHEc=8mww@mail.gmail.com>
+From: Yinghai Lu <yinghai@kernel.org>
+Subject: Re: [PATCH 1/2] ACPI / PCI: don't allow PCI devices without irq to be enabled
+Date: Mon, 12 Aug 2013 14:32:00 -0700
+Message-ID: <CAE9FiQV3ohndZGvWHByA76G=Cb3NEVn4ukpoF==zHsLw8oaopA@mail.gmail.com>
+References: <1375965314-24232-1-git-send-email-heikki.krogerus@linux.intel.com>
+	<1375965314-24232-2-git-send-email-heikki.krogerus@linux.intel.com>
+	<14983102.aCV009CSMA@vostro.rjw.lan>
+	<CAErSpo6N65EOy6ieZSKN8eO09GoCFe05YOMRNMhx8RLHbqN=yw@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
-Return-path: <owner-linux-mm@kvack.org>
-In-Reply-To: <CAE9FiQVB18Rzf0nHi_1=TK8oHZ=tttOZRfrmVK=UqzHEc=8mww@mail.gmail.com>
-Sender: owner-linux-mm@kvack.org
-To: Yinghai Lu <yinghai@kernel.org>
-Cc: "Luck, Tony" <tony.luck@intel.com>, Tejun Heo <tj@kernel.org>, Tang Chen <imtangchen@gmail.com>, Tang Chen <tangchen@cn.fujitsu.com>, "Moore, Robert" <robert.moore@intel.com>, "Zheng, Lv" <lv.zheng@intel.com>, "rjw@sisk.pl" <rjw@sisk.pl>, "lenb@kernel.org" <lenb@kernel.org>, "tglx@linutronix.de" <tglx@linutronix.de>, "mingo@elte.hu" <mingo@elte.hu>, "akpm@linux-foundation.org" <akpm@linux-foundation.org>, "trenn@suse.de" <trenn@suse.de>, "jiang.liu@huawei.com" <jiang.liu@huawei.com>, "wency@cn.fujitsu.com" <wency@cn.fujitsu.com>, "laijs@cn.fujitsu.com" <laijs@cn.fujitsu.com>, "isimatu.yasuaki@jp.fujitsu.com" <isimatu.yasuaki@jp.fujitsu.com>, "izumi.taku@jp.fujitsu.com" <izumi.taku@jp.fujitsu.com>, "mgorman@suse.de" <mgorman@suse.de>, "minchan@kernel.org" <minchan@ke>
+Content-Type: text/plain; charset=ISO-8859-1
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-oa0-f52.google.com ([209.85.219.52]:46459 "EHLO
+	mail-oa0-f52.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752317Ab3HLVcA (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 12 Aug 2013 17:32:00 -0400
+In-Reply-To: <CAErSpo6N65EOy6ieZSKN8eO09GoCFe05YOMRNMhx8RLHbqN=yw@mail.gmail.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Bjorn Helgaas <bhelgaas@google.com>
+Cc: "Rafael J. Wysocki" <rjw@sisk.pl>, Heikki Krogerus <heikki.krogerus@linux.intel.com>, Prarit Bhargava <prarit@redhat.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, Linux PCI <linux-pci@vger.kernel.org>, Sarah Sharp <sarah.a.sharp@linux.intel.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, "linux-usb@vger.kernel.org" <linux-usb@vger.kernel.org>
 
-On 08/12/2013 02:25 PM, Yinghai Lu wrote:
-> On Mon, Aug 12, 2013 at 2:11 PM, Luck, Tony <tony.luck@intel.com> wrote:
->>>> The only fly I see in the ointment here is the crazy fragmentation of physical
+On Mon, Aug 12, 2013 at 2:14 PM, Bjorn Helgaas <bhelgaas@google.com> wrote:
+> On Thu, Aug 8, 2013 at 7:57 AM, Rafael J. Wysocki <rjw@sisk.pl> wrote:
+>> On Thursday, August 08, 2013 03:35:13 PM Heikki Krogerus wrote:
+>>> If there is no ACPI entry for the irq, returning error from
+>>> acpi_pci_enable_irq() if the irq is 0.
+>>>
+>>> Prarit Bhargava reported an issue where he noticed that his
+>>> Dell PowerEdge 840 has buggy BIOS that does not supply ACPI
+>>> entries for irq with some devices. That lead into kernel
+>>> generating a warning "genirq: Flags mismatch irq 0...". This
+>>> will fix that issue.
+>>>
+>>> Signed-off-by: Heikki Krogerus <heikki.krogerus@linux.intel.com>
+>>> Tested-by: Prarit Bhargava <prarit@redhat.com>
 >>
->> Just an idle, slightly related, question.  Will a 64-bit X86 kernel work if the physical  load address is >4GB?
-> 
-> Yes. for smp booting, will need some pages under 1M for trampoline AP.
-> 
+>> Hi Bjorn,
+>>
+>> Any objections to this?
+>
+> Acked-by: Bjorn Helgaas <bhelgaas@google.com>
 
-Not just for SMP anymore, either.
+some USB3 host controller does not have intx configured, but still
+work with MSI?
 
-	-hpa
-
-
---
-To unsubscribe, send a message with 'unsubscribe linux-mm' in
-the body to majordomo@kvack.org.  For more info on Linux MM,
-see: http://www.linux-mm.org/ .
-Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
+Yinghai
