@@ -1,73 +1,95 @@
-From: Tejun Heo <tj@kernel.org>
-Subject: Re: [PATCH part5 1/7] x86: get pg_data_t's memory from other node
-Date: Mon, 12 Aug 2013 10:39:10 -0400
-Message-ID: <20130812143910.GH15892@htj.dyndns.org>
-References: <1375956979-31877-1-git-send-email-tangchen@cn.fujitsu.com>
- <1375956979-31877-2-git-send-email-tangchen@cn.fujitsu.com>
+From: Mauro Carvalho Chehab <m.chehab@samsung.com>
+Subject: Re: [PATCH 3/3] mce: acpi/apei: trace: Enable ghes memory error trace
+ event
+Date: Mon, 12 Aug 2013 11:44:04 -0300
+Message-ID: <20130812114404.3bd64fa0@samsung.com>
+References: <1375986471-27113-1-git-send-email-naveen.n.rao@linux.vnet.ibm.com>
+ <1375986471-27113-4-git-send-email-naveen.n.rao@linux.vnet.ibm.com>
+ <20130808163822.67e0828a@samsung.com> <20130810180322.GC4155@pd.tnic>
+ <20130812083355.47c1bae8@samsung.com> <5208D80D.5030206@linux.vnet.ibm.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <owner-linux-mm@kvack.org>
-Content-Disposition: inline
-In-Reply-To: <1375956979-31877-2-git-send-email-tangchen@cn.fujitsu.com>
-Sender: owner-linux-mm@kvack.org
-To: Tang Chen <tangchen@cn.fujitsu.com>
-Cc: robert.moore@intel.com, lv.zheng@intel.com, rjw@sisk.pl, lenb@kernel.org, tglx@linutronix.de, mingo@elte.hu, hpa@zytor.com, akpm@linux-foundation.org, trenn@suse.de, yinghai@kernel.org, jiang.liu@huawei.com, wency@cn.fujitsu.com, laijs@cn.fujitsu.com, isimatu.yasuaki@jp.fujitsu.com, izumi.taku@jp.fujitsu.com, mgorman@suse.de, minchan@kernel.org, mina86@mina86.com, gong.chen@linux.intel.com, vasilis.liaskovitis@profitbricks.com, lwoodman@redhat.com, riel@redhat.com, jweiner@redhat.com, prarit@redhat.com, zhangyanfei@cn.fujitsu.com, yanghy@cn.fujitsu.com, x86@kernel.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-mm@kvack.org, linux-acpi@vger.kernel.org
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mailout4.w2.samsung.com ([211.189.100.14]:43308 "EHLO
+	usmailout4.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755582Ab3HLOoN (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 12 Aug 2013 10:44:13 -0400
+In-reply-to: <5208D80D.5030206@linux.vnet.ibm.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: "Naveen N. Rao" <naveen.n.rao@linux.vnet.ibm.com>
+Cc: Borislav Petkov <bp@alien8.de>, tony.luck@intel.com, bhelgaas@google.com, rostedt@goodmis.org, rjw@sisk.pl, lance.ortiz@hp.com, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Aristeu Rozanski Filho <arozansk@redhat.com>
 
-Hello,
+Em Mon, 12 Aug 2013 18:11:49 +0530
+"Naveen N. Rao" <naveen.n.rao@linux.vnet.ibm.com> escreveu:
 
-The subject is a bit misleading.  Maybe it should say "allow getting
-..." rather than "get ..."?
-
-On Thu, Aug 08, 2013 at 06:16:13PM +0800, Tang Chen wrote:
-....
-> A node could have several memory devices. And the device who holds node
-> data should be hot-removed in the last place. But in NUMA level, we don't
-> know which memory_block (/sys/devices/system/node/nodeX/memoryXXX) belongs
-> to which memory device. We only have node. So we can only do node hotplug.
+> On 08/12/2013 05:03 PM, Mauro Carvalho Chehab wrote:
+> > Em Sat, 10 Aug 2013 20:03:22 +0200
+> > Borislav Petkov <bp@alien8.de> escreveu:
+> >
+> >> On Thu, Aug 08, 2013 at 04:38:22PM -0300, Mauro Carvalho Chehab wrote:
+> >>> Em Thu, 08 Aug 2013 23:57:51 +0530
+> >>> "Naveen N. Rao" <naveen.n.rao@linux.vnet.ibm.com> escreveu:
+> >>>
+> >>>> Enable memory error trace event in cper.c
+> >>>
+> >>> Why do we need to do that? Memory error events are already handled
+> >>> via edac_ghes module,
+> >>
+> >> If APEI gives me all the required information in order to deal with the
+> >> hardware error - and it looks like it does - then the additional layer
+> >> of ghes_edac is not needed.
+> >
+> > APEI is just the mechanism that collects the data, not the mechanism
+> > that reports to userspace.
 > 
-> But in virtualization, developers are now developing memory hotplug in qemu,
-> which support a single memory device hotplug. So a whole node hotplug will
-> not satisfy virtualization users.
+> I think what Boris is saying is that ghes_edac isn't adding anything 
+> more here given what we get from APEI structures. So, there doesn't seem 
+> to be a need to add dependency on edac for this purpose.
 > 
-> So at last, we concluded that we'd better do memory hotplug and local node
-> things (local node node data, pagetable, vmemmap, ...) in two steps.
-> Please refer to https://lkml.org/lkml/2013/6/19/73
+> Further, ghes_edac seems to require EDAC_MM_EDAC to be compiled into the 
+> kernel (not a module). So, more dependencies.
+> 
+> >
+> > The current implementation is that APEI already reports those errors
+> > via ghes_edac driver. It also reports the very same error via MCE
+> > (although the APEI interface to MCE is currently broken for everything
+> > that it is not Nehalem-EX - as it basically emulates the MCE log for
+> > that specific architecture).
+> 
+> So, I looked at ghes_edac and it basically seems to boil down to 
+> trace_mc_event. 
 
-I suppose the above three paragraphs are trying to say
+Yes. It also provides the sysfs nodes that describe the memory.
 
-* A hotpluggable NUMA node may be composed of multiple memory devices
-  which individually are hot-pluggable.
+> But, this only seems to expose the APEI data as a string 
+> and doesn't look to really make all the fields available to user-space 
+> in a raw manner. Not sure how well this can be utilised by a user-space 
+> tool. Do you have suggestions on how we can do this?
 
-* pg_data_t and page tables the serving a NUMA node may be located in
-  the same node they're serving; however, if the node is composed of
-  multiple hotpluggable memory devices, the device containing them
-  should be the last one to be removed.
+There's already an userspace tool that handes it:
+	https://git.fedorahosted.org/cgit/rasdaemon.git/
 
-* For physical memory hotplug, whole NUMA node hotunplugging is fine;
-  however, in virtualizied environments, finer grained hotunplugging
-  is desirable; unfortunately, there currently is no way to which
-  specific memory device pg_data_t and page tables are allocated
-  inside making it impossible to order unpluggings of memory devices
-  of a NUMA node.  To avoid the ordering problem while allowing
-  removal of subset fo a NUMA node, it has been decided that pg_data_t
-  and page tables should be allocated on a different non-hotpluggable
-  NUMA node.
+What is missing there on the current version is the bits that would allow
+to translate from APEI way to report an error (memory node, card, module,
+bank, device) into a DIMM label[1]. 
 
-Am I following it correctly?  If so, can you please update the
-description?  It's quite confusing.  Also, the decision seems rather
-poorly made.  It should be trivial to allocate memory for pg_data_t
-and page tables in one end of the NUMA node and just record the
-boundary to distinguish between the area which can be removed any time
-and the other which can only be removed as a unit as the last step.
+At the end, what really matters is to be able to point to the DIMM(s)
+in a way that the user can replace them (e. g. using the silk screen
+labels on the system motherboard).
 
-Thanks.
+[1] It does such translation for the other EDAC drivers, via a
+configuration file that does such per-system mapping. Extending it to
+also handle APEI errors shouldn't be hard.
+
+> 
+> Thanks,
+> Naveen
+> 
+
 
 -- 
-tejun
 
---
-To unsubscribe, send a message with 'unsubscribe linux-mm' in
-the body to majordomo@kvack.org.  For more info on Linux MM,
-see: http://www.linux-mm.org/ .
-Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
+Cheers,
+Mauro
