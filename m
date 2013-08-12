@@ -1,91 +1,77 @@
-From: "Naveen N. Rao" <naveen.n.rao@linux.vnet.ibm.com>
-Subject: Re: [PATCH 1/3] mce: acpi/apei: trace: Include PCIe AER trace event
- conditionally
-Date: Mon, 12 Aug 2013 17:07:01 +0530
-Message-ID: <5208C8DD.3050204@linux.vnet.ibm.com>
-References: <1375986471-27113-1-git-send-email-naveen.n.rao@linux.vnet.ibm.com> <1375986471-27113-2-git-send-email-naveen.n.rao@linux.vnet.ibm.com> <20130808152329.1f98b5e0@gandalf.local.home>
+From: Tang Chen <imtangchen@gmail.com>
+Subject: Re: [PATCH part4 2/4] x86, acpica, acpi: Try to find if SRAT is overrided
+ earlier.
+Date: Mon, 12 Aug 2013 20:28:21 +0800
+Message-ID: <5208D4E5.6030808@gmail.com>
+References: <1375954883-30225-1-git-send-email-tangchen@cn.fujitsu.com> <1375954883-30225-3-git-send-email-tangchen@cn.fujitsu.com> <CAE9FiQXUS9+heHagD45WAyO22NiGDMo3j2JumzvscypVhnjn9A@mail.gmail.com> <5204B93A.6030409@cn.fujitsu.com> <CAE9FiQWSjkrFHBr3UrTYSpaCa8ThVrtPPVcaCyJrD0sGHcei3w@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-pci-owner@vger.kernel.org>
-In-Reply-To: <20130808152329.1f98b5e0@gandalf.local.home>
-Sender: linux-pci-owner@vger.kernel.org
-To: Steven Rostedt <rostedt@goodmis.org>
-Cc: tony.luck@intel.com, bp@alien8.de, bhelgaas@google.com, rjw@sisk.pl, lance.ortiz@hp.com, m.chehab@samsung.com, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <CAE9FiQWSjkrFHBr3UrTYSpaCa8ThVrtPPVcaCyJrD0sGHcei3w@mail.gmail.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Yinghai Lu <yinghai@kernel.org>
+Cc: Tang Chen <tangchen@cn.fujitsu.com>, Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>, Bob Moore <robert.moore@intel.com>, Lv Zheng <lv.zheng@intel.com>, "Rafael J. Wysocki" <rjw@sisk.pl>, Len Brown <lenb@kernel.org>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@elte.hu>, "H. Peter Anvin" <hpa@zytor.com>, Andrew Morton <akpm@linux-foundation.org>, Tejun Heo <tj@kernel.org>, Thomas Renninger <trenn@suse.de>, Jiang Liu <jiang.liu@huawei.com>, Zhang Yanfei <zhangyanfei@cn.fujitsu.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On 08/09/2013 12:53 AM, Steven Rostedt wrote:
-> [ attempting to try out claws-mail, hopefully this messages isn't
-> scrambled ;-) ]
-
-Works just fine :)
-
+On 08/10/2013 07:34 AM, Yinghai Lu wrote:
+> On Fri, Aug 9, 2013 at 2:41 AM, Tang Chen<tangchen@cn.fujitsu.com>  wrote:
+>> On 08/09/2013 12:29 AM, Yinghai Lu wrote:
+>> ......
+>>
+>>>
+>>> Please check if you can reuse first half of my patchset, so find and copy
+>>> override table earlier. the copied acpi tables could be near kernel code
+>>> range.
+>>>
+>>
+>> I don't think we need to do the finding step at that early time, in
+>> head64.c stage.
+>>
+>> Before pagetables are setup, we can use early_ioremap() to map the
+>> memory we want to access. We don't need to use phys addr. We can do
+>> it in setup_arch(), which has nothing to do with 32bit or 64bit.
 >
-> On Thu,  8 Aug 2013 23:57:49 +0530
-> "Naveen N. Rao" <naveen.n.rao@linux.vnet.ibm.com> wrote:
+> if override the acpi tables early, you don't need to check firmware srat and
+> then override srat.
+> just check last one will be used by kernel.
 >
->> Since we'll be adding multiple trace events to ras.h, we need to protect
->> each block appropriately so that they only get included in the right
->> places. Update PCIe AER trace event for this purpose.
->
-> Why not make a separate file for each? You will have to define
+> So you don't need to dig initrd to find srat anymore.
 
-The idea was to have all RAS-related trace points in a single place. 
-This was discussed back when the PCIe AER trace event was added and so I 
-chose to add the new event here as well.
+The current logic is find tables in firmware, and override them. I
+don't think it is a big deal.
 
-> TRACE_EVENT_PCIE_AER for the users as well. That is, the places that
-> include ras.h and use the trace_aer_*() tracepoints.
+Even if we want to override first, and then skip the table in
+firmware (install one time), we still don't need to do it in head64.c,
+right ?
 
-Do you mean the change I've done to aerdrv-errprint.c below? This trace 
-point is currently only used there, so I guess we are ok?
-
-Thanks,
-Naveen
-
-
->
 >
 >>
->> Signed-off-by: Naveen N. Rao <naveen.n.rao@linux.vnet.ibm.com>
->> ---
->>   drivers/pci/pcie/aer/aerdrv_errprint.c | 1 +
->>   include/trace/events/ras.h             | 2 +-
->>   2 files changed, 2 insertions(+), 1 deletion(-)
 >>
->> diff --git a/drivers/pci/pcie/aer/aerdrv_errprint.c b/drivers/pci/pcie/aer/aerdrv_errprint.c
->> index 2c7c9f5..4d06859 100644
->> --- a/drivers/pci/pcie/aer/aerdrv_errprint.c
->> +++ b/drivers/pci/pcie/aer/aerdrv_errprint.c
->> @@ -24,6 +24,7 @@
->>   #include "aerdrv.h"
+>>> Move finding in head64.c stage could help xen/dom0 a bit.
+>>> as Konrad is working on patchset with acpi override in xen hypervisor.
+>>> We can avoid override acpi table two times. Esp xen like to change
+>>> DMAR to XMAR.
 >>
->>   #define CREATE_TRACE_POINTS
->> +#define TRACE_EVENT_PCIE_AER
->>   #include <trace/events/ras.h>
 >>
->>   #define AER_AGENT_RECEIVER		0
->> diff --git a/include/trace/events/ras.h b/include/trace/events/ras.h
->> index 88b8783..4a66142 100644
->> --- a/include/trace/events/ras.h
->> +++ b/include/trace/events/ras.h
->> @@ -1,7 +1,7 @@
->>   #undef TRACE_SYSTEM
->>   #define TRACE_SYSTEM ras
->>
->> -#if !defined(_TRACE_AER_H) || defined(TRACE_HEADER_MULTI_READ)
->> +#if (!defined(_TRACE_AER_H) || defined(TRACE_HEADER_MULTI_READ)) && defined()
+>> Would you please give some more info about this, and explain why finding
+>> override tables in head64.c stage is helpful for xen ?
 >
-> I think it would look cleaner to encapsulate the one define with the
-> other:
+> xen usually can change acpi tables and pass to dom0 kernel. like change DMAR
+> to hide it to dom0 kernel.
 >
-> #ifdef TRACE_EVENT_PCIE_AER
-> #if !defined(_TRACE_AER_H) || defined(TRACE_HEADER_MULTI_READ)
+> also distribution could have same kernel to support bare metal and dom0.
 >
+> so if we find the override kernel early in head64.c, dom0 path will not copy
+> actually as no one try to find that for them.
 >
-> -- Steve
->
->>   #define _TRACE_AER_H
->>
->>   #include <linux/tracepoint.h>
->
+
+I don't know the detail, but seeing from your description, doing
+override in head64.c may avoid a copy. If doing such a copy in xen
+is not that difficult, I think we can do it for now. Modifying
+acpi_initrd_override() logic will need to modify a lot of things.
+
+Just like the local node pagetable, I think it is better to do
+xen things after memory hotplug is done.
+
+Thanks.
