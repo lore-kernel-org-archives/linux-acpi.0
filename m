@@ -1,36 +1,82 @@
-From: Tang Chen <imtangchen@gmail.com>
-Subject: Re: [PATCH part5 0/7] Arrange hotpluggable memory as ZONE_MOVABLE.
-Date: Mon, 12 Aug 2013 16:54:47 +0800
-Message-ID: <5208A2D7.7090102@gmail.com>
-References: <1375956979-31877-1-git-send-email-tangchen@cn.fujitsu.com> <20130809163220.GU20515@mtj.dyndns.org>
+From: "Naveen N. Rao" <naveen.n.rao@linux.vnet.ibm.com>
+Subject: Re: [PATCH 2/3] mce: acpi/apei: trace: Add trace event for ghes memory
+ error
+Date: Mon, 12 Aug 2013 16:58:59 +0530
+Message-ID: <5208C6FB.8070807@linux.vnet.ibm.com>
+References: <1375986471-27113-1-git-send-email-naveen.n.rao@linux.vnet.ibm.com> <1375986471-27113-3-git-send-email-naveen.n.rao@linux.vnet.ibm.com> <20130808191732.GE27974@pd.tnic>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: text/plain; charset=UTF-8; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-pb0-f45.google.com ([209.85.160.45]:58375 "EHLO
-	mail-pb0-f45.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754527Ab3HLIzB (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 12 Aug 2013 04:55:01 -0400
-In-Reply-To: <20130809163220.GU20515@mtj.dyndns.org>
+Received: from e23smtp06.au.ibm.com ([202.81.31.148]:59281 "EHLO
+	e23smtp06.au.ibm.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754871Ab3HLL3R (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 12 Aug 2013 07:29:17 -0400
+Received: from /spool/local
+	by e23smtp06.au.ibm.com with IBM ESMTP SMTP Gateway: Authorized Use Only! Violators will be prosecuted
+	for <linux-acpi@vger.kernel.org> from <naveen.n.rao@linux.vnet.ibm.com>;
+	Mon, 12 Aug 2013 21:21:01 +1000
+In-Reply-To: <20130808191732.GE27974@pd.tnic>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Tejun Heo <tj@kernel.org>
-Cc: Tang Chen <tangchen@cn.fujitsu.com>, robert.moore@intel.com, lv.zheng@intel.com, rjw@sisk.pl, lenb@kernel.org, tglx@linutronix.de, mingo@elte.hu, hpa@zytor.com, akpm@linux-foundation.org, trenn@suse.de, yinghai@kernel.org, jiang.liu@huawei.com, wency@cn.fujitsu.com, laijs@cn.fujitsu.com, isimatu.yasuaki@jp.fujitsu.com, izumi.taku@jp.fujitsu.com, mgorman@suse.de, minchan@kernel.org, mina86@mina86.com, gong.chen@linux.intel.com, vasilis.liaskovitis@profitbricks.com, lwoodman@redhat.com, riel@redhat.com, jweiner@redhat.com, prarit@redhat.com, zhangyanfei@cn.fujitsu.com, yanghy@cn.fujitsu.com, x86@kernel.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-mm@kvack.org, linux-acpi@vger.kernel.org, imtangchen@gmail.com
+To: Borislav Petkov <bp@alien8.de>
+Cc: tony.luck@intel.com, bhelgaas@google.com, rostedt@goodmis.org, rjw@sisk.pl, lance.ortiz@hp.com, m.chehab@samsung.com, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 
-On 08/10/2013 12:32 AM, Tejun Heo wrote:
-> Hello,
+On 08/09/2013 12:47 AM, Borislav Petkov wrote:
+> On Thu, Aug 08, 2013 at 11:57:50PM +0530, Naveen N. Rao wrote:
+>> +TRACE_EVENT(ghes_platform_memory_event,
+>> +	TP_PROTO(const struct acpi_hest_generic_status *estatus,
+>> +		 const struct acpi_hest_generic_data *gdata,
+>> +		 const struct cper_sec_mem_err *mem),
+>> +
+>> +	TP_ARGS(estatus, gdata, mem),
+>> +
+>> +	TP_STRUCT__entry(
+>> +		__field(	u32,	estatus_block_status		)
+>> +		__field(	u32,	estatus_raw_data_offset		)
+>> +		__field(	u32,	estatus_raw_data_length		)
+>> +		__field(	u32,	estatus_data_length		)
+>> +		__field(	u32,	estatus_error_severity		)
+>> +		__array(	u8,	gdata_section_type,	16	)
+>> +		__field(	u32,	gdata_error_severity		)
+>> +		__field(	u16,	gdata_revision			)
+>> +		__field(	u8,	gdata_validation_bits		)
+>> +		__field(	u8,	gdata_flags			)
+>> +		__field(	u32,	gdata_error_data_length		)
+>> +		__array(	u8,	gdata_fru_id,		16	)
+>> +		__array(	u8,	gdata_fru_text,		20	)
+>> +		__field(	u64,	mem_validation_bits		)
+>> +		__field(	u64,	mem_error_status		)
+>> +		__field(	u64,	mem_physical_addr		)
+>> +		__field(	u64,	mem_physical_addr_mask		)
+>> +		__field(	u16,	mem_node			)
+>> +		__field(	u16,	mem_card			)
+>> +		__field(	u16,	mem_module			)
+>> +		__field(	u16,	mem_bank			)
+>> +		__field(	u16,	mem_device			)
+>> +		__field(	u16,	mem_row				)
+>> +		__field(	u16,	mem_column			)
+>> +		__field(	u16,	mem_bit_pos			)
+>> +		__field(	u64,	mem_requestor_id		)
+>> +		__field(	u64,	mem_responder_id		)
+>> +		__field(	u64,	mem_target_id			)
+>> +		__field(	u8,	mem_error_type			)
+>> +	),
 >
-> On Thu, Aug 08, 2013 at 06:16:12PM +0800, Tang Chen wrote:
->> In previous parts' patches, we have obtained SRAT earlier enough, right after
->> memblock is ready. So this patch-set does the following things:
-> Can you please set up a git branch with all patches?
+> Without looking at the rest, a trace record from this tracepoint is
+> going to be 160 bytes IINM, which looks kinda fat to me. And during an
+> error storm we're probably not going to be able to log them all, maybe?
+> Yes, no, maybe I'm off base...
 >
-> Thanks.
+> In any case, are we sure we want all those fields above? Can we make
+> them smaller, drop some of them from the tracepoint, etc, etc? Can we
+> compute some of them in userspace with information we already have?
 
-Please refer to :
+Good idea - I hadn't thought from that perspective. I think we can drop 
+a few fields there, especially the length/offset fields and perhaps the 
+section_type since we know this is a memory error. Will get back with a 
+new revision.
 
-https://github.com/imtangchen/linux movablenode-boot-option
+Thanks,
+Naveen
 
-It contains all 5 parts patches.
-
-Thanks.
