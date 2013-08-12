@@ -1,63 +1,36 @@
-From: Tejun Heo <tj@kernel.org>
-Subject: Re: [PATCH part5 0/7] Arrange hotpluggable memory as ZONE_MOVABLE.
-Date: Mon, 12 Aug 2013 11:46:23 -0400
-Message-ID: <20130812154623.GL15892@htj.dyndns.org>
-References: <1375956979-31877-1-git-send-email-tangchen@cn.fujitsu.com>
- <20130812145016.GI15892@htj.dyndns.org>
- <52090225.6070208@gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <owner-linux-mm@kvack.org>
-Content-Disposition: inline
-In-Reply-To: <52090225.6070208@gmail.com>
-Sender: owner-linux-mm@kvack.org
-To: Tang Chen <imtangchen@gmail.com>
-Cc: Tang Chen <tangchen@cn.fujitsu.com>, robert.moore@intel.com, lv.zheng@intel.com, rjw@sisk.pl, lenb@kernel.org, tglx@linutronix.de, mingo@elte.hu, hpa@zytor.com, akpm@linux-foundation.org, trenn@suse.de, yinghai@kernel.org, jiang.liu@huawei.com, wency@cn.fujitsu.com, laijs@cn.fujitsu.com, isimatu.yasuaki@jp.fujitsu.com, izumi.taku@jp.fujitsu.com, mgorman@suse.de, minchan@kernel.org, mina86@mina86.com, gong.chen@linux.intel.com, vasilis.liaskovitis@profitbricks.com, lwoodman@redhat.com, riel@redhat.com, jweiner@redhat.com, prarit@redhat.com, zhangyanfei@cn.fujitsu.com, yanghy@cn.fujitsu.com, x86@kernel.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-mm@kvack.org, linux-acpi@vger.kernel.org
+From: Toshi Kani <toshi.kani@hp.com>
+Subject: [PATCH 0/2] Protect cpu map updates from ACPI processor
+Date: Mon, 12 Aug 2013 09:45:52 -0600
+Message-ID: <1376322354-13026-1-git-send-email-toshi.kani@hp.com>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from g4t0017.houston.hp.com ([15.201.24.20]:4632 "EHLO
+	g4t0017.houston.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756863Ab3HLPrW (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 12 Aug 2013 11:47:22 -0400
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: rjw@sisk.pl
+Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, srivatsa.bhat@linux.vnet.ibm.com, isimatu.yasuaki@jp.fujitsu.com, Toshi Kani <toshi.kani@hp.com>
 
-Hello,
+CPU system maps are protected with reader/writer locks.  The reader
+lock, put_online_cpus(), assures that the maps are not updated while
+holding the lock.  The writer lock, cpu_hotplug_begin(), is used to
+udpate the cpu maps along with cpu_maps_update_begin().
 
-On Mon, Aug 12, 2013 at 11:41:25PM +0800, Tang Chen wrote:
-> Then there is no way to tell the users which memory is hotpluggable.
-> 
-> phys addr is not user friendly. For users, node or memory device is the
-> best. The firmware should arrange the hotpluggable ranges well.
+However, the ACPI processor handler updates the cpu maps without
+holding the the writer lock.  This patchset fixes this problem.
 
-I don't follow.  Why can't the kernel export that information to
-userland after boot is complete via printk / sysfs / proc / whatever?
-The admin can "request" hotplug by boot param and the kernel would try
-to honor that and return the result on boot completion.  I don't
-understand why that wouldn't work.
+---
+The patchset is based on linux-next of the pm tree.
 
-> In my opinion, maybe some application layer tools may use SRAT to show
-> the users which memory is hotpluggable. I just think both of the kernel
-> and the application layer should obey the same rule.
+---
+Toshi Kani (2):
+ CPU hotplug: Export cpu_hotplug_begin() interface
+ ACPI: Acquire writer lock to update cpu maps
 
-Sure, just let the kernel tell the user which memory node ended up
-hotpluggable after booting.
+---
+ drivers/acpi/acpi_processor.c | 21 ++++++++++++++++-----
+ include/linux/cpu.h           |  2 ++
+ kernel/cpu.c                  |  4 ++--
+ 3 files changed, 20 insertions(+), 7 deletions(-)
 
-> >* Similar to the point hpa raised.  If this can be made opportunistic,
-> >   do we need the strict reordering to discover things earlier?
-> >   Shouldn't it be possible to configure memblock to allocate close to
-> >   the kernel image until hotplug and numa information is available?
-> >   For most sane cases, the memory allocated will be contained in
-> >   non-hotpluggable node anyway and in case they aren't hotplug
-> >   wouldn't work but the system will boot and function perfectly fine.
-> 
-> So far as I know, the kernel image and related data can be loaded
-> anywhere, above 4GB. I just can't make any assumption.
-
-I don't follow why that would be problematic.  Wouldn't finding out
-which node the kernel image is located in and preferring to allocate
-from that node before hotplug info is available be enough?
-
-Thanks.
-
--- 
-tejun
-
---
-To unsubscribe, send a message with 'unsubscribe linux-mm' in
-the body to majordomo@kvack.org.  For more info on Linux MM,
-see: http://www.linux-mm.org/ .
-Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
