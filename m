@@ -1,40 +1,50 @@
-From: "Luck, Tony" <tony.luck@intel.com>
-Subject: RE: [PATCH 3/3] mce: acpi/apei: trace: Enable ghes memory error
+From: Borislav Petkov <bp@alien8.de>
+Subject: Re: [PATCH 3/3] mce: acpi/apei: trace: Enable ghes memory error
  trace event
-Date: Mon, 12 Aug 2013 17:54:21 +0000
-Message-ID: <3908561D78D1C84285E8C5FCA982C28F31CB71B5@ORSMSX106.amr.corp.intel.com>
+Date: Mon, 12 Aug 2013 19:56:31 +0200
+Message-ID: <20130812175631.GI18018@pd.tnic>
 References: <1375986471-27113-1-git-send-email-naveen.n.rao@linux.vnet.ibm.com>
  <1375986471-27113-4-git-send-email-naveen.n.rao@linux.vnet.ibm.com>
- <20130808163822.67e0828a@samsung.com> <20130810180322.GC4155@pd.tnic>
- <20130812083355.47c1bae8@samsung.com> <20130812123813.GD18018@pd.tnic>
- <20130812114932.52bb0314@samsung.com> <20130812150424.GH18018@pd.tnic>
+ <20130808163822.67e0828a@samsung.com>
+ <20130810180322.GC4155@pd.tnic>
+ <20130812083355.47c1bae8@samsung.com>
+ <20130812123813.GD18018@pd.tnic>
+ <20130812114932.52bb0314@samsung.com>
+ <20130812150424.GH18018@pd.tnic>
  <20130812142557.2a43f155@samsung.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=utf-8
 Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
 In-Reply-To: <20130812142557.2a43f155@samsung.com>
-Content-Language: en-US
 Sender: linux-kernel-owner@vger.kernel.org
-To: Mauro Carvalho Chehab <m.chehab@samsung.com>, Borislav Petkov <bp@alien8.de>
-Cc: "Naveen N. Rao" <naveen.n.rao@linux.vnet.ibm.com>, "bhelgaas@google.com" <bhelgaas@google.com>, "rostedt@goodmis.org" <rostedt@goodmis.org>, "rjw@sisk.pl" <rjw@sisk.pl>, "lance.ortiz@hp.com" <lance.ortiz@hp.com>, "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
+To: Mauro Carvalho Chehab <m.chehab@samsung.com>, "Naveen N. Rao" <naveen.n.rao@linux.vnet.ibm.com>
+Cc: tony.luck@intel.com, bhelgaas@google.com, rostedt@goodmis.org, rjw@sisk.pl, lance.ortiz@hp.com, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
->> We are, of course, going to have only one tracepoint which reports
->> memory errors, not two.
+On Mon, Aug 12, 2013 at 02:25:57PM -0300, Mauro Carvalho Chehab wrote:
+> Userspace still needs the EDAC sysfs, in order to identify how the
+> memory is organized, and do the proper memory labels association.
 >
-> Yes, that's my point.
+> What edac_ghes does is to fill those sysfs nodes, and to call the
+> existing tracing to report errors.
 
-Is life that simple?
+This is the only reason which justifies EDAC's existence. Naveen, can
+your BIOS directly report the silkscreen label of the DIMM in error?
+Generally, can any BIOS do that?
 
-We have systems that have no EDAC driver (in some cases because the
-architecture precludes one from ever being written, in other because
-we either don't have the documentation, or because no driver has been
-written yet).	
+More specifically, what are those gdata_fru_id and gdata_fru_text
+things?
 
-Systems also have varying degrees of APEI support (from none at all, to
-full support ... possibly we may have some with apparent support, but BIOS
-provides bogus information ... assuming BIOS folks live up/down to our
-usual expectations).
+Because if it can, then having the memory error tracepoint come direct
+from APEI should be enough. The ghes_edac functionality could be then
+fallback for BIOSes which cannot report the silkscreen label and in such
+case I can imagine keeping both tracepoints, but disabling one of the
+two...
 
--Tony
+-- 
+Regards/Gruss,
+    Boris.
+
+Sent from a fat crate under my desk. Formatting is fine.
+--
