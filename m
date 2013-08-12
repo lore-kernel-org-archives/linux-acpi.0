@@ -1,44 +1,39 @@
-From: Borislav Petkov <bp@alien8.de>
-Subject: Re: [PATCH 3/3] mce: acpi/apei: trace: Enable ghes memory error
- trace event
-Date: Mon, 12 Aug 2013 14:53:43 +0200
-Message-ID: <20130812125343.GE18018@pd.tnic>
+From: Steven Rostedt <rostedt@goodmis.org>
+Subject: Re: [PATCH 1/3] mce: acpi/apei: trace: Include PCIe AER trace event
+ conditionally
+Date: Mon, 12 Aug 2013 09:13:37 -0400
+Message-ID: <20130812091337.6f8c057d@gandalf.local.home>
 References: <1375986471-27113-1-git-send-email-naveen.n.rao@linux.vnet.ibm.com>
- <1375986471-27113-4-git-send-email-naveen.n.rao@linux.vnet.ibm.com>
- <20130808163822.67e0828a@samsung.com>
- <20130810180322.GC4155@pd.tnic>
- <20130812083355.47c1bae8@samsung.com>
- <5208D80D.5030206@linux.vnet.ibm.com>
+	<1375986471-27113-2-git-send-email-naveen.n.rao@linux.vnet.ibm.com>
+	<20130808152329.1f98b5e0@gandalf.local.home>
+	<5208C8DD.3050204@linux.vnet.ibm.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail.skyhub.de ([78.46.96.112]:49368 "EHLO mail.skyhub.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756204Ab3HLMxp (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 12 Aug 2013 08:53:45 -0400
-Content-Disposition: inline
-In-Reply-To: <5208D80D.5030206@linux.vnet.ibm.com>
+Received: from hrndva-omtalb.mail.rr.com ([71.74.56.122]:12749 "EHLO
+	hrndva-omtalb.mail.rr.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755746Ab3HLNNj (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 12 Aug 2013 09:13:39 -0400
+In-Reply-To: <5208C8DD.3050204@linux.vnet.ibm.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: "Naveen N. Rao" <naveen.n.rao@linux.vnet.ibm.com>
-Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>, tony.luck@intel.com, bhelgaas@google.com, rostedt@goodmis.org, rjw@sisk.pl, lance.ortiz@hp.com, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+Cc: tony.luck@intel.com, bp@alien8.de, bhelgaas@google.com, rjw@sisk.pl, lance.ortiz@hp.com, m.chehab@samsung.com, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 
-On Mon, Aug 12, 2013 at 06:11:49PM +0530, Naveen N. Rao wrote:
-> So, I looked at ghes_edac and it basically seems to boil down to
-> trace_mc_event. But, this only seems to expose the APEI data as a
-> string and doesn't look to really make all the fields available to
-> user-space in a raw manner. Not sure how well this can be utilised
-> by a user-space tool.
+On Mon, 12 Aug 2013 17:07:01 +0530
+"Naveen N. Rao" <naveen.n.rao@linux.vnet.ibm.com> wrote:
 
-Well, your tracepoint dumps the decoded memory error too. So all the
-information we need is already there, without edac. Or am I missing some
-bits?
+> > TRACE_EVENT_PCIE_AER for the users as well. That is, the places that
+> > include ras.h and use the trace_aer_*() tracepoints.
+> 
+> Do you mean the change I've done to aerdrv-errprint.c below? This trace 
+> point is currently only used there, so I guess we are ok?
+> 
 
-Thus why I'm saying is that we don't need the additional edac layer.
 
--- 
-Regards/Gruss,
-    Boris.
+Yeah, if it's only used on one place, then it's fine. But if it gets
+used in other files, than those other files with have to define the
+macro as well.
 
-Sent from a fat crate under my desk. Formatting is fine.
---
+-- Steve
