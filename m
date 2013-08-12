@@ -1,74 +1,91 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: Cannot hot remove a memory device
-Date: Sun, 11 Aug 2013 23:13:31 +0200
-Message-ID: <1637752.e6s4mPrvSE@vostro.rjw.lan>
-References: <51FA1E41.20304@jp.fujitsu.com> <13789925.vhhiTlyGIy@vostro.rjw.lan> <1376002242.10300.235.camel@misato.fc.hp.com>
+From: "Alexandra N. Kossovsky" <Alexandra.Kossovsky@oktetlabs.ru>
+Subject: kmemleak in apei_res_add
+Date: Mon, 12 Aug 2013 06:45:58 +0400
+Message-ID: <20130812024556.GB29956@sanechka.spb.ru>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1376002242.10300.235.camel@misato.fc.hp.com>
+Content-Disposition: inline
 Sender: linux-kernel-owner@vger.kernel.org
-To: Toshi Kani <toshi.kani@hp.com>
-Cc: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>, rafael.j.wysocki@intel.com, vasilis.liaskovitis@profitbricks.com, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, tangchen@cn.fujitsu.com, wency@cn.fujitsu.com
+To: Len Brown <lenb@kernel.org>, "Rafael J. Wysocki" <rjw@sisk.pl>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Thursday, August 08, 2013 04:50:42 PM Toshi Kani wrote:
-> On Fri, 2013-08-09 at 00:12 +0200, Rafael J. Wysocki wrote:
-> > On Thursday, August 08, 2013 11:15:20 AM Toshi Kani wrote:
-> > > On Fri, 2013-08-02 at 18:04 -0600, Toshi Kani wrote:
-> > > > On Sat, 2013-08-03 at 01:43 +0200, Rafael J. Wysocki wrote:
-> > > > > On Friday, August 02, 2013 03:46:15 PM Toshi Kani wrote:
-> > > > > > On Thu, 2013-08-01 at 23:43 +0200, Rafael J. Wysocki wrote:
-> > >  :
-> > > > > > I think it fails with -EINVAL at the place with dev_warn(dev, "ACPI
-> > > > > > handle is already set\n").  When two ACPI memory objects associate with
-> > > > > > a same memory block, the bind procedure of the 2nd ACPI memory object
-> > > > > > sees that ACPI_HANDLE(dev) is already set to the 1st ACPI memory object.
-> > > > > 
-> > > > > That sound's plausible, but I wonder how we can fix that?
-> > > > > 
-> > > > > There's no way for a single physical device to have two different ACPI
-> > > > > "companions".  It looks like the memory blocks should be 64 M each in that
-> > > > > case.  Or we need to create two child devices for each memory block and
-> > > > > associate each of them with an ACPI object.  That would lead to complications
-> > > > > in the user space interface, though.
-> > > > 
-> > > > Right.  Even bigger issue is that I do not think __add_pages() and
-> > > > __remove_pages() can add / delete a memory chunk that is less than
-> > > > 128MB.  128MB is the granularity of them.  So, we may just have to fail
-> > > > this case gracefully.
-> > > 
-> > > FYI: I have submitted the patch blow to close this part of the issue...
-> > > 
-> > > https://lkml.org/lkml/2013/8/8/396
-> > 
-> > That looks good to me, but we'd still need to make it possible to have
-> > memory blocks smaller than 128 MB ...
-> 
-> Do you mean acpi_bind_one() needs to be able to handle such case?  If
-> so, it should not be a problem since a memory block device won't be
-> created when add_memory() fails with the change above.  So, there is no
-> binding to be done.  If you mean add_memory() needs to be able to handle
-> a smaller range, that's quite a tough one unless we make the section
-> size smaller.
-> 
-> BTW, when add_memory() fails, the memory hot-add request still succeeds
-> with no driver attached.  This seems logical, but the added device is
-> useless when no handler is attached.  And it does not allow ejecting the
-> device with no handler.  I am not too worry about this since this is a
-> rare case, but it reminded me that the framework won't handle rollback.
+When running 3.10.3 with kmemleak enabled, I see following warnings from
+kmemleak:
 
-I'm not sure which rollback you mean.  During removal?
-
-There are two slight problems here in my view.  First, even if the device
-cannot be ejected directly, it still will be removed when its parent is
-ejected, so it may be more consistent to just allow everything to be ejected
-regardless of whether or not it has a scan handler.  Second, I guess the
-removal is undesirable for memory devices for which the registration of the
-scan handler failed, so it would be good to fail the "offline" of such devices
-regardless of how we get there.  That's why I thought it would be good to have
-an "offline disabled" flag in struct acpi_device.
-
-Thanks,
-Rafael
+unreferenced object 0xffff88024d2219a0 (size 32):
+  comm "swapper/0", pid 1, jiffies 4294894532 (age 26865.180s)
+  hex dump (first 32 bytes):
+    58 de 0c 73 02 88 ff ff 58 de 0c 73 02 88 ff ff  X..s....X..s....
+    18 50 fd 7d 00 00 00 00 3f 50 fd 7d 00 00 00 00  .P.}....?P.}....
+  backtrace:
+    [<ffffffff813ddf40>] kmemleak_alloc+0x21/0x3e
+    [<ffffffff8111cb99>] kmemleak_alloc_recursive.constprop.58+0x16/0x18
+    [<ffffffff8111efac>] kmem_cache_alloc_trace+0xe6/0x12f
+    [<ffffffff81278f0e>] apei_res_add+0xb9/0xe8
+    [<ffffffff81278faa>] collect_res_callback+0x6d/0x7c
+    [<ffffffff812788ed>] apei_exec_for_each_entry+0x78/0x93
+    [<ffffffff8127891d>] apei_exec_collect_resources+0x15/0x17
+    [<ffffffff81b010e5>] erst_init+0x278/0x2a3
+    [<ffffffff810020b5>] do_one_initcall+0x7b/0x116
+    [<ffffffff81ac9ee7>] kernel_init_freeable+0x13f/0x1cc
+    [<ffffffff813db19f>] kernel_init+0x9/0xd6
+    [<ffffffff813fe5bc>] ret_from_fork+0x7c/0xb0
+    [<ffffffffffffffff>] 0xffffffffffffffff
+unreferenced object 0xffff88024d221980 (size 32):
+  comm "swapper/0", pid 1, jiffies 4294894532 (age 26865.180s)
+  hex dump (first 32 bytes):
+    68 de 0c 73 02 88 ff ff 68 de 0c 73 02 88 ff ff  h..s....h..s....
+    b2 00 00 00 00 00 00 00 b3 00 00 00 00 00 00 00  ................
+  backtrace:
+    [<ffffffff813ddf40>] kmemleak_alloc+0x21/0x3e
+    [<ffffffff8111cb99>] kmemleak_alloc_recursive.constprop.58+0x16/0x18
+    [<ffffffff8111efac>] kmem_cache_alloc_trace+0xe6/0x12f
+    [<ffffffff81278f0e>] apei_res_add+0xb9/0xe8
+    [<ffffffff81278faa>] collect_res_callback+0x6d/0x7c
+    [<ffffffff812788ed>] apei_exec_for_each_entry+0x78/0x93
+    [<ffffffff8127891d>] apei_exec_collect_resources+0x15/0x17
+    [<ffffffff81b010e5>] erst_init+0x278/0x2a3
+    [<ffffffff810020b5>] do_one_initcall+0x7b/0x116
+    [<ffffffff81ac9ee7>] kernel_init_freeable+0x13f/0x1cc
+    [<ffffffff813db19f>] kernel_init+0x9/0xd6
+    [<ffffffff813fe5bc>] ret_from_fork+0x7c/0xb0
+    [<ffffffffffffffff>] 0xffffffffffffffff
+unreferenced object 0xffff88024d221960 (size 32):
+  comm "swapper/0", pid 1, jiffies 4294894532 (age 26865.180s)
+  hex dump (first 32 bytes):
+    00 de 0c 73 02 88 ff ff 40 19 22 4d 02 88 ff ff  ...s....@."M....
+    00 50 09 7e 00 00 00 00 00 90 29 7e 00 00 00 00  .P.~......)~....
+  backtrace:
+    [<ffffffff813ddf40>] kmemleak_alloc+0x21/0x3e
+    [<ffffffff8111cb99>] kmemleak_alloc_recursive.constprop.58+0x16/0x18
+    [<ffffffff8111efac>] kmem_cache_alloc_trace+0xe6/0x12f
+    [<ffffffff81278f0e>] apei_res_add+0xb9/0xe8
+    [<ffffffff81278fce>] apei_get_nvs_callback+0x15/0x17
+    [<ffffffff8125197d>] acpi_nvs_for_each_region+0x25/0x46
+    [<ffffffff8127903b>] apei_resources_request+0x56/0x217
+    [<ffffffff81b00f28>] erst_init+0xbb/0x2a3
+    [<ffffffff810020b5>] do_one_initcall+0x7b/0x116
+    [<ffffffff81ac9ee7>] kernel_init_freeable+0x13f/0x1cc
+    [<ffffffff813db19f>] kernel_init+0x9/0xd6
+    [<ffffffff813fe5bc>] ret_from_fork+0x7c/0xb0
+    [<ffffffffffffffff>] 0xffffffffffffffff
+unreferenced object 0xffff88024d221940 (size 32):
+  comm "swapper/0", pid 1, jiffies 4294894532 (age 26865.180s)
+  hex dump (first 32 bytes):
+    60 19 22 4d 02 88 ff ff 00 de 0c 73 02 88 ff ff  `."M.......s....
+    00 00 37 7f 00 00 00 00 00 60 3f 7f 00 00 00 00  ..7......`?.....
+  backtrace:
+    [<ffffffff813ddf40>] kmemleak_alloc+0x21/0x3e
+    [<ffffffff8111cb99>] kmemleak_alloc_recursive.constprop.58+0x16/0x18
+    [<ffffffff8111efac>] kmem_cache_alloc_trace+0xe6/0x12f
+    [<ffffffff81278f0e>] apei_res_add+0xb9/0xe8
+    [<ffffffff81278fce>] apei_get_nvs_callback+0x15/0x17
+    [<ffffffff8125197d>] acpi_nvs_for_each_region+0x25/0x46
+    [<ffffffff8127903b>] apei_resources_request+0x56/0x217
+    [<ffffffff81b00f28>] erst_init+0xbb/0x2a3
+    [<ffffffff810020b5>] do_one_initcall+0x7b/0x116
+    [<ffffffff81ac9ee7>] kernel_init_freeable+0x13f/0x1cc
+    [<ffffffff813db19f>] kernel_init+0x9/0xd6
+    [<ffffffff813fe5bc>] ret_from_fork+0x7c/0xb0
+    [<ffffffffffffffff>] 0xffffffffffffffff
