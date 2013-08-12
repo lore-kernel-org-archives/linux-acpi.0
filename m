@@ -1,36 +1,83 @@
 From: Toshi Kani <toshi.kani@hp.com>
-Subject: [PATCH 0/2] Protect cpu map updates from ACPI processor
-Date: Mon, 12 Aug 2013 09:45:52 -0600
-Message-ID: <1376322354-13026-1-git-send-email-toshi.kani@hp.com>
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from g4t0017.houston.hp.com ([15.201.24.20]:4632 "EHLO
-	g4t0017.houston.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756863Ab3HLPrW (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 12 Aug 2013 11:47:22 -0400
-Sender: linux-acpi-owner@vger.kernel.org
-List-Id: linux-acpi@vger.kernel.org
+Subject: [PATCH 1/2] CPU hotplug: Export cpu_hotplug_begin() interface
+Date: Mon, 12 Aug 2013 09:45:53 -0600
+Message-ID: <1376322354-13026-2-git-send-email-toshi.kani@hp.com>
+References: <1376322354-13026-1-git-send-email-toshi.kani@hp.com>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1376322354-13026-1-git-send-email-toshi.kani@hp.com>
+Sender: linux-kernel-owner@vger.kernel.org
 To: rjw@sisk.pl
 Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, srivatsa.bhat@linux.vnet.ibm.com, isimatu.yasuaki@jp.fujitsu.com, Toshi Kani <toshi.kani@hp.com>
+List-Id: linux-acpi@vger.kernel.org
 
-CPU system maps are protected with reader/writer locks.  The reader
-lock, put_online_cpus(), assures that the maps are not updated while
-holding the lock.  The writer lock, cpu_hotplug_begin(), is used to
-udpate the cpu maps along with cpu_maps_update_begin().
+cpu_hotplug_begin() and cpu_hotplug_done() are the interfaces to
+acquire the writer lock of the cpu_hotplug.lock.  The interfaces are
+used along with cpu_maps_update_begin() / cpu_maps_update_done() to
+serialize the updates to the system cpu maps, such as cpu_online_mask
+and cpu_present_mask.
 
-However, the ACPI processor handler updates the cpu maps without
-holding the the writer lock.  This patchset fixes this problem.
+cpu_present_mask is updated by the ACPI processor handler.  Therefore,
+this patch changes the interfaces to global, and exports them in cpu.h.
 
+Signed-off-by: Toshi Kani <toshi.kani@hp.com>
 ---
-The patchset is based on linux-next of the pm tree.
+ include/linux/cpu.h |    4 ++++
+ kernel/cpu.c        |    9 +++------
+ 2 files changed, 7 insertions(+), 6 deletions(-)
 
----
-Toshi Kani (2):
- CPU hotplug: Export cpu_hotplug_begin() interface
- ACPI: Acquire writer lock to update cpu maps
-
----
- drivers/acpi/acpi_processor.c | 21 ++++++++++++++++-----
- include/linux/cpu.h           |  2 ++
- kernel/cpu.c                  |  4 ++--
- 3 files changed, 20 insertions(+), 7 deletions(-)
-
+diff --git a/include/linux/cpu.h b/include/linux/cpu.h
+index ab0eade..956c0a1 100644
+--- a/include/linux/cpu.h
++++ b/include/linux/cpu.h
+@@ -172,6 +172,8 @@ extern struct bus_type cpu_subsys;
+ #ifdef CONFIG_HOTPLUG_CPU
+ /* Stop CPUs going up and down. */
+ 
++extern void cpu_hotplug_begin(void);
++extern void cpu_hotplug_done(void);
+ extern void get_online_cpus(void);
+ extern void put_online_cpus(void);
+ extern void cpu_hotplug_disable(void);
+@@ -197,6 +199,8 @@ static inline void cpu_hotplug_driver_unlock(void)
+ 
+ #else		/* CONFIG_HOTPLUG_CPU */
+ 
++static inline void cpu_hotplug_begin(void) {}
++static inline void cpu_hotplug_done(void) {}
+ #define get_online_cpus()	do { } while (0)
+ #define put_online_cpus()	do { } while (0)
+ #define cpu_hotplug_disable()	do { } while (0)
+diff --git a/kernel/cpu.c b/kernel/cpu.c
+index b2b227b..d7f07a2 100644
+--- a/kernel/cpu.c
++++ b/kernel/cpu.c
+@@ -113,7 +113,7 @@ EXPORT_SYMBOL_GPL(put_online_cpus);
+  * get_online_cpus() not an api which is called all that often.
+  *
+  */
+-static void cpu_hotplug_begin(void)
++void cpu_hotplug_begin(void)
+ {
+ 	cpu_hotplug.active_writer = current;
+ 
+@@ -127,7 +127,7 @@ static void cpu_hotplug_begin(void)
+ 	}
+ }
+ 
+-static void cpu_hotplug_done(void)
++void cpu_hotplug_done(void)
+ {
+ 	cpu_hotplug.active_writer = NULL;
+ 	mutex_unlock(&cpu_hotplug.lock);
+@@ -154,10 +154,7 @@ void cpu_hotplug_enable(void)
+ 	cpu_maps_update_done();
+ }
+ 
+-#else /* #if CONFIG_HOTPLUG_CPU */
+-static void cpu_hotplug_begin(void) {}
+-static void cpu_hotplug_done(void) {}
+-#endif	/* #else #if CONFIG_HOTPLUG_CPU */
++#endif	/* CONFIG_HOTPLUG_CPU */
+ 
+ /* Need to know about CPUs going up/down? */
+ int __ref register_cpu_notifier(struct notifier_block *nb)
