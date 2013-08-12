@@ -1,35 +1,34 @@
-From: Borislav Petkov <bp@alien8.de>
-Subject: Re: [PATCH 1/3] mce: acpi/apei: trace: Include PCIe AER trace event
- conditionally
-Date: Mon, 12 Aug 2013 15:26:13 +0200
-Message-ID: <20130812132613.GF18018@pd.tnic>
-References: <1375986471-27113-1-git-send-email-naveen.n.rao@linux.vnet.ibm.com>
- <1375986471-27113-2-git-send-email-naveen.n.rao@linux.vnet.ibm.com>
- <20130808152329.1f98b5e0@gandalf.local.home>
- <5208C8DD.3050204@linux.vnet.ibm.com>
- <20130812091337.6f8c057d@gandalf.local.home>
+From: Tejun Heo <tj@kernel.org>
+Subject: Re: [PATCH part2 1/4] acpi: Print Hot-Pluggable Field in SRAT.
+Date: Mon, 12 Aug 2013 10:15:51 -0400
+Message-ID: <20130812141551.GD15892@htj.dyndns.org>
+References: <1375938239-18769-1-git-send-email-tangchen@cn.fujitsu.com>
+ <1375938239-18769-2-git-send-email-tangchen@cn.fujitsu.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <owner-linux-mm@kvack.org>
 Content-Disposition: inline
-In-Reply-To: <20130812091337.6f8c057d@gandalf.local.home>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Steven Rostedt <rostedt@goodmis.org>
-Cc: "Naveen N. Rao" <naveen.n.rao@linux.vnet.ibm.com>, tony.luck@intel.com, bhelgaas@google.com, rjw@sisk.pl, lance.ortiz@hp.com, m.chehab@samsung.com, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+In-Reply-To: <1375938239-18769-2-git-send-email-tangchen@cn.fujitsu.com>
+Sender: owner-linux-mm@kvack.org
+To: Tang Chen <tangchen@cn.fujitsu.com>
+Cc: robert.moore@intel.com, lv.zheng@intel.com, rjw@sisk.pl, lenb@kernel.org, tglx@linutronix.de, mingo@elte.hu, hpa@zytor.com, akpm@linux-foundation.org, trenn@suse.de, yinghai@kernel.org, jiang.liu@huawei.com, wency@cn.fujitsu.com, laijs@cn.fujitsu.com, isimatu.yasuaki@jp.fujitsu.com, izumi.taku@jp.fujitsu.com, mgorman@suse.de, minchan@kernel.org, mina86@mina86.com, gong.chen@linux.intel.com, vasilis.liaskovitis@profitbricks.com, lwoodman@redhat.com, riel@redhat.com, jweiner@redhat.com, prarit@redhat.com, zhangyanfei@cn.fujitsu.com, yanghy@cn.fujitsu.com, x86@kernel.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-mm@kvack.org, linux-acpi@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Mon, Aug 12, 2013 at 09:13:37AM -0400, Steven Rostedt wrote:
-> Yeah, if it's only used on one place, then it's fine. But if it gets
-> used in other files, than those other files with have to define the
-> macro as well.
+On Thu, Aug 08, 2013 at 01:03:56PM +0800, Tang Chen wrote:
+> +	pr_info("SRAT: Node %u PXM %u [mem %#010Lx-%#010Lx]%s\n",
+> +		node, pxm,
+> +		(unsigned long long) start, (unsigned long long) end - 1,
+> +		hotpluggable ? " Hot Pluggable" : "");
 
-Yeah, we need to be careful about this. When a ras tracepoint gets used
-in multiple places, I'm guessing it would be cleaner/easier to fork it
-out in its own ras-<a-lot-used-tracepoint>.h header, huh?
+Wouldn't it be better to just print "hotplug"?
+
+Thanks.
 
 -- 
-Regards/Gruss,
-    Boris.
+tejun
 
-Sent from a fat crate under my desk. Formatting is fine.
 --
+To unsubscribe, send a message with 'unsubscribe linux-mm' in
+the body to majordomo@kvack.org.  For more info on Linux MM,
+see: http://www.linux-mm.org/ .
+Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
