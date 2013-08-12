@@ -1,64 +1,75 @@
-From: Tejun Heo <tj@kernel.org>
+From: Tang Chen <imtangchen@gmail.com>
 Subject: Re: [PATCH part5 0/7] Arrange hotpluggable memory as ZONE_MOVABLE.
-Date: Mon, 12 Aug 2013 12:22:47 -0400
-Message-ID: <20130812162247.GM15892@htj.dyndns.org>
-References: <1375956979-31877-1-git-send-email-tangchen@cn.fujitsu.com>
- <20130812145016.GI15892@htj.dyndns.org>
- <52090225.6070208@gmail.com>
- <20130812154623.GL15892@htj.dyndns.org>
- <52090AF6.6020206@gmail.com>
+Date: Tue, 13 Aug 2013 00:29:51 +0800
+Message-ID: <52090D7F.6060600@gmail.com>
+References: <1375956979-31877-1-git-send-email-tangchen@cn.fujitsu.com> <20130812145016.GI15892@htj.dyndns.org> <5208FBBC.2080304@zytor.com> <20130812152343.GK15892@htj.dyndns.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <owner-linux-mm@kvack.org>
-Content-Disposition: inline
-In-Reply-To: <52090AF6.6020206@gmail.com>
+In-Reply-To: <20130812152343.GK15892@htj.dyndns.org>
 Sender: owner-linux-mm@kvack.org
-To: Tang Chen <imtangchen@gmail.com>
-Cc: Tang Chen <tangchen@cn.fujitsu.com>, robert.moore@intel.com, lv.zheng@intel.com, rjw@sisk.pl, lenb@kernel.org, tglx@linutronix.de, mingo@elte.hu, hpa@zytor.com, akpm@linux-foundation.org, trenn@suse.de, yinghai@kernel.org, jiang.liu@huawei.com, wency@cn.fujitsu.com, laijs@cn.fujitsu.com, isimatu.yasuaki@jp.fujitsu.com, izumi.taku@jp.fujitsu.com, mgorman@suse.de, minchan@kernel.org, mina86@mina86.com, gong.chen@linux.intel.com, vasilis.liaskovitis@profitbricks.com, lwoodman@redhat.com, riel@redhat.com, jweiner@redhat.com, prarit@redhat.com, zhangyanfei@cn.fujitsu.com, yanghy@cn.fujitsu.com, x86@kernel.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-mm@kvack.org, linux-acpi@vger.kernel.org
+To: Tejun Heo <tj@kernel.org>
+Cc: "H. Peter Anvin" <hpa@zytor.com>, Tang Chen <tangchen@cn.fujitsu.com>, robert.moore@intel.com, lv.zheng@intel.com, rjw@sisk.pl, lenb@kernel.org, tglx@linutronix.de, mingo@elte.hu, akpm@linux-foundation.org, trenn@suse.de, yinghai@kernel.org, jiang.liu@huawei.com, wency@cn.fujitsu.com, laijs@cn.fujitsu.com, isimatu.yasuaki@jp.fujitsu.com, izumi.taku@jp.fujitsu.com, mgorman@suse.de, minchan@kernel.org, mina86@mina86.com, gong.chen@linux.intel.com, vasilis.liaskovitis@profitbricks.com, lwoodman@redhat.com, riel@redhat.com, jweiner@redhat.com, prarit@redhat.com, zhangyanfei@cn.fujitsu.com, yanghy@cn.fujitsu.com, x86@kernel.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-mm@kvack.org, linux-acpi@vger.kernel.org, "Luck, Tony (tony.luck@intel.com)" <tony.luck@intel.com>
 List-Id: linux-acpi@vger.kernel.org
 
-Hello, Tang.
+On 08/12/2013 11:23 PM, Tejun Heo wrote:
+> Hello,
+>
+> On Mon, Aug 12, 2013 at 08:14:04AM -0700, H. Peter Anvin wrote:
+>> It gets really messy if it is advisory.  Suddenly you have the user
+>> thinking they can hotswap a memory bank and they just can't.
+>
+> I'm very skeptical that not doing the strict re-ordering would
+> increase the chance of reaching memory allocation where hot unplug
+> would be impossible by much.  Given that, it'd be much better to be
+> able to boot w/o hotunplug capability than to fail boot.  The kernel
+> can whine loudly when hotunplug conditions aren't met but I think that
+> really is as far as that should go.
 
-On Tue, Aug 13, 2013 at 12:19:02AM +0800, Tang Chen wrote:
-> The kernel can export info to users. The point is what kind of info.
-> Exporting phys addr is meaningless, of course. Now in /sys, we only
-> have memory_block and node. memory_block is only 128M on x86, and
-> hotplug a memory_block means nothing. So actually we only have node.
-> 
-> So users want to hotplug a node is reasonable, I think. In the
-> beginning, we set the hotplug unit to a node. That is also why we
-> did the movable node.
-> 
-> In summary, node hotplug is much meaningful and usable for users.
-> So it is the best that we can arrange a whole node to be movable
-> node, not opportunistic.
+As you said, we can ensure at least one node to be unhotplug. Then the
+kernel will boot anyway. Just like CPU0. But we have the chance to lose
+one movable node.
 
-Still not following.  Yeah, sure, you can tell the userland that node
-X is hotpluggable or not hotpluggable after boot is complete.  Why is
-that relevant?
+The best way is firmware and software corporate together. SRAT provides
+several movable node and enough non-movable memory for the kernel to
+boot. The hotplug users only use movable node.
 
-> I'm just thinking of a more extreme case. For example, if a machine
-> has only one node hotpluggable, and the kernel resides in that node.
-> Then the system has no hotpluggable node.
+>
+>> Overall, I'm getting convinced that this whole approach is just doomed
+>> to failure -- it will not provide the user what they expect and what
+>> they need, which is to be able to hotswap any particular chunk of
+>> memory.  This means that there has to be a remapping layer, either using
+>> the TLBs (perhaps leveraging the Xen machine page number) or using
+>> things like QPI memory routing.
+>
+> For hot unplug to work in completely generic manner, yeah, there
+> probably needs to be an extra layer of indirection.
 
-Yeah, sure, then there's no way that node can be hotpluggable and the
-right thing to do is booting up the machine and informing the userland
-that memory is not hotpluggable.
+I agree too.
 
-> If we can prevent the kernel from using hotpluggable memory, in such
-> a machine, users can still do memory hotplug.
-> 
-> I wanted to do it as generic as possible. But yes, finding out the
-> nodes the kernel resides in and make it unhotpluggable can work.
+> Have no idea what
+> the correct way to achieve that would be tho.  I'm also not sure how
+> practicial memory hot unplug is for physical machines and improving
+> ballooning could be a better approach for vms.
 
-Short of being able to remap memory under the kernel, I don't think
-this can be very generic and as a compromise trying to keep as many
-hotpluggable nodes as possible doesn't sound too bad.
+But, different users have different ways to use memory hotplug.
+
+Hotswaping any particular chunk of memory is the goal we will reach
+finally. But it is on specific hardware. In most current machines, we
+can use movable node to manage resource in node unit.
+
+And also, without this movablenode boot option, the MOVABLE_NODE
+functionality, which is already in the kernel, will not be able to
+work. All nodes has kernel memory means no movable node.
+
+So, how about this: Just like MOVABLE_NODE functionality, introduce
+a new config option. When we have better solutions for memory hotplug,
+we shutoff or remove the config and related code.
+
+For now, at least make movable node work.
 
 Thanks.
-
--- 
-tejun
 
 --
 To unsubscribe, send a message with 'unsubscribe linux-mm' in
