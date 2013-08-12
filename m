@@ -1,68 +1,114 @@
-From: Tejun Heo <tj@kernel.org>
+From: Tang Chen <imtangchen@gmail.com>
 Subject: Re: [PATCH part5 0/7] Arrange hotpluggable memory as ZONE_MOVABLE.
-Date: Mon, 12 Aug 2013 14:07:58 -0400
-Message-ID: <20130812180758.GA8288@mtj.dyndns.org>
-References: <1375956979-31877-1-git-send-email-tangchen@cn.fujitsu.com>
- <20130812145016.GI15892@htj.dyndns.org>
- <52090225.6070208@gmail.com>
- <20130812154623.GL15892@htj.dyndns.org>
- <52090AF6.6020206@gmail.com>
- <20130812162247.GM15892@htj.dyndns.org>
- <520914D5.7080501@gmail.com>
+Date: Tue, 13 Aug 2013 02:23:13 +0800
+Message-ID: <52092811.3020105@gmail.com>
+References: <1375956979-31877-1-git-send-email-tangchen@cn.fujitsu.com> <20130812145016.GI15892@htj.dyndns.org> <5208FBBC.2080304@zytor.com> <20130812152343.GK15892@htj.dyndns.org> <52090D7F.6060600@gmail.com> <20130812164650.GN15892@htj.dyndns.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <owner-linux-mm@kvack.org>
-Content-Disposition: inline
-In-Reply-To: <520914D5.7080501@gmail.com>
+In-Reply-To: <20130812164650.GN15892@htj.dyndns.org>
 Sender: owner-linux-mm@kvack.org
-To: Tang Chen <imtangchen@gmail.com>
-Cc: Tang Chen <tangchen@cn.fujitsu.com>, robert.moore@intel.com, lv.zheng@intel.com, rjw@sisk.pl, lenb@kernel.org, tglx@linutronix.de, mingo@elte.hu, hpa@zytor.com, akpm@linux-foundation.org, trenn@suse.de, yinghai@kernel.org, jiang.liu@huawei.com, wency@cn.fujitsu.com, laijs@cn.fujitsu.com, isimatu.yasuaki@jp.fujitsu.com, izumi.taku@jp.fujitsu.com, mgorman@suse.de, minchan@kernel.org, mina86@mina86.com, gong.chen@linux.intel.com, vasilis.liaskovitis@profitbricks.com, lwoodman@redhat.com, riel@redhat.com, jweiner@redhat.com, prarit@redhat.com, zhangyanfei@cn.fujitsu.com, yanghy@cn.fujitsu.com, x86@kernel.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-mm@kvack.org, linux-acpi@vger.kernel.org
+To: Tejun Heo <tj@kernel.org>, "H. Peter Anvin" <hpa@zytor.com>
+Cc: Tang Chen <tangchen@cn.fujitsu.com>, robert.moore@intel.com, lv.zheng@intel.com, rjw@sisk.pl, lenb@kernel.org, tglx@linutronix.de, mingo@elte.hu, akpm@linux-foundation.org, trenn@suse.de, yinghai@kernel.org, jiang.liu@huawei.com, wency@cn.fujitsu.com, laijs@cn.fujitsu.com, isimatu.yasuaki@jp.fujitsu.com, izumi.taku@jp.fujitsu.com, mgorman@suse.de, minchan@kernel.org, mina86@mina86.com, gong.chen@linux.intel.com, vasilis.liaskovitis@profitbricks.com, lwoodman@redhat.com, riel@redhat.com, jweiner@redhat.com, prarit@redhat.com, zhangyanfei@cn.fujitsu.com, yanghy@cn.fujitsu.com, x86@kernel.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-mm@kvack.org, linux-acpi@vger.kernel.org, "Luck, Tony (tony.luck@intel.com)" <tony.luck@intel.com>
 List-Id: linux-acpi@vger.kernel.org
 
-Hey,
+On 08/13/2013 12:46 AM, Tejun Heo wrote:
+> Hello, Tang.
+......
+>
+>> But, different users have different ways to use memory hotplug.
+>>
+>> Hotswaping any particular chunk of memory is the goal we will reach
+>> finally. But it is on specific hardware. In most current machines, we
+>> can use movable node to manage resource in node unit.
+>>
+>> And also, without this movablenode boot option, the MOVABLE_NODE
+>> functionality, which is already in the kernel, will not be able to
+>> work. All nodes has kernel memory means no movable node.
+>>
+>> So, how about this: Just like MOVABLE_NODE functionality, introduce
+>> a new config option. When we have better solutions for memory hotplug,
+>> we shutoff or remove the config and related code.
+>>
+>> For now, at least make movable node work.
 
-On Tue, Aug 13, 2013 at 01:01:09AM +0800, Tang Chen wrote:
-> Sorry for the misunderstanding.
-> 
-> I was trying to answer your question: "Why can't the kenrel allocate
-> hotpluggable memory opportunistic ?".
+Hi tj,
+cc hpa,
 
-I've used the wrong word, I was meaning best-effort, which is the only
-thing we can do anyway given that we have no control over where the
-kernel image is linked in relation to NUMA nodes.
+I explained above because hpa said he thought the whole approach is
+wrong. I think node hotplug is meaningful for users. And without this
+patch-set, MOVABLE_NODE means nothing. This is all above.
 
-> If the kernel has any opportunity to allocate hotpluggable memory in
-> SRAT, then the kernel should tell users which memory is hotpluggable.
-> 
-> But in what way ?  I think node is the best for now. But a node could
-> have a lot of memory. If the kernel uses only a little memory, we will
-> lose the whole movable node, which I don't want to do.
-> 
-> So, I don't want to allow the kenrel allocating hotpluggable memory
-> opportunistic.
+Since you replied his email in previous emails, I just replied to
+answer both of you. Sorry for the misunderstanding. :)
 
-What I was saying was that the kernel should try !hotpluggable memory
-first then fall back to hotpluggable memory instead of failing boot as
-nothing really is worse than failing to boot.
+>
+> We are talking completely past each other.  I'll just try to clarify
+> what I was saying.  Can you please do the same?  Let's re-sync on the
+> discussion.
+>
+> * Adding an option to tell the kernel to try to stay away from
+>    hotpluggable nodes is fine.  I have no problem with that at all.
 
-> >Short of being able to remap memory under the kernel, I don't think
-> >this can be very generic and as a compromise trying to keep as many
-> >hotpluggable nodes as possible doesn't sound too bad.
-> 
-> I think making one of the node hotpluggable is better. But OK, it is
-> no big deal. There won't be such machine in reality, I think. :)
+Agreed.
 
-Hmmm... but allocating close to kernel image will keep the number of
-nodes which are made un-removeable via permanent allocation to
-minimum.  In most configurations that I can recall, I don't think we'd
-lose anything really and the code will be much simpler and generic.
-It seems like a good trade-off to me given that we need to report
-which nodes are hot unpluggable no matter what.
+>
+> * The patchsets upto this point have been somehow trying to reorder
+>    operations shomehow such that *no* memory allocation happens before
+>    memblock is populated with hotplug information.
 
-Thanks.
+Yes, this is exactly what I want to do.
 
--- 
-tejun
+>
+> * However, we already *know* that the memory the kernel image is
+>    occupying won't be removeable.  It's highly likely that the amount
+>    of memory allocation before NUMA / hotplug information is fully
+>    populated is pretty small.  Also, it's highly likely that small
+>    amount of memory right after the kernel image is contained in the
+>    same NUMA node, so if we allocate memory close to the kernel image,
+>    it's likely that we don't contaminate hotpluggable node.  We're
+>    talking about few megs at most right after the kernel image.  I
+>    can't see how that would make any noticeable difference.
+
+This point, I don't quite agree. What you said is highly likely, but
+not definitely. Users may find they lost hotpluggable memory.
+
+The node the kernel resides in won't be removable. This is agreed.
+But I still want SRAT earlier for the following reasons:
+
+1. For a production provided to users, the firmware specified how
+    many nodes are hotpluggable. When the system is up, if users
+    found they lost movable nodes, I think it could be messy.
+
+2. Reorder SRAT parsing earlier is not that difficult to do. The
+    only procedures reordered are acpi tables initialization and
+    acpi_initrd_override. The acpi part patches are being reviewed.
+    And it is better solution. If possible, I think we should do it.
+
+In summary, I don't want early memory allocation with hotpluggable
+memory to be opportunistic.
+
+>
+> * Once hotplug information is available, allocation can happen as
+>    usual and the kernel can report the nodes which are actually
+>    hotpluggable - marked as hotpluggable by the firmware&&  didn't get
+>    contaminated during early alloc&&  didn't get overflow allocations
+>    afterwards.  Note that we need such mechanism no matter what as the
+>    kernel image can be loaded into hotpluggable nodes and reporting
+>    that to userland is the only thing the kernel can do for cases like
+>    that short of denying memory unplug on such nodes.
+
+Agreed.
+
+>
+> The whole thing would be a lot simpler and generic.  It doesn't even
+> have to care about which mechanism is being used to acquire all those
+> information.  What am I missing here?
+
+Sorry for the misunderstanding.
+
+Thanks. :)
 
 --
 To unsubscribe, send a message with 'unsubscribe linux-mm' in
