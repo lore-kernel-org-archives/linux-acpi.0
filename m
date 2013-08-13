@@ -1,55 +1,55 @@
-From: Borislav Petkov <bp@alien8.de>
-Subject: Re: [PATCH 3/3] mce: acpi/apei: trace: Enable ghes memory error
- trace event
-Date: Tue, 13 Aug 2013 14:42:58 +0200
-Message-ID: <20130813124258.GC4077@pd.tnic>
-References: <1375986471-27113-1-git-send-email-naveen.n.rao@linux.vnet.ibm.com>
- <1375986471-27113-4-git-send-email-naveen.n.rao@linux.vnet.ibm.com>
- <20130808163822.67e0828a@samsung.com>
- <20130810180322.GC4155@pd.tnic>
- <20130812083355.47c1bae8@samsung.com>
- <5208D80D.5030206@linux.vnet.ibm.com>
- <20130812125343.GE18018@pd.tnic>
- <520A16BD.30201@linux.vnet.ibm.com>
+From: Tejun Heo <tj@kernel.org>
+Subject: Re: [PATCH part5 0/7] Arrange hotpluggable memory as ZONE_MOVABLE.
+Date: Tue, 13 Aug 2013 10:38:56 -0400
+Message-ID: <20130813143856.GA26596@mtj.dyndns.org>
+References: <1375956979-31877-1-git-send-email-tangchen@cn.fujitsu.com>
+ <20130812145016.GI15892@htj.dyndns.org>
+ <5208FBBC.2080304@zytor.com>
+ <20130812152343.GK15892@htj.dyndns.org>
+ <52090D7F.6060600@gmail.com>
+ <20130812164650.GN15892@htj.dyndns.org>
+ <5209CEC1.8070908@cn.fujitsu.com>
+ <520A02DE.1010908@cn.fujitsu.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <owner-linux-mm@kvack.org>
 Content-Disposition: inline
-In-Reply-To: <520A16BD.30201@linux.vnet.ibm.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: "Naveen N. Rao" <naveen.n.rao@linux.vnet.ibm.com>
-Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>, tony.luck@intel.com, bhelgaas@google.com, rostedt@goodmis.org, rjw@sisk.pl, lance.ortiz@hp.com, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+In-Reply-To: <520A02DE.1010908@cn.fujitsu.com>
+Sender: owner-linux-mm@kvack.org
+To: Tang Chen <tangchen@cn.fujitsu.com>
+Cc: Tang Chen <imtangchen@gmail.com>, "H. Peter Anvin" <hpa@zytor.com>, robert.moore@intel.com, lv.zheng@intel.com, rjw@sisk.pl, lenb@kernel.org, tglx@linutronix.de, mingo@elte.hu, akpm@linux-foundation.org, trenn@suse.de, yinghai@kernel.org, jiang.liu@huawei.com, wency@cn.fujitsu.com, laijs@cn.fujitsu.com, isimatu.yasuaki@jp.fujitsu.com, izumi.taku@jp.fujitsu.com, mgorman@suse.de, minchan@kernel.org, mina86@mina86.com, gong.chen@linux.intel.com, vasilis.liaskovitis@profitbricks.com, lwoodman@redhat.com, riel@redhat.com, jweiner@redhat.com, prarit@redhat.com, zhangyanfei@cn.fujitsu.com, yanghy@cn.fujitsu.com, x86@kernel.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-mm@kvack.org, linux-acpi@vger.kernel.org, "Luck, Tony (tony.luck@intel.com)" <tony.luck@intel.com>
 List-Id: linux-acpi@vger.kernel.org
 
-On Tue, Aug 13, 2013 at 04:51:33PM +0530, Naveen N. Rao wrote:
-> You're right - my trace point makes all the data provided by apei
-> as-is to userspace. However, ghes_edac seems to squash some of this
-> data into a string when reporting through mc_event.
+Hello, Tang.
 
-Right, for systems which don't need EDAC to decode to the DIMM or for
-which there are no EDAC drivers written, they could use a tracepoint
-which carries APEI info as-is. Others, which need EDAC, should probably
-use trace_mc_event and disable the APEI tracepoint.
+On Tue, Aug 13, 2013 at 05:56:46PM +0800, Tang Chen wrote:
+> 1. Introduce a memblock.current_limit_low to limit the lowest address
+>    that memblock can use.
+> 
+> 2. Make memblock be able to allocate memory from low to high.
+> 
+> 3. Get kernel image address on x86, and set memblock.current_limit_low
+>    to it before SRAT is parsed. Then we achieve the goal.
+> 
+> 4. Reset it to 0, and make memblock allocate memory form high to low.
+> 
+> How do you think of this, or do you have any better idea ?
 
-I think this should address Tony's concerns...
+Yes, something like that.  Maybe have something like
+memblock_set_alloc_range(low, high, low_to_high) in memblock?  Once
+NUMA info is available arch code can call memblock_set_alloc_range(0,
+0, false) to reset it to the default behavior.
 
-Btw, you could call your TP something simpler like
-trace_ghes_memory_event or so.
+> Thanks for your patient and help. :)
 
-Btw 2, if GHES can report other types of errors (I'm pretty sure it can)
-maybe we can use a single tracepoint called trace_ghes_event for any
-types of errors coming out of it...
-
-Oh, and while at it, we probably need to start thinking of a mechanism
-to disable all the error printing, i.e. cper_print_mem() and such,
-if a userspace agent is listening in on the tracepoint and the error
-information is carried through it to userspace.
-
-Thanks.
+Heh, sorry about all the roundabouts.  Your persistence is much
+appreciated. :)
 
 -- 
-Regards/Gruss,
-    Boris.
+tejun
 
-Sent from a fat crate under my desk. Formatting is fine.
 --
+To unsubscribe, send a message with 'unsubscribe linux-mm' in
+the body to majordomo@kvack.org.  For more info on Linux MM,
+see: http://www.linux-mm.org/ .
+Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
