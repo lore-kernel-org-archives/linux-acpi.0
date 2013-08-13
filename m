@@ -1,52 +1,53 @@
 From: Toshi Kani <toshi.kani@hp.com>
-Subject: Re: [PATCH] mm/hotplug: Remove stop_machine() from
- try_offline_node()
-Date: Tue, 13 Aug 2013 08:44:48 -0600
-Message-ID: <1376405088.10300.384.camel@misato.fc.hp.com>
-References: <1376336071-9128-1-git-send-email-toshi.kani@hp.com>
-	 <3940091.8hz2Z6IIgz@vostro.rjw.lan>
+Subject: Re: [PATCH 0/2] Protect cpu map updates from ACPI processor
+Date: Tue, 13 Aug 2013 08:52:52 -0600
+Message-ID: <1376405572.10300.385.camel@misato.fc.hp.com>
+References: <1376322354-13026-1-git-send-email-toshi.kani@hp.com>
+	 <2206062.QmFJav0XuL@vostro.rjw.lan>
+	 <1376355303.10300.376.camel@misato.fc.hp.com>
+	 <1497141.gLtk1PtyFs@vostro.rjw.lan>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 7bit
-Return-path: <owner-linux-mm@kvack.org>
-In-Reply-To: <3940091.8hz2Z6IIgz@vostro.rjw.lan>
-Sender: owner-linux-mm@kvack.org
-To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: akpm@linux-foundation.org, linux-mm@kvack.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, kosaki.motohiro@jp.fujitsu.com, kamezawa.hiroyu@jp.fujitsu.com, tangchen@cn.fujitsu.com, isimatu.yasuaki@jp.fujitsu.com, liwanp@linux.vnet.ibm.com
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from g1t0029.austin.hp.com ([15.216.28.36]:41715 "EHLO
+	g1t0029.austin.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757892Ab3HMOyI (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 13 Aug 2013 10:54:08 -0400
+In-Reply-To: <1497141.gLtk1PtyFs@vostro.rjw.lan>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, srivatsa.bhat@linux.vnet.ibm.com, isimatu.yasuaki@jp.fujitsu.com
 
-On Tue, 2013-08-13 at 13:41 +0200, Rafael J. Wysocki wrote:
-> On Monday, August 12, 2013 01:34:31 PM Toshi Kani wrote:
-> > lock_device_hotplug() serializes hotplug & online/offline operations.
-> > The lock is held in common sysfs online/offline interfaces and ACPI
-> > hotplug code paths.
+On Tue, 2013-08-13 at 13:47 +0200, Rafael J. Wysocki wrote:
+> On Monday, August 12, 2013 06:55:03 PM Toshi Kani wrote:
+> > On Tue, 2013-08-13 at 02:43 +0200, Rafael J. Wysocki wrote:
+> > > On Monday, August 12, 2013 09:45:52 AM Toshi Kani wrote:
+> > > > CPU system maps are protected with reader/writer locks.  The reader
+> > > > lock, put_online_cpus(), assures that the maps are not updated while
+> > > > holding the lock.  The writer lock, cpu_hotplug_begin(), is used to
+> > > > udpate the cpu maps along with cpu_maps_update_begin().
+> > > > 
+> > > > However, the ACPI processor handler updates the cpu maps without
+> > > > holding the the writer lock.  This patchset fixes this problem.
+> > > > 
+> > > > ---
+> > > > The patchset is based on linux-next of the pm tree.
+> > > 
+> > > Basically looks OK to me, but I'd just merge the patches together,
+> > > because the [2/2] is the very reason for the change made by [1/2].
 > > 
-> > try_offline_node() off-lines a node if all memory sections and cpus
-> > are removed on the node.  It is called from acpi_processor_remove()
-> > and acpi_memory_remove_memory()->remove_memory() paths, both of which
-> > are in the ACPI hotplug code.
-> > 
-> > try_offline_node() calls stop_machine() to stop all cpus while checking
-> > all cpu status with the assumption that the caller is not protected from
-> > CPU hotplug or CPU online/offline operations.  However, the caller is
-> > always serialized with lock_device_hotplug().  Also, the code needs to
-> > be properly serialized with a lock, not by stopping all cpus at a random
-> > place with stop_machine().
-> > 
-> > This patch removes the use of stop_machine() in try_offline_node() and
-> > adds comments to try_offline_node() and remove_memory() that
-> > lock_device_hotplug() is required.
-> > 
-> > Signed-off-by: Toshi Kani <toshi.kani@hp.com>
+> > I separated for reviewing purpose, but yes, they can be together.  Let
+> > me know if you need me to re-send it together.
 > 
-> Acked-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+> I combined them and added a changelog built out of the messages you sent in
+> this thread.  Please check:
+> 
+> http://git.kernel.org/cgit/linux/kernel/git/rafael/linux-pm.git/commit/?h=bleeding-edge&id=b9d10be7a8e88fdcb12540387c219cdde87b0795
+> 
 
-Thanks!
+Looks good!
+Thanks,
 -Toshi
 
-
---
-To unsubscribe, send a message with 'unsubscribe linux-mm' in
-the body to majordomo@kvack.org.  For more info on Linux MM,
-see: http://www.linux-mm.org/ .
-Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
