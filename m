@@ -1,45 +1,70 @@
-From: Bjorn Helgaas <bhelgaas@google.com>
-Subject: Re: [PATCH 1/2] ACPI / PCI: don't allow PCI devices without irq to be enabled
-Date: Mon, 12 Aug 2013 16:32:30 -0600
-Message-ID: <CAErSpo6dmSwcM5ensq1fKL=-mbLNyi9G+U+LPA1P=pP8j9=EoA@mail.gmail.com>
-References: <1375965314-24232-1-git-send-email-heikki.krogerus@linux.intel.com>
- <1375965314-24232-2-git-send-email-heikki.krogerus@linux.intel.com>
- <14983102.aCV009CSMA@vostro.rjw.lan> <CAErSpo6N65EOy6ieZSKN8eO09GoCFe05YOMRNMhx8RLHbqN=yw@mail.gmail.com>
- <CAE9FiQV3ohndZGvWHByA76G=Cb3NEVn4ukpoF==zHsLw8oaopA@mail.gmail.com>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: [PATCH] driver core / cpu: Check if NUMA node is valid before bringing CPU up
+Date: Tue, 13 Aug 2013 02:39:30 +0200
+Message-ID: <12747916.Y6ImPYErWR@vostro.rjw.lan>
+References: <5200CBBF.1090904@jp.fujitsu.com> <33585791.CVfk6FmZRF@vostro.rjw.lan> <1376338103.10300.336.camel@misato.fc.hp.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <linux-pci-owner@vger.kernel.org>
-In-Reply-To: <CAE9FiQV3ohndZGvWHByA76G=Cb3NEVn4ukpoF==zHsLw8oaopA@mail.gmail.com>
-Sender: linux-pci-owner@vger.kernel.org
-To: Yinghai Lu <yinghai@kernel.org>
-Cc: "Rafael J. Wysocki" <rjw@sisk.pl>, Heikki Krogerus <heikki.krogerus@linux.intel.com>, Prarit Bhargava <prarit@redhat.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, Linux PCI <linux-pci@vger.kernel.org>, Sarah Sharp <sarah.a.sharp@linux.intel.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, "linux-usb@vger.kernel.org" <linux-usb@vger.kernel.org>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7Bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1376338103.10300.336.camel@misato.fc.hp.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Toshi Kani <toshi.kani@hp.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: Tang Chen <tangchen@cn.fujitsu.com>, Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>, rafael.j.wysocki@intel.com, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Wen Congyang <wency@cn.fujitsu.com>
 List-Id: linux-acpi@vger.kernel.org
 
-On Mon, Aug 12, 2013 at 3:32 PM, Yinghai Lu <yinghai@kernel.org> wrote:
-> On Mon, Aug 12, 2013 at 2:14 PM, Bjorn Helgaas <bhelgaas@google.com> wrote:
->> On Thu, Aug 8, 2013 at 7:57 AM, Rafael J. Wysocki <rjw@sisk.pl> wrote:
->>> On Thursday, August 08, 2013 03:35:13 PM Heikki Krogerus wrote:
->>>> If there is no ACPI entry for the irq, returning error from
->>>> acpi_pci_enable_irq() if the irq is 0.
->>>>
->>>> Prarit Bhargava reported an issue where he noticed that his
->>>> Dell PowerEdge 840 has buggy BIOS that does not supply ACPI
->>>> entries for irq with some devices. That lead into kernel
->>>> generating a warning "genirq: Flags mismatch irq 0...". This
->>>> will fix that issue.
->>>>
->>>> Signed-off-by: Heikki Krogerus <heikki.krogerus@linux.intel.com>
->>>> Tested-by: Prarit Bhargava <prarit@redhat.com>
->>>
->>> Hi Bjorn,
->>>
->>> Any objections to this?
->>
->> Acked-by: Bjorn Helgaas <bhelgaas@google.com>
->
-> some USB3 host controller does not have intx configured, but still
-> work with MSI?
+From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 
-Huh, OK, I take back my ack, at least while we investigate this.
+There is a potential race condition between cpu_subsys_online()
+and either acpi_processor_remove() or remove_memory() that execute
+try_offline_node().  Namely, it is possible that cpu_subsys_online()
+will run right after the CPUs NUMA node has been put offline and
+cpu_to_node() executed by it will return NUMA_NO_NODE (-1).  In
+that case the CPU is gone and it doesn't make sense to call cpu_up()
+for it, so make cpu_subsys_online() return -ENODEV then.
 
-Bjorn
+Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+Acked-by: Toshi Kani <toshi.kani@hp.com>
+---
+
+Hi Greg,
+
+Can you please kindly queue up this one for 3.12?
+
+I've added the Toshi's ACK as he said it looked good to him. :-)
+
+Thanks,
+Rafael
+
+---
+ drivers/base/cpu.c |    6 +++++-
+ 1 file changed, 5 insertions(+), 1 deletion(-)
+
+Index: linux-pm/drivers/base/cpu.c
+===================================================================
+--- linux-pm.orig/drivers/base/cpu.c
++++ linux-pm/drivers/base/cpu.c
+@@ -43,11 +43,14 @@ static int __ref cpu_subsys_online(struc
+ 	struct cpu *cpu = container_of(dev, struct cpu, dev);
+ 	int cpuid = dev->id;
+ 	int from_nid, to_nid;
+-	int ret;
++	int ret = -ENODEV;
+ 
+ 	cpu_hotplug_driver_lock();
+ 
+ 	from_nid = cpu_to_node(cpuid);
++	if (from_nid == NUMA_NO_NODE)
++		goto out;
++
+ 	ret = cpu_up(cpuid);
+ 	/*
+ 	 * When hot adding memory to memoryless node and enabling a cpu
+@@ -57,6 +60,7 @@ static int __ref cpu_subsys_online(struc
+ 	if (from_nid != to_nid)
+ 		change_cpu_under_node(cpu, from_nid, to_nid);
+ 
++ out:
+ 	cpu_hotplug_driver_unlock();
+ 	return ret;
+ }
