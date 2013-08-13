@@ -1,54 +1,138 @@
 From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: [PATCH] ACPI/Cpureq: Using cpufreq_freq_attr_rw macro to define CPB(Core Performance Boost) attribute
-Date: Tue, 13 Aug 2013 13:38:16 +0200
-Message-ID: <3406040.uy3dFkLbfM@vostro.rjw.lan>
-References: <1376359553-5671-1-git-send-email-tianyu.lan@intel.com>
+Subject: Re: [PATCH] mm/hotplug: Remove stop_machine() from try_offline_node()
+Date: Tue, 13 Aug 2013 13:41:47 +0200
+Message-ID: <3940091.8hz2Z6IIgz@vostro.rjw.lan>
+References: <1376336071-9128-1-git-send-email-toshi.kani@hp.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7Bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from hydra.sisk.pl ([212.160.235.94]:40910 "EHLO hydra.sisk.pl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1757515Ab3HML1u (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 13 Aug 2013 07:27:50 -0400
-In-Reply-To: <1376359553-5671-1-git-send-email-tianyu.lan@intel.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Return-path: <owner-linux-mm@kvack.org>
+In-Reply-To: <1376336071-9128-1-git-send-email-toshi.kani@hp.com>
+Sender: owner-linux-mm@kvack.org
+To: Toshi Kani <toshi.kani@hp.com>
+Cc: akpm@linux-foundation.org, linux-mm@kvack.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, kosaki.motohiro@jp.fujitsu.com, kamezawa.hiroyu@jp.fujitsu.com, tangchen@cn.fujitsu.com, isimatu.yasuaki@jp.fujitsu.com, liwanp@linux.vnet.ibm.com
 List-Id: linux-acpi@vger.kernel.org
-To: tianyu.lan@intel.com
-Cc: lenb@kernel.org, cpufreq@vger.kernel.org, linux-acpi@vger.kernel.org
 
-On Tuesday, August 13, 2013 10:05:53 AM tianyu.lan@intel.com wrote:
-> From: Lan Tianyu <tianyu.lan@intel.com>
+On Monday, August 12, 2013 01:34:31 PM Toshi Kani wrote:
+> lock_device_hotplug() serializes hotplug & online/offline operations.
+> The lock is held in common sysfs online/offline interfaces and ACPI
+> hotplug code paths.
 > 
-> Standardise the defintion of attribute cpb in the acpi-cpufreq driver
-> via cpufreq_freq_attr_rw macro.
+> try_offline_node() off-lines a node if all memory sections and cpus
+> are removed on the node.  It is called from acpi_processor_remove()
+> and acpi_memory_remove_memory()->remove_memory() paths, both of which
+> are in the ACPI hotplug code.
 > 
-> Signed-off-by: Lan Tianyu <tianyu.lan@intel.com>
+> try_offline_node() calls stop_machine() to stop all cpus while checking
+> all cpu status with the assumption that the caller is not protected from
+> CPU hotplug or CPU online/offline operations.  However, the caller is
+> always serialized with lock_device_hotplug().  Also, the code needs to
+> be properly serialized with a lock, not by stopping all cpus at a random
+> place with stop_machine().
+> 
+> This patch removes the use of stop_machine() in try_offline_node() and
+> adds comments to try_offline_node() and remove_memory() that
+> lock_device_hotplug() is required.
+> 
+> Signed-off-by: Toshi Kani <toshi.kani@hp.com>
 
-Queued up for 3.12.
-
-Thanks,
-Rafael
-
+Acked-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 
 > ---
->  drivers/cpufreq/acpi-cpufreq.c | 2 +-
->  1 file changed, 1 insertion(+), 1 deletion(-)
+>  mm/memory_hotplug.c |   31 ++++++++++++++++++++++---------
+>  1 file changed, 22 insertions(+), 9 deletions(-)
 > 
-> diff --git a/drivers/cpufreq/acpi-cpufreq.c b/drivers/cpufreq/acpi-cpufreq.c
-> index e673670..414ee4d 100644
-> --- a/drivers/cpufreq/acpi-cpufreq.c
-> +++ b/drivers/cpufreq/acpi-cpufreq.c
-> @@ -197,7 +197,7 @@ static ssize_t show_cpb(struct cpufreq_policy *policy, char *buf)
->  	return sprintf(buf, "%u\n", boost_enabled);
+> diff --git a/mm/memory_hotplug.c b/mm/memory_hotplug.c
+> index ca1dd3a..0b4b0f7 100644
+> --- a/mm/memory_hotplug.c
+> +++ b/mm/memory_hotplug.c
+> @@ -1674,9 +1674,8 @@ static int is_memblock_offlined_cb(struct memory_block *mem, void *arg)
+>  	return ret;
 >  }
 >  
-> -static struct freq_attr cpb = __ATTR(cpb, 0644, show_cpb, store_cpb);
-> +cpufreq_freq_attr_rw(cpb);
->  #endif
+> -static int check_cpu_on_node(void *data)
+> +static int check_cpu_on_node(pg_data_t *pgdat)
+>  {
+> -	struct pglist_data *pgdat = data;
+>  	int cpu;
 >  
->  static int check_est_cpu(unsigned int cpuid)
-> 
+>  	for_each_present_cpu(cpu) {
+> @@ -1691,10 +1690,9 @@ static int check_cpu_on_node(void *data)
+>  	return 0;
+>  }
+>  
+> -static void unmap_cpu_on_node(void *data)
+> +static void unmap_cpu_on_node(pg_data_t *pgdat)
+>  {
+>  #ifdef CONFIG_ACPI_NUMA
+> -	struct pglist_data *pgdat = data;
+>  	int cpu;
+>  
+>  	for_each_possible_cpu(cpu)
+> @@ -1703,10 +1701,11 @@ static void unmap_cpu_on_node(void *data)
+>  #endif
+>  }
+>  
+> -static int check_and_unmap_cpu_on_node(void *data)
+> +static int check_and_unmap_cpu_on_node(pg_data_t *pgdat)
+>  {
+> -	int ret = check_cpu_on_node(data);
+> +	int ret;
+>  
+> +	ret = check_cpu_on_node(pgdat);
+>  	if (ret)
+>  		return ret;
+>  
+> @@ -1715,11 +1714,18 @@ static int check_and_unmap_cpu_on_node(void *data)
+>  	 * the cpu_to_node() now.
+>  	 */
+>  
+> -	unmap_cpu_on_node(data);
+> +	unmap_cpu_on_node(pgdat);
+>  	return 0;
+>  }
+>  
+> -/* offline the node if all memory sections of this node are removed */
+> +/**
+> + * try_offline_node
+> + *
+> + * Offline a node if all memory sections and cpus of the node are removed.
+> + *
+> + * NOTE: The caller must call lock_device_hotplug() to serialize hotplug
+> + * and online/offline operations before this call.
+> + */
+>  void try_offline_node(int nid)
+>  {
+>  	pg_data_t *pgdat = NODE_DATA(nid);
+> @@ -1745,7 +1751,7 @@ void try_offline_node(int nid)
+>  		return;
+>  	}
+>  
+> -	if (stop_machine(check_and_unmap_cpu_on_node, pgdat, NULL))
+> +	if (check_and_unmap_cpu_on_node(pgdat))
+>  		return;
+>  
+>  	/*
+> @@ -1782,6 +1788,13 @@ void try_offline_node(int nid)
+>  }
+>  EXPORT_SYMBOL(try_offline_node);
+>  
+> +/**
+> + * remove_memory
+> + *
+> + * NOTE: The caller must call lock_device_hotplug() to serialize hotplug
+> + * and online/offline operations before this call, as required by
+> + * try_offline_node().
+> + */
+>  void __ref remove_memory(int nid, u64 start, u64 size)
+>  {
+>  	int ret;
 -- 
 I speak only for myself.
 Rafael J. Wysocki, Intel Open Source Technology Center.
+
+--
+To unsubscribe, send a message with 'unsubscribe linux-mm' in
+the body to majordomo@kvack.org.  For more info on Linux MM,
+see: http://www.linux-mm.org/ .
+Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
