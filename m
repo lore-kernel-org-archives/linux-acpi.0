@@ -1,62 +1,111 @@
 From: Toshi Kani <toshi.kani@hp.com>
-Subject: Re: [PATCH 0/2] Protect cpu map updates from ACPI processor
-Date: Mon, 12 Aug 2013 18:55:03 -0600
-Message-ID: <1376355303.10300.376.camel@misato.fc.hp.com>
-References: <1376322354-13026-1-git-send-email-toshi.kani@hp.com>
-	 <2206062.QmFJav0XuL@vostro.rjw.lan>
+Subject: Re: Cannot hot remove a memory device
+Date: Mon, 12 Aug 2013 19:02:44 -0600
+Message-ID: <1376355764.10300.383.camel@misato.fc.hp.com>
+References: <51FA1E41.20304@jp.fujitsu.com>
+	 <1637752.e6s4mPrvSE@vostro.rjw.lan>
+	 <1376340043.10300.360.camel@misato.fc.hp.com>
+	 <2995970.hSi3JdcGZF@vostro.rjw.lan>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from g4t0014.houston.hp.com ([15.201.24.17]:40423 "EHLO
+Received: from g4t0014.houston.hp.com ([15.201.24.17]:41801 "EHLO
 	g4t0014.houston.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756154Ab3HMA4T (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 12 Aug 2013 20:56:19 -0400
-In-Reply-To: <2206062.QmFJav0XuL@vostro.rjw.lan>
+	with ESMTP id S1756485Ab3HMBD6 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 12 Aug 2013 21:03:58 -0400
+In-Reply-To: <2995970.hSi3JdcGZF@vostro.rjw.lan>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, srivatsa.bhat@linux.vnet.ibm.com, isimatu.yasuaki@jp.fujitsu.com
+Cc: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>, rafael.j.wysocki@intel.com, vasilis.liaskovitis@profitbricks.com, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, tangchen@cn.fujitsu.com, wency@cn.fujitsu.com
 
-On Tue, 2013-08-13 at 02:43 +0200, Rafael J. Wysocki wrote:
-> On Monday, August 12, 2013 09:45:52 AM Toshi Kani wrote:
-> > CPU system maps are protected with reader/writer locks.  The reader
-> > lock, put_online_cpus(), assures that the maps are not updated while
-> > holding the lock.  The writer lock, cpu_hotplug_begin(), is used to
-> > udpate the cpu maps along with cpu_maps_update_begin().
+On Tue, 2013-08-13 at 02:45 +0200, Rafael J. Wysocki wrote:
+> On Monday, August 12, 2013 02:40:43 PM Toshi Kani wrote:
+> > On Sun, 2013-08-11 at 23:13 +0200, Rafael J. Wysocki wrote:
+> > > On Thursday, August 08, 2013 04:50:42 PM Toshi Kani wrote:
+> > > > On Fri, 2013-08-09 at 00:12 +0200, Rafael J. Wysocki wrote:
+> > > > > On Thursday, August 08, 2013 11:15:20 AM Toshi Kani wrote:
+> > > > > > On Fri, 2013-08-02 at 18:04 -0600, Toshi Kani wrote:
+> > > > > > > On Sat, 2013-08-03 at 01:43 +0200, Rafael J. Wysocki wrote:
+> > > > > > > > On Friday, August 02, 2013 03:46:15 PM Toshi Kani wrote:
+> > > > > > > > > On Thu, 2013-08-01 at 23:43 +0200, Rafael J. Wysocki wrote:
+> > > > > >  :
+> > > > > > > > > I think it fails with -EINVAL at the place with dev_warn(dev, "ACPI
+> > > > > > > > > handle is already set\n").  When two ACPI memory objects associate with
+> > > > > > > > > a same memory block, the bind procedure of the 2nd ACPI memory object
+> > > > > > > > > sees that ACPI_HANDLE(dev) is already set to the 1st ACPI memory object.
+> > > > > > > > 
+> > > > > > > > That sound's plausible, but I wonder how we can fix that?
+> > > > > > > > 
+> > > > > > > > There's no way for a single physical device to have two different ACPI
+> > > > > > > > "companions".  It looks like the memory blocks should be 64 M each in that
+> > > > > > > > case.  Or we need to create two child devices for each memory block and
+> > > > > > > > associate each of them with an ACPI object.  That would lead to complications
+> > > > > > > > in the user space interface, though.
+> > > > > > > 
+> > > > > > > Right.  Even bigger issue is that I do not think __add_pages() and
+> > > > > > > __remove_pages() can add / delete a memory chunk that is less than
+> > > > > > > 128MB.  128MB is the granularity of them.  So, we may just have to fail
+> > > > > > > this case gracefully.
+> > > > > > 
+> > > > > > FYI: I have submitted the patch blow to close this part of the issue...
+> > > > > > 
+> > > > > > https://lkml.org/lkml/2013/8/8/396
+> > > > > 
+> > > > > That looks good to me, but we'd still need to make it possible to have
+> > > > > memory blocks smaller than 128 MB ...
+> > > > 
+> > > > Do you mean acpi_bind_one() needs to be able to handle such case?  If
+> > > > so, it should not be a problem since a memory block device won't be
+> > > > created when add_memory() fails with the change above.  So, there is no
+> > > > binding to be done.  If you mean add_memory() needs to be able to handle
+> > > > a smaller range, that's quite a tough one unless we make the section
+> > > > size smaller.
+> > > > 
+> > > > BTW, when add_memory() fails, the memory hot-add request still succeeds
+> > > > with no driver attached.  This seems logical, but the added device is
+> > > > useless when no handler is attached.  And it does not allow ejecting the
+> > > > device with no handler.  I am not too worry about this since this is a
+> > > > rare case, but it reminded me that the framework won't handle rollback.
+> > > 
+> > > I'm not sure which rollback you mean.  During removal?
 > > 
-> > However, the ACPI processor handler updates the cpu maps without
-> > holding the the writer lock.  This patchset fixes this problem.
+> > I meant rollback during hot-add.  Ideally, a device should be either
+> > added in usable state (success) or failed back to the original state
+> > (rollback).  Added in un-usable state is not really a success for users,
+> > and creates an odd state to deal with.  But it is still a LOT better
+> > than crashing the system.  So, I think this outcome is reasonable on
+> > this framework because adding rollback at this point will complicate the
+> > things unnecessarily.
 > > 
-> > ---
-> > The patchset is based on linux-next of the pm tree.
+> > > There are two slight problems here in my view.  First, even if the device
+> > > cannot be ejected directly, it still will be removed when its parent is
+> > > ejected, so it may be more consistent to just allow everything to be ejected
+> > > regardless of whether or not it has a scan handler.  
+> > 
+> > Agreed.
+> > 
+> > > Second, I guess the
+> > > removal is undesirable for memory devices for which the registration of the
+> > > scan handler failed, so it would be good to fail the "offline" of such devices
+> > > regardless of how we get there.  That's why I thought it would be good to have
+> > > an "offline disabled" flag in struct acpi_device.
+> > 
+> > I see.  But when attach() failed, the memory device may not be used by
+> > the kernel.  So, I think it should be safe to remove it.
 > 
-> Basically looks OK to me, but I'd just merge the patches together,
-> because the [2/2] is the very reason for the change made by [1/2].
+> The failure of .attach() need not mean that the memory is not used by the
+> kernel, though, and the ACPI device object is still there and still may
+> be involved in some removal scenarios (through its parent).
 
-I separated for reviewing purpose, but yes, they can be together.  Let
-me know if you need me to re-send it together.
-
-> Also it would be good to mention the actual scenario that may lead
-> to problems with that.
-
-For example, the get_online_cpus() below is supposed to assure that
-cpu_possible_mask is not changed while the code is iterating with
-for_each_possible_cpu().
-
-        get_online_cpus();
-        for_each_possible_cpu(cpu) {
-		:
-        }
-        put_online_cpus();
-
-However, this lock has no protection with CPU hotplug since the ACPI
-processor handler does not use the writer lock when it updates
-cpu_possible_mask.  The reader lock does not serialize within the
-readers.
+As long as .attach() is failed cleanly, which I think is the case for
+the memory handler (if not, we need to fix it), the rest of the kernel
+code may not know what this device is.  That is, the ACPI memory handler
+is the only one that knows PNP0C80 is a memory device.  So, I do not
+think the memory can be used in such case...
 
 Thanks,
 -Toshi
-
 
 
