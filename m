@@ -1,62 +1,135 @@
-From: "Naveen N. Rao" <naveen.n.rao@linux.vnet.ibm.com>
-Subject: Re: [PATCH 3/3] mce: acpi/apei: trace: Enable ghes memory error trace
- event
-Date: Tue, 13 Aug 2013 22:25:58 +0530
-Message-ID: <520A651E.3050604@linux.vnet.ibm.com>
-References: <1375986471-27113-1-git-send-email-naveen.n.rao@linux.vnet.ibm.com> <1375986471-27113-4-git-send-email-naveen.n.rao@linux.vnet.ibm.com> <20130808163822.67e0828a@samsung.com> <20130810180322.GC4155@pd.tnic> <20130812083355.47c1bae8@samsung.com> <20130812123813.GD18018@pd.tnic> <20130812114932.52bb0314@samsung.com> <20130812150424.GH18018@pd.tnic> <20130812142557.2a43f155@samsung.com> <20130812175631.GI18018@pd.tnic> <520A1A2E.9080500@linux.vnet.ibm.com> <20130813092154.1e17385f@concha.lan>
+From: Toshi Kani <toshi.kani@hp.com>
+Subject: Re: Cannot hot remove a memory device
+Date: Tue, 13 Aug 2013 11:14:00 -0600
+Message-ID: <1376414040.10300.398.camel@misato.fc.hp.com>
+References: <51FA1E41.20304@jp.fujitsu.com>
+	 <2995970.hSi3JdcGZF@vostro.rjw.lan>
+	 <1376355764.10300.383.camel@misato.fc.hp.com>
+	 <2828019.xo6sPxdo6v@vostro.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from e23smtp05.au.ibm.com ([202.81.31.147]:49089 "EHLO
-	e23smtp05.au.ibm.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757828Ab3HMQ4T (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 13 Aug 2013 12:56:19 -0400
-Received: from /spool/local
-	by e23smtp05.au.ibm.com with IBM ESMTP SMTP Gateway: Authorized Use Only! Violators will be prosecuted
-	for <linux-acpi@vger.kernel.org> from <naveen.n.rao@linux.vnet.ibm.com>;
-	Wed, 14 Aug 2013 02:49:16 +1000
-In-Reply-To: <20130813092154.1e17385f@concha.lan>
+Received: from g1t0029.austin.hp.com ([15.216.28.36]:42760 "EHLO
+	g1t0029.austin.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756363Ab3HMRPQ (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 13 Aug 2013 13:15:16 -0400
+In-Reply-To: <2828019.xo6sPxdo6v@vostro.rjw.lan>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Mauro Carvalho Chehab <m.chehab@samsung.com>
-Cc: Borislav Petkov <bp@alien8.de>, tony.luck@intel.com, bhelgaas@google.com, rostedt@goodmis.org, rjw@sisk.pl, lance.ortiz@hp.com, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Aristeu Rozanski Filho <arozansk@redhat.com>
+To: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>, rafael.j.wysocki@intel.com, vasilis.liaskovitis@profitbricks.com, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, tangchen@cn.fujitsu.com, wency@cn.fujitsu.com
 
-On 08/13/2013 05:51 PM, Mauro Carvalho Chehab wrote:
-> Em Tue, 13 Aug 2013 17:06:14 +0530
-> "Naveen N. Rao" <naveen.n.rao@linux.vnet.ibm.com> escreveu:
->
->> On 08/12/2013 11:26 PM, Borislav Petkov wrote:
->>> On Mon, Aug 12, 2013 at 02:25:57PM -0300, Mauro Carvalho Chehab wrote:
->>>> Userspace still needs the EDAC sysfs, in order to identify how the
->>>> memory is organized, and do the proper memory labels association.
->>>>
->>>> What edac_ghes does is to fill those sysfs nodes, and to call the
->>>> existing tracing to report errors.
->>
->> I suppose you're referring to the entries under /sys/devices/system/edac/mc?
->
-> Yes.
->
->>
->> I'm not sure I understand how this helps. ghes_edac seems to just be
->> populating this based on dmi, which if I'm not mistaken, can be obtained
->> in userspace (mcelog as an example).
->>
->> Also, on my system, all DIMMs are being reported under mc0. I doubt if
->> the labels there are accurate.
->
-> Yes, this is the current status of ghes_edac, where BIOS doesn't provide any
-> reliable way to associate a given APEI report to a physical DIMM slot label.
->
-> The plan is to add more logic there as BIOSes start to provide some reliable
-> way to do such association. I discussed this subject with a few vendors
-> while I was working at Red Hat.
+On Tue, 2013-08-13 at 14:02 +0200, Rafael J. Wysocki wrote:
+> On Monday, August 12, 2013 07:02:44 PM Toshi Kani wrote:
+> > On Tue, 2013-08-13 at 02:45 +0200, Rafael J. Wysocki wrote:
+> > > On Monday, August 12, 2013 02:40:43 PM Toshi Kani wrote:
+> > > > On Sun, 2013-08-11 at 23:13 +0200, Rafael J. Wysocki wrote:
+> > > > > On Thursday, August 08, 2013 04:50:42 PM Toshi Kani wrote:
+> > > > > > On Fri, 2013-08-09 at 00:12 +0200, Rafael J. Wysocki wrote:
+> > > > > > > On Thursday, August 08, 2013 11:15:20 AM Toshi Kani wrote:
+> > > > > > > > On Fri, 2013-08-02 at 18:04 -0600, Toshi Kani wrote:
+> > > > > > > > > On Sat, 2013-08-03 at 01:43 +0200, Rafael J. Wysocki wrote:
+> > > > > > > > > > On Friday, August 02, 2013 03:46:15 PM Toshi Kani wrote:
+> > > > > > > > > > > On Thu, 2013-08-01 at 23:43 +0200, Rafael J. Wysocki wrote:
+> > > > > > > >  :
+> > > > > > > > > > > I think it fails with -EINVAL at the place with dev_warn(dev, "ACPI
+> > > > > > > > > > > handle is already set\n").  When two ACPI memory objects associate with
+> > > > > > > > > > > a same memory block, the bind procedure of the 2nd ACPI memory object
+> > > > > > > > > > > sees that ACPI_HANDLE(dev) is already set to the 1st ACPI memory object.
+> > > > > > > > > > 
+> > > > > > > > > > That sound's plausible, but I wonder how we can fix that?
+> > > > > > > > > > 
+> > > > > > > > > > There's no way for a single physical device to have two different ACPI
+> > > > > > > > > > "companions".  It looks like the memory blocks should be 64 M each in that
+> > > > > > > > > > case.  Or we need to create two child devices for each memory block and
+> > > > > > > > > > associate each of them with an ACPI object.  That would lead to complications
+> > > > > > > > > > in the user space interface, though.
+> > > > > > > > > 
+> > > > > > > > > Right.  Even bigger issue is that I do not think __add_pages() and
+> > > > > > > > > __remove_pages() can add / delete a memory chunk that is less than
+> > > > > > > > > 128MB.  128MB is the granularity of them.  So, we may just have to fail
+> > > > > > > > > this case gracefully.
+> > > > > > > > 
+> > > > > > > > FYI: I have submitted the patch blow to close this part of the issue...
+> > > > > > > > 
+> > > > > > > > https://lkml.org/lkml/2013/8/8/396
+> > > > > > > 
+> > > > > > > That looks good to me, but we'd still need to make it possible to have
+> > > > > > > memory blocks smaller than 128 MB ...
+> > > > > > 
+> > > > > > Do you mean acpi_bind_one() needs to be able to handle such case?  If
+> > > > > > so, it should not be a problem since a memory block device won't be
+> > > > > > created when add_memory() fails with the change above.  So, there is no
+> > > > > > binding to be done.  If you mean add_memory() needs to be able to handle
+> > > > > > a smaller range, that's quite a tough one unless we make the section
+> > > > > > size smaller.
+> > > > > > 
+> > > > > > BTW, when add_memory() fails, the memory hot-add request still succeeds
+> > > > > > with no driver attached.  This seems logical, but the added device is
+> > > > > > useless when no handler is attached.  And it does not allow ejecting the
+> > > > > > device with no handler.  I am not too worry about this since this is a
+> > > > > > rare case, but it reminded me that the framework won't handle rollback.
+> > > > > 
+> > > > > I'm not sure which rollback you mean.  During removal?
+> > > > 
+> > > > I meant rollback during hot-add.  Ideally, a device should be either
+> > > > added in usable state (success) or failed back to the original state
+> > > > (rollback).  Added in un-usable state is not really a success for users,
+> > > > and creates an odd state to deal with.  But it is still a LOT better
+> > > > than crashing the system.  So, I think this outcome is reasonable on
+> > > > this framework because adding rollback at this point will complicate the
+> > > > things unnecessarily.
+> > > > 
+> > > > > There are two slight problems here in my view.  First, even if the device
+> > > > > cannot be ejected directly, it still will be removed when its parent is
+> > > > > ejected, so it may be more consistent to just allow everything to be ejected
+> > > > > regardless of whether or not it has a scan handler.  
+> > > > 
+> > > > Agreed.
+> > > > 
+> > > > > Second, I guess the
+> > > > > removal is undesirable for memory devices for which the registration of the
+> > > > > scan handler failed, so it would be good to fail the "offline" of such devices
+> > > > > regardless of how we get there.  That's why I thought it would be good to have
+> > > > > an "offline disabled" flag in struct acpi_device.
+> > > > 
+> > > > I see.  But when attach() failed, the memory device may not be used by
+> > > > the kernel.  So, I think it should be safe to remove it.
+> > > 
+> > > The failure of .attach() need not mean that the memory is not used by the
+> > > kernel, though, and the ACPI device object is still there and still may
+> > > be involved in some removal scenarios (through its parent).
+> > 
+> > As long as .attach() is failed cleanly, which I think is the case for
+> > the memory handler (if not, we need to fix it), the rest of the kernel
+> > code may not know what this device is.  That is, the ACPI memory handler
+> > is the only one that knows PNP0C80 is a memory device.  So, I do not
+> > think the memory can be used in such case...
+> 
+> Yes, it can, if the kernel discovers it during boot before .attach() is first
+> called.  So say this happens and the ACPI memory device object has a parent
+> with existing _EJ0.
+> 
+> The memory handler's .attach() fails, so the initial acpi_bus_scan() won't walk
+> the namespace below the memory device, but it won't return an error code
+> either (the root device object is always there).  The parent of the failed
+> node is regarded as operational in particular.
+> 
+> Now, acpi_scan_hot_remove() is called for the parent.  Since the memory device
+> object doesn't have "physical" devices associated with it,
+> acpi_bus_offline_companions() will ignore it and acpi_scan_hot_remove() will go
+> for acpi_bus_trim() and straight for _EJ0 for the parent.  Splat!
+> 
+> I agree that this is a corner case, but I wonder if leaving it this way is a
+> good idea. :-)
 
-Hmm... is there anything specific in the APEI report that could help? 
-More importantly, is there a need to do this in-kernel rather than in 
-user-space?
+Oh, I see.  In practice, this case is unlikely to happen because
+add_memory() fails with -EEXIST at the beginning during boot-time, and
+is essentially a no-op.  But I agree with your point that such case may
+happen and is safer to not allow ejecting a device with no handler.  A
+system crash is much worse than not being able to eject.       
 
 Thanks,
-Naveen
+-Toshi
 
