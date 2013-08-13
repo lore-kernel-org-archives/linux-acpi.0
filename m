@@ -1,78 +1,48 @@
-From: "Naveen N. Rao" <naveen.n.rao@linux.vnet.ibm.com>
-Subject: Re: [PATCH 3/3] mce: acpi/apei: trace: Enable ghes memory error trace
- event
-Date: Tue, 13 Aug 2013 23:02:08 +0530
-Message-ID: <520A6D98.9060204@linux.vnet.ibm.com>
-References: <1375986471-27113-1-git-send-email-naveen.n.rao@linux.vnet.ibm.com> <1375986471-27113-4-git-send-email-naveen.n.rao@linux.vnet.ibm.com> <20130808163822.67e0828a@samsung.com> <20130810180322.GC4155@pd.tnic> <20130812083355.47c1bae8@samsung.com> <5208D80D.5030206@linux.vnet.ibm.com> <20130812125343.GE18018@pd.tnic> <520A16BD.30201@linux.vnet.ibm.com> <20130813124258.GC4077@pd.tnic>
+From: "Luck, Tony" <tony.luck@intel.com>
+Subject: RE: [PATCH 3/3] mce: acpi/apei: trace: Enable ghes memory error
+ trace event
+Date: Tue, 13 Aug 2013 17:39:00 +0000
+Message-ID: <3908561D78D1C84285E8C5FCA982C28F31CB8DB5@ORSMSX106.amr.corp.intel.com>
+References: <1375986471-27113-1-git-send-email-naveen.n.rao@linux.vnet.ibm.com>
+ <1375986471-27113-4-git-send-email-naveen.n.rao@linux.vnet.ibm.com>
+ <20130808163822.67e0828a@samsung.com> <20130810180322.GC4155@pd.tnic>
+ <20130812083355.47c1bae8@samsung.com> <5208D80D.5030206@linux.vnet.ibm.com>
+ <20130812114404.3bd64fa0@samsung.com> <520A1B5E.8040105@linux.vnet.ibm.com>
+ <20130813094147.062317f8@concha.lan> <520A6A30.1030406@linux.vnet.ibm.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from e23smtp03.au.ibm.com ([202.81.31.145]:51235 "EHLO
-	e23smtp03.au.ibm.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1759044Ab3HMRcV (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 13 Aug 2013 13:32:21 -0400
-Received: from /spool/local
-	by e23smtp03.au.ibm.com with IBM ESMTP SMTP Gateway: Authorized Use Only! Violators will be prosecuted
-	for <linux-acpi@vger.kernel.org> from <naveen.n.rao@linux.vnet.ibm.com>;
-	Wed, 14 Aug 2013 03:21:29 +1000
-In-Reply-To: <20130813124258.GC4077@pd.tnic>
+Received: from mga03.intel.com ([143.182.124.21]:23865 "EHLO mga03.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1759124Ab3HMRjD convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 13 Aug 2013 13:39:03 -0400
+In-Reply-To: <520A6A30.1030406@linux.vnet.ibm.com>
+Content-Language: en-US
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Borislav Petkov <bp@alien8.de>
-Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>, tony.luck@intel.com, bhelgaas@google.com, rostedt@goodmis.org, rjw@sisk.pl, lance.ortiz@hp.com, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+To: "Naveen N. Rao" <naveen.n.rao@linux.vnet.ibm.com>, Mauro Carvalho Chehab <m.chehab@samsung.com>
+Cc: Borislav Petkov <bp@alien8.de>, "bhelgaas@google.com" <bhelgaas@google.com>, "rostedt@goodmis.org" <rostedt@goodmis.org>, "rjw@sisk.pl" <rjw@sisk.pl>, "lance.ortiz@hp.com" <lance.ortiz@hp.com>, "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Aristeu Rozanski Filho <arozansk@redhat.com>
 
-On 08/13/2013 06:12 PM, Borislav Petkov wrote:
-> On Tue, Aug 13, 2013 at 04:51:33PM +0530, Naveen N. Rao wrote:
->> You're right - my trace point makes all the data provided by apei
->> as-is to userspace. However, ghes_edac seems to squash some of this
->> data into a string when reporting through mc_event.
+> In the meantime, like Boris suggests, I think we can have a different 
+> trace event for raw APEI reports - userspace can use it as it pleases.
 >
-> Right, for systems which don't need EDAC to decode to the DIMM or for
-> which there are no EDAC drivers written, they could use a tracepoint
-> which carries APEI info as-is. Others, which need EDAC, should probably
-> use trace_mc_event and disable the APEI tracepoint.
+> Once ghes_edac gets better, users can decide whether they want raw APEI 
+> reports or the EDAC-processed version and choose one or the other trace 
+> event.
 
-If I'm not mistaken, even for systems that have EDAC drivers, it looks 
-to me like EDAC can't really decode to the DIMM given what is provided 
-by the bios in the APEI report currently. If and when ghes_edac gains 
-this capability, users will have a choice between raw APEI reports vs. 
-edac processed ones.
+It's cheap to add as many tracepoints as we like - but may be costly to maintain.
+Especially if we have to tinker with them later to adjust which things are logged,
+that puts a burden on user-space tools to be updated to adapt to the changing
+API.
 
->
-> I think this should address Tony's concerns...
->
-> Btw, you could call your TP something simpler like
-> trace_ghes_memory_event or so.
+Mauro has written his user-space tool to process the ghes-edac events:
+  git://git.fedorahosted.org/rasdaemon.git
 
-I started out with a simpler name, but eventually decided to use the 
-name from the CPER record so it is clear what this event carries. I 
-think this will be better when adding further ghes events for say, 
-processor generic, PCIe and others.
+Who is writing the user space tools to process the new apei tracepoints
+you want to add?
 
->
-> Btw 2, if GHES can report other types of errors (I'm pretty sure it can)
-> maybe we can use a single tracepoint called trace_ghes_event for any
-> types of errors coming out of it...
+I'm not opposed to these patches - just wondering who is taking the next step
+to make them useful.
 
-Two problems with this:
-- One, the record size will be really big since the cper records for 
-each type of error is large.
-- Two, it may be better to filter events based on the type of error 
-(memory error, processor, pcie, ...) rather than subscribing for all 
-ghes error reports.
-
->
-> Oh, and while at it, we probably need to start thinking of a mechanism
-> to disable all the error printing, i.e. cper_print_mem() and such,
-> if a userspace agent is listening in on the tracepoint and the error
-> information is carried through it to userspace.
-
-Do you mean conditionally print the cper records based on whether the 
-tracepoint is enabled or not? Wouldn't that be confusing if someone is 
-monitoring dmesg as well?
-
-
-Thanks,
-Naveen
-
+-Tony
