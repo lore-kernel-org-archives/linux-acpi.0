@@ -1,55 +1,55 @@
-From: Mauro Carvalho Chehab <m.chehab@samsung.com>
-Subject: Re: [PATCH 3/3] mce: acpi/apei: trace: Enable ghes memory error trace
- event
-Date: Tue, 13 Aug 2013 09:41:47 -0300
-Message-ID: <20130813094147.062317f8@concha.lan>
+From: Borislav Petkov <bp@alien8.de>
+Subject: Re: [PATCH 3/3] mce: acpi/apei: trace: Enable ghes memory error
+ trace event
+Date: Tue, 13 Aug 2013 14:42:58 +0200
+Message-ID: <20130813124258.GC4077@pd.tnic>
 References: <1375986471-27113-1-git-send-email-naveen.n.rao@linux.vnet.ibm.com>
  <1375986471-27113-4-git-send-email-naveen.n.rao@linux.vnet.ibm.com>
- <20130808163822.67e0828a@samsung.com> <20130810180322.GC4155@pd.tnic>
- <20130812083355.47c1bae8@samsung.com> <5208D80D.5030206@linux.vnet.ibm.com>
- <20130812114404.3bd64fa0@samsung.com> <520A1B5E.8040105@linux.vnet.ibm.com>
+ <20130808163822.67e0828a@samsung.com>
+ <20130810180322.GC4155@pd.tnic>
+ <20130812083355.47c1bae8@samsung.com>
+ <5208D80D.5030206@linux.vnet.ibm.com>
+ <20130812125343.GE18018@pd.tnic>
+ <520A16BD.30201@linux.vnet.ibm.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-pci-owner@vger.kernel.org>
-In-reply-to: <520A1B5E.8040105@linux.vnet.ibm.com>
-Sender: linux-pci-owner@vger.kernel.org
+Content-Type: text/plain; charset=utf-8
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <520A16BD.30201@linux.vnet.ibm.com>
+Sender: linux-kernel-owner@vger.kernel.org
 To: "Naveen N. Rao" <naveen.n.rao@linux.vnet.ibm.com>
-Cc: Borislav Petkov <bp@alien8.de>, tony.luck@intel.com, bhelgaas@google.com, rostedt@goodmis.org, rjw@sisk.pl, lance.ortiz@hp.com, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Aristeu Rozanski Filho <arozansk@redhat.com>
+Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>, tony.luck@intel.com, bhelgaas@google.com, rostedt@goodmis.org, rjw@sisk.pl, lance.ortiz@hp.com, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-Em Tue, 13 Aug 2013 17:11:18 +0530
-"Naveen N. Rao" <naveen.n.rao@linux.vnet.ibm.com> escreveu:
+On Tue, Aug 13, 2013 at 04:51:33PM +0530, Naveen N. Rao wrote:
+> You're right - my trace point makes all the data provided by apei
+> as-is to userspace. However, ghes_edac seems to squash some of this
+> data into a string when reporting through mc_event.
 
-> On 08/12/2013 08:14 PM, Mauro Carvalho Chehab wrote:
-> >> But, this only seems to expose the APEI data as a string
-> >> and doesn't look to really make all the fields available to user-space
-> >> in a raw manner. Not sure how well this can be utilised by a user-space
-> >> tool. Do you have suggestions on how we can do this?
-> >
-> > There's already an userspace tool that handes it:
-> > 	https://git.fedorahosted.org/cgit/rasdaemon.git/
-> >
-> > What is missing there on the current version is the bits that would allow
-> > to translate from APEI way to report an error (memory node, card, module,
-> > bank, device) into a DIMM label[1].
-> 
-> If I'm reading this right, all APEI data seems to be squashed into a 
-> string in mc_event.
+Right, for systems which don't need EDAC to decode to the DIMM or for
+which there are no EDAC drivers written, they could use a tracepoint
+which carries APEI info as-is. Others, which need EDAC, should probably
+use trace_mc_event and disable the APEI tracepoint.
 
-Yes. We had lots of discussion about how to map memory errors over the
-last couple years. Basically, it was decided that the information that
-could be decoded into a DIMM to be mapped as integers, and all other
-driver-specific data to be added as strings.
+I think this should address Tony's concerns...
 
-On the tests I did, different machines/vendors fill the APEI data on
-a different way, with makes harder to associate them to a DIMM.
+Btw, you could call your TP something simpler like
+trace_ghes_memory_event or so.
 
-> Also, the fru id/text don't seem to be passed to user-space.
+Btw 2, if GHES can report other types of errors (I'm pretty sure it can)
+maybe we can use a single tracepoint called trace_ghes_event for any
+types of errors coming out of it...
 
-That's likely because on the systems I tested, those fields were not
-filled (or maybe they appeared on a latter ACPI version). We should add
-them also the same string as the other fields there at ghes_edac.
+Oh, and while at it, we probably need to start thinking of a mechanism
+to disable all the error printing, i.e. cper_print_mem() and such,
+if a userspace agent is listening in on the tracepoint and the error
+information is carried through it to userspace.
 
-Regards,
-Mauro
+Thanks.
+
+-- 
+Regards/Gruss,
+    Boris.
+
+Sent from a fat crate under my desk. Formatting is fine.
+--
