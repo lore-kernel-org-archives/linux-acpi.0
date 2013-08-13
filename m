@@ -1,87 +1,45 @@
-From: Mauro Carvalho Chehab <m.chehab@samsung.com>
-Subject: Re: [PATCH 3/3] mce: acpi/apei: trace: Enable ghes memory error trace
- event
-Date: Tue, 13 Aug 2013 09:21:54 -0300
-Message-ID: <20130813092154.1e17385f@concha.lan>
-References: <1375986471-27113-1-git-send-email-naveen.n.rao@linux.vnet.ibm.com>
- <1375986471-27113-4-git-send-email-naveen.n.rao@linux.vnet.ibm.com>
- <20130808163822.67e0828a@samsung.com> <20130810180322.GC4155@pd.tnic>
- <20130812083355.47c1bae8@samsung.com> <20130812123813.GD18018@pd.tnic>
- <20130812114932.52bb0314@samsung.com> <20130812150424.GH18018@pd.tnic>
- <20130812142557.2a43f155@samsung.com> <20130812175631.GI18018@pd.tnic>
+From: Borislav Petkov <bp@alien8.de>
+Subject: Re: [PATCH 3/3] mce: acpi/apei: trace: Enable ghes memory error
+ trace event
+Date: Tue, 13 Aug 2013 14:33:43 +0200
+Message-ID: <20130813123343.GB4077@pd.tnic>
+References: <20130808163822.67e0828a@samsung.com>
+ <20130810180322.GC4155@pd.tnic>
+ <20130812083355.47c1bae8@samsung.com>
+ <20130812123813.GD18018@pd.tnic>
+ <20130812114932.52bb0314@samsung.com>
+ <20130812150424.GH18018@pd.tnic>
+ <20130812142557.2a43f155@samsung.com>
+ <20130812175631.GI18018@pd.tnic>
  <520A1A2E.9080500@linux.vnet.ibm.com>
+ <20130813092154.1e17385f@concha.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=utf-8
 Return-path: <linux-pci-owner@vger.kernel.org>
-In-reply-to: <520A1A2E.9080500@linux.vnet.ibm.com>
+Content-Disposition: inline
+In-Reply-To: <20130813092154.1e17385f@concha.lan>
 Sender: linux-pci-owner@vger.kernel.org
 To: "Naveen N. Rao" <naveen.n.rao@linux.vnet.ibm.com>
-Cc: Borislav Petkov <bp@alien8.de>, tony.luck@intel.com, bhelgaas@google.com, rostedt@goodmis.org, rjw@sisk.pl, lance.ortiz@hp.com, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Aristeu Rozanski Filho <arozansk@redhat.com>
+Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>, tony.luck@intel.com, bhelgaas@google.com, rostedt@goodmis.org, rjw@sisk.pl, lance.ortiz@hp.com, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Aristeu Rozanski Filho <arozansk@redhat.com>
 List-Id: linux-acpi@vger.kernel.org
 
-Em Tue, 13 Aug 2013 17:06:14 +0530
-"Naveen N. Rao" <naveen.n.rao@linux.vnet.ibm.com> escreveu:
+On Tue, Aug 13, 2013 at 09:21:54AM -0300, Mauro Carvalho Chehab wrote:
+> > > More specifically, what are those gdata_fru_id and gdata_fru_text
+> > > things?
+> > 
+> > My understanding was that this provides the DIMM serial number, but I'm 
+> > double checking just to be sure.
 
-> On 08/12/2013 11:26 PM, Borislav Petkov wrote:
-> > On Mon, Aug 12, 2013 at 02:25:57PM -0300, Mauro Carvalho Chehab wrote:
-> >> Userspace still needs the EDAC sysfs, in order to identify how the
-> >> memory is organized, and do the proper memory labels association.
-> >>
-> >> What edac_ghes does is to fill those sysfs nodes, and to call the
-> >> existing tracing to report errors.
-> 
-> I suppose you're referring to the entries under /sys/devices/system/edac/mc?
+Hm, ok, then.
 
-Yes.
-
-> 
-> I'm not sure I understand how this helps. ghes_edac seems to just be 
-> populating this based on dmi, which if I'm not mistaken, can be obtained 
-> in userspace (mcelog as an example).
-> 
-> Also, on my system, all DIMMs are being reported under mc0. I doubt if 
-> the labels there are accurate.
-
-Yes, this is the current status of ghes_edac, where BIOS doesn't provide any
-reliable way to associate a given APEI report to a physical DIMM slot label.
-
-The plan is to add more logic there as BIOSes start to provide some reliable
-way to do such association. I discussed this subject with a few vendors
-while I was working at Red Hat.
-
-> >
-> > This is the only reason which justifies EDAC's existence. Naveen, can
-> > your BIOS directly report the silkscreen label of the DIMM in error?
-> > Generally, can any BIOS do that?
-> >
-> > More specifically, what are those gdata_fru_id and gdata_fru_text
-> > things?
-> 
-> My understanding was that this provides the DIMM serial number, but I'm 
-> double checking just to be sure.
-
-If it provides the DIMM serial number, then it is possible to improve the
-ghes_edac driver to associate them. One option could be to write an I2C
-driver and dig those information directly from the memories, although 
-doing that could be risky, as BIOS could also try to access the same I2C
-buses.
-
-> 
-> Thanks,
-> Naveen
-> 
-> >
-> > Because if it can, then having the memory error tracepoint come direct
-> > from APEI should be enough. The ghes_edac functionality could be then
-> > fallback for BIOSes which cannot report the silkscreen label and in such
-> > case I can imagine keeping both tracepoints, but disabling one of the
-> > two...
-> >
-> 
-
+If this info is exported to userspace over i2c or DMI (I've seen
+it sometimes in dmidecode output too) then the information in the
+tracepoint can be used in conjunction with dmidecode output to map back
+to the DIMM or so...
 
 -- 
+Regards/Gruss,
+    Boris.
 
-Cheers,
-Mauro
+Sent from a fat crate under my desk. Formatting is fine.
+--
