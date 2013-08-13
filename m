@@ -1,30 +1,55 @@
-From: "H. Peter Anvin" <hpa@zytor.com>
+From: Tang Chen <tangchen@cn.fujitsu.com>
 Subject: Re: [PATCH part5 0/7] Arrange hotpluggable memory as ZONE_MOVABLE.
-Date: Mon, 12 Aug 2013 22:14:54 -0700
-Message-ID: <5209C0CE.2080000@zytor.com>
-References: <1375956979-31877-1-git-send-email-tangchen@cn.fujitsu.com> <20130812145016.GI15892@htj.dyndns.org> <5208FBBC.2080304@zytor.com> <20130812152343.GK15892@htj.dyndns.org> <52090D7F.6060600@gmail.com> <20130812164650.GN15892@htj.dyndns.org> <52092811.3020105@gmail.com> <20130812202029.GB8288@mtj.dyndns.org> <3908561D78D1C84285E8C5FCA982C28F31CB74A1@ORSMSX106.amr.corp.intel.com> <20130812205456.GC8288@mtj.dyndns.org> <3908561D78D1C84285E8C5FCA982C28F31CB7552@ORSMSX106.amr.corp.intel.com>
+Date: Tue, 13 Aug 2013 14:14:25 +0800
+Message-ID: <5209CEC1.8070908@cn.fujitsu.com>
+References: <1375956979-31877-1-git-send-email-tangchen@cn.fujitsu.com> <20130812145016.GI15892@htj.dyndns.org> <5208FBBC.2080304@zytor.com> <20130812152343.GK15892@htj.dyndns.org> <52090D7F.6060600@gmail.com> <20130812164650.GN15892@htj.dyndns.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <owner-linux-mm@kvack.org>
-In-Reply-To: <3908561D78D1C84285E8C5FCA982C28F31CB7552@ORSMSX106.amr.corp.intel.com>
+In-Reply-To: <20130812164650.GN15892@htj.dyndns.org>
 Sender: owner-linux-mm@kvack.org
-To: "Luck, Tony" <tony.luck@intel.com>
-Cc: Tejun Heo <tj@kernel.org>, Tang Chen <imtangchen@gmail.com>, Tang Chen <tangchen@cn.fujitsu.com>, "Moore, Robert" <robert.moore@intel.com>, "Zheng, Lv" <lv.zheng@intel.com>, "rjw@sisk.pl" <rjw@sisk.pl>, "lenb@kernel.org" <lenb@kernel.org>, "tglx@linutronix.de" <tglx@linutronix.de>, "mingo@elte.hu" <mingo@elte.hu>, "akpm@linux-foundation.org" <akpm@linux-foundation.org>, "trenn@suse.de" <trenn@suse.de>, "yinghai@kernel.org" <yinghai@kernel.org>, "jiang.liu@huawei.com" <jiang.liu@huawei.com>, "wency@cn.fujitsu.com" <wency@cn.fujitsu.com>, "laijs@cn.fujitsu.com" <laijs@cn.fujitsu.com>, "isimatu.yasuaki@jp.fujitsu.com" <isimatu.yasuaki@jp.fujitsu.com>, "izumi.taku@jp.fujitsu.com" <izumi.taku@jp.fujitsu.com>, "mgorman@suse.de" <mgorman@suse.de>, minchan@kernel.o
+To: Tejun Heo <tj@kernel.org>
+Cc: Tang Chen <imtangchen@gmail.com>, "H. Peter Anvin" <hpa@zytor.com>, robert.moore@intel.com, lv.zheng@intel.com, rjw@sisk.pl, lenb@kernel.org, tglx@linutronix.de, mingo@elte.hu, akpm@linux-foundation.org, trenn@suse.de, yinghai@kernel.org, jiang.liu@huawei.com, wency@cn.fujitsu.com, laijs@cn.fujitsu.com, isimatu.yasuaki@jp.fujitsu.com, izumi.taku@jp.fujitsu.com, mgorman@suse.de, minchan@kernel.org, mina86@mina86.com, gong.chen@linux.intel.com, vasilis.liaskovitis@profitbricks.com, lwoodman@redhat.com, riel@redhat.com, jweiner@redhat.com, prarit@redhat.com, zhangyanfei@cn.fujitsu.com, yanghy@cn.fujitsu.com, x86@kernel.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-mm@kvack.org, linux-acpi@vger.kernel.org, "Luck, Tony (tony.luck@intel.com)" <tony.luck@intel.com>
 List-Id: linux-acpi@vger.kernel.org
 
-On 08/12/2013 02:11 PM, Luck, Tony wrote:
-> 
-> Just an idle, slightly related, question.  Will a 64-bit X86 kernel work if the physical
-> load address is >4GB?  That would get it away from the fragmented bits of
-> address space and into vast tracts of same-node-ness.
-> 
+On 08/13/2013 12:46 AM, Tejun Heo wrote:
+......
+>
+> * Adding an option to tell the kernel to try to stay away from
+>    hotpluggable nodes is fine.  I have no problem with that at all.
+>
+> * The patchsets upto this point have been somehow trying to reorder
+>    operations shomehow such that *no* memory allocation happens before
+>    memblock is populated with hotplug information.
+>
+> * However, we already *know* that the memory the kernel image is
+>    occupying won't be removeable.  It's highly likely that the amount
+>    of memory allocation before NUMA / hotplug information is fully
+>    populated is pretty small.  Also, it's highly likely that small
+>    amount of memory right after the kernel image is contained in the
+>    same NUMA node, so if we allocate memory close to the kernel image,
+>    it's likely that we don't contaminate hotpluggable node.  We're
+>    talking about few megs at most right after the kernel image.  I
+>    can't see how that would make any noticeable difference.
+>
+> * Once hotplug information is available, allocation can happen as
+>    usual and the kernel can report the nodes which are actually
+>    hotpluggable - marked as hotpluggable by the firmware&&  didn't get
+>    contaminated during early alloc&&  didn't get overflow allocations
+>    afterwards.  Note that we need such mechanism no matter what as the
+>    kernel image can be loaded into hotpluggable nodes and reporting
+>    that to userland is the only thing the kernel can do for cases like
+>    that short of denying memory unplug on such nodes.
+>
 
-It will, although not until very recently.  However, there is some fixed
-memory required < 1 MB, so this may lock down two nodes.
+Hi tj, hpa, luck, yinghai,
 
-	-hpa
+So if all of you agree on the idea above from tj, I think
+we can do it in this way. Will update the patches to allocate
+memory near kernel image before SRAT is parsed.
 
+Thanks.
 
 --
 To unsubscribe, send a message with 'unsubscribe linux-mm' in
