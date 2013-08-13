@@ -1,44 +1,68 @@
-From: "Luck, Tony" <tony.luck@intel.com>
-Subject: RE: [PATCH 3/3] mce: acpi/apei: trace: Enable ghes memory error
- trace event
-Date: Tue, 13 Aug 2013 20:13:56 +0000
-Message-ID: <3908561D78D1C84285E8C5FCA982C28F31CB9150@ORSMSX106.amr.corp.intel.com>
-References: <20130808163822.67e0828a@samsung.com>
- <20130810180322.GC4155@pd.tnic> <20130812083355.47c1bae8@samsung.com>
- <5208D80D.5030206@linux.vnet.ibm.com> <20130812125343.GE18018@pd.tnic>
- <520A16BD.30201@linux.vnet.ibm.com> <20130813124258.GC4077@pd.tnic>
- <520A6D98.9060204@linux.vnet.ibm.com> <20130813175809.GE4077@pd.tnic>
- <3908561D78D1C84285E8C5FCA982C28F31CB8F53@ORSMSX106.amr.corp.intel.com>
- <20130813181004.GF4077@pd.tnic>
+From: Yinghai Lu <yinghai@kernel.org>
+Subject: Re: [PATCH part5 0/7] Arrange hotpluggable memory as ZONE_MOVABLE.
+Date: Tue, 13 Aug 2013 15:33:45 -0700
+Message-ID: <CAE9FiQV2-OOvHZtPYSYNZz+DfhvL0e+h2HjMSW3DyqeXXvdJkA@mail.gmail.com>
+References: <1375956979-31877-1-git-send-email-tangchen@cn.fujitsu.com>
+	<20130812145016.GI15892@htj.dyndns.org>
+	<5208FBBC.2080304@zytor.com>
+	<20130812152343.GK15892@htj.dyndns.org>
+	<52090D7F.6060600@gmail.com>
+	<20130812164650.GN15892@htj.dyndns.org>
+	<5209CEC1.8070908@cn.fujitsu.com>
+	<520A02DE.1010908@cn.fujitsu.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga11.intel.com ([192.55.52.93]:4709 "EHLO mga11.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1758094Ab3HMUN7 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 13 Aug 2013 16:13:59 -0400
-In-Reply-To: <20130813181004.GF4077@pd.tnic>
-Content-Language: en-US
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Return-path: <owner-linux-mm@kvack.org>
+In-Reply-To: <520A02DE.1010908@cn.fujitsu.com>
+Sender: owner-linux-mm@kvack.org
+To: Tang Chen <tangchen@cn.fujitsu.com>
+Cc: Tejun Heo <tj@kernel.org>, Tang Chen <imtangchen@gmail.com>, "H. Peter Anvin" <hpa@zytor.com>, Bob Moore <robert.moore@intel.com>, Lv Zheng <lv.zheng@intel.com>, "Rafael J. Wysocki" <rjw@sisk.pl>, Len Brown <lenb@kernel.org>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@elte.hu>, Andrew Morton <akpm@linux-foundation.org>, Thomas Renninger <trenn@suse.de>, Jiang Liu <jiang.liu@huawei.com>, Wen Congyang <wency@cn.fujitsu.com>, Lai Jiangshan <laijs@cn.fujitsu.com>, Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>, Taku Izumi <izumi.taku@jp.fujitsu.com>, Mel Gorman <mgorman@suse.de>, Minchan Kim <minchan@kernel.org>, "mina86@mina86.com" <mina86@mina86.com>, "gong.chen@linux.intel.com" <gong.chen@linux.intel.com>, Vasilis Liaskovitis <vasilis.liaskovitis@profitbricks.com>, "lwoodman@redhat.com" <lwoodman@redhat.com>, Rik van Riel <riel@redhat.com>, jwe
 List-Id: linux-acpi@vger.kernel.org
-To: Borislav Petkov <bp@alien8.de>
-Cc: "Naveen N. Rao" <naveen.n.rao@linux.vnet.ibm.com>, Mauro Carvalho Chehab <m.chehab@samsung.com>, "bhelgaas@google.com" <bhelgaas@google.com>, "rostedt@goodmis.org" <rostedt@goodmis.org>, "rjw@sisk.pl" <rjw@sisk.pl>, "lance.ortiz@hp.com" <lance.ortiz@hp.com>, "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
 
-PiBXaGF0IGFib3V0IHNlbmRpbmcgdHJhY2Vwb2ludCBkYXRhIG92ZXIgc2VyaWFsIGFuZC9vciBu
-ZXR3b3JrPyBJIGFncmVlDQo+IHRoYXQgZG1lc2cgb3ZlciBzZXJpYWwgd291bGQgYmUgaGVscGZ1
-bCBidXQgd2UgbmVlZCBhIHNpbWlsYXIgc3VyZS1maXJlDQo+IHdheSBmb3IgY2FycnlpbmcgZXJy
-b3IgaW5mbyBvdXQuDQoNCkdlbmVyaWMgdHJhY2Vwb2ludHMgYXJlIGFyY2hpdGVjdGVkIHRvIGJl
-IGFibGUgdG8gZmlyZSBhdCB2ZXJ5IGhpZ2ggcmF0ZXMgYW5kDQpsb2cgaHVnZSBhbW91bnRzIG9m
-IGluZm9ybWF0aW9uLiAgU28gd2UnZCBuZWVkIHNvbWV0aGluZyBzcGVjaWFsIHRvIHNheQ0KanVz
-dCBsb2cgdGhlc2Ugc3BlY2lhbCB0cmFjZXBvaW50cyB0byBuZXR3b3JrL3NlcmlhbC4NCg0KPiBX
-aGljaCByZW1pbmRzIG1lLCBwc3RvcmUgY291bGQgYWxzbyBiZSBhIGdvb2QgdGhpbmcgdG8gdXNl
-LCBpbiBhZGRpdGlvbi4NCj4gT25seSBwdXQgZXJyb3IgaW5mbyB0aGVyZSBhcyBpdCBpcyBsaW1p
-dGVkIGFueXdheS4NCg0KWWVzIC0gc3BhY2UgaXMgdmVyeSBsaW1pdGVkLiAgSSBkb24ndCBrbm93
-IGhvdyB0byBhc3NpZ24gcHJpb3JpdHkgZm9yIGxvZ2dpbmcNCnRoZSBkbWVzZyBkYXRhIHZzLiBz
-b21lIGVycm9yIGxvZ3MuDQoNCg0KSWYgd2UganVzdCAicHJpbnRrKCkiIHRoZSBtb3N0IGltcG9y
-dGFudCBwYXJ0cyAtIHRoZW4gdGhhdCBkYXRhIHdpbGwgYXV0b21hdGljYWxseQ0KZmxvdyB0byB0
-aGUgc2VyaWFsIGNvbnNvbGUgYW5kIHRvIHBzdG9yZS4gIFRoZW4gd2UgaGF2ZSBtdWx0aXBsZSBw
-YXRocyBmb3IgdGhlDQpjcml0aWNhbCBiaXRzIG9mIHRoZSBlcnJvciBsb2cgLSBhbmQgdGhlIHRy
-YWNlcG9pbnRzIGdpdmUgdXMgbW9yZSBkZXRhaWxzIGZvciB0aGUNCmNhc2VzIHdoZXJlIHRoZSBt
-YWNoaW5lIGRvZXNuJ3Qgc3BvbnRhbmVvdXNseSBleHBsb2RlLg0KDQotVG9ueQ0K
+On Tue, Aug 13, 2013 at 2:56 AM, Tang Chen <tangchen@cn.fujitsu.com> wrote:
+> 2. There are several places calling memblock_find_in_range_node() to
+>    allocate memory before SRAT parsed.
+>
+>    early_reserve_e820_mpc_new()
+
+this one is under 1M.
+
+>    reserve_real_mode()
+
+this one is under 1M
+
+>    init_mem_mapping()
+
+Now we top and down, so initial page tables in in BRK, other page tables
+is near the top!
+
+>    setup_log_buf()
+
+user could specify 4M or more.
+
+>    relocate_initrd()
+
+size could be very big, like several hundreds mega bytes.
+should be anywhere, but will be freed after booting.
+
+===> so we should not limit it to near kernel range.
+
+>    acpi_initrd_override()
+
+should be 64 * 10 about 1M.
+
+>    reserve_crashkernel()
+
+could be under 4G, or above 4G.
+size could be 512M or 8G whatever.
+
+looks like
+should move down relocated_initrd and reserve_crashkernel.
+
+Yinghai
+
+--
+To unsubscribe, send a message with 'unsubscribe linux-mm' in
+the body to majordomo@kvack.org.  For more info on Linux MM,
+see: http://www.linux-mm.org/ .
+Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
