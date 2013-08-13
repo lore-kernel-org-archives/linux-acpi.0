@@ -1,37 +1,51 @@
-From: "Naveen N. Rao" <naveen.n.rao@linux.vnet.ibm.com>
-Subject: Re: [PATCH 3/3] mce: acpi/apei: trace: Enable ghes memory error trace
- event
-Date: Tue, 13 Aug 2013 16:51:33 +0530
-Message-ID: <520A16BD.30201@linux.vnet.ibm.com>
-References: <1375986471-27113-1-git-send-email-naveen.n.rao@linux.vnet.ibm.com> <1375986471-27113-4-git-send-email-naveen.n.rao@linux.vnet.ibm.com> <20130808163822.67e0828a@samsung.com> <20130810180322.GC4155@pd.tnic> <20130812083355.47c1bae8@samsung.com> <5208D80D.5030206@linux.vnet.ibm.com> <20130812125343.GE18018@pd.tnic>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: Re: [PATCH 1/3] ACPI / dock: Fix __init attribute locations
+Date: Tue, 13 Aug 2013 13:32:50 +0200
+Message-ID: <1451811.DUiLZmfEVo@vostro.rjw.lan>
+References: <1376389876-11791-1-git-send-email-hanjun.guo@linaro.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-pci-owner@vger.kernel.org>
-In-Reply-To: <20130812125343.GE18018@pd.tnic>
-Sender: linux-pci-owner@vger.kernel.org
-To: Borislav Petkov <bp@alien8.de>
-Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>, tony.luck@intel.com, bhelgaas@google.com, rostedt@goodmis.org, rjw@sisk.pl, lance.ortiz@hp.com, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7Bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from hydra.sisk.pl ([212.160.235.94]:40901 "EHLO hydra.sisk.pl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1757287Ab3HMLWa (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 13 Aug 2013 07:22:30 -0400
+In-Reply-To: <1376389876-11791-1-git-send-email-hanjun.guo@linaro.org>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Hanjun Guo <hanjun.guo@linaro.org>
+Cc: linux-acpi@vger.kernel.org, patches@linaro.org, linaro-kernel@lists.linaro.org, linaro-acpi@lists.linaro.org
 
-On 08/12/2013 06:23 PM, Borislav Petkov wrote:
-> On Mon, Aug 12, 2013 at 06:11:49PM +0530, Naveen N. Rao wrote:
->> So, I looked at ghes_edac and it basically seems to boil down to
->> trace_mc_event. But, this only seems to expose the APEI data as a
->> string and doesn't look to really make all the fields available to
->> user-space in a raw manner. Not sure how well this can be utilised
->> by a user-space tool.
->
-> Well, your tracepoint dumps the decoded memory error too. So all the
-> information we need is already there, without edac. Or am I missing some
-> bits?
->
-> Thus why I'm saying is that we don't need the additional edac layer.
->
+On Tuesday, August 13, 2013 06:31:13 PM Hanjun Guo wrote:
+> __init belongs after the return type on functions, not before it.
+> 
+> Signed-off-by: Hanjun Guo <hanjun.guo@linaro.org>
 
-You're right - my trace point makes all the data provided by apei as-is 
-to userspace. However, ghes_edac seems to squash some of this data into 
-a string when reporting through mc_event.
+All 3 patches in this series queued up for 3.12.
 
-Regards,
-Naveen
+Thanks,
+Rafael
+
+
+> ---
+>  drivers/acpi/dock.c |    2 +-
+>  1 file changed, 1 insertion(+), 1 deletion(-)
+> 
+> diff --git a/drivers/acpi/dock.c b/drivers/acpi/dock.c
+> index 8265607..c90112c 100644
+> --- a/drivers/acpi/dock.c
+> +++ b/drivers/acpi/dock.c
+> @@ -1055,7 +1055,7 @@ err_unregister:
+>   *
+>   * This is called by acpi_walk_namespace to look for dock stations and bays.
+>   */
+> -static __init acpi_status
+> +static acpi_status __init
+>  find_dock_and_bay(acpi_handle handle, u32 lvl, void *context, void **rv)
+>  {
+>  	if (is_dock(handle) || is_ejectable_bay(handle))
+> 
+-- 
+I speak only for myself.
+Rafael J. Wysocki, Intel Open Source Technology Center.
