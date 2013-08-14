@@ -1,46 +1,81 @@
-From: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
-Subject: Re: [PATCH part5 5/7] memblock, mem_hotplug: Make memblock skip
- hotpluggable regions by default.
-Date: Wed, 14 Aug 2013 17:54:25 -0400
-Message-ID: <1376517265-8yi1139t-mutt-n-horiguchi@ah.jp.nec.com>
-References: <1375956979-31877-1-git-send-email-tangchen@cn.fujitsu.com>
- <1375956979-31877-6-git-send-email-tangchen@cn.fujitsu.com>
+From: Mauro Carvalho Chehab <m.chehab@samsung.com>
+Subject: Re: [PATCH 3/3] mce: acpi/apei: trace: Enable ghes memory error trace
+ event
+Date: Wed, 14 Aug 2013 20:54:33 -0300
+Message-ID: <20130814205433.452ef58d@concha.lan>
+References: <1375986471-27113-1-git-send-email-naveen.n.rao@linux.vnet.ibm.com>
+ <1375986471-27113-4-git-send-email-naveen.n.rao@linux.vnet.ibm.com>
+ <20130808163822.67e0828a@samsung.com> <20130810180322.GC4155@pd.tnic>
+ <20130812083355.47c1bae8@samsung.com> <20130812123813.GD18018@pd.tnic>
+ <20130812114932.52bb0314@samsung.com> <20130812150424.GH18018@pd.tnic>
+ <20130812142557.2a43f155@samsung.com> <20130812175631.GI18018@pd.tnic>
+ <520A1A2E.9080500@linux.vnet.ibm.com> <20130813092154.1e17385f@concha.lan>
+ <520A651E.3050604@linux.vnet.ibm.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
- charset=iso-2022-jp
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
-Return-path: <owner-linux-mm@kvack.org>
-In-Reply-To: <1375956979-31877-6-git-send-email-tangchen@cn.fujitsu.com>
-Content-Disposition: inline
-Sender: owner-linux-mm@kvack.org
-To: Tang Chen <tangchen@cn.fujitsu.com>
-Cc: robert.moore@intel.com, lv.zheng@intel.com, rjw@sisk.pl, lenb@kernel.org, tglx@linutronix.de, mingo@elte.hu, hpa@zytor.com, akpm@linux-foundation.org, tj@kernel.org, trenn@suse.de, yinghai@kernel.org, jiang.liu@huawei.com, wency@cn.fujitsu.com, laijs@cn.fujitsu.com, isimatu.yasuaki@jp.fujitsu.com, izumi.taku@jp.fujitsu.com, mgorman@suse.de, minchan@kernel.org, mina86@mina86.com, gong.chen@linux.intel.com, vasilis.liaskovitis@profitbricks.com, lwoodman@redhat.com, riel@redhat.com, jweiner@redhat.com, prarit@redhat.com, zhangyanfei@cn.fujitsu.com, yanghy@cn.fujitsu.com, x86@kernel.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-mm@kvack.org, linux-acpi@vger.kernel.org
+Return-path: <linux-pci-owner@vger.kernel.org>
+In-reply-to: <520A651E.3050604@linux.vnet.ibm.com>
+Sender: linux-pci-owner@vger.kernel.org
+To: "Naveen N. Rao" <naveen.n.rao@linux.vnet.ibm.com>
+Cc: Borislav Petkov <bp@alien8.de>, tony.luck@intel.com, bhelgaas@google.com, rostedt@goodmis.org, rjw@sisk.pl, lance.ortiz@hp.com, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Aristeu Rozanski Filho <arozansk@redhat.com>
 List-Id: linux-acpi@vger.kernel.org
 
-On Thu, Aug 08, 2013 at 06:16:17PM +0800, Tang Chen wrote:
-> --- a/mm/memblock.c
-> +++ b/mm/memblock.c
-...
-> @@ -719,6 +723,10 @@ void __init_memblock __next_free_mem_range_rev(u64 *idx, int nid,
->  		if (nid != MAX_NUMNODES && nid != memblock_get_region_node(m))
->  			continue;
->  
-> +		/* skip hotpluggable memory regions */
-> +		if (m->flags & MEMBLOCK_HOTPLUG)
-> +			continue;
-> +
->  		/* scan areas before each reservation for intersection */
->  		for ( ; ri >= 0; ri--) {
->  			struct memblock_region *r = &rsv->regions[ri];
-> -- 
+Em Tue, 13 Aug 2013 22:25:58 +0530
+"Naveen N. Rao" <naveen.n.rao@linux.vnet.ibm.com> escreveu:
 
-Why don't you add this also in __next_free_mem_range()?
+(sorry for a late answer, I had to do a small travel yesterday)
 
-Thanks,
-Naoya Horiguchi
+> On 08/13/2013 05:51 PM, Mauro Carvalho Chehab wrote:
+> > Em Tue, 13 Aug 2013 17:06:14 +0530
+> > "Naveen N. Rao" <naveen.n.rao@linux.vnet.ibm.com> escreveu:
+> >
+> >> On 08/12/2013 11:26 PM, Borislav Petkov wrote:
+> >>> On Mon, Aug 12, 2013 at 02:25:57PM -0300, Mauro Carvalho Chehab wrote:
+> >>>> Userspace still needs the EDAC sysfs, in order to identify how the
+> >>>> memory is organized, and do the proper memory labels association.
+> >>>>
+> >>>> What edac_ghes does is to fill those sysfs nodes, and to call the
+> >>>> existing tracing to report errors.
+> >>
+> >> I suppose you're referring to the entries under /sys/devices/system/edac/mc?
+> >
+> > Yes.
+> >
+> >>
+> >> I'm not sure I understand how this helps. ghes_edac seems to just be
+> >> populating this based on dmi, which if I'm not mistaken, can be obtained
+> >> in userspace (mcelog as an example).
+> >>
+> >> Also, on my system, all DIMMs are being reported under mc0. I doubt if
+> >> the labels there are accurate.
+> >
+> > Yes, this is the current status of ghes_edac, where BIOS doesn't provide any
+> > reliable way to associate a given APEI report to a physical DIMM slot label.
+> >
+> > The plan is to add more logic there as BIOSes start to provide some reliable
+> > way to do such association. I discussed this subject with a few vendors
+> > while I was working at Red Hat.
+> 
+> Hmm... is there anything specific in the APEI report that could help? 
 
---
-To unsubscribe, send a message with 'unsubscribe linux-mm' in
-the body to majordomo@kvack.org.  For more info on Linux MM,
-see: http://www.linux-mm.org/ .
-Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
+I didn't see anything at APEI spec that would allow to describe how the
+memory is organized. So, it is hard for the ghes_edac driver to discover
+how many memory controllers, channels and slots are available. This data
+is needed, in order to allow userspace to pass the labels for each DIMM,
+or for the Kernel to auto-discover.
+
+> More importantly, is there a need to do this in-kernel rather than in 
+> user-space?
+
+Yes, due to 2 aspects:
+
+On a critical error, the machine will die. The EDAC core will print the
+error at dmesg, but no other record to be latter parsed will be available;
+
+With hot pluggable memories, dynamic channel rerouting, memory poisoning
+and other funny things, it could not be possible to point to a DIMM, 
+if the parsing is done on a latter time.
+
+Regards,
+Mauro
