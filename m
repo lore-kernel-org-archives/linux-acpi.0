@@ -1,90 +1,51 @@
-From: "R, Durgadoss" <durgadoss.r@intel.com>
-Subject: RE: [PATCH 1/3] ACPI/Thermal: Remove the unused lock of struct
- acpi_thermal
-Date: Wed, 14 Aug 2013 17:05:37 +0000
-Message-ID: <4D68720C2E767A4AA6A8796D42C8EB59D135EA@BGSMSX103.gar.corp.intel.com>
-References: <1376485239-18312-1-git-send-email-tianyu.lan@intel.com>
+From: KOSAKI Motohiro <kosaki.motohiro@gmail.com>
+Subject: Re: [PATCH part5 0/7] Arrange hotpluggable memory as ZONE_MOVABLE.
+Date: Wed, 14 Aug 2013 14:15:44 -0400
+Message-ID: <520BC950.1030806@gmail.com>
+References: <1375956979-31877-1-git-send-email-tangchen@cn.fujitsu.com> <20130812145016.GI15892@htj.dyndns.org> <52090225.6070208@gmail.com> <20130812154623.GL15892@htj.dyndns.org> <52090AF6.6020206@gmail.com> <20130812162247.GM15892@htj.dyndns.org> <520914D5.7080501@gmail.com> <20130812180758.GA8288@mtj.dyndns.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga02.intel.com ([134.134.136.20]:42311 "EHLO mga02.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1758765Ab3HNRF7 convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 14 Aug 2013 13:05:59 -0400
-In-Reply-To: <1376485239-18312-1-git-send-email-tianyu.lan@intel.com>
-Content-Language: en-US
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-doc-owner@vger.kernel.org>
+In-Reply-To: <20130812180758.GA8288@mtj.dyndns.org>
+Sender: linux-doc-owner@vger.kernel.org
+To: Tejun Heo <tj@kernel.org>
+Cc: Tang Chen <imtangchen@gmail.com>, Tang Chen <tangchen@cn.fujitsu.com>, robert.moore@intel.com, lv.zheng@intel.com, rjw@sisk.pl, lenb@kernel.org, tglx@linutronix.de, mingo@elte.hu, hpa@zytor.com, akpm@linux-foundation.org, trenn@suse.de, yinghai@kernel.org, jiang.liu@huawei.com, wency@cn.fujitsu.com, laijs@cn.fujitsu.com, isimatu.yasuaki@jp.fujitsu.com, izumi.taku@jp.fujitsu.com, mgorman@suse.de, minchan@kernel.org, mina86@mina86.com, gong.chen@linux.intel.com, vasilis.liaskovitis@profitbricks.com, lwoodman@redhat.com, riel@redhat.com, jweiner@redhat.com, prarit@redhat.com, zhangyanfei@cn.fujitsu.com, yanghy@cn.fujitsu.com, x86@kernel.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-mm@kvack.org, linux-acpi@vger.kernel.org, kosaki.motohiro@gmail.com
 List-Id: linux-acpi@vger.kernel.org
-To: "rjw@sisk.pl" <rjw@sisk.pl>, "lenb@kernel.org" <lenb@kernel.org>
-Cc: "Lan, Tianyu" <tianyu.lan@intel.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "Zhang, Rui" <rui.zhang@intel.com>
+
+(8/12/13 2:07 PM), Tejun Heo wrote:
+> Hey,
+>
+> On Tue, Aug 13, 2013 at 01:01:09AM +0800, Tang Chen wrote:
+>> Sorry for the misunderstanding.
+>>
+>> I was trying to answer your question: "Why can't the kenrel allocate
+>> hotpluggable memory opportunistic ?".
+>
+> I've used the wrong word, I was meaning best-effort, which is the only
+> thing we can do anyway given that we have no control over where the
+> kernel image is linked in relation to NUMA nodes.
+>
+>> If the kernel has any opportunity to allocate hotpluggable memory in
+>> SRAT, then the kernel should tell users which memory is hotpluggable.
+>>
+>> But in what way ?  I think node is the best for now. But a node could
+>> have a lot of memory. If the kernel uses only a little memory, we will
+>> lose the whole movable node, which I don't want to do.
+>>
+>> So, I don't want to allow the kenrel allocating hotpluggable memory
+>> opportunistic.
+>
+> What I was saying was that the kernel should try !hotpluggable memory
+> first then fall back to hotpluggable memory instead of failing boot as
+> nothing really is worse than failing to boot.
+
+I don't follow this. We need to think why memory hotplug is necessary.
+Because system reboot is unacceptable on several critical services. Then,
+if someone set wrong boot option, systems SHOULD fail to boot. At that time,
+admin have a chance to fix their mistake. In the other hand, after running
+production service, they have no chance to fix the mistake. In general, default
+boot option should have a fallback and non-default option should not have a
+fallback. That's a fundamental rule.
 
 
-> -----Original Message-----
-> From: linux-acpi-owner@vger.kernel.org [mailto:linux-acpi-
-> owner@vger.kernel.org] On Behalf Of tianyu.lan@intel.com
-> Sent: Wednesday, August 14, 2013 6:31 PM
-> To: rjw@sisk.pl; lenb@kernel.org
-> Cc: Lan, Tianyu; linux-acpi@vger.kernel.org; Zhang, Rui
-> Subject: [PATCH 1/3] ACPI/Thermal: Remove the unused lock of struct
-> acpi_thermal
-> 
-> From: Lan Tianyu <tianyu.lan@intel.com>
-> 
-> The acpi_thermal->lock now just is initialized when thermal zone device
-> is added and destroyed when thermal zone is removed. Never being used
-> any other places. So remove it.
-> 
-
-Hi Tianyu,
-
-Very Nice catch. All three patches look fine to me.
-For all three,
-Acked-by: Durgadoss R <durgadoss.r@intel.com>
-
-Thanks,
-Durga
-
-> Acked-by: Zhang Rui <rui.zhang@intel.com>
-> Signed-off-by: Lan Tianyu <tianyu.lan@intel.com>
-> ---
->  drivers/acpi/thermal.c | 4 ----
->  1 file changed, 4 deletions(-)
-> 
-> diff --git a/drivers/acpi/thermal.c b/drivers/acpi/thermal.c
-> index a3e38a0..850818d 100644
-> --- a/drivers/acpi/thermal.c
-> +++ b/drivers/acpi/thermal.c
-> @@ -190,7 +190,6 @@ struct acpi_thermal {
->  	struct thermal_zone_device *thermal_zone;
->  	int tz_enabled;
->  	int kelvin_offset;
-> -	struct mutex lock;
->  };
-> 
->  /* --------------------------------------------------------------------------
-> @@ -1088,8 +1087,6 @@ static int acpi_thermal_add(struct acpi_device *device)
->  	strcpy(acpi_device_name(device), ACPI_THERMAL_DEVICE_NAME);
->  	strcpy(acpi_device_class(device), ACPI_THERMAL_CLASS);
->  	device->driver_data = tz;
-> -	mutex_init(&tz->lock);
-> -
-> 
->  	result = acpi_thermal_get_info(tz);
->  	if (result)
-> @@ -1122,7 +1119,6 @@ static int acpi_thermal_remove(struct acpi_device
-> *device)
->  	tz = acpi_driver_data(device);
-> 
->  	acpi_thermal_unregister_thermal_zone(tz);
-> -	mutex_destroy(&tz->lock);
->  	kfree(tz);
->  	return 0;
->  }
-> --
-> 1.8.4.rc0.1.g8f6a3e5.dirty
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
