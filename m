@@ -1,81 +1,80 @@
 From: Mauro Carvalho Chehab <m.chehab@samsung.com>
 Subject: Re: [PATCH 3/3] mce: acpi/apei: trace: Enable ghes memory error trace
  event
-Date: Wed, 14 Aug 2013 20:54:33 -0300
-Message-ID: <20130814205433.452ef58d@concha.lan>
+Date: Wed, 14 Aug 2013 20:56:38 -0300
+Message-ID: <20130814205638.1ebcfd3e@concha.lan>
 References: <1375986471-27113-1-git-send-email-naveen.n.rao@linux.vnet.ibm.com>
  <1375986471-27113-4-git-send-email-naveen.n.rao@linux.vnet.ibm.com>
  <20130808163822.67e0828a@samsung.com> <20130810180322.GC4155@pd.tnic>
- <20130812083355.47c1bae8@samsung.com> <20130812123813.GD18018@pd.tnic>
- <20130812114932.52bb0314@samsung.com> <20130812150424.GH18018@pd.tnic>
- <20130812142557.2a43f155@samsung.com> <20130812175631.GI18018@pd.tnic>
- <520A1A2E.9080500@linux.vnet.ibm.com> <20130813092154.1e17385f@concha.lan>
- <520A651E.3050604@linux.vnet.ibm.com>
+ <20130812083355.47c1bae8@samsung.com> <5208D80D.5030206@linux.vnet.ibm.com>
+ <20130812114404.3bd64fa0@samsung.com> <520A1B5E.8040105@linux.vnet.ibm.com>
+ <20130813094147.062317f8@concha.lan> <520A6A30.1030406@linux.vnet.ibm.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-pci-owner@vger.kernel.org>
-In-reply-to: <520A651E.3050604@linux.vnet.ibm.com>
-Sender: linux-pci-owner@vger.kernel.org
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mailout4.w2.samsung.com ([211.189.100.14]:19060 "EHLO
+	usmailout4.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750929Ab3HNX4r (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 14 Aug 2013 19:56:47 -0400
+In-reply-to: <520A6A30.1030406@linux.vnet.ibm.com>
+Sender: linux-acpi-owner@vger.kernel.org
+List-Id: linux-acpi@vger.kernel.org
 To: "Naveen N. Rao" <naveen.n.rao@linux.vnet.ibm.com>
 Cc: Borislav Petkov <bp@alien8.de>, tony.luck@intel.com, bhelgaas@google.com, rostedt@goodmis.org, rjw@sisk.pl, lance.ortiz@hp.com, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Aristeu Rozanski Filho <arozansk@redhat.com>
-List-Id: linux-acpi@vger.kernel.org
 
-Em Tue, 13 Aug 2013 22:25:58 +0530
+Em Tue, 13 Aug 2013 22:47:36 +0530
 "Naveen N. Rao" <naveen.n.rao@linux.vnet.ibm.com> escreveu:
 
-(sorry for a late answer, I had to do a small travel yesterday)
-
-> On 08/13/2013 05:51 PM, Mauro Carvalho Chehab wrote:
-> > Em Tue, 13 Aug 2013 17:06:14 +0530
+> On 08/13/2013 06:11 PM, Mauro Carvalho Chehab wrote:
+> > Em Tue, 13 Aug 2013 17:11:18 +0530
 > > "Naveen N. Rao" <naveen.n.rao@linux.vnet.ibm.com> escreveu:
 > >
-> >> On 08/12/2013 11:26 PM, Borislav Petkov wrote:
-> >>> On Mon, Aug 12, 2013 at 02:25:57PM -0300, Mauro Carvalho Chehab wrote:
-> >>>> Userspace still needs the EDAC sysfs, in order to identify how the
-> >>>> memory is organized, and do the proper memory labels association.
-> >>>>
-> >>>> What edac_ghes does is to fill those sysfs nodes, and to call the
-> >>>> existing tracing to report errors.
+> >> On 08/12/2013 08:14 PM, Mauro Carvalho Chehab wrote:
+> >>>> But, this only seems to expose the APEI data as a string
+> >>>> and doesn't look to really make all the fields available to user-space
+> >>>> in a raw manner. Not sure how well this can be utilised by a user-space
+> >>>> tool. Do you have suggestions on how we can do this?
+> >>>
+> >>> There's already an userspace tool that handes it:
+> >>> 	https://git.fedorahosted.org/cgit/rasdaemon.git/
+> >>>
+> >>> What is missing there on the current version is the bits that would allow
+> >>> to translate from APEI way to report an error (memory node, card, module,
+> >>> bank, device) into a DIMM label[1].
 > >>
-> >> I suppose you're referring to the entries under /sys/devices/system/edac/mc?
+> >> If I'm reading this right, all APEI data seems to be squashed into a
+> >> string in mc_event.
 > >
-> > Yes.
+> > Yes. We had lots of discussion about how to map memory errors over the
+> > last couple years. Basically, it was decided that the information that
+> > could be decoded into a DIMM to be mapped as integers, and all other
+> > driver-specific data to be added as strings.
 > >
-> >>
-> >> I'm not sure I understand how this helps. ghes_edac seems to just be
-> >> populating this based on dmi, which if I'm not mistaken, can be obtained
-> >> in userspace (mcelog as an example).
-> >>
-> >> Also, on my system, all DIMMs are being reported under mc0. I doubt if
-> >> the labels there are accurate.
-> >
-> > Yes, this is the current status of ghes_edac, where BIOS doesn't provide any
-> > reliable way to associate a given APEI report to a physical DIMM slot label.
-> >
-> > The plan is to add more logic there as BIOSes start to provide some reliable
-> > way to do such association. I discussed this subject with a few vendors
-> > while I was working at Red Hat.
+> > On the tests I did, different machines/vendors fill the APEI data on
+> > a different way, with makes harder to associate them to a DIMM.
 > 
-> Hmm... is there anything specific in the APEI report that could help? 
+> Ok, so it looks like ghes_edac isn't quite useful yet.
+> 
+> In the meantime, like Boris suggests, I think we can have a different 
+> trace event for raw APEI reports - userspace can use it as it pleases.
 
-I didn't see anything at APEI spec that would allow to describe how the
-memory is organized. So, it is hard for the ghes_edac driver to discover
-how many memory controllers, channels and slots are available. This data
-is needed, in order to allow userspace to pass the labels for each DIMM,
-or for the Kernel to auto-discover.
+"In the meantime" is something that worries me the most. Kernel APIs should
+be stable. We cannot randomly change it on each new kernel version.
 
-> More importantly, is there a need to do this in-kernel rather than in 
-> user-space?
+Better to spend a little more time discussing than implementing a new trace
+that will be removed on a near future.
+> 
+> Once ghes_edac gets better, users can decide whether they want raw APEI 
+> reports or the EDAC-processed version and choose one or the other trace 
+> event.
+> 
+> Regards,
+> Naveen
+> 
 
-Yes, due to 2 aspects:
 
-On a critical error, the machine will die. The EDAC core will print the
-error at dmesg, but no other record to be latter parsed will be available;
+-- 
 
-With hot pluggable memories, dynamic channel rerouting, memory poisoning
-and other funny things, it could not be possible to point to a DIMM, 
-if the parsing is done on a latter time.
-
-Regards,
+Cheers,
 Mauro
