@@ -1,55 +1,58 @@
-From: Borislav Petkov <bp@alien8.de>
-Subject: Re: [PATCH 3/3] mce: acpi/apei: trace: Enable ghes memory error
- trace event
-Date: Wed, 14 Aug 2013 14:18:11 +0200
-Message-ID: <20130814121811.GC9158@pd.tnic>
-References: <20130808163822.67e0828a@samsung.com>
- <20130810180322.GC4155@pd.tnic>
- <20130812083355.47c1bae8@samsung.com>
- <5208D80D.5030206@linux.vnet.ibm.com>
- <20130812114404.3bd64fa0@samsung.com>
- <520A1B5E.8040105@linux.vnet.ibm.com>
- <20130813094147.062317f8@concha.lan>
- <520A6A30.1030406@linux.vnet.ibm.com>
- <3908561D78D1C84285E8C5FCA982C28F31CB8DB5@ORSMSX106.amr.corp.intel.com>
- <520B603E.3040002@linux.vnet.ibm.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
+From: tianyu.lan@intel.com
+Subject: [PATCH 1/3] ACPI/Thermal: Remove the unused lock of struct acpi_thermal
+Date: Wed, 14 Aug 2013 21:00:37 +0800
+Message-ID: <1376485239-18312-1-git-send-email-tianyu.lan@intel.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail.skyhub.de ([78.46.96.112]:41416 "EHLO mail.skyhub.de"
+Received: from mga02.intel.com ([134.134.136.20]:30347 "EHLO mga02.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752803Ab3HNMSO (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 14 Aug 2013 08:18:14 -0400
-Content-Disposition: inline
-In-Reply-To: <520B603E.3040002@linux.vnet.ibm.com>
+	id S932282Ab3HNNJS (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 14 Aug 2013 09:09:18 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Naveen N. Rao" <naveen.n.rao@linux.vnet.ibm.com>
-Cc: "Luck, Tony" <tony.luck@intel.com>, Mauro Carvalho Chehab <m.chehab@samsung.com>, "bhelgaas@google.com" <bhelgaas@google.com>, "rostedt@goodmis.org" <rostedt@goodmis.org>, "rjw@sisk.pl" <rjw@sisk.pl>, "lance.ortiz@hp.com" <lance.ortiz@hp.com>, "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Aristeu Rozanski Filho <arozansk@redhat.com>
+To: rjw@sisk.pl, lenb@kernel.org
+Cc: Lan Tianyu <tianyu.lan@intel.com>, linux-acpi@vger.kernel.org, rui.zhang@intel.com
 
-On Wed, Aug 14, 2013 at 04:17:26PM +0530, Naveen N. Rao wrote:
-> - One, the logging format for APEI data is a bit verbose and hard
-> to parse. But, I suppose we could work with this if we make a few
-> changes. Is it ok to change how the APEI data is made available
-> through mc_event->driver_detail?
+From: Lan Tianyu <tianyu.lan@intel.com>
 
-How?
+The acpi_thermal->lock now just is initialized when thermal zone device
+is added and destroyed when thermal zone is removed. Never being used
+any other places. So remove it.
 
-> - Two, if ghes_edac is enabled, it prevents other edac drivers
-> from being loaded. It looks like the assumption here is that if
-> ghes/firmware first is enabled, then *all* memory errors are reported
-> through ghes which is not true. We could have (a subset of) corrected
-> errors reported through ghes, some through CMCI and uncorrected errors
-> through MCE. So, if I'm not mistaken, if ghes_edac is enabled, we will
-> only receive ghes error events through mc_event and not the others.
+Acked-by: Zhang Rui <rui.zhang@intel.com>
+Signed-off-by: Lan Tianyu <tianyu.lan@intel.com>
+---
+ drivers/acpi/thermal.c | 4 ----
+ 1 file changed, 4 deletions(-)
 
-The idea is to have a single tracepoint reporting memory errors. Where
-you call it from shouldn't matter. Now, we have to make sure that we
-don't report the same event more than once over different paths.
-
+diff --git a/drivers/acpi/thermal.c b/drivers/acpi/thermal.c
+index a3e38a0..850818d 100644
+--- a/drivers/acpi/thermal.c
++++ b/drivers/acpi/thermal.c
+@@ -190,7 +190,6 @@ struct acpi_thermal {
+ 	struct thermal_zone_device *thermal_zone;
+ 	int tz_enabled;
+ 	int kelvin_offset;
+-	struct mutex lock;
+ };
+ 
+ /* --------------------------------------------------------------------------
+@@ -1088,8 +1087,6 @@ static int acpi_thermal_add(struct acpi_device *device)
+ 	strcpy(acpi_device_name(device), ACPI_THERMAL_DEVICE_NAME);
+ 	strcpy(acpi_device_class(device), ACPI_THERMAL_CLASS);
+ 	device->driver_data = tz;
+-	mutex_init(&tz->lock);
+-
+ 
+ 	result = acpi_thermal_get_info(tz);
+ 	if (result)
+@@ -1122,7 +1119,6 @@ static int acpi_thermal_remove(struct acpi_device *device)
+ 	tz = acpi_driver_data(device);
+ 
+ 	acpi_thermal_unregister_thermal_zone(tz);
+-	mutex_destroy(&tz->lock);
+ 	kfree(tz);
+ 	return 0;
+ }
 -- 
-Regards/Gruss,
-    Boris.
+1.8.4.rc0.1.g8f6a3e5.dirty
 
-Sent from a fat crate under my desk. Formatting is fine.
---
