@@ -1,56 +1,87 @@
-From: Tejun Heo <tj@kernel.org>
-Subject: Re: [PATCH part5 0/7] Arrange hotpluggable memory as ZONE_MOVABLE.
-Date: Wed, 14 Aug 2013 14:23:42 -0400
-Message-ID: <20130814182342.GG28628@htj.dyndns.org>
-References: <1375956979-31877-1-git-send-email-tangchen@cn.fujitsu.com>
- <20130812145016.GI15892@htj.dyndns.org>
- <52090225.6070208@gmail.com>
- <20130812154623.GL15892@htj.dyndns.org>
- <52090AF6.6020206@gmail.com>
- <20130812162247.GM15892@htj.dyndns.org>
- <520914D5.7080501@gmail.com>
- <20130812180758.GA8288@mtj.dyndns.org>
- <520BC950.1030806@gmail.com>
+From: "Luck, Tony" <tony.luck@intel.com>
+Subject: RE: [PATCH 3/3] mce: acpi/apei: trace: Enable ghes memory error
+ trace event
+Date: Wed, 14 Aug 2013 18:38:09 +0000
+Message-ID: <3908561D78D1C84285E8C5FCA982C28F31CBAAFA@ORSMSX106.amr.corp.intel.com>
+References: <20130812083355.47c1bae8@samsung.com>
+ <5208D80D.5030206@linux.vnet.ibm.com> <20130812125343.GE18018@pd.tnic>
+ <520A16BD.30201@linux.vnet.ibm.com> <20130813124258.GC4077@pd.tnic>
+ <520A6D98.9060204@linux.vnet.ibm.com> <20130813175809.GE4077@pd.tnic>
+ <3908561D78D1C84285E8C5FCA982C28F31CB8F53@ORSMSX106.amr.corp.intel.com>
+ <20130813181004.GF4077@pd.tnic>
+ <3908561D78D1C84285E8C5FCA982C28F31CB9150@ORSMSX106.amr.corp.intel.com>
+ <20130814054322.GA9158@pd.tnic>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <owner-linux-mm@kvack.org>
-Content-Disposition: inline
-In-Reply-To: <520BC950.1030806@gmail.com>
-Sender: owner-linux-mm@kvack.org
-To: KOSAKI Motohiro <kosaki.motohiro@gmail.com>
-Cc: Tang Chen <imtangchen@gmail.com>, Tang Chen <tangchen@cn.fujitsu.com>, robert.moore@intel.com, lv.zheng@intel.com, rjw@sisk.pl, lenb@kernel.org, tglx@linutronix.de, mingo@elte.hu, hpa@zytor.com, akpm@linux-foundation.org, trenn@suse.de, yinghai@kernel.org, jiang.liu@huawei.com, wency@cn.fujitsu.com, laijs@cn.fujitsu.com, isimatu.yasuaki@jp.fujitsu.com, izumi.taku@jp.fujitsu.com, mgorman@suse.de, minchan@kernel.org, mina86@mina86.com, gong.chen@linux.intel.com, vasilis.liaskovitis@profitbricks.com, lwoodman@redhat.com, riel@redhat.com, jweiner@redhat.com, prarit@redhat.com, zhangyanfei@cn.fujitsu.com, yanghy@cn.fujitsu.com, x86@kernel.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-mm@kvack.org, linux-acpi@vger.kernel.org
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <linux-pci-owner@vger.kernel.org>
+In-Reply-To: <20130814054322.GA9158@pd.tnic>
+Content-Language: en-US
+Sender: linux-pci-owner@vger.kernel.org
+To: Borislav Petkov <bp@alien8.de>
+Cc: "Naveen N. Rao" <naveen.n.rao@linux.vnet.ibm.com>, Mauro Carvalho Chehab <m.chehab@samsung.com>, "bhelgaas@google.com" <bhelgaas@google.com>, "rostedt@goodmis.org" <rostedt@goodmis.org>, "rjw@sisk.pl" <rjw@sisk.pl>, "lance.ortiz@hp.com" <lance.ortiz@hp.com>, "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
 
-Hello,
-
-On Wed, Aug 14, 2013 at 02:15:44PM -0400, KOSAKI Motohiro wrote:
-> I don't follow this. We need to think why memory hotplug is necessary.
-> Because system reboot is unacceptable on several critical services. Then,
-> if someone set wrong boot option, systems SHOULD fail to boot. At that time,
-> admin have a chance to fix their mistake. In the other hand, after running
-> production service, they have no chance to fix the mistake. In general, default
-> boot option should have a fallback and non-default option should not have a
-> fallback. That's a fundamental rule.
-
-The fundamental rule is that the system has to boot.  Your argument is
-pointless as the kernel has no control over where its own image is
-placed w.r.t. hotpluggable nodes.  So, are we gonna fail boot if
-kernel image intersects hotpluggable node and the option is specified
-even if memory hotplug can be used on other nodes?  That doesn't make
-any sense.
-
-Failing to boot is *way* worse reporting mechanism than almost
-everything else.  If the sysadmin is willing to risk machines failing
-to come up, she would definitely be willing to check whether which
-memory areas are actually hotpluggable too, right?
-
-Thanks.
-
--- 
-tejun
-
---
-To unsubscribe, send a message with 'unsubscribe linux-mm' in
-the body to majordomo@kvack.org.  For more info on Linux MM,
-see: http://www.linux-mm.org/ .
-Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
+PiBEaWRuJ3Qgd2Ugc2F5IGF0IHNvbWUgcG9pbnQsICJsb2cgb25seSB0aGUgcGFuaWMgbWVzc3Nh
+Z2Ugd2hpY2gga2lsbHMNCj4gdGhlIG1hY2hpbmUiPw0KDQpXZSd2ZSB3YW5kZXJlZCBhcm91bmQg
+ZGlmZmVyZW50IHN0cmF0ZWdpZXMgaGVyZS4gV2UgZGVmaW5pdGVseSB3YW50DQp0aGUgcGFuaWMg
+bG9nLiAgU29tZSBwZW9wbGUgd2FudCBhbGwgb3RoZXIgImtlcm5lbCBleGl0IiBsb2dzIChzaHV0
+ZG93biwNCnJlYm9vdCwga2V4ZWMpLiAgV2hlbiB0aGVyZSBpcyBlbm91Z2ggc3BhY2UgaW4gdGhl
+IHBzdG9yZSBiYWNrZW5kIHdlDQptaWdodCBhbHNvIHdhbnQgdGhlICJvb3BzIiB0aGF0IHByZWNl
+ZWRlZCB0aGUgcGFuaWMuICAoT2YgY291cnNlIHdoZW4NCnRoZSBvb3BzIGhhcHBlbnMgd2UgZG9u
+J3Qga25vdyB0aGUgZnV0dXJlLCBzbyBoYXZlIHRvIHNhdmUgaXQganVzdCBpbg0KY2FzZSAuLi4g
+dGhlbiBpZiBtb3JlICJvb3BzIiBoYXBwZW4gd2UgaGF2ZSB0byBkZWNpZGUgd2hldGhlciB0byBr
+ZWVwDQp0aGUgb2xkIG9vcHMgbG9nLCBvciBzYXZlIHRoZSBuZXdlciBvbmUpLg0KDQo+IEhvd2V2
+ZXIsIHdlIHByb2JhYmx5IGNvdWxkIHVzZSBtb3JlIHRoZSBtZXNzYWdlcyBiZWZvcmUgdGhhdA0K
+PiBjYXRhc3Ryb3BoaWMgZXZlbnQgYmVjYXVzZSB0aGV5IGNvdWxkIGdpdmUgdXMgaGludHMgYWJv
+dXQgd2hhdCBsZWFkIHRvDQo+IHRoZSBwYW5pYyBidXQgaW4gdGhhdCBjYXNlIG1heWJlIGEgbGlt
+aXRlZCBwc3RvcmUgaXMgdGhlIHdyb25nIGxvZ2dpbmcNCj4gbWVkaXVtLg0KWWVzIC0gbG9uZ2Vy
+IGxvZ3MgYXJlIGJldHRlci4gIFNhZCB0aGF0IHRoZSBwc3RvcmUgYmFja2VuZCBkZXZpY2VzIGFy
+ZQ0KbWVhc3VyZWQgaW4ga2lsb2J5dGVzIDotKQ0KDQo+IEFjdHVhbGx5LCBJIGNhbiBpbWFnaW5l
+IHRoZSBmdWxsIHNlcmlhbC9uZXR3b3JrIGxvZ3Mgb2YgInNwZWNpYWwiDQo+IHRyYWNlcG9pbnRz
+ICsgZG1lc2cgdG8gYmUgdGhlIG9wdGltYWwgdGhpbmcuDQpJZiB5b3UgZ3Vlc3MgdGhlIHJpZ2h0
+ICJzcGVjaWFsIiB0cmFjZXBvaW50cyB0byBsb2cgLSB0aGVuIHllcy4NCg0KPiBBY3R1YWxseSwg
+ZG9lcyB0aGUgcHN0b3JlIGFjdCBsaWtlIGEgY2lyY3VsYXIgYnVmZmVyPyBCZWNhdXNlIGlmIGl0
+DQo+IGNvbnRhaW5zIHRoZSBsYXN0IE4gcmVsZXZhbnQgbWVzc2FnZXMgKGZvciBhbiBhcmJpdHJh
+cnkgZGVmaW5pdGlvbiBvZg0KPiByZWxldmFudCkgYmVmb3JlIHRoZSBzeXN0ZW0gZGllcywgdGhl
+biB0aGF0IGNvdWxkIG1vcmUgaGVscGZ1bCB0aGFuIG9ubHkNCj4gdGhlIGVycm9yIG1lc3NhZ2Vz
+Lg0KTm8gLSB3cml0ZSBzcGVlZCBmb3IgdGhlIHBlcnNpc3RlbnQgc3RvcmFnZSBiYWNraW5nIHBz
+dG9yZSAoZmxhc2gpIG1lYW5zIHdlDQpkb24ndCBsb2cgYXMgd2UgZ28uIFdlIHdhaXQgZm9yIGEg
+cGFuaWMgYW5kIHRoZW4gb3VyIHJlZ2lzdGVyZWQgZnVuY3Rpb24NCmdldHMgY2FsbGVkIHNvIHdl
+IGNhbiBzbmFwc2hvdCB3aGF0IGlzIGluIHRoZSBjb25zb2xlIGxvZyBhdCB0aGF0IHBvaW50Lg0K
+V2UgYWxzbyBkb24ndCB3YW50IHRvIHdlYXIgb3V0IHRoZSBmbGFzaCB3aGljaCBtYXkgYmUgc29s
+ZGVyZWQgdG8gdGhlDQptb3RoZXJib2FyZC4NCg0KDQo+IE9rLCBsZXQncyBzb3J0Og0KDQo+ICog
+Rmlyc3Qgd2UgaGF2ZSB0aGUgbm90LXNvLWNyaXRpY2FsIGh3IGVycm9yIG1lc3NhZ2VzLiBXZSB3
+YW50IHRvIGNhcnJ5DQo+IHRob3NlIG91dC1vZi1iYW5kLCBpLmUuIG5vdCBpbiBkbWVzZyBzbyB0
+aGF0IHBlb3BsZSBkb24ndCBoYXZlIHRvIHBhcnNlDQo+IGFuZCBjb2xsZWN0IGRtZXNnIGJ1dCBo
+YXZlIGEgc3BlY2lhbGl6ZWQgc29sdXRpb24gd2hpY2ggZ2l2ZXMgdGhlbQ0KPiBzdHJ1Y3R1cmVk
+IGxvZ3MgYW5kIHRvb2xzIGNhbiBhbmFseXplLCBjb2xsZWN0IGFuZCAuLi4gdGhvc2UgZXJyb3Jz
+Lg0KDQpBZ3JlZWQgLSB3ZSBzaG91bGRuJ3QgY2x1dHRlciBsb2dzIHdpdGggZGV0YWlscyBvZiBj
+b3JyZWN0ZWQgZXJyb3JzLg0KQXQgbW9zdCB3ZSBzaG91bGQgaGF2ZSBhIHJhdGUtbGltaXRlZCBs
+b2cgc2hvd2luZyB0aGUgY291bnQgb2YgY29ycmVjdGVkIGVycm9ycw0Kc28gdGhhdCBzb21lb25l
+IHdobyBqdXN0IHdhdGNoZXMgZG1lc2cga25vd3MgdGhleSBzaG91bGQgZ28gZGlnIGRlZXBlcg0K
+aWYgdGhleSBzZWUgc29tZSBiaWcgbnVtYmVyIG9mIGNvcnJlY3RlZCBlcnJvcnMuDQoNCj4gKiBX
+aGVuIGEgY3JpdGljYWwgZXJyb3IgaGFwcGVucywgdGhlIGFib3ZlIHVzYWdlIGlzIG5vdCBuZWNl
+c3NhcmlseQ0KPiBhZHZhbnRhZ2VvdXMgYW55bW9yZSBpbiB0aGUgc2Vuc2UgdGhhdCwgaW4gb3Jk
+ZXIgdG8gZGVidWcgd2hhdCBjYXVzZWQNCj4gdGhlIG1hY2hpbmUgdG8gY3Jhc2gsIHdlIGRvbid0
+IHNpbXBseSBuZWNlc3NhcmlseSB3YW50IG9ubHkgdGhlIGNyYXNoDQo+IG1lc3NhZ2UgYnV0IGFs
+c28gdGhlIHdob2xlIHN5c3RlbSBhY3Rpdml0eSB0aGF0IGxlYWQgdG8gaXQuDQoNClllcy4gIFRo
+ZXJlIGFyZSBwZW9wbGUgbG9va2luZyBhdCB2YXJpb3VzICJmbGlnaHQgcmVjb3JkZXIiIG1vZGVz
+IGZvciB0cmFjaW5nDQp0aGF0IGtlZXAgbG9ncyBvZiBub3JtYWwgZXZlbnRzIGluIGEgY2lyY3Vs
+YXIgYnVmZmVyIGluIFJBTSAuLi4gaWYgdGhlc2UgZXhpc3QNCnRoZXkgc2hvdWxkIGJlIHNhdmVk
+IGF0IGNyYXNoIHRpbWUgKGFuZCB0aGV5IGFyZSBpbiB0aGUga2V4ZWMva2R1bXAgcGF0aCwNCmJ1
+dCBJIGRvbuKAmXQga25vdyBpZiBhbnlvbmUgZG9lcyBhbnl0aGluZyBpbiB0aGUgbm9uLWtkdW1w
+IGNhc2UpLg0KDQo+IEluIHdoaWNoIGNhc2UsIHdlIHByb2JhYmx5IGFjdHVhbGx5IHdhbnQgdG8g
+dHVybiBvZmYvaWdub3JlIHRoZSBlcnJvcg0KPiBsb2dnaW5nIHRyYWNlcG9pbnRzIGFuZCB3cml0
+ZSAqb25seSogdG8gZG1lc2cgd2hpY2ggZ29lcyBvdXQgb3ZlciBzZXJpYWwNCj4gYW5kIHRvIHBz
+dG9yZS4gUmlnaHQ/DQpUcmFjZXBvaW50cyBmb3IgZXJyb3JzIHRoYXQgYXJlIGdvaW5nIHRvIGxl
+YWQgdG8gc3lzdGVtIGNyYXNoIHdvdWxkIG9ubHkgYmUNCnVzZWZ1bCB0b2dldGhlciB3aXRoIGEg
+ZmxpZ2h0IHJlY29yZGVyIHRvIG1ha2Ugc3VyZSB0aGV5IGdldCBzYXZlZC4gSSB0aGluaw0KdHJh
+Y2Vwb2ludHMgZm9yIGNvcnJlY3RlZCBlcnJvcnMgYXJlIGJldHRlciB0aGFuIGRtZXNnIGxvZ3Mu
+DQoNCj4gQmVjYXVzZSBpbiBzdWNoIGNhc2VzIEkgd2FudCB0byBoYXZlICphbGwqICpyZWxldmFu
+dCogbWVzc2FnZXMgdGhhdCBsZWFkDQo+IHRvIHRoZSBleHBsb3Npb24gKyB0aGUgZXhwbG9zaW9u
+IG1lc3NhZ2UgaXRzZWxmLg0KDQpJbiBhIHBlcmZlY3Qgd29ybGQgeWVzIC0gSSBkb24ndCBrbm93
+IHRoYXQgd2UgY2FuIGFjaGlldmUgcGVyZmVjdGlvbiAtIGJ1dCB3ZQ0KY2FuIGl0ZXJhdGUgdGhy
+b3VnaCBnb29kLCBiZXR0ZXIsIGV2ZW4gYmV0dGVyLiAgVGhlIHJlYWxseSBoYXJkIHBhcnQgb2Yg
+dGhpcyBpcw0KZmlndXJpbmcgb3V0IHdoYXQgaXMgKnJlbGV2YW50KiB0byBzYXZlIGJlZm9yZSBh
+IHBhcnRpY3VsYXIgY3Jhc2ggaGFwcGVucy4NCg0KLVRvbnkNCg==
