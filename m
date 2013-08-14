@@ -1,67 +1,62 @@
-From: Tang Chen <tangchen@cn.fujitsu.com>
-Subject: [PATCH 1/3] acpi: Print Hot-Pluggable Field in SRAT.
-Date: Wed, 14 Aug 2013 17:37:06 +0800
-Message-ID: <1376473028-29380-2-git-send-email-tangchen@cn.fujitsu.com>
-References: <1376473028-29380-1-git-send-email-tangchen@cn.fujitsu.com>
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cn.fujitsu.com ([222.73.24.84]:33677 "EHLO song.cn.fujitsu.com"
-	rhost-flags-OK-FAIL-OK-OK) by vger.kernel.org with ESMTP
-	id S1759384Ab3HNJid (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 14 Aug 2013 05:38:33 -0400
-In-Reply-To: <1376473028-29380-1-git-send-email-tangchen@cn.fujitsu.com>
-Sender: linux-acpi-owner@vger.kernel.org
+From: "Naveen N. Rao" <naveen.n.rao@linux.vnet.ibm.com>
+Subject: Re: [PATCH 3/3] mce: acpi/apei: trace: Enable ghes memory error trace
+ event
+Date: Wed, 14 Aug 2013 16:17:26 +0530
+Message-ID: <520B603E.3040002@linux.vnet.ibm.com>
+References: <1375986471-27113-1-git-send-email-naveen.n.rao@linux.vnet.ibm.com> <1375986471-27113-4-git-send-email-naveen.n.rao@linux.vnet.ibm.com> <20130808163822.67e0828a@samsung.com> <20130810180322.GC4155@pd.tnic> <20130812083355.47c1bae8@samsung.com> <5208D80D.5030206@linux.vnet.ibm.com> <20130812114404.3bd64fa0@samsung.com> <520A1B5E.8040105@linux.vnet.ibm.com> <20130813094147.062317f8@concha.lan> <520A6A30.1030406@linux.vnet.ibm.com> <3908561D78D1C84285E8C5FCA982C28F31CB8DB5@ORSMSX106.amr.corp.intel.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <3908561D78D1C84285E8C5FCA982C28F31CB8DB5@ORSMSX106.amr.corp.intel.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: "Luck, Tony" <tony.luck@intel.com>
+Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>, Borislav Petkov <bp@alien8.de>, "bhelgaas@google.com" <bhelgaas@google.com>, "rostedt@goodmis.org" <rostedt@goodmis.org>, "rjw@sisk.pl" <rjw@sisk.pl>, "lance.ortiz@hp.com" <lance.ortiz@hp.com>, "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Aristeu Rozanski Filho <arozansk@redhat.com>
 List-Id: linux-acpi@vger.kernel.org
-To: tglx@linutronix.de, mingo@redhat.com, hpa@zytor.com, akpm@linux-foundation.org, liwanp@linux.vnet.ibm.com, tj@kernel.org, zhangyanfei@cn.fujitsu.com, lenb@kernel.org, rjw@sisk.pl
-Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 
-The Hot-Pluggable field in SRAT suggests if the memory could be
-hotplugged while the system is running. Print it as well when
-parsing SRAT will help users to know which memory is hotpluggable.
+On 08/13/2013 11:09 PM, Luck, Tony wrote:
+>> In the meantime, like Boris suggests, I think we can have a different
+>> trace event for raw APEI reports - userspace can use it as it pleases.
+>>
+>> Once ghes_edac gets better, users can decide whether they want raw APEI
+>> reports or the EDAC-processed version and choose one or the other trace
+>> event.
+>
+> It's cheap to add as many tracepoints as we like - but may be costly to maintain.
+> Especially if we have to tinker with them later to adjust which things are logged,
+> that puts a burden on user-space tools to be updated to adapt to the changing
+> API.
 
-Signed-off-by: Tang Chen <tangchen@cn.fujitsu.com>
-Reviewed-by: Wanpeng Li <liwanp@linux.vnet.ibm.com>
-Reviewed-by: Zhang Yanfei <zhangyanfei@cn.fujitsu.com>
-Acked-by: Tejun Heo <tj@kernel.org>
----
- arch/x86/mm/srat.c |   11 +++++++----
- 1 files changed, 7 insertions(+), 4 deletions(-)
+Agree. And this is the reason I have been considering mc_event. But, the 
+below issues with ghes_edac made me unsure:
+- One, the logging format for APEI data is a bit verbose and hard to 
+parse. But, I suppose we could work with this if we make a few changes. 
+Is it ok to change how the APEI data is made available through 
+mc_event->driver_detail?
+- Two, if ghes_edac is enabled, it prevents other edac drivers from 
+being loaded. It looks like the assumption here is that if ghes/firmware 
+first is enabled, then *all* memory errors are reported through ghes 
+which is not true. We could have (a subset of) corrected errors reported 
+through ghes, some through CMCI and uncorrected errors through MCE. So, 
+if I'm not mistaken, if ghes_edac is enabled, we will only receive ghes 
+error events through mc_event and not the others. Mauro, is this accurate?
 
-diff --git a/arch/x86/mm/srat.c b/arch/x86/mm/srat.c
-index cdd0da9..266ca91 100644
---- a/arch/x86/mm/srat.c
-+++ b/arch/x86/mm/srat.c
-@@ -146,6 +146,7 @@ int __init
- acpi_numa_memory_affinity_init(struct acpi_srat_mem_affinity *ma)
- {
- 	u64 start, end;
-+	u32 hotpluggable;
- 	int node, pxm;
- 
- 	if (srat_disabled())
-@@ -154,7 +155,8 @@ acpi_numa_memory_affinity_init(struct acpi_srat_mem_affinity *ma)
- 		goto out_err_bad_srat;
- 	if ((ma->flags & ACPI_SRAT_MEM_ENABLED) == 0)
- 		goto out_err;
--	if ((ma->flags & ACPI_SRAT_MEM_HOT_PLUGGABLE) && !save_add_info())
-+	hotpluggable = ma->flags & ACPI_SRAT_MEM_HOT_PLUGGABLE;
-+	if (hotpluggable && !save_add_info())
- 		goto out_err;
- 
- 	start = ma->base_address;
-@@ -174,9 +176,10 @@ acpi_numa_memory_affinity_init(struct acpi_srat_mem_affinity *ma)
- 
- 	node_set(node, numa_nodes_parsed);
- 
--	printk(KERN_INFO "SRAT: Node %u PXM %u [mem %#010Lx-%#010Lx]\n",
--	       node, pxm,
--	       (unsigned long long) start, (unsigned long long) end - 1);
-+	pr_info("SRAT: Node %u PXM %u [mem %#010Lx-%#010Lx]%s\n",
-+		node, pxm,
-+		(unsigned long long) start, (unsigned long long) end - 1,
-+		hotpluggable ? " hotplug" : "");
- 
- 	return 0;
- out_err_bad_srat:
--- 
-1.7.1
+>
+> Mauro has written his user-space tool to process the ghes-edac events:
+>    git://git.fedorahosted.org/rasdaemon.git
+>
+> Who is writing the user space tools to process the new apei tracepoints
+> you want to add?
 
+Enabling rasdaemon itself for the new tracepoint is an option, as long 
+as Mauro doesn't object to it ;)
+
+>
+> I'm not opposed to these patches - just wondering who is taking the next step
+> to make them useful.
+
+Sure.
+
+
+Regards,
+Naveen
