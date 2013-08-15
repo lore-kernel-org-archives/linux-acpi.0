@@ -1,40 +1,77 @@
-From: "Luck, Tony" <tony.luck@intel.com>
-Subject: RE: [PATCH 3/3] mce: acpi/apei: trace: Enable ghes memory error
+From: Borislav Petkov <bp@alien8.de>
+Subject: Re: [PATCH 3/3] mce: acpi/apei: trace: Enable ghes memory error
  trace event
-Date: Thu, 15 Aug 2013 18:16:48 +0000
-Message-ID: <3908561D78D1C84285E8C5FCA982C28F31CBCE72@ORSMSX106.amr.corp.intel.com>
-References: <5208D80D.5030206@linux.vnet.ibm.com>
- <20130812114404.3bd64fa0@samsung.com> <520A1B5E.8040105@linux.vnet.ibm.com>
- <20130813094147.062317f8@concha.lan> <520A6A30.1030406@linux.vnet.ibm.com>
+Date: Thu, 15 Aug 2013 20:41:49 +0200
+Message-ID: <20130815184149.GJ27616@pd.tnic>
+References: <520A1B5E.8040105@linux.vnet.ibm.com>
+ <20130813094147.062317f8@concha.lan>
+ <520A6A30.1030406@linux.vnet.ibm.com>
  <3908561D78D1C84285E8C5FCA982C28F31CB8DB5@ORSMSX106.amr.corp.intel.com>
- <520B603E.3040002@linux.vnet.ibm.com> <20130814211504.393cf138@concha.lan>
- <20130815100132.GC27616@pd.tnic> <20130815103421.178a5224@samsung.com>
+ <520B603E.3040002@linux.vnet.ibm.com>
+ <20130814211504.393cf138@concha.lan>
+ <20130815100132.GC27616@pd.tnic>
+ <20130815103421.178a5224@samsung.com>
  <20130815135106.GG27616@pd.tnic>
+ <3908561D78D1C84285E8C5FCA982C28F31CBCE72@ORSMSX106.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga14.intel.com ([143.182.124.37]:2252 "EHLO mga14.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1759418Ab3HOSQv (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 15 Aug 2013 14:16:51 -0400
-In-Reply-To: <20130815135106.GG27616@pd.tnic>
-Content-Language: en-US
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=utf-8
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <3908561D78D1C84285E8C5FCA982C28F31CBCE72@ORSMSX106.amr.corp.intel.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: "Luck, Tony" <tony.luck@intel.com>
+Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>, "Naveen N. Rao" <naveen.n.rao@linux.vnet.ibm.com>, "bhelgaas@google.com" <bhelgaas@google.com>, "rostedt@goodmis.org" <rostedt@goodmis.org>, "rjw@sisk.pl" <rjw@sisk.pl>, "lance.ortiz@hp.com" <lance.ortiz@hp.com>, "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Aristeu Rozanski Filho <arozansk@redhat.com>
 List-Id: linux-acpi@vger.kernel.org
-To: Borislav Petkov <bp@alien8.de>, Mauro Carvalho Chehab <m.chehab@samsung.com>
-Cc: "Naveen N. Rao" <naveen.n.rao@linux.vnet.ibm.com>, "bhelgaas@google.com" <bhelgaas@google.com>, "rostedt@goodmis.org" <rostedt@goodmis.org>, "rjw@sisk.pl" <rjw@sisk.pl>, "lance.ortiz@hp.com" <lance.ortiz@hp.com>, "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Aristeu Rozanski Filho <arozansk@redhat.com>
 
-PiAqIFdlIHBhcnNlIHNvbWUgQVBFSSB0YWJsZSBhbmQgZGlzYWJsZSB0aG9zZSBNQ0EgYmFua3Mg
-d2hpY2ggdGhlIEJJT1MNCj4gd2FudHMgdG8gaGFuZGxlIGZpcnN0Lg0KDQpXZSBoYXZlIG5vIGlk
-ZWEgd2hpY2ggZXJyb3JzIHRoZSBCSU9TIGhhcyBjaG9zZW4gZm9yIGl0c2VsZi4gIFdlIGp1c3Qg
-a25vdyB3aGljaA0KYmFuayBudW1iZXJzIC4uLiBhbmQgSW50ZWwgcHJvY2Vzc29ycyBjaGFuZ2Ug
-bWFwcGluZ3Mgb2Ygd2hpY2ggZXJyb3JzIGFyZSBsb2dnZWQNCmluIHdoaWNoIGJhbmtzIGluIGV2
-ZXJ5IG5ldyBwcm9jZXNzb3IgdG9jayAoYW5kIHNvbWV0aW1lcyB0aWNrKS4gIFNvbWUgYmFua3MN
-CmFyZSBkb2N1bWVudGVkIGluIHByb2Nlc3NvciBkYXRhc2hlZXQuIG1vc3QgYXJlIG5vdC4gTW9z
-dCBjb21tb24gY2FzZSBtaWdodA0Kd2VsbCBiZSBtZW1vcnkgLi4uIGJ1dCBpdCBjb3VsZCBiZSBj
-YWNoZSwgb3IgSS9PLCBvciAuLi4NCg0KU28gdGhpcyBkb2Vzbid0IGhlbHAgTWF1cm8gZmlndXJl
-IG91dCB3aGV0aGVyIHRvIGFsbG93IGxvYWRpbmcgb2YgYW4NCkVEQUMgZHJpdmVyIHRoYXQgd2ls
-bCBwZWVrIGFuZCBwb2tlIGF0IGNoaXBzZXQgc3BlY2lmaWMgcmVnaXN0ZXJzIGluDQpwb3NzaWJs
-eSByYWN5IHdheXMgd2l0aCBCSU9TIGNvZGUgZG9pbmcgdGhlIHNhbWUgdGhpbmcuDQoNCi1Ub255
-DQo=
+On Thu, Aug 15, 2013 at 06:16:48PM +0000, Luck, Tony wrote:
+> > * We parse some APEI table and disable those MCA banks which the BIOS
+> > wants to handle first.
+>
+> We have no idea which errors the BIOS has chosen for itself. We just
+> know which bank numbers ...
+
+Well, those which BIOS hasn't chosen for itself get simply handled up
+through, HEST it is, I think. So it all goes out in APEI anyway...
+
+> and Intel processors change mappings of which errors are logged in
+> which banks in every new processor tock (and sometimes tick). Some
+> banks are documented in processor datasheet. most are not. Most common
+> case might well be memory ... but it could be cache, or I/O, or ...
+>
+> So this doesn't help Mauro figure out whether to allow loading of an
+> EDAC driver that will peek and poke at chipset specific registers in
+> possibly racy ways with BIOS code doing the same thing.
+
+That doesn't matter - the only thing that matters is if an EDAC driver
+has anything additional to bring to the table. If it does, then it gets
+to see the errors before they're dumped to userspace. If not, then APEI
+should report them directly.
+
+Mind you, if we've disabled an MCA bank for the kernel then no EDAC
+driver gets to see errors from it either because APEI has taken
+responsibility. Unless said driver is poking around MCA registers -
+which it shouldn't.
+
+So I'd guess the decision to load an EDAC driver should be a platform
+one. A platform which gives *sufficient* information in APEI tables for
+an error doesn't need an EDAC driver. Older platforms or platforms which
+cannot supply sufficient information for, say, properly pinpointing the
+DIMM, should use the additional help of an EDAC driver for that, if
+possible.
+
+Which begs the most important question: do we even have a platform that
+can give us sufficient information without the need for an EDAC driver?
+
+Because if not, we should stop wasting energy pointlessly and simply
+drop this discussion: we basically load an EDAC driver and do not do the
+APEI tracepoint because it simply doesn't make any sense and there's no
+actual platform giving us that info.
+
+So, which is it?
+
+-- 
+Regards/Gruss,
+    Boris.
+
+Sent from a fat crate under my desk. Formatting is fine.
+--
