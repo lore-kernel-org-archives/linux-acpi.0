@@ -1,77 +1,75 @@
-From: Borislav Petkov <bp@alien8.de>
-Subject: Re: [PATCH 3/3] mce: acpi/apei: trace: Enable ghes memory error
- trace event
-Date: Thu, 15 Aug 2013 20:41:49 +0200
-Message-ID: <20130815184149.GJ27616@pd.tnic>
-References: <520A1B5E.8040105@linux.vnet.ibm.com>
- <20130813094147.062317f8@concha.lan>
- <520A6A30.1030406@linux.vnet.ibm.com>
- <3908561D78D1C84285E8C5FCA982C28F31CB8DB5@ORSMSX106.amr.corp.intel.com>
- <520B603E.3040002@linux.vnet.ibm.com>
- <20130814211504.393cf138@concha.lan>
- <20130815100132.GC27616@pd.tnic>
- <20130815103421.178a5224@samsung.com>
- <20130815135106.GG27616@pd.tnic>
- <3908561D78D1C84285E8C5FCA982C28F31CBCE72@ORSMSX106.amr.corp.intel.com>
+From: Toshi Kani <toshi.kani@hp.com>
+Subject: Re: [PATCH part5 0/7] Arrange hotpluggable memory as ZONE_MOVABLE.
+Date: Thu, 15 Aug 2013 13:06:04 -0600
+Message-ID: <1376593564.10300.446.camel@misato.fc.hp.com>
+References: <1375956979-31877-1-git-send-email-tangchen@cn.fujitsu.com>
+	 <20130812145016.GI15892@htj.dyndns.org> <5208FBBC.2080304@zytor.com>
+	 <20130812152343.GK15892@htj.dyndns.org> <52090D7F.6060600@gmail.com>
+	 <20130812164650.GN15892@htj.dyndns.org> <5209CEC1.8070908@cn.fujitsu.com>
+	 <520A02DE.1010908@cn.fujitsu.com>
+	 <CAE9FiQV2-OOvHZtPYSYNZz+DfhvL0e+h2HjMSW3DyqeXXvdJkA@mail.gmail.com>
+	 <520ADBBA.10501@cn.fujitsu.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <3908561D78D1C84285E8C5FCA982C28F31CBCE72@ORSMSX106.amr.corp.intel.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: "Luck, Tony" <tony.luck@intel.com>
-Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>, "Naveen N. Rao" <naveen.n.rao@linux.vnet.ibm.com>, "bhelgaas@google.com" <bhelgaas@google.com>, "rostedt@goodmis.org" <rostedt@goodmis.org>, "rjw@sisk.pl" <rjw@sisk.pl>, "lance.ortiz@hp.com" <lance.ortiz@hp.com>, "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Aristeu Rozanski Filho <arozansk@redhat.com>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
+Return-path: <owner-linux-mm@kvack.org>
+In-Reply-To: <520ADBBA.10501@cn.fujitsu.com>
+Sender: owner-linux-mm@kvack.org
+To: Tang Chen <tangchen@cn.fujitsu.com>
+Cc: Yinghai Lu <yinghai@kernel.org>, Tejun Heo <tj@kernel.org>, Tang Chen <imtangchen@gmail.com>, "H. Peter Anvin" <hpa@zytor.com>, Bob Moore <robert.moore@intel.com>, Lv Zheng <lv.zheng@intel.com>, "Rafael J.
+ Wysocki" <rjw@sisk.pl>, Len Brown <lenb@kernel.org>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@elte.hu>, Andrew Morton <akpm@linux-foundation.org>, Thomas Renninger <trenn@suse.de>, Jiang Liu <jiang.liu@huawei.com>, Wen Congyang <wency@cn.fujitsu.com>, Lai Jiangshan <laijs@cn.fujitsu.com>, Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>, Taku Izumi <izumi.taku@jp.fujitsu.com>, Mel Gorman <mgorman@suse.de>, Minchan Kim <minchan@kernel.org>, "mina86@mina86.com" <mina86@mina86.com>, "gong.chen@linux.intel.com" <gong.chen@linux.intel.com>, Vasilis Liaskovitis <vasilis.liaskovitis@profitbricks.com>, "lwoodman@redhat.com" <lwoodman@redhat.com>, Rik
 List-Id: linux-acpi@vger.kernel.org
 
-On Thu, Aug 15, 2013 at 06:16:48PM +0000, Luck, Tony wrote:
-> > * We parse some APEI table and disable those MCA banks which the BIOS
-> > wants to handle first.
->
-> We have no idea which errors the BIOS has chosen for itself. We just
-> know which bank numbers ...
+On Wed, 2013-08-14 at 09:22 +0800, Tang Chen wrote:
+> On 08/14/2013 06:33 AM, Yinghai Lu wrote:
+> ......
+> >
+> >>     relocate_initrd()
+> >
+> > size could be very big, like several hundreds mega bytes.
+> > should be anywhere, but will be freed after booting.
+> >
+> > ===>  so we should not limit it to near kernel range.
+> >
+> >>     acpi_initrd_override()
+> >
+> > should be 64 * 10 about 1M.
+> >
+> >>     reserve_crashkernel()
+> >
+> > could be under 4G, or above 4G.
+> > size could be 512M or 8G whatever.
+> >
+> > looks like
+> > should move down relocated_initrd and reserve_crashkernel.
+> 
+> OK, will try to do this.
+> 
+> Thank you for the explanation. :)
 
-Well, those which BIOS hasn't chosen for itself get simply handled up
-through, HEST it is, I think. So it all goes out in APEI anyway...
+So, we still need reordering, and put a new requirement that all earlier
+allocations must be small...
 
-> and Intel processors change mappings of which errors are logged in
-> which banks in every new processor tock (and sometimes tick). Some
-> banks are documented in processor datasheet. most are not. Most common
-> case might well be memory ... but it could be cache, or I/O, or ...
->
-> So this doesn't help Mauro figure out whether to allow loading of an
-> EDAC driver that will peek and poke at chipset specific registers in
-> possibly racy ways with BIOS code doing the same thing.
+I think the root of this issue is that ACPI init point is not early
+enough in the boot sequence.  If it were much earlier already, the whole
+thing would have been very simple.  We are now trying to workaround this
+issue in the mblock code (which itself is a fine idea), but this ACPI
+issue still remains and similar issues may come up again in future.  
 
-That doesn't matter - the only thing that matters is if an EDAC driver
-has anything additional to bring to the table. If it does, then it gets
-to see the errors before they're dumped to userspace. If not, then APEI
-should report them directly.
+For instance, ACPI SCPR/DBGP/DBG2 tables allow the OS to initialize
+serial console/debug ports at early boot time.  The earlier it can be
+initialized, the better this feature will be.  These tables are not
+currently used by Linux due to a licensing issue, but it could be
+addressed some time soon.  As platforms becoming more complex & legacy
+free, the needs of ACPI tables will increase.
 
-Mind you, if we've disabled an MCA bank for the kernel then no EDAC
-driver gets to see errors from it either because APEI has taken
-responsibility. Unless said driver is poking around MCA registers -
-which it shouldn't.
+I think moving up the ACPI init point earlier is a good direction.
 
-So I'd guess the decision to load an EDAC driver should be a platform
-one. A platform which gives *sufficient* information in APEI tables for
-an error doesn't need an EDAC driver. Older platforms or platforms which
-cannot supply sufficient information for, say, properly pinpointing the
-DIMM, should use the additional help of an EDAC driver for that, if
-possible.
+Thanks,
+-Toshi
 
-Which begs the most important question: do we even have a platform that
-can give us sufficient information without the need for an EDAC driver?
-
-Because if not, we should stop wasting energy pointlessly and simply
-drop this discussion: we basically load an EDAC driver and do not do the
-APEI tracepoint because it simply doesn't make any sense and there's no
-actual platform giving us that info.
-
-So, which is it?
-
--- 
-Regards/Gruss,
-    Boris.
-
-Sent from a fat crate under my desk. Formatting is fine.
 --
+To unsubscribe, send a message with 'unsubscribe linux-mm' in
+the body to majordomo@kvack.org.  For more info on Linux MM,
+see: http://www.linux-mm.org/ .
+Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
