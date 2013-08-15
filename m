@@ -1,77 +1,40 @@
-From: Toshi Kani <toshi.kani@hp.com>
-Subject: Re: [PATCH] mm/hotplug: Remove stop_machine() from
- try_offline_node()
-Date: Thu, 15 Aug 2013 10:35:40 -0600
-Message-ID: <1376584540.10300.416.camel@misato.fc.hp.com>
-References: <1376336071-9128-1-git-send-email-toshi.kani@hp.com>
-	 <520C2D04.8060408@gmail.com>
+From: "Luck, Tony" <tony.luck@intel.com>
+Subject: RE: [PATCH 3/3] mce: acpi/apei: trace: Enable ghes memory error
+ trace event
+Date: Thu, 15 Aug 2013 18:16:48 +0000
+Message-ID: <3908561D78D1C84285E8C5FCA982C28F31CBCE72@ORSMSX106.amr.corp.intel.com>
+References: <5208D80D.5030206@linux.vnet.ibm.com>
+ <20130812114404.3bd64fa0@samsung.com> <520A1B5E.8040105@linux.vnet.ibm.com>
+ <20130813094147.062317f8@concha.lan> <520A6A30.1030406@linux.vnet.ibm.com>
+ <3908561D78D1C84285E8C5FCA982C28F31CB8DB5@ORSMSX106.amr.corp.intel.com>
+ <520B603E.3040002@linux.vnet.ibm.com> <20130814211504.393cf138@concha.lan>
+ <20130815100132.GC27616@pd.tnic> <20130815103421.178a5224@samsung.com>
+ <20130815135106.GG27616@pd.tnic>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
-Return-path: <owner-linux-mm@kvack.org>
-In-Reply-To: <520C2D04.8060408@gmail.com>
-Sender: owner-linux-mm@kvack.org
-To: KOSAKI Motohiro <kosaki.motohiro@gmail.com>
-Cc: akpm@linux-foundation.org, linux-mm@kvack.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, rjw@sisk.pl, kosaki.motohiro@jp.fujitsu.com, kamezawa.hiroyu@jp.fujitsu.com, tangchen@cn.fujitsu.com, isimatu.yasuaki@jp.fujitsu.com, liwanp@linux.vnet.ibm.com
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mga14.intel.com ([143.182.124.37]:2252 "EHLO mga14.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1759418Ab3HOSQv (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 15 Aug 2013 14:16:51 -0400
+In-Reply-To: <20130815135106.GG27616@pd.tnic>
+Content-Language: en-US
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Borislav Petkov <bp@alien8.de>, Mauro Carvalho Chehab <m.chehab@samsung.com>
+Cc: "Naveen N. Rao" <naveen.n.rao@linux.vnet.ibm.com>, "bhelgaas@google.com" <bhelgaas@google.com>, "rostedt@goodmis.org" <rostedt@goodmis.org>, "rjw@sisk.pl" <rjw@sisk.pl>, "lance.ortiz@hp.com" <lance.ortiz@hp.com>, "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Aristeu Rozanski Filho <arozansk@redhat.com>
 
-On Wed, 2013-08-14 at 21:21 -0400, KOSAKI Motohiro wrote:
-> (8/12/13 3:34 PM), Toshi Kani wrote:
-> > lock_device_hotplug() serializes hotplug & online/offline operations.
-> > The lock is held in common sysfs online/offline interfaces and ACPI
-> > hotplug code paths.
-> > 
-> > try_offline_node() off-lines a node if all memory sections and cpus
-> > are removed on the node.  It is called from acpi_processor_remove()
-> > and acpi_memory_remove_memory()->remove_memory() paths, both of which
-> > are in the ACPI hotplug code.
-> > 
-> > try_offline_node() calls stop_machine() to stop all cpus while checking
-> > all cpu status with the assumption that the caller is not protected from
-> > CPU hotplug or CPU online/offline operations.  However, the caller is
-> > always serialized with lock_device_hotplug().  Also, the code needs to
-> > be properly serialized with a lock, not by stopping all cpus at a random
-> > place with stop_machine().
-> > 
-> > This patch removes the use of stop_machine() in try_offline_node() and
-> > adds comments to try_offline_node() and remove_memory() that
-> > lock_device_hotplug() is required.
-> 
-> This patch need more verbose explanation. check_cpu_on_node() traverse cpus
-> and cpu hotplug seems to use cpu_hotplug_driver_lock() instead of lock_device_hotplug().
-
-As described: 
-
-| lock_device_hotplug() serializes hotplug & online/offline operations.
-| The lock is held in common sysfs online/offline interfaces and ACPI
-| hotplug code paths.
-
-And here are their code paths.
-
-- CPU & Mem online/offline via sysfs online
-	store_online()->lock_device_hotplug()
-
-- Mem online via sysfs state:
-	store_mem_state()->lock_device_hotplug()
-
-- ACPI CPU & Mem hot-add:
-	acpi_scan_bus_device_check()->lock_device_hotplug()
-
-- ACPI CPU & Mem hot-delete:
-	acpi_scan_hot_remove()->lock_device_hotplug()
-
-> That said, the race is not happen against another memeory happen. It's likely happen
-> another cpu hotplug. So commenting remove_memory() doesn't make much sense.
-
-This lock scheme protects from both CPU and memory hotplug, and requires
-the caller to call lock_device_hotplug().
-
-Thanks,
--Toshi
-
-
---
-To unsubscribe, send a message with 'unsubscribe linux-mm' in
-the body to majordomo@kvack.org.  For more info on Linux MM,
-see: http://www.linux-mm.org/ .
-Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
+PiAqIFdlIHBhcnNlIHNvbWUgQVBFSSB0YWJsZSBhbmQgZGlzYWJsZSB0aG9zZSBNQ0EgYmFua3Mg
+d2hpY2ggdGhlIEJJT1MNCj4gd2FudHMgdG8gaGFuZGxlIGZpcnN0Lg0KDQpXZSBoYXZlIG5vIGlk
+ZWEgd2hpY2ggZXJyb3JzIHRoZSBCSU9TIGhhcyBjaG9zZW4gZm9yIGl0c2VsZi4gIFdlIGp1c3Qg
+a25vdyB3aGljaA0KYmFuayBudW1iZXJzIC4uLiBhbmQgSW50ZWwgcHJvY2Vzc29ycyBjaGFuZ2Ug
+bWFwcGluZ3Mgb2Ygd2hpY2ggZXJyb3JzIGFyZSBsb2dnZWQNCmluIHdoaWNoIGJhbmtzIGluIGV2
+ZXJ5IG5ldyBwcm9jZXNzb3IgdG9jayAoYW5kIHNvbWV0aW1lcyB0aWNrKS4gIFNvbWUgYmFua3MN
+CmFyZSBkb2N1bWVudGVkIGluIHByb2Nlc3NvciBkYXRhc2hlZXQuIG1vc3QgYXJlIG5vdC4gTW9z
+dCBjb21tb24gY2FzZSBtaWdodA0Kd2VsbCBiZSBtZW1vcnkgLi4uIGJ1dCBpdCBjb3VsZCBiZSBj
+YWNoZSwgb3IgSS9PLCBvciAuLi4NCg0KU28gdGhpcyBkb2Vzbid0IGhlbHAgTWF1cm8gZmlndXJl
+IG91dCB3aGV0aGVyIHRvIGFsbG93IGxvYWRpbmcgb2YgYW4NCkVEQUMgZHJpdmVyIHRoYXQgd2ls
+bCBwZWVrIGFuZCBwb2tlIGF0IGNoaXBzZXQgc3BlY2lmaWMgcmVnaXN0ZXJzIGluDQpwb3NzaWJs
+eSByYWN5IHdheXMgd2l0aCBCSU9TIGNvZGUgZG9pbmcgdGhlIHNhbWUgdGhpbmcuDQoNCi1Ub255
+DQo=
