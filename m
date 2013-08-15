@@ -1,40 +1,61 @@
 From: Borislav Petkov <bp@alien8.de>
 Subject: Re: [PATCH 3/3] mce: acpi/apei: trace: Enable ghes memory error
  trace event
-Date: Thu, 15 Aug 2013 11:43:02 +0200
-Message-ID: <20130815094302.GB27616@pd.tnic>
-References: <1375986471-27113-4-git-send-email-naveen.n.rao@linux.vnet.ibm.com>
- <20130808163822.67e0828a@samsung.com>
- <20130810180322.GC4155@pd.tnic>
+Date: Thu, 15 Aug 2013 12:01:32 +0200
+Message-ID: <20130815100132.GC27616@pd.tnic>
+References: <20130810180322.GC4155@pd.tnic>
  <20130812083355.47c1bae8@samsung.com>
  <5208D80D.5030206@linux.vnet.ibm.com>
- <20130812125343.GE18018@pd.tnic>
- <520A16BD.30201@linux.vnet.ibm.com>
- <20130813124258.GC4077@pd.tnic>
- <520A6D98.9060204@linux.vnet.ibm.com>
- <20130814210035.57096048@concha.lan>
+ <20130812114404.3bd64fa0@samsung.com>
+ <520A1B5E.8040105@linux.vnet.ibm.com>
+ <20130813094147.062317f8@concha.lan>
+ <520A6A30.1030406@linux.vnet.ibm.com>
+ <3908561D78D1C84285E8C5FCA982C28F31CB8DB5@ORSMSX106.amr.corp.intel.com>
+ <520B603E.3040002@linux.vnet.ibm.com>
+ <20130814211504.393cf138@concha.lan>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=utf-8
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail.skyhub.de ([78.46.96.112]:41268 "EHLO mail.skyhub.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754174Ab3HOJnF (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 15 Aug 2013 05:43:05 -0400
+Return-path: <linux-pci-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20130814210035.57096048@concha.lan>
-Sender: linux-acpi-owner@vger.kernel.org
-List-Id: linux-acpi@vger.kernel.org
+In-Reply-To: <20130814211504.393cf138@concha.lan>
+Sender: linux-pci-owner@vger.kernel.org
 To: Mauro Carvalho Chehab <m.chehab@samsung.com>
-Cc: "Naveen N. Rao" <naveen.n.rao@linux.vnet.ibm.com>, tony.luck@intel.com, bhelgaas@google.com, rostedt@goodmis.org, rjw@sisk.pl, lance.ortiz@hp.com, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+Cc: "Naveen N. Rao" <naveen.n.rao@linux.vnet.ibm.com>, "Luck, Tony" <tony.luck@intel.com>, "bhelgaas@google.com" <bhelgaas@google.com>, "rostedt@goodmis.org" <rostedt@goodmis.org>, "rjw@sisk.pl" <rjw@sisk.pl>, "lance.ortiz@hp.com" <lance.ortiz@hp.com>, "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Aristeu Rozanski Filho <arozansk@redhat.com>
+List-Id: linux-acpi@vger.kernel.org
 
-On Wed, Aug 14, 2013 at 09:00:35PM -0300, Mauro Carvalho Chehab wrote:
-> I agree: per-type of error events is better than a big generic one.
+On Wed, Aug 14, 2013 at 09:15:04PM -0300, Mauro Carvalho Chehab wrote:
+> > - Two, if ghes_edac is enabled, it prevents other edac drivers
+> > from being loaded. It looks like the assumption here is that if
+> > ghes/firmware first is enabled, then *all* memory errors are
+> > reported through ghes which is not true. We could have (a subset
+> > of) corrected errors reported through ghes, some through CMCI
+> > and uncorrected errors through MCE. So, if I'm not mistaken, if
+> > ghes_edac is enabled, we will only receive ghes error events through
+> > mc_event and not the others. Mauro, is this accurate?
+> 
+> Yes, that's the current assumption. It prevents to have both BIOS and a
+> direct-hardware-access-EDAC-driver to race, as this is known to have
+> serious issues.
 
-There are many types of hardware errors and having a single TP for each
-is not a good design. Especially if the error formats are comparable
-to a high degree. We probably would end up with a nice sensible
-classification of having only a handful of TPs covering *all* hardware
-events.
+Ok, this is getting confusing so let's shed some more light.
+
+* First of all, Naveen is asking whether other *edac* drivers can
+be loaded. And no, they cannot once the ghes thing is loaded which
+potentially is a problem.
+
+For example, if the chipset-specific driver has additional functionality
+from ghes_edac, then that functionality is gone when ghes_edac loads
+first. This might be a problem in some cases, we probably need to think
+about this more in depth.
+
+* Then, there's the trace_mce_record() TP which comes straight
+from mce.c This one is always enabled unless the mce_disable_bank
+functionality kicks in which you, Naveen, added :-).
+
+* The CMCI stuff should be synchronized with the MCE TP so that should
+be ok.
+
+I think those are our current error reporting paths...
 
 -- 
 Regards/Gruss,
