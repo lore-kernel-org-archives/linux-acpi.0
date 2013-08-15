@@ -1,110 +1,103 @@
 From: Mauro Carvalho Chehab <m.chehab@samsung.com>
 Subject: Re: [PATCH 3/3] mce: acpi/apei: trace: Enable ghes memory error trace
  event
-Date: Wed, 14 Aug 2013 21:05:32 -0300
-Message-ID: <20130814210532.18fd280b@concha.lan>
-References: <20130812083355.47c1bae8@samsung.com>
- <5208D80D.5030206@linux.vnet.ibm.com> <20130812125343.GE18018@pd.tnic>
- <520A16BD.30201@linux.vnet.ibm.com> <20130813124258.GC4077@pd.tnic>
- <520A6D98.9060204@linux.vnet.ibm.com> <20130813175809.GE4077@pd.tnic>
- <3908561D78D1C84285E8C5FCA982C28F31CB8F53@ORSMSX106.amr.corp.intel.com>
- <20130813181004.GF4077@pd.tnic>
- <3908561D78D1C84285E8C5FCA982C28F31CB9150@ORSMSX106.amr.corp.intel.com>
- <20130814054322.GA9158@pd.tnic>
+Date: Wed, 14 Aug 2013 21:15:04 -0300
+Message-ID: <20130814211504.393cf138@concha.lan>
+References: <1375986471-27113-1-git-send-email-naveen.n.rao@linux.vnet.ibm.com>
+ <1375986471-27113-4-git-send-email-naveen.n.rao@linux.vnet.ibm.com>
+ <20130808163822.67e0828a@samsung.com> <20130810180322.GC4155@pd.tnic>
+ <20130812083355.47c1bae8@samsung.com> <5208D80D.5030206@linux.vnet.ibm.com>
+ <20130812114404.3bd64fa0@samsung.com> <520A1B5E.8040105@linux.vnet.ibm.com>
+ <20130813094147.062317f8@concha.lan> <520A6A30.1030406@linux.vnet.ibm.com>
+ <3908561D78D1C84285E8C5FCA982C28F31CB8DB5@ORSMSX106.amr.corp.intel.com>
+ <520B603E.3040002@linux.vnet.ibm.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mailout3.w2.samsung.com ([211.189.100.13]:54695 "EHLO
-	usmailout3.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752025Ab3HOAFl (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 14 Aug 2013 20:05:41 -0400
-In-reply-to: <20130814054322.GA9158@pd.tnic>
-Sender: linux-acpi-owner@vger.kernel.org
+Return-path: <linux-pci-owner@vger.kernel.org>
+In-reply-to: <520B603E.3040002@linux.vnet.ibm.com>
+Sender: linux-pci-owner@vger.kernel.org
+To: "Naveen N. Rao" <naveen.n.rao@linux.vnet.ibm.com>
+Cc: "Luck, Tony" <tony.luck@intel.com>, Borislav Petkov <bp@alien8.de>, "bhelgaas@google.com" <bhelgaas@google.com>, "rostedt@goodmis.org" <rostedt@goodmis.org>, "rjw@sisk.pl" <rjw@sisk.pl>, "lance.ortiz@hp.com" <lance.ortiz@hp.com>, "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Aristeu Rozanski Filho <arozansk@redhat.com>
 List-Id: linux-acpi@vger.kernel.org
-To: Borislav Petkov <bp@alien8.de>
-Cc: "Luck, Tony" <tony.luck@intel.com>, "Naveen N. Rao" <naveen.n.rao@linux.vnet.ibm.com>, "bhelgaas@google.com" <bhelgaas@google.com>, "rostedt@goodmis.org" <rostedt@goodmis.org>, "rjw@sisk.pl" <rjw@sisk.pl>, "lance.ortiz@hp.com" <lance.ortiz@hp.com>, "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
 
-Em Wed, 14 Aug 2013 07:43:22 +0200
-Borislav Petkov <bp@alien8.de> escreveu:
+Em Wed, 14 Aug 2013 16:17:26 +0530
+"Naveen N. Rao" <naveen.n.rao@linux.vnet.ibm.com> escreveu:
 
-> On Tue, Aug 13, 2013 at 08:13:56PM +0000, Luck, Tony wrote:
-> > Generic tracepoints are architected to be able to fire at very high
-> > rates and log huge amounts of information. So we'd need something
-> > special to say just log these special tracepoints to network/serial.
+> On 08/13/2013 11:09 PM, Luck, Tony wrote:
+> >> In the meantime, like Boris suggests, I think we can have a different
+> >> trace event for raw APEI reports - userspace can use it as it pleases.
+> >>
+> >> Once ghes_edac gets better, users can decide whether they want raw APEI
+> >> reports or the EDAC-processed version and choose one or the other trace
+> >> event.
 > >
-> > > Which reminds me, pstore could also be a good thing to use, in addition.
-> > > Only put error info there as it is limited anyway.
-> > 
-> > Yes - space is very limited.  I don't know how to assign priority for logging
-> > the dmesg data vs. some error logs.
+> > It's cheap to add as many tracepoints as we like - but may be costly to maintain.
+> > Especially if we have to tinker with them later to adjust which things are logged,
+> > that puts a burden on user-space tools to be updated to adapt to the changing
+> > API.
 > 
-> Didn't we say at some point, "log only the panic messsage which kills
-> the machine"?
+> Agree. And this is the reason I have been considering mc_event. But, the 
+> below issues with ghes_edac made me unsure:
+> - One, the logging format for APEI data is a bit verbose and hard to 
+> parse. But, I suppose we could work with this if we make a few changes. 
+> Is it ok to change how the APEI data is made available through 
+> mc_event->driver_detail?
 
-EDAC core allows those kind of things, and even panic when errors arrive:
+Well, as userspace currently only stores it, doing a few changes at
+driver_detail is likely safe, but we need to know what do you intend to do.
 
-$ modinfo edac_core
-filename:       /lib/modules/3.10.5-201.fc19.x86_64/kernel/drivers/edac/edac_core.ko
-...
-parm:           edac_pci_panic_on_pe:Panic on PCI Bus Parity error: 0=off 1=on (int)
-parm:           edac_mc_panic_on_ue:Panic on uncorrected error: 0=off 1=on (int)
-parm:           edac_mc_log_ue:Log uncorrectable error to console: 0=off 1=on (int)
-parm:           edac_mc_log_ce:Log correctable error to console: 0=off 1=on (int)
+> - Two, if ghes_edac is enabled, it prevents other edac drivers from 
+> being loaded. It looks like the assumption here is that if ghes/firmware 
+> first is enabled, then *all* memory errors are reported through ghes 
+> which is not true. We could have (a subset of) corrected errors reported 
+> through ghes, some through CMCI and uncorrected errors through MCE. So, 
+> if I'm not mistaken, if ghes_edac is enabled, we will only receive ghes 
+> error events through mc_event and not the others. Mauro, is this accurate?
 
-Those have 644 permission, so they can be changed at runtime.
+Yes, that's the current assumption. It prevents to have both BIOS and a
+direct-hardware-access-EDAC-driver to race, as this is known to have
+serious issues.
 
-Of course, there are space for improvements.
+Btw, that's basically the reason why EDAC core should be compiled builtin,
+as we need to reserve resources for APEI/GHES before having a chance to
+register another EDAC driver.
 
-> However, we probably could use more the messages before that
-> catastrophic event because they could give us hints about what lead to
-> the panic but in that case maybe a limited pstore is the wrong logging
-> medium.
-> 
-> Actually, I can imagine the full serial/network logs of "special"
-> tracepoints + dmesg to be the optimal thing.
-> 
-> > If we just "printk()" the most important parts - then that data will
-> > automatically flow to the serial console and to pstore.
-> 
-> Actually, does the pstore act like a circular buffer? Because if it
-> contains the last N relevant messages (for an arbitrary definition of
-> relevant) before the system dies, then that could more helpful than only
-> the error messages.
-> 
-> And with the advent of UEFI, pretty much every system has a pstore. Too
-> bad that we have to limit it to 50% of size so that the boxes don't
-> brick. :-P
-> 
-> > Then we have multiple paths for the critical bits of the error log
-> > - and the tracepoints give us more details for the cases where the
-> > machine doesn't spontaneously explode.
-> 
-> Ok, let's sort:
-> 
-> * First we have the not-so-critical hw error messages. We want to carry
-> those out-of-band, i.e. not in dmesg so that people don't have to parse
-> and collect dmesg but have a specialized solution which gives them
-> structured logs and tools can analyze, collect and ... those errors.
-> 
-> * When a critical error happens, the above usage is not necessarily
-> advantageous anymore in the sense that, in order to debug what caused
-> the machine to crash, we don't simply necessarily want only the crash
-> message but also the whole system activity that lead to it.
-> 
-> In which case, we probably actually want to turn off/ignore the error
-> logging tracepoints and write *only* to dmesg which goes out over serial
-> and to pstore. Right?
-> 
-> Because in such cases I want to have *all* *relevant* messages that lead
-> to the explosion + the explosion message itself.
-> 
-> Makes sense? Yes, no? Aspects I've missed?
+The current logic doesn't affect error reports via MCE, although I think
+we should also try to mask it at kernel, as it is easier to avoid event
+duplication in Kernelspace than in userspace (at least for some cases).
 
-Makes sense to me.
+We may try to implement a fine graining type of resource locking. Feel free
+to propose patches for it.
 
 > 
-> Thanks.
+> >
+> > Mauro has written his user-space tool to process the ghes-edac events:
+> >    git://git.fedorahosted.org/rasdaemon.git
+> >
+> > Who is writing the user space tools to process the new apei tracepoints
+> > you want to add?
+> 
+> Enabling rasdaemon itself for the new tracepoint is an option, as long 
+> as Mauro doesn't object to it ;)
+
+I don't object to add new tracepoint events there, but I want to prevent
+duplicate reports for the very same error. One thing is to have a single
+memory corrected error. The other thing is to have a burst of errors at the
+same DIMM. If the very same error starts to appear 2, 3, 4 times, then
+userspace may take the wrong decision of replacing a good memory just
+because of a single random error there.
+
+> 
+> >
+> > I'm not opposed to these patches - just wondering who is taking the next step
+> > to make them useful.
+> 
+> Sure.
+> 
+> 
+> Regards,
+> Naveen
 > 
 
 
