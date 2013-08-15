@@ -1,107 +1,59 @@
 From: Mauro Carvalho Chehab <m.chehab@samsung.com>
 Subject: Re: [PATCH 3/3] mce: acpi/apei: trace: Enable ghes memory error trace
  event
-Date: Wed, 14 Aug 2013 21:15:04 -0300
-Message-ID: <20130814211504.393cf138@concha.lan>
+Date: Wed, 14 Aug 2013 21:22:11 -0300
+Message-ID: <20130814212211.544ee6a4@concha.lan>
 References: <1375986471-27113-1-git-send-email-naveen.n.rao@linux.vnet.ibm.com>
  <1375986471-27113-4-git-send-email-naveen.n.rao@linux.vnet.ibm.com>
  <20130808163822.67e0828a@samsung.com> <20130810180322.GC4155@pd.tnic>
  <20130812083355.47c1bae8@samsung.com> <5208D80D.5030206@linux.vnet.ibm.com>
- <20130812114404.3bd64fa0@samsung.com> <520A1B5E.8040105@linux.vnet.ibm.com>
- <20130813094147.062317f8@concha.lan> <520A6A30.1030406@linux.vnet.ibm.com>
- <3908561D78D1C84285E8C5FCA982C28F31CB8DB5@ORSMSX106.amr.corp.intel.com>
- <520B603E.3040002@linux.vnet.ibm.com>
+ <20130812125343.GE18018@pd.tnic> <520A16BD.30201@linux.vnet.ibm.com>
+ <20130813124258.GC4077@pd.tnic> <520A6D98.9060204@linux.vnet.ibm.com>
+ <20130813175809.GE4077@pd.tnic> <520B6282.6030906@linux.vnet.ibm.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-pci-owner@vger.kernel.org>
-In-reply-to: <520B603E.3040002@linux.vnet.ibm.com>
+In-reply-to: <520B6282.6030906@linux.vnet.ibm.com>
 Sender: linux-pci-owner@vger.kernel.org
 To: "Naveen N. Rao" <naveen.n.rao@linux.vnet.ibm.com>
-Cc: "Luck, Tony" <tony.luck@intel.com>, Borislav Petkov <bp@alien8.de>, "bhelgaas@google.com" <bhelgaas@google.com>, "rostedt@goodmis.org" <rostedt@goodmis.org>, "rjw@sisk.pl" <rjw@sisk.pl>, "lance.ortiz@hp.com" <lance.ortiz@hp.com>, "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Aristeu Rozanski Filho <arozansk@redhat.com>
+Cc: Borislav Petkov <bp@alien8.de>, tony.luck@intel.com, bhelgaas@google.com, rostedt@goodmis.org, rjw@sisk.pl, lance.ortiz@hp.com, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-Em Wed, 14 Aug 2013 16:17:26 +0530
+Em Wed, 14 Aug 2013 16:27:06 +0530
 "Naveen N. Rao" <naveen.n.rao@linux.vnet.ibm.com> escreveu:
 
-> On 08/13/2013 11:09 PM, Luck, Tony wrote:
-> >> In the meantime, like Boris suggests, I think we can have a different
-> >> trace event for raw APEI reports - userspace can use it as it pleases.
-> >>
-> >> Once ghes_edac gets better, users can decide whether they want raw APEI
-> >> reports or the EDAC-processed version and choose one or the other trace
-> >> event.
+> On 08/13/2013 11:28 PM, Borislav Petkov wrote:
+> > On Tue, Aug 13, 2013 at 11:02:08PM +0530, Naveen N. Rao wrote:
+> >> If I'm not mistaken, even for systems that have EDAC drivers, it looks
+> >> to me like EDAC can't really decode to the DIMM given what is provided
+> >> by the bios in the APEI report currently. If and when ghes_edac gains
+> >> this capability, users will have a choice between raw APEI reports vs.
+> >> edac processed ones.
 > >
-> > It's cheap to add as many tracepoints as we like - but may be costly to maintain.
-> > Especially if we have to tinker with them later to adjust which things are logged,
-> > that puts a burden on user-space tools to be updated to adapt to the changing
-> > API.
+> > Which kinda makes that APEI tracepoint not really useful and we can call
+> > the one we have already - trace_mc_event - from APEI...
 > 
-> Agree. And this is the reason I have been considering mc_event. But, the 
-> below issues with ghes_edac made me unsure:
-> - One, the logging format for APEI data is a bit verbose and hard to 
-> parse. But, I suppose we could work with this if we make a few changes. 
-> Is it ok to change how the APEI data is made available through 
-> mc_event->driver_detail?
+> This looks like a nice option. Mauro, what do you think?
 
-Well, as userspace currently only stores it, doing a few changes at
-driver_detail is likely safe, but we need to know what do you intend to do.
+I considered calling trace_mc_event directly in APEI, before writing ghes_edac.
 
-> - Two, if ghes_edac is enabled, it prevents other edac drivers from 
-> being loaded. It looks like the assumption here is that if ghes/firmware 
-> first is enabled, then *all* memory errors are reported through ghes 
-> which is not true. We could have (a subset of) corrected errors reported 
-> through ghes, some through CMCI and uncorrected errors through MCE. So, 
-> if I'm not mistaken, if ghes_edac is enabled, we will only receive ghes 
-> error events through mc_event and not the others. Mauro, is this accurate?
+I decided to implement it as a separate driver due to some reasons:
 
-Yes, that's the current assumption. It prevents to have both BIOS and a
-direct-hardware-access-EDAC-driver to race, as this is known to have
-serious issues.
+	1) EDAC core needs to know that it should reject "hardware first"
+drivers. So, any solution would need to talk to EDAC core anyway (or we 
+would need to write some other kind of resource allocation somewhere);
 
-Btw, that's basically the reason why EDAC core should be compiled builtin,
-as we need to reserve resources for APEI/GHES before having a chance to
-register another EDAC driver.
+	2) EDAC userspace would need to detect the type of memory. Even
+being crappy, the current way the memory is reported as a single contiguous
+block at sysfs. So, EDAC userspace is aware that it can't decode the DIMM;
 
-The current logic doesn't affect error reports via MCE, although I think
-we should also try to mask it at kernel, as it is easier to avoid event
-duplication in Kernelspace than in userspace (at least for some cases).
+	3) If BIOS vendors add later some solution to enumerate the DIMMS
+per memory controller, channel, socket with APEI, the addition to the
+existing driver would be trivial.
 
-We may try to implement a fine graining type of resource locking. Feel free
-to propose patches for it.
-
-> 
-> >
-> > Mauro has written his user-space tool to process the ghes-edac events:
-> >    git://git.fedorahosted.org/rasdaemon.git
-> >
-> > Who is writing the user space tools to process the new apei tracepoints
-> > you want to add?
-> 
-> Enabling rasdaemon itself for the new tracepoint is an option, as long 
-> as Mauro doesn't object to it ;)
-
-I don't object to add new tracepoint events there, but I want to prevent
-duplicate reports for the very same error. One thing is to have a single
-memory corrected error. The other thing is to have a burst of errors at the
-same DIMM. If the very same error starts to appear 2, 3, 4 times, then
-userspace may take the wrong decision of replacing a good memory just
-because of a single random error there.
-
-> 
-> >
-> > I'm not opposed to these patches - just wondering who is taking the next step
-> > to make them useful.
-> 
-> Sure.
-> 
-> 
-> Regards,
-> Naveen
-> 
-
-
--- 
+So, while it would work to just call the tracing at APEI, on the current way,
+I believe that having this part on a separate code is better.
 
 Cheers,
 Mauro
