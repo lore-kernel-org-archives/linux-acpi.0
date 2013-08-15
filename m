@@ -1,108 +1,67 @@
-From: Lan Tianyu <tianyu.lan@intel.com>
-Subject: Re: [PATCH 1/3] ACPI/Thermal: Remove the unused lock of struct acpi_thermal
-Date: Thu, 15 Aug 2013 08:28:58 +0800
-Message-ID: <520C20CA.5060403@intel.com>
-References: <1376485239-18312-1-git-send-email-tianyu.lan@intel.com> <4D68720C2E767A4AA6A8796D42C8EB59D135EA@BGSMSX103.gar.corp.intel.com>
+From: KOSAKI Motohiro <kosaki.motohiro@gmail.com>
+Subject: Re: [PATCH part5 0/7] Arrange hotpluggable memory as ZONE_MOVABLE.
+Date: Wed, 14 Aug 2013 21:08:22 -0400
+Message-ID: <520C2A06.5020007@gmail.com>
+References: <20130812162247.GM15892@htj.dyndns.org> <520914D5.7080501@gmail.com> <20130812180758.GA8288@mtj.dyndns.org> <520BC950.1030806@gmail.com> <20130814182342.GG28628@htj.dyndns.org> <520BDD2F.2060909@gmail.com> <20130814195541.GH28628@htj.dyndns.org> <520BE891.8090004@gmail.com> <20130814203538.GK28628@htj.dyndns.org> <520BF3E3.5030006@gmail.com> <20130814213637.GO28628@htj.dyndns.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga03.intel.com ([143.182.124.21]:49215 "EHLO mga03.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1758345Ab3HOAh2 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 14 Aug 2013 20:37:28 -0400
-In-Reply-To: <4D68720C2E767A4AA6A8796D42C8EB59D135EA@BGSMSX103.gar.corp.intel.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=ISO-2022-JP
+Content-Transfer-Encoding: 7bit
+Return-path: <owner-linux-mm@kvack.org>
+In-Reply-To: <20130814213637.GO28628@htj.dyndns.org>
+Sender: owner-linux-mm@kvack.org
+To: Tejun Heo <tj@kernel.org>
+Cc: KOSAKI Motohiro <kosaki.motohiro@gmail.com>, Tang Chen <imtangchen@gmail.com>, Tang Chen <tangchen@cn.fujitsu.com>, robert.moore@intel.com, lv.zheng@intel.com, rjw@sisk.pl, lenb@kernel.org, tglx@linutronix.de, mingo@elte.hu, hpa@zytor.com, akpm@linux-foundation.org, trenn@suse.de, yinghai@kernel.org, jiang.liu@huawei.com, wency@cn.fujitsu.com, laijs@cn.fujitsu.com, isimatu.yasuaki@jp.fujitsu.com, izumi.taku@jp.fujitsu.com, mgorman@suse.de, minchan@kernel.org, mina86@mina86.com, gong.chen@linux.intel.com, vasilis.liaskovitis@profitbricks.com, lwoodman@redhat.com, riel@redhat.com, jweiner@redhat.com, prarit@redhat.com, zhangyanfei@cn.fujitsu.com, yanghy@cn.fujitsu.com, x86@kernel.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-mm@kvack.org, linux-acpi@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "R, Durgadoss" <durgadoss.r@intel.com>
-Cc: "rjw@sisk.pl" <rjw@sisk.pl>, "lenb@kernel.org" <lenb@kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "Zhang, Rui" <rui.zhang@intel.com>
 
-On 2013=E5=B9=B408=E6=9C=8815=E6=97=A5 01:05, R, Durgadoss wrote:
->=20
->> -----Original Message-----
->> From: linux-acpi-owner@vger.kernel.org [mailto:linux-acpi-
->> owner@vger.kernel.org] On Behalf Of tianyu.lan@intel.com
->> Sent: Wednesday, August 14, 2013 6:31 PM
->> To: rjw@sisk.pl; lenb@kernel.org
->> Cc: Lan, Tianyu; linux-acpi@vger.kernel.org; Zhang, Rui
->> Subject: [PATCH 1/3] ACPI/Thermal: Remove the unused lock of struct
->> acpi_thermal
->>
->> From: Lan Tianyu <tianyu.lan@intel.com>
->>
->> The acpi_thermal->lock now just is initialized when thermal zone dev=
-ice
->> is added and destroyed when thermal zone is removed. Never being use=
-d
->> any other places. So remove it.
->>
->=20
-> Hi Tianyu,
->=20
-> Very Nice catch. All three patches look fine to me.
-> For all three,
-> Acked-by: Durgadoss R <durgadoss.r@intel.com>
+(8/14/13 5:36 PM), Tejun Heo wrote:
+> On Wed, Aug 14, 2013 at 05:17:23PM -0400, KOSAKI Motohiro wrote:
+>> You haven't explain practical benefit of your opinion. As far as users have
+>> no benefit, I'm never agree. Sorry.
+> 
+> Umm... how about being more robust and actually useable to begin with?
+> What's the benefit of panicking?  Are you seriously saying that the
+> admin / boot script can use the kernel boot param to tell the kernel
+> to enable hotplug but can't check what nodes are hot unpluggable
+> afterwards?  The admin *needs* to check which nodes are hotpluggable
+> no matter how this part is handled.  How else is it gonna know which
+> nodes are hotpluggable?  Magic?
+> 
+> There's no such rule as kernel param should make the kernel panic if
+> it's not happy, so please take that out of your brain.  It of course
+> should be clear what the result of the kernel parameter is and
+> panicking is the crudest way to do that which is good enough or even
+> desriable in *some* cases.  It is not the required behavior by any
+> stretch of imgination, especially when the result of the parameter may
+> change due to changing circumstances.  That's an outright idiotic
+> thing to do.
 
-Thanks for Acks.
+Sigh, I'd like to point a link of past discussion. But I can't find it now.
+Let's summarize past discussion as far as possible.
 
->=20
-> Thanks,
-> Durga
->=20
->> Acked-by: Zhang Rui <rui.zhang@intel.com>
->> Signed-off-by: Lan Tianyu <tianyu.lan@intel.com>
->> ---
->>  drivers/acpi/thermal.c | 4 ----
->>  1 file changed, 4 deletions(-)
->>
->> diff --git a/drivers/acpi/thermal.c b/drivers/acpi/thermal.c
->> index a3e38a0..850818d 100644
->> --- a/drivers/acpi/thermal.c
->> +++ b/drivers/acpi/thermal.c
->> @@ -190,7 +190,6 @@ struct acpi_thermal {
->>  	struct thermal_zone_device *thermal_zone;
->>  	int tz_enabled;
->>  	int kelvin_offset;
->> -	struct mutex lock;
->>  };
->>
->>  /* ----------------------------------------------------------------=
-----------
->> @@ -1088,8 +1087,6 @@ static int acpi_thermal_add(struct acpi_device=
- *device)
->>  	strcpy(acpi_device_name(device), ACPI_THERMAL_DEVICE_NAME);
->>  	strcpy(acpi_device_class(device), ACPI_THERMAL_CLASS);
->>  	device->driver_data =3D tz;
->> -	mutex_init(&tz->lock);
->> -
->>
->>  	result =3D acpi_thermal_get_info(tz);
->>  	if (result)
->> @@ -1122,7 +1119,6 @@ static int acpi_thermal_remove(struct acpi_dev=
-ice
->> *device)
->>  	tz =3D acpi_driver_data(device);
->>
->>  	acpi_thermal_unregister_thermal_zone(tz);
->> -	mutex_destroy(&tz->lock);
->>  	kfree(tz);
->>  	return 0;
->>  }
->> --
->> 1.8.4.rc0.1.g8f6a3e5.dirty
->>
->> --
->> To unsubscribe from this list: send the line "unsubscribe linux-acpi=
-" in
->> the body of a message to majordomo@vger.kernel.org
->> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Firstly, technically you can't implement correct fallback. You used a term
+"when can't allocate memory", but it's not so simple. Think following scenario,
+memory is enough for kernel image, but kernel will load memory hogging drivers.
+The system will crash after boot within 1 min. Then, MM subsystem don't believe
+a fallback. Bogus and misguided fallback give a user false relief and they don't
+notice their mistake quickly. The answer is, there is the fundamental rule.
+We always said, "measure your system carefully, and setting option carefully too".
+I have no seen any reason to make exception in this case.
+
+Secondly, memory hotplug is now maintained I and kamezawa-san. Then, I much likely
+have a chance to get a hotplug related bug report. For protecting my life, I don't
+want get a false bug claim. Then, I wouldn't like to aim incomplete fallback. When
+an admin makes mistake, they should shoot their foot, not me!
+
+Thirdly, I haven't insist to aim verbose and kind messages as last breath. It much
+likely help users. 
+
+Last, we are now discussing hotplug feature. Then, we can assume hotpluggable machine.
+They have a hotplug interface in farmware by definition. So, you need to aim a magic.
 
 
---=20
-Best regards
-Tianyu Lan
+
 --
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+To unsubscribe, send a message with 'unsubscribe linux-mm' in
+the body to majordomo@kvack.org.  For more info on Linux MM,
+see: http://www.linux-mm.org/ .
+Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
