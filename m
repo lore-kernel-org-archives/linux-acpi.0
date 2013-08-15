@@ -1,7 +1,7 @@
 From: Yinghai Lu <yinghai@kernel.org>
 Subject: Re: [PATCH part5 0/7] Arrange hotpluggable memory as ZONE_MOVABLE.
-Date: Thu, 15 Aug 2013 07:35:45 -0700
-Message-ID: <CAE9FiQV=7NJrT=hTq77rEeXCuMuZLeW9VFUCOjhgrX0rNpbKXg@mail.gmail.com>
+Date: Thu, 15 Aug 2013 07:37:59 -0700
+Message-ID: <CAE9FiQVArNd-voKZ1tYbwzJiN=ztXCgr-0sHwej3er02kHQvRQ@mail.gmail.com>
 References: <1375956979-31877-1-git-send-email-tangchen@cn.fujitsu.com>
 	<20130812145016.GI15892@htj.dyndns.org>
 	<5208FBBC.2080304@zytor.com>
@@ -12,30 +12,25 @@ References: <1375956979-31877-1-git-send-email-tangchen@cn.fujitsu.com>
 	<520A02DE.1010908@cn.fujitsu.com>
 	<CAE9FiQV2-OOvHZtPYSYNZz+DfhvL0e+h2HjMSW3DyqeXXvdJkA@mail.gmail.com>
 	<520C947B.40407@cn.fujitsu.com>
+	<20130815121900.GA14606@htj.dyndns.org>
+	<520CCD41.5000508@cn.fujitsu.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <owner-linux-mm@kvack.org>
-In-Reply-To: <520C947B.40407@cn.fujitsu.com>
+In-Reply-To: <520CCD41.5000508@cn.fujitsu.com>
 Sender: owner-linux-mm@kvack.org
-To: Tang Chen <tangchen@cn.fujitsu.com>, "H. Peter Anvin" <hpa@zytor.com>
-Cc: Tejun Heo <tj@kernel.org>, Tang Chen <imtangchen@gmail.com>, Bob Moore <robert.moore@intel.com>, Lv Zheng <lv.zheng@intel.com>, "Rafael J. Wysocki" <rjw@sisk.pl>, Len Brown <lenb@kernel.org>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@elte.hu>, Andrew Morton <akpm@linux-foundation.org>, Thomas Renninger <trenn@suse.de>, Jiang Liu <jiang.liu@huawei.com>, Wen Congyang <wency@cn.fujitsu.com>, Lai Jiangshan <laijs@cn.fujitsu.com>, Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>, Taku Izumi <izumi.taku@jp.fujitsu.com>, Mel Gorman <mgorman@suse.de>, Minchan Kim <minchan@kernel.org>, "mina86@mina86.com" <mina86@mina86.com>, "gong.chen@linux.intel.com" <gong.chen@linux.intel.com>, Vasilis Liaskovitis <vasilis.liaskovitis@profitbricks.com>, "lwoodman@redhat.com" <lwoodman@redhat.com>, Rik van Riel <riel@redhat.com>, "jweiner@redhat.com" <jweiner@redhat.c>
+To: Tang Chen <tangchen@cn.fujitsu.com>
+Cc: Tejun Heo <tj@kernel.org>, Tang Chen <imtangchen@gmail.com>, "H. Peter Anvin" <hpa@zytor.com>, Bob Moore <robert.moore@intel.com>, Lv Zheng <lv.zheng@intel.com>, "Rafael J. Wysocki" <rjw@sisk.pl>, Len Brown <lenb@kernel.org>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@elte.hu>, Andrew Morton <akpm@linux-foundation.org>, Thomas Renninger <trenn@suse.de>, Jiang Liu <jiang.liu@huawei.com>, Wen Congyang <wency@cn.fujitsu.com>, Lai Jiangshan <laijs@cn.fujitsu.com>, Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>, Taku Izumi <izumi.taku@jp.fujitsu.com>, Mel Gorman <mgorman@suse.de>, Minchan Kim <minchan@kernel.org>, "mina86@mina86.com" <mina86@mina86.com>, "gong.chen@linux.intel.com" <gong.chen@linux.intel.com>, Vasilis Liaskovitis <vasilis.liaskovitis@profitbricks.com>, "lwoodman@redhat.com" <lwoodman@redhat.com>, Rik van Riel <riel@redhat.com>, jwe
 List-Id: linux-acpi@vger.kernel.org
 
-On Thu, Aug 15, 2013 at 1:42 AM, Tang Chen <tangchen@cn.fujitsu.com> wrote:
+On Thu, Aug 15, 2013 at 5:44 AM, Tang Chen <tangchen@cn.fujitsu.com> wrote:
 
-> So if we want to allocate page tables near the kernelimage, we have to do
-> the following:
->
-> 1. Use BRK to map a range near kernel image, let's call it range X.
-> 2. Calculate how much memory needed to map all the memory, let's say Y
-> Bytes.
->    Use range X to map at least Y Bytes memory near kernel image.
-> 3. Use the mapped memory to map all the rest memory.
->
-> Does this sound OK to you guys ?
+> Yes, the new behavior should be controlled by boot option.
 
-oh, no.
-We just get rid of pre-calculate the buffer size for page tables.
+No, should avoid boot option.
+
+unified code path, could make hotplug case use same code as normal case.
+and make code more test coverage.
 
 Yinghai
 
