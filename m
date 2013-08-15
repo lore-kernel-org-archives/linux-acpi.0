@@ -1,51 +1,74 @@
-From: Tejun Heo <tj@kernel.org>
-Subject: Re: [PATCH part5 0/7] Arrange hotpluggable memory as ZONE_MOVABLE.
-Date: Thu, 15 Aug 2013 11:10:24 -0400
-Message-ID: <20130815151024.GD14606@htj.dyndns.org>
-References: <20130812164650.GN15892@htj.dyndns.org>
- <5209CEC1.8070908@cn.fujitsu.com>
- <520A02DE.1010908@cn.fujitsu.com>
- <CAE9FiQV2-OOvHZtPYSYNZz+DfhvL0e+h2HjMSW3DyqeXXvdJkA@mail.gmail.com>
- <520C947B.40407@cn.fujitsu.com>
- <20130815121900.GA14606@htj.dyndns.org>
- <520CCD41.5000508@cn.fujitsu.com>
- <CAE9FiQVArNd-voKZ1tYbwzJiN=ztXCgr-0sHwej3er02kHQvRQ@mail.gmail.com>
- <20130815144538.GC14606@htj.dyndns.org>
- <CAE9FiQUZO-j3UyhED6AOgkS8JzqUWcwsen62OdUucuNCS51ScQ@mail.gmail.com>
+From: Borislav Petkov <bp@alien8.de>
+Subject: Re: [PATCH 3/3] mce: acpi/apei: trace: Enable ghes memory error
+ trace event
+Date: Thu, 15 Aug 2013 18:11:53 +0200
+Message-ID: <20130815161153.GI27616@pd.tnic>
+References: <520A16BD.30201@linux.vnet.ibm.com>
+ <20130813124258.GC4077@pd.tnic>
+ <520A6D98.9060204@linux.vnet.ibm.com>
+ <20130813175809.GE4077@pd.tnic>
+ <520B6282.6030906@linux.vnet.ibm.com>
+ <20130814212211.544ee6a4@concha.lan>
+ <20130815093831.GA27616@pd.tnic>
+ <20130815102607.7168a930@samsung.com>
+ <20130815134454.GF27616@pd.tnic>
+ <20130815111407.4080a744@samsung.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <owner-linux-mm@kvack.org>
+Content-Type: text/plain; charset=utf-8
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail.skyhub.de ([78.46.96.112]:45268 "EHLO mail.skyhub.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756829Ab3HOQL4 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 15 Aug 2013 12:11:56 -0400
 Content-Disposition: inline
-In-Reply-To: <CAE9FiQUZO-j3UyhED6AOgkS8JzqUWcwsen62OdUucuNCS51ScQ@mail.gmail.com>
-Sender: owner-linux-mm@kvack.org
-To: Yinghai Lu <yinghai@kernel.org>
-Cc: Tang Chen <tangchen@cn.fujitsu.com>, Tang Chen <imtangchen@gmail.com>, "H. Peter Anvin" <hpa@zytor.com>, Bob Moore <robert.moore@intel.com>, Lv Zheng <lv.zheng@intel.com>, "Rafael J. Wysocki" <rjw@sisk.pl>, Len Brown <lenb@kernel.org>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@elte.hu>, Andrew Morton <akpm@linux-foundation.org>, Thomas Renninger <trenn@suse.de>, Jiang Liu <jiang.liu@huawei.com>, Wen Congyang <wency@cn.fujitsu.com>, Lai Jiangshan <laijs@cn.fujitsu.com>, Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>, Taku Izumi <izumi.taku@jp.fujitsu.com>, Mel Gorman <mgorman@suse.de>, Minchan Kim <minchan@kernel.org>, "mina86@mina86.com" <mina86@mina86.com>, "gong.chen@linux.intel.com" <gong.chen@linux.intel.com>, Vasilis Liaskovitis <vasilis.liaskovitis@profitbricks.com>, "lwoodman@redhat.com" <lwoodman@redhat.com>, Rik van Riel <riel@redhat.com>
+In-Reply-To: <20130815111407.4080a744@samsung.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Mauro Carvalho Chehab <m.chehab@samsung.com>
+Cc: "Naveen N. Rao" <naveen.n.rao@linux.vnet.ibm.com>, tony.luck@intel.com, bhelgaas@google.com, rostedt@goodmis.org, rjw@sisk.pl, lance.ortiz@hp.com, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 
-On Thu, Aug 15, 2013 at 08:05:38AM -0700, Yinghai Lu wrote:
-> > It's suboptimal behavior which is chosen as trade-off to enable
-> > hotplug support and shouldn't be the default behavior just like node
-> > data and page table should be allocated on the same node by default.
-> > Why would we allocate kernel page table in low memory be default?
-> 
-> That is what my patchset want to do.
-> put page tables on the same node like node data.
-> with that, hotplug and normal case will be the same code path.
+On Thu, Aug 15, 2013 at 11:14:07AM -0300, Mauro Carvalho Chehab wrote:
+> I don't see why should we have those two alternatives, as, at worse
+> case (e. g. if ghes_edac can't enrich the APEI data with labels),
+> they'll basically provide the very same data to userspace, and the
+> EDAC extra overhead is small, on its error report logic.
 
-Yeah, sure, when that works, that can be the default and only
-behavior.  Right now, we do want a switch to control that, right?  I'm
-not sure we have a good choice which we can choose as the only
-behavior for kernel page table.  Maybe we can implement some
-heuristics to decide whether there's enough lowmem but given how niche
-memory hotplug is, at least for now, that feels like an overkill.
+Well, a couple of reasons.
 
-Thanks.
+The first and foremost one is having another layer which needs
+registration, etc. because ghes_edac pulls the whole edac core stuff
+with it. The thinner we are, the less overhead we cause. And this is
+a must for RAS.
+
+Actually, this is a must for all kernel code - the faster we can get
+done and the thinner we are, the better. We absolutely definitely don't
+want to have a useless layer in the error reporting path just because it
+is easier.
+
+This short path will pay out later in error storms and other
+resources-constrained situations.
+
+Furthermore, dealing with another edac driver is not trivial for
+distros, like going around and telling people that all of a sudden
+they need to enable ghes_edac. This is tangential to the issue which
+Naveen raised that on some machines, you want not only ghes_edac but the
+platform-specific one. Which doesn't work currently and we don't have a
+clear solution on how to get it working yet.
+
+Finally, userspace doesn't care where it gets its TP data from as long
+as it is there.
+
+> The risk of doing the very same thing on two different places is that
+> the logic to encapsulate APEI data into trace_mc_event() would be on
+> two separate places. It risks that someone would change one of the
+> drivers and forget to apply the very same change on the other, causing
+> parse errors on userspace, depending on the source.
+
+We'll make sure that doesn't happen.
 
 -- 
-tejun
+Regards/Gruss,
+    Boris.
 
+Sent from a fat crate under my desk. Formatting is fine.
 --
-To unsubscribe, send a message with 'unsubscribe linux-mm' in
-the body to majordomo@kvack.org.  For more info on Linux MM,
-see: http://www.linux-mm.org/ .
-Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
