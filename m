@@ -1,99 +1,46 @@
-From: Mauro Carvalho Chehab <m.chehab@samsung.com>
-Subject: Re: [PATCH 3/3] mce: acpi/apei: trace: Enable ghes memory error trace
- event
-Date: Thu, 15 Aug 2013 11:14:07 -0300
-Message-ID: <20130815111407.4080a744@samsung.com>
-References: <5208D80D.5030206@linux.vnet.ibm.com>
- <20130812125343.GE18018@pd.tnic> <520A16BD.30201@linux.vnet.ibm.com>
- <20130813124258.GC4077@pd.tnic> <520A6D98.9060204@linux.vnet.ibm.com>
- <20130813175809.GE4077@pd.tnic> <520B6282.6030906@linux.vnet.ibm.com>
- <20130814212211.544ee6a4@concha.lan> <20130815093831.GA27616@pd.tnic>
- <20130815102607.7168a930@samsung.com> <20130815134454.GF27616@pd.tnic>
+From: Yinghai Lu <yinghai@kernel.org>
+Subject: Re: [PATCH part5 0/7] Arrange hotpluggable memory as ZONE_MOVABLE.
+Date: Thu, 15 Aug 2013 07:35:45 -0700
+Message-ID: <CAE9FiQV=7NJrT=hTq77rEeXCuMuZLeW9VFUCOjhgrX0rNpbKXg@mail.gmail.com>
+References: <1375956979-31877-1-git-send-email-tangchen@cn.fujitsu.com>
+	<20130812145016.GI15892@htj.dyndns.org>
+	<5208FBBC.2080304@zytor.com>
+	<20130812152343.GK15892@htj.dyndns.org>
+	<52090D7F.6060600@gmail.com>
+	<20130812164650.GN15892@htj.dyndns.org>
+	<5209CEC1.8070908@cn.fujitsu.com>
+	<520A02DE.1010908@cn.fujitsu.com>
+	<CAE9FiQV2-OOvHZtPYSYNZz+DfhvL0e+h2HjMSW3DyqeXXvdJkA@mail.gmail.com>
+	<520C947B.40407@cn.fujitsu.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-reply-to: <20130815134454.GF27616@pd.tnic>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Borislav Petkov <bp@alien8.de>
-Cc: "Naveen N. Rao" <naveen.n.rao@linux.vnet.ibm.com>, tony.luck@intel.com, bhelgaas@google.com, rostedt@goodmis.org, rjw@sisk.pl, lance.ortiz@hp.com, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Return-path: <owner-linux-mm@kvack.org>
+In-Reply-To: <520C947B.40407@cn.fujitsu.com>
+Sender: owner-linux-mm@kvack.org
+To: Tang Chen <tangchen@cn.fujitsu.com>, "H. Peter Anvin" <hpa@zytor.com>
+Cc: Tejun Heo <tj@kernel.org>, Tang Chen <imtangchen@gmail.com>, Bob Moore <robert.moore@intel.com>, Lv Zheng <lv.zheng@intel.com>, "Rafael J. Wysocki" <rjw@sisk.pl>, Len Brown <lenb@kernel.org>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@elte.hu>, Andrew Morton <akpm@linux-foundation.org>, Thomas Renninger <trenn@suse.de>, Jiang Liu <jiang.liu@huawei.com>, Wen Congyang <wency@cn.fujitsu.com>, Lai Jiangshan <laijs@cn.fujitsu.com>, Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>, Taku Izumi <izumi.taku@jp.fujitsu.com>, Mel Gorman <mgorman@suse.de>, Minchan Kim <minchan@kernel.org>, "mina86@mina86.com" <mina86@mina86.com>, "gong.chen@linux.intel.com" <gong.chen@linux.intel.com>, Vasilis Liaskovitis <vasilis.liaskovitis@profitbricks.com>, "lwoodman@redhat.com" <lwoodman@redhat.com>, Rik van Riel <riel@redhat.com>, "jweiner@redhat.com" <jweiner@redhat.c>
 List-Id: linux-acpi@vger.kernel.org
 
-Em Thu, 15 Aug 2013 15:44:54 +0200
-Borislav Petkov <bp@alien8.de> escreveu:
+On Thu, Aug 15, 2013 at 1:42 AM, Tang Chen <tangchen@cn.fujitsu.com> wrote:
 
-> On Thu, Aug 15, 2013 at 10:26:07AM -0300, Mauro Carvalho Chehab wrote:
-> > I mean that the edac core needs to know that, on a given system, the
-> > BIOS is accessing the hardware registers and sending the data via
-> > ghes_edac.
-> 
-> Right, that's the firmware-first thing which Naveen did - see
-> mce_disable_bank.
-> 
-> > No. As we want that fatal errors to also be properly reported, the
-> > kernel will still need to know the memory layout.
-> 
-> Read what I said: if you have the silkscreen label you don't need the
-> memory layout - you *already* *know* which DIMM is affected.
+> So if we want to allocate page tables near the kernelimage, we have to do
+> the following:
+>
+> 1. Use BRK to map a range near kernel image, let's call it range X.
+> 2. Calculate how much memory needed to map all the memory, let's say Y
+> Bytes.
+>    Use range X to map at least Y Bytes memory near kernel image.
+> 3. Use the mapped memory to map all the rest memory.
+>
+> Does this sound OK to you guys ?
 
-AFAIKT, APEI doesn't provide the silkscreen label. Some code (or some
-datasheet) is needed to translate between what APEI provides into the
-silkscreen label.
+oh, no.
+We just get rid of pre-calculate the buffer size for page tables.
 
-Naveen, please correct me if I'm wrong.
+Yinghai
 
-> Also, fatal errors are a whole different beast where we run in NMI
-> context or we even don't get to run the #MC handler on some systems.
-
-I see.
-
-Yes, APEI currently prints only a raw event on high severity errors
-at ghes_notify_nmi(), and doesn't call ghes_edac. Changing it would
-require to parse the error at __ghes_print_estatus(). Not sure how
-easy would be to change that.
-
-Em Thu, 15 Aug 2013 15:51:06 +0200
-Borislav Petkov <bp@alien8.de> escreveu:
-
-> On Thu, Aug 15, 2013 at 10:34:21AM -0300, Mauro Carvalho Chehab wrote:
-> > Yes, but the thing is that it is not safe to use the hardware driver
-> > if the BIOS is also reading the hardware error registers directly, as,
-> > on several hardware, a read cause the error data to be cleaned on such
-> > register.
-> 
-> Here's the deal:
-> 
-> * We parse some APEI table and disable those MCA banks which the BIOS
-> wants to handle first.
-> 
-> * When the BIOS decides to report an error from that handling, it does
-> so over another BIOS table.
-
-OK.
-
-> 
-> * Now you have two possibilities:
-> 
-> ** On systems without an edac driver or where it doesn't make sense to
-> have the ghes_edac driver, we call trace_mc_event() straight from APEI
-> code (this is what we're currently discussung).
-> 
-> ** On other systems, where we need ghes_edac, we *don't* use the
-> trace_mc_event() tracepoint in the APEI code but let it come from
-> ghes_edac with additional information collected by edac.
-
-I don't see why should we have those two alternatives, as, at worse
-case (e. g. if ghes_edac can't enrich the APEI data with labels),
-they'll basically provide the very same data to userspace, and the
-EDAC extra overhead is small, on its error report logic.
-
-The risk of doing the very same thing on two different places is that
-the logic to encapsulate APEI data into trace_mc_event() would be
-on two separate places. It risks that someone would change one of the
-drivers and forget to apply the very same change on the other, causing
-parse errors on userspace, depending on the source.
-
--- 
-
-Cheers,
-Mauro
+--
+To unsubscribe, send a message with 'unsubscribe linux-mm' in
+the body to majordomo@kvack.org.  For more info on Linux MM,
+see: http://www.linux-mm.org/ .
+Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
