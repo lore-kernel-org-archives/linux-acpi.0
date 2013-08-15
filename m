@@ -1,37 +1,99 @@
 From: Borislav Petkov <bp@alien8.de>
 Subject: Re: [PATCH 3/3] mce: acpi/apei: trace: Enable ghes memory error
  trace event
-Date: Thu, 15 Aug 2013 12:02:55 +0200
-Message-ID: <20130815100255.GD27616@pd.tnic>
-References: <1375986471-27113-4-git-send-email-naveen.n.rao@linux.vnet.ibm.com>
- <20130808163822.67e0828a@samsung.com>
- <20130810180322.GC4155@pd.tnic>
- <20130812083355.47c1bae8@samsung.com>
- <5208D80D.5030206@linux.vnet.ibm.com>
- <20130812114404.3bd64fa0@samsung.com>
- <520A1B5E.8040105@linux.vnet.ibm.com>
- <20130813094147.062317f8@concha.lan>
- <520A6A30.1030406@linux.vnet.ibm.com>
- <20130814205638.1ebcfd3e@concha.lan>
+Date: Thu, 15 Aug 2013 12:14:32 +0200
+Message-ID: <20130815101432.GE27616@pd.tnic>
+References: <20130812125343.GE18018@pd.tnic>
+ <520A16BD.30201@linux.vnet.ibm.com>
+ <20130813124258.GC4077@pd.tnic>
+ <520A6D98.9060204@linux.vnet.ibm.com>
+ <20130813175809.GE4077@pd.tnic>
+ <3908561D78D1C84285E8C5FCA982C28F31CB8F53@ORSMSX106.amr.corp.intel.com>
+ <20130813181004.GF4077@pd.tnic>
+ <3908561D78D1C84285E8C5FCA982C28F31CB9150@ORSMSX106.amr.corp.intel.com>
+ <20130814054322.GA9158@pd.tnic>
+ <3908561D78D1C84285E8C5FCA982C28F31CBAAFA@ORSMSX106.amr.corp.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=utf-8
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-pci-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20130814205638.1ebcfd3e@concha.lan>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Mauro Carvalho Chehab <m.chehab@samsung.com>
-Cc: "Naveen N. Rao" <naveen.n.rao@linux.vnet.ibm.com>, tony.luck@intel.com, bhelgaas@google.com, rostedt@goodmis.org, rjw@sisk.pl, lance.ortiz@hp.com, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Aristeu Rozanski Filho <arozansk@redhat.com>
+In-Reply-To: <3908561D78D1C84285E8C5FCA982C28F31CBAAFA@ORSMSX106.amr.corp.intel.com>
+Sender: linux-pci-owner@vger.kernel.org
+To: "Luck, Tony" <tony.luck@intel.com>
+Cc: "Naveen N. Rao" <naveen.n.rao@linux.vnet.ibm.com>, Mauro Carvalho Chehab <m.chehab@samsung.com>, "bhelgaas@google.com" <bhelgaas@google.com>, "rostedt@goodmis.org" <rostedt@goodmis.org>, "rjw@sisk.pl" <rjw@sisk.pl>, "lance.ortiz@hp.com" <lance.ortiz@hp.com>, "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On Wed, Aug 14, 2013 at 08:56:38PM -0300, Mauro Carvalho Chehab wrote:
-> Better to spend a little more time discussing than implementing a new trace
-> that will be removed on a near future.
+On Wed, Aug 14, 2013 at 06:38:09PM +0000, Luck, Tony wrote:
+> We've wandered around different strategies here. We definitely
+> want the panic log. Some people want all other "kernel exit" logs
+> (shutdown, reboot, kexec). When there is enough space in the pstore
+> backend we might also want the "oops" that preceeded the panic. (Of
+> course when the oops happens we don't know the future, so have to
+> save it just in case ... then if more "oops" happen we have to decide
+> whether to keep the old oops log, or save the newer one).
 
-Right, "in the meantime" we established that this new TP doesn't bring
-us anything new so we might just as well use trace_mc_event and call it
-either straight from APEI or in ghes_edac.
+Ok, dmesg over serial and *only* oops+panic in pstore. Right.
 
--- 
+> Yes - longer logs are better. Sad that the pstore backend devices are
+> measured in kilobytes :-)
+
+Right, so good ole serial again to the rescue! There's no room for full
+dmesg in nvram because it needs space for the UEFI GUI and some other
+crap :-)
+
+> No - write speed for the persistent storage backing pstore (flash)
+> means we don't log as we go. We wait for a panic and then our
+> registered function gets called so we can snapshot what is in the
+> console log at that point. We also don't want to wear out the flash
+> which may be soldered to the motherboard.
+
+I suspected as much. So we can forget about using *only* pstore for hw
+errors logging. It would be cool to do so but the technology simply
+doesn't give it.
+
+> Agreed - we shouldn't clutter logs with details of corrected errors.
+> At most we should have a rate-limited log showing the count of
+> corrected errors so that someone who just watches dmesg knows they
+> should go dig deeper if they see some big number of corrected errors.
+
+/me nods.
+
+> Yes. There are people looking at various "flight recorder" modes for
+> tracing that keep logs of normal events in a circular buffer in RAM
+> ... if these exist they should be saved at crash time (and they are i=
+n
+> the kexec/kdump path, but I don=E2=80=99t know if anyone does anythin=
+g in
+> the non-kdump case).
+
+Right, the cheapest solution is serial. Simply log everything to serial
+because we can. But this is the key thing I wanted to emphasize:
+
+=46or severe hardware errors we don't want to use any tracepoint -
+actually it is even a bad thing to do so because they would get lost in
+some side channels which, during a critical situation, might not get
+written to anything/survive the crash, etc.
+
+So what I'm saying is, we basically want severe hardware errors to land
+to good old dmesg and to all consoles. No fancy TP stuff for them.
+
+> Tracepoints for errors that are going to lead to system crash would
+> only be useful together with a flight recorder to make sure they get
+> saved. I think tracepoints for corrected errors are better than dmesg
+> logs.
+
+Yes, exactly.
+
+> In a perfect world yes - I don't know that we can achieve perfection
+> - but we can iterate through good, better, even better. The really
+> hard part of this is figuring out what is *relevant* to save before a
+> particular crash happens.
+
+Well, if I have serial connected to the box, it will contain basically
+everything the machine said, no?
+
+--=20
 Regards/Gruss,
     Boris.
 
