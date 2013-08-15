@@ -1,64 +1,66 @@
 From: Mauro Carvalho Chehab <m.chehab@samsung.com>
 Subject: Re: [PATCH 3/3] mce: acpi/apei: trace: Enable ghes memory error trace
  event
-Date: Thu, 15 Aug 2013 10:26:07 -0300
-Message-ID: <20130815102607.7168a930@samsung.com>
+Date: Thu, 15 Aug 2013 10:34:21 -0300
+Message-ID: <20130815103421.178a5224@samsung.com>
 References: <20130810180322.GC4155@pd.tnic>
  <20130812083355.47c1bae8@samsung.com> <5208D80D.5030206@linux.vnet.ibm.com>
- <20130812125343.GE18018@pd.tnic> <520A16BD.30201@linux.vnet.ibm.com>
- <20130813124258.GC4077@pd.tnic> <520A6D98.9060204@linux.vnet.ibm.com>
- <20130813175809.GE4077@pd.tnic> <520B6282.6030906@linux.vnet.ibm.com>
- <20130814212211.544ee6a4@concha.lan> <20130815093831.GA27616@pd.tnic>
+ <20130812114404.3bd64fa0@samsung.com> <520A1B5E.8040105@linux.vnet.ibm.com>
+ <20130813094147.062317f8@concha.lan> <520A6A30.1030406@linux.vnet.ibm.com>
+ <3908561D78D1C84285E8C5FCA982C28F31CB8DB5@ORSMSX106.amr.corp.intel.com>
+ <520B603E.3040002@linux.vnet.ibm.com> <20130814211504.393cf138@concha.lan>
+ <20130815100132.GC27616@pd.tnic>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-pci-owner@vger.kernel.org>
-In-reply-to: <20130815093831.GA27616@pd.tnic>
-Sender: linux-pci-owner@vger.kernel.org
-To: Borislav Petkov <bp@alien8.de>
-Cc: "Naveen N. Rao" <naveen.n.rao@linux.vnet.ibm.com>, tony.luck@intel.com, bhelgaas@google.com, rostedt@goodmis.org, rjw@sisk.pl, lance.ortiz@hp.com, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mailout2.w2.samsung.com ([211.189.100.12]:26320 "EHLO
+	usmailout2.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756530Ab3HONea (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 15 Aug 2013 09:34:30 -0400
+In-reply-to: <20130815100132.GC27616@pd.tnic>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Borislav Petkov <bp@alien8.de>
+Cc: "Naveen N. Rao" <naveen.n.rao@linux.vnet.ibm.com>, "Luck, Tony" <tony.luck@intel.com>, "bhelgaas@google.com" <bhelgaas@google.com>, "rostedt@goodmis.org" <rostedt@goodmis.org>, "rjw@sisk.pl" <rjw@sisk.pl>, "lance.ortiz@hp.com" <lance.ortiz@hp.com>, "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Aristeu Rozanski Filho <arozansk@redhat.com>
 
-Em Thu, 15 Aug 2013 11:38:31 +0200
+Em Thu, 15 Aug 2013 12:01:32 +0200
 Borislav Petkov <bp@alien8.de> escreveu:
 
-> On Wed, Aug 14, 2013 at 09:22:11PM -0300, Mauro Carvalho Chehab wrote:
-> > 	1) EDAC core needs to know that it should reject "hardware first"
-> > drivers.
+> On Wed, Aug 14, 2013 at 09:15:04PM -0300, Mauro Carvalho Chehab wrote:
+> > > - Two, if ghes_edac is enabled, it prevents other edac drivers
+> > > from being loaded. It looks like the assumption here is that if
+> > > ghes/firmware first is enabled, then *all* memory errors are
+> > > reported through ghes which is not true. We could have (a subset
+> > > of) corrected errors reported through ghes, some through CMCI
+> > > and uncorrected errors through MCE. So, if I'm not mistaken, if
+> > > ghes_edac is enabled, we will only receive ghes error events through
+> > > mc_event and not the others. Mauro, is this accurate?
+> > 
+> > Yes, that's the current assumption. It prevents to have both BIOS and a
+> > direct-hardware-access-EDAC-driver to race, as this is known to have
+> > serious issues.
 > 
-> -ENOPARSE. What do you mean?
-
-I mean that the edac core needs to know that, on a given system, the
-BIOS is accessing the hardware registers and sending the data via ghes_edac.
-
-On such case, it should reject the driver that reads such data directly
-from the hardware, as having both active cause inconsistent error reports
-(I got a few BZ reports about that).
-
-> >  3) If BIOS vendors add later some solution to enumerate the DIMMS
-> > per memory controller, channel, socket with APEI, the addition to the
-> > existing driver would be trivial.
+> Ok, this is getting confusing so let's shed some more light.
 > 
-> Actually, with BIOS vendors wanting to do firmware-first strategy with
-> DRAM errors, they must have a pretty good and intimate picture of the
-> memory topology at hand. So it is only a logical consequence for them,
-> when reporting a memory error to the OS to tell us the silkscreen label
-> too, while at it.
+> * First of all, Naveen is asking whether other *edac* drivers can
+> be loaded. And no, they cannot once the ghes thing is loaded which
+> potentially is a problem.
 > 
-> And if they do that, we don't need the additional layer - just a
-> tracepoint from APEI and a userspace script.
+> For example, if the chipset-specific driver has additional functionality
+> from ghes_edac, then that functionality is gone when ghes_edac loads
+> first. This might be a problem in some cases, we probably need to think
+> about this more in depth.
 
-No. As we want that fatal errors to also be properly reported, the
-kernel will still need to know the memory layout.
+Yes, but the thing is that it is not safe to use the hardware driver if
+the BIOS is also reading the hardware error registers directly, as, on
+several hardware, a read cause the error data to be cleaned on such 
+register.
 
-Ok, such information can come via userspace, just like we do with the
-other EDAC drivers, but we'll need to allow to dynamically create the
-memory layout via sysfs (or to use some other interface for loading that
-data).
+So, either APEI should be extended to allow some fine-grained that would
+provide ways to check/control what resources would be reserved for BIOS 
+only, or the user needs to tell BIOS/Kernel if they want BIOS
+or OS to access the hardware.
 
-> It's a whole another question if they don't do that.
-
--- 
-
-Cheers,
+Regards,
 Mauro
