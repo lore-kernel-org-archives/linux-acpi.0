@@ -1,74 +1,77 @@
-From: Borislav Petkov <bp@alien8.de>
-Subject: Re: [PATCH 3/3] mce: acpi/apei: trace: Enable ghes memory error
- trace event
-Date: Thu, 15 Aug 2013 18:11:53 +0200
-Message-ID: <20130815161153.GI27616@pd.tnic>
-References: <520A16BD.30201@linux.vnet.ibm.com>
- <20130813124258.GC4077@pd.tnic>
- <520A6D98.9060204@linux.vnet.ibm.com>
- <20130813175809.GE4077@pd.tnic>
- <520B6282.6030906@linux.vnet.ibm.com>
- <20130814212211.544ee6a4@concha.lan>
- <20130815093831.GA27616@pd.tnic>
- <20130815102607.7168a930@samsung.com>
- <20130815134454.GF27616@pd.tnic>
- <20130815111407.4080a744@samsung.com>
+From: Toshi Kani <toshi.kani@hp.com>
+Subject: Re: [PATCH] mm/hotplug: Remove stop_machine() from
+ try_offline_node()
+Date: Thu, 15 Aug 2013 10:35:40 -0600
+Message-ID: <1376584540.10300.416.camel@misato.fc.hp.com>
+References: <1376336071-9128-1-git-send-email-toshi.kani@hp.com>
+	 <520C2D04.8060408@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail.skyhub.de ([78.46.96.112]:45268 "EHLO mail.skyhub.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756829Ab3HOQL4 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 15 Aug 2013 12:11:56 -0400
-Content-Disposition: inline
-In-Reply-To: <20130815111407.4080a744@samsung.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
+Return-path: <owner-linux-mm@kvack.org>
+In-Reply-To: <520C2D04.8060408@gmail.com>
+Sender: owner-linux-mm@kvack.org
+To: KOSAKI Motohiro <kosaki.motohiro@gmail.com>
+Cc: akpm@linux-foundation.org, linux-mm@kvack.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, rjw@sisk.pl, kosaki.motohiro@jp.fujitsu.com, kamezawa.hiroyu@jp.fujitsu.com, tangchen@cn.fujitsu.com, isimatu.yasuaki@jp.fujitsu.com, liwanp@linux.vnet.ibm.com
 List-Id: linux-acpi@vger.kernel.org
-To: Mauro Carvalho Chehab <m.chehab@samsung.com>
-Cc: "Naveen N. Rao" <naveen.n.rao@linux.vnet.ibm.com>, tony.luck@intel.com, bhelgaas@google.com, rostedt@goodmis.org, rjw@sisk.pl, lance.ortiz@hp.com, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 
-On Thu, Aug 15, 2013 at 11:14:07AM -0300, Mauro Carvalho Chehab wrote:
-> I don't see why should we have those two alternatives, as, at worse
-> case (e. g. if ghes_edac can't enrich the APEI data with labels),
-> they'll basically provide the very same data to userspace, and the
-> EDAC extra overhead is small, on its error report logic.
+On Wed, 2013-08-14 at 21:21 -0400, KOSAKI Motohiro wrote:
+> (8/12/13 3:34 PM), Toshi Kani wrote:
+> > lock_device_hotplug() serializes hotplug & online/offline operations.
+> > The lock is held in common sysfs online/offline interfaces and ACPI
+> > hotplug code paths.
+> > 
+> > try_offline_node() off-lines a node if all memory sections and cpus
+> > are removed on the node.  It is called from acpi_processor_remove()
+> > and acpi_memory_remove_memory()->remove_memory() paths, both of which
+> > are in the ACPI hotplug code.
+> > 
+> > try_offline_node() calls stop_machine() to stop all cpus while checking
+> > all cpu status with the assumption that the caller is not protected from
+> > CPU hotplug or CPU online/offline operations.  However, the caller is
+> > always serialized with lock_device_hotplug().  Also, the code needs to
+> > be properly serialized with a lock, not by stopping all cpus at a random
+> > place with stop_machine().
+> > 
+> > This patch removes the use of stop_machine() in try_offline_node() and
+> > adds comments to try_offline_node() and remove_memory() that
+> > lock_device_hotplug() is required.
+> 
+> This patch need more verbose explanation. check_cpu_on_node() traverse cpus
+> and cpu hotplug seems to use cpu_hotplug_driver_lock() instead of lock_device_hotplug().
 
-Well, a couple of reasons.
+As described: 
 
-The first and foremost one is having another layer which needs
-registration, etc. because ghes_edac pulls the whole edac core stuff
-with it. The thinner we are, the less overhead we cause. And this is
-a must for RAS.
+| lock_device_hotplug() serializes hotplug & online/offline operations.
+| The lock is held in common sysfs online/offline interfaces and ACPI
+| hotplug code paths.
 
-Actually, this is a must for all kernel code - the faster we can get
-done and the thinner we are, the better. We absolutely definitely don't
-want to have a useless layer in the error reporting path just because it
-is easier.
+And here are their code paths.
 
-This short path will pay out later in error storms and other
-resources-constrained situations.
+- CPU & Mem online/offline via sysfs online
+	store_online()->lock_device_hotplug()
 
-Furthermore, dealing with another edac driver is not trivial for
-distros, like going around and telling people that all of a sudden
-they need to enable ghes_edac. This is tangential to the issue which
-Naveen raised that on some machines, you want not only ghes_edac but the
-platform-specific one. Which doesn't work currently and we don't have a
-clear solution on how to get it working yet.
+- Mem online via sysfs state:
+	store_mem_state()->lock_device_hotplug()
 
-Finally, userspace doesn't care where it gets its TP data from as long
-as it is there.
+- ACPI CPU & Mem hot-add:
+	acpi_scan_bus_device_check()->lock_device_hotplug()
 
-> The risk of doing the very same thing on two different places is that
-> the logic to encapsulate APEI data into trace_mc_event() would be on
-> two separate places. It risks that someone would change one of the
-> drivers and forget to apply the very same change on the other, causing
-> parse errors on userspace, depending on the source.
+- ACPI CPU & Mem hot-delete:
+	acpi_scan_hot_remove()->lock_device_hotplug()
 
-We'll make sure that doesn't happen.
+> That said, the race is not happen against another memeory happen. It's likely happen
+> another cpu hotplug. So commenting remove_memory() doesn't make much sense.
 
--- 
-Regards/Gruss,
-    Boris.
+This lock scheme protects from both CPU and memory hotplug, and requires
+the caller to call lock_device_hotplug().
 
-Sent from a fat crate under my desk. Formatting is fine.
+Thanks,
+-Toshi
+
+
 --
+To unsubscribe, send a message with 'unsubscribe linux-mm' in
+the body to majordomo@kvack.org.  For more info on Linux MM,
+see: http://www.linux-mm.org/ .
+Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
