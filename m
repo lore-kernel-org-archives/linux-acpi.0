@@ -1,39 +1,64 @@
-From: Tang Chen <tangchen@cn.fujitsu.com>
-Subject: Re: [PATCH part5 0/7] Arrange hotpluggable memory as ZONE_MOVABLE.
-Date: Thu, 15 Aug 2013 20:52:26 +0800
-Message-ID: <520CCF0A.9050206@cn.fujitsu.com>
-References: <5208FBBC.2080304@zytor.com> <20130812152343.GK15892@htj.dyndns.org> <52090D7F.6060600@gmail.com> <20130812164650.GN15892@htj.dyndns.org> <5209CEC1.8070908@cn.fujitsu.com> <520A02DE.1010908@cn.fujitsu.com> <CAE9FiQV2-OOvHZtPYSYNZz+DfhvL0e+h2HjMSW3DyqeXXvdJkA@mail.gmail.com> <520C947B.40407@cn.fujitsu.com> <20130815121900.GA14606@htj.dyndns.org> <520CCD41.5000508@cn.fujitsu.com> <20130815124925.GB14606@htj.dyndns.org>
+From: Mauro Carvalho Chehab <m.chehab@samsung.com>
+Subject: Re: [PATCH 3/3] mce: acpi/apei: trace: Enable ghes memory error trace
+ event
+Date: Thu, 15 Aug 2013 10:26:07 -0300
+Message-ID: <20130815102607.7168a930@samsung.com>
+References: <20130810180322.GC4155@pd.tnic>
+ <20130812083355.47c1bae8@samsung.com> <5208D80D.5030206@linux.vnet.ibm.com>
+ <20130812125343.GE18018@pd.tnic> <520A16BD.30201@linux.vnet.ibm.com>
+ <20130813124258.GC4077@pd.tnic> <520A6D98.9060204@linux.vnet.ibm.com>
+ <20130813175809.GE4077@pd.tnic> <520B6282.6030906@linux.vnet.ibm.com>
+ <20130814212211.544ee6a4@concha.lan> <20130815093831.GA27616@pd.tnic>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
-Return-path: <owner-linux-mm@kvack.org>
-In-Reply-To: <20130815124925.GB14606@htj.dyndns.org>
-Sender: owner-linux-mm@kvack.org
-To: Tejun Heo <tj@kernel.org>
-Cc: Yinghai Lu <yinghai@kernel.org>, Tang Chen <imtangchen@gmail.com>, "H. Peter Anvin" <hpa@zytor.com>, Bob Moore <robert.moore@intel.com>, Lv Zheng <lv.zheng@intel.com>, "Rafael J. Wysocki" <rjw@sisk.pl>, Len Brown <lenb@kernel.org>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@elte.hu>, Andrew Morton <akpm@linux-foundation.org>, Thomas Renninger <trenn@suse.de>, Jiang Liu <jiang.liu@huawei.com>, Wen Congyang <wency@cn.fujitsu.com>, Lai Jiangshan <laijs@cn.fujitsu.com>, Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>, Taku Izumi <izumi.taku@jp.fujitsu.com>, Mel Gorman <mgorman@suse.de>, Minchan Kim <minchan@kernel.org>, "mina86@mina86.com" <mina86@mina86.com>, "gong.chen@linux.intel.com" <gong.chen@linux.intel.com>, Vasilis Liaskovitis <vasilis.liaskovitis@profitbricks>
+Return-path: <linux-pci-owner@vger.kernel.org>
+In-reply-to: <20130815093831.GA27616@pd.tnic>
+Sender: linux-pci-owner@vger.kernel.org
+To: Borislav Petkov <bp@alien8.de>
+Cc: "Naveen N. Rao" <naveen.n.rao@linux.vnet.ibm.com>, tony.luck@intel.com, bhelgaas@google.com, rostedt@goodmis.org, rjw@sisk.pl, lance.ortiz@hp.com, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-On 08/15/2013 08:49 PM, Tejun Heo wrote:
-> Hello,
->
-> On Thu, Aug 15, 2013 at 08:44:49PM +0800, Tang Chen wrote:
->> I wanted to ask for some comment to the above solution. When I was
->> coding, I found that change the behavior of pagetable initialization
->> could be ugly. We should start from the middle of the memory, where
->> the kernel image is, but not the end of memory.
->>
->> I'm not asking for any detail comment, just seeing from the description,
->> is it acceptable ?
->
-> Hmmm... I can't really tell without knowing how ugly it gets and why.
-> Do you mind posting a draft patch so that we can have better context?
+Em Thu, 15 Aug 2013 11:38:31 +0200
+Borislav Petkov <bp@alien8.de> escreveu:
 
-Sure. I'll try my best to post a draft patch tomorrow.
+> On Wed, Aug 14, 2013 at 09:22:11PM -0300, Mauro Carvalho Chehab wrote:
+> > 	1) EDAC core needs to know that it should reject "hardware first"
+> > drivers.
+> 
+> -ENOPARSE. What do you mean?
 
-Thanks. :)
+I mean that the edac core needs to know that, on a given system, the
+BIOS is accessing the hardware registers and sending the data via ghes_edac.
 
---
-To unsubscribe, send a message with 'unsubscribe linux-mm' in
-the body to majordomo@kvack.org.  For more info on Linux MM,
-see: http://www.linux-mm.org/ .
-Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
+On such case, it should reject the driver that reads such data directly
+from the hardware, as having both active cause inconsistent error reports
+(I got a few BZ reports about that).
+
+> >  3) If BIOS vendors add later some solution to enumerate the DIMMS
+> > per memory controller, channel, socket with APEI, the addition to the
+> > existing driver would be trivial.
+> 
+> Actually, with BIOS vendors wanting to do firmware-first strategy with
+> DRAM errors, they must have a pretty good and intimate picture of the
+> memory topology at hand. So it is only a logical consequence for them,
+> when reporting a memory error to the OS to tell us the silkscreen label
+> too, while at it.
+> 
+> And if they do that, we don't need the additional layer - just a
+> tracepoint from APEI and a userspace script.
+
+No. As we want that fatal errors to also be properly reported, the
+kernel will still need to know the memory layout.
+
+Ok, such information can come via userspace, just like we do with the
+other EDAC drivers, but we'll need to allow to dynamically create the
+memory layout via sysfs (or to use some other interface for loading that
+data).
+
+> It's a whole another question if they don't do that.
+
+-- 
+
+Cheers,
+Mauro
