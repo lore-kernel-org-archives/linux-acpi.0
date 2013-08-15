@@ -1,38 +1,69 @@
-From: "Luck, Tony" <tony.luck@intel.com>
-Subject: RE: [PATCH 3/3] mce: acpi/apei: trace: Enable ghes memory error
- trace event
-Date: Thu, 15 Aug 2013 19:20:29 +0000
-Message-ID: <3908561D78D1C84285E8C5FCA982C28F31CBD184@ORSMSX106.amr.corp.intel.com>
-References: <5208D80D.5030206@linux.vnet.ibm.com>
- <20130812125343.GE18018@pd.tnic> <520A16BD.30201@linux.vnet.ibm.com>
- <20130813124258.GC4077@pd.tnic> <520A6D98.9060204@linux.vnet.ibm.com>
- <20130813175809.GE4077@pd.tnic> <520B6282.6030906@linux.vnet.ibm.com>
- <20130814212211.544ee6a4@concha.lan> <20130815093831.GA27616@pd.tnic>
- <20130815102607.7168a930@samsung.com> <20130815134454.GF27616@pd.tnic>
- <20130815111407.4080a744@samsung.com>
+From: Yinghai Lu <yinghai@kernel.org>
+Subject: Re: [PATCH part5 0/7] Arrange hotpluggable memory as ZONE_MOVABLE.
+Date: Thu, 15 Aug 2013 12:34:31 -0700
+Message-ID: <CAE9FiQVAsHLRCcrtFLqgifAJ6jfbDK7y_OFGUDArSWPKk+2qnQ@mail.gmail.com>
+References: <20130812152343.GK15892@htj.dyndns.org>
+	<52090D7F.6060600@gmail.com>
+	<20130812164650.GN15892@htj.dyndns.org>
+	<5209CEC1.8070908@cn.fujitsu.com>
+	<520A02DE.1010908@cn.fujitsu.com>
+	<CAE9FiQV2-OOvHZtPYSYNZz+DfhvL0e+h2HjMSW3DyqeXXvdJkA@mail.gmail.com>
+	<520C947B.40407@cn.fujitsu.com>
+	<20130815121900.GA14606@htj.dyndns.org>
+	<520CCD41.5000508@cn.fujitsu.com>
+	<CAE9FiQVArNd-voKZ1tYbwzJiN=ztXCgr-0sHwej3er02kHQvRQ@mail.gmail.com>
+	<20130815144538.GC14606@htj.dyndns.org>
+	<CAE9FiQUZO-j3UyhED6AOgkS8JzqUWcwsen62OdUucuNCS51ScQ@mail.gmail.com>
+	<3908561D78D1C84285E8C5FCA982C28F31CBD145@ORSMSX106.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga01.intel.com ([192.55.52.88]:26040 "EHLO mga01.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755215Ab3HOTUb convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 15 Aug 2013 15:20:31 -0400
-In-Reply-To: <20130815111407.4080a744@samsung.com>
-Content-Language: en-US
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Return-path: <owner-linux-mm@kvack.org>
+In-Reply-To: <3908561D78D1C84285E8C5FCA982C28F31CBD145@ORSMSX106.amr.corp.intel.com>
+Sender: owner-linux-mm@kvack.org
+To: "Luck, Tony" <tony.luck@intel.com>
+Cc: Tejun Heo <tj@kernel.org>, Tang Chen <tangchen@cn.fujitsu.com>, Tang Chen <imtangchen@gmail.com>, "H. Peter Anvin" <hpa@zytor.com>, "Moore, Robert" <robert.moore@intel.com>, "Zheng, Lv" <lv.zheng@intel.com>, "Rafael J. Wysocki" <rjw@sisk.pl>, Len Brown <lenb@kernel.org>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@elte.hu>, Andrew Morton <akpm@linux-foundation.org>, Thomas Renninger <trenn@suse.de>, Jiang Liu <jiang.liu@huawei.com>, Wen Congyang <wency@cn.fujitsu.com>, Lai Jiangshan <laijs@cn.fujitsu.com>, Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>, Taku Izumi <izumi.taku@jp.fujitsu.com>, Mel Gorman <mgorman@suse.de>, Minchan Kim <minchan@kernel.org>, "mina86@mina86.com" <mina86@mina86.com>, "gong.chen@linux.intel.com" <gong.chen@linux.intel.com>, Vasilis Liaskovitis <vasilis.liaskovitis@profitbricks.com>, "lwoodman@redhat.com" <lwoodman@red>
 List-Id: linux-acpi@vger.kernel.org
-To: Mauro Carvalho Chehab <m.chehab@samsung.com>, Borislav Petkov <bp@alien8.de>
-Cc: "Naveen N. Rao" <naveen.n.rao@linux.vnet.ibm.com>, "bhelgaas@google.com" <bhelgaas@google.com>, "rostedt@goodmis.org" <rostedt@goodmis.org>, "rjw@sisk.pl" <rjw@sisk.pl>, "lance.ortiz@hp.com" <lance.ortiz@hp.com>, "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
 
-> AFAIKT, APEI doesn't provide the silkscreen label. Some code (or some
-> datasheet) is needed to translate between what APEI provides into the
-> silkscreen label.
+On Thu, Aug 15, 2013 at 12:08 PM, Luck, Tony <tony.luck@intel.com> wrote:
+>> That is what my patchset want to do.
+>> put page tables on the same node like node data.
+>> with that, hotplug and normal case will be the same code path.
+>
+> Page tables are a big issue if we have 4K mappings (8 byte entry per
+> 4K page means 2MB of page tables per GB of memory) ... but only
+> used for DEBUG cases, right?
 
-In theory it could. The ACPI generic error structure used to report includes
-a 20-byte free format field which a BIOS could use to describe the location
-of the error.  Haven't seen anyone do this yet - and our internal BIOS people
-looked at me like I was crazy to suggest such a thing.  But I still entertain
-hopes that some OEM will do the right thing and raise the bar of usefulness.
+yes.
 
--Tony
+>
+> If we use 2M mappings, then allocations are 512x smaller - so only
+> 4K per GB - hard to justify spreading that across nodes.
+>
+> If we can use 1GB mappings - then another 512x reduction to 8 bytes per GB (or 8KB per TB)
+
+Yes. 4k for 512G.
+
+Just make all cases use same code path even for DEBUG_PAGEALLOC with 4k page
+mapping.
+
+>
+> Aren't page structures a bigger issue?  ~64 bytes per 4K page.  Do we
+> make sure these get allocated from the NUMA node that they describe?
+> This should not hurt the ZONE_MOVEABLE-ness of this - although they are
+> kernel structures they can be freed when the node is removed (at that point
+> they describe memory that is no longer present). From a scalability perspective
+> we don't want to run node0 low on memory by using it for every other node.
+> From a NUMA perspective we want the page_t that describes a page to be
+> in the same locality as the page itself.
+
+yes, that is vmemmap, and it is already numa aware.
+
+Thanks
+
+Yinghai
+
+--
+To unsubscribe, send a message with 'unsubscribe linux-mm' in
+the body to majordomo@kvack.org.  For more info on Linux MM,
+see: http://www.linux-mm.org/ .
+Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
