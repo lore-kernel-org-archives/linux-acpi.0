@@ -1,55 +1,31 @@
 From: Tang Chen <tangchen@cn.fujitsu.com>
-Subject: [PATCH 6/6] acpi: Return -ENOENT in acpi_table_parse() and fix wrong comment.
-Date: Fri, 16 Aug 2013 15:06:49 +0800
-Message-ID: <1376636809-10159-7-git-send-email-tangchen@cn.fujitsu.com>
-References: <1376636809-10159-1-git-send-email-tangchen@cn.fujitsu.com>
+Subject: [PATCH 0/6] acpi: Fix and cleanup in acpi.
+Date: Fri, 16 Aug 2013 15:06:43 +0800
+Message-ID: <1376636809-10159-1-git-send-email-tangchen@cn.fujitsu.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1376636809-10159-1-git-send-email-tangchen@cn.fujitsu.com>
 Sender: linux-kernel-owner@vger.kernel.org
 To: tglx@linutronix.de, mingo@redhat.com, hpa@zytor.com, lenb@kernel.org, rjw@sisk.pl, liwanp@linux.vnet.ibm.com, tj@kernel.org, akpm@linux-foundation.org
 Cc: x86@kernel.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-The comment about return value of acpi_table_parse() is incorrect.
-This patch fix it.
+This patch-set fix the following problems:
 
-Furthermore, if the table is not found, return 1 means nothing, and
-make it difficult to write the comment. So return -ENOENT when the
-table is not found, and correct the comment.
+1. Kill useless function save_add_info() which will block us from using
+   numa when MEMORY_HOTPLUG is not configured.
+2. acpi_table_parse() didn't check if @id is NULL.
+3. Fix incorrect comment in acpi_table_parse(), and return -ENOENT if a
+   table is not found.
 
-Signed-off-by: Tang Chen <tangchen@cn.fujitsu.com>
----
- drivers/acpi/tables.c |    7 ++++---
- 1 files changed, 4 insertions(+), 3 deletions(-)
+And also did some cleanup.
 
-diff --git a/drivers/acpi/tables.c b/drivers/acpi/tables.c
-index 5a5263b..e6de24f 100644
---- a/drivers/acpi/tables.c
-+++ b/drivers/acpi/tables.c
-@@ -278,12 +278,13 @@ acpi_table_parse_madt(enum acpi_madt_type id,
- 
- /**
-  * acpi_table_parse - find table with @id, run @handler on it
-- *
-  * @id: table id to find
-  * @handler: handler to run
-  *
-  * Scan the ACPI System Descriptor Table (STD) for a table matching @id,
-- * run @handler on it.  Return 0 if table found, return on if not.
-+ * run @handler on it.
-+ *
-+ * Return 0 on success, -errno on failure.
-  */
- int __init acpi_table_parse(char *id, acpi_tbl_table_handler handler)
- {
-@@ -306,7 +307,7 @@ int __init acpi_table_parse(char *id, acpi_tbl_table_handler handler)
- 		early_acpi_os_unmap_memory(table, tbl_size);
- 		return 0;
- 	} else
--		return 1;
-+		return -ENOENT;
- }
- 
- /* 
--- 
-1.7.1
+Tang Chen (6):
+  acpi, numa, mem_hotplug: Kill save_add_info().
+  acpi, numa, mem_hotplug: Print Hot-Pluggable Field in SRAT.
+  acpi cleanup: Use pr_info() instead of printk() in arch/x86/mm/srat.c
+  acpi cleanup: Use pr_err() instead of printk() in arch/x86/mm/srat.c
+  acpi: Check if @id is NULL in acpi_table_parse()
+  acpi: Return -ENOENT in acpi_table_parse() and fix wrong comment.
+
+ arch/x86/mm/srat.c    |   38 +++++++++++++++++---------------------
+ drivers/acpi/tables.c |    9 +++++----
+ 2 files changed, 22 insertions(+), 25 deletions(-)
