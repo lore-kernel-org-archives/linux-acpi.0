@@ -1,14 +1,18 @@
 From: Jerry Snitselaar <jerry.snitselaar@oracle.com>
 Subject: [PATCH] acpi_i2c: set MODULE_LICENSE, MODULE_AUTHOR, and  MODULE_DESCRIPTION
-Date: Fri, 16 Aug 2013 18:26:35 -0700
-Message-ID: <1376702795-25912-1-git-send-email-jerry.snitselaar@oracle.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
+Date: Fri, 16 Aug 2013 14:40:51 -0700
+Message-ID: <1376689251-18511-1-git-send-email-jerry.snitselaar@oracle.com>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from userp1050.oracle.com ([156.151.31.82]:37160 "EHLO
+	userp1050.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751199Ab3HQDtp (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 16 Aug 2013 23:49:45 -0400
+Sender: linux-acpi-owner@vger.kernel.org
+List-Id: linux-acpi@vger.kernel.org
 To: linux-kernel@vger.kernel.org
 Cc: linux-acpi@vger.kernel.org, mika.westerberg@linux.intel.com, rjw@sisk.pl
-List-Id: linux-acpi@vger.kernel.org
 
-Without MODULE_LICENSE set, I get the following with modprobe:
+Without MODULE_LICENSE get, I get the following with modprobe:
 
 acpi_i2c: module license 'unspecified' taints kernel.
 acpi_i2c: Unknown symbol i2c_new_device (err 0)
@@ -42,3 +46,4 @@ index 82045e3..2c5c65d 100644
  	struct i2c_board_info *info = data;
 -- 
 1.8.4.rc3.2.g2c2b664
+
