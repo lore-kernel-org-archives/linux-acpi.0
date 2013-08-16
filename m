@@ -1,79 +1,39 @@
-From: Yinghai Lu <yinghai@kernel.org>
+From: Tang Chen <tangchen@cn.fujitsu.com>
 Subject: Re: [PATCH part5 0/7] Arrange hotpluggable memory as ZONE_MOVABLE.
-Date: Thu, 15 Aug 2013 13:28:59 -0700
-Message-ID: <CAE9FiQVeMHAqZETP3d1PsPMk9-ZOXD=BD5HaTGFFO3dZenR0CA@mail.gmail.com>
-References: <1375956979-31877-1-git-send-email-tangchen@cn.fujitsu.com>
-	<20130812145016.GI15892@htj.dyndns.org>
-	<5208FBBC.2080304@zytor.com>
-	<20130812152343.GK15892@htj.dyndns.org>
-	<52090D7F.6060600@gmail.com>
-	<20130812164650.GN15892@htj.dyndns.org>
-	<5209CEC1.8070908@cn.fujitsu.com>
-	<520A02DE.1010908@cn.fujitsu.com>
-	<CAE9FiQV2-OOvHZtPYSYNZz+DfhvL0e+h2HjMSW3DyqeXXvdJkA@mail.gmail.com>
-	<520ADBBA.10501@cn.fujitsu.com>
-	<1376593564.10300.446.camel@misato.fc.hp.com>
+Date: Fri, 16 Aug 2013 09:16:20 +0800
+Message-ID: <520D7D64.2020806@cn.fujitsu.com>
+References: <1375956979-31877-1-git-send-email-tangchen@cn.fujitsu.com> <20130812145016.GI15892@htj.dyndns.org> <5208FBBC.2080304@zytor.com> <20130812152343.GK15892@htj.dyndns.org> <52090D7F.6060600@gmail.com> <20130812164650.GN15892@htj.dyndns.org> <5209CEC1.8070908@cn.fujitsu.com> <520A02DE.1010908@cn.fujitsu.com> <CAE9FiQV2-OOvHZtPYSYNZz+DfhvL0e+h2HjMSW3DyqeXXvdJkA@mail.gmail.com> <520C947B.40407@cn.fujitsu.com> <CAE9FiQV=7NJrT=hTq77rEeXCuMuZLeW9VFUCOjhgrX0rNpbKXg@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <owner-linux-mm@kvack.org>
-In-Reply-To: <1376593564.10300.446.camel@misato.fc.hp.com>
+In-Reply-To: <CAE9FiQV=7NJrT=hTq77rEeXCuMuZLeW9VFUCOjhgrX0rNpbKXg@mail.gmail.com>
 Sender: owner-linux-mm@kvack.org
-To: Toshi Kani <toshi.kani@hp.com>
-Cc: Tang Chen <tangchen@cn.fujitsu.com>, Tejun Heo <tj@kernel.org>, Tang Chen <imtangchen@gmail.com>, "H. Peter Anvin" <hpa@zytor.com>, Bob Moore <robert.moore@intel.com>, Lv Zheng <lv.zheng@intel.com>, "Rafael J. Wysocki" <rjw@sisk.pl>, Len Brown <lenb@kernel.org>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@elte.hu>, Andrew Morton <akpm@linux-foundation.org>, Thomas Renninger <trenn@suse.de>, Jiang Liu <jiang.liu@huawei.com>, Wen Congyang <wency@cn.fujitsu.com>, Lai Jiangshan <laijs@cn.fujitsu.com>, Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>, Taku Izumi <izumi.taku@jp.fujitsu.com>, Mel Gorman <mgorman@suse.de>, Minchan Kim <minchan@kernel.org>, "mina86@mina86.com" <mina86@mina86.com>, "gong.chen@linux.intel.com" <gong.chen@linux.intel.com>, Vasilis Liaskovitis <vasilis.liaskovitis@profitbricks.com>, "lwoodman@redhat.com" <lwoodman@redhat.com>
+To: Yinghai Lu <yinghai@kernel.org>
+Cc: "H. Peter Anvin" <hpa@zytor.com>, Tejun Heo <tj@kernel.org>, Tang Chen <imtangchen@gmail.com>, Bob Moore <robert.moore@intel.com>, Lv Zheng <lv.zheng@intel.com>, "Rafael J. Wysocki" <rjw@sisk.pl>, Len Brown <lenb@kernel.org>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@elte.hu>, Andrew Morton <akpm@linux-foundation.org>, Thomas Renninger <trenn@suse.de>, Jiang Liu <jiang.liu@huawei.com>, Wen Congyang <wency@cn.fujitsu.com>, Lai Jiangshan <laijs@cn.fujitsu.com>, Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>, Taku Izumi <izumi.taku@jp.fujitsu.com>, Mel Gorman <mgorman@suse.de>, Minchan Kim <minchan@kernel.org>, "mina86@mina86.com" <mina86@mina86.com>, "gong.chen@linux.intel.com" <gong.chen@linux.intel.com>, Vasilis Liaskovitis <vasilis.liaskovitis@profitbricks.com>
 List-Id: linux-acpi@vger.kernel.org
 
-On Thu, Aug 15, 2013 at 12:06 PM, Toshi Kani <toshi.kani@hp.com> wrote:
-> On Wed, 2013-08-14 at 09:22 +0800, Tang Chen wrote:
->> On 08/14/2013 06:33 AM, Yinghai Lu wrote:
->> ......
->> >
->> >>     relocate_initrd()
->> >
->> > size could be very big, like several hundreds mega bytes.
->> > should be anywhere, but will be freed after booting.
->> >
->> > ===>  so we should not limit it to near kernel range.
->> >
->> >>     acpi_initrd_override()
->> >
->> > should be 64 * 10 about 1M.
->> >
->> >>     reserve_crashkernel()
->> >
->> > could be under 4G, or above 4G.
->> > size could be 512M or 8G whatever.
->> >
->> > looks like
->> > should move down relocated_initrd and reserve_crashkernel.
+On 08/15/2013 10:35 PM, Yinghai Lu wrote:
+> On Thu, Aug 15, 2013 at 1:42 AM, Tang Chen<tangchen@cn.fujitsu.com>  wrote:
+>
+>> So if we want to allocate page tables near the kernelimage, we have to do
+>> the following:
 >>
->> OK, will try to do this.
+>> 1. Use BRK to map a range near kernel image, let's call it range X.
+>> 2. Calculate how much memory needed to map all the memory, let's say Y
+>> Bytes.
+>>     Use range X to map at least Y Bytes memory near kernel image.
+>> 3. Use the mapped memory to map all the rest memory.
 >>
->> Thank you for the explanation. :)
+>> Does this sound OK to you guys ?
 >
-> So, we still need reordering, and put a new requirement that all earlier
-> allocations must be small...
+> oh, no.
+> We just get rid of pre-calculate the buffer size for page tables.
 >
-> I think the root of this issue is that ACPI init point is not early
-> enough in the boot sequence.  If it were much earlier already, the whole
-> thing would have been very simple.  We are now trying to workaround this
-> issue in the mblock code (which itself is a fine idea), but this ACPI
-> issue still remains and similar issues may come up again in future.
->
-> For instance, ACPI SCPR/DBGP/DBG2 tables allow the OS to initialize
-> serial console/debug ports at early boot time.  The earlier it can be
-> initialized, the better this feature will be.  These tables are not
-> currently used by Linux due to a licensing issue, but it could be
-> addressed some time soon.  As platforms becoming more complex & legacy
-> free, the needs of ACPI tables will increase.
->
-> I think moving up the ACPI init point earlier is a good direction.
 
-Good point.
+You mean BRK ?  I know that and will first use up this memory.
 
-If we put acpi_initrd_override in BRK, and can more acpi_boot_table_init()
-much early.
-
-Yinghai
+Thanks.
 
 --
 To unsubscribe, send a message with 'unsubscribe linux-mm' in
