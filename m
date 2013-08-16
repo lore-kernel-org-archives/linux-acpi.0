@@ -1,67 +1,50 @@
-From: Tang Chen <tangchen@cn.fujitsu.com>
-Subject: [PATCH 4/6] acpi cleanup: Use pr_err() instead of printk() in arch/x86/mm/srat.c
-Date: Fri, 16 Aug 2013 18:11:23 +0800
-Message-ID: <1376647883-17379-1-git-send-email-tangchen@cn.fujitsu.com>
-References: <1376637949.1947.3.camel@joe-AO722>
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cn.fujitsu.com ([222.73.24.84]:20414 "EHLO song.cn.fujitsu.com"
-	rhost-flags-OK-FAIL-OK-OK) by vger.kernel.org with ESMTP
-	id S1751148Ab3HPKMo (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 16 Aug 2013 06:12:44 -0400
-In-Reply-To: <1376637949.1947.3.camel@joe-AO722>
-Sender: linux-acpi-owner@vger.kernel.org
+From: KOSAKI Motohiro <kosaki.motohiro@gmail.com>
+Subject: Re: [PATCH] mm/hotplug: Remove stop_machine() from try_offline_node()
+Date: Fri, 16 Aug 2013 16:31:15 -0400
+Message-ID: <520E8C13.5020406@gmail.com>
+References: <1376336071-9128-1-git-send-email-toshi.kani@hp.com>  <520C2D04.8060408@gmail.com> <1376584540.10300.416.camel@misato.fc.hp.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <owner-linux-mm@kvack.org>
+In-Reply-To: <1376584540.10300.416.camel@misato.fc.hp.com>
+Sender: owner-linux-mm@kvack.org
+To: Toshi Kani <toshi.kani@hp.com>
+Cc: KOSAKI Motohiro <kosaki.motohiro@gmail.com>, akpm@linux-foundation.org, linux-mm@kvack.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, rjw@sisk.pl, kosaki.motohiro@jp.fujitsu.com, kamezawa.hiroyu@jp.fujitsu.com, tangchen@cn.fujitsu.com, isimatu.yasuaki@jp.fujitsu.com, liwanp@linux.vnet.ibm.com
 List-Id: linux-acpi@vger.kernel.org
-To: tglx@linutronix.de, mingo@redhat.com, hpa@zytor.com, lenb@kernel.org, rjw@sisk.pl, liwanp@linux.vnet.ibm.com, tj@kernel.org, joe@perches.com, akpm@linux-foundation.org
-Cc: x86@kernel.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
 
-Use pr_err() instead of printk() in arch/x86/mm/srat.c
+>>> This patch removes the use of stop_machine() in try_offline_node() and
+>>> adds comments to try_offline_node() and remove_memory() that
+>>> lock_device_hotplug() is required.
+>>
+>> This patch need more verbose explanation. check_cpu_on_node() traverse cpus
+>> and cpu hotplug seems to use cpu_hotplug_driver_lock() instead of lock_device_hotplug().
+>
+> As described:
+>
+> | lock_device_hotplug() serializes hotplug & online/offline operations.
+> | The lock is held in common sysfs online/offline interfaces and ACPI
+> | hotplug code paths.
+>
+> And here are their code paths.
+>
+> - CPU & Mem online/offline via sysfs online
+> 	store_online()->lock_device_hotplug()
+>
+> - Mem online via sysfs state:
+> 	store_mem_state()->lock_device_hotplug()
+>
+> - ACPI CPU & Mem hot-add:
+> 	acpi_scan_bus_device_check()->lock_device_hotplug()
+>
+> - ACPI CPU & Mem hot-delete:
+> 	acpi_scan_hot_remove()->lock_device_hotplug()
 
-Signed-off-by: Tang Chen <tangchen@cn.fujitsu.com>
-Signed-off-by: Joe Perches <joe@perches.com>
----
- arch/x86/mm/srat.c |    8 ++++----
- 1 files changed, 4 insertions(+), 4 deletions(-)
+O.K.
 
-diff --git a/arch/x86/mm/srat.c b/arch/x86/mm/srat.c
-index 591f4bb..d1e3b95 100644
---- a/arch/x86/mm/srat.c
-+++ b/arch/x86/mm/srat.c
-@@ -35,7 +35,7 @@ static __init int setup_node(int pxm)
- 
- static __init void bad_srat(void)
- {
--	printk(KERN_ERR "SRAT: SRAT not used.\n");
-+	pr_err("SRAT not used.\n");
- 	acpi_numa = -1;
- }
- 
-@@ -79,7 +79,7 @@ acpi_numa_x2apic_affinity_init(struct acpi_srat_x2apic_cpu_affinity *pa)
- 	}
- 	node = setup_node(pxm);
- 	if (node < 0) {
--		printk(KERN_ERR "SRAT: Too many proximity domains %x\n", pxm);
-+		pr_err("Too many proximity domains %x\n", pxm);
- 		bad_srat();
- 		return;
- 	}
-@@ -115,7 +115,7 @@ acpi_numa_processor_affinity_init(struct acpi_srat_cpu_affinity *pa)
- 		pxm |= *((unsigned int*)pa->proximity_domain_hi) << 8;
- 	node = setup_node(pxm);
- 	if (node < 0) {
--		printk(KERN_ERR "SRAT: Too many proximity domains %x\n", pxm);
-+		pr_err("Too many proximity domains %x\n", pxm);
- 		bad_srat();
- 		return;
- 	}
-@@ -162,7 +162,7 @@ acpi_numa_memory_affinity_init(struct acpi_srat_mem_affinity *ma)
- 
- 	node = setup_node(pxm);
- 	if (node < 0) {
--		printk(KERN_ERR "SRAT: Too many proximity domains.\n");
-+		pr_err("Too many proximity domains.\n");
- 		goto out_err_bad_srat;
- 	}
- 
--- 
-1.7.1
 
+--
+To unsubscribe, send a message with 'unsubscribe linux-mm' in
+the body to majordomo@kvack.org.  For more info on Linux MM,
+see: http://www.linux-mm.org/ .
+Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
