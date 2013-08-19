@@ -1,38 +1,41 @@
 From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: [PATCH] i2c: move of helpers into the core
-Date: Tue, 20 Aug 2013 01:25:27 +0200
-Message-ID: <3721030.UJAkTdQrEC@vostro.rjw.lan>
-References: <1376918361-7014-1-git-send-email-wsa@the-dreams.de> <3792014.HtzPVmLjnf@vostro.rjw.lan> <5212A293.2030903@wwwdotorg.org>
+Subject: Re: [PATCH] acpi_i2c: set MODULE_LICENSE, MODULE_AUTHOR, and MODULE_DESCRIPTION
+Date: Tue, 20 Aug 2013 01:30:45 +0200
+Message-ID: <2870377.GVGv4QBgQK@vostro.rjw.lan>
+References: <1376702795-25912-1-git-send-email-jerry.snitselaar@oracle.com> <20130819061614.GG4898@intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7Bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from hydra.sisk.pl ([212.160.235.94]:50386 "EHLO hydra.sisk.pl"
+Received: from hydra.sisk.pl ([212.160.235.94]:50401 "EHLO hydra.sisk.pl"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751390Ab3HSXOx (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 19 Aug 2013 19:14:53 -0400
-In-Reply-To: <5212A293.2030903@wwwdotorg.org>
+	id S1750816Ab3HSXUM (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 19 Aug 2013 19:20:12 -0400
+In-Reply-To: <20130819061614.GG4898@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Stephen Warren <swarren@wwwdotorg.org>
-Cc: Wolfram Sang <wsa@the-dreams.de>, linux-i2c@vger.kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+To: Mika Westerberg <mika.westerberg@linux.intel.com>
+Cc: Jerry Snitselaar <jerry.snitselaar@oracle.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
 
-On Monday, August 19, 2013 04:56:19 PM Stephen Warren wrote:
-> On 08/19/2013 05:04 PM, Rafael J. Wysocki wrote:
-> > On Monday, August 19, 2013 03:19:18 PM Wolfram Sang wrote:
-> >> I2C of helpers used to live in of_i2c.c but experience (from SPI) shows
-> >> that it is much cleaner to have this in the core. This also removes a
-> >> circular dependency between the helpers and the core, and so we can
-> >> finally register child nodes in the core instead of doing this manually
-> >> in each driver. So, fix the drivers and documentation, too.
+On Monday, August 19, 2013 09:16:14 AM Mika Westerberg wrote:
+> On Fri, Aug 16, 2013 at 06:26:35PM -0700, Jerry Snitselaar wrote:
+> > Without MODULE_LICENSE set, I get the following with modprobe:
 > > 
-> > Perhaps we should do the analogous for ACPI then?
+> > acpi_i2c: module license 'unspecified' taints kernel.
+> > acpi_i2c: Unknown symbol i2c_new_device (err 0)
+> > acpi_i2c: Unknown symbol acpi_dev_get_resources (err 0)
+> > acpi_i2c: Unknown symbol acpi_dev_resource_interrupt (err 0)
+> > acpi_i2c: Unknown symbol acpi_dev_free_resource_list (err 0)
 > > 
-> > Rafael
+> > Signed-off-by: Jerry Snitselaar <jerry.snitselaar@oracle.com>
 > 
-> Aargh. Why quote the entire patch just to say one line?
+> Looks good to me.
+> 
+> Acked-by: Mika Westerbeg <mika.westerberg@linux.intel.com>
 
-Because I didn't think I could just skip the patch? ;-)
+Well, OK, but do we need to be able to build that as a module?
 
-Also I could trim the CC list quite a bit (done now).
+Maybe it should just be yes or no?
+
+Rafael
 
