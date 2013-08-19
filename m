@@ -1,22 +1,13 @@
-From: Wolfram Sang <wsa-z923LK4zBo2bacvFa/9K2g@public.gmane.org>
-Subject: [PATCH] i2c: move of helpers into the core
-Date: Mon, 19 Aug 2013 15:19:18 +0200
-Message-ID: <1376918361-7014-1-git-send-email-wsa@the-dreams.de>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <davinci-linux-open-source-bounces-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org>
-List-Unsubscribe: <http://linux.davincidsp.com/mailman/options/davinci-linux-open-source>,
-	<mailto:davinci-linux-open-source-request-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://linux.davincidsp.com/pipermail/davinci-linux-open-source>
-List-Post: <mailto:davinci-linux-open-source-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org>
-List-Help: <mailto:davinci-linux-open-source-request-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org?subject=help>
-List-Subscribe: <http://linux.davincidsp.com/mailman/listinfo/davinci-linux-open-source>,
-	<mailto:davinci-linux-open-source-request-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org?subject=subscribe>
-Sender: <davinci-linux-open-source-bounces-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org>
-Errors-To: davinci-linux-open-source-bounces-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org
-To: linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: Wolfram Sang <wsa-z923LK4zBo2bacvFa/9K2g@public.gmane.org>, Kevin Hilman <khilman-1D3HCaltpLuhEniVeURVKkEOCMrvLtNR@public.gmane.org>, Linus Walleij <linus.walleij-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Sylwester Nawrocki <s.nawrocki-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org>, Kukjin Kim <kgene.kim-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org>, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Vitaly Wool <vitalywool-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Jochen Friedrich <jochen-NIgtFMG+Po8@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Grant Likely <grant.likely-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Alessandro Rubini <rubini-9wsNiZum9E8@public.gmane.org>, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Stephen Warren <swarren-3lzwWm7+Weoh9ZMKESR00Q@public.gmane.org>, linux-media-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Rob Herring <rob.herring-bsGFqQB8/DxBDgjK7y7TUQ@public.gmane.org>, "Rafael J. Wysocki" <rjw-KKrjLPT3xs0@public.gmane.org>, Jean Delvare <khali-PUYAD+kWke1g9hUCZPvPmw@public.gmane.org>, linux-samsung-soc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Ben Dooks <ben-linux-elnMNo+KYs3YtjvyW6yDsg@public.gmane.org>, Barry Song <baohua.song-kQvG35nSl+M@public.gmane.org>, linux-tegra-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap@vger
+From: Wolfram Sang <wsa@the-dreams.de>
+Subject: [PATCH RESEND] i2c: move of helpers into the core
+Date: Mon, 19 Aug 2013 19:59:40 +0200
+Message-ID: <1376935183-11218-1-git-send-email-wsa@the-dreams.de>
+References: <1376918361-7014-1-git-send-email-wsa@the-dreams.de>
+Return-path: <linux-doc-owner@vger.kernel.org>
+In-Reply-To: <1376918361-7014-1-git-send-email-wsa@the-dreams.de>
+Sender: linux-doc-owner@vger.kernel.org
+To: linux-i2c@vger.kernel.org
+Cc: Wolfram Sang <wsa@the-dreams.de>, linux-acpi@vger.kernel.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, davinci-linux-open-source@linux.davincidsp.com, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, linux-samsung-soc@vger.kernel.org, linux-tegra@vger.kernel.org, linux-media@vger.kernel.org, devicetree@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
 I2C of helpers used to live in of_i2c.c but experience (from SPI) shows
@@ -25,8 +16,14 @@ circular dependency between the helpers and the core, and so we can
 finally register child nodes in the core instead of doing this manually
 in each driver. So, fix the drivers and documentation, too.
 
-Signed-off-by: Wolfram Sang <wsa-z923LK4zBo2bacvFa/9K2g@public.gmane.org>
+Signed-off-by: Wolfram Sang <wsa@the-dreams.de>
 ---
+
+Sigh, hitting the CC threshold on vger again. So resending to the lists only.
+BTW this patch is based on -rc4 and was tested on an AT91 board. More tests
+very welcome. Thanks!
+
+
  Documentation/acpi/enumeration.txt              |    1 -
  drivers/i2c/busses/i2c-at91.c                   |    3 -
  drivers/i2c/busses/i2c-cpm.c                    |    6 --
@@ -633,14 +630,14 @@ index f32ca29..321b7ca 100644
 --- a/drivers/i2c/i2c-core.c
 +++ b/drivers/i2c/i2c-core.c
 @@ -23,7 +23,11 @@
-    SMBus 2.0 support by Mark Studebaker <mdsxyz123-/E1597aS9LQAvxtiuMwx3w@public.gmane.org> and
-    Jean Delvare <khali-PUYAD+kWke1g9hUCZPvPmw@public.gmane.org>
-    Mux support by Rodolfo Giometti <giometti-AVVDYK/kqiJWk0Htik3J/w@public.gmane.org> and
--   Michael Lawnick <michael.lawnick.ext-OYasijW0DpE@public.gmane.org> */
-+   Michael Lawnick <michael.lawnick.ext-OYasijW0DpE@public.gmane.org>
-+   OF support is copyright (c) 2008 Jochen Friedrich <jochen-NIgtFMG+Po8@public.gmane.org>
-+   (based on a previous patch from Jon Smirl <jonsmirl-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>) and
-+   (c) 2013  Wolfram Sang <wsa-z923LK4zBo2bacvFa/9K2g@public.gmane.org>
+    SMBus 2.0 support by Mark Studebaker <mdsxyz123@yahoo.com> and
+    Jean Delvare <khali@linux-fr.org>
+    Mux support by Rodolfo Giometti <giometti@enneenne.com> and
+-   Michael Lawnick <michael.lawnick.ext@nsn.com> */
++   Michael Lawnick <michael.lawnick.ext@nsn.com>
++   OF support is copyright (c) 2008 Jochen Friedrich <jochen@scram.de>
++   (based on a previous patch from Jon Smirl <jonsmirl@gmail.com>) and
++   (c) 2013  Wolfram Sang <wsa@the-dreams.de>
 + */
  
  #include <linux/module.h>
@@ -891,9 +888,9 @@ index b667264..0000000
 -/*
 - * OF helpers for the I2C API
 - *
-- * Copyright (c) 2008 Jochen Friedrich <jochen-NIgtFMG+Po8@public.gmane.org>
+- * Copyright (c) 2008 Jochen Friedrich <jochen@scram.de>
 - *
-- * Based on a previous patch from Jon Smirl <jonsmirl-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+- * Based on a previous patch from Jon Smirl <jonsmirl@gmail.com>
 - *
 - * This program is free software; you can redistribute it and/or modify
 - * it under the terms of the GNU General Public License as published by
@@ -1042,7 +1039,7 @@ index cfb545c..0000000
 -/*
 - * Generic I2C API implementation for PowerPC.
 - *
-- * Copyright (c) 2008 Jochen Friedrich <jochen-NIgtFMG+Po8@public.gmane.org>
+- * Copyright (c) 2008 Jochen Friedrich <jochen@scram.de>
 - *
 - * This program is free software; you can redistribute it and/or modify
 - * it under the terms of the GNU General Public License as published by
@@ -1087,3 +1084,4 @@ index cfb545c..0000000
 -#endif /* __LINUX_OF_I2C_H */
 -- 
 1.7.10.4
+
