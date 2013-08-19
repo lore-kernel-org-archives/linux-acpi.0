@@ -1,34 +1,116 @@
-From: Mika Westerberg <mika.westerberg@linux.intel.com>
-Subject: Re: [PATCH] acpi_i2c: set MODULE_LICENSE, MODULE_AUTHOR, and
- MODULE_DESCRIPTION
-Date: Mon, 19 Aug 2013 09:16:14 +0300
-Message-ID: <20130819061614.GG4898@intel.com>
-References: <1376702795-25912-1-git-send-email-jerry.snitselaar@oracle.com>
+From: Lan Tianyu <lantianyu1986@gmail.com>
+Subject: Re: [PATCH v4 20/28] x86, irq: More strict checking about registering ioapic
+Date: Mon, 19 Aug 2013 15:47:35 +0800
+Message-ID: <CAOLK0pzhU7+=Qpi3OfBVwu_7UmMf+sz81JLAtvrYAc6Gw7cftg@mail.gmail.com>
+References: <1376189294-32022-1-git-send-email-yinghai@kernel.org>
+	<1376189294-32022-21-git-send-email-yinghai@kernel.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga02.intel.com ([134.134.136.20]:33699 "EHLO mga02.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750911Ab3HSGKq (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 19 Aug 2013 02:10:46 -0400
-Content-Disposition: inline
-In-Reply-To: <1376702795-25912-1-git-send-email-jerry.snitselaar@oracle.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Return-path: <linux-pci-owner@vger.kernel.org>
+In-Reply-To: <1376189294-32022-21-git-send-email-yinghai@kernel.org>
+Sender: linux-pci-owner@vger.kernel.org
+To: Yinghai Lu <yinghai@kernel.org>
+Cc: Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@elte.hu>, "H. Peter Anvin" <hpa@zytor.com>, Tony Luck <tony.luck@intel.com>, Bjorn Helgaas <bhelgaas@google.com>, "Rafael J. Wysocki" <rjw@sisk.pl>, Linux PCI <linux-pci@vger.kernel.org>, "linux-kernel@vger kernel org" <linux-kernel@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, Joerg Roedel <joro@8bytes.org>, Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>, Sebastian Andrzej Siewior <sebastian@breakpoint.cc>
 List-Id: linux-acpi@vger.kernel.org
-To: Jerry Snitselaar <jerry.snitselaar@oracle.com>
-Cc: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, rjw@sisk.pl
 
-On Fri, Aug 16, 2013 at 06:26:35PM -0700, Jerry Snitselaar wrote:
-> Without MODULE_LICENSE set, I get the following with modprobe:
-> 
-> acpi_i2c: module license 'unspecified' taints kernel.
-> acpi_i2c: Unknown symbol i2c_new_device (err 0)
-> acpi_i2c: Unknown symbol acpi_dev_get_resources (err 0)
-> acpi_i2c: Unknown symbol acpi_dev_resource_interrupt (err 0)
-> acpi_i2c: Unknown symbol acpi_dev_free_resource_list (err 0)
-> 
-> Signed-off-by: Jerry Snitselaar <jerry.snitselaar@oracle.com>
+2013/8/11 Yinghai Lu <yinghai@kernel.org>
+>
+> 1. check overlaping gsi range
+> for hot-add ioapic case, BIOS may have some entries in MADT
+> and also have setting in pci root bus with _GSB of DSDT.
+>
+> 2. check if entries is in right range.
+>
+> Signed-off-by: Yinghai Lu <yinghai@kernel.org>
+> Cc: Joerg Roedel <joro@8bytes.org>
+> Cc: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
+> Cc: Sebastian Andrzej Siewior <sebastian@breakpoint.cc>
+> ---
+>  arch/x86/kernel/apic/io_apic.c | 30 ++++++++++++++++++++++++------
+>  1 file changed, 24 insertions(+), 6 deletions(-)
+>
+> diff --git a/arch/x86/kernel/apic/io_apic.c b/arch/x86/kernel/apic/io_apic.c
+> index b026cc7..60c6706 100644
+> --- a/arch/x86/kernel/apic/io_apic.c
+> +++ b/arch/x86/kernel/apic/io_apic.c
+> @@ -3818,12 +3818,9 @@ void __init ioapic_insert_resources(void)
+>         }
+>  }
+>
+> -int mp_find_ioapic(u32 gsi)
+> +static int __mp_find_ioapic(u32 gsi)
+>  {
+> -       int i = 0;
+> -
+> -       if (nr_ioapics == 0)
+> -               return -1;
+> +       int i;
+>
+>         /* Find the IOAPIC that manages this GSI. */
+>         for_each_ioapic(i) {
+> @@ -3833,10 +3830,19 @@ int mp_find_ioapic(u32 gsi)
+>                         return i;
+>         }
+>
+> -       printk(KERN_ERR "ERROR: Unable to locate IOAPIC for GSI %d\n", gsi);
+>         return -1;
+>  }
+>
+> +int mp_find_ioapic(u32 gsi)
+> +{
+> +       int ret = __mp_find_ioapic(gsi);
+> +
+> +       if (ret == -1)
+> +               pr_err("ERROR: Unable to locate IOAPIC for GSI %d\n", gsi);
+> +
+> +       return ret;
+> +}
+> +
+>  int mp_find_ioapic_pin(int ioapic, u32 gsi)
+>  {
+>         struct mp_ioapic_gsi *gsi_cfg;
+> @@ -3888,6 +3894,11 @@ void __init mp_register_ioapic(int id, u32 address, u32 gsi_base)
+>         if (bad_ioapic(address))
+>                 return;
+>
+> +       /* already registered ? */
+> +       idx = __mp_find_ioapic(gsi_base);
+> +       if (idx >= 0)
+> +               return;
+> +
+>         idx = find_first_zero_bit(ioapics_mask, MAX_IO_APICS);
+>         if (idx >= MAX_IO_APICS) {
+>                 pr_warn("WARNING: Max # of I/O APICs (%d) exceeded, skipping\n",
+> @@ -3914,6 +3925,13 @@ void __init mp_register_ioapic(int id, u32 address, u32 gsi_base)
+>          * and to prevent reprogramming of IOAPIC pins (PCI GSIs).
+>          */
+>         entries = io_apic_get_redir_entries(idx);
 
-Looks good to me.
+ "entries" is possible to be 0?  io_apic_get_redir_entries() returns
+"reg_01.bits.entries + 1"
+as "entries".
 
-Acked-by: Mika Westerbeg <mika.westerberg@linux.intel.com>
+> +
+> +       if (!entries || entries > MP_MAX_IOAPIC_PIN) {
+> +               clear_fixmap(FIX_IO_APIC_BASE_0 + idx);
+> +               memset(&ioapics[idx], 0, sizeof(struct ioapic));
+> +               return;
+> +       }
+> +
+>         gsi_cfg = mp_ioapic_gsi_routing(idx);
+>         gsi_cfg->gsi_base = gsi_base;
+>         gsi_cfg->gsi_end = gsi_base + entries - 1;
+> --
+> 1.8.1.4
+>
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
+
+
+
+-- 
+Best regards
+Tianyu Lan
