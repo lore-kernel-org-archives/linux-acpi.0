@@ -1,87 +1,44 @@
-From: Felipe Balbi <balbi@ti.com>
-Subject: Re: [PATCH RESEND] i2c: move of helpers into the core
-Date: Mon, 19 Aug 2013 15:10:05 -0500
-Message-ID: <20130819201005.GM26587@radagast>
-References: <1376918361-7014-1-git-send-email-wsa@the-dreams.de>
- <1376935183-11218-1-git-send-email-wsa@the-dreams.de>
-Reply-To: balbi@ti.com
+From: Ian Malone <ibmalone@gmail.com>
+Subject: Re: kernels 3.9.5 to 3.10.6 fail to boot on battery, vaio vgn-c2m/w
+Date: Mon, 19 Aug 2013 21:12:22 +0100
+Message-ID: <CAL3-7Mp4ncq4Q=uxmLR6ykExqu1BTzhJjX3UcyBTfZUPrLUCdA@mail.gmail.com>
+References: <CAL3-7MrW0p-YuJBpiguoG7f0j7vgyJALhdSnh81uRM_5TR50Xg@mail.gmail.com>
+	<CAOLK0pxpsRWR+oiQjLSpbPWefptZeEx76P+okTSLeYW1qGZ4Vw@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="===============0980446090809621484=="
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <1376935183-11218-1-git-send-email-wsa@the-dreams.de>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Wolfram Sang <wsa@the-dreams.de>
-Cc: devicetree@vger.kernel.org, davinci-linux-open-source@linux.davincidsp.com, linux-samsung-soc@vger.kernel.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, linux-i2c@vger.kernel.org, linux-tegra@vger.kernel.org, linux-omap@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-ve0-f170.google.com ([209.85.128.170]:53385 "EHLO
+	mail-ve0-f170.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751074Ab3HSUMX (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 19 Aug 2013 16:12:23 -0400
+Received: by mail-ve0-f170.google.com with SMTP id 15so3362328vea.15
+        for <linux-acpi@vger.kernel.org>; Mon, 19 Aug 2013 13:12:23 -0700 (PDT)
+In-Reply-To: <CAOLK0pxpsRWR+oiQjLSpbPWefptZeEx76P+okTSLeYW1qGZ4Vw@mail.gmail.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
 
---===============0980446090809621484==
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="McpcKDxJRrEJVmOH"
-Content-Disposition: inline
+On 18 August 2013 06:54, Lan Tianyu <lantianyu1986@gmail.com> wrote:
+> 2013/8/18 Ian Malone <ibmalone@gmail.com>:
+>> Hi,
+>>
+>> Posted in Fedora bugzilla, but has failed to get any love there,
+>> https://bugzilla.redhat.com/show_bug.cgi?id=991708
+>>
 
---McpcKDxJRrEJVmOH
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+>>
+>> Anything I can try here?
+>
+> Hi:
+>        Could you apply a bug on the kernel bugzilla with the output of acpidump
+> and the log of boot failure if possible?
+>        http://bugzilla.kernel.org/
 
-On Mon, Aug 19, 2013 at 07:59:40PM +0200, Wolfram Sang wrote:
-> I2C of helpers used to live in of_i2c.c but experience (from SPI) shows
-> that it is much cleaner to have this in the core. This also removes a
-> circular dependency between the helpers and the core, and so we can
-> finally register child nodes in the core instead of doing this manually
-> in each driver. So, fix the drivers and documentation, too.
->=20
-> Signed-off-by: Wolfram Sang <wsa@the-dreams.de>
+Done. Not sure how to get the log of boot failure, seems to stop too
+early, but attached screenshots.
 
-for i2c-omap.c:
+https://bugzilla.kernel.org/show_bug.cgi?id=60770
 
-Reviewed-by: Felipe Balbi <balbi@ti.com>
-
---=20
-balbi
-
---McpcKDxJRrEJVmOH
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.12 (GNU/Linux)
-
-iQIcBAEBAgAGBQJSEnudAAoJEIaOsuA1yqREcNkP/0LKPk4o7wCnJXxOqAyLoeZd
-WwCRafc7R0Ls3S5M28xTpxPm+34Ol7FOt8tezKWc1s6G6WCLxEo84glBf4gAWKhf
-KaVC35hyoh1tibIeUZR4QfXYKn+UVxu6lMeEwJaC8+yMhuMjq0SLXBHkAUwsLCiN
-q3/Unq+bsuNgup5HnIJ6aAOZfbYj047leZF/cnfqup3epSxcZDsU/1lVj+I19rL3
-pTYeZ6WECWwhmxHj0rjEf3mgeqCaMwW8XCsRKDoDTOd/sTcvWsAooC53h2ygYe2b
-tS9zeeNW9uIlZSmtR1yNBgr59PP1ykf0zp9jGOY0r8u/oP6HG5h/bAjLMN58dXwt
-WWLYYJgj3mrXA2EtXoSKQnDNmJl7tLOJu3oxMpQfBbKlrCECgyvxp54xSQpUd+yB
-0kT8QEY/wQXCLjlLJWuPWqHkHw+YNCTap//XQYEfPyubucT27Zxa8wz4vhmkjWdH
-Cp1VEWD2O5sWpfwdyS7w54GgAOfkNyuF+FWus8zd7PN1hMxNKui2Tw8n4glmC2Ql
-LljlBN9YZUvz9ETmJTFuGFGLnX3PZO/zWeF7JkXbEDjYV4tAlKYo0pW8SeTSnY6v
-M3I3C6h4TFKDYmctFDbEJnZl8NBmBImV3Zhh+eRohrhimEtscvyoYAiFXtK3tgWN
-ojVKmnuVliAHBulFgZbj
-=wjr2
------END PGP SIGNATURE-----
-
---McpcKDxJRrEJVmOH--
-
-
---===============0980446090809621484==
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-
-_______________________________________________
-linux-arm-kernel mailing list
-linux-arm-kernel@lists.infradead.org
-http://lists.infradead.org/mailman/listinfo/linux-arm-kernel
-
---===============0980446090809621484==--
+-- 
+imalone
+http://ibmalone.blogspot.co.uk
