@@ -1,65 +1,46 @@
-From: Lan Tianyu <lantianyu1986@gmail.com>
-Subject: Re: kernels 3.9.5 to 3.10.6 fail to boot on battery, vaio vgn-c2m/w
-Date: Sun, 18 Aug 2013 13:54:03 +0800
-Message-ID: <CAOLK0pxpsRWR+oiQjLSpbPWefptZeEx76P+okTSLeYW1qGZ4Vw@mail.gmail.com>
-References: <CAL3-7MrW0p-YuJBpiguoG7f0j7vgyJALhdSnh81uRM_5TR50Xg@mail.gmail.com>
+From: Tang Chen <tangchen@cn.fujitsu.com>
+Subject: Re: [PATCH part5 0/7] Arrange hotpluggable memory as ZONE_MOVABLE.
+Date: Mon, 19 Aug 2013 11:07:18 +0800
+Message-ID: <52118BE6.8060903@cn.fujitsu.com>
+References: <1375956979-31877-1-git-send-email-tangchen@cn.fujitsu.com> <20130812145016.GI15892@htj.dyndns.org> <5208FBBC.2080304@zytor.com> <20130812152343.GK15892@htj.dyndns.org> <52090D7F.6060600@gmail.com> <20130812164650.GN15892@htj.dyndns.org> <5209CEC1.8070908@cn.fujitsu.com> <520A02DE.1010908@cn.fujitsu.com> <CAE9FiQV2-OOvHZtPYSYNZz+DfhvL0e+h2HjMSW3DyqeXXvdJkA@mail.gmail.com> <520ADBBA.10501@cn.fujitsu.com> <1376593564.10300.446.camel@misato.fc.hp.com> <CAE9FiQVeMHAqZETP3d1PsPMk9-ZOXD=BD5HaTGFFO3dZenR0CA@mail.gmail.com> <520D89A7.7060802@cn.fujitsu.com> <CAE9FiQX0cxa4+2vtFpuCbH+Tb2YsMZTRRUwynbf_ogF8LN6Smg@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-qe0-f42.google.com ([209.85.128.42]:34648 "EHLO
-	mail-qe0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751155Ab3HRFyF (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sun, 18 Aug 2013 01:54:05 -0400
-Received: by mail-qe0-f42.google.com with SMTP id w7so156654qeb.29
-        for <linux-acpi@vger.kernel.org>; Sat, 17 Aug 2013 22:54:04 -0700 (PDT)
-In-Reply-To: <CAL3-7MrW0p-YuJBpiguoG7f0j7vgyJALhdSnh81uRM_5TR50Xg@mail.gmail.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <owner-linux-mm@kvack.org>
+In-Reply-To: <CAE9FiQX0cxa4+2vtFpuCbH+Tb2YsMZTRRUwynbf_ogF8LN6Smg@mail.gmail.com>
+Sender: owner-linux-mm@kvack.org
+To: Yinghai Lu <yinghai@kernel.org>
+Cc: "H. Peter Anvin" <hpa@zytor.com>, Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>, Toshi Kani <toshi.kani@hp.com>, Tejun Heo <tj@kernel.org>, Tang Chen <imtangchen@gmail.com>, Bob Moore <robert.moore@intel.com>, Lv Zheng <lv.zheng@intel.com>, "Rafael J. Wysocki" <rjw@sisk.pl>, Len Brown <lenb@kernel.org>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@elte.hu>, Andrew Morton <akpm@linux-foundation.org>, Thomas Renninger <trenn@suse.de>, Jiang Liu <jiang.liu@huawei.com>, Wen Congyang <wency@cn.fujitsu.com>, Lai Jiangshan <laijs@cn.fujitsu.com>, Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>, Taku Izumi <izumi.taku@jp.fujitsu.com>, Mel Gorman <mgorman@suse.de>, Minchan Kim <minchan@kernel.org>, "mina86@mina86.com" <mina86@mina86.com>, gong.chen@linux.intel.com
 List-Id: linux-acpi@vger.kernel.org
-To: Ian Malone <ibmalone@gmail.com>
-Cc: "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
 
-2013/8/18 Ian Malone <ibmalone@gmail.com>:
-> Hi,
+On 08/16/2013 12:21 PM, Yinghai Lu wrote:
+......
+>> By "put acpi_initrd_override in BRK", do you mean increase the BRK by
+>> default ?
 >
-> Posted in Fedora bugzilla, but has failed to get any love there,
-> https://bugzilla.redhat.com/show_bug.cgi?id=991708
+> Peter,
 >
-> My laptop (Sony vgn-c2m/w
-> http://www.sony.co.uk/support/en/product/VGN-C2M_W/specifications
-> Intel Core 2 Duo T5500,  Intel 945GM, GMA950 graphics), fails to boot
-> on the most recent Fedora 19 kernels (latest is 3.10.6) when running
-> on battery. Running on PSU boots okay, and disconnecting power after
-> boot is okay. Using acpi=off boots successfully on battery (which is
-> why I thought it might be relevant here), but can't then read battery
-> level or adjust screen brightness.
+> Do you agree on extending BRK 256k to put copied override acpi tables?
 >
-> lspci output and dmesg reports included in the Fedora bugzilla entry above.
->
-> Anything I can try here?
+> then we can find and copy them early in
+> arch/x86/kernel/head64.c::x86_64_start_kernel() or
+> arch/x86/kernel/head_32.S.
 
-Hi:
-       Could you apply a bug on the kernel bugzilla with the output of acpidump
-and the log of boot failure if possible?
-       http://bugzilla.kernel.org/
+Hi Yinghai,
 
->
-> Thanks for your time.
->
-> --
-> imalone
-> http://ibmalone.blogspot.co.uk
->
->
-> --
-> imalone
-> http://ibmalone.blogspot.co.uk
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+If we use BRK to store acpi tables, we don't need to setup page tables.
+If we do acpi_initrd_override() in setup_arch(), after early_ioremap is
+available, we don't need to split it into find & copy. It would be much
+easier.
+
+Can you agree on doing acpi_initrd_override() in setup_arch() ?  Is it
+too late for xen ?
+
+Thanks.
 
 
-
--- 
-Best regards
-Tianyu Lan
+--
+To unsubscribe, send a message with 'unsubscribe linux-mm' in
+the body to majordomo@kvack.org.  For more info on Linux MM,
+see: http://www.linux-mm.org/ .
+Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
