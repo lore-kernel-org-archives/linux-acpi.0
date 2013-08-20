@@ -1,99 +1,144 @@
-From: Wolfram Sang <wsa@the-dreams.de>
-Subject: Re: [PATCH] i2c: move of helpers into the core
-Date: Tue, 20 Aug 2013 16:30:43 +0200
-Message-ID: <20130820143043.GA2993@katana>
-References: <1376918361-7014-1-git-send-email-wsa@the-dreams.de>
- <3792014.HtzPVmLjnf@vostro.rjw.lan>
- <5212A293.2030903@wwwdotorg.org>
- <3721030.UJAkTdQrEC@vostro.rjw.lan>
- <20130820092813.GW4898@intel.com>
+From: Matthew Garrett <mjg59@srcf.ucam.org>
+Subject: ACPI vs Device Tree - moving forward
+Date: Tue, 20 Aug 2013 20:26:50 +0100
+Message-ID: <20130820192650.GA19470@srcf.ucam.org>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="envbJBWh7q8WU6mo"
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from sauhun.de ([89.238.76.85]:39952 "EHLO pokefinder.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750923Ab3HTOat (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 20 Aug 2013 10:30:49 -0400
+Received: from cavan.codon.org.uk ([93.93.128.6]:40503 "EHLO
+	cavan.codon.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750994Ab3HTT04 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 20 Aug 2013 15:26:56 -0400
 Content-Disposition: inline
-In-Reply-To: <20130820092813.GW4898@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Mika Westerberg <mika.westerberg@linux.intel.com>
-Cc: "Rafael J. Wysocki" <rjw@sisk.pl>, Stephen Warren <swarren@wwwdotorg.org>, linux-i2c@vger.kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Jerry Snitselaar <jerry.snitselaar@oracle.com>
+To: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
+Cc: linux@roeck-us.net, dvhart@linux.intel.com, hpa@zytor.com, linus.walleij@linaro.org, rjw@sisk.pl
 
+This conversation seems to have pretty much entirely ended up happening 
+on ksummit-discuss, which doesn't seem that useful. So let's have 
+another go with a wider audience (and where I don't have to sign up for 
+yet another mailing list...)
 
---envbJBWh7q8WU6mo
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+ACPI and DT overlap in that they both provide a mechanism for 
+enumerating non-enumerable devices, and both also provide a mechanism 
+for attaching additional configuration data to devices (which may or may 
+not be otherwise enumerable). There's a sufficient overlap in 
+functionality that at least one platform that's traditionally been 
+Device Tree (arm) is also adding support for ACPI - there's even 
+ACPI-based arm hardware on the market already.
 
-On Tue, Aug 20, 2013 at 12:28:13PM +0300, Mika Westerberg wrote:
-> [Added Jerry as he found out a problem when acpi_i2c is being build as a
-> module, this should solve it as well.]
->=20
-> On Tue, Aug 20, 2013 at 01:25:27AM +0200, Rafael J. Wysocki wrote:
-> > On Monday, August 19, 2013 04:56:19 PM Stephen Warren wrote:
-> > > On 08/19/2013 05:04 PM, Rafael J. Wysocki wrote:
-> > > > On Monday, August 19, 2013 03:19:18 PM Wolfram Sang wrote:
-> > > >> I2C of helpers used to live in of_i2c.c but experience (from SPI) =
-shows
-> > > >> that it is much cleaner to have this in the core. This also remove=
-s a
-> > > >> circular dependency between the helpers and the core, and so we can
-> > > >> finally register child nodes in the core instead of doing this man=
-ually
-> > > >> in each driver. So, fix the drivers and documentation, too.
-> > > >=20
-> > > > Perhaps we should do the analogous for ACPI then?
->=20
-> Here is the ACPI version based on the current patch from Wolfram (there is
-> a compile error because of missing dummy implementation of
-> of_i2c_register_devices())
->=20
-> From: Mika Westerberg <mika.westerberg@linux.intel.com>
-> Subject: [PATCH] i2c: move ACPI helpers into the core
->=20
-> This follows what has already been done for the DeviceTree helpers. Move
-> the ACPI helpers from drivers/acpi/acpi_i2c.c to the I2C core and update
-> documentation accordingly.
->=20
-> This also solves a problem reported by Jerry Snitselaar that we can't bui=
-ld
-> the ACPI I2C helpers as a module.
->=20
-> Signed-off-by: Mika Westerberg <mika.westerberg@linux.intel.com>
+Right now that's a problem for us. The same hardware may end up shipped 
+with either ACPI or DT-based firmware, and at the moment we'd need to 
+either write two drivers or one driver with two glue layers. This is 
+somewhat suboptimal.
 
-Nice, one thing, though:
+The biggest difference between DT and ACPI is that DT is effectively a 
+somewhat structured mechanism for passing arbitrary data, while ACPI 
+tends (with exceptions) to provide standardised data. For instance, in 
+DT we might have:
 
->  	/* create pre-declared device nodes */
->  	of_i2c_register_devices(adap);
-> +	acpi_i2c_register_devices(adap);
+        sdhci@c8000000 {
+                status = "okay";
+                power-gpios = <&gpio TEGRA_GPIO(K, 6) GPIO_ACTIVE_HIGH>;
+                bus-width = <4>;
+                keep-power-in-suspend;
+        };
 
-I prefer the if (IS_ENABLED()) solution and will use this in my V2 as
-well.
+In ACPI the normal way to handle this would be to have a GPIO operation 
+region that listed the GPIOs:
 
+OperationRegion(GPO1, GeneralPurposeIO, 0, 1)
+Field(GP01, ByteAcc, NoLock, Preserve)
+{
+  Connection (GpioIo(Exclusive, PullUp,,,,,)
+  TG06, 1
+}
 
---envbJBWh7q8WU6mo
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
+And then an ACPI device:
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.12 (GNU/Linux)
+Device (\_SB.SDHC)
+{
+	Method (_PS0, 0, NotSerialized)
+	{
+		Store (1, TG06)
+	}
+	Method (_PS3, 0, NotSerialized)
+	{
+		Store (0, TG06)
+	}
+}
 
-iQIcBAEBAgAGBQJSE32TAAoJEBQN5MwUoCm2EYAP/0dkhCPPhe1WQe8ruo9GZv/M
-ie2yM4x2+IXNurZGc8JnxgtBH9D2I39ZEatRsBFJy6ISOCNqb5okdEMPmbAL37gk
-iOUZH3KUqvlgaADNd/sQHH13xlZzi/0Rjb8695QhMGwSqljZFEoMw8BpvKc5wQtG
-d1n4t56XDPjtYCbc5pStllBQiqKiu69eqjg7QjZVD+ZgUMbjTebuqsRcAxi0JLO7
-Ieb69s4B4OlgYjgal4zyFX2v/JIJkI5f8KKxNr4DA6JzHR1lDKqmxMRlWGDCcr8O
-JukFzU+f3hqfIcDaQcvfjdGflk3/ekroR9F2GPLFvPN4YRUb3SY5O65KoPzvfD4h
-Ovu0GBANclvhwOd7kGvrL3/nON0X9Bb5aFCa5cb1JxzU1XrMNya+OuGZosCAxKs5
-FEBQ67x+4BJgy5ITBnJgu7AC9E+JPMvtehGwPOHdTlkR7fxrC9Pf7ItA+vDaaNbx
-G/HvV51hLhj2iI3rWwu31ijcX0T++IbtgHAL1UVHNuu64wQtrUOeVz7zPsGNf0BG
-cw0ZQDr+QKbWlUeWqd0neMz4+zXFpUJoD+zHhrg8fX32c9dTVjYA/rAnIypk9aoU
-1+9JnGj9y6gu1CNA7YC2vKGCBBCJqk6bFtbwRFuQZSfNkbKl92H5S/kt64QBvi4M
-CxBJ76FB8B0RW9r8kUn7
-=vcrl
------END PGP SIGNATURE-----
+with the ACPI core then executing these methods whenever a device is 
+powered up or down.
 
---envbJBWh7q8WU6mo--
+How can we unify these two different representations? The only terribly 
+plausible way of doing so seems to be to push that out to a helper 
+function and then have it handled as part of device runtime power 
+management, and just have the driver make pm_runtime_get() and _put() 
+calls.
+
+So we can theoretically handle cases like power lines without /too/ much 
+trouble, while representing the same thing in either ACPI or DT. But we 
+have plenty of other data - in the case of SDHCI alone, there's the bus 
+width and potentially card detect and write protect gpio lines. These 
+can easily be represented in ACPI, but not in a terribly generic way. We 
+could easily add new functions to retrieve this information, but doing 
+this through the standards body is likely to prove tedious, especially 
+when new hardware types appear and we want to be able to ship support 
+pretty much immediately.
+
+The other choice is to ignore most of the existing ACPI functionality 
+and just use it as a mechanism for providing additional metadata. Apple 
+already do this using the _DSM methods:
+
+Method (_DSM, 4, NotSerialized)
+{
+	Store (Package (0x07)
+        {
+        	"refnum", 
+                0x00, 
+		"address",
+		0x39,
+		"device-id",
+		0x0cc8,
+                Buffer (0x01)
+                {
+                	0x00
+                }
+        }, Local0)
+        DTGP (Arg0, Arg1, Arg2, Arg3, RefOf (Local0))
+        Return (Local0)
+}
+
+where the DTGP() method verifies that the caller passed in an 
+appropriate UUID and then hands back this buffer.
+
+Putting all our existing DT metadata in there would be straightforward, 
+but we would then effectively just be using ACPI to repackage DT - 
+drivers would continue to make DT-specific calls in order to obtain the 
+information they need.
+
+This seems like the least-effort approach, but it doesn't really solve 
+much. Any other OS on the same hardware is unlikely to use the DT data, 
+and if someone wants to run Linux on hardware that was intended for 
+another OS they're unlikely to have any DT data to use.
+
+So while unifying this seems hugely desirable, right now it's not 
+incredibly obvious how we can actually achieve that. In some cases it's 
+easy to take DT information and rewrite it the ACPI way, but in others 
+we just don't seem to have the primitives we need for that. One approach 
+would be to work through the existing DT bindings documentation and see 
+what's missing from ACPI and work on adding it, but we'll still then 
+need helper functions that are able to obtain the same information from 
+either source.
+
+In any case, it seems like this is something that should be discussed. A 
+bunch of people in the earlier discussion mentioned that they were going 
+to be in New Orleans, so I'd suggest that we arrange a time for 
+in-person discussion there. That should give us a solid basis for 
+further mailing list discussion, and then there'll be another 
+opportunity for discussion in Edinburgh.
+
+-- 
+Matthew Garrett | mjg59@srcf.ucam.org
