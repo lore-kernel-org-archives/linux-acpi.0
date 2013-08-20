@@ -1,42 +1,83 @@
-From: Tang Chen <tangchen@cn.fujitsu.com>
-Subject: Re: [PATCH 6/6] acpi: Return -ENOENT in acpi_table_parse() and fix
- wrong comment.
-Date: Tue, 20 Aug 2013 09:19:34 +0800
-Message-ID: <5212C426.7020006@cn.fujitsu.com>
-References: <1376636809-10159-1-git-send-email-tangchen@cn.fujitsu.com>  <1376636809-10159-7-git-send-email-tangchen@cn.fujitsu.com> <1376940579.10300.474.camel@misato.fc.hp.com>
+From: Jerry Snitselaar <jerry.snitselaar@oracle.com>
+Subject: Re: [PATCH] acpi_i2c: set MODULE_LICENSE, MODULE_AUTHOR, and
+ MODULE_DESCRIPTION
+Date: Mon, 19 Aug 2013 20:34:03 -0700
+Message-ID: <20130820033403.GD4587@cantor.us.oracle.com>
+References: <1376702795-25912-1-git-send-email-jerry.snitselaar@oracle.com>
+ <2870377.GVGv4QBgQK@vostro.rjw.lan>
+ <20130819233528.GA4587@cantor.us.oracle.com>
+ <1838503.PYpZe7GJ51@vostro.rjw.lan>
+Reply-To: Jerry Snitselaar <jerry.snitselaar@oracle.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cn.fujitsu.com ([222.73.24.84]:28606 "EHLO song.cn.fujitsu.com"
-	rhost-flags-OK-FAIL-OK-OK) by vger.kernel.org with ESMTP
-	id S1751326Ab3HTBUx (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 19 Aug 2013 21:20:53 -0400
-In-Reply-To: <1376940579.10300.474.camel@misato.fc.hp.com>
+Received: from userp1040.oracle.com ([156.151.31.81]:43892 "EHLO
+	userp1040.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751757Ab3HTDeP (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 19 Aug 2013 23:34:15 -0400
+Content-Disposition: inline
+In-Reply-To: <1838503.PYpZe7GJ51@vostro.rjw.lan>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Toshi Kani <toshi.kani@hp.com>
-Cc: tglx@linutronix.de, mingo@redhat.com, hpa@zytor.com, lenb@kernel.org, rjw@sisk.pl, liwanp@linux.vnet.ibm.com, tj@kernel.org, akpm@linux-foundation.org, x86@kernel.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: Mika Westerberg <mika.westerberg@linux.intel.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
 
-On 08/20/2013 03:29 AM, Toshi Kani wrote:
-> On Fri, 2013-08-16 at 15:06 +0800, Tang Chen wrote:
->> The comment about return value of acpi_table_parse() is incorrect.
->> This patch fix it.
->>
->> Furthermore, if the table is not found, return 1 means nothing, and
->> make it difficult to write the comment. So return -ENOENT when the
->> table is not found, and correct the comment.
->
-> I am OK with the change, but the above description is not very clear.
-> You should state that all callers only check if the function succeeded
-> or not.  So, you are simplifying the semantics by returning -errno for
-> all failure cases.
->
-> Since you are making this change, I'd suggest you also update the stub
-> function in linux/acpi.h to return -ENODEV as well.
+On Tue Aug 20 13, Rafael J. Wysocki wrote:
+> On Monday, August 19, 2013 04:35:29 PM Jerry Snitselaar wrote:
+> > On Tue Aug 20 13, Rafael J. Wysocki wrote:
+> > > On Monday, August 19, 2013 09:16:14 AM Mika Westerberg wrote:
+> > > > On Fri, Aug 16, 2013 at 06:26:35PM -0700, Jerry Snitselaar wrote:
+> > > > > Without MODULE_LICENSE set, I get the following with modprobe:
+> > > > > 
+> > > > > acpi_i2c: module license 'unspecified' taints kernel.
+> > > > > acpi_i2c: Unknown symbol i2c_new_device (err 0)
+> > > > > acpi_i2c: Unknown symbol acpi_dev_get_resources (err 0)
+> > > > > acpi_i2c: Unknown symbol acpi_dev_resource_interrupt (err 0)
+> > > > > acpi_i2c: Unknown symbol acpi_dev_free_resource_list (err 0)
+> > > > > 
+> > > > > Signed-off-by: Jerry Snitselaar <jerry.snitselaar@oracle.com>
+> > > > 
+> > > > Looks good to me.
+> > > > 
+> > > > Acked-by: Mika Westerbeg <mika.westerberg@linux.intel.com>
+> > > 
+> > > Well, OK, but do we need to be able to build that as a module?
+> > > 
+> > > Maybe it should just be yes or no?
+> > > 
+> > > Rafael
+> > > 
+> > 
+> > Perhaps have depends on I2C=y and be a bool instead of tristate?
+> 
+> Yes, that's the idea.
+> 
+Does this look okay Mika?
 
-OK, followed. And will merge patch 3 and 4 and resend them later.
+[PATCH] acpi_i2c: do not build as loadable module
 
-Thanks for reviewing.
+Change from tristate to bool, and depend on I2C=y
 
+Signed-off-by: Jerry Snitselaar <jerry.snitselaar@oracle.com>
+---
+ drivers/acpi/Kconfig | 5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
 
+diff --git a/drivers/acpi/Kconfig b/drivers/acpi/Kconfig
+index 100bd72..183a309 100644
+--- a/drivers/acpi/Kconfig
++++ b/drivers/acpi/Kconfig
+@@ -181,8 +181,9 @@ config ACPI_DOCK
+          drive bays such as the IBM Ultrabay and the Dell Module Bay.
+ 
+ config ACPI_I2C
+-       def_tristate I2C
+-       depends on I2C
++       bool "I2C"
++       depends on I2C=y
++       default n
+        help
+          ACPI I2C enumeration support.
+ 
+-- 
+1.8.4.rc3.2.g2c2b664
