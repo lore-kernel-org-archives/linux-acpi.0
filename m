@@ -1,23 +1,25 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
+From: Darren Hart <dvhart@linux.intel.com>
 Subject: Re: ACPI vs Device Tree - moving forward
-Date: Tue, 20 Aug 2013 23:13:44 +0200
-Message-ID: <24185074.ohppXxCEri@vostro.rjw.lan>
-References: <20130820192650.GA19470@srcf.ucam.org> <1377031863.1758.10.camel@dvhart-mobl4.amr.corp.intel.com> <20130820205712.GA22850@srcf.ucam.org>
+Date: Tue, 20 Aug 2013 14:03:20 -0700
+Message-ID: <1377032600.1758.12.camel@dvhart-mobl4.amr.corp.intel.com>
+References: <20130820192650.GA19470@srcf.ucam.org>
+	 <1377031863.1758.10.camel@dvhart-mobl4.amr.corp.intel.com>
+	 <20130820205712.GA22850@srcf.ucam.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from hydra.sisk.pl ([212.160.235.94]:52045 "EHLO hydra.sisk.pl"
+Received: from mga09.intel.com ([134.134.136.24]:64066 "EHLO mga09.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751236Ab3HTVDJ (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 20 Aug 2013 17:03:09 -0400
+	id S1751637Ab3HTVDr (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 20 Aug 2013 17:03:47 -0400
 In-Reply-To: <20130820205712.GA22850@srcf.ucam.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: Matthew Garrett <mjg59@srcf.ucam.org>
-Cc: Darren Hart <dvhart@linux.intel.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, linux@roeck-us.net, hpa@zytor.com, linus.walleij@linaro.org
+Cc: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, linux@roeck-us.net, hpa@zytor.com, linus.walleij@linaro.org, rjw@sisk.pl
 
-On Tuesday, August 20, 2013 09:57:13 PM Matthew Garrett wrote:
+On Tue, 2013-08-20 at 21:57 +0100, Matthew Garrett wrote:
 > On Tue, Aug 20, 2013 at 01:51:03PM -0700, Darren Hart wrote:
 > 
 > > It seems to me that the only way to end up in a situation where the data
@@ -31,7 +33,9 @@ On Tuesday, August 20, 2013 09:57:13 PM Matthew Garrett wrote:
 > a _PS0 method (which is ACPI for "Power up the device") that toggles a 
 > GPIO pin, and then provides a different GPIO pin in the DT data, which 
 > would we believe?
-> 
+
+Right, understood.
+
 > > The interesting thing about this to me is that many of these devices are
 > > added after-the-fact (as add-on boards, for example). With the
 > > MinnowBoard we are looking to provide this configuration data in an
@@ -44,6 +48,11 @@ On Tuesday, August 20, 2013 09:57:13 PM Matthew Garrett wrote:
 > UEFI systems - you just need a UEFI driver for the board that can 
 > construct an appropriate SSDT. It's more of a problem for non-UEFI ACPI 
 > systems.
+
+For development, those could pass the SSDT in via the initramfs
+mechanism for Linux, but clearly a more integral solution would be
+preferred.
+
 > 
 > > Sadly, I will not be in New Orleans and am unlikely to receive a Kernel
 > > Summit invite, but I am planning be in Edinburgh and would like the
@@ -51,10 +60,14 @@ On Tuesday, August 20, 2013 09:57:13 PM Matthew Garrett wrote:
 > 
 > I'm not planning on being at kernel summit this year, so I think we'll 
 > try to arrange something around that time but outside the event.
+> 
 
-Well, I'm attending the KS, however, so I'd prefer them not to conflict
-with each other if possible.
+Works for me :-) Please keep me on the list for that. That will become
+my primary motivator for going.
 
-Thanks,
-Rafael
+-- 
+Darren Hart
+Intel Open Source Technology Center
+Yocto Project - Linux Kernel
+
 
