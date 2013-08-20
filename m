@@ -1,48 +1,38 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: [PATCH] acpi_i2c: set MODULE_LICENSE, MODULE_AUTHOR, and MODULE_DESCRIPTION
-Date: Tue, 20 Aug 2013 01:48:44 +0200
-Message-ID: <1838503.PYpZe7GJ51@vostro.rjw.lan>
-References: <1376702795-25912-1-git-send-email-jerry.snitselaar@oracle.com> <2870377.GVGv4QBgQK@vostro.rjw.lan> <20130819233528.GA4587@cantor.us.oracle.com>
+From: Tang Chen <tangchen@cn.fujitsu.com>
+Subject: Re: [PATCH 0/3] Preparation for arranging hotplug memory in ZONE_MOVABLE.
+Date: Tue, 20 Aug 2013 09:07:58 +0800
+Message-ID: <5212C16E.2040105@cn.fujitsu.com>
+References: <1376473028-29380-1-git-send-email-tangchen@cn.fujitsu.com> <15319045.yHqauUVrf3@vostro.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7Bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from hydra.sisk.pl ([212.160.235.94]:50431 "EHLO hydra.sisk.pl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751229Ab3HSXiL (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 19 Aug 2013 19:38:11 -0400
-In-Reply-To: <20130819233528.GA4587@cantor.us.oracle.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <15319045.yHqauUVrf3@vostro.rjw.lan>
+Sender: linux-kernel-owner@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: tglx@linutronix.de, mingo@redhat.com, hpa@zytor.com, akpm@linux-foundation.org, liwanp@linux.vnet.ibm.com, tj@kernel.org, zhangyanfei@cn.fujitsu.com, lenb@kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Jerry Snitselaar <jerry.snitselaar@oracle.com>
-Cc: Mika Westerberg <mika.westerberg@linux.intel.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
 
-On Monday, August 19, 2013 04:35:29 PM Jerry Snitselaar wrote:
-> On Tue Aug 20 13, Rafael J. Wysocki wrote:
-> > On Monday, August 19, 2013 09:16:14 AM Mika Westerberg wrote:
-> > > On Fri, Aug 16, 2013 at 06:26:35PM -0700, Jerry Snitselaar wrote:
-> > > > Without MODULE_LICENSE set, I get the following with modprobe:
-> > > > 
-> > > > acpi_i2c: module license 'unspecified' taints kernel.
-> > > > acpi_i2c: Unknown symbol i2c_new_device (err 0)
-> > > > acpi_i2c: Unknown symbol acpi_dev_get_resources (err 0)
-> > > > acpi_i2c: Unknown symbol acpi_dev_resource_interrupt (err 0)
-> > > > acpi_i2c: Unknown symbol acpi_dev_free_resource_list (err 0)
-> > > > 
-> > > > Signed-off-by: Jerry Snitselaar <jerry.snitselaar@oracle.com>
-> > > 
-> > > Looks good to me.
-> > > 
-> > > Acked-by: Mika Westerbeg <mika.westerberg@linux.intel.com>
-> > 
-> > Well, OK, but do we need to be able to build that as a module?
-> > 
-> > Maybe it should just be yes or no?
-> > 
-> > Rafael
-> > 
-> 
-> Perhaps have depends on I2C=y and be a bool instead of tristate?
+On 08/20/2013 07:40 AM, Rafael J. Wysocki wrote:
+> On Wednesday, August 14, 2013 05:37:05 PM Tang Chen wrote:
+>> These three trivial patches are from patch-set "Arrange hotpluggable memory as ZONE_MOVABLE."
+>> And they have been acked and reviewed by many people.
+>>
+>> Hope they can be merged first. And the rest patches are coming soon.
+>>
+>>
+>> Tang Chen (3):
+>>    acpi: Print Hot-Pluggable Field in SRAT.
+>>    earlycpio.c: Fix the confusing comment of find_cpio_data().
+>>    acpi: Kill macro INVALID_TABLE().
+>>
+>>   arch/x86/mm/srat.c |   11 +++++++----
+>>   drivers/acpi/osl.c |   36 ++++++++++++++++++++----------------
+>>   lib/earlycpio.c    |   27 ++++++++++++++-------------
+>>   3 files changed, 41 insertions(+), 33 deletions(-)
+>
+> I've queued up this series for 3.12.
 
-Yes, that's the idea.
+Hi Rafael,
 
+Thanks a lot. :)
