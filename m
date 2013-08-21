@@ -1,90 +1,126 @@
-From: Tejun Heo <tj@kernel.org>
-Subject: Re: [PATCH 0/8] x86, acpi: Move acpi_initrd_override() earlier.
-Date: Wed, 21 Aug 2013 11:36:39 -0400
-Message-ID: <20130821153639.GA17432@htj.dyndns.org>
-References: <1377080143-28455-1-git-send-email-tangchen@cn.fujitsu.com>
- <20130821130647.GB19286@mtj.dyndns.org>
- <5214D60A.2090309@gmail.com>
+From: Linus Walleij <linus.walleij@linaro.org>
+Subject: Re: ACPI vs Device Tree - moving forward
+Date: Wed, 21 Aug 2013 17:57:07 +0200
+Message-ID: <CACRpkdaVz28gn-keUC4tTX+bdTKEV2ZrdHxshG=K3oM_NhvroA@mail.gmail.com>
+References: <20130820192650.GA19470@srcf.ucam.org>
+	<2276651.WHL3SkvOZi@vostro.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-doc-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <5214D60A.2090309@gmail.com>
-Sender: linux-doc-owner@vger.kernel.org
-To: Zhang Yanfei <zhangyanfei.yes@gmail.com>
-Cc: Tang Chen <tangchen@cn.fujitsu.com>, konrad.wilk@oracle.com, robert.moore@intel.com, lv.zheng@intel.com, rjw@sisk.pl, lenb@kernel.org, tglx@linutronix.de, mingo@elte.hu, hpa@zytor.com, akpm@linux-foundation.org, trenn@suse.de, yinghai@kernel.org, jiang.liu@huawei.com, wency@cn.fujitsu.com, laijs@cn.fujitsu.com, isimatu.yasuaki@jp.fujitsu.com, izumi.taku@jp.fujitsu.com, mgorman@suse.de, minchan@kernel.org, mina86@mina86.com, gong.chen@linux.intel.com, vasilis.liaskovitis@profitbricks.com, lwoodman@redhat.com, riel@redhat.com, jweiner@redhat.com, prarit@redhat.com, zhangyanfei@cn.fujitsu.com, yanghy@cn.fujitsu.com, x86@kernel.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-mm@kvack.org, linux-acpi@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <2276651.WHL3SkvOZi@vostro.rjw.lan>
+Sender: linux-kernel-owner@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: Matthew Garrett <mjg59@srcf.ucam.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Guenter Roeck <linux@roeck-us.net>, Darren Hart <dvhart@linux.intel.com>, "H. Peter Anvin" <hpa@zytor.com>
 List-Id: linux-acpi@vger.kernel.org
 
-Hello,
+On Tue, Aug 20, 2013 at 11:11 PM, Rafael J. Wysocki <rjw@sisk.pl> wrote:
 
-On Wed, Aug 21, 2013 at 11:00:26PM +0800, Zhang Yanfei wrote:
-> In current boot order, before we get the SRAT, we have a big consumer of early
-> allocations: we are setting up the page table in top-down (The idea was proposed by HPA,
-> Link: https://lkml.org/lkml/2012/10/4/701). That said, this kind of page table
-> setup will make the page tables as high as possible in memory, since memory at low 
-> addresses is precious (for stupid DMA devices, for things like  kexec/kdump, and so on.)
+> There's one more problematic case which is that some systems ship with ACPI
+> tables that don't contain all of the information necessary to enumerate
+> hardware appropriately and it's difficult, if not impossible, to convince
+> the vendors of those systems to fix their ACPI firmware after the fact.
+> However, at least in some cases there are well defined DT bindings for the
+> hardware in question.
 
-With huge mappings, they are fairly small, right?  And this whole
-thing needs a kernel param anyway at this point, so the allocation
-direction can be made dependent on that or huge mapping availability
-and, even with 4k mappings, we aren't talking about gigabytes of
-memory, are we?
+I think this works as far as the hardware can be described in a simple
+way.
 
-> So if we are trying to make early allocations close to kernel image, we should
-> rewrite the way we are setting up page table totally. That is not a easy thing
-> to do.
+When the hardware is complex, the problem of interoperating with ACPI
+becomes complex, because when it comes to interrupts and other
+resources, it seems to me that both ACPI and DT wants to be in
+the driver seat and there is only place for one.
 
-It has been a while since I looked at the code so can you please
-elaborate why that is not easy?  It's pretty simple conceptually.
+Let me copy this example again for this wider discusson
+(OK Rafael has seen it before, so you can skip the rest):
 
-> * For memory hotplug, we need ACPI SRAT at early time to be aware of which memory
->   ranges are hotpluggable, and tell the kernel to try to stay away from hotpluggable
->   nodes.
-> 
-> This one is the current requirement of us but may be very helpful for future change:
-> 
-> * As suggested by Yinghai, we should allocate page tables in local node. This also
->   needs SRAT before direct mapping page tables are setup.
+Here is an example:
+drivers/gpio/gpio-stmpe.c
 
-Does this even matter for huge mappings?
+This is a generic multi-purpose-expander, it can be used on any
+system, be it ARM, blackfin or x86 embedded. You connect this
+to an I2C port and then there is an IRQ line that you will need to
+connect to a dedicated IRQ in pin or a GPIO line configured to take
+an IRQ in. Since it contains a GPIO expander and a keypad driver
+those two aspects get configured.
 
-> * As mentioned by Toshi Kani <toshi.kani@hp.com>, ACPI SCPR/DBGP/DBG2 tables
->   allow the OS to initialize serial console/debug ports at early boot time. The
->   earlier it can be initialized, the better this feature will be.  These tables
->   are not currently used by Linux due to a licensing issue, but it could be
->   addressed some time soon.
-> 
-> So we decided to firstly make ACPI override earlier and use BRK (this is obviously
-> near the kernel image range) to store the found ACPI tables.
+It looks like this in an I2C controller node
+(condensed from arch/arm/boot/dts/href.dtsi and more)
 
-I don't know.  The whole effort seems way overcomplicated compared to
-the benefits it would bring.  For NUMA memory hotunplug, what's the
-point of doing all this when the kernel doesn't have any control over
-where its image is gonna be?  Some megabytes at the tail aren't gonna
-make a huge difference and if you wanna do this properly, you need to
-determine the load address of the kernel considering the node
-boundaries and hotpluggability of each node, which has to happen
-before the early kernel boot code executes.  And if there's a code
-piece which does that, that might as well place the kernel image such
-that extra allocation afterwards doesn't interfere with memory
-hotunplugging.
+i2c@80004000 {
+        stmpe1601: stmpe1601@40 {
+                compatible = "st,stmpe1601";
+                reg = <0x40>;
+                interrupts = <26 IRQ_TYPE_EDGE_FALLING>;
+                interrupt-parent = <&gpio6>;
+                interrupt-controller;
 
-It looks like a lot of code changes for a mechanism which doesn't seem
-all that useful.  This code is already too late in boot sequence to be
-a proper solution so I don't see the point in pushing the coverage to
-the maximum from here.  It's kinda silly.
+                wakeup-source;
+                st,autosleep-timeout = <1024>;
 
-The last point - early init of debug facility - makes some sense but
-again how extra coverage are we talking about?  The code path between
-the two points is fairly short and the change doesn't come free.  It
-means we add more fragile firmware-specific code path before the
-execution environment is stable and get to do things like traveling
-the same code paths multiple times in different environments.  Doesn't
-seem like a win.  We want to reach stable execution environment as
-soon as possible.  Shoving whole more logic before that in the name of
-"earlier debugging" doesn't make a lot of sense.
+                stmpe_keypad {
+                        compatible = "st,stmpe-keypad";
 
-Thanks.
+                        debounce-interval = <64>;
+                        st,scan-count = <8>;
+                        st,no-autorepeat;
 
--- 
-tejun
+                        linux,keymap = <0x205006b
+                                        0x4010074
+                                        0x3050072
+                                        0x1030004
+                                        0x502006a
+                                        0x500000a
+                                        0x5008b
+                                        0x706001c
+                                        0x405000b
+                                        0x6070003
+                                        0x3040067
+                                        0x303006c
+                                        0x60400e7
+                                        0x602009e
+                                        0x4020073
+                                        0x5050002
+                                        0x4030069
+                                        0x3020008>;
+                };
+         };
+};
+
+As you can some stuff is nice to get for free: the keymap
+parser, scan settings, debounce, and so on. But then we run
+into these problems:
+
+- The I2C address is specified in "reg" - maybe ACPI have
+  some other way to assign I2C addresses to I2C devices?
+  In any case, it *must* reference the parent I2C controller,
+  here that is done implicitly by placing this DT node inside
+  the I2C controllers DT node.
+
+- Then it is using a GPIO line as interrupt, and specify that
+  this shall be configured as a falling edge IRQ.
+
+- It then tells the interrupt controller parent. So it needs
+  to have a reference to whatever interrupt chip device
+  will handle that IRQ.
+
+- Further it *is* an interrupt controller, so devices connected
+  to the GPIO lines may generate IRQs and then this
+  device should service them. Is it possible that the devices
+  connected to this expander in turn use ACPI to describe
+  themselves? Then we need a reference in the other
+  direction.
+
+- Further it is a wakeup source, so each IRQ it provides
+  on its GPIO lines can be set as a wakeup. I wonder how
+  this plays with D-states and ACPI.
+
+-------
+
+I did present the above as an extreme example, but if we
+start to combine DT and ACPI we have to have that kind of
+hardware in mind. GPIO expanders with IRQs and all are
+maybe rare on desktops and laptops but very common on
+embedded systems.
+
+Yours,
+Linus Walleij
