@@ -1,69 +1,60 @@
-From: Mika Westerberg <mika.westerberg@linux.intel.com>
-Subject: Re: [PATCH] i2c: move of helpers into the core
-Date: Wed, 21 Aug 2013 10:54:18 +0300
-Message-ID: <20130821075417.GC4898@intel.com>
-References: <1376918361-7014-1-git-send-email-wsa@the-dreams.de>
- <3792014.HtzPVmLjnf@vostro.rjw.lan>
- <5212A293.2030903@wwwdotorg.org>
- <3721030.UJAkTdQrEC@vostro.rjw.lan>
- <20130820092813.GW4898@intel.com>
- <20130820143043.GA2993@katana>
+From: Catalin Marinas <catalin.marinas@arm.com>
+Subject: Re: kmemleak in apei_res_add
+Date: Wed, 21 Aug 2013 10:38:08 +0100
+Message-ID: <CAHkRjk4y06puTL_Gq5RbpoV+kpEp+k32z5aq3HpEu9u3qsS_Aw@mail.gmail.com>
+References: <20130812024556.GB29956@sanechka.spb.ru>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=KOI8-R
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga01.intel.com ([192.55.52.88]:37892 "EHLO mga01.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752171Ab3HUHsu (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 21 Aug 2013 03:48:50 -0400
-Content-Disposition: inline
-In-Reply-To: <20130820143043.GA2993@katana>
+Received: from mail-pb0-f53.google.com ([209.85.160.53]:63375 "EHLO
+	mail-pb0-f53.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751422Ab3HUJi3 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 21 Aug 2013 05:38:29 -0400
+In-Reply-To: <20130812024556.GB29956@sanechka.spb.ru>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Wolfram Sang <wsa@the-dreams.de>
-Cc: "Rafael J. Wysocki" <rjw@sisk.pl>, Stephen Warren <swarren@wwwdotorg.org>, linux-i2c@vger.kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Jerry Snitselaar <jerry.snitselaar@oracle.com>
+To: "Alexandra N. Kossovsky" <Alexandra.Kossovsky@oktetlabs.ru>
+Cc: Len Brown <lenb@kernel.org>, "Rafael J. Wysocki" <rjw@sisk.pl>, linux-acpi@vger.kernel.org, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Huang Ying <ying.huang@intel.com>
 
-On Tue, Aug 20, 2013 at 04:30:43PM +0200, Wolfram Sang wrote:
-> On Tue, Aug 20, 2013 at 12:28:13PM +0300, Mika Westerberg wrote:
-> > [Added Jerry as he found out a problem when acpi_i2c is being build as a
-> > module, this should solve it as well.]
-> > 
-> > On Tue, Aug 20, 2013 at 01:25:27AM +0200, Rafael J. Wysocki wrote:
-> > > On Monday, August 19, 2013 04:56:19 PM Stephen Warren wrote:
-> > > > On 08/19/2013 05:04 PM, Rafael J. Wysocki wrote:
-> > > > > On Monday, August 19, 2013 03:19:18 PM Wolfram Sang wrote:
-> > > > >> I2C of helpers used to live in of_i2c.c but experience (from SPI) shows
-> > > > >> that it is much cleaner to have this in the core. This also removes a
-> > > > >> circular dependency between the helpers and the core, and so we can
-> > > > >> finally register child nodes in the core instead of doing this manually
-> > > > >> in each driver. So, fix the drivers and documentation, too.
-> > > > > 
-> > > > > Perhaps we should do the analogous for ACPI then?
-> > 
-> > Here is the ACPI version based on the current patch from Wolfram (there is
-> > a compile error because of missing dummy implementation of
-> > of_i2c_register_devices())
-> > 
-> > From: Mika Westerberg <mika.westerberg@linux.intel.com>
-> > Subject: [PATCH] i2c: move ACPI helpers into the core
-> > 
-> > This follows what has already been done for the DeviceTree helpers. Move
-> > the ACPI helpers from drivers/acpi/acpi_i2c.c to the I2C core and update
-> > documentation accordingly.
-> > 
-> > This also solves a problem reported by Jerry Snitselaar that we can't build
-> > the ACPI I2C helpers as a module.
-> > 
-> > Signed-off-by: Mika Westerberg <mika.westerberg@linux.intel.com>
-> 
-> Nice, one thing, though:
-> 
-> >  	/* create pre-declared device nodes */
-> >  	of_i2c_register_devices(adap);
-> > +	acpi_i2c_register_devices(adap);
-> 
-> I prefer the if (IS_ENABLED()) solution and will use this in my V2 as
-> well.
+On 12 August 2013 03:45, Alexandra N. Kossovsky
+<Alexandra.Kossovsky@oktetlabs.ru> wrote:
+> When running 3.10.3 with kmemleak enabled, I see following warnings from
+> kmemleak:
+>
+> unreferenced object 0xffff88024d2219a0 (size 32):
+>   comm "swapper/0", pid 1, jiffies 4294894532 (age 26865.180s)
+>   hex dump (first 32 bytes):
+>     58 de 0c 73 02 88 ff ff 58 de 0c 73 02 88 ff ff  X..s....X..s....
+>     18 50 fd 7d 00 00 00 00 3f 50 fd 7d 00 00 00 00  .P.}....?P.}....
+>   backtrace:
+>     [<ffffffff813ddf40>] kmemleak_alloc+0x21/0x3e
+>     [<ffffffff8111cb99>] kmemleak_alloc_recursive.constprop.58+0x16/0x18
+>     [<ffffffff8111efac>] kmem_cache_alloc_trace+0xe6/0x12f
+>     [<ffffffff81278f0e>] apei_res_add+0xb9/0xe8
+>     [<ffffffff81278faa>] collect_res_callback+0x6d/0x7c
+>     [<ffffffff812788ed>] apei_exec_for_each_entry+0x78/0x93
+>     [<ffffffff8127891d>] apei_exec_collect_resources+0x15/0x17
+>     [<ffffffff81b010e5>] erst_init+0x278/0x2a3
+>     [<ffffffff810020b5>] do_one_initcall+0x7b/0x116
+>     [<ffffffff81ac9ee7>] kernel_init_freeable+0x13f/0x1cc
+>     [<ffffffff813db19f>] kernel_init+0x9/0xd6
+>     [<ffffffff813fe5bc>] ret_from_fork+0x7c/0xb0
+>     [<ffffffffffffffff>] 0xffffffffffffffff
 
-For the ACPI part we need to have the dummy stub because CONFIG_ACPI is
-needed in order to be able to call the ACPI APIs -- there are still
-functions that are only available when CONFIG_ACPI is enabled.
+Are there any "APEI:" errors in the kernel log? It could be some
+freeing missing on an error path.
+
+apei_res_add() allocates struct apei_res objects and places them on
+the erst_resources.{iomem,ioport} list heads as given by erst_init().
+The erst_resources is just a local variable on the erst_init() stack,
+hence kmemleak doesn't have any trace of the allocated objects.
+
+It looks like erst_init() calls apei_resources_request() which should
+merge the local erst_resources list heads with the global
+apei_resources_all but for whatever reason, this or any of the
+previous calls in erst_init() fail and we don't get the merging. Some
+of the goto err_fini in this function should probably be err_release.
+I cc'ed Huang as the driver author.
+
+-- 
+Catalin
