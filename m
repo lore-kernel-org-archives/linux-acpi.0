@@ -1,126 +1,69 @@
-From: Linus Walleij <linus.walleij@linaro.org>
+From: Matthew Garrett <mjg59@srcf.ucam.org>
 Subject: Re: ACPI vs Device Tree - moving forward
-Date: Wed, 21 Aug 2013 17:57:07 +0200
-Message-ID: <CACRpkdaVz28gn-keUC4tTX+bdTKEV2ZrdHxshG=K3oM_NhvroA@mail.gmail.com>
+Date: Wed, 21 Aug 2013 17:09:03 +0100
+Message-ID: <20130821160903.GA11908@srcf.ucam.org>
 References: <20130820192650.GA19470@srcf.ucam.org>
-	<2276651.WHL3SkvOZi@vostro.rjw.lan>
+ <2276651.WHL3SkvOZi@vostro.rjw.lan>
+ <CACRpkdaVz28gn-keUC4tTX+bdTKEV2ZrdHxshG=K3oM_NhvroA@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <2276651.WHL3SkvOZi@vostro.rjw.lan>
+Content-Disposition: inline
+In-Reply-To: <CACRpkdaVz28gn-keUC4tTX+bdTKEV2ZrdHxshG=K3oM_NhvroA@mail.gmail.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: Matthew Garrett <mjg59@srcf.ucam.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Guenter Roeck <linux@roeck-us.net>, Darren Hart <dvhart@linux.intel.com>, "H. Peter Anvin" <hpa@zytor.com>
+To: Linus Walleij <linus.walleij@linaro.org>
+Cc: "Rafael J. Wysocki" <rjw@sisk.pl>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Guenter Roeck <linux@roeck-us.net>, Darren Hart <dvhart@linux.intel.com>, "H. Peter Anvin" <hpa@zytor.com>
 List-Id: linux-acpi@vger.kernel.org
 
-On Tue, Aug 20, 2013 at 11:11 PM, Rafael J. Wysocki <rjw@sisk.pl> wrote:
+On Wed, Aug 21, 2013 at 05:57:07PM +0200, Linus Walleij wrote:
 
-> There's one more problematic case which is that some systems ship with ACPI
-> tables that don't contain all of the information necessary to enumerate
-> hardware appropriately and it's difficult, if not impossible, to convince
-> the vendors of those systems to fix their ACPI firmware after the fact.
-> However, at least in some cases there are well defined DT bindings for the
-> hardware in question.
+> - The I2C address is specified in "reg" - maybe ACPI have
+>   some other way to assign I2C addresses to I2C devices?
+>   In any case, it *must* reference the parent I2C controller,
+>   here that is done implicitly by placing this DT node inside
+>   the I2C controllers DT node.
 
-I think this works as far as the hardware can be described in a simple
-way.
+That's fine. You put the child device inside the I2C contorller's scope, 
+which can be done from a separate ACPI table if you want. The address 
+can be provided via _ADR().
 
-When the hardware is complex, the problem of interoperating with ACPI
-becomes complex, because when it comes to interrupts and other
-resources, it seems to me that both ACPI and DT wants to be in
-the driver seat and there is only place for one.
+> - Then it is using a GPIO line as interrupt, and specify that
+>   this shall be configured as a falling edge IRQ.
 
-Let me copy this example again for this wider discusson
-(OK Rafael has seen it before, so you can skip the rest):
+ACPI 5 permits this.
 
-Here is an example:
-drivers/gpio/gpio-stmpe.c
+> - It then tells the interrupt controller parent. So it needs
+>   to have a reference to whatever interrupt chip device
+>   will handle that IRQ.
 
-This is a generic multi-purpose-expander, it can be used on any
-system, be it ARM, blackfin or x86 embedded. You connect this
-to an I2C port and then there is an IRQ line that you will need to
-connect to a dedicated IRQ in pin or a GPIO line configured to take
-an IRQ in. Since it contains a GPIO expander and a keypad driver
-those two aspects get configured.
+By interrupt controller, do you mean the GPIO controller? ACPI GPIO 
+definitions include the parent device.
 
-It looks like this in an I2C controller node
-(condensed from arch/arm/boot/dts/href.dtsi and more)
+> - Further it *is* an interrupt controller, so devices connected
+>   to the GPIO lines may generate IRQs and then this
+>   device should service them. Is it possible that the devices
+>   connected to this expander in turn use ACPI to describe
+>   themselves? Then we need a reference in the other
+>   direction.
 
-i2c@80004000 {
-        stmpe1601: stmpe1601@40 {
-                compatible = "st,stmpe1601";
-                reg = <0x40>;
-                interrupts = <26 IRQ_TYPE_EDGE_FALLING>;
-                interrupt-parent = <&gpio6>;
-                interrupt-controller;
+I think that's also doable.
 
-                wakeup-source;
-                st,autosleep-timeout = <1024>;
+> - Further it is a wakeup source, so each IRQ it provides
+>   on its GPIO lines can be set as a wakeup. I wonder how
+>   this plays with D-states and ACPI.
 
-                stmpe_keypad {
-                        compatible = "st,stmpe-keypad";
+That's fine. GPIO lines can be described as causing ACPI events and then 
+that simply referenced as a wakeup event.
 
-                        debounce-interval = <64>;
-                        st,scan-count = <8>;
-                        st,no-autorepeat;
+> I did present the above as an extreme example, but if we
+> start to combine DT and ACPI we have to have that kind of
+> hardware in mind. GPIO expanders with IRQs and all are
+> maybe rare on desktops and laptops but very common on
+> embedded systems.
 
-                        linux,keymap = <0x205006b
-                                        0x4010074
-                                        0x3050072
-                                        0x1030004
-                                        0x502006a
-                                        0x500000a
-                                        0x5008b
-                                        0x706001c
-                                        0x405000b
-                                        0x6070003
-                                        0x3040067
-                                        0x303006c
-                                        0x60400e7
-                                        0x602009e
-                                        0x4020073
-                                        0x5050002
-                                        0x4030069
-                                        0x3020008>;
-                };
-         };
-};
+Yeah, describing complicated device topology isn't really the problem I 
+think we'll end up facing - it's the wider range of device configuration 
+data that worries me.
 
-As you can some stuff is nice to get for free: the keymap
-parser, scan settings, debounce, and so on. But then we run
-into these problems:
-
-- The I2C address is specified in "reg" - maybe ACPI have
-  some other way to assign I2C addresses to I2C devices?
-  In any case, it *must* reference the parent I2C controller,
-  here that is done implicitly by placing this DT node inside
-  the I2C controllers DT node.
-
-- Then it is using a GPIO line as interrupt, and specify that
-  this shall be configured as a falling edge IRQ.
-
-- It then tells the interrupt controller parent. So it needs
-  to have a reference to whatever interrupt chip device
-  will handle that IRQ.
-
-- Further it *is* an interrupt controller, so devices connected
-  to the GPIO lines may generate IRQs and then this
-  device should service them. Is it possible that the devices
-  connected to this expander in turn use ACPI to describe
-  themselves? Then we need a reference in the other
-  direction.
-
-- Further it is a wakeup source, so each IRQ it provides
-  on its GPIO lines can be set as a wakeup. I wonder how
-  this plays with D-states and ACPI.
-
--------
-
-I did present the above as an extreme example, but if we
-start to combine DT and ACPI we have to have that kind of
-hardware in mind. GPIO expanders with IRQs and all are
-maybe rare on desktops and laptops but very common on
-embedded systems.
-
-Yours,
-Linus Walleij
+-- 
+Matthew Garrett | mjg59@srcf.ucam.org
