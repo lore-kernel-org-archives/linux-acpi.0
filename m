@@ -1,63 +1,64 @@
-From: Toshi Kani <toshi.kani@hp.com>
+From: Tejun Heo <tj@kernel.org>
 Subject: Re: [PATCH 0/8] x86, acpi: Move acpi_initrd_override() earlier.
-Date: Wed, 21 Aug 2013 14:29:28 -0600
-Message-ID: <1377116968.10300.514.camel@misato.fc.hp.com>
+Date: Wed, 21 Aug 2013 16:40:41 -0400
+Message-ID: <20130821204041.GC2436@htj.dyndns.org>
 References: <1377080143-28455-1-git-send-email-tangchen@cn.fujitsu.com>
-	 <20130821130647.GB19286@mtj.dyndns.org> <5214D60A.2090309@gmail.com>
-	 <20130821153639.GA17432@htj.dyndns.org>
-	 <1377113503.10300.492.camel@misato.fc.hp.com>
-	 <20130821195410.GA2436@htj.dyndns.org>
+ <20130821130647.GB19286@mtj.dyndns.org>
+ <5214D60A.2090309@gmail.com>
+ <20130821153639.GA17432@htj.dyndns.org>
+ <1377113503.10300.492.camel@misato.fc.hp.com>
+ <20130821195410.GA2436@htj.dyndns.org>
+ <1377116968.10300.514.camel@misato.fc.hp.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-doc-owner@vger.kernel.org>
-In-Reply-To: <20130821195410.GA2436@htj.dyndns.org>
+Content-Disposition: inline
+In-Reply-To: <1377116968.10300.514.camel@misato.fc.hp.com>
 Sender: linux-doc-owner@vger.kernel.org
-To: Tejun Heo <tj@kernel.org>
+To: Toshi Kani <toshi.kani@hp.com>
 Cc: Zhang Yanfei <zhangyanfei.yes@gmail.com>, Tang Chen <tangchen@cn.fujitsu.com>, konrad.wilk@oracle.com, robert.moore@intel.com, lv.zheng@intel.com, rjw@sisk.pl, lenb@kernel.org, tglx@linutronix.de, mingo@elte.hu, hpa@zytor.com, akpm@linux-foundation.org, trenn@suse.de, yinghai@kernel.org, jiang.liu@huawei.com, wency@cn.fujitsu.com, laijs@cn.fujitsu.com, isimatu.yasuaki@jp.fujitsu.com, izumi.taku@jp.fujitsu.com, mgorman@suse.de, minchan@kernel.org, mina86@mina86.com, gong.chen@linux.intel.com, vasilis.liaskovitis@profitbricks.com, lwoodman@redhat.com, riel@redhat.com, jweiner@redhat.com, prarit@redhat.com, zhangyanfei@cn.fujitsu.com, yanghy@cn.fujitsu.com, x86@kernel.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-mm@kvack.org, linux-acpi@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hello Tejun,
+Hello, Toshi.
 
-On Wed, 2013-08-21 at 15:54 -0400, Tejun Heo wrote:
-> On Wed, Aug 21, 2013 at 01:31:43PM -0600, Toshi Kani wrote:
-> > Well, there is reason why we have earlyprintk feature today.  So, let's
-> > not debate on this feature now.  There was previous attempt to support
-> 
-> Are you saying the existing earlyprintk automatically justifies
-> addition of more complex mechanism?  The added complex of course
-> should be traded off against the benefits of gaining ACPI based early
-> boot.  You aren't gonna suggest implementing netconsole based
-> earlyprintk, right?
+On Wed, Aug 21, 2013 at 02:29:28PM -0600, Toshi Kani wrote:
+> Platforms vendors (which care Linux) need to support the existing Linux
+> features.  This means that they have to implement legacy interfaces on
+> x86 until the kernel supports an alternative method.  For instance, some
+> platforms are legacy-free and do not have legacy COM ports.  These ACPI
+> tables were defined so that non-legacy COM ports can be described and
+> informed to the OS.  Without this support, such platforms may have to
+> emulate the legacy COM ports for Linux, or drop Linux support.
 
-Platforms vendors (which care Linux) need to support the existing Linux
-features.  This means that they have to implement legacy interfaces on
-x86 until the kernel supports an alternative method.  For instance, some
-platforms are legacy-free and do not have legacy COM ports.  These ACPI
-tables were defined so that non-legacy COM ports can be described and
-informed to the OS.  Without this support, such platforms may have to
-emulate the legacy COM ports for Linux, or drop Linux support.
+Are you seriously saying that vendors are gonna drop linux support for
+lacking ACPI earlyprintk support?  Please...
 
-> > this feature with ACPI tables below.  As described, it had the same
-> > ordering issue.
-> > 
-> > https://lkml.org/lkml/2012/10/8/498
-> > 
-> > There is a basic problem that when we try to use ACPI tables that
-> > extends or replaces legacy interfaces (ex. SRAT extending e820), we hit
-> > this ordering issue because ACPI is not available as early as the legacy
-> > interfaces.
-> 
-> Do we even want ACPI parsing and all that that early?  Parsing SRAT
-> early doesn't buy us much and I'm not sure whether adding ACPI
-> earlyprintk would increase or decrease debuggability during earlyboot.
-> It adds whole lot more code paths where things can go wrong while the
-> basic execution environment is unstable.  Why do that?
+Please take a look at the existing earlyprintk code and how compact
+and self-contained they are.  If you want to add ACPI earlyprintk, do
+similar stuff.  Forget about firmware blob override from initrd or
+ACPICA.  Just implement the bare minimum to get the thing working.  Do
+not add dependency to large body of code from earlyboot.  It's a bad
+idea through and through.
 
-I think the kernel boot-up sequence should be designed in such a way
-that can support legacy-free and/or NUMA platforms properly.
+> I think the kernel boot-up sequence should be designed in such a way
+> that can support legacy-free and/or NUMA platforms properly.
 
-Thanks,
--Toshi
+Blanket statements like the above don't mean much.  There are many
+separate stages of boot and you're talking about one of the very first
+stages where we traditionally have always depended upon only the very
+bare minimum of the platform both in hardware itself and configuration
+information.  We've been doing that for *very* good reasons.  If you
+screw up there, it's mighty tricky to figure out what went wrong
+especially on the machines that you can't physically kick.  You're now
+suggesting to add whole ACPI parsing including overloading from initrd
+into that stage with pretty weak rationale.
 
+Seriously, if you want ACPI based earlyprintk, implement it in a
+discrete minimal code which is easy to verify and won't get affected
+when the rest of ACPI machinery is updated.  We really don't want
+earlyboot to fail because someone screwed up ACPI or initrd handling.
 
+Thanks.
+
+-- 
+tejun
