@@ -1,32 +1,36 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: [PATCH] ACPI: bgrt: take advantage of binary sysfs groups
-Date: Wed, 21 Aug 2013 14:51:40 +0200
-Message-ID: <3825729.FGg1e4OV3U@vostro.rjw.lan>
-References: <20130821001149.GA16350@kroah.com>
+From: Tejun Heo <tj@kernel.org>
+Subject: Re: [PATCH 0/8] x86, acpi: Move acpi_initrd_override() earlier.
+Date: Wed, 21 Aug 2013 09:06:47 -0400
+Message-ID: <20130821130647.GB19286@mtj.dyndns.org>
+References: <1377080143-28455-1-git-send-email-tangchen@cn.fujitsu.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from hydra.sisk.pl ([212.160.235.94]:53237 "EHLO hydra.sisk.pl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751623Ab3HUMlI (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 21 Aug 2013 08:41:08 -0400
-In-Reply-To: <20130821001149.GA16350@kroah.com>
+Received: from mail-qe0-f52.google.com ([209.85.128.52]:53490 "EHLO
+	mail-qe0-f52.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751463Ab3HUNGw (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 21 Aug 2013 09:06:52 -0400
+Content-Disposition: inline
+In-Reply-To: <1377080143-28455-1-git-send-email-tangchen@cn.fujitsu.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Greg KH <gregkh@linuxfoundation.org>
-Cc: Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+To: Tang Chen <tangchen@cn.fujitsu.com>
+Cc: konrad.wilk@oracle.com, robert.moore@intel.com, lv.zheng@intel.com, rjw@sisk.pl, lenb@kernel.org, tglx@linutronix.de, mingo@elte.hu, hpa@zytor.com, akpm@linux-foundation.org, trenn@suse.de, yinghai@kernel.org, jiang.liu@huawei.com, wency@cn.fujitsu.com, laijs@cn.fujitsu.com, isimatu.yasuaki@jp.fujitsu.com, izumi.taku@jp.fujitsu.com, mgorman@suse.de, minchan@kernel.org, mina86@mina86.com, gong.chen@linux.intel.com, vasilis.liaskovitis@profitbricks.com, lwoodman@redhat.com, riel@redhat.com, jweiner@redhat.com, prarit@redhat.com, zhangyanfei@cn.fujitsu.com, yanghy@cn.fujitsu.com, x86@kernel.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-mm@kvack.org, linux-acpi@vger.kernel.org
 
-On Tuesday, August 20, 2013 05:11:49 PM Greg KH wrote:
-> From: Greg KH <gregkh@linuxfoundation.org>
+Hello,
+
+On Wed, Aug 21, 2013 at 06:15:35PM +0800, Tang Chen wrote:
+> [What are we doing]
 > 
-> Attribute groups now can handle binary sysfs attributes, so clean up the
-> code here by using a binary attribute array.  This saves us the extra
-> call to create the binary attribute at saves 6 lines overall.
-> 
-> Cc: Len Brown <lenb@kernel.org>
-> Cc: "Rafael J. Wysocki" <rjw@sisk.pl>
-> Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+> We are trying to initialize acip tables as early as possible. But Linux kernel
+> allows users to override acpi tables by specifying their own tables in initrd.
+> So we have to do acpi_initrd_override() earlier first.
 
-Acked-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+So, are we now back to making SRAT info as early as possible?  What
+happened to just co-locating early allocations close to kernel image?
+What'd be the benefit of doing this over that?
 
+Thanks.
+
+-- 
+tejun
