@@ -1,47 +1,103 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: ACPI vs Device Tree - moving forward
-Date: Wed, 21 Aug 2013 01:29:45 +0200
-Message-ID: <1472445.NTAsizJQIG@vostro.rjw.lan>
-References: <20130820192650.GA19470@srcf.ucam.org> <2276651.WHL3SkvOZi@vostro.rjw.lan>
+From: Greg KH <gregkh@linuxfoundation.org>
+Subject: [PATCH] ACPI: bgrt: take advantage of binary sysfs groups
+Date: Tue, 20 Aug 2013 17:11:49 -0700
+Message-ID: <20130821001149.GA16350@kroah.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from hydra.sisk.pl ([212.160.235.94]:52194 "EHLO hydra.sisk.pl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751480Ab3HTXTM (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 20 Aug 2013 19:19:12 -0400
-In-Reply-To: <2276651.WHL3SkvOZi@vostro.rjw.lan>
+Received: from mail.linuxfoundation.org ([140.211.169.12]:38993 "EHLO
+	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751524Ab3HUALu (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 20 Aug 2013 20:11:50 -0400
+Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Matthew Garrett <mjg59@srcf.ucam.org>
-Cc: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, linux@roeck-us.net, dvhart@linux.intel.com, hpa@zytor.com, linus.walleij@linaro.org, Myron Stowe <myron.stowe@gmail.com>, Bjorn Helgaas <bhelgaas@google.com>
+To: Len Brown <lenb@kernel.org>, "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 
-On Tuesday, August 20, 2013 11:11:09 PM Rafael J. Wysocki wrote:
-> On Tuesday, August 20, 2013 08:26:50 PM Matthew Garrett wrote:
-> > This conversation seems to have pretty much entirely ended up happening 
-> > on ksummit-discuss, which doesn't seem that useful. So let's have 
-> > another go with a wider audience (and where I don't have to sign up for 
-> > yet another mailing list...)
+From: Greg KH <gregkh@linuxfoundation.org>
 
-[...]
+Attribute groups now can handle binary sysfs attributes, so clean up the
+code here by using a binary attribute array.  This saves us the extra
+call to create the binary attribute at saves 6 lines overall.
 
-> > In any case, it seems like this is something that should be discussed. A 
-> > bunch of people in the earlier discussion mentioned that they were going 
-> > to be in New Orleans, so I'd suggest that we arrange a time for 
-> > in-person discussion there. That should give us a solid basis for 
-> > further mailing list discussion, and then there'll be another 
-> > opportunity for discussion in Edinburgh.
-> 
-> There is a time slot reserved for the second part of the ACPI/PM+PCI uconf
-> that may be used for this purpose if it's suitable for all of the interested
-> people.  It is scheduled at 2 PM on Thursday, September 19 at the moment
-> (concurrently with the containers uconf).
+Cc: Len Brown <lenb@kernel.org>
+Cc: "Rafael J. Wysocki" <rjw@sisk.pl>
+Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 
-OK, so for the information of everyone interested, the discussion in New Orleans
-is now officially on the LPC's ACPI/PM+PCI uconf agenda and tentatively scheduled
-in the time slot mentioned above.
+-- 
+ I can take this in my driver-core tree if someone from ACPI acks it,
+ otherwise, feel free to take it through the ACPI trees instead, just
+ let me know.
 
-Thanks,
-Rafael
+ drivers/acpi/bgrt.c |   26 ++++++++++----------------
+ 1 file changed, 10 insertions(+), 16 deletions(-)
 
+diff --git a/drivers/acpi/bgrt.c b/drivers/acpi/bgrt.c
+index be603995..7a4128d9 100644
+--- a/drivers/acpi/bgrt.c
++++ b/drivers/acpi/bgrt.c
+@@ -51,20 +51,14 @@ static ssize_t show_yoffset(struct device *dev,
+ }
+ static DEVICE_ATTR(yoffset, S_IRUGO, show_yoffset, NULL);
+ 
+-static ssize_t show_image(struct file *file, struct kobject *kobj,
++static ssize_t image_read(struct file *file, struct kobject *kobj,
+ 	       struct bin_attribute *attr, char *buf, loff_t off, size_t count)
+ {
+ 	memcpy(buf, attr->private + off, count);
+ 	return count;
+ }
+ 
+-static struct bin_attribute image_attr = {
+-	.attr = {
+-		.name = "image",
+-		.mode = S_IRUGO,
+-	},
+-	.read = show_image,
+-};
++static BIN_ATTR_RO(image, 0);	/* size gets filled in later */
+ 
+ static struct attribute *bgrt_attributes[] = {
+ 	&dev_attr_version.attr,
+@@ -75,8 +69,14 @@ static struct attribute *bgrt_attributes[] = {
+ 	NULL,
+ };
+ 
++static struct bin_attribute *bgrt_bin_attributes[] = {
++	&bin_attr_image,
++	NULL,
++};
++
+ static struct attribute_group bgrt_attribute_group = {
+ 	.attrs = bgrt_attributes,
++	.bin_attrs = bgrt_bin_attributes,
+ };
+ 
+ static int __init bgrt_init(void)
+@@ -87,8 +87,8 @@ static int __init bgrt_init(void)
+ 		return -ENODEV;
+ 
+ 	sysfs_bin_attr_init(&image_attr);
+-	image_attr.private = bgrt_image;
+-	image_attr.size = bgrt_image_size;
++	bin_attr_image.private = bgrt_image;
++	bin_attr_image.size = bgrt_image_size;
+ 
+ 	bgrt_kobj = kobject_create_and_add("bgrt", acpi_kobj);
+ 	if (!bgrt_kobj)
+@@ -98,14 +98,8 @@ static int __init bgrt_init(void)
+ 	if (ret)
+ 		goto out_kobject;
+ 
+-	ret = sysfs_create_bin_file(bgrt_kobj, &image_attr);
+-	if (ret)
+-		goto out_group;
+-
+ 	return 0;
+ 
+-out_group:
+-	sysfs_remove_group(bgrt_kobj, &bgrt_attribute_group);
+ out_kobject:
+ 	kobject_put(bgrt_kobj);
+ 	return ret;
