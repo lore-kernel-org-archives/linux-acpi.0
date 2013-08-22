@@ -1,55 +1,50 @@
-From: Matthew Garrett <mjg59@srcf.ucam.org>
-Subject: Re: ACPI vs Device Tree - moving forward
-Date: Thu, 22 Aug 2013 01:03:06 +0100
-Message-ID: <20130822000306.GA21785@srcf.ucam.org>
-References: <20130820192650.GA19470@srcf.ucam.org>
- <6438184.2yT2NMB1CE@vostro.rjw.lan>
- <20130821233942.GA21502@srcf.ucam.org>
- <1810269.JOHnJ0H7P9@vostro.rjw.lan>
+From: Jingoo Han <jg1.han@samsung.com>
+Subject: [PATCH] ACPI / APEI: remove unnecessary platform_set_drvdata()
+Date: Thu, 22 Aug 2013 10:47:09 +0900
+Message-ID: <001401ce9ed9$83d74c60$8b85e520$%han@samsung.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cavan.codon.org.uk ([93.93.128.6]:60464 "EHLO
-	cavan.codon.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752806Ab3HVADI (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 21 Aug 2013 20:03:08 -0400
-Content-Disposition: inline
-In-Reply-To: <1810269.JOHnJ0H7P9@vostro.rjw.lan>
+Received: from mailout4.samsung.com ([203.254.224.34]:26083 "EHLO
+	mailout4.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751853Ab3HVBrL (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 21 Aug 2013 21:47:11 -0400
+Received: from epcpsbgr3.samsung.com
+ (u143.gpu120.samsung.co.kr [203.254.230.143])
+ by mailout4.samsung.com (Oracle Communications Messaging Server 7u4-24.01
+ (7.0.4.24.0) 64bit (built Nov 17 2011))
+ with ESMTP id <0MRW002UASYMGUC0@mailout4.samsung.com> for
+ linux-acpi@vger.kernel.org; Thu, 22 Aug 2013 10:47:10 +0900 (KST)
+Content-language: ko
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: Linus Walleij <linus.walleij@linaro.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Guenter Roeck <linux@roeck-us.net>, Darren Hart <dvhart@linux.intel.com>, "H. Peter Anvin" <hpa@zytor.com>
+To: 'Len Brown' <lenb@kernel.org>
+Cc: "'Rafael J. Wysocki'" <rjw@sisk.pl>, linux-acpi@vger.kernel.org, "'Naveen N. Rao'" <naveen.n.rao@linux.vnet.ibm.com>, 'Betty Dall' <betty.dall@hp.com>, 'Jingoo Han' <jg1.han@samsung.com>
 
-On Thu, Aug 22, 2013 at 02:02:29AM +0200, Rafael J. Wysocki wrote:
+The driver core clears the driver data to NULL after device_release
+or on probe failure. Thus, it is not needed to manually clear the
+device driver data to NULL.
 
-> And now the practice appears to be that vendors actually ship some ACPI
-> tables with their systems, but those ACPI tables do not contain information
-> needed to enumerate all devices.  On the other hand, it is known what the
-> DT bindings for the missing part should be.  How can we address this?
+Signed-off-by: Jingoo Han <jg1.han@samsung.com>
+---
+ drivers/acpi/apei/ghes.c |    2 --
+ 1 file changed, 2 deletions(-)
 
-On ARM? I know that this is true on x86, but that's because x86 vendors 
-have never intended i2c hardware monitoring devices be driven by a 
-general purpoes OS - they're there for the benefit of the firmware, not 
-anything above that.
-
-> Next, say we have a driver written with DT bindings in mind and there's
-> an ACPI-based system with identical hardware, although wired up slightly
-> differently.  Say that all of the information needed by that driver is
-> there in the ACPI tables (Q: How the vendor is supposed to know what
-> information the driver expects?).  Who is supposed to take care of updating
-> the driver to be able to use ACPI in addition to DTs?
-
-Ideally we have a consistent in-kernel representation of this 
-information and drivers don't need to care about whether it came from DT 
-or ACPI, but like I said, that's going to be tricky.
-
-> I don't honestly think that the "ask vendors to ship their systems with correct
-> ACPI tables" approach will take us anywhere.
-
-It's worked well enough on x86. If hardware vendors don't actually test 
-that their hardware is able to boot the OS it's intended to run then 
-there's very little we can do about that - and the worst case outcome is 
-that people just ignore the shipped ACPI and use FDT.
-
+diff --git a/drivers/acpi/apei/ghes.c b/drivers/acpi/apei/ghes.c
+index 8ec37bb..3f9771d 100644
+--- a/drivers/acpi/apei/ghes.c
++++ b/drivers/acpi/apei/ghes.c
+@@ -1044,8 +1044,6 @@ static int ghes_remove(struct platform_device *ghes_dev)
+ 
+ 	kfree(ghes);
+ 
+-	platform_set_drvdata(ghes_dev, NULL);
+-
+ 	return 0;
+ }
+ 
 -- 
-Matthew Garrett | mjg59@srcf.ucam.org
+1.7.10.4
+
+
