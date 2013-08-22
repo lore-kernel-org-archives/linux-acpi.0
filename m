@@ -1,40 +1,58 @@
-From: Sachin Kamat <sachin.kamat@linaro.org>
-Subject: [PATCH 1/1] ACPI / PNP: Fix incorrect placement of __initdata
-Date: Thu, 22 Aug 2013 13:14:44 +0530
-Message-ID: <1377157484-28972-1-git-send-email-sachin.kamat@linaro.org>
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-pa0-f44.google.com ([209.85.220.44]:64175 "EHLO
-	mail-pa0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753031Ab3HVICL (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 22 Aug 2013 04:02:11 -0400
-Received: by mail-pa0-f44.google.com with SMTP id fz6so1872523pac.3
-        for <linux-acpi@vger.kernel.org>; Thu, 22 Aug 2013 01:02:10 -0700 (PDT)
-Sender: linux-acpi-owner@vger.kernel.org
+From: Michael wang <wangyun@linux.vnet.ibm.com>
+Subject: Re: [PATCH 08/11] sched/cleanup: remove the extra parm of sched_clock_idle_wakeup_event()
+Date: Thu, 22 Aug 2013 16:07:50 +0800
+Message-ID: <5215C6D6.3030309@linux.vnet.ibm.com>
+References: <5215C233.9060907@linux.vnet.ibm.com> <5215C484.5010407@linux.vnet.ibm.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <5215C484.5010407@linux.vnet.ibm.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: open list <linux-kernel@vger.kernel.org>
+Cc: Ingo Molnar <mingo@redhat.com>, Peter Zijlstra <peterz@infradead.org>, x86@kernel.org, linux-acpi@vger.kernel.org, Thomas Gleixner <tglx@linutronix.de>, "H. Peter Anvin" <hpa@zytor.com>, Len Brown <lenb@kernel.org>, "Rafael J. Wysocki" <rjw@sisk.pl>, John Stultz <john.stultz@linaro.org>, Paul Gortmaker <paul.gortmaker@windriver.com>, Feng Tang <feng.tang@intel.com>
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org
-Cc: rjw@sisk.pl, bhelgaas@google.com, lenb@kernel.org, sachin.kamat@linaro.org
 
-__initdata should be placed between the variable name and equal
-sign for the variable to be placed in the intended section.
+On 08/22/2013 03:57 PM, Michael wang wrote:
+> Parm 'delta_ns' has not been used, remove it to make code clean.
+[snip]
+>  
+> -extern void sched_clock_idle_sleep_event(void);
+> -extern void sched_clock_idle_wakeup_event(u64 delta_ns);
 
-Signed-off-by: Sachin Kamat <sachin.kamat@linaro.org>
----
- drivers/pnp/pnpacpi/core.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+Also remove the extra declaration here.
 
-diff --git a/drivers/pnp/pnpacpi/core.c b/drivers/pnp/pnpacpi/core.c
-index 34049b0..763e41d 100644
---- a/drivers/pnp/pnpacpi/core.c
-+++ b/drivers/pnp/pnpacpi/core.c
-@@ -358,7 +358,7 @@ static bool acpi_pnp_bus_match(struct device *dev)
- 	return dev->bus == &pnp_bus_type;
- }
- 
--static struct acpi_bus_type __initdata acpi_pnp_bus = {
-+static struct acpi_bus_type acpi_pnp_bus __initdata = {
- 	.name	     = "PNP",
- 	.match	     = acpi_pnp_bus_match,
- 	.find_device = acpi_pnp_find_device,
--- 
-1.7.9.5
+Regards,
+Michael Wang
 
+> -
+>  #ifdef CONFIG_HOTPLUG_CPU
+>  extern void idle_task_exit(void);
+>  #else
+> diff --git a/kernel/sched/clock.c b/kernel/sched/clock.c
+> index c3ae144..d111c58 100644
+> --- a/kernel/sched/clock.c
+> +++ b/kernel/sched/clock.c
+> @@ -294,7 +294,7 @@ EXPORT_SYMBOL_GPL(sched_clock_idle_sleep_event);
+>  /*
+>   * We just idled delta nanoseconds (called with irqs disabled):
+>   */
+> -void sched_clock_idle_wakeup_event(u64 delta_ns)
+> +void sched_clock_idle_wakeup_event(void)
+>  {
+>  	if (timekeeping_suspended)
+>  		return;
+> diff --git a/kernel/time/tick-sched.c b/kernel/time/tick-sched.c
+> index 3612fc7..4b24d9e 100644
+> --- a/kernel/time/tick-sched.c
+> +++ b/kernel/time/tick-sched.c
+> @@ -433,7 +433,7 @@ static void tick_nohz_stop_idle(int cpu, ktime_t now)
+>  	update_ts_time_stats(cpu, ts, now, NULL);
+>  	ts->idle_active = 0;
+>  
+> -	sched_clock_idle_wakeup_event(0);
+> +	sched_clock_idle_wakeup_event();
+>  }
+>  
+>  static ktime_t tick_nohz_start_idle(int cpu, struct tick_sched *ts)
+> 
