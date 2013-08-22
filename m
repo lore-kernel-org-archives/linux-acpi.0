@@ -1,41 +1,60 @@
-From: Tejun Heo <tj@kernel.org>
-Subject: Re: [RFC PATCH 2/2] ata: acpi: rework the ata acpi bind support
-Date: Thu, 22 Aug 2013 14:36:18 -0400
-Message-ID: <20130822183618.GB3490@mtj.dyndns.org>
-References: <1374731223-28685-1-git-send-email-aaron.lu@intel.com>
- <1374731223-28685-3-git-send-email-aaron.lu@intel.com>
- <20130725145229.GB26107@mtj.dyndns.org>
- <520C2FE8.90009@intel.com>
- <20130815031954.GB4439@htj.dyndns.org>
- <5215BA84.20000@intel.com>
+From: Zhang Yanfei <zhangyanfei.yes@gmail.com>
+Subject: Re: [PATCH 0/8] x86, acpi: Move acpi_initrd_override() earlier.
+Date: Fri, 23 Aug 2013 03:39:53 +0800
+Message-ID: <52166909.6080104@gmail.com>
+References: <20130821130647.GB19286@mtj.dyndns.org> <5214D60A.2090309@gmail.com> <20130821153639.GA17432@htj.dyndns.org> <1377113503.10300.492.camel@misato.fc.hp.com> <20130821195410.GA2436@htj.dyndns.org> <1377116968.10300.514.camel@misato.fc.hp.com> <20130821204041.GC2436@htj.dyndns.org> <1377124595.10300.594.camel@misato.fc.hp.com> <20130822033234.GA2413@htj.dyndns.org> <1377186729.10300.643.camel@misato.fc.hp.com> <20130822183130.GA3490@mtj.dyndns.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-qc0-f170.google.com ([209.85.216.170]:51910 "EHLO
-	mail-qc0-f170.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753766Ab3HVSgY (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 22 Aug 2013 14:36:24 -0400
-Content-Disposition: inline
-In-Reply-To: <5215BA84.20000@intel.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
+Return-path: <owner-linux-mm@kvack.org>
+In-Reply-To: <20130822183130.GA3490@mtj.dyndns.org>
+Sender: owner-linux-mm@kvack.org
+To: Tejun Heo <tj@kernel.org>
+Cc: Toshi Kani <toshi.kani@hp.com>, Tang Chen <tangchen@cn.fujitsu.com>, konrad.wilk@oracle.com, robert.moore@intel.com, lv.zheng@intel.com, rjw@sisk.pl, lenb@kernel.org, tglx@linutronix.de, mingo@elte.hu, hpa@zytor.com, akpm@linux-foundation.org, trenn@suse.de, yinghai@kernel.org, jiang.liu@huawei.com, wency@cn.fujitsu.com, laijs@cn.fujitsu.com, isimatu.yasuaki@jp.fujitsu.com, izumi.taku@jp.fujitsu.com, mgorman@suse.de, minchan@kernel.org, mina86@mina86.com, gong.chen@linux.intel.com, vasilis.liaskovitis@profitbricks.com, lwoodman@redhat.com, riel@redhat.com, jweiner@redhat.com, prarit@redhat.com, zhangyanfei@cn.fujitsu.com, yanghy@cn.fujitsu.com, x86@kernel.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-mm@kvack.org, linux-acpi@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Aaron Lu <aaron.lu@intel.com>
-Cc: Dirk Griesbach <spamthis@freenet.de>, Dimitris Damigos <damigos@freemail.gr>, Dan van der Ster <dan@vanderster.com>, Jeff Wu <jeff.wu@amd.com>, Aaron Lu <aaron.lwe@gmail.com>, "Rafael J. Wysocki" <rjw@sisk.pl>, James Bottomley <James.Bottomley@HansenPartnership.com>, Shane Huang <shane.huang@amd.com>, Matthew Garrett <mjg@redhat.com>, Holger Macht <holger@homac.de>, Zhang Rui <rui.zhang@intel.com>, linux-ide@vger.kernel.org, linux-acpi@vger.kernel.org, linux-scsi@vger.kernel.org
 
-Hello, Aaron.
+Hello tejun,
 
-On Thu, Aug 22, 2013 at 03:15:16PM +0800, Aaron Lu wrote:
-> The patch series has two patches and the first has been taken, shall I
-> send the 2nd one again without the RFC tag in the patch subject? There
-> should be no other changes at the moment.
+On 08/23/2013 02:31 AM, Tejun Heo wrote:
+> Hello,
+> 
+> On Thu, Aug 22, 2013 at 09:52:09AM -0600, Toshi Kani wrote:
+>> I understand that you are concerned about stability of the ACPI stuff,
+>> which I think is a valid point, but most of (if not all) of the
+>> ACPI-related issues come from ACPI namespace/methods, which is a very
+>> different thing.  Please do not mix up those two.  The ACPI
+> 
+> I have no objection to implementing self-conftained earlyprintk
+> support.  If that's all you want to do, please go ahead but do not
+> pull in initrd override or ACPICA into it.
+> 
+>> namespace/methods stuff remains the same and continues to be initialized
+>> at very late in the boot sequence.
+>>
+>> What's making the patchset complicated is acpi_initrd_override(), which
+>> is intended for developers and allows overwriting ACPI bits at their own
+>> risk.  This feature won't be used by regular users. 
+> 
+> Yeah, please forget about that in earlyboot.  It doesn't make any
+> sense to fiddle with initrd that early during boot.
 
-Yes, that was a request for you to send an updated patch.  I'm okay
-with taking some risk with ACPI support for PMPs.  It most likely
-won't matter as long as the code itself doesn't oops anyway, but can
-you please describe what's tested and what's not but should be okay in
-the patch description?
+What do you mean by "earlyboot"? And also in your previous mail, I am also
+a little confused by what you said "the very first stage of boot". Does
+this mean the stage we are in head_32 or head64.c?
 
-Thanks.
+If so, could we just do something just as Yinghai did before, that is, Split
+acpi_override into 2 parts: find and copy. And in "earlyboot", we just do
+the find, and I think that is less of risk. Or we can just do ACPI override
+earlier in setup_arch(), not pulling this process that early during boot?
+
+Thanks
 
 -- 
-tejun
+Thanks.
+Zhang Yanfei
+
+--
+To unsubscribe, send a message with 'unsubscribe linux-mm' in
+the body to majordomo@kvack.org.  For more info on Linux MM,
+see: http://www.linux-mm.org/ .
+Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
