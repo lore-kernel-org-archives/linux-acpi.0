@@ -1,187 +1,93 @@
-From: rui wang <ruiv.wang@gmail.com>
-Subject: Re: [PATCH v4 28/28] PCI, x86, ACPI: get ioapic address from acpi device
-Date: Thu, 22 Aug 2013 21:29:04 +0800
-Message-ID: <CANVTcTYhSfU+Su9s1B+mTTBfgsZgqvQxHiTsLck1zT_vg1Cs4g@mail.gmail.com>
-References: <1376189294-32022-1-git-send-email-yinghai@kernel.org>
-	<1376189294-32022-29-git-send-email-yinghai@kernel.org>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <linux-pci-owner@vger.kernel.org>
-In-Reply-To: <1376189294-32022-29-git-send-email-yinghai@kernel.org>
-Sender: linux-pci-owner@vger.kernel.org
-To: Yinghai Lu <yinghai@kernel.org>
-Cc: Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@elte.hu>, "H. Peter Anvin" <hpa@zytor.com>, Tony Luck <tony.luck@intel.com>, Bjorn Helgaas <bhelgaas@google.com>, "Rafael J. Wysocki" <rjw@sisk.pl>, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
+From: "Jason A. Donenfeld" <Jason@zx2c4.com>
+Subject: [PATCH 1/3] Input: atkbd - add LED triggers for keyboard state
+Date: Thu, 22 Aug 2013 16:02:10 +0200
+Message-ID: <1377180132-4933-1-git-send-email-Jason@zx2c4.com>
+Return-path: <linux-input-owner@vger.kernel.org>
+Sender: linux-input-owner@vger.kernel.org
+To: linux-acpi@vger.kernel.org, linux-input@vger.kernel.org, linux-kernel@vger.kernel.org
+Cc: mjg@redhat.com, rjw@sisk.pl, len.brown@intel.com, dtor@insightbb.com, "Jason A. Donenfeld" <Jason@zx2c4.com>
 List-Id: linux-acpi@vger.kernel.org
 
-On 8/11/13, Yinghai Lu <yinghai@kernel.org> wrote:
-> Some ioapic controllers do not show up on pci config space,
-> or pci device is there but no bar is used and is set by firmware in
-> other non standard registers.
->
-> We can get ioapic address from ACPI0009's _CRS.
->
-> Signed-off-by: Yinghai Lu <yinghai@kernel.org>
-> ---
->  drivers/pci/ioapic.c | 86
-> +++++++++++++++++++++++++++++++++++++++++++---------
->  1 file changed, 71 insertions(+), 15 deletions(-)
->
-> diff --git a/drivers/pci/ioapic.c b/drivers/pci/ioapic.c
-> index 60351b2..41f7c69 100644
-> --- a/drivers/pci/ioapic.c
-> +++ b/drivers/pci/ioapic.c
-> @@ -32,6 +32,36 @@ struct acpi_pci_ioapic {
->  static LIST_HEAD(ioapic_list);
->  static DEFINE_MUTEX(ioapic_list_lock);
->
-> +static acpi_status setup_res(struct acpi_resource *acpi_res, void *data)
-> +{
-> +	struct resource *res;
-> +	struct acpi_resource_address64 addr;
-> +	acpi_status status;
-> +	unsigned long flags;
-> +	u64 start, end;
-> +
-> +	status = acpi_resource_to_address64(acpi_res, &addr);
+Many new laptop keyboards aren't shipping with LEDs in the keys for
+caps lock, num lock, and scroll lock. They do, however, ship with many LEDs
+for specialized functions that mostly go non-utilized by any current
+Linux drivers. Having a caps lock LED is very helpful in early boot full
+disk encryption, where a fancy GUI is not available to show that caps
+lock is activated.
 
-The above function fails on my machine because it does not handle
-Memory32Fixed resources. Is the following _CRS declaration allowed for
-IOAPIC?
+This patch wires in the caps, num, and scroll lock states of the
+keyboard into the generic LED trigger subsystem, so that integrators can
+have different LEDs activated on caps/num/scroll lock state changes.
 
-            Device (APIC)
-            {
-                Name (_HID, "ACPI0009")  // _HID: Hardware ID
-                Name (_CRS, ResourceTemplate ()  // _CRS: Current
-Resource Settings
-                {
-                    Memory32Fixed (ReadOnly,
-                        0xFEC01000,         // Address Base
-                        0x00001000,         // Address Length
-                        )
-                })
-                Method(_GSB) {
-                        return (0x18)
-                }
-            }
+Signed-off-by: Jason A. Donenfeld <Jason@zx2c4.com>
+---
+ drivers/input/keyboard/atkbd.c | 26 ++++++++++++++++++++++++++
+ 1 file changed, 26 insertions(+)
 
+diff --git a/drivers/input/keyboard/atkbd.c b/drivers/input/keyboard/atkbd.c
+index 2626773..15061bf 100644
+--- a/drivers/input/keyboard/atkbd.c
++++ b/drivers/input/keyboard/atkbd.c
+@@ -28,6 +28,7 @@
+ #include <linux/libps2.h>
+ #include <linux/mutex.h>
+ #include <linux/dmi.h>
++#include <linux/leds.h>
+ 
+ #define DRIVER_DESC	"AT and PS/2 keyboard driver"
+ 
+@@ -302,6 +303,12 @@ static const unsigned int xl_table[] = {
+ 	ATKBD_RET_NAK, ATKBD_RET_HANJA, ATKBD_RET_HANGEUL,
+ };
+ 
++#ifdef CONFIG_LEDS_TRIGGERS
++struct led_trigger *capsl_led_trigger = 0;
++struct led_trigger *numl_led_trigger = 0;
++struct led_trigger *scrolll_led_trigger = 0;
++#endif
++
+ /*
+  * Checks if we should mangle the scancode to extract 'release' bit
+  * in translated mode.
+@@ -559,6 +566,12 @@ static int atkbd_set_leds(struct atkbd *atkbd)
+ 	if (ps2_command(&atkbd->ps2dev, param, ATKBD_CMD_SETLEDS))
+ 		return -1;
+ 
++#ifdef CONFIG_LEDS_TRIGGERS
++	led_trigger_event(capsl_led_trigger, test_bit(LED_CAPSL, dev->led) ? LED_FULL : LED_OFF);
++	led_trigger_event(numl_led_trigger, test_bit(LED_NUML, dev->led) ? LED_FULL : LED_OFF);
++	led_trigger_event(scrolll_led_trigger, test_bit(LED_SCROLLL, dev->led) ? LED_FULL : LED_OFF);
++#endif
++
+ 	if (atkbd->extra) {
+ 		param[0] = 0;
+ 		param[1] = (test_bit(LED_COMPOSE, dev->led) ? 0x01 : 0)
+@@ -1781,12 +1794,25 @@ static const struct dmi_system_id atkbd_dmi_quirk_table[] __initconst = {
+ static int __init atkbd_init(void)
+ {
+ 	dmi_check_system(atkbd_dmi_quirk_table);
++#ifdef CONFIG_LEDS_TRIGGERS
++	led_trigger_register_simple("caps-lock", &capsl_led_trigger);
++	led_trigger_register_simple("num-lock", &numl_led_trigger);
++	led_trigger_register_simple("scroll-lock", &scrolll_led_trigger);
++#endif
+ 
+ 	return serio_register_driver(&atkbd_drv);
+ }
+ 
+ static void __exit atkbd_exit(void)
+ {
++#ifdef CONFIG_LEDS_TRIGGERS
++	led_trigger_unregister_simple(capsl_led_trigger);
++	capsl_led_trigger = 0;
++	led_trigger_unregister_simple(numl_led_trigger);
++	numl_led_trigger = 0;
++	led_trigger_unregister_simple(scrolll_led_trigger);
++	scrolll_led_trigger = 0;
++#endif
+ 	serio_unregister_driver(&atkbd_drv);
+ }
+ 
+-- 
+1.8.3.2
 
-Thanks
-Rui
-
-> +	if (!ACPI_SUCCESS(status))
-> +		return AE_OK;
-> +
-> +	if (addr.resource_type == ACPI_MEMORY_RANGE) {
-> +		if (addr.info.mem.caching == ACPI_PREFETCHABLE_MEMORY)
-> +			return AE_OK;
-> +		flags = IORESOURCE_MEM;
-> +	} else
-> +		return AE_OK;
-> +
-> +	start = addr.minimum + addr.translation_offset;
-> +	end = addr.maximum + addr.translation_offset;
-> +
-> +	res = data;
-> +	res->flags = flags;
-> +	res->start = start;
-> +	res->end = end;
-> +
-> +	return AE_OK;
-> +}
-> +
->  static void handle_ioapic_add(acpi_handle handle, struct pci_dev **pdev,
->  				 u32 *pgsi_base)
->  {
-> @@ -54,33 +84,56 @@ static void handle_ioapic_add(acpi_handle handle, struct
-> pci_dev **pdev,
->  		return;
->
->  	dev = acpi_get_pci_dev(handle);
-> -	if (!dev)
-> -		return;
-> +	if (!dev || !pci_resource_len(dev, 0)) {
-> +		struct acpi_device_info *info;
-> +		char *hid = NULL;
-> +
-> +		status = acpi_get_object_info(handle, &info);
-> +		if (ACPI_FAILURE(status))
-> +			goto exit_put;
-> +		if (info->valid & ACPI_VALID_HID)
-> +			hid = info->hardware_id.string;
-> +		if (!hid || strcmp(hid, "ACPI0009")) {
-> +			kfree(info);
-> +			goto exit_put;
-> +		}
-> +		kfree(info);
-> +		memset(res, 0, sizeof(*res));
-> +		acpi_walk_resources(handle, METHOD_NAME__CRS, setup_res, res);
-> +		if (!res->flags)
-> +			goto exit_put;
-> +	}
->
->  	acpi_get_name(handle, ACPI_FULL_PATHNAME, &buffer);
->
->  	gsi_base = gsb;
->  	type = "IOxAPIC";
-> +	if (dev) {
-> +		ret = pci_enable_device(dev);
-> +		if (ret < 0)
-> +			goto exit_put;
->
-> -	ret = pci_enable_device(dev);
-> -	if (ret < 0)
-> -		goto exit_put;
-> -
-> -	pci_set_master(dev);
-> +		pci_set_master(dev);
->
-> -	if (dev->class == PCI_CLASS_SYSTEM_PIC_IOAPIC)
-> -		type = "IOAPIC";
-> +		if (dev->class == PCI_CLASS_SYSTEM_PIC_IOAPIC)
-> +			type = "IOAPIC";
->
-> -	if (pci_request_region(dev, 0, type))
-> -		goto exit_disable;
-> +		if (pci_resource_len(dev, 0)) {
-> +			if (pci_request_region(dev, 0, type))
-> +				goto exit_disable;
->
-> -	res = &dev->resource[0];
-> +			res = &dev->resource[0];
-> +		}
-> +	}
->
-> -	if (acpi_register_ioapic(handle, res->start, gsi_base))
-> -		goto exit_release;
-> +	if (acpi_register_ioapic(handle, res->start, gsi_base)) {
-> +		if (dev)
-> +			goto exit_release;
-> +		return;
-> +	}
->
->  	pr_info("%s %s %s at %pR, GSI %u\n",
-> -		dev_name(&dev->dev), objname, type,
-> +		dev ? dev_name(&dev->dev) : "", objname, type,
->  		res, gsi_base);
->
->  	*pdev = dev;
-> @@ -100,6 +153,9 @@ static void handle_ioapic_remove(acpi_handle handle,
-> struct pci_dev *dev,
->  {
->  	acpi_unregister_ioapic(handle, gsi_base);
->
-> +	if (!dev)
-> +		return;
-> +
->  	pci_release_region(dev, 0);
->  	pci_disable_device(dev);
->  	pci_dev_put(dev);
-> --
-> 1.8.1.4
->
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-kernel" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> Please read the FAQ at  http://www.tux.org/lkml/
->
