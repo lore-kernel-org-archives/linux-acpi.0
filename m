@@ -1,58 +1,99 @@
-From: Michael wang <wangyun@linux.vnet.ibm.com>
-Subject: Re: [PATCH 08/11] sched/cleanup: remove the extra parm of sched_clock_idle_wakeup_event()
-Date: Thu, 22 Aug 2013 16:07:50 +0800
-Message-ID: <5215C6D6.3030309@linux.vnet.ibm.com>
-References: <5215C233.9060907@linux.vnet.ibm.com> <5215C484.5010407@linux.vnet.ibm.com>
+From: Huang Ying <ying.huang@intel.com>
+Subject: Re: kmemleak in apei_res_add
+Date: Thu, 22 Aug 2013 16:43:35 +0800
+Message-ID: <1377161014.6167.67.camel@yhuang-dev>
+References: <20130812024556.GB29956@sanechka.spb.ru>
+	 <CAHkRjk4y06puTL_Gq5RbpoV+kpEp+k32z5aq3HpEu9u3qsS_Aw@mail.gmail.com>
+	 <20130821134455.GC12595@sanechka.spb.ru>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <5215C484.5010407@linux.vnet.ibm.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: open list <linux-kernel@vger.kernel.org>
-Cc: Ingo Molnar <mingo@redhat.com>, Peter Zijlstra <peterz@infradead.org>, x86@kernel.org, linux-acpi@vger.kernel.org, Thomas Gleixner <tglx@linutronix.de>, "H. Peter Anvin" <hpa@zytor.com>, Len Brown <lenb@kernel.org>, "Rafael J. Wysocki" <rjw@sisk.pl>, John Stultz <john.stultz@linaro.org>, Paul Gortmaker <paul.gortmaker@windriver.com>, Feng Tang <feng.tang@intel.com>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mga14.intel.com ([143.182.124.37]:25816 "EHLO mga14.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751859Ab3HVIn7 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 22 Aug 2013 04:43:59 -0400
+In-Reply-To: <20130821134455.GC12595@sanechka.spb.ru>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: "Alexandra N. Kossovsky" <Alexandra.Kossovsky@oktetlabs.ru>
+Cc: Catalin Marinas <catalin.marinas@arm.com>, Len Brown <lenb@kernel.org>, "Rafael J. Wysocki" <rjw@sisk.pl>, linux-acpi@vger.kernel.org, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
 
-On 08/22/2013 03:57 PM, Michael wang wrote:
-> Parm 'delta_ns' has not been used, remove it to make code clean.
-[snip]
->  
-> -extern void sched_clock_idle_sleep_event(void);
-> -extern void sched_clock_idle_wakeup_event(u64 delta_ns);
+Hi, Alexandra,
 
-Also remove the extra declaration here.
-
-Regards,
-Michael Wang
-
-> -
->  #ifdef CONFIG_HOTPLUG_CPU
->  extern void idle_task_exit(void);
->  #else
-> diff --git a/kernel/sched/clock.c b/kernel/sched/clock.c
-> index c3ae144..d111c58 100644
-> --- a/kernel/sched/clock.c
-> +++ b/kernel/sched/clock.c
-> @@ -294,7 +294,7 @@ EXPORT_SYMBOL_GPL(sched_clock_idle_sleep_event);
->  /*
->   * We just idled delta nanoseconds (called with irqs disabled):
->   */
-> -void sched_clock_idle_wakeup_event(u64 delta_ns)
-> +void sched_clock_idle_wakeup_event(void)
->  {
->  	if (timekeeping_suspended)
->  		return;
-> diff --git a/kernel/time/tick-sched.c b/kernel/time/tick-sched.c
-> index 3612fc7..4b24d9e 100644
-> --- a/kernel/time/tick-sched.c
-> +++ b/kernel/time/tick-sched.c
-> @@ -433,7 +433,7 @@ static void tick_nohz_stop_idle(int cpu, ktime_t now)
->  	update_ts_time_stats(cpu, ts, now, NULL);
->  	ts->idle_active = 0;
->  
-> -	sched_clock_idle_wakeup_event(0);
-> +	sched_clock_idle_wakeup_event();
->  }
->  
->  static ktime_t tick_nohz_start_idle(int cpu, struct tick_sched *ts)
+On Wed, 2013-08-21 at 17:44 +0400, Alexandra N. Kossovsky wrote:
+> On Aug 21 10:38, Catalin Marinas wrote:
+> > On 12 August 2013 03:45, Alexandra N. Kossovsky
+> > <Alexandra.Kossovsky@oktetlabs.ru> wrote:
+> > > When running 3.10.3 with kmemleak enabled, I see following warnings from
+> > > kmemleak:
+> > >
+> > > unreferenced object 0xffff88024d2219a0 (size 32):
+> > >   comm "swapper/0", pid 1, jiffies 4294894532 (age 26865.180s)
+> > >   hex dump (first 32 bytes):
+> > >     58 de 0c 73 02 88 ff ff 58 de 0c 73 02 88 ff ff  X..s....X..s....
+> > >     18 50 fd 7d 00 00 00 00 3f 50 fd 7d 00 00 00 00  .P.}....?P.}....
+> > >   backtrace:
+> > >     [<ffffffff813ddf40>] kmemleak_alloc+0x21/0x3e
+> > >     [<ffffffff8111cb99>] kmemleak_alloc_recursive.constprop.58+0x16/0x18
+> > >     [<ffffffff8111efac>] kmem_cache_alloc_trace+0xe6/0x12f
+> > >     [<ffffffff81278f0e>] apei_res_add+0xb9/0xe8
+> > >     [<ffffffff81278faa>] collect_res_callback+0x6d/0x7c
+> > >     [<ffffffff812788ed>] apei_exec_for_each_entry+0x78/0x93
+> > >     [<ffffffff8127891d>] apei_exec_collect_resources+0x15/0x17
+> > >     [<ffffffff81b010e5>] erst_init+0x278/0x2a3
+> > >     [<ffffffff810020b5>] do_one_initcall+0x7b/0x116
+> > >     [<ffffffff81ac9ee7>] kernel_init_freeable+0x13f/0x1cc
+> > >     [<ffffffff813db19f>] kernel_init+0x9/0xd6
+> > >     [<ffffffff813fe5bc>] ret_from_fork+0x7c/0xb0
+> > >     [<ffffffffffffffff>] 0xffffffffffffffff
+> > 
+> > Are there any "APEI:" errors in the kernel log? It could be some
+> > freeing missing on an error path.
 > 
+> No.
+> dmesg |grep APEI
+> [    9.602274] GHES: APEI firmware first mode is enabled by APEI bit and WHEA _OSC.
+> 
+
+Can you try the following debug patch, and send me back the output of:
+
+$ dmesg | grep apei_res
+
+Best Regards,
+Huang Ying
+
+
+---
+ drivers/acpi/apei/apei-base.c |    4 ++++
+ 1 file changed, 4 insertions(+)
+
+--- a/drivers/acpi/apei/apei-base.c
++++ b/drivers/acpi/apei/apei-base.c
+@@ -310,6 +310,8 @@ static int apei_res_add(struct list_head
+ 	struct apei_res *res, *resn, *res_ins = NULL;
+ 	unsigned long end = start + size;
+ 
++	pr_info("apei_res_add: %p: %lx - %lx\n", res_list, start, end);
++
+ 	if (end <= start)
+ 		return 0;
+ repeat:
+@@ -346,6 +348,7 @@ static int apei_res_sub(struct list_head
+ 			struct list_head *res_list2)
+ {
+ 	struct apei_res *res1, *resn1, *res2, *res;
++	pr_info("apei_res_sub: %p - %p\n", res_list1, res_list2);
+ 	res1 = list_entry(res_list1->next, struct apei_res, list);
+ 	resn1 = list_entry(res1->list.next, struct apei_res, list);
+ 	while (&res1->list != res_list1) {
+@@ -386,6 +389,7 @@ static void apei_res_clean(struct list_h
+ {
+ 	struct apei_res *res, *resn;
+ 
++	pr_info("apei_res_clean: %p\n", res_list);
+ 	list_for_each_entry_safe(res, resn, res_list, list) {
+ 		list_del(&res->list);
+ 		kfree(res);
+
+
