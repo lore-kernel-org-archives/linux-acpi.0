@@ -1,54 +1,139 @@
-From: Aaron Lu <aaron.lu@intel.com>
-Subject: Re: [RFC PATCH 2/2] ata: acpi: rework the ata acpi bind support
-Date: Thu, 22 Aug 2013 15:15:16 +0800
-Message-ID: <5215BA84.20000@intel.com>
-References: <1374731223-28685-1-git-send-email-aaron.lu@intel.com> <1374731223-28685-3-git-send-email-aaron.lu@intel.com> <20130725145229.GB26107@mtj.dyndns.org> <520C2FE8.90009@intel.com> <20130815031954.GB4439@htj.dyndns.org>
+From: Michael wang <wangyun@linux.vnet.ibm.com>
+Subject: [PATCH 08/11] sched/cleanup: remove the extra parm of sched_clock_idle_wakeup_event()
+Date: Thu, 22 Aug 2013 15:57:56 +0800
+Message-ID: <5215C484.5010407@linux.vnet.ibm.com>
+References: <5215C233.9060907@linux.vnet.ibm.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-ide-owner@vger.kernel.org>
-In-Reply-To: <20130815031954.GB4439@htj.dyndns.org>
-Sender: linux-ide-owner@vger.kernel.org
-To: Tejun Heo <tj@kernel.org>, Dirk Griesbach <spamthis@freenet.de>, Dimitris Damigos <damigos@freemail.gr>, Dan van der Ster <dan@vanderster.com>, Jeff Wu <jeff.wu@amd.com>
-Cc: Aaron Lu <aaron.lwe@gmail.com>, "Rafael J. Wysocki" <rjw@sisk.pl>, James Bottomley <James.Bottomley@HansenPartnership.com>, Shane Huang <shane.huang@amd.com>, Matthew Garrett <mjg@redhat.com>, Holger Macht <holger@homac.de>, Zhang Rui <rui.zhang@intel.com>, linux-ide@vger.kernel.org, linux-acpi@vger.kernel.org, linux-scsi@vger.kernel.org
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from e23smtp04.au.ibm.com ([202.81.31.146]:53818 "EHLO
+	e23smtp04.au.ibm.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753964Ab3HVH6G (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 22 Aug 2013 03:58:06 -0400
+Received: from /spool/local
+	by e23smtp04.au.ibm.com with IBM ESMTP SMTP Gateway: Authorized Use Only! Violators will be prosecuted
+	for <linux-acpi@vger.kernel.org> from <wangyun@linux.vnet.ibm.com>;
+	Thu, 22 Aug 2013 17:41:05 +1000
+In-Reply-To: <5215C233.9060907@linux.vnet.ibm.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: open list <linux-kernel@vger.kernel.org>
+Cc: Ingo Molnar <mingo@redhat.com>, Peter Zijlstra <peterz@infradead.org>, x86@kernel.org, linux-acpi@vger.kernel.org, Thomas Gleixner <tglx@linutronix.de>, "H. Peter Anvin" <hpa@zytor.com>, Len Brown <lenb@kernel.org>, "Rafael J. Wysocki" <rjw@sisk.pl>, John Stultz <john.stultz@linaro.org>, Paul Gortmaker <paul.gortmaker@windriver.com>, Feng Tang <feng.tang@intel.com>
 
-On 08/15/2013 11:19 AM, Tejun Heo wrote:
-> Hello, Aaron.
-> 
-> On Thu, Aug 15, 2013 at 09:33:28AM +0800, Aaron Lu wrote:
->> This has been quiet for some time, may I know your opinion on this?
-> 
-> Ooh, I like it. I was waiting for proper patch series w/o RFC tag and
-> hopefully some test results.
+Parm 'delta_ns' has not been used, remove it to make code clean.
 
-The patch series has two patches and the first has been taken, shall I
-send the 2nd one again without the RFC tag in the patch subject? There
-should be no other changes at the moment.
+CC: Thomas Gleixner <tglx@linutronix.de>
+CC: "H. Peter Anvin" <hpa@zytor.com>
+CC: Len Brown <lenb@kernel.org>
+CC: "Rafael J. Wysocki" <rjw@sisk.pl>
+CC: John Stultz <john.stultz@linaro.org>
+CC: Paul Gortmaker <paul.gortmaker@windriver.com>
+CC: Feng Tang <feng.tang@intel.com>
+CC: Ingo Molnar <mingo@redhat.com>
+CC: Peter Zijlstra <peterz@infradead.org>
+Signed-off-by: Michael Wang <wangyun@linux.vnet.ibm.com>
+---
+ arch/x86/kernel/tsc.c         |    2 +-
+ drivers/acpi/processor_idle.c |    4 ++--
+ include/linux/sched.h         |    7 ++-----
+ kernel/sched/clock.c          |    2 +-
+ kernel/time/tick-sched.c      |    2 +-
+ 5 files changed, 7 insertions(+), 10 deletions(-)
 
-As for the test, I've tested runtime power management related code, but
-I don't have access to PMP and ATA bay, so I'll ask some people to help.
+diff --git a/arch/x86/kernel/tsc.c b/arch/x86/kernel/tsc.c
+index 930e5d4..4a40402 100644
+--- a/arch/x86/kernel/tsc.c
++++ b/arch/x86/kernel/tsc.c
+@@ -635,7 +635,7 @@ static void set_cyc2ns_scale(unsigned long cpu_khz, int cpu)
+ 					     (1UL << CYC2NS_SCALE_FACTOR));
+ 	}
+ 
+-	sched_clock_idle_wakeup_event(0);
++	sched_clock_idle_wakeup_event();
+ 	local_irq_restore(flags);
+ }
+ 
+diff --git a/drivers/acpi/processor_idle.c b/drivers/acpi/processor_idle.c
+index f98dd00..2bb49f8 100644
+--- a/drivers/acpi/processor_idle.c
++++ b/drivers/acpi/processor_idle.c
+@@ -817,7 +817,7 @@ static int acpi_idle_enter_simple(struct cpuidle_device *dev,
+ 	sched_clock_idle_sleep_event();
+ 	acpi_idle_do_entry(cx);
+ 
+-	sched_clock_idle_wakeup_event(0);
++	sched_clock_idle_wakeup_event();
+ 
+ 	if (cx->entry_method != ACPI_CSTATE_FFH)
+ 		current_thread_info()->status |= TS_POLLING;
+@@ -913,7 +913,7 @@ static int acpi_idle_enter_bm(struct cpuidle_device *dev,
+ 		raw_spin_unlock(&c3_lock);
+ 	}
+ 
+-	sched_clock_idle_wakeup_event(0);
++	sched_clock_idle_wakeup_event();
+ 
+ 	if (cx->entry_method != ACPI_CSTATE_FFH)
+ 		current_thread_info()->status |= TS_POLLING;
+diff --git a/include/linux/sched.h b/include/linux/sched.h
+index 45a1a88..800c57f 100644
+--- a/include/linux/sched.h
++++ b/include/linux/sched.h
+@@ -1809,7 +1809,7 @@ static inline void sched_clock_idle_sleep_event(void)
+ {
+ }
+ 
+-static inline void sched_clock_idle_wakeup_event(u64 delta_ns)
++static inline void sched_clock_idle_wakeup_event(void)
+ {
+ }
+ #else
+@@ -1823,7 +1823,7 @@ extern int sched_clock_stable;
+ 
+ extern void sched_clock_tick(void);
+ extern void sched_clock_idle_sleep_event(void);
+-extern void sched_clock_idle_wakeup_event(u64 delta_ns);
++extern void sched_clock_idle_wakeup_event(void);
+ #endif
+ 
+ #ifdef CONFIG_IRQ_TIME_ACCOUNTING
+@@ -1849,9 +1849,6 @@ extern void sched_exec(void);
+ #define sched_exec()   {}
+ #endif
+ 
+-extern void sched_clock_idle_sleep_event(void);
+-extern void sched_clock_idle_wakeup_event(u64 delta_ns);
+-
+ #ifdef CONFIG_HOTPLUG_CPU
+ extern void idle_task_exit(void);
+ #else
+diff --git a/kernel/sched/clock.c b/kernel/sched/clock.c
+index c3ae144..d111c58 100644
+--- a/kernel/sched/clock.c
++++ b/kernel/sched/clock.c
+@@ -294,7 +294,7 @@ EXPORT_SYMBOL_GPL(sched_clock_idle_sleep_event);
+ /*
+  * We just idled delta nanoseconds (called with irqs disabled):
+  */
+-void sched_clock_idle_wakeup_event(u64 delta_ns)
++void sched_clock_idle_wakeup_event(void)
+ {
+ 	if (timekeeping_suspended)
+ 		return;
+diff --git a/kernel/time/tick-sched.c b/kernel/time/tick-sched.c
+index 3612fc7..4b24d9e 100644
+--- a/kernel/time/tick-sched.c
++++ b/kernel/time/tick-sched.c
+@@ -433,7 +433,7 @@ static void tick_nohz_stop_idle(int cpu, ktime_t now)
+ 	update_ts_time_stats(cpu, ts, now, NULL);
+ 	ts->idle_active = 0;
+ 
+-	sched_clock_idle_wakeup_event(0);
++	sched_clock_idle_wakeup_event();
+ }
+ 
+ static ktime_t tick_nohz_start_idle(int cpu, struct tick_sched *ts)
+-- 
+1.7.9.5
 
-Hi Drik,
-Can you please test the two patches regarding your ATA bay? Thanks.
-
-Hi Dimitris,
-Can you please test the two patches regarding ACPI per device disable
-functionality? Thanks.
-
-Hi Dan,
-Can you please test the two patches here regarding PMP? Thanks.
-
-Hi Jeff,
-It would be good if you can test AMD's ZPODD implementation with the
-patches here, thanks.
-
-You can either use the branch here:
-https://github.com/aaronlu/linux ata_acpi_rework
-
-Or apply the following two patches on top of Linus' tree or a stable tree:
-https://github.com/aaronlu/linux/commit/88ba5478837098b71573bb7d6002be33156ea7e4
-https://github.com/aaronlu/linux/commit/98b61e1f52fe5582eb7f18c6d27773bf1da70096
-
-Thanks,
-Aaron
