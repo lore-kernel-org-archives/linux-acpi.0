@@ -1,69 +1,63 @@
-From: Toshi Kani <toshi.kani@hp.com>
-Subject: Re: [PATCH 0/8] x86, acpi: Move acpi_initrd_override() earlier.
-Date: Thu, 22 Aug 2013 16:17:41 -0600
-Message-ID: <1377209861.10300.756.camel@misato.fc.hp.com>
-References: <20130821195410.GA2436@htj.dyndns.org>
-	 <1377116968.10300.514.camel@misato.fc.hp.com>
-	 <20130821204041.GC2436@htj.dyndns.org>
-	 <1377124595.10300.594.camel@misato.fc.hp.com>
-	 <20130822033234.GA2413@htj.dyndns.org>
-	 <1377186729.10300.643.camel@misato.fc.hp.com>
-	 <20130822183130.GA3490@mtj.dyndns.org>
-	 <1377202292.10300.693.camel@misato.fc.hp.com>
-	 <20130822202158.GD3490@mtj.dyndns.org>
-	 <1377205598.10300.715.camel@misato.fc.hp.com>
-	 <20130822212111.GF3490@mtj.dyndns.org>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: [PATCH (revert)] Revert "ACPI / video: Always call acpi_video_init_brightness() on init"
+Date: Fri, 23 Aug 2013 00:54:42 +0200
+Message-ID: <1403634.a5R4CNkWRc@vostro.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-doc-owner@vger.kernel.org>
-In-Reply-To: <20130822212111.GF3490@mtj.dyndns.org>
-Sender: linux-doc-owner@vger.kernel.org
-To: Tejun Heo <tj@kernel.org>
-Cc: Zhang Yanfei <zhangyanfei.yes@gmail.com>, Tang Chen <tangchen@cn.fujitsu.com>, konrad.wilk@oracle.com, robert.moore@intel.com, lv.zheng@intel.com, rjw@sisk.pl, lenb@kernel.org, tglx@linutronix.de, mingo@elte.hu, hpa@zytor.com, akpm@linux-foundation.org, trenn@suse.de, yinghai@kernel.org, jiang.liu@huawei.com, wency@cn.fujitsu.com, laijs@cn.fujitsu.com, isimatu.yasuaki@jp.fujitsu.com, izumi.taku@jp.fujitsu.com, mgorman@suse.de, minchan@kernel.org, mina86@mina86.com, gong.chen@linux.intel.com, vasilis.liaskovitis@profitbricks.com, lwoodman@redhat.com, riel@redhat.com, jweiner@redhat.com, prarit@redhat.com, zhangyanfei@cn.fujitsu.com, yanghy@cn.fujitsu.com, x86@kernel.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-mm@kvack.org, linux-acpi@vger.kernel.org
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7Bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: ACPI Devel Maling List <linux-acpi@vger.kernel.org>
+Cc: LKML <linux-kernel@vger.kernel.org>, Aaron Lu <aaron.lu@intel.com>, Matthew Garrett <mjg59@srcf.ucam.org>, Daniel Vetter <daniel.vetter@ffwll.ch>, Jani Nikula <jani.nikula@linux.intel.com>, Trevor Bortins <enabfluw@gmail.com>
 List-Id: linux-acpi@vger.kernel.org
 
-Hello Tejun,
+commit 168cf0eca45b86014b8c2a17fcb0673ab1af809b
+Author: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+Date:   Thu Aug 22 23:31:38 2013 +0200
 
-On Thu, 2013-08-22 at 17:21 -0400, Tejun Heo wrote:
- :
-> > Local page table and memory hotplug are two separate things.  That is,
-> > local page tables can be supported on all NUMA platforms without hotplug
-> > support.  Are you sure huge mapping will solve everything for all types
-> > of applications, and therefore local page tables won't be needed at all?
-> 
-> When you throw around terms like "all" and "at all", you can't reach
-> rational discussion about engineering trade-offs.  I was asking you
-> whether it was reasonable to do per-node page table when most machines
-> support huge page mappings which makes the whole thing rather
-> pointless.  Of course there will be some niche cases where this might
-> not be optimal but do you think that would be enough to justify the
-> added complexity and churn?  If you think so, can you please
-> elaborate?
+    Revert "ACPI / video: Always call acpi_video_init_brightness() on init"
+    
+    Revert commit c04c697 (ACPI / video: Always call acpi_video_init_brightness()
+    on init), because it breaks eDP backlight at 1920x1080 on Acer Aspire S3
+    for Trevor Bortins.
+    
+    References: https://bugs.freedesktop.org/show_bug.cgi?id=68355
+    Reported-and-bisected-by: Trevor Bortins <enabfluw@gmail.com>
+    Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 
-I am relatively new to Linux, so I am not a good person to elaborate
-this.  From my experience on other OS, huge pages helped for the kernel,
-but did not necessarily help user applications.  It depended on
-applications, which were not niche cases.  But Linux may be different,
-so I asked since you seemed confident.  I'd appreciate if you can point
-us some data that endorses your statement.
-
-> > When someone changes the page table init code, who will test it with the
-> > special allocation code?
-> 
-> What are you worrying about?  Are you saying that allocating page
-> table towards top or bottom of memory would be more disruptive and
-> difficult to debug than pulling in ACPI init and SRAT information into
-> the process?  Am I missing something here?
-
-My worry is that the code is unlikely tested with the special logic when
-someone makes code changes to the page tables.  Such code can easily be
-broken in future.
-
-To answer your other question/email, I believe Tang's next step is to
-support local page tables.  This is why we think pursing SRAT earlier is
-the right direction.
-
-Thanks,
--Toshi
-
+diff --git a/drivers/acpi/video.c b/drivers/acpi/video.c
+index e1284b8..3270d3c 100644
+--- a/drivers/acpi/video.c
++++ b/drivers/acpi/video.c
+@@ -908,9 +908,6 @@ static void acpi_video_device_find_cap(struct acpi_video_device *device)
+ 		device->cap._DDC = 1;
+ 	}
+ 
+-	if (acpi_video_init_brightness(device))
+-		return;
+-
+ 	if (acpi_video_backlight_support()) {
+ 		struct backlight_properties props;
+ 		struct pci_dev *pdev;
+@@ -920,6 +917,9 @@ static void acpi_video_device_find_cap(struct acpi_video_device *device)
+ 		static int count = 0;
+ 		char *name;
+ 
++		result = acpi_video_init_brightness(device);
++		if (result)
++			return;
+ 		name = kasprintf(GFP_KERNEL, "acpi_video%d", count);
+ 		if (!name)
+ 			return;
+@@ -979,11 +979,6 @@ static void acpi_video_device_find_cap(struct acpi_video_device *device)
+ 		if (result)
+ 			printk(KERN_ERR PREFIX "Create sysfs link\n");
+ 
+-	} else {
+-		/* Remove the brightness object. */
+-		kfree(device->brightness->levels);
+-		kfree(device->brightness);
+-		device->brightness = NULL;
+ 	}
+ }
+ 
