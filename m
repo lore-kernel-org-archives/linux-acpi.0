@@ -1,54 +1,41 @@
-From: Felipe Contreras <felipe.contreras@gmail.com>
-Subject: [RESEND/PATCH] acpi: video: remove unused code
-Date: Thu, 22 Aug 2013 13:31:11 -0500
-Message-ID: <1377196271-20427-1-git-send-email-felipe.contreras@gmail.com>
+From: Tejun Heo <tj@kernel.org>
+Subject: Re: [RFC PATCH 2/2] ata: acpi: rework the ata acpi bind support
+Date: Thu, 22 Aug 2013 14:36:18 -0400
+Message-ID: <20130822183618.GB3490@mtj.dyndns.org>
+References: <1374731223-28685-1-git-send-email-aaron.lu@intel.com>
+ <1374731223-28685-3-git-send-email-aaron.lu@intel.com>
+ <20130725145229.GB26107@mtj.dyndns.org>
+ <520C2FE8.90009@intel.com>
+ <20130815031954.GB4439@htj.dyndns.org>
+ <5215BA84.20000@intel.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-oa0-f51.google.com ([209.85.219.51]:52879 "EHLO
-	mail-oa0-f51.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753766Ab3HVSfj (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 22 Aug 2013 14:35:39 -0400
+Received: from mail-qc0-f170.google.com ([209.85.216.170]:51910 "EHLO
+	mail-qc0-f170.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753766Ab3HVSgY (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 22 Aug 2013 14:36:24 -0400
+Content-Disposition: inline
+In-Reply-To: <5215BA84.20000@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-kernel@vger.kernel.org
-Cc: linux-acpi@vger.kernel.org, "Rafael J. Wysocki" <rjw@sisk.pl>, Len Brown <lenb@kernel.org>, Zhang Rui <rui.zhang@intel.com>, Felipe Contreras <felipe.contreras@gmail.com>
+To: Aaron Lu <aaron.lu@intel.com>
+Cc: Dirk Griesbach <spamthis@freenet.de>, Dimitris Damigos <damigos@freemail.gr>, Dan van der Ster <dan@vanderster.com>, Jeff Wu <jeff.wu@amd.com>, Aaron Lu <aaron.lwe@gmail.com>, "Rafael J. Wysocki" <rjw@sisk.pl>, James Bottomley <James.Bottomley@HansenPartnership.com>, Shane Huang <shane.huang@amd.com>, Matthew Garrett <mjg@redhat.com>, Holger Macht <holger@homac.de>, Zhang Rui <rui.zhang@intel.com>, linux-ide@vger.kernel.org, linux-acpi@vger.kernel.org, linux-scsi@vger.kernel.org
 
-_BCM_use_index and _BCL_use_index are never used and probably never will.
+Hello, Aaron.
 
-Signed-off-by: Felipe Contreras <felipe.contreras@gmail.com>
----
- drivers/acpi/video.c | 12 ------------
- 1 file changed, 12 deletions(-)
+On Thu, Aug 22, 2013 at 03:15:16PM +0800, Aaron Lu wrote:
+> The patch series has two patches and the first has been taken, shall I
+> send the 2nd one again without the RFC tag in the patch subject? There
+> should be no other changes at the moment.
 
-diff --git a/drivers/acpi/video.c b/drivers/acpi/video.c
-index e1284b8..e6be27e 100644
---- a/drivers/acpi/video.c
-+++ b/drivers/acpi/video.c
-@@ -185,8 +185,6 @@ struct acpi_video_device_cap {
- struct acpi_video_brightness_flags {
- 	u8 _BCL_no_ac_battery_levels:1;	/* no AC/Battery levels in _BCL */
- 	u8 _BCL_reversed:1;		/* _BCL package is in a reversed order*/
--	u8 _BCL_use_index:1;		/* levels in _BCL are index values */
--	u8 _BCM_use_index:1;		/* input of _BCM is an index value */
- 	u8 _BQC_use_index:1;		/* _BQC returns an index value */
- };
- 
-@@ -806,16 +804,6 @@ acpi_video_init_brightness(struct acpi_video_device *device)
- 	br->count = count;
- 	device->brightness = br;
- 
--	/* Check the input/output of _BQC/_BCL/_BCM */
--	if ((max_level < 100) && (max_level <= (count - 2)))
--		br->flags._BCL_use_index = 1;
--
--	/*
--	 * _BCM is always consistent with _BCL,
--	 * at least for all the laptops we have ever seen.
--	 */
--	br->flags._BCM_use_index = br->flags._BCL_use_index;
--
- 	/* _BQC uses INDEX while _BCL uses VALUE in some laptops */
- 	br->curr = level = max_level;
- 
+Yes, that was a request for you to send an updated patch.  I'm okay
+with taking some risk with ACPI support for PMPs.  It most likely
+won't matter as long as the code itself doesn't oops anyway, but can
+you please describe what's tested and what's not but should be okay in
+the patch description?
+
+Thanks.
+
 -- 
-1.8.3.269.g65753d8
-
+tejun
