@@ -1,50 +1,57 @@
-From: Jingoo Han <jg1.han@samsung.com>
-Subject: [PATCH] ACPI / APEI: remove unnecessary platform_set_drvdata()
-Date: Thu, 22 Aug 2013 10:47:09 +0900
-Message-ID: <001401ce9ed9$83d74c60$8b85e520$%han@samsung.com>
+From: Tejun Heo <tj@kernel.org>
+Subject: Re: [PATCH 0/8] x86, acpi: Move acpi_initrd_override() earlier.
+Date: Wed, 21 Aug 2013 23:32:34 -0400
+Message-ID: <20130822033234.GA2413@htj.dyndns.org>
+References: <1377080143-28455-1-git-send-email-tangchen@cn.fujitsu.com>
+ <20130821130647.GB19286@mtj.dyndns.org>
+ <5214D60A.2090309@gmail.com>
+ <20130821153639.GA17432@htj.dyndns.org>
+ <1377113503.10300.492.camel@misato.fc.hp.com>
+ <20130821195410.GA2436@htj.dyndns.org>
+ <1377116968.10300.514.camel@misato.fc.hp.com>
+ <20130821204041.GC2436@htj.dyndns.org>
+ <1377124595.10300.594.camel@misato.fc.hp.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mailout4.samsung.com ([203.254.224.34]:26083 "EHLO
-	mailout4.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751853Ab3HVBrL (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 21 Aug 2013 21:47:11 -0400
-Received: from epcpsbgr3.samsung.com
- (u143.gpu120.samsung.co.kr [203.254.230.143])
- by mailout4.samsung.com (Oracle Communications Messaging Server 7u4-24.01
- (7.0.4.24.0) 64bit (built Nov 17 2011))
- with ESMTP id <0MRW002UASYMGUC0@mailout4.samsung.com> for
- linux-acpi@vger.kernel.org; Thu, 22 Aug 2013 10:47:10 +0900 (KST)
-Content-language: ko
+Received: from mail-qa0-f42.google.com ([209.85.216.42]:39436 "EHLO
+	mail-qa0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752242Ab3HVDcj (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 21 Aug 2013 23:32:39 -0400
+Content-Disposition: inline
+In-Reply-To: <1377124595.10300.594.camel@misato.fc.hp.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: 'Len Brown' <lenb@kernel.org>
-Cc: "'Rafael J. Wysocki'" <rjw@sisk.pl>, linux-acpi@vger.kernel.org, "'Naveen N. Rao'" <naveen.n.rao@linux.vnet.ibm.com>, 'Betty Dall' <betty.dall@hp.com>, 'Jingoo Han' <jg1.han@samsung.com>
+To: Toshi Kani <toshi.kani@hp.com>
+Cc: Zhang Yanfei <zhangyanfei.yes@gmail.com>, Tang Chen <tangchen@cn.fujitsu.com>, konrad.wilk@oracle.com, robert.moore@intel.com, lv.zheng@intel.com, rjw@sisk.pl, lenb@kernel.org, tglx@linutronix.de, mingo@elte.hu, hpa@zytor.com, akpm@linux-foundation.org, trenn@suse.de, yinghai@kernel.org, jiang.liu@huawei.com, wency@cn.fujitsu.com, laijs@cn.fujitsu.com, isimatu.yasuaki@jp.fujitsu.com, izumi.taku@jp.fujitsu.com, mgorman@suse.de, minchan@kernel.org, mina86@mina86.com, gong.chen@linux.intel.com, vasilis.liaskovitis@profitbricks.com, lwoodman@redhat.com, riel@redhat.com, jweiner@redhat.com, prarit@redhat.com, zhangyanfei@cn.fujitsu.com, yanghy@cn.fujitsu.com, x86@kernel.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-mm@kvack.org, linux-acpi@vger.kernel.org
 
-The driver core clears the driver data to NULL after device_release
-or on probe failure. Thus, it is not needed to manually clear the
-device driver data to NULL.
+Hello,
 
-Signed-off-by: Jingoo Han <jg1.han@samsung.com>
----
- drivers/acpi/apei/ghes.c |    2 --
- 1 file changed, 2 deletions(-)
+On Wed, Aug 21, 2013 at 04:36:35PM -0600, Toshi Kani wrote:
+> I agree that ACPI is rather complicated stuff.  But in my experience,
+> the majority complication comes from ACPI namespace and methods, not
+> from ACPI tables.  Do you really think ACPI table init is that risky?  I
+> consider ACPI tables are part of the minimum config info, esp. for
+> legacy-free platforms.
 
-diff --git a/drivers/acpi/apei/ghes.c b/drivers/acpi/apei/ghes.c
-index 8ec37bb..3f9771d 100644
---- a/drivers/acpi/apei/ghes.c
-+++ b/drivers/acpi/apei/ghes.c
-@@ -1044,8 +1044,6 @@ static int ghes_remove(struct platform_device *ghes_dev)
- 
- 	kfree(ghes);
- 
--	platform_set_drvdata(ghes_dev, NULL);
--
- 	return 0;
- }
- 
+It's just that we're talking about the very first stage of boot.  We
+really don't do much there and pulling in ACPI code into that stage is
+a lot by comparison.  If that's gonna happen, it needs pretty strong
+justification.
+
+> earlyprintk is just another example to this SRAT issue.  The local page
+> table is yet another example.  My hope here is for us to be able to
+> utilize ACPI tables properly without hitting this kind of ordering
+> issues again and again, which requires considerable time & effort to
+> address.
+
+So, the two things brought up at this point are early parsing of SRAT,
+which can't really solve the problem at hand anyway, and earlyprintk
+which should be implemented in minimal way which is not activated
+unless specifically enabled with earlyprintk boot param.  Neither
+seems to justify pulling in full ACPI into early boot, right?
+
+Thanks.
+
 -- 
-1.7.10.4
-
-
+tejun
