@@ -1,73 +1,51 @@
-From: Tejun Heo <tj@kernel.org>
-Subject: Re: [PATCH 0/8] x86, acpi: Move acpi_initrd_override() earlier.
-Date: Fri, 23 Aug 2013 10:57:32 -0400
-Message-ID: <20130823145732.GC3277@htj.dyndns.org>
-References: <1377202292.10300.693.camel@misato.fc.hp.com>
- <20130822202158.GD3490@mtj.dyndns.org>
- <1377205598.10300.715.camel@misato.fc.hp.com>
- <20130822212111.GF3490@mtj.dyndns.org>
- <1377209861.10300.756.camel@misato.fc.hp.com>
- <20130823130440.GC10322@mtj.dyndns.org>
- <3ee58764-21c2-4df4-9353-54799a6a3d7b@email.android.com>
- <20130823141924.GA3277@htj.dyndns.org>
- <bf688aac-4080-4ac6-83cd-fd66cef6ce1a@email.android.com>
- <20130823143507.GB3277@htj.dyndns.org>
+From: Bjorn Helgaas <bhelgaas@google.com>
+Subject: Re: [Bug 57961] ExpressCard hot-remove and hot-add not recognized by acpiphp
+Date: Fri, 23 Aug 2013 08:58:07 -0600
+Message-ID: <CAErSpo4jFGdW-OXf2OrUQw-e8EdE5h6fPs-v9=QQh1xPjz-Nvg@mail.gmail.com>
+References: <bug-57961-41252@https.bugzilla.kernel.org/> <bug-57961-41252-X2PJk78p44@https.bugzilla.kernel.org/>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <owner-linux-mm@kvack.org>
-Content-Disposition: inline
-In-Reply-To: <20130823143507.GB3277@htj.dyndns.org>
-Sender: owner-linux-mm@kvack.org
-To: "H. Peter Anvin" <hpa@zytor.com>
-Cc: Toshi Kani <toshi.kani@hp.com>, Zhang Yanfei <zhangyanfei.yes@gmail.com>, Tang Chen <tangchen@cn.fujitsu.com>, konrad.wilk@oracle.com, robert.moore@intel.com, lv.zheng@intel.com, rjw@sisk.pl, lenb@kernel.org, tglx@linutronix.de, mingo@elte.hu, akpm@linux-foundation.org, trenn@suse.de, yinghai@kernel.org, jiang.liu@huawei.com, wency@cn.fujitsu.com, laijs@cn.fujitsu.com, isimatu.yasuaki@jp.fujitsu.com, izumi.taku@jp.fujitsu.com, mgorman@suse.de, minchan@kernel.org, mina86@mina86.com, gong.chen@linux.intel.com, vasilis.liaskovitis@profitbricks.com, lwoodman@redhat.com, riel@redhat.com, jweiner@redhat.com, prarit@redhat.com, zhangyanfei@cn.fujitsu.com, yanghy@cn.fujitsu.com, x86@kernel.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-mm@kvack.org, linux-acpi@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-ie0-f175.google.com ([209.85.223.175]:55149 "EHLO
+	mail-ie0-f175.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754057Ab3HWO63 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 23 Aug 2013 10:58:29 -0400
+Received: by mail-ie0-f175.google.com with SMTP id u16so985372iet.34
+        for <linux-acpi@vger.kernel.org>; Fri, 23 Aug 2013 07:58:29 -0700 (PDT)
+In-Reply-To: <bug-57961-41252-X2PJk78p44@https.bugzilla.kernel.org/>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: leho@kraav.com
+Cc: "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
 
-On Fri, Aug 23, 2013 at 10:35:07AM -0400, Tejun Heo wrote:
-> Yeah, it's true that MTRRs are nasty.  On the other hand, we've been
-> doing that for over a decade and are still doing it anyway if I'm not
-> mistaken.  It probably isn't a big difference but it's still a bit sad
-> that this is likely causing small performance regression out in the
-> wild.
+[+cc linux-pci, linux-acpi, switch to email for now]
 
-Just went over the processor manual and it doesn't seem like doing the
-above would be a good idea.
+On Fri, Aug 23, 2013 at 7:34 AM,  <bugzilla-daemon@bugzilla.kernel.org> wrote:
+> https://bugzilla.kernel.org/show_bug.cgi?id=57961
+> ...
+> I'm arriving here from googling "_handle_hotplug_event_root Bus check notify on
+> \_SB_.PCI0".
 
+Huh, interesting.  I didn't think the kernel bugzilla was visible to
+search engines (I wish it were).  But maybe Google just found an email
+that mentioned the URL?
 
-  System Programming Guide, Part 1
+> My Dell L421X is spitting this notification both when I close and open the
+> laptop lid, one each. No ACPI LID event is emitted, which doesn't seem right.
 
-  11.11.9 Large Page Size Considerations
+Can you post a complete dmesg log including a lid close/event cycle?
 
- ... 
- Because the memory type for a large page is cached in the TLB, the
- processor can behave in an undefined manner if a large page is mapped
- to a region of memory that MTRRs have mapped with multiple memory
- types.
- ...
- If a large page maps to a region of memory containing different
- MTRR-defined memory types, the PCD and PWT flags in the page-table
- entry should be set for the most conservative memory type for that
- range. For example, a large page used for memory mapped I/O and
- regular memory 11-48 Vol. 3A MEMORY CACHE CONTROL
- ...
+> Running on 3.10.6. Is this bug related in any way?
 
- The Pentium 4, Intel Xeon, and P6 family processors provide special
- support for the physical memory range from 0 to 4 MBytes,
- ...
- Here, the processor maps the memory range as multiple 4-KByte pages
- within the TLB. This operation insures correct behavior at the cost
- of performance. To avoid this performance penalty, operating-system
- software should reserve the large page option for regions of memory
- at addresses greater than or equal to 4 MBytes.
+Bug 57961 is for ExpressCard changes that we didn't handle correctly.
+It doesn't sound like you're adding or removing an ExpressCard, so
+you're likely seeing a different problem.
 
-So, yeah, the current behavior seems like the right thing to do.
+Is the problem that (1) you see "_handle_hotplug_event_root Bus check
+notify on \_SB_.PCI0" messages that you don't expect, and (2) you do
+not see LID events, which you do expect?
 
-Thanks.
+Is there anything that is not actually working correctly, or is it
+just messages that don't seem right?
 
--- 
-tejun
-
---
-To unsubscribe, send a message with 'unsubscribe linux-mm' in
-the body to majordomo@kvack.org.  For more info on Linux MM,
-see: http://www.linux-mm.org/ .
-Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
+Bjorn
