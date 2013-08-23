@@ -1,60 +1,241 @@
-From: Wolfram Sang <wsa@the-dreams.de>
-Subject: Re: [PATCH V3] i2c: move of helpers into the core
-Date: Fri, 23 Aug 2013 10:52:03 +0200
-Message-ID: <20130823085203.GC3035@katana>
-References: <1377187217-31820-1-git-send-email-wsa@the-dreams.de>
+From: rui wang <ruiv.wang@gmail.com>
+Subject: Re: [PATCH v4 28/28] PCI, x86, ACPI: get ioapic address from acpi device
+Date: Fri, 23 Aug 2013 18:41:15 +0800
+Message-ID: <CANVTcTb2+qX6XMBqrzeLho9yFS55AnztVJ85JBMuxjoH11qzaQ@mail.gmail.com>
+References: <1376189294-32022-1-git-send-email-yinghai@kernel.org>
+	<1376189294-32022-29-git-send-email-yinghai@kernel.org>
+	<CANVTcTYhSfU+Su9s1B+mTTBfgsZgqvQxHiTsLck1zT_vg1Cs4g@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="bAmEntskrkuBymla"
-Return-path: <linux-doc-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <1377187217-31820-1-git-send-email-wsa@the-dreams.de>
-Sender: linux-doc-owner@vger.kernel.org
-To: linux-i2c@vger.kernel.org
-Cc: linux-acpi@vger.kernel.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, dri-devel@lists.freedesktop.org, linux-tegra@vger.kernel.org, davinci-linux-open-source@linux.davincidsp.com, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, linux-samsung-soc@vger.kernel.org, linux-media@vger.kernel.org, devicetree@vger.kernel.org, devel@driverdev.osuosl.org, alsa-devel@alsa-project.org
+Content-Type: text/plain; charset=ISO-8859-1
+Return-path: <linux-pci-owner@vger.kernel.org>
+In-Reply-To: <CANVTcTYhSfU+Su9s1B+mTTBfgsZgqvQxHiTsLck1zT_vg1Cs4g@mail.gmail.com>
+Sender: linux-pci-owner@vger.kernel.org
+To: Yinghai Lu <yinghai@kernel.org>
+Cc: Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@elte.hu>, "H. Peter Anvin" <hpa@zytor.com>, Tony Luck <tony.luck@intel.com>, Bjorn Helgaas <bhelgaas@google.com>, "Rafael J. Wysocki" <rjw@sisk.pl>, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
+On 8/22/13, rui wang <ruiv.wang@gmail.com> wrote:
+> On 8/11/13, Yinghai Lu <yinghai@kernel.org> wrote:
+>> Some ioapic controllers do not show up on pci config space,
+>> or pci device is there but no bar is used and is set by firmware in
+>> other non standard registers.
+>>
+>> We can get ioapic address from ACPI0009's _CRS.
+>>
+>> Signed-off-by: Yinghai Lu <yinghai@kernel.org>
+>> ---
+>>  drivers/pci/ioapic.c | 86
+>> +++++++++++++++++++++++++++++++++++++++++++---------
+>>  1 file changed, 71 insertions(+), 15 deletions(-)
+>>
+>> diff --git a/drivers/pci/ioapic.c b/drivers/pci/ioapic.c
+>> index 60351b2..41f7c69 100644
+>> --- a/drivers/pci/ioapic.c
+>> +++ b/drivers/pci/ioapic.c
+>> @@ -32,6 +32,36 @@ struct acpi_pci_ioapic {
+>>  static LIST_HEAD(ioapic_list);
+>>  static DEFINE_MUTEX(ioapic_list_lock);
+>>
+>> +static acpi_status setup_res(struct acpi_resource *acpi_res, void *data)
+>> +{
+>> +	struct resource *res;
+>> +	struct acpi_resource_address64 addr;
+>> +	acpi_status status;
+>> +	unsigned long flags;
+>> +	u64 start, end;
+>> +
+>> +	status = acpi_resource_to_address64(acpi_res, &addr);
 
---bAmEntskrkuBymla
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+I worked around the problem by replacing acpi_resource_to_address64()
+with resource_to_addr().  But resource_to_addr() is a static function
+in arch/x86/pci/acpi.c, not very convenient to use. Here's what I did:
 
-On Thu, Aug 22, 2013 at 06:00:14PM +0200, Wolfram Sang wrote:
-> I2C of helpers used to live in of_i2c.c but experience (from SPI) shows
-> that it is much cleaner to have this in the core. This also removes a
-> circular dependency between the helpers and the core, and so we can
-> finally register child nodes in the core instead of doing this manually
-> in each driver. So, fix the drivers and documentation, too.
->=20
-> Acked-by: Rob Herring <rob.herring@calxeda.com>
-> Reviewed-by: Felipe Balbi <balbi@ti.com>
-> Acked-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
-> Tested-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
-> Signed-off-by: Wolfram Sang <wsa@the-dreams.de>
+diff --git a/arch/x86/pci/acpi.c b/arch/x86/pci/acpi.c
+index d641897..cb5940a 100644
+--- a/arch/x86/pci/acpi.c
++++ b/arch/x86/pci/acpi.c
+@@ -218,7 +218,7 @@ static void teardown_mcfg_map(struct pci_root_info *info)
+ }
+ #endif
 
-Applied to for-next!
+-static acpi_status
++acpi_status
+ resource_to_addr(struct acpi_resource *resource,
+                        struct acpi_resource_address64 *addr)
+ {
+diff --git a/drivers/pci/ioapic.c b/drivers/pci/ioapic.c
+index 41f7c69..68d7395 100644
+--- a/drivers/pci/ioapic.c
++++ b/drivers/pci/ioapic.c
+@@ -40,7 +40,7 @@ static acpi_status setup_res(struct acpi_resource
+*acpi_res, void *data)
+        unsigned long flags;
+        u64 start, end;
 
---bAmEntskrkuBymla
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
+-       status = acpi_resource_to_address64(acpi_res, &addr);
++       status = resource_to_addr(acpi_res, &addr);
+        if (!ACPI_SUCCESS(status))
+                return AE_OK;
+diff --git a/include/acpi/acpi_bus.h b/include/acpi/acpi_bus.h
+index 94383a7..ae7f759 100644
+--- a/include/acpi/acpi_bus.h
++++ b/include/acpi/acpi_bus.h
+@@ -354,6 +354,10 @@ extern int unregister_acpi_notifier(struct
+notifier_block *);
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.12 (GNU/Linux)
+ extern int register_acpi_bus_notifier(struct notifier_block *nb);
+ extern void unregister_acpi_bus_notifier(struct notifier_block *nb);
++extern acpi_status
++resource_to_addr(struct acpi_resource *resource,
++                        struct acpi_resource_address64 *addr);
++
 
-iQIcBAEBAgAGBQJSFyKzAAoJEBQN5MwUoCm2bI0QAK5awQ507hl+3+q76tlv3bM/
-+m1YNlqdEye7K3+XmB48MpCUi65bGtoITuOg+DaWYxw3+A7RhoJgwkFyMZ0gpesj
-aHkFe51yVYiU4Zx1MVSpIDo5ufAmp+8FRM3TF++IgAq62/7fLtwhTJlU2qgzShzs
-rw8UbmXg9+VjWFRfw1tAl+Vz3sWb9+vH2fmNiwXyPMglOdpClKe28rXrABJ78Gqc
-cxqgatPqfBCxyob57z/hGShtPUZkRWdpMU/hjbfemsPrysbLQzmqVyVS2idFP1ad
-T3mJ3xbKXcyJNO4NjGWazxPnpZ74RfNIJQ5nerZfqralO2gdVW8EFwCYaEy9k8YF
-/EpBpMQkHz3Pb3eb4tZJa50cVCygjuikpPoxq9Mtao6T8VG0aVNj8NuE9ros2WS8
-YWkRaVRDN8fjW98vuw7HmNuHCfFZV7QQ8uCcDtrl9k7X+fLQIvxPAVgrDs7Qmugm
-9nzR9AchLDuHuBNRM42bz/t+cILX2ExwIMC5k1YouF0Inuvfrh3LSrEyaJSD8IEF
-VeRGJPNSEP+Ww2+bGexV56ziz8JeMNLaj5rghDw9h9Jz5D4nMRjqhsRAbSfjrlMb
-YfyMTzS/tmJgt2NPj2bc2DvK4JLfrS/SR5YsdWSgR6VQ0WUvPSLJL/rY8Gn/UJ2j
-gfliuM4Sj6/OhS+bbMX3
-=pGc6
------END PGP SIGNATURE-----
+Thanks
+Rui
 
---bAmEntskrkuBymla--
+
+>
+> The above function fails on my machine because it does not handle
+> Memory32Fixed resources. Is the following _CRS declaration allowed for
+> IOAPIC?
+>
+>             Device (APIC)
+>             {
+>                 Name (_HID, "ACPI0009")  // _HID: Hardware ID
+>                 Name (_CRS, ResourceTemplate ()  // _CRS: Current
+> Resource Settings
+>                 {
+>                     Memory32Fixed (ReadOnly,
+>                         0xFEC01000,         // Address Base
+>                         0x00001000,         // Address Length
+>                         )
+>                 })
+>                 Method(_GSB) {
+>                         return (0x18)
+>                 }
+>             }
+>
+>
+> Thanks
+> Rui
+>
+>> +	if (!ACPI_SUCCESS(status))
+>> +		return AE_OK;
+>> +
+>> +	if (addr.resource_type == ACPI_MEMORY_RANGE) {
+>> +		if (addr.info.mem.caching == ACPI_PREFETCHABLE_MEMORY)
+>> +			return AE_OK;
+>> +		flags = IORESOURCE_MEM;
+>> +	} else
+>> +		return AE_OK;
+>> +
+>> +	start = addr.minimum + addr.translation_offset;
+>> +	end = addr.maximum + addr.translation_offset;
+>> +
+>> +	res = data;
+>> +	res->flags = flags;
+>> +	res->start = start;
+>> +	res->end = end;
+>> +
+>> +	return AE_OK;
+>> +}
+>> +
+>>  static void handle_ioapic_add(acpi_handle handle, struct pci_dev **pdev,
+>>  				 u32 *pgsi_base)
+>>  {
+>> @@ -54,33 +84,56 @@ static void handle_ioapic_add(acpi_handle handle,
+>> struct
+>> pci_dev **pdev,
+>>  		return;
+>>
+>>  	dev = acpi_get_pci_dev(handle);
+>> -	if (!dev)
+>> -		return;
+>> +	if (!dev || !pci_resource_len(dev, 0)) {
+>> +		struct acpi_device_info *info;
+>> +		char *hid = NULL;
+>> +
+>> +		status = acpi_get_object_info(handle, &info);
+>> +		if (ACPI_FAILURE(status))
+>> +			goto exit_put;
+>> +		if (info->valid & ACPI_VALID_HID)
+>> +			hid = info->hardware_id.string;
+>> +		if (!hid || strcmp(hid, "ACPI0009")) {
+>> +			kfree(info);
+>> +			goto exit_put;
+>> +		}
+>> +		kfree(info);
+>> +		memset(res, 0, sizeof(*res));
+>> +		acpi_walk_resources(handle, METHOD_NAME__CRS, setup_res, res);
+>> +		if (!res->flags)
+>> +			goto exit_put;
+>> +	}
+>>
+>>  	acpi_get_name(handle, ACPI_FULL_PATHNAME, &buffer);
+>>
+>>  	gsi_base = gsb;
+>>  	type = "IOxAPIC";
+>> +	if (dev) {
+>> +		ret = pci_enable_device(dev);
+>> +		if (ret < 0)
+>> +			goto exit_put;
+>>
+>> -	ret = pci_enable_device(dev);
+>> -	if (ret < 0)
+>> -		goto exit_put;
+>> -
+>> -	pci_set_master(dev);
+>> +		pci_set_master(dev);
+>>
+>> -	if (dev->class == PCI_CLASS_SYSTEM_PIC_IOAPIC)
+>> -		type = "IOAPIC";
+>> +		if (dev->class == PCI_CLASS_SYSTEM_PIC_IOAPIC)
+>> +			type = "IOAPIC";
+>>
+>> -	if (pci_request_region(dev, 0, type))
+>> -		goto exit_disable;
+>> +		if (pci_resource_len(dev, 0)) {
+>> +			if (pci_request_region(dev, 0, type))
+>> +				goto exit_disable;
+>>
+>> -	res = &dev->resource[0];
+>> +			res = &dev->resource[0];
+>> +		}
+>> +	}
+>>
+>> -	if (acpi_register_ioapic(handle, res->start, gsi_base))
+>> -		goto exit_release;
+>> +	if (acpi_register_ioapic(handle, res->start, gsi_base)) {
+>> +		if (dev)
+>> +			goto exit_release;
+>> +		return;
+>> +	}
+>>
+>>  	pr_info("%s %s %s at %pR, GSI %u\n",
+>> -		dev_name(&dev->dev), objname, type,
+>> +		dev ? dev_name(&dev->dev) : "", objname, type,
+>>  		res, gsi_base);
+>>
+>>  	*pdev = dev;
+>> @@ -100,6 +153,9 @@ static void handle_ioapic_remove(acpi_handle handle,
+>> struct pci_dev *dev,
+>>  {
+>>  	acpi_unregister_ioapic(handle, gsi_base);
+>>
+>> +	if (!dev)
+>> +		return;
+>> +
+>>  	pci_release_region(dev, 0);
+>>  	pci_disable_device(dev);
+>>  	pci_dev_put(dev);
+>> --
+>> 1.8.1.4
+>>
+>> --
+>> To unsubscribe from this list: send the line "unsubscribe linux-kernel"
+>> in
+>> the body of a message to majordomo@vger.kernel.org
+>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>> Please read the FAQ at  http://www.tux.org/lkml/
+>>
+>
