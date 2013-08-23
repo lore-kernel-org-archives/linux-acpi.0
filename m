@@ -1,133 +1,84 @@
-From: Neil Horman <nhorman@tuxdriver.com>
-Subject: Re: [PATCH] ACPI: Fix osc flag setup ordering to allow pcie hotplug
- use when available
-Date: Fri, 23 Aug 2013 16:05:11 -0400
-Message-ID: <20130823200511.GB632@hmsreliant.think-freely.org>
-References: <1377278379-9054-1-git-send-email-nhorman@tuxdriver.com>
- <2074111.WRY7FfU4Ni@vostro.rjw.lan>
+From: Bjorn Helgaas <bhelgaas@google.com>
+Subject: Re: [Bug 57961] ExpressCard hot-remove and hot-add not recognized by acpiphp
+Date: Fri, 23 Aug 2013 14:31:24 -0600
+Message-ID: <CAErSpo5B6dvY6ri1-NajudgS1v1tyTCCicb9vMrOYP=8yv4pPg@mail.gmail.com>
+References: <bug-57961-41252@https.bugzilla.kernel.org/> <bug-57961-41252-X2PJk78p44@https.bugzilla.kernel.org/>
+ <CAErSpo4jFGdW-OXf2OrUQw-e8EdE5h6fPs-v9=QQh1xPjz-Nvg@mail.gmail.com> <5217BDF2.4020909@kraav.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <2074111.WRY7FfU4Ni@vostro.rjw.lan>
-Sender: linux-kernel-owner@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: linux-kernel@vger.kernel.org, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, Bjorn Helgaas <bhelgaas@google.com>, Yinghai Lu <yinghai@kernel.org>, Linux PCI <linux-pci@vger.kernel.org>
+Content-Type: text/plain; charset=ISO-8859-1
+Return-path: <linux-pci-owner@vger.kernel.org>
+In-Reply-To: <5217BDF2.4020909@kraav.com>
+Sender: linux-pci-owner@vger.kernel.org
+To: Leho Kraav <leho@kraav.com>
+Cc: "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On Fri, Aug 23, 2013 at 09:38:18PM +0200, Rafael J. Wysocki wrote:
-> [CCs added]
-> 
-> Please always send PCI-related material to linux-pci in the first place.
-> 
-Sorry, I ran get_maintainers and it seemed to think linux-acpi was sufficient.
+On Fri, Aug 23, 2013 at 1:54 PM, Leho Kraav <leho@kraav.com> wrote:
+> On 23.08.2013 17:58, Bjorn Helgaas wrote:
+>>
+>> [+cc linux-pci, linux-acpi, switch to email for now]
+>>
+>> On Fri, Aug 23, 2013 at 7:34 AM,  <bugzilla-daemon@bugzilla.kernel.org>
+>> wrote:
+>>>
+>>> https://bugzilla.kernel.org/show_bug.cgi?id=57961
+>>> ...
+>>> I'm arriving here from googling "_handle_hotplug_event_root Bus check
+>>> notify on
+>>> \_SB_.PCI0".
 
-> The change that broke things for you was actually intentional:
-> 
-> commit b8178f130e25c1bdac1c33e0996f1ff6e20ec08e
-> Author: Bjorn Helgaas <bhelgaas@google.com>
-> Date:   Mon Apr 1 15:47:39 2013 -0600
-> 
->     Revert "PCI/ACPI: Request _OSC control before scanning PCI root bus"
->     
->     This reverts commit 8c33f51df406e1a1f7fa4e9b244845b7ebd61fa6.
-> 
-> so I think we'll need to clean up the ASMP initialization after all.
-> 
-Crud.  Reading over the revert commit, it seems like the problem boils down to
-the odering of checking aspm_disabled.  It seems to me that the simple fix is to
-track the desire for acpi to disable aspm separately from the users desire to
-disable aspm (aspm_disabled).  Then we just turn the points where we check the
-aspm_disabled into the appropriate or of two variables, except for
-pcie_asmp_sanity_check, which remains sensitive to just the user disable option.
+>>> My Dell L421X is spitting this notification both when I close and open
+>>> the
+>>> laptop lid, one each. No ACPI LID event is emitted, which doesn't seem
+>>> right.
+>>
+>>
+>> Can you post a complete dmesg log including a lid close/event cycle?
+>
+>
+> E-mailed that to you personally.
+>
+>
+>>> Running on 3.10.6. Is this bug related in any way?
+>>
+>>
+>> Bug 57961 is for ExpressCard changes that we didn't handle correctly.
+>> It doesn't sound like you're adding or removing an ExpressCard, so
+>> you're likely seeing a different problem.
+>>
+>> Is the problem that (1) you see "_handle_hotplug_event_root Bus check
+>> notify on \_SB_.PCI0" messages that you don't expect, and (2) you do
+>> not see LID events, which you do expect?
+>>
+>> Is there anything that is not actually working correctly, or is it
+>> just messages that don't seem right?
+>
+>
+> Mailing list thread discussed some apparently significant ACPI changes in
+> 3.10. I've yet to have a laptop that didn't emit an ACPI LID event. Instead
+> the kernel does emit something that looks like something is not quite what
+> it should be. I'm wondering if I have missed something in kernel
+> configuration or am I somehow affected by the recent ACPI changes or a
+> machine specific bug somewhere. Dells are among the Linux-friendliest
+> machines throughout history, that makes me think it could be the kernel.
+>
+> You're right, I'm not on the acpiphp bus for sure, but sometimes things are
+> related at a level above so I took a shot at trying to find out what's
+> happening.
 
-Or is there more to this?
+I don't know anything about the LID notifications.
 
-Neil
+As far as the bus checks on \_SB_.PCI0, I think that message is new or
+possibly we register for those notifications on more devices that we
+previously did.  If your laptop suspended when closing the lid, it
+doesn't surprise me that we get the Bus Check on resume, because that
+might be the only way we could discover device additions or removals
+that happened while suspended.  I'm not sure why we would get them on
+suspend.
 
-> On Friday, August 23, 2013 01:19:39 PM Neil Horman wrote:
-> > Somewhere between 3.9 and 3.10 it seems the order in which pcie and acpi probed
-> > slots for hotplug capabilites got reversed.  While this isn't a big deal, it did
-> > uncover a bug in the ACPI bus setup path.  Specifically, acpi_pci_root_add calls
-> > pci_acpi_scan_root before setting the osc flags for the device handle.
-> > pci_acpi_scan_root, among other things uses device_is_managed_by_native_pciehp()
-> > to determine if a given slot has pcie hotplug capabilties, whcih checks the
-> > devices OSC_PCI_EXPRESS_NATIVE_HP_CONTROL flag.  Since that flag is not set
-> > until after pci_acpi_scan_root_completes, the acpi code never sees that pcie
-> > slots are hotplug capable and configures them all to use acpi instead.
-> > 
-> > Fix is pretty simple, just defer the scan until after the osc flags have been
-> > set on the device.  Tested by myself and it seems to work well.
-> > 
-> > Signed-off-by: Neil Horman <nhorman@tuxdriver.com>
-> > CC: Len Brown <lenb@kernel.org>
-> > CC: "Rafael J. Wysocki" <rjw@sisk.pl>
-> > CC: linux-acpi@vger.kernel.org
-> > ---
-> >  drivers/acpi/pci_root.c | 41 ++++++++++++++++++++---------------------
-> >  1 file changed, 20 insertions(+), 21 deletions(-)
-> > 
-> > diff --git a/drivers/acpi/pci_root.c b/drivers/acpi/pci_root.c
-> > index 5917839..a2c2661 100644
-> > --- a/drivers/acpi/pci_root.c
-> > +++ b/drivers/acpi/pci_root.c
-> > @@ -437,27 +437,6 @@ static int acpi_pci_root_add(struct acpi_device *device,
-> >  	flags = base_flags = OSC_PCI_SEGMENT_GROUPS_SUPPORT;
-> >  	acpi_pci_osc_support(root, flags);
-> >  
-> > -	/*
-> > -	 * TBD: Need PCI interface for enumeration/configuration of roots.
-> > -	 */
-> > -
-> > -	/*
-> > -	 * Scan the Root Bridge
-> > -	 * --------------------
-> > -	 * Must do this prior to any attempt to bind the root device, as the
-> > -	 * PCI namespace does not get created until this call is made (and
-> > -	 * thus the root bridge's pci_dev does not exist).
-> > -	 */
-> > -	root->bus = pci_acpi_scan_root(root);
-> > -	if (!root->bus) {
-> > -		dev_err(&device->dev,
-> > -			"Bus %04x:%02x not present in PCI namespace\n",
-> > -			root->segment, (unsigned int)root->secondary.start);
-> > -		result = -ENODEV;
-> > -		goto end;
-> > -	}
-> > -
-> > -	/* Indicate support for various _OSC capabilities. */
-> >  	if (pci_ext_cfg_avail())
-> >  		flags |= OSC_EXT_PCI_CONFIG_SUPPORT;
-> >  	if (pcie_aspm_support_enabled()) {
-> > @@ -520,6 +499,26 @@ static int acpi_pci_root_add(struct acpi_device *device,
-> >  			 "(_OSC support mask: 0x%02x)\n", flags);
-> >  	}
-> >  
-> > +	/*
-> > +	 * TBD: Need PCI interface for enumeration/configuration of roots.
-> > +	 */
-> > +
-> > +	/*
-> > +	 * Scan the Root Bridge
-> > +	 * --------------------
-> > +	 * Must do this prior to any attempt to bind the root device, as the
-> > +	 * PCI namespace does not get created until this call is made (and
-> > +	 * thus the root bridge's pci_dev does not exist).
-> > +	 */
-> > +	root->bus = pci_acpi_scan_root(root);
-> > +	if (!root->bus) {
-> > +		dev_err(&device->dev,
-> > +			"Bus %04x:%02x not present in PCI namespace\n",
-> > +			root->segment, (unsigned int)root->secondary.start);
-> > +		result = -ENODEV;
-> > +		goto end;
-> > +	}
-> > +
-> >  	pci_acpi_add_bus_pm_notifier(device, root->bus);
-> >  	if (device->wakeup.flags.run_wake)
-> >  		device_set_run_wake(root->bus->bridge, true);
-> > 
-> -- 
-> I speak only for myself.
-> Rafael J. Wysocki, Intel Open Source Technology Center.
-> 
+Regardless, we can't change the fact that the BIOS sends us those
+notification events.  We could change or remove the message, but I
+suspect we might want to keep it for debugging purposes for a while,
+since we're actively working in that area.
+
+Bjorn
