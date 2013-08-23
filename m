@@ -1,154 +1,100 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: [PATCH] ACPI: Fix osc flag setup ordering to allow pcie hotplug use when available
-Date: Fri, 23 Aug 2013 23:40:52 +0200
-Message-ID: <4634097.MXvnqpQKZr@vostro.rjw.lan>
-References: <1377278379-9054-1-git-send-email-nhorman@tuxdriver.com> <3958698.Gm9Wz19SSi@vostro.rjw.lan> <CAErSpo5JhCQsYHgFdp+vK9=wLzHert1r5vTe7_ZCPh-4kM80zQ@mail.gmail.com>
+From: chen tang <imtangchen@gmail.com>
+Subject: Re: [PATCH 0/8] x86, acpi: Move acpi_initrd_override() earlier.
+Date: Sat, 24 Aug 2013 05:37:48 +0800
+Message-ID: <CAD11hGzaK1Y1J7vQUOCQg8O767479qXQnYWm_72nPEK+E+TrHg@mail.gmail.com>
+References: <20130821204041.GC2436@htj.dyndns.org>
+	<1377124595.10300.594.camel@misato.fc.hp.com>
+	<20130822033234.GA2413@htj.dyndns.org>
+	<1377186729.10300.643.camel@misato.fc.hp.com>
+	<20130822183130.GA3490@mtj.dyndns.org>
+	<1377202292.10300.693.camel@misato.fc.hp.com>
+	<20130822202158.GD3490@mtj.dyndns.org>
+	<1377205598.10300.715.camel@misato.fc.hp.com>
+	<20130822212111.GF3490@mtj.dyndns.org>
+	<1377209861.10300.756.camel@misato.fc.hp.com>
+	<20130823130440.GC10322@mtj.dyndns.org>
+	<1377274448.10300.777.camel@misato.fc.hp.com>
+	<521793BB.9080605@gmail.com>
+	<1377282543.10300.820.camel@misato.fc.hp.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7Bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <CAErSpo5JhCQsYHgFdp+vK9=wLzHert1r5vTe7_ZCPh-4kM80zQ@mail.gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Bjorn Helgaas <bhelgaas@google.com>
-Cc: Neil Horman <nhorman@tuxdriver.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Len Brown <lenb@kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, Yinghai Lu <yinghai@kernel.org>, Linux PCI <linux-pci@vger.kernel.org>
+Content-Type: text/plain; charset=ISO-8859-1
+Return-path: <owner-linux-mm@kvack.org>
+In-Reply-To: <1377282543.10300.820.camel@misato.fc.hp.com>
+Sender: owner-linux-mm@kvack.org
+To: Toshi Kani <toshi.kani@hp.com>
+Cc: Zhang Yanfei <zhangyanfei.yes@gmail.com>, Tejun Heo <tj@kernel.org>, Tang Chen <tangchen@cn.fujitsu.com>, Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>, Bob Moore <robert.moore@intel.com>, Lv Zheng <lv.zheng@intel.com>, "Rafael J. Wysocki" <rjw@sisk.pl>, Len Brown <lenb@kernel.org>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@elte.hu>, "H. Peter Anvin" <hpa@zytor.com>, Andrew Morton <akpm@linux-foundation.org>, Thomas Renninger <trenn@suse.de>, Yinghai Lu <yinghai@kernel.org>, Jiang Liu <jiang.liu@huawei.com>, Wen Congyang <wency@cn.fujitsu.com>, Lai Jiangshan <laijs@cn.fujitsu.com>, Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>, Taku Izumi <izumi.taku@jp.fujitsu.com>, Mel Gorman <mgorman@suse.de>, Minchan Kim <minchan@kernel.org>, "mina86@mina86.com" <mina86@mina86.com>, "gong.chen@linux.intel.com" <gong.chen@linux.intel.com>, Vasilis
 List-Id: linux-acpi@vger.kernel.org
 
-On Friday, August 23, 2013 02:46:23 PM Bjorn Helgaas wrote:
-> On Fri, Aug 23, 2013 at 2:53 PM, Rafael J. Wysocki <rjw@sisk.pl> wrote:
-> > On Friday, August 23, 2013 04:05:11 PM Neil Horman wrote:
-> >> On Fri, Aug 23, 2013 at 09:38:18PM +0200, Rafael J. Wysocki wrote:
-> >> > [CCs added]
-> >> >
-> >> > Please always send PCI-related material to linux-pci in the first place.
-> >> >
-> >> Sorry, I ran get_maintainers and it seemed to think linux-acpi was sufficient.
-> >>
-> >> > The change that broke things for you was actually intentional:
-> >> >
-> >> > commit b8178f130e25c1bdac1c33e0996f1ff6e20ec08e
-> >> > Author: Bjorn Helgaas <bhelgaas@google.com>
-> >> > Date:   Mon Apr 1 15:47:39 2013 -0600
-> >> >
-> >> >     Revert "PCI/ACPI: Request _OSC control before scanning PCI root bus"
-> >> >
-> >> >     This reverts commit 8c33f51df406e1a1f7fa4e9b244845b7ebd61fa6.
-> >> >
-> >> > so I think we'll need to clean up the ASMP initialization after all.
-> >> >
-> >> Crud.  Reading over the revert commit, it seems like the problem boils down to
-> >> the odering of checking aspm_disabled.  It seems to me that the simple fix is to
-> >> track the desire for acpi to disable aspm separately from the users desire to
-> >> disable aspm (aspm_disabled).  Then we just turn the points where we check the
-> >> aspm_disabled into the appropriate or of two variables, except for
-> >> pcie_asmp_sanity_check, which remains sensitive to just the user disable option.
-> >>
-> >> Or is there more to this?
-> >
-> > No, I think you're right.
-> >
-> > Bjorn, what do you think?
-> 
-> My opinion is that the _OSC/ASPM state management is ridiculously
-> complicated already, and this would make it slightly more complicated.
->  That's why my preference would be to attempt a more radical cleanup
-> and simplification instead of adding another wart.
+Hi Toshi, tj,
 
-Well, do you have anything specific in mind?
+Really sorry for the delay. There were so many discussions in this thread and
+it took me a lot of time to read and follow them.
 
-> But if you want to merge a patch along the lines of what Neil
-> proposes, I won't object.
+2013/8/24 Toshi Kani <toshi.kani@hp.com>:
+......
+> On Sat, 2013-08-24 at 00:54 +0800, Zhang Yanfei wrote:
+>> > Tang, what do you think?  Are you OK to try Tejun's suggestion as well?
+>> >
 
-I'm not sure what to do really, so I'm asking. :-)
+We have been working on this for a while. And will send the patches soon.
+We are trying this idea and will see how it goes.
 
-Rafael
+>>
+>> By saying TJ's suggestion, you mean, we will let memblock to control the
+>> behaviour, that said, we will do early allocations near the kernel image
+>> range before we get the SRAT info?
+>
+> Right.
+>
+>> If so, yeah, we have been working on this direction.
+>
+> Great!
+>
+>> By doing this, we may
+>> have two main changes:
+>>
+>> 1. change some of memblock's APIs to make it have the ability to allocate
+>>    memory from low address.
+>> 2. setup kernel page table down-top. Concretely, we first map the memory
+>>    just after the kernel image to the top, then, we map 0 - kernel image end.
+>>
+>> Do you guys think this is reasonable and acceptable?
+>
+> Have you also looked at Yinghai's comments below?
+>
+> http://www.spinics.net/lists/linux-mm/msg61362.html
+>
 
+We have read the comments from Yinghai. Reordering relocated_initrd and
+reserve_crashkernel is doable, and the most difficult part is change the page
+tables initialization logic. And as Zhang has mentioned above, we are not sure
+if this could be acceptable.
 
-> >> > On Friday, August 23, 2013 01:19:39 PM Neil Horman wrote:
-> >> > > Somewhere between 3.9 and 3.10 it seems the order in which pcie and acpi probed
-> >> > > slots for hotplug capabilites got reversed.  While this isn't a big deal, it did
-> >> > > uncover a bug in the ACPI bus setup path.  Specifically, acpi_pci_root_add calls
-> >> > > pci_acpi_scan_root before setting the osc flags for the device handle.
-> >> > > pci_acpi_scan_root, among other things uses device_is_managed_by_native_pciehp()
-> >> > > to determine if a given slot has pcie hotplug capabilties, whcih checks the
-> >> > > devices OSC_PCI_EXPRESS_NATIVE_HP_CONTROL flag.  Since that flag is not set
-> >> > > until after pci_acpi_scan_root_completes, the acpi code never sees that pcie
-> >> > > slots are hotplug capable and configures them all to use acpi instead.
-> >> > >
-> >> > > Fix is pretty simple, just defer the scan until after the osc flags have been
-> >> > > set on the device.  Tested by myself and it seems to work well.
-> >> > >
-> >> > > Signed-off-by: Neil Horman <nhorman@tuxdriver.com>
-> >> > > CC: Len Brown <lenb@kernel.org>
-> >> > > CC: "Rafael J. Wysocki" <rjw@sisk.pl>
-> >> > > CC: linux-acpi@vger.kernel.org
-> >> > > ---
-> >> > >  drivers/acpi/pci_root.c | 41 ++++++++++++++++++++---------------------
-> >> > >  1 file changed, 20 insertions(+), 21 deletions(-)
-> >> > >
-> >> > > diff --git a/drivers/acpi/pci_root.c b/drivers/acpi/pci_root.c
-> >> > > index 5917839..a2c2661 100644
-> >> > > --- a/drivers/acpi/pci_root.c
-> >> > > +++ b/drivers/acpi/pci_root.c
-> >> > > @@ -437,27 +437,6 @@ static int acpi_pci_root_add(struct acpi_device *device,
-> >> > >   flags = base_flags = OSC_PCI_SEGMENT_GROUPS_SUPPORT;
-> >> > >   acpi_pci_osc_support(root, flags);
-> >> > >
-> >> > > - /*
-> >> > > -  * TBD: Need PCI interface for enumeration/configuration of roots.
-> >> > > -  */
-> >> > > -
-> >> > > - /*
-> >> > > -  * Scan the Root Bridge
-> >> > > -  * --------------------
-> >> > > -  * Must do this prior to any attempt to bind the root device, as the
-> >> > > -  * PCI namespace does not get created until this call is made (and
-> >> > > -  * thus the root bridge's pci_dev does not exist).
-> >> > > -  */
-> >> > > - root->bus = pci_acpi_scan_root(root);
-> >> > > - if (!root->bus) {
-> >> > > -         dev_err(&device->dev,
-> >> > > -                 "Bus %04x:%02x not present in PCI namespace\n",
-> >> > > -                 root->segment, (unsigned int)root->secondary.start);
-> >> > > -         result = -ENODEV;
-> >> > > -         goto end;
-> >> > > - }
-> >> > > -
-> >> > > - /* Indicate support for various _OSC capabilities. */
-> >> > >   if (pci_ext_cfg_avail())
-> >> > >           flags |= OSC_EXT_PCI_CONFIG_SUPPORT;
-> >> > >   if (pcie_aspm_support_enabled()) {
-> >> > > @@ -520,6 +499,26 @@ static int acpi_pci_root_add(struct acpi_device *device,
-> >> > >                    "(_OSC support mask: 0x%02x)\n", flags);
-> >> > >   }
-> >> > >
-> >> > > + /*
-> >> > > +  * TBD: Need PCI interface for enumeration/configuration of roots.
-> >> > > +  */
-> >> > > +
-> >> > > + /*
-> >> > > +  * Scan the Root Bridge
-> >> > > +  * --------------------
-> >> > > +  * Must do this prior to any attempt to bind the root device, as the
-> >> > > +  * PCI namespace does not get created until this call is made (and
-> >> > > +  * thus the root bridge's pci_dev does not exist).
-> >> > > +  */
-> >> > > + root->bus = pci_acpi_scan_root(root);
-> >> > > + if (!root->bus) {
-> >> > > +         dev_err(&device->dev,
-> >> > > +                 "Bus %04x:%02x not present in PCI namespace\n",
-> >> > > +                 root->segment, (unsigned int)root->secondary.start);
-> >> > > +         result = -ENODEV;
-> >> > > +         goto end;
-> >> > > + }
-> >> > > +
-> >> > >   pci_acpi_add_bus_pm_notifier(device, root->bus);
-> >> > >   if (device->wakeup.flags.run_wake)
-> >> > >           device_set_run_wake(root->bus->bridge, true);
-> >> > >
-> >>
-> > --
-> > I speak only for myself.
-> > Rafael J. Wysocki, Intel Open Source Technology Center.
--- 
-I speak only for myself.
-Rafael J. Wysocki, Intel Open Source Technology Center.
+Actually I also stand with Toshi that we should get SRAT earlier. This
+will solve
+memory hotplug issue, and also the following local page table problem.
+
+And as tj concerned about the stability of the kernel boot sequence, then how
+about this:
+
+We don't do acpi_initrd_override() that early in head_32.S and head_64.c. We do
+it after early_ioremap is available. I have mentioned this before.
+
+With the help of early_ioremap, which is used by many others, we can copy all
+override tables into memory. In my understanding, the page tables setup by
+early_ioremap will work just like direct mapping page tables, right ?
+Then we unmap
+the memory, it is done. And we don't need to split the whole procedure
+into fnd & copy.
+
+So to tj, this approach won't affect acpica and very early boot
+sequence. Are you OK
+with this ?
+
+Thanks.
+
+--
+To unsubscribe, send a message with 'unsubscribe linux-mm' in
+the body to majordomo@kvack.org.  For more info on Linux MM,
+see: http://www.linux-mm.org/ .
+Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
