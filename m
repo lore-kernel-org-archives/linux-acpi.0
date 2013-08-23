@@ -1,51 +1,120 @@
-From: Yinghai Lu <yinghai@kernel.org>
-Subject: Re: [PATCH v4 28/28] PCI, x86, ACPI: get ioapic address from acpi device
-Date: Fri, 23 Aug 2013 12:04:01 -0700
-Message-ID: <CAE9FiQXFcM+FZnp00RP5Z8a2FhtjB7BuUUi4TuABF4-O9W+c8Q@mail.gmail.com>
-References: <1376189294-32022-1-git-send-email-yinghai@kernel.org>
-	<1376189294-32022-29-git-send-email-yinghai@kernel.org>
-	<CANVTcTYhSfU+Su9s1B+mTTBfgsZgqvQxHiTsLck1zT_vg1Cs4g@mail.gmail.com>
-	<CANVTcTb2+qX6XMBqrzeLho9yFS55AnztVJ85JBMuxjoH11qzaQ@mail.gmail.com>
-	<CAOLK0pwQJVvcT5xA-+Ftb85FzbjHN-OZmXO=n7r4EWh4nFjSBA@mail.gmail.com>
-	<CAE9FiQWnGaa6omcLW0zxLj+UMspRGxjVoYXUsH3ndydGD51T9w@mail.gmail.com>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: Re: [PATCH] ACPI: Fix osc flag setup ordering to allow pcie hotplug use when available
+Date: Fri, 23 Aug 2013 21:38:18 +0200
+Message-ID: <2074111.WRY7FfU4Ni@vostro.rjw.lan>
+References: <1377278379-9054-1-git-send-email-nhorman@tuxdriver.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7Bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-oa0-f50.google.com ([209.85.219.50]:51264 "EHLO
-	mail-oa0-f50.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755621Ab3HWTEC (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 23 Aug 2013 15:04:02 -0400
-In-Reply-To: <CAE9FiQWnGaa6omcLW0zxLj+UMspRGxjVoYXUsH3ndydGD51T9w@mail.gmail.com>
+Received: from hydra.sisk.pl ([212.160.235.94]:57733 "EHLO hydra.sisk.pl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755049Ab3HWT1o (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 23 Aug 2013 15:27:44 -0400
+In-Reply-To: <1377278379-9054-1-git-send-email-nhorman@tuxdriver.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Lan Tianyu <lantianyu1986@gmail.com>, "Rafael J. Wysocki" <rjw@sisk.pl>, Bjorn Helgaas <bhelgaas@google.com>
-Cc: rui wang <ruiv.wang@gmail.com>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@elte.hu>, "H. Peter Anvin" <hpa@zytor.com>, Tony Luck <tony.luck@intel.com>, Linux PCI <linux-pci@vger.kernel.org>, "linux-kernel@vger kernel org" <linux-kernel@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
+To: Neil Horman <nhorman@tuxdriver.com>
+Cc: linux-kernel@vger.kernel.org, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, Bjorn Helgaas <bhelgaas@google.com>, Yinghai Lu <yinghai@kernel.org>, Linux PCI <linux-pci@vger.kernel.org>
 
-On Fri, Aug 23, 2013 at 11:38 AM, Yinghai Lu <yinghai@kernel.org> wrote:
-> On Fri, Aug 23, 2013 at 8:34 AM, Lan Tianyu <lantianyu1986@gmail.com> wrote:
->>> I worked around the problem by replacing acpi_resource_to_address64()
->>> with resource_to_addr().  But resource_to_addr() is a static function
->>> in arch/x86/pci/acpi.c, not very convenient to use. Here's what I did:
->>>
->>
->> Hi Rui&Yinghai:
->>            How about using the following code to translate struct
->>  acpi_resource to struct resouce in this setup_res()?
->>
->>          if (acpi_dev_resource_address_space(...)
->>                 || acpi_dev_resource_memory(..))
->>               return AE_OK;
->
-> Yest, that could be better, will update that.
->
-> Also can you submit patch that will use that in res_to_addr of
-> arch/x86/pci/acpi.c?
+[CCs added]
 
-looks acpi_dev_resource_address_space... does not handle
-PREFTCH and translation offset.
+Please always send PCI-related material to linux-pci in the first place.
 
-So now i have to use res_to_addr alike one.
+The change that broke things for you was actually intentional:
 
-Thanks
+commit b8178f130e25c1bdac1c33e0996f1ff6e20ec08e
+Author: Bjorn Helgaas <bhelgaas@google.com>
+Date:   Mon Apr 1 15:47:39 2013 -0600
 
-Yinghai
+    Revert "PCI/ACPI: Request _OSC control before scanning PCI root bus"
+    
+    This reverts commit 8c33f51df406e1a1f7fa4e9b244845b7ebd61fa6.
+
+so I think we'll need to clean up the ASMP initialization after all.
+
+On Friday, August 23, 2013 01:19:39 PM Neil Horman wrote:
+> Somewhere between 3.9 and 3.10 it seems the order in which pcie and acpi probed
+> slots for hotplug capabilites got reversed.  While this isn't a big deal, it did
+> uncover a bug in the ACPI bus setup path.  Specifically, acpi_pci_root_add calls
+> pci_acpi_scan_root before setting the osc flags for the device handle.
+> pci_acpi_scan_root, among other things uses device_is_managed_by_native_pciehp()
+> to determine if a given slot has pcie hotplug capabilties, whcih checks the
+> devices OSC_PCI_EXPRESS_NATIVE_HP_CONTROL flag.  Since that flag is not set
+> until after pci_acpi_scan_root_completes, the acpi code never sees that pcie
+> slots are hotplug capable and configures them all to use acpi instead.
+> 
+> Fix is pretty simple, just defer the scan until after the osc flags have been
+> set on the device.  Tested by myself and it seems to work well.
+> 
+> Signed-off-by: Neil Horman <nhorman@tuxdriver.com>
+> CC: Len Brown <lenb@kernel.org>
+> CC: "Rafael J. Wysocki" <rjw@sisk.pl>
+> CC: linux-acpi@vger.kernel.org
+> ---
+>  drivers/acpi/pci_root.c | 41 ++++++++++++++++++++---------------------
+>  1 file changed, 20 insertions(+), 21 deletions(-)
+> 
+> diff --git a/drivers/acpi/pci_root.c b/drivers/acpi/pci_root.c
+> index 5917839..a2c2661 100644
+> --- a/drivers/acpi/pci_root.c
+> +++ b/drivers/acpi/pci_root.c
+> @@ -437,27 +437,6 @@ static int acpi_pci_root_add(struct acpi_device *device,
+>  	flags = base_flags = OSC_PCI_SEGMENT_GROUPS_SUPPORT;
+>  	acpi_pci_osc_support(root, flags);
+>  
+> -	/*
+> -	 * TBD: Need PCI interface for enumeration/configuration of roots.
+> -	 */
+> -
+> -	/*
+> -	 * Scan the Root Bridge
+> -	 * --------------------
+> -	 * Must do this prior to any attempt to bind the root device, as the
+> -	 * PCI namespace does not get created until this call is made (and
+> -	 * thus the root bridge's pci_dev does not exist).
+> -	 */
+> -	root->bus = pci_acpi_scan_root(root);
+> -	if (!root->bus) {
+> -		dev_err(&device->dev,
+> -			"Bus %04x:%02x not present in PCI namespace\n",
+> -			root->segment, (unsigned int)root->secondary.start);
+> -		result = -ENODEV;
+> -		goto end;
+> -	}
+> -
+> -	/* Indicate support for various _OSC capabilities. */
+>  	if (pci_ext_cfg_avail())
+>  		flags |= OSC_EXT_PCI_CONFIG_SUPPORT;
+>  	if (pcie_aspm_support_enabled()) {
+> @@ -520,6 +499,26 @@ static int acpi_pci_root_add(struct acpi_device *device,
+>  			 "(_OSC support mask: 0x%02x)\n", flags);
+>  	}
+>  
+> +	/*
+> +	 * TBD: Need PCI interface for enumeration/configuration of roots.
+> +	 */
+> +
+> +	/*
+> +	 * Scan the Root Bridge
+> +	 * --------------------
+> +	 * Must do this prior to any attempt to bind the root device, as the
+> +	 * PCI namespace does not get created until this call is made (and
+> +	 * thus the root bridge's pci_dev does not exist).
+> +	 */
+> +	root->bus = pci_acpi_scan_root(root);
+> +	if (!root->bus) {
+> +		dev_err(&device->dev,
+> +			"Bus %04x:%02x not present in PCI namespace\n",
+> +			root->segment, (unsigned int)root->secondary.start);
+> +		result = -ENODEV;
+> +		goto end;
+> +	}
+> +
+>  	pci_acpi_add_bus_pm_notifier(device, root->bus);
+>  	if (device->wakeup.flags.run_wake)
+>  		device_set_run_wake(root->bus->bridge, true);
+> 
+-- 
+I speak only for myself.
+Rafael J. Wysocki, Intel Open Source Technology Center.
