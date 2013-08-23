@@ -1,84 +1,80 @@
-From: Bjorn Helgaas <bhelgaas@google.com>
-Subject: Re: [Bug 57961] ExpressCard hot-remove and hot-add not recognized by acpiphp
-Date: Fri, 23 Aug 2013 14:31:24 -0600
-Message-ID: <CAErSpo5B6dvY6ri1-NajudgS1v1tyTCCicb9vMrOYP=8yv4pPg@mail.gmail.com>
-References: <bug-57961-41252@https.bugzilla.kernel.org/> <bug-57961-41252-X2PJk78p44@https.bugzilla.kernel.org/>
- <CAErSpo4jFGdW-OXf2OrUQw-e8EdE5h6fPs-v9=QQh1xPjz-Nvg@mail.gmail.com> <5217BDF2.4020909@kraav.com>
+From: chen tang <imtangchen@gmail.com>
+Subject: Re: [PATCH 0/8] x86, acpi: Move acpi_initrd_override() earlier.
+Date: Sat, 24 Aug 2013 04:33:48 +0800
+Message-ID: <CAD11hGxase=mk_pYEvtYyrHTWb=u5D4XX0PJT8Ah6owtPQSRxg@mail.gmail.com>
+References: <20130821204041.GC2436@htj.dyndns.org>
+	<1377124595.10300.594.camel@misato.fc.hp.com>
+	<20130822033234.GA2413@htj.dyndns.org>
+	<1377186729.10300.643.camel@misato.fc.hp.com>
+	<20130822183130.GA3490@mtj.dyndns.org>
+	<1377202292.10300.693.camel@misato.fc.hp.com>
+	<20130822202158.GD3490@mtj.dyndns.org>
+	<1377205598.10300.715.camel@misato.fc.hp.com>
+	<20130822212111.GF3490@mtj.dyndns.org>
+	<1377209861.10300.756.camel@misato.fc.hp.com>
+	<20130823130440.GC10322@mtj.dyndns.org>
+	<1377274448.10300.777.camel@misato.fc.hp.com>
+	<521793BB.9080605@gmail.com>
+	<CAE9FiQXZ610BrVaXoxY70NS3CaSku7mcVFx+x34-jpYUkG2rdQ@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <linux-pci-owner@vger.kernel.org>
-In-Reply-To: <5217BDF2.4020909@kraav.com>
-Sender: linux-pci-owner@vger.kernel.org
-To: Leho Kraav <leho@kraav.com>
-Cc: "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
+Return-path: <owner-linux-mm@kvack.org>
+In-Reply-To: <CAE9FiQXZ610BrVaXoxY70NS3CaSku7mcVFx+x34-jpYUkG2rdQ@mail.gmail.com>
+Sender: owner-linux-mm@kvack.org
+To: Yinghai Lu <yinghai@kernel.org>
+Cc: Zhang Yanfei <zhangyanfei.yes@gmail.com>, Toshi Kani <toshi.kani@hp.com>, Tejun Heo <tj@kernel.org>, Tang Chen <tangchen@cn.fujitsu.com>, Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>, Bob Moore <robert.moore@intel.com>, Lv Zheng <lv.zheng@intel.com>, "Rafael J. Wysocki" <rjw@sisk.pl>, Len Brown <lenb@kernel.org>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@elte.hu>, "H. Peter Anvin" <hpa@zytor.com>, Andrew Morton <akpm@linux-foundation.org>, Thomas Renninger <trenn@suse.de>, Jiang Liu <jiang.liu@huawei.com>, Wen Congyang <wency@cn.fujitsu.com>, Lai Jiangshan <laijs@cn.fujitsu.com>, Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>, Taku Izumi <izumi.taku@jp.fujitsu.com>, Mel Gorman <mgorman@suse.de>, Minchan Kim <minchan@kernel.org>, "mina86@mina86.com" <mina86@mina86.com>, "gong.chen@linux.intel.com" <gong.chen@linux.intel.com>, Vasilis
 List-Id: linux-acpi@vger.kernel.org
 
-On Fri, Aug 23, 2013 at 1:54 PM, Leho Kraav <leho@kraav.com> wrote:
-> On 23.08.2013 17:58, Bjorn Helgaas wrote:
->>
->> [+cc linux-pci, linux-acpi, switch to email for now]
->>
->> On Fri, Aug 23, 2013 at 7:34 AM,  <bugzilla-daemon@bugzilla.kernel.org>
->> wrote:
->>>
->>> https://bugzilla.kernel.org/show_bug.cgi?id=57961
->>> ...
->>> I'm arriving here from googling "_handle_hotplug_event_root Bus check
->>> notify on
->>> \_SB_.PCI0".
+Hi Yinghai,
 
->>> My Dell L421X is spitting this notification both when I close and open
->>> the
->>> laptop lid, one each. No ACPI LID event is emitted, which doesn't seem
->>> right.
->>
->>
->> Can you post a complete dmesg log including a lid close/event cycle?
+2013/8/24 Yinghai Lu <yinghai@kernel.org>:
+......
+>> Do you guys think this is reasonable and acceptable?
 >
+> current boot flow that need to have all cpu and mem and pci discovered
+> are not scalable.
 >
-> E-mailed that to you personally.
+> for numa system, we should boot system with cpu/mem/pci in PXM(X) only.
+> and assume that PXM are not hot-removed later.
+> Later during booting late stage hot add other PXM in parallel.
 >
+> That case, we could reduce boot time, and also could solve other PXM
+> hotplug problem.
 >
->>> Running on 3.10.6. Is this bug related in any way?
->>
->>
->> Bug 57961 is for ExpressCard changes that we didn't handle correctly.
->> It doesn't sound like you're adding or removing an ExpressCard, so
->> you're likely seeing a different problem.
->>
->> Is the problem that (1) you see "_handle_hotplug_event_root Bus check
->> notify on \_SB_.PCI0" messages that you don't expect, and (2) you do
->> not see LID events, which you do expect?
->>
->> Is there anything that is not actually working correctly, or is it
->> just messages that don't seem right?
->
->
-> Mailing list thread discussed some apparently significant ACPI changes in
-> 3.10. I've yet to have a laptop that didn't emit an ACPI LID event. Instead
-> the kernel does emit something that looks like something is not quite what
-> it should be. I'm wondering if I have missed something in kernel
-> configuration or am I somehow affected by the recent ACPI changes or a
-> machine specific bug somewhere. Dells are among the Linux-friendliest
-> machines throughout history, that makes me think it could be the kernel.
->
-> You're right, I'm not on the acpiphp bus for sure, but sometimes things are
-> related at a level above so I took a shot at trying to find out what's
-> happening.
 
-I don't know anything about the LID notifications.
+This is a good point, I think. Actually, I had a similar thinking
+before. This can
+solve the hotplug issue, and also the local node page table problem.
 
-As far as the bus checks on \_SB_.PCI0, I think that message is new or
-possibly we register for those notifications on more devices that we
-previously did.  If your laptop suspended when closing the lid, it
-doesn't surprise me that we get the Bus Check on resume, because that
-might be the only way we could discover device additions or removals
-that happened while suspended.  I'm not sure why we would get them on
-suspend.
+I found that the current kernel will do the memory hot-add procedure too in
+later boot sequence. And we could get the following message:
 
-Regardless, we can't change the fact that the BIOS sends us those
-notification events.  We could change or remove the message, but I
-suspect we might want to keep it for debugging purposes for a while,
-since we're actively working in that area.
+System RAM resource ...... cannot be added
 
-Bjorn
+This message was from :
+add_memory()
+  |->register_memory_resource()
+
+because we have found and mapped all the memory in the system at early time.
+
+But it is not easy to solve.
+1. We still have to know how much memory and cpus the boot PXM has.
+    How could we know that ?  SRAT again ?
+2. The boot PXM could have little memory, and we meet the kexec and kdump
+    problem again.
+3. I'm not quite sure is there any important benefit that the kernel
+initializes all
+    the memory at beginning ?
+
+And also, the memory hotplug schedule is very tough for us. We really want the
+movablenode functionality could be available soon. And this idea could
+be a long
+way to go. So I also think this would be the next step.
+
+Thanks.
+
+--
+To unsubscribe, send a message with 'unsubscribe linux-mm' in
+the body to majordomo@kvack.org.  For more info on Linux MM,
+see: http://www.linux-mm.org/ .
+Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
