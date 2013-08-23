@@ -1,75 +1,30 @@
-From: Yinghai Lu <yinghai@kernel.org>
-Subject: Re: [PATCH 0/8] x86, acpi: Move acpi_initrd_override() earlier.
-Date: Fri, 23 Aug 2013 11:18:25 -0700
-Message-ID: <CAE9FiQXZ610BrVaXoxY70NS3CaSku7mcVFx+x34-jpYUkG2rdQ@mail.gmail.com>
-References: <20130821204041.GC2436@htj.dyndns.org>
-	<1377124595.10300.594.camel@misato.fc.hp.com>
-	<20130822033234.GA2413@htj.dyndns.org>
-	<1377186729.10300.643.camel@misato.fc.hp.com>
-	<20130822183130.GA3490@mtj.dyndns.org>
-	<1377202292.10300.693.camel@misato.fc.hp.com>
-	<20130822202158.GD3490@mtj.dyndns.org>
-	<1377205598.10300.715.camel@misato.fc.hp.com>
-	<20130822212111.GF3490@mtj.dyndns.org>
-	<1377209861.10300.756.camel@misato.fc.hp.com>
-	<20130823130440.GC10322@mtj.dyndns.org>
-	<1377274448.10300.777.camel@misato.fc.hp.com>
-	<521793BB.9080605@gmail.com>
+From: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
+Subject: Re: [PATCH 3/3] thinkpad_acpi: Wire unused micmute LED to capslock
+Date: Fri, 23 Aug 2013 15:18:26 -0300
+Message-ID: <20130823181826.GB27893@khazad-dum.debian.net>
+References: <1377180132-4933-1-git-send-email-Jason@zx2c4.com>
+ <1377180132-4933-3-git-send-email-Jason@zx2c4.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <owner-linux-mm@kvack.org>
-In-Reply-To: <521793BB.9080605@gmail.com>
-Sender: owner-linux-mm@kvack.org
-To: Zhang Yanfei <zhangyanfei.yes@gmail.com>
-Cc: Toshi Kani <toshi.kani@hp.com>, Tejun Heo <tj@kernel.org>, Tang Chen <tangchen@cn.fujitsu.com>, Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>, Bob Moore <robert.moore@intel.com>, Lv Zheng <lv.zheng@intel.com>, "Rafael J. Wysocki" <rjw@sisk.pl>, Len Brown <lenb@kernel.org>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@elte.hu>, "H. Peter Anvin" <hpa@zytor.com>, Andrew Morton <akpm@linux-foundation.org>, Thomas Renninger <trenn@suse.de>, Jiang Liu <jiang.liu@huawei.com>, Wen Congyang <wency@cn.fujitsu.com>, Lai Jiangshan <laijs@cn.fujitsu.com>, Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>, Taku Izumi <izumi.taku@jp.fujitsu.com>, Mel Gorman <mgorman@suse.de>, Minchan Kim <minchan@kernel.org>, "mina86@mina86.com" <mina86@mina86.com>, "gong.chen@linux.intel.com" <gong.chen@linux.intel.com>, Vasilis Liaskovitis <vasilis.liaskovitis@profitbricks.com>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-input-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <1377180132-4933-3-git-send-email-Jason@zx2c4.com>
+Sender: linux-input-owner@vger.kernel.org
+To: "Jason A. Donenfeld" <Jason@zx2c4.com>
+Cc: linux-acpi@vger.kernel.org, linux-input@vger.kernel.org, linux-kernel@vger.kernel.org, mjg@redhat.com, rjw@sisk.pl, len.brown@intel.com, dtor@insightbb.com
 List-Id: linux-acpi@vger.kernel.org
 
-[trimmed the CC list, assume too long list will not go through LKML]
+On Thu, 22 Aug 2013, Jason A. Donenfeld wrote:
+> Thinkpads with a micmute LED do not have a capslock LED. The micmute LED
+> is currently not used by any piece of Linux kernel land or user land. It
+> seems reasonable to hook it up to caps lock, at least by default, so
+> users can have some degree of functionality.
 
-On Fri, Aug 23, 2013 at 9:54 AM, Zhang Yanfei <zhangyanfei.yes@gmail.com> wrote:
+NACK.  This we won't do.  It is a LED misuse, and it will get in the way
+when we finally put that LED to its proper use.
 
-
-
-> By saying TJ's suggestion, you mean, we will let memblock to control the
-> behaviour, that said, we will do early allocations near the kernel image
-> range before we get the SRAT info?
-
-put the acpi override table in BRK, we still need ok from HPA.
-I have impression that he did not like it, so want to confirm from him.
-
->
-> If so, yeah, we have been working on this direction. By doing this, we may
-> have two main changes:
->
-> 1. change some of memblock's APIs to make it have the ability to allocate
->    memory from low address.
-> 2. setup kernel page table down-top. Concretely, we first map the memory
->    just after the kernel image to the top, then, we map 0 - kernel image end.
-
-how about kexec/kdump ?
-
-when load high with kexec/dump, the second kernel could be very high near
-TOHM.
-
->
-> Do you guys think this is reasonable and acceptable?
-
-current boot flow that need to have all cpu and mem and pci discovered
-are not scalable.
-
-for numa system, we should boot system with cpu/mem/pci in PXM(X) only.
-and assume that PXM are not hot-removed later.
-Later during booting late stage hot add other PXM in parallel.
-
-That case, we could reduce boot time, and also could solve other PXM
-hotplug problem.
-
-Thanks
-
-Yinghai
-
---
-To unsubscribe, send a message with 'unsubscribe linux-mm' in
-the body to majordomo@kvack.org.  For more info on Linux MM,
-see: http://www.linux-mm.org/ .
-Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
+-- 
+  "One disk to rule them all, One disk to find them. One disk to bring
+  them all and in the darkness grind them. In the Land of Redmond
+  where the shadows lie." -- The Silicon Valley Tarot
+  Henrique Holschuh
