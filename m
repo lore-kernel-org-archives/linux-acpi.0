@@ -1,59 +1,63 @@
-From: "Alexandra N. Kossovsky" <Alexandra.Kossovsky@oktetlabs.ru>
-Subject: Re: kmemleak in apei_res_add
-Date: Fri, 23 Aug 2013 16:32:00 +0400
-Message-ID: <20130823123159.GD12595@sanechka.spb.ru>
-References: <20130812024556.GB29956@sanechka.spb.ru>
- <CAHkRjk4y06puTL_Gq5RbpoV+kpEp+k32z5aq3HpEu9u3qsS_Aw@mail.gmail.com>
- <20130821134455.GC12595@sanechka.spb.ru>
- <1377161014.6167.67.camel@yhuang-dev>
+From: Tejun Heo <tj@kernel.org>
+Subject: Re: [PATCH 0/8] x86, acpi: Move acpi_initrd_override() earlier.
+Date: Fri, 23 Aug 2013 09:04:40 -0400
+Message-ID: <20130823130440.GC10322@mtj.dyndns.org>
+References: <20130821204041.GC2436@htj.dyndns.org>
+ <1377124595.10300.594.camel@misato.fc.hp.com>
+ <20130822033234.GA2413@htj.dyndns.org>
+ <1377186729.10300.643.camel@misato.fc.hp.com>
+ <20130822183130.GA3490@mtj.dyndns.org>
+ <1377202292.10300.693.camel@misato.fc.hp.com>
+ <20130822202158.GD3490@mtj.dyndns.org>
+ <1377205598.10300.715.camel@misato.fc.hp.com>
+ <20130822212111.GF3490@mtj.dyndns.org>
+ <1377209861.10300.756.camel@misato.fc.hp.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Return-path: <linux-doc-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <1377161014.6167.67.camel@yhuang-dev>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Huang Ying <ying.huang@intel.com>
-Cc: Catalin Marinas <catalin.marinas@arm.com>, Len Brown <lenb@kernel.org>, "Rafael J. Wysocki" <rjw@sisk.pl>, linux-acpi@vger.kernel.org, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
+In-Reply-To: <1377209861.10300.756.camel@misato.fc.hp.com>
+Sender: linux-doc-owner@vger.kernel.org
+To: Toshi Kani <toshi.kani@hp.com>
+Cc: Zhang Yanfei <zhangyanfei.yes@gmail.com>, Tang Chen <tangchen@cn.fujitsu.com>, konrad.wilk@oracle.com, robert.moore@intel.com, lv.zheng@intel.com, rjw@sisk.pl, lenb@kernel.org, tglx@linutronix.de, mingo@elte.hu, hpa@zytor.com, akpm@linux-foundation.org, trenn@suse.de, yinghai@kernel.org, jiang.liu@huawei.com, wency@cn.fujitsu.com, laijs@cn.fujitsu.com, isimatu.yasuaki@jp.fujitsu.com, izumi.taku@jp.fujitsu.com, mgorman@suse.de, minchan@kernel.org, mina86@mina86.com, gong.chen@linux.intel.com, vasilis.liaskovitis@profitbricks.com, lwoodman@redhat.com, riel@redhat.com, jweiner@redhat.com, prarit@redhat.com, zhangyanfei@cn.fujitsu.com, yanghy@cn.fujitsu.com, x86@kernel.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-mm@kvack.org, linux-acpi@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hi Huang,
+Hello, Toshi.
 
-On Aug 22 16:43, Huang Ying wrote:
-> Hi, Alexandra,
-> Can you try the following debug patch, and send me back the output of:
-> 
-> $ dmesg | grep apei_res
+On Thu, Aug 22, 2013 at 04:17:41PM -0600, Toshi Kani wrote:
+> I am relatively new to Linux, so I am not a good person to elaborate
+> this.  From my experience on other OS, huge pages helped for the kernel,
+> but did not necessarily help user applications.  It depended on
+> applications, which were not niche cases.  But Linux may be different,
+> so I asked since you seemed confident.  I'd appreciate if you can point
+> us some data that endorses your statement.
 
-bash$ dmesg |grep apei
-[    9.608829] apei_res_add: ffff8802730cde48: 7dfd5018 - 7dfd5019
-[    9.615354] apei_res_add: ffff8802730cde48: 7dfd5018 - 7dfd5019
-[    9.621595] apei_res_add: ffff8802730cde48: 7dfd5018 - 7dfd5019
-[    9.627915] apei_res_add: ffff8802730cde48: 7dfd5019 - 7dfd501a
-[    9.634363] apei_res_add: ffff8802730cde48: 7dfd501a - 7dfd501e
-[    9.640689] apei_res_add: ffff8802730cde58: b2 - b3
-[    9.646008] apei_res_add: ffff8802730cde48: 7dfd501e - 7dfd501f
-[    9.652320] apei_res_add: ffff8802730cde48: 7dfd501f - 7dfd5020
-[    9.658637] apei_res_add: ffff8802730cde48: 7dfd5020 - 7dfd5028
-[    9.664952] apei_res_add: ffff8802730cde48: 7dfd5028 - 7dfd5030
-[    9.671227] apei_res_add: ffff8802730cde48: 7dfd5030 - 7dfd5032
-[    9.686533] apei_res_add: ffff8802730cde48: 7dfd5018 - 7dfd5019
-[    9.702283] apei_res_add: ffff8802730cde48: 7dfd5032 - 7dfd5033
-[    9.718050] apei_res_add: ffff8802730cde48: 7dfd5032 - 7dfd503a
-[    9.732699] apei_res_add: ffff8802730cde48: 7dfd503a - 7dfd503e
-[    9.747231] apei_res_add: ffff8802730cde48: 7dfd503e - 7dfd503f
-[    9.761822] apei_res_sub: ffff8802730cde48 - ffffffff81a76ee0
-[    9.775718] apei_res_sub: ffff8802730cde58 - ffffffff81a76ef0
-[    9.789058] apei_res_add: ffff8802730cdde8: 7e095000 - 7e299000
-[    9.803780] apei_res_add: ffff8802730cdde8: 7f370000 - 7f3f6000
-[    9.818264] apei_res_sub: ffff8802730cde48 - ffff8802730cdde8
-[    9.831933] apei_res_sub: ffff8802730cde58 - ffff8802730cddf8
-[    9.846091] apei_res_add: ffffffff81a76ee0: 7dfd5018 - 7dfd503f
-[    9.859528] apei_res_add: ffffffff81a76ef0: b2 - b3
+We are talking about the kernel linear mapping which is created during
+early boot, so if it's available and useable there's no reason not to
+use it.  Exceptions would be earlier processors which didn't do 1G
+mappings or e820 maps with a lot of holes.  For CPUs used in NUMA
+configurations, the former has been history for a bit now.  Can't be
+sure about the latter but it'd be surprising for that to affect large
+amount of memory in the systems that are of interest here.  Ooh, that
+reminds me that we probably wanna go back to 1G + MTRR mapping under
+4G.  We're currently creating a lot of mapping holes.
 
-I hope it helps.
+> My worry is that the code is unlikely tested with the special logic when
+> someone makes code changes to the page tables.  Such code can easily be
+> broken in future.
 
-Alexandra.
+Well, I wouldn't consider flipping the direction of allocation to be
+particularly difficult to get right especially when compared to
+bringing in ACPI tables into the mix.
+
+> To answer your other question/email, I believe Tang's next step is to
+> support local page tables.  This is why we think pursing SRAT earlier is
+> the right direction.
+
+Given 1G mappings, is that even a worthwhile effort?  I'm getting even
+more more skeptical.
+
+Thanks.
+
 -- 
-Alexandra N. Kossovsky
-OKTET Labs (http://www.oktetlabs.ru/)
-e-mail: sasha@oktetlabs.ru
+tejun
