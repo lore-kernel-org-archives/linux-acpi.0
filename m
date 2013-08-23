@@ -1,53 +1,63 @@
-From: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
-Subject: Re: [PATCH 2/3] thinkpad_acpi: Support micmute LED
-Date: Fri, 23 Aug 2013 15:16:42 -0300
-Message-ID: <20130823181642.GA27893@khazad-dum.debian.net>
-References: <1377180132-4933-1-git-send-email-Jason@zx2c4.com>
- <1377180132-4933-2-git-send-email-Jason@zx2c4.com>
+From: Toshi Kani <toshi.kani@hp.com>
+Subject: Re: [PATCH 0/8] x86, acpi: Move acpi_initrd_override() earlier.
+Date: Fri, 23 Aug 2013 12:29:03 -0600
+Message-ID: <1377282543.10300.820.camel@misato.fc.hp.com>
+References: <20130821204041.GC2436@htj.dyndns.org>
+	  <1377124595.10300.594.camel@misato.fc.hp.com>
+	  <20130822033234.GA2413@htj.dyndns.org>
+	  <1377186729.10300.643.camel@misato.fc.hp.com>
+	  <20130822183130.GA3490@mtj.dyndns.org>
+	  <1377202292.10300.693.camel@misato.fc.hp.com>
+	  <20130822202158.GD3490@mtj.dyndns.org>
+	  <1377205598.10300.715.camel@misato.fc.hp.com>
+	  <20130822212111.GF3490@mtj.dyndns.org>
+	  <1377209861.10300.756.camel@misato.fc.hp.com>
+	  <20130823130440.GC10322@mtj.dyndns.org>
+	 <1377274448.10300.777.camel@misato.fc.hp.com> <521793BB.9080605@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <1377180132-4933-2-git-send-email-Jason@zx2c4.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: "Jason A. Donenfeld" <Jason@zx2c4.com>
-Cc: linux-acpi@vger.kernel.org, linux-input@vger.kernel.org, linux-kernel@vger.kernel.org, mjg@redhat.com, rjw@sisk.pl, len.brown@intel.com, dtor@insightbb.com
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from g1t0029.austin.hp.com ([15.216.28.36]:45437 "EHLO
+	g1t0029.austin.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754157Ab3HWSag (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 23 Aug 2013 14:30:36 -0400
+In-Reply-To: <521793BB.9080605@gmail.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Zhang Yanfei <zhangyanfei.yes@gmail.com>
+Cc: Tejun Heo <tj@kernel.org>, Tang Chen <tangchen@cn.fujitsu.com>, konrad.wilk@oracle.com, robert.moore@intel.com, lv.zheng@intel.com, rjw@sisk.pl, lenb@kernel.org, tglx@linutronix.de, mingo@elte.hu, hpa@zytor.com, akpm@linux-foundation.org, trenn@suse.de, yinghai@kernel.org, jiang.liu@huawei.com, wency@cn.fujitsu.com, laijs@cn.fujitsu.com, isimatu.yasuaki@jp.fujitsu.com, izumi.taku@jp.fujitsu.com, mgorman@suse.de, minchan@kernel.org, mina86@mina86.com, gong.chen@linux.intel.com, vasilis.liaskovitis@profitbricks.com, lwoodman@redhat.com, riel@redhat.com, jweiner@redhat.com, prarit@redhat.com, zhangyanfei@cn.fujitsu.com, yanghy@cn.fujitsu.com, x86@kernel.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-mm@kvack.org, linux-acpi@vger.kernel.org
 
-Hi Jason!
+Hello Zhang,
 
-On Thu, 22 Aug 2013, Jason A. Donenfeld wrote:
-
-> The micmute LED is currently unused. This patch allows it to be hooked
-> up to various LED triggers.
+On Sat, 2013-08-24 at 00:54 +0800, Zhang Yanfei wrote:
+> > Tang, what do you think?  Are you OK to try Tejun's suggestion as well? 
+> > 
 > 
-> Signed-off-by: Jason A. Donenfeld <Jason@zx2c4.com>
-> ---
->  drivers/platform/x86/thinkpad_acpi.c | 6 ++++--
->  1 file changed, 4 insertions(+), 2 deletions(-)
+> By saying TJ's suggestion, you mean, we will let memblock to control the
+> behaviour, that said, we will do early allocations near the kernel image
+> range before we get the SRAT info?
+
+Right.
+
+> If so, yeah, we have been working on this direction. 
+
+Great!
+
+> By doing this, we may
+> have two main changes:
 > 
-> diff --git a/drivers/platform/x86/thinkpad_acpi.c b/drivers/platform/x86/thinkpad_acpi.c
-> index 54d31c0..33b23cb 100644
-> --- a/drivers/platform/x86/thinkpad_acpi.c
-> +++ b/drivers/platform/x86/thinkpad_acpi.c
-> @@ -5050,8 +5050,10 @@ static const char * const tpacpi_led_names[TPACPI_LED_NUMLEDS] = {
->  	"tpacpi::unknown_led2",
->  	"tpacpi::unknown_led3",
->  	"tpacpi::thinkvantage",
-> +	"tpacpi::unknown_led4",
-> +	"tpacpi::micmute"
->  };
-> -#define TPACPI_SAFE_LEDS	0x1081U
-> +#define TPACPI_SAFE_LEDS	0x5081U
+> 1. change some of memblock's APIs to make it have the ability to allocate
+>    memory from low address.
+> 2. setup kernel page table down-top. Concretely, we first map the memory
+>    just after the kernel image to the top, then, we map 0 - kernel image end.
+> 
+> Do you guys think this is reasonable and acceptable?
 
-Micmute is not a "safe" LED by thinkpad-acpi's definition.
+Have you also looked at Yinghai's comments below?
 
-Besides, I want to see that LED hooked to alsa, any other use should be
-protected by a module parameter (like fan-control is) or kernel config (like
-unsafe LEDs are).
+http://www.spinics.net/lists/linux-mm/msg61362.html
 
--- 
-  "One disk to rule them all, One disk to find them. One disk to bring
-  them all and in the darkness grind them. In the Land of Redmond
-  where the shadows lie." -- The Silicon Valley Tarot
-  Henrique Holschuh
+Thanks,
+-Toshi
+
