@@ -1,47 +1,65 @@
-From: Bjorn Helgaas <bhelgaas@google.com>
-Subject: Re: [Bug 57961] ExpressCard hot-remove and hot-add not recognized by acpiphp
-Date: Fri, 23 Aug 2013 14:52:23 -0600
-Message-ID: <CAErSpo5yA61+QcQMk1d=JGJp8D9Tuhxfr-4Lhz1oCnxCq+dyhA@mail.gmail.com>
-References: <bug-57961-41252@https.bugzilla.kernel.org/> <bug-57961-41252-X2PJk78p44@https.bugzilla.kernel.org/>
- <CAErSpo4jFGdW-OXf2OrUQw-e8EdE5h6fPs-v9=QQh1xPjz-Nvg@mail.gmail.com>
- <5217BDF2.4020909@kraav.com> <CAErSpo5B6dvY6ri1-NajudgS1v1tyTCCicb9vMrOYP=8yv4pPg@mail.gmail.com>
- <5217C794.1020902@kraav.com> <CAErSpo5j-_JWinFSDSJx6uGnw-opEHm668Md=9z-ZoxZmuX+VQ@mail.gmail.com>
- <5217C985.20103@kraav.com>
+From: Yinghai Lu <yinghai@kernel.org>
+Subject: Re: [PATCH 0/8] x86, acpi: Move acpi_initrd_override() earlier.
+Date: Fri, 23 Aug 2013 14:08:06 -0700
+Message-ID: <CAE9FiQU0n++wSR2Xmv06DGGie0zemwrVQr9Ha7Qv+88DX3wbdA@mail.gmail.com>
+References: <20130821204041.GC2436@htj.dyndns.org>
+	<1377124595.10300.594.camel@misato.fc.hp.com>
+	<20130822033234.GA2413@htj.dyndns.org>
+	<1377186729.10300.643.camel@misato.fc.hp.com>
+	<20130822183130.GA3490@mtj.dyndns.org>
+	<1377202292.10300.693.camel@misato.fc.hp.com>
+	<20130822202158.GD3490@mtj.dyndns.org>
+	<1377205598.10300.715.camel@misato.fc.hp.com>
+	<20130822212111.GF3490@mtj.dyndns.org>
+	<1377209861.10300.756.camel@misato.fc.hp.com>
+	<20130823130440.GC10322@mtj.dyndns.org>
+	<1377274448.10300.777.camel@misato.fc.hp.com>
+	<521793BB.9080605@gmail.com>
+	<CAE9FiQXZ610BrVaXoxY70NS3CaSku7mcVFx+x34-jpYUkG2rdQ@mail.gmail.com>
+	<CAD11hGxase=mk_pYEvtYyrHTWb=u5D4XX0PJT8Ah6owtPQSRxg@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <linux-pci-owner@vger.kernel.org>
-In-Reply-To: <5217C985.20103@kraav.com>
-Sender: linux-pci-owner@vger.kernel.org
-To: Leho Kraav <leho@kraav.com>
-Cc: "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "Rafael J. Wysocki" <rjw@sisk.pl>
+Return-path: <owner-linux-mm@kvack.org>
+In-Reply-To: <CAD11hGxase=mk_pYEvtYyrHTWb=u5D4XX0PJT8Ah6owtPQSRxg@mail.gmail.com>
+Sender: owner-linux-mm@kvack.org
+To: chen tang <imtangchen@gmail.com>
+Cc: Zhang Yanfei <zhangyanfei.yes@gmail.com>, Toshi Kani <toshi.kani@hp.com>, Tejun Heo <tj@kernel.org>, Tang Chen <tangchen@cn.fujitsu.com>, Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>, Bob Moore <robert.moore@intel.com>, Lv Zheng <lv.zheng@intel.com>, "Rafael J. Wysocki" <rjw@sisk.pl>, Len Brown <lenb@kernel.org>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@elte.hu>, "H. Peter Anvin" <hpa@zytor.com>, Andrew Morton <akpm@linux-foundation.org>, Thomas Renninger <trenn@suse.de>, Jiang Liu <jiang.liu@huawei.com>, Wen Congyang <wency@cn.fujitsu.com>, Lai Jiangshan <laijs@cn.fujitsu.com>, Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>, Taku Izumi <izumi.taku@jp.fujitsu.com>, Mel Gorman <mgorman@suse.de>, Minchan Kim <minchan@kernel.org>, "mina86@mina86.com" <mina86@mina86.com>, "gong.chen@linux.intel.com" <gong.chen@linux.intel.com>, Vasilis
 List-Id: linux-acpi@vger.kernel.org
 
-On Fri, Aug 23, 2013 at 2:43 PM, Leho Kraav <leho@kraav.com> wrote:
-> On 23.08.2013 23:40, Bjorn Helgaas wrote:
->>
->> [+cc Rafael]
->>
->> On Fri, Aug 23, 2013 at 2:35 PM, Leho Kraav <leho@kraav.com> wrote:
->>>
->>>
->>> I don't suspend on lid close, actually. I close the lid just to carry the
->>> laptop around, and always suspend manually.
->>>
->> Huh.  That's strange.  I don't know why you would get bus checks on
->> lid open/close events when you're not suspending/resuming.  Maybe
->> Rafael will have some ideas.
->>
->> If you can collect an acpidump, that might have a clue, too.  At
->> least, we ought to be able to see a method that is sending the Notify
->> to the PCI host bridge.
+> because we have found and mapped all the memory in the system at early time.
 >
+> But it is not easy to solve.
+> 1. We still have to know how much memory and cpus the boot PXM has.
+>     How could we know that ?  SRAT again ?
+
+yes, need to parse numa info early, and only use RAM for PXM(X) at first.
+
+> 2. The boot PXM could have little memory, and we meet the kexec and kdump
+>     problem again.
+
+could extend to have more PXM at first, like boot pxm mask.
+
+> 3. I'm not quite sure is there any important benefit that the kernel
+> initializes all
+>     the memory at beginning ?
 >
-> acpidump attached
+> And also, the memory hotplug schedule is very tough for us. We really want the
+> movablenode functionality could be available soon. And this idea could
+> be a long way to go. So I also think this would be the next step.
 
-            Method (GNOT, 2, NotSerialized)
-                         Notify (PCI0, Arg1)
-                         Notify (GFX0, Arg1)
+uh?
+I already tried best to help. Even spent time to produce patchset
+to separate acpi_override find/copy, and numa_info parse early
+and put page tables on local nodes.
 
-I wonder if this bus check on lid open/close has something to do with
-telling us that we should re-evaluate which monitors are present or
-useful.  In any case, I think I'm out of my depth.
+Let me know what else I could help.
+
+Thanks
+
+Yinghai
+
+--
+To unsubscribe, send a message with 'unsubscribe linux-mm' in
+the body to majordomo@kvack.org.  For more info on Linux MM,
+see: http://www.linux-mm.org/ .
+Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
