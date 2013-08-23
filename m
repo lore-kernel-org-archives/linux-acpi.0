@@ -1,318 +1,175 @@
-From: Eduardo Valentin <eduardo.valentin@ti.com>
-Subject: [PATCH 3/5] drivers: thermal: make usage of CONFIG_THERMAL_HWMON
- optional
-Date: Fri, 23 Aug 2013 18:03:14 -0400
-Message-ID: <1377295396-17289-4-git-send-email-eduardo.valentin@ti.com>
-References: <1377295396-17289-1-git-send-email-eduardo.valentin@ti.com>
+From: Bjorn Helgaas <bhelgaas@google.com>
+Subject: Re: [PATCH] ACPI: Fix osc flag setup ordering to allow pcie hotplug
+ use when available
+Date: Fri, 23 Aug 2013 16:04:59 -0600
+Message-ID: <CAErSpo7pZaA4x2f7LUDCOnox1zPCk2qh0nNT=iN4frrWGqn6=g@mail.gmail.com>
+References: <1377278379-9054-1-git-send-email-nhorman@tuxdriver.com>
+ <3958698.Gm9Wz19SSi@vostro.rjw.lan> <CAErSpo5JhCQsYHgFdp+vK9=wLzHert1r5vTe7_ZCPh-4kM80zQ@mail.gmail.com>
+ <4634097.MXvnqpQKZr@vostro.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <1377295396-17289-1-git-send-email-eduardo.valentin@ti.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: linux-pm@vger.kernel.org, rui.zhang@intel.com
-Cc: devicetree@vger.kernel.org, Kukjin Kim <kgene.kim@samsung.com>, Matthew Garrett <matthew.garrett@nebula.com>, Anton Vorontsov <anton@enomsg.org>, Peter Feuerer <peter@piie.net>, linux-kernel@vger.kernel.org, Rob Herring <rob.herring@calxeda.com>, platform-driver-x86@vger.kernel.org, Eduardo Valentin <eduardo.valentin@ti.com>, linux-acpi@vger.kernel.org, linux-samsung-soc@vger.kernel.org, "Rafael J. Wysocki" <rjw@sisk.pl>, Grant Likely <grant.likely@linaro.org>, David Woodhouse <dwmw2@infradead.org>, linux-arm-kernel@lists.infradead.org, Len Brown <lenb@kernel.org>
+Content-Type: text/plain; charset=ISO-8859-1
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-ie0-f177.google.com ([209.85.223.177]:41188 "EHLO
+	mail-ie0-f177.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756464Ab3HWWFV (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 23 Aug 2013 18:05:21 -0400
+Received: by mail-ie0-f177.google.com with SMTP id e14so1755022iej.22
+        for <linux-acpi@vger.kernel.org>; Fri, 23 Aug 2013 15:05:20 -0700 (PDT)
+In-Reply-To: <4634097.MXvnqpQKZr@vostro.rjw.lan>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: Neil Horman <nhorman@tuxdriver.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Len Brown <lenb@kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, Yinghai Lu <yinghai@kernel.org>, Linux PCI <linux-pci@vger.kernel.org>
 
-When registering a new thermal_device, the thermal framework
-will always add a hwmon sysfs interface.
+On Fri, Aug 23, 2013 at 3:40 PM, Rafael J. Wysocki <rjw@sisk.pl> wrote:
+> On Friday, August 23, 2013 02:46:23 PM Bjorn Helgaas wrote:
+>> On Fri, Aug 23, 2013 at 2:53 PM, Rafael J. Wysocki <rjw@sisk.pl> wrote:
+>> > On Friday, August 23, 2013 04:05:11 PM Neil Horman wrote:
+>> >> On Fri, Aug 23, 2013 at 09:38:18PM +0200, Rafael J. Wysocki wrote:
+>> >> > [CCs added]
+>> >> >
+>> >> > Please always send PCI-related material to linux-pci in the first place.
+>> >> >
+>> >> Sorry, I ran get_maintainers and it seemed to think linux-acpi was sufficient.
+>> >>
+>> >> > The change that broke things for you was actually intentional:
+>> >> >
+>> >> > commit b8178f130e25c1bdac1c33e0996f1ff6e20ec08e
+>> >> > Author: Bjorn Helgaas <bhelgaas@google.com>
+>> >> > Date:   Mon Apr 1 15:47:39 2013 -0600
+>> >> >
+>> >> >     Revert "PCI/ACPI: Request _OSC control before scanning PCI root bus"
+>> >> >
+>> >> >     This reverts commit 8c33f51df406e1a1f7fa4e9b244845b7ebd61fa6.
+>> >> >
+>> >> > so I think we'll need to clean up the ASMP initialization after all.
+>> >> >
+>> >> Crud.  Reading over the revert commit, it seems like the problem boils down to
+>> >> the odering of checking aspm_disabled.  It seems to me that the simple fix is to
+>> >> track the desire for acpi to disable aspm separately from the users desire to
+>> >> disable aspm (aspm_disabled).  Then we just turn the points where we check the
+>> >> aspm_disabled into the appropriate or of two variables, except for
+>> >> pcie_asmp_sanity_check, which remains sensitive to just the user disable option.
+>> >>
+>> >> Or is there more to this?
+>> >
+>> > No, I think you're right.
+>> >
+>> > Bjorn, what do you think?
+>>
+>> My opinion is that the _OSC/ASPM state management is ridiculously
+>> complicated already, and this would make it slightly more complicated.
+>>  That's why my preference would be to attempt a more radical cleanup
+>> and simplification instead of adding another wart.
+>
+> Well, do you have anything specific in mind?
 
-This patch adds a flag to make this behavior optional. Now
-when registering a new thermal device, the caller needs
-to say if the hwmon interface is required.
+If I had a specific fix in mind, I would just post it, but I've never
+had time to work through it all.  What I mean by complicated is that
+every time I have to look at ASPM, I have to start by trying to figure
+out the relationships between these variables:
 
-In order to keep same behavior as of today, all current
-calls will by default create the hwmon interface.
+    aspm_policy                 # default 0 (POLICY_DEFAULT)
+                                  or POLICY_PERFORMANCE
+                                  or POLICY_POWERSAVE depending on config
+    aspm_disabled               # default 0
+    aspm_force                  # default 0
+    aspm_support_enabled        # default true
 
-Cc: Anton Vorontsov <anton@enomsg.org>
-Cc: David Woodhouse <dwmw2@infradead.org>
-Cc: devicetree@vger.kernel.org
-Cc: Grant Likely <grant.likely@linaro.org>
-Cc: Kukjin Kim <kgene.kim@samsung.com>
-Cc: Len Brown <lenb@kernel.org>
-Cc: linux-acpi@vger.kernel.org
-Cc: linux-arm-kernel@lists.infradead.org
-Cc: linux-kernel@vger.kernel.org
-Cc: linux-pm@vger.kernel.org
-Cc: linux-samsung-soc@vger.kernel.org
-Cc: Matthew Garrett <matthew.garrett@nebula.com>
-Cc: Peter Feuerer <peter@piie.net>
-Cc: platform-driver-x86@vger.kernel.org
-Cc: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: Rob Herring <rob.herring@calxeda.com>
-Cc: Zhang Rui <rui.zhang@intel.com>
-Suggested-by: Wei Ni <wni@nvidia.com>
-Signed-off-by: Eduardo Valentin <eduardo.valentin@ti.com>
----
- Documentation/thermal/sysfs-api.txt                |  4 +++-
- drivers/acpi/thermal.c                             |  6 ++++--
- drivers/platform/x86/acerhdf.c                     |  3 ++-
- drivers/platform/x86/intel_mid_thermal.c           |  2 +-
- drivers/power/power_supply_core.c                  |  2 +-
- drivers/thermal/armada_thermal.c                   |  2 +-
- drivers/thermal/db8500_thermal.c                   |  2 +-
- drivers/thermal/dove_thermal.c                     |  2 +-
- drivers/thermal/exynos_thermal.c                   |  2 +-
- drivers/thermal/kirkwood_thermal.c                 |  2 +-
- drivers/thermal/rcar_thermal.c                     |  2 +-
- drivers/thermal/spear_thermal.c                    |  2 +-
- drivers/thermal/thermal_core.c                     | 13 +++++++++----
- drivers/thermal/ti-soc-thermal/ti-thermal-common.c |  2 +-
- drivers/thermal/x86_pkg_temp_thermal.c             |  2 +-
- include/linux/thermal.h                            |  2 +-
- 16 files changed, 30 insertions(+), 20 deletions(-)
+plus the _OSC-related code in acpi_pci_root_add(), which honestly is a
+rat's nest.
 
-diff --git a/Documentation/thermal/sysfs-api.txt b/Documentation/thermal/sysfs-api.txt
-index a71bd5b..4b4a052 100644
---- a/Documentation/thermal/sysfs-api.txt
-+++ b/Documentation/thermal/sysfs-api.txt
-@@ -64,7 +64,9 @@ temperature) and throttle appropriate devices.
- 	performing passive cooling.
-     polling_delay: number of milliseconds to wait between polls when checking
- 	whether trip points have been crossed (0 for interrupt driven systems).
--
-+    add_hwmon: a boolean to indicate if the thermal to hwmon sysfs interface
-+	is required. When add_hwmon == true, a hwmon sysfs interface
-+	will be created. When add_hwmon == false, nothing will be done
- 
- 1.1.2 void thermal_zone_device_unregister(struct thermal_zone_device *tz)
- 
-diff --git a/drivers/acpi/thermal.c b/drivers/acpi/thermal.c
-index a33821c..4d542b4 100644
---- a/drivers/acpi/thermal.c
-+++ b/drivers/acpi/thermal.c
-@@ -916,12 +916,14 @@ static int acpi_thermal_register_thermal_zone(struct acpi_thermal *tz)
- 			thermal_zone_device_register("acpitz", trips, 0, tz,
- 						&acpi_thermal_zone_ops, NULL,
- 						     tz->trips.passive.tsp*100,
--						     tz->polling_frequency*100);
-+						     tz->polling_frequency*100,
-+						     true);
- 	else
- 		tz->thermal_zone =
- 			thermal_zone_device_register("acpitz", trips, 0, tz,
- 						&acpi_thermal_zone_ops, NULL,
--						0, tz->polling_frequency*100);
-+						0, tz->polling_frequency*100,
-+						true);
- 	if (IS_ERR(tz->thermal_zone))
- 		return -ENODEV;
- 
-diff --git a/drivers/platform/x86/acerhdf.c b/drivers/platform/x86/acerhdf.c
-index f94467c..004d9ba0 100644
---- a/drivers/platform/x86/acerhdf.c
-+++ b/drivers/platform/x86/acerhdf.c
-@@ -663,7 +663,8 @@ static int acerhdf_register_thermal(void)
- 
- 	thz_dev = thermal_zone_device_register("acerhdf", 1, 0, NULL,
- 					      &acerhdf_dev_ops, NULL, 0,
--					      (kernelmode) ? interval*1000 : 0);
-+					      (kernelmode) ? interval*1000 : 0,
-+					      true);
- 	if (IS_ERR(thz_dev))
- 		return -EINVAL;
- 
-diff --git a/drivers/platform/x86/intel_mid_thermal.c b/drivers/platform/x86/intel_mid_thermal.c
-index 81c491e..efea0bf 100644
---- a/drivers/platform/x86/intel_mid_thermal.c
-+++ b/drivers/platform/x86/intel_mid_thermal.c
-@@ -502,7 +502,7 @@ static int mid_thermal_probe(struct platform_device *pdev)
- 			goto err;
- 		}
- 		pinfo->tzd[i] = thermal_zone_device_register(name[i],
--				0, 0, td_info, &tzd_ops, NULL, 0, 0);
-+				0, 0, td_info, &tzd_ops, NULL, 0, 0, true);
- 		if (IS_ERR(pinfo->tzd[i])) {
- 			kfree(td_info);
- 			ret = PTR_ERR(pinfo->tzd[i]);
-diff --git a/drivers/power/power_supply_core.c b/drivers/power/power_supply_core.c
-index 3b2d5df..5f39914 100644
---- a/drivers/power/power_supply_core.c
-+++ b/drivers/power/power_supply_core.c
-@@ -359,7 +359,7 @@ static int psy_register_thermal(struct power_supply *psy)
- 	for (i = 0; i < psy->num_properties; i++) {
- 		if (psy->properties[i] == POWER_SUPPLY_PROP_TEMP) {
- 			psy->tzd = thermal_zone_device_register(psy->name, 0, 0,
--					psy, &psy_tzd_ops, NULL, 0, 0);
-+					psy, &psy_tzd_ops, NULL, 0, 0, true);
- 			if (IS_ERR(psy->tzd))
- 				return PTR_ERR(psy->tzd);
- 			break;
-diff --git a/drivers/thermal/armada_thermal.c b/drivers/thermal/armada_thermal.c
-index 5e53212..bc54c80 100644
---- a/drivers/thermal/armada_thermal.c
-+++ b/drivers/thermal/armada_thermal.c
-@@ -182,7 +182,7 @@ static int armada_thermal_probe(struct platform_device *pdev)
- 	priv->ops->init_sensor(priv);
- 
- 	thermal = thermal_zone_device_register("armada_thermal", 0, 0,
--					       priv, &ops, NULL, 0, 0);
-+					       priv, &ops, NULL, 0, 0, true);
- 	if (IS_ERR(thermal)) {
- 		dev_err(&pdev->dev,
- 			"Failed to register thermal zone device\n");
-diff --git a/drivers/thermal/db8500_thermal.c b/drivers/thermal/db8500_thermal.c
-index 1e3b3bf..439a854 100644
---- a/drivers/thermal/db8500_thermal.c
-+++ b/drivers/thermal/db8500_thermal.c
-@@ -447,7 +447,7 @@ static int db8500_thermal_probe(struct platform_device *pdev)
- 	}
- 
- 	pzone->therm_dev = thermal_zone_device_register("db8500_thermal_zone",
--		ptrips->num_trips, 0, pzone, &thdev_ops, NULL, 0, 0);
-+		ptrips->num_trips, 0, pzone, &thdev_ops, NULL, 0, 0, true);
- 
- 	if (IS_ERR(pzone->therm_dev)) {
- 		dev_err(&pdev->dev, "Register thermal zone device failed.\n");
-diff --git a/drivers/thermal/dove_thermal.c b/drivers/thermal/dove_thermal.c
-index 828f5e3..61f2247 100644
---- a/drivers/thermal/dove_thermal.c
-+++ b/drivers/thermal/dove_thermal.c
-@@ -155,7 +155,7 @@ static int dove_thermal_probe(struct platform_device *pdev)
- 	}
- 
- 	thermal = thermal_zone_device_register("dove_thermal", 0, 0,
--					       priv, &ops, NULL, 0, 0);
-+					       priv, &ops, NULL, 0, 0, true);
- 	if (IS_ERR(thermal)) {
- 		dev_err(&pdev->dev,
- 			"Failed to register thermal zone device\n");
-diff --git a/drivers/thermal/exynos_thermal.c b/drivers/thermal/exynos_thermal.c
-index 9af4b93..6ffadd3 100644
---- a/drivers/thermal/exynos_thermal.c
-+++ b/drivers/thermal/exynos_thermal.c
-@@ -469,7 +469,7 @@ static int exynos_register_thermal(struct thermal_sensor_conf *sensor_conf)
- 	th_zone->therm_dev = thermal_zone_device_register(sensor_conf->name,
- 			EXYNOS_ZONE_COUNT, 0, NULL, &exynos_dev_ops, NULL, 0,
- 			sensor_conf->trip_data.trigger_falling ?
--			0 : IDLE_INTERVAL);
-+			0 : IDLE_INTERVAL, true);
- 
- 	if (IS_ERR(th_zone->therm_dev)) {
- 		pr_err("Failed to register thermal zone device\n");
-diff --git a/drivers/thermal/kirkwood_thermal.c b/drivers/thermal/kirkwood_thermal.c
-index 3b034a0..fb8853e 100644
---- a/drivers/thermal/kirkwood_thermal.c
-+++ b/drivers/thermal/kirkwood_thermal.c
-@@ -85,7 +85,7 @@ static int kirkwood_thermal_probe(struct platform_device *pdev)
- 		return PTR_ERR(priv->sensor);
- 
- 	thermal = thermal_zone_device_register("kirkwood_thermal", 0, 0,
--					       priv, &ops, NULL, 0, 0);
-+					       priv, &ops, NULL, 0, 0, true);
- 	if (IS_ERR(thermal)) {
- 		dev_err(&pdev->dev,
- 			"Failed to register thermal zone device\n");
-diff --git a/drivers/thermal/rcar_thermal.c b/drivers/thermal/rcar_thermal.c
-index 88f92e1..64ae530 100644
---- a/drivers/thermal/rcar_thermal.c
-+++ b/drivers/thermal/rcar_thermal.c
-@@ -439,7 +439,7 @@ static int rcar_thermal_probe(struct platform_device *pdev)
- 		priv->zone = thermal_zone_device_register("rcar_thermal",
- 						1, 0, priv,
- 						&rcar_thermal_zone_ops, NULL, 0,
--						idle);
-+						idle, true);
- 		if (IS_ERR(priv->zone)) {
- 			dev_err(dev, "can't register thermal zone\n");
- 			ret = PTR_ERR(priv->zone);
-diff --git a/drivers/thermal/spear_thermal.c b/drivers/thermal/spear_thermal.c
-index ab79ea4..ec0c44d 100644
---- a/drivers/thermal/spear_thermal.c
-+++ b/drivers/thermal/spear_thermal.c
-@@ -140,7 +140,7 @@ static int spear_thermal_probe(struct platform_device *pdev)
- 	writel_relaxed(stdev->flags, stdev->thermal_base);
- 
- 	spear_thermal = thermal_zone_device_register("spear_thermal", 0, 0,
--				stdev, &ops, NULL, 0, 0);
-+				stdev, &ops, NULL, 0, 0, true);
- 	if (IS_ERR(spear_thermal)) {
- 		dev_err(&pdev->dev, "thermal zone device is NULL\n");
- 		ret = PTR_ERR(spear_thermal);
-diff --git a/drivers/thermal/thermal_core.c b/drivers/thermal/thermal_core.c
-index 247528b..d949ab0 100644
---- a/drivers/thermal/thermal_core.c
-+++ b/drivers/thermal/thermal_core.c
-@@ -1344,6 +1344,9 @@ static void remove_trip_attrs(struct thermal_zone_device *tz)
-  * @polling_delay: number of milliseconds to wait between polls when checking
-  *		   whether trip points have been crossed (0 for interrupt
-  *		   driven systems)
-+ * @add_hwmon:	a boolean to indicate if the thermal to hwmon sysfs interface
-+ *		is required. When add_hwmon == true, a hwmon sysfs interface
-+ *		will be created. When add_hwmon == false, nothing will be done
-  *
-  * This interface function adds a new thermal zone device (sensor) to
-  * /sys/class/thermal folder as thermal_zone[0-*]. It tries to bind all the
-@@ -1359,7 +1362,7 @@ struct thermal_zone_device *thermal_zone_device_register(const char *type,
- 	int trips, int mask, void *devdata,
- 	const struct thermal_zone_device_ops *ops,
- 	const struct thermal_zone_params *tzp,
--	int passive_delay, int polling_delay)
-+	int passive_delay, int polling_delay, bool add_hwmon)
- {
- 	struct thermal_zone_device *tz;
- 	enum thermal_trip_type trip_type;
-@@ -1462,9 +1465,11 @@ struct thermal_zone_device *thermal_zone_device_register(const char *type,
- 
- 	mutex_unlock(&thermal_governor_lock);
- 
--	result = thermal_add_hwmon_sysfs(tz);
--	if (result)
--		goto unregister;
-+	if (add_hwmon) {
-+		result = thermal_add_hwmon_sysfs(tz);
-+		if (result)
-+			goto unregister;
-+	}
- 
- 	mutex_lock(&thermal_list_lock);
- 	list_add_tail(&tz->node, &thermal_tz_list);
-diff --git a/drivers/thermal/ti-soc-thermal/ti-thermal-common.c b/drivers/thermal/ti-soc-thermal/ti-thermal-common.c
-index 4c5f55c37..5ab613a 100644
---- a/drivers/thermal/ti-soc-thermal/ti-thermal-common.c
-+++ b/drivers/thermal/ti-soc-thermal/ti-thermal-common.c
-@@ -306,7 +306,7 @@ int ti_thermal_expose_sensor(struct ti_bandgap *bgp, int id,
- 	data->ti_thermal = thermal_zone_device_register(domain,
- 				OMAP_TRIP_NUMBER, 0, data, &ti_thermal_ops,
- 				NULL, FAST_TEMP_MONITORING_RATE,
--				FAST_TEMP_MONITORING_RATE);
-+				FAST_TEMP_MONITORING_RATE, true);
- 	if (IS_ERR(data->ti_thermal)) {
- 		dev_err(bgp->dev, "thermal zone device is NULL\n");
- 		return PTR_ERR(data->ti_thermal);
-diff --git a/drivers/thermal/x86_pkg_temp_thermal.c b/drivers/thermal/x86_pkg_temp_thermal.c
-index f36950e..74eb4c0 100644
---- a/drivers/thermal/x86_pkg_temp_thermal.c
-+++ b/drivers/thermal/x86_pkg_temp_thermal.c
-@@ -444,7 +444,7 @@ static int pkg_temp_thermal_device_add(unsigned int cpu)
- 			thres_count,
- 			(thres_count == MAX_NUMBER_OF_TRIPS) ?
- 				0x03 : 0x01,
--			phy_dev_entry, &tzone_ops, NULL, 0, 0);
-+			phy_dev_entry, &tzone_ops, NULL, 0, 0, true);
- 	if (IS_ERR(phy_dev_entry->tzone)) {
- 		err = PTR_ERR(phy_dev_entry->tzone);
- 		goto err_ret_free;
-diff --git a/include/linux/thermal.h b/include/linux/thermal.h
-index a386a1c..88148b9 100644
---- a/include/linux/thermal.h
-+++ b/include/linux/thermal.h
-@@ -226,7 +226,7 @@ struct thermal_genl_event {
- /* Function declarations */
- struct thermal_zone_device *thermal_zone_device_register(const char *, int, int,
- 		void *, const struct thermal_zone_device_ops *,
--		const struct thermal_zone_params *, int, int);
-+		const struct thermal_zone_params *, int, int, bool);
- void thermal_zone_device_unregister(struct thermal_zone_device *);
- 
- int thermal_zone_bind_cooling_device(struct thermal_zone_device *, int,
--- 
-1.8.2.1.342.gfa7285d
+It sounds like Neil's fix (while probably correct) would tangle that
+nest a little more.  But I guess it would make sense to see the actual
+patch and the justification (a regression fix, I suppose, but the
+details weren't clear to me) before deciding.
+
+>> >> > On Friday, August 23, 2013 01:19:39 PM Neil Horman wrote:
+>> >> > > Somewhere between 3.9 and 3.10 it seems the order in which pcie and acpi probed
+>> >> > > slots for hotplug capabilites got reversed.  While this isn't a big deal, it did
+>> >> > > uncover a bug in the ACPI bus setup path.  Specifically, acpi_pci_root_add calls
+>> >> > > pci_acpi_scan_root before setting the osc flags for the device handle.
+>> >> > > pci_acpi_scan_root, among other things uses device_is_managed_by_native_pciehp()
+>> >> > > to determine if a given slot has pcie hotplug capabilties, whcih checks the
+>> >> > > devices OSC_PCI_EXPRESS_NATIVE_HP_CONTROL flag.  Since that flag is not set
+>> >> > > until after pci_acpi_scan_root_completes, the acpi code never sees that pcie
+>> >> > > slots are hotplug capable and configures them all to use acpi instead.
+>> >> > >
+>> >> > > Fix is pretty simple, just defer the scan until after the osc flags have been
+>> >> > > set on the device.  Tested by myself and it seems to work well.
+>> >> > >
+>> >> > > Signed-off-by: Neil Horman <nhorman@tuxdriver.com>
+>> >> > > CC: Len Brown <lenb@kernel.org>
+>> >> > > CC: "Rafael J. Wysocki" <rjw@sisk.pl>
+>> >> > > CC: linux-acpi@vger.kernel.org
+>> >> > > ---
+>> >> > >  drivers/acpi/pci_root.c | 41 ++++++++++++++++++++---------------------
+>> >> > >  1 file changed, 20 insertions(+), 21 deletions(-)
+>> >> > >
+>> >> > > diff --git a/drivers/acpi/pci_root.c b/drivers/acpi/pci_root.c
+>> >> > > index 5917839..a2c2661 100644
+>> >> > > --- a/drivers/acpi/pci_root.c
+>> >> > > +++ b/drivers/acpi/pci_root.c
+>> >> > > @@ -437,27 +437,6 @@ static int acpi_pci_root_add(struct acpi_device *device,
+>> >> > >   flags = base_flags = OSC_PCI_SEGMENT_GROUPS_SUPPORT;
+>> >> > >   acpi_pci_osc_support(root, flags);
+>> >> > >
+>> >> > > - /*
+>> >> > > -  * TBD: Need PCI interface for enumeration/configuration of roots.
+>> >> > > -  */
+>> >> > > -
+>> >> > > - /*
+>> >> > > -  * Scan the Root Bridge
+>> >> > > -  * --------------------
+>> >> > > -  * Must do this prior to any attempt to bind the root device, as the
+>> >> > > -  * PCI namespace does not get created until this call is made (and
+>> >> > > -  * thus the root bridge's pci_dev does not exist).
+>> >> > > -  */
+>> >> > > - root->bus = pci_acpi_scan_root(root);
+>> >> > > - if (!root->bus) {
+>> >> > > -         dev_err(&device->dev,
+>> >> > > -                 "Bus %04x:%02x not present in PCI namespace\n",
+>> >> > > -                 root->segment, (unsigned int)root->secondary.start);
+>> >> > > -         result = -ENODEV;
+>> >> > > -         goto end;
+>> >> > > - }
+>> >> > > -
+>> >> > > - /* Indicate support for various _OSC capabilities. */
+>> >> > >   if (pci_ext_cfg_avail())
+>> >> > >           flags |= OSC_EXT_PCI_CONFIG_SUPPORT;
+>> >> > >   if (pcie_aspm_support_enabled()) {
+>> >> > > @@ -520,6 +499,26 @@ static int acpi_pci_root_add(struct acpi_device *device,
+>> >> > >                    "(_OSC support mask: 0x%02x)\n", flags);
+>> >> > >   }
+>> >> > >
+>> >> > > + /*
+>> >> > > +  * TBD: Need PCI interface for enumeration/configuration of roots.
+>> >> > > +  */
+>> >> > > +
+>> >> > > + /*
+>> >> > > +  * Scan the Root Bridge
+>> >> > > +  * --------------------
+>> >> > > +  * Must do this prior to any attempt to bind the root device, as the
+>> >> > > +  * PCI namespace does not get created until this call is made (and
+>> >> > > +  * thus the root bridge's pci_dev does not exist).
+>> >> > > +  */
+>> >> > > + root->bus = pci_acpi_scan_root(root);
+>> >> > > + if (!root->bus) {
+>> >> > > +         dev_err(&device->dev,
+>> >> > > +                 "Bus %04x:%02x not present in PCI namespace\n",
+>> >> > > +                 root->segment, (unsigned int)root->secondary.start);
+>> >> > > +         result = -ENODEV;
+>> >> > > +         goto end;
+>> >> > > + }
+>> >> > > +
+>> >> > >   pci_acpi_add_bus_pm_notifier(device, root->bus);
+>> >> > >   if (device->wakeup.flags.run_wake)
+>> >> > >           device_set_run_wake(root->bus->bridge, true);
+>> >> > >
+>> >>
+>> > --
+>> > I speak only for myself.
+>> > Rafael J. Wysocki, Intel Open Source Technology Center.
+> --
+> I speak only for myself.
+> Rafael J. Wysocki, Intel Open Source Technology Center.
