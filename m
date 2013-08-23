@@ -1,61 +1,111 @@
 From: Tang Chen <tangchen@cn.fujitsu.com>
-Subject: [PATCH 3/3] x86, mm: Move max_pfn_mapped definition to init.c.
-Date: Fri, 23 Aug 2013 14:31:20 +0800
-Message-ID: <1377239480-32532-4-git-send-email-tangchen@cn.fujitsu.com>
+Subject: [PATCH 1/3] x86, ACPI, mm: Kill max_low_pfn_mapped.
+Date: Fri, 23 Aug 2013 14:31:18 +0800
+Message-ID: <1377239480-32532-2-git-send-email-tangchen@cn.fujitsu.com>
 References: <1377239480-32532-1-git-send-email-tangchen@cn.fujitsu.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from cn.fujitsu.com ([222.73.24.84]:3774 "EHLO song.cn.fujitsu.com"
+	rhost-flags-OK-FAIL-OK-OK) by vger.kernel.org with ESMTP
+	id S1754707Ab3HWGxf (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 23 Aug 2013 02:53:35 -0400
 In-Reply-To: <1377239480-32532-1-git-send-email-tangchen@cn.fujitsu.com>
-Sender: linux-kernel-owner@vger.kernel.org
+Sender: linux-acpi-owner@vger.kernel.org
+List-Id: linux-acpi@vger.kernel.org
 To: mingo@redhat.com, hpa@zytor.com, yinghai@kernel.org, penberg@kernel.org, jacob.shin@amd.com, tglx@linutronix.de, lenb@kernel.org, rjw@sisk.pl
 Cc: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, x86@kernel.org
-List-Id: linux-acpi@vger.kernel.org
 
-min_pfn_mapped is defined in init.c, we can also define max_pfn_mapped here.
+From: Yinghai Lu <yinghai@kernel.org>
 
+Now we have pfn_mapped[] in , and max_low_pfn_mapped should not be used anymore.
+
+User should use pfn_mapped[] or just 1UL<<(32-PAGE_SHIFT) instead.
+
+Only user is ACPI_INITRD_TABLE_OVERRIDE, and it should not use that,
+as later accessing is using early_ioremap(). We could change to use
+1U<<(32_PAGE_SHIFT) with it, aka under 4G.
+
+-v2: Leave alone max_low_pfn_mapped in i915 code according to tj.
+
+Suggested-by: H. Peter Anvin <hpa@zytor.com>
+Signed-off-by: Yinghai Lu <yinghai@kernel.org>
 Signed-off-by: Tang Chen <tangchen@cn.fujitsu.com>
+Cc: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: Jacob Shin <jacob.shin@amd.com>
+Cc: Pekka Enberg <penberg@kernel.org>
+Cc: linux-acpi@vger.kernel.org
+Tested-by: Thomas Renninger <trenn@suse.de>
+Reviewed-by: Tang Chen <tangchen@cn.fujitsu.com>
+Tested-by: Tang Chen <tangchen@cn.fujitsu.com>
 ---
- arch/x86/kernel/setup.c |    8 --------
- arch/x86/mm/init.c      |    9 +++++++++
- 2 files changed, 9 insertions(+), 8 deletions(-)
+ arch/x86/include/asm/page_types.h |    1 -
+ arch/x86/kernel/setup.c           |    4 +---
+ arch/x86/mm/init.c                |    4 ----
+ drivers/acpi/osl.c                |    6 +++---
+ 4 files changed, 4 insertions(+), 11 deletions(-)
 
+diff --git a/arch/x86/include/asm/page_types.h b/arch/x86/include/asm/page_types.h
+index 54c9787..b012b82 100644
+--- a/arch/x86/include/asm/page_types.h
++++ b/arch/x86/include/asm/page_types.h
+@@ -43,7 +43,6 @@
+ 
+ extern int devmem_is_allowed(unsigned long pagenr);
+ 
+-extern unsigned long max_low_pfn_mapped;
+ extern unsigned long max_pfn_mapped;
+ 
+ static inline phys_addr_t get_max_mapped(void)
 diff --git a/arch/x86/kernel/setup.c b/arch/x86/kernel/setup.c
-index f13df7b..382e20b 100644
+index de33798..f13df7b 100644
 --- a/arch/x86/kernel/setup.c
 +++ b/arch/x86/kernel/setup.c
-@@ -111,14 +111,6 @@
- #include <asm/alternative.h>
+@@ -112,13 +112,11 @@
  #include <asm/prom.h>
  
--/*
-- * max_pfn_mapped:     highest direct mapped pfn
-- *
-- * The direct mapping only covers E820_RAM regions, so the ranges and gaps are
-- * represented by pfn_mapped
-- */
--unsigned long max_pfn_mapped;
--
+ /*
+- * max_low_pfn_mapped: highest direct mapped pfn under 4GB
+- * max_pfn_mapped:     highest direct mapped pfn over 4GB
++ * max_pfn_mapped:     highest direct mapped pfn
+  *
+  * The direct mapping only covers E820_RAM regions, so the ranges and gaps are
+  * represented by pfn_mapped
+  */
+-unsigned long max_low_pfn_mapped;
+ unsigned long max_pfn_mapped;
+ 
  #ifdef CONFIG_DMI
- RESERVE_BRK(dmi_alloc, 65536);
- #endif
 diff --git a/arch/x86/mm/init.c b/arch/x86/mm/init.c
-index a97749f..793204b 100644
+index 2ec29ac..5b2eaca 100644
 --- a/arch/x86/mm/init.c
 +++ b/arch/x86/mm/init.c
-@@ -24,6 +24,15 @@ static unsigned long __initdata pgt_buf_start;
- static unsigned long __initdata pgt_buf_end;
- static unsigned long __initdata pgt_buf_top;
+@@ -313,10 +313,6 @@ static void add_pfn_range_mapped(unsigned long start_pfn, unsigned long end_pfn)
+ 	nr_pfn_mapped = clean_sort_range(pfn_mapped, E820_X_MAX);
  
-+/*
-+ * max_pfn_mapped:     highest direct mapped pfn
-+ * min_pfn_mapped:     lowest direct mapped pfn
-+ *
-+ * The direct mapping only covers E820_RAM regions, so the ranges and gaps are
-+ * represented by pfn_mapped
-+ */
-+
-+unsigned long max_pfn_mapped;
- static unsigned long min_pfn_mapped;
+ 	max_pfn_mapped = max(max_pfn_mapped, end_pfn);
+-
+-	if (start_pfn < (1UL<<(32-PAGE_SHIFT)))
+-		max_low_pfn_mapped = max(max_low_pfn_mapped,
+-					 min(end_pfn, 1UL<<(32-PAGE_SHIFT)));
+ }
  
- static bool __initdata can_use_brk_pgt = true;
+ bool pfn_range_is_mapped(unsigned long start_pfn, unsigned long end_pfn)
+diff --git a/drivers/acpi/osl.c b/drivers/acpi/osl.c
+index 6ab2c35..378de0d 100644
+--- a/drivers/acpi/osl.c
++++ b/drivers/acpi/osl.c
+@@ -624,9 +624,9 @@ void __init acpi_initrd_override(void *data, size_t size)
+ 	if (table_nr == 0)
+ 		return;
+ 
+-	acpi_tables_addr =
+-		memblock_find_in_range(0, max_low_pfn_mapped << PAGE_SHIFT,
+-				       all_tables_size, PAGE_SIZE);
++	/* under 4G at first, then above 4G */
++	acpi_tables_addr = memblock_find_in_range(0, (1ULL<<32) - 1,
++					all_tables_size, PAGE_SIZE);
+ 	if (!acpi_tables_addr) {
+ 		WARN_ON(1);
+ 		return;
 -- 
 1.7.1
+
