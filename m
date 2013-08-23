@@ -1,66 +1,117 @@
-From: Darren Hart <dvhart@linux.intel.com>
-Subject: Re: ACPI vs Device Tree - moving forward
-Date: Fri, 23 Aug 2013 16:45:48 -0700
-Message-ID: <1377301548.5259.91.camel@dvhart-mobl4.amr.corp.intel.com>
-References: <20130820192650.GA19470@srcf.ucam.org>
-	 <6438184.2yT2NMB1CE@vostro.rjw.lan> <20130821233942.GA21502@srcf.ucam.org>
-	 <1810269.JOHnJ0H7P9@vostro.rjw.lan> <20130822000306.GA21785@srcf.ucam.org>
-	 <1377300343.5259.84.camel@dvhart-mobl4.amr.corp.intel.com>
-	 <20130823233805.GA1801@srcf.ucam.org>
+From: chen tang <imtangchen@gmail.com>
+Subject: Re: [PATCH 0/8] x86, acpi: Move acpi_initrd_override() earlier.
+Date: Sat, 24 Aug 2013 07:56:21 +0800
+Message-ID: <CAD11hGyuT9s9LnEnBjaw9hZH+ABicUC-krP7AupJg8PXjOm=LQ@mail.gmail.com>
+References: <1377202292.10300.693.camel@misato.fc.hp.com>
+	<20130822202158.GD3490@mtj.dyndns.org>
+	<1377205598.10300.715.camel@misato.fc.hp.com>
+	<20130822212111.GF3490@mtj.dyndns.org>
+	<1377209861.10300.756.camel@misato.fc.hp.com>
+	<20130823130440.GC10322@mtj.dyndns.org>
+	<1377274448.10300.777.camel@misato.fc.hp.com>
+	<521793BB.9080605@gmail.com>
+	<1377282543.10300.820.camel@misato.fc.hp.com>
+	<CAD11hGzaK1Y1J7vQUOCQg8O767479qXQnYWm_72nPEK+E+TrHg@mail.gmail.com>
+	<20130823215243.GD11391@mtj.dyndns.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga03.intel.com ([143.182.124.21]:13761 "EHLO mga03.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754169Ab3HWXpu (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 23 Aug 2013 19:45:50 -0400
-In-Reply-To: <20130823233805.GA1801@srcf.ucam.org>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Return-path: <owner-linux-mm@kvack.org>
+In-Reply-To: <20130823215243.GD11391@mtj.dyndns.org>
+Sender: owner-linux-mm@kvack.org
+To: Tejun Heo <tj@kernel.org>
+Cc: Toshi Kani <toshi.kani@hp.com>, Zhang Yanfei <zhangyanfei.yes@gmail.com>, Tang Chen <tangchen@cn.fujitsu.com>, Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>, Bob Moore <robert.moore@intel.com>, Lv Zheng <lv.zheng@intel.com>, "Rafael J. Wysocki" <rjw@sisk.pl>, Len Brown <lenb@kernel.org>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@elte.hu>, "H. Peter Anvin" <hpa@zytor.com>, Andrew Morton <akpm@linux-foundation.org>, Thomas Renninger <trenn@suse.de>, Yinghai Lu <yinghai@kernel.org>, Jiang Liu <jiang.liu@huawei.com>, Wen Congyang <wency@cn.fujitsu.com>, Lai Jiangshan <laijs@cn.fujitsu.com>, Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>, Taku Izumi <izumi.taku@jp.fujitsu.com>, Mel Gorman <mgorman@suse.de>, Minchan Kim <minchan@kernel.org>, "mina86@mina86.com" <mina86@mina86.com>, "gong.chen@linux.intel.com" <gong.chen@linux.intel.com>, Vasilis
 List-Id: linux-acpi@vger.kernel.org
-To: Matthew Garrett <mjg59@srcf.ucam.org>
-Cc: "Rafael J. Wysocki" <rjw@sisk.pl>, Linus Walleij <linus.walleij@linaro.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Guenter Roeck <linux@roeck-us.net>, "H. Peter Anvin" <hpa@zytor.com>
 
-On Sat, 2013-08-24 at 00:38 +0100, Matthew Garrett wrote:
-> On Fri, Aug 23, 2013 at 04:25:43PM -0700, Darren Hart wrote:
-> 
-> > It had been my hope at the start of this project to open the creation of
-> > SSDTs up to inventors and hackers who want to create Lures for the
-> > MinnowBoard in such a way that they could write these SSDTs and load
-> > them from a file at boot time, modify, rebuild, iterate, etc. When/if
-> > the Lure goes to production, the SSDT could either be stored on an
-> > EEPROM, or for very low volume boards, possibly just shipped as a binary
-> > to be loaded (with source available of course).
-> 
-> There's no fundamental problem with doing this, especially on UEFI 
-> systems. As long as you know the host ACPI code, it's trivial to merge 
-> an SSDT in from a UEFI option ROM.
-> 
-> > It appears that Matthew, at least, would prefer this latter scenario
-> > just used DT instead. However, that seems to leave a gap in the
-> > transition to incorporating the table into the board firmware should a
-> > derivative product be made. e.g. no good way to prototype with ACPI. It
-> > also seems to have all the same problems raised regarding mixing ACPI
-> > and DT on the same system.
-> 
-> I've no problem with additional hardware shipping with ACPI support - my 
-> position was more that if a vendor ships a system with ACPI that fails 
-> to describe the integrated hardware (or does so incorrectly), it's 
-> probably easier to replace it with DT than a fixed ACPI table. Still, if 
-> people *do* want to replace shipped ACPI tables, it's probably 
-> preferable to do that at the bootloader level than the kernel level.
-> 
+Hi tj,
 
-OK. Thanks for elaborating.
+2013/8/24 Tejun Heo <tj@kernel.org>:
+> Hello,
+>
+> On Sat, Aug 24, 2013 at 05:37:48AM +0800, chen tang wrote:
+>> We have read the comments from Yinghai. Reordering relocated_initrd and
+>> reserve_crashkernel is doable, and the most difficult part is change the page
+>> tables initialization logic. And as Zhang has mentioned above, we are not sure
+>> if this could be acceptable.
+>
+> Maybe I'm missing something but why is that so hard?  All it does is
+> allocating memory in a different place.  Why is that so complicated?
+> Can somebody please elaborate the issues here?  If it is actually
+> hairy, where does the hairiness come from?  Is it an inherent problem
+> or just an issue with how the code is organized currently?
 
-It seems to me that in order to fully support this, we are back to the
-problem of how do we provide arbitrary configuration data via ACPI (the
-DSM being the only current means, but there is no standard there). Is
-that still the hard problem we are looking to solve as a group?
+Your idea is doable, and we are doing it now. I think it is just an issue
+with how to organize the code.
 
--- 
-Darren Hart
-Intel Open Source Technology Center
-Yocto Project - Linux Kernel
+The main problem is like Yinghai said, memory hotplug kernel and regular
+kernel won't be able to share the code. We use a boot option to control it.
 
+And I'll send a patch-set next week and then we can see how it goes.
 
+......
+>> And as tj concerned about the stability of the kernel boot sequence, then how
+>> about this:
+>
+> I guess my answer remains the same.  Why?  What actual benefits does
+> doing so buy us and why is changing the allocation direction, which
+> conceptually is extremely simple, so complicated?  What you guys are
+> trying to do adds significant amount of complexity and convolution,
+> which in itself doesn't necessarily disqualify the changes but it
+> needs good enough justifications.
+>
+> I get that you guys want it but I still fail to see why.  It *can't*
+> be proper solution to the hotplug issue.  We don't want earlyprintk to
+> involve huge chunk of logic and the benefits of node-affine page
+> tables for kernel linear mapping seem dubious.  So, what do we gain by
+> doing this?  What am I missing here?
+>
+
+Sorry for the unclear description. To summaries, the whole picture is:
+
+We are going to provide a system with some nodes hotpluggable, not all.
+These nodes are movable nodes, with only ZONE_MOVABLE. So we need
+a way to ensure the movable nodes have ZONE_MOVABLE only.
+
+We want SRAT earlier because before it is parsed, memblock starts to
+allocate memory for kernel, which won't be in ZONE_MOVABLE.
+
+It is just that simple. You are not missing anything here, I think.
+
+My suggestion is parsing SRAT earlier:
+1. The nodes kernel resides in will be un-movable.
+2. The nodes with un-hotpluggable memory in SRAT will be un-movable.
+3. The nodes full of hotpluggable memory in SRAT will be movable nodes.
+
+No offence, but seeing from me, it is a solution. The only thing it could buy
+me is that I can achieve the goal. I was trying my best to avoid bad influence
+to other code.
+And other things, early_printk, and local node page table are some other
+cases that also need acpi tables earlier.
+
+That is exactly all the things I want to do. That is all I have, and I
+don't have
+anything new here.
+
+I read the whole series, and I understand your points:
+1. Even if move SRAT earlier, it is too late. It should be done in
+bootloader and
+    kexec/kdump.
+2. Doing so will make boot sequence more complicated and error-prone.
+3. early_printk and local node page table won't by us so much when
+using huge page.
+
+...maybe some other points, I won't elaborate them all.
+
+Since we have discussed so much, I don't want debate more. We are working on
+patch-set according to your idea, and I also agree it is doable. I
+have no objection to
+your idea. Sending this patch-set is just one of my another try. So,
+let's see how
+it will go next week. :)
+
+Thank you all for your comments and patient. :)
+
+--
+To unsubscribe, send a message with 'unsubscribe linux-mm' in
+the body to majordomo@kvack.org.  For more info on Linux MM,
+see: http://www.linux-mm.org/ .
+Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
