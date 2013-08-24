@@ -1,56 +1,26 @@
-From: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Subject: Re: [PATCH] driver core / ACPI: Avoid device removal locking problems
-Date: Sun, 25 Aug 2013 14:54:20 -0700
-Message-ID: <20130825215420.GB23446@kroah.com>
-References: <1543475.L7gSB7lLAu@vostro.rjw.lan>
+From: "Jason A. Donenfeld" <Jason@zx2c4.com>
+Subject: Re: [PATCH 3/3] thinkpad_acpi: Wire unused micmute LED to capslock
+Date: Sat, 24 Aug 2013 22:29:53 +0200
+Message-ID: <CAHmME9oHDqoEA7Abuvr2iE5Abb_T_+GAuK=KJpC54g8q3vZH9Q@mail.gmail.com>
+References: <1377180132-4933-1-git-send-email-Jason@zx2c4.com>
+	<1377180132-4933-3-git-send-email-Jason@zx2c4.com>
+	<20130823181826.GB27893@khazad-dum.debian.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <1543475.L7gSB7lLAu@vostro.rjw.lan>
-Sender: linux-kernel-owner@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Toshi Kani <toshi.kani@hp.com>, LKML <linux-kernel@vger.kernel.org>, Gu Zheng <guz.fnst@cn.fujitsu.com>
+Content-Type: text/plain; charset=ISO-8859-1
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from frisell.zx2c4.com ([192.95.5.64]:57370 "EHLO frisell.zx2c4.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754162Ab3HZALY (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Sun, 25 Aug 2013 20:11:24 -0400
+In-Reply-To: <20130823181826.GB27893@khazad-dum.debian.net>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
+Cc: linux-acpi@vger.kernel.org, linux-input@vger.kernel.org, linux-kernel@vger.kernel.org, mjg@redhat.com, rjw@sisk.pl, len.brown@intel.com, dtor@insightbb.com
 
-On Sun, Aug 25, 2013 at 10:09:47PM +0200, Rafael J. Wysocki wrote:
-> From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
-> 
-> There are two mutexes, device_hotplug_lock and acpi_scan_lock, held
-> around the acpi_bus_trim() call in acpi_scan_hot_remove() which
-> generally removes devices (it removes ACPI device objects at least,
-> but it may also remove "physical" device objects through .detach()
-> callbacks of ACPI scan handlers).  Thus, potentially, device sysfs
-> attributes are removed under these locks and to remove those
-> attributes it is necessary to hold the s_active references of their
-> directory entries for writing.
-> 
-> On the other hand, the execution of a .show() or .store() callback
-> from a sysfs attribute is carried out with that attribute's s_active
-> reference held for reading.  Consequently, if any device sysfs
-> attribute that may be removed from within acpi_scan_hot_remove()
-> through acpi_bus_trim() has a .store() or .show() callback which
-> acquires either acpi_scan_lock or device_hotplug_lock, the execution
-> of that callback may deadlock with the removal of the attribute.
-> [Unfortunately, the "online" device attribute of CPUs and memory
-> blocks and the "eject" attribute of ACPI device objects are affected
-> by this issue.]
-> 
-> To avoid those deadlocks introduce a new protection mechanism that
-> can be used by the device sysfs attributes in question.  Namely,
-> if a device sysfs attribute's .store() or .show() callback routine
-> is about to acquire device_hotplug_lock or acpi_scan_lock, it can
-> first execute read_lock_device_remove() and return an error code if
-> that function returns false.  If true is returned, the lock in
-> question may be acquired and read_unlock_device_remove() must be
-> called.  [This mechanism is implemented by means of an additional
-> rwsem in drivers/base/core.c.]
-> 
-> Make the affected sysfs attributes in the driver core and ACPI core
-> use read_lock_device_remove() and read_unlock_device_remove() as
-> described above.
-> 
-> Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
-> Reported-by: Gu Zheng <guz.fnst@cn.fujitsu.com>
+On Fri, Aug 23, 2013 at 8:18 PM, Henrique de Moraes Holschuh
+<hmh@hmh.eng.br> wrote:
+> NACK.  This we won't do.  It is a LED misuse, and it will get in the way
+> when we finally put that LED to its proper use.
 
-Acked-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Agreed. Please see my response to mjg.
