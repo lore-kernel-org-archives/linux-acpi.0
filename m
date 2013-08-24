@@ -1,68 +1,37 @@
-From: rui wang <ruiv.wang@gmail.com>
-Subject: Re: [PATCH v4 26/28] PCI, x86, ACPI: Link acpi ioapic register to ioapic
-Date: Sat, 24 Aug 2013 08:51:54 +0800
-Message-ID: <CANVTcTYhdiptB_sOUyveBfieg0VkTGdor16kCHKkJDemHzcWXw@mail.gmail.com>
-References: <1376189294-32022-1-git-send-email-yinghai@kernel.org>
-	<1376189294-32022-27-git-send-email-yinghai@kernel.org>
+From: Matthew Garrett <mjg59@srcf.ucam.org>
+Subject: Re: ACPI vs Device Tree - moving forward
+Date: Sat, 24 Aug 2013 02:10:36 +0100
+Message-ID: <20130824011036.GA2827@srcf.ucam.org>
+References: <20130820192650.GA19470@srcf.ucam.org>
+ <6438184.2yT2NMB1CE@vostro.rjw.lan>
+ <20130821233942.GA21502@srcf.ucam.org>
+ <1810269.JOHnJ0H7P9@vostro.rjw.lan>
+ <20130822000306.GA21785@srcf.ucam.org>
+ <1377300343.5259.84.camel@dvhart-mobl4.amr.corp.intel.com>
+ <20130823233805.GA1801@srcf.ucam.org>
+ <1377301548.5259.91.camel@dvhart-mobl4.amr.corp.intel.com>
+ <20130824001345.GD14810@roeck-us.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1376189294-32022-27-git-send-email-yinghai@kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Yinghai Lu <yinghai@kernel.org>
-Cc: Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@elte.hu>, "H. Peter Anvin" <hpa@zytor.com>, Tony Luck <tony.luck@intel.com>, Bjorn Helgaas <bhelgaas@google.com>, "Rafael J. Wysocki" <rjw@sisk.pl>, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from cavan.codon.org.uk ([93.93.128.6]:36583 "EHLO
+	cavan.codon.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754134Ab3HXBKm (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 23 Aug 2013 21:10:42 -0400
+Content-Disposition: inline
+In-Reply-To: <20130824001345.GD14810@roeck-us.net>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Guenter Roeck <linux@roeck-us.net>
+Cc: Darren Hart <dvhart@linux.intel.com>, "Rafael J. Wysocki" <rjw@sisk.pl>, Linus Walleij <linus.walleij@linaro.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, "H. Peter Anvin" <hpa@zytor.com>
 
-On 8/11/13, Yinghai Lu <yinghai@kernel.org> wrote:
-> During ioapic hotplug, acpi_register_ioapic will be called.
-> Now for x86, that function is blank.
-> Fill that will update __mp_register_ioapic to use those ioapic.
->
-> Signed-off-by: Yinghai Lu <yinghai@kernel.org>
-> ---
->  arch/x86/kernel/acpi/boot.c | 10 ++++++----
->  1 file changed, 6 insertions(+), 4 deletions(-)
->
-> diff --git a/arch/x86/kernel/acpi/boot.c b/arch/x86/kernel/acpi/boot.c
-> index 5be15d1..4a5336d 100644
-> --- a/arch/x86/kernel/acpi/boot.c
-> +++ b/arch/x86/kernel/acpi/boot.c
-> @@ -707,16 +707,18 @@ EXPORT_SYMBOL(acpi_unmap_lsapic);
->
->  int acpi_register_ioapic(acpi_handle handle, u64 phys_addr, u32 gsi_base)
->  {
-> -	/* TBD */
-> -	return -EINVAL;
-> +	unsigned long long id = 0;
-> +
-> +	acpi_evaluate_integer(handle, "_UID", NULL, &id);
+On Fri, Aug 23, 2013 at 05:13:45PM -0700, Guenter Roeck wrote:
 
-We cannot assume that "_UID" is an integer. "_UID" can be either an
-integer or a string. Need to consider the case when it is a string.
+> Did the group conclude that the idea of FDT augmenting ACPI is not feasible ? 
 
-Thanks
-Rui
+I think expressing FDT in ACPI is feasible, I'm just not sure it's 
+desirable. We'd still end up with duplicate information and no mechanism 
+for drivers to handle both.
 
-> +
-> +	return	__mp_register_ioapic(id, phys_addr, gsi_base, true);
->  }
->
->  EXPORT_SYMBOL(acpi_register_ioapic);
->
->  int acpi_unregister_ioapic(acpi_handle handle, u32 gsi_base)
->  {
-> -	/* TBD */
-> -	return -EINVAL;
-> +	return mp_unregister_ioapic(gsi_base);
->  }
->
->  EXPORT_SYMBOL(acpi_unregister_ioapic);
-> --
-> 1.8.1.4
->
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-kernel" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> Please read the FAQ at  http://www.tux.org/lkml/
->
+-- 
+Matthew Garrett | mjg59@srcf.ucam.org
