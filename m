@@ -1,76 +1,68 @@
-From: Guenter Roeck <linux@roeck-us.net>
-Subject: Re: ACPI vs Device Tree - moving forward
-Date: Fri, 23 Aug 2013 17:13:45 -0700
-Message-ID: <20130824001345.GD14810@roeck-us.net>
-References: <20130820192650.GA19470@srcf.ucam.org>
- <6438184.2yT2NMB1CE@vostro.rjw.lan>
- <20130821233942.GA21502@srcf.ucam.org>
- <1810269.JOHnJ0H7P9@vostro.rjw.lan>
- <20130822000306.GA21785@srcf.ucam.org>
- <1377300343.5259.84.camel@dvhart-mobl4.amr.corp.intel.com>
- <20130823233805.GA1801@srcf.ucam.org>
- <1377301548.5259.91.camel@dvhart-mobl4.amr.corp.intel.com>
+From: rui wang <ruiv.wang@gmail.com>
+Subject: Re: [PATCH v4 26/28] PCI, x86, ACPI: Link acpi ioapic register to ioapic
+Date: Sat, 24 Aug 2013 08:51:54 +0800
+Message-ID: <CANVTcTYhdiptB_sOUyveBfieg0VkTGdor16kCHKkJDemHzcWXw@mail.gmail.com>
+References: <1376189294-32022-1-git-send-email-yinghai@kernel.org>
+	<1376189294-32022-27-git-send-email-yinghai@kernel.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-pb0-f44.google.com ([209.85.160.44]:61321 "EHLO
-	mail-pb0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754492Ab3HXANs (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 23 Aug 2013 20:13:48 -0400
-Content-Disposition: inline
-In-Reply-To: <1377301548.5259.91.camel@dvhart-mobl4.amr.corp.intel.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1376189294-32022-27-git-send-email-yinghai@kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Yinghai Lu <yinghai@kernel.org>
+Cc: Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@elte.hu>, "H. Peter Anvin" <hpa@zytor.com>, Tony Luck <tony.luck@intel.com>, Bjorn Helgaas <bhelgaas@google.com>, "Rafael J. Wysocki" <rjw@sisk.pl>, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Darren Hart <dvhart@linux.intel.com>
-Cc: Matthew Garrett <mjg59@srcf.ucam.org>, "Rafael J. Wysocki" <rjw@sisk.pl>, Linus Walleij <linus.walleij@linaro.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, "H. Peter Anvin" <hpa@zytor.com>
 
-On Fri, Aug 23, 2013 at 04:45:48PM -0700, Darren Hart wrote:
-> On Sat, 2013-08-24 at 00:38 +0100, Matthew Garrett wrote:
-> > On Fri, Aug 23, 2013 at 04:25:43PM -0700, Darren Hart wrote:
-> > 
-> > > It had been my hope at the start of this project to open the creation of
-> > > SSDTs up to inventors and hackers who want to create Lures for the
-> > > MinnowBoard in such a way that they could write these SSDTs and load
-> > > them from a file at boot time, modify, rebuild, iterate, etc. When/if
-> > > the Lure goes to production, the SSDT could either be stored on an
-> > > EEPROM, or for very low volume boards, possibly just shipped as a binary
-> > > to be loaded (with source available of course).
-> > 
-> > There's no fundamental problem with doing this, especially on UEFI 
-> > systems. As long as you know the host ACPI code, it's trivial to merge 
-> > an SSDT in from a UEFI option ROM.
-> > 
-> > > It appears that Matthew, at least, would prefer this latter scenario
-> > > just used DT instead. However, that seems to leave a gap in the
-> > > transition to incorporating the table into the board firmware should a
-> > > derivative product be made. e.g. no good way to prototype with ACPI. It
-> > > also seems to have all the same problems raised regarding mixing ACPI
-> > > and DT on the same system.
-> > 
-> > I've no problem with additional hardware shipping with ACPI support - my 
-> > position was more that if a vendor ships a system with ACPI that fails 
-> > to describe the integrated hardware (or does so incorrectly), it's 
-> > probably easier to replace it with DT than a fixed ACPI table. Still, if 
-> > people *do* want to replace shipped ACPI tables, it's probably 
-> > preferable to do that at the bootloader level than the kernel level.
-> > 
-> 
-> OK. Thanks for elaborating.
-> 
-> It seems to me that in order to fully support this, we are back to the
-> problem of how do we provide arbitrary configuration data via ACPI (the
-> DSM being the only current means, but there is no standard there). Is
-> that still the hard problem we are looking to solve as a group?
-> 
-Did the group conclude that the idea of FDT augmenting ACPI is not feasible ? 
+On 8/11/13, Yinghai Lu <yinghai@kernel.org> wrote:
+> During ioapic hotplug, acpi_register_ioapic will be called.
+> Now for x86, that function is blank.
+> Fill that will update __mp_register_ioapic to use those ioapic.
+>
+> Signed-off-by: Yinghai Lu <yinghai@kernel.org>
+> ---
+>  arch/x86/kernel/acpi/boot.c | 10 ++++++----
+>  1 file changed, 6 insertions(+), 4 deletions(-)
+>
+> diff --git a/arch/x86/kernel/acpi/boot.c b/arch/x86/kernel/acpi/boot.c
+> index 5be15d1..4a5336d 100644
+> --- a/arch/x86/kernel/acpi/boot.c
+> +++ b/arch/x86/kernel/acpi/boot.c
+> @@ -707,16 +707,18 @@ EXPORT_SYMBOL(acpi_unmap_lsapic);
+>
+>  int acpi_register_ioapic(acpi_handle handle, u64 phys_addr, u32 gsi_base)
+>  {
+> -	/* TBD */
+> -	return -EINVAL;
+> +	unsigned long long id = 0;
+> +
+> +	acpi_evaluate_integer(handle, "_UID", NULL, &id);
 
-If not, the key question for me is how to implement it, and how to handle
-all its little problems.
+We cannot assume that "_UID" is an integer. "_UID" can be either an
+integer or a string. Need to consider the case when it is a string.
 
-If yes, the key question for me is how to handle all the drivers which
-assume fdt-style properties, and how to express all that information in ACPI
-in a way which does not require a substantial driver rewrite (and, as you point
-out, how that data would be described in ACPI consistently across multiple
-vendors).
+Thanks
+Rui
 
-Guenter
+> +
+> +	return	__mp_register_ioapic(id, phys_addr, gsi_base, true);
+>  }
+>
+>  EXPORT_SYMBOL(acpi_register_ioapic);
+>
+>  int acpi_unregister_ioapic(acpi_handle handle, u32 gsi_base)
+>  {
+> -	/* TBD */
+> -	return -EINVAL;
+> +	return mp_unregister_ioapic(gsi_base);
+>  }
+>
+>  EXPORT_SYMBOL(acpi_unregister_ioapic);
+> --
+> 1.8.1.4
+>
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-kernel" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> Please read the FAQ at  http://www.tux.org/lkml/
+>
