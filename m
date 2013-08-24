@@ -1,69 +1,54 @@
 From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: [PATCH] ACPI/Thermal: Add check of "_TZD" availability and evaluating result
-Date: Sat, 24 Aug 2013 16:44:02 +0200
-Message-ID: <3673570.IB0e6CCT7B@vostro.rjw.lan>
-References: <1377334888-6384-1-git-send-email-tianyu.lan@intel.com>
+Subject: [GIT PULL] ACPI fix for v3.11-rc7
+Date: Sat, 24 Aug 2013 17:17:56 +0200
+Message-ID: <11694750.y7arDE0Ss8@vostro.rjw.lan>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7Bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from hydra.sisk.pl ([212.160.235.94]:59318 "EHLO hydra.sisk.pl"
+Received: from hydra.sisk.pl ([212.160.235.94]:59364 "EHLO hydra.sisk.pl"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754690Ab3HXOd0 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Sat, 24 Aug 2013 10:33:26 -0400
-In-Reply-To: <1377334888-6384-1-git-send-email-tianyu.lan@intel.com>
+	id S1754839Ab3HXPHR (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Sat, 24 Aug 2013 11:07:17 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: tianyu.lan@intel.com
-Cc: lenb@kernel.org, linux-acpi@vger.kernel.org
+To: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>
 
-On Saturday, August 24, 2013 05:01:28 PM tianyu.lan@intel.com wrote:
-> From: Lan Tianyu <tianyu.lan@intel.com>
-> 
-> Some machines don't provide _TZD. So add check of "_TZD" availability
-> before doing futher operations. This patch also adds the check of
-> evaluating result.
-> 
-> Signed-off-by: Lan Tianyu <tianyu.lan@intel.com>
-> ---
->  drivers/acpi/thermal.c | 5 +++--
->  1 file changed, 3 insertions(+), 2 deletions(-)
-> 
-> diff --git a/drivers/acpi/thermal.c b/drivers/acpi/thermal.c
-> index 09f9340..6809fbd 100644
-> --- a/drivers/acpi/thermal.c
-> +++ b/drivers/acpi/thermal.c
-> @@ -492,11 +492,12 @@ static int acpi_thermal_trips_update(struct acpi_thermal *tz, int flag)
->  			break;
->  	}
->  
-> -	if (flag & ACPI_TRIPS_DEVICES) {
-> +	if ((flag & ACPI_TRIPS_DEVICES)
-> +			&& acpi_has_method(tz->device->handle, "_TZD")) {
+Hi Linus,
 
-Please arrange the whitespace here like this:
+Please pull from the git repository at
 
-	if ((flag & ACPI_TRIPS_DEVICES)
-	    && acpi_has_method(tz->device->handle, "_TZD")) {
+  git://git.kernel.org/pub/scm/linux/kernel/git/rafael/linux-pm.git acpi-3.11-rc7
+
+to receive one ACPI fix for v3.11-rc7 as
+commit 168cf0eca45b86014b8c2a17fcb0673ab1af809b
+
+  Revert "ACPI / video: Always call acpi_video_init_brightness() on init"
+
+on top of commit b36f4be3de1b123d8601de062e7dbfc904f305fb
+
+  Linux 3.11-rc6
+
+I really hoped that it wouldn't be necessary to change anything in ACPI at
+this point, but it turns out that we need to revert one more ACPI video
+commit causing trouble.
+
+This reverts a change in the ACPI video driver that caused the ACPI
+backlight initialization to be carried out even if acpi_backlight=vendor
+is passed in the kernel command line which turns out to break things
+at least on one system.
+
+Thanks!
 
 
->  		memset(&devices, 0, sizeof(struct acpi_handle_list));
->  		status = acpi_evaluate_reference(tz->device->handle, "_TZD",
->  						NULL, &devices);
-> -		if (memcmp(&tz->devices, &devices,
-> +		if (ACPI_SUCCESS(status) && memcmp(&tz->devices, &devices,
->  				sizeof(struct acpi_handle_list))) {
+---------------
 
-I wonder why you can't use "tz->device == devices" here instead of the memcmp?
+Rafael J. Wysocki (1):
+      Revert "ACPI / video: Always call acpi_video_init_brightness() on init"
 
-And also "tz->devices = devices" below for that matter.
+---------------
 
->  			memcpy(&tz->devices, &devices,
->  				sizeof(struct acpi_handle_list));
+ drivers/acpi/video.c |   11 +++--------
+ 1 file changed, 3 insertions(+), 8 deletions(-)
 
-Rafael
-
-
--- 
-I speak only for myself.
-Rafael J. Wysocki, Intel Open Source Technology Center.
