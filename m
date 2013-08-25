@@ -1,114 +1,190 @@
 From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: [PATCH] acpi: blacklist win8 OSI for buggy laptops
-Date: Sun, 25 Aug 2013 21:48:34 +0200
-Message-ID: <1703730.yuNIYf6TyH@vostro.rjw.lan>
-References: <1377452253-15882-1-git-send-email-felipe.contreras@gmail.com>
+Subject: [PATCH] driver core / ACPI: Avoid device removal locking problems
+Date: Sun, 25 Aug 2013 22:09:47 +0200
+Message-ID: <1543475.L7gSB7lLAu@vostro.rjw.lan>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7Bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from hydra.sisk.pl ([212.160.235.94]:33540 "EHLO hydra.sisk.pl"
+Received: from hydra.sisk.pl ([212.160.235.94]:33560 "EHLO hydra.sisk.pl"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756099Ab3HYTh4 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Sun, 25 Aug 2013 15:37:56 -0400
-In-Reply-To: <1377452253-15882-1-git-send-email-felipe.contreras@gmail.com>
+	id S1756555Ab3HYT7H (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Sun, 25 Aug 2013 15:59:07 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Felipe Contreras <felipe.contreras@gmail.com>
-Cc: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Len Brown <lenb@kernel.org>
+To: ACPI Devel Maling List <linux-acpi@vger.kernel.org>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Toshi Kani <toshi.kani@hp.com>, LKML <linux-kernel@vger.kernel.org>, Gu Zheng <guz.fnst@cn.fujitsu.com>
 
-On Sunday, August 25, 2013 12:37:33 PM Felipe Contreras wrote:
-> Since v3.7 the acpi backlight driver doesn't work correctly in several
-> machines because ACPI code has different code for Windows 8, and the
-> rest.
-> 
-> The commit ea45ea7 (in v3.11-rc2) tried to fix this problem by using the
-> intel backlight driver, however it introduced several other issues in
-> different machines.
-> 
-> This patch fixes both regressions by blacklisting the win8 OSI, so we
-> are back to v3.6 behavior, and it should remain that way until the intel
-> backlight driver is fixed.
-> 
-> Since v3.7, users have been forced to fix the initial regression by
-> modifying the boot arguments (acpi_osi="!Windows 2012").
-> 
-> Once the Intel backlight driver works correctly for all machines, this
-> blacklist can be removed and that driver can be used instead.
-> 
-> https://bugzilla.kernel.org/show_bug.cgi?id=60682
-> 
-> Signed-off-by: Felipe Contreras <felipe.contreras@gmail.com>
+From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 
-Queued up for 3.12, but I've already applied your previous patch for the Asus
-Zenbook, so I needed to rebase this one.  Please check the bleeding-edge branch
-of the linux-pm.git tree for the result.
+There are two mutexes, device_hotplug_lock and acpi_scan_lock, held
+around the acpi_bus_trim() call in acpi_scan_hot_remove() which
+generally removes devices (it removes ACPI device objects at least,
+but it may also remove "physical" device objects through .detach()
+callbacks of ACPI scan handlers).  Thus, potentially, device sysfs
+attributes are removed under these locks and to remove those
+attributes it is necessary to hold the s_active references of their
+directory entries for writing.
 
-Also next time you fix problems reported by other people please add Reported-by
-tags to the patch to give a credit to the reporters.
+On the other hand, the execution of a .show() or .store() callback
+from a sysfs attribute is carried out with that attribute's s_active
+reference held for reading.  Consequently, if any device sysfs
+attribute that may be removed from within acpi_scan_hot_remove()
+through acpi_bus_trim() has a .store() or .show() callback which
+acquires either acpi_scan_lock or device_hotplug_lock, the execution
+of that callback may deadlock with the removal of the attribute.
+[Unfortunately, the "online" device attribute of CPUs and memory
+blocks and the "eject" attribute of ACPI device objects are affected
+by this issue.]
+
+To avoid those deadlocks introduce a new protection mechanism that
+can be used by the device sysfs attributes in question.  Namely,
+if a device sysfs attribute's .store() or .show() callback routine
+is about to acquire device_hotplug_lock or acpi_scan_lock, it can
+first execute read_lock_device_remove() and return an error code if
+that function returns false.  If true is returned, the lock in
+question may be acquired and read_unlock_device_remove() must be
+called.  [This mechanism is implemented by means of an additional
+rwsem in drivers/base/core.c.]
+
+Make the affected sysfs attributes in the driver core and ACPI core
+use read_lock_device_remove() and read_unlock_device_remove() as
+described above.
+
+Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+Reported-by: Gu Zheng <guz.fnst@cn.fujitsu.com>
+---
+
+For 3.12, applies on top of linux-pm.git/linux-next.
 
 Thanks,
 Rafael
 
+---
+ drivers/acpi/scan.c    |    8 ++++++++
+ drivers/base/core.c    |   29 +++++++++++++++++++++++++++++
+ include/linux/device.h |    4 ++++
+ 3 files changed, 41 insertions(+)
 
-> ---
->  drivers/acpi/blacklist.c | 35 +++++++++++++++++++++++++++++++++++
->  1 file changed, 35 insertions(+)
-> 
-> diff --git a/drivers/acpi/blacklist.c b/drivers/acpi/blacklist.c
-> index cb96296..42cccbe 100644
-> --- a/drivers/acpi/blacklist.c
-> +++ b/drivers/acpi/blacklist.c
-> @@ -192,6 +192,12 @@ static int __init dmi_disable_osi_win7(const struct dmi_system_id *d)
->  	acpi_osi_setup("!Windows 2009");
->  	return 0;
->  }
-> +static int __init dmi_disable_osi_win8(const struct dmi_system_id *d)
-> +{
-> +	printk(KERN_NOTICE PREFIX "DMI detected: %s\n", d->ident);
-> +	acpi_osi_setup("!Windows 2012");
-> +	return 0;
-> +}
->  
->  static struct dmi_system_id acpi_osi_dmi_table[] __initdata = {
->  	{
-> @@ -269,6 +275,35 @@ static struct dmi_system_id acpi_osi_dmi_table[] __initdata = {
->  	},
->  
->  	/*
-> +	 * The following machines have broken backlight support when reporting
-> +	 * the Windows 2012 OSI, so disable it until their support is fixed.
-> +	 */
-> +	{
-> +	.callback = dmi_disable_osi_win8,
-> +	.ident = "ASUS Zenbook Prime UX31A",
-> +	.matches = {
-> +		     DMI_MATCH(DMI_SYS_VENDOR, "ASUSTeK COMPUTER INC."),
-> +		     DMI_MATCH(DMI_PRODUCT_NAME, "UX31A"),
-> +		},
-> +	},
-> +	{
-> +	.callback = dmi_disable_osi_win8,
-> +	.ident = "Dell Inspiron 15R SE",
-> +	.matches = {
-> +		     DMI_MATCH(DMI_SYS_VENDOR, "Dell Inc."),
-> +		     DMI_MATCH(DMI_PRODUCT_NAME, "Inspiron 7520"),
-> +		},
-> +	},
-> +	{
-> +	.callback = dmi_disable_osi_win8,
-> +	.ident = "Lenovo ThinkPad Edge E530",
-> +	.matches = {
-> +		     DMI_MATCH(DMI_SYS_VENDOR, "LENOVO"),
-> +		     DMI_MATCH(DMI_PRODUCT_VERSION, "3259A2G"),
-> +		},
-> +	},
-> +
-> +	/*
->  	 * BIOS invocation of _OSI(Linux) is almost always a BIOS bug.
->  	 * Linux ignores it, except for the machines enumerated below.
->  	 */
-> 
--- 
-I speak only for myself.
-Rafael J. Wysocki, Intel Open Source Technology Center.
+Index: linux-pm/drivers/base/core.c
+===================================================================
+--- linux-pm.orig/drivers/base/core.c
++++ linux-pm/drivers/base/core.c
+@@ -408,7 +408,11 @@ static ssize_t show_online(struct device
+ {
+ 	bool val;
+ 
++	if (!read_lock_device_remove())
++		return -EBUSY;
++
+ 	lock_device_hotplug();
++	read_unlock_device_remove();
+ 	val = !dev->offline;
+ 	unlock_device_hotplug();
+ 	return sprintf(buf, "%u\n", val);
+@@ -424,7 +428,11 @@ static ssize_t store_online(struct devic
+ 	if (ret < 0)
+ 		return ret;
+ 
++	if (!read_lock_device_remove())
++		return -EBUSY;
++
+ 	lock_device_hotplug();
++	read_unlock_device_remove();
+ 	ret = val ? device_online(dev) : device_offline(dev);
+ 	unlock_device_hotplug();
+ 	return ret < 0 ? ret : count;
+@@ -1479,8 +1487,29 @@ EXPORT_SYMBOL_GPL(put_device);
+ EXPORT_SYMBOL_GPL(device_create_file);
+ EXPORT_SYMBOL_GPL(device_remove_file);
+ 
++static DECLARE_RWSEM(device_remove_rwsem);
+ static DEFINE_MUTEX(device_hotplug_lock);
+ 
++bool __must_check read_lock_device_remove(void)
++{
++	return down_read_trylock(&device_remove_rwsem);
++}
++
++void read_unlock_device_remove(void)
++{
++	up_read(&device_remove_rwsem);
++}
++
++void device_remove_begin(void)
++{
++	down_write(&device_remove_rwsem);
++}
++
++void device_remove_end(void)
++{
++	up_write(&device_remove_rwsem);
++}
++
+ void lock_device_hotplug(void)
+ {
+ 	mutex_lock(&device_hotplug_lock);
+Index: linux-pm/include/linux/device.h
+===================================================================
+--- linux-pm.orig/include/linux/device.h
++++ linux-pm/include/linux/device.h
+@@ -893,6 +893,10 @@ static inline bool device_supports_offli
+ 	return dev->bus && dev->bus->offline && dev->bus->online;
+ }
+ 
++extern bool __must_check read_lock_device_remove(void);
++extern void read_unlock_device_remove(void);
++extern void device_remove_begin(void);
++extern void device_remove_end(void);
+ extern void lock_device_hotplug(void);
+ extern void unlock_device_hotplug(void);
+ extern int device_offline(struct device *dev);
+Index: linux-pm/drivers/acpi/scan.c
+===================================================================
+--- linux-pm.orig/drivers/acpi/scan.c
++++ linux-pm/drivers/acpi/scan.c
+@@ -288,6 +288,7 @@ static void acpi_bus_device_eject(void *
+ 	struct acpi_scan_handler *handler;
+ 	u32 ost_code = ACPI_OST_SC_NON_SPECIFIC_FAILURE;
+ 
++	device_remove_begin();
+ 	mutex_lock(&acpi_scan_lock);
+ 
+ 	acpi_bus_get_device(handle, &device);
+@@ -315,6 +316,7 @@ static void acpi_bus_device_eject(void *
+ 
+  out:
+ 	mutex_unlock(&acpi_scan_lock);
++	device_remove_end();
+ 	return;
+ 
+  err_out:
+@@ -449,6 +451,7 @@ void acpi_bus_hot_remove_device(void *co
+ 	acpi_handle handle = device->handle;
+ 	int error;
+ 
++	device_remove_begin();
+ 	mutex_lock(&acpi_scan_lock);
+ 
+ 	error = acpi_scan_hot_remove(device);
+@@ -458,6 +461,7 @@ void acpi_bus_hot_remove_device(void *co
+ 					  NULL);
+ 
+ 	mutex_unlock(&acpi_scan_lock);
++	device_remove_end();
+ 	kfree(context);
+ }
+ EXPORT_SYMBOL(acpi_bus_hot_remove_device);
+@@ -510,7 +514,11 @@ acpi_eject_store(struct device *d, struc
+ 	if (ACPI_FAILURE(status) || !acpi_device->flags.ejectable)
+ 		return -ENODEV;
+ 
++	if (!read_lock_device_remove())
++		return -EBUSY;
++
+ 	mutex_lock(&acpi_scan_lock);
++	read_unlock_device_remove();
+ 
+ 	if (acpi_device->flags.eject_pending) {
+ 		/* ACPI eject notification event. */
+
