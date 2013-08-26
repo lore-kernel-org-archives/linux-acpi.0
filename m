@@ -1,26 +1,57 @@
-From: "Jason A. Donenfeld" <Jason@zx2c4.com>
-Subject: Re: [PATCH 3/3] thinkpad_acpi: Wire unused micmute LED to capslock
-Date: Sat, 24 Aug 2013 22:29:53 +0200
-Message-ID: <CAHmME9oHDqoEA7Abuvr2iE5Abb_T_+GAuK=KJpC54g8q3vZH9Q@mail.gmail.com>
-References: <1377180132-4933-1-git-send-email-Jason@zx2c4.com>
-	<1377180132-4933-3-git-send-email-Jason@zx2c4.com>
-	<20130823181826.GB27893@khazad-dum.debian.net>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+From: tianyu.lan@intel.com
+Subject: [PATCH V2] ACPI/Thermal: Add check of "_TZD" availability and evaluating result
+Date: Mon, 26 Aug 2013 10:14:30 +0800
+Message-ID: <1377483270-16841-1-git-send-email-tianyu.lan@intel.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from frisell.zx2c4.com ([192.95.5.64]:57370 "EHLO frisell.zx2c4.com"
+Received: from mga09.intel.com ([134.134.136.24]:53187 "EHLO mga09.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754162Ab3HZALY (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Sun, 25 Aug 2013 20:11:24 -0400
-In-Reply-To: <20130823181826.GB27893@khazad-dum.debian.net>
+	id S1755262Ab3HZCXe (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Sun, 25 Aug 2013 22:23:34 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
-Cc: linux-acpi@vger.kernel.org, linux-input@vger.kernel.org, linux-kernel@vger.kernel.org, mjg@redhat.com, rjw@sisk.pl, len.brown@intel.com, dtor@insightbb.com
+To: rjw@sisk.pl, lenb@kernel.org
+Cc: Lan Tianyu <tianyu.lan@intel.com>, linux-acpi@vger.kernel.org
 
-On Fri, Aug 23, 2013 at 8:18 PM, Henrique de Moraes Holschuh
-<hmh@hmh.eng.br> wrote:
-> NACK.  This we won't do.  It is a LED misuse, and it will get in the way
-> when we finally put that LED to its proper use.
+From: Lan Tianyu <tianyu.lan@intel.com>
 
-Agreed. Please see my response to mjg.
+Some machines don't provide _TZD. So add check of "_TZD" availability
+before doing futher operations. This patch also adds the check of
+evaluating result.
+
+Signed-off-by: Lan Tianyu <tianyu.lan@intel.com>
+---
+ Change sicne v1:
+	Arrange the whitespace, using "tz->devices = devices"
+instead of memcpy() and sizeof(devices) instead of sizeof(struct ...)
+
+ drivers/acpi/thermal.c | 12 ++++++------
+ 1 file changed, 6 insertions(+), 6 deletions(-)
+
+diff --git a/drivers/acpi/thermal.c b/drivers/acpi/thermal.c
+index 09f9340..177ecca 100644
+--- a/drivers/acpi/thermal.c
++++ b/drivers/acpi/thermal.c
+@@ -492,14 +492,14 @@ static int acpi_thermal_trips_update(struct acpi_thermal *tz, int flag)
+ 			break;
+ 	}
+ 
+-	if (flag & ACPI_TRIPS_DEVICES) {
+-		memset(&devices, 0, sizeof(struct acpi_handle_list));
++	if ((flag & ACPI_TRIPS_DEVICES)
++	    && acpi_has_method(tz->device->handle, "_TZD")) {
++		memset(&devices, 0, sizeof(devices));
+ 		status = acpi_evaluate_reference(tz->device->handle, "_TZD",
+ 						NULL, &devices);
+-		if (memcmp(&tz->devices, &devices,
+-				sizeof(struct acpi_handle_list))) {
+-			memcpy(&tz->devices, &devices,
+-				sizeof(struct acpi_handle_list));
++		if (ACPI_SUCCESS(status) && memcmp(&tz->devices, &devices,
++		    sizeof(devices))) {
++			tz->devices = devices;
+ 			ACPI_THERMAL_TRIPS_EXCEPTION(flag, "device");
+ 		}
+ 	}
+-- 
+1.8.4.rc0.1.g8f6a3e5.dirty
+
