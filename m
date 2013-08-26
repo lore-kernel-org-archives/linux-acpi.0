@@ -1,212 +1,147 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: [PATCH] driver core / ACPI: Avoid device removal locking problems
-Date: Mon, 26 Aug 2013 17:02:08 +0200
-Message-ID: <1430120.G7JdUKlgj6@vostro.rjw.lan>
-References: <1543475.L7gSB7lLAu@vostro.rjw.lan> <4785337.sqQqDSPcpL@vostro.rjw.lan> <3389643.Fdir3g6c6B@vostro.rjw.lan>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7Bit
+From: Neil Horman <nhorman@tuxdriver.com>
+Subject: [PATCH v2] ACPI: Fix osc flag setup ordering to allow pcie hotplug use when available
+Date: Mon, 26 Aug 2013 11:36:21 -0400
+Message-ID: <1377531381-14695-1-git-send-email-nhorman@tuxdriver.com>
+References: <1377278379-9054-1-git-send-email-nhorman@tuxdriver.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from hydra.sisk.pl ([212.160.235.94]:35034 "EHLO hydra.sisk.pl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751801Ab3HZOv2 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 26 Aug 2013 10:51:28 -0400
-In-Reply-To: <3389643.Fdir3g6c6B@vostro.rjw.lan>
+Received: from charlotte.tuxdriver.com ([70.61.120.58]:59444 "EHLO
+	smtp.tuxdriver.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751978Ab3HZPgs (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 26 Aug 2013 11:36:48 -0400
+In-Reply-To: <1377278379-9054-1-git-send-email-nhorman@tuxdriver.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Gu Zheng <guz.fnst@cn.fujitsu.com>
-Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Toshi Kani <toshi.kani@hp.com>, LKML <linux-kernel@vger.kernel.org>, Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>, Tejun Heo <tj@kernel.org>
+To: linux-kernel@vger.kernel.org
+Cc: root <root@dhcp47-16.lab.bos.redhat.com>, Neil Horman <nhorman@tuxdriver.com>, Len Brown <lenb@kernel.org>, "Rafael J. Wysocki" <rjw@sisk.pl>, Bjorn Helgaas <bhelgaas@google.com>, linux-acpi@vger.kernel.org, linux-pci@vger.kernel.org
 
-On Monday, August 26, 2013 04:43:26 PM Rafael J. Wysocki wrote:
-> On Monday, August 26, 2013 02:42:09 PM Rafael J. Wysocki wrote:
-> > On Monday, August 26, 2013 11:13:13 AM Gu Zheng wrote:
-> > > Hi Rafael,
+From: root <root@dhcp47-16.lab.bos.redhat.com>
 
-[...]
+Somewhere between 3.9 and 3.10 it seems the order in which pcie and acpi probed
+slots for hotplug capabilites got reversed.  While this isn't a big deal, it did
+uncover a bug in the ACPI bus setup path.  Specifically, acpi_pci_root_add calls
+pci_acpi_scan_root before setting the osc flags for the device handle.
+pci_acpi_scan_root, among other things uses device_is_managed_by_native_pciehp()
+to determine if a given slot has pcie hotplug capabilties, whcih checks the
+devices OSC_PCI_EXPRESS_NATIVE_HP_CONTROL flag.  Since that flag is not set
+until after pci_acpi_scan_root_completes, the acpi code never sees that pcie
+slots are hotplug capable and configures them all to use acpi instead.
 
-> 
-> OK, so the patch below is quick and dirty and overkill, but it should make the
-> splat go away at least.
+Fix is pretty simple, just defer the scan until after the osc flags have been
+set on the device.  Tested by myself and it seems to work well.
 
-And if this patch does make the splat go away for you, please also test the
-appended one (Tejun, thanks for the hint!).
-
-I'll address the ACPI part differently later.
-
-> ---
->  drivers/acpi/scan.c |    3 ++-
->  drivers/base/core.c |   36 ++++++++++++++++++++----------------
->  2 files changed, 22 insertions(+), 17 deletions(-)
-> 
-> Index: linux-pm/drivers/base/core.c
-> ===================================================================
-> --- linux-pm.orig/drivers/base/core.c
-> +++ linux-pm/drivers/base/core.c
-> @@ -49,6 +49,18 @@ static struct kobject *dev_kobj;
->  struct kobject *sysfs_dev_char_kobj;
->  struct kobject *sysfs_dev_block_kobj;
->  
-> +static DEFINE_MUTEX(device_hotplug_lock);
-> +
-> +void lock_device_hotplug(void)
-> +{
-> +	mutex_lock(&device_hotplug_lock);
-> +}
-> +
-> +void unlock_device_hotplug(void)
-> +{
-> +	mutex_unlock(&device_hotplug_lock);
-> +}
-> +
->  #ifdef CONFIG_BLOCK
->  static inline int device_is_not_partition(struct device *dev)
->  {
-> @@ -408,9 +420,11 @@ static ssize_t show_online(struct device
->  {
->  	bool val;
->  
-> -	lock_device_hotplug();
-> +	if (!mutex_trylock(&device_hotplug_lock))
-> +		return -EAGAIN;
-> +
->  	val = !dev->offline;
-> -	unlock_device_hotplug();
-> +	mutex_unlock(&device_hotplug_lock);
->  	return sprintf(buf, "%u\n", val);
->  }
->  
-> @@ -424,9 +438,11 @@ static ssize_t store_online(struct devic
->  	if (ret < 0)
->  		return ret;
->  
-> -	lock_device_hotplug();
-> +	if (!mutex_trylock(&device_hotplug_lock))
-> +		return -EAGAIN;
-> +
->  	ret = val ? device_online(dev) : device_offline(dev);
-> -	unlock_device_hotplug();
-> +	mutex_unlock(&device_hotplug_lock);
->  	return ret < 0 ? ret : count;
->  }
->  
-> @@ -1479,18 +1495,6 @@ EXPORT_SYMBOL_GPL(put_device);
->  EXPORT_SYMBOL_GPL(device_create_file);
->  EXPORT_SYMBOL_GPL(device_remove_file);
->  
-> -static DEFINE_MUTEX(device_hotplug_lock);
-> -
-> -void lock_device_hotplug(void)
-> -{
-> -	mutex_lock(&device_hotplug_lock);
-> -}
-> -
-> -void unlock_device_hotplug(void)
-> -{
-> -	mutex_unlock(&device_hotplug_lock);
-> -}
-> -
->  static int device_check_offline(struct device *dev, void *not_used)
->  {
->  	int ret;
-> Index: linux-pm/drivers/acpi/scan.c
-> ===================================================================
-> --- linux-pm.orig/drivers/acpi/scan.c
-> +++ linux-pm/drivers/acpi/scan.c
-> @@ -510,7 +510,8 @@ acpi_eject_store(struct device *d, struc
->  	if (ACPI_FAILURE(status) || !acpi_device->flags.ejectable)
->  		return -ENODEV;
->  
-> -	mutex_lock(&acpi_scan_lock);
-> +	if (!mutex_trylock(&acpi_scan_lock))
-> +		return -EAGAIN;
->  
->  	if (acpi_device->flags.eject_pending) {
->  		/* ACPI eject notification event. */
-
-Thanks,
-Rafael
-
+Signed-off-by: Neil Horman <nhorman@tuxdriver.com>
+CC: Len Brown <lenb@kernel.org>
+CC: "Rafael J. Wysocki" <rjw@sisk.pl>
+CC: Bjorn Helgaas <bhelgaas@google.com>
+CC: linux-acpi@vger.kernel.org
+CC: linux-pci@vger.kernel.org
 
 ---
- drivers/base/core.c |   45 +++++++++++++++++++++++++++++++--------------
- 1 file changed, 31 insertions(+), 14 deletions(-)
+Change notes:
+v2) eferred the disabling of aspm until after the acpi scan of the pci bus is
+complete.  This was done to allow proper handling of pcie 1.1 devices, as per:
 
-Index: linux-pm/drivers/base/core.c
-===================================================================
---- linux-pm.orig/drivers/base/core.c
-+++ linux-pm/drivers/base/core.c
-@@ -49,6 +49,28 @@ static struct kobject *dev_kobj;
- struct kobject *sysfs_dev_char_kobj;
- struct kobject *sysfs_dev_block_kobj;
+commit b8178f130e25c1bdac1c33e0996f1ff6e20ec08e
+Author: Bjorn Helgaas <bhelgaas@google.com>
+Date:   Mon Apr 1 15:47:39 2013 -0600
+
+    Revert "PCI/ACPI: Request _OSC control before scanning PCI root bus"
+
+As discussed previously in the thread the disable logic for aspm needs to be
+untangled and refactored, which is not something I'm sufficently versed in teh
+hotplug code to do right now, but this fixes the problem above, and prevents the
+problem that necessitated the revert without adding any visible complexity to
+the user, so I think its ok.
+---
+ drivers/acpi/pci_root.c | 54 +++++++++++++++++++++++++++++--------------------
+ 1 file changed, 32 insertions(+), 22 deletions(-)
+
+diff --git a/drivers/acpi/pci_root.c b/drivers/acpi/pci_root.c
+index 5917839..1e80a90 100644
+--- a/drivers/acpi/pci_root.c
++++ b/drivers/acpi/pci_root.c
+@@ -378,6 +378,7 @@ static int acpi_pci_root_add(struct acpi_device *device,
+ 	struct acpi_pci_root *root;
+ 	u32 flags, base_flags;
+ 	acpi_handle handle = device->handle;
++	bool no_aspm = false;
  
-+static DEFINE_MUTEX(device_hotplug_lock);
+ 	root = kzalloc(sizeof(struct acpi_pci_root), GFP_KERNEL);
+ 	if (!root)
+@@ -437,27 +438,6 @@ static int acpi_pci_root_add(struct acpi_device *device,
+ 	flags = base_flags = OSC_PCI_SEGMENT_GROUPS_SUPPORT;
+ 	acpi_pci_osc_support(root, flags);
+ 
+-	/*
+-	 * TBD: Need PCI interface for enumeration/configuration of roots.
+-	 */
+-
+-	/*
+-	 * Scan the Root Bridge
+-	 * --------------------
+-	 * Must do this prior to any attempt to bind the root device, as the
+-	 * PCI namespace does not get created until this call is made (and
+-	 * thus the root bridge's pci_dev does not exist).
+-	 */
+-	root->bus = pci_acpi_scan_root(root);
+-	if (!root->bus) {
+-		dev_err(&device->dev,
+-			"Bus %04x:%02x not present in PCI namespace\n",
+-			root->segment, (unsigned int)root->secondary.start);
+-		result = -ENODEV;
+-		goto end;
+-	}
+-
+-	/* Indicate support for various _OSC capabilities. */
+ 	if (pci_ext_cfg_avail())
+ 		flags |= OSC_EXT_PCI_CONFIG_SUPPORT;
+ 	if (pcie_aspm_support_enabled()) {
+@@ -512,7 +492,14 @@ static int acpi_pci_root_add(struct acpi_device *device,
+ 				acpi_format_exception(status), flags);
+ 			dev_info(&device->dev,
+ 				 "ACPI _OSC control for PCIe not granted, disabling ASPM\n");
+-			pcie_no_aspm();
++			/*
++			 * We want to disable aspm here, but aspm_disabled
++			 * needs to remain in its state from boot so that we
++			 * properly handle pcie 1.1 devices.  So we set this
++			 * flag here, to defer the action until after the acpi
++			 * root scan
++			 */
++			no_aspm = true;
+ 		}
+ 	} else {
+ 		dev_info(&device->dev,
+@@ -520,6 +507,29 @@ static int acpi_pci_root_add(struct acpi_device *device,
+ 			 "(_OSC support mask: 0x%02x)\n", flags);
+ 	}
+ 
++	/*
++	 * TBD: Need PCI interface for enumeration/configuration of roots.
++	 */
 +
-+void lock_device_hotplug(void)
-+{
-+	mutex_lock(&device_hotplug_lock);
-+}
-+
-+void unlock_device_hotplug(void)
-+{
-+	mutex_unlock(&device_hotplug_lock);
-+}
-+
-+static int try_to_lock_device_hotplug(void)
-+{
-+	if (!mutex_trylock(&device_hotplug_lock)) {
-+		/* Avoid busy waiting, 10 ms of sleep should do. */
-+		msleep(10);
-+		return restart_syscall();
++	/*
++	 * Scan the Root Bridge
++	 * --------------------
++	 * Must do this prior to any attempt to bind the root device, as the
++	 * PCI namespace does not get created until this call is made (and
++	 * thus the root bridge's pci_dev does not exist).
++	 */
++	root->bus = pci_acpi_scan_root(root);
++	if (!root->bus) {
++		dev_err(&device->dev,
++			"Bus %04x:%02x not present in PCI namespace\n",
++			root->segment, (unsigned int)root->secondary.start);
++		result = -ENODEV;
++		goto end;
 +	}
-+	return 0;
-+}
 +
- #ifdef CONFIG_BLOCK
- static inline int device_is_not_partition(struct device *dev)
- {
-@@ -407,8 +429,12 @@ static ssize_t show_online(struct device
- 			   char *buf)
- {
- 	bool val;
-+	int ret;
++	if (no_aspm)
++		pcie_no_aspm();
 +
-+	ret = try_to_lock_device_hotplug();
-+	if (ret)
-+		return ret;
- 
--	lock_device_hotplug();
- 	val = !dev->offline;
- 	unlock_device_hotplug();
- 	return sprintf(buf, "%u\n", val);
-@@ -424,7 +450,10 @@ static ssize_t store_online(struct devic
- 	if (ret < 0)
- 		return ret;
- 
--	lock_device_hotplug();
-+	ret = try_to_lock_device_hotplug();
-+	if (ret)
-+		return ret;
-+
- 	ret = val ? device_online(dev) : device_offline(dev);
- 	unlock_device_hotplug();
- 	return ret < 0 ? ret : count;
-@@ -1479,18 +1508,6 @@ EXPORT_SYMBOL_GPL(put_device);
- EXPORT_SYMBOL_GPL(device_create_file);
- EXPORT_SYMBOL_GPL(device_remove_file);
- 
--static DEFINE_MUTEX(device_hotplug_lock);
--
--void lock_device_hotplug(void)
--{
--	mutex_lock(&device_hotplug_lock);
--}
--
--void unlock_device_hotplug(void)
--{
--	mutex_unlock(&device_hotplug_lock);
--}
--
- static int device_check_offline(struct device *dev, void *not_used)
- {
- 	int ret;
+ 	pci_acpi_add_bus_pm_notifier(device, root->bus);
+ 	if (device->wakeup.flags.run_wake)
+ 		device_set_run_wake(root->bus->bridge, true);
+-- 
+1.8.1.4
 
