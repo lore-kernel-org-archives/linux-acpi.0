@@ -1,48 +1,61 @@
-From: Tejun Heo <tj@kernel.org>
-Subject: Re: [PATCH] driver core / ACPI: Avoid device removal locking problems
-Date: Tue, 27 Aug 2013 14:36:44 -0400
-Message-ID: <20130827183644.GC12212@mtj.dyndns.org>
-References: <1543475.L7gSB7lLAu@vostro.rjw.lan>
- <4785337.sqQqDSPcpL@vostro.rjw.lan>
- <3389643.Fdir3g6c6B@vostro.rjw.lan>
- <1430120.G7JdUKlgj6@vostro.rjw.lan>
- <521C6FA8.4070804@cn.fujitsu.com>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: Re: [PATCH 3/5] drivers: thermal: make usage of CONFIG_THERMAL_HWMON optional
+Date: Tue, 27 Aug 2013 23:17:38 +0200
+Message-ID: <8131326.8QGX41MW6c@vostro.rjw.lan>
+References: <1377295396-17289-1-git-send-email-eduardo.valentin@ti.com> <4832825.8PCMQe7StP@vostro.rjw.lan> <521CEF61.6040504@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7Bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-qc0-f179.google.com ([209.85.216.179]:49882 "EHLO
-	mail-qc0-f179.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752276Ab3H0Sgt (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 27 Aug 2013 14:36:49 -0400
-Content-Disposition: inline
-In-Reply-To: <521C6FA8.4070804@cn.fujitsu.com>
+Received: from hydra.sisk.pl ([212.160.235.94]:37705 "EHLO hydra.sisk.pl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751616Ab3H0VHA (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 27 Aug 2013 17:07:00 -0400
+In-Reply-To: <521CEF61.6040504@ti.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Gu Zheng <guz.fnst@cn.fujitsu.com>
-Cc: "Rafael J. Wysocki" <rjw@sisk.pl>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Toshi Kani <toshi.kani@hp.com>, LKML <linux-kernel@vger.kernel.org>, Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
+To: Eduardo Valentin <eduardo.valentin@ti.com>
+Cc: linux-pm@vger.kernel.org, rui.zhang@intel.com, linux-kernel@vger.kernel.org, Anton Vorontsov <anton@enomsg.org>, David Woodhouse <dwmw2@infradead.org>, devicetree@vger.kernel.org, Grant Likely <grant.likely@linaro.org>, Kukjin Kim <kgene.kim@samsung.com>, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-samsung-soc@vger.kernel.org, Matthew Garrett <matthew.garrett@nebula.com>, Peter Feuerer <peter@piie.net>, platform-driver-x86@vger.kernel.org, Rob Herring <rob.herring@calxeda.com>
 
-Hello,
-
-On Tue, Aug 27, 2013 at 05:21:44PM +0800, Gu Zheng wrote:
-> >> OK, so the patch below is quick and dirty and overkill, but it should make the
-> >> splat go away at least.
+On Tuesday, August 27, 2013 02:26:41 PM Eduardo Valentin wrote:
+> On 23-08-2013 19:08, Rafael J. Wysocki wrote:
+> > On Friday, August 23, 2013 06:03:14 PM Eduardo Valentin wrote:
+> >> When registering a new thermal_device, the thermal framework
+> >> will always add a hwmon sysfs interface.
+> >>
+> >> This patch adds a flag to make this behavior optional. Now
+> >> when registering a new thermal device, the caller needs
+> >> to say if the hwmon interface is required.
+> >>
+> >> In order to keep same behavior as of today, all current
+> >> calls will by default create the hwmon interface.
 > > 
-> > And if this patch does make the splat go away for you, please also test the
-> > appended one (Tejun, thanks for the hint!).
+> > Well, instead of modifying all of the callers this way, why don't
+> > you add new versions taking the additional argument as, for example,
 > > 
-> > I'll address the ACPI part differently later.
+> > thermal_zone_device_register_full()
+> > 
+> > and redefine the old ones as static inline wrappers, for example
+> > 
+> > static inline struct thermal_zone_device *thermal_zone_device_register(args)
+> > {
+> > 	return thermal_zone_device_register_full(args, true);
+> > }
+> > 
+> > ?
 > 
-> What about changing device_hotplug_lock and acpi_scan_lock to rwsem? like the
-> attached one(With a preliminary test, it also can make the splat go away).:)
+> Yeah, that is another way to go and I thought of doing it like that. I
+> just could not come out with a good API naming:
+> 
+> thermal_zone_device_register_full(all args)
+> 
+> thermal_zone_device_register(args) /* on hwmon == true */
+> thermal_zone_device_register_no_hwmon(args) /* on hwmon == false */
+> 
+> Would this sound reasonable naming?
 
-Hmmm.. I don't get it.  How is introducing another rwlock whic may
-cause the operation, even reading the status, to fail randomly a
-better option?  It's harier and more brittle.  We probably want to
-implement better solution in sysfs for files which interact with
-device addition / removal paths but for now I think Rafael's patch is
-the right direction.
+Yeah, sounds good to me.
 
-Thanks.
+Thanks,
+Rafael
 
--- 
-tejun
