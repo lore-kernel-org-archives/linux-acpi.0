@@ -1,16 +1,16 @@
 From: Gu Zheng <guz.fnst@cn.fujitsu.com>
 Subject: Re: [PATCH] driver core / ACPI: Avoid device removal locking problems
-Date: Tue, 27 Aug 2013 10:03:51 +0800
-Message-ID: <521C0907.6000500@cn.fujitsu.com>
+Date: Tue, 27 Aug 2013 10:38:55 +0800
+Message-ID: <521C113F.3070704@cn.fujitsu.com>
 References: <1543475.L7gSB7lLAu@vostro.rjw.lan> <521AC7C9.2000408@cn.fujitsu.com> <4785337.sqQqDSPcpL@vostro.rjw.lan> <3389643.Fdir3g6c6B@vostro.rjw.lan>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cn.fujitsu.com ([222.73.24.84]:24391 "EHLO song.cn.fujitsu.com"
+Received: from cn.fujitsu.com ([222.73.24.84]:16627 "EHLO song.cn.fujitsu.com"
 	rhost-flags-OK-FAIL-OK-OK) by vger.kernel.org with ESMTP
-	id S1751391Ab3H0CIM (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 26 Aug 2013 22:08:12 -0400
+	id S1751783Ab3H0CoV (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 26 Aug 2013 22:44:21 -0400
 In-Reply-To: <3389643.Fdir3g6c6B@vostro.rjw.lan>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
@@ -220,6 +220,16 @@ On 08/26/2013 10:43 PM, Rafael J. Wysocki wrote:
 >> So I'm not sure how device_hotplug_lock is still involved?
 > 
 > Well, it is not involved, but lockdep doesn't see that anyway.  Bummer.
+
+Yeah, I also guess this is a wrong detection, but I'm not familiar with this filed.
+If it is really so, the lockdep guys maybe need to fix it, rather than altering an overkill
+solution to accommodate it. What's your opinion?
+In fact, I think "[PATCH] driver core / ACPI: Avoid device removal locking problems" is
+a good solution.:) 
+
+Regards,
+Gu
+
 > 
 >>>        [<ffffffff8131b6fc>] acpi_bus_hot_remove_device+0x37/0x73                                                                                                                 
 >>>        [<ffffffff81315dac>] acpi_os_execute_deferred+0x27/0x34                                                                                                                   
@@ -246,13 +256,6 @@ On 08/26/2013 10:43 PM, Rafael J. Wysocki wrote:
 > 
 > OK, so the patch below is quick and dirty and overkill, but it should make the
 > splat go away at least.
-
-Yeah, this patch is the same as the one I attached in previous discussion threads.
-It does make the splat go away, but as you said, it's a bit overkill.
-
-Regards,
-Gu
-
 > 
 > Thanks,
 > Rafael
