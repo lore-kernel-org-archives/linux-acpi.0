@@ -1,432 +1,448 @@
-From: Lan Tianyu <lantianyu1986@gmail.com>
-Subject: Re: [PATCH v4 28/28] PCI, x86, ACPI: get ioapic address from acpi device
-Date: Tue, 27 Aug 2013 22:56:31 +0800
-Message-ID: <CAOLK0pwb+fPaUL2AYXFS4kTRwWt=m=kVxJ3xjXH+dip038_jaw@mail.gmail.com>
-References: <1376189294-32022-1-git-send-email-yinghai@kernel.org>
-	<1376189294-32022-29-git-send-email-yinghai@kernel.org>
-	<CANVTcTYhSfU+Su9s1B+mTTBfgsZgqvQxHiTsLck1zT_vg1Cs4g@mail.gmail.com>
-	<CANVTcTb2+qX6XMBqrzeLho9yFS55AnztVJ85JBMuxjoH11qzaQ@mail.gmail.com>
-	<CAOLK0pwQJVvcT5xA-+Ftb85FzbjHN-OZmXO=n7r4EWh4nFjSBA@mail.gmail.com>
-	<CAE9FiQWnGaa6omcLW0zxLj+UMspRGxjVoYXUsH3ndydGD51T9w@mail.gmail.com>
-	<CAE9FiQXFcM+FZnp00RP5Z8a2FhtjB7BuUUi4TuABF4-O9W+c8Q@mail.gmail.com>
-	<CAE9FiQXMfTCSfK8no6gYmHYn6=OURg6444BPu-aiBR3BsAvziA@mail.gmail.com>
-	<CAOLK0pxxAFBiDTac_5yPYO7X96Y4Tnd4kjwZ-Wvk1mZ3bD-w2A@mail.gmail.com>
-	<CAE9FiQXCMFMCSEZPa=viyJD9GokkbavJhSLtiEmaaFzR_aKi1w@mail.gmail.com>
+From: Eduardo Valentin <eduardo.valentin@ti.com>
+Subject: Re: [PATCH 3/5] drivers: thermal: make usage of CONFIG_THERMAL_HWMON
+ optional
+Date: Tue, 27 Aug 2013 14:26:41 -0400
+Message-ID: <521CEF61.6040504@ti.com>
+References: <1377295396-17289-1-git-send-email-eduardo.valentin@ti.com>
+ <1377295396-17289-4-git-send-email-eduardo.valentin@ti.com>
+ <4832825.8PCMQe7StP@vostro.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-qa0-f51.google.com ([209.85.216.51]:39255 "EHLO
-	mail-qa0-f51.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752922Ab3H0O4c (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 27 Aug 2013 10:56:32 -0400
-In-Reply-To: <CAE9FiQXCMFMCSEZPa=viyJD9GokkbavJhSLtiEmaaFzR_aKi1w@mail.gmail.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: multipart/mixed; boundary="===============7182600806360328349=="
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <4832825.8PCMQe7StP@vostro.rjw.lan>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: devicetree@vger.kernel.org, Kukjin Kim <kgene.kim@samsung.com>, linux-pm@vger.kernel.org, Anton Vorontsov <anton@enomsg.org>, Peter Feuerer <peter@piie.net>, linux-kernel@vger.kernel.org, Rob Herring <rob.herring@calxeda.com>, platform-driver-x86@vger.kernel.org, Eduardo Valentin <eduardo.valentin@ti.com>, linux-acpi@vger.kernel.org, linux-samsung-soc@vger.kernel.org, Grant Likely <grant.likely@linaro.org>, Matthew Garrett <matthew.garrett@nebula.com>, rui.zhang@intel.com, David Woodhouse <dwmw2@infradead.org>, linux-arm-kernel@lists.infradead.org, Len Brown <lenb@kernel.org>
 List-Id: linux-acpi@vger.kernel.org
-To: Yinghai Lu <yinghai@kernel.org>
-Cc: "Rafael J. Wysocki" <rjw@sisk.pl>, Bjorn Helgaas <bhelgaas@google.com>, rui wang <ruiv.wang@gmail.com>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@elte.hu>, "H. Peter Anvin" <hpa@zytor.com>, Tony Luck <tony.luck@intel.com>, Linux PCI <linux-pci@vger.kernel.org>, "linux-kernel@vger kernel org" <linux-kernel@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
 
-2013/8/27 Yinghai Lu <yinghai@kernel.org>:
-> On Mon, Aug 26, 2013 at 8:46 AM, Lan Tianyu <lantianyu1986@gmail.com> wrote:
->> 2013/8/24 Yinghai Lu <yinghai@kernel.org>:
->>> On Fri, Aug 23, 2013 at 12:04 PM, Yinghai Lu <yinghai@kernel.org> wrote:
->>>> On Fri, Aug 23, 2013 at 11:38 AM, Yinghai Lu <yinghai@kernel.org> wrote:
->>>>> On Fri, Aug 23, 2013 at 8:34 AM, Lan Tianyu <lantianyu1986@gmail.com> wrote:
->>>>>>> I worked around the problem by replacing acpi_resource_to_address64()
->>>>>>> with resource_to_addr().  But resource_to_addr() is a static function
->>>>>>> in arch/x86/pci/acpi.c, not very convenient to use. Here's what I did:
->>>>>>>
->>>>>>
->>>>>> Hi Rui&Yinghai:
->>>>>>            How about using the following code to translate struct
->>>>>>  acpi_resource to struct resouce in this setup_res()?
->>>>>>
->>>>>>          if (acpi_dev_resource_address_space(...)
->>>>>>                 || acpi_dev_resource_memory(..))
->>>>>>               return AE_OK;
->>>>>
->>>>> Yest, that could be better, will update that.
->>>>>
->>>>> Also can you submit patch that will use that in res_to_addr of
->>>>> arch/x86/pci/acpi.c?
->>>>
->>>> looks acpi_dev_resource_address_space... does not handle
->>>> PREFTCH and translation offset.
->>>>
->>>> So now i have to use res_to_addr alike one.
->>>
->>> Raphael,
->>>
->>> Maybe we should move resource_to_addr to acpi generic.
->>>
->>> Please check if you are ok with attached.
->>>
->>> Thanks
->>>
->>> Yinghai
->>
->> Hi Rafael & Yinghai:
->>             I wrote 4 proposal patches to try to make acpi resource
->> functions to replace
->>  resource_to_addr() in the arch/x86/pci/acpi.c. From my opinion,
->> resource_to_addr()
->> does most work which acpi resource functions have done. So please have
->> a look. Thanks.
->> The following patches just passed through compiling test.
->
-> Thanks for doing that.
->
-> Overall it's Good to me.
->
-> some comments inline.
->
->>
->> Patch 1
->> -------------------
->> commit 1800bc9dda7318314607fbae7afda8be38e056dc
->> Author: Lan Tianyu <tianyu.lan@intel.com>
->> Date:   Mon Aug 26 14:40:39 2013 +0800
->>
->>     ACPI/Resource: Add setting PREFETCH flag support
->>
->> diff --git a/drivers/acpi/resource.c b/drivers/acpi/resource.c
->> index b7201fc..23a560b 100644
->> --- a/drivers/acpi/resource.c
->> +++ b/drivers/acpi/resource.c
->> @@ -35,7 +35,7 @@
->>  #endif
->>
->>  static unsigned long acpi_dev_memresource_flags(u64 len, u8 write_protect,
->> -                        bool window)
->> +                        bool window, bool prefetchable)
->>  {
->>      unsigned long flags = IORESOURCE_MEM;
->>
->> @@ -48,6 +48,9 @@ static unsigned long acpi_dev_memresource_flags(u64
->> len, u8 write_protect,
->>      if (window)
->>          flags |= IORESOURCE_WINDOW;
->>
->> +    if (prefetchable)
->> +        flags |= IORESOURCE_PREFETCH;
->> +
->>      return flags;
->>  }
->>
->> @@ -56,7 +59,8 @@ static void acpi_dev_get_memresource(struct resource
->> *res, u64 start, u64 len,
->>  {
->>      res->start = start;
->>      res->end = start + len - 1;
->> -    res->flags = acpi_dev_memresource_flags(len, write_protect, false);
->> +    res->flags = acpi_dev_memresource_flags(len, write_protect,
->> +                        false, false);
->>  }
->
-> passing write_protect, window then pref looks silly.
->
-> may use | IO_REOURCE_... etc outside of acpi_dev_memresource_flags directly.
->
+--===============7182600806360328349==
+Content-Type: multipart/signed; micalg=pgp-sha256;
+	protocol="application/pgp-signature";
+	boundary="oEg1V3xwa0HBCgmlOvfSbtwu2kncWWjXG"
 
-Yes, this looks better.
+--oEg1V3xwa0HBCgmlOvfSbtwu2kncWWjXG
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: quoted-printable
 
+On 23-08-2013 19:08, Rafael J. Wysocki wrote:
+> On Friday, August 23, 2013 06:03:14 PM Eduardo Valentin wrote:
+>> When registering a new thermal_device, the thermal framework
+>> will always add a hwmon sysfs interface.
 >>
->>  /**
->> @@ -175,7 +179,7 @@ bool acpi_dev_resource_address_space(struct
->> acpi_resource *ares,
->>  {
->>      acpi_status status;
->>      struct acpi_resource_address64 addr;
->> -    bool window;
->> +    bool window, prefetchable;
->>      u64 len;
->>      u8 io_decode;
+>> This patch adds a flag to make this behavior optional. Now
+>> when registering a new thermal device, the caller needs
+>> to say if the hwmon interface is required.
 >>
->> @@ -199,9 +203,11 @@ bool acpi_dev_resource_address_space(struct
->> acpi_resource *ares,
->>      switch(addr.resource_type) {
->>      case ACPI_MEMORY_RANGE:
->>          len = addr.maximum - addr.minimum + 1;
->> +        prefetchable =
->> +            addr.info.mem.caching == ACPI_PREFETCHABLE_MEMORY;
->>          res->flags = acpi_dev_memresource_flags(len,
->>                          addr.info.mem.write_protect,
->> -                        window);
->> +                        window, prefetchable);
->>          break;
->>      case ACPI_IO_RANGE:
->>          io_decode = addr.granularity == 0xfff ?
->> @@ -252,7 +258,7 @@ bool acpi_dev_resource_ext_address_space(struct
->> acpi_resource *ares,
->>          len = ext_addr->maximum - ext_addr->minimum + 1;
->>          res->flags = acpi_dev_memresource_flags(len,
->>                      ext_addr->info.mem.write_protect,
->> -                    window);
->> +                    window, false);
->>          break;
->>      case ACPI_IO_RANGE:
->>          io_decode = ext_addr->granularity == 0xfff ?
+>> In order to keep same behavior as of today, all current
+>> calls will by default create the hwmon interface.
+>=20
+> Well, instead of modifying all of the callers this way, why don't
+> you add new versions taking the additional argument as, for example,
+>=20
+> thermal_zone_device_register_full()
+>=20
+> and redefine the old ones as static inline wrappers, for example
+>=20
+> static inline struct thermal_zone_device *thermal_zone_device_register(=
+args)
+> {
+> 	return thermal_zone_device_register_full(args, true);
+> }
+>=20
+> ?
+
+Yeah, that is another way to go and I thought of doing it like that. I
+just could not come out with a good API naming:
+
+thermal_zone_device_register_full(all args)
+
+thermal_zone_device_register(args) /* on hwmon =3D=3D true */
+thermal_zone_device_register_no_hwmon(args) /* on hwmon =3D=3D false */
+
+Would this sound reasonable naming?
+
+
+>=20
+> That'd reduce the size of this patch a bit I suppose (and the number of=
+
+> subsystems involved at the same time).
+
+I see your point.
+
+>=20
+> Thanks,
+> Rafael
+>=20
+>=20
+>> Cc: Anton Vorontsov <anton@enomsg.org>
+>> Cc: David Woodhouse <dwmw2@infradead.org>
+>> Cc: devicetree@vger.kernel.org
+>> Cc: Grant Likely <grant.likely@linaro.org>
+>> Cc: Kukjin Kim <kgene.kim@samsung.com>
+>> Cc: Len Brown <lenb@kernel.org>
+>> Cc: linux-acpi@vger.kernel.org
+>> Cc: linux-arm-kernel@lists.infradead.org
+>> Cc: linux-kernel@vger.kernel.org
+>> Cc: linux-pm@vger.kernel.org
+>> Cc: linux-samsung-soc@vger.kernel.org
+>> Cc: Matthew Garrett <matthew.garrett@nebula.com>
+>> Cc: Peter Feuerer <peter@piie.net>
+>> Cc: platform-driver-x86@vger.kernel.org
+>> Cc: "Rafael J. Wysocki" <rjw@sisk.pl>
+>> Cc: Rob Herring <rob.herring@calxeda.com>
+>> Cc: Zhang Rui <rui.zhang@intel.com>
+>> Suggested-by: Wei Ni <wni@nvidia.com>
+>> Signed-off-by: Eduardo Valentin <eduardo.valentin@ti.com>
+>> ---
+>>  Documentation/thermal/sysfs-api.txt                |  4 +++-
+>>  drivers/acpi/thermal.c                             |  6 ++++--
+>>  drivers/platform/x86/acerhdf.c                     |  3 ++-
+>>  drivers/platform/x86/intel_mid_thermal.c           |  2 +-
+>>  drivers/power/power_supply_core.c                  |  2 +-
+>>  drivers/thermal/armada_thermal.c                   |  2 +-
+>>  drivers/thermal/db8500_thermal.c                   |  2 +-
+>>  drivers/thermal/dove_thermal.c                     |  2 +-
+>>  drivers/thermal/exynos_thermal.c                   |  2 +-
+>>  drivers/thermal/kirkwood_thermal.c                 |  2 +-
+>>  drivers/thermal/rcar_thermal.c                     |  2 +-
+>>  drivers/thermal/spear_thermal.c                    |  2 +-
+>>  drivers/thermal/thermal_core.c                     | 13 +++++++++----=
+
+>>  drivers/thermal/ti-soc-thermal/ti-thermal-common.c |  2 +-
+>>  drivers/thermal/x86_pkg_temp_thermal.c             |  2 +-
+>>  include/linux/thermal.h                            |  2 +-
+>>  16 files changed, 30 insertions(+), 20 deletions(-)
 >>
->> Patch 2
->> -----------
->> commit a3ff8345ffb51885b216ba0ae231252cd88d4e76
->> Author: Lan Tianyu <tianyu.lan@intel.com>
->> Date:   Mon Aug 26 15:57:14 2013 +0800
->>
->>     ACPI/Resource: Add address translation support
->>
->> diff --git a/drivers/acpi/resource.c b/drivers/acpi/resource.c
->> index 23a560b..439ee44 100644
->> --- a/drivers/acpi/resource.c
->> +++ b/drivers/acpi/resource.c
->> @@ -196,8 +196,8 @@ bool acpi_dev_resource_address_space(struct
->> acpi_resource *ares,
->>      if (ACPI_FAILURE(status))
->>          return true;
->>
->> -    res->start = addr.minimum;
->> -    res->end = addr.maximum;
->> +    res->start = addr.minimum + addr.translation_offset;
->> +    res->end = addr.maximum + addr.translation_offset;
->>      window = addr.producer_consumer == ACPI_PRODUCER;
->>
->>      switch(addr.resource_type) {
->>
->>
->> Patch 3
->> ---------------
->> commit 68bfefe619b49baa5d372e0664a6cb6d5138fad1
->> Author: Lan Tianyu <tianyu.lan@intel.com>
->> Date:   Mon Aug 26 21:45:32 2013 +0800
->>
->>     ACPI: Add new acpi_dev_resource_address_space_with_addr() function
->>
->>     Add new function which can return the converted struct
->> acpi_resource_address64.
->> This will be used to get transaction offset in the setup_resource().
->>
->> diff --git a/drivers/acpi/resource.c b/drivers/acpi/resource.c
->> index 439ee44..98a6c35 100644
->> --- a/drivers/acpi/resource.c
->> +++ b/drivers/acpi/resource.c
->> @@ -174,11 +174,11 @@ EXPORT_SYMBOL_GPL(acpi_dev_resource_io);
->>   * and if that's the case, use the information in it to populate the generic
->>   * resource object pointed to by @res.
->>   */
->> -bool acpi_dev_resource_address_space(struct acpi_resource *ares,
->> +bool acpi_dev_resource_address_space_with_addr(struct acpi_resource *ares,
->> +                     struct acpi_resource_address64 *addr,
->>                       struct resource *res)
->>  {
->>      acpi_status status;
->> -    struct acpi_resource_address64 addr;
->>      bool window, prefetchable;
->>      u64 len;
->>      u8 io_decode;
->> @@ -192,28 +192,28 @@ bool acpi_dev_resource_address_space(struct
->> acpi_resource *ares,
->>          return false;
->>      }
->>
->> -    status = acpi_resource_to_address64(ares, &addr);
->> +    status = acpi_resource_to_address64(ares, addr);
->>      if (ACPI_FAILURE(status))
->>          return true;
->>
->> -    res->start = addr.minimum + addr.translation_offset;
->> -    res->end = addr.maximum + addr.translation_offset;
->> -    window = addr.producer_consumer == ACPI_PRODUCER;
->> +    res->start = addr->minimum + addr->translation_offset;
->> +    res->end = addr->maximum + addr->translation_offset;
->> +    window = addr->producer_consumer == ACPI_PRODUCER;
->>
->> -    switch(addr.resource_type) {
->> +    switch (addr->resource_type) {
->>      case ACPI_MEMORY_RANGE:
->> -        len = addr.maximum - addr.minimum + 1;
->> +        len = addr->maximum - addr->minimum + 1;
->>          prefetchable =
->> -            addr.info.mem.caching == ACPI_PREFETCHABLE_MEMORY;
->> +            addr->info.mem.caching == ACPI_PREFETCHABLE_MEMORY;
->>          res->flags = acpi_dev_memresource_flags(len,
->> -                        addr.info.mem.write_protect,
->> +                        addr->info.mem.write_protect,
->>                          window, prefetchable);
->>          break;
->>      case ACPI_IO_RANGE:
->> -        io_decode = addr.granularity == 0xfff ?
->> +        io_decode = addr->granularity == 0xfff ?
->>                  ACPI_DECODE_10 : ACPI_DECODE_16;
->> -        res->flags = acpi_dev_ioresource_flags(addr.minimum,
->> -                               addr.maximum,
->> +        res->flags = acpi_dev_ioresource_flags(addr->minimum,
->> +                               addr->maximum,
->>                                 io_decode, window);
->>          break;
->>      case ACPI_BUS_NUMBER_RANGE:
->> @@ -225,6 +225,16 @@ bool acpi_dev_resource_address_space(struct
->> acpi_resource *ares,
->>
->>      return true;
->>  }
->> +EXPORT_SYMBOL_GPL(acpi_dev_resource_address_space_with_addr);
->> +
->> +bool acpi_dev_resource_address_space(struct acpi_resource *ares,
->> +                     struct resource *res)
->> +{
->> +    struct acpi_resource_address64 addr;
->> +
->> +    return acpi_dev_resource_address_space_with_addr(ares, &addr,
->> +                             res);
->> +}
->>  EXPORT_SYMBOL_GPL(acpi_dev_resource_address_space);
->>
->>  /**
->> diff --git a/include/linux/acpi.h b/include/linux/acpi.h
->> index a5db4ae..9f5c0d5 100644
->> --- a/include/linux/acpi.h
->> +++ b/include/linux/acpi.h
->> @@ -260,6 +260,9 @@ bool acpi_dev_resource_memory(struct acpi_resource
->> *ares, struct resource *res);
->>  bool acpi_dev_resource_io(struct acpi_resource *ares, struct resource *res);
->>  bool acpi_dev_resource_address_space(struct acpi_resource *ares,
->>                       struct resource *res);
->> +bool acpi_dev_resource_address_space_with_addr(struct acpi_resource *ares,
->> +                struct acpi_resource_address64 *addr,
->> +                struct resource *res);
->>  bool acpi_dev_resource_ext_address_space(struct acpi_resource *ares,
->>                       struct resource *res);
->>  unsigned long acpi_dev_irq_flags(u8 triggering, u8 polarity, u8 shareable);
->>
->> Patch 4
->> --------------
->> commit a8733a1da756a257d55e68994268174b84b33670
->> Author: Lan Tianyu <tianyu.lan@intel.com>
->> Date:   Mon Aug 26 22:53:38 2013 +0800
->>
->>     X86/PCI/ACPI: Rework setup_resource() via functions acpi resource functions
->>
->> diff --git a/arch/x86/pci/acpi.c b/arch/x86/pci/acpi.c
->> index d641897..d4f85a1 100644
->> --- a/arch/x86/pci/acpi.c
->> +++ b/arch/x86/pci/acpi.c
->> @@ -219,62 +219,15 @@ static void teardown_mcfg_map(struct pci_root_info *info)
->>  #endif
->>
->>  static acpi_status
->> -resource_to_addr(struct acpi_resource *resource,
->> -            struct acpi_resource_address64 *addr)
->> -{
->> -    acpi_status status;
->> -    struct acpi_resource_memory24 *memory24;
->> -    struct acpi_resource_memory32 *memory32;
->> -    struct acpi_resource_fixed_memory32 *fixed_memory32;
+>> diff --git a/Documentation/thermal/sysfs-api.txt b/Documentation/therm=
+al/sysfs-api.txt
+>> index a71bd5b..4b4a052 100644
+>> --- a/Documentation/thermal/sysfs-api.txt
+>> +++ b/Documentation/thermal/sysfs-api.txt
+>> @@ -64,7 +64,9 @@ temperature) and throttle appropriate devices.
+>>  	performing passive cooling.
+>>      polling_delay: number of milliseconds to wait between polls when =
+checking
+>>  	whether trip points have been crossed (0 for interrupt driven system=
+s).
 >> -
->> -    memset(addr, 0, sizeof(*addr));
->> -    switch (resource->type) {
->> -    case ACPI_RESOURCE_TYPE_MEMORY24:
->> -        memory24 = &resource->data.memory24;
->> -        addr->resource_type = ACPI_MEMORY_RANGE;
->> -        addr->minimum = memory24->minimum;
->> -        addr->address_length = memory24->address_length;
->> -        addr->maximum = addr->minimum + addr->address_length - 1;
->> -        return AE_OK;
->> -    case ACPI_RESOURCE_TYPE_MEMORY32:
->> -        memory32 = &resource->data.memory32;
->> -        addr->resource_type = ACPI_MEMORY_RANGE;
->> -        addr->minimum = memory32->minimum;
->> -        addr->address_length = memory32->address_length;
->> -        addr->maximum = addr->minimum + addr->address_length - 1;
->> -        return AE_OK;
->> -    case ACPI_RESOURCE_TYPE_FIXED_MEMORY32:
->> -        fixed_memory32 = &resource->data.fixed_memory32;
->> -        addr->resource_type = ACPI_MEMORY_RANGE;
->> -        addr->minimum = fixed_memory32->address;
->> -        addr->address_length = fixed_memory32->address_length;
->> -        addr->maximum = addr->minimum + addr->address_length - 1;
->> -        return AE_OK;
->> -    case ACPI_RESOURCE_TYPE_ADDRESS16:
->> -    case ACPI_RESOURCE_TYPE_ADDRESS32:
->> -    case ACPI_RESOURCE_TYPE_ADDRESS64:
->> -        status = acpi_resource_to_address64(resource, addr);
->> -        if (ACPI_SUCCESS(status) &&
->> -            (addr->resource_type == ACPI_MEMORY_RANGE ||
->> -            addr->resource_type == ACPI_IO_RANGE) &&
->> -            addr->address_length > 0) {
->> -            return AE_OK;
->> -        }
->> -        break;
->> -    }
->> -    return AE_ERROR;
->> -}
->> -
->> -static acpi_status
->>  count_resource(struct acpi_resource *acpi_res, void *data)
+>> +    add_hwmon: a boolean to indicate if the thermal to hwmon sysfs in=
+terface
+>> +	is required. When add_hwmon =3D=3D true, a hwmon sysfs interface
+>> +	will be created. When add_hwmon =3D=3D false, nothing will be done
+>> =20
+>>  1.1.2 void thermal_zone_device_unregister(struct thermal_zone_device =
+*tz)
+>> =20
+>> diff --git a/drivers/acpi/thermal.c b/drivers/acpi/thermal.c
+>> index a33821c..4d542b4 100644
+>> --- a/drivers/acpi/thermal.c
+>> +++ b/drivers/acpi/thermal.c
+>> @@ -916,12 +916,14 @@ static int acpi_thermal_register_thermal_zone(st=
+ruct acpi_thermal *tz)
+>>  			thermal_zone_device_register("acpitz", trips, 0, tz,
+>>  						&acpi_thermal_zone_ops, NULL,
+>>  						     tz->trips.passive.tsp*100,
+>> -						     tz->polling_frequency*100);
+>> +						     tz->polling_frequency*100,
+>> +						     true);
+>>  	else
+>>  		tz->thermal_zone =3D
+>>  			thermal_zone_device_register("acpitz", trips, 0, tz,
+>>  						&acpi_thermal_zone_ops, NULL,
+>> -						0, tz->polling_frequency*100);
+>> +						0, tz->polling_frequency*100,
+>> +						true);
+>>  	if (IS_ERR(tz->thermal_zone))
+>>  		return -ENODEV;
+>> =20
+>> diff --git a/drivers/platform/x86/acerhdf.c b/drivers/platform/x86/ace=
+rhdf.c
+>> index f94467c..004d9ba0 100644
+>> --- a/drivers/platform/x86/acerhdf.c
+>> +++ b/drivers/platform/x86/acerhdf.c
+>> @@ -663,7 +663,8 @@ static int acerhdf_register_thermal(void)
+>> =20
+>>  	thz_dev =3D thermal_zone_device_register("acerhdf", 1, 0, NULL,
+>>  					      &acerhdf_dev_ops, NULL, 0,
+>> -					      (kernelmode) ? interval*1000 : 0);
+>> +					      (kernelmode) ? interval*1000 : 0,
+>> +					      true);
+>>  	if (IS_ERR(thz_dev))
+>>  		return -EINVAL;
+>> =20
+>> diff --git a/drivers/platform/x86/intel_mid_thermal.c b/drivers/platfo=
+rm/x86/intel_mid_thermal.c
+>> index 81c491e..efea0bf 100644
+>> --- a/drivers/platform/x86/intel_mid_thermal.c
+>> +++ b/drivers/platform/x86/intel_mid_thermal.c
+>> @@ -502,7 +502,7 @@ static int mid_thermal_probe(struct platform_devic=
+e *pdev)
+>>  			goto err;
+>>  		}
+>>  		pinfo->tzd[i] =3D thermal_zone_device_register(name[i],
+>> -				0, 0, td_info, &tzd_ops, NULL, 0, 0);
+>> +				0, 0, td_info, &tzd_ops, NULL, 0, 0, true);
+>>  		if (IS_ERR(pinfo->tzd[i])) {
+>>  			kfree(td_info);
+>>  			ret =3D PTR_ERR(pinfo->tzd[i]);
+>> diff --git a/drivers/power/power_supply_core.c b/drivers/power/power_s=
+upply_core.c
+>> index 3b2d5df..5f39914 100644
+>> --- a/drivers/power/power_supply_core.c
+>> +++ b/drivers/power/power_supply_core.c
+>> @@ -359,7 +359,7 @@ static int psy_register_thermal(struct power_suppl=
+y *psy)
+>>  	for (i =3D 0; i < psy->num_properties; i++) {
+>>  		if (psy->properties[i] =3D=3D POWER_SUPPLY_PROP_TEMP) {
+>>  			psy->tzd =3D thermal_zone_device_register(psy->name, 0, 0,
+>> -					psy, &psy_tzd_ops, NULL, 0, 0);
+>> +					psy, &psy_tzd_ops, NULL, 0, 0, true);
+>>  			if (IS_ERR(psy->tzd))
+>>  				return PTR_ERR(psy->tzd);
+>>  			break;
+>> diff --git a/drivers/thermal/armada_thermal.c b/drivers/thermal/armada=
+_thermal.c
+>> index 5e53212..bc54c80 100644
+>> --- a/drivers/thermal/armada_thermal.c
+>> +++ b/drivers/thermal/armada_thermal.c
+>> @@ -182,7 +182,7 @@ static int armada_thermal_probe(struct platform_de=
+vice *pdev)
+>>  	priv->ops->init_sensor(priv);
+>> =20
+>>  	thermal =3D thermal_zone_device_register("armada_thermal", 0, 0,
+>> -					       priv, &ops, NULL, 0, 0);
+>> +					       priv, &ops, NULL, 0, 0, true);
+>>  	if (IS_ERR(thermal)) {
+>>  		dev_err(&pdev->dev,
+>>  			"Failed to register thermal zone device\n");
+>> diff --git a/drivers/thermal/db8500_thermal.c b/drivers/thermal/db8500=
+_thermal.c
+>> index 1e3b3bf..439a854 100644
+>> --- a/drivers/thermal/db8500_thermal.c
+>> +++ b/drivers/thermal/db8500_thermal.c
+>> @@ -447,7 +447,7 @@ static int db8500_thermal_probe(struct platform_de=
+vice *pdev)
+>>  	}
+>> =20
+>>  	pzone->therm_dev =3D thermal_zone_device_register("db8500_thermal_zo=
+ne",
+>> -		ptrips->num_trips, 0, pzone, &thdev_ops, NULL, 0, 0);
+>> +		ptrips->num_trips, 0, pzone, &thdev_ops, NULL, 0, 0, true);
+>> =20
+>>  	if (IS_ERR(pzone->therm_dev)) {
+>>  		dev_err(&pdev->dev, "Register thermal zone device failed.\n");
+>> diff --git a/drivers/thermal/dove_thermal.c b/drivers/thermal/dove_the=
+rmal.c
+>> index 828f5e3..61f2247 100644
+>> --- a/drivers/thermal/dove_thermal.c
+>> +++ b/drivers/thermal/dove_thermal.c
+>> @@ -155,7 +155,7 @@ static int dove_thermal_probe(struct platform_devi=
+ce *pdev)
+>>  	}
+>> =20
+>>  	thermal =3D thermal_zone_device_register("dove_thermal", 0, 0,
+>> -					       priv, &ops, NULL, 0, 0);
+>> +					       priv, &ops, NULL, 0, 0, true);
+>>  	if (IS_ERR(thermal)) {
+>>  		dev_err(&pdev->dev,
+>>  			"Failed to register thermal zone device\n");
+>> diff --git a/drivers/thermal/exynos_thermal.c b/drivers/thermal/exynos=
+_thermal.c
+>> index 9af4b93..6ffadd3 100644
+>> --- a/drivers/thermal/exynos_thermal.c
+>> +++ b/drivers/thermal/exynos_thermal.c
+>> @@ -469,7 +469,7 @@ static int exynos_register_thermal(struct thermal_=
+sensor_conf *sensor_conf)
+>>  	th_zone->therm_dev =3D thermal_zone_device_register(sensor_conf->nam=
+e,
+>>  			EXYNOS_ZONE_COUNT, 0, NULL, &exynos_dev_ops, NULL, 0,
+>>  			sensor_conf->trip_data.trigger_falling ?
+>> -			0 : IDLE_INTERVAL);
+>> +			0 : IDLE_INTERVAL, true);
+>> =20
+>>  	if (IS_ERR(th_zone->therm_dev)) {
+>>  		pr_err("Failed to register thermal zone device\n");
+>> diff --git a/drivers/thermal/kirkwood_thermal.c b/drivers/thermal/kirk=
+wood_thermal.c
+>> index 3b034a0..fb8853e 100644
+>> --- a/drivers/thermal/kirkwood_thermal.c
+>> +++ b/drivers/thermal/kirkwood_thermal.c
+>> @@ -85,7 +85,7 @@ static int kirkwood_thermal_probe(struct platform_de=
+vice *pdev)
+>>  		return PTR_ERR(priv->sensor);
+>> =20
+>>  	thermal =3D thermal_zone_device_register("kirkwood_thermal", 0, 0,
+>> -					       priv, &ops, NULL, 0, 0);
+>> +					       priv, &ops, NULL, 0, 0, true);
+>>  	if (IS_ERR(thermal)) {
+>>  		dev_err(&pdev->dev,
+>>  			"Failed to register thermal zone device\n");
+>> diff --git a/drivers/thermal/rcar_thermal.c b/drivers/thermal/rcar_the=
+rmal.c
+>> index 88f92e1..64ae530 100644
+>> --- a/drivers/thermal/rcar_thermal.c
+>> +++ b/drivers/thermal/rcar_thermal.c
+>> @@ -439,7 +439,7 @@ static int rcar_thermal_probe(struct platform_devi=
+ce *pdev)
+>>  		priv->zone =3D thermal_zone_device_register("rcar_thermal",
+>>  						1, 0, priv,
+>>  						&rcar_thermal_zone_ops, NULL, 0,
+>> -						idle);
+>> +						idle, true);
+>>  		if (IS_ERR(priv->zone)) {
+>>  			dev_err(dev, "can't register thermal zone\n");
+>>  			ret =3D PTR_ERR(priv->zone);
+>> diff --git a/drivers/thermal/spear_thermal.c b/drivers/thermal/spear_t=
+hermal.c
+>> index ab79ea4..ec0c44d 100644
+>> --- a/drivers/thermal/spear_thermal.c
+>> +++ b/drivers/thermal/spear_thermal.c
+>> @@ -140,7 +140,7 @@ static int spear_thermal_probe(struct platform_dev=
+ice *pdev)
+>>  	writel_relaxed(stdev->flags, stdev->thermal_base);
+>> =20
+>>  	spear_thermal =3D thermal_zone_device_register("spear_thermal", 0, 0=
+,
+>> -				stdev, &ops, NULL, 0, 0);
+>> +				stdev, &ops, NULL, 0, 0, true);
+>>  	if (IS_ERR(spear_thermal)) {
+>>  		dev_err(&pdev->dev, "thermal zone device is NULL\n");
+>>  		ret =3D PTR_ERR(spear_thermal);
+>> diff --git a/drivers/thermal/thermal_core.c b/drivers/thermal/thermal_=
+core.c
+>> index 247528b..d949ab0 100644
+>> --- a/drivers/thermal/thermal_core.c
+>> +++ b/drivers/thermal/thermal_core.c
+>> @@ -1344,6 +1344,9 @@ static void remove_trip_attrs(struct thermal_zon=
+e_device *tz)
+>>   * @polling_delay: number of milliseconds to wait between polls when =
+checking
+>>   *		   whether trip points have been crossed (0 for interrupt
+>>   *		   driven systems)
+>> + * @add_hwmon:	a boolean to indicate if the thermal to hwmon sysfs in=
+terface
+>> + *		is required. When add_hwmon =3D=3D true, a hwmon sysfs interface
+>> + *		will be created. When add_hwmon =3D=3D false, nothing will be don=
+e
+>>   *
+>>   * This interface function adds a new thermal zone device (sensor) to=
+
+>>   * /sys/class/thermal folder as thermal_zone[0-*]. It tries to bind a=
+ll the
+>> @@ -1359,7 +1362,7 @@ struct thermal_zone_device *thermal_zone_device_=
+register(const char *type,
+>>  	int trips, int mask, void *devdata,
+>>  	const struct thermal_zone_device_ops *ops,
+>>  	const struct thermal_zone_params *tzp,
+>> -	int passive_delay, int polling_delay)
+>> +	int passive_delay, int polling_delay, bool add_hwmon)
 >>  {
->>      struct pci_root_info *info = data;
->> -    struct acpi_resource_address64 addr;
->> -    acpi_status status;
->> +    struct resource res;
+>>  	struct thermal_zone_device *tz;
+>>  	enum thermal_trip_type trip_type;
+>> @@ -1462,9 +1465,11 @@ struct thermal_zone_device *thermal_zone_device=
+_register(const char *type,
+>> =20
+>>  	mutex_unlock(&thermal_governor_lock);
+>> =20
+>> -	result =3D thermal_add_hwmon_sysfs(tz);
+>> -	if (result)
+>> -		goto unregister;
+>> +	if (add_hwmon) {
+>> +		result =3D thermal_add_hwmon_sysfs(tz);
+>> +		if (result)
+>> +			goto unregister;
+>> +	}
+>> =20
+>>  	mutex_lock(&thermal_list_lock);
+>>  	list_add_tail(&tz->node, &thermal_tz_list);
+>> diff --git a/drivers/thermal/ti-soc-thermal/ti-thermal-common.c b/driv=
+ers/thermal/ti-soc-thermal/ti-thermal-common.c
+>> index 4c5f55c37..5ab613a 100644
+>> --- a/drivers/thermal/ti-soc-thermal/ti-thermal-common.c
+>> +++ b/drivers/thermal/ti-soc-thermal/ti-thermal-common.c
+>> @@ -306,7 +306,7 @@ int ti_thermal_expose_sensor(struct ti_bandgap *bg=
+p, int id,
+>>  	data->ti_thermal =3D thermal_zone_device_register(domain,
+>>  				OMAP_TRIP_NUMBER, 0, data, &ti_thermal_ops,
+>>  				NULL, FAST_TEMP_MONITORING_RATE,
+>> -				FAST_TEMP_MONITORING_RATE);
+>> +				FAST_TEMP_MONITORING_RATE, true);
+>>  	if (IS_ERR(data->ti_thermal)) {
+>>  		dev_err(bgp->dev, "thermal zone device is NULL\n");
+>>  		return PTR_ERR(data->ti_thermal);
+>> diff --git a/drivers/thermal/x86_pkg_temp_thermal.c b/drivers/thermal/=
+x86_pkg_temp_thermal.c
+>> index f36950e..74eb4c0 100644
+>> --- a/drivers/thermal/x86_pkg_temp_thermal.c
+>> +++ b/drivers/thermal/x86_pkg_temp_thermal.c
+>> @@ -444,7 +444,7 @@ static int pkg_temp_thermal_device_add(unsigned in=
+t cpu)
+>>  			thres_count,
+>>  			(thres_count =3D=3D MAX_NUMBER_OF_TRIPS) ?
+>>  				0x03 : 0x01,
+>> -			phy_dev_entry, &tzone_ops, NULL, 0, 0);
+>> +			phy_dev_entry, &tzone_ops, NULL, 0, 0, true);
+>>  	if (IS_ERR(phy_dev_entry->tzone)) {
+>>  		err =3D PTR_ERR(phy_dev_entry->tzone);
+>>  		goto err_ret_free;
+>> diff --git a/include/linux/thermal.h b/include/linux/thermal.h
+>> index a386a1c..88148b9 100644
+>> --- a/include/linux/thermal.h
+>> +++ b/include/linux/thermal.h
+>> @@ -226,7 +226,7 @@ struct thermal_genl_event {
+>>  /* Function declarations */
+>>  struct thermal_zone_device *thermal_zone_device_register(const char *=
+, int, int,
+>>  		void *, const struct thermal_zone_device_ops *,
+>> -		const struct thermal_zone_params *, int, int);
+>> +		const struct thermal_zone_params *, int, int, bool);
+>>  void thermal_zone_device_unregister(struct thermal_zone_device *);
+>> =20
+>>  int thermal_zone_bind_cooling_device(struct thermal_zone_device *, in=
+t,
 >>
->> -    status = resource_to_addr(acpi_res, &addr);
->> -    if (ACPI_SUCCESS(status))
->> +    if (acpi_dev_resource_address_space(acpi_res, &res)
->> +        || acpi_dev_resource_memory(acpi_res, &res))
->>          info->res_num++;
->> +
->>      return AE_OK;
->>  }
->>
->> @@ -282,27 +235,18 @@ static acpi_status
->>  setup_resource(struct acpi_resource *acpi_res, void *data)
->>  {
->>      struct pci_root_info *info = data;
->> -    struct resource *res;
->> +    struct resource *res = &info->res[info->res_num];
->>      struct acpi_resource_address64 addr;
->> -    acpi_status status;
->> -    unsigned long flags;
->>      u64 start, orig_end, end;
->>
->> -    status = resource_to_addr(acpi_res, &addr);
->> -    if (!ACPI_SUCCESS(status))
->> -        return AE_OK;
->> +    memset(&addr, 0x00, sizeof(addr));
->>
->> -    if (addr.resource_type == ACPI_MEMORY_RANGE) {
->> -        flags = IORESOURCE_MEM;
->> -        if (addr.info.mem.caching == ACPI_PREFETCHABLE_MEMORY)
->> -            flags |= IORESOURCE_PREFETCH;
->> -    } else if (addr.resource_type == ACPI_IO_RANGE) {
->> -        flags = IORESOURCE_IO;
->> -    } else
->> +    if (!(acpi_dev_resource_address_space_with_addr(acpi_res, &addr, res)
->> +        || acpi_dev_resource_memory(acpi_res, res)))
->
-> acpi_dev_resource_address_space_with_addr(acpi_res, &addr, res)
->
-> passing extra addr, just for translation_offset?
->
-
-For this case,  it's "Yes", . For some other cases(e.g
-arch/ia64/pci/pci.c add_window()),
-whole addr maybe necessary. To be more general, I hope it can return more infos
-
-> maybe pass res_offset directly?
->
->
->
->
->>          return AE_OK;
->>
->> -    start = addr.minimum + addr.translation_offset;
->> -    orig_end = end = addr.maximum + addr.translation_offset;
->> +    start = res->start;
->> +    orig_end = end = res->end;
->
-> Yinghai
 
 
+--=20
+You have got to be excited about what you are doing. (L. Lamport)
 
--- 
-Best regards
-Tianyu Lan
+Eduardo Valentin
+
+
+--oEg1V3xwa0HBCgmlOvfSbtwu2kncWWjXG
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: OpenPGP digital signature
+Content-Disposition: attachment; filename="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.12 (GNU/Linux)
+Comment: Using GnuPG with Thunderbird - http://www.enigmail.net/
+
+iF4EAREIAAYFAlIc72EACgkQCXcVR3XQvP1XSAD+I4ZL+liI2OD/g5stpQeendRs
+Oaais7sKv6kNWKzfvLIBAKF1ziyeOmW8Twcpz2+1wc9vlgf/FTk557jv1/EY4lVJ
+=J+4A
+-----END PGP SIGNATURE-----
+
+--oEg1V3xwa0HBCgmlOvfSbtwu2kncWWjXG--
+
+
+--===============7182600806360328349==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+
+_______________________________________________
+linux-arm-kernel mailing list
+linux-arm-kernel@lists.infradead.org
+http://lists.infradead.org/mailman/listinfo/linux-arm-kernel
+
+--===============7182600806360328349==--
