@@ -1,353 +1,432 @@
-From: rui wang <ruiv.wang@gmail.com>
-Subject: Re: [PATCH v4 27/28] PCI, x86, ACPI: Enable ioapic hotplug support
- with acpi host bridge.
-Date: Tue, 27 Aug 2013 18:25:08 +0800
-Message-ID: <CANVTcTZOQWLHOs5+DpopTDMpMf2dgAzjUGEv4gGd4Z2Le5TM7A@mail.gmail.com>
+From: Lan Tianyu <lantianyu1986@gmail.com>
+Subject: Re: [PATCH v4 28/28] PCI, x86, ACPI: get ioapic address from acpi device
+Date: Tue, 27 Aug 2013 22:56:31 +0800
+Message-ID: <CAOLK0pwb+fPaUL2AYXFS4kTRwWt=m=kVxJ3xjXH+dip038_jaw@mail.gmail.com>
 References: <1376189294-32022-1-git-send-email-yinghai@kernel.org>
-	<1376189294-32022-28-git-send-email-yinghai@kernel.org>
+	<1376189294-32022-29-git-send-email-yinghai@kernel.org>
+	<CANVTcTYhSfU+Su9s1B+mTTBfgsZgqvQxHiTsLck1zT_vg1Cs4g@mail.gmail.com>
+	<CANVTcTb2+qX6XMBqrzeLho9yFS55AnztVJ85JBMuxjoH11qzaQ@mail.gmail.com>
+	<CAOLK0pwQJVvcT5xA-+Ftb85FzbjHN-OZmXO=n7r4EWh4nFjSBA@mail.gmail.com>
+	<CAE9FiQWnGaa6omcLW0zxLj+UMspRGxjVoYXUsH3ndydGD51T9w@mail.gmail.com>
+	<CAE9FiQXFcM+FZnp00RP5Z8a2FhtjB7BuUUi4TuABF4-O9W+c8Q@mail.gmail.com>
+	<CAE9FiQXMfTCSfK8no6gYmHYn6=OURg6444BPu-aiBR3BsAvziA@mail.gmail.com>
+	<CAOLK0pxxAFBiDTac_5yPYO7X96Y4Tnd4kjwZ-Wvk1mZ3bD-w2A@mail.gmail.com>
+	<CAE9FiQXCMFMCSEZPa=viyJD9GokkbavJhSLtiEmaaFzR_aKi1w@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <linux-pci-owner@vger.kernel.org>
-In-Reply-To: <1376189294-32022-28-git-send-email-yinghai@kernel.org>
-Sender: linux-pci-owner@vger.kernel.org
-To: Yinghai Lu <yinghai@kernel.org>
-Cc: Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@elte.hu>, "H. Peter Anvin" <hpa@zytor.com>, Tony Luck <tony.luck@intel.com>, Bjorn Helgaas <bhelgaas@google.com>, "Rafael J. Wysocki" <rjw@sisk.pl>, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-qa0-f51.google.com ([209.85.216.51]:39255 "EHLO
+	mail-qa0-f51.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752922Ab3H0O4c (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 27 Aug 2013 10:56:32 -0400
+In-Reply-To: <CAE9FiQXCMFMCSEZPa=viyJD9GokkbavJhSLtiEmaaFzR_aKi1w@mail.gmail.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Yinghai Lu <yinghai@kernel.org>
+Cc: "Rafael J. Wysocki" <rjw@sisk.pl>, Bjorn Helgaas <bhelgaas@google.com>, rui wang <ruiv.wang@gmail.com>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@elte.hu>, "H. Peter Anvin" <hpa@zytor.com>, Tony Luck <tony.luck@intel.com>, Linux PCI <linux-pci@vger.kernel.org>, "linux-kernel@vger kernel org" <linux-kernel@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
 
-On 8/11/13, Yinghai Lu <yinghai@kernel.org> wrote:
-> We need to have ioapic setup before normal pci drivers.
-> otherwise other pci driver can not setup irq.
+2013/8/27 Yinghai Lu <yinghai@kernel.org>:
+> On Mon, Aug 26, 2013 at 8:46 AM, Lan Tianyu <lantianyu1986@gmail.com> wrote:
+>> 2013/8/24 Yinghai Lu <yinghai@kernel.org>:
+>>> On Fri, Aug 23, 2013 at 12:04 PM, Yinghai Lu <yinghai@kernel.org> wrote:
+>>>> On Fri, Aug 23, 2013 at 11:38 AM, Yinghai Lu <yinghai@kernel.org> wrote:
+>>>>> On Fri, Aug 23, 2013 at 8:34 AM, Lan Tianyu <lantianyu1986@gmail.com> wrote:
+>>>>>>> I worked around the problem by replacing acpi_resource_to_address64()
+>>>>>>> with resource_to_addr().  But resource_to_addr() is a static function
+>>>>>>> in arch/x86/pci/acpi.c, not very convenient to use. Here's what I did:
+>>>>>>>
+>>>>>>
+>>>>>> Hi Rui&Yinghai:
+>>>>>>            How about using the following code to translate struct
+>>>>>>  acpi_resource to struct resouce in this setup_res()?
+>>>>>>
+>>>>>>          if (acpi_dev_resource_address_space(...)
+>>>>>>                 || acpi_dev_resource_memory(..))
+>>>>>>               return AE_OK;
+>>>>>
+>>>>> Yest, that could be better, will update that.
+>>>>>
+>>>>> Also can you submit patch that will use that in res_to_addr of
+>>>>> arch/x86/pci/acpi.c?
+>>>>
+>>>> looks acpi_dev_resource_address_space... does not handle
+>>>> PREFTCH and translation offset.
+>>>>
+>>>> So now i have to use res_to_addr alike one.
+>>>
+>>> Raphael,
+>>>
+>>> Maybe we should move resource_to_addr to acpi generic.
+>>>
+>>> Please check if you are ok with attached.
+>>>
+>>> Thanks
+>>>
+>>> Yinghai
+>>
+>> Hi Rafael & Yinghai:
+>>             I wrote 4 proposal patches to try to make acpi resource
+>> functions to replace
+>>  resource_to_addr() in the arch/x86/pci/acpi.c. From my opinion,
+>> resource_to_addr()
+>> does most work which acpi resource functions have done. So please have
+>> a look. Thanks.
+>> The following patches just passed through compiling test.
 >
-> So we should not treat them as normal pci devices.
-> Also we will need to support ioapic hotplug without pci device around.
+> Thanks for doing that.
 >
-> We need to call ioapic add/remove during host-bridge add/remove.
+> Overall it's Good to me.
 >
-> Signed-off-by: Yinghai Lu <yinghai@kernel.org>
-> ---
->  drivers/acpi/pci_root.c  |   4 ++
->  drivers/pci/ioapic.c     | 147
-> ++++++++++++++++++++++++++++++-----------------
->  include/linux/pci-acpi.h |   8 +++
->  3 files changed, 106 insertions(+), 53 deletions(-)
+> some comments inline.
 >
-> diff --git a/drivers/acpi/pci_root.c b/drivers/acpi/pci_root.c
-> index 5917839..7577175 100644
-> --- a/drivers/acpi/pci_root.c
-> +++ b/drivers/acpi/pci_root.c
-> @@ -532,6 +532,8 @@ static int acpi_pci_root_add(struct acpi_device
-> *device,
->  		pci_enable_bridges(root->bus);
->  	}
+>>
+>> Patch 1
+>> -------------------
+>> commit 1800bc9dda7318314607fbae7afda8be38e056dc
+>> Author: Lan Tianyu <tianyu.lan@intel.com>
+>> Date:   Mon Aug 26 14:40:39 2013 +0800
+>>
+>>     ACPI/Resource: Add setting PREFETCH flag support
+>>
+>> diff --git a/drivers/acpi/resource.c b/drivers/acpi/resource.c
+>> index b7201fc..23a560b 100644
+>> --- a/drivers/acpi/resource.c
+>> +++ b/drivers/acpi/resource.c
+>> @@ -35,7 +35,7 @@
+>>  #endif
+>>
+>>  static unsigned long acpi_dev_memresource_flags(u64 len, u8 write_protect,
+>> -                        bool window)
+>> +                        bool window, bool prefetchable)
+>>  {
+>>      unsigned long flags = IORESOURCE_MEM;
+>>
+>> @@ -48,6 +48,9 @@ static unsigned long acpi_dev_memresource_flags(u64
+>> len, u8 write_protect,
+>>      if (window)
+>>          flags |= IORESOURCE_WINDOW;
+>>
+>> +    if (prefetchable)
+>> +        flags |= IORESOURCE_PREFETCH;
+>> +
+>>      return flags;
+>>  }
+>>
+>> @@ -56,7 +59,8 @@ static void acpi_dev_get_memresource(struct resource
+>> *res, u64 start, u64 len,
+>>  {
+>>      res->start = start;
+>>      res->end = start + len - 1;
+>> -    res->flags = acpi_dev_memresource_flags(len, write_protect, false);
+>> +    res->flags = acpi_dev_memresource_flags(len, write_protect,
+>> +                        false, false);
+>>  }
 >
-> +	acpi_pci_ioapic_add(root);
-> +
->  	pci_bus_add_devices(root->bus);
->  	return 1;
+> passing write_protect, window then pref looks silly.
 >
-> @@ -546,6 +548,8 @@ static void acpi_pci_root_remove(struct acpi_device
-> *device)
+> may use | IO_REOURCE_... etc outside of acpi_dev_memresource_flags directly.
 >
->  	pci_stop_root_bus(root->bus);
->
-> +	acpi_pci_ioapic_remove(root);
-> +
->  	device_set_run_wake(root->bus->bridge, false);
->  	pci_acpi_remove_bus_pm_notifier(device);
->
-> diff --git a/drivers/pci/ioapic.c b/drivers/pci/ioapic.c
-> index 7d6b157..60351b2 100644
-> --- a/drivers/pci/ioapic.c
-> +++ b/drivers/pci/ioapic.c
-> @@ -22,101 +22,142 @@
->  #include <linux/slab.h>
->  #include <acpi/acpi_bus.h>
->
-> -struct ioapic {
-> -	acpi_handle	handle;
-> +struct acpi_pci_ioapic {
-> +	acpi_handle	root_handle;
->  	u32		gsi_base;
-> +	struct pci_dev *pdev;
-> +	struct list_head list;
->  };
->
-> -static int ioapic_probe(struct pci_dev *dev, const struct pci_device_id
-> *ent)
-> +static LIST_HEAD(ioapic_list);
-> +static DEFINE_MUTEX(ioapic_list_lock);
-> +
-> +static void handle_ioapic_add(acpi_handle handle, struct pci_dev **pdev,
-> +				 u32 *pgsi_base)
->  {
-> -	acpi_handle handle;
->  	acpi_status status;
->  	unsigned long long gsb;
-> -	struct ioapic *ioapic;
-> +	struct pci_dev *dev;
-> +	u32 gsi_base;
->  	int ret;
->  	char *type;
-> -	struct resource *res;
-> +	struct resource r;
-> +	struct resource *res = &r;
-> +	char objname[64];
-> +	struct acpi_buffer buffer = {sizeof(objname), objname};
->
-> -	handle = DEVICE_ACPI_HANDLE(&dev->dev);
-> -	if (!handle)
-> -		return -EINVAL;
-> +	*pdev = NULL;
-> +	*pgsi_base = 0;
->
->  	status = acpi_evaluate_integer(handle, "_GSB", NULL, &gsb);
-> -	if (ACPI_FAILURE(status))
-> -		return -EINVAL;
-> -
-> -	/*
-> -	 * The previous code in acpiphp evaluated _MAT if _GSB failed, but
-> -	 * ACPI spec 4.0 sec 6.2.2 requires _GSB for hot-pluggable I/O APICs.
-> -	 */
-> +	if (ACPI_FAILURE(status) || !gsb)
-> +		return;
->
-> -	ioapic = kzalloc(sizeof(*ioapic), GFP_KERNEL);
-> -	if (!ioapic)
-> -		return -ENOMEM;
-> +	dev = acpi_get_pci_dev(handle);
-> +	if (!dev)
-> +		return;
->
-> -	ioapic->handle = handle;
-> -	ioapic->gsi_base = (u32) gsb;
-> +	acpi_get_name(handle, ACPI_FULL_PATHNAME, &buffer);
->
-> -	if (dev->class == PCI_CLASS_SYSTEM_PIC_IOAPIC)
-> -		type = "IOAPIC";
-> -	else
-> -		type = "IOxAPIC";
-> +	gsi_base = gsb;
-> +	type = "IOxAPIC";
->
->  	ret = pci_enable_device(dev);
->  	if (ret < 0)
-> -		goto exit_free;
-> +		goto exit_put;
->
->  	pci_set_master(dev);
->
-> +	if (dev->class == PCI_CLASS_SYSTEM_PIC_IOAPIC)
-> +		type = "IOAPIC";
-> +
->  	if (pci_request_region(dev, 0, type))
->  		goto exit_disable;
->
->  	res = &dev->resource[0];
-> -	if (acpi_register_ioapic(ioapic->handle, res->start, ioapic->gsi_base))
-> +
-> +	if (acpi_register_ioapic(handle, res->start, gsi_base))
->  		goto exit_release;
 
-Here acpi_register_ioapic() fails for IOAPICs already described by the
-static MADT. So they won't be added to the ioapic_list. Subsequent
-hot-removal will also fail because they're not found by
-acpi_pci_ioapic_remove() on the ioapic_list.
+Yes, this looks better.
 
-Here's what I used to fix it:
+>>
+>>  /**
+>> @@ -175,7 +179,7 @@ bool acpi_dev_resource_address_space(struct
+>> acpi_resource *ares,
+>>  {
+>>      acpi_status status;
+>>      struct acpi_resource_address64 addr;
+>> -    bool window;
+>> +    bool window, prefetchable;
+>>      u64 len;
+>>      u8 io_decode;
+>>
+>> @@ -199,9 +203,11 @@ bool acpi_dev_resource_address_space(struct
+>> acpi_resource *ares,
+>>      switch(addr.resource_type) {
+>>      case ACPI_MEMORY_RANGE:
+>>          len = addr.maximum - addr.minimum + 1;
+>> +        prefetchable =
+>> +            addr.info.mem.caching == ACPI_PREFETCHABLE_MEMORY;
+>>          res->flags = acpi_dev_memresource_flags(len,
+>>                          addr.info.mem.write_protect,
+>> -                        window);
+>> +                        window, prefetchable);
+>>          break;
+>>      case ACPI_IO_RANGE:
+>>          io_decode = addr.granularity == 0xfff ?
+>> @@ -252,7 +258,7 @@ bool acpi_dev_resource_ext_address_space(struct
+>> acpi_resource *ares,
+>>          len = ext_addr->maximum - ext_addr->minimum + 1;
+>>          res->flags = acpi_dev_memresource_flags(len,
+>>                      ext_addr->info.mem.write_protect,
+>> -                    window);
+>> +                    window, false);
+>>          break;
+>>      case ACPI_IO_RANGE:
+>>          io_decode = ext_addr->granularity == 0xfff ?
+>>
+>> Patch 2
+>> -----------
+>> commit a3ff8345ffb51885b216ba0ae231252cd88d4e76
+>> Author: Lan Tianyu <tianyu.lan@intel.com>
+>> Date:   Mon Aug 26 15:57:14 2013 +0800
+>>
+>>     ACPI/Resource: Add address translation support
+>>
+>> diff --git a/drivers/acpi/resource.c b/drivers/acpi/resource.c
+>> index 23a560b..439ee44 100644
+>> --- a/drivers/acpi/resource.c
+>> +++ b/drivers/acpi/resource.c
+>> @@ -196,8 +196,8 @@ bool acpi_dev_resource_address_space(struct
+>> acpi_resource *ares,
+>>      if (ACPI_FAILURE(status))
+>>          return true;
+>>
+>> -    res->start = addr.minimum;
+>> -    res->end = addr.maximum;
+>> +    res->start = addr.minimum + addr.translation_offset;
+>> +    res->end = addr.maximum + addr.translation_offset;
+>>      window = addr.producer_consumer == ACPI_PRODUCER;
+>>
+>>      switch(addr.resource_type) {
+>>
+>>
+>> Patch 3
+>> ---------------
+>> commit 68bfefe619b49baa5d372e0664a6cb6d5138fad1
+>> Author: Lan Tianyu <tianyu.lan@intel.com>
+>> Date:   Mon Aug 26 21:45:32 2013 +0800
+>>
+>>     ACPI: Add new acpi_dev_resource_address_space_with_addr() function
+>>
+>>     Add new function which can return the converted struct
+>> acpi_resource_address64.
+>> This will be used to get transaction offset in the setup_resource().
+>>
+>> diff --git a/drivers/acpi/resource.c b/drivers/acpi/resource.c
+>> index 439ee44..98a6c35 100644
+>> --- a/drivers/acpi/resource.c
+>> +++ b/drivers/acpi/resource.c
+>> @@ -174,11 +174,11 @@ EXPORT_SYMBOL_GPL(acpi_dev_resource_io);
+>>   * and if that's the case, use the information in it to populate the generic
+>>   * resource object pointed to by @res.
+>>   */
+>> -bool acpi_dev_resource_address_space(struct acpi_resource *ares,
+>> +bool acpi_dev_resource_address_space_with_addr(struct acpi_resource *ares,
+>> +                     struct acpi_resource_address64 *addr,
+>>                       struct resource *res)
+>>  {
+>>      acpi_status status;
+>> -    struct acpi_resource_address64 addr;
+>>      bool window, prefetchable;
+>>      u64 len;
+>>      u8 io_decode;
+>> @@ -192,28 +192,28 @@ bool acpi_dev_resource_address_space(struct
+>> acpi_resource *ares,
+>>          return false;
+>>      }
+>>
+>> -    status = acpi_resource_to_address64(ares, &addr);
+>> +    status = acpi_resource_to_address64(ares, addr);
+>>      if (ACPI_FAILURE(status))
+>>          return true;
+>>
+>> -    res->start = addr.minimum + addr.translation_offset;
+>> -    res->end = addr.maximum + addr.translation_offset;
+>> -    window = addr.producer_consumer == ACPI_PRODUCER;
+>> +    res->start = addr->minimum + addr->translation_offset;
+>> +    res->end = addr->maximum + addr->translation_offset;
+>> +    window = addr->producer_consumer == ACPI_PRODUCER;
+>>
+>> -    switch(addr.resource_type) {
+>> +    switch (addr->resource_type) {
+>>      case ACPI_MEMORY_RANGE:
+>> -        len = addr.maximum - addr.minimum + 1;
+>> +        len = addr->maximum - addr->minimum + 1;
+>>          prefetchable =
+>> -            addr.info.mem.caching == ACPI_PREFETCHABLE_MEMORY;
+>> +            addr->info.mem.caching == ACPI_PREFETCHABLE_MEMORY;
+>>          res->flags = acpi_dev_memresource_flags(len,
+>> -                        addr.info.mem.write_protect,
+>> +                        addr->info.mem.write_protect,
+>>                          window, prefetchable);
+>>          break;
+>>      case ACPI_IO_RANGE:
+>> -        io_decode = addr.granularity == 0xfff ?
+>> +        io_decode = addr->granularity == 0xfff ?
+>>                  ACPI_DECODE_10 : ACPI_DECODE_16;
+>> -        res->flags = acpi_dev_ioresource_flags(addr.minimum,
+>> -                               addr.maximum,
+>> +        res->flags = acpi_dev_ioresource_flags(addr->minimum,
+>> +                               addr->maximum,
+>>                                 io_decode, window);
+>>          break;
+>>      case ACPI_BUS_NUMBER_RANGE:
+>> @@ -225,6 +225,16 @@ bool acpi_dev_resource_address_space(struct
+>> acpi_resource *ares,
+>>
+>>      return true;
+>>  }
+>> +EXPORT_SYMBOL_GPL(acpi_dev_resource_address_space_with_addr);
+>> +
+>> +bool acpi_dev_resource_address_space(struct acpi_resource *ares,
+>> +                     struct resource *res)
+>> +{
+>> +    struct acpi_resource_address64 addr;
+>> +
+>> +    return acpi_dev_resource_address_space_with_addr(ares, &addr,
+>> +                             res);
+>> +}
+>>  EXPORT_SYMBOL_GPL(acpi_dev_resource_address_space);
+>>
+>>  /**
+>> diff --git a/include/linux/acpi.h b/include/linux/acpi.h
+>> index a5db4ae..9f5c0d5 100644
+>> --- a/include/linux/acpi.h
+>> +++ b/include/linux/acpi.h
+>> @@ -260,6 +260,9 @@ bool acpi_dev_resource_memory(struct acpi_resource
+>> *ares, struct resource *res);
+>>  bool acpi_dev_resource_io(struct acpi_resource *ares, struct resource *res);
+>>  bool acpi_dev_resource_address_space(struct acpi_resource *ares,
+>>                       struct resource *res);
+>> +bool acpi_dev_resource_address_space_with_addr(struct acpi_resource *ares,
+>> +                struct acpi_resource_address64 *addr,
+>> +                struct resource *res);
+>>  bool acpi_dev_resource_ext_address_space(struct acpi_resource *ares,
+>>                       struct resource *res);
+>>  unsigned long acpi_dev_irq_flags(u8 triggering, u8 polarity, u8 shareable);
+>>
+>> Patch 4
+>> --------------
+>> commit a8733a1da756a257d55e68994268174b84b33670
+>> Author: Lan Tianyu <tianyu.lan@intel.com>
+>> Date:   Mon Aug 26 22:53:38 2013 +0800
+>>
+>>     X86/PCI/ACPI: Rework setup_resource() via functions acpi resource functions
+>>
+>> diff --git a/arch/x86/pci/acpi.c b/arch/x86/pci/acpi.c
+>> index d641897..d4f85a1 100644
+>> --- a/arch/x86/pci/acpi.c
+>> +++ b/arch/x86/pci/acpi.c
+>> @@ -219,62 +219,15 @@ static void teardown_mcfg_map(struct pci_root_info *info)
+>>  #endif
+>>
+>>  static acpi_status
+>> -resource_to_addr(struct acpi_resource *resource,
+>> -            struct acpi_resource_address64 *addr)
+>> -{
+>> -    acpi_status status;
+>> -    struct acpi_resource_memory24 *memory24;
+>> -    struct acpi_resource_memory32 *memory32;
+>> -    struct acpi_resource_fixed_memory32 *fixed_memory32;
+>> -
+>> -    memset(addr, 0, sizeof(*addr));
+>> -    switch (resource->type) {
+>> -    case ACPI_RESOURCE_TYPE_MEMORY24:
+>> -        memory24 = &resource->data.memory24;
+>> -        addr->resource_type = ACPI_MEMORY_RANGE;
+>> -        addr->minimum = memory24->minimum;
+>> -        addr->address_length = memory24->address_length;
+>> -        addr->maximum = addr->minimum + addr->address_length - 1;
+>> -        return AE_OK;
+>> -    case ACPI_RESOURCE_TYPE_MEMORY32:
+>> -        memory32 = &resource->data.memory32;
+>> -        addr->resource_type = ACPI_MEMORY_RANGE;
+>> -        addr->minimum = memory32->minimum;
+>> -        addr->address_length = memory32->address_length;
+>> -        addr->maximum = addr->minimum + addr->address_length - 1;
+>> -        return AE_OK;
+>> -    case ACPI_RESOURCE_TYPE_FIXED_MEMORY32:
+>> -        fixed_memory32 = &resource->data.fixed_memory32;
+>> -        addr->resource_type = ACPI_MEMORY_RANGE;
+>> -        addr->minimum = fixed_memory32->address;
+>> -        addr->address_length = fixed_memory32->address_length;
+>> -        addr->maximum = addr->minimum + addr->address_length - 1;
+>> -        return AE_OK;
+>> -    case ACPI_RESOURCE_TYPE_ADDRESS16:
+>> -    case ACPI_RESOURCE_TYPE_ADDRESS32:
+>> -    case ACPI_RESOURCE_TYPE_ADDRESS64:
+>> -        status = acpi_resource_to_address64(resource, addr);
+>> -        if (ACPI_SUCCESS(status) &&
+>> -            (addr->resource_type == ACPI_MEMORY_RANGE ||
+>> -            addr->resource_type == ACPI_IO_RANGE) &&
+>> -            addr->address_length > 0) {
+>> -            return AE_OK;
+>> -        }
+>> -        break;
+>> -    }
+>> -    return AE_ERROR;
+>> -}
+>> -
+>> -static acpi_status
+>>  count_resource(struct acpi_resource *acpi_res, void *data)
+>>  {
+>>      struct pci_root_info *info = data;
+>> -    struct acpi_resource_address64 addr;
+>> -    acpi_status status;
+>> +    struct resource res;
+>>
+>> -    status = resource_to_addr(acpi_res, &addr);
+>> -    if (ACPI_SUCCESS(status))
+>> +    if (acpi_dev_resource_address_space(acpi_res, &res)
+>> +        || acpi_dev_resource_memory(acpi_res, &res))
+>>          info->res_num++;
+>> +
+>>      return AE_OK;
+>>  }
+>>
+>> @@ -282,27 +235,18 @@ static acpi_status
+>>  setup_resource(struct acpi_resource *acpi_res, void *data)
+>>  {
+>>      struct pci_root_info *info = data;
+>> -    struct resource *res;
+>> +    struct resource *res = &info->res[info->res_num];
+>>      struct acpi_resource_address64 addr;
+>> -    acpi_status status;
+>> -    unsigned long flags;
+>>      u64 start, orig_end, end;
+>>
+>> -    status = resource_to_addr(acpi_res, &addr);
+>> -    if (!ACPI_SUCCESS(status))
+>> -        return AE_OK;
+>> +    memset(&addr, 0x00, sizeof(addr));
+>>
+>> -    if (addr.resource_type == ACPI_MEMORY_RANGE) {
+>> -        flags = IORESOURCE_MEM;
+>> -        if (addr.info.mem.caching == ACPI_PREFETCHABLE_MEMORY)
+>> -            flags |= IORESOURCE_PREFETCH;
+>> -    } else if (addr.resource_type == ACPI_IO_RANGE) {
+>> -        flags = IORESOURCE_IO;
+>> -    } else
+>> +    if (!(acpi_dev_resource_address_space_with_addr(acpi_res, &addr, res)
+>> +        || acpi_dev_resource_memory(acpi_res, res)))
+>
+> acpi_dev_resource_address_space_with_addr(acpi_res, &addr, res)
+>
+> passing extra addr, just for translation_offset?
+>
 
->From 2fff3297b4c71c88d92b04ba9ad0a8931b3e99b8 Mon Sep 17 00:00:00 2001
-From: Rui Wang <rui.y.wang@intel.com>
-Date: Tue, 27 Aug 2013 11:23:43 -0400
-Subject: [PATCH] Hotadd of IOAPICs described in static MADT
+For this case,  it's "Yes", . For some other cases(e.g
+arch/ia64/pci/pci.c add_window()),
+whole addr maybe necessary. To be more general, I hope it can return more infos
 
-For IOAPICs described in static MADT, we already called __mp_register_ioapic()
-in arch_early_irq_init(). During boot PCI root hotadd will call it again and
-will find it already registered, thus register_ioapic() won't add it to the
-ioapic_list. Subsequent hot-removal will also fail because it is not
-found on the
-ioapic_list.
+> maybe pass res_offset directly?
+>
+>
+>
+>
+>>          return AE_OK;
+>>
+>> -    start = addr.minimum + addr.translation_offset;
+>> -    orig_end = end = addr.maximum + addr.translation_offset;
+>> +    start = res->start;
+>> +    orig_end = end = res->end;
+>
+> Yinghai
 
-Signed-off-by: Rui Wang <rui.y.wang@intel.com>
----
- arch/x86/kernel/apic/io_apic.c |    4 +++-
- drivers/pci/ioapic.c           |    3 ++-
- 2 files changed, 5 insertions(+), 2 deletions(-)
 
-diff --git a/arch/x86/kernel/apic/io_apic.c b/arch/x86/kernel/apic/io_apic.c
-index fb9bf06..15ab9f1 100644
---- a/arch/x86/kernel/apic/io_apic.c
-+++ b/arch/x86/kernel/apic/io_apic.c
-@@ -3956,8 +3956,10 @@ int __mp_register_ioapic(int id, u32 address,
-u32 gsi_base, bool hotadd)
 
-        /* already registered ? */
-        idx = __mp_find_ioapic(gsi_base);
--       if (idx >= 0)
-+       if (idx >= 0) {
-+               ret = -EEXIST;
-                goto out;
-+       }
-
-        idx = find_first_zero_bit(ioapics_mask, MAX_IO_APICS);
-        if (idx >= MAX_IO_APICS) {
-diff --git a/drivers/pci/ioapic.c b/drivers/pci/ioapic.c
-index 41f7c69..83b002b 100644
---- a/drivers/pci/ioapic.c
-+++ b/drivers/pci/ioapic.c
-@@ -126,7 +126,8 @@ static void handle_ioapic_add(acpi_handle handle,
-struct pci_dev **pdev,
-                }
-        }
-
--       if (acpi_register_ioapic(handle, res->start, gsi_base)) {
-+       ret = acpi_register_ioapic(handle, res->start, gsi_base);
-+       if (ret && ret != -EEXIST) {
-                if (dev)
-                        goto exit_release;
-                return;
 -- 
-1.7.3.4
-
-
-Thanks
-Rui
-
-
->
-> -	pci_set_drvdata(dev, ioapic);
-> -	dev_info(&dev->dev, "%s at %pR, GSI %u\n", type, res, ioapic->gsi_base);
-> -	return 0;
-> +	pr_info("%s %s %s at %pR, GSI %u\n",
-> +		dev_name(&dev->dev), objname, type,
-> +		res, gsi_base);
-> +
-> +	*pdev = dev;
-> +	*pgsi_base = gsi_base;
-> +	return;
->
->  exit_release:
->  	pci_release_region(dev, 0);
->  exit_disable:
->  	pci_disable_device(dev);
-> -exit_free:
-> -	kfree(ioapic);
-> -	return -ENODEV;
-> +exit_put:
-> +	pci_dev_put(dev);
->  }
->
-> -static void ioapic_remove(struct pci_dev *dev)
-> +static void handle_ioapic_remove(acpi_handle handle, struct pci_dev *dev,
-> +				  u32 gsi_base)
->  {
-> -	struct ioapic *ioapic = pci_get_drvdata(dev);
-> +	acpi_unregister_ioapic(handle, gsi_base);
->
-> -	acpi_unregister_ioapic(ioapic->handle, ioapic->gsi_base);
->  	pci_release_region(dev, 0);
->  	pci_disable_device(dev);
-> -	kfree(ioapic);
-> +	pci_dev_put(dev);
->  }
->
-> +static acpi_status register_ioapic(acpi_handle handle, u32 lvl,
-> +					void *context, void **rv)
-> +{
-> +	acpi_handle root_handle = context;
-> +	struct pci_dev *pdev;
-> +	u32 gsi_base;
-> +	struct acpi_pci_ioapic *ioapic;
->
-> -static DEFINE_PCI_DEVICE_TABLE(ioapic_devices) = {
-> -	{ PCI_DEVICE_CLASS(PCI_CLASS_SYSTEM_PIC_IOAPIC, ~0) },
-> -	{ PCI_DEVICE_CLASS(PCI_CLASS_SYSTEM_PIC_IOXAPIC, ~0) },
-> -	{ }
-> -};
-> -MODULE_DEVICE_TABLE(pci, ioapic_devices);
-> +	handle_ioapic_add(handle, &pdev, &gsi_base);
-> +	if (!gsi_base)
-> +		return AE_OK;
->
-> -static struct pci_driver ioapic_driver = {
-> -	.name		= "ioapic",
-> -	.id_table	= ioapic_devices,
-> -	.probe		= ioapic_probe,
-> -	.remove		= ioapic_remove,
-> -};
-> +	ioapic = kzalloc(sizeof(*ioapic), GFP_KERNEL);
-> +	if (!ioapic) {
-> +		pr_err("%s: cannot allocate memory\n", __func__);
-> +		handle_ioapic_remove(root_handle, pdev, gsi_base);
-> +		return AE_OK;
-> +	}
-> +	ioapic->root_handle = root_handle;
-> +	ioapic->pdev = pdev;
-> +	ioapic->gsi_base = gsi_base;
-> +
-> +	mutex_lock(&ioapic_list_lock);
-> +	list_add(&ioapic->list, &ioapic_list);
-> +	mutex_unlock(&ioapic_list_lock);
-> +
-> +	return AE_OK;
-> +}
->
-> -static int __init ioapic_init(void)
-> +void acpi_pci_ioapic_add(struct acpi_pci_root *root)
->  {
-> -	return pci_register_driver(&ioapic_driver);
-> +	acpi_status status;
-> +
-> +	status = acpi_walk_namespace(ACPI_TYPE_DEVICE, root->device->handle,
-> +				     (u32)1, register_ioapic, NULL,
-> +				     root->device->handle,
-> +				     NULL);
-> +	if (ACPI_FAILURE(status))
-> +		pr_err("%s: register_ioapic failure - %d", __func__, status);
->  }
-> -module_init(ioapic_init);
->
-> -MODULE_LICENSE("GPL");
-> +void acpi_pci_ioapic_remove(struct acpi_pci_root *root)
-> +{
-> +	struct acpi_pci_ioapic *ioapic, *tmp;
-> +
-> +	mutex_lock(&ioapic_list_lock);
-> +	list_for_each_entry_safe(ioapic, tmp, &ioapic_list, list) {
-> +		if (root->device->handle != ioapic->root_handle)
-> +			continue;
-> +		list_del(&ioapic->list);
-> +		handle_ioapic_remove(ioapic->root_handle, ioapic->pdev,
-> +					ioapic->gsi_base);
-> +		kfree(ioapic);
-> +	}
-> +	mutex_unlock(&ioapic_list_lock);
-> +}
-> diff --git a/include/linux/pci-acpi.h b/include/linux/pci-acpi.h
-> index 1704479..b2a2ced 100644
-> --- a/include/linux/pci-acpi.h
-> +++ b/include/linux/pci-acpi.h
-> @@ -69,6 +69,14 @@ static inline void acpiphp_remove_slots(struct pci_bus
-> *bus) { }
->  static inline void acpiphp_check_host_bridge(acpi_handle handle) { }
->  #endif
->
-> +#ifdef CONFIG_PCI_IOAPIC
-> +void acpi_pci_ioapic_add(struct acpi_pci_root *root);
-> +void acpi_pci_ioapic_remove(struct acpi_pci_root *root);
-> +#else
-> +static inline void acpi_pci_ioapic_add(struct acpi_pci_root *root) { }
-> +static inline void acpi_pci_ioapic_remove(struct acpi_pci_root *root) { }
-> +#endif
-> +
->  #else	/* CONFIG_ACPI */
->  static inline void acpi_pci_add_bus(struct pci_bus *bus) { }
->  static inline void acpi_pci_remove_bus(struct pci_bus *bus) { }
-> --
-> 1.8.1.4
->
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-kernel" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> Please read the FAQ at  http://www.tux.org/lkml/
->
+Best regards
+Tianyu Lan
