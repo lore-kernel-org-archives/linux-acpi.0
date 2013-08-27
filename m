@@ -1,69 +1,60 @@
-From: Yinghai Lu <yinghai@kernel.org>
-Subject: Re: [PATCH v4 26/28] PCI, x86, ACPI: Link acpi ioapic register to ioapic
-Date: Mon, 26 Aug 2013 23:53:36 -0700
-Message-ID: <CAE9FiQVM+q=PjZ+Q_wR2-BGrbs+gBcGyKFhOqGZdZWyxjMjB0g@mail.gmail.com>
-References: <1376189294-32022-1-git-send-email-yinghai@kernel.org>
-	<1376189294-32022-27-git-send-email-yinghai@kernel.org>
-	<CANVTcTYhdiptB_sOUyveBfieg0VkTGdor16kCHKkJDemHzcWXw@mail.gmail.com>
-	<CAE9FiQVSRMdinMKQdJUB_q8pAK-ei-Q-if+8K5yyz=HRTHbCTA@mail.gmail.com>
-	<CANVTcTZT-0bg=GBdo06=1--NgyMEM6-pFX8DjMxh=7JYtaTLpw@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <linux-pci-owner@vger.kernel.org>
-In-Reply-To: <CANVTcTZT-0bg=GBdo06=1--NgyMEM6-pFX8DjMxh=7JYtaTLpw@mail.gmail.com>
-Sender: linux-pci-owner@vger.kernel.org
-To: rui wang <ruiv.wang@gmail.com>
-Cc: Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@elte.hu>, "H. Peter Anvin" <hpa@zytor.com>, Tony Luck <tony.luck@intel.com>, Bjorn Helgaas <bhelgaas@google.com>, "Rafael J. Wysocki" <rjw@sisk.pl>, "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>
+From: tianyu.lan@intel.com
+Subject: [PATCH V3] ACPI/Thermal: Add check of "_TZD" availability and evaluating result
+Date: Tue, 27 Aug 2013 16:29:31 +0800
+Message-ID: <1377592171-27183-1-git-send-email-tianyu.lan@intel.com>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mga02.intel.com ([134.134.136.20]:10057 "EHLO mga02.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752549Ab3H0IiX (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 27 Aug 2013 04:38:23 -0400
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: rjw@sisk.pl, lenb@kernel.org
+Cc: Lan Tianyu <tianyu.lan@intel.com>, linux-acpi@vger.kernel.org
 
-On Mon, Aug 26, 2013 at 11:44 PM, rui wang <ruiv.wang@gmail.com> wrote:
-> On 8/27/13, Yinghai Lu <yinghai@kernel.org> wrote:
->> On Fri, Aug 23, 2013 at 5:51 PM, rui wang <ruiv.wang@gmail.com> wrote:
->>> On 8/11/13, Yinghai Lu <yinghai@kernel.org> wrote:
->>>> During ioapic hotplug, acpi_register_ioapic will be called.
->>>> Now for x86, that function is blank.
->>>> Fill that will update __mp_register_ioapic to use those ioapic.
->>>>
->>>> Signed-off-by: Yinghai Lu <yinghai@kernel.org>
->>>> ---
->>>>  arch/x86/kernel/acpi/boot.c | 10 ++++++----
->>>>  1 file changed, 6 insertions(+), 4 deletions(-)
->>>>
->>>> diff --git a/arch/x86/kernel/acpi/boot.c b/arch/x86/kernel/acpi/boot.c
->>>> index 5be15d1..4a5336d 100644
->>>> --- a/arch/x86/kernel/acpi/boot.c
->>>> +++ b/arch/x86/kernel/acpi/boot.c
->>>> @@ -707,16 +707,18 @@ EXPORT_SYMBOL(acpi_unmap_lsapic);
->>>>
->>>>  int acpi_register_ioapic(acpi_handle handle, u64 phys_addr, u32
->>>> gsi_base)
->>>>  {
->>>> -     /* TBD */
->>>> -     return -EINVAL;
->>>> +     unsigned long long id = 0;
->>>> +
->>>> +     acpi_evaluate_integer(handle, "_UID", NULL, &id);
->>>
->>> We cannot assume that "_UID" is an integer. "_UID" can be either an
->>> integer or a string. Need to consider the case when it is a string.
->>
->> Yes.
->>
->> But do you have test case for ioapic that _UID is not integer?
->>
->
-> Yes I have an IOAPIC with an _UID of:
->
->         Name (_UID, "IOAPIC01")  // _UID: Unique ID
->
-> It's a bit challenge how you'll conjure unique identifiers from both
-> integers and strings. If you have a new patch I can help try it out.
+From: Lan Tianyu <tianyu.lan@intel.com>
 
-Then do you have _MAT with that ioapic device or else?
+Some machines don't provide _TZD. So add check of "_TZD" availability
+before doing futher operations. This patch also adds the check of
+evaluating result.
 
-need to find the _MAT entry with GSM matching to find out ioapic id.
+Signed-off-by: Lan Tianyu <tianyu.lan@intel.com>
+---
+ Change sicne v1:
+        Arrange the whitespace, using "tz->devices = devices"
+instead of memcpy() and sizeof(devices) instead of sizeof(struct ...)
 
+ Change since v2:
+	Adjust line break
 
-Thanks
+ drivers/acpi/thermal.c | 12 ++++++------
+ 1 file changed, 6 insertions(+), 6 deletions(-)
 
-Yinghai
+diff --git a/drivers/acpi/thermal.c b/drivers/acpi/thermal.c
+index 09f9340..49371fb 100644
+--- a/drivers/acpi/thermal.c
++++ b/drivers/acpi/thermal.c
+@@ -492,14 +492,14 @@ static int acpi_thermal_trips_update(struct acpi_thermal *tz, int flag)
+ 			break;
+ 	}
+ 
+-	if (flag & ACPI_TRIPS_DEVICES) {
+-		memset(&devices, 0, sizeof(struct acpi_handle_list));
++	if ((flag & ACPI_TRIPS_DEVICES)
++	    && acpi_has_method(tz->device->handle, "_TZD")) {
++		memset(&devices, 0, sizeof(devices));
+ 		status = acpi_evaluate_reference(tz->device->handle, "_TZD",
+ 						NULL, &devices);
+-		if (memcmp(&tz->devices, &devices,
+-				sizeof(struct acpi_handle_list))) {
+-			memcpy(&tz->devices, &devices,
+-				sizeof(struct acpi_handle_list));
++		if (ACPI_SUCCESS(status)
++		    && memcmp(&tz->devices, &devices, sizeof(devices))) {
++			tz->devices = devices;
+ 			ACPI_THERMAL_TRIPS_EXCEPTION(flag, "device");
+ 		}
+ 	}
+-- 
+1.8.4.rc0.1.g8f6a3e5.dirty
+
