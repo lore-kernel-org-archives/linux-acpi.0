@@ -1,412 +1,353 @@
-From: Yinghai Lu <yinghai@kernel.org>
-Subject: Re: [PATCH v4 28/28] PCI, x86, ACPI: get ioapic address from acpi device
-Date: Mon, 26 Aug 2013 18:03:05 -0700
-Message-ID: <CAE9FiQXCMFMCSEZPa=viyJD9GokkbavJhSLtiEmaaFzR_aKi1w@mail.gmail.com>
-References: <1376189294-32022-1-git-send-email-yinghai@kernel.org>
-	<1376189294-32022-29-git-send-email-yinghai@kernel.org>
-	<CANVTcTYhSfU+Su9s1B+mTTBfgsZgqvQxHiTsLck1zT_vg1Cs4g@mail.gmail.com>
-	<CANVTcTb2+qX6XMBqrzeLho9yFS55AnztVJ85JBMuxjoH11qzaQ@mail.gmail.com>
-	<CAOLK0pwQJVvcT5xA-+Ftb85FzbjHN-OZmXO=n7r4EWh4nFjSBA@mail.gmail.com>
-	<CAE9FiQWnGaa6omcLW0zxLj+UMspRGxjVoYXUsH3ndydGD51T9w@mail.gmail.com>
-	<CAE9FiQXFcM+FZnp00RP5Z8a2FhtjB7BuUUi4TuABF4-O9W+c8Q@mail.gmail.com>
-	<CAE9FiQXMfTCSfK8no6gYmHYn6=OURg6444BPu-aiBR3BsAvziA@mail.gmail.com>
-	<CAOLK0pxxAFBiDTac_5yPYO7X96Y4Tnd4kjwZ-Wvk1mZ3bD-w2A@mail.gmail.com>
+From: Gu Zheng <guz.fnst@cn.fujitsu.com>
+Subject: Re: [PATCH] driver core / ACPI: Avoid device removal locking problems
+Date: Tue, 27 Aug 2013 10:03:51 +0800
+Message-ID: <521C0907.6000500@cn.fujitsu.com>
+References: <1543475.L7gSB7lLAu@vostro.rjw.lan> <521AC7C9.2000408@cn.fujitsu.com> <4785337.sqQqDSPcpL@vostro.rjw.lan> <3389643.Fdir3g6c6B@vostro.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <CAOLK0pxxAFBiDTac_5yPYO7X96Y4Tnd4kjwZ-Wvk1mZ3bD-w2A@mail.gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Lan Tianyu <lantianyu1986@gmail.com>
-Cc: "Rafael J. Wysocki" <rjw@sisk.pl>, Bjorn Helgaas <bhelgaas@google.com>, rui wang <ruiv.wang@gmail.com>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@elte.hu>, "H. Peter Anvin" <hpa@zytor.com>, Tony Luck <tony.luck@intel.com>, Linux PCI <linux-pci@vger.kernel.org>, "linux-kernel@vger kernel org" <linux-kernel@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from cn.fujitsu.com ([222.73.24.84]:24391 "EHLO song.cn.fujitsu.com"
+	rhost-flags-OK-FAIL-OK-OK) by vger.kernel.org with ESMTP
+	id S1751391Ab3H0CIM (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 26 Aug 2013 22:08:12 -0400
+In-Reply-To: <3389643.Fdir3g6c6B@vostro.rjw.lan>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Toshi Kani <toshi.kani@hp.com>, LKML <linux-kernel@vger.kernel.org>, Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
 
-On Mon, Aug 26, 2013 at 8:46 AM, Lan Tianyu <lantianyu1986@gmail.com> wrote:
-> 2013/8/24 Yinghai Lu <yinghai@kernel.org>:
->> On Fri, Aug 23, 2013 at 12:04 PM, Yinghai Lu <yinghai@kernel.org> wrote:
->>> On Fri, Aug 23, 2013 at 11:38 AM, Yinghai Lu <yinghai@kernel.org> wrote:
->>>> On Fri, Aug 23, 2013 at 8:34 AM, Lan Tianyu <lantianyu1986@gmail.com> wrote:
->>>>>> I worked around the problem by replacing acpi_resource_to_address64()
->>>>>> with resource_to_addr().  But resource_to_addr() is a static function
->>>>>> in arch/x86/pci/acpi.c, not very convenient to use. Here's what I did:
->>>>>>
->>>>>
->>>>> Hi Rui&Yinghai:
->>>>>            How about using the following code to translate struct
->>>>>  acpi_resource to struct resouce in this setup_res()?
->>>>>
->>>>>          if (acpi_dev_resource_address_space(...)
->>>>>                 || acpi_dev_resource_memory(..))
->>>>>               return AE_OK;
->>>>
->>>> Yest, that could be better, will update that.
->>>>
->>>> Also can you submit patch that will use that in res_to_addr of
->>>> arch/x86/pci/acpi.c?
+Hi Rafael,
+
+On 08/26/2013 10:43 PM, Rafael J. Wysocki wrote:
+
+> On Monday, August 26, 2013 02:42:09 PM Rafael J. Wysocki wrote:
+>> On Monday, August 26, 2013 11:13:13 AM Gu Zheng wrote:
+>>> Hi Rafael,
+>>
+>> Hi,
+>>
+>>> On 08/26/2013 04:09 AM, Rafael J. Wysocki wrote:
 >>>
->>> looks acpi_dev_resource_address_space... does not handle
->>> PREFTCH and translation offset.
+>>>> From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+>>>>
+>>>> There are two mutexes, device_hotplug_lock and acpi_scan_lock, held
+>>>> around the acpi_bus_trim() call in acpi_scan_hot_remove() which
+>>>> generally removes devices (it removes ACPI device objects at least,
+>>>> but it may also remove "physical" device objects through .detach()
+>>>> callbacks of ACPI scan handlers).  Thus, potentially, device sysfs
+>>>> attributes are removed under these locks and to remove those
+>>>> attributes it is necessary to hold the s_active references of their
+>>>> directory entries for writing.
+>>>>
+>>>> On the other hand, the execution of a .show() or .store() callback
+>>>> from a sysfs attribute is carried out with that attribute's s_active
+>>>> reference held for reading.  Consequently, if any device sysfs
+>>>> attribute that may be removed from within acpi_scan_hot_remove()
+>>>> through acpi_bus_trim() has a .store() or .show() callback which
+>>>> acquires either acpi_scan_lock or device_hotplug_lock, the execution
+>>>> of that callback may deadlock with the removal of the attribute.
+>>>> [Unfortunately, the "online" device attribute of CPUs and memory
+>>>> blocks and the "eject" attribute of ACPI device objects are affected
+>>>> by this issue.]
+>>>>
+>>>> To avoid those deadlocks introduce a new protection mechanism that
+>>>> can be used by the device sysfs attributes in question.  Namely,
+>>>> if a device sysfs attribute's .store() or .show() callback routine
+>>>> is about to acquire device_hotplug_lock or acpi_scan_lock, it can
+>>>> first execute read_lock_device_remove() and return an error code if
+>>>> that function returns false.  If true is returned, the lock in
+>>>> question may be acquired and read_unlock_device_remove() must be
+>>>> called.  [This mechanism is implemented by means of an additional
+>>>> rwsem in drivers/base/core.c.]
+>>>>
+>>>> Make the affected sysfs attributes in the driver core and ACPI core
+>>>> use read_lock_device_remove() and read_unlock_device_remove() as
+>>>> described above.
+>>>>
+>>>> Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+>>>> Reported-by: Gu Zheng <guz.fnst@cn.fujitsu.com>
 >>>
->>> So now i have to use res_to_addr alike one.
+>>> I'm sorry to forget to mention that the original reporter is
+>>> Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>. I continued
+>>> the investigation and found more issues.
+>>>
+>>> We tested this patch on kernel 3.11-rc6, but it seems that the
+>>> issue is still there. Detail info as following.
 >>
->> Raphael,
+>> Well, taking pm_mutex under acpi_scan_lock (trace #2) is a bad idea anyway,
+>> because we'll need to take acpi_scan_lock during system suspend for PCI hot
+>> remove to work and that's under pm_mutex.  So I wonder if we can simply
+>> drop the system sleep locking from lock/unlock_memory_hotplug().  But that's
+>> a side note, because dropping it won't help here.
 >>
->> Maybe we should move resource_to_addr to acpi generic.
+>> Now ->
 >>
->> Please check if you are ok with attached.
+>>> ======================================================                                                                                                                           
+>>> [ INFO: possible circular locking dependency detected ]                                                                                                                          
+>>> 3.11.0-rc6-lockdebug-refea+ #162 Tainted: GF                                                                                                                                     
+>>> -------------------------------------------------------                                                                                                                          
+>>> kworker/0:2/754 is trying to acquire lock:                                                                                                                                       
+>>>  (s_active#73){++++.+}, at: [<ffffffff8121062b>] sysfs_addrm_finish+0x3b/0x70                                                                                                    
+>>>                                                                                                                                                                                  
+>>> but task is already holding lock:                                                                                                                                                
+>>>  (mem_sysfs_mutex){+.+.+.}, at: [<ffffffff813b949d>] remove_memory_block+0x1d/0xa0                                                                                               
+>>>                                                                                                                                                                                  
+>>> which lock already depends on the new lock.                                                                                                                                      
+>>>                                                                                                                                                                                  
+>>>                                                                                                                                                                                  
+>>> the existing dependency chain (in reverse order) is:                                                                                                                             
+>>>                                                                                                                                                                                  
+>>> -> #4 (mem_sysfs_mutex){+.+.+.}:                                                                                                                                                 
+>>>        [<ffffffff810ba88c>] validate_chain+0x70c/0x870                                                                                                                           
+>>>        [<ffffffff810bad5f>] __lock_acquire+0x36f/0x5f0                                                                                                                           
+>>>        [<ffffffff810bb080>] lock_acquire+0xa0/0x130                                                                                                                              
+>>>        [<ffffffff8159781b>] mutex_lock_nested+0x7b/0x3b0                                                                                                                         
+>>>        [<ffffffff813b9361>] add_memory_section+0x51/0x150                                                                                                                        
+>>>        [<ffffffff813b947b>] register_new_memory+0x1b/0x20                                                                                                                        
+>>>        [<ffffffff81590d21>] __add_pages+0x111/0x120                                                                                                                              
+>>>        [<ffffffff81041224>] arch_add_memory+0x64/0xf0                                                                                                                            
+>>>        [<ffffffff81590e07>] add_memory+0xd7/0x1e0                                                                                                                                
+>>>        [<ffffffff81347db4>] acpi_memory_enable_device+0x77/0x12b                                                                                                                 
+>>>        [<ffffffff8134801e>] acpi_memory_device_add+0x18f/0x198                                                                                                                   
+>>>        [<ffffffff8131aa5a>] acpi_bus_device_attach+0x9a/0x100                                                                                                                    
+>>>        [<ffffffff8133666d>] acpi_ns_walk_namespace+0xbe/0x17d                                                                                                                    
+>>>        [<ffffffff81336b03>] acpi_walk_namespace+0x8a/0xc4                                                                                                                        
+>>>        [<ffffffff8131c126>] acpi_bus_scan+0x91/0x9c                                                                                                                              
+>>>        [<ffffffff8131c1af>] acpi_scan_bus_device_check+0x7e/0x10f                                                                                                                
+>>>        [<ffffffff8131c253>] acpi_scan_device_check+0x13/0x15                                                                                                                     
+>>>        [<ffffffff81315dac>] acpi_os_execute_deferred+0x27/0x34                                                                                                                   
+>>>        [<ffffffff8106bec8>] process_one_work+0x1e8/0x560                                                                                                                         
+>>>        [<ffffffff8106d0a0>] worker_thread+0x120/0x3a0                                                                                                                            
+>>>        [<ffffffff81073b5e>] kthread+0xee/0x100                                                                                                                                   
+>>>        [<ffffffff815a605c>] ret_from_fork+0x7c/0xb0                                                                                                                              
+>>>                                                                                                                                                                                  
+>>> -> #3 (pm_mutex){+.+.+.}:                                                                                                                                                        
+>>>        [<ffffffff810ba88c>] validate_chain+0x70c/0x870                                                                                                                           
+>>>        [<ffffffff810bad5f>] __lock_acquire+0x36f/0x5f0                                                                                                                           
+>>>        [<ffffffff810bb080>] lock_acquire+0xa0/0x130                                                                                                                              
+>>>        [<ffffffff8159781b>] mutex_lock_nested+0x7b/0x3b0                                                                                                                         
+>>>        [<ffffffff81188795>] lock_memory_hotplug+0x35/0x40                                                                                                                        
+>>>        [<ffffffff81590d5f>] add_memory+0x2f/0x1e0                                                                                                                                
+>>>        [<ffffffff81347db4>] acpi_memory_enable_device+0x77/0x12b                                                                                                                 
+>>>        [<ffffffff8134801e>] acpi_memory_device_add+0x18f/0x198                                                                                                                   
+>>>        [<ffffffff8131aa5a>] acpi_bus_device_attach+0x9a/0x100                                                                                                                    
+>>>        [<ffffffff8133666d>] acpi_ns_walk_namespace+0xbe/0x17d                                                                                                                    
+>>>        [<ffffffff81336b03>] acpi_walk_namespace+0x8a/0xc4                                                                                                                        
+>>>        [<ffffffff8131c126>] acpi_bus_scan+0x91/0x9c                                                                                                                              
+>>>        [<ffffffff81d39862>] acpi_scan_init+0x66/0x15a                                                                                                                            
+>>>        [<ffffffff81d397a0>] acpi_init+0xa1/0xbb                                                                                                                                  
+>>>        [<ffffffff810002c2>] do_one_initcall+0xf2/0x1a0                                                                                                                           
+>>>        [<ffffffff81d018da>] do_basic_setup+0x9d/0xbb                                                                                                                             
+>>>        [<ffffffff81d01b02>] kernel_init_freeable+0x20a/0x28a                                                                                                                     
+>>>        [<ffffffff8158f20e>] kernel_init+0xe/0xf0                                                                                                                                 
+>>>        [<ffffffff815a605c>] ret_from_fork+0x7c/0xb0                                                                                                                              
+>>>                                                                                                                                                                                  
+>>> -> #2 (mem_hotplug_mutex){+.+.+.}:                                                                                                                                               
+>>>        [<ffffffff810ba88c>] validate_chain+0x70c/0x870                                                                                                                           
+>>>        [<ffffffff810bad5f>] __lock_acquire+0x36f/0x5f0                                                                                                                           
+>>>        [<ffffffff810bb080>] lock_acquire+0xa0/0x130                                                                                                                              
+>>>        [<ffffffff8159781b>] mutex_lock_nested+0x7b/0x3b0                                                                                                                         
+>>>        [<ffffffff81188777>] lock_memory_hotplug+0x17/0x40                                                                                                                        
+>>>        [<ffffffff81590d5f>] add_memory+0x2f/0x1e0                                                                                                                                
+>>>        [<ffffffff81347db4>] acpi_memory_enable_device+0x77/0x12b                                                                                                                 
+>>>        [<ffffffff8134801e>] acpi_memory_device_add+0x18f/0x198                                                                                                                   
+>>>        [<ffffffff8131aa5a>] acpi_bus_device_attach+0x9a/0x100                                                                                                                    
+>>>        [<ffffffff8133666d>] acpi_ns_walk_namespace+0xbe/0x17d                                                                                                                    
+>>>        [<ffffffff81336b03>] acpi_walk_namespace+0x8a/0xc4                                                                                                                        
+>>>        [<ffffffff8131c126>] acpi_bus_scan+0x91/0x9c                                                                                                                              
+>>>        [<ffffffff8131c1af>] acpi_scan_bus_device_check+0x7e/0x10f                                                                                                                
+>>>        [<ffffffff8131c253>] acpi_scan_device_check+0x13/0x15                                                                                                                     
+>>>        [<ffffffff81315dac>] acpi_os_execute_deferred+0x27/0x34                                                                                                                   
+>>>        [<ffffffff8106bec8>] process_one_work+0x1e8/0x560                                                                                                                         
+>>>        [<ffffffff8106d0a0>] worker_thread+0x120/0x3a0                                                                                                                            
+>>>        [<ffffffff81073b5e>] kthread+0xee/0x100                                                                                                                                   
+>>>        [<ffffffff815a605c>] ret_from_fork+0x7c/0xb0                                                                                                                              
+>>>                                                                                                                                                                                  
+>>> -> #1 (device_hotplug_lock){+.+.+.}:                                                                                                                                             
+>>>        [<ffffffff810ba88c>] validate_chain+0x70c/0x870                                                                                                                           
+>>>        [<ffffffff810bad5f>] __lock_acquire+0x36f/0x5f0                                                                                                                           
+>>>        [<ffffffff810bb080>] lock_acquire+0xa0/0x130                                                                                                                              
+>>>        [<ffffffff8159781b>] mutex_lock_nested+0x7b/0x3b0                                                                                                                         
+>>>        [<ffffffff813a16e7>] lock_device_hotplug+0x17/0x20
 >>
->> Thanks
+>> -> we should have grabbed device_remove_rwsem for reading here with the patch
+>> applied, which means that -->
 >>
->> Yinghai
->
-> Hi Rafael & Yinghai:
->             I wrote 4 proposal patches to try to make acpi resource
-> functions to replace
->  resource_to_addr() in the arch/x86/pci/acpi.c. From my opinion,
-> resource_to_addr()
-> does most work which acpi resource functions have done. So please have
-> a look. Thanks.
-> The following patches just passed through compiling test.
+>>>        [<ffffffff813a2553>] show_online+0x33/0x80                                                                                                                                
+>>>        [<ffffffff813a1ce7>] dev_attr_show+0x27/0x50                                                                                                                              
+>>>        [<ffffffff8120ee94>] fill_read_buffer+0x74/0x100                                                                                                                          
+>>>        [<ffffffff8120efcc>] sysfs_read_file+0xac/0xe0                                                                                                                            
+>>>        [<ffffffff81195d21>] vfs_read+0xb1/0x130                                                                                                                                  
+>>>        [<ffffffff81196232>] SyS_read+0x62/0xb0                                                                                                                                   
+>>>        [<ffffffff815a6102>] system_call_fastpath+0x16/0x1b                                                                                                                       
+>>>                                                                                                                                                                                  
+>>> -> #0 (s_active#73){++++.+}:                                                                                                                                                     
+>>>        [<ffffffff810ba148>] check_prev_add+0x598/0x5d0                                                                                                                           
+>>>        [<ffffffff810ba88c>] validate_chain+0x70c/0x870                                                                                                                           
+>>>        [<ffffffff810bad5f>] __lock_acquire+0x36f/0x5f0                                                                                                                           
+>>>        [<ffffffff810bb080>] lock_acquire+0xa0/0x130                                                                                                                              
+>>>        [<ffffffff8120fed7>] sysfs_deactivate+0x157/0x1c0                                                                                                                         
+>>>        [<ffffffff8121062b>] sysfs_addrm_finish+0x3b/0x70                                                                                                                         
+>>>        [<ffffffff8120e280>] sysfs_hash_and_remove+0x60/0xb0                                                                                                                      
+>>>        [<ffffffff8120f2a9>] sysfs_remove_file+0x39/0x50                                                                                                                          
+>>>        [<ffffffff813a2977>] device_remove_file+0x17/0x20                                                                                                                         
+>>>        [<ffffffff813a29aa>] device_remove_attrs+0x2a/0xe0                                                                                                                        
+>>>        [<ffffffff813a2b8b>] device_del+0x12b/0x1f0                                                                                                                               
+>>>        [<ffffffff813a2c72>] device_unregister+0x22/0x60                                                                                                                          
+>>>        [<ffffffff813b94ed>] remove_memory_block+0x6d/0xa0                                                                                                                        
+>>>        [<ffffffff813b953f>] unregister_memory_section+0x1f/0x30                                                                                                                  
+>>>        [<ffffffff81189468>] __remove_pages+0xc8/0x150                                                                                                                            
+>>>        [<ffffffff8158f994>] arch_remove_memory+0x94/0xd0                                                                                                                         
+>>>        [<ffffffff81590bef>] remove_memory+0x6f/0x90                                                                                                                              
+>>>        [<ffffffff81347ccc>] acpi_memory_remove_memory+0x7e/0xa3                                                                                                                  
+>>>        [<ffffffff81347d18>] acpi_memory_device_remove+0x27/0x33                                                                                                                  
+>>>        [<ffffffff8131a8a2>] acpi_bus_device_detach+0x3d/0x5e                                                                                                                     
+>>>        [<ffffffff81336685>] acpi_ns_walk_namespace+0xd6/0x17d                                                                                                                    
+>>>        [<ffffffff81336b03>] acpi_walk_namespace+0x8a/0xc4                                                                                                                        
+>>>        [<ffffffff8131a8f6>] acpi_bus_trim+0x33/0x7a                                                                                                                              
+>>>        [<ffffffff8131b4c0>] acpi_scan_hot_remove+0x160/0x281                                                                                                                     
+>>
+>> --> device_hotplug_lock is already held by show_online() at this point (or if
+>> it is not held, that function will return -EBUSY after attempting to grab
+>> device_remove_rwsem for reading), so acpi_scan_hot_remove() will wait for it
+>> to be released before calling acpi_bus_trim().
+>>
+>> So the situation in which one thread holds s_active for reading and blocks on
+>> device_hotplug_lock while another thread is holding it over device removal is
+>> clearly impossible to me.
+>>
+>> So I'm not sure how device_hotplug_lock is still involved?
+> 
+> Well, it is not involved, but lockdep doesn't see that anyway.  Bummer.
+> 
+>>>        [<ffffffff8131b6fc>] acpi_bus_hot_remove_device+0x37/0x73                                                                                                                 
+>>>        [<ffffffff81315dac>] acpi_os_execute_deferred+0x27/0x34                                                                                                                   
+>>>        [<ffffffff8106bec8>] process_one_work+0x1e8/0x560                                                                                                                         
+>>>        [<ffffffff8106d0a0>] worker_thread+0x120/0x3a0                                                                                                                            
+>>>        [<ffffffff81073b5e>] kthread+0xee/0x100                                                                                                                                   
+>>>        [<ffffffff815a605c>] ret_from_fork+0x7c/0xb0                                                                                                                              
+>>>                                                                                                                                                                                  
+>>> other info that might help us debug this:                                                                                                                                        
+>>>                                                                                                                                                                                  
+>>> Chain exists of:                                                                                                                                                                 
+>>>   s_active#73 --> pm_mutex --> mem_sysfs_mutex                                                                                                                                   
+>>>                                                                                                                                                                                  
+>>>  Possible unsafe locking scenario:                                                                                                                                               
+>>>                                                                                                                                                                                  
+>>>        CPU0                    CPU1                                                                                                                                              
+>>>        ----                    ----                                                                                                                                              
+>>>   lock(mem_sysfs_mutex);                                                                                                                                                         
+>>>                                lock(pm_mutex);                                                                                                                                   
+>>>                                lock(mem_sysfs_mutex);                                                                                                                            
+>>>   lock(s_active#73);                                                                                                                                                             
+>>>                                                                                                                                                                                  
+>>>  *** DEADLOCK ***                                                                                                                                                                
+> 
+> OK, so the patch below is quick and dirty and overkill, but it should make the
+> splat go away at least.
 
-Thanks for doing that.
+Yeah, this patch is the same as the one I attached in previous discussion threads.
+It does make the splat go away, but as you said, it's a bit overkill.
 
-Overall it's Good to me.
+Regards,
+Gu
 
-some comments inline.
-
->
-> Patch 1
-> -------------------
-> commit 1800bc9dda7318314607fbae7afda8be38e056dc
-> Author: Lan Tianyu <tianyu.lan@intel.com>
-> Date:   Mon Aug 26 14:40:39 2013 +0800
->
->     ACPI/Resource: Add setting PREFETCH flag support
->
-> diff --git a/drivers/acpi/resource.c b/drivers/acpi/resource.c
-> index b7201fc..23a560b 100644
-> --- a/drivers/acpi/resource.c
-> +++ b/drivers/acpi/resource.c
-> @@ -35,7 +35,7 @@
->  #endif
->
->  static unsigned long acpi_dev_memresource_flags(u64 len, u8 write_protect,
-> -                        bool window)
-> +                        bool window, bool prefetchable)
->  {
->      unsigned long flags = IORESOURCE_MEM;
->
-> @@ -48,6 +48,9 @@ static unsigned long acpi_dev_memresource_flags(u64
-> len, u8 write_protect,
->      if (window)
->          flags |= IORESOURCE_WINDOW;
->
-> +    if (prefetchable)
-> +        flags |= IORESOURCE_PREFETCH;
+> 
+> Thanks,
+> Rafael
+> 
+> 
+> ---
+>  drivers/acpi/scan.c |    3 ++-
+>  drivers/base/core.c |   36 ++++++++++++++++++++----------------
+>  2 files changed, 22 insertions(+), 17 deletions(-)
+> 
+> Index: linux-pm/drivers/base/core.c
+> ===================================================================
+> --- linux-pm.orig/drivers/base/core.c
+> +++ linux-pm/drivers/base/core.c
+> @@ -49,6 +49,18 @@ static struct kobject *dev_kobj;
+>  struct kobject *sysfs_dev_char_kobj;
+>  struct kobject *sysfs_dev_block_kobj;
+>  
+> +static DEFINE_MUTEX(device_hotplug_lock);
 > +
->      return flags;
->  }
->
-> @@ -56,7 +59,8 @@ static void acpi_dev_get_memresource(struct resource
-> *res, u64 start, u64 len,
->  {
->      res->start = start;
->      res->end = start + len - 1;
-> -    res->flags = acpi_dev_memresource_flags(len, write_protect, false);
-> +    res->flags = acpi_dev_memresource_flags(len, write_protect,
-> +                        false, false);
->  }
-
-passing write_protect, window then pref looks silly.
-
-may use | IO_REOURCE_... etc outside of acpi_dev_memresource_flags directly.
-
->
->  /**
-> @@ -175,7 +179,7 @@ bool acpi_dev_resource_address_space(struct
-> acpi_resource *ares,
->  {
->      acpi_status status;
->      struct acpi_resource_address64 addr;
-> -    bool window;
-> +    bool window, prefetchable;
->      u64 len;
->      u8 io_decode;
->
-> @@ -199,9 +203,11 @@ bool acpi_dev_resource_address_space(struct
-> acpi_resource *ares,
->      switch(addr.resource_type) {
->      case ACPI_MEMORY_RANGE:
->          len = addr.maximum - addr.minimum + 1;
-> +        prefetchable =
-> +            addr.info.mem.caching == ACPI_PREFETCHABLE_MEMORY;
->          res->flags = acpi_dev_memresource_flags(len,
->                          addr.info.mem.write_protect,
-> -                        window);
-> +                        window, prefetchable);
->          break;
->      case ACPI_IO_RANGE:
->          io_decode = addr.granularity == 0xfff ?
-> @@ -252,7 +258,7 @@ bool acpi_dev_resource_ext_address_space(struct
-> acpi_resource *ares,
->          len = ext_addr->maximum - ext_addr->minimum + 1;
->          res->flags = acpi_dev_memresource_flags(len,
->                      ext_addr->info.mem.write_protect,
-> -                    window);
-> +                    window, false);
->          break;
->      case ACPI_IO_RANGE:
->          io_decode = ext_addr->granularity == 0xfff ?
->
-> Patch 2
-> -----------
-> commit a3ff8345ffb51885b216ba0ae231252cd88d4e76
-> Author: Lan Tianyu <tianyu.lan@intel.com>
-> Date:   Mon Aug 26 15:57:14 2013 +0800
->
->     ACPI/Resource: Add address translation support
->
-> diff --git a/drivers/acpi/resource.c b/drivers/acpi/resource.c
-> index 23a560b..439ee44 100644
-> --- a/drivers/acpi/resource.c
-> +++ b/drivers/acpi/resource.c
-> @@ -196,8 +196,8 @@ bool acpi_dev_resource_address_space(struct
-> acpi_resource *ares,
->      if (ACPI_FAILURE(status))
->          return true;
->
-> -    res->start = addr.minimum;
-> -    res->end = addr.maximum;
-> +    res->start = addr.minimum + addr.translation_offset;
-> +    res->end = addr.maximum + addr.translation_offset;
->      window = addr.producer_consumer == ACPI_PRODUCER;
->
->      switch(addr.resource_type) {
->
->
-> Patch 3
-> ---------------
-> commit 68bfefe619b49baa5d372e0664a6cb6d5138fad1
-> Author: Lan Tianyu <tianyu.lan@intel.com>
-> Date:   Mon Aug 26 21:45:32 2013 +0800
->
->     ACPI: Add new acpi_dev_resource_address_space_with_addr() function
->
->     Add new function which can return the converted struct
-> acpi_resource_address64.
-> This will be used to get transaction offset in the setup_resource().
->
-> diff --git a/drivers/acpi/resource.c b/drivers/acpi/resource.c
-> index 439ee44..98a6c35 100644
-> --- a/drivers/acpi/resource.c
-> +++ b/drivers/acpi/resource.c
-> @@ -174,11 +174,11 @@ EXPORT_SYMBOL_GPL(acpi_dev_resource_io);
->   * and if that's the case, use the information in it to populate the generic
->   * resource object pointed to by @res.
->   */
-> -bool acpi_dev_resource_address_space(struct acpi_resource *ares,
-> +bool acpi_dev_resource_address_space_with_addr(struct acpi_resource *ares,
-> +                     struct acpi_resource_address64 *addr,
->                       struct resource *res)
->  {
->      acpi_status status;
-> -    struct acpi_resource_address64 addr;
->      bool window, prefetchable;
->      u64 len;
->      u8 io_decode;
-> @@ -192,28 +192,28 @@ bool acpi_dev_resource_address_space(struct
-> acpi_resource *ares,
->          return false;
->      }
->
-> -    status = acpi_resource_to_address64(ares, &addr);
-> +    status = acpi_resource_to_address64(ares, addr);
->      if (ACPI_FAILURE(status))
->          return true;
->
-> -    res->start = addr.minimum + addr.translation_offset;
-> -    res->end = addr.maximum + addr.translation_offset;
-> -    window = addr.producer_consumer == ACPI_PRODUCER;
-> +    res->start = addr->minimum + addr->translation_offset;
-> +    res->end = addr->maximum + addr->translation_offset;
-> +    window = addr->producer_consumer == ACPI_PRODUCER;
->
-> -    switch(addr.resource_type) {
-> +    switch (addr->resource_type) {
->      case ACPI_MEMORY_RANGE:
-> -        len = addr.maximum - addr.minimum + 1;
-> +        len = addr->maximum - addr->minimum + 1;
->          prefetchable =
-> -            addr.info.mem.caching == ACPI_PREFETCHABLE_MEMORY;
-> +            addr->info.mem.caching == ACPI_PREFETCHABLE_MEMORY;
->          res->flags = acpi_dev_memresource_flags(len,
-> -                        addr.info.mem.write_protect,
-> +                        addr->info.mem.write_protect,
->                          window, prefetchable);
->          break;
->      case ACPI_IO_RANGE:
-> -        io_decode = addr.granularity == 0xfff ?
-> +        io_decode = addr->granularity == 0xfff ?
->                  ACPI_DECODE_10 : ACPI_DECODE_16;
-> -        res->flags = acpi_dev_ioresource_flags(addr.minimum,
-> -                               addr.maximum,
-> +        res->flags = acpi_dev_ioresource_flags(addr->minimum,
-> +                               addr->maximum,
->                                 io_decode, window);
->          break;
->      case ACPI_BUS_NUMBER_RANGE:
-> @@ -225,6 +225,16 @@ bool acpi_dev_resource_address_space(struct
-> acpi_resource *ares,
->
->      return true;
->  }
-> +EXPORT_SYMBOL_GPL(acpi_dev_resource_address_space_with_addr);
-> +
-> +bool acpi_dev_resource_address_space(struct acpi_resource *ares,
-> +                     struct resource *res)
+> +void lock_device_hotplug(void)
 > +{
-> +    struct acpi_resource_address64 addr;
-> +
-> +    return acpi_dev_resource_address_space_with_addr(ares, &addr,
-> +                             res);
+> +	mutex_lock(&device_hotplug_lock);
 > +}
->  EXPORT_SYMBOL_GPL(acpi_dev_resource_address_space);
->
->  /**
-> diff --git a/include/linux/acpi.h b/include/linux/acpi.h
-> index a5db4ae..9f5c0d5 100644
-> --- a/include/linux/acpi.h
-> +++ b/include/linux/acpi.h
-> @@ -260,6 +260,9 @@ bool acpi_dev_resource_memory(struct acpi_resource
-> *ares, struct resource *res);
->  bool acpi_dev_resource_io(struct acpi_resource *ares, struct resource *res);
->  bool acpi_dev_resource_address_space(struct acpi_resource *ares,
->                       struct resource *res);
-> +bool acpi_dev_resource_address_space_with_addr(struct acpi_resource *ares,
-> +                struct acpi_resource_address64 *addr,
-> +                struct resource *res);
->  bool acpi_dev_resource_ext_address_space(struct acpi_resource *ares,
->                       struct resource *res);
->  unsigned long acpi_dev_irq_flags(u8 triggering, u8 polarity, u8 shareable);
->
-> Patch 4
-> --------------
-> commit a8733a1da756a257d55e68994268174b84b33670
-> Author: Lan Tianyu <tianyu.lan@intel.com>
-> Date:   Mon Aug 26 22:53:38 2013 +0800
->
->     X86/PCI/ACPI: Rework setup_resource() via functions acpi resource functions
->
-> diff --git a/arch/x86/pci/acpi.c b/arch/x86/pci/acpi.c
-> index d641897..d4f85a1 100644
-> --- a/arch/x86/pci/acpi.c
-> +++ b/arch/x86/pci/acpi.c
-> @@ -219,62 +219,15 @@ static void teardown_mcfg_map(struct pci_root_info *info)
->  #endif
->
->  static acpi_status
-> -resource_to_addr(struct acpi_resource *resource,
-> -            struct acpi_resource_address64 *addr)
-> -{
-> -    acpi_status status;
-> -    struct acpi_resource_memory24 *memory24;
-> -    struct acpi_resource_memory32 *memory32;
-> -    struct acpi_resource_fixed_memory32 *fixed_memory32;
+> +
+> +void unlock_device_hotplug(void)
+> +{
+> +	mutex_unlock(&device_hotplug_lock);
+> +}
+> +
+>  #ifdef CONFIG_BLOCK
+>  static inline int device_is_not_partition(struct device *dev)
+>  {
+> @@ -408,9 +420,11 @@ static ssize_t show_online(struct device
+>  {
+>  	bool val;
+>  
+> -	lock_device_hotplug();
+> +	if (!mutex_trylock(&device_hotplug_lock))
+> +		return -EAGAIN;
+> +
+>  	val = !dev->offline;
+> -	unlock_device_hotplug();
+> +	mutex_unlock(&device_hotplug_lock);
+>  	return sprintf(buf, "%u\n", val);
+>  }
+>  
+> @@ -424,9 +438,11 @@ static ssize_t store_online(struct devic
+>  	if (ret < 0)
+>  		return ret;
+>  
+> -	lock_device_hotplug();
+> +	if (!mutex_trylock(&device_hotplug_lock))
+> +		return -EAGAIN;
+> +
+>  	ret = val ? device_online(dev) : device_offline(dev);
+> -	unlock_device_hotplug();
+> +	mutex_unlock(&device_hotplug_lock);
+>  	return ret < 0 ? ret : count;
+>  }
+>  
+> @@ -1479,18 +1495,6 @@ EXPORT_SYMBOL_GPL(put_device);
+>  EXPORT_SYMBOL_GPL(device_create_file);
+>  EXPORT_SYMBOL_GPL(device_remove_file);
+>  
+> -static DEFINE_MUTEX(device_hotplug_lock);
 > -
-> -    memset(addr, 0, sizeof(*addr));
-> -    switch (resource->type) {
-> -    case ACPI_RESOURCE_TYPE_MEMORY24:
-> -        memory24 = &resource->data.memory24;
-> -        addr->resource_type = ACPI_MEMORY_RANGE;
-> -        addr->minimum = memory24->minimum;
-> -        addr->address_length = memory24->address_length;
-> -        addr->maximum = addr->minimum + addr->address_length - 1;
-> -        return AE_OK;
-> -    case ACPI_RESOURCE_TYPE_MEMORY32:
-> -        memory32 = &resource->data.memory32;
-> -        addr->resource_type = ACPI_MEMORY_RANGE;
-> -        addr->minimum = memory32->minimum;
-> -        addr->address_length = memory32->address_length;
-> -        addr->maximum = addr->minimum + addr->address_length - 1;
-> -        return AE_OK;
-> -    case ACPI_RESOURCE_TYPE_FIXED_MEMORY32:
-> -        fixed_memory32 = &resource->data.fixed_memory32;
-> -        addr->resource_type = ACPI_MEMORY_RANGE;
-> -        addr->minimum = fixed_memory32->address;
-> -        addr->address_length = fixed_memory32->address_length;
-> -        addr->maximum = addr->minimum + addr->address_length - 1;
-> -        return AE_OK;
-> -    case ACPI_RESOURCE_TYPE_ADDRESS16:
-> -    case ACPI_RESOURCE_TYPE_ADDRESS32:
-> -    case ACPI_RESOURCE_TYPE_ADDRESS64:
-> -        status = acpi_resource_to_address64(resource, addr);
-> -        if (ACPI_SUCCESS(status) &&
-> -            (addr->resource_type == ACPI_MEMORY_RANGE ||
-> -            addr->resource_type == ACPI_IO_RANGE) &&
-> -            addr->address_length > 0) {
-> -            return AE_OK;
-> -        }
-> -        break;
-> -    }
-> -    return AE_ERROR;
+> -void lock_device_hotplug(void)
+> -{
+> -	mutex_lock(&device_hotplug_lock);
 > -}
 > -
-> -static acpi_status
->  count_resource(struct acpi_resource *acpi_res, void *data)
+> -void unlock_device_hotplug(void)
+> -{
+> -	mutex_unlock(&device_hotplug_lock);
+> -}
+> -
+>  static int device_check_offline(struct device *dev, void *not_used)
 >  {
->      struct pci_root_info *info = data;
-> -    struct acpi_resource_address64 addr;
-> -    acpi_status status;
-> +    struct resource res;
->
-> -    status = resource_to_addr(acpi_res, &addr);
-> -    if (ACPI_SUCCESS(status))
-> +    if (acpi_dev_resource_address_space(acpi_res, &res)
-> +        || acpi_dev_resource_memory(acpi_res, &res))
->          info->res_num++;
-> +
->      return AE_OK;
->  }
->
-> @@ -282,27 +235,18 @@ static acpi_status
->  setup_resource(struct acpi_resource *acpi_res, void *data)
->  {
->      struct pci_root_info *info = data;
-> -    struct resource *res;
-> +    struct resource *res = &info->res[info->res_num];
->      struct acpi_resource_address64 addr;
-> -    acpi_status status;
-> -    unsigned long flags;
->      u64 start, orig_end, end;
->
-> -    status = resource_to_addr(acpi_res, &addr);
-> -    if (!ACPI_SUCCESS(status))
-> -        return AE_OK;
-> +    memset(&addr, 0x00, sizeof(addr));
->
-> -    if (addr.resource_type == ACPI_MEMORY_RANGE) {
-> -        flags = IORESOURCE_MEM;
-> -        if (addr.info.mem.caching == ACPI_PREFETCHABLE_MEMORY)
-> -            flags |= IORESOURCE_PREFETCH;
-> -    } else if (addr.resource_type == ACPI_IO_RANGE) {
-> -        flags = IORESOURCE_IO;
-> -    } else
-> +    if (!(acpi_dev_resource_address_space_with_addr(acpi_res, &addr, res)
-> +        || acpi_dev_resource_memory(acpi_res, res)))
-
-acpi_dev_resource_address_space_with_addr(acpi_res, &addr, res)
-
-passing extra addr, just for translation_offset?
-
-maybe pass res_offset directly?
+>  	int ret;
+> Index: linux-pm/drivers/acpi/scan.c
+> ===================================================================
+> --- linux-pm.orig/drivers/acpi/scan.c
+> +++ linux-pm/drivers/acpi/scan.c
+> @@ -510,7 +510,8 @@ acpi_eject_store(struct device *d, struc
+>  	if (ACPI_FAILURE(status) || !acpi_device->flags.ejectable)
+>  		return -ENODEV;
+>  
+> -	mutex_lock(&acpi_scan_lock);
+> +	if (!mutex_trylock(&acpi_scan_lock))
+> +		return -EAGAIN;
+>  
+>  	if (acpi_device->flags.eject_pending) {
+>  		/* ACPI eject notification event. */
+> 
+> 
 
 
-
-
->          return AE_OK;
->
-> -    start = addr.minimum + addr.translation_offset;
-> -    orig_end = end = addr.maximum + addr.translation_offset;
-> +    start = res->start;
-> +    orig_end = end = res->end;
-
-Yinghai
