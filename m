@@ -1,105 +1,67 @@
 From: Tang Chen <tangchen@cn.fujitsu.com>
-Subject: [PATCH 01/11] memblock: Rename current_limit to current_limit_high in memblock.
-Date: Tue, 27 Aug 2013 17:37:38 +0800
-Message-ID: <1377596268-31552-2-git-send-email-tangchen@cn.fujitsu.com>
+Subject: [PATCH 04/11] memblock: Introduce memblock_set_current_limit_low() to set lower limit of memblock.
+Date: Tue, 27 Aug 2013 17:37:41 +0800
+Message-ID: <1377596268-31552-5-git-send-email-tangchen@cn.fujitsu.com>
 References: <1377596268-31552-1-git-send-email-tangchen@cn.fujitsu.com>
-Return-path: <owner-linux-mm@kvack.org>
+Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <1377596268-31552-1-git-send-email-tangchen@cn.fujitsu.com>
-Sender: owner-linux-mm@kvack.org
+Sender: linux-kernel-owner@vger.kernel.org
 To: rjw@sisk.pl, lenb@kernel.org, tglx@linutronix.de, mingo@elte.hu, hpa@zytor.com, akpm@linux-foundation.org, tj@kernel.org, trenn@suse.de, yinghai@kernel.org, jiang.liu@huawei.com, wency@cn.fujitsu.com, laijs@cn.fujitsu.com, isimatu.yasuaki@jp.fujitsu.com, izumi.taku@jp.fujitsu.com, mgorman@suse.de, minchan@kernel.org, mina86@mina86.com, gong.chen@linux.intel.com, vasilis.liaskovitis@profitbricks.com, lwoodman@redhat.com, riel@redhat.com, jweiner@redhat.com, prarit@redhat.com, zhangyanfei@cn.fujitsu.com
 Cc: x86@kernel.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-mm@kvack.org, linux-acpi@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-memblock.current_limit specifies the highest address that memblock
-could allocate. The next coming patches will introduce a lowest
-limit to memblock, so rename it to current_limit_high.
+Corresponding to memblock_set_current_limit_high(), we introduce memblock_set_current_limit_low()
+to set the lowest limit for memblock.
 
 Signed-off-by: Tang Chen <tangchen@cn.fujitsu.com>
 Reviewed-by: Zhang Yanfei <zhangyanfei@cn.fujitsu.com>
 ---
- include/linux/memblock.h |    2 +-
- mm/memblock.c            |   10 +++++-----
- mm/nobootmem.c           |    4 ++--
- 3 files changed, 8 insertions(+), 8 deletions(-)
+ include/linux/memblock.h |    9 ++++++++-
+ mm/memblock.c            |    5 +++++
+ 2 files changed, 13 insertions(+), 1 deletions(-)
 
 diff --git a/include/linux/memblock.h b/include/linux/memblock.h
-index f388203..f0c0a91 100644
+index 40eb18e..cabd685 100644
 --- a/include/linux/memblock.h
 +++ b/include/linux/memblock.h
-@@ -35,7 +35,7 @@ struct memblock_type {
- };
- 
- struct memblock {
--	phys_addr_t current_limit;
-+	phys_addr_t current_limit_high;	/* upper boundary of accessable range */
- 	struct memblock_type memory;
- 	struct memblock_type reserved;
- };
-diff --git a/mm/memblock.c b/mm/memblock.c
-index a847bfe..ff2226f 100644
---- a/mm/memblock.c
-+++ b/mm/memblock.c
-@@ -32,7 +32,7 @@ struct memblock memblock __initdata_memblock = {
- 	.reserved.cnt		= 1,	/* empty dummy entry */
- 	.reserved.max		= INIT_MEMBLOCK_REGIONS,
- 
--	.current_limit		= MEMBLOCK_ALLOC_ANYWHERE,
-+	.current_limit_high	= MEMBLOCK_ALLOC_ANYWHERE,
- };
- 
- int memblock_debug __initdata_memblock;
-@@ -104,7 +104,7 @@ phys_addr_t __init_memblock memblock_find_in_range_node(phys_addr_t start,
- 
- 	/* pump up @end */
- 	if (end == MEMBLOCK_ALLOC_ACCESSIBLE)
--		end = memblock.current_limit;
-+		end = memblock.current_limit_high;
- 
- 	/* avoid allocating the first page */
- 	start = max_t(phys_addr_t, start, PAGE_SIZE);
-@@ -240,11 +240,11 @@ static int __init_memblock memblock_double_array(struct memblock_type *type,
- 			new_area_start = new_area_size = 0;
- 
- 		addr = memblock_find_in_range(new_area_start + new_area_size,
--						memblock.current_limit,
-+						memblock.current_limit_high,
- 						new_alloc_size, PAGE_SIZE);
- 		if (!addr && new_area_size)
- 			addr = memblock_find_in_range(0,
--				min(new_area_start, memblock.current_limit),
-+				min(new_area_start, memblock.current_limit_high),
- 				new_alloc_size, PAGE_SIZE);
- 
- 		new_array = addr ? __va(addr) : NULL;
-@@ -979,7 +979,7 @@ void __init_memblock memblock_trim_memory(phys_addr_t align)
- 
- void __init_memblock memblock_set_current_limit(phys_addr_t limit)
- {
--	memblock.current_limit = limit;
-+	memblock.current_limit_high = limit;
+@@ -174,6 +174,14 @@ static inline void memblock_dump_all(void)
  }
  
- static void __init_memblock memblock_dump(struct memblock_type *type, char *name)
-diff --git a/mm/nobootmem.c b/mm/nobootmem.c
-index 61107cf..8cc163c 100644
---- a/mm/nobootmem.c
-+++ b/mm/nobootmem.c
-@@ -38,8 +38,8 @@ static void * __init __alloc_memory_core_early(int nid, u64 size, u64 align,
- 	void *ptr;
- 	u64 addr;
+ /**
++ * memblock_set_current_limit_low - Set the current allocation lower limit to
++ *                         allow limiting allocations to what is currently
++ *                         accessible during boot
++ * @limit: New lower limit value (physical address)
++ */
++void memblock_set_current_limit_low(phys_addr_t limit);
++
++/**
+  * memblock_set_current_limit_high - Set the current allocation upper limit to
+  *                         allow limiting allocations to what is currently
+  *                         accessible during boot
+@@ -181,7 +189,6 @@ static inline void memblock_dump_all(void)
+  */
+ void memblock_set_current_limit_high(phys_addr_t limit);
  
--	if (limit > memblock.current_limit)
--		limit = memblock.current_limit;
-+	if (limit > memblock.current_limit_high)
-+		limit = memblock.current_limit_high;
+-
+ /*
+  * pfn conversion functions
+  *
+diff --git a/mm/memblock.c b/mm/memblock.c
+index 0dd5387..54c1c2e 100644
+--- a/mm/memblock.c
++++ b/mm/memblock.c
+@@ -989,6 +989,11 @@ void __init_memblock memblock_trim_memory(phys_addr_t align)
+ 	}
+ }
  
- 	addr = memblock_find_in_range_node(goal, limit, size, align, nid);
- 	if (!addr)
++void __init_memblock memblock_set_current_limit_low(phys_addr_t limit)
++{
++	memblock.current_limit_low = limit;
++}
++
+ void __init_memblock memblock_set_current_limit_high(phys_addr_t limit)
+ {
+ 	memblock.current_limit_high = limit;
 -- 
 1.7.1
-
---
-To unsubscribe, send a message with 'unsubscribe linux-mm' in
-the body to majordomo@kvack.org.  For more info on Linux MM,
-see: http://www.linux-mm.org/ .
-Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
