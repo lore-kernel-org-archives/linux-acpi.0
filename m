@@ -1,48 +1,38 @@
 From: Toshi Kani <toshi.kani@hp.com>
-Subject: Re: [PATCH] driver core / ACPI: Avoid device removal locking
+Subject: Re: [PATCH 0/2] driver core / ACPI: Avoid device removal locking
  problems
-Date: Wed, 28 Aug 2013 10:55:41 -0600
-Message-ID: <1377708941.10300.855.camel@misato.fc.hp.com>
+Date: Wed, 28 Aug 2013 11:06:35 -0600
+Message-ID: <1377709595.10300.858.camel@misato.fc.hp.com>
 References: <1543475.L7gSB7lLAu@vostro.rjw.lan>
-	  <4785337.sqQqDSPcpL@vostro.rjw.lan> <3389643.Fdir3g6c6B@vostro.rjw.lan>
-	  <1430120.G7JdUKlgj6@vostro.rjw.lan> <521C6FA8.4070804@cn.fujitsu.com>
-	 <1377639529.10300.847.camel@misato.fc.hp.com>
-	 <521D5C80.7010904@cn.fujitsu.com>
+	 <20130828122422.GA18348@mtj.dyndns.org> <1592448.YZbpON5n7n@vostro.rjw.lan>
+	 <26495758.n1zOCiG3iV@vostro.rjw.lan>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <521D5C80.7010904@cn.fujitsu.com>
+In-Reply-To: <26495758.n1zOCiG3iV@vostro.rjw.lan>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Gu Zheng <guz.fnst@cn.fujitsu.com>
-Cc: "Rafael J. Wysocki" <rjw@sisk.pl>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, LKML <linux-kernel@vger.kernel.org>, Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>, Tejun Heo <tj@kernel.org>
+To: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Tejun Heo <tj@kernel.org>, Gu Zheng <guz.fnst@cn.fujitsu.com>, LKML <linux-kernel@vger.kernel.org>, Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
 List-Id: linux-acpi@vger.kernel.org
 
-On Wed, 2013-08-28 at 10:12 +0800, Gu Zheng wrote:
-> On 08/28/2013 05:38 AM, Toshi Kani wrote:
- :
-> >>
-> >> What about changing device_hotplug_lock and acpi_scan_lock to rwsem? like the
-> >> attached one(With a preliminary test, it also can make the splat go away).:)
-> > 
-> > I am curious how msleep(10) & restart_syscall() work in the change
-> > below.  Doesn't the msleep() make s_active held longer time, which can
-> > lead the thread holding device_hotplug_lock to wait it for deletion?
+On Wed, 2013-08-28 at 15:45 +0200, Rafael J. Wysocki wrote:
+> Hi All,
 > 
-> Yes, but it can avoid busy waiting. 
-
-I know, but it's kinda unfortunate to sleep with s_active held in this
-situation.  But I am fine with the 5ms Rafael used in this latest
-patchset since this is a rare case anyway.
-
-> > Also, does restart_syscall() release s_active and reopen this file
-> > again?
+> The following two patches are to address possible deadlocks related to
+> device removal and device sysfs attribute access.  In short, some device
+> sysfs attribute callbacks need to acquire locks that are also held around
+> device removal and that may lead to deadlocks with s_active draining in
+> sysfs_deactivate().
 > 
-> Sure, it just set a TIF_SIGPENDING flag and return an -ERESTARTNOINTR error, s_active/file
-> will be released/closed in the failed path. And when do_signal() catches the -ERESTARTNOINTR,
-> it will change the regs to restart the syscall.
+> [1/2] Avoid possible device removal deadlocks related to device_hotplug_lock.
+> [2/2] Rework the handling of containers by ACPI hotplug (which makes a possible
+>       device removal deadlock related to acpi_scan_lock go away).
 
-I see.  This is a clever functionality. 
+I like the simplicity of this version. :-)  I also agree to remove the
+eject_pending flag.  For the series:
+
+Acked-by: Toshi Kani <toshi.kani@hp.com>
 
 Thanks,
 -Toshi
