@@ -1,55 +1,72 @@
-From: Neil Horman <nhorman@tuxdriver.com>
-Subject: Re: [PATCH v3] ACPI: Fix osc flag setup ordering to allow pcie
- hotplug use when available
-Date: Tue, 27 Aug 2013 19:43:45 -0400
-Message-ID: <20130827234345.GA11187@neilslaptop.think-freely.org>
-References: <1377278379-9054-1-git-send-email-nhorman@tuxdriver.com>
- <1377531553-17716-1-git-send-email-nhorman@tuxdriver.com>
- <CAErSpo7tne+NvO-idW8Dt-9FZaGOHjTEDcQ8mC6K1PG6M=ftvg@mail.gmail.com>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: Re: [PATCH 08/11] x86, acpi, memblock: Use __memblock_alloc_base() in acpi_initrd_override()
+Date: Wed, 28 Aug 2013 02:04:06 +0200
+Message-ID: <1759942.sv9bkvgJVs@vostro.rjw.lan>
+References: <1377596268-31552-1-git-send-email-tangchen@cn.fujitsu.com> <1377596268-31552-9-git-send-email-tangchen@cn.fujitsu.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <CAErSpo7tne+NvO-idW8Dt-9FZaGOHjTEDcQ8mC6K1PG6M=ftvg@mail.gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Bjorn Helgaas <bhelgaas@google.com>
-Cc: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Len Brown <lenb@kernel.org>, "Rafael J. Wysocki" <rjw@sisk.pl>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>, Stefan Seyfried <stefan.seyfried@googlemail.com>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7Bit
+Return-path: <owner-linux-mm@kvack.org>
+In-Reply-To: <1377596268-31552-9-git-send-email-tangchen@cn.fujitsu.com>
+Sender: owner-linux-mm@kvack.org
+To: Tang Chen <tangchen@cn.fujitsu.com>
+Cc: lenb@kernel.org, tglx@linutronix.de, mingo@elte.hu, hpa@zytor.com, akpm@linux-foundation.org, tj@kernel.org, trenn@suse.de, yinghai@kernel.org, jiang.liu@huawei.com, wency@cn.fujitsu.com, laijs@cn.fujitsu.com, isimatu.yasuaki@jp.fujitsu.com, izumi.taku@jp.fujitsu.com, mgorman@suse.de, minchan@kernel.org, mina86@mina86.com, gong.chen@linux.intel.com, vasilis.liaskovitis@profitbricks.com, lwoodman@redhat.com, riel@redhat.com, jweiner@redhat.com, prarit@redhat.com, zhangyanfei@cn.fujitsu.com, x86@kernel.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-mm@kvack.org, linux-acpi@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Tue, Aug 27, 2013 at 03:34:11PM -0600, Bjorn Helgaas wrote:
-> [+cc Stefan]
+On Tuesday, August 27, 2013 05:37:45 PM Tang Chen wrote:
+> The current acpi_initrd_override() calls memblock_find_in_range() to allocate
+> memory, and pass 0 to %start, which will not limited by the current_limit_low.
 > 
-> On Mon, Aug 26, 2013 at 9:39 AM, Neil Horman <nhorman@tuxdriver.com> wrote:
-> > Somewhere between 3.9 and 3.10 it seems the order in which pcie and acpi probed
-> > slots for hotplug capabilites got reversed.  While this isn't a big deal, it did
-> > uncover a bug in the ACPI bus setup path.  Specifically, acpi_pci_root_add calls
-> > pci_acpi_scan_root before setting the osc flags for the device handle.
-> > pci_acpi_scan_root, among other things uses device_is_managed_by_native_pciehp()
-> > to determine if a given slot has pcie hotplug capabilties, whcih checks the
-> > devices OSC_PCI_EXPRESS_NATIVE_HP_CONTROL flag.  Since that flag is not set
-> > until after pci_acpi_scan_root_completes, the acpi code never sees that pcie
-> > slots are hotplug capable and configures them all to use acpi instead.
+> acpi_initrd_override()
+>  |->memblock_find_in_range(0, ...)
+>      |->memblock_find_in_range_node(0, ...)
 > 
-> I'd like to make it more explicit what we're fixing.  Apparently this
-> is a regression between v3.9 and v3.10.
+> When we want to allocate memory from the end of kernel image to higher memory,
+> we need to limit the lowest address to the end of kernel image.
 > 
-> Is this a fix for problems like
-> https://bugzilla.kernel.org/show_bug.cgi?id=60736 ?  That bug is that
-> an ExpressCard slot doesn't work unless we boot with
-> "acpiphp.disable=1".  I think what happens there is that acpiphp
-> claims the slot before we run _OSC, so pciehp doesn't claim it, even
-> though _OSC did grant us control over native PCIe hotplug.
+> We have modified memblock_alloc_base_nid() to call memblock_find_in_range_node()
+> with %start = MEMBLOCK_ALLOC_ACCESSIBLE, which means it will be limited by
+> current_limit_low. And __memblock_alloc_base() calls memblock_alloc_base_nid().
 > 
-Yes, that bug is precisely what I am trying to fix (although your wording above is
-inverted from the problem in the bug).  What happens is that acpiphp claims the
-pcie ports, because acpiphp init runs first, and we haven't yet parsed _OSC,
-which would have told acpiphp to yield control to pciehp.  The initial fix I
-proposed fixed this by parsing _OSC prior to running the acpiphp bus scan, but
-that reintroduced the problem of not handling pcie 1.1 aspm properly.  That has
-been fixed in v2/v3 by deferring the setting of aspm_disable until after the bus
-scan.
+> __memblock_alloc_base()
+>  |->memblock_alloc_base_nid()
+>      |->memblock_find_in_range_node(MEMBLOCK_ALLOC_ACCESSIBLE, ...)
+> 
+> So use __memblock_alloc_base() to allocate memory in acpi_initrd_override().
+> 
+> Signed-off-by: Tang Chen <tangchen@cn.fujitsu.com>
+> Reviewed-by: Zhang Yanfei <zhangyanfei@cn.fujitsu.com>
 
-Shall I submit a v4 with an updated changelog?
+Looks OK to me.
 
-Best
-Neil
+Acked-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+
+> ---
+>  drivers/acpi/osl.c |    4 ++--
+>  1 files changed, 2 insertions(+), 2 deletions(-)
+> 
+> diff --git a/drivers/acpi/osl.c b/drivers/acpi/osl.c
+> index fece767..1d68fc0 100644
+> --- a/drivers/acpi/osl.c
+> +++ b/drivers/acpi/osl.c
+> @@ -629,8 +629,8 @@ void __init acpi_initrd_override(void *data, size_t size)
+>  		return;
+>  
+>  	/* under 4G at first, then above 4G */
+> -	acpi_tables_addr = memblock_find_in_range(0, (1ULL<<32) - 1,
+> -					all_tables_size, PAGE_SIZE);
+> +	acpi_tables_addr = __memblock_alloc_base(all_tables_size,
+> +						 PAGE_SIZE, (1ULL<<32) - 1);
+>  	if (!acpi_tables_addr) {
+>  		WARN_ON(1);
+>  		return;
+> 
+-- 
+I speak only for myself.
+Rafael J. Wysocki, Intel Open Source Technology Center.
+
+--
+To unsubscribe, send a message with 'unsubscribe linux-mm' in
+the body to majordomo@kvack.org.  For more info on Linux MM,
+see: http://www.linux-mm.org/ .
+Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
