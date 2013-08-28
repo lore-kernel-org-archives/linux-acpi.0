@@ -1,1227 +1,527 @@
-From: Grant Likely <grant.likely-s3s/WqlpOiPyB63q8FvJNQ@public.gmane.org>
-Subject: Re: [PATCH V3] i2c: move of helpers into the core
-Date: Wed, 28 Aug 2013 20:24:05 +0100
-Message-ID: <20130828192405.EB8603E08D0@localhost>
-References: <1377187217-31820-1-git-send-email-wsa@the-dreams.de>
-Return-path: <linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1377187217-31820-1-git-send-email-wsa-z923LK4zBo2bacvFa/9K2g@public.gmane.org>
-Sender: linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: Wolfram Sang <wsa-z923LK4zBo2bacvFa/9K2g@public.gmane.org>, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-doc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linuxppc-dev-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org, dri-devel-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org, linux-tegra-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, davinci-linux-open-source-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-samsung-soc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-media-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devel-gWbeCf7V1WCQmaza687I9mD2FQJk+8+b@public.gmane.org, alsa-devel-K7yf7f+aM1XWsZ/bQMPhNw@public.gmane.org
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: ACPI and PM material for the first pull request during the 3.12 merge window
+Date: Wed, 28 Aug 2013 23:21:33 +0200
+Message-ID: <1814554.ztlaoUezxH@vostro.rjw.lan>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7Bit
+Return-path: <linux-pci-owner@vger.kernel.org>
+Sender: linux-pci-owner@vger.kernel.org
+To: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux PM list <linux-pm@vger.kernel.org>
+Cc: Linux PCI <linux-pci@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On Thu, 22 Aug 2013 18:00:14 +0200, Wolfram Sang <wsa-z923LK4zBo2bacvFa/9K2g@public.gmane.org> wrote:
-> I2C of helpers used to live in of_i2c.c but experience (from SPI) shows
-> that it is much cleaner to have this in the core. This also removes a
-> circular dependency between the helpers and the core, and so we can
-> finally register child nodes in the core instead of doing this manually
-> in each driver. So, fix the drivers and documentation, too.
-> 
-> Acked-by: Rob Herring <rob.herring-bsGFqQB8/DxBDgjK7y7TUQ@public.gmane.org>
-> Reviewed-by: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
-> Acked-by: Rafael J. Wysocki <rafael.j.wysocki-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-> Tested-by: Sylwester Nawrocki <s.nawrocki-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org>
-> Signed-off-by: Wolfram Sang <wsa-z923LK4zBo2bacvFa/9K2g@public.gmane.org>
+Hi All,
 
-Acked-by: Grant Likely <grant.likely-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
+Below is a list of commits that I've queued up for the first push during
+the upcoming 3.12 merge window.  Some of those commits are still under
+automated build testing, so there may be changes related to build glitches.
+I'm very unlikely to add anything more to this list except for fixes.
 
-> ---
-> 
-> V2->V3: Was trying to be too smart by only fixing includes needed.
-> 	Took a more general approach this time, converting of_i2c.h
-> 	to i2c.h in case i2c.h was not already there. Otherwise
-> 	remove it. Improved my build scripts and no build failures,
-> 	no complaints from buildbot as well.
-> 
-> 
->  Documentation/acpi/enumeration.txt              |    1 -
->  arch/powerpc/platforms/44x/warp.c               |    1 -
->  drivers/gpu/drm/tilcdc/tilcdc_slave.c           |    1 -
->  drivers/gpu/drm/tilcdc/tilcdc_tfp410.c          |    1 -
->  drivers/gpu/host1x/drm/output.c                 |    2 +-
->  drivers/i2c/busses/i2c-at91.c                   |    3 -
->  drivers/i2c/busses/i2c-cpm.c                    |    6 --
->  drivers/i2c/busses/i2c-davinci.c                |    2 -
->  drivers/i2c/busses/i2c-designware-platdrv.c     |    2 -
->  drivers/i2c/busses/i2c-gpio.c                   |    3 -
->  drivers/i2c/busses/i2c-i801.c                   |    2 -
->  drivers/i2c/busses/i2c-ibm_iic.c                |    4 -
->  drivers/i2c/busses/i2c-imx.c                    |    3 -
->  drivers/i2c/busses/i2c-mpc.c                    |    2 -
->  drivers/i2c/busses/i2c-mv64xxx.c                |    3 -
->  drivers/i2c/busses/i2c-mxs.c                    |    3 -
->  drivers/i2c/busses/i2c-nomadik.c                |    3 -
->  drivers/i2c/busses/i2c-ocores.c                 |    3 -
->  drivers/i2c/busses/i2c-octeon.c                 |    3 -
->  drivers/i2c/busses/i2c-omap.c                   |    3 -
->  drivers/i2c/busses/i2c-pnx.c                    |    3 -
->  drivers/i2c/busses/i2c-powermac.c               |    9 +-
->  drivers/i2c/busses/i2c-pxa.c                    |    2 -
->  drivers/i2c/busses/i2c-s3c2410.c                |    2 -
->  drivers/i2c/busses/i2c-sh_mobile.c              |    2 -
->  drivers/i2c/busses/i2c-sirf.c                   |    3 -
->  drivers/i2c/busses/i2c-stu300.c                 |    2 -
->  drivers/i2c/busses/i2c-tegra.c                  |    3 -
->  drivers/i2c/busses/i2c-versatile.c              |    2 -
->  drivers/i2c/busses/i2c-wmt.c                    |    3 -
->  drivers/i2c/busses/i2c-xiic.c                   |    3 -
->  drivers/i2c/i2c-core.c                          |  109 +++++++++++++++++++++-
->  drivers/i2c/i2c-mux.c                           |    3 -
->  drivers/i2c/muxes/i2c-arb-gpio-challenge.c      |    1 -
->  drivers/i2c/muxes/i2c-mux-gpio.c                |    1 -
->  drivers/i2c/muxes/i2c-mux-pinctrl.c             |    1 -
->  drivers/media/platform/exynos4-is/fimc-is-i2c.c |    4 +-
->  drivers/media/platform/exynos4-is/fimc-is.c     |    2 +-
->  drivers/media/platform/exynos4-is/media-dev.c   |    1 -
->  drivers/of/Kconfig                              |    6 --
->  drivers/of/Makefile                             |    1 -
->  drivers/of/of_i2c.c                             |  114 -----------------------
->  drivers/staging/imx-drm/imx-tve.c               |    2 +-
->  include/linux/i2c.h                             |   20 ++++
->  include/linux/of_i2c.h                          |   46 ---------
->  sound/soc/fsl/imx-sgtl5000.c                    |    2 +-
->  sound/soc/fsl/imx-wm8962.c                      |    2 +-
->  47 files changed, 138 insertions(+), 262 deletions(-)
->  delete mode 100644 drivers/of/of_i2c.c
->  delete mode 100644 include/linux/of_i2c.h
-> 
-> diff --git a/Documentation/acpi/enumeration.txt b/Documentation/acpi/enumeration.txt
-> index d9be7a9..958266e 100644
-> --- a/Documentation/acpi/enumeration.txt
-> +++ b/Documentation/acpi/enumeration.txt
-> @@ -238,7 +238,6 @@ An I2C bus (controller) driver does:
->  	if (ret)
->  		/* handle error */
->  
-> -	of_i2c_register_devices(adapter);
->  	/* Enumerate the slave devices behind this bus via ACPI */
->  	acpi_i2c_register_devices(adapter);
->  
-> diff --git a/arch/powerpc/platforms/44x/warp.c b/arch/powerpc/platforms/44x/warp.c
-> index 4cfa499..534574a 100644
-> --- a/arch/powerpc/platforms/44x/warp.c
-> +++ b/arch/powerpc/platforms/44x/warp.c
-> @@ -16,7 +16,6 @@
->  #include <linux/interrupt.h>
->  #include <linux/delay.h>
->  #include <linux/of_gpio.h>
-> -#include <linux/of_i2c.h>
->  #include <linux/slab.h>
->  #include <linux/export.h>
->  
-> diff --git a/drivers/gpu/drm/tilcdc/tilcdc_slave.c b/drivers/gpu/drm/tilcdc/tilcdc_slave.c
-> index dfffaf0..a19f657 100644
-> --- a/drivers/gpu/drm/tilcdc/tilcdc_slave.c
-> +++ b/drivers/gpu/drm/tilcdc/tilcdc_slave.c
-> @@ -16,7 +16,6 @@
->   */
->  
->  #include <linux/i2c.h>
-> -#include <linux/of_i2c.h>
->  #include <linux/pinctrl/pinmux.h>
->  #include <linux/pinctrl/consumer.h>
->  #include <drm/drm_encoder_slave.h>
-> diff --git a/drivers/gpu/drm/tilcdc/tilcdc_tfp410.c b/drivers/gpu/drm/tilcdc/tilcdc_tfp410.c
-> index 925c7cd..c38b56b 100644
-> --- a/drivers/gpu/drm/tilcdc/tilcdc_tfp410.c
-> +++ b/drivers/gpu/drm/tilcdc/tilcdc_tfp410.c
-> @@ -16,7 +16,6 @@
->   */
->  
->  #include <linux/i2c.h>
-> -#include <linux/of_i2c.h>
->  #include <linux/gpio.h>
->  #include <linux/of_gpio.h>
->  #include <linux/pinctrl/pinmux.h>
-> diff --git a/drivers/gpu/host1x/drm/output.c b/drivers/gpu/host1x/drm/output.c
-> index 8140fc6..137ae81 100644
-> --- a/drivers/gpu/host1x/drm/output.c
-> +++ b/drivers/gpu/host1x/drm/output.c
-> @@ -9,7 +9,7 @@
->  
->  #include <linux/module.h>
->  #include <linux/of_gpio.h>
-> -#include <linux/of_i2c.h>
-> +#include <linux/i2c.h>
->  
->  #include "drm.h"
->  
-> diff --git a/drivers/i2c/busses/i2c-at91.c b/drivers/i2c/busses/i2c-at91.c
-> index 6bb839b..fd05930 100644
-> --- a/drivers/i2c/busses/i2c-at91.c
-> +++ b/drivers/i2c/busses/i2c-at91.c
-> @@ -28,7 +28,6 @@
->  #include <linux/module.h>
->  #include <linux/of.h>
->  #include <linux/of_device.h>
-> -#include <linux/of_i2c.h>
->  #include <linux/platform_device.h>
->  #include <linux/slab.h>
->  #include <linux/platform_data/dma-atmel.h>
-> @@ -775,8 +774,6 @@ static int at91_twi_probe(struct platform_device *pdev)
->  		return rc;
->  	}
->  
-> -	of_i2c_register_devices(&dev->adapter);
-> -
->  	dev_info(dev->dev, "AT91 i2c bus driver.\n");
->  	return 0;
->  }
-> diff --git a/drivers/i2c/busses/i2c-cpm.c b/drivers/i2c/busses/i2c-cpm.c
-> index 2e1f7eb..b2b8aa9 100644
-> --- a/drivers/i2c/busses/i2c-cpm.c
-> +++ b/drivers/i2c/busses/i2c-cpm.c
-> @@ -42,7 +42,6 @@
->  #include <linux/dma-mapping.h>
->  #include <linux/of_device.h>
->  #include <linux/of_platform.h>
-> -#include <linux/of_i2c.h>
->  #include <sysdev/fsl_soc.h>
->  #include <asm/cpm.h>
->  
-> @@ -681,11 +680,6 @@ static int cpm_i2c_probe(struct platform_device *ofdev)
->  	dev_dbg(&ofdev->dev, "hw routines for %s registered.\n",
->  		cpm->adap.name);
->  
-> -	/*
-> -	 * register OF I2C devices
-> -	 */
-> -	of_i2c_register_devices(&cpm->adap);
-> -
->  	return 0;
->  out_shut:
->  	cpm_i2c_shutdown(cpm);
-> diff --git a/drivers/i2c/busses/i2c-davinci.c b/drivers/i2c/busses/i2c-davinci.c
-> index fa55605..62be3b3 100644
-> --- a/drivers/i2c/busses/i2c-davinci.c
-> +++ b/drivers/i2c/busses/i2c-davinci.c
-> @@ -38,7 +38,6 @@
->  #include <linux/slab.h>
->  #include <linux/cpufreq.h>
->  #include <linux/gpio.h>
-> -#include <linux/of_i2c.h>
->  #include <linux/of_device.h>
->  
->  #include <mach/hardware.h>
-> @@ -728,7 +727,6 @@ static int davinci_i2c_probe(struct platform_device *pdev)
->  		dev_err(&pdev->dev, "failure adding adapter\n");
->  		goto err_unuse_clocks;
->  	}
-> -	of_i2c_register_devices(adap);
->  
->  	return 0;
->  
-> diff --git a/drivers/i2c/busses/i2c-designware-platdrv.c b/drivers/i2c/busses/i2c-designware-platdrv.c
-> index 4c5fada..27ea436 100644
-> --- a/drivers/i2c/busses/i2c-designware-platdrv.c
-> +++ b/drivers/i2c/busses/i2c-designware-platdrv.c
-> @@ -35,7 +35,6 @@
->  #include <linux/err.h>
->  #include <linux/interrupt.h>
->  #include <linux/of.h>
-> -#include <linux/of_i2c.h>
->  #include <linux/platform_device.h>
->  #include <linux/pm.h>
->  #include <linux/pm_runtime.h>
-> @@ -172,7 +171,6 @@ static int dw_i2c_probe(struct platform_device *pdev)
->  		dev_err(&pdev->dev, "failure adding adapter\n");
->  		return r;
->  	}
-> -	of_i2c_register_devices(adap);
->  	acpi_i2c_register_devices(adap);
->  
->  	pm_runtime_set_autosuspend_delay(&pdev->dev, 1000);
-> diff --git a/drivers/i2c/busses/i2c-gpio.c b/drivers/i2c/busses/i2c-gpio.c
-> index bc6e139..e5da9fe 100644
-> --- a/drivers/i2c/busses/i2c-gpio.c
-> +++ b/drivers/i2c/busses/i2c-gpio.c
-> @@ -16,7 +16,6 @@
->  #include <linux/platform_device.h>
->  #include <linux/gpio.h>
->  #include <linux/of_gpio.h>
-> -#include <linux/of_i2c.h>
->  
->  struct i2c_gpio_private_data {
->  	struct i2c_adapter adap;
-> @@ -224,8 +223,6 @@ static int i2c_gpio_probe(struct platform_device *pdev)
->  	if (ret)
->  		goto err_add_bus;
->  
-> -	of_i2c_register_devices(adap);
-> -
->  	platform_set_drvdata(pdev, priv);
->  
->  	dev_info(&pdev->dev, "using pins %u (SDA) and %u (SCL%s)\n",
-> diff --git a/drivers/i2c/busses/i2c-i801.c b/drivers/i2c/busses/i2c-i801.c
-> index 4ebceed..4296d17 100644
-> --- a/drivers/i2c/busses/i2c-i801.c
-> +++ b/drivers/i2c/busses/i2c-i801.c
-> @@ -87,7 +87,6 @@
->  #include <linux/slab.h>
->  #include <linux/wait.h>
->  #include <linux/err.h>
-> -#include <linux/of_i2c.h>
->  
->  #if (defined CONFIG_I2C_MUX_GPIO || defined CONFIG_I2C_MUX_GPIO_MODULE) && \
->  		defined CONFIG_DMI
-> @@ -1230,7 +1229,6 @@ static int i801_probe(struct pci_dev *dev, const struct pci_device_id *id)
->  		goto exit_free_irq;
->  	}
->  
-> -	of_i2c_register_devices(&priv->adapter);
->  	i801_probe_optional_slaves(priv);
->  	/* We ignore errors - multiplexing is optional */
->  	i801_add_mux(priv);
-> diff --git a/drivers/i2c/busses/i2c-ibm_iic.c b/drivers/i2c/busses/i2c-ibm_iic.c
-> index 973f516..ff3caa0 100644
-> --- a/drivers/i2c/busses/i2c-ibm_iic.c
-> +++ b/drivers/i2c/busses/i2c-ibm_iic.c
-> @@ -42,7 +42,6 @@
->  #include <linux/io.h>
->  #include <linux/i2c.h>
->  #include <linux/of_platform.h>
-> -#include <linux/of_i2c.h>
->  
->  #include "i2c-ibm_iic.h"
->  
-> @@ -759,9 +758,6 @@ static int iic_probe(struct platform_device *ofdev)
->  	dev_info(&ofdev->dev, "using %s mode\n",
->  		 dev->fast_mode ? "fast (400 kHz)" : "standard (100 kHz)");
->  
-> -	/* Now register all the child nodes */
-> -	of_i2c_register_devices(adap);
-> -
->  	return 0;
->  
->  error_cleanup:
-> diff --git a/drivers/i2c/busses/i2c-imx.c b/drivers/i2c/busses/i2c-imx.c
-> index e242797..bbbea6b 100644
-> --- a/drivers/i2c/busses/i2c-imx.c
-> +++ b/drivers/i2c/busses/i2c-imx.c
-> @@ -50,7 +50,6 @@
->  #include <linux/slab.h>
->  #include <linux/of.h>
->  #include <linux/of_device.h>
-> -#include <linux/of_i2c.h>
->  #include <linux/platform_data/i2c-imx.h>
->  
->  /** Defines ********************************************************************
-> @@ -570,8 +569,6 @@ static int __init i2c_imx_probe(struct platform_device *pdev)
->  		return ret;
->  	}
->  
-> -	of_i2c_register_devices(&i2c_imx->adapter);
-> -
->  	/* Set up platform driver data */
->  	platform_set_drvdata(pdev, i2c_imx);
->  
-> diff --git a/drivers/i2c/busses/i2c-mpc.c b/drivers/i2c/busses/i2c-mpc.c
-> index 7607dc0..9f2513d 100644
-> --- a/drivers/i2c/busses/i2c-mpc.c
-> +++ b/drivers/i2c/busses/i2c-mpc.c
-> @@ -18,7 +18,6 @@
->  #include <linux/sched.h>
->  #include <linux/init.h>
->  #include <linux/of_platform.h>
-> -#include <linux/of_i2c.h>
->  #include <linux/slab.h>
->  
->  #include <linux/io.h>
-> @@ -691,7 +690,6 @@ static int fsl_i2c_probe(struct platform_device *op)
->  		dev_err(i2c->dev, "failed to add adapter\n");
->  		goto fail_add;
->  	}
-> -	of_i2c_register_devices(&i2c->adap);
->  
->  	return result;
->  
-> diff --git a/drivers/i2c/busses/i2c-mv64xxx.c b/drivers/i2c/busses/i2c-mv64xxx.c
-> index b1f42bf..8220322 100644
-> --- a/drivers/i2c/busses/i2c-mv64xxx.c
-> +++ b/drivers/i2c/busses/i2c-mv64xxx.c
-> @@ -21,7 +21,6 @@
->  #include <linux/of.h>
->  #include <linux/of_device.h>
->  #include <linux/of_irq.h>
-> -#include <linux/of_i2c.h>
->  #include <linux/clk.h>
->  #include <linux/err.h>
->  
-> @@ -689,8 +688,6 @@ mv64xxx_i2c_probe(struct platform_device *pd)
->  		goto exit_free_irq;
->  	}
->  
-> -	of_i2c_register_devices(&drv_data->adapter);
-> -
->  	return 0;
->  
->  exit_free_irq:
-> diff --git a/drivers/i2c/busses/i2c-mxs.c b/drivers/i2c/busses/i2c-mxs.c
-> index df8ff5a..62ed07d 100644
-> --- a/drivers/i2c/busses/i2c-mxs.c
-> +++ b/drivers/i2c/busses/i2c-mxs.c
-> @@ -27,7 +27,6 @@
->  #include <linux/stmp_device.h>
->  #include <linux/of.h>
->  #include <linux/of_device.h>
-> -#include <linux/of_i2c.h>
->  #include <linux/dma-mapping.h>
->  #include <linux/dmaengine.h>
->  
-> @@ -701,8 +700,6 @@ static int mxs_i2c_probe(struct platform_device *pdev)
->  		return err;
->  	}
->  
-> -	of_i2c_register_devices(adap);
-> -
->  	return 0;
->  }
->  
-> diff --git a/drivers/i2c/busses/i2c-nomadik.c b/drivers/i2c/busses/i2c-nomadik.c
-> index 512dfe6..519df17 100644
-> --- a/drivers/i2c/busses/i2c-nomadik.c
-> +++ b/drivers/i2c/busses/i2c-nomadik.c
-> @@ -24,7 +24,6 @@
->  #include <linux/pm_runtime.h>
->  #include <linux/platform_data/i2c-nomadik.h>
->  #include <linux/of.h>
-> -#include <linux/of_i2c.h>
->  #include <linux/pinctrl/consumer.h>
->  
->  #define DRIVER_NAME "nmk-i2c"
-> @@ -1045,8 +1044,6 @@ static int nmk_i2c_probe(struct amba_device *adev, const struct amba_id *id)
->  		goto err_add_adap;
->  	}
->  
-> -	of_i2c_register_devices(adap);
-> -
->  	pm_runtime_put(&adev->dev);
->  
->  	return 0;
-> diff --git a/drivers/i2c/busses/i2c-ocores.c b/drivers/i2c/busses/i2c-ocores.c
-> index 0e1f824..0a52b78 100644
-> --- a/drivers/i2c/busses/i2c-ocores.c
-> +++ b/drivers/i2c/busses/i2c-ocores.c
-> @@ -24,7 +24,6 @@
->  #include <linux/i2c-ocores.h>
->  #include <linux/slab.h>
->  #include <linux/io.h>
-> -#include <linux/of_i2c.h>
->  #include <linux/log2.h>
->  
->  struct ocores_i2c {
-> @@ -435,8 +434,6 @@ static int ocores_i2c_probe(struct platform_device *pdev)
->  	if (pdata) {
->  		for (i = 0; i < pdata->num_devices; i++)
->  			i2c_new_device(&i2c->adap, pdata->devices + i);
-> -	} else {
-> -		of_i2c_register_devices(&i2c->adap);
->  	}
->  
->  	return 0;
-> diff --git a/drivers/i2c/busses/i2c-octeon.c b/drivers/i2c/busses/i2c-octeon.c
-> index 956fe32..b929ba2 100644
-> --- a/drivers/i2c/busses/i2c-octeon.c
-> +++ b/drivers/i2c/busses/i2c-octeon.c
-> @@ -15,7 +15,6 @@
->  #include <linux/interrupt.h>
->  #include <linux/kernel.h>
->  #include <linux/module.h>
-> -#include <linux/of_i2c.h>
->  #include <linux/delay.h>
->  #include <linux/sched.h>
->  #include <linux/slab.h>
-> @@ -599,8 +598,6 @@ static int octeon_i2c_probe(struct platform_device *pdev)
->  	}
->  	dev_info(i2c->dev, "version %s\n", DRV_VERSION);
->  
-> -	of_i2c_register_devices(&i2c->adap);
-> -
->  	return 0;
->  
->  out:
-> diff --git a/drivers/i2c/busses/i2c-omap.c b/drivers/i2c/busses/i2c-omap.c
-> index 142b694d..a9f0f80 100644
-> --- a/drivers/i2c/busses/i2c-omap.c
-> +++ b/drivers/i2c/busses/i2c-omap.c
-> @@ -38,7 +38,6 @@
->  #include <linux/clk.h>
->  #include <linux/io.h>
->  #include <linux/of.h>
-> -#include <linux/of_i2c.h>
->  #include <linux/of_device.h>
->  #include <linux/slab.h>
->  #include <linux/i2c-omap.h>
-> @@ -1245,8 +1244,6 @@ omap_i2c_probe(struct platform_device *pdev)
->  	dev_info(dev->dev, "bus %d rev%d.%d at %d kHz\n", adap->nr,
->  		 major, minor, dev->speed);
->  
-> -	of_i2c_register_devices(adap);
-> -
->  	pm_runtime_mark_last_busy(dev->dev);
->  	pm_runtime_put_autosuspend(dev->dev);
->  
-> diff --git a/drivers/i2c/busses/i2c-pnx.c b/drivers/i2c/busses/i2c-pnx.c
-> index 5f39c6d..7b57d67 100644
-> --- a/drivers/i2c/busses/i2c-pnx.c
-> +++ b/drivers/i2c/busses/i2c-pnx.c
-> @@ -23,7 +23,6 @@
->  #include <linux/err.h>
->  #include <linux/clk.h>
->  #include <linux/slab.h>
-> -#include <linux/of_i2c.h>
->  
->  #define I2C_PNX_TIMEOUT_DEFAULT		10 /* msec */
->  #define I2C_PNX_SPEED_KHZ_DEFAULT	100
-> @@ -741,8 +740,6 @@ static int i2c_pnx_probe(struct platform_device *pdev)
->  		goto out_irq;
->  	}
->  
-> -	of_i2c_register_devices(&alg_data->adapter);
-> -
->  	dev_dbg(&pdev->dev, "%s: Master at %#8x, irq %d.\n",
->  		alg_data->adapter.name, res->start, alg_data->irq);
->  
-> diff --git a/drivers/i2c/busses/i2c-powermac.c b/drivers/i2c/busses/i2c-powermac.c
-> index 8dc90da..1010f2e 100644
-> --- a/drivers/i2c/busses/i2c-powermac.c
-> +++ b/drivers/i2c/busses/i2c-powermac.c
-> @@ -440,7 +440,9 @@ static int i2c_powermac_probe(struct platform_device *dev)
->  	adapter->algo = &i2c_powermac_algorithm;
->  	i2c_set_adapdata(adapter, bus);
->  	adapter->dev.parent = &dev->dev;
-> -	adapter->dev.of_node = dev->dev.of_node;
-> +
-> +	/* Clear of_node to skip automatic registration of i2c child nodes */
-> +	adapter->dev.of_node = NULL;
->  	rc = i2c_add_adapter(adapter);
->  	if (rc) {
->  		printk(KERN_ERR "i2c-powermac: Adapter %s registration "
-> @@ -450,9 +452,8 @@ static int i2c_powermac_probe(struct platform_device *dev)
->  
->  	printk(KERN_INFO "PowerMac i2c bus %s registered\n", adapter->name);
->  
-> -	/* Cannot use of_i2c_register_devices() due to Apple device-tree
-> -	 * funkyness
-> -	 */
-> +	/* Use custom child registration due to Apple device-tree funkyness */
-> +	adapter->dev.of_node = dev->dev.of_node;
->  	i2c_powermac_register_devices(adapter, bus);
->  
->  	return rc;
-> diff --git a/drivers/i2c/busses/i2c-pxa.c b/drivers/i2c/busses/i2c-pxa.c
-> index fbafed2..bc65014 100644
-> --- a/drivers/i2c/busses/i2c-pxa.c
-> +++ b/drivers/i2c/busses/i2c-pxa.c
-> @@ -31,7 +31,6 @@
->  #include <linux/i2c-pxa.h>
->  #include <linux/of.h>
->  #include <linux/of_device.h>
-> -#include <linux/of_i2c.h>
->  #include <linux/platform_device.h>
->  #include <linux/err.h>
->  #include <linux/clk.h>
-> @@ -1185,7 +1184,6 @@ static int i2c_pxa_probe(struct platform_device *dev)
->  		printk(KERN_INFO "I2C: Failed to add bus\n");
->  		goto eadapt;
->  	}
-> -	of_i2c_register_devices(&i2c->adap);
->  
->  	platform_set_drvdata(dev, i2c);
->  
-> diff --git a/drivers/i2c/busses/i2c-s3c2410.c b/drivers/i2c/busses/i2c-s3c2410.c
-> index cab1c91..643426e 100644
-> --- a/drivers/i2c/busses/i2c-s3c2410.c
-> +++ b/drivers/i2c/busses/i2c-s3c2410.c
-> @@ -36,7 +36,6 @@
->  #include <linux/cpufreq.h>
->  #include <linux/slab.h>
->  #include <linux/io.h>
-> -#include <linux/of_i2c.h>
->  #include <linux/of_gpio.h>
->  #include <linux/pinctrl/consumer.h>
->  
-> @@ -1154,7 +1153,6 @@ static int s3c24xx_i2c_probe(struct platform_device *pdev)
->  		return ret;
->  	}
->  
-> -	of_i2c_register_devices(&i2c->adap);
->  	platform_set_drvdata(pdev, i2c);
->  
->  	pm_runtime_enable(&pdev->dev);
-> diff --git a/drivers/i2c/busses/i2c-sh_mobile.c b/drivers/i2c/busses/i2c-sh_mobile.c
-> index debf745..aa1268f 100644
-> --- a/drivers/i2c/busses/i2c-sh_mobile.c
-> +++ b/drivers/i2c/busses/i2c-sh_mobile.c
-> @@ -27,7 +27,6 @@
->  #include <linux/platform_device.h>
->  #include <linux/interrupt.h>
->  #include <linux/i2c.h>
-> -#include <linux/of_i2c.h>
->  #include <linux/err.h>
->  #include <linux/pm_runtime.h>
->  #include <linux/clk.h>
-> @@ -758,7 +757,6 @@ static int sh_mobile_i2c_probe(struct platform_device *dev)
->  		 "I2C adapter %d with bus speed %lu Hz (L/H=%x/%x)\n",
->  		 adap->nr, pd->bus_speed, pd->iccl, pd->icch);
->  
-> -	of_i2c_register_devices(adap);
->  	return 0;
->  
->   err_all:
-> diff --git a/drivers/i2c/busses/i2c-sirf.c b/drivers/i2c/busses/i2c-sirf.c
-> index a63c7d5..0ff22e2 100644
-> --- a/drivers/i2c/busses/i2c-sirf.c
-> +++ b/drivers/i2c/busses/i2c-sirf.c
-> @@ -12,7 +12,6 @@
->  #include <linux/slab.h>
->  #include <linux/platform_device.h>
->  #include <linux/i2c.h>
-> -#include <linux/of_i2c.h>
->  #include <linux/clk.h>
->  #include <linux/err.h>
->  #include <linux/io.h>
-> @@ -366,8 +365,6 @@ static int i2c_sirfsoc_probe(struct platform_device *pdev)
->  
->  	clk_disable(clk);
->  
-> -	of_i2c_register_devices(adap);
-> -
->  	dev_info(&pdev->dev, " I2C adapter ready to operate\n");
->  
->  	return 0;
-> diff --git a/drivers/i2c/busses/i2c-stu300.c b/drivers/i2c/busses/i2c-stu300.c
-> index d1a6b20..047546c 100644
-> --- a/drivers/i2c/busses/i2c-stu300.c
-> +++ b/drivers/i2c/busses/i2c-stu300.c
-> @@ -17,7 +17,6 @@
->  #include <linux/clk.h>
->  #include <linux/io.h>
->  #include <linux/slab.h>
-> -#include <linux/of_i2c.h>
->  
->  /* the name of this kernel module */
->  #define NAME "stu300"
-> @@ -936,7 +935,6 @@ stu300_probe(struct platform_device *pdev)
->  	platform_set_drvdata(pdev, dev);
->  	dev_info(&pdev->dev, "ST DDC I2C @ %p, irq %d\n",
->  		 dev->virtbase, dev->irq);
-> -	of_i2c_register_devices(adap);
->  
->  	return 0;
->  }
-> diff --git a/drivers/i2c/busses/i2c-tegra.c b/drivers/i2c/busses/i2c-tegra.c
-> index 9aa1b60..c457cb4 100644
-> --- a/drivers/i2c/busses/i2c-tegra.c
-> +++ b/drivers/i2c/busses/i2c-tegra.c
-> @@ -25,7 +25,6 @@
->  #include <linux/interrupt.h>
->  #include <linux/delay.h>
->  #include <linux/slab.h>
-> -#include <linux/of_i2c.h>
->  #include <linux/of_device.h>
->  #include <linux/module.h>
->  #include <linux/clk/tegra.h>
-> @@ -802,8 +801,6 @@ static int tegra_i2c_probe(struct platform_device *pdev)
->  		return ret;
->  	}
->  
-> -	of_i2c_register_devices(&i2c_dev->adapter);
-> -
->  	return 0;
->  }
->  
-> diff --git a/drivers/i2c/busses/i2c-versatile.c b/drivers/i2c/busses/i2c-versatile.c
-> index f3a8790..6bb3a89 100644
-> --- a/drivers/i2c/busses/i2c-versatile.c
-> +++ b/drivers/i2c/busses/i2c-versatile.c
-> @@ -16,7 +16,6 @@
->  #include <linux/platform_device.h>
->  #include <linux/slab.h>
->  #include <linux/io.h>
-> -#include <linux/of_i2c.h>
->  
->  #define I2C_CONTROL	0x00
->  #define I2C_CONTROLS	0x00
-> @@ -108,7 +107,6 @@ static int i2c_versatile_probe(struct platform_device *dev)
->  	ret = i2c_bit_add_numbered_bus(&i2c->adap);
->  	if (ret >= 0) {
->  		platform_set_drvdata(dev, i2c);
-> -		of_i2c_register_devices(&i2c->adap);
->  		return 0;
->  	}
->  
-> diff --git a/drivers/i2c/busses/i2c-wmt.c b/drivers/i2c/busses/i2c-wmt.c
-> index baaa7d1..c65da3d 100644
-> --- a/drivers/i2c/busses/i2c-wmt.c
-> +++ b/drivers/i2c/busses/i2c-wmt.c
-> @@ -21,7 +21,6 @@
->  #include <linux/module.h>
->  #include <linux/of.h>
->  #include <linux/of_address.h>
-> -#include <linux/of_i2c.h>
->  #include <linux/of_irq.h>
->  #include <linux/platform_device.h>
->  
-> @@ -439,8 +438,6 @@ static int wmt_i2c_probe(struct platform_device *pdev)
->  
->  	platform_set_drvdata(pdev, i2c_dev);
->  
-> -	of_i2c_register_devices(adap);
-> -
->  	return 0;
->  }
->  
-> diff --git a/drivers/i2c/busses/i2c-xiic.c b/drivers/i2c/busses/i2c-xiic.c
-> index 3d0f052..8823db7 100644
-> --- a/drivers/i2c/busses/i2c-xiic.c
-> +++ b/drivers/i2c/busses/i2c-xiic.c
-> @@ -40,7 +40,6 @@
->  #include <linux/i2c-xiic.h>
->  #include <linux/io.h>
->  #include <linux/slab.h>
-> -#include <linux/of_i2c.h>
->  
->  #define DRIVER_NAME "xiic-i2c"
->  
-> @@ -752,8 +751,6 @@ static int xiic_i2c_probe(struct platform_device *pdev)
->  			i2c_new_device(&i2c->adap, pdata->devices + i);
->  	}
->  
-> -	of_i2c_register_devices(&i2c->adap);
-> -
->  	return 0;
->  
->  add_adapter_failed:
-> diff --git a/drivers/i2c/i2c-core.c b/drivers/i2c/i2c-core.c
-> index f32ca29..08ebd78 100644
-> --- a/drivers/i2c/i2c-core.c
-> +++ b/drivers/i2c/i2c-core.c
-> @@ -23,7 +23,11 @@
->     SMBus 2.0 support by Mark Studebaker <mdsxyz123-/E1597aS9LQAvxtiuMwx3w@public.gmane.org> and
->     Jean Delvare <khali-PUYAD+kWke1g9hUCZPvPmw@public.gmane.org>
->     Mux support by Rodolfo Giometti <giometti-AVVDYK/kqiJWk0Htik3J/w@public.gmane.org> and
-> -   Michael Lawnick <michael.lawnick.ext-OYasijW0DpE@public.gmane.org> */
-> +   Michael Lawnick <michael.lawnick.ext-OYasijW0DpE@public.gmane.org>
-> +   OF support is copyright (c) 2008 Jochen Friedrich <jochen-NIgtFMG+Po8@public.gmane.org>
-> +   (based on a previous patch from Jon Smirl <jonsmirl-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>) and
-> +   (c) 2013  Wolfram Sang <wsa-z923LK4zBo2bacvFa/9K2g@public.gmane.org>
-> + */
->  
->  #include <linux/module.h>
->  #include <linux/kernel.h>
-> @@ -35,7 +39,9 @@
->  #include <linux/init.h>
->  #include <linux/idr.h>
->  #include <linux/mutex.h>
-> +#include <linux/of.h>
->  #include <linux/of_device.h>
-> +#include <linux/of_irq.h>
->  #include <linux/completion.h>
->  #include <linux/hardirq.h>
->  #include <linux/irqflags.h>
-> @@ -954,6 +960,104 @@ static void i2c_scan_static_board_info(struct i2c_adapter *adapter)
->  	up_read(&__i2c_board_lock);
->  }
->  
-> +/* OF support code */
-> +
-> +#if IS_ENABLED(CONFIG_OF)
-> +static void of_i2c_register_devices(struct i2c_adapter *adap)
-> +{
-> +	void *result;
-> +	struct device_node *node;
-> +
-> +	/* Only register child devices if the adapter has a node pointer set */
-> +	if (!adap->dev.of_node)
-> +		return;
-> +
-> +	dev_dbg(&adap->dev, "of_i2c: walking child nodes\n");
-> +
-> +	for_each_available_child_of_node(adap->dev.of_node, node) {
-> +		struct i2c_board_info info = {};
-> +		struct dev_archdata dev_ad = {};
-> +		const __be32 *addr;
-> +		int len;
-> +
-> +		dev_dbg(&adap->dev, "of_i2c: register %s\n", node->full_name);
-> +
-> +		if (of_modalias_node(node, info.type, sizeof(info.type)) < 0) {
-> +			dev_err(&adap->dev, "of_i2c: modalias failure on %s\n",
-> +				node->full_name);
-> +			continue;
-> +		}
-> +
-> +		addr = of_get_property(node, "reg", &len);
-> +		if (!addr || (len < sizeof(int))) {
-> +			dev_err(&adap->dev, "of_i2c: invalid reg on %s\n",
-> +				node->full_name);
-> +			continue;
-> +		}
-> +
-> +		info.addr = be32_to_cpup(addr);
-> +		if (info.addr > (1 << 10) - 1) {
-> +			dev_err(&adap->dev, "of_i2c: invalid addr=%x on %s\n",
-> +				info.addr, node->full_name);
-> +			continue;
-> +		}
-> +
-> +		info.irq = irq_of_parse_and_map(node, 0);
-> +		info.of_node = of_node_get(node);
-> +		info.archdata = &dev_ad;
-> +
-> +		if (of_get_property(node, "wakeup-source", NULL))
-> +			info.flags |= I2C_CLIENT_WAKE;
-> +
-> +		request_module("%s%s", I2C_MODULE_PREFIX, info.type);
-> +
-> +		result = i2c_new_device(adap, &info);
-> +		if (result == NULL) {
-> +			dev_err(&adap->dev, "of_i2c: Failure registering %s\n",
-> +				node->full_name);
-> +			of_node_put(node);
-> +			irq_dispose_mapping(info.irq);
-> +			continue;
-> +		}
-> +	}
-> +}
-> +
-> +static int of_dev_node_match(struct device *dev, void *data)
-> +{
-> +	return dev->of_node == data;
-> +}
-> +
-> +/* must call put_device() when done with returned i2c_client device */
-> +struct i2c_client *of_find_i2c_device_by_node(struct device_node *node)
-> +{
-> +	struct device *dev;
-> +
-> +	dev = bus_find_device(&i2c_bus_type, NULL, node,
-> +					 of_dev_node_match);
-> +	if (!dev)
-> +		return NULL;
-> +
-> +	return i2c_verify_client(dev);
-> +}
-> +EXPORT_SYMBOL(of_find_i2c_device_by_node);
-> +
-> +/* must call put_device() when done with returned i2c_adapter device */
-> +struct i2c_adapter *of_find_i2c_adapter_by_node(struct device_node *node)
-> +{
-> +	struct device *dev;
-> +
-> +	dev = bus_find_device(&i2c_bus_type, NULL, node,
-> +					 of_dev_node_match);
-> +	if (!dev)
-> +		return NULL;
-> +
-> +	return i2c_verify_adapter(dev);
-> +}
-> +EXPORT_SYMBOL(of_find_i2c_adapter_by_node);
-> +#else
-> +static void of_i2c_register_devices(struct i2c_adapter *adap) { }
-> +#endif /* CONFIG_OF */
-> +
->  static int i2c_do_add_adapter(struct i2c_driver *driver,
->  			      struct i2c_adapter *adap)
->  {
-> @@ -1058,6 +1162,8 @@ static int i2c_register_adapter(struct i2c_adapter *adap)
->  
->  exit_recovery:
->  	/* create pre-declared device nodes */
-> +	of_i2c_register_devices(adap);
-> +
->  	if (adap->nr < __i2c_first_dynamic_bus_num)
->  		i2c_scan_static_board_info(adap);
->  
-> @@ -1282,7 +1388,6 @@ void i2c_del_adapter(struct i2c_adapter *adap)
->  }
->  EXPORT_SYMBOL(i2c_del_adapter);
->  
-> -
->  /* ------------------------------------------------------------------------- */
->  
->  int i2c_for_each_dev(void *data, int (*fn)(struct device *, void *))
-> diff --git a/drivers/i2c/i2c-mux.c b/drivers/i2c/i2c-mux.c
-> index 7409ebb..797e311 100644
-> --- a/drivers/i2c/i2c-mux.c
-> +++ b/drivers/i2c/i2c-mux.c
-> @@ -25,7 +25,6 @@
->  #include <linux/i2c.h>
->  #include <linux/i2c-mux.h>
->  #include <linux/of.h>
-> -#include <linux/of_i2c.h>
->  
->  /* multiplexer per channel data */
->  struct i2c_mux_priv {
-> @@ -185,8 +184,6 @@ struct i2c_adapter *i2c_add_mux_adapter(struct i2c_adapter *parent,
->  	dev_info(&parent->dev, "Added multiplexed i2c bus %d\n",
->  		 i2c_adapter_id(&priv->adap));
->  
-> -	of_i2c_register_devices(&priv->adap);
-> -
->  	return &priv->adap;
->  }
->  EXPORT_SYMBOL_GPL(i2c_add_mux_adapter);
-> diff --git a/drivers/i2c/muxes/i2c-arb-gpio-challenge.c b/drivers/i2c/muxes/i2c-arb-gpio-challenge.c
-> index 210b6f7..b901638 100644
-> --- a/drivers/i2c/muxes/i2c-arb-gpio-challenge.c
-> +++ b/drivers/i2c/muxes/i2c-arb-gpio-challenge.c
-> @@ -21,7 +21,6 @@
->  #include <linux/i2c-mux.h>
->  #include <linux/init.h>
->  #include <linux/module.h>
-> -#include <linux/of_i2c.h>
->  #include <linux/of_gpio.h>
->  #include <linux/platform_device.h>
->  #include <linux/slab.h>
-> diff --git a/drivers/i2c/muxes/i2c-mux-gpio.c b/drivers/i2c/muxes/i2c-mux-gpio.c
-> index 5a0ce00..128a981 100644
-> --- a/drivers/i2c/muxes/i2c-mux-gpio.c
-> +++ b/drivers/i2c/muxes/i2c-mux-gpio.c
-> @@ -16,7 +16,6 @@
->  #include <linux/module.h>
->  #include <linux/slab.h>
->  #include <linux/gpio.h>
-> -#include <linux/of_i2c.h>
->  #include <linux/of_gpio.h>
->  
->  struct gpiomux {
-> diff --git a/drivers/i2c/muxes/i2c-mux-pinctrl.c b/drivers/i2c/muxes/i2c-mux-pinctrl.c
-> index a43c0ce..859a6d2 100644
-> --- a/drivers/i2c/muxes/i2c-mux-pinctrl.c
-> +++ b/drivers/i2c/muxes/i2c-mux-pinctrl.c
-> @@ -20,7 +20,6 @@
->  #include <linux/i2c-mux.h>
->  #include <linux/init.h>
->  #include <linux/module.h>
-> -#include <linux/of_i2c.h>
->  #include <linux/pinctrl/consumer.h>
->  #include <linux/i2c-mux-pinctrl.h>
->  #include <linux/platform_device.h>
-> diff --git a/drivers/media/platform/exynos4-is/fimc-is-i2c.c b/drivers/media/platform/exynos4-is/fimc-is-i2c.c
-> index 617a798..9930556 100644
-> --- a/drivers/media/platform/exynos4-is/fimc-is-i2c.c
-> +++ b/drivers/media/platform/exynos4-is/fimc-is-i2c.c
-> @@ -12,7 +12,7 @@
->  
->  #include <linux/clk.h>
->  #include <linux/module.h>
-> -#include <linux/of_i2c.h>
-> +#include <linux/i2c.h>
->  #include <linux/platform_device.h>
->  #include <linux/pm_runtime.h>
->  #include <linux/slab.h>
-> @@ -67,8 +67,6 @@ static int fimc_is_i2c_probe(struct platform_device *pdev)
->  	pm_runtime_enable(&pdev->dev);
->  	pm_runtime_enable(&i2c_adap->dev);
->  
-> -	of_i2c_register_devices(i2c_adap);
-> -
->  	return 0;
->  }
->  
-> diff --git a/drivers/media/platform/exynos4-is/fimc-is.c b/drivers/media/platform/exynos4-is/fimc-is.c
-> index 967f6a9..2276fdc 100644
-> --- a/drivers/media/platform/exynos4-is/fimc-is.c
-> +++ b/drivers/media/platform/exynos4-is/fimc-is.c
-> @@ -21,7 +21,7 @@
->  #include <linux/interrupt.h>
->  #include <linux/kernel.h>
->  #include <linux/module.h>
-> -#include <linux/of_i2c.h>
-> +#include <linux/i2c.h>
->  #include <linux/of_irq.h>
->  #include <linux/of_address.h>
->  #include <linux/of_platform.h>
-> diff --git a/drivers/media/platform/exynos4-is/media-dev.c b/drivers/media/platform/exynos4-is/media-dev.c
-> index 19f556c..f8c66b4 100644
-> --- a/drivers/media/platform/exynos4-is/media-dev.c
-> +++ b/drivers/media/platform/exynos4-is/media-dev.c
-> @@ -20,7 +20,6 @@
->  #include <linux/of.h>
->  #include <linux/of_platform.h>
->  #include <linux/of_device.h>
-> -#include <linux/of_i2c.h>
->  #include <linux/platform_device.h>
->  #include <linux/pm_runtime.h>
->  #include <linux/types.h>
-> diff --git a/drivers/of/Kconfig b/drivers/of/Kconfig
-> index 80e5c13..78cc760 100644
-> --- a/drivers/of/Kconfig
-> +++ b/drivers/of/Kconfig
-> @@ -48,12 +48,6 @@ config OF_IRQ
->  	def_bool y
->  	depends on !SPARC
->  
-> -config OF_I2C
-> -	def_tristate I2C
-> -	depends on I2C
-> -	help
-> -	  OpenFirmware I2C accessors
-> -
->  config OF_NET
->  	depends on NETDEVICES
->  	def_bool y
-> diff --git a/drivers/of/Makefile b/drivers/of/Makefile
-> index 1f9c0c4..efd0510 100644
-> --- a/drivers/of/Makefile
-> +++ b/drivers/of/Makefile
-> @@ -3,7 +3,6 @@ obj-$(CONFIG_OF_FLATTREE) += fdt.o
->  obj-$(CONFIG_OF_PROMTREE) += pdt.o
->  obj-$(CONFIG_OF_ADDRESS)  += address.o
->  obj-$(CONFIG_OF_IRQ)    += irq.o
-> -obj-$(CONFIG_OF_I2C)	+= of_i2c.o
->  obj-$(CONFIG_OF_NET)	+= of_net.o
->  obj-$(CONFIG_OF_SELFTEST) += selftest.o
->  obj-$(CONFIG_OF_MDIO)	+= of_mdio.o
-> diff --git a/drivers/of/of_i2c.c b/drivers/of/of_i2c.c
-> deleted file mode 100644
-> index b667264..0000000
-> --- a/drivers/of/of_i2c.c
-> +++ /dev/null
-> @@ -1,114 +0,0 @@
-> -/*
-> - * OF helpers for the I2C API
-> - *
-> - * Copyright (c) 2008 Jochen Friedrich <jochen-NIgtFMG+Po8@public.gmane.org>
-> - *
-> - * Based on a previous patch from Jon Smirl <jonsmirl-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-> - *
-> - * This program is free software; you can redistribute it and/or modify
-> - * it under the terms of the GNU General Public License as published by
-> - * the Free Software Foundation; either version 2 of the License, or
-> - * (at your option) any later version.
-> - */
-> -
-> -#include <linux/i2c.h>
-> -#include <linux/irq.h>
-> -#include <linux/of.h>
-> -#include <linux/of_i2c.h>
-> -#include <linux/of_irq.h>
-> -#include <linux/module.h>
-> -
-> -void of_i2c_register_devices(struct i2c_adapter *adap)
-> -{
-> -	void *result;
-> -	struct device_node *node;
-> -
-> -	/* Only register child devices if the adapter has a node pointer set */
-> -	if (!adap->dev.of_node)
-> -		return;
-> -
-> -	dev_dbg(&adap->dev, "of_i2c: walking child nodes\n");
-> -
-> -	for_each_available_child_of_node(adap->dev.of_node, node) {
-> -		struct i2c_board_info info = {};
-> -		struct dev_archdata dev_ad = {};
-> -		const __be32 *addr;
-> -		int len;
-> -
-> -		dev_dbg(&adap->dev, "of_i2c: register %s\n", node->full_name);
-> -
-> -		if (of_modalias_node(node, info.type, sizeof(info.type)) < 0) {
-> -			dev_err(&adap->dev, "of_i2c: modalias failure on %s\n",
-> -				node->full_name);
-> -			continue;
-> -		}
-> -
-> -		addr = of_get_property(node, "reg", &len);
-> -		if (!addr || (len < sizeof(int))) {
-> -			dev_err(&adap->dev, "of_i2c: invalid reg on %s\n",
-> -				node->full_name);
-> -			continue;
-> -		}
-> -
-> -		info.addr = be32_to_cpup(addr);
-> -		if (info.addr > (1 << 10) - 1) {
-> -			dev_err(&adap->dev, "of_i2c: invalid addr=%x on %s\n",
-> -				info.addr, node->full_name);
-> -			continue;
-> -		}
-> -
-> -		info.irq = irq_of_parse_and_map(node, 0);
-> -		info.of_node = of_node_get(node);
-> -		info.archdata = &dev_ad;
-> -
-> -		if (of_get_property(node, "wakeup-source", NULL))
-> -			info.flags |= I2C_CLIENT_WAKE;
-> -
-> -		request_module("%s%s", I2C_MODULE_PREFIX, info.type);
-> -
-> -		result = i2c_new_device(adap, &info);
-> -		if (result == NULL) {
-> -			dev_err(&adap->dev, "of_i2c: Failure registering %s\n",
-> -			        node->full_name);
-> -			of_node_put(node);
-> -			irq_dispose_mapping(info.irq);
-> -			continue;
-> -		}
-> -	}
-> -}
-> -EXPORT_SYMBOL(of_i2c_register_devices);
-> -
-> -static int of_dev_node_match(struct device *dev, void *data)
-> -{
-> -        return dev->of_node == data;
-> -}
-> -
-> -/* must call put_device() when done with returned i2c_client device */
-> -struct i2c_client *of_find_i2c_device_by_node(struct device_node *node)
-> -{
-> -	struct device *dev;
-> -
-> -	dev = bus_find_device(&i2c_bus_type, NULL, node,
-> -					 of_dev_node_match);
-> -	if (!dev)
-> -		return NULL;
-> -
-> -	return i2c_verify_client(dev);
-> -}
-> -EXPORT_SYMBOL(of_find_i2c_device_by_node);
-> -
-> -/* must call put_device() when done with returned i2c_adapter device */
-> -struct i2c_adapter *of_find_i2c_adapter_by_node(struct device_node *node)
-> -{
-> -	struct device *dev;
-> -
-> -	dev = bus_find_device(&i2c_bus_type, NULL, node,
-> -					 of_dev_node_match);
-> -	if (!dev)
-> -		return NULL;
-> -
-> -	return i2c_verify_adapter(dev);
-> -}
-> -EXPORT_SYMBOL(of_find_i2c_adapter_by_node);
-> -
-> -MODULE_LICENSE("GPL");
-> diff --git a/drivers/staging/imx-drm/imx-tve.c b/drivers/staging/imx-drm/imx-tve.c
-> index a56797d..2d76fd4 100644
-> --- a/drivers/staging/imx-drm/imx-tve.c
-> +++ b/drivers/staging/imx-drm/imx-tve.c
-> @@ -21,7 +21,7 @@
->  #include <linux/clk.h>
->  #include <linux/clk-provider.h>
->  #include <linux/module.h>
-> -#include <linux/of_i2c.h>
-> +#include <linux/i2c.h>
->  #include <linux/regmap.h>
->  #include <linux/regulator/consumer.h>
->  #include <linux/spinlock.h>
-> diff --git a/include/linux/i2c.h b/include/linux/i2c.h
-> index e988fa9..2189189 100644
-> --- a/include/linux/i2c.h
-> +++ b/include/linux/i2c.h
-> @@ -542,6 +542,26 @@ static inline int i2c_adapter_id(struct i2c_adapter *adap)
->  
->  #endif /* I2C */
->  
-> +#if IS_ENABLED(CONFIG_OF)
-> +/* must call put_device() when done with returned i2c_client device */
-> +extern struct i2c_client *of_find_i2c_device_by_node(struct device_node *node);
-> +
-> +/* must call put_device() when done with returned i2c_adapter device */
-> +extern struct i2c_adapter *of_find_i2c_adapter_by_node(struct device_node *node);
-> +
-> +#else
-> +
-> +static inline struct i2c_client *of_find_i2c_device_by_node(struct device_node *node)
-> +{
-> +	return NULL;
-> +}
-> +
-> +static inline struct i2c_adapter *of_find_i2c_adapter_by_node(struct device_node *node)
-> +{
-> +	return NULL;
-> +}
-> +#endif /* CONFIG_OF */
-> +
->  #if IS_ENABLED(CONFIG_ACPI_I2C)
->  extern void acpi_i2c_register_devices(struct i2c_adapter *adap);
->  #else
-> diff --git a/include/linux/of_i2c.h b/include/linux/of_i2c.h
-> deleted file mode 100644
-> index cfb545c..0000000
-> --- a/include/linux/of_i2c.h
-> +++ /dev/null
-> @@ -1,46 +0,0 @@
-> -/*
-> - * Generic I2C API implementation for PowerPC.
-> - *
-> - * Copyright (c) 2008 Jochen Friedrich <jochen-NIgtFMG+Po8@public.gmane.org>
-> - *
-> - * This program is free software; you can redistribute it and/or modify
-> - * it under the terms of the GNU General Public License as published by
-> - * the Free Software Foundation; either version 2 of the License, or
-> - * (at your option) any later version.
-> - */
-> -
-> -#ifndef __LINUX_OF_I2C_H
-> -#define __LINUX_OF_I2C_H
-> -
-> -#if defined(CONFIG_OF_I2C) || defined(CONFIG_OF_I2C_MODULE)
-> -#include <linux/i2c.h>
-> -
-> -extern void of_i2c_register_devices(struct i2c_adapter *adap);
-> -
-> -/* must call put_device() when done with returned i2c_client device */
-> -extern struct i2c_client *of_find_i2c_device_by_node(struct device_node *node);
-> -
-> -/* must call put_device() when done with returned i2c_adapter device */
-> -extern struct i2c_adapter *of_find_i2c_adapter_by_node(
-> -						struct device_node *node);
-> -
-> -#else
-> -static inline void of_i2c_register_devices(struct i2c_adapter *adap)
-> -{
-> -	return;
-> -}
-> -
-> -static inline struct i2c_client *of_find_i2c_device_by_node(struct device_node *node)
-> -{
-> -	return NULL;
-> -}
-> -
-> -/* must call put_device() when done with returned i2c_adapter device */
-> -static inline struct i2c_adapter *of_find_i2c_adapter_by_node(
-> -						struct device_node *node)
-> -{
-> -	return NULL;
-> -}
-> -#endif /* CONFIG_OF_I2C */
-> -
-> -#endif /* __LINUX_OF_I2C_H */
-> diff --git a/sound/soc/fsl/imx-sgtl5000.c b/sound/soc/fsl/imx-sgtl5000.c
-> index 3f726e4..f2fbde9 100644
-> --- a/sound/soc/fsl/imx-sgtl5000.c
-> +++ b/sound/soc/fsl/imx-sgtl5000.c
-> @@ -13,7 +13,7 @@
->  #include <linux/module.h>
->  #include <linux/of.h>
->  #include <linux/of_platform.h>
-> -#include <linux/of_i2c.h>
-> +#include <linux/i2c.h>
->  #include <linux/clk.h>
->  #include <sound/soc.h>
->  
-> diff --git a/sound/soc/fsl/imx-wm8962.c b/sound/soc/fsl/imx-wm8962.c
-> index 52a36a9..9fd7a65 100644
-> --- a/sound/soc/fsl/imx-wm8962.c
-> +++ b/sound/soc/fsl/imx-wm8962.c
-> @@ -15,7 +15,7 @@
->  
->  #include <linux/module.h>
->  #include <linux/of_platform.h>
-> -#include <linux/of_i2c.h>
-> +#include <linux/i2c.h>
->  #include <linux/slab.h>
->  #include <linux/clk.h>
->  #include <sound/soc.h>
-> -- 
-> 1.7.10.4
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-kernel" in
-> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> Please read the FAQ at  http://www.tux.org/lkml/
+So, if you have a fix addressing a specific issue that you're reasonably
+confident about and you'd like it to be included into the first 3.12 push,
+please let me know ASAP.  Otherwise, please wait for 3.12-rc1 to be
+released and then submit your new material for 3.13.
+
+Of course, fixes that emerge during the merge window and later will be
+included into subsequent pull requests for 3.12, but I'll be traveling
+in the second half of September and the first week of October, so there
+may be (additional) delays in e-mail responses.
+
+Thanks,
+Rafael
+
+
+---------------
+
+Aaron Lu (2):
+      ACPI / PM: Remove redundant power manageable check from acpi_bus_set_power()
+      ACPI / PM: Add state information to error message in acpi_device_set_power()
+
+Amit Daniel Kachhap (1):
+      cpufreq: exynos5440: Fix to skip when new frequency same as current
+
+Bartlomiej Zolnierkiewicz (1):
+      cpufreq: fix EXYNOS drivers selection
+
+Ben Guthro (3):
+      ACPI / sleep: Introduce acpi_os_prepare_extended_sleep() for extended sleep path
+      xen / ACPI: notify xen when reduced hardware sleep is available
+      x86 / tboot / ACPI: Fail extended mode reduced hardware sleep
+
+Bob Moore (13):
+      ACPICA: Update comments about behavior when _STA does not exist
+      ACPICA: TableManager: Export acpi_tb_scan_memory_for_rsdp()
+      ACPICA: Disassembler: Expand maximum output string length to 64K
+      ACPICA: Remove restriction of 256 maximum GPEs in any GPE block
+      ACPICA: Update version to 20130626
+      ACPICA: Export acpi_tb_validate_rsdp().
+      ACPICA: Emit all unresolved method externals in a text block
+      ACPICA: DeRefOf operator: Update to fully resolve FieldUnit and BufferField refs.
+      ACPICA: Fix possible fault for methods that optionally have no return value.
+      ACPICA: Make ACPI Power Management Timer (PM Timer) optional.
+      ACPICA: Return error if DerefOf resolves to a null package element.
+      ACPICA: Update names for walk_namespace callbacks to clarify usage.
+      ACPICA: Update version to 20130725.
+
+Brandt, Todd E (1):
+      PM / Sleep: increase ftrace coverage in suspend/resume
+
+Colin Cross (3):
+      cpuidle: coupled: disable interrupts after entering safe state
+      cpuidle: coupled: abort idle if pokes are pending
+      cpuidle: coupled: fix race condition between pokes and safe state
+
+Daniel Lezcano (10):
+      cpuidle: Make it clear that governors cannot be modules
+      cpuidle: Check cpuidle_enable_device() return value
+      cpuidle: Fix white space to follow CodingStyle
+      cpuidle: Make cpuidle's sysfs directory dynamically allocated
+      cpuidle: Add missing forward declarations of structures
+      cpuidle: Introduce __cpuidle_unregister_device()
+      cpuidle: Introduce __cpuidle_device_init()
+      cpuidle: Check if device is already registered
+      ARM: davinci: cpuidle: Fix target residency
+      ARM: ux500: cpuidle: Move ux500 cpuidle driver to drivers/cpuidle
+
+Felipe Contreras (6):
+      ACPI / video: trivial costmetic cleanups
+      ACPI / video: trivial style cleanups
+      ACPI / video: remove unnecessary type casting
+      ACPI / video: drop unused fields from struct acpi_video_brightness_flags
+      ACPI: blacklist win8 OSI for ASUS Zenbook Prime UX31A
+      ACPI: blacklist win8 OSI for buggy laptops
+
+Geert Uytterhoeven (1):
+      SH: cpuidle: Add missing parameter for cpuidle_register()
+
+Hanjun Guo (6):
+      ACPI / dock: Fix __init attribute location in find_dock_and_bay()
+      ACPI / numa: Fix __init attribute location in slit_valid()
+      ACPI / osl: Fix osi_setup_entries[] __initdata attribute location
+      cpufreq / gx: Fix gx_detect_chipset() __init attribute location
+      cpufreq / pxa2xx: Fix pxa_cpufreq_init_voltages() __init attribute location
+      cpufreq / s3c24xx: Fix s3c_cpufreq_initclks() __init attribute location
+
+Jiang Liu (10):
+      ACPI / dock: avoid initializing acpi_dock_notifier_list multiple times
+      ACPI / dock: drop redundant spin lock in dock station object
+      ACPI / dock: mark initialization functions with __init
+      ACPI / dock: simplify dock_create_acpi_device()
+      ACPI: introduce helper function acpi_has_method()
+      ACPI: introduce helper function acpi_execute_simple_method()
+      ACPI: introduce two helper functions for _EJ0 and _LCK
+      ACPI: Export acpi_(bay)|(dock)_match() from scan.c
+      ACPI: simplify dock driver with new helper functions
+      ACPI: simplify acpiphp driver with new helper functions
+
+Jingoo Han (3):
+      cpuidle: calxeda: Add missing __iomem annotation
+      cpuidle: kirkwood: Make kirkwood_cpuidle_remove function static
+      cpufreq: unicore2: Staticize local symbol
+
+Joseph Lo (1):
+      cpufreq: tegra: fix the wrong clock name
+
+Julia Lawall (2):
+      cpuidle-kirkwood.c: simplify use of devm_ioremap_resource()
+      pxa3xx-cpufreq.c: Avoid using ARRAY_AND_SIZE(e) as a function argument
+
+Jung-uk Kim (1):
+      ACPICA: Fix compiler warnings for casting issues (only some compilers)
+
+Kirill A. Shutemov (2):
+      ACPI / hotplug / PCI: Do not check SLOT_ENABLED in enable_device()
+      ACPI / hotplug / PCI: Allow slots without new devices to be rescanned
+
+Kuppuswamy Sathyanarayanan (1):
+      ACPI / scan: Allow platform device creation without any IO resources
+
+Lan Tianyu (8):
+      PCI / ACPI: Use dev_dbg() instead of dev_info() in acpi_pci_set_power_state()
+      ACPI / processor: Remove acpi_processor_get_limit_info()
+      acpi-cpufreq: Use cpufreq_freq_attr_rw to define the cpb attribute
+      ACPI / thermal: Remove the unused lock of struct acpi_thermal
+      ACPI / thermal: Remove unused macros in the driver/acpi/thermal.c
+      ACPI / thermal: Use THERMAL_TRIPS_NONE macro to replace number
+      ACPI / thermal: Add check of "_TZD" availability and evaluating result
+      ACPI / EC: Add ASUSTEK L4R to quirk list in order to validate ECDT
+
+Li Zhong (1):
+      cpufreq: fix bad unlock balance on !CONFIG_SMP
+
+Linus Walleij (2):
+      ARM: ux500: cpuidle: Instantiate the driver from platform device
+      ARM: ux500: cpuidle: Remove pointless include
+
+Lukasz Majewski (1):
+      cpufreq: Store cpufreq policies in a list
+
+Lv Zheng (5):
+      ACPICA: Add acpi_update_interfaces() public interface
+      ACPI: Add facility to disable all _OSI OS vendor strings
+      ACPI: Add facility to remove all _OSI strings
+      ACPI: Cleanup sparse warning on acpi_os_initialize1()
+      ACPICA: Fix divergences of the commit - ACPICA: Expose OSI version.
+
+Mark Brown (1):
+      cpufreq: cpufreq-cpu0: NULL is a valid regulator
+
+Mika Westerberg (5):
+      x86 / PCI: prevent re-allocation of already existing bridge and ROM resources
+      ACPI / hotplug / PCI: Consolidate slot disabling and ejecting
+      ACPI / hotplug / PCI: Get rid of unused constants in acpiphp.h
+      ACPI / hotplug / PCI: Sanitize acpiphp_get_(latch)|(adapter)_status()
+      ACPI / hotplug / PCI: Get rid of check_sub_bridges()
+
+Rafael J. Wysocki (54):
+      ACPI / dock: Drop the hp_lock mutex from struct dock_station
+      ACPI / dock: Rework and simplify find_dock_devices()
+      ACPI / dock: Walk list in reverse order during removal of devices
+      ACPI / dock: Simplify dock_init_hotplug() and dock_release_hotplug()
+      ACPI / dock: Rework the handling of notifications
+      ACPI: Drop ACPI bus notifier call chain
+      ACPI / dock: Do not leak memory on falilures to add a dock station
+      ACPI / dock: Do not check CONFIG_ACPI_DOCK_MODULE
+      ACPI / dock / PCI: Drop ACPI dock notifier chain
+      ACPI / dock: Drop unnecessary local variable from dock_add()
+      ACPI / PCI: Make bus registration and unregistration symmetric
+      ACPI / hotplug / PCI: Consolidate acpiphp_enumerate_slots()
+      ACPI / hotplug / PCI: Always return success after adding a function
+      ACPI / hotplug / PCI: Hotplug context objects for bridges and functions
+      ACPI / hotplug / PCI: Unified notify handler for hotplug events
+      ACPI / hotplug / PCI: Rework acpiphp_handle_to_bridge()
+      ACPI / hotplug / PCI: Pass hotplug context objects to event handlers
+      ACPI / hotplug / PCI: Merge hotplug event handling functions
+      ACPI / hotplug / PCI: Drop func field from struct acpiphp_bridge
+      ACPI / hotplug / PCI: Refactor slot allocation code in register_slot()
+      ACPI / hotplug / PCI: Register all devices under the given bridge
+      ACPI / hotplug / PCI: Drop sun field from struct acpiphp_slot
+      ACPI / hotplug / PCI: Drop flags field from struct acpiphp_bridge
+      ACPI / hotplug / PCI: Embed function struct into struct acpiphp_context
+      ACPI / hotplug / PCI: Drop handle field from struct acpiphp_func
+      ACPI / hotplug / PCI: Drop handle field from struct acpiphp_bridge
+      ACPI / hotplug / PCI: Store parent in functions and bus in slots
+      ACPI / hotplug / PCI: Rework namespace scanning and trimming routines
+      ACPI / hotplug / PCI: Drop redundant checks from check_hotplug_bridge()
+      ACPI / hotplug / PCI: Do not queue up event handling work items in vain
+      ACPI / hotplug / PCI: Do not exectute _PS0 and _PS3 directly
+      ACPI / hotplug / PCI: Check for new devices on enabled slots
+      ACPI / hotplug / PCI: Redefine enable_device() and disable_device()
+      ACPI / hotplug / PCI: Clean up bridge_mutex usage
+      ACPI / PM: Only set power states of devices that are power manageable
+      ACPI / PM: Make messages in acpi_device_set_power() print device names
+      ACPI / PM: Use ACPI_STATE_D3_COLD instead of ACPI_STATE_D3 everywhere
+      ACPI: Move acpi_bus_get_device() from bus.c to scan.c
+      ACPI / scan: Drop unnecessary label from acpi_create_platform_device()
+      cpufreq: Do not hold driver module references for additional policy CPUs
+      cpufreq: Avoid double kobject_put() for the same kobject in error code path
+      ACPI: Do not fail acpi_bind_one() if device is already bound correctly
+      ACPI: Reduce acpi_bind_one()/acpi_unbind_one() code duplication
+      ACPI: Create symlinks in acpi_bind_one() under physical_node_lock
+      ACPI: acpi_bind_one()/acpi_unbind_one() whitespace cleanups
+      ACPI: Use list_for_each_entry() in acpi_unbind_one()
+      ACPI: Clean up error code path in acpi_unbind_one()
+      ACPI: Drop unnecessary label from acpi_bind_one()
+      ACPI: Print diagnostic messages if device links cannot be created
+      ACPI / hotplug / PCI: Fix NULL pointer dereference in cleanup_bridge()
+      Revert "cpufreq: Use cpufreq_policy_list for iterating over policies"
+      ACPI / PM: Hold acpi_scan_lock over system PM transitions
+      driver core / ACPI: Avoid device hot remove locking issues
+      ACPI / hotplug: Remove containers synchronously
+
+Sachin Kamat (3):
+      ACPI / EC: Fix incorrect placement of __initdata
+      ACPI / processor: Fix incorrect placement of __initdata
+      ACPI / Sleep: Fix incorrect placement of __initdata
+
+Sahara (1):
+      cpuidle: Add Kconfig.arm and move calxeda, kirkwood and zynq
+
+Sascha Hauer (1):
+      cpufreq: imx6q: Fix clock enable balance
+
+Shuah Khan (2):
+      PM / Sleep: new trace event to print device suspend and resume times
+      PNP: convert PNP driver bus legacy pm_ops to dev_pm_ops
+
+Srivatsa S. Bhat (7):
+      cpufreq: Fix misplaced call to cpufreq_update_policy()
+      cpufreq: Add helper to perform alloc/free of policy structure
+      cpufreq: Extract non-interface related stuff from cpufreq_add_dev_interface
+      cpufreq: Extract the handover of policy cpu to a helper function
+      cpufreq: Introduce a flag ('frozen') to separate full vs temporary init/teardown
+      cpufreq: Preserve policy structure across suspend/resume
+      cpufreq: Perform light-weight init/teardown during suspend/resume
+
+Stephen Boyd (1):
+      cpufreq: Fix timer/workqueue corruption due to double queueing
+
+Stratos Karafotis (5):
+      cpufreq: ondemand: Change the calculation of target frequency
+      cpufreq: Remove unused APERF/MPERF support
+      cpufreq: Remove unused function __cpufreq_driver_getavg()
+      cpufreq: governors: Remove duplicate check of target freq in supported range
+      cpufreq: governor: Fix typos in comments
+
+Sudeep KarkadaNagesha (19):
+      microblaze: remove undefined of_get_cpu_node declaration
+      openrisc: remove undefined of_get_cpu_node declaration
+      powerpc: refactor of_get_cpu_node to support other architectures
+      of: move of_get_cpu_node implementation to DT core library
+      ARM: DT/kernel: define ARM specific arch_match_cpu_phys_id
+      driver/core: cpu: initialize of_node in cpu's device struture
+      of/device: add helper to get cpu device node from logical cpu index
+      ARM: topology: remove hwid/MPIDR dependency from cpu_capacity
+      ARM: mvebu: remove device tree parsing for cpu nodes
+      drivers/bus: arm-cci: avoid parsing DT for cpu device nodes
+      cpufreq: imx6q-cpufreq: remove device tree parsing for cpu nodes
+      cpufreq: cpufreq-cpu0: remove device tree parsing for cpu nodes
+      cpufreq: highbank-cpufreq: remove device tree parsing for cpu nodes
+      cpufreq: spear-cpufreq: remove device tree parsing for cpu nodes
+      cpufreq: kirkwood-cpufreq: remove device tree parsing for cpu nodes
+      cpufreq: arm_big_little: remove device tree parsing for cpu nodes
+      cpufreq: maple-cpufreq: remove device tree parsing for cpu nodes
+      cpufreq: pmac64-cpufreq: remove device tree parsing for cpu nodes
+      cpufreq: pmac32-cpufreq: remove device tree parsing for cpu nodes
+
+Tang Chen (3):
+      ACPI / x86: Print Hot-Pluggable Field in SRAT.
+      earlycpio.c: Fix the confusing comment of find_cpio_data().
+      ACPI / osl: Kill macro INVALID_TABLE().
+
+Thomas Renninger (2):
+      ACPI: Remove the old /proc/acpi/event interface
+      platform / thinkpad: Remove deprecated hotkey_report_mode parameter
+
+Toshi Kani (1):
+      ACPI / processor: Acquire writer lock to update CPU maps
+
+Tuukka Tikkanen (8):
+      cpuidle: Ignore interval prediction result when timer is shorter
+      cpuidle: Rearrange code and comments in get_typical_interval()
+      cpuidle: Check called function parameter in get_typical_interval()
+      cpuidle: CodingStyle: Break up multiple assignments on single line
+      cpuidle: Fix menu_device->intervals type
+      cpuidle: Fix variable domains in get_typical_interval()
+      cpuidle: Add a comment warning about possible overflow
+      cpuidle: Change struct menu_device field types
+
+Viresh Kumar (18):
+      PM / OPP: Export opp_add()
+      cpufreq: Remove extra variables from cpufreq_add_dev_symlink()
+      cpufreq: Don't pass CPU to cpufreq_add_dev_{symlink|interface}()
+      cpufreq: Pass policy to cpufreq_add_policy_cpu()
+      cpufreq: Clean up header files included in the core
+      cpufreq: Re-arrange declarations in cpufreq.h
+      cpufreq: Give consistent names to cpufreq_policy objects
+      cpufreq: Use sizeof(*ptr) convetion for computing sizes
+      cpufreq: Use cpufreq_policy_list for iterating over policies
+      cpufreq: Fix broken usage of governor->owner's refcount
+      cpufreq: Use rwsem for protecting critical sections
+      cpufreq: Drop the owner field from struct cpufreq_driver
+      cpufreq: improve error checking on return values of __cpufreq_governor()
+      cpufreq: Fix white space in __cpufreq_remove_dev()
+      cpufreq: remove policy from cpufreq_policy_list during suspend
+      cpufreq: remove unnecessary check in __cpufreq_governor()
+      cpufreq: remove cpufreq_policy_cpu per-cpu variable
+      cpufreq: Use cpufreq_policy_list for iterating over policies
+
+Wei Yongjun (1):
+      ACPI / dock: fix error return code in dock_add()
+
+---------------
+
+ Documentation/cpu-freq/cpu-drivers.txt             |    2 -
+ Documentation/kernel-parameters.txt                |   55 +-
+ Documentation/laptops/asus-laptop.txt              |    8 +-
+ Documentation/laptops/sony-laptop.txt              |    8 +-
+ Documentation/laptops/thinkpad-acpi.txt            |   73 +-
+ arch/arm/kernel/devtree.c                          |    5 +
+ arch/arm/kernel/topology.c                         |   61 +-
+ arch/arm/mach-davinci/cpuidle.c                    |    2 +-
+ arch/arm/mach-imx/mach-imx6q.c                     |    3 +-
+ arch/arm/mach-mvebu/platsmp.c                      |   51 +-
+ arch/arm/mach-ux500/Makefile                       |    1 -
+ arch/microblaze/include/asm/prom.h                 |    3 -
+ arch/openrisc/include/asm/prom.h                   |    3 -
+ arch/powerpc/include/asm/prom.h                    |    3 -
+ arch/powerpc/kernel/prom.c                         |   43 +-
+ arch/sh/kernel/cpu/shmobile/cpuidle.c              |    4 +-
+ arch/x86/include/asm/processor.h                   |   29 -
+ arch/x86/kernel/tboot.c                            |   10 +
+ arch/x86/mm/srat.c                                 |   11 +-
+ arch/x86/pci/i386.c                                |    4 +
+ drivers/acpi/Kconfig                               |   18 -
+ drivers/acpi/ac.c                                  |    1 -
+ drivers/acpi/acpi_pad.c                            |    1 -
+ drivers/acpi/acpi_platform.c                       |   24 +-
+ drivers/acpi/acpi_processor.c                      |   21 +-
+ drivers/acpi/acpica/acglobal.h                     |    7 +-
+ drivers/acpi/acpica/aclocal.h                      |    4 +
+ drivers/acpi/acpica/acnamesp.h                     |    4 +-
+ drivers/acpi/acpica/actables.h                     |    7 +
+ drivers/acpi/acpica/acutils.h                      |    4 +-
+ drivers/acpi/acpica/evgpeinit.c                    |   11 -
+ drivers/acpi/acpica/exdump.c                       |    6 +-
+ drivers/acpi/acpica/exoparg1.c                     |   48 +-
+ drivers/acpi/acpica/hwesleep.c                     |    9 +
+ drivers/acpi/acpica/hwtimer.c                      |   13 +-
+ drivers/acpi/acpica/nspredef.c                     |   16 +-
+ drivers/acpi/acpica/nswalk.c                       |   26 +-
+ drivers/acpi/acpica/nsxfeval.c                     |   16 +-
+ drivers/acpi/acpica/nsxfname.c                     |   11 +-
+ drivers/acpi/acpica/tbfadt.c                       |    4 +-
+ drivers/acpi/acpica/tbxfroot.c                     |   12 +-
+ drivers/acpi/acpica/uteval.c                       |    8 +-
+ drivers/acpi/acpica/utglobal.c                     |    1 -
+ drivers/acpi/acpica/utosi.c                        |   77 +-
+ drivers/acpi/acpica/utstring.c                     |    5 +-
+ drivers/acpi/acpica/utxface.c                      |   29 +
+ drivers/acpi/battery.c                             |   21 +-
+ drivers/acpi/blacklist.c                           |   30 +
+ drivers/acpi/bus.c                                 |  142 +--
+ drivers/acpi/button.c                              |    2 -
+ drivers/acpi/device_pm.c                           |   34 +-
+ drivers/acpi/dock.c                                |  400 +++-----
+ drivers/acpi/ec.c                                  |   10 +-
+ drivers/acpi/event.c                               |  106 --
+ drivers/acpi/fan.c                                 |    4 +-
+ drivers/acpi/glue.c                                |   91 +-
+ drivers/acpi/internal.h                            |    1 +
+ drivers/acpi/numa.c                                |    2 +-
+ drivers/acpi/osl.c                                 |   86 +-
+ drivers/acpi/pci_slot.c                            |   14 +-
+ drivers/acpi/power.c                               |    6 +-
+ drivers/acpi/processor_core.c                      |    2 +-
+ drivers/acpi/processor_driver.c                    |    8 +-
+ drivers/acpi/processor_perflib.c                   |   22 +-
+ drivers/acpi/processor_thermal.c                   |   12 -
+ drivers/acpi/resource.c                            |    4 +-
+ drivers/acpi/sbs.c                                 |   15 +-
+ drivers/acpi/scan.c                                |  272 ++---
+ drivers/acpi/sleep.c                               |   48 +-
+ drivers/acpi/thermal.c                             |   49 +-
+ drivers/acpi/utils.c                               |   70 ++
+ drivers/acpi/video.c                               |  246 ++---
+ drivers/acpi/video_detect.c                        |   19 +-
+ drivers/ata/libata-acpi.c                          |    4 +-
+ drivers/base/core.c                                |   43 +-
+ drivers/base/cpu.c                                 |    2 +
+ drivers/base/memory.c                              |    4 +-
+ drivers/base/power/main.c                          |   77 +-
+ drivers/base/power/opp.c                           |    1 +
+ drivers/bus/arm-cci.c                              |   28 +-
+ drivers/char/sonypi.c                              |    5 -
+ drivers/cpufreq/Kconfig.arm                        |   36 +-
+ drivers/cpufreq/Makefile                           |    2 +-
+ drivers/cpufreq/acpi-cpufreq.c                     |   12 +-
+ drivers/cpufreq/arm_big_little_dt.c                |   40 +-
+ drivers/cpufreq/at32ap-cpufreq.c                   |    1 -
+ drivers/cpufreq/blackfin-cpufreq.c                 |    1 -
+ drivers/cpufreq/cpufreq-cpu0.c                     |   32 +-
+ drivers/cpufreq/cpufreq-nforce2.c                  |    1 -
+ drivers/cpufreq/cpufreq.c                          |  738 +++++++-------
+ drivers/cpufreq/cpufreq_conservative.c             |   18 +-
+ drivers/cpufreq/cpufreq_governor.c                 |   21 +-
+ drivers/cpufreq/cpufreq_governor.h                 |   20 +-
+ drivers/cpufreq/cpufreq_ondemand.c                 |   66 +-
+ drivers/cpufreq/cpufreq_performance.c              |    3 +-
+ drivers/cpufreq/cpufreq_powersave.c                |    3 +-
+ drivers/cpufreq/cpufreq_stats.c                    |   31 +-
+ drivers/cpufreq/cris-artpec3-cpufreq.c             |    1 -
+ drivers/cpufreq/cris-etraxfs-cpufreq.c             |    1 -
+ drivers/cpufreq/e_powersaver.c                     |    5 +-
+ drivers/cpufreq/elanfreq.c                         |    1 -
+ drivers/cpufreq/exynos-cpufreq.c                   |    3 +-
+ drivers/cpufreq/exynos-cpufreq.h                   |   21 +
+ drivers/cpufreq/exynos5440-cpufreq.c               |    3 +
+ drivers/cpufreq/freq_table.c                       |    4 +-
+ drivers/cpufreq/gx-suspmod.c                       |    5 +-
+ drivers/cpufreq/highbank-cpufreq.c                 |   18 +-
+ drivers/cpufreq/ia64-acpi-cpufreq.c                |    5 +-
+ drivers/cpufreq/imx6q-cpufreq.c                    |   21 +-
+ drivers/cpufreq/intel_pstate.c                     |    1 -
+ drivers/cpufreq/kirkwood-cpufreq.c                 |    9 +-
+ drivers/cpufreq/longhaul.c                         |    1 -
+ drivers/cpufreq/longrun.c                          |    1 -
+ drivers/cpufreq/loongson2_cpufreq.c                |    1 -
+ drivers/cpufreq/maple-cpufreq.c                    |   24 +-
+ drivers/cpufreq/mperf.c                            |   51 -
+ drivers/cpufreq/mperf.h                            |    9 -
+ drivers/cpufreq/p4-clockmod.c                      |    1 -
+ drivers/cpufreq/pasemi-cpufreq.c                   |    1 -
+ drivers/cpufreq/pcc-cpufreq.c                      |    1 -
+ drivers/cpufreq/pmac32-cpufreq.c                   |    6 +-
+ drivers/cpufreq/pmac64-cpufreq.c                   |   53 +-
+ drivers/cpufreq/powernow-k6.c                      |    1 -
+ drivers/cpufreq/powernow-k7.c                      |   14 +-
+ drivers/cpufreq/powernow-k8.c                      |    7 +-
+ drivers/cpufreq/ppc-corenet-cpufreq.c              |    1 -
+ drivers/cpufreq/ppc_cbe_cpufreq.c                  |    1 -
+ drivers/cpufreq/pxa2xx-cpufreq.c                   |    4 +-
+ drivers/cpufreq/pxa3xx-cpufreq.c                   |    6 +-
+ drivers/cpufreq/s3c2416-cpufreq.c                  |    1 -
+ drivers/cpufreq/s3c24xx-cpufreq.c                  |    8 +-
+ drivers/cpufreq/s3c64xx-cpufreq.c                  |    1 -
+ drivers/cpufreq/sc520_freq.c                       |    1 -
+ drivers/cpufreq/sh-cpufreq.c                       |    1 -
+ drivers/cpufreq/sparc-us2e-cpufreq.c               |    6 +-
+ drivers/cpufreq/sparc-us3-cpufreq.c                |    6 +-
+ drivers/cpufreq/spear-cpufreq.c                    |    4 +-
+ drivers/cpufreq/speedstep-centrino.c               |    1 -
+ drivers/cpufreq/speedstep-ich.c                    |    1 -
+ drivers/cpufreq/speedstep-smi.c                    |    1 -
+ drivers/cpufreq/tegra-cpufreq.c                    |    4 +-
+ drivers/cpufreq/unicore2-cpufreq.c                 |    2 +-
+ drivers/cpuidle/Kconfig                            |   20 +-
+ drivers/cpuidle/Kconfig.arm                        |   29 +
+ drivers/cpuidle/Makefile                           |    9 +-
+ drivers/cpuidle/coupled.c                          |  129 ++-
+ drivers/cpuidle/cpuidle-calxeda.c                  |    2 +-
+ drivers/cpuidle/cpuidle-kirkwood.c                 |    5 +-
+ .../cpuidle.c => drivers/cpuidle/cpuidle-ux500.c   |   19 +-
+ drivers/cpuidle/cpuidle.c                          |   94 +-
+ drivers/cpuidle/governors/ladder.c                 |   12 +-
+ drivers/cpuidle/governors/menu.c                   |  108 +-
+ drivers/cpuidle/sysfs.c                            |  101 +-
+ drivers/ide/ide-acpi.c                             |    5 +-
+ drivers/mfd/db8500-prcmu.c                         |    4 +
+ drivers/of/base.c                                  |   95 ++
+ drivers/pci/hotplug/acpiphp.h                      |   55 +-
+ drivers/pci/hotplug/acpiphp_core.c                 |   18 +-
+ drivers/pci/hotplug/acpiphp_glue.c                 | 1035 ++++++++------------
+ drivers/pci/hotplug/acpiphp_ibm.c                  |    3 +-
+ drivers/pci/pci-acpi.c                             |   18 +-
+ drivers/platform/x86/asus-laptop.c                 |    1 -
+ drivers/platform/x86/eeepc-laptop.c                |    1 -
+ drivers/platform/x86/fujitsu-laptop.c              |    4 -
+ drivers/platform/x86/panasonic-laptop.c            |    3 -
+ drivers/platform/x86/sony-laptop.c                 |    4 -
+ drivers/platform/x86/thinkpad_acpi.c               |   40 -
+ drivers/pnp/driver.c                               |   21 +-
+ drivers/pnp/pnpacpi/core.c                         |    6 +-
+ drivers/xen/acpi.c                                 |   41 +-
+ include/acpi/acpi_bus.h                            |   28 +-
+ include/acpi/acpi_drivers.h                        |   14 +-
+ include/acpi/acpixf.h                              |    8 +-
+ include/acpi/actypes.h                             |   21 +-
+ include/linux/acpi.h                               |    7 +
+ include/linux/cpu.h                                |    5 +
+ include/linux/cpufreq.h                            |  388 ++++----
+ include/linux/cpuidle.h                            |    9 +-
+ include/linux/device.h                             |    1 +
+ include/linux/of.h                                 |    7 +
+ include/linux/of_device.h                          |   15 +
+ include/linux/pci-acpi.h                           |   10 +-
+ include/trace/events/power.h                       |   37 +
+ include/xen/acpi.h                                 |    8 +-
+ include/xen/interface/platform.h                   |    7 +-
+ kernel/cpu.c                                       |    9 +-
+ kernel/power/suspend.c                             |    4 +-
+ lib/earlycpio.c                                    |   27 +-
+ 188 files changed, 2978 insertions(+), 3494 deletions(-)
+
+-- 
+I speak only for myself.
+Rafael J. Wysocki, Intel Open Source Technology Center.
