@@ -1,207 +1,240 @@
-From: Wolfram Sang <wsa-z923LK4zBo2bacvFa/9K2g@public.gmane.org>
-Subject: Re: [RFC PATCH 1/2] i2c: prepare runtime PM support for I2C client
- devices
-Date: Wed, 28 Aug 2013 11:38:58 +0200
-Message-ID: <20130828093858.GF4086@katana>
-References: <1377007416-13851-1-git-send-email-mika.westerberg@linux.intel.com>
- <1377007416-13851-2-git-send-email-mika.westerberg@linux.intel.com>
+From: Gu Zheng <guz.fnst@cn.fujitsu.com>
+Subject: Re: [PATCH] driver core / ACPI: Avoid device removal locking problems
+Date: Wed, 28 Aug 2013 18:03:39 +0800
+Message-ID: <521DCAFB.6080804@cn.fujitsu.com>
+References: <1543475.L7gSB7lLAu@vostro.rjw.lan> <521C6FA8.4070804@cn.fujitsu.com> <20130827183644.GC12212@mtj.dyndns.org> <2885746.SMJa75jgiX@vostro.rjw.lan>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="xaMk4Io5JJdpkLEb"
-Return-path: <linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <1377007416-13851-2-git-send-email-mika.westerberg-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
-Sender: linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Mika Westerberg <mika.westerberg-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
-Cc: linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, "Rafael J. Wysocki" <rafael.j.wysocki-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Lv Zheng <lv.zheng-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Aaron Lu <aaron.lu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <2885746.SMJa75jgiX@vostro.rjw.lan>
+Sender: linux-kernel-owner@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: Tejun Heo <tj@kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Toshi Kani <toshi.kani@hp.com>, LKML <linux-kernel@vger.kernel.org>, Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
 List-Id: linux-acpi@vger.kernel.org
 
+Hi Rafael,
 
---xaMk4Io5JJdpkLEb
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+On 08/28/2013 05:45 AM, Rafael J. Wysocki wrote:
 
-On Tue, Aug 20, 2013 at 05:03:35PM +0300, Mika Westerberg wrote:
-> From: Aaron Lu <aaron.lu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
->=20
-> This patch adds runtime PM support for the I2C bus in a similar way that
-> has been done for PCI bus already. This means that the I2C bus core
-> prepares runtime PM for a client device just before a driver is about to =
-be
-> bound to it. Devices that are not bound to any driver are not prepared for
-> runtime PM.
->=20
-> In order to take advantage of this runtime PM support, the client device
-> driver needs drop the device runtime PM reference count by calling
-> pm_runtime_put() in its ->probe() callback and possibly implement rest of
-> the runtime PM callbacks.
->=20
-> However, this does not yet make runtime PM happen for the device, it has =
-to
-> be explicitly allowed from userspace per each I2C client device. The
-> reason for this is that things like HID over I2C might not work as smooth=
-ly
-> when runtime PM is active. So we leave it to the user to balance between
-> performance and power efficiency.
->=20
-> User can allow runtime PM for the client device by running:
->=20
-> 	# echo auto > /sys/bus/i2c/devices/<device>/power/control
->=20
-> and it can be forbidden again by:
->=20
-> 	# echo on > /sys/bus/i2c/devices/<device>/power/control
->=20
-> Status of the device can be monitored by reading files under the device
-> power directory.
->=20
-> If the driver doesn't support runtime PM (like most of the existing I2C
-> client drivers), the device in question is regarded as being runtime PM
-> active and powered on.
->=20
-> The patch adds also runtime PM support for the adapter device because it =
-is
-> needed to be able to runtime power manage the I2C controller device. The
-> adapter device is handled along with the I2C controller device (it uses
-> pm_runtime_no_callbacks()).
->=20
-> Signed-off-by: Aaron Lu <aaron.lu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-> Signed-off-by: Mika Westerberg <mika.westerberg-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
+> On Tuesday, August 27, 2013 02:36:44 PM Tejun Heo wrote:
+>> Hello,
+>>
+[...]
+> 
+> I've thought about that a bit over the last several hours and I'm still
+> thinking that that patch is a bit overkill, because it will trigger the
+> restart_syscall() for all cases when device_hotplug_lock is locked, even
+> if they can't lead to any deadlocks.  The only deadlockish situation is
+> when device *removal* is in progress when store_online(), for example,
+> is called.
+> 
+> So to address that particular situation without adding too much overhead for
+> other cases, I've come up with the appended patch (untested for now).
+> 
+> This is how it is supposed to work.
+> 
+> There are three "lock levels" for device hotplug, "normal", "remove"
+> and "weak".  The difference is related to how __lock_device_hotplug()
+> works.  Namely, if device hotplug is currently locked, that function
+> will either block or return false, depending on the "current lock
+> level" and its argument (the "new lock level").  The rules here are
+> that false is returned immediately if the "current lock level" is
+> "remove" and the "new lock level" is "weak".  The function blocks
+> for all other combinations of the two.
+> 
+> There are two functions supposed to use device hotplug "lock levels"
+> other than "normal": store_online() and acpi_scan_hot_remove().
+> Everybody else is supposed to use "normal" (well, there are more
+> potential users of "weak" in drivers/base/memory.c).
+> 
+> acpi_scan_hot_remove() uses the "remove" lock level to indicate
+> that it is going to remove devices while holding device hotplug
+> locked.  In turn, store_online() uses the "weak" lock level so
+> that it doesn't block when devices are being removed with device
+> hotplug locked, because that may lead to a deadlock.
+> 
+> show_online() actually doesn't need to lock device hotplug, but
+> it is useful to serialize it with respect to device_offline()
+> and device_online() (in case user space attempts to run them
+> concurrently).
 
-CCing ALKML. Would appreciate comments/tags from the runtime-PM users of
-the ARM world.
+Yeah. I tested this one on latest kernel tree, it does make the splat go away.
+Looking forward to the ACPI part one.:)
 
+Regards,
+Gu
+
+> 
 > ---
->  drivers/i2c/i2c-core.c | 48 ++++++++++++++++++++++++++++++++++++++++++++=
-+++-
->  1 file changed, 47 insertions(+), 1 deletion(-)
->=20
-> diff --git a/drivers/i2c/i2c-core.c b/drivers/i2c/i2c-core.c
-> index 3d44292..8fad5ac 100644
-> --- a/drivers/i2c/i2c-core.c
-> +++ b/drivers/i2c/i2c-core.c
-> @@ -254,11 +254,34 @@ static int i2c_device_probe(struct device *dev)
->  					client->flags & I2C_CLIENT_WAKE);
->  	dev_dbg(dev, "probe\n");
-> =20
-> +	/* Make sure the adapter is active */
-> +	pm_runtime_get_sync(&client->adapter->dev);
+>  drivers/acpi/scan.c    |    4 +-
+>  drivers/base/core.c    |   72 ++++++++++++++++++++++++++++++++++++++-----------
+>  include/linux/device.h |   25 ++++++++++++++++-
+>  3 files changed, 83 insertions(+), 18 deletions(-)
+> 
+> Index: linux-pm/drivers/base/core.c
+> ===================================================================
+> --- linux-pm.orig/drivers/base/core.c
+> +++ linux-pm/drivers/base/core.c
+> @@ -49,6 +49,55 @@ static struct kobject *dev_kobj;
+>  struct kobject *sysfs_dev_char_kobj;
+>  struct kobject *sysfs_dev_block_kobj;
+>  
+> +static struct {
+> +	struct task_struct *holder;
+> +	enum dev_hotplug_lock_type type;
+> +	struct mutex lock; /* Synchronizes accesses to holder and type */
+> +	wait_queue_head_t wait_queue;
+> +} device_hotplug = {
+> +	.holder = NULL,
+> +	.type = DEV_HOTPLUG_LOCK_NONE,
+> +	.lock = __MUTEX_INITIALIZER(device_hotplug.lock),
+> +	.wait_queue = __WAIT_QUEUE_HEAD_INITIALIZER(device_hotplug.wait_queue),
+> +};
 > +
-> +	/*
-> +	 * Enable runtime PM for the client device. If the client wants to
-> +	 * participate on runtime PM it should call pm_runtime_put() in its
-> +	 * probe() callback.
-> +	 *
-> +	 * User still needs to allow the PM runtime before it can actually
-> +	 * happen.
-> +	 */
-> +	pm_runtime_forbid(&client->dev);
-> +	pm_runtime_get_noresume(&client->dev);
-> +	pm_runtime_set_active(&client->dev);
-> +	pm_runtime_enable(&client->dev);
+> +bool __lock_device_hotplug(enum dev_hotplug_lock_type type)
+> +{
+> +	DEFINE_WAIT(wait);
+> +	bool ret = true;
 > +
->  	status =3D driver->probe(client, i2c_match_id(driver->id_table, client)=
-);
->  	if (status) {
->  		client->driver =3D NULL;
->  		i2c_set_clientdata(client, NULL);
-> +
-> +		pm_runtime_disable(&client->dev);
-> +		pm_runtime_set_suspended(&client->dev);
-> +		pm_runtime_put_noidle(&client->dev);
->  	}
-> +
-> +	pm_runtime_put(&client->adapter->dev);
-> +
->  	return status;
->  }
-> =20
-> @@ -271,6 +294,8 @@ static int i2c_device_remove(struct device *dev)
->  	if (!client || !dev->driver)
->  		return 0;
-> =20
-> +	pm_runtime_get_sync(&client->adapter->dev);
-> +
->  	driver =3D to_i2c_driver(dev->driver);
->  	if (driver->remove) {
->  		dev_dbg(dev, "remove\n");
-> @@ -283,6 +308,13 @@ static int i2c_device_remove(struct device *dev)
->  		client->driver =3D NULL;
->  		i2c_set_clientdata(client, NULL);
->  	}
-> +
-> +	/* Undo the runtime PM done in i2c_probe() */
-> +	pm_runtime_disable(&client->dev);
-> +	pm_runtime_set_suspended(&client->dev);
-> +	pm_runtime_put_noidle(&client->dev);
-> +
-> +	pm_runtime_put(&client->adapter->dev);
->  	return status;
->  }
-> =20
-> @@ -294,8 +326,11 @@ static void i2c_device_shutdown(struct device *dev)
->  	if (!client || !dev->driver)
->  		return;
->  	driver =3D to_i2c_driver(dev->driver);
-> -	if (driver->shutdown)
-> +	if (driver->shutdown) {
-> +		pm_runtime_get_sync(&client->adapter->dev);
->  		driver->shutdown(client);
-> +		pm_runtime_put(&client->adapter->dev);
+> +	mutex_lock(&device_hotplug.lock);
+> +	for (;;) {
+> +		prepare_to_wait(&device_hotplug.wait_queue, &wait,
+> +				TASK_UNINTERRUPTIBLE);
+> +		if (!device_hotplug.holder) {
+> +			device_hotplug.holder = current;
+> +			device_hotplug.type = type;
+> +			break;
+> +		} else if (type == DEV_HOTPLUG_LOCK_WEAK
+> +		    && device_hotplug.type == DEV_HOTPLUG_LOCK_REMOVE) {
+> +			ret = false;
+> +			break;
+> +		}
+> +		mutex_unlock(&device_hotplug.lock);
+> +		schedule();
+> +		mutex_lock(&device_hotplug.lock);
 > +	}
+> +	finish_wait(&device_hotplug.wait_queue, &wait);
+> +	mutex_unlock(&device_hotplug.lock);
+> +	return ret;
+> +}
+> +
+> +void unlock_device_hotplug(void)
+> +{
+> +	mutex_lock(&device_hotplug.lock);
+> +	BUG_ON(device_hotplug.holder != current);
+> +	device_hotplug.holder = NULL;
+> +	device_hotplug.type = DEV_HOTPLUG_LOCK_NONE;
+> +	wake_up(&device_hotplug.wait_queue);
+> +	mutex_unlock(&device_hotplug.lock);
+> +}
+> +
+>  #ifdef CONFIG_BLOCK
+>  static inline int device_is_not_partition(struct device *dev)
+>  {
+> @@ -408,9 +457,10 @@ static ssize_t show_online(struct device
+>  {
+>  	bool val;
+>  
+> -	lock_device_hotplug();
+> +	/* Serialize against device_online() and device_offline(). */
+> +	device_lock(dev);
+>  	val = !dev->offline;
+> -	unlock_device_hotplug();
+> +	device_unlock(dev);
+>  	return sprintf(buf, "%u\n", val);
 >  }
-> =20
->  #ifdef CONFIG_PM_SLEEP
-> @@ -1263,6 +1298,15 @@ exit_recovery:
->  	bus_for_each_drv(&i2c_bus_type, NULL, adap, __process_new_adapter);
->  	mutex_unlock(&core_lock);
-> =20
-> +	/*
-> +	 * Make sure the adapter runtime PM follows the parent device (the
-> +	 * host controller) so that we can suspend it once there aren't any
-> +	 * active clients anymore.
-> +	 */
-> +	pm_runtime_set_active(&adap->dev);
-> +	pm_runtime_no_callbacks(&adap->dev);
-> +	pm_runtime_enable(&adap->dev);
+>  
+> @@ -424,7 +474,11 @@ static ssize_t store_online(struct devic
+>  	if (ret < 0)
+>  		return ret;
+>  
+> -	lock_device_hotplug();
+> +	if (!__lock_device_hotplug(DEV_HOTPLUG_LOCK_WEAK)) {
+> +		/* Avoid busy looping (10 ms delay should do). */
+> +		msleep(10);
+> +		return restart_syscall();
+> +	}
+>  	ret = val ? device_online(dev) : device_offline(dev);
+>  	unlock_device_hotplug();
+>  	return ret < 0 ? ret : count;
+> @@ -1479,18 +1533,6 @@ EXPORT_SYMBOL_GPL(put_device);
+>  EXPORT_SYMBOL_GPL(device_create_file);
+>  EXPORT_SYMBOL_GPL(device_remove_file);
+>  
+> -static DEFINE_MUTEX(device_hotplug_lock);
+> -
+> -void lock_device_hotplug(void)
+> -{
+> -	mutex_lock(&device_hotplug_lock);
+> -}
+> -
+> -void unlock_device_hotplug(void)
+> -{
+> -	mutex_unlock(&device_hotplug_lock);
+> -}
+> -
+>  static int device_check_offline(struct device *dev, void *not_used)
+>  {
+>  	int ret;
+> Index: linux-pm/include/linux/device.h
+> ===================================================================
+> --- linux-pm.orig/include/linux/device.h
+> +++ linux-pm/include/linux/device.h
+> @@ -893,8 +893,31 @@ static inline bool device_supports_offli
+>  	return dev->bus && dev->bus->offline && dev->bus->online;
+>  }
+>  
+> -extern void lock_device_hotplug(void);
+> +enum dev_hotplug_lock_type {
+> +	DEV_HOTPLUG_LOCK_NONE,
+> +	DEV_HOTPLUG_LOCK_NORMAL,
+> +	DEV_HOTPLUG_LOCK_REMOVE,
+> +	DEV_HOTPLUG_LOCK_WEAK,
+> +};
 > +
->  	return 0;
-> =20
->  out_list:
-> @@ -1427,6 +1471,8 @@ void i2c_del_adapter(struct i2c_adapter *adap)
->  		return;
+> +extern bool __lock_device_hotplug(enum dev_hotplug_lock_type);
+>  extern void unlock_device_hotplug(void);
+> +
+> +static inline void lock_device_hotplug(void)
+> +{
+> +	__lock_device_hotplug(DEV_HOTPLUG_LOCK_NORMAL);
+> +}
+> +
+> +static inline void lock_device_hot_remove(void)
+> +{
+> +	__lock_device_hotplug(DEV_HOTPLUG_LOCK_REMOVE);
+> +}
+> +
+> +static inline void unlock_device_hot_remove(void)
+> +{
+> +	unlock_device_hotplug();
+> +}
+> +
+>  extern int device_offline(struct device *dev);
+>  extern int device_online(struct device *dev);
+>  /*
+> Index: linux-pm/drivers/acpi/scan.c
+> ===================================================================
+> --- linux-pm.orig/drivers/acpi/scan.c
+> +++ linux-pm/drivers/acpi/scan.c
+> @@ -204,7 +204,7 @@ static int acpi_scan_hot_remove(struct a
+>  		return -EINVAL;
 >  	}
-> =20
-> +	pm_runtime_disable(&adap->dev);
-> +
->  	/* Tell drivers about this removal */
->  	mutex_lock(&core_lock);
->  	bus_for_each_drv(&i2c_bus_type, NULL, adap,
-> --=20
-> 1.8.4.rc2
->=20
-
---xaMk4Io5JJdpkLEb
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.12 (GNU/Linux)
-
-iQIcBAEBAgAGBQJSHcUxAAoJEBQN5MwUoCm2wuoP/0Wy4O1hMBxaGONYusjkdjph
-ccAcDh/kGcwQD9/9Wp6bhV9MwQi0W+No4lEFQzk+hzTARafdJ/C4ZZEOsNNuQyOO
-0WxqW9GgianfpSSqlc/T0XFu24stgSrSyMW5r5vqP3IUaja6vu91rLVl3uxWwtIA
-+frpp4Ip/v9yiKIy1PEgGN3wL6YX95A/L44U3O0KfssgyHtXpUyq+lrnhu+bT6qx
-Z/9gJ12Z6jFZ+vA/4H53plMbe817Jn5XjDPioGLqHHMktWQ18rXVLF9eCLebNz9e
-aywH4T6A1NiNXXVr6wNe5IXk7o9igHfUm1lM6/OBKJYgigReSp56e82uK3VpoGkS
-iHnnrYJECYWKr+b2WKRrbKSAyixYF1IzUiDuhVl9vbnWXd8CgYNFFYOCzDDB1C8N
-SkyEW5lE638Jcz5OKU2Z3aXh4dlgeAUmlRtBi3L+T8ICgqC2c7s+OdRgwYksJEAx
-FsxE/3yqvxstqig1R2Z9ZEFL9TPKFao8H2eYIFhrwXjFUTkc8w+PC3VtYlpGrLdQ
-+jPzvH9YyiSQ6+luEmnZMPAME/sGH4TEKwEFzFpRameMqtRIYTfgUI/q4bMBBmw2
-Oirwc1jBZXYrJwCGAPcx6Kt7lWV8FumwAb+wl0dB2o3J7gfC6eEPCrTwFeT9jVm1
-v36QU1/snCqS7+wDB53f
-=sQ6r
------END PGP SIGNATURE-----
-
---xaMk4Io5JJdpkLEb--
+>  
+> -	lock_device_hotplug();
+> +	lock_device_hot_remove();
+>  
+>  	/*
+>  	 * Carry out two passes here and ignore errors in the first pass,
+> @@ -249,7 +249,7 @@ static int acpi_scan_hot_remove(struct a
+>  
+>  	acpi_bus_trim(device);
+>  
+> -	unlock_device_hotplug();
+> +	unlock_device_hot_remove();
+>  
+>  	/* Device node has been unregistered. */
+>  	put_device(&device->dev);
+> 
+> 
