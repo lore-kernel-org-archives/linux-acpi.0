@@ -1,65 +1,57 @@
-From: Tejun Heo <tj@kernel.org>
-Subject: Re: [PATCH] driver core / ACPI: Avoid device removal locking problems
-Date: Wed, 28 Aug 2013 08:24:22 -0400
-Message-ID: <20130828122422.GA18348@mtj.dyndns.org>
-References: <1543475.L7gSB7lLAu@vostro.rjw.lan>
- <521C6FA8.4070804@cn.fujitsu.com>
- <20130827183644.GC12212@mtj.dyndns.org>
- <2885746.SMJa75jgiX@vostro.rjw.lan>
+From: Bjorn Helgaas <bhelgaas@google.com>
+Subject: Re: [PATCH v3] ACPI: Fix osc flag setup ordering to allow pcie
+ hotplug use when available
+Date: Wed, 28 Aug 2013 07:04:47 -0600
+Message-ID: <CAErSpo4jq-GTGsgfDkfuRQz_8Vi6RmMC1fGCUcu_3tExUw=EFQ@mail.gmail.com>
+References: <1377278379-9054-1-git-send-email-nhorman@tuxdriver.com>
+ <1377531553-17716-1-git-send-email-nhorman@tuxdriver.com> <CAErSpo7tne+NvO-idW8Dt-9FZaGOHjTEDcQ8mC6K1PG6M=ftvg@mail.gmail.com>
+ <20130827234345.GA11187@neilslaptop.think-freely.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-qc0-f179.google.com ([209.85.216.179]:39240 "EHLO
-	mail-qc0-f179.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755409Ab3H1MY0 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 28 Aug 2013 08:24:26 -0400
-Content-Disposition: inline
-In-Reply-To: <2885746.SMJa75jgiX@vostro.rjw.lan>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Return-path: <linux-pci-owner@vger.kernel.org>
+In-Reply-To: <20130827234345.GA11187@neilslaptop.think-freely.org>
+Sender: linux-pci-owner@vger.kernel.org
+To: Neil Horman <nhorman@tuxdriver.com>
+Cc: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Len Brown <lenb@kernel.org>, "Rafael J. Wysocki" <rjw@sisk.pl>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>, Stefan Seyfried <stefan.seyfried@googlemail.com>
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: Gu Zheng <guz.fnst@cn.fujitsu.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Toshi Kani <toshi.kani@hp.com>, LKML <linux-kernel@vger.kernel.org>, Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
 
-Hello, Rafael.
+On Tue, Aug 27, 2013 at 5:43 PM, Neil Horman <nhorman@tuxdriver.com> wrote:
+> On Tue, Aug 27, 2013 at 03:34:11PM -0600, Bjorn Helgaas wrote:
+>> [+cc Stefan]
+>>
+>> On Mon, Aug 26, 2013 at 9:39 AM, Neil Horman <nhorman@tuxdriver.com> wrote:
+>> > Somewhere between 3.9 and 3.10 it seems the order in which pcie and acpi probed
+>> > slots for hotplug capabilites got reversed.  While this isn't a big deal, it did
+>> > uncover a bug in the ACPI bus setup path.  Specifically, acpi_pci_root_add calls
+>> > pci_acpi_scan_root before setting the osc flags for the device handle.
+>> > pci_acpi_scan_root, among other things uses device_is_managed_by_native_pciehp()
+>> > to determine if a given slot has pcie hotplug capabilties, whcih checks the
+>> > devices OSC_PCI_EXPRESS_NATIVE_HP_CONTROL flag.  Since that flag is not set
+>> > until after pci_acpi_scan_root_completes, the acpi code never sees that pcie
+>> > slots are hotplug capable and configures them all to use acpi instead.
+>>
+>> I'd like to make it more explicit what we're fixing.  Apparently this
+>> is a regression between v3.9 and v3.10.
+>>
+>> Is this a fix for problems like
+>> https://bugzilla.kernel.org/show_bug.cgi?id=60736 ?  That bug is that
+>> an ExpressCard slot doesn't work unless we boot with
+>> "acpiphp.disable=1".  I think what happens there is that acpiphp
+>> claims the slot before we run _OSC, so pciehp doesn't claim it, even
+>> though _OSC did grant us control over native PCIe hotplug.
+>>
+> Yes, that bug is precisely what I am trying to fix (although your wording above is
+> inverted from the problem in the bug).  What happens is that acpiphp claims the
+> pcie ports, because acpiphp init runs first, and we haven't yet parsed _OSC,
+> which would have told acpiphp to yield control to pciehp.  The initial fix I
+> proposed fixed this by parsing _OSC prior to running the acpiphp bus scan, but
+> that reintroduced the problem of not handling pcie 1.1 aspm properly.  That has
+> been fixed in v2/v3 by deferring the setting of aspm_disable until after the bus
+> scan.
+>
+> Shall I submit a v4 with an updated changelog?
 
-On Tue, Aug 27, 2013 at 11:45:46PM +0200, Rafael J. Wysocki wrote:
-> I've thought about that a bit over the last several hours and I'm still
-> thinking that that patch is a bit overkill, because it will trigger the
-> restart_syscall() for all cases when device_hotplug_lock is locked, even
-> if they can't lead to any deadlocks.  The only deadlockish situation is
-> when device *removal* is in progress when store_online(), for example,
-> is called.
-> 
-> So to address that particular situation without adding too much overhead for
-> other cases, I've come up with the appended patch (untested for now).
-> 
-> This is how it is supposed to work.
-> 
-> There are three "lock levels" for device hotplug, "normal", "remove"
-> and "weak".  The difference is related to how __lock_device_hotplug()
-> works.  Namely, if device hotplug is currently locked, that function
-> will either block or return false, depending on the "current lock
-> level" and its argument (the "new lock level").  The rules here are
-> that false is returned immediately if the "current lock level" is
-> "remove" and the "new lock level" is "weak".  The function blocks
-> for all other combinations of the two.
+No need, I'll update the changelog and include the bugzilla reference
+and post it for your approval.  Thanks!
 
-I think this is going way too far and a massive overkill in terms of
-complexity, which is way more important than for doing some
-restart_syscall loops during some rare sysfs file access, which isn't
-gonna be that common anyway.  Fancy locking always sucks.  The root
-cause of the problem is file removal ref draining from sysfs side and
-a proper solution should be implemented there.  Adding all this
-complexity to device hotplug lock won't solve problems involving other
-locks while obfuscating what's going on through all the complexity.
-Also, when sysfs is updated with a proper solution, a simpler
-workaround from device hotplug side would be far easier to convert to
-the new solution than this, which over time is likely to grow
-interesting uses.
-
-Let's *please* stick to something simple.
-
-Thanks.
-
--- 
-tejun
+Bjorn
