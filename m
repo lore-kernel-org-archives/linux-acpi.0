@@ -1,87 +1,29 @@
-From: Zhang Rui <rui.zhang@intel.com>
-Subject: Re: [PATCH 3/5] drivers: thermal: make usage of
- CONFIG_THERMAL_HWMON optional
-Date: Wed, 28 Aug 2013 08:13:56 +0800
-Message-ID: <1377648836.2335.252.camel@rzhang-lenovo>
-References: <1377295396-17289-1-git-send-email-eduardo.valentin@ti.com>
-	 <4832825.8PCMQe7StP@vostro.rjw.lan> <521CEF61.6040504@ti.com>
-	 <8131326.8QGX41MW6c@vostro.rjw.lan>
+From: rui wang <ruiv.wang@gmail.com>
+Subject: Re: [PATCH v4 27/28] PCI, x86, ACPI: Enable ioapic hotplug support
+ with acpi host bridge.
+Date: Wed, 28 Aug 2013 09:10:38 +0800
+Message-ID: <CANVTcTZQKnS-R7ezxFF+rBRuXzx6chVopqDHno9dMmJKfuLRXQ@mail.gmail.com>
+References: <1376189294-32022-1-git-send-email-yinghai@kernel.org>
+	<1376189294-32022-28-git-send-email-yinghai@kernel.org>
+	<CANVTcTZOQWLHOs5+DpopTDMpMf2dgAzjUGEv4gGd4Z2Le5TM7A@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga01.intel.com ([192.55.52.88]:44876 "EHLO mga01.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753038Ab3H1AMi (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 27 Aug 2013 20:12:38 -0400
-In-Reply-To: <8131326.8QGX41MW6c@vostro.rjw.lan>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Return-path: <linux-pci-owner@vger.kernel.org>
+In-Reply-To: <CANVTcTZOQWLHOs5+DpopTDMpMf2dgAzjUGEv4gGd4Z2Le5TM7A@mail.gmail.com>
+Sender: linux-pci-owner@vger.kernel.org
+To: Yinghai Lu <yinghai@kernel.org>
+Cc: Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@elte.hu>, "H. Peter Anvin" <hpa@zytor.com>, Tony Luck <tony.luck@intel.com>, Bjorn Helgaas <bhelgaas@google.com>, "Rafael J. Wysocki" <rjw@sisk.pl>, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: Eduardo Valentin <eduardo.valentin@ti.com>, linux-pm@vger.kernel.org, linux-kernel@vger.kernel.org, Anton Vorontsov <anton@enomsg.org>, David Woodhouse <dwmw2@infradead.org>, devicetree@vger.kernel.org, Grant Likely <grant.likely@linaro.org>, Kukjin Kim <kgene.kim@samsung.com>, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-samsung-soc@vger.kernel.org, Matthew Garrett <matthew.garrett@nebula.com>, Peter Feuerer <peter@piie.net>, platform-driver-x86@vger.kernel.org, Rob Herring <rob.herring@calxeda.com>, Lan Tianyu <tianyu.lan@intel.com>
 
-On =E4=BA=8C, 2013-08-27 at 23:17 +0200, Rafael J. Wysocki wrote:
-> On Tuesday, August 27, 2013 02:26:41 PM Eduardo Valentin wrote:
-> > On 23-08-2013 19:08, Rafael J. Wysocki wrote:
-> > > On Friday, August 23, 2013 06:03:14 PM Eduardo Valentin wrote:
-> > >> When registering a new thermal_device, the thermal framework
-> > >> will always add a hwmon sysfs interface.
-> > >>
-> > >> This patch adds a flag to make this behavior optional. Now
-> > >> when registering a new thermal device, the caller needs
-> > >> to say if the hwmon interface is required.
-> > >>
-> > >> In order to keep same behavior as of today, all current
-> > >> calls will by default create the hwmon interface.
-> > >=20
-> > > Well, instead of modifying all of the callers this way, why don't
-> > > you add new versions taking the additional argument as, for examp=
-le,
-> > >=20
-> > > thermal_zone_device_register_full()
-> > >=20
-> > > and redefine the old ones as static inline wrappers, for example
-> > >=20
-> > > static inline struct thermal_zone_device *thermal_zone_device_reg=
-ister(args)
-> > > {
-> > > 	return thermal_zone_device_register_full(args, true);
-> > > }
-> > >=20
-> > > ?
-> >=20
-> > Yeah, that is another way to go and I thought of doing it like that=
-=2E I
-> > just could not come out with a good API naming:
-> >=20
-> > thermal_zone_device_register_full(all args)
-> >=20
-> > thermal_zone_device_register(args) /* on hwmon =3D=3D true */
-> > thermal_zone_device_register_no_hwmon(args) /* on hwmon =3D=3D fals=
-e */
-> >=20
-> > Would this sound reasonable naming?
->=20
-> Yeah, sounds good to me.
->=20
-Well, actually, Tianyu is working on a patch set to move all the
-thermal_zone_device_register() parameters to struct thermal_zone_params=
-=2E
+FWIW, I'm using my "I/O Hook" (http://lwn.net/Articles/561359/) as a
+tool to test yinghai's IOAPIC patchset. It can be used to test any
+kind of hotplug.
 
-But with that patch set done, what you need to do next is just to
-introduce a new field in struct thermal_zone_params and make sure 0
-means registering hwmon sysfs I/F.
-
-thanks,
-rui
-
-> Thanks,
-> Rafael
->=20
+For people who don't yet have full hardware support and want to test
+the hotplug of IOAPIC, CPU, Memory, IOH, PCIe root, etc., it is an
+ideal tool. The latest version (v2) is at:
+http://lwn.net/Articles/561779/
 
 
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Thanks
+Rui
