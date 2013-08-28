@@ -1,38 +1,58 @@
-From: Toshi Kani <toshi.kani@hp.com>
-Subject: Re: [PATCH 0/2] driver core / ACPI: Avoid device removal locking
- problems
-Date: Wed, 28 Aug 2013 11:06:35 -0600
-Message-ID: <1377709595.10300.858.camel@misato.fc.hp.com>
+From: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Subject: Re: [PATCH 1/2] driver core / ACPI: Avoid device hot remove locking
+ issues
+Date: Wed, 28 Aug 2013 11:53:37 -0700
+Message-ID: <20130828185337.GA3471@kroah.com>
 References: <1543475.L7gSB7lLAu@vostro.rjw.lan>
-	 <20130828122422.GA18348@mtj.dyndns.org> <1592448.YZbpON5n7n@vostro.rjw.lan>
-	 <26495758.n1zOCiG3iV@vostro.rjw.lan>
+ <1592448.YZbpON5n7n@vostro.rjw.lan>
+ <26495758.n1zOCiG3iV@vostro.rjw.lan>
+ <1454842.9oJVGeLlzB@vostro.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <26495758.n1zOCiG3iV@vostro.rjw.lan>
+Content-Disposition: inline
+In-Reply-To: <1454842.9oJVGeLlzB@vostro.rjw.lan>
 Sender: linux-kernel-owner@vger.kernel.org
 To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Tejun Heo <tj@kernel.org>, Gu Zheng <guz.fnst@cn.fujitsu.com>, LKML <linux-kernel@vger.kernel.org>, Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
+Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Tejun Heo <tj@kernel.org>, Gu Zheng <guz.fnst@cn.fujitsu.com>, Toshi Kani <toshi.kani@hp.com>, LKML <linux-kernel@vger.kernel.org>, Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
 List-Id: linux-acpi@vger.kernel.org
 
-On Wed, 2013-08-28 at 15:45 +0200, Rafael J. Wysocki wrote:
-> Hi All,
+On Wed, Aug 28, 2013 at 03:48:11PM +0200, Rafael J. Wysocki wrote:
+> From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 > 
-> The following two patches are to address possible deadlocks related to
-> device removal and device sysfs attribute access.  In short, some device
-> sysfs attribute callbacks need to acquire locks that are also held around
-> device removal and that may lead to deadlocks with s_active draining in
-> sysfs_deactivate().
+> device_hotplug_lock is held around the acpi_bus_trim() call in
+> acpi_scan_hot_remove() which generally removes devices (it removes
+> ACPI device objects at least, but it may also remove "physical"
+> device objects through .detach() callbacks of ACPI scan handlers).
+> Thus, potentially, device sysfs attributes are removed under that
+> lock and to remove those attributes it is necessary to hold the
+> s_active references of their directory entries for writing.
 > 
-> [1/2] Avoid possible device removal deadlocks related to device_hotplug_lock.
-> [2/2] Rework the handling of containers by ACPI hotplug (which makes a possible
->       device removal deadlock related to acpi_scan_lock go away).
+> On the other hand, the execution of a .show() or .store() callback
+> from a sysfs attribute is carried out with that attribute's s_active
+> reference held for reading.  Consequently, if any device sysfs
+> attribute that may be removed from within acpi_scan_hot_remove()
+> through acpi_bus_trim() has a .store() or .show() callback which
+> acquires device_hotplug_lock, the execution of that callback may
+> deadlock with the removal of the attribute.  [Unfortunately, the
+> "online" device attribute of CPUs and memory blocks is one of them.]
+> 
+> To avoid such deadlocks, make all of the sysfs attribute callbacks
+> that need to lock device hotplug, for example store_online(), use
+> a special function, lock_device_hotplug_sysfs(), to lock device
+> hotplug and return the result of that function immediately if it is
+> not zero.  This will cause the s_active reference of the directory
+> entry in question to be released and the syscall to be restarted
+> if device_hotplug_lock cannot be acquired.
+> 
+> [show_online() actually doesn't need to lock device hotplug, but
+> it is useful to serialize it with respect to device_offline() and
+> device_online() for the same device (in case user space attempts to
+> run them concurrently) which can be done with the help of
+> device_lock().]
+> 
+> Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+> Reported-by: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
+> Reported-by: Gu Zheng <guz.fnst@cn.fujitsu.com>
 
-I like the simplicity of this version. :-)  I also agree to remove the
-eject_pending flag.  For the series:
-
-Acked-by: Toshi Kani <toshi.kani@hp.com>
-
-Thanks,
--Toshi
+Acked-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
