@@ -1,220 +1,178 @@
-From: Yinghai Lu <yinghai@kernel.org>
-Subject: Re: [PATCH v4 27/28] PCI, x86, ACPI: Enable ioapic hotplug support
- with acpi host bridge.
-Date: Tue, 27 Aug 2013 23:22:09 -0700
-Message-ID: <CAE9FiQX8bQsC0ezhO8ZtcS4XOuFmc50P9GeJsE3do5vd_NHycw@mail.gmail.com>
-References: <1376189294-32022-1-git-send-email-yinghai@kernel.org>
-	<1376189294-32022-28-git-send-email-yinghai@kernel.org>
-	<CANVTcTZOQWLHOs5+DpopTDMpMf2dgAzjUGEv4gGd4Z2Le5TM7A@mail.gmail.com>
+From: Wanpeng Li <liwanp@linux.vnet.ibm.com>
+Subject: Re: [PATCH 00/11] x86, memblock: Allocate memory near kernel image
+ before SRAT parsed.
+Date: Wed, 28 Aug 2013 16:03:11 +0800
+Message-ID: <7948.26443675465$1377677022@news.gmane.org>
+References: <1377596268-31552-1-git-send-email-tangchen@cn.fujitsu.com>
+Reply-To: Wanpeng Li <liwanp@linux.vnet.ibm.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-oa0-f53.google.com ([209.85.219.53]:55362 "EHLO
-	mail-oa0-f53.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753132Ab3H1GWK (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 28 Aug 2013 02:22:10 -0400
-In-Reply-To: <CANVTcTZOQWLHOs5+DpopTDMpMf2dgAzjUGEv4gGd4Z2Le5TM7A@mail.gmail.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <owner-linux-mm@kvack.org>
+Content-Disposition: inline
+In-Reply-To: <1377596268-31552-1-git-send-email-tangchen@cn.fujitsu.com>
+Sender: owner-linux-mm@kvack.org
+To: Tang Chen <tangchen@cn.fujitsu.com>
+Cc: rjw@sisk.pl, lenb@kernel.org, tglx@linutronix.de, mingo@elte.hu, hpa@zytor.com, akpm@linux-foundation.org, tj@kernel.org, trenn@suse.de, yinghai@kernel.org, jiang.liu@huawei.com, wency@cn.fujitsu.com, laijs@cn.fujitsu.com, isimatu.yasuaki@jp.fujitsu.com, izumi.taku@jp.fujitsu.com, mgorman@suse.de, minchan@kernel.org, mina86@mina86.com, gong.chen@linux.intel.com, vasilis.liaskovitis@profitbricks.com, lwoodman@redhat.com, riel@redhat.com, jweiner@redhat.com, prarit@redhat.com, zhangyanfei@cn.fujitsu.com, x86@kernel.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-mm@kvack.org, linux-acpi@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: rui wang <ruiv.wang@gmail.com>
-Cc: Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@elte.hu>, "H. Peter Anvin" <hpa@zytor.com>, Tony Luck <tony.luck@intel.com>, Bjorn Helgaas <bhelgaas@google.com>, "Rafael J. Wysocki" <rjw@sisk.pl>, "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>
 
-On Tue, Aug 27, 2013 at 3:25 AM, rui wang <ruiv.wang@gmail.com> wrote:
-> On 8/11/13, Yinghai Lu <yinghai@kernel.org> wrote:
->> We need to have ioapic setup before normal pci drivers.
->> otherwise other pci driver can not setup irq.
->>
->> So we should not treat them as normal pci devices.
->> Also we will need to support ioapic hotplug without pci device around.
->>
->> We need to call ioapic add/remove during host-bridge add/remove.
->>
->> Signed-off-by: Yinghai Lu <yinghai@kernel.org>
->> ---
->>  drivers/acpi/pci_root.c  |   4 ++
->>  drivers/pci/ioapic.c     | 147
->> ++++++++++++++++++++++++++++++-----------------
->>  include/linux/pci-acpi.h |   8 +++
->>  3 files changed, 106 insertions(+), 53 deletions(-)
->>
->> diff --git a/drivers/acpi/pci_root.c b/drivers/acpi/pci_root.c
->> index 5917839..7577175 100644
->> --- a/drivers/acpi/pci_root.c
->> +++ b/drivers/acpi/pci_root.c
->> @@ -532,6 +532,8 @@ static int acpi_pci_root_add(struct acpi_device
->> *device,
->>               pci_enable_bridges(root->bus);
->>       }
->>
->> +     acpi_pci_ioapic_add(root);
->> +
->>       pci_bus_add_devices(root->bus);
->>       return 1;
->>
->> @@ -546,6 +548,8 @@ static void acpi_pci_root_remove(struct acpi_device
->> *device)
->>
->>       pci_stop_root_bus(root->bus);
->>
->> +     acpi_pci_ioapic_remove(root);
->> +
->>       device_set_run_wake(root->bus->bridge, false);
->>       pci_acpi_remove_bus_pm_notifier(device);
->>
->> diff --git a/drivers/pci/ioapic.c b/drivers/pci/ioapic.c
->> index 7d6b157..60351b2 100644
->> --- a/drivers/pci/ioapic.c
->> +++ b/drivers/pci/ioapic.c
->> @@ -22,101 +22,142 @@
->>  #include <linux/slab.h>
->>  #include <acpi/acpi_bus.h>
->>
->> -struct ioapic {
->> -     acpi_handle     handle;
->> +struct acpi_pci_ioapic {
->> +     acpi_handle     root_handle;
->>       u32             gsi_base;
->> +     struct pci_dev *pdev;
->> +     struct list_head list;
->>  };
->>
->> -static int ioapic_probe(struct pci_dev *dev, const struct pci_device_id
->> *ent)
->> +static LIST_HEAD(ioapic_list);
->> +static DEFINE_MUTEX(ioapic_list_lock);
->> +
->> +static void handle_ioapic_add(acpi_handle handle, struct pci_dev **pdev,
->> +                              u32 *pgsi_base)
->>  {
->> -     acpi_handle handle;
->>       acpi_status status;
->>       unsigned long long gsb;
->> -     struct ioapic *ioapic;
->> +     struct pci_dev *dev;
->> +     u32 gsi_base;
->>       int ret;
->>       char *type;
->> -     struct resource *res;
->> +     struct resource r;
->> +     struct resource *res = &r;
->> +     char objname[64];
->> +     struct acpi_buffer buffer = {sizeof(objname), objname};
->>
->> -     handle = DEVICE_ACPI_HANDLE(&dev->dev);
->> -     if (!handle)
->> -             return -EINVAL;
->> +     *pdev = NULL;
->> +     *pgsi_base = 0;
->>
->>       status = acpi_evaluate_integer(handle, "_GSB", NULL, &gsb);
->> -     if (ACPI_FAILURE(status))
->> -             return -EINVAL;
->> -
->> -     /*
->> -      * The previous code in acpiphp evaluated _MAT if _GSB failed, but
->> -      * ACPI spec 4.0 sec 6.2.2 requires _GSB for hot-pluggable I/O APICs.
->> -      */
->> +     if (ACPI_FAILURE(status) || !gsb)
->> +             return;
->>
->> -     ioapic = kzalloc(sizeof(*ioapic), GFP_KERNEL);
->> -     if (!ioapic)
->> -             return -ENOMEM;
->> +     dev = acpi_get_pci_dev(handle);
->> +     if (!dev)
->> +             return;
->>
->> -     ioapic->handle = handle;
->> -     ioapic->gsi_base = (u32) gsb;
->> +     acpi_get_name(handle, ACPI_FULL_PATHNAME, &buffer);
->>
->> -     if (dev->class == PCI_CLASS_SYSTEM_PIC_IOAPIC)
->> -             type = "IOAPIC";
->> -     else
->> -             type = "IOxAPIC";
->> +     gsi_base = gsb;
->> +     type = "IOxAPIC";
->>
->>       ret = pci_enable_device(dev);
->>       if (ret < 0)
->> -             goto exit_free;
->> +             goto exit_put;
->>
->>       pci_set_master(dev);
->>
->> +     if (dev->class == PCI_CLASS_SYSTEM_PIC_IOAPIC)
->> +             type = "IOAPIC";
->> +
->>       if (pci_request_region(dev, 0, type))
->>               goto exit_disable;
->>
->>       res = &dev->resource[0];
->> -     if (acpi_register_ioapic(ioapic->handle, res->start, ioapic->gsi_base))
->> +
->> +     if (acpi_register_ioapic(handle, res->start, gsi_base))
->>               goto exit_release;
+Hi Tang,
+On Tue, Aug 27, 2013 at 05:37:37PM +0800, Tang Chen wrote:
+>This patch-set is based on tj's suggestion, and not fully tested. 
+>Just for review and discussion.
 >
-> Here acpi_register_ioapic() fails for IOAPICs already described by the
-> static MADT. So they won't be added to the ioapic_list. Subsequent
-> hot-removal will also fail because they're not found by
-> acpi_pci_ioapic_remove() on the ioapic_list.
 >
-> Here's what I used to fix it:
+>[Problem]
 >
-> From 2fff3297b4c71c88d92b04ba9ad0a8931b3e99b8 Mon Sep 17 00:00:00 2001
-> From: Rui Wang <rui.y.wang@intel.com>
-> Date: Tue, 27 Aug 2013 11:23:43 -0400
-> Subject: [PATCH] Hotadd of IOAPICs described in static MADT
+>The current Linux cannot migrate pages used by the kerenl because
+>of the kernel direct mapping. In Linux kernel space, va = pa + PAGE_OFFSET.
+>When the pa is changed, we cannot simply update the pagetable and
+>keep the va unmodified. So the kernel pages are not migratable.
 >
-> For IOAPICs described in static MADT, we already called __mp_register_ioapic()
-> in arch_early_irq_init(). During boot PCI root hotadd will call it again and
-> will find it already registered, thus register_ioapic() won't add it to the
-> ioapic_list. Subsequent hot-removal will also fail because it is not
-> found on the
-> ioapic_list.
+>There are also some other issues will cause the kernel pages not migratable.
+>For example, the physical address may be cached somewhere and will be used.
+>It is not to update all the caches.
 >
-> Signed-off-by: Rui Wang <rui.y.wang@intel.com>
-> ---
->  arch/x86/kernel/apic/io_apic.c |    4 +++-
->  drivers/pci/ioapic.c           |    3 ++-
->  2 files changed, 5 insertions(+), 2 deletions(-)
+>When doing memory hotplug in Linux, we first migrate all the pages in one
+>memory device somewhere else, and then remove the device. But if pages are
+>used by the kernel, they are not migratable. As a result, memory used by
+>the kernel cannot be hot-removed.
 >
-> diff --git a/arch/x86/kernel/apic/io_apic.c b/arch/x86/kernel/apic/io_apic.c
-> index fb9bf06..15ab9f1 100644
-> --- a/arch/x86/kernel/apic/io_apic.c
-> +++ b/arch/x86/kernel/apic/io_apic.c
-> @@ -3956,8 +3956,10 @@ int __mp_register_ioapic(int id, u32 address,
-> u32 gsi_base, bool hotadd)
+>Modifying the kernel direct mapping mechanism is too difficult to do. And
+>it may cause the kernel performance down and unstable. So we use the following
+>way to do memory hotplug.
 >
->         /* already registered ? */
->         idx = __mp_find_ioapic(gsi_base);
-> -       if (idx >= 0)
-> +       if (idx >= 0) {
-> +               ret = -EEXIST;
->                 goto out;
-> +       }
 >
->         idx = find_first_zero_bit(ioapics_mask, MAX_IO_APICS);
->         if (idx >= MAX_IO_APICS) {
-> diff --git a/drivers/pci/ioapic.c b/drivers/pci/ioapic.c
-> index 41f7c69..83b002b 100644
-> --- a/drivers/pci/ioapic.c
-> +++ b/drivers/pci/ioapic.c
-> @@ -126,7 +126,8 @@ static void handle_ioapic_add(acpi_handle handle,
-> struct pci_dev **pdev,
->                 }
->         }
+>[What we are doing]
 >
-> -       if (acpi_register_ioapic(handle, res->start, gsi_base)) {
-> +       ret = acpi_register_ioapic(handle, res->start, gsi_base);
-> +       if (ret && ret != -EEXIST) {
->                 if (dev)
->                         goto exit_release;
->                 return;
-> --
+>In Linux, memory in one numa node is divided into several zones. One of the
+>zones is ZONE_MOVABLE, which the kernel won't use.
+>
+>In order to implement memory hotplug in Linux, we are going to arrange all
+>hotpluggable memory in ZONE_MOVABLE so that the kernel won't use these memory.
+>To do this, we need ACPI's help.
+>
+>In ACPI, SRAT(System Resource Affinity Table) contains NUMA info. The memory
+>affinities in SRAT record every memory range in the system, and also, flags
+>specifying if the memory range is hotpluggable.
+>(Please refer to ACPI spec 5.0 5.2.16)
+>
+>With the help of SRAT, we have to do the following two things to achieve our
+>goal:
+>
+>1. When doing memory hot-add, allow the users arranging hotpluggable as
+>   ZONE_MOVABLE.
+>   (This has been done by the MOVABLE_NODE functionality in Linux.)
+>
+>2. when the system is booting, prevent bootmem allocator from allocating
+>   hotpluggable memory for the kernel before the memory initialization
+>   finishes.
+>
+>The problem 2 is the key problem we are going to solve. But before solving it,
+>we need some preparation. Please see below.
+>
+>
+>[Preparation]
+>
+>Bootloader has to load the kernel image into memory. And this memory must be 
+>unhotpluggable. We cannot prevent this anyway. So in a memory hotplug system, 
+>we can assume any node the kernel resides in is not hotpluggable.
+>
+>Before SRAT is parsed, we don't know which memory ranges are hotpluggable. But
+>memblock has already started to work. In the current kernel, memblock allocates 
+>the following memory before SRAT is parsed:
+>
+>setup_arch()
+> |->memblock_x86_fill()            /* memblock is ready */
+> |......
+> |->early_reserve_e820_mpc_new()   /* allocate memory under 1MB */
+> |->reserve_real_mode()            /* allocate memory under 1MB */
+> |->init_mem_mapping()             /* allocate page tables, about 2MB to map 1GB memory */
+> |->dma_contiguous_reserve()       /* specified by user, should be low */
+> |->setup_log_buf()                /* specified by user, several mega bytes */
+> |->relocate_initrd()              /* could be large, but will be freed after boot, should reorder */
+> |->acpi_initrd_override()         /* several mega bytes */
+> |->reserve_crashkernel()          /* could be large, should reorder */
+> |......
+> |->initmem_init()                 /* Parse SRAT */
+>
+>According to Tejun's advice, before SRAT is parsed, we should try our best to
+>allocate memory near the kernel image. Since the whole node the kernel resides 
+>in won't be hotpluggable, and for a modern server, a node may have at least 16GB
+>memory, allocating several mega bytes memory around the kernel image won't cross
+>to hotpluggable memory.
+>
+>
+>[About this patch-set]
+>
+>So this patch-set does the following:
+>
+>1. Make memblock be able to allocate memory from low address to high address.
 
-ok, will put it my series.
+I want to know if there is fragmentation degree difference here?
 
-Thanks
+Regards,
+Wanpeng Li 
 
-Yinghai
+>   Also introduce low limit to prevent memblock allocating memory too low.
+>
+>2. Improve init_mem_mapping() to support allocate page tables from low address 
+>   to high address.
+>
+>3. Introduce "movablenode" boot option to enable and disable this functionality.
+>
+>PS: Reordering of relocate_initrd() and reserve_crashkernel() has not been done 
+>    yet. acpi_initrd_override() needs to access initrd with virtual address. So 
+>    relocate_initrd() must be done before acpi_initrd_override().
+>
+>
+>Tang Chen (11):
+>  memblock: Rename current_limit to current_limit_high in memblock.
+>  memblock: Rename memblock_set_current_limit() to
+>    memblock_set_current_limit_high().
+>  memblock: Introduce lowest limit in memblock.
+>  memblock: Introduce memblock_set_current_limit_low() to set lower
+>    limit of memblock.
+>  memblock: Introduce allocation order to memblock.
+>  memblock: Improve memblock to support allocation from lower address.
+>  x86, memblock: Set lowest limit for memblock_alloc_base_nid().
+>  x86, acpi, memblock: Use __memblock_alloc_base() in
+>    acpi_initrd_override()
+>  mem-hotplug: Introduce movablenode boot option to {en|dis}able using
+>    SRAT.
+>  x86, mem-hotplug: Support initialize page tables from low to high.
+>  x86, mem_hotplug: Allocate memory near kernel image before SRAT is
+>    parsed.
+>
+> Documentation/kernel-parameters.txt |   15 ++++
+> arch/arm/mm/mmu.c                   |    2 +-
+> arch/arm64/mm/mmu.c                 |    4 +-
+> arch/microblaze/mm/init.c           |    2 +-
+> arch/powerpc/mm/40x_mmu.c           |    4 +-
+> arch/powerpc/mm/44x_mmu.c           |    2 +-
+> arch/powerpc/mm/fsl_booke_mmu.c     |    4 +-
+> arch/powerpc/mm/hash_utils_64.c     |    4 +-
+> arch/powerpc/mm/init_32.c           |    4 +-
+> arch/powerpc/mm/ppc_mmu_32.c        |    4 +-
+> arch/powerpc/mm/tlb_nohash.c        |    4 +-
+> arch/unicore32/mm/mmu.c             |    2 +-
+> arch/x86/kernel/setup.c             |   41 ++++++++++-
+> arch/x86/mm/init.c                  |  119 ++++++++++++++++++++++++--------
+> drivers/acpi/osl.c                  |    4 +-
+> include/linux/memblock.h            |   33 ++++++++--
+> include/linux/memory_hotplug.h      |    5 ++
+> mm/memblock.c                       |  131 +++++++++++++++++++++++++++++-----
+> mm/memory_hotplug.c                 |    9 +++
+> mm/nobootmem.c                      |    4 +-
+> 20 files changed, 320 insertions(+), 77 deletions(-)
+>
+>--
+>To unsubscribe, send a message with 'unsubscribe linux-mm' in
+>the body to majordomo@kvack.org.  For more info on Linux MM,
+>see: http://www.linux-mm.org/ .
+>Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
+
+--
+To unsubscribe, send a message with 'unsubscribe linux-mm' in
+the body to majordomo@kvack.org.  For more info on Linux MM,
+see: http://www.linux-mm.org/ .
+Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
