@@ -1,64 +1,139 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: [PATCH] driver core / ACPI: Avoid device removal locking problems
-Date: Wed, 28 Aug 2013 15:24:45 +0200
-Message-ID: <1592448.YZbpON5n7n@vostro.rjw.lan>
-References: <1543475.L7gSB7lLAu@vostro.rjw.lan> <2885746.SMJa75jgiX@vostro.rjw.lan> <20130828122422.GA18348@mtj.dyndns.org>
+From: Eduardo Valentin <eduardo.valentin@ti.com>
+Subject: Re: [PATCH 3/5] drivers: thermal: make usage of CONFIG_THERMAL_HWMON
+ optional
+Date: Wed, 28 Aug 2013 09:15:50 -0400
+Message-ID: <521DF806.4030900@ti.com>
+References: <1377295396-17289-1-git-send-email-eduardo.valentin@ti.com>
+ <4832825.8PCMQe7StP@vostro.rjw.lan> <521CEF61.6040504@ti.com>
+ <8131326.8QGX41MW6c@vostro.rjw.lan> <1377648836.2335.252.camel@rzhang-lenovo>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7Bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20130828122422.GA18348@mtj.dyndns.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Tejun Heo <tj@kernel.org>
-Cc: Gu Zheng <guz.fnst@cn.fujitsu.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Toshi Kani <toshi.kani@hp.com>, LKML <linux-kernel@vger.kernel.org>, Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
+Content-Type: multipart/mixed; boundary="===============3684300722018677354=="
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <1377648836.2335.252.camel@rzhang-lenovo>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Zhang Rui <rui.zhang@intel.com>
+Cc: Lan Tianyu <tianyu.lan@intel.com>, Eduardo Valentin <eduardo.valentin@ti.com>, Kukjin Kim <kgene.kim@samsung.com>, linux-pm@vger.kernel.org, Anton Vorontsov <anton@enomsg.org>, Peter Feuerer <peter@piie.net>, linux-kernel@vger.kernel.org, Rob Herring <rob.herring@calxeda.com>, platform-driver-x86@vger.kernel.org, "Rafael J. Wysocki" <rjw@sisk.pl>, linux-acpi@vger.kernel.org, devicetree@vger.kernel.org, linux-samsung-soc@vger.kernel.org, Grant Likely <grant.likely@linaro.org>, Matthew Garrett <matthew.garrett@nebula.com>, David Woodhouse <dwmw2@infradead.org>, linux-arm-kernel@lists.infradead.org, Len Brown <lenb@kernel.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On Wednesday, August 28, 2013 08:24:22 AM Tejun Heo wrote:
-> Hello, Rafael.
-> 
-> On Tue, Aug 27, 2013 at 11:45:46PM +0200, Rafael J. Wysocki wrote:
-> > I've thought about that a bit over the last several hours and I'm still
-> > thinking that that patch is a bit overkill, because it will trigger the
-> > restart_syscall() for all cases when device_hotplug_lock is locked, even
-> > if they can't lead to any deadlocks.  The only deadlockish situation is
-> > when device *removal* is in progress when store_online(), for example,
-> > is called.
-> > 
-> > So to address that particular situation without adding too much overhead for
-> > other cases, I've come up with the appended patch (untested for now).
-> > 
-> > This is how it is supposed to work.
-> > 
-> > There are three "lock levels" for device hotplug, "normal", "remove"
-> > and "weak".  The difference is related to how __lock_device_hotplug()
-> > works.  Namely, if device hotplug is currently locked, that function
-> > will either block or return false, depending on the "current lock
-> > level" and its argument (the "new lock level").  The rules here are
-> > that false is returned immediately if the "current lock level" is
-> > "remove" and the "new lock level" is "weak".  The function blocks
-> > for all other combinations of the two.
-> 
-> I think this is going way too far and a massive overkill in terms of
-> complexity, which is way more important than for doing some
-> restart_syscall loops during some rare sysfs file access, which isn't
-> gonna be that common anyway.  Fancy locking always sucks.  The root
-> cause of the problem is file removal ref draining from sysfs side and
-> a proper solution should be implemented there.  Adding all this
-> complexity to device hotplug lock won't solve problems involving other
-> locks while obfuscating what's going on through all the complexity.
-> Also, when sysfs is updated with a proper solution, a simpler
-> workaround from device hotplug side would be far easier to convert to
-> the new solution than this, which over time is likely to grow
-> interesting uses.
-> 
-> Let's *please* stick to something simple.
+--===============3684300722018677354==
+Content-Type: multipart/signed; micalg=pgp-sha256;
+	protocol="application/pgp-signature";
+	boundary="mWhQBTIXSPWUdFBXk4Q2HNmMGfgbf8xVc"
 
-OK, I'll use restart_syscall() approach in the simplest form, then.
+--mWhQBTIXSPWUdFBXk4Q2HNmMGfgbf8xVc
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: quoted-printable
 
-Thanks,
-Rafael
+On 27-08-2013 20:13, Zhang Rui wrote:
+> On =E4=BA=8C, 2013-08-27 at 23:17 +0200, Rafael J. Wysocki wrote:
+>> On Tuesday, August 27, 2013 02:26:41 PM Eduardo Valentin wrote:
+>>> On 23-08-2013 19:08, Rafael J. Wysocki wrote:
+>>>> On Friday, August 23, 2013 06:03:14 PM Eduardo Valentin wrote:
+>>>>> When registering a new thermal_device, the thermal framework
+>>>>> will always add a hwmon sysfs interface.
+>>>>>
+>>>>> This patch adds a flag to make this behavior optional. Now
+>>>>> when registering a new thermal device, the caller needs
+>>>>> to say if the hwmon interface is required.
+>>>>>
+>>>>> In order to keep same behavior as of today, all current
+>>>>> calls will by default create the hwmon interface.
+>>>>
+>>>> Well, instead of modifying all of the callers this way, why don't
+>>>> you add new versions taking the additional argument as, for example,=
+
+>>>>
+>>>> thermal_zone_device_register_full()
+>>>>
+>>>> and redefine the old ones as static inline wrappers, for example
+>>>>
+>>>> static inline struct thermal_zone_device *thermal_zone_device_regist=
+er(args)
+>>>> {
+>>>> 	return thermal_zone_device_register_full(args, true);
+>>>> }
+>>>>
+>>>> ?
+>>>
+>>> Yeah, that is another way to go and I thought of doing it like that. =
+I
+>>> just could not come out with a good API naming:
+>>>
+>>> thermal_zone_device_register_full(all args)
+>>>
+>>> thermal_zone_device_register(args) /* on hwmon =3D=3D true */
+>>> thermal_zone_device_register_no_hwmon(args) /* on hwmon =3D=3D false =
+*/
+>>>
+>>> Would this sound reasonable naming?
+>>
+>> Yeah, sounds good to me.
+>>
+> Well, actually, Tianyu is working on a patch set to move all the
+> thermal_zone_device_register() parameters to struct thermal_zone_params=
+=2E
+>=20
+> But with that patch set done, what you need to do next is just to
+> introduce a new field in struct thermal_zone_params and make sure 0
+> means registering hwmon sysfs I/F.
+
+Rui,
+
+Do you have a pointer to his patch?
+
+>=20
+> thanks,
+> rui
+>=20
+>> Thanks,
+>> Rafael
+>>
+>=20
+>=20
+>=20
+>=20
 
 
--- 
-I speak only for myself.
-Rafael J. Wysocki, Intel Open Source Technology Center.
+--=20
+You have got to be excited about what you are doing. (L. Lamport)
+
+Eduardo Valentin
+
+
+--mWhQBTIXSPWUdFBXk4Q2HNmMGfgbf8xVc
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: OpenPGP digital signature
+Content-Disposition: attachment; filename="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.12 (GNU/Linux)
+Comment: Using GnuPG with Thunderbird - http://www.enigmail.net/
+
+iF4EAREIAAYFAlId+AoACgkQCXcVR3XQvP2kqQD+Pw7guXqGlaKBfZxUlPAxmFpO
+0FpvSYqnSqGxrvIY10EA/jw72f7Ssk7xDeg14e8VfJi3M0jNbGQSm9w8sIVcH2QW
+=lOEf
+-----END PGP SIGNATURE-----
+
+--mWhQBTIXSPWUdFBXk4Q2HNmMGfgbf8xVc--
+
+
+--===============3684300722018677354==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+
+_______________________________________________
+linux-arm-kernel mailing list
+linux-arm-kernel@lists.infradead.org
+http://lists.infradead.org/mailman/listinfo/linux-arm-kernel
+
+--===============3684300722018677354==--
