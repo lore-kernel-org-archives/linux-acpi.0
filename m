@@ -1,62 +1,46 @@
-From: Tang Chen <tangchen@cn.fujitsu.com>
-Subject: Re: [PATCH 00/11] x86, memblock: Allocate memory near kernel image
- before SRAT parsed.
-Date: Thu, 29 Aug 2013 09:53:31 +0800
-Message-ID: <521EA99B.3010303@cn.fujitsu.com>
-References: <1377596268-31552-1-git-send-email-tangchen@cn.fujitsu.com> <20130828151909.GE9295@htj.dyndns.org> <521EA44E.1020205@cn.fujitsu.com> <20130829013657.GA22599@hacker.(null)>
+From: Gu Zheng <guz.fnst@cn.fujitsu.com>
+Subject: Re: [PATCH 0/2] driver core / ACPI: Avoid device removal locking
+ problems
+Date: Thu, 29 Aug 2013 10:00:39 +0800
+Message-ID: <521EAB47.4060101@cn.fujitsu.com>
+References: <1543475.L7gSB7lLAu@vostro.rjw.lan> <20130828122422.GA18348@mtj.dyndns.org> <1592448.YZbpON5n7n@vostro.rjw.lan> <26495758.n1zOCiG3iV@vostro.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-doc-owner@vger.kernel.org>
-In-Reply-To: <20130829013657.GA22599@hacker.(null)>
-Sender: linux-doc-owner@vger.kernel.org
-To: Wanpeng Li <liwanp@linux.vnet.ibm.com>
-Cc: Tejun Heo <tj@kernel.org>, rjw@sisk.pl, lenb@kernel.org, tglx@linutronix.de, mingo@elte.hu, hpa@zytor.com, akpm@linux-foundation.org, trenn@suse.de, yinghai@kernel.org, jiang.liu@huawei.com, wency@cn.fujitsu.com, laijs@cn.fujitsu.com, isimatu.yasuaki@jp.fujitsu.com, izumi.taku@jp.fujitsu.com, mgorman@suse.de, minchan@kernel.org, mina86@mina86.com, gong.chen@linux.intel.com, vasilis.liaskovitis@profitbricks.com, lwoodman@redhat.com, riel@redhat.com, jweiner@redhat.com, prarit@redhat.com, zhangyanfei@cn.fujitsu.com, x86@kernel.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-mm@kvack.org, linux-acpi@vger.kernel.org
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <26495758.n1zOCiG3iV@vostro.rjw.lan>
+Sender: linux-kernel-owner@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Tejun Heo <tj@kernel.org>, Toshi Kani <toshi.kani@hp.com>, LKML <linux-kernel@vger.kernel.org>, Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
 List-Id: linux-acpi@vger.kernel.org
 
-Hi Wanpeng,
+Hi Rafael,
 
-On 08/29/2013 09:36 AM, Wanpeng Li wrote:
-......
->> Hi tj,
->>
->> Sorry for the trouble. Please refer to the following branch:
->>
->> https://github.com/imtangchen/linux.git  movablenode-boot-option
->>
->
-> Could you post your testcase? So I can test it on x86 and powerpc machines.
->
+On 08/28/2013 09:45 PM, Rafael J. Wysocki wrote:
 
-Sure. Some simple testcases:
+> Hi All,
+> 
+> The following two patches are to address possible deadlocks related to
+> device removal and device sysfs attribute access.  In short, some device
+> sysfs attribute callbacks need to acquire locks that are also held around
+> device removal and that may lead to deadlocks with s_active draining in
+> sysfs_deactivate().
+> 
+> [1/2] Avoid possible device removal deadlocks related to device_hotplug_lock.
+> [2/2] Rework the handling of containers by ACPI hotplug (which makes a possible
+>       device removal deadlock related to acpi_scan_lock go away).
+> 
 
-1. Boot the kernel without movablenode boot option, check if the memory 
-mapping
-    is initialized as before, high to low.
-2. Boot the kernel with movablenode boot option, check if the memory 
-mapping
-    is initialized as before, low to high.
-3. With movablenode, check if the memory allocation is from high to low 
-after
-    SRAT is parsed.
-4. Check if we can do acpi_initrd_override normally with and without 
-movablenode.
-    And the memory allocation is from low to high, near the end of 
-kernel image.
-5. with movablenode, check if crashkernel boot option works normally.
-    (This may consume a lot of memory, but should work normally.)
-6. With movablenode, check if relocate_initrd() works normally.
-    (This may consume a lot of memory, but should work normally.)
-7. With movablenode, check if kexec could locate the kernel to higher 
-memory.
-    (This may consume hotplug memory if higher memory is hotpluggable, 
-but should work normally.)
+This version is concise and friendly. It works well on latest kernel tree, and all
+the splat goes away.:)
 
+Best regards,
+Gu
 
-Please do the above tests with and without the following config options:
+> On top of linux-next, for v3.12.
 
-1. CONFIG_MOVABLE_NODE
-2. CONFIG_ACPI_INITRD_OVERRIDE
-
-
-Thanks for the testing.
+> 
+> Thanks,
+> Rafael
+> 
+> 
