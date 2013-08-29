@@ -1,182 +1,276 @@
-From: Gu Zheng <guz.fnst@cn.fujitsu.com>
-Subject: Re: [PATCH 2/2] ACPI / hotplug: Remove containers synchronously
-Date: Thu, 29 Aug 2013 10:02:48 +0800
-Message-ID: <521EABC8.9040705@cn.fujitsu.com>
-References: <1543475.L7gSB7lLAu@vostro.rjw.lan> <1592448.YZbpON5n7n@vostro.rjw.lan> <26495758.n1zOCiG3iV@vostro.rjw.lan> <1883675.1ifF1KoWz3@vostro.rjw.lan>
+From: Bjorn Helgaas <bhelgaas@google.com>
+Subject: Re: [PATCH v3] ACPI: Fix osc flag setup ordering to allow pcie
+ hotplug use when available
+Date: Thu, 29 Aug 2013 11:47:13 -0600
+Message-ID: <20130829174713.GA6489@google.com>
+References: <1377278379-9054-1-git-send-email-nhorman@tuxdriver.com>
+ <1377531553-17716-1-git-send-email-nhorman@tuxdriver.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cn.fujitsu.com ([222.73.24.84]:27328 "EHLO song.cn.fujitsu.com"
-	rhost-flags-OK-FAIL-OK-OK) by vger.kernel.org with ESMTP
-	id S1755470Ab3H2CHI (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 28 Aug 2013 22:07:08 -0400
-In-Reply-To: <1883675.1ifF1KoWz3@vostro.rjw.lan>
+Received: from mail-yh0-f48.google.com ([209.85.213.48]:40473 "EHLO
+	mail-yh0-f48.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753756Ab3H2RrT (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 29 Aug 2013 13:47:19 -0400
+Received: by mail-yh0-f48.google.com with SMTP id i57so191727yha.35
+        for <linux-acpi@vger.kernel.org>; Thu, 29 Aug 2013 10:47:17 -0700 (PDT)
+Content-Disposition: inline
+In-Reply-To: <1377531553-17716-1-git-send-email-nhorman@tuxdriver.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Tejun Heo <tj@kernel.org>, Toshi Kani <toshi.kani@hp.com>, LKML <linux-kernel@vger.kernel.org>, Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
+To: Neil Horman <nhorman@tuxdriver.com>
+Cc: linux-kernel@vger.kernel.org, Len Brown <lenb@kernel.org>, "Rafael J. Wysocki" <rjw@sisk.pl>, linux-acpi@vger.kernel.org, linux-pci@vger.kernel.org
 
-On 08/28/2013 09:51 PM, Rafael J. Wysocki wrote:
-
-> From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+On Mon, Aug 26, 2013 at 11:39:13AM -0400, Neil Horman wrote:
+> Somewhere between 3.9 and 3.10 it seems the order in which pcie and acpi probed
+> slots for hotplug capabilites got reversed.  While this isn't a big deal, it did
+> uncover a bug in the ACPI bus setup path.  Specifically, acpi_pci_root_add calls
+> pci_acpi_scan_root before setting the osc flags for the device handle.
+> pci_acpi_scan_root, among other things uses device_is_managed_by_native_pciehp()
+> to determine if a given slot has pcie hotplug capabilties, whcih checks the
+> devices OSC_PCI_EXPRESS_NATIVE_HP_CONTROL flag.  Since that flag is not set
+> until after pci_acpi_scan_root_completes, the acpi code never sees that pcie
+> slots are hotplug capable and configures them all to use acpi instead.
 > 
-> The current protocol for handling hot remove of containers is very
-> fragile and causes acpi_eject_store() to acquire acpi_scan_lock
-> which may deadlock with the removal of the device that it is called
-> for (the reason is that device sysfs attributes cannot be removed
-> while their callbacks are being executed and ACPI device objects
-> are removed under acpi_scan_lock).
+> Fix is pretty simple, just defer the scan until after the osc flags have been
+> set on the device.  Tested by myself and it seems to work well.
 > 
-> The problem is related to the fact that containers are handled by
-> acpi_bus_device_eject() in a special way, which is to emit an
-> offline uevent instead of just removing the container.  Then, user
-> space is expected to handle that uevent and use the container's
-> "eject" attribute to actually remove it.  That is fragile, because
-> user space may fail to complete the ejection (for example, by not
-> using the container's "eject" attribute at all) leaving the BIOS
-> kind of in a limbo.  Moreover, if the eject event is not signaled
-> for a container itself, but for its parent device object (or
-> generally, for an ancestor above it in the ACPI namespace), the
-> container will be removed straight away without doing that whole
-> dance.
+> Signed-off-by: Neil Horman <nhorman@tuxdriver.com>
+> CC: Len Brown <lenb@kernel.org>
+> CC: "Rafael J. Wysocki" <rjw@sisk.pl>
+> CC: Bjorn Helgaas <bhelgaas@google.com>
+> CC: linux-acpi@vger.kernel.org
+> CC: linux-pci@vger.kernel.org
 > 
-> For this reason, modify acpi_bus_device_eject() to remove containers
-> synchronously like any other objects (user space will get its uevent
-> anyway in case it does some other things in response to it) and
-> remove the eject_pending ACPI device flag that is not used any more.
-> This way acpi_eject_store() doesn't have a reason to acquire
-> acpi_scan_lock any more and one possible deadlock scenario goes
-> away (plus the code is simplified a bit).
-> 
-> Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
-> Reported-by: Gu Zheng <guz.fnst@cn.fujitsu.com>
-
-
-Tested-by: Gu Zheng <guz.fnst@cn.fujitsu.com>
-
 > ---
->  drivers/acpi/scan.c     |   49 ++++++++++++++----------------------------------
->  include/acpi/acpi_bus.h |    3 --
->  2 files changed, 16 insertions(+), 36 deletions(-)
+> Change notes:
+> v2) eferred the disabling of aspm until after the acpi scan of the pci bus is
+> complete.  This was done to allow proper handling of pcie 1.1 devices, as per:
 > 
-> Index: linux-pm/drivers/acpi/scan.c
-> ===================================================================
-> --- linux-pm.orig/drivers/acpi/scan.c
-> +++ linux-pm/drivers/acpi/scan.c
-> @@ -287,6 +287,7 @@ static void acpi_bus_device_eject(void *
->  	struct acpi_device *device = NULL;
->  	struct acpi_scan_handler *handler;
->  	u32 ost_code = ACPI_OST_SC_NON_SPECIFIC_FAILURE;
-> +	int error;
+> commit b8178f130e25c1bdac1c33e0996f1ff6e20ec08e
+> Author: Bjorn Helgaas <bhelgaas@google.com>
+> Date:   Mon Apr 1 15:47:39 2013 -0600
+> 
+>     Revert "PCI/ACPI: Request _OSC control before scanning PCI root bus"
+> 
+> As discussed previously in the thread the disable logic for aspm needs to be
+> untangled and refactored, which is not something I'm sufficently versed in teh
+> hotplug code to do right now, but this fixes the problem above, and prevents the
+> problem that necessitated the revert without adding any visible complexity to
+> the user, so I think its ok.
+> 
+> v3) Fixup stupid authorship error
+> ---
+>  drivers/acpi/pci_root.c | 54 +++++++++++++++++++++++++++++--------------------
+>  1 file changed, 32 insertions(+), 22 deletions(-)
+> 
+> diff --git a/drivers/acpi/pci_root.c b/drivers/acpi/pci_root.c
+> index 5917839..1e80a90 100644
+> --- a/drivers/acpi/pci_root.c
+> +++ b/drivers/acpi/pci_root.c
+> @@ -378,6 +378,7 @@ static int acpi_pci_root_add(struct acpi_device *device,
+>  	struct acpi_pci_root *root;
+>  	u32 flags, base_flags;
+>  	acpi_handle handle = device->handle;
+> +	bool no_aspm = false;
 >  
->  	mutex_lock(&acpi_scan_lock);
+>  	root = kzalloc(sizeof(struct acpi_pci_root), GFP_KERNEL);
+>  	if (!root)
+> @@ -437,27 +438,6 @@ static int acpi_pci_root_add(struct acpi_device *device,
+>  	flags = base_flags = OSC_PCI_SEGMENT_GROUPS_SUPPORT;
+>  	acpi_pci_osc_support(root, flags);
 >  
-> @@ -301,17 +302,13 @@ static void acpi_bus_device_eject(void *
->  	}
->  	acpi_evaluate_hotplug_ost(handle, ACPI_NOTIFY_EJECT_REQUEST,
->  				  ACPI_OST_SC_EJECT_IN_PROGRESS, NULL);
-> -	if (handler->hotplug.mode == AHM_CONTAINER) {
-> -		device->flags.eject_pending = true;
-> +	if (handler->hotplug.mode == AHM_CONTAINER)
->  		kobject_uevent(&device->dev.kobj, KOBJ_OFFLINE);
-> -	} else {
-> -		int error;
->  
-> -		get_device(&device->dev);
-> -		error = acpi_scan_hot_remove(device);
-> -		if (error)
-> -			goto err_out;
-> -	}
-> +	get_device(&device->dev);
-> +	error = acpi_scan_hot_remove(device);
-> +	if (error)
-> +		goto err_out;
->  
->   out:
->  	mutex_unlock(&acpi_scan_lock);
-> @@ -496,7 +493,6 @@ acpi_eject_store(struct device *d, struc
->  	struct acpi_eject_event *ej_event;
->  	acpi_object_type not_used;
->  	acpi_status status;
-> -	u32 ost_source;
->  	int ret;
->  
->  	if (!count || buf[0] != '1')
-> @@ -510,43 +506,28 @@ acpi_eject_store(struct device *d, struc
->  	if (ACPI_FAILURE(status) || !acpi_device->flags.ejectable)
->  		return -ENODEV;
->  
-> -	mutex_lock(&acpi_scan_lock);
+> -	/*
+> -	 * TBD: Need PCI interface for enumeration/configuration of roots.
+> -	 */
 > -
-> -	if (acpi_device->flags.eject_pending) {
-> -		/* ACPI eject notification event. */
-> -		ost_source = ACPI_NOTIFY_EJECT_REQUEST;
-> -		acpi_device->flags.eject_pending = 0;
-> -	} else {
-> -		/* Eject initiated by user space. */
-> -		ost_source = ACPI_OST_EC_OSPM_EJECT;
+> -	/*
+> -	 * Scan the Root Bridge
+> -	 * --------------------
+> -	 * Must do this prior to any attempt to bind the root device, as the
+> -	 * PCI namespace does not get created until this call is made (and
+> -	 * thus the root bridge's pci_dev does not exist).
+> -	 */
+> -	root->bus = pci_acpi_scan_root(root);
+> -	if (!root->bus) {
+> -		dev_err(&device->dev,
+> -			"Bus %04x:%02x not present in PCI namespace\n",
+> -			root->segment, (unsigned int)root->secondary.start);
+> -		result = -ENODEV;
+> -		goto end;
 > -	}
->  	ej_event = kmalloc(sizeof(*ej_event), GFP_KERNEL);
->  	if (!ej_event) {
->  		ret = -ENOMEM;
->  		goto err_out;
+> -
+> -	/* Indicate support for various _OSC capabilities. */
+>  	if (pci_ext_cfg_avail())
+>  		flags |= OSC_EXT_PCI_CONFIG_SUPPORT;
+>  	if (pcie_aspm_support_enabled()) {
+> @@ -512,7 +492,14 @@ static int acpi_pci_root_add(struct acpi_device *device,
+>  				acpi_format_exception(status), flags);
+>  			dev_info(&device->dev,
+>  				 "ACPI _OSC control for PCIe not granted, disabling ASPM\n");
+> -			pcie_no_aspm();
+> +			/*
+> +			 * We want to disable aspm here, but aspm_disabled
+> +			 * needs to remain in its state from boot so that we
+> +			 * properly handle pcie 1.1 devices.  So we set this
+> +			 * flag here, to defer the action until after the acpi
+> +			 * root scan
+> +			 */
+> +			no_aspm = true;
+>  		}
+>  	} else {
+>  		dev_info(&device->dev,
+> @@ -520,6 +507,29 @@ static int acpi_pci_root_add(struct acpi_device *device,
+>  			 "(_OSC support mask: 0x%02x)\n", flags);
 >  	}
-> -	acpi_evaluate_hotplug_ost(acpi_device->handle, ost_source,
-> +	acpi_evaluate_hotplug_ost(acpi_device->handle, ACPI_OST_EC_OSPM_EJECT,
->  				  ACPI_OST_SC_EJECT_IN_PROGRESS, NULL);
->  	ej_event->device = acpi_device;
-> -	ej_event->event = ost_source;
-> +	ej_event->event = ACPI_OST_EC_OSPM_EJECT;
->  	get_device(&acpi_device->dev);
->  	status = acpi_os_hotplug_execute(acpi_bus_hot_remove_device, ej_event);
-> -	if (ACPI_FAILURE(status)) {
-> -		put_device(&acpi_device->dev);
-> -		kfree(ej_event);
-> -		ret = status == AE_NO_MEMORY ? -ENOMEM : -EAGAIN;
-> -		goto err_out;
-> -	}
-> -	ret = count;
-> +	if (ACPI_SUCCESS(status))
-> +		return count;
 >  
-> - out:
-> -	mutex_unlock(&acpi_scan_lock);
-> -	return ret;
-> +	put_device(&acpi_device->dev);
-> +	kfree(ej_event);
-> +	ret = status == AE_NO_MEMORY ? -ENOMEM : -EAGAIN;
->  
->   err_out:
-> -	acpi_evaluate_hotplug_ost(acpi_device->handle, ost_source,
-> +	acpi_evaluate_hotplug_ost(acpi_device->handle, ACPI_OST_EC_OSPM_EJECT,
->  				  ACPI_OST_SC_NON_SPECIFIC_FAILURE, NULL);
-> -	goto out;
-> +	return ret;
->  }
->  
->  static DEVICE_ATTR(eject, 0200, NULL, acpi_eject_store);
-> Index: linux-pm/include/acpi/acpi_bus.h
-> ===================================================================
-> --- linux-pm.orig/include/acpi/acpi_bus.h
-> +++ linux-pm/include/acpi/acpi_bus.h
-> @@ -167,9 +167,8 @@ struct acpi_device_flags {
->  	u32 removable:1;
->  	u32 ejectable:1;
->  	u32 power_manageable:1;
-> -	u32 eject_pending:1;
->  	u32 match_driver:1;
-> -	u32 reserved:26;
-> +	u32 reserved:27;
->  };
->  
->  /* File System */
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-kernel" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> Please read the FAQ at  http://www.tux.org/lkml/
-> 
+> +	/*
+> +	 * TBD: Need PCI interface for enumeration/configuration of roots.
+> +	 */
+> +
+> +	/*
+> +	 * Scan the Root Bridge
+> +	 * --------------------
+> +	 * Must do this prior to any attempt to bind the root device, as the
+> +	 * PCI namespace does not get created until this call is made (and
+> +	 * thus the root bridge's pci_dev does not exist).
+> +	 */
+> +	root->bus = pci_acpi_scan_root(root);
+> +	if (!root->bus) {
+> +		dev_err(&device->dev,
+> +			"Bus %04x:%02x not present in PCI namespace\n",
+> +			root->segment, (unsigned int)root->secondary.start);
+> +		result = -ENODEV;
+> +		goto end;
+> +	}
+> +
+> +	if (no_aspm)
+> +		pcie_no_aspm();
+> +
+>  	pci_acpi_add_bus_pm_notifier(device, root->bus);
+>  	if (device->wakeup.flags.run_wake)
+>  		device_set_run_wake(root->bus->bridge, true);
+
+I think there are two problems with this patch:
+
+  1) There's another call of pcie_no_aspm() at line 454 (in the
+  error path when acpi_pci_osc_support() fails), which happens
+  before scanning the bus.  I think this needs to be converted to
+  "no_aspm = true" as you did for the one in the error path when
+  acpi_pci_osc_control_set() fails.
+
+  2) You effectively moved the call of "pcie_clear_aspm(root->bus)"
+  so it now happens before scanning the bus, which will cause a
+  NULL pointer dereference if we take that path.
+
+I think we need something like the patch below on top of your
+v3 patch.  Can you take a look and see if this makes sense, and
+if so, update your patch to include these or similar fixes?
+
+Here are my notes about where the ASPM and root->osc_control_set 
+setting and testing happen.
+
+Before your patch:
+
+    acpi_pci_root_add
+      root = kzalloc			# root->osc_control_set = 0
+      acpi_pci_osc_support		# indicate OS support for segments
+      root->bus = pci_acpi_scan_root	# SCAN BUS
+	pci_create_root_bus
+	  pcibios_add_bus
+	    acpi_pci_add_bus
+	      acpiphp_enumerate_slots
+		acpi_walk_namespace(..., register_slot, ...)
+		  register_slot
+		    device_is_managed_by_native_pciehp
+		      <test root->osc_control_set>	# root->osc_control_set == 0
+		    return if OS has PCIe hotplug control (we never do)
+		    acpiphp_register_hotplug_slot (so we always do this)
+      acpi_pci_osc_support		# indicate OS support for MSI, ASPM, etc
+      if (_osc_support() failed)
+	pci_no_aspm
+      acpi_pci_osc_control_set		# request OS control of hotplug, PME, AER, etc
+	root->osc_control_set = XX
+      if (_osc_control_set() succeeded) {
+	if (FADT NO_ASPM bit)
+	  pcie_clear_aspm
+	    list_for_each_entry(..., &bus->devices, ...)
+      } else
+	pcie_no_aspm			# _osc_control_set() failed
+
+After your patch:
+
+    acpi_pci_root_add
+      root = kzalloc			# root->osc_control_set = 0
+      acpi_pci_osc_support		# indicate OS support for segments
+      if (_osc_support() failed)
+	pci_no_aspm			# ** (1) before bus scan
+      acpi_pci_osc_support		# indicate OS support for MSI, ASPM, etc
+      acpi_pci_osc_control_set		# request OS control of hotplug, PME, AER, etc
+	root->osc_control_set = XX
+      if (_osc_control_set() succeeded) {
+	if (FADT NO_ASPM bit)
+	  pcie_clear_aspm(root->bus)	# ** (2) root->bus == NULL
+	    list_for_each_entry(..., &bus->devices, ...)
+      } else
+	no_aspm = true			# _osc_control_set() failed
+      root->bus = pci_acpi_scan_root	# SCAN BUS
+	pci_create_root_bus
+	  pcibios_add_bus
+	    acpi_pci_add_bus
+	      acpiphp_enumerate_slots
+		acpi_walk_namespace(..., register_slot, ...)
+		  register_slot
+		    device_is_managed_by_native_pciehp
+		      <test root->osc_control_set>
+		    return if OS has PCIe hotplug control
+		    acpiphp_register_hotplug_slot
+      if (no_aspm)
+	pcie_no_aspm
 
 
+Bjorn
+
+
+diff --git a/drivers/acpi/pci_root.c b/drivers/acpi/pci_root.c
+index a37a372..a67853e 100644
+--- a/drivers/acpi/pci_root.c
++++ b/drivers/acpi/pci_root.c
+@@ -378,7 +378,7 @@ static int acpi_pci_root_add(struct acpi_device *device,
+ 	struct acpi_pci_root *root;
+ 	u32 flags, base_flags;
+ 	acpi_handle handle = device->handle;
+-	bool no_aspm = false;
++	bool no_aspm = false, clear_aspm = false;
+ 
+ 	root = kzalloc(sizeof(struct acpi_pci_root), GFP_KERNEL);
+ 	if (!root)
+@@ -451,7 +451,7 @@ static int acpi_pci_root_add(struct acpi_device *device,
+ 		if (ACPI_FAILURE(status)) {
+ 			dev_info(&device->dev, "ACPI _OSC support "
+ 				"notification failed, disabling PCIe ASPM\n");
+-			pcie_no_aspm();
++			no_aspm = true;
+ 			flags = base_flags;
+ 		}
+ 	}
+@@ -483,7 +483,7 @@ static int acpi_pci_root_add(struct acpi_device *device,
+ 				 * We have ASPM control, but the FADT indicates
+ 				 * that it's unsupported. Clear it.
+ 				 */
+-				pcie_clear_aspm(root->bus);
++				clear_aspm = true;
+ 			}
+ 		} else {
+ 			dev_info(&device->dev,
+@@ -527,6 +527,10 @@ static int acpi_pci_root_add(struct acpi_device *device,
+ 		goto end;
+ 	}
+ 
++	if (clear_aspm) {
++		dev_info(&device->dev, "Disabling ASPM (FADT indicates it is unsupported)\n");
++		pcie_clear_aspm(root->bus);
++	}
+ 	if (no_aspm)
+ 		pcie_no_aspm();
+ 
