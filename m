@@ -1,171 +1,115 @@
-From: Yinghai Lu <yinghai@kernel.org>
-Subject: Re: [PATCH v4] ACPI: Fix osc flag setup ordering to allow pcie
- hotplug use when available
-Date: Thu, 29 Aug 2013 13:46:29 -0700
-Message-ID: <CAE9FiQUsqzWi-JYUObhckbQ4o7F2UEn_PJnO4jiqKBwCtKULqw@mail.gmail.com>
-References: <1377278379-9054-1-git-send-email-nhorman@tuxdriver.com>
-	<1377807425-27423-1-git-send-email-nhorman@tuxdriver.com>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: [PATCH 3/3] PM / hibernate / memory hotplug: Rework mutual exclusion
+Date: Thu, 29 Aug 2013 23:18:49 +0200
+Message-ID: <1562298.ZjRvhqQzT7@vostro.rjw.lan>
+References: <9589253.Co8jZpnWdd@vostro.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-ob0-f178.google.com ([209.85.214.178]:53937 "EHLO
-	mail-ob0-f178.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752731Ab3H2Uq3 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 29 Aug 2013 16:46:29 -0400
-In-Reply-To: <1377807425-27423-1-git-send-email-nhorman@tuxdriver.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7Bit
+Return-path: <owner-linux-mm@kvack.org>
+In-Reply-To: <9589253.Co8jZpnWdd@vostro.rjw.lan>
+Sender: owner-linux-mm@kvack.org
+To: ACPI Devel Maling List <linux-acpi@vger.kernel.org>
+Cc: Toshi Kani <toshi.kani@hp.com>, LKML <linux-kernel@vger.kernel.org>, Linux PM list <linux-pm@vger.kernel.org>, Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>, linux-mm@kvack.org
 List-Id: linux-acpi@vger.kernel.org
-To: Neil Horman <nhorman@tuxdriver.com>
-Cc: Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Len Brown <lenb@kernel.org>, "Rafael J. Wysocki" <rjw@sisk.pl>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>
 
-On Thu, Aug 29, 2013 at 1:17 PM, Neil Horman <nhorman@tuxdriver.com> wrote:
-> This is a fix for:
-> https://bugzilla.kernel.org/show_bug.cgi?id=60736
->
-> During the 3.8 devel cycle:
->
-> commit 8c33f51df406e1a1f7fa4e9b244845b7ebd61fa6
-> Author: Taku Izumi <izumi.taku@jp.fujitsu.com>
-> Date:   Tue Oct 30 15:27:13 2012 +0900
->
->     PCI/ACPI: Request _OSC control before scanning PCI root bus
->
-> went in to allow us to query the pcie hotplug flags during the acpi bus scan.
-> It however caused problems with the disabling of pcie aspm, and so:
-> commit b8178f130e25c1bdac1c33e0996f1ff6e20ec08e
-> Author: Bjorn Helgaas <bhelgaas@google.com>
-> Date:   Mon Apr 1 15:47:39 2013 -0600
->
->     Revert "PCI/ACPI: Request _OSC control before scanning PCI root bus"
->
-> Backed it out.  This of course brought back the problem in which acpi took over
-> hotplug ports that were meant to be controlled by pcie.
->
-> This patch gives us both items.  It lets us request _OSC control before scanning
-> the pci root bus, but defers any disabling of aspm until after the scan is
-> complete, allowing us to properly handle old pcie 1.1 devices aspm settings
-> properly, as b8178f130e documents.
->
-> Tested successfully by myself.
->
-> Signed-off-by: Neil Horman <nhorman@tuxdriver.com>
-> CC: Len Brown <lenb@kernel.org>
-> CC: "Rafael J. Wysocki" <rjw@sisk.pl>
-> CC: linux-acpi@vger.kernel.org
-> CC: linux-pci@vger.kernel.org
-> ---
->  drivers/acpi/pci_root.c | 62 ++++++++++++++++++++++++++++++-------------------
->  1 file changed, 38 insertions(+), 24 deletions(-)
->
-> diff --git a/drivers/acpi/pci_root.c b/drivers/acpi/pci_root.c
-> index 5917839..6110fd2 100644
-> --- a/drivers/acpi/pci_root.c
-> +++ b/drivers/acpi/pci_root.c
-> @@ -378,6 +378,7 @@ static int acpi_pci_root_add(struct acpi_device *device,
->         struct acpi_pci_root *root;
->         u32 flags, base_flags;
->         acpi_handle handle = device->handle;
-> +       bool no_aspm = false, clear_aspm = false;
->
->         root = kzalloc(sizeof(struct acpi_pci_root), GFP_KERNEL);
->         if (!root)
-> @@ -437,27 +438,6 @@ static int acpi_pci_root_add(struct acpi_device *device,
->         flags = base_flags = OSC_PCI_SEGMENT_GROUPS_SUPPORT;
->         acpi_pci_osc_support(root, flags);
->
-> -       /*
-> -        * TBD: Need PCI interface for enumeration/configuration of roots.
-> -        */
-> -
-> -       /*
-> -        * Scan the Root Bridge
-> -        * --------------------
-> -        * Must do this prior to any attempt to bind the root device, as the
-> -        * PCI namespace does not get created until this call is made (and
-> -        * thus the root bridge's pci_dev does not exist).
-> -        */
-> -       root->bus = pci_acpi_scan_root(root);
-> -       if (!root->bus) {
-> -               dev_err(&device->dev,
-> -                       "Bus %04x:%02x not present in PCI namespace\n",
-> -                       root->segment, (unsigned int)root->secondary.start);
-> -               result = -ENODEV;
-> -               goto end;
-> -       }
-> -
-> -       /* Indicate support for various _OSC capabilities. */
->         if (pci_ext_cfg_avail())
->                 flags |= OSC_EXT_PCI_CONFIG_SUPPORT;
->         if (pcie_aspm_support_enabled()) {
-> @@ -471,7 +451,7 @@ static int acpi_pci_root_add(struct acpi_device *device,
->                 if (ACPI_FAILURE(status)) {
->                         dev_info(&device->dev, "ACPI _OSC support "
->                                 "notification failed, disabling PCIe ASPM\n");
-> -                       pcie_no_aspm();
-> +                       no_aspm = true;
->                         flags = base_flags;
->                 }
->         }
-> @@ -503,7 +483,7 @@ static int acpi_pci_root_add(struct acpi_device *device,
->                                  * We have ASPM control, but the FADT indicates
->                                  * that it's unsupported. Clear it.
->                                  */
-> -                               pcie_clear_aspm(root->bus);
-> +                               clear_aspm = true;
->                         }
->                 } else {
->                         dev_info(&device->dev,
-> @@ -512,7 +492,14 @@ static int acpi_pci_root_add(struct acpi_device *device,
->                                 acpi_format_exception(status), flags);
->                         dev_info(&device->dev,
->                                  "ACPI _OSC control for PCIe not granted, disabling ASPM\n");
-> -                       pcie_no_aspm();
-> +                       /*
-> +                        * We want to disable aspm here, but aspm_disabled
-> +                        * needs to remain in its state from boot so that we
-> +                        * properly handle pcie 1.1 devices.  So we set this
-> +                        * flag here, to defer the action until after the acpi
-> +                        * root scan
-> +                        */
-> +                       no_aspm = true;
->                 }
->         } else {
->                 dev_info(&device->dev,
-> @@ -520,6 +507,33 @@ static int acpi_pci_root_add(struct acpi_device *device,
->                          "(_OSC support mask: 0x%02x)\n", flags);
->         }
->
-> +       /*
-> +        * TBD: Need PCI interface for enumeration/configuration of roots.
-> +        */
-> +
-> +       /*
-> +        * Scan the Root Bridge
-> +        * --------------------
-> +        * Must do this prior to any attempt to bind the root device, as the
-> +        * PCI namespace does not get created until this call is made (and
-> +        * thus the root bridge's pci_dev does not exist).
-> +        */
-> +       root->bus = pci_acpi_scan_root(root);
-> +       if (!root->bus) {
-> +               dev_err(&device->dev,
-> +                       "Bus %04x:%02x not present in PCI namespace\n",
-> +                       root->segment, (unsigned int)root->secondary.start);
-> +               result = -ENODEV;
-> +               goto end;
-> +       }
-> +
-> +       if (clear_aspm) {
-> +               dev_info(&device->dev, "Disabling ASPM (FADT indicates it is unsupported)\n");
-> +               pcie_clear_aspm(root->bus);
-> +       }
-> +       if (no_aspm)
-> +               pcie_no_aspm();
-> +
->         pci_acpi_add_bus_pm_notifier(device, root->bus);
->         if (device->wakeup.flags.run_wake)
->                 device_set_run_wake(root->bus->bridge, true);
+From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 
-Also need to cc stable?
+Since all of the memory hotplug operations have to be carried out
+under device_hotplug_lock, they won't need to acquire pm_mutex if
+device_hotplug_lock is held around hibernation.
 
-Acked-by: Yinghai Lu <yinghai@kernel.org>
+For this reason, make the hibernation code acquire
+device_hotplug_lock after freezing user space processes and
+release it before thawing them.  At the same tim drop the
+lock_system_sleep() and unlock_system_sleep() calls from
+lock_memory_hotplug() and unlock_memory_hotplug(), respectively.
+
+Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+---
+ kernel/power/hibernate.c |    4 ++++
+ kernel/power/user.c      |    2 ++
+ mm/memory_hotplug.c      |    4 ----
+ 3 files changed, 6 insertions(+), 4 deletions(-)
+
+Index: linux-pm/kernel/power/hibernate.c
+===================================================================
+--- linux-pm.orig/kernel/power/hibernate.c
++++ linux-pm/kernel/power/hibernate.c
+@@ -652,6 +652,7 @@ int hibernate(void)
+ 	if (error)
+ 		goto Exit;
+ 
++	lock_device_hotplug();
+ 	/* Allocate memory management structures */
+ 	error = create_basic_memory_bitmaps();
+ 	if (error)
+@@ -685,6 +686,7 @@ int hibernate(void)
+  Free_bitmaps:
+ 	free_basic_memory_bitmaps();
+  Thaw:
++	unlock_device_hotplug();
+ 	thaw_processes();
+ 
+ 	/* Don't bother checking whether freezer_test_done is true */
+@@ -814,6 +816,7 @@ static int software_resume(void)
+ 
+ 	pr_debug("PM: Loading hibernation image.\n");
+ 
++	lock_device_hotplug();
+ 	error = create_basic_memory_bitmaps();
+ 	if (error)
+ 		goto Thaw;
+@@ -827,6 +830,7 @@ static int software_resume(void)
+ 	swsusp_free();
+ 	free_basic_memory_bitmaps();
+  Thaw:
++	unlock_device_hotplug();
+ 	thaw_processes();
+  Finish:
+ 	pm_notifier_call_chain(PM_POST_RESTORE);
+Index: linux-pm/kernel/power/user.c
+===================================================================
+--- linux-pm.orig/kernel/power/user.c
++++ linux-pm/kernel/power/user.c
+@@ -201,6 +201,7 @@ static long snapshot_ioctl(struct file *
+ 	if (!mutex_trylock(&pm_mutex))
+ 		return -EBUSY;
+ 
++	lock_device_hotplug();
+ 	data = filp->private_data;
+ 
+ 	switch (cmd) {
+@@ -373,6 +374,7 @@ static long snapshot_ioctl(struct file *
+ 
+ 	}
+ 
++	unlock_device_hotplug();
+ 	mutex_unlock(&pm_mutex);
+ 
+ 	return error;
+Index: linux-pm/mm/memory_hotplug.c
+===================================================================
+--- linux-pm.orig/mm/memory_hotplug.c
++++ linux-pm/mm/memory_hotplug.c
+@@ -51,14 +51,10 @@ DEFINE_MUTEX(mem_hotplug_mutex);
+ void lock_memory_hotplug(void)
+ {
+ 	mutex_lock(&mem_hotplug_mutex);
+-
+-	/* for exclusive hibernation if CONFIG_HIBERNATION=y */
+-	lock_system_sleep();
+ }
+ 
+ void unlock_memory_hotplug(void)
+ {
+-	unlock_system_sleep();
+ 	mutex_unlock(&mem_hotplug_mutex);
+ }
+ 
+
+--
+To unsubscribe, send a message with 'unsubscribe linux-mm' in
+the body to majordomo@kvack.org.  For more info on Linux MM,
+see: http://www.linux-mm.org/ .
+Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
