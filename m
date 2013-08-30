@@ -1,59 +1,95 @@
-From: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
-Subject: Re: [PATCH v2 0/4] Unify CPU hotplug lock interface
-Date: Fri, 30 Aug 2013 11:44:06 +0900
-Message-ID: <522006F6.2060206@jp.fujitsu.com>
-References: <1377822129-4143-1-git-send-email-toshi.kani@hp.com>
+From: Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>
+Subject: [PATCH] ACPI / cpuidle: remove superfluous pr == NULL checks
+Date: Fri, 30 Aug 2013 12:30:51 +0200
+Message-ID: <5858980.cRdNx0rNzu@amdc1032>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-2022-JP"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 7Bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from fgwmail6.fujitsu.co.jp ([192.51.44.36]:34381 "EHLO
-	fgwmail6.fujitsu.co.jp" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755461Ab3H3CpF (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 29 Aug 2013 22:45:05 -0400
-In-Reply-To: <1377822129-4143-1-git-send-email-toshi.kani@hp.com>
+Received: from mailout2.samsung.com ([203.254.224.25]:13902 "EHLO
+	mailout2.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754336Ab3H3Ka6 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 30 Aug 2013 06:30:58 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Toshi Kani <toshi.kani@hp.com>
-Cc: rjw@sisk.pl, mingo@redhat.com, hpa@linux.intel.com, tglx@linutronix.de, gregkh@linuxfoundation.org, benh@kernel.crashing.org, linux-acpi@vger.kernel.org, x86@kernel.org, linuxppc-dev@lists.ozlabs.org, linux-kernel@vger.kernel.org, nfont@linux.vnet.ibm.com, fenghua.yu@intel.com, bp@suse.de, srivatsa.bhat@linux.vnet.ibm.com
+To: Len Brown <lenb@kernel.org>
+Cc: Daniel Lezcano <daniel.lezcano@linaro.org>, "Rafael J. Wysocki" <rjw@sisk.pl>, linux-pm@vger.kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 
-(2013/08/30 9:22), Toshi Kani wrote:
-> lock_device_hotplug() was recently introduced to serialize CPU & Memory
-> online/offline and hotplug operations, along with sysfs online interface
-> restructure (commit 4f3549d7).  With this new locking scheme,
-> cpu_hotplug_driver_lock() is redundant and is no longer necessary.
-> 
-> This patchset makes sure that lock_device_hotplug() covers all CPU online/
-> offline interfaces, and then removes cpu_hotplug_driver_lock().
-> 
-> v2:
->   - Rebased to the pm tree, bleeding-edge.
->   - Changed patch 2/4 to use lock_device_hotplug_sysfs().
-> 
-> ---
-> Toshi Kani (4):
->    hotplug, x86: Fix online state in cpu0 debug interface
->    hotplug, x86: Add hotplug lock to missing places
->    hotplug, x86: Disable ARCH_CPU_PROBE_RELEASE on x86
->    hotplug, powerpc, x86: Remove cpu_hotplug_driver_lock()
-> 
-> ---
-The patch-set looks good to me.
+The only acpi_processor_get_power_info_fadt() user
+(acpi_processor_get_power_info()) dereferences pr before calling
+the function.
 
-Acked-by: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
+The only acpi_processor_hotplug() user (acpi_cpu_soft_notify())
+checks for pr == NULL before calling the function.
 
-Thanks,
-Yasuaki Ishimatsu
+The only acpi_processor_cst_has_changed() user (acpi_processor_notify())
+checks for pr == NULL before calling the function.
 
+The only acpi_processor_power_init() user (__acpi_processor_start())
+dereferences pr before calling the function.
 
->   arch/powerpc/kernel/smp.c              | 12 ----------
->   arch/powerpc/platforms/pseries/dlpar.c | 40 +++++++++++++---------------------
->   arch/x86/Kconfig                       |  4 ----
->   arch/x86/kernel/smpboot.c              | 21 ------------------
->   arch/x86/kernel/topology.c             | 11 ++++++----
->   drivers/base/cpu.c                     | 34 +++++++++++++++++++----------
->   include/linux/cpu.h                    | 13 -----------
->   7 files changed, 45 insertions(+), 90 deletions(-)
-> 
+Thus remove superfluous pr == NULL checks from affected functions.
+
+Also:
+
+While at it remove redundant brackets from acpi_processor_hotplug().
+
+Signed-off-by: Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>
+Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
+Cc: Len Brown <lenb@kernel.org>
+---
+ drivers/acpi/processor_idle.c | 15 +--------------
+ 1 file changed, 1 insertion(+), 14 deletions(-)
+
+diff --git a/drivers/acpi/processor_idle.c b/drivers/acpi/processor_idle.c
+index f98dd00..35c8f2b 100644
+--- a/drivers/acpi/processor_idle.c
++++ b/drivers/acpi/processor_idle.c
+@@ -272,9 +272,6 @@ static void tsc_check_state(int state) { return; }
+ static int acpi_processor_get_power_info_fadt(struct acpi_processor *pr)
+ {
+ 
+-	if (!pr)
+-		return -EINVAL;
+-
+ 	if (!pr->pblk)
+ 		return -ENODEV;
+ 
+@@ -1076,12 +1073,8 @@ int acpi_processor_hotplug(struct acpi_processor *pr)
+ 	if (disabled_by_idle_boot_param())
+ 		return 0;
+ 
+-	if (!pr)
+-		return -EINVAL;
+-
+-	if (nocst) {
++	if (nocst)
+ 		return -ENODEV;
+-	}
+ 
+ 	if (!pr->flags.power_setup_done)
+ 		return -ENODEV;
+@@ -1108,9 +1101,6 @@ int acpi_processor_cst_has_changed(struct acpi_processor *pr)
+ 	if (disabled_by_idle_boot_param())
+ 		return 0;
+ 
+-	if (!pr)
+-		return -EINVAL;
+-
+ 	if (nocst)
+ 		return -ENODEV;
+ 
+@@ -1183,9 +1173,6 @@ int acpi_processor_power_init(struct acpi_processor *pr)
+ 		first_run++;
+ 	}
+ 
+-	if (!pr)
+-		return -EINVAL;
+-
+ 	if (acpi_gbl_FADT.cst_control && !nocst) {
+ 		status =
+ 		    acpi_os_write_port(acpi_gbl_FADT.smi_command, acpi_gbl_FADT.cst_control, 8);
+-- 
+1.8.2.3
 
 
