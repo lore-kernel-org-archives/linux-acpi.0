@@ -1,105 +1,102 @@
-From: Neil Horman <nhorman@tuxdriver.com>
-Subject: Re: [PATCH v4] ACPI: Fix osc flag setup ordering to allow pcie
- hotplug use when available
-Date: Fri, 30 Aug 2013 07:20:13 -0400
-Message-ID: <20130830112013.GA1142@hmsreliant.think-freely.org>
-References: <1377278379-9054-1-git-send-email-nhorman@tuxdriver.com>
- <1377807425-27423-1-git-send-email-nhorman@tuxdriver.com>
- <20130829234052.GA22252@google.com>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: Re: [PATCH] ACPI / cpuidle: remove superfluous pr == NULL checks
+Date: Fri, 30 Aug 2013 14:03:11 +0200
+Message-ID: <4642597.rqCVoqqdF0@vostro.rjw.lan>
+References: <5858980.cRdNx0rNzu@amdc1032>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-pci-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20130829234052.GA22252@google.com>
-Sender: linux-pci-owner@vger.kernel.org
-To: Bjorn Helgaas <bhelgaas@google.com>
-Cc: linux-kernel@vger.kernel.org, Len Brown <lenb@kernel.org>, "Rafael J. Wysocki" <rjw@sisk.pl>, linux-acpi@vger.kernel.org, linux-pci@vger.kernel.org
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7Bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from hydra.sisk.pl ([212.160.235.94]:44635 "EHLO hydra.sisk.pl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753756Ab3H3LwZ (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 30 Aug 2013 07:52:25 -0400
+In-Reply-To: <5858980.cRdNx0rNzu@amdc1032>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>
+Cc: Len Brown <lenb@kernel.org>, Daniel Lezcano <daniel.lezcano@linaro.org>, linux-pm@vger.kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 
-On Thu, Aug 29, 2013 at 05:40:52PM -0600, Bjorn Helgaas wrote:
-> On Thu, Aug 29, 2013 at 04:17:05PM -0400, Neil Horman wrote:
-> > This is a fix for:
-> > https://bugzilla.kernel.org/show_bug.cgi?id=60736
-> > 
-> > During the 3.8 devel cycle:
-> > 
-> > commit 8c33f51df406e1a1f7fa4e9b244845b7ebd61fa6
-> > Author: Taku Izumi <izumi.taku@jp.fujitsu.com>
-> > Date:   Tue Oct 30 15:27:13 2012 +0900
-> > 
-> >     PCI/ACPI: Request _OSC control before scanning PCI root bus
-> > 
-> > went in to allow us to query the pcie hotplug flags during the acpi bus scan.
-> > It however caused problems with the disabling of pcie aspm, and so:
-> > commit b8178f130e25c1bdac1c33e0996f1ff6e20ec08e
-> > Author: Bjorn Helgaas <bhelgaas@google.com>
-> > Date:   Mon Apr 1 15:47:39 2013 -0600
-> > 
-> >     Revert "PCI/ACPI: Request _OSC control before scanning PCI root bus"
-> > 
-> > Backed it out.  This of course brought back the problem in which acpi took over
-> > hotplug ports that were meant to be controlled by pcie.
-> > 
-> > This patch gives us both items.  It lets us request _OSC control before scanning
-> > the pci root bus, but defers any disabling of aspm until after the scan is
-> > complete, allowing us to properly handle old pcie 1.1 devices aspm settings
-> > properly, as b8178f130e documents.
-> > 
-> > Tested successfully by myself.
-> > 
-> > Signed-off-by: Neil Horman <nhorman@tuxdriver.com>
-> > CC: Len Brown <lenb@kernel.org>
-> > CC: "Rafael J. Wysocki" <rjw@sisk.pl>
-> > CC: linux-acpi@vger.kernel.org
-> > CC: linux-pci@vger.kernel.org
+On Friday, August 30, 2013 12:30:51 PM Bartlomiej Zolnierkiewicz wrote:
+> The only acpi_processor_get_power_info_fadt() user
+> (acpi_processor_get_power_info()) dereferences pr before calling
+> the function.
 > 
-> I added Yinghai's ack and a stable tag and put this in pci/misc
-> for v3.12.  Thanks!
+> The only acpi_processor_hotplug() user (acpi_cpu_soft_notify())
+> checks for pr == NULL before calling the function.
 > 
-> I reworked the changelog because I think the actual cause of the
-> regression was 3b63aaa70e, not the _OSC commits you mentioned:
+> The only acpi_processor_cst_has_changed() user (acpi_processor_notify())
+> checks for pr == NULL before calling the function.
 > 
-> 8c33f51df4 ("PCI/ACPI: Request _OSC control before scanning PCI root bus")
-> appeared in v3.8 and broke ASPM but not acpiphp.
+> The only acpi_processor_power_init() user (__acpi_processor_start())
+> dereferences pr before calling the function.
 > 
-> b8178f130e ('Revert "PCI/ACPI: Request _OSC control before scanning PCI
-> root bus"') appeared in v3.9 and fixed ASPM, leaving acpiphp working.
+> Thus remove superfluous pr == NULL checks from affected functions.
 > 
-> 3b63aaa70e ("PCI: acpiphp: Do not use ACPI PCI subdriver mechanism")
-> appeared in v3.10, and I believe this is what actually broke acpiphp
-> because it moved the acpiphp initialization earlier, into the bus scan.
+> Also:
 > 
-> in v3.8:
->     acpi_pci_root_add
->       acpi_pci_osc_control_set          # request OS control
->       pci_acpi_scan_root                # scan bus
->     acpi_pci_root_start
->       add_bridge                        # acpi_pci_driver .add method
->         ...
->           device_is_managed_by_native_pciehp	# OK
+> While at it remove redundant brackets from acpi_processor_hotplug().
 > 
-> in v3.9:
->     acpi_pci_root_add
->       pci_acpi_scan_root                # scan bus
->       acpi_pci_osc_control_set          # request OS control
->       add_bridge                        # acpi_pci_driver .add method
->         ...
->           device_is_managed_by_native_pciehp	# OK
+> Signed-off-by: Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>
+> Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
+> Cc: Len Brown <lenb@kernel.org>
+
+Thanks, I'll queue this up for 3.13.
+
+
+> ---
+>  drivers/acpi/processor_idle.c | 15 +--------------
+>  1 file changed, 1 insertion(+), 14 deletions(-)
 > 
-> in v3.10:
->     acpi_pci_root_add
->       pci_acpi_scan_root                # scan bus
->         ...
->           acpiphp_enumerate_slots
->             ...
->               device_is_managed_by_native_pciehp	# PROBLEM
->       acpi_pci_osc_control_set          # request OS control
+> diff --git a/drivers/acpi/processor_idle.c b/drivers/acpi/processor_idle.c
+> index f98dd00..35c8f2b 100644
+> --- a/drivers/acpi/processor_idle.c
+> +++ b/drivers/acpi/processor_idle.c
+> @@ -272,9 +272,6 @@ static void tsc_check_state(int state) { return; }
+>  static int acpi_processor_get_power_info_fadt(struct acpi_processor *pr)
+>  {
+>  
+> -	if (!pr)
+> -		return -EINVAL;
+> -
+>  	if (!pr->pblk)
+>  		return -ENODEV;
+>  
+> @@ -1076,12 +1073,8 @@ int acpi_processor_hotplug(struct acpi_processor *pr)
+>  	if (disabled_by_idle_boot_param())
+>  		return 0;
+>  
+> -	if (!pr)
+> -		return -EINVAL;
+> -
+> -	if (nocst) {
+> +	if (nocst)
+>  		return -ENODEV;
+> -	}
+>  
+>  	if (!pr->flags.power_setup_done)
+>  		return -ENODEV;
+> @@ -1108,9 +1101,6 @@ int acpi_processor_cst_has_changed(struct acpi_processor *pr)
+>  	if (disabled_by_idle_boot_param())
+>  		return 0;
+>  
+> -	if (!pr)
+> -		return -EINVAL;
+> -
+>  	if (nocst)
+>  		return -ENODEV;
+>  
+> @@ -1183,9 +1173,6 @@ int acpi_processor_power_init(struct acpi_processor *pr)
+>  		first_run++;
+>  	}
+>  
+> -	if (!pr)
+> -		return -EINVAL;
+> -
+>  	if (acpi_gbl_FADT.cst_control && !nocst) {
+>  		status =
+>  		    acpi_os_write_port(acpi_gbl_FADT.smi_command, acpi_gbl_FADT.cst_control, 8);
 > 
-> So I added a stable tag for v3.10+ only.  I'll ask Linus to merge it
-> directly during the merge window for v3.12, and hopefully it will be
-> backported to the v3.10 and v3.11 stable trees soon after that.
-> 
-> Bjorn
-> 
-Copy that, thanks!
-Neil
+-- 
+I speak only for myself.
+Rafael J. Wysocki, Intel Open Source Technology Center.
