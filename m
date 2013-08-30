@@ -1,56 +1,79 @@
 From: Toshi Kani <toshi.kani@hp.com>
-Subject: [PATCH v2 1/4] hotplug, x86: Fix online state in cpu0 debug interface
-Date: Thu, 29 Aug 2013 18:22:06 -0600
-Message-ID: <1377822129-4143-2-git-send-email-toshi.kani@hp.com>
+Subject: [PATCH v2 3/4] hotplug, x86: Disable ARCH_CPU_PROBE_RELEASE on x86
+Date: Thu, 29 Aug 2013 18:22:08 -0600
+Message-ID: <1377822129-4143-4-git-send-email-toshi.kani@hp.com>
 References: <1377822129-4143-1-git-send-email-toshi.kani@hp.com>
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from g1t0029.austin.hp.com ([15.216.28.36]:33905 "EHLO
-	g1t0029.austin.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751625Ab3H3AXt (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 29 Aug 2013 20:23:49 -0400
+Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <1377822129-4143-1-git-send-email-toshi.kani@hp.com>
-Sender: linux-acpi-owner@vger.kernel.org
-List-Id: linux-acpi@vger.kernel.org
+Sender: linux-kernel-owner@vger.kernel.org
 To: rjw@sisk.pl
 Cc: mingo@redhat.com, hpa@linux.intel.com, tglx@linutronix.de, gregkh@linuxfoundation.org, benh@kernel.crashing.org, linux-acpi@vger.kernel.org, x86@kernel.org, linuxppc-dev@lists.ozlabs.org, linux-kernel@vger.kernel.org, nfont@linux.vnet.ibm.com, fenghua.yu@intel.com, bp@suse.de, srivatsa.bhat@linux.vnet.ibm.com, isimatu.yasuaki@jp.fujitsu.com, Toshi Kani <toshi.kani@hp.com>
+List-Id: linux-acpi@vger.kernel.org
 
-_debug_hotplug_cpu() is a debug interface that puts cpu0 offline during
-boot-up when CONFIG_DEBUG_HOTPLUG_CPU0 is set.  After cpu0 is put offline
-in this interface, however, /sys/devices/system/cpu/cpu0/online still
-shows 1 (online).
+Commit d7c53c9e enabled ARCH_CPU_PROBE_RELEASE on x86 in order to
+serialize CPU online/offline operations.  Although it is the config
+option to enable CPU hotplug test interfaces, probe & release, it is
+also the option to enable cpu_hotplug_driver_lock() as well.  Therefore,
+this option had to be enabled on x86 with dummy arch_cpu_probe() and
+arch_cpu_release().
 
-This patch fixes _debug_hotplug_cpu() to update dev->offline when CPU
-online/offline operation succeeded.
+Since then, lock_device_hotplug() was introduced to serialize CPU
+online/offline & hotplug operations.  Therefore, this config option
+is no longer required for the serialization.  This patch disables
+this config option on x86 and revert the changes made by commit
+d7c53c9e.
 
 Signed-off-by: Toshi Kani <toshi.kani@hp.com>
 Acked-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 ---
- arch/x86/kernel/topology.c |    7 +++++--
- 1 file changed, 5 insertions(+), 2 deletions(-)
+ arch/x86/Kconfig          |    4 ----
+ arch/x86/kernel/smpboot.c |   21 ---------------------
+ 2 files changed, 25 deletions(-)
 
-diff --git a/arch/x86/kernel/topology.c b/arch/x86/kernel/topology.c
-index 6e60b5f..5823bbd 100644
---- a/arch/x86/kernel/topology.c
-+++ b/arch/x86/kernel/topology.c
-@@ -72,16 +72,19 @@ int __ref _debug_hotplug_cpu(int cpu, int action)
- 		ret = cpu_down(cpu);
- 		if (!ret) {
- 			pr_info("CPU %u is now offline\n", cpu);
-+			dev->offline = true;
- 			kobject_uevent(&dev->kobj, KOBJ_OFFLINE);
- 		} else
- 			pr_debug("Can't offline CPU%d.\n", cpu);
- 		break;
- 	case 1:
- 		ret = cpu_up(cpu);
--		if (!ret)
-+		if (!ret) {
-+			dev->offline = false;
- 			kobject_uevent(&dev->kobj, KOBJ_ONLINE);
--		else
-+		} else {
- 			pr_debug("Can't online CPU%d.\n", cpu);
-+		}
- 		break;
- 	default:
- 		ret = -EINVAL;
+diff --git a/arch/x86/Kconfig b/arch/x86/Kconfig
+index b32ebf9..c87e49a 100644
+--- a/arch/x86/Kconfig
++++ b/arch/x86/Kconfig
+@@ -255,10 +255,6 @@ config ARCH_HWEIGHT_CFLAGS
+ 	default "-fcall-saved-ecx -fcall-saved-edx" if X86_32
+ 	default "-fcall-saved-rdi -fcall-saved-rsi -fcall-saved-rdx -fcall-saved-rcx -fcall-saved-r8 -fcall-saved-r9 -fcall-saved-r10 -fcall-saved-r11" if X86_64
+ 
+-config ARCH_CPU_PROBE_RELEASE
+-	def_bool y
+-	depends on HOTPLUG_CPU
+-
+ config ARCH_SUPPORTS_UPROBES
+ 	def_bool y
+ 
+diff --git a/arch/x86/kernel/smpboot.c b/arch/x86/kernel/smpboot.c
+index aecc98a..5b24a9d 100644
+--- a/arch/x86/kernel/smpboot.c
++++ b/arch/x86/kernel/smpboot.c
+@@ -82,27 +82,6 @@
+ /* State of each CPU */
+ DEFINE_PER_CPU(int, cpu_state) = { 0 };
+ 
+-#ifdef CONFIG_HOTPLUG_CPU
+-/*
+- * We need this for trampoline_base protection from concurrent accesses when
+- * off- and onlining cores wildly.
+- */
+-static DEFINE_MUTEX(x86_cpu_hotplug_driver_mutex);
+-
+-void cpu_hotplug_driver_lock(void)
+-{
+-	mutex_lock(&x86_cpu_hotplug_driver_mutex);
+-}
+-
+-void cpu_hotplug_driver_unlock(void)
+-{
+-	mutex_unlock(&x86_cpu_hotplug_driver_mutex);
+-}
+-
+-ssize_t arch_cpu_probe(const char *buf, size_t count) { return -1; }
+-ssize_t arch_cpu_release(const char *buf, size_t count) { return -1; }
+-#endif
+-
+ /* Number of siblings per CPU package */
+ int smp_num_siblings = 1;
+ EXPORT_SYMBOL(smp_num_siblings);
