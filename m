@@ -1,93 +1,64 @@
-From: Toshi Kani <toshi.kani@hp.com>
-Subject: [PATCH v2 2/4] hotplug, x86: Add hotplug lock to missing places
-Date: Thu, 29 Aug 2013 18:22:07 -0600
-Message-ID: <1377822129-4143-3-git-send-email-toshi.kani@hp.com>
-References: <1377822129-4143-1-git-send-email-toshi.kani@hp.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1377822129-4143-1-git-send-email-toshi.kani@hp.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: rjw@sisk.pl
-Cc: mingo@redhat.com, hpa@linux.intel.com, tglx@linutronix.de, gregkh@linuxfoundation.org, benh@kernel.crashing.org, linux-acpi@vger.kernel.org, x86@kernel.org, linuxppc-dev@lists.ozlabs.org, linux-kernel@vger.kernel.org, nfont@linux.vnet.ibm.com, fenghua.yu@intel.com, bp@suse.de, srivatsa.bhat@linux.vnet.ibm.com, isimatu.yasuaki@jp.fujitsu.com, Toshi Kani <toshi.kani@hp.com>
+From: Jianguo Wu <wujianguo@huawei.com>
+Subject: [PATCH 2/4] mm/acpi: use NUMA_NO_NODE
+Date: Fri, 30 Aug 2013 09:25:40 +0800
+Message-ID: <521FF494.6000504@huawei.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from szxga02-in.huawei.com ([119.145.14.65]:33876 "EHLO
+	szxga02-in.huawei.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751924Ab3H3BZ5 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 29 Aug 2013 21:25:57 -0400
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Andrew Morton <akpm@linux-foundation.org>
+Cc: "Rafael J . Wysocki" <rjw@sisk.pl>, lenb@kernel.org, linux-acpi@vger.kernel.org, linux-mm@kvack.org, linux-kernel@vger.kernel.org
 
-lock_device_hotplug[_sysfs]() serializes CPU & Memory online/offline
-and hotplug operations.  However, this lock is not held in the debug
-interfaces below that initiate CPU online/offline operations.
+Use more appropriate NUMA_NO_NODE instead of -1
 
- - _debug_hotplug_cpu(), cpu0 hotplug test interface enabled by
-   CONFIG_DEBUG_HOTPLUG_CPU0.
- - cpu_probe_store() and cpu_release_store(), cpu hotplug test interface
-   enabled by CONFIG_ARCH_CPU_PROBE_RELEASE.
-
-This patch changes the above interfaces to hold lock_device_hotplug().
-
-Signed-off-by: Toshi Kani <toshi.kani@hp.com>
-Acked-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Acked-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+Signed-off-by: Jianguo Wu <wujianguo@huawei.com>
 ---
- arch/x86/kernel/topology.c |    2 ++
- drivers/base/cpu.c         |   24 ++++++++++++++++++++++--
- 2 files changed, 24 insertions(+), 2 deletions(-)
+ drivers/acpi/acpi_memhotplug.c |    2 +-
+ drivers/acpi/numa.c            |    4 ++--
+ 2 files changed, 3 insertions(+), 3 deletions(-)
 
-diff --git a/arch/x86/kernel/topology.c b/arch/x86/kernel/topology.c
-index 5823bbd..a3f35eb 100644
---- a/arch/x86/kernel/topology.c
-+++ b/arch/x86/kernel/topology.c
-@@ -65,6 +65,7 @@ int __ref _debug_hotplug_cpu(int cpu, int action)
- 	if (!cpu_is_hotpluggable(cpu))
- 		return -EINVAL;
+diff --git a/drivers/acpi/acpi_memhotplug.c b/drivers/acpi/acpi_memhotplug.c
+index 999adb5..c00a3a7 100644
+--- a/drivers/acpi/acpi_memhotplug.c
++++ b/drivers/acpi/acpi_memhotplug.c
+@@ -281,7 +281,7 @@ static void acpi_memory_remove_memory(struct acpi_memory_device *mem_device)
+ 		if (!info->enabled)
+ 			continue;
  
-+	lock_device_hotplug();
- 	cpu_hotplug_driver_lock();
+-		if (nid < 0)
++		if (nid == NUMA_NO_NODE)
+ 			nid = memory_add_physaddr_to_nid(info->start_addr);
  
- 	switch (action) {
-@@ -91,6 +92,7 @@ int __ref _debug_hotplug_cpu(int cpu, int action)
- 	}
- 
- 	cpu_hotplug_driver_unlock();
-+	unlock_device_hotplug();
- 
- 	return ret;
- }
-diff --git a/drivers/base/cpu.c b/drivers/base/cpu.c
-index 4cf0717..dc78e45 100644
---- a/drivers/base/cpu.c
-+++ b/drivers/base/cpu.c
-@@ -89,7 +89,17 @@ static ssize_t cpu_probe_store(struct device *dev,
- 			       const char *buf,
- 			       size_t count)
+ 		acpi_unbind_memory_blocks(info, handle);
+diff --git a/drivers/acpi/numa.c b/drivers/acpi/numa.c
+index 33e609f..09f79a2 100644
+--- a/drivers/acpi/numa.c
++++ b/drivers/acpi/numa.c
+@@ -73,7 +73,7 @@ int acpi_map_pxm_to_node(int pxm)
  {
--	return arch_cpu_probe(buf, count);
-+	ssize_t cnt;
-+	int ret;
-+
-+	ret = lock_device_hotplug_sysfs();
-+	if (ret)
-+		return ret;
-+
-+	cnt = arch_cpu_probe(buf, count);
-+
-+	unlock_device_hotplug();
-+	return cnt;
- }
+ 	int node = pxm_to_node_map[pxm];
  
- static ssize_t cpu_release_store(struct device *dev,
-@@ -97,7 +107,17 @@ static ssize_t cpu_release_store(struct device *dev,
- 				 const char *buf,
- 				 size_t count)
+-	if (node < 0) {
++	if (node == NUMA_NO_NODE) {
+ 		if (nodes_weight(nodes_found_map) >= MAX_NUMNODES)
+ 			return NUMA_NO_NODE;
+ 		node = first_unset_node(nodes_found_map);
+@@ -334,7 +334,7 @@ int acpi_get_pxm(acpi_handle h)
+ 
+ int acpi_get_node(acpi_handle *handle)
  {
--	return arch_cpu_release(buf, count);
-+	ssize_t cnt;
-+	int ret;
-+
-+	ret = lock_device_hotplug_sysfs();
-+	if (ret)
-+		return ret;
-+
-+	cnt = arch_cpu_release(buf, count);
-+
-+	unlock_device_hotplug();
-+	return cnt;
- }
+-	int pxm, node = -1;
++	int pxm, node = NUMA_NO_NODE;
  
- static DEVICE_ATTR(probe, S_IWUSR, NULL, cpu_probe_store);
+ 	pxm = acpi_get_pxm(handle);
+ 	if (pxm >= 0 && pxm < MAX_PXM_DOMAINS)
+-- 
+1.7.1
+
+
