@@ -1,74 +1,51 @@
 From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: [PATCH 2/4] mm/acpi: use NUMA_NO_NODE
-Date: Fri, 30 Aug 2013 14:07:37 +0200
-Message-ID: <1489693.CsKFcLgBvu@vostro.rjw.lan>
-References: <521FF494.6000504@huawei.com>
+Subject: Re: [PATCH v2 0/4] Unify CPU hotplug lock interface
+Date: Fri, 30 Aug 2013 14:14:38 +0200
+Message-ID: <4448049.EdPFQ3JMc0@vostro.rjw.lan>
+References: <1377822129-4143-1-git-send-email-toshi.kani@hp.com> <522006F6.2060206@jp.fujitsu.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7Bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from hydra.sisk.pl ([212.160.235.94]:44650 "EHLO hydra.sisk.pl"
+Received: from hydra.sisk.pl ([212.160.235.94]:44683 "EHLO hydra.sisk.pl"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753756Ab3H3L4w (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 30 Aug 2013 07:56:52 -0400
-In-Reply-To: <521FF494.6000504@huawei.com>
+	id S1752537Ab3H3MDz (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 30 Aug 2013 08:03:55 -0400
+In-Reply-To: <522006F6.2060206@jp.fujitsu.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Jianguo Wu <wujianguo@huawei.com>
-Cc: Andrew Morton <akpm@linux-foundation.org>, lenb@kernel.org, linux-acpi@vger.kernel.org, linux-mm@kvack.org, linux-kernel@vger.kernel.org
+To: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
+Cc: Toshi Kani <toshi.kani@hp.com>, mingo@redhat.com, hpa@linux.intel.com, tglx@linutronix.de, gregkh@linuxfoundation.org, benh@kernel.crashing.org, linux-acpi@vger.kernel.org, x86@kernel.org, linuxppc-dev@lists.ozlabs.org, linux-kernel@vger.kernel.org, nfont@linux.vnet.ibm.com, fenghua.yu@intel.com, bp@suse.de, srivatsa.bhat@linux.vnet.ibm.com
 
-On Friday, August 30, 2013 09:25:40 AM Jianguo Wu wrote:
-> Use more appropriate NUMA_NO_NODE instead of -1
+On Friday, August 30, 2013 11:44:06 AM Yasuaki Ishimatsu wrote:
+> (2013/08/30 9:22), Toshi Kani wrote:
+> > lock_device_hotplug() was recently introduced to serialize CPU & Memory
+> > online/offline and hotplug operations, along with sysfs online interface
+> > restructure (commit 4f3549d7).  With this new locking scheme,
+> > cpu_hotplug_driver_lock() is redundant and is no longer necessary.
+> > 
+> > This patchset makes sure that lock_device_hotplug() covers all CPU online/
+> > offline interfaces, and then removes cpu_hotplug_driver_lock().
+> > 
+> > v2:
+> >   - Rebased to the pm tree, bleeding-edge.
+> >   - Changed patch 2/4 to use lock_device_hotplug_sysfs().
+> > 
+> > ---
+> > Toshi Kani (4):
+> >    hotplug, x86: Fix online state in cpu0 debug interface
+> >    hotplug, x86: Add hotplug lock to missing places
+> >    hotplug, x86: Disable ARCH_CPU_PROBE_RELEASE on x86
+> >    hotplug, powerpc, x86: Remove cpu_hotplug_driver_lock()
+> > 
+> > ---
+> The patch-set looks good to me.
 > 
-> Signed-off-by: Jianguo Wu <wujianguo@huawei.com>
+> Acked-by: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
 
-I'll queue this up for 3.13.
+Thanks!  I'll tentatively queue up this series for 3.12 (for the second
+half of the merge window).
 
 Thanks,
 Rafael
 
-
-> ---
->  drivers/acpi/acpi_memhotplug.c |    2 +-
->  drivers/acpi/numa.c            |    4 ++--
->  2 files changed, 3 insertions(+), 3 deletions(-)
-> 
-> diff --git a/drivers/acpi/acpi_memhotplug.c b/drivers/acpi/acpi_memhotplug.c
-> index 999adb5..c00a3a7 100644
-> --- a/drivers/acpi/acpi_memhotplug.c
-> +++ b/drivers/acpi/acpi_memhotplug.c
-> @@ -281,7 +281,7 @@ static void acpi_memory_remove_memory(struct acpi_memory_device *mem_device)
->  		if (!info->enabled)
->  			continue;
->  
-> -		if (nid < 0)
-> +		if (nid == NUMA_NO_NODE)
->  			nid = memory_add_physaddr_to_nid(info->start_addr);
->  
->  		acpi_unbind_memory_blocks(info, handle);
-> diff --git a/drivers/acpi/numa.c b/drivers/acpi/numa.c
-> index 33e609f..09f79a2 100644
-> --- a/drivers/acpi/numa.c
-> +++ b/drivers/acpi/numa.c
-> @@ -73,7 +73,7 @@ int acpi_map_pxm_to_node(int pxm)
->  {
->  	int node = pxm_to_node_map[pxm];
->  
-> -	if (node < 0) {
-> +	if (node == NUMA_NO_NODE) {
->  		if (nodes_weight(nodes_found_map) >= MAX_NUMNODES)
->  			return NUMA_NO_NODE;
->  		node = first_unset_node(nodes_found_map);
-> @@ -334,7 +334,7 @@ int acpi_get_pxm(acpi_handle h)
->  
->  int acpi_get_node(acpi_handle *handle)
->  {
-> -	int pxm, node = -1;
-> +	int pxm, node = NUMA_NO_NODE;
->  
->  	pxm = acpi_get_pxm(handle);
->  	if (pxm >= 0 && pxm < MAX_PXM_DOMAINS)
-> 
--- 
-I speak only for myself.
-Rafael J. Wysocki, Intel Open Source Technology Center.
