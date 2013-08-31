@@ -1,77 +1,119 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: [PATCH 3/3] PM / hibernate / memory hotplug: Rework mutual exclusion
-Date: Sat, 31 Aug 2013 02:50:28 +0200
-Message-ID: <10694845.eNMHLsAUoG@vostro.rjw.lan>
-References: <9589253.Co8jZpnWdd@vostro.rjw.lan> <1984629.rbRksDyNff@vostro.rjw.lan> <1377909312.10300.908.camel@misato.fc.hp.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7Bit
-Return-path: <owner-linux-mm@kvack.org>
-In-Reply-To: <1377909312.10300.908.camel@misato.fc.hp.com>
-Sender: owner-linux-mm@kvack.org
-To: Toshi Kani <toshi.kani@hp.com>
-Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>, Linux PM list <linux-pm@vger.kernel.org>, Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>, linux-mm@kvack.org
+From: Hanjun Guo <hanjun.guo@linaro.org>
+Subject: [PATCH 1/6] ACPI / processor: Introduce apic_id in struct processor to save parsed APIC id
+Date: Sat, 31 Aug 2013 18:15:56 +0800
+Message-ID: <1377944162-18574-1-git-send-email-hanjun.guo@linaro.org>
+Return-path: <linux-ia64-owner@vger.kernel.org>
+Sender: linux-ia64-owner@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: Thomas Gleixner <tglx@linutronix.de>, Tony Luck <tony.luck@intel.com>, Ingo Molnar <mingo@redhat.com>, linux-acpi@vger.kernel.org, x86@kernel.org, linux-ia64@vger.kernel.org, linux-kernel@vger.kernel.org, patches@linaro.org, linaro-kernel@lists.linaro.org, linaro-acpi@lists.linaro.org, Jiang Liu <jiang.liu@huawei.com>, Hanjun Guo <hanjun.guo@linaro.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On Friday, August 30, 2013 06:35:12 PM Toshi Kani wrote:
-> On Sat, 2013-08-31 at 02:39 +0200, Rafael J. Wysocki wrote:
-> > On Friday, August 30, 2013 06:23:19 PM Toshi Kani wrote:
-> > > On Thu, 2013-08-29 at 23:18 +0200, Rafael J. Wysocki wrote:
-> > > > From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
-> > > > 
-> > > > Since all of the memory hotplug operations have to be carried out
-> > > > under device_hotplug_lock, they won't need to acquire pm_mutex if
-> > > > device_hotplug_lock is held around hibernation.
-> > > > 
-> > > > For this reason, make the hibernation code acquire
-> > > > device_hotplug_lock after freezing user space processes and
-> > > > release it before thawing them.  At the same tim drop the
-> > > > lock_system_sleep() and unlock_system_sleep() calls from
-> > > > lock_memory_hotplug() and unlock_memory_hotplug(), respectively.
-> > > > 
-> > > > Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
-> > > > ---
-> > > >  kernel/power/hibernate.c |    4 ++++
-> > > >  kernel/power/user.c      |    2 ++
-> > > >  mm/memory_hotplug.c      |    4 ----
-> > > >  3 files changed, 6 insertions(+), 4 deletions(-)
-> > > > 
-> > > > Index: linux-pm/kernel/power/hibernate.c
-> > > > ===================================================================
-> > > > --- linux-pm.orig/kernel/power/hibernate.c
-> > > > +++ linux-pm/kernel/power/hibernate.c
-> > > > @@ -652,6 +652,7 @@ int hibernate(void)
-> > > >  	if (error)
-> > > >  		goto Exit;
-> > > >  
-> > > > +	lock_device_hotplug();
-> > > 
-> > > Since hibernate() can be called from sysfs, do you think the tool may
-> > > see this as a circular dependency with p_active again?  This shouldn't
-> > > be a problem in practice, though.
-> > 
-> > /sys/power/state isn't a device attribute even and is never removed, so it
-> > would be very sad and disappointing if lockdep reported that as a circular
-> > dependency.  The deadlock is surely not possible here anyway.
-> 
-> Agreed.  The code looks good otherwise, and this is a nice cleanup.  If
-> it is OK to ignore the possible warning from the tool (which I do not
-> know the rule here),
+From: Jiang Liu <jiang.liu@huawei.com>
 
-Well, if it complains, we'll just need to add some annotations to this.
-The code is correct I believe.
+For cpu hot add, we evaluate _MAT or parse MADT twice to get APIC id,
+here is the code logic:
+acpi_processor_add()
+	acpi_processor_get_info()
+		acpi_get_cpuid() will evaluate _MAT or parse MADT;
+	acpi_processor_hotadd_init()
+		acpi_map_lsapic() will evaluate _MAT again;
 
-> feel free to add my ack to patch 2/3 and 3/3 as well.
+This can be done more effectively, this patch introduces apic_id in struct
+processor to save parsed APIC id, and then we can use it and remove the
+duplicated _MAT evaluation.
 
-I will, thanks!
+Signed-off-by: Jiang Liu <jiang.liu@huawei.com>
+Signed-off-by: Hanjun Guo <hanjun.guo@linaro.org>
+---
+ drivers/acpi/acpi_processor.c |    3 ++-
+ drivers/acpi/processor_core.c |   26 +++++++++++++++++++++-----
+ include/acpi/processor.h      |    3 +++
+ 3 files changed, 26 insertions(+), 6 deletions(-)
 
-
+diff --git a/drivers/acpi/acpi_processor.c b/drivers/acpi/acpi_processor.c
+index f29e06e..d5a6c81 100644
+--- a/drivers/acpi/acpi_processor.c
++++ b/drivers/acpi/acpi_processor.c
+@@ -270,7 +270,8 @@ static int acpi_processor_get_info(struct acpi_device *device)
+ 		device_declaration = 1;
+ 		pr->acpi_id = value;
+ 	}
+-	cpu_index = acpi_get_cpuid(pr->handle, device_declaration, pr->acpi_id);
++	pr->apic_id = acpi_get_apicid(pr->handle, device_declaration, pr->acpi_id);
++	cpu_index = acpi_map_cpuid(pr->apic_id, pr->acpi_id);
+ 
+ 	/* Handle UP system running SMP kernel, with no LAPIC in MADT */
+ 	if (!cpu0_initialized && (cpu_index == -1) &&
+diff --git a/drivers/acpi/processor_core.c b/drivers/acpi/processor_core.c
+index cf34d90..b3171f3 100644
+--- a/drivers/acpi/processor_core.c
++++ b/drivers/acpi/processor_core.c
+@@ -162,16 +162,23 @@ exit:
+ 	return apic_id;
+ }
+ 
+-int acpi_get_cpuid(acpi_handle handle, int type, u32 acpi_id)
++int acpi_get_apicid(acpi_handle handle, int type, u32 acpi_id)
+ {
+-#ifdef CONFIG_SMP
+-	int i;
+-#endif
+-	int apic_id = -1;
++	int apic_id;
+ 
+ 	apic_id = map_mat_entry(handle, type, acpi_id);
+ 	if (apic_id == -1)
+ 		apic_id = map_madt_entry(type, acpi_id);
++
++	return apic_id;
++}
++
++int acpi_map_cpuid(int apic_id, u32 acpi_id)
++{
++#ifdef CONFIG_SMP
++	int i;
++#endif
++
+ 	if (apic_id == -1) {
+ 		/*
+ 		 * On UP processor, there is no _MAT or MADT table.
+@@ -211,6 +218,15 @@ int acpi_get_cpuid(acpi_handle handle, int type, u32 acpi_id)
+ #endif
+ 	return -1;
+ }
++
++int acpi_get_cpuid(acpi_handle handle, int type, u32 acpi_id)
++{
++	int apic_id;
++
++	apic_id = acpi_get_apicid(handle, type, acpi_id);
++
++	return acpi_map_cpuid(apic_id, acpi_id);
++}
+ EXPORT_SYMBOL_GPL(acpi_get_cpuid);
+ 
+ static bool __init processor_physically_present(acpi_handle handle)
+diff --git a/include/acpi/processor.h b/include/acpi/processor.h
+index 66096d0..7816e45 100644
+--- a/include/acpi/processor.h
++++ b/include/acpi/processor.h
+@@ -199,6 +199,7 @@ struct acpi_processor_flags {
+ struct acpi_processor {
+ 	acpi_handle handle;
+ 	u32 acpi_id;
++	u32 apic_id;
+ 	u32 id;
+ 	u32 pblk;
+ 	int performance_platform_limit;
+@@ -314,6 +315,8 @@ static inline int acpi_processor_get_bios_limit(int cpu, unsigned int *limit)
+ 
+ /* in processor_core.c */
+ void acpi_processor_set_pdc(acpi_handle handle);
++int acpi_get_apicid(acpi_handle, int type, u32 acpi_id);
++int acpi_map_cpuid(int apic_id, u32 acpi_id);
+ int acpi_get_cpuid(acpi_handle, int type, u32 acpi_id);
+ 
+ /* in processor_throttling.c */
 -- 
-I speak only for myself.
-Rafael J. Wysocki, Intel Open Source Technology Center.
+1.7.9.5
 
---
-To unsubscribe, send a message with 'unsubscribe linux-mm' in
-the body to majordomo@kvack.org.  For more info on Linux MM,
-see: http://www.linux-mm.org/ .
-Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
