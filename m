@@ -1,27 +1,71 @@
-From: David Rientjes <rientjes@google.com>
-Subject: Re: [PATCH 2/4] mm/acpi: use NUMA_NO_NODE
-Date: Fri, 30 Aug 2013 14:48:05 -0700 (PDT)
-Message-ID: <alpine.DEB.2.02.1308301447540.29484@chino.kir.corp.google.com>
-References: <521FF494.6000504@huawei.com>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: Re: [PATCH v2 1/4] hotplug, x86: Fix online state in cpu0 debug interface
+Date: Sat, 31 Aug 2013 02:24:22 +0200
+Message-ID: <2774711.qY7OXM5Wgn@vostro.rjw.lan>
+References: <1377822129-4143-1-git-send-email-toshi.kani@hp.com> <1377822129-4143-2-git-send-email-toshi.kani@hp.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7Bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-pd0-f181.google.com ([209.85.192.181]:53518 "EHLO
-	mail-pd0-f181.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753309Ab3H3VsH (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 30 Aug 2013 17:48:07 -0400
-Received: by mail-pd0-f181.google.com with SMTP id g10so2365308pdj.26
-        for <linux-acpi@vger.kernel.org>; Fri, 30 Aug 2013 14:48:06 -0700 (PDT)
-In-Reply-To: <521FF494.6000504@huawei.com>
+Received: from hydra.sisk.pl ([212.160.235.94]:45968 "EHLO hydra.sisk.pl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751896Ab3HaANj (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 30 Aug 2013 20:13:39 -0400
+In-Reply-To: <1377822129-4143-2-git-send-email-toshi.kani@hp.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Jianguo Wu <wujianguo@huawei.com>
-Cc: Andrew Morton <akpm@linux-foundation.org>, "Rafael J . Wysocki" <rjw@sisk.pl>, lenb@kernel.org, linux-acpi@vger.kernel.org, linux-mm@kvack.org, linux-kernel@vger.kernel.org
+To: Toshi Kani <toshi.kani@hp.com>, hpa@linux.intel.com
+Cc: mingo@redhat.com, tglx@linutronix.de, gregkh@linuxfoundation.org, benh@kernel.crashing.org, linux-acpi@vger.kernel.org, x86@kernel.org, linuxppc-dev@lists.ozlabs.org, linux-kernel@vger.kernel.org, nfont@linux.vnet.ibm.com, fenghua.yu@intel.com, bp@suse.de, srivatsa.bhat@linux.vnet.ibm.com, isimatu.yasuaki@jp.fujitsu.com
 
-On Fri, 30 Aug 2013, Jianguo Wu wrote:
+Hi Peter,
 
-> Use more appropriate NUMA_NO_NODE instead of -1
+Any objections here?
+
+On Thursday, August 29, 2013 06:22:06 PM Toshi Kani wrote:
+> _debug_hotplug_cpu() is a debug interface that puts cpu0 offline during
+> boot-up when CONFIG_DEBUG_HOTPLUG_CPU0 is set.  After cpu0 is put offline
+> in this interface, however, /sys/devices/system/cpu/cpu0/online still
+> shows 1 (online).
 > 
-> Signed-off-by: Jianguo Wu <wujianguo@huawei.com>
-
-Acked-by: David Rientjes <rientjes@google.com>
+> This patch fixes _debug_hotplug_cpu() to update dev->offline when CPU
+> online/offline operation succeeded.
+> 
+> Signed-off-by: Toshi Kani <toshi.kani@hp.com>
+> Acked-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+> ---
+>  arch/x86/kernel/topology.c |    7 +++++--
+>  1 file changed, 5 insertions(+), 2 deletions(-)
+> 
+> diff --git a/arch/x86/kernel/topology.c b/arch/x86/kernel/topology.c
+> index 6e60b5f..5823bbd 100644
+> --- a/arch/x86/kernel/topology.c
+> +++ b/arch/x86/kernel/topology.c
+> @@ -72,16 +72,19 @@ int __ref _debug_hotplug_cpu(int cpu, int action)
+>  		ret = cpu_down(cpu);
+>  		if (!ret) {
+>  			pr_info("CPU %u is now offline\n", cpu);
+> +			dev->offline = true;
+>  			kobject_uevent(&dev->kobj, KOBJ_OFFLINE);
+>  		} else
+>  			pr_debug("Can't offline CPU%d.\n", cpu);
+>  		break;
+>  	case 1:
+>  		ret = cpu_up(cpu);
+> -		if (!ret)
+> +		if (!ret) {
+> +			dev->offline = false;
+>  			kobject_uevent(&dev->kobj, KOBJ_ONLINE);
+> -		else
+> +		} else {
+>  			pr_debug("Can't online CPU%d.\n", cpu);
+> +		}
+>  		break;
+>  	default:
+>  		ret = -EINVAL;
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+-- 
+I speak only for myself.
+Rafael J. Wysocki, Intel Open Source Technology Center.
