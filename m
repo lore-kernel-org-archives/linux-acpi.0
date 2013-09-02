@@ -1,92 +1,55 @@
 From: Hanjun Guo <hanjun.guo@linaro.org>
-Subject: Re: [PATCH 3/6] x86: simplify _acpi_map_lsapic()
-Date: Mon, 02 Sep 2013 10:13:54 +0800
-Message-ID: <5223F462.7090500@linaro.org>
-References: <1377944162-18574-1-git-send-email-hanjun.guo@linaro.org> <1377944162-18574-3-git-send-email-hanjun.guo@linaro.org> <8575859.HxOyLiBtGF@vostro.rjw.lan>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+Subject: [PATCH v2 0/6] Remove the duplicated _MAT evaluation and simplify _acpi_map_lsapic()
+Date: Mon,  2 Sep 2013 11:57:33 +0800
+Message-ID: <1378094259-5922-1-git-send-email-hanjun.guo@linaro.org>
 Return-path: <linux-ia64-owner@vger.kernel.org>
-In-Reply-To: <8575859.HxOyLiBtGF@vostro.rjw.lan>
 Sender: linux-ia64-owner@vger.kernel.org
 To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: Thomas Gleixner <tglx@linutronix.de>, Tony Luck <tony.luck@intel.com>, Ingo Molnar <mingo@redhat.com>, linux-acpi@vger.kernel.org, x86@kernel.org, linux-ia64@vger.kernel.org, linux-kernel@vger.kernel.org, patches@linaro.org, linaro-kernel@lists.linaro.org, linaro-acpi@lists.linaro.org, Jiang Liu <jiang.liu@huawei.com>
+Cc: Thomas Gleixner <tglx@linutronix.de>, Tony Luck <tony.luck@intel.com>, Ingo Molnar <mingo@redhat.com>, Jiang Liu <jiang.liu@huawei.com>, linux-acpi@vger.kernel.org, x86@kernel.org, linux-ia64@vger.kernel.org, linux-kernel@vger.kernel.org, patches@linaro.org, linaro-kernel@lists.linaro.org, linaro-acpi@lists.linaro.org, Hanjun Guo <hanjun.guo@linaro.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On 2013-9-1 4:14, Rafael J. Wysocki wrote:
-> On Saturday, August 31, 2013 06:15:58 PM Hanjun Guo wrote:
-[...]
->> +static int acpi_register_lapic(int id, u8 enabled)
->>  {
->>  	unsigned int ver = 0;
->>  
->>  	if (id >= (MAX_LOCAL_APIC-1)) {
->>  		printk(KERN_INFO PREFIX "skipped apicid that is too big\n");
->> -		return;
->> +		return -1;
->>  	}
->>  
->>  	if (!enabled) {
->>  		++disabled_cpus;
->> -		return;
->> +		return -1;
->>  	}
-> 
-> If this returned -EINVAL instead of just -1, ->
-> 
->>  
->>  	if (boot_cpu_physical_apicid != -1U)
->>  		ver = apic_version[boot_cpu_physical_apicid];
->>  
->> -	generic_processor_info(id, ver);
->> +	return generic_processor_info(id, ver);
-> 
-> -> and this too (on errors), -->
-> 
->>  }
->>  
->>  static int __init
->> @@ -622,44 +629,19 @@ static void acpi_map_cpu2node(acpi_handle handle, int cpu, int physid)
->>  
->>  static int _acpi_map_lsapic(acpi_handle handle, int physid, int *pcpu)
->>  {
->> -	cpumask_var_t tmp_map, new_map;
->>  	int cpu;
->> -	int retval = -ENOMEM;
->> -
->> -	if (!alloc_cpumask_var(&tmp_map, GFP_KERNEL))
->> -		goto out;
->>  
->> -	if (!alloc_cpumask_var(&new_map, GFP_KERNEL))
->> -		goto free_tmp_map;
->> -
->> -	cpumask_copy(tmp_map, cpu_present_mask);
->> -	acpi_register_lapic(physid, ACPI_MADT_ENABLED);
->> -
->> -	/*
->> -	 * If acpi_register_lapic successfully generates a new logical cpu
->> -	 * number, then the following will get us exactly what was mapped
->> -	 */
->> -	cpumask_andnot(new_map, cpu_present_mask, tmp_map);
->> -	if (cpumask_empty(new_map)) {
->> +	cpu = acpi_register_lapic(physid, ACPI_MADT_ENABLED);
->> +	if (cpu == -1) {
->>  		printk ("Unable to map lapic to logical cpu number\n");
->> -		retval = -EINVAL;
->> -		goto free_new_map;
->> +		return -EINVAL;
->>  	}
-> 
-> --> then this could be
-> 
-> 	if (cpu < 0) {
-> 		...
-> 		return cpu;
-> 	}
+v1->v2: Return specific error value instead of just return -1, and
+correct some grammar mistake in changelog.
 
-Thanks for the suggestion, and I find out some grammar mistake in the
-changelog too, I will update this patch set and send out soon.
+For cpu hot add, evaluate _MAT or parse MADT will did twice to get
+APIC id:
+acpi_processor_add()
+	acpi_processor_get_info()
+		acpi_get_cpuid() will evaluate _MAT or parse MADT;
+        acpi_processor_hotadd_init()
+                acpi_map_lsapic() will evaluate _MAT again;
 
-Thanks
-Hanjun
+This patch set introduces apic_id in struct processor to save parsed
+APIC id, and use it to remove the duplicated _MAT evaluation.
+
+Further more, the new logical cpu number will be generated in
+acpi_register_lapic(), this can be returned to remove the cpumask
+allocation and operation to simplify _acpi_map_lsapic().
+
+There are also some cleanups for the ACPI processor dirver code.
+
+
+Hanjun Guo (2):
+  ACPI / processor: remove unnecessary if (!pr) check
+  ACPI / processor: Remove outdated comments
+
+Jiang Liu (4):
+  ACPI / processor: Introduce apic_id in struct processor to save
+    parsed APIC id
+  ACPI / processor: use apic_id and remove duplicated _MAT evaluation
+  x86 / ACPI: simplify _acpi_map_lsapic()
+  ACPI / processor: remove some dead code in acpi_processor_get_info()
+
+ arch/ia64/kernel/acpi.c       |   38 ++----------------
+ arch/x86/include/asm/mpspec.h |    2 +-
+ arch/x86/kernel/acpi/boot.c   |   88 +++++++++--------------------------------
+ arch/x86/kernel/apic/apic.c   |    8 ++--
+ drivers/acpi/acpi_processor.c |   22 +++--------
+ drivers/acpi/processor_core.c |   26 +++++++++---
+ include/acpi/processor.h      |    3 ++
+ include/linux/acpi.h          |    2 +-
+ 8 files changed, 60 insertions(+), 129 deletions(-)
+
+-- 
+1.7.9.5
 
