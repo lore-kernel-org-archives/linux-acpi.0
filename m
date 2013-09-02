@@ -1,190 +1,178 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: [PATCH 3/6] x86: simplify _acpi_map_lsapic()
-Date: Sat, 31 Aug 2013 22:14:24 +0200
-Message-ID: <8575859.HxOyLiBtGF@vostro.rjw.lan>
-References: <1377944162-18574-1-git-send-email-hanjun.guo@linaro.org> <1377944162-18574-3-git-send-email-hanjun.guo@linaro.org>
+From: Tang Chen <tangchen@cn.fujitsu.com>
+Subject: Re: [PATCH 00/11] x86, memblock: Allocate memory near kernel image
+ before SRAT parsed.
+Date: Mon, 02 Sep 2013 09:03:18 +0800
+Message-ID: <5223E3D6.9080401@cn.fujitsu.com>
+References: <1377596268-31552-1-git-send-email-tangchen@cn.fujitsu.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7Bit
-Return-path: <linux-ia64-owner@vger.kernel.org>
-In-Reply-To: <1377944162-18574-3-git-send-email-hanjun.guo@linaro.org>
-Sender: linux-ia64-owner@vger.kernel.org
-To: Hanjun Guo <hanjun.guo@linaro.org>
-Cc: Thomas Gleixner <tglx@linutronix.de>, Tony Luck <tony.luck@intel.com>, Ingo Molnar <mingo@redhat.com>, linux-acpi@vger.kernel.org, x86@kernel.org, linux-ia64@vger.kernel.org, linux-kernel@vger.kernel.org, patches@linaro.org, linaro-kernel@lists.linaro.org, linaro-acpi@lists.linaro.org, Jiang Liu <jiang.liu@huawei.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <owner-linux-mm@kvack.org>
+In-Reply-To: <1377596268-31552-1-git-send-email-tangchen@cn.fujitsu.com>
+Sender: owner-linux-mm@kvack.org
+To: rjw@sisk.pl, lenb@kernel.org, tglx@linutronix.de, mingo@elte.hu, hpa@zytor.com, akpm@linux-foundation.org, tj@kernel.org, trenn@suse.de, yinghai@kernel.org, jiang.liu@huawei.com, wency@cn.fujitsu.com, laijs@cn.fujitsu.com, isimatu.yasuaki@jp.fujitsu.com, izumi.taku@jp.fujitsu.com, mgorman@suse.de, minchan@kernel.org, mina86@mina86.com, gong.chen@linux.intel.com, vasilis.liaskovitis@profitbricks.com, lwoodman@redhat.com, riel@redhat.com, jweiner@redhat.com, prarit@redhat.com, zhangyanfei@cn.fujitsu.com
+Cc: x86@kernel.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-mm@kvack.org, linux-acpi@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Saturday, August 31, 2013 06:15:58 PM Hanjun Guo wrote:
-> From: Jiang Liu <jiang.liu@huawei.com>
-> 
-> In acpi_register_lapic(), it will generates a new logical cpu
-> number and maps to the local APIC id, this logical cpu number
-> can be returned to simplify _acpi_map_lsapic() implementation.
-> 
-> Signed-off-by: Jiang Liu <jiang.liu@huawei.com>
-> Signed-off-by: Hanjun Guo <hanjun.guo@linaro.org>
-> ---
->  arch/x86/include/asm/mpspec.h |    2 +-
->  arch/x86/kernel/acpi/boot.c   |   48 +++++++++++++----------------------------
->  arch/x86/kernel/apic/apic.c   |    8 ++++---
->  3 files changed, 21 insertions(+), 37 deletions(-)
-> 
-> diff --git a/arch/x86/include/asm/mpspec.h b/arch/x86/include/asm/mpspec.h
-> index 626cf70..3142a94 100644
-> --- a/arch/x86/include/asm/mpspec.h
-> +++ b/arch/x86/include/asm/mpspec.h
-> @@ -94,7 +94,7 @@ static inline void early_reserve_e820_mpc_new(void) { }
->  #define default_get_smp_config x86_init_uint_noop
->  #endif
->  
-> -void generic_processor_info(int apicid, int version);
-> +int generic_processor_info(int apicid, int version);
->  #ifdef CONFIG_ACPI
->  extern void mp_register_ioapic(int id, u32 address, u32 gsi_base);
->  extern void mp_override_legacy_irq(u8 bus_irq, u8 polarity, u8 trigger,
-> diff --git a/arch/x86/kernel/acpi/boot.c b/arch/x86/kernel/acpi/boot.c
-> index 3e186d1..ca73370 100644
-> --- a/arch/x86/kernel/acpi/boot.c
-> +++ b/arch/x86/kernel/acpi/boot.c
-> @@ -195,24 +195,31 @@ static int __init acpi_parse_madt(struct acpi_table_header *table)
->  	return 0;
->  }
->  
-> -static void acpi_register_lapic(int id, u8 enabled)
-> +/**
-> + * acpi_register_lapic - register a local apic and generates a logic cpu number
-> + * @id: local apic id to register
-> + * @enabled: this cpu is enabled or not
-> + *
-> + * Returns the logic cpu number which maps to the local apic
-> + */
-> +static int acpi_register_lapic(int id, u8 enabled)
->  {
->  	unsigned int ver = 0;
->  
->  	if (id >= (MAX_LOCAL_APIC-1)) {
->  		printk(KERN_INFO PREFIX "skipped apicid that is too big\n");
-> -		return;
-> +		return -1;
->  	}
->  
->  	if (!enabled) {
->  		++disabled_cpus;
-> -		return;
-> +		return -1;
->  	}
+Hi guys,
 
-If this returned -EINVAL instead of just -1, ->
+Any comment to this patch-set ?  And shall agree on using this solution
+suggested by Tejun ?
 
->  
->  	if (boot_cpu_physical_apicid != -1U)
->  		ver = apic_version[boot_cpu_physical_apicid];
->  
-> -	generic_processor_info(id, ver);
-> +	return generic_processor_info(id, ver);
+Thanks.
 
--> and this too (on errors), -->
+On 08/27/2013 05:37 PM, Tang Chen wrote:
+> This patch-set is based on tj's suggestion, and not fully tested.
+> Just for review and discussion.
+>
+>
+> [Problem]
+>
+> The current Linux cannot migrate pages used by the kerenl because
+> of the kernel direct mapping. In Linux kernel space, va = pa + PAGE_OFFSET.
+> When the pa is changed, we cannot simply update the pagetable and
+> keep the va unmodified. So the kernel pages are not migratable.
+>
+> There are also some other issues will cause the kernel pages not migratable.
+> For example, the physical address may be cached somewhere and will be used.
+> It is not to update all the caches.
+>
+> When doing memory hotplug in Linux, we first migrate all the pages in one
+> memory device somewhere else, and then remove the device. But if pages are
+> used by the kernel, they are not migratable. As a result, memory used by
+> the kernel cannot be hot-removed.
+>
+> Modifying the kernel direct mapping mechanism is too difficult to do. And
+> it may cause the kernel performance down and unstable. So we use the following
+> way to do memory hotplug.
+>
+>
+> [What we are doing]
+>
+> In Linux, memory in one numa node is divided into several zones. One of the
+> zones is ZONE_MOVABLE, which the kernel won't use.
+>
+> In order to implement memory hotplug in Linux, we are going to arrange all
+> hotpluggable memory in ZONE_MOVABLE so that the kernel won't use these memory.
+> To do this, we need ACPI's help.
+>
+> In ACPI, SRAT(System Resource Affinity Table) contains NUMA info. The memory
+> affinities in SRAT record every memory range in the system, and also, flags
+> specifying if the memory range is hotpluggable.
+> (Please refer to ACPI spec 5.0 5.2.16)
+>
+> With the help of SRAT, we have to do the following two things to achieve our
+> goal:
+>
+> 1. When doing memory hot-add, allow the users arranging hotpluggable as
+>     ZONE_MOVABLE.
+>     (This has been done by the MOVABLE_NODE functionality in Linux.)
+>
+> 2. when the system is booting, prevent bootmem allocator from allocating
+>     hotpluggable memory for the kernel before the memory initialization
+>     finishes.
+>
+> The problem 2 is the key problem we are going to solve. But before solving it,
+> we need some preparation. Please see below.
+>
+>
+> [Preparation]
+>
+> Bootloader has to load the kernel image into memory. And this memory must be
+> unhotpluggable. We cannot prevent this anyway. So in a memory hotplug system,
+> we can assume any node the kernel resides in is not hotpluggable.
+>
+> Before SRAT is parsed, we don't know which memory ranges are hotpluggable. But
+> memblock has already started to work. In the current kernel, memblock allocates
+> the following memory before SRAT is parsed:
+>
+> setup_arch()
+>   |->memblock_x86_fill()            /* memblock is ready */
+>   |......
+>   |->early_reserve_e820_mpc_new()   /* allocate memory under 1MB */
+>   |->reserve_real_mode()            /* allocate memory under 1MB */
+>   |->init_mem_mapping()             /* allocate page tables, about 2MB to map 1GB memory */
+>   |->dma_contiguous_reserve()       /* specified by user, should be low */
+>   |->setup_log_buf()                /* specified by user, several mega bytes */
+>   |->relocate_initrd()              /* could be large, but will be freed after boot, should reorder */
+>   |->acpi_initrd_override()         /* several mega bytes */
+>   |->reserve_crashkernel()          /* could be large, should reorder */
+>   |......
+>   |->initmem_init()                 /* Parse SRAT */
+>
+> According to Tejun's advice, before SRAT is parsed, we should try our best to
+> allocate memory near the kernel image. Since the whole node the kernel resides
+> in won't be hotpluggable, and for a modern server, a node may have at least 16GB
+> memory, allocating several mega bytes memory around the kernel image won't cross
+> to hotpluggable memory.
+>
+>
+> [About this patch-set]
+>
+> So this patch-set does the following:
+>
+> 1. Make memblock be able to allocate memory from low address to high address.
+>     Also introduce low limit to prevent memblock allocating memory too low.
+>
+> 2. Improve init_mem_mapping() to support allocate page tables from low address
+>     to high address.
+>
+> 3. Introduce "movablenode" boot option to enable and disable this functionality.
+>
+> PS: Reordering of relocate_initrd() and reserve_crashkernel() has not been done
+>      yet. acpi_initrd_override() needs to access initrd with virtual address. So
+>      relocate_initrd() must be done before acpi_initrd_override().
+>
+>
+> Tang Chen (11):
+>    memblock: Rename current_limit to current_limit_high in memblock.
+>    memblock: Rename memblock_set_current_limit() to
+>      memblock_set_current_limit_high().
+>    memblock: Introduce lowest limit in memblock.
+>    memblock: Introduce memblock_set_current_limit_low() to set lower
+>      limit of memblock.
+>    memblock: Introduce allocation order to memblock.
+>    memblock: Improve memblock to support allocation from lower address.
+>    x86, memblock: Set lowest limit for memblock_alloc_base_nid().
+>    x86, acpi, memblock: Use __memblock_alloc_base() in
+>      acpi_initrd_override()
+>    mem-hotplug: Introduce movablenode boot option to {en|dis}able using
+>      SRAT.
+>    x86, mem-hotplug: Support initialize page tables from low to high.
+>    x86, mem_hotplug: Allocate memory near kernel image before SRAT is
+>      parsed.
+>
+>   Documentation/kernel-parameters.txt |   15 ++++
+>   arch/arm/mm/mmu.c                   |    2 +-
+>   arch/arm64/mm/mmu.c                 |    4 +-
+>   arch/microblaze/mm/init.c           |    2 +-
+>   arch/powerpc/mm/40x_mmu.c           |    4 +-
+>   arch/powerpc/mm/44x_mmu.c           |    2 +-
+>   arch/powerpc/mm/fsl_booke_mmu.c     |    4 +-
+>   arch/powerpc/mm/hash_utils_64.c     |    4 +-
+>   arch/powerpc/mm/init_32.c           |    4 +-
+>   arch/powerpc/mm/ppc_mmu_32.c        |    4 +-
+>   arch/powerpc/mm/tlb_nohash.c        |    4 +-
+>   arch/unicore32/mm/mmu.c             |    2 +-
+>   arch/x86/kernel/setup.c             |   41 ++++++++++-
+>   arch/x86/mm/init.c                  |  119 ++++++++++++++++++++++++--------
+>   drivers/acpi/osl.c                  |    4 +-
+>   include/linux/memblock.h            |   33 ++++++++--
+>   include/linux/memory_hotplug.h      |    5 ++
+>   mm/memblock.c                       |  131 +++++++++++++++++++++++++++++-----
+>   mm/memory_hotplug.c                 |    9 +++
+>   mm/nobootmem.c                      |    4 +-
+>   20 files changed, 320 insertions(+), 77 deletions(-)
+>
+> --
+> To unsubscribe, send a message with 'unsubscribe linux-mm' in
+> the body to majordomo@kvack.org.  For more info on Linux MM,
+> see: http://www.linux-mm.org/ .
+> Don't email:<a href=mailto:"dont@kvack.org">  email@kvack.org</a>
+>
 
->  }
->  
->  static int __init
-> @@ -622,44 +629,19 @@ static void acpi_map_cpu2node(acpi_handle handle, int cpu, int physid)
->  
->  static int _acpi_map_lsapic(acpi_handle handle, int physid, int *pcpu)
->  {
-> -	cpumask_var_t tmp_map, new_map;
->  	int cpu;
-> -	int retval = -ENOMEM;
-> -
-> -	if (!alloc_cpumask_var(&tmp_map, GFP_KERNEL))
-> -		goto out;
->  
-> -	if (!alloc_cpumask_var(&new_map, GFP_KERNEL))
-> -		goto free_tmp_map;
-> -
-> -	cpumask_copy(tmp_map, cpu_present_mask);
-> -	acpi_register_lapic(physid, ACPI_MADT_ENABLED);
-> -
-> -	/*
-> -	 * If acpi_register_lapic successfully generates a new logical cpu
-> -	 * number, then the following will get us exactly what was mapped
-> -	 */
-> -	cpumask_andnot(new_map, cpu_present_mask, tmp_map);
-> -	if (cpumask_empty(new_map)) {
-> +	cpu = acpi_register_lapic(physid, ACPI_MADT_ENABLED);
-> +	if (cpu == -1) {
->  		printk ("Unable to map lapic to logical cpu number\n");
-> -		retval = -EINVAL;
-> -		goto free_new_map;
-> +		return -EINVAL;
->  	}
-
---> then this could be
-
-	if (cpu < 0) {
-		...
-		return cpu;
-	}
-
->  
->  	acpi_processor_set_pdc(handle);
-> -
-> -	cpu = cpumask_first(new_map);
->  	acpi_map_cpu2node(handle, cpu, physid);
->  
->  	*pcpu = cpu;
-> -	retval = 0;
-> -
-> -free_new_map:
-> -	free_cpumask_var(new_map);
-> -free_tmp_map:
-> -	free_cpumask_var(tmp_map);
-> -out:
-> -	return retval;
-> +	return 0;
->  }
->  
->  /* wrapper to silence section mismatch warning */
-> diff --git a/arch/x86/kernel/apic/apic.c b/arch/x86/kernel/apic/apic.c
-> index eca89c5..87128778 100644
-> --- a/arch/x86/kernel/apic/apic.c
-> +++ b/arch/x86/kernel/apic/apic.c
-> @@ -2107,7 +2107,7 @@ void disconnect_bsp_APIC(int virt_wire_setup)
->  	apic_write(APIC_LVT1, value);
->  }
->  
-> -void generic_processor_info(int apicid, int version)
-> +int generic_processor_info(int apicid, int version)
->  {
->  	int cpu, max = nr_cpu_ids;
->  	bool boot_cpu_detected = physid_isset(boot_cpu_physical_apicid,
-> @@ -2127,7 +2127,7 @@ void generic_processor_info(int apicid, int version)
->  			"  Processor %d/0x%x ignored.\n", max, thiscpu, apicid);
->  
->  		disabled_cpus++;
-> -		return;
-> +		return -1;
->  	}
->  
->  	if (num_processors >= nr_cpu_ids) {
-> @@ -2138,7 +2138,7 @@ void generic_processor_info(int apicid, int version)
->  			"  Processor %d/0x%x ignored.\n", max, thiscpu, apicid);
->  
->  		disabled_cpus++;
-> -		return;
-> +		return -1;
->  	}
->  
->  	num_processors++;
-> @@ -2183,6 +2183,8 @@ void generic_processor_info(int apicid, int version)
->  #endif
->  	set_cpu_possible(cpu, true);
->  	set_cpu_present(cpu, true);
-> +
-> +	return cpu;
->  }
->  
->  int hard_smp_processor_id(void)
-> 
--- 
-I speak only for myself.
-Rafael J. Wysocki, Intel Open Source Technology Center.
+--
+To unsubscribe, send a message with 'unsubscribe linux-mm' in
+the body to majordomo@kvack.org.  For more info on Linux MM,
+see: http://www.linux-mm.org/ .
+Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
