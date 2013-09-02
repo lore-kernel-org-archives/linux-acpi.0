@@ -1,66 +1,64 @@
 From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: [PATCH v2 0/6] Remove the duplicated _MAT evaluation and simplify _acpi_map_lsapic()
-Date: Mon, 02 Sep 2013 14:12:22 +0200
-Message-ID: <1961453.53nfG0bXEh@vostro.rjw.lan>
-References: <1378094259-5922-1-git-send-email-hanjun.guo@linaro.org>
+Subject: Re: [PATCH] ACPI / LPSS: don't crash if a device has no MMIO resources
+Date: Mon, 02 Sep 2013 14:25:22 +0200
+Message-ID: <2039525.IqjUGZ56ra@vostro.rjw.lan>
+References: <1378117825-15852-1-git-send-email-mika.westerberg@linux.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7Bit
-Return-path: <linux-ia64-owner@vger.kernel.org>
-In-Reply-To: <1378094259-5922-1-git-send-email-hanjun.guo@linaro.org>
-Sender: linux-ia64-owner@vger.kernel.org
-To: Hanjun Guo <hanjun.guo@linaro.org>
-Cc: Thomas Gleixner <tglx@linutronix.de>, Tony Luck <tony.luck@intel.com>, Ingo Molnar <mingo@redhat.com>, Jiang Liu <jiang.liu@huawei.com>, linux-acpi@vger.kernel.org, x86@kernel.org, linux-ia64@vger.kernel.org, linux-kernel@vger.kernel.org, patches@linaro.org, linaro-kernel@lists.linaro.org, linaro-acpi@lists.linaro.org
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from hydra.sisk.pl ([212.160.235.94]:52181 "EHLO hydra.sisk.pl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754076Ab3IBMOd (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 2 Sep 2013 08:14:33 -0400
+In-Reply-To: <1378117825-15852-1-git-send-email-mika.westerberg@linux.intel.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Mika Westerberg <mika.westerberg@linux.intel.com>
+Cc: linux-acpi@vger.kernel.org, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Imre Kaloz <kaloz@openwrt.org>, linux-kernel@vger.kernel.org
 
-On Monday, September 02, 2013 11:57:33 AM Hanjun Guo wrote:
-> v1->v2: Return specific error value instead of just return -1, and
-> correct some grammar mistake in changelog.
+On Monday, September 02, 2013 01:30:25 PM Mika Westerberg wrote:
+> Intel LPSS devices that are enumerated from ACPI have both MMIO and IRQ
+> resources returned in their _CRS method. However, Apple Macbook Air with
+> Haswell has LPSS devices enumerated from PCI bus instead and _CRS method
+> returns only an interrupt number (but the device has _HID set that causes
+> the scan handler to match it).
 > 
-> For cpu hot add, evaluate _MAT or parse MADT will did twice to get
-> APIC id:
-> acpi_processor_add()
-> 	acpi_processor_get_info()
-> 		acpi_get_cpuid() will evaluate _MAT or parse MADT;
->         acpi_processor_hotadd_init()
->                 acpi_map_lsapic() will evaluate _MAT again;
+> The current ACPI / LPSS code sets pdata->dev_desc only when MMIO resource
+> is found for the device and in case of Macbook Air it is never found. That
+> leads to a NULL pointer dereference in register_device_clock().
 > 
-> This patch set introduces apic_id in struct processor to save parsed
-> APIC id, and use it to remove the duplicated _MAT evaluation.
+> Correct this by always setting the pdata->dev_desc.
 > 
-> Further more, the new logical cpu number will be generated in
-> acpi_register_lapic(), this can be returned to remove the cpumask
-> allocation and operation to simplify _acpi_map_lsapic().
-> 
-> There are also some cleanups for the ACPI processor dirver code.
+> Reported-and-tested-by: Imre Kaloz <kaloz@openwrt.org>
+> Signed-off-by: Mika Westerberg <mika.westerberg@linux.intel.com>
+> Cc: stable@vger.kernel.org # 3.10+
 
-I like the series, so I've queued it up for 3.13.
+Queued up for 3.12, thanks for taking care of this Mika!
 
-Thanks,
-Rafael
-
-
-> Hanjun Guo (2):
->   ACPI / processor: remove unnecessary if (!pr) check
->   ACPI / processor: Remove outdated comments
+> ---
+>  drivers/acpi/acpi_lpss.c | 3 ++-
+>  1 file changed, 2 insertions(+), 1 deletion(-)
 > 
-> Jiang Liu (4):
->   ACPI / processor: Introduce apic_id in struct processor to save
->     parsed APIC id
->   ACPI / processor: use apic_id and remove duplicated _MAT evaluation
->   x86 / ACPI: simplify _acpi_map_lsapic()
->   ACPI / processor: remove some dead code in acpi_processor_get_info()
-> 
->  arch/ia64/kernel/acpi.c       |   38 ++----------------
->  arch/x86/include/asm/mpspec.h |    2 +-
->  arch/x86/kernel/acpi/boot.c   |   88 +++++++++--------------------------------
->  arch/x86/kernel/apic/apic.c   |    8 ++--
->  drivers/acpi/acpi_processor.c |   22 +++--------
->  drivers/acpi/processor_core.c |   26 +++++++++---
->  include/acpi/processor.h      |    3 ++
->  include/linux/acpi.h          |    2 +-
->  8 files changed, 60 insertions(+), 129 deletions(-)
-> 
+> diff --git a/drivers/acpi/acpi_lpss.c b/drivers/acpi/acpi_lpss.c
+> index 6a38218..fb78bb9 100644
+> --- a/drivers/acpi/acpi_lpss.c
+> +++ b/drivers/acpi/acpi_lpss.c
+> @@ -257,12 +257,13 @@ static int acpi_lpss_create_device(struct acpi_device *adev,
+>  				pdata->mmio_size = resource_size(&rentry->res);
+>  			pdata->mmio_base = ioremap(rentry->res.start,
+>  						   pdata->mmio_size);
+> -			pdata->dev_desc = dev_desc;
+>  			break;
+>  		}
+>  
+>  	acpi_dev_free_resource_list(&resource_list);
+>  
+> +	pdata->dev_desc = dev_desc;
+> +
+>  	if (dev_desc->clk_required) {
+>  		ret = register_device_clock(adev, pdata);
+>  		if (ret) {
 > 
 -- 
 I speak only for myself.
