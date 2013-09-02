@@ -1,72 +1,67 @@
-From: Mika Westerberg <mika.westerberg@linux.intel.com>
-Subject: Re: [RFC PATCH 1/2] i2c: prepare runtime PM support for I2C client
- devices
-Date: Mon, 2 Sep 2013 13:56:15 +0300
-Message-ID: <20130902105615.GR7393@intel.com>
-References: <1377007416-13851-1-git-send-email-mika.westerberg@linux.intel.com>
- <1377007416-13851-2-git-send-email-mika.westerberg@linux.intel.com>
- <20130828093858.GF4086@katana>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: Re: [PATCH v2 0/6] Remove the duplicated _MAT evaluation and simplify _acpi_map_lsapic()
+Date: Mon, 02 Sep 2013 14:12:22 +0200
+Message-ID: <1961453.53nfG0bXEh@vostro.rjw.lan>
+References: <1378094259-5922-1-git-send-email-hanjun.guo@linaro.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga14.intel.com ([143.182.124.37]:11694 "EHLO mga14.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1757972Ab3IBKus (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 2 Sep 2013 06:50:48 -0400
-Content-Disposition: inline
-In-Reply-To: <20130828093858.GF4086@katana>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7Bit
+Return-path: <linux-ia64-owner@vger.kernel.org>
+In-Reply-To: <1378094259-5922-1-git-send-email-hanjun.guo@linaro.org>
+Sender: linux-ia64-owner@vger.kernel.org
+To: Hanjun Guo <hanjun.guo@linaro.org>
+Cc: Thomas Gleixner <tglx@linutronix.de>, Tony Luck <tony.luck@intel.com>, Ingo Molnar <mingo@redhat.com>, Jiang Liu <jiang.liu@huawei.com>, linux-acpi@vger.kernel.org, x86@kernel.org, linux-ia64@vger.kernel.org, linux-kernel@vger.kernel.org, patches@linaro.org, linaro-kernel@lists.linaro.org, linaro-acpi@lists.linaro.org
 List-Id: linux-acpi@vger.kernel.org
-To: Wolfram Sang <wsa@the-dreams.de>
-Cc: linux-i2c@vger.kernel.org, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Lv Zheng <lv.zheng@intel.com>, Aaron Lu <aaron.lu@intel.com>, linux-arm-kernel@lists.infradead.org
 
-On Wed, Aug 28, 2013 at 11:38:58AM +0200, Wolfram Sang wrote:
-> On Tue, Aug 20, 2013 at 05:03:35PM +0300, Mika Westerberg wrote:
-> > From: Aaron Lu <aaron.lu@intel.com>
-> > 
-> > This patch adds runtime PM support for the I2C bus in a similar way that
-> > has been done for PCI bus already. This means that the I2C bus core
-> > prepares runtime PM for a client device just before a driver is about to be
-> > bound to it. Devices that are not bound to any driver are not prepared for
-> > runtime PM.
-> > 
-> > In order to take advantage of this runtime PM support, the client device
-> > driver needs drop the device runtime PM reference count by calling
-> > pm_runtime_put() in its ->probe() callback and possibly implement rest of
-> > the runtime PM callbacks.
-> > 
-> > However, this does not yet make runtime PM happen for the device, it has to
-> > be explicitly allowed from userspace per each I2C client device. The
-> > reason for this is that things like HID over I2C might not work as smoothly
-> > when runtime PM is active. So we leave it to the user to balance between
-> > performance and power efficiency.
-> > 
-> > User can allow runtime PM for the client device by running:
-> > 
-> > 	# echo auto > /sys/bus/i2c/devices/<device>/power/control
-> > 
-> > and it can be forbidden again by:
-> > 
-> > 	# echo on > /sys/bus/i2c/devices/<device>/power/control
-> > 
-> > Status of the device can be monitored by reading files under the device
-> > power directory.
-> > 
-> > If the driver doesn't support runtime PM (like most of the existing I2C
-> > client drivers), the device in question is regarded as being runtime PM
-> > active and powered on.
-> > 
-> > The patch adds also runtime PM support for the adapter device because it is
-> > needed to be able to runtime power manage the I2C controller device. The
-> > adapter device is handled along with the I2C controller device (it uses
-> > pm_runtime_no_callbacks()).
-> > 
-> > Signed-off-by: Aaron Lu <aaron.lu@intel.com>
-> > Signed-off-by: Mika Westerberg <mika.westerberg@linux.intel.com>
+On Monday, September 02, 2013 11:57:33 AM Hanjun Guo wrote:
+> v1->v2: Return specific error value instead of just return -1, and
+> correct some grammar mistake in changelog.
 > 
-> CCing ALKML. Would appreciate comments/tags from the runtime-PM users of
-> the ARM world.
+> For cpu hot add, evaluate _MAT or parse MADT will did twice to get
+> APIC id:
+> acpi_processor_add()
+> 	acpi_processor_get_info()
+> 		acpi_get_cpuid() will evaluate _MAT or parse MADT;
+>         acpi_processor_hotadd_init()
+>                 acpi_map_lsapic() will evaluate _MAT again;
+> 
+> This patch set introduces apic_id in struct processor to save parsed
+> APIC id, and use it to remove the duplicated _MAT evaluation.
+> 
+> Further more, the new logical cpu number will be generated in
+> acpi_register_lapic(), this can be returned to remove the cpumask
+> allocation and operation to simplify _acpi_map_lsapic().
+> 
+> There are also some cleanups for the ACPI processor dirver code.
 
-Any comments on this?
+I like the series, so I've queued it up for 3.13.
 
-I can resend the whole series with ALKML included if that helps.
+Thanks,
+Rafael
+
+
+> Hanjun Guo (2):
+>   ACPI / processor: remove unnecessary if (!pr) check
+>   ACPI / processor: Remove outdated comments
+> 
+> Jiang Liu (4):
+>   ACPI / processor: Introduce apic_id in struct processor to save
+>     parsed APIC id
+>   ACPI / processor: use apic_id and remove duplicated _MAT evaluation
+>   x86 / ACPI: simplify _acpi_map_lsapic()
+>   ACPI / processor: remove some dead code in acpi_processor_get_info()
+> 
+>  arch/ia64/kernel/acpi.c       |   38 ++----------------
+>  arch/x86/include/asm/mpspec.h |    2 +-
+>  arch/x86/kernel/acpi/boot.c   |   88 +++++++++--------------------------------
+>  arch/x86/kernel/apic/apic.c   |    8 ++--
+>  drivers/acpi/acpi_processor.c |   22 +++--------
+>  drivers/acpi/processor_core.c |   26 +++++++++---
+>  include/acpi/processor.h      |    3 ++
+>  include/linux/acpi.h          |    2 +-
+>  8 files changed, 60 insertions(+), 129 deletions(-)
+> 
+> 
+-- 
+I speak only for myself.
+Rafael J. Wysocki, Intel Open Source Technology Center.
