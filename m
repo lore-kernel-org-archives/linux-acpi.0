@@ -1,7 +1,7 @@
 From: Tang Chen <tangchen@cn.fujitsu.com>
-Subject: [PATCH v2 2/4] acpi cleanup: Use pr_{info|err}() instead of printk() in arch/x86/mm/srat.c
-Date: Tue, 3 Sep 2013 16:45:39 +0800
-Message-ID: <1378197941-26479-3-git-send-email-tangchen@cn.fujitsu.com>
+Subject: [PATCH v2 3/4] acpi: Check if @id is NULL in acpi_table_parse()
+Date: Tue, 3 Sep 2013 16:45:40 +0800
+Message-ID: <1378197941-26479-4-git-send-email-tangchen@cn.fujitsu.com>
 References: <1378197941-26479-1-git-send-email-tangchen@cn.fujitsu.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <1378197941-26479-1-git-send-email-tangchen@cn.fujitsu.com>
@@ -10,121 +10,27 @@ To: tglx@linutronix.de, mingo@redhat.com, hpa@zytor.com, lenb@kernel.org, rjw@si
 Cc: x86@kernel.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-Use pr_{info|err}() instead of printk() in arch/x86/mm/srat.c.
-
-As suggested by Joe Perches <joe@perches.com>, use pr_fmt(fmt) to simplify
-the output format.
+strncmp() does not check if the params are NULL. In acpi_table_parse(),
+if @id is NULL, the kernel will panic.
 
 Signed-off-by: Tang Chen <tangchen@cn.fujitsu.com>
 Acked-by: Toshi Kani <toshi.kani@hp.com>
 ---
- arch/x86/mm/srat.c |   32 +++++++++++++++++---------------
- 1 files changed, 17 insertions(+), 15 deletions(-)
+ drivers/acpi/tables.c |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
 
-diff --git a/arch/x86/mm/srat.c b/arch/x86/mm/srat.c
-index 1613c02..5adfcfb 100644
---- a/arch/x86/mm/srat.c
-+++ b/arch/x86/mm/srat.c
-@@ -24,6 +24,8 @@
- #include <asm/apic.h>
- #include <asm/uv/uv.h>
+diff --git a/drivers/acpi/tables.c b/drivers/acpi/tables.c
+index d67a1fe..5a5263b 100644
+--- a/drivers/acpi/tables.c
++++ b/drivers/acpi/tables.c
+@@ -293,7 +293,7 @@ int __init acpi_table_parse(char *id, acpi_tbl_table_handler handler)
+ 	if (acpi_disabled)
+ 		return -ENODEV;
  
-+#define pr_fmt(fmt) KBUILD_MODNAME ": " fmt
-+
- int acpi_numa __initdata;
+-	if (!handler)
++	if (!id || !handler)
+ 		return -EINVAL;
  
- static __init int setup_node(int pxm)
-@@ -33,7 +35,7 @@ static __init int setup_node(int pxm)
- 
- static __init void bad_srat(void)
- {
--	printk(KERN_ERR "SRAT: SRAT not used.\n");
-+	pr_err("SRAT not used.\n");
- 	acpi_numa = -1;
- }
- 
-@@ -71,26 +73,26 @@ acpi_numa_x2apic_affinity_init(struct acpi_srat_x2apic_cpu_affinity *pa)
- 	pxm = pa->proximity_domain;
- 	apic_id = pa->apic_id;
- 	if (!apic->apic_id_valid(apic_id)) {
--		printk(KERN_INFO "SRAT: PXM %u -> X2APIC 0x%04x ignored\n",
--			 pxm, apic_id);
-+		pr_info("PXM %u -> X2APIC 0x%04x ignored\n",
-+			pxm, apic_id);
- 		return;
- 	}
- 	node = setup_node(pxm);
- 	if (node < 0) {
--		printk(KERN_ERR "SRAT: Too many proximity domains %x\n", pxm);
-+		pr_err("Too many proximity domains %x\n", pxm);
- 		bad_srat();
- 		return;
- 	}
- 
- 	if (apic_id >= MAX_LOCAL_APIC) {
--		printk(KERN_INFO "SRAT: PXM %u -> APIC 0x%04x -> Node %u skipped apicid that is too big\n", pxm, apic_id, node);
-+		pr_info("PXM %u -> APIC 0x%04x -> Node %u skipped apicid that is too big\n", pxm, apic_id, node);
- 		return;
- 	}
- 	set_apicid_to_node(apic_id, node);
- 	node_set(node, numa_nodes_parsed);
- 	acpi_numa = 1;
--	printk(KERN_INFO "SRAT: PXM %u -> APIC 0x%04x -> Node %u\n",
--	       pxm, apic_id, node);
-+	pr_info("PXM %u -> APIC 0x%04x -> Node %u\n",
-+	        pxm, apic_id, node);
- }
- 
- /* Callback for Proximity Domain -> LAPIC mapping */
-@@ -113,7 +115,7 @@ acpi_numa_processor_affinity_init(struct acpi_srat_cpu_affinity *pa)
- 		pxm |= *((unsigned int*)pa->proximity_domain_hi) << 8;
- 	node = setup_node(pxm);
- 	if (node < 0) {
--		printk(KERN_ERR "SRAT: Too many proximity domains %x\n", pxm);
-+		pr_err("Too many proximity domains %x\n", pxm);
- 		bad_srat();
- 		return;
- 	}
-@@ -124,15 +126,15 @@ acpi_numa_processor_affinity_init(struct acpi_srat_cpu_affinity *pa)
- 		apic_id = pa->apic_id;
- 
- 	if (apic_id >= MAX_LOCAL_APIC) {
--		printk(KERN_INFO "SRAT: PXM %u -> APIC 0x%02x -> Node %u skipped apicid that is too big\n", pxm, apic_id, node);
-+		pr_info("PXM %u -> APIC 0x%02x -> Node %u skipped apicid that is too big\n", pxm, apic_id, node);
- 		return;
- 	}
- 
- 	set_apicid_to_node(apic_id, node);
- 	node_set(node, numa_nodes_parsed);
- 	acpi_numa = 1;
--	printk(KERN_INFO "SRAT: PXM %u -> APIC 0x%02x -> Node %u\n",
--	       pxm, apic_id, node);
-+	pr_info("PXM %u -> APIC 0x%02x -> Node %u\n",
-+	        pxm, apic_id, node);
- }
- 
- /* Callback for parsing of the Proximity Domain <-> Memory Area mappings */
-@@ -157,7 +159,7 @@ acpi_numa_memory_affinity_init(struct acpi_srat_mem_affinity *ma)
- 
- 	node = setup_node(pxm);
- 	if (node < 0) {
--		printk(KERN_ERR "SRAT: Too many proximity domains.\n");
-+		pr_err("Too many proximity domains.\n");
- 		goto out_err_bad_srat;
- 	}
- 
-@@ -166,9 +168,9 @@ acpi_numa_memory_affinity_init(struct acpi_srat_mem_affinity *ma)
- 
- 	node_set(node, numa_nodes_parsed);
- 
--	printk(KERN_INFO "SRAT: Node %u PXM %u [mem %#010Lx-%#010Lx]\n",
--	       node, pxm,
--	       (unsigned long long) start, (unsigned long long) end - 1);
-+	pr_info("Node %u PXM %u [mem %#010Lx-%#010Lx]\n",
-+	        node, pxm,
-+	        (unsigned long long) start, (unsigned long long) end - 1);
- 
- 	return 0;
- out_err_bad_srat:
+ 	if (strncmp(id, ACPI_SIG_MADT, 4) == 0)
 -- 
 1.7.1
