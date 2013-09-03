@@ -1,87 +1,46 @@
-From: Tang Chen <tangchen@cn.fujitsu.com>
-Subject: [PATCH v2 1/4] acpi, numa, mem_hotplug: Kill save_add_info().
-Date: Tue, 3 Sep 2013 16:45:38 +0800
-Message-ID: <1378197941-26479-2-git-send-email-tangchen@cn.fujitsu.com>
-References: <1378197941-26479-1-git-send-email-tangchen@cn.fujitsu.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1378197941-26479-1-git-send-email-tangchen@cn.fujitsu.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: tglx@linutronix.de, mingo@redhat.com, hpa@zytor.com, lenb@kernel.org, rjw@sisk.pl, liwanp@linux.vnet.ibm.com, tj@kernel.org, akpm@linux-foundation.org, joe@perches.com, toshi.kani@hp.com
-Cc: x86@kernel.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: Re: [PATCH 00/27] ACPI AML helper conversion
+Date: Tue, 03 Sep 2013 13:24:41 +0200
+Message-ID: <3311378.XfhVXN0rZ3@vostro.rjw.lan>
+References: <1378168335-22556-1-git-send-email-rui.zhang@intel.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7Bit
+Return-path: <linux-pm-owner@vger.kernel.org>
+In-Reply-To: <1378168335-22556-1-git-send-email-rui.zhang@intel.com>
+Sender: linux-pm-owner@vger.kernel.org
+To: Zhang Rui <rui.zhang@intel.com>
+Cc: linux-pm@vger.kernel.org, ACPI Devel Maling List <linux-acpi@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
 
-save_add_info() is defined as:
+On Tuesday, September 03, 2013 08:31:48 AM Zhang Rui wrote:
+> Hi, all,
+> 
+> ACPI has some fine grained helpers for evaluating AML,
+> which can be used to simplify the code a lot.
+> And there are a couple of new helpers introduced recently,
+> say, acpi_has_method/acpi_execute_simple_method, etc.
+> 
+> This patch set does some cleanup and converts the code to use
+> the AML helpers when possible.
+> 
+> Patch 01/27 ~ Patch 09/27:
+> converts acpi_evaluate_object() to acpi_execute_simple_method()
+> Patch 10/27 ~ Patch 20/27:
+> converts acpi_get_handle() to acpi_has_method()
+> Patch 21/27 ~ Patch 27/27:
+> converts acpi_evaluate_object() to acpi_evaluate_integer()
+> 
+> Given that there is no functional change in this patch set, and most of the
+> patches are not able for me to test as they are platform driver changes,
+> I just did build test and reboot with acpi_processor, i915 driver loaded
+> on an Lenovo Ultrabook, and everything works well.
 
-	#ifdef CONFIG_MEMORY_HOTPLUG
-	static inline int save_add_info(void) {return 1;}
-	#else
-	static inline int save_add_info(void) {return 0;}
-	#endif
+Nice series, I'm going to queue it up for 3.13.
 
-which means it is true when memory hotplug is configured.
+Thanks!
 
-In acpi_numa_memory_affinity_init(), it checks the memory hotplug
-flag in SRAT memory affinity and save_add_info() like this:
 
-	if ((ma->flags & ACPI_SRAT_MEM_HOT_PLUGGABLE) && !save_add_info())
-		goto out_err;
-	......
-	node = setup_node(pxm);
-	numa_add_memblk(node, start, end);
-	......
-
-which means if the memory range is hotpluggable, but memory hotplug is not
-configured, it won't add these memory to numa_meminfo.
-
-After this, numa_meminfo_cover_memory() will fail, which will finally cause
-numa_init() to fail.
-
-numa_init()
- |->numa_register_memblks()
-     |->numa_meminfo_cover_memory()
-
-When numa_init() fails, it will fallback to numa_init(dummy_numa_init), and
-all numa architecture will not be setup.
-
-This is nonsense. Even if memory hotplug is not configured, we can also use
-numa architecture.
-
-Actually, save_add_info() is added by commit 71efa8fdc55e70ec6687c897a30759f0a2c2ad7e
-in 2006. And now it is useless.
-
-So this patch kill save_add_info() and the nonsense checking.
-
-Signed-off-by: Tang Chen <tangchen@cn.fujitsu.com>
-Acked-by: Toshi Kani <toshi.kani@hp.com>
----
- arch/x86/mm/srat.c |    8 --------
- 1 files changed, 0 insertions(+), 8 deletions(-)
-
-diff --git a/arch/x86/mm/srat.c b/arch/x86/mm/srat.c
-index cdd0da9..1613c02 100644
---- a/arch/x86/mm/srat.c
-+++ b/arch/x86/mm/srat.c
-@@ -135,12 +135,6 @@ acpi_numa_processor_affinity_init(struct acpi_srat_cpu_affinity *pa)
- 	       pxm, apic_id, node);
- }
- 
--#ifdef CONFIG_MEMORY_HOTPLUG
--static inline int save_add_info(void) {return 1;}
--#else
--static inline int save_add_info(void) {return 0;}
--#endif
--
- /* Callback for parsing of the Proximity Domain <-> Memory Area mappings */
- int __init
- acpi_numa_memory_affinity_init(struct acpi_srat_mem_affinity *ma)
-@@ -154,8 +148,6 @@ acpi_numa_memory_affinity_init(struct acpi_srat_mem_affinity *ma)
- 		goto out_err_bad_srat;
- 	if ((ma->flags & ACPI_SRAT_MEM_ENABLED) == 0)
- 		goto out_err;
--	if ((ma->flags & ACPI_SRAT_MEM_HOT_PLUGGABLE) && !save_add_info())
--		goto out_err;
- 
- 	start = ma->base_address;
- 	end = start + ma->length;
 -- 
-1.7.1
+I speak only for myself.
+Rafael J. Wysocki, Intel Open Source Technology Center.
