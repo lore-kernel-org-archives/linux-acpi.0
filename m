@@ -1,39 +1,68 @@
-From: Toshi Kani <toshi.kani@hp.com>
-Subject: Re: [PATCH v2 4/4] acpi: Return -ENOENT in acpi_table_parse() and
- fix wrong comment.
-Date: Wed, 04 Sep 2013 15:39:45 -0600
-Message-ID: <1378330785.10300.982.camel@misato.fc.hp.com>
-References: <1378197941-26479-1-git-send-email-tangchen@cn.fujitsu.com>
-	 <1378197941-26479-5-git-send-email-tangchen@cn.fujitsu.com>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: Re: [PATCH 25/30] ACPI / hotplug / PCI: Check for new devices on enabled slots
+Date: Thu, 05 Sep 2013 00:54:58 +0200
+Message-ID: <2449715.ReJj2CQeDS@vostro.rjw.lan>
+References: <26431283.HJCKsss0rt@vostro.rjw.lan> <1818424.8fNkf5pBy3@vostro.rjw.lan> <1378326994.3246.152.camel@ul30vt.home>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7Bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from g1t0027.austin.hp.com ([15.216.28.34]:15760 "EHLO
-	g1t0027.austin.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1761317Ab3IDVlf (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 4 Sep 2013 17:41:35 -0400
-In-Reply-To: <1378197941-26479-5-git-send-email-tangchen@cn.fujitsu.com>
+Received: from hydra.sisk.pl ([212.160.235.94]:57827 "EHLO hydra.sisk.pl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753825Ab3IDWoJ (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 4 Sep 2013 18:44:09 -0400
+In-Reply-To: <1378326994.3246.152.camel@ul30vt.home>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Tang Chen <tangchen@cn.fujitsu.com>
-Cc: tglx@linutronix.de, mingo@redhat.com, hpa@zytor.com, lenb@kernel.org, rjw@sisk.pl, liwanp@linux.vnet.ibm.com, tj@kernel.org, akpm@linux-foundation.org, joe@perches.com, x86@kernel.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
+To: Alex Williamson <alex.williamson@redhat.com>
+Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Bjorn Helgaas <bhelgaas@google.com>, LKML <linux-kernel@vger.kernel.org>, Linux PCI <linux-pci@vger.kernel.org>, Yinghai Lu <yinghai@kernel.org>, Jiang Liu <liuj97@gmail.com>, Mika Westerberg <mika.westerberg@linux.intel.com>, "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
 
-On Tue, 2013-09-03 at 16:45 +0800, Tang Chen wrote:
-> The comment about return value of acpi_table_parse() is incorrect.
-> This patch fix it.
+On Wednesday, September 04, 2013 02:36:34 PM Alex Williamson wrote:
+> On Thu, 2013-07-18 at 01:32 +0200, Rafael J. Wysocki wrote:
+> > From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+> > 
+> > The current implementation of acpiphp_check_bridge() is pretty dumb:
+> >  - It enables a slot if it's not enabled and the slot status is
+> >    ACPI_STA_ALL.
+> >  - It disables a slot if it's enabled and the slot status is not
+> >    ACPI_STA_ALL.
+> > 
+> > This behavior is not sufficient to handle the Thunderbolt daisy
+> > chaining case properly, however, because in that case the bus
+> > behind the already enabled slot needs to be rescanned for new
+> > devices.
+> > 
+> > For this reason, modify acpiphp_check_bridge() so that slots are
+> > disabled and stopped if they are not in the ACPI_STA_ALL state.
+> > 
+> > For slots in the ACPI_STA_ALL state, devices behind them that don't
+> > respond are trimmed using a new function, trim_stale_devices(),
+> > introduced specifically for this purpose.  That function walks
+> > the given bus and checks each device on it.  If the device doesn't
+> > respond, it is assumed to be gone and is removed.
+> > 
+> > Once all of the stale devices directy behind the slot have been
+> > removed, acpiphp_check_bridge() will start looking for new devices
+> > that might have appeared on the given bus.  It will do that even if
+> > the slot is already enabled (SLOT_ENABLED is set for it).
+> > 
+> > In addition to that, make the bus check notification ignore
+> > SLOT_ENABLED and go for enable_device() directly if bridge is NULL,
+> > so that devices behind the slot are re-enumerated in that case too.
+> > 
+> > This change is based on earlier patches from Kirill A Shutemov
+> > and Mika Westerberg.
+> > 
+> > Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+> > Tested-by: Mika Westerberg <mika.westerberg@linux.intel.com>
+> > ---
 > 
-> Since all callers only check if the function succeeded or not, this
-> patch simplifies the semantics by returning -errno for all failure
-> cases. This will also simply the comment.
-> 
-> As suggested by Toshi Kani <toshi.kani@hp.com>, also change the stub
-> in linux/acpi.h to return -ENODEV.
-> 
-> Signed-off-by: Tang Chen <tangchen@cn.fujitsu.com>
+> FYI, git bisect landed on this patch as the cause of my serial console
+> dying on current upstream.  Further debugging to come...  Thanks,
 
-Acked-by: Toshi Kani <toshi.kani@hp.com>
+Well, sorry about that.
 
-Thanks,
--Toshi
+What exactly do you mean by "dying"?
+
+Rafael
 
