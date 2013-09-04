@@ -1,87 +1,55 @@
-From: Toshi Kani <toshi.kani@hp.com>
-Subject: Re: [PATCH 07/11] x86, memblock: Set lowest limit for
- memblock_alloc_base_nid().
-Date: Wed, 04 Sep 2013 09:22:18 -0600
-Message-ID: <1378308138.10300.948.camel@misato.fc.hp.com>
+From: Tejun Heo <tj@kernel.org>
+Subject: Re: [PATCH 00/11] x86, memblock: Allocate memory near kernel image
+ before SRAT parsed.
+Date: Wed, 4 Sep 2013 15:22:15 -0400
+Message-ID: <20130904192215.GG26609@mtj.dyndns.org>
 References: <1377596268-31552-1-git-send-email-tangchen@cn.fujitsu.com>
-	  <1377596268-31552-8-git-send-email-tangchen@cn.fujitsu.com>
-	 <1378255041.10300.931.camel@misato.fc.hp.com>
-	 <5226957F.2060704@cn.fujitsu.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
-Return-path: <owner-linux-mm@kvack.org>
-In-Reply-To: <5226957F.2060704@cn.fujitsu.com>
-Sender: owner-linux-mm@kvack.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-doc-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <1377596268-31552-1-git-send-email-tangchen@cn.fujitsu.com>
+Sender: linux-doc-owner@vger.kernel.org
 To: Tang Chen <tangchen@cn.fujitsu.com>
-Cc: rjw@sisk.pl, lenb@kernel.org, tglx@linutronix.de, mingo@elte.hu, hpa@zytor.com, akpm@linux-foundation.org, tj@kernel.org, trenn@suse.de, yinghai@kernel.org, jiang.liu@huawei.com, wency@cn.fujitsu.com, laijs@cn.fujitsu.com, isimatu.yasuaki@jp.fujitsu.com, izumi.taku@jp.fujitsu.com, mgorman@suse.de, minchan@kernel.org, mina86@mina86.com, gong.chen@linux.intel.com, vasilis.liaskovitis@profitbricks.com, lwoodman@redhat.com, riel@redhat.com, jweiner@redhat.com, prarit@redhat.com, zhangyanfei@cn.fujitsu.com, x86@kernel.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-mm@kvack.org, linux-acpi@vger.kernel.org
+Cc: rjw@sisk.pl, lenb@kernel.org, tglx@linutronix.de, mingo@elte.hu, hpa@zytor.com, akpm@linux-foundation.org, trenn@suse.de, yinghai@kernel.org, jiang.liu@huawei.com, wency@cn.fujitsu.com, laijs@cn.fujitsu.com, isimatu.yasuaki@jp.fujitsu.com, izumi.taku@jp.fujitsu.com, mgorman@suse.de, minchan@kernel.org, mina86@mina86.com, gong.chen@linux.intel.com, vasilis.liaskovitis@profitbricks.com, lwoodman@redhat.com, riel@redhat.com, jweiner@redhat.com, prarit@redhat.com, zhangyanfei@cn.fujitsu.com, x86@kernel.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-mm@kvack.org, linux-acpi@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Wed, 2013-09-04 at 10:05 +0800, Tang Chen wrote:
-> On 09/04/2013 08:37 AM, Toshi Kani wrote:
-> > On Tue, 2013-08-27 at 17:37 +0800, Tang Chen wrote:
-> >> memblock_alloc_base_nid() is a common API of memblock. And it calls
-> >> memblock_find_in_range_node() with %start = 0, which means it has no
-> >> limit for the lowest address by default.
-> >>
-> >> 	memblock_find_in_range_node(0, max_addr, size, align, nid);
-> >>
-> >> Since we introduced current_limit_low to memblock, if we have no limit
-> >> for the lowest address or we are not sure, we should pass
-> >> MEMBLOCK_ALLOC_ACCESSIBLE to %start so that it will be limited by the
-> >> default low limit.
-> >>
-> >> dma_contiguous_reserve() and setup_log_buf() will eventually call
-> >> memblock_alloc_base_nid() to allocate memory. So if the allocation order
-> >> is from low to high, they will allocate memory from the lowest limit
-> >> to higher memory.
-> >
-> > This requires the callers to use MEMBLOCK_ALLOC_ACCESSIBLE instead of 0.
-> > Is there a good way to make sure that all callers will follow this rule
-> > going forward?  Perhaps, memblock_find_in_range_node() should emit some
-> > message if 0 is passed when current_order is low to high and the boot
-> > option is specified?
+Hello,
+
+On Tue, Aug 27, 2013 at 05:37:37PM +0800, Tang Chen wrote:
+> 1. Make memblock be able to allocate memory from low address to high address.
+>    Also introduce low limit to prevent memblock allocating memory too low.
 > 
-> How about set this as the default rule:
+> 2. Improve init_mem_mapping() to support allocate page tables from low address 
+>    to high address.
 > 
-> 	When using from low to high order, always allocate memory from
-> 	current_limit_low.
+> 3. Introduce "movablenode" boot option to enable and disable this functionality.
 > 
-> So far, I think only movablenode boot option will use this order.
+> PS: Reordering of relocate_initrd() and reserve_crashkernel() has not been done 
+>     yet. acpi_initrd_override() needs to access initrd with virtual address. So 
+>     relocate_initrd() must be done before acpi_initrd_override().
 
-Sounds good to me.
+I'm expectedly happier with this approach but some overall review
+points.
 
-> > Similarly, I wonder if we should have a check to the allocation size to
-> > make sure that all allocations will stay small in this case.
-> >
-> 
-> We can check the size. But what is the stragety after we found that the 
-> size
-> is too large ?  Do we refuse to allocate memory ?  I don't think so.
+* I think patch splitting went a bit too far.  e.g. it doesn't make
+  much sense or helps anything to split "introduction of a param" from
+  "the param doing something".
 
-We can just add a log message.  No need to fail.
+* I think it's a lot more complex than necessary.  Just implement a
+  single function - memblock_alloc_bottom_up(@start) where specifying
+  MEMBLOCK_ALLOC_ANYWHERE restores top down behavior and do
+  memblock_alloc_bottom_up(end_of_kernel) early during boot.  If the
+  bottom up mode is set, just try allocating bottom up from the
+  specified address and if that fails do normal top down allocation.
+  No need to meddle with the callers.  The only change necessary
+  (well, aside from the reordering) outside memblock is adding two
+  calls to the above function.
 
-> I think only relocate_initrd() and reserve_crachkernel() could allocate 
-> large
-> memory. reserve_crachkernel() is easy to reorder, but reordering 
-> relocate_initrd()
-> is difficult because acpi_initrd_override() need to access to it with va.
-> 
-> I think on most servers, we don't need to do relocate_initrd(). initrd 
-> will be
-> loaded to mapped memory in normal situation. Can we just leave it there ?
+* I don't think "order" is the right word here.  "direction" probably
+  fits a lot better.
 
-Since this approach relies on the assumption that all allocations are
-small enough, it would be nice to have a way to verify if it remains
-true.  How about we measure a total amount of allocations while the
-order is low to high, and log it when switched to high to low?  This
-way, we can easily monitor the usage.
+Thanks.
 
-Thanks,
--Toshi
-
---
-To unsubscribe, send a message with 'unsubscribe linux-mm' in
-the body to majordomo@kvack.org.  For more info on Linux MM,
-see: http://www.linux-mm.org/ .
-Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
+-- 
+tejun
