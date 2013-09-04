@@ -1,110 +1,198 @@
-From: Toshi Kani <toshi.kani@hp.com>
-Subject: Re: [PATCH 11/11] x86, mem_hotplug: Allocate memory near kernel
- image before SRAT is parsed.
-Date: Wed, 04 Sep 2013 13:40:18 -0600
-Message-ID: <1378323618.10300.981.camel@misato.fc.hp.com>
-References: <1377596268-31552-1-git-send-email-tangchen@cn.fujitsu.com>
-	 <1377596268-31552-12-git-send-email-tangchen@cn.fujitsu.com>
+From: Alex Williamson <alex.williamson@redhat.com>
+Subject: Re: [PATCH 25/30] ACPI / hotplug / PCI: Check for new devices on
+ enabled slots
+Date: Wed, 04 Sep 2013 14:36:34 -0600
+Message-ID: <1378326994.3246.152.camel@ul30vt.home>
+References: <26431283.HJCKsss0rt@vostro.rjw.lan>
+	 <3718119.FLASu5DBx8@vostro.rjw.lan> <2366394.4EoP1MXmG2@vostro.rjw.lan>
+	 <1818424.8fNkf5pBy3@vostro.rjw.lan>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 7bit
-Return-path: <owner-linux-mm@kvack.org>
-In-Reply-To: <1377596268-31552-12-git-send-email-tangchen@cn.fujitsu.com>
-Sender: owner-linux-mm@kvack.org
-To: Tang Chen <tangchen@cn.fujitsu.com>
-Cc: rjw@sisk.pl, lenb@kernel.org, tglx@linutronix.de, mingo@elte.hu, hpa@zytor.com, akpm@linux-foundation.org, tj@kernel.org, trenn@suse.de, yinghai@kernel.org, jiang.liu@huawei.com, wency@cn.fujitsu.com, laijs@cn.fujitsu.com, isimatu.yasuaki@jp.fujitsu.com, izumi.taku@jp.fujitsu.com, mgorman@suse.de, minchan@kernel.org, mina86@mina86.com, gong.chen@linux.intel.com, vasilis.liaskovitis@profitbricks.com, lwoodman@redhat.com, riel@redhat.com, jweiner@redhat.com, prarit@redhat.com, zhangyanfei@cn.fujitsu.com, x86@kernel.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-mm@kvack.org, linux-acpi@vger.kernel.org
+Return-path: <linux-pci-owner@vger.kernel.org>
+In-Reply-To: <1818424.8fNkf5pBy3@vostro.rjw.lan>
+Sender: linux-pci-owner@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Bjorn Helgaas <bhelgaas@google.com>, LKML <linux-kernel@vger.kernel.org>, Linux PCI <linux-pci@vger.kernel.org>, Yinghai Lu <yinghai@kernel.org>, Jiang Liu <liuj97@gmail.com>, Mika Westerberg <mika.westerberg@linux.intel.com>, "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
 List-Id: linux-acpi@vger.kernel.org
 
-On Tue, 2013-08-27 at 17:37 +0800, Tang Chen wrote:
-> After memblock is ready, before SRAT is parsed, we should allocate memory
-> near the kernel image. So this patch does the following:
+On Thu, 2013-07-18 at 01:32 +0200, Rafael J. Wysocki wrote:
+> From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 > 
-> 1. After memblock is ready, make memblock allocate memory from low address
->    to high, and set the lowest limit to the end of kernel image.
-> 2. After SRAT is parsed, make memblock behave as default, allocate memory
->    from high address to low, and reset the lowest limit to 0.
+> The current implementation of acpiphp_check_bridge() is pretty dumb:
+>  - It enables a slot if it's not enabled and the slot status is
+>    ACPI_STA_ALL.
+>  - It disables a slot if it's enabled and the slot status is not
+>    ACPI_STA_ALL.
 > 
-> This behavior is controlled by movablenode boot option.
+> This behavior is not sufficient to handle the Thunderbolt daisy
+> chaining case properly, however, because in that case the bus
+> behind the already enabled slot needs to be rescanned for new
+> devices.
 > 
-> Signed-off-by: Tang Chen <tangchen@cn.fujitsu.com>
-> Reviewed-by: Zhang Yanfei <zhangyanfei@cn.fujitsu.com>
+> For this reason, modify acpiphp_check_bridge() so that slots are
+> disabled and stopped if they are not in the ACPI_STA_ALL state.
+> 
+> For slots in the ACPI_STA_ALL state, devices behind them that don't
+> respond are trimmed using a new function, trim_stale_devices(),
+> introduced specifically for this purpose.  That function walks
+> the given bus and checks each device on it.  If the device doesn't
+> respond, it is assumed to be gone and is removed.
+> 
+> Once all of the stale devices directy behind the slot have been
+> removed, acpiphp_check_bridge() will start looking for new devices
+> that might have appeared on the given bus.  It will do that even if
+> the slot is already enabled (SLOT_ENABLED is set for it).
+> 
+> In addition to that, make the bus check notification ignore
+> SLOT_ENABLED and go for enable_device() directly if bridge is NULL,
+> so that devices behind the slot are re-enumerated in that case too.
+> 
+> This change is based on earlier patches from Kirill A Shutemov
+> and Mika Westerberg.
+> 
+> Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+> Tested-by: Mika Westerberg <mika.westerberg@linux.intel.com>
 > ---
->  arch/x86/kernel/setup.c |   37 +++++++++++++++++++++++++++++++++++++
->  1 files changed, 37 insertions(+), 0 deletions(-)
+
+FYI, git bisect landed on this patch as the cause of my serial console
+dying on current upstream.  Further debugging to come...  Thanks,
+
+Alex
+
+
+>  drivers/pci/hotplug/acpiphp_glue.c |   87 +++++++++++++++++++++++++------------
+>  1 file changed, 60 insertions(+), 27 deletions(-)
 > 
-> diff --git a/arch/x86/kernel/setup.c b/arch/x86/kernel/setup.c
-> index fa7b5f0..0b35bbd 100644
-> --- a/arch/x86/kernel/setup.c
-> +++ b/arch/x86/kernel/setup.c
-> @@ -1087,6 +1087,31 @@ void __init setup_arch(char **cmdline_p)
->  	trim_platform_memory_ranges();
->  	trim_low_memory_range();
+> Index: linux-pm/drivers/pci/hotplug/acpiphp_glue.c
+> ===================================================================
+> --- linux-pm.orig/drivers/pci/hotplug/acpiphp_glue.c
+> +++ linux-pm/drivers/pci/hotplug/acpiphp_glue.c
+> @@ -46,6 +46,7 @@
+>  #include <linux/pci.h>
+>  #include <linux/pci_hotplug.h>
+>  #include <linux/pci-acpi.h>
+> +#include <linux/pm_runtime.h>
+>  #include <linux/mutex.h>
+>  #include <linux/slab.h>
+>  #include <linux/acpi.h>
+> @@ -687,47 +688,75 @@ static unsigned int get_slot_status(stru
+>  }
 >  
-> +#ifdef CONFIG_MOVABLE_NODE
-> +	if (movablenode_enable_srat) {
-> +		/*
-> +		 * Memory used by the kernel cannot be hot-removed because Linux cannot
-> +		 * migrate the kernel pages. When memory hotplug is enabled, we should
-> +		 * prevent memblock from allocating memory for the kernel.
-> +		 *
-> +		 * ACPI SRAT records all hotpluggable memory ranges. But before SRAT is
-> +		 * parsed, we don't know about it.
-> +		 *
-> +		 * The kernel image is loaded into memory at very early time. We cannot
-> +		 * prevent this anyway. So on NUMA system, we set any node the kernel
-> +		 * resides in as un-hotpluggable.
-> +		 *
-> +		 * Since on modern servers, one node could have double-digit gigabytes
-> +		 * memory, we can assume the memory around the kernel image is also
-
-Memory hotplug can be supported on virtualized environments, and we
-should allow using SRAT on them as a next step.  In such environments,
-memory hotplug will be performed on per memory device object basis for
-workload balancing, and double-digit gigabytes is unlikely the case for
-now.  So, I'd suggest it should instead state that all allocations are
-kept small until SRAT is pursed.
-
-> +		 * un-hotpluggable. So before SRAT is parsed, just allocate memory near
-> +		 * the kernel image to try the best to keep the kernel away from
-> +		 * hotpluggable memory.
-> +		 */
-> +		memblock_set_current_order(MEMBLOCK_ORDER_LOW_TO_HIGH);
-> +		memblock_set_current_limit_low(__pa_symbol(_end));
-> +	}
-> +#endif /* CONFIG_MOVABLE_NODE */
-
-Should the above block be put into init_mem_mapping() since it is
-memblock initialization?  It is good to have some concise comments here,
-though.
-
+>  /**
+> + * trim_stale_devices - remove PCI devices that are not responding.
+> + * @dev: PCI device to start walking the hierarchy from.
+> + */
+> +static void trim_stale_devices(struct pci_dev *dev)
+> +{
+> +	acpi_handle handle = ACPI_HANDLE(&dev->dev);
+> +	struct pci_bus *bus = dev->subordinate;
+> +	bool alive = false;
 > +
->  	init_mem_mapping();
->  
->  	early_trap_pf_init();
-> @@ -1127,6 +1152,18 @@ void __init setup_arch(char **cmdline_p)
->  	early_acpi_boot_init();
->  
->  	initmem_init();
+> +	if (handle) {
+> +		acpi_status status;
+> +		unsigned long long sta;
 > +
-> +#ifdef CONFIG_MOVABLE_NODE
-> +	if (movablenode_enable_srat) {
-> +		/*
-> +		 * When ACPI SRAT is parsed, which is done in initmem_init(), set
-> +		 * memblock back to the default behavior.
-> +		 */
-> +		memblock_set_current_order(MEMBLOCK_ORDER_DEFAULT);
-> +		memblock_set_current_limit_low(0);
+> +		status = acpi_evaluate_integer(handle, "_STA", NULL, &sta);
+> +		alive = ACPI_SUCCESS(status) && sta == ACPI_STA_ALL;
 > +	}
-> +#endif /* CONFIG_MOVABLE_NODE */
-
-Similarly, should this block be put into initmem_init() with some
-comment here?
-
-Thanks,
--Toshi
-
---
-To unsubscribe, send a message with 'unsubscribe linux-mm' in
-the body to majordomo@kvack.org.  For more info on Linux MM,
-see: http://www.linux-mm.org/ .
-Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
+> +	if (!alive) {
+> +		u32 v;
+> +
+> +		/* Check if the device responds. */
+> +		alive = pci_bus_read_dev_vendor_id(dev->bus, dev->devfn, &v, 0);
+> +	}
+> +	if (!alive) {
+> +		pci_stop_and_remove_bus_device(dev);
+> +		if (handle)
+> +			acpiphp_bus_trim(handle);
+> +	} else if (bus) {
+> +		struct pci_dev *child, *tmp;
+> +
+> +		/* The device is a bridge. so check the bus below it. */
+> +		pm_runtime_get_sync(&dev->dev);
+> +		list_for_each_entry_safe(child, tmp, &bus->devices, bus_list)
+> +			trim_stale_devices(child);
+> +
+> +		pm_runtime_put(&dev->dev);
+> +	}
+> +}
+> +
+> +/**
+>   * acpiphp_check_bridge - re-enumerate devices
+>   * @bridge: where to begin re-enumeration
+>   *
+>   * Iterate over all slots under this bridge and make sure that if a
+>   * card is present they are enabled, and if not they are disabled.
+>   */
+> -static int acpiphp_check_bridge(struct acpiphp_bridge *bridge)
+> +static void acpiphp_check_bridge(struct acpiphp_bridge *bridge)
+>  {
+>  	struct acpiphp_slot *slot;
+> -	int retval = 0;
+> -	int enabled, disabled;
+> -
+> -	enabled = disabled = 0;
+>  
+>  	list_for_each_entry(slot, &bridge->slots, node) {
+> -		unsigned int status = get_slot_status(slot);
+> -		if (slot->flags & SLOT_ENABLED) {
+> -			if (status == ACPI_STA_ALL)
+> -				continue;
+> +		struct pci_bus *bus = slot->bus;
+> +		struct pci_dev *dev, *tmp;
+>  
+> -			retval = acpiphp_disable_and_eject_slot(slot);
+> -			if (retval)
+> -				goto err_exit;
+> +		mutex_lock(&slot->crit_sect);
+> +		/* wake up all functions */
+> +		if (get_slot_status(slot) == ACPI_STA_ALL) {
+> +			/* remove stale devices if any */
+> +			list_for_each_entry_safe(dev, tmp, &bus->devices,
+> +						 bus_list)
+> +				if (PCI_SLOT(dev->devfn) == slot->device)
+> +					trim_stale_devices(dev);
+>  
+> -			disabled++;
+> +			/* configure all functions */
+> +			enable_device(slot);
+>  		} else {
+> -			if (status != ACPI_STA_ALL)
+> -				continue;
+> -			retval = acpiphp_enable_slot(slot);
+> -			if (retval) {
+> -				err("Error occurred in enabling\n");
+> -				goto err_exit;
+> -			}
+> -			enabled++;
+> +			disable_device(slot);
+>  		}
+> +		mutex_unlock(&slot->crit_sect);
+>  	}
+> -
+> -	dbg("%s: %d enabled, %d disabled\n", __func__, enabled, disabled);
+> -
+> - err_exit:
+> -	return retval;
+>  }
+>  
+>  static void acpiphp_set_hpp_values(struct pci_bus *bus)
+> @@ -828,7 +857,11 @@ static void hotplug_event(acpi_handle ha
+>  					    ACPI_UINT32_MAX, check_sub_bridges,
+>  					    NULL, NULL, NULL);
+>  		} else {
+> -			acpiphp_enable_slot(func->slot);
+> +			struct acpiphp_slot *slot = func->slot;
+> +
+> +			mutex_lock(&slot->crit_sect);
+> +			enable_device(slot);
+> +			mutex_unlock(&slot->crit_sect);
+>  		}
+>  		break;
+>  
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-pci" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
