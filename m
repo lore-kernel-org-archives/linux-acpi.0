@@ -1,53 +1,159 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: [PATCH v2 0/4] acpi: Fix and cleanup in acpi.
-Date: Thu, 05 Sep 2013 01:50:26 +0200
-Message-ID: <17694789.JU3fWJ8s3q@vostro.rjw.lan>
-References: <1378197941-26479-1-git-send-email-tangchen@cn.fujitsu.com>
+From: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
+Subject: Re: [PATCH v2 2/4] acpi cleanup: Use pr_{info|err}() instead of printk()
+ in arch/x86/mm/srat.c
+Date: Thu, 5 Sep 2013 09:33:20 +0900
+Message-ID: <5227D150.1060502@jp.fujitsu.com>
+References: <1378197941-26479-1-git-send-email-tangchen@cn.fujitsu.com> <1378197941-26479-3-git-send-email-tangchen@cn.fujitsu.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="ISO-2022-JP"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from hydra.sisk.pl ([212.160.235.94]:57985 "EHLO hydra.sisk.pl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1761578Ab3IDXjn (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 4 Sep 2013 19:39:43 -0400
-In-Reply-To: <1378197941-26479-1-git-send-email-tangchen@cn.fujitsu.com>
+Received: from fgwmail6.fujitsu.co.jp ([192.51.44.36]:52157 "EHLO
+	fgwmail6.fujitsu.co.jp" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758175Ab3IEAeI (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 4 Sep 2013 20:34:08 -0400
+In-Reply-To: <1378197941-26479-3-git-send-email-tangchen@cn.fujitsu.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Tang Chen <tangchen@cn.fujitsu.com>, hpa@zytor.com
-Cc: tglx@linutronix.de, mingo@redhat.com, lenb@kernel.org, liwanp@linux.vnet.ibm.com, tj@kernel.org, akpm@linux-foundation.org, joe@perches.com, toshi.kani@hp.com, x86@kernel.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
+To: Tang Chen <tangchen@cn.fujitsu.com>
+Cc: tglx@linutronix.de, mingo@redhat.com, hpa@zytor.com, lenb@kernel.org, rjw@sisk.pl, liwanp@linux.vnet.ibm.com, tj@kernel.org, akpm@linux-foundation.org, joe@perches.com, toshi.kani@hp.com, x86@kernel.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
 
-On Tuesday, September 03, 2013 04:45:37 PM Tang Chen wrote:
-> This patch-set fix the following problems:
+(2013/09/03 17:45), Tang Chen wrote:
+> Use pr_{info|err}() instead of printk() in arch/x86/mm/srat.c.
 > 
-> 1. Kill useless function save_add_info() which will block us from using
->    numa when MEMORY_HOTPLUG is not configured.
-> 2. acpi_table_parse() didn't check if @id is NULL.
-> 3. Fix incorrect comment in acpi_table_parse(), and return -ENOENT if a
->    table is not found.
+> As suggested by Joe Perches <joe@perches.com>, use pr_fmt(fmt) to simplify
+> the output format.
 > 
-> And also did some cleanup.
+> Signed-off-by: Tang Chen <tangchen@cn.fujitsu.com>
+> Acked-by: Toshi Kani <toshi.kani@hp.com>
+> ---
+>   arch/x86/mm/srat.c |   32 +++++++++++++++++---------------
+>   1 files changed, 17 insertions(+), 15 deletions(-)
 > 
-> change log v1 -> v2:
-> 1. Use pr_fmt() to simply the SRAT message.
->    Suggested by Joe Perches <joe@perches.com>
-> 2. Improve the log in patch 4, and change the return value of the stub of 
->    acpi_table_parse() in linux/acpi.h
->    Suggested by Toshi Kani <toshi.kani@hp.com>
-> 3. Merge the two pr_{info|err} patches into one.
-> 4. Remove on of the patch that has been merged by Rafael.
-> 
-> Tang Chen (4):
->   acpi, numa, mem_hotplug: Kill save_add_info().
->   acpi cleanup: Use pr_{info|err}() instead of printk() in
->     arch/x86/mm/srat.c
->   acpi: Check if @id is NULL in acpi_table_parse()
->   acpi: Return -ENOENT in acpi_table_parse() and fix wrong comment.
+> diff --git a/arch/x86/mm/srat.c b/arch/x86/mm/srat.c
+> index 1613c02..5adfcfb 100644
+> --- a/arch/x86/mm/srat.c
+> +++ b/arch/x86/mm/srat.c
+> @@ -24,6 +24,8 @@
+>   #include <asm/apic.h>
+>   #include <asm/uv/uv.h>
+>   
+> +#define pr_fmt(fmt) KBUILD_MODNAME ": " fmt
+> +
+>   int acpi_numa __initdata;
+>   
+>   static __init int setup_node(int pxm)
+> @@ -33,7 +35,7 @@ static __init int setup_node(int pxm)
+>   
+>   static __init void bad_srat(void)
+>   {
+> -	printk(KERN_ERR "SRAT: SRAT not used.\n");
+> +	pr_err("SRAT not used.\n");
+>   	acpi_numa = -1;
+>   }
+>   
+> @@ -71,26 +73,26 @@ acpi_numa_x2apic_affinity_init(struct acpi_srat_x2apic_cpu_affinity *pa)
+>   	pxm = pa->proximity_domain;
+>   	apic_id = pa->apic_id;
+>   	if (!apic->apic_id_valid(apic_id)) {
 
-Thanks for the patches!
+> -		printk(KERN_INFO "SRAT: PXM %u -> X2APIC 0x%04x ignored\n",
+> -			 pxm, apic_id);
+> +		pr_info("PXM %u -> X2APIC 0x%04x ignored\n",
+> +			pxm, apic_id);
 
-Peter, any objections against [1-2/4]?  If not, I'll queue them up for 3.13.
+It should be one line.
+
+>   		return;
+>   	}
+>   	node = setup_node(pxm);
+>   	if (node < 0) {
+> -		printk(KERN_ERR "SRAT: Too many proximity domains %x\n", pxm);
+> +		pr_err("Too many proximity domains %x\n", pxm);
+>   		bad_srat();
+>   		return;
+>   	}
+>   
+>   	if (apic_id >= MAX_LOCAL_APIC) {
+> -		printk(KERN_INFO "SRAT: PXM %u -> APIC 0x%04x -> Node %u skipped apicid that is too big\n", pxm, apic_id, node);
+> +		pr_info("PXM %u -> APIC 0x%04x -> Node %u skipped apicid that is too big\n", pxm, apic_id, node);
+>   		return;
+>   	}
+>   	set_apicid_to_node(apic_id, node);
+>   	node_set(node, numa_nodes_parsed);
+>   	acpi_numa = 1;
+
+> -	printk(KERN_INFO "SRAT: PXM %u -> APIC 0x%04x -> Node %u\n",
+> -	       pxm, apic_id, node);
+> +	pr_info("PXM %u -> APIC 0x%04x -> Node %u\n",
+> +	        pxm, apic_id, node);
+
+ditto.
+
+>   }
+>   
+>   /* Callback for Proximity Domain -> LAPIC mapping */
+> @@ -113,7 +115,7 @@ acpi_numa_processor_affinity_init(struct acpi_srat_cpu_affinity *pa)
+>   		pxm |= *((unsigned int*)pa->proximity_domain_hi) << 8;
+>   	node = setup_node(pxm);
+>   	if (node < 0) {
+> -		printk(KERN_ERR "SRAT: Too many proximity domains %x\n", pxm);
+> +		pr_err("Too many proximity domains %x\n", pxm);
+>   		bad_srat();
+>   		return;
+>   	}
+> @@ -124,15 +126,15 @@ acpi_numa_processor_affinity_init(struct acpi_srat_cpu_affinity *pa)
+>   		apic_id = pa->apic_id;
+>   
+>   	if (apic_id >= MAX_LOCAL_APIC) {
+> -		printk(KERN_INFO "SRAT: PXM %u -> APIC 0x%02x -> Node %u skipped apicid that is too big\n", pxm, apic_id, node);
+> +		pr_info("PXM %u -> APIC 0x%02x -> Node %u skipped apicid that is too big\n", pxm, apic_id, node);
+>   		return;
+>   	}
+>   
+>   	set_apicid_to_node(apic_id, node);
+>   	node_set(node, numa_nodes_parsed);
+>   	acpi_numa = 1;
+
+> -	printk(KERN_INFO "SRAT: PXM %u -> APIC 0x%02x -> Node %u\n",
+> -	       pxm, apic_id, node);
+> +	pr_info("PXM %u -> APIC 0x%02x -> Node %u\n",
+> +	        pxm, apic_id, node);
+
+ditto.
+
+>   }
+>   
+>   /* Callback for parsing of the Proximity Domain <-> Memory Area mappings */
+> @@ -157,7 +159,7 @@ acpi_numa_memory_affinity_init(struct acpi_srat_mem_affinity *ma)
+>   
+>   	node = setup_node(pxm);
+>   	if (node < 0) {
+> -		printk(KERN_ERR "SRAT: Too many proximity domains.\n");
+> +		pr_err("Too many proximity domains.\n");
+>   		goto out_err_bad_srat;
+>   	}
+>   
+> @@ -166,9 +168,9 @@ acpi_numa_memory_affinity_init(struct acpi_srat_mem_affinity *ma)
+>   
+>   	node_set(node, numa_nodes_parsed);
+>   
+
+> -	printk(KERN_INFO "SRAT: Node %u PXM %u [mem %#010Lx-%#010Lx]\n",
+> -	       node, pxm,
+> -	       (unsigned long long) start, (unsigned long long) end - 1);
+> +	pr_info("Node %u PXM %u [mem %#010Lx-%#010Lx]\n",
+> +	        node, pxm,
+> +	        (unsigned long long) start, (unsigned long long) end - 1);
+
+It should be two lines.
 
 Thanks,
-Rafael
+Yasuaki Ishimatsu
+
+>   
+>   	return 0;
+>   out_err_bad_srat:
+> 
+
 
