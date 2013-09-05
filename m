@@ -1,19 +1,26 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: Excess dmesg output from ACPIPHP on boot (was: Re: [PATCH 25/30] ACPI / hotplug / PCI: Check for new devices on enabled slots)
-Date: Thu, 05 Sep 2013 23:45:36 +0200
-Message-ID: <7744833.u92ooshbvU@vostro.rjw.lan>
-References: <26431283.HJCKsss0rt@vostro.rjw.lan> <1535359.s5bUZnSMNz@vostro.rjw.lan> <3686522.NVYmP5Gevu@vostro.rjw.lan>
+From: Alex Williamson <alex.williamson@redhat.com>
+Subject: Re: Excess dmesg output from ACPIPHP on boot (was: Re: [PATCH
+ 25/30] ACPI / hotplug / PCI: Check for new devices on enabled slots)
+Date: Thu, 05 Sep 2013 16:17:25 -0600
+Message-ID: <1378419445.3246.268.camel@ul30vt.home>
+References: <26431283.HJCKsss0rt@vostro.rjw.lan>
+	 <1378390901.3246.233.camel@ul30vt.home> <1535359.s5bUZnSMNz@vostro.rjw.lan>
+	 <3686522.NVYmP5Gevu@vostro.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7Bit
-Return-path: <linux-pci-owner@vger.kernel.org>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mx1.redhat.com ([209.132.183.28]:13383 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752551Ab3IEWRe (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 5 Sep 2013 18:17:34 -0400
 In-Reply-To: <3686522.NVYmP5Gevu@vostro.rjw.lan>
-Sender: linux-pci-owner@vger.kernel.org
-To: Alex Williamson <alex.williamson@redhat.com>
-Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Bjorn Helgaas <bhelgaas@google.com>, LKML <linux-kernel@vger.kernel.org>, Linux PCI <linux-pci@vger.kernel.org>, Yinghai Lu <yinghai@kernel.org>, Jiang Liu <liuj97@gmail.com>, Mika Westerberg <mika.westerberg@linux.intel.com>, "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Bjorn Helgaas <bhelgaas@google.com>, LKML <linux-kernel@vger.kernel.org>, Linux PCI <linux-pci@vger.kernel.org>, Yinghai Lu <yinghai@kernel.org>, Jiang Liu <liuj97@gmail.com>, Mika Westerberg <mika.westerberg@linux.intel.com>, "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
 
-On Thursday, September 05, 2013 11:39:07 PM Rafael J. Wysocki wrote:
+On Thu, 2013-09-05 at 23:39 +0200, Rafael J. Wysocki wrote:
 > On Thursday, September 05, 2013 09:44:26 PM Rafael J. Wysocki wrote:
 > > On Thursday, September 05, 2013 08:21:41 AM Alex Williamson wrote:
 > 
@@ -114,136 +121,52 @@ On Thursday, September 05, 2013 11:39:07 PM Rafael J. Wysocki wrote:
 > 
 > OK, one piece is missing.  We may need to evaluate _OSC after handling each
 > event to let the platform know the status.
-
-s/_OSC/_OST/
-
+> 
 > Can you please check if the appended patch makes any difference (with the
 > previous fix applied, of course)?
 > 
 > If fact, it is two patches combined.  One of them optimizes enable_slot()
 > slightly and the other adds the missing _OSC evaluation.
 
-s/_OSC/_OST/ (What the heck?)
+Better, still double the output:
 
-But the patch should be OK. :-)
+$ dmesg | wc
+   2169   19047  152710
 
-Thanks,
-Rafael
+$ dmesg | tail --lines=1
+[   39.980918] Ebtables v2.0 registered
 
+Here's another interesting stat:
 
-> ---
->  drivers/pci/hotplug/acpiphp_glue.c |   35 +++++++++++++++++++++++++++--------
->  1 file changed, 27 insertions(+), 8 deletions(-)
-> 
-> Index: linux-pm/drivers/pci/hotplug/acpiphp_glue.c
-> ===================================================================
-> --- linux-pm.orig/drivers/pci/hotplug/acpiphp_glue.c
-> +++ linux-pm/drivers/pci/hotplug/acpiphp_glue.c
-> @@ -542,12 +542,12 @@ static void __ref enable_slot(struct acp
->  	struct acpiphp_func *func;
->  	int max, pass;
->  	LIST_HEAD(add_list);
-> +	int nr_found;
->  
->  	list_for_each_entry(func, &slot->funcs, sibling)
->  		acpiphp_bus_add(func_to_handle(func));
->  
-> -	pci_scan_slot(bus, PCI_DEVFN(slot->device, 0));
-> -
-> +	nr_found = pci_scan_slot(bus, PCI_DEVFN(slot->device, 0));
->  	max = acpiphp_max_busnr(bus);
->  	for (pass = 0; pass < 2; pass++) {
->  		list_for_each_entry(dev, &bus->devices, bus_list) {
-> @@ -566,8 +566,11 @@ static void __ref enable_slot(struct acp
->  			}
->  		}
->  	}
-> -
->  	__pci_bus_assign_resources(bus, &add_list, NULL);
-> +	/* Nothing more to do here if there are no new devices on this bus. */
-> +	if (!nr_found && (slot->flags & SLOT_ENABLED))
-> +		return;
-> +
->  	acpiphp_sanitize_bus(bus);
->  	acpiphp_set_hpp_values(bus);
->  	acpiphp_set_acpi_region(slot);
-> @@ -867,6 +870,8 @@ static void hotplug_event_work(struct wo
->  	hotplug_event(hp_work->handle, hp_work->type, context);
->  
->  	acpi_scan_lock_release();
-> +	acpi_evaluate_hotplug_ost(hp_work->handle, hp_work->type,
-> +				  ACPI_OST_SC_SUCCESS, NULL);
->  	kfree(hp_work); /* allocated in handle_hotplug_event() */
->  	put_bridge(context->func.parent);
->  }
-> @@ -882,12 +887,16 @@ static void hotplug_event_work(struct wo
->  static void handle_hotplug_event(acpi_handle handle, u32 type, void *data)
->  {
->  	struct acpiphp_context *context;
-> +	u32 ost_code;
->  
->  	switch (type) {
->  	case ACPI_NOTIFY_BUS_CHECK:
->  	case ACPI_NOTIFY_DEVICE_CHECK:
-> +		ost_code = ACPI_OST_SC_INSERT_IN_PROGRESS;
-> +		goto work;
->  	case ACPI_NOTIFY_EJECT_REQUEST:
-> -		break;
-> +		ost_code = ACPI_OST_SC_EJECT_IN_PROGRESS;
-> +		goto work;
->  
->  	case ACPI_NOTIFY_DEVICE_WAKE:
->  		return;
-> @@ -895,30 +904,40 @@ static void handle_hotplug_event(acpi_ha
->  	case ACPI_NOTIFY_FREQUENCY_MISMATCH:
->  		acpi_handle_err(handle, "Device cannot be configured due "
->  				"to a frequency mismatch\n");
-> -		return;
-> +		break;
->  
->  	case ACPI_NOTIFY_BUS_MODE_MISMATCH:
->  		acpi_handle_err(handle, "Device cannot be configured due "
->  				"to a bus mode mismatch\n");
-> -		return;
-> +		break;
->  
->  	case ACPI_NOTIFY_POWER_FAULT:
->  		acpi_handle_err(handle, "Device has suffered a power fault\n");
-> -		return;
-> +		break;
->  
->  	default:
->  		acpi_handle_warn(handle, "Unsupported event type 0x%x\n", type);
-> -		return;
-> +		break;
->  	}
->  
-> + err:
-> +	ost_code = ACPI_OST_SC_NON_SPECIFIC_FAILURE;
-> +	acpi_evaluate_hotplug_ost(handle, type, ost_code, NULL);
-> +	return;
-> +
-> + work:
->  	mutex_lock(&acpiphp_context_lock);
->  	context = acpiphp_get_context(handle);
->  	if (context) {
->  		get_bridge(context->func.parent);
->  		acpiphp_put_context(context);
-> +		acpi_evaluate_hotplug_ost(handle, type, ost_code, NULL);
->  		alloc_acpi_hp_work(handle, type, context, hotplug_event_work);
-> +		mutex_unlock(&acpiphp_context_lock);
-> +		return;
->  	}
->  	mutex_unlock(&acpiphp_context_lock);
-> +	goto err;
->  }
->  
->  /*
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
--- 
-I speak only for myself.
-Rafael J. Wysocki, Intel Open Source Technology Center.
+$ dmesg | colrm 1 15 | sort | uniq -c | sort -nr | head --lines=25
+     73 pci 0000:00:1f.0: BAR 13: [io  0x1000-0x107f] has bogus alignment
+     73 pci 0000:00:1e.0: PCI bridge to [bus 06]
+     64 pci 0000:00:1e.0:   bridge window [mem 0x81100000-0x812fffff 64bit pref]
+     64 pci 0000:00:1e.0:   bridge window [mem 0x80f00000-0x810fffff]
+     64 pci 0000:00:1e.0:   bridge window [io  0x7000-0x7fff]
+     38 pci 0000:00:1c.4: PCI bridge to [bus 05]
+     38 pci 0000:00:1c.4:   bridge window [mem 0xf4f00000-0xf4ffffff]
+     38 pci 0000:00:1c.0: PCI bridge to [bus 04]
+     38 pci 0000:00:07.0: PCI bridge to [bus 03]
+     38 pci 0000:00:07.0:   bridge window [mem 0xf2000000-0xf40fffff]
+     38 pci 0000:00:07.0:   bridge window [mem 0xe0000000-0xf1ffffff 64bit pref]
+     38 pci 0000:00:07.0:   bridge window [io  0x4000-0x4fff]
+     38 pci 0000:00:03.0: PCI bridge to [bus 02]
+     38 pci 0000:00:03.0:   bridge window [mem 0xf4e00000-0xf4efffff]
+     38 pci 0000:00:03.0:   bridge window [mem 0xd0000000-0xdfffffff 64bit pref]
+     38 pci 0000:00:03.0:   bridge window [io  0x3000-0x3fff]
+     38 pci 0000:00:01.0: PCI bridge to [bus 01]
+     38 pci 0000:00:01.0:   bridge window [mem 0xf4100000-0xf4bfffff]
+     38 pci 0000:00:01.0:   bridge window [io  0x2000-0x2fff]
+     37 pci 0000:00:1c.4:   bridge window [mem 0x80c00000-0x80dfffff 64bit pref]
+     37 pci 0000:00:1c.4:   bridge window [io  0x6000-0x6fff]
+     37 pci 0000:00:1c.0:   bridge window [mem 0x80a00000-0x80bfffff 64bit pref]
+     37 pci 0000:00:1c.0:   bridge window [mem 0x80800000-0x809fffff]
+     37 pci 0000:00:1c.0:   bridge window [io  0x5000-0x5fff]
+     36 pci 0000:00:01.0:   bridge window [mem 0x80000000-0x807fffff 64bit pref]
+
+This is nearly the entire difference, just 25 lines repeated over and
+over.  Thanks,
+
+Alex
+
