@@ -1,88 +1,88 @@
 From: "Rafael J. Wysocki" <rjw@sisk.pl>
 Subject: Re: [PATCH 25/30] ACPI / hotplug / PCI: Check for new devices on enabled slots
-Date: Thu, 05 Sep 2013 13:54:57 +0200
-Message-ID: <3752304.TvOhsce0U1@vostro.rjw.lan>
-References: <26431283.HJCKsss0rt@vostro.rjw.lan> <1378352279.3246.183.camel@ul30vt.home> <1378353962.3246.192.camel@ul30vt.home>
+Date: Thu, 05 Sep 2013 13:57:01 +0200
+Message-ID: <81108254.GSTBHzP5cb@vostro.rjw.lan>
+References: <26431283.HJCKsss0rt@vostro.rjw.lan> <1378352279.3246.183.camel@ul30vt.home> <CAOLK0pySsrXEjbLor0v3zhbtUGx_437d0r5WAxWnufzZ+QwpCQ@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7Bit
-Return-path: <linux-pci-owner@vger.kernel.org>
-In-Reply-To: <1378353962.3246.192.camel@ul30vt.home>
-Sender: linux-pci-owner@vger.kernel.org
-To: Alex Williamson <alex.williamson@redhat.com>
-Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Bjorn Helgaas <bhelgaas@google.com>, LKML <linux-kernel@vger.kernel.org>, Linux PCI <linux-pci@vger.kernel.org>, Yinghai Lu <yinghai@kernel.org>, Jiang Liu <liuj97@gmail.com>, Mika Westerberg <mika.westerberg@linux.intel.com>, "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <CAOLK0pySsrXEjbLor0v3zhbtUGx_437d0r5WAxWnufzZ+QwpCQ@mail.gmail.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Lan Tianyu <lantianyu1986@gmail.com>
+Cc: Alex Williamson <alex.williamson@redhat.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Bjorn Helgaas <bhelgaas@google.com>, LKML <linux-kernel@vger.kernel.org>, Linux PCI <linux-pci@vger.kernel.org>, Yinghai Lu <yinghai@kernel.org>, Jiang Liu <liuj97@gmail.com>, Mika Westerberg <mika.westerberg@linux.intel.com>, "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
 List-Id: linux-acpi@vger.kernel.org
 
-On Wednesday, September 04, 2013 10:06:02 PM Alex Williamson wrote:
-> On Wed, 2013-09-04 at 21:37 -0600, Alex Williamson wrote:
+On Thursday, September 05, 2013 02:17:06 PM Lan Tianyu wrote:
+> 2013/9/5 Alex Williamson <alex.williamson@redhat.com>:
 > > On Thu, 2013-09-05 at 01:35 +0200, Rafael J. Wysocki wrote:
-> > > On Wednesday, September 04, 2013 05:12:14 PM Alex Williamson wrote:
-> > > > On Thu, 2013-09-05 at 00:54 +0200, Rafael J. Wysocki wrote:
-> > > > > On Wednesday, September 04, 2013 02:36:34 PM Alex Williamson wrote:
-> > > > > > On Thu, 2013-07-18 at 01:32 +0200, Rafael J. Wysocki wrote:
-> > > > > > > From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
-> > > > > > > 
-> > > > > > > The current implementation of acpiphp_check_bridge() is pretty dumb:
-> > > > > > >  - It enables a slot if it's not enabled and the slot status is
-> > > > > > >    ACPI_STA_ALL.
-> > > > > > >  - It disables a slot if it's enabled and the slot status is not
-> > > > > > >    ACPI_STA_ALL.
-> > > > > > > 
-> > > > > > > This behavior is not sufficient to handle the Thunderbolt daisy
-> > > > > > > chaining case properly, however, because in that case the bus
-> > > > > > > behind the already enabled slot needs to be rescanned for new
-> > > > > > > devices.
-> > > > > > > 
-> > > > > > > For this reason, modify acpiphp_check_bridge() so that slots are
-> > > > > > > disabled and stopped if they are not in the ACPI_STA_ALL state.
-> > > > > > > 
-> > > > > > > For slots in the ACPI_STA_ALL state, devices behind them that don't
-> > > > > > > respond are trimmed using a new function, trim_stale_devices(),
-> > > > > > > introduced specifically for this purpose.  That function walks
-> > > > > > > the given bus and checks each device on it.  If the device doesn't
-> > > > > > > respond, it is assumed to be gone and is removed.
-> > > > > > > 
-> > > > > > > Once all of the stale devices directy behind the slot have been
-> > > > > > > removed, acpiphp_check_bridge() will start looking for new devices
-> > > > > > > that might have appeared on the given bus.  It will do that even if
-> > > > > > > the slot is already enabled (SLOT_ENABLED is set for it).
-> > > > > > > 
-> > > > > > > In addition to that, make the bus check notification ignore
-> > > > > > > SLOT_ENABLED and go for enable_device() directly if bridge is NULL,
-> > > > > > > so that devices behind the slot are re-enumerated in that case too.
-> > > > > > > 
-> > > > > > > This change is based on earlier patches from Kirill A Shutemov
-> > > > > > > and Mika Westerberg.
-> > > > > > > 
-> > > > > > > Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
-> > > > > > > Tested-by: Mika Westerberg <mika.westerberg@linux.intel.com>
-> > > > > > > ---
-> > > > > > 
-> > > > > > FYI, git bisect landed on this patch as the cause of my serial console
-> > > > > > dying on current upstream.  Further debugging to come...  Thanks,
-> > > > > 
-> > > > > Well, sorry about that.
-> > > > > 
-> > > > > What exactly do you mean by "dying"?
-> > > > 
-> > > > Sorry, I was hoping to have more details quickly, but it's been a pain
-> > > > to debug.  By dying I mean serial console output suddenly stops during
-> > > > kernel boot and nothing more comes out of it until after the system is
-> > > > rebooted.  The problem happens when acpiphp_check_bridge() calls
-> > > > enable_slot().  The serial console dies somewhere down in
-> > > > acpiphp_bus_trim().  I think this is happening on the 00:1f ISA bridge,
-> > > > so there's a good chance the serial ports are described as somewhere
-> > > > under there.
-> > > 
-> > > Can you please check if that is the acpiphp_bus_trim() called by
-> > > acpiphp_bus_add() or the other one called from trim_stale_devices()?
-> > > 
-> > > Just add a dump_stack() or WARN_ON(1) to trim_stale_devices() next to
-> > > the acpiphp_bus_trim() call and see if that triggers.  I *think* it's the one
-> > > in acpiphp_bus_add(), but it won't hurt to verify that.
-> > 
+> >> On Wednesday, September 04, 2013 05:12:14 PM Alex Williamson wrote:
+> >> > On Thu, 2013-09-05 at 00:54 +0200, Rafael J. Wysocki wrote:
+> >> > > On Wednesday, September 04, 2013 02:36:34 PM Alex Williamson wrote:
+> >> > > > On Thu, 2013-07-18 at 01:32 +0200, Rafael J. Wysocki wrote:
+> >> > > > > From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+> >> > > > >
+> >> > > > > The current implementation of acpiphp_check_bridge() is pretty dumb:
+> >> > > > >  - It enables a slot if it's not enabled and the slot status is
+> >> > > > >    ACPI_STA_ALL.
+> >> > > > >  - It disables a slot if it's enabled and the slot status is not
+> >> > > > >    ACPI_STA_ALL.
+> >> > > > >
+> >> > > > > This behavior is not sufficient to handle the Thunderbolt daisy
+> >> > > > > chaining case properly, however, because in that case the bus
+> >> > > > > behind the already enabled slot needs to be rescanned for new
+> >> > > > > devices.
+> >> > > > >
+> >> > > > > For this reason, modify acpiphp_check_bridge() so that slots are
+> >> > > > > disabled and stopped if they are not in the ACPI_STA_ALL state.
+> >> > > > >
+> >> > > > > For slots in the ACPI_STA_ALL state, devices behind them that don't
+> >> > > > > respond are trimmed using a new function, trim_stale_devices(),
+> >> > > > > introduced specifically for this purpose.  That function walks
+> >> > > > > the given bus and checks each device on it.  If the device doesn't
+> >> > > > > respond, it is assumed to be gone and is removed.
+> >> > > > >
+> >> > > > > Once all of the stale devices directy behind the slot have been
+> >> > > > > removed, acpiphp_check_bridge() will start looking for new devices
+> >> > > > > that might have appeared on the given bus.  It will do that even if
+> >> > > > > the slot is already enabled (SLOT_ENABLED is set for it).
+> >> > > > >
+> >> > > > > In addition to that, make the bus check notification ignore
+> >> > > > > SLOT_ENABLED and go for enable_device() directly if bridge is NULL,
+> >> > > > > so that devices behind the slot are re-enumerated in that case too.
+> >> > > > >
+> >> > > > > This change is based on earlier patches from Kirill A Shutemov
+> >> > > > > and Mika Westerberg.
+> >> > > > >
+> >> > > > > Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+> >> > > > > Tested-by: Mika Westerberg <mika.westerberg@linux.intel.com>
+> >> > > > > ---
+> >> > > >
+> >> > > > FYI, git bisect landed on this patch as the cause of my serial console
+> >> > > > dying on current upstream.  Further debugging to come...  Thanks,
+> >> > >
+> >> > > Well, sorry about that.
+> >> > >
+> >> > > What exactly do you mean by "dying"?
+> >> >
+> >> > Sorry, I was hoping to have more details quickly, but it's been a pain
+> >> > to debug.  By dying I mean serial console output suddenly stops during
+> >> > kernel boot and nothing more comes out of it until after the system is
+> >> > rebooted.  The problem happens when acpiphp_check_bridge() calls
+> >> > enable_slot().  The serial console dies somewhere down in
+> >> > acpiphp_bus_trim().  I think this is happening on the 00:1f ISA bridge,
+> >> > so there's a good chance the serial ports are described as somewhere
+> >> > under there.
+> >>
+> >> Can you please check if that is the acpiphp_bus_trim() called by
+> >> acpiphp_bus_add() or the other one called from trim_stale_devices()?
+> >>
+> >> Just add a dump_stack() or WARN_ON(1) to trim_stale_devices() next to
+> >> the acpiphp_bus_trim() call and see if that triggers.  I *think* it's the one
+> >> in acpiphp_bus_add(), but it won't hurt to verify that.
+> >
 > > Here's the call path:
-> > 
+> >
 > > [   16.120824]  [<ffffffff81627e6c>] dump_stack+0x55/0x76
 > > [   16.125979]  [<ffffffff8162132e>] enable_slot+0x4ee/0x5e0
 > > [   16.131396]  [<ffffffff813418fb>] ? trim_stale_devices+0x5b/0xf0
@@ -98,10 +98,10 @@ On Wednesday, September 04, 2013 10:06:02 PM Alex Williamson wrote:
 > > [   16.189165]  [<ffffffff8107b000>] ? kthread_create_on_node+0x160/0x160
 > > [   16.195700]  [<ffffffff816395dc>] ret_from_fork+0x7c/0xb0
 > > [   16.201109]  [<ffffffff8107b000>] ? kthread_create_on_node+0x160/0x160
-> > 
+> >
 > > The actual death of the serial console occurs in acpi_device_set_power()
 > > called from:
-> > 
+> >
 > > enable_slot()
 > >  acpiphp_bus_add()
 > >   acpiphp_bus_trim()
@@ -110,70 +110,40 @@ On Wednesday, September 04, 2013 10:06:02 PM Alex Williamson wrote:
 > >      acpi_bus_remove()
 > >       acpi_device_unregister()
 > >        acpi_device_set_power()
-> > 
+> >
 > > I can't seem to get a path from the acpi devices in question there, so I
 > > have no idea what's getting trimmed here.  It worries me quite a bit by
 > > introducing this trimming that apparently wasn't happening before
 > > though.  Thanks,
 > 
-> As suspected, the pnp.bus_id/id of the last device before the serial
-> console dies is COM1/PNP0501.  I also see all of these being trimmed
-> out:
+> Hi Alex:
+>            Could you apply the following patch and bootup with kernel param
+> "acpiphp.acpiphp_debug=1"?
+>            I guess the patch can make serial port alive. It will not
+> be put into D3cold
+> during trimming. But I don't know why it doesn't work after being put
+> back to D0.
+
+Do we actually put it into D0 in acpi_bus_scan()?  I don't think so.
+
+> So please attach output of acpidump and the dmesg if it can work. Thanks.
 > 
->  MBRD/PNP0C02
->  DMAC/PNP0200
->  MATH/PNP0C04
->  PIC/PNP0000
->  HPET/PNP0103
->  RTC/PNP0B00
->  SPKR/PNP0800
->  TIME/PNP0100
->  LNK{A-H}/PNP0C0F
-> 
-> This seems like a bad idea.  I forgot to mention, the original
-> hotplug_event is called with a device check on \_SB_.PCI0.PEX2.  The box
-> where I'm seeing this is a pretty generic X58 based Nehalem workstation
-> (Lenovo S20).
+> diff --git a/drivers/acpi/scan.c b/drivers/acpi/scan.c
+> index e763651..359b23d 100644
+> --- a/drivers/acpi/scan.c
+> +++ b/drivers/acpi/scan.c
+> @@ -1110,7 +1110,7 @@ static void acpi_device_unregister(struct
+> acpi_device *device)
+>          * power resources the device depends on and turn off the ones that have
+>          * no more references.
+>          */
+> -       acpi_device_set_power(device, ACPI_STATE_D3_COLD);
+> +       //acpi_device_set_power(device, ACPI_STATE_D3_COLD);
+>         device->handle = NULL;
+>         put_device(&device->dev);
+>  }
 
-Thanks for the info!
+I don't think we should do the trimming in acpiphp_bus_add() at all.
 
-The acpiphp_bus_trim() in acpiphp_bus_add() is a leftover and a bad one.
-I don't think it's actually necessary, at least Thunderbolt works without
-it just fine on my Aspire S5.
-
-The patch below should help, can you please test it?
-
+Thanks,
 Rafael
-
----
-From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
-Subject: ACPI / hotplug / PCI: Don't trim devices before scanning the namespace
-
-In acpiphp_bus_add() we first remove device objects corresponding to
-the given handle and the ACPI namespace branch below it which are
-then re-created by acpi_bus_scan().  This used to be done to clean
-up after surprise removals, but now we do the cleanup through
-trim_stale_devices() which checks if the devices in question are
-actually gone before removing them, so the device hierarchy trimming
-in acpiphp_bus_add() is not necessary any more and, moreover, it may
-lead to problems if it removes device objects corresponding to
-devices that are actually present.
-
-Reported-by: Alex Williamson <alex.williamson@redhat.com>
-Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
----
- drivers/pci/hotplug/acpiphp_glue.c |    1 -
- 1 file changed, 1 deletion(-)
-
-Index: linux-pm/drivers/pci/hotplug/acpiphp_glue.c
-===================================================================
---- linux-pm.orig/drivers/pci/hotplug/acpiphp_glue.c
-+++ linux-pm/drivers/pci/hotplug/acpiphp_glue.c
-@@ -487,7 +487,6 @@ static void acpiphp_bus_add(acpi_handle
- {
- 	struct acpi_device *adev = NULL;
- 
--	acpiphp_bus_trim(handle);
- 	acpi_bus_scan(handle);
- 	acpi_bus_get_device(handle, &adev);
- 	if (adev)
