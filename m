@@ -1,59 +1,125 @@
-From: Tang Chen <tangchen@cn.fujitsu.com>
-Subject: Re: [PATCH v2 0/4] acpi: Fix and cleanup in acpi.
-Date: Thu, 05 Sep 2013 09:56:52 +0800
-Message-ID: <5227E4E4.9050705@cn.fujitsu.com>
-References: <1378197941-26479-1-git-send-email-tangchen@cn.fujitsu.com> <17694789.JU3fWJ8s3q@vostro.rjw.lan>
+From: Alex Williamson <alex.williamson@redhat.com>
+Subject: Re: [PATCH 25/30] ACPI / hotplug / PCI: Check for new devices on
+ enabled slots
+Date: Wed, 04 Sep 2013 21:37:59 -0600
+Message-ID: <1378352279.3246.183.camel@ul30vt.home>
+References: <26431283.HJCKsss0rt@vostro.rjw.lan>
+	 <2449715.ReJj2CQeDS@vostro.rjw.lan> <1378336334.3246.158.camel@ul30vt.home>
+	 <16239518.dJxs4RVK1M@vostro.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cn.fujitsu.com ([222.73.24.84]:14658 "EHLO song.cn.fujitsu.com"
-	rhost-flags-OK-FAIL-OK-OK) by vger.kernel.org with ESMTP
-	id S1763059Ab3IEB6V (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 4 Sep 2013 21:58:21 -0400
-In-Reply-To: <17694789.JU3fWJ8s3q@vostro.rjw.lan>
+Received: from mx1.redhat.com ([209.132.183.28]:5480 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753088Ab3IEDiJ (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 4 Sep 2013 23:38:09 -0400
+In-Reply-To: <16239518.dJxs4RVK1M@vostro.rjw.lan>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: hpa@zytor.com, tglx@linutronix.de, mingo@redhat.com, lenb@kernel.org, liwanp@linux.vnet.ibm.com, tj@kernel.org, akpm@linux-foundation.org, joe@perches.com, toshi.kani@hp.com, x86@kernel.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
+Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Bjorn Helgaas <bhelgaas@google.com>, LKML <linux-kernel@vger.kernel.org>, Linux PCI <linux-pci@vger.kernel.org>, Yinghai Lu <yinghai@kernel.org>, Jiang Liu <liuj97@gmail.com>, Mika Westerberg <mika.westerberg@linux.intel.com>, "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
 
-On 09/05/2013 07:50 AM, Rafael J. Wysocki wrote:
-> On Tuesday, September 03, 2013 04:45:37 PM Tang Chen wrote:
->> This patch-set fix the following problems:
->>
->> 1. Kill useless function save_add_info() which will block us from using
->>     numa when MEMORY_HOTPLUG is not configured.
->> 2. acpi_table_parse() didn't check if @id is NULL.
->> 3. Fix incorrect comment in acpi_table_parse(), and return -ENOENT if a
->>     table is not found.
->>
->> And also did some cleanup.
->>
->> change log v1 ->  v2:
->> 1. Use pr_fmt() to simply the SRAT message.
->>     Suggested by Joe Perches<joe@perches.com>
->> 2. Improve the log in patch 4, and change the return value of the stub of
->>     acpi_table_parse() in linux/acpi.h
->>     Suggested by Toshi Kani<toshi.kani@hp.com>
->> 3. Merge the two pr_{info|err} patches into one.
->> 4. Remove on of the patch that has been merged by Rafael.
->>
->> Tang Chen (4):
->>    acpi, numa, mem_hotplug: Kill save_add_info().
->>    acpi cleanup: Use pr_{info|err}() instead of printk() in
->>      arch/x86/mm/srat.c
->>    acpi: Check if @id is NULL in acpi_table_parse()
->>    acpi: Return -ENOENT in acpi_table_parse() and fix wrong comment.
->
-> Thanks for the patches!
->
-> Peter, any objections against [1-2/4]?  If not, I'll queue them up for 3.13.
+On Thu, 2013-09-05 at 01:35 +0200, Rafael J. Wysocki wrote:
+> On Wednesday, September 04, 2013 05:12:14 PM Alex Williamson wrote:
+> > On Thu, 2013-09-05 at 00:54 +0200, Rafael J. Wysocki wrote:
+> > > On Wednesday, September 04, 2013 02:36:34 PM Alex Williamson wrote:
+> > > > On Thu, 2013-07-18 at 01:32 +0200, Rafael J. Wysocki wrote:
+> > > > > From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+> > > > > 
+> > > > > The current implementation of acpiphp_check_bridge() is pretty dumb:
+> > > > >  - It enables a slot if it's not enabled and the slot status is
+> > > > >    ACPI_STA_ALL.
+> > > > >  - It disables a slot if it's enabled and the slot status is not
+> > > > >    ACPI_STA_ALL.
+> > > > > 
+> > > > > This behavior is not sufficient to handle the Thunderbolt daisy
+> > > > > chaining case properly, however, because in that case the bus
+> > > > > behind the already enabled slot needs to be rescanned for new
+> > > > > devices.
+> > > > > 
+> > > > > For this reason, modify acpiphp_check_bridge() so that slots are
+> > > > > disabled and stopped if they are not in the ACPI_STA_ALL state.
+> > > > > 
+> > > > > For slots in the ACPI_STA_ALL state, devices behind them that don't
+> > > > > respond are trimmed using a new function, trim_stale_devices(),
+> > > > > introduced specifically for this purpose.  That function walks
+> > > > > the given bus and checks each device on it.  If the device doesn't
+> > > > > respond, it is assumed to be gone and is removed.
+> > > > > 
+> > > > > Once all of the stale devices directy behind the slot have been
+> > > > > removed, acpiphp_check_bridge() will start looking for new devices
+> > > > > that might have appeared on the given bus.  It will do that even if
+> > > > > the slot is already enabled (SLOT_ENABLED is set for it).
+> > > > > 
+> > > > > In addition to that, make the bus check notification ignore
+> > > > > SLOT_ENABLED and go for enable_device() directly if bridge is NULL,
+> > > > > so that devices behind the slot are re-enumerated in that case too.
+> > > > > 
+> > > > > This change is based on earlier patches from Kirill A Shutemov
+> > > > > and Mika Westerberg.
+> > > > > 
+> > > > > Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+> > > > > Tested-by: Mika Westerberg <mika.westerberg@linux.intel.com>
+> > > > > ---
+> > > > 
+> > > > FYI, git bisect landed on this patch as the cause of my serial console
+> > > > dying on current upstream.  Further debugging to come...  Thanks,
+> > > 
+> > > Well, sorry about that.
+> > > 
+> > > What exactly do you mean by "dying"?
+> > 
+> > Sorry, I was hoping to have more details quickly, but it's been a pain
+> > to debug.  By dying I mean serial console output suddenly stops during
+> > kernel boot and nothing more comes out of it until after the system is
+> > rebooted.  The problem happens when acpiphp_check_bridge() calls
+> > enable_slot().  The serial console dies somewhere down in
+> > acpiphp_bus_trim().  I think this is happening on the 00:1f ISA bridge,
+> > so there's a good chance the serial ports are described as somewhere
+> > under there.
+> 
+> Can you please check if that is the acpiphp_bus_trim() called by
+> acpiphp_bus_add() or the other one called from trim_stale_devices()?
+> 
+> Just add a dump_stack() or WARN_ON(1) to trim_stale_devices() next to
+> the acpiphp_bus_trim() call and see if that triggers.  I *think* it's the one
+> in acpiphp_bus_add(), but it won't hurt to verify that.
 
-Hi Rafael,
+Here's the call path:
 
-Thanks for the checking. As Ishimatu has sent some comments for patch 2, 
-I'd like
-to send a v3 patch-set soon. Please queue the coming v3 patches.
+[   16.120824]  [<ffffffff81627e6c>] dump_stack+0x55/0x76
+[   16.125979]  [<ffffffff8162132e>] enable_slot+0x4ee/0x5e0
+[   16.131396]  [<ffffffff813418fb>] ? trim_stale_devices+0x5b/0xf0
+[   16.137420]  [<ffffffff81341b35>] acpiphp_check_bridge+0xd5/0x110
+[   16.143531]  [<ffffffff81342acb>] hotplug_event+0x16b/0x260
+[   16.149115]  [<ffffffff81072cd9>] ? process_one_work+0x189/0x540
+[   16.155136]  [<ffffffff81342bf0>] hotplug_event_work+0x30/0x70
+[   16.160978]  [<ffffffff81072d3b>] process_one_work+0x1eb/0x540
+[   16.166819]  [<ffffffff81072cd9>] ? process_one_work+0x189/0x540
+[   16.172836]  [<ffffffff8107353c>] worker_thread+0x11c/0x370
+[   16.178426]  [<ffffffff81073420>] ? rescuer_thread+0x350/0x350
+[   16.184276]  [<ffffffff8107b0ea>] kthread+0xea/0xf0
+[   16.189165]  [<ffffffff8107b000>] ? kthread_create_on_node+0x160/0x160
+[   16.195700]  [<ffffffff816395dc>] ret_from_fork+0x7c/0xb0
+[   16.201109]  [<ffffffff8107b000>] ? kthread_create_on_node+0x160/0x160
 
-Thanks.
+The actual death of the serial console occurs in acpi_device_set_power()
+called from:
+
+enable_slot()
+ acpiphp_bus_add()
+  acpiphp_bus_trim()
+   acpi_bus_trim()
+    acpi_walk_namespace()
+     acpi_bus_remove()
+      acpi_device_unregister()
+       acpi_device_set_power()
+
+I can't seem to get a path from the acpi devices in question there, so I
+have no idea what's getting trimmed here.  It worries me quite a bit by
+introducing this trimming that apparently wasn't happening before
+though.  Thanks,
+
+Alex
 
