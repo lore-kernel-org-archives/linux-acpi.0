@@ -1,7 +1,7 @@
 From: Bjorn Helgaas <bhelgaas@google.com>
-Subject: [PATCH 01/14] ACPI: Write _OSC bit field definitions in hex
-Date: Fri, 06 Sep 2013 11:13:32 -0600
-Message-ID: <20130906171332.11482.45745.stgit@bhelgaas-glaptop>
+Subject: [PATCH 02/14] ACPI: Rename OSC_QUERY_TYPE to OSC_QUERY_DWORD
+Date: Fri, 06 Sep 2013 11:13:40 -0600
+Message-ID: <20130906171340.11482.95044.stgit@bhelgaas-glaptop>
 References: <20130906171010.11482.34235.stgit@bhelgaas-glaptop>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
@@ -13,83 +13,139 @@ To: linux-pci@vger.kernel.org
 Cc: "Rafael J. Wysocki" <rjw@sisk.pl>, linux-acpi@vger.kernel.org, Len Brown <lenb@kernel.org>
 List-Id: linux-acpi@vger.kernel.org
 
-Update _OSC definition comments to correspond to the 1-based spec wording
-(DWORD 1, etc.)  Write _OSC field #defines as hex to make clear that they
-are bits in a 32-bit DWORD, not arbitrary values.  No functional change.
+OSC_QUERY_TYPE isn't a "type"; it's an index into the _OSC Capabilities
+Buffer of DWORDs.  Rename OSC_QUERY_TYPE, OSC_SUPPORT_TYPE, and
+OSC_CONTROL_TYPE to OSC_QUERY_DWORD, etc., to make this clear.
+No functional change.
 
 Signed-off-by: Bjorn Helgaas <bhelgaas@google.com>
 ---
- include/linux/acpi.h |   54 +++++++++++++++++++++++++-------------------------
- 1 file changed, 27 insertions(+), 27 deletions(-)
+ drivers/acpi/apei/apei-base.c |    6 +++---
+ drivers/acpi/bus.c            |   18 +++++++++---------
+ drivers/acpi/pci_root.c       |   14 +++++++-------
+ include/linux/acpi.h          |    7 ++++---
+ 4 files changed, 23 insertions(+), 22 deletions(-)
 
+diff --git a/drivers/acpi/apei/apei-base.c b/drivers/acpi/apei/apei-base.c
+index 46f80e2..6d2c49b 100644
+--- a/drivers/acpi/apei/apei-base.c
++++ b/drivers/acpi/apei/apei-base.c
+@@ -758,9 +758,9 @@ int apei_osc_setup(void)
+ 		.cap.pointer	= capbuf,
+ 	};
+ 
+-	capbuf[OSC_QUERY_TYPE] = OSC_QUERY_ENABLE;
+-	capbuf[OSC_SUPPORT_TYPE] = 1;
+-	capbuf[OSC_CONTROL_TYPE] = 0;
++	capbuf[OSC_QUERY_DWORD] = OSC_QUERY_ENABLE;
++	capbuf[OSC_SUPPORT_DWORD] = 1;
++	capbuf[OSC_CONTROL_DWORD] = 0;
+ 
+ 	if (ACPI_FAILURE(acpi_get_handle(NULL, "\\_SB", &handle))
+ 	    || ACPI_FAILURE(acpi_run_osc(handle, &context)))
+diff --git a/drivers/acpi/bus.c b/drivers/acpi/bus.c
+index b587ec8..fbcfaa6 100644
+--- a/drivers/acpi/bus.c
++++ b/drivers/acpi/bus.c
+@@ -255,7 +255,7 @@ acpi_status acpi_run_osc(acpi_handle handle, struct acpi_osc_context *context)
+ 			acpi_print_osc_error(handle, context,
+ 				"_OSC invalid revision");
+ 		if (errors & OSC_CAPABILITIES_MASK_ERROR) {
+-			if (((u32 *)context->cap.pointer)[OSC_QUERY_TYPE]
++			if (((u32 *)context->cap.pointer)[OSC_QUERY_DWORD]
+ 			    & OSC_QUERY_ENABLE)
+ 				goto out_success;
+ 			status = AE_SUPPORT;
+@@ -295,30 +295,30 @@ static void acpi_bus_osc_support(void)
+ 	};
+ 	acpi_handle handle;
+ 
+-	capbuf[OSC_QUERY_TYPE] = OSC_QUERY_ENABLE;
+-	capbuf[OSC_SUPPORT_TYPE] = OSC_SB_PR3_SUPPORT; /* _PR3 is in use */
++	capbuf[OSC_QUERY_DWORD] = OSC_QUERY_ENABLE;
++	capbuf[OSC_SUPPORT_DWORD] = OSC_SB_PR3_SUPPORT; /* _PR3 is in use */
+ #if defined(CONFIG_ACPI_PROCESSOR_AGGREGATOR) ||\
+ 			defined(CONFIG_ACPI_PROCESSOR_AGGREGATOR_MODULE)
+-	capbuf[OSC_SUPPORT_TYPE] |= OSC_SB_PAD_SUPPORT;
++	capbuf[OSC_SUPPORT_DWORD] |= OSC_SB_PAD_SUPPORT;
+ #endif
+ 
+ #if defined(CONFIG_ACPI_PROCESSOR) || defined(CONFIG_ACPI_PROCESSOR_MODULE)
+-	capbuf[OSC_SUPPORT_TYPE] |= OSC_SB_PPC_OST_SUPPORT;
++	capbuf[OSC_SUPPORT_DWORD] |= OSC_SB_PPC_OST_SUPPORT;
+ #endif
+ 
+ #ifdef ACPI_HOTPLUG_OST
+-	capbuf[OSC_SUPPORT_TYPE] |= OSC_SB_HOTPLUG_OST_SUPPORT;
++	capbuf[OSC_SUPPORT_DWORD] |= OSC_SB_HOTPLUG_OST_SUPPORT;
+ #endif
+ 
+ 	if (!ghes_disable)
+-		capbuf[OSC_SUPPORT_TYPE] |= OSC_SB_APEI_SUPPORT;
++		capbuf[OSC_SUPPORT_DWORD] |= OSC_SB_APEI_SUPPORT;
+ 	if (ACPI_FAILURE(acpi_get_handle(NULL, "\\_SB", &handle)))
+ 		return;
+ 	if (ACPI_SUCCESS(acpi_run_osc(handle, &context))) {
+ 		u32 *capbuf_ret = context.ret.pointer;
+-		if (context.ret.length > OSC_SUPPORT_TYPE)
++		if (context.ret.length > OSC_SUPPORT_DWORD)
+ 			osc_sb_apei_support_acked =
+-				capbuf_ret[OSC_SUPPORT_TYPE] & OSC_SB_APEI_SUPPORT;
++				capbuf_ret[OSC_SUPPORT_DWORD] & OSC_SB_APEI_SUPPORT;
+ 		kfree(context.ret.pointer);
+ 	}
+ 	/* do we need to check other returned cap? Sounds no */
+diff --git a/drivers/acpi/pci_root.c b/drivers/acpi/pci_root.c
+index d3874f4..323afd7 100644
+--- a/drivers/acpi/pci_root.c
++++ b/drivers/acpi/pci_root.c
+@@ -158,14 +158,14 @@ static acpi_status acpi_pci_query_osc(struct acpi_pci_root *root,
+ 	support &= OSC_PCI_SUPPORT_MASKS;
+ 	support |= root->osc_support_set;
+ 
+-	capbuf[OSC_QUERY_TYPE] = OSC_QUERY_ENABLE;
+-	capbuf[OSC_SUPPORT_TYPE] = support;
++	capbuf[OSC_QUERY_DWORD] = OSC_QUERY_ENABLE;
++	capbuf[OSC_SUPPORT_DWORD] = support;
+ 	if (control) {
+ 		*control &= OSC_PCI_CONTROL_MASKS;
+-		capbuf[OSC_CONTROL_TYPE] = *control | root->osc_control_set;
++		capbuf[OSC_CONTROL_DWORD] = *control | root->osc_control_set;
+ 	} else {
+ 		/* Run _OSC query only with existing controls. */
+-		capbuf[OSC_CONTROL_TYPE] = root->osc_control_set;
++		capbuf[OSC_CONTROL_DWORD] = root->osc_control_set;
+ 	}
+ 
+ 	status = acpi_pci_run_osc(root->device->handle, capbuf, &result);
+@@ -357,9 +357,9 @@ acpi_status acpi_pci_osc_control_set(acpi_handle handle, u32 *mask, u32 req)
+ 		goto out;
+ 	}
+ 
+-	capbuf[OSC_QUERY_TYPE] = 0;
+-	capbuf[OSC_SUPPORT_TYPE] = root->osc_support_set;
+-	capbuf[OSC_CONTROL_TYPE] = ctrl;
++	capbuf[OSC_QUERY_DWORD] = 0;
++	capbuf[OSC_SUPPORT_DWORD] = root->osc_support_set;
++	capbuf[OSC_CONTROL_DWORD] = ctrl;
+ 	status = acpi_pci_run_osc(handle, capbuf, mask);
+ 	if (ACPI_SUCCESS(status))
+ 		root->osc_control_set = *mask;
 diff --git a/include/linux/acpi.h b/include/linux/acpi.h
-index a5db4ae..285de6f 100644
+index 285de6f..3ba9fe3 100644
 --- a/include/linux/acpi.h
 +++ b/include/linux/acpi.h
-@@ -304,39 +304,39 @@ struct acpi_osc_context {
- #define OSC_SUPPORT_TYPE 		1
- #define OSC_CONTROL_TYPE		2
+@@ -300,9 +300,10 @@ struct acpi_osc_context {
+ 	struct acpi_buffer ret; /* free by caller if success */
+ };
  
--/* _OSC DW0 Definition */
--#define OSC_QUERY_ENABLE		1
--#define OSC_REQUEST_ERROR		2
--#define OSC_INVALID_UUID_ERROR		4
--#define OSC_INVALID_REVISION_ERROR	8
--#define OSC_CAPABILITIES_MASK_ERROR	16
-+/* _OSC Capabilities DWORD 1: Query/Control and Error Returns (generic) */
-+#define OSC_QUERY_ENABLE			0x00000001  /* input */
-+#define OSC_REQUEST_ERROR			0x00000002  /* return */
-+#define OSC_INVALID_UUID_ERROR			0x00000004  /* return */
-+#define OSC_INVALID_REVISION_ERROR		0x00000008  /* return */
-+#define OSC_CAPABILITIES_MASK_ERROR		0x00000010  /* return */
+-#define OSC_QUERY_TYPE			0
+-#define OSC_SUPPORT_TYPE 		1
+-#define OSC_CONTROL_TYPE		2
++/* Indexes into _OSC Capabilities Buffer (DWORDs 2 & 3 are device-specific) */
++#define OSC_QUERY_DWORD				0	/* DWORD 1 */
++#define OSC_SUPPORT_DWORD 			1	/* DWORD 2 */
++#define OSC_CONTROL_DWORD			2	/* DWORD 3 */
  
- acpi_status acpi_run_osc(acpi_handle handle, struct acpi_osc_context *context);
- 
--/* platform-wide _OSC bits */
--#define OSC_SB_PAD_SUPPORT		1
--#define OSC_SB_PPC_OST_SUPPORT		2
--#define OSC_SB_PR3_SUPPORT		4
--#define OSC_SB_HOTPLUG_OST_SUPPORT	8
--#define OSC_SB_APEI_SUPPORT		16
-+/* Platform-Wide Capabilities _OSC: Capabilities DWORD 2: Support Field */
-+#define OSC_SB_PAD_SUPPORT			0x00000001
-+#define OSC_SB_PPC_OST_SUPPORT			0x00000002
-+#define OSC_SB_PR3_SUPPORT			0x00000004
-+#define OSC_SB_HOTPLUG_OST_SUPPORT		0x00000008
-+#define OSC_SB_APEI_SUPPORT			0x00000010
-+#define OSC_SB_CPC_SUPPORT			0x00000020
- 
- extern bool osc_sb_apei_support_acked;
- 
--/* PCI defined _OSC bits */
--/* _OSC DW1 Definition (OS Support Fields) */
--#define OSC_EXT_PCI_CONFIG_SUPPORT		1
--#define OSC_ACTIVE_STATE_PWR_SUPPORT 		2
--#define OSC_CLOCK_PWR_CAPABILITY_SUPPORT	4
--#define OSC_PCI_SEGMENT_GROUPS_SUPPORT		8
--#define OSC_MSI_SUPPORT				16
--#define OSC_PCI_SUPPORT_MASKS			0x1f
--
--/* _OSC DW1 Definition (OS Control Fields) */
--#define OSC_PCI_EXPRESS_NATIVE_HP_CONTROL	1
--#define OSC_SHPC_NATIVE_HP_CONTROL 		2
--#define OSC_PCI_EXPRESS_PME_CONTROL		4
--#define OSC_PCI_EXPRESS_AER_CONTROL		8
--#define OSC_PCI_EXPRESS_CAP_STRUCTURE_CONTROL	16
-+/* PCI Host Bridge _OSC: Capabilities DWORD 2: Support Field */
-+#define OSC_EXT_PCI_CONFIG_SUPPORT		0x00000001
-+#define OSC_ACTIVE_STATE_PWR_SUPPORT 		0x00000002
-+#define OSC_CLOCK_PWR_CAPABILITY_SUPPORT	0x00000004
-+#define OSC_PCI_SEGMENT_GROUPS_SUPPORT		0x00000008
-+#define OSC_MSI_SUPPORT				0x00000010
-+#define OSC_PCI_SUPPORT_MASKS			0x0000001f
-+
-+/* PCI Host Bridge _OSC: Capabilities DWORD 3: Control Field */
-+#define OSC_PCI_EXPRESS_NATIVE_HP_CONTROL	0x00000001
-+#define OSC_SHPC_NATIVE_HP_CONTROL 		0x00000002
-+#define OSC_PCI_EXPRESS_PME_CONTROL		0x00000004
-+#define OSC_PCI_EXPRESS_AER_CONTROL		0x00000008
-+#define OSC_PCI_EXPRESS_CAP_STRUCTURE_CONTROL	0x00000010
- 
- #define OSC_PCI_CONTROL_MASKS 	(OSC_PCI_EXPRESS_NATIVE_HP_CONTROL | 	\
- 				OSC_SHPC_NATIVE_HP_CONTROL | 		\
+ /* _OSC Capabilities DWORD 1: Query/Control and Error Returns (generic) */
+ #define OSC_QUERY_ENABLE			0x00000001  /* input */
