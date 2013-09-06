@@ -1,7 +1,7 @@
 From: Bjorn Helgaas <bhelgaas@google.com>
-Subject: [PATCH 02/14] ACPI: Rename OSC_QUERY_TYPE to OSC_QUERY_DWORD
-Date: Fri, 06 Sep 2013 11:13:40 -0600
-Message-ID: <20130906171340.11482.95044.stgit@bhelgaas-glaptop>
+Subject: [PATCH 03/14] ACPI: Tidy acpi_run_osc() declarations
+Date: Fri, 06 Sep 2013 11:13:47 -0600
+Message-ID: <20130906171347.11482.54142.stgit@bhelgaas-glaptop>
 References: <20130906171010.11482.34235.stgit@bhelgaas-glaptop>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
@@ -13,139 +13,42 @@ To: linux-pci@vger.kernel.org
 Cc: "Rafael J. Wysocki" <rjw@sisk.pl>, linux-acpi@vger.kernel.org, Len Brown <lenb@kernel.org>
 List-Id: linux-acpi@vger.kernel.org
 
-OSC_QUERY_TYPE isn't a "type"; it's an index into the _OSC Capabilities
-Buffer of DWORDs.  Rename OSC_QUERY_TYPE, OSC_SUPPORT_TYPE, and
-OSC_CONTROL_TYPE to OSC_QUERY_DWORD, etc., to make this clear.
-No functional change.
+Move the acpi_run_osc() prototype next to the related structure and
+update comments.  No functional change.
 
 Signed-off-by: Bjorn Helgaas <bhelgaas@google.com>
 ---
- drivers/acpi/apei/apei-base.c |    6 +++---
- drivers/acpi/bus.c            |   18 +++++++++---------
- drivers/acpi/pci_root.c       |   14 +++++++-------
- include/linux/acpi.h          |    7 ++++---
- 4 files changed, 23 insertions(+), 22 deletions(-)
+ include/linux/acpi.h |   10 +++++-----
+ 1 file changed, 5 insertions(+), 5 deletions(-)
 
-diff --git a/drivers/acpi/apei/apei-base.c b/drivers/acpi/apei/apei-base.c
-index 46f80e2..6d2c49b 100644
---- a/drivers/acpi/apei/apei-base.c
-+++ b/drivers/acpi/apei/apei-base.c
-@@ -758,9 +758,9 @@ int apei_osc_setup(void)
- 		.cap.pointer	= capbuf,
- 	};
- 
--	capbuf[OSC_QUERY_TYPE] = OSC_QUERY_ENABLE;
--	capbuf[OSC_SUPPORT_TYPE] = 1;
--	capbuf[OSC_CONTROL_TYPE] = 0;
-+	capbuf[OSC_QUERY_DWORD] = OSC_QUERY_ENABLE;
-+	capbuf[OSC_SUPPORT_DWORD] = 1;
-+	capbuf[OSC_CONTROL_DWORD] = 0;
- 
- 	if (ACPI_FAILURE(acpi_get_handle(NULL, "\\_SB", &handle))
- 	    || ACPI_FAILURE(acpi_run_osc(handle, &context)))
-diff --git a/drivers/acpi/bus.c b/drivers/acpi/bus.c
-index b587ec8..fbcfaa6 100644
---- a/drivers/acpi/bus.c
-+++ b/drivers/acpi/bus.c
-@@ -255,7 +255,7 @@ acpi_status acpi_run_osc(acpi_handle handle, struct acpi_osc_context *context)
- 			acpi_print_osc_error(handle, context,
- 				"_OSC invalid revision");
- 		if (errors & OSC_CAPABILITIES_MASK_ERROR) {
--			if (((u32 *)context->cap.pointer)[OSC_QUERY_TYPE]
-+			if (((u32 *)context->cap.pointer)[OSC_QUERY_DWORD]
- 			    & OSC_QUERY_ENABLE)
- 				goto out_success;
- 			status = AE_SUPPORT;
-@@ -295,30 +295,30 @@ static void acpi_bus_osc_support(void)
- 	};
- 	acpi_handle handle;
- 
--	capbuf[OSC_QUERY_TYPE] = OSC_QUERY_ENABLE;
--	capbuf[OSC_SUPPORT_TYPE] = OSC_SB_PR3_SUPPORT; /* _PR3 is in use */
-+	capbuf[OSC_QUERY_DWORD] = OSC_QUERY_ENABLE;
-+	capbuf[OSC_SUPPORT_DWORD] = OSC_SB_PR3_SUPPORT; /* _PR3 is in use */
- #if defined(CONFIG_ACPI_PROCESSOR_AGGREGATOR) ||\
- 			defined(CONFIG_ACPI_PROCESSOR_AGGREGATOR_MODULE)
--	capbuf[OSC_SUPPORT_TYPE] |= OSC_SB_PAD_SUPPORT;
-+	capbuf[OSC_SUPPORT_DWORD] |= OSC_SB_PAD_SUPPORT;
- #endif
- 
- #if defined(CONFIG_ACPI_PROCESSOR) || defined(CONFIG_ACPI_PROCESSOR_MODULE)
--	capbuf[OSC_SUPPORT_TYPE] |= OSC_SB_PPC_OST_SUPPORT;
-+	capbuf[OSC_SUPPORT_DWORD] |= OSC_SB_PPC_OST_SUPPORT;
- #endif
- 
- #ifdef ACPI_HOTPLUG_OST
--	capbuf[OSC_SUPPORT_TYPE] |= OSC_SB_HOTPLUG_OST_SUPPORT;
-+	capbuf[OSC_SUPPORT_DWORD] |= OSC_SB_HOTPLUG_OST_SUPPORT;
- #endif
- 
- 	if (!ghes_disable)
--		capbuf[OSC_SUPPORT_TYPE] |= OSC_SB_APEI_SUPPORT;
-+		capbuf[OSC_SUPPORT_DWORD] |= OSC_SB_APEI_SUPPORT;
- 	if (ACPI_FAILURE(acpi_get_handle(NULL, "\\_SB", &handle)))
- 		return;
- 	if (ACPI_SUCCESS(acpi_run_osc(handle, &context))) {
- 		u32 *capbuf_ret = context.ret.pointer;
--		if (context.ret.length > OSC_SUPPORT_TYPE)
-+		if (context.ret.length > OSC_SUPPORT_DWORD)
- 			osc_sb_apei_support_acked =
--				capbuf_ret[OSC_SUPPORT_TYPE] & OSC_SB_APEI_SUPPORT;
-+				capbuf_ret[OSC_SUPPORT_DWORD] & OSC_SB_APEI_SUPPORT;
- 		kfree(context.ret.pointer);
- 	}
- 	/* do we need to check other returned cap? Sounds no */
-diff --git a/drivers/acpi/pci_root.c b/drivers/acpi/pci_root.c
-index d3874f4..323afd7 100644
---- a/drivers/acpi/pci_root.c
-+++ b/drivers/acpi/pci_root.c
-@@ -158,14 +158,14 @@ static acpi_status acpi_pci_query_osc(struct acpi_pci_root *root,
- 	support &= OSC_PCI_SUPPORT_MASKS;
- 	support |= root->osc_support_set;
- 
--	capbuf[OSC_QUERY_TYPE] = OSC_QUERY_ENABLE;
--	capbuf[OSC_SUPPORT_TYPE] = support;
-+	capbuf[OSC_QUERY_DWORD] = OSC_QUERY_ENABLE;
-+	capbuf[OSC_SUPPORT_DWORD] = support;
- 	if (control) {
- 		*control &= OSC_PCI_CONTROL_MASKS;
--		capbuf[OSC_CONTROL_TYPE] = *control | root->osc_control_set;
-+		capbuf[OSC_CONTROL_DWORD] = *control | root->osc_control_set;
- 	} else {
- 		/* Run _OSC query only with existing controls. */
--		capbuf[OSC_CONTROL_TYPE] = root->osc_control_set;
-+		capbuf[OSC_CONTROL_DWORD] = root->osc_control_set;
- 	}
- 
- 	status = acpi_pci_run_osc(root->device->handle, capbuf, &result);
-@@ -357,9 +357,9 @@ acpi_status acpi_pci_osc_control_set(acpi_handle handle, u32 *mask, u32 req)
- 		goto out;
- 	}
- 
--	capbuf[OSC_QUERY_TYPE] = 0;
--	capbuf[OSC_SUPPORT_TYPE] = root->osc_support_set;
--	capbuf[OSC_CONTROL_TYPE] = ctrl;
-+	capbuf[OSC_QUERY_DWORD] = 0;
-+	capbuf[OSC_SUPPORT_DWORD] = root->osc_support_set;
-+	capbuf[OSC_CONTROL_DWORD] = ctrl;
- 	status = acpi_pci_run_osc(handle, capbuf, mask);
- 	if (ACPI_SUCCESS(status))
- 		root->osc_control_set = *mask;
 diff --git a/include/linux/acpi.h b/include/linux/acpi.h
-index 285de6f..3ba9fe3 100644
+index 3ba9fe3..902cccf 100644
 --- a/include/linux/acpi.h
 +++ b/include/linux/acpi.h
-@@ -300,9 +300,10 @@ struct acpi_osc_context {
- 	struct acpi_buffer ret; /* free by caller if success */
+@@ -294,12 +294,14 @@ void __init acpi_nvs_nosave_s3(void);
+ #endif /* CONFIG_PM_SLEEP */
+ 
+ struct acpi_osc_context {
+-	char *uuid_str; /* uuid string */
++	char *uuid_str;			/* UUID string */
+ 	int rev;
+-	struct acpi_buffer cap; /* arg2/arg3 */
+-	struct acpi_buffer ret; /* free by caller if success */
++	struct acpi_buffer cap;		/* list of DWORD capabilities */
++	struct acpi_buffer ret;		/* free by caller if success */
  };
  
--#define OSC_QUERY_TYPE			0
--#define OSC_SUPPORT_TYPE 		1
--#define OSC_CONTROL_TYPE		2
-+/* Indexes into _OSC Capabilities Buffer (DWORDs 2 & 3 are device-specific) */
-+#define OSC_QUERY_DWORD				0	/* DWORD 1 */
-+#define OSC_SUPPORT_DWORD 			1	/* DWORD 2 */
-+#define OSC_CONTROL_DWORD			2	/* DWORD 3 */
++acpi_status acpi_run_osc(acpi_handle handle, struct acpi_osc_context *context);
++
+ /* Indexes into _OSC Capabilities Buffer (DWORDs 2 & 3 are device-specific) */
+ #define OSC_QUERY_DWORD				0	/* DWORD 1 */
+ #define OSC_SUPPORT_DWORD 			1	/* DWORD 2 */
+@@ -312,8 +314,6 @@ struct acpi_osc_context {
+ #define OSC_INVALID_REVISION_ERROR		0x00000008  /* return */
+ #define OSC_CAPABILITIES_MASK_ERROR		0x00000010  /* return */
  
- /* _OSC Capabilities DWORD 1: Query/Control and Error Returns (generic) */
- #define OSC_QUERY_ENABLE			0x00000001  /* input */
+-acpi_status acpi_run_osc(acpi_handle handle, struct acpi_osc_context *context);
+-
+ /* Platform-Wide Capabilities _OSC: Capabilities DWORD 2: Support Field */
+ #define OSC_SB_PAD_SUPPORT			0x00000001
+ #define OSC_SB_PPC_OST_SUPPORT			0x00000002
