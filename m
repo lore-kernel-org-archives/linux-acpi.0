@@ -1,257 +1,78 @@
-From: Lv Zheng <lv.zheng@intel.com>
-Subject: [PATCH] ACPICA: Fix for a Store->ArgX when ArgX contains a reference to a field.
-Date: Fri,  6 Sep 2013 14:27:15 +0800
-Message-ID: <1378448835-23849-1-git-send-email-lv.zheng@intel.com>
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga14.intel.com ([143.182.124.37]:7677 "EHLO mga14.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750738Ab3IFG12 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 6 Sep 2013 02:27:28 -0400
-Sender: linux-acpi-owner@vger.kernel.org
+From: Wanpeng Li <liwanp@linux.vnet.ibm.com>
+Subject: Re: [PATCH 00/11] x86, memblock: Allocate memory near kernel image
+ before SRAT parsed.
+Date: Fri, 6 Sep 2013 16:58:11 +0800
+Message-ID: <21144.2295149483$1378457922@news.gmane.org>
+References: <1377596268-31552-1-git-send-email-tangchen@cn.fujitsu.com>
+ <20130904192215.GG26609@mtj.dyndns.org>
+Reply-To: Wanpeng Li <liwanp@linux.vnet.ibm.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Return-path: <owner-linux-mm@kvack.org>
+Content-Disposition: inline
+In-Reply-To: <20130904192215.GG26609@mtj.dyndns.org>
+Sender: owner-linux-mm@kvack.org
+To: Tejun Heo <tj@kernel.org>
+Cc: rjw@sisk.pl, lenb@kernel.org, tglx@linutronix.de, mingo@elte.hu, hpa@zytor.com, akpm@linux-foundation.org, trenn@suse.de, yinghai@kernel.org, jiang.liu@huawei.com, wency@cn.fujitsu.com, laijs@cn.fujitsu.com, isimatu.yasuaki@jp.fujitsu.com, izumi.taku@jp.fujitsu.com, mgorman@suse.de, minchan@kernel.org, mina86@mina86.com, gong.chen@linux.intel.com, vasilis.liaskovitis@profitbricks.com, lwoodman@redhat.com, riel@redhat.com, jweiner@redhat.com, prarit@redhat.com, zhangyanfei@cn.fujitsu.com, x86@kernel.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-mm@kvack.org, linux-acpi@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Robert Moore <robert.moore@intel.com>, Len Brown <len.brown@intel.com>
-Cc: Lv Zheng <lv.zheng@intel.com>, linux-acpi@vger.kernel.org
 
-From: Bob Moore <robert.moore@intel.com>
+Hi Tejun,
+On Wed, Sep 04, 2013 at 03:22:15PM -0400, Tejun Heo wrote:
+>Hello,
+>
+>On Tue, Aug 27, 2013 at 05:37:37PM +0800, Tang Chen wrote:
+>> 1. Make memblock be able to allocate memory from low address to high address.
+>>    Also introduce low limit to prevent memblock allocating memory too low.
+>> 
+>> 2. Improve init_mem_mapping() to support allocate page tables from low address 
+>>    to high address.
+>> 
+>> 3. Introduce "movablenode" boot option to enable and disable this functionality.
+>> 
+>> PS: Reordering of relocate_initrd() and reserve_crashkernel() has not been done 
+>>     yet. acpi_initrd_override() needs to access initrd with virtual address. So 
+>>     relocate_initrd() must be done before acpi_initrd_override().
+>
+>I'm expectedly happier with this approach but some overall review
+>points.
+>
+>* I think patch splitting went a bit too far.  e.g. it doesn't make
+>  much sense or helps anything to split "introduction of a param" from
+>  "the param doing something".
+>
+>* I think it's a lot more complex than necessary.  Just implement a
+>  single function - memblock_alloc_bottom_up(@start) where specifying
+>  MEMBLOCK_ALLOC_ANYWHERE restores top down behavior and do
+>  memblock_alloc_bottom_up(end_of_kernel) early during boot.  If the
+>  bottom up mode is set, just try allocating bottom up from the
+>  specified address and if that fails do normal top down allocation.
+>  No need to meddle with the callers.  The only change necessary
+>  (well, aside from the reordering) outside memblock is adding two
+>  calls to the above function.
+>
+>* I don't think "order" is the right word here.  "direction" probably
+>  fits a lot better.
 
-This change fixes a problem where a Store operation to an ArgX object
-that contained a reference to a field object did not complete the
-automatic dereference and then write to the actual field object.
-Instead, the object type of the field object was inadvertently changed
-to match the type of the source operand. The new behavior will actually
-write to the field object (buffer field or field unit), thus matching
-the correct ACPI-defined behavior.
+What's the root reason memblock alloc from high to low? To reduce 
+fragmentation or ...
 
-Signed-off-by: Bob Moore <robert.moore@intel.com>
----
- exstore.c |  166 ++++++++++++++++++++++++++++++++++++++------------------------
- 1 file changed, 102 insertions(+), 64 deletions(-)
+Regards,
+Wanpeng Li 
 
-Index: linux-acpica/drivers/acpi/acpica/exstore.c
-===================================================================
---- linux-acpica.orig/drivers/acpi/acpica/exstore.c
-+++ linux-acpica/drivers/acpi/acpica/exstore.c
-@@ -57,6 +57,11 @@ acpi_ex_store_object_to_index(union acpi
- 			      union acpi_operand_object *dest_desc,
- 			      struct acpi_walk_state *walk_state);
- 
-+static acpi_status
-+acpi_ex_store_direct_to_node(union acpi_operand_object *source_desc,
-+			     struct acpi_namespace_node *node,
-+			     struct acpi_walk_state *walk_state);
-+
- /*******************************************************************************
-  *
-  * FUNCTION:    acpi_ex_store
-@@ -375,7 +380,11 @@ acpi_ex_store_object_to_index(union acpi
-  *              When storing into an object the data is converted to the
-  *              target object type then stored in the object. This means
-  *              that the target object type (for an initialized target) will
-- *              not be changed by a store operation.
-+ *              not be changed by a store operation. A copy_object can change
-+ *              the target type, however.
-+ *
-+ *              The implicit_conversion flag is set to NO/FALSE only when
-+ *              storing to an arg_x -- as per the rules of the ACPI spec.
-  *
-  *              Assumes parameters are already validated.
-  *
-@@ -399,7 +408,7 @@ acpi_ex_store_object_to_node(union acpi_
- 	target_type = acpi_ns_get_type(node);
- 	target_desc = acpi_ns_get_attached_object(node);
- 
--	ACPI_DEBUG_PRINT((ACPI_DB_EXEC, "Storing %p(%s) into node %p(%s)\n",
-+	ACPI_DEBUG_PRINT((ACPI_DB_EXEC, "Storing %p (%s) to node %p (%s)\n",
- 			  source_desc,
- 			  acpi_ut_get_object_type_name(source_desc), node,
- 			  acpi_ut_get_type_name(target_type)));
-@@ -413,45 +422,30 @@ acpi_ex_store_object_to_node(union acpi_
- 		return_ACPI_STATUS(status);
- 	}
- 
--	/* If no implicit conversion, drop into the default case below */
--
--	if ((!implicit_conversion) ||
--	    ((walk_state->opcode == AML_COPY_OP) &&
--	     (target_type != ACPI_TYPE_LOCAL_REGION_FIELD) &&
--	     (target_type != ACPI_TYPE_LOCAL_BANK_FIELD) &&
--	     (target_type != ACPI_TYPE_LOCAL_INDEX_FIELD))) {
--		/*
--		 * Force execution of default (no implicit conversion). Note:
--		 * copy_object does not perform an implicit conversion, as per the ACPI
--		 * spec -- except in case of region/bank/index fields -- because these
--		 * objects must retain their original type permanently.
--		 */
--		target_type = ACPI_TYPE_ANY;
--	}
--
- 	/* Do the actual store operation */
- 
- 	switch (target_type) {
--	case ACPI_TYPE_BUFFER_FIELD:
--	case ACPI_TYPE_LOCAL_REGION_FIELD:
--	case ACPI_TYPE_LOCAL_BANK_FIELD:
--	case ACPI_TYPE_LOCAL_INDEX_FIELD:
--
--		/* For fields, copy the source data to the target field. */
--
--		status = acpi_ex_write_data_to_field(source_desc, target_desc,
--						     &walk_state->result_obj);
--		break;
--
- 	case ACPI_TYPE_INTEGER:
- 	case ACPI_TYPE_STRING:
- 	case ACPI_TYPE_BUFFER:
- 		/*
--		 * These target types are all of type Integer/String/Buffer, and
--		 * therefore support implicit conversion before the store.
--		 *
--		 * Copy and/or convert the source object to a new target object
-+		 * The simple data types all support implicit source operand
-+		 * conversion before the store.
- 		 */
-+
-+		if ((walk_state->opcode == AML_COPY_OP) || !implicit_conversion) {
-+			/*
-+			 * However, copy_object and Stores to arg_x do not perform
-+			 * an implicit conversion, as per the ACPI specification.
-+			 * A direct store is performed instead.
-+			 */
-+			status = acpi_ex_store_direct_to_node(source_desc, node,
-+							      walk_state);
-+			break;
-+		}
-+
-+		/* Store with implicit source operand conversion support */
-+
- 		status =
- 		    acpi_ex_store_object_to_object(source_desc, target_desc,
- 						   &new_desc, walk_state);
-@@ -465,13 +459,12 @@ acpi_ex_store_object_to_node(union acpi_
- 			 * the Name's type to that of the value being stored in it.
- 			 * source_desc reference count is incremented by attach_object.
- 			 *
--			 * Note: This may change the type of the node if an explicit store
--			 * has been performed such that the node/object type has been
--			 * changed.
-+			 * Note: This may change the type of the node if an explicit
-+			 * store has been performed such that the node/object type
-+			 * has been changed.
- 			 */
--			status =
--			    acpi_ns_attach_object(node, new_desc,
--						  new_desc->common.type);
-+			status = acpi_ns_attach_object(node, new_desc,
-+						       new_desc->common.type);
- 
- 			ACPI_DEBUG_PRINT((ACPI_DB_EXEC,
- 					  "Store %s into %s via Convert/Attach\n",
-@@ -482,38 +475,83 @@ acpi_ex_store_object_to_node(union acpi_
- 		}
- 		break;
- 
--	default:
--
--		ACPI_DEBUG_PRINT((ACPI_DB_EXEC,
--				  "Storing [%s] (%p) directly into node [%s] (%p)"
--				  " with no implicit conversion\n",
--				  acpi_ut_get_object_type_name(source_desc),
--				  source_desc,
--				  acpi_ut_get_object_type_name(target_desc),
--				  node));
-+	case ACPI_TYPE_BUFFER_FIELD:
-+	case ACPI_TYPE_LOCAL_REGION_FIELD:
-+	case ACPI_TYPE_LOCAL_BANK_FIELD:
-+	case ACPI_TYPE_LOCAL_INDEX_FIELD:
-+		/*
-+		 * For all fields, always write the source data to the target
-+		 * field. Any required implicit source operand conversion is
-+		 * performed in the function below as necessary. Note, field
-+		 * objects must retain their original type permanently.
-+		 */
-+		status = acpi_ex_write_data_to_field(source_desc, target_desc,
-+						     &walk_state->result_obj);
-+		break;
- 
-+	default:
- 		/*
- 		 * No conversions for all other types. Directly store a copy of
--		 * the source object. NOTE: This is a departure from the ACPI
--		 * spec, which states "If conversion is impossible, abort the
--		 * running control method".
-+		 * the source object. This is the ACPI spec-defined behavior for
-+		 * the copy_object operator.
- 		 *
--		 * This code implements "If conversion is impossible, treat the
--		 * Store operation as a CopyObject".
-+		 * NOTE: For the Store operator, this is a departure from the
-+		 * ACPI spec, which states "If conversion is impossible, abort
-+		 * the running control method". Instead, this code implements
-+		 * "If conversion is impossible, treat the Store operation as
-+		 * a CopyObject".
- 		 */
--		status =
--		    acpi_ut_copy_iobject_to_iobject(source_desc, &new_desc,
--						    walk_state);
--		if (ACPI_FAILURE(status)) {
--			return_ACPI_STATUS(status);
--		}
--
--		status =
--		    acpi_ns_attach_object(node, new_desc,
--					  new_desc->common.type);
--		acpi_ut_remove_reference(new_desc);
-+		status = acpi_ex_store_direct_to_node(source_desc, node,
-+						      walk_state);
- 		break;
- 	}
- 
- 	return_ACPI_STATUS(status);
- }
-+
-+/*******************************************************************************
-+ *
-+ * FUNCTION:    acpi_ex_store_direct_to_node
-+ *
-+ * PARAMETERS:  source_desc             - Value to be stored
-+ *              node                    - Named object to receive the value
-+ *              walk_state              - Current walk state
-+ *
-+ * RETURN:      Status
-+ *
-+ * DESCRIPTION: "Store" an object directly to a node. This involves a copy
-+ *              and an attach.
-+ *
-+ ******************************************************************************/
-+
-+static acpi_status
-+acpi_ex_store_direct_to_node(union acpi_operand_object *source_desc,
-+			     struct acpi_namespace_node *node,
-+			     struct acpi_walk_state *walk_state)
-+{
-+	acpi_status status;
-+	union acpi_operand_object *new_desc;
-+
-+	ACPI_FUNCTION_TRACE(ex_store_direct_to_node);
-+
-+	ACPI_DEBUG_PRINT((ACPI_DB_EXEC,
-+			  "Storing [%s] (%p) directly into node [%s] (%p)"
-+			  " with no implicit conversion\n",
-+			  acpi_ut_get_object_type_name(source_desc),
-+			  source_desc, acpi_ut_get_type_name(node->type),
-+			  node));
-+
-+	/* Copy the source object to a new object */
-+
-+	status =
-+	    acpi_ut_copy_iobject_to_iobject(source_desc, &new_desc, walk_state);
-+	if (ACPI_FAILURE(status)) {
-+		return_ACPI_STATUS(status);
-+	}
-+
-+	/* Attach the new object to the node */
-+
-+	status = acpi_ns_attach_object(node, new_desc, new_desc->common.type);
-+	acpi_ut_remove_reference(new_desc);
-+	return_ACPI_STATUS(status);
-+}
+>
+>Thanks.
+>
+>-- 
+>tejun
+>
+>--
+>To unsubscribe, send a message with 'unsubscribe linux-mm' in
+>the body to majordomo@kvack.org.  For more info on Linux MM,
+>see: http://www.linux-mm.org/ .
+>Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
+
+--
+To unsubscribe, send a message with 'unsubscribe linux-mm' in
+the body to majordomo@kvack.org.  For more info on Linux MM,
+see: http://www.linux-mm.org/ .
+Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
