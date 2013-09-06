@@ -1,62 +1,257 @@
-From: Tang Chen <tangchen@cn.fujitsu.com>
-Subject: Re: [PATCH 10/11] x86, mem-hotplug: Support initialize page tables
- from low to high.
-Date: Fri, 06 Sep 2013 11:09:12 +0800
-Message-ID: <52294758.7030801@cn.fujitsu.com>
-References: <1377596268-31552-1-git-send-email-tangchen@cn.fujitsu.com> <1377596268-31552-11-git-send-email-tangchen@cn.fujitsu.com> <20130905133027.GA23038@hacker.(null)> <52293118.8080707@cn.fujitsu.com> <20130906021653.GA1062@hacker.(null)>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+From: Lv Zheng <lv.zheng@intel.com>
+Subject: [PATCH] ACPICA: Fix for a Store->ArgX when ArgX contains a reference to a field.
+Date: Fri,  6 Sep 2013 14:27:15 +0800
+Message-ID: <1378448835-23849-1-git-send-email-lv.zheng@intel.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cn.fujitsu.com ([222.73.24.84]:38634 "EHLO song.cn.fujitsu.com"
-	rhost-flags-OK-FAIL-OK-OK) by vger.kernel.org with ESMTP
-	id S1753734Ab3IFDK1 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 5 Sep 2013 23:10:27 -0400
-In-Reply-To: <20130906021653.GA1062@hacker.(null)>
+Received: from mga14.intel.com ([143.182.124.37]:7677 "EHLO mga14.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750738Ab3IFG12 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 6 Sep 2013 02:27:28 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Wanpeng Li <liwanp@linux.vnet.ibm.com>
-Cc: rjw@sisk.pl, lenb@kernel.org, tglx@linutronix.de, mingo@elte.hu, hpa@zytor.com, akpm@linux-foundation.org, tj@kernel.org, trenn@suse.de, yinghai@kernel.org, jiang.liu@huawei.com, wency@cn.fujitsu.com, laijs@cn.fujitsu.com, isimatu.yasuaki@jp.fujitsu.com, izumi.taku@jp.fujitsu.com, mgorman@suse.de, minchan@kernel.org, mina86@mina86.com, gong.chen@linux.intel.com, vasilis.liaskovitis@profitbricks.com, lwoodman@redhat.com, riel@redhat.com, jweiner@redhat.com, prarit@redhat.com, zhangyanfei@cn.fujitsu.com, x86@kernel.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-mm@kvack.org, linux-acpi@vger.kernel.org
+To: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Robert Moore <robert.moore@intel.com>, Len Brown <len.brown@intel.com>
+Cc: Lv Zheng <lv.zheng@intel.com>, linux-acpi@vger.kernel.org
 
-Hi Wanpeng,
+From: Bob Moore <robert.moore@intel.com>
 
-On 09/06/2013 10:16 AM, Wanpeng Li wrote:
-......
->>>> +#ifdef CONFIG_MOVABLE_NODE
->>>> +	unsigned long kernel_end;
->>>> +
->>>> +	if (movablenode_enable_srat&&
->>>> +	    memblock.current_order == MEMBLOCK_ORDER_LOW_TO_HIGH) {
->>>
->>> I think memblock.current_order == MEMBLOCK_ORDER_LOW_TO_HIGH is always
->>> true if config MOVABLE_NODE and movablenode_enable_srat == true if PATCH
->>> 11/11 is applied.
->>
->> memblock.current_order == MEMBLOCK_ORDER_LOW_TO_HIGH is true here if
->> MOVABLE_NODE
->> is configured, and it will be reset after SRAT is parsed. But
->> movablenode_enable_srat
->> could only be true when users specify movablenode boot option in the
->> kernel commandline.
->
-> You are right.
->
-> I mean the change should be:
->
-> +#ifdef CONFIG_MOVABLE_NODE
-> +       unsigned long kernel_end;
-> +
-> +       if (movablenode_enable_srat) {
->
-> The is unnecessary to check memblock.current_order since it is always true
-> if movable_node is configured and movablenode_enable_srat is true.
->
+This change fixes a problem where a Store operation to an ArgX object
+that contained a reference to a field object did not complete the
+automatic dereference and then write to the actual field object.
+Instead, the object type of the field object was inadvertently changed
+to match the type of the source operand. The new behavior will actually
+write to the field object (buffer field or field unit), thus matching
+the correct ACPI-defined behavior.
 
-But I think, memblock.current_order is set outside init_mem_mapping(). And
-the path in the if statement could only be run when current order is from
-low to high. So I think it is safe to check it here.
+Signed-off-by: Bob Moore <robert.moore@intel.com>
+---
+ exstore.c |  166 ++++++++++++++++++++++++++++++++++++++------------------------
+ 1 file changed, 102 insertions(+), 64 deletions(-)
 
-I prefer to keep it at least in the next version patch-set. If others also
-think it is unnecessary, I'm OK with removing the checking. :)
-
-Thanks. :)
+Index: linux-acpica/drivers/acpi/acpica/exstore.c
+===================================================================
+--- linux-acpica.orig/drivers/acpi/acpica/exstore.c
++++ linux-acpica/drivers/acpi/acpica/exstore.c
+@@ -57,6 +57,11 @@ acpi_ex_store_object_to_index(union acpi
+ 			      union acpi_operand_object *dest_desc,
+ 			      struct acpi_walk_state *walk_state);
+ 
++static acpi_status
++acpi_ex_store_direct_to_node(union acpi_operand_object *source_desc,
++			     struct acpi_namespace_node *node,
++			     struct acpi_walk_state *walk_state);
++
+ /*******************************************************************************
+  *
+  * FUNCTION:    acpi_ex_store
+@@ -375,7 +380,11 @@ acpi_ex_store_object_to_index(union acpi
+  *              When storing into an object the data is converted to the
+  *              target object type then stored in the object. This means
+  *              that the target object type (for an initialized target) will
+- *              not be changed by a store operation.
++ *              not be changed by a store operation. A copy_object can change
++ *              the target type, however.
++ *
++ *              The implicit_conversion flag is set to NO/FALSE only when
++ *              storing to an arg_x -- as per the rules of the ACPI spec.
+  *
+  *              Assumes parameters are already validated.
+  *
+@@ -399,7 +408,7 @@ acpi_ex_store_object_to_node(union acpi_
+ 	target_type = acpi_ns_get_type(node);
+ 	target_desc = acpi_ns_get_attached_object(node);
+ 
+-	ACPI_DEBUG_PRINT((ACPI_DB_EXEC, "Storing %p(%s) into node %p(%s)\n",
++	ACPI_DEBUG_PRINT((ACPI_DB_EXEC, "Storing %p (%s) to node %p (%s)\n",
+ 			  source_desc,
+ 			  acpi_ut_get_object_type_name(source_desc), node,
+ 			  acpi_ut_get_type_name(target_type)));
+@@ -413,45 +422,30 @@ acpi_ex_store_object_to_node(union acpi_
+ 		return_ACPI_STATUS(status);
+ 	}
+ 
+-	/* If no implicit conversion, drop into the default case below */
+-
+-	if ((!implicit_conversion) ||
+-	    ((walk_state->opcode == AML_COPY_OP) &&
+-	     (target_type != ACPI_TYPE_LOCAL_REGION_FIELD) &&
+-	     (target_type != ACPI_TYPE_LOCAL_BANK_FIELD) &&
+-	     (target_type != ACPI_TYPE_LOCAL_INDEX_FIELD))) {
+-		/*
+-		 * Force execution of default (no implicit conversion). Note:
+-		 * copy_object does not perform an implicit conversion, as per the ACPI
+-		 * spec -- except in case of region/bank/index fields -- because these
+-		 * objects must retain their original type permanently.
+-		 */
+-		target_type = ACPI_TYPE_ANY;
+-	}
+-
+ 	/* Do the actual store operation */
+ 
+ 	switch (target_type) {
+-	case ACPI_TYPE_BUFFER_FIELD:
+-	case ACPI_TYPE_LOCAL_REGION_FIELD:
+-	case ACPI_TYPE_LOCAL_BANK_FIELD:
+-	case ACPI_TYPE_LOCAL_INDEX_FIELD:
+-
+-		/* For fields, copy the source data to the target field. */
+-
+-		status = acpi_ex_write_data_to_field(source_desc, target_desc,
+-						     &walk_state->result_obj);
+-		break;
+-
+ 	case ACPI_TYPE_INTEGER:
+ 	case ACPI_TYPE_STRING:
+ 	case ACPI_TYPE_BUFFER:
+ 		/*
+-		 * These target types are all of type Integer/String/Buffer, and
+-		 * therefore support implicit conversion before the store.
+-		 *
+-		 * Copy and/or convert the source object to a new target object
++		 * The simple data types all support implicit source operand
++		 * conversion before the store.
+ 		 */
++
++		if ((walk_state->opcode == AML_COPY_OP) || !implicit_conversion) {
++			/*
++			 * However, copy_object and Stores to arg_x do not perform
++			 * an implicit conversion, as per the ACPI specification.
++			 * A direct store is performed instead.
++			 */
++			status = acpi_ex_store_direct_to_node(source_desc, node,
++							      walk_state);
++			break;
++		}
++
++		/* Store with implicit source operand conversion support */
++
+ 		status =
+ 		    acpi_ex_store_object_to_object(source_desc, target_desc,
+ 						   &new_desc, walk_state);
+@@ -465,13 +459,12 @@ acpi_ex_store_object_to_node(union acpi_
+ 			 * the Name's type to that of the value being stored in it.
+ 			 * source_desc reference count is incremented by attach_object.
+ 			 *
+-			 * Note: This may change the type of the node if an explicit store
+-			 * has been performed such that the node/object type has been
+-			 * changed.
++			 * Note: This may change the type of the node if an explicit
++			 * store has been performed such that the node/object type
++			 * has been changed.
+ 			 */
+-			status =
+-			    acpi_ns_attach_object(node, new_desc,
+-						  new_desc->common.type);
++			status = acpi_ns_attach_object(node, new_desc,
++						       new_desc->common.type);
+ 
+ 			ACPI_DEBUG_PRINT((ACPI_DB_EXEC,
+ 					  "Store %s into %s via Convert/Attach\n",
+@@ -482,38 +475,83 @@ acpi_ex_store_object_to_node(union acpi_
+ 		}
+ 		break;
+ 
+-	default:
+-
+-		ACPI_DEBUG_PRINT((ACPI_DB_EXEC,
+-				  "Storing [%s] (%p) directly into node [%s] (%p)"
+-				  " with no implicit conversion\n",
+-				  acpi_ut_get_object_type_name(source_desc),
+-				  source_desc,
+-				  acpi_ut_get_object_type_name(target_desc),
+-				  node));
++	case ACPI_TYPE_BUFFER_FIELD:
++	case ACPI_TYPE_LOCAL_REGION_FIELD:
++	case ACPI_TYPE_LOCAL_BANK_FIELD:
++	case ACPI_TYPE_LOCAL_INDEX_FIELD:
++		/*
++		 * For all fields, always write the source data to the target
++		 * field. Any required implicit source operand conversion is
++		 * performed in the function below as necessary. Note, field
++		 * objects must retain their original type permanently.
++		 */
++		status = acpi_ex_write_data_to_field(source_desc, target_desc,
++						     &walk_state->result_obj);
++		break;
+ 
++	default:
+ 		/*
+ 		 * No conversions for all other types. Directly store a copy of
+-		 * the source object. NOTE: This is a departure from the ACPI
+-		 * spec, which states "If conversion is impossible, abort the
+-		 * running control method".
++		 * the source object. This is the ACPI spec-defined behavior for
++		 * the copy_object operator.
+ 		 *
+-		 * This code implements "If conversion is impossible, treat the
+-		 * Store operation as a CopyObject".
++		 * NOTE: For the Store operator, this is a departure from the
++		 * ACPI spec, which states "If conversion is impossible, abort
++		 * the running control method". Instead, this code implements
++		 * "If conversion is impossible, treat the Store operation as
++		 * a CopyObject".
+ 		 */
+-		status =
+-		    acpi_ut_copy_iobject_to_iobject(source_desc, &new_desc,
+-						    walk_state);
+-		if (ACPI_FAILURE(status)) {
+-			return_ACPI_STATUS(status);
+-		}
+-
+-		status =
+-		    acpi_ns_attach_object(node, new_desc,
+-					  new_desc->common.type);
+-		acpi_ut_remove_reference(new_desc);
++		status = acpi_ex_store_direct_to_node(source_desc, node,
++						      walk_state);
+ 		break;
+ 	}
+ 
+ 	return_ACPI_STATUS(status);
+ }
++
++/*******************************************************************************
++ *
++ * FUNCTION:    acpi_ex_store_direct_to_node
++ *
++ * PARAMETERS:  source_desc             - Value to be stored
++ *              node                    - Named object to receive the value
++ *              walk_state              - Current walk state
++ *
++ * RETURN:      Status
++ *
++ * DESCRIPTION: "Store" an object directly to a node. This involves a copy
++ *              and an attach.
++ *
++ ******************************************************************************/
++
++static acpi_status
++acpi_ex_store_direct_to_node(union acpi_operand_object *source_desc,
++			     struct acpi_namespace_node *node,
++			     struct acpi_walk_state *walk_state)
++{
++	acpi_status status;
++	union acpi_operand_object *new_desc;
++
++	ACPI_FUNCTION_TRACE(ex_store_direct_to_node);
++
++	ACPI_DEBUG_PRINT((ACPI_DB_EXEC,
++			  "Storing [%s] (%p) directly into node [%s] (%p)"
++			  " with no implicit conversion\n",
++			  acpi_ut_get_object_type_name(source_desc),
++			  source_desc, acpi_ut_get_type_name(node->type),
++			  node));
++
++	/* Copy the source object to a new object */
++
++	status =
++	    acpi_ut_copy_iobject_to_iobject(source_desc, &new_desc, walk_state);
++	if (ACPI_FAILURE(status)) {
++		return_ACPI_STATUS(status);
++	}
++
++	/* Attach the new object to the node */
++
++	status = acpi_ns_attach_object(node, new_desc, new_desc->common.type);
++	acpi_ut_remove_reference(new_desc);
++	return_ACPI_STATUS(status);
++}
