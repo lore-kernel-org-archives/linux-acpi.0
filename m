@@ -1,8 +1,8 @@
 From: Bjorn Helgaas <bhelgaas@google.com>
-Subject: [PATCH 11/14] PCI/ACPI: Skip _OSC control tests if _OSC support
- call failed
-Date: Fri, 06 Sep 2013 11:14:51 -0600
-Message-ID: <20130906171451.11482.47944.stgit@bhelgaas-glaptop>
+Subject: [PATCH 12/14] PCI/ACPI: Separate out _OSC "PCIe port services
+ disabled" path
+Date: Fri, 06 Sep 2013 11:14:59 -0600
+Message-ID: <20130906171459.11482.67404.stgit@bhelgaas-glaptop>
 References: <20130906171010.11482.34235.stgit@bhelgaas-glaptop>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
@@ -14,49 +14,34 @@ To: linux-pci@vger.kernel.org
 Cc: "Rafael J. Wysocki" <rjw@sisk.pl>, linux-acpi@vger.kernel.org, Len Brown <lenb@kernel.org>
 List-Id: linux-acpi@vger.kernel.org
 
-If the _OSC support notification fails, we will never request control
-(because "support == OSC_PCI_SEGMENT_GROUPS_SUPPORT", which doesn't include
-all the features in ACPI_PCIE_REQ_SUPPORT), so we can return early to
-simplify the code.
+Test "pcie_ports_disabled" separately so we can give a better message.
+Previously we said "Unable to request _OSC control..."; now we'll
+say "PCIe port services disabled; not requesting _OSC control".
+
+"pcie_ports_disabled" is true when CONFIG_PCIEPORTBUS=n or we boot
+with "pcie_ports=compat".
 
 Signed-off-by: Bjorn Helgaas <bhelgaas@google.com>
 ---
- drivers/acpi/pci_root.c |   10 +++++-----
- 1 file changed, 5 insertions(+), 5 deletions(-)
+ drivers/acpi/pci_root.c |    8 ++++++--
+ 1 file changed, 6 insertions(+), 2 deletions(-)
 
 diff --git a/drivers/acpi/pci_root.c b/drivers/acpi/pci_root.c
-index 0e20041..67cc43a 100644
+index 67cc43a..68e5a18 100644
 --- a/drivers/acpi/pci_root.c
 +++ b/drivers/acpi/pci_root.c
-@@ -363,7 +363,7 @@ EXPORT_SYMBOL(acpi_pci_osc_control_set);
- static void negotiate_os_control(struct acpi_pci_root *root, int *no_aspm,
- 				 int *clear_aspm)
- {
--	u32 support, base_support, control;
-+	u32 support, control;
- 	acpi_status status;
- 	struct acpi_device *device = root->device;
- 	acpi_handle handle = device->handle;
-@@ -372,7 +372,7 @@ static void negotiate_os_control(struct acpi_pci_root *root, int *no_aspm,
- 	 * All supported architectures that use ACPI have support for
- 	 * PCI domains, so we indicate this in _OSC support capabilities.
- 	 */
--	support = base_support = OSC_PCI_SEGMENT_GROUPS_SUPPORT;
-+	support = OSC_PCI_SEGMENT_GROUPS_SUPPORT;
- 	if (pci_ext_cfg_avail())
- 		support |= OSC_PCI_EXT_CONFIG_SUPPORT;
- 	if (pcie_aspm_support_enabled())
-@@ -381,10 +381,10 @@ static void negotiate_os_control(struct acpi_pci_root *root, int *no_aspm,
- 		support |= OSC_PCI_MSI_SUPPORT;
- 	status = acpi_pci_osc_support(root, support);
- 	if (ACPI_FAILURE(status)) {
--		dev_info(&device->dev, "ACPI _OSC support "
--			"notification failed, disabling PCIe ASPM\n");
-+		dev_info(&device->dev, "_OSC failed (%s); disabling ASPM\n",
-+			 acpi_format_exception(status));
- 		*no_aspm = 1;
--		support = base_support;
-+		return;
+@@ -387,8 +387,12 @@ static void negotiate_os_control(struct acpi_pci_root *root, int *no_aspm,
+ 		return;
  	}
  
- 	if (!pcie_ports_disabled
+-	if (!pcie_ports_disabled
+-	    && (support & ACPI_PCIE_REQ_SUPPORT) == ACPI_PCIE_REQ_SUPPORT) {
++	if (pcie_ports_disabled) {
++		dev_info(&device->dev, "PCIe port services disabled; not requesting _OSC control\n");
++		return;
++	}
++
++	if ((support & ACPI_PCIE_REQ_SUPPORT) == ACPI_PCIE_REQ_SUPPORT) {
+ 		control = OSC_PCI_EXPRESS_CAPABILITY_CONTROL
+ 			| OSC_PCI_EXPRESS_NATIVE_HP_CONTROL
+ 			| OSC_PCI_EXPRESS_PME_CONTROL;
