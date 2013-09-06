@@ -1,8 +1,7 @@
 From: Bjorn Helgaas <bhelgaas@google.com>
-Subject: [PATCH 09/14] PCI/ACPI: Split _OSC "support" and "control" flags
- into separate variables
-Date: Fri, 06 Sep 2013 11:14:36 -0600
-Message-ID: <20130906171436.11482.21353.stgit@bhelgaas-glaptop>
+Subject: [PATCH 10/14] PCI/ACPI: Run _OSC only once for OSPM feature support
+Date: Fri, 06 Sep 2013 11:14:44 -0600
+Message-ID: <20130906171444.11482.59374.stgit@bhelgaas-glaptop>
 References: <20130906171010.11482.34235.stgit@bhelgaas-glaptop>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
@@ -14,111 +13,52 @@ To: linux-pci@vger.kernel.org
 Cc: "Rafael J. Wysocki" <rjw@sisk.pl>, linux-acpi@vger.kernel.org, Len Brown <lenb@kernel.org>
 List-Id: linux-acpi@vger.kernel.org
 
-Previously we used "flags" for both:
+Previously, we ran _OSC once to tell the platform that we support
+PCI Segment Groups, then we ran it again if we supported any additional
+features (ASPM, MSI, or extended config space).  I don't think it's
+necessary to run it twice, since we can easily build the complete
+mask of features we support before running _OSC the first time.
 
-  - the bitmask of features we support (segments, ASPM, MSI, etc.), and
-  - the bitmask of features we want to control (native hotplug, AER, etc.)
-
-To reduce confusion, this patch splits this into two variables:
-"support" is the bitmask of features we support, and "control" is the
-bitmask of features we want to control.  No functional change.
+We run _OSC again later when requesting control of PCIe features;
+that's unaffected by this change.
 
 Signed-off-by: Bjorn Helgaas <bhelgaas@google.com>
 ---
- drivers/acpi/pci_root.c |   35 ++++++++++++++++++-----------------
- 1 file changed, 18 insertions(+), 17 deletions(-)
+ drivers/acpi/pci_root.c |   19 +++++++------------
+ 1 file changed, 7 insertions(+), 12 deletions(-)
 
 diff --git a/drivers/acpi/pci_root.c b/drivers/acpi/pci_root.c
-index 3e57f10..3e06d4e 100644
+index 3e06d4e..0e20041 100644
 --- a/drivers/acpi/pci_root.c
 +++ b/drivers/acpi/pci_root.c
-@@ -363,7 +363,7 @@ EXPORT_SYMBOL(acpi_pci_osc_control_set);
- static void negotiate_os_control(struct acpi_pci_root *root, int *no_aspm,
- 				 int *clear_aspm)
- {
--	u32 flags, base_flags;
-+	u32 support, base_support, control;
- 	acpi_status status;
- 	struct acpi_device *device = root->device;
- 	acpi_handle handle = device->handle;
-@@ -372,29 +372,29 @@ static void negotiate_os_control(struct acpi_pci_root *root, int *no_aspm,
- 	 * All supported architectures that use ACPI have support for
+@@ -373,23 +373,18 @@ static void negotiate_os_control(struct acpi_pci_root *root, int *no_aspm,
  	 * PCI domains, so we indicate this in _OSC support capabilities.
  	 */
--	flags = base_flags = OSC_PCI_SEGMENT_GROUPS_SUPPORT;
--	acpi_pci_osc_support(root, flags);
-+	support = base_support = OSC_PCI_SEGMENT_GROUPS_SUPPORT;
-+	acpi_pci_osc_support(root, support);
- 
+ 	support = base_support = OSC_PCI_SEGMENT_GROUPS_SUPPORT;
+-	acpi_pci_osc_support(root, support);
+-
  	if (pci_ext_cfg_avail())
--		flags |= OSC_PCI_EXT_CONFIG_SUPPORT;
-+		support |= OSC_PCI_EXT_CONFIG_SUPPORT;
- 	if (pcie_aspm_support_enabled()) {
--		flags |= OSC_PCI_ASPM_SUPPORT | OSC_PCI_CLOCK_PM_SUPPORT;
-+		support |= OSC_PCI_ASPM_SUPPORT | OSC_PCI_CLOCK_PM_SUPPORT;
- 	}
+ 		support |= OSC_PCI_EXT_CONFIG_SUPPORT;
+-	if (pcie_aspm_support_enabled()) {
++	if (pcie_aspm_support_enabled())
+ 		support |= OSC_PCI_ASPM_SUPPORT | OSC_PCI_CLOCK_PM_SUPPORT;
+-	}
  	if (pci_msi_enabled())
--		flags |= OSC_PCI_MSI_SUPPORT;
--	if (flags != base_flags) {
--		status = acpi_pci_osc_support(root, flags);
-+		support |= OSC_PCI_MSI_SUPPORT;
-+	if (support != base_support) {
-+		status = acpi_pci_osc_support(root, support);
- 		if (ACPI_FAILURE(status)) {
- 			dev_info(&device->dev, "ACPI _OSC support "
- 				"notification failed, disabling PCIe ASPM\n");
- 			*no_aspm = 1;
--			flags = base_flags;
-+			support = base_support;
- 		}
+ 		support |= OSC_PCI_MSI_SUPPORT;
+-	if (support != base_support) {
+-		status = acpi_pci_osc_support(root, support);
+-		if (ACPI_FAILURE(status)) {
+-			dev_info(&device->dev, "ACPI _OSC support "
+-				"notification failed, disabling PCIe ASPM\n");
+-			*no_aspm = 1;
+-			support = base_support;
+-		}
++	status = acpi_pci_osc_support(root, support);
++	if (ACPI_FAILURE(status)) {
++		dev_info(&device->dev, "ACPI _OSC support "
++			"notification failed, disabling PCIe ASPM\n");
++		*no_aspm = 1;
++		support = base_support;
  	}
  
  	if (!pcie_ports_disabled
--	    && (flags & ACPI_PCIE_REQ_SUPPORT) == ACPI_PCIE_REQ_SUPPORT) {
--		flags = OSC_PCI_EXPRESS_CAPABILITY_CONTROL
-+	    && (support & ACPI_PCIE_REQ_SUPPORT) == ACPI_PCIE_REQ_SUPPORT) {
-+		control = OSC_PCI_EXPRESS_CAPABILITY_CONTROL
- 			| OSC_PCI_EXPRESS_NATIVE_HP_CONTROL
- 			| OSC_PCI_EXPRESS_PME_CONTROL;
- 
-@@ -403,17 +403,18 @@ static void negotiate_os_control(struct acpi_pci_root *root, int *no_aspm,
- 				dev_dbg(&device->dev,
- 					"PCIe errors handled by BIOS.\n");
- 			else
--				flags |= OSC_PCI_EXPRESS_AER_CONTROL;
-+				control |= OSC_PCI_EXPRESS_AER_CONTROL;
- 		}
- 
- 		dev_info(&device->dev,
--			"Requesting ACPI _OSC control (0x%02x)\n", flags);
-+			"Requesting ACPI _OSC control (0x%02x)\n", control);
- 
--		status = acpi_pci_osc_control_set(handle, &flags,
-+		status = acpi_pci_osc_control_set(handle, &control,
- 				       OSC_PCI_EXPRESS_CAPABILITY_CONTROL);
- 		if (ACPI_SUCCESS(status)) {
- 			dev_info(&device->dev,
--				"ACPI _OSC control (0x%02x) granted\n", flags);
-+				"ACPI _OSC control (0x%02x) granted\n",
-+				control);
- 			if (acpi_gbl_FADT.boot_flags & ACPI_FADT_NO_ASPM) {
- 				/*
- 				 * We have ASPM control, but the FADT indicates
-@@ -425,7 +426,7 @@ static void negotiate_os_control(struct acpi_pci_root *root, int *no_aspm,
- 			dev_info(&device->dev,
- 				"ACPI _OSC request failed (%s), "
- 				"returned control mask: 0x%02x\n",
--				acpi_format_exception(status), flags);
-+				acpi_format_exception(status), control);
- 			dev_info(&device->dev,
- 				 "ACPI _OSC control for PCIe not granted, disabling ASPM\n");
- 			/*
-@@ -440,7 +441,7 @@ static void negotiate_os_control(struct acpi_pci_root *root, int *no_aspm,
- 	} else {
- 		dev_info(&device->dev,
- 			 "Unable to request _OSC control "
--			 "(_OSC support mask: 0x%02x)\n", flags);
-+			 "(_OSC support mask: 0x%02x)\n", support);
- 	}
- }
- 
