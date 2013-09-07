@@ -1,165 +1,141 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: [RFC PATCH 4/4] X86/PCI/ACPI: Rework setup_resource() via functions ACPI resource functions
-Date: Sat, 07 Sep 2013 02:27:53 +0200
-Message-ID: <10451076.kBUYMKDNdP@vostro.rjw.lan>
-References: <1378477486-8758-1-git-send-email-tianyu.lan@intel.com> <1378477486-8758-5-git-send-email-tianyu.lan@intel.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7Bit
+From: Yinghai Lu <yinghai@kernel.org>
+Subject: [PATCH] x86, ACPI: Increase override tables number limit
+Date: Fri,  6 Sep 2013 19:08:00 -0700
+Message-ID: <1378519680-10490-1-git-send-email-yinghai@kernel.org>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from hydra.sisk.pl ([212.160.235.94]:37416 "EHLO hydra.sisk.pl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750708Ab3IGAQ5 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 6 Sep 2013 20:16:57 -0400
-In-Reply-To: <1378477486-8758-5-git-send-email-tianyu.lan@intel.com>
+Received: from userp1040.oracle.com ([156.151.31.81]:26314 "EHLO
+	userp1040.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751009Ab3IGCI1 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 6 Sep 2013 22:08:27 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Lan Tianyu <tianyu.lan@intel.com>
-Cc: lenb@kernel.org, yinghai@kernel.org, bhelgaas@google.com, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@sisk.pl>, "H. Peter Anvin" <hpa@zytor.com>
+Cc: Tejun Heo <tj@kernel.org>, Thomas Renninger <trenn@suse.de>, Tang Chen <tangchen@cn.fujitsu.com>, Toshi Kani <toshi.kani@hp.com>, Len Brown <len.brown@intel.com>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Yinghai Lu <yinghai@kernel.org>
 
-On Friday, September 06, 2013 10:24:46 AM Lan Tianyu wrote:
-> Using ACPI resource functions to convert ACPI resource to generic resource
-> instead of resource_to_addr(). Remove resource_to_addr().
+Current acpi tables in initrd is limited to 10, that is too small.
+64 should be good enough as we have 35 sigs and could have several
+SSDT.
 
-Apart from the Bjorn's comment that this should be done for ia64 too,
-it looks OK to me.
+Two problems in current code prevent us from increasing limit:
+1. that cpio file info array is put in stack, as every element is 32
+   bytes, could run out of stack if we have that array size to 64.
+   We can move it out from stack, and make it as global and put it in
+   __initdata section.
+2. early_ioremap only can remap 256k one time. Current code is mapping
+   10 tables one time. If we increase that limit, whole size could be
+   more than 256k, early_ioremap will fail with that.
+   We can map chunks one by one during copying, instead of mapping
+   all them one time.
 
-Thanks,
-Rafael
+-v2: According to tj, split it out to separated patch, also
+     rename array name to acpi_initrd_files.
+-v3: Add some comments about mapping table one by one during copying
+     per tj.
+-v4: copy one by one chunk instead as one single DSDT/SSDT could be
+     more than 256k.
+-v5: fix compiling err when !CONFIG_SMP, found by Fengguang's robot
 
+Signed-off-by: Yinghai <yinghai@kernel.org>
+Cc: Rafael J. Wysocki <rjw@sisk.pl>
+Cc: linux-acpi@vger.kernel.org
+Acked-by: Tejun Heo <tj@kernel.org>
+Tested-by: Thomas Renninger <trenn@suse.de>
+Reviewed-by: Tang Chen <tangchen@cn.fujitsu.com>
+Tested-by: Tang Chen <tangchen@cn.fujitsu.com>
+Acked-by: Toshi Kani <toshi.kani@hp.com>
 
-> Signed-off-by: Lan Tianyu <tianyu.lan@intel.com>
-> ---
->  arch/x86/pci/acpi.c | 81 ++++++++---------------------------------------------
->  1 file changed, 12 insertions(+), 69 deletions(-)
-> 
-> diff --git a/arch/x86/pci/acpi.c b/arch/x86/pci/acpi.c
-> index d641897..d4f85a1 100644
-> --- a/arch/x86/pci/acpi.c
-> +++ b/arch/x86/pci/acpi.c
-> @@ -219,62 +219,15 @@ static void teardown_mcfg_map(struct pci_root_info *info)
->  #endif
->  
->  static acpi_status
-> -resource_to_addr(struct acpi_resource *resource,
-> -			struct acpi_resource_address64 *addr)
-> -{
-> -	acpi_status status;
-> -	struct acpi_resource_memory24 *memory24;
-> -	struct acpi_resource_memory32 *memory32;
-> -	struct acpi_resource_fixed_memory32 *fixed_memory32;
-> -
-> -	memset(addr, 0, sizeof(*addr));
-> -	switch (resource->type) {
-> -	case ACPI_RESOURCE_TYPE_MEMORY24:
-> -		memory24 = &resource->data.memory24;
-> -		addr->resource_type = ACPI_MEMORY_RANGE;
-> -		addr->minimum = memory24->minimum;
-> -		addr->address_length = memory24->address_length;
-> -		addr->maximum = addr->minimum + addr->address_length - 1;
-> -		return AE_OK;
-> -	case ACPI_RESOURCE_TYPE_MEMORY32:
-> -		memory32 = &resource->data.memory32;
-> -		addr->resource_type = ACPI_MEMORY_RANGE;
-> -		addr->minimum = memory32->minimum;
-> -		addr->address_length = memory32->address_length;
-> -		addr->maximum = addr->minimum + addr->address_length - 1;
-> -		return AE_OK;
-> -	case ACPI_RESOURCE_TYPE_FIXED_MEMORY32:
-> -		fixed_memory32 = &resource->data.fixed_memory32;
-> -		addr->resource_type = ACPI_MEMORY_RANGE;
-> -		addr->minimum = fixed_memory32->address;
-> -		addr->address_length = fixed_memory32->address_length;
-> -		addr->maximum = addr->minimum + addr->address_length - 1;
-> -		return AE_OK;
-> -	case ACPI_RESOURCE_TYPE_ADDRESS16:
-> -	case ACPI_RESOURCE_TYPE_ADDRESS32:
-> -	case ACPI_RESOURCE_TYPE_ADDRESS64:
-> -		status = acpi_resource_to_address64(resource, addr);
-> -		if (ACPI_SUCCESS(status) &&
-> -		    (addr->resource_type == ACPI_MEMORY_RANGE ||
-> -		    addr->resource_type == ACPI_IO_RANGE) &&
-> -		    addr->address_length > 0) {
-> -			return AE_OK;
-> -		}
-> -		break;
-> -	}
-> -	return AE_ERROR;
-> -}
-> -
-> -static acpi_status
->  count_resource(struct acpi_resource *acpi_res, void *data)
->  {
->  	struct pci_root_info *info = data;
-> -	struct acpi_resource_address64 addr;
-> -	acpi_status status;
-> +	struct resource res;
->  
-> -	status = resource_to_addr(acpi_res, &addr);
-> -	if (ACPI_SUCCESS(status))
-> +	if (acpi_dev_resource_address_space(acpi_res, &res)
-> +	    || acpi_dev_resource_memory(acpi_res, &res))
->  		info->res_num++;
-> +
->  	return AE_OK;
->  }
->  
-> @@ -282,27 +235,18 @@ static acpi_status
->  setup_resource(struct acpi_resource *acpi_res, void *data)
->  {
->  	struct pci_root_info *info = data;
-> -	struct resource *res;
-> +	struct resource *res = &info->res[info->res_num];
->  	struct acpi_resource_address64 addr;
-> -	acpi_status status;
-> -	unsigned long flags;
->  	u64 start, orig_end, end;
->  
-> -	status = resource_to_addr(acpi_res, &addr);
-> -	if (!ACPI_SUCCESS(status))
-> -		return AE_OK;
-> +	memset(&addr, 0x00, sizeof(addr));
->  
-> -	if (addr.resource_type == ACPI_MEMORY_RANGE) {
-> -		flags = IORESOURCE_MEM;
-> -		if (addr.info.mem.caching == ACPI_PREFETCHABLE_MEMORY)
-> -			flags |= IORESOURCE_PREFETCH;
-> -	} else if (addr.resource_type == ACPI_IO_RANGE) {
-> -		flags = IORESOURCE_IO;
-> -	} else
-> +	if (!(acpi_dev_resource_address_space_with_addr(acpi_res, &addr, res)
-> +	    || acpi_dev_resource_memory(acpi_res, res)))
->  		return AE_OK;
->  
-> -	start = addr.minimum + addr.translation_offset;
-> -	orig_end = end = addr.maximum + addr.translation_offset;
-> +	start = res->start;
-> +	orig_end = end = res->end;
->  
->  	/* Exclude non-addressable range or non-addressable portion of range */
->  	end = min(end, (u64)iomem_resource.end);
-> @@ -310,6 +254,7 @@ setup_resource(struct acpi_resource *acpi_res, void *data)
->  		dev_info(&info->bridge->dev,
->  			"host bridge window [%#llx-%#llx] "
->  			"(ignored, not CPU addressable)\n", start, orig_end);
-> +		memset(&info->res[info->res_num], 0x00, sizeof(*res));
->  		return AE_OK;
->  	} else if (orig_end != end) {
->  		dev_info(&info->bridge->dev,
-> @@ -318,11 +263,9 @@ setup_resource(struct acpi_resource *acpi_res, void *data)
->  			start, orig_end, end + 1, orig_end);
->  	}
->  
-> -	res = &info->res[info->res_num];
->  	res->name = info->name;
-> -	res->flags = flags;
-> -	res->start = start;
->  	res->end = end;
-> +
->  	info->res_offset[info->res_num] = addr.translation_offset;
->  	info->res_num++;
->  
-> 
--- 
-I speak only for myself.
-Rafael J. Wysocki, Intel Open Source Technology Center.
+---
+ arch/x86/include/asm/acpi.h |    1 +
+ drivers/acpi/osl.c          |   44 ++++++++++++++++++++++++++++++++------------
+ 2 files changed, 33 insertions(+), 12 deletions(-)
+
+Index: linux-2.6/drivers/acpi/osl.c
+===================================================================
+--- linux-2.6.orig/drivers/acpi/osl.c
++++ linux-2.6/drivers/acpi/osl.c
+@@ -569,8 +569,10 @@ static const char * const table_sigs[] =
+ 
+ #define ACPI_HEADER_SIZE sizeof(struct acpi_table_header)
+ 
+-/* Must not increase 10 or needs code modification below */
+-#define ACPI_OVERRIDE_TABLES 10
++#define ACPI_OVERRIDE_TABLES 64
++static struct cpio_data __initdata acpi_initrd_files[ACPI_OVERRIDE_TABLES];
++
++#define MAP_CHUNK_SIZE   (NR_FIX_BTMAPS << PAGE_SHIFT)
+ 
+ void __init acpi_initrd_override(void *data, size_t size)
+ {
+@@ -579,8 +581,6 @@ void __init acpi_initrd_override(void *d
+ 	struct acpi_table_header *table;
+ 	char cpio_path[32] = "kernel/firmware/acpi/";
+ 	struct cpio_data file;
+-	struct cpio_data early_initrd_files[ACPI_OVERRIDE_TABLES];
+-	char *p;
+ 
+ 	if (data == NULL || size == 0)
+ 		return;
+@@ -625,8 +625,8 @@ void __init acpi_initrd_override(void *d
+ 			table->signature, cpio_path, file.name, table->length);
+ 
+ 		all_tables_size += table->length;
+-		early_initrd_files[table_nr].data = file.data;
+-		early_initrd_files[table_nr].size = file.size;
++		acpi_initrd_files[table_nr].data = file.data;
++		acpi_initrd_files[table_nr].size = file.size;
+ 		table_nr++;
+ 	}
+ 	if (table_nr == 0)
+@@ -652,14 +652,34 @@ void __init acpi_initrd_override(void *d
+ 	memblock_reserve(acpi_tables_addr, all_tables_size);
+ 	arch_reserve_mem_area(acpi_tables_addr, all_tables_size);
+ 
+-	p = early_ioremap(acpi_tables_addr, all_tables_size);
+-
++	/*
++	 * early_ioremap only can remap 256k one time. If we map all
++	 * tables one time, we will hit the limit. Need to map chunks
++	 * one by one during copying the same as that in relocate_initrd().
++	 */
+ 	for (no = 0; no < table_nr; no++) {
+-		memcpy(p + total_offset, early_initrd_files[no].data,
+-		       early_initrd_files[no].size);
+-		total_offset += early_initrd_files[no].size;
++		unsigned char *src_p = acpi_initrd_files[no].data;
++		phys_addr_t size = acpi_initrd_files[no].size;
++		phys_addr_t dest_addr = acpi_tables_addr + total_offset;
++		phys_addr_t slop, clen;
++		char *dest_p;
++
++		total_offset += size;
++
++		while (size) {
++			slop = dest_addr & ~PAGE_MASK;
++			clen = size;
++			if (clen > MAP_CHUNK_SIZE - slop)
++				clen = MAP_CHUNK_SIZE - slop;
++			dest_p = early_ioremap(dest_addr & PAGE_MASK,
++						 clen + slop);
++			memcpy(dest_p + slop, src_p, clen);
++			early_iounmap(dest_p, clen + slop);
++			src_p += clen;
++			dest_addr += clen;
++			size -= clen;
++		}
+ 	}
+-	early_iounmap(p, all_tables_size);
+ }
+ #endif /* CONFIG_ACPI_INITRD_TABLE_OVERRIDE */
+ 
+Index: linux-2.6/arch/x86/include/asm/acpi.h
+===================================================================
+--- linux-2.6.orig/arch/x86/include/asm/acpi.h
++++ linux-2.6/arch/x86/include/asm/acpi.h
+@@ -26,6 +26,7 @@
+ #include <acpi/pdc_intel.h>
+ 
+ #include <asm/numa.h>
++#include <asm/fixmap.h>
+ #include <asm/processor.h>
+ #include <asm/mmu.h>
+ #include <asm/mpspec.h>
