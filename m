@@ -1,21 +1,17 @@
 From: "Rafael J. Wysocki" <rjw@sisk.pl>
 Subject: Re: [PATCH 00/14] _OSC simplification
-Date: Sat, 07 Sep 2013 02:01:38 +0200
-Message-ID: <16818914.Hl8YjzUdJi@vostro.rjw.lan>
+Date: Sat, 07 Sep 2013 02:08:14 +0200
+Message-ID: <5350862.rdH2MhcHrl@vostro.rjw.lan>
 References: <20130906171010.11482.34235.stgit@bhelgaas-glaptop>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7Bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from hydra.sisk.pl ([212.160.235.94]:37383 "EHLO hydra.sisk.pl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750754Ab3IFXuo (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 6 Sep 2013 19:50:44 -0400
+Return-path: <linux-pci-owner@vger.kernel.org>
 In-Reply-To: <20130906171010.11482.34235.stgit@bhelgaas-glaptop>
-Sender: linux-acpi-owner@vger.kernel.org
-List-Id: linux-acpi@vger.kernel.org
+Sender: linux-pci-owner@vger.kernel.org
 To: Bjorn Helgaas <bhelgaas@google.com>
-Cc: linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, Len Brown <lenb@kernel.org>, Matthew Garrett <mjg59@srcf.ucam.org>
+Cc: linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, Len Brown <lenb@kernel.org>
+List-Id: linux-acpi@vger.kernel.org
 
 On Friday, September 06, 2013 11:13:24 AM Bjorn Helgaas wrote:
 > This is a long series of mostly minor changes with the goal of
@@ -31,22 +27,10 @@ On Friday, September 06, 2013 11:13:24 AM Bjorn Helgaas wrote:
 > 
 >   1) When pcie_ports_disabled, e.g., when booting with
 >      "pcie_ports=compat".
->
+> 
 >   2) When Linux doesn't support all the required services, e.g., if
 >      compiled with ASPM support but not MSI support.
-
-We tried that (i.e. 2)), but then it caused energy usage to increase on some
-systems with power-hungry graphics adapters and Phoronix made some fuss about
-that. :-)
-
-Also, please have a look at:
-
-commit 3c076351c4027a56d5005a39a0b518a4ba393ce2
-Author: Matthew Garrett <mjg@redhat.com>
-Date:   Thu Nov 10 16:38:33 2011 -0500
-
-    PCI: Rework ASPM disable code
-
+> 
 > I haven't looked deeply, so maybe there are other constraints that
 > keep us from using ASPM in these cases.  In any case, this series
 > doesn't change any behavior in this regard.
@@ -88,9 +72,34 @@ Date:   Thu Nov 10 16:38:33 2011 -0500
 >   +acpi PNP0A08:00: _OSC: OS requested [PCIeHotplug PME AER PCIeCapability]
 >   +acpi PNP0A08:00: _OSC: platform willing to grant [PCIeHotplug PME AER]
 >   +acpi PNP0A08:00: _OSC failed (AE_SUPPORT); disabling ASPM
+> 
+> 
+> This is based on a923874198 ("Merge tag 'pci-v3.12-changes' of
+> git://git.kernel.org/pub/scm/linux/kernel/git/helgaas/pci").
+> 
+> ---
+> 
+> Bjorn Helgaas (14):
+>       ACPI: Write _OSC bit field definitions in hex
+>       ACPI: Rename OSC_QUERY_TYPE to OSC_QUERY_DWORD
+>       ACPI: Tidy acpi_run_osc() declarations
+>       ACPI: Remove unused OSC_PCI_NATIVE_HOTPLUG
+>       ACPI: Write OSC_PCI_CONTROL_MASKS like OSC_PCI_SUPPORT_MASKS
+>       PCI/ACPI: Name _OSC #defines more consistently
+>       PCI/ACPI: Drop unnecessary _OSC existence tests
+>       PCI/ACPI: Move _OSC stuff from acpi_pci_root_add() to negotiate_os_control()
+>       PCI/ACPI: Split _OSC "support" and "control" flags into separate variables
+>       PCI/ACPI: Run _OSC only once for OSPM feature support
+>       PCI/ACPI: Skip _OSC control tests if _OSC support call failed
+>       PCI/ACPI: Separate out _OSC "PCIe port services disabled" path
+>       PCI/ACPI: Separate out _OSC "we don't support enough services" path
+>       PCI/ACPI: Decode _OSC bitmasks symbolically
 
-That looks nice. :-)
+Please feel free to add
+
+Acked-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+
+to the entire series.
 
 Thanks,
 Rafael
-
