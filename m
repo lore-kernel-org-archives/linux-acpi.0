@@ -1,155 +1,128 @@
 From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: [PATCH] x86, ACPI: Increase override tables number limit
-Date: Sun, 08 Sep 2013 00:08:21 +0200
-Message-ID: <5524976.WyDjA8K7XS@vostro.rjw.lan>
-References: <1378519680-10490-1-git-send-email-yinghai@kernel.org>
+Subject: [PATCH] ACPI / hotplug / PCI: Avoid parent bus rescans on spurious device checks
+Date: Sun, 08 Sep 2013 00:16:38 +0200
+Message-ID: <2762291.l6lVgcWD3r@vostro.rjw.lan>
+References: <26431283.HJCKsss0rt@vostro.rjw.lan> <CAErSpo4WAh8A7nAeDhrLUOAKrLNyEoKfyxT7VN6cyH3vuSA+zg@mail.gmail.com> <1378481674.3246.288.camel@ul30vt.home>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7Bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from hydra.sisk.pl ([212.160.235.94]:38175 "EHLO hydra.sisk.pl"
+Received: from hydra.sisk.pl ([212.160.235.94]:38193 "EHLO hydra.sisk.pl"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751889Ab3IGV5Z (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Sat, 7 Sep 2013 17:57:25 -0400
-In-Reply-To: <1378519680-10490-1-git-send-email-yinghai@kernel.org>
+	id S1751956Ab3IGWFm (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Sat, 7 Sep 2013 18:05:42 -0400
+In-Reply-To: <1378481674.3246.288.camel@ul30vt.home>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Yinghai Lu <yinghai@kernel.org>, "H. Peter Anvin" <hpa@zytor.com>
-Cc: Tejun Heo <tj@kernel.org>, Thomas Renninger <trenn@suse.de>, Tang Chen <tangchen@cn.fujitsu.com>, Toshi Kani <toshi.kani@hp.com>, Len Brown <len.brown@intel.com>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+To: Alex Williamson <alex.williamson@redhat.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>
+Cc: Bjorn Helgaas <bhelgaas@google.com>, LKML <linux-kernel@vger.kernel.org>, Linux PCI <linux-pci@vger.kernel.org>, Yinghai Lu <yinghai@kernel.org>, Jiang Liu <liuj97@gmail.com>, Mika Westerberg <mika.westerberg@linux.intel.com>, "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
 
-On Friday, September 06, 2013 07:08:00 PM Yinghai Lu wrote:
-> Current acpi tables in initrd is limited to 10, that is too small.
-> 64 should be good enough as we have 35 sigs and could have several
-> SSDT.
-> 
-> Two problems in current code prevent us from increasing limit:
-> 1. that cpio file info array is put in stack, as every element is 32
->    bytes, could run out of stack if we have that array size to 64.
->    We can move it out from stack, and make it as global and put it in
->    __initdata section.
-> 2. early_ioremap only can remap 256k one time. Current code is mapping
->    10 tables one time. If we increase that limit, whole size could be
->    more than 256k, early_ioremap will fail with that.
->    We can map chunks one by one during copying, instead of mapping
->    all them one time.
-> 
-> -v2: According to tj, split it out to separated patch, also
->      rename array name to acpi_initrd_files.
-> -v3: Add some comments about mapping table one by one during copying
->      per tj.
-> -v4: copy one by one chunk instead as one single DSDT/SSDT could be
->      more than 256k.
-> -v5: fix compiling err when !CONFIG_SMP, found by Fengguang's robot
-> 
-> Signed-off-by: Yinghai <yinghai@kernel.org>
+From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 
-Full name would be nice.
+In the current ACPIPHP notify handler we always go directly for a
+rescan of the parent bus if we get a device check notification for
+a device that is not a bridge.  However, this obviously is
+overzealous if nothing really changes, because this way we may rescan
+the whole PCI hierarchy pretty much in vain.
 
-> Cc: Rafael J. Wysocki <rjw@sisk.pl>
-> Cc: linux-acpi@vger.kernel.org
-> Acked-by: Tejun Heo <tj@kernel.org>
-> Tested-by: Thomas Renninger <trenn@suse.de>
-> Reviewed-by: Tang Chen <tangchen@cn.fujitsu.com>
-> Tested-by: Tang Chen <tangchen@cn.fujitsu.com>
-> Acked-by: Toshi Kani <toshi.kani@hp.com>
+That happens on Alex Williamson's machine whose ACPI tables contain
+device objects that are supposed to coresspond to PCIe root ports,
+but those ports aren't physically present (or at least they aren't
+visible in the PCI config space to us).  The BIOS generates multiple
+device check notifies for those objects during boot and for each of
+them we go straight for the parent bus rescan, but the parent bus is
+the root bus in this particular case.  In consequence, we rescan the
+whole PCI bus from the top several times in a row, which is
+completely unnecessary, increases boot time by 50% (after previous
+fixes) and generates excess dmesg output from the PCI subsystem.
 
-Peter, any objections to the changes below from the x86 perspective?
+Fix the problem by checking if we can find anything new in the
+slot corresponding to the device we've got a device check notify
+for and doing nothig if that's not the case.
 
-> ---
->  arch/x86/include/asm/acpi.h |    1 +
->  drivers/acpi/osl.c          |   44 ++++++++++++++++++++++++++++++++------------
->  2 files changed, 33 insertions(+), 12 deletions(-)
-> 
-> Index: linux-2.6/drivers/acpi/osl.c
-> ===================================================================
-> --- linux-2.6.orig/drivers/acpi/osl.c
-> +++ linux-2.6/drivers/acpi/osl.c
-> @@ -569,8 +569,10 @@ static const char * const table_sigs[] =
->  
->  #define ACPI_HEADER_SIZE sizeof(struct acpi_table_header)
->  
-> -/* Must not increase 10 or needs code modification below */
-> -#define ACPI_OVERRIDE_TABLES 10
-> +#define ACPI_OVERRIDE_TABLES 64
-> +static struct cpio_data __initdata acpi_initrd_files[ACPI_OVERRIDE_TABLES];
-> +
-> +#define MAP_CHUNK_SIZE   (NR_FIX_BTMAPS << PAGE_SHIFT)
->  
->  void __init acpi_initrd_override(void *data, size_t size)
->  {
-> @@ -579,8 +581,6 @@ void __init acpi_initrd_override(void *d
->  	struct acpi_table_header *table;
->  	char cpio_path[32] = "kernel/firmware/acpi/";
->  	struct cpio_data file;
-> -	struct cpio_data early_initrd_files[ACPI_OVERRIDE_TABLES];
-> -	char *p;
->  
->  	if (data == NULL || size == 0)
->  		return;
-> @@ -625,8 +625,8 @@ void __init acpi_initrd_override(void *d
->  			table->signature, cpio_path, file.name, table->length);
->  
->  		all_tables_size += table->length;
-> -		early_initrd_files[table_nr].data = file.data;
-> -		early_initrd_files[table_nr].size = file.size;
-> +		acpi_initrd_files[table_nr].data = file.data;
-> +		acpi_initrd_files[table_nr].size = file.size;
->  		table_nr++;
->  	}
->  	if (table_nr == 0)
-> @@ -652,14 +652,34 @@ void __init acpi_initrd_override(void *d
->  	memblock_reserve(acpi_tables_addr, all_tables_size);
->  	arch_reserve_mem_area(acpi_tables_addr, all_tables_size);
->  
-> -	p = early_ioremap(acpi_tables_addr, all_tables_size);
-> -
-> +	/*
-> +	 * early_ioremap only can remap 256k one time. If we map all
-> +	 * tables one time, we will hit the limit. Need to map chunks
-> +	 * one by one during copying the same as that in relocate_initrd().
-> +	 */
->  	for (no = 0; no < table_nr; no++) {
-> -		memcpy(p + total_offset, early_initrd_files[no].data,
-> -		       early_initrd_files[no].size);
-> -		total_offset += early_initrd_files[no].size;
-> +		unsigned char *src_p = acpi_initrd_files[no].data;
-> +		phys_addr_t size = acpi_initrd_files[no].size;
-> +		phys_addr_t dest_addr = acpi_tables_addr + total_offset;
-> +		phys_addr_t slop, clen;
-> +		char *dest_p;
-> +
-> +		total_offset += size;
-> +
-> +		while (size) {
-> +			slop = dest_addr & ~PAGE_MASK;
-> +			clen = size;
-> +			if (clen > MAP_CHUNK_SIZE - slop)
-> +				clen = MAP_CHUNK_SIZE - slop;
-> +			dest_p = early_ioremap(dest_addr & PAGE_MASK,
-> +						 clen + slop);
-> +			memcpy(dest_p + slop, src_p, clen);
-> +			early_iounmap(dest_p, clen + slop);
-> +			src_p += clen;
-> +			dest_addr += clen;
-> +			size -= clen;
-> +		}
->  	}
-> -	early_iounmap(p, all_tables_size);
->  }
->  #endif /* CONFIG_ACPI_INITRD_TABLE_OVERRIDE */
->  
-> Index: linux-2.6/arch/x86/include/asm/acpi.h
-> ===================================================================
-> --- linux-2.6.orig/arch/x86/include/asm/acpi.h
-> +++ linux-2.6/arch/x86/include/asm/acpi.h
-> @@ -26,6 +26,7 @@
->  #include <acpi/pdc_intel.h>
->  
->  #include <asm/numa.h>
-> +#include <asm/fixmap.h>
->  #include <asm/processor.h>
->  #include <asm/mmu.h>
->  #include <asm/mpspec.h>
--- 
-I speak only for myself.
-Rafael J. Wysocki, Intel Open Source Technology Center.
+The spec (ACPI 5.0, Section 5.6.6) appears to mandate this behavior,
+as it says:
+
+  Device Check. Used to notify OSPM that the device either appeared
+  or disappeared. If the device has appeared, OSPM will re-enumerate
+  from the parent. If the device has disappeared, OSPM will
+  invalidate the state of the device. OSPM may optimize out
+  re-enumeration.
+
+Therefore, according to the spec, we are free to do nothing if
+nothing changes.
+
+References: https://bugzilla.kernel.org/show_bug.cgi?id=60865
+Reported-by: Alex Williamson <alex.williamson@redhat.com>
+Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+---
+
+On top of linux-pm.git/linux-next.
+
+Thanks,
+Rafael
+
+---
+ drivers/pci/hotplug/acpiphp_glue.c |   32 +++++++++++++++++++++++++-------
+ 1 file changed, 25 insertions(+), 7 deletions(-)
+
+Index: linux-pm/drivers/pci/hotplug/acpiphp_glue.c
+===================================================================
+--- linux-pm.orig/drivers/pci/hotplug/acpiphp_glue.c
++++ linux-pm/drivers/pci/hotplug/acpiphp_glue.c
+@@ -528,6 +528,16 @@ static void check_hotplug_bridge(struct
+ 	}
+ }
+ 
++static int acpiphp_rescan_slot(struct acpiphp_slot *slot)
++{
++	struct acpiphp_func *func;
++
++	list_for_each_entry(func, &slot->funcs, sibling)
++		acpiphp_bus_add(func_to_handle(func));
++
++	return pci_scan_slot(slot->bus, PCI_DEVFN(slot->device, 0));
++}
++
+ /**
+  * enable_slot - enable, configure a slot
+  * @slot: slot to be enabled
+@@ -544,10 +554,7 @@ static void __ref enable_slot(struct acp
+ 	LIST_HEAD(add_list);
+ 	int nr_found;
+ 
+-	list_for_each_entry(func, &slot->funcs, sibling)
+-		acpiphp_bus_add(func_to_handle(func));
+-
+-	nr_found = pci_scan_slot(bus, PCI_DEVFN(slot->device, 0));
++	nr_found = acpiphp_rescan_slot(slot);
+ 	max = acpiphp_max_busnr(bus);
+ 	for (pass = 0; pass < 2; pass++) {
+ 		list_for_each_entry(dev, &bus->devices, bus_list) {
+@@ -840,11 +847,22 @@ static void hotplug_event(acpi_handle ha
+ 	case ACPI_NOTIFY_DEVICE_CHECK:
+ 		/* device check */
+ 		dbg("%s: Device check notify on %s\n", __func__, objname);
+-		if (bridge)
++		if (bridge) {
+ 			acpiphp_check_bridge(bridge);
+-		else
+-			acpiphp_check_bridge(func->parent);
++		} else {
++			struct acpiphp_slot *slot = func->slot;
++			int ret;
+ 
++			/*
++			 * Check if anything has changed in the slot and rescan
++			 * from the parent if that's the case.
++			 */
++			mutex_lock(&slot->crit_sect);
++			ret = acpiphp_rescan_slot(slot);
++			mutex_unlock(&slot->crit_sect);
++			if (ret)
++				acpiphp_check_bridge(func->parent);
++		}
+ 		break;
+ 
+ 	case ACPI_NOTIFY_EJECT_REQUEST:
+
