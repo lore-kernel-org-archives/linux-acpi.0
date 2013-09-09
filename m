@@ -1,82 +1,40 @@
-From: Daniel Vetter <daniel@ffwll.ch>
+From: Matthew Garrett <matthew.garrett@nebula.com>
 Subject: Re: [PATCH 2/2] ACPI / video / i915: Remove ACPI backlight if
  firmware expects Windows 8
-Date: Mon, 9 Sep 2013 17:21:18 +0200
-Message-ID: <20130909152118.GG27291@phenom.ffwll.local>
-References: <522D88C3.7000808@intel.com>
- <522D89EC.6050103@intel.com>
- <20130909093209.GF27291@phenom.ffwll.local>
- <1793135.3qk7NfcINN@vostro.rjw.lan>
+Date: Mon, 9 Sep 2013 15:38:46 +0000
+Message-ID: <1378741125.17982.1.camel@x230.lan>
+References: <522D88C3.7000808@intel.com> <522D89EC.6050103@intel.com>
+	 <20130909093209.GF27291@phenom.ffwll.local>
+	 <1793135.3qk7NfcINN@vostro.rjw.lan>
+	 <20130909152118.GG27291@phenom.ffwll.local>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <1793135.3qk7NfcINN@vostro.rjw.lan>
-Sender: linux-kernel-owner@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: Daniel Vetter <daniel@ffwll.ch>, Aaron Lu <aaron.lu@intel.com>, ACPI Devel Mailing List <linux-acpi@vger.kernel.org>, Matthew Garrett <matthew.garrett@nebula.com>, Seth Forshee <seth.forshee@canonical.com>, "Lee, Chun-Yi" <joeyli.kernel@gmail.com>, Daniel Vetter <daniel.vetter@ffwll.ch>, "intel-gfx@lists.freedesktop.org" <intel-gfx@lists.freedesktop.org>, "dri-devel@lists.freedesktop.org" <dri-devel@lists.freedesktop.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Len Brown <lenb@kernel.org>, Igor Gnatenko <i.gnatenko.brain@gmail.com>, Yves-Alexis Perez <corsac@debian.org>, Felipe Contreras <felipe.contreras@gmail.com>, Lee Chun-Yi <jlee@novell.com>, Henrique de Moraes Holschuh <hmh@hmh.eng.br>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-bl2lp0205.outbound.protection.outlook.com ([207.46.163.205]:31286
+	"EHLO na01-bl2-obe.outbound.protection.outlook.com"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1751761Ab3IIPiv (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 9 Sep 2013 11:38:51 -0400
+In-Reply-To: <20130909152118.GG27291@phenom.ffwll.local>
+Content-Language: en-US
+Content-ID: <23D000ECEB941D4EA80ED8426F386A9F@namprd05.prod.outlook.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Daniel Vetter <daniel@ffwll.ch>
+Cc: "Rafael J. Wysocki" <rjw@sisk.pl>, Aaron Lu <aaron.lu@intel.com>, ACPI Devel Mailing List <linux-acpi@vger.kernel.org>, Seth Forshee <seth.forshee@canonical.com>, "Lee, Chun-Yi" <joeyli.kernel@gmail.com>, Daniel Vetter <daniel.vetter@ffwll.ch>, "intel-gfx@lists.freedesktop.org" <intel-gfx@lists.freedesktop.org>, "dri-devel@lists.freedesktop.org" <dri-devel@lists.freedesktop.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Len Brown <lenb@kernel.org>, Igor Gnatenko <i.gnatenko.brain@gmail.com>, Yves-Alexis Perez <corsac@debian.org>, Felipe Contreras <felipe.contreras@gmail.com>, Lee Chun-Yi <jlee@novell.com>, Henrique de Moraes Holschuh <hmh@hmh.eng.br>
 
-On Mon, Sep 09, 2013 at 02:16:12PM +0200, Rafael J. Wysocki wrote:
-> Hi,
-> 
-> On Monday, September 09, 2013 11:32:10 AM Daniel Vetter wrote:
-> > Hi Aaaron,
-> > 
-> > Have we grown any clue meanwhile about which Intel boxes need this and for
-> > which we still need to keep the acpi backlight around?
-> 
-> First of all, there is a bunch of boxes where ACPI backlight works incorrectly
-> because of the Win8 compatibility issue.  [In short, if we say we are compatible
-> with Win8, the backlight AML goes into a special code path that is broken on
-> those machines. Presumably Win8 uses native backlight control on them and that
-> AML code path is never executed there.]  The collection of machines with this
-> problem appears to be kind of random (various models from various vendors), but
-> I *think* they are machines that originally shipped with Win7 with a Win8
-> "upgrade" option (which in practice requires the BIOS to be updated anyway).
-> 
-> Because of that, last time we tried to switch all of the systems using i915
-> and telling the BIOS that they are compatible with Win8 over to native backlight
-> control, but that didn't work for two reasons.  The first reason is that some
-> user space doesn't know how to use intel_backlight and needs to be taught about
-> that (so some systems are just not ready for that switch).  The second and more
-> fundamental reason is that the native backlight control simply doesn't work on
-> some machines and we don't seem to have any idea why and how to debug this
-> particular problem (mostly because we don't have enough information and we
-> don't know what to ask for).
-> 
-> > I've grown _very_ reluctant to just adding tons of quirks to our driver for
-> > the backlight.
-> >
-> > Almost all the quirks we have added recently (or that have been proposed
-> > to be added) are for the backlight. Imo that indicates we get something
-> > fundamentally wrong ...
-> 
-> This thing isn't really a quirk.  It rather is an option for the users of
-> the systems where ACPI backlight doesn't work to switch over to the native
-> backlight control using a command line switch.  This way they can at least
-> *see* if the native backlight control works for them and (hopefully) report
-> problems if that's not the case.  This gives us a chance to get more
-> information about what the problem is and possibly to make some progress
-> without making changes for everyone, reverting those changes when they don't
-> work etc.
-> 
-> An alternative for them is to pass acpi_osi="!Windows 2012" which will probably
-> make the ACPI backlight work for them again, but this rather is a step back,
-> because we can't possibly learn anything new from that.
-
-If Win8 is as broken as we are I'm ok with the module option. It just
-sounded to me like right now we don't know of a way to make all machines
-somewhat happy, combined with the other pile of random backlight issues
-the assumption that we do something (maybe something a bit racy) that
-windows doesn't do isn't too far-fetched. So I'm not wary of the machines
-where the aml is busted for acpi_os=win8, but for the others where this
-broke stuff.
-
-Or do I miss something here?
-
-Cheers, Daniel
--- 
-Daniel Vetter
-Software Engineer, Intel Corporation
-+41 (0) 79 365 57 48 - http://blog.ffwll.ch
+T24gTW9uLCAyMDEzLTA5LTA5IGF0IDE3OjIxICswMjAwLCBEYW5pZWwgVmV0dGVyIHdyb3RlOg0K
+DQo+IElmIFdpbjggaXMgYXMgYnJva2VuIGFzIHdlIGFyZSBJJ20gb2sgd2l0aCB0aGUgbW9kdWxl
+IG9wdGlvbi4gSXQganVzdA0KPiBzb3VuZGVkIHRvIG1lIGxpa2UgcmlnaHQgbm93IHdlIGRvbid0
+IGtub3cgb2YgYSB3YXkgdG8gbWFrZSBhbGwgbWFjaGluZXMNCj4gc29tZXdoYXQgaGFwcHksIGNv
+bWJpbmVkIHdpdGggdGhlIG90aGVyIHBpbGUgb2YgcmFuZG9tIGJhY2tsaWdodCBpc3N1ZXMNCj4g
+dGhlIGFzc3VtcHRpb24gdGhhdCB3ZSBkbyBzb21ldGhpbmcgKG1heWJlIHNvbWV0aGluZyBhIGJp
+dCByYWN5KSB0aGF0DQo+IHdpbmRvd3MgZG9lc24ndCBkbyBpc24ndCB0b28gZmFyLWZldGNoZWQu
+IFNvIEknbSBub3Qgd2FyeSBvZiB0aGUgbWFjaGluZXMNCj4gd2hlcmUgdGhlIGFtbCBpcyBidXN0
+ZWQgZm9yIGFjcGlfb3M9d2luOCwgYnV0IGZvciB0aGUgb3RoZXJzIHdoZXJlIHRoaXMNCj4gYnJv
+a2Ugc3R1ZmYuDQoNCldpbmRvd3MgOCBpc24ndCBicm9rZW4gYmVjYXVzZSAoYXMgZmFyIGFzIHdl
+IGNhbiB0ZWxsKSB0aGUgSW50ZWwgZHJpdmVycw0KdW5kZXIgV2luZG93cyA4IG5ldmVyIHVzZSB0
+aGUgQUNQSSBiYWNrbGlnaHQgc2V0IGZ1bmN0aW9uLiBPZiBjb3Vyc2UsIGl0DQp3b3VsZCBiZSBu
+aWNlIHRvIGhhdmUgdGhhdCBjb25maXJtZWQgYnkgSW50ZWwuDQoNCi0tIA0KTWF0dGhldyBHYXJy
+ZXR0IDxtYXR0aGV3LmdhcnJldHRAbmVidWxhLmNvbT4NCg==
