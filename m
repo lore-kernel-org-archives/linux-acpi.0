@@ -1,80 +1,49 @@
-From: Lan Tianyu <tianyu.lan@intel.com>
-Subject: Re: [RFC PATCH 2/4] ACPI/Resource: Add address translation support
-Date: Mon, 09 Sep 2013 10:18:42 +0800
-Message-ID: <522D3002.5050304@intel.com>
-References: <1378477486-8758-1-git-send-email-tianyu.lan@intel.com> <1378477486-8758-3-git-send-email-tianyu.lan@intel.com> <12539726.iB4h1i35EF@vostro.rjw.lan>
+From: Aaron Lu <aaron.lu@intel.com>
+Subject: [PATCH 0/2] Rework ACPI video driver
+Date: Mon, 09 Sep 2013 16:37:23 +0800
+Message-ID: <522D88C3.7000808@intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga09.intel.com ([134.134.136.24]:21632 "EHLO mga09.intel.com"
+Received: from mga11.intel.com ([192.55.52.93]:51118 "EHLO mga11.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751367Ab3IIC14 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Sun, 8 Sep 2013 22:27:56 -0400
-In-Reply-To: <12539726.iB4h1i35EF@vostro.rjw.lan>
+	id S1750835Ab3IIIgv (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 9 Sep 2013 04:36:51 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: lenb@kernel.org, yinghai@kernel.org, bhelgaas@google.com, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+To: ACPI Devel Mailing List <linux-acpi@vger.kernel.org>
+Cc: "Rafael J. Wysocki" <rjw@sisk.pl>, Matthew Garrett <matthew.garrett@nebula.com>, Seth Forshee <seth.forshee@canonical.com>, "Lee, Chun-Yi" <joeyli.kernel@gmail.com>, Daniel Vetter <daniel.vetter@ffwll.ch>, "intel-gfx@lists.freedesktop.org" <intel-gfx@lists.freedesktop.org>, "dri-devel@lists.freedesktop.org" <dri-devel@lists.freedesktop.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Len Brown <lenb@kernel.org>, Igor Gnatenko <i.gnatenko.brain@gmail.com>, Yves-Alexis Perez <corsac@debian.org>, Felipe Contreras <felipe.contreras@gmail.com>, Lee Chun-Yi <jlee@novell.com>, Henrique de Moraes Holschuh <hmh@hmh.eng.br>
 
-On 2013=E5=B9=B409=E6=9C=8807=E6=97=A5 08:15, Rafael J. Wysocki wrote:
-> On Friday, September 06, 2013 10:24:44 AM Lan Tianyu wrote:
->> According ACPI 5.0 spec Section 19.1.8
->> "For bridges, translate addresses across the bridge, this is the
->> offset that must be added to the address on the secondary side
->> to obtain the address on the primary side. Non-bridge devices
->> must list 0."
->=20
-> Can you please have a look into the previous versions of the spec and=
- double
-> check that this change won't confuse systems that implement them?
->=20
+The ACPI video module provides two functionalities: backlight control
+and backlight hotkey event delivery. It is possible the backlight
+control interface is broken while the system still needs its event
+delivery, so it's worth to seperate the two interfaces clearly.
 
-Hi Rafael:
-         I check all versions. This part has existed and not been
-changed since ACPI 1.0.
+This patchset has two patches, the first is to sepeate the two
+interfaces in the ACPI video module and the second one solves some
+Win8 backlight control problems by removing ACPI video's backlight
+interface while still keeping its event delivery functionality. Due
+to some systems whose firmware claims win8 compatible have problems
+with i915's backlight control interface, a module param is introduced
+to give user a chance to select if they want to remove ACPI video's
+backlight control interface. The param is set to false by default.
 
-> Otherwise it looks OK to me.
->=20
-> Thanks,
-> Rafael
->=20
->=20
->> This patch is to add address translation offset to the start/end
->> of struct resource in the acpi_dev_resource_address_space().
->> Further more, non-bridge device's translation_offset should 0.
->> So this change will affect other devices.
->>
->>
->> Signed-off-by: Lan Tianyu <tianyu.lan@intel.com>
->> ---
->>  drivers/acpi/resource.c | 4 ++--
->>  1 file changed, 2 insertions(+), 2 deletions(-)
->>
->> diff --git a/drivers/acpi/resource.c b/drivers/acpi/resource.c
->> index 929f416..84bc3db 100644
->> --- a/drivers/acpi/resource.c
->> +++ b/drivers/acpi/resource.c
->> @@ -192,8 +192,8 @@ bool acpi_dev_resource_address_space(struct acpi=
-_resource *ares,
->>  	if (ACPI_FAILURE(status))
->>  		return true;
->> =20
->> -	res->start =3D addr.minimum;
->> -	res->end =3D addr.maximum;
->> +	res->start =3D addr.minimum + addr.translation_offset;
->> +	res->end =3D addr.maximum + addr.translation_offset;
->>  	window =3D addr.producer_consumer =3D=3D ACPI_PRODUCER;
->> =20
->>  	switch(addr.resource_type) {
->>
+Aaron Lu (2):
+  ACPI / video: seperate backlight control and event interface
+  ACPI / video / i915: Remove ACPI backlight if firmware expects Windows
+    8
 
+ drivers/acpi/internal.h         |   2 +
+ drivers/acpi/video.c            | 473 +++++++++++++++++++++++-----------------
+ drivers/acpi/video_detect.c     |  15 +-
+ drivers/gpu/drm/i915/i915_dma.c |   2 +-
+ drivers/gpu/drm/i915/i915_drv.c |   5 +
+ drivers/gpu/drm/i915/i915_drv.h |   1 +
+ include/acpi/video.h            |  11 +-
+ include/linux/acpi.h            |   1 +
+ 8 files changed, 310 insertions(+), 200 deletions(-)
 
---=20
-Best regards
-Tianyu Lan
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+-- 
+1.8.4.12.g2ea3df6
+
