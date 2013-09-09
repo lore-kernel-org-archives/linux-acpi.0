@@ -1,74 +1,137 @@
-From: Mark Brown <broonie@kernel.org>
-Subject: Re: [PATCH RESEND 1/2] i2c: prepare runtime PM support for I2C
- client devices
-Date: Mon, 9 Sep 2013 16:40:28 +0100
-Message-ID: <20130909154028.GP29403@sirena.org.uk>
-References: <1378733679-19500-1-git-send-email-mika.westerberg@linux.intel.com>
- <1378733679-19500-2-git-send-email-mika.westerberg@linux.intel.com>
+From: Alex Williamson <alex.williamson@redhat.com>
+Subject: Re: [PATCH] ACPI / hotplug / PCI: Avoid parent bus rescans on
+ spurious device checks
+Date: Mon, 09 Sep 2013 10:32:57 -0600
+Message-ID: <1378744377.2631.82.camel@ul30vt.home>
+References: <26431283.HJCKsss0rt@vostro.rjw.lan>
+	 <CAErSpo4WAh8A7nAeDhrLUOAKrLNyEoKfyxT7VN6cyH3vuSA+zg@mail.gmail.com>
+	 <1378481674.3246.288.camel@ul30vt.home> <2762291.l6lVgcWD3r@vostro.rjw.lan>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="gAsw9DVneI/FTEJd"
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cassiel.sirena.org.uk ([80.68.93.111]:50017 "EHLO
-	cassiel.sirena.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751196Ab3IIPky (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 9 Sep 2013 11:40:54 -0400
-Content-Disposition: inline
-In-Reply-To: <1378733679-19500-2-git-send-email-mika.westerberg@linux.intel.com>
+Received: from mx1.redhat.com ([209.132.183.28]:19945 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753814Ab3IIQdH (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 9 Sep 2013 12:33:07 -0400
+In-Reply-To: <2762291.l6lVgcWD3r@vostro.rjw.lan>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Mika Westerberg <mika.westerberg@linux.intel.com>
-Cc: linux-i2c@vger.kernel.org, Wolfram Sang <wsa@the-dreams.de>, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Lv Zheng <lv.zheng@intel.com>, Aaron Lu <aaron.lu@intel.com>, linux-arm-kernel@lists.infradead.org
+To: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Bjorn Helgaas <bhelgaas@google.com>, LKML <linux-kernel@vger.kernel.org>, Linux PCI <linux-pci@vger.kernel.org>, Yinghai Lu <yinghai@kernel.org>, Jiang Liu <liuj97@gmail.com>, Mika Westerberg <mika.westerberg@linux.intel.com>, "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
+
+On Sun, 2013-09-08 at 00:16 +0200, Rafael J. Wysocki wrote:
+> From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+> 
+> In the current ACPIPHP notify handler we always go directly for a
+> rescan of the parent bus if we get a device check notification for
+> a device that is not a bridge.  However, this obviously is
+> overzealous if nothing really changes, because this way we may rescan
+> the whole PCI hierarchy pretty much in vain.
+> 
+> That happens on Alex Williamson's machine whose ACPI tables contain
+> device objects that are supposed to coresspond to PCIe root ports,
+> but those ports aren't physically present (or at least they aren't
+> visible in the PCI config space to us).  The BIOS generates multiple
+> device check notifies for those objects during boot and for each of
+> them we go straight for the parent bus rescan, but the parent bus is
+> the root bus in this particular case.  In consequence, we rescan the
+> whole PCI bus from the top several times in a row, which is
+> completely unnecessary, increases boot time by 50% (after previous
+> fixes) and generates excess dmesg output from the PCI subsystem.
+> 
+> Fix the problem by checking if we can find anything new in the
+> slot corresponding to the device we've got a device check notify
+> for and doing nothig if that's not the case.
+> 
+> The spec (ACPI 5.0, Section 5.6.6) appears to mandate this behavior,
+> as it says:
+> 
+>   Device Check. Used to notify OSPM that the device either appeared
+>   or disappeared. If the device has appeared, OSPM will re-enumerate
+>   from the parent. If the device has disappeared, OSPM will
+>   invalidate the state of the device. OSPM may optimize out
+>   re-enumeration.
+> 
+> Therefore, according to the spec, we are free to do nothing if
+> nothing changes.
+> 
+> References: https://bugzilla.kernel.org/show_bug.cgi?id=60865
+> Reported-by: Alex Williamson <alex.williamson@redhat.com>
+> Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+> ---
+
+Works for me.  Thanks!
+
+Tested-by: Alex Williamson <alex.williamson@redhat.com>
+
+> On top of linux-pm.git/linux-next.
+> 
+> Thanks,
+> Rafael
+> 
+> ---
+>  drivers/pci/hotplug/acpiphp_glue.c |   32 +++++++++++++++++++++++++-------
+>  1 file changed, 25 insertions(+), 7 deletions(-)
+> 
+> Index: linux-pm/drivers/pci/hotplug/acpiphp_glue.c
+> ===================================================================
+> --- linux-pm.orig/drivers/pci/hotplug/acpiphp_glue.c
+> +++ linux-pm/drivers/pci/hotplug/acpiphp_glue.c
+> @@ -528,6 +528,16 @@ static void check_hotplug_bridge(struct
+>  	}
+>  }
+>  
+> +static int acpiphp_rescan_slot(struct acpiphp_slot *slot)
+> +{
+> +	struct acpiphp_func *func;
+> +
+> +	list_for_each_entry(func, &slot->funcs, sibling)
+> +		acpiphp_bus_add(func_to_handle(func));
+> +
+> +	return pci_scan_slot(slot->bus, PCI_DEVFN(slot->device, 0));
+> +}
+> +
+>  /**
+>   * enable_slot - enable, configure a slot
+>   * @slot: slot to be enabled
+> @@ -544,10 +554,7 @@ static void __ref enable_slot(struct acp
+>  	LIST_HEAD(add_list);
+>  	int nr_found;
+>  
+> -	list_for_each_entry(func, &slot->funcs, sibling)
+> -		acpiphp_bus_add(func_to_handle(func));
+> -
+> -	nr_found = pci_scan_slot(bus, PCI_DEVFN(slot->device, 0));
+> +	nr_found = acpiphp_rescan_slot(slot);
+>  	max = acpiphp_max_busnr(bus);
+>  	for (pass = 0; pass < 2; pass++) {
+>  		list_for_each_entry(dev, &bus->devices, bus_list) {
+> @@ -840,11 +847,22 @@ static void hotplug_event(acpi_handle ha
+>  	case ACPI_NOTIFY_DEVICE_CHECK:
+>  		/* device check */
+>  		dbg("%s: Device check notify on %s\n", __func__, objname);
+> -		if (bridge)
+> +		if (bridge) {
+>  			acpiphp_check_bridge(bridge);
+> -		else
+> -			acpiphp_check_bridge(func->parent);
+> +		} else {
+> +			struct acpiphp_slot *slot = func->slot;
+> +			int ret;
+>  
+> +			/*
+> +			 * Check if anything has changed in the slot and rescan
+> +			 * from the parent if that's the case.
+> +			 */
+> +			mutex_lock(&slot->crit_sect);
+> +			ret = acpiphp_rescan_slot(slot);
+> +			mutex_unlock(&slot->crit_sect);
+> +			if (ret)
+> +				acpiphp_check_bridge(func->parent);
+> +		}
+>  		break;
+>  
+>  	case ACPI_NOTIFY_EJECT_REQUEST:
 
 
---gAsw9DVneI/FTEJd
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-
-On Mon, Sep 09, 2013 at 04:34:38PM +0300, Mika Westerberg wrote:
-
-> +	/*
-> +	 * Enable runtime PM for the client device. If the client wants to
-> +	 * participate on runtime PM it should call pm_runtime_put() in its
-> +	 * probe() callback.
-> +	 *
-> +	 * User still needs to allow the PM runtime before it can actually
-> +	 * happen.
-> +	 */
-> +	pm_runtime_forbid(&client->dev);
-> +	pm_runtime_get_noresume(&client->dev);
-> +	pm_runtime_set_active(&client->dev);
-> +	pm_runtime_enable(&client->dev);
-
-How is this going to interact with client devices which are already
-enabling runtime PM for themselves, and what are the advantages of doing
-this over having the client device enable runtime PM for itself (given
-that the client still needs an explicit put() adding)?
-
-Given that it's relatively common for devices to have both I2C and SPI
-control it seems like it'd be sensible to keep the policy common between
-the two buses to simplify driver implementation.
-
---gAsw9DVneI/FTEJd
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2.0.21 (GNU/Linux)
-
-iQIcBAEBAgAGBQJSLevpAAoJELSic+t+oim9s3IP/iZpmbUH+6uxtJTlHnrHrQJW
-HqP9yX7CyAfxdna0s/v5Oy8jqZzpHrBPSuBf/6NQcex94W8d7ZCM2a66rOO1Qpl+
-BgBHTG4Ttl9hzqjiAwkebG25fPUiRyacF2Btwx6kTeibKi2kvxtg8c388kN8gO/5
-RLJg2/t9daiI/jeaJmtDlCaPlO1wvHfJl/CYw8OoikewvGzaP3bdNE/5mYWmNHom
-CI9IE/NeDaP82Q5FCV260OMG2sEFo9tPgBRe0eVx9piUsQ126ZnBxLxnoBFNwWau
-aONZrMNeaqwaZNCakGslCmyY7w8JRPvUlJ6YmH3cor4AEs5EfZaCGHMcsus1i0Zh
-1bPTYFJNWAkZD0ZE8/4XIa9Omqdf9M8Sl4ZezLbWY5VIUc9qxVasxHdfJEBOLTui
-kJGPRaHueaKyNVKFEAb4LFzXNATRR9WYAS17kwrGIBF6Y2xem88g27lyHB85BjzE
-hs1Dl1SRcIFKkvZLT31W8JFZcMZt190g7FNA+5wN81eIjEmde4CP0PVIAIDSaN2e
-i7ADjXa0U9Ro2QN8+zJLRNvXYzq+TpZrOYXiaiawea3PDnfaFtafyhw2QBD+qHJq
-us10IO56AgPQDyLCRfB1mnYRF3/d+MwLqBMcwjmqPl8RjSu1dAv8jg7CYFhU8F7z
-T/TGDS2HJJck+nQ/P7QQ
-=rXnG
------END PGP SIGNATURE-----
-
---gAsw9DVneI/FTEJd--
