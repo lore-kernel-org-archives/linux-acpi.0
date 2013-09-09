@@ -1,40 +1,74 @@
-From: Matthew Garrett <matthew.garrett@nebula.com>
-Subject: Re: [PATCH 2/2] ACPI / video / i915: Remove ACPI backlight if
- firmware expects Windows 8
-Date: Mon, 9 Sep 2013 15:38:46 +0000
-Message-ID: <1378741125.17982.1.camel@x230.lan>
-References: <522D88C3.7000808@intel.com> <522D89EC.6050103@intel.com>
-	 <20130909093209.GF27291@phenom.ffwll.local>
-	 <1793135.3qk7NfcINN@vostro.rjw.lan>
-	 <20130909152118.GG27291@phenom.ffwll.local>
+From: Mark Brown <broonie@kernel.org>
+Subject: Re: [PATCH RESEND 1/2] i2c: prepare runtime PM support for I2C
+ client devices
+Date: Mon, 9 Sep 2013 16:40:28 +0100
+Message-ID: <20130909154028.GP29403@sirena.org.uk>
+References: <1378733679-19500-1-git-send-email-mika.westerberg@linux.intel.com>
+ <1378733679-19500-2-git-send-email-mika.westerberg@linux.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="gAsw9DVneI/FTEJd"
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-bl2lp0205.outbound.protection.outlook.com ([207.46.163.205]:31286
-	"EHLO na01-bl2-obe.outbound.protection.outlook.com"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1751761Ab3IIPiv (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 9 Sep 2013 11:38:51 -0400
-In-Reply-To: <20130909152118.GG27291@phenom.ffwll.local>
-Content-Language: en-US
-Content-ID: <23D000ECEB941D4EA80ED8426F386A9F@namprd05.prod.outlook.com>
+Received: from cassiel.sirena.org.uk ([80.68.93.111]:50017 "EHLO
+	cassiel.sirena.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751196Ab3IIPky (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 9 Sep 2013 11:40:54 -0400
+Content-Disposition: inline
+In-Reply-To: <1378733679-19500-2-git-send-email-mika.westerberg@linux.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Daniel Vetter <daniel@ffwll.ch>
-Cc: "Rafael J. Wysocki" <rjw@sisk.pl>, Aaron Lu <aaron.lu@intel.com>, ACPI Devel Mailing List <linux-acpi@vger.kernel.org>, Seth Forshee <seth.forshee@canonical.com>, "Lee, Chun-Yi" <joeyli.kernel@gmail.com>, Daniel Vetter <daniel.vetter@ffwll.ch>, "intel-gfx@lists.freedesktop.org" <intel-gfx@lists.freedesktop.org>, "dri-devel@lists.freedesktop.org" <dri-devel@lists.freedesktop.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Len Brown <lenb@kernel.org>, Igor Gnatenko <i.gnatenko.brain@gmail.com>, Yves-Alexis Perez <corsac@debian.org>, Felipe Contreras <felipe.contreras@gmail.com>, Lee Chun-Yi <jlee@novell.com>, Henrique de Moraes Holschuh <hmh@hmh.eng.br>
+To: Mika Westerberg <mika.westerberg@linux.intel.com>
+Cc: linux-i2c@vger.kernel.org, Wolfram Sang <wsa@the-dreams.de>, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Lv Zheng <lv.zheng@intel.com>, Aaron Lu <aaron.lu@intel.com>, linux-arm-kernel@lists.infradead.org
 
-T24gTW9uLCAyMDEzLTA5LTA5IGF0IDE3OjIxICswMjAwLCBEYW5pZWwgVmV0dGVyIHdyb3RlOg0K
-DQo+IElmIFdpbjggaXMgYXMgYnJva2VuIGFzIHdlIGFyZSBJJ20gb2sgd2l0aCB0aGUgbW9kdWxl
-IG9wdGlvbi4gSXQganVzdA0KPiBzb3VuZGVkIHRvIG1lIGxpa2UgcmlnaHQgbm93IHdlIGRvbid0
-IGtub3cgb2YgYSB3YXkgdG8gbWFrZSBhbGwgbWFjaGluZXMNCj4gc29tZXdoYXQgaGFwcHksIGNv
-bWJpbmVkIHdpdGggdGhlIG90aGVyIHBpbGUgb2YgcmFuZG9tIGJhY2tsaWdodCBpc3N1ZXMNCj4g
-dGhlIGFzc3VtcHRpb24gdGhhdCB3ZSBkbyBzb21ldGhpbmcgKG1heWJlIHNvbWV0aGluZyBhIGJp
-dCByYWN5KSB0aGF0DQo+IHdpbmRvd3MgZG9lc24ndCBkbyBpc24ndCB0b28gZmFyLWZldGNoZWQu
-IFNvIEknbSBub3Qgd2FyeSBvZiB0aGUgbWFjaGluZXMNCj4gd2hlcmUgdGhlIGFtbCBpcyBidXN0
-ZWQgZm9yIGFjcGlfb3M9d2luOCwgYnV0IGZvciB0aGUgb3RoZXJzIHdoZXJlIHRoaXMNCj4gYnJv
-a2Ugc3R1ZmYuDQoNCldpbmRvd3MgOCBpc24ndCBicm9rZW4gYmVjYXVzZSAoYXMgZmFyIGFzIHdl
-IGNhbiB0ZWxsKSB0aGUgSW50ZWwgZHJpdmVycw0KdW5kZXIgV2luZG93cyA4IG5ldmVyIHVzZSB0
-aGUgQUNQSSBiYWNrbGlnaHQgc2V0IGZ1bmN0aW9uLiBPZiBjb3Vyc2UsIGl0DQp3b3VsZCBiZSBu
-aWNlIHRvIGhhdmUgdGhhdCBjb25maXJtZWQgYnkgSW50ZWwuDQoNCi0tIA0KTWF0dGhldyBHYXJy
-ZXR0IDxtYXR0aGV3LmdhcnJldHRAbmVidWxhLmNvbT4NCg==
+
+--gAsw9DVneI/FTEJd
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+
+On Mon, Sep 09, 2013 at 04:34:38PM +0300, Mika Westerberg wrote:
+
+> +	/*
+> +	 * Enable runtime PM for the client device. If the client wants to
+> +	 * participate on runtime PM it should call pm_runtime_put() in its
+> +	 * probe() callback.
+> +	 *
+> +	 * User still needs to allow the PM runtime before it can actually
+> +	 * happen.
+> +	 */
+> +	pm_runtime_forbid(&client->dev);
+> +	pm_runtime_get_noresume(&client->dev);
+> +	pm_runtime_set_active(&client->dev);
+> +	pm_runtime_enable(&client->dev);
+
+How is this going to interact with client devices which are already
+enabling runtime PM for themselves, and what are the advantages of doing
+this over having the client device enable runtime PM for itself (given
+that the client still needs an explicit put() adding)?
+
+Given that it's relatively common for devices to have both I2C and SPI
+control it seems like it'd be sensible to keep the policy common between
+the two buses to simplify driver implementation.
+
+--gAsw9DVneI/FTEJd
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2.0.21 (GNU/Linux)
+
+iQIcBAEBAgAGBQJSLevpAAoJELSic+t+oim9s3IP/iZpmbUH+6uxtJTlHnrHrQJW
+HqP9yX7CyAfxdna0s/v5Oy8jqZzpHrBPSuBf/6NQcex94W8d7ZCM2a66rOO1Qpl+
+BgBHTG4Ttl9hzqjiAwkebG25fPUiRyacF2Btwx6kTeibKi2kvxtg8c388kN8gO/5
+RLJg2/t9daiI/jeaJmtDlCaPlO1wvHfJl/CYw8OoikewvGzaP3bdNE/5mYWmNHom
+CI9IE/NeDaP82Q5FCV260OMG2sEFo9tPgBRe0eVx9piUsQ126ZnBxLxnoBFNwWau
+aONZrMNeaqwaZNCakGslCmyY7w8JRPvUlJ6YmH3cor4AEs5EfZaCGHMcsus1i0Zh
+1bPTYFJNWAkZD0ZE8/4XIa9Omqdf9M8Sl4ZezLbWY5VIUc9qxVasxHdfJEBOLTui
+kJGPRaHueaKyNVKFEAb4LFzXNATRR9WYAS17kwrGIBF6Y2xem88g27lyHB85BjzE
+hs1Dl1SRcIFKkvZLT31W8JFZcMZt190g7FNA+5wN81eIjEmde4CP0PVIAIDSaN2e
+i7ADjXa0U9Ro2QN8+zJLRNvXYzq+TpZrOYXiaiawea3PDnfaFtafyhw2QBD+qHJq
+us10IO56AgPQDyLCRfB1mnYRF3/d+MwLqBMcwjmqPl8RjSu1dAv8jg7CYFhU8F7z
+T/TGDS2HJJck+nQ/P7QQ
+=rXnG
+-----END PGP SIGNATURE-----
+
+--gAsw9DVneI/FTEJd--
