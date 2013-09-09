@@ -1,50 +1,68 @@
-From: Thomas Renninger <trenn@suse.de>
-Subject: Re: [PATCH] x86, ACPI: Increase override tables number limit
-Date: Mon, 09 Sep 2013 15:25:31 +0200
-Message-ID: <3912512.hYKBVDmhoN@skinner.arch.suse.de>
-References: <1378519680-10490-1-git-send-email-yinghai@kernel.org>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7Bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cantor2.suse.de ([195.135.220.15]:48641 "EHLO mx2.suse.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751292Ab3IINZk (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 9 Sep 2013 09:25:40 -0400
-In-Reply-To: <1378519680-10490-1-git-send-email-yinghai@kernel.org>
-Sender: linux-acpi-owner@vger.kernel.org
+From: Mika Westerberg <mika.westerberg@linux.intel.com>
+Subject: [PATCH RESEND 2/2] i2c: attach/detach I2C client device to the ACPI power domain
+Date: Mon,  9 Sep 2013 16:34:39 +0300
+Message-ID: <1378733679-19500-3-git-send-email-mika.westerberg@linux.intel.com>
+References: <1378733679-19500-1-git-send-email-mika.westerberg@linux.intel.com>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1378733679-19500-1-git-send-email-mika.westerberg@linux.intel.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: linux-i2c@vger.kernel.org
+Cc: Wolfram Sang <wsa@the-dreams.de>, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Lv Zheng <lv.zheng@intel.com>, Aaron Lu <aaron.lu@intel.com>, linux-arm-kernel@lists.infradead.org, Mika Westerberg <mika.westerberg@linux.intel.com>
 List-Id: linux-acpi@vger.kernel.org
-To: Yinghai Lu <yinghai@kernel.org>
-Cc: "Rafael J. Wysocki" <rjw@sisk.pl>, "H. Peter Anvin" <hpa@zytor.com>, Tejun Heo <tj@kernel.org>, Tang Chen <tangchen@cn.fujitsu.com>, Toshi Kani <toshi.kani@hp.com>, Len Brown <len.brown@intel.com>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 
-Hi,
+From: Lv Zheng <lv.zheng@intel.com>
 
-I do not have a problem with this, just for info:
+If the I2C client device is enumerated from ACPI namespace it might have
+ACPI methods that needs to be called in order to transition the device to
+a different power states (such as _PSx).
 
-On Friday, September 06, 2013 07:08:00 PM Yinghai Lu wrote:
-> Current acpi tables in initrd is limited to 10, that is too small.
-> 64 should be good enough as we have 35 sigs and could have several
-> SSDT.
-The whole mechanism is for debugging only. Nobody would (or should,
-there simply is no use case), override all the ACPI tables.
-You would either override the APIC table if you try with interrupt 
-assignments. Or correct a part in the DSDT and/or SSDT(s) and check if the 
-kernel runs smoothly without errors then, etc.
+Implement this for I2C client devices by checking if the device has an ACPI
+handle and if that's the case, attach it to the ACPI power domain. In
+addition we make sure that the device is fully powered when its ->probe()
+function gets called.
 
-> 
-> Two problems in current code prevent us from increasing limit:
-> 1. that cpio file info array is put in stack, as every element is 32
->    bytes, could run out of stack if we have that array size to 64.
->    We can move it out from stack, and make it as global and put it in
->    __initdata section.
+For non-ACPI devices this patch is a no-op.
 
-> 2. early_ioremap only can remap 256k one time. Current code is mapping
->    10 tables one time. If we increase that limit, whole size could be
->    more than 256k, early_ioremap will fail with that.
->    We can map chunks one by one during copying, instead of mapping
->    all them one time.
-This problem would persist, because the by far biggest table typically
-is the DSDT with several ten thousand lines of code, while the other
-tables typically only have some hundred.
+Signed-off-by: Lv Zheng <lv.zheng@intel.com>
+Signed-off-by: Mika Westerberg <mika.westerberg@linux.intel.com>
+Acked-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+---
+ drivers/i2c/i2c-core.c | 9 +++++++++
+ 1 file changed, 9 insertions(+)
 
-        Thomas
+diff --git a/drivers/i2c/i2c-core.c b/drivers/i2c/i2c-core.c
+index 8fad5ac..fdf086b 100644
+--- a/drivers/i2c/i2c-core.c
++++ b/drivers/i2c/i2c-core.c
+@@ -257,6 +257,9 @@ static int i2c_device_probe(struct device *dev)
+ 	/* Make sure the adapter is active */
+ 	pm_runtime_get_sync(&client->adapter->dev);
+ 
++	if (ACPI_HANDLE(&client->dev))
++		acpi_dev_pm_attach(&client->dev, true);
++
+ 	/*
+ 	 * Enable runtime PM for the client device. If the client wants to
+ 	 * participate on runtime PM it should call pm_runtime_put() in its
+@@ -278,6 +281,9 @@ static int i2c_device_probe(struct device *dev)
+ 		pm_runtime_disable(&client->dev);
+ 		pm_runtime_set_suspended(&client->dev);
+ 		pm_runtime_put_noidle(&client->dev);
++
++		if (ACPI_HANDLE(&client->dev))
++			acpi_dev_pm_detach(&client->dev, true);
+ 	}
+ 
+ 	pm_runtime_put(&client->adapter->dev);
+@@ -314,6 +320,9 @@ static int i2c_device_remove(struct device *dev)
+ 	pm_runtime_set_suspended(&client->dev);
+ 	pm_runtime_put_noidle(&client->dev);
+ 
++	if (ACPI_HANDLE(&client->dev))
++		acpi_dev_pm_detach(&client->dev, true);
++
+ 	pm_runtime_put(&client->adapter->dev);
+ 	return status;
+ }
+-- 
+1.8.4.rc2
