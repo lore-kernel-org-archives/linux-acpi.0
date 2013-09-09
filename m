@@ -1,160 +1,46 @@
-From: Mika Westerberg <mika.westerberg@linux.intel.com>
-Subject: [PATCH RESEND 1/2] i2c: prepare runtime PM support for I2C client devices
-Date: Mon,  9 Sep 2013 16:34:38 +0300
-Message-ID: <1378733679-19500-2-git-send-email-mika.westerberg@linux.intel.com>
-References: <1378733679-19500-1-git-send-email-mika.westerberg@linux.intel.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1378733679-19500-1-git-send-email-mika.westerberg@linux.intel.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: linux-i2c@vger.kernel.org
-Cc: Wolfram Sang <wsa@the-dreams.de>, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Lv Zheng <lv.zheng@intel.com>, Aaron Lu <aaron.lu@intel.com>, linux-arm-kernel@lists.infradead.org, Mika Westerberg <mika.westerberg@linux.intel.com>
+From: Tejun Heo <tj@kernel.org>
+Subject: Re: [PATCH 00/11] x86, memblock: Allocate memory near kernel image
+ before SRAT parsed.
+Date: Mon, 9 Sep 2013 09:58:15 -0400
+Message-ID: <20130909135815.GB25434@htj.dyndns.org>
+References: <1377596268-31552-1-git-send-email-tangchen@cn.fujitsu.com>
+ <20130904192215.GG26609@mtj.dyndns.org>
+ <52299935.0302450a.26c9.ffffb240SMTPIN_ADDED_BROKEN@mx.google.com>
+ <20130906151526.GA22423@mtj.dyndns.org>
+ <522db781.22ab440a.41b1.ffffd825SMTPIN_ADDED_BROKEN@mx.google.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Return-path: <owner-linux-mm@kvack.org>
+Content-Disposition: inline
+In-Reply-To: <522db781.22ab440a.41b1.ffffd825SMTPIN_ADDED_BROKEN@mx.google.com>
+Sender: owner-linux-mm@kvack.org
+To: Wanpeng Li <liwanp@linux.vnet.ibm.com>
+Cc: rjw@sisk.pl, lenb@kernel.org, tglx@linutronix.de, mingo@elte.hu, hpa@zytor.com, akpm@linux-foundation.org, trenn@suse.de, yinghai@kernel.org, jiang.liu@huawei.com, wency@cn.fujitsu.com, laijs@cn.fujitsu.com, isimatu.yasuaki@jp.fujitsu.com, izumi.taku@jp.fujitsu.com, mgorman@suse.de, minchan@kernel.org, mina86@mina86.com, gong.chen@linux.intel.com, vasilis.liaskovitis@profitbricks.com, lwoodman@redhat.com, riel@redhat.com, jweiner@redhat.com, prarit@redhat.com, zhangyanfei@cn.fujitsu.com, x86@kernel.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-mm@kvack.org, linux-acpi@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-From: Aaron Lu <aaron.lu@intel.com>
+Hello,
 
-This patch adds runtime PM support for the I2C bus in a similar way that
-has been done for PCI bus already. This means that the I2C bus core
-prepares runtime PM for a client device just before a driver is about to be
-bound to it. Devices that are not bound to any driver are not prepared for
-runtime PM.
+On Mon, Sep 09, 2013 at 07:56:34PM +0800, Wanpeng Li wrote:
+> If allocate from low to high as what this patchset done will occupy the
+> precious memory you mentioned?
 
-In order to take advantage of this runtime PM support, the client device
-driver needs drop the device runtime PM reference count by calling
-pm_runtime_put() in its ->probe() callback and possibly implement rest of
-the runtime PM callbacks.
+Yeah, and that'd be the reason why this behavior is dependent on a
+kernel option.  That said, allocating some megs on top of kernel isn't
+a big deal.  The wretched ISA DMA is mostly gone now and some megs
+isn't gonna hurt 32bit DMAs in any noticeable way.  I wouldn't be too
+surprised if nobody notices after switching the default behavior to
+allocate early mem close to kernel.  Maybe the only case which might
+be impacted is 32bit highmem configs, but they're messed up no matter
+what anyway and even they shouldn't be affected noticeably if large
+mapping is in use.
 
-However, this does not yet make runtime PM happen for the device, it has to
-be explicitly allowed from userspace per each I2C client device. The
-reason for this is that things like HID over I2C might not work as smoothly
-when runtime PM is active. So we leave it to the user to balance between
-performance and power efficiency.
+Thanks.
 
-User can allow runtime PM for the client device by running:
-
-	# echo auto > /sys/bus/i2c/devices/<device>/power/control
-
-and it can be forbidden again by:
-
-	# echo on > /sys/bus/i2c/devices/<device>/power/control
-
-Status of the device can be monitored by reading files under the device
-power directory.
-
-If the driver doesn't support runtime PM (like most of the existing I2C
-client drivers), the device in question is regarded as being runtime PM
-active and powered on.
-
-The patch adds also runtime PM support for the adapter device because it is
-needed to be able to runtime power manage the I2C controller device. The
-adapter device is handled along with the I2C controller device (it uses
-pm_runtime_no_callbacks()).
-
-Signed-off-by: Aaron Lu <aaron.lu@intel.com>
-Signed-off-by: Mika Westerberg <mika.westerberg@linux.intel.com>
-Acked-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
----
- drivers/i2c/i2c-core.c | 48 +++++++++++++++++++++++++++++++++++++++++++++++-
- 1 file changed, 47 insertions(+), 1 deletion(-)
-
-diff --git a/drivers/i2c/i2c-core.c b/drivers/i2c/i2c-core.c
-index 3d44292..8fad5ac 100644
---- a/drivers/i2c/i2c-core.c
-+++ b/drivers/i2c/i2c-core.c
-@@ -254,11 +254,34 @@ static int i2c_device_probe(struct device *dev)
- 					client->flags & I2C_CLIENT_WAKE);
- 	dev_dbg(dev, "probe\n");
- 
-+	/* Make sure the adapter is active */
-+	pm_runtime_get_sync(&client->adapter->dev);
-+
-+	/*
-+	 * Enable runtime PM for the client device. If the client wants to
-+	 * participate on runtime PM it should call pm_runtime_put() in its
-+	 * probe() callback.
-+	 *
-+	 * User still needs to allow the PM runtime before it can actually
-+	 * happen.
-+	 */
-+	pm_runtime_forbid(&client->dev);
-+	pm_runtime_get_noresume(&client->dev);
-+	pm_runtime_set_active(&client->dev);
-+	pm_runtime_enable(&client->dev);
-+
- 	status = driver->probe(client, i2c_match_id(driver->id_table, client));
- 	if (status) {
- 		client->driver = NULL;
- 		i2c_set_clientdata(client, NULL);
-+
-+		pm_runtime_disable(&client->dev);
-+		pm_runtime_set_suspended(&client->dev);
-+		pm_runtime_put_noidle(&client->dev);
- 	}
-+
-+	pm_runtime_put(&client->adapter->dev);
-+
- 	return status;
- }
- 
-@@ -271,6 +294,8 @@ static int i2c_device_remove(struct device *dev)
- 	if (!client || !dev->driver)
- 		return 0;
- 
-+	pm_runtime_get_sync(&client->adapter->dev);
-+
- 	driver = to_i2c_driver(dev->driver);
- 	if (driver->remove) {
- 		dev_dbg(dev, "remove\n");
-@@ -283,6 +308,13 @@ static int i2c_device_remove(struct device *dev)
- 		client->driver = NULL;
- 		i2c_set_clientdata(client, NULL);
- 	}
-+
-+	/* Undo the runtime PM done in i2c_probe() */
-+	pm_runtime_disable(&client->dev);
-+	pm_runtime_set_suspended(&client->dev);
-+	pm_runtime_put_noidle(&client->dev);
-+
-+	pm_runtime_put(&client->adapter->dev);
- 	return status;
- }
- 
-@@ -294,8 +326,11 @@ static void i2c_device_shutdown(struct device *dev)
- 	if (!client || !dev->driver)
- 		return;
- 	driver = to_i2c_driver(dev->driver);
--	if (driver->shutdown)
-+	if (driver->shutdown) {
-+		pm_runtime_get_sync(&client->adapter->dev);
- 		driver->shutdown(client);
-+		pm_runtime_put(&client->adapter->dev);
-+	}
- }
- 
- #ifdef CONFIG_PM_SLEEP
-@@ -1263,6 +1298,15 @@ exit_recovery:
- 	bus_for_each_drv(&i2c_bus_type, NULL, adap, __process_new_adapter);
- 	mutex_unlock(&core_lock);
- 
-+	/*
-+	 * Make sure the adapter runtime PM follows the parent device (the
-+	 * host controller) so that we can suspend it once there aren't any
-+	 * active clients anymore.
-+	 */
-+	pm_runtime_set_active(&adap->dev);
-+	pm_runtime_no_callbacks(&adap->dev);
-+	pm_runtime_enable(&adap->dev);
-+
- 	return 0;
- 
- out_list:
-@@ -1427,6 +1471,8 @@ void i2c_del_adapter(struct i2c_adapter *adap)
- 		return;
- 	}
- 
-+	pm_runtime_disable(&adap->dev);
-+
- 	/* Tell drivers about this removal */
- 	mutex_lock(&core_lock);
- 	bus_for_each_drv(&i2c_bus_type, NULL, adap,
 -- 
-1.8.4.rc2
+tejun
+
+--
+To unsubscribe, send a message with 'unsubscribe linux-mm' in
+the body to majordomo@kvack.org.  For more info on Linux MM,
+see: http://www.linux-mm.org/ .
+Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
