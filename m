@@ -1,105 +1,61 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: [PATCH 2/2] ACPI / video / i915: Remove ACPI backlight if firmware expects Windows 8
-Date: Mon, 09 Sep 2013 22:23:27 +0200
-Message-ID: <5155010.Y1gov7SKhP@vostro.rjw.lan>
-References: <522D88C3.7000808@intel.com> <1793135.3qk7NfcINN@vostro.rjw.lan> <20130909152118.GG27291@phenom.ffwll.local>
+From: Wanpeng Li <liwanp@linux.vnet.ibm.com>
+Subject: Re: [PATCH 00/11] x86, memblock: Allocate memory near kernel image
+ before SRAT parsed.
+Date: Tue, 10 Sep 2013 07:58:00 +0800
+Message-ID: <27278.8297072568$1378771112@news.gmane.org>
+References: <1377596268-31552-1-git-send-email-tangchen@cn.fujitsu.com>
+ <20130904192215.GG26609@mtj.dyndns.org>
+ <52299935.0302450a.26c9.ffffb240SMTPIN_ADDED_BROKEN@mx.google.com>
+ <20130906151526.GA22423@mtj.dyndns.org>
+ <522db781.22ab440a.41b1.ffffd825SMTPIN_ADDED_BROKEN@mx.google.com>
+ <20130909135815.GB25434@htj.dyndns.org>
+Reply-To: Wanpeng Li <liwanp@linux.vnet.ibm.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7Bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from hydra.sisk.pl ([212.160.235.94]:39678 "EHLO hydra.sisk.pl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752571Ab3IIUMb (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 9 Sep 2013 16:12:31 -0400
-In-Reply-To: <20130909152118.GG27291@phenom.ffwll.local>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <owner-linux-mm@kvack.org>
+Content-Disposition: inline
+In-Reply-To: <20130909135815.GB25434@htj.dyndns.org>
+Sender: owner-linux-mm@kvack.org
+To: Tejun Heo <tj@kernel.org>
+Cc: rjw@sisk.pl, lenb@kernel.org, tglx@linutronix.de, mingo@elte.hu, hpa@zytor.com, akpm@linux-foundation.org, trenn@suse.de, yinghai@kernel.org, jiang.liu@huawei.com, wency@cn.fujitsu.com, laijs@cn.fujitsu.com, isimatu.yasuaki@jp.fujitsu.com, izumi.taku@jp.fujitsu.com, mgorman@suse.de, minchan@kernel.org, mina86@mina86.com, gong.chen@linux.intel.com, vasilis.liaskovitis@profitbricks.com, lwoodman@redhat.com, riel@redhat.com, jweiner@redhat.com, prarit@redhat.com, zhangyanfei@cn.fujitsu.com, x86@kernel.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-mm@kvack.org, linux-acpi@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Daniel Vetter <daniel@ffwll.ch>
-Cc: Aaron Lu <aaron.lu@intel.com>, ACPI Devel Mailing List <linux-acpi@vger.kernel.org>, Matthew Garrett <matthew.garrett@nebula.com>, Seth Forshee <seth.forshee@canonical.com>, "Lee, Chun-Yi" <joeyli.kernel@gmail.com>, Daniel Vetter <daniel.vetter@ffwll.ch>, "intel-gfx@lists.freedesktop.org" <intel-gfx@lists.freedesktop.org>, "dri-devel@lists.freedesktop.org" <dri-devel@lists.freedesktop.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Len Brown <lenb@kernel.org>, Igor Gnatenko <i.gnatenko.brain@gmail.com>, Yves-Alexis Perez <corsac@debian.org>, Felipe Contreras <felipe.contreras@gmail.com>, Lee Chun-Yi <jlee@novell.com>, Henrique de Moraes Holschuh <hmh@hmh.eng.br>
 
-On Monday, September 09, 2013 05:21:18 PM Daniel Vetter wrote:
-> On Mon, Sep 09, 2013 at 02:16:12PM +0200, Rafael J. Wysocki wrote:
-> > Hi,
-> > 
-> > On Monday, September 09, 2013 11:32:10 AM Daniel Vetter wrote:
-> > > Hi Aaaron,
-> > > 
-> > > Have we grown any clue meanwhile about which Intel boxes need this and for
-> > > which we still need to keep the acpi backlight around?
-> > 
-> > First of all, there is a bunch of boxes where ACPI backlight works incorrectly
-> > because of the Win8 compatibility issue.  [In short, if we say we are compatible
-> > with Win8, the backlight AML goes into a special code path that is broken on
-> > those machines. Presumably Win8 uses native backlight control on them and that
-> > AML code path is never executed there.]  The collection of machines with this
-> > problem appears to be kind of random (various models from various vendors), but
-> > I *think* they are machines that originally shipped with Win7 with a Win8
-> > "upgrade" option (which in practice requires the BIOS to be updated anyway).
-> > 
-> > Because of that, last time we tried to switch all of the systems using i915
-> > and telling the BIOS that they are compatible with Win8 over to native backlight
-> > control, but that didn't work for two reasons.  The first reason is that some
-> > user space doesn't know how to use intel_backlight and needs to be taught about
-> > that (so some systems are just not ready for that switch).  The second and more
-> > fundamental reason is that the native backlight control simply doesn't work on
-> > some machines and we don't seem to have any idea why and how to debug this
-> > particular problem (mostly because we don't have enough information and we
-> > don't know what to ask for).
-> > 
-> > > I've grown _very_ reluctant to just adding tons of quirks to our driver for
-> > > the backlight.
-> > >
-> > > Almost all the quirks we have added recently (or that have been proposed
-> > > to be added) are for the backlight. Imo that indicates we get something
-> > > fundamentally wrong ...
-> > 
-> > This thing isn't really a quirk.  It rather is an option for the users of
-> > the systems where ACPI backlight doesn't work to switch over to the native
-> > backlight control using a command line switch.  This way they can at least
-> > *see* if the native backlight control works for them and (hopefully) report
-> > problems if that's not the case.  This gives us a chance to get more
-> > information about what the problem is and possibly to make some progress
-> > without making changes for everyone, reverting those changes when they don't
-> > work etc.
-> > 
-> > An alternative for them is to pass acpi_osi="!Windows 2012" which will probably
-> > make the ACPI backlight work for them again, but this rather is a step back,
-> > because we can't possibly learn anything new from that.
-> 
-> If Win8 is as broken as we are I'm ok with the module option. It just
-> sounded to me like right now we don't know of a way to make all machines
-> somewhat happy, combined with the other pile of random backlight issues
-> the assumption that we do something (maybe something a bit racy) that
-> windows doesn't do isn't too far-fetched. So I'm not wary of the machines
-> where the aml is busted for acpi_os=win8, but for the others where this
-> broke stuff.
-> 
-> Or do I miss something here?
+Hi Tejun,
+On Mon, Sep 09, 2013 at 09:58:15AM -0400, Tejun Heo wrote:
+>Hello,
+>
+>On Mon, Sep 09, 2013 at 07:56:34PM +0800, Wanpeng Li wrote:
+>> If allocate from low to high as what this patchset done will occupy the
+>> precious memory you mentioned?
+>
+>Yeah, and that'd be the reason why this behavior is dependent on a
+>kernel option.  That said, allocating some megs on top of kernel isn't
+>a big deal.  The wretched ISA DMA is mostly gone now and some megs
+>isn't gonna hurt 32bit DMAs in any noticeable way.  I wouldn't be too
+>surprised if nobody notices after switching the default behavior to
+>allocate early mem close to kernel.  Maybe the only case which might
+>be impacted is 32bit highmem configs, but they're messed up no matter
+>what anyway and even they shouldn't be affected noticeably if large
+>mapping is in use.
 
-The ACPI video driver doesn't do anything new now.  It only does things that
-did work before we started to tell BIOSes we're compatible with Win8.  The
-reason why they don't work on some machines now is not related to whether or
-not Win8 is broken, but to what is there in the ACPI tables on those machines.
-That *is* pure garbage, but Win8 users don't see that (presumably, because
-Win8 does't execute the AML in question).  We don't see that either with
-acpi_osi="!Windows 2012" (because then we don't execute that AML either).
+ISA DMA is still survive for 32bit highmem configs. In my desktop:
 
-Whether or not Win8 is broken doesn't matter here.  What matters is that we
-have to deal with broken AML somehow.
+c1000000 T _text => 16MB
+c1d09000 B _end  => 29MB
 
-One way may be to tell everyone affected by this to pass
-acpi_osi="!Windows 2012" in the kernel command line or possibly create a
-blacklist of those machines in the kernel (which Felipe has been pushing for
-recently) and wash our hands clean of this, but that leaves some exceptionally
-bad taste in my mouth.
+This patchset will alloc after 29MB. ;-)
 
-The alternative is to try to use native backlight in i915, which we did, but
-that didn't work on some machines.  I don't think we will know why it didn't
-work there before we collect some more information and that's not possible
-without user testing.  So, the idea is to make that testing possible without
-hacking the kernel and that's why we're introducing the new command line
-switch.  And we're going to ask users to try it and report back.
+Regards,
+Wanpeng Li 
 
-Thanks,
-Rafael
+>
+>Thanks.
+>
+>-- 
+>tejun
 
+--
+To unsubscribe, send a message with 'unsubscribe linux-mm' in
+the body to majordomo@kvack.org.  For more info on Linux MM,
+see: http://www.linux-mm.org/ .
+Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
