@@ -1,46 +1,29 @@
-From: Tejun Heo <tj@kernel.org>
-Subject: Re: [PATCH 00/11] x86, memblock: Allocate memory near kernel image
- before SRAT parsed.
-Date: Mon, 9 Sep 2013 09:58:15 -0400
-Message-ID: <20130909135815.GB25434@htj.dyndns.org>
-References: <1377596268-31552-1-git-send-email-tangchen@cn.fujitsu.com>
- <20130904192215.GG26609@mtj.dyndns.org>
- <52299935.0302450a.26c9.ffffb240SMTPIN_ADDED_BROKEN@mx.google.com>
- <20130906151526.GA22423@mtj.dyndns.org>
- <522db781.22ab440a.41b1.ffffd825SMTPIN_ADDED_BROKEN@mx.google.com>
+From: "H. Peter Anvin" <hpa@zytor.com>
+Subject: Re: [PATCH] x86, ACPI: Increase override tables number limit
+Date: Mon, 09 Sep 2013 07:49:50 -0700
+Message-ID: <522DE00E.3000208@zytor.com>
+References: <1378519680-10490-1-git-send-email-yinghai@kernel.org> <5524976.WyDjA8K7XS@vostro.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <owner-linux-mm@kvack.org>
-Content-Disposition: inline
-In-Reply-To: <522db781.22ab440a.41b1.ffffd825SMTPIN_ADDED_BROKEN@mx.google.com>
-Sender: owner-linux-mm@kvack.org
-To: Wanpeng Li <liwanp@linux.vnet.ibm.com>
-Cc: rjw@sisk.pl, lenb@kernel.org, tglx@linutronix.de, mingo@elte.hu, hpa@zytor.com, akpm@linux-foundation.org, trenn@suse.de, yinghai@kernel.org, jiang.liu@huawei.com, wency@cn.fujitsu.com, laijs@cn.fujitsu.com, isimatu.yasuaki@jp.fujitsu.com, izumi.taku@jp.fujitsu.com, mgorman@suse.de, minchan@kernel.org, mina86@mina86.com, gong.chen@linux.intel.com, vasilis.liaskovitis@profitbricks.com, lwoodman@redhat.com, riel@redhat.com, jweiner@redhat.com, prarit@redhat.com, zhangyanfei@cn.fujitsu.com, x86@kernel.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-mm@kvack.org, linux-acpi@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from terminus.zytor.com ([198.137.202.10]:56086 "EHLO mail.zytor.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753710Ab3IIOug (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 9 Sep 2013 10:50:36 -0400
+In-Reply-To: <5524976.WyDjA8K7XS@vostro.rjw.lan>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: Yinghai Lu <yinghai@kernel.org>, Tejun Heo <tj@kernel.org>, Thomas Renninger <trenn@suse.de>, Tang Chen <tangchen@cn.fujitsu.com>, Toshi Kani <toshi.kani@hp.com>, Len Brown <len.brown@intel.com>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 
-Hello,
+On 09/07/2013 03:08 PM, Rafael J. Wysocki wrote:
+> 
+> Peter, any objections to the changes below from the x86 perspective?
+> 
 
-On Mon, Sep 09, 2013 at 07:56:34PM +0800, Wanpeng Li wrote:
-> If allocate from low to high as what this patchset done will occupy the
-> precious memory you mentioned?
+No objection from me.
 
-Yeah, and that'd be the reason why this behavior is dependent on a
-kernel option.  That said, allocating some megs on top of kernel isn't
-a big deal.  The wretched ISA DMA is mostly gone now and some megs
-isn't gonna hurt 32bit DMAs in any noticeable way.  I wouldn't be too
-surprised if nobody notices after switching the default behavior to
-allocate early mem close to kernel.  Maybe the only case which might
-be impacted is 32bit highmem configs, but they're messed up no matter
-what anyway and even they shouldn't be affected noticeably if large
-mapping is in use.
+	-hpa
 
-Thanks.
 
--- 
-tejun
-
---
-To unsubscribe, send a message with 'unsubscribe linux-mm' in
-the body to majordomo@kvack.org.  For more info on Linux MM,
-see: http://www.linux-mm.org/ .
-Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
