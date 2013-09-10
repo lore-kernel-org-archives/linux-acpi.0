@@ -1,49 +1,111 @@
-From: Jani Nikula <jani.nikula@linux.intel.com>
-Subject: Re: [PATCH 2/2] ACPI / video / i915: Remove ACPI
-	backlight if firmware expects Windows 8
-Date: Tue, 10 Sep 2013 17:21:41 +0300
-Message-ID: <87bo40ahai.fsf@intel.com>
-References: <522D88C3.7000808@intel.com> <1793135.3qk7NfcINN@vostro.rjw.lan>
-	<20130909152118.GG27291@phenom.ffwll.local>
-	<5155010.Y1gov7SKhP@vostro.rjw.lan> <87eh8wail7.fsf@intel.com>
-	<1378821416.17982.56.camel@x230.lan>
+From: Mika Westerberg <mika.westerberg-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
+Subject: Re: [PATCH RESEND 1/2] i2c: prepare runtime PM support for I2C
+ client devices
+Date: Tue, 10 Sep 2013 17:26:31 +0300
+Message-ID: <20130910142631.GL7393@intel.com>
+References: <1378733679-19500-1-git-send-email-mika.westerberg@linux.intel.com>
+ <1378733679-19500-2-git-send-email-mika.westerberg@linux.intel.com>
+ <20130909154028.GP29403@sirena.org.uk>
+ <20130910075100.GK7393@intel.com>
+ <20130910122754.GK29403@sirena.org.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <intel-gfx-bounces+gcfxdi-intel-gfx=m.gmane.org@lists.freedesktop.org>
-In-Reply-To: <1378821416.17982.56.camel@x230.lan>
-List-Unsubscribe: <http://lists.freedesktop.org/mailman/options/intel-gfx>,
-	<mailto:intel-gfx-request@lists.freedesktop.org?subject=unsubscribe>
-List-Archive: <http://lists.freedesktop.org/archives/intel-gfx>
-List-Post: <mailto:intel-gfx@lists.freedesktop.org>
-List-Help: <mailto:intel-gfx-request@lists.freedesktop.org?subject=help>
-List-Subscribe: <http://lists.freedesktop.org/mailman/listinfo/intel-gfx>,
-	<mailto:intel-gfx-request@lists.freedesktop.org?subject=subscribe>
-Sender: intel-gfx-bounces+gcfxdi-intel-gfx=m.gmane.org@lists.freedesktop.org
-Errors-To: intel-gfx-bounces+gcfxdi-intel-gfx=m.gmane.org@lists.freedesktop.org
-To: Matthew Garrett <matthew.garrett@nebula.com>
-Cc: Aaron Lu <aaron.lu@intel.com>, Henrique de Moraes Holschuh <hmh@hmh.eng.br>, Seth Forshee <seth.forshee@canonical.com>, Daniel Vetter <daniel.vetter@ffwll.ch>, "intel-gfx@lists.freedesktop.org" <intel-gfx@lists.freedesktop.org>, Yves-Alexis Perez <corsac@debian.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "dri-devel@lists.freedesktop.org" <dri-devel@lists.freedesktop.org>, "Rafael J. Wysocki" <rjw@sisk.pl>, ACPI Devel Mailing List <linux-acpi@vger.kernel.org>, "Lee,
-	Chun-Yi" <joeyli.kernel@gmail.com>, Igor Gnatenko <i.gnatenko.brain@gmail.com>, Lee Chun-Yi <jlee@novell.com>, Len Brown <lenb@kernel.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <20130910122754.GK29403-GFdadSzt00ze9xe1eoZjHA@public.gmane.org>
+Sender: linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Mark Brown <broonie-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Cc: linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Wolfram Sang <wsa-z923LK4zBo2bacvFa/9K2g@public.gmane.org>, "Rafael J. Wysocki" <rafael.j.wysocki-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Lv Zheng <lv.zheng-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Aaron Lu <aaron.lu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-T24gVHVlLCAxMCBTZXAgMjAxMywgTWF0dGhldyBHYXJyZXR0IDxtYXR0aGV3LmdhcnJldHRAbmVi
-dWxhLmNvbT4gd3JvdGU6Cj4gT24gVHVlLCAyMDEzLTA5LTEwIGF0IDE2OjUzICswMzAwLCBKYW5p
-IE5pa3VsYSB3cm90ZToKPgo+PiBJIHRoaW5rIHRoZSBwYXJhbWV0ZXIgIkRvZXMgdGhlIEFDUEkg
-YmFja2xpZ2h0IGludGVyZmFjZSB3b3JrIG9yIG5vdCIKPj4gYmVsb25ncyB0byB0aGUgQUNQSSB2
-aWRlbyBkcml2ZXIuCj4KPiBUaGF0IGRlcGVuZHMgb24gaG93IFdpbmRvd3MgOCB3b3Jrcy4gSWYg
-V2luZG93cyA4IHBvbGljeSBpcyBoYW5kbGVkIGJ5Cj4gdGhlIEdQVSBkcml2ZXJzIHRoZW4gaXQg
-YmVsb25ncyBpbiBpOTE1LiBJZiBpdCdzIGhhbmRsZWQgYnkgdGhlIEFDUEkKPiBjb2RlIHRoZW4g
-aXQgYmVsb25ncyBpbiB0aGUgQUNQSSBjb2RlLgoKSSBmYWlsIHRvIHNlZSB0aGUgbG9naWMuIFdp
-bmRvd3MgOCBwb2xpY3kgZGljdGF0ZXMgd2hldGhlciB3ZSBjYW4gdXNlCnRoZSBBTUwgY29kZSBv
-ciBub3QuIElNSE8sIEFDUEkgY29kZSBpcyBpbiB0aGUgYmVzdCBwb3NpdGlvbiB0byBmaWd1cmUK
-dGhpcyBvdXQgYW5kIHF1aXJrIGFzIG5lY2Vzc2FyeS4gSXQncyB0aGUgcGFydCB0aGF0IGtub3dz
-IGFib3V0IFdpbmRvd3MKOCwgbm90IGk5MTUuCgo+IEJ1dCBJIGhhdmUgbm8gd2F5IG9mIGRldGVy
-bWluaW5nIHRoYXQsIHdoZXJlYXMgeW91IHdvcmsgZm9yIGEgY29tcGFueQo+IHRoYXQgcHJvZHVj
-ZXMgYSBXaW5kb3dzIDggdmlkZW8gZHJpdmVy4oCmCgpIZXJlIEkgZG8gc2VlIHRoZSBsb2dpYy4g
-SG93ZXZlciBzZWUgc2lnbmF0dXJlOyBJJ20gbm90IGluIHRoZSBiZXN0IG9mCnBvc2l0aW9ucyB0
-byBmaWd1cmUgb3V0IHRoaW5ncyBhYm91dCBXaW5kb3dzIDggdmlkZW8gZHJpdmVycy4gOykgQnV0
-CkknbGwgc2VlIHdoYXQgSSBjYW4gZG8uCgpCUiwKSmFuaS4KCgotLSAKSmFuaSBOaWt1bGEsIElu
-dGVsIE9wZW4gU291cmNlIFRlY2hub2xvZ3kgQ2VudGVyCl9fX19fX19fX19fX19fX19fX19fX19f
-X19fX19fX19fX19fX19fX19fX19fX19fCkludGVsLWdmeCBtYWlsaW5nIGxpc3QKSW50ZWwtZ2Z4
-QGxpc3RzLmZyZWVkZXNrdG9wLm9yZwpodHRwOi8vbGlzdHMuZnJlZWRlc2t0b3Aub3JnL21haWxt
-YW4vbGlzdGluZm8vaW50ZWwtZ2Z4Cg==
+On Tue, Sep 10, 2013 at 01:27:54PM +0100, Mark Brown wrote:
+> On Tue, Sep 10, 2013 at 10:51:00AM +0300, Mika Westerberg wrote:
+> > On Mon, Sep 09, 2013 at 04:40:28PM +0100, Mark Brown wrote:
+> 
+> > > How is this going to interact with client devices which are already
+> > > enabling runtime PM for themselves, and what are the advantages of doing
+> > > this over having the client device enable runtime PM for itself (given
+> > > that the client still needs an explicit put() adding)?
+> 
+> > My understanding is that you can call pm_runtime_enable() several times
+> > (provided that pm_runtime_disable() is called as many times). So that
+> > should have no effect on the current drivers that already take advantage of
+> > runtime PM.
+> 
+> Not quite...
+> 
+> > There is one difference though -- runtime PM is now blocked by default and
+> > it needs to be unblocked from the userspace per each device.
+> 
+> ...as you say.
+> 
+> This seems crazy, why on earth would we want to have userspace be forced
+> to manually go through every single device and manually enable power
+> saving?  I can't see anyone finding that helpful and it's going to be a
+> pain to deploy.
+
+There are things like HID over I2C devices (e.g touch screen) where going
+to lower power states too aggressively makes the touch experience really
+sluggish. However, other HID over I2C devices like sensor hubs it doesn't
+matter that much. In order to get the best performance we have runtime PM
+blocked by default (and leave it up to the user to unblock to get power
+savings).
+
+That's basically what PCI drivers currently do.
+
+> However I had thought it was just a case of the drivers doing a put()
+> instead of their current code to enable runtime PM (you mention that
+> later on)?
+
+User still needs to unblock runtime PM for the device. The driver can call
+the runtime PM functions but they don't have any effect until runtime PM is
+unblocked by the user.
+
+However, I don't have problems dropping the call to pm_runtime_forbid() in
+this patch and leave it up to the user to decide whether runtime PM should
+be blocked for the device.
+
+> That seems both sensible and doable, though it would need
+> doing as part of the conversion to avoid regressions and I'd expect it
+> does mean that SPI needs to be converted at the same time.
+
+OK.
+
+> > For the advantages compared to each driver handling it completely
+> > themselves:
+> 
+> > 	- Few lines less as you only need to call _put().
+> > 	- It follows what is already been done for other buses, like PCI
+> > 	  and AMBA .
+> > 	- The I2C core makes sure that the device is available (from bus
+> > 	  point of view) when the driver ->probe() is called.
+> 
+> I can't understand your last point here at all, sorry.  Can you expand
+> please?
+
+Sorry about that.
+
+At least with ACPI enumerated I2C client devices, they might be powered off
+by the BIOS (there are power resources attached to the devices). So when
+the driver ->probe() is called we can't access the device's registers etc.
+
+So we bind the device to the ACPI power domain (the second patch in this
+series) and then call pm_runtime_get() for the device. That makes sure that
+the device is accessible when ->probe() is called.
+
+> 
+> > > Given that it's relatively common for devices to have both I2C and SPI
+> > > control it seems like it'd be sensible to keep the policy common between
+> > > the two buses to simplify driver implementation.
+> 
+> > Yes and IMHO if I2C and SPI follows what has already been done for other
+> > buses it should make the driver writer's job easier as the usage is similar
+> > from one bus to another.
+> 
+> So then the obvious followup question is why this is even something that
+> needs to be implemented per bus?  Shouldn't we be enhancing the driver
+> core to do this, or is that the long term plan and this is a step on the
+> road to doing that?
+
+If we end up all buses implementing the same mechanism, I think it makes
+sense to move it to the driver core.
