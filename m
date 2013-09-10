@@ -1,61 +1,284 @@
-From: Wanpeng Li <liwanp@linux.vnet.ibm.com>
-Subject: Re: [PATCH 00/11] x86, memblock: Allocate memory near kernel image
- before SRAT parsed.
-Date: Tue, 10 Sep 2013 07:58:00 +0800
-Message-ID: <27278.8297072568$1378771112@news.gmane.org>
-References: <1377596268-31552-1-git-send-email-tangchen@cn.fujitsu.com>
- <20130904192215.GG26609@mtj.dyndns.org>
- <52299935.0302450a.26c9.ffffb240SMTPIN_ADDED_BROKEN@mx.google.com>
- <20130906151526.GA22423@mtj.dyndns.org>
- <522db781.22ab440a.41b1.ffffd825SMTPIN_ADDED_BROKEN@mx.google.com>
- <20130909135815.GB25434@htj.dyndns.org>
-Reply-To: Wanpeng Li <liwanp@linux.vnet.ibm.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <owner-linux-mm@kvack.org>
-Content-Disposition: inline
-In-Reply-To: <20130909135815.GB25434@htj.dyndns.org>
-Sender: owner-linux-mm@kvack.org
-To: Tejun Heo <tj@kernel.org>
-Cc: rjw@sisk.pl, lenb@kernel.org, tglx@linutronix.de, mingo@elte.hu, hpa@zytor.com, akpm@linux-foundation.org, trenn@suse.de, yinghai@kernel.org, jiang.liu@huawei.com, wency@cn.fujitsu.com, laijs@cn.fujitsu.com, isimatu.yasuaki@jp.fujitsu.com, izumi.taku@jp.fujitsu.com, mgorman@suse.de, minchan@kernel.org, mina86@mina86.com, gong.chen@linux.intel.com, vasilis.liaskovitis@profitbricks.com, lwoodman@redhat.com, riel@redhat.com, jweiner@redhat.com, prarit@redhat.com, zhangyanfei@cn.fujitsu.com, x86@kernel.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-mm@kvack.org, linux-acpi@vger.kernel.org
+From: tianyu.lan@intel.com
+Subject: [PATCH 2/2] PCI/ACPI: Convert ACPI PCI Hot Plug core debug fuction to dynamic debug function
+Date: Mon,  9 Sep 2013 23:17:15 -0400
+Message-ID: <1378783035-15681-2-git-send-email-tianyu.lan@intel.com>
+References: <1378783035-15681-1-git-send-email-tianyu.lan@intel.com>
+Return-path: <linux-pci-owner@vger.kernel.org>
+In-Reply-To: <1378783035-15681-1-git-send-email-tianyu.lan@intel.com>
+Sender: linux-pci-owner@vger.kernel.org
+To: lenb@kernel.org, rjw@sisk.pl, bhelgaas@google.com
+Cc: Lan Tianyu <tianyu.lan@intel.com>, linux-acpi@vger.kernel.org, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hi Tejun,
-On Mon, Sep 09, 2013 at 09:58:15AM -0400, Tejun Heo wrote:
->Hello,
->
->On Mon, Sep 09, 2013 at 07:56:34PM +0800, Wanpeng Li wrote:
->> If allocate from low to high as what this patchset done will occupy the
->> precious memory you mentioned?
->
->Yeah, and that'd be the reason why this behavior is dependent on a
->kernel option.  That said, allocating some megs on top of kernel isn't
->a big deal.  The wretched ISA DMA is mostly gone now and some megs
->isn't gonna hurt 32bit DMAs in any noticeable way.  I wouldn't be too
->surprised if nobody notices after switching the default behavior to
->allocate early mem close to kernel.  Maybe the only case which might
->be impacted is 32bit highmem configs, but they're messed up no matter
->what anyway and even they shouldn't be affected noticeably if large
->mapping is in use.
+From: Lan Tianyu <tianyu.lan@intel.com>
 
-ISA DMA is still survive for 32bit highmem configs. In my desktop:
+This patch is to use pr_debug/info/warn/err to replace acpiphp debug
+functions and remove module's debug param.
 
-c1000000 T _text => 16MB
-c1d09000 B _end  => 29MB
+Signed-off-by: Lan Tianyu <tianyu.lan@intel.com>
+---
+ drivers/pci/hotplug/acpiphp.h      | 10 ----------
+ drivers/pci/hotplug/acpiphp_core.c | 35 +++++++++++++++++------------------
+ drivers/pci/hotplug/acpiphp_glue.c | 23 ++++++++++++-----------
+ 3 files changed, 29 insertions(+), 39 deletions(-)
 
-This patchset will alloc after 29MB. ;-)
-
-Regards,
-Wanpeng Li 
-
->
->Thanks.
->
->-- 
->tejun
-
---
-To unsubscribe, send a message with 'unsubscribe linux-mm' in
-the body to majordomo@kvack.org.  For more info on Linux MM,
-see: http://www.linux-mm.org/ .
-Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
+diff --git a/drivers/pci/hotplug/acpiphp.h b/drivers/pci/hotplug/acpiphp.h
+index f4e0289..26100f5 100644
+--- a/drivers/pci/hotplug/acpiphp.h
++++ b/drivers/pci/hotplug/acpiphp.h
+@@ -39,16 +39,6 @@
+ #include <linux/mutex.h>
+ #include <linux/pci_hotplug.h>
+ 
+-#define dbg(format, arg...)					\
+-	do {							\
+-		if (acpiphp_debug)				\
+-			printk(KERN_DEBUG "%s: " format,	\
+-				MY_NAME , ## arg);		\
+-	} while (0)
+-#define err(format, arg...) printk(KERN_ERR "%s: " format, MY_NAME , ## arg)
+-#define info(format, arg...) printk(KERN_INFO "%s: " format, MY_NAME , ## arg)
+-#define warn(format, arg...) printk(KERN_WARNING "%s: " format, MY_NAME , ## arg)
+-
+ struct acpiphp_context;
+ struct acpiphp_bridge;
+ struct acpiphp_slot;
+diff --git a/drivers/pci/hotplug/acpiphp_core.c b/drivers/pci/hotplug/acpiphp_core.c
+index bf2203e..a56ae79 100644
+--- a/drivers/pci/hotplug/acpiphp_core.c
++++ b/drivers/pci/hotplug/acpiphp_core.c
+@@ -31,6 +31,8 @@
+  *
+  */
+ 
++#define pr_fmt(fmt) "acpiphp: " fmt
++
+ #include <linux/init.h>
+ #include <linux/module.h>
+ #include <linux/moduleparam.h>
+@@ -43,12 +45,9 @@
+ #include <linux/smp.h>
+ #include "acpiphp.h"
+ 
+-#define MY_NAME	"acpiphp"
+-
+ /* name size which is used for entries in pcihpfs */
+ #define SLOT_NAME_SIZE  21              /* {_SUN} */
+ 
+-bool acpiphp_debug;
+ bool acpiphp_disabled;
+ 
+ /* local variables */
+@@ -61,9 +60,7 @@ static struct acpiphp_attention_info *attention_info;
+ MODULE_AUTHOR(DRIVER_AUTHOR);
+ MODULE_DESCRIPTION(DRIVER_DESC);
+ MODULE_LICENSE("GPL");
+-MODULE_PARM_DESC(debug, "Debugging mode enabled or not");
+ MODULE_PARM_DESC(disable, "disable acpiphp driver");
+-module_param_named(debug, acpiphp_debug, bool, 0644);
+ module_param_named(disable, acpiphp_disabled, bool, 0444);
+ 
+ /* export the attention callback registration methods */
+@@ -139,7 +136,7 @@ static int enable_slot(struct hotplug_slot *hotplug_slot)
+ {
+ 	struct slot *slot = hotplug_slot->private;
+ 
+-	dbg("%s - physical_slot = %s\n", __func__, slot_name(slot));
++	pr_debug("%s - physical_slot = %s\n", __func__, slot_name(slot));
+ 
+ 	/* enable the specified slot */
+ 	return acpiphp_enable_slot(slot->acpi_slot);
+@@ -156,7 +153,7 @@ static int disable_slot(struct hotplug_slot *hotplug_slot)
+ {
+ 	struct slot *slot = hotplug_slot->private;
+ 
+-	dbg("%s - physical_slot = %s\n", __func__, slot_name(slot));
++	pr_debug("%s - physical_slot = %s\n", __func__, slot_name(slot));
+ 
+ 	/* disable the specified slot */
+ 	return acpiphp_disable_and_eject_slot(slot->acpi_slot);
+@@ -176,7 +173,8 @@ static int disable_slot(struct hotplug_slot *hotplug_slot)
+  {
+ 	int retval = -ENODEV;
+ 
+-	dbg("%s - physical_slot = %s\n", __func__, hotplug_slot_name(hotplug_slot));
++	pr_debug("%s - physical_slot = %s\n", __func__,
++		hotplug_slot_name(hotplug_slot));
+  
+ 	if (attention_info && try_module_get(attention_info->owner)) {
+ 		retval = attention_info->set_attn(hotplug_slot, status);
+@@ -199,7 +197,7 @@ static int get_power_status(struct hotplug_slot *hotplug_slot, u8 *value)
+ {
+ 	struct slot *slot = hotplug_slot->private;
+ 
+-	dbg("%s - physical_slot = %s\n", __func__, slot_name(slot));
++	pr_debug("%s - physical_slot = %s\n", __func__, slot_name(slot));
+ 
+ 	*value = acpiphp_get_power_status(slot->acpi_slot);
+ 
+@@ -221,7 +219,8 @@ static int get_attention_status(struct hotplug_slot *hotplug_slot, u8 *value)
+ {
+ 	int retval = -EINVAL;
+ 
+-	dbg("%s - physical_slot = %s\n", __func__, hotplug_slot_name(hotplug_slot));
++	pr_debug("%s - physical_slot = %s\n", __func__,
++		hotplug_slot_name(hotplug_slot));
+ 
+ 	if (attention_info && try_module_get(attention_info->owner)) {
+ 		retval = attention_info->get_attn(hotplug_slot, value);
+@@ -244,7 +243,7 @@ static int get_latch_status(struct hotplug_slot *hotplug_slot, u8 *value)
+ {
+ 	struct slot *slot = hotplug_slot->private;
+ 
+-	dbg("%s - physical_slot = %s\n", __func__, slot_name(slot));
++	pr_debug("%s - physical_slot = %s\n", __func__, slot_name(slot));
+ 
+ 	*value = acpiphp_get_latch_status(slot->acpi_slot);
+ 
+@@ -264,7 +263,7 @@ static int get_adapter_status(struct hotplug_slot *hotplug_slot, u8 *value)
+ {
+ 	struct slot *slot = hotplug_slot->private;
+ 
+-	dbg("%s - physical_slot = %s\n", __func__, slot_name(slot));
++	pr_debug("%s - physical_slot = %s\n", __func__, slot_name(slot));
+ 
+ 	*value = acpiphp_get_adapter_status(slot->acpi_slot);
+ 
+@@ -279,7 +278,7 @@ static void release_slot(struct hotplug_slot *hotplug_slot)
+ {
+ 	struct slot *slot = hotplug_slot->private;
+ 
+-	dbg("%s - physical_slot = %s\n", __func__, slot_name(slot));
++	pr_debug("%s - physical_slot = %s\n", __func__, slot_name(slot));
+ 
+ 	kfree(slot->hotplug_slot);
+ 	kfree(slot);
+@@ -322,11 +321,11 @@ int acpiphp_register_hotplug_slot(struct acpiphp_slot *acpiphp_slot,
+ 	if (retval == -EBUSY)
+ 		goto error_hpslot;
+ 	if (retval) {
+-		err("pci_hp_register failed with error %d\n", retval);
++		pr_err("pci_hp_register failed with error %d\n", retval);
+ 		goto error_hpslot;
+  	}
+ 
+-	info("Slot [%s] registered\n", slot_name(slot));
++	pr_info("Slot [%s] registered\n", slot_name(slot));
+ 
+ 	return 0;
+ error_hpslot:
+@@ -343,17 +342,17 @@ void acpiphp_unregister_hotplug_slot(struct acpiphp_slot *acpiphp_slot)
+ 	struct slot *slot = acpiphp_slot->slot;
+ 	int retval = 0;
+ 
+-	info("Slot [%s] unregistered\n", slot_name(slot));
++	pr_info("Slot [%s] unregistered\n", slot_name(slot));
+ 
+ 	retval = pci_hp_deregister(slot->hotplug_slot);
+ 	if (retval)
+-		err("pci_hp_deregister failed with error %d\n", retval);
++		pr_err("pci_hp_deregister failed with error %d\n", retval);
+ }
+ 
+ 
+ void __init acpiphp_init(void)
+ {
+-	info(DRIVER_DESC " version: " DRIVER_VERSION "%s\n",
++	pr_info(DRIVER_DESC " version: " DRIVER_VERSION "%s\n",
+ 		acpiphp_disabled ? ", disabled by user; please report a bug"
+ 				 : "");
+ }
+diff --git a/drivers/pci/hotplug/acpiphp_glue.c b/drivers/pci/hotplug/acpiphp_glue.c
+index 0b7d23b..6557702 100644
+--- a/drivers/pci/hotplug/acpiphp_glue.c
++++ b/drivers/pci/hotplug/acpiphp_glue.c
+@@ -39,6 +39,8 @@
+  *    bus. It loses the refcount when the the driver unloads.
+  */
+ 
++#define pr_fmt(fmt) "acpiphp_glue: " fmt
++
+ #include <linux/init.h>
+ #include <linux/module.h>
+ 
+@@ -58,8 +60,6 @@ static LIST_HEAD(bridge_list);
+ static DEFINE_MUTEX(bridge_mutex);
+ static DEFINE_MUTEX(acpiphp_context_lock);
+ 
+-#define MY_NAME "acpiphp_glue"
+-
+ static void handle_hotplug_event(acpi_handle handle, u32 type, void *data);
+ static void acpiphp_sanitize_bus(struct pci_bus *bus);
+ static void acpiphp_set_hpp_values(struct pci_bus *bus);
+@@ -335,7 +335,7 @@ static acpi_status register_slot(acpi_handle handle, u32 lvl, void *data,
+ 		if (ACPI_FAILURE(status))
+ 			sun = bridge->nr_slots;
+ 
+-		dbg("found ACPI PCI Hotplug slot %llu at PCI %04x:%02x:%02x\n",
++		pr_debug("found ACPI PCI Hotplug slot %llu at PCI %04x:%02x:%02x\n",
+ 		    sun, pci_domain_nr(pbus), pbus->number, device);
+ 
+ 		retval = acpiphp_register_hotplug_slot(slot, sun);
+@@ -343,10 +343,10 @@ static acpi_status register_slot(acpi_handle handle, u32 lvl, void *data,
+ 			slot->slot = NULL;
+ 			bridge->nr_slots--;
+ 			if (retval == -EBUSY)
+-				warn("Slot %llu already registered by another "
++				pr_warn("Slot %llu already registered by another "
+ 					"hotplug driver\n", sun);
+ 			else
+-				warn("acpiphp_register_hotplug_slot failed "
++				pr_warn("acpiphp_register_hotplug_slot failed "
+ 					"(err code = 0x%x)\n", retval);
+ 		}
+ 		/* Even if the slot registration fails, we can still use it. */
+@@ -369,7 +369,7 @@ static acpi_status register_slot(acpi_handle handle, u32 lvl, void *data,
+ 		if (register_hotplug_dock_device(handle,
+ 			&acpiphp_dock_ops, context,
+ 			acpiphp_dock_init, acpiphp_dock_release))
+-			dbg("failed to register dock device\n");
++			pr_debug("failed to register dock device\n");
+ 	}
+ 
+ 	/* install notify handler */
+@@ -427,7 +427,7 @@ static void cleanup_bridge(struct acpiphp_bridge *bridge)
+ 							ACPI_SYSTEM_NOTIFY,
+ 							handle_hotplug_event);
+ 				if (ACPI_FAILURE(status))
+-					err("failed to remove notify handler\n");
++					pr_err("failed to remove notify handler\n");
+ 			}
+ 		}
+ 		if (slot->slot)
+@@ -830,8 +830,9 @@ static void hotplug_event(acpi_handle handle, u32 type, void *data)
+ 	switch (type) {
+ 	case ACPI_NOTIFY_BUS_CHECK:
+ 		/* bus re-enumerate */
+-		dbg("%s: Bus check notify on %s\n", __func__, objname);
+-		dbg("%s: re-enumerating slots under %s\n", __func__, objname);
++		pr_debug("%s: Bus check notify on %s\n", __func__, objname);
++		pr_debug("%s: re-enumerating slots under %s\n",
++			 __func__, objname);
+ 		if (bridge) {
+ 			acpiphp_check_bridge(bridge);
+ 		} else {
+@@ -845,7 +846,7 @@ static void hotplug_event(acpi_handle handle, u32 type, void *data)
+ 
+ 	case ACPI_NOTIFY_DEVICE_CHECK:
+ 		/* device check */
+-		dbg("%s: Device check notify on %s\n", __func__, objname);
++		pr_debug("%s: Device check notify on %s\n", __func__, objname);
+ 		if (bridge) {
+ 			acpiphp_check_bridge(bridge);
+ 		} else {
+@@ -866,7 +867,7 @@ static void hotplug_event(acpi_handle handle, u32 type, void *data)
+ 
+ 	case ACPI_NOTIFY_EJECT_REQUEST:
+ 		/* request device eject */
+-		dbg("%s: Device eject notify on %s\n", __func__, objname);
++		pr_debug("%s: Device eject notify on %s\n", __func__, objname);
+ 		acpiphp_disable_and_eject_slot(func->slot);
+ 		break;
+ 	}
+-- 
+1.8.2.1
