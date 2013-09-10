@@ -1,62 +1,71 @@
-From: Aaron Lu <aaron.lu@intel.com>
-Subject: Re: [PATCH 2/2] ACPI / video / i915: Remove ACPI backlight if firmware
- expects Windows 8
-Date: Tue, 10 Sep 2013 11:27:34 +0800
-Message-ID: <522E91A6.6040600@intel.com>
-References: <522D88C3.7000808@intel.com> <522D89EC.6050103@intel.com> <1378727093.13401.3.camel@ThinkPad-X230.localdomain>
+From: Jonathan Callen <jcallen@gentoo.org>
+Subject: Re: [PATCH] ACPI: Move acpi_bus_get_device() from bus.c to scan.c
+Date: Mon, 09 Sep 2013 23:52:44 -0400
+Message-ID: <522E978C.6040506@gentoo.org>
+References: <3314440.iryh4ZRtRb@vostro.rjw.lan>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga11.intel.com ([192.55.52.93]:5537 "EHLO mga11.intel.com"
+Received: from smtp.gentoo.org ([140.211.166.183]:42146 "EHLO smtp.gentoo.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750925Ab3IJD1D (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 9 Sep 2013 23:27:03 -0400
-In-Reply-To: <1378727093.13401.3.camel@ThinkPad-X230.localdomain>
+	id S1751648Ab3IJDxE (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 9 Sep 2013 23:53:04 -0400
+In-Reply-To: <3314440.iryh4ZRtRb@vostro.rjw.lan>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Igor Gnatenko <i.gnatenko.brain@gmail.com>
-Cc: ACPI Devel Mailing List <linux-acpi@vger.kernel.org>, "Rafael J. Wysocki" <rjw@sisk.pl>, Matthew Garrett <matthew.garrett@nebula.com>, Seth Forshee <seth.forshee@canonical.com>, "Lee, Chun-Yi" <joeyli.kernel@gmail.com>, Daniel Vetter <daniel.vetter@ffwll.ch>, "intel-gfx@lists.freedesktop.org" <intel-gfx@lists.freedesktop.org>, "dri-devel@lists.freedesktop.org" <dri-devel@lists.freedesktop.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Len Brown <lenb@kernel.org>, Yves-Alexis Perez <corsac@debian.org>, Felipe Contreras <felipe.contreras@gmail.com>, Lee Chun-Yi <jlee@novell.com>, Henrique de Moraes Holschuh <hmh@hmh.eng.br>
+To: "Rafael J. Wysocki" <rjw@sisk.pl>, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>
+Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>
 
-On 09/09/2013 07:44 PM, Igor Gnatenko wrote:
-> On Mon, 2013-09-09 at 16:42 +0800, Aaron Lu wrote:
->> diff --git a/drivers/gpu/drm/i915/i915_dma.c b/drivers/gpu/drm/i915/i915_dma.c
->> index f466980..75fba17 100644
->> --- a/drivers/gpu/drm/i915/i915_dma.c
->> +++ b/drivers/gpu/drm/i915/i915_dma.c
->> @@ -1650,7 +1650,7 @@ int i915_driver_load(struct drm_device *dev, unsigned long flags)
->>  	if (INTEL_INFO(dev)->num_pipes) {
->>  		/* Must be done after probing outputs */
->>  		intel_opregion_init(dev);
->> -		acpi_video_register();
->> +		__acpi_video_register(i915_take_over_backlight);
->>  	}
->>  
->>  	if (IS_GEN5(dev))
-> 
-> I can't compile:
-> 
-> 
-> DEBUG: drivers/gpu/drm/i915/i915_dma.c: In function 'i915_driver_load':
-> DEBUG: drivers/gpu/drm/i915/i915_dma.c:1661:3: error: implicit
-> declaration of function
-> '__acpi_video_register' [-Werror=implicit-function-declaration]
-> DEBUG:    __acpi_video_register(i915_take_over_backlight);
-> DEBUG:    ^
-> DEBUG: cc1: some warnings being treated as errors
-> DEBUG: make[4]: *** [drivers/gpu/drm/i915/i915_dma.o] Error 1
-> DEBUG: make[3]: *** [drivers/gpu/drm/i915] Error 2
-> DEBUG: make[2]: *** [drivers/gpu/drm] Error 2
-> DEBUG: make[1]: *** [drivers/gpu] Error 2
-> DEBUG: make: *** [drivers] Error 2
-> 
+-----BEGIN PGP SIGNED MESSAGE-----
+Hash: SHA512
 
-The two patches are based on top of Rafael's linux-next tree. I just
-tried it again, no compile problem for me. I also tried on today Linus'
-master tree, as there are some updates from i915, two conflicts exist.
-I've just resolved them and will update it in next revision.
-If you want to try it now, please use:
-https://github.com/aaronlu/linux acpi_video_rework
+On 07/27/2013 09:24 AM, Rafael J. Wysocki wrote:
+> From: Rafael J. Wysocki <rafael.j.wysocki@intel.com> Subject: ACPI: Move acpi_bus_get_device()
+> from bus.c to scan.c
+> 
+> Move acpi_bus_get_device() from bus.c to scan.c which allows acpi_bus_data_handler() to become
+> static and clean up the latter.
+> 
+> Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com> --- drivers/acpi/bus.c      |
+> 21 --------------------- drivers/acpi/scan.c     |   30 ++++++++++++++++++++++-------- 
+> include/acpi/acpi_bus.h |    1 - 3 files changed, 22 insertions(+), 30 deletions(-)
+> 
+> Index: linux-pm/drivers/acpi/bus.c 
+> =================================================================== ---
+> linux-pm.orig/drivers/acpi/bus.c +++ linux-pm/drivers/acpi/bus.c @@ -89,27 +89,6 @@ static
+> struct dmi_system_id dsdt_dmi_tab Device Management
+[cut]
+> - -EXPORT_SYMBOL(acpi_bus_get_device); - acpi_status acpi_bus_get_status_handle(acpi_handle
+> handle, unsigned long long *sta) { Index: linux-pm/drivers/acpi/scan.c 
+> =================================================================== ---
+> linux-pm.orig/drivers/acpi/scan.c +++ linux-pm/drivers/acpi/scan.c @@ -970,6 +970,28 @@ struct
+> bus_type acpi_bus_type = { .uevent		= acpi_device_uevent, };
+> 
+[cut]
+> +} +EXPORT_SYMBOL_GPL(acpi_bus_get_device); +
 
-Thanks,
-Aaron
+Was it intentional to change the EXPORT_SYMBOL to EXPORT_SYMBOL_GPL here?  While I understand that
+it is completely unsupported anyway, this change does break at least the latest version of the
+proprietary nvidia graphics driver.
+
+- -- 
+Jonathan Callen
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2.0.21 (GNU/Linux)
+Comment: Using GnuPG with Thunderbird - http://www.enigmail.net/
+
+iQIcBAEBCgAGBQJSLpeMAAoJELHSF2kinlg4EGEP/2lav3ETWSAs7BqeDGCuacZ4
+CqkWJlMJDvYawW443KdBEb8aM27tx+gqNp+ktHkWXuXG97X79yAVTRMggOCuaqkb
+AgYJkDXRY+64UWtn2GeCM4vSsBOB86UoSspdZXHzF6JBDXrdd2ZXkpb1q7u1xBdi
+SZIz3PxZmBLMVcxu+Bh67e1hRXbxKxfKlF1Zl7MC/9NDnxkZmrOklqY2VamG864a
+OkFU12bvgdGCwOnq1gHzDjt2PIjL7RNxY4wPWvnyJ1DDOi2tb5tC7hw8VoUTqUPx
+h81QmAY2T/XFWTpfNnmJgrQYw+AE8B1TNz+ciKWRi0VCAAjYdomPCYfjxnfYBvN2
+a1RRAUMG7DFOZxzBNE9Yv371zEAKLAt2Kbt5PynSqTiivRu7XJOpz5326Q1P9Csy
+HZ369Gu7oC2ErAEv3mO82do5pM6/10DpwFPhY5eGq8l7rdStk8cRdUW1Ivc/d0sx
+CDt0ZDVV+bvtduwnMTRiXWIgR2w/iUuNcwU5RfU/2NsJLyXeUoMdR0OHLa1sDSVk
+bK3Jc6AAPQG8aV83Je50eFeYUQgYN9DZ2eRR+KtzBFaI4TXXzq3H+1E5QBBqbfc8
+6PZuVC+CwMYmmhsozvkyyKIdYVJL0KiWOgaZueNq6Z2Fqiupr4BrMpKvS1rkix4y
+Pn0TU7V4arGbXGzJN1VZ
+=SHrw
+-----END PGP SIGNATURE-----
