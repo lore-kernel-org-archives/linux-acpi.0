@@ -1,50 +1,118 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: [RFC] MAINTAINERS: Update ACPI git tree
-Date: Tue, 10 Sep 2013 21:24:36 +0200
-Message-ID: <4081683.00Tr2EONhd@vostro.rjw.lan>
-References: <1378820101-28243-1-git-send-email-jarkko.nikula@linux.intel.com>
+From: "Rafael J. Wysocki" <rjw-KKrjLPT3xs0@public.gmane.org>
+Subject: Re: [PATCH RESEND 1/2] i2c: prepare runtime PM support for I2C client devices
+Date: Tue, 10 Sep 2013 22:04:21 +0200
+Message-ID: <3397524.g9aUWuArnm@vostro.rjw.lan>
+References: <1378733679-19500-1-git-send-email-mika.westerberg@linux.intel.com> <20130910142631.GL7393@intel.com> <20130910161321.GM29403@sirena.org.uk>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7Bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from hydra.sisk.pl ([212.160.235.94]:42022 "EHLO hydra.sisk.pl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751166Ab3IJTNe (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 10 Sep 2013 15:13:34 -0400
-In-Reply-To: <1378820101-28243-1-git-send-email-jarkko.nikula@linux.intel.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Return-path: <linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20130910161321.GM29403-GFdadSzt00ze9xe1eoZjHA@public.gmane.org>
+Sender: linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Mark Brown <broonie-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Cc: Mika Westerberg <mika.westerberg-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>, linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Wolfram Sang <wsa-z923LK4zBo2bacvFa/9K2g@public.gmane.org>, "Rafael J. Wysocki" <rafael.j.wysocki-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Lv Zheng <lv.zheng-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Aaron Lu <aaron.lu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
-To: Jarkko Nikula <jarkko.nikula@linux.intel.com>
-Cc: linux-acpi@vger.kernel.org, Len Brown <lenb@kernel.org>
 
-On Tuesday, September 10, 2013 04:35:01 PM Jarkko Nikula wrote:
-> Update ACPI git tree URL since recent ACPI updates are merged from
-> git://git.kernel.org/pub/scm/linux/kernel/git/rafael/linux-pm
-> and since there hasn't been updates for a while in
-> git://git.kernel.org/pub/scm/linux/kernel/git/lenb/linux
+On Tuesday, September 10, 2013 05:13:21 PM Mark Brown wrote:
+> On Tue, Sep 10, 2013 at 05:26:31PM +0300, Mika Westerberg wrote:
+> > On Tue, Sep 10, 2013 at 01:27:54PM +0100, Mark Brown wrote:
 > 
-> Signed-off-by: Jarkko Nikula <jarkko.nikula@linux.intel.com>
+> > > > There is one difference though -- runtime PM is now blocked by default and
+> > > > it needs to be unblocked from the userspace per each device.
+> 
+> > > ...as you say.
+> 
+> > > This seems crazy, why on earth would we want to have userspace be forced
+> > > to manually go through every single device and manually enable power
+> > > saving?  I can't see anyone finding that helpful and it's going to be a
+> > > pain to deploy.
+> 
+> > There are things like HID over I2C devices (e.g touch screen) where going
+> > to lower power states too aggressively makes the touch experience really
+> > sluggish. However, other HID over I2C devices like sensor hubs it doesn't
+> > matter that much. In order to get the best performance we have runtime PM
+> > blocked by default (and leave it up to the user to unblock to get power
+> > savings).
+> 
+> > That's basically what PCI drivers currently do.
+> 
+> So those specific devices need to implement runtime PM in an appropriate
+> fashion.  That's no need to implement a poor default for every single
+> device to work around poor implementations from some, especially when it
+> requires a userspace update to get acceptable performance again from the
+> unaffected devices.
+> 
+> > > However I had thought it was just a case of the drivers doing a put()
+> > > instead of their current code to enable runtime PM (you mention that
+> > > later on)?
+> 
+> > User still needs to unblock runtime PM for the device. The driver can call
+> > the runtime PM functions but they don't have any effect until runtime PM is
+> > unblocked by the user.
+> 
+> > However, I don't have problems dropping the call to pm_runtime_forbid() in
+> > this patch and leave it up to the user to decide whether runtime PM should
+> > be blocked for the device.
+> 
+> I think this is essential - we can't really go around forcing userspace
+> updates to restore runtime power management, nobody is going to thank us
+> for that and it sounds like the issue you're trying to solve is device
+> specific anyway.
 
-I'm going to apply this, thanks!
+In fact, that's all about what the default should be, because user space
+can very easily change it either way (it takes one loop in shell code to do
+that for all devices on the given bus).
 
-> ---
->  MAINTAINERS | 2 +-
->  1 file changed, 1 insertion(+), 1 deletion(-)
+And I'm fine with defaulting to "auto".
+
+> > > > 	- The I2C core makes sure that the device is available (from bus
+> > > > 	  point of view) when the driver ->probe() is called.
 > 
-> diff --git a/MAINTAINERS b/MAINTAINERS
-> index 87efa1f..95f7f83 100644
-> --- a/MAINTAINERS
-> +++ b/MAINTAINERS
-> @@ -241,7 +241,7 @@ M:	Rafael J. Wysocki <rjw@sisk.pl>
->  L:	linux-acpi@vger.kernel.org
->  W:	http://www.lesswatts.org/projects/acpi/
->  Q:	http://patchwork.kernel.org/project/linux-acpi/list/
-> -T:	git git://git.kernel.org/pub/scm/linux/kernel/git/lenb/linux
-> +T:	git git://git.kernel.org/pub/scm/linux/kernel/git/rafael/linux-pm
->  S:	Supported
->  F:	drivers/acpi/
->  F:	drivers/pnp/pnpacpi/
+> > > I can't understand your last point here at all, sorry.  Can you expand
+> > > please?
 > 
--- 
-I speak only for myself.
-Rafael J. Wysocki, Intel Open Source Technology Center.
+> > Sorry about that.
+> 
+> > At least with ACPI enumerated I2C client devices, they might be powered off
+> > by the BIOS (there are power resources attached to the devices). So when
+> > the driver ->probe() is called we can't access the device's registers etc.
+> 
+> > So we bind the device to the ACPI power domain (the second patch in this
+> > series) and then call pm_runtime_get() for the device. That makes sure that
+> > the device is accessible when ->probe() is called.
+> 
+> OK, that is very much not the model which embedded systems follow, in
+> embedded systems the driver for the device is fully in control of its
+> own power.  It gets resources like GPIOs and regulators which allow it
+> to make fine grained decisions.
+
+There are platforms where those resources are simply not available for
+direct manipulation and we need to use ACPI methods for power management.
+
+Now, since those methods are used in pretty much the same way for all I2C
+devices, we add a PM domain for that to avoid duplicating the same code in
+all of the drivers in question (patch [2/2]).  Does that make sense to you?
+
+> > > So then the obvious followup question is why this is even something that
+> > > needs to be implemented per bus?  Shouldn't we be enhancing the driver
+> > > core to do this, or is that the long term plan and this is a step on the
+> > > road to doing that?
+> 
+> > If we end up all buses implementing the same mechanism, I think it makes
+> > sense to move it to the driver core.
+> 
+> If we're starting to get a reasonable number of buses following the same
+> pattern it seems like we're in a position to start 
+
+We need that for exactly 3 buses: platform (already done), I2C and SPI.
+
+No other bus types are going to use ACPI this way for PM, at least for the
+time being, simply because PCI, USB and SATA/IDE have their own ways of doing
+this (which are bus-specific) and the spec doesn't cover other bus types
+directly (it defines support for UART, but we don't have a UART bus type).
+
+Moreover, because PCI and USB use ACPI for PM in their own ways, moving that
+thing up to the driver core would be rather inconvenient.
+
+Thanks,
+Rafael
