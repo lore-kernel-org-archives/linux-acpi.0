@@ -1,76 +1,92 @@
-From: Lan Tianyu <tianyu.lan@intel.com>
-Subject: Re: [RFC PATCH 2/4] ACPI/Resource: Add address translation support
-Date: Wed, 11 Sep 2013 10:26:37 -0400
-Message-ID: <52307D9D.3070801@intel.com>
-References: <1378477486-8758-1-git-send-email-tianyu.lan@intel.com> <1378477486-8758-3-git-send-email-tianyu.lan@intel.com> <12539726.iB4h1i35EF@vostro.rjw.lan> <522D3002.5050304@intel.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8;
-	format=flowed
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <522D3002.5050304@intel.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: lenb@kernel.org, yinghai@kernel.org, bhelgaas@google.com, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+From: Mika Westerberg <mika.westerberg@linux.intel.com>
+Subject: [PATCH v2 4/9] [media] s5p-tv: convert to use I2C core runtime PM
+Date: Wed, 11 Sep 2013 18:32:35 +0300
+Message-ID: <1378913560-2752-5-git-send-email-mika.westerberg@linux.intel.com>
+References: <1378913560-2752-1-git-send-email-mika.westerberg@linux.intel.com>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mga14.intel.com ([143.182.124.37]:13815 "EHLO mga14.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754560Ab3IKPcr (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 11 Sep 2013 11:32:47 -0400
+In-Reply-To: <1378913560-2752-1-git-send-email-mika.westerberg@linux.intel.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: linux-i2c@vger.kernel.org
+Cc: Wolfram Sang <wsa@the-dreams.de>, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Lv Zheng <lv.zheng@intel.com>, Aaron Lu <aaron.lu@intel.com>, linux-arm-kernel@lists.infradead.org, Mark Brown <broonie@kernel.org>, Dmitry Torokhov <dmitry.torokhov@gmail.com>, Mauro Carvalho Chehab <m.chehab@samsung.com>, Samuel Ortiz <sameo@linux.intel.com>, Lee Jones <lee.jones@linaro.org>, Arnd Bergmann <arnd@arndb.de>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Liam Girdwood <lgirdwood@gmail.com>, Kyungmin Park <kyungmin.park@samsung.com>, Mika Westerberg <mika.westerberg@linux.intel.com>
 
-On 09/08/2013 10:18 PM, Lan Tianyu wrote:
-> On 2013=E5=B9=B409=E6=9C=8807=E6=97=A5 08:15, Rafael J. Wysocki wrote=
-:
->> On Friday, September 06, 2013 10:24:44 AM Lan Tianyu wrote:
->>> According ACPI 5.0 spec Section 19.1.8
->>> "For bridges, translate addresses across the bridge, this is the
->>> offset that must be added to the address on the secondary side
->>> to obtain the address on the primary side. Non-bridge devices
->>> must list 0."
->>
->> Can you please have a look into the previous versions of the spec an=
-d double
->> check that this change won't confuse systems that implement them?
->>
->
-> Hi Rafael:
->           I check all versions. This part has existed and not been
-> changed since ACPI 1.0.
->
+The I2C core now prepares runtime PM on behalf of the I2C client device, so
+only thing the driver needs to do is to call pm_runtime_put() at the end of
+its ->probe().
 
-Hi Rafael:
-	Do you have other comments on this?
+This patch converts s5p-tv driver to use this model.
 
+Signed-off-by: Mika Westerberg <mika.westerberg@linux.intel.com>
+---
+ drivers/media/platform/s5p-tv/sii9234_drv.c | 30 ++++++-----------------------
+ 1 file changed, 6 insertions(+), 24 deletions(-)
 
->> Otherwise it looks OK to me.
->>
->> Thanks,
->> Rafael
->>
->>
->>> This patch is to add address translation offset to the start/end
->>> of struct resource in the acpi_dev_resource_address_space().
->>> Further more, non-bridge device's translation_offset should 0.
->>> So this change will affect other devices.
->>>
->>>
->>> Signed-off-by: Lan Tianyu <tianyu.lan@intel.com>
->>> ---
->>>   drivers/acpi/resource.c | 4 ++--
->>>   1 file changed, 2 insertions(+), 2 deletions(-)
->>>
->>> diff --git a/drivers/acpi/resource.c b/drivers/acpi/resource.c
->>> index 929f416..84bc3db 100644
->>> --- a/drivers/acpi/resource.c
->>> +++ b/drivers/acpi/resource.c
->>> @@ -192,8 +192,8 @@ bool acpi_dev_resource_address_space(struct acp=
-i_resource *ares,
->>>   	if (ACPI_FAILURE(status))
->>>   		return true;
->>>
->>> -	res->start =3D addr.minimum;
->>> -	res->end =3D addr.maximum;
->>> +	res->start =3D addr.minimum + addr.translation_offset;
->>> +	res->end =3D addr.maximum + addr.translation_offset;
->>>   	window =3D addr.producer_consumer =3D=3D ACPI_PRODUCER;
->>>
->>>   	switch(addr.resource_type) {
->>>
->
->
+diff --git a/drivers/media/platform/s5p-tv/sii9234_drv.c b/drivers/media/platform/s5p-tv/sii9234_drv.c
+index 3dd762e..c0e8d42 100644
+--- a/drivers/media/platform/s5p-tv/sii9234_drv.c
++++ b/drivers/media/platform/s5p-tv/sii9234_drv.c
+@@ -325,8 +325,7 @@ static int sii9234_probe(struct i2c_client *client,
+ 	ctx = devm_kzalloc(&client->dev, sizeof(*ctx), GFP_KERNEL);
+ 	if (!ctx) {
+ 		dev_err(dev, "out of memory\n");
+-		ret = -ENOMEM;
+-		goto fail;
++		return -ENOMEM;
+ 	}
+ 	ctx->client = client;
+ 
+@@ -345,42 +344,25 @@ static int sii9234_probe(struct i2c_client *client,
+ 
+ 	v4l2_i2c_subdev_init(&ctx->sd, client, &sii9234_ops);
+ 
+-	pm_runtime_enable(dev);
+-
+-	/* enable device */
+-	ret = pm_runtime_get_sync(dev);
+-	if (ret)
+-		goto fail_pm;
+-
+ 	/* verify chip version */
+ 	ret = sii9234_verify_version(client);
+-	if (ret)
+-		goto fail_pm_get;
++	if (ret) {
++		dev_err(dev, "failed to verify chip version\n");
++		return ret;
++	}
+ 
+-	/* stop processing */
+ 	pm_runtime_put(dev);
+ 
+ 	dev_info(dev, "probe successful\n");
+ 
+ 	return 0;
+-
+-fail_pm_get:
+-	pm_runtime_put_sync(dev);
+-
+-fail_pm:
+-	pm_runtime_disable(dev);
+-
+-fail:
+-	dev_err(dev, "probe failed\n");
+-
+-	return ret;
+ }
+ 
+ static int sii9234_remove(struct i2c_client *client)
+ {
+ 	struct device *dev = &client->dev;
+ 
+-	pm_runtime_disable(dev);
++	pm_runtime_get(dev);
+ 
+ 	dev_info(dev, "remove successful\n");
+ 
+-- 
+1.8.4.rc3
+
