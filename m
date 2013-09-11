@@ -1,65 +1,54 @@
-From: "gregkh@linuxfoundation.org" <gregkh@linuxfoundation.org>
-Subject: Re: loading 'acpiphp' fails =?utf-8?Q?afte?=
- =?utf-8?B?ciB0aGUgc3lzdGVtIGJvb3Q/4oCP?=
-Date: Wed, 11 Sep 2013 10:58:50 -0700
-Message-ID: <20130911175850.GA32469@kroah.com>
-References: <SNT149-W205633FE9047D530867E639A380@phx.gbl>
- <20130910155103.GB22628@kroah.com>
- <SNT149-W11D153D65E31824ED6AE2E9A390@phx.gbl>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: Re: [RFC PATCH 2/4] ACPI/Resource: Add address translation support
+Date: Wed, 11 Sep 2013 22:37:33 +0200
+Message-ID: <1471266.A5mlsVTEW9@vostro.rjw.lan>
+References: <1378477486-8758-1-git-send-email-tianyu.lan@intel.com> <522D3002.5050304@intel.com> <52307D9D.3070801@intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-hotplug-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <SNT149-W11D153D65E31824ED6AE2E9A390@phx.gbl>
-Sender: linux-hotplug-owner@vger.kernel.org
-To: Shiro Itou =?utf-8?B?5LyK5p2x?= <shiro.itou@outlook.com>
-Cc: "linux-hotplug@vger.kernel.org" <linux-hotplug@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from hydra.sisk.pl ([212.160.235.94]:46429 "EHLO hydra.sisk.pl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750839Ab3IKU0e convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 11 Sep 2013 16:26:34 -0400
+In-Reply-To: <52307D9D.3070801@intel.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Lan Tianyu <tianyu.lan@intel.com>
+Cc: lenb@kernel.org, yinghai@kernel.org, bhelgaas@google.com, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 
-On Wed, Sep 11, 2013 at 10:46:19AM -0700, Shiro Itou =E4=BC=8A=E6=9D=B1=
- wrote:
-> ----------------------------------------
-> > Date: Tue, 10 Sep 2013 08:51:03 -0700
-> > From: gregkh@linuxfoundation.org
-> > To: shiro.itou@outlook.com
-> > CC: linux-hotplug@vger.kernel.org; linux-acpi@vger.kernel.org
-> > Subject: Re: loading 'acpiphp' fails after the system boot?=E2=80=8F
-> >
-> > On Tue, Sep 10, 2013 at 08:43:05AM -0700, Shiro Itou =E4=BC=8A=E6=9D=
-=B1 wrote:
-> >> Hi All,
+On Wednesday, September 11, 2013 10:26:37 AM Lan Tianyu wrote:
+> On 09/08/2013 10:18 PM, Lan Tianyu wrote:
+> > On 2013=E5=B9=B409=E6=9C=8807=E6=97=A5 08:15, Rafael J. Wysocki wro=
+te:
+> >> On Friday, September 06, 2013 10:24:44 AM Lan Tianyu wrote:
+> >>> According ACPI 5.0 spec Section 19.1.8
+> >>> "For bridges, translate addresses across the bridge, this is the
+> >>> offset that must be added to the address on the secondary side
+> >>> to obtain the address on the primary side. Non-bridge devices
+> >>> must list 0."
 > >>
-> >> In kernel version 3.0, when =E2=80=98apciphp=E2=80=99 driver modul=
-e is loaded, after
-> >> the system comes up, it fails with error =E2=80=9Cno such device=E2=
-=80=9D. When I
-> >> tried to debug I see that it fails in acpiphp_get_num_slots ()
-> >> function with error "Total 0 slots". In this case =E2=80=98bridge_=
-list=E2=80=99 seem
-> >> to be NULL.
-> >> But when the =E2=80=98acpiphp=E2=80=99 is loaded during boot time,=
- it seems to work file.
+> >> Can you please have a look into the previous versions of the spec =
+and double
+> >> check that this change won't confuse systems that implement them?
+> >>
 > >
-> > What happens in the 3.11 kernel release? Lots of work has been done=
- in
-> > this area in the past 2 years, please try a newer kernel. If there =
-are
-> > still problems, please let the linux-pci@vger.kernel.org mailing li=
-st
-> > know about it.
+> > Hi Rafael:
+> >           I check all versions. This part has existed and not been
+> > changed since ACPI 1.0.
+> >
 >=20
-> Thank you for reply. I did not try 3.11 kernel. I will check 3.11
-> kernel and see. But I use 3.0 kernel as a requirement.
+> Hi Rafael:
+> 	Do you have other comments on this?
 
-Then please contact the people who is in charge of that requirement, as
-they are the only ones that can support you, the community can not.
+Well, why would I?  You're saying that you've verified it and that's OK=
+=2E
 
-Best of luck,
+Thanks,
+Rafael
 
-greg k-h
 --
-To unsubscribe from this list: send the line "unsubscribe linux-hotplug=
-" in
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
 the body of a message to majordomo@vger.kernel.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
