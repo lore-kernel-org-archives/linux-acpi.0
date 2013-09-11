@@ -1,7 +1,7 @@
 From: Tang Chen <tangchen@cn.fujitsu.com>
-Subject: [PATCH v2 3/9] x86, dma: Support allocate memory from bottom upwards in dma_contiguous_reserve().
-Date: Wed, 11 Sep 2013 18:07:31 +0800
-Message-ID: <1378894057-30946-4-git-send-email-tangchen@cn.fujitsu.com>
+Subject: [PATCH v2 4/9] x86: Support allocate memory from bottom upwards in setup_log_buf().
+Date: Wed, 11 Sep 2013 18:07:32 +0800
+Message-ID: <1378894057-30946-5-git-send-email-tangchen@cn.fujitsu.com>
 References: <1378894057-30946-1-git-send-email-tangchen@cn.fujitsu.com>
 Return-path: <owner-linux-mm@kvack.org>
 In-Reply-To: <1378894057-30946-1-git-send-email-tangchen@cn.fujitsu.com>
@@ -14,51 +14,39 @@ During early boot, if the bottom up mode is set, just
 try allocating bottom up from the end of kernel image,
 and if that fails, do normal top down allocation.
 
-So in function dma_contiguous_reserve(), we add the
-above logic.
+So in function setup_log_buf(), we add the above logic.
 
 Signed-off-by: Tang Chen <tangchen@cn.fujitsu.com>
 Reviewed-by: Zhang Yanfei <zhangyanfei@cn.fujitsu.com>
 ---
- drivers/base/dma-contiguous.c |   17 ++++++++++++++---
- 1 files changed, 14 insertions(+), 3 deletions(-)
+ kernel/printk/printk.c |   11 +++++++++++
+ 1 files changed, 11 insertions(+), 0 deletions(-)
 
-diff --git a/drivers/base/dma-contiguous.c b/drivers/base/dma-contiguous.c
-index 6c9cdaa..3b4e031 100644
---- a/drivers/base/dma-contiguous.c
-+++ b/drivers/base/dma-contiguous.c
-@@ -260,17 +260,28 @@ int __init dma_declare_contiguous(struct device *dev, phys_addr_t size,
- 			goto err;
- 		}
- 	} else {
-+		phys_addr_t addr;
-+
+diff --git a/kernel/printk/printk.c b/kernel/printk/printk.c
+index b4e8500..2958118 100644
+--- a/kernel/printk/printk.c
++++ b/kernel/printk/printk.c
+@@ -759,9 +759,20 @@ void __init setup_log_buf(int early)
+ 	if (early) {
+ 		unsigned long mem;
+ 
 +		if (memblock_direction_bottom_up()) {
-+			addr = memblock_alloc_bottom_up(
++			mem = memblock_alloc_bottom_up(
 +						MEMBLOCK_ALLOC_ACCESSIBLE,
-+						limit, size, alignment);
-+			if (addr)
++						MEMBLOCK_ALLOC_ACCESSIBLE,
++						new_log_buf_len, PAGE_SIZE);
++			if (mem)
 +				goto success;
 +		}
 +
- 		/*
- 		 * Use __memblock_alloc_base() since
- 		 * memblock_alloc_base() panic()s.
- 		 */
--		phys_addr_t addr = __memblock_alloc_base(size, alignment, limit);
-+		addr = __memblock_alloc_base(size, alignment, limit);
- 		if (!addr) {
- 			base = -ENOMEM;
- 			goto err;
--		} else {
--			base = addr;
- 		}
+ 		mem = memblock_alloc(new_log_buf_len, PAGE_SIZE);
+ 		if (!mem)
+ 			return;
 +
 +success:
-+		base = addr;
- 	}
- 
- 	/*
+ 		new_log_buf = __va(mem);
+ 	} else {
+ 		new_log_buf = alloc_bootmem_nopanic(new_log_buf_len);
 -- 
 1.7.1
 
