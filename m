@@ -1,55 +1,64 @@
-From: Chuansheng Liu <chuansheng.liu@intel.com>
-Subject: [PATCH] ACPI / osl: implement acpi_os_sleep() with msleep()
-Date: Thu, 12 Sep 2013 01:42:57 +0800
-Message-ID: <1378921377.26153.26.camel@cliu38-desktop-build>
+From: Jani Nikula <jani.nikula@linux.intel.com>
+Subject: Re: [PATCH 2/2] ACPI / video / i915: Remove ACPI
+	backlight if firmware expects Windows 8
+Date: Wed, 11 Sep 2013 11:45:19 +0300
+Message-ID: <87hadrycf4.fsf@intel.com>
+References: <522D88C3.7000808@intel.com> <5155010.Y1gov7SKhP@vostro.rjw.lan>
+	<87eh8wail7.fsf@intel.com> <1889567.vxI8heiC3B@vostro.rjw.lan>
+	<20130911013206.GA556@mint-spring.sh.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga11.intel.com ([192.55.52.93]:17430 "EHLO mga11.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751680Ab3IKIUY (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 11 Sep 2013 04:20:24 -0400
-Sender: linux-acpi-owner@vger.kernel.org
+Return-path: <intel-gfx-bounces+gcfxdi-intel-gfx=m.gmane.org@lists.freedesktop.org>
+In-Reply-To: <20130911013206.GA556@mint-spring.sh.intel.com>
+List-Unsubscribe: <http://lists.freedesktop.org/mailman/options/intel-gfx>,
+	<mailto:intel-gfx-request@lists.freedesktop.org?subject=unsubscribe>
+List-Archive: <http://lists.freedesktop.org/archives/intel-gfx>
+List-Post: <mailto:intel-gfx@lists.freedesktop.org>
+List-Help: <mailto:intel-gfx-request@lists.freedesktop.org?subject=help>
+List-Subscribe: <http://lists.freedesktop.org/mailman/listinfo/intel-gfx>,
+	<mailto:intel-gfx-request@lists.freedesktop.org?subject=subscribe>
+Sender: intel-gfx-bounces+gcfxdi-intel-gfx=m.gmane.org@lists.freedesktop.org
+Errors-To: intel-gfx-bounces+gcfxdi-intel-gfx=m.gmane.org@lists.freedesktop.org
+To: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: Matthew Garrett <matthew.garrett@nebula.com>, Seth Forshee <seth.forshee@canonical.com>, Henrique de Moraes Holschuh <hmh@hmh.eng.br>, Aaron Lu <aaron.lu@intel.com>, Daniel Vetter <daniel.vetter@ffwll.ch>, "intel-gfx@lists.freedesktop.org" <intel-gfx@lists.freedesktop.org>, Yves-Alexis Perez <corsac@debian.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "dri-devel@lists.freedesktop.org" <dri-devel@lists.freedesktop.org>, ACPI Devel Mailing List <linux-acpi@vger.kernel.org>, "Lee,
+	Chun-Yi" <joeyli.kernel@gmail.com>, Igor Gnatenko <i.gnatenko.brain@gmail.com>, Lee Chun-Yi <jlee@novell.com>, Len Brown <lenb@kernel.org>
 List-Id: linux-acpi@vger.kernel.org
-To: lenb@kernel.org, rjw@sisk.pl
-Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, zhuangzhi.li@intel.com, fei.li@intel.com, chuansheng.liu@intel.com
+
+On Wed, 11 Sep 2013, Aaron Lu <aaron.lu@intel.com> wrote:
+> It is possible the i915 driver decides not to register a backlight
+> interface for the graphics card for some reason(memory allocation failed
+> or it knows the native control does not work on this card or whatever),
+> so I would prefer let i915 tell ACPI video that it has registered a
+> native backlight control interface as Jani has said.
+>
+> Then together with the video.use_native_backlight, we can register or
+> not register ACPI video backlight interface accordingly. Or rather, we
+> can simply not register ACPI video backlight interface for Win8 systems
+> as long as i915 indicates that it has native backlight control(if the
+> native control is broken, i915 should fix it or blacklist it so that
+> i915 will not indicate it has native backlight control and ACPI video
+> will continue to register its own).
+>
+> How does this sound?
+
+Sounds good to me.
+
+Before plunging forward, have you observed any difference between the
+boot modes? We have reports [1] that the backlight behaviour is
+different with UEFI vs. UEFI+CSM or legacy boot. So I'm wondering if the
+acpi_gbl_osi_data >= ACPI_OSI_WIN_8 check in patch 2/2 is the whole
+story.
+
+Further, if we tell the BIOS we're Windows 8 to use the tested BIOS code
+paths, what guarantees do we have of UEFI+CSM or legacy boots working?
+
+BR,
+Jani.
 
 
-Currently the acpi_os_sleep() is using the schedule_timeout_interruptible(),
-which can be interrupted by signal, which causes the real sleep time is shorter.
+[1] https://bugzilla.kernel.org/show_bug.cgi?id=47941#c96
 
-According to the ACPI spec:
-The Sleep term is used to implement long-term timing requirements.
-Execution is delayed for at least the required number of milliseconds.
 
-The sleeping time should be at least of the required number msecs, here
-using msleep() to implement it.
-
-Also if the real time is shorter, we meet the device POWER ON issue.
-
-CC: lizhuangzhi <zhuangzhi.li@intel.com>
-CC: Li Fei <fei.li@intel.com>
-Signed-off-by: liu chuansheng <chuansheng.liu@intel.com>
----
- drivers/acpi/osl.c |    2 +-
- 1 files changed, 1 insertions(+), 1 deletions(-)
-
-diff --git a/drivers/acpi/osl.c b/drivers/acpi/osl.c
-index e5f416c..b1629b5 100644
---- a/drivers/acpi/osl.c
-+++ b/drivers/acpi/osl.c
-@@ -820,7 +820,7 @@ acpi_status acpi_os_remove_interrupt_handler(u32 irq, acpi_osd_handler handler)
- 
- void acpi_os_sleep(u64 ms)
- {
--	schedule_timeout_interruptible(msecs_to_jiffies(ms));
-+	msleep(ms);
- }
- 
- void acpi_os_stall(u32 us)
 -- 
-1.7.0.4
-
-
-
+Jani Nikula, Intel Open Source Technology Center
