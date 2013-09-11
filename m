@@ -1,50 +1,69 @@
-From: Yves-Alexis Perez <corsac@debian.org>
-Subject: Re: [PATCH 2/2] ACPI / video / i915: Remove ACPI
- backlight if firmware expects Windows 8
-Date: Wed, 11 Sep 2013 11:09:25 +0200
-Message-ID: <1378890565.4179.2.camel@oban>
-References: <522D88C3.7000808@intel.com> <5155010.Y1gov7SKhP@vostro.rjw.lan>
-	<87eh8wail7.fsf@intel.com> <1889567.vxI8heiC3B@vostro.rjw.lan>
-	<20130911013206.GA556@mint-spring.sh.intel.com>
-	<87hadrycf4.fsf@intel.com> <1378889140.945.0.camel@x230.lan>
+From: Mark Brown <broonie@kernel.org>
+Subject: Re: [PATCH RESEND 1/2] i2c: prepare runtime PM support for I2C
+ client devices
+Date: Wed, 11 Sep 2013 10:55:52 +0100
+Message-ID: <20130911095552.GI29403@sirena.org.uk>
+References: <1378733679-19500-1-git-send-email-mika.westerberg@linux.intel.com>
+ <3397524.g9aUWuArnm@vostro.rjw.lan>
+ <20130910213522.GG29403@sirena.org.uk>
+ <2029393.u6DaKBPszu@vostro.rjw.lan>
+ <522FC0DC.9030708@intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <intel-gfx-bounces+gcfxdi-intel-gfx=m.gmane.org@lists.freedesktop.org>
-In-Reply-To: <1378889140.945.0.camel@x230.lan>
-List-Unsubscribe: <http://lists.freedesktop.org/mailman/options/intel-gfx>,
-	<mailto:intel-gfx-request@lists.freedesktop.org?subject=unsubscribe>
-List-Archive: <http://lists.freedesktop.org/archives/intel-gfx>
-List-Post: <mailto:intel-gfx@lists.freedesktop.org>
-List-Help: <mailto:intel-gfx-request@lists.freedesktop.org?subject=help>
-List-Subscribe: <http://lists.freedesktop.org/mailman/listinfo/intel-gfx>,
-	<mailto:intel-gfx-request@lists.freedesktop.org?subject=subscribe>
-Sender: intel-gfx-bounces+gcfxdi-intel-gfx=m.gmane.org@lists.freedesktop.org
-Errors-To: intel-gfx-bounces+gcfxdi-intel-gfx=m.gmane.org@lists.freedesktop.org
-To: Matthew Garrett <matthew.garrett@nebula.com>
-Cc: Aaron Lu <aaron.lu@intel.com>, Henrique de Moraes Holschuh <hmh@hmh.eng.br>, Seth Forshee <seth.forshee@canonical.com>, Daniel Vetter <daniel.vetter@ffwll.ch>, "intel-gfx@lists.freedesktop.org" <intel-gfx@lists.freedesktop.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "Rafael J. Wysocki" <rjw@sisk.pl>, ACPI Devel Mailing List <linux-acpi@vger.kernel.org>, "Lee,
-	Chun-Yi" <joeyli.kernel@gmail.com>, "dri-devel@lists.freedesktop.org" <dri-devel@lists.freedesktop.org>, Lee Chun-Yi <jlee@novell.com>, Len Brown <lenb@kernel.org>, Igor Gnatenko <i.gnatenko.brain@gmail.com>
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="A1AeHK3WkQzeMGLU"
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <522FC0DC.9030708@intel.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Aaron Lu <aaron.lu@intel.com>
+Cc: "Rafael J. Wysocki" <rjw@sisk.pl>, Mika Westerberg <mika.westerberg@linux.intel.com>, linux-i2c@vger.kernel.org, Wolfram Sang <wsa@the-dreams.de>, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Lv Zheng <lv.zheng@intel.com>, linux-arm-kernel@lists.infradead.org
 List-Id: linux-acpi@vger.kernel.org
 
-On mer., 2013-09-11 at 08:45 +0000, Matthew Garrett wrote:
-> On Wed, 2013-09-11 at 11:45 +0300, Jani Nikula wrote:
-> 
-> > Before plunging forward, have you observed any difference between the
-> > boot modes? We have reports [1] that the backlight behaviour is
-> > different with UEFI vs. UEFI+CSM or legacy boot. So I'm wondering if the
-> > acpi_gbl_osi_data >= ACPI_OSI_WIN_8 check in patch 2/2 is the whole
-> > story.
-> > 
-> > Further, if we tell the BIOS we're Windows 8 to use the tested BIOS code
-> > paths, what guarantees do we have of UEFI+CSM or legacy boots working?
-> 
-> We have no evidence of Windows behaving differently based on the exposed
-> firmware type.
-> 
-I do have an X230 which boots fine using pure UEFI or UEFI+CSM (and I
-guess I can try booting it with a grml for pure legacy), so I can do
-tests if needed.
 
-Regards,
--- 
-Yves-Alexis
+--A1AeHK3WkQzeMGLU
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+
+On Wed, Sep 11, 2013 at 09:01:16AM +0800, Aaron Lu wrote:
+
+> Looks like, it all boils down to how many I2C devices should be allowed
+> for runtime PM by default and how many I2C devices should be forbidden.
+> , and then we allow/forbid runtime PM for the majority case in I2C core
+> while individual driver can still forbid/allow it in their own code.
+
+> So if the majority case is runtime PM should be allowed by default, I'm
+> also OK to not forbid runtime PM for I2C client device in I2C core. My
+> original intention to forbid runtime PM by default is to make sure no
+> adverse effect would occur to some I2C devices that used to work well
+> before runtime PM.
+
+The really big problem here is that there are I2C devices currently
+using runtime PM quite happily and forbidding it by default will break
+them.
+
+In general though requiring userspace to manually activate power saving
+features isn't going to make people happy.
+
+--A1AeHK3WkQzeMGLU
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2.0.21 (GNU/Linux)
+
+iQIcBAEBAgAGBQJSMD4lAAoJELSic+t+oim9MKAP/jfLtDWtc+xh1vePSJpB1iDP
+6FDiNmIpxf9Sa4o7J614lrEwB8FkBH2fhWkJXZVPsZZ0tI3n75uXfasJmwxDH9Cm
+mfPK+Xl7gxss+qiHL/vhlGe2k+ti1bE7wprEE1MXZpGbgCuXPgvRyaZvpzMabqyF
+DHiRqr/dVwaBIwNveMaaiwTLvbT83V+/MWMYCzVUl2xQ1LoDx52JsnyBDy4oLAWV
+SimlDwDY4kHZP+mRoR5kZlAkNeKpHkGktJBQHvt3oyrXn9MzMQ98LlzXhL9X6jW/
+2sP2t5pDf24Ch8WISUOHsO27Jybjdy2ZbRfhugLsGG5mMRjuqxliU0sHfrT5TIDU
+nzXgIeIwPueLNiw5soFmbnr4X2wa8N/EoIxrkdS34lS3Zd45n3tXDOW/UsCKP2lZ
+CZHcJqCbwxGGmBpwtqvs9OYC6bTtUUFzan2Dj7lZfmFSa2HtjZzHvVVXkBOQUFF9
+8SMvjjZhFspxYP7vGGPdotxIoakWMwkkUTBZ9JiKTwyqC79f3a+TJW7UCCdj4Qwf
+WzHASdUMu/sI8WburE/aUufuysVKWACcdzFkgX91u/b3Wn9NYdz5sAhm+rxWgmMu
+xdq1sl7+hEuKTHO3og6mryoKDI80EgZXCsM1MBQe32cvhyuehCdAeG88q95XiGS6
+WB1/8/y8XSVVUebhafYX
+=SvlW
+-----END PGP SIGNATURE-----
+
+--A1AeHK3WkQzeMGLU--
