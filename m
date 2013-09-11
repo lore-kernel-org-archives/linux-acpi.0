@@ -1,64 +1,37 @@
-From: Jani Nikula <jani.nikula@linux.intel.com>
-Subject: Re: [PATCH 2/2] ACPI / video / i915: Remove ACPI
-	backlight if firmware expects Windows 8
-Date: Wed, 11 Sep 2013 11:45:19 +0300
-Message-ID: <87hadrycf4.fsf@intel.com>
+From: Matthew Garrett <matthew.garrett@nebula.com>
+Subject: Re: [PATCH 2/2] ACPI / video / i915: Remove ACPI backlight if
+ firmware expects Windows 8
+Date: Wed, 11 Sep 2013 08:45:41 +0000
+Message-ID: <1378889140.945.0.camel@x230.lan>
 References: <522D88C3.7000808@intel.com> <5155010.Y1gov7SKhP@vostro.rjw.lan>
-	<87eh8wail7.fsf@intel.com> <1889567.vxI8heiC3B@vostro.rjw.lan>
-	<20130911013206.GA556@mint-spring.sh.intel.com>
+	 <87eh8wail7.fsf@intel.com> <1889567.vxI8heiC3B@vostro.rjw.lan>
+	 <20130911013206.GA556@mint-spring.sh.intel.com> <87hadrycf4.fsf@intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <intel-gfx-bounces+gcfxdi-intel-gfx=m.gmane.org@lists.freedesktop.org>
-In-Reply-To: <20130911013206.GA556@mint-spring.sh.intel.com>
-List-Unsubscribe: <http://lists.freedesktop.org/mailman/options/intel-gfx>,
-	<mailto:intel-gfx-request@lists.freedesktop.org?subject=unsubscribe>
-List-Archive: <http://lists.freedesktop.org/archives/intel-gfx>
-List-Post: <mailto:intel-gfx@lists.freedesktop.org>
-List-Help: <mailto:intel-gfx-request@lists.freedesktop.org?subject=help>
-List-Subscribe: <http://lists.freedesktop.org/mailman/listinfo/intel-gfx>,
-	<mailto:intel-gfx-request@lists.freedesktop.org?subject=subscribe>
-Sender: intel-gfx-bounces+gcfxdi-intel-gfx=m.gmane.org@lists.freedesktop.org
-Errors-To: intel-gfx-bounces+gcfxdi-intel-gfx=m.gmane.org@lists.freedesktop.org
-To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: Matthew Garrett <matthew.garrett@nebula.com>, Seth Forshee <seth.forshee@canonical.com>, Henrique de Moraes Holschuh <hmh@hmh.eng.br>, Aaron Lu <aaron.lu@intel.com>, Daniel Vetter <daniel.vetter@ffwll.ch>, "intel-gfx@lists.freedesktop.org" <intel-gfx@lists.freedesktop.org>, Yves-Alexis Perez <corsac@debian.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "dri-devel@lists.freedesktop.org" <dri-devel@lists.freedesktop.org>, ACPI Devel Mailing List <linux-acpi@vger.kernel.org>, "Lee,
-	Chun-Yi" <joeyli.kernel@gmail.com>, Igor Gnatenko <i.gnatenko.brain@gmail.com>, Lee Chun-Yi <jlee@novell.com>, Len Brown <lenb@kernel.org>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-bn1lp0156.outbound.protection.outlook.com ([207.46.163.156]:33307
+	"EHLO na01-bn1-obe.outbound.protection.outlook.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752494Ab3IKIpr (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 11 Sep 2013 04:45:47 -0400
+In-Reply-To: <87hadrycf4.fsf@intel.com>
+Content-Language: en-US
+Content-ID: <6AA43F885902D84CAE761135FBF3867B@namprd05.prod.outlook.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Jani Nikula <jani.nikula@linux.intel.com>
+Cc: Aaron Lu <aaron.lu@intel.com>, "Rafael J. Wysocki" <rjw@sisk.pl>, Daniel Vetter <daniel@ffwll.ch>, ACPI Devel Mailing List <linux-acpi@vger.kernel.org>, Daniel Vetter <daniel.vetter@ffwll.ch>, "intel-gfx@lists.freedesktop.org" <intel-gfx@lists.freedesktop.org>, Yves-Alexis Perez <corsac@debian.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "dri-devel@lists.freedesktop.org" <dri-devel@lists.freedesktop.org>, Seth Forshee <seth.forshee@canonical.com>, "Lee, Chun-Yi" <joeyli.kernel@gmail.com>, Igor Gnatenko <i.gnatenko.brain@gmail.com>, Henrique de Moraes Holschuh <hmh@hmh.eng.br>, Lee Chun-Yi <jlee@novell.com>, Len Brown <lenb@kernel.org>
 
-On Wed, 11 Sep 2013, Aaron Lu <aaron.lu@intel.com> wrote:
-> It is possible the i915 driver decides not to register a backlight
-> interface for the graphics card for some reason(memory allocation failed
-> or it knows the native control does not work on this card or whatever),
-> so I would prefer let i915 tell ACPI video that it has registered a
-> native backlight control interface as Jani has said.
->
-> Then together with the video.use_native_backlight, we can register or
-> not register ACPI video backlight interface accordingly. Or rather, we
-> can simply not register ACPI video backlight interface for Win8 systems
-> as long as i915 indicates that it has native backlight control(if the
-> native control is broken, i915 should fix it or blacklist it so that
-> i915 will not indicate it has native backlight control and ACPI video
-> will continue to register its own).
->
-> How does this sound?
-
-Sounds good to me.
-
-Before plunging forward, have you observed any difference between the
-boot modes? We have reports [1] that the backlight behaviour is
-different with UEFI vs. UEFI+CSM or legacy boot. So I'm wondering if the
-acpi_gbl_osi_data >= ACPI_OSI_WIN_8 check in patch 2/2 is the whole
-story.
-
-Further, if we tell the BIOS we're Windows 8 to use the tested BIOS code
-paths, what guarantees do we have of UEFI+CSM or legacy boots working?
-
-BR,
-Jani.
-
-
-[1] https://bugzilla.kernel.org/show_bug.cgi?id=47941#c96
-
-
--- 
-Jani Nikula, Intel Open Source Technology Center
+T24gV2VkLCAyMDEzLTA5LTExIGF0IDExOjQ1ICswMzAwLCBKYW5pIE5pa3VsYSB3cm90ZToNCg0K
+PiBCZWZvcmUgcGx1bmdpbmcgZm9yd2FyZCwgaGF2ZSB5b3Ugb2JzZXJ2ZWQgYW55IGRpZmZlcmVu
+Y2UgYmV0d2VlbiB0aGUNCj4gYm9vdCBtb2Rlcz8gV2UgaGF2ZSByZXBvcnRzIFsxXSB0aGF0IHRo
+ZSBiYWNrbGlnaHQgYmVoYXZpb3VyIGlzDQo+IGRpZmZlcmVudCB3aXRoIFVFRkkgdnMuIFVFRkkr
+Q1NNIG9yIGxlZ2FjeSBib290LiBTbyBJJ20gd29uZGVyaW5nIGlmIHRoZQ0KPiBhY3BpX2dibF9v
+c2lfZGF0YSA+PSBBQ1BJX09TSV9XSU5fOCBjaGVjayBpbiBwYXRjaCAyLzIgaXMgdGhlIHdob2xl
+DQo+IHN0b3J5Lg0KPiANCj4gRnVydGhlciwgaWYgd2UgdGVsbCB0aGUgQklPUyB3ZSdyZSBXaW5k
+b3dzIDggdG8gdXNlIHRoZSB0ZXN0ZWQgQklPUyBjb2RlDQo+IHBhdGhzLCB3aGF0IGd1YXJhbnRl
+ZXMgZG8gd2UgaGF2ZSBvZiBVRUZJK0NTTSBvciBsZWdhY3kgYm9vdHMgd29ya2luZz8NCg0KV2Ug
+aGF2ZSBubyBldmlkZW5jZSBvZiBXaW5kb3dzIGJlaGF2aW5nIGRpZmZlcmVudGx5IGJhc2VkIG9u
+IHRoZSBleHBvc2VkDQpmaXJtd2FyZSB0eXBlLg0KDQotLSANCk1hdHRoZXcgR2FycmV0dCA8bWF0
+dGhldy5nYXJyZXR0QG5lYnVsYS5jb20+DQo=
