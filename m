@@ -1,69 +1,146 @@
-From: Mark Brown <broonie@kernel.org>
-Subject: Re: [PATCH RESEND 1/2] i2c: prepare runtime PM support for I2C
- client devices
-Date: Wed, 11 Sep 2013 10:55:52 +0100
-Message-ID: <20130911095552.GI29403@sirena.org.uk>
-References: <1378733679-19500-1-git-send-email-mika.westerberg@linux.intel.com>
- <3397524.g9aUWuArnm@vostro.rjw.lan>
- <20130910213522.GG29403@sirena.org.uk>
- <2029393.u6DaKBPszu@vostro.rjw.lan>
- <522FC0DC.9030708@intel.com>
-Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="A1AeHK3WkQzeMGLU"
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <522FC0DC.9030708@intel.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Aaron Lu <aaron.lu@intel.com>
-Cc: "Rafael J. Wysocki" <rjw@sisk.pl>, Mika Westerberg <mika.westerberg@linux.intel.com>, linux-i2c@vger.kernel.org, Wolfram Sang <wsa@the-dreams.de>, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Lv Zheng <lv.zheng@intel.com>, linux-arm-kernel@lists.infradead.org
+From: Tang Chen <tangchen@cn.fujitsu.com>
+Subject: [PATCH v2 0/9] x86, memblock: Allocate memory near kernel image before SRAT parsed.
+Date: Wed, 11 Sep 2013 18:07:28 +0800
+Message-ID: <1378894057-30946-1-git-send-email-tangchen@cn.fujitsu.com>
+Return-path: <linux-doc-owner@vger.kernel.org>
+Sender: linux-doc-owner@vger.kernel.org
+To: tj@kernel.org, rjw@sisk.pl, lenb@kernel.org, tglx@linutronix.de, mingo@elte.hu, hpa@zytor.com, akpm@linux-foundation.org, trenn@suse.de, yinghai@kernel.org, jiang.liu@huawei.com, wency@cn.fujitsu.com, laijs@cn.fujitsu.com, isimatu.yasuaki@jp.fujitsu.com, izumi.taku@jp.fujitsu.com, mgorman@suse.de, minchan@kernel.org, mina86@mina86.com, gong.chen@linux.intel.com, vasilis.liaskovitis@profitbricks.com, lwoodman@redhat.com, riel@redhat.com, jweiner@redhat.com, prarit@redhat.com, zhangyanfei@cn.fujitsu.com, toshi.kani@hp.com
+Cc: x86@kernel.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-mm@kvack.org, linux-acpi@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
+This patch-set is based on tj's suggestion, and not fully tested. 
+Just for review and discussion. And according to tj's suggestion, 
+implemented a new function memblock_alloc_bottom_up() to allocate 
+memory from bottom upwards, whihc can simplify the code.
 
---A1AeHK3WkQzeMGLU
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
 
-On Wed, Sep 11, 2013 at 09:01:16AM +0800, Aaron Lu wrote:
+[Problem]
 
-> Looks like, it all boils down to how many I2C devices should be allowed
-> for runtime PM by default and how many I2C devices should be forbidden.
-> , and then we allow/forbid runtime PM for the majority case in I2C core
-> while individual driver can still forbid/allow it in their own code.
+The current Linux cannot migrate pages used by the kerenl because
+of the kernel direct mapping. In Linux kernel space, va = pa + PAGE_OFFSET.
+When the pa is changed, we cannot simply update the pagetable and
+keep the va unmodified. So the kernel pages are not migratable.
 
-> So if the majority case is runtime PM should be allowed by default, I'm
-> also OK to not forbid runtime PM for I2C client device in I2C core. My
-> original intention to forbid runtime PM by default is to make sure no
-> adverse effect would occur to some I2C devices that used to work well
-> before runtime PM.
+There are also some other issues will cause the kernel pages not migratable.
+For example, the physical address may be cached somewhere and will be used.
+It is not to update all the caches.
 
-The really big problem here is that there are I2C devices currently
-using runtime PM quite happily and forbidding it by default will break
-them.
+When doing memory hotplug in Linux, we first migrate all the pages in one
+memory device somewhere else, and then remove the device. But if pages are
+used by the kernel, they are not migratable. As a result, memory used by
+the kernel cannot be hot-removed.
 
-In general though requiring userspace to manually activate power saving
-features isn't going to make people happy.
+Modifying the kernel direct mapping mechanism is too difficult to do. And
+it may cause the kernel performance down and unstable. So we use the following
+way to do memory hotplug.
 
---A1AeHK3WkQzeMGLU
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2.0.21 (GNU/Linux)
+[What we are doing]
 
-iQIcBAEBAgAGBQJSMD4lAAoJELSic+t+oim9MKAP/jfLtDWtc+xh1vePSJpB1iDP
-6FDiNmIpxf9Sa4o7J614lrEwB8FkBH2fhWkJXZVPsZZ0tI3n75uXfasJmwxDH9Cm
-mfPK+Xl7gxss+qiHL/vhlGe2k+ti1bE7wprEE1MXZpGbgCuXPgvRyaZvpzMabqyF
-DHiRqr/dVwaBIwNveMaaiwTLvbT83V+/MWMYCzVUl2xQ1LoDx52JsnyBDy4oLAWV
-SimlDwDY4kHZP+mRoR5kZlAkNeKpHkGktJBQHvt3oyrXn9MzMQ98LlzXhL9X6jW/
-2sP2t5pDf24Ch8WISUOHsO27Jybjdy2ZbRfhugLsGG5mMRjuqxliU0sHfrT5TIDU
-nzXgIeIwPueLNiw5soFmbnr4X2wa8N/EoIxrkdS34lS3Zd45n3tXDOW/UsCKP2lZ
-CZHcJqCbwxGGmBpwtqvs9OYC6bTtUUFzan2Dj7lZfmFSa2HtjZzHvVVXkBOQUFF9
-8SMvjjZhFspxYP7vGGPdotxIoakWMwkkUTBZ9JiKTwyqC79f3a+TJW7UCCdj4Qwf
-WzHASdUMu/sI8WburE/aUufuysVKWACcdzFkgX91u/b3Wn9NYdz5sAhm+rxWgmMu
-xdq1sl7+hEuKTHO3og6mryoKDI80EgZXCsM1MBQe32cvhyuehCdAeG88q95XiGS6
-WB1/8/y8XSVVUebhafYX
-=SvlW
------END PGP SIGNATURE-----
+In Linux, memory in one numa node is divided into several zones. One of the
+zones is ZONE_MOVABLE, which the kernel won't use.
 
---A1AeHK3WkQzeMGLU--
+In order to implement memory hotplug in Linux, we are going to arrange all
+hotpluggable memory in ZONE_MOVABLE so that the kernel won't use these memory.
+To do this, we need ACPI's help.
+
+In ACPI, SRAT(System Resource Affinity Table) contains NUMA info. The memory
+affinities in SRAT record every memory range in the system, and also, flags
+specifying if the memory range is hotpluggable.
+(Please refer to ACPI spec 5.0 5.2.16)
+
+With the help of SRAT, we have to do the following two things to achieve our
+goal:
+
+1. When doing memory hot-add, allow the users arranging hotpluggable as
+   ZONE_MOVABLE.
+   (This has been done by the MOVABLE_NODE functionality in Linux.)
+
+2. when the system is booting, prevent bootmem allocator from allocating
+   hotpluggable memory for the kernel before the memory initialization
+   finishes.
+
+The problem 2 is the key problem we are going to solve. But before solving it,
+we need some preparation. Please see below.
+
+
+[Preparation]
+
+Bootloader has to load the kernel image into memory. And this memory must be 
+unhotpluggable. We cannot prevent this anyway. So in a memory hotplug system, 
+we can assume any node the kernel resides in is not hotpluggable.
+
+Before SRAT is parsed, we don't know which memory ranges are hotpluggable. But
+memblock has already started to work. In the current kernel, memblock allocates 
+the following memory before SRAT is parsed:
+
+setup_arch()
+ |->memblock_x86_fill()            /* memblock is ready */
+ |......
+ |->early_reserve_e820_mpc_new()   /* allocate memory under 1MB */
+ |->reserve_real_mode()            /* allocate memory under 1MB */
+ |->init_mem_mapping()             /* allocate page tables, about 2MB to map 1GB memory */
+ |->dma_contiguous_reserve()       /* specified by user, should be low */
+ |->setup_log_buf()                /* specified by user, several mega bytes */
+ |->relocate_initrd()              /* could be large, but will be freed after boot, should reorder */
+ |->acpi_initrd_override()         /* several mega bytes */
+ |->reserve_crashkernel()          /* could be large, should reorder */
+ |......
+ |->initmem_init()                 /* Parse SRAT */
+
+According to Tejun's advice, before SRAT is parsed, we should try our best to
+allocate memory near the kernel image. Since the whole node the kernel resides 
+in won't be hotpluggable, and for a modern server, a node may have at least 16GB
+memory, allocating several mega bytes memory around the kernel image won't cross
+to hotpluggable memory.
+
+
+[About this patch-set]
+
+So this patch-set does the following:
+
+1. Make memblock be able to allocate memory from low address to high address.
+
+2. Improve all functions who need to allocate memory before SRAT to support 
+   allocating memory from low address to high address.
+
+3. Introduce "movablenode" boot option to enable and disable this functionality.
+
+PS: Reordering of relocate_initrd() has not been done yet. acpi_initrd_override() 
+    needs to access initrd with virtual address. So relocate_initrd() must be done 
+    before acpi_initrd_override().
+
+
+Change log v1 -> v2:
+1. According to tj's suggestion, implemented a new function memblock_alloc_bottom_up() 
+   to allocate memory from bottom upwards, whihc can simplify the code.
+
+
+Tang Chen (9):
+  memblock: Introduce allocation direction to memblock.
+  x86, memblock: Introduce memblock_alloc_bottom_up() to memblock.
+  x86, dma: Support allocate memory from bottom upwards in
+    dma_contiguous_reserve().
+  x86: Support allocate memory from bottom upwards in setup_log_buf().
+  x86: Support allocate memory from bottom upwards in
+    relocate_initrd().
+  x86, acpi: Support allocate memory from bottom upwards in
+    acpi_initrd_override().
+  x86, acpi, crash, kdump: Do reserve_crashkernel() after SRAT is
+    parsed.
+  x86, mem-hotplug: Support initialize page tables from low to high.
+  mem-hotplug: Introduce movablenode boot option to control memblock
+    allocation direction.
+
+ Documentation/kernel-parameters.txt |   15 ++++
+ arch/x86/kernel/setup.c             |   54 ++++++++++++++-
+ arch/x86/mm/init.c                  |  133 +++++++++++++++++++++++++++--------
+ drivers/acpi/osl.c                  |   11 +++
+ drivers/base/dma-contiguous.c       |   17 ++++-
+ include/linux/memblock.h            |   24 ++++++
+ include/linux/memory_hotplug.h      |    5 ++
+ kernel/printk/printk.c              |   11 +++
+ mm/memblock.c                       |   51 +++++++++++++
+ mm/memory_hotplug.c                 |    9 +++
+ 10 files changed, 296 insertions(+), 34 deletions(-)
+
