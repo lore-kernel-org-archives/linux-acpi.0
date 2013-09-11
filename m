@@ -1,41 +1,62 @@
-From: Mika Westerberg <mika.westerberg@linux.intel.com>
-Subject: Re: [PATCH RESEND 1/2] i2c: prepare runtime PM support for I2C
- client devices
-Date: Wed, 11 Sep 2013 14:24:06 +0300
-Message-ID: <20130911112406.GB7393@intel.com>
-References: <1378733679-19500-1-git-send-email-mika.westerberg@linux.intel.com>
- <3397524.g9aUWuArnm@vostro.rjw.lan>
- <20130910213522.GG29403@sirena.org.uk>
- <2029393.u6DaKBPszu@vostro.rjw.lan>
- <522FC0DC.9030708@intel.com>
- <20130911095552.GI29403@sirena.org.uk>
- <20130911110543.GA7393@intel.com>
- <20130911111409.GO29403@sirena.org.uk>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: Re: [PATCH] ACPI / osl: implement acpi_os_sleep() with msleep()
+Date: Wed, 11 Sep 2013 14:36:31 +0200
+Message-ID: <37297227.So9eVdeflb@vostro.rjw.lan>
+References: <1378921377.26153.26.camel@cliu38-desktop-build>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20130911111409.GO29403@sirena.org.uk>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Mark Brown <broonie@kernel.org>
-Cc: Aaron Lu <aaron.lu@intel.com>, "Rafael J. Wysocki" <rjw@sisk.pl>, linux-i2c@vger.kernel.org, Wolfram Sang <wsa@the-dreams.de>, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Lv Zheng <lv.zheng@intel.com>, linux-arm-kernel@lists.infradead.org
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7Bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from hydra.sisk.pl ([212.160.235.94]:44766 "EHLO hydra.sisk.pl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752170Ab3IKMZc (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 11 Sep 2013 08:25:32 -0400
+In-Reply-To: <1378921377.26153.26.camel@cliu38-desktop-build>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Chuansheng Liu <chuansheng.liu@intel.com>
+Cc: lenb@kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, zhuangzhi.li@intel.com, fei.li@intel.com
 
-On Wed, Sep 11, 2013 at 12:14:09PM +0100, Mark Brown wrote:
-> On Wed, Sep 11, 2013 at 02:05:43PM +0300, Mika Westerberg wrote:
+On Thursday, September 12, 2013 01:42:57 AM Chuansheng Liu wrote:
 > 
-> > I'll also look into converting the existing I2C client drivers to use this
-> > method. One question, though, is it better to have the conversion in the
-> > same patch that introduces the I2C core runtime PM change or as a separate
-> > patch?
+> Currently the acpi_os_sleep() is using the schedule_timeout_interruptible(),
+> which can be interrupted by signal, which causes the real sleep time is shorter.
 > 
-> In theory it ought to be part of the same patch but in practice a brief
-> bit of bisection breakage on a single branch is probably worth the ease
-> of review from my point of view, others may disagree though.
+> According to the ACPI spec:
+> The Sleep term is used to implement long-term timing requirements.
+> Execution is delayed for at least the required number of milliseconds.
+> 
+> The sleeping time should be at least of the required number msecs, here
+> using msleep() to implement it.
+> 
+> Also if the real time is shorter, we meet the device POWER ON issue.
 
-OK, I'll keep them separate, unless there are objections.
+What exactly is the "power on" issue?
 
-> Like I say I think you'll need to convert SPI at the same time due to the
-> devices with both buses sharing code.
+Rafael
 
-Yes, I'm looking into that :)
+
+> CC: lizhuangzhi <zhuangzhi.li@intel.com>
+> CC: Li Fei <fei.li@intel.com>
+> Signed-off-by: liu chuansheng <chuansheng.liu@intel.com>
+> ---
+>  drivers/acpi/osl.c |    2 +-
+>  1 files changed, 1 insertions(+), 1 deletions(-)
+> 
+> diff --git a/drivers/acpi/osl.c b/drivers/acpi/osl.c
+> index e5f416c..b1629b5 100644
+> --- a/drivers/acpi/osl.c
+> +++ b/drivers/acpi/osl.c
+> @@ -820,7 +820,7 @@ acpi_status acpi_os_remove_interrupt_handler(u32 irq, acpi_osd_handler handler)
+>  
+>  void acpi_os_sleep(u64 ms)
+>  {
+> -	schedule_timeout_interruptible(msecs_to_jiffies(ms));
+> +	msleep(ms);
+>  }
+>  
+>  void acpi_os_stall(u32 us)
+> 
+-- 
+I speak only for myself.
+Rafael J. Wysocki, Intel Open Source Technology Center.
