@@ -1,33 +1,76 @@
-From: Tejun Heo <tj@kernel.org>
-Subject: Re: [PATCH v2 0/9] x86, memblock: Allocate memory near kernel image
- before SRAT parsed.
-Date: Wed, 11 Sep 2013 08:51:01 -0400
-Message-ID: <20130911125101.GA20997@htj.dyndns.org>
-References: <1378894057-30946-1-git-send-email-tangchen@cn.fujitsu.com>
+From: Lan Tianyu <tianyu.lan@intel.com>
+Subject: Re: [RFC PATCH 2/4] ACPI/Resource: Add address translation support
+Date: Wed, 11 Sep 2013 10:26:37 -0400
+Message-ID: <52307D9D.3070801@intel.com>
+References: <1378477486-8758-1-git-send-email-tianyu.lan@intel.com> <1378477486-8758-3-git-send-email-tianyu.lan@intel.com> <12539726.iB4h1i35EF@vostro.rjw.lan> <522D3002.5050304@intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <owner-linux-mm@kvack.org>
-Content-Disposition: inline
-In-Reply-To: <1378894057-30946-1-git-send-email-tangchen@cn.fujitsu.com>
-Sender: owner-linux-mm@kvack.org
-To: Tang Chen <tangchen@cn.fujitsu.com>
-Cc: rjw@sisk.pl, lenb@kernel.org, tglx@linutronix.de, mingo@elte.hu, hpa@zytor.com, akpm@linux-foundation.org, trenn@suse.de, yinghai@kernel.org, jiang.liu@huawei.com, wency@cn.fujitsu.com, laijs@cn.fujitsu.com, isimatu.yasuaki@jp.fujitsu.com, izumi.taku@jp.fujitsu.com, mgorman@suse.de, minchan@kernel.org, mina86@mina86.com, gong.chen@linux.intel.com, vasilis.liaskovitis@profitbricks.com, lwoodman@redhat.com, riel@redhat.com, jweiner@redhat.com, prarit@redhat.com, zhangyanfei@cn.fujitsu.com, toshi.kani@hp.com, x86@kernel.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-mm@kvack.org, linux-acpi@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8;
+	format=flowed
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <522D3002.5050304@intel.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: lenb@kernel.org, yinghai@kernel.org, bhelgaas@google.com, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Wed, Sep 11, 2013 at 06:07:28PM +0800, Tang Chen wrote:
-> This patch-set is based on tj's suggestion, and not fully tested. 
-> Just for review and discussion. And according to tj's suggestion, 
-> implemented a new function memblock_alloc_bottom_up() to allocate 
-> memory from bottom upwards, whihc can simplify the code.
+On 09/08/2013 10:18 PM, Lan Tianyu wrote:
+> On 2013=E5=B9=B409=E6=9C=8807=E6=97=A5 08:15, Rafael J. Wysocki wrote=
+:
+>> On Friday, September 06, 2013 10:24:44 AM Lan Tianyu wrote:
+>>> According ACPI 5.0 spec Section 19.1.8
+>>> "For bridges, translate addresses across the bridge, this is the
+>>> offset that must be added to the address on the secondary side
+>>> to obtain the address on the primary side. Non-bridge devices
+>>> must list 0."
+>>
+>> Can you please have a look into the previous versions of the spec an=
+d double
+>> check that this change won't confuse systems that implement them?
+>>
+>
+> Hi Rafael:
+>           I check all versions. This part has existed and not been
+> changed since ACPI 1.0.
+>
 
-For $DEITY's sake, can you please specify against which tree the
-patches are?  :(
+Hi Rafael:
+	Do you have other comments on this?
 
--- 
-tejun
 
---
-To unsubscribe, send a message with 'unsubscribe linux-mm' in
-the body to majordomo@kvack.org.  For more info on Linux MM,
-see: http://www.linux-mm.org/ .
-Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
+>> Otherwise it looks OK to me.
+>>
+>> Thanks,
+>> Rafael
+>>
+>>
+>>> This patch is to add address translation offset to the start/end
+>>> of struct resource in the acpi_dev_resource_address_space().
+>>> Further more, non-bridge device's translation_offset should 0.
+>>> So this change will affect other devices.
+>>>
+>>>
+>>> Signed-off-by: Lan Tianyu <tianyu.lan@intel.com>
+>>> ---
+>>>   drivers/acpi/resource.c | 4 ++--
+>>>   1 file changed, 2 insertions(+), 2 deletions(-)
+>>>
+>>> diff --git a/drivers/acpi/resource.c b/drivers/acpi/resource.c
+>>> index 929f416..84bc3db 100644
+>>> --- a/drivers/acpi/resource.c
+>>> +++ b/drivers/acpi/resource.c
+>>> @@ -192,8 +192,8 @@ bool acpi_dev_resource_address_space(struct acp=
+i_resource *ares,
+>>>   	if (ACPI_FAILURE(status))
+>>>   		return true;
+>>>
+>>> -	res->start =3D addr.minimum;
+>>> -	res->end =3D addr.maximum;
+>>> +	res->start =3D addr.minimum + addr.translation_offset;
+>>> +	res->end =3D addr.maximum + addr.translation_offset;
+>>>   	window =3D addr.producer_consumer =3D=3D ACPI_PRODUCER;
+>>>
+>>>   	switch(addr.resource_type) {
+>>>
+>
+>
