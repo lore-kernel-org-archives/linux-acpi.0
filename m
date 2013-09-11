@@ -1,62 +1,33 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: [PATCH] ACPI / osl: implement acpi_os_sleep() with msleep()
-Date: Wed, 11 Sep 2013 14:36:31 +0200
-Message-ID: <37297227.So9eVdeflb@vostro.rjw.lan>
-References: <1378921377.26153.26.camel@cliu38-desktop-build>
+From: Tejun Heo <tj@kernel.org>
+Subject: Re: [PATCH v2 0/9] x86, memblock: Allocate memory near kernel image
+ before SRAT parsed.
+Date: Wed, 11 Sep 2013 08:51:01 -0400
+Message-ID: <20130911125101.GA20997@htj.dyndns.org>
+References: <1378894057-30946-1-git-send-email-tangchen@cn.fujitsu.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7Bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from hydra.sisk.pl ([212.160.235.94]:44766 "EHLO hydra.sisk.pl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752170Ab3IKMZc (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 11 Sep 2013 08:25:32 -0400
-In-Reply-To: <1378921377.26153.26.camel@cliu38-desktop-build>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <owner-linux-mm@kvack.org>
+Content-Disposition: inline
+In-Reply-To: <1378894057-30946-1-git-send-email-tangchen@cn.fujitsu.com>
+Sender: owner-linux-mm@kvack.org
+To: Tang Chen <tangchen@cn.fujitsu.com>
+Cc: rjw@sisk.pl, lenb@kernel.org, tglx@linutronix.de, mingo@elte.hu, hpa@zytor.com, akpm@linux-foundation.org, trenn@suse.de, yinghai@kernel.org, jiang.liu@huawei.com, wency@cn.fujitsu.com, laijs@cn.fujitsu.com, isimatu.yasuaki@jp.fujitsu.com, izumi.taku@jp.fujitsu.com, mgorman@suse.de, minchan@kernel.org, mina86@mina86.com, gong.chen@linux.intel.com, vasilis.liaskovitis@profitbricks.com, lwoodman@redhat.com, riel@redhat.com, jweiner@redhat.com, prarit@redhat.com, zhangyanfei@cn.fujitsu.com, toshi.kani@hp.com, x86@kernel.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-mm@kvack.org, linux-acpi@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Chuansheng Liu <chuansheng.liu@intel.com>
-Cc: lenb@kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, zhuangzhi.li@intel.com, fei.li@intel.com
 
-On Thursday, September 12, 2013 01:42:57 AM Chuansheng Liu wrote:
-> 
-> Currently the acpi_os_sleep() is using the schedule_timeout_interruptible(),
-> which can be interrupted by signal, which causes the real sleep time is shorter.
-> 
-> According to the ACPI spec:
-> The Sleep term is used to implement long-term timing requirements.
-> Execution is delayed for at least the required number of milliseconds.
-> 
-> The sleeping time should be at least of the required number msecs, here
-> using msleep() to implement it.
-> 
-> Also if the real time is shorter, we meet the device POWER ON issue.
+On Wed, Sep 11, 2013 at 06:07:28PM +0800, Tang Chen wrote:
+> This patch-set is based on tj's suggestion, and not fully tested. 
+> Just for review and discussion. And according to tj's suggestion, 
+> implemented a new function memblock_alloc_bottom_up() to allocate 
+> memory from bottom upwards, whihc can simplify the code.
 
-What exactly is the "power on" issue?
+For $DEITY's sake, can you please specify against which tree the
+patches are?  :(
 
-Rafael
-
-
-> CC: lizhuangzhi <zhuangzhi.li@intel.com>
-> CC: Li Fei <fei.li@intel.com>
-> Signed-off-by: liu chuansheng <chuansheng.liu@intel.com>
-> ---
->  drivers/acpi/osl.c |    2 +-
->  1 files changed, 1 insertions(+), 1 deletions(-)
-> 
-> diff --git a/drivers/acpi/osl.c b/drivers/acpi/osl.c
-> index e5f416c..b1629b5 100644
-> --- a/drivers/acpi/osl.c
-> +++ b/drivers/acpi/osl.c
-> @@ -820,7 +820,7 @@ acpi_status acpi_os_remove_interrupt_handler(u32 irq, acpi_osd_handler handler)
->  
->  void acpi_os_sleep(u64 ms)
->  {
-> -	schedule_timeout_interruptible(msecs_to_jiffies(ms));
-> +	msleep(ms);
->  }
->  
->  void acpi_os_stall(u32 us)
-> 
 -- 
-I speak only for myself.
-Rafael J. Wysocki, Intel Open Source Technology Center.
+tejun
+
+--
+To unsubscribe, send a message with 'unsubscribe linux-mm' in
+the body to majordomo@kvack.org.  For more info on Linux MM,
+see: http://www.linux-mm.org/ .
+Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
