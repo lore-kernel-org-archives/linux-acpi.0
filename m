@@ -1,63 +1,49 @@
-From: Matthew Garrett <matthew.garrett@nebula.com>
-Subject: Re: [PATCH 2/2] ACPI / video / i915: Remove ACPI
- backlight if firmware expects Windows 8
-Date: Wed, 11 Sep 2013 10:30:17 +0000
-Message-ID: <1378895417.945.2.camel@x230.lan>
-References: <522D88C3.7000808@intel.com> <5155010.Y1gov7SKhP@vostro.rjw.lan>
-	<87eh8wail7.fsf@intel.com> <1889567.vxI8heiC3B@vostro.rjw.lan>
-	<20130911013206.GA556@mint-spring.sh.intel.com>
-	<87hadrycf4.fsf@intel.com>
-	<1378889140.945.0.camel@x230.lan> <87d2ofy7li.fsf@intel.com>
+From: Mika Westerberg <mika.westerberg-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
+Subject: Re: [PATCH RESEND 1/2] i2c: prepare runtime PM support for I2C
+ client devices
+Date: Wed, 11 Sep 2013 14:05:43 +0300
+Message-ID: <20130911110543.GA7393@intel.com>
+References: <1378733679-19500-1-git-send-email-mika.westerberg@linux.intel.com>
+ <3397524.g9aUWuArnm@vostro.rjw.lan>
+ <20130910213522.GG29403@sirena.org.uk>
+ <2029393.u6DaKBPszu@vostro.rjw.lan>
+ <522FC0DC.9030708@intel.com>
+ <20130911095552.GI29403@sirena.org.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <intel-gfx-bounces+gcfxdi-intel-gfx=m.gmane.org@lists.freedesktop.org>
-In-Reply-To: <87d2ofy7li.fsf@intel.com>
-Content-Language: en-US
-Content-ID: <4847B66A956DC249A340F90BA1CD9519@namprd05.prod.outlook.com>
-List-Unsubscribe: <http://lists.freedesktop.org/mailman/options/intel-gfx>,
-	<mailto:intel-gfx-request@lists.freedesktop.org?subject=unsubscribe>
-List-Archive: <http://lists.freedesktop.org/archives/intel-gfx>
-List-Post: <mailto:intel-gfx@lists.freedesktop.org>
-List-Help: <mailto:intel-gfx-request@lists.freedesktop.org?subject=help>
-List-Subscribe: <http://lists.freedesktop.org/mailman/listinfo/intel-gfx>,
-	<mailto:intel-gfx-request@lists.freedesktop.org?subject=subscribe>
-Sender: intel-gfx-bounces+gcfxdi-intel-gfx=m.gmane.org@lists.freedesktop.org
-Errors-To: intel-gfx-bounces+gcfxdi-intel-gfx=m.gmane.org@lists.freedesktop.org
-To: Jani Nikula <jani.nikula@linux.intel.com>
-Cc: Aaron Lu <aaron.lu@intel.com>, Henrique de Moraes Holschuh <hmh@hmh.eng.br>, Seth Forshee <seth.forshee@canonical.com>, Daniel Vetter <daniel.vetter@ffwll.ch>, "intel-gfx@lists.freedesktop.org" <intel-gfx@lists.freedesktop.org>, Yves-Alexis Perez <corsac@debian.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "dri-devel@lists.freedesktop.org" <dri-devel@lists.freedesktop.org>, "Rafael J. Wysocki" <rjw@sisk.pl>, ACPI Devel Mailing List <linux-acpi@vger.kernel.org>, "Lee,
-	Chun-Yi" <joeyli.kernel@gmail.com>, Igor Gnatenko <i.gnatenko.brain@gmail.com>, Lee Chun-Yi <jlee@novell.com>, Len Brown <lenb@kernel.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <20130911095552.GI29403-GFdadSzt00ze9xe1eoZjHA@public.gmane.org>
+Sender: linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Mark Brown <broonie-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Cc: Aaron Lu <aaron.lu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "Rafael J. Wysocki" <rjw-KKrjLPT3xs0@public.gmane.org>, linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Wolfram Sang <wsa-z923LK4zBo2bacvFa/9K2g@public.gmane.org>, "Rafael J. Wysocki" <rafael.j.wysocki-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Lv Zheng <lv.zheng-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Wed, 2013-09-11 at 13:29 +0300, Jani Nikula wrote:
-> On Wed, 11 Sep 2013, Matthew Garrett <matthew.garrett@nebula.com> wrote:
-> > On Wed, 2013-09-11 at 11:45 +0300, Jani Nikula wrote:
-> >
-> >> Before plunging forward, have you observed any difference between the
-> >> boot modes? We have reports [1] that the backlight behaviour is
-> >> different with UEFI vs. UEFI+CSM or legacy boot. So I'm wondering if the
-> >> acpi_gbl_osi_data >= ACPI_OSI_WIN_8 check in patch 2/2 is the whole
-> >> story.
-> >> 
-> >> Further, if we tell the BIOS we're Windows 8 to use the tested BIOS code
-> >> paths, what guarantees do we have of UEFI+CSM or legacy boots working?
-> >
-> > We have no evidence of Windows behaving differently based on the exposed
-> > firmware type.
+On Wed, Sep 11, 2013 at 10:55:52AM +0100, Mark Brown wrote:
+> On Wed, Sep 11, 2013 at 09:01:16AM +0800, Aaron Lu wrote:
 > 
-> By "behaving differently", do you mean internally adapting to the boot
-> mode, or exhibiting different behaviour to the user?
+> > Looks like, it all boils down to how many I2C devices should be allowed
+> > for runtime PM by default and how many I2C devices should be forbidden.
+> > , and then we allow/forbid runtime PM for the majority case in I2C core
+> > while individual driver can still forbid/allow it in their own code.
+> 
+> > So if the majority case is runtime PM should be allowed by default, I'm
+> > also OK to not forbid runtime PM for I2C client device in I2C core. My
+> > original intention to forbid runtime PM by default is to make sure no
+> > adverse effect would occur to some I2C devices that used to work well
+> > before runtime PM.
+> 
+> The really big problem here is that there are I2C devices currently
+> using runtime PM quite happily and forbidding it by default will break
+> them.
+> 
+> In general though requiring userspace to manually activate power saving
+> features isn't going to make people happy.
 
-As far as backlight control goes, both.
+Yeah, we are going change that in the next revision (default to RPM
+unblocked).
 
-> We have evidence of the firmware behaving differently (VBT, backlight)
-> based on the boot mode, all else being equal. We don't adapt to that,
-> and we fail. I don't know if we should adapt, or do things differently
-> altogether. I don't even know if Windows 8 works on all boot modes on
-> the machines in question.
-
-Sure, but Windows knows nothing about VBT or opregion-backed backlight
-control. That's up to the Intel driver.
-
--- 
-Matthew Garrett <matthew.garrett@nebula.com>
+I'll also look into converting the existing I2C client drivers to use this
+method. One question, though, is it better to have the conversion in the
+same patch that introduces the I2C core runtime PM change or as a separate
+patch?
