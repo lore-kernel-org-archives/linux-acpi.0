@@ -1,54 +1,55 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: [RFC PATCH 2/4] ACPI/Resource: Add address translation support
-Date: Wed, 11 Sep 2013 22:37:33 +0200
-Message-ID: <1471266.A5mlsVTEW9@vostro.rjw.lan>
-References: <1378477486-8758-1-git-send-email-tianyu.lan@intel.com> <522D3002.5050304@intel.com> <52307D9D.3070801@intel.com>
+From: "Liu, Chuansheng" <chuansheng.liu@intel.com>
+Subject: RE: [PATCH] ACPI / osl: implement acpi_os_sleep() with msleep()
+Date: Wed, 11 Sep 2013 23:55:53 +0000
+Message-ID: <27240C0AC20F114CBF8149A2696CBE4A01B1F71E@SHSMSX101.ccr.corp.intel.com>
+References: <1378921377.26153.26.camel@cliu38-desktop-build>
+ <37297227.So9eVdeflb@vostro.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from hydra.sisk.pl ([212.160.235.94]:46429 "EHLO hydra.sisk.pl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750839Ab3IKU0e convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 11 Sep 2013 16:26:34 -0400
-In-Reply-To: <52307D9D.3070801@intel.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <37297227.So9eVdeflb@vostro.rjw.lan>
+Content-Language: en-US
+Sender: linux-kernel-owner@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: "lenb@kernel.org" <lenb@kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "Li, Zhuangzhi" <zhuangzhi.li@intel.com>, "Li, Fei" <fei.li@intel.com>
 List-Id: linux-acpi@vger.kernel.org
-To: Lan Tianyu <tianyu.lan@intel.com>
-Cc: lenb@kernel.org, yinghai@kernel.org, bhelgaas@google.com, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 
-On Wednesday, September 11, 2013 10:26:37 AM Lan Tianyu wrote:
-> On 09/08/2013 10:18 PM, Lan Tianyu wrote:
-> > On 2013=E5=B9=B409=E6=9C=8807=E6=97=A5 08:15, Rafael J. Wysocki wro=
-te:
-> >> On Friday, September 06, 2013 10:24:44 AM Lan Tianyu wrote:
-> >>> According ACPI 5.0 spec Section 19.1.8
-> >>> "For bridges, translate addresses across the bridge, this is the
-> >>> offset that must be added to the address on the secondary side
-> >>> to obtain the address on the primary side. Non-bridge devices
-> >>> must list 0."
-> >>
-> >> Can you please have a look into the previous versions of the spec =
-and double
-> >> check that this change won't confuse systems that implement them?
-> >>
-> >
-> > Hi Rafael:
-> >           I check all versions. This part has existed and not been
-> > changed since ACPI 1.0.
-> >
->=20
-> Hi Rafael:
-> 	Do you have other comments on this?
-
-Well, why would I?  You're saying that you've verified it and that's OK=
-=2E
-
-Thanks,
-Rafael
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+SGVsbG8gUmFmYWVsLA0KDQo+IC0tLS0tT3JpZ2luYWwgTWVzc2FnZS0tLS0tDQo+IEZyb206IFJh
+ZmFlbCBKLiBXeXNvY2tpIFttYWlsdG86cmp3QHNpc2sucGxdDQo+IFNlbnQ6IFdlZG5lc2RheSwg
+U2VwdGVtYmVyIDExLCAyMDEzIDg6MzcgUE0NCj4gVG86IExpdSwgQ2h1YW5zaGVuZw0KPiBDYzog
+bGVuYkBrZXJuZWwub3JnOyBsaW51eC1hY3BpQHZnZXIua2VybmVsLm9yZzsgbGludXgta2VybmVs
+QHZnZXIua2VybmVsLm9yZzsNCj4gTGksIFpodWFuZ3poaTsgTGksIEZlaQ0KPiBTdWJqZWN0OiBS
+ZTogW1BBVENIXSBBQ1BJIC8gb3NsOiBpbXBsZW1lbnQgYWNwaV9vc19zbGVlcCgpIHdpdGggbXNs
+ZWVwKCkNCj4gDQo+IE9uIFRodXJzZGF5LCBTZXB0ZW1iZXIgMTIsIDIwMTMgMDE6NDI6NTcgQU0g
+Q2h1YW5zaGVuZyBMaXUgd3JvdGU6DQo+ID4NCj4gPiBDdXJyZW50bHkgdGhlIGFjcGlfb3Nfc2xl
+ZXAoKSBpcyB1c2luZyB0aGUgc2NoZWR1bGVfdGltZW91dF9pbnRlcnJ1cHRpYmxlKCksDQo+ID4g
+d2hpY2ggY2FuIGJlIGludGVycnVwdGVkIGJ5IHNpZ25hbCwgd2hpY2ggY2F1c2VzIHRoZSByZWFs
+IHNsZWVwIHRpbWUgaXMNCj4gc2hvcnRlci4NCj4gPg0KPiA+IEFjY29yZGluZyB0byB0aGUgQUNQ
+SSBzcGVjOg0KPiA+IFRoZSBTbGVlcCB0ZXJtIGlzIHVzZWQgdG8gaW1wbGVtZW50IGxvbmctdGVy
+bSB0aW1pbmcgcmVxdWlyZW1lbnRzLg0KPiA+IEV4ZWN1dGlvbiBpcyBkZWxheWVkIGZvciBhdCBs
+ZWFzdCB0aGUgcmVxdWlyZWQgbnVtYmVyIG9mIG1pbGxpc2Vjb25kcy4NCj4gPg0KPiA+IFRoZSBz
+bGVlcGluZyB0aW1lIHNob3VsZCBiZSBhdCBsZWFzdCBvZiB0aGUgcmVxdWlyZWQgbnVtYmVyIG1z
+ZWNzLCBoZXJlDQo+ID4gdXNpbmcgbXNsZWVwKCkgdG8gaW1wbGVtZW50IGl0Lg0KPiA+DQo+ID4g
+QWxzbyBpZiB0aGUgcmVhbCB0aW1lIGlzIHNob3J0ZXIsIHdlIG1lZXQgdGhlIGRldmljZSBQT1dF
+UiBPTiBpc3N1ZS4NCj4gDQo+IFdoYXQgZXhhY3RseSBpcyB0aGUgInBvd2VyIG9uIiBpc3N1ZT8N
+ClRoZSBjYXNlIGlzIHdlIGhhdmUgb25lIGRldmljZSBfUFMwIG1ldGhvZCBpbiBwbGF0Zm9ybS5h
+c2wgbGlrZSBiZWxvdzoNCldyaXRlIHRoZSBwbWNzciBSRUcgdG8gcG93ZXIgb247DQpTbGVlcCAx
+MG1zOw0KUmVhZCBzb21lIHJlZ2lzdGVyczsNCi4uLg0KDQpIZXJlIHNvbWV0aW1lcyB0aGUgYWN0
+dWFsIHNsZWVwaW5nIHRpbWUgaXMgPCAxMG1zLCBpdCBjYXVzZXMgdGhlIGZvbGxvd2luZyBhY3Rp
+b25zIGZhaWxlZCBkdWUgdGhpcyBkZXZpY2UNCm5lZWQgMTBtcyB0byBwb3dlciBvbiBzdWNjZXNz
+ZnVsbHkuDQoNCj4gDQo+IFJhZmFlbA0KPiANCj4gDQo+ID4gQ0M6IGxpemh1YW5nemhpIDx6aHVh
+bmd6aGkubGlAaW50ZWwuY29tPg0KPiA+IENDOiBMaSBGZWkgPGZlaS5saUBpbnRlbC5jb20+DQo+
+ID4gU2lnbmVkLW9mZi1ieTogbGl1IGNodWFuc2hlbmcgPGNodWFuc2hlbmcubGl1QGludGVsLmNv
+bT4NCj4gPiAtLS0NCj4gPiAgZHJpdmVycy9hY3BpL29zbC5jIHwgICAgMiArLQ0KPiA+ICAxIGZp
+bGVzIGNoYW5nZWQsIDEgaW5zZXJ0aW9ucygrKSwgMSBkZWxldGlvbnMoLSkNCj4gPg0KPiA+IGRp
+ZmYgLS1naXQgYS9kcml2ZXJzL2FjcGkvb3NsLmMgYi9kcml2ZXJzL2FjcGkvb3NsLmMNCj4gPiBp
+bmRleCBlNWY0MTZjLi5iMTYyOWI1IDEwMDY0NA0KPiA+IC0tLSBhL2RyaXZlcnMvYWNwaS9vc2wu
+Yw0KPiA+ICsrKyBiL2RyaXZlcnMvYWNwaS9vc2wuYw0KPiA+IEBAIC04MjAsNyArODIwLDcgQEAg
+YWNwaV9zdGF0dXMgYWNwaV9vc19yZW1vdmVfaW50ZXJydXB0X2hhbmRsZXIodTMyDQo+IGlycSwg
+YWNwaV9vc2RfaGFuZGxlciBoYW5kbGVyKQ0KPiA+DQo+ID4gIHZvaWQgYWNwaV9vc19zbGVlcCh1
+NjQgbXMpDQo+ID4gIHsNCj4gPiAtCXNjaGVkdWxlX3RpbWVvdXRfaW50ZXJydXB0aWJsZShtc2Vj
+c190b19qaWZmaWVzKG1zKSk7DQo+ID4gKwltc2xlZXAobXMpOw0KPiA+ICB9DQo+ID4NCj4gPiAg
+dm9pZCBhY3BpX29zX3N0YWxsKHUzMiB1cykNCj4gPg0KPiAtLQ0KPiBJIHNwZWFrIG9ubHkgZm9y
+IG15c2VsZi4NCj4gUmFmYWVsIEouIFd5c29ja2ksIEludGVsIE9wZW4gU291cmNlIFRlY2hub2xv
+Z3kgQ2VudGVyLg0K
