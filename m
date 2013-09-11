@@ -1,38 +1,46 @@
-From: Samuel Ortiz <sameo@linux.intel.com>
-Subject: Re: [PATCH v2 6/9] mfd: wm8994: convert to use I2C core runtime PM
-Date: Wed, 11 Sep 2013 18:12:43 +0200
-Message-ID: <20130911161242.GA13015@zurbaran>
-References: <1378913560-2752-1-git-send-email-mika.westerberg@linux.intel.com>
- <1378913560-2752-7-git-send-email-mika.westerberg@linux.intel.com>
+From: =?utf-8?B?U2hpcm8gSXRvdSDkvIrmnbE=?= <shiro.itou@outlook.com>
+Subject: =?utf-8?Q?RE:_loadin?= =?utf-8?Q?g_'acpiphp?=
+ =?utf-8?Q?'_fails_af?= =?utf-8?Q?ter_the_sy?= =?utf-8?Q?stem_boot=3F?=
+ =?utf-8?B?4oCP?=
+Date: Wed, 11 Sep 2013 10:46:19 -0700
+Message-ID: <SNT149-W11D153D65E31824ED6AE2E9A390@phx.gbl>
+References: <SNT149-W205633FE9047D530867E639A380@phx.gbl>,<20130910155103.GB22628@kroah.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <1378913560-2752-7-git-send-email-mika.westerberg@linux.intel.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Mika Westerberg <mika.westerberg@linux.intel.com>
-Cc: linux-i2c@vger.kernel.org, Wolfram Sang <wsa@the-dreams.de>, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Lv Zheng <lv.zheng@intel.com>, Aaron Lu <aaron.lu@intel.com>, linux-arm-kernel@lists.infradead.org, Mark Brown <broonie@kernel.org>, Dmitry Torokhov <dmitry.torokhov@gmail.com>, Mauro Carvalho Chehab <m.chehab@samsung.com>, Lee Jones <lee.jones@linaro.org>, Arnd Bergmann <arnd@arndb.de>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Liam Girdwood <lgirdwood@gmail.com>, Kyungmin Park <kyungmin.park@samsung.com>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from [65.55.90.161] ([65.55.90.161]:25918 "EHLO
+	snt0-omc3-s22.snt0.hotmail.com" rhost-flags-FAIL-FAIL-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1755950Ab3IKRqj (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 11 Sep 2013 13:46:39 -0400
+In-Reply-To: <20130910155103.GB22628@kroah.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: "gregkh@linuxfoundation.org" <gregkh@linuxfoundation.org>
+Cc: "linux-hotplug@vger.kernel.org" <linux-hotplug@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
 
-Hi Mika,
-
-On Wed, Sep 11, 2013 at 06:32:37PM +0300, Mika Westerberg wrote:
-> The I2C core now prepares runtime PM on behalf of the I2C client device, so
-> only thing the driver needs to do is to call pm_runtime_put() at the end of
-> its ->probe().
-> 
-> This patch converts wm8994 driver to use this model.
-> 
-> Signed-off-by: Mika Westerberg <mika.westerberg@linux.intel.com>
-Acked-by: Samuel Ortiz <sameo@linux.intel.com>
-
-I think it would make more sense for you to merge that one together with
-the related i2c changes. If you prefer that I take it through MFD,
-please let me know.
-
-Cheers,
-Samuel.
-
--- 
-Intel Open Source Technology Centre
-http://oss.intel.com/
+LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLQo+IERhdGU6IFR1ZSwgMTAg
+U2VwIDIwMTMgMDg6NTE6MDMgLTA3MDAKPiBGcm9tOiBncmVna2hAbGludXhmb3VuZGF0aW9uLm9y
+Zwo+IFRvOiBzaGlyby5pdG91QG91dGxvb2suY29tCj4gQ0M6IGxpbnV4LWhvdHBsdWdAdmdlci5r
+ZXJuZWwub3JnOyBsaW51eC1hY3BpQHZnZXIua2VybmVsLm9yZwo+IFN1YmplY3Q6IFJlOiBsb2Fk
+aW5nICdhY3BpcGhwJyBmYWlscyBhZnRlciB0aGUgc3lzdGVtIGJvb3Q/4oCPCj4KPiBPbiBUdWUs
+IFNlcCAxMCwgMjAxMyBhdCAwODo0MzowNUFNIC0wNzAwLCBTaGlybyBJdG91IOS8iuadsSB3cm90
+ZToKPj4gSGkgQWxsLAo+Pgo+PiBJbiBrZXJuZWwgdmVyc2lvbiAzLjAsIHdoZW4g4oCYYXBjaXBo
+cOKAmSBkcml2ZXIgbW9kdWxlIGlzIGxvYWRlZCwgYWZ0ZXIKPj4gdGhlIHN5c3RlbSBjb21lcyB1
+cCwgaXQgZmFpbHMgd2l0aCBlcnJvciDigJxubyBzdWNoIGRldmljZeKAnS4gV2hlbiBJCj4+IHRy
+aWVkIHRvIGRlYnVnIEkgc2VlIHRoYXQgaXQgZmFpbHMgaW4gYWNwaXBocF9nZXRfbnVtX3Nsb3Rz
+ICgpCj4+IGZ1bmN0aW9uIHdpdGggZXJyb3IgIlRvdGFsIDAgc2xvdHMiLiBJbiB0aGlzIGNhc2Ug
+4oCYYnJpZGdlX2xpc3TigJkgc2VlbQo+PiB0byBiZSBOVUxMLgo+PiBCdXQgd2hlbiB0aGUg4oCY
+YWNwaXBocOKAmSBpcyBsb2FkZWQgZHVyaW5nIGJvb3QgdGltZSwgaXQgc2VlbXMgdG8gd29yayBm
+aWxlLgo+Cj4gV2hhdCBoYXBwZW5zIGluIHRoZSAzLjExIGtlcm5lbCByZWxlYXNlPyBMb3RzIG9m
+IHdvcmsgaGFzIGJlZW4gZG9uZSBpbgo+IHRoaXMgYXJlYSBpbiB0aGUgcGFzdCAyIHllYXJzLCBw
+bGVhc2UgdHJ5IGEgbmV3ZXIga2VybmVsLiBJZiB0aGVyZSBhcmUKPiBzdGlsbCBwcm9ibGVtcywg
+cGxlYXNlIGxldCB0aGUgbGludXgtcGNpQHZnZXIua2VybmVsLm9yZyBtYWlsaW5nIGxpc3QKPiBr
+bm93IGFib3V0IGl0LgoKVGhhbmsgeW91IGZvciByZXBseS4gSSBkaWQgbm90IHRyeSAzLjExIGtl
+cm5lbC4gSSB3aWxsIGNoZWNrIDMuMTEga2VybmVsIGFuZCBzZWUuIEJ1dCBJIHVzZSAzLjAga2Vy
+bmVsIGFzIGEgcmVxdWlyZW1lbnQuCgpUaGFuayBZb3UsClNoaXJvCgo+Cj4gdGhhbmtzLAo+Cj4g
+Z3JlZyBrLWgKPiAtLQo+IFRvIHVuc3Vic2NyaWJlIGZyb20gdGhpcyBsaXN0OiBzZW5kIHRoZSBs
+aW5lICJ1bnN1YnNjcmliZSBsaW51eC1ob3RwbHVnIiBpbgo+IHRoZSBib2R5IG9mIGEgbWVzc2Fn
+ZSB0byBtYWpvcmRvbW9Admdlci5rZXJuZWwub3JnCj4gTW9yZSBtYWpvcmRvbW8gaW5mbyBhdCBo
+dHRwOi8vdmdlci5rZXJuZWwub3JnL21ham9yZG9tby1pbmZvLmh0bWwgCQkgCSAgIAkJICA=
