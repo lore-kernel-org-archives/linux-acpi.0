@@ -1,211 +1,49 @@
-From: Tang Chen <tangchen@cn.fujitsu.com>
-Subject: [PATCH v2 8/9] x86, mem-hotplug: Support initialize page tables from low to high.
-Date: Wed, 11 Sep 2013 18:07:36 +0800
-Message-ID: <1378894057-30946-9-git-send-email-tangchen@cn.fujitsu.com>
-References: <1378894057-30946-1-git-send-email-tangchen@cn.fujitsu.com>
-Return-path: <owner-linux-mm@kvack.org>
-In-Reply-To: <1378894057-30946-1-git-send-email-tangchen@cn.fujitsu.com>
-Sender: owner-linux-mm@kvack.org
-To: tj@kernel.org, rjw@sisk.pl, lenb@kernel.org, tglx@linutronix.de, mingo@elte.hu, hpa@zytor.com, akpm@linux-foundation.org, trenn@suse.de, yinghai@kernel.org, jiang.liu@huawei.com, wency@cn.fujitsu.com, laijs@cn.fujitsu.com, isimatu.yasuaki@jp.fujitsu.com, izumi.taku@jp.fujitsu.com, mgorman@suse.de, minchan@kernel.org, mina86@mina86.com, gong.chen@linux.intel.com, vasilis.liaskovitis@profitbricks.com, lwoodman@redhat.com, riel@redhat.com, jweiner@redhat.com, prarit@redhat.com, zhangyanfei@cn.fujitsu.com, toshi.kani@hp.com
-Cc: x86@kernel.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-mm@kvack.org, linux-acpi@vger.kernel.org
+From: Jani Nikula <jani.nikula@linux.intel.com>
+Subject: Re: [PATCH 2/2] ACPI / video / i915: Remove ACPI backlight if firmware expects Windows 8
+Date: Wed, 11 Sep 2013 13:29:29 +0300
+Message-ID: <87d2ofy7li.fsf@intel.com>
+References: <522D88C3.7000808@intel.com> <5155010.Y1gov7SKhP@vostro.rjw.lan> <87eh8wail7.fsf@intel.com> <1889567.vxI8heiC3B@vostro.rjw.lan> <20130911013206.GA556@mint-spring.sh.intel.com> <87hadrycf4.fsf@intel.com> <1378889140.945.0.camel@x230.lan>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mga03.intel.com ([143.182.124.21]:13717 "EHLO mga03.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752739Ab3IKK12 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 11 Sep 2013 06:27:28 -0400
+In-Reply-To: <1378889140.945.0.camel@x230.lan>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Matthew Garrett <matthew.garrett@nebula.com>
+Cc: Aaron Lu <aaron.lu@intel.com>, "Rafael J. Wysocki" <rjw@sisk.pl>, Daniel Vetter <daniel@ffwll.ch>, ACPI Devel Mailing List <linux-acpi@vger.kernel.org>, Daniel Vetter <daniel.vetter@ffwll.ch>, "intel-gfx@lists.freedesktop.org" <intel-gfx@lists.freedesktop.org>, Yves-Alexis Perez <corsac@debian.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "dri-devel@lists.freedesktop.org" <dri-devel@lists.freedesktop.org>, Seth Forshee <seth.forshee@canonical.com>, "Lee, Chun-Yi" <joeyli.kernel@gmail.com>, Igor Gnatenko <i.gnatenko.brain@gmail.com>, Henrique de Moraes Holschuh <hmh@hmh.eng.br>, Lee Chun-Yi <jlee@novell.com>, Len Brown <lenb@kernel.org>
 
-init_mem_mapping() is called before SRAT is parsed. And memblock will allocate
-memory for page tables. To prevent page tables being allocated within hotpluggable
-memory, we will allocate page tables from the end of kernel image to the higher
-memory.
+On Wed, 11 Sep 2013, Matthew Garrett <matthew.garrett@nebula.com> wrote:
+> On Wed, 2013-09-11 at 11:45 +0300, Jani Nikula wrote:
+>
+>> Before plunging forward, have you observed any difference between the
+>> boot modes? We have reports [1] that the backlight behaviour is
+>> different with UEFI vs. UEFI+CSM or legacy boot. So I'm wondering if the
+>> acpi_gbl_osi_data >= ACPI_OSI_WIN_8 check in patch 2/2 is the whole
+>> story.
+>> 
+>> Further, if we tell the BIOS we're Windows 8 to use the tested BIOS code
+>> paths, what guarantees do we have of UEFI+CSM or legacy boots working?
+>
+> We have no evidence of Windows behaving differently based on the exposed
+> firmware type.
 
-Signed-off-by: Tang Chen <tangchen@cn.fujitsu.com>
-Reviewed-by: Zhang Yanfei <zhangyanfei@cn.fujitsu.com>
----
- arch/x86/mm/init.c |  133 ++++++++++++++++++++++++++++++++++++++++-----------
- 1 files changed, 104 insertions(+), 29 deletions(-)
+By "behaving differently", do you mean internally adapting to the boot
+mode, or exhibiting different behaviour to the user?
 
-diff --git a/arch/x86/mm/init.c b/arch/x86/mm/init.c
-index 04664cd..7dae4e3 100644
---- a/arch/x86/mm/init.c
-+++ b/arch/x86/mm/init.c
-@@ -54,11 +54,23 @@ __ref void *alloc_low_pages(unsigned int num)
- 		unsigned long ret;
- 		if (min_pfn_mapped >= max_pfn_mapped)
- 			panic("alloc_low_page: ran out of memory");
-+
-+		if (memblock_direction_bottom_up()) {
-+			ret = memblock_alloc_bottom_up(
-+						MEMBLOCK_ALLOC_ACCESSIBLE,
-+						max_pfn_mapped << PAGE_SHIFT,
-+						PAGE_SIZE * num, PAGE_SIZE);
-+			if (ret)
-+				goto reserve;
-+		}
-+
- 		ret = memblock_find_in_range(min_pfn_mapped << PAGE_SHIFT,
- 					max_pfn_mapped << PAGE_SHIFT,
- 					PAGE_SIZE * num , PAGE_SIZE);
- 		if (!ret)
- 			panic("alloc_low_page: can not alloc memory");
-+
-+reserve:
- 		memblock_reserve(ret, PAGE_SIZE * num);
- 		pfn = ret >> PAGE_SHIFT;
- 	} else {
-@@ -401,13 +413,79 @@ static unsigned long __init init_range_memory_mapping(
- 
- /* (PUD_SHIFT-PMD_SHIFT)/2 */
- #define STEP_SIZE_SHIFT 5
--void __init init_mem_mapping(void)
-+
-+#ifdef CONFIG_MOVABLE_NODE
-+/**
-+ * memory_map_from_low - Map [start, end) from low to high
-+ * @start: start address of the target memory range
-+ * @end: end address of the target memory range
-+ *
-+ * This function will setup direct mapping for memory range [start, end) in a
-+ * heuristic way. In the beginning, step_size is small. The more memory we map
-+ * memory in the next loop.
-+ */
-+static void __init memory_map_from_low(unsigned long start, unsigned long end)
-+{
-+	unsigned long next, new_mapped_ram_size;
-+	unsigned long mapped_ram_size = 0;
-+	/* step_size need to be small so pgt_buf from BRK could cover it */
-+	unsigned long step_size = PMD_SIZE;
-+
-+	while (start < end) {
-+		if (end - start > step_size) {
-+			next = round_up(start + 1, step_size);
-+			if (next > end)
-+				next = end;
-+		} else
-+			next = end;
-+
-+		new_mapped_ram_size = init_range_memory_mapping(start, next);
-+		min_pfn_mapped = start >> PAGE_SHIFT;
-+		start = next;
-+
-+		if (new_mapped_ram_size > mapped_ram_size)
-+			step_size <<= STEP_SIZE_SHIFT;
-+		mapped_ram_size += new_mapped_ram_size;
-+	}
-+}
-+#endif /* CONFIG_MOVABLE_NODE */
-+
-+/**
-+ * memory_map_from_high - Map [start, end) from high to low
-+ * @start: start address of the target memory range
-+ * @end: end address of the target memory range
-+ *
-+ * This function is similar to memory_map_from_low() except it maps memory
-+ * from high to low.
-+ */
-+static void __init memory_map_from_high(unsigned long start, unsigned long end)
- {
--	unsigned long end, real_end, start, last_start;
--	unsigned long step_size;
--	unsigned long addr;
-+	unsigned long prev, new_mapped_ram_size;
- 	unsigned long mapped_ram_size = 0;
--	unsigned long new_mapped_ram_size;
-+	/* step_size need to be small so pgt_buf from BRK could cover it */
-+	unsigned long step_size = PMD_SIZE;
-+
-+	while (start < end) {
-+		if (end > step_size) {
-+			prev = round_down(end - 1, step_size);
-+			if (prev < start)
-+				prev = start;
-+		} else
-+			prev = start;
-+
-+		new_mapped_ram_size = init_range_memory_mapping(prev, end);
-+		min_pfn_mapped = prev >> PAGE_SHIFT;
-+		end = prev;
-+
-+		if (new_mapped_ram_size > mapped_ram_size)
-+			step_size <<= STEP_SIZE_SHIFT;
-+		mapped_ram_size += new_mapped_ram_size;
-+	}
-+}
-+
-+void __init init_mem_mapping(void)
-+{
-+	unsigned long end;
- 
- 	probe_page_size_mask();
- 
-@@ -417,45 +495,42 @@ void __init init_mem_mapping(void)
- 	end = max_low_pfn << PAGE_SHIFT;
- #endif
- 
--	/* the ISA range is always mapped regardless of memory holes */
--	init_memory_mapping(0, ISA_END_ADDRESS);
-+	max_pfn_mapped = 0; /* will get exact value next */
-+	min_pfn_mapped = end >> PAGE_SHIFT;
-+
-+#ifdef CONFIG_MOVABLE_NODE
-+	unsigned long kernel_end;
-+
-+	if (memblock_direction_bottom_up()) {
-+		kernel_end = round_up(__pa_symbol(_end), PMD_SIZE);
-+
-+		memory_map_from_low(kernel_end, end);
-+		memory_map_from_low(ISA_END_ADDRESS, kernel_end);
-+		goto out;
-+	}
-+#endif /* CONFIG_MOVABLE_NODE */
-+
-+	unsigned long addr, real_end;
- 
- 	/* xen has big range in reserved near end of ram, skip it at first.*/
- 	addr = memblock_find_in_range(ISA_END_ADDRESS, end, PMD_SIZE, PMD_SIZE);
- 	real_end = addr + PMD_SIZE;
- 
--	/* step_size need to be small so pgt_buf from BRK could cover it */
--	step_size = PMD_SIZE;
--	max_pfn_mapped = 0; /* will get exact value next */
--	min_pfn_mapped = real_end >> PAGE_SHIFT;
--	last_start = start = real_end;
--
- 	/*
- 	 * We start from the top (end of memory) and go to the bottom.
- 	 * The memblock_find_in_range() gets us a block of RAM from the
- 	 * end of RAM in [min_pfn_mapped, max_pfn_mapped) used as new pages
- 	 * for page table.
- 	 */
--	while (last_start > ISA_END_ADDRESS) {
--		if (last_start > step_size) {
--			start = round_down(last_start - 1, step_size);
--			if (start < ISA_END_ADDRESS)
--				start = ISA_END_ADDRESS;
--		} else
--			start = ISA_END_ADDRESS;
--		new_mapped_ram_size = init_range_memory_mapping(start,
--							last_start);
--		last_start = start;
--		min_pfn_mapped = last_start >> PAGE_SHIFT;
--		/* only increase step_size after big range get mapped */
--		if (new_mapped_ram_size > mapped_ram_size)
--			step_size <<= STEP_SIZE_SHIFT;
--		mapped_ram_size += new_mapped_ram_size;
--	}
-+	memory_map_from_high(ISA_END_ADDRESS, real_end);
- 
- 	if (real_end < end)
- 		init_range_memory_mapping(real_end, end);
- 
-+out:
-+	/* the ISA range is always mapped regardless of memory holes */
-+	init_memory_mapping(0, ISA_END_ADDRESS);
-+
- #ifdef CONFIG_X86_64
- 	if (max_pfn > max_low_pfn) {
- 		/* can we preseve max_low_pfn ?*/
+We have evidence of the firmware behaving differently (VBT, backlight)
+based on the boot mode, all else being equal. We don't adapt to that,
+and we fail. I don't know if we should adapt, or do things differently
+altogether. I don't even know if Windows 8 works on all boot modes on
+the machines in question.
+
+
+BR,
+Jani.
+
+
 -- 
-1.7.1
-
---
-To unsubscribe, send a message with 'unsubscribe linux-mm' in
-the body to majordomo@kvack.org.  For more info on Linux MM,
-see: http://www.linux-mm.org/ .
-Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
+Jani Nikula, Intel Open Source Technology Center
