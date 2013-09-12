@@ -1,63 +1,73 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: [PATCH] ACPI / osl: implement acpi_os_sleep() with msleep()
-Date: Thu, 12 Sep 2013 02:20:31 +0200
-Message-ID: <1956828.ud2cRdZZYe@vostro.rjw.lan>
-References: <1378921377.26153.26.camel@cliu38-desktop-build> <37297227.So9eVdeflb@vostro.rjw.lan> <27240C0AC20F114CBF8149A2696CBE4A01B1F71E@SHSMSX101.ccr.corp.intel.com>
+From: Aaron Lu <aaron.lu@intel.com>
+Subject: Re: [PATCH 2/2] ACPI / video / i915: Remove ACPI backlight if
+ firmware expects Windows 8
+Date: Thu, 12 Sep 2013 10:26:12 +0800
+Message-ID: <20130912022611.GA11167@aaronlu.sh.intel.com>
+References: <522D88C3.7000808@intel.com>
+ <5155010.Y1gov7SKhP@vostro.rjw.lan>
+ <87eh8wail7.fsf@intel.com>
+ <1889567.vxI8heiC3B@vostro.rjw.lan>
+ <20130911013206.GA556@mint-spring.sh.intel.com>
+ <87hadrycf4.fsf@intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from hydra.sisk.pl ([212.160.235.94]:47063 "EHLO hydra.sisk.pl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750901Ab3ILAJ2 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 11 Sep 2013 20:09:28 -0400
-In-Reply-To: <27240C0AC20F114CBF8149A2696CBE4A01B1F71E@SHSMSX101.ccr.corp.intel.com>
+Received: from mail-pa0-f51.google.com ([209.85.220.51]:44409 "EHLO
+	mail-pa0-f51.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751424Ab3ILCZv (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 11 Sep 2013 22:25:51 -0400
+Content-Disposition: inline
+In-Reply-To: <87hadrycf4.fsf@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Liu, Chuansheng" <chuansheng.liu@intel.com>
-Cc: "lenb@kernel.org" <lenb@kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "Li, Zhuangzhi" <zhuangzhi.li@intel.com>, "Li, Fei" <fei.li@intel.com>
+To: Jani Nikula <jani.nikula@linux.intel.com>
+Cc: "Rafael J. Wysocki" <rjw@sisk.pl>, Daniel Vetter <daniel@ffwll.ch>, ACPI Devel Mailing List <linux-acpi@vger.kernel.org>, Matthew Garrett <matthew.garrett@nebula.com>, Daniel Vetter <daniel.vetter@ffwll.ch>, "intel-gfx@lists.freedesktop.org" <intel-gfx@lists.freedesktop.org>, Yves-Alexis Perez <corsac@debian.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "dri-devel@lists.freedesktop.org" <dri-devel@lists.freedesktop.org>, Seth Forshee <seth.forshee@canonical.com>, "Lee, Chun-Yi" <joeyli.kernel@gmail.com>, Igor Gnatenko <i.gnatenko.brain@gmail.com>, Henrique de Moraes Holschuh <hmh@hmh.eng.br>, Lee Chun-Yi <jlee@novell.com>, Len Brown <lenb@kernel.org>
 
-On Wednesday, September 11, 2013 11:55:53 PM Liu, Chuansheng wrote:
-> Hello Rafael,
+On Wed, Sep 11, 2013 at 11:45:19AM +0300, Jani Nikula wrote:
+> On Wed, 11 Sep 2013, Aaron Lu <aaron.lu@intel.com> wrote:
+> > It is possible the i915 driver decides not to register a backlight
+> > interface for the graphics card for some reason(memory allocation failed
+> > or it knows the native control does not work on this card or whatever),
+> > so I would prefer let i915 tell ACPI video that it has registered a
+> > native backlight control interface as Jani has said.
+> >
+> > Then together with the video.use_native_backlight, we can register or
+> > not register ACPI video backlight interface accordingly. Or rather, we
+> > can simply not register ACPI video backlight interface for Win8 systems
+> > as long as i915 indicates that it has native backlight control(if the
+> > native control is broken, i915 should fix it or blacklist it so that
+> > i915 will not indicate it has native backlight control and ACPI video
+> > will continue to register its own).
+> >
+> > How does this sound?
 > 
-> > -----Original Message-----
-> > From: Rafael J. Wysocki [mailto:rjw@sisk.pl]
-> > Sent: Wednesday, September 11, 2013 8:37 PM
-> > To: Liu, Chuansheng
-> > Cc: lenb@kernel.org; linux-acpi@vger.kernel.org; linux-kernel@vger.kernel.org;
-> > Li, Zhuangzhi; Li, Fei
-> > Subject: Re: [PATCH] ACPI / osl: implement acpi_os_sleep() with msleep()
-> > 
-> > On Thursday, September 12, 2013 01:42:57 AM Chuansheng Liu wrote:
-> > >
-> > > Currently the acpi_os_sleep() is using the schedule_timeout_interruptible(),
-> > > which can be interrupted by signal, which causes the real sleep time is
-> > shorter.
-> > >
-> > > According to the ACPI spec:
-> > > The Sleep term is used to implement long-term timing requirements.
-> > > Execution is delayed for at least the required number of milliseconds.
-> > >
-> > > The sleeping time should be at least of the required number msecs, here
-> > > using msleep() to implement it.
-> > >
-> > > Also if the real time is shorter, we meet the device POWER ON issue.
-> > 
-> > What exactly is the "power on" issue?
-> The case is we have one device _PS0 method in platform.asl like below:
-> Write the pmcsr REG to power on;
-> Sleep 10ms;
-> Read some registers;
-> ...
+> Sounds good to me.
 > 
-> Here sometimes the actual sleeping time is < 10ms, it causes the following
-> actions failed due this device
-> need 10ms to power on successfully.
+> Before plunging forward, have you observed any difference between the
+> boot modes? We have reports [1] that the backlight behaviour is
 
-I see.
+Not yet from ACPI's point of view.
 
-OK, I'll queue up your patch for 3.13.
+> different with UEFI vs. UEFI+CSM or legacy boot. So I'm wondering if the
+> acpi_gbl_osi_data >= ACPI_OSI_WIN_8 check in patch 2/2 is the whole
+> story.
+
+This check in patch 2/2 is a policy: for Win8 system, we think the
+native backlight control has a better chance of working than the ACPI
+video's, so I think the check is enough in ACPI video.
+
+> 
+> Further, if we tell the BIOS we're Windows 8 to use the tested BIOS code
+> paths, what guarantees do we have of UEFI+CSM or legacy boots working?
+
+I suppose the 'tested BIOS code paths' means the pure UEFI boot mode? I
+don't know what guatantees do we have since I don't know what happened
+underneath after the backlight register is set in i915 driver, you or
+other i915 driver people should know more than I do :-)
+
+BTW, after the backlight register is set in i915, is it that some
+find of firmware code will run in response to the setting of the
+register(e.g. the BLC_PWM_CTL/BLC_PWM_CPU_CTL/PCI_LBPC reg)?
 
 Thanks,
-Rafael
-
+Aaron
