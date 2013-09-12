@@ -1,7 +1,7 @@
 From: Tang Chen <tangchen@cn.fujitsu.com>
-Subject: [RESEND PATCH v2 3/9] x86, dma: Support allocate memory from bottom upwards in dma_contiguous_reserve().
-Date: Thu, 12 Sep 2013 17:52:11 +0800
-Message-ID: <1378979537-21196-4-git-send-email-tangchen@cn.fujitsu.com>
+Subject: [RESEND PATCH v2 2/9] x86, memblock: Introduce memblock_alloc_bottom_up() to memblock.
+Date: Thu, 12 Sep 2013 17:52:10 +0800
+Message-ID: <1378979537-21196-3-git-send-email-tangchen@cn.fujitsu.com>
 References: <1378979537-21196-1-git-send-email-tangchen@cn.fujitsu.com>
 Return-path: <owner-linux-mm@kvack.org>
 In-Reply-To: <1378979537-21196-1-git-send-email-tangchen@cn.fujitsu.com>
@@ -10,55 +10,89 @@ To: tj@kernel.org, rjw@sisk.pl, lenb@kernel.org, tglx@linutronix.de, mingo@elte.
 Cc: x86@kernel.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-mm@kvack.org, linux-acpi@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-During early boot, if the bottom up mode is set, just
-try allocating bottom up from the end of kernel image,
-and if that fails, do normal top down allocation.
+This patch introduces a new API memblock_alloc_bottom_up() to make memblock be
+able to allocate from bottom upwards.
 
-So in function dma_contiguous_reserve(), we add the
-above logic.
+During early boot, if the bottom up mode is set, just try allocating bottom up
+from the end of kernel image, and if that fails, do normal top down allocation.
 
+Suggested-by: Tejun Heo <tj@kernel.org>
 Signed-off-by: Tang Chen <tangchen@cn.fujitsu.com>
 Reviewed-by: Zhang Yanfei <zhangyanfei@cn.fujitsu.com>
 ---
- drivers/base/dma-contiguous.c |   17 ++++++++++++++---
- 1 files changed, 14 insertions(+), 3 deletions(-)
+ include/linux/memblock.h |    2 ++
+ mm/memblock.c            |   38 ++++++++++++++++++++++++++++++++++++++
+ 2 files changed, 40 insertions(+), 0 deletions(-)
 
-diff --git a/drivers/base/dma-contiguous.c b/drivers/base/dma-contiguous.c
-index 99802d6..aada945 100644
---- a/drivers/base/dma-contiguous.c
-+++ b/drivers/base/dma-contiguous.c
-@@ -228,17 +228,28 @@ int __init dma_contiguous_reserve_area(phys_addr_t size, phys_addr_t base,
- 			goto err;
- 		}
- 	} else {
-+		phys_addr_t addr;
-+
-+		if (memblock_direction_bottom_up()) {
-+			addr = memblock_alloc_bottom_up(
-+						MEMBLOCK_ALLOC_ACCESSIBLE,
-+						limit, size, alignment);
-+			if (addr)
-+				goto success;
-+		}
-+
- 		/*
- 		 * Use __memblock_alloc_base() since
- 		 * memblock_alloc_base() panic()s.
- 		 */
--		phys_addr_t addr = __memblock_alloc_base(size, alignment, limit);
-+		addr = __memblock_alloc_base(size, alignment, limit);
- 		if (!addr) {
- 			ret = -ENOMEM;
- 			goto err;
--		} else {
--			base = addr;
- 		}
-+
-+success:
-+		base = addr;
- 	}
+diff --git a/include/linux/memblock.h b/include/linux/memblock.h
+index a7d3436..3dff812 100644
+--- a/include/linux/memblock.h
++++ b/include/linux/memblock.h
+@@ -153,6 +153,8 @@ phys_addr_t memblock_alloc_nid(phys_addr_t size, phys_addr_t align, int nid);
+ phys_addr_t memblock_alloc_try_nid(phys_addr_t size, phys_addr_t align, int nid);
  
- 	/*
+ phys_addr_t memblock_alloc(phys_addr_t size, phys_addr_t align);
++phys_addr_t memblock_alloc_bottom_up(phys_addr_t start, phys_addr_t end,
++				     phys_addr_t size, phys_addr_t align);
+ 
+ static inline bool memblock_direction_bottom_up(void)
+ {
+diff --git a/mm/memblock.c b/mm/memblock.c
+index f24ca2e..2eb19f3 100644
+--- a/mm/memblock.c
++++ b/mm/memblock.c
+@@ -20,6 +20,8 @@
+ #include <linux/seq_file.h>
+ #include <linux/memblock.h>
+ 
++#include <asm-generic/sections.h>
++
+ static struct memblock_region memblock_memory_init_regions[INIT_MEMBLOCK_REGIONS] __initdata_memblock;
+ static struct memblock_region memblock_reserved_init_regions[INIT_MEMBLOCK_REGIONS] __initdata_memblock;
+ 
+@@ -786,6 +788,42 @@ static phys_addr_t __init memblock_alloc_base_nid(phys_addr_t size,
+ 	return 0;
+ }
+ 
++/**
++ * memblock_alloc_bottom_up - allocate memory from bottom upwards
++ * @start: start of candidate range, can be %MEMBLOCK_ALLOC_ACCESSIBLE
++ * @@end: end of candidate range, can be %MEMBLOCK_ALLOC_{ANYWHERE|ACCESSIBLE}
++ * @size: size of free area to allocate
++ * @align: alignment of free area to allocate
++ *
++ * Allocate @size free area aligned to @align from the end of the kernel image
++ * upwards.
++ *
++ * Found address on success, %0 on failure.
++ */
++phys_addr_t __init_memblock memblock_alloc_bottom_up(phys_addr_t start,
++					phys_addr_t end, phys_addr_t size,
++					phys_addr_t align)
++{
++	phys_addr_t this_start, this_end, cand;
++	u64 i;
++
++	if (start == MEMBLOCK_ALLOC_ACCESSIBLE)
++		start = __pa_symbol(_end);	/* End of kernel image. */
++	if (end == MEMBLOCK_ALLOC_ACCESSIBLE)
++		end = memblock.current_limit;
++
++	for_each_free_mem_range(i, MAX_NUMNODES, &this_start, &this_end, NULL) {
++		this_start = clamp(this_start, start, end);
++		this_end = clamp(this_end, start, end);
++
++		cand = round_up(this_start, align);
++		if (cand < this_end && this_end - cand >= size)
++			return cand;
++	}
++
++	return 0;
++}
++
+ phys_addr_t __init memblock_alloc_nid(phys_addr_t size, phys_addr_t align, int nid)
+ {
+ 	return memblock_alloc_base_nid(size, align, MEMBLOCK_ALLOC_ACCESSIBLE, nid);
 -- 
 1.7.1
 
