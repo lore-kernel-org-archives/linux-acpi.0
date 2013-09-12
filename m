@@ -1,38 +1,62 @@
-From: Mika Westerberg <mika.westerberg-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
-Subject: Re: [PATCH v2 8/9] spi: prepare runtime PM support for SPI devices
-Date: Thu, 12 Sep 2013 12:43:02 +0300
-Message-ID: <20130912094302.GM7393@intel.com>
-References: <1378913560-2752-1-git-send-email-mika.westerberg@linux.intel.com>
- <1378913560-2752-9-git-send-email-mika.westerberg@linux.intel.com>
- <20130911155120.GW29403@sirena.org.uk>
- <20130912092743.GK7393@intel.com>
- <20130912093145.GA29403@sirena.org.uk>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20130912093145.GA29403-GFdadSzt00ze9xe1eoZjHA@public.gmane.org>
-Sender: linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Mark Brown <broonie-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Wolfram Sang <wsa-z923LK4zBo2bacvFa/9K2g@public.gmane.org>, "Rafael J. Wysocki" <rafael.j.wysocki-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Lv Zheng <lv.zheng-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Aaron Lu <aaron.lu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, Dmitry Torokhov <dmitry.torokhov-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Mauro Carvalho Chehab <m.chehab-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org>, Samuel Ortiz <sameo-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>, Lee Jones <lee.jones-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Arnd Bergmann <arnd-r2nGTMty4D4@public.gmane.org>, Greg Kroah-Hartman <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>, Liam Girdwood <lgirdwood-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Kyungmin Park <kyungmin.park-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org>
+From: Tang Chen <tangchen@cn.fujitsu.com>
+Subject: [RESEND PATCH v2 6/9] x86, acpi: Support allocate memory from bottom upwards in acpi_initrd_override().
+Date: Thu, 12 Sep 2013 17:52:14 +0800
+Message-ID: <1378979537-21196-7-git-send-email-tangchen@cn.fujitsu.com>
+References: <1378979537-21196-1-git-send-email-tangchen@cn.fujitsu.com>
+Return-path: <owner-linux-mm@kvack.org>
+In-Reply-To: <1378979537-21196-1-git-send-email-tangchen@cn.fujitsu.com>
+Sender: owner-linux-mm@kvack.org
+To: tj@kernel.org, rjw@sisk.pl, lenb@kernel.org, tglx@linutronix.de, mingo@elte.hu, hpa@zytor.com, akpm@linux-foundation.org, trenn@suse.de, yinghai@kernel.org, jiang.liu@huawei.com, wency@cn.fujitsu.com, laijs@cn.fujitsu.com, isimatu.yasuaki@jp.fujitsu.com, izumi.taku@jp.fujitsu.com, mgorman@suse.de, minchan@kernel.org, mina86@mina86.com, gong.chen@linux.intel.com, vasilis.liaskovitis@profitbricks.com, lwoodman@redhat.com, riel@redhat.com, jweiner@redhat.com, prarit@redhat.com, zhangyanfei@cn.fujitsu.com, toshi.kani@hp.com
+Cc: x86@kernel.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-mm@kvack.org, linux-acpi@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Thu, Sep 12, 2013 at 10:31:45AM +0100, Mark Brown wrote:
-> On Thu, Sep 12, 2013 at 12:27:43PM +0300, Mika Westerberg wrote:
-> > On Wed, Sep 11, 2013 at 04:51:20PM +0100, Mark Brown wrote:
-> 
-> > > I would be able to have this and the other patch in the SPI tree in case
-> > > it overlaps with other work - I'm not sure what the plan will be for
-> > > merging this stuff but if there were a branch which I could merge into
-> > > the SPI tree that'd be good.
-> 
-> > I think these two can go via your SPI tree as they shouldn't have
-> > dependencies to the I2C tree.
-> 
-> There's all the driver changes though - it seems best to push the whole
-> series through one branch so there's fewer bisection problems.
+During early boot, if the bottom up mode is set, just
+try allocating bottom up from the end of kernel image,
+and if that fails, do normal top down allocation.
 
-Ah, right. Then I suppose the right tree would be the I2C tree (as majority
-of the patches are I2C related)?
+So in function acpi_initrd_override(), we add the
+above logic.
 
-Wolfram, are you OK with this?
+Signed-off-by: Tang Chen <tangchen@cn.fujitsu.com>
+Reviewed-by: Zhang Yanfei <zhangyanfei@cn.fujitsu.com>
+---
+ drivers/acpi/osl.c |   11 +++++++++++
+ 1 files changed, 11 insertions(+), 0 deletions(-)
+
+diff --git a/drivers/acpi/osl.c b/drivers/acpi/osl.c
+index e5f416c..978dcfa 100644
+--- a/drivers/acpi/osl.c
++++ b/drivers/acpi/osl.c
+@@ -632,6 +632,15 @@ void __init acpi_initrd_override(void *data, size_t size)
+ 	if (table_nr == 0)
+ 		return;
+ 
++	if (memblock_direction_bottom_up()) {
++		acpi_tables_addr = memblock_alloc_bottom_up(
++					MEMBLOCK_ALLOC_ACCESSIBLE,
++					max_low_pfn_mapped << PAGE_SHIFT,
++					all_tables_size, PAGE_SIZE);
++		if (acpi_tables_addr)
++			goto success;
++	}
++
+ 	acpi_tables_addr =
+ 		memblock_find_in_range(0, max_low_pfn_mapped << PAGE_SHIFT,
+ 				       all_tables_size, PAGE_SIZE);
+@@ -639,6 +648,8 @@ void __init acpi_initrd_override(void *data, size_t size)
+ 		WARN_ON(1);
+ 		return;
+ 	}
++
++success:
+ 	/*
+ 	 * Only calling e820_add_reserve does not work and the
+ 	 * tables are invalid (memory got used) later.
+-- 
+1.7.1
+
+--
+To unsubscribe, send a message with 'unsubscribe linux-mm' in
+the body to majordomo@kvack.org.  For more info on Linux MM,
+see: http://www.linux-mm.org/ .
+Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
