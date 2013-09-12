@@ -1,46 +1,83 @@
-From: Tony Camuso <tcamuso@redhat.com>
-Subject: Re: [PATCH 02/13] ACPI/IPMI: Fix atomic context requirement of ipmi_msg_handler()
-Date: Thu, 12 Sep 2013 13:09:53 -0400
-Message-ID: <5231F561.3090401@redhat.com>
-References: <5231D332.2080602@redhat.com> <2922434.Qm5pumexNE@vostro.rjw.lan>
+From: Toshi Kani <toshi.kani@hp.com>
+Subject: Re: [RESEND PATCH v2 3/9] x86, dma: Support allocate memory from
+ bottom upwards in dma_contiguous_reserve().
+Date: Thu, 12 Sep 2013 13:22:39 -0600
+Message-ID: <1379013759.13477.12.camel@misato.fc.hp.com>
+References: <1378979537-21196-1-git-send-email-tangchen@cn.fujitsu.com>
+	 <1378979537-21196-4-git-send-email-tangchen@cn.fujitsu.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:18703 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753906Ab3ILREo (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 12 Sep 2013 13:04:44 -0400
-In-Reply-To: <2922434.Qm5pumexNE@vostro.rjw.lan>
+Received: from g1t0027.austin.hp.com ([15.216.28.34]:39985 "EHLO
+	g1t0027.austin.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753519Ab3ILTYd (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 12 Sep 2013 15:24:33 -0400
+In-Reply-To: <1378979537-21196-4-git-send-email-tangchen@cn.fujitsu.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: lenb@kernel.org, linux-acpi@vger.kernel.org, lv.zheng@intel.com, Don Zickus <dzickus@redhat.com>
+To: Tang Chen <tangchen@cn.fujitsu.com>
+Cc: tj@kernel.org, rjw@sisk.pl, lenb@kernel.org, tglx@linutronix.de, mingo@elte.hu, hpa@zytor.com, akpm@linux-foundation.org, trenn@suse.de, yinghai@kernel.org, jiang.liu@huawei.com, wency@cn.fujitsu.com, laijs@cn.fujitsu.com, isimatu.yasuaki@jp.fujitsu.com, izumi.taku@jp.fujitsu.com, mgorman@suse.de, minchan@kernel.org, mina86@mina86.com, gong.chen@linux.intel.com, vasilis.liaskovitis@profitbricks.com, lwoodman@redhat.com, riel@redhat.com, jweiner@redhat.com, prarit@redhat.com, zhangyanfei@cn.fujitsu.com, x86@kernel.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-mm@kvack.org, linux-acpi@vger.kernel.org
 
-On 09/12/2013 11:12 AM, Rafael J. Wysocki wrote:
-> On Thursday, September 12, 2013 10:44:02 AM Tony Camuso wrote:
->> Hi, Len.
->>
->> On Jul 23, Lv Zheng submitted this patch (02/13)
->> https://lkml.org/lkml/2013/7/23/96
->>
->> .. and early this month, not having seen Lv's patch, I
->> submitted a virtual identical one, here. 
->> https://lkml.org/lkml/2013/9/2/305
->>
->> We've been seeing lockdep splats that are fixed by this
->> patch, so I'm wondering if Lv's patch will be included
->> in kernel v3.12.
+On Thu, 2013-09-12 at 17:52 +0800, Tang Chen wrote:
+> During early boot, if the bottom up mode is set, just
+> try allocating bottom up from the end of kernel image,
+> and if that fails, do normal top down allocation.
 > 
-> I actually have a plan to apply your patch, because it doesn't depend on the
-> additional changes made by Lv that don't belong in 3.12.
+> So in function dma_contiguous_reserve(), we add the
+> above logic.
 > 
-> Thanks,
-> Rafael
+> Signed-off-by: Tang Chen <tangchen@cn.fujitsu.com>
+> Reviewed-by: Zhang Yanfei <zhangyanfei@cn.fujitsu.com>
+> ---
+>  drivers/base/dma-contiguous.c |   17 ++++++++++++++---
+>  1 files changed, 14 insertions(+), 3 deletions(-)
 > 
+> diff --git a/drivers/base/dma-contiguous.c b/drivers/base/dma-contiguous.c
+> index 99802d6..aada945 100644
+> --- a/drivers/base/dma-contiguous.c
+> +++ b/drivers/base/dma-contiguous.c
+> @@ -228,17 +228,28 @@ int __init dma_contiguous_reserve_area(phys_addr_t size, phys_addr_t base,
+>  			goto err;
+>  		}
+>  	} else {
+> +		phys_addr_t addr;
+> +
+> +		if (memblock_direction_bottom_up()) {
+> +			addr = memblock_alloc_bottom_up(
+> +						MEMBLOCK_ALLOC_ACCESSIBLE,
+> +						limit, size, alignment);
+> +			if (addr)
+> +				goto success;
+> +		}
 
-Yes, that would be great.
+I am afraid that this version went to a wrong direction.  Allocating
+from the bottom up needs to be an internal logic within the memblock
+allocator.  It should not require the callers to be aware of the
+direction and make a special request.
 
-Regards,
-Tony
+Thanks,
+-Toshi
+
+
+> +
+>  		/*
+>  		 * Use __memblock_alloc_base() since
+>  		 * memblock_alloc_base() panic()s.
+>  		 */
+> -		phys_addr_t addr = __memblock_alloc_base(size, alignment, limit);
+> +		addr = __memblock_alloc_base(size, alignment, limit);
+>  		if (!addr) {
+>  			ret = -ENOMEM;
+>  			goto err;
+> -		} else {
+> -			base = addr;
+>  		}
+> +
+> +success:
+> +		base = addr;
+>  	}
+>  
+>  	/*
+
 
