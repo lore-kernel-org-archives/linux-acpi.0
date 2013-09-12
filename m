@@ -1,73 +1,55 @@
-From: Aaron Lu <aaron.lu@intel.com>
-Subject: Re: [PATCH 2/2] ACPI / video / i915: Remove ACPI backlight if
- firmware expects Windows 8
-Date: Thu, 12 Sep 2013 10:26:12 +0800
-Message-ID: <20130912022611.GA11167@aaronlu.sh.intel.com>
-References: <522D88C3.7000808@intel.com>
- <5155010.Y1gov7SKhP@vostro.rjw.lan>
- <87eh8wail7.fsf@intel.com>
- <1889567.vxI8heiC3B@vostro.rjw.lan>
- <20130911013206.GA556@mint-spring.sh.intel.com>
- <87hadrycf4.fsf@intel.com>
+From: Tang Chen <tangchen@cn.fujitsu.com>
+Subject: [Bug report] Warning when hot-add an ACPI0004 device.
+Date: Thu, 12 Sep 2013 13:00:57 +0800
+Message-ID: <52314A89.2060809@cn.fujitsu.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-pa0-f51.google.com ([209.85.220.51]:44409 "EHLO
-	mail-pa0-f51.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751424Ab3ILCZv (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 11 Sep 2013 22:25:51 -0400
-Content-Disposition: inline
-In-Reply-To: <87hadrycf4.fsf@intel.com>
+Received: from cn.fujitsu.com ([222.73.24.84]:31366 "EHLO song.cn.fujitsu.com"
+	rhost-flags-OK-FAIL-OK-OK) by vger.kernel.org with ESMTP
+	id S1752491Ab3ILE6e (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 12 Sep 2013 00:58:34 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Jani Nikula <jani.nikula@linux.intel.com>
-Cc: "Rafael J. Wysocki" <rjw@sisk.pl>, Daniel Vetter <daniel@ffwll.ch>, ACPI Devel Mailing List <linux-acpi@vger.kernel.org>, Matthew Garrett <matthew.garrett@nebula.com>, Daniel Vetter <daniel.vetter@ffwll.ch>, "intel-gfx@lists.freedesktop.org" <intel-gfx@lists.freedesktop.org>, Yves-Alexis Perez <corsac@debian.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "dri-devel@lists.freedesktop.org" <dri-devel@lists.freedesktop.org>, Seth Forshee <seth.forshee@canonical.com>, "Lee, Chun-Yi" <joeyli.kernel@gmail.com>, Igor Gnatenko <i.gnatenko.brain@gmail.com>, Henrique de Moraes Holschuh <hmh@hmh.eng.br>, Lee Chun-Yi <jlee@novell.com>, Len Brown <lenb@kernel.org>
+To: "Rafael J. Wysocki" <rjw@sisk.pl>, Toshi Kani <toshi.kani@hp.com>
+Cc: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
 
-On Wed, Sep 11, 2013 at 11:45:19AM +0300, Jani Nikula wrote:
-> On Wed, 11 Sep 2013, Aaron Lu <aaron.lu@intel.com> wrote:
-> > It is possible the i915 driver decides not to register a backlight
-> > interface for the graphics card for some reason(memory allocation failed
-> > or it knows the native control does not work on this card or whatever),
-> > so I would prefer let i915 tell ACPI video that it has registered a
-> > native backlight control interface as Jani has said.
-> >
-> > Then together with the video.use_native_backlight, we can register or
-> > not register ACPI video backlight interface accordingly. Or rather, we
-> > can simply not register ACPI video backlight interface for Win8 systems
-> > as long as i915 indicates that it has native backlight control(if the
-> > native control is broken, i915 should fix it or blacklist it so that
-> > i915 will not indicate it has native backlight control and ACPI video
-> > will continue to register its own).
-> >
-> > How does this sound?
-> 
-> Sounds good to me.
-> 
-> Before plunging forward, have you observed any difference between the
-> boot modes? We have reports [1] that the backlight behaviour is
+Hi Rafael, Toshi,
 
-Not yet from ACPI's point of view.
+When we hot-add an ACPI0004 device, we got the following warning:
 
-> different with UEFI vs. UEFI+CSM or legacy boot. So I'm wondering if the
-> acpi_gbl_osi_data >= ACPI_OSI_WIN_8 check in patch 2/2 is the whole
-> story.
+	acpi ACPI0004:01: Attempt to re-insert
 
-This check in patch 2/2 is a policy: for Win8 system, we think the
-native backlight control has a better chance of working than the ACPI
-video's, so I think the check is enough in ACPI video.
+The ACPI0004 device is a System Board in Fujitsu server, which has two
+numa nodes (processors and memory).
 
-> 
-> Further, if we tell the BIOS we're Windows 8 to use the tested BIOS code
-> paths, what guarantees do we have of UEFI+CSM or legacy boots working?
+It seems that we reserved the ACPI_NOTIFY_DEVICE_CHECK event twice in
+acpi_hotplug_notify_cb().
 
-I suppose the 'tested BIOS code paths' means the pure UEFI boot mode? I
-don't know what guatantees do we have since I don't know what happened
-underneath after the backlight register is set in i915 driver, you or
-other i915 driver people should know more than I do :-)
 
-BTW, after the backlight register is set in i915, is it that some
-find of firmware code will run in response to the setting of the
-register(e.g. the BLC_PWM_CTL/BLC_PWM_CPU_CTL/PCI_LBPC reg)?
+According to bisect, this happens after the following commit:
 
-Thanks,
-Aaron
+ From 68a67f6c78b80525d9b3c6672e7782de95e56a83 Mon Sep 17 00:00:00 2001
+From: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>
+Date: Sun, 3 Mar 2013 23:05:55 +0100
+Subject: [PATCH 1/1] ACPI / container: Use common hotplug code
+
+Switch the ACPI container driver to using common device hotplug code
+introduced previously.  This reduces the driver down to a trivial
+definition and registration of a struct acpi_scan_handler object.
+
+Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+Acked-by: Toshi Kani <toshi.kani@hp.com>
+Tested-by: Toshi Kani <toshi.kani@hp.com>
+---
+  drivers/acpi/container.c | 146 
+++++-------------------------------------------
+  1 file changed, 10 insertions(+), 136 deletions(-)
+
+
+I'm now investigating this problem. If you have any idea about why this
+happens, please let me know.
+
+Thanks. :)
+
