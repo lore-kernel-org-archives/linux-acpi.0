@@ -1,39 +1,69 @@
-From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [PATCH 02/13] ACPI/IPMI: Fix atomic context requirement of ipmi_msg_handler()
-Date: Thu, 12 Sep 2013 17:12:41 +0200
-Message-ID: <2922434.Qm5pumexNE@vostro.rjw.lan>
-References: <5231D332.2080602@redhat.com>
+From: Toshi Kani <toshi.kani@hp.com>
+Subject: Re: [Bug report] Warning when hot-add an ACPI0004 device.
+Date: Thu, 12 Sep 2013 09:11:52 -0600
+Message-ID: <1378998712.12538.18.camel@misato.fc.hp.com>
+References: <52314A89.2060809@cn.fujitsu.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from v094114.home.net.pl ([79.96.170.134]:64058 "HELO
-	v094114.home.net.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1752929Ab3ILPBj (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 12 Sep 2013 11:01:39 -0400
-In-Reply-To: <5231D332.2080602@redhat.com>
+Received: from g4t0014.houston.hp.com ([15.201.24.17]:24812 "EHLO
+	g4t0014.houston.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752738Ab3ILPNz (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 12 Sep 2013 11:13:55 -0400
+In-Reply-To: <52314A89.2060809@cn.fujitsu.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Tony Camuso <tcamuso@redhat.com>
-Cc: lenb@kernel.org, linux-acpi@vger.kernel.org, lv.zheng@intel.com, Don Zickus <dzickus@redhat.com>
+To: Tang Chen <tangchen@cn.fujitsu.com>
+Cc: "Rafael J. Wysocki" <rjw@sisk.pl>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
 
-On Thursday, September 12, 2013 10:44:02 AM Tony Camuso wrote:
-> Hi, Len.
+On Thu, 2013-09-12 at 13:00 +0800, Tang Chen wrote:
+> Hi Rafael, Toshi,
 > 
-> On Jul 23, Lv Zheng submitted this patch (02/13)
-> https://lkml.org/lkml/2013/7/23/96
+> When we hot-add an ACPI0004 device, we got the following warning:
 > 
-> .. and early this month, not having seen Lv's patch, I
-> submitted a virtual identical one, here. 
-> https://lkml.org/lkml/2013/9/2/305
+> 	acpi ACPI0004:01: Attempt to re-insert
 > 
-> We've been seeing lockdep splats that are fixed by this
-> patch, so I'm wondering if Lv's patch will be included
-> in kernel v3.12.
+> The ACPI0004 device is a System Board in Fujitsu server, which has two
+> numa nodes (processors and memory).
+> 
+> It seems that we reserved the ACPI_NOTIFY_DEVICE_CHECK event twice in
+> acpi_hotplug_notify_cb().
+> 
+> 
+> According to bisect, this happens after the following commit:
+> 
+>  From 68a67f6c78b80525d9b3c6672e7782de95e56a83 Mon Sep 17 00:00:00 2001
+> From: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>
+> Date: Sun, 3 Mar 2013 23:05:55 +0100
+> Subject: [PATCH 1/1] ACPI / container: Use common hotplug code
+> 
+> Switch the ACPI container driver to using common device hotplug code
+> introduced previously.  This reduces the driver down to a trivial
+> definition and registration of a struct acpi_scan_handler object.
+> 
+> Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+> Acked-by: Toshi Kani <toshi.kani@hp.com>
+> Tested-by: Toshi Kani <toshi.kani@hp.com>
+> ---
+>   drivers/acpi/container.c | 146 
+> ++++-------------------------------------------
+>   1 file changed, 10 insertions(+), 136 deletions(-)
+> 
+> 
+> I'm now investigating this problem. If you have any idea about why this
+> happens, please let me know.
 
-I actually have a plan to apply your patch, because it doesn't depend on the
-additional changes made by Lv that don't belong in 3.12.
+With the above change, container devices use the common notify handler,
+which logs the warning message in question when it receives device check
+twice on a same device.  Before the change, the container-specific
+notify handler did not log this message in the same case (but considered
+it as an eject request).
+
+So, I suspect that you are getting device check twice regardless of the
+kernel change.  Can you check KERN_DEBUG messages to see if that is the
+case?  The notify handler logs all events with KERN_DEBUG.
 
 Thanks,
-Rafael
+-Toshi
 
