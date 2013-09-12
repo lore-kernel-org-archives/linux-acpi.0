@@ -1,40 +1,47 @@
-From: Tang Chen <tangchen@cn.fujitsu.com>
-Subject: Re: [PATCH v2 0/9] x86, memblock: Allocate memory near kernel image
- before SRAT parsed.
-Date: Thu, 12 Sep 2013 18:06:16 +0800
-Message-ID: <52319218.3080609@cn.fujitsu.com>
-References: <1378894057-30946-1-git-send-email-tangchen@cn.fujitsu.com> <20130911125101.GA20997@htj.dyndns.org>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: Re: [PATCH v2 8/9] spi: prepare runtime PM support for SPI devices
+Date: Thu, 12 Sep 2013 13:04:55 +0200
+Message-ID: <14222641.vVF4lKBqCB@vostro.rjw.lan>
+References: <1378913560-2752-1-git-send-email-mika.westerberg@linux.intel.com> <20130912093145.GA29403@sirena.org.uk> <20130912094302.GM7393@intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <owner-linux-mm@kvack.org>
-In-Reply-To: <20130911125101.GA20997@htj.dyndns.org>
-Sender: owner-linux-mm@kvack.org
-To: Tejun Heo <tj@kernel.org>
-Cc: rjw@sisk.pl, lenb@kernel.org, tglx@linutronix.de, mingo@elte.hu, hpa@zytor.com, akpm@linux-foundation.org, trenn@suse.de, yinghai@kernel.org, jiang.liu@huawei.com, wency@cn.fujitsu.com, laijs@cn.fujitsu.com, isimatu.yasuaki@jp.fujitsu.com, izumi.taku@jp.fujitsu.com, mgorman@suse.de, minchan@kernel.org, mina86@mina86.com, gong.chen@linux.intel.com, vasilis.liaskovitis@profitbricks.com, lwoodman@redhat.com, riel@redhat.com, jweiner@redhat.com, prarit@redhat.com, zhangyanfei@cn.fujitsu.com, toshi.kani@hp.com, x86@kernel.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-mm@kvack.org, linux-acpi@vger.kernel.org
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7Bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from hydra.sisk.pl ([212.160.235.94]:48978 "EHLO hydra.sisk.pl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750901Ab3ILKxy (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 12 Sep 2013 06:53:54 -0400
+In-Reply-To: <20130912094302.GM7393@intel.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Mika Westerberg <mika.westerberg@linux.intel.com>
+Cc: Mark Brown <broonie@kernel.org>, linux-i2c@vger.kernel.org, Wolfram Sang <wsa@the-dreams.de>, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Lv Zheng <lv.zheng@intel.com>, Aaron Lu <aaron.lu@intel.com>, linux-arm-kernel@lists.infradead.org, Dmitry Torokhov <dmitry.torokhov@gmail.com>, Mauro Carvalho Chehab <m.chehab@samsung.com>, Samuel Ortiz <sameo@linux.intel.com>, Lee Jones <lee.jones@linaro.org>, Arnd Bergmann <arnd@arndb.de>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Liam Girdwood <lgirdwood@gmail.com>, Kyungmin Park <kyungmin.park@samsung.com>
 
-On 09/11/2013 08:51 PM, Tejun Heo wrote:
-> On Wed, Sep 11, 2013 at 06:07:28PM +0800, Tang Chen wrote:
->> This patch-set is based on tj's suggestion, and not fully tested.
->> Just for review and discussion. And according to tj's suggestion,
->> implemented a new function memblock_alloc_bottom_up() to allocate
->> memory from bottom upwards, whihc can simplify the code.
->
-> For $DEITY's sake, can you please specify against which tree the
-> patches are?  :(
->
+On Thursday, September 12, 2013 12:43:02 PM Mika Westerberg wrote:
+> On Thu, Sep 12, 2013 at 10:31:45AM +0100, Mark Brown wrote:
+> > On Thu, Sep 12, 2013 at 12:27:43PM +0300, Mika Westerberg wrote:
+> > > On Wed, Sep 11, 2013 at 04:51:20PM +0100, Mark Brown wrote:
+> > 
+> > > > I would be able to have this and the other patch in the SPI tree in case
+> > > > it overlaps with other work - I'm not sure what the plan will be for
+> > > > merging this stuff but if there were a branch which I could merge into
+> > > > the SPI tree that'd be good.
+> > 
+> > > I think these two can go via your SPI tree as they shouldn't have
+> > > dependencies to the I2C tree.
+> > 
+> > There's all the driver changes though - it seems best to push the whole
+> > series through one branch so there's fewer bisection problems.
+> 
+> Ah, right. Then I suppose the right tree would be the I2C tree (as majority
+> of the patches are I2C related)?
+> 
+> Wolfram, are you OK with this?
 
-Hi tj,
+Alternatively, I can apply them too if everyone is OK with that.
 
-So sorry for the trouble. I have rebased the patches to the latest
-kernel and resent it. I cannot access to my github now, so sorry for
-that I cannot give you a tree with these patches.
+They are PM+ACPI changes after all ...
 
-Thanks. :)
+Thanks,
+Rafael
 
---
-To unsubscribe, send a message with 'unsubscribe linux-mm' in
-the body to majordomo@kvack.org.  For more info on Linux MM,
-see: http://www.linux-mm.org/ .
-Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
