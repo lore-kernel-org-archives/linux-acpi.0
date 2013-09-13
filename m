@@ -1,73 +1,281 @@
 From: Mika Westerberg <mika.westerberg@linux.intel.com>
-Subject: Re: [PATCH v2 1/9] i2c: prepare runtime PM support for I2C client
- devices
-Date: Fri, 13 Sep 2013 17:50:22 +0300
-Message-ID: <20130913145022.GC7393@intel.com>
-References: <1378913560-2752-1-git-send-email-mika.westerberg@linux.intel.com>
- <1378913560-2752-2-git-send-email-mika.westerberg@linux.intel.com>
- <87vc25pvvm.fsf@linaro.org>
- <20130913065434.GZ7393@intel.com>
- <87bo3whjz4.fsf@linaro.org>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Subject: [PATCH 2/2] gpio / ACPI: add support for GPIO operation regions
+Date: Fri, 13 Sep 2013 18:14:40 +0300
+Message-ID: <1379085280-2211-2-git-send-email-mika.westerberg@linux.intel.com>
+References: <1379085280-2211-1-git-send-email-mika.westerberg@linux.intel.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga11.intel.com ([192.55.52.93]:58641 "EHLO mga11.intel.com"
+Received: from mga03.intel.com ([143.182.124.21]:43631 "EHLO mga03.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755568Ab3IMOo6 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 13 Sep 2013 10:44:58 -0400
-Content-Disposition: inline
-In-Reply-To: <87bo3whjz4.fsf@linaro.org>
+	id S1755709Ab3IMPOo (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 13 Sep 2013 11:14:44 -0400
+In-Reply-To: <1379085280-2211-1-git-send-email-mika.westerberg@linux.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Kevin Hilman <khilman@linaro.org>
-Cc: linux-i2c@vger.kernel.org, Wolfram Sang <wsa@the-dreams.de>, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Lv Zheng <lv.zheng@intel.com>, Aaron Lu <aaron.lu@intel.com>, linux-arm-kernel@lists.infradead.org, Mark Brown <broonie@kernel.org>, Dmitry Torokhov <dmitry.torokhov@gmail.com>, Mauro Carvalho Chehab <m.chehab@samsung.com>, Samuel Ortiz <sameo@linux.intel.com>, Lee Jones <lee.jones@linaro.org>, Arnd Bergmann <arnd@arndb.de>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Liam Girdwood <lgirdwood@gmail.com>, Kyungmin Park <kyungmin.park@samsung.com>
+To: linux-kernel@vger.kernel.org
+Cc: Linus Walleij <linus.walleij@linaro.org>, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Mathias Nyman <mathias.nyman@linux.intel.com>, Grant Likely <grant.likely@secretlab.ca>, Mika Westerberg <mika.westerberg@linux.intel.com>, linux-acpi@vger.kernel.org
 
-On Fri, Sep 13, 2013 at 07:30:55AM -0700, Kevin Hilman wrote:
-> Mika Westerberg <mika.westerberg@linux.intel.com> writes:
-> 
-> > On Thu, Sep 12, 2013 at 02:34:21PM -0700, Kevin Hilman wrote:
-> >> > diff --git a/drivers/i2c/i2c-core.c b/drivers/i2c/i2c-core.c
-> >> > index f32ca29..44374b4 100644
-> >> > --- a/drivers/i2c/i2c-core.c
-> >> > +++ b/drivers/i2c/i2c-core.c
-> >> > @@ -248,11 +248,30 @@ static int i2c_device_probe(struct device *dev)
-> >> >  					client->flags & I2C_CLIENT_WAKE);
-> >> >  	dev_dbg(dev, "probe\n");
-> >> >  
-> >> > +	/* Make sure the adapter is active */
-> >> > +	pm_runtime_get_sync(&client->adapter->dev);
-> >> > +
-> >> > +	/*
-> >> > +	 * Enable runtime PM for the client device. If the client wants to
-> >> > +	 * participate on runtime PM it should call pm_runtime_put() in its
-> >> > +	 * probe() callback.
-> >> > +	 */
-> >> > +	pm_runtime_get_noresume(&client->dev);
-> >> > +	pm_runtime_set_active(&client->dev);
-> >> 
-> >> Why the set_active here?
-> >> 
-> >> For hardware that is disabled/powered-off on startup, there will now be
-> >> a mismatch between the hardware state an the RPM core state.
-> >
-> > The call to pm_runtime_get_noresume() should make sure that the device is
-> > in active state (at least in state where it can access the bus) if I'm
-> > understanding this right.
-> 
-> No, after _get_noresume(), nothing happens to the hardware.  It simply
-> increments the usecount.  From pm_runtime.h:
-> 
-> static inline void pm_runtime_get_noresume(struct device *dev)
-> {
-> 	atomic_inc(&dev->power.usage_count);
-> }
-> 
-> So after the _get_noresume() and _set_active() you're very likely to
-> have a disconnect between the hardware state and what state RPM thinks
-> the hardware is in.
+GPIO operation regions is a new feature introduced in ACPI 5.0
+specification. In practise it means that now ASL code can toggle GPIOs with
+the help of the OS GPIO driver.
 
-Good point.
+An imaginary example of such ASL code:
 
-I suppose calling pm_runtime_get() here would work (and make the state
-active in all case)? I used _noresume() here because at this point the
-driver itself hasn't had change to install it's RPM hooks.
+	Device (\SB.GPIO)
+	{
+		// _REG is called when the operation region handler is
+		// installed.
+		Method (_REG)
+		{
+			...
+		}
+
+		OperationRegion (GPOP, GeneralPurposeIo, 0, 0xc)
+		Field (GPOP, ByteAcc, NoLock, Preserve)
+		{
+			Connection
+			(
+	                    GpioIo (Exclusive, PullDefault, 0x0000, 0x0000,
+				    IoRestrictionOutputOnly, "\\_SB.GPIO",
+				    0x00, ResourceConsumer,,)
+				{
+				    0x0005
+				}
+			),
+			PWR0, 1
+		}
+
+		...
+	}
+
+	Device (\SB.DEV0)
+	{
+		...
+
+		Method (_PS0, 0, Serialized)
+		{
+			// Toggle the GPIO
+			Store (1, \SB.GPIO.PWR0)
+		}
+
+		Method (_PS3, 0, Serialized)
+		{
+			Store (0, \SB.GPIO.PRW0)
+		}
+	}
+
+The device \SB.DEV0 is powered on by asserting \SB.GPIO.PWR0 GPIO line. So
+when the OS calls _PS0 or _PS3, that GPIO line should be set to 1 or 0 by
+the actual GPIO driver.
+
+In order to support GPIO operation regions we install ACPI address space
+handler for the device (provided that it has an ACPI handle). This handler
+uses the standard GPIO APIs to toggle the pin according to what the ASL
+code does.
+
+Since there is need to attach more data to the ACPI object, we create a new
+structure acpi_gpio_chip_data that contains data for both GPIO operation
+regions and for ACPI event handling and make the event handling code to use
+this new structure.
+
+Signed-off-by: Mika Westerberg <mika.westerberg@linux.intel.com>
+---
+ drivers/gpio/gpiolib-acpi.c | 131 ++++++++++++++++++++++++++++++++++++++++++--
+ 1 file changed, 126 insertions(+), 5 deletions(-)
+
+diff --git a/drivers/gpio/gpiolib-acpi.c b/drivers/gpio/gpiolib-acpi.c
+index e12a08e..f52536a 100644
+--- a/drivers/gpio/gpiolib-acpi.c
++++ b/drivers/gpio/gpiolib-acpi.c
+@@ -24,6 +24,17 @@ struct acpi_gpio_evt_pin {
+ 	unsigned int irq;
+ };
+ 
++struct acpi_gpio_chip_data {
++	/*
++	 * acpi_install_address_space_handler() wants to put the connection
++	 * information at the start of the context structure we pass it, in
++	 * case we are dealing with GPIO operation regions.
++	 */
++	struct acpi_connection_info ci;
++	struct gpio_chip *chip;
++	struct list_head *evt_pins;
++};
++
+ static int acpi_gpiochip_find(struct gpio_chip *gc, void *data)
+ {
+ 	if (!gc->dev)
+@@ -86,7 +97,7 @@ static irqreturn_t acpi_gpio_irq_handler_evt(int irq, void *data)
+ 	return IRQ_HANDLED;
+ }
+ 
+-static void acpi_gpio_evt_dh(acpi_handle handle, void *data)
++static void acpi_gpio_chip_dh(acpi_handle handle, void *data)
+ {
+ 	/* The address of this function is used as a key. */
+ }
+@@ -127,12 +138,16 @@ static void acpi_gpiochip_request_interrupts(struct gpio_chip *chip)
+ 	if (ACPI_SUCCESS(status)) {
+ 		evt_pins = kzalloc(sizeof(*evt_pins), GFP_KERNEL);
+ 		if (evt_pins) {
++			struct acpi_gpio_chip_data *data;
++
+ 			INIT_LIST_HEAD(evt_pins);
+-			status = acpi_attach_data(handle, acpi_gpio_evt_dh,
+-						  evt_pins);
++			status = acpi_get_data(handle, acpi_gpio_chip_dh,
++					       (void **)&data);
+ 			if (ACPI_FAILURE(status)) {
+ 				kfree(evt_pins);
+ 				evt_pins = NULL;
++			} else {
++				data->evt_pins = evt_pins;
+ 			}
+ 		}
+ 	}
+@@ -293,6 +308,7 @@ static void acpi_gpiochip_free_interrupts(struct gpio_chip *chip)
+ 	acpi_status status;
+ 	struct list_head *evt_pins;
+ 	struct acpi_gpio_evt_pin *evt_pin, *ep;
++	struct acpi_gpio_chip_data *data;
+ 
+ 	if (!chip->dev || !chip->to_irq)
+ 		return;
+@@ -301,28 +317,133 @@ static void acpi_gpiochip_free_interrupts(struct gpio_chip *chip)
+ 	if (!handle)
+ 		return;
+ 
+-	status = acpi_get_data(handle, acpi_gpio_evt_dh, (void **)&evt_pins);
++	status = acpi_get_data(handle, acpi_gpio_chip_dh, (void **)&data);
+ 	if (ACPI_FAILURE(status))
+ 		return;
+ 
++	evt_pins = data->evt_pins;
++	data->evt_pins = NULL;
++
+ 	list_for_each_entry_safe_reverse(evt_pin, ep, evt_pins, node) {
+ 		devm_free_irq(chip->dev, evt_pin->irq, evt_pin);
+ 		list_del(&evt_pin->node);
+ 		kfree(evt_pin);
+ 	}
+ 
+-	acpi_detach_data(handle, acpi_gpio_evt_dh);
+ 	kfree(evt_pins);
+ }
+ 
++static acpi_status
++acpi_gpio_adr_space_handler(u32 function, acpi_physical_address address,
++			    u32 bits, u64 *value, void *handler_context,
++			    void *reqion_context)
++{
++	struct acpi_gpio_chip_data *data = handler_context;
++	struct gpio_chip *chip = data->chip;
++	struct acpi_resource *ares;
++	int ret, gpio = -EINVAL;
++	unsigned long flags = 0;
++	acpi_status status;
++
++	status = acpi_buffer_to_resource(data->ci.connection, data->ci.length,
++					 &ares);
++	if (ACPI_FAILURE(status))
++		return status;
++
++	if (ares->type == ACPI_RESOURCE_TYPE_GPIO) {
++		const struct acpi_resource_gpio *agpio = &ares->data.gpio;
++
++		switch (agpio->io_restriction) {
++		case ACPI_IO_RESTRICT_NONE:
++			flags = GPIOF_DIR_IN | GPIOF_DIR_OUT;
++			break;
++		case ACPI_IO_RESTRICT_INPUT:
++			flags = GPIOF_DIR_IN;
++			break;
++		case ACPI_IO_RESTRICT_OUTPUT:
++			flags = GPIOF_DIR_OUT;
++			break;
++		}
++
++		gpio = acpi_get_gpio(agpio->resource_source.string_ptr,
++				     agpio->pin_table[0]);
++	}
++
++	ACPI_FREE(ares);
++
++	if (!gpio_is_valid(gpio)) {
++		dev_err(chip->dev, "GpioOpReg: invalid GPIO resource\n");
++		return AE_ERROR;
++	}
++
++	ret = gpio_request_one(gpio, flags, "acpi_gpio_adr_space");
++	if (ret) {
++		dev_err(chip->dev, "GpioOpReg: failed to request GPIO\n");
++		return AE_ERROR;
++	}
++
++	if (function == ACPI_WRITE)
++		gpio_set_value(gpio, (int)*value);
++	else
++		*value = gpio_get_value(gpio);
++
++	gpio_free(gpio);
++	return AE_OK;
++}
++
+ void acpi_gpiochip_add(struct gpio_chip *chip)
+ {
++	struct acpi_gpio_chip_data *data;
++	acpi_handle handle;
++	acpi_status status;
++
++	handle = ACPI_HANDLE(chip->dev);
++	if (!handle)
++		return;
++
++	data = kzalloc(sizeof(*data), GFP_KERNEL);
++	if (!data)
++		return;
++
++	status = acpi_attach_data(handle, acpi_gpio_chip_dh, data);
++	if (ACPI_FAILURE(status)) {
++		kfree(data);
++		return;
++	}
++
++	data->chip = chip;
++
++	status = acpi_install_address_space_handler(handle, ACPI_ADR_SPACE_GPIO,
++						    acpi_gpio_adr_space_handler,
++						    NULL, data);
++	if (ACPI_FAILURE(status)) {
++		acpi_detach_data(handle, acpi_gpio_chip_dh);
++		kfree(data);
++		return;
++	}
++
+ 	acpi_gpiochip_request_interrupts(chip);
+ }
+ EXPORT_SYMBOL_GPL(acpi_gpiochip_add);
+ 
+ void acpi_gpiochip_remove(struct gpio_chip *chip)
+ {
++	struct acpi_gpio_chip_data *data;
++	acpi_handle handle;
++	acpi_status status;
++
++	handle = ACPI_HANDLE(chip->dev);
++	if (!handle)
++		return;
++
++	status = acpi_get_data(handle, acpi_gpio_chip_dh, (void **)&data);
++	if (ACPI_FAILURE(status))
++		return;
++
+ 	acpi_gpiochip_free_interrupts(chip);
++	acpi_remove_address_space_handler(handle, ACPI_ADR_SPACE_GPIO,
++					  acpi_gpio_adr_space_handler);
++	acpi_detach_data(handle, acpi_gpio_chip_dh);
++	kfree(data);
+ }
+ EXPORT_SYMBOL_GPL(acpi_gpiochip_remove);
+-- 
+1.8.4.rc3
+
