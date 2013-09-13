@@ -1,297 +1,303 @@
 From: Lv Zheng <lv.zheng@intel.com>
-Subject: [PATCH v2 06/12] ACPI/IPMI: Fix issue caused by the per-device registration of the IPMI operation region handler
-Date: Fri, 13 Sep 2013 13:14:02 +0800
-Message-ID: <6d83c9b7669ce3cf4d802209b9cca8c939cf93c1.1379048860.git.lv.zheng@intel.com>
+Subject: [PATCH v2 07/12] ACPI/IPMI: Add reference counting for ACPI IPMI transfers
+Date: Fri, 13 Sep 2013 13:14:11 +0800
+Message-ID: <1ef82696c34f1fa21e23621f14c6303d60f96be3.1379048860.git.lv.zheng@intel.com>
 References: <cover.1370652213.git.lv.zheng@intel.com> <cover.1379048860.git.lv.zheng@intel.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga09.intel.com ([134.134.136.24]:1129 "EHLO mga09.intel.com"
+Received: from mga14.intel.com ([143.182.124.37]:43599 "EHLO mga14.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751692Ab3IMFOJ (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 13 Sep 2013 01:14:09 -0400
+	id S1751692Ab3IMFOT (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 13 Sep 2013 01:14:19 -0400
 In-Reply-To: <cover.1379048860.git.lv.zheng@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Len Brown <len.brown@intel.com>, Corey Minyard <minyard@acm.org>, Zhao Yakui <yakui.zhao@intel.com>
 Cc: Lv Zheng <lv.zheng@intel.com>, linux-acpi@vger.kernel.org, openipmi-developer@lists.sourceforge.net
 
-It is found on a real machine, in its ACPI namespace, the IPMI
-OperationRegions (in the ACPI000D - ACPI power meter) are not defined under
-the IPMI system interface device (the IPI0001 with KCS type returned from
-_IFT control method):
-  Device (PMI0)
-  {
-      Name (_HID, "ACPI000D")  // _HID: Hardware ID
-      OperationRegion (SYSI, IPMI, 0x0600, 0x0100)
-      Field (SYSI, BufferAcc, Lock, Preserve)
-      {
-          AccessAs (BufferAcc, 0x01),
-          Offset (0x58),
-          SCMD,   8,
-          GCMD,   8
-      }
+This patch adds reference counting for ACPI IPMI transfers to tune the
+locking granularity of tx_msg_lock.
 
-      OperationRegion (POWR, IPMI, 0x3000, 0x0100)
-      Field (POWR, BufferAcc, Lock, Preserve)
-      {
-          AccessAs (BufferAcc, 0x01),
-          Offset (0xB3),
-          GPMM,   8
-      }
-  }
+This patch also makes whole acpi_ipmi module's coding style consistent by
+using reference counting for all its objects (i.e., acpi_ipmi_device and
+acpi_ipmi_msg).
 
-  Device (PCI0)
-  {
-      Device (ISA)
-      {
-          Device (NIPM)
-          {
-              Name (_HID, EisaId ("IPI0001"))  // _HID: Hardware ID
-              Method (_IFT, 0, NotSerialized)  // _IFT: IPMI Interface Type
-              {
-                  Return (0x01)
-              }
-          }
-      }
-  }
-Current ACPI_IPMI code registers IPMI operation region handler on a
-per-device basis, so that for above namespace, the IPMI operation region
-handler is registered only under the scope of \_SB.PCI0.ISA.NIPM.  Thus
-when an IPMI operation region field of \PMI0 is accessed, there are errors
-reported on such platform:
-  ACPI Error: No handlers for Region [IPMI]
-  ACPI Error: Region IPMI(7) has no handler
-The solution is to install IPMI operation region handler from root node so
-that every object that defines IPMI OperationRegion can get an address
-space handler registered.
+The acpi_ipmi_msg handling is re-designed using referece counting.
+1. tx_msg is always unlinked before complete(), so that it is safe to put
+   complete() out side of tx_msg_lock.
+2. Increasing the reference of tx_msg before calling
+   ipmi_request_settime() and introducing tx_msg_lock protected
+   ipmi_cancel_tx_msg() so that a complete() can happen in parellel with
+   tx_msg unlinking in the failure cases.
+3. tx_msg holds the reference of acpi_ipmi_device so that it can be flushed
+   and freed in the contexts other than acpi_ipmi_space_handler().
 
-When an IPMI operation region field is accessed, the Network Function
-(0x06 for SYSI and 0x30 for POWR) and the Command (SCMD, GCMD, GPMM) are
-passed to the operation region handler, there is no system interface
-specified by the BIOS.  The patch tries to select one system interface by
-monitoring the system interface notification.  IPMI messages passed from
-the ACPI codes are sent to this selected global IPMI system interface.
+The lockdep_chains shows all acpi_ipmi locks are leaf locks after the
+tuning:
+1. ipmi_lock is always leaf:
+   irq_context: 0
+   [ffffffff81a943f8] smi_watchers_mutex
+   [ffffffffa06eca60] driver_data.ipmi_lock
+   irq_context: 0
+   [ffffffff82767b40] &buffer->mutex
+   [ffffffffa00a6678] s_active#103
+   [ffffffffa06eca60] driver_data.ipmi_lock
+2. without this patch applied, lock used by complete() is held after
+   holding tx_msg_lock:
+   irq_context: 0
+   [ffffffff82767b40] &buffer->mutex
+   [ffffffffa00a6678] s_active#103
+   [ffffffffa06ecce8] &(&ipmi_device->tx_msg_lock)->rlock
+   irq_context: 1
+   [ffffffffa06ecce8] &(&ipmi_device->tx_msg_lock)->rlock
+   irq_context: 1
+   [ffffffffa06ecce8] &(&ipmi_device->tx_msg_lock)->rlock
+   [ffffffffa06eccf0] &x->wait#25
+   irq_context: 1
+   [ffffffffa06ecce8] &(&ipmi_device->tx_msg_lock)->rlock
+   [ffffffffa06eccf0] &x->wait#25
+   [ffffffff81e36620] &p->pi_lock
+   irq_context: 1
+   [ffffffffa06ecce8] &(&ipmi_device->tx_msg_lock)->rlock
+   [ffffffffa06eccf0] &x->wait#25
+   [ffffffff81e36620] &p->pi_lock
+   [ffffffff81e5d0a8] &rq->lock
+3. with this patch applied, tx_msg_lock is always leaf:
+   irq_context: 0
+   [ffffffff82767b40] &buffer->mutex
+   [ffffffffa00a66d8] s_active#107
+   [ffffffffa07ecdc8] &(&ipmi_device->tx_msg_lock)->rlock
+   irq_context: 1
+   [ffffffffa07ecdc8] &(&ipmi_device->tx_msg_lock)->rlock
 
-Known issues:
-- How to select the IPMI system interface:
-  Currently, the ACPI_IPMI always selects the first registered one with the
-  ACPI handle set (i.e., defined in the ACPI namespace).  It's hard to
-  determine the selection when there are multiple IPMI system interfaces
-  defined in the ACPI namespace.
-  According to the IPMI specification:
-  A BMC device may make available multiple system interfaces, but only one
-  management controller is allowed to be 'active' BMC that provides BMC
-  functionality for the system (in case of a 'partitioned' system, there
-  can be only one active BMC per partition).  Only the system interface(s)
-  for the active BMC allowed to respond to the 'Get Device Id' command.
-  According to the ipmi_si desigin:
-  The ipmi_si registeration notifications can only happen after a
-  successful "Get Device ID" command.
-  Thus it should be OK for non-partitioned systems to do such selection.
-  But we do not have too much knowledges on 'partitioned' systems.
-
-Buglink: https://bugzilla.kernel.org/show_bug.cgi?id=46741
 Signed-off-by: Lv Zheng <lv.zheng@intel.com>
 Cc: Zhao Yakui <yakui.zhao@intel.com>
 Reviewed-by: Huang Ying <ying.huang@intel.com>
 ---
- drivers/acpi/acpi_ipmi.c |   81 +++++++++++++++++++---------------------------
- 1 file changed, 34 insertions(+), 47 deletions(-)
+ drivers/acpi/acpi_ipmi.c |  117 +++++++++++++++++++++++++++++++++-------------
+ 1 file changed, 85 insertions(+), 32 deletions(-)
 
 diff --git a/drivers/acpi/acpi_ipmi.c b/drivers/acpi/acpi_ipmi.c
-index b285386..7ec4cd1 100644
+index 7ec4cd1..b9da5ef 100644
 --- a/drivers/acpi/acpi_ipmi.c
 +++ b/drivers/acpi/acpi_ipmi.c
-@@ -46,7 +46,6 @@ MODULE_AUTHOR("Zhao Yakui");
- MODULE_DESCRIPTION("ACPI IPMI Opregion driver");
- MODULE_LICENSE("GPL");
- 
--#define IPMI_FLAGS_HANDLER_INSTALL	0
- 
- #define ACPI_IPMI_OK			0
- #define ACPI_IPMI_TIMEOUT		0x10
-@@ -66,7 +65,6 @@ struct acpi_ipmi_device {
- 	ipmi_user_t	user_interface;
- 	int ipmi_ifnum; /* IPMI interface number */
- 	long curr_msgid;
--	unsigned long flags;
- 	struct ipmi_smi_info smi_data;
- 	bool dead;
- 	struct kref kref;
-@@ -77,6 +75,14 @@ struct ipmi_driver_data {
- 	struct ipmi_smi_watcher	bmc_events;
- 	struct ipmi_user_hndl	ipmi_hndlrs;
- 	struct mutex		ipmi_lock;
-+	/*
-+	 * NOTE: IPMI System Interface Selection
-+	 * There is no system interface specified by the IPMI operation
-+	 * region access.  We try to select one system interface with ACPI
-+	 * handle set.  IPMI messages passed from the ACPI codes are sent
-+	 * to this selected global IPMI system interface.
-+	 */
-+	struct acpi_ipmi_device *selected_smi;
+@@ -104,6 +104,7 @@ struct acpi_ipmi_msg {
+ 	u8	data[ACPI_IPMI_MAX_MSG_LENGTH];
+ 	u8	rx_len;
+ 	struct acpi_ipmi_device *device;
++	struct kref	kref;
  };
  
- struct acpi_ipmi_msg {
-@@ -110,8 +116,6 @@ struct acpi_ipmi_buffer {
- static void ipmi_register_bmc(int iface, struct device *dev);
- static void ipmi_bmc_gone(int iface);
- static void ipmi_msg_handler(struct ipmi_recv_msg *msg, void *user_msg_data);
--static int ipmi_install_space_handler(struct acpi_ipmi_device *ipmi);
--static void ipmi_remove_space_handler(struct acpi_ipmi_device *ipmi);
+ /* IPMI request/response buffer per ACPI 4.0, sec 5.5.2.4.3.2 */
+@@ -208,16 +209,20 @@ static void acpi_ipmi_dev_put(struct acpi_ipmi_device *ipmi_device)
+ 	kref_put(&ipmi_device->kref, ipmi_dev_release_kref);
+ }
  
- static struct ipmi_driver_data driver_data = {
- 	.ipmi_devices = LIST_HEAD_INIT(driver_data.ipmi_devices),
-@@ -154,14 +158,12 @@ ipmi_dev_alloc(int iface, struct ipmi_smi_info *smi_data, acpi_handle handle)
+-static struct acpi_ipmi_msg *acpi_alloc_ipmi_msg(struct acpi_ipmi_device *ipmi)
++static struct acpi_ipmi_msg *ipmi_msg_alloc(void)
+ {
++	struct acpi_ipmi_device *ipmi;
+ 	struct acpi_ipmi_msg *ipmi_msg;
+-	struct pnp_dev *pnp_dev = ipmi->pnp_dev;
+ 
++	ipmi = acpi_ipmi_dev_get();
++	if (!ipmi)
++		return NULL;
+ 	ipmi_msg = kzalloc(sizeof(struct acpi_ipmi_msg), GFP_KERNEL);
+-	if (!ipmi_msg)	{
+-		dev_warn(&pnp_dev->dev, "Can't allocate memory for ipmi_msg\n");
++	if (!ipmi_msg) {
++		acpi_ipmi_dev_put(ipmi);
  		return NULL;
  	}
- 	ipmi_device->user_interface = user;
--	ipmi_install_space_handler(ipmi_device);
- 
- 	return ipmi_device;
++	kref_init(&ipmi_msg->kref);
+ 	init_completion(&ipmi_msg->tx_complete);
+ 	INIT_LIST_HEAD(&ipmi_msg->head);
+ 	ipmi_msg->device = ipmi;
+@@ -225,6 +230,32 @@ static struct acpi_ipmi_msg *acpi_alloc_ipmi_msg(struct acpi_ipmi_device *ipmi)
+ 	return ipmi_msg;
  }
  
- static void ipmi_dev_release(struct acpi_ipmi_device *ipmi_device)
++static void ipmi_msg_release(struct acpi_ipmi_msg *tx_msg)
++{
++	acpi_ipmi_dev_put(tx_msg->device);
++	kfree(tx_msg);
++}
++
++static void ipmi_msg_release_kref(struct kref *kref)
++{
++	struct acpi_ipmi_msg *tx_msg =
++		container_of(kref, struct acpi_ipmi_msg, kref);
++
++	ipmi_msg_release(tx_msg);
++}
++
++static struct acpi_ipmi_msg *acpi_ipmi_msg_get(struct acpi_ipmi_msg *tx_msg)
++{
++	kref_get(&tx_msg->kref);
++
++	return tx_msg;
++}
++
++static void acpi_ipmi_msg_put(struct acpi_ipmi_msg *tx_msg)
++{
++	kref_put(&tx_msg->kref, ipmi_msg_release_kref);
++}
++
+ #define		IPMI_OP_RGN_NETFN(offset)	((offset >> 8) & 0xff)
+ #define		IPMI_OP_RGN_CMD(offset)		(offset & 0xff)
+ static int acpi_format_ipmi_request(struct acpi_ipmi_msg *tx_msg,
+@@ -305,7 +336,7 @@ static void acpi_format_ipmi_response(struct acpi_ipmi_msg *msg,
+ 
+ static void ipmi_flush_tx_msg(struct acpi_ipmi_device *ipmi)
  {
--	ipmi_remove_space_handler(ipmi_device);
- 	ipmi_destroy_user(ipmi_device->user_interface);
- 	put_device(ipmi_device->smi_data.dev);
- 	kfree(ipmi_device);
-@@ -178,6 +180,8 @@ static void ipmi_dev_release_kref(struct kref *kref)
- static void __ipmi_dev_kill(struct acpi_ipmi_device *ipmi_device)
- {
- 	list_del(&ipmi_device->head);
-+	if (driver_data.selected_smi == ipmi_device)
-+		driver_data.selected_smi = NULL;
+-	struct acpi_ipmi_msg *tx_msg, *temp;
++	struct acpi_ipmi_msg *tx_msg;
+ 	unsigned long flags;
+ 
  	/*
- 	 * Always setting dead flag after deleting from the list or
- 	 * list_for_each_entry() codes must get changed.
-@@ -185,17 +189,14 @@ static void __ipmi_dev_kill(struct acpi_ipmi_device *ipmi_device)
- 	ipmi_device->dead = true;
+@@ -317,18 +348,47 @@ static void ipmi_flush_tx_msg(struct acpi_ipmi_device *ipmi)
+ 	 * ipmi_recv_msg(s) are freed after invoking ipmi_destroy_user().
+ 	 */
+ 	spin_lock_irqsave(&ipmi->tx_msg_lock, flags);
+-	list_for_each_entry_safe(tx_msg, temp, &ipmi->tx_msg_list, head) {
++	while (!list_empty(&ipmi->tx_msg_list)) {
++		tx_msg = list_first_entry(&ipmi->tx_msg_list,
++					  struct acpi_ipmi_msg,
++					  head);
++		list_del(&tx_msg->head);
++		spin_unlock_irqrestore(&ipmi->tx_msg_lock, flags);
++
+ 		/* wake up the sleep thread on the Tx msg */
+ 		complete(&tx_msg->tx_complete);
++		acpi_ipmi_msg_put(tx_msg);
++		spin_lock_irqsave(&ipmi->tx_msg_lock, flags);
++	}
++	spin_unlock_irqrestore(&ipmi->tx_msg_lock, flags);
++}
++
++static void ipmi_cancel_tx_msg(struct acpi_ipmi_device *ipmi,
++			       struct acpi_ipmi_msg *msg)
++{
++	struct acpi_ipmi_msg *tx_msg, *temp;
++	bool msg_found = false;
++	unsigned long flags;
++
++	spin_lock_irqsave(&ipmi->tx_msg_lock, flags);
++	list_for_each_entry_safe(tx_msg, temp, &ipmi->tx_msg_list, head) {
++		if (msg == tx_msg) {
++			msg_found = true;
++			list_del(&tx_msg->head);
++			break;
++		}
+ 	}
+ 	spin_unlock_irqrestore(&ipmi->tx_msg_lock, flags);
++
++	if (msg_found)
++		acpi_ipmi_msg_put(tx_msg);
  }
  
--static struct acpi_ipmi_device *acpi_ipmi_dev_get(int iface)
-+static struct acpi_ipmi_device *acpi_ipmi_dev_get(void)
+ static void ipmi_msg_handler(struct ipmi_recv_msg *msg, void *user_msg_data)
  {
--	struct acpi_ipmi_device *temp, *ipmi_device = NULL;
-+	struct acpi_ipmi_device *ipmi_device = NULL;
+ 	struct acpi_ipmi_device *ipmi_device = user_msg_data;
+-	int msg_found = 0;
+-	struct acpi_ipmi_msg *tx_msg;
++	bool msg_found = false;
++	struct acpi_ipmi_msg *tx_msg, *temp;
+ 	struct pnp_dev *pnp_dev = ipmi_device->pnp_dev;
+ 	unsigned long flags;
  
- 	mutex_lock(&driver_data.ipmi_lock);
--	list_for_each_entry(temp, &driver_data.ipmi_devices, head) {
--		if (temp->ipmi_ifnum == iface) {
--			ipmi_device = temp;
--			kref_get(&ipmi_device->kref);
--			break;
--		}
-+	if (driver_data.selected_smi) {
-+		ipmi_device = driver_data.selected_smi;
-+		kref_get(&ipmi_device->kref);
+@@ -339,17 +399,19 @@ static void ipmi_msg_handler(struct ipmi_recv_msg *msg, void *user_msg_data)
+ 		goto out_msg;
  	}
- 	mutex_unlock(&driver_data.ipmi_lock);
- 
-@@ -416,6 +417,8 @@ static void ipmi_register_bmc(int iface, struct device *dev)
- 			goto err_lock;
- 	}
- 
-+	if (!driver_data.selected_smi)
-+		driver_data.selected_smi = ipmi_device;
- 	list_add_tail(&ipmi_device->head, &driver_data.ipmi_devices);
- 	mutex_unlock(&driver_data.ipmi_lock);
- 	put_device(smi_data.dev);
-@@ -443,6 +446,10 @@ static void ipmi_bmc_gone(int iface)
+ 	spin_lock_irqsave(&ipmi_device->tx_msg_lock, flags);
+-	list_for_each_entry(tx_msg, &ipmi_device->tx_msg_list, head) {
++	list_for_each_entry_safe(tx_msg, temp, &ipmi_device->tx_msg_list, head) {
+ 		if (msg->msgid == tx_msg->tx_msgid) {
+-			msg_found = 1;
++			msg_found = true;
++			list_del(&tx_msg->head);
  			break;
  		}
  	}
-+	if (!driver_data.selected_smi)
-+		driver_data.selected_smi = list_first_entry_or_null(
-+					&driver_data.ipmi_devices,
-+					struct acpi_ipmi_device, head);
- 	mutex_unlock(&driver_data.ipmi_lock);
- 	if (dev_found) {
- 		ipmi_flush_tx_msg(ipmi_device);
-@@ -471,7 +478,6 @@ acpi_ipmi_space_handler(u32 function, acpi_physical_address address,
- 		      void *handler_context, void *region_context)
- {
- 	struct acpi_ipmi_msg *tx_msg;
--	int iface = (long)handler_context;
- 	struct acpi_ipmi_device *ipmi_device;
- 	int err;
- 	acpi_status status;
-@@ -485,7 +491,7 @@ acpi_ipmi_space_handler(u32 function, acpi_physical_address address,
++	spin_unlock_irqrestore(&ipmi_device->tx_msg_lock, flags);
+ 
+ 	if (!msg_found) {
+ 		dev_warn(&pnp_dev->dev, "Unexpected response (msg id %ld) is "
+ 			"returned.\n", msg->msgid);
+-		goto out_lock;
++		goto out_msg;
+ 	}
+ 
+ 	/* copy the response data to Rx_data buffer */
+@@ -375,8 +437,7 @@ static void ipmi_msg_handler(struct ipmi_recv_msg *msg, void *user_msg_data)
+ 	tx_msg->msg_done = ACPI_IPMI_OK;
+ out_comp:
+ 	complete(&tx_msg->tx_complete);
+-out_lock:
+-	spin_unlock_irqrestore(&ipmi_device->tx_msg_lock, flags);
++	acpi_ipmi_msg_put(tx_msg);
+ out_msg:
+ 	ipmi_free_recv_msg(msg);
+ };
+@@ -491,26 +552,23 @@ acpi_ipmi_space_handler(u32 function, acpi_physical_address address,
  	if ((function & ACPI_IO_MASK) == ACPI_READ)
  		return AE_TYPE;
  
--	ipmi_device = acpi_ipmi_dev_get(iface);
-+	ipmi_device = acpi_ipmi_dev_get();
- 	if (!ipmi_device)
+-	ipmi_device = acpi_ipmi_dev_get();
+-	if (!ipmi_device)
++	tx_msg = ipmi_msg_alloc();
++	if (!tx_msg)
  		return AE_NOT_EXIST;
  
-@@ -534,47 +540,26 @@ out_ref:
+-	tx_msg = acpi_alloc_ipmi_msg(ipmi_device);
+-	if (!tx_msg) {
+-		status = AE_NO_MEMORY;
+-		goto out_ref;
+-	}
++	ipmi_device = tx_msg->device;
+ 
+ 	if (acpi_format_ipmi_request(tx_msg, address, value) != 0) {
+-		status = AE_TYPE;
+-		goto out_msg;
++		ipmi_msg_release(tx_msg);
++		return AE_TYPE;
+ 	}
++	acpi_ipmi_msg_get(tx_msg);
+ 	mutex_lock(&driver_data.ipmi_lock);
+ 	/* Do not add a tx_msg that can not be flushed. */
+ 	if (ipmi_device->dead) {
+-		status = AE_NOT_EXIST;
+ 		mutex_unlock(&driver_data.ipmi_lock);
+-		goto out_msg;
++		ipmi_msg_release(tx_msg);
++		return AE_NOT_EXIST;
+ 	}
+ 	spin_lock_irqsave(&ipmi_device->tx_msg_lock, flags);
+ 	list_add_tail(&tx_msg->head, &ipmi_device->tx_msg_list);
+@@ -523,20 +581,15 @@ acpi_ipmi_space_handler(u32 function, acpi_physical_address address,
+ 					NULL, 0, 0, IPMI_TIMEOUT);
+ 	if (err) {
+ 		status = AE_ERROR;
+-		goto out_list;
++		goto out_msg;
+ 	}
+ 	wait_for_completion(&tx_msg->tx_complete);
+ 	acpi_format_ipmi_response(tx_msg, value);
+ 	status = AE_OK;
+ 
+-out_list:
+-	spin_lock_irqsave(&ipmi_device->tx_msg_lock, flags);
+-	list_del(&tx_msg->head);
+-	spin_unlock_irqrestore(&ipmi_device->tx_msg_lock, flags);
+ out_msg:
+-	kfree(tx_msg);
+-out_ref:
+-	acpi_ipmi_dev_put(ipmi_device);
++	ipmi_cancel_tx_msg(ipmi_device, tx_msg);
++	acpi_ipmi_msg_put(tx_msg);
  	return status;
  }
  
--static void ipmi_remove_space_handler(struct acpi_ipmi_device *ipmi)
--{
--	if (!test_bit(IPMI_FLAGS_HANDLER_INSTALL, &ipmi->flags))
--		return;
--
--	acpi_remove_address_space_handler(ipmi->handle,
--				ACPI_ADR_SPACE_IPMI, &acpi_ipmi_space_handler);
--
--	clear_bit(IPMI_FLAGS_HANDLER_INSTALL, &ipmi->flags);
--}
--
--static int ipmi_install_space_handler(struct acpi_ipmi_device *ipmi)
--{
--	acpi_status status;
--
--	if (test_bit(IPMI_FLAGS_HANDLER_INSTALL, &ipmi->flags))
--		return 0;
--
--	status = acpi_install_address_space_handler(ipmi->handle,
--				ACPI_ADR_SPACE_IPMI, &acpi_ipmi_space_handler,
--				NULL, (void *)((long)ipmi->ipmi_ifnum));
--	if (ACPI_FAILURE(status)) {
--		struct pnp_dev *pnp_dev = ipmi->pnp_dev;
--		dev_warn(&pnp_dev->dev, "Can't register IPMI opregion space "
--			"handle\n");
--		return -EINVAL;
--	}
--	set_bit(IPMI_FLAGS_HANDLER_INSTALL, &ipmi->flags);
--	return 0;
--}
--
- static int __init acpi_ipmi_init(void)
- {
- 	int result = 0;
-+	acpi_status status;
- 
- 	if (acpi_disabled)
- 		return result;
- 
- 	mutex_init(&driver_data.ipmi_lock);
- 
-+	status = acpi_install_address_space_handler(ACPI_ROOT_OBJECT,
-+				ACPI_ADR_SPACE_IPMI, &acpi_ipmi_space_handler,
-+				NULL, NULL);
-+	if (ACPI_FAILURE(status)) {
-+		pr_warn("Can't register IPMI opregion space handle\n");
-+		return -EINVAL;
-+	}
- 	result = ipmi_smi_watcher_register(&driver_data.bmc_events);
-+	if (result)
-+		pr_err("Can't register IPMI system interface watcher\n");
- 
- 	return result;
- }
-@@ -608,6 +593,8 @@ static void __exit acpi_ipmi_exit(void)
- 		mutex_lock(&driver_data.ipmi_lock);
- 	}
- 	mutex_unlock(&driver_data.ipmi_lock);
-+	acpi_remove_address_space_handler(ACPI_ROOT_OBJECT,
-+				ACPI_ADR_SPACE_IPMI, &acpi_ipmi_space_handler);
- }
- 
- module_init(acpi_ipmi_init);
 -- 
 1.7.10
 
