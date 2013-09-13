@@ -1,206 +1,135 @@
-From: "Moore, Robert" <robert.moore@intel.com>
-Subject: RE: [PATCH] ACPICA / hwreg: Use acpi_gbl_reduced_hardware to
- prevent accessing PM registers
-Date: Fri, 13 Sep 2013 20:16:28 +0000
-Message-ID: <94F2FBAB4432B54E8AACC7DFDE6C92E36FEEC15B@ORSMSX103.amr.corp.intel.com>
-References: <1379066741-23689-1-git-send-email-hanjun.guo@linaro.org>
- <94F2FBAB4432B54E8AACC7DFDE6C92E36FEEBC6A@ORSMSX103.amr.corp.intel.com>
+From: Kevin Hilman <khilman@linaro.org>
+Subject: Re: [PATCH v2 1/9] i2c: prepare runtime PM support for I2C client devices
+Date: Fri, 13 Sep 2013 14:10:43 -0700
+Message-ID: <87ioy4e8bw.fsf@linaro.org>
+References: <1378913560-2752-1-git-send-email-mika.westerberg@linux.intel.com>
+	<1378913560-2752-2-git-send-email-mika.westerberg@linux.intel.com>
+	<87vc25pvvm.fsf@linaro.org> <20130913065434.GZ7393@intel.com>
+	<87bo3whjz4.fsf@linaro.org> <20130913145022.GC7393@intel.com>
+	<20130913173149.GE7393@intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga03.intel.com ([143.182.124.21]:45290 "EHLO mga03.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752516Ab3IMUQd convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 13 Sep 2013 16:16:33 -0400
-In-Reply-To: <94F2FBAB4432B54E8AACC7DFDE6C92E36FEEBC6A@ORSMSX103.amr.corp.intel.com>
-Content-Language: en-US
+Received: from mail-pa0-f52.google.com ([209.85.220.52]:57409 "EHLO
+	mail-pa0-f52.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755243Ab3IMVMo (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 13 Sep 2013 17:12:44 -0400
+Received: by mail-pa0-f52.google.com with SMTP id kq13so3003194pab.11
+        for <linux-acpi@vger.kernel.org>; Fri, 13 Sep 2013 14:12:44 -0700 (PDT)
+In-Reply-To: <20130913173149.GE7393@intel.com> (Mika Westerberg's message of
+	"Fri, 13 Sep 2013 20:31:49 +0300")
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: 'Hanjun Guo' <hanjun.guo@linaro.org>, "'Rafael J. Wysocki'" <rjw@sisk.pl>, 'Len Brown' <lenb@kernel.org>, "Box, David E" <david.e.box@intel.com>
-Cc: "Zheng, Lv" <lv.zheng@intel.com>, "'linux-acpi@vger.kernel.org'" <linux-acpi@vger.kernel.org>, "'patches@linaro.org'" <patches@linaro.org>, "'linaro-kernel@lists.linaro.org'" <linaro-kernel@lists.linaro.org>, "'linaro-acpi@lists.linaro.org'" <linaro-acpi@lists.linaro.org>
+To: Mika Westerberg <mika.westerberg@linux.intel.com>
+Cc: linux-i2c@vger.kernel.org, Wolfram Sang <wsa@the-dreams.de>, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Lv Zheng <lv.zheng@intel.com>, Aaron Lu <aaron.lu@intel.com>, linux-arm-kernel@lists.infradead.org, Mark Brown <broonie@kernel.org>, Dmitry Torokhov <dmitry.torokhov@gmail.com>, Mauro Carvalho Chehab <m.chehab@samsung.com>, Samuel Ortiz <sameo@linux.intel.com>, Lee Jones <lee.jones@linaro.org>, Arnd Bergmann <arnd@arndb.de>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Liam Girdwood <lgirdwood@gmail.com>, Kyungmin Park <kyungmin.park@samsung.com>
 
+Mika Westerberg <mika.westerberg@linux.intel.com> writes:
 
+> On Fri, Sep 13, 2013 at 05:50:22PM +0300, Mika Westerberg wrote:
+>> On Fri, Sep 13, 2013 at 07:30:55AM -0700, Kevin Hilman wrote:
+>> > Mika Westerberg <mika.westerberg@linux.intel.com> writes:
+>> > 
+>> > > On Thu, Sep 12, 2013 at 02:34:21PM -0700, Kevin Hilman wrote:
+>> > >> > diff --git a/drivers/i2c/i2c-core.c b/drivers/i2c/i2c-core.c
+>> > >> > index f32ca29..44374b4 100644
+>> > >> > --- a/drivers/i2c/i2c-core.c
+>> > >> > +++ b/drivers/i2c/i2c-core.c
+>> > >> > @@ -248,11 +248,30 @@ static int i2c_device_probe(struct device *dev)
+>> > >> >  					client->flags & I2C_CLIENT_WAKE);
+>> > >> >  	dev_dbg(dev, "probe\n");
+>> > >> >  
+>> > >> > +	/* Make sure the adapter is active */
+>> > >> > +	pm_runtime_get_sync(&client->adapter->dev);
+>> > >> > +
+>> > >> > +	/*
+>> > >> > +	 * Enable runtime PM for the client device. If the client wants to
+>> > >> > +	 * participate on runtime PM it should call pm_runtime_put() in its
+>> > >> > +	 * probe() callback.
+>> > >> > +	 */
+>> > >> > +	pm_runtime_get_noresume(&client->dev);
+>> > >> > +	pm_runtime_set_active(&client->dev);
+>> > >> 
+>> > >> Why the set_active here?
+>> > >> 
+>> > >> For hardware that is disabled/powered-off on startup, there will now be
+>> > >> a mismatch between the hardware state an the RPM core state.
+>> > >
+>> > > The call to pm_runtime_get_noresume() should make sure that the device is
+>> > > in active state (at least in state where it can access the bus) if I'm
+>> > > understanding this right.
+>> > 
+>> > No, after _get_noresume(), nothing happens to the hardware.  It simply
+>> > increments the usecount.  From pm_runtime.h:
+>> > 
+>> > static inline void pm_runtime_get_noresume(struct device *dev)
+>> > {
+>> > 	atomic_inc(&dev->power.usage_count);
+>> > }
+>> > 
+>> > So after the _get_noresume() and _set_active() you're very likely to
+>> > have a disconnect between the hardware state and what state RPM thinks
+>> > the hardware is in.
+>> 
+>> Good point.
+>> 
+>> I suppose calling pm_runtime_get() here would work (and make the state
+>> active in all case)? I used _noresume() here because at this point the
+>> driver itself hasn't had change to install it's RPM hooks.
+>
+> I take that back.
+>
+> [ It has been some time since this code was originally written so I can't
+> remember all the details :-/ ]
+>
+> The pm_runtime_get_noresume() is there just to increment the refcount. It
+> has nothing to do to "activate" the device in question. Sorry about the
+> confusion from my part.
+>
+> This is what happens in case the device is enumerated from ACPI:
+>
+> 	// This makes sure that the controller itself is powered on
+> 	// (adapter device follows its parent which is the controller). The
+> 	// controller is attached to the ACPI power domain so it is
+> 	// brought to D0 now.
+> 	pm_runtime_get_sync(&client->adapter->dev);
+>
+> 	// This binds the client device to the ACPI power domain, and in
+> 	// addition to that brings the client device to D0.
 
-> -----Original Message-----
-> From: Moore, Robert
-> Sent: Friday, September 13, 2013 6:08 AM
-> To: Hanjun Guo; Rafael J. Wysocki; Len Brown
-> Cc: Zheng, Lv; linux-acpi@vger.kernel.org; patches@linaro.org; linaro-
-> kernel@lists.linaro.org; linaro-acpi@lists.linaro.org
-> Subject: RE: [PATCH] ACPICA / hwreg: Use acpi_gbl_reduced_hardware to
-> prevent accessing PM registers
-> 
-> NOT_IMPLEMENTED refers to the software only; therefore AE_SUPPORT should
-> be returned.
-> 
-> Otherwise, seems like this may be a good idea.
+OK, then here is where the problem is, because you're building ACPI
+assumptions into the core. For non-ACPI devices, this part is a nop, so
+the client device is still powered off, which breaks the assumptions
+below.
 
+> 	if (ACPI_HANDLE(&client->dev))
+> 		acpi_dev_pm_attach(&client->dev, true);
+>
+> 	// Increase the refcount so that client can start runtime PM
+> 	// transitions when it calls _put().
+> 	pm_runtime_get_noresume(&client->dev);
 
-On the other hand, could one not argue that the host OS should darn well know that it is executing on a hardware-reduced platform and not call these functions in the first place?
+> 	// Mark the device being active as
+> 	//  1) In ACPI case we know that is true as we just powered the
+> 	//     device on.
+> 	//  2) We treat the device by default to be runtime PM active and
+> 	//     powered on (that's in the changelog and should follow what
+> 	//     the PCI bus did).
+> 	pm_runtime_set_active(&client->dev);
+>
+> 	// Enable runtime PM but nothing happens yet as long as the client
+> 	// driver doesn't call _put().
+> 	pm_runtime_enable(&client->dev);
+>
+> So, yes there might be a disconnect between the runtime PM state and the
+> device HW state now (same is with default to suspended).
 
-Bob
+Yes, but until now, default to suspended has been assumed, so any
+changes to that will likely require more thorough auditing of other drivers.
 
+Kevin
 
-
-
-> 
-> 
-> > -----Original Message-----
-> > From: Hanjun Guo [mailto:hanjun.guo@linaro.org]
-> > Sent: Friday, September 13, 2013 3:06 AM
-> > To: Rafael J. Wysocki; Len Brown
-> > Cc: Zheng, Lv; Moore, Robert; linux-acpi@vger.kernel.org;
-> > patches@linaro.org; linaro-kernel@lists.linaro.org; linaro-
-> > acpi@lists.linaro.org; Hanjun Guo
-> > Subject: [PATCH] ACPICA / hwreg: Use acpi_gbl_reduced_hardware to
-> > prevent accessing PM registers
-> >
-> > On hardware reduced platforms, there is no support for the following:
-> >  - PM Event and Control registers
-> >  - SCI interrupt (and handler)
-> >  - Fixed Events
-> >  - General Purpose Events (GPEs)
-> >  - Global Lock
-> >  - ACPI PM timer
-> >  - FACS table (Waking vectors and Global Lock)
-> >
-> > acpi_gbl_reduced_hardware is a global flag and can be used to prevent
-> > misbehavior on hardware reduced platforms, and this flag is
-> > initialized at the very beginning of the system boot when FADT is
-> > parsed, this flag is set to 1 when the FACP Hardware Reduced flag is
-> > set, so we can use it to prevent accessing registers which do not
-> > exist on reduced hardware platform.
-> >
-> > but when FACP Hardware Reduced flag is set, ACPI drivers will still
-> > access some registers directly which do not exist on reduced hardware
-> > platform and cause boot failure:
-> >
-> > [    9.024370] Unable to handle kernel paging request at virtual address
-> > ffffffbffbe00001
-> > [    9.024423] pgd = ffffffc00007d000
-> > [    9.024468] [ffffffbffbe00001] *pgd=000000008007f003,
-> > *pmd=0000000000000000
-> > [    9.024538] Internal error: Oops: 96000006 [#1] SMP
-> > [    9.024577] Modules linked in:
-> > [    9.024627] CPU: 0    Not tainted  (3.9.0+ #3)
-> > [    9.024691] PC is at acpi_os_read_port+0x58/0xc8
-> > [    9.024753] LR is at acpi_hw_read_port+0x4c/0xc4
-> > [    9.024810] pc : [<ffffffc0002810cc>] lr : [<ffffffc0002a4fc4>]
-> pstate:
-> > 600003c5
-> > ....
-> > [    9.031956] Call trace:
-> > [    9.032021] [<ffffffc0002810cc>] acpi_os_read_port+0x58/0xc8
-> > [    9.032094] [<ffffffc0002a4fc4>] acpi_hw_read_port+0x4c/0xc4
-> > [    9.032165] [<ffffffc0002a4198>] acpi_hw_read+0x6c/0x100
-> > [    9.032237] [<ffffffc0002a4250>] acpi_hw_read_multiple+0x24/0x70
-> > [    9.032312] [<ffffffc0002a457c>] acpi_hw_register_read+0xa8/0x164
-> > [    9.032386] [<ffffffc0002a52dc>] acpi_write_bit_register+0x9c/0x194
-> > [    9.032472] [<ffffffc0002bffb4>]
-> > acpi_processor_get_power_info+0x6c4/0x748
-> > [    9.032550] [<ffffffc000565220>] acpi_processor_power_init+0xac/0x138
-> > [    9.032630] [<ffffffc0003f3c00>] acpi_processor_start+0x48/0x138
-> > [    9.032704] [<ffffffc000565118>] acpi_processor_add+0x43c/0x498
-> > [    9.032784] [<ffffffc000283a74>] acpi_device_probe+0x3c/0x198
-> > [    9.032862] [<ffffffc0002ef0fc>] driver_probe_device+0x90/0x348
-> > [    9.032940] [<ffffffc0002ef450>] __driver_attach+0x9c/0xa0
-> > [    9.033015] [<ffffffc0002ed40c>] bus_for_each_dev+0x4c/0x8c
-> > [    9.033090] [<ffffffc0002eeb98>] driver_attach+0x20/0x28
-> > [    9.033166] [<ffffffc0002ee6e0>] bus_add_driver+0xfc/0x254
-> > [    9.033244] [<ffffffc0002ef8b0>] driver_register+0x6c/0x184
-> > [    9.033325] [<ffffffc000284894>] acpi_bus_register_driver+0x34/0x44
-> > [    9.033400] [<ffffffc000559c60>] acpi_processor_init+0x28/0x40
-> > [    9.033469] [<ffffffc000081438>] do_one_initcall+0x100/0x138
-> > [    9.033544] [<ffffffc0005448c8>] kernel_init_freeable+0x128/0x1cc
-> > [    9.033620] [<ffffffc0003f2f90>] kernel_init+0x10/0xcc
-> > [    9.033700] Code: d2bf7c02 f2dff7e2 f2ffffe2 8b020000 (79400000)
-> > [    9.033843] ---[ end trace 64376967e6bc20a9 ]---
-> > [    9.033995] Kernel panic - not syncing: Attempted to kill init!
-> > exitcode=0x0000000b
-> >
-> > So acpi_gbl_reduced_hardware should be used to check if reduced
-> > hardware or not, if it is reduced hardware, just return with some
-> > error and do not access the no-existent registers.
-> >
-> > Signed-off-by: Hanjun Guo <hanjun.guo@linaro.org>
-> > ---
-> >  drivers/acpi/acpica/hwregs.c |   24 ++++++++++++++++++++++++
-> >  1 file changed, 24 insertions(+)
-> >
-> > diff --git a/drivers/acpi/acpica/hwregs.c
-> > b/drivers/acpi/acpica/hwregs.c index 8d2e866..4c270c3 100644
-> > --- a/drivers/acpi/acpica/hwregs.c
-> > +++ b/drivers/acpi/acpica/hwregs.c
-> > @@ -265,6 +265,11 @@ acpi_status acpi_hw_clear_acpi_status(void)
-> >
-> >  	ACPI_FUNCTION_TRACE(hw_clear_acpi_status);
-> >
-> > +	/* If Hardware Reduced flag is set, there are no GPEs */
-> > +	if (acpi_gbl_reduced_hardware) {
-> > +		return_ACPI_STATUS(AE_NOT_IMPLEMENTED);
-> > +	}
-> > +
-> >  	ACPI_DEBUG_PRINT((ACPI_DB_IO, "About to write %04X to %8.8X%8.8X\n",
-> >  			  ACPI_BITMASK_ALL_FIXED_STATUS,
-> >  			  ACPI_FORMAT_UINT64(acpi_gbl_xpm1a_status.address)));
-> > @@ -305,6 +310,10 @@ struct acpi_bit_register_info
-> > *acpi_hw_get_bit_register_info(u32 register_id)  {
-> >  	ACPI_FUNCTION_ENTRY();
-> >
-> > +	if (acpi_gbl_reduced_hardware) {
-> > +		return (NULL);
-> > +	}
-> > +
-> >  	if (register_id > ACPI_BITREG_MAX) {
-> >  		ACPI_ERROR((AE_INFO, "Invalid BitRegister ID: 0x%X",
-> >  			    register_id));
-> > @@ -337,6 +346,11 @@ acpi_status acpi_hw_write_pm1_control(u32
-> > pm1a_control, u32 pm1b_control)
-> >
-> >  	ACPI_FUNCTION_TRACE(hw_write_pm1_control);
-> >
-> > +	/* If Hardware Reduced flag is set, there are no PM Control
-> > registers */
-> > +	if (acpi_gbl_reduced_hardware) {
-> > +		return_ACPI_STATUS(AE_NOT_IMPLEMENTED);
-> > +	}
-> > +
-> >  	status =
-> >  	    acpi_hw_write(pm1a_control, &acpi_gbl_FADT.xpm1a_control_block);
-> >  	if (ACPI_FAILURE(status)) {
-> > @@ -370,6 +384,11 @@ acpi_status acpi_hw_register_read(u32
-> > register_id,
-> > u32 *return_value)
-> >
-> >  	ACPI_FUNCTION_TRACE(hw_register_read);
-> >
-> > +	/* If Hardware Reduced flag is set, there are no PM Control
-> > registers */
-> > +	if (acpi_gbl_reduced_hardware) {
-> > +		return_ACPI_STATUS(AE_NOT_IMPLEMENTED);
-> > +	}
-> > +
-> >  	switch (register_id) {
-> >  	case ACPI_REGISTER_PM1_STATUS:	/* PM1 A/B: 16-bit access each
-> > */
-> >
-> > @@ -465,6 +484,11 @@ acpi_status acpi_hw_register_write(u32
-> > register_id,
-> > u32 value)
-> >
-> >  	ACPI_FUNCTION_TRACE(hw_register_write);
-> >
-> > +	/* If Hardware Reduced flag is set, there are no PM Control
-> > registers */
-> > +	if (acpi_gbl_reduced_hardware) {
-> > +		return_ACPI_STATUS(AE_NOT_IMPLEMENTED);
-> > +	}
-> > +
-> >  	switch (register_id) {
-> >  	case ACPI_REGISTER_PM1_STATUS:	/* PM1 A/B: 16-bit access each
-> > */
-> >  		/*
-> > --
-> > 1.7.9.5
-
+> When the driver ->probe() is called, it needs to power on the device (which
+> it probably needs to do anyway to be able to talk to the device and probe
+> its registers, etc.). Once the driver calls _put() the device is eventually
+> moved to suspended state (and its RPM hooks are called). I might be missing
+> something but is there a case where this is not beneficial?
