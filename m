@@ -1,69 +1,44 @@
-From: Aaron Lu <aaron.lu@intel.com>
-Subject: Re: [PATCH v2 1/9] i2c: prepare runtime PM support for I2C client
- devices
-Date: Fri, 13 Sep 2013 09:14:20 +0800
-Message-ID: <523266EC.1060501@intel.com>
-References: <1378913560-2752-1-git-send-email-mika.westerberg@linux.intel.com> <1378913560-2752-2-git-send-email-mika.westerberg@linux.intel.com> <52323AC8.30403@gmail.com>
+From: Tang Chen <tangchen@cn.fujitsu.com>
+Subject: Re: [RESEND PATCH v2 3/9] x86, dma: Support allocate memory from
+ bottom upwards in dma_contiguous_reserve().
+Date: Fri, 13 Sep 2013 11:36:25 +0800
+Message-ID: <52328839.9010309@cn.fujitsu.com>
+References: <1378979537-21196-1-git-send-email-tangchen@cn.fujitsu.com>  <1378979537-21196-4-git-send-email-tangchen@cn.fujitsu.com> <1379013759.13477.12.camel@misato.fc.hp.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset=UTF-8; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <52323AC8.30403@gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
-Cc: Mika Westerberg <mika.westerberg@linux.intel.com>, linux-i2c@vger.kernel.org, Wolfram Sang <wsa@the-dreams.de>, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Lv Zheng <lv.zheng@intel.com>, Aaron Lu <aaron.lu@intel.com>, linux-arm-kernel@lists.infradead.org, Mark Brown <broonie@kernel.org>, Dmitry Torokhov <dmitry.torokhov@gmail.com>, Mauro Carvalho Chehab <m.chehab@samsung.com>, Samuel Ortiz <sameo@linux.intel.com>, Lee Jones <lee.jones@linaro.org>, Arnd Bergmann <arnd@arndb.de>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Liam Girdwood <lgirdwood@gmail.com>, Kyungmin Park <kyungmin.park@samsung.com>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from cn.fujitsu.com ([222.73.24.84]:4262 "EHLO song.cn.fujitsu.com"
+	rhost-flags-OK-FAIL-OK-OK) by vger.kernel.org with ESMTP
+	id S1751894Ab3IMDeY (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 12 Sep 2013 23:34:24 -0400
+In-Reply-To: <1379013759.13477.12.camel@misato.fc.hp.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Toshi Kani <toshi.kani@hp.com>
+Cc: tj@kernel.org, rjw@sisk.pl, lenb@kernel.org, tglx@linutronix.de, mingo@elte.hu, hpa@zytor.com, akpm@linux-foundation.org, trenn@suse.de, yinghai@kernel.org, jiang.liu@huawei.com, wency@cn.fujitsu.com, laijs@cn.fujitsu.com, isimatu.yasuaki@jp.fujitsu.com, izumi.taku@jp.fujitsu.com, mgorman@suse.de, minchan@kernel.org, mina86@mina86.com, gong.chen@linux.intel.com, vasilis.liaskovitis@profitbricks.com, lwoodman@redhat.com, riel@redhat.com, jweiner@redhat.com, prarit@redhat.com, zhangyanfei@cn.fujitsu.com, x86@kernel.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-mm@kvack.org, linux-acpi@vger.kernel.org
 
-On 09/13/2013 06:06 AM, Sylwester Nawrocki wrote:
-> On 09/11/2013 05:32 PM, Mika Westerberg wrote:
->> From: Aaron Lu<aaron.lu@intel.com>
->>
->> This patch adds runtime PM support for the I2C bus in a similar way that
->> has been done for PCI bus already. This means that the I2C bus core
->> prepares runtime PM for a client device just before a driver is about to be
->> bound to it. Devices that are not bound to any driver are not prepared for
->> runtime PM.
->>
->> In order to take advantage of this runtime PM support, the client device
->> driver needs drop the device runtime PM reference count by calling
->> pm_runtime_put() in its ->probe() callback and possibly implement rest of
->> the runtime PM callbacks.
->>
->> If the driver doesn't support runtime PM (like most of the existing I2C
->> client drivers), the device in question is regarded as being runtime PM
->> active and powered on.
->>
->> The patch adds also runtime PM support for the adapter device because it is
->> needed to be able to runtime power manage the I2C controller device. The
->> adapter device is handled along with the I2C controller device (it uses
->> pm_runtime_no_callbacks()).
->>
->> Signed-off-by: Aaron Lu<aaron.lu@intel.com>
->> Signed-off-by: Mika Westerberg<mika.westerberg@linux.intel.com>
->> ---
->>   drivers/i2c/i2c-core.c | 44 +++++++++++++++++++++++++++++++++++++++++++-
->>   1 file changed, 43 insertions(+), 1 deletion(-)
->>
->> diff --git a/drivers/i2c/i2c-core.c b/drivers/i2c/i2c-core.c
->> index f32ca29..44374b4 100644
->> --- a/drivers/i2c/i2c-core.c
->> +++ b/drivers/i2c/i2c-core.c
->> @@ -248,11 +248,30 @@ static int i2c_device_probe(struct device *dev)
->>   					client->flags&  I2C_CLIENT_WAKE);
->>   	dev_dbg(dev, "probe\n");
->>
->> +	/* Make sure the adapter is active */
->> +	pm_runtime_get_sync(&client->adapter->dev);
-> 
-> So there is currently no way to avoid this behaviour, i.e. to have the 
-> adapter
-> not activated before any of its client devices is probed, but only later on,
-> after explicit call to pm_runtime_get*(&client->dev) in the client driver ?
+Hi Toshi,
 
-The above pm_runtime_get_sync is used to make sure when the client I2C
-device is going to be probed, its host adapter device is turned on(or we
-will fail the probe). It doesn't affect the adapter's status before the
-probe of I2C client device.
+On 09/13/2013 03:22 AM, Toshi Kani wrote:
+......
+>> +		if (memblock_direction_bottom_up()) {
+>> +			addr = memblock_alloc_bottom_up(
+>> +						MEMBLOCK_ALLOC_ACCESSIBLE,
+>> +						limit, size, alignment);
+>> +			if (addr)
+>> +				goto success;
+>> +		}
+>
+> I am afraid that this version went to a wrong direction.  Allocating
+> from the bottom up needs to be an internal logic within the memblock
+> allocator.  It should not require the callers to be aware of the
+> direction and make a special request.
+>
 
-Thanks,
-Aaron
+I think my v1 patch-set was trying to do so. Was it too complicated ?
+
+So just move this logic to memblock_find_in_range_node(), is this OK ?
+
+Thanks.
+
