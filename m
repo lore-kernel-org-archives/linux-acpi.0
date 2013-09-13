@@ -1,76 +1,40 @@
-From: Toshi Kani <toshi.kani@hp.com>
-Subject: Re: [PATCH v3 2/5] memblock: Improve memblock to support allocation
- from lower address.
-Date: Fri, 13 Sep 2013 15:53:28 -0600
-Message-ID: <1379109208.13477.16.camel@misato.fc.hp.com>
-References: <1379064655-20874-1-git-send-email-tangchen@cn.fujitsu.com>
-	 <1379064655-20874-3-git-send-email-tangchen@cn.fujitsu.com>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: Re: [PATCH 0/2] ACPI: return error in acpi_pci_irq_enable when there is no irq
+Date: Sat, 14 Sep 2013 01:43:51 +0200
+Message-ID: <2086253.mJBe8Nv4qL@vostro.rjw.lan>
+References: <1375965314-24232-1-git-send-email-heikki.krogerus@linux.intel.com> <52330A82.7050607@redhat.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
-Return-path: <owner-linux-mm@kvack.org>
-In-Reply-To: <1379064655-20874-3-git-send-email-tangchen@cn.fujitsu.com>
-Sender: owner-linux-mm@kvack.org
-To: Tang Chen <tangchen@cn.fujitsu.com>
-Cc: rjw@sisk.pl, lenb@kernel.org, tglx@linutronix.de, mingo@elte.hu, hpa@zytor.com, akpm@linux-foundation.org, tj@kernel.org, zhangyanfei@cn.fujitsu.com, liwanp@linux.vnet.ibm.com, trenn@suse.de, yinghai@kernel.org, jiang.liu@huawei.com, wency@cn.fujitsu.com, laijs@cn.fujitsu.com, isimatu.yasuaki@jp.fujitsu.com, izumi.taku@jp.fujitsu.com, mgorman@suse.de, minchan@kernel.org, mina86@mina86.com, gong.chen@linux.intel.com, vasilis.liaskovitis@profitbricks.com, lwoodman@redhat.com, riel@redhat.com, jweiner@redhat.com, prarit@redhat.com, x86@kernel.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-mm@kvack.org, linux-acpi@vger.kernel.org
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7Bit
+Return-path: <linux-pci-owner@vger.kernel.org>
+In-Reply-To: <52330A82.7050607@redhat.com>
+Sender: linux-pci-owner@vger.kernel.org
+To: Prarit Bhargava <prarit@redhat.com>
+Cc: Heikki Krogerus <heikki.krogerus@linux.intel.com>, linux-acpi@vger.kernel.org, Bjorn Helgaas <bhelgaas@google.com>, Linux PCI <linux-pci@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On Fri, 2013-09-13 at 17:30 +0800, Tang Chen wrote:
- :
-> @@ -100,8 +180,7 @@ phys_addr_t __init_memblock memblock_find_in_range_node(phys_addr_t start,
->  					phys_addr_t end, phys_addr_t size,
->  					phys_addr_t align, int nid)
->  {
-> -	phys_addr_t this_start, this_end, cand;
-> -	u64 i;
-> +	phys_addr_t ret;
->  
->  	/* pump up @end */
->  	if (end == MEMBLOCK_ALLOC_ACCESSIBLE)
-> @@ -111,18 +190,22 @@ phys_addr_t __init_memblock memblock_find_in_range_node(phys_addr_t start,
->  	start = max_t(phys_addr_t, start, PAGE_SIZE);
->  	end = max(start, end);
->  
-> -	for_each_free_mem_range_reverse(i, nid, &this_start, &this_end, NULL) {
-> -		this_start = clamp(this_start, start, end);
-> -		this_end = clamp(this_end, start, end);
-> +	if (memblock_direction_bottom_up()) {
-> +		/*
-> +		 * MEMBLOCK_ALLOC_ACCESSIBLE is 0, which is less than the end
-> +		 * of kernel image. So callers specify MEMBLOCK_ALLOC_ACCESSIBLE
-> +		 * as @start is OK.
-> +		 */
-> +		start =	max(start, __pa_symbol(_end)); /* End of kernel image. */
->  
-> -		if (this_end < size)
-> -			continue;
-> +		ret = __memblock_find_range(start, end, size, align, nid);
-> +		if (ret)
-> +			return ret;
->  
-> -		cand = round_down(this_end - size, align);
-> -		if (cand >= this_start)
-> -			return cand;
-> +		pr_warn("memblock: Failed to allocate memory in bottom up direction. Now try top down direction.\n");
+On Friday, September 13, 2013 08:52:18 AM Prarit Bhargava wrote:
+> 
+> On 08/08/2013 08:35 AM, Heikki Krogerus wrote:
+> > Hi,
+> > 
+> > This is the fix for the Dell PowerEdge 840 issue where nothing
+> > allocated an irq for it's PCH if I understood correctly. The issue was
+> > reported by Prarit Bhargava.
+> > 
+> > The second patch is just a minor cleanup.
+> > 
+> > Thanks,
+> > 
+> > 
+> > Heikki Krogerus (2):
+> >   ACPI / PCI: don't allow PCI devices without irq to be enabled
+> >   ACPI / PCI: remove an extra check from acpi_pci_irq_enable()
+> > 
+> 
+> Rafael, is this in your queue?
 
-Is there any chance that this retry will succeed given that start and
-end are still the same?
+No, it is not, because Bjorn wanted to debug this issue deeper as far as I
+could understand.
 
-Thanks,
--Toshi
-
-
->  	}
-> -	return 0;
-> +
-> +	return __memblock_find_range_rev(start, end, size, align, nid);
->  }
->  
->  /**
-
-
---
-To unsubscribe, send a message with 'unsubscribe linux-mm' in
-the body to majordomo@kvack.org.  For more info on Linux MM,
-see: http://www.linux-mm.org/ .
-Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
+Bjorn?
