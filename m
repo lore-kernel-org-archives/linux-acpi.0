@@ -1,64 +1,40 @@
-From: Mark Brown <broonie-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: Re: [PATCH v2 1/9] i2c: prepare runtime PM support for I2C client
- devices
-Date: Fri, 13 Sep 2013 13:10:59 +0100
-Message-ID: <20130913121059.GL29403@sirena.org.uk>
-References: <1378913560-2752-1-git-send-email-mika.westerberg@linux.intel.com>
- <1378913560-2752-2-git-send-email-mika.westerberg@linux.intel.com>
- <87vc25pvvm.fsf@linaro.org>
- <20130913065434.GZ7393@intel.com>
- <20130913095950.GA29403@sirena.org.uk>
- <20130913101611.GA7393@intel.com>
- <20130913103152.GE29403@sirena.org.uk>
- <20130913115035.GB7393@intel.com>
+From: alexey.kodanev@oracle.com
+Subject: ACPI test
+Date: Fri, 13 Sep 2013 16:20:51 +0400
+Message-ID: <52330323.6020702@oracle.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="27NCtaTw21bcrDcq"
-Return-path: <linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20130913115035.GB7393-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Sender: linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Mika Westerberg <mika.westerberg-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
-Cc: Kevin Hilman <khilman-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Wolfram Sang <wsa-z923LK4zBo2bacvFa/9K2g@public.gmane.org>, "Rafael J. Wysocki" <rafael.j.wysocki-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Lv Zheng <lv.zheng-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Aaron Lu <aaron.lu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, Dmitry Torokhov <dmitry.torokhov-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Mauro Carvalho Chehab <m.chehab-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org>, Samuel Ortiz <sameo-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>, Lee Jones <lee.jones-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Arnd Bergmann <arnd-r2nGTMty4D4@public.gmane.org>, Greg Kroah-Hartman <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>, Liam Girdwood <lgirdwood-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Kyungmin Park <kyungmin.park-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from userp1040.oracle.com ([156.151.31.81]:19780 "EHLO
+	userp1040.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755220Ab3IMMVU (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 13 Sep 2013 08:21:20 -0400
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: linux-acpi@vger.kernel.org
+Cc: ltp-list@lists.sourceforge.net, Vasily Isaenko <vasily.isaenko@oracle.com>
 
+Hi All!
 
---27NCtaTw21bcrDcq
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+I'm reviewing Linux Test Project's test concerning ACPI and a little bit 
+lost with the following test: 
+https://github.com/linux-test-project/ltp/tree/master/testcases/kernel/device-drivers/acpi. 
+It's quite outdated...
 
-On Fri, Sep 13, 2013 at 02:50:35PM +0300, Mika Westerberg wrote:
-> On Fri, Sep 13, 2013 at 11:31:52AM +0100, Mark Brown wrote:
+Pardon my technical knowledge on this subject but could you guide me to 
+solve the following questions about the test and ACPI:
 
-> > Right, but this probably needs to be highlighted more since it's a very
-> > surprising thing for I2C and is causing confusion.
+* Is it necessary to use block device to test ACPI functionality as test 
+does?
 
-> By highlighted more, do you mean something like adding a comment in the
-> code about this or?
+* How can I verify data which I get from acpi_driver_data() using random 
+acpi device handle? The test is using its own 'acpi_ec' structure and 
+trying to cast return void pointer from that function to it, but in the 
+kernel, this structure is slightly different and defined internally.
 
-Perhaps, yes.  Or possibly the commit log is going to be enough going
-forwards.
+May be you have some thoughts how ACPI test should look like? Any help 
+is appreciated.
 
---27NCtaTw21bcrDcq
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2.0.21 (GNU/Linux)
-
-iQIcBAEBAgAGBQJSMwDPAAoJELSic+t+oim9KGgP/2LD68umUpEP+9jo0+S+6JeB
-ZXaQamFK1V+u5dBPrfr55gnm3cgg9AJqUCE2iURJpl9JHhFK1GaBTNFG4VV9VVA2
-2oH0du0z66UY5tg2m41e1DE7AtZbPb5vVe1PB3NlRArwU0k7/MIZY5uXz++3DwP4
-PYv8rBbx8XKWmACPNKh8rtY9k3woVRm5fDwUeiJUru6OX8QILBrfFDVZoEy3TSz5
-D3PE9lK6jqJCA0SHipn61qWQuuMLnkuYmnvhcK2B2/nUvPLKF/HuNhJMyFMkKzfW
-Huz6uC8am5EQF+MinDpsNwd21C3TS81oN/86LKJ5LwJYznwSoR0FAVseKYUg59eJ
-CUaTBqmTkVsw9R9CyEE3PRlUFAFA10fZ3E5yADEp2EY1KHluCWS1k0Z3u+TqP3Lc
-/7FY1ITcthLOAolO5bHsm5egbXxqb4KI0XRLxaze2ztrLuGebwlPFpOsWjCiRDud
-7T/pxb/86xrVLnLK7bRriVBQrlob/lFgyey7vTCKhqj3GdjJ92x/o4eKvOdDzaWB
-p3O1WYPh5di3p0nWkYSM/LAU3dUx+Ot565VGxCDx6SKBW64torbFV4wZkLfrIggf
-tQmSAE8YLQuqrYm95IT4FXZlsZOPpHOMDuzJrI6p3/YYwXUrgYvPplkm8VqWyyBF
-E25+zh/+e7ZKcgGyhFRP
-=U4cS
------END PGP SIGNATURE-----
-
---27NCtaTw21bcrDcq--
+Many thanks,
+Alexey
