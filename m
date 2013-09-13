@@ -1,156 +1,167 @@
 From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Subject: [PATCH 2/2] ACPI / thermal: convert printk(LEVEL...) to pr_<lvl>
-Date: Fri, 13 Sep 2013 18:15:46 +0300
-Message-ID: <1379085346-25571-2-git-send-email-andriy.shevchenko@linux.intel.com>
-References: <1379085346-25571-1-git-send-email-andriy.shevchenko@linux.intel.com>
+Subject: [PATCH 1/2] ACPI / thermal: reuse module_acpi_driver
+Date: Fri, 13 Sep 2013 18:15:45 +0300
+Message-ID: <1379085346-25571-1-git-send-email-andriy.shevchenko@linux.intel.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga01.intel.com ([192.55.52.88]:4395 "EHLO mga01.intel.com"
+Received: from mga03.intel.com ([143.182.124.21]:56711 "EHLO mga03.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755908Ab3IMPQF (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 13 Sep 2013 11:16:05 -0400
-In-Reply-To: <1379085346-25571-1-git-send-email-andriy.shevchenko@linux.intel.com>
+	id S1757029Ab3IMPQb (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 13 Sep 2013 11:16:31 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: Zhang Rui <rui.zhang@intel.com>, "Rafael J . Wysocki" <rafael.j.wysocki@intel.com>, linux-acpi@vger.kernel.org
 Cc: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
 
-Convert printks to pr_* format. Additionally re-use PREFIX constant instead of
-hardcoded strings.
+There is a macro to register and unregister modules in simple cases, Let's use
+it and clean up the driver.
 
 Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
 ---
- drivers/acpi/thermal.c | 43 ++++++++++++++++++++-----------------------
- 1 file changed, 20 insertions(+), 23 deletions(-)
+ drivers/acpi/thermal.c | 117 ++++++++++++++++++++-----------------------------
+ 1 file changed, 48 insertions(+), 69 deletions(-)
 
 diff --git a/drivers/acpi/thermal.c b/drivers/acpi/thermal.c
-index 7e5629b..4c6e0a4 100644
+index 6a03293..7e5629b 100644
 --- a/drivers/acpi/thermal.c
 +++ b/drivers/acpi/thermal.c
-@@ -299,8 +299,8 @@ static int acpi_thermal_trips_update(struct acpi_thermal *tz, int flag)
- 			ACPI_DEBUG_PRINT((ACPI_DB_INFO,
- 					  "No critical threshold\n"));
- 		} else if (tmp <= 2732) {
--			printk(KERN_WARNING FW_BUG "Invalid critical threshold "
--			       "(%llu)\n", tmp);
-+			pr_warn(FW_BUG "Invalid critical threshold (%llu)\n",
-+				tmp);
- 			tz->trips.critical.flags.valid = 0;
- 		} else {
- 			tz->trips.critical.flags.valid = 1;
-@@ -317,8 +317,8 @@ static int acpi_thermal_trips_update(struct acpi_thermal *tz, int flag)
- 				 * Allow override critical threshold
- 				 */
- 				if (crt_k > tz->trips.critical.temperature)
--					printk(KERN_WARNING PREFIX
--						"Critical threshold %d C\n", crt);
-+					pr_warn(PREFIX "Critical threshold %d C\n",
-+						crt);
- 				tz->trips.critical.temperature = crt_k;
- 			}
- 		}
-@@ -390,8 +390,7 @@ static int acpi_thermal_trips_update(struct acpi_thermal *tz, int flag)
- 		status = acpi_evaluate_reference(tz->device->handle, "_PSL",
- 							NULL, &devices);
- 		if (ACPI_FAILURE(status)) {
--			printk(KERN_WARNING PREFIX
--				"Invalid passive threshold\n");
-+			pr_warn(PREFIX "Invalid passive threshold\n");
- 			tz->trips.passive.flags.valid = 0;
- 		}
- 		else
-@@ -453,8 +452,8 @@ static int acpi_thermal_trips_update(struct acpi_thermal *tz, int flag)
- 			status = acpi_evaluate_reference(tz->device->handle,
- 						name, NULL, &devices);
- 			if (ACPI_FAILURE(status)) {
--				printk(KERN_WARNING PREFIX
--					"Invalid active%d threshold\n", i);
-+				pr_warn(PREFIX "Invalid active%d threshold\n",
-+					i);
- 				tz->trips.active[i].flags.valid = 0;
- 			}
- 			else
-@@ -505,7 +504,7 @@ static int acpi_thermal_get_trip_points(struct acpi_thermal *tz)
- 		valid |= tz->trips.active[i].flags.valid;
- 
- 	if (!valid) {
--		printk(KERN_WARNING FW_BUG "No valid trip found\n");
-+		pr_warn(FW_BUG "No valid trip found\n");
- 		return -ENODEV;
+@@ -980,6 +980,46 @@ static void acpi_thermal_notify(struct acpi_device *device, u32 event)
  	}
+ }
+ 
++static struct dmi_system_id thermal_dmi_table[] __initdata = {
++	/*
++	 * Award BIOS on this AOpen makes thermal control almost worthless.
++	 * http://bugzilla.kernel.org/show_bug.cgi?id=8842
++	 */
++	{
++	 .callback = thermal_act,
++	 .ident = "AOpen i915GMm-HFS",
++	 .matches = {
++		DMI_MATCH(DMI_BOARD_VENDOR, "AOpen"),
++		DMI_MATCH(DMI_BOARD_NAME, "i915GMm-HFS"),
++		},
++	},
++	{
++	 .callback = thermal_psv,
++	 .ident = "AOpen i915GMm-HFS",
++	 .matches = {
++		DMI_MATCH(DMI_BOARD_VENDOR, "AOpen"),
++		DMI_MATCH(DMI_BOARD_NAME, "i915GMm-HFS"),
++		},
++	},
++	{
++	 .callback = thermal_tzp,
++	 .ident = "AOpen i915GMm-HFS",
++	 .matches = {
++		DMI_MATCH(DMI_BOARD_VENDOR, "AOpen"),
++		DMI_MATCH(DMI_BOARD_NAME, "i915GMm-HFS"),
++		},
++	},
++	{
++	 .callback = thermal_nocrt,
++	 .ident = "Gigabyte GA-7ZX",
++	 .matches = {
++		DMI_MATCH(DMI_BOARD_VENDOR, "Gigabyte Technology Co., Ltd."),
++		DMI_MATCH(DMI_BOARD_NAME, "7ZX"),
++		},
++	},
++	{}
++};
++
+ /*
+  * On some platforms, the AML code has dependency about
+  * the evaluating order of _TMP and _CRT/_HOT/_PSV/_ACx.
+@@ -1070,10 +1110,16 @@ static int acpi_thermal_add(struct acpi_device *device)
+ 	int result = 0;
+ 	struct acpi_thermal *tz = NULL;
+ 
+-
+ 	if (!device)
+ 		return -EINVAL;
+ 
++	dmi_check_system(thermal_dmi_table);
++
++	if (off) {
++		printk(KERN_NOTICE "ACPI: thermal control disabled\n");
++		return -ENODEV;
++	}
++
+ 	tz = kzalloc(sizeof(struct acpi_thermal), GFP_KERNEL);
+ 	if (!tz)
+ 		return -ENOMEM;
+@@ -1191,71 +1237,4 @@ static int thermal_psv(const struct dmi_system_id *d) {
  	return 0;
-@@ -923,8 +922,7 @@ static int acpi_thermal_register_thermal_zone(struct acpi_thermal *tz)
- 				  acpi_bus_private_data_handler,
- 				  tz->thermal_zone);
- 	if (ACPI_FAILURE(status)) {
--		printk(KERN_ERR PREFIX
--				"Error attaching device data\n");
-+		pr_err(PREFIX "Error attaching device data\n");
- 		return -ENODEV;
- 	}
+ }
  
-@@ -1116,7 +1114,7 @@ static int acpi_thermal_add(struct acpi_device *device)
- 	dmi_check_system(thermal_dmi_table);
- 
- 	if (off) {
+-static struct dmi_system_id thermal_dmi_table[] __initdata = {
+-	/*
+-	 * Award BIOS on this AOpen makes thermal control almost worthless.
+-	 * http://bugzilla.kernel.org/show_bug.cgi?id=8842
+-	 */
+-	{
+-	 .callback = thermal_act,
+-	 .ident = "AOpen i915GMm-HFS",
+-	 .matches = {
+-		DMI_MATCH(DMI_BOARD_VENDOR, "AOpen"),
+-		DMI_MATCH(DMI_BOARD_NAME, "i915GMm-HFS"),
+-		},
+-	},
+-	{
+-	 .callback = thermal_psv,
+-	 .ident = "AOpen i915GMm-HFS",
+-	 .matches = {
+-		DMI_MATCH(DMI_BOARD_VENDOR, "AOpen"),
+-		DMI_MATCH(DMI_BOARD_NAME, "i915GMm-HFS"),
+-		},
+-	},
+-	{
+-	 .callback = thermal_tzp,
+-	 .ident = "AOpen i915GMm-HFS",
+-	 .matches = {
+-		DMI_MATCH(DMI_BOARD_VENDOR, "AOpen"),
+-		DMI_MATCH(DMI_BOARD_NAME, "i915GMm-HFS"),
+-		},
+-	},
+-	{
+-	 .callback = thermal_nocrt,
+-	 .ident = "Gigabyte GA-7ZX",
+-	 .matches = {
+-		DMI_MATCH(DMI_BOARD_VENDOR, "Gigabyte Technology Co., Ltd."),
+-		DMI_MATCH(DMI_BOARD_NAME, "7ZX"),
+-		},
+-	},
+-	{}
+-};
+-
+-static int __init acpi_thermal_init(void)
+-{
+-	int result = 0;
+-
+-	dmi_check_system(thermal_dmi_table);
+-
+-	if (off) {
 -		printk(KERN_NOTICE "ACPI: thermal control disabled\n");
-+		pr_notice(PREFIX "thermal control disabled\n");
- 		return -ENODEV;
- 	}
- 
-@@ -1140,9 +1138,8 @@ static int acpi_thermal_add(struct acpi_device *device)
- 	if (result)
- 		goto free_memory;
- 
--	printk(KERN_INFO PREFIX "%s [%s] (%ld C)\n",
--	       acpi_device_name(device), acpi_device_bid(device),
--	       KELVIN_TO_CELSIUS(tz->temperature));
-+	pr_info(PREFIX "%s [%s] (%ld C)\n", acpi_device_name(device),
-+		acpi_device_bid(device), KELVIN_TO_CELSIUS(tz->temperature));
- 	goto end;
- 
- free_memory:
-@@ -1205,24 +1202,24 @@ static int acpi_thermal_resume(struct device *dev)
- static int thermal_act(const struct dmi_system_id *d) {
- 
- 	if (act == 0) {
--		printk(KERN_NOTICE "ACPI: %s detected: "
--			"disabling all active thermal trip points\n", d->ident);
-+		pr_notice(PREFIX "%s detected: "
-+			  "disabling all active thermal trip points\n", d->ident);
- 		act = -1;
- 	}
- 	return 0;
- }
- static int thermal_nocrt(const struct dmi_system_id *d) {
- 
--	printk(KERN_NOTICE "ACPI: %s detected: "
--		"disabling all critical thermal trip point actions.\n", d->ident);
-+	pr_notice(PREFIX "%s detected: "
-+		  "disabling all critical thermal trip point actions.\n", d->ident);
- 	nocrt = 1;
- 	return 0;
- }
- static int thermal_tzp(const struct dmi_system_id *d) {
- 
- 	if (tzp == 0) {
--		printk(KERN_NOTICE "ACPI: %s detected: "
--			"enabling thermal zone polling\n", d->ident);
-+		pr_notice(PREFIX "%s detected: "
-+			  "enabling thermal zone polling\n", d->ident);
- 		tzp = 300;	/* 300 dS = 30 Seconds */
- 	}
- 	return 0;
-@@ -1230,8 +1227,8 @@ static int thermal_tzp(const struct dmi_system_id *d) {
- static int thermal_psv(const struct dmi_system_id *d) {
- 
- 	if (psv == 0) {
--		printk(KERN_NOTICE "ACPI: %s detected: "
--			"disabling all passive thermal trip points\n", d->ident);
-+		pr_notice(PREFIX "%s detected: "
-+			  "disabling all passive thermal trip points\n", d->ident);
- 		psv = -1;
- 	}
- 	return 0;
+-		return -ENODEV;
+-	}
+-
+-	result = acpi_bus_register_driver(&acpi_thermal_driver);
+-	if (result < 0)
+-		return -ENODEV;
+-
+-	return 0;
+-}
+-
+-static void __exit acpi_thermal_exit(void)
+-{
+-
+-	acpi_bus_unregister_driver(&acpi_thermal_driver);
+-
+-	return;
+-}
+-
+-module_init(acpi_thermal_init);
+-module_exit(acpi_thermal_exit);
++module_acpi_driver(acpi_thermal_driver);
 -- 
 1.8.4.rc3
 
