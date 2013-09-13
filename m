@@ -1,44 +1,69 @@
-From: Tang Chen <tangchen@cn.fujitsu.com>
-Subject: Re: [RESEND PATCH v2 3/9] x86, dma: Support allocate memory from
- bottom upwards in dma_contiguous_reserve().
-Date: Fri, 13 Sep 2013 11:36:25 +0800
-Message-ID: <52328839.9010309@cn.fujitsu.com>
-References: <1378979537-21196-1-git-send-email-tangchen@cn.fujitsu.com>  <1378979537-21196-4-git-send-email-tangchen@cn.fujitsu.com> <1379013759.13477.12.camel@misato.fc.hp.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
+From: Lv Zheng <lv.zheng@intel.com>
+Subject: [PATCH v2 00/12] ACPI/IPMI: Fix several issues in the current codes
+Date: Fri, 13 Sep 2013 13:13:01 +0800
+Message-ID: <cover.1379048860.git.lv.zheng@intel.com>
+References: <cover.1370652213.git.lv.zheng@intel.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cn.fujitsu.com ([222.73.24.84]:4262 "EHLO song.cn.fujitsu.com"
-	rhost-flags-OK-FAIL-OK-OK) by vger.kernel.org with ESMTP
-	id S1751894Ab3IMDeY (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 12 Sep 2013 23:34:24 -0400
-In-Reply-To: <1379013759.13477.12.camel@misato.fc.hp.com>
+Received: from mga02.intel.com ([134.134.136.20]:37979 "EHLO mga02.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752386Ab3IMFNL (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 13 Sep 2013 01:13:11 -0400
+In-Reply-To: <cover.1370652213.git.lv.zheng@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Toshi Kani <toshi.kani@hp.com>
-Cc: tj@kernel.org, rjw@sisk.pl, lenb@kernel.org, tglx@linutronix.de, mingo@elte.hu, hpa@zytor.com, akpm@linux-foundation.org, trenn@suse.de, yinghai@kernel.org, jiang.liu@huawei.com, wency@cn.fujitsu.com, laijs@cn.fujitsu.com, isimatu.yasuaki@jp.fujitsu.com, izumi.taku@jp.fujitsu.com, mgorman@suse.de, minchan@kernel.org, mina86@mina86.com, gong.chen@linux.intel.com, vasilis.liaskovitis@profitbricks.com, lwoodman@redhat.com, riel@redhat.com, jweiner@redhat.com, prarit@redhat.com, zhangyanfei@cn.fujitsu.com, x86@kernel.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-mm@kvack.org, linux-acpi@vger.kernel.org
+To: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Len Brown <len.brown@intel.com>, Corey Minyard <minyard@acm.org>, Zhao Yakui <yakui.zhao@intel.com>
+Cc: Lv Zheng <lv.zheng@intel.com>, linux-acpi@vger.kernel.org, openipmi-developer@lists.sourceforge.net
 
-Hi Toshi,
+This patchset tries to fix the following kernel bug:
+Buglink: https://bugzilla.kernel.org/show_bug.cgi?id=46741
+This is fixed by [PATCH 06].
 
-On 09/13/2013 03:22 AM, Toshi Kani wrote:
-......
->> +		if (memblock_direction_bottom_up()) {
->> +			addr = memblock_alloc_bottom_up(
->> +						MEMBLOCK_ALLOC_ACCESSIBLE,
->> +						limit, size, alignment);
->> +			if (addr)
->> +				goto success;
->> +		}
->
-> I am afraid that this version went to a wrong direction.  Allocating
-> from the bottom up needs to be an internal logic within the memblock
-> allocator.  It should not require the callers to be aware of the
-> direction and make a special request.
->
+The bug shows IPMI operation region may appear in a device not under the
+IPMI system interface device's scope, thus it's required to install the
+ACPI IPMI operation region handler from the root of the ACPI namespace.
 
-I think my v1 patch-set was trying to do so. Was it too complicated ?
+The original acpi_ipmi implementation includes several issues that break
+the test process.  This patchset also includes a re-design of acpi_ipmi
+module to make the test possible.
+ 
+[PATCH 01-06] are bug-fix patches that can be applied to the kernels whose
+              version is > 2.6.38.  This can be confirmed with:
+              # git tag --contains e92b297c
+[PATCH 07] is a tuning patch for acpi_ipmi.c.
+[PATCH 08-12] are cleanup patches for acpi_ipmi.c and its Kconfig item.
 
-So just move this logic to memblock_find_in_range_node(), is this OK ?
+v2.0
+PATCH 03: Uses timeout mechanism offerred by ipmi_si.
+PATCH 05: Uses kref instead of atomic_t and adds "dead" flag to kill the
+          atomic_read codes in ipmi_flush_tx_msg().
+PATCH 07: Uses kref instead of atomic_t.
 
-Thanks.
+This patchset has passed the test around a fake device accessing IPMI
+operation region fields on an IPMI capable platform.  A stress test of
+module(acpi_ipmi) load/unload has been performed on such platform.  No
+races can be found and the IPMI operation region handler is functioning
+now.  It is not possible to test module(ipmi_si) load/unload as it can't be
+unloaded due to its' transfer flushing implementation.
+
+Lv Zheng (12):
+  ACPI/IPMI: Fix atomic context requirement of ipmi_msg_handler()
+  ACPI/IPMI: Fix potential response buffer overflow
+  ACPI/IPMI: Fix race caused by the unprotected ACPI IPMI transfers
+  ACPI/IPMI: Fix race caused by the timed out ACPI IPMI transfers
+  ACPI/IPMI: Fix race caused by the unprotected ACPI IPMI user
+  ACPI/IPMI: Fix issue caused by the per-device registration of the
+    IPMI operation region handler
+  ACPI/IPMI: Add reference counting for ACPI IPMI transfers
+  ACPI/IPMI: Cleanup several acpi_ipmi_device members
+  ACPI/IPMI: Cleanup some initialization codes
+  ACPI/IPMI: Cleanup some inclusion codes
+  ACPI/IPMI: Cleanup some Kconfig codes
+  ACPI/IPMI: Cleanup coding styles
+
+ drivers/acpi/Kconfig     |    3 +-
+ drivers/acpi/acpi_ipmi.c |  594 ++++++++++++++++++++++++++++------------------
+ 2 files changed, 367 insertions(+), 230 deletions(-)
+
+-- 
+1.7.10
 
