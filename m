@@ -1,187 +1,66 @@
-From: Tang Chen <tangchen@cn.fujitsu.com>
-Subject: [PATCH v3 4/5] x86, mem-hotplug: Support initialize page tables from low to high.
-Date: Fri, 13 Sep 2013 17:30:54 +0800
-Message-ID: <1379064655-20874-5-git-send-email-tangchen@cn.fujitsu.com>
-References: <1379064655-20874-1-git-send-email-tangchen@cn.fujitsu.com>
-Return-path: <owner-linux-mm@kvack.org>
-In-Reply-To: <1379064655-20874-1-git-send-email-tangchen@cn.fujitsu.com>
-Sender: owner-linux-mm@kvack.org
-To: rjw@sisk.pl, lenb@kernel.org, tglx@linutronix.de, mingo@elte.hu, hpa@zytor.com, akpm@linux-foundation.org, tj@kernel.org, toshi.kani@hp.com, zhangyanfei@cn.fujitsu.com, liwanp@linux.vnet.ibm.com, trenn@suse.de, yinghai@kernel.org, jiang.liu@huawei.com, wency@cn.fujitsu.com, laijs@cn.fujitsu.com, isimatu.yasuaki@jp.fujitsu.com, izumi.taku@jp.fujitsu.com, mgorman@suse.de, minchan@kernel.org, mina86@mina86.com, gong.chen@linux.intel.com, vasilis.liaskovitis@profitbricks.com, lwoodman@redhat.com, riel@redhat.com, jweiner@redhat.com, prarit@redhat.com
-Cc: x86@kernel.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-mm@kvack.org, linux-acpi@vger.kernel.org
+From: Mark Brown <broonie@kernel.org>
+Subject: Re: [PATCH v2 1/9] i2c: prepare runtime PM support for I2C client
+ devices
+Date: Fri, 13 Sep 2013 10:59:50 +0100
+Message-ID: <20130913095950.GA29403@sirena.org.uk>
+References: <1378913560-2752-1-git-send-email-mika.westerberg@linux.intel.com>
+ <1378913560-2752-2-git-send-email-mika.westerberg@linux.intel.com>
+ <87vc25pvvm.fsf@linaro.org>
+ <20130913065434.GZ7393@intel.com>
+Mime-Version: 1.0
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="ag9GjZJb+BqU9eEI"
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from cassiel.sirena.org.uk ([80.68.93.111]:48556 "EHLO
+	cassiel.sirena.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754515Ab3IMJ75 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 13 Sep 2013 05:59:57 -0400
+Content-Disposition: inline
+In-Reply-To: <20130913065434.GZ7393@intel.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Mika Westerberg <mika.westerberg@linux.intel.com>
+Cc: Kevin Hilman <khilman@linaro.org>, linux-i2c@vger.kernel.org, Wolfram Sang <wsa@the-dreams.de>, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Lv Zheng <lv.zheng@intel.com>, Aaron Lu <aaron.lu@intel.com>, linux-arm-kernel@lists.infradead.org, Dmitry Torokhov <dmitry.torokhov@gmail.com>, Mauro Carvalho Chehab <m.chehab@samsung.com>, Samuel Ortiz <sameo@linux.intel.com>, Lee Jones <lee.jones@linaro.org>, Arnd Bergmann <arnd@arndb.de>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Liam Girdwood <lgirdwood@gmail.com>, Kyungmin Park <kyungmin.park@samsung.com>
 
-init_mem_mapping() is called before SRAT is parsed. And memblock will allocate
-memory for page tables. To prevent page tables being allocated within hotpluggable
-memory, we will allocate page tables from the end of kernel image to the higher
-memory.
 
-Signed-off-by: Tang Chen <tangchen@cn.fujitsu.com>
-Reviewed-by: Zhang Yanfei <zhangyanfei@cn.fujitsu.com>
----
- arch/x86/mm/init.c |  121 +++++++++++++++++++++++++++++++++++++++------------
- 1 files changed, 92 insertions(+), 29 deletions(-)
+--ag9GjZJb+BqU9eEI
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
-diff --git a/arch/x86/mm/init.c b/arch/x86/mm/init.c
-index 04664cd..bf7b732 100644
---- a/arch/x86/mm/init.c
-+++ b/arch/x86/mm/init.c
-@@ -401,13 +401,79 @@ static unsigned long __init init_range_memory_mapping(
- 
- /* (PUD_SHIFT-PMD_SHIFT)/2 */
- #define STEP_SIZE_SHIFT 5
--void __init init_mem_mapping(void)
-+
-+#ifdef CONFIG_MOVABLE_NODE
-+/**
-+ * memory_map_from_low - Map [start, end) from low to high
-+ * @start: start address of the target memory range
-+ * @end: end address of the target memory range
-+ *
-+ * This function will setup direct mapping for memory range [start, end) in a
-+ * heuristic way. In the beginning, step_size is small. The more memory we map
-+ * memory in the next loop.
-+ */
-+static void __init memory_map_from_low(unsigned long start, unsigned long end)
-+{
-+	unsigned long next, new_mapped_ram_size;
-+	unsigned long mapped_ram_size = 0;
-+	/* step_size need to be small so pgt_buf from BRK could cover it */
-+	unsigned long step_size = PMD_SIZE;
-+
-+	while (start < end) {
-+		if (end - start > step_size) {
-+			next = round_up(start + 1, step_size);
-+			if (next > end)
-+				next = end;
-+		} else
-+			next = end;
-+
-+		new_mapped_ram_size = init_range_memory_mapping(start, next);
-+		min_pfn_mapped = start >> PAGE_SHIFT;
-+		start = next;
-+
-+		if (new_mapped_ram_size > mapped_ram_size)
-+			step_size <<= STEP_SIZE_SHIFT;
-+		mapped_ram_size += new_mapped_ram_size;
-+	}
-+}
-+#endif /* CONFIG_MOVABLE_NODE */
-+
-+/**
-+ * memory_map_from_high - Map [start, end) from high to low
-+ * @start: start address of the target memory range
-+ * @end: end address of the target memory range
-+ *
-+ * This function is similar to memory_map_from_low() except it maps memory
-+ * from high to low.
-+ */
-+static void __init memory_map_from_high(unsigned long start, unsigned long end)
- {
--	unsigned long end, real_end, start, last_start;
--	unsigned long step_size;
--	unsigned long addr;
-+	unsigned long prev, new_mapped_ram_size;
- 	unsigned long mapped_ram_size = 0;
--	unsigned long new_mapped_ram_size;
-+	/* step_size need to be small so pgt_buf from BRK could cover it */
-+	unsigned long step_size = PMD_SIZE;
-+
-+	while (start < end) {
-+		if (end > step_size) {
-+			prev = round_down(end - 1, step_size);
-+			if (prev < start)
-+				prev = start;
-+		} else
-+			prev = start;
-+
-+		new_mapped_ram_size = init_range_memory_mapping(prev, end);
-+		min_pfn_mapped = prev >> PAGE_SHIFT;
-+		end = prev;
-+
-+		if (new_mapped_ram_size > mapped_ram_size)
-+			step_size <<= STEP_SIZE_SHIFT;
-+		mapped_ram_size += new_mapped_ram_size;
-+	}
-+}
-+
-+void __init init_mem_mapping(void)
-+{
-+	unsigned long end;
- 
- 	probe_page_size_mask();
- 
-@@ -417,45 +483,42 @@ void __init init_mem_mapping(void)
- 	end = max_low_pfn << PAGE_SHIFT;
- #endif
- 
--	/* the ISA range is always mapped regardless of memory holes */
--	init_memory_mapping(0, ISA_END_ADDRESS);
-+	max_pfn_mapped = 0; /* will get exact value next */
-+	min_pfn_mapped = end >> PAGE_SHIFT;
-+
-+#ifdef CONFIG_MOVABLE_NODE
-+	unsigned long kernel_end;
-+
-+	if (memblock_direction_bottom_up()) {
-+		kernel_end = round_up(__pa_symbol(_end), PMD_SIZE);
-+
-+		memory_map_from_low(kernel_end, end);
-+		memory_map_from_low(ISA_END_ADDRESS, kernel_end);
-+		goto out;
-+	}
-+#endif /* CONFIG_MOVABLE_NODE */
-+
-+	unsigned long addr, real_end;
- 
- 	/* xen has big range in reserved near end of ram, skip it at first.*/
- 	addr = memblock_find_in_range(ISA_END_ADDRESS, end, PMD_SIZE, PMD_SIZE);
- 	real_end = addr + PMD_SIZE;
- 
--	/* step_size need to be small so pgt_buf from BRK could cover it */
--	step_size = PMD_SIZE;
--	max_pfn_mapped = 0; /* will get exact value next */
--	min_pfn_mapped = real_end >> PAGE_SHIFT;
--	last_start = start = real_end;
--
- 	/*
- 	 * We start from the top (end of memory) and go to the bottom.
- 	 * The memblock_find_in_range() gets us a block of RAM from the
- 	 * end of RAM in [min_pfn_mapped, max_pfn_mapped) used as new pages
- 	 * for page table.
- 	 */
--	while (last_start > ISA_END_ADDRESS) {
--		if (last_start > step_size) {
--			start = round_down(last_start - 1, step_size);
--			if (start < ISA_END_ADDRESS)
--				start = ISA_END_ADDRESS;
--		} else
--			start = ISA_END_ADDRESS;
--		new_mapped_ram_size = init_range_memory_mapping(start,
--							last_start);
--		last_start = start;
--		min_pfn_mapped = last_start >> PAGE_SHIFT;
--		/* only increase step_size after big range get mapped */
--		if (new_mapped_ram_size > mapped_ram_size)
--			step_size <<= STEP_SIZE_SHIFT;
--		mapped_ram_size += new_mapped_ram_size;
--	}
-+	memory_map_from_high(ISA_END_ADDRESS, real_end);
- 
- 	if (real_end < end)
- 		init_range_memory_mapping(real_end, end);
- 
-+out:
-+	/* the ISA range is always mapped regardless of memory holes */
-+	init_memory_mapping(0, ISA_END_ADDRESS);
-+
- #ifdef CONFIG_X86_64
- 	if (max_pfn > max_low_pfn) {
- 		/* can we preseve max_low_pfn ?*/
--- 
-1.7.1
+On Fri, Sep 13, 2013 at 09:54:34AM +0300, Mika Westerberg wrote:
+> On Thu, Sep 12, 2013 at 02:34:21PM -0700, Kevin Hilman wrote:
 
---
-To unsubscribe, send a message with 'unsubscribe linux-mm' in
-the body to majordomo@kvack.org.  For more info on Linux MM,
-see: http://www.linux-mm.org/ .
-Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
+> > For hardware that is disabled/powered-off on startup, there will now be
+> > a mismatch between the hardware state an the RPM core state.
+
+> The call to pm_runtime_get_noresume() should make sure that the device is
+> in active state (at least in state where it can access the bus) if I'm
+> understanding this right.
+
+Accessing the bus isn't an issue for I2C outside of ACPI, the power
+management of the device is totally disassociated from the bus and the
+controller is responsible for ensuring it is available during transfers.
+
+--ag9GjZJb+BqU9eEI
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2.0.21 (GNU/Linux)
+
+iQIcBAEBAgAGBQJSMuITAAoJELSic+t+oim9+UsP/RcwTsiMmpTycarTP0qbabI9
+pDh2oUMQl0geVLAVlcp34HYImPA6BVChH8zPkRgOr/F5mDHl7q2wjj7K5oEFP/vI
+UL14mJEZnAU9GMzWgorU8zI3z/nFHB5KpjSBOrPVHar1dK2+ZhnEwJpF0bNx+OUP
+yHXAMkUUtRWxuDwMWtS+yKd/5fxKvLXsNrVFce9biXPj4L9dML5jsAi59jX8SKkQ
+9ESBxxqMRH91v6CZ99JGR8pAat8eOTrQUlHaEKWtmQwm/eraBVjJwA5TJ9IdPmIC
+EXEwhbMRA7Gr5hNAPBXVQQsqa4zQYeGxkbbn+57cZIB2SaxSQidIARp4ld4ZWREa
+IZq8D6odOt8oGqSLYp7eKL2kmn2xV4wsff1GsWudNJlfpS33q8szVZNDqY+K08Qf
+FGpxpv4Rd3yXdUIvjvvKZ/TjLWHLJn9/xYjQP8OB98m8SK7qzAYIUJoYY/RJz20M
+4lZux3tihn6FEI3uSoqWJHi3vEnF59jPWa2jAnVewV+E5GPcfNruYhJtWyxvaHOo
+oTpi84yocGk9134/ipRLEDm6SOMdPdPiZ4anR6vU3UgHN8SircH+2IoJRWe1+zts
+TzfzyWv7YeoH/k13g+ny3aw7tBvk35yxStNIghubFNdkfFTqURV2msxIx8k6waIE
+nEqM+ElcVhk6LPp8aHPE
+=ARg5
+-----END PGP SIGNATURE-----
+
+--ag9GjZJb+BqU9eEI--
