@@ -1,161 +1,64 @@
-From: chen tang <imtangchen@gmail.com>
-Subject: Re: [PATCH v3 1/5] memblock: Introduce allocation direction to memblock.
-Date: Sun, 15 Sep 2013 22:23:19 +0900
-Message-ID: <CAD11hGybiz2618GmAZtUa3Eqxe_1s_jF3_RQfuKULRhZCeHW7w@mail.gmail.com>
-References: <1379064655-20874-1-git-send-email-tangchen@cn.fujitsu.com>
-	<1379064655-20874-2-git-send-email-tangchen@cn.fujitsu.com>
-	<5233CD2A.3010504@huawei.com>
+From: Mika Westerberg <mika.westerberg-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
+Subject: Re: [PATCH v2 1/9] i2c: prepare runtime PM support for I2C client
+ devices
+Date: Sun, 15 Sep 2013 16:28:24 +0300
+Message-ID: <20130915132823.GL7393@intel.com>
+References: <1378913560-2752-1-git-send-email-mika.westerberg@linux.intel.com>
+ <1378913560-2752-2-git-send-email-mika.westerberg@linux.intel.com>
+ <87vc25pvvm.fsf@linaro.org>
+ <20130913065434.GZ7393@intel.com>
+ <87bo3whjz4.fsf@linaro.org>
+ <20130913145022.GC7393@intel.com>
+ <20130913173149.GE7393@intel.com>
+ <87ioy4e8bw.fsf@linaro.org>
+ <20130915064139.GJ7393@intel.com>
+ <20130915124744.GW29403@sirena.org.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <owner-linux-mm@kvack.org>
-In-Reply-To: <5233CD2A.3010504@huawei.com>
-Sender: owner-linux-mm@kvack.org
-To: Jianguo Wu <wujianguo@huawei.com>
-Cc: Tang Chen <tangchen@cn.fujitsu.com>, "Rafael J. Wysocki" <rjw@sisk.pl>, Len Brown <lenb@kernel.org>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@elte.hu>, "H. Peter Anvin" <hpa@zytor.com>, Andrew Morton <akpm@linux-foundation.org>, Tejun Heo <tj@kernel.org>, Toshi Kani <toshi.kani@hp.com>, Zhang Yanfei <zhangyanfei@cn.fujitsu.com>, liwanp@linux.vnet.ibm.com, Thomas Renninger <trenn@suse.de>, Yinghai Lu <yinghai@kernel.org>, Jiang Liu <jiang.liu@huawei.com>, Wen Congyang <wency@cn.fujitsu.com>, Lai Jiangshan <laijs@cn.fujitsu.com>, Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>, Taku Izumi <izumi.taku@jp.fujitsu.com>, Mel Gorman <mgorman@suse.de>, Minchan Kim <minchan@kernel.org>, "mina86@mina86.com" <mina86@mina86.com>, "gong.chen@linux.intel.com" <gong.chen@linux.intel.com>, Vasilis Liaskovitis <vasilis.liaskovitis@profitbricks.com>, lwoodman@
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <20130915124744.GW29403-GFdadSzt00ze9xe1eoZjHA@public.gmane.org>
+Sender: linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Mark Brown <broonie-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Cc: Kevin Hilman <khilman-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Wolfram Sang <wsa-z923LK4zBo2bacvFa/9K2g@public.gmane.org>, "Rafael J. Wysocki" <rafael.j.wysocki-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Lv Zheng <lv.zheng-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Aaron Lu <aaron.lu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, Dmitry Torokhov <dmitry.torokhov-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Mauro Carvalho Chehab <m.chehab-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org>, Samuel Ortiz <sameo-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>, Lee Jones <lee.jones-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Arnd Bergmann <arnd-r2nGTMty4D4@public.gmane.org>, Greg Kroah-Hartman <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>, Liam Girdwood <lgirdwood-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Kyungmin Park <kyungmin.park-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-Hi Wu,
+On Sun, Sep 15, 2013 at 01:47:44PM +0100, Mark Brown wrote:
+> On Sun, Sep 15, 2013 at 09:41:39AM +0300, Mika Westerberg wrote:
+> 
+> > There's also a less intrusive way of fixing the problem we see with ACPI
+> > enabled I2C devices:
+> 
+> > 	1. In I2C core i2c_device_probe() we power on the I2C controller
+> > 	and attach the client device to the ACPI power domain. Just like in
+> > 	this patch but we don't touch the I2C client device runtime PM.
+> 
+> > 	-> This should allow the existing drivers to keep using whatever
+> > 	runtime PM strategy they have chosen.
+> 
+> There should be no explicit need to power on the I2C controller if it's
+> implemented the same way the existing ones are - just have it power
+> itself on when it is doing a transfer.
 
-Thanks, and will update the comments and msg in the next version.  :)
+The problem is that the ACPI child device can't be in higher power state
+than its parent (and this is also what the runtime PM expects). If we don't
+power the I2C controller device before we power on the I2C client device
+that rule is violated and we get an complaint to the console.
 
-2013/9/14 Jianguo Wu <wujianguo@huawei.com>:
-> Hi Tang,
->
-> On 2013/9/13 17:30, Tang Chen wrote:
->
->> The Linux kernel cannot migrate pages used by the kernel. As a result, kernel
->> pages cannot be hot-removed. So we cannot allocate hotpluggable memory for
->> the kernel.
->>
->> ACPI SRAT (System Resource Affinity Table) contains the memory hotplug info.
->> But before SRAT is parsed, memblock has already started to allocate memory
->> for the kernel. So we need to prevent memblock from doing this.
->>
->> In a memory hotplug system, any numa node the kernel resides in should
->> be unhotpluggable. And for a modern server, each node could have at least
->> 16GB memory. So memory around the kernel image is highly likely unhotpluggable.
->>
->> So the basic idea is: Allocate memory from the end of the kernel image and
->> to the higher memory. Since memory allocation before SRAT is parsed won't
->> be too much, it could highly likely be in the same node with kernel image.
->>
->> The current memblock can only allocate memory from high address to low.
->> So this patch introduces the allocation direct to memblock. It could be
->> used to tell memblock to allocate memory from high to low or from low
->> to high.
->>
->> Signed-off-by: Tang Chen <tangchen@cn.fujitsu.com>
->> Reviewed-by: Zhang Yanfei <zhangyanfei@cn.fujitsu.com>
->> ---
->>  include/linux/memblock.h |   22 ++++++++++++++++++++++
->>  mm/memblock.c            |   13 +++++++++++++
->>  2 files changed, 35 insertions(+), 0 deletions(-)
->>
->> diff --git a/include/linux/memblock.h b/include/linux/memblock.h
->> index 31e95ac..a7d3436 100644
->> --- a/include/linux/memblock.h
->> +++ b/include/linux/memblock.h
->> @@ -19,6 +19,11 @@
->>
->>  #define INIT_MEMBLOCK_REGIONS        128
->>
->> +/* Allocation order. */
->
-> s/order/direction/
->
->> +#define MEMBLOCK_DIRECTION_HIGH_TO_LOW       0
->> +#define MEMBLOCK_DIRECTION_LOW_TO_HIGH       1
->> +#define MEMBLOCK_DIRECTION_DEFAULT   MEMBLOCK_DIRECTION_HIGH_TO_LOW
->> +
->>  struct memblock_region {
->>       phys_addr_t base;
->>       phys_addr_t size;
->> @@ -35,6 +40,7 @@ struct memblock_type {
->>  };
->>
->>  struct memblock {
->> +     int current_direction;      /* allocate from higher or lower address */
->>       phys_addr_t current_limit;
->>       struct memblock_type memory;
->>       struct memblock_type reserved;
->> @@ -148,6 +154,12 @@ phys_addr_t memblock_alloc_try_nid(phys_addr_t size, phys_addr_t align, int nid)
->>
->>  phys_addr_t memblock_alloc(phys_addr_t size, phys_addr_t align);
->>
->> +static inline bool memblock_direction_bottom_up(void)
->> +{
->> +     return memblock.current_direction == MEMBLOCK_DIRECTION_LOW_TO_HIGH;
->> +}
->> +
->> +
->>  /* Flags for memblock_alloc_base() amd __memblock_alloc_base() */
->>  #define MEMBLOCK_ALLOC_ANYWHERE      (~(phys_addr_t)0)
->>  #define MEMBLOCK_ALLOC_ACCESSIBLE    0
->> @@ -175,6 +187,16 @@ static inline void memblock_dump_all(void)
->>  }
->>
->>  /**
->> + * memblock_set_current_direction - Set current allocation direction to allow
->> + *                                  allocating memory from higher to lower
->> + *                                  address or from lower to higher address
->> + *
->> + * @direction: In which order to allocate memory. Could be
->
-> s/order/direction/
->
->> + *             MEMBLOCK_DIRECTION_{HIGH_TO_LOW|LOW_TO_HIGH}
->> + */
->> +void memblock_set_current_direction(int direction);
->> +
->> +/**
->>   * memblock_set_current_limit - Set the current allocation limit to allow
->>   *                         limiting allocations to what is currently
->>   *                         accessible during boot
->> diff --git a/mm/memblock.c b/mm/memblock.c
->> index 0ac412a..f24ca2e 100644
->> --- a/mm/memblock.c
->> +++ b/mm/memblock.c
->> @@ -32,6 +32,7 @@ struct memblock memblock __initdata_memblock = {
->>       .reserved.cnt           = 1,    /* empty dummy entry */
->>       .reserved.max           = INIT_MEMBLOCK_REGIONS,
->>
->> +     .current_direction      = MEMBLOCK_DIRECTION_DEFAULT,
->>       .current_limit          = MEMBLOCK_ALLOC_ANYWHERE,
->>  };
->>
->> @@ -995,6 +996,18 @@ void __init_memblock memblock_trim_memory(phys_addr_t align)
->>       }
->>  }
->>
->> +void __init_memblock memblock_set_current_direction(int direction)
->> +{
->> +     if (direction != MEMBLOCK_DIRECTION_HIGH_TO_LOW &&
->> +         direction != MEMBLOCK_DIRECTION_LOW_TO_HIGH) {
->> +             pr_warn("memblock: Failed to set allocation order. "
->> +                     "Invalid order type: %d\n", direction);
->
-> s/order/direction/
->
->> +             return;
->> +     }
->> +
->> +     memblock.current_direction = direction;
->> +}
->> +
->>  void __init_memblock memblock_set_current_limit(phys_addr_t limit)
->>  {
->>       memblock.current_limit = limit;
->
->
->
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-kernel" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> Please read the FAQ at  http://www.tux.org/lkml/
+> > 	2. For ACPI enumerated I2C client devices drivers we need to
+> > 	implement the runtime PM in order to save power (otherwise the
+> > 	devices will be left powered on).
+> 
+> > and do the same for SPI devices as well.
+> 
+> > Then only thing that changes for non-ACPI devices is that the controller
+> > will be powered on during the client device probe (well, and during
+> > remove).
+> 
+> > Thoughts?
+> 
+> This is definitely less intrusive than the current proposal, there's one
+> ACPI I2C device binding queued for -next after the merge window (rt5640)
+> which will need an update.
 
---
-To unsubscribe, send a message with 'unsubscribe linux-mm' in
-the body to majordomo@kvack.org.  For more info on Linux MM,
-see: http://www.linux-mm.org/ .
-Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
+OK, thanks for the heads up. I'll check it.
