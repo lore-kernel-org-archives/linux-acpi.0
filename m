@@ -1,148 +1,99 @@
-From: Jianguo Wu <wujianguo@huawei.com>
-Subject: Re: [PATCH v3 1/5] memblock: Introduce allocation direction to memblock.
-Date: Sat, 14 Sep 2013 10:42:50 +0800
-Message-ID: <5233CD2A.3010504@huawei.com>
-References: <1379064655-20874-1-git-send-email-tangchen@cn.fujitsu.com> <1379064655-20874-2-git-send-email-tangchen@cn.fujitsu.com>
+From: Mika Westerberg <mika.westerberg@linux.intel.com>
+Subject: Re: [PATCH v2 1/9] i2c: prepare runtime PM support for I2C client
+ devices
+Date: Sun, 15 Sep 2013 09:41:39 +0300
+Message-ID: <20130915064139.GJ7393@intel.com>
+References: <1378913560-2752-1-git-send-email-mika.westerberg@linux.intel.com>
+ <1378913560-2752-2-git-send-email-mika.westerberg@linux.intel.com>
+ <87vc25pvvm.fsf@linaro.org>
+ <20130913065434.GZ7393@intel.com>
+ <87bo3whjz4.fsf@linaro.org>
+ <20130913145022.GC7393@intel.com>
+ <20130913173149.GE7393@intel.com>
+ <87ioy4e8bw.fsf@linaro.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from szxga03-in.huawei.com ([119.145.14.66]:27222 "EHLO
-	szxga03-in.huawei.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756004Ab3INCnv (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 13 Sep 2013 22:43:51 -0400
-In-Reply-To: <1379064655-20874-2-git-send-email-tangchen@cn.fujitsu.com>
+Received: from mga01.intel.com ([192.55.52.88]:32149 "EHLO mga01.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752013Ab3IOGgP (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Sun, 15 Sep 2013 02:36:15 -0400
+Content-Disposition: inline
+In-Reply-To: <87ioy4e8bw.fsf@linaro.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Tang Chen <tangchen@cn.fujitsu.com>
-Cc: rjw@sisk.pl, lenb@kernel.org, tglx@linutronix.de, mingo@elte.hu, hpa@zytor.com, akpm@linux-foundation.org, tj@kernel.org, toshi.kani@hp.com, zhangyanfei@cn.fujitsu.com, liwanp@linux.vnet.ibm.com, trenn@suse.de, yinghai@kernel.org, jiang.liu@huawei.com, wency@cn.fujitsu.com, laijs@cn.fujitsu.com, isimatu.yasuaki@jp.fujitsu.com, izumi.taku@jp.fujitsu.com, mgorman@suse.de, minchan@kernel.org, mina86@mina86.com, gong.chen@linux.intel.com, vasilis.liaskovitis@profitbricks.com, lwoodman@redhat.com, riel@redhat.com, jweiner@redhat.com, prarit@redhat.com, x86@kernel.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-mm@kvack.org, linux-acpi@vger.kernel.org
+To: Kevin Hilman <khilman@linaro.org>
+Cc: linux-i2c@vger.kernel.org, Wolfram Sang <wsa@the-dreams.de>, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Lv Zheng <lv.zheng@intel.com>, Aaron Lu <aaron.lu@intel.com>, linux-arm-kernel@lists.infradead.org, Mark Brown <broonie@kernel.org>, Dmitry Torokhov <dmitry.torokhov@gmail.com>, Mauro Carvalho Chehab <m.chehab@samsung.com>, Samuel Ortiz <sameo@linux.intel.com>, Lee Jones <lee.jones@linaro.org>, Arnd Bergmann <arnd@arndb.de>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Liam Girdwood <lgirdwood@gmail.com>, Kyungmin Park <kyungmin.park@samsung.com>
 
-Hi Tang,
-
-On 2013/9/13 17:30, Tang Chen wrote:
-
-> The Linux kernel cannot migrate pages used by the kernel. As a result, kernel
-> pages cannot be hot-removed. So we cannot allocate hotpluggable memory for
-> the kernel.
+On Fri, Sep 13, 2013 at 02:10:43PM -0700, Kevin Hilman wrote:
+> >
+> > 	// This makes sure that the controller itself is powered on
+> > 	// (adapter device follows its parent which is the controller). The
+> > 	// controller is attached to the ACPI power domain so it is
+> > 	// brought to D0 now.
+> > 	pm_runtime_get_sync(&client->adapter->dev);
+> >
+> > 	// This binds the client device to the ACPI power domain, and in
+> > 	// addition to that brings the client device to D0.
 > 
-> ACPI SRAT (System Resource Affinity Table) contains the memory hotplug info.
-> But before SRAT is parsed, memblock has already started to allocate memory
-> for the kernel. So we need to prevent memblock from doing this.
+> OK, then here is where the problem is, because you're building ACPI
+> assumptions into the core. For non-ACPI devices, this part is a nop, so
+> the client device is still powered off, which breaks the assumptions
+> below.
+
+We expect that once the driver ->probe() is called, and it doesn't
+participate the runtime PM prepared here, the device is regarded as powered
+on, runtime PM active.
+
+If the driver participates in runtime PM, it needs to power on the device
+and then call pm_runtime_put() to suspend the device.
+
+> > 	if (ACPI_HANDLE(&client->dev))
+> > 		acpi_dev_pm_attach(&client->dev, true);
+> >
+> > 	// Increase the refcount so that client can start runtime PM
+> > 	// transitions when it calls _put().
+> > 	pm_runtime_get_noresume(&client->dev);
 > 
-> In a memory hotplug system, any numa node the kernel resides in should
-> be unhotpluggable. And for a modern server, each node could have at least
-> 16GB memory. So memory around the kernel image is highly likely unhotpluggable.
+> > 	// Mark the device being active as
+> > 	//  1) In ACPI case we know that is true as we just powered the
+> > 	//     device on.
+> > 	//  2) We treat the device by default to be runtime PM active and
+> > 	//     powered on (that's in the changelog and should follow what
+> > 	//     the PCI bus did).
+> > 	pm_runtime_set_active(&client->dev);
+> >
+> > 	// Enable runtime PM but nothing happens yet as long as the client
+> > 	// driver doesn't call _put().
+> > 	pm_runtime_enable(&client->dev);
+> >
+> > So, yes there might be a disconnect between the runtime PM state and the
+> > device HW state now (same is with default to suspended).
 > 
-> So the basic idea is: Allocate memory from the end of the kernel image and
-> to the higher memory. Since memory allocation before SRAT is parsed won't
-> be too much, it could highly likely be in the same node with kernel image.
-> 
-> The current memblock can only allocate memory from high address to low.
-> So this patch introduces the allocation direct to memblock. It could be
-> used to tell memblock to allocate memory from high to low or from low
-> to high.
-> 
-> Signed-off-by: Tang Chen <tangchen@cn.fujitsu.com>
-> Reviewed-by: Zhang Yanfei <zhangyanfei@cn.fujitsu.com>
-> ---
->  include/linux/memblock.h |   22 ++++++++++++++++++++++
->  mm/memblock.c            |   13 +++++++++++++
->  2 files changed, 35 insertions(+), 0 deletions(-)
-> 
-> diff --git a/include/linux/memblock.h b/include/linux/memblock.h
-> index 31e95ac..a7d3436 100644
-> --- a/include/linux/memblock.h
-> +++ b/include/linux/memblock.h
-> @@ -19,6 +19,11 @@
->  
->  #define INIT_MEMBLOCK_REGIONS	128
->  
-> +/* Allocation order. */
+> Yes, but until now, default to suspended has been assumed, so any
+> changes to that will likely require more thorough auditing of other drivers.
 
-s/order/direction/
+I agree. And it looks like I missed few existing drivers as well. I'm going
+to update them in the next version of the series.
 
-> +#define MEMBLOCK_DIRECTION_HIGH_TO_LOW	0
-> +#define MEMBLOCK_DIRECTION_LOW_TO_HIGH	1
-> +#define MEMBLOCK_DIRECTION_DEFAULT	MEMBLOCK_DIRECTION_HIGH_TO_LOW
-> +
->  struct memblock_region {
->  	phys_addr_t base;
->  	phys_addr_t size;
-> @@ -35,6 +40,7 @@ struct memblock_type {
->  };
->  
->  struct memblock {
-> +	int current_direction;      /* allocate from higher or lower address */
->  	phys_addr_t current_limit;
->  	struct memblock_type memory;
->  	struct memblock_type reserved;
-> @@ -148,6 +154,12 @@ phys_addr_t memblock_alloc_try_nid(phys_addr_t size, phys_addr_t align, int nid)
->  
->  phys_addr_t memblock_alloc(phys_addr_t size, phys_addr_t align);
->  
-> +static inline bool memblock_direction_bottom_up(void)
-> +{
-> +	return memblock.current_direction == MEMBLOCK_DIRECTION_LOW_TO_HIGH;
-> +}
-> +
-> +
->  /* Flags for memblock_alloc_base() amd __memblock_alloc_base() */
->  #define MEMBLOCK_ALLOC_ANYWHERE	(~(phys_addr_t)0)
->  #define MEMBLOCK_ALLOC_ACCESSIBLE	0
-> @@ -175,6 +187,16 @@ static inline void memblock_dump_all(void)
->  }
->  
->  /**
-> + * memblock_set_current_direction - Set current allocation direction to allow
-> + *                                  allocating memory from higher to lower
-> + *                                  address or from lower to higher address
-> + *
-> + * @direction: In which order to allocate memory. Could be
+There's also a less intrusive way of fixing the problem we see with ACPI
+enabled I2C devices:
 
-s/order/direction/
+	1. In I2C core i2c_device_probe() we power on the I2C controller
+	and attach the client device to the ACPI power domain. Just like in
+	this patch but we don't touch the I2C client device runtime PM.
 
-> + *             MEMBLOCK_DIRECTION_{HIGH_TO_LOW|LOW_TO_HIGH}
-> + */
-> +void memblock_set_current_direction(int direction);
-> +
-> +/**
->   * memblock_set_current_limit - Set the current allocation limit to allow
->   *                         limiting allocations to what is currently
->   *                         accessible during boot
-> diff --git a/mm/memblock.c b/mm/memblock.c
-> index 0ac412a..f24ca2e 100644
-> --- a/mm/memblock.c
-> +++ b/mm/memblock.c
-> @@ -32,6 +32,7 @@ struct memblock memblock __initdata_memblock = {
->  	.reserved.cnt		= 1,	/* empty dummy entry */
->  	.reserved.max		= INIT_MEMBLOCK_REGIONS,
->  
-> +	.current_direction	= MEMBLOCK_DIRECTION_DEFAULT,
->  	.current_limit		= MEMBLOCK_ALLOC_ANYWHERE,
->  };
->  
-> @@ -995,6 +996,18 @@ void __init_memblock memblock_trim_memory(phys_addr_t align)
->  	}
->  }
->  
-> +void __init_memblock memblock_set_current_direction(int direction)
-> +{
-> +	if (direction != MEMBLOCK_DIRECTION_HIGH_TO_LOW &&
-> +	    direction != MEMBLOCK_DIRECTION_LOW_TO_HIGH) {
-> +		pr_warn("memblock: Failed to set allocation order. "
-> +			"Invalid order type: %d\n", direction);
+	-> This should allow the existing drivers to keep using whatever
+	runtime PM strategy they have chosen.
 
-s/order/direction/
+	2. For ACPI enumerated I2C client devices drivers we need to
+	implement the runtime PM in order to save power (otherwise the
+	devices will be left powered on).
 
-> +		return;
-> +	}
-> +
-> +	memblock.current_direction = direction;
-> +}
-> +
->  void __init_memblock memblock_set_current_limit(phys_addr_t limit)
->  {
->  	memblock.current_limit = limit;
+and do the same for SPI devices as well.
 
+Then only thing that changes for non-ACPI devices is that the controller
+will be powered on during the client device probe (well, and during
+remove).
 
-
+Thoughts?
