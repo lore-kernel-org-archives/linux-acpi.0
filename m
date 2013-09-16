@@ -1,61 +1,78 @@
-From: Mark Brown <broonie-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: Re: [PATCH v2 1/9] i2c: prepare runtime PM support for I2C client
- devices
-Date: Tue, 17 Sep 2013 00:31:11 +0100
-Message-ID: <20130916233111.GB21013@sirena.org.uk>
-References: <1378913560-2752-1-git-send-email-mika.westerberg@linux.intel.com>
- <5235BA9C.1090509@gmail.com>
- <20130916084708.GN7393@intel.com>
- <1861747.RtS0ZLgUUN@vostro.rjw.lan>
+From: Peter Hurley <peter@hurleysoftware.com>
+Subject: Re: [PATCH PING] Fix coalescing of host bridge windows in arch/x86/pci/acpi.c
+Date: Mon, 16 Sep 2013 19:31:58 -0400
+Message-ID: <523794EE.10505@hurleysoftware.com>
+References: <201309121719.17447.stilor@att.net> <201309160941.54844.stilor@att.net>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="St7VIuEGZ6dlpu13"
-Return-path: <linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <1861747.RtS0ZLgUUN-sKB8Sp2ER+y1GS7QM15AGw@public.gmane.org>
-Sender: linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Rafael J. Wysocki" <rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org>
-Cc: Mika Westerberg <mika.westerberg-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>, Sylwester Nawrocki <sylvester.nawrocki-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Sylwester Nawrocki <s.nawrocki-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org>, Kevin Hilman <khilman-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Wolfram Sang <wsa-z923LK4zBo2bacvFa/9K2g@public.gmane.org>, "Rafael J. Wysocki" <rafael.j.wysocki-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Lv Zheng <lv.zheng-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Aaron Lu <aaron.lu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, Dmitry Torokhov <dmitry.torokhov-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Mauro Carvalho Chehab <m.chehab-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org>, Samuel Ortiz <sameo-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>, Lee Jones <lee.jones-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Arnd Bergmann <arnd-r2nGTMty4D4@public.gmane.org>, Greg Kroah-Hartman <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>, Liam Girdwood <lgirdwood-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Kyungmin Park <kyungmin.park-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <201309160941.54844.stilor@att.net>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Alexey Neyman <stilor@att.net>
+Cc: linux-kernel@vger.kernel.org, Bjorn Helgaas <bhelgaas@google.com>, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, linux-acpi <linux-acpi@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
 
+[ +cc Bjorn Helgaas, Rafael Wysocki, linux-acpi ]
 
---St7VIuEGZ6dlpu13
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+On 09/16/2013 12:41 PM, Alexey Neyman wrote:
+> Hi all,
+>
+> Could anybody review/commit the patch?
 
-On Mon, Sep 16, 2013 at 09:07:07PM +0200, Rafael J. Wysocki wrote:
+LKML is a pretty general list and maintainers don't typically
+trawl the list for more work to do. The get_maintainer script
+can be used to help determine to whom to address a patch.
 
-> That may be left to the client driver altogether.  I mean, if the client wants
-> the controller to be powered up, it should just call
-> pm_runtime_get_sync(controller device) at a suitable place (and then do the
-> corresponding _put when the controller is not necessary anu more) from its
-> ->probe() callback.
+peter@thor:~/src/kernels/next$ ./scripts/get_maintainer.pl -f arch/x86/pci/acpi.c
+Thomas Gleixner <tglx@linutronix.de> (maintainer:X86 ARCHITECTURE...)
+Ingo Molnar <mingo@redhat.com> (maintainer:X86 ARCHITECTURE...)
+"H. Peter Anvin" <hpa@zytor.com> (maintainer:X86 ARCHITECTURE...)
+x86@kernel.org (maintainer:X86 ARCHITECTURE...)
+Bjorn Helgaas <bhelgaas@google.com> (commit_signer:5/8=62%)
+"Rafael J. Wysocki" <rafael.j.wysocki@intel.com> (commit_signer:3/8=38%)
+Feng Tang <feng.tang@intel.com> (commit_signer:1/8=12%)
+Yijing Wang <wangyijing@huawei.com> (commit_signer:1/8=12%)
+Mike Yoknis <mike.yoknis@hp.com> (commit_signer:1/8=12%)
+linux-kernel@vger.kernel.org (open list)
 
-It shouldn't even need to do that, it should just be able to rely on the
-controller to power itself up when asked to do work.   This is how the
-existing implementations are done - the controller power management is
-totally transparent to the slave.
+Regards,
+Peter Hurley
 
---St7VIuEGZ6dlpu13
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
+PS - You'll want to inline your patch as well because as you can see
+replies don't include it.
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2.0.21 (GNU/Linux)
-
-iQIcBAEBAgAGBQJSN5S8AAoJELSic+t+oim94uwP/jx69z1Q6v47hnnPe96VbjT3
-EnKgxbDsp7+Kf746Wk/4N2NJFH8BjlmoURBIKCAEaBkvbjNpU1MMYj3R/hyr8KNY
-Noc5qU1N0C+a+of3hrAN1mEPy8GF+fsRbcdVTKwvljaVW+dzDld9KJBoBhaQABms
-LJK9cAmv+usvMHTRnqjbd66CR7pV1uu7yXOb+iMOAaypAIE7ws5vGlCf6risl5fW
-1aaWEBLJCuoVNG6dY4tOMlWf0C/PWyqqFzwUWtRyHAnG99ZOoBqupMXtDe+OpU8Z
-PK+qLKJfk+9vqIw3TnG3lIrDUmTCdKBE0TupAQETSxU6aHT9u6rnLvcaLqMEICRF
-qpjG0gRe/XY28K1MwlZH+AWXYdh16OdkgDfEL72mJaznx06Z4oi4OR4Am0vFZSwt
-jtSf8G9PnFbbjpFY5wMaSpXUQLHZShUkB2Hnjq25rvAAPeUr02Iv9WybbFyrHnJ3
-XKFU7w5IsUlwIWvSEaMeTlqIwoG0zJqkcnVBGHaVQwqVTlHreq9GlF9dwRTpZcZl
-J8btH2M1/nyezwPOoTDmQeJpiY/tvK4S++0Z9Xfg/Yxy8a/Km76PEQWf2FqhmcxB
-PhAQz5iPvW0r8zVr/05R/Bwd4Zl0PwpBtzH9WxaSo/gbMpRsUiOPEZZm1w0y2q+G
-aHTR4zk6jgEdn60R8zZQ
-=CLGD
------END PGP SIGNATURE-----
-
---St7VIuEGZ6dlpu13--
+> Regards,
+> Alexey.
+>
+> On Thursday, September 12, 2013 05:19:16 pm Alexey Neyman wrote:
+>> Hi all,
+>>
+>> I have a board with a BIOS bug that reports the following I/O port regions
+>> in _CRS on one of the host bridges:
+>>
+>> 0x0000-0x03af // #0
+>> 0x03e0-0x0cf7 // #1
+>> 0x03b0-0x03bb // #2
+>> 0x03c0-0x03df // #3
+>> 0x0000-0xdfff // #4
+>> 0xf000-0xffff // #5
+>>
+>> Obviously, region number #4 is erroneous as it overlaps with regions #0..3.
+>> However, code in coalesce_windows() in arch/x86/pci/acpi.c attempts to
+>> recover from such kind of BIOS bugs by merging the overlapping regions.
+>> Current code expands region #0 to 0x0000-0xdffff and makes region #4
+>> ignored. As a result, overlap of the expanded region #0 with regions #1..3
+>> remains undetected. As a result, regions #1..3 are inserted into the
+>> resource tree as if they were consumers of the 0x0000-0xdfff regions, and
+>> devices that have resources in one of these regions (e.g. 0x3f6 for legacy
+>> IDE) have a resource conflict - the kernel does not initialize them.
+>>
+>> The attached patch makes the code in coalesce_windows() instead ignore res1
+>> (which is already dealt with), possibly expanding res2 instead. As res2 has
+>> not been reached in the outer loop in coalesce_windows(), the code will
+>> then check for overlaps of the just-expanded resource with the rest of the
+>> resources.
+>>
+>> Regards,
+>> Alexey.
