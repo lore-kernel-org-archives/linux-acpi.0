@@ -1,90 +1,71 @@
-From: Zhang Yanfei <zhangyanfei@cn.fujitsu.com>
-Subject: Re: [PATCH v3 2/5] memblock: Improve memblock to support allocation
- from lower address.
-Date: Mon, 16 Sep 2013 09:28:03 +0800
-Message-ID: <52365EA3.8000103@cn.fujitsu.com>
-References: <1379064655-20874-1-git-send-email-tangchen@cn.fujitsu.com>  <1379064655-20874-3-git-send-email-tangchen@cn.fujitsu.com> <1379109208.13477.16.camel@misato.fc.hp.com>
+From: Hanjun Guo <hanjun.guo@linaro.org>
+Subject: Re: [PATCH] ACPICA / hwreg: Use acpi_gbl_reduced_hardware to prevent
+ accessing PM registers
+Date: Mon, 16 Sep 2013 10:40:17 +0800
+Message-ID: <52366F91.30204@linaro.org>
+References: <1379066741-23689-1-git-send-email-hanjun.guo@linaro.org> <94F2FBAB4432B54E8AACC7DFDE6C92E36FEEBC6A@ORSMSX103.amr.corp.intel.com> <94F2FBAB4432B54E8AACC7DFDE6C92E36FEEC15B@ORSMSX103.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-Return-path: <owner-linux-mm@kvack.org>
-In-Reply-To: <1379109208.13477.16.camel@misato.fc.hp.com>
-Sender: owner-linux-mm@kvack.org
-To: Toshi Kani <toshi.kani@hp.com>
-Cc: Tang Chen <tangchen@cn.fujitsu.com>, rjw@sisk.pl, lenb@kernel.org, tglx@linutronix.de, mingo@elte.hu, hpa@zytor.com, akpm@linux-foundation.org, tj@kernel.org, liwanp@linux.vnet.ibm.com, trenn@suse.de, yinghai@kernel.org, jiang.liu@huawei.com, wency@cn.fujitsu.com, laijs@cn.fujitsu.com, isimatu.yasuaki@jp.fujitsu.com, izumi.taku@jp.fujitsu.com, mgorman@suse.de, minchan@kernel.org, mina86@mina86.com, gong.chen@linux.intel.com, vasilis.liaskovitis@profitbricks.com, lwoodman@redhat.com, riel@redhat.com, jweiner@redhat.com, prarit@redhat.com, x86@kernel.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-mm@kvack.org, linux-acpi@vger.kernel.org
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-pb0-f48.google.com ([209.85.160.48]:36062 "EHLO
+	mail-pb0-f48.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932171Ab3IPCm0 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sun, 15 Sep 2013 22:42:26 -0400
+Received: by mail-pb0-f48.google.com with SMTP id ma3so3473963pbc.21
+        for <linux-acpi@vger.kernel.org>; Sun, 15 Sep 2013 19:42:25 -0700 (PDT)
+In-Reply-To: <94F2FBAB4432B54E8AACC7DFDE6C92E36FEEC15B@ORSMSX103.amr.corp.intel.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: "Moore, Robert" <robert.moore@intel.com>
+Cc: "'Rafael J. Wysocki'" <rjw@sisk.pl>, 'Len Brown' <lenb@kernel.org>, "Box, David E" <david.e.box@intel.com>, "Zheng, Lv" <lv.zheng@intel.com>, "'linux-acpi@vger.kernel.org'" <linux-acpi@vger.kernel.org>, "'patches@linaro.org'" <patches@linaro.org>, "'linaro-kernel@lists.linaro.org'" <linaro-kernel@lists.linaro.org>, "'linaro-acpi@lists.linaro.org'" <linaro-acpi@lists.linaro.org>
 
-Hello toshi-san,
-
-On 09/14/2013 05:53 AM, Toshi Kani wrote:
-> On Fri, 2013-09-13 at 17:30 +0800, Tang Chen wrote:
->  :
->> @@ -100,8 +180,7 @@ phys_addr_t __init_memblock memblock_find_in_range_node(phys_addr_t start,
->>  					phys_addr_t end, phys_addr_t size,
->>  					phys_addr_t align, int nid)
->>  {
->> -	phys_addr_t this_start, this_end, cand;
->> -	u64 i;
->> +	phys_addr_t ret;
->>  
->>  	/* pump up @end */
->>  	if (end == MEMBLOCK_ALLOC_ACCESSIBLE)
->> @@ -111,18 +190,22 @@ phys_addr_t __init_memblock memblock_find_in_range_node(phys_addr_t start,
->>  	start = max_t(phys_addr_t, start, PAGE_SIZE);
->>  	end = max(start, end);
->>  
->> -	for_each_free_mem_range_reverse(i, nid, &this_start, &this_end, NULL) {
->> -		this_start = clamp(this_start, start, end);
->> -		this_end = clamp(this_end, start, end);
->> +	if (memblock_direction_bottom_up()) {
->> +		/*
->> +		 * MEMBLOCK_ALLOC_ACCESSIBLE is 0, which is less than the end
->> +		 * of kernel image. So callers specify MEMBLOCK_ALLOC_ACCESSIBLE
->> +		 * as @start is OK.
->> +		 */
->> +		start =	max(start, __pa_symbol(_end)); /* End of kernel image. */
->>  
->> -		if (this_end < size)
->> -			continue;
->> +		ret = __memblock_find_range(start, end, size, align, nid);
->> +		if (ret)
->> +			return ret;
->>  
->> -		cand = round_down(this_end - size, align);
->> -		if (cand >= this_start)
->> -			return cand;
->> +		pr_warn("memblock: Failed to allocate memory in bottom up direction. Now try top down direction.\n");
-> 
-> Is there any chance that this retry will succeed given that start and
-> end are still the same?
-
-Thanks for pointing this. We've made a mistake here. If the original start
-is less than __pa_symbol(_end), and if the bottom up search fails, then
-the top down search deserves a try with the original start argument.
-
-> 
-> Thanks,
-> -Toshi
+On 2013-9-14 4:16, Moore, Robert wrote:
 > 
 > 
->>  	}
->> -	return 0;
->> +
->> +	return __memblock_find_range_rev(start, end, size, align, nid);
->>  }
->>  
->>  /**
+>> -----Original Message-----
+>> From: Moore, Robert
+>> Sent: Friday, September 13, 2013 6:08 AM
+>> To: Hanjun Guo; Rafael J. Wysocki; Len Brown
+>> Cc: Zheng, Lv; linux-acpi@vger.kernel.org; patches@linaro.org; linaro-
+>> kernel@lists.linaro.org; linaro-acpi@lists.linaro.org
+>> Subject: RE: [PATCH] ACPICA / hwreg: Use acpi_gbl_reduced_hardware to
+>> prevent accessing PM registers
+>>
+>> NOT_IMPLEMENTED refers to the software only; therefore AE_SUPPORT should
+>> be returned.
+>>
+>> Otherwise, seems like this may be a good idea.
 > 
 > 
+> On the other hand, could one not argue that the host OS should darn well know that
+> it is executing on a hardware-reduced platform and not call these functions in the
+> first place?
+
+Well, there is a macro ACPI_REDUCED_HARDWARE and used to switch off the
+compiling of these functions on hardware-reduced platform, if
+ACPI_REDUCED_HARDWARE is TRUE, those functions will never be called.
+
+But is that reasonable? When somebody want to use the ACPI code on
+hardware-reduced platform, they should introduce a patch just like:
+
+- #define ACPI_REDUCED_HARDWARE           FALSE
++ #define ACPI_REDUCED_HARDWARE           TRUE
+in include/acpi/acconfig.h
+
+and this patch does not exist in upstream, and it will never be accepted by
+upstream too, it is weird. so we should proposal another way.
+
+I thought about introducing a kernel config such as CONFIG_ACPI_REDUCED_HARDWARE
+to enable ACPI_REDUCED_HARDWARE, but it is just the same as a macro, and I drop
+it.
+
+So, this is a problem should be solved for hardware-reduced platform, use falg
+acpi_gbl_reduced_hardware seems a good solution.
+
+Thanks
+Hanjun
+
 > 
+> Bob
 
-
--- 
-Thanks.
-Zhang Yanfei
-
---
-To unsubscribe, send a message with 'unsubscribe linux-mm' in
-the body to majordomo@kvack.org.  For more info on Linux MM,
-see: http://www.linux-mm.org/ .
-Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
