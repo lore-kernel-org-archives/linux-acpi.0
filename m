@@ -1,172 +1,41 @@
-From: Zhang Yanfei <zhangyanfei@cn.fujitsu.com>
-Subject: Re: [PATCH v3 0/5] x86, memblock: Allocate memory near kernel image
- before SRAT parsed.
-Date: Mon, 16 Sep 2013 19:00:41 +0800
-Message-ID: <5236E4D9.6010502@cn.fujitsu.com>
-References: <1379064655-20874-1-git-send-email-tangchen@cn.fujitsu.com>
+From: Mika Westerberg <mika.westerberg-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
+Subject: Re: [PATCH v2 1/9] i2c: prepare runtime PM support for I2C client
+ devices
+Date: Mon, 16 Sep 2013 17:38:12 +0300
+Message-ID: <20130916143811.GP7393@intel.com>
+References: <87vc25pvvm.fsf@linaro.org>
+ <20130913065434.GZ7393@intel.com>
+ <87bo3whjz4.fsf@linaro.org>
+ <20130913145022.GC7393@intel.com>
+ <20130913173149.GE7393@intel.com>
+ <87ioy4e8bw.fsf@linaro.org>
+ <20130915064139.GJ7393@intel.com>
+ <20130915124744.GW29403@sirena.org.uk>
+ <20130915132823.GL7393@intel.com>
+ <20130916101249.GX29403@sirena.org.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
-Return-path: <owner-linux-mm@kvack.org>
-In-Reply-To: <1379064655-20874-1-git-send-email-tangchen@cn.fujitsu.com>
-Sender: owner-linux-mm@kvack.org
-To: tj@kernel.org
-Cc: Tang Chen <tangchen@cn.fujitsu.com>, rjw@sisk.pl, lenb@kernel.org, tglx@linutronix.de, mingo@elte.hu, hpa@zytor.com, akpm@linux-foundation.org, toshi.kani@hp.com, liwanp@linux.vnet.ibm.com, trenn@suse.de, yinghai@kernel.org, jiang.liu@huawei.com, wency@cn.fujitsu.com, laijs@cn.fujitsu.com, isimatu.yasuaki@jp.fujitsu.com, izumi.taku@jp.fujitsu.com, mgorman@suse.de, minchan@kernel.org, mina86@mina86.com, gong.chen@linux.intel.com, vasilis.liaskovitis@profitbricks.com, lwoodman@redhat.com, riel@redhat.com, jweiner@redhat.com, prarit@redhat.com, x86@kernel.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-mm@kvack.org, linux-acpi@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <20130916101249.GX29403-GFdadSzt00ze9xe1eoZjHA@public.gmane.org>
+Sender: linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Mark Brown <broonie-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Cc: Kevin Hilman <khilman-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Wolfram Sang <wsa-z923LK4zBo2bacvFa/9K2g@public.gmane.org>, "Rafael J. Wysocki" <rafael.j.wysocki-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Lv Zheng <lv.zheng-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Aaron Lu <aaron.lu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, Dmitry Torokhov <dmitry.torokhov-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Mauro Carvalho Chehab <m.chehab-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org>, Samuel Ortiz <sameo-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>, Lee Jones <lee.jones-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Arnd Bergmann <arnd-r2nGTMty4D4@public.gmane.org>, Greg Kroah-Hartman <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>, Liam Girdwood <lgirdwood-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Kyungmin Park <kyungmin.park-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-Hello tejun,
+On Mon, Sep 16, 2013 at 11:12:49AM +0100, Mark Brown wrote:
+> That's definitely an ACPI specific (probably x86 specific ACPI?)
+> requirement not a generic one, on some systems it would increase power
+> consumption since the controller will need to sit on while the device is
+> functioning autonomously.
 
-Could you please help reviewing the patchset? As you suggested,
-we've make the patchset much simpler and cleaner.
+Yes, the ACPI 5.0 spec says that the device cannot be in higher D-state
+than its parent. This is not x86 specific, though I'm not sure if this is
+implemented elsewhere.
 
-Thanks in advance!
+> Even though the controller power consumption is going to be minimal the
+> power domain it is in may be relatively large.  Can't the power domains
+> for ACPI deal with this requirement, for example by making the I2C slave
+> power domains children of the controller power domain?
 
-On 09/13/2013 05:30 PM, Tang Chen wrote:
-> This patch-set is based on tj's suggestion, and not fully tested. 
-> Just for review and discussion. 
-> 
-> This patch-set is based on the latest kernel (3.11)
-> HEAD is:
-> commit d5d04bb48f0eb89c14e76779bb46212494de0bec
-> Author: Linus Torvalds <torvalds@linux-foundation.org>
-> Date:   Wed Sep 11 19:55:12 2013 -0700
-> 
-> 
-> [Problem]
-> 
-> The current Linux cannot migrate pages used by the kerenl because
-> of the kernel direct mapping. In Linux kernel space, va = pa + PAGE_OFFSET.
-> When the pa is changed, we cannot simply update the pagetable and
-> keep the va unmodified. So the kernel pages are not migratable.
-> 
-> There are also some other issues will cause the kernel pages not migratable.
-> For example, the physical address may be cached somewhere and will be used.
-> It is not to update all the caches.
-> 
-> When doing memory hotplug in Linux, we first migrate all the pages in one
-> memory device somewhere else, and then remove the device. But if pages are
-> used by the kernel, they are not migratable. As a result, memory used by
-> the kernel cannot be hot-removed.
-> 
-> Modifying the kernel direct mapping mechanism is too difficult to do. And
-> it may cause the kernel performance down and unstable. So we use the following
-> way to do memory hotplug.
-> 
-> 
-> [What we are doing]
-> 
-> In Linux, memory in one numa node is divided into several zones. One of the
-> zones is ZONE_MOVABLE, which the kernel won't use.
-> 
-> In order to implement memory hotplug in Linux, we are going to arrange all
-> hotpluggable memory in ZONE_MOVABLE so that the kernel won't use these memory.
-> To do this, we need ACPI's help.
-> 
-> In ACPI, SRAT(System Resource Affinity Table) contains NUMA info. The memory
-> affinities in SRAT record every memory range in the system, and also, flags
-> specifying if the memory range is hotpluggable.
-> (Please refer to ACPI spec 5.0 5.2.16)
-> 
-> With the help of SRAT, we have to do the following two things to achieve our
-> goal:
-> 
-> 1. When doing memory hot-add, allow the users arranging hotpluggable as
->    ZONE_MOVABLE.
->    (This has been done by the MOVABLE_NODE functionality in Linux.)
-> 
-> 2. when the system is booting, prevent bootmem allocator from allocating
->    hotpluggable memory for the kernel before the memory initialization
->    finishes.
-> 
-> The problem 2 is the key problem we are going to solve. But before solving it,
-> we need some preparation. Please see below.
-> 
-> 
-> [Preparation]
-> 
-> Bootloader has to load the kernel image into memory. And this memory must be 
-> unhotpluggable. We cannot prevent this anyway. So in a memory hotplug system, 
-> we can assume any node the kernel resides in is not hotpluggable.
-> 
-> Before SRAT is parsed, we don't know which memory ranges are hotpluggable. But
-> memblock has already started to work. In the current kernel, memblock allocates 
-> the following memory before SRAT is parsed:
-> 
-> setup_arch()
->  |->memblock_x86_fill()            /* memblock is ready */
->  |......
->  |->early_reserve_e820_mpc_new()   /* allocate memory under 1MB */
->  |->reserve_real_mode()            /* allocate memory under 1MB */
->  |->init_mem_mapping()             /* allocate page tables, about 2MB to map 1GB memory */
->  |->dma_contiguous_reserve()       /* specified by user, should be low */
->  |->setup_log_buf()                /* specified by user, several mega bytes */
->  |->relocate_initrd()              /* could be large, but will be freed after boot, should reorder */
->  |->acpi_initrd_override()         /* several mega bytes */
->  |->reserve_crashkernel()          /* could be large, should reorder */
->  |......
->  |->initmem_init()                 /* Parse SRAT */
-> 
-> According to Tejun's advice, before SRAT is parsed, we should try our best to
-> allocate memory near the kernel image. Since the whole node the kernel resides 
-> in won't be hotpluggable, and for a modern server, a node may have at least 16GB
-> memory, allocating several mega bytes memory around the kernel image won't cross
-> to hotpluggable memory.
-> 
-> 
-> [About this patch-set]
-> 
-> So this patch-set does the following:
-> 
-> 1. Make memblock be able to allocate memory from low address to high address.
->    1) Keep all the memblock APIs' prototype unmodified.
->    2) When the direction is bottom up, keep the start address greater than the 
->       end of kernel image.
-> 
-> 2. Improve init_mem_mapping() to support allocate page tables in bottom up direction.
-> 
-> 3. Introduce "movablenode" boot option to enable and disable this functionality.
-> 
-> PS: Reordering of relocate_initrd() has not been done yet. acpi_initrd_override() 
->     needs to access initrd with virtual address. So relocate_initrd() must be done 
->     before acpi_initrd_override().
-> 
-> 
-> Change log v2 -> v3:
-> 1. According to Toshi's suggestion, move the direction checking logic into memblock.
->    And simply the code more.
-> 
-> Change log v1 -> v2:
-> 1. According to tj's suggestion, implemented a new function memblock_alloc_bottom_up() 
->    to allocate memory from bottom upwards, whihc can simplify the code.
-> 
-> 
-> Tang Chen (5):
->   memblock: Introduce allocation direction to memblock.
->   memblock: Improve memblock to support allocation from lower address.
->   x86, acpi, crash, kdump: Do reserve_crashkernel() after SRAT is
->     parsed.
->   x86, mem-hotplug: Support initialize page tables from low to high.
->   mem-hotplug: Introduce movablenode boot option to control memblock
->     allocation direction.
-> 
->  Documentation/kernel-parameters.txt |   15 ++++
->  arch/x86/kernel/setup.c             |   44 ++++++++++++-
->  arch/x86/mm/init.c                  |  121 ++++++++++++++++++++++++++--------
->  include/linux/memblock.h            |   22 ++++++
->  include/linux/memory_hotplug.h      |    5 ++
->  mm/memblock.c                       |  120 +++++++++++++++++++++++++++++++----
->  mm/memory_hotplug.c                 |    9 +++
->  7 files changed, 293 insertions(+), 43 deletions(-)
-> 
-> 
-
-
--- 
-Thanks.
-Zhang Yanfei
-
---
-To unsubscribe, send a message with 'unsubscribe linux-mm' in
-the body to majordomo@kvack.org.  For more info on Linux MM,
-see: http://www.linux-mm.org/ .
-Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
+We'll look into this. Thanks for the suggestion.
