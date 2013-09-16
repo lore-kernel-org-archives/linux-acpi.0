@@ -1,73 +1,90 @@
-From: "Zheng, Lv" <lv.zheng@intel.com>
-Subject: RE: [PATCH 2/2] gpio / ACPI: add support for GPIO operation regions
-Date: Mon, 16 Sep 2013 01:21:53 +0000
-Message-ID: <1AE640813FDE7649BE1B193DEA596E8802463A46@SHSMSX101.ccr.corp.intel.com>
-References: <1379085280-2211-1-git-send-email-mika.westerberg@linux.intel.com>
- <1379085280-2211-2-git-send-email-mika.westerberg@linux.intel.com>
- <1AE640813FDE7649BE1B193DEA596E880246367A@SHSMSX101.ccr.corp.intel.com>
- <20130915065151.GK7393@intel.com>
- <1AE640813FDE7649BE1B193DEA596E88024639E4@SHSMSX101.ccr.corp.intel.com>
+From: Zhang Yanfei <zhangyanfei@cn.fujitsu.com>
+Subject: Re: [PATCH v3 2/5] memblock: Improve memblock to support allocation
+ from lower address.
+Date: Mon, 16 Sep 2013 09:28:03 +0800
+Message-ID: <52365EA3.8000103@cn.fujitsu.com>
+References: <1379064655-20874-1-git-send-email-tangchen@cn.fujitsu.com>  <1379064655-20874-3-git-send-email-tangchen@cn.fujitsu.com> <1379109208.13477.16.camel@misato.fc.hp.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga09.intel.com ([134.134.136.24]:16516 "EHLO mga09.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755072Ab3IPBV7 convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sun, 15 Sep 2013 21:21:59 -0400
-In-Reply-To: <1AE640813FDE7649BE1B193DEA596E88024639E4@SHSMSX101.ccr.corp.intel.com>
-Content-Language: en-US
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
+Return-path: <owner-linux-mm@kvack.org>
+In-Reply-To: <1379109208.13477.16.camel@misato.fc.hp.com>
+Sender: owner-linux-mm@kvack.org
+To: Toshi Kani <toshi.kani@hp.com>
+Cc: Tang Chen <tangchen@cn.fujitsu.com>, rjw@sisk.pl, lenb@kernel.org, tglx@linutronix.de, mingo@elte.hu, hpa@zytor.com, akpm@linux-foundation.org, tj@kernel.org, liwanp@linux.vnet.ibm.com, trenn@suse.de, yinghai@kernel.org, jiang.liu@huawei.com, wency@cn.fujitsu.com, laijs@cn.fujitsu.com, isimatu.yasuaki@jp.fujitsu.com, izumi.taku@jp.fujitsu.com, mgorman@suse.de, minchan@kernel.org, mina86@mina86.com, gong.chen@linux.intel.com, vasilis.liaskovitis@profitbricks.com, lwoodman@redhat.com, riel@redhat.com, jweiner@redhat.com, prarit@redhat.com, x86@kernel.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-mm@kvack.org, linux-acpi@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Zheng, Lv" <lv.zheng@intel.com>, Mika Westerberg <mika.westerberg@linux.intel.com>
-Cc: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Linus Walleij <linus.walleij@linaro.org>, "Wysocki, Rafael J" <rafael.j.wysocki@intel.com>, Mathias Nyman <mathias.nyman@linux.intel.com>, Grant Likely <grant.likely@secretlab.ca>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
 
-> From: linux-acpi-owner@vger.kernel.org [mailto:linux-acpi-owner@vger.kernel.org] On Behalf Of Zheng, Lv
-> Sent: Monday, September 16, 2013 8:47 AM
+Hello toshi-san,
+
+On 09/14/2013 05:53 AM, Toshi Kani wrote:
+> On Fri, 2013-09-13 at 17:30 +0800, Tang Chen wrote:
+>  :
+>> @@ -100,8 +180,7 @@ phys_addr_t __init_memblock memblock_find_in_range_node(phys_addr_t start,
+>>  					phys_addr_t end, phys_addr_t size,
+>>  					phys_addr_t align, int nid)
+>>  {
+>> -	phys_addr_t this_start, this_end, cand;
+>> -	u64 i;
+>> +	phys_addr_t ret;
+>>  
+>>  	/* pump up @end */
+>>  	if (end == MEMBLOCK_ALLOC_ACCESSIBLE)
+>> @@ -111,18 +190,22 @@ phys_addr_t __init_memblock memblock_find_in_range_node(phys_addr_t start,
+>>  	start = max_t(phys_addr_t, start, PAGE_SIZE);
+>>  	end = max(start, end);
+>>  
+>> -	for_each_free_mem_range_reverse(i, nid, &this_start, &this_end, NULL) {
+>> -		this_start = clamp(this_start, start, end);
+>> -		this_end = clamp(this_end, start, end);
+>> +	if (memblock_direction_bottom_up()) {
+>> +		/*
+>> +		 * MEMBLOCK_ALLOC_ACCESSIBLE is 0, which is less than the end
+>> +		 * of kernel image. So callers specify MEMBLOCK_ALLOC_ACCESSIBLE
+>> +		 * as @start is OK.
+>> +		 */
+>> +		start =	max(start, __pa_symbol(_end)); /* End of kernel image. */
+>>  
+>> -		if (this_end < size)
+>> -			continue;
+>> +		ret = __memblock_find_range(start, end, size, align, nid);
+>> +		if (ret)
+>> +			return ret;
+>>  
+>> -		cand = round_down(this_end - size, align);
+>> -		if (cand >= this_start)
+>> -			return cand;
+>> +		pr_warn("memblock: Failed to allocate memory in bottom up direction. Now try top down direction.\n");
 > 
-> > From: Mika Westerberg [mailto:mika.westerberg@linux.intel.com]
-> > Sent: Sunday, September 15, 2013 2:52 PM
-> >
-> > On Sat, Sep 14, 2013 at 12:10:37AM +0000, Zheng, Lv wrote:
-> > > Is it possible to install the handler for ACPI_ROOT_OBJECT?
-> > > Can it be achieved by implementing a setup callback?
-> >
-> > Yes that can be done. However, that would mean that we always install the
-> > operation region handler even if there is no suitable GPIO driver loaded.
-> > With this patch we install the handler once the GPIO driver for this device
-> > is registered. If nothing is registered no handlers will be installed.
-> >
-> > What would be the advantage in doing what you propose?
-> 
-> A pseudo device may be created to access the GPIO operation region fields provided by one GPIO device.
-> The pseudo device may have other functions to access other GPIO operation region fields provided by other GPIO devices, or even worse to
-> access other ACPI provided value-adds.
-> So hierarchically the pseudo device only requires CPU, thus should not be under the GPIO device, which means the GPIO operation regions
-> have nothing to do with the GPIO devices' ACPI handle.
+> Is there any chance that this retry will succeed given that start and
+> end are still the same?
 
-Sorry for the wording.
-It's better to say the GPIO operation region users haven't strict relationship to the GPIO operation region providers.
-As the installation is to provide GPIO operation regions to the users, it shouldn't relate to the providers' ACPI handle.
-
-> We cannot imply that the BIOS writers won't create such Frankenstein in the future.
-> So it's better to install address space handlers from ACPI_ROOT_OBJECT.
-
-If we didn't do this and such a pseudo device was created, then the error message: "Region XXX has no handler" would be prompted.
-
-Thanks
--Lv
+Thanks for pointing this. We've made a mistake here. If the original start
+is less than __pa_symbol(_end), and if the bottom up search fails, then
+the top down search deserves a try with the original start argument.
 
 > 
-> > > Maybe you can also eliminate acpi_attach_data usages by doing so.
-> >
-> > I think we still need that for ACPI _EVT handling.
+> Thanks,
+> -Toshi
 > 
-> It could be good if we can find a way to eliminate all acpi_attach_data usages and make this function deprecated.
-> But that's fine. :-)
 > 
-> Thanks and best regards
-> -Lv
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>>  	}
+>> -	return 0;
+>> +
+>> +	return __memblock_find_range_rev(start, end, size, align, nid);
+>>  }
+>>  
+>>  /**
+> 
+> 
+> 
+
+
+-- 
+Thanks.
+Zhang Yanfei
+
+--
+To unsubscribe, send a message with 'unsubscribe linux-mm' in
+the body to majordomo@kvack.org.  For more info on Linux MM,
+see: http://www.linux-mm.org/ .
+Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
