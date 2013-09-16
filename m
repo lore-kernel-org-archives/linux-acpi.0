@@ -1,87 +1,69 @@
-From: Mark Brown <broonie@kernel.org>
-Subject: Re: [PATCH v2 1/9] i2c: prepare runtime PM support for I2C client
- devices
-Date: Mon, 16 Sep 2013 11:12:49 +0100
-Message-ID: <20130916101249.GX29403@sirena.org.uk>
-References: <1378913560-2752-2-git-send-email-mika.westerberg@linux.intel.com>
- <87vc25pvvm.fsf@linaro.org>
- <20130913065434.GZ7393@intel.com>
- <87bo3whjz4.fsf@linaro.org>
- <20130913145022.GC7393@intel.com>
- <20130913173149.GE7393@intel.com>
- <87ioy4e8bw.fsf@linaro.org>
- <20130915064139.GJ7393@intel.com>
- <20130915124744.GW29403@sirena.org.uk>
- <20130915132823.GL7393@intel.com>
+From: Heikki Krogerus <heikki.krogerus@linux.intel.com>
+Subject: Re: [PATCH 0/2] ACPI: return error in acpi_pci_irq_enable when there
+ is no irq
+Date: Mon, 16 Sep 2013 13:28:08 +0300
+Message-ID: <20130916102807.GA4778@xps8300>
+References: <1375965314-24232-1-git-send-email-heikki.krogerus@linux.intel.com>
+ <52330A82.7050607@redhat.com>
+ <2086253.mJBe8Nv4qL@vostro.rjw.lan>
+ <CAErSpo4r=oQ+J0=cM9gp3-i5-+5JYpYZQfzi3HFa6spxOO9OJg@mail.gmail.com>
+ <20130916074000.GA24222@xps8300>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="AUFJoFQLqfvosQXp"
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cassiel.sirena.org.uk ([80.68.93.111]:43509 "EHLO
-	cassiel.sirena.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753256Ab3IPKNQ (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 16 Sep 2013 06:13:16 -0400
-Content-Disposition: inline
-In-Reply-To: <20130915132823.GL7393@intel.com>
-Sender: linux-acpi-owner@vger.kernel.org
-List-Id: linux-acpi@vger.kernel.org
-To: Mika Westerberg <mika.westerberg@linux.intel.com>
-Cc: Kevin Hilman <khilman@linaro.org>, linux-i2c@vger.kernel.org, Wolfram Sang <wsa@the-dreams.de>, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Lv Zheng <lv.zheng@intel.com>, Aaron Lu <aaron.lu@intel.com>, linux-arm-kernel@lists.infradead.org, Dmitry Torokhov <dmitry.torokhov@gmail.com>, Mauro Carvalho Chehab <m.chehab@samsung.com>, Samuel Ortiz <sameo@linux.intel.com>, Lee Jones <lee.jones@linaro.org>, Arnd Bergmann <arnd@arndb.de>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Liam Girdwood <lgirdwood@gmail.com>, Kyungmin Park <kyungmin.park@samsung.com>
-
-
---AUFJoFQLqfvosQXp
 Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-pci-owner@vger.kernel.org>
 Content-Disposition: inline
+In-Reply-To: <20130916074000.GA24222@xps8300>
+Sender: linux-pci-owner@vger.kernel.org
+To: Bjorn Helgaas <bhelgaas@google.com>
+Cc: "Rafael J. Wysocki" <rjw@sisk.pl>, Prarit Bhargava <prarit@redhat.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, Linux PCI <linux-pci@vger.kernel.org>, Yinghai Lu <yinghai@kernel.org>
+List-Id: linux-acpi@vger.kernel.org
 
-On Sun, Sep 15, 2013 at 04:28:24PM +0300, Mika Westerberg wrote:
-> On Sun, Sep 15, 2013 at 01:47:44PM +0100, Mark Brown wrote:
-> > On Sun, Sep 15, 2013 at 09:41:39AM +0300, Mika Westerberg wrote:
+Hi,
 
-> > > 	1. In I2C core i2c_device_probe() we power on the I2C controller
-> > > 	and attach the client device to the ACPI power domain. Just like in
-> > > 	this patch but we don't touch the I2C client device runtime PM.
+On Mon, Sep 16, 2013 at 10:40:00AM +0300, Heikki Krogerus wrote:
+> On Fri, Sep 13, 2013 at 05:55:40PM -0600, Bjorn Helgaas wrote:
+> > On Fri, Sep 13, 2013 at 5:43 PM, Rafael J. Wysocki <rjw@sisk.pl> wrote:
+> > > On Friday, September 13, 2013 08:52:18 AM Prarit Bhargava wrote:
+> > >>
+> > >> Rafael, is this in your queue?
+> > >
+> > > No, it is not, because Bjorn wanted to debug this issue deeper as far as I
+> > > could understand.
+> > >
+> > > Bjorn?
+> > 
+> > Yes.  Yinghai pointed out a possible issue ("some USB3 host controller
+> > does not have intx configured, but still work with MSI?").  I can't
+> > explain to you right now what that means, but I did look at it enough
+> > to think that there indeed might be a problem there.
+> > 
+> > So I asked [1] for a bugzilla with more info (dmesg, acpidump) so
+> > somebody could look at it.  Actually, I was hoping Heikki or Prarit
+> > would look into it and address Yinghai's concern.  Maybe there's no
+> > problem there, but we should at least look and explain *why* it's not
+> > a problem.  And I would really like a kernel.org bugzilla with the
+> > info, in case this change turns out to have unintended consequences
+> > and we have to debug it again later.
+> 
+> I'll ask Sarah (xHCI maintaner) for help in case she knows something
+> and create a bug for this if needed.
+> 
+> I don't understand much about PCI, I need to study it a bit. Why would
+> it be a problem to get the xHCI working with only MSI?
 
-> > > 	-> This should allow the existing drivers to keep using whatever
-> > > 	runtime PM strategy they have chosen.
+Sorry but I'll take it back. I don't understand the problem, so I
+can't really file a bug.
 
-> > There should be no explicit need to power on the I2C controller if it's
-> > implemented the same way the existing ones are - just have it power
-> > itself on when it is doing a transfer.
+Just in case there is a misunderstanding, I'll explain the situation
+again. Right now there is no issue with xHCI controller driver. Prarit
+has Dell machine that apparently has buggy BIOS. He suggested a WA [1]
+for his issue, but that WA broke the xHCI on my Haswell machine. This
+patch fixed his issue and left my xHCI controller working.
 
-> The problem is that the ACPI child device can't be in higher power state
-> than its parent (and this is also what the runtime PM expects). If we don't
-> power the I2C controller device before we power on the I2C client device
-> that rule is violated and we get an complaint to the console.
+Maybe it would make sense to create a bug for the original issue with
+the buggy BIOS on Prarit's Dell. Prarit, you need to file that one!
 
-That's definitely an ACPI specific (probably x86 specific ACPI?)
-requirement not a generic one, on some systems it would increase power
-consumption since the controller will need to sit on while the device is
-functioning autonomously.  Even though the controller power consumption
-is going to be minimal the power domain it is in may be relatively
-large.  Can't the power domains for ACPI deal with this requirement, for
-example by making the I2C slave power domains children of the controller
-power domain?
+[1] http://permalink.gmane.org/gmane.linux.kernel.pci/23962
 
---AUFJoFQLqfvosQXp
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2.0.21 (GNU/Linux)
-
-iQIcBAEBAgAGBQJSNtmeAAoJELSic+t+oim9ibgP/1XbgRoewTbRWjwDer80m+JP
-E4wVyN9NnxjbIYLozbpm3zGgQvD24Uz0TXZUB4NZKehZH9CI8IDZxXYnpKiu8zVC
-osb++hB66BgHNJxn1WjXPPWiLYqsj0SLpFMSQMqFKS0o/J63d38GdhFIyQEbUN8U
-VNRWw8KiDfANWjYXtGCd4TImOw4Z9dLiH54UhpeOXSofZl5fqL/PoSUqdxUYlnM4
-GXRF8IET70rBnv2mQJu6OMvrYXc0i8KV1xY651LaVSGpdF3yWBVkDYL+lsMrD59a
-BERUq7SaRgHJv3gMhoLa1HT03Wv0tv+g5PFEg3pcgCvkKYlctPj4qCBt38WAkoYE
-QTIgTXiKNTbFgGtpw5kTxjN9gwVvWGJ7VBPPtzIEMRYxrXCHi12qS1J+zMuJjlVh
-AmIaHJVFsXp2q0JLw5N6Hpcltq1FM2wnN3bPVto9lqT3ZKV4CZxnwMdnW9WXATv6
-HgoL5GrjBjFcOLqKYz4xnNeCak+y7rfVGnXNJjVgiH/RTwmC8SmBPmoY7VbIqdHm
-FVaS1WS/FfA5OeCEx6XM8pCd7Eqk+aHmfgu5XTh3xNmd8gP2poNay3lkmplDzgn7
-1Inlz9DT/55O7fHNmM01yb3pmi6zNzgf7D3L89WE3Kk8YBR+z1IyTjgTcO+54vUE
-F8IzpQCjjfxpNjNq9Eyl
-=XVEx
------END PGP SIGNATURE-----
-
---AUFJoFQLqfvosQXp--
+-- 
+heikki
