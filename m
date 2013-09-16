@@ -1,50 +1,94 @@
-From: Mika Westerberg <mika.westerberg@linux.intel.com>
-Subject: Re: [PATCH v2 1/9] i2c: prepare runtime PM support for I2C client
- devices
-Date: Mon, 16 Sep 2013 18:13:33 +0300
-Message-ID: <20130916151333.GQ7393@intel.com>
-References: <87bo3whjz4.fsf@linaro.org>
- <20130913145022.GC7393@intel.com>
- <20130913173149.GE7393@intel.com>
- <87ioy4e8bw.fsf@linaro.org>
- <20130915064139.GJ7393@intel.com>
- <20130915124744.GW29403@sirena.org.uk>
- <20130915132823.GL7393@intel.com>
- <20130916101249.GX29403@sirena.org.uk>
- <20130916143811.GP7393@intel.com>
- <20130916144616.GM1823@xora-yoga.xora.org.uk>
+From: "Moore, Robert" <robert.moore@intel.com>
+Subject: RE: [PATCH] ACPICA / hwreg: Use acpi_gbl_reduced_hardware to
+ prevent accessing PM registers
+Date: Mon, 16 Sep 2013 17:26:08 +0000
+Message-ID: <94F2FBAB4432B54E8AACC7DFDE6C92E36FEEC56A@ORSMSX103.amr.corp.intel.com>
+References: <1379066741-23689-1-git-send-email-hanjun.guo@linaro.org>
+ <94F2FBAB4432B54E8AACC7DFDE6C92E36FEEBC6A@ORSMSX103.amr.corp.intel.com>
+ <94F2FBAB4432B54E8AACC7DFDE6C92E36FEEC15B@ORSMSX103.amr.corp.intel.com>
+ <52366F91.30204@linaro.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20130916144616.GM1823@xora-yoga.xora.org.uk>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Graeme Gregory <graeme.gregory@linaro.org>
-Cc: Mark Brown <broonie@kernel.org>, Kevin Hilman <khilman@linaro.org>, linux-i2c@vger.kernel.org, Wolfram Sang <wsa@the-dreams.de>, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Lv Zheng <lv.zheng@intel.com>, Aaron Lu <aaron.lu@intel.com>, linux-arm-kernel@lists.infradead.org, Dmitry Torokhov <dmitry.torokhov@gmail.com>, Mauro Carvalho Chehab <m.chehab@samsung.com>, Samuel Ortiz <sameo@linux.intel.com>, Lee Jones <lee.jones@linaro.org>, Arnd Bergmann <arnd@arndb.de>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Liam Girdwood <lgirdwood@gmail.com>, Kyungmin Park <kyungmin.park@samsung.com>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mga09.intel.com ([134.134.136.24]:34139 "EHLO mga09.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751197Ab3IPR0K convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 16 Sep 2013 13:26:10 -0400
+In-Reply-To: <52366F91.30204@linaro.org>
+Content-Language: en-US
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Hanjun Guo <hanjun.guo@linaro.org>
+Cc: "'Rafael J. Wysocki'" <rjw@sisk.pl>, 'Len Brown' <lenb@kernel.org>, "Box, David E" <david.e.box@intel.com>, "Zheng, Lv" <lv.zheng@intel.com>, "'linux-acpi@vger.kernel.org'" <linux-acpi@vger.kernel.org>, "'patches@linaro.org'" <patches@linaro.org>, "'linaro-kernel@lists.linaro.org'" <linaro-kernel@lists.linaro.org>, "'linaro-acpi@lists.linaro.org'" <linaro-acpi@lists.linaro.org>
 
-On Mon, Sep 16, 2013 at 03:46:16PM +0100, Graeme Gregory wrote:
-> On Mon, Sep 16, 2013 at 05:38:12PM +0300, Mika Westerberg wrote:
-> > On Mon, Sep 16, 2013 at 11:12:49AM +0100, Mark Brown wrote:
-> > > That's definitely an ACPI specific (probably x86 specific ACPI?)
-> > > requirement not a generic one, on some systems it would increase power
-> > > consumption since the controller will need to sit on while the device is
-> > > functioning autonomously.
-> > 
-> > Yes, the ACPI 5.0 spec says that the device cannot be in higher D-state
-> > than its parent. This is not x86 specific, though I'm not sure if this is
-> > implemented elsewhere.
-> > 
-> I do not think this stops the OS fine controlling the power of the device
-> though. It is only a mechanism to make sure the tree of D states is vaguely
-> sane from the ACPI point of view. What happens in each D state is never
-> actually defined in the ACPI spec.
++ #define ACPI_REDUCED_HARDWARE           TRUE
 
-I think there's a pretty good definition of the D-states in chapter 2.3 of
-the ACPI 5.0 spec.
+The intent of this feature is of course, to remove all code that is not needed -- specifically for hardware-reduced machines where the size of the kernel is important.
 
-In our case the problem is that the I2C controller is in D3Cold (off) and
-we try to move the I2C client device to D0 (on) it violates the ACPI spec.
+On a larger machine, the hardware-reduced flag should be sufficient. However, I would think that the host OS would look at this flag and realize that it should not be doing certain ACPI hardware-related things up front, rather than later when it finds out that a write to some ACPI hardware fails because the hardware isn't there.
 
-Anyway we are looking if we can somehow make this work in such way that it
-doesn't prevent non-ACPI devices from functioning as they expect now.
+This is not to say that it is probably a good thing to return an error from the ACPI hardware code in the hardware-reduced case.
+
+Bob
+
+
+> -----Original Message-----
+> From: Hanjun Guo [mailto:hanjun.guo@linaro.org]
+> Sent: Sunday, September 15, 2013 7:40 PM
+> To: Moore, Robert
+> Cc: 'Rafael J. Wysocki'; 'Len Brown'; Box, David E; Zheng, Lv; 'linux-
+> acpi@vger.kernel.org'; 'patches@linaro.org'; 'linaro-
+> kernel@lists.linaro.org'; 'linaro-acpi@lists.linaro.org'
+> Subject: Re: [PATCH] ACPICA / hwreg: Use acpi_gbl_reduced_hardware to
+> prevent accessing PM registers
+> 
+> On 2013-9-14 4:16, Moore, Robert wrote:
+> >
+> >
+> >> -----Original Message-----
+> >> From: Moore, Robert
+> >> Sent: Friday, September 13, 2013 6:08 AM
+> >> To: Hanjun Guo; Rafael J. Wysocki; Len Brown
+> >> Cc: Zheng, Lv; linux-acpi@vger.kernel.org; patches@linaro.org;
+> >> linaro- kernel@lists.linaro.org; linaro-acpi@lists.linaro.org
+> >> Subject: RE: [PATCH] ACPICA / hwreg: Use acpi_gbl_reduced_hardware to
+> >> prevent accessing PM registers
+> >>
+> >> NOT_IMPLEMENTED refers to the software only; therefore AE_SUPPORT
+> >> should be returned.
+> >>
+> >> Otherwise, seems like this may be a good idea.
+> >
+> >
+> > On the other hand, could one not argue that the host OS should darn
+> > well know that it is executing on a hardware-reduced platform and not
+> > call these functions in the first place?
+> 
+> Well, there is a macro ACPI_REDUCED_HARDWARE and used to switch off the
+> compiling of these functions on hardware-reduced platform, if
+> ACPI_REDUCED_HARDWARE is TRUE, those functions will never be called.
+> 
+> But is that reasonable? When somebody want to use the ACPI code on
+> hardware-reduced platform, they should introduce a patch just like:
+> 
+> - #define ACPI_REDUCED_HARDWARE           FALSE
+> + #define ACPI_REDUCED_HARDWARE           TRUE
+> in include/acpi/acconfig.h
+> 
+> and this patch does not exist in upstream, and it will never be accepted
+> by upstream too, it is weird. so we should proposal another way.
+> 
+> I thought about introducing a kernel config such as
+> CONFIG_ACPI_REDUCED_HARDWARE to enable ACPI_REDUCED_HARDWARE, but it is
+> just the same as a macro, and I drop it.
+> 
+> So, this is a problem should be solved for hardware-reduced platform, use
+> falg acpi_gbl_reduced_hardware seems a good solution.
+> 
+> Thanks
+> Hanjun
+> 
+> >
+> > Bob
+
