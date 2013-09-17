@@ -1,27 +1,59 @@
-From: Len Brown <lenb@kernel.org>
-Subject: Re: [PATCH 00/14] ACPICA 20130823 Release
-Date: Mon, 16 Sep 2013 20:54:49 -0400
-Message-ID: <CAJvTdKncy9nU3ZsQ_rU6wfu+ALKeFeAU=4ErOYVJdVAcC3Yn3g@mail.gmail.com>
+From: "Zheng, Lv" <lv.zheng@intel.com>
+Subject: RE: [PATCH 07/14] ACPICA: Add support for host-installed SCI
+ handlers.
+Date: Tue, 17 Sep 2013 01:07:18 +0000
+Message-ID: <1AE640813FDE7649BE1B193DEA596E8802463F85@SHSMSX101.ccr.corp.intel.com>
 References: <cover.1377844863.git.lv.zheng@intel.com>
+	<685cb618c64dcf124eb49058472299d3da3d1894.1377844863.git.lv.zheng@intel.com>
+ <CAJvTdKm2bpvofU8tiZGBFjY7cKn0vQgC==3K=QgPXwDnE14SjA@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-we0-f173.google.com ([74.125.82.173]:61879 "EHLO
-	mail-we0-f173.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751525Ab3IQAyu (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 16 Sep 2013 20:54:50 -0400
-Received: by mail-we0-f173.google.com with SMTP id w62so4436661wes.32
-        for <linux-acpi@vger.kernel.org>; Mon, 16 Sep 2013 17:54:49 -0700 (PDT)
-In-Reply-To: <cover.1377844863.git.lv.zheng@intel.com>
+Received: from mga02.intel.com ([134.134.136.20]:18283 "EHLO mga02.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751437Ab3IQBHY convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 16 Sep 2013 21:07:24 -0400
+In-Reply-To: <CAJvTdKm2bpvofU8tiZGBFjY7cKn0vQgC==3K=QgPXwDnE14SjA@mail.gmail.com>
+Content-Language: en-US
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Lv Zheng <lv.zheng@intel.com>
-Cc: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Robert Moore <robert.moore@intel.com>, Len Brown <len.brown@intel.com>, linux acpi <linux-acpi@vger.kernel.org>
+To: Len Brown <lenb@kernel.org>
+Cc: "Wysocki, Rafael J" <rafael.j.wysocki@intel.com>, "Moore, Robert" <robert.moore@intel.com>, "Brown, Len" <len.brown@intel.com>, linux acpi <linux-acpi@vger.kernel.org>
 
-this series is...
-Reviewed-by: Len Brown <len.brown@intel.com>
+> From: lenb417@gmail.com [mailto:lenb417@gmail.com] On Behalf Of Len Brown
+> Sent: Tuesday, September 17, 2013 8:48 AM
+> To: Zheng, Lv
+> Cc: Wysocki, Rafael J; Moore, Robert; Brown, Len; linux acpi
+> Subject: Re: [PATCH 07/14] ACPICA: Add support for host-installed SCI handlers.
+> 
+> On Thu, Sep 12, 2013 at 4:55 AM, Lv Zheng <lv.zheng@intel.com> wrote:
+> > This change adds support to allow hosts to install System Control
+> > Interrupt handlers. Certain ACPI functionality requires the host
+> > to handle raw SCIs. For example, the "SCI Doorbell" that is defined
+> > for memory power state support requires the host device driver to
+> > handle SCIs to examine if the doorbell has been activated. Multiple
+> > SCI handlers can be installed to allow for future expansion.
+> > Debugger support is included.
+> > Lv Zheng, Bob Moore. ACPICA BZ 1032.
+> >
+> > Buglink: http://bugs.acpica.org/show_bug.cgi?id=1032
+> > Signed-off-by: Lv Zheng <lv.zheng@intel.com>
+> > Signed-off-by: Bob Moore <robert.moore@intel.com>
+> 
+> 
+> The bug report references PCC -- is that _PCC events, or Processor
+> Clocking Control?
+> We think we support both of those before this patch -- so how can PCC
+> require this change?
 
-with satisfactory reply to the individual questions asked.
+The PCC here refers to Platform Communications Channel (PCC) which is defined in the Chap 14 of the ACPI specification.
+It said that "the PCC completion check is not factored into the ACPICA in upstream kernel yet".
+So the installable SCI handlers are expected.
 
-thanks,
-Len Brown, Intel Open Source Technology Center
+Thanks
+-Lv
+
+> 
+> thanks,
+> -Len
