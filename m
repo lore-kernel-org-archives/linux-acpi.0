@@ -1,20 +1,19 @@
 From: "Zheng, Lv" <lv.zheng@intel.com>
-Subject: RE: [PATCH 07/14] ACPICA: Add support for host-installed SCI
- handlers.
-Date: Tue, 17 Sep 2013 01:07:18 +0000
-Message-ID: <1AE640813FDE7649BE1B193DEA596E8802463F85@SHSMSX101.ccr.corp.intel.com>
+Subject: RE: [PATCH 11/14] ACPICA: Tables: Cleanup RSDP signature codes.
+Date: Tue, 17 Sep 2013 01:11:42 +0000
+Message-ID: <1AE640813FDE7649BE1B193DEA596E8802463F9A@SHSMSX101.ccr.corp.intel.com>
 References: <cover.1377844863.git.lv.zheng@intel.com>
-	<685cb618c64dcf124eb49058472299d3da3d1894.1377844863.git.lv.zheng@intel.com>
- <CAJvTdKm2bpvofU8tiZGBFjY7cKn0vQgC==3K=QgPXwDnE14SjA@mail.gmail.com>
+	<fb939442320d1f3f68250b4a33fd4e97f6f689d9.1377844863.git.lv.zheng@intel.com>
+ <CAJvTdKkwNXZQXz1A2zB8se=gfCT-K_=xsLRyyd44TEvPjAismw@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 8BIT
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga02.intel.com ([134.134.136.20]:18283 "EHLO mga02.intel.com"
+Received: from mga01.intel.com ([192.55.52.88]:63897 "EHLO mga01.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751437Ab3IQBHY convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 16 Sep 2013 21:07:24 -0400
-In-Reply-To: <CAJvTdKm2bpvofU8tiZGBFjY7cKn0vQgC==3K=QgPXwDnE14SjA@mail.gmail.com>
+	id S1751517Ab3IQBLs convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 16 Sep 2013 21:11:48 -0400
+In-Reply-To: <CAJvTdKkwNXZQXz1A2zB8se=gfCT-K_=xsLRyyd44TEvPjAismw@mail.gmail.com>
 Content-Language: en-US
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
@@ -22,38 +21,73 @@ To: Len Brown <lenb@kernel.org>
 Cc: "Wysocki, Rafael J" <rafael.j.wysocki@intel.com>, "Moore, Robert" <robert.moore@intel.com>, "Brown, Len" <len.brown@intel.com>, linux acpi <linux-acpi@vger.kernel.org>
 
 > From: lenb417@gmail.com [mailto:lenb417@gmail.com] On Behalf Of Len Brown
-> Sent: Tuesday, September 17, 2013 8:48 AM
-> To: Zheng, Lv
-> Cc: Wysocki, Rafael J; Moore, Robert; Brown, Len; linux acpi
-> Subject: Re: [PATCH 07/14] ACPICA: Add support for host-installed SCI handlers.
+> Sent: Tuesday, September 17, 2013 8:52 AM
 > 
 > On Thu, Sep 12, 2013 at 4:55 AM, Lv Zheng <lv.zheng@intel.com> wrote:
-> > This change adds support to allow hosts to install System Control
-> > Interrupt handlers. Certain ACPI functionality requires the host
-> > to handle raw SCIs. For example, the "SCI Doorbell" that is defined
-> > for memory power state support requires the host device driver to
-> > handle SCIs to examine if the doorbell has been activated. Multiple
-> > SCI handlers can be installed to allow for future expansion.
-> > Debugger support is included.
-> > Lv Zheng, Bob Moore. ACPICA BZ 1032.
+> > This patch introduces new macors to handle RSDP signature and cleans up the
+> > affected codes.  Lv Zheng.
 > >
-> > Buglink: http://bugs.acpica.org/show_bug.cgi?id=1032
 > > Signed-off-by: Lv Zheng <lv.zheng@intel.com>
 > > Signed-off-by: Bob Moore <robert.moore@intel.com>
+> > ---
+> >  drivers/acpi/acpica/tbprint.c  |    2 +-
+> >  drivers/acpi/acpica/tbxfroot.c |    3 +--
+> >  include/acpi/actypes.h         |    5 +++++
+> >  3 files changed, 7 insertions(+), 3 deletions(-)
+> >
+> > diff --git a/drivers/acpi/acpica/tbprint.c b/drivers/acpi/acpica/tbprint.c
+> > index 499759a..9a47715 100644
+> > --- a/drivers/acpi/acpica/tbprint.c
+> > +++ b/drivers/acpi/acpica/tbprint.c
+> > @@ -138,7 +138,7 @@ acpi_tb_print_table_header(acpi_physical_address address,
+> >                 ACPI_INFO((AE_INFO, "%4.4s %p %05X",
+> >                            header->signature, ACPI_CAST_PTR(void, address),
+> >                            header->length));
+> > -       } else if (ACPI_COMPARE_NAME(header->signature, ACPI_SIG_RSDP)) {
+> > +       } else if (ACPI_VALIDATE_RSDP_SIG(header->signature)) {
+> >
+> >                 /* RSDP has no common fields */
+> >
+> > diff --git a/drivers/acpi/acpica/tbxfroot.c b/drivers/acpi/acpica/tbxfroot.c
+> > index 948c95e..1c95fab 100644
+> > --- a/drivers/acpi/acpica/tbxfroot.c
+> > +++ b/drivers/acpi/acpica/tbxfroot.c
+> > @@ -68,8 +68,7 @@ acpi_status acpi_tb_validate_rsdp(struct acpi_table_rsdp *rsdp)
+> >          * Note: Sometimes there exists more than one RSDP in memory; the valid
+> >          * RSDP has a valid checksum, all others have an invalid checksum.
+> >          */
+> > -       if (ACPI_STRNCMP((char *)rsdp->signature, ACPI_SIG_RSDP,
+> > -                        sizeof(ACPI_SIG_RSDP) - 1) != 0) {
+> > +       if (!ACPI_VALIDATE_RSDP_SIG(rsdp->signature)) {
+> >
+> >                 /* Nope, BAD Signature */
+> >
+> > diff --git a/include/acpi/actypes.h b/include/acpi/actypes.h
+> > index 850f750..5400672 100644
+> > --- a/include/acpi/actypes.h
+> > +++ b/include/acpi/actypes.h
+> > @@ -474,6 +474,11 @@ typedef u64 acpi_integer;
+> >  #define ACPI_MOVE_NAME(dest,src)        (ACPI_STRNCPY (ACPI_CAST_PTR (char, (dest)), ACPI_CAST_PTR (char, (src)),
+> ACPI_NAME_SIZE))
+> >  #endif
+> >
+> > +/* Support for the special RSDP signature (8 characters) */
+> > +
+> > +#define ACPI_VALIDATE_RSDP_SIG(a)       (!ACPI_STRNCMP (ACPI_CAST_PTR (char, (a)), ACPI_SIG_RSDP, 8))
+> > +#define ACPI_MAKE_RSDP_SIG(dest)        (ACPI_MEMCPY (ACPI_CAST_PTR (char, (dest)), ACPI_SIG_RSDP, 8))
 > 
-> 
-> The bug report references PCC -- is that _PCC events, or Processor
-> Clocking Control?
-> We think we support both of those before this patch -- so how can PCC
-> require this change?
+> is ACPI_MAKE_RSDP_SIGI(), defined, but not used?
+> If so, don't define it.
 
-The PCC here refers to Platform Communications Channel (PCC) which is defined in the Chap 14 of the ACPI specification.
-It said that "the PCC completion check is not factored into the ACPICA in upstream kernel yet".
-So the installable SCI handlers are expected.
+The macro is used by ACPICA user space utilities like AcpiDump.
+We've a plan to update the AcpiDump in the tools/acpi folder.
+So it's likely we'll see users of this macro in the kernel tree.
 
-Thanks
+And, if we delete the piece of codes like this, then it will generate new source code differences between Linux and ACPICA, which will hurt the automation of the ACPICA release process.
+I'm sorry for that.
+
+Thanks and best regards
 -Lv
 
 > 
-> thanks,
-> -Len
+> Len Brown, Intel Open Source Technology Center
