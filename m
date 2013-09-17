@@ -1,83 +1,81 @@
-From: "Zheng, Lv" <lv.zheng@intel.com>
-Subject: RE: [PATCH 2/2] gpio / ACPI: add support for GPIO operation regions
-Date: Mon, 16 Sep 2013 23:35:56 +0000
-Message-ID: <1AE640813FDE7649BE1B193DEA596E8802463D85@SHSMSX101.ccr.corp.intel.com>
-References: <1379085280-2211-1-git-send-email-mika.westerberg@linux.intel.com>
- <1379085280-2211-2-git-send-email-mika.westerberg@linux.intel.com>
- <1AE640813FDE7649BE1B193DEA596E880246367A@SHSMSX101.ccr.corp.intel.com>
- <20130915065151.GK7393@intel.com>
- <1AE640813FDE7649BE1B193DEA596E88024639E4@SHSMSX101.ccr.corp.intel.com>
- <1AE640813FDE7649BE1B193DEA596E8802463A46@SHSMSX101.ccr.corp.intel.com>
- <20130916081048.GM7393@intel.com>
+From: Len Brown <lenb@kernel.org>
+Subject: Re: [PATCH 05/14] ACPICA: Debugger: Prevent possible command line
+ buffer overflow.
+Date: Mon, 16 Sep 2013 20:42:38 -0400
+Message-ID: <CAJvTdKmdXehe=fy-p+_gktaPBQYH_XWUd=PbCybVK-SVQ=Uiqg@mail.gmail.com>
+References: <cover.1377844863.git.lv.zheng@intel.com>
+	<31cb81fe6434a1cbb35360798d3f8f8579350e5d.1377844863.git.lv.zheng@intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga11.intel.com ([192.55.52.93]:12611 "EHLO mga11.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751352Ab3IPXgB convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 16 Sep 2013 19:36:01 -0400
-In-Reply-To: <20130916081048.GM7393@intel.com>
-Content-Language: en-US
+Received: from mail-wi0-f170.google.com ([209.85.212.170]:46719 "EHLO
+	mail-wi0-f170.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751166Ab3IQAml (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 16 Sep 2013 20:42:41 -0400
+Received: by mail-wi0-f170.google.com with SMTP id cb5so4292352wib.1
+        for <linux-acpi@vger.kernel.org>; Mon, 16 Sep 2013 17:42:40 -0700 (PDT)
+In-Reply-To: <31cb81fe6434a1cbb35360798d3f8f8579350e5d.1377844863.git.lv.zheng@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Mika Westerberg <mika.westerberg@linux.intel.com>
-Cc: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Linus Walleij <linus.walleij@linaro.org>, "Wysocki, Rafael J" <rafael.j.wysocki@intel.com>, Mathias Nyman <mathias.nyman@linux.intel.com>, Grant Likely <grant.likely@secretlab.ca>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
+To: Lv Zheng <lv.zheng@intel.com>
+Cc: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Robert Moore <robert.moore@intel.com>, Len Brown <len.brown@intel.com>, linux acpi <linux-acpi@vger.kernel.org>
 
-> From: Mika Westerberg [mailto:mika.westerberg@linux.intel.com]
-> Sent: Monday, September 16, 2013 4:11 PM
-> 
-> On Mon, Sep 16, 2013 at 01:21:53AM +0000, Zheng, Lv wrote:
-> > > A pseudo device may be created to access the GPIO operation region fields provided by one GPIO device.
-> > > The pseudo device may have other functions to access other GPIO operation region fields provided by other GPIO devices, or even worse
-> to
-> > > access other ACPI provided value-adds.
-> > > So hierarchically the pseudo device only requires CPU, thus should not be under the GPIO device, which means the GPIO operation
-> regions
-> > > have nothing to do with the GPIO devices' ACPI handle.
-> >
-> > Sorry for the wording.
-> > It's better to say the GPIO operation region users haven't strict
-> > relationship to the GPIO operation region providers.
-> > As the installation is to provide GPIO operation regions to the users, it
-> > shouldn't relate to the providers' ACPI handle.
-> 
-> If I understand you correctly you mean that there might be multiple users
-> (different devices) for the same GPIO operation region, right?
+On Thu, Sep 12, 2013 at 4:54 AM, Lv Zheng <lv.zheng@intel.com> wrote:
+> From: Bob Moore <robert.moore@intel.com>
+>
+> Increase the size of a couple of the debugger line buffers.
+> ACPICA BZ 1037.
+>
+> Buglink: http://bugs.acpica.org/show_bug.cgi?id=1037
+> Signed-off-by: Bob Moore <robert.moore@intel.com>
+> Signed-off-by: Lv Zheng <lv.zheng@intel.com>
+> ---
+>  drivers/acpi/acpica/acglobal.h |   17 ++++++++++-------
+>  1 file changed, 10 insertions(+), 7 deletions(-)
+>
+> diff --git a/drivers/acpi/acpica/acglobal.h b/drivers/acpi/acpica/acglobal.h
+> index 90e846f..c9ad2e1 100644
+> --- a/drivers/acpi/acpica/acglobal.h
+> +++ b/drivers/acpi/acpica/acglobal.h
+> @@ -445,13 +445,6 @@ ACPI_EXTERN u8 acpi_gbl_db_opt_tables;
+>  ACPI_EXTERN u8 acpi_gbl_db_opt_stats;
+>  ACPI_EXTERN u8 acpi_gbl_db_opt_ini_methods;
+>  ACPI_EXTERN u8 acpi_gbl_db_opt_no_region_support;
+> -
+> -ACPI_EXTERN char *acpi_gbl_db_args[ACPI_DEBUGGER_MAX_ARGS];
+> -ACPI_EXTERN acpi_object_type acpi_gbl_db_arg_types[ACPI_DEBUGGER_MAX_ARGS];
+> -ACPI_EXTERN char acpi_gbl_db_line_buf[ACPI_DB_LINE_BUFFER_SIZE];
+> -ACPI_EXTERN char acpi_gbl_db_parsed_buf[ACPI_DB_LINE_BUFFER_SIZE];
+> -ACPI_EXTERN char acpi_gbl_db_scope_buf[80];
+> -ACPI_EXTERN char acpi_gbl_db_debug_filename[80];
 
-No, this is not what I meant.
-Can one vendor device uses two or more GPIO pins from different GPIO ports?
+If I read the code correctly, these are all inside #ifdefs that are
+not defined in kernel mode,
+and so the kernel will not be impacted by this buffer growth from 80 to 512,
+and this patch is just to keep shared w/ acpiexec the same, yes?
 
-> That shouldn't be a problem as far as I can tell.
-> 
-> What comes to the hierarchy you refer, I'm not sure if that is a problem
-> either (unless I'm missing something). The GPIO can be used anywhere in the
-> ASL, it doesn't have to be descendant of the GPIO device. You only need to
-> do something like this:
-> 
-> 	// Assert the GPIO
-> 	Store(1, \_SB.PCI0.SHD3)
-> 
-> In other words, use the fully qualified name.
+thanks,
+Len Brown, Intel Open Source Technology Center
 
-Yes, which means this line of code can be everywhere in the namespace.
-It is not required to be under one particular GPIO device as long as there is an operation region defined in that scope.
-
-The problem is the installation, the first parameter for acpi_install_address_space_handler() is a namespace node, the function will call _REG for all OperationRegions below the scope whose top most node is the specified node.
-The nodes out of this scope are not affected.  So if an OperationRegion is defined out of this scope, problem happens.
-
-> Typically when the GPIO device _REG() is called it sets some variable like
-> AVBL to true which is then checked in the code that uses the GPIO:
-> 
-> 	If (LEqual (\_SB.PCI0.GPO0.AVBL, One))
-> 	{
-> 		Store (Zero, \_SB.PCI0..SHD3)
-> 	}
-> 
-> So if there is no driver, this part of the code is never called.
-
-This can trigger exceptions, which can be used to load the GPIO driver.
-This seems to be another topic.
-
-Thanks and best regards
--Lv
+>  ACPI_EXTERN u8 acpi_gbl_db_output_to_file;
+>  ACPI_EXTERN char *acpi_gbl_db_buffer;
+>  ACPI_EXTERN char *acpi_gbl_db_filename;
+> @@ -459,6 +452,16 @@ ACPI_EXTERN u32 acpi_gbl_db_debug_level;
+>  ACPI_EXTERN u32 acpi_gbl_db_console_debug_level;
+>  ACPI_EXTERN struct acpi_namespace_node *acpi_gbl_db_scope_node;
+>
+> +ACPI_EXTERN char *acpi_gbl_db_args[ACPI_DEBUGGER_MAX_ARGS];
+> +ACPI_EXTERN acpi_object_type acpi_gbl_db_arg_types[ACPI_DEBUGGER_MAX_ARGS];
+> +
+> +/* These buffers should all be the same size */
+> +
+> +ACPI_EXTERN char acpi_gbl_db_line_buf[ACPI_DB_LINE_BUFFER_SIZE];
+> +ACPI_EXTERN char acpi_gbl_db_parsed_buf[ACPI_DB_LINE_BUFFER_SIZE];
+> +ACPI_EXTERN char acpi_gbl_db_scope_buf[ACPI_DB_LINE_BUFFER_SIZE];
+> +ACPI_EXTERN char acpi_gbl_db_debug_filename[ACPI_DB_LINE_BUFFER_SIZE];
+> +
+>  /*
+>   * Statistic globals
+>   */
+> --
+> 1.7.10
