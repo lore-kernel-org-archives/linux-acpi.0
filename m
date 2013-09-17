@@ -1,107 +1,81 @@
-From: "Moore, Robert" <robert.moore@intel.com>
-Subject: RE: [PATCH 06/14] ACPICA: Validate start object for
- acpi_walk_namespace.
-Date: Tue, 17 Sep 2013 02:56:51 +0000
-Message-ID: <94F2FBAB4432B54E8AACC7DFDE6C92E36FEED6FF@ORSMSX103.amr.corp.intel.com>
-References: <cover.1377844863.git.lv.zheng@intel.com>
-	<557903201460512616d36b45c10d989f7196a690.1377844863.git.lv.zheng@intel.com>
- <CAJvTdKnjwTG+M-2-xKQnhd0e1GfT8VeqxBLm+zQ31xmjEKKz2g@mail.gmail.com>
- <1AE640813FDE7649BE1B193DEA596E8802463FD2@SHSMSX101.ccr.corp.intel.com>
+From: Mika Westerberg <mika.westerberg@linux.intel.com>
+Subject: Re: [PATCH 2/2] gpio / ACPI: add support for GPIO operation regions
+Date: Tue, 17 Sep 2013 11:37:12 +0300
+Message-ID: <20130917083712.GS7393@intel.com>
+References: <1379085280-2211-1-git-send-email-mika.westerberg@linux.intel.com>
+ <1379085280-2211-2-git-send-email-mika.westerberg@linux.intel.com>
+ <1AE640813FDE7649BE1B193DEA596E880246367A@SHSMSX101.ccr.corp.intel.com>
+ <20130915065151.GK7393@intel.com>
+ <1AE640813FDE7649BE1B193DEA596E88024639E4@SHSMSX101.ccr.corp.intel.com>
+ <1AE640813FDE7649BE1B193DEA596E8802463A46@SHSMSX101.ccr.corp.intel.com>
+ <20130916081048.GM7393@intel.com>
+ <1AE640813FDE7649BE1B193DEA596E8802463D85@SHSMSX101.ccr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga01.intel.com ([192.55.52.88]:28067 "EHLO mga01.intel.com"
+Received: from mga02.intel.com ([134.134.136.20]:36496 "EHLO mga02.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751544Ab3IQC5c convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 16 Sep 2013 22:57:32 -0400
-In-Reply-To: <1AE640813FDE7649BE1B193DEA596E8802463FD2@SHSMSX101.ccr.corp.intel.com>
-Content-Language: en-US
+	id S1751946Ab3IQIbr (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 17 Sep 2013 04:31:47 -0400
+Content-Disposition: inline
+In-Reply-To: <1AE640813FDE7649BE1B193DEA596E8802463D85@SHSMSX101.ccr.corp.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Zheng, Lv" <lv.zheng@intel.com>, Len Brown <lenb@kernel.org>
-Cc: "Wysocki, Rafael J" <rafael.j.wysocki@intel.com>, "Brown, Len" <len.brown@intel.com>, linux acpi <linux-acpi@vger.kernel.org>
+To: "Zheng, Lv" <lv.zheng@intel.com>
+Cc: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Linus Walleij <linus.walleij@linaro.org>, "Wysocki, Rafael J" <rafael.j.wysocki@intel.com>, Mathias Nyman <mathias.nyman@linux.intel.com>, Grant Likely <grant.likely@secretlab.ca>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
 
-Just adds a sanity check. I don't think we see it, otherwise the caller would fault dead in its tracks.
+On Mon, Sep 16, 2013 at 11:35:56PM +0000, Zheng, Lv wrote:
+> > From: Mika Westerberg [mailto:mika.westerberg@linux.intel.com]
+> > Sent: Monday, September 16, 2013 4:11 PM
+> > 
+> > On Mon, Sep 16, 2013 at 01:21:53AM +0000, Zheng, Lv wrote:
+> > > > A pseudo device may be created to access the GPIO operation region fields provided by one GPIO device.
+> > > > The pseudo device may have other functions to access other GPIO operation region fields provided by other GPIO devices, or even worse
+> > to
+> > > > access other ACPI provided value-adds.
+> > > > So hierarchically the pseudo device only requires CPU, thus should not be under the GPIO device, which means the GPIO operation
+> > regions
+> > > > have nothing to do with the GPIO devices' ACPI handle.
+> > >
+> > > Sorry for the wording.
+> > > It's better to say the GPIO operation region users haven't strict
+> > > relationship to the GPIO operation region providers.
+> > > As the installation is to provide GPIO operation regions to the users, it
+> > > shouldn't relate to the providers' ACPI handle.
+> > 
+> > If I understand you correctly you mean that there might be multiple users
+> > (different devices) for the same GPIO operation region, right?
+> 
+> No, this is not what I meant.
+> Can one vendor device uses two or more GPIO pins from different GPIO ports?
 
+Yes.
 
-> -----Original Message-----
-> From: Zheng, Lv
-> Sent: Monday, September 16, 2013 6:26 PM
-> To: Len Brown
-> Cc: Wysocki, Rafael J; Moore, Robert; Brown, Len; linux acpi
-> Subject: RE: [PATCH 06/14] ACPICA: Validate start object for
-> acpi_walk_namespace.
+> > That shouldn't be a problem as far as I can tell.
+> > 
+> > What comes to the hierarchy you refer, I'm not sure if that is a problem
+> > either (unless I'm missing something). The GPIO can be used anywhere in the
+> > ASL, it doesn't have to be descendant of the GPIO device. You only need to
+> > do something like this:
+> > 
+> > 	// Assert the GPIO
+> > 	Store(1, \_SB.PCI0.SHD3)
+> > 
+> > In other words, use the fully qualified name.
 > 
-> Hi, Bob
+> Yes, which means this line of code can be everywhere in the namespace.
+> It is not required to be under one particular GPIO device as long as there is an operation region defined in that scope.
 > 
-> Could you help to answer this?
-> Thanks in advance.
-> 
-> Best regards
-> -Lv
-> 
-> > From: linux-acpi-owner@vger.kernel.org
-> > [mailto:linux-acpi-owner@vger.kernel.org] On Behalf Of Len Brown
-> > Sent: Tuesday, September 17, 2013 8:44 AM
-> >
-> > This was filed an fixed very quickly.
-> > Is it something we see in the field?
-> > The patch is small, should we mark it for -stable?
-> >
-> > thanks
-> >
-> > On Thu, Sep 12, 2013 at 4:55 AM, Lv Zheng <lv.zheng@intel.com> wrote:
-> > > From: Bob Moore <robert.moore@intel.com>
-> > >
-> > > Perform a sanity check on the start object to prevent problems
-> > > later. ACPICA BZ 1025.
-> > >
-> > > Buglink: http://bugs.acpica.org/show_bug.cgi?id=1025
-> > > Signed-off-by: Bob Moore <robert.moore@intel.com>
-> > > Signed-off-by: Lv Zheng <lv.zheng@intel.com>
-> > > ---
-> > >  drivers/acpi/acpica/nsxfeval.c |    8 ++++++++
-> > >  1 file changed, 8 insertions(+)
-> > >
-> > > diff --git a/drivers/acpi/acpica/nsxfeval.c
-> > > b/drivers/acpi/acpica/nsxfeval.c index b38b4b0..481a6b4 100644
-> > > --- a/drivers/acpi/acpica/nsxfeval.c
-> > > +++ b/drivers/acpi/acpica/nsxfeval.c
-> > > @@ -605,11 +605,19 @@ acpi_walk_namespace(acpi_object_type type,
-> > >                 goto unlock_and_exit;
-> > >         }
-> > >
-> > > +       /* Now we can validate the starting node */
-> > > +
-> > > +       if (!acpi_ns_validate_handle(start_object)) {
-> > > +               status = AE_BAD_PARAMETER;
-> > > +               goto unlock_and_exit2;
-> > > +       }
-> > > +
-> > >         status = acpi_ns_walk_namespace(type, start_object, max_depth,
-> > >                                         ACPI_NS_WALK_UNLOCK,
-> > >                                         descending_callback,
-> ascending_callback,
-> > >                                         context, return_value);
-> > >
-> > > +      unlock_and_exit2:
-> > >         (void)acpi_ut_release_mutex(ACPI_MTX_NAMESPACE);
-> > >
-> > >        unlock_and_exit:
-> > > --
-> > > 1.7.10
-> > >
-> > > --
-> > > To unsubscribe from this list: send the line "unsubscribe
-> > > linux-acpi" in the body of a message to majordomo@vger.kernel.org
-> > > More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> >
-> >
-> >
-> > --
-> > Len Brown, Intel Open Source Technology Center
-> > --
-> > To unsubscribe from this list: send the line "unsubscribe linux-acpi"
-> > in the body of a message to majordomo@vger.kernel.org More majordomo
-> > info at  http://vger.kernel.org/majordomo-info.html
+> The problem is the installation, the first parameter for
+> acpi_install_address_space_handler() is a namespace node, the function
+> will call _REG for all OperationRegions below the scope whose top most
+> node is the specified node.
+> The nodes out of this scope are not affected.  So if an OperationRegion
+> is defined out of this scope, problem happens.
+
+I suppose for that operation region another GPIO device should be
+introduced then, no?
+
+So if we don't have a GPIO driver for the given operation region, what can
+we do? We don't want the ASL code to erroneusly think that there is an
+operation region available when it is not.
