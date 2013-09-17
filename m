@@ -1,41 +1,39 @@
-From: Sylwester Nawrocki <s.nawrocki-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org>
-Subject: Re: [PATCH v2 1/9] i2c: prepare runtime PM support for I2C client
- devices
-Date: Tue, 17 Sep 2013 13:07:37 +0200
-Message-ID: <523837F9.1020204@samsung.com>
-References: <1378913560-2752-1-git-send-email-mika.westerberg@linux.intel.com>
- <1378913560-2752-2-git-send-email-mika.westerberg@linux.intel.com>
- <87vc25pvvm.fsf@linaro.org> <20130913065434.GZ7393@intel.com>
- <52332BF0.4060605@samsung.com> <20130913154013.GD7393@intel.com>
- <5235BA9C.1090509@gmail.com> <20130916084708.GN7393@intel.com>
+From: Igor Gnatenko <i.gnatenko.brain@gmail.com>
+Subject: Re: [PATCH v2 1/3] backlight: introduce backlight_device_registered
+Date: Tue, 17 Sep 2013 17:03:37 +0400
+Message-ID: <1379423017.2218.0.camel@ThinkPad-X230.localdomain>
+References: <1379409796-29350-1-git-send-email-aaron.lu@intel.com>
+	 <1379409796-29350-2-git-send-email-aaron.lu@intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-reply-to: <20130916084708.GN7393-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Sender: linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Mika Westerberg <mika.westerberg-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
-Cc: Sylwester Nawrocki <sylvester.nawrocki-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Kevin Hilman <khilman-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Wolfram Sang <wsa-z923LK4zBo2bacvFa/9K2g@public.gmane.org>, "Rafael J. Wysocki" <rafael.j.wysocki-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Lv Zheng <lv.zheng-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Aaron Lu <aaron.lu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, Mark Brown <broonie-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Dmitry Torokhov <dmitry.torokhov-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Mauro Carvalho Chehab <m.chehab-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org>, Samuel Ortiz <sameo-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>, Lee Jones <lee.jones-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Arnd Bergmann <arnd-r2nGTMty4D4@public.gmane.org>, Greg Kroah-Hartman <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>, Liam Girdwood <lgirdwood-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Kyungmin Park <kyungmin.park-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-lb0-f180.google.com ([209.85.217.180]:63395 "EHLO
+	mail-lb0-f180.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752473Ab3IQNDq (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 17 Sep 2013 09:03:46 -0400
+In-Reply-To: <1379409796-29350-2-git-send-email-aaron.lu@intel.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Aaron Lu <aaron.lu@intel.com>
+Cc: linux-acpi@vger.kernel.org, intel-gfx@lists.freedesktop.org, dri-devel@lists.freedesktop.org, linux-kernel@vger.kernel.org, Daniel Vetter <daniel@ffwll.ch>, "Rafael J. Wysocki" <rjw@sisk.pl>, Matthew Garrett <matthew.garrett@nebula.com>, Seth Forshee <seth.forshee@canonical.com>, Lee Chun-Yi <joeyli.kernel@gmail.com>, Richard Purdie <rpurdie@rpsys.net>, Yves-Alexis Perez <corsac@debian.org>, Felipe Contreras <felipe.contreras@gmail.com>, Henrique de Moraes Holschuh <ibm-acpi@hmh.eng.br>, Jani Nikula <jani.nikula@linux.intel.com>
 
-On 09/16/2013 10:47 AM, Mika Westerberg wrote:
-> I'm actually thinking that it is probably better now if we don't touch the
-> client runtime PM at all in the I2C core.
+On Tue, 2013-09-17 at 17:23 +0800, Aaron Lu wrote:
+> Introduce a new API for modules to query if a specific type of backlight
+> device has been registered. This is useful for some backlight device
+> provider module(e.g. ACPI video) to know if a native control
+> interface(e.g. the interface created by i915) is available and then do
+> things accordingly(e.g. avoid register its own on Win8 systems).
 > 
-> I proposed a less intrusive solution in this same thread where we power the
-> I2C controller briefly at the client ->probe() (In order to have all the
-> ACPI power resources etc. and the controller on) and let the client driver
-> handle their own runtime PM as they do currently.
-> 
-> Do you think that would work better wrt. fimc-isp-i2c driver?
+> Signed-off-by: Aaron Lu <aaron.lu@intel.com>
+Tested-by: Igor Gnatenko <i.gnatenko.brain@gmail.com>
+> ---
+>  drivers/video/backlight/backlight.c | 31 +++++++++++++++++++++++++++++++
+>  include/linux/backlight.h           |  4 ++++
+>  2 files changed, 35 insertions(+)
 
-That would be no different for this particular driver, as long as the 
-I2C bus controller is activated right before the I2C client's probe().
- 
-In general I would expect such additional device activation not to be 
-harmful. For that particular driver I'm going to prepare patches to 
-ensure that the I2C bus controller device and its driver is registered 
-only when a driver it depends on has initialized. This should have been 
-ensured right from the beginning. So don't need to worry about this 
-particular case. I'm just not sure what other devices could be similarly
-affected.
+-- 
+Igor Gnatenko
+Fedora release 20 (Heisenbug)
+Linux 3.12.0-0.rc1.git0.1.fc20.x86_64
+
