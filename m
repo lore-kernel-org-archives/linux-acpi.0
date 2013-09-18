@@ -1,137 +1,70 @@
-From: Alexey Neyman <stilor@att.net>
-Subject: Re: [PATCH PING] Fix coalescing of host bridge windows in arch/x86/pci/acpi.c
-Date: Tue, 17 Sep 2013 17:49:44 -0700
-Message-ID: <5988412.MKVQTjx6Fi@mistral>
-References: <201309121719.17447.stilor@att.net> <201309160941.54844.stilor@att.net> <523794EE.10505@hurleysoftware.com>
+From: Aaron Lu <aaron.lu@intel.com>
+Subject: Re: [PATCH v2 0/3] Fix Win8 backlight issue
+Date: Wed, 18 Sep 2013 09:03:49 +0800
+Message-ID: <5238FBF5.8080405@intel.com>
+References: <1379409796-29350-1-git-send-email-aaron.lu@intel.com>
+	<1379424853.3348.1.camel@ThinkPad-X230.localdomain>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="nextPart2649268.u3OXIaMfJF"
-Content-Transfer-Encoding: 7Bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from nm24-vm3.access.bullet.mail.gq1.yahoo.com ([216.39.63.82]:37958
-	"EHLO nm24-vm3.access.bullet.mail.gq1.yahoo.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750741Ab3IRAtr (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 17 Sep 2013 20:49:47 -0400
-In-Reply-To: <523794EE.10505@hurleysoftware.com>
-Sender: linux-acpi-owner@vger.kernel.org
-List-Id: linux-acpi@vger.kernel.org
-To: Peter Hurley <peter@hurleysoftware.com>
-Cc: linux-kernel@vger.kernel.org, Bjorn Helgaas <bhelgaas@google.com>, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, linux-acpi <linux-acpi@vger.kernel.org>
-
-This is a multi-part message in MIME format.
-
---nextPart2649268.u3OXIaMfJF
-Content-Transfer-Encoding: 7Bit
 Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <intel-gfx-bounces+gcfxdi-intel-gfx=m.gmane.org@lists.freedesktop.org>
+In-Reply-To: <1379424853.3348.1.camel@ThinkPad-X230.localdomain>
+List-Unsubscribe: <http://lists.freedesktop.org/mailman/options/intel-gfx>,
+	<mailto:intel-gfx-request@lists.freedesktop.org?subject=unsubscribe>
+List-Archive: <http://lists.freedesktop.org/archives/intel-gfx>
+List-Post: <mailto:intel-gfx@lists.freedesktop.org>
+List-Help: <mailto:intel-gfx-request@lists.freedesktop.org?subject=help>
+List-Subscribe: <http://lists.freedesktop.org/mailman/listinfo/intel-gfx>,
+	<mailto:intel-gfx-request@lists.freedesktop.org?subject=subscribe>
+Sender: intel-gfx-bounces+gcfxdi-intel-gfx=m.gmane.org@lists.freedesktop.org
+Errors-To: intel-gfx-bounces+gcfxdi-intel-gfx=m.gmane.org@lists.freedesktop.org
+To: Igor Gnatenko <i.gnatenko.brain@gmail.com>
+Cc: Matthew Garrett <matthew.garrett@nebula.com>, Felipe Contreras <felipe.contreras@gmail.com>, Seth Forshee <seth.forshee@canonical.com>, intel-gfx@lists.freedesktop.org, Yves-Alexis Perez <corsac@debian.org>, Henrique de Moraes Holschuh <ibm-acpi@hmh.eng.br>, linux-kernel@vger.kernel.org, dri-devel@lists.freedesktop.org, "Rafael J. Wysocki" <rjw@sisk.pl>, linux-acpi@vger.kernel.org, Lee Chun-Yi <joeyli.kernel@gmail.com>, Richard Purdie <rpurdie@rpsys.net>
+List-Id: linux-acpi@vger.kernel.org
 
-[Resending without HTML part - sorry for possible duplicates]
-
-As requested by Peter, resending the patch with ACPI/x86 maintainers CC'ed.
-
-Short description:
-Make coalesce_windows() handle multiple resource overlaps.
-
-Signed-off-by: Alexey Neyman <stilor@att.net>
-
-Regards,
-Alexey.
-
-On Monday, September 16, 2013 07:31:58 PM Peter Hurley wrote:
-> [ +cc Bjorn Helgaas, Rafael Wysocki, linux-acpi ]
+On 09/17/2013 09:34 PM, Igor Gnatenko wrote:
+> On Tue, 2013-09-17 at 17:23 +0800, Aaron Lu wrote:
+>> v1 has the subject of "Rework ACPI video driver" and is posted here:
+>> http://lkml.org/lkml/2013/9/9/74
+>> Since the objective is really to fix Win8 backlight issues, I changed
+>> the subject in this version, sorry about that.
+>>
+>> This patchset has three patches, the first introduced a new API named
+>> backlight_device_registered in backlight layer that can be used for
+>> backlight interface provider module to check if a specific type backlight
+>> interface has been registered, see changelog for patch 1/3 for details.
+>> Then patch 2/3 does the cleanup to sepeate the backlight control and
+>> event delivery functionality in the ACPI video module and patch 3/3
+>> solves some Win8 backlight control problems by avoiding register ACPI
+>> video's backlight interface if:
+>> 1 Kernel cmdline option acpi_backlight=video is not given;
+>> 2 This is a Win8 system;
+>> 3 Native backlight control interface exists.
+>>
+>> Technically, patch 2/3 is not required to fix the issue here. So if you
+>> think it is not necessary, I can remove it from the series.
+>>
+>> Apply on top of v3.12-rc1.
+>>
+>> Aaron Lu (3):
+>>   backlight: introduce backlight_device_registered
+>>   ACPI / video: seperate backlight control and event interface
+>>   ACPI / video: Do not register backlight if win8 and native interface
+>>     exists
+>>
+>>  drivers/acpi/internal.h             |   5 +-
+>>  drivers/acpi/video.c                | 442 ++++++++++++++++++++----------------
+>>  drivers/acpi/video_detect.c         |  14 +-
+>>  drivers/video/backlight/backlight.c |  31 +++
+>>  include/acpi/video.h                |   2 +
+>>  include/linux/backlight.h           |   4 +
+>>  6 files changed, 300 insertions(+), 198 deletions(-)
+>>
 > 
-> On 09/16/2013 12:41 PM, Alexey Neyman wrote:
-> > Hi all,
-> > 
-> > Could anybody review/commit the patch?
-> 
-> LKML is a pretty general list and maintainers don't typically
-> trawl the list for more work to do. The get_maintainer script
-> can be used to help determine to whom to address a patch.
-> 
-> peter@thor:~/src/kernels/next$ ./scripts/get_maintainer.pl -f
-> arch/x86/pci/acpi.c Thomas Gleixner <tglx@linutronix.de> (maintainer:X86
-> ARCHITECTURE...) Ingo Molnar <mingo@redhat.com> (maintainer:X86
-> ARCHITECTURE...)
-> "H. Peter Anvin" <hpa@zytor.com> (maintainer:X86 ARCHITECTURE...)
-> x86@kernel.org (maintainer:X86 ARCHITECTURE...)
-> Bjorn Helgaas <bhelgaas@google.com> (commit_signer:5/8=62%)
-> "Rafael J. Wysocki" <rafael.j.wysocki@intel.com> (commit_signer:3/8=38%)
-> Feng Tang <feng.tang@intel.com> (commit_signer:1/8=12%)
-> Yijing Wang <wangyijing@huawei.com> (commit_signer:1/8=12%)
-> Mike Yoknis <mike.yoknis@hp.com> (commit_signer:1/8=12%)
-> linux-kernel@vger.kernel.org (open list)
-> 
-> Regards,
-> Peter Hurley
-> 
-> PS - You'll want to inline your patch as well because as you can see
-> replies don't include it.
-> 
-> > Regards,
-> > Alexey.
-> > 
-> > On Thursday, September 12, 2013 05:19:16 pm Alexey Neyman wrote:
-> >> Hi all,
-> >> 
-> >> I have a board with a BIOS bug that reports the following I/O port
-> >> regions
-> >> in _CRS on one of the host bridges:
-> >> 
-> >> 0x0000-0x03af // #0
-> >> 0x03e0-0x0cf7 // #1
-> >> 0x03b0-0x03bb // #2
-> >> 0x03c0-0x03df // #3
-> >> 0x0000-0xdfff // #4
-> >> 0xf000-0xffff // #5
-> >> 
-> >> Obviously, region number #4 is erroneous as it overlaps with regions
-> >> #0..3.
-> >> However, code in coalesce_windows() in arch/x86/pci/acpi.c attempts to
-> >> recover from such kind of BIOS bugs by merging the overlapping regions.
-> >> Current code expands region #0 to 0x0000-0xdffff and makes region #4
-> >> ignored. As a result, overlap of the expanded region #0 with regions
-> >> #1..3
-> >> remains undetected. As a result, regions #1..3 are inserted into the
-> >> resource tree as if they were consumers of the 0x0000-0xdfff regions, and
-> >> devices that have resources in one of these regions (e.g. 0x3f6 for
-> >> legacy
-> >> IDE) have a resource conflict - the kernel does not initialize them.
-> >> 
-> >> The attached patch makes the code in coalesce_windows() instead ignore
-> >> res1
-> >> (which is already dealt with), possibly expanding res2 instead. As res2
-> >> has
-> >> not been reached in the outer loop in coalesce_windows(), the code will
-> >> then check for overlaps of the just-expanded resource with the rest of
-> >> the
-> >> resources.
-> >> 
-> >> Regards,
-> >> Alexey.
---nextPart2649268.u3OXIaMfJF
-Content-Disposition: attachment; filename="acpi.c.diff"
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/x-patch; charset="utf-8"; name="acpi.c.diff"
+> Aaron, how about fix indicator on ThinkPads ?
 
---- arch/x86/pci/acpi.c.orig	2013-09-12 16:23:06.113813150 -0700
-+++ arch/x86/pci/acpi.c	2013-09-12 16:23:56.605813117 -0700
-@@ -357,12 +357,12 @@
- 			 * the kernel resource tree doesn't allow overlaps.
- 			 */
- 			if (resource_overlaps(res1, res2)) {
--				res1->start = min(res1->start, res2->start);
--				res1->end = max(res1->end, res2->end);
-+				res2->start = min(res1->start, res2->start);
-+				res2->end = max(res1->end, res2->end);
- 				dev_info(&info->bridge->dev,
- 					 "host bridge window expanded to %pR; %pR ignored\n",
--					 res1, res2);
--				res2->flags = 0;
-+					 res2, res1);
-+				res1->flags = 0;
- 			}
- 		}
- 	}
+Can you please describe the problem in detail, is it that when you
+adjust brightness level through hotkey, there is no GUI indication?
+Thanks.
 
---nextPart2649268.u3OXIaMfJF--
-
+-Aaron
