@@ -1,51 +1,77 @@
-From: Igor Gnatenko <i.gnatenko.brain@gmail.com>
-Subject: Re: [PATCH v2 0/3] Fix Win8 backlight issue
-Date: Wed, 18 Sep 2013 16:36:14 +0400
-Message-ID: <1379507774.2294.21.camel@ThinkPad-X230.localdomain>
-References: <1379409796-29350-1-git-send-email-aaron.lu@intel.com>
-	  <1379424853.3348.1.camel@ThinkPad-X230.localdomain>
-	  <5238FBF5.8080405@intel.com>
-	 <1379485819.2294.1.camel@ThinkPad-X230.localdomain>
-	 <52399D0B.3010909@intel.com>
+From: "Moore, Robert" <robert.moore@intel.com>
+Subject: RE: [PATCH] ACPICA / hwreg: Use acpi_gbl_reduced_hardware to
+ prevent accessing PM registers
+Date: Wed, 18 Sep 2013 15:09:04 +0000
+Message-ID: <94F2FBAB4432B54E8AACC7DFDE6C92E36FEFA437@ORSMSX102.amr.corp.intel.com>
+References: <1379066741-23689-1-git-send-email-hanjun.guo@linaro.org>
+ <94F2FBAB4432B54E8AACC7DFDE6C92E36FEEBC6A@ORSMSX103.amr.corp.intel.com>
+ <94F2FBAB4432B54E8AACC7DFDE6C92E36FEEC15B@ORSMSX103.amr.corp.intel.com>
+ <52366F91.30204@linaro.org>
+ <94F2FBAB4432B54E8AACC7DFDE6C92E36FEEC56A@ORSMSX103.amr.corp.intel.com>
+ <523972F4.9070703@linaro.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <52399D0B.3010909@intel.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Aaron Lu <aaron.lu@intel.com>
-Cc: linux-acpi@vger.kernel.org, intel-gfx@lists.freedesktop.org, dri-devel@lists.freedesktop.org, linux-kernel@vger.kernel.org, Daniel Vetter <daniel@ffwll.ch>, "Rafael J. Wysocki" <rjw@sisk.pl>, Matthew Garrett <matthew.garrett@nebula.com>, Seth Forshee <seth.forshee@canonical.com>, Lee Chun-Yi <joeyli.kernel@gmail.com>, Richard Purdie <rpurdie@rpsys.net>, Yves-Alexis Perez <corsac@debian.org>, Felipe Contreras <felipe.contreras@gmail.com>, Henrique de Moraes Holschuh <ibm-acpi@hmh.eng.br>, Jani Nikula <jani.nikula@linux.intel.com>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mga03.intel.com ([143.182.124.21]:35255 "EHLO mga03.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751414Ab3IRPJH convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 18 Sep 2013 11:09:07 -0400
+In-Reply-To: <523972F4.9070703@linaro.org>
+Content-Language: en-US
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-
-On Wed, 2013-09-18 at 20:31 +0800, Aaron Lu wrote:
-> On 09/18/2013 02:30 PM, Igor Gnatenko wrote:
-> > On Wed, 2013-09-18 at 09:03 +0800, Aaron Lu wrote:
-> >> On 09/17/2013 09:34 PM, Igor Gnatenko wrote:
-> >>>
-> >>> Aaron, how about fix indicator on ThinkPads ?
-> >>
-> >> Can you please describe the problem in detail, is it that when you
-> >> adjust brightness level through hotkey, there is no GUI indication?
-> >> Thanks.
-> >>
-> >> -Aaron
-> > 
-> > Yes. On my ThinkPad X230 I pressing backlight hotkeys. Actually
-> > brightnes changing, but have no indicator in GUI.
-> 
-> Oh, that's still the problem of _BCL not getting executed once for
-> Lenovo thinkpad laptops. I borrowed a Thinkpad X1 this afternoon and can
-> reproduce this, I'll take a look at this issue. The thinkpad-acpi module
-> already has a call to _BCL but somehow that doesn't happen.
-> 
-> Since it's national holidays here, I'll check this issue when I got back
-> to work on this Saturday. Thanks for the quick test :-)
-Thanks. No problem ;-)
-> 
-> -Aaron
+To: Hanjun Guo <hanjun.guo@linaro.org>
+Cc: "'Rafael J. Wysocki'" <rjw@sisk.pl>, 'Len Brown' <lenb@kernel.org>, "Box, David E" <david.e.box@intel.com>, "Zheng, Lv" <lv.zheng@intel.com>, "'linux-acpi@vger.kernel.org'" <linux-acpi@vger.kernel.org>, "'patches@linaro.org'" <patches@linaro.org>, "'linaro-kernel@lists.linaro.org'" <linaro-kernel@lists.linaro.org>, "'linaro-acpi@lists.linaro.org'" <linaro-acpi@lists.linaro.org>
 
 
--- 
-Igor Gnatenko
-Fedora release 20 (Heisenbug)
-Linux 3.11.1-300.fc20.x86_64
+
+> -----Original Message-----
+> From: Hanjun Guo [mailto:hanjun.guo@linaro.org]
+> Sent: Wednesday, September 18, 2013 2:32 AM
+> To: Moore, Robert
+> Cc: 'Rafael J. Wysocki'; 'Len Brown'; Box, David E; Zheng, Lv; 'linux-
+> acpi@vger.kernel.org'; 'patches@linaro.org'; 'linaro-
+> kernel@lists.linaro.org'; 'linaro-acpi@lists.linaro.org'
+> Subject: Re: [PATCH] ACPICA / hwreg: Use acpi_gbl_reduced_hardware to
+> prevent accessing PM registers
+> 
+> On 2013-9-17 1:26, Moore, Robert wrote:
+> > + #define ACPI_REDUCED_HARDWARE           TRUE
+> >
+> > The intent of this feature is of course, to remove all code that is not
+> needed -- specifically for hardware-reduced machines where the size of the
+> kernel is important.
+> >
+> > On a larger machine, the hardware-reduced flag should be sufficient.
+> However, I would think that the host OS would look at this flag and
+> realize that it should not be doing certain ACPI hardware-related things
+> up front, rather than later when it finds out that a write to some ACPI
+> hardware fails because the hardware isn't there.
+> 
+> Do you mean we should change the ACPI device driver instead of changing
+> the ACPICA code? that would be a hard job, because hardware ACPI is used
+> everywhere.
+> 
+
+
+I don't really know the answer to this, but something tells me that bad things may happen when a driver expects the ACPI hardware to be there, and it finds out that it isn't, simply by calling one of the ACPI hardware interfaces.
+
+Or, we could word it this way: if a driver is expecting the ACPI hardware to exist, and we are running on a hardware-reduced platform, why is the driver being loaded in the first place?
+
+BTW, hardware-reduced is not restricted to ARM platforms.
+
+
+
+
+> Thanks
+> Hanjun
+> 
+> >
+> > This is not to say that it is probably a good thing to return an error
+> from the ACPI hardware code in the hardware-reduced case.
+> >
+> > Bob
+> >
+> 
+
