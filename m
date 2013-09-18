@@ -1,77 +1,84 @@
-From: Igor Gnatenko <i.gnatenko.brain@gmail.com>
-Subject: Re: [PATCH v2 0/3] Fix Win8 backlight issue
-Date: Wed, 18 Sep 2013 10:30:19 +0400
-Message-ID: <1379485819.2294.1.camel@ThinkPad-X230.localdomain>
-References: <1379409796-29350-1-git-send-email-aaron.lu@intel.com>
-	 <1379424853.3348.1.camel@ThinkPad-X230.localdomain>
-	 <5238FBF5.8080405@intel.com>
+From: Hanjun Guo <hanjun.guo@linaro.org>
+Subject: Re: [PATCH] ACPICA / hwreg: Use acpi_gbl_reduced_hardware to prevent
+ accessing PM registers
+Date: Wed, 18 Sep 2013 17:28:25 +0800
+Message-ID: <52397239.9080606@linaro.org>
+References: <1379066741-23689-1-git-send-email-hanjun.guo@linaro.org> <94F2FBAB4432B54E8AACC7DFDE6C92E36FEEBC6A@ORSMSX103.amr.corp.intel.com> <94F2FBAB4432B54E8AACC7DFDE6C92E36FEEC15B@ORSMSX103.amr.corp.intel.com> <52366F91.30204@linaro.org> <94F2FBAB4432B54E8AACC7DFDE6C92E36FEEC56A@ORSMSX103.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-la0-f41.google.com ([209.85.215.41]:39088 "EHLO
-	mail-la0-f41.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751758Ab3IRGaY (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 18 Sep 2013 02:30:24 -0400
-In-Reply-To: <5238FBF5.8080405@intel.com>
+Received: from mail-pd0-f174.google.com ([209.85.192.174]:63469 "EHLO
+	mail-pd0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751615Ab3IRJbk (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 18 Sep 2013 05:31:40 -0400
+Received: by mail-pd0-f174.google.com with SMTP id y13so6798282pdi.19
+        for <linux-acpi@vger.kernel.org>; Wed, 18 Sep 2013 02:31:40 -0700 (PDT)
+In-Reply-To: <94F2FBAB4432B54E8AACC7DFDE6C92E36FEEC56A@ORSMSX103.amr.corp.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Aaron Lu <aaron.lu@intel.com>
-Cc: linux-acpi@vger.kernel.org, intel-gfx@lists.freedesktop.org, dri-devel@lists.freedesktop.org, linux-kernel@vger.kernel.org, Daniel Vetter <daniel@ffwll.ch>, "Rafael J. Wysocki" <rjw@sisk.pl>, Matthew Garrett <matthew.garrett@nebula.com>, Seth Forshee <seth.forshee@canonical.com>, Lee Chun-Yi <joeyli.kernel@gmail.com>, Richard Purdie <rpurdie@rpsys.net>, Yves-Alexis Perez <corsac@debian.org>, Felipe Contreras <felipe.contreras@gmail.com>, Henrique de Moraes Holschuh <ibm-acpi@hmh.eng.br>, Jani Nikula <jani.nikula@linux.intel.com>
+To: "Moore, Robert" <robert.moore@intel.com>
+Cc: "'Rafael J. Wysocki'" <rjw@sisk.pl>, 'Len Brown' <lenb@kernel.org>, "Box, David E" <david.e.box@intel.com>, "Zheng, Lv" <lv.zheng@intel.com>, "'linux-acpi@vger.kernel.org'" <linux-acpi@vger.kernel.org>, "'patches@linaro.org'" <patches@linaro.org>, "'linaro-kernel@lists.linaro.org'" <linaro-kernel@lists.linaro.org>, "'linaro-acpi@lists.linaro.org'" <linaro-acpi@lists.linaro.org>
 
-On Wed, 2013-09-18 at 09:03 +0800, Aaron Lu wrote:
-> On 09/17/2013 09:34 PM, Igor Gnatenko wrote:
-> > On Tue, 2013-09-17 at 17:23 +0800, Aaron Lu wrote:
-> >> v1 has the subject of "Rework ACPI video driver" and is posted here:
-> >> http://lkml.org/lkml/2013/9/9/74
-> >> Since the objective is really to fix Win8 backlight issues, I changed
-> >> the subject in this version, sorry about that.
-> >>
-> >> This patchset has three patches, the first introduced a new API named
-> >> backlight_device_registered in backlight layer that can be used for
-> >> backlight interface provider module to check if a specific type backlight
-> >> interface has been registered, see changelog for patch 1/3 for details.
-> >> Then patch 2/3 does the cleanup to sepeate the backlight control and
-> >> event delivery functionality in the ACPI video module and patch 3/3
-> >> solves some Win8 backlight control problems by avoiding register ACPI
-> >> video's backlight interface if:
-> >> 1 Kernel cmdline option acpi_backlight=video is not given;
-> >> 2 This is a Win8 system;
-> >> 3 Native backlight control interface exists.
-> >>
-> >> Technically, patch 2/3 is not required to fix the issue here. So if you
-> >> think it is not necessary, I can remove it from the series.
-> >>
-> >> Apply on top of v3.12-rc1.
-> >>
-> >> Aaron Lu (3):
-> >>   backlight: introduce backlight_device_registered
-> >>   ACPI / video: seperate backlight control and event interface
-> >>   ACPI / video: Do not register backlight if win8 and native interface
-> >>     exists
-> >>
-> >>  drivers/acpi/internal.h             |   5 +-
-> >>  drivers/acpi/video.c                | 442 ++++++++++++++++++++----------------
-> >>  drivers/acpi/video_detect.c         |  14 +-
-> >>  drivers/video/backlight/backlight.c |  31 +++
-> >>  include/acpi/video.h                |   2 +
-> >>  include/linux/backlight.h           |   4 +
-> >>  6 files changed, 300 insertions(+), 198 deletions(-)
-> >>
-> > 
-> > Aaron, how about fix indicator on ThinkPads ?
+On 2013-9-17 1:26, Moore, Robert wrote:
+> + #define ACPI_REDUCED_HARDWARE           TRUE
 > 
-> Can you please describe the problem in detail, is it that when you
-> adjust brightness level through hotkey, there is no GUI indication?
-> Thanks.
-> 
-> -Aaron
+> The intent of this feature is of course, to remove all code that is not needed -- specifically for hardware-reduced machines where the size of the kernel is important.
 
-Yes. On my ThinkPad X230 I pressing backlight hotkeys. Actually
-brightnes changing, but have no indicator in GUI.
+Ok, how about this patch below, is it reasonable to you?
 
+>From b10bc1d2f9a3ff09abfb6990412aa1cf62d56937 Mon Sep 17 00:00:00 2001
+From: Hanjun Guo <hanjun.guo@linaro.org>
+Date: Wed, 18 Sep 2013 17:19:23 +0800
+Subject: [PATCH] ACPI: Introduce CONFIG_ACPI_REDUCED_HARDWARE to enable
+ reduced hardware
+
+If we want to enable reduced hardware ACPI on some platform (such as ARM),
+we need to modify the kernel code and set ACPI_REDUCED_HARDWARE to TRUE.
+
+This is not reasonable, so introduce a kernel config to enable it, and
+no need for kernel modification when we use hardware-reduced ACPI.
+
+Signed-off-by: Hanjun Guo <hanjun.guo@linaro.org>
+---
+ drivers/acpi/Kconfig    |    8 ++++++++
+ include/acpi/acconfig.h |    4 ++++
+ 2 files changed, 12 insertions(+)
+
+diff --git a/drivers/acpi/Kconfig b/drivers/acpi/Kconfig
+index 0d7f6eb..1232a7b 100644
+--- a/drivers/acpi/Kconfig
++++ b/drivers/acpi/Kconfig
+@@ -413,6 +413,14 @@ config ACPI_BGRT
+          data from the firmware boot splash. It will appear under
+          /sys/firmware/acpi/bgrt/ .
+
++config ACPI_REDUCED_HARDWARE
++       bool "Hardware-reduced ACPI support"
++       depends on ARM || ARM64
++        help
++         This config adds support for Hardware-reduced ACPI. When this option
++         is selected, will generate a specialized version of ACPICA that ONLY
++         supports the ACPI 5.0 "reduced hardware".
++
+ source "drivers/acpi/apei/Kconfig"
+
+ endif  # ACPI
+diff --git a/include/acpi/acconfig.h b/include/acpi/acconfig.h
+index 1c16f82..15254f5 100644
+--- a/include/acpi/acconfig.h
++++ b/include/acpi/acconfig.h
+@@ -100,7 +100,11 @@
+  *      ACPI PM timer
+  *      FACS table (Waking vectors and Global Lock)
+  */
++#ifdef CONFIG_ACPI_REDUCED_HARDWARE
++#define ACPI_REDUCED_HARDWARE           TRUE
++#else
+ #define ACPI_REDUCED_HARDWARE           FALSE
++#endif /* CONFIG_ACPI_REDUCED_HARDWARE */
+
+ /******************************************************************************
+  *
 -- 
-Igor Gnatenko
-Fedora release 20 (Heisenbug)
-Linux 3.11.1-300.fc20.x86_64
-
+1.7.9.5
