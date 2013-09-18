@@ -1,43 +1,43 @@
-From: Hanjun Guo <hanjun.guo@linaro.org>
-Subject: Re: [PATCH] ACPICA / hwreg: Use acpi_gbl_reduced_hardware to prevent
- accessing PM registers
-Date: Wed, 18 Sep 2013 17:31:32 +0800
-Message-ID: <523972F4.9070703@linaro.org>
-References: <1379066741-23689-1-git-send-email-hanjun.guo@linaro.org> <94F2FBAB4432B54E8AACC7DFDE6C92E36FEEBC6A@ORSMSX103.amr.corp.intel.com> <94F2FBAB4432B54E8AACC7DFDE6C92E36FEEC15B@ORSMSX103.amr.corp.intel.com> <52366F91.30204@linaro.org> <94F2FBAB4432B54E8AACC7DFDE6C92E36FEEC56A@ORSMSX103.amr.corp.intel.com>
+From: Aaron Lu <aaron.lu@intel.com>
+Subject: Re: [PATCH v2 0/3] Fix Win8 backlight issue
+Date: Wed, 18 Sep 2013 20:31:07 +0800
+Message-ID: <52399D0B.3010909@intel.com>
+References: <1379409796-29350-1-git-send-email-aaron.lu@intel.com>  <1379424853.3348.1.camel@ThinkPad-X230.localdomain>  <5238FBF5.8080405@intel.com> <1379485819.2294.1.camel@ThinkPad-X230.localdomain>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-pa0-f43.google.com ([209.85.220.43]:47985 "EHLO
-	mail-pa0-f43.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751881Ab3IRJeF (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 18 Sep 2013 05:34:05 -0400
-Received: by mail-pa0-f43.google.com with SMTP id hz10so8021819pad.16
-        for <linux-acpi@vger.kernel.org>; Wed, 18 Sep 2013 02:34:04 -0700 (PDT)
-In-Reply-To: <94F2FBAB4432B54E8AACC7DFDE6C92E36FEEC56A@ORSMSX103.amr.corp.intel.com>
+Received: from mail-pd0-f179.google.com ([209.85.192.179]:35948 "EHLO
+	mail-pd0-f179.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751967Ab3IRMa3 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 18 Sep 2013 08:30:29 -0400
+In-Reply-To: <1379485819.2294.1.camel@ThinkPad-X230.localdomain>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Moore, Robert" <robert.moore@intel.com>
-Cc: "'Rafael J. Wysocki'" <rjw@sisk.pl>, 'Len Brown' <lenb@kernel.org>, "Box, David E" <david.e.box@intel.com>, "Zheng, Lv" <lv.zheng@intel.com>, "'linux-acpi@vger.kernel.org'" <linux-acpi@vger.kernel.org>, "'patches@linaro.org'" <patches@linaro.org>, "'linaro-kernel@lists.linaro.org'" <linaro-kernel@lists.linaro.org>, "'linaro-acpi@lists.linaro.org'" <linaro-acpi@lists.linaro.org>
+To: Igor Gnatenko <i.gnatenko.brain@gmail.com>
+Cc: linux-acpi@vger.kernel.org, intel-gfx@lists.freedesktop.org, dri-devel@lists.freedesktop.org, linux-kernel@vger.kernel.org, Daniel Vetter <daniel@ffwll.ch>, "Rafael J. Wysocki" <rjw@sisk.pl>, Matthew Garrett <matthew.garrett@nebula.com>, Seth Forshee <seth.forshee@canonical.com>, Lee Chun-Yi <joeyli.kernel@gmail.com>, Richard Purdie <rpurdie@rpsys.net>, Yves-Alexis Perez <corsac@debian.org>, Felipe Contreras <felipe.contreras@gmail.com>, Henrique de Moraes Holschuh <ibm-acpi@hmh.eng.br>, Jani Nikula <jani.nikula@linux.intel.com>
 
-On 2013-9-17 1:26, Moore, Robert wrote:
-> + #define ACPI_REDUCED_HARDWARE           TRUE
+On 09/18/2013 02:30 PM, Igor Gnatenko wrote:
+> On Wed, 2013-09-18 at 09:03 +0800, Aaron Lu wrote:
+>> On 09/17/2013 09:34 PM, Igor Gnatenko wrote:
+>>>
+>>> Aaron, how about fix indicator on ThinkPads ?
+>>
+>> Can you please describe the problem in detail, is it that when you
+>> adjust brightness level through hotkey, there is no GUI indication?
+>> Thanks.
+>>
+>> -Aaron
 > 
-> The intent of this feature is of course, to remove all code that is not needed -- specifically for hardware-reduced machines where the size of the kernel is important.
-> 
-> On a larger machine, the hardware-reduced flag should be sufficient. However, I would think that the host OS would look at this flag and realize that it should not be doing certain ACPI hardware-related things up front, rather than later when it finds out that a write to some ACPI hardware fails because the hardware isn't there.
+> Yes. On my ThinkPad X230 I pressing backlight hotkeys. Actually
+> brightnes changing, but have no indicator in GUI.
 
-Do you mean we should change the ACPI device driver instead of changing the
-ACPICA code? that would be a hard job, because hardware ACPI is used
-everywhere.
+Oh, that's still the problem of _BCL not getting executed once for
+Lenovo thinkpad laptops. I borrowed a Thinkpad X1 this afternoon and can
+reproduce this, I'll take a look at this issue. The thinkpad-acpi module
+already has a call to _BCL but somehow that doesn't happen.
 
-Thanks
-Hanjun
+Since it's national holidays here, I'll check this issue when I got back
+to work on this Saturday. Thanks for the quick test :-)
 
-> 
-> This is not to say that it is probably a good thing to return an error from the ACPI hardware code in the hardware-reduced case.
-> 
-> Bob
-> 
-
-
+-Aaron
