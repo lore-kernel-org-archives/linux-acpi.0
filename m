@@ -1,14 +1,14 @@
 From: Yves-Alexis Perez <corsac@debian.org>
-Subject: Re: [PATCH v2 1/3] backlight: introduce
-	backlight_device_registered
-Date: Fri, 20 Sep 2013 15:01:10 +0200
-Message-ID: <1379682070.9746.4.camel@oban>
+Subject: Re: [PATCH v2 2/3] ACPI / video: seperate backlight
+ control and event interface
+Date: Fri, 20 Sep 2013 15:01:39 +0200
+Message-ID: <1379682099.9746.5.camel@oban>
 References: <1379409796-29350-1-git-send-email-aaron.lu@intel.com>
-	<1379409796-29350-2-git-send-email-aaron.lu@intel.com>
+	<1379409796-29350-3-git-send-email-aaron.lu@intel.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="===============2008148233=="
+Content-Type: multipart/mixed; boundary="===============1764355913=="
 Return-path: <intel-gfx-bounces+gcfxdi-intel-gfx=m.gmane.org@lists.freedesktop.org>
-In-Reply-To: <1379409796-29350-2-git-send-email-aaron.lu@intel.com>
+In-Reply-To: <1379409796-29350-3-git-send-email-aaron.lu@intel.com>
 List-Unsubscribe: <http://lists.freedesktop.org/mailman/options/intel-gfx>,
 	<mailto:intel-gfx-request@lists.freedesktop.org?subject=unsubscribe>
 List-Archive: <http://lists.freedesktop.org/archives/intel-gfx>
@@ -23,29 +23,36 @@ Cc: Matthew Garrett <matthew.garrett@nebula.com>, Seth Forshee <seth.forshee@can
 List-Id: linux-acpi@vger.kernel.org
 
 
---===============2008148233==
+--===============1764355913==
 Content-Type: multipart/signed; micalg="pgp-sha256";
-	protocol="application/pgp-signature"; boundary="=-58w91WtYPtSbCTQSY6cQ"
+	protocol="application/pgp-signature"; boundary="=-f7eTPuUuyk+b0QmhFQTv"
 
 
---=-58w91WtYPtSbCTQSY6cQ
+--=-f7eTPuUuyk+b0QmhFQTv
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: quoted-printable
 
 On mar., 2013-09-17 at 17:23 +0800, Aaron Lu wrote:
-> Introduce a new API for modules to query if a specific type of
-> backlight
-> device has been registered. This is useful for some backlight device
-> provider module(e.g. ACPI video) to know if a native control
-> interface(e.g. the interface created by i915) is available and then do
-> things accordingly(e.g. avoid register its own on Win8 systems).
+> The backlight control and event delivery functionality provided by
+> ACPI
+> video module is mixed together and registered all during video device
+> enumeration time. As a result, the two functionality are also removed
+> together on module unload time or by the acpi_video_unregister
+> function.
+> The two functionalities are actually independent and one may be useful
+> while the other one may be broken, so it is desirable to seperate the
+> two functionalities such that it is clear and easy to disable one
+> functionality without affecting the other one.
+>=20
+> APIs to selectively remove backlight control interface and/or event
+> delivery functionality can be easily added once needed.
 >=20
 > Signed-off-by: Aaron Lu <aaron.lu@intel.com>
 Tested-by: Yves-Alexis Perez <corsac@debian.org>
 --=20
 Yves-Alexis
 
---=-58w91WtYPtSbCTQSY6cQ
+--=-f7eTPuUuyk+b0QmhFQTv
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: This is a digitally signed message part
 Content-Transfer-Encoding: 7bit
@@ -53,19 +60,19 @@ Content-Transfer-Encoding: 7bit
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1.4.14 (GNU/Linux)
 
-iQEcBAABCAAGBQJSPEcWAAoJEG3bU/KmdcClUQoIAJFa6UA/9Di6bcQ9BxuIwLUI
-Khc9PEMmBklJpaVcNSWv+lnkaxv6tRbYkwpM2rFAccjUImMVfKkI/TucD6Ba5ZZi
-aYPrd4cG5qNB4RFXLI7XxT6RDKGKPGNQmjXuUuSMHFqfOhFR4lZe21DW4wfsXB8s
-qXjVZw2DDt1kuumE4ll9MWez1LboZnuAYobU0cxlWIHHKqdwyNbCS2KiRpZyv1SL
-fR0iDdWfSMbZKytMK7GzVf1mIvAXBKH2GxJCI8pKb6dvg0O01HTDMeG32A7YlB2e
-inulx+hGbAU2eJWXpbmU8aFe33WP9PNuj6pwvzwRjnjuwjQC9cMsvNUDE2bvKKQ=
-=9VgC
+iQEcBAABCAAGBQJSPEczAAoJEG3bU/KmdcClY8AIAKONX1Vy4r/BxLo1L6CMqbt2
+S1d4Mdkhua5mejGYSdYLWdQku554nJpnQ4uSWAHwuJNW21i4GqNhqsNzlADYIYba
+KxHtQnL8K2GOaVLMQHf+2O4i1lmWc/yvvOcLGEktGnUHYYCxOJBCTwCuzHuFG14E
+XUngsESoWgBrrJGrzL/k9i8CmdtzjMase9wJOU73rT1ujme746qYyF8rLfw7BFOt
+2l+PLBwNvTNslu71s5WnUnG/si7HpanSPZhoR/60bbxUNUx/KFhHVFQV4s8EvC+J
+yIK50jfNnx+o5iO9lVyLIzcDRzlhDqVvsvMRQXEyK+j5y1/9cSX/LWjmN5ya+Go=
+=juvk
 -----END PGP SIGNATURE-----
 
---=-58w91WtYPtSbCTQSY6cQ--
+--=-f7eTPuUuyk+b0QmhFQTv--
 
 
---===============2008148233==
+--===============1764355913==
 Content-Type: text/plain; charset="us-ascii"
 MIME-Version: 1.0
 Content-Transfer-Encoding: 7bit
@@ -76,4 +83,4 @@ Intel-gfx mailing list
 Intel-gfx@lists.freedesktop.org
 http://lists.freedesktop.org/mailman/listinfo/intel-gfx
 
---===============2008148233==--
+--===============1764355913==--
