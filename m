@@ -1,51 +1,70 @@
-From: Yinghai Lu <yinghai@kernel.org>
-Subject: Re: [PATCH] cpufreq: skip loading acpi_cpufreq after intel_pstate
-Date: Fri, 20 Sep 2013 10:08:07 -0700
-Message-ID: <CAE9FiQUXGtNeAS70Mr6Nscax26dRoXTCyb28gz1iX2j1s8Nojw@mail.gmail.com>
-References: <1379654772-10700-1-git-send-email-yinghai@kernel.org>
-	<CAKohpokdyk9hfBreVeXttN23biTVjWiJRm8eYkfAjLz+cbnreQ@mail.gmail.com>
+From: Hans de Bruin <jmdebruin@xmsnet.nl>
+Subject: Bisected 3.12.0-rc1 Laptop screen goes blank during kernelboot
+Date: Fri, 20 Sep 2013 19:13:28 +0200
+Message-ID: <523C8238.3000200@xmsnet.nl>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <cpufreq-owner@vger.kernel.org>
-In-Reply-To: <CAKohpokdyk9hfBreVeXttN23biTVjWiJRm8eYkfAjLz+cbnreQ@mail.gmail.com>
-Sender: cpufreq-owner@vger.kernel.org
-To: Viresh Kumar <viresh.kumar@linaro.org>
-Cc: "Rafael J. Wysocki" <rjw@sisk.pl>, "cpufreq@vger.kernel.org" <cpufreq@vger.kernel.org>, Linux ACPI <linux-acpi@vger.kernel.org>, "linux-pm@vger.kernel.org" <linux-pm@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from smtp1.ispfabriek.nl ([37.251.0.168]:54414 "EHLO
+	smtp1.ispfabriek.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752393Ab3ITRWj (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 20 Sep 2013 13:22:39 -0400
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: linux-acpi@vger.kernel.org, linux-pci@vger.kernel.org
 
-On Thu, Sep 19, 2013 at 11:10 PM, Viresh Kumar <viresh.kumar@linaro.org> wrote:
-> On 20 September 2013 10:56, Yinghai Lu <yinghai@kernel.org> wrote:
->> If the hw support intel_pstate and acpi_cpufreq, intel_pstate will
->> get loaded at first.
->
-> s/at //
->
->>
->> acpi_cpufreq_init will call acpi_cpufreq_early_init()
->> and it allocate perf data and init those perf data in ACPI core, (that
->
-> s/it /that will /
->
->> will go over all cpus).
->
-> s/go over/cover/
->
->> but late it will free them as cpufreq_register_driver(acpi_cpufreq) will
->
-> s/late/later
->
->> return fail as init_pstate already take over before.
->
-> write it as: fail as intel_pstate is already registered.
->
->> Use cpufreq_get_current_driver() to check if we can skip the
->> acpi_cpufreq loading.
->
-> The below material looks to be a separate issue and so we
-> probably break this patch into two?
+During boot time my laptop screen goes blank when de kernel switches the 
+screen to another resolution. The backlight is on. Eventually a kde 
+login box appears out of the blackness. Swiching to a lower resolution 
+gives me a black screen again. After testing the 
+intel-gfx@lists.freedesktop.org developers test-tree problem less they 
+sugested a bisect. That bisect ended in:
 
-ok, check that.
 
-Thanks
+commit 137b944e100278d696826cf25c83014ac17473fe
+Author: Daniel Lezcano <daniel.lezcano@linaro.org>
+Date:   Wed Jun 12 15:08:48 2013 +0200
 
-Yinghai
+   cpuidle: Make it clear that governors cannot be modules
+
+   cpufreq governors are defined as modules in the code, but the Kconfig
+   options do not allow them to be built as modules.  This is not really
+   a problem, but the cpuidle init ordering is: the cpuidle init
+   functions (framework and driver) and then the governors.  That leads
+   to some weirdness in the cpuidle framework.
+
+   Namely,  cpuidle_register_device() calls cpuidle_enable_device() which
+   fails at the first attempt, because governors have not been registered
+   yet.  When a governor is registered, the framework calls
+   cpuidle_enable_device() again which runs __cpuidle_register_device()
+   only then.  Of course, for that to work, the cpuidle_enable_device()
+   return value has to be ignored by cpuidle_register_device().
+
+     Instead of having this cyclic call graph and relying on a positive
+     side effects of the hackish back and forth cpuidle_enable_device()
+     calls it is better to fix the cpuidle init ordering.
+
+     To that end, replace the module init code with postcore_initcall()
+     so we have:
+
+      * cpuidle framework : core_initcall
+      * cpuidle governors : postcore_initcall
+      * cpuidle drivers   : device_initcall
+
+     and remove the corresponding module exit code as it is dead anyway
+     (governors can't be built as modules).
+
+     [rjw: Changelog]
+     Signed-off-by: Daniel Lezcano <daniel.lezcano@linaro.org>
+     Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+
+:040000 040000 45e7cb28411864c00b62296a7ff239f9f139d5d9 
+86a36b01dee52a77cfbab41a973b7a2bfa44ce34 M      drivers
+
+
+
+Reverting it makes the problem go away.
+
+-- 
+Hans
