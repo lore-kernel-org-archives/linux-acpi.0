@@ -1,184 +1,97 @@
-From: Jani Nikula <jani.nikula@linux.intel.com>
-Subject: Re: [PATCH v2 3/3] ACPI / video: Do not register backlight if win8 and native interface exists
-Date: Fri, 20 Sep 2013 11:36:52 +0300
-Message-ID: <8761tv7uu3.fsf@intel.com>
-References: <1379409796-29350-1-git-send-email-aaron.lu@intel.com> <1379409796-29350-4-git-send-email-aaron.lu@intel.com>
+From: Yves-Alexis Perez <corsac@debian.org>
+Subject: Re: [PATCH v2 0/3] Fix Win8 backlight issue
+Date: Fri, 20 Sep 2013 15:00:15 +0200
+Message-ID: <1379682015.9746.3.camel@oban>
+References: <1379409796-29350-1-git-send-email-aaron.lu@intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga01.intel.com ([192.55.52.88]:28664 "EHLO mga01.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754161Ab3ITIej (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 20 Sep 2013 04:34:39 -0400
-In-Reply-To: <1379409796-29350-4-git-send-email-aaron.lu@intel.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: multipart/mixed; boundary="===============1802663373=="
+Return-path: <intel-gfx-bounces+gcfxdi-intel-gfx=m.gmane.org@lists.freedesktop.org>
+In-Reply-To: <1379409796-29350-1-git-send-email-aaron.lu@intel.com>
+List-Unsubscribe: <http://lists.freedesktop.org/mailman/options/intel-gfx>,
+	<mailto:intel-gfx-request@lists.freedesktop.org?subject=unsubscribe>
+List-Archive: <http://lists.freedesktop.org/archives/intel-gfx>
+List-Post: <mailto:intel-gfx@lists.freedesktop.org>
+List-Help: <mailto:intel-gfx-request@lists.freedesktop.org?subject=help>
+List-Subscribe: <http://lists.freedesktop.org/mailman/listinfo/intel-gfx>,
+	<mailto:intel-gfx-request@lists.freedesktop.org?subject=subscribe>
+Sender: intel-gfx-bounces+gcfxdi-intel-gfx=m.gmane.org@lists.freedesktop.org
+Errors-To: intel-gfx-bounces+gcfxdi-intel-gfx=m.gmane.org@lists.freedesktop.org
+To: Aaron Lu <aaron.lu@intel.com>
+Cc: Matthew Garrett <matthew.garrett@nebula.com>, Seth Forshee <seth.forshee@canonical.com>, intel-gfx@lists.freedesktop.org, Felipe Contreras <felipe.contreras@gmail.com>, Henrique de Moraes Holschuh <ibm-acpi@hmh.eng.br>, linux-kernel@vger.kernel.org, dri-devel@lists.freedesktop.org, "Rafael J. Wysocki" <rjw@sisk.pl>, linux-acpi@vger.kernel.org, Lee Chun-Yi <joeyli.kernel@gmail.com>, Richard Purdie <rpurdie@rpsys.net>, Igor Gnatenko <i.gnatenko.brain@gmail.com>
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org, intel-gfx@lists.freedesktop.org, dri-devel@lists.freedesktop.org, linux-kernel@vger.kernel.org
-Cc: Daniel Vetter <daniel@ffwll.ch>, "Rafael J. Wysocki" <rjw@sisk.pl>, Matthew Garrett <matthew.garrett@nebula.com>, Seth Forshee <seth.forshee@canonical.com>, Lee Chun-Yi <joeyli.kernel@gmail.com>, Richard Purdie <rpurdie@rpsys.net>, Igor Gnatenko <i.gnatenko.brain@gmail.com>, Yves-Alexis Perez <corsac@debian.org>, Felipe Contreras <felipe.contreras@gmail.com>, Henrique de Moraes Holschuh <ibm-acpi@hmh.eng.br>, Aaron Lu <aaron.lu@intel.com>
-
-On Tue, 17 Sep 2013, Aaron Lu <aaron.lu@intel.com> wrote:
-> According to Matthew Garrett, "Windows 8 leaves backlight control up
-> to individual graphics drivers rather than making ACPI calls itself.
-> There's plenty of evidence to suggest that the Intel driver for
-> Windows 8 doesn't use the ACPI interface, including the fact that
-> it's broken on a bunch of machines when the OS claims to support
-> Windows 8.  The simplest thing to do appears to be to disable the
-> ACPI backlight interface on these systems".
->
-> So for Win8 systems, if there is native backlight control interface
-> registered by GPU driver, ACPI video will not register its own. For
-> users who prefer to keep ACPI video's backlight interface, the existing
-> kernel cmdline option acpi_backlight=video can be used.
->
-> This patch is an evolution from previous work done by Matthew Garrett,
-> Chun-Yi Lee, Seth Forshee and Rafael J. Wysocki.
->
-> Signed-off-by: Aaron Lu <aaron.lu@intel.com>
-> ---
->  drivers/acpi/internal.h     |  5 ++---
->  drivers/acpi/video.c        | 27 +++++----------------------
->  drivers/acpi/video_detect.c | 14 ++++++++++++--
->  3 files changed, 19 insertions(+), 27 deletions(-)
->
-> diff --git a/drivers/acpi/internal.h b/drivers/acpi/internal.h
-> index 20f4233..453ae8d 100644
-> --- a/drivers/acpi/internal.h
-> +++ b/drivers/acpi/internal.h
-> @@ -169,9 +169,8 @@ int acpi_create_platform_device(struct acpi_device *adev,
->  					Video
->    -------------------------------------------------------------------------- */
->  #if defined(CONFIG_ACPI_VIDEO) || defined(CONFIG_ACPI_VIDEO_MODULE)
-> -bool acpi_video_backlight_quirks(void);
-> -#else
-> -static inline bool acpi_video_backlight_quirks(void) { return false; }
-> +bool acpi_osi_is_win8(void);
-> +bool acpi_video_verify_backlight_support(void);
->  #endif
->  
->  #endif /* _ACPI_INTERNAL_H_ */
-> diff --git a/drivers/acpi/video.c b/drivers/acpi/video.c
-> index 5ad5a71..343db59 100644
-> --- a/drivers/acpi/video.c
-> +++ b/drivers/acpi/video.c
-> @@ -1256,8 +1256,8 @@ acpi_video_switch_brightness(struct acpi_video_device *device, int event)
->  	unsigned long long level_current, level_next;
->  	int result = -EINVAL;
->  
-> -	/* no warning message if acpi_backlight=vendor is used */
-> -	if (!acpi_video_backlight_support())
-> +	/* no warning message if acpi_backlight=vendor or a quirk is used */
-> +	if (!acpi_video_verify_backlight_support())
->  		return 0;
->  
->  	if (!device->brightness)
-> @@ -1386,13 +1386,13 @@ acpi_video_bus_get_devices(struct acpi_video_bus *video,
->  static int acpi_video_bus_start_devices(struct acpi_video_bus *video)
->  {
->  	return acpi_video_bus_DOS(video, 0,
-> -				  acpi_video_backlight_quirks() ? 1 : 0);
-> +				  acpi_osi_is_win8() ? 1 : 0);
->  }
->  
->  static int acpi_video_bus_stop_devices(struct acpi_video_bus *video)
->  {
->  	return acpi_video_bus_DOS(video, 0,
-> -				  acpi_video_backlight_quirks() ? 0 : 1);
-> +				  acpi_osi_is_win8() ? 0 : 1);
->  }
->  
->  static void acpi_video_bus_notify(struct acpi_device *device, u32 event)
-> @@ -1558,7 +1558,7 @@ acpi_video_bus_match(acpi_handle handle, u32 level, void *context,
->  
->  static void acpi_video_dev_register_backlight(struct acpi_video_device *device)
->  {
-> -	if (acpi_video_backlight_support()) {
-> +	if (acpi_video_verify_backlight_support()) {
->  		struct backlight_properties props;
->  		struct pci_dev *pdev;
->  		acpi_handle acpi_parent;
-> @@ -1677,23 +1677,6 @@ static int acpi_video_bus_unregister_backlight(struct acpi_video_bus *video)
->  	return error;
->  }
->  
-> -int acpi_video_unregister_backlight(void)
-> -{
-> -	struct acpi_video_bus *video;
-> -	int error = 0;
-> -
-> -	mutex_lock(&video_list_lock);
-> -	list_for_each_entry(video, &video_bus_head, entry) {
-> -		error = acpi_video_bus_unregister_backlight(video);
-> -		if (error)
-> -			break;
-> -	}
-> -	mutex_unlock(&video_list_lock);
-> -
-> -	return error;
-> -}
-> -EXPORT_SYMBOL(acpi_video_unregister_backlight);
-
-You add this in patch 2/3 only to remove it again in 3/3?
-
-> -
->  static void acpi_video_dev_add_notify_handler(struct acpi_video_device *device)
->  {
->  	acpi_status status;
-> diff --git a/drivers/acpi/video_detect.c b/drivers/acpi/video_detect.c
-> index 940edbf..23d7d26 100644
-> --- a/drivers/acpi/video_detect.c
-> +++ b/drivers/acpi/video_detect.c
-> @@ -37,6 +37,7 @@
->  #include <linux/acpi.h>
->  #include <linux/dmi.h>
->  #include <linux/pci.h>
-> +#include <linux/backlight.h>
->  
->  #include "internal.h"
->  
-> @@ -233,11 +234,11 @@ static void acpi_video_caps_check(void)
->  		acpi_video_get_capabilities(NULL);
->  }
->  
-> -bool acpi_video_backlight_quirks(void)
-> +bool acpi_osi_is_win8(void)
->  {
->  	return acpi_gbl_osi_data >= ACPI_OSI_WIN_8;
->  }
-> -EXPORT_SYMBOL(acpi_video_backlight_quirks);
-> +EXPORT_SYMBOL(acpi_osi_is_win8);
->  
->  /* Promote the vendor interface instead of the generic video module.
->   * This function allow DMI blacklists to be implemented by externals
-> @@ -283,6 +284,15 @@ int acpi_video_backlight_support(void)
->  }
->  EXPORT_SYMBOL(acpi_video_backlight_support);
->  
-> +bool acpi_video_verify_backlight_support(void)
-> +{
-> +	if (!(acpi_video_support & ACPI_VIDEO_BACKLIGHT_FORCE_VIDEO) &&
-> +	    acpi_osi_is_win8() && backlight_device_registered(BACKLIGHT_RAW))
-> +		return false;
-> +	return acpi_video_backlight_support();
-> +}
-
-IIUC this expects the raw backlight device to have been registered prior
-to calling acpi_video_register(). This only works for i915 which calls
-acpi_video_register() itself.
 
 
-BR,
-Jani.
+--===============1802663373==
+Content-Type: multipart/signed; micalg="pgp-sha256";
+	protocol="application/pgp-signature"; boundary="=-15JMR/uvGZvL3AygEp60"
 
 
+--=-15JMR/uvGZvL3AygEp60
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
-> +EXPORT_SYMBOL(acpi_video_verify_backlight_support);
-> +
->  /*
->   * Use acpi_backlight=vendor/video to force that backlight switching
->   * is processed by vendor specific acpi drivers or video.ko driver.
-> -- 
-> 1.8.4.12.g2ea3df6
->
+On mar., 2013-09-17 at 17:23 +0800, Aaron Lu wrote:
+> v1 has the subject of "Rework ACPI video driver" and is posted here:
+> http://lkml.org/lkml/2013/9/9/74
+> Since the objective is really to fix Win8 backlight issues, I changed
+> the subject in this version, sorry about that.
+>=20
+> This patchset has three patches, the first introduced a new API named
+> backlight_device_registered in backlight layer that can be used for
+> backlight interface provider module to check if a specific type
+> backlight
+> interface has been registered, see changelog for patch 1/3 for
+> details.
+> Then patch 2/3 does the cleanup to sepeate the backlight control and
+> event delivery functionality in the ACPI video module and patch 3/3
+> solves some Win8 backlight control problems by avoiding register ACPI
+> video's backlight interface if:
+> 1 Kernel cmdline option acpi_backlight=3Dvideo is not given;
+> 2 This is a Win8 system;
+> 3 Native backlight control interface exists.
 
--- 
-Jani Nikula, Intel Open Source Technology Center
+I've tested this on my x230 (using pure UEFI with CSM disabled). As far
+as I can tell, it works as I would expect:
+
+- brightness keys work in initramfs, in console after boot, in lightdm
+prompt and in Xfce (wether or not xfce4-power-manager is running).
+
+I don't have brightness notifications (from xfce4-power-manager) but I
+don't usually need them so I'm fine with that.
+
+Regards,
+--=20
+Yves-Alexis
+
+--=-15JMR/uvGZvL3AygEp60
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: This is a digitally signed message part
+Content-Transfer-Encoding: 7bit
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.14 (GNU/Linux)
+
+iQEcBAABCAAGBQJSPEbfAAoJEG3bU/KmdcClZxwH/1p/b8ooRZyWt7n+FZufMER3
+665uuKlwgxRmd44M7XoN9M0IIGbNm6srEReA1OEF1lRnhzJLS4fGYXrcAAExheCV
+vA8Lk15FJlF7XjLVqtQGw3G0BjovolIB5XQCq9F3gom//liAYlhXOnH4sJMSFgu5
+/vP8C+BtpBusxow6JQIMD7UvTpCWpM6ImMC/C3Dj38UxtuPlEx5XbuufU1mnxpSe
+qs7nUoFhKP6/Dcp+HQuzCBpKdAQQzgGcr0c74UeTq2MA+vTTgFezQsDExV+LTxQ/
+DvKV9J0ChDxUR8PDwC/rMRvu/QghukoGoHCT90V0+ubBMVOMdHJWsFKT59cAt9c=
+=ctoj
+-----END PGP SIGNATURE-----
+
+--=-15JMR/uvGZvL3AygEp60--
+
+
+--===============1802663373==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+
+_______________________________________________
+Intel-gfx mailing list
+Intel-gfx@lists.freedesktop.org
+http://lists.freedesktop.org/mailman/listinfo/intel-gfx
+
+--===============1802663373==--
