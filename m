@@ -1,61 +1,83 @@
-From: Yinghai Lu <yinghai@kernel.org>
-Subject: [PATCH -v2] cpufreq: fix racing between acpi_cpufreq_loading
-Date: Fri, 20 Sep 2013 10:44:03 -0700
-Message-ID: <1379699043-7414-1-git-send-email-yinghai@kernel.org>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@sisk.pl>, Viresh Kumar <viresh.kumar@linaro.org>
-Cc: cpufreq@vger.kernel.org, linux-acpi@vger.kernel.org, linux-pm@vger.kernel.org, linux-kernel@vger.kernel.org, Yinghai Lu <yinghai@kernel.org>
+From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Subject: [GIT PULL] ACPI and power management fixes for v3.12-rc2
+Date: Fri, 20 Sep 2013 21:08:34 +0200
+Message-ID: <3724780.tAvtize7I5@vostro.rjw.lan>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7Bit
+Return-path: <linux-pm-owner@vger.kernel.org>
+Sender: linux-pm-owner@vger.kernel.org
+To: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>, Linux PCI <linux-pci@vger.kernel.org>, Linux PM list <linux-pm@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
 
-There is racing in
-	__acpi_processor_start
-		 ==> acpi_processor_load_module
-			 ==> request_module_nowait/requested = 1
-before first pr path to have requested set, second cpu would request again.
-that will cause acpi_cpufreq_early_init to be called in parallel,
-that will cause data curruption in acpi_cpufreq_early_init...
-and intermittent crash.
+Hi Linus,
 
-So add mutex to protect it.
+Please pull from the git repository at
 
-Signed-off-by: Yinghai Lu <yinghai@kernel.org>
+  git://git.kernel.org/pub/scm/linux/kernel/git/rafael/linux-pm.git pm+acpi-3.12-rc2
 
----
- drivers/acpi/processor_perflib.c |    8 +++++++-
- 1 file changed, 7 insertions(+), 1 deletion(-)
+to receive ACPI and power management fixes for v3.12-rc2 with
+top-most commit d831a00510b9d400bf62464d8b11b158941348e6
 
-Index: linux-2.6/drivers/acpi/processor_perflib.c
-===================================================================
---- linux-2.6.orig/drivers/acpi/processor_perflib.c
-+++ linux-2.6/drivers/acpi/processor_perflib.c
-@@ -235,6 +235,7 @@ void acpi_processor_ppc_exit(void)
- 	acpi_processor_ppc_status &= ~PPC_REGISTERED;
- }
- 
-+static DEFINE_MUTEX(acpi_cpufreq_load_lock);
- /*
-  * Do a quick check if the systems looks like it should use ACPI
-  * cpufreq. We look at a _PCT method being available, but don't
-@@ -246,8 +247,12 @@ void acpi_processor_load_module(struct a
- 	acpi_status status = 0;
- 	struct acpi_buffer buffer = { ACPI_ALLOCATE_BUFFER, NULL };
- 
--	if (!arch_has_acpi_pdc() || requested)
-+	mutex_lock(&acpi_cpufreq_load_lock);
-+	if (!arch_has_acpi_pdc() || requested) {
-+		mutex_unlock(&acpi_cpufreq_load_lock);
- 		return;
-+	}
-+
- 	status = acpi_evaluate_object(pr->handle, "_PCT", NULL, &buffer);
- 	if (!ACPI_FAILURE(status)) {
- 		printk(KERN_INFO PREFIX "Requesting acpi_cpufreq\n");
-@@ -255,6 +260,7 @@ void acpi_processor_load_module(struct a
- 		requested = 1;
- 	}
- 	kfree(buffer.pointer);
-+	mutex_unlock(&acpi_cpufreq_load_lock);
- }
- 
- static int acpi_processor_get_performance_control(struct acpi_processor *pr)
+  Merge branch 'pm-cpufreq'
+
+on top of commit 272b98c6455f00884f0350f775c5342358ebb73f
+
+  Linux 3.12-rc1
+
+These are fixes for cpufreq issues that have emerged after recent
+changes and one fix for an older PCI/ACPI power management breakage.
+
+Specifics:
+
+ 1) Four fixes for cpufreq regressions introduced by the changes that
+    removed Device Tree parsing for CPU device nodes from cpufreq
+    drivers from Sudeep KarkadaNagesha.
+
+ 2) Two fixes for recent cpufreq regressions introduced by changes
+    related to the preservation of sysfs attributes over system
+    suspend/resume cycles from Viresh Kumar.
+
+ 3) Fix for ACPI-based wakeup signaling in the PCI subsystem that
+    fails to stop PME polling for devices put into the D3cold power
+    state from yours truly.
+
+ 4) Fix for bad interactions between cpufreq and udev on systems
+    supporting intel_pstate where acpi-cpufreq is available as well
+    from Yinghai Lu.
+
+Thanks!
+
+
+---------------
+
+Rafael J. Wysocki (1):
+      PCI / ACPI / PM: Clear pme_poll for devices in D3cold on wakeup
+
+Sudeep KarkadaNagesha (4):
+      cpufreq: cpufreq-cpu0: assign cpu_dev correctly to cpu0 device
+      cpufreq: imx6q-cpufreq: assign cpu_dev correctly to cpu0 device
+      ARM: i.MX: change dev_id to cpu0 while registering cpu clock
+      ARM: shmobile: change dev_id to cpu0 while registering cpu clock
+
+Viresh Kumar (2):
+      cpufreq: Clear policy->cpus bits in __cpufreq_remove_dev_finish()
+      cpufreq: unlock correct rwsem while updating policy->cpu
+
+Yinghai Lu (1):
+      cpufreq: return EEXIST instead of EBUSY for second registering
+
+---------------
+
+ arch/arm/mach-imx/clk-imx27.c          |  2 +-
+ arch/arm/mach-imx/clk-imx51-imx53.c    |  2 +-
+ arch/arm/mach-imx/mach-imx6q.c         |  9 +++++++--
+ arch/arm/mach-shmobile/clock-r8a73a4.c |  2 +-
+ arch/arm/mach-shmobile/clock-sh73a0.c  |  2 +-
+ drivers/cpufreq/cpufreq-cpu0.c         |  7 ++++++-
+ drivers/cpufreq/cpufreq.c              | 31 ++++++++++++++++++++-----------
+ drivers/cpufreq/imx6q-cpufreq.c        |  7 ++++++-
+ drivers/pci/pci-acpi.c                 |  6 +++---
+ 9 files changed, 46 insertions(+), 22 deletions(-)
+
