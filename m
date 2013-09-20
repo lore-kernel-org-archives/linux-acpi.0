@@ -1,41 +1,61 @@
-From: Linus Walleij <linus.walleij@linaro.org>
-Subject: Re: [PATCH 2/2] gpio / ACPI: add support for GPIO operation regions
-Date: Fri, 20 Sep 2013 21:21:37 +0200
-Message-ID: <CACRpkdb5fqMycTxou50-+oiNOs3vzd+8XfWsPbX8vBJp2Su3aw@mail.gmail.com>
-References: <1379085280-2211-1-git-send-email-mika.westerberg@linux.intel.com>
-	<1379085280-2211-2-git-send-email-mika.westerberg@linux.intel.com>
+From: Yinghai Lu <yinghai@kernel.org>
+Subject: Re: [PATCH -v2] cpufreq: skip loading acpi_cpufreq after intel_pstate
+Date: Fri, 20 Sep 2013 12:51:08 -0700
+Message-ID: <CAE9FiQWQt_NUTE5NOCGAHTr+1VzgjWp+cFwaOH8nJZ7=fE2dbQ@mail.gmail.com>
+References: <1379699036-7380-1-git-send-email-yinghai@kernel.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1379085280-2211-2-git-send-email-mika.westerberg@linux.intel.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Mika Westerberg <mika.westerberg@linux.intel.com>
-Cc: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Mathias Nyman <mathias.nyman@linux.intel.com>, Grant Likely <grant.likely@secretlab.ca>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Alexandre Courbot <acourbot@nvidia.com>
+Return-path: <linux-pm-owner@vger.kernel.org>
+In-Reply-To: <1379699036-7380-1-git-send-email-yinghai@kernel.org>
+Sender: linux-pm-owner@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@sisk.pl>, Viresh Kumar <viresh.kumar@linaro.org>
+Cc: "cpufreq@vger.kernel.org" <cpufreq@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux PM list <linux-pm@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Yinghai Lu <yinghai@kernel.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On Fri, Sep 13, 2013 at 5:14 PM, Mika Westerberg
-<mika.westerberg@linux.intel.com> wrote:
+On Fri, Sep 20, 2013 at 10:43 AM, Yinghai Lu <yinghai@kernel.org> wrote:
+> If the hw support intel_pstate and acpi_cpufreq, intel_pstate will
+> get loaded first.
+>
+> acpi_cpufreq_init will call acpi_cpufreq_early_init()
+> and that will allocate perf data and init those perf data in ACPI core,
+> (that will cover all cpus). But later it will free them as
+> cpufreq_register_driver(acpi_cpufreq) will fail as init_pstate is
+> already registered
+>
+> Use cpufreq_get_current_driver() to check if we can skip the
+> acpi_cpufreq loading.
+>
+> -v2: update changelog and separate second part to another patch, according
+>      to Viresh.
+>
+> Signed-off-by: Yinghai Lu <yinghai@kernel.org>
+>
+> ---
+>  drivers/cpufreq/acpi-cpufreq.c |    4 ++++
+>  1 file changed, 4 insertions(+)
+>
+> Index: linux-2.6/drivers/cpufreq/acpi-cpufreq.c
+> ===================================================================
+> --- linux-2.6.orig/drivers/cpufreq/acpi-cpufreq.c
+> +++ linux-2.6/drivers/cpufreq/acpi-cpufreq.c
+> @@ -986,6 +986,10 @@ static int __init acpi_cpufreq_init(void
+>  {
+>         int ret;
+>
+> +       /* don't keep reloading if cpufreq_driver exists */
+> +       if (cpufreq_get_current_driver())
+> +               return 0;
+> +
+>         if (acpi_disabled)
+>                 return 0;
+>
 
-> diff --git a/drivers/gpio/gpiolib-acpi.c b/drivers/gpio/gpiolib-acpi.c
-(...)
-> +struct acpi_gpio_chip_data {
-> +       /*
-> +        * acpi_install_address_space_handler() wants to put the connection
-> +        * information at the start of the context structure we pass it, in
-> +        * case we are dealing with GPIO operation regions.
-> +        */
-> +       struct acpi_connection_info ci;
-> +       struct gpio_chip *chip;
-> +       struct list_head *evt_pins;
-> +};
+only this one is needed, other one
 
-Consider just naming this acpi_gpio_chip, as it is obviously some
-generic container that you will keep adding to.
+cpufreq: fix racing between acpi_cpufreq_loading
 
-I'm uncertain how things work, it wouldn't add something to have
-struct gpio_chip be a true member (not a pointer) so you can
-allocate one thing from the drivers, and e.g. use container_of()
-to get from the gpio_chip to the acpi_gpio_chip[_data]?
+is not needed.
 
-Yours,
-Linus Walleij
+Thanks
+
+Yinghai
