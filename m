@@ -1,70 +1,46 @@
-From: Hans de Bruin <jmdebruin@xmsnet.nl>
-Subject: Bisected 3.12.0-rc1 Laptop screen goes blank during kernelboot
-Date: Fri, 20 Sep 2013 19:13:28 +0200
-Message-ID: <523C8238.3000200@xmsnet.nl>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp1.ispfabriek.nl ([37.251.0.168]:54414 "EHLO
-	smtp1.ispfabriek.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752393Ab3ITRWj (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 20 Sep 2013 13:22:39 -0400
-Sender: linux-acpi-owner@vger.kernel.org
+From: Yinghai Lu <yinghai@kernel.org>
+Subject: [PATCH -v2] cpufreq: skip loading acpi_cpufreq after intel_pstate
+Date: Fri, 20 Sep 2013 10:43:56 -0700
+Message-ID: <1379699036-7380-1-git-send-email-yinghai@kernel.org>
+Return-path: <linux-pm-owner@vger.kernel.org>
+Sender: linux-pm-owner@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@sisk.pl>, Viresh Kumar <viresh.kumar@linaro.org>
+Cc: cpufreq@vger.kernel.org, linux-acpi@vger.kernel.org, linux-pm@vger.kernel.org, linux-kernel@vger.kernel.org, Yinghai Lu <yinghai@kernel.org>
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org, linux-pci@vger.kernel.org
 
-During boot time my laptop screen goes blank when de kernel switches the 
-screen to another resolution. The backlight is on. Eventually a kde 
-login box appears out of the blackness. Swiching to a lower resolution 
-gives me a black screen again. After testing the 
-intel-gfx@lists.freedesktop.org developers test-tree problem less they 
-sugested a bisect. That bisect ended in:
+If the hw support intel_pstate and acpi_cpufreq, intel_pstate will
+get loaded first.
 
+acpi_cpufreq_init will call acpi_cpufreq_early_init()
+and that will allocate perf data and init those perf data in ACPI core,
+(that will cover all cpus). But later it will free them as
+cpufreq_register_driver(acpi_cpufreq) will fail as init_pstate is
+already registered
 
-commit 137b944e100278d696826cf25c83014ac17473fe
-Author: Daniel Lezcano <daniel.lezcano@linaro.org>
-Date:   Wed Jun 12 15:08:48 2013 +0200
+Use cpufreq_get_current_driver() to check if we can skip the
+acpi_cpufreq loading.
 
-   cpuidle: Make it clear that governors cannot be modules
+-v2: update changelog and separate second part to another patch, according
+     to Viresh.
 
-   cpufreq governors are defined as modules in the code, but the Kconfig
-   options do not allow them to be built as modules.  This is not really
-   a problem, but the cpuidle init ordering is: the cpuidle init
-   functions (framework and driver) and then the governors.  That leads
-   to some weirdness in the cpuidle framework.
+Signed-off-by: Yinghai Lu <yinghai@kernel.org>
 
-   Namely,  cpuidle_register_device() calls cpuidle_enable_device() which
-   fails at the first attempt, because governors have not been registered
-   yet.  When a governor is registered, the framework calls
-   cpuidle_enable_device() again which runs __cpuidle_register_device()
-   only then.  Of course, for that to work, the cpuidle_enable_device()
-   return value has to be ignored by cpuidle_register_device().
+---
+ drivers/cpufreq/acpi-cpufreq.c |    4 ++++
+ 1 file changed, 4 insertions(+)
 
-     Instead of having this cyclic call graph and relying on a positive
-     side effects of the hackish back and forth cpuidle_enable_device()
-     calls it is better to fix the cpuidle init ordering.
-
-     To that end, replace the module init code with postcore_initcall()
-     so we have:
-
-      * cpuidle framework : core_initcall
-      * cpuidle governors : postcore_initcall
-      * cpuidle drivers   : device_initcall
-
-     and remove the corresponding module exit code as it is dead anyway
-     (governors can't be built as modules).
-
-     [rjw: Changelog]
-     Signed-off-by: Daniel Lezcano <daniel.lezcano@linaro.org>
-     Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
-
-:040000 040000 45e7cb28411864c00b62296a7ff239f9f139d5d9 
-86a36b01dee52a77cfbab41a973b7a2bfa44ce34 M      drivers
-
-
-
-Reverting it makes the problem go away.
-
--- 
-Hans
+Index: linux-2.6/drivers/cpufreq/acpi-cpufreq.c
+===================================================================
+--- linux-2.6.orig/drivers/cpufreq/acpi-cpufreq.c
++++ linux-2.6/drivers/cpufreq/acpi-cpufreq.c
+@@ -986,6 +986,10 @@ static int __init acpi_cpufreq_init(void
+ {
+ 	int ret;
+ 
++	/* don't keep reloading if cpufreq_driver exists */
++	if (cpufreq_get_current_driver())
++		return 0;
++
+ 	if (acpi_disabled)
+ 		return 0;
+ 
