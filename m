@@ -1,88 +1,72 @@
-From: Yinghai Lu <yinghai@kernel.org>
-Subject: [PATCH] cpufreq: skip loading acpi_cpufreq after intel_pstate
-Date: Thu, 19 Sep 2013 22:26:12 -0700
-Message-ID: <1379654772-10700-1-git-send-email-yinghai@kernel.org>
+From: Viresh Kumar <viresh.kumar@linaro.org>
+Subject: Re: [PATCH] cpufreq: skip loading acpi_cpufreq after intel_pstate
+Date: Fri, 20 Sep 2013 11:40:18 +0530
+Message-ID: <CAKohpokdyk9hfBreVeXttN23biTVjWiJRm8eYkfAjLz+cbnreQ@mail.gmail.com>
+References: <1379654772-10700-1-git-send-email-yinghai@kernel.org>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <cpufreq-owner@vger.kernel.org>
+In-Reply-To: <1379654772-10700-1-git-send-email-yinghai@kernel.org>
 Sender: cpufreq-owner@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@sisk.pl>, Viresh Kumar <viresh.kumar@linaro.org>
-Cc: cpufreq@vger.kernel.org, linux-acpi@vger.kernel.org, linux-pm@vger.kernel.org, linux-kernel@vger.kernel.org, Yinghai Lu <yinghai@kernel.org>
+To: Yinghai Lu <yinghai@kernel.org>
+Cc: "Rafael J. Wysocki" <rjw@sisk.pl>, "cpufreq@vger.kernel.org" <cpufreq@vger.kernel.org>, Linux ACPI <linux-acpi@vger.kernel.org>, "linux-pm@vger.kernel.org" <linux-pm@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
 
-If the hw support intel_pstate and acpi_cpufreq, intel_pstate will
-get loaded at first.
+On 20 September 2013 10:56, Yinghai Lu <yinghai@kernel.org> wrote:
+> If the hw support intel_pstate and acpi_cpufreq, intel_pstate will
+> get loaded at first.
 
-acpi_cpufreq_init will call acpi_cpufreq_early_init()
-and it allocate perf data and init those perf data in ACPI core, (that
-will go over all cpus).
-but late it will free them as cpufreq_register_driver(acpi_cpufreq) will
-return fail as init_pstate already take over before.
+s/at //
 
-Use cpufreq_get_current_driver() to check if we can skip the
-acpi_cpufreq loading.
+>
+> acpi_cpufreq_init will call acpi_cpufreq_early_init()
+> and it allocate perf data and init those perf data in ACPI core, (that
 
-Also there is racing in
-	__acpi_processor_start
-		 ==> acpi_processor_load_module
-			 ==> request_module_nowait/requested = 1
-before first pr path to have requested set, second cpu would request again.
-that will cause acpi_cpufreq_early_init to be called in parallel.
-that is cause for intermittent crashes.
+s/it /that will /
 
-So add mutex to protect it.
+> will go over all cpus).
 
-Signed-off-by: Yinghai Lu <yinghai@kernel.org>
+s/go over/cover/
 
----
- drivers/acpi/processor_perflib.c |    8 +++++++-
- drivers/cpufreq/acpi-cpufreq.c   |    4 ++++
- 2 files changed, 11 insertions(+), 1 deletion(-)
+> but late it will free them as cpufreq_register_driver(acpi_cpufreq) will
 
-Index: linux-2.6/drivers/cpufreq/acpi-cpufreq.c
-===================================================================
---- linux-2.6.orig/drivers/cpufreq/acpi-cpufreq.c
-+++ linux-2.6/drivers/cpufreq/acpi-cpufreq.c
-@@ -986,6 +986,10 @@ static int __init acpi_cpufreq_init(void
- {
- 	int ret;
- 
-+	/* don't keep reloading if cpufreq_driver exists */
-+	if (cpufreq_get_current_driver())
-+		return 0;
-+
- 	if (acpi_disabled)
- 		return 0;
- 
-Index: linux-2.6/drivers/acpi/processor_perflib.c
-===================================================================
---- linux-2.6.orig/drivers/acpi/processor_perflib.c
-+++ linux-2.6/drivers/acpi/processor_perflib.c
-@@ -235,6 +235,7 @@ void acpi_processor_ppc_exit(void)
- 	acpi_processor_ppc_status &= ~PPC_REGISTERED;
- }
- 
-+static DEFINE_MUTEX(acpi_cpufreq_load_lock);
- /*
-  * Do a quick check if the systems looks like it should use ACPI
-  * cpufreq. We look at a _PCT method being available, but don't
-@@ -246,8 +247,12 @@ void acpi_processor_load_module(struct a
- 	acpi_status status = 0;
- 	struct acpi_buffer buffer = { ACPI_ALLOCATE_BUFFER, NULL };
- 
--	if (!arch_has_acpi_pdc() || requested)
-+	mutex_lock(&acpi_cpufreq_load_lock);
-+	if (!arch_has_acpi_pdc() || requested ||cpufreq_get_current_driver()) {
-+		mutex_unlock(&acpi_cpufreq_load_lock);
- 		return;
-+	}
-+
- 	status = acpi_evaluate_object(pr->handle, "_PCT", NULL, &buffer);
- 	if (!ACPI_FAILURE(status)) {
- 		printk(KERN_INFO PREFIX "Requesting acpi_cpufreq\n");
-@@ -255,6 +260,7 @@ void acpi_processor_load_module(struct a
- 		requested = 1;
- 	}
- 	kfree(buffer.pointer);
-+	mutex_unlock(&acpi_cpufreq_load_lock);
- }
- 
- static int acpi_processor_get_performance_control(struct acpi_processor *pr)
+s/late/later
+
+> return fail as init_pstate already take over before.
+
+write it as: fail as intel_pstate is already registered.
+
+> Use cpufreq_get_current_driver() to check if we can skip the
+> acpi_cpufreq loading.
+
+The below material looks to be a separate issue and so we
+probably break this patch into two?
+
+> Also there is racing in
+>         __acpi_processor_start
+>                  ==> acpi_processor_load_module
+>                          ==> request_module_nowait/requested = 1
+
+> Index: linux-2.6/drivers/cpufreq/acpi-cpufreq.c
+> ===================================================================
+> --- linux-2.6.orig/drivers/cpufreq/acpi-cpufreq.c
+> +++ linux-2.6/drivers/cpufreq/acpi-cpufreq.c
+> @@ -986,6 +986,10 @@ static int __init acpi_cpufreq_init(void
+>  {
+>         int ret;
+>
+> +       /* don't keep reloading if cpufreq_driver exists */
+> +       if (cpufreq_get_current_driver())
+> +               return 0;
+> +
+>         if (acpi_disabled)
+>                 return 0;
+
+This looks fine to me..
+
+> Index: linux-2.6/drivers/acpi/processor_perflib.c
+> ===================================================================
+> --- linux-2.6.orig/drivers/acpi/processor_perflib.c
+> +++ linux-2.6/drivers/acpi/processor_perflib.c
+
+Can't really review this one.. Rafael will do it..
