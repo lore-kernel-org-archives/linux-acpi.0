@@ -1,83 +1,74 @@
-From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: [GIT PULL] ACPI and power management fixes for v3.12-rc2
-Date: Fri, 20 Sep 2013 21:08:34 +0200
-Message-ID: <3724780.tAvtize7I5@vostro.rjw.lan>
+From: Linus Walleij <linus.walleij@linaro.org>
+Subject: Re: [PATCH 1/2] gpio / ACPI: register to ACPI events automatically
+Date: Fri, 20 Sep 2013 21:08:57 +0200
+Message-ID: <CACRpkdZ4WNmt5ZO_+Wtpm0+GD4EMAK5VscV-cTN+43heF17FJg@mail.gmail.com>
+References: <1379085280-2211-1-git-send-email-mika.westerberg@linux.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7Bit
-Return-path: <linux-pm-owner@vger.kernel.org>
-Sender: linux-pm-owner@vger.kernel.org
-To: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>, Linux PCI <linux-pci@vger.kernel.org>, Linux PM list <linux-pm@vger.kernel.org>
+Content-Type: text/plain; charset=ISO-8859-1
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-ob0-f172.google.com ([209.85.214.172]:62659 "EHLO
+	mail-ob0-f172.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753105Ab3ITTI6 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 20 Sep 2013 15:08:58 -0400
+Received: by mail-ob0-f172.google.com with SMTP id gq1so1089672obb.3
+        for <linux-acpi@vger.kernel.org>; Fri, 20 Sep 2013 12:08:57 -0700 (PDT)
+In-Reply-To: <1379085280-2211-1-git-send-email-mika.westerberg@linux.intel.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Mika Westerberg <mika.westerberg@linux.intel.com>
+Cc: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Mathias Nyman <mathias.nyman@linux.intel.com>, Grant Likely <grant.likely@secretlab.ca>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>
 
-Hi Linus,
+On Fri, Sep 13, 2013 at 5:14 PM, Mika Westerberg
+<mika.westerberg@linux.intel.com> wrote:
 
-Please pull from the git repository at
+> Instead of asking each driver to register to the ACPI events we can just
+> call acpi_gpiochip_register_interrupts() for each chip that has ACPI
+> handle. It checks chip->to_irq and if it is set to NULL (a GPIO driver that
+> doesn't do interrupts) the function does nothing.
+>
+> Also make the event interface to be private to gpiolib-acpi and remove call
+> to the API from the one existing user (pinctrl-baytrail.c).
+>
+> Signed-off-by: Mika Westerberg <mika.westerberg@linux.intel.com>
 
-  git://git.kernel.org/pub/scm/linux/kernel/git/rafael/linux-pm.git pm+acpi-3.12-rc2
+The concept looks sane...
 
-to receive ACPI and power management fixes for v3.12-rc2 with
-top-most commit d831a00510b9d400bf62464d8b11b158941348e6
+> +void acpi_gpiochip_add(struct gpio_chip *chip)
+> +{
+> +       acpi_gpiochip_request_interrupts(chip);
+> +}
+> +EXPORT_SYMBOL_GPL(acpi_gpiochip_add);
+> +
+> +void acpi_gpiochip_remove(struct gpio_chip *chip)
+> +{
+> +       acpi_gpiochip_free_interrupts(chip);
+> +}
+> +EXPORT_SYMBOL_GPL(acpi_gpiochip_remove);
 
-  Merge branch 'pm-cpufreq'
+If you're only going to call this from within gpiolib, why are
+you EXPORTing the APIs?
 
-on top of commit 272b98c6455f00884f0350f775c5342358ebb73f
+I think we should maybe create drivers/gpio/gpiolib.h
+for such subsystem-local headers.
 
-  Linux 3.12-rc1
+> @@ -1221,6 +1222,7 @@ int gpiochip_add(struct gpio_chip *chip)
+>  #endif
+>
+>         of_gpiochip_add(chip);
+> +       acpi_gpiochip_add(chip);
+>
+>         if (status)
+>                 goto fail;
+> @@ -1262,6 +1264,7 @@ int gpiochip_remove(struct gpio_chip *chip)
+>
+>         gpiochip_remove_pin_ranges(chip);
+>         of_gpiochip_remove(chip);
+> +       acpi_gpiochip_remove(chip);
 
-These are fixes for cpufreq issues that have emerged after recent
-changes and one fix for an older PCI/ACPI power management breakage.
+What happens on a platform that is not using CONFIG_GPIO_ACPI
+when they try to compile this?
 
-Specifics:
+You forgot to add static inline stubs for the non-ACPI case.
 
- 1) Four fixes for cpufreq regressions introduced by the changes that
-    removed Device Tree parsing for CPU device nodes from cpufreq
-    drivers from Sudeep KarkadaNagesha.
-
- 2) Two fixes for recent cpufreq regressions introduced by changes
-    related to the preservation of sysfs attributes over system
-    suspend/resume cycles from Viresh Kumar.
-
- 3) Fix for ACPI-based wakeup signaling in the PCI subsystem that
-    fails to stop PME polling for devices put into the D3cold power
-    state from yours truly.
-
- 4) Fix for bad interactions between cpufreq and udev on systems
-    supporting intel_pstate where acpi-cpufreq is available as well
-    from Yinghai Lu.
-
-Thanks!
-
-
----------------
-
-Rafael J. Wysocki (1):
-      PCI / ACPI / PM: Clear pme_poll for devices in D3cold on wakeup
-
-Sudeep KarkadaNagesha (4):
-      cpufreq: cpufreq-cpu0: assign cpu_dev correctly to cpu0 device
-      cpufreq: imx6q-cpufreq: assign cpu_dev correctly to cpu0 device
-      ARM: i.MX: change dev_id to cpu0 while registering cpu clock
-      ARM: shmobile: change dev_id to cpu0 while registering cpu clock
-
-Viresh Kumar (2):
-      cpufreq: Clear policy->cpus bits in __cpufreq_remove_dev_finish()
-      cpufreq: unlock correct rwsem while updating policy->cpu
-
-Yinghai Lu (1):
-      cpufreq: return EEXIST instead of EBUSY for second registering
-
----------------
-
- arch/arm/mach-imx/clk-imx27.c          |  2 +-
- arch/arm/mach-imx/clk-imx51-imx53.c    |  2 +-
- arch/arm/mach-imx/mach-imx6q.c         |  9 +++++++--
- arch/arm/mach-shmobile/clock-r8a73a4.c |  2 +-
- arch/arm/mach-shmobile/clock-sh73a0.c  |  2 +-
- drivers/cpufreq/cpufreq-cpu0.c         |  7 ++++++-
- drivers/cpufreq/cpufreq.c              | 31 ++++++++++++++++++++-----------
- drivers/cpufreq/imx6q-cpufreq.c        |  7 ++++++-
- drivers/pci/pci-acpi.c                 |  6 +++---
- 9 files changed, 46 insertions(+), 22 deletions(-)
-
+Yours,
+Linus Walleij
