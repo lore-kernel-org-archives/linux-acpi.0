@@ -1,68 +1,88 @@
-From: Bjorn Helgaas <bhelgaas@google.com>
-Subject: Re: [PATCH] PCI / ACPI / PM: Clear pme_poll for devices in D3cold on wakeup
-Date: Thu, 19 Sep 2013 14:51:15 -0600
-Message-ID: <CAErSpo6ztY=Hd42UUi=KZvN62+9fd4BmyGafLDqfvwp9NxhrYw@mail.gmail.com>
-References: <4974289.QhzOmFXm0s@vostro.rjw.lan>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <linux-pci-owner@vger.kernel.org>
-In-Reply-To: <4974289.QhzOmFXm0s@vostro.rjw.lan>
-Sender: linux-pci-owner@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: Linux PCI <linux-pci@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>, Linux PM list <linux-pm@vger.kernel.org>, Huang Ying <ying.huang@intel.com>, Matthew Garrett <mjg59@srcf.ucam.org>, "David E. Box" <david.e.box@intel.com>
+From: Yinghai Lu <yinghai@kernel.org>
+Subject: [PATCH] cpufreq: skip loading acpi_cpufreq after intel_pstate
+Date: Thu, 19 Sep 2013 22:26:12 -0700
+Message-ID: <1379654772-10700-1-git-send-email-yinghai@kernel.org>
+Return-path: <cpufreq-owner@vger.kernel.org>
+Sender: cpufreq-owner@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@sisk.pl>, Viresh Kumar <viresh.kumar@linaro.org>
+Cc: cpufreq@vger.kernel.org, linux-acpi@vger.kernel.org, linux-pm@vger.kernel.org, linux-kernel@vger.kernel.org, Yinghai Lu <yinghai@kernel.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On Fri, Sep 13, 2013 at 7:38 PM, Rafael J. Wysocki <rjw@sisk.pl> wrote:
-> From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
->
-> Commit 448bd85 (PCI/PM: add PCIe runtime D3cold support) added a
-> piece of code to pci_acpi_wake_dev() causing that function to behave
-> in a special way for devices in D3cold (so that their configuration
-> registeres are not accessed before those devices are resumed).
+If the hw support intel_pstate and acpi_cpufreq, intel_pstate will
+get loaded at first.
 
-s/registeres/registers/
+acpi_cpufreq_init will call acpi_cpufreq_early_init()
+and it allocate perf data and init those perf data in ACPI core, (that
+will go over all cpus).
+but late it will free them as cpufreq_register_driver(acpi_cpufreq) will
+return fail as init_pstate already take over before.
 
-> However, it didn't take the clearing of the pme_poll flag into
-> account.  That has to be done for all devices, even if they are in
-> D3cold, or pci_pme_list_scan() will not know that wakeup has been
-> signaled for the device and will poll its PME Status bit
-> unnecessarily.
->
-> Fix the problem by moving the clearing of the pme_poll flag in
-> pci_acpi_wake_dev() before the code introduced by commit 448bd85.
->
-> Reported-and-tested-by: David E. Box <david.e.box@intel.com>
-> Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+Use cpufreq_get_current_driver() to check if we can skip the
+acpi_cpufreq loading.
 
-Acked-by: Bjorn Helgaas <bhelgaas@google.com>
+Also there is racing in
+	__acpi_processor_start
+		 ==> acpi_processor_load_module
+			 ==> request_module_nowait/requested = 1
+before first pr path to have requested set, second cpu would request again.
+that will cause acpi_cpufreq_early_init to be called in parallel.
+that is cause for intermittent crashes.
 
-> Cc: 3.6+ <stable@vger.kernel.org> # 3.6+
-> ---
->  drivers/pci/pci-acpi.c |    6 +++---
->  1 file changed, 3 insertions(+), 3 deletions(-)
->
-> Index: linux-pm/drivers/pci/pci-acpi.c
-> ===================================================================
-> --- linux-pm.orig/drivers/pci/pci-acpi.c
-> +++ linux-pm/drivers/pci/pci-acpi.c
-> @@ -47,6 +47,9 @@ static void pci_acpi_wake_dev(acpi_handl
->         if (event != ACPI_NOTIFY_DEVICE_WAKE || !pci_dev)
->                 return;
->
-> +       if (pci_dev->pme_poll)
-> +               pci_dev->pme_poll = false;
-> +
->         if (pci_dev->current_state == PCI_D3cold) {
->                 pci_wakeup_event(pci_dev);
->                 pm_runtime_resume(&pci_dev->dev);
-> @@ -57,9 +60,6 @@ static void pci_acpi_wake_dev(acpi_handl
->         if (pci_dev->pme_support)
->                 pci_check_pme_status(pci_dev);
->
-> -       if (pci_dev->pme_poll)
-> -               pci_dev->pme_poll = false;
-> -
->         pci_wakeup_event(pci_dev);
->         pm_runtime_resume(&pci_dev->dev);
->
->
+So add mutex to protect it.
+
+Signed-off-by: Yinghai Lu <yinghai@kernel.org>
+
+---
+ drivers/acpi/processor_perflib.c |    8 +++++++-
+ drivers/cpufreq/acpi-cpufreq.c   |    4 ++++
+ 2 files changed, 11 insertions(+), 1 deletion(-)
+
+Index: linux-2.6/drivers/cpufreq/acpi-cpufreq.c
+===================================================================
+--- linux-2.6.orig/drivers/cpufreq/acpi-cpufreq.c
++++ linux-2.6/drivers/cpufreq/acpi-cpufreq.c
+@@ -986,6 +986,10 @@ static int __init acpi_cpufreq_init(void
+ {
+ 	int ret;
+ 
++	/* don't keep reloading if cpufreq_driver exists */
++	if (cpufreq_get_current_driver())
++		return 0;
++
+ 	if (acpi_disabled)
+ 		return 0;
+ 
+Index: linux-2.6/drivers/acpi/processor_perflib.c
+===================================================================
+--- linux-2.6.orig/drivers/acpi/processor_perflib.c
++++ linux-2.6/drivers/acpi/processor_perflib.c
+@@ -235,6 +235,7 @@ void acpi_processor_ppc_exit(void)
+ 	acpi_processor_ppc_status &= ~PPC_REGISTERED;
+ }
+ 
++static DEFINE_MUTEX(acpi_cpufreq_load_lock);
+ /*
+  * Do a quick check if the systems looks like it should use ACPI
+  * cpufreq. We look at a _PCT method being available, but don't
+@@ -246,8 +247,12 @@ void acpi_processor_load_module(struct a
+ 	acpi_status status = 0;
+ 	struct acpi_buffer buffer = { ACPI_ALLOCATE_BUFFER, NULL };
+ 
+-	if (!arch_has_acpi_pdc() || requested)
++	mutex_lock(&acpi_cpufreq_load_lock);
++	if (!arch_has_acpi_pdc() || requested ||cpufreq_get_current_driver()) {
++		mutex_unlock(&acpi_cpufreq_load_lock);
+ 		return;
++	}
++
+ 	status = acpi_evaluate_object(pr->handle, "_PCT", NULL, &buffer);
+ 	if (!ACPI_FAILURE(status)) {
+ 		printk(KERN_INFO PREFIX "Requesting acpi_cpufreq\n");
+@@ -255,6 +260,7 @@ void acpi_processor_load_module(struct a
+ 		requested = 1;
+ 	}
+ 	kfree(buffer.pointer);
++	mutex_unlock(&acpi_cpufreq_load_lock);
+ }
+ 
+ static int acpi_processor_get_performance_control(struct acpi_processor *pr)
