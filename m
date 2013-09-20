@@ -1,89 +1,51 @@
-From: Yves-Alexis Perez <corsac@debian.org>
-Subject: Re: [PATCH v2 3/3] ACPI / video: Do not register
- backlight if win8 and native interface exists
-Date: Fri, 20 Sep 2013 15:02:12 +0200
-Message-ID: <1379682132.9746.6.camel@oban>
-References: <1379409796-29350-1-git-send-email-aaron.lu@intel.com>
-	<1379409796-29350-4-git-send-email-aaron.lu@intel.com>
+From: Yinghai Lu <yinghai@kernel.org>
+Subject: Re: [PATCH] cpufreq: skip loading acpi_cpufreq after intel_pstate
+Date: Fri, 20 Sep 2013 10:08:07 -0700
+Message-ID: <CAE9FiQUXGtNeAS70Mr6Nscax26dRoXTCyb28gz1iX2j1s8Nojw@mail.gmail.com>
+References: <1379654772-10700-1-git-send-email-yinghai@kernel.org>
+	<CAKohpokdyk9hfBreVeXttN23biTVjWiJRm8eYkfAjLz+cbnreQ@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="===============1331478613=="
-Return-path: <intel-gfx-bounces+gcfxdi-intel-gfx=m.gmane.org@lists.freedesktop.org>
-In-Reply-To: <1379409796-29350-4-git-send-email-aaron.lu@intel.com>
-List-Unsubscribe: <http://lists.freedesktop.org/mailman/options/intel-gfx>,
-	<mailto:intel-gfx-request@lists.freedesktop.org?subject=unsubscribe>
-List-Archive: <http://lists.freedesktop.org/archives/intel-gfx>
-List-Post: <mailto:intel-gfx@lists.freedesktop.org>
-List-Help: <mailto:intel-gfx-request@lists.freedesktop.org?subject=help>
-List-Subscribe: <http://lists.freedesktop.org/mailman/listinfo/intel-gfx>,
-	<mailto:intel-gfx-request@lists.freedesktop.org?subject=subscribe>
-Sender: intel-gfx-bounces+gcfxdi-intel-gfx=m.gmane.org@lists.freedesktop.org
-Errors-To: intel-gfx-bounces+gcfxdi-intel-gfx=m.gmane.org@lists.freedesktop.org
-To: Aaron Lu <aaron.lu@intel.com>
-Cc: Matthew Garrett <matthew.garrett@nebula.com>, Seth Forshee <seth.forshee@canonical.com>, intel-gfx@lists.freedesktop.org, Felipe Contreras <felipe.contreras@gmail.com>, Henrique de Moraes Holschuh <ibm-acpi@hmh.eng.br>, linux-kernel@vger.kernel.org, dri-devel@lists.freedesktop.org, "Rafael J. Wysocki" <rjw@sisk.pl>, linux-acpi@vger.kernel.org, Lee Chun-Yi <joeyli.kernel@gmail.com>, Richard Purdie <rpurdie@rpsys.net>, Igor Gnatenko <i.gnatenko.brain@gmail.com>
+Content-Type: text/plain; charset=ISO-8859-1
+Return-path: <cpufreq-owner@vger.kernel.org>
+In-Reply-To: <CAKohpokdyk9hfBreVeXttN23biTVjWiJRm8eYkfAjLz+cbnreQ@mail.gmail.com>
+Sender: cpufreq-owner@vger.kernel.org
+To: Viresh Kumar <viresh.kumar@linaro.org>
+Cc: "Rafael J. Wysocki" <rjw@sisk.pl>, "cpufreq@vger.kernel.org" <cpufreq@vger.kernel.org>, Linux ACPI <linux-acpi@vger.kernel.org>, "linux-pm@vger.kernel.org" <linux-pm@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
 
+On Thu, Sep 19, 2013 at 11:10 PM, Viresh Kumar <viresh.kumar@linaro.org> wrote:
+> On 20 September 2013 10:56, Yinghai Lu <yinghai@kernel.org> wrote:
+>> If the hw support intel_pstate and acpi_cpufreq, intel_pstate will
+>> get loaded at first.
+>
+> s/at //
+>
+>>
+>> acpi_cpufreq_init will call acpi_cpufreq_early_init()
+>> and it allocate perf data and init those perf data in ACPI core, (that
+>
+> s/it /that will /
+>
+>> will go over all cpus).
+>
+> s/go over/cover/
+>
+>> but late it will free them as cpufreq_register_driver(acpi_cpufreq) will
+>
+> s/late/later
+>
+>> return fail as init_pstate already take over before.
+>
+> write it as: fail as intel_pstate is already registered.
+>
+>> Use cpufreq_get_current_driver() to check if we can skip the
+>> acpi_cpufreq loading.
+>
+> The below material looks to be a separate issue and so we
+> probably break this patch into two?
 
---===============1331478613==
-Content-Type: multipart/signed; micalg="pgp-sha256";
-	protocol="application/pgp-signature"; boundary="=-tewwTmGUp+Pausd/MBrU"
+ok, check that.
 
+Thanks
 
---=-tewwTmGUp+Pausd/MBrU
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
-
-On mar., 2013-09-17 at 17:23 +0800, Aaron Lu wrote:
-> According to Matthew Garrett, "Windows 8 leaves backlight control up
-> to individual graphics drivers rather than making ACPI calls itself.
-> There's plenty of evidence to suggest that the Intel driver for
-> Windows 8 doesn't use the ACPI interface, including the fact that
-> it's broken on a bunch of machines when the OS claims to support
-> Windows 8.  The simplest thing to do appears to be to disable the
-> ACPI backlight interface on these systems".
->=20
-> So for Win8 systems, if there is native backlight control interface
-> registered by GPU driver, ACPI video will not register its own. For
-> users who prefer to keep ACPI video's backlight interface, the
-> existing
-> kernel cmdline option acpi_backlight=3Dvideo can be used.
->=20
-> This patch is an evolution from previous work done by Matthew Garrett,
-> Chun-Yi Lee, Seth Forshee and Rafael J. Wysocki.
->=20
-> Signed-off-by: Aaron Lu <aaron.lu@intel.com>
-Tested-by: Yves-Alexis Perez <corsac@debian.org>
---=20
-Yves-Alexis
-
---=-tewwTmGUp+Pausd/MBrU
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: This is a digitally signed message part
-Content-Transfer-Encoding: 7bit
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.14 (GNU/Linux)
-
-iQEcBAABCAAGBQJSPEdUAAoJEG3bU/KmdcClaAAH/3YwGtv83uQQ77PfJ1cmqADy
-bFH4WDtWKptZ6hCZ92ID60lPKVucJHpPWcGcDYmp/wsPtGdCUa0zWJ6Xk0XPPULI
-Z1RoVmyni/pXJlPK9zPRrxj2lZX857xYimgI+doISf3frUBFZFVYJIIW26QtpiQ0
-WbA+ujp/46DWeGcSN88HW5alzH4pyN1nsPpEoK7KFVNLL6eV1Py3XectVPa8+TKn
-15n7G9hc6YtuoJLA4NnptHxyJILXDIigluGfAFTThgBY4CFNpdD1a6F0nYma+oa+
-gdP2m8GHGf95/tHwdu4c7O0OQOoyS1tITnzWuj71RO9ehGbsYZAMM1pJJJ6EfL8=
-=ph5b
------END PGP SIGNATURE-----
-
---=-tewwTmGUp+Pausd/MBrU--
-
-
---===============1331478613==
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-
-_______________________________________________
-Intel-gfx mailing list
-Intel-gfx@lists.freedesktop.org
-http://lists.freedesktop.org/mailman/listinfo/intel-gfx
-
---===============1331478613==--
+Yinghai
