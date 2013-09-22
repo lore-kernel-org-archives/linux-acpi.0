@@ -1,102 +1,39 @@
 From: Hanjun Guo <hanjun.guo@linaro.org>
-Subject: Re: [PATCH] ACPICA / hwreg: Use acpi_gbl_reduced_hardware to prevent
- accessing PM registers
-Date: Sun, 22 Sep 2013 11:26:33 +0800
-Message-ID: <523E6369.3050803@linaro.org>
-References: <1379066741-23689-1-git-send-email-hanjun.guo@linaro.org> <94F2FBAB4432B54E8AACC7DFDE6C92E36FEEBC6A@ORSMSX103.amr.corp.intel.com> <94F2FBAB4432B54E8AACC7DFDE6C92E36FEEC15B@ORSMSX103.amr.corp.intel.com> <52366F91.30204@linaro.org> <94F2FBAB4432B54E8AACC7DFDE6C92E36FEEC56A@ORSMSX103.amr.corp.intel.com> <523972F4.9070703@linaro.org> <94F2FBAB4432B54E8AACC7DFDE6C92E36FEFA437@ORSMSX102.amr.corp.intel.com> <94F2FBAB4432B54E8AACC7DFDE6C92E36FEFEA4D@ORSMSX102.amr.corp.intel.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Subject: [PATCH] ACPI / scan: fix typo in comments of acpi_bus_unregister_driver()
+Date: Sun, 22 Sep 2013 15:42:41 +0800
+Message-ID: <1379835761-31529-1-git-send-email-hanjun.guo@linaro.org>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-pa0-f52.google.com ([209.85.220.52]:47525 "EHLO
-	mail-pa0-f52.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752615Ab3IVD2t (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sat, 21 Sep 2013 23:28:49 -0400
-Received: by mail-pa0-f52.google.com with SMTP id kl14so953394pab.11
-        for <linux-acpi@vger.kernel.org>; Sat, 21 Sep 2013 20:28:49 -0700 (PDT)
-In-Reply-To: <94F2FBAB4432B54E8AACC7DFDE6C92E36FEFEA4D@ORSMSX102.amr.corp.intel.com>
+Received: from mail-pd0-f170.google.com ([209.85.192.170]:40799 "EHLO
+	mail-pd0-f170.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752680Ab3IVHoS (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sun, 22 Sep 2013 03:44:18 -0400
+Received: by mail-pd0-f170.google.com with SMTP id x10so2030535pdj.29
+        for <linux-acpi@vger.kernel.org>; Sun, 22 Sep 2013 00:44:17 -0700 (PDT)
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Moore, Robert" <robert.moore@intel.com>
-Cc: "'Rafael J. Wysocki'" <rjw@sisk.pl>, 'Len Brown' <lenb@kernel.org>, "Box, David E" <david.e.box@intel.com>, "Zheng, Lv" <lv.zheng@intel.com>, "'linux-acpi@vger.kernel.org'" <linux-acpi@vger.kernel.org>, "'patches@linaro.org'" <patches@linaro.org>, "'linaro-kernel@lists.linaro.org'" <linaro-kernel@lists.linaro.org>, "'linaro-acpi@lists.linaro.org'" <linaro-acpi@lists.linaro.org>
+To: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: linux-acpi@vger.kernel.org, patches@linaro.org, linaro-kernel@lists.linaro.org, linaro-acpi@lists.linaro.org, Hanjun Guo <hanjun.guo@linaro.org>
 
-On 2013-9-19 10:37, Moore, Robert wrote:
-> While we are at it, here is the *complete* list of ACPICA interfaces that are 
-> meaningless on a hardware-reduced platform. If we are going to dynamically
-> disable some of these interfaces, we will need to disable all of them -- for
-> completeness. So, this is actually not a trivial change.
+"APIC" should be "ACPI" here.
 
-Yes, you are right.
-Actually, before I send this patch out, I searched all the ACPICA API on
-a hardware-reduced platform as you did, I found some of them will finally call
-acpi_hw_register_read/write(), so some of the ACPICA API do not need to change.
+Signed-off-by: Hanjun Guo <hanjun.guo@linaro.org>
+---
+ drivers/acpi/scan.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-Some of these APIs are already disabled in linux kernel tree now, such as
-acpi_enable():
-acpi_status acpi_enable(void)
-{
-	acpi_status status;
-	int retry;
-
-	ACPI_FUNCTION_TRACE(acpi_enable);
-
-	/* ACPI tables must be present */
-
-	if (!acpi_tb_tables_loaded()) {
-		return_ACPI_STATUS(AE_NO_ACPI_TABLES);
-	}
-
-	/* If the Hardware Reduced flag is set, machine is always in acpi mode */
-
-	if (acpi_gbl_reduced_hardware) {
-		return_ACPI_STATUS(AE_OK);
-	}
-...
-}
-
-and some of them need to be disabled as you said.
-
-> 
-> I'll let the linux experts chime in on this one.
-> Bob
-> 
-> 
-> AcpiInstallSciHandler
-> AcpiRemoveSciHandler
-> AcpiInstallGlobalEventHandler
-> AcpiInstallFixedEventHandler
-> AcpiRemoveFixedEventHandler
-> AcpiInstallGpeHandler
-> AcpiRemoveGpeHandler
-> AcpiAcquireGlobalLock
-> AcpiReleaseGlobalLock
-> AcpiEnable
-> AcpiDisable
-> AcpiEnableEvent
-> AcpiDisableEvent
-> AcpiClearEvent
-> AcpiGetEventStatus
-> AcpiUpdateAllGpes
-> AcpiEnableGpe
-> AcpiDisableGpe
-> AcpiSetGpe
-> AcpiSetupGpeForWake
-> AcpiSetGpeWakeMask
-> AcpiClearGpe
-> AcpiGetGpeStatus
-> AcpiFinishGpe
-> AcpiDisableAllGpes
-> AcpiEnableAllRuntimeGpes
-> AcpiInstallGpeBlock
-> AcpiRemoveGpeBlock
-> AcpiGetGpeDevice
-> AcpiGetTimerResolution
-> AcpiGetTimer
-> AcpiGetTimerDuration
-> AcpiReadBitRegister
-> AcpiWriteBitRegister
-> AcpiSetFirmwareWakingVector
-> AcpiSetFirmwareWakingVector64
-> AcpiEnterSleepStateS4bios
-
+diff --git a/drivers/acpi/scan.c b/drivers/acpi/scan.c
+index fbdb82e..611ce90 100644
+--- a/drivers/acpi/scan.c
++++ b/drivers/acpi/scan.c
+@@ -1121,7 +1121,7 @@ int acpi_bus_register_driver(struct acpi_driver *driver)
+ EXPORT_SYMBOL(acpi_bus_register_driver);
+ 
+ /**
+- * acpi_bus_unregister_driver - unregisters a driver with the APIC bus
++ * acpi_bus_unregister_driver - unregisters a driver with the ACPI bus
+  * @driver: driver to unregister
+  *
+  * Unregisters a driver with the ACPI bus.  Searches the namespace for all
+-- 
+1.7.9.5
 
