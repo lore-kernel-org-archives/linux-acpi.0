@@ -1,39 +1,54 @@
-From: Hanjun Guo <hanjun.guo@linaro.org>
-Subject: [PATCH] ACPI / scan: fix typo in comments of acpi_bus_unregister_driver()
-Date: Sun, 22 Sep 2013 15:42:41 +0800
-Message-ID: <1379835761-31529-1-git-send-email-hanjun.guo@linaro.org>
+From: Aaron Lu <aaron.lu@intel.com>
+Subject: Re: [PATCH v2 0/3] Fix Win8 backlight issue
+Date: Sun, 22 Sep 2013 17:10:59 +0800
+Message-ID: <523EB423.7090900@intel.com>
+References: <1379409796-29350-1-git-send-email-aaron.lu@intel.com>   <1379424853.3348.1.camel@ThinkPad-X230.localdomain>   <5238FBF5.8080405@intel.com>  <1379485819.2294.1.camel@ThinkPad-X230.localdomain>  <52399D0B.3010909@intel.com> <1379507774.2294.21.camel@ThinkPad-X230.localdomain>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-pd0-f170.google.com ([209.85.192.170]:40799 "EHLO
-	mail-pd0-f170.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752680Ab3IVHoS (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sun, 22 Sep 2013 03:44:18 -0400
-Received: by mail-pd0-f170.google.com with SMTP id x10so2030535pdj.29
-        for <linux-acpi@vger.kernel.org>; Sun, 22 Sep 2013 00:44:17 -0700 (PDT)
+Received: from mail-pb0-f46.google.com ([209.85.160.46]:52174 "EHLO
+	mail-pb0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752466Ab3IVJK3 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sun, 22 Sep 2013 05:10:29 -0400
+In-Reply-To: <1379507774.2294.21.camel@ThinkPad-X230.localdomain>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: linux-acpi@vger.kernel.org, patches@linaro.org, linaro-kernel@lists.linaro.org, linaro-acpi@lists.linaro.org, Hanjun Guo <hanjun.guo@linaro.org>
+To: Igor Gnatenko <i.gnatenko.brain@gmail.com>
+Cc: linux-acpi@vger.kernel.org, intel-gfx@lists.freedesktop.org, dri-devel@lists.freedesktop.org, linux-kernel@vger.kernel.org, Daniel Vetter <daniel@ffwll.ch>, "Rafael J. Wysocki" <rjw@sisk.pl>, Matthew Garrett <matthew.garrett@nebula.com>, Seth Forshee <seth.forshee@canonical.com>, Lee Chun-Yi <joeyli.kernel@gmail.com>, Richard Purdie <rpurdie@rpsys.net>, Yves-Alexis Perez <corsac@debian.org>, Felipe Contreras <felipe.contreras@gmail.com>, Henrique de Moraes Holschuh <ibm-acpi@hmh.eng.br>, Jani Nikula <jani.nikula@linux.intel.com>
 
-"APIC" should be "ACPI" here.
+On 09/18/2013 08:36 PM, Igor Gnatenko wrote:
+> On Wed, 2013-09-18 at 20:31 +0800, Aaron Lu wrote:
+>> On 09/18/2013 02:30 PM, Igor Gnatenko wrote:
+>>> On Wed, 2013-09-18 at 09:03 +0800, Aaron Lu wrote:
+>>>> On 09/17/2013 09:34 PM, Igor Gnatenko wrote:
+>>>>>
+>>>>> Aaron, how about fix indicator on ThinkPads ?
+>>>>
+>>>> Can you please describe the problem in detail, is it that when you
+>>>> adjust brightness level through hotkey, there is no GUI indication?
+>>>> Thanks.
+>>>>
+>>>> -Aaron
+>>>
+>>> Yes. On my ThinkPad X230 I pressing backlight hotkeys. Actually
+>>> brightnes changing, but have no indicator in GUI.
+>>
+>> Oh, that's still the problem of _BCL not getting executed once for
+>> Lenovo thinkpad laptops. I borrowed a Thinkpad X1 this afternoon and can
+>> reproduce this, I'll take a look at this issue. The thinkpad-acpi module
+>> already has a call to _BCL but somehow that doesn't happen.
+>>
+>> Since it's national holidays here, I'll check this issue when I got back
+>> to work on this Saturday. Thanks for the quick test :-)
+> Thanks. No problem ;-)
 
-Signed-off-by: Hanjun Guo <hanjun.guo@linaro.org>
----
- drivers/acpi/scan.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+Here is a quick fix for thinkpad-acpi.c:
+https://github.com/aaronlu/linux acpi_video_win8
+commit thinkpad-acpi: fix handle locate for video and query of _BCL.
 
-diff --git a/drivers/acpi/scan.c b/drivers/acpi/scan.c
-index fbdb82e..611ce90 100644
---- a/drivers/acpi/scan.c
-+++ b/drivers/acpi/scan.c
-@@ -1121,7 +1121,7 @@ int acpi_bus_register_driver(struct acpi_driver *driver)
- EXPORT_SYMBOL(acpi_bus_register_driver);
- 
- /**
-- * acpi_bus_unregister_driver - unregisters a driver with the APIC bus
-+ * acpi_bus_unregister_driver - unregisters a driver with the ACPI bus
-  * @driver: driver to unregister
-  *
-  * Unregisters a driver with the ACPI bus.  Searches the namespace for all
--- 
-1.7.9.5
+Note that it is a separate issue specifically for thinkpad so I'll
+submit that patch in another thread.
 
+Thanks,
+Aaron
