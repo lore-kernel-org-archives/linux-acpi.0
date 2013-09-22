@@ -1,47 +1,39 @@
-From: Hanjun Guo <hanjun.guo@linaro.org>
-Subject: [PATCH] Staging / quickstart: remove reduplicate if(acpi_disabled)
- check
-Date: Sun, 22 Sep 2013 19:05:47 +0800
-Message-ID: <1379847947-32366-1-git-send-email-hanjun.guo@linaro.org>
+From: Pavel Machek <pavel@ucw.cz>
+Subject: Re: [PATCH 1/3] Input: atkbd - add LED triggers for keyboard state
+Date: Sun, 22 Sep 2013 16:26:29 +0200
+Message-ID: <20130922142629.GA30282@amd.pavel.ucw.cz>
+References: <1377180132-4933-1-git-send-email-Jason@zx2c4.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <driverdev-devel-bounces@linuxdriverproject.org>
-List-Unsubscribe: <http://driverdev.linuxdriverproject.org/mailman/options/driverdev-devel>,
- <mailto:driverdev-devel-request@linuxdriverproject.org?subject=unsubscribe>
-List-Archive: <http://driverdev.linuxdriverproject.org/pipermail/driverdev-devel>
-List-Post: <mailto:driverdev-devel@linuxdriverproject.org>
-List-Help: <mailto:driverdev-devel-request@linuxdriverproject.org?subject=help>
-List-Subscribe: <http://driverdev.linuxdriverproject.org/mailman/listinfo/driverdev-devel>,
- <mailto:driverdev-devel-request@linuxdriverproject.org?subject=subscribe>
-Errors-To: driverdev-devel-bounces@linuxdriverproject.org
-Sender: driverdev-devel-bounces@linuxdriverproject.org
-To: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc: devel@driverdev.osuosl.org, linaro-kernel@lists.linaro.org, Toshi Kani <toshi.kani@hp.com>, Jiang Liu <jiang.liu@huawei.com>, patches@linaro.org, linaro-acpi@lists.linaro.org, linux-kernel@vger.kernel.org, "Rafael J. Wysocki" <rjw@sisk.pl>, linux-acpi@vger.kernel.org, Hanjun Guo <hanjun.guo@linaro.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from atrey.karlin.mff.cuni.cz ([195.113.26.193]:56578 "EHLO
+	atrey.karlin.mff.cuni.cz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753259Ab3IVO0b (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sun, 22 Sep 2013 10:26:31 -0400
+Content-Disposition: inline
+In-Reply-To: <1377180132-4933-1-git-send-email-Jason@zx2c4.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: "Jason A. Donenfeld" <Jason@zx2c4.com>
+Cc: linux-acpi@vger.kernel.org, linux-input@vger.kernel.org, linux-kernel@vger.kernel.org, mjg@redhat.com, rjw@sisk.pl, len.brown@intel.com, dtor@insightbb.com
 
-In acpi_bus_register_driver(), there is an if (acpi_disabled) check,
-so the if(acpi_disabled) before it is reduplicate, remove it.
+Hi!
 
-Signed-off-by: Hanjun Guo <hanjun.guo@linaro.org>
----
- drivers/staging/quickstart/quickstart.c |    4 ----
- 1 file changed, 4 deletions(-)
+> Many new laptop keyboards aren't shipping with LEDs in the keys for
+> caps lock, num lock, and scroll lock. They do, however, ship with many LEDs
+> for specialized functions that mostly go non-utilized by any current
+> Linux drivers. Having a caps lock LED is very helpful in early boot full
+> disk encryption, where a fancy GUI is not available to show that caps
+> lock is activated.
+> 
+> This patch wires in the caps, num, and scroll lock states of the
+> keyboard into the generic LED trigger subsystem, so that integrators can
+> have different LEDs activated on caps/num/scroll lock state changes.
 
-diff --git a/drivers/staging/quickstart/quickstart.c b/drivers/staging/quickstart/quickstart.c
-index 4247d60..9f6ebdb 100644
---- a/drivers/staging/quickstart/quickstart.c
-+++ b/drivers/staging/quickstart/quickstart.c
-@@ -390,10 +390,6 @@ static int __init quickstart_init(void)
- {
- 	int ret;
- 
--	/* ACPI Check */
--	if (acpi_disabled)
--		return -ENODEV;
--
- 	/* ACPI driver register */
- 	ret = acpi_bus_register_driver(&quickstart_acpi_driver);
- 	if (ret)
+There's another patch floating around that properly integrates input
+with LED subsystem; it already contains this functionality IIRC.
+									Pavel
+
 -- 
-1.7.9.5
+(english) http://www.livejournal.com/~pavelmachek
+(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
