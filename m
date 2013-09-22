@@ -1,77 +1,202 @@
-From: Aaron Lu <aaron.lwe@gmail.com>
-Subject: Re: Bisected 3.12.0-rc1 Laptop screen goes blank during kernelboot
-Date: Sun, 22 Sep 2013 10:10:49 +0800
-Message-ID: <523E51A9.8050609@gmail.com>
-References: <523C8238.3000200@xmsnet.nl>
+From: Aaron Lu <aaron.lu@intel.com>
+Subject: Re: [PATCH v2 3/3] ACPI / video: Do not register
+ backlight if win8 and native interface exists
+Date: Sun, 22 Sep 2013 10:47:04 +0800
+Message-ID: <523E5A28.70708@intel.com>
+References: <1379409796-29350-1-git-send-email-aaron.lu@intel.com>
+	<1379409796-29350-4-git-send-email-aaron.lu@intel.com>
+	<8761tv7uu3.fsf@intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-pb0-f41.google.com ([209.85.160.41]:52958 "EHLO
-	mail-pb0-f41.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752535Ab3IVCKM (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sat, 21 Sep 2013 22:10:12 -0400
-In-Reply-To: <523C8238.3000200@xmsnet.nl>
-Sender: linux-acpi-owner@vger.kernel.org
+Return-path: <intel-gfx-bounces+gcfxdi-intel-gfx=m.gmane.org@lists.freedesktop.org>
+In-Reply-To: <8761tv7uu3.fsf@intel.com>
+List-Unsubscribe: <http://lists.freedesktop.org/mailman/options/intel-gfx>,
+	<mailto:intel-gfx-request@lists.freedesktop.org?subject=unsubscribe>
+List-Archive: <http://lists.freedesktop.org/archives/intel-gfx>
+List-Post: <mailto:intel-gfx@lists.freedesktop.org>
+List-Help: <mailto:intel-gfx-request@lists.freedesktop.org?subject=help>
+List-Subscribe: <http://lists.freedesktop.org/mailman/listinfo/intel-gfx>,
+	<mailto:intel-gfx-request@lists.freedesktop.org?subject=subscribe>
+Sender: intel-gfx-bounces+gcfxdi-intel-gfx=m.gmane.org@lists.freedesktop.org
+Errors-To: intel-gfx-bounces+gcfxdi-intel-gfx=m.gmane.org@lists.freedesktop.org
+To: Jani Nikula <jani.nikula@linux.intel.com>
+Cc: Matthew Garrett <matthew.garrett@nebula.com>, Felipe Contreras <felipe.contreras@gmail.com>, Seth Forshee <seth.forshee@canonical.com>, intel-gfx@lists.freedesktop.org, Yves-Alexis Perez <corsac@debian.org>, Henrique de Moraes Holschuh <ibm-acpi@hmh.eng.br>, linux-kernel@vger.kernel.org, dri-devel@lists.freedesktop.org, "Rafael J. Wysocki" <rjw@sisk.pl>, linux-acpi@vger.kernel.org, Lee Chun-Yi <joeyli.kernel@gmail.com>, Richard Purdie <rpurdie@rpsys.net>, Igor Gnatenko <i.gnatenko.brain@gmail.com>
 List-Id: linux-acpi@vger.kernel.org
-To: Hans de Bruin <jmdebruin@xmsnet.nl>
-Cc: linux-acpi@vger.kernel.org, linux-pci@vger.kernel.org, Linux-pm mailing list <linux-pm@vger.kernel.org>, Daniel Lezcano <daniel.lezcano@linaro.org>
 
-Add linux-pm.
+On 09/20/2013 04:36 PM, Jani Nikula wrote:
+> On Tue, 17 Sep 2013, Aaron Lu <aaron.lu@intel.com> wrote:
+>> According to Matthew Garrett, "Windows 8 leaves backlight control up
+>> to individual graphics drivers rather than making ACPI calls itself.
+>> There's plenty of evidence to suggest that the Intel driver for
+>> Windows 8 doesn't use the ACPI interface, including the fact that
+>> it's broken on a bunch of machines when the OS claims to support
+>> Windows 8.  The simplest thing to do appears to be to disable the
+>> ACPI backlight interface on these systems".
+>>
+>> So for Win8 systems, if there is native backlight control interface
+>> registered by GPU driver, ACPI video will not register its own. For
+>> users who prefer to keep ACPI video's backlight interface, the existing
+>> kernel cmdline option acpi_backlight=video can be used.
+>>
+>> This patch is an evolution from previous work done by Matthew Garrett,
+>> Chun-Yi Lee, Seth Forshee and Rafael J. Wysocki.
+>>
+>> Signed-off-by: Aaron Lu <aaron.lu@intel.com>
+>> ---
+>>  drivers/acpi/internal.h     |  5 ++---
+>>  drivers/acpi/video.c        | 27 +++++----------------------
+>>  drivers/acpi/video_detect.c | 14 ++++++++++++--
+>>  3 files changed, 19 insertions(+), 27 deletions(-)
+>>
+>> diff --git a/drivers/acpi/internal.h b/drivers/acpi/internal.h
+>> index 20f4233..453ae8d 100644
+>> --- a/drivers/acpi/internal.h
+>> +++ b/drivers/acpi/internal.h
+>> @@ -169,9 +169,8 @@ int acpi_create_platform_device(struct acpi_device *adev,
+>>  					Video
+>>    -------------------------------------------------------------------------- */
+>>  #if defined(CONFIG_ACPI_VIDEO) || defined(CONFIG_ACPI_VIDEO_MODULE)
+>> -bool acpi_video_backlight_quirks(void);
+>> -#else
+>> -static inline bool acpi_video_backlight_quirks(void) { return false; }
+>> +bool acpi_osi_is_win8(void);
+>> +bool acpi_video_verify_backlight_support(void);
+>>  #endif
+>>  
+>>  #endif /* _ACPI_INTERNAL_H_ */
+>> diff --git a/drivers/acpi/video.c b/drivers/acpi/video.c
+>> index 5ad5a71..343db59 100644
+>> --- a/drivers/acpi/video.c
+>> +++ b/drivers/acpi/video.c
+>> @@ -1256,8 +1256,8 @@ acpi_video_switch_brightness(struct acpi_video_device *device, int event)
+>>  	unsigned long long level_current, level_next;
+>>  	int result = -EINVAL;
+>>  
+>> -	/* no warning message if acpi_backlight=vendor is used */
+>> -	if (!acpi_video_backlight_support())
+>> +	/* no warning message if acpi_backlight=vendor or a quirk is used */
+>> +	if (!acpi_video_verify_backlight_support())
+>>  		return 0;
+>>  
+>>  	if (!device->brightness)
+>> @@ -1386,13 +1386,13 @@ acpi_video_bus_get_devices(struct acpi_video_bus *video,
+>>  static int acpi_video_bus_start_devices(struct acpi_video_bus *video)
+>>  {
+>>  	return acpi_video_bus_DOS(video, 0,
+>> -				  acpi_video_backlight_quirks() ? 1 : 0);
+>> +				  acpi_osi_is_win8() ? 1 : 0);
+>>  }
+>>  
+>>  static int acpi_video_bus_stop_devices(struct acpi_video_bus *video)
+>>  {
+>>  	return acpi_video_bus_DOS(video, 0,
+>> -				  acpi_video_backlight_quirks() ? 0 : 1);
+>> +				  acpi_osi_is_win8() ? 0 : 1);
+>>  }
+>>  
+>>  static void acpi_video_bus_notify(struct acpi_device *device, u32 event)
+>> @@ -1558,7 +1558,7 @@ acpi_video_bus_match(acpi_handle handle, u32 level, void *context,
+>>  
+>>  static void acpi_video_dev_register_backlight(struct acpi_video_device *device)
+>>  {
+>> -	if (acpi_video_backlight_support()) {
+>> +	if (acpi_video_verify_backlight_support()) {
+>>  		struct backlight_properties props;
+>>  		struct pci_dev *pdev;
+>>  		acpi_handle acpi_parent;
+>> @@ -1677,23 +1677,6 @@ static int acpi_video_bus_unregister_backlight(struct acpi_video_bus *video)
+>>  	return error;
+>>  }
+>>  
+>> -int acpi_video_unregister_backlight(void)
+>> -{
+>> -	struct acpi_video_bus *video;
+>> -	int error = 0;
+>> -
+>> -	mutex_lock(&video_list_lock);
+>> -	list_for_each_entry(video, &video_bus_head, entry) {
+>> -		error = acpi_video_bus_unregister_backlight(video);
+>> -		if (error)
+>> -			break;
+>> -	}
+>> -	mutex_unlock(&video_list_lock);
+>> -
+>> -	return error;
+>> -}
+>> -EXPORT_SYMBOL(acpi_video_unregister_backlight);
+> 
+> You add this in patch 2/3 only to remove it again in 3/3?
 
--Aaron
+This is a mistake while I'm preparing the patches, I'll fix it in next
+revision, thanks for pointing this out.
 
-On 09/21/2013 01:13 AM, Hans de Bruin wrote:
-> During boot time my laptop screen goes blank when de kernel switches the 
-> screen to another resolution. The backlight is on. Eventually a kde 
-> login box appears out of the blackness. Swiching to a lower resolution 
-> gives me a black screen again. After testing the 
-> intel-gfx@lists.freedesktop.org developers test-tree problem less they 
-> sugested a bisect. That bisect ended in:
 > 
+>> -
+>>  static void acpi_video_dev_add_notify_handler(struct acpi_video_device *device)
+>>  {
+>>  	acpi_status status;
+>> diff --git a/drivers/acpi/video_detect.c b/drivers/acpi/video_detect.c
+>> index 940edbf..23d7d26 100644
+>> --- a/drivers/acpi/video_detect.c
+>> +++ b/drivers/acpi/video_detect.c
+>> @@ -37,6 +37,7 @@
+>>  #include <linux/acpi.h>
+>>  #include <linux/dmi.h>
+>>  #include <linux/pci.h>
+>> +#include <linux/backlight.h>
+>>  
+>>  #include "internal.h"
+>>  
+>> @@ -233,11 +234,11 @@ static void acpi_video_caps_check(void)
+>>  		acpi_video_get_capabilities(NULL);
+>>  }
+>>  
+>> -bool acpi_video_backlight_quirks(void)
+>> +bool acpi_osi_is_win8(void)
+>>  {
+>>  	return acpi_gbl_osi_data >= ACPI_OSI_WIN_8;
+>>  }
+>> -EXPORT_SYMBOL(acpi_video_backlight_quirks);
+>> +EXPORT_SYMBOL(acpi_osi_is_win8);
+>>  
+>>  /* Promote the vendor interface instead of the generic video module.
+>>   * This function allow DMI blacklists to be implemented by externals
+>> @@ -283,6 +284,15 @@ int acpi_video_backlight_support(void)
+>>  }
+>>  EXPORT_SYMBOL(acpi_video_backlight_support);
+>>  
+>> +bool acpi_video_verify_backlight_support(void)
+>> +{
+>> +	if (!(acpi_video_support & ACPI_VIDEO_BACKLIGHT_FORCE_VIDEO) &&
+>> +	    acpi_osi_is_win8() && backlight_device_registered(BACKLIGHT_RAW))
+>> +		return false;
+>> +	return acpi_video_backlight_support();
+>> +}
 > 
-> commit 137b944e100278d696826cf25c83014ac17473fe
-> Author: Daniel Lezcano <daniel.lezcano@linaro.org>
-> Date:   Wed Jun 12 15:08:48 2013 +0200
-> 
->    cpuidle: Make it clear that governors cannot be modules
-> 
->    cpufreq governors are defined as modules in the code, but the Kconfig
->    options do not allow them to be built as modules.  This is not really
->    a problem, but the cpuidle init ordering is: the cpuidle init
->    functions (framework and driver) and then the governors.  That leads
->    to some weirdness in the cpuidle framework.
-> 
->    Namely,  cpuidle_register_device() calls cpuidle_enable_device() which
->    fails at the first attempt, because governors have not been registered
->    yet.  When a governor is registered, the framework calls
->    cpuidle_enable_device() again which runs __cpuidle_register_device()
->    only then.  Of course, for that to work, the cpuidle_enable_device()
->    return value has to be ignored by cpuidle_register_device().
-> 
->      Instead of having this cyclic call graph and relying on a positive
->      side effects of the hackish back and forth cpuidle_enable_device()
->      calls it is better to fix the cpuidle init ordering.
-> 
->      To that end, replace the module init code with postcore_initcall()
->      so we have:
-> 
->       * cpuidle framework : core_initcall
->       * cpuidle governors : postcore_initcall
->       * cpuidle drivers   : device_initcall
-> 
->      and remove the corresponding module exit code as it is dead anyway
->      (governors can't be built as modules).
-> 
->      [rjw: Changelog]
->      Signed-off-by: Daniel Lezcano <daniel.lezcano@linaro.org>
->      Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
-> 
-> :040000 040000 45e7cb28411864c00b62296a7ff239f9f139d5d9 
-> 86a36b01dee52a77cfbab41a973b7a2bfa44ce34 M      drivers
-> 
-> 
-> 
-> Reverting it makes the problem go away.
-> 
+> IIUC this expects the raw backlight device to have been registered prior
+> to calling acpi_video_register(). This only works for i915 which calls
+> acpi_video_register() itself.
 
+Yes. Since all problematic laptops reported till now are intel graphics
+card based, I didn't cover other cases.
+
+Thanks,
+Aaron
+
+> 
+> 
+> BR,
+> Jani.
+> 
+> 
+> 
+>> +EXPORT_SYMBOL(acpi_video_verify_backlight_support);
+>> +
+>>  /*
+>>   * Use acpi_backlight=vendor/video to force that backlight switching
+>>   * is processed by vendor specific acpi drivers or video.ko driver.
+>> -- 
+>> 1.8.4.12.g2ea3df6
+>>
+> 
