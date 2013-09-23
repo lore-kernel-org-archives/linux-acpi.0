@@ -1,13 +1,13 @@
 From: Lv Zheng <lv.zheng@intel.com>
-Subject: [PATCH v2 03/14] ACPICA: Debug output: small formatting update, no functional change.
-Date: Mon, 23 Sep 2013 09:51:39 +0800
-Message-ID: <22818f16a72887272b0623ae424d734ceeb41f70.1379900697.git.lv.zheng@intel.com>
+Subject: [PATCH v2 05/14] ACPICA: Debugger: Prevent possible command line buffer overflow, kernel behavior is not affected.
+Date: Mon, 23 Sep 2013 09:51:52 +0800
+Message-ID: <0d814d5b4848d219d7d1c39bb47e4b0d2b77ac46.1379900697.git.lv.zheng@intel.com>
 References: <cover.1377844863.git.lv.zheng@intel.com> <cover.1379900697.git.lv.zheng@intel.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga14.intel.com ([143.182.124.37]:45274 "EHLO mga14.intel.com"
+Received: from mga14.intel.com ([143.182.124.37]:8417 "EHLO mga14.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753153Ab3IWBvn (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Sun, 22 Sep 2013 21:51:43 -0400
+	id S1753153Ab3IWBv5 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Sun, 22 Sep 2013 21:51:57 -0400
 In-Reply-To: <cover.1379900697.git.lv.zheng@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
@@ -16,29 +16,55 @@ Cc: Lv Zheng <lv.zheng@intel.com>, linux-acpi@vger.kernel.org
 
 From: Bob Moore <robert.moore@intel.com>
 
-Allow for longer filenames in the module name output during
-trace operations.
+Increase the size of a couple of the debugger line buffers.
+ACPICA BZ 1037.
 
+The debugger related code is not in the kernel so the behavior of the
+kernel is not affected.
+
+Buglink: http://bugs.acpica.org/show_bug.cgi?id=1037
 Signed-off-by: Bob Moore <robert.moore@intel.com>
 Signed-off-by: Lv Zheng <lv.zheng@intel.com>
 Reviewed-by: Len Brown <len.brown@intel.com>
 ---
- drivers/acpi/acpica/utdebug.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/acpi/acpica/acglobal.h |   17 ++++++++++-------
+ 1 file changed, 10 insertions(+), 7 deletions(-)
 
-diff --git a/drivers/acpi/acpica/utdebug.c b/drivers/acpi/acpica/utdebug.c
-index 5796e11..ffd0db5 100644
---- a/drivers/acpi/acpica/utdebug.c
-+++ b/drivers/acpi/acpica/utdebug.c
-@@ -190,7 +190,7 @@ acpi_debug_print(u32 requested_debug_level,
- 	 * Display the module name, current line number, thread ID (if requested),
- 	 * current procedure nesting level, and the current procedure name
- 	 */
--	acpi_os_printf("%8s-%04ld ", module_name, line_number);
-+	acpi_os_printf("%9s-%04ld ", module_name, line_number);
+diff --git a/drivers/acpi/acpica/acglobal.h b/drivers/acpi/acpica/acglobal.h
+index 90e846f..c9ad2e1 100644
+--- a/drivers/acpi/acpica/acglobal.h
++++ b/drivers/acpi/acpica/acglobal.h
+@@ -445,13 +445,6 @@ ACPI_EXTERN u8 acpi_gbl_db_opt_tables;
+ ACPI_EXTERN u8 acpi_gbl_db_opt_stats;
+ ACPI_EXTERN u8 acpi_gbl_db_opt_ini_methods;
+ ACPI_EXTERN u8 acpi_gbl_db_opt_no_region_support;
+-
+-ACPI_EXTERN char *acpi_gbl_db_args[ACPI_DEBUGGER_MAX_ARGS];
+-ACPI_EXTERN acpi_object_type acpi_gbl_db_arg_types[ACPI_DEBUGGER_MAX_ARGS];
+-ACPI_EXTERN char acpi_gbl_db_line_buf[ACPI_DB_LINE_BUFFER_SIZE];
+-ACPI_EXTERN char acpi_gbl_db_parsed_buf[ACPI_DB_LINE_BUFFER_SIZE];
+-ACPI_EXTERN char acpi_gbl_db_scope_buf[80];
+-ACPI_EXTERN char acpi_gbl_db_debug_filename[80];
+ ACPI_EXTERN u8 acpi_gbl_db_output_to_file;
+ ACPI_EXTERN char *acpi_gbl_db_buffer;
+ ACPI_EXTERN char *acpi_gbl_db_filename;
+@@ -459,6 +452,16 @@ ACPI_EXTERN u32 acpi_gbl_db_debug_level;
+ ACPI_EXTERN u32 acpi_gbl_db_console_debug_level;
+ ACPI_EXTERN struct acpi_namespace_node *acpi_gbl_db_scope_node;
  
- 	if (ACPI_LV_THREADS & acpi_dbg_level) {
- 		acpi_os_printf("[%u] ", (u32)thread_id);
++ACPI_EXTERN char *acpi_gbl_db_args[ACPI_DEBUGGER_MAX_ARGS];
++ACPI_EXTERN acpi_object_type acpi_gbl_db_arg_types[ACPI_DEBUGGER_MAX_ARGS];
++
++/* These buffers should all be the same size */
++
++ACPI_EXTERN char acpi_gbl_db_line_buf[ACPI_DB_LINE_BUFFER_SIZE];
++ACPI_EXTERN char acpi_gbl_db_parsed_buf[ACPI_DB_LINE_BUFFER_SIZE];
++ACPI_EXTERN char acpi_gbl_db_scope_buf[ACPI_DB_LINE_BUFFER_SIZE];
++ACPI_EXTERN char acpi_gbl_db_debug_filename[ACPI_DB_LINE_BUFFER_SIZE];
++
+ /*
+  * Statistic globals
+  */
 -- 
 1.7.10
 
