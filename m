@@ -1,50 +1,27 @@
-From: Tejun Heo <tj@kernel.org>
-Subject: Re: [PATCH v3 2/5] memblock: Improve memblock to support allocation
- from lower address.
-Date: Mon, 23 Sep 2013 16:21:47 -0400
-Message-ID: <20130923202147.GB28667@mtj.dyndns.org>
-References: <1379064655-20874-1-git-send-email-tangchen@cn.fujitsu.com>
- <1379064655-20874-3-git-send-email-tangchen@cn.fujitsu.com>
- <20130923155027.GD14547@htj.dyndns.org>
- <52408351.8080400@gmail.com>
+From: "Brown, Len" <len.brown@intel.com>
+Subject: RE: [PATCH v2 00/14] ACPICA 20130823 Release
+Date: Mon, 23 Sep 2013 20:21:38 +0000
+Message-ID: <1A7043D5F58CCB44A599DFD55ED4C9484527781D@FMSMSX106.amr.corp.intel.com>
+References: <cover.1377844863.git.lv.zheng@intel.com>
+ <cover.1379900697.git.lv.zheng@intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <52408351.8080400@gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Zhang Yanfei <zhangyanfei.yes@gmail.com>
-Cc: Tang Chen <tangchen@cn.fujitsu.com>, rjw@sisk.pl, lenb@kernel.org, tglx@linutronix.de, mingo@elte.hu, hpa@zytor.com, akpm@linux-foundation.org, toshi.kani@hp.com, zhangyanfei@cn.fujitsu.com, liwanp@linux.vnet.ibm.com, trenn@suse.de, yinghai@kernel.org, jiang.liu@huawei.com, wency@cn.fujitsu.com, laijs@cn.fujitsu.com, isimatu.yasuaki@jp.fujitsu.com, izumi.taku@jp.fujitsu.com, mgorman@suse.de, minchan@kernel.org, mina86@mina86.com, gong.chen@linux.intel.com, vasilis.liaskovitis@profitbricks.com, lwoodman@redhat.com, riel@redhat.com, jweiner@redhat.com, prarit@redhat.com, x86@kernel.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-mm@kvack.org, linux-acpi@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mga11.intel.com ([192.55.52.93]:41812 "EHLO mga11.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752868Ab3IWUWA convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 23 Sep 2013 16:22:00 -0400
+In-Reply-To: <cover.1379900697.git.lv.zheng@intel.com>
+Content-Language: en-US
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: "Zheng, Lv" <lv.zheng@intel.com>, "Wysocki, Rafael J" <rafael.j.wysocki@intel.com>, "Moore, Robert" <robert.moore@intel.com>
+Cc: "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
 
-Hello,
+Thanks for posting the refreshed series.
+It looks ready for linux-next to me.
 
-On Tue, Sep 24, 2013 at 02:07:13AM +0800, Zhang Yanfei wrote:
-> Yes, I am following your advice in principle but kind of confused by
-> something you said above. Where should the set_memblock_alloc_above_kernel
-> be used? IMO, the function is like:
-> 
-> find_in_range_node()
-> {
->      if (ok) {
->            /* bottom-up */
->            ret = __memblock_find_in_range(max(start, _end_of_kernel), end...);
->            if (!ret)
->                  return ret;
->      }
-> 
->      /* top-down retry */
->      return __memblock_find_in_range_rev(start, end...)
-> }
-> 
-> For bottom-up allocation, we always start from max(start, _end_of_kernel).
+cheers,
+-Len
 
-Oh, I was talking about naming of the memblock_set_bottom_up()
-function.  We aren't really doing pure bottom up allocations, so I
-think it probably would be clearer if the name clearly denotes that
-we're doing above-kernel allocation.
-
-Thanks.
-
--- 
-tejun
