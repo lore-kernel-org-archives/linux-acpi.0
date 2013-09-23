@@ -1,18 +1,18 @@
 From: Zhang Yanfei <zhangyanfei.yes@gmail.com>
-Subject: Re: [PATCH v3 4/5] x86, mem-hotplug: Support initialize page tables
- from low to high.
-Date: Tue, 24 Sep 2013 00:46:16 +0800
-Message-ID: <52407058.8070806@gmail.com>
-References: <1379064655-20874-1-git-send-email-tangchen@cn.fujitsu.com> <1379064655-20874-5-git-send-email-tangchen@cn.fujitsu.com> <20130923155331.GE14547@htj.dyndns.org>
+Subject: Re: [PATCH v3 5/5] mem-hotplug: Introduce movablenode boot option
+ to control memblock allocation direction.
+Date: Tue, 24 Sep 2013 00:58:03 +0800
+Message-ID: <5240731B.9070906@gmail.com>
+References: <1379064655-20874-1-git-send-email-tangchen@cn.fujitsu.com> <1379064655-20874-6-git-send-email-tangchen@cn.fujitsu.com> <20130923155713.GF14547@htj.dyndns.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-pa0-f49.google.com ([209.85.220.49]:58961 "EHLO
-	mail-pa0-f49.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751555Ab3IWQqe (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 23 Sep 2013 12:46:34 -0400
-In-Reply-To: <20130923155331.GE14547@htj.dyndns.org>
+Received: from mail-pd0-f169.google.com ([209.85.192.169]:62654 "EHLO
+	mail-pd0-f169.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751555Ab3IWQ60 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 23 Sep 2013 12:58:26 -0400
+In-Reply-To: <20130923155713.GF14547@htj.dyndns.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: Tejun Heo <tj@kernel.org>
@@ -20,22 +20,53 @@ Cc: Tang Chen <tangchen@cn.fujitsu.com>, rjw@sisk.pl, lenb@kernel.org, tglx@linu
 
 Hello tejun,
 
-On 09/23/2013 11:53 PM, Tejun Heo wrote:
-> Hey,
+On 09/23/2013 11:57 PM, Tejun Heo wrote:
+> Hello,
 > 
-> On Fri, Sep 13, 2013 at 05:30:54PM +0800, Tang Chen wrote:
->> init_mem_mapping() is called before SRAT is parsed. And memblock will allocate
->> memory for page tables. To prevent page tables being allocated within hotpluggable
->> memory, we will allocate page tables from the end of kernel image to the higher
->> memory.
+> On Fri, Sep 13, 2013 at 05:30:55PM +0800, Tang Chen wrote:
+>> +#ifdef CONFIG_MOVABLE_NODE
+>> +	if (movablenode_enable_srat) {
+>> +		/*
+>> +		 * When ACPI SRAT is parsed, which is done in initmem_init(),
+>> +		 * set memblock back to the default behavior.
+>> +		 */
+>> +		memblock_set_current_direction(MEMBLOCK_DIRECTION_DEFAULT);
+>> +	}
+>> +#endif /* CONFIG_MOVABLE_NODE */
 > 
-> The same comment about patch split as before.  Please make splitting
-> out memory_map_from_high() a separate patch.  Also, please choose one
-> pair to describe the direction.  The series is currently using four
-> variants - top_down/bottom_up, high_to_low/low_to_high,
-> from_high/from_low. rev/[none].  Please choose one and stick with it.
+> It's kinda weird to have ifdef around the above when all the actual
+> code would be compiled and linked regardless of the above ifdef.
+> Wouldn't it make more sense to conditionalize
+> memblock_direction_bottom_up() so that it's constant false to allow
+> the compiler to drop unnecessary code?
 
-OK. will do the split and choose one pair. Thanks for the reminding again.
+you mean we define memblock_set_bottom_up and memblock_bottom_up like below:
+
+#ifdef CONFIG_MOVABLE_NODE
+void memblock_set_bottom_up(bool enable)
+{
+        /* do something */
+}
+
+bool memblock_bottom_up()
+{
+        return  direction == bottom_up;
+}
+#else
+void memblock_set_bottom_up(bool enable)
+{
+        /* empty */
+}
+
+bool memblock_bottom_up()
+{
+        return false;
+}
+#endif
+
+right?
+
+thanks.
 
 > 
 > Thanks.
