@@ -1,13 +1,13 @@
 From: Lv Zheng <lv.zheng@intel.com>
-Subject: [PATCH v2 13/14] ACPICA: SCI Handlers: Update handler interface, eliminate unnecessary argument.
-Date: Mon, 23 Sep 2013 09:52:45 +0800
-Message-ID: <573edfe9a07466d52a8adc581887f2046de95b70.1379900697.git.lv.zheng@intel.com>
+Subject: [PATCH v2 14/14] ACPICA: Update version to 20130823.
+Date: Mon, 23 Sep 2013 09:52:53 +0800
+Message-ID: <89eb4dbdb7ca4ca7f2034dc2a4f446e88ef92514.1379900697.git.lv.zheng@intel.com>
 References: <cover.1377844863.git.lv.zheng@intel.com> <cover.1379900697.git.lv.zheng@intel.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga14.intel.com ([143.182.124.37]:37357 "EHLO mga14.intel.com"
+Received: from mga11.intel.com ([192.55.52.93]:42804 "EHLO mga11.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753051Ab3IWBwv (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Sun, 22 Sep 2013 21:52:51 -0400
+	id S1753051Ab3IWBw5 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Sun, 22 Sep 2013 21:52:57 -0400
 In-Reply-To: <cover.1379900697.git.lv.zheng@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
@@ -16,45 +16,28 @@ Cc: Lv Zheng <lv.zheng@intel.com>, linux-acpi@vger.kernel.org
 
 From: Bob Moore <robert.moore@intel.com>
 
-The SCI interrupt number is not needed for the SCI handlers, and was
-just unnecessary overhead.
+Version 20130823.
 
 Signed-off-by: Bob Moore <robert.moore@intel.com>
 Signed-off-by: Lv Zheng <lv.zheng@intel.com>
 Reviewed-by: Len Brown <len.brown@intel.com>
 ---
- drivers/acpi/acpica/evsci.c |    4 +---
- include/acpi/actypes.h      |    2 +-
- 2 files changed, 2 insertions(+), 4 deletions(-)
+ include/acpi/acpixf.h |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/drivers/acpi/acpica/evsci.c b/drivers/acpi/acpica/evsci.c
-index b2f0fb2..94d9ebd 100644
---- a/drivers/acpi/acpica/evsci.c
-+++ b/drivers/acpi/acpica/evsci.c
-@@ -87,9 +87,7 @@ u32 acpi_ev_sci_dispatch(void)
+diff --git a/include/acpi/acpixf.h b/include/acpi/acpixf.h
+index 55a4d3a..c7b1475 100644
+--- a/include/acpi/acpixf.h
++++ b/include/acpi/acpixf.h
+@@ -46,7 +46,7 @@
  
- 		/* Invoke the installed handler (at interrupt level) */
+ /* Current ACPICA subsystem version in YYYYMMDD format */
  
--		int_status |= sci_handler->address((u32)acpi_gbl_FADT.
--						   sci_interrupt,
--						   sci_handler->context);
-+		int_status |= sci_handler->address(sci_handler->context);
+-#define ACPI_CA_VERSION                 0x20130725
++#define ACPI_CA_VERSION                 0x20130823
  
- 		sci_handler = sci_handler->next;
- 	}
-diff --git a/include/acpi/actypes.h b/include/acpi/actypes.h
-index 5400672..f6abf23 100644
---- a/include/acpi/actypes.h
-+++ b/include/acpi/actypes.h
-@@ -951,7 +951,7 @@ typedef void
-  * Various handlers and callback procedures
-  */
- typedef
--u32 (*acpi_sci_handler) (u32 interrupt_number, void *context);
-+u32 (*acpi_sci_handler) (void *context);
- 
- typedef
- void (*acpi_gbl_event_handler) (u32 event_type,
+ #include <acpi/acconfig.h>
+ #include <acpi/actypes.h>
 -- 
 1.7.10
 
