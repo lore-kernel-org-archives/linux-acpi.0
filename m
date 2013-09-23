@@ -1,70 +1,44 @@
 From: Lv Zheng <lv.zheng@intel.com>
-Subject: [PATCH v2 05/14] ACPICA: Debugger: Prevent possible command line buffer overflow, kernel behavior is not affected.
-Date: Mon, 23 Sep 2013 09:51:52 +0800
-Message-ID: <0d814d5b4848d219d7d1c39bb47e4b0d2b77ac46.1379900697.git.lv.zheng@intel.com>
+Subject: [PATCH v2 04/14] ACPICA: Linux-specific header: enable "aarch64" 64-bit build.
+Date: Mon, 23 Sep 2013 09:51:46 +0800
+Message-ID: <db9bf81f36187e04cf36fd0ac9eb074ba4a5fc96.1379900697.git.lv.zheng@intel.com>
 References: <cover.1377844863.git.lv.zheng@intel.com> <cover.1379900697.git.lv.zheng@intel.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga14.intel.com ([143.182.124.37]:8417 "EHLO mga14.intel.com"
+Received: from mga14.intel.com ([143.182.124.37]:19511 "EHLO mga14.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753153Ab3IWBv5 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Sun, 22 Sep 2013 21:51:57 -0400
+	id S1753153Ab3IWBvv (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Sun, 22 Sep 2013 21:51:51 -0400
 In-Reply-To: <cover.1379900697.git.lv.zheng@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Robert Moore <robert.moore@intel.com>, Len Brown <len.brown@intel.com>
-Cc: Lv Zheng <lv.zheng@intel.com>, linux-acpi@vger.kernel.org
+Cc: Lv Zheng <lv.zheng@intel.com>, linux-acpi@vger.kernel.org, Naresh Bhat <naresh.bhat@linaro.org>
 
-From: Bob Moore <robert.moore@intel.com>
+From: Naresh Bhat <naresh.bhat@linaro.org>
 
-Increase the size of a couple of the debugger line buffers.
-ACPICA BZ 1037.
+Add support for the __aarch64__ define for 64-bit builds.
 
-The debugger related code is not in the kernel so the behavior of the
-kernel is not affected.
-
-Buglink: http://bugs.acpica.org/show_bug.cgi?id=1037
+Signed-off-by: Naresh Bhat <naresh.bhat@linaro.org>
 Signed-off-by: Bob Moore <robert.moore@intel.com>
 Signed-off-by: Lv Zheng <lv.zheng@intel.com>
 Reviewed-by: Len Brown <len.brown@intel.com>
 ---
- drivers/acpi/acpica/acglobal.h |   17 ++++++++++-------
- 1 file changed, 10 insertions(+), 7 deletions(-)
+ include/acpi/platform/aclinux.h |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/drivers/acpi/acpica/acglobal.h b/drivers/acpi/acpica/acglobal.h
-index 90e846f..c9ad2e1 100644
---- a/drivers/acpi/acpica/acglobal.h
-+++ b/drivers/acpi/acpica/acglobal.h
-@@ -445,13 +445,6 @@ ACPI_EXTERN u8 acpi_gbl_db_opt_tables;
- ACPI_EXTERN u8 acpi_gbl_db_opt_stats;
- ACPI_EXTERN u8 acpi_gbl_db_opt_ini_methods;
- ACPI_EXTERN u8 acpi_gbl_db_opt_no_region_support;
--
--ACPI_EXTERN char *acpi_gbl_db_args[ACPI_DEBUGGER_MAX_ARGS];
--ACPI_EXTERN acpi_object_type acpi_gbl_db_arg_types[ACPI_DEBUGGER_MAX_ARGS];
--ACPI_EXTERN char acpi_gbl_db_line_buf[ACPI_DB_LINE_BUFFER_SIZE];
--ACPI_EXTERN char acpi_gbl_db_parsed_buf[ACPI_DB_LINE_BUFFER_SIZE];
--ACPI_EXTERN char acpi_gbl_db_scope_buf[80];
--ACPI_EXTERN char acpi_gbl_db_debug_filename[80];
- ACPI_EXTERN u8 acpi_gbl_db_output_to_file;
- ACPI_EXTERN char *acpi_gbl_db_buffer;
- ACPI_EXTERN char *acpi_gbl_db_filename;
-@@ -459,6 +452,16 @@ ACPI_EXTERN u32 acpi_gbl_db_debug_level;
- ACPI_EXTERN u32 acpi_gbl_db_console_debug_level;
- ACPI_EXTERN struct acpi_namespace_node *acpi_gbl_db_scope_node;
+diff --git a/include/acpi/platform/aclinux.h b/include/acpi/platform/aclinux.h
+index 68534ef..fda0f3e 100644
+--- a/include/acpi/platform/aclinux.h
++++ b/include/acpi/platform/aclinux.h
+@@ -87,7 +87,7 @@
+ #define ACPI_FLUSH_CPU_CACHE()
+ #define ACPI_CAST_PTHREAD_T(pthread) ((acpi_thread_id) (pthread))
  
-+ACPI_EXTERN char *acpi_gbl_db_args[ACPI_DEBUGGER_MAX_ARGS];
-+ACPI_EXTERN acpi_object_type acpi_gbl_db_arg_types[ACPI_DEBUGGER_MAX_ARGS];
-+
-+/* These buffers should all be the same size */
-+
-+ACPI_EXTERN char acpi_gbl_db_line_buf[ACPI_DB_LINE_BUFFER_SIZE];
-+ACPI_EXTERN char acpi_gbl_db_parsed_buf[ACPI_DB_LINE_BUFFER_SIZE];
-+ACPI_EXTERN char acpi_gbl_db_scope_buf[ACPI_DB_LINE_BUFFER_SIZE];
-+ACPI_EXTERN char acpi_gbl_db_debug_filename[ACPI_DB_LINE_BUFFER_SIZE];
-+
- /*
-  * Statistic globals
-  */
+-#if defined(__ia64__) || defined(__x86_64__)
++#if defined(__ia64__) || defined(__x86_64__) || defined(__aarch64__)
+ #define ACPI_MACHINE_WIDTH          64
+ #define COMPILER_DEPENDENT_INT64    long
+ #define COMPILER_DEPENDENT_UINT64   unsigned long
 -- 
 1.7.10
 
