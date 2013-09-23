@@ -1,43 +1,33 @@
-From: Lv Zheng <lv.zheng@intel.com>
-Subject: [PATCH v2 14/14] ACPICA: Update version to 20130823.
-Date: Mon, 23 Sep 2013 09:52:53 +0800
-Message-ID: <89eb4dbdb7ca4ca7f2034dc2a4f446e88ef92514.1379900697.git.lv.zheng@intel.com>
-References: <cover.1377844863.git.lv.zheng@intel.com> <cover.1379900697.git.lv.zheng@intel.com>
+From: Pavel Machek <pavel@ucw.cz>
+Subject: Re: thinkpad x60: critical thermal shutdown does not work (and
+ ethernet overheats)
+Date: Mon, 23 Sep 2013 12:42:56 +0200
+Message-ID: <20130923095814.GA2052@Nokia-N900>
+References: <20120515181004.GA2499@elf.ucw.cz>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga11.intel.com ([192.55.52.93]:42804 "EHLO mga11.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753051Ab3IWBw5 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Sun, 22 Sep 2013 21:52:57 -0400
-In-Reply-To: <cover.1379900697.git.lv.zheng@intel.com>
+Received: from atrey.karlin.mff.cuni.cz ([195.113.26.193]:53065 "EHLO
+	atrey.karlin.mff.cuni.cz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752630Ab3IWKml (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 23 Sep 2013 06:42:41 -0400
+Content-Disposition: inline
+In-Reply-To: <20120515181004.GA2499@elf.ucw.cz>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Robert Moore <robert.moore@intel.com>, Len Brown <len.brown@intel.com>
-Cc: Lv Zheng <lv.zheng@intel.com>, linux-acpi@vger.kernel.org
+To: lenb@kernel.org, linux-acpi@vger.kernel.org, kernel list <linux-kernel@vger.kernel.org>, ibm-acpi-devel@lists.sourceforge.net, platform-driver-x86@vger.kernel.org
 
-From: Bob Moore <robert.moore@intel.com>
+Hi!
 
-Version 20130823.
+> I have rather old thinkpad x60 here. Long time ago, I noticed that on
+> high continuous ethernet load, it shuts itself down in regular
+> way. I traced it down to overheat, followed by ACPI signaling system
+> to go down.
 
-Signed-off-by: Bob Moore <robert.moore@intel.com>
-Signed-off-by: Lv Zheng <lv.zheng@intel.com>
-Reviewed-by: Len Brown <len.brown@intel.com>
----
- include/acpi/acpixf.h |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+just to wrap the story up... after fixing pcie aspm problems,
+ethernet apparently stopped overheating.
 
-diff --git a/include/acpi/acpixf.h b/include/acpi/acpixf.h
-index 55a4d3a..c7b1475 100644
---- a/include/acpi/acpixf.h
-+++ b/include/acpi/acpixf.h
-@@ -46,7 +46,7 @@
- 
- /* Current ACPICA subsystem version in YYYYMMDD format */
- 
--#define ACPI_CA_VERSION                 0x20130725
-+#define ACPI_CA_VERSION                 0x20130823
- 
- #include <acpi/acconfig.h>
- #include <acpi/actypes.h>
+					pavel
 -- 
-1.7.10
-
+(english) http://www.livejournal.com/~pavelmachek
+(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
