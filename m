@@ -1,39 +1,45 @@
-From: Pavel Machek <pavel@ucw.cz>
-Subject: Re: [PATCH 1/3] Input: atkbd - add LED triggers for keyboard state
-Date: Sun, 22 Sep 2013 16:26:29 +0200
-Message-ID: <20130922142629.GA30282@amd.pavel.ucw.cz>
-References: <1377180132-4933-1-git-send-email-Jason@zx2c4.com>
+From: "Zheng, Lv" <lv.zheng@intel.com>
+Subject: RE: [PATCH 05/14] ACPICA: Debugger: Prevent possible command line
+ buffer overflow.
+Date: Mon, 23 Sep 2013 01:36:03 +0000
+Message-ID: <1AE640813FDE7649BE1B193DEA596E8802465271@SHSMSX101.ccr.corp.intel.com>
+References: <cover.1377844863.git.lv.zheng@intel.com>
+	<31cb81fe6434a1cbb35360798d3f8f8579350e5d.1377844863.git.lv.zheng@intel.com>
+ <CAJvTdKmdXehe=fy-p+_gktaPBQYH_XWUd=PbCybVK-SVQ=Uiqg@mail.gmail.com>
+ <1AE640813FDE7649BE1B193DEA596E8802463FB4@SHSMSX101.ccr.corp.intel.com>
+ <1A7043D5F58CCB44A599DFD55ED4C948452754E1@FMSMSX106.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from atrey.karlin.mff.cuni.cz ([195.113.26.193]:56578 "EHLO
-	atrey.karlin.mff.cuni.cz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753259Ab3IVO0b (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sun, 22 Sep 2013 10:26:31 -0400
-Content-Disposition: inline
-In-Reply-To: <1377180132-4933-1-git-send-email-Jason@zx2c4.com>
+Received: from mga09.intel.com ([134.134.136.24]:2066 "EHLO mga09.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752880Ab3IWBgH convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sun, 22 Sep 2013 21:36:07 -0400
+In-Reply-To: <1A7043D5F58CCB44A599DFD55ED4C948452754E1@FMSMSX106.amr.corp.intel.com>
+Content-Language: en-US
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Jason A. Donenfeld" <Jason@zx2c4.com>
-Cc: linux-acpi@vger.kernel.org, linux-input@vger.kernel.org, linux-kernel@vger.kernel.org, mjg@redhat.com, rjw@sisk.pl, len.brown@intel.com, dtor@insightbb.com
+To: "Brown, Len" <len.brown@intel.com>
+Cc: "Wysocki, Rafael J" <rafael.j.wysocki@intel.com>, "Moore, Robert" <robert.moore@intel.com>, linux acpi <linux-acpi@vger.kernel.org>
 
-Hi!
+OK, I'll add this line to the subject.
 
-> Many new laptop keyboards aren't shipping with LEDs in the keys for
-> caps lock, num lock, and scroll lock. They do, however, ship with many LEDs
-> for specialized functions that mostly go non-utilized by any current
-> Linux drivers. Having a caps lock LED is very helpful in early boot full
-> disk encryption, where a fancy GUI is not available to show that caps
-> lock is activated.
+Thanks and best regards
+-Lv
+
+> From: Brown, Len
+> Sent: Wednesday, September 18, 2013 3:31 AM
 > 
-> This patch wires in the caps, num, and scroll lock states of the
-> keyboard into the generic LED trigger subsystem, so that integrators can
-> have different LEDs activated on caps/num/scroll lock state changes.
+> > Currently, kernel behaviors are not affected by this patch.
+> 
+> This is exactly what you want to write in the commit message.
+> 
+> Imagine, for a minute, a distro scanning thousands of
+> patches and reading the title of this one -- they would
+> be alarmed by the phrase "buffer overflow" on a kernel patch --
+> so you need to tell them not to be alarmed.
+> 
+> thanks,
+> -Len
 
-There's another patch floating around that properly integrates input
-with LED subsystem; it already contains this functionality IIRC.
-									Pavel
-
--- 
-(english) http://www.livejournal.com/~pavelmachek
-(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
