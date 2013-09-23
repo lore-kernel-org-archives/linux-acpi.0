@@ -1,33 +1,48 @@
-From: Pavel Machek <pavel@ucw.cz>
-Subject: Re: thinkpad x60: critical thermal shutdown does not work (and
- ethernet overheats)
-Date: Mon, 23 Sep 2013 12:42:56 +0200
-Message-ID: <20130923095814.GA2052@Nokia-N900>
-References: <20120515181004.GA2499@elf.ucw.cz>
+From: Mika Westerberg <mika.westerberg@linux.intel.com>
+Subject: Re: [PATCH 2/2] gpio / ACPI: add support for GPIO operation regions
+Date: Mon, 23 Sep 2013 13:48:09 +0300
+Message-ID: <20130923104809.GC28875@intel.com>
+References: <1379085280-2211-1-git-send-email-mika.westerberg@linux.intel.com>
+ <1379085280-2211-2-git-send-email-mika.westerberg@linux.intel.com>
+ <CACRpkdb5fqMycTxou50-+oiNOs3vzd+8XfWsPbX8vBJp2Su3aw@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from atrey.karlin.mff.cuni.cz ([195.113.26.193]:53065 "EHLO
-	atrey.karlin.mff.cuni.cz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752630Ab3IWKml (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 23 Sep 2013 06:42:41 -0400
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20120515181004.GA2499@elf.ucw.cz>
-Sender: linux-acpi-owner@vger.kernel.org
+In-Reply-To: <CACRpkdb5fqMycTxou50-+oiNOs3vzd+8XfWsPbX8vBJp2Su3aw@mail.gmail.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Linus Walleij <linus.walleij@linaro.org>
+Cc: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Mathias Nyman <mathias.nyman@linux.intel.com>, Grant Likely <grant.likely@secretlab.ca>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Alexandre Courbot <acourbot@nvidia.com>
 List-Id: linux-acpi@vger.kernel.org
-To: lenb@kernel.org, linux-acpi@vger.kernel.org, kernel list <linux-kernel@vger.kernel.org>, ibm-acpi-devel@lists.sourceforge.net, platform-driver-x86@vger.kernel.org
 
-Hi!
+On Fri, Sep 20, 2013 at 09:21:37PM +0200, Linus Walleij wrote:
+> On Fri, Sep 13, 2013 at 5:14 PM, Mika Westerberg
+> <mika.westerberg@linux.intel.com> wrote:
+> 
+> > diff --git a/drivers/gpio/gpiolib-acpi.c b/drivers/gpio/gpiolib-acpi.c
+> (...)
+> > +struct acpi_gpio_chip_data {
+> > +       /*
+> > +        * acpi_install_address_space_handler() wants to put the connection
+> > +        * information at the start of the context structure we pass it, in
+> > +        * case we are dealing with GPIO operation regions.
+> > +        */
+> > +       struct acpi_connection_info ci;
+> > +       struct gpio_chip *chip;
+> > +       struct list_head *evt_pins;
+> > +};
+> 
+> Consider just naming this acpi_gpio_chip, as it is obviously some
+> generic container that you will keep adding to.
 
-> I have rather old thinkpad x60 here. Long time ago, I noticed that on
-> high continuous ethernet load, it shuts itself down in regular
-> way. I traced it down to overheat, followed by ACPI signaling system
-> to go down.
+Sure.
 
-just to wrap the story up... after fixing pcie aspm problems,
-ethernet apparently stopped overheating.
+> I'm uncertain how things work, it wouldn't add something to have
+> struct gpio_chip be a true member (not a pointer) so you can
+> allocate one thing from the drivers, and e.g. use container_of()
+> to get from the gpio_chip to the acpi_gpio_chip[_data]?
 
-					pavel
--- 
-(english) http://www.livejournal.com/~pavelmachek
-(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
+The drivers are just normal platform drivers (for example gpio-lynxpoint.c)
+and they shouldn't care if they got enumerated from ACPI. Allocating
+acpi_gpio_chip from a driver would make it depend on ACPI, if I'm
+understanding correctly.
