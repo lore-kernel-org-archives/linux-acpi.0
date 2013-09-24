@@ -1,55 +1,59 @@
-From: Mika Westerberg <mika.westerberg@linux.intel.com>
-Subject: Re: [PATCH v2 1/9] i2c: prepare runtime PM support for I2C client
- devices
-Date: Tue, 24 Sep 2013 08:18:56 +0300
-Message-ID: <20130924051856.GG28875@intel.com>
-References: <1378913560-2752-1-git-send-email-mika.westerberg@linux.intel.com>
- <1378913560-2752-2-git-send-email-mika.westerberg@linux.intel.com>
- <87vc25pvvm.fsf@linaro.org>
- <20130913065434.GZ7393@intel.com>
- <52332BF0.4060605@samsung.com>
- <20130913154013.GD7393@intel.com>
- <5235BA9C.1090509@gmail.com>
- <20130916084708.GN7393@intel.com>
- <523837F9.1020204@samsung.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+From: Aaron Lu <aaron.lu@intel.com>
+Subject: [PATCH v3 0/4] Fix Win8 backlight issue
+Date: Tue, 24 Sep 2013 17:47:28 +0800
+Message-ID: <1380016052-15315-1-git-send-email-aaron.lu@intel.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga09.intel.com ([134.134.136.24]:29397 "EHLO mga09.intel.com"
+Received: from mga03.intel.com ([143.182.124.21]:13092 "EHLO mga03.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750706Ab3IXFNg (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 24 Sep 2013 01:13:36 -0400
-Content-Disposition: inline
-In-Reply-To: <523837F9.1020204@samsung.com>
+	id S1750757Ab3IXJq6 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 24 Sep 2013 05:46:58 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Sylwester Nawrocki <s.nawrocki@samsung.com>
-Cc: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>, Kevin Hilman <khilman@linaro.org>, linux-i2c@vger.kernel.org, Wolfram Sang <wsa@the-dreams.de>, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Lv Zheng <lv.zheng@intel.com>, Aaron Lu <aaron.lu@intel.com>, linux-arm-kernel@lists.infradead.org, Mark Brown <broonie@kernel.org>, Dmitry Torokhov <dmitry.torokhov@gmail.com>, Mauro Carvalho Chehab <m.chehab@samsung.com>, Samuel Ortiz <sameo@linux.intel.com>, Lee Jones <lee.jones@linaro.org>, Arnd Bergmann <arnd@arndb.de>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Liam Girdwood <lgirdwood@gmail.com>, Kyungmin Park <kyungmin.park@samsung.com>
+To: linux-acpi@vger.kernel.org, intel-gfx@lists.freedesktop.org, dri-devel@lists.freedesktop.org, linux-kernel@vger.kernel.org
+Cc: Daniel Vetter <daniel@ffwll.ch>, "Rafael J. Wysocki" <rjw@sisk.pl>, Matthew Garrett <matthew.garrett@nebula.com>, Seth Forshee <seth.forshee@canonical.com>, Lee Chun-Yi <joeyli.kernel@gmail.com>, Richard Purdie <rpurdie@rpsys.net>, Igor Gnatenko <i.gnatenko.brain@gmail.com>, Yves-Alexis Perez <corsac@debian.org>, Felipe Contreras <felipe.contreras@gmail.com>, Henrique de Moraes Holschuh <ibm-acpi@hmh.eng.br>, Jani Nikula <jani.nikula@linux.intel.com>, Aaron Lu <aaron.lu@intel.com>, Ben Jencks <ben@bjencks.net>, Steven Newbury <steve@snewbury.org.uk>, James Hogan <james@albanarts.com>, Kamal Mostafa <kamal@canonical.com>, Joerg Platte <jplatte@naasa.net>, Kalle Valo <kvalo@adurom.com>, Martin Steigerwald <Martin@lichtvoll.de>, =?UTF-8?q?J=C3=B6rg=20Otte?= <jrg.otte@gmail.com>, Mike Galbraith <bitbucket@online.de>
 
-On Tue, Sep 17, 2013 at 01:07:37PM +0200, Sylwester Nawrocki wrote:
-> On 09/16/2013 10:47 AM, Mika Westerberg wrote:
-> > I'm actually thinking that it is probably better now if we don't touch the
-> > client runtime PM at all in the I2C core.
-> > 
-> > I proposed a less intrusive solution in this same thread where we power the
-> > I2C controller briefly at the client ->probe() (In order to have all the
-> > ACPI power resources etc. and the controller on) and let the client driver
-> > handle their own runtime PM as they do currently.
-> > 
-> > Do you think that would work better wrt. fimc-isp-i2c driver?
-> 
-> That would be no different for this particular driver, as long as the 
-> I2C bus controller is activated right before the I2C client's probe().
+v3:
+1 Add a new patch 4/4 to fix some problems in thinkpad-acpi module;
+2 Remove unnecessary function acpi_video_unregister introduced in
+  patch 2/3 as pointed out by Jani Nikula.
 
-Rafael pointed out that we can use ->ignore_children for the I2C adapter
-device for everything else than ACPI devices. That should keep the existing
-behavior.
+v2:
+v1 has the subject of "Rework ACPI video driver" and is posted here:
+http://lkml.org/lkml/2013/9/9/74
+Since the objective is really to fix Win8 backlight issues, I changed
+the subject in this version, sorry about that.
 
-For ACPI devices we don't set that flag and the runtime PM core will
-activate the adapter whenever we try to power on I2C client device. This
-will make ACPI happy as well.
+This patchset has three patches, the first introduced a new API named
+backlight_device_registered in backlight layer that can be used for
+backlight interface provider module to check if a specific type backlight
+interface has been registered, see changelog for patch 1/3 for details.
+Then patch 2/3 does the cleanup to sepeate the backlight control and
+event delivery functionality in the ACPI video module and patch 3/3
+solves some Win8 backlight control problems by avoiding register ACPI
+video's backlight interface if:
+1 Kernel cmdline option acpi_backlight=video is not given;
+2 This is a Win8 system;
+3 Native backlight control interface exists.
 
-If there are no objections, I'm going to send a new version based on the
-above.
+Technically, patch 2/3 is not required to fix the issue here. So if you
+think it is not necessary, I can remove it from the series.
 
-Thanks everyone for valuable input :)
+Aaron Lu (4):
+  backlight: introduce backlight_device_registered
+  ACPI / video: seperate backlight control and event interface
+  ACPI / video: Do not register backlight if win8 and native interface
+    exists
+  thinkpad-acpi: fix handle locate for video and query of _BCL
+
+ drivers/acpi/internal.h              |   5 +-
+ drivers/acpi/video.c                 | 442 ++++++++++++++++++++---------------
+ drivers/acpi/video_detect.c          |  14 +-
+ drivers/platform/x86/thinkpad_acpi.c |  31 ++-
+ drivers/video/backlight/backlight.c  |  31 +++
+ include/acpi/video.h                 |   2 +
+ include/linux/backlight.h            |   4 +
+ 7 files changed, 324 insertions(+), 205 deletions(-)
+
+-- 
+1.8.4.12.g2ea3df6
+
