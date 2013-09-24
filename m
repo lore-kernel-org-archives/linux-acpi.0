@@ -1,101 +1,68 @@
-From: "Zheng, Lv" <lv.zheng@intel.com>
-Subject: RE: [PATCH 2/2] gpio / ACPI: add support for GPIO operation regions
-Date: Tue, 24 Sep 2013 00:47:56 +0000
-Message-ID: <1AE640813FDE7649BE1B193DEA596E880246596B@SHSMSX101.ccr.corp.intel.com>
-References: <1379085280-2211-1-git-send-email-mika.westerberg@linux.intel.com>
- <1379085280-2211-2-git-send-email-mika.westerberg@linux.intel.com>
- <1AE640813FDE7649BE1B193DEA596E880246367A@SHSMSX101.ccr.corp.intel.com>
- <20130915065151.GK7393@intel.com>
- <1AE640813FDE7649BE1B193DEA596E88024639E4@SHSMSX101.ccr.corp.intel.com>
- <1AE640813FDE7649BE1B193DEA596E8802463A46@SHSMSX101.ccr.corp.intel.com>
- <20130916081048.GM7393@intel.com>
- <1AE640813FDE7649BE1B193DEA596E8802463D85@SHSMSX101.ccr.corp.intel.com>
- <20130917083712.GS7393@intel.com>
+From: Zhang Yanfei <zhangyanfei@cn.fujitsu.com>
+Subject: Re: [PATCH v3 2/5] memblock: Improve memblock to support allocation
+ from lower address.
+Date: Tue, 24 Sep 2013 10:41:51 +0800
+Message-ID: <5240FBEF.10102@cn.fujitsu.com>
+References: <1379064655-20874-1-git-send-email-tangchen@cn.fujitsu.com> <1379064655-20874-3-git-send-email-tangchen@cn.fujitsu.com> <20130923155027.GD14547@htj.dyndns.org> <52408351.8080400@gmail.com> <20130923202147.GB28667@mtj.dyndns.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20130917083712.GS7393@intel.com>
-Content-Language: en-US
-Sender: linux-kernel-owner@vger.kernel.org
-To: Mika Westerberg <mika.westerberg@linux.intel.com>
-Cc: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Linus Walleij <linus.walleij@linaro.org>, "Wysocki, Rafael J" <rafael.j.wysocki@intel.com>, Mathias Nyman <mathias.nyman@linux.intel.com>, Grant Likely <grant.likely@secretlab.ca>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from cn.fujitsu.com ([222.73.24.84]:13465 "EHLO song.cn.fujitsu.com"
+	rhost-flags-OK-FAIL-OK-OK) by vger.kernel.org with ESMTP
+	id S1752706Ab3IXCmt (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 23 Sep 2013 22:42:49 -0400
+In-Reply-To: <20130923202147.GB28667@mtj.dyndns.org>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Tejun Heo <tj@kernel.org>
+Cc: Zhang Yanfei <zhangyanfei.yes@gmail.com>, Tang Chen <tangchen@cn.fujitsu.com>, rjw@sisk.pl, lenb@kernel.org, tglx@linutronix.de, mingo@elte.hu, hpa@zytor.com, akpm@linux-foundation.org, toshi.kani@hp.com, liwanp@linux.vnet.ibm.com, trenn@suse.de, yinghai@kernel.org, jiang.liu@huawei.com, wency@cn.fujitsu.com, laijs@cn.fujitsu.com, isimatu.yasuaki@jp.fujitsu.com, izumi.taku@jp.fujitsu.com, mgorman@suse.de, minchan@kernel.org, mina86@mina86.com, gong.chen@linux.intel.com, vasilis.liaskovitis@profitbricks.com, lwoodman@redhat.com, riel@redhat.com, jweiner@redhat.com, prarit@redhat.com, x86@kernel.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-mm@kvack.org, linux-acpi@vger.kernel.org
 
-> From: Mika Westerberg [mailto:mika.westerberg@linux.intel.com]
-> Sent: Tuesday, September 17, 2013 4:37 PM
+Hello tejun,
+
+On 09/24/2013 04:21 AM, Tejun Heo wrote:
+> Hello,
 > 
-> On Mon, Sep 16, 2013 at 11:35:56PM +0000, Zheng, Lv wrote:
-> > > From: Mika Westerberg [mailto:mika.westerberg@linux.intel.com]
-> > > Sent: Monday, September 16, 2013 4:11 PM
-> > >
-> > > On Mon, Sep 16, 2013 at 01:21:53AM +0000, Zheng, Lv wrote:
-> > > > > A pseudo device may be created to access the GPIO operation region fields provided by one GPIO device.
-> > > > > The pseudo device may have other functions to access other GPIO operation region fields provided by other GPIO devices, or even
-> worse
-> > > to
-> > > > > access other ACPI provided value-adds.
-> > > > > So hierarchically the pseudo device only requires CPU, thus should not be under the GPIO device, which means the GPIO operation
-> > > regions
-> > > > > have nothing to do with the GPIO devices' ACPI handle.
-> > > >
-> > > > Sorry for the wording.
-> > > > It's better to say the GPIO operation region users haven't strict
-> > > > relationship to the GPIO operation region providers.
-> > > > As the installation is to provide GPIO operation regions to the users, it
-> > > > shouldn't relate to the providers' ACPI handle.
-> > >
-> > > If I understand you correctly you mean that there might be multiple users
-> > > (different devices) for the same GPIO operation region, right?
-> >
-> > No, this is not what I meant.
-> > Can one vendor device uses two or more GPIO pins from different GPIO ports?
+> On Tue, Sep 24, 2013 at 02:07:13AM +0800, Zhang Yanfei wrote:
+>> Yes, I am following your advice in principle but kind of confused by
+>> something you said above. Where should the set_memblock_alloc_above_kernel
+>> be used? IMO, the function is like:
+>>
+>> find_in_range_node()
+>> {
+>>      if (ok) {
+>>            /* bottom-up */
+>>            ret = __memblock_find_in_range(max(start, _end_of_kernel), end...);
+>>            if (!ret)
+>>                  return ret;
+>>      }
+>>
+>>      /* top-down retry */
+>>      return __memblock_find_in_range_rev(start, end...)
+>> }
+>>
+>> For bottom-up allocation, we always start from max(start, _end_of_kernel).
 > 
-> Yes.
+> Oh, I was talking about naming of the memblock_set_bottom_up()
+> function.  We aren't really doing pure bottom up allocations, so I
+> think it probably would be clearer if the name clearly denotes that
+> we're doing above-kernel allocation.
 
-So how can such a device under one of these GPIO ports?
-It can only be under one particular GPIO port device, right?
+I see. But I think memblock_set_alloc_above_kernel may lose the info
+that we are doing bottom-up allocation. So my idea is we introduce
+pure bottom-up allocation mode in previous patches and we use the
+bottom-up allocation here and limit the start address above the kernel
+, with explicit comments to indicate this.
 
-Thus I believe such device will appear below other devices rather than below a GPIO port device in the ACPI namespace.
+How do you think?
 
+Thanks.
 
 > 
-> > > That shouldn't be a problem as far as I can tell.
-> > >
-> > > What comes to the hierarchy you refer, I'm not sure if that is a problem
-> > > either (unless I'm missing something). The GPIO can be used anywhere in the
-> > > ASL, it doesn't have to be descendant of the GPIO device. You only need to
-> > > do something like this:
-> > >
-> > > 	// Assert the GPIO
-> > > 	Store(1, \_SB.PCI0.SHD3)
-> > >
-> > > In other words, use the fully qualified name.
-> >
-> > Yes, which means this line of code can be everywhere in the namespace.
-> > It is not required to be under one particular GPIO device as long as there is an operation region defined in that scope.
-> >
-> > The problem is the installation, the first parameter for
-> > acpi_install_address_space_handler() is a namespace node, the function
-> > will call _REG for all OperationRegions below the scope whose top most
-> > node is the specified node.
-> > The nodes out of this scope are not affected.  So if an OperationRegion
-> > is defined out of this scope, problem happens.
+> Thanks.
 > 
-> I suppose for that operation region another GPIO device should be
-> introduced then, no?
 
-I believe the answer is no.
 
-> So if we don't have a GPIO driver for the given operation region, what can
-> we do? We don't want the ASL code to erroneusly think that there is an
-> operation region available when it is not.
-
-I think GPIO "address_space_handler" should be provided by an ACPI GPIO address space module rather than provided by a particular GPIO driver.
-
-Actually, without the readiness of the GPIO driver, currently ASL code can still access the GPIO fields, though it just results in "handler not found" ACPICA error message.
-If the "setup" callback is implemented, then the proper GPIO driver can be matched in this "setup" callback.
-If the GPIO driver hasn't been loaded by Linux and thus not matched in the "setup" callback, from users' point of view, the result is just changing the error message from "handler not found" to "driver not found".
-
-Thanks and best regards
--Lv
+-- 
+Thanks.
+Zhang Yanfei
