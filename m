@@ -1,46 +1,120 @@
-From: Tejun Heo <tj@kernel.org>
-Subject: Re: [PATCH v3 2/5] memblock: Improve memblock to support allocation
- from lower address.
-Date: Mon, 23 Sep 2013 22:46:54 -0400
-Message-ID: <20130924024654.GE3482@htj.dyndns.org>
-References: <1379064655-20874-1-git-send-email-tangchen@cn.fujitsu.com>
- <1379064655-20874-3-git-send-email-tangchen@cn.fujitsu.com>
- <20130923155027.GD14547@htj.dyndns.org>
- <52408351.8080400@gmail.com>
- <20130923202147.GB28667@mtj.dyndns.org>
- <5240FBEF.10102@cn.fujitsu.com>
+From: Mika Westerberg <mika.westerberg@linux.intel.com>
+Subject: Re: [PATCH 2/2] gpio / ACPI: add support for GPIO operation regions
+Date: Tue, 24 Sep 2013 07:59:42 +0300
+Message-ID: <20130924045942.GE28875@intel.com>
+References: <1379085280-2211-1-git-send-email-mika.westerberg@linux.intel.com>
+ <1379085280-2211-2-git-send-email-mika.westerberg@linux.intel.com>
+ <1AE640813FDE7649BE1B193DEA596E880246367A@SHSMSX101.ccr.corp.intel.com>
+ <20130915065151.GK7393@intel.com>
+ <1AE640813FDE7649BE1B193DEA596E88024639E4@SHSMSX101.ccr.corp.intel.com>
+ <1AE640813FDE7649BE1B193DEA596E8802463A46@SHSMSX101.ccr.corp.intel.com>
+ <20130916081048.GM7393@intel.com>
+ <1AE640813FDE7649BE1B193DEA596E8802463D85@SHSMSX101.ccr.corp.intel.com>
+ <20130917083712.GS7393@intel.com>
+ <1AE640813FDE7649BE1B193DEA596E880246596B@SHSMSX101.ccr.corp.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <owner-linux-mm@kvack.org>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mga09.intel.com ([134.134.136.24]:65473 "EHLO mga09.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750706Ab3IXEyQ (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 24 Sep 2013 00:54:16 -0400
 Content-Disposition: inline
-In-Reply-To: <5240FBEF.10102@cn.fujitsu.com>
-Sender: owner-linux-mm@kvack.org
-To: Zhang Yanfei <zhangyanfei@cn.fujitsu.com>
-Cc: Zhang Yanfei <zhangyanfei.yes@gmail.com>, Tang Chen <tangchen@cn.fujitsu.com>, rjw@sisk.pl, lenb@kernel.org, tglx@linutronix.de, mingo@elte.hu, hpa@zytor.com, akpm@linux-foundation.org, toshi.kani@hp.com, liwanp@linux.vnet.ibm.com, trenn@suse.de, yinghai@kernel.org, jiang.liu@huawei.com, wency@cn.fujitsu.com, laijs@cn.fujitsu.com, isimatu.yasuaki@jp.fujitsu.com, izumi.taku@jp.fujitsu.com, mgorman@suse.de, minchan@kernel.org, mina86@mina86.com, gong.chen@linux.intel.com, vasilis.liaskovitis@profitbricks.com, lwoodman@redhat.com, riel@redhat.com, jweiner@redhat.com, prarit@redhat.com, x86@kernel.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-mm@kvack.org, linux-acpi@vger.kernel.org
+In-Reply-To: <1AE640813FDE7649BE1B193DEA596E880246596B@SHSMSX101.ccr.corp.intel.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: "Zheng, Lv" <lv.zheng@intel.com>
+Cc: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Linus Walleij <linus.walleij@linaro.org>, "Wysocki, Rafael J" <rafael.j.wysocki@intel.com>, Mathias Nyman <mathias.nyman@linux.intel.com>, Grant Likely <grant.likely@secretlab.ca>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
 
-Hello,
+On Tue, Sep 24, 2013 at 12:47:56AM +0000, Zheng, Lv wrote:
+> > From: Mika Westerberg [mailto:mika.westerberg@linux.intel.com]
+> > Sent: Tuesday, September 17, 2013 4:37 PM
+> > 
+> > On Mon, Sep 16, 2013 at 11:35:56PM +0000, Zheng, Lv wrote:
+> > > > From: Mika Westerberg [mailto:mika.westerberg@linux.intel.com]
+> > > > Sent: Monday, September 16, 2013 4:11 PM
+> > > >
+> > > > On Mon, Sep 16, 2013 at 01:21:53AM +0000, Zheng, Lv wrote:
+> > > > > > A pseudo device may be created to access the GPIO operation region fields provided by one GPIO device.
+> > > > > > The pseudo device may have other functions to access other GPIO operation region fields provided by other GPIO devices, or even
+> > worse
+> > > > to
+> > > > > > access other ACPI provided value-adds.
+> > > > > > So hierarchically the pseudo device only requires CPU, thus should not be under the GPIO device, which means the GPIO operation
+> > > > regions
+> > > > > > have nothing to do with the GPIO devices' ACPI handle.
+> > > > >
+> > > > > Sorry for the wording.
+> > > > > It's better to say the GPIO operation region users haven't strict
+> > > > > relationship to the GPIO operation region providers.
+> > > > > As the installation is to provide GPIO operation regions to the users, it
+> > > > > shouldn't relate to the providers' ACPI handle.
+> > > >
+> > > > If I understand you correctly you mean that there might be multiple users
+> > > > (different devices) for the same GPIO operation region, right?
+> > >
+> > > No, this is not what I meant.
+> > > Can one vendor device uses two or more GPIO pins from different GPIO ports?
+> > 
+> > Yes.
+> 
+> So how can such a device under one of these GPIO ports?
+> It can only be under one particular GPIO port device, right?
+> 
+> Thus I believe such device will appear below other devices rather than
+> below a GPIO port device in the ACPI namespace.
 
-On Tue, Sep 24, 2013 at 10:41:51AM +0800, Zhang Yanfei wrote:
-> I see. But I think memblock_set_alloc_above_kernel may lose the info
-> that we are doing bottom-up allocation. So my idea is we introduce
-> pure bottom-up allocation mode in previous patches and we use the
-> bottom-up allocation here and limit the start address above the kernel
-> , with explicit comments to indicate this.
+I'm sorry, but I can't follow what you mean.
 
-It probably doesn't matter either way.  I was just a bit bothered that
-it's called bottom-up when it implies more including the retry logic.
-Its use of bottom-up allocation is really an implementation logic to
-achieve the goal of allocating memory above kernel image after all,
-but yeah minor point either way.
+> > > > That shouldn't be a problem as far as I can tell.
+> > > >
+> > > > What comes to the hierarchy you refer, I'm not sure if that is a problem
+> > > > either (unless I'm missing something). The GPIO can be used anywhere in the
+> > > > ASL, it doesn't have to be descendant of the GPIO device. You only need to
+> > > > do something like this:
+> > > >
+> > > > 	// Assert the GPIO
+> > > > 	Store(1, \_SB.PCI0.SHD3)
+> > > >
+> > > > In other words, use the fully qualified name.
+> > >
+> > > Yes, which means this line of code can be everywhere in the namespace.
+> > > It is not required to be under one particular GPIO device as long as there is an operation region defined in that scope.
+> > >
+> > > The problem is the installation, the first parameter for
+> > > acpi_install_address_space_handler() is a namespace node, the function
+> > > will call _REG for all OperationRegions below the scope whose top most
+> > > node is the specified node.
+> > > The nodes out of this scope are not affected.  So if an OperationRegion
+> > > is defined out of this scope, problem happens.
+> > 
+> > I suppose for that operation region another GPIO device should be
+> > introduced then, no?
+> 
+> I believe the answer is no.
 
-Thanks.
+Consider a situation, where you have two different GPIO controllers and the
+ASL code needs to access GPIOs on both controllers. That requires
+introducing two GPIO devices in ACPI namespace and two separate drivers as
+well.
 
--- 
-tejun
+> 
+> > So if we don't have a GPIO driver for the given operation region, what can
+> > we do? We don't want the ASL code to erroneusly think that there is an
+> > operation region available when it is not.
+> 
+> I think GPIO "address_space_handler" should be provided by an ACPI GPIO
+> address space module rather than provided by a particular GPIO driver.
+> 
+> Actually, without the readiness of the GPIO driver, currently ASL code
+> can still access the GPIO fields, though it just results in "handler not
+> found" ACPICA error message.  If the "setup" callback is implemented,
+> then the proper GPIO driver can be matched in this "setup" callback.  If
+> the GPIO driver hasn't been loaded by Linux and thus not matched in the
+> "setup" callback, from users' point of view, the result is just changing
+> the error message from "handler not found" to "driver not found".
 
---
-To unsubscribe, send a message with 'unsubscribe linux-mm' in
-the body to majordomo@kvack.org.  For more info on Linux MM,
-see: http://www.linux-mm.org/ .
-Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
+Well, I'm fine implementing a single global GPIO region handler (instead of
+what is done in this series).
+
+Rafael, do you have any comments on this?
