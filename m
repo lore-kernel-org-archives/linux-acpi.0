@@ -1,594 +1,164 @@
-From: Aaron Lu <aaron.lu@intel.com>
-Subject: Re: [PATCH v3 2/4] ACPI / video: seperate backlight control and event
- interface
-Date: Tue, 24 Sep 2013 17:54:53 +0800
-Message-ID: <5241616D.9040305@intel.com>
-References: <1380016052-15315-1-git-send-email-aaron.lu@intel.com> <1380016052-15315-3-git-send-email-aaron.lu@intel.com>
+From: Zhang Yanfei <zhangyanfei@cn.fujitsu.com>
+Subject: [PATCH v4 0/6] x86, memblock: Allocate memory near kernel image before
+ SRAT parsed
+Date: Tue, 24 Sep 2013 18:00:58 +0800
+Message-ID: <524162DA.30004@cn.fujitsu.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-pb0-f46.google.com ([209.85.160.46]:58757 "EHLO
-	mail-pb0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753120Ab3IXJyV (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 24 Sep 2013 05:54:21 -0400
-In-Reply-To: <1380016052-15315-3-git-send-email-aaron.lu@intel.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Return-path: <owner-linux-mm@kvack.org>
+Sender: owner-linux-mm@kvack.org
+To: "Rafael J . Wysocki" <rjw@sisk.pl>, lenb@kernel.org, Thomas Gleixner <tglx@linutronix.de>, mingo@elte.hu, "H. Peter Anvin" <hpa@zytor.com>, Andrew Morton <akpm@linux-foundation.org>, Tejun Heo <tj@kernel.org>, Toshi Kani <toshi.kani@hp.com>, Wanpeng Li <liwanp@linux.vnet.ibm.com>, Thomas Renninger <trenn@suse.de>, Yinghai Lu <yinghai@kernel.org>, Jiang Liu <jiang.liu@huawei.com>, Wen Congyang <wency@cn.fujitsu.com>, Lai Jiangshan <laijs@cn.fujitsu.com>, isimatu.yasuaki@jp.fujitsu.com, izumi.taku@jp.fujitsu.com, Mel Gorman <mgorman@suse.de>, Minchan Kim <minchan@kernel.org>, mina86@mina86.com, gong.chen@linux.intel.com, vasilis.liaskovitis@profitbricks.com, lwoodman@redhat.com, Rik van Riel <riel@redhat.com>, jweiner@redhat.com, prarit@redhat.com
+Cc: "x86@kernel.org" <x86@kernel.org>, linux-doc@vger.kernel.org, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Linux MM <linux-mm@kvack.org>, linux-acpi@vger.kernel.org, imtangchen@gmail.com, Zhang Yanfei <zhangyanfei.yes@gmail.com>, zhangyanfei@cn.fujitsu.com
 List-Id: linux-acpi@vger.kernel.org
-To: Aaron Lu <aaron.lu@intel.com>
-Cc: linux-acpi@vger.kernel.org, intel-gfx@lists.freedesktop.org, dri-devel@lists.freedesktop.org, linux-kernel@vger.kernel.org, Daniel Vetter <daniel@ffwll.ch>, "Rafael J. Wysocki" <rjw@sisk.pl>, Matthew Garrett <matthew.garrett@nebula.com>, Seth Forshee <seth.forshee@canonical.com>, Lee Chun-Yi <joeyli.kernel@gmail.com>, Richard Purdie <rpurdie@rpsys.net>, Igor Gnatenko <i.gnatenko.brain@gmail.com>, Yves-Alexis Perez <corsac@debian.org>, Felipe Contreras <felipe.contreras@gmail.com>, Henrique de Moraes Holschuh <ibm-acpi@hmh.eng.br>, Jani Nikula <jani.nikula@linux.intel.com>, Ben Jencks <ben@bjencks.net>, Steven Newbury <steve@snewbury.org.uk>, James Hogan <james@albanarts.com>, Kamal Mostafa <kamal@canonical.com>, Joerg Platte <jplatte@naasa.net>, Kalle Valo <kvalo@adurom.com>, Martin Steigerwald <Martin@lichtvoll.de>, =?UTF-8?B?SsO2cmcgT3R0ZQ==?= <jrg.otte@gmail.co>
 
-On 09/24/2013 05:47 PM, Aaron Lu wrote:
-> The backlight control and event delivery functionality provided by ACPI
-> video module is mixed together and registered all during video device
-> enumeration time. As a result, the two functionality are also removed
-> together on module unload time or by the acpi_video_unregister function.
-> The two functionalities are actually independent and one may be useful
-> while the other one may be broken, so it is desirable to seperate the
-> two functionalities such that it is clear and easy to disable one
-> functionality without affecting the other one.
-> 
-> APIs to selectively remove backlight control interface and/or event
-> delivery functionality can be easily added once needed.
-> 
-> Signed-off-by: Aaron Lu <aaron.lu@intel.com>
-> Tested-by: Igor Gnatenko <i.gnatenko.brain@gmail.com>
-> Tested-by: Yves-Alexis Perez <corsac@debian.org>
-> ---
->  drivers/acpi/video.c | 434 +++++++++++++++++++++++++++++----------------------
->  include/acpi/video.h |   2 +
->  2 files changed, 247 insertions(+), 189 deletions(-)
-> 
-> diff --git a/drivers/acpi/video.c b/drivers/acpi/video.c
-> index aebcf63..3bd1eaa 100644
-> --- a/drivers/acpi/video.c
-> +++ b/drivers/acpi/video.c
-> @@ -89,6 +89,8 @@ static bool use_bios_initial_backlight = 1;
->  module_param(use_bios_initial_backlight, bool, 0644);
->  
->  static int register_count;
-> +static struct mutex video_list_lock;
-> +static struct list_head video_bus_head;
->  static int acpi_video_bus_add(struct acpi_device *device);
->  static int acpi_video_bus_remove(struct acpi_device *device);
->  static void acpi_video_bus_notify(struct acpi_device *device, u32 event);
-> @@ -157,6 +159,7 @@ struct acpi_video_bus {
->  	struct acpi_video_bus_flags flags;
->  	struct list_head video_device_list;
->  	struct mutex device_list_lock;	/* protects video_device_list */
-> +	struct list_head entry;
->  	struct input_dev *input;
->  	char phys[32];	/* for input device */
->  	struct notifier_block pm_nb;
-> @@ -884,79 +887,6 @@ static void acpi_video_device_find_cap(struct acpi_video_device *device)
->  
->  	if (acpi_has_method(device->dev->handle, "_DDC"))
->  		device->cap._DDC = 1;
-> -
-> -	if (acpi_video_backlight_support()) {
-> -		struct backlight_properties props;
-> -		struct pci_dev *pdev;
-> -		acpi_handle acpi_parent;
-> -		struct device *parent = NULL;
-> -		int result;
-> -		static int count;
-> -		char *name;
-> -
-> -		result = acpi_video_init_brightness(device);
-> -		if (result)
-> -			return;
-> -		name = kasprintf(GFP_KERNEL, "acpi_video%d", count);
-> -		if (!name)
-> -			return;
-> -		count++;
-> -
-> -		acpi_get_parent(device->dev->handle, &acpi_parent);
-> -
-> -		pdev = acpi_get_pci_dev(acpi_parent);
-> -		if (pdev) {
-> -			parent = &pdev->dev;
-> -			pci_dev_put(pdev);
-> -		}
-> -
-> -		memset(&props, 0, sizeof(struct backlight_properties));
-> -		props.type = BACKLIGHT_FIRMWARE;
-> -		props.max_brightness = device->brightness->count - 3;
-> -		device->backlight = backlight_device_register(name,
-> -							      parent,
-> -							      device,
-> -							      &acpi_backlight_ops,
-> -							      &props);
-> -		kfree(name);
-> -		if (IS_ERR(device->backlight))
-> -			return;
-> -
-> -		/*
-> -		 * Save current brightness level in case we have to restore it
-> -		 * before acpi_video_device_lcd_set_level() is called next time.
-> -		 */
-> -		device->backlight->props.brightness =
-> -				acpi_video_get_brightness(device->backlight);
-> -
-> -		device->cooling_dev = thermal_cooling_device_register("LCD",
-> -					device->dev, &video_cooling_ops);
-> -		if (IS_ERR(device->cooling_dev)) {
-> -			/*
-> -			 * Set cooling_dev to NULL so we don't crash trying to
-> -			 * free it.
-> -			 * Also, why the hell we are returning early and
-> -			 * not attempt to register video output if cooling
-> -			 * device registration failed?
-> -			 * -- dtor
-> -			 */
-> -			device->cooling_dev = NULL;
-> -			return;
-> -		}
-> -
-> -		dev_info(&device->dev->dev, "registered as cooling_device%d\n",
-> -			 device->cooling_dev->id);
-> -		result = sysfs_create_link(&device->dev->dev.kobj,
-> -				&device->cooling_dev->device.kobj,
-> -				"thermal_cooling");
-> -		if (result)
-> -			printk(KERN_ERR PREFIX "Create sysfs link\n");
-> -		result = sysfs_create_link(&device->cooling_dev->device.kobj,
-> -				&device->dev->dev.kobj, "device");
-> -		if (result)
-> -			printk(KERN_ERR PREFIX "Create sysfs link\n");
-> -
-> -	}
->  }
->  
->  /*
-> @@ -1143,13 +1073,6 @@ acpi_video_bus_get_one_device(struct acpi_device *device,
->  	acpi_video_device_bind(video, data);
->  	acpi_video_device_find_cap(data);
->  
-> -	status = acpi_install_notify_handler(device->handle, ACPI_DEVICE_NOTIFY,
-> -					     acpi_video_device_notify, data);
-> -	if (ACPI_FAILURE(status))
-> -		dev_err(&device->dev, "Error installing notify handler\n");
-> -	else
-> -		data->flags.notify = 1;
-> -
->  	mutex_lock(&video->device_list_lock);
->  	list_add_tail(&data->entry, &video->video_device_list);
->  	mutex_unlock(&video->device_list_lock);
-> @@ -1454,64 +1377,6 @@ acpi_video_bus_get_devices(struct acpi_video_bus *video,
->  	return status;
->  }
->  
-> -static int acpi_video_bus_put_one_device(struct acpi_video_device *device)
-> -{
-> -	acpi_status status;
-> -
-> -	if (!device || !device->video)
-> -		return -ENOENT;
-> -
-> -	if (device->flags.notify) {
-> -		status = acpi_remove_notify_handler(device->dev->handle,
-> -				ACPI_DEVICE_NOTIFY, acpi_video_device_notify);
-> -		if (ACPI_FAILURE(status))
-> -			dev_err(&device->dev->dev,
-> -					"Can't remove video notify handler\n");
-> -	}
-> -
-> -	if (device->backlight) {
-> -		backlight_device_unregister(device->backlight);
-> -		device->backlight = NULL;
-> -	}
-> -	if (device->cooling_dev) {
-> -		sysfs_remove_link(&device->dev->dev.kobj,
-> -				  "thermal_cooling");
-> -		sysfs_remove_link(&device->cooling_dev->device.kobj,
-> -				  "device");
-> -		thermal_cooling_device_unregister(device->cooling_dev);
-> -		device->cooling_dev = NULL;
-> -	}
-> -
-> -	return 0;
-> -}
-> -
-> -static int acpi_video_bus_put_devices(struct acpi_video_bus *video)
-> -{
-> -	int status;
-> -	struct acpi_video_device *dev, *next;
-> -
-> -	mutex_lock(&video->device_list_lock);
-> -
-> -	list_for_each_entry_safe(dev, next, &video->video_device_list, entry) {
-> -
-> -		status = acpi_video_bus_put_one_device(dev);
-> -		if (ACPI_FAILURE(status))
-> -			printk(KERN_WARNING PREFIX
-> -			       "hhuuhhuu bug in acpi video driver.\n");
-> -
-> -		if (dev->brightness) {
-> -			kfree(dev->brightness->levels);
-> -			kfree(dev->brightness);
-> -		}
-> -		list_del(&dev->entry);
-> -		kfree(dev);
-> -	}
-> -
-> -	mutex_unlock(&video->device_list_lock);
-> -
-> -	return 0;
-> -}
-> -
->  /* acpi_video interface */
->  
->  /*
-> @@ -1536,7 +1401,7 @@ static void acpi_video_bus_notify(struct acpi_device *device, u32 event)
->  	struct input_dev *input;
->  	int keycode = 0;
->  
-> -	if (!video)
-> +	if (!video || !video->input)
->  		return;
->  
->  	input = video->input;
-> @@ -1691,12 +1556,236 @@ acpi_video_bus_match(acpi_handle handle, u32 level, void *context,
->  	return AE_OK;
->  }
->  
-> +static void acpi_video_dev_register_backlight(struct acpi_video_device *device)
-> +{
-> +	if (acpi_video_backlight_support()) {
-> +		struct backlight_properties props;
-> +		struct pci_dev *pdev;
-> +		acpi_handle acpi_parent;
-> +		struct device *parent = NULL;
-> +		int result;
-> +		static int count;
-> +		char *name;
-> +
-> +		result = acpi_video_init_brightness(device);
-> +		if (result)
-> +			return;
-> +		name = kasprintf(GFP_KERNEL, "acpi_video%d", count);
-> +		if (!name)
-> +			return;
-> +		count++;
-> +
-> +		acpi_get_parent(device->dev->handle, &acpi_parent);
-> +
-> +		pdev = acpi_get_pci_dev(acpi_parent);
-> +		if (pdev) {
-> +			parent = &pdev->dev;
-> +			pci_dev_put(pdev);
-> +		}
-> +
-> +		memset(&props, 0, sizeof(struct backlight_properties));
-> +		props.type = BACKLIGHT_FIRMWARE;
-> +		props.max_brightness = device->brightness->count - 3;
-> +		device->backlight = backlight_device_register(name,
-> +							      parent,
-> +							      device,
-> +							      &acpi_backlight_ops,
-> +							      &props);
-> +		kfree(name);
-> +		if (IS_ERR(device->backlight))
-> +			return;
-> +
-> +		/*
-> +		 * Save current brightness level in case we have to restore it
-> +		 * before acpi_video_device_lcd_set_level() is called next time.
-> +		 */
-> +		device->backlight->props.brightness =
-> +				acpi_video_get_brightness(device->backlight);
-> +
-> +		device->cooling_dev = thermal_cooling_device_register("LCD",
-> +					device->dev, &video_cooling_ops);
-> +		if (IS_ERR(device->cooling_dev)) {
-> +			/*
-> +			 * Set cooling_dev to NULL so we don't crash trying to
-> +			 * free it.
-> +			 * Also, why the hell we are returning early and
-> +			 * not attempt to register video output if cooling
-> +			 * device registration failed?
-> +			 * -- dtor
-> +			 */
-> +			device->cooling_dev = NULL;
-> +			return;
-> +		}
-> +
-> +		dev_info(&device->dev->dev, "registered as cooling_device%d\n",
-> +			 device->cooling_dev->id);
-> +		result = sysfs_create_link(&device->dev->dev.kobj,
-> +				&device->cooling_dev->device.kobj,
-> +				"thermal_cooling");
-> +		if (result)
-> +			printk(KERN_ERR PREFIX "Create sysfs link\n");
-> +		result = sysfs_create_link(&device->cooling_dev->device.kobj,
-> +				&device->dev->dev.kobj, "device");
-> +		if (result)
-> +			printk(KERN_ERR PREFIX "Create sysfs link\n");
-> +	}
-> +}
-> +
-> +static int acpi_video_bus_register_backlight(struct acpi_video_bus *video)
-> +{
-> +	struct acpi_video_device *dev;
-> +
-> +	mutex_lock(&video->device_list_lock);
-> +	list_for_each_entry(dev, &video->video_device_list, entry)
-> +		acpi_video_dev_register_backlight(dev);
-> +	mutex_unlock(&video->device_list_lock);
-> +
-> +	video->pm_nb.notifier_call = acpi_video_resume;
-> +	video->pm_nb.priority = 0;
-> +	return register_pm_notifier(&video->pm_nb);
-> +}
-> +
-> +static void acpi_video_dev_unregister_backlight(struct acpi_video_device *device)
-> +{
-> +	if (device->backlight) {
-> +		backlight_device_unregister(device->backlight);
-> +		device->backlight = NULL;
-> +	}
-> +	if (device->brightness) {
-> +		kfree(device->brightness->levels);
-> +		kfree(device->brightness);
-> +		device->brightness = NULL;
-> +	}
-> +	if (device->cooling_dev) {
-> +		sysfs_remove_link(&device->dev->dev.kobj, "thermal_cooling");
-> +		sysfs_remove_link(&device->cooling_dev->device.kobj, "device");
-> +		thermal_cooling_device_unregister(device->cooling_dev);
-> +		device->cooling_dev = NULL;
-> +	}
-> +}
-> +
-> +static int acpi_video_bus_unregister_backlight(struct acpi_video_bus *video)
-> +{
-> +	struct acpi_video_device *dev;
-> +	int error = unregister_pm_notifier(&video->pm_nb);
-> +
-> +	mutex_lock(&video->device_list_lock);
-> +	list_for_each_entry(dev, &video->video_device_list, entry)
-> +		acpi_video_dev_unregister_backlight(dev);
-> +	mutex_unlock(&video->device_list_lock);
-> +
-> +	return error;
-> +}
-> +
-> +static void acpi_video_dev_add_notify_handler(struct acpi_video_device *device)
-> +{
-> +	acpi_status status;
-> +	struct acpi_device *adev = device->dev;
-> +
-> +	status = acpi_install_notify_handler(adev->handle, ACPI_DEVICE_NOTIFY,
-> +					     acpi_video_device_notify, device);
-> +	if (ACPI_FAILURE(status))
-> +		dev_err(&adev->dev, "Error installing notify handler\n");
-> +	else
-> +		device->flags.notify = 1;
-> +}
-> +
-> +static int acpi_video_bus_add_notify_handler(struct acpi_video_bus *video)
-> +{
-> +	struct input_dev *input;
-> +	struct acpi_video_device *dev;
-> +	int error;
-> +
-> +	video->input = input = input_allocate_device();
-> +	if (!input) {
-> +		error = -ENOMEM;
-> +		goto out;
-> +	}
-> +
-> +	error = acpi_video_bus_start_devices(video);
-> +	if (error)
-> +		goto err_free_input;
-> +
-> +	snprintf(video->phys, sizeof(video->phys),
-> +			"%s/video/input0", acpi_device_hid(video->device));
-> +
-> +	input->name = acpi_device_name(video->device);
-> +	input->phys = video->phys;
-> +	input->id.bustype = BUS_HOST;
-> +	input->id.product = 0x06;
-> +	input->dev.parent = &video->device->dev;
-> +	input->evbit[0] = BIT(EV_KEY);
-> +	set_bit(KEY_SWITCHVIDEOMODE, input->keybit);
-> +	set_bit(KEY_VIDEO_NEXT, input->keybit);
-> +	set_bit(KEY_VIDEO_PREV, input->keybit);
-> +	set_bit(KEY_BRIGHTNESS_CYCLE, input->keybit);
-> +	set_bit(KEY_BRIGHTNESSUP, input->keybit);
-> +	set_bit(KEY_BRIGHTNESSDOWN, input->keybit);
-> +	set_bit(KEY_BRIGHTNESS_ZERO, input->keybit);
-> +	set_bit(KEY_DISPLAY_OFF, input->keybit);
-> +
-> +	error = input_register_device(input);
-> +	if (error)
-> +		goto err_stop_dev;
-> +
-> +	mutex_lock(&video->device_list_lock);
-> +	list_for_each_entry(dev, &video->video_device_list, entry)
-> +		acpi_video_dev_add_notify_handler(dev);
-> +	mutex_unlock(&video->device_list_lock);
-> +
-> +	return 0;
-> +
-> +err_stop_dev:
-> +	acpi_video_bus_stop_devices(video);
-> +err_free_input:
-> +	input_free_device(input);
-> +	video->input = NULL;
-> +out:
-> +	return error;
-> +}
-> +
-> +static void acpi_video_dev_remove_notify_handler(struct acpi_video_device *dev)
-> +{
-> +	if (dev->flags.notify) {
-> +		acpi_remove_notify_handler(dev->dev->handle, ACPI_DEVICE_NOTIFY,
-> +					   acpi_video_device_notify);
-> +		dev->flags.notify = 0;
-> +	}
-> +}
-> +
-> +static void acpi_video_bus_remove_notify_handler(struct acpi_video_bus *video)
-> +{
-> +	struct acpi_video_device *dev;
-> +
-> +	mutex_lock(&video->device_list_lock);
-> +	list_for_each_entry(dev, &video->video_device_list, entry)
-> +		acpi_video_dev_remove_notify_handler(dev);
-> +	mutex_unlock(&video->device_list_lock);
-> +
-> +	acpi_video_bus_stop_devices(video);
-> +	input_unregister_device(video->input);
-> +	video->input = NULL;
-> +}
-> +
-> +static int acpi_video_bus_put_devices(struct acpi_video_bus *video)
-> +{
-> +	struct acpi_video_device *dev, *next;
-> +
-> +	mutex_lock(&video->device_list_lock);
-> +	list_for_each_entry_safe(dev, next, &video->video_device_list, entry) {
-> +		list_del(&dev->entry);
-> +		kfree(dev);
-> +	}
-> +	mutex_unlock(&video->device_list_lock);
-> +
-> +	return 0;
-> +}
-> +
->  static int instance;
->  
->  static int acpi_video_bus_add(struct acpi_device *device)
->  {
->  	struct acpi_video_bus *video;
-> -	struct input_dev *input;
->  	int error;
->  	acpi_status status;
->  
-> @@ -1748,62 +1837,24 @@ static int acpi_video_bus_add(struct acpi_device *device)
->  	if (error)
->  		goto err_put_video;
->  
-> -	video->input = input = input_allocate_device();
-> -	if (!input) {
-> -		error = -ENOMEM;
-> -		goto err_put_video;
-> -	}
-> -
-> -	error = acpi_video_bus_start_devices(video);
-> -	if (error)
-> -		goto err_free_input_dev;
-> -
-> -	snprintf(video->phys, sizeof(video->phys),
-> -		"%s/video/input0", acpi_device_hid(video->device));
-> -
-> -	input->name = acpi_device_name(video->device);
-> -	input->phys = video->phys;
-> -	input->id.bustype = BUS_HOST;
-> -	input->id.product = 0x06;
-> -	input->dev.parent = &device->dev;
-> -	input->evbit[0] = BIT(EV_KEY);
-> -	set_bit(KEY_SWITCHVIDEOMODE, input->keybit);
-> -	set_bit(KEY_VIDEO_NEXT, input->keybit);
-> -	set_bit(KEY_VIDEO_PREV, input->keybit);
-> -	set_bit(KEY_BRIGHTNESS_CYCLE, input->keybit);
-> -	set_bit(KEY_BRIGHTNESSUP, input->keybit);
-> -	set_bit(KEY_BRIGHTNESSDOWN, input->keybit);
-> -	set_bit(KEY_BRIGHTNESS_ZERO, input->keybit);
-> -	set_bit(KEY_DISPLAY_OFF, input->keybit);
-> -
->  	printk(KERN_INFO PREFIX "%s [%s] (multi-head: %s  rom: %s  post: %s)\n",
->  	       ACPI_VIDEO_DEVICE_NAME, acpi_device_bid(device),
->  	       video->flags.multihead ? "yes" : "no",
->  	       video->flags.rom ? "yes" : "no",
->  	       video->flags.post ? "yes" : "no");
-> +	mutex_lock(&video_list_lock);
-> +	list_add_tail(&video->entry, &video_bus_head);
-> +	mutex_unlock(&video_list_lock);
->  
-> -	video->pm_nb.notifier_call = acpi_video_resume;
-> -	video->pm_nb.priority = 0;
-> -	error = register_pm_notifier(&video->pm_nb);
-> -	if (error)
-> -		goto err_stop_video;
-> -
-> -	error = input_register_device(input);
-> -	if (error)
-> -		goto err_unregister_pm_notifier;
-> +	acpi_video_bus_register_backlight(video);
-> +	acpi_video_bus_add_notify_handler(video);
->  
->  	return 0;
->  
-> - err_unregister_pm_notifier:
-> -	unregister_pm_notifier(&video->pm_nb);
-> - err_stop_video:
-> -	acpi_video_bus_stop_devices(video);
-> - err_free_input_dev:
-> -	input_free_device(input);
-> - err_put_video:
-> +err_put_video:
->  	acpi_video_bus_put_devices(video);
->  	kfree(video->attached_array);
-> - err_free_video:
-> +err_free_video:
->  	kfree(video);
->  	device->driver_data = NULL;
->  
-> @@ -1820,12 +1871,14 @@ static int acpi_video_bus_remove(struct acpi_device *device)
->  
->  	video = acpi_driver_data(device);
->  
-> -	unregister_pm_notifier(&video->pm_nb);
-> -
-> -	acpi_video_bus_stop_devices(video);
-> +	acpi_video_bus_remove_notify_handler(video);
-> +	acpi_video_bus_unregister_backlight(video);
->  	acpi_video_bus_put_devices(video);
->  
-> -	input_unregister_device(video->input);
-> +	mutex_lock(&video_list_lock);
-> +	list_del(&video->entry);
-> +	mutex_unlock(&video_list_lock);
-> +
->  	kfree(video->attached_array);
->  	kfree(video);
->  
-> @@ -1874,6 +1927,9 @@ int acpi_video_register(void)
->  		return 0;
->  	}
->  
-> +	mutex_init(&video_list_lock);
-> +	INIT_LIST_HEAD(&video_bus_head);
-> +
->  	result = acpi_bus_register_driver(&acpi_video_bus);
->  	if (result < 0)
->  		return -ENODEV;
-> diff --git a/include/acpi/video.h b/include/acpi/video.h
-> index 61109f2..0c665b5 100644
-> --- a/include/acpi/video.h
-> +++ b/include/acpi/video.h
-> @@ -19,11 +19,13 @@ struct acpi_device;
->  #if (defined CONFIG_ACPI_VIDEO || defined CONFIG_ACPI_VIDEO_MODULE)
->  extern int acpi_video_register(void);
->  extern void acpi_video_unregister(void);
-> +extern int acpi_video_unregister_backlight(void);
+The v4 version is based on today's linus tree (3.12-rc2)
+HEAD is:
+commit 4a10c2ac2f368583138b774ca41fac4207911983
+Author: Linus Torvalds <torvalds@linux-foundation.org>
+Date:   Mon Sep 23 15:41:09 2013 -0700
 
-Oops, forgot to remove the declration and the stub below. But it doesn't
-affect the test of the patches, so I'll leave it for a while till next
-revision.
+    Linux 3.12-rc2
 
--Aaron
 
->  extern int acpi_video_get_edid(struct acpi_device *device, int type,
->  			       int device_id, void **edid);
->  #else
->  static inline int acpi_video_register(void) { return 0; }
->  static inline void acpi_video_unregister(void) { return; }
-> +static inline int acpi_video_unregister_backlight(void) { return; }
->  static inline int acpi_video_get_edid(struct acpi_device *device, int type,
->  				      int device_id, void **edid)
->  {
-> 
+[Problem]
 
+The current Linux cannot migrate pages used by the kerenl because
+of the kernel direct mapping. In Linux kernel space, va = pa + PAGE_OFFSET.
+When the pa is changed, we cannot simply update the pagetable and
+keep the va unmodified. So the kernel pages are not migratable.
+
+There are also some other issues will cause the kernel pages not migratable.
+For example, the physical address may be cached somewhere and will be used.
+It is not to update all the caches.
+
+When doing memory hotplug in Linux, we first migrate all the pages in one
+memory device somewhere else, and then remove the device. But if pages are
+used by the kernel, they are not migratable. As a result, memory used by
+the kernel cannot be hot-removed.
+
+Modifying the kernel direct mapping mechanism is too difficult to do. And
+it may cause the kernel performance down and unstable. So we use the following
+way to do memory hotplug.
+
+
+[What we are doing]
+
+In Linux, memory in one numa node is divided into several zones. One of the
+zones is ZONE_MOVABLE, which the kernel won't use.
+
+In order to implement memory hotplug in Linux, we are going to arrange all
+hotpluggable memory in ZONE_MOVABLE so that the kernel won't use these memory.
+To do this, we need ACPI's help.
+
+In ACPI, SRAT(System Resource Affinity Table) contains NUMA info. The memory
+affinities in SRAT record every memory range in the system, and also, flags
+specifying if the memory range is hotpluggable.
+(Please refer to ACPI spec 5.0 5.2.16)
+
+With the help of SRAT, we have to do the following two things to achieve our
+goal:
+
+1. When doing memory hot-add, allow the users arranging hotpluggable as
+   ZONE_MOVABLE.
+   (This has been done by the MOVABLE_NODE functionality in Linux.)
+
+2. when the system is booting, prevent bootmem allocator from allocating
+   hotpluggable memory for the kernel before the memory initialization
+   finishes.
+
+The problem 2 is the key problem we are going to solve. But before solving it,
+we need some preparation. Please see below.
+
+
+[Preparation]
+
+Bootloader has to load the kernel image into memory. And this memory must be 
+unhotpluggable. We cannot prevent this anyway. So in a memory hotplug system, 
+we can assume any node the kernel resides in is not hotpluggable.
+
+Before SRAT is parsed, we don't know which memory ranges are hotpluggable. But
+memblock has already started to work. In the current kernel, memblock allocates 
+the following memory before SRAT is parsed:
+
+setup_arch()
+ |->memblock_x86_fill()            /* memblock is ready */
+ |......
+ |->early_reserve_e820_mpc_new()   /* allocate memory under 1MB */
+ |->reserve_real_mode()            /* allocate memory under 1MB */
+ |->init_mem_mapping()             /* allocate page tables, about 2MB to map 1GB memory */
+ |->dma_contiguous_reserve()       /* specified by user, should be low */
+ |->setup_log_buf()                /* specified by user, several mega bytes */
+ |->relocate_initrd()              /* could be large, but will be freed after boot, should reorder */
+ |->acpi_initrd_override()         /* several mega bytes */
+ |->reserve_crashkernel()          /* could be large, should reorder */
+ |......
+ |->initmem_init()                 /* Parse SRAT */
+
+According to Tejun's advice, before SRAT is parsed, we should try our best to
+allocate memory near the kernel image. Since the whole node the kernel resides 
+in won't be hotpluggable, and for a modern server, a node may have at least 16GB
+memory, allocating several mega bytes memory around the kernel image won't cross
+to hotpluggable memory.
+
+
+[About this patch-set]
+
+So this patch-set does the following:
+
+1. Make memblock be able to allocate memory bottom up.
+   1) Keep all the memblock APIs' prototype unmodified.
+   2) When the direction is bottom up, keep the start address greater than the 
+      end of kernel image.
+
+2. Improve init_mem_mapping() to support allocate page tables in bottom up direction.
+
+3. Introduce "movablenode" boot option to enable and disable this functionality.
+
+PS: Reordering of relocate_initrd() has not been done yet. acpi_initrd_override() 
+    needs to access initrd with virtual address. So relocate_initrd() must be done 
+    before acpi_initrd_override().
+
+Change log v3 -> v4:
+1. Use bottom-up/top-down to unify things. Thanks tj.
+2. Factor out of current top-down implementation and then introduce bottom-up mode,
+   not mixing them in one patch. Thanks tj.
+3. Changes function naming: memblock_direction_bottom_up -> memblock_bottom_up
+4. Use memblock_set_bottom_up to replace memblock_set_current_direction, which makes
+   the code simpler. Thanks tj.
+5. Define two implementions of function memblock_bottom_up and memblock_set_bottom_up
+   in order not to use #ifdef in the boot code. Thanks tj.
+6. Add comments to explain why retry top-down allocation when bottom_up allocation
+   failed. Thanks tj and toshi!
+
+Change log v2 -> v3:
+1. According to Toshi's suggestion, move the direction checking logic into memblock.
+   And simply the code more.
+
+Change log v1 -> v2:
+1. According to tj's suggestion, implemented a new function memblock_alloc_bottom_up() 
+   to allocate memory from bottom upwards, whihc can simplify the code.
+
+
+Tang Chen (6):
+  memblock: Factor out of top-down allocation
+  memblock: Introduce bottom-up allocation mode
+  x86/mm: Factor out of top-down direct mapping setup
+  x86/mem-hotplug: Support initialize page tables bottom up
+  x86, acpi, crash, kdump: Do reserve_crashkernel() after SRAT is
+    parsed.
+  mem-hotplug: Introduce movablenode boot option
+
+ Documentation/kernel-parameters.txt |   15 ++++
+ arch/x86/kernel/setup.c             |   16 ++++-
+ arch/x86/mm/init.c                  |  125 +++++++++++++++++++++++++++-------
+ include/linux/memblock.h            |   26 +++++++
+ mm/memblock.c                       |  106 ++++++++++++++++++++++++++---
+ mm/memory_hotplug.c                 |   27 ++++++++
+ 6 files changed, 276 insertions(+), 39 deletions(-)
+
+--
+To unsubscribe, send a message with 'unsubscribe linux-mm' in
+the body to majordomo@kvack.org.  For more info on Linux MM,
+see: http://www.linux-mm.org/ .
+Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
