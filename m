@@ -1,73 +1,53 @@
-From: Igor Gnatenko <i.gnatenko.brain@gmail.com>
-Subject: Re: [PATCH v3 0/4] Fix Win8 backlight issue
-Date: Tue, 24 Sep 2013 16:42:55 +0400
-Message-ID: <1380026575.3371.1.camel@ThinkPad-X230.localdomain>
-References: <1380016052-15315-1-git-send-email-aaron.lu@intel.com>
+From: Zhang Yanfei <zhangyanfei.yes@gmail.com>
+Subject: Re: [PATCH 1/6] memblock: Factor out of top-down allocation
+Date: Tue, 24 Sep 2013 21:04:55 +0800
+Message-ID: <52418DF7.5080101@gmail.com>
+References: <524162DA.30004@cn.fujitsu.com> <5241636B.2060206@cn.fujitsu.com> <20130924121005.GB2366@htj.dyndns.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-la0-f51.google.com ([209.85.215.51]:39487 "EHLO
-	mail-la0-f51.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750771Ab3IXMnA (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 24 Sep 2013 08:43:00 -0400
-In-Reply-To: <1380016052-15315-1-git-send-email-aaron.lu@intel.com>
+Received: from mail-pa0-f53.google.com ([209.85.220.53]:57024 "EHLO
+	mail-pa0-f53.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751038Ab3IXNFh (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 24 Sep 2013 09:05:37 -0400
+In-Reply-To: <20130924121005.GB2366@htj.dyndns.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Aaron Lu <aaron.lu@intel.com>
-Cc: linux-acpi@vger.kernel.org, intel-gfx@lists.freedesktop.org, dri-devel@lists.freedesktop.org, linux-kernel@vger.kernel.org, Daniel Vetter <daniel@ffwll.ch>, "Rafael J. Wysocki" <rjw@sisk.pl>, Matthew Garrett <matthew.garrett@nebula.com>, Seth Forshee <seth.forshee@canonical.com>, Lee Chun-Yi <joeyli.kernel@gmail.com>, Richard Purdie <rpurdie@rpsys.net>, Yves-Alexis Perez <corsac@debian.org>, Felipe Contreras <felipe.contreras@gmail.com>, Henrique de Moraes Holschuh <ibm-acpi@hmh.eng.br>, Jani Nikula <jani.nikula@linux.intel.com>, Ben Jencks <ben@bjencks.net>, Steven Newbury <steve@snewbury.org.uk>, James Hogan <james@albanarts.com>, Kamal Mostafa <kamal@canonical.com>, Joerg Platte <jplatte@naasa.net>, Kalle Valo <kvalo@adurom.com>, Martin Steigerwald <Martin@lichtvoll.de>, =?ISO-8859-1?Q?J=F6rg?= Otte <jrg.otte@gmail.com>, Mike Galbraith <bitbucket@online.de>
+To: Tejun Heo <tj@kernel.org>
+Cc: Zhang Yanfei <zhangyanfei@cn.fujitsu.com>, "Rafael J . Wysocki" <rjw@sisk.pl>, lenb@kernel.org, Thomas Gleixner <tglx@linutronix.de>, mingo@elte.hu, "H. Peter Anvin" <hpa@zytor.com>, Andrew Morton <akpm@linux-foundation.org>, Toshi Kani <toshi.kani@hp.com>, Wanpeng Li <liwanp@linux.vnet.ibm.com>, Thomas Renninger <trenn@suse.de>, Yinghai Lu <yinghai@kernel.org>, Jiang Liu <jiang.liu@huawei.com>, Wen Congyang <wency@cn.fujitsu.com>, Lai Jiangshan <laijs@cn.fujitsu.com>, isimatu.yasuaki@jp.fujitsu.com, izumi.taku@jp.fujitsu.com, Mel Gorman <mgorman@suse.de>, Minchan Kim <minchan@kernel.org>, mina86@mina86.com, gong.chen@linux.intel.com, vasilis.liaskovitis@profitbricks.com, lwoodman@redhat.com, Rik van Riel <riel@redhat.com>, jweiner@redhat.com, prarit@redhat.com, "x86@kernel.org" <x86@kernel.org>, linux-doc@vger.kernel.org, "linux-kernel@vger.kernel.org" <linux-kern>
 
-On Tue, 2013-09-24 at 17:47 +0800, Aaron Lu wrote:
-> v3:
-> 1 Add a new patch 4/4 to fix some problems in thinkpad-acpi module;
-> 2 Remove unnecessary function acpi_video_unregister introduced in
->   patch 2/3 as pointed out by Jani Nikula.
-> 
-> v2:
-> v1 has the subject of "Rework ACPI video driver" and is posted here:
-> http://lkml.org/lkml/2013/9/9/74
-> Since the objective is really to fix Win8 backlight issues, I changed
-> the subject in this version, sorry about that.
-> 
-> This patchset has three patches, the first introduced a new API named
-> backlight_device_registered in backlight layer that can be used for
-> backlight interface provider module to check if a specific type backlight
-> interface has been registered, see changelog for patch 1/3 for details.
-> Then patch 2/3 does the cleanup to sepeate the backlight control and
-> event delivery functionality in the ACPI video module and patch 3/3
-> solves some Win8 backlight control problems by avoiding register ACPI
-> video's backlight interface if:
-> 1 Kernel cmdline option acpi_backlight=video is not given;
-> 2 This is a Win8 system;
-> 3 Native backlight control interface exists.
-> 
-> Technically, patch 2/3 is not required to fix the issue here. So if you
-> think it is not necessary, I can remove it from the series.
-> 
-> Aaron Lu (4):
->   backlight: introduce backlight_device_registered
->   ACPI / video: seperate backlight control and event interface
->   ACPI / video: Do not register backlight if win8 and native interface
->     exists
->   thinkpad-acpi: fix handle locate for video and query of _BCL
-> 
->  drivers/acpi/internal.h              |   5 +-
->  drivers/acpi/video.c                 | 442 ++++++++++++++++++++---------------
->  drivers/acpi/video_detect.c          |  14 +-
->  drivers/platform/x86/thinkpad_acpi.c |  31 ++-
->  drivers/video/backlight/backlight.c  |  31 +++
->  include/acpi/video.h                 |   2 +
->  include/linux/backlight.h            |   4 +
->  7 files changed, 324 insertions(+), 205 deletions(-)
-> 
+Hello tejun,
 
-Excellent! I've tested this patch-set on ThinkPad X230 and backlight
-issue is exhausted.
+On 09/24/2013 08:10 PM, Tejun Heo wrote:
+> On Tue, Sep 24, 2013 at 06:03:23PM +0800, Zhang Yanfei wrote:
+>> From: Tang Chen <tangchen@cn.fujitsu.com>
+>>
+>> This patch imports a new function __memblock_find_range_rev
+> 
+> "imports" sounds a bit weird.  I think "creates" or "this patch
+> factors out __memblock_find_range_rev() from
+> memblock_find_in_range_node()" would be better.
+
+Okay, will update it in next version. Thanks.
+
+> 
+>> to factor out of top-down allocation from memblock_find_in_range_node.
+>> This is a preparation because we will introduce a new bottom-up
+>> allocation mode in the following patch.
+>>
+>> Signed-off-by: Tang Chen <tangchen@cn.fujitsu.com>
+>> Signed-off-by: Zhang Yanfei <zhangyanfei@cn.fujitsu.com>
+> 
+> Acked-by: Tejun Heo <tj@kernel.org>
 
 Thanks.
 
--- 
-Igor Gnatenko
-Fedora release 20 (Heisenbug)
-Linux 3.11.1-300.fc20.x86_64
+> 
+> Thanks.
+> 
 
+
+-- 
+Thanks.
+Zhang Yanfei
