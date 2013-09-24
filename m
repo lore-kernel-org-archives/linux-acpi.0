@@ -1,68 +1,46 @@
-From: Zhang Yanfei <zhangyanfei@cn.fujitsu.com>
+From: Tejun Heo <tj@kernel.org>
 Subject: Re: [PATCH v3 2/5] memblock: Improve memblock to support allocation
  from lower address.
-Date: Tue, 24 Sep 2013 10:41:51 +0800
-Message-ID: <5240FBEF.10102@cn.fujitsu.com>
-References: <1379064655-20874-1-git-send-email-tangchen@cn.fujitsu.com> <1379064655-20874-3-git-send-email-tangchen@cn.fujitsu.com> <20130923155027.GD14547@htj.dyndns.org> <52408351.8080400@gmail.com> <20130923202147.GB28667@mtj.dyndns.org>
+Date: Mon, 23 Sep 2013 22:46:54 -0400
+Message-ID: <20130924024654.GE3482@htj.dyndns.org>
+References: <1379064655-20874-1-git-send-email-tangchen@cn.fujitsu.com>
+ <1379064655-20874-3-git-send-email-tangchen@cn.fujitsu.com>
+ <20130923155027.GD14547@htj.dyndns.org>
+ <52408351.8080400@gmail.com>
+ <20130923202147.GB28667@mtj.dyndns.org>
+ <5240FBEF.10102@cn.fujitsu.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cn.fujitsu.com ([222.73.24.84]:13465 "EHLO song.cn.fujitsu.com"
-	rhost-flags-OK-FAIL-OK-OK) by vger.kernel.org with ESMTP
-	id S1752706Ab3IXCmt (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 23 Sep 2013 22:42:49 -0400
-In-Reply-To: <20130923202147.GB28667@mtj.dyndns.org>
-Sender: linux-acpi-owner@vger.kernel.org
-List-Id: linux-acpi@vger.kernel.org
-To: Tejun Heo <tj@kernel.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <owner-linux-mm@kvack.org>
+Content-Disposition: inline
+In-Reply-To: <5240FBEF.10102@cn.fujitsu.com>
+Sender: owner-linux-mm@kvack.org
+To: Zhang Yanfei <zhangyanfei@cn.fujitsu.com>
 Cc: Zhang Yanfei <zhangyanfei.yes@gmail.com>, Tang Chen <tangchen@cn.fujitsu.com>, rjw@sisk.pl, lenb@kernel.org, tglx@linutronix.de, mingo@elte.hu, hpa@zytor.com, akpm@linux-foundation.org, toshi.kani@hp.com, liwanp@linux.vnet.ibm.com, trenn@suse.de, yinghai@kernel.org, jiang.liu@huawei.com, wency@cn.fujitsu.com, laijs@cn.fujitsu.com, isimatu.yasuaki@jp.fujitsu.com, izumi.taku@jp.fujitsu.com, mgorman@suse.de, minchan@kernel.org, mina86@mina86.com, gong.chen@linux.intel.com, vasilis.liaskovitis@profitbricks.com, lwoodman@redhat.com, riel@redhat.com, jweiner@redhat.com, prarit@redhat.com, x86@kernel.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-mm@kvack.org, linux-acpi@vger.kernel.org
+List-Id: linux-acpi@vger.kernel.org
 
-Hello tejun,
+Hello,
 
-On 09/24/2013 04:21 AM, Tejun Heo wrote:
-> Hello,
-> 
-> On Tue, Sep 24, 2013 at 02:07:13AM +0800, Zhang Yanfei wrote:
->> Yes, I am following your advice in principle but kind of confused by
->> something you said above. Where should the set_memblock_alloc_above_kernel
->> be used? IMO, the function is like:
->>
->> find_in_range_node()
->> {
->>      if (ok) {
->>            /* bottom-up */
->>            ret = __memblock_find_in_range(max(start, _end_of_kernel), end...);
->>            if (!ret)
->>                  return ret;
->>      }
->>
->>      /* top-down retry */
->>      return __memblock_find_in_range_rev(start, end...)
->> }
->>
->> For bottom-up allocation, we always start from max(start, _end_of_kernel).
-> 
-> Oh, I was talking about naming of the memblock_set_bottom_up()
-> function.  We aren't really doing pure bottom up allocations, so I
-> think it probably would be clearer if the name clearly denotes that
-> we're doing above-kernel allocation.
+On Tue, Sep 24, 2013 at 10:41:51AM +0800, Zhang Yanfei wrote:
+> I see. But I think memblock_set_alloc_above_kernel may lose the info
+> that we are doing bottom-up allocation. So my idea is we introduce
+> pure bottom-up allocation mode in previous patches and we use the
+> bottom-up allocation here and limit the start address above the kernel
+> , with explicit comments to indicate this.
 
-I see. But I think memblock_set_alloc_above_kernel may lose the info
-that we are doing bottom-up allocation. So my idea is we introduce
-pure bottom-up allocation mode in previous patches and we use the
-bottom-up allocation here and limit the start address above the kernel
-, with explicit comments to indicate this.
-
-How do you think?
+It probably doesn't matter either way.  I was just a bit bothered that
+it's called bottom-up when it implies more including the retry logic.
+Its use of bottom-up allocation is really an implementation logic to
+achieve the goal of allocating memory above kernel image after all,
+but yeah minor point either way.
 
 Thanks.
-
-> 
-> Thanks.
-> 
-
 
 -- 
-Thanks.
-Zhang Yanfei
+tejun
+
+--
+To unsubscribe, send a message with 'unsubscribe linux-mm' in
+the body to majordomo@kvack.org.  For more info on Linux MM,
+see: http://www.linux-mm.org/ .
+Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
