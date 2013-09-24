@@ -1,124 +1,101 @@
 From: "Zheng, Lv" <lv.zheng@intel.com>
-Subject: RE: [PATCH] ACPICA / hwreg: Use acpi_gbl_reduced_hardware to
- prevent accessing PM registers
-Date: Tue, 24 Sep 2013 00:20:08 +0000
-Message-ID: <1AE640813FDE7649BE1B193DEA596E8802465946@SHSMSX101.ccr.corp.intel.com>
-References: <1379066741-23689-1-git-send-email-hanjun.guo@linaro.org>
- <94F2FBAB4432B54E8AACC7DFDE6C92E36FEEBC6A@ORSMSX103.amr.corp.intel.com>
- <94F2FBAB4432B54E8AACC7DFDE6C92E36FEEC15B@ORSMSX103.amr.corp.intel.com>
- <52366F91.30204@linaro.org>
- <94F2FBAB4432B54E8AACC7DFDE6C92E36FEEC56A@ORSMSX103.amr.corp.intel.com>
- <523972F4.9070703@linaro.org>
- <94F2FBAB4432B54E8AACC7DFDE6C92E36FEFA437@ORSMSX102.amr.corp.intel.com>
- <94F2FBAB4432B54E8AACC7DFDE6C92E36FEFEA4D@ORSMSX102.amr.corp.intel.com>
- <523E6369.3050803@linaro.org>
+Subject: RE: [PATCH 2/2] gpio / ACPI: add support for GPIO operation regions
+Date: Tue, 24 Sep 2013 00:47:56 +0000
+Message-ID: <1AE640813FDE7649BE1B193DEA596E880246596B@SHSMSX101.ccr.corp.intel.com>
+References: <1379085280-2211-1-git-send-email-mika.westerberg@linux.intel.com>
+ <1379085280-2211-2-git-send-email-mika.westerberg@linux.intel.com>
+ <1AE640813FDE7649BE1B193DEA596E880246367A@SHSMSX101.ccr.corp.intel.com>
+ <20130915065151.GK7393@intel.com>
+ <1AE640813FDE7649BE1B193DEA596E88024639E4@SHSMSX101.ccr.corp.intel.com>
+ <1AE640813FDE7649BE1B193DEA596E8802463A46@SHSMSX101.ccr.corp.intel.com>
+ <20130916081048.GM7393@intel.com>
+ <1AE640813FDE7649BE1B193DEA596E8802463D85@SHSMSX101.ccr.corp.intel.com>
+ <20130917083712.GS7393@intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 8BIT
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga11.intel.com ([192.55.52.93]:35661 "EHLO mga11.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752406Ab3IXAUK convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 23 Sep 2013 20:20:10 -0400
-In-Reply-To: <523E6369.3050803@linaro.org>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20130917083712.GS7393@intel.com>
 Content-Language: en-US
-Sender: linux-acpi-owner@vger.kernel.org
+Sender: linux-kernel-owner@vger.kernel.org
+To: Mika Westerberg <mika.westerberg@linux.intel.com>
+Cc: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Linus Walleij <linus.walleij@linaro.org>, "Wysocki, Rafael J" <rafael.j.wysocki@intel.com>, Mathias Nyman <mathias.nyman@linux.intel.com>, Grant Likely <grant.likely@secretlab.ca>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
-To: Hanjun Guo <hanjun.guo@linaro.org>, "Moore, Robert" <robert.moore@intel.com>
-Cc: "'Rafael J. Wysocki'" <rjw@sisk.pl>, 'Len Brown' <lenb@kernel.org>, "Box, David E" <david.e.box@intel.com>, "'linux-acpi@vger.kernel.org'" <linux-acpi@vger.kernel.org>, "'patches@linaro.org'" <patches@linaro.org>, "'linaro-kernel@lists.linaro.org'" <linaro-kernel@lists.linaro.org>, "'linaro-acpi@lists.linaro.org'" <linaro-acpi@lists.linaro.org>
 
-> From: Hanjun Guo [mailto:hanjun.guo@linaro.org]
-> Sent: Sunday, September 22, 2013 11:27 AM
+> From: Mika Westerberg [mailto:mika.westerberg@linux.intel.com]
+> Sent: Tuesday, September 17, 2013 4:37 PM
 > 
-> On 2013-9-19 10:37, Moore, Robert wrote:
-> > While we are at it, here is the *complete* list of ACPICA interfaces that are
-> > meaningless on a hardware-reduced platform. If we are going to dynamically
-> > disable some of these interfaces, we will need to disable all of them -- for
-> > completeness. So, this is actually not a trivial change.
+> On Mon, Sep 16, 2013 at 11:35:56PM +0000, Zheng, Lv wrote:
+> > > From: Mika Westerberg [mailto:mika.westerberg@linux.intel.com]
+> > > Sent: Monday, September 16, 2013 4:11 PM
+> > >
+> > > On Mon, Sep 16, 2013 at 01:21:53AM +0000, Zheng, Lv wrote:
+> > > > > A pseudo device may be created to access the GPIO operation region fields provided by one GPIO device.
+> > > > > The pseudo device may have other functions to access other GPIO operation region fields provided by other GPIO devices, or even
+> worse
+> > > to
+> > > > > access other ACPI provided value-adds.
+> > > > > So hierarchically the pseudo device only requires CPU, thus should not be under the GPIO device, which means the GPIO operation
+> > > regions
+> > > > > have nothing to do with the GPIO devices' ACPI handle.
+> > > >
+> > > > Sorry for the wording.
+> > > > It's better to say the GPIO operation region users haven't strict
+> > > > relationship to the GPIO operation region providers.
+> > > > As the installation is to provide GPIO operation regions to the users, it
+> > > > shouldn't relate to the providers' ACPI handle.
+> > >
+> > > If I understand you correctly you mean that there might be multiple users
+> > > (different devices) for the same GPIO operation region, right?
+> >
+> > No, this is not what I meant.
+> > Can one vendor device uses two or more GPIO pins from different GPIO ports?
 > 
-> Yes, you are right.
-> Actually, before I send this patch out, I searched all the ACPICA API on
-> a hardware-reduced platform as you did, I found some of them will finally call
-> acpi_hw_register_read/write(), so some of the ACPICA API do not need to change.
+> Yes.
+
+So how can such a device under one of these GPIO ports?
+It can only be under one particular GPIO port device, right?
+
+Thus I believe such device will appear below other devices rather than below a GPIO port device in the ACPI namespace.
+
+
 > 
+> > > That shouldn't be a problem as far as I can tell.
+> > >
+> > > What comes to the hierarchy you refer, I'm not sure if that is a problem
+> > > either (unless I'm missing something). The GPIO can be used anywhere in the
+> > > ASL, it doesn't have to be descendant of the GPIO device. You only need to
+> > > do something like this:
+> > >
+> > > 	// Assert the GPIO
+> > > 	Store(1, \_SB.PCI0.SHD3)
+> > >
+> > > In other words, use the fully qualified name.
+> >
+> > Yes, which means this line of code can be everywhere in the namespace.
+> > It is not required to be under one particular GPIO device as long as there is an operation region defined in that scope.
+> >
+> > The problem is the installation, the first parameter for
+> > acpi_install_address_space_handler() is a namespace node, the function
+> > will call _REG for all OperationRegions below the scope whose top most
+> > node is the specified node.
+> > The nodes out of this scope are not affected.  So if an OperationRegion
+> > is defined out of this scope, problem happens.
+> 
+> I suppose for that operation region another GPIO device should be
+> introduced then, no?
 
-I agreed.
+I believe the answer is no.
 
-My idea is to keep the call path implemented using non-HWREDUCED ACPI silicon not-changed, but changing the code inside of a function implemented with the non-HWREDUCED logic to contain a HWREDUCED logic.
-This might be more reasonable.
-So IMO, it is not a good idea to reduce the APIs, but need to re-implement the APIs using HWREDUCED logic.
-And the non-HWREDUCED code inside of an API should be marked with ACPI_HARDWARE_REDUCED macro rather than the API itself be marked out.
-If the APIs (aka., ACPI functionalities) are kept un-modified, the device drivers can be kept un-modified on HWREDUCED platforms.
+> So if we don't have a GPIO driver for the given operation region, what can
+> we do? We don't want the ASL code to erroneusly think that there is an
+> operation region available when it is not.
 
-Thanks
+I think GPIO "address_space_handler" should be provided by an ACPI GPIO address space module rather than provided by a particular GPIO driver.
+
+Actually, without the readiness of the GPIO driver, currently ASL code can still access the GPIO fields, though it just results in "handler not found" ACPICA error message.
+If the "setup" callback is implemented, then the proper GPIO driver can be matched in this "setup" callback.
+If the GPIO driver hasn't been loaded by Linux and thus not matched in the "setup" callback, from users' point of view, the result is just changing the error message from "handler not found" to "driver not found".
+
+Thanks and best regards
 -Lv
-
-> Some of these APIs are already disabled in linux kernel tree now, such as
-> acpi_enable():
-> acpi_status acpi_enable(void)
-> {
-> 	acpi_status status;
-> 	int retry;
-> 
-> 	ACPI_FUNCTION_TRACE(acpi_enable);
-> 
-> 	/* ACPI tables must be present */
-> 
-> 	if (!acpi_tb_tables_loaded()) {
-> 		return_ACPI_STATUS(AE_NO_ACPI_TABLES);
-> 	}
-> 
-> 	/* If the Hardware Reduced flag is set, machine is always in acpi mode */
-> 
-> 	if (acpi_gbl_reduced_hardware) {
-> 		return_ACPI_STATUS(AE_OK);
-> 	}
-> ...
-> }
-> 
-> and some of them need to be disabled as you said.
-> 
-> >
-> > I'll let the linux experts chime in on this one.
-> > Bob
-> >
-> >
-> > AcpiInstallSciHandler
-> > AcpiRemoveSciHandler
-> > AcpiInstallGlobalEventHandler
-> > AcpiInstallFixedEventHandler
-> > AcpiRemoveFixedEventHandler
-> > AcpiInstallGpeHandler
-> > AcpiRemoveGpeHandler
-> > AcpiAcquireGlobalLock
-> > AcpiReleaseGlobalLock
-> > AcpiEnable
-> > AcpiDisable
-> > AcpiEnableEvent
-> > AcpiDisableEvent
-> > AcpiClearEvent
-> > AcpiGetEventStatus
-> > AcpiUpdateAllGpes
-> > AcpiEnableGpe
-> > AcpiDisableGpe
-> > AcpiSetGpe
-> > AcpiSetupGpeForWake
-> > AcpiSetGpeWakeMask
-> > AcpiClearGpe
-> > AcpiGetGpeStatus
-> > AcpiFinishGpe
-> > AcpiDisableAllGpes
-> > AcpiEnableAllRuntimeGpes
-> > AcpiInstallGpeBlock
-> > AcpiRemoveGpeBlock
-> > AcpiGetGpeDevice
-> > AcpiGetTimerResolution
-> > AcpiGetTimer
-> > AcpiGetTimerDuration
-> > AcpiReadBitRegister
-> > AcpiWriteBitRegister
-> > AcpiSetFirmwareWakingVector
-> > AcpiSetFirmwareWakingVector64
-> > AcpiEnterSleepStateS4bios
-> 
-
