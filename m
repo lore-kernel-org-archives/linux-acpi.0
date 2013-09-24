@@ -1,74 +1,73 @@
-From: Tejun Heo <tj@kernel.org>
-Subject: Re: [PATCH 6/6] mem-hotplug: Introduce movablenode boot option
-Date: Tue, 24 Sep 2013 08:41:21 -0400
-Message-ID: <20130924124121.GG2366@htj.dyndns.org>
-References: <524162DA.30004@cn.fujitsu.com>
- <5241655E.1000007@cn.fujitsu.com>
+From: Igor Gnatenko <i.gnatenko.brain@gmail.com>
+Subject: Re: [PATCH v3 0/4] Fix Win8 backlight issue
+Date: Tue, 24 Sep 2013 16:42:55 +0400
+Message-ID: <1380026575.3371.1.camel@ThinkPad-X230.localdomain>
+References: <1380016052-15315-1-git-send-email-aaron.lu@intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-doc-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <5241655E.1000007@cn.fujitsu.com>
-Sender: linux-doc-owner@vger.kernel.org
-To: Zhang Yanfei <zhangyanfei@cn.fujitsu.com>
-Cc: "Rafael J . Wysocki" <rjw@sisk.pl>, lenb@kernel.org, Thomas Gleixner <tglx@linutronix.de>, mingo@elte.hu, "H. Peter Anvin" <hpa@zytor.com>, Andrew Morton <akpm@linux-foundation.org>, Toshi Kani <toshi.kani@hp.com>, Wanpeng Li <liwanp@linux.vnet.ibm.com>, Thomas Renninger <trenn@suse.de>, Yinghai Lu <yinghai@kernel.org>, Jiang Liu <jiang.liu@huawei.com>, Wen Congyang <wency@cn.fujitsu.com>, Lai Jiangshan <laijs@cn.fujitsu.com>, isimatu.yasuaki@jp.fujitsu.com, izumi.taku@jp.fujitsu.com, Mel Gorman <mgorman@suse.de>, Minchan Kim <minchan@kernel.org>, mina86@mina86.com, gong.chen@linux.intel.com, vasilis.liaskovitis@profitbricks.com, lwoodman@redhat.com, Rik van Riel <riel@redhat.com>, jweiner@redhat.com, prarit@redhat.com, "x86@kernel.org" <x86@kernel.org>, linux-doc@vger.kernel.org, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Linux MM <linux-mm@kva>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-la0-f51.google.com ([209.85.215.51]:39487 "EHLO
+	mail-la0-f51.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750771Ab3IXMnA (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 24 Sep 2013 08:43:00 -0400
+In-Reply-To: <1380016052-15315-1-git-send-email-aaron.lu@intel.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Aaron Lu <aaron.lu@intel.com>
+Cc: linux-acpi@vger.kernel.org, intel-gfx@lists.freedesktop.org, dri-devel@lists.freedesktop.org, linux-kernel@vger.kernel.org, Daniel Vetter <daniel@ffwll.ch>, "Rafael J. Wysocki" <rjw@sisk.pl>, Matthew Garrett <matthew.garrett@nebula.com>, Seth Forshee <seth.forshee@canonical.com>, Lee Chun-Yi <joeyli.kernel@gmail.com>, Richard Purdie <rpurdie@rpsys.net>, Yves-Alexis Perez <corsac@debian.org>, Felipe Contreras <felipe.contreras@gmail.com>, Henrique de Moraes Holschuh <ibm-acpi@hmh.eng.br>, Jani Nikula <jani.nikula@linux.intel.com>, Ben Jencks <ben@bjencks.net>, Steven Newbury <steve@snewbury.org.uk>, James Hogan <james@albanarts.com>, Kamal Mostafa <kamal@canonical.com>, Joerg Platte <jplatte@naasa.net>, Kalle Valo <kvalo@adurom.com>, Martin Steigerwald <Martin@lichtvoll.de>, =?ISO-8859-1?Q?J=F6rg?= Otte <jrg.otte@gmail.com>, Mike Galbraith <bitbucket@online.de>
 
-Hello,
+On Tue, 2013-09-24 at 17:47 +0800, Aaron Lu wrote:
+> v3:
+> 1 Add a new patch 4/4 to fix some problems in thinkpad-acpi module;
+> 2 Remove unnecessary function acpi_video_unregister introduced in
+>   patch 2/3 as pointed out by Jani Nikula.
+> 
+> v2:
+> v1 has the subject of "Rework ACPI video driver" and is posted here:
+> http://lkml.org/lkml/2013/9/9/74
+> Since the objective is really to fix Win8 backlight issues, I changed
+> the subject in this version, sorry about that.
+> 
+> This patchset has three patches, the first introduced a new API named
+> backlight_device_registered in backlight layer that can be used for
+> backlight interface provider module to check if a specific type backlight
+> interface has been registered, see changelog for patch 1/3 for details.
+> Then patch 2/3 does the cleanup to sepeate the backlight control and
+> event delivery functionality in the ACPI video module and patch 3/3
+> solves some Win8 backlight control problems by avoiding register ACPI
+> video's backlight interface if:
+> 1 Kernel cmdline option acpi_backlight=video is not given;
+> 2 This is a Win8 system;
+> 3 Native backlight control interface exists.
+> 
+> Technically, patch 2/3 is not required to fix the issue here. So if you
+> think it is not necessary, I can remove it from the series.
+> 
+> Aaron Lu (4):
+>   backlight: introduce backlight_device_registered
+>   ACPI / video: seperate backlight control and event interface
+>   ACPI / video: Do not register backlight if win8 and native interface
+>     exists
+>   thinkpad-acpi: fix handle locate for video and query of _BCL
+> 
+>  drivers/acpi/internal.h              |   5 +-
+>  drivers/acpi/video.c                 | 442 ++++++++++++++++++++---------------
+>  drivers/acpi/video_detect.c          |  14 +-
+>  drivers/platform/x86/thinkpad_acpi.c |  31 ++-
+>  drivers/video/backlight/backlight.c  |  31 +++
+>  include/acpi/video.h                 |   2 +
+>  include/linux/backlight.h            |   4 +
+>  7 files changed, 324 insertions(+), 205 deletions(-)
+> 
 
-On Tue, Sep 24, 2013 at 06:11:42PM +0800, Zhang Yanfei wrote:
-> diff --git a/arch/x86/kernel/setup.c b/arch/x86/kernel/setup.c
-> index 36cfce3..2cf04fd 100644
-> --- a/arch/x86/kernel/setup.c
-> +++ b/arch/x86/kernel/setup.c
-> @@ -1132,6 +1132,14 @@ void __init setup_arch(char **cmdline_p)
->  	early_acpi_boot_init();
->  
->  	initmem_init();
-> +
-> +	/*
-> +	 * When ACPI SRAT is parsed, which is done in initmem_init(),
-> +	 * set memblock back to the top-down direction.
-> +	 */
-> +	if (memblock_bottom_up())
-> +		memblock_set_bottom_up(false);
-
-I don't think you need the if ().  Just call
-memblock_set_bottom_up(false).
-
-> +static int __init cmdline_parse_movablenode(char *p)
-> +{
-> +	/*
-> +	 * Memory used by the kernel cannot be hot-removed because Linux
-> +	 * cannot migrate the kernel pages. When memory hotplug is
-> +	 * enabled, we should prevent memblock from allocating memory
-> +	 * for the kernel.
-> +	 *
-> +	 * ACPI SRAT records all hotpluggable memory ranges. But before
-> +	 * SRAT is parsed, we don't know about it.
-> +	 *
-> +	 * The kernel image is loaded into memory at very early time. We
-> +	 * cannot prevent this anyway. So on NUMA system, we set any
-> +	 * node the kernel resides in as un-hotpluggable.
-> +	 *
-> +	 * Since on modern servers, one node could have double-digit
-> +	 * gigabytes memory, we can assume the memory around the kernel
-> +	 * image is also un-hotpluggable. So before SRAT is parsed, just
-> +	 * allocate memory near the kernel image to try the best to keep
-> +	 * the kernel away from hotpluggable memory.
-> +	 */
-> +	memblock_set_bottom_up(true);
-> +	return 0;
-> +}
-> +early_param("movablenode", cmdline_parse_movablenode);
-
-This came up during earlier review but never was addressed.  Is
-"movablenode" the right name?  Shouldn't it be something which
-explicitly shows that it's to prepare for memory hotplug?  Also, maybe
-the above param should generate warning if CONFIG_MOVABLE_NODE isn't
-enabled?
+Excellent! I've tested this patch-set on ThinkPad X230 and backlight
+issue is exhausted.
 
 Thanks.
 
 -- 
-tejun
+Igor Gnatenko
+Fedora release 20 (Heisenbug)
+Linux 3.11.1-300.fc20.x86_64
+
