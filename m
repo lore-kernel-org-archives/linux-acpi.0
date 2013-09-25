@@ -1,119 +1,136 @@
-From: Gu Zheng <guz.fnst@cn.fujitsu.com>
-Subject: Re: [Bug report] Warning when hot-add an ACPI0004 device.
-Date: Wed, 25 Sep 2013 18:31:09 +0800
-Message-ID: <5242BB6D.3060504@cn.fujitsu.com>
-References: <52314A89.2060809@cn.fujitsu.com> <1378998712.12538.18.camel@misato.fc.hp.com>
+From: Jani Nikula <jani.nikula@linux.intel.com>
+Subject: Re: [PATCH v3 0/4] Fix Win8 backlight issue
+Date: Wed, 25 Sep 2013 13:41:28 +0300
+Message-ID: <87vc1p4207.fsf@intel.com>
+References: <1380016052-15315-1-git-send-email-aaron.lu@intel.com> <1380026575.3371.1.camel@ThinkPad-X230.localdomain> <CADDKRnCAZ0DtBUUaMfdTF=yk6PDLpbc9jkuvWWO8hYW4TDLxKw@mail.gmail.com> <20130925091720.GA1921@aaronlu.sh.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cn.fujitsu.com ([222.73.24.84]:11045 "EHLO song.cn.fujitsu.com"
-	rhost-flags-OK-FAIL-OK-OK) by vger.kernel.org with ESMTP
-	id S1754771Ab3IYKgL (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 25 Sep 2013 06:36:11 -0400
-In-Reply-To: <1378998712.12538.18.camel@misato.fc.hp.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20130925091720.GA1921@aaronlu.sh.intel.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Aaron Lu <aaron.lu@intel.com>, =?utf-8?Q?J=C3=B6rg?= Otte <jrg.otte@gmail.com>
+Cc: Igor Gnatenko <i.gnatenko.brain@gmail.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, intel-gfx <intel-gfx@lists.freedesktop.org>, dri-devel@lists.freedesktop.org, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Daniel Vetter <daniel@ffwll.ch>, "Rafael J. Wysocki" <rjw@sisk.pl>, Matthew Garrett <matthew.garrett@nebula.com>, Seth Forshee <seth.forshee@canonical.com>, Lee Chun-Yi <joeyli.kernel@gmail.com>, Richard Purdie <rpurdie@rpsys.net>, Yves-Alexis Perez <corsac@debian.org>, Felipe Contreras <felipe.contreras@gmail.com>, Henrique de Moraes Holschuh <ibm-acpi@hmh.eng.br>, Ben Jencks <ben@bjencks.net>, Steven Newbury <steve@snewbury.org.uk>, James Hogan <james@albanarts.com>, Kamal Mostafa <kamal@canonical.com>, Joerg Platte <jplatte@naasa.net>, Kalle Valo <kvalo@adurom.com>, Martin Steigerwald <Martin@lichtvoll.de>, Mike Galbraith <bitbucke>
 List-Id: linux-acpi@vger.kernel.org
-To: Toshi Kani <toshi.kani@hp.com>
-Cc: Tang Chen <tangchen@cn.fujitsu.com>, "Rafael J. Wysocki" <rjw@sisk.pl>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
 
-Hi Toshi,
+On Wed, 25 Sep 2013, Aaron Lu <aaron.lu@intel.com> wrote:
+> On Wed, Sep 25, 2013 at 10:29:37AM +0200, J=C3=B6rg Otte wrote:
+>> Backlight can't be modified with this patch set - neither with
+>> function keys nor with the gui. It is a step backward to v3.11-rc1
 
-On 09/12/2013 11:11 PM, Toshi Kani wrote:
+So both hotkeys and GUI work in v3.11-rc1? And v3.12-rc2?
 
-> On Thu, 2013-09-12 at 13:00 +0800, Tang Chen wrote:
->> Hi Rafael, Toshi,
->>
->> When we hot-add an ACPI0004 device, we got the following warning:
->>
->> 	acpi ACPI0004:01: Attempt to re-insert
->>
->> The ACPI0004 device is a System Board in Fujitsu server, which has two
->> numa nodes (processors and memory).
->>
->> It seems that we reserved the ACPI_NOTIFY_DEVICE_CHECK event twice in
->> acpi_hotplug_notify_cb().
->>
->>
->> According to bisect, this happens after the following commit:
->>
->>  From 68a67f6c78b80525d9b3c6672e7782de95e56a83 Mon Sep 17 00:00:00 2001
->> From: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>
->> Date: Sun, 3 Mar 2013 23:05:55 +0100
->> Subject: [PATCH 1/1] ACPI / container: Use common hotplug code
->>
->> Switch the ACPI container driver to using common device hotplug code
->> introduced previously.  This reduces the driver down to a trivial
->> definition and registration of a struct acpi_scan_handler object.
->>
->> Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
->> Acked-by: Toshi Kani <toshi.kani@hp.com>
->> Tested-by: Toshi Kani <toshi.kani@hp.com>
->> ---
->>   drivers/acpi/container.c | 146 
->> ++++-------------------------------------------
->>   1 file changed, 10 insertions(+), 136 deletions(-)
->>
->>
->> I'm now investigating this problem. If you have any idea about why this
->> happens, please let me know.
-> 
-> With the above change, container devices use the common notify handler,
-> which logs the warning message in question when it receives device check
-> twice on a same device.  Before the change, the container-specific
-> notify handler did not log this message in the same case (but considered
-> it as an eject request).
-> 
-> So, I suspect that you are getting device check twice regardless of the
-> kernel change.  Can you check KERN_DEBUG messages to see if that is the
-> case?  The notify handler logs all events with KERN_DEBUG.
+> Thanks for the test.
+>
+> Please check /sys/class/backlight, is there only one link file
+> intel_backlight?
 
-Follow your suggestion, we confirm that it really received ACPI_NOTIFY_
-DEVICE_CHECK event*twice*, but the original ACPI container driver only
-received once, does the common device hotplug code introduce another device
-check? any idea?
+Indeed, are there others? fujitsu-laptop perhaps? If yes, try
+CONFIG_FUJITSU_LAPTOP=3Dn or an appropriate module blacklist.
 
-Container uses common device hotplug code:
-[  142.937724] IPv6: ADDRCONF(NETDEV_CHANGE): eth8: link becomes ready
-[  674.975575] ACPI: \_SB_.LSB1: ACPI_NOTIFY_DEVICE_CHECK event          <<<<
-[  674.991604] ACPI: \_SB_.LSB1: ACPI_NOTIFY_DEVICE_CHECK event		 <<<<	
-[  675.613990] ACPI: PCI Root Bridge [UNC2] (domain 0000 [bus fd])
-[  675.684970] acpi PNP0A03:01: ACPI _OSC support notification failed, disabling PCIe ASPM
-[  675.780957] acpi PNP0A03:01: Unable to request _OSC control (_OSC support mask: 0x08)
-[  675.874806] ACPI _OSC control for PCIe not granted, disabling ASPM
-[  675.949005] pci_bus 0000:fd: Allocating resources
-[  675.960145] ACPI: PCI Root Bridge [UNC3] (domain 0000 [bus fc])
-[  676.031176] acpi PNP0A03:02: ACPI _OSC support notification failed, disabling PCIe ASPM
-[  676.127129] acpi PNP0A03:02: Unable to request _OSC control (_OSC support mask: 0x08)
-[  676.220943] ACPI _OSC control for PCIe not granted, disabling ASPM
-[  676.295019] pci_bus 0000:fc: Allocating resources
+Just checking, you do have CONFIG_BACKLIGHT_CLASS_DEVICE=3Dy?
+Embarrassingly there was a bug in i915 fixed just recently where the
+backlight device wasn't registered for
+CONFIG_BACKLIGHT_CLASS_DEVICE=3Dm...
 
-Original ACPI container driver:
-[ 1526.122933] Container driver received ACPI_NOTIFY_DEVICE_CHECK event <<<<
-[ 1526.800646] ACPI: PCI Root Bridge [UNC2] (domain 0000 [bus fd])
-[ 1526.871682] acpi PNP0A03:01: ACPI _OSC support notification failed, disabling PCIe ASPM
-[ 1526.967878] acpi PNP0A03:01: Unable to request _OSC control (_OSC support mask: 0x08)
-[ 1527.061891] ACPI _OSC control for PCIe not granted, disabling ASPM
-[ 1527.136036] pci_bus 0000:fd: Allocating resources
-[ 1527.150747] ACPI: PCI Root Bridge [UNC3] (domain 0000 [bus fc])
-[ 1527.221821] acpi PNP0A03:02: ACPI _OSC support notification failed, disabling PCIe ASPM
-[ 1527.317738] acpi PNP0A03:02: Unable to request _OSC control (_OSC support mask: 0x08)
-[ 1527.411795] ACPI _OSC control for PCIe not granted, disabling ASPM
-[ 1527.485917] pci_bus 0000:fc: Allocating resources
+> If so, please cd inside and try modify the brightness file using echo
+> with some values in the range of 0 - max_brightness, does the
+> backlight level change when you echo a new value? I guess it doesn't,
+> or you wouldn't notice problem. If indeed so, perhaps file a bug at
+> http://bugzilla.kernel.org, Drivers/Video(DRI-Intel)? I suppose Jani
+> and Daniel can help fix your problem.
+
+Yup, please check the above, and report back.
+
+BR,
+Jani.
 
 
-Thanks,
-Gu
-
-> 
+>
 > Thanks,
-> -Toshi
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-kernel" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> Please read the FAQ at  http://www.tux.org/lkml/
-> 
+> Aaron
+>
+>>=20
+>> Video driver: i915
+>> FUJITSU LIFEBOOK AH532/FJNBB1C, BIOS Version 1.09 05/22/2012
+>>=20
+>> acpi_backlight=3Dvideo works.
+>>=20
+>> J=C3=B6rg
+>>=20
+>>=20
+>> 2013/9/24 Igor Gnatenko <i.gnatenko.brain@gmail.com>
+>>=20
+>> > On Tue, 2013-09-24 at 17:47 +0800, Aaron Lu wrote:
+>> > > v3:
+>> > > 1 Add a new patch 4/4 to fix some problems in thinkpad-acpi modu=
+le;
+>> > > 2 Remove unnecessary function acpi_video_unregister introduced i=
+n
+>> > >   patch 2/3 as pointed out by Jani Nikula.
+>> > >
+>> > > v2:
+>> > > v1 has the subject of "Rework ACPI video driver" and is posted h=
+ere:
+>> > > http://lkml.org/lkml/2013/9/9/74
+>> > > Since the objective is really to fix Win8 backlight issues, I ch=
+anged
+>> > > the subject in this version, sorry about that.
+>> > >
+>> > > This patchset has three patches, the first introduced a new API =
+named
+>> > > backlight_device_registered in backlight layer that can be used =
+for
+>> > > backlight interface provider module to check if a specific type =
+backlight
+>> > > interface has been registered, see changelog for patch 1/3 for d=
+etails.
+>> > > Then patch 2/3 does the cleanup to sepeate the backlight control=
+ and
+>> > > event delivery functionality in the ACPI video module and patch =
+3/3
+>> > > solves some Win8 backlight control problems by avoiding register=
+ ACPI
+>> > > video's backlight interface if:
+>> > > 1 Kernel cmdline option acpi_backlight=3Dvideo is not given;
+>> > > 2 This is a Win8 system;
+>> > > 3 Native backlight control interface exists.
+>> > >
+>> > > Technically, patch 2/3 is not required to fix the issue here. So=
+ if you
+>> > > think it is not necessary, I can remove it from the series.
+>> > >
+>> > > Aaron Lu (4):
+>> > >   backlight: introduce backlight_device_registered
+>> > >   ACPI / video: seperate backlight control and event interface
+>> > >   ACPI / video: Do not register backlight if win8 and native int=
+erface
+>> > >     exists
+>> > >   thinkpad-acpi: fix handle locate for video and query of _BCL
+>> > >
+>> > >  drivers/acpi/internal.h              |   5 +-
+>> > >  drivers/acpi/video.c                 | 442
+>> > ++++++++++++++++++++---------------
+>> > >  drivers/acpi/video_detect.c          |  14 +-
+>> > >  drivers/platform/x86/thinkpad_acpi.c |  31 ++-
+>> > >  drivers/video/backlight/backlight.c  |  31 +++
+>> > >  include/acpi/video.h                 |   2 +
+>> > >  include/linux/backlight.h            |   4 +
+>> > >  7 files changed, 324 insertions(+), 205 deletions(-)
+>> > >
+>> >
+>> > Excellent! I've tested this patch-set on ThinkPad X230 and backlig=
+ht
+>> > issue is exhausted.
+>> >
+>> > Thanks.
+>> >
+>> > --
+>> > Igor Gnatenko
+>> > Fedora release 20 (Heisenbug)
+>> > Linux 3.11.1-300.fc20.x86_64
+>> >
+>> >
 
-
+--=20
+Jani Nikula, Intel Open Source Technology Center
