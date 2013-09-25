@@ -1,72 +1,177 @@
 From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [PATCH v2 00/12] ACPI/IPMI: Fix several issues in the current codes
-Date: Wed, 25 Sep 2013 19:54:34 +0200
-Message-ID: <3234851.YNvxj0TJEP@vostro.rjw.lan>
-References: <cover.1370652213.git.lv.zheng@intel.com> <cover.1379048860.git.lv.zheng@intel.com>
+Subject: Re: [PATCH 1/2] ACPI / thermal: reuse module_acpi_driver
+Date: Wed, 25 Sep 2013 19:54:59 +0200
+Message-ID: <2917197.XCFqrofKBS@vostro.rjw.lan>
+References: <1379085346-25571-1-git-send-email-andriy.shevchenko@linux.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7Bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from v094114.home.net.pl ([79.96.170.134]:52155 "HELO
+Received: from v094114.home.net.pl ([79.96.170.134]:59038 "HELO
 	v094114.home.net.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1751172Ab3IYRnN (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 25 Sep 2013 13:43:13 -0400
-In-Reply-To: <cover.1379048860.git.lv.zheng@intel.com>
+	with SMTP id S1750783Ab3IYRni (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 25 Sep 2013 13:43:38 -0400
+In-Reply-To: <1379085346-25571-1-git-send-email-andriy.shevchenko@linux.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Lv Zheng <lv.zheng@intel.com>
-Cc: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Len Brown <len.brown@intel.com>, Corey Minyard <minyard@acm.org>, Zhao Yakui <yakui.zhao@intel.com>, linux-acpi@vger.kernel.org, openipmi-developer@lists.sourceforge.net
+To: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Cc: Zhang Rui <rui.zhang@intel.com>, "Rafael J . Wysocki" <rafael.j.wysocki@intel.com>, linux-acpi@vger.kernel.org
 
-On Friday, September 13, 2013 01:13:01 PM Lv Zheng wrote:
-> This patchset tries to fix the following kernel bug:
-> Buglink: https://bugzilla.kernel.org/show_bug.cgi?id=46741
-> This is fixed by [PATCH 06].
+On Friday, September 13, 2013 06:15:45 PM Andy Shevchenko wrote:
+> There is a macro to register and unregister modules in simple cases, Let's use
+> it and clean up the driver.
 > 
-> The bug shows IPMI operation region may appear in a device not under the
-> IPMI system interface device's scope, thus it's required to install the
-> ACPI IPMI operation region handler from the root of the ACPI namespace.
+> Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+
+I've queued up both patches for 3.13, thanks!
+
+> ---
+>  drivers/acpi/thermal.c | 117 ++++++++++++++++++++-----------------------------
+>  1 file changed, 48 insertions(+), 69 deletions(-)
 > 
-> The original acpi_ipmi implementation includes several issues that break
-> the test process.  This patchset also includes a re-design of acpi_ipmi
-> module to make the test possible.
+> diff --git a/drivers/acpi/thermal.c b/drivers/acpi/thermal.c
+> index 6a03293..7e5629b 100644
+> --- a/drivers/acpi/thermal.c
+> +++ b/drivers/acpi/thermal.c
+> @@ -980,6 +980,46 @@ static void acpi_thermal_notify(struct acpi_device *device, u32 event)
+>  	}
+>  }
 >  
-> [PATCH 01-06] are bug-fix patches that can be applied to the kernels whose
->               version is > 2.6.38.  This can be confirmed with:
->               # git tag --contains e92b297c
-> [PATCH 07] is a tuning patch for acpi_ipmi.c.
-> [PATCH 08-12] are cleanup patches for acpi_ipmi.c and its Kconfig item.
+> +static struct dmi_system_id thermal_dmi_table[] __initdata = {
+> +	/*
+> +	 * Award BIOS on this AOpen makes thermal control almost worthless.
+> +	 * http://bugzilla.kernel.org/show_bug.cgi?id=8842
+> +	 */
+> +	{
+> +	 .callback = thermal_act,
+> +	 .ident = "AOpen i915GMm-HFS",
+> +	 .matches = {
+> +		DMI_MATCH(DMI_BOARD_VENDOR, "AOpen"),
+> +		DMI_MATCH(DMI_BOARD_NAME, "i915GMm-HFS"),
+> +		},
+> +	},
+> +	{
+> +	 .callback = thermal_psv,
+> +	 .ident = "AOpen i915GMm-HFS",
+> +	 .matches = {
+> +		DMI_MATCH(DMI_BOARD_VENDOR, "AOpen"),
+> +		DMI_MATCH(DMI_BOARD_NAME, "i915GMm-HFS"),
+> +		},
+> +	},
+> +	{
+> +	 .callback = thermal_tzp,
+> +	 .ident = "AOpen i915GMm-HFS",
+> +	 .matches = {
+> +		DMI_MATCH(DMI_BOARD_VENDOR, "AOpen"),
+> +		DMI_MATCH(DMI_BOARD_NAME, "i915GMm-HFS"),
+> +		},
+> +	},
+> +	{
+> +	 .callback = thermal_nocrt,
+> +	 .ident = "Gigabyte GA-7ZX",
+> +	 .matches = {
+> +		DMI_MATCH(DMI_BOARD_VENDOR, "Gigabyte Technology Co., Ltd."),
+> +		DMI_MATCH(DMI_BOARD_NAME, "7ZX"),
+> +		},
+> +	},
+> +	{}
+> +};
+> +
+>  /*
+>   * On some platforms, the AML code has dependency about
+>   * the evaluating order of _TMP and _CRT/_HOT/_PSV/_ACx.
+> @@ -1070,10 +1110,16 @@ static int acpi_thermal_add(struct acpi_device *device)
+>  	int result = 0;
+>  	struct acpi_thermal *tz = NULL;
+>  
+> -
+>  	if (!device)
+>  		return -EINVAL;
+>  
+> +	dmi_check_system(thermal_dmi_table);
+> +
+> +	if (off) {
+> +		printk(KERN_NOTICE "ACPI: thermal control disabled\n");
+> +		return -ENODEV;
+> +	}
+> +
+>  	tz = kzalloc(sizeof(struct acpi_thermal), GFP_KERNEL);
+>  	if (!tz)
+>  		return -ENOMEM;
+> @@ -1191,71 +1237,4 @@ static int thermal_psv(const struct dmi_system_id *d) {
+>  	return 0;
+>  }
+>  
+> -static struct dmi_system_id thermal_dmi_table[] __initdata = {
+> -	/*
+> -	 * Award BIOS on this AOpen makes thermal control almost worthless.
+> -	 * http://bugzilla.kernel.org/show_bug.cgi?id=8842
+> -	 */
+> -	{
+> -	 .callback = thermal_act,
+> -	 .ident = "AOpen i915GMm-HFS",
+> -	 .matches = {
+> -		DMI_MATCH(DMI_BOARD_VENDOR, "AOpen"),
+> -		DMI_MATCH(DMI_BOARD_NAME, "i915GMm-HFS"),
+> -		},
+> -	},
+> -	{
+> -	 .callback = thermal_psv,
+> -	 .ident = "AOpen i915GMm-HFS",
+> -	 .matches = {
+> -		DMI_MATCH(DMI_BOARD_VENDOR, "AOpen"),
+> -		DMI_MATCH(DMI_BOARD_NAME, "i915GMm-HFS"),
+> -		},
+> -	},
+> -	{
+> -	 .callback = thermal_tzp,
+> -	 .ident = "AOpen i915GMm-HFS",
+> -	 .matches = {
+> -		DMI_MATCH(DMI_BOARD_VENDOR, "AOpen"),
+> -		DMI_MATCH(DMI_BOARD_NAME, "i915GMm-HFS"),
+> -		},
+> -	},
+> -	{
+> -	 .callback = thermal_nocrt,
+> -	 .ident = "Gigabyte GA-7ZX",
+> -	 .matches = {
+> -		DMI_MATCH(DMI_BOARD_VENDOR, "Gigabyte Technology Co., Ltd."),
+> -		DMI_MATCH(DMI_BOARD_NAME, "7ZX"),
+> -		},
+> -	},
+> -	{}
+> -};
+> -
+> -static int __init acpi_thermal_init(void)
+> -{
+> -	int result = 0;
+> -
+> -	dmi_check_system(thermal_dmi_table);
+> -
+> -	if (off) {
+> -		printk(KERN_NOTICE "ACPI: thermal control disabled\n");
+> -		return -ENODEV;
+> -	}
+> -
+> -	result = acpi_bus_register_driver(&acpi_thermal_driver);
+> -	if (result < 0)
+> -		return -ENODEV;
+> -
+> -	return 0;
+> -}
+> -
+> -static void __exit acpi_thermal_exit(void)
+> -{
+> -
+> -	acpi_bus_unregister_driver(&acpi_thermal_driver);
+> -
+> -	return;
+> -}
+> -
+> -module_init(acpi_thermal_init);
+> -module_exit(acpi_thermal_exit);
+> +module_acpi_driver(acpi_thermal_driver);
 > 
-> v2.0
-> PATCH 03: Uses timeout mechanism offerred by ipmi_si.
-> PATCH 05: Uses kref instead of atomic_t and adds "dead" flag to kill the
->           atomic_read codes in ipmi_flush_tx_msg().
-> PATCH 07: Uses kref instead of atomic_t.
-> 
-> This patchset has passed the test around a fake device accessing IPMI
-> operation region fields on an IPMI capable platform.  A stress test of
-> module(acpi_ipmi) load/unload has been performed on such platform.  No
-> races can be found and the IPMI operation region handler is functioning
-> now.  It is not possible to test module(ipmi_si) load/unload as it can't be
-> unloaded due to its' transfer flushing implementation.
-> 
-> Lv Zheng (12):
->   ACPI/IPMI: Fix atomic context requirement of ipmi_msg_handler()
->   ACPI/IPMI: Fix potential response buffer overflow
->   ACPI/IPMI: Fix race caused by the unprotected ACPI IPMI transfers
->   ACPI/IPMI: Fix race caused by the timed out ACPI IPMI transfers
->   ACPI/IPMI: Fix race caused by the unprotected ACPI IPMI user
->   ACPI/IPMI: Fix issue caused by the per-device registration of the
->     IPMI operation region handler
->   ACPI/IPMI: Add reference counting for ACPI IPMI transfers
->   ACPI/IPMI: Cleanup several acpi_ipmi_device members
->   ACPI/IPMI: Cleanup some initialization codes
->   ACPI/IPMI: Cleanup some inclusion codes
->   ACPI/IPMI: Cleanup some Kconfig codes
->   ACPI/IPMI: Cleanup coding styles
-> 
->  drivers/acpi/Kconfig     |    3 +-
->  drivers/acpi/acpi_ipmi.c |  594 ++++++++++++++++++++++++++++------------------
->  2 files changed, 367 insertions(+), 230 deletions(-)
-
-Queued up for 3.13, thanks Lv!
-
+-- 
+I speak only for myself.
+Rafael J. Wysocki, Intel Open Source Technology Center.
