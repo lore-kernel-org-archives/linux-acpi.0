@@ -1,47 +1,38 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: [PATCH] ACPI / scan: fix typo in comments of acpi_bus_unregister_driver()
-Date: Wed, 25 Sep 2013 19:55:57 +0200
-Message-ID: <3621238.5j3SrFSkYt@vostro.rjw.lan>
-References: <1379835761-31529-1-git-send-email-hanjun.guo@linaro.org>
+From: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
+Subject: Re: [PATCH v3 4/4] thinkpad-acpi: fix handle locate for video and
+ query of _BCL
+Date: Wed, 25 Sep 2013 16:58:39 -0300
+Message-ID: <20130925195839.GB23810@khazad-dum.debian.net>
+References: <1380016052-15315-1-git-send-email-aaron.lu@intel.com>
+ <1380016052-15315-5-git-send-email-aaron.lu@intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from hydra.sisk.pl ([212.160.235.94]:59182 "EHLO hydra.sisk.pl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753134Ab3IYRoe (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 25 Sep 2013 13:44:34 -0400
-In-Reply-To: <1379835761-31529-1-git-send-email-hanjun.guo@linaro.org>
+Received: from out1-smtp.messagingengine.com ([66.111.4.25]:51898 "EHLO
+	out1-smtp.messagingengine.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1750992Ab3IYT6n (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 25 Sep 2013 15:58:43 -0400
+Content-Disposition: inline
+In-Reply-To: <1380016052-15315-5-git-send-email-aaron.lu@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Hanjun Guo <hanjun.guo@linaro.org>
-Cc: linux-acpi@vger.kernel.org, patches@linaro.org, linaro-kernel@lists.linaro.org, linaro-acpi@lists.linaro.org
+To: Aaron Lu <aaron.lu@intel.com>
+Cc: linux-acpi@vger.kernel.org, intel-gfx@lists.freedesktop.org, dri-devel@lists.freedesktop.org, linux-kernel@vger.kernel.org, Daniel Vetter <daniel@ffwll.ch>, "Rafael J. Wysocki" <rjw@sisk.pl>, Matthew Garrett <matthew.garrett@nebula.com>, Seth Forshee <seth.forshee@canonical.com>, Lee Chun-Yi <joeyli.kernel@gmail.com>, Richard Purdie <rpurdie@rpsys.net>, Igor Gnatenko <i.gnatenko.brain@gmail.com>, Yves-Alexis Perez <corsac@debian.org>, Felipe Contreras <felipe.contreras@gmail.com>, Henrique de Moraes Holschuh <ibm-acpi@hmh.eng.br>, Jani Nikula <jani.nikula@linux.intel.com>, Ben Jencks <ben@bjencks.net>, Steven Newbury <steve@snewbury.org.uk>, James Hogan <james@albanarts.com>, Kamal Mostafa <kamal@canonical.com>, Joerg Platte <jplatte@naasa.net>, Kalle Valo <kvalo@adurom.com>, Martin Steigerwald <Martin@lichtvoll.de>, =?iso-8859-1?Q?J=F6rg?= Otte <jrg.otte@gmail.co>
 
-On Sunday, September 22, 2013 03:42:41 PM Hanjun Guo wrote:
-> "APIC" should be "ACPI" here.
-> 
-> Signed-off-by: Hanjun Guo <hanjun.guo@linaro.org>
+On Tue, 24 Sep 2013, Aaron Lu wrote:
+> locate handle for ACPI video by HID, the problem is, ACPI video node
+> doesn't really have HID defined(i.e. no _HID control method is defined
 
-Queued up for 3.12, thanks!
+ACPI video is supposed to attach a virtual HID node (ACPI_VIDEO_HID) to ACPI
+video devices so as to keep the non-trivial video device detection logic in
+just one place instead of reinventing the wheel in every driver (which is
+always a recipe for disaster).
 
-> ---
->  drivers/acpi/scan.c |    2 +-
->  1 file changed, 1 insertion(+), 1 deletion(-)
-> 
-> diff --git a/drivers/acpi/scan.c b/drivers/acpi/scan.c
-> index fbdb82e..611ce90 100644
-> --- a/drivers/acpi/scan.c
-> +++ b/drivers/acpi/scan.c
-> @@ -1121,7 +1121,7 @@ int acpi_bus_register_driver(struct acpi_driver *driver)
->  EXPORT_SYMBOL(acpi_bus_register_driver);
->  
->  /**
-> - * acpi_bus_unregister_driver - unregisters a driver with the APIC bus
-> + * acpi_bus_unregister_driver - unregisters a driver with the ACPI bus
->   * @driver: driver to unregister
->   *
->   * Unregisters a driver with the ACPI bus.  Searches the namespace for all
-> 
+When did that break?
+
 -- 
-I speak only for myself.
-Rafael J. Wysocki, Intel Open Source Technology Center.
+  "One disk to rule them all, One disk to find them. One disk to bring
+  them all and in the darkness grind them. In the Land of Redmond
+  where the shadows lie." -- The Silicon Valley Tarot
+  Henrique Holschuh
