@@ -1,74 +1,79 @@
-From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [PATCH v2 00/14] ACPICA 20130823 Release
-Date: Wed, 25 Sep 2013 18:00:40 +0200
-Message-ID: <2966084.pIPhPZgieX@vostro.rjw.lan>
-References: <cover.1377844863.git.lv.zheng@intel.com> <cover.1379900697.git.lv.zheng@intel.com>
+From: =?UTF-8?Q?J=C3=B6rg_Otte?= <jrg.otte@gmail.com>
+Subject: Re: [PATCH v3 0/4] Fix Win8 backlight issue
+Date: Wed, 25 Sep 2013 17:51:10 +0200
+Message-ID: <CADDKRnDqDBfA6e6TE0VTLD9F=TjVZNov53Zk8ydnk2fS32rczQ@mail.gmail.com>
+References: <1380016052-15315-1-git-send-email-aaron.lu@intel.com>
+	<1380026575.3371.1.camel@ThinkPad-X230.localdomain>
+	<CADDKRnCAZ0DtBUUaMfdTF=yk6PDLpbc9jkuvWWO8hYW4TDLxKw@mail.gmail.com>
+	<20130925091720.GA1921@aaronlu.sh.intel.com>
+	<87vc1p4207.fsf@intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from v094114.home.net.pl ([79.96.170.134]:53675 "HELO
-	v094114.home.net.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1751301Ab3IYPtT (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 25 Sep 2013 11:49:19 -0400
-In-Reply-To: <cover.1379900697.git.lv.zheng@intel.com>
+Received: from mail-ob0-f179.google.com ([209.85.214.179]:60666 "EHLO
+	mail-ob0-f179.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754827Ab3IYPvL convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 25 Sep 2013 11:51:11 -0400
+In-Reply-To: <87vc1p4207.fsf@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Lv Zheng <lv.zheng@intel.com>
-Cc: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Robert Moore <robert.moore@intel.com>, Len Brown <len.brown@intel.com>, linux-acpi@vger.kernel.org
+To: Jani Nikula <jani.nikula@linux.intel.com>
+Cc: Aaron Lu <aaron.lu@intel.com>, Igor Gnatenko <i.gnatenko.brain@gmail.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, intel-gfx <intel-gfx@lists.freedesktop.org>, dri-devel@lists.freedesktop.org, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Daniel Vetter <daniel@ffwll.ch>, "Rafael J. Wysocki" <rjw@sisk.pl>, Matthew Garrett <matthew.garrett@nebula.com>, Seth Forshee <seth.forshee@canonical.com>, Lee Chun-Yi <joeyli.kernel@gmail.com>, Richard Purdie <rpurdie@rpsys.net>, Yves-Alexis Perez <corsac@debian.org>, Felipe Contreras <felipe.contreras@gmail.com>, Henrique de Moraes Holschuh <ibm-acpi@hmh.eng.br>, Ben Jencks <ben@bjencks.net>, Steven Newbury <steve@snewbury.org.uk>, James Hogan <james@albanarts.com>, Kamal Mostafa <kamal@canonical.com>, Joerg Platte <jplatte@naasa.net>, Kalle Valo <kvalo@adurom.com>, Martin Steigerwald <Martin@lichtvol>
 
-On Monday, September 23, 2013 09:50:40 AM Lv Zheng wrote:
-> The 20130823 ACPICA kernel resident system updates is linuxized based on
-> the pm/linux-next branch.
-> 
-> The patch set has passed a build/boot test on the following machines:
-> Dell Inspiron Mini 1010 (i386)
-> HP Compaq 8200 Elite SFF PC (x86-64)
-> With the following kernel configuration items enabled:
->   CONFIG_ACPI_AC
->   CONFIG_ACPI_BATTERY
->   CONFIG_ACPI_NUMA
->   CONFIG_ACPI_PROCESSOR
->   CONFIG_ACPI_THERMAL
->   CONFIG_ACPI_VIDEO
->   CONFIG_CPU_FREQ
->   CONFIG_I2C_SCMI
->   CONFIG_SENSORS_ACPI_POWER
->   CONFIG_PANASONIC_LAPTOP
->   CONFIG_XO15_EBOOK
->   CONFIG_DMAR_TABLE
->   CONFIG_INTEL_IOMMU
->   CONFIG_IRQ_REMAP
-> 
-> Bjorn Helgaas (1):
->   ACPICA: acpi_read: On error, do not modify the return value target
->     location.
-> 
-> Bob Moore (7):
->   ACPICA: Improve error message for "too many parent prefixes"
->     condition.
->   ACPICA: Debug output: small formatting update, no functional change.
->   ACPICA: Debugger: Prevent possible command line buffer overflow,
->     kernel behavior is not affected.
->   ACPICA: Validate start object for acpi_walk_namespace.
->   ACPICA: Debugger: Add new command to display full namespace
->     pathnames.
->   ACPICA: SCI Handlers: Update handler interface, eliminate unnecessary
->     argument.
->   ACPICA: Update version to 20130823.
-> 
-> David E. Box (1):
->   ACPICA: Operation region support: Never free the handler "context"
->     pointer.
-> 
-> Lv Zheng (4):
->   ACPICA: Add support for host-installed SCI handlers.
->   ACPICA: Tables: Cleanup table checksum verification code.
->   ACPICA: Tables: Cleanup RSDP signature codes.
->   ACPICA: Cleanup exception codes.
-> 
-> Naresh Bhat (1):
->   ACPICA: Linux-specific header: enable "aarch64" 64-bit build.
+2013/9/25 Jani Nikula <jani.nikula@linux.intel.com>:
+> On Wed, 25 Sep 2013, Aaron Lu <aaron.lu@intel.com> wrote:
+>> On Wed, Sep 25, 2013 at 10:29:37AM +0200, J=C3=B6rg Otte wrote:
+>>> Backlight can't be modified with this patch set - neither with
+>>> function keys nor with the gui. It is a step backward to v3.11-rc1
+>
+> So both hotkeys and GUI work in v3.11-rc1? And v3.12-rc2?
 
-Queued up for 3.13, thanks Lv!
+In  v3.11-rc1 it didn't work.
+Since a later rc (I don't remember exactly which) it did work.
+In v3.12-rc1/2 it does work.
+In v3.12-rc2 + Aaron's patch set it again doesn't work.
 
+>
+>> Thanks for the test.
+>>
+>> Please check /sys/class/backlight, is there only one link file
+>> intel_backlight?
+>
+> Indeed, are there others? fujitsu-laptop perhaps? If yes, try
+> CONFIG_FUJITSU_LAPTOP=3Dn or an appropriate module blacklist.
+>
+> Just checking, you do have CONFIG_BACKLIGHT_CLASS_DEVICE=3Dy?
+
+There is only one intel_backlight link.
+Yes, I have CONFIG_BACKLIGHT_CLASS_DEVICE=3Dy
+
+> Embarrassingly there was a bug in i915 fixed just recently where the
+> backlight device wasn't registered for
+> CONFIG_BACKLIGHT_CLASS_DEVICE=3Dm...
+>
+>> If so, please cd inside and try modify the brightness file using ech=
+o
+>> with some values in the range of 0 - max_brightness, does the
+>> backlight level change when you echo a new value? I guess it doesn't=
+,
+>> or you wouldn't notice problem. If indeed so, perhaps file a bug at
+>> http://bugzilla.kernel.org, Drivers/Video(DRI-Intel)? I suppose Jani
+>> and Daniel can help fix your problem.
+>
+> Yup, please check the above, and report back.
+
+- echo 0..max_brightness > brightness does not work.
+
+>>>
+>>> Video driver: i915
+>>> FUJITSU LIFEBOOK AH532/FJNBB1C, BIOS Version 1.09 05/22/2012
+>>>
+>>> acpi_backlight=3Dvideo works.
+
+J=C3=B6rg
+--
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
