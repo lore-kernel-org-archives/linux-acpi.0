@@ -1,38 +1,49 @@
-From: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
-Subject: Re: [PATCH v3 4/4] thinkpad-acpi: fix handle locate for video and
- query of _BCL
-Date: Wed, 25 Sep 2013 16:58:39 -0300
-Message-ID: <20130925195839.GB23810@khazad-dum.debian.net>
-References: <1380016052-15315-1-git-send-email-aaron.lu@intel.com>
- <1380016052-15315-5-git-send-email-aaron.lu@intel.com>
+From: Bjorn Helgaas <bhelgaas@google.com>
+Subject: [PATCH 1/3] ACPI / hotplug: Set kobject name via kobject_add(),
+ not kobject_set_name()
+Date: Wed, 25 Sep 2013 14:23:04 -0600
+Message-ID: <20130925202304.18667.26104.stgit@bhelgaas-glaptop.roam.corp.google.com>
+References: <20130925202037.18667.31220.stgit@bhelgaas-glaptop.roam.corp.google.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from out1-smtp.messagingengine.com ([66.111.4.25]:51898 "EHLO
-	out1-smtp.messagingengine.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750992Ab3IYT6n (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 25 Sep 2013 15:58:43 -0400
-Content-Disposition: inline
-In-Reply-To: <1380016052-15315-5-git-send-email-aaron.lu@intel.com>
+Received: from mail-ye0-f176.google.com ([209.85.213.176]:52005 "EHLO
+	mail-ye0-f176.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755969Ab3IYUXI (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 25 Sep 2013 16:23:08 -0400
+Received: by mail-ye0-f176.google.com with SMTP id m4so86551yen.21
+        for <linux-acpi@vger.kernel.org>; Wed, 25 Sep 2013 13:23:07 -0700 (PDT)
+In-Reply-To: <20130925202037.18667.31220.stgit@bhelgaas-glaptop.roam.corp.google.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Aaron Lu <aaron.lu@intel.com>
-Cc: linux-acpi@vger.kernel.org, intel-gfx@lists.freedesktop.org, dri-devel@lists.freedesktop.org, linux-kernel@vger.kernel.org, Daniel Vetter <daniel@ffwll.ch>, "Rafael J. Wysocki" <rjw@sisk.pl>, Matthew Garrett <matthew.garrett@nebula.com>, Seth Forshee <seth.forshee@canonical.com>, Lee Chun-Yi <joeyli.kernel@gmail.com>, Richard Purdie <rpurdie@rpsys.net>, Igor Gnatenko <i.gnatenko.brain@gmail.com>, Yves-Alexis Perez <corsac@debian.org>, Felipe Contreras <felipe.contreras@gmail.com>, Henrique de Moraes Holschuh <ibm-acpi@hmh.eng.br>, Jani Nikula <jani.nikula@linux.intel.com>, Ben Jencks <ben@bjencks.net>, Steven Newbury <steve@snewbury.org.uk>, James Hogan <james@albanarts.com>, Kamal Mostafa <kamal@canonical.com>, Joerg Platte <jplatte@naasa.net>, Kalle Valo <kvalo@adurom.com>, Martin Steigerwald <Martin@lichtvoll.de>, =?iso-8859-1?Q?J=F6rg?= Otte <jrg.otte@gmail.co>
+To: "Rafael J. Wysocki" <rjw@sisk.pl>, Len Brown <lenb@kernel.org>
+Cc: linux-acpi@vger.kernel.org
 
-On Tue, 24 Sep 2013, Aaron Lu wrote:
-> locate handle for ACPI video by HID, the problem is, ACPI video node
-> doesn't really have HID defined(i.e. no _HID control method is defined
+Set the kobject name via kobject_add() instead of using kobject_set_name(),
+which is deprecated per Documentation/kobject.txt.
 
-ACPI video is supposed to attach a virtual HID node (ACPI_VIDEO_HID) to ACPI
-video devices so as to keep the non-trivial video device detection logic in
-just one place instead of reinventing the wheel in every driver (which is
-always a recipe for disaster).
+Signed-off-by: Bjorn Helgaas <bhelgaas@google.com>
+---
+ drivers/acpi/sysfs.c |    5 +----
+ 1 file changed, 1 insertion(+), 4 deletions(-)
 
-When did that break?
+diff --git a/drivers/acpi/sysfs.c b/drivers/acpi/sysfs.c
+index 05306a5..ea68583 100644
+--- a/drivers/acpi/sysfs.c
++++ b/drivers/acpi/sysfs.c
+@@ -763,12 +763,9 @@ void acpi_sysfs_add_hotplug_profile(struct acpi_hotplug_profile *hotplug,
+ 		goto err_out;
+ 
+ 	kobject_init(&hotplug->kobj, &acpi_hotplug_profile_ktype);
+-	error = kobject_set_name(&hotplug->kobj, "%s", name);
+-	if (error)
+-		goto err_out;
+ 
+ 	hotplug->kobj.parent = hotplug_kobj;
+-	error = kobject_add(&hotplug->kobj, hotplug_kobj, NULL);
++	error = kobject_add(&hotplug->kobj, hotplug_kobj, "%s", name);
+ 	if (error)
+ 		goto err_out;
+ 
 
--- 
-  "One disk to rule them all, One disk to find them. One disk to bring
-  them all and in the darkness grind them. In the Land of Redmond
-  where the shadows lie." -- The Silicon Valley Tarot
-  Henrique Holschuh
