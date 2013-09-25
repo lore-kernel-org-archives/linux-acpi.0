@@ -1,267 +1,86 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: [PATCH v2 4/4] hotplug, powerpc, x86: Remove cpu_hotplug_driver_lock()
-Date: Wed, 25 Sep 2013 10:27:49 +0200
-Message-ID: <7232059.d6LGFPRAoP@vostro.rjw.lan>
-References: <1377822129-4143-1-git-send-email-toshi.kani@hp.com> <1377822129-4143-5-git-send-email-toshi.kani@hp.com>
+From: =?UTF-8?Q?J=C3=B6rg_Otte?= <jrg.otte@gmail.com>
+Subject: Re: [PATCH v3 0/4] Fix Win8 backlight issue
+Date: Wed, 25 Sep 2013 11:09:04 +0200
+Message-ID: <CADDKRnDn1YqBF_W6z6LRWCxtCWb-cT6VMEakv-9rP2-bf5-s0w@mail.gmail.com>
+References: <1380016052-15315-1-git-send-email-aaron.lu@intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from hydra.sisk.pl ([212.160.235.94]:56986 "EHLO hydra.sisk.pl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751883Ab3IYIW7 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 25 Sep 2013 04:22:59 -0400
-In-Reply-To: <1377822129-4143-5-git-send-email-toshi.kani@hp.com>
+Received: from mail-oa0-f47.google.com ([209.85.219.47]:37889 "EHLO
+	mail-oa0-f47.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754684Ab3IYJJF convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 25 Sep 2013 05:09:05 -0400
+In-Reply-To: <1380016052-15315-1-git-send-email-aaron.lu@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Toshi Kani <toshi.kani@hp.com>
-Cc: mingo@redhat.com, hpa@linux.intel.com, tglx@linutronix.de, gregkh@linuxfoundation.org, benh@kernel.crashing.org, linux-acpi@vger.kernel.org, x86@kernel.org, linuxppc-dev@lists.ozlabs.org, linux-kernel@vger.kernel.org, nfont@linux.vnet.ibm.com, fenghua.yu@intel.com, bp@suse.de, srivatsa.bhat@linux.vnet.ibm.com, isimatu.yasuaki@jp.fujitsu.com
+To: Aaron Lu <aaron.lu@intel.com>
+Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, inux-kernel@vger.kernel.org
 
-Hi,
-
-On Thursday, August 29, 2013 06:22:09 PM Toshi Kani wrote:
-> cpu_hotplug_driver_lock() serializes CPU online/offline operations
-> when ARCH_CPU_PROBE_RELEASE is set.  This lock interface is no longer
-> necessary with the following reason:
-> 
->  - lock_device_hotplug() now protects CPU online/offline operations,
->    including the probe & release interfaces enabled by
->    ARCH_CPU_PROBE_RELEASE.  The use of cpu_hotplug_driver_lock() is
->    redundant.
->  - cpu_hotplug_driver_lock() is only valid when ARCH_CPU_PROBE_RELEASE
->    is defined, which is misleading and is only enabled on powerpc.
-> 
-> This patch removes the cpu_hotplug_driver_lock() interface.  As
-> a result, ARCH_CPU_PROBE_RELEASE only enables / disables the cpu
-> probe & release interface as intended.  There is no functional change
-> in this patch.
-> 
-> Signed-off-by: Toshi Kani <toshi.kani@hp.com>
-> Acked-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
-> Reviewed-by: Nathan Fontenot <nfont@linux.vnet.ibm.com>
-
-Can you please rebase this patch on top of 3.12-rc2?  It doesn't apply for
-me any more.
-
-Thanks,
-Rafael
-
-
-> ---
-> Performed build test only on powerpc.
-> ---
->  arch/powerpc/kernel/smp.c              |   12 ----------
->  arch/powerpc/platforms/pseries/dlpar.c |   40 ++++++++++++--------------------
->  arch/x86/kernel/topology.c             |    2 --
->  drivers/base/cpu.c                     |   10 +-------
->  include/linux/cpu.h                    |   13 ----------
->  5 files changed, 16 insertions(+), 61 deletions(-)
-> 
-> diff --git a/arch/powerpc/kernel/smp.c b/arch/powerpc/kernel/smp.c
-> index 38b0ba6..1667269 100644
-> --- a/arch/powerpc/kernel/smp.c
-> +++ b/arch/powerpc/kernel/smp.c
-> @@ -763,18 +763,6 @@ void __cpu_die(unsigned int cpu)
->  		smp_ops->cpu_die(cpu);
->  }
->  
-> -static DEFINE_MUTEX(powerpc_cpu_hotplug_driver_mutex);
-> -
-> -void cpu_hotplug_driver_lock()
-> -{
-> -	mutex_lock(&powerpc_cpu_hotplug_driver_mutex);
-> -}
-> -
-> -void cpu_hotplug_driver_unlock()
-> -{
-> -	mutex_unlock(&powerpc_cpu_hotplug_driver_mutex);
-> -}
-> -
->  void cpu_die(void)
->  {
->  	if (ppc_md.cpu_die)
-> diff --git a/arch/powerpc/platforms/pseries/dlpar.c b/arch/powerpc/platforms/pseries/dlpar.c
-> index a1a7b9a..e39325d 100644
-> --- a/arch/powerpc/platforms/pseries/dlpar.c
-> +++ b/arch/powerpc/platforms/pseries/dlpar.c
-> @@ -387,18 +387,13 @@ static ssize_t dlpar_cpu_probe(const char *buf, size_t count)
->  	char *cpu_name;
->  	int rc;
->  
-> -	cpu_hotplug_driver_lock();
->  	rc = strict_strtoul(buf, 0, &drc_index);
-> -	if (rc) {
-> -		rc = -EINVAL;
-> -		goto out;
-> -	}
-> +	if (rc)
-> +		return -EINVAL;
->  
->  	dn = dlpar_configure_connector(drc_index);
-> -	if (!dn) {
-> -		rc = -EINVAL;
-> -		goto out;
-> -	}
-> +	if (!dn)
-> +		return -EINVAL;
->  
->  	/* configure-connector reports cpus as living in the base
->  	 * directory of the device tree.  CPUs actually live in the
-> @@ -407,8 +402,7 @@ static ssize_t dlpar_cpu_probe(const char *buf, size_t count)
->  	cpu_name = kasprintf(GFP_KERNEL, "/cpus%s", dn->full_name);
->  	if (!cpu_name) {
->  		dlpar_free_cc_nodes(dn);
-> -		rc = -ENOMEM;
-> -		goto out;
-> +		return -ENOMEM;
->  	}
->  
->  	kfree(dn->full_name);
-> @@ -417,22 +411,21 @@ static ssize_t dlpar_cpu_probe(const char *buf, size_t count)
->  	rc = dlpar_acquire_drc(drc_index);
->  	if (rc) {
->  		dlpar_free_cc_nodes(dn);
-> -		rc = -EINVAL;
-> -		goto out;
-> +		return -EINVAL;
->  	}
->  
->  	rc = dlpar_attach_node(dn);
->  	if (rc) {
->  		dlpar_release_drc(drc_index);
->  		dlpar_free_cc_nodes(dn);
-> -		goto out;
-> +		return rc;
->  	}
->  
->  	rc = dlpar_online_cpu(dn);
-> -out:
-> -	cpu_hotplug_driver_unlock();
-> +	if (rc)
-> +		return rc;
->  
-> -	return rc ? rc : count;
-> +	return count;
->  }
->  
->  static int dlpar_offline_cpu(struct device_node *dn)
-> @@ -505,30 +498,27 @@ static ssize_t dlpar_cpu_release(const char *buf, size_t count)
->  		return -EINVAL;
->  	}
->  
-> -	cpu_hotplug_driver_lock();
->  	rc = dlpar_offline_cpu(dn);
->  	if (rc) {
->  		of_node_put(dn);
-> -		rc = -EINVAL;
-> -		goto out;
-> +		return -EINVAL;
->  	}
->  
->  	rc = dlpar_release_drc(*drc_index);
->  	if (rc) {
->  		of_node_put(dn);
-> -		goto out;
-> +		return rc;
->  	}
->  
->  	rc = dlpar_detach_node(dn);
->  	if (rc) {
->  		dlpar_acquire_drc(*drc_index);
-> -		goto out;
-> +		return rc;
->  	}
->  
->  	of_node_put(dn);
-> -out:
-> -	cpu_hotplug_driver_unlock();
-> -	return rc ? rc : count;
-> +
-> +	return count;
->  }
->  
->  static int __init pseries_dlpar_init(void)
-> diff --git a/arch/x86/kernel/topology.c b/arch/x86/kernel/topology.c
-> index a3f35eb..649b010 100644
-> --- a/arch/x86/kernel/topology.c
-> +++ b/arch/x86/kernel/topology.c
-> @@ -66,7 +66,6 @@ int __ref _debug_hotplug_cpu(int cpu, int action)
->  		return -EINVAL;
->  
->  	lock_device_hotplug();
-> -	cpu_hotplug_driver_lock();
->  
->  	switch (action) {
->  	case 0:
-> @@ -91,7 +90,6 @@ int __ref _debug_hotplug_cpu(int cpu, int action)
->  		ret = -EINVAL;
->  	}
->  
-> -	cpu_hotplug_driver_unlock();
->  	unlock_device_hotplug();
->  
->  	return ret;
-> diff --git a/drivers/base/cpu.c b/drivers/base/cpu.c
-> index dc78e45..9745f03 100644
-> --- a/drivers/base/cpu.c
-> +++ b/drivers/base/cpu.c
-> @@ -46,8 +46,6 @@ static int __ref cpu_subsys_online(struct device *dev)
->  	int from_nid, to_nid;
->  	int ret;
->  
-> -	cpu_hotplug_driver_lock();
-> -
->  	from_nid = cpu_to_node(cpuid);
->  	ret = cpu_up(cpuid);
->  	/*
-> @@ -58,18 +56,12 @@ static int __ref cpu_subsys_online(struct device *dev)
->  	if (from_nid != to_nid)
->  		change_cpu_under_node(cpu, from_nid, to_nid);
->  
-> -	cpu_hotplug_driver_unlock();
->  	return ret;
->  }
->  
->  static int cpu_subsys_offline(struct device *dev)
->  {
-> -	int ret;
-> -
-> -	cpu_hotplug_driver_lock();
-> -	ret = cpu_down(dev->id);
-> -	cpu_hotplug_driver_unlock();
-> -	return ret;
-> +	return cpu_down(dev->id);
->  }
->  
->  void unregister_cpu(struct cpu *cpu)
-> diff --git a/include/linux/cpu.h b/include/linux/cpu.h
-> index 801ff9e..3434ef7 100644
-> --- a/include/linux/cpu.h
-> +++ b/include/linux/cpu.h
-> @@ -185,19 +185,6 @@ extern void cpu_hotplug_enable(void);
->  void clear_tasks_mm_cpumask(int cpu);
->  int cpu_down(unsigned int cpu);
->  
-> -#ifdef CONFIG_ARCH_CPU_PROBE_RELEASE
-> -extern void cpu_hotplug_driver_lock(void);
-> -extern void cpu_hotplug_driver_unlock(void);
-> -#else
-> -static inline void cpu_hotplug_driver_lock(void)
-> -{
-> -}
-> -
-> -static inline void cpu_hotplug_driver_unlock(void)
-> -{
-> -}
-> -#endif
-> -
->  #else		/* CONFIG_HOTPLUG_CPU */
->  
->  static inline void cpu_hotplug_begin(void) {}
+2013/9/24 Aaron Lu <aaron.lu@intel.com>:
+> v3:
+> 1 Add a new patch 4/4 to fix some problems in thinkpad-acpi module;
+> 2 Remove unnecessary function acpi_video_unregister introduced in
+>   patch 2/3 as pointed out by Jani Nikula.
+>
+> v2:
+> v1 has the subject of "Rework ACPI video driver" and is posted here:
+> http://lkml.org/lkml/2013/9/9/74
+> Since the objective is really to fix Win8 backlight issues, I changed
+> the subject in this version, sorry about that.
+>
+> This patchset has three patches, the first introduced a new API named
+> backlight_device_registered in backlight layer that can be used for
+> backlight interface provider module to check if a specific type backl=
+ight
+> interface has been registered, see changelog for patch 1/3 for detail=
+s.
+> Then patch 2/3 does the cleanup to sepeate the backlight control and
+> event delivery functionality in the ACPI video module and patch 3/3
+> solves some Win8 backlight control problems by avoiding register ACPI
+> video's backlight interface if:
+> 1 Kernel cmdline option acpi_backlight=3Dvideo is not given;
+> 2 This is a Win8 system;
+> 3 Native backlight control interface exists.
+>
+> Technically, patch 2/3 is not required to fix the issue here. So if y=
+ou
+> think it is not necessary, I can remove it from the series.
+>
+> Aaron Lu (4):
+>   backlight: introduce backlight_device_registered
+>   ACPI / video: seperate backlight control and event interface
+>   ACPI / video: Do not register backlight if win8 and native interfac=
+e
+>     exists
+>   thinkpad-acpi: fix handle locate for video and query of _BCL
+>
+>  drivers/acpi/internal.h              |   5 +-
+>  drivers/acpi/video.c                 | 442 ++++++++++++++++++++-----=
+----------
+>  drivers/acpi/video_detect.c          |  14 +-
+>  drivers/platform/x86/thinkpad_acpi.c |  31 ++-
+>  drivers/video/backlight/backlight.c  |  31 +++
+>  include/acpi/video.h                 |   2 +
+>  include/linux/backlight.h            |   4 +
+>  7 files changed, 324 insertions(+), 205 deletions(-)
+>
 > --
-> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
--- 
-I speak only for myself.
-Rafael J. Wysocki, Intel Open Source Technology Center.
+> 1.8.4.12.g2ea3df6
+>
+
+Backlight can't be modified with this patch set -  neither with
+function keys nor
+with the gui. It is a step backward to v3.11-rc1
+
+Video driver: i915
+=46UJITSU LIFEBOOK AH532/FJNBB1C, BIOS Version 1.09 05/22/2012
+
+acpi_backlight=3Dvideo works.
+
+J=C3=B6rg
+--
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
