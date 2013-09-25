@@ -1,136 +1,108 @@
-From: Jani Nikula <jani.nikula@linux.intel.com>
-Subject: Re: [PATCH v3 0/4] Fix Win8 backlight issue
-Date: Wed, 25 Sep 2013 13:41:28 +0300
-Message-ID: <87vc1p4207.fsf@intel.com>
-References: <1380016052-15315-1-git-send-email-aaron.lu@intel.com> <1380026575.3371.1.camel@ThinkPad-X230.localdomain> <CADDKRnCAZ0DtBUUaMfdTF=yk6PDLpbc9jkuvWWO8hYW4TDLxKw@mail.gmail.com> <20130925091720.GA1921@aaronlu.sh.intel.com>
+From: Daniel Lezcano <daniel.lezcano@linaro.org>
+Subject: Re: Bisected 3.12.0-rc1 Laptop screen goes blank during kernelboot
+Date: Wed, 25 Sep 2013 14:29:40 +0200
+Message-ID: <5242D734.7020800@linaro.org>
+References: <523C8238.3000200@xmsnet.nl> <523E51A9.8050609@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20130925091720.GA1921@aaronlu.sh.intel.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Aaron Lu <aaron.lu@intel.com>, =?utf-8?Q?J=C3=B6rg?= Otte <jrg.otte@gmail.com>
-Cc: Igor Gnatenko <i.gnatenko.brain@gmail.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, intel-gfx <intel-gfx@lists.freedesktop.org>, dri-devel@lists.freedesktop.org, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Daniel Vetter <daniel@ffwll.ch>, "Rafael J. Wysocki" <rjw@sisk.pl>, Matthew Garrett <matthew.garrett@nebula.com>, Seth Forshee <seth.forshee@canonical.com>, Lee Chun-Yi <joeyli.kernel@gmail.com>, Richard Purdie <rpurdie@rpsys.net>, Yves-Alexis Perez <corsac@debian.org>, Felipe Contreras <felipe.contreras@gmail.com>, Henrique de Moraes Holschuh <ibm-acpi@hmh.eng.br>, Ben Jencks <ben@bjencks.net>, Steven Newbury <steve@snewbury.org.uk>, James Hogan <james@albanarts.com>, Kamal Mostafa <kamal@canonical.com>, Joerg Platte <jplatte@naasa.net>, Kalle Valo <kvalo@adurom.com>, Martin Steigerwald <Martin@lichtvoll.de>, Mike Galbraith <bitbucke>
+Return-path: <linux-pm-owner@vger.kernel.org>
+In-Reply-To: <523E51A9.8050609@gmail.com>
+Sender: linux-pm-owner@vger.kernel.org
+To: Aaron Lu <aaron.lwe@gmail.com>
+Cc: Hans de Bruin <jmdebruin@xmsnet.nl>, linux-acpi@vger.kernel.org, linux-pci@vger.kernel.org, Linux-pm mailing list <linux-pm@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On Wed, 25 Sep 2013, Aaron Lu <aaron.lu@intel.com> wrote:
-> On Wed, Sep 25, 2013 at 10:29:37AM +0200, J=C3=B6rg Otte wrote:
->> Backlight can't be modified with this patch set - neither with
->> function keys nor with the gui. It is a step backward to v3.11-rc1
+On 09/22/2013 04:10 AM, Aaron Lu wrote:
+> Add linux-pm.
+>=20
+> -Aaron
+>=20
+> On 09/21/2013 01:13 AM, Hans de Bruin wrote:
+>> During boot time my laptop screen goes blank when de kernel switches=
+ the=20
+>> screen to another resolution. The backlight is on. Eventually a kde=20
+>> login box appears out of the blackness. Swiching to a lower resoluti=
+on=20
+>> gives me a black screen again. After testing the=20
+>> intel-gfx@lists.freedesktop.org developers test-tree problem less th=
+ey=20
+>> sugested a bisect. That bisect ended in:
+>>
+>>
+>> commit 137b944e100278d696826cf25c83014ac17473fe
+>> Author: Daniel Lezcano <daniel.lezcano@linaro.org>
+>> Date:   Wed Jun 12 15:08:48 2013 +0200
+>>
+>>    cpuidle: Make it clear that governors cannot be modules
+>>
+>>    cpufreq governors are defined as modules in the code, but the Kco=
+nfig
+>>    options do not allow them to be built as modules.  This is not re=
+ally
+>>    a problem, but the cpuidle init ordering is: the cpuidle init
+>>    functions (framework and driver) and then the governors.  That le=
+ads
+>>    to some weirdness in the cpuidle framework.
+>>
+>>    Namely,  cpuidle_register_device() calls cpuidle_enable_device() =
+which
+>>    fails at the first attempt, because governors have not been regis=
+tered
+>>    yet.  When a governor is registered, the framework calls
+>>    cpuidle_enable_device() again which runs __cpuidle_register_devic=
+e()
+>>    only then.  Of course, for that to work, the cpuidle_enable_devic=
+e()
+>>    return value has to be ignored by cpuidle_register_device().
+>>
+>>      Instead of having this cyclic call graph and relying on a posit=
+ive
+>>      side effects of the hackish back and forth cpuidle_enable_devic=
+e()
+>>      calls it is better to fix the cpuidle init ordering.
+>>
+>>      To that end, replace the module init code with postcore_initcal=
+l()
+>>      so we have:
+>>
+>>       * cpuidle framework : core_initcall
+>>       * cpuidle governors : postcore_initcall
+>>       * cpuidle drivers   : device_initcall
+>>
+>>      and remove the corresponding module exit code as it is dead any=
+way
+>>      (governors can't be built as modules).
+>>
+>>      [rjw: Changelog]
+>>      Signed-off-by: Daniel Lezcano <daniel.lezcano@linaro.org>
+>>      Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+>>
+>> :040000 040000 45e7cb28411864c00b62296a7ff239f9f139d5d9=20
+>> 86a36b01dee52a77cfbab41a973b7a2bfa44ce34 M      drivers
+>>
+>>
+>>
+>> Reverting it makes the problem go away.
 
-So both hotkeys and GUI work in v3.11-rc1? And v3.12-rc2?
+Ok, can you give more informations about it, I don't see the connection
+between screen resolution and cpuidle.
 
-> Thanks for the test.
->
-> Please check /sys/class/backlight, is there only one link file
-> intel_backlight?
+It would be interesting here to understand the root problem.
 
-Indeed, are there others? fujitsu-laptop perhaps? If yes, try
-CONFIG_FUJITSU_LAPTOP=3Dn or an appropriate module blacklist.
+Can you give the cpuidle configuration (used governor and driver) ? If
+you don't revert the patch but disable cpuidle (eg. cpuidle.off=3D1 or
+don't compile it in the kernel), does the bug issue still occur ?
 
-Just checking, you do have CONFIG_BACKLIGHT_CLASS_DEVICE=3Dy?
-Embarrassingly there was a bug in i915 fixed just recently where the
-backlight device wasn't registered for
-CONFIG_BACKLIGHT_CLASS_DEVICE=3Dm...
+Thanks
+  -- Daniel
 
-> If so, please cd inside and try modify the brightness file using echo
-> with some values in the range of 0 - max_brightness, does the
-> backlight level change when you echo a new value? I guess it doesn't,
-> or you wouldn't notice problem. If indeed so, perhaps file a bug at
-> http://bugzilla.kernel.org, Drivers/Video(DRI-Intel)? I suppose Jani
-> and Daniel can help fix your problem.
-
-Yup, please check the above, and report back.
-
-BR,
-Jani.
-
-
->
-> Thanks,
-> Aaron
->
->>=20
->> Video driver: i915
->> FUJITSU LIFEBOOK AH532/FJNBB1C, BIOS Version 1.09 05/22/2012
->>=20
->> acpi_backlight=3Dvideo works.
->>=20
->> J=C3=B6rg
->>=20
->>=20
->> 2013/9/24 Igor Gnatenko <i.gnatenko.brain@gmail.com>
->>=20
->> > On Tue, 2013-09-24 at 17:47 +0800, Aaron Lu wrote:
->> > > v3:
->> > > 1 Add a new patch 4/4 to fix some problems in thinkpad-acpi modu=
-le;
->> > > 2 Remove unnecessary function acpi_video_unregister introduced i=
-n
->> > >   patch 2/3 as pointed out by Jani Nikula.
->> > >
->> > > v2:
->> > > v1 has the subject of "Rework ACPI video driver" and is posted h=
-ere:
->> > > http://lkml.org/lkml/2013/9/9/74
->> > > Since the objective is really to fix Win8 backlight issues, I ch=
-anged
->> > > the subject in this version, sorry about that.
->> > >
->> > > This patchset has three patches, the first introduced a new API =
-named
->> > > backlight_device_registered in backlight layer that can be used =
-for
->> > > backlight interface provider module to check if a specific type =
-backlight
->> > > interface has been registered, see changelog for patch 1/3 for d=
-etails.
->> > > Then patch 2/3 does the cleanup to sepeate the backlight control=
- and
->> > > event delivery functionality in the ACPI video module and patch =
-3/3
->> > > solves some Win8 backlight control problems by avoiding register=
- ACPI
->> > > video's backlight interface if:
->> > > 1 Kernel cmdline option acpi_backlight=3Dvideo is not given;
->> > > 2 This is a Win8 system;
->> > > 3 Native backlight control interface exists.
->> > >
->> > > Technically, patch 2/3 is not required to fix the issue here. So=
- if you
->> > > think it is not necessary, I can remove it from the series.
->> > >
->> > > Aaron Lu (4):
->> > >   backlight: introduce backlight_device_registered
->> > >   ACPI / video: seperate backlight control and event interface
->> > >   ACPI / video: Do not register backlight if win8 and native int=
-erface
->> > >     exists
->> > >   thinkpad-acpi: fix handle locate for video and query of _BCL
->> > >
->> > >  drivers/acpi/internal.h              |   5 +-
->> > >  drivers/acpi/video.c                 | 442
->> > ++++++++++++++++++++---------------
->> > >  drivers/acpi/video_detect.c          |  14 +-
->> > >  drivers/platform/x86/thinkpad_acpi.c |  31 ++-
->> > >  drivers/video/backlight/backlight.c  |  31 +++
->> > >  include/acpi/video.h                 |   2 +
->> > >  include/linux/backlight.h            |   4 +
->> > >  7 files changed, 324 insertions(+), 205 deletions(-)
->> > >
->> >
->> > Excellent! I've tested this patch-set on ThinkPad X230 and backlig=
-ht
->> > issue is exhausted.
->> >
->> > Thanks.
->> >
->> > --
->> > Igor Gnatenko
->> > Fedora release 20 (Heisenbug)
->> > Linux 3.11.1-300.fc20.x86_64
->> >
->> >
 
 --=20
-Jani Nikula, Intel Open Source Technology Center
+ <http://www.linaro.org/> Linaro.org =E2=94=82 Open source software for=
+ ARM SoCs
+
+=46ollow Linaro:  <http://www.facebook.com/pages/Linaro> Facebook |
+<http://twitter.com/#!/linaroorg> Twitter |
+<http://www.linaro.org/linaro-blog/> Blog
+
