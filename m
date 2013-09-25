@@ -1,118 +1,51 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: [Bug report] Warning when hot-add an ACPI0004 device.
-Date: Wed, 25 Sep 2013 16:36:22 +0200
-Message-ID: <1885947.mO0H2ES2Cp@vostro.rjw.lan>
-References: <52314A89.2060809@cn.fujitsu.com> <1378998712.12538.18.camel@misato.fc.hp.com> <5242BB6D.3060504@cn.fujitsu.com>
+From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Subject: Re: [PATCH 0/6] ACPI bus conversion
+Date: Wed, 25 Sep 2013 16:49:04 +0200
+Message-ID: <8324764.AkcjZ4DNvq@vostro.rjw.lan>
+References: <1380112790-2321-1-git-send-email-rui.zhang@intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7Bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from hydra.sisk.pl ([212.160.235.94]:58394 "EHLO hydra.sisk.pl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754886Ab3IYOZF (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 25 Sep 2013 10:25:05 -0400
-In-Reply-To: <5242BB6D.3060504@cn.fujitsu.com>
+Received: from v094114.home.net.pl ([79.96.170.134]:50008 "HELO
+	v094114.home.net.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S1755625Ab3IYOhn (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 25 Sep 2013 10:37:43 -0400
+In-Reply-To: <1380112790-2321-1-git-send-email-rui.zhang@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Gu Zheng <guz.fnst@cn.fujitsu.com>
-Cc: Toshi Kani <toshi.kani@hp.com>, Tang Chen <tangchen@cn.fujitsu.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
+To: Zhang Rui <rui.zhang@intel.com>, Matthew Garrett <mjg59@srcf.ucam.org>
+Cc: linux-pm@vger.kernel.org, linux-acpi@vger.kernel.org
 
-On Wednesday, September 25, 2013 06:31:09 PM Gu Zheng wrote:
-> Hi Toshi,
+On Wednesday, September 25, 2013 08:39:44 PM Zhang Rui wrote:
+> Hi,
 > 
-> On 09/12/2013 11:11 PM, Toshi Kani wrote:
+> Currently, all the ACPI device objects are enumerated in ACPI bus.
+> Some of them are used as real devices, while some of them are used
+> as shadow devices.
 > 
-> > On Thu, 2013-09-12 at 13:00 +0800, Tang Chen wrote:
-> >> Hi Rafael, Toshi,
-> >>
-> >> When we hot-add an ACPI0004 device, we got the following warning:
-> >>
-> >> 	acpi ACPI0004:01: Attempt to re-insert
-> >>
-> >> The ACPI0004 device is a System Board in Fujitsu server, which has two
-> >> numa nodes (processors and memory).
-> >>
-> >> It seems that we reserved the ACPI_NOTIFY_DEVICE_CHECK event twice in
-> >> acpi_hotplug_notify_cb().
-> >>
-> >>
-> >> According to bisect, this happens after the following commit:
-> >>
-> >>  From 68a67f6c78b80525d9b3c6672e7782de95e56a83 Mon Sep 17 00:00:00 2001
-> >> From: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>
-> >> Date: Sun, 3 Mar 2013 23:05:55 +0100
-> >> Subject: [PATCH 1/1] ACPI / container: Use common hotplug code
-> >>
-> >> Switch the ACPI container driver to using common device hotplug code
-> >> introduced previously.  This reduces the driver down to a trivial
-> >> definition and registration of a struct acpi_scan_handler object.
-> >>
-> >> Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
-> >> Acked-by: Toshi Kani <toshi.kani@hp.com>
-> >> Tested-by: Toshi Kani <toshi.kani@hp.com>
-> >> ---
-> >>   drivers/acpi/container.c | 146 
-> >> ++++-------------------------------------------
-> >>   1 file changed, 10 insertions(+), 136 deletions(-)
-> >>
-> >>
-> >> I'm now investigating this problem. If you have any idea about why this
-> >> happens, please let me know.
-> > 
-> > With the above change, container devices use the common notify handler,
-> > which logs the warning message in question when it receives device check
-> > twice on a same device.  Before the change, the container-specific
-> > notify handler did not log this message in the same case (but considered
-> > it as an eject request).
-> > 
-> > So, I suspect that you are getting device check twice regardless of the
-> > kernel change.  Can you check KERN_DEBUG messages to see if that is the
-> > case?  The notify handler logs all events with KERN_DEBUG.
+> This is misleading and confusing because we have several instances
+> in Linux driver model for a single device.
+> So Rafael proposed to stop using ACPI as a shadow bus.
+> To do this, we need to:
+> 1. for the devices that already have physical nodes, just leave them
+>    as they are today.
+> 2. for the devices that are not associated with any physical nodes,
+>    make them platform bus devices.
+> 3. create the sysfs subtree of ACPI objects under /sys/firmware/acpi/
+> 4. remove ACPI bus from driver model.
 > 
-> Follow your suggestion, we confirm that it really received ACPI_NOTIFY_
-> DEVICE_CHECK event*twice*, but the original ACPI container driver only
-> received once, does the common device hotplug code introduce another device
-> check? any idea?
-
-Well, we couldn't possibly make the BIOS generate the event twice unless
-there's an _OST response missing somewhere or similar.
-
-In any case the second event should be harmless.
-
-> Container uses common device hotplug code:
-> [  142.937724] IPv6: ADDRCONF(NETDEV_CHANGE): eth8: link becomes ready
-> [  674.975575] ACPI: \_SB_.LSB1: ACPI_NOTIFY_DEVICE_CHECK event          <<<<
-> [  674.991604] ACPI: \_SB_.LSB1: ACPI_NOTIFY_DEVICE_CHECK event		 <<<<	
-
-Where exactly did you put that printk()?
-
-> [  675.613990] ACPI: PCI Root Bridge [UNC2] (domain 0000 [bus fd])
-> [  675.684970] acpi PNP0A03:01: ACPI _OSC support notification failed, disabling PCIe ASPM
-> [  675.780957] acpi PNP0A03:01: Unable to request _OSC control (_OSC support mask: 0x08)
-> [  675.874806] ACPI _OSC control for PCIe not granted, disabling ASPM
-> [  675.949005] pci_bus 0000:fd: Allocating resources
-> [  675.960145] ACPI: PCI Root Bridge [UNC3] (domain 0000 [bus fc])
-> [  676.031176] acpi PNP0A03:02: ACPI _OSC support notification failed, disabling PCIe ASPM
-> [  676.127129] acpi PNP0A03:02: Unable to request _OSC control (_OSC support mask: 0x08)
-> [  676.220943] ACPI _OSC control for PCIe not granted, disabling ASPM
-> [  676.295019] pci_bus 0000:fc: Allocating resources
+> This patch set, which converts two different kinds of ACPI
+> devices/drivers to platform bus, is an experimentation of Step 2 above.
+> And in general, so far so good. I do not see anything can really stuck
+> us so far, although I do get a couple of problems when converting
+> the ideapad_laptop driver and rewrite the patches for a few times.
 > 
-> Original ACPI container driver:
-> [ 1526.122933] Container driver received ACPI_NOTIFY_DEVICE_CHECK event <<<<
+> I've tested the patches on an Lenovo U300s, which has a VPC2004 device.
+> Both the AC adapter and the ideapad_laptop drivers work well.
+> They are shown in platform bus, and their sysfs/debugfs work well.
 
-And that?
+Matthew, any objections to this?
 
-> [ 1526.800646] ACPI: PCI Root Bridge [UNC2] (domain 0000 [bus fd])
-> [ 1526.871682] acpi PNP0A03:01: ACPI _OSC support notification failed, disabling PCIe ASPM
-> [ 1526.967878] acpi PNP0A03:01: Unable to request _OSC control (_OSC support mask: 0x08)
-> [ 1527.061891] ACPI _OSC control for PCIe not granted, disabling ASPM
-> [ 1527.136036] pci_bus 0000:fd: Allocating resources
-> [ 1527.150747] ACPI: PCI Root Bridge [UNC3] (domain 0000 [bus fc])
-> [ 1527.221821] acpi PNP0A03:02: ACPI _OSC support notification failed, disabling PCIe ASPM
-> [ 1527.317738] acpi PNP0A03:02: Unable to request _OSC control (_OSC support mask: 0x08)
-> [ 1527.411795] ACPI _OSC control for PCIe not granted, disabling ASPM
-> [ 1527.485917] pci_bus 0000:fc: Allocating resources
-
-Thanks,
 Rafael
 
