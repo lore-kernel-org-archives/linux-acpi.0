@@ -1,51 +1,33 @@
-From: Bjorn Helgaas <bhelgaas@google.com>
-Subject: Re: [PATCH 2/2] PCI/ACPI: Convert ACPI PCI Hot Plug core debug
- fuction to dynamic debug function
-Date: Wed, 25 Sep 2013 11:05:50 -0600
-Message-ID: <CAErSpo7-KO1C=FKzg1_i-h4Tm4ZNiiL5syPWTc3eJjAgGiUnZg@mail.gmail.com>
-References: <1378783035-15681-1-git-send-email-tianyu.lan@intel.com>
- <1378783035-15681-2-git-send-email-tianyu.lan@intel.com> <20130925001902.GF9302@google.com>
- <5242E6FF.50800@intel.com>
+From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Subject: Re: [PATCH 0/6] ACPI bus conversion
+Date: Wed, 25 Sep 2013 19:30:16 +0200
+Message-ID: <2033963.KdhvK9KkDN@vostro.rjw.lan>
+References: <1380112790-2321-1-git-send-email-rui.zhang@intel.com> <8324764.AkcjZ4DNvq@vostro.rjw.lan> <20130925161034.GA6777@srcf.ucam.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <5242E6FF.50800@intel.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Lan Tianyu <tianyu.lan@intel.com>
-Cc: Len Brown <lenb@kernel.org>, "Rafael J. Wysocki" <rjw@sisk.pl>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7Bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from v094114.home.net.pl ([79.96.170.134]:53665 "HELO
+	v094114.home.net.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S1751014Ab3IYRSz (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 25 Sep 2013 13:18:55 -0400
+In-Reply-To: <20130925161034.GA6777@srcf.ucam.org>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Matthew Garrett <mjg59@srcf.ucam.org>
+Cc: Zhang Rui <rui.zhang@intel.com>, linux-pm@vger.kernel.org, linux-acpi@vger.kernel.org
 
-On Wed, Sep 25, 2013 at 7:37 AM, Lan Tianyu <tianyu.lan@intel.com> wrote:
-> On 09/25/2013 08:19 AM, Bjorn Helgaas wrote:
->>
->> On Mon, Sep 09, 2013 at 11:17:15PM -0400, tianyu.lan@intel.com wrote:
->>>
->>> From: Lan Tianyu <tianyu.lan@intel.com>
->>>
->>> This patch is to use pr_debug/info/warn/err to replace acpiphp debug
->>> functions and remove module's debug param.
->>> ...
->>
->>
->>>   /* local variables */
->>> @@ -61,9 +60,7 @@ static struct acpiphp_attention_info *attention_info;
->>>   MODULE_AUTHOR(DRIVER_AUTHOR);
->>>   MODULE_DESCRIPTION(DRIVER_DESC);
->>>   MODULE_LICENSE("GPL");
->>> -MODULE_PARM_DESC(debug, "Debugging mode enabled or not");
->>>   MODULE_PARM_DESC(disable, "disable acpiphp driver");
->>> -module_param_named(debug, acpiphp_debug, bool, 0644);
->>
->>
->> I have notes about booting with the "acpiphp.debug" parameter to turn
->> on debugging.  Can you tell me the way to do the equivalent with
->> dynamic debug?  I'll add that to the changelog before merging this.
->
-> Hi Bjorn:
->         Sure, the counterparts of dynamic debug are "acpiphp.dyndbg=+p" and
-> "acpiphp_ibm.dyndbg=+p" parameters. Thanks to add them.
+On Wednesday, September 25, 2013 05:10:34 PM Matthew Garrett wrote:
+> On Wed, Sep 25, 2013 at 04:49:04PM +0200, Rafael J. Wysocki wrote:
+> 
+> > Matthew, any objections to this?
+> 
+> No, this seems reasonable. Feel free to push the conversions through 
+> your tree so we can make sure they're synchronised?
 
-And turn on CONFIG_DYNAMIC_DEBUG.  I updated the changelogs and
-applied both patches to my pci/misc branch for v3.13.  Thanks!
+Sure, I will.  Thanks!
 
-Bjorn
+
+-- 
+I speak only for myself.
+Rafael J. Wysocki, Intel Open Source Technology Center.
