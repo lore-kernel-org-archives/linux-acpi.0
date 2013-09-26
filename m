@@ -1,54 +1,49 @@
-From: Zhang Yanfei <zhangyanfei.yes@gmail.com>
-Subject: Re: [PATCH v5 4/6] x86/mem-hotplug: Support initialize page tables
- in bottom-up
-Date: Fri, 27 Sep 2013 01:00:36 +0800
-Message-ID: <52446834.8090708@gmail.com>
-References: <5241D897.1090905@gmail.com> <5241DA5B.8000909@gmail.com> <20130926144851.GF3482@htj.dyndns.org>
+From: Dan Carpenter <dan.carpenter@oracle.com>
+Subject: re: ACPICA: Tables: Cleanup RSDP signature codes.
+Date: Fri, 27 Sep 2013 01:35:20 +0300
+Message-ID: <20130926223520.GA25642@elgon.mountain>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-doc-owner@vger.kernel.org>
-In-Reply-To: <20130926144851.GF3482@htj.dyndns.org>
-Sender: linux-doc-owner@vger.kernel.org
-To: Tejun Heo <tj@kernel.org>
-Cc: "Rafael J . Wysocki" <rjw@sisk.pl>, lenb@kernel.org, Thomas Gleixner <tglx@linutronix.de>, mingo@elte.hu, "H. Peter Anvin" <hpa@zytor.com>, Andrew Morton <akpm@linux-foundation.org>, Toshi Kani <toshi.kani@hp.com>, Wanpeng Li <liwanp@linux.vnet.ibm.com>, Thomas Renninger <trenn@suse.de>, Yinghai Lu <yinghai@kernel.org>, Jiang Liu <jiang.liu@huawei.com>, Wen Congyang <wency@cn.fujitsu.com>, Lai Jiangshan <laijs@cn.fujitsu.com>, isimatu.yasuaki@jp.fujitsu.com, izumi.taku@jp.fujitsu.com, Mel Gorman <mgorman@suse.de>, Minchan Kim <minchan@kernel.org>, mina86@mina86.com, gong.chen@linux.intel.com, vasilis.liaskovitis@profitbricks.com, lwoodman@redhat.com, Rik van Riel <riel@redhat.com>, jweiner@redhat.com, prarit@redhat.com, "x86@kernel.org" <x86@kernel.org>, linux-doc@vger.kernel.org, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Linux MM <linux-mm@kva>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from aserp1040.oracle.com ([141.146.126.69]:28217 "EHLO
+	aserp1040.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754049Ab3IZWfb (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 26 Sep 2013 18:35:31 -0400
+Content-Disposition: inline
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: lv.zheng@intel.com
+Cc: linux-acpi@vger.kernel.org
 
-On 09/26/2013 10:48 PM, Tejun Heo wrote:
-> Hello,
-> 
-> On Wed, Sep 25, 2013 at 02:30:51AM +0800, Zhang Yanfei wrote:
->> +/**
->> + * memory_map_bottom_up - Map [map_start, map_end) bottom up
->> + * @map_start: start address of the target memory range
->> + * @map_end: end address of the target memory range
->> + *
->> + * This function will setup direct mapping for memory range
->> + * [map_start, map_end) in bottom-up.
-> 
-> Ditto about the comment.
+Hello Lv Zheng,
 
-Trying below:
+I'm sorry to bother you about this.  This code has been this way for
+years, but your recent formatting cleanups made it into something Smatch
+could understand and complain about.  Hopefully, you could take a look?
 
+The patch cacba8657351: "ACPICA: Tables: Cleanup RSDP signature
+codes." from Sep 23, 2013, leads to the following
+static checker warning: "drivers/acpi/acpica/tbprint.c:141
+acpi_tb_print_table_header()
+	 error: strncmp() '((((header->signature))))' too small (4 vs 8)"
 
-/**
- * memory_map_bottom_up - Map [map_start, map_end) bottom up
- * @map_start: start address of the target memory range
- * @map_end: end address of the target memory range
- *
- * This function will setup direct mapping for memory range
- * [map_start, map_end) in bottom-up. Since we have limited the
- * bottom-up allocation above the kernel, the page tables will
- * be allocated just above the kernel and we map the memory
- * in [map_start, map_end) in bottom-up.
- */
-static void __init memory_map_bottom_up(unsigned long map_start,
-                                        unsigned long map_end)
-{
+drivers/acpi/acpica/tbprint.c
+   138                  ACPI_INFO((AE_INFO, "%4.4s %p %05X",
+   139                             header->signature, ACPI_CAST_PTR(void, address),
+   140                             header->length));
+   141          } else if (ACPI_VALIDATE_RSDP_SIG(header->signature)) {
+                           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+The RSDP_SIG is an 8 character signature but the header->signature
+buffer only has 4 characters so the signatures never match.  What's the
+deal with that?
 
+   142  
+   143                  /* RSDP has no common fields */
+   144  
+   145                  ACPI_MEMCPY(local_header.oem_id,
+   146                              ACPI_CAST_PTR(struct acpi_table_rsdp,
+   147                                            header)->oem_id, ACPI_OEM_ID_SIZE);
 
-Thanks.
+regards,
+dan carpenter
 
--- 
-Thanks.
-Zhang Yanfei
