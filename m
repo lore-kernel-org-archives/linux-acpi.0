@@ -1,35 +1,89 @@
-From: Yinghai Lu <yinghai@kernel.org>
-Subject: Re: [PATCH -v2] cpufreq: skip loading acpi_cpufreq after intel_pstate
-Date: Thu, 26 Sep 2013 08:41:18 -0700
-Message-ID: <CAE9FiQUtZAe2Y1CUNKYRsSV3UM4g2N67EP5cAEcX7C786bXcaQ@mail.gmail.com>
-References: <1379699036-7380-1-git-send-email-yinghai@kernel.org>
-	<CAE9FiQV+K9QSEiRMA8BtqC8k2OHm4aZWODNL+vgfFmpsuBfzQg@mail.gmail.com>
-	<CAKohpom3SkbGk-XgjXXFWZw2asAkxaM=XBYebWHxKQFN_WoXBw@mail.gmail.com>
+From: Zhang Yanfei <zhangyanfei.yes@gmail.com>
+Subject: Re: [PATCH v5 4/6] x86/mem-hotplug: Support initialize page tables
+ in bottom-up
+Date: Thu, 26 Sep 2013 23:43:02 +0800
+Message-ID: <52445606.7030108@gmail.com>
+References: <5241D897.1090905@gmail.com> <5241DA5B.8000909@gmail.com> <20130926144851.GF3482@htj.dyndns.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-ie0-f169.google.com ([209.85.223.169]:54736 "EHLO
-	mail-ie0-f169.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752832Ab3IZPlT (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 26 Sep 2013 11:41:19 -0400
-In-Reply-To: <CAKohpom3SkbGk-XgjXXFWZw2asAkxaM=XBYebWHxKQFN_WoXBw@mail.gmail.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
+Return-path: <owner-linux-mm@kvack.org>
+In-Reply-To: <20130926144851.GF3482@htj.dyndns.org>
+Sender: owner-linux-mm@kvack.org
+To: Tejun Heo <tj@kernel.org>
+Cc: "Rafael J . Wysocki" <rjw@sisk.pl>, lenb@kernel.org, Thomas Gleixner <tglx@linutronix.de>, mingo@elte.hu, "H. Peter Anvin" <hpa@zytor.com>, Andrew Morton <akpm@linux-foundation.org>, Toshi Kani <toshi.kani@hp.com>, Wanpeng Li <liwanp@linux.vnet.ibm.com>, Thomas Renninger <trenn@suse.de>, Yinghai Lu <yinghai@kernel.org>, Jiang Liu <jiang.liu@huawei.com>, Wen Congyang <wency@cn.fujitsu.com>, Lai Jiangshan <laijs@cn.fujitsu.com>, isimatu.yasuaki@jp.fujitsu.com, izumi.taku@jp.fujitsu.com, Mel Gorman <mgorman@suse.de>, Minchan Kim <minchan@kernel.org>, mina86@mina86.com, gong.chen@linux.intel.com, vasilis.liaskovitis@profitbricks.com, lwoodman@redhat.com, Rik van Riel <riel@redhat.com>, jweiner@redhat.com, prarit@redhat.com, "x86@kernel.org" <x86@kernel.org>, linux-doc@vger.kernel.org, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>Linux MM <linu>
 List-Id: linux-acpi@vger.kernel.org
-To: Viresh Kumar <viresh.kumar@linaro.org>
-Cc: "Rafael J. Wysocki" <rjw@sisk.pl>, "cpufreq@vger.kernel.org" <cpufreq@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux PM list <linux-pm@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
 
-On Wed, Sep 25, 2013 at 10:40 PM, Viresh Kumar <viresh.kumar@linaro.org> wrote:
-> On 26 September 2013 10:47, Yinghai Lu <yinghai@kernel.org> wrote:
->> can you put this one in acpi tree?
->
-> Its already applied in Rafael's linux-next branch.. Do you want something
-> else?
+Hello tejun,
 
-sorry, I missed that.
+On 09/26/2013 10:48 PM, Tejun Heo wrote:
+> Hello,
+> 
+> On Wed, Sep 25, 2013 at 02:30:51AM +0800, Zhang Yanfei wrote:
+>> +/**
+>> + * memory_map_bottom_up - Map [map_start, map_end) bottom up
+>> + * @map_start: start address of the target memory range
+>> + * @map_end: end address of the target memory range
+>> + *
+>> + * This function will setup direct mapping for memory range
+>> + * [map_start, map_end) in bottom-up.
+> 
+> Ditto about the comment.
 
-I still had that in local patches directory, but looks like quilt is
-not smart enough and did not report that patch is already applied.
+OK, will do.
 
-Thanks
+> 
+>> + */
+>> +static void __init memory_map_bottom_up(unsigned long map_start,
+>> +					unsigned long map_end)
+>> +{
+>> +	unsigned long next, new_mapped_ram_size, start;
+>> +	unsigned long mapped_ram_size = 0;
+>> +	/* step_size need to be small so pgt_buf from BRK could cover it */
+>> +	unsigned long step_size = PMD_SIZE;
+>> +
+>> +	start = map_start;
+>> +	min_pfn_mapped = start >> PAGE_SHIFT;
+>> +
+>> +	/*
+>> +	 * We start from the bottom (@map_start) and go to the top (@map_end).
+>> +	 * The memblock_find_in_range() gets us a block of RAM from the
+>> +	 * end of RAM in [min_pfn_mapped, max_pfn_mapped) used as new pages
+>> +	 * for page table.
+>> +	 */
+>> +	while (start < map_end) {
+>> +		if (map_end - start > step_size) {
+>> +			next = round_up(start + 1, step_size);
+>> +			if (next > map_end)
+>> +				next = map_end;
+>> +		} else
+>> +			next = map_end;
+>> +
+>> +		new_mapped_ram_size = init_range_memory_mapping(start, next);
+>> +		start = next;
+>> +
+>> +		if (new_mapped_ram_size > mapped_ram_size)
+>> +			step_size <<= STEP_SIZE_SHIFT;
+>> +		mapped_ram_size += new_mapped_ram_size;
+>> +	}
+>> +}
+> 
+> As Yinghai pointed out in another thread, do we need to worry about
+> falling back to top-down?
 
-Yinghai
+I've explained to him. Nop, we don't need to worry about that. Because even
+the min_pfn_mapped becomes ISA_END_ADDRESS in the second call below, we won't
+allocate memory below the kernel because we have limited the allocation above
+the kernel.
+
+Thanks.
+
+-- 
+Thanks.
+Zhang Yanfei
+
+--
+To unsubscribe, send a message with 'unsubscribe linux-mm' in
+the body to majordomo@kvack.org.  For more info on Linux MM,
+see: http://www.linux-mm.org/ .
+Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
