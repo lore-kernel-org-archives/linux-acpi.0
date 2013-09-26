@@ -1,49 +1,65 @@
-From: Dan Carpenter <dan.carpenter@oracle.com>
-Subject: re: ACPICA: Tables: Cleanup RSDP signature codes.
-Date: Fri, 27 Sep 2013 01:35:20 +0300
-Message-ID: <20130926223520.GA25642@elgon.mountain>
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: Re: [PATCH v5 4/6] x86/mem-hotplug: Support initialize page tables
+ in bottom-up
+Date: Thu, 26 Sep 2013 15:52:05 -0700
+Message-ID: <20130926155205.7f364b64c4a0fae77d4ca15d@linux-foundation.org>
+References: <5241D897.1090905@gmail.com>
+	<5241DA5B.8000909@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from aserp1040.oracle.com ([141.146.126.69]:28217 "EHLO
-	aserp1040.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754049Ab3IZWfb (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 26 Sep 2013 18:35:31 -0400
-Content-Disposition: inline
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-doc-owner@vger.kernel.org>
+In-Reply-To: <5241DA5B.8000909@gmail.com>
+Sender: linux-doc-owner@vger.kernel.org
+To: Zhang Yanfei <zhangyanfei.yes@gmail.com>
+Cc: "Rafael J . Wysocki" <rjw@sisk.pl>, lenb@kernel.org, Thomas Gleixner <tglx@linutronix.de>, mingo@elte.hu, "H. Peter Anvin" <hpa@zytor.com>, Tejun Heo <tj@kernel.org>, Toshi Kani <toshi.kani@hp.com>, Wanpeng Li <liwanp@linux.vnet.ibm.com>, Thomas Renninger <trenn@suse.de>, Yinghai Lu <yinghai@kernel.org>, Jiang Liu <jiang.liu@huawei.com>, Wen Congyang <wency@cn.fujitsu.com>, Lai Jiangshan <laijs@cn.fujitsu.com>, isimatu.yasuaki@jp.fujitsu.com, izumi.taku@jp.fujitsu.com, Mel Gorman <mgorman@suse.de>, Minchan Kim <minchan@kernel.org>, mina86@mina86.com, gong.chen@linux.intel.com, vasilis.liaskovitis@profitbricks.com, lwoodman@redhat.com, Rik van Riel <riel@redhat.com>, jweiner@redhat.com, prarit@redhat.com, "x86@kernel.org" <x86@kernel.org>, linux-doc@vger.kernel.org, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Linux MM <linux-mm@kvack.org>, linux-ac
 List-Id: linux-acpi@vger.kernel.org
-To: lv.zheng@intel.com
-Cc: linux-acpi@vger.kernel.org
 
-Hello Lv Zheng,
+On Wed, 25 Sep 2013 02:30:51 +0800 Zhang Yanfei <zhangyanfei.yes@gmail.com> wrote:
 
-I'm sorry to bother you about this.  This code has been this way for
-years, but your recent formatting cleanups made it into something Smatch
-could understand and complain about.  Hopefully, you could take a look?
+> From: Tang Chen <tangchen@cn.fujitsu.com>
+> 
+> The Linux kernel cannot migrate pages used by the kernel. As a
+> result, kernel pages cannot be hot-removed. So we cannot allocate
+> hotpluggable memory for the kernel.
+> 
+> In a memory hotplug system, any numa node the kernel resides in
+> should be unhotpluggable. And for a modern server, each node could
+> have at least 16GB memory. So memory around the kernel image is
+> highly likely unhotpluggable.
+> 
+> ACPI SRAT (System Resource Affinity Table) contains the memory
+> hotplug info. But before SRAT is parsed, memblock has already
+> started to allocate memory for the kernel. So we need to prevent
+> memblock from doing this.
+> 
+> So direct memory mapping page tables setup is the case. init_mem_mapping()
+> is called before SRAT is parsed. To prevent page tables being allocated
+> within hotpluggable memory, we will use bottom-up direction to allocate
+> page tables from the end of kernel image to the higher memory.
+> 
+> ...
+>
+> +		kernel_end = __pa_symbol(_end);
 
-The patch cacba8657351: "ACPICA: Tables: Cleanup RSDP signature
-codes." from Sep 23, 2013, leads to the following
-static checker warning: "drivers/acpi/acpica/tbprint.c:141
-acpi_tb_print_table_header()
-	 error: strncmp() '((((header->signature))))' too small (4 vs 8)"
+__pa_symbol() is implemented only on mips and x86.
 
-drivers/acpi/acpica/tbprint.c
-   138                  ACPI_INFO((AE_INFO, "%4.4s %p %05X",
-   139                             header->signature, ACPI_CAST_PTR(void, address),
-   140                             header->length));
-   141          } else if (ACPI_VALIDATE_RSDP_SIG(header->signature)) {
-                           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-The RSDP_SIG is an 8 character signature but the header->signature
-buffer only has 4 characters so the signatures never match.  What's the
-deal with that?
+I stole the mips implementation like this:
 
-   142  
-   143                  /* RSDP has no common fields */
-   144  
-   145                  ACPI_MEMCPY(local_header.oem_id,
-   146                              ACPI_CAST_PTR(struct acpi_table_rsdp,
-   147                                            header)->oem_id, ACPI_OEM_ID_SIZE);
+--- a/mm/memblock.c~a
++++ a/mm/memblock.c
+@@ -187,8 +187,11 @@ phys_addr_t __init_memblock memblock_fin
+ 	/* avoid allocating the first page */
+ 	start = max_t(phys_addr_t, start, PAGE_SIZE);
+ 	end = max(start, end);
++#ifdef CONFIG_X86
+ 	kernel_end = __pa_symbol(_end);
+-
++#else
++	kernel_end = __pa(RELOC_HIDE((unsigned long)(_end), 0));
++#endif
+ 	/*
+ 	 * try bottom-up allocation only when bottom-up mode
+ 	 * is set and @end is above the kernel image.
 
-regards,
-dan carpenter
-
+just so I can get a -mm release out the door.
