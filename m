@@ -1,69 +1,68 @@
-From: Tejun Heo <tj@kernel.org>
-Subject: Re: [PATCH v5 6/6] mem-hotplug: Introduce movablenode boot option
-Date: Thu, 26 Sep 2013 10:53:26 -0400
-Message-ID: <20130926145326.GH3482@htj.dyndns.org>
-References: <5241D897.1090905@gmail.com>
- <5241DB62.2090300@gmail.com>
+From: Zhang Yanfei <zhangyanfei.yes@gmail.com>
+Subject: Re: [PATCH v5 2/6] memblock: Introduce bottom-up allocation mode
+Date: Thu, 26 Sep 2013 23:37:34 +0800
+Message-ID: <524454BE.4030602@gmail.com>
+References: <5241D897.1090905@gmail.com> <5241D9A4.4080305@gmail.com> <20130926144516.GD3482@htj.dyndns.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-yh0-f47.google.com ([209.85.213.47]:35919 "EHLO
-	mail-yh0-f47.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750800Ab3IZOxb (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 26 Sep 2013 10:53:31 -0400
-Content-Disposition: inline
-In-Reply-To: <5241DB62.2090300@gmail.com>
-Sender: linux-acpi-owner@vger.kernel.org
-List-Id: linux-acpi@vger.kernel.org
-To: Zhang Yanfei <zhangyanfei.yes@gmail.com>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-doc-owner@vger.kernel.org>
+In-Reply-To: <20130926144516.GD3482@htj.dyndns.org>
+Sender: linux-doc-owner@vger.kernel.org
+To: Tejun Heo <tj@kernel.org>
 Cc: "Rafael J . Wysocki" <rjw@sisk.pl>, lenb@kernel.org, Thomas Gleixner <tglx@linutronix.de>, mingo@elte.hu, "H. Peter Anvin" <hpa@zytor.com>, Andrew Morton <akpm@linux-foundation.org>, Toshi Kani <toshi.kani@hp.com>, Wanpeng Li <liwanp@linux.vnet.ibm.com>, Thomas Renninger <trenn@suse.de>, Yinghai Lu <yinghai@kernel.org>, Jiang Liu <jiang.liu@huawei.com>, Wen Congyang <wency@cn.fujitsu.com>, Lai Jiangshan <laijs@cn.fujitsu.com>, isimatu.yasuaki@jp.fujitsu.com, izumi.taku@jp.fujitsu.com, Mel Gorman <mgorman@suse.de>, Minchan Kim <minchan@kernel.org>, mina86@mina86.com, gong.chen@linux.intel.com, vasilis.liaskovitis@profitbricks.com, lwoodman@redhat.com, Rik van Riel <riel@redhat.com>, jweiner@redhat.com, prarit@redhat.com, "x86@kernel.org" <x86@kernel.org>, linux-doc@vger.kernel.org, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Linux MM <linux-mm@kva>
+List-Id: linux-acpi@vger.kernel.org
 
-On Wed, Sep 25, 2013 at 02:35:14AM +0800, Zhang Yanfei wrote:
-> From: Tang Chen <tangchen@cn.fujitsu.com>
-> 
-> The hot-Pluggable field in SRAT specifies which memory is hotpluggable.
-> As we mentioned before, if hotpluggable memory is used by the kernel,
-> it cannot be hot-removed. So memory hotplug users may want to set all
-> hotpluggable memory in ZONE_MOVABLE so that the kernel won't use it.
-> 
-> Memory hotplug users may also set a node as movable node, which has
-> ZONE_MOVABLE only, so that the whole node can be hot-removed.
-> 
-> But the kernel cannot use memory in ZONE_MOVABLE. By doing this, the
-> kernel cannot use memory in movable nodes. This will cause NUMA
-> performance down. And other users may be unhappy.
-> 
-> So we need a way to allow users to enable and disable this functionality.
-> In this patch, we introduce movablenode boot option to allow users to
-> choose to not to consume hotpluggable memory at early boot time and
-> later we can set it as ZONE_MOVABLE.
-> 
-> To achieve this, the movablenode boot option will control the memblock
-> allocation direction. That said, after memblock is ready, before SRAT is
-> parsed, we should allocate memory near the kernel image as we explained
-> in the previous patches. So if movablenode boot option is set, the kernel
-> does the following:
-> 
-> 1. After memblock is ready, make memblock allocate memory bottom up.
-> 2. After SRAT is parsed, make memblock behave as default, allocate memory
->    top down.
-> 
-> Users can specify "movablenode" in kernel commandline to enable this
-> functionality. For those who don't use memory hotplug or who don't want
-> to lose their NUMA performance, just don't specify anything. The kernel
-> will work as before.
-> 
-> Suggested-by: Kamezawa Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-> Signed-off-by: Tang Chen <tangchen@cn.fujitsu.com>
-> Signed-off-by: Zhang Yanfei <zhangyanfei@cn.fujitsu.com>
+Hello tejun,
 
-I hope the param description and comment were better.  Not necessarily
-longer, but clearer, so it'd be great if you can polish them a bit
-more.  Other than that,
+Thanks for your quick comments first:)
 
- Acked-by: Tejun Heo <tj@kernel.org>
+On 09/26/2013 10:45 PM, Tejun Heo wrote:
+> Hello,
+> 
+> On Wed, Sep 25, 2013 at 02:27:48AM +0800, Zhang Yanfei wrote:
+>> +#ifdef CONFIG_MOVABLE_NODE
+>> +static inline void memblock_set_bottom_up(bool enable)
+>> +{
+>> +	memblock.bottom_up = enable;
+>> +}
+>> +
+>> +static inline bool memblock_bottom_up(void)
+>> +{
+>> +	return memblock.bottom_up;
+>> +}
+> 
+> Can you please explain what this is for here?
 
-Thanks.
+OK, will do.
+
+> 
+>> +		/*
+>> +		 * we always limit bottom-up allocation above the kernel,
+>> +		 * but top-down allocation doesn't have the limit, so
+>> +		 * retrying top-down allocation may succeed when bottom-up
+>> +		 * allocation failed.
+>> +		 *
+>> +		 * bottom-up allocation is expected to be fail very rarely,
+>> +		 * so we use WARN_ONCE() here to see the stack trace if
+>> +		 * fail happens.
+>> +		 */
+>> +		WARN_ONCE(1, "memblock: Failed to allocate memory in bottom up "
+>> +			"direction. Now try top down direction.\n");
+>> +	}
+> 
+> You and I would know what was going on and what the consequence of the
+> failure may be but the above warning message is kinda useless to a
+> user / admin, right?  It doesn't really say anything meaningful.
+> 
+
+Hmmmm.. May be something like this:
+
+WARN_ONCE(1, "Failed to allocated memory above the kernel in bottom-up,"
+          "so try to allocate memory below the kernel.");
+
+Thanks
 
 -- 
-tejun
+Thanks.
+Zhang Yanfei
