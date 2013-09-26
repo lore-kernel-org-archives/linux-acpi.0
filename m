@@ -1,39 +1,99 @@
-From: Tejun Heo <tj@kernel.org>
-Subject: Re: [PATCH v5 4/6] x86/mem-hotplug: Support initialize page tables
- in bottom-up
-Date: Thu, 26 Sep 2013 12:08:42 -0400
-Message-ID: <20130926160842.GC32391@mtj.dyndns.org>
-References: <5241D897.1090905@gmail.com>
- <5241DA5B.8000909@gmail.com>
- <20130926144851.GF3482@htj.dyndns.org>
- <52445606.7030108@gmail.com>
- <20130926154813.GA32391@mtj.dyndns.org>
- <52445AB5.8030306@gmail.com>
+From: Zhang Yanfei <zhangyanfei.yes@gmail.com>
+Subject: Re: [PATCH v5 6/6] mem-hotplug: Introduce movablenode boot option
+Date: Fri, 27 Sep 2013 00:42:59 +0800
+Message-ID: <52446413.50504@gmail.com>
+References: <5241D897.1090905@gmail.com> <5241DB62.2090300@gmail.com> <20130926145326.GH3482@htj.dyndns.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-doc-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <52445AB5.8030306@gmail.com>
-Sender: linux-doc-owner@vger.kernel.org
-To: Zhang Yanfei <zhangyanfei.yes@gmail.com>
-Cc: "Rafael J . Wysocki" <rjw@sisk.pl>, lenb@kernel.org, Thomas Gleixner <tglx@linutronix.de>, mingo@elte.hu, "H. Peter Anvin" <hpa@zytor.com>, Andrew Morton <akpm@linux-foundation.org>, Toshi Kani <toshi.kani@hp.com>, Wanpeng Li <liwanp@linux.vnet.ibm.com>, Thomas Renninger <trenn@suse.de>, Yinghai Lu <yinghai@kernel.org>, Jiang Liu <jiang.liu@huawei.com>, Wen Congyang <wency@cn.fujitsu.com>, Lai Jiangshan <laijs@cn.fujitsu.com>, isimatu.yasuaki@jp.fujitsu.com, izumi.taku@jp.fujitsu.com, Mel Gorman <mgorman@suse.de>, Minchan Kim <minchan@kernel.org>, mina86@mina86.com, gong.chen@linux.intel.com, vasilis.liaskovitis@profitbricks.com, lwoodman@redhat.com, Rik van Riel <riel@redhat.com>, jweiner@redhat.com, prarit@redhat.com, "x86@kernel.org" <x86@kernel.org>, linux-doc@vger.kernel.org, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Linux MM <linux-mm@kva>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
+Return-path: <owner-linux-mm@kvack.org>
+In-Reply-To: <20130926145326.GH3482@htj.dyndns.org>
+Sender: owner-linux-mm@kvack.org
+To: Tejun Heo <tj@kernel.org>
+Cc: "Rafael J . Wysocki" <rjw@sisk.pl>, lenb@kernel.org, Thomas Gleixner <tglx@linutronix.de>, mingo@elte.hu, "H. Peter Anvin" <hpa@zytor.com>, Andrew Morton <akpm@linux-foundation.org>, Toshi Kani <toshi.kani@hp.com>, Wanpeng Li <liwanp@linux.vnet.ibm.com>, Thomas Renninger <trenn@suse.de>, Yinghai Lu <yinghai@kernel.org>, Jiang Liu <jiang.liu@huawei.com>, Wen Congyang <wency@cn.fujitsu.com>, Lai Jiangshan <laijs@cn.fujitsu.com>, isimatu.yasuaki@jp.fujitsu.com, izumi.taku@jp.fujitsu.com, Mel Gorman <mgorman@suse.de>, Minchan Kim <minchan@kernel.org>, mina86@mina86.com, gong.chen@linux.intel.com, vasilis.liaskovitis@profitbricks.com, lwoodman@redhat.com, Rik van Riel <riel@redhat.com>, jweiner@redhat.com, prarit@redhat.com, "x86@kernel.org" <x86@kernel.org>, linux-doc@vger.kernel.org, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>Linux MM <linu>
 List-Id: linux-acpi@vger.kernel.org
 
-On Fri, Sep 27, 2013 at 12:03:01AM +0800, Zhang Yanfei wrote:
-> Ah, I see. You are saying another issue. He is worrying that if we use
-> kexec to load the kernel high, say we have 16GB, we put the kernel in
-> 15.99GB (just an example), so we only have less than 100MB above the kernel.
+On 09/26/2013 10:53 PM, Tejun Heo wrote:
+> On Wed, Sep 25, 2013 at 02:35:14AM +0800, Zhang Yanfei wrote:
+>> From: Tang Chen <tangchen@cn.fujitsu.com>
+>>
+>> The hot-Pluggable field in SRAT specifies which memory is hotpluggable.
+>> As we mentioned before, if hotpluggable memory is used by the kernel,
+>> it cannot be hot-removed. So memory hotplug users may want to set all
+>> hotpluggable memory in ZONE_MOVABLE so that the kernel won't use it.
+>>
+>> Memory hotplug users may also set a node as movable node, which has
+>> ZONE_MOVABLE only, so that the whole node can be hot-removed.
+>>
+>> But the kernel cannot use memory in ZONE_MOVABLE. By doing this, the
+>> kernel cannot use memory in movable nodes. This will cause NUMA
+>> performance down. And other users may be unhappy.
+>>
+>> So we need a way to allow users to enable and disable this functionality.
+>> In this patch, we introduce movablenode boot option to allow users to
+>> choose to not to consume hotpluggable memory at early boot time and
+>> later we can set it as ZONE_MOVABLE.
+>>
+>> To achieve this, the movablenode boot option will control the memblock
+>> allocation direction. That said, after memblock is ready, before SRAT is
+>> parsed, we should allocate memory near the kernel image as we explained
+>> in the previous patches. So if movablenode boot option is set, the kernel
+>> does the following:
+>>
+>> 1. After memblock is ready, make memblock allocate memory bottom up.
+>> 2. After SRAT is parsed, make memblock behave as default, allocate memory
+>>    top down.
+>>
+>> Users can specify "movablenode" in kernel commandline to enable this
+>> functionality. For those who don't use memory hotplug or who don't want
+>> to lose their NUMA performance, just don't specify anything. The kernel
+>> will work as before.
+>>
+>> Suggested-by: Kamezawa Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+>> Signed-off-by: Tang Chen <tangchen@cn.fujitsu.com>
+>> Signed-off-by: Zhang Yanfei <zhangyanfei@cn.fujitsu.com>
 > 
-> But as I've explained to him, in almost all the cases, if we want our
-> memory hotplug work, we don't do that. And yeah, assume we have this
-> problem, it'd fall back to top down and that return backs to patch 2,
-> we will trigger the WARN_ONCE, and the admin will know what has happened.
+> I hope the param description and comment were better.  Not necessarily
+> longer, but clearer, so it'd be great if you can polish them a bit
 
-Alright,
+OK. Trying below:
 
- Acked-by: Tejun Heo <tj@kernel.org>
+movablenode	[KNL,X86] This option enables the kernel to arrange
+		hotpluggable memory into ZONE_MOVABLE zone. If memory
+		in a node is all hotpluggable, the option may make
+		the whole node has only one ZONE_MOVABLE zone, so that
+		the whole node can be hot-removed after system is up.
+		Note that this option may cause NUMA performance down.
+
+As for the comment in cmdline_parse_movablenode():
+
+	/*
+	 * ACPI SRAT records all hotpluggable memory ranges. But before
+	 * SRAT is parsed, we don't know about it. So by specifying this
+	 * option, we will use the bottom-up mode to try allocating memory
+	 * near the kernel image before SRAT is parsed.
+	 * 
+	 * Bottom-up mode prevents memblock allocating hotpluggable memory
+	 * for the kernel so that the kernel will arrange hotpluggable
+	 * memory into ZONE_MOVABLE zone when possible.
+	 */
 
 Thanks.
 
+> more.  Other than that,
+> 
+>  Acked-by: Tejun Heo <tj@kernel.org>
+> 
+> Thanks.
+> 
+
+
 -- 
-tejun
+Thanks.
+Zhang Yanfei
+
+--
+To unsubscribe, send a message with 'unsubscribe linux-mm' in
+the body to majordomo@kvack.org.  For more info on Linux MM,
+see: http://www.linux-mm.org/ .
+Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
