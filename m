@@ -1,40 +1,35 @@
-From: Zhang Yanfei <zhangyanfei.yes@gmail.com>
-Subject: Re: [PATCH v5 3/6] x86/mm: Factor out of top-down direct mapping
- setup
-Date: Thu, 26 Sep 2013 23:39:38 +0800
-Message-ID: <5244553A.2050700@gmail.com>
-References: <5241D897.1090905@gmail.com> <5241D9F2.80908@gmail.com> <20130926144642.GE3482@htj.dyndns.org>
+From: Yinghai Lu <yinghai@kernel.org>
+Subject: Re: [PATCH -v2] cpufreq: skip loading acpi_cpufreq after intel_pstate
+Date: Thu, 26 Sep 2013 08:41:18 -0700
+Message-ID: <CAE9FiQUtZAe2Y1CUNKYRsSV3UM4g2N67EP5cAEcX7C786bXcaQ@mail.gmail.com>
+References: <1379699036-7380-1-git-send-email-yinghai@kernel.org>
+	<CAE9FiQV+K9QSEiRMA8BtqC8k2OHm4aZWODNL+vgfFmpsuBfzQg@mail.gmail.com>
+	<CAKohpom3SkbGk-XgjXXFWZw2asAkxaM=XBYebWHxKQFN_WoXBw@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-doc-owner@vger.kernel.org>
-In-Reply-To: <20130926144642.GE3482@htj.dyndns.org>
-Sender: linux-doc-owner@vger.kernel.org
-To: Tejun Heo <tj@kernel.org>
-Cc: "Rafael J . Wysocki" <rjw@sisk.pl>, lenb@kernel.org, Thomas Gleixner <tglx@linutronix.de>, mingo@elte.hu, "H. Peter Anvin" <hpa@zytor.com>, Andrew Morton <akpm@linux-foundation.org>, Toshi Kani <toshi.kani@hp.com>, Wanpeng Li <liwanp@linux.vnet.ibm.com>, Thomas Renninger <trenn@suse.de>, Yinghai Lu <yinghai@kernel.org>, Jiang Liu <jiang.liu@huawei.com>, Wen Congyang <wency@cn.fujitsu.com>, Lai Jiangshan <laijs@cn.fujitsu.com>, isimatu.yasuaki@jp.fujitsu.com, izumi.taku@jp.fujitsu.com, Mel Gorman <mgorman@suse.de>, Minchan Kim <minchan@kernel.org>, mina86@mina86.com, gong.chen@linux.intel.com, vasilis.liaskovitis@profitbricks.com, lwoodman@redhat.com, Rik van Riel <riel@redhat.com>, jweiner@redhat.com, prarit@redhat.com, "x86@kernel.org" <x86@kernel.org>, linux-doc@vger.kernel.org, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Linux MM <linux-mm@kva>
+Content-Type: text/plain; charset=ISO-8859-1
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-ie0-f169.google.com ([209.85.223.169]:54736 "EHLO
+	mail-ie0-f169.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752832Ab3IZPlT (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 26 Sep 2013 11:41:19 -0400
+In-Reply-To: <CAKohpom3SkbGk-XgjXXFWZw2asAkxaM=XBYebWHxKQFN_WoXBw@mail.gmail.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Viresh Kumar <viresh.kumar@linaro.org>
+Cc: "Rafael J. Wysocki" <rjw@sisk.pl>, "cpufreq@vger.kernel.org" <cpufreq@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux PM list <linux-pm@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
 
-On 09/26/2013 10:46 PM, Tejun Heo wrote:
-> On Wed, Sep 25, 2013 at 02:29:06AM +0800, Zhang Yanfei wrote:
->> +/**
->> + * memory_map_top_down - Map [map_start, map_end) top down
->> + * @map_start: start address of the target memory range
->> + * @map_end: end address of the target memory range
->> + *
->> + * This function will setup direct mapping for memory range
->> + * [map_start, map_end) in top-down.
-> 
-> Can you please put a bit more effort into the function description?
+On Wed, Sep 25, 2013 at 10:40 PM, Viresh Kumar <viresh.kumar@linaro.org> wrote:
+> On 26 September 2013 10:47, Yinghai Lu <yinghai@kernel.org> wrote:
+>> can you put this one in acpi tree?
+>
+> Its already applied in Rafael's linux-next branch.. Do you want something
+> else?
 
-Sorry.... I will try to make a more detailed description.
+sorry, I missed that.
 
-> 
-> Other than that,
-> 
->  Acked-by: Tejun Heo <tj@kernel.org>
+I still had that in local patches directory, but looks like quilt is
+not smart enough and did not report that patch is already applied.
 
-Thanks.
+Thanks
 
--- 
-Thanks.
-Zhang Yanfei
+Yinghai
