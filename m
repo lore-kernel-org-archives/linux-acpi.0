@@ -1,46 +1,40 @@
-From: Zhang Yanfei <zhangyanfei.yes@gmail.com>
-Subject: Re: [PATCH v5 5/6] x86, acpi, crash, kdump: Do reserve_crashkernel()
- after SRAT is parsed
-Date: Thu, 26 Sep 2013 23:46:11 +0800
-Message-ID: <524456C3.4000904@gmail.com>
-References: <5241D897.1090905@gmail.com> <5241DB3A.6090002@gmail.com> <20130926144958.GG3482@htj.dyndns.org>
+From: Tejun Heo <tj@kernel.org>
+Subject: Re: [PATCH v5 4/6] x86/mem-hotplug: Support initialize page tables
+ in bottom-up
+Date: Thu, 26 Sep 2013 11:48:13 -0400
+Message-ID: <20130926154813.GA32391@mtj.dyndns.org>
+References: <5241D897.1090905@gmail.com>
+ <5241DA5B.8000909@gmail.com>
+ <20130926144851.GF3482@htj.dyndns.org>
+ <52445606.7030108@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-pd0-f178.google.com ([209.85.192.178]:39352 "EHLO
-	mail-pd0-f178.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750912Ab3IZPq3 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 26 Sep 2013 11:46:29 -0400
-In-Reply-To: <20130926144958.GG3482@htj.dyndns.org>
+Received: from mail-qc0-f169.google.com ([209.85.216.169]:43834 "EHLO
+	mail-qc0-f169.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750978Ab3IZPsS (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 26 Sep 2013 11:48:18 -0400
+Content-Disposition: inline
+In-Reply-To: <52445606.7030108@gmail.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Tejun Heo <tj@kernel.org>
+To: Zhang Yanfei <zhangyanfei.yes@gmail.com>
 Cc: "Rafael J . Wysocki" <rjw@sisk.pl>, lenb@kernel.org, Thomas Gleixner <tglx@linutronix.de>, mingo@elte.hu, "H. Peter Anvin" <hpa@zytor.com>, Andrew Morton <akpm@linux-foundation.org>, Toshi Kani <toshi.kani@hp.com>, Wanpeng Li <liwanp@linux.vnet.ibm.com>, Thomas Renninger <trenn@suse.de>, Yinghai Lu <yinghai@kernel.org>, Jiang Liu <jiang.liu@huawei.com>, Wen Congyang <wency@cn.fujitsu.com>, Lai Jiangshan <laijs@cn.fujitsu.com>, isimatu.yasuaki@jp.fujitsu.com, izumi.taku@jp.fujitsu.com, Mel Gorman <mgorman@suse.de>, Minchan Kim <minchan@kernel.org>, mina86@mina86.com, gong.chen@linux.intel.com, vasilis.liaskovitis@profitbricks.com, lwoodman@redhat.com, Rik van Riel <riel@redhat.com>, jweiner@redhat.com, prarit@redhat.com, "x86@kernel.org" <x86@kernel.org>, linux-doc@vger.kernel.org, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Linux MM <linux-mm@kva>
 
-On 09/26/2013 10:49 PM, Tejun Heo wrote:
-> On Wed, Sep 25, 2013 at 02:34:34AM +0800, Zhang Yanfei wrote:
->> From: Tang Chen <tangchen@cn.fujitsu.com>
->>
->> Memory reserved for crashkernel could be large. So we should not allocate
->> this memory bottom up from the end of kernel image.
->>
->> When SRAT is parsed, we will be able to know whihc memory is hotpluggable,
->> and we can avoid allocating this memory for the kernel. So reorder
->> reserve_crashkernel() after SRAT is parsed.
->>
->> Acked-by: Tejun Heo <tj@kernel.org>
+On Thu, Sep 26, 2013 at 11:43:02PM +0800, Zhang Yanfei wrote:
+> > As Yinghai pointed out in another thread, do we need to worry about
+> > falling back to top-down?
 > 
-> So, I was hoping to hear from you on how you tested it when I wrote
-> the previous comment - the "provided..." part.
-> 
+> I've explained to him. Nop, we don't need to worry about that. Because even
+> the min_pfn_mapped becomes ISA_END_ADDRESS in the second call below, we won't
+> allocate memory below the kernel because we have limited the allocation above
+> the kernel.
 
-This function is actually used for kexec/kdump. So After applying 
-this patch, booting the kernel, this reservation is successful and
-the kdump service starts successfully.
+Maybe I misunderstood but wasn't he worrying about there not being
+enough space above kernel?  In that case, it'd automatically fall back
+to top-down allocation anyway, right?
 
 Thanks.
 
 -- 
-Thanks.
-Zhang Yanfei
+tejun
