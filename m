@@ -1,27 +1,23 @@
 From: Gu Zheng <guz.fnst@cn.fujitsu.com>
 Subject: Re: [Bug report] Warning when hot-add an ACPI0004 device.
-Date: Thu, 26 Sep 2013 10:33:20 +0800
-Message-ID: <52439CF0.9050807@cn.fujitsu.com>
-References: <52314A89.2060809@cn.fujitsu.com> <1378998712.12538.18.camel@misato.fc.hp.com> <5242BB6D.3060504@cn.fujitsu.com> <1885947.mO0H2ES2Cp@vostro.rjw.lan>
+Date: Thu, 26 Sep 2013 10:33:34 +0800
+Message-ID: <52439CFE.4030501@cn.fujitsu.com>
+References: <52314A89.2060809@cn.fujitsu.com>  <1378998712.12538.18.camel@misato.fc.hp.com>  <5242BB6D.3060504@cn.fujitsu.com> <1380147885.14046.40.camel@misato.fc.hp.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cn.fujitsu.com ([222.73.24.84]:14159 "EHLO song.cn.fujitsu.com"
-	rhost-flags-OK-FAIL-OK-OK) by vger.kernel.org with ESMTP
-	id S1754374Ab3IZCiY (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 25 Sep 2013 22:38:24 -0400
-In-Reply-To: <1885947.mO0H2ES2Cp@vostro.rjw.lan>
-Sender: linux-acpi-owner@vger.kernel.org
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1380147885.14046.40.camel@misato.fc.hp.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Toshi Kani <toshi.kani@hp.com>
+Cc: Tang Chen <tangchen@cn.fujitsu.com>, "Rafael J. Wysocki" <rjw@sisk.pl>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: Toshi Kani <toshi.kani@hp.com>, Tang Chen <tangchen@cn.fujitsu.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
 
-Hi Rafael,
+Hi Toshi,
 
-On 09/25/2013 10:36 PM, Rafael J. Wysocki wrote:
+On 09/26/2013 06:24 AM, Toshi Kani wrote:
 
-> On Wednesday, September 25, 2013 06:31:09 PM Gu Zheng wrote:
+> On Wed, 2013-09-25 at 10:31 +0000, Gu Zheng wrote:
 >> Hi Toshi,
 >>
 >> On 09/12/2013 11:11 PM, Toshi Kani wrote:
@@ -32,7 +28,32 @@ On 09/25/2013 10:36 PM, Rafael J. Wysocki wrote:
 >>>> When we hot-add an ACPI0004 device, we got the following warning:
 >>>>
 >>>> 	acpi ACPI0004:01: Attempt to re-insert
-<...>
+>>>>
+>>>> The ACPI0004 device is a System Board in Fujitsu server, which has two
+>>>> numa nodes (processors and memory).
+>>>>
+>>>> It seems that we reserved the ACPI_NOTIFY_DEVICE_CHECK event twice in
+>>>> acpi_hotplug_notify_cb().
+>>>>
+>>>>
+>>>> According to bisect, this happens after the following commit:
+>>>>
+>>>>  From 68a67f6c78b80525d9b3c6672e7782de95e56a83 Mon Sep 17 00:00:00 2001
+>>>> From: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>
+>>>> Date: Sun, 3 Mar 2013 23:05:55 +0100
+>>>> Subject: [PATCH 1/1] ACPI / container: Use common hotplug code
+>>>>
+>>>> Switch the ACPI container driver to using common device hotplug code
+>>>> introduced previously.  This reduces the driver down to a trivial
+>>>> definition and registration of a struct acpi_scan_handler object.
+>>>>
+>>>> Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+>>>> Acked-by: Toshi Kani <toshi.kani@hp.com>
+>>>> Tested-by: Toshi Kani <toshi.kani@hp.com>
+>>>> ---
+>>>>   drivers/acpi/container.c | 146 
+>>>> ++++-------------------------------------------
+>>>>   1 file changed, 10 insertions(+), 136 deletions(-)
 >>>>
 >>>>
 >>>> I'm now investigating this problem. If you have any idea about why this
@@ -52,27 +73,25 @@ On 09/25/2013 10:36 PM, Rafael J. Wysocki wrote:
 >> DEVICE_CHECK event*twice*, but the original ACPI container driver only
 >> received once, does the common device hotplug code introduce another device
 >> check? any idea?
-> 
-> Well, we couldn't possibly make the BIOS generate the event twice unless
-> there's an _OST response missing somewhere or similar.
-> 
-> In any case the second event should be harmless.
-
-Yes, though it's harmless, but this message is not very friendly. 
-
-> 
+>>
 >> Container uses common device hotplug code:
 >> [  142.937724] IPv6: ADDRCONF(NETDEV_CHANGE): eth8: link becomes ready
 >> [  674.975575] ACPI: \_SB_.LSB1: ACPI_NOTIFY_DEVICE_CHECK event          <<<<
+> 
+> acpi_hotplug_notify_cb() calls acpi_os_hotplug_execute() to schedule to
+> run acpi_scan_device_check() asynchronously and returns immediately.
+> This leads acpi_ev_asynch_enable_gpe() to run next, which clears this
+> GPE (if level triggered) and re-enable GPE.
+
+Thanks for your explanation, it's really the routine you mentioned above.
+
+> 
 >> [  674.991604] ACPI: \_SB_.LSB1: ACPI_NOTIFY_DEVICE_CHECK event		 <<<<	
 > 
-> Where exactly did you put that printk()?
+> It appears that re-enabling GPE caused this GPE to show up again as a
+> spurious interrupt.
 
-It's the acpi_handle_debug in acpi_hotplug_notify_cb():
- 410         case ACPI_NOTIFY_DEVICE_CHECK:                                          
- 411                 acpi_handle_debug(handle, "ACPI_NOTIFY_DEVICE_CHECK event\n");  
- 412                 callback = acpi_scan_device_check;                              
- 413                 break;  
+Yes, it is.
 
 > 
 >> [  675.613990] ACPI: PCI Root Bridge [UNC2] (domain 0000 [bus fd])
@@ -89,24 +108,14 @@ It's the acpi_handle_debug in acpi_hotplug_notify_cb():
 >> Original ACPI container driver:
 >> [ 1526.122933] Container driver received ACPI_NOTIFY_DEVICE_CHECK event <<<<
 > 
-> And that?
+> In the original code, container_notify_cb() proceeds the device check
+> handling and then calls _OST on the same thread.  It then re-enable GPE.
 
-It seems that the original ACPI container driver can avoid the second event.
+According to our debug, the whole routine was executed on the same thread.
 
-The debug printk is added in original container_notify_cb():
- 96         case ACPI_NOTIFY_DEVICE_CHECK:
- 97                 printk("Container driver received %s event\n",
- 98                        (type == ACPI_NOTIFY_BUS_CHECK) ?
- 99                        "ACPI_NOTIFY_BUS_CHECK" : "ACPI_NOTIFY_DEVICE_CHECK");
-100 
-101                 present = is_device_present(handle);
-102                 status = acpi_bus_get_device(handle, &device);
-103                 if (device)
-104                         printk("=======attemp to reinsert!\n");
-105                 if (!present) {
+> This ordering seems to avoid the spurious interrupt on your platform.
 
-Best regards,
-Gu
+It seems that, but it is very strange.
 
 > 
 >> [ 1526.800646] ACPI: PCI Root Bridge [UNC2] (domain 0000 [bus fd])
@@ -120,9 +129,23 @@ Gu
 >> [ 1527.411795] ACPI _OSC control for PCIe not granted, disabling ASPM
 >> [ 1527.485917] pci_bus 0000:fc: Allocating resources
 > 
+> The GPE handler code in ACPICA is the same.  So, the issue could be due
+> to either;
+>  - The firmware expects _OST before re-enabling GPE, or
+>  - The timing of re-enabling GPE was too soon on your platform.
+
+Thanks for your directions.
+
+> 
+> Can you check with your firmware team to see if this might be the case?
+
+I'll confirm this.
+
+Best regards,
+Gu
+
+> 
 > Thanks,
-> Rafael
+> -Toshi
 > 
 > 
-
-
