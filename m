@@ -1,71 +1,128 @@
-From: Aaron Lu <aaron.lu@intel.com>
-Subject: Re: [PATCH v3 4/4] thinkpad-acpi: fix handle locate for video and
- query of _BCL
-Date: Thu, 26 Sep 2013 09:44:12 +0800
-Message-ID: <20130926014411.GA14158@aaronlu.linux.com>
-References: <1380016052-15315-1-git-send-email-aaron.lu@intel.com>
- <1380016052-15315-5-git-send-email-aaron.lu@intel.com>
- <20130925195839.GB23810@khazad-dum.debian.net>
+From: Gu Zheng <guz.fnst@cn.fujitsu.com>
+Subject: Re: [Bug report] Warning when hot-add an ACPI0004 device.
+Date: Thu, 26 Sep 2013 10:33:20 +0800
+Message-ID: <52439CF0.9050807@cn.fujitsu.com>
+References: <52314A89.2060809@cn.fujitsu.com> <1378998712.12538.18.camel@misato.fc.hp.com> <5242BB6D.3060504@cn.fujitsu.com> <1885947.mO0H2ES2Cp@vostro.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20130925195839.GB23810@khazad-dum.debian.net>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
-Cc: linux-acpi@vger.kernel.org, intel-gfx@lists.freedesktop.org, dri-devel@lists.freedesktop.org, linux-kernel@vger.kernel.org, Daniel Vetter <daniel@ffwll.ch>, "Rafael J. Wysocki" <rjw@sisk.pl>, Matthew Garrett <matthew.garrett@nebula.com>, Seth Forshee <seth.forshee@canonical.com>, Lee Chun-Yi <joeyli.kernel@gmail.com>, Richard Purdie <rpurdie@rpsys.net>, Igor Gnatenko <i.gnatenko.brain@gmail.com>, Yves-Alexis Perez <corsac@debian.org>, Felipe Contreras <felipe.contreras@gmail.com>, Henrique de Moraes Holschuh <ibm-acpi@hmh.eng.br>, Jani Nikula <jani.nikula@linux.intel.com>, Ben Jencks <ben@bjencks.net>, Steven Newbury <steve@snewbury.org.uk>, James Hogan <james@albanarts.com>, Kamal Mostafa <kamal@canonical.com>, Joerg Platte <jplatte@naasa.net>, Kalle Valo <kvalo@adurom.com>, Martin Steigerwald <Martin@lichtvoll.de>, =?iso-8859-1?Q?J=F6rg?= Otte <jrg.otte@gmail.co>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from cn.fujitsu.com ([222.73.24.84]:14159 "EHLO song.cn.fujitsu.com"
+	rhost-flags-OK-FAIL-OK-OK) by vger.kernel.org with ESMTP
+	id S1754374Ab3IZCiY (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 25 Sep 2013 22:38:24 -0400
+In-Reply-To: <1885947.mO0H2ES2Cp@vostro.rjw.lan>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: Toshi Kani <toshi.kani@hp.com>, Tang Chen <tangchen@cn.fujitsu.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
 
-On Wed, Sep 25, 2013 at 04:58:39PM -0300, Henrique de Moraes Holschuh wrote:
-> On Tue, 24 Sep 2013, Aaron Lu wrote:
-> > locate handle for ACPI video by HID, the problem is, ACPI video node
-> > doesn't really have HID defined(i.e. no _HID control method is defined
+Hi Rafael,
+
+On 09/25/2013 10:36 PM, Rafael J. Wysocki wrote:
+
+> On Wednesday, September 25, 2013 06:31:09 PM Gu Zheng wrote:
+>> Hi Toshi,
+>>
+>> On 09/12/2013 11:11 PM, Toshi Kani wrote:
+>>
+>>> On Thu, 2013-09-12 at 13:00 +0800, Tang Chen wrote:
+>>>> Hi Rafael, Toshi,
+>>>>
+>>>> When we hot-add an ACPI0004 device, we got the following warning:
+>>>>
+>>>> 	acpi ACPI0004:01: Attempt to re-insert
+<...>
+>>>>
+>>>>
+>>>> I'm now investigating this problem. If you have any idea about why this
+>>>> happens, please let me know.
+>>>
+>>> With the above change, container devices use the common notify handler,
+>>> which logs the warning message in question when it receives device check
+>>> twice on a same device.  Before the change, the container-specific
+>>> notify handler did not log this message in the same case (but considered
+>>> it as an eject request).
+>>>
+>>> So, I suspect that you are getting device check twice regardless of the
+>>> kernel change.  Can you check KERN_DEBUG messages to see if that is the
+>>> case?  The notify handler logs all events with KERN_DEBUG.
+>>
+>> Follow your suggestion, we confirm that it really received ACPI_NOTIFY_
+>> DEVICE_CHECK event*twice*, but the original ACPI container driver only
+>> received once, does the common device hotplug code introduce another device
+>> check? any idea?
 > 
-> ACPI video is supposed to attach a virtual HID node (ACPI_VIDEO_HID) to ACPI
-> video devices so as to keep the non-trivial video device detection logic in
-> just one place instead of reinventing the wheel in every driver (which is
-> always a recipe for disaster).
+> Well, we couldn't possibly make the BIOS generate the event twice unless
+> there's an _OST response missing somewhere or similar.
 > 
-> When did that break?
+> In any case the second event should be harmless.
 
-I checked the git log for the commit to use tpacpi_acpi_handle_locate to
-locate video controller's ACPI handle, it's:
+Yes, though it's harmless, but this message is not very friendly. 
 
-commit 122f26726b5e16174bf8a707df14be1d93c49d62
-Author: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
-Date:   Mon Aug 9 23:48:18 2010 -0300
+> 
+>> Container uses common device hotplug code:
+>> [  142.937724] IPv6: ADDRCONF(NETDEV_CHANGE): eth8: link becomes ready
+>> [  674.975575] ACPI: \_SB_.LSB1: ACPI_NOTIFY_DEVICE_CHECK event          <<<<
+>> [  674.991604] ACPI: \_SB_.LSB1: ACPI_NOTIFY_DEVICE_CHECK event		 <<<<	
+> 
+> Where exactly did you put that printk()?
 
-    thinkpad-acpi: find ACPI video device by synthetic HID
+It's the acpi_handle_debug in acpi_hotplug_notify_cb():
+ 410         case ACPI_NOTIFY_DEVICE_CHECK:                                          
+ 411                 acpi_handle_debug(handle, "ACPI_NOTIFY_DEVICE_CHECK event\n");  
+ 412                 callback = acpi_scan_device_check;                              
+ 413                 break;  
 
-So I checked out that commit and found that it shouldn't work either,
-since it has the same problem of the current code.
+> 
+>> [  675.613990] ACPI: PCI Root Bridge [UNC2] (domain 0000 [bus fd])
+>> [  675.684970] acpi PNP0A03:01: ACPI _OSC support notification failed, disabling PCIe ASPM
+>> [  675.780957] acpi PNP0A03:01: Unable to request _OSC control (_OSC support mask: 0x08)
+>> [  675.874806] ACPI _OSC control for PCIe not granted, disabling ASPM
+>> [  675.949005] pci_bus 0000:fd: Allocating resources
+>> [  675.960145] ACPI: PCI Root Bridge [UNC3] (domain 0000 [bus fc])
+>> [  676.031176] acpi PNP0A03:02: ACPI _OSC support notification failed, disabling PCIe ASPM
+>> [  676.127129] acpi PNP0A03:02: Unable to request _OSC control (_OSC support mask: 0x08)
+>> [  676.220943] ACPI _OSC control for PCIe not granted, disabling ASPM
+>> [  676.295019] pci_bus 0000:fc: Allocating resources
+>>
+>> Original ACPI container driver:
+>> [ 1526.122933] Container driver received ACPI_NOTIFY_DEVICE_CHECK event <<<<
+> 
+> And that?
 
-The ACPI video controller device is given an id of ACPI_VIDEO_HID, but
-it's only known to Linux ACPI, not ACPICA, so the function provided by
-ACPICA acpi_get_devices will not work in this case, as that function will
-really check the control method of _HID under the handle, which does not
-exist no matter if Linux ACPI has added an id to its device structure or
-not. OTOH, the function provided by Linux ACPI acpi_device_hid will see
-the added id. In a word, the add of the HID will not affect the ASL
-namespace layout of the device node(thus, no _HID control method will
-be added to the device node).
+It seems that the original ACPI container driver can avoid the second event.
 
-It seems that this problem has been found previously by:
+The debug printk is added in original container_notify_cb():
+ 96         case ACPI_NOTIFY_DEVICE_CHECK:
+ 97                 printk("Container driver received %s event\n",
+ 98                        (type == ACPI_NOTIFY_BUS_CHECK) ?
+ 99                        "ACPI_NOTIFY_BUS_CHECK" : "ACPI_NOTIFY_DEVICE_CHECK");
+100 
+101                 present = is_device_present(handle);
+102                 status = acpi_bus_get_device(handle, &device);
+103                 if (device)
+104                         printk("=======attemp to reinsert!\n");
+105                 if (!present) {
 
-commit ff413195e830541afeae469fc866ecd0319abd7e
-Author: Alex Hung <alex.hung@canonical.com>
-Date:   Tue Apr 24 16:40:52 2012 +0800
+Best regards,
+Gu
 
-    thinkpad-acpi: fix issuing duplicated key events for brightness up/down
-    
-    The tp_features.bright_acpimode will not be set correctly for brightness
-    control because ACPI_VIDEO_HID will not be located in ACPI. As a result,
-    a duplicated key event will always be sent. acpi_video_backlight_support()
-    is sufficient to detect standard ACPI brightness control.
-    
-    Signed-off-by: Alex Hung <alex.hung@canonical.com>
-    Signed-off-by: Matthew Garrett <mjg@redhat.com>
+> 
+>> [ 1526.800646] ACPI: PCI Root Bridge [UNC2] (domain 0000 [bus fd])
+>> [ 1526.871682] acpi PNP0A03:01: ACPI _OSC support notification failed, disabling PCIe ASPM
+>> [ 1526.967878] acpi PNP0A03:01: Unable to request _OSC control (_OSC support mask: 0x08)
+>> [ 1527.061891] ACPI _OSC control for PCIe not granted, disabling ASPM
+>> [ 1527.136036] pci_bus 0000:fd: Allocating resources
+>> [ 1527.150747] ACPI: PCI Root Bridge [UNC3] (domain 0000 [bus fc])
+>> [ 1527.221821] acpi PNP0A03:02: ACPI _OSC support notification failed, disabling PCIe ASPM
+>> [ 1527.317738] acpi PNP0A03:02: Unable to request _OSC control (_OSC support mask: 0x08)
+>> [ 1527.411795] ACPI _OSC control for PCIe not granted, disabling ASPM
+>> [ 1527.485917] pci_bus 0000:fc: Allocating resources
+> 
+> Thanks,
+> Rafael
+> 
+> 
 
 
-Thanks,
-Aaron
