@@ -1,79 +1,72 @@
-From: Ingo Molnar <mingo@kernel.org>
-Subject: Re: [PATCH v5 6/6] mem-hotplug: Introduce movablenode boot option
-Date: Fri, 27 Sep 2013 13:05:49 +0200
-Message-ID: <20130927110549.GA10214@gmail.com>
-References: <5241D897.1090905@gmail.com>
- <5241DB62.2090300@gmail.com>
- <20130926145326.GH3482@htj.dyndns.org>
- <52446413.50504@gmail.com>
- <20130927062633.GB6726@gmail.com>
- <CANBD6kGStR-4dJRjoveNv7CtUu04gpsZZhBd=B6_=gMqrDZX6w@mail.gmail.com>
+From: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
+Subject: Re: [PATCH v3 4/4] thinkpad-acpi: fix handle locate for video and
+ query of _BCL
+Date: Fri, 27 Sep 2013 12:16:59 -0300
+Message-ID: <20130927151659.GA4140@khazad-dum.debian.net>
+References: <1380016052-15315-1-git-send-email-aaron.lu@intel.com>
+ <1380016052-15315-5-git-send-email-aaron.lu@intel.com>
+ <20130925195839.GB23810@khazad-dum.debian.net>
+ <20130926014411.GA14158@aaronlu.linux.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <owner-linux-mm@kvack.org>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from out1-smtp.messagingengine.com ([66.111.4.25]:55107 "EHLO
+	out1-smtp.messagingengine.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751638Ab3I0PRE (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 27 Sep 2013 11:17:04 -0400
 Content-Disposition: inline
-In-Reply-To: <CANBD6kGStR-4dJRjoveNv7CtUu04gpsZZhBd=B6_=gMqrDZX6w@mail.gmail.com>
-Sender: owner-linux-mm@kvack.org
-To: Yanfei Zhang <zhangyanfei.yes@gmail.com>
-Cc: Tejun Heo <tj@kernel.org>, "Rafael J . Wysocki" <rjw@sisk.pl>, "lenb@kernel.org" <lenb@kernel.org>, Thomas Gleixner <tglx@linutronix.de>, "mingo@elte.hu" <mingo@elte.hu>, "H. Peter Anvin" <hpa@zytor.com>, Andrew Morton <akpm@linux-foundation.org>, Toshi Kani <toshi.kani@hp.com>, Wanpeng Li <liwanp@linux.vnet.ibm.com>, Thomas Renninger <trenn@suse.de>, Yinghai Lu <yinghai@kernel.org>, Jiang Liu <jiang.liu@huawei.com>, Wen Congyang <wency@cn.fujitsu.com>, Lai Jiangshan <laijs@cn.fujitsu.com>, "isimatu.yasuaki@jp.fujitsu.com" <isimatu.yasuaki@jp.fujitsu.com>, "izumi.taku@jp.fujitsu.com" <izumi.taku@jp.fujitsu.com>, Mel Gorman <mgorman@suse.de>, Minchan Kim <minchan@kernel.org>, "mina86@mina86.com" <mina86@mina86.com>, "gong.chen@linux.intel.com" <gong.chen@linux.intel.com>, "vasilis.liaskovitis@profitbricks.com" <vasilis.liaskovitis@profitbricks.com>, lwoodman@redhat.c
+In-Reply-To: <20130926014411.GA14158@aaronlu.linux.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Aaron Lu <aaron.lu@intel.com>
+Cc: linux-acpi@vger.kernel.org, intel-gfx@lists.freedesktop.org, dri-devel@lists.freedesktop.org, linux-kernel@vger.kernel.org, Daniel Vetter <daniel@ffwll.ch>, "Rafael J. Wysocki" <rjw@sisk.pl>, Matthew Garrett <matthew.garrett@nebula.com>, Seth Forshee <seth.forshee@canonical.com>, Lee Chun-Yi <joeyli.kernel@gmail.com>, Richard Purdie <rpurdie@rpsys.net>, Igor Gnatenko <i.gnatenko.brain@gmail.com>, Yves-Alexis Perez <corsac@debian.org>, Felipe Contreras <felipe.contreras@gmail.com>, Henrique de Moraes Holschuh <ibm-acpi@hmh.eng.br>, Jani Nikula <jani.nikula@linux.intel.com>, Ben Jencks <ben@bjencks.net>, Steven Newbury <steve@snewbury.org.uk>, James Hogan <james@albanarts.com>, Kamal Mostafa <kamal@canonical.com>, Joerg Platte <jplatte@naasa.net>, Kalle Valo <kvalo@adurom.com>, Martin Steigerwald <Martin@lichtvoll.de>, =?iso-8859-1?Q?J=F6rg?= Otte <jrg.otte@gmail.co>
 
-
-* Yanfei Zhang <zhangyanfei.yes@gmail.com> wrote:
-
-> > Also, more importantly, please explain why this needs to be a boot 
-> > option. In terms of user friendliness boot options are at the bottom 
-> > of the list, and boot options also don't really help feature tests.
-> >
-> > Presumably the feature is safe and has no costs, and hence could be 
-> > added as a regular .config option, with a boot option only as an 
-> > additional configurability option?
+On Thu, 26 Sep 2013, Aaron Lu wrote:
+> I checked the git log for the commit to use tpacpi_acpi_handle_locate to
+> locate video controller's ACPI handle, it's:
 > 
+> commit 122f26726b5e16174bf8a707df14be1d93c49d62
+> Author: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
+> Date:   Mon Aug 9 23:48:18 2010 -0300
+
+Yeah...
+
+> So I checked out that commit and found that it shouldn't work either,
+> since it has the same problem of the current code.
 > 
-> Yeah, the kernel already has config MOVABLE_NODE, which is the config 
-> enabing this feature, and we introduce this boot option to expand the 
-> configurability.
+> The ACPI video controller device is given an id of ACPI_VIDEO_HID, but
+> it's only known to Linux ACPI, not ACPICA, so the function provided by
+> ACPICA acpi_get_devices will not work in this case, as that function will
+> really check the control method of _HID under the handle, which does not
+> exist no matter if Linux ACPI has added an id to its device structure or
+> not. OTOH, the function provided by Linux ACPI acpi_device_hid will see
+> the added id. In a word, the add of the HID will not affect the ASL
+> namespace layout of the device node(thus, no _HID control method will
+> be added to the device node).
 
-So if this is purely a boot option to disable CONFIG_MOVABLE_NODE=y then 
-this:
+Erk.  It went broken for a long time, and the users didn't notice(!)...
 
-> +     movablenode             [KNL,X86] This parameter enables/disables the
-> +                     kernel to arrange hotpluggable memory ranges recorded
-> +                     in ACPI SRAT(System Resource Affinity Table) as
-> +                     ZONE_MOVABLE. And these memory can be hot-removed when
-> +                     the system is up.
-> +                     By specifying this option, all the hotpluggable memory
-> +                     will be in ZONE_MOVABLE, which the kernel cannot use.
-> +                     This will cause NUMA performance down. For users who
-> +                     care about NUMA performance, just don't use it.
-> +                     If all the memory ranges in the system are hotpluggable,
-> +                     then the ones used by the kernel at early time, such as
-> +                     kernel code and data segments, initrd file and so on,
-> +                     won't be set as ZONE_MOVABLE, and won't be hotpluggable.
-> +                     Otherwise the kernel won't have enough memory to boot.
-> +
->       MTD_Partition=  [MTD]
+> commit ff413195e830541afeae469fc866ecd0319abd7e
+> Author: Alex Hung <alex.hung@canonical.com>
+> Date:   Tue Apr 24 16:40:52 2012 +0800
+> 
+>     thinkpad-acpi: fix issuing duplicated key events for brightness up/down
+>     
+>     The tp_features.bright_acpimode will not be set correctly for brightness
+>     control because ACPI_VIDEO_HID will not be located in ACPI. As a result,
+>     a duplicated key event will always be sent. acpi_video_backlight_support()
+>     is sufficient to detect standard ACPI brightness control.
+>     
+>     Signed-off-by: Alex Hung <alex.hung@canonical.com>
+>     Signed-off-by: Matthew Garrett <mjg@redhat.com>
 
-should be something like:
+Until that.  And unfortunately I did not connect the dots at the time.
 
-> +     movablenode     [KNL,X86] Boot-time switch to disable the effects of
-> +                     CONFIG_MOVABLE_NODE=y. See mm/Kconfig for details.
+Thanks for explaining the issue properly.
 
-And make sure that the description in mm/Kconfig is uptodate.
-
-Having the same feature described twice in two different places will only 
-create documentation bitrot and confusion. Also, the boot flag is only 
-about disabling the feature, right?
-
-Also, because the feature is named MOVABLE_NODE, the boot option should 
-match that and be called movable_node - not movablenode.
-
-Thanks,
-
-	Ingo
-
---
-To unsubscribe, send a message with 'unsubscribe linux-mm' in
-the body to majordomo@kvack.org.  For more info on Linux MM,
-see: http://www.linux-mm.org/ .
-Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
+-- 
+  "One disk to rule them all, One disk to find them. One disk to bring
+  them all and in the darkness grind them. In the Land of Redmond
+  where the shadows lie." -- The Silicon Valley Tarot
+  Henrique Holschuh
