@@ -1,131 +1,47 @@
-From: Yanfei Zhang <zhangyanfei.yes@gmail.com>
-Subject: Re: [PATCH v5 6/6] mem-hotplug: Introduce movablenode boot option
-Date: Fri, 27 Sep 2013 16:08:06 +0800
-Message-ID: <CANBD6kGStR-4dJRjoveNv7CtUu04gpsZZhBd=B6_=gMqrDZX6w@mail.gmail.com>
-References: <5241D897.1090905@gmail.com>
-	<5241DB62.2090300@gmail.com>
-	<20130926145326.GH3482@htj.dyndns.org>
-	<52446413.50504@gmail.com>
-	<20130927062633.GB6726@gmail.com>
+From: Pavel Machek <pavel@ucw.cz>
+Subject: Re: thinkpad x60: critical thermal shutdown does not work (and
+ ethernet overheats)
+Date: Fri, 27 Sep 2013 12:22:54 +0200
+Message-ID: <20130927102254.GC18121@amd.pavel.ucw.cz>
+References: <20120515181004.GA2499@elf.ucw.cz>
+ <20130923095814.GA2052@Nokia-N900>
+ <20130923120256.GB29847@khazad-dum.debian.net>
 Mime-Version: 1.0
-Content-Type: multipart/alternative; boundary=047d7bb0500083f98004e758fc73
-Return-path: <owner-linux-mm@kvack.org>
-In-Reply-To: <20130927062633.GB6726@gmail.com>
-Sender: owner-linux-mm@kvack.org
-To: Ingo Molnar <mingo@kernel.org>
-Cc: Tejun Heo <tj@kernel.org>, "Rafael J . Wysocki" <rjw@sisk.pl>, "lenb@kernel.org" <lenb@kernel.org>, Thomas Gleixner <tglx@linutronix.de>, "mingo@elte.hu" <mingo@elte.hu>, "H. Peter Anvin" <hpa@zytor.com>, Andrew Morton <akpm@linux-foundation.org>, Toshi Kani <toshi.kani@hp.com>, Wanpeng Li <liwanp@linux.vnet.ibm.com>, Thomas Renninger <trenn@suse.de>, Yinghai Lu <yinghai@kernel.org>, Jiang Liu <jiang.liu@huawei.com>, Wen Congyang <wency@cn.fujitsu.com>, Lai Jiangshan <laijs@cn.fujitsu.com>, "isimatu.yasuaki@jp.fujitsu.com" <isimatu.yasuaki@jp.fujitsu.com>, "izumi.taku@jp.fujitsu.com" <izumi.taku@jp.fujitsu.com>, Mel Gorman <mgorman@suse.de>, Minchan Kim <minchan@kernel.org>, "mina86@mina86.com" <mina86@mina86.com>, "gong.chen@linux.intel.com" <gong.chen@linux.intel.com>, "vasilis.liaskovitis@profitbricks.com" <vasilis.liaskovitis@profitbricks.com>, lwoodman@red
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from atrey.karlin.mff.cuni.cz ([195.113.26.193]:41023 "EHLO
+	atrey.karlin.mff.cuni.cz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750805Ab3I0KW4 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 27 Sep 2013 06:22:56 -0400
+Content-Disposition: inline
+In-Reply-To: <20130923120256.GB29847@khazad-dum.debian.net>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
+Cc: lenb@kernel.org, linux-acpi@vger.kernel.org, kernel list <linux-kernel@vger.kernel.org>, ibm-acpi-devel@lists.sourceforge.net, platform-driver-x86@vger.kernel.org
 
---047d7bb0500083f98004e758fc73
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: quoted-printable
+On Mon 2013-09-23 09:02:56, Henrique de Moraes Holschuh wrote:
+> On Mon, 23 Sep 2013, Pavel Machek wrote:
+> > > I have rather old thinkpad x60 here. Long time ago, I noticed that on
+> > > high continuous ethernet load, it shuts itself down in regular
+> > > way. I traced it down to overheat, followed by ACPI signaling system
+> > > to go down.
+> > 
+> > just to wrap the story up... after fixing pcie aspm problems,
+> > ethernet apparently stopped overheating.
+> 
+> And that means a new kernel with fixed ASPM handling, or disabling ASPM
+> entirely, or what?
 
-hello Ingo,
+That means single-line forcing ASPM to be disabled, even through linux
+is normally not able to disable ASPM when it is not supported by the
+BIOS. Someone at Intel knows about the problem, hopefully they will
+present some better solution...
 
-=E5=9C=A8 2013=E5=B9=B49=E6=9C=8827=E6=97=A5=E6=98=9F=E6=9C=9F=E4=BA=94=EF=
-=BC=8CIngo Molnar =E5=86=99=E9=81=93=EF=BC=9A
+> Good to know it can be handled by a software fix, though!
 
->
-> * Zhang Yanfei <zhangyanfei.yes@gmail.com <javascript:;>> wrote:
->
-> > OK. Trying below:
-> >
-> > movablenode   [KNL,X86] This option enables the kernel to arrange
-> >               hotpluggable memory into ZONE_MOVABLE zone. If memory
-> >               in a node is all hotpluggable, the option may make
-> >               the whole node has only one ZONE_MOVABLE zone, so that
-> >               the whole node can be hot-removed after system is up.
-> >               Note that this option may cause NUMA performance down.
->
-> That paragraph doesn't really parse in several places ...
-
-
-Sorry=E2=80=A6could you point out the places a bit?
-
-
->
-> Also, more importantly, please explain why this needs to be a boot option=
-.
-> In terms of user friendliness boot options are at the bottom of the list,
-> and boot options also don't really help feature tests.
->
-> Presumably the feature is safe and has no costs, and hence could be added
-> as a regular .config option, with a boot option only as an additional
-> configurability option?
-
-
-Yeah, the kernel already has config MOVABLE_NODE, which is the config
-enabing this feature, and we introduce this boot option to expand the
-configurability.
-
-Thanks.
-Zhang
-
-
->
-> Thanks,
->
->         Ingo
->
-
---047d7bb0500083f98004e758fc73
-Content-Type: text/html; charset=UTF-8
-Content-Transfer-Encoding: quoted-printable
-
-hello Ingo,<br><br>=E5=9C=A8 2013=E5=B9=B49=E6=9C=8827=E6=97=A5=E6=98=9F=E6=
-=9C=9F=E4=BA=94=EF=BC=8CIngo Molnar  =E5=86=99=E9=81=93=EF=BC=9A<br><blockq=
-uote class=3D"gmail_quote" style=3D"margin:0 0 0 .8ex;border-left:1px #ccc =
-solid;padding-left:1ex"><br>
-* Zhang Yanfei &lt;<a href=3D"javascript:;" onclick=3D"_e(event, &#39;cvml&=
-#39;, &#39;zhangyanfei.yes@gmail.com&#39;)">zhangyanfei.yes@gmail.com</a>&g=
-t; wrote:<br>
-<br>
-&gt; OK. Trying below:<br>
-&gt;<br>
-&gt; movablenode =C2=A0 [KNL,X86] This option enables the kernel to arrange=
-<br>
-&gt; =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 hotpluggable memory i=
-nto ZONE_MOVABLE zone. If memory<br>
-&gt; =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 in a node is all hotp=
-luggable, the option may make<br>
-&gt; =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 the whole node has on=
-ly one ZONE_MOVABLE zone, so that<br>
-&gt; =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 the whole node can be=
- hot-removed after system is up.<br>
-&gt; =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 Note that this option=
- may cause NUMA performance down.<br>
-<br>
-That paragraph doesn&#39;t really parse in several places ...</blockquote><=
-div><br></div><div>Sorry=E2=80=A6could you point out the places a bit?</div=
-><div>=C2=A0</div><blockquote class=3D"gmail_quote" style=3D"margin:0 0 0 .=
-8ex;border-left:1px #ccc solid;padding-left:1ex">
-
-<br>
-Also, more importantly, please explain why this needs to be a boot option.<=
-br>
-In terms of user friendliness boot options are at the bottom of the list,<b=
-r>
-and boot options also don&#39;t really help feature tests.<br>
-<br>
-Presumably the feature is safe and has no costs, and hence could be added<b=
-r>
-as a regular .config option, with a boot option only as an additional<br>
-configurability option?</blockquote><div><br></div><div>Yeah, the kernel al=
-ready has config MOVABLE_NODE, which is the config enabing this feature, an=
-d we introduce this boot option to expand the configurability.</div><div>
-<br></div><div>Thanks.</div><div>Zhang<span></span></div><div>=C2=A0</div><=
-blockquote class=3D"gmail_quote" style=3D"margin:0 0 0 .8ex;border-left:1px=
- #ccc solid;padding-left:1ex">
-<br>
-Thanks,<br>
-<br>
-=C2=A0 =C2=A0 =C2=A0 =C2=A0 Ingo<br>
-</blockquote>
-
---047d7bb0500083f98004e758fc73--
-
---
-To unsubscribe, send a message with 'unsubscribe linux-mm' in
-the body to majordomo@kvack.org.  For more info on Linux MM,
-see: http://www.linux-mm.org/ .
-Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
+Yes :-). [I wonder if it happens on other X60 machines, too?]
+									Pavel
+-- 
+(english) http://www.livejournal.com/~pavelmachek
+(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
