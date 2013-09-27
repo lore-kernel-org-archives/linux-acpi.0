@@ -1,80 +1,95 @@
-From: "H. Peter Anvin" <hpa@zytor.com>
-Subject: Re: [PATCH v5 4/6] x86/mem-hotplug: Support initialize page tables in bottom-up
-Date: Thu, 26 Sep 2013 15:57:06 -0700
-Message-ID: <59d57cc9-9f4b-4f28-95d0-a526bd0b9a29@email.android.com>
-References: <5241D897.1090905@gmail.com> <5241DA5B.8000909@gmail.com> <20130926155205.7f364b64c4a0fae77d4ca15d@linux-foundation.org>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: Re: [PATCH v3 0/4] Fix Win8 backlight issue
+Date: Fri, 27 Sep 2013 02:26:35 +0200
+Message-ID: <3910636.aGHp6YakQl@vostro.rjw.lan>
+References: <1380016052-15315-1-git-send-email-aaron.lu@intel.com> <87eh8clvun.fsf@intel.com> <CADDKRnA7Eqox6s6t315c=OaEpAgRcX62_4rF8XuXaNRAipOqcQ@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
- charset=UTF-8
-Content-Transfer-Encoding: quoted-printable
-Return-path: <owner-linux-mm@kvack.org>
-In-Reply-To: <20130926155205.7f364b64c4a0fae77d4ca15d@linux-foundation.org>
-Sender: owner-linux-mm@kvack.org
-To: Andrew Morton <akpm@linux-foundation.org>, Zhang Yanfei <zhangyanfei.yes@gmail.com>
-Cc: "Rafael J . Wysocki" <rjw@sisk.pl>, lenb@kernel.org, Thomas Gleixner <tglx@linutronix.de>, mingo@elte.hu, Tejun Heo <tj@kernel.org>, Toshi Kani <toshi.kani@hp.com>, Wanpeng Li <liwanp@linux.vnet.ibm.com>, Thomas Renninger <trenn@suse.de>, Yinghai Lu <yinghai@kernel.org>, Jiang Liu <jiang.liu@huawei.com>, Wen Congyang <wency@cn.fujitsu.com>, Lai Jiangshan <laijs@cn.fujitsu.com>, isimatu.yasuaki@jp.fujitsu.com, izumi.taku@jp.fujitsu.com, Mel Gorman <mgorman@suse.de>, Minchan Kim <minchan@kernel.org>, mina86@mina86.com, gong.chen@linux.intel.com, vasilis.liaskovitis@profitbricks.com, lwoodman@redhat.com, Rik van Riel <riel@redhat.com>, jweiner@redhat.com, prarit@redhat.com, "x86@kernel.org" <x86@kernel.org>, linux-doc@vger.kernel.org, "linux-kernel@vger.kernel.org" <linux-kernel@vger.>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from hydra.sisk.pl ([212.160.235.94]:37789 "EHLO hydra.sisk.pl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750764Ab3I0APT convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 26 Sep 2013 20:15:19 -0400
+In-Reply-To: <CADDKRnA7Eqox6s6t315c=OaEpAgRcX62_4rF8XuXaNRAipOqcQ@mail.gmail.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: =?ISO-8859-1?Q?J=F6rg?= Otte <jrg.otte@gmail.com>
+Cc: Jani Nikula <jani.nikula@linux.intel.com>, Aaron Lu <aaron.lu@intel.com>, Igor Gnatenko <i.gnatenko.brain@gmail.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, intel-gfx <intel-gfx@lists.freedesktop.org>, dri-devel@lists.freedesktop.org, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Daniel Vetter <daniel@ffwll.ch>, Matthew Garrett <matthew.garrett@nebula.com>, Seth Forshee <seth.forshee@canonical.com>, Lee Chun-Yi <joeyli.kernel@gmail.com>, Richard Purdie <rpurdie@rpsys.net>, Yves-Alexis Perez <corsac@debian.org>, Felipe Contreras <felipe.contreras@gmail.com>, Henrique de Moraes Holschuh <ibm-acpi@hmh.eng.br>, Ben Jencks <ben@bjencks.net>, Steven Newbury <steve@snewbury.org.uk>, James Hogan <james@albanarts.com>, Kamal Mostafa <kamal@canonical.com>, Joerg Platte <jplatte@naasa.net>, Kalle Valo <kvalo@adurom.com>, Martin Steigerwald <Martin@>
 
-Can we put this in a common header somewhere?
+On Thursday, September 26, 2013 09:49:03 AM J=C3=B6rg Otte wrote:
+> 2013/9/25 Jani Nikula <jani.nikula@linux.intel.com>:
+> > On Wed, 25 Sep 2013, J=C3=B6rg Otte <jrg.otte@gmail.com> wrote:
+> >> 2013/9/25 Jani Nikula <jani.nikula@linux.intel.com>:
+> >>> On Wed, 25 Sep 2013, Aaron Lu <aaron.lu@intel.com> wrote:
+> >>>> On Wed, Sep 25, 2013 at 10:29:37AM +0200, J=C3=B6rg Otte wrote:
+> >>>>> Backlight can't be modified with this patch set - neither with
+> >>>>> function keys nor with the gui. It is a step backward to v3.11-=
+rc1
+> >>>
+> >>> So both hotkeys and GUI work in v3.11-rc1? And v3.12-rc2?
+> >>
+> >> In  v3.11-rc1 it didn't work.
+> >> Since a later rc (I don't remember exactly which) it did work.
+> >> In v3.12-rc1/2 it does work.
+> >> In v3.12-rc2 + Aaron's patch set it again doesn't work.
+> >>
+> >>>
+> >>>> Thanks for the test.
+> >>>>
+> >>>> Please check /sys/class/backlight, is there only one link file
+> >>>> intel_backlight?
+> >>>
+> >>> Indeed, are there others? fujitsu-laptop perhaps? If yes, try
+> >>> CONFIG_FUJITSU_LAPTOP=3Dn or an appropriate module blacklist.
+> >>>
+> >>> Just checking, you do have CONFIG_BACKLIGHT_CLASS_DEVICE=3Dy?
+> >>
+> >> There is only one intel_backlight link.
+> >> Yes, I have CONFIG_BACKLIGHT_CLASS_DEVICE=3Dy
+> >>
+> >>> Embarrassingly there was a bug in i915 fixed just recently where =
+the
+> >>> backlight device wasn't registered for
+> >>> CONFIG_BACKLIGHT_CLASS_DEVICE=3Dm...
+> >>>
+> >>>> If so, please cd inside and try modify the brightness file using=
+ echo
+> >>>> with some values in the range of 0 - max_brightness, does the
+> >>>> backlight level change when you echo a new value? I guess it doe=
+sn't,
+> >>>> or you wouldn't notice problem. If indeed so, perhaps file a bug=
+ at
+> >>>> http://bugzilla.kernel.org, Drivers/Video(DRI-Intel)? I suppose =
+Jani
+> >>>> and Daniel can help fix your problem.
+> >>>
+> >>> Yup, please check the above, and report back.
+> >>
+> >> - echo 0..max_brightness > brightness does not work.
+> >
+> > Thanks for the info.
+> >
+> > How about v3.12-rc2 without Aaron's patches? Does intel_backlight a=
+lso
+> > not work there? How about the acpi_video0 (which I presume is prese=
+nt)
+> > sysfs interface?
+> >
+>=20
+> Without Aaron's patches intel_backlight also does not work.
+> But acpi_video0 does (and takes precedence I think).
 
-Andrew Morton <akpm@linux-foundation.org> wrote:
->On Wed, 25 Sep 2013 02:30:51 +0800 Zhang Yanfei
-><zhangyanfei.yes@gmail.com> wrote:
->
->> From: Tang Chen <tangchen@cn.fujitsu.com>
->>=20
->> The Linux kernel cannot migrate pages used by the kernel. As a
->> result, kernel pages cannot be hot-removed. So we cannot allocate
->> hotpluggable memory for the kernel.
->>=20
->> In a memory hotplug system, any numa node the kernel resides in
->> should be unhotpluggable. And for a modern server, each node could
->> have at least 16GB memory. So memory around the kernel image is
->> highly likely unhotpluggable.
->>=20
->> ACPI SRAT (System Resource Affinity Table) contains the memory
->> hotplug info. But before SRAT is parsed, memblock has already
->> started to allocate memory for the kernel. So we need to prevent
->> memblock from doing this.
->>=20
->> So direct memory mapping page tables setup is the case.
->init_mem_mapping()
->> is called before SRAT is parsed. To prevent page tables being
->allocated
->> within hotpluggable memory, we will use bottom-up direction to
->allocate
->> page tables from the end of kernel image to the higher memory.
->>=20
->> ...
->>
->> +		kernel_end =3D __pa_symbol(_end);
->
->__pa_symbol() is implemented only on mips and x86.
->
->I stole the mips implementation like this:
->
->--- a/mm/memblock.c~a
->+++ a/mm/memblock.c
->@@ -187,8 +187,11 @@ phys_addr_t __init_memblock memblock_fin
-> 	/* avoid allocating the first page */
-> 	start =3D max_t(phys_addr_t, start, PAGE_SIZE);
-> 	end =3D max(start, end);
->+#ifdef CONFIG_X86
-> 	kernel_end =3D __pa_symbol(_end);
->-
->+#else
->+	kernel_end =3D __pa(RELOC_HIDE((unsigned long)(_end), 0));
->+#endif
-> 	/*
-> 	 * try bottom-up allocation only when bottom-up mode
-> 	 * is set and @end is above the kernel image.
->
->just so I can get a -mm release out the door.
+So can you please open a bug entry at bugzilla.kernel.org against i915?
 
---=20
-Sent from my mobile phone.  Please pardon brevity and lack of formatting.
+The fact that ACPI video works for you doesn't mean that intel_backligh=
+t
+shouldn't, I suppose?
+
+Rafael
 
 --
-To unsubscribe, send a message with 'unsubscribe linux-mm' in
-the body to majordomo@kvack.org.  For more info on Linux MM,
-see: http://www.linux-mm.org/ .
-Don't email: <a href=3Dmailto:"dont@kvack.org"> email@kvack.org </a>
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
