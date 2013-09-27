@@ -1,72 +1,131 @@
-From: "Zheng, Lv" <lv.zheng@intel.com>
-Subject: RE: [PATCH v2 00/12] ACPI/IPMI: Fix several issues in the current
- codes
-Date: Fri, 27 Sep 2013 07:44:47 +0000
-Message-ID: <1AE640813FDE7649BE1B193DEA596E8802466A2F@SHSMSX101.ccr.corp.intel.com>
-References: <cover.1370652213.git.lv.zheng@intel.com>
- <cover.1379048860.git.lv.zheng@intel.com> <3234851.YNvxj0TJEP@vostro.rjw.lan>
+From: Yanfei Zhang <zhangyanfei.yes@gmail.com>
+Subject: Re: [PATCH v5 6/6] mem-hotplug: Introduce movablenode boot option
+Date: Fri, 27 Sep 2013 16:08:06 +0800
+Message-ID: <CANBD6kGStR-4dJRjoveNv7CtUu04gpsZZhBd=B6_=gMqrDZX6w@mail.gmail.com>
+References: <5241D897.1090905@gmail.com>
+	<5241DB62.2090300@gmail.com>
+	<20130926145326.GH3482@htj.dyndns.org>
+	<52446413.50504@gmail.com>
+	<20130927062633.GB6726@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga09.intel.com ([134.134.136.24]:20316 "EHLO mga09.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751559Ab3I0How (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 27 Sep 2013 03:44:52 -0400
-In-Reply-To: <3234851.YNvxj0TJEP@vostro.rjw.lan>
-Content-Language: en-US
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: multipart/alternative; boundary=047d7bb0500083f98004e758fc73
+Return-path: <owner-linux-mm@kvack.org>
+In-Reply-To: <20130927062633.GB6726@gmail.com>
+Sender: owner-linux-mm@kvack.org
+To: Ingo Molnar <mingo@kernel.org>
+Cc: Tejun Heo <tj@kernel.org>, "Rafael J . Wysocki" <rjw@sisk.pl>, "lenb@kernel.org" <lenb@kernel.org>, Thomas Gleixner <tglx@linutronix.de>, "mingo@elte.hu" <mingo@elte.hu>, "H. Peter Anvin" <hpa@zytor.com>, Andrew Morton <akpm@linux-foundation.org>, Toshi Kani <toshi.kani@hp.com>, Wanpeng Li <liwanp@linux.vnet.ibm.com>, Thomas Renninger <trenn@suse.de>, Yinghai Lu <yinghai@kernel.org>, Jiang Liu <jiang.liu@huawei.com>, Wen Congyang <wency@cn.fujitsu.com>, Lai Jiangshan <laijs@cn.fujitsu.com>, "isimatu.yasuaki@jp.fujitsu.com" <isimatu.yasuaki@jp.fujitsu.com>, "izumi.taku@jp.fujitsu.com" <izumi.taku@jp.fujitsu.com>, Mel Gorman <mgorman@suse.de>, Minchan Kim <minchan@kernel.org>, "mina86@mina86.com" <mina86@mina86.com>, "gong.chen@linux.intel.com" <gong.chen@linux.intel.com>, "vasilis.liaskovitis@profitbricks.com" <vasilis.liaskovitis@profitbricks.com>, lwoodman@red
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: "Wysocki, Rafael J" <rafael.j.wysocki@intel.com>, "Brown, Len" <len.brown@intel.com>, Corey Minyard <minyard@acm.org>, "Zhao, Yakui" <yakui.zhao@intel.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "openipmi-developer@lists.sourceforge.net" <openipmi-developer@lists.sourceforge.net>
 
-PiBGcm9tOiBSYWZhZWwgSi4gV3lzb2NraSBbbWFpbHRvOnJqd0Byand5c29ja2kubmV0XQ0KPiBT
-ZW50OiBUaHVyc2RheSwgU2VwdGVtYmVyIDI2LCAyMDEzIDE6NTUgQU0NCj4gDQo+IE9uIEZyaWRh
-eSwgU2VwdGVtYmVyIDEzLCAyMDEzIDAxOjEzOjAxIFBNIEx2IFpoZW5nIHdyb3RlOg0KPiA+IFRo
-aXMgcGF0Y2hzZXQgdHJpZXMgdG8gZml4IHRoZSBmb2xsb3dpbmcga2VybmVsIGJ1ZzoNCj4gPiBC
-dWdsaW5rOiBodHRwczovL2J1Z3ppbGxhLmtlcm5lbC5vcmcvc2hvd19idWcuY2dpP2lkPTQ2NzQx
-DQo+ID4gVGhpcyBpcyBmaXhlZCBieSBbUEFUQ0ggMDZdLg0KPiA+DQo+ID4gVGhlIGJ1ZyBzaG93
-cyBJUE1JIG9wZXJhdGlvbiByZWdpb24gbWF5IGFwcGVhciBpbiBhIGRldmljZSBub3QgdW5kZXIg
-dGhlDQo+ID4gSVBNSSBzeXN0ZW0gaW50ZXJmYWNlIGRldmljZSdzIHNjb3BlLCB0aHVzIGl0J3Mg
-cmVxdWlyZWQgdG8gaW5zdGFsbCB0aGUNCj4gPiBBQ1BJIElQTUkgb3BlcmF0aW9uIHJlZ2lvbiBo
-YW5kbGVyIGZyb20gdGhlIHJvb3Qgb2YgdGhlIEFDUEkgbmFtZXNwYWNlLg0KPiA+DQo+ID4gVGhl
-IG9yaWdpbmFsIGFjcGlfaXBtaSBpbXBsZW1lbnRhdGlvbiBpbmNsdWRlcyBzZXZlcmFsIGlzc3Vl
-cyB0aGF0IGJyZWFrDQo+ID4gdGhlIHRlc3QgcHJvY2Vzcy4gIFRoaXMgcGF0Y2hzZXQgYWxzbyBp
-bmNsdWRlcyBhIHJlLWRlc2lnbiBvZiBhY3BpX2lwbWkNCj4gPiBtb2R1bGUgdG8gbWFrZSB0aGUg
-dGVzdCBwb3NzaWJsZS4NCj4gPg0KPiA+IFtQQVRDSCAwMS0wNl0gYXJlIGJ1Zy1maXggcGF0Y2hl
-cyB0aGF0IGNhbiBiZSBhcHBsaWVkIHRvIHRoZSBrZXJuZWxzIHdob3NlDQo+ID4gICAgICAgICAg
-ICAgICB2ZXJzaW9uIGlzID4gMi42LjM4LiAgVGhpcyBjYW4gYmUgY29uZmlybWVkIHdpdGg6DQo+
-ID4gICAgICAgICAgICAgICAjIGdpdCB0YWcgLS1jb250YWlucyBlOTJiMjk3Yw0KPiA+IFtQQVRD
-SCAwN10gaXMgYSB0dW5pbmcgcGF0Y2ggZm9yIGFjcGlfaXBtaS5jLg0KPiA+IFtQQVRDSCAwOC0x
-Ml0gYXJlIGNsZWFudXAgcGF0Y2hlcyBmb3IgYWNwaV9pcG1pLmMgYW5kIGl0cyBLY29uZmlnIGl0
-ZW0uDQo+ID4NCj4gPiB2Mi4wDQo+ID4gUEFUQ0ggMDM6IFVzZXMgdGltZW91dCBtZWNoYW5pc20g
-b2ZmZXJyZWQgYnkgaXBtaV9zaS4NCj4gPiBQQVRDSCAwNTogVXNlcyBrcmVmIGluc3RlYWQgb2Yg
-YXRvbWljX3QgYW5kIGFkZHMgImRlYWQiIGZsYWcgdG8ga2lsbCB0aGUNCj4gPiAgICAgICAgICAg
-YXRvbWljX3JlYWQgY29kZXMgaW4gaXBtaV9mbHVzaF90eF9tc2coKS4NCj4gPiBQQVRDSCAwNzog
-VXNlcyBrcmVmIGluc3RlYWQgb2YgYXRvbWljX3QuDQo+ID4NCj4gPiBUaGlzIHBhdGNoc2V0IGhh
-cyBwYXNzZWQgdGhlIHRlc3QgYXJvdW5kIGEgZmFrZSBkZXZpY2UgYWNjZXNzaW5nIElQTUkNCj4g
-PiBvcGVyYXRpb24gcmVnaW9uIGZpZWxkcyBvbiBhbiBJUE1JIGNhcGFibGUgcGxhdGZvcm0uICBB
-IHN0cmVzcyB0ZXN0IG9mDQo+ID4gbW9kdWxlKGFjcGlfaXBtaSkgbG9hZC91bmxvYWQgaGFzIGJl
-ZW4gcGVyZm9ybWVkIG9uIHN1Y2ggcGxhdGZvcm0uICBObw0KPiA+IHJhY2VzIGNhbiBiZSBmb3Vu
-ZCBhbmQgdGhlIElQTUkgb3BlcmF0aW9uIHJlZ2lvbiBoYW5kbGVyIGlzIGZ1bmN0aW9uaW5nDQo+
-ID4gbm93LiAgSXQgaXMgbm90IHBvc3NpYmxlIHRvIHRlc3QgbW9kdWxlKGlwbWlfc2kpIGxvYWQv
-dW5sb2FkIGFzIGl0IGNhbid0IGJlDQo+ID4gdW5sb2FkZWQgZHVlIHRvIGl0cycgdHJhbnNmZXIg
-Zmx1c2hpbmcgaW1wbGVtZW50YXRpb24uDQo+ID4NCj4gPiBMdiBaaGVuZyAoMTIpOg0KPiA+ICAg
-QUNQSS9JUE1JOiBGaXggYXRvbWljIGNvbnRleHQgcmVxdWlyZW1lbnQgb2YgaXBtaV9tc2dfaGFu
-ZGxlcigpDQo+ID4gICBBQ1BJL0lQTUk6IEZpeCBwb3RlbnRpYWwgcmVzcG9uc2UgYnVmZmVyIG92
-ZXJmbG93DQo+ID4gICBBQ1BJL0lQTUk6IEZpeCByYWNlIGNhdXNlZCBieSB0aGUgdW5wcm90ZWN0
-ZWQgQUNQSSBJUE1JIHRyYW5zZmVycw0KPiA+ICAgQUNQSS9JUE1JOiBGaXggcmFjZSBjYXVzZWQg
-YnkgdGhlIHRpbWVkIG91dCBBQ1BJIElQTUkgdHJhbnNmZXJzDQo+ID4gICBBQ1BJL0lQTUk6IEZp
-eCByYWNlIGNhdXNlZCBieSB0aGUgdW5wcm90ZWN0ZWQgQUNQSSBJUE1JIHVzZXINCj4gPiAgIEFD
-UEkvSVBNSTogRml4IGlzc3VlIGNhdXNlZCBieSB0aGUgcGVyLWRldmljZSByZWdpc3RyYXRpb24g
-b2YgdGhlDQo+ID4gICAgIElQTUkgb3BlcmF0aW9uIHJlZ2lvbiBoYW5kbGVyDQo+ID4gICBBQ1BJ
-L0lQTUk6IEFkZCByZWZlcmVuY2UgY291bnRpbmcgZm9yIEFDUEkgSVBNSSB0cmFuc2ZlcnMNCj4g
-PiAgIEFDUEkvSVBNSTogQ2xlYW51cCBzZXZlcmFsIGFjcGlfaXBtaV9kZXZpY2UgbWVtYmVycw0K
-PiA+ICAgQUNQSS9JUE1JOiBDbGVhbnVwIHNvbWUgaW5pdGlhbGl6YXRpb24gY29kZXMNCj4gPiAg
-IEFDUEkvSVBNSTogQ2xlYW51cCBzb21lIGluY2x1c2lvbiBjb2Rlcw0KPiA+ICAgQUNQSS9JUE1J
-OiBDbGVhbnVwIHNvbWUgS2NvbmZpZyBjb2Rlcw0KPiA+ICAgQUNQSS9JUE1JOiBDbGVhbnVwIGNv
-ZGluZyBzdHlsZXMNCj4gPg0KPiA+ICBkcml2ZXJzL2FjcGkvS2NvbmZpZyAgICAgfCAgICAzICst
-DQo+ID4gIGRyaXZlcnMvYWNwaS9hY3BpX2lwbWkuYyB8ICA1OTQgKysrKysrKysrKysrKysrKysr
-KysrKysrKysrKy0tLS0tLS0tLS0tLS0tLS0tLQ0KPiA+ICAyIGZpbGVzIGNoYW5nZWQsIDM2NyBp
-bnNlcnRpb25zKCspLCAyMzAgZGVsZXRpb25zKC0pDQo+IA0KPiBRdWV1ZWQgdXAgZm9yIDMuMTMs
-IHRoYW5rcyBMdiENCg0KVGhhbmtzIGZvciB0aGUgaGVscGluZy4NCg0KQ2hlZXJzDQotTHYNCg==
+--047d7bb0500083f98004e758fc73
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: quoted-printable
+
+hello Ingo,
+
+=E5=9C=A8 2013=E5=B9=B49=E6=9C=8827=E6=97=A5=E6=98=9F=E6=9C=9F=E4=BA=94=EF=
+=BC=8CIngo Molnar =E5=86=99=E9=81=93=EF=BC=9A
+
+>
+> * Zhang Yanfei <zhangyanfei.yes@gmail.com <javascript:;>> wrote:
+>
+> > OK. Trying below:
+> >
+> > movablenode   [KNL,X86] This option enables the kernel to arrange
+> >               hotpluggable memory into ZONE_MOVABLE zone. If memory
+> >               in a node is all hotpluggable, the option may make
+> >               the whole node has only one ZONE_MOVABLE zone, so that
+> >               the whole node can be hot-removed after system is up.
+> >               Note that this option may cause NUMA performance down.
+>
+> That paragraph doesn't really parse in several places ...
+
+
+Sorry=E2=80=A6could you point out the places a bit?
+
+
+>
+> Also, more importantly, please explain why this needs to be a boot option=
+.
+> In terms of user friendliness boot options are at the bottom of the list,
+> and boot options also don't really help feature tests.
+>
+> Presumably the feature is safe and has no costs, and hence could be added
+> as a regular .config option, with a boot option only as an additional
+> configurability option?
+
+
+Yeah, the kernel already has config MOVABLE_NODE, which is the config
+enabing this feature, and we introduce this boot option to expand the
+configurability.
+
+Thanks.
+Zhang
+
+
+>
+> Thanks,
+>
+>         Ingo
+>
+
+--047d7bb0500083f98004e758fc73
+Content-Type: text/html; charset=UTF-8
+Content-Transfer-Encoding: quoted-printable
+
+hello Ingo,<br><br>=E5=9C=A8 2013=E5=B9=B49=E6=9C=8827=E6=97=A5=E6=98=9F=E6=
+=9C=9F=E4=BA=94=EF=BC=8CIngo Molnar  =E5=86=99=E9=81=93=EF=BC=9A<br><blockq=
+uote class=3D"gmail_quote" style=3D"margin:0 0 0 .8ex;border-left:1px #ccc =
+solid;padding-left:1ex"><br>
+* Zhang Yanfei &lt;<a href=3D"javascript:;" onclick=3D"_e(event, &#39;cvml&=
+#39;, &#39;zhangyanfei.yes@gmail.com&#39;)">zhangyanfei.yes@gmail.com</a>&g=
+t; wrote:<br>
+<br>
+&gt; OK. Trying below:<br>
+&gt;<br>
+&gt; movablenode =C2=A0 [KNL,X86] This option enables the kernel to arrange=
+<br>
+&gt; =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 hotpluggable memory i=
+nto ZONE_MOVABLE zone. If memory<br>
+&gt; =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 in a node is all hotp=
+luggable, the option may make<br>
+&gt; =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 the whole node has on=
+ly one ZONE_MOVABLE zone, so that<br>
+&gt; =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 the whole node can be=
+ hot-removed after system is up.<br>
+&gt; =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 Note that this option=
+ may cause NUMA performance down.<br>
+<br>
+That paragraph doesn&#39;t really parse in several places ...</blockquote><=
+div><br></div><div>Sorry=E2=80=A6could you point out the places a bit?</div=
+><div>=C2=A0</div><blockquote class=3D"gmail_quote" style=3D"margin:0 0 0 .=
+8ex;border-left:1px #ccc solid;padding-left:1ex">
+
+<br>
+Also, more importantly, please explain why this needs to be a boot option.<=
+br>
+In terms of user friendliness boot options are at the bottom of the list,<b=
+r>
+and boot options also don&#39;t really help feature tests.<br>
+<br>
+Presumably the feature is safe and has no costs, and hence could be added<b=
+r>
+as a regular .config option, with a boot option only as an additional<br>
+configurability option?</blockquote><div><br></div><div>Yeah, the kernel al=
+ready has config MOVABLE_NODE, which is the config enabing this feature, an=
+d we introduce this boot option to expand the configurability.</div><div>
+<br></div><div>Thanks.</div><div>Zhang<span></span></div><div>=C2=A0</div><=
+blockquote class=3D"gmail_quote" style=3D"margin:0 0 0 .8ex;border-left:1px=
+ #ccc solid;padding-left:1ex">
+<br>
+Thanks,<br>
+<br>
+=C2=A0 =C2=A0 =C2=A0 =C2=A0 Ingo<br>
+</blockquote>
+
+--047d7bb0500083f98004e758fc73--
+
+--
+To unsubscribe, send a message with 'unsubscribe linux-mm' in
+the body to majordomo@kvack.org.  For more info on Linux MM,
+see: http://www.linux-mm.org/ .
+Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
