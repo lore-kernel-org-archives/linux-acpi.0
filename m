@@ -1,62 +1,83 @@
-From: Toshi Kani <toshi.kani@hp.com>
-Subject: Re: [PATCH v5 5/6] x86, acpi, crash, kdump: Do
- reserve_crashkernel() after SRAT is parsed
-Date: Fri, 27 Sep 2013 17:14:22 -0600
-Message-ID: <1380323662.14046.51.camel@misato.fc.hp.com>
-References: <5241D897.1090905@gmail.com> <5241DB3A.6090002@gmail.com>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: [GIT PULL] ACPI and power management fixes for v3.12-rc3
+Date: Sat, 28 Sep 2013 01:31:08 +0200
+Message-ID: <1720906.nJEUKiKuDL@vostro.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-doc-owner@vger.kernel.org>
-In-Reply-To: <5241DB3A.6090002@gmail.com>
-Sender: linux-doc-owner@vger.kernel.org
-To: Zhang Yanfei <zhangyanfei.yes@gmail.com>
-Cc: "Rafael J . Wysocki" <rjw@sisk.pl>, lenb@kernel.org, Thomas Gleixner <tglx@linutronix.de>, mingo@elte.hu, "H. Peter Anvin" <hpa@zytor.com>, Andrew Morton <akpm@linux-foundation.org>, Tejun Heo <tj@kernel.org>, Wanpeng Li <liwanp@linux.vnet.ibm.com>, Thomas Renninger <trenn@suse.de>, Yinghai Lu <yinghai@kernel.org>, Jiang Liu <jiang.liu@huawei.com>, Wen Congyang <wency@cn.fujitsu.com>, Lai Jiangshan <laijs@cn.fujitsu.com>, isimatu.yasuaki@jp.fujitsu.com, izumi.taku@jp.fujitsu.com, Mel Gorman <mgorman@suse.de>, Minchan Kim <minchan@kernel.org>, mina86@mina86.com, gong.chen@linux.intel.com, vasilis.liaskovitis@profitbricks.com, lwoodman@redhat.com, Rik van Riel <riel@redhat.com>, jweiner@redhat.com, prarit@redhat.com, "x86@kernel.org" <x86@kernel.org>, linux-doc@vger.kernel.org, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Linux MM <linux-mm@kvack.or>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7Bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: LKML <linux-kernel@vger.kernel.org>, Linux PM list <linux-pm@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On Wed, 2013-09-25 at 02:34 +0800, Zhang Yanfei wrote:
-> From: Tang Chen <tangchen@cn.fujitsu.com>
-> 
-> Memory reserved for crashkernel could be large. So we should not allocate
-> this memory bottom up from the end of kernel image.
-> 
-> When SRAT is parsed, we will be able to know whihc memory is hotpluggable,
-> and we can avoid allocating this memory for the kernel. So reorder
-> reserve_crashkernel() after SRAT is parsed.
-> 
-> Acked-by: Tejun Heo <tj@kernel.org>
-> Signed-off-by: Tang Chen <tangchen@cn.fujitsu.com>
-> Reviewed-by: Zhang Yanfei <zhangyanfei@cn.fujitsu.com>
-> ---
->  arch/x86/kernel/setup.c |    8 ++++++--
->  1 files changed, 6 insertions(+), 2 deletions(-)
-> 
-> diff --git a/arch/x86/kernel/setup.c b/arch/x86/kernel/setup.c
-> index f0de629..36cfce3 100644
-> --- a/arch/x86/kernel/setup.c
-> +++ b/arch/x86/kernel/setup.c
-> @@ -1120,8 +1120,6 @@ void __init setup_arch(char **cmdline_p)
->  	acpi_initrd_override((void *)initrd_start, initrd_end - initrd_start);
->  #endif
->  
-> -	reserve_crashkernel();
-> -
->  	vsmp_init();
->  
->  	io_delay_init();
-> @@ -1136,6 +1134,12 @@ void __init setup_arch(char **cmdline_p)
->  	initmem_init();
->  	memblock_find_dma_reserve();
->  
-> +	/*
-> +	 * Reserve memory for crash kernel after SRAT is parsed so that it
-> +	 * won't consume hotpluggable memory.
-> +	 */
-> +	reserve_crashkernel();
+Hi Linus,
 
-Out of curiosity, is there any particular reason why it is moved after
-memblock_find_dma_reserve(), not initmem_init()?
+Please pull from the git repository at
 
-Thanks,
--Toshi
+  git://git.kernel.org/pub/scm/linux/kernel/git/rafael/linux-pm.git pm+acpi-3.12-rc3
 
+to receive ACPI and power management fixes for v3.12-rc3 with
+top-most commit dcc7bc3f3d91bbd5c15409a92317c2c24449a285
+
+  Merge branch 'pm-cpufreq-fixes'
+
+on top of commit 4a10c2ac2f368583138b774ca41fac4207911983
+
+  Linux 3.12-rc2
+
+These fix one recent cpufreq regression, a few older bugs that may
+harm users and a kerneldoc typo.
+
+Specifics:
+
+ 1) After recent locking changes in the cpufreq core it is possible
+    to trigger BUG_ON(!policy) in lock_policy_rwsem_read() if
+    cpufreq_get() is called before registering a cpufreq driver.
+    Fix from Viresh Kumar.
+
+ 2) If intel_pstate has been loaded already, it doesn't make sense
+    to do anything in acpi_cpufreq_init() and moreover doing something
+    in there in that case may be harmful, so make that function return
+    immediately if another cpufreq driver is already present.  From
+    Yinghai Lu.
+
+ 3) The ACPI IPMI driver sometimes attempts to acquire a mutex from
+    interrupt context, which can be avoided by replacing that mutex
+    with a spinlock.  From Lv Zheng.
+
+ 4) A NULL pointer may be dereferenced by the exynos5440 cpufreq
+    driver if a memory allocation made by it fails.  Fix from
+    Sachin Kamat.
+
+ 5) Hanjun Guo's commit fixes a typo in the kerneldoc comment
+    documenting acpi_bus_unregister_driver().
+
+Thanks!
+
+
+---------------
+
+Hanjun Guo (1):
+      ACPI / scan: fix typo in comments of acpi_bus_unregister_driver()
+
+Lv Zheng (1):
+      ACPI / IPMI: Fix atomic context requirement of ipmi_msg_handler()
+
+Sachin Kamat (1):
+      cpufreq: exynos5440: Fix potential NULL pointer dereference
+
+Viresh Kumar (1):
+      cpufreq: check cpufreq driver is valid and cpufreq isn't disabled in cpufreq_get()
+
+Yinghai Lu (1):
+      acpi-cpufreq: skip loading acpi_cpufreq after intel_pstate
+
+---------------
+
+ drivers/acpi/acpi_ipmi.c             |   24 ++++++++++++++----------
+ drivers/acpi/scan.c                  |    2 +-
+ drivers/cpufreq/acpi-cpufreq.c       |    4 ++++
+ drivers/cpufreq/cpufreq.c            |    3 +++
+ drivers/cpufreq/exynos5440-cpufreq.c |    2 +-
+ 5 files changed, 23 insertions(+), 12 deletions(-)
