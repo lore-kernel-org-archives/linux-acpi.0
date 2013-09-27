@@ -1,81 +1,62 @@
-From: Daniel Lezcano <daniel.lezcano@linaro.org>
-Subject: Re: Bisected 3.12.0-rc1 Laptop screen goes blank during kernelboot
-Date: Fri, 27 Sep 2013 09:05:41 +0200
-Message-ID: <52452E45.5000501@linaro.org>
-References: <523C8238.3000200@xmsnet.nl> <523E51A9.8050609@gmail.com> <5242D734.7020800@linaro.org> <52447A4C.3020000@xmsnet.nl>
+From: "Zheng, Lv" <lv.zheng@intel.com>
+Subject: RE: [PATCH v2 00/14] ACPICA 20130823 Release
+Date: Fri, 27 Sep 2013 07:44:20 +0000
+Message-ID: <1AE640813FDE7649BE1B193DEA596E8802466A25@SHSMSX101.ccr.corp.intel.com>
+References: <cover.1377844863.git.lv.zheng@intel.com>
+ <cover.1379900697.git.lv.zheng@intel.com> <2966084.pIPhPZgieX@vostro.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8;
-	format=flowed
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-we0-f174.google.com ([74.125.82.174]:64162 "EHLO
-	mail-we0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751171Ab3I0HFo (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 27 Sep 2013 03:05:44 -0400
-Received: by mail-we0-f174.google.com with SMTP id q58so2248940wes.33
-        for <linux-acpi@vger.kernel.org>; Fri, 27 Sep 2013 00:05:43 -0700 (PDT)
-In-Reply-To: <52447A4C.3020000@xmsnet.nl>
+Received: from mga03.intel.com ([143.182.124.21]:16409 "EHLO mga03.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751258Ab3I0Hog (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 27 Sep 2013 03:44:36 -0400
+In-Reply-To: <2966084.pIPhPZgieX@vostro.rjw.lan>
+Content-Language: en-US
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Hans de Bruin <jmdebruin@xmsnet.nl>
-Cc: Aaron Lu <aaron.lwe@gmail.com>, linux-acpi@vger.kernel.org, linux-pci@vger.kernel.org, Linux-pm mailing list <linux-pm@vger.kernel.org>
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: "Wysocki, Rafael J" <rafael.j.wysocki@intel.com>, "Moore, Robert" <robert.moore@intel.com>, "Brown, Len" <len.brown@intel.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
 
-On 09/26/2013 08:17 PM, Hans de Bruin wrote:
-
-[ ... ]
-
-> todays kernel with problem:
->
-> #
-> # CPU Idle
-> #
-> CONFIG_CPU_IDLE=3Dy
-> # CONFIG_CPU_IDLE_MULTIPLE_DRIVERS is not set
-> CONFIG_CPU_IDLE_GOV_LADDER=3Dy
-> CONFIG_CPU_IDLE_GOV_MENU=3Dy
-> # CONFIG_ARCH_NEEDS_CPU_IDLE_COUPLED is not set
-> CONFIG_INTEL_IDLE=3Dy
->
->
-> =3D=3D> /sys/devices/system/cpu/cpuidle/current_driver <=3D=3D
-> acpi_idle
->
-> =3D=3D> /sys/devices/system/cpu/cpuidle/current_governor_ro <=3D=3D
-> menu
->
-> [    0.056000] cpuidle: using governor ladder
-> [    0.056000] cpuidle: using governor menu
->
->
->
-> 3.8.0:
-> bash-4.1# tail /sys/devices/system/cpu/cpuidle/*
-> =3D=3D> /sys/devices/system/cpu/cpuidle/current_driver <=3D=3D
-> acpi_idle
->
-> =3D=3D> /sys/devices/system/cpu/cpuidle/current_governor_ro <=3D=3D
-> menu
->
-> [    1.759857] cpuidle: using governor ladder
-> [    1.763849] scsi 0:0:0:0: Direct-Access     ATA      TOSHIBA MK400=
-9GA
-> BS11 PQ: 0 ANSI: 5
-> [    1.767098] cpuidle: using governor menu
-
-Thanks for the detailed information. Could you pastebin you kernel=20
-config file or send it to me privately so I can reproduce the problem ?
-
-
---=20
-  <http://www.linaro.org/> Linaro.org =E2=94=82 Open source software fo=
-r ARM SoCs
-
-=46ollow Linaro:  <http://www.facebook.com/pages/Linaro> Facebook |
-<http://twitter.com/#!/linaroorg> Twitter |
-<http://www.linaro.org/linaro-blog/> Blog
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+DQoNCj4gLS0tLS1PcmlnaW5hbCBNZXNzYWdlLS0tLS0NCj4gRnJvbTogUmFmYWVsIEouIFd5c29j
+a2kgW21haWx0bzpyandAcmp3eXNvY2tpLm5ldF0NCj4gU2VudDogVGh1cnNkYXksIFNlcHRlbWJl
+ciAyNiwgMjAxMyAxMjowMSBBTQ0KPiBUbzogWmhlbmcsIEx2DQo+IENjOiBXeXNvY2tpLCBSYWZh
+ZWwgSjsgTW9vcmUsIFJvYmVydDsgQnJvd24sIExlbjsgbGludXgtYWNwaUB2Z2VyLmtlcm5lbC5v
+cmcNCj4gU3ViamVjdDogUmU6IFtQQVRDSCB2MiAwMC8xNF0gQUNQSUNBIDIwMTMwODIzIFJlbGVh
+c2UNCj4gDQo+IE9uIE1vbmRheSwgU2VwdGVtYmVyIDIzLCAyMDEzIDA5OjUwOjQwIEFNIEx2IFpo
+ZW5nIHdyb3RlOg0KPiA+IFRoZSAyMDEzMDgyMyBBQ1BJQ0Ega2VybmVsIHJlc2lkZW50IHN5c3Rl
+bSB1cGRhdGVzIGlzIGxpbnV4aXplZCBiYXNlZCBvbg0KPiA+IHRoZSBwbS9saW51eC1uZXh0IGJy
+YW5jaC4NCj4gPg0KPiA+IFRoZSBwYXRjaCBzZXQgaGFzIHBhc3NlZCBhIGJ1aWxkL2Jvb3QgdGVz
+dCBvbiB0aGUgZm9sbG93aW5nIG1hY2hpbmVzOg0KPiA+IERlbGwgSW5zcGlyb24gTWluaSAxMDEw
+IChpMzg2KQ0KPiA+IEhQIENvbXBhcSA4MjAwIEVsaXRlIFNGRiBQQyAoeDg2LTY0KQ0KPiA+IFdp
+dGggdGhlIGZvbGxvd2luZyBrZXJuZWwgY29uZmlndXJhdGlvbiBpdGVtcyBlbmFibGVkOg0KPiA+
+ICAgQ09ORklHX0FDUElfQUMNCj4gPiAgIENPTkZJR19BQ1BJX0JBVFRFUlkNCj4gPiAgIENPTkZJ
+R19BQ1BJX05VTUENCj4gPiAgIENPTkZJR19BQ1BJX1BST0NFU1NPUg0KPiA+ICAgQ09ORklHX0FD
+UElfVEhFUk1BTA0KPiA+ICAgQ09ORklHX0FDUElfVklERU8NCj4gPiAgIENPTkZJR19DUFVfRlJF
+UQ0KPiA+ICAgQ09ORklHX0kyQ19TQ01JDQo+ID4gICBDT05GSUdfU0VOU09SU19BQ1BJX1BPV0VS
+DQo+ID4gICBDT05GSUdfUEFOQVNPTklDX0xBUFRPUA0KPiA+ICAgQ09ORklHX1hPMTVfRUJPT0sN
+Cj4gPiAgIENPTkZJR19ETUFSX1RBQkxFDQo+ID4gICBDT05GSUdfSU5URUxfSU9NTVUNCj4gPiAg
+IENPTkZJR19JUlFfUkVNQVANCj4gPg0KPiA+IEJqb3JuIEhlbGdhYXMgKDEpOg0KPiA+ICAgQUNQ
+SUNBOiBhY3BpX3JlYWQ6IE9uIGVycm9yLCBkbyBub3QgbW9kaWZ5IHRoZSByZXR1cm4gdmFsdWUg
+dGFyZ2V0DQo+ID4gICAgIGxvY2F0aW9uLg0KPiA+DQo+ID4gQm9iIE1vb3JlICg3KToNCj4gPiAg
+IEFDUElDQTogSW1wcm92ZSBlcnJvciBtZXNzYWdlIGZvciAidG9vIG1hbnkgcGFyZW50IHByZWZp
+eGVzIg0KPiA+ICAgICBjb25kaXRpb24uDQo+ID4gICBBQ1BJQ0E6IERlYnVnIG91dHB1dDogc21h
+bGwgZm9ybWF0dGluZyB1cGRhdGUsIG5vIGZ1bmN0aW9uYWwgY2hhbmdlLg0KPiA+ICAgQUNQSUNB
+OiBEZWJ1Z2dlcjogUHJldmVudCBwb3NzaWJsZSBjb21tYW5kIGxpbmUgYnVmZmVyIG92ZXJmbG93
+LA0KPiA+ICAgICBrZXJuZWwgYmVoYXZpb3IgaXMgbm90IGFmZmVjdGVkLg0KPiA+ICAgQUNQSUNB
+OiBWYWxpZGF0ZSBzdGFydCBvYmplY3QgZm9yIGFjcGlfd2Fsa19uYW1lc3BhY2UuDQo+ID4gICBB
+Q1BJQ0E6IERlYnVnZ2VyOiBBZGQgbmV3IGNvbW1hbmQgdG8gZGlzcGxheSBmdWxsIG5hbWVzcGFj
+ZQ0KPiA+ICAgICBwYXRobmFtZXMuDQo+ID4gICBBQ1BJQ0E6IFNDSSBIYW5kbGVyczogVXBkYXRl
+IGhhbmRsZXIgaW50ZXJmYWNlLCBlbGltaW5hdGUgdW5uZWNlc3NhcnkNCj4gPiAgICAgYXJndW1l
+bnQuDQo+ID4gICBBQ1BJQ0E6IFVwZGF0ZSB2ZXJzaW9uIHRvIDIwMTMwODIzLg0KPiA+DQo+ID4g
+RGF2aWQgRS4gQm94ICgxKToNCj4gPiAgIEFDUElDQTogT3BlcmF0aW9uIHJlZ2lvbiBzdXBwb3J0
+OiBOZXZlciBmcmVlIHRoZSBoYW5kbGVyICJjb250ZXh0Ig0KPiA+ICAgICBwb2ludGVyLg0KPiA+
+DQo+ID4gTHYgWmhlbmcgKDQpOg0KPiA+ICAgQUNQSUNBOiBBZGQgc3VwcG9ydCBmb3IgaG9zdC1p
+bnN0YWxsZWQgU0NJIGhhbmRsZXJzLg0KPiA+ICAgQUNQSUNBOiBUYWJsZXM6IENsZWFudXAgdGFi
+bGUgY2hlY2tzdW0gdmVyaWZpY2F0aW9uIGNvZGUuDQo+ID4gICBBQ1BJQ0E6IFRhYmxlczogQ2xl
+YW51cCBSU0RQIHNpZ25hdHVyZSBjb2Rlcy4NCj4gPiAgIEFDUElDQTogQ2xlYW51cCBleGNlcHRp
+b24gY29kZXMuDQo+ID4NCj4gPiBOYXJlc2ggQmhhdCAoMSk6DQo+ID4gICBBQ1BJQ0E6IExpbnV4
+LXNwZWNpZmljIGhlYWRlcjogZW5hYmxlICJhYXJjaDY0IiA2NC1iaXQgYnVpbGQuDQo+IA0KPiBR
+dWV1ZWQgdXAgZm9yIDMuMTMsIHRoYW5rcyBMdiENCg0KVGhhbmtzIGZvciB0aGUgaGVscC4NCg0K
+Q2hlZXJzDQotTHYNCg0K
