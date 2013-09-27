@@ -1,49 +1,81 @@
-From: Ingo Molnar <mingo@kernel.org>
-Subject: Re: [PATCH v5 6/6] mem-hotplug: Introduce movablenode boot option
-Date: Fri, 27 Sep 2013 08:26:33 +0200
-Message-ID: <20130927062633.GB6726@gmail.com>
-References: <5241D897.1090905@gmail.com>
- <5241DB62.2090300@gmail.com>
- <20130926145326.GH3482@htj.dyndns.org>
- <52446413.50504@gmail.com>
+From: Daniel Lezcano <daniel.lezcano@linaro.org>
+Subject: Re: Bisected 3.12.0-rc1 Laptop screen goes blank during kernelboot
+Date: Fri, 27 Sep 2013 09:05:41 +0200
+Message-ID: <52452E45.5000501@linaro.org>
+References: <523C8238.3000200@xmsnet.nl> <523E51A9.8050609@gmail.com> <5242D734.7020800@linaro.org> <52447A4C.3020000@xmsnet.nl>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <owner-linux-mm@kvack.org>
-Content-Disposition: inline
-In-Reply-To: <52446413.50504@gmail.com>
-Sender: owner-linux-mm@kvack.org
-To: Zhang Yanfei <zhangyanfei.yes@gmail.com>
-Cc: Tejun Heo <tj@kernel.org>, "Rafael J . Wysocki" <rjw@sisk.pl>, lenb@kernel.org, Thomas Gleixner <tglx@linutronix.de>, mingo@elte.hu, "H. Peter Anvin" <hpa@zytor.com>, Andrew Morton <akpm@linux-foundation.org>, Toshi Kani <toshi.kani@hp.com>, Wanpeng Li <liwanp@linux.vnet.ibm.com>, Thomas Renninger <trenn@suse.de>, Yinghai Lu <yinghai@kernel.org>, Jiang Liu <jiang.liu@huawei.com>, Wen Congyang <wency@cn.fujitsu.com>, Lai Jiangshan <laijs@cn.fujitsu.com>, isimatu.yasuaki@jp.fujitsu.com, izumi.taku@jp.fujitsu.com, Mel Gorman <mgorman@suse.de>, Minchan Kim <minchan@kernel.org>, mina86@mina86.com, gong.chen@linux.intel.com, vasilis.liaskovitis@profitbricks.com, lwoodman@redhat.com, Rik van Riel <riel@redhat.com>, jweiner@redhat.com, prarit@redhat.com, "x86@kernel.org" <x86@kernel.org>, linux-doc@vger.kernel.org, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
+Content-Type: text/plain; charset=UTF-8;
+	format=flowed
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-we0-f174.google.com ([74.125.82.174]:64162 "EHLO
+	mail-we0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751171Ab3I0HFo (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 27 Sep 2013 03:05:44 -0400
+Received: by mail-we0-f174.google.com with SMTP id q58so2248940wes.33
+        for <linux-acpi@vger.kernel.org>; Fri, 27 Sep 2013 00:05:43 -0700 (PDT)
+In-Reply-To: <52447A4C.3020000@xmsnet.nl>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Hans de Bruin <jmdebruin@xmsnet.nl>
+Cc: Aaron Lu <aaron.lwe@gmail.com>, linux-acpi@vger.kernel.org, linux-pci@vger.kernel.org, Linux-pm mailing list <linux-pm@vger.kernel.org>
+
+On 09/26/2013 08:17 PM, Hans de Bruin wrote:
+
+[ ... ]
+
+> todays kernel with problem:
+>
+> #
+> # CPU Idle
+> #
+> CONFIG_CPU_IDLE=3Dy
+> # CONFIG_CPU_IDLE_MULTIPLE_DRIVERS is not set
+> CONFIG_CPU_IDLE_GOV_LADDER=3Dy
+> CONFIG_CPU_IDLE_GOV_MENU=3Dy
+> # CONFIG_ARCH_NEEDS_CPU_IDLE_COUPLED is not set
+> CONFIG_INTEL_IDLE=3Dy
+>
+>
+> =3D=3D> /sys/devices/system/cpu/cpuidle/current_driver <=3D=3D
+> acpi_idle
+>
+> =3D=3D> /sys/devices/system/cpu/cpuidle/current_governor_ro <=3D=3D
+> menu
+>
+> [    0.056000] cpuidle: using governor ladder
+> [    0.056000] cpuidle: using governor menu
+>
+>
+>
+> 3.8.0:
+> bash-4.1# tail /sys/devices/system/cpu/cpuidle/*
+> =3D=3D> /sys/devices/system/cpu/cpuidle/current_driver <=3D=3D
+> acpi_idle
+>
+> =3D=3D> /sys/devices/system/cpu/cpuidle/current_governor_ro <=3D=3D
+> menu
+>
+> [    1.759857] cpuidle: using governor ladder
+> [    1.763849] scsi 0:0:0:0: Direct-Access     ATA      TOSHIBA MK400=
+9GA
+> BS11 PQ: 0 ANSI: 5
+> [    1.767098] cpuidle: using governor menu
+
+Thanks for the detailed information. Could you pastebin you kernel=20
+config file or send it to me privately so I can reproduce the problem ?
 
 
-* Zhang Yanfei <zhangyanfei.yes@gmail.com> wrote:
+--=20
+  <http://www.linaro.org/> Linaro.org =E2=94=82 Open source software fo=
+r ARM SoCs
 
-> OK. Trying below:
-> 
-> movablenode	[KNL,X86] This option enables the kernel to arrange
-> 		hotpluggable memory into ZONE_MOVABLE zone. If memory
-> 		in a node is all hotpluggable, the option may make
-> 		the whole node has only one ZONE_MOVABLE zone, so that
-> 		the whole node can be hot-removed after system is up.
-> 		Note that this option may cause NUMA performance down.
-
-That paragraph doesn't really parse in several places ...
-
-Also, more importantly, please explain why this needs to be a boot option. 
-In terms of user friendliness boot options are at the bottom of the list, 
-and boot options also don't really help feature tests.
-
-Presumably the feature is safe and has no costs, and hence could be added 
-as a regular .config option, with a boot option only as an additional 
-configurability option?
-
-Thanks,
-
-	Ingo
+=46ollow Linaro:  <http://www.facebook.com/pages/Linaro> Facebook |
+<http://twitter.com/#!/linaroorg> Twitter |
+<http://www.linaro.org/linaro-blog/> Blog
 
 --
-To unsubscribe, send a message with 'unsubscribe linux-mm' in
-the body to majordomo@kvack.org.  For more info on Linux MM,
-see: http://www.linux-mm.org/ .
-Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
