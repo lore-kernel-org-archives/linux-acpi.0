@@ -1,95 +1,49 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: [PATCH v3 0/4] Fix Win8 backlight issue
-Date: Fri, 27 Sep 2013 02:26:35 +0200
-Message-ID: <3910636.aGHp6YakQl@vostro.rjw.lan>
-References: <1380016052-15315-1-git-send-email-aaron.lu@intel.com> <87eh8clvun.fsf@intel.com> <CADDKRnA7Eqox6s6t315c=OaEpAgRcX62_4rF8XuXaNRAipOqcQ@mail.gmail.com>
+From: Ingo Molnar <mingo@kernel.org>
+Subject: Re: [PATCH v5 6/6] mem-hotplug: Introduce movablenode boot option
+Date: Fri, 27 Sep 2013 08:26:33 +0200
+Message-ID: <20130927062633.GB6726@gmail.com>
+References: <5241D897.1090905@gmail.com>
+ <5241DB62.2090300@gmail.com>
+ <20130926145326.GH3482@htj.dyndns.org>
+ <52446413.50504@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from hydra.sisk.pl ([212.160.235.94]:37789 "EHLO hydra.sisk.pl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750764Ab3I0APT convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 26 Sep 2013 20:15:19 -0400
-In-Reply-To: <CADDKRnA7Eqox6s6t315c=OaEpAgRcX62_4rF8XuXaNRAipOqcQ@mail.gmail.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <owner-linux-mm@kvack.org>
+Content-Disposition: inline
+In-Reply-To: <52446413.50504@gmail.com>
+Sender: owner-linux-mm@kvack.org
+To: Zhang Yanfei <zhangyanfei.yes@gmail.com>
+Cc: Tejun Heo <tj@kernel.org>, "Rafael J . Wysocki" <rjw@sisk.pl>, lenb@kernel.org, Thomas Gleixner <tglx@linutronix.de>, mingo@elte.hu, "H. Peter Anvin" <hpa@zytor.com>, Andrew Morton <akpm@linux-foundation.org>, Toshi Kani <toshi.kani@hp.com>, Wanpeng Li <liwanp@linux.vnet.ibm.com>, Thomas Renninger <trenn@suse.de>, Yinghai Lu <yinghai@kernel.org>, Jiang Liu <jiang.liu@huawei.com>, Wen Congyang <wency@cn.fujitsu.com>, Lai Jiangshan <laijs@cn.fujitsu.com>, isimatu.yasuaki@jp.fujitsu.com, izumi.taku@jp.fujitsu.com, Mel Gorman <mgorman@suse.de>, Minchan Kim <minchan@kernel.org>, mina86@mina86.com, gong.chen@linux.intel.com, vasilis.liaskovitis@profitbricks.com, lwoodman@redhat.com, Rik van Riel <riel@redhat.com>, jweiner@redhat.com, prarit@redhat.com, "x86@kernel.org" <x86@kernel.org>, linux-doc@vger.kernel.org, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
-To: =?ISO-8859-1?Q?J=F6rg?= Otte <jrg.otte@gmail.com>
-Cc: Jani Nikula <jani.nikula@linux.intel.com>, Aaron Lu <aaron.lu@intel.com>, Igor Gnatenko <i.gnatenko.brain@gmail.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, intel-gfx <intel-gfx@lists.freedesktop.org>, dri-devel@lists.freedesktop.org, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Daniel Vetter <daniel@ffwll.ch>, Matthew Garrett <matthew.garrett@nebula.com>, Seth Forshee <seth.forshee@canonical.com>, Lee Chun-Yi <joeyli.kernel@gmail.com>, Richard Purdie <rpurdie@rpsys.net>, Yves-Alexis Perez <corsac@debian.org>, Felipe Contreras <felipe.contreras@gmail.com>, Henrique de Moraes Holschuh <ibm-acpi@hmh.eng.br>, Ben Jencks <ben@bjencks.net>, Steven Newbury <steve@snewbury.org.uk>, James Hogan <james@albanarts.com>, Kamal Mostafa <kamal@canonical.com>, Joerg Platte <jplatte@naasa.net>, Kalle Valo <kvalo@adurom.com>, Martin Steigerwald <Martin@>
 
-On Thursday, September 26, 2013 09:49:03 AM J=C3=B6rg Otte wrote:
-> 2013/9/25 Jani Nikula <jani.nikula@linux.intel.com>:
-> > On Wed, 25 Sep 2013, J=C3=B6rg Otte <jrg.otte@gmail.com> wrote:
-> >> 2013/9/25 Jani Nikula <jani.nikula@linux.intel.com>:
-> >>> On Wed, 25 Sep 2013, Aaron Lu <aaron.lu@intel.com> wrote:
-> >>>> On Wed, Sep 25, 2013 at 10:29:37AM +0200, J=C3=B6rg Otte wrote:
-> >>>>> Backlight can't be modified with this patch set - neither with
-> >>>>> function keys nor with the gui. It is a step backward to v3.11-=
-rc1
-> >>>
-> >>> So both hotkeys and GUI work in v3.11-rc1? And v3.12-rc2?
-> >>
-> >> In  v3.11-rc1 it didn't work.
-> >> Since a later rc (I don't remember exactly which) it did work.
-> >> In v3.12-rc1/2 it does work.
-> >> In v3.12-rc2 + Aaron's patch set it again doesn't work.
-> >>
-> >>>
-> >>>> Thanks for the test.
-> >>>>
-> >>>> Please check /sys/class/backlight, is there only one link file
-> >>>> intel_backlight?
-> >>>
-> >>> Indeed, are there others? fujitsu-laptop perhaps? If yes, try
-> >>> CONFIG_FUJITSU_LAPTOP=3Dn or an appropriate module blacklist.
-> >>>
-> >>> Just checking, you do have CONFIG_BACKLIGHT_CLASS_DEVICE=3Dy?
-> >>
-> >> There is only one intel_backlight link.
-> >> Yes, I have CONFIG_BACKLIGHT_CLASS_DEVICE=3Dy
-> >>
-> >>> Embarrassingly there was a bug in i915 fixed just recently where =
-the
-> >>> backlight device wasn't registered for
-> >>> CONFIG_BACKLIGHT_CLASS_DEVICE=3Dm...
-> >>>
-> >>>> If so, please cd inside and try modify the brightness file using=
- echo
-> >>>> with some values in the range of 0 - max_brightness, does the
-> >>>> backlight level change when you echo a new value? I guess it doe=
-sn't,
-> >>>> or you wouldn't notice problem. If indeed so, perhaps file a bug=
- at
-> >>>> http://bugzilla.kernel.org, Drivers/Video(DRI-Intel)? I suppose =
-Jani
-> >>>> and Daniel can help fix your problem.
-> >>>
-> >>> Yup, please check the above, and report back.
-> >>
-> >> - echo 0..max_brightness > brightness does not work.
-> >
-> > Thanks for the info.
-> >
-> > How about v3.12-rc2 without Aaron's patches? Does intel_backlight a=
-lso
-> > not work there? How about the acpi_video0 (which I presume is prese=
-nt)
-> > sysfs interface?
-> >
->=20
-> Without Aaron's patches intel_backlight also does not work.
-> But acpi_video0 does (and takes precedence I think).
 
-So can you please open a bug entry at bugzilla.kernel.org against i915?
+* Zhang Yanfei <zhangyanfei.yes@gmail.com> wrote:
 
-The fact that ACPI video works for you doesn't mean that intel_backligh=
-t
-shouldn't, I suppose?
+> OK. Trying below:
+> 
+> movablenode	[KNL,X86] This option enables the kernel to arrange
+> 		hotpluggable memory into ZONE_MOVABLE zone. If memory
+> 		in a node is all hotpluggable, the option may make
+> 		the whole node has only one ZONE_MOVABLE zone, so that
+> 		the whole node can be hot-removed after system is up.
+> 		Note that this option may cause NUMA performance down.
 
-Rafael
+That paragraph doesn't really parse in several places ...
+
+Also, more importantly, please explain why this needs to be a boot option. 
+In terms of user friendliness boot options are at the bottom of the list, 
+and boot options also don't really help feature tests.
+
+Presumably the feature is safe and has no costs, and hence could be added 
+as a regular .config option, with a boot option only as an additional 
+configurability option?
+
+Thanks,
+
+	Ingo
 
 --
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+To unsubscribe, send a message with 'unsubscribe linux-mm' in
+the body to majordomo@kvack.org.  For more info on Linux MM,
+see: http://www.linux-mm.org/ .
+Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
