@@ -1,52 +1,64 @@
-From: Yinghai Lu <yinghai@kernel.org>
-Subject: Re: [PATCH v4 25/28] PCI, x86: Make ioapic hotplug support built-in
-Date: Tue, 1 Oct 2013 10:42:30 -0700
-Message-ID: <CAE9FiQVSGRMbW34vQoYpLBHfu2yhh_2_MDeeRP_xEZhsTvbtqA@mail.gmail.com>
-References: <1376189294-32022-1-git-send-email-yinghai@kernel.org>
-	<1376189294-32022-26-git-send-email-yinghai@kernel.org>
-	<20131001160014.GA7438@google.com>
+From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Subject: Re: 3.12.0-rc3: Symbol license change in commit caf5c03f (ACPI: Move acpi_bus_get_device() from bus.c to scan.c)
+Date: Tue, 01 Oct 2013 23:00:16 +0200
+Message-ID: <5459219.RfezHuQcWu@vostro.rjw.lan>
+References: <524AFF89.4080703@hurleysoftware.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7Bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-ie0-f180.google.com ([209.85.223.180]:60161 "EHLO
-	mail-ie0-f180.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751251Ab3JARmb (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 1 Oct 2013 13:42:31 -0400
-In-Reply-To: <20131001160014.GA7438@google.com>
+Received: from v094114.home.net.pl ([79.96.170.134]:49614 "HELO
+	v094114.home.net.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S1751444Ab3JAUst (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 1 Oct 2013 16:48:49 -0400
+In-Reply-To: <524AFF89.4080703@hurleysoftware.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Bjorn Helgaas <bhelgaas@google.com>
-Cc: Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@elte.hu>, "H. Peter Anvin" <hpa@zytor.com>, Tony Luck <tony.luck@intel.com>, "Rafael J. Wysocki" <rjw@sisk.pl>, "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>
+To: Peter Hurley <peter@hurleysoftware.com>
+Cc: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Linux kernel <linux-kernel@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>
 
-On Tue, Oct 1, 2013 at 9:00 AM, Bjorn Helgaas <bhelgaas@google.com> wrote:
-> On Sat, Aug 10, 2013 at 07:48:11PM -0700, Yinghai Lu wrote:
->> ioapic hotplug should be built-in like pci root bus hotplug.
->>
->> Also need to make it depends on X86_IO_APIC.
->>
->> Signed-off-by: Yinghai Lu <yinghai@kernel.org>
->
-> Hi Yinghai,
->
-> What's the status of these?  It looks like the last three or four
-> could go via my PCI tree, but I don't know whether they depend on
-> the earlier patches.  If they could be applied separately, I could
-> merge them and we could make *some* progress.
+On Tuesday, October 01, 2013 12:59:53 PM Peter Hurley wrote:
+> I have no love lost for proprietary modules but changing
+> acpi_bus_get_device() symbol's license seems gratuitous considering
+> the symbol pre-dates the mainline git tree and the code is just
+> being moved from one source file to another.
 
-they are rely on other patches.
+Well, I didn't know whether or not any binary modules use that function in the
+first place.
 
-would be better if you give them ack, and let them via tip/x86/irq etc.
+It looks like some of them do, so below is a revert of that change (that I'm
+going to push for -rc4).
 
-or in two parts: after first part go to upstream via tip, and we can
-push left pci related via pci tree.
+I wonder what module exactly you have in mind, though?
 
->
-> Also, it looks like you planned some rework related to _UID and
-> resource parsing, so I've been waiting for that to show up before
-> doing much more.
+Rafael
 
-yes, I have that ready. will post them shortly.
 
-Thanks
+---
+From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+Subject: ACPI: Use EXPORT_SYMBOL() for acpi_bus_get_device()
 
-Yinghai
+Commit caf5c03f (ACPI: Move acpi_bus_get_device() from bus.c to
+scan.c) caused acpi_bus_get_device() to be exported using
+EXPORT_SYMBOL_GPL(), but that broke some binary drivers in
+existence, so revert that change.
+
+Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+---
+ drivers/acpi/scan.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+Index: linux-pm/drivers/acpi/scan.c
+===================================================================
+--- linux-pm.orig/drivers/acpi/scan.c
++++ linux-pm/drivers/acpi/scan.c
+@@ -968,7 +968,7 @@ int acpi_bus_get_device(acpi_handle hand
+ 	}
+ 	return 0;
+ }
+-EXPORT_SYMBOL_GPL(acpi_bus_get_device);
++EXPORT_SYMBOL(acpi_bus_get_device);
+ 
+ int acpi_device_add(struct acpi_device *device,
+ 		    void (*release)(struct device *))
+
