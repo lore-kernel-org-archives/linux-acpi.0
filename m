@@ -1,150 +1,41 @@
-From: Mika Westerberg <mika.westerberg-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
-Subject: [PATCH v4] i2c: enable runtime PM for I2C adapter devices enumerated from ACPI
-Date: Tue,  1 Oct 2013 16:09:42 +0300
-Message-ID: <1380632982-10709-1-git-send-email-mika.westerberg@linux.intel.com>
-References: <1380552228-23329-2-git-send-email-mika.westerberg@linux.intel.com>
-Return-path: <linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1380552228-23329-2-git-send-email-mika.westerberg-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
-Sender: linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: Wolfram Sang <wsa-z923LK4zBo2bacvFa/9K2g@public.gmane.org>, rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org, Aaron Lu <aaron.lu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Lv Zheng <lv.zheng-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Mark Brown <broonie-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Kevin Hilman <khilman-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Sylwester Nawrocki <s.nawrocki-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org>, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Mika Westerberg <mika.westerberg-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
+From: Mika Westerberg <mika.westerberg@linux.intel.com>
+Subject: [PATCH 0/5] gpiolib: convert ACPI GPIO helpers to gpiod_ interfaces
+Date: Tue,  1 Oct 2013 17:58:52 +0300
+Message-ID: <1380639537-23406-1-git-send-email-mika.westerberg@linux.intel.com>
+Return-path: <linux-gpio-owner@vger.kernel.org>
+Sender: linux-gpio-owner@vger.kernel.org
+To: linux-gpio@vger.kernel.org
+Cc: rjw@rjwysocki.net, Linus Walleij <linus.walleij@linaro.org>, Grant Likely <grant.likely@secretlab.ca>, Mathias Nyman <mathias.nyman@linux.intel.com>, Alexandre Courbot <acourbot@nvidia.com>, Rob Landley <rob@landley.net>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Mika Westerberg <mika.westerberg@linux.intel.com>
 List-Id: linux-acpi@vger.kernel.org
 
-The ACPI specification requires the parent device to be powered on before
-any of its children. It can be only powered off when all the children are
-already off.
+Hi all,
 
-Currently whenever there is no I2C traffic going on, the I2C controller
-driver can put the device into low power state transparently to its
-children (the I2C client devices). This violates the ACPI specification
-because now the parent device is in lower power state than its children.
+This series converts the ACPI GPIO helpers in gpiolib-acpi.c to use the new
+and preferred GPIO descriptor based interface as suggested by the GPIO
+subsystem maintainer.
 
-In order to keep ACPI happy we enable runtime PM for the I2C adapter device
-if we find out that the I2C controller was in fact an ACPI device. In
-addition to that we attach the I2C client devices to the ACPI power domain
-and make sure that they are powered on when the driver ->probe() is called.
+The first patch is just a cosmetic fix to move acpi_gpiochip_free_interrupts()
+closer to acpi_gpiochip_request_interrupts(). Patches [2-5/5] do the actual
+conversion.
 
-Non-ACPI devices are not affected by this change.
+The series is based on the latest patches from Alexandre Courbot and I've
+tested them on Intel Haswell based machine.
 
-This patch is based on the work by Aaron Lu and Lv Zheng.
+Please review.
 
-Signed-off-by: Mika Westerberg <mika.westerberg-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
----
-Changes to v3:
- * Check only client ACPI_HANDLE().
- * Fixed bug where we attach the device to ACPI power domain multiple
-   times.
- * Functions are renamed to _get_attach/_put_attach to make it clear that
-   we do attach/detach as well.
+Mika Westerberg (5):
+  gpiolib / ACPI: move acpi_gpiochip_free_interrupts next to the request function
+  gpiolib / ACPI: convert to gpiod interfaces
+  gpiolib / ACPI: add ACPI support for gpiod_get_index()
+  gpiolib / ACPI: allow passing GPIOF_ACTIVE_LOW for GpioInt resources
+  gpiolib / ACPI: document the GPIO descriptor based interface
 
- drivers/i2c/i2c-core.c | 47 ++++++++++++++++++++++++++++++++++++++++++++++-
- 1 file changed, 46 insertions(+), 1 deletion(-)
+ Documentation/acpi/enumeration.txt |  22 +++++++
+ drivers/gpio/gpiolib-acpi.c        | 129 ++++++++++++++++++-------------------
+ drivers/gpio/gpiolib.c             |  20 ++++++
+ include/linux/acpi_gpio.h          |  40 +++++++++---
+ 4 files changed, 138 insertions(+), 73 deletions(-)
 
-diff --git a/drivers/i2c/i2c-core.c b/drivers/i2c/i2c-core.c
-index 29d3f04..e289b1d 100644
---- a/drivers/i2c/i2c-core.c
-+++ b/drivers/i2c/i2c-core.c
-@@ -236,6 +236,27 @@ int i2c_recover_bus(struct i2c_adapter *adap)
- 	return adap->bus_recovery_info->recover_bus(adap);
- }
- 
-+static void acpi_i2c_device_pm_get_attach(struct i2c_client *client,
-+					  bool attach)
-+{
-+	if (ACPI_HANDLE(&client->dev)) {
-+		/* Make sure the adapter is active */
-+		pm_runtime_get_sync(&client->adapter->dev);
-+		if (attach)
-+			acpi_dev_pm_attach(&client->dev, true);
-+	}
-+}
-+
-+static void acpi_i2c_device_pm_put_detach(struct i2c_client *client,
-+					  bool detach)
-+{
-+	if (ACPI_HANDLE(&client->dev)) {
-+		if (detach)
-+			acpi_dev_pm_detach(&client->dev, true);
-+		pm_runtime_put(&client->adapter->dev);
-+	}
-+}
-+
- static int i2c_device_probe(struct device *dev)
- {
- 	struct i2c_client	*client = i2c_verify_client(dev);
-@@ -254,11 +275,15 @@ static int i2c_device_probe(struct device *dev)
- 					client->flags & I2C_CLIENT_WAKE);
- 	dev_dbg(dev, "probe\n");
- 
-+	acpi_i2c_device_pm_get_attach(client, true);
-+
- 	status = driver->probe(client, i2c_match_id(driver->id_table, client));
- 	if (status) {
- 		client->driver = NULL;
- 		i2c_set_clientdata(client, NULL);
- 	}
-+
-+	acpi_i2c_device_pm_put_detach(client, !!status);
- 	return status;
- }
- 
-@@ -271,6 +296,8 @@ static int i2c_device_remove(struct device *dev)
- 	if (!client || !dev->driver)
- 		return 0;
- 
-+	acpi_i2c_device_pm_get_attach(client, false);
-+
- 	driver = to_i2c_driver(dev->driver);
- 	if (driver->remove) {
- 		dev_dbg(dev, "remove\n");
-@@ -283,6 +310,8 @@ static int i2c_device_remove(struct device *dev)
- 		client->driver = NULL;
- 		i2c_set_clientdata(client, NULL);
- 	}
-+
-+	acpi_i2c_device_pm_put_detach(client, true);
- 	return status;
- }
- 
-@@ -294,8 +323,11 @@ static void i2c_device_shutdown(struct device *dev)
- 	if (!client || !dev->driver)
- 		return;
- 	driver = to_i2c_driver(dev->driver);
--	if (driver->shutdown)
-+	if (driver->shutdown) {
-+		acpi_i2c_device_pm_get_attach(client, false);
- 		driver->shutdown(client);
-+		acpi_i2c_device_pm_put_detach(client, false);
-+	}
- }
- 
- #ifdef CONFIG_PM_SLEEP
-@@ -1263,6 +1295,16 @@ exit_recovery:
- 	bus_for_each_drv(&i2c_bus_type, NULL, adap, __process_new_adapter);
- 	mutex_unlock(&core_lock);
- 
-+	/*
-+	 * For ACPI enumerated controllers we must make sure that the
-+	 * controller is powered on before its children. Runtime PM handles
-+	 * this for us once we have enabled it for the adapter device.
-+	 */
-+	if (ACPI_HANDLE(adap->dev.parent)) {
-+		pm_runtime_no_callbacks(&adap->dev);
-+		pm_runtime_enable(&adap->dev);
-+	}
-+
- 	return 0;
- 
- out_list:
-@@ -1427,6 +1469,9 @@ void i2c_del_adapter(struct i2c_adapter *adap)
- 		return;
- 	}
- 
-+	if (ACPI_HANDLE(adap->dev.parent))
-+		pm_runtime_disable(&adap->dev);
-+
- 	/* Tell drivers about this removal */
- 	mutex_lock(&core_lock);
- 	bus_for_each_drv(&i2c_bus_type, NULL, adap,
 -- 
 1.8.4.rc3
+
