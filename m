@@ -1,82 +1,163 @@
-From: Bjorn Helgaas <bhelgaas@google.com>
-Subject: Re: [PATCH v4 25/28] PCI, x86: Make ioapic hotplug support built-in
-Date: Tue, 1 Oct 2013 09:00:14 -0700
-Message-ID: <20131001160014.GA7438@google.com>
-References: <1376189294-32022-1-git-send-email-yinghai@kernel.org>
- <1376189294-32022-26-git-send-email-yinghai@kernel.org>
+From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Subject: Re: [PATCH v4] i2c: enable runtime PM for I2C adapter devices enumerated from ACPI
+Date: Tue, 01 Oct 2013 18:24:07 +0200
+Message-ID: <8760212.nXgBqaRVWQ@vostro.rjw.lan>
+References: <1380552228-23329-2-git-send-email-mika.westerberg@linux.intel.com> <1380632982-10709-1-git-send-email-mika.westerberg@linux.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7Bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-pd0-f180.google.com ([209.85.192.180]:38848 "EHLO
-	mail-pd0-f180.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751861Ab3JAQAV (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 1 Oct 2013 12:00:21 -0400
-Received: by mail-pd0-f180.google.com with SMTP id y10so7396172pdj.25
-        for <linux-acpi@vger.kernel.org>; Tue, 01 Oct 2013 09:00:21 -0700 (PDT)
-Content-Disposition: inline
-In-Reply-To: <1376189294-32022-26-git-send-email-yinghai@kernel.org>
+Received: from v094114.home.net.pl ([79.96.170.134]:58539 "HELO
+	v094114.home.net.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S1751095Ab3JAQMk (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 1 Oct 2013 12:12:40 -0400
+In-Reply-To: <1380632982-10709-1-git-send-email-mika.westerberg@linux.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Yinghai Lu <yinghai@kernel.org>
-Cc: Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@elte.hu>, "H. Peter Anvin" <hpa@zytor.com>, Tony Luck <tony.luck@intel.com>, "Rafael J. Wysocki" <rjw@sisk.pl>, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
+To: Mika Westerberg <mika.westerberg@linux.intel.com>
+Cc: linux-i2c@vger.kernel.org, Wolfram Sang <wsa@the-dreams.de>, Aaron Lu <aaron.lu@intel.com>, Lv Zheng <lv.zheng@intel.com>, Mark Brown <broonie@kernel.org>, Kevin Hilman <khilman@linaro.org>, Sylwester Nawrocki <s.nawrocki@samsung.com>, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-acpi@vger.kernel.org
 
-On Sat, Aug 10, 2013 at 07:48:11PM -0700, Yinghai Lu wrote:
-> ioapic hotplug should be built-in like pci root bus hotplug.
+On Tuesday, October 01, 2013 04:09:42 PM Mika Westerberg wrote:
+> The ACPI specification requires the parent device to be powered on before
+> any of its children. It can be only powered off when all the children are
+> already off.
 > 
-> Also need to make it depends on X86_IO_APIC.
+> Currently whenever there is no I2C traffic going on, the I2C controller
+> driver can put the device into low power state transparently to its
+> children (the I2C client devices). This violates the ACPI specification
+> because now the parent device is in lower power state than its children.
 > 
-> Signed-off-by: Yinghai Lu <yinghai@kernel.org>
+> In order to keep ACPI happy we enable runtime PM for the I2C adapter device
+> if we find out that the I2C controller was in fact an ACPI device. In
+> addition to that we attach the I2C client devices to the ACPI power domain
+> and make sure that they are powered on when the driver ->probe() is called.
+> 
+> Non-ACPI devices are not affected by this change.
+> 
+> This patch is based on the work by Aaron Lu and Lv Zheng.
+> 
+> Signed-off-by: Mika Westerberg <mika.westerberg@linux.intel.com>
 
-Hi Yinghai,
-
-What's the status of these?  It looks like the last three or four
-could go via my PCI tree, but I don't know whether they depend on
-the earlier patches.  If they could be applied separately, I could
-merge them and we could make *some* progress.
-
-Also, it looks like you planned some rework related to _UID and
-resource parsing, so I've been waiting for that to show up before
-doing much more.
-
-Bjorn
+Acked-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 
 > ---
->  drivers/pci/Kconfig  | 3 ++-
->  drivers/pci/ioapic.c | 6 +++++-
->  2 files changed, 7 insertions(+), 2 deletions(-)
+> Changes to v3:
+>  * Check only client ACPI_HANDLE().
+>  * Fixed bug where we attach the device to ACPI power domain multiple
+>    times.
+>  * Functions are renamed to _get_attach/_put_attach to make it clear that
+>    we do attach/detach as well.
 > 
-> diff --git a/drivers/pci/Kconfig b/drivers/pci/Kconfig
-> index 81944fb..6c9ede2 100644
-> --- a/drivers/pci/Kconfig
-> +++ b/drivers/pci/Kconfig
-> @@ -109,9 +109,10 @@ config PCI_PASID
->  	  If unsure, say N.
+>  drivers/i2c/i2c-core.c | 47 ++++++++++++++++++++++++++++++++++++++++++++++-
+>  1 file changed, 46 insertions(+), 1 deletion(-)
+> 
+> diff --git a/drivers/i2c/i2c-core.c b/drivers/i2c/i2c-core.c
+> index 29d3f04..e289b1d 100644
+> --- a/drivers/i2c/i2c-core.c
+> +++ b/drivers/i2c/i2c-core.c
+> @@ -236,6 +236,27 @@ int i2c_recover_bus(struct i2c_adapter *adap)
+>  	return adap->bus_recovery_info->recover_bus(adap);
+>  }
 >  
->  config PCI_IOAPIC
-> -	tristate "PCI IO-APIC hotplug support" if X86
-> +	bool "PCI IO-APIC hotplug support" if X86
->  	depends on PCI
->  	depends on ACPI
-> +	depends on X86_IO_APIC
->  	default !X86
->  
->  config PCI_LABEL
-> diff --git a/drivers/pci/ioapic.c b/drivers/pci/ioapic.c
-> index 1b90579..7d6b157 100644
-> --- a/drivers/pci/ioapic.c
-> +++ b/drivers/pci/ioapic.c
-> @@ -113,6 +113,10 @@ static struct pci_driver ioapic_driver = {
->  	.remove		= ioapic_remove,
->  };
->  
-> -module_pci_driver(ioapic_driver);
-> +static int __init ioapic_init(void)
+> +static void acpi_i2c_device_pm_get_attach(struct i2c_client *client,
+> +					  bool attach)
 > +{
-> +	return pci_register_driver(&ioapic_driver);
+> +	if (ACPI_HANDLE(&client->dev)) {
+> +		/* Make sure the adapter is active */
+> +		pm_runtime_get_sync(&client->adapter->dev);
+> +		if (attach)
+> +			acpi_dev_pm_attach(&client->dev, true);
+> +	}
 > +}
-> +module_init(ioapic_init);
+> +
+> +static void acpi_i2c_device_pm_put_detach(struct i2c_client *client,
+> +					  bool detach)
+> +{
+> +	if (ACPI_HANDLE(&client->dev)) {
+> +		if (detach)
+> +			acpi_dev_pm_detach(&client->dev, true);
+> +		pm_runtime_put(&client->adapter->dev);
+> +	}
+> +}
+> +
+>  static int i2c_device_probe(struct device *dev)
+>  {
+>  	struct i2c_client	*client = i2c_verify_client(dev);
+> @@ -254,11 +275,15 @@ static int i2c_device_probe(struct device *dev)
+>  					client->flags & I2C_CLIENT_WAKE);
+>  	dev_dbg(dev, "probe\n");
 >  
->  MODULE_LICENSE("GPL");
-> -- 
-> 1.8.1.4
+> +	acpi_i2c_device_pm_get_attach(client, true);
+> +
+>  	status = driver->probe(client, i2c_match_id(driver->id_table, client));
+>  	if (status) {
+>  		client->driver = NULL;
+>  		i2c_set_clientdata(client, NULL);
+>  	}
+> +
+> +	acpi_i2c_device_pm_put_detach(client, !!status);
+>  	return status;
+>  }
+>  
+> @@ -271,6 +296,8 @@ static int i2c_device_remove(struct device *dev)
+>  	if (!client || !dev->driver)
+>  		return 0;
+>  
+> +	acpi_i2c_device_pm_get_attach(client, false);
+> +
+>  	driver = to_i2c_driver(dev->driver);
+>  	if (driver->remove) {
+>  		dev_dbg(dev, "remove\n");
+> @@ -283,6 +310,8 @@ static int i2c_device_remove(struct device *dev)
+>  		client->driver = NULL;
+>  		i2c_set_clientdata(client, NULL);
+>  	}
+> +
+> +	acpi_i2c_device_pm_put_detach(client, true);
+>  	return status;
+>  }
+>  
+> @@ -294,8 +323,11 @@ static void i2c_device_shutdown(struct device *dev)
+>  	if (!client || !dev->driver)
+>  		return;
+>  	driver = to_i2c_driver(dev->driver);
+> -	if (driver->shutdown)
+> +	if (driver->shutdown) {
+> +		acpi_i2c_device_pm_get_attach(client, false);
+>  		driver->shutdown(client);
+> +		acpi_i2c_device_pm_put_detach(client, false);
+> +	}
+>  }
+>  
+>  #ifdef CONFIG_PM_SLEEP
+> @@ -1263,6 +1295,16 @@ exit_recovery:
+>  	bus_for_each_drv(&i2c_bus_type, NULL, adap, __process_new_adapter);
+>  	mutex_unlock(&core_lock);
+>  
+> +	/*
+> +	 * For ACPI enumerated controllers we must make sure that the
+> +	 * controller is powered on before its children. Runtime PM handles
+> +	 * this for us once we have enabled it for the adapter device.
+> +	 */
+> +	if (ACPI_HANDLE(adap->dev.parent)) {
+> +		pm_runtime_no_callbacks(&adap->dev);
+> +		pm_runtime_enable(&adap->dev);
+> +	}
+> +
+>  	return 0;
+>  
+>  out_list:
+> @@ -1427,6 +1469,9 @@ void i2c_del_adapter(struct i2c_adapter *adap)
+>  		return;
+>  	}
+>  
+> +	if (ACPI_HANDLE(adap->dev.parent))
+> +		pm_runtime_disable(&adap->dev);
+> +
+>  	/* Tell drivers about this removal */
+>  	mutex_lock(&core_lock);
+>  	bus_for_each_drv(&i2c_bus_type, NULL, adap,
 > 
+-- 
+I speak only for myself.
+Rafael J. Wysocki, Intel Open Source Technology Center.
