@@ -1,129 +1,150 @@
-From: Zhang Yanfei <zhangyanfei@cn.fujitsu.com>
-Subject: [PATCH -mm 0/8] Arrange hotpluggable memory as ZONE_MOVABLE
-Date: Tue, 01 Oct 2013 17:42:53 +0800
-Message-ID: <524A991D.3050005@cn.fujitsu.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
-Return-path: <owner-linux-mm@kvack.org>
-Sender: owner-linux-mm@kvack.org
-To: robert.moore@intel.com, lv.zheng@intel.com, "Rafael J . Wysocki" <rjw@sisk.pl>, Len Brown <lenb@kernel.org>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@elte.hu>, "H. Peter Anvin" <hpa@zytor.com>, Andrew Morton <akpm@linux-foundation.org>, Tejun Heo <tj@kernel.org>, Thomas Renninger <trenn@suse.de>, Yinghai Lu <yinghai@kernel.org>, Jiang Liu <jiang.liu@huawei.com>, Wen Congyang <wency@cn.fujitsu.com>, Lai Jiangshan <laijs@cn.fujitsu.com>, Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>, Taku Izumi <izumi.taku@jp.fujitsu.com>, Mel Gorman <mgorman@suse.de>, Minchan Kim <minchan@kernel.org>, "mina86@mina86.com" <mina86@mina86.com>, gong.chen@linux.intel.com, vasilis.liaskovitis@profitbricks.com, Rik van Riel <riel@redhat.com>, prarit@redhat.com, Toshi Kani <toshi.kani@>
-Cc: "x86@kernel.org" <x86@kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Linux MM <linux-mm@kvack.org>, linux-acpi@vger.kernel.org, Tang Chen <tangchen@cn.fujitsu.com>, imtangchen@gmail.com, Zhang Yanfei <zhangyanfei.yes@gmail.com>, Zhang Yanfei <zhangyanfei@cn.fujitsu.com>
+From: Mika Westerberg <mika.westerberg-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
+Subject: [PATCH v4] i2c: enable runtime PM for I2C adapter devices enumerated from ACPI
+Date: Tue,  1 Oct 2013 16:09:42 +0300
+Message-ID: <1380632982-10709-1-git-send-email-mika.westerberg@linux.intel.com>
+References: <1380552228-23329-2-git-send-email-mika.westerberg@linux.intel.com>
+Return-path: <linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1380552228-23329-2-git-send-email-mika.westerberg-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
+Sender: linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: Wolfram Sang <wsa-z923LK4zBo2bacvFa/9K2g@public.gmane.org>, rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org, Aaron Lu <aaron.lu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Lv Zheng <lv.zheng-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Mark Brown <broonie-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Kevin Hilman <khilman-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Sylwester Nawrocki <s.nawrocki-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org>, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Mika Westerberg <mika.westerberg-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-Hello guys, this is the part2 of our memory hotplug work. This part
-is based on the part1:
-    "x86, memblock: Allocate memory near kernel image before SRAT parsed"
+The ACPI specification requires the parent device to be powered on before
+any of its children. It can be only powered off when all the children are
+already off.
 
-You could refer part1 from: https://lkml.org/lkml/2013/9/24/421
+Currently whenever there is no I2C traffic going on, the I2C controller
+driver can put the device into low power state transparently to its
+children (the I2C client devices). This violates the ACPI specification
+because now the parent device is in lower power state than its children.
 
-Any comments are welcome! Thanks!
+In order to keep ACPI happy we enable runtime PM for the I2C adapter device
+if we find out that the I2C controller was in fact an ACPI device. In
+addition to that we attach the I2C client devices to the ACPI power domain
+and make sure that they are powered on when the driver ->probe() is called.
 
-[Problem]
+Non-ACPI devices are not affected by this change.
 
-The current Linux cannot migrate pages used by the kerenl because
-of the kernel direct mapping. In Linux kernel space, va = pa + PAGE_OFFSET.
-When the pa is changed, we cannot simply update the pagetable and
-keep the va unmodified. So the kernel pages are not migratable.
+This patch is based on the work by Aaron Lu and Lv Zheng.
 
-There are also some other issues will cause the kernel pages not migratable.
-For example, the physical address may be cached somewhere and will be used.
-It is not to update all the caches.
+Signed-off-by: Mika Westerberg <mika.westerberg-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
+---
+Changes to v3:
+ * Check only client ACPI_HANDLE().
+ * Fixed bug where we attach the device to ACPI power domain multiple
+   times.
+ * Functions are renamed to _get_attach/_put_attach to make it clear that
+   we do attach/detach as well.
 
-When doing memory hotplug in Linux, we first migrate all the pages in one
-memory device somewhere else, and then remove the device. But if pages are
-used by the kernel, they are not migratable. As a result, memory used by
-the kernel cannot be hot-removed.
+ drivers/i2c/i2c-core.c | 47 ++++++++++++++++++++++++++++++++++++++++++++++-
+ 1 file changed, 46 insertions(+), 1 deletion(-)
 
-Modifying the kernel direct mapping mechanism is too difficult to do. And
-it may cause the kernel performance down and unstable. So we use the following
-way to do memory hotplug.
-
-
-[What we are doing]
-
-In Linux, memory in one numa node is divided into several zones. One of the
-zones is ZONE_MOVABLE, which the kernel won't use.
-
-In order to implement memory hotplug in Linux, we are going to arrange all
-hotpluggable memory in ZONE_MOVABLE so that the kernel won't use these memory.
-
-To do this, we need ACPI's help.
-
-
-[How we do this]
-
-In ACPI, SRAT(System Resource Affinity Table) contains NUMA info. The memory
-affinities in SRAT record every memory range in the system, and also, flags
-specifying if the memory range is hotpluggable.
-(Please refer to ACPI spec 5.0 5.2.16)
-
-With the help of SRAT, we have to do the following two things to achieve our
-goal:
-
-1. When doing memory hot-add, allow the users arranging hotpluggable as
-   ZONE_MOVABLE.
-   (This has been done by the MOVABLE_NODE functionality in Linux.)
-
-2. when the system is booting, prevent bootmem allocator from allocating
-   hotpluggable memory for the kernel before the memory initialization
-   finishes.
-   (This is what we are going to do. See below.)
-
-
-[About this patch-set]
-
-In previous part's patches, we have make the kernel allocate memory near
-kernel image before SRAT parsed to avoid allocating hotpluggable memory
-for kernel. So this patch-set does the following things:
-
-1. Improve memblock to support flags, which are used to indicate different 
-   memory type.
-
-2. Mark all hotpluggable memory in memblock.memory[].
-
-3. Make the default memblock allocator skip hotpluggable memory.
-
-4. Improve "movable_node" boot option to have higher priority of movablecore
-   and kernelcore boot option.
-
-Tang Chen (7):
-  memblock, numa: Introduce flag into memblock.
-  memblock, mem_hotplug: Introduce MEMBLOCK_HOTPLUG flag to mark
-    hotpluggable regions
-  memblock: Make memblock_set_node() support different memblock_type.
-  acpi, numa, mem_hotplug: Mark hotpluggable memory in memblock
-  acpi, numa, mem_hotplug: Mark all nodes the kernel resides
-    un-hotpluggable
-  memblock, mem_hotplug: Make memblock skip hotpluggable regions by
-    default.
-  x86, numa, acpi, memory-hotplug: Make movable_node have higher
-    priority
-
-Yasuaki Ishimatsu (1):
-  x86: get pg_data_t's memory from other node
-
- arch/metag/mm/init.c           |    3 +-
- arch/metag/mm/numa.c           |    3 +-
- arch/microblaze/mm/init.c      |    3 +-
- arch/powerpc/mm/mem.c          |    2 +-
- arch/powerpc/mm/numa.c         |    8 ++-
- arch/sh/kernel/setup.c         |    4 +-
- arch/sparc/mm/init_64.c        |    5 +-
- arch/x86/kernel/setup.c        |    7 --
- arch/x86/mm/init_32.c          |    2 +-
- arch/x86/mm/init_64.c          |    2 +-
- arch/x86/mm/numa.c             |   63 +++++++++++++++++++--
- arch/x86/mm/srat.c             |   13 ++++
- include/linux/memblock.h       |   22 +++++++-
- include/linux/memory_hotplug.h |    5 ++
- mm/memblock.c                  |  124 ++++++++++++++++++++++++++++++++++------
- mm/memory_hotplug.c            |    3 +
- mm/page_alloc.c                |   30 +++++++++-
- 17 files changed, 253 insertions(+), 46 deletions(-)
-
---
-To unsubscribe, send a message with 'unsubscribe linux-mm' in
-the body to majordomo@kvack.org.  For more info on Linux MM,
-see: http://www.linux-mm.org/ .
-Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
+diff --git a/drivers/i2c/i2c-core.c b/drivers/i2c/i2c-core.c
+index 29d3f04..e289b1d 100644
+--- a/drivers/i2c/i2c-core.c
++++ b/drivers/i2c/i2c-core.c
+@@ -236,6 +236,27 @@ int i2c_recover_bus(struct i2c_adapter *adap)
+ 	return adap->bus_recovery_info->recover_bus(adap);
+ }
+ 
++static void acpi_i2c_device_pm_get_attach(struct i2c_client *client,
++					  bool attach)
++{
++	if (ACPI_HANDLE(&client->dev)) {
++		/* Make sure the adapter is active */
++		pm_runtime_get_sync(&client->adapter->dev);
++		if (attach)
++			acpi_dev_pm_attach(&client->dev, true);
++	}
++}
++
++static void acpi_i2c_device_pm_put_detach(struct i2c_client *client,
++					  bool detach)
++{
++	if (ACPI_HANDLE(&client->dev)) {
++		if (detach)
++			acpi_dev_pm_detach(&client->dev, true);
++		pm_runtime_put(&client->adapter->dev);
++	}
++}
++
+ static int i2c_device_probe(struct device *dev)
+ {
+ 	struct i2c_client	*client = i2c_verify_client(dev);
+@@ -254,11 +275,15 @@ static int i2c_device_probe(struct device *dev)
+ 					client->flags & I2C_CLIENT_WAKE);
+ 	dev_dbg(dev, "probe\n");
+ 
++	acpi_i2c_device_pm_get_attach(client, true);
++
+ 	status = driver->probe(client, i2c_match_id(driver->id_table, client));
+ 	if (status) {
+ 		client->driver = NULL;
+ 		i2c_set_clientdata(client, NULL);
+ 	}
++
++	acpi_i2c_device_pm_put_detach(client, !!status);
+ 	return status;
+ }
+ 
+@@ -271,6 +296,8 @@ static int i2c_device_remove(struct device *dev)
+ 	if (!client || !dev->driver)
+ 		return 0;
+ 
++	acpi_i2c_device_pm_get_attach(client, false);
++
+ 	driver = to_i2c_driver(dev->driver);
+ 	if (driver->remove) {
+ 		dev_dbg(dev, "remove\n");
+@@ -283,6 +310,8 @@ static int i2c_device_remove(struct device *dev)
+ 		client->driver = NULL;
+ 		i2c_set_clientdata(client, NULL);
+ 	}
++
++	acpi_i2c_device_pm_put_detach(client, true);
+ 	return status;
+ }
+ 
+@@ -294,8 +323,11 @@ static void i2c_device_shutdown(struct device *dev)
+ 	if (!client || !dev->driver)
+ 		return;
+ 	driver = to_i2c_driver(dev->driver);
+-	if (driver->shutdown)
++	if (driver->shutdown) {
++		acpi_i2c_device_pm_get_attach(client, false);
+ 		driver->shutdown(client);
++		acpi_i2c_device_pm_put_detach(client, false);
++	}
+ }
+ 
+ #ifdef CONFIG_PM_SLEEP
+@@ -1263,6 +1295,16 @@ exit_recovery:
+ 	bus_for_each_drv(&i2c_bus_type, NULL, adap, __process_new_adapter);
+ 	mutex_unlock(&core_lock);
+ 
++	/*
++	 * For ACPI enumerated controllers we must make sure that the
++	 * controller is powered on before its children. Runtime PM handles
++	 * this for us once we have enabled it for the adapter device.
++	 */
++	if (ACPI_HANDLE(adap->dev.parent)) {
++		pm_runtime_no_callbacks(&adap->dev);
++		pm_runtime_enable(&adap->dev);
++	}
++
+ 	return 0;
+ 
+ out_list:
+@@ -1427,6 +1469,9 @@ void i2c_del_adapter(struct i2c_adapter *adap)
+ 		return;
+ 	}
+ 
++	if (ACPI_HANDLE(adap->dev.parent))
++		pm_runtime_disable(&adap->dev);
++
+ 	/* Tell drivers about this removal */
+ 	mutex_lock(&core_lock);
+ 	bus_for_each_drv(&i2c_bus_type, NULL, adap,
+-- 
+1.8.4.rc3
