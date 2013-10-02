@@ -1,45 +1,34 @@
-From: Zhang Yanfei <zhangyanfei.yes@gmail.com>
-Subject: [PATCH] acpi/mem_hotplug: Use defined marco METHOD_NAME__STA
-Date: Wed, 02 Oct 2013 16:27:37 +0800
-Message-ID: <524BD8F9.2000304@gmail.com>
+From: Harald Hoyer <harald-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Subject: Re: [RESEND] Implement ACPI table overriding via initramfs
+Date: Wed, 02 Oct 2013 12:56:15 +0200
+Message-ID: <524BFBCF.9060705@redhat.com>
+References: <1380305440-63843-1-git-send-email-trenn@suse.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-pd0-f171.google.com ([209.85.192.171]:52431 "EHLO
-	mail-pd0-f171.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752902Ab3JBI16 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 2 Oct 2013 04:27:58 -0400
-Sender: linux-acpi-owner@vger.kernel.org
+Return-path: <initramfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1380305440-63843-1-git-send-email-trenn-l3A5Bk7waGM@public.gmane.org>
+Sender: initramfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Thomas Renninger <trenn-l3A5Bk7waGM@public.gmane.org>
+Cc: initramfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, konrad.wilk-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
-To: lenb@kernel.org, "Rafael J . Wysocki" <rjw@sisk.pl>
-Cc: linux-acpi@vger.kernel.org, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
 
-From: Zhang Yanfei <zhangyanfei@cn.fujitsu.com>
+On 09/27/2013 08:10 PM, Thomas Renninger wrote:
+> Modification to the first series:
+>   - Add
+>     Reviewed-by: Konrad Rzeszutek Wilk <konrad.wilk-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+>   - Add ACPI table override documentation
+> 
+> Would be great if these can get pushed in.
+> 
+> Thanks,
+> 
+>       Thomas
+> 
+> [PATCH 1/4] dracut: Generlize microcode early cpio usage
+> [PATCH 2/4] dracut: Do not create early_cpio if no suitable
+> [PATCH 3/4] dracut: Implement ACPI table overriding
+> [PATCH 4/4] dracut.conf.5.asc: Add ACPI table override and
+> 
 
-We already have predefined marco for method name "_STA', so
-using the marco instead of directly using the string.
-
-Signed-off-by: Zhang Yanfei <zhangyanfei@cn.fujitsu.com>
----
- drivers/acpi/acpi_memhotplug.c |    5 +++--
- 1 files changed, 3 insertions(+), 2 deletions(-)
-
-diff --git a/drivers/acpi/acpi_memhotplug.c b/drivers/acpi/acpi_memhotplug.c
-index 999adb5..dc0880d 100644
---- a/drivers/acpi/acpi_memhotplug.c
-+++ b/drivers/acpi/acpi_memhotplug.c
-@@ -152,8 +152,9 @@ static int acpi_memory_check_device(struct acpi_memory_device *mem_device)
- 	unsigned long long current_status;
- 
- 	/* Get device present/absent information from the _STA */
--	if (ACPI_FAILURE(acpi_evaluate_integer(mem_device->device->handle, "_STA",
--					       NULL, &current_status)))
-+	if (ACPI_FAILURE(acpi_evaluate_integer(mem_device->device->handle,
-+					       METHOD_NAME__STA, NULL,
-+					       &current_status)))
- 		return -ENODEV;
- 	/*
- 	 * Check for device status. Device should be
--- 
-1.7.1
+pushed
