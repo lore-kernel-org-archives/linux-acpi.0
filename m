@@ -1,59 +1,45 @@
-From: Peter Hurley <peter@hurleysoftware.com>
-Subject: Re: 3.12.0-rc3: Symbol license change in commit caf5c03f (ACPI: Move
- acpi_bus_get_device() from bus.c to scan.c)
-Date: Tue, 01 Oct 2013 17:21:25 -0400
-Message-ID: <524B3CD5.3030904@hurleysoftware.com>
-References: <524AFF89.4080703@hurleysoftware.com> <5459219.RfezHuQcWu@vostro.rjw.lan>
+From: Zhang Yanfei <zhangyanfei.yes@gmail.com>
+Subject: [PATCH] acpi/mem_hotplug: Use defined marco METHOD_NAME__STA
+Date: Wed, 02 Oct 2013 16:27:37 +0800
+Message-ID: <524BD8F9.2000304@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mailout32.mail01.mtsvc.net ([216.70.64.70]:33358 "EHLO
-	n23.mail01.mtsvc.net" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1751492Ab3JAVV1 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 1 Oct 2013 17:21:27 -0400
-In-Reply-To: <5459219.RfezHuQcWu@vostro.rjw.lan>
+Received: from mail-pd0-f171.google.com ([209.85.192.171]:52431 "EHLO
+	mail-pd0-f171.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752902Ab3JBI16 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 2 Oct 2013 04:27:58 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Linux kernel <linux-kernel@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>
+To: lenb@kernel.org, "Rafael J . Wysocki" <rjw@sisk.pl>
+Cc: linux-acpi@vger.kernel.org, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
 
-On 10/01/2013 05:00 PM, Rafael J. Wysocki wrote:
-> On Tuesday, October 01, 2013 12:59:53 PM Peter Hurley wrote:
->> I have no love lost for proprietary modules but changing
->> acpi_bus_get_device() symbol's license seems gratuitous considering
->> the symbol pre-dates the mainline git tree and the code is just
->> being moved from one source file to another.
->
-> Well, I didn't know whether or not any binary modules use that function in the
-> first place.
->
-> It looks like some of them do, so below is a revert of that change (that I'm
-> going to push for -rc4).
->
-> I wonder what module exactly you have in mind, though?
+From: Zhang Yanfei <zhangyanfei@cn.fujitsu.com>
 
-For 3.12, the nouveau driver wants to use MSIs by default.
-Unfortunately, some hardware which should support it doesn't.
+We already have predefined marco for method name "_STA', so
+using the marco instead of directly using the string.
 
-The binary driver recently migrated to MSIs by default as well,
-so I was testing to see if the hardware could run stably with that
-driver with MSIs on (since I don't use the binary driver, I needed to
-experiment).
+Signed-off-by: Zhang Yanfei <zhangyanfei@cn.fujitsu.com>
+---
+ drivers/acpi/acpi_memhotplug.c |    5 +++--
+ 1 files changed, 3 insertions(+), 2 deletions(-)
 
-Switching back and forth between the drivers is really error-prone;
-instead, I sacrificed an older partition/userspace, where I confirmed
-that the binary driver does run stably with MSIs -- on kernel 3.2.x.
-
-When I tried to repeat the testing on 3.12-rc2 & -rc3, I happened
-upon this change.
-
-Regards,
-Peter Hurley
-
-
-
-
-
-
-
+diff --git a/drivers/acpi/acpi_memhotplug.c b/drivers/acpi/acpi_memhotplug.c
+index 999adb5..dc0880d 100644
+--- a/drivers/acpi/acpi_memhotplug.c
++++ b/drivers/acpi/acpi_memhotplug.c
+@@ -152,8 +152,9 @@ static int acpi_memory_check_device(struct acpi_memory_device *mem_device)
+ 	unsigned long long current_status;
+ 
+ 	/* Get device present/absent information from the _STA */
+-	if (ACPI_FAILURE(acpi_evaluate_integer(mem_device->device->handle, "_STA",
+-					       NULL, &current_status)))
++	if (ACPI_FAILURE(acpi_evaluate_integer(mem_device->device->handle,
++					       METHOD_NAME__STA, NULL,
++					       &current_status)))
+ 		return -ENODEV;
+ 	/*
+ 	 * Check for device status. Device should be
+-- 
+1.7.1
