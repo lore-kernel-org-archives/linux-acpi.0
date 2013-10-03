@@ -1,81 +1,36 @@
 From: Felipe Contreras <felipe.contreras@gmail.com>
-Subject: [PATCH] acpi: update win8 OSI blacklist
-Date: Thu,  3 Oct 2013 12:13:03 -0500
-Message-ID: <1380820383-23336-1-git-send-email-felipe.contreras@gmail.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: linux-kernel@vger.kernel.org
-Cc: linux-acpi@vger.kernel.org, "Rafael J. Wysocki" <rjw@sisk.pl>, Felipe Contreras <felipe.contreras@gmail.com>
+Subject: Re: [PATCH] acpi: update win8 OSI blacklist
+Date: Thu, 3 Oct 2013 12:22:44 -0500
+Message-ID: <CAMP44s1_2VHf+FWkuQxLyYvhSRwnUwhDQTxi5YrOt-ON1OCNTQ@mail.gmail.com>
+References: <1380820383-23336-1-git-send-email-felipe.contreras@gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-la0-f51.google.com ([209.85.215.51]:51900 "EHLO
+	mail-la0-f51.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754813Ab3JCRWq (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 3 Oct 2013 13:22:46 -0400
+In-Reply-To: <1380820383-23336-1-git-send-email-felipe.contreras@gmail.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
+Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, "Rafael J. Wysocki" <rjw@sisk.pl>, Felipe Contreras <felipe.contreras@gmail.com>
 
-More people have reported they need this for their machines to work
-correctly.
+On Thu, Oct 3, 2013 at 12:13 PM, Felipe Contreras
+<felipe.contreras@gmail.com> wrote:
+> More people have reported they need this for their machines to work
+> correctly.
+>
+> https://bugzilla.kernel.org/show_bug.cgi?id=60682
 
-https://bugzilla.kernel.org/show_bug.cgi?id=60682
+Reported-by: Stefan Hellermann <bugzilla.kernel.org@the2masters.de>
+Reported-by: Benedikt Sauer <filmor@gmail.com>
+Reported-by: Erno Kuusela <erno@iki.fi>
+Reported-by: Jonathan Doman <jonathan.doman@gmail.com>
+Reported-by: Christoph Klaffl <christophklaffl@gmail.com>
+Reported-by: Jan Hendrik Nielsen <jan.hendrik.nielsen@informatik.hu-berlin.de>
 
-Signed-off-by: Felipe Contreras <felipe.contreras@gmail.com>
----
- drivers/acpi/blacklist.c | 48 ++++++++++++++++++++++++++++++++++++++++++++++++
- 1 file changed, 48 insertions(+)
+> Signed-off-by: Felipe Contreras <felipe.contreras@gmail.com>
 
-diff --git a/drivers/acpi/blacklist.c b/drivers/acpi/blacklist.c
-index 9515f18..f37dec5 100644
---- a/drivers/acpi/blacklist.c
-+++ b/drivers/acpi/blacklist.c
-@@ -297,6 +297,54 @@ static struct dmi_system_id acpi_osi_dmi_table[] __initdata = {
- 		     DMI_MATCH(DMI_PRODUCT_VERSION, "3259A2G"),
- 		},
- 	},
-+	{
-+	.callback = dmi_disable_osi_win8,
-+	.ident = "ThinkPad Edge E530",
-+	.matches = {
-+		     DMI_MATCH(DMI_SYS_VENDOR, "LENOVO"),
-+		     DMI_MATCH(DMI_PRODUCT_VERSION, "3259CTO"),
-+		},
-+	},
-+	{
-+	.callback = dmi_disable_osi_win8,
-+	.ident = "ThinkPad Edge E530",
-+	.matches = {
-+		     DMI_MATCH(DMI_SYS_VENDOR, "LENOVO"),
-+		     DMI_MATCH(DMI_PRODUCT_VERSION, "3259HJG"),
-+		},
-+	},
-+	{
-+	.callback = dmi_disable_osi_win8,
-+	.ident = "Acer Aspire V5-573G",
-+	.matches = {
-+		     DMI_MATCH(DMI_SYS_VENDOR, "Acer Aspire"),
-+		     DMI_MATCH(DMI_PRODUCT_VERSION, "V5-573G/Dazzle_HW"),
-+		},
-+	},
-+	{
-+	.callback = dmi_disable_osi_win8,
-+	.ident = "Acer Aspire V5-572G",
-+	.matches = {
-+		     DMI_MATCH(DMI_SYS_VENDOR, "Acer Aspire"),
-+		     DMI_MATCH(DMI_PRODUCT_VERSION, "V5-572G/Dazzle_CX"),
-+		},
-+	},
-+	{
-+	.callback = dmi_disable_osi_win8,
-+	.ident = "ThinkPad T431s",
-+	.matches = {
-+		     DMI_MATCH(DMI_SYS_VENDOR, "LENOVO"),
-+		     DMI_MATCH(DMI_PRODUCT_VERSION, "20AACTO1WW"),
-+		},
-+	},
-+	{
-+	.callback = dmi_disable_osi_win8,
-+	.ident = "ThinkPad T430",
-+	.matches = {
-+		     DMI_MATCH(DMI_SYS_VENDOR, "LENOVO"),
-+		     DMI_MATCH(DMI_PRODUCT_VERSION, "2349D15"),
-+		},
-+	},
- 
- 	/*
- 	 * BIOS invocation of _OSI(Linux) is almost always a BIOS bug.
 -- 
-1.8.4-fc
+Felipe Contreras
