@@ -1,67 +1,81 @@
-From: Liam Girdwood <liam.r.girdwood@intel.com>
-Subject: Re: [alsa-devel] [RFC] ASoC: core: Allow DAI links to be specified
- by using ACPI names
-Date: Thu, 03 Oct 2013 17:56:06 +0100
-Message-ID: <1380819366.2517.6.camel@loki>
-References: <1380803636-24079-1-git-send-email-jarkko.nikula@linux.intel.com>
-	 <20131003133729.GR27287@sirena.org.uk> <524D7DB5.1010608@linux.intel.com>
-	 <20131003152942.GI16684@intel.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga02.intel.com ([134.134.136.20]:15484 "EHLO mga02.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754013Ab3JCQ4R (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 3 Oct 2013 12:56:17 -0400
-In-Reply-To: <20131003152942.GI16684@intel.com>
-Sender: linux-acpi-owner@vger.kernel.org
+From: Felipe Contreras <felipe.contreras@gmail.com>
+Subject: [PATCH] acpi: update win8 OSI blacklist
+Date: Thu,  3 Oct 2013 12:13:03 -0500
+Message-ID: <1380820383-23336-1-git-send-email-felipe.contreras@gmail.com>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: linux-kernel@vger.kernel.org
+Cc: linux-acpi@vger.kernel.org, "Rafael J. Wysocki" <rjw@sisk.pl>, Felipe Contreras <felipe.contreras@gmail.com>
 List-Id: linux-acpi@vger.kernel.org
-To: Vinod Koul <vinod.koul@intel.com>
-Cc: Jarkko Nikula <jarkko.nikula@linux.jf.intel.com>, linux-acpi@vger.kernel.org, alsa-devel@alsa-project.org, Mark Brown <broonie@kernel.org>, Liam Girdwood <lgirdwood@gmail.com>, Mika Westerberg <mika.westerberg@linux.jf.intel.com>
 
-T24gVGh1LCAyMDEzLTEwLTAzIGF0IDIwOjU5ICswNTMwLCBWaW5vZCBLb3VsIHdyb3RlOgo+IE9u
-IFRodSwgT2N0IDAzLCAyMDEzIGF0IDA1OjIyOjQ1UE0gKzAzMDAsIEphcmtrbyBOaWt1bGEgd3Jv
-dGU6Cj4gPiBPbiAxMC8wMy8yMDEzIDA0OjM3IFBNLCBNYXJrIEJyb3duIHdyb3RlOgo+ID4gPk9u
-IFRodSwgT2N0IDAzLCAyMDEzIGF0IDAzOjMzOjU2UE0gKzAzMDAsIEphcmtrbyBOaWt1bGEgd3Jv
-dGU6Cj4gPiA+Cj4gPiA+PkZvciBpbnN0YW5jZSwgbWF0Y2hpbmUgZHJpdmVycyBjb3VsZCBzcGVj
-aWZ5IGNvZGVjIGluIERBSSBsaW5rIGJ5IHVzaW5nOgo+ID4gPj4JLmNvZGVjX25hbWUgPSAiSU5U
-MzNDQTowMCIsCj4gPiA+Pmluc3RlYWQgb2YKPiA+ID4+CS5jb2RlY19uYW1lID0gInJ0NTY0MC4w
-LTAwMWMiLAo+ID4gPj5Ob3RlIHRoYXQgQUNQSSBuYW1lIGlzIHVzZWQganVzdCBhbiBhbGlhcyBk
-dXJpbmcgYmluZCB0aW1lIGFuZCBjb3JlCj4gPiA+PmNvbnRpbnVlcyB0byB1c2UgZGV2aWNlIG5h
-bWUuIEluIGZhY3QsIG1hY2hpbmUgZHJpdmVycyBjb3VsZCB1c2UgZWl0aGVyCj4gPiA+Pm5hbWVz
-Lgo+ID4gPlRoaXMgaXMgbWFraW5nIG1lIHdvbmRlciBpZiB3ZSBzaG91bGRuJ3QgYmUgdGFraW5n
-IHRoZSBzdGFibGUgbmFtZXMgd2UKPiA+ID5nZXQgZnJvbSBBQ1BJIGFzIHRoZSBkZXZfbmFtZSgp
-IGluc3RlYWQgb2Ygb3VyIGludGVybmFsIG9uZXMgb24gQUNQSQo+ID4gPnN5c3RlbXMgKGFuZCBw
-b3NzaWJseSBzb21ldGhpbmcgc2ltaWxhciBvbiBEVCkgcmF0aGVyIHRoYW4gYWRkaW5nIGN1c3Rv
-bQo+ID4gPmNvZGUgbGlrZSB0aGlzLgo+ID4gVGhpcyBpcyBhY3R1YWxseSBzb21ld2hhdCBjb25m
-dXNpbmcgaXNzdWUuIEkgdGhpbmsgaXQncyByZWxhdGl2ZWx5Cj4gPiBlYXN5IHRvIHN3aXRjaCB1
-c2luZyBBQ1BJIG5hbWVzIHdpdGhpbiBBU29DIGNvcmUgKGJ5IG1vZGlmeWluZwo+ID4gZm10X3Np
-bmdsZV9uYW1lIG9yIHNvbWV0aGluZyBsaWtlIHRoYXQpLgo+ID4gCj4gPiBQcm9ibGVtIGlzIHRo
-YXQgZm9yIEFDUEkgZW51bWVyYXRlZCBjbGllbnQgZGV2aWNlcyB0aGUgZGV2X25hbWUoZGV2KQo+
-ID4gc3RpbGwgY29tZXMgZnJvbSB0aG9zZSBzdWJzeXN0ZW1zIGFzIGJlZm9yZS4gU28gZm9yIGlu
-c3RhbmNlIGRldl8KPiA+IHByaW50cyBpbiBjb2RlYyBkcml2ZXIgb3IgQVNvQyBjb3JlIGtlZXBz
-IHByaW50aW5nICJydDU2NDAgMC0wMDFjOiIKPiA+IGFzIGJlZm9yZSBhbmQgSSBwZXJzb25hbGx5
-IGZpbmQgaXQgYSBiaXQgbW9yZSBjb25mdXNpbmcgaWYgaW50ZXJuYWwKPiA+IEFTb0MgbmFtZXMg
-ZG9uJ3QgbWF0Y2ggYXMgZWFzaWx5IHdpdGggZGV2XyBwcmludHMuCj4gPiAKPiA+IEJ1dCB5ZXMs
-IEkgYWdyZWUuIFRoaXMgYWxpYXMgbmFtZSBpbiBEQUkgbGluayBpcyBub3QgdGhhdCBjbGVhcgo+
-ID4gZWl0aGVyIGFzIGl0IGV4aXN0cyBvbmx5IGR1cmluZyBiaW5kIHRpbWUuCj4gU29ycnkgYW0g
-dmVyeSBpZ25vcmFudCBhYm91dCBBQ1BJLCBidXQgY2FudCByZXNpc3QgYXNraW5nIHdoeSBzaG91
-bGQgQUNQSQo+IGFsbG9jYXRlIHNvbWUgaW50ZXJuYWwgbmFtZSBhbmQgdGhlbiB3ZSBnbyBhYm91
-dCBmaWd1cmluZyB0aGUgYnVzLCBzbGF2ZSBhbmQKPiBjb2RlYy4gV291bGRuJ3QgaXQgbWFrZSBz
-ZW5zZSB0byBqdXN0IGdldCAicnQ1NjQwLjAtMDAxYyIgYXMgZGV2aWNlIGZyb20gQUNQSQo+IGFu
-ZCB1c2UgaXQuCj4gCgpXZSBoYXZlIHRoZSBzaXR1YXRpb24gd2hlcmVieSBzb21lIEJJT1Mgc2V0
-dGluZ3MgY2FuIGFsdGVyIHRoZSBJMkMgYnVzCm51bWJlciB1c2VkIGJ5IHRoZSBjb2RlYy4gaS5l
-LiBtYXRjaGluZyBmYWlsIG9uICJydDU2NDAuMC0wMDFjIiBidXQKd291bGQgc3VjY2VlZCBvbiAi
-cnQ1NjQwLjctMDAxYyIuCgpNb3ZpbmcgdGhpcyB0byBhbHNvIHN1cHBvcnQgQUNQSSBuYW1lcyB3
-b3VsZCBiZSBhIGJvbnVzIHNpbmNlIHdlIHdvdWxkCm9ubHkgbmVlZCB0byBtYXRjaCBvbiB0aGUg
-c3RhdGljIEFDUEkgZGV2aWNlIG5hbWUuCgpMaWFtCgotLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
-LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0KSW50ZWwgQ29ycG9y
-YXRpb24gKFVLKSBMaW1pdGVkClJlZ2lzdGVyZWQgTm8uIDExMzQ5NDUgKEVuZ2xhbmQpClJlZ2lz
-dGVyZWQgT2ZmaWNlOiBQaXBlcnMgV2F5LCBTd2luZG9uIFNOMyAxUkoKVkFUIE5vOiA4NjAgMjE3
-MyA0NwoKVGhpcyBlLW1haWwgYW5kIGFueSBhdHRhY2htZW50cyBtYXkgY29udGFpbiBjb25maWRl
-bnRpYWwgbWF0ZXJpYWwgZm9yCnRoZSBzb2xlIHVzZSBvZiB0aGUgaW50ZW5kZWQgcmVjaXBpZW50
-KHMpLiBBbnkgcmV2aWV3IG9yIGRpc3RyaWJ1dGlvbgpieSBvdGhlcnMgaXMgc3RyaWN0bHkgcHJv
-aGliaXRlZC4gSWYgeW91IGFyZSBub3QgdGhlIGludGVuZGVkCnJlY2lwaWVudCwgcGxlYXNlIGNv
-bnRhY3QgdGhlIHNlbmRlciBhbmQgZGVsZXRlIGFsbCBjb3BpZXMuCg==
+More people have reported they need this for their machines to work
+correctly.
 
+https://bugzilla.kernel.org/show_bug.cgi?id=60682
+
+Signed-off-by: Felipe Contreras <felipe.contreras@gmail.com>
+---
+ drivers/acpi/blacklist.c | 48 ++++++++++++++++++++++++++++++++++++++++++++++++
+ 1 file changed, 48 insertions(+)
+
+diff --git a/drivers/acpi/blacklist.c b/drivers/acpi/blacklist.c
+index 9515f18..f37dec5 100644
+--- a/drivers/acpi/blacklist.c
++++ b/drivers/acpi/blacklist.c
+@@ -297,6 +297,54 @@ static struct dmi_system_id acpi_osi_dmi_table[] __initdata = {
+ 		     DMI_MATCH(DMI_PRODUCT_VERSION, "3259A2G"),
+ 		},
+ 	},
++	{
++	.callback = dmi_disable_osi_win8,
++	.ident = "ThinkPad Edge E530",
++	.matches = {
++		     DMI_MATCH(DMI_SYS_VENDOR, "LENOVO"),
++		     DMI_MATCH(DMI_PRODUCT_VERSION, "3259CTO"),
++		},
++	},
++	{
++	.callback = dmi_disable_osi_win8,
++	.ident = "ThinkPad Edge E530",
++	.matches = {
++		     DMI_MATCH(DMI_SYS_VENDOR, "LENOVO"),
++		     DMI_MATCH(DMI_PRODUCT_VERSION, "3259HJG"),
++		},
++	},
++	{
++	.callback = dmi_disable_osi_win8,
++	.ident = "Acer Aspire V5-573G",
++	.matches = {
++		     DMI_MATCH(DMI_SYS_VENDOR, "Acer Aspire"),
++		     DMI_MATCH(DMI_PRODUCT_VERSION, "V5-573G/Dazzle_HW"),
++		},
++	},
++	{
++	.callback = dmi_disable_osi_win8,
++	.ident = "Acer Aspire V5-572G",
++	.matches = {
++		     DMI_MATCH(DMI_SYS_VENDOR, "Acer Aspire"),
++		     DMI_MATCH(DMI_PRODUCT_VERSION, "V5-572G/Dazzle_CX"),
++		},
++	},
++	{
++	.callback = dmi_disable_osi_win8,
++	.ident = "ThinkPad T431s",
++	.matches = {
++		     DMI_MATCH(DMI_SYS_VENDOR, "LENOVO"),
++		     DMI_MATCH(DMI_PRODUCT_VERSION, "20AACTO1WW"),
++		},
++	},
++	{
++	.callback = dmi_disable_osi_win8,
++	.ident = "ThinkPad T430",
++	.matches = {
++		     DMI_MATCH(DMI_SYS_VENDOR, "LENOVO"),
++		     DMI_MATCH(DMI_PRODUCT_VERSION, "2349D15"),
++		},
++	},
+ 
+ 	/*
+ 	 * BIOS invocation of _OSI(Linux) is almost always a BIOS bug.
+-- 
+1.8.4-fc
