@@ -1,34 +1,28 @@
-From: Jarkko Nikula <jarkko.nikula@linux.intel.com>
-Subject: Re: [RFC] ASoC: core: Allow DAI links to be specified by using ACPI
- names
-Date: Fri, 04 Oct 2013 10:38:10 +0300
-Message-ID: <524E7062.10405@linux.intel.com>
-References: <1380803636-24079-1-git-send-email-jarkko.nikula@linux.intel.com> <20131003161929.GA27287@sirena.org.uk> <524E600B.4070202@linux.intel.com> <1674991.zl8kYFEb4V@vostro.rjw.lan>
+From: Matthew Garrett <mjg59@srcf.ucam.org>
+Subject: Re: [PATCH] acpi: update win8 OSI blacklist
+Date: Fri, 4 Oct 2013 17:12:26 +0100
+Message-ID: <20131004161226.GA22784@srcf.ucam.org>
+References: <1380820383-23336-1-git-send-email-felipe.contreras@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga11.intel.com ([192.55.52.93]:11118 "EHLO mga11.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750842Ab3JDHiN (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 4 Oct 2013 03:38:13 -0400
-In-Reply-To: <1674991.zl8kYFEb4V@vostro.rjw.lan>
+Received: from cavan.codon.org.uk ([93.93.128.6]:36543 "EHLO
+	cavan.codon.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754515Ab3JDQMf (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 4 Oct 2013 12:12:35 -0400
+Content-Disposition: inline
+In-Reply-To: <1380820383-23336-1-git-send-email-felipe.contreras@gmail.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: Mark Brown <broonie@kernel.org>, alsa-devel@alsa-project.org, linux-acpi@vger.kernel.org, Liam Girdwood <lgirdwood@gmail.com>, Mika Westerberg <mika.westerberg@linux.intel.com>
+To: Felipe Contreras <felipe.contreras@gmail.com>
+Cc: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, "Rafael J. Wysocki" <rjw@sisk.pl>
 
-On 10/04/2013 09:55 AM, Rafael J. Wysocki wrote:
-> You're misreading my suggestion.  What I'm saying is that it seems like
-> it might be useful to have dev_name() return the ACPI name - this would
-> mean that everything, including all the dev_ prints, would use the same
-> name which would then become stable and tied to hardware.
->> I see. Indeed, this sounds a better idea. At quick look is even more simple.
-> Well, this is slightly ambiguous.  What exactly do you mean by "ACPI names"?
->
-Ah, yes. What I meant as ACPI name was the <bus_id:instance> based ACPI 
-device name/object (or what is the correct terminology), not the 
-hardware ID.
+On Thu, Oct 03, 2013 at 12:13:03PM -0500, Felipe Contreras wrote:
+> More people have reported they need this for their machines to work
+> correctly.
+
+Can you add a comment to each indicating why they're being added so we 
+can easily remove them again once the problem is fixed?
 
 -- 
-Jarkko
+Matthew Garrett | mjg59@srcf.ucam.org
