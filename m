@@ -1,112 +1,68 @@
-From: Ben Hutchings <ben@decadent.org.uk>
-Subject: Re: [050/121] ACPI / battery: Fix parsing _BIX return value
-Date: Sun, 06 Oct 2013 23:21:07 +0100
-Message-ID: <1381098067.2788.37.camel@deadeye.wl.decadent.org.uk>
-References: <18659783.iZRLPaKV6J@aoki>
+From: Toshi Kani <toshi.kani@hp.com>
+Subject: Re: [PATCH part1 v6 update 6/6] mem-hotplug: Introduce movable_node
+ boot option
+Date: Sun, 06 Oct 2013 17:03:03 -0600
+Message-ID: <1381100583.5429.96.camel@misato.fc.hp.com>
+References: <524E2032.4020106@gmail.com> <524E21BC.7090104@gmail.com>
+	 <1381012134.5429.86.camel@misato.fc.hp.com> <5251772A.2050509@gmail.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg="pgp-sha512";
-	protocol="application/pgp-signature"; boundary="=-QYcG7JiRLbUdHX3XyR9X"
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from shadbolt.e.decadent.org.uk ([88.96.1.126]:51466 "EHLO
-	shadbolt.e.decadent.org.uk" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754664Ab3JFWVT (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sun, 6 Oct 2013 18:21:19 -0400
-In-Reply-To: <18659783.iZRLPaKV6J@aoki>
-Sender: linux-acpi-owner@vger.kernel.org
-List-Id: linux-acpi@vger.kernel.org
-To: Francisco Castro <fcr@adinet.com.uy>
-Cc: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Lan Tianyu <tianyu.lan@intel.com>, linux-acpi@vger.kernel.org
-
-
---=-QYcG7JiRLbUdHX3XyR9X
 Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+Content-Transfer-Encoding: 7bit
+Return-path: <owner-linux-mm@kvack.org>
+In-Reply-To: <5251772A.2050509@gmail.com>
+Sender: owner-linux-mm@kvack.org
+To: Zhang Yanfei <zhangyanfei.yes@gmail.com>
+Cc: Andrew Morton <akpm@linux-foundation.org>, "Rafael J . Wysocki" <rjw@sisk.pl>, "lenb@kernel.org" <lenb@kernel.org>, Thomas Gleixner <tglx@linutronix.de>, "mingo@elte.hu" <mingo@elte.hu>, "H. Peter Anvin" <hpa@zytor.com>, Tejun Heo <tj@kernel.org>, Wanpeng Li <liwanp@linux.vnet.ibm.com>, Thomas Renninger <trenn@suse.de>, Yinghai Lu <yinghai@kernel.org>, Jiang Liu <jiang.liu@huawei.com>, Wen Congyang <wency@cn.fujitsu.com>, Lai Jiangshan <laijs@cn.fujitsu.com>, "isimatu.yasuaki@jp.fujitsu.com" <isimatu.yasuaki@jp.fujitsu.com>, "izumi.taku@jp.fujitsu.com" <izumi.taku@jp.fujitsu.com>, Mel Gorman <mgorman@suse.de>, Minchan Kim <minchan@kernel.org>, "mina86@mina86.com" <mina86@mina86.com>, "gong.chen@linux.intel.com" <gong.chen@linux.intel.com>, "vasilis.liaskovitis@profitbricks.com" <vasilis.liaskovitis@profitbricks.com>, "lwoodman@redhat.com" <lwoodman@redhat.com>, Rik
+List-Id: linux-acpi@vger.kernel.org
 
-On Tue, 2013-10-01 at 01:01 -0300, Francisco Castro wrote:
-> From: Ben Hutchings <ben@decadent.org.uk>
-> > 3.2.51-rc1 review patch.  If anyone has any objections, please let me k=
-now.
-> >=20
-> > ------------------
-> > From: Lan Tianyu <tianyu.lan@intel.com>
-> >=20
-> > commit 016d5baad04269e8559332df05f89bd95b52d6ad upstream.
-> >=20
-> > The _BIX method returns extended battery info as a package.
-> > According the ACPI spec (ACPI 5, Section 10.2.2.2), the first member
-> > of that package should be "Revision".  However, the current ACPI
-> > battery driver treats the first member as "Power Unit" which should
-> > be the second member.  This causes the result of _BIX return data
-> > parsing to be incorrect.
-> >=20
-> > Fix this by adding a new member called 'revision' to struct
-> > acpi_battery and adding the offsetof() information on it to
-> > extended_info_offsets[] as the first row.
-[...]
-> Hello,
->=20
-> Before anything, sorry for my broken english, and thank you all for readi=
-ng my=20
-> mail.
->=20
-> I noticed this patch, since it happened to be added recently to the stand=
-ard=20
-> ubuntu kernel 3.8.0.31; and these two lines makes the battery module fail=
- with=20
-> laptop (a NEC LZ750/LS) which previously worked. After removing these two=
-=20
-> lines and recompiling, it worked again.
->=20
-> The lines that dmesg is now showing, are:
->=20
-> [    2.272970] ACPI Warning: For \_SB_.PCI0.LPCB.EC__.BAT1._BIX: Return=
-=20
-> Package is too small - found 19 elements, expected 20 (20121018/nspredef-=
-679)
-> [    2.272985] battery: probe of PNP0C0A:00 failed with error -14
->=20
-> I believe a new (working) patch is needed, since this breaks compatibilit=
-y=20
-> with hardware that's somewhat new, and still on sale. I hope this mail is=
- not=20
-> too late, and this can be fixed.
+On Sun, 2013-10-06 at 14:43 +0000, Zhang Yanfei wrote:
+> From: Tang Chen <tangchen@cn.fujitsu.com>
+> 
+> The hot-Pluggable field in SRAT specifies which memory is hotpluggable.
+> As we mentioned before, if hotpluggable memory is used by the kernel,
+> it cannot be hot-removed. So memory hotplug users may want to set all
+> hotpluggable memory in ZONE_MOVABLE so that the kernel won't use it.
+> 
+> Memory hotplug users may also set a node as movable node, which has
+> ZONE_MOVABLE only, so that the whole node can be hot-removed.
+> 
+> But the kernel cannot use memory in ZONE_MOVABLE. By doing this, the
+> kernel cannot use memory in movable nodes. This will cause NUMA
+> performance down. And other users may be unhappy.
+> 
+> So we need a way to allow users to enable and disable this functionality.
+> In this patch, we introduce movable_node boot option to allow users to
+> choose to not to consume hotpluggable memory at early boot time and
+> later we can set it as ZONE_MOVABLE.
+> 
+> To achieve this, the movable_node boot option will control the memblock
+> allocation direction. That said, after memblock is ready, before SRAT is
+> parsed, we should allocate memory near the kernel image as we explained
+> in the previous patches. So if movable_node boot option is set, the kernel
+> does the following:
+> 
+> 1. After memblock is ready, make memblock allocate memory bottom up.
+> 2. After SRAT is parsed, make memblock behave as default, allocate memory
+>    top down.
+> 
+> Users can specify "movable_node" in kernel commandline to enable this
+> functionality. For those who don't use memory hotplug or who don't want
+> to lose their NUMA performance, just don't specify anything. The kernel
+> will work as before.
+> 
+> Suggested-by: Kamezawa Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+> Acked-by: Tejun Heo <tj@kernel.org>
+> Signed-off-by: Tang Chen <tangchen@cn.fujitsu.com>
+> Signed-off-by: Zhang Yanfei <zhangyanfei@cn.fujitsu.com>
 
-You should report this to the Ubuntu kernel maintainers via Launchpad so
-they can make a decision whether to revert this change in their packaged
-kernel.
+Thanks for the quick update.
 
-Hopefully Lan Tianyu and other ACPI developers will work out how to fix
-this completely and then that fix can go into later stable updates.
+Acked-by: Toshi Kani <toshi.kani@hp.com>
 
-I only look after the stable 3.2.y branch, so there's little I can do to
-help you beyond this.
+-Toshi
 
-Ben.
-
---=20
-Ben Hutchings
-Who are all these weirdos? - David Bowie, reading IRC for the first time
-
---=-QYcG7JiRLbUdHX3XyR9X
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: This is a digitally signed message part
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.14 (GNU/Linux)
-
-iQIVAwUAUlHiU+e/yOyVhhEJAQoDZA//V8XBn1uG5oJSCy1WjYInFhPActqG9YJ9
-S5NuipuFq19jNSChme8zb02wuzqPtAOew5ZvclcFbtMOGKrobWYM3IIV9J2ACfsz
-mnUZcy9a+WbcY47t7JKT28qIX6yybMrvpR1UU921MigDCVKlx1xOiBhpx/UvZRnr
-v88+voOMnAdkdIlXtGPPbxKle9zSuUldAZAMsY8VQZXxLOi4kVlI6QC8isKfR4ZS
-OvXIhcVyn1unAZ/zG25Pa43c0FbRO7RMjTebr5gHLnOcGzPVEmO3uL19N3pKljnJ
-J8KrL0TNplCD33aKPr1a3Yh0tzvcGc/o3GMoLLsARdQ0SyQWJGCVYDOVyJNgbSC/
-HDgaWFj9cvInXYYMwqU7TxlRP/0X7qMi/mZS8X6t2uhTZV7IWGyJrbC3OF7T8Xyc
-9ZKmvTyMMJXdANPtb6ba4g/GWuY0DHPxpZTpD8cR9mKLpwX/MjfGOyKdgUYbCZX7
-6l8CaZfQy4sbiOBu31ashLotBfwdyAwoVczgbDNTjnXtnPb7PvS7PpCydHkelj+G
-IQ1rTeKygOA8NVtG2uDYMe3eO11mDQSq3ON0hQIWzNq/dFJBBQ0aD9W0ScJzngMV
-3uhcZ0lhISs+rY2fL0Uc7mmr8Oj7uc1k5T3y7rnt/x8KP26SkHm0qvDq0rx3raQQ
-A6xQpeFNGD8=
-=/SvY
------END PGP SIGNATURE-----
-
---=-QYcG7JiRLbUdHX3XyR9X--
+--
+To unsubscribe, send a message with 'unsubscribe linux-mm' in
+the body to majordomo@kvack.org.  For more info on Linux MM,
+see: http://www.linux-mm.org/ .
+Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
