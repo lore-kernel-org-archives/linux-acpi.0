@@ -1,50 +1,39 @@
-From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [PATCH 0/5] gpiolib: convert ACPI GPIO helpers to gpiod_ interfaces
-Date: Mon, 07 Oct 2013 14:18:56 +0200
-Message-ID: <1459866.s5LiRGpgct@vostro.rjw.lan>
-References: <1380639537-23406-1-git-send-email-mika.westerberg@linux.intel.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7Bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1380639537-23406-1-git-send-email-mika.westerberg@linux.intel.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Mika Westerberg <mika.westerberg@linux.intel.com>
-Cc: linux-gpio@vger.kernel.org, Linus Walleij <linus.walleij@linaro.org>, Grant Likely <grant.likely@secretlab.ca>, Mathias Nyman <mathias.nyman@linux.intel.com>, Alexandre Courbot <acourbot@nvidia.com>, Rob Landley <rob@landley.net>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+From: Jarkko Nikula <jarkko.nikula@linux.intel.com>
+Subject: [PATCH] ACPI / platform: Add ACPI IDs for Intel SST audio device
+Date: Mon,  7 Oct 2013 17:12:21 +0300
+Message-ID: <1381155141-703-1-git-send-email-jarkko.nikula@linux.intel.com>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mga01.intel.com ([192.55.52.88]:24161 "EHLO mga01.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753031Ab3JGONI (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 7 Oct 2013 10:13:08 -0400
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: linux-acpi@vger.kernel.org
+Cc: "Rafael J. Wysocki" <rjw@sisk.pl>, Len Brown <lenb@kernel.org>, Jarkko Nikula <jarkko.nikula@linux.intel.com>
 
-On Tuesday, October 01, 2013 05:58:52 PM Mika Westerberg wrote:
-> Hi all,
-> 
-> This series converts the ACPI GPIO helpers in gpiolib-acpi.c to use the new
-> and preferred GPIO descriptor based interface as suggested by the GPIO
-> subsystem maintainer.
-> 
-> The first patch is just a cosmetic fix to move acpi_gpiochip_free_interrupts()
-> closer to acpi_gpiochip_request_interrupts(). Patches [2-5/5] do the actual
-> conversion.
-> 
-> The series is based on the latest patches from Alexandre Courbot and I've
-> tested them on Intel Haswell based machine.
-> 
-> Please review.
-> 
-> Mika Westerberg (5):
->   gpiolib / ACPI: move acpi_gpiochip_free_interrupts next to the request function
->   gpiolib / ACPI: convert to gpiod interfaces
->   gpiolib / ACPI: add ACPI support for gpiod_get_index()
->   gpiolib / ACPI: allow passing GPIOF_ACTIVE_LOW for GpioInt resources
->   gpiolib / ACPI: document the GPIO descriptor based interface
+This adds ACPI IDs for Intel Smart Sound Technology (SST) device found in
+Intel Haswell and BayTrail platforms.
 
-The patches look good to me so
+Signed-off-by: Jarkko Nikula <jarkko.nikula@linux.intel.com>
+---
+ drivers/acpi/acpi_platform.c | 3 +++
+ 1 file changed, 3 insertions(+)
 
-Acked-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
-
-for the whole series.
-
-Thanks!
-
-
+diff --git a/drivers/acpi/acpi_platform.c b/drivers/acpi/acpi_platform.c
+index c20b02b..aa56cb0 100644
+--- a/drivers/acpi/acpi_platform.c
++++ b/drivers/acpi/acpi_platform.c
+@@ -31,6 +31,9 @@ static const struct acpi_device_id acpi_platform_device_ids[] = {
+ 	{ "PNP0D40" },
+ 	{ "ACPI0003" },
+ 	{ "VPC2004" },
++	/* Intel Smart Sound Technology */
++	{ "INT33C8" },
++	{ "80860F28" },
+ 	{ }
+ };
+ 
 -- 
-I speak only for myself.
-Rafael J. Wysocki, Intel Open Source Technology Center.
+1.8.4.rc3
+
