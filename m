@@ -1,9 +1,8 @@
 From: Felipe Contreras <felipe.contreras@gmail.com>
 Subject: Re: [PATCH] acpi: update win8 OSI blacklist
-Date: Sun, 6 Oct 2013 21:13:57 -0500
-Message-ID: <CAMP44s20+KbtZKD52oBsMsV_SA7t7u_vCFRcxzCZ9UwH-LXcYA@mail.gmail.com>
-References: <20131006205928.GA20296@srcf.ucam.org>
-	<CAMP44s33CByGsRz7vsNAoOLnbEMY+fz73NzHJq07BzSuCEGJUg@mail.gmail.com>
+Date: Sun, 6 Oct 2013 21:21:19 -0500
+Message-ID: <CAMP44s3Xrcocqe=uxYYh4Yr0LbzUoXE2iRzEKzW9bBvd7K-BJQ@mail.gmail.com>
+References: <CAMP44s33CByGsRz7vsNAoOLnbEMY+fz73NzHJq07BzSuCEGJUg@mail.gmail.com>
 	<20131006233106.GA21562@srcf.ucam.org>
 	<CAMP44s1-vCgOkE_h1ZEmCA2WiQyLTOvnis2MOjdu8kdDB39kFg@mail.gmail.com>
 	<20131006235702.GA21738@srcf.ucam.org>
@@ -13,98 +12,70 @@ References: <20131006205928.GA20296@srcf.ucam.org>
 	<20131007005355.GA22211@srcf.ucam.org>
 	<CAMP44s0jCvzrBDuiGe=q=tJyQGSGt47aAeJJyPgEtrQB_qXq1Q@mail.gmail.com>
 	<20131007012704.GA22371@srcf.ucam.org>
+	<20131007015414.GI6284@thunk.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-lb0-f171.google.com ([209.85.217.171]:64385 "EHLO
-	mail-lb0-f171.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753921Ab3JGCN7 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sun, 6 Oct 2013 22:13:59 -0400
-In-Reply-To: <20131007012704.GA22371@srcf.ucam.org>
+Received: from mail-la0-f49.google.com ([209.85.215.49]:46167 "EHLO
+	mail-la0-f49.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754260Ab3JGCVV (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sun, 6 Oct 2013 22:21:21 -0400
+In-Reply-To: <20131007015414.GI6284@thunk.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Matthew Garrett <mjg59@srcf.ucam.org>
-Cc: Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, "Rafael J. Wysocki" <rjw@sisk.pl>
+To: Theodore Ts'o <tytso@mit.edu>, Matthew Garrett <mjg59@srcf.ucam.org>, Felipe Contreras <felipe.contreras@gmail.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, "Rafael J. Wysocki" <rjw@sisk.pl>
 
-On Sun, Oct 6, 2013 at 8:27 PM, Matthew Garrett <mjg59@srcf.ucam.org> wrote:
-> On Sun, Oct 06, 2013 at 08:01:34PM -0500, Felipe Contreras wrote:
->> On Sun, Oct 6, 2013 at 7:53 PM, Matthew Garrett <mjg59@srcf.ucam.org> wrote:
->> > No, it demonstrably doesn't. The comments that do exist refer to only a
->> > subset of the entries underneath them.
+On Sun, Oct 6, 2013 at 8:54 PM, Theodore Ts'o <tytso@mit.edu> wrote:
+> On Mon, Oct 07, 2013 at 02:27:04AM +0100, Matthew Garrett wrote:
+>> > > Having a per-entry comment is significantly clearer.
+>> >
+>> > That is your opinion, it's not a demonstrable fact.
 >>
->> That's not true.
->>
->> /*
->> * BIOS invocation of _OSI(Linux) is almost always a BIOS bug.
->> * Linux ignores it, except for the machines enumerated below.
->> */
+>> Say one of the machines turns out to need the quirk for two different
+>> reasons. How do we document that? Look, how about you add the comments
+>> and I'll do a patch that adds documentation to the existing entries? I'm
+>> not asking you to make up for other people's past mistakes, I'm asking
+>> you not to perpetuate them.
 >
-> You appear to have missed the continuation of that comment directly
-> underneath which lists a subset of the devices covered by the quirks.
-
-What of it? The comment I'm referring to applies to *ALL* the entries
-below, not a subset of them. All the entries below use
-dmi_enable_osi_linux().
-
->> > Having a per-entry comment is significantly clearer.
->>
->> That is your opinion, it's not a demonstrable fact.
+> Felipe,
 >
-> Say one of the machines turns out to need the quirk for two different
-> reasons. How do we document that?
+> I have to agree with Matthew here.  Lists have a way of getting messed
+> up.  If not in the upstream kernel, can we be sure that none of the
+> distribution maintainers might not respect the ordering?
 
-  /* 0) The following... disable Windows 2012 OSI */
-  a
-  b
-  /* 1) This particular... whatever */
-  c
-  d
-  /* 2) The following... enable OSI Linux */
+That would be a problem for the distribution maintainers, wouldn't it?
+And regardless of how we document the list, they can still mess it up.
 
-Is it not clear that the comment 1) applies only to c? If it's not
-clear for you we can reorder:
+> How about doing something like this:
+>
+> /*
+>  * [1] Busted brightness controls
+>  * [2] Attempted compatibility with ancient enterprise Linux kernel causes
+>  *        20% performance regression on upstream kernels
+>  * [3] Disables video card functionaity to be bug-for-bug compatible with
+>  *      Windows after attempted hobbling in the propietary driver
+>  *      was wored around, etc.
+>  * etc.
+>  */
+>
+> Then individual entries can be annotated with comments indicating
+> [1][2], etc.
 
-  /* 0) The following... disable Windows 2012 OSI */
-  a
-  b
-  d
-  /* 1) This particular... whatever */
-  c
-  /* 2) The following... enable OSI Linux */
+That would be better than Matthew's proposal, but it would make the
+code less readable, for the same reason spaghetti code is not readable
+(you have to jump back and forth to understand what's going on).
 
-> Look, how about you add the comments
-> and I'll do a patch that adds documentation to the existing entries? I'm
-> not asking you to make up for other people's past mistakes, I'm asking
-> you not to perpetuate them.
+> That way, if someone clever decides that they want to alphabetize the
+> entries, or we have so many exceptions due to incompetent BIOS
+> programmers, and some future developers decides that he or she needs
+> to implement a binary search to speedup lookups, or some such, we
+> won't need to worry about ordering-specific semantics getting smashed.
 
-I will consider that *after* your patch lands. In the meantime I still
-maintain that a single comment is better, and I think my patch should
-land instead:
+How about we worry about hypothetical issues when they arise? (which
+is probably going to be never).
 
+Personally I think this is more than enough:
 http://article.gmane.org/gmane.linux.acpi.devel/64243
-
->> And just to be clear, you are saying that in the following code, you
->> have no idea which statements correspond to which sections. Am I
->> correct?
->
-> No, that's not what I'm saying. But I'm now going to a bar and drink
-> instead of having to justify why *clearly documenting this code* is a
-> worthwhile thing to do.
-
-This is a rhetorical trick, by "clearly documenting this code" you
-actually mean "format it in exactly the way I want". My way of
-documenting this code[1] is also clear.
-
-Ultimately it doesn't matter, because the fixes for the Intel driver
-are supposed to come soon, and this blacklist should be short-lived,
-thus this list is not going to be reordered, moved, or will have the
-need for secondary comments.
-
-Look, how about you set aside your objection to this patch so it can
-go forward and fix real issues for real users, and deal with the
-comments that are already missing anyway later?
-
-[1] http://article.gmane.org/gmane.linux.acpi.devel/64243
 
 -- 
 Felipe Contreras
