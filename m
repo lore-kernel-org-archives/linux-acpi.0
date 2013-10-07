@@ -1,81 +1,59 @@
-From: Felipe Contreras <felipe.contreras@gmail.com>
+From: Matthew Garrett <mjg59@srcf.ucam.org>
 Subject: Re: [PATCH] acpi: update win8 OSI blacklist
-Date: Sun, 6 Oct 2013 20:01:34 -0500
-Message-ID: <CAMP44s0jCvzrBDuiGe=q=tJyQGSGt47aAeJJyPgEtrQB_qXq1Q@mail.gmail.com>
-References: <20131006204518.GA20077@srcf.ucam.org>
-	<CAMP44s0GkVyw+PRYKqq7=MXFFtgUO9xCq6jTsoQV-rSRmC23yg@mail.gmail.com>
-	<20131006205928.GA20296@srcf.ucam.org>
-	<CAMP44s33CByGsRz7vsNAoOLnbEMY+fz73NzHJq07BzSuCEGJUg@mail.gmail.com>
-	<20131006233106.GA21562@srcf.ucam.org>
-	<CAMP44s1-vCgOkE_h1ZEmCA2WiQyLTOvnis2MOjdu8kdDB39kFg@mail.gmail.com>
-	<20131006235702.GA21738@srcf.ucam.org>
-	<CAMP44s3+GdeN6ZFxi6dKZ_1kyTgmgjTf4ET=pJnkSwoirZQMjw@mail.gmail.com>
-	<20131007003247.GA21999@srcf.ucam.org>
-	<CAMP44s1knbxW5C_tRSqopRLd+b2fXfuH=E3_L4EdOAUG4RMVhg@mail.gmail.com>
-	<20131007005355.GA22211@srcf.ucam.org>
+Date: Mon, 7 Oct 2013 02:27:04 +0100
+Message-ID: <20131007012704.GA22371@srcf.ucam.org>
+References: <20131006205928.GA20296@srcf.ucam.org>
+ <CAMP44s33CByGsRz7vsNAoOLnbEMY+fz73NzHJq07BzSuCEGJUg@mail.gmail.com>
+ <20131006233106.GA21562@srcf.ucam.org>
+ <CAMP44s1-vCgOkE_h1ZEmCA2WiQyLTOvnis2MOjdu8kdDB39kFg@mail.gmail.com>
+ <20131006235702.GA21738@srcf.ucam.org>
+ <CAMP44s3+GdeN6ZFxi6dKZ_1kyTgmgjTf4ET=pJnkSwoirZQMjw@mail.gmail.com>
+ <20131007003247.GA21999@srcf.ucam.org>
+ <CAMP44s1knbxW5C_tRSqopRLd+b2fXfuH=E3_L4EdOAUG4RMVhg@mail.gmail.com>
+ <20131007005355.GA22211@srcf.ucam.org>
+ <CAMP44s0jCvzrBDuiGe=q=tJyQGSGt47aAeJJyPgEtrQB_qXq1Q@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-la0-f47.google.com ([209.85.215.47]:33283 "EHLO
-	mail-la0-f47.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755049Ab3JGBBg (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sun, 6 Oct 2013 21:01:36 -0400
-In-Reply-To: <20131007005355.GA22211@srcf.ucam.org>
-Sender: linux-acpi-owner@vger.kernel.org
-List-Id: linux-acpi@vger.kernel.org
-To: Matthew Garrett <mjg59@srcf.ucam.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <CAMP44s0jCvzrBDuiGe=q=tJyQGSGt47aAeJJyPgEtrQB_qXq1Q@mail.gmail.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Felipe Contreras <felipe.contreras@gmail.com>
 Cc: Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, "Rafael J. Wysocki" <rjw@sisk.pl>
+List-Id: linux-acpi@vger.kernel.org
 
-On Sun, Oct 6, 2013 at 7:53 PM, Matthew Garrett <mjg59@srcf.ucam.org> wrote:
-> On Sun, Oct 06, 2013 at 07:50:18PM -0500, Felipe Contreras wrote:
->> On Sun, Oct 6, 2013 at 7:32 PM, Matthew Garrett <mjg59@srcf.ucam.org> wrote:
->> > I don't get the final
->> > say in whether or not this patch gets merged, but there's a decent
->> > chance that I'm going to be the one who has to remove the entries again
->> > once the backlight mess is fixed up. My life would be significantly
->> > easier if the entries are unambiguously identified in such a way that I
->> > can remove them without having to dig through git history to figure out
->> > where each came from.
->>
->> And a *single* comment on top of this group entries achieves that just
->> fine. You haven't provided a single argument as to why that wouldn't
->> be the case.
->
-> No, it demonstrably doesn't. The comments that do exist refer to only a
-> subset of the entries underneath them.
+On Sun, Oct 06, 2013 at 08:01:34PM -0500, Felipe Contreras wrote:
+> On Sun, Oct 6, 2013 at 7:53 PM, Matthew Garrett <mjg59@srcf.ucam.org> wrote:
+> > No, it demonstrably doesn't. The comments that do exist refer to only a
+> > subset of the entries underneath them.
+> 
+> That's not true.
+> 
+> /*
+> * BIOS invocation of _OSI(Linux) is almost always a BIOS bug.
+> * Linux ignores it, except for the machines enumerated below.
+> */
 
-That's not true.
+You appear to have missed the continuation of that comment directly 
+underneath which lists a subset of the devices covered by the quirks.
 
-/*
-* BIOS invocation of _OSI(Linux) is almost always a BIOS bug.
-* Linux ignores it, except for the machines enumerated below.
-*/
+> > Having a per-entry comment is significantly clearer.
+> 
+> That is your opinion, it's not a demonstrable fact.
 
-> Having a per-entry comment is significantly clearer.
+Say one of the machines turns out to need the quirk for two different 
+reasons. How do we document that? Look, how about you add the comments 
+and I'll do a patch that adds documentation to the existing entries? I'm 
+not asking you to make up for other people's past mistakes, I'm asking 
+you not to perpetuate them.
 
-That is your opinion, it's not a demonstrable fact.
+> And just to be clear, you are saying that in the following code, you
+> have no idea which statements correspond to which sections. Am I
+> correct?
 
-And just to be clear, you are saying that in the following code, you
-have no idea which statements correspond to which sections. Am I
-correct?
-
-/* section 1 */
-
-a();
-b();
-c();
-
-/* section 2 */
-
-d();
-e();
-
-/* section 3 */
-
-f();
-
-And once again, the problem with the **current** format of the list is
-orthogonal to this patch.
+No, that's not what I'm saying. But I'm now going to a bar and drink 
+instead of having to justify why *clearly documenting this code* is a 
+worthwhile thing to do.
 
 -- 
-Felipe Contreras
+Matthew Garrett | mjg59@srcf.ucam.org
