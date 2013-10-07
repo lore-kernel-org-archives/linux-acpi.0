@@ -1,81 +1,90 @@
-From: Felipe Contreras <felipe.contreras@gmail.com>
-Subject: Re: [PATCH] acpi: update win8 OSI blacklist
-Date: Sun, 6 Oct 2013 21:21:19 -0500
-Message-ID: <CAMP44s3Xrcocqe=uxYYh4Yr0LbzUoXE2iRzEKzW9bBvd7K-BJQ@mail.gmail.com>
-References: <CAMP44s33CByGsRz7vsNAoOLnbEMY+fz73NzHJq07BzSuCEGJUg@mail.gmail.com>
-	<20131006233106.GA21562@srcf.ucam.org>
-	<CAMP44s1-vCgOkE_h1ZEmCA2WiQyLTOvnis2MOjdu8kdDB39kFg@mail.gmail.com>
-	<20131006235702.GA21738@srcf.ucam.org>
-	<CAMP44s3+GdeN6ZFxi6dKZ_1kyTgmgjTf4ET=pJnkSwoirZQMjw@mail.gmail.com>
-	<20131007003247.GA21999@srcf.ucam.org>
-	<CAMP44s1knbxW5C_tRSqopRLd+b2fXfuH=E3_L4EdOAUG4RMVhg@mail.gmail.com>
-	<20131007005355.GA22211@srcf.ucam.org>
-	<CAMP44s0jCvzrBDuiGe=q=tJyQGSGt47aAeJJyPgEtrQB_qXq1Q@mail.gmail.com>
-	<20131007012704.GA22371@srcf.ucam.org>
-	<20131007015414.GI6284@thunk.org>
+From: Jean Delvare <jdelvare@suse.de>
+Subject: [PATCH] ACPICA: Silent warnings about empty body in if/else
+ statement
+Date: Mon, 7 Oct 2013 11:45:01 +0200
+Message-ID: <20131007114501.1519f7dd@endymion.delvare>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-la0-f49.google.com ([209.85.215.49]:46167 "EHLO
-	mail-la0-f49.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754260Ab3JGCVV (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sun, 6 Oct 2013 22:21:21 -0400
-In-Reply-To: <20131007015414.GI6284@thunk.org>
+Received: from cantor2.suse.de ([195.135.220.15]:37671 "EHLO mx2.suse.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752895Ab3JGJpI (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 7 Oct 2013 05:45:08 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Theodore Ts'o <tytso@mit.edu>, Matthew Garrett <mjg59@srcf.ucam.org>, Felipe Contreras <felipe.contreras@gmail.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, "Rafael J. Wysocki" <rjw@sisk.pl>
+To: linux-acpi@vger.kernel.org
+Cc: Len Brown <lenb@kernel.org>, "Rafael J. Wysocki" <rjw@sisk.pl>
 
-On Sun, Oct 6, 2013 at 8:54 PM, Theodore Ts'o <tytso@mit.edu> wrote:
-> On Mon, Oct 07, 2013 at 02:27:04AM +0100, Matthew Garrett wrote:
->> > > Having a per-entry comment is significantly clearer.
->> >
->> > That is your opinion, it's not a demonstrable fact.
->>
->> Say one of the machines turns out to need the quirk for two different
->> reasons. How do we document that? Look, how about you add the comments
->> and I'll do a patch that adds documentation to the existing entries? I'm
->> not asking you to make up for other people's past mistakes, I'm asking
->> you not to perpetuate them.
->
-> Felipe,
->
-> I have to agree with Matthew here.  Lists have a way of getting messed
-> up.  If not in the upstream kernel, can we be sure that none of the
-> distribution maintainers might not respect the ordering?
+When ACPI debugging is disabled, I see warnings like this one:
 
-That would be a problem for the distribution maintainers, wouldn't it?
-And regardless of how we document the list, they can still mess it up.
+drivers/i2c/busses/i2c-scmi.c: In function "acpi_smbus_cmi_add_cap":
+drivers/i2c/busses/i2c-scmi.c:328:39: warning: suggest braces around empty body in an "else" statement [-Wempty-body]
+drivers/i2c/busses/i2c-scmi.c:338:12: warning: suggest braces around empty body in an "else" statement [-Wempty-body]
 
-> How about doing something like this:
->
-> /*
->  * [1] Busted brightness controls
->  * [2] Attempted compatibility with ancient enterprise Linux kernel causes
->  *        20% performance regression on upstream kernels
->  * [3] Disables video card functionaity to be bug-for-bug compatible with
->  *      Windows after attempted hobbling in the propietary driver
->  *      was wored around, etc.
->  * etc.
->  */
->
-> Then individual entries can be annotated with comments indicating
-> [1][2], etc.
+It is caused by ACPI_DEBUG_PRINT (or other similar macros) to resolve
+to nothing. Make them resolve to the classic "do {} while (0)" construct
+instead when the compiler likes that, to silent all such warnings.
 
-That would be better than Matthew's proposal, but it would make the
-code less readable, for the same reason spaghetti code is not readable
-(you have to jump back and forth to understand what's going on).
+Signed-off-by: Jean Delvare <jdelvare@suse.de>
+Cc: Len Brown <lenb@kernel.org>
+Cc: "Rafael J. Wysocki" <rjw@sisk.pl>
+---
+ include/acpi/acoutput.h |   40 +++++++++++++++++++++++++---------------
+ 1 file changed, 25 insertions(+), 15 deletions(-)
 
-> That way, if someone clever decides that they want to alphabetize the
-> entries, or we have so many exceptions due to incompetent BIOS
-> programmers, and some future developers decides that he or she needs
-> to implement a binary search to speedup lookups, or some such, we
-> won't need to worry about ordering-specific semantics getting smashed.
+--- linux-3.12-rc4.orig/include/acpi/acoutput.h	2013-09-24 00:41:09.000000000 +0200
++++ linux-3.12-rc4/include/acpi/acoutput.h	2013-10-07 11:23:57.928436503 +0200
+@@ -427,22 +427,32 @@
+ /*
+  * This is the non-debug case -- make everything go away,
+  * leaving no executable debug code!
++ *
++ * Note: the ACPI_DO_WHILE0 macro is used to prevent some compilers from
++ * complaining about these constructs. On other compilers the do...while
++ * adds some extra code, so this feature is optional.
+  */
+-#define ACPI_DEBUG_PRINT(pl)
+-#define ACPI_DEBUG_PRINT_RAW(pl)
+-#define ACPI_DEBUG_EXEC(a)
+-#define ACPI_DEBUG_ONLY_MEMBERS(a)
+-#define ACPI_FUNCTION_NAME(a)
+-#define ACPI_FUNCTION_TRACE(a)
+-#define ACPI_FUNCTION_TRACE_PTR(a, b)
+-#define ACPI_FUNCTION_TRACE_U32(a, b)
+-#define ACPI_FUNCTION_TRACE_STR(a, b)
+-#define ACPI_FUNCTION_ENTRY()
+-#define ACPI_DUMP_STACK_ENTRY(a)
+-#define ACPI_DUMP_OPERANDS(a, b, c)
+-#define ACPI_DUMP_ENTRY(a, b)
+-#define ACPI_DUMP_PATHNAME(a, b, c, d)
+-#define ACPI_DUMP_BUFFER(a, b)
++#ifdef ACPI_USE_DO_WHILE_0
++#define ACPI_DO_WHILE0                  do {} while (0)
++#else
++#define ACPI_DO_WHILE0
++#endif
++
++#define ACPI_DEBUG_PRINT(pl)            ACPI_DO_WHILE0
++#define ACPI_DEBUG_PRINT_RAW(pl)        ACPI_DO_WHILE0
++#define ACPI_DEBUG_EXEC(a)              ACPI_DO_WHILE0
++#define ACPI_DEBUG_ONLY_MEMBERS(a)      ACPI_DO_WHILE0
++#define ACPI_FUNCTION_NAME(a)           ACPI_DO_WHILE0
++#define ACPI_FUNCTION_TRACE(a)          ACPI_DO_WHILE0
++#define ACPI_FUNCTION_TRACE_PTR(a, b)   ACPI_DO_WHILE0
++#define ACPI_FUNCTION_TRACE_U32(a, b)   ACPI_DO_WHILE0
++#define ACPI_FUNCTION_TRACE_STR(a, b)   ACPI_DO_WHILE0
++#define ACPI_FUNCTION_ENTRY()           ACPI_DO_WHILE0
++#define ACPI_DUMP_STACK_ENTRY(a)        ACPI_DO_WHILE0
++#define ACPI_DUMP_OPERANDS(a, b, c)     ACPI_DO_WHILE0
++#define ACPI_DUMP_ENTRY(a, b)           ACPI_DO_WHILE0
++#define ACPI_DUMP_PATHNAME(a, b, c, d)  ACPI_DO_WHILE0
++#define ACPI_DUMP_BUFFER(a, b)          ACPI_DO_WHILE0
+ #define ACPI_IS_DEBUG_ENABLED(level, component) 0
+ 
+ /* Return macros must have a return statement at the minimum */
 
-How about we worry about hypothetical issues when they arise? (which
-is probably going to be never).
-
-Personally I think this is more than enough:
-http://article.gmane.org/gmane.linux.acpi.devel/64243
 
 -- 
-Felipe Contreras
+Jean Delvare
+Suse L3
