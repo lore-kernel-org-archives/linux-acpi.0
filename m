@@ -1,104 +1,63 @@
-From: Lan Tianyu <tianyu.lan@intel.com>
-Subject: Re: [050/121] ACPI / battery: Fix parsing _BIX return value
-Date: Tue, 08 Oct 2013 13:17:42 +0800
-Message-ID: <52539576.8030706@intel.com>
-References: <18659783.iZRLPaKV6J@aoki> <1381098067.2788.37.camel@deadeye.wl.decadent.org.uk>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+From: Aaron Lu <aaron.lu@intel.com>
+Subject: [PATCH v4 0/4] Fix Win8 backlight issue
+Date: Tue,  8 Oct 2013 14:39:57 +0800
+Message-ID: <1381214401-24672-1-git-send-email-aaron.lu@intel.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga03.intel.com ([143.182.124.21]:26048 "EHLO mga03.intel.com"
+Received: from mga02.intel.com ([134.134.136.20]:12850 "EHLO mga02.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751655Ab3JHF1t (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 8 Oct 2013 01:27:49 -0400
-In-Reply-To: <1381098067.2788.37.camel@deadeye.wl.decadent.org.uk>
+	id S1754382Ab3JHGja (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 8 Oct 2013 02:39:30 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Ben Hutchings <ben@decadent.org.uk>
-Cc: Francisco Castro <fcr@adinet.com.uy>, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, linux-acpi@vger.kernel.org
+To: linux-acpi@vger.kernel.org, intel-gfx@lists.freedesktop.org, dri-devel@lists.freedesktop.org, linux-kernel@vger.kernel.org
+Cc: Daniel Vetter <daniel@ffwll.ch>, "Rafael J. Wysocki" <rjw@sisk.pl>, Matthew Garrett <matthew.garrett@nebula.com>, Seth Forshee <seth.forshee@canonical.com>, Lee Chun-Yi <joeyli.kernel@gmail.com>, Richard Purdie <rpurdie@rpsys.net>, Igor Gnatenko <i.gnatenko.brain@gmail.com>, Yves-Alexis Perez <corsac@debian.org>, Felipe Contreras <felipe.contreras@gmail.com>, Jani Nikula <jani.nikula@linux.intel.com>, Aaron Lu <aaron.lu@intel.com>, Ben Jencks <ben@bjencks.net>, Steven Newbury <steve@snewbury.org.uk>, James Hogan <james@albanarts.com>, Kamal Mostafa <kamal@canonical.com>, Joerg Platte <jplatte@naasa.net>, Kalle Valo <kvalo@adurom.com>, Martin Steigerwald <Martin@lichtvoll.de>, =?UTF-8?q?J=C3=B6rg=20Otte?= <jrg.otte@gmail.com>, Mike Galbraith <bitbucket@online.de>, platform-driver-x86@vger.kernel.org, Mika Westerberg <mika.westerberg@linux.intel.com>, Henrique
 
-On 2013=E5=B9=B410=E6=9C=8807=E6=97=A5 06:21, Ben Hutchings wrote:
-> On Tue, 2013-10-01 at 01:01 -0300, Francisco Castro wrote:
->> From: Ben Hutchings <ben@decadent.org.uk>
->>> 3.2.51-rc1 review patch.  If anyone has any objections, please let =
-me know.
->>>
->>> ------------------
->>> From: Lan Tianyu <tianyu.lan@intel.com>
->>>
->>> commit 016d5baad04269e8559332df05f89bd95b52d6ad upstream.
->>>
->>> The _BIX method returns extended battery info as a package.
->>> According the ACPI spec (ACPI 5, Section 10.2.2.2), the first membe=
-r
->>> of that package should be "Revision".  However, the current ACPI
->>> battery driver treats the first member as "Power Unit" which should
->>> be the second member.  This causes the result of _BIX return data
->>> parsing to be incorrect.
->>>
->>> Fix this by adding a new member called 'revision' to struct
->>> acpi_battery and adding the offsetof() information on it to
->>> extended_info_offsets[] as the first row.
-> [...]
->> Hello,
->>
->> Before anything, sorry for my broken english, and thank you all for =
-reading my=20
->> mail.
->>
->> I noticed this patch, since it happened to be added recently to the =
-standard=20
->> ubuntu kernel 3.8.0.31; and these two lines makes the battery module=
- fail with=20
->> laptop (a NEC LZ750/LS) which previously worked. After removing thes=
-e two=20
->> lines and recompiling, it worked again.
->>
->> The lines that dmesg is now showing, are:
->>
->> [    2.272970] ACPI Warning: For \_SB_.PCI0.LPCB.EC__.BAT1._BIX: Ret=
-urn=20
->> Package is too small - found 19 elements, expected 20 (20121018/nspr=
-edef-679)
->> [    2.272985] battery: probe of PNP0C0A:00 failed with error -14
->>
->> I believe a new (working) patch is needed, since this breaks compati=
-bility=20
->> with hardware that's somewhat new, and still on sale. I hope this ma=
-il is not=20
->> too late, and this can be fixed.
->=20
-> You should report this to the Ubuntu kernel maintainers via Launchpad=
- so
-> they can make a decision whether to revert this change in their packa=
-ged
-> kernel.
->=20
-> Hopefully Lan Tianyu and other ACPI developers will work out how to f=
-ix
-> this completely and then that fix can go into later stable updates.
+v4:
+Remove decleration and stub for acpi_video_unregister_backlight in
+video.h of patch 2/4 since that function doesn't exist anymore in v3.
 
-Sorry for later response. Just come back from vacation.
+v3:
+1 Add a new patch 4/4 to fix some problems in thinkpad-acpi module;
+2 Remove unnecessary function acpi_video_unregister_backlight introduced
+  in patch 2/4 as pointed out by Jani Nikula.
 
-=46rancisco, please attach the output of acpidump on your machine to
-bugzilla. Thanks.
+v2:
+v1 has the subject of "Rework ACPI video driver" and is posted here:
+http://lkml.org/lkml/2013/9/9/74
+Since the objective is really to fix Win8 backlight issues, I changed
+the subject in this version, sorry about that.
 
-https://bugzilla.kernel.org/show_bug.cgi?id=3D60519
+This patchset has four patches, the first introduced a new API named
+backlight_device_registered in backlight layer that can be used for
+backlight interface provider module to check if a specific type backlight
+interface has been registered, see changelog for patch 1/4 for details.
+Then patch 2/4 does the cleanup to sepeate the backlight control and
+event delivery functionality in the ACPI video module and patch 3/4
+solves some Win8 backlight control problems by avoiding register ACPI
+video's backlight interface if:
+1 Kernel cmdline option acpi_backlight=video is not given;
+2 This is a Win8 system;
+3 Native backlight control interface exists.
+Patch 4/4 fixes some problems in thinkpad-acpi module.
 
->=20
-> I only look after the stable 3.2.y branch, so there's little I can do=
- to
-> help you beyond this.
->=20
-> Ben.
->=20
+Technically, patch 2/4 is not required to fix the issue here. So if you
+think it is not necessary, I can remove it from the series.
 
+Aaron Lu (4):
+  backlight: introduce backlight_device_registered
+  ACPI / video: seperate backlight control and event interface
+  ACPI / video: Do not register backlight if win8 and native interface
+    exists
+  thinkpad-acpi: fix handle locate for video and query of _BCL
 
---=20
-Best regards
-Tianyu Lan
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+ drivers/acpi/internal.h              |   5 +-
+ drivers/acpi/video.c                 | 442 ++++++++++++++++++++---------------
+ drivers/acpi/video_detect.c          |  14 +-
+ drivers/platform/x86/thinkpad_acpi.c |  31 ++-
+ drivers/video/backlight/backlight.c  |  31 +++
+ include/linux/backlight.h            |   4 +
+ 6 files changed, 322 insertions(+), 205 deletions(-)
+
+-- 
+1.8.4.12.g2ea3df6
+
