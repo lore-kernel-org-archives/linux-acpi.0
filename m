@@ -1,107 +1,104 @@
-From: Alexandre Courbot <gnurou@gmail.com>
-Subject: Re: [PATCH 2/5] gpiolib / ACPI: convert to gpiod interfaces
-Date: Mon, 7 Oct 2013 21:54:13 -0700
-Message-ID: <CAAVeFuJZ3TwozZzpuHcYPDLjEsb2D_qvQADf85s3-eywYYHs8A@mail.gmail.com>
-References: <1380639537-23406-1-git-send-email-mika.westerberg@linux.intel.com>
- <1380639537-23406-3-git-send-email-mika.westerberg@linux.intel.com>
+From: Lan Tianyu <tianyu.lan@intel.com>
+Subject: Re: [050/121] ACPI / battery: Fix parsing _BIX return value
+Date: Tue, 08 Oct 2013 13:17:42 +0800
+Message-ID: <52539576.8030706@intel.com>
+References: <18659783.iZRLPaKV6J@aoki> <1381098067.2788.37.camel@deadeye.wl.decadent.org.uk>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-gpio-owner@vger.kernel.org>
-In-Reply-To: <1380639537-23406-3-git-send-email-mika.westerberg@linux.intel.com>
-Sender: linux-gpio-owner@vger.kernel.org
-To: Mika Westerberg <mika.westerberg@linux.intel.com>
-Cc: "linux-gpio@vger.kernel.org" <linux-gpio@vger.kernel.org>, rjw@rjwysocki.net, Linus Walleij <linus.walleij@linaro.org>, Grant Likely <grant.likely@secretlab.ca>, Mathias Nyman <mathias.nyman@linux.intel.com>, Alexandre Courbot <acourbot@nvidia.com>, Rob Landley <rob@landley.net>, linux-acpi@vger.kernel.org, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mga03.intel.com ([143.182.124.21]:26048 "EHLO mga03.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751655Ab3JHF1t (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 8 Oct 2013 01:27:49 -0400
+In-Reply-To: <1381098067.2788.37.camel@deadeye.wl.decadent.org.uk>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Ben Hutchings <ben@decadent.org.uk>
+Cc: Francisco Castro <fcr@adinet.com.uy>, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, linux-acpi@vger.kernel.org
 
-On Tue, Oct 1, 2013 at 7:58 AM, Mika Westerberg
-<mika.westerberg@linux.intel.com> wrote:
-> The new GPIO descriptor based interface is now preferred over the old
-> integer based one. This patch converts the ACPI GPIO helpers to use this
-> new interface internally. In addition to that provide compatibility
-> functions acpi_get_gpio() and acpi_get_gpio_by_index() that convert the
-> returned GPIO descriptors to integers.
->
-> Signed-off-by: Mika Westerberg <mika.westerberg@linux.intel.com>
-> ---
->  drivers/gpio/gpiolib-acpi.c | 51 +++++++++++++++++++++------------------------
->  include/linux/acpi_gpio.h   | 38 ++++++++++++++++++++++++++-------
->  2 files changed, 54 insertions(+), 35 deletions(-)
->
-> diff --git a/drivers/gpio/gpiolib-acpi.c b/drivers/gpio/gpiolib-acpi.c
-> index 1745ce5..333297c 100644
-> --- a/drivers/gpio/gpiolib-acpi.c
-> +++ b/drivers/gpio/gpiolib-acpi.c
-> @@ -11,7 +11,7 @@
->   */
->
->  #include <linux/errno.h>
-> -#include <linux/gpio.h>
-> +#include <linux/gpio/consumer.h>
->  #include <linux/export.h>
->  #include <linux/acpi_gpio.h>
->  #include <linux/acpi.h>
-> @@ -33,14 +33,15 @@ static int acpi_gpiochip_find(struct gpio_chip *gc, void *data)
->  }
->
->  /**
-> - * acpi_get_gpio() - Translate ACPI GPIO pin to GPIO number usable with GPIO API
-> + * acpi_get_gpiod() - Translate ACPI GPIO pin to GPIO descriptor usable with GPIO API
->   * @path:      ACPI GPIO controller full path name, (e.g. "\\_SB.GPO1")
->   * @pin:       ACPI GPIO pin number (0-based, controller-relative)
->   *
-> - * Returns GPIO number to use with Linux generic GPIO API, or errno error value
-> + * Returns GPIO descriptor to use with Linux generic GPIO API, or ERR_PTR
-> + * error value
->   */
->
-> -int acpi_get_gpio(char *path, int pin)
-> +struct gpio_desc *acpi_get_gpiod(char *path, int pin)
->  {
->         struct gpio_chip *chip;
->         acpi_handle handle;
-> @@ -48,18 +49,15 @@ int acpi_get_gpio(char *path, int pin)
->
->         status = acpi_get_handle(NULL, path, &handle);
->         if (ACPI_FAILURE(status))
-> -               return -ENODEV;
-> +               return ERR_PTR(-ENODEV);
->
->         chip = gpiochip_find(handle, acpi_gpiochip_find);
->         if (!chip)
-> -               return -ENODEV;
-> +               return ERR_PTR(-ENODEV);
->
-> -       if (!gpio_is_valid(chip->base + pin))
-> -               return -EINVAL;
-> -
-> -       return chip->base + pin;
-> +       return gpio_to_desc(chip->base + pin);
+On 2013=E5=B9=B410=E6=9C=8807=E6=97=A5 06:21, Ben Hutchings wrote:
+> On Tue, 2013-10-01 at 01:01 -0300, Francisco Castro wrote:
+>> From: Ben Hutchings <ben@decadent.org.uk>
+>>> 3.2.51-rc1 review patch.  If anyone has any objections, please let =
+me know.
+>>>
+>>> ------------------
+>>> From: Lan Tianyu <tianyu.lan@intel.com>
+>>>
+>>> commit 016d5baad04269e8559332df05f89bd95b52d6ad upstream.
+>>>
+>>> The _BIX method returns extended battery info as a package.
+>>> According the ACPI spec (ACPI 5, Section 10.2.2.2), the first membe=
+r
+>>> of that package should be "Revision".  However, the current ACPI
+>>> battery driver treats the first member as "Power Unit" which should
+>>> be the second member.  This causes the result of _BIX return data
+>>> parsing to be incorrect.
+>>>
+>>> Fix this by adding a new member called 'revision' to struct
+>>> acpi_battery and adding the offsetof() information on it to
+>>> extended_info_offsets[] as the first row.
+> [...]
+>> Hello,
+>>
+>> Before anything, sorry for my broken english, and thank you all for =
+reading my=20
+>> mail.
+>>
+>> I noticed this patch, since it happened to be added recently to the =
+standard=20
+>> ubuntu kernel 3.8.0.31; and these two lines makes the battery module=
+ fail with=20
+>> laptop (a NEC LZ750/LS) which previously worked. After removing thes=
+e two=20
+>> lines and recompiling, it worked again.
+>>
+>> The lines that dmesg is now showing, are:
+>>
+>> [    2.272970] ACPI Warning: For \_SB_.PCI0.LPCB.EC__.BAT1._BIX: Ret=
+urn=20
+>> Package is too small - found 19 elements, expected 20 (20121018/nspr=
+edef-679)
+>> [    2.272985] battery: probe of PNP0C0A:00 failed with error -14
+>>
+>> I believe a new (working) patch is needed, since this breaks compati=
+bility=20
+>> with hardware that's somewhat new, and still on sale. I hope this ma=
+il is not=20
+>> too late, and this can be fixed.
+>=20
+> You should report this to the Ubuntu kernel maintainers via Launchpad=
+ so
+> they can make a decision whether to revert this change in their packa=
+ged
+> kernel.
+>=20
+> Hopefully Lan Tianyu and other ACPI developers will work out how to f=
+ix
+> this completely and then that fix can go into later stable updates.
 
-I think you want to avoid using gpio_to_desc(). It is just a
-convenience function provided to ease the transition for consumers
-that still need to rely on GPIO numbers for some reason. The same
-applies to desc_to_gpio(), although the usage you are making of it
-(implemented fallbacks for the integer space) is the one that is
-intended.
+Sorry for later response. Just come back from vacation.
 
-The last line could be changed to "return &chip->desc[pin];" after
-checking that 0 <= pin <= chip->ngpio.
+=46rancisco, please attach the output of acpidump on your machine to
+bugzilla. Thanks.
 
-This minor issue apart, I really like the fact you are moving this
-under the gpiolib APIs (also appreciate the testing of the new API
-this patchset provides!).
+https://bugzilla.kernel.org/show_bug.cgi?id=3D60519
 
-I also wonder whether you could also avoid exporting acpi_get_gpiod*
-(which allow GPIO consumers to shortcut gpiolib) by implementing
-acpi_get_gpio* into the C file (maybe even using gpiod_get()). I see a
-"char *path" parameter though, so maybe that would not be possible at
-the moment.
+>=20
+> I only look after the stable 3.2.y branch, so there's little I can do=
+ to
+> help you beyond this.
+>=20
+> Ben.
+>=20
 
-Once the gpio_to_desc() issue mentioned above is fixed I think I can give my
 
-Reviewed-by: Alexandre Courbot <acourbot@nvidia.com>
-
-on patches 2-5.
-
-Thanks,
-Alex.
+--=20
+Best regards
+Tianyu Lan
+--
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
