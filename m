@@ -1,41 +1,78 @@
-From: Alexandre Courbot <gnurou@gmail.com>
-Subject: Re: [PATCH 2/5] gpiolib / ACPI: convert to gpiod interfaces
-Date: Tue, 8 Oct 2013 09:26:14 -0700
-Message-ID: <CAAVeFuJLyqHO+uNm-ehLm4QQU-ZyxsZ0KUG4uYSLvBtbvGQeeQ@mail.gmail.com>
-References: <1380639537-23406-1-git-send-email-mika.westerberg@linux.intel.com>
- <1380639537-23406-3-git-send-email-mika.westerberg@linux.intel.com>
- <CAAVeFuJZ3TwozZzpuHcYPDLjEsb2D_qvQADf85s3-eywYYHs8A@mail.gmail.com>
- <20131008084508.GI3521@intel.com> <20131008103625.GK3521@intel.com>
+From: Zhang Yanfei <zhangyanfei.yes@gmail.com>
+Subject: Re: [PATCH part1 v6 4/6] x86/mem-hotplug: Support initialize page
+ tables in bottom-up
+Date: Wed, 09 Oct 2013 01:36:36 +0800
+Message-ID: <525442A4.9060709@gmail.com>
+References: <524E2032.4020106@gmail.com> <524E2127.4090904@gmail.com> <5251F9AB.6000203@zytor.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-ie0-f172.google.com ([209.85.223.172]:40862 "EHLO
-	mail-ie0-f172.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754576Ab3JHQ0f (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 8 Oct 2013 12:26:35 -0400
-In-Reply-To: <20131008103625.GK3521@intel.com>
+Received: from mail-pd0-f175.google.com ([209.85.192.175]:46641 "EHLO
+	mail-pd0-f175.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752415Ab3JHRhB (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 8 Oct 2013 13:37:01 -0400
+In-Reply-To: <5251F9AB.6000203@zytor.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Mika Westerberg <mika.westerberg@linux.intel.com>
-Cc: "linux-gpio@vger.kernel.org" <linux-gpio@vger.kernel.org>, rjw@rjwysocki.net, Linus Walleij <linus.walleij@linaro.org>, Grant Likely <grant.likely@secretlab.ca>, Mathias Nyman <mathias.nyman@linux.intel.com>, Alexandre Courbot <acourbot@nvidia.com>, Rob Landley <rob@landley.net>, linux-acpi@vger.kernel.org, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
+To: "H. Peter Anvin" <hpa@zytor.com>, Tejun Heo <tj@kernel.org>
+Cc: Andrew Morton <akpm@linux-foundation.org>, "Rafael J . Wysocki" <rjw@sisk.pl>, lenb@kernel.org, Thomas Gleixner <tglx@linutronix.de>, mingo@elte.hu, Toshi Kani <toshi.kani@hp.com>, Wanpeng Li <liwanp@linux.vnet.ibm.com>, Thomas Renninger <trenn@suse.de>, Yinghai Lu <yinghai@kernel.org>, Jiang Liu <jiang.liu@huawei.com>, Wen Congyang <wency@cn.fujitsu.com>, Lai Jiangshan <laijs@cn.fujitsu.com>, isimatu.yasuaki@jp.fujitsu.com, izumi.taku@jp.fujitsu.com, Mel Gorman <mgorman@suse.de>, Minchan Kim <minchan@kernel.org>, mina86@mina86.com, gong.chen@linux.intel.com, vasilis.liaskovitis@profitbricks.com, lwoodman@redhat.com, Rik van Riel <riel@redhat.com>, jweiner@redhat.com, prarit@redhat.com, "x86@kernel.org" <x86@kernel.org>, linux-doc@vger.kernel.org, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Linux MM <linux-mm@kvack.org>, linux-acpi@vger.kernel.org
 
-On Tue, Oct 8, 2013 at 3:36 AM, Mika Westerberg
-<mika.westerberg@linux.intel.com> wrote:
-> On Tue, Oct 08, 2013 at 11:45:08AM +0300, Mika Westerberg wrote:
->> > I also wonder whether you could also avoid exporting acpi_get_gpiod*
->> > (which allow GPIO consumers to shortcut gpiolib) by implementing
->> > acpi_get_gpio* into the C file (maybe even using gpiod_get()). I see a
->> > "char *path" parameter though, so maybe that would not be possible at
->> > the moment.
+Hello tejun
+CC: Peter
+
+On 10/07/2013 08:00 AM, H. Peter Anvin wrote:
+> On 10/03/2013 07:00 PM, Zhang Yanfei wrote:
+>> From: Tang Chen <tangchen@cn.fujitsu.com>
 >>
->> Good point, I'll check if we can do that.
->
-> Looks like we can get rid of acpi_get_gpio() and acpi_get_gpiod() as there
-> are no users for those outside gpiolib-acpi. I'm going to do that in the
-> next revision.
+>> The Linux kernel cannot migrate pages used by the kernel. As a
+>> result, kernel pages cannot be hot-removed. So we cannot allocate
+>> hotpluggable memory for the kernel.
+>>
+>> In a memory hotplug system, any numa node the kernel resides in
+>> should be unhotpluggable. And for a modern server, each node could
+>> have at least 16GB memory. So memory around the kernel image is
+>> highly likely unhotpluggable.
+>>
+>> ACPI SRAT (System Resource Affinity Table) contains the memory
+>> hotplug info. But before SRAT is parsed, memblock has already
+>> started to allocate memory for the kernel. So we need to prevent
+>> memblock from doing this.
+>>
+>> So direct memory mapping page tables setup is the case. init_mem_mapping()
+>> is called before SRAT is parsed. To prevent page tables being allocated
+>> within hotpluggable memory, we will use bottom-up direction to allocate
+>> page tables from the end of kernel image to the higher memory.
+>>
+>> Acked-by: Tejun Heo <tj@kernel.org>
+>> Signed-off-by: Tang Chen <tangchen@cn.fujitsu.com>
+>> Signed-off-by: Zhang Yanfei <zhangyanfei@cn.fujitsu.com>
+> 
+> I'm still seriously concerned about this.  This unconditionally
+> introduces new behavior which may very well break some classes of
+> systems -- the whole point of creating the page tables top down is
+> because the kernel tends to be allocated in lower memory, which is also
+> the memory that some devices need for DMA.
+> 
 
-That's good news. If you can make it such that ACPI GPIO consumers
-don't need to include acpi_gpio.h anymore, then this would make my
-day. :)
+After thinking for a while, this issue pointed by Peter seems to be really
+existing. And looking back to what you suggested the allocation close to the
+kernel, 
 
-Alex.
+> so if we allocate memory close to the kernel image,
+>   it's likely that we don't contaminate hotpluggable node.  We're
+>   talking about few megs at most right after the kernel image.  I
+>   can't see how that would make any noticeable difference.
+
+You meant that the memory size is about few megs. But here, page tables
+seems to be large enough in big memory machines, so that page tables will
+consume the precious lower memory. So I think we may really reorder
+the page table setup after we get the hotplug info in some way. Just like
+we have done in patch 5, we reorder reserve_crashkernel() to be called
+after initmem_init().
+
+So do you still have any objection to the pagetable setup reorder?
+
+-- 
+Thanks.
+Zhang Yanfei
