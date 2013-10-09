@@ -1,60 +1,63 @@
-From: al.stone@linaro.org
-Subject: [PATCH] ACPI: improve acpi_extract_package() utility
-Date: Wed,  9 Oct 2013 14:21:10 -0600
-Message-ID: <1381350070-13208-1-git-send-email-al.stone@linaro.org>
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-ob0-f175.google.com ([209.85.214.175]:59675 "EHLO
-	mail-ob0-f175.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754871Ab3JIUVd (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 9 Oct 2013 16:21:33 -0400
-Received: by mail-ob0-f175.google.com with SMTP id uz6so1039669obc.6
-        for <linux-acpi@vger.kernel.org>; Wed, 09 Oct 2013 13:21:33 -0700 (PDT)
-Sender: linux-acpi-owner@vger.kernel.org
+From: Toshi Kani <toshi.kani@hp.com>
+Subject: Re: [PATCH part1 v6 4/6] x86/mem-hotplug: Support initialize page
+ tables in bottom-up
+Date: Wed, 09 Oct 2013 14:58:31 -0600
+Message-ID: <1381352311.5429.115.camel@misato.fc.hp.com>
+References: <524E2032.4020106@gmail.com> <524E2127.4090904@gmail.com>
+	 <5251F9AB.6000203@zytor.com> <525442A4.9060709@gmail.com>
+	 <20131009164449.GG22495@htj.dyndns.org> <52558EEF.4050009@gmail.com>
+	 <20131009192040.GA5592@mtj.dyndns.org>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
+Return-path: <owner-linux-mm@kvack.org>
+In-Reply-To: <20131009192040.GA5592@mtj.dyndns.org>
+Sender: owner-linux-mm@kvack.org
+To: Tejun Heo <tj@kernel.org>
+Cc: Zhang Yanfei <zhangyanfei.yes@gmail.com>, "H. Peter Anvin" <hpa@zytor.com>, Andrew Morton <akpm@linux-foundation.org>, "Rafael J .
+ Wysocki" <rjw@sisk.pl>, lenb@kernel.org, Thomas Gleixner <tglx@linutronix.de>, mingo@elte.hu, Wanpeng Li <liwanp@linux.vnet.ibm.com>, Thomas Renninger <trenn@suse.de>, Yinghai Lu <yinghai@kernel.org>, Jiang Liu <jiang.liu@huawei.com>, Wen Congyang <wency@cn.fujitsu.com>, Lai Jiangshan <laijs@cn.fujitsu.com>, isimatu.yasuaki@jp.fujitsu.com, izumi.taku@jp.fujitsu.com, Mel Gorman <mgorman@suse.de>, Minchan Kim <minchan@kernel.org>, mina86@mina86.com, gong.chen@linux.intel.com, vasilis.liaskovitis@profitbricks.com, lwoodman@redhat.com, Rik van Riel <riel@redhat.com>, jweiner@redhat.com, prarit@redhat.com, "x86@kernel.org" <x86@kernel.org>, linux-doc@vger.kernel.org, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>Linux MM <lin>
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org
-Cc: linaro-acpi@lists.linaro.org, Al Stone <ahs3@redhat.com>, Al Stone <al.stone@linaro.org>
 
-From: Al Stone <ahs3@redhat.com>
+On Wed, 2013-10-09 at 15:20 -0400, Tejun Heo wrote:
+> Hello,
+> 
+> On Thu, Oct 10, 2013 at 01:14:23AM +0800, Zhang Yanfei wrote:
+> > >> You meant that the memory size is about few megs. But here, page tables
+> > >> seems to be large enough in big memory machines, so that page tables will
+> > > 
+> > > Hmmm?  Even with 4k mappings and, say, 16Gigs of memory, it's still
+> > > somewhere above 32MiB, right?  And, these physical mappings don't
+> > > usually use 4k mappings to begin with.  Unless we're worrying about
+> > > ISA DMA limit, I don't think it'd be problematic.
+> > 
+> > I think Peter meant very huge memory machines, say 2T memory? In the worst
+> > case, this may need 2G memory for page tables, seems huge....
+> 
+> Realistically tho, why would people be using 4k mappings on 2T
+> machines?  For the sake of argument, let's say 4k mappings are
+> required for some weird reason, even then, doing SRAT parsing early
+> doesn't necessarily solve the problem in itself.  It'd still need
+> heuristics to avoid occupying too much of 32bit memory because it
+> isn't difficult to imagine specific NUMA settings which would drive
+> page table allocation into low address.
+> 
+> No matter what we do, there's no way around the fact that this whole
+> effort is mostly an incomplete solution in its nature and that's why I
+> think we better keep things isolated and simple.  It isn't a good idea
+> to make structural changes to accomodate something which isn't and
+> doesn't have much chance of becoming a full solution.  In addition,
+> the problem itself is niche to begin with.
 
-  The current version requires one to know the size of the package
-  a priori; this is almost impossible if the package is composed of
-  strings of variable length.  This change allows the utility to
-  allocate a buffer of the proper size if asked.
+Let's not assume that memory hotplug is always a niche feature for huge
+& special systems.  It may be a niche to begin with, but it could be
+supported on VMs, which allows anyone to use.  Vasilis has been working
+on KVM to support memory hotplug.
 
-Signed-off-by: Al Stone <al.stone@linaro.org>
----
- drivers/acpi/utils.c | 17 +++++++++++++----
- 1 file changed, 13 insertions(+), 4 deletions(-)
+Thanks,
+-Toshi
 
-diff --git a/drivers/acpi/utils.c b/drivers/acpi/utils.c
-index 552248b..fc2cd32 100644
---- a/drivers/acpi/utils.c
-+++ b/drivers/acpi/utils.c
-@@ -169,11 +169,20 @@ acpi_extract_package(union acpi_object *package,
- 	/*
- 	 * Validate output buffer.
- 	 */
--	if (buffer->length < size_required) {
-+	if (buffer->length == ACPI_ALLOCATE_BUFFER) {
-+		buffer->pointer = ACPI_ALLOCATE(size_required);
-+		if (!buffer->pointer)
-+			return AE_NO_MEMORY;
- 		buffer->length = size_required;
--		return AE_BUFFER_OVERFLOW;
--	} else if (buffer->length != size_required || !buffer->pointer) {
--		return AE_BAD_PARAMETER;
-+		memset(buffer->pointer, 0, size_required);
-+	} else {
-+		if (buffer->length < size_required) {
-+			buffer->length = size_required;
-+			return AE_BUFFER_OVERFLOW;
-+		} else if (buffer->length != size_required ||
-+			   !buffer->pointer) {
-+			return AE_BAD_PARAMETER;
-+		}
- 	}
- 
- 	head = buffer->pointer;
--- 
-1.8.3.1
-
+--
+To unsubscribe, send a message with 'unsubscribe linux-mm' in
+the body to majordomo@kvack.org.  For more info on Linux MM,
+see: http://www.linux-mm.org/ .
+Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
