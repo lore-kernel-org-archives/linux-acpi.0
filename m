@@ -1,75 +1,48 @@
-From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [PATCH] ACPI / LPSS: fix UART Auto Flow Control
-Date: Wed, 09 Oct 2013 15:51:44 +0200
-Message-ID: <1942289.aOn1qVrO7l@vostro.rjw.lan>
-References: <1381301360-5156-1-git-send-email-heikki.krogerus@linux.intel.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7Bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from v094114.home.net.pl ([79.96.170.134]:57803 "HELO
-	v094114.home.net.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1751339Ab3JINkD (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 9 Oct 2013 09:40:03 -0400
-In-Reply-To: <1381301360-5156-1-git-send-email-heikki.krogerus@linux.intel.com>
-Sender: linux-acpi-owner@vger.kernel.org
+From: Mika Westerberg <mika.westerberg-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
+Subject: [PATCH 0/3] ACPI power management support for I2C and SPI devices
+Date: Wed,  9 Oct 2013 17:04:18 +0300
+Message-ID: <1381327461-10562-1-git-send-email-mika.westerberg@linux.intel.com>
+Return-path: <linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Sender: linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: Wolfram Sang <wsa-z923LK4zBo2bacvFa/9K2g@public.gmane.org>, Mark Brown <broonie-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, "Rafael J. Wysocki" <rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org>, Aaron Lu <aaron.lu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Lv Zheng <lv.zheng-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Mika Westerberg <mika.westerberg-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>, linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
-To: Heikki Krogerus <heikki.krogerus@linux.intel.com>
-Cc: chiau.ee.chew@intel.com, linux-acpi@vger.kernel.org, Mika Westerberg <mika.westerberg@linux.intel.com>
 
-On Wednesday, October 09, 2013 09:49:20 AM Heikki Krogerus wrote:
-> There is an additional bit in the GENERAL register on newer
-> silicon that needs to be set or UART's RTS pin fails to
-> reflect the flow control settings in the Modem Control
-> Register.
-> 
-> This will fix an issue where the RTS pin of the UART stays
-> always at 1.8V, regardless of the register settings.
-> 
-> Signed-off-by: Heikki Krogerus <heikki.krogerus@linux.intel.com>
+Hi,
 
-OK, is this urgent?
+We originally tried to add runtime PM support for I2C adapter devices in
+order to have runtime PM core to power on the I2C host controller device
+automatically whenever any of its children I2C device is powered on (See
+[1] for the last patch series).
 
-Rafael
+The rationale was that it is what the ACPI 5.0 specification requires: the
+parent device cannot be lower power states than its children.
 
+However, it looks like Windows can put the I2C controller device to low
+power states independently of its children power states, just like Linux
+does.
 
-> ---
->  drivers/acpi/acpi_lpss.c | 12 +++++++++---
->  1 file changed, 9 insertions(+), 3 deletions(-)
-> 
-> diff --git a/drivers/acpi/acpi_lpss.c b/drivers/acpi/acpi_lpss.c
-> index fb78bb9..d396101 100644
-> --- a/drivers/acpi/acpi_lpss.c
-> +++ b/drivers/acpi/acpi_lpss.c
-> @@ -30,6 +30,7 @@ ACPI_MODULE_NAME("acpi_lpss");
->  /* Offsets relative to LPSS_PRIVATE_OFFSET */
->  #define LPSS_GENERAL			0x08
->  #define LPSS_GENERAL_LTR_MODE_SW	BIT(2)
-> +#define LPSS_GENERAL_UART_RTS_OVRD	BIT(3)
->  #define LPSS_SW_LTR			0x10
->  #define LPSS_AUTO_LTR			0x14
->  #define LPSS_TX_INT			0x20
-> @@ -68,11 +69,16 @@ struct lpss_private_data {
->  
->  static void lpss_uart_setup(struct lpss_private_data *pdata)
->  {
-> -	unsigned int tx_int_offset = pdata->dev_desc->prv_offset + LPSS_TX_INT;
-> +	unsigned int offset;
->  	u32 reg;
->  
-> -	reg = readl(pdata->mmio_base + tx_int_offset);
-> -	writel(reg | LPSS_TX_INT_MASK, pdata->mmio_base + tx_int_offset);
-> +	offset = pdata->dev_desc->prv_offset + LPSS_TX_INT;
-> +	reg = readl(pdata->mmio_base + offset);
-> +	writel(reg | LPSS_TX_INT_MASK, pdata->mmio_base + offset);
-> +
-> +	offset = pdata->dev_desc->prv_offset + LPSS_GENERAL;
-> +	reg = readl(pdata->mmio_base + offset);
-> +	writel(reg | LPSS_GENERAL_UART_RTS_OVRD, pdata->mmio_base + offset);
->  }
->  
->  static struct lpss_device_desc lpt_dev_desc = {
-> 
+This patch series only adds I2C and SPI devices to the ACPI power domain
+and make sure that the parent device power state is ignored when
+transitioning child device to a different power states.
+
+Since patches [2-3/3] depend on patch [1/3] it would be good if these all
+could be merged together.
+
+[1] http://lwn.net/Articles/568961/
+
+Lv Zheng (1):
+  i2c: attach/detach I2C client device to the ACPI power domain
+
+Mika Westerberg (2):
+  ACPI / PM: allow child devices to ignore parent power state
+  spi: attach/detach SPI device to the ACPI power domain
+
+ drivers/acpi/device_pm.c |  8 +++++---
+ drivers/i2c/i2c-core.c   | 10 ++++++++++
+ drivers/spi/spi.c        | 20 ++++++++++++++++++--
+ include/acpi/acpi_bus.h  |  3 ++-
+ 4 files changed, 35 insertions(+), 6 deletions(-)
+
 -- 
-I speak only for myself.
-Rafael J. Wysocki, Intel Open Source Technology Center.
+1.8.4.rc3
