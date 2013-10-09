@@ -1,55 +1,60 @@
-From: Tejun Heo <tj@kernel.org>
-Subject: Re: [PATCH part1 v6 4/6] x86/mem-hotplug: Support initialize page
- tables in bottom-up
-Date: Wed, 9 Oct 2013 15:47:47 -0400
-Message-ID: <20131009194747.GC5592@mtj.dyndns.org>
-References: <524E2032.4020106@gmail.com>
- <524E2127.4090904@gmail.com>
- <5251F9AB.6000203@zytor.com>
- <525442A4.9060709@gmail.com>
- <20131009164449.GG22495@htj.dyndns.org>
- <52558EEF.4050009@gmail.com>
- <20131009192040.GA5592@mtj.dyndns.org>
- <5255AEC1.7040500@intel.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <owner-linux-mm@kvack.org>
-Content-Disposition: inline
-In-Reply-To: <5255AEC1.7040500@intel.com>
-Sender: owner-linux-mm@kvack.org
-To: Dave Hansen <dave.hansen@intel.com>
-Cc: Zhang Yanfei <zhangyanfei.yes@gmail.com>, "H. Peter Anvin" <hpa@zytor.com>, Andrew Morton <akpm@linux-foundation.org>, "Rafael J . Wysocki" <rjw@sisk.pl>, lenb@kernel.org, Thomas Gleixner <tglx@linutronix.de>, mingo@elte.hu, Toshi Kani <toshi.kani@hp.com>, Wanpeng Li <liwanp@linux.vnet.ibm.com>, Thomas Renninger <trenn@suse.de>, Yinghai Lu <yinghai@kernel.org>, Jiang Liu <jiang.liu@huawei.com>, Wen Congyang <wency@cn.fujitsu.com>, Lai Jiangshan <laijs@cn.fujitsu.com>, isimatu.yasuaki@jp.fujitsu.com, izumi.taku@jp.fujitsu.com, Mel Gorman <mgorman@suse.de>, Minchan Kim <minchan@kernel.org>, mina86@mina86.com, gong.chen@linux.intel.com, vasilis.liaskovitis@profitbricks.com, lwoodman@redhat.com, Rik van Riel <riel@redhat.com>, jweiner@redhat.com, prarit@redhat.com, "x86@kernel.org" <x86@kernel.org>, linux-doc@vger.kernel.org, "linux-kernel@vger.kernel.org" <linux-kernel>
+From: al.stone@linaro.org
+Subject: [PATCH] ACPI: improve acpi_extract_package() utility
+Date: Wed,  9 Oct 2013 14:21:10 -0600
+Message-ID: <1381350070-13208-1-git-send-email-al.stone@linaro.org>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-ob0-f175.google.com ([209.85.214.175]:59675 "EHLO
+	mail-ob0-f175.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754871Ab3JIUVd (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 9 Oct 2013 16:21:33 -0400
+Received: by mail-ob0-f175.google.com with SMTP id uz6so1039669obc.6
+        for <linux-acpi@vger.kernel.org>; Wed, 09 Oct 2013 13:21:33 -0700 (PDT)
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: linux-acpi@vger.kernel.org
+Cc: linaro-acpi@lists.linaro.org, Al Stone <ahs3@redhat.com>, Al Stone <al.stone@linaro.org>
 
-Hello,
+From: Al Stone <ahs3@redhat.com>
 
-On Wed, Oct 09, 2013 at 12:30:09PM -0700, Dave Hansen wrote:
-> On 10/09/2013 12:20 PM, Tejun Heo wrote:
-> > Realistically tho, why would people be using 4k mappings on 2T
-> > machines?
-> 
-> CONFIG_DEBUG_PAGEALLOC and CONFIG_KMEMCHECK both disable using >4k
-> pages.  I actually ran in to this on a 1TB machine a few weeks ago:
-> 
-> 	https://lkml.org/lkml/2013/8/9/546
-> 
-> So it's not a common case for stuff that customers have, but it sure as
-> *HECK* is needed for debugging.
+  The current version requires one to know the size of the package
+  a priori; this is almost impossible if the package is composed of
+  strings of variable length.  This change allows the utility to
+  allocate a buffer of the proper size if asked.
 
-But as I said in the same paragraph, parsing SRAT earlier doesn't
-solve the problem in itself either.  Ignoring the option if 4k mapping
-is required and memory consumption would be prohibitive should work,
-no?  Something like that would be necessary if we're gonna worry about
-cases like this no matter how we implement it, but, frankly, I'm not
-sure this is something worth worrying about.
+Signed-off-by: Al Stone <al.stone@linaro.org>
+---
+ drivers/acpi/utils.c | 17 +++++++++++++----
+ 1 file changed, 13 insertions(+), 4 deletions(-)
 
-Thanks.
-
+diff --git a/drivers/acpi/utils.c b/drivers/acpi/utils.c
+index 552248b..fc2cd32 100644
+--- a/drivers/acpi/utils.c
++++ b/drivers/acpi/utils.c
+@@ -169,11 +169,20 @@ acpi_extract_package(union acpi_object *package,
+ 	/*
+ 	 * Validate output buffer.
+ 	 */
+-	if (buffer->length < size_required) {
++	if (buffer->length == ACPI_ALLOCATE_BUFFER) {
++		buffer->pointer = ACPI_ALLOCATE(size_required);
++		if (!buffer->pointer)
++			return AE_NO_MEMORY;
+ 		buffer->length = size_required;
+-		return AE_BUFFER_OVERFLOW;
+-	} else if (buffer->length != size_required || !buffer->pointer) {
+-		return AE_BAD_PARAMETER;
++		memset(buffer->pointer, 0, size_required);
++	} else {
++		if (buffer->length < size_required) {
++			buffer->length = size_required;
++			return AE_BUFFER_OVERFLOW;
++		} else if (buffer->length != size_required ||
++			   !buffer->pointer) {
++			return AE_BAD_PARAMETER;
++		}
+ 	}
+ 
+ 	head = buffer->pointer;
 -- 
-tejun
+1.8.3.1
 
---
-To unsubscribe, send a message with 'unsubscribe linux-mm' in
-the body to majordomo@kvack.org.  For more info on Linux MM,
-see: http://www.linux-mm.org/ .
-Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
