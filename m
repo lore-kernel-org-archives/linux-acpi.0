@@ -1,91 +1,46 @@
 From: Mika Westerberg <mika.westerberg@linux.intel.com>
 Subject: Re: [PATCH 2/5] gpiolib / ACPI: convert to gpiod interfaces
-Date: Wed, 9 Oct 2013 10:58:30 +0300
-Message-ID: <20131009075830.GS3521@intel.com>
+Date: Wed, 9 Oct 2013 11:01:09 +0300
+Message-ID: <20131009080109.GT3521@intel.com>
 References: <1380639537-23406-1-git-send-email-mika.westerberg@linux.intel.com>
  <1380639537-23406-3-git-send-email-mika.westerberg@linux.intel.com>
  <CAAVeFuJZ3TwozZzpuHcYPDLjEsb2D_qvQADf85s3-eywYYHs8A@mail.gmail.com>
  <20131008084508.GI3521@intel.com>
- <CAAVeFu+_EUCs+70+WzCq530JUesrHzULi34mCf7-pRVVP1WV7g@mail.gmail.com>
+ <20131008103625.GK3521@intel.com>
+ <CAAVeFuJLyqHO+uNm-ehLm4QQU-ZyxsZ0KUG4uYSLvBtbvGQeeQ@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-gpio-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <CAAVeFu+_EUCs+70+WzCq530JUesrHzULi34mCf7-pRVVP1WV7g@mail.gmail.com>
+In-Reply-To: <CAAVeFuJLyqHO+uNm-ehLm4QQU-ZyxsZ0KUG4uYSLvBtbvGQeeQ@mail.gmail.com>
 Sender: linux-gpio-owner@vger.kernel.org
 To: Alexandre Courbot <gnurou@gmail.com>
 Cc: "linux-gpio@vger.kernel.org" <linux-gpio@vger.kernel.org>, rjw@rjwysocki.net, Linus Walleij <linus.walleij@linaro.org>, Grant Likely <grant.likely@secretlab.ca>, Mathias Nyman <mathias.nyman@linux.intel.com>, Alexandre Courbot <acourbot@nvidia.com>, Rob Landley <rob@landley.net>, linux-acpi@vger.kernel.org, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On Tue, Oct 08, 2013 at 09:24:50AM -0700, Alexandre Courbot wrote:
-> On Tue, Oct 8, 2013 at 1:45 AM, Mika Westerberg
+On Tue, Oct 08, 2013 at 09:26:14AM -0700, Alexandre Courbot wrote:
+> On Tue, Oct 8, 2013 at 3:36 AM, Mika Westerberg
 > <mika.westerberg@linux.intel.com> wrote:
-> > On Mon, Oct 07, 2013 at 09:54:13PM -0700, Alexandre Courbot wrote:
-> >> > +struct gpio_desc *acpi_get_gpiod(char *path, int pin)
-> >> >  {
-> >> >         struct gpio_chip *chip;
-> >> >         acpi_handle handle;
-> >> > @@ -48,18 +49,15 @@ int acpi_get_gpio(char *path, int pin)
-> >> >
-> >> >         status =3D acpi_get_handle(NULL, path, &handle);
-> >> >         if (ACPI_FAILURE(status))
-> >> > -               return -ENODEV;
-> >> > +               return ERR_PTR(-ENODEV);
-> >> >
-> >> >         chip =3D gpiochip_find(handle, acpi_gpiochip_find);
-> >> >         if (!chip)
-> >> > -               return -ENODEV;
-> >> > +               return ERR_PTR(-ENODEV);
-> >> >
-> >> > -       if (!gpio_is_valid(chip->base + pin))
-> >> > -               return -EINVAL;
-> >> > -
-> >> > -       return chip->base + pin;
-> >> > +       return gpio_to_desc(chip->base + pin);
+> > On Tue, Oct 08, 2013 at 11:45:08AM +0300, Mika Westerberg wrote:
+> >> > I also wonder whether you could also avoid exporting acpi_get_gpiod*
+> >> > (which allow GPIO consumers to shortcut gpiolib) by implementing
+> >> > acpi_get_gpio* into the C file (maybe even using gpiod_get()). I see a
+> >> > "char *path" parameter though, so maybe that would not be possible at
+> >> > the moment.
 > >>
-> >> I think you want to avoid using gpio_to_desc(). It is just a
-> >> convenience function provided to ease the transition for consumers
-> >> that still need to rely on GPIO numbers for some reason. The same
-> >> applies to desc_to_gpio(), although the usage you are making of it
-> >> (implemented fallbacks for the integer space) is the one that is
-> >> intended.
-> >>
-> >> The last line could be changed to "return &chip->desc[pin];" after
-> >> checking that 0 <=3D pin <=3D chip->ngpio.
+> >> Good point, I'll check if we can do that.
 > >
-> > I tried that but it doesn't compile anymore :-(
-> >
-> > drivers/gpio/gpiolib-acpi.c: In function =E2=80=98acpi_get_gpiod=E2=
-=80=99:
-> > drivers/gpio/gpiolib-acpi.c:61:2: error: invalid use of undefined t=
-ype =E2=80=98struct gpio_desc=E2=80=99
-> > drivers/gpio/gpiolib-acpi.c:61:20: error: dereferencing pointer to =
-incomplete type
->=20
-> Ah right, there is no way to know the size of a gpio_desc from here..=
-=2E
-> Maybe I should make a gpiochip_get_desc(index) function accessible to
-> drivers only that takes care of this. Another possibility would be to
-> move this function into gpiolib.c but there are probably too many
-> dependencies with ACPI for that.
->=20
-> In the long term I would like to see gpio_to_desc()/desc_to_gpio()
-> disappear from the consumer interface as they allow unsafe use of GPI=
-O
-> descriptors.
->=20
-> > The DT version also uses gpio_to_desc().
->=20
-> That seems to speak in favor of that gpiochip_get_desc() function I
-> talked about earlier.
+> > Looks like we can get rid of acpi_get_gpio() and acpi_get_gpiod() as there
+> > are no users for those outside gpiolib-acpi. I'm going to do that in the
+> > next revision.
+> 
+> That's good news. If you can make it such that ACPI GPIO consumers
+> don't need to include acpi_gpio.h anymore, then this would make my
+> day. :)
 
-OK, I can convert the ACPI code to use that once such function exists. =
-I
-the meanwhile, can I use gpio_to_desc() in the next revision of the
-patches?
---
-To unsubscribe from this list: send the line "unsubscribe linux-gpio" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+We can get rid of the whole apci_gpio.h eventually. But before doing that I
+would like to have something that supports both the ACPI way and gpiod way
+in v3.13 if possible.
+
+Once we have gpiod_get_index() in mainline, we can convert the existing
+user to it and drop acpi_gpio.h completely.
