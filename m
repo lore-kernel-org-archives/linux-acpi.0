@@ -1,104 +1,60 @@
-From: Zhang Yanfei <zhangyanfei.yes@gmail.com>
-Subject: Re: [PATCH part1 v6 4/6] x86/mem-hotplug: Support initialize page
- tables in bottom-up
-Date: Thu, 10 Oct 2013 01:14:23 +0800
-Message-ID: <52558EEF.4050009@gmail.com>
-References: <524E2032.4020106@gmail.com> <524E2127.4090904@gmail.com> <5251F9AB.6000203@zytor.com> <525442A4.9060709@gmail.com> <20131009164449.GG22495@htj.dyndns.org>
+From: Mark Brown <broonie-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Subject: Re: [PATCH 3/3] spi: attach/detach SPI device to the ACPI power
+ domain
+Date: Wed, 9 Oct 2013 18:55:28 +0100
+Message-ID: <20131009175528.GV21581@sirena.org.uk>
+References: <1381327461-10562-1-git-send-email-mika.westerberg@linux.intel.com>
+ <1381327461-10562-4-git-send-email-mika.westerberg@linux.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
-Return-path: <owner-linux-mm@kvack.org>
-In-Reply-To: <20131009164449.GG22495@htj.dyndns.org>
-Sender: owner-linux-mm@kvack.org
-To: Tejun Heo <tj@kernel.org>
-Cc: "H. Peter Anvin" <hpa@zytor.com>, Andrew Morton <akpm@linux-foundation.org>, "Rafael J . Wysocki" <rjw@sisk.pl>, lenb@kernel.org, Thomas Gleixner <tglx@linutronix.de>, mingo@elte.hu, Toshi Kani <toshi.kani@hp.com>, Wanpeng Li <liwanp@linux.vnet.ibm.com>, Thomas Renninger <trenn@suse.de>, Yinghai Lu <yinghai@kernel.org>, Jiang Liu <jiang.liu@huawei.com>, Wen Congyang <wency@cn.fujitsu.com>, Lai Jiangshan <laijs@cn.fujitsu.com>, isimatu.yasuaki@jp.fujitsu.com, izumi.taku@jp.fujitsu.com, Mel Gorman <mgorman@suse.de>, Minchan Kim <minchan@kernel.org>, mina86@mina86.com, gong.chen@linux.intel.com, vasilis.liaskovitis@profitbricks.com, lwoodman@redhat.com, Rik van Riel <riel@redhat.com>, jweiner@redhat.com, prarit@redhat.com, "x86@kernel.org" <x86@kernel.org>, linux-doc@vger.kernel.org, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>Linux MM <li>
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="OxWh+UR3R7TveXYN"
+Return-path: <linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <1381327461-10562-4-git-send-email-mika.westerberg-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
+Sender: linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Mika Westerberg <mika.westerberg-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
+Cc: linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Wolfram Sang <wsa-z923LK4zBo2bacvFa/9K2g@public.gmane.org>, "Rafael J. Wysocki" <rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org>, Aaron Lu <aaron.lu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Lv Zheng <lv.zheng-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hello tejun,
 
-Thanks for the response:)
+--OxWh+UR3R7TveXYN
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
-On 10/10/2013 12:44 AM, Tejun Heo wrote:
-> Hello,
-> 
-> On Wed, Oct 09, 2013 at 01:36:36AM +0800, Zhang Yanfei wrote:
->>> I'm still seriously concerned about this.  This unconditionally
->>> introduces new behavior which may very well break some classes of
-> 
-> This is an optional behavior which is triggered by a very specific
-> kernel boot param, which I suspect is gonna need to stick around to
-> support memory hotplug in the current setup unless we add another
-> layer of address translation to support memory hotplug.
+On Wed, Oct 09, 2013 at 05:04:21PM +0300, Mika Westerberg wrote:
+> If the SPI device is enumerated from ACPI namespace (it has an ACPI handle)
+> it might have ACPI methods that needs to be called in order to transition
+> the device to different power states (such as _PSx).
 
-Yeah, I have explained that this is conditional.
+Acked-by: Mark Brown <broonie-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
 
-> 
->>> systems -- the whole point of creating the page tables top down is
->>> because the kernel tends to be allocated in lower memory, which is also
->>> the memory that some devices need for DMA.
-> 
-> Would that really matter for the target use cases here?  These are
-> likely fairly huge highend machines.  ISA DMA limit is below the
-> kernel image and 32bit limit is pretty big in comparison and at this
-> point even that limit is likely to be irrelevant at least for the
-> target machines, which are gonna be almost inherently extremely niche.
-> 
->>> so if we allocate memory close to the kernel image,
->>>   it's likely that we don't contaminate hotpluggable node.  We're
->>>   talking about few megs at most right after the kernel image.  I
->>>   can't see how that would make any noticeable difference.
->>
->> You meant that the memory size is about few megs. But here, page tables
->> seems to be large enough in big memory machines, so that page tables will
-> 
-> Hmmm?  Even with 4k mappings and, say, 16Gigs of memory, it's still
-> somewhere above 32MiB, right?  And, these physical mappings don't
-> usually use 4k mappings to begin with.  Unless we're worrying about
-> ISA DMA limit, I don't think it'd be problematic.
+> +	if (ACPI_HANDLE(&spi->dev))
+> +		acpi_dev_pm_attach(&spi->dev, true);
 
-I think Peter meant very huge memory machines, say 2T memory? In the worst
-case, this may need 2G memory for page tables, seems huge....
+Though I do wonder if it wouldn't be sensible to push the if () here
+inside acpi_dev_pm_attach() and similarly for _detach().  Terribly
+trivial either way.
 
-And I am not familiar with the ISA DMA limit, does this mean the memory 
-below 4G? Just as we have the ZONE_DMA32 in x86_64. (16MB limit seems not
-the case here)
+--OxWh+UR3R7TveXYN
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
 
-> 
->> consume the precious lower memory. So I think we may really reorder
->> the page table setup after we get the hotplug info in some way. Just like
->> we have done in patch 5, we reorder reserve_crashkernel() to be called
->> after initmem_init().
->>
->> So do you still have any objection to the pagetable setup reorder?
-> 
-> I still feel quite uneasy about pulling SRAT parsing and ACPI initrd
-> overriding into early boot.
-> 
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2.0.22 (GNU/Linux)
 
-I am trying to read all the discussion mails before. Maybe from the very
-first patchset that made you uneasy about parsing SRAT earlier. The patchset
-may do too much splitting and registering. So I am thinking that if we
-could combine two thing together to make things cleaner:
+iQIcBAEBAgAGBQJSVZiNAAoJELSic+t+oim9YlYP/0gXTLvice4UKl4gaWNo7EQX
+OrQHKw5iUy0ZEOymDlYdZ+f2rtJcUTmp/tW5SEYX7Fc93wQZGbcc9qdhKbECTPt8
+y+lYBS64fEp9kQf2sZ5GZ6psODV5w/8Z1lmTaPG9w95w1K/SVwty1KdXYBdxOlyR
+fXk0rZgGchKCQlqjxJi6N0tqpZWIHT/y1fjidgjSL4+3s6ctwYSJQlhsMa0rrMe8
+QdYUFmG7QZo5y6LQrj/M41naN4oXtuF6GGqRkSya5hD1wY8HgMhpKPxkmS+DBXoA
+I4u11dtwB7a3VcOy8a0yzMzGKWshGIPrOu5k7YbrZU3wlz1ejpL9Bg4XBHyfeFK0
+87xANoSG6Ob9B9gYOJRF3bK/eFtuq9bY811f8/x+zbMcTEI3B3NspDQpKkFWJHmG
+N5Kfp7quQJb44ldR0iChEu+6hxzH+ASDYpfSR1lxZY/EkbY911Q6GgDtCo3c0hAi
+aQVm6nV22csj70rFsfrrZMRr+UMEsgM6I1iiSf6zOVhu7xaERWZ/xljqT/fJul/8
+5rjVbrfsLEEkJh3EskWzbMNyHDt7o5a3MJ6/tCeF+ONpCMSYVnMjwFu2wGaQWPTJ
+Eliz8gINjcuyAE57rqh+XNWwSu/dHvD66UDP9QtmXzRemR9QxMDrW6LZGw4RZP9q
+dEayJ46LEmrlEYUS00Rw
+=rrml
+-----END PGP SIGNATURE-----
 
-1. introduce bottom up allocation to allocate memory near the kernel before
-   we parse SRAT.
-2. Since peter have the serious concern about the pagetable setup in bottom-up
-   and Ingo also said we'd better not to touch the current top-down pagetable
-   setup. Could we just put acpi_initrd_override and numa_init related functions
-   before init_mem_mapping()? After numa info is parsed (including SRAT), we
-   reset the allocation direction back to top-down, so we needn't change the
-   page table setup process. And before numa info parsed, we use the bottom-up
-   allocation to make sure all memory allocated by memblock is near the kernel
-   image.
-
-How do you think?
-
--- 
-Thanks.
-Zhang Yanfei
-
---
-To unsubscribe, send a message with 'unsubscribe linux-mm' in
-the body to majordomo@kvack.org.  For more info on Linux MM,
-see: http://www.linux-mm.org/ .
-Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
+--OxWh+UR3R7TveXYN--
