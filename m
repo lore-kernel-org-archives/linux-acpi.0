@@ -1,69 +1,141 @@
-From: Toshi Kani <toshi.kani@hp.com>
-Subject: Re: [PATCH part1 v6 4/6] x86/mem-hotplug: Support initialize page
- tables in bottom-up
-Date: Wed, 09 Oct 2013 18:25:04 -0600
-Message-ID: <1381364704.5429.146.camel@misato.fc.hp.com>
-References: <524E2032.4020106@gmail.com> <524E2127.4090904@gmail.com>
-	 <5251F9AB.6000203@zytor.com> <525442A4.9060709@gmail.com>
-	 <20131009164449.GG22495@htj.dyndns.org> <52558EEF.4050009@gmail.com>
-	 <20131009192040.GA5592@mtj.dyndns.org>
-	 <1381352311.5429.115.camel@misato.fc.hp.com>
-	 <20131009211136.GH5592@mtj.dyndns.org> <5255C730.90602@zytor.com>
+From: Aaron Lu <aaron.lu@intel.com>
+Subject: Re: [PATCH v4 1/4] backlight: introduce backlight_device_registered
+Date: Thu, 10 Oct 2013 08:54:29 +0800
+Message-ID: <5255FAC5.2090105@intel.com>
+References: <1381214401-24672-1-git-send-email-aaron.lu@intel.com> <1381214401-24672-2-git-send-email-aaron.lu@intel.com> <2202423.8QyNjoNEPr@vostro.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 7bit
-Return-path: <owner-linux-mm@kvack.org>
-In-Reply-To: <5255C730.90602@zytor.com>
-Sender: owner-linux-mm@kvack.org
-To: "H. Peter Anvin" <hpa@zytor.com>
-Cc: Tejun Heo <tj@kernel.org>, Zhang Yanfei <zhangyanfei.yes@gmail.com>, Andrew Morton <akpm@linux-foundation.org>, "Rafael J . Wysocki" <rjw@sisk.pl>, lenb@kernel.org, Thomas Gleixner <tglx@linutronix.de>, mingo@elte.hu, Wanpeng Li <liwanp@linux.vnet.ibm.com>, Thomas Renninger <trenn@suse.de>, Yinghai Lu <yinghai@kernel.org>, Jiang Liu <jiang.liu@huawei.com>, Wen Congyang <wency@cn.fujitsu.com>, Lai Jiangshan <laijs@cn.fujitsu.com>, isimatu.yasuaki@jp.fujitsu.com, izumi.taku@jp.fujitsu.com, Mel Gorman <mgorman@suse.de>, Minchan Kim <minchan@kernel.org>, mina86@mina86.com, gong.chen@linux.intel.com, vasilis.liaskovitis@profitbricks.com, lwoodman@redhat.com, Rik van Riel <riel@redhat.com>, jweiner@redhat.com, prarit@redhat.com, "x86@kernel.org" <x86@kernel.org>, linux-doc@vger.kernel.org, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Linux MM <linux-mm@kv>
+Return-path: <platform-driver-x86-owner@vger.kernel.org>
+In-Reply-To: <2202423.8QyNjoNEPr@vostro.rjw.lan>
+Sender: platform-driver-x86-owner@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: linux-acpi@vger.kernel.org, intel-gfx@lists.freedesktop.org, dri-devel@lists.freedesktop.org, linux-kernel@vger.kernel.org, Daniel Vetter <daniel@ffwll.ch>, Matthew Garrett <matthew.garrett@nebula.com>, Seth Forshee <seth.forshee@canonical.com>, Lee Chun-Yi <joeyli.kernel@gmail.com>, Richard Purdie <rpurdie@rpsys.net>, Igor Gnatenko <i.gnatenko.brain@gmail.com>, Yves-Alexis Perez <corsac@debian.org>, Felipe Contreras <felipe.contreras@gmail.com>, Jani Nikula <jani.nikula@linux.intel.com>, Ben Jencks <ben@bjencks.net>, Steven Newbury <steve@snewbury.org.uk>, James Hogan <james@albanarts.com>, Kamal Mostafa <kamal@canonical.com>, Joerg Platte <jplatte@naasa.net>, Kalle Valo <kvalo@adurom.com>, Martin Steigerwald <Martin@lichtvoll.de>, =?UTF-8?B?SsO2cmcgT3R0ZQ==?= <jrg.otte@gmail.com>, Mike Galbraith <bitbucket@online.de>, platform-driver-x86@vger.kernel.org, Mika
 List-Id: linux-acpi@vger.kernel.org
 
-On Wed, 2013-10-09 at 14:14 -0700, H. Peter Anvin wrote:
-> On 10/09/2013 02:11 PM, Tejun Heo wrote:
-> > Hello, Toshi.
-> > 
-> > On Wed, Oct 09, 2013 at 02:58:31PM -0600, Toshi Kani wrote:
-> >> Let's not assume that memory hotplug is always a niche feature for huge
-> >> & special systems.  It may be a niche to begin with, but it could be
-> >> supported on VMs, which allows anyone to use.  Vasilis has been working
-> >> on KVM to support memory hotplug.
-> > 
-> > I'm not saying hotplug will always be niche.  I'm saying the approach
-> > we're currently taking is.  It seems fairly inflexible to hang the
-> > whole thing on NUMA nodes.  What does the planned kvm support do?
-> > Splitting SRAT nodes so that it can do both actual NUMA node
-> > distribution and hotplug granuliarity?  IIRC I asked a couple times
-> > what the long term plan was for this feature and there doesn't seem to
-> > be any road map for this thing to become a full solution.  Unless I
-> > misunderstood, this is more of "let's put out the fire as there
-> > already are (or gonna be) machines which can do it" kinda thing, which
-> > is fine too.  My point is that it doesn't make a lot of sense to
-> > change boot sequence invasively to accomodate that.
-> > 
+On 10/10/2013 08:25 AM, Rafael J. Wysocki wrote:
+> On Tuesday, October 08, 2013 02:39:58 PM Aaron Lu wrote:
+>> Introduce a new API for modules to query if a specific type of backlight
+>> device has been registered. This is useful for some backlight device
+>> provider module(e.g. ACPI video) to know if a native control
+>> interface(e.g. the interface created by i915) is available and then do
+>> things accordingly(e.g. avoid register its own on Win8 systems).
+>>
+>> Signed-off-by: Aaron Lu <aaron.lu@intel.com>
+>> Tested-by: Igor Gnatenko <i.gnatenko.brain@gmail.com>
+>> Tested-by: Yves-Alexis Perez <corsac@debian.org>
+>> Tested-by: Mika Westerberg <mika.westerberg@linux.intel.com>
+>> ---
+>>  drivers/video/backlight/backlight.c | 31 +++++++++++++++++++++++++++++++
+>>  include/linux/backlight.h           |  4 ++++
+>>  2 files changed, 35 insertions(+)
+>>
+>> diff --git a/drivers/video/backlight/backlight.c b/drivers/video/backlight/backlight.c
+>> index 94a403a..bf2d71d 100644
+>> --- a/drivers/video/backlight/backlight.c
+>> +++ b/drivers/video/backlight/backlight.c
+>> @@ -21,6 +21,9 @@
+>>  #include <asm/backlight.h>
+>>  #endif
+>>  
+>> +static struct list_head bd_list_head;
+>> +static struct mutex bd_list_mutex;
 > 
-> I would also argue that in the VM scenario -- and arguable even in the
-> hardware scenario -- the right thing is to not expose the flexible
-> memory in the e820/EFI tables, and instead have it hotadded (possibly
-> *immediately* so) on boot.  This avoids both the boot time funnies as
-> well as the scaling issues with metadata.
+> I'd prefer these two things to be called backlight_dev_list and
+> backlight_dev_list_mutex, respectively.
 
-That's a good idea!  It will work just fine if firmware is written in
-such a way.  However, since the most (if not all) firmware integrates
-and exposes all memory at boot, we still need to support this regular
-scenario as well.
+OK.
 
-> The whole reason for VMs wanting this is because ballooning doesn't
-> scale with regards to metadata.
+> 
+>> +
+>>  static const char *const backlight_types[] = {
+>>  	[BACKLIGHT_RAW] = "raw",
+>>  	[BACKLIGHT_PLATFORM] = "platform",
+>> @@ -349,10 +352,32 @@ struct backlight_device *backlight_device_register(const char *name,
+>>  	mutex_unlock(&pmac_backlight_mutex);
+>>  #endif
+>>  
+>> +	mutex_lock(&bd_list_mutex);
+>> +	list_add(&new_bd->entry, &bd_list_head);
+>> +	mutex_unlock(&bd_list_mutex);
+>> +
+>>  	return new_bd;
+>>  }
+>>  EXPORT_SYMBOL(backlight_device_register);
+>>  
+>> +bool backlight_device_registered(enum backlight_type type)
+>> +{
+>> +	bool found = false;
+>> +	struct backlight_device *bd;
+>> +
+>> +	mutex_lock(&bd_list_mutex);
+>> +	list_for_each_entry(bd, &bd_list_head, entry) {
+>> +		if (bd->props.type == type) {
+>> +			found = true;
+>> +			break;
+>> +		}
+>> +	}
+> 
+> Isn't it useful to be able to register more than one backlight device of the
+> same type sometimes?
 
-Agreed.
+I think so for some kind of computers. OTOH, the above function should
+be enough for the problem we are solving here, if someday we need to
+differentiate, we can enhance the code then.
 
-Thanks,
--Toshi
+> 
+>> +	mutex_unlock(&bd_list_mutex);
+>> +
+>> +	return found;
+>> +}
+>> +EXPORT_SYMBOL(backlight_device_registered);
+>> +
+>>  /**
+>>   * backlight_device_unregister - unregisters a backlight device object.
+>>   * @bd: the backlight device object to be unregistered and freed.
+>> @@ -364,6 +389,10 @@ void backlight_device_unregister(struct backlight_device *bd)
+>>  	if (!bd)
+>>  		return;
+>>  
+>> +	mutex_lock(&bd_list_mutex);
+>> +	list_del(&bd->entry);
+>> +	mutex_unlock(&bd_list_mutex);
+>> +
+>>  #ifdef CONFIG_PMAC_BACKLIGHT
+>>  	mutex_lock(&pmac_backlight_mutex);
+>>  	if (pmac_backlight == bd)
+>> @@ -499,6 +528,8 @@ static int __init backlight_class_init(void)
+>>  
+>>  	backlight_class->dev_groups = bl_device_groups;
+>>  	backlight_class->pm = &backlight_class_dev_pm_ops;
+>> +	INIT_LIST_HEAD(&bd_list_head);
+>> +	mutex_init(&bd_list_mutex);
+>>  	return 0;
+>>  }
+>>  
+>> diff --git a/include/linux/backlight.h b/include/linux/backlight.h
+>> index 53b7794..5f9cd96 100644
+>> --- a/include/linux/backlight.h
+>> +++ b/include/linux/backlight.h
+>> @@ -100,6 +100,9 @@ struct backlight_device {
+>>  	/* The framebuffer notifier block */
+>>  	struct notifier_block fb_notif;
+>>  
+>> +	/* list entry of all registered backlight devices */
+>> +	struct list_head entry;
+>> +
+>>  	struct device dev;
+>>  };
+>>  
+>> @@ -123,6 +126,7 @@ extern void devm_backlight_device_unregister(struct device *dev,
+>>  					struct backlight_device *bd);
+>>  extern void backlight_force_update(struct backlight_device *bd,
+>>  				   enum backlight_update_reason reason);
+>> +extern bool backlight_device_registered(enum backlight_type type);
+>>  
+>>  #define to_backlight_device(obj) container_of(obj, struct backlight_device, dev)
+> 
+> Thanks!
 
-
---
-To unsubscribe, send a message with 'unsubscribe linux-mm' in
-the body to majordomo@kvack.org.  For more info on Linux MM,
-see: http://www.linux-mm.org/ .
-Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
+Thanks for the review,
+-Aaron
