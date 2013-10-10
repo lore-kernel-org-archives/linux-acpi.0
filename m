@@ -1,38 +1,48 @@
-From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [PATCH] ACPI / LPSS: fix UART Auto Flow Control
-Date: Thu, 10 Oct 2013 15:04:57 +0200
-Message-ID: <2195301.dtlS3cFnEd@vostro.rjw.lan>
-References: <1381301360-5156-1-git-send-email-heikki.krogerus@linux.intel.com> <1942289.aOn1qVrO7l@vostro.rjw.lan> <20131010063116.GA4140@xps8300>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7Bit
+From: Jarkko Nikula <jarkko.nikula@linux.intel.com>
+Subject: [PATCH] i2c: Fix modalias for ACPI enumerated I2C devices
+Date: Thu, 10 Oct 2013 17:17:49 +0300
+Message-ID: <1381414669-26115-1-git-send-email-jarkko.nikula@linux.intel.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from v094114.home.net.pl ([79.96.170.134]:63417 "HELO
-	v094114.home.net.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1752326Ab3JJMxO (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 10 Oct 2013 08:53:14 -0400
-In-Reply-To: <20131010063116.GA4140@xps8300>
+Received: from mga02.intel.com ([134.134.136.20]:46802 "EHLO mga02.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753997Ab3JJOSo (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 10 Oct 2013 10:18:44 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Heikki Krogerus <heikki.krogerus@linux.intel.com>
-Cc: chiau.ee.chew@intel.com, linux-acpi@vger.kernel.org, Mika Westerberg <mika.westerberg@linux.intel.com>
+To: linux-i2c@vger.kernel.org
+Cc: linux-acpi@vger.kernel.org, Wolfram Sang <wsa@the-dreams.de>, Jarkko Nikula <jarkko.nikula@linux.intel.com>, Mika Westerberg <mika.westerberg@linux.intel.com>
 
-On Thursday, October 10, 2013 09:31:16 AM Heikki Krogerus wrote:
-> On Wed, Oct 09, 2013 at 03:51:44PM +0200, Rafael J. Wysocki wrote:
-> > On Wednesday, October 09, 2013 09:49:20 AM Heikki Krogerus wrote:
-> > > There is an additional bit in the GENERAL register on newer
-> > > silicon that needs to be set or UART's RTS pin fails to
-> > > reflect the flow control settings in the Modem Control
-> > > Register.
-> > > 
-> > > This will fix an issue where the RTS pin of the UART stays
-> > > always at 1.8V, regardless of the register settings.
-> > > 
-> > > Signed-off-by: Heikki Krogerus <heikki.krogerus@linux.intel.com>
-> > 
-> > OK, is this urgent?
-> 
-> No, we can wait for v3.13 if that is what you mean.
+There is a minor fault about ACPI enumerated I2C devices with their modalias
+attribute. Now modalias is set by device instance not by hardware ID.
+For example "i2c:INTABCD:00", "i2c:INTABCD:01" etc.
 
-OK
+This means each device instance gets different modalias which does match
+with generated modules.alias. Currently this is not problem as matching can
+happen also with "acpi:INTABCD" modalias.
+
+Fix this by using ACPI hardware ID.
+
+Signed-off-by: Jarkko Nikula <jarkko.nikula@linux.intel.com>
+Cc: Mika Westerberg <mika.westerberg@linux.intel.com>
+---
+Generated on top of v3.12-rc4-29-g0e7a3ed.
+---
+ drivers/i2c/i2c-core.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/drivers/i2c/i2c-core.c b/drivers/i2c/i2c-core.c
+index 29d3f04..6dd0c53 100644
+--- a/drivers/i2c/i2c-core.c
++++ b/drivers/i2c/i2c-core.c
+@@ -1111,7 +1111,7 @@ static acpi_status acpi_i2c_add_device(acpi_handle handle, u32 level,
+ 	if (ret < 0 || !info.addr)
+ 		return AE_OK;
+ 
+-	strlcpy(info.type, dev_name(&adev->dev), sizeof(info.type));
++	strlcpy(info.type, acpi_device_hid(adev), sizeof(info.type));
+ 	if (!i2c_new_device(adapter, &info)) {
+ 		dev_err(&adapter->dev,
+ 			"failed to add I2C device %s from ACPI\n",
+-- 
+1.8.4.rc3
 
