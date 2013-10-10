@@ -1,31 +1,38 @@
-From: "Rafael J. Wysocki" <rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org>
-Subject: Re: [PATCH v2 0/3] ACPI power management support for I2C and SPI devices
-Date: Thu, 10 Oct 2013 15:02:17 +0200
-Message-ID: <2209223.2krlQWGy9Q@vostro.rjw.lan>
-References: <1381327461-10562-1-git-send-email-mika.westerberg@linux.intel.com> <1381400928-2689-1-git-send-email-mika.westerberg@linux.intel.com>
+From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Subject: Re: [PATCH] ACPI / LPSS: fix UART Auto Flow Control
+Date: Thu, 10 Oct 2013 15:04:57 +0200
+Message-ID: <2195301.dtlS3cFnEd@vostro.rjw.lan>
+References: <1381301360-5156-1-git-send-email-heikki.krogerus@linux.intel.com> <1942289.aOn1qVrO7l@vostro.rjw.lan> <20131010063116.GA4140@xps8300>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7Bit
-Return-path: <linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1381400928-2689-1-git-send-email-mika.westerberg-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
-Sender: linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Mika Westerberg <mika.westerberg-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
-Cc: linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Wolfram Sang <wsa-z923LK4zBo2bacvFa/9K2g@public.gmane.org>, Mark Brown <broonie-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Aaron Lu <aaron.lu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Lv Zheng <lv.zheng-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from v094114.home.net.pl ([79.96.170.134]:63417 "HELO
+	v094114.home.net.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S1752326Ab3JJMxO (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 10 Oct 2013 08:53:14 -0400
+In-Reply-To: <20131010063116.GA4140@xps8300>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Heikki Krogerus <heikki.krogerus@linux.intel.com>
+Cc: chiau.ee.chew@intel.com, linux-acpi@vger.kernel.org, Mika Westerberg <mika.westerberg@linux.intel.com>
 
-On Thursday, October 10, 2013 01:28:45 PM Mika Westerberg wrote:
-> Here is an updated version. I added acks from Mark and Wolfram and dropped
-> if (ACPI_HANDLE()) checks as requested. This is already handled by
-> acpi_dev_pm_attach()/detach().
+On Thursday, October 10, 2013 09:31:16 AM Heikki Krogerus wrote:
+> On Wed, Oct 09, 2013 at 03:51:44PM +0200, Rafael J. Wysocki wrote:
+> > On Wednesday, October 09, 2013 09:49:20 AM Heikki Krogerus wrote:
+> > > There is an additional bit in the GENERAL register on newer
+> > > silicon that needs to be set or UART's RTS pin fails to
+> > > reflect the flow control settings in the Modem Control
+> > > Register.
+> > > 
+> > > This will fix an issue where the RTS pin of the UART stays
+> > > always at 1.8V, regardless of the register settings.
+> > > 
+> > > Signed-off-by: Heikki Krogerus <heikki.krogerus@linux.intel.com>
+> > 
+> > OK, is this urgent?
 > 
-> Rafael,
-> 
-> If you are OK with these, could you merge the series to your ACPI tree?
-> 
-> Thanks!
+> No, we can wait for v3.13 if that is what you mean.
 
-I will, thanks!
+OK
 
--- 
-I speak only for myself.
-Rafael J. Wysocki, Intel Open Source Technology Center.
