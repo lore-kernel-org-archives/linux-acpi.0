@@ -1,7 +1,7 @@
 From: Mika Westerberg <mika.westerberg@linux.intel.com>
-Subject: [PATCH v2 4/5] gpiolib / ACPI: allow passing GPIOF_ACTIVE_LOW for GpioInt resources
-Date: Thu, 10 Oct 2013 11:01:10 +0300
-Message-ID: <1381392071-21407-5-git-send-email-mika.westerberg@linux.intel.com>
+Subject: [PATCH v2 2/5] gpiolib / ACPI: convert to gpiod interfaces
+Date: Thu, 10 Oct 2013 11:01:08 +0300
+Message-ID: <1381392071-21407-3-git-send-email-mika.westerberg@linux.intel.com>
 References: <1381392071-21407-1-git-send-email-mika.westerberg@linux.intel.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <1381392071-21407-1-git-send-email-mika.westerberg@linux.intel.com>
@@ -10,71 +10,226 @@ To: linux-gpio@vger.kernel.org
 Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Linus Walleij <linus.walleij@linaro.org>, Grant Likely <grant.likely@secretlab.ca>, Mathias Nyman <mathias.nyman@linux.intel.com>, Alexandre Courbot <acourbot@nvidia.com>, Rob Landley <rob@landley.net>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Mika Westerberg <mika.westerberg@linux.intel.com>
 List-Id: linux-acpi@vger.kernel.org
 
-The ACPI GpioInt resources contain polarity field that is used to specify
-whether the interrupt is active high or low. Since gpiolib supports
-GPIOF_ACTIVE_LOW we can pass this information in the flags field in
-acpi_find_gpio(), analogous to the DeviceTree version.
+The new GPIO descriptor based interface is now preferred over the old
+integer based one. This patch converts the ACPI GPIO helpers to use this
+new interface internally. In addition to that provide compatibility
+function acpi_get_gpio_by_index() that converts the returned GPIO
+descriptor to an integer.
+
+We also drop acpi_get_gpio() as it is not used anywhere outside
+gpiolib-acpi and even there we use acpi_get_gpiod() instead.
 
 Signed-off-by: Mika Westerberg <mika.westerberg@linux.intel.com>
 Acked-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 Reviewed-by: Alexandre Courbot <acourbot@nvidia.com>
 ---
- drivers/gpio/gpiolib-acpi.c |  2 ++
- drivers/gpio/gpiolib.c      | 12 +++++++++++-
- include/linux/acpi_gpio.h   |  2 ++
- 3 files changed, 15 insertions(+), 1 deletion(-)
+ drivers/gpio/gpiolib-acpi.c | 51 ++++++++++++++++++++++-----------------------
+ include/linux/acpi_gpio.h   | 29 ++++++++++++++++----------
+ 2 files changed, 43 insertions(+), 37 deletions(-)
 
 diff --git a/drivers/gpio/gpiolib-acpi.c b/drivers/gpio/gpiolib-acpi.c
-index 03187d0..ae0ffdc 100644
+index 1745ce5..03187d0 100644
 --- a/drivers/gpio/gpiolib-acpi.c
 +++ b/drivers/gpio/gpiolib-acpi.c
-@@ -253,6 +253,8 @@ static int acpi_find_gpio(struct acpi_resource *ares, void *data)
- 					      agpio->pin_table[0]);
- 		lookup->info.gpioint =
- 			agpio->connection_type == ACPI_RESOURCE_GPIO_TYPE_INT;
-+		lookup->info.active_low =
-+			agpio->polarity == ACPI_ACTIVE_LOW;
- 	}
+@@ -11,7 +11,7 @@
+  */
  
- 	return 1;
-diff --git a/drivers/gpio/gpiolib.c b/drivers/gpio/gpiolib.c
-index 1e099de..b01a231 100644
---- a/drivers/gpio/gpiolib.c
-+++ b/drivers/gpio/gpiolib.c
-@@ -2115,7 +2115,17 @@ static struct gpio_desc *of_find_gpio(struct device *dev, const char *id,
- static struct gpio_desc *acpi_find_gpio(struct device *dev, const char *con_id,
- 					unsigned int idx, unsigned long *flags)
- {
--	return acpi_get_gpiod_by_index(dev, idx, NULL);
-+	struct acpi_gpio_info info;
-+	struct gpio_desc *desc;
-+
-+	desc = acpi_get_gpiod_by_index(dev, idx, &info);
-+	if (IS_ERR(desc))
-+		return desc;
-+
-+	if (info.gpioint && info.active_low)
-+		*flags |= GPIOF_ACTIVE_LOW;
-+
-+	return desc;
+ #include <linux/errno.h>
+-#include <linux/gpio.h>
++#include <linux/gpio/consumer.h>
+ #include <linux/export.h>
+ #include <linux/acpi_gpio.h>
+ #include <linux/acpi.h>
+@@ -33,14 +33,15 @@ static int acpi_gpiochip_find(struct gpio_chip *gc, void *data)
  }
  
- static struct gpio_desc *gpiod_find(struct device *dev, const char *con_id,
-diff --git a/include/linux/acpi_gpio.h b/include/linux/acpi_gpio.h
-index b6ce601..d875bc3 100644
---- a/include/linux/acpi_gpio.h
-+++ b/include/linux/acpi_gpio.h
-@@ -10,9 +10,11 @@
  /**
-  * struct acpi_gpio_info - ACPI GPIO specific information
-  * @gpioint: if %true this GPIO is of type GpioInt otherwise type is GpioIo
-+ * @active_low: in case of @gpioint, the pin is active low
+- * acpi_get_gpio() - Translate ACPI GPIO pin to GPIO number usable with GPIO API
++ * acpi_get_gpiod() - Translate ACPI GPIO pin to GPIO descriptor usable with GPIO API
+  * @path:	ACPI GPIO controller full path name, (e.g. "\\_SB.GPO1")
+  * @pin:	ACPI GPIO pin number (0-based, controller-relative)
+  *
+- * Returns GPIO number to use with Linux generic GPIO API, or errno error value
++ * Returns GPIO descriptor to use with Linux generic GPIO API, or ERR_PTR
++ * error value
   */
- struct acpi_gpio_info {
- 	bool gpioint;
-+	bool active_low;
+ 
+-int acpi_get_gpio(char *path, int pin)
++static struct gpio_desc *acpi_get_gpiod(char *path, int pin)
+ {
+ 	struct gpio_chip *chip;
+ 	acpi_handle handle;
+@@ -48,18 +49,17 @@ int acpi_get_gpio(char *path, int pin)
+ 
+ 	status = acpi_get_handle(NULL, path, &handle);
+ 	if (ACPI_FAILURE(status))
+-		return -ENODEV;
++		return ERR_PTR(-ENODEV);
+ 
+ 	chip = gpiochip_find(handle, acpi_gpiochip_find);
+ 	if (!chip)
+-		return -ENODEV;
++		return ERR_PTR(-ENODEV);
+ 
+-	if (!gpio_is_valid(chip->base + pin))
+-		return -EINVAL;
++	if (pin < 0 || pin > chip->ngpio)
++		return ERR_PTR(-EINVAL);
+ 
+-	return chip->base + pin;
++	return gpio_to_desc(chip->base + pin);
+ }
+-EXPORT_SYMBOL_GPL(acpi_get_gpio);
+ 
+ static irqreturn_t acpi_gpio_irq_handler(int irq, void *data)
+ {
+@@ -235,7 +235,7 @@ EXPORT_SYMBOL(acpi_gpiochip_free_interrupts);
+ struct acpi_gpio_lookup {
+ 	struct acpi_gpio_info info;
+ 	int index;
+-	int gpio;
++	struct gpio_desc *desc;
+ 	int n;
  };
  
+@@ -246,11 +246,11 @@ static int acpi_find_gpio(struct acpi_resource *ares, void *data)
+ 	if (ares->type != ACPI_RESOURCE_TYPE_GPIO)
+ 		return 1;
+ 
+-	if (lookup->n++ == lookup->index && lookup->gpio < 0) {
++	if (lookup->n++ == lookup->index && !lookup->desc) {
+ 		const struct acpi_resource_gpio *agpio = &ares->data.gpio;
+ 
+-		lookup->gpio = acpi_get_gpio(agpio->resource_source.string_ptr,
+-					     agpio->pin_table[0]);
++		lookup->desc = acpi_get_gpiod(agpio->resource_source.string_ptr,
++					      agpio->pin_table[0]);
+ 		lookup->info.gpioint =
+ 			agpio->connection_type == ACPI_RESOURCE_GPIO_TYPE_INT;
+ 	}
+@@ -259,24 +259,24 @@ static int acpi_find_gpio(struct acpi_resource *ares, void *data)
+ }
+ 
+ /**
+- * acpi_get_gpio_by_index() - get a GPIO number from device resources
++ * acpi_get_gpiod_by_index() - get a GPIO descriptor from device resources
+  * @dev: pointer to a device to get GPIO from
+  * @index: index of GpioIo/GpioInt resource (starting from %0)
+  * @info: info pointer to fill in (optional)
+  *
+  * Function goes through ACPI resources for @dev and based on @index looks
+- * up a GpioIo/GpioInt resource, translates it to the Linux GPIO number,
++ * up a GpioIo/GpioInt resource, translates it to the Linux GPIO descriptor,
+  * and returns it. @index matches GpioIo/GpioInt resources only so if there
+  * are total %3 GPIO resources, the index goes from %0 to %2.
+  *
+- * If the GPIO cannot be translated or there is an error, negative errno is
++ * If the GPIO cannot be translated or there is an error an ERR_PTR is
+  * returned.
+  *
+  * Note: if the GPIO resource has multiple entries in the pin list, this
+  * function only returns the first.
+  */
+-int acpi_get_gpio_by_index(struct device *dev, int index,
+-			   struct acpi_gpio_info *info)
++struct gpio_desc *acpi_get_gpiod_by_index(struct device *dev, int index,
++					  struct acpi_gpio_info *info)
+ {
+ 	struct acpi_gpio_lookup lookup;
+ 	struct list_head resource_list;
+@@ -285,27 +285,26 @@ int acpi_get_gpio_by_index(struct device *dev, int index,
+ 	int ret;
+ 
+ 	if (!dev)
+-		return -EINVAL;
++		return ERR_PTR(-EINVAL);
+ 
+ 	handle = ACPI_HANDLE(dev);
+ 	if (!handle || acpi_bus_get_device(handle, &adev))
+-		return -ENODEV;
++		return ERR_PTR(-ENODEV);
+ 
+ 	memset(&lookup, 0, sizeof(lookup));
+ 	lookup.index = index;
+-	lookup.gpio = -ENODEV;
+ 
+ 	INIT_LIST_HEAD(&resource_list);
+ 	ret = acpi_dev_get_resources(adev, &resource_list, acpi_find_gpio,
+ 				     &lookup);
+ 	if (ret < 0)
+-		return ret;
++		return ERR_PTR(ret);
+ 
+ 	acpi_dev_free_resource_list(&resource_list);
+ 
+-	if (lookup.gpio >= 0 && info)
++	if (lookup.desc && info)
+ 		*info = lookup.info;
+ 
+-	return lookup.gpio;
++	return lookup.desc ? lookup.desc : ERR_PTR(-ENODEV);
+ }
+-EXPORT_SYMBOL_GPL(acpi_get_gpio_by_index);
++EXPORT_SYMBOL_GPL(acpi_get_gpiod_by_index);
+diff --git a/include/linux/acpi_gpio.h b/include/linux/acpi_gpio.h
+index 4c120a1..b6ce601 100644
+--- a/include/linux/acpi_gpio.h
++++ b/include/linux/acpi_gpio.h
+@@ -2,8 +2,10 @@
+ #define _LINUX_ACPI_GPIO_H_
+ 
+ #include <linux/device.h>
++#include <linux/err.h>
+ #include <linux/errno.h>
+ #include <linux/gpio.h>
++#include <linux/gpio/consumer.h>
+ 
+ /**
+  * struct acpi_gpio_info - ACPI GPIO specific information
+@@ -15,23 +17,18 @@ struct acpi_gpio_info {
+ 
  #ifdef CONFIG_GPIO_ACPI
+ 
+-int acpi_get_gpio(char *path, int pin);
+-int acpi_get_gpio_by_index(struct device *dev, int index,
+-			   struct acpi_gpio_info *info);
++struct gpio_desc *acpi_get_gpiod_by_index(struct device *dev, int index,
++					  struct acpi_gpio_info *info);
+ void acpi_gpiochip_request_interrupts(struct gpio_chip *chip);
+ void acpi_gpiochip_free_interrupts(struct gpio_chip *chip);
+ 
+ #else /* CONFIG_GPIO_ACPI */
+ 
+-static inline int acpi_get_gpio(char *path, int pin)
++static inline struct gpio_desc *
++acpi_get_gpiod_by_index(struct device *dev, int index,
++			struct acpi_gpio_info *info)
+ {
+-	return -ENODEV;
+-}
+-
+-static inline int acpi_get_gpio_by_index(struct device *dev, int index,
+-					 struct acpi_gpio_info *info)
+-{
+-	return -ENODEV;
++	return ERR_PTR(-ENOSYS);
+ }
+ 
+ static inline void acpi_gpiochip_request_interrupts(struct gpio_chip *chip) { }
+@@ -39,4 +36,14 @@ static inline void acpi_gpiochip_free_interrupts(struct gpio_chip *chip) { }
+ 
+ #endif /* CONFIG_GPIO_ACPI */
+ 
++static inline int acpi_get_gpio_by_index(struct device *dev, int index,
++					 struct acpi_gpio_info *info)
++{
++	struct gpio_desc *desc = acpi_get_gpiod_by_index(dev, index, info);
++
++	if (IS_ERR(desc))
++		return PTR_ERR(desc);
++	return desc_to_gpio(desc);
++}
++
+ #endif /* _LINUX_ACPI_GPIO_H_ */
 -- 
 1.8.4.rc3
