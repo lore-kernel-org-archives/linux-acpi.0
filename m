@@ -1,57 +1,54 @@
-From: Zhang Yanfei <zhangyanfei@cn.fujitsu.com>
-Subject: Re: [PATCH part1 v6 4/6] x86/mem-hotplug: Support initialize page
- tables in bottom-up
-Date: Thu, 10 Oct 2013 09:20:32 +0800
-Message-ID: <525600E0.8020001@cn.fujitsu.com>
-References: <524E2032.4020106@gmail.com> <524E2127.4090904@gmail.com> <5251F9AB.6000203@zytor.com> <525442A4.9060709@gmail.com> <20131009164449.GG22495@htj.dyndns.org> <52558EEF.4050009@gmail.com> <20131009192040.GA5592@mtj.dyndns.org> <1381352311.5429.115.camel@misato.fc.hp.com> <20131009211136.GH5592@mtj.dyndns.org> <5255C730.90602@zytor.com> <5255CE7D.8030007@gmail.com> <5255E253.3080905@zytor.com> <5255E60F.5010102@gmail.com>
+From: Jani Nikula <jani.nikula@linux.intel.com>
+Subject: Re: [PATCH v4 1/4] backlight: introduce backlight_device_registered
+Date: Thu, 10 Oct 2013 07:29:53 +0300
+Message-ID: <878uy1694u.fsf@intel.com>
+References: <1381214401-24672-1-git-send-email-aaron.lu@intel.com> <1381214401-24672-2-git-send-email-aaron.lu@intel.com> <2202423.8QyNjoNEPr@vostro.rjw.lan> <5255FAC5.2090105@intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-doc-owner@vger.kernel.org>
-In-Reply-To: <5255E60F.5010102@gmail.com>
-Sender: linux-doc-owner@vger.kernel.org
-To: "H. Peter Anvin" <hpa@zytor.com>, Tejun Heo <tj@kernel.org>
-Cc: Zhang Yanfei <zhangyanfei.yes@gmail.com>, Toshi Kani <toshi.kani@hp.com>, Andrew Morton <akpm@linux-foundation.org>, "Rafael J . Wysocki" <rjw@sisk.pl>, lenb@kernel.org, Thomas Gleixner <tglx@linutronix.de>, mingo@elte.hu, Wanpeng Li <liwanp@linux.vnet.ibm.com>, Thomas Renninger <trenn@suse.de>, Yinghai Lu <yinghai@kernel.org>, Jiang Liu <jiang.liu@huawei.com>, Wen Congyang <wency@cn.fujitsu.com>, Lai Jiangshan <laijs@cn.fujitsu.com>, isimatu.yasuaki@jp.fujitsu.com, izumi.taku@jp.fujitsu.com, Mel Gorman <mgorman@suse.de>, Minchan Kim <minchan@kernel.org>, mina86@mina86.com, gong.chen@linux.intel.com, vasilis.liaskovitis@profitbricks.com, lwoodman@redhat.com, Rik van Riel <riel@redhat.com>, jweiner@redhat.com, prarit@redhat.com, "x86@kernel.org" <x86@kernel.org>, linux-doc@vger.kernel.org, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>Linux MM <linu>
+Content-Type: text/plain
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mga01.intel.com ([192.55.52.88]:41225 "EHLO mga01.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751318Ab3JJEc4 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 10 Oct 2013 00:32:56 -0400
+In-Reply-To: <5255FAC5.2090105@intel.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Aaron Lu <aaron.lu@intel.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: linux-acpi@vger.kernel.org, intel-gfx@lists.freedesktop.org, dri-devel@lists.freedesktop.org, linux-kernel@vger.kernel.org, Daniel Vetter <daniel@ffwll.ch>, Matthew Garrett <matthew.garrett@nebula.com>, Seth Forshee <seth.forshee@canonical.com>, Lee Chun-Yi <joeyli.kernel@gmail.com>, Richard Purdie <rpurdie@rpsys.net>, Igor Gnatenko <i.gnatenko.brain@gmail.com>, Yves-Alexis Perez <corsac@debian.org>, Felipe Contreras <felipe.contreras@gmail.com>, Ben Jencks <ben@bjencks.net>, Steven Newbury <steve@snewbury.org.uk>, James Hogan <james@albanarts.com>, Kamal Mostafa <kamal@canonical.com>, Joerg Platte <jplatte@naasa.net>, Kalle Valo <kvalo@adurom.com>, Martin Steigerwald <Martin@lichtvoll.de>, =?utf-8?Q?J=C3=B6rg?= Otte <jrg.otte@gmail.com>, Mike Galbraith <bitbucket@online.de>, platform-driver-x86@vger.kernel.org, Mika Westerberg <mika.westerberg@linux.intel.com>
 
-Hello guys,
+On Thu, 10 Oct 2013, Aaron Lu <aaron.lu@intel.com> wrote:
+> On 10/10/2013 08:25 AM, Rafael J. Wysocki wrote:
+>> On Tuesday, October 08, 2013 02:39:58 PM Aaron Lu wrote:
+>>> +bool backlight_device_registered(enum backlight_type type)
+>>> +{
+>>> +	bool found = false;
+>>> +	struct backlight_device *bd;
+>>> +
+>>> +	mutex_lock(&bd_list_mutex);
+>>> +	list_for_each_entry(bd, &bd_list_head, entry) {
+>>> +		if (bd->props.type == type) {
+>>> +			found = true;
+>>> +			break;
+>>> +		}
+>>> +	}
+>> 
+>> Isn't it useful to be able to register more than one backlight device of the
+>> same type sometimes?
+>
+> I think so for some kind of computers. OTOH, the above function should
+> be enough for the problem we are solving here, if someday we need to
+> differentiate, we can enhance the code then.
 
-On 10/10/2013 07:26 AM, Zhang Yanfei wrote:
-> Hello Peter,
-> 
-> On 10/10/2013 07:10 AM, H. Peter Anvin wrote:
->> On 10/09/2013 02:45 PM, Zhang Yanfei wrote:
->>>>
->>>> I would also argue that in the VM scenario -- and arguable even in the
->>>> hardware scenario -- the right thing is to not expose the flexible
->>>> memory in the e820/EFI tables, and instead have it hotadded (possibly
->>>> *immediately* so) on boot.  This avoids both the boot time funnies as
->>>> well as the scaling issues with metadata.
->>>>
->>>
->>> So in this kind of scenario, hotpluggable memory will not be detected
->>> at boot time, and admin should not use this movable_node boot option
->>> and the kernel will act as before, using top-down allocation always.
->>>
->>
->> Yes.  The idea is that the kernel will boot up without the hotplug
->> memory, but if desired, will immediately see a hotplug-add event for the
->> movable memory.
-> 
-> Yeah, this is good.
-> 
-> But in the scenario that boot with hotplug memory, we need the movable_node
-> option. So as tejun has explained a lot about this patchset, do you still
-> have objection to it or could I ask andrew to merge it into -mm tree for
-> more tests?
-> 
+Since both Baytrail and Haswell already have two backlight PWMs, this
+may be needed sooner than you think. But we shouldn't let that block
+fixing the more urgent issue we have now. So I'm fine with this. It
+doesn't prevent one from registering more than one device of the same
+type anyway.
 
-Since tejun has explained a lot about this approach, could we come to
-an agreement on this one?
+BR,
+Jani.
 
-Peter? If you have no objection, I'll post a new v7 version which will fix
-the __pa_symbol problem pointed by you.
+
 
 -- 
-Thanks.
-Zhang Yanfei
+Jani Nikula, Intel Open Source Technology Center
