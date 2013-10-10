@@ -1,87 +1,82 @@
-From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [PATCH v4 1/4] backlight: introduce backlight_device_registered
-Date: Thu, 10 Oct 2013 03:07:15 +0200
-Message-ID: <5834530.Of4OZipDEA@vostro.rjw.lan>
-References: <1381214401-24672-1-git-send-email-aaron.lu@intel.com> <2202423.8QyNjoNEPr@vostro.rjw.lan> <5255FAC5.2090105@intel.com>
+From: Tejun Heo <tj@kernel.org>
+Subject: Re: [PATCH part1 v6 4/6] x86/mem-hotplug: Support initialize page
+ tables in bottom-up
+Date: Wed, 9 Oct 2013 21:00:29 -0400
+Message-ID: <20131010010029.GA10900@mtj.dyndns.org>
+References: <524E2032.4020106@gmail.com>
+ <524E2127.4090904@gmail.com>
+ <5251F9AB.6000203@zytor.com>
+ <525442A4.9060709@gmail.com>
+ <20131009164449.GG22495@htj.dyndns.org>
+ <52558EEF.4050009@gmail.com>
+ <20131009192040.GA5592@mtj.dyndns.org>
+ <1381352311.5429.115.camel@misato.fc.hp.com>
+ <20131009211136.GH5592@mtj.dyndns.org>
+ <1381363135.5429.138.camel@misato.fc.hp.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7Bit
-Return-path: <platform-driver-x86-owner@vger.kernel.org>
-In-Reply-To: <5255FAC5.2090105@intel.com>
-Sender: platform-driver-x86-owner@vger.kernel.org
-To: Aaron Lu <aaron.lu@intel.com>
-Cc: linux-acpi@vger.kernel.org, intel-gfx@lists.freedesktop.org, dri-devel@lists.freedesktop.org, linux-kernel@vger.kernel.org, Daniel Vetter <daniel@ffwll.ch>, Matthew Garrett <matthew.garrett@nebula.com>, Seth Forshee <seth.forshee@canonical.com>, Lee Chun-Yi <joeyli.kernel@gmail.com>, Richard Purdie <rpurdie@rpsys.net>, Igor Gnatenko <i.gnatenko.brain@gmail.com>, Yves-Alexis Perez <corsac@debian.org>, Felipe Contreras <felipe.contreras@gmail.com>, Jani Nikula <jani.nikula@linux.intel.com>, Ben Jencks <ben@bjencks.net>, Steven Newbury <steve@snewbury.org.uk>, James Hogan <james@albanarts.com>, Kamal Mostafa <kamal@canonical.com>, Joerg Platte <jplatte@naasa.net>, Kalle Valo <kvalo@adurom.com>, Martin Steigerwald <Martin@lichtvoll.de>, =?ISO-8859-1?Q?J=F6rg?= Otte <jrg.otte@gmail.com>, Mike Galbraith <bitbucket@online.de>, platform-driver-x86@vger.kernel.org, Mika
+Content-Type: text/plain; charset=us-ascii
+Return-path: <owner-linux-mm@kvack.org>
+Content-Disposition: inline
+In-Reply-To: <1381363135.5429.138.camel@misato.fc.hp.com>
+Sender: owner-linux-mm@kvack.org
+To: Toshi Kani <toshi.kani@hp.com>
+Cc: Zhang Yanfei <zhangyanfei.yes@gmail.com>, "H. Peter Anvin" <hpa@zytor.com>, Andrew Morton <akpm@linux-foundation.org>, "Rafael J . Wysocki" <rjw@sisk.pl>, lenb@kernel.org, Thomas Gleixner <tglx@linutronix.de>, mingo@elte.hu, Wanpeng Li <liwanp@linux.vnet.ibm.com>, Thomas Renninger <trenn@suse.de>, Yinghai Lu <yinghai@kernel.org>, Jiang Liu <jiang.liu@huawei.com>, Wen Congyang <wency@cn.fujitsu.com>, Lai Jiangshan <laijs@cn.fujitsu.com>, isimatu.yasuaki@jp.fujitsu.com, izumi.taku@jp.fujitsu.com, Mel Gorman <mgorman@suse.de>, Minchan Kim <minchan@kernel.org>, mina86@mina86.com, gong.chen@linux.intel.com, vasilis.liaskovitis@profitbricks.com, lwoodman@redhat.com, Rik van Riel <riel@redhat.com>, jweiner@redhat.com, prarit@redhat.com, "x86@kernel.org" <x86@kernel.org>, linux-doc@vger.kernel.org, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>Linux MM <lin>
 List-Id: linux-acpi@vger.kernel.org
 
-On Thursday, October 10, 2013 08:54:29 AM Aaron Lu wrote:
-> On 10/10/2013 08:25 AM, Rafael J. Wysocki wrote:
-> > On Tuesday, October 08, 2013 02:39:58 PM Aaron Lu wrote:
-> >> Introduce a new API for modules to query if a specific type of backlight
-> >> device has been registered. This is useful for some backlight device
-> >> provider module(e.g. ACPI video) to know if a native control
-> >> interface(e.g. the interface created by i915) is available and then do
-> >> things accordingly(e.g. avoid register its own on Win8 systems).
-> >>
-> >> Signed-off-by: Aaron Lu <aaron.lu@intel.com>
-> >> Tested-by: Igor Gnatenko <i.gnatenko.brain@gmail.com>
-> >> Tested-by: Yves-Alexis Perez <corsac@debian.org>
-> >> Tested-by: Mika Westerberg <mika.westerberg@linux.intel.com>
-> >> ---
-> >>  drivers/video/backlight/backlight.c | 31 +++++++++++++++++++++++++++++++
-> >>  include/linux/backlight.h           |  4 ++++
-> >>  2 files changed, 35 insertions(+)
-> >>
-> >> diff --git a/drivers/video/backlight/backlight.c b/drivers/video/backlight/backlight.c
-> >> index 94a403a..bf2d71d 100644
-> >> --- a/drivers/video/backlight/backlight.c
-> >> +++ b/drivers/video/backlight/backlight.c
-> >> @@ -21,6 +21,9 @@
-> >>  #include <asm/backlight.h>
-> >>  #endif
-> >>  
-> >> +static struct list_head bd_list_head;
-> >> +static struct mutex bd_list_mutex;
-> > 
-> > I'd prefer these two things to be called backlight_dev_list and
-> > backlight_dev_list_mutex, respectively.
-> 
-> OK.
-> 
-> > 
-> >> +
-> >>  static const char *const backlight_types[] = {
-> >>  	[BACKLIGHT_RAW] = "raw",
-> >>  	[BACKLIGHT_PLATFORM] = "platform",
-> >> @@ -349,10 +352,32 @@ struct backlight_device *backlight_device_register(const char *name,
-> >>  	mutex_unlock(&pmac_backlight_mutex);
-> >>  #endif
-> >>  
-> >> +	mutex_lock(&bd_list_mutex);
-> >> +	list_add(&new_bd->entry, &bd_list_head);
-> >> +	mutex_unlock(&bd_list_mutex);
-> >> +
-> >>  	return new_bd;
-> >>  }
-> >>  EXPORT_SYMBOL(backlight_device_register);
-> >>  
-> >> +bool backlight_device_registered(enum backlight_type type)
-> >> +{
-> >> +	bool found = false;
-> >> +	struct backlight_device *bd;
-> >> +
-> >> +	mutex_lock(&bd_list_mutex);
-> >> +	list_for_each_entry(bd, &bd_list_head, entry) {
-> >> +		if (bd->props.type == type) {
-> >> +			found = true;
-> >> +			break;
-> >> +		}
-> >> +	}
-> > 
-> > Isn't it useful to be able to register more than one backlight device of the
-> > same type sometimes?
-> 
-> I think so for some kind of computers. OTOH, the above function should
-> be enough for the problem we are solving here, if someday we need to
-> differentiate, we can enhance the code then.
+Hello, Toshi.
 
-OK
+On Wed, Oct 09, 2013 at 05:58:55PM -0600, Toshi Kani wrote:
+> Well, there was a plan before, which considered to enhance it to a
+> memory device granularity at step 3.  But we had a major replan at step
+> 1 per your suggestion.
+> 
+> https://lkml.org/lkml/2013/6/19/73
+
+Where?
+
+ "3. Improve memory hotplug to support local device pagetable."
+
+How can the above possibly be considered as a plan for finer
+granularity?  Forget about the "how" part.  The stated goal doesn't
+even mention finer granularity.  Are firmware writers gonna be
+required to split SRAT entries into multiple sub-nodes to support it?
+Is segregating zones further for this even a good idea?  Adding more
+NUMA nodes has its own overhead and the mm code isn't written
+expecting it to be repurposed for segmenting the same NUMA node for
+hotplug underneath it.
+
+Maybe zoning is a viable approach.  Maybe it is not.  I don't know,
+but you guys don't seem to be too interested in actual long term
+planning while pushing for something invasive which may or may not be
+viable in the longer term, which can often lead to silly situations.
+It isn't even clear whether SRAT is the right interface for this.  If
+it's gonna require firwmare writer's cooperation anyway, why not
+provide the information as extended part of e820?  It doesn't seem to
+have much to do with NUMA or zones.  The only information the kernel
+needs to know is whether certain memory areas should only be used for
+page cache.
+
+At this point, at least to me, it doesn't seem reasonably clear how
+this is gonna develop and the whole thing feels like a kludge, which
+can be fine too, but seriously if you guys wanna push for an invasive
+approach, it should really be backed by longer term plan, vision,
+justification and the ability to make the necessary changes in the
+various involved layers.  Maybe I'm being too pessimistic but I feel
+that there are a lot missing in most of those areas, which makes it
+quite risky to commit to invasive changes.
+
+If the zone based kludgy appraoch is something meaningfully useful,
+I'd suggest to sticking to it at least for now.  Some of it would be
+useful anyway and if it doesn't fan out the added maintenance overhead
+is fairly low.
+
+Thanks.
+
+-- 
+tejun
+
+--
+To unsubscribe, send a message with 'unsubscribe linux-mm' in
+the body to majordomo@kvack.org.  For more info on Linux MM,
+see: http://www.linux-mm.org/ .
+Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
