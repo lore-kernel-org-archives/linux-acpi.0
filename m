@@ -1,7 +1,7 @@
 From: Mika Westerberg <mika.westerberg@linux.intel.com>
-Subject: [PATCH v2 5/5] gpiolib / ACPI: document the GPIO descriptor based interface
-Date: Thu, 10 Oct 2013 11:01:11 +0300
-Message-ID: <1381392071-21407-6-git-send-email-mika.westerberg@linux.intel.com>
+Subject: [PATCH v2 3/5] gpiolib / ACPI: add ACPI support for gpiod_get_index()
+Date: Thu, 10 Oct 2013 11:01:09 +0300
+Message-ID: <1381392071-21407-4-git-send-email-mika.westerberg@linux.intel.com>
 References: <1381392071-21407-1-git-send-email-mika.westerberg@linux.intel.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <1381392071-21407-1-git-send-email-mika.westerberg@linux.intel.com>
@@ -10,58 +10,51 @@ To: linux-gpio@vger.kernel.org
 Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Linus Walleij <linus.walleij@linaro.org>, Grant Likely <grant.likely@secretlab.ca>, Mathias Nyman <mathias.nyman@linux.intel.com>, Alexandre Courbot <acourbot@nvidia.com>, Rob Landley <rob@landley.net>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Mika Westerberg <mika.westerberg@linux.intel.com>
 List-Id: linux-acpi@vger.kernel.org
 
-In addition to the existing ACPI specific GPIO interface, document the new
-descriptor based GPIO interface in Documentation/acpi/enumeration.txt, so
-it is clear that this new interface is preferred over the ACPI specific
-version.
+gpiod_get_index() and gpiod_get() are now the new preferred way to request
+GPIOs. Add support for finding the corresponding GPIO descriptor from ACPI
+namespace.
 
 Signed-off-by: Mika Westerberg <mika.westerberg@linux.intel.com>
 Acked-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 Reviewed-by: Alexandre Courbot <acourbot@nvidia.com>
 ---
- Documentation/acpi/enumeration.txt | 26 ++++++++++++++++++++++----
- 1 file changed, 22 insertions(+), 4 deletions(-)
+ drivers/gpio/gpiolib.c | 10 ++++++++++
+ 1 file changed, 10 insertions(+)
 
-diff --git a/Documentation/acpi/enumeration.txt b/Documentation/acpi/enumeration.txt
-index aca4e69..b994bcb 100644
---- a/Documentation/acpi/enumeration.txt
-+++ b/Documentation/acpi/enumeration.txt
-@@ -295,10 +295,6 @@ These GPIO numbers are controller relative and path "\\_SB.PCI0.GPI0"
- specifies the path to the controller. In order to use these GPIOs in Linux
- we need to translate them to the Linux GPIO numbers.
+diff --git a/drivers/gpio/gpiolib.c b/drivers/gpio/gpiolib.c
+index e2a2cdd..1e099de 100644
+--- a/drivers/gpio/gpiolib.c
++++ b/drivers/gpio/gpiolib.c
+@@ -10,6 +10,7 @@
+ #include <linux/seq_file.h>
+ #include <linux/gpio.h>
+ #include <linux/of_gpio.h>
++#include <linux/acpi_gpio.h>
+ #include <linux/idr.h>
+ #include <linux/slab.h>
  
--The driver can do this by including <linux/acpi_gpio.h> and then calling
--acpi_get_gpio(path, gpio). This will return the Linux GPIO number or
--negative errno if there was no translation found.
--
- In a simple case of just getting the Linux GPIO number from device
- resources one can use acpi_get_gpio_by_index() helper function. It takes
- pointer to the device and index of the GpioIo/GpioInt descriptor in the
-@@ -322,3 +318,25 @@ suitable to the gpiolib before passing them.
+@@ -2111,6 +2112,12 @@ static struct gpio_desc *of_find_gpio(struct device *dev, const char *id,
+ }
+ #endif
  
- In case of GpioInt resource an additional call to gpio_to_irq() must be
- done before calling request_irq().
++static struct gpio_desc *acpi_find_gpio(struct device *dev, const char *con_id,
++					unsigned int idx, unsigned long *flags)
++{
++	return acpi_get_gpiod_by_index(dev, idx, NULL);
++}
 +
-+Note that the above API is ACPI specific and not recommended for drivers
-+that need to support non-ACPI systems. The recommended way is to use
-+the descriptor based GPIO interfaces. The above example looks like this
-+when converted to the GPIO desc:
-+
-+	#include <linux/gpio/consumer.h>
-+	...
-+
-+	struct gpio_desc *irq_desc, *power_desc;
-+
-+	irq_desc = gpiod_get_index(dev, NULL, 1);
-+	if (IS_ERR(irq_desc))
-+		/* handle error */
-+
-+	power_desc = gpiod_get_index(dev, NULL, 0);
-+	if (IS_ERR(power_desc))
-+		/* handle error */
-+
-+	/* Now we can use the GPIO descriptors */
-+
-+See also Documentation/gpio.txt.
+ static struct gpio_desc *gpiod_find(struct device *dev, const char *con_id,
+ 				    unsigned int idx, unsigned long *flags)
+ {
+@@ -2192,6 +2199,9 @@ struct gpio_desc *__must_check gpiod_get_index(struct device *dev,
+ 	if (IS_ENABLED(CONFIG_OF) && dev && dev->of_node) {
+ 		dev_dbg(dev, "using device tree for GPIO lookup\n");
+ 		desc = of_find_gpio(dev, con_id, idx, &flags);
++	} else if (IS_ENABLED(CONFIG_ACPI) && dev && ACPI_HANDLE(dev)) {
++		dev_dbg(dev, "using ACPI for GPIO lookup\n");
++		desc = acpi_find_gpio(dev, con_id, idx, &flags);
+ 	} else {
+ 		dev_dbg(dev, "using lookup tables for GPIO lookup");
+ 		desc = gpiod_find(dev, con_id, idx, &flags);
 -- 
 1.8.4.rc3
