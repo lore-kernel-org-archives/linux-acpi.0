@@ -1,68 +1,76 @@
-From: Mark Brown <broonie-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: Re: [PATCH 3/3] spi: attach/detach SPI device to the ACPI power
- domain
-Date: Thu, 10 Oct 2013 10:38:39 +0100
-Message-ID: <20131010093839.GD21581@sirena.org.uk>
+From: Mika Westerberg <mika.westerberg-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
+Subject: [PATCH v2 3/3] spi: attach/detach SPI device to the ACPI power domain
+Date: Thu, 10 Oct 2013 13:28:48 +0300
+Message-ID: <1381400928-2689-4-git-send-email-mika.westerberg@linux.intel.com>
 References: <1381327461-10562-1-git-send-email-mika.westerberg@linux.intel.com>
- <1381327461-10562-4-git-send-email-mika.westerberg@linux.intel.com>
- <20131009175528.GV21581@sirena.org.uk>
- <20131010061256.GB3521@intel.com>
-Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="KYWjQn08oZ6edC5T"
+ <1381400928-2689-1-git-send-email-mika.westerberg@linux.intel.com>
 Return-path: <linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20131010061256.GB3521-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+In-Reply-To: <1381400928-2689-1-git-send-email-mika.westerberg-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
 Sender: linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Mika Westerberg <mika.westerberg-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
-Cc: linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Wolfram Sang <wsa-z923LK4zBo2bacvFa/9K2g@public.gmane.org>, "Rafael J. Wysocki" <rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org>, Aaron Lu <aaron.lu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Lv Zheng <lv.zheng-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: "Rafael J. Wysocki" <rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org>, Wolfram Sang <wsa-z923LK4zBo2bacvFa/9K2g@public.gmane.org>, Mark Brown <broonie-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Aaron Lu <aaron.lu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Lv Zheng <lv.zheng-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Mika Westerberg <mika.westerberg-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>, linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
+If the SPI device is enumerated from ACPI namespace (it has an ACPI handle)
+it might have ACPI methods that needs to be called in order to transition
+the device to different power states (such as _PSx).
 
---KYWjQn08oZ6edC5T
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+We follow what has been done for platform and I2C buses here and attach the
+SPI device to the ACPI power domain if the device has an ACPI handle. This
+makes sure that the device is powered on when its ->probe() is called.
 
-On Thu, Oct 10, 2013 at 09:12:56AM +0300, Mika Westerberg wrote:
-> On Wed, Oct 09, 2013 at 06:55:28PM +0100, Mark Brown wrote:
-> > On Wed, Oct 09, 2013 at 05:04:21PM +0300, Mika Westerberg wrote:
+For non-ACPI devices this patch is a no-op.
 
-> > > +	if (ACPI_HANDLE(&spi->dev))
-> > > +		acpi_dev_pm_attach(&spi->dev, true);
+Signed-off-by: Mika Westerberg <mika.westerberg-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
+Acked-by: Mark Brown <broonie-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
+---
+ drivers/spi/spi.c | 18 ++++++++++++++++--
+ 1 file changed, 16 insertions(+), 2 deletions(-)
 
-> > Though I do wonder if it wouldn't be sensible to push the if () here
-> > inside acpi_dev_pm_attach() and similarly for _detach().  Terribly
-> > trivial either way.
-
-> Actually, the check is already there in acpi_dev_pm_attach()/detach(). The
-> above code follows what Rafael did for platform bus previously. I think the
-> idea is to have visual hint that this is only for ACPI enumerated devices.
-
-> If preferred, I can drop the if() checks, though.
-
-It'd seem neater - the fact that the function is acpi_ ought to be
-enough of a hint.
-
---KYWjQn08oZ6edC5T
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2.0.22 (GNU/Linux)
-
-iQIcBAEBAgAGBQJSVnWbAAoJELSic+t+oim9sREP/1JnCBcgJTvVWKSOAUXeA0bl
-dt1hEUXoQbx18fGe5/PZgcnkhU8uEwnf76uvS5Pu2BXDHAifdz/jb2aa+I2gdPr8
-2aSnEyo/A0hTkprxbECCudvLuKvB02idRG0N8ZS7xPycahL2i2du6zaRj5XACLuY
-LvvxBJVecKz0HOEszbNdfGXHgqb9zK+TEDtw3vx+dT2w9BKff4j7mLFMjXDaVqo/
-YfRrvvYFWPh9LWkLKZ8W68K45RWOCNXTgWq4KtfVZsFBT6KcRHqzIirvmiDo6Wt9
-ij+yTkGTLQJo8C68ByXsMlXS/Rlz1tti0Xrf0DyB7nqDVcWSYKZDVQtSZt1jn2L3
-KfC3QrRCy9RFyDwwqMSLyG3Uo5jPZG9tG4pcoCJoGEzZpgNpphrTLWmGE/IIkh9I
-gnLhiLTrOG4h35cgBiQw4XPvp56CwwNYA2BsSY1nsw+zIU9R3Dv6m7oiCwpi/7A8
-U//d3wbLnduEiF0QORyTYrQuyf1Aly7bIuushZYhlFIClJy6wwbUqNQzwnZdFYjj
-4Ovh5c5dtirBpWu3hWwDJZyiy6O4SowfXXCQK+XhwcJGwqHgb+CD1IwD7WyzbVMJ
-ZAnVCsFeW5+dqPuPDnyXgwfZF8MeIUZ2z5zkPPYVxldSpC3d3VGauPpzLoRDq7j8
-Hn3w8vAzLO/8mUZAQg3p
-=6Ea0
------END PGP SIGNATURE-----
-
---KYWjQn08oZ6edC5T--
+diff --git a/drivers/spi/spi.c b/drivers/spi/spi.c
+index 9e039c6..740f9dd 100644
+--- a/drivers/spi/spi.c
++++ b/drivers/spi/spi.c
+@@ -240,15 +240,27 @@ EXPORT_SYMBOL_GPL(spi_bus_type);
+ static int spi_drv_probe(struct device *dev)
+ {
+ 	const struct spi_driver		*sdrv = to_spi_driver(dev->driver);
++	struct spi_device		*spi = to_spi_device(dev);
++	int ret;
++
++	acpi_dev_pm_attach(&spi->dev, true);
++	ret = sdrv->probe(spi);
++	if (ret)
++		acpi_dev_pm_detach(&spi->dev, true);
+ 
+-	return sdrv->probe(to_spi_device(dev));
++	return ret;
+ }
+ 
+ static int spi_drv_remove(struct device *dev)
+ {
+ 	const struct spi_driver		*sdrv = to_spi_driver(dev->driver);
++	struct spi_device		*spi = to_spi_device(dev);
++	int ret;
++
++	ret = sdrv->remove(spi);
++	acpi_dev_pm_detach(&spi->dev, true);
+ 
+-	return sdrv->remove(to_spi_device(dev));
++	return ret;
+ }
+ 
+ static void spi_drv_shutdown(struct device *dev)
+@@ -1025,8 +1037,10 @@ static acpi_status acpi_spi_add_device(acpi_handle handle, u32 level,
+ 		return AE_OK;
+ 	}
+ 
++	adev->power.flags.ignore_parent = true;
+ 	strlcpy(spi->modalias, dev_name(&adev->dev), sizeof(spi->modalias));
+ 	if (spi_add_device(spi)) {
++		adev->power.flags.ignore_parent = false;
+ 		dev_err(&master->dev, "failed to add SPI device %s from ACPI\n",
+ 			dev_name(&adev->dev));
+ 		spi_dev_put(spi);
+-- 
+1.8.4.rc3
