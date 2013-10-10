@@ -1,55 +1,56 @@
-From: Mark Brown <broonie@kernel.org>
-Subject: Re: [PATCH] spi: Fix modalias for ACPI enumerated SPI devices
-Date: Thu, 10 Oct 2013 19:16:37 +0100
-Message-ID: <20131010181637.GT21581@sirena.org.uk>
-References: <1381414757-26173-1-git-send-email-jarkko.nikula@linux.intel.com>
+From: Toshi Kani <toshi.kani@hp.com>
+Subject: Re: [PATCH part1 v6 4/6] x86/mem-hotplug: Support initialize page
+ tables in bottom-up
+Date: Thu, 10 Oct 2013 13:17:10 -0600
+Message-ID: <1381432630.26234.6.camel@misato.fc.hp.com>
+References: <20131009192040.GA5592@mtj.dyndns.org>
+		 <1381352311.5429.115.camel@misato.fc.hp.com>
+		 <20131009211136.GH5592@mtj.dyndns.org>
+		 <1381363135.5429.138.camel@misato.fc.hp.com>
+		 <20131010010029.GA10900@mtj.dyndns.org>
+		 <1381415809.24268.40.camel@misato.fc.hp.com>
+		 <20131010153518.GB13276@htj.dyndns.org>
+		 <1381422249.24268.68.camel@misato.fc.hp.com>
+		 <20131010164623.GD13276@htj.dyndns.org>
+		 <1381423840.24268.70.camel@misato.fc.hp.com>
+		 <20131010165522.GE13276@htj.dyndns.org>
+	 <1381424390.26234.1.camel@misato.fc.hp.com> <5256E01B.9050802@zytor.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="4JYkiJ1a9n8r8Bnm"
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cassiel.sirena.org.uk ([80.68.93.111]:44366 "EHLO
-	cassiel.sirena.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755430Ab3JJSQp (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 10 Oct 2013 14:16:45 -0400
-Content-Disposition: inline
-In-Reply-To: <1381414757-26173-1-git-send-email-jarkko.nikula@linux.intel.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
+Return-path: <owner-linux-mm@kvack.org>
+In-Reply-To: <5256E01B.9050802@zytor.com>
+Sender: owner-linux-mm@kvack.org
+To: "H. Peter Anvin" <hpa@zytor.com>
+Cc: Tejun Heo <tj@kernel.org>, Zhang Yanfei <zhangyanfei.yes@gmail.com>, Andrew Morton <akpm@linux-foundation.org>, "Rafael J . Wysocki" <rjw@sisk.pl>, "lenb@kernel.org" <lenb@kernel.org>, Thomas Gleixner <tglx@linutronix.de>, "mingo@elte.hu" <mingo@elte.hu>, Wanpeng Li <liwanp@linux.vnet.ibm.com>, Thomas Renninger <trenn@suse.de>, Yinghai Lu <yinghai@kernel.org>, Jiang Liu <jiang.liu@huawei.com>, Wen Congyang <wency@cn.fujitsu.com>, Lai Jiangshan <laijs@cn.fujitsu.com>, "isimatu.yasuaki@jp.fujitsu.com" <isimatu.yasuaki@jp.fujitsu.com>, "izumi.taku@jp.fujitsu.com" <izumi.taku@jp.fujitsu.com>, Mel Gorman <mgorman@suse.de>, Minchan Kim <minchan@kernel.org>, "mina86@mina86.com" <mina86@mina86.com>, "gong.chen@linux.intel.com" <gong.chen@linux.intel.com>, "vasilis.liaskovitis@profitbricks.com" <vasilis.liaskovitis@profitbricks.com>, "lwoodman@redhat.com" <lwoodman@redhat.com>
 List-Id: linux-acpi@vger.kernel.org
-To: Jarkko Nikula <jarkko.nikula@linux.intel.com>
-Cc: linux-spi@vger.kernel.org, linux-acpi@vger.kernel.org, Mika Westerberg <mika.westerberg@linux.intel.com>
 
+On Thu, 2013-10-10 at 10:12 -0700, H. Peter Anvin wrote:
+> On 10/10/2013 09:59 AM, Toshi Kani wrote:
+> > On Thu, 2013-10-10 at 12:55 -0400, Tejun Heo wrote:
+> >> On Thu, Oct 10, 2013 at 10:50:40AM -0600, Toshi Kani wrote:
+> >>> Can you elaborate why we need to parse the device hierarchy before
+> >>> setting up page tables?
+> >>
+> >> How else can one put the page tables on the "local device"?  Am I
+> >> missing something?
+> > 
+> > The local page table item is gone under the current plan as you
+> > suggested...
+> > 
+> 
+> That would be a significant performance regression.
 
---4JYkiJ1a9n8r8Bnm
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+In earlier discussions, Tejun pointed out that huge mappings dismiss the
+benefit of local page tables.
 
-On Thu, Oct 10, 2013 at 05:19:17PM +0300, Jarkko Nikula wrote:
-> There is a minor fault about ACPI enumerated SPI devices with their modalias
-> attribute. Now modalias is set by device instance not by hardware ID.
-> For example "spi:INTABCD:00", "spi:INTABCD:01" etc.
+https://lkml.org/lkml/2013/8/23/245
 
-Applied, thanks.
+Thanks,
+-Toshi
 
---4JYkiJ1a9n8r8Bnm
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2.0.22 (GNU/Linux)
-
-iQIcBAEBAgAGBQJSVu8CAAoJELSic+t+oim9SV8P/iWKESX4de6B4H0UODPNimI/
-W9EeO72eV1/j07F3GoVGR2ELfMYtryOupMt7Oll3+gSm7HfuedLr8yjPKQIYdiAq
-9tCp9sgP1LG38xJJaizzjRXPjPWQBc+9EUxVUXXdwogP1bK7DvCHo5op3sjeawCL
-4lY9JLAaXErwpcVCjziz23uT/UI6LMfgA39HbJpAmbDOWBGE4tqSLTHE9s/bwSel
-6gek55G5PiCiCZcl7TkLXhmbI6/vqrD1+/HyD+k5f6MWIkvUO+mpTWQ/Bu+HnH/m
-2y5VJDi61s0cUC73n/qi/7vzhUu3Qm2Xitz7wBIipyPnXzKPGvZ/yyTRACkD3yzL
-XAwG3dLq+yQ29Fgxw4LdNRxbfr7Q5syBLXT+pk0AL87az79rdYK2jJBMbIGlJ1hN
-DNbgTt6qncJ1ukgw6mMEbpANsNAOuomLp+aoRTwizPT+11ELQzDnRWy14JYn42lN
-0ccUnBXHBVzdcpZSV69k2sO+SmY/T/GXjYiNU4uCv0GeWY4SdVTtT5UHsxT65R/2
-JjammGmyxA2K6v9jogp7/Z34QeXFrTbOAO8Zr1mP81SHh9uRHakJkgwrto4bYWPg
-PTte0hQwTvY713VoyKIwRO/FdqNVrtK8+7EBNqjeeztdSKPw/522ITX6OmT9zmh6
-s3nQRwv6EhSE6xgix3P0
-=stwq
------END PGP SIGNATURE-----
-
---4JYkiJ1a9n8r8Bnm--
+--
+To unsubscribe, send a message with 'unsubscribe linux-mm' in
+the body to majordomo@kvack.org.  For more info on Linux MM,
+see: http://www.linux-mm.org/ .
+Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
