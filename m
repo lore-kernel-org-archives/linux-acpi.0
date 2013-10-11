@@ -1,47 +1,29 @@
-From: Linus Torvalds <torvalds@linux-foundation.org>
-Subject: Re: [BUG] WARN_ON(!context) in drivers/pci/hotplug/acpiphp_glue.c
-Date: Thu, 10 Oct 2013 18:42:56 -0700
-Message-ID: <CA+55aFwqf7kkh0dy6AhCvB87XYkQ03YUpsYEDJmnkiRe8GQfMQ@mail.gmail.com>
-References: <20131010165905.7815defa@gandalf.local.home>
-	<CA+55aFwA8WZ+ARtNFFY+z4d8kS5AUBLg32iu7Jkk3rsz_i1OZw@mail.gmail.com>
-	<2679976.SxBsymIdoJ@vostro.rjw.lan>
-	<18685640.N2BnVjDmHD@vostro.rjw.lan>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+From: tianyu.lan@intel.com
+Subject: [PATCH v2 0/5] ACPI: Remove unused files and directories under /proc/acpi
+Date: Fri, 11 Oct 2013 09:51:18 +0800
+Message-ID: <1381456283-22175-1-git-send-email-tianyu.lan@intel.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-ea0-f178.google.com ([209.85.215.178]:62995 "EHLO
-	mail-ea0-f178.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754904Ab3JKBm6 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 10 Oct 2013 21:42:58 -0400
-In-Reply-To: <18685640.N2BnVjDmHD@vostro.rjw.lan>
+Received: from mga03.intel.com ([143.182.124.21]:28472 "EHLO mga03.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753980Ab3JKBv3 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 10 Oct 2013 21:51:29 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: Bjorn Helgaas <bhelgaas@google.com>, Steven Rostedt <rostedt@goodmis.org>, LKML <linux-kernel@vger.kernel.org>, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Mika Westerberg <mika.westerberg@linux.intel.com>, Andrew Morton <akpm@linux-foundation.org>, Linux PCI <linux-pci@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>
+To: tianyu.lan@intel.com, lenb@kernel.org, rjw@sisk.pl, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 
-On Thu, Oct 10, 2013 at 6:45 PM, Rafael J. Wysocki <rjw@rjwysocki.net> wrote:
->
->         /* Register slots for ejectable funtions only. */
-> -       if (acpi_pci_check_ejectable(pbus, handle)  || is_dock_device(handle)) {
-> +       if ((acpi_pci_check_ejectable(pbus, handle) || is_dock_device(handle))
-> +           && !(pdev && device_is_managed_by_native_pciehp(pdev))) {
->                 unsigned long long sun;
->                 int retval;
+This patchset is to remove AC/Battery directories and alarm file under /proc/acpi
 
-I can't even begin to say whether this is a good solution or not,
-because that if-conditional makes me want to go out and kill some
-homeless people to let my aggressions out.
+drivers/acpi/Kconfig                                 |  17 --
+drivers/acpi/Makefile                                |   1 -
+drivers/acpi/ac.c                                    | 128 +--------
+drivers/acpi/battery.c                               | 328 +---------------------
+drivers/acpi/cm_sbs.c                                | 105 -------
+drivers/acpi/proc.c                                  | 305 --------------------
+drivers/acpi/sbs.c                                   | 325 +--------------------
+9 files changed, 7 insertions(+), 1251 deletions(-)
 
-Can we please agree to *never* write code like this? Ever?
-
-Use a well-named inline helper function where the name describes what
-the f*ck the code is trying to do, and then comment the separate
-issues. Because none of the above line noise makes me go "Ahh, it's
-the test for an ejectable function".
-
-What the heck _is_ an "ejectable function" anyway? The only comment
-there just makes the code even less sensible.
-
-Please?
-
-                Linus
+[PATCH 1/5] ACPI/AC: Remove AC's proc directory.
+[PATCH 2/5] ACPI/Battery: Remove battery's proc directory
+[PATCH 3/5] ACPI/SBS: Remove SBS's proc directory
+[PATCH 4/5] ACPI: Remove CONFIG_ACPI_PROCFS_POWER and cm_sbsc.c
+[PATCH 5/5] ACPI/Proc: Remove alarm proc file
