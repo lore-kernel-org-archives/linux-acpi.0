@@ -1,120 +1,46 @@
-From: tianyu.lan@intel.com
-Subject: [Resend PATCH 5/5] IA64/PCI/ACPI: Rework PCI root bridge ACPI resource conversion
-Date: Fri, 11 Oct 2013 20:19:01 +0800
-Message-ID: <1381493941-4650-6-git-send-email-tianyu.lan@intel.com>
-References: <1381493941-4650-1-git-send-email-tianyu.lan@intel.com>
-Return-path: <linux-ia64-owner@vger.kernel.org>
-In-Reply-To: <1381493941-4650-1-git-send-email-tianyu.lan@intel.com>
-Sender: linux-ia64-owner@vger.kernel.org
-To: tony.luck@intel.com, bhelgaas@google.com, lenb@kernel.org, rjw@sisk.pl, yinghai@kernel.org
-Cc: Lan Tianyu <tianyu.lan@intel.com>, linux-ia64@vger.kernel.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
+From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Subject: Re: [PATCH V2 Resend 37/92] cpufreq: acpi: don't initialize part of policy that is set by core too
+Date: Fri, 11 Oct 2013 14:51:05 +0200
+Message-ID: <1531860.snE8AY6g9s@vostro.rjw.lan>
+References: <cover.1380783079.git.viresh.kumar@linaro.org> <8fa3d4a49724fc9a298c0b2f0b266b37d4a13310.1380783079.git.viresh.kumar@linaro.org>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7Bit
+Return-path: <cpufreq-owner@vger.kernel.org>
+In-Reply-To: <8fa3d4a49724fc9a298c0b2f0b266b37d4a13310.1380783079.git.viresh.kumar@linaro.org>
+Sender: cpufreq-owner@vger.kernel.org
+To: Viresh Kumar <viresh.kumar@linaro.org>
+Cc: cpufreq@vger.kernel.org, linux-pm@vger.kernel.org, ACPI Devel Maling List <linux-acpi@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
 
-From: Lan Tianyu <tianyu.lan@intel.com>
+On Thursday, October 03, 2013 08:28:31 PM Viresh Kumar wrote:
+> Many common initializations of struct policy are moved to core now and hence
+> this driver doesn't need to do it. This patch removes such code.
+> 
+> Most recent of those changes is to call ->get() in the core after calling
+> ->init().
+> 
+> Signed-off-by: Viresh Kumar <viresh.kumar@linaro.org>
+> ---
+>  drivers/cpufreq/acpi-cpufreq.c | 1 -
+>  1 file changed, 1 deletion(-)
+> 
+> diff --git a/drivers/cpufreq/acpi-cpufreq.c b/drivers/cpufreq/acpi-cpufreq.c
+> index 94a5a1d..a8dac7b 100644
+> --- a/drivers/cpufreq/acpi-cpufreq.c
+> +++ b/drivers/cpufreq/acpi-cpufreq.c
+> @@ -842,7 +842,6 @@ static int acpi_cpufreq_cpu_init(struct cpufreq_policy *policy)
+>  		break;
+>  	case ACPI_ADR_SPACE_FIXED_HARDWARE:
+>  		acpi_cpufreq_driver.get = get_cur_freq_on_cpu;
+> -		policy->cur = get_cur_freq_on_cpu(cpu);
+>  		break;
+>  	default:
+>  		break;
 
-Using ACPI resource functions to convert ACPI resource to generic resource
+I'm wondering what happens if space_id is ACPI_ADR_SPACE_SYSTEM_IO?  I suppose
+that the core will set policy->cur first and then it will be overwritten here?
 
-Signed-off-by: Lan Tianyu <tianyu.lan@intel.com>
----
-This patch just passes through compilation test due to no ia64 machine on hand.
-
- arch/ia64/pci/pci.c | 38 +++++++++++++++++++++-----------------
- 1 file changed, 21 insertions(+), 17 deletions(-)
-
-diff --git a/arch/ia64/pci/pci.c b/arch/ia64/pci/pci.c
-index 2326790..14fa175 100644
---- a/arch/ia64/pci/pci.c
-+++ b/arch/ia64/pci/pci.c
-@@ -232,8 +232,9 @@ out:
- 	return ~0;
- }
- 
--static acpi_status resource_to_window(struct acpi_resource *resource,
--				      struct acpi_resource_address64 *addr)
-+static acpi_status resource_to_window(struct acpi_resource *ares,
-+				      struct acpi_resource_address64 *addr,
-+				      struct resource *res)
- {
- 	acpi_status status;
- 
-@@ -244,7 +245,7 @@ static acpi_status resource_to_window(struct acpi_resource *resource,
- 	 *	- producers, i.e., the address space is routed downstream,
- 	 *	  not consumed by the bridge itself
- 	 */
--	status = acpi_resource_to_address64(resource, addr);
-+	status = acpi_dev_resource_address_space_full(ares, addr, res);
- 	if (ACPI_SUCCESS(status) &&
- 	    (addr->resource_type == ACPI_MEMORY_RANGE ||
- 	     addr->resource_type == ACPI_IO_RANGE) &&
-@@ -255,51 +256,54 @@ static acpi_status resource_to_window(struct acpi_resource *resource,
- 	return AE_ERROR;
- }
- 
--static acpi_status count_window(struct acpi_resource *resource, void *data)
-+static acpi_status count_window(struct acpi_resource *ares, void *data)
- {
- 	unsigned int *windows = (unsigned int *) data;
- 	struct acpi_resource_address64 addr;
-+	struct resource res;
- 	acpi_status status;
- 
--	status = resource_to_window(resource, &addr);
-+	status = resource_to_window(ares, &addr, &res);
- 	if (ACPI_SUCCESS(status))
- 		(*windows)++;
- 
- 	return AE_OK;
- }
- 
--static acpi_status add_window(struct acpi_resource *res, void *data)
-+static acpi_status add_window(struct acpi_resource *ares, void *data)
- {
- 	struct pci_root_info *info = data;
--	struct resource *resource;
-+	struct resource *resource = &info->res[info->res_num];
- 	struct acpi_resource_address64 addr;
- 	acpi_status status;
--	unsigned long flags, offset = 0;
-+	unsigned long offset = 0;
- 	struct resource *root;
- 
- 	/* Return AE_OK for non-window resources to keep scanning for more */
--	status = resource_to_window(res, &addr);
-+	status = resource_to_window(ares, &addr, resource);
- 	if (!ACPI_SUCCESS(status))
- 		return AE_OK;
- 
--	if (addr.resource_type == ACPI_MEMORY_RANGE) {
--		flags = IORESOURCE_MEM;
-+	if (resource->flags & IORESOURCE_MEM) {
- 		root = &iomem_resource;
- 		offset = addr.translation_offset;
--	} else if (addr.resource_type == ACPI_IO_RANGE) {
--		flags = IORESOURCE_IO;
-+	} else if (resource->flags & IORESOURCE_IO) {
- 		root = &ioport_resource;
- 		offset = add_io_space(info, &addr);
- 		if (offset == ~0)
- 			return AE_OK;
-+
-+		/*
-+		 * io space address translation offset depends
-+		 * on the return value of add_io_space(). So
-+		 * Repopulate resource->start and end here.
-+		 */
-+		resource->start = addr.minimum + offset;
-+		resource->end = resource->start + addr.address_length - 1;
- 	} else
- 		return AE_OK;
- 
--	resource = &info->res[info->res_num];
- 	resource->name = info->name;
--	resource->flags = flags;
--	resource->start = addr.minimum + offset;
--	resource->end = resource->start + addr.address_length - 1;
- 	info->res_offset[info->res_num] = offset;
- 
- 	if (insert_resource(root, resource)) {
 -- 
-1.8.2.1
-
+I speak only for myself.
+Rafael J. Wysocki, Intel Open Source Technology Center.
