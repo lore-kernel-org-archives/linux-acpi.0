@@ -1,76 +1,60 @@
 From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [BUG] WARN_ON(!context) in drivers/pci/hotplug/acpiphp_glue.c
-Date: Fri, 11 Oct 2013 23:58:48 +0200
-Message-ID: <4905498.aEGIofg2fM@vostro.rjw.lan>
-References: <20131010165905.7815defa@gandalf.local.home> <2096980.ZtIelfoX39@vostro.rjw.lan> <CA+55aFyJL5gLGtg8-z1t1xSY1ih9MAzsDzMZaxrEYZOFZ7rRBw@mail.gmail.com>
+Subject: Re: [PATCH v5 0/4] Fix Win8 backlight issue
+Date: Sat, 12 Oct 2013 00:10:53 +0200
+Message-ID: <1712683.D4Gy4SDE7p@vostro.rjw.lan>
+References: <1381498066-16011-1-git-send-email-aaron.lu@intel.com>
+	<CA+5PVA5RfbJjLaZNDN81tvWYhm1pLuu9OpMTwMfUpC4ma4ac4A@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7Bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <CA+55aFyJL5gLGtg8-z1t1xSY1ih9MAzsDzMZaxrEYZOFZ7rRBw@mail.gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: Bjorn Helgaas <bhelgaas@google.com>, Steven Rostedt <rostedt@goodmis.org>, LKML <linux-kernel@vger.kernel.org>, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Mika Westerberg <mika.westerberg@linux.intel.com>, Andrew Morton <akpm@linux-foundation.org>, Linux PCI <linux-pci@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <intel-gfx-bounces+gcfxdi-intel-gfx=m.gmane.org@lists.freedesktop.org>
+In-Reply-To: <CA+5PVA5RfbJjLaZNDN81tvWYhm1pLuu9OpMTwMfUpC4ma4ac4A@mail.gmail.com>
+List-Unsubscribe: <http://lists.freedesktop.org/mailman/options/intel-gfx>,
+	<mailto:intel-gfx-request@lists.freedesktop.org?subject=unsubscribe>
+List-Archive: <http://lists.freedesktop.org/archives/intel-gfx>
+List-Post: <mailto:intel-gfx@lists.freedesktop.org>
+List-Help: <mailto:intel-gfx-request@lists.freedesktop.org?subject=help>
+List-Subscribe: <http://lists.freedesktop.org/mailman/listinfo/intel-gfx>,
+	<mailto:intel-gfx-request@lists.freedesktop.org?subject=subscribe>
+Sender: intel-gfx-bounces+gcfxdi-intel-gfx=m.gmane.org@lists.freedesktop.org
+Errors-To: intel-gfx-bounces+gcfxdi-intel-gfx=m.gmane.org@lists.freedesktop.org
+To: Josh Boyer <jwboyer@fedoraproject.org>
+Cc: James Hogan <james@albanarts.com>, Martin Steigerwald <Martin@lichtvoll.de>, Felipe Contreras <felipe.contreras@gmail.com>, DRI mailing list <dri-devel@lists.freedesktop.org>, platform-driver-x86@vger.kernel.org, Henrique de Moraes Holschuh <hmh@hmh.eng.br>, Matthew Garrett <matthew.garrett@nebula.com>, Mike Galbraith <bitbucket@online.de>, Kalle Valo <kvalo@adurom.com>, Yves-Alexis Perez <corsac@debian.org>, linux-acpi@vger.kernel.org, Lee Chun-Yi <joeyli.kernel@gmail.com>, Ben Jencks <ben@bjencks.net>, =?ISO-8859-1?Q?J=F6rg?= Otte <jrg.otte@gmail.com>, Joerg Platte <jplatte@naasa.net>, intel-gfx@lists.freedesktop.org, Seth Forshee <seth.forshee@canonical.com>, Igor Gnatenko <i.gnatenko.brain@gmail.com>, Mika Westerberg <mika.westerberg@linux.intel.com>, Aaron Lu <aaron.lu@intel.com>, "Linux-Kernel@Vger. Kernel. Org" <linux-kernel@vger.kernel.org>, Richard Purdie <rp>
 List-Id: linux-acpi@vger.kernel.org
 
-On Friday, October 11, 2013 10:21:35 AM Linus Torvalds wrote:
-> On Fri, Oct 11, 2013 at 4:13 AM, Rafael J. Wysocki <rjw@rjwysocki.net> wrote:
-> > +/**
-> > + * slot_should_be_exposed - Check whether or not to expose a slot to userland.
-> > + * @bridge: ACPIPHP bridge the slot belongs to.
-> > + * @handle: ACPI handle of a device in the slot.
-> > + */
-> > +static inline bool slot_should_be_exposed(struct acpiphp_bridge *bridge,
-> > +                                         acpi_handle handle)
+On Friday, October 11, 2013 12:42:43 PM Josh Boyer wrote:
+> On Fri, Oct 11, 2013 at 9:27 AM, Aaron Lu <aaron.lu@intel.com> wrote:
+> > v5:
+> > 1 Introduce video.use_native_backlight module parameter and set its
+> >   value to false by default as suggested by Rafael. For Win8 systems
+> >   which have broken ACPI video backlight control, the parameter can be
+> >   set to 1 in kernel cmdline to skip registering ACPI video's backlight
+> >   interface. Due to this change, the acpi_video_verify_backlight_support
+> >   is moved from video_detect.c to video.c - patch 3/4;
 > 
-> Thanks, that looks much better.
-> 
-> I do worry that we now seem to add the slot to all the acpiphp lists
-> even if it is managed by pciehp. That gets rid of the warning Steven
-> saw (because now it always has that context), but I'm left wondering
-> how much pcihp and aciphp will fight over the slot.
->
-> Yes, the acpiphp_register_hotplug_slot() doesn't get called, but we
-> still do register_hotplug_dock_device(), for example. How does that
-> interact with pcihp that thinks it owns the slot?
+> That's a fairly untenable position for distro kernels to be in.  They
+> now have to ask every user that reports an issue with the backlight to
+> try setting that option on the command line.  While I appreciate the
+> setting breaks things for some people, doesn't the Win8 issue impact
+> far more people?  Shouldn't it be defaulted to true?
 
-Well, owning the slot doesn't really mean much here, because the "rescan"
-and "remove" things may always be triggered by user space via sysfs from
-under the PCI device in question (regardless of whether or not pciehp
-thinks that it "owns" that device).  So if they are triggered by an ACPI
-notify instead, that should still be fine.
+Well, we have a rule in the kernel not to introduce regressions for users even
+if they are minority.
 
-Ejects are more of a gray area, but they do the "remove" first and only
-then they go for an actual "eject".  Question is if we should execute
-_EJ0 provided that it's actually present for the pciehp slots (which we will
-do with the patch applied).  It might be safer to trigger the native eject
-then, but again I'd be surprised if _EJ0 didn't work anyway (if there is a
-system in which _EJ0 is available for a device handled by pciehp in the first
-place).
+> If nothing else, can you add a config option for the default so
+> distros can use that to decide which way to default it and then work
+> on fixing the remaining users that have troubles?
 
-As far as docking stations go, the undock is done by ACPI anyway and it will
-carry out "remove" for all devices under the dock, so the patch doesn't change
-this particular case as far as I can say.
+The current plan is to create a blacklist of systems where that option should
+be set.  We actually already have one, but it is at the _OSI() level, which
+is overkill in my view and may affect things beyond backlight.  Along with that
+we will debug systems where setting that option (to true) causes problems to
+happen, so that we'll be able to drop it going forward (hopefully).
 
-> Or am I misreading the code? It's more readable, and no longer makes
-> me homicidal, but I don't actually know the code itself.
+Of course, distro kernels may always change the default to true if they want.
 
-I think you're reading it correctly, it really makes acpiphp see all slots
-even if pciehp sees them too.  So the change is somewhat risky.
+Thanks!
 
-That said the risk doesn't seem to be huge and there seem to be cases in
-which it actually would be useful to have both acpiphp and pciehp signaling
-available for the same device.  For example, even if the BIOS told us that
-we could use the native mechanism (pciehp), it may not actually work.  That is,
-we may not get any hotplug interrupts from PCIe ports due to platform bugs of
-some sort and we may get ACPI notifications instead (because the platform
-designer knew about those bugs and thought it would be smart to use ACPI to
-work around them).
-
-There are bug reports indicating thinks like that, so we were going to allow
-acpiphp and pciehp to handle the same devices anyway at one point.  I thought
-we might as well try to do it now and see how it goes.  Still, if you think
-it's too risky for this stage of the cycle, I'll just send a patch removing
-the WARN_ON() and we'll revisit that thing in 3.13.
-
-Rafael
+-- 
+I speak only for myself.
+Rafael J. Wysocki, Intel Open Source Technology Center.
