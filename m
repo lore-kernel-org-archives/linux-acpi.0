@@ -1,46 +1,41 @@
-From: Zhang Yanfei <zhangyanfei@cn.fujitsu.com>
-Subject: Re: [PATCH part1 v6 4/6] x86/mem-hotplug: Support initialize page
- tables in bottom-up
-Date: Fri, 11 Oct 2013 14:46:27 +0800
-Message-ID: <52579EC3.9040708@cn.fujitsu.com>
-References: <524E2032.4020106@gmail.com> <524E2127.4090904@gmail.com> <5251F9AB.6000203@zytor.com> <525442A4.9060709@gmail.com> <20131009164449.GG22495@htj.dyndns.org> <CAE9FiQXhW2BacXUjQLK8TpcvhHAediuCntVR13sKGUuq_+=ymw@mail.gmail.com> <20131009192356.GB5592@mtj.dyndns.org> <CAE9FiQWpwp4bTEWEYw3-CW9xF5s_zJAayJrBC_buBC7-nd=7KA@mail.gmail.com> <525790E4.3060806@cn.fujitsu.com> <20131011063300.GA9429@gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Return-path: <owner-linux-mm@kvack.org>
-In-Reply-To: <20131011063300.GA9429@gmail.com>
-Sender: owner-linux-mm@kvack.org
-To: Ingo Molnar <mingo@kernel.org>
-Cc: Yinghai Lu <yinghai@kernel.org>, Tejun Heo <tj@kernel.org>, Andrew Morton <akpm@linux-foundation.org>, "H. Peter Anvin" <hpa@zytor.com>, Ingo Molnar <mingo@elte.hu>, Zhang Yanfei <zhangyanfei.yes@gmail.com>, "Rafael J . Wysocki" <rjw@sisk.pl>, Len Brown <lenb@kernel.org>, Thomas Gleixner <tglx@linutronix.de>, Toshi Kani <toshi.kani@hp.com>, Wanpeng Li <liwanp@linux.vnet.ibm.com>, Thomas Renninger <trenn@suse.de>, Jiang Liu <jiang.liu@huawei.com>, Wen Congyang <wency@cn.fujitsu.com>, Lai Jiangshan <laijs@cn.fujitsu.com>, Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>, Taku Izumi <izumi.taku@jp.fujitsu.com>, Mel Gorman <mgorman@suse.de>, Minchan Kim <minchan@kernel.org>, "mina86@mina86.com" <mina86@mina86.com>, "gong.chen@linux.intel.com" <gong.chen@linux.intel.com>
+From: "Chen, Gong" <gong.chen@linux.intel.com>
+Subject: [PATCH 1/8] ACPI, APEI, CPER: Fix status check during error printing
+Date: Fri, 11 Oct 2013 02:32:39 -0400
+Message-ID: <1381473166-29303-2-git-send-email-gong.chen@linux.intel.com>
+References: <1381473166-29303-1-git-send-email-gong.chen@linux.intel.com>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mga01.intel.com ([192.55.52.88]:5130 "EHLO mga01.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753980Ab3JKGrV (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 11 Oct 2013 02:47:21 -0400
+In-Reply-To: <1381473166-29303-1-git-send-email-gong.chen@linux.intel.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: tony.luck@intel.com, bp@alien8.de
+Cc: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, "Chen, Gong" <gong.chen@linux.intel.com>
 
-Hello Ingo,
+Commit aaf9d93 only catches condition check before print,
+but the similar check is needed during printing CPER error
+sections.
 
-On 10/11/2013 02:33 PM, Ingo Molnar wrote:
-> 
-> * Zhang Yanfei <zhangyanfei@cn.fujitsu.com> wrote:
-> 
->> Hello yinghai,
->>
->> I know your opinion but take code modification as an example seems like 
->> it doesn't stand. More code doesn't mean more complexity......
-> 
-> I think you forgot to reply to this point:
-> 
->>> For long term to keep the code more maintainable, We really should go 
->>> though parse srat table early.
-> 
+Signed-off-by: Chen, Gong <gong.chen@linux.intel.com>
+---
+ drivers/acpi/apei/cper.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-Both ways (the approach of the this patchset and the approach of parsing
-SRAT earlier) could let us realize the functionality that we want. So
-as long as this point could convince tejun, I am ok with that.
-
+diff --git a/drivers/acpi/apei/cper.c b/drivers/acpi/apei/cper.c
+index 33dc6a0..f827f02 100644
+--- a/drivers/acpi/apei/cper.c
++++ b/drivers/acpi/apei/cper.c
+@@ -353,7 +353,7 @@ void apei_estatus_print(const char *pfx,
+ 	       cper_severity_str(severity));
+ 	data_len = estatus->data_length;
+ 	gdata = (struct acpi_hest_generic_data *)(estatus + 1);
+-	while (data_len > sizeof(*gdata)) {
++	while (data_len >= sizeof(*gdata)) {
+ 		gedata_len = gdata->error_data_length;
+ 		apei_estatus_print_section(pfx, gdata, sec_no);
+ 		data_len -= gedata_len + sizeof(*gdata);
 -- 
-Thanks.
-Zhang Yanfei
+1.8.4.rc3
 
---
-To unsubscribe, send a message with 'unsubscribe linux-mm' in
-the body to majordomo@kvack.org.  For more info on Linux MM,
-see: http://www.linux-mm.org/ .
-Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
