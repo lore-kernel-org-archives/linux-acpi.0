@@ -1,38 +1,41 @@
-From: Alexandre Courbot <gnurou@gmail.com>
-Subject: Re: [PATCH v2 1/5] gpiolib / ACPI: move acpi_gpiochip_free_interrupts
- next to the request function
-Date: Fri, 11 Oct 2013 09:42:29 -0700
-Message-ID: <CAAVeFu+K6HvQTMOQqMbZPUD_C3nQ1MvYju1BGUOWPYJjQEpTjg@mail.gmail.com>
-References: <1381392071-21407-1-git-send-email-mika.westerberg@linux.intel.com>
- <1381392071-21407-2-git-send-email-mika.westerberg@linux.intel.com> <CACRpkdZgP9VnVSpBN2Wg4ihL4ryZXeP=ASwr6BCP=u79eg6s6g@mail.gmail.com>
+From: Linus Torvalds <torvalds@linux-foundation.org>
+Subject: Re: [BUG] WARN_ON(!context) in drivers/pci/hotplug/acpiphp_glue.c
+Date: Fri, 11 Oct 2013 10:21:35 -0700
+Message-ID: <CA+55aFyJL5gLGtg8-z1t1xSY1ih9MAzsDzMZaxrEYZOFZ7rRBw@mail.gmail.com>
+References: <20131010165905.7815defa@gandalf.local.home>
+	<18685640.N2BnVjDmHD@vostro.rjw.lan>
+	<CA+55aFwqf7kkh0dy6AhCvB87XYkQ03YUpsYEDJmnkiRe8GQfMQ@mail.gmail.com>
+	<2096980.ZtIelfoX39@vostro.rjw.lan>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-ie0-f181.google.com ([209.85.223.181]:34282 "EHLO
-	mail-ie0-f181.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752882Ab3JKQmu (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 11 Oct 2013 12:42:50 -0400
-In-Reply-To: <CACRpkdZgP9VnVSpBN2Wg4ihL4ryZXeP=ASwr6BCP=u79eg6s6g@mail.gmail.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <2096980.ZtIelfoX39@vostro.rjw.lan>
+Sender: linux-kernel-owner@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: Bjorn Helgaas <bhelgaas@google.com>, Steven Rostedt <rostedt@goodmis.org>, LKML <linux-kernel@vger.kernel.org>, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Mika Westerberg <mika.westerberg@linux.intel.com>, Andrew Morton <akpm@linux-foundation.org>, Linux PCI <linux-pci@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
-To: Linus Walleij <linus.walleij@linaro.org>
-Cc: Mika Westerberg <mika.westerberg@linux.intel.com>, "linux-gpio@vger.kernel.org" <linux-gpio@vger.kernel.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Grant Likely <grant.likely@secretlab.ca>, Mathias Nyman <mathias.nyman@linux.intel.com>, Alexandre Courbot <acourbot@nvidia.com>, Rob Landley <rob@landley.net>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
 
-On Fri, Oct 11, 2013 at 4:00 AM, Linus Walleij <linus.walleij@linaro.org> wrote:
-> On Thu, Oct 10, 2013 at 10:01 AM, Mika Westerberg
-> <mika.westerberg@linux.intel.com> wrote:
->
->> It makes more sense to have these functions close to each other. No
->> functional changes.
->>
->> Signed-off-by: Mika Westerberg <mika.westerberg@linux.intel.com>
->> Acked-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
->
-> So I've applied this first patch, and I'm just waiting for Alexandre's
-> ACK on the remaining patches concerning gpiod so we get this
-> 100% right.
+On Fri, Oct 11, 2013 at 4:13 AM, Rafael J. Wysocki <rjw@rjwysocki.net> wrote:
+> +/**
+> + * slot_should_be_exposed - Check whether or not to expose a slot to userland.
+> + * @bridge: ACPIPHP bridge the slot belongs to.
+> + * @handle: ACPI handle of a device in the slot.
+> + */
+> +static inline bool slot_should_be_exposed(struct acpiphp_bridge *bridge,
+> +                                         acpi_handle handle)
 
-I think I'm ok with Mika's patches, however I need to send you a new
-version of gpiod. I wanted to finish documentation first, but maybe
-that can come slightly after so you can at least go ahead with both
-series?
+Thanks, that looks much better.
+
+I do worry that we now seem to add the slot to all the acpiphp lists
+even if it is managed by pciehp. That gets rid of the warning Steven
+saw (because now it always has that context), but I'm left wondering
+how much pcihp and aciphp will fight over the slot.
+
+Yes, the acpiphp_register_hotplug_slot() doesn't get called, but we
+still do register_hotplug_dock_device(), for example. How does that
+interact with pcihp that thinks it owns the slot?
+
+Or am I misreading the code? It's more readable, and no longer makes
+me homicidal, but I don't actually know the code itself.
+
+             Linus
