@@ -1,41 +1,174 @@
 From: "Chen, Gong" <gong.chen@linux.intel.com>
-Subject: [PATCH 1/8] ACPI, APEI, CPER: Fix status check during error printing
-Date: Fri, 11 Oct 2013 02:32:39 -0400
-Message-ID: <1381473166-29303-2-git-send-email-gong.chen@linux.intel.com>
+Subject: [PATCH 4/8] DMI: Parse memory device (type 17) in SMBIOS
+Date: Fri, 11 Oct 2013 02:32:42 -0400
+Message-ID: <1381473166-29303-5-git-send-email-gong.chen@linux.intel.com>
 References: <1381473166-29303-1-git-send-email-gong.chen@linux.intel.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga01.intel.com ([192.55.52.88]:5130 "EHLO mga01.intel.com"
+Received: from mga03.intel.com ([143.182.124.21]:50446 "EHLO mga03.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753980Ab3JKGrV (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 11 Oct 2013 02:47:21 -0400
+	id S1756144Ab3JKGr3 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 11 Oct 2013 02:47:29 -0400
 In-Reply-To: <1381473166-29303-1-git-send-email-gong.chen@linux.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: tony.luck@intel.com, bp@alien8.de
 Cc: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, "Chen, Gong" <gong.chen@linux.intel.com>
 
-Commit aaf9d93 only catches condition check before print,
-but the similar check is needed during printing CPER error
-sections.
+This patch adds a new interface to decode memory device (type 17)
+to help error reporting on DIMMs.
 
+Original-author: Tony Luck <tony.luck@intel.com>
 Signed-off-by: Chen, Gong <gong.chen@linux.intel.com>
 ---
- drivers/acpi/apei/cper.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ arch/ia64/kernel/setup.c    |  1 +
+ arch/x86/kernel/setup.c     |  1 +
+ drivers/firmware/dmi_scan.c | 60 +++++++++++++++++++++++++++++++++++++++++++++
+ include/linux/dmi.h         |  5 ++++
+ 4 files changed, 67 insertions(+)
 
-diff --git a/drivers/acpi/apei/cper.c b/drivers/acpi/apei/cper.c
-index 33dc6a0..f827f02 100644
---- a/drivers/acpi/apei/cper.c
-+++ b/drivers/acpi/apei/cper.c
-@@ -353,7 +353,7 @@ void apei_estatus_print(const char *pfx,
- 	       cper_severity_str(severity));
- 	data_len = estatus->data_length;
- 	gdata = (struct acpi_hest_generic_data *)(estatus + 1);
--	while (data_len > sizeof(*gdata)) {
-+	while (data_len >= sizeof(*gdata)) {
- 		gedata_len = gdata->error_data_length;
- 		apei_estatus_print_section(pfx, gdata, sec_no);
- 		data_len -= gedata_len + sizeof(*gdata);
+diff --git a/arch/ia64/kernel/setup.c b/arch/ia64/kernel/setup.c
+index 4fc2e95..d86669b 100644
+--- a/arch/ia64/kernel/setup.c
++++ b/arch/ia64/kernel/setup.c
+@@ -1063,6 +1063,7 @@ check_bugs (void)
+ static int __init run_dmi_scan(void)
+ {
+ 	dmi_scan_machine();
++	dmi_memdev_walk();
+ 	dmi_set_dump_stack_arch_desc();
+ 	return 0;
+ }
+diff --git a/arch/x86/kernel/setup.c b/arch/x86/kernel/setup.c
+index f0de629..918d489 100644
+--- a/arch/x86/kernel/setup.c
++++ b/arch/x86/kernel/setup.c
+@@ -993,6 +993,7 @@ void __init setup_arch(char **cmdline_p)
+ 		efi_init();
+ 
+ 	dmi_scan_machine();
++	dmi_memdev_walk();
+ 	dmi_set_dump_stack_arch_desc();
+ 
+ 	/*
+diff --git a/drivers/firmware/dmi_scan.c b/drivers/firmware/dmi_scan.c
+index fa0affb..ca3619d 100644
+--- a/drivers/firmware/dmi_scan.c
++++ b/drivers/firmware/dmi_scan.c
+@@ -25,6 +25,13 @@ static int dmi_initialized;
+ /* DMI system identification string used during boot */
+ static char dmi_ids_string[128] __initdata;
+ 
++static struct dmi_memdev_info {
++	const char *device;
++	const char *bank;
++	u16 handle;
++} *dmi_memdev;
++static int dmi_memdev_nr;
++
+ static const char * __init dmi_string_nosave(const struct dmi_header *dm, u8 s)
+ {
+ 	const u8 *bp = ((u8 *) dm) + dm->length;
+@@ -322,6 +329,42 @@ static void __init dmi_save_extended_devices(const struct dmi_header *dm)
+ 	dmi_save_one_device(*d & 0x7f, dmi_string_nosave(dm, *(d - 1)));
+ }
+ 
++static void __init count_mem_devices(const struct dmi_header *dm, void *v)
++{
++	if (dm->type != DMI_ENTRY_MEM_DEVICE)
++		return;
++	dmi_memdev_nr++;
++}
++
++static void __init save_mem_devices(const struct dmi_header *dm, void *v)
++{
++	const char *d = (const char *)dm;
++	static int nr;
++
++	if (dm->type != DMI_ENTRY_MEM_DEVICE)
++		return;
++	if (nr >= dmi_memdev_nr) {
++		pr_warn_once("Too many DIMM entries in SMBIOS table\n");
++		return;
++	}
++	dmi_memdev[nr].handle = dm->handle;
++	dmi_memdev[nr].device = dmi_string(dm, d[0x10]);
++	dmi_memdev[nr].bank = dmi_string(dm, d[0x11]);
++	nr++;
++}
++
++void __init dmi_memdev_walk(void)
++{
++	if (!dmi_available)
++		return;
++
++	if (dmi_walk_early(count_mem_devices) == 0 && dmi_memdev_nr) {
++		dmi_memdev = dmi_alloc(sizeof(*dmi_memdev) * dmi_memdev_nr);
++		if (dmi_memdev)
++			dmi_walk_early(save_mem_devices);
++	}
++}
++
+ /*
+  *	Process a DMI table entry. Right now all we care about are the BIOS
+  *	and machine entries. For 2.5 we should pull the smbus controller info
+@@ -815,3 +858,20 @@ bool dmi_match(enum dmi_field f, const char *str)
+ 	return !strcmp(info, str);
+ }
+ EXPORT_SYMBOL_GPL(dmi_match);
++
++void dmi_memdev_name(u16 handle, const char **bank, const char **device)
++{
++	int n;
++
++	if (dmi_memdev == NULL)
++		return;
++
++	for (n = 0; n < dmi_memdev_nr; n++) {
++		if (handle == dmi_memdev[n].handle) {
++			*bank = dmi_memdev[n].bank;
++			*device = dmi_memdev[n].device;
++			break;
++		}
++	}
++}
++EXPORT_SYMBOL_GPL(dmi_memdev_name);
+diff --git a/include/linux/dmi.h b/include/linux/dmi.h
+index b6eb7a0..f820f0a 100644
+--- a/include/linux/dmi.h
++++ b/include/linux/dmi.h
+@@ -99,6 +99,7 @@ extern const char * dmi_get_system_info(int field);
+ extern const struct dmi_device * dmi_find_device(int type, const char *name,
+ 	const struct dmi_device *from);
+ extern void dmi_scan_machine(void);
++extern void dmi_memdev_walk(void);
+ extern void dmi_set_dump_stack_arch_desc(void);
+ extern bool dmi_get_date(int field, int *yearp, int *monthp, int *dayp);
+ extern int dmi_name_in_vendors(const char *str);
+@@ -107,6 +108,7 @@ extern int dmi_available;
+ extern int dmi_walk(void (*decode)(const struct dmi_header *, void *),
+ 	void *private_data);
+ extern bool dmi_match(enum dmi_field f, const char *str);
++extern void dmi_memdev_name(u16 handle, const char **bank, const char **device);
+ 
+ #else
+ 
+@@ -115,6 +117,7 @@ static inline const char * dmi_get_system_info(int field) { return NULL; }
+ static inline const struct dmi_device * dmi_find_device(int type, const char *name,
+ 	const struct dmi_device *from) { return NULL; }
+ static inline void dmi_scan_machine(void) { return; }
++static inline void dmi_memdev_walk(void) { }
+ static inline void dmi_set_dump_stack_arch_desc(void) { }
+ static inline bool dmi_get_date(int field, int *yearp, int *monthp, int *dayp)
+ {
+@@ -133,6 +136,8 @@ static inline int dmi_walk(void (*decode)(const struct dmi_header *, void *),
+ 	void *private_data) { return -1; }
+ static inline bool dmi_match(enum dmi_field f, const char *str)
+ 	{ return false; }
++static inline void dmi_memdev_name(u16 handle, const char **bank,
++		const char **device) { }
+ static inline const struct dmi_system_id *
+ 	dmi_first_match(const struct dmi_system_id *list) { return NULL; }
+ 
 -- 
 1.8.4.rc3
 
