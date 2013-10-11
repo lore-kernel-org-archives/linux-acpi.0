@@ -1,61 +1,43 @@
-From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+From: Josh Boyer <jwboyer@fedoraproject.org>
 Subject: Re: [PATCH v5 0/4] Fix Win8 backlight issue
-Date: Sat, 12 Oct 2013 16:10:51 +0200
-Message-ID: <2087267.6s6y3mUdZL@vostro.rjw.lan>
-References: <1381498066-16011-1-git-send-email-aaron.lu@intel.com> <3899323.lQYrFPeQhE@vostro.rjw.lan> <1381557246.3261.67.camel@scapa>
+Date: Fri, 11 Oct 2013 12:42:43 -0400
+Message-ID: <CA+5PVA5RfbJjLaZNDN81tvWYhm1pLuu9OpMTwMfUpC4ma4ac4A@mail.gmail.com>
+References: <1381498066-16011-1-git-send-email-aaron.lu@intel.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; boundary="nextPart3359930.BymEqmo68p"; micalg="pgp-sha256"; protocol="application/pgp-signature"
-Return-path: <platform-driver-x86-owner@vger.kernel.org>
-In-Reply-To: <1381557246.3261.67.camel@scapa>
-Sender: platform-driver-x86-owner@vger.kernel.org
-To: Yves-Alexis Perez <corsac@debian.org>
-Cc: Josh Boyer <jwboyer@fedoraproject.org>, Aaron Lu <aaron.lu@intel.com>, linux-acpi@vger.kernel.org, intel-gfx@lists.freedesktop.org, DRI mailing list <dri-devel@lists.freedesktop.org>, "Linux-Kernel@Vger. Kernel. Org" <linux-kernel@vger.kernel.org>, Daniel Vetter <daniel@ffwll.ch>, Matthew Garrett <matthew.garrett@nebula.com>, Seth Forshee <seth.forshee@canonical.com>, Lee Chun-Yi <joeyli.kernel@gmail.com>, Richard Purdie <rpurdie@rpsys.net>, Igor Gnatenko <i.gnatenko.brain@gmail.com>, Felipe Contreras <felipe.contreras@gmail.com>, Jani Nikula <jani.nikula@linux.intel.com>, Ben Jencks <ben@bjencks.net>, Steven Newbury <steve@snewbury.org.uk>, James Hogan <james@albanarts.com>, Kamal Mostafa <kamal@canonical.com>, Joerg Platte <jplatte@naasa.net>, Kalle Valo <kvalo@adurom.com>, Martin Steigerwald <Martin@lichtvoll.de>, =?ISO-8859-1?Q?J=F6rg?= Otte <jrg.otte@gmail.co>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <dri-devel-bounces+sf-dri-devel=m.gmane.org@lists.freedesktop.org>
+In-Reply-To: <1381498066-16011-1-git-send-email-aaron.lu@intel.com>
+List-Unsubscribe: <http://lists.freedesktop.org/mailman/options/dri-devel>,
+	<mailto:dri-devel-request@lists.freedesktop.org?subject=unsubscribe>
+List-Archive: <http://lists.freedesktop.org/archives/dri-devel>
+List-Post: <mailto:dri-devel@lists.freedesktop.org>
+List-Help: <mailto:dri-devel-request@lists.freedesktop.org?subject=help>
+List-Subscribe: <http://lists.freedesktop.org/mailman/listinfo/dri-devel>,
+	<mailto:dri-devel-request@lists.freedesktop.org?subject=subscribe>
+Sender: dri-devel-bounces+sf-dri-devel=m.gmane.org@lists.freedesktop.org
+Errors-To: dri-devel-bounces+sf-dri-devel=m.gmane.org@lists.freedesktop.org
+To: Aaron Lu <aaron.lu@intel.com>
+Cc: James Hogan <james@albanarts.com>, Martin Steigerwald <Martin@lichtvoll.de>, DRI mailing list <dri-devel@lists.freedesktop.org>, platform-driver-x86@vger.kernel.org, Henrique de Moraes Holschuh <hmh@hmh.eng.br>, Matthew Garrett <matthew.garrett@nebula.com>, Mike Galbraith <bitbucket@online.de>, Kalle Valo <kvalo@adurom.com>, Yves-Alexis Perez <corsac@debian.org>, linux-acpi@vger.kernel.org, Lee Chun-Yi <joeyli.kernel@gmail.com>, Ben Jencks <ben@bjencks.net>, =?ISO-8859-1?Q?J=F6rg_Otte?= <jrg.otte@gmail.com>, intel-gfx@lists.freedesktop.org, Joerg Platte <jplatte@naasa.net>, Seth Forshee <seth.forshee@canonical.com>, Igor Gnatenko <i.gnatenko.brain@gmail.com>, Mika Westerberg <mika.westerberg@linux.intel.com>, Kamal Mostafa <kamal@canonical.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, "Linux-Kernel@Vger. Kernel. Org" <linux-kernel@vger.kernel.org>, Richard Purdie <rp>
 List-Id: linux-acpi@vger.kernel.org
 
+On Fri, Oct 11, 2013 at 9:27 AM, Aaron Lu <aaron.lu@intel.com> wrote:
+> v5:
+> 1 Introduce video.use_native_backlight module parameter and set its
+>   value to false by default as suggested by Rafael. For Win8 systems
+>   which have broken ACPI video backlight control, the parameter can be
+>   set to 1 in kernel cmdline to skip registering ACPI video's backlight
+>   interface. Due to this change, the acpi_video_verify_backlight_support
+>   is moved from video_detect.c to video.c - patch 3/4;
 
---nextPart3359930.BymEqmo68p
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="utf-8"
+That's a fairly untenable position for distro kernels to be in.  They
+now have to ask every user that reports an issue with the backlight to
+try setting that option on the command line.  While I appreciate the
+setting breaks things for some people, doesn't the Win8 issue impact
+far more people?  Shouldn't it be defaulted to true?
 
-On Saturday, October 12, 2013 07:54:06 AM Yves-Alexis Perez wrote:
-> On sam., 2013-10-12 at 01:27 +0200, Rafael J. Wysocki wrote:
-> > If we are to use a Kconfig option, why don't we use one instead of rather than
-> > in addition to a command line option?  Say, we have
-> > CONFIG_ACPI_VIDEO_WIN8_WORKAROUND and if that is set, the code will work like
-> > the previous version of the Aaron's patchset (the one without
-> > video.use_native_backlight)?
-> 
-> Doesn't this mean user will have to rebuild distro kernel in order to
-> test behavior?
+If nothing else, can you add a config option for the default so
+distros can use that to decide which way to default it and then work
+on fixing the remaining users that have troubles?
 
-Yes, it does, which is a good point too.
-
-Thanks!
-
--- 
-I speak only for myself.
-Rafael J. Wysocki, Intel Open Source Technology Center.
---nextPart3359930.BymEqmo68p
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: This is a digitally signed message part.
-Content-Transfer-Encoding: 7Bit
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2.0.19 (GNU/Linux)
-
-iQIcBAABCAAGBQJSWVhzAAoJEILEb/54YlRxfvkP/1Yf7ipPGKyRcg35BBkqq9jt
-Ye1FNtnfVu9/v/RMMqZZMcS75+beQiqC5Xu78Ii9KadCkcRpXwt8wrucVc0yxlvx
-YT0k+rE3AvwhncZqkT4K48RNS2vOaJhbEuIyOpIR/32X59LO4sY9oNgjE8rEfVWw
-04QwCRQtgnsyxvosVBdQjPLJ7OwjNh17MLL9aiSW1Ail8sc3wBmUQLxtA2sfUWEA
-MJN8EEsHyzQhBnFlmukzBt1ZAJk8x4l5Ty8SRqfy4cKGsl8FytUzI8u86fHFycd4
-JaIgvNg6ngn5E4sxbKh4E4aM2Zg11Jkx00nY0yoZUBFZt9sgZQhA9I7IsdyAIMeG
-8k/SpHAqw3jvWY1dWHwE21zZ3XEz3S/eDUubrFRe8JruBNsnxAllb2jARGD2M2c7
-4JLjo3bh/0Fn7ySkQ1f52KlG/VWUx6AEu5rt6DmF37zLyil7NN11njcucjUIWDfD
-qglwxtVke+0NRRiMNGH8HhujjpfR8vhc4k9ixAR6zWK1U5QIeQ0r29/DuaLfOjZ+
-TkuQBxDQQWY/y4WFMIZQhA6WCAw8QMG1P84/gJ9mJmWEb/xO0X21hOaLRsVKwxaI
-fXO/Ld5hNolfi6VHc7Vgqgv/+ndLdZciCRl4dttD4fLWu5+tSfKpq69O9aAXUPEY
-sAnpSXfJK9GsNgfTRibW
-=T8xp
------END PGP SIGNATURE-----
-
---nextPart3359930.BymEqmo68p--
+josh
