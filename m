@@ -1,79 +1,46 @@
-From: "Chen, Gong" <gong.chen@linux.intel.com>
-Subject: Extended H/W error log driver
-Date: Fri, 11 Oct 2013 02:32:38 -0400
-Message-ID: <1381473166-29303-1-git-send-email-gong.chen@linux.intel.com>
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga11.intel.com ([192.55.52.93]:49010 "EHLO mga11.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751645Ab3JKGrT (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 11 Oct 2013 02:47:19 -0400
-Sender: linux-acpi-owner@vger.kernel.org
+From: Zhang Yanfei <zhangyanfei@cn.fujitsu.com>
+Subject: Re: [PATCH part1 v6 4/6] x86/mem-hotplug: Support initialize page
+ tables in bottom-up
+Date: Fri, 11 Oct 2013 14:46:27 +0800
+Message-ID: <52579EC3.9040708@cn.fujitsu.com>
+References: <524E2032.4020106@gmail.com> <524E2127.4090904@gmail.com> <5251F9AB.6000203@zytor.com> <525442A4.9060709@gmail.com> <20131009164449.GG22495@htj.dyndns.org> <CAE9FiQXhW2BacXUjQLK8TpcvhHAediuCntVR13sKGUuq_+=ymw@mail.gmail.com> <20131009192356.GB5592@mtj.dyndns.org> <CAE9FiQWpwp4bTEWEYw3-CW9xF5s_zJAayJrBC_buBC7-nd=7KA@mail.gmail.com> <525790E4.3060806@cn.fujitsu.com> <20131011063300.GA9429@gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Return-path: <owner-linux-mm@kvack.org>
+In-Reply-To: <20131011063300.GA9429@gmail.com>
+Sender: owner-linux-mm@kvack.org
+To: Ingo Molnar <mingo@kernel.org>
+Cc: Yinghai Lu <yinghai@kernel.org>, Tejun Heo <tj@kernel.org>, Andrew Morton <akpm@linux-foundation.org>, "H. Peter Anvin" <hpa@zytor.com>, Ingo Molnar <mingo@elte.hu>, Zhang Yanfei <zhangyanfei.yes@gmail.com>, "Rafael J . Wysocki" <rjw@sisk.pl>, Len Brown <lenb@kernel.org>, Thomas Gleixner <tglx@linutronix.de>, Toshi Kani <toshi.kani@hp.com>, Wanpeng Li <liwanp@linux.vnet.ibm.com>, Thomas Renninger <trenn@suse.de>, Jiang Liu <jiang.liu@huawei.com>, Wen Congyang <wency@cn.fujitsu.com>, Lai Jiangshan <laijs@cn.fujitsu.com>, Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>, Taku Izumi <izumi.taku@jp.fujitsu.com>, Mel Gorman <mgorman@suse.de>, Minchan Kim <minchan@kernel.org>, "mina86@mina86.com" <mina86@mina86.com>, "gong.chen@linux.intel.com" <gong.chen@linux.intel.com>
 List-Id: linux-acpi@vger.kernel.org
-To: tony.luck@intel.com, bp@alien8.de
-Cc: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
 
-[PATCH 1/8] ACPI, APEI, CPER: Fix status check during error printing
-[PATCH 2/8] ACPI, CPER: Update cper info
-[PATCH 3/8] ACPI, x86: Extended error log driver for x86 platform
-[PATCH 4/8] DMI: Parse memory device (type 17) in SMBIOS
-[PATCH 5/8] ACPI, APEI, CPER: Add UEFI 2.4 support for memory error
-[PATCH 6/8] ACPI, APEI, CPER: Enhance memory reporting capability
-[PATCH 7/8] ACPI, APEI, CPER: Cleanup CPER memory error output format
-[PATCH 8/8] ACPI / trace: Add trace interface for eMCA driver
+Hello Ingo,
 
-This patch series adds an enhanced MCA event logging driver provided by Intel.
-Please refer to this link: htpp://www.intel.com/content/www/us/en/architecture-and-technology/enhanced-mca-logging-xeon-paper.html
+On 10/11/2013 02:33 PM, Ingo Molnar wrote:
+> 
+> * Zhang Yanfei <zhangyanfei@cn.fujitsu.com> wrote:
+> 
+>> Hello yinghai,
+>>
+>> I know your opinion but take code modification as an example seems like 
+>> it doesn't stand. More code doesn't mean more complexity......
+> 
+> I think you forgot to reply to this point:
+> 
+>>> For long term to keep the code more maintainable, We really should go 
+>>> though parse srat table early.
+> 
 
-Certain usages such as Predictive Failure Analysis (PFA) require more
-information about the error than what can be described in processor
-machine check banks. Most server processors log additional information
-about the error in processor uncore registers. Since the addresses
-and layout of these registers vary widely from one processor to another,
-system software cannot readily make use of them. To complicate matters
-further, some of the additionalerror information cannot be constructed
-without detailed knowledge about platform topology. This enhanced MCA
-logging driver allows firmware to provide additional error information
-to MCE/CMCI handler and thus addresses this gap.
+Both ways (the approach of the this patchset and the approach of parsing
+SRAT earlier) could let us realize the functionality that we want. So
+as long as this point could convince tejun, I am ok with that.
 
-After applying this patch series, when a memory corrected error happens,
-we can get following information:
+-- 
+Thanks.
+Zhang Yanfei
 
-dmesg output:
-
-[56005.785917] {3}Hardware error detected on CPU0
-[56005.785959] {3}event severity: corrected
-[56005.785975] {3}sub_event[0], severity: corrected
-[56005.785977] {3}section_type: memory error
-[56005.785981] {3}physical_address: 0x0000000851fe0000
-[56005.786027] {3}DIMM location: Memriser1 CHANNEL A DIMM 0
-[56005.786154] {4}Hardware error detected on CPU0
-[56005.786159] {4}event severity: corrected
-[56005.786162] {4}sub_event[0], severity: corrected
-[56005.786166] {4}section_type: memory error
-
-
-trace output:
-
-# tracer: nop
-#
-# entries-in-buffer/entries-written: 4/4   #P:120
-#
-#                              _-----=> irqs-off
-#                             / _----=> need-resched
-#                            | / _---=> hardirq/softirq
-#                            || / _--=> preempt-depth
-#                            ||| /     delay
-#           TASK-PID   CPU#  ||||    TIMESTAMP  FUNCTION
-#              | |       |   ||||       |         |
-...
-...
-          <idle>-0     [000] d.h. 56068.488759: extlog_mem_event: 3 corrected errors:unknown on Memriser1 CHANNEL A DIMM 0(FRU: 00000000-0000-0000-0000-000000000000  physical addr: 0x0000000851fe0000 node: 0 card: 0 module: 0 rank: 0 bank: 0 row: 28927 column: 1296)
-          <idle>-0     [000] d.h. 56068.488834: extlog_mem_event: 4 corrected errors:unknown
-...
-...
-
-dmesg output are shrank to only keep the most important data. The trace
-output will contain most of data. Not sure if all fields are meaningful
-to users. Some fields like FRU ID/FRU TEXT depends on BIOS manufactor.
-So welcome to add comments for what is needed or not.
-
+--
+To unsubscribe, send a message with 'unsubscribe linux-mm' in
+the body to majordomo@kvack.org.  For more info on Linux MM,
+see: http://www.linux-mm.org/ .
+Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
