@@ -1,74 +1,111 @@
 From: Aaron Lu <aaron.lu@intel.com>
-Subject: [PATCH v5 0/4] Fix Win8 backlight issue
-Date: Fri, 11 Oct 2013 21:27:42 +0800
-Message-ID: <1381498066-16011-1-git-send-email-aaron.lu@intel.com>
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga01.intel.com ([192.55.52.88]:15038 "EHLO mga01.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755376Ab3JKN1O (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 11 Oct 2013 09:27:14 -0400
-Sender: linux-acpi-owner@vger.kernel.org
-List-Id: linux-acpi@vger.kernel.org
+Subject: [PATCH v5 4/4] thinkpad-acpi: fix handle locate for video and query of _BCL
+Date: Fri, 11 Oct 2013 21:27:46 +0800
+Message-ID: <1381498066-16011-5-git-send-email-aaron.lu@intel.com>
+References: <1381498066-16011-1-git-send-email-aaron.lu@intel.com>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1381498066-16011-1-git-send-email-aaron.lu@intel.com>
+Sender: linux-kernel-owner@vger.kernel.org
 To: linux-acpi@vger.kernel.org, intel-gfx@lists.freedesktop.org, dri-devel@lists.freedesktop.org, linux-kernel@vger.kernel.org
 Cc: Daniel Vetter <daniel@ffwll.ch>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Matthew Garrett <matthew.garrett@nebula.com>, Seth Forshee <seth.forshee@canonical.com>, Lee Chun-Yi <joeyli.kernel@gmail.com>, Richard Purdie <rpurdie@rpsys.net>, Igor Gnatenko <i.gnatenko.brain@gmail.com>, Yves-Alexis Perez <corsac@debian.org>, Felipe Contreras <felipe.contreras@gmail.com>, Jani Nikula <jani.nikula@linux.intel.com>, Aaron Lu <aaron.lu@intel.com>, Ben Jencks <ben@bjencks.net>, Steven Newbury <steve@snewbury.org.uk>, James Hogan <james@albanarts.com>, Kamal Mostafa <kamal@canonical.com>, Joerg Platte <jplatte@naasa.net>, Kalle Valo <kvalo@adurom.com>, Martin Steigerwald <Martin@lichtvoll.de>, =?UTF-8?q?J=C3=B6rg=20Otte?= <jrg.otte@gmail.com>, Mike Galbraith <bitbucket@online.de>, platform-driver-x86@vger.kernel.org, Mika Westerberg <mika.westerberg@linux.intel.com>, Henriqu
+List-Id: linux-acpi@vger.kernel.org
 
-v5:
-1 Introduce video.use_native_backlight module parameter and set its
-  value to false by default as suggested by Rafael. For Win8 systems
-  which have broken ACPI video backlight control, the parameter can be
-  set to 1 in kernel cmdline to skip registering ACPI video's backlight
-  interface. Due to this change, the acpi_video_verify_backlight_support
-  is moved from video_detect.c to video.c - patch 3/4;
-2 Rename bd_list_head and bd_list_mutex in backlight.c to
-  backlight_dev_list and backlight_dev_list_mutex as suggested by Rafael
-  - patch 1/4.
+The tpacpi_acpi_handle_locate function makes use of acpi_get_devices to
+locate handle for ACPI video by HID, the problem is, ACPI video node
+doesn't really have HID defined(i.e. no _HID control method is defined
+for video device), so.. that function would fail. This can be solved by
+enhancing the callback function for acpi_get_devices, where we can use
+acpi_device_hid function to check if the ACPI node corresponds to a
+video controller.
 
-v4:
-Remove decleration and stub for acpi_video_unregister_backlight in
-video.h of patch 2/4 since that function doesn't exist anymore in v3.
+In addition to that, the _BCL control method only exists under a video
+output device node, not a video controller device node. So to evaluate
+_BCL, we need the handle of a video output device node, which is child
+of the located video controller node from tpacpi_acpi_handle_locate.
 
-v3:
-1 Add a new patch 4/4 to fix some problems in thinkpad-acpi module;
-2 Remove unnecessary function acpi_video_unregister_backlight introduced
-  in patch 2/4 as pointed out by Jani Nikula.
+The two fix are necessary for some Thinkpad models to emit notification
+on backlight hotkey press as a result of evaluation of _BCL.
 
-v2:
-v1 has the subject of "Rework ACPI video driver" and is posted here:
-http://lkml.org/lkml/2013/9/9/74
-Since the objective is really to fix Win8 backlight issues, I changed
-the subject in this version, sorry about that.
+Signed-off-by: Aaron Lu <aaron.lu@intel.com>
+Tested-by: Igor Gnatenko <i.gnatenko.brain@gmail.com>
+Acked-by: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
+---
+ drivers/platform/x86/thinkpad_acpi.c | 31 ++++++++++++++++++++++++-------
+ 1 file changed, 24 insertions(+), 7 deletions(-)
 
-This patchset has four patches, the first introduced a new API named
-backlight_device_registered in backlight layer that can be used for
-backlight interface provider module to check if a specific type backlight
-interface has been registered, see changelog for patch 1/4 for details.
-Then patch 2/4 does the cleanup to sepeate the backlight control and
-event delivery functionality in the ACPI video module and patch 3/4
-solves some Win8 backlight control problems by avoiding register ACPI
-video's backlight interface if:
-1 Kernel cmdline option acpi_backlight=video is not given;
-2 This is a Win8 system;
-3 Native backlight control interface exists.
-Patch 4/4 fixes some problems in thinkpad-acpi module.
-
-Technically, patch 2/4 is not required to fix the issue here. So if you
-think it is not necessary, I can remove it from the series.
-
-Aaron Lu (4):
-  backlight: introduce backlight_device_registered
-  ACPI / video: seperate backlight control and event interface
-  ACPI / video: Do not register backlight if win8 and native interface
-    exists
-  thinkpad-acpi: fix handle locate for video and query of _BCL
-
- drivers/acpi/internal.h              |   4 +-
- drivers/acpi/video.c                 | 457 ++++++++++++++++++++---------------
- drivers/acpi/video_detect.c          |   4 +-
- drivers/platform/x86/thinkpad_acpi.c |  31 ++-
- drivers/video/backlight/backlight.c  |  31 +++
- include/linux/backlight.h            |   4 +
- 6 files changed, 326 insertions(+), 205 deletions(-)
-
+diff --git a/drivers/platform/x86/thinkpad_acpi.c b/drivers/platform/x86/thinkpad_acpi.c
+index 03ca6c1..170f278 100644
+--- a/drivers/platform/x86/thinkpad_acpi.c
++++ b/drivers/platform/x86/thinkpad_acpi.c
+@@ -700,6 +700,14 @@ static void __init drv_acpi_handle_init(const char *name,
+ static acpi_status __init tpacpi_acpi_handle_locate_callback(acpi_handle handle,
+ 			u32 level, void *context, void **return_value)
+ {
++	struct acpi_device *dev;
++	if (!strcmp(context, "video")) {
++		if (acpi_bus_get_device(handle, &dev))
++			return AE_OK;
++		if (strcmp(ACPI_VIDEO_HID, acpi_device_hid(dev)))
++			return AE_OK;
++	}
++
+ 	*(acpi_handle *)return_value = handle;
+ 
+ 	return AE_CTRL_TERMINATE;
+@@ -712,10 +720,10 @@ static void __init tpacpi_acpi_handle_locate(const char *name,
+ 	acpi_status status;
+ 	acpi_handle device_found;
+ 
+-	BUG_ON(!name || !hid || !handle);
++	BUG_ON(!name || !handle);
+ 	vdbg_printk(TPACPI_DBG_INIT,
+ 			"trying to locate ACPI handle for %s, using HID %s\n",
+-			name, hid);
++			name, hid ? hid : "NULL");
+ 
+ 	memset(&device_found, 0, sizeof(device_found));
+ 	status = acpi_get_devices(hid, tpacpi_acpi_handle_locate_callback,
+@@ -6090,19 +6098,28 @@ static int __init tpacpi_query_bcl_levels(acpi_handle handle)
+ {
+ 	struct acpi_buffer buffer = { ACPI_ALLOCATE_BUFFER, NULL };
+ 	union acpi_object *obj;
++	struct acpi_device *device, *child;
+ 	int rc;
+ 
+-	if (ACPI_SUCCESS(acpi_evaluate_object(handle, "_BCL", NULL, &buffer))) {
++	if (acpi_bus_get_device(handle, &device))
++		return 0;
++
++	rc = 0;
++	list_for_each_entry(child, &device->children, node) {
++		acpi_status status = acpi_evaluate_object(child->handle, "_BCL",
++							  NULL, &buffer);
++		if (ACPI_FAILURE(status))
++			continue;
++
+ 		obj = (union acpi_object *)buffer.pointer;
+ 		if (!obj || (obj->type != ACPI_TYPE_PACKAGE)) {
+ 			pr_err("Unknown _BCL data, please report this to %s\n",
+-			       TPACPI_MAIL);
++				TPACPI_MAIL);
+ 			rc = 0;
+ 		} else {
+ 			rc = obj->package.count;
+ 		}
+-	} else {
+-		return 0;
++		break;
+ 	}
+ 
+ 	kfree(buffer.pointer);
+@@ -6118,7 +6135,7 @@ static unsigned int __init tpacpi_check_std_acpi_brightness_support(void)
+ 	acpi_handle video_device;
+ 	int bcl_levels = 0;
+ 
+-	tpacpi_acpi_handle_locate("video", ACPI_VIDEO_HID, &video_device);
++	tpacpi_acpi_handle_locate("video", NULL, &video_device);
+ 	if (video_device)
+ 		bcl_levels = tpacpi_query_bcl_levels(video_device);
+ 
 -- 
 1.8.4.12.g2ea3df6
-
