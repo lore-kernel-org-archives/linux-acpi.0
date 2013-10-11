@@ -1,74 +1,87 @@
 From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [PATCH v5 0/4] Fix Win8 backlight issue
-Date: Sat, 12 Oct 2013 01:27:52 +0200
-Message-ID: <3899323.lQYrFPeQhE@vostro.rjw.lan>
-References: <1381498066-16011-1-git-send-email-aaron.lu@intel.com>
-	<1712683.D4Gy4SDE7p@vostro.rjw.lan>
-	<CA+5PVA4xFQ82FdQ3RfcV4aAzZZ6onfOUWb9Z+ZFBP-Ay7sEsKQ@mail.gmail.com>
+Subject: Re: [BUG] WARN_ON(!context) in drivers/pci/hotplug/acpiphp_glue.c
+Date: Sat, 12 Oct 2013 01:56:31 +0200
+Message-ID: <4515770.NUXBX1NCHS@vostro.rjw.lan>
+References: <20131010165905.7815defa@gandalf.local.home> <CA+55aFyJL5gLGtg8-z1t1xSY1ih9MAzsDzMZaxrEYZOFZ7rRBw@mail.gmail.com> <4905498.aEGIofg2fM@vostro.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <intel-gfx-bounces+gcfxdi-intel-gfx=m.gmane.org@lists.freedesktop.org>
-In-Reply-To: <CA+5PVA4xFQ82FdQ3RfcV4aAzZZ6onfOUWb9Z+ZFBP-Ay7sEsKQ@mail.gmail.com>
-List-Unsubscribe: <http://lists.freedesktop.org/mailman/options/intel-gfx>,
-	<mailto:intel-gfx-request@lists.freedesktop.org?subject=unsubscribe>
-List-Archive: <http://lists.freedesktop.org/archives/intel-gfx>
-List-Post: <mailto:intel-gfx@lists.freedesktop.org>
-List-Help: <mailto:intel-gfx-request@lists.freedesktop.org?subject=help>
-List-Subscribe: <http://lists.freedesktop.org/mailman/listinfo/intel-gfx>,
-	<mailto:intel-gfx-request@lists.freedesktop.org?subject=subscribe>
-Sender: intel-gfx-bounces+gcfxdi-intel-gfx=m.gmane.org@lists.freedesktop.org
-Errors-To: intel-gfx-bounces+gcfxdi-intel-gfx=m.gmane.org@lists.freedesktop.org
-To: Josh Boyer <jwboyer@fedoraproject.org>
-Cc: James Hogan <james@albanarts.com>, Martin Steigerwald <Martin@lichtvoll.de>, Felipe Contreras <felipe.contreras@gmail.com>, DRI mailing list <dri-devel@lists.freedesktop.org>, platform-driver-x86@vger.kernel.org, Henrique de Moraes Holschuh <hmh@hmh.eng.br>, Matthew Garrett <matthew.garrett@nebula.com>, Mike Galbraith <bitbucket@online.de>, Kalle Valo <kvalo@adurom.com>, Yves-Alexis Perez <corsac@debian.org>, linux-acpi@vger.kernel.org, Lee Chun-Yi <joeyli.kernel@gmail.com>, Ben Jencks <ben@bjencks.net>, =?ISO-8859-1?Q?J=F6rg?= Otte <jrg.otte@gmail.com>, Joerg Platte <jplatte@naasa.net>, intel-gfx@lists.freedesktop.org, Seth Forshee <seth.forshee@canonical.com>, Igor Gnatenko <i.gnatenko.brain@gmail.com>, Mika Westerberg <mika.westerberg@linux.intel.com>, Aaron Lu <aaron.lu@intel.com>, "Linux-Kernel@Vger. Kernel. Org" <linux-kernel@vger.kernel.org>, Richard Purdie <rp>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7Bit
+Return-path: <linux-pci-owner@vger.kernel.org>
+In-Reply-To: <4905498.aEGIofg2fM@vostro.rjw.lan>
+Sender: linux-pci-owner@vger.kernel.org
+To: Linus Torvalds <torvalds@linux-foundation.org>, Bjorn Helgaas <bhelgaas@google.com>
+Cc: Steven Rostedt <rostedt@goodmis.org>, LKML <linux-kernel@vger.kernel.org>, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Mika Westerberg <mika.westerberg@linux.intel.com>, Andrew Morton <akpm@linux-foundation.org>, Linux PCI <linux-pci@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On Friday, October 11, 2013 06:01:43 PM Josh Boyer wrote:
-> On Fri, Oct 11, 2013 at 6:10 PM, Rafael J. Wysocki <rjw@rjwysocki.net> wrote:
-> > On Friday, October 11, 2013 12:42:43 PM Josh Boyer wrote:
-> >> On Fri, Oct 11, 2013 at 9:27 AM, Aaron Lu <aaron.lu@intel.com> wrote:
-> >> > v5:
-> >> > 1 Introduce video.use_native_backlight module parameter and set its
-> >> >   value to false by default as suggested by Rafael. For Win8 systems
-> >> >   which have broken ACPI video backlight control, the parameter can be
-> >> >   set to 1 in kernel cmdline to skip registering ACPI video's backlight
-> >> >   interface. Due to this change, the acpi_video_verify_backlight_support
-> >> >   is moved from video_detect.c to video.c - patch 3/4;
-> >>
-> >> That's a fairly untenable position for distro kernels to be in.  They
-> >> now have to ask every user that reports an issue with the backlight to
-> >> try setting that option on the command line.  While I appreciate the
-> >> setting breaks things for some people, doesn't the Win8 issue impact
-> >> far more people?  Shouldn't it be defaulted to true?
-> >
-> > Well, we have a rule in the kernel not to introduce regressions for users even
-> > if they are minority.
-> >
-> >> If nothing else, can you add a config option for the default so
-> >> distros can use that to decide which way to default it and then work
-> >> on fixing the remaining users that have troubles?
-> >
-> > The current plan is to create a blacklist of systems where that option should
-> > be set.  We actually already have one, but it is at the _OSI() level, which
-> > is overkill in my view and may affect things beyond backlight.  Along with that
-> > we will debug systems where setting that option (to true) causes problems to
-> > happen, so that we'll be able to drop it going forward (hopefully).
-> >
-> > Of course, distro kernels may always change the default to true if they want.
+On Friday, October 11, 2013 11:58:48 PM Rafael J. Wysocki wrote:
+> On Friday, October 11, 2013 10:21:35 AM Linus Torvalds wrote:
+> > On Fri, Oct 11, 2013 at 4:13 AM, Rafael J. Wysocki <rjw@rjwysocki.net> wrote:
+
+[...]
+
+> > Or am I misreading the code? It's more readable, and no longer makes
+> > me homicidal, but I don't actually know the code itself.
 > 
-> They can, but they'd need to either patch the kernel to do so, or code
-> it in userspace bootloader configs.  Having a config option they can
-> set to change the default makes it reasonable and contained within the
-> kernel.
+> I think you're reading it correctly, it really makes acpiphp see all slots
+> even if pciehp sees them too.  So the change is somewhat risky.
+> 
+> That said the risk doesn't seem to be huge and there seem to be cases in
+> which it actually would be useful to have both acpiphp and pciehp signaling
+> available for the same device.  For example, even if the BIOS told us that
+> we could use the native mechanism (pciehp), it may not actually work.  That is,
+> we may not get any hotplug interrupts from PCIe ports due to platform bugs of
+> some sort and we may get ACPI notifications instead (because the platform
+> designer knew about those bugs and thought it would be smart to use ACPI to
+> work around them).
+> 
+> There are bug reports indicating thinks like that, so we were going to allow
+> acpiphp and pciehp to handle the same devices anyway at one point.  I thought
+> we might as well try to do it now and see how it goes.  Still, if you think
+> it's too risky for this stage of the cycle, I'll just send a patch removing
+> the WARN_ON() and we'll revisit that thing in 3.13.
 
-If we are to use a Kconfig option, why don't we use one instead of rather than
-in addition to a command line option?  Say, we have
-CONFIG_ACPI_VIDEO_WIN8_WORKAROUND and if that is set, the code will work like
-the previous version of the Aaron's patchset (the one without
-video.use_native_backlight)?
+Having reconsidered this I think it's best to just drop the WARN_ON() for now
+after all and sort out the coexistence between acpiphp and pciehp later, so
+that we don't run into a weird corner case late in the cycle.
 
-Opinions?
+So the one below is what I'm going to do for 3.12.
 
--- 
-I speak only for myself.
-Rafael J. Wysocki, Intel Open Source Technology Center.
+Rafael
+
+---
+From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+Subject: ACPI / hotplug / PCI: Drop WARN_ON() from acpiphp_enumerate_slots()
+
+The WARN_ON() in acpiphp_enumerate_slots() triggers unnecessarily for
+devices whose bridges are going to be handled by native PCIe hotplug
+(pciehp) and the simplest way to prevent that from happening is to
+drop the WARN_ON().
+
+References: https://bugzilla.kernel.org/show_bug.cgi?id=62831
+Reported-by: Steven Rostedt <rostedt@goodmis.org>
+Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+---
+ drivers/pci/hotplug/acpiphp_glue.c |    7 ++++---
+ 1 file changed, 4 insertions(+), 3 deletions(-)
+
+Index: linux-pm/drivers/pci/hotplug/acpiphp_glue.c
+===================================================================
+--- linux-pm.orig/drivers/pci/hotplug/acpiphp_glue.c
++++ linux-pm/drivers/pci/hotplug/acpiphp_glue.c
+@@ -999,12 +999,13 @@ void acpiphp_enumerate_slots(struct pci_
+ 
+ 		/*
+ 		 * This bridge should have been registered as a hotplug function
+-		 * under its parent, so the context has to be there.  If not, we
+-		 * are in deep goo.
++		 * under its parent, so the context should be there, unless the
++		 * parent is going to be handled by pciehp, in which case this
++		 * bridge is not interesting to us either.
+ 		 */
+ 		mutex_lock(&acpiphp_context_lock);
+ 		context = acpiphp_get_context(handle);
+-		if (WARN_ON(!context)) {
++		if (!context) {
+ 			mutex_unlock(&acpiphp_context_lock);
+ 			put_device(&bus->dev);
+ 			kfree(bridge);
