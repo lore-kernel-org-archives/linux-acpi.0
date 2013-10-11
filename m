@@ -1,46 +1,109 @@
-From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [PATCH V2 Resend 37/92] cpufreq: acpi: don't initialize part of policy that is set by core too
-Date: Fri, 11 Oct 2013 14:51:05 +0200
-Message-ID: <1531860.snE8AY6g9s@vostro.rjw.lan>
-References: <cover.1380783079.git.viresh.kumar@linaro.org> <8fa3d4a49724fc9a298c0b2f0b266b37d4a13310.1380783079.git.viresh.kumar@linaro.org>
+From: Steven Rostedt <rostedt@goodmis.org>
+Subject: Re: [BUG] WARN_ON(!context) in drivers/pci/hotplug/acpiphp_glue.c
+Date: Fri, 11 Oct 2013 09:01:53 -0400
+Message-ID: <20131011090153.7760db6b@gandalf.local.home>
+References: <20131010165905.7815defa@gandalf.local.home>
+	<18685640.N2BnVjDmHD@vostro.rjw.lan>
+	<CA+55aFwqf7kkh0dy6AhCvB87XYkQ03YUpsYEDJmnkiRe8GQfMQ@mail.gmail.com>
+	<2096980.ZtIelfoX39@vostro.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7Bit
-Return-path: <cpufreq-owner@vger.kernel.org>
-In-Reply-To: <8fa3d4a49724fc9a298c0b2f0b266b37d4a13310.1380783079.git.viresh.kumar@linaro.org>
-Sender: cpufreq-owner@vger.kernel.org
-To: Viresh Kumar <viresh.kumar@linaro.org>
-Cc: cpufreq@vger.kernel.org, linux-pm@vger.kernel.org, ACPI Devel Maling List <linux-acpi@vger.kernel.org>
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <2096980.ZtIelfoX39@vostro.rjw.lan>
+Sender: linux-kernel-owner@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: Linus Torvalds <torvalds@linux-foundation.org>, Bjorn Helgaas <bhelgaas@google.com>, LKML <linux-kernel@vger.kernel.org>, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Mika Westerberg <mika.westerberg@linux.intel.com>, Andrew Morton <akpm@linux-foundation.org>, Linux PCI <linux-pci@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On Thursday, October 03, 2013 08:28:31 PM Viresh Kumar wrote:
-> Many common initializations of struct policy are moved to core now and hence
-> this driver doesn't need to do it. This patch removes such code.
+On Fri, 11 Oct 2013 13:13:47 +0200
+"Rafael J. Wysocki" <rjw@rjwysocki.net> wrote:
 > 
-> Most recent of those changes is to call ->get() in the core after calling
-> ->init().
+> From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+> Subject: ACPI / hotplug / PCI: Accept coexistence with native PCIe hotplug
 > 
-> Signed-off-by: Viresh Kumar <viresh.kumar@linaro.org>
+> Allow ACPIPHP (ACPI-based PCI hotplug) to handle event signaling for
+> devices that have already been claimed by the native PCIe hotplug
+> (pciehp).
+> 
+> The ACPI hotplug events are essentially re-scan, remove and eject
+> requests.  Re-scan and remove should work regardless, because they
+> may be triggered by user space via sysfs and the ACPI eject (_EJ0)
+> should work if the BIOS wants us to use it.  There may be an issue
+> if the BIOS signals ACPI eject and wants us to use the native eject,
+> but that doesn't work without this change anyway.
+> 
+> This change prevents the WARN_ON() in acpiphp_enumerate_slots() from
+> triggering unnecessarily for bridges whose parents are managed by
+> pciehp.
+> 
+
+Reported-by: Steven Rostedt <rostedt@goodmis.org>
+Tested-by: Steven Rostedt <rostedt@goodmis.org>
+
+-- Steve
+
+> Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 > ---
->  drivers/cpufreq/acpi-cpufreq.c | 1 -
->  1 file changed, 1 deletion(-)
+>  drivers/pci/hotplug/acpiphp_glue.c |   32 ++++++++++++++++++++++++++------
+>  1 file changed, 26 insertions(+), 6 deletions(-)
 > 
-> diff --git a/drivers/cpufreq/acpi-cpufreq.c b/drivers/cpufreq/acpi-cpufreq.c
-> index 94a5a1d..a8dac7b 100644
-> --- a/drivers/cpufreq/acpi-cpufreq.c
-> +++ b/drivers/cpufreq/acpi-cpufreq.c
-> @@ -842,7 +842,6 @@ static int acpi_cpufreq_cpu_init(struct cpufreq_policy *policy)
->  		break;
->  	case ACPI_ADR_SPACE_FIXED_HARDWARE:
->  		acpi_cpufreq_driver.get = get_cur_freq_on_cpu;
-> -		policy->cur = get_cur_freq_on_cpu(cpu);
->  		break;
->  	default:
->  		break;
-
-I'm wondering what happens if space_id is ACPI_ADR_SPACE_SYSTEM_IO?  I suppose
-that the core will set policy->cur first and then it will be overwritten here?
-
--- 
-I speak only for myself.
-Rafael J. Wysocki, Intel Open Source Technology Center.
+> Index: linux-pm/drivers/pci/hotplug/acpiphp_glue.c
+> ===================================================================
+> --- linux-pm.orig/drivers/pci/hotplug/acpiphp_glue.c
+> +++ linux-pm/drivers/pci/hotplug/acpiphp_glue.c
+> @@ -259,6 +259,31 @@ static void acpiphp_dock_release(void *d
+>  	put_bridge(context->func.parent);
+>  }
+>  
+> +/**
+> + * slot_should_be_exposed - Check whether or not to expose a slot to userland.
+> + * @bridge: ACPIPHP bridge the slot belongs to.
+> + * @handle: ACPI handle of a device in the slot.
+> + */
+> +static inline bool slot_should_be_exposed(struct acpiphp_bridge *bridge,
+> +					  acpi_handle handle)
+> +{
+> +	struct pci_bus *pbus = bridge->pci_bus;
+> +	struct pci_dev *pdev = bridge->pci_dev;
+> +
+> +	/*
+> +	 * Do not expose slots whose bridges are managed by pciehp, because they
+> +	 * will be exposed to user space by the pciehp driver.
+> +	 */
+> +	if (pdev && device_is_managed_by_native_pciehp(pdev))
+> +		return false;
+> +
+> +	/*
+> +	 * Expose slots for devices with either _EJ0 or _RMV and for devices
+> +	 * on docking stations.
+> +	 */
+> +	return acpi_pci_check_ejectable(pbus, handle) || is_dock_device(handle);
+> +}
+> +
+>  /* callback routine to register each ACPI PCI slot object */
+>  static acpi_status register_slot(acpi_handle handle, u32 lvl, void *data,
+>  				 void **rv)
+> @@ -271,12 +296,8 @@ static acpi_status register_slot(acpi_ha
+>  	unsigned long long adr;
+>  	int device, function;
+>  	struct pci_bus *pbus = bridge->pci_bus;
+> -	struct pci_dev *pdev = bridge->pci_dev;
+>  	u32 val;
+>  
+> -	if (pdev && device_is_managed_by_native_pciehp(pdev))
+> -		return AE_OK;
+> -
+>  	status = acpi_evaluate_integer(handle, "_ADR", NULL, &adr);
+>  	if (ACPI_FAILURE(status)) {
+>  		acpi_handle_warn(handle, "can't evaluate _ADR (%#x)\n", status);
+> @@ -325,8 +346,7 @@ static acpi_status register_slot(acpi_ha
+>  
+>  	list_add_tail(&slot->node, &bridge->slots);
+>  
+> -	/* Register slots for ejectable funtions only. */
+> -	if (acpi_pci_check_ejectable(pbus, handle)  || is_dock_device(handle)) {
+> +	if (slot_should_be_exposed(bridge, handle)) {
+>  		unsigned long long sun;
+>  		int retval;
+>  
