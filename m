@@ -1,54 +1,55 @@
-From: Viresh Kumar <viresh.kumar@linaro.org>
-Subject: Re: [PATCH V2 Resend 37/92] cpufreq: acpi: don't initialize part of
- policy that is set by core too
-Date: Fri, 11 Oct 2013 20:07:37 +0530
-Message-ID: <CAKohpokjEZKhkFAWo7NPEaz-cK_zC3VCzdv8HT3Yk5kUWxa=Lg@mail.gmail.com>
-References: <cover.1380783079.git.viresh.kumar@linaro.org>
-	<8fa3d4a49724fc9a298c0b2f0b266b37d4a13310.1380783079.git.viresh.kumar@linaro.org>
-	<1531860.snE8AY6g9s@vostro.rjw.lan>
+From: Mika Westerberg <mika.westerberg-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
+Subject: Re: [PATCH] i2c: Fix modalias for ACPI enumerated I2C devices
+Date: Fri, 11 Oct 2013 17:49:46 +0300
+Message-ID: <20131011144946.GS3521@intel.com>
+References: <1381414669-26115-1-git-send-email-jarkko.nikula@linux.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <cpufreq-owner@vger.kernel.org>
-In-Reply-To: <1531860.snE8AY6g9s@vostro.rjw.lan>
-Sender: cpufreq-owner@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: cpufreq@vger.kernel.org, linux-pm@vger.kernel.org, ACPI Devel Maling List <linux-acpi@vger.kernel.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <1381414669-26115-1-git-send-email-jarkko.nikula-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
+Sender: linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Jarkko Nikula <jarkko.nikula-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
+Cc: linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Wolfram Sang <wsa-z923LK4zBo2bacvFa/9K2g@public.gmane.org>, "Rafael J. Wysocki" <rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On 11/10/2013, Rafael J. Wysocki <rjw@rjwysocki.net> wrote:
-> On Thursday, October 03, 2013 08:28:31 PM Viresh Kumar wrote:
->> Many common initializations of struct policy are moved to core now and
->> hence
->> this driver doesn't need to do it. This patch removes such code.
->>
->> Most recent of those changes is to call ->get() in the core after calling
->> ->init().
->>
->> Signed-off-by: Viresh Kumar <viresh.kumar@linaro.org>
->> ---
->>  drivers/cpufreq/acpi-cpufreq.c | 1 -
->>  1 file changed, 1 deletion(-)
->>
->> diff --git a/drivers/cpufreq/acpi-cpufreq.c
->> b/drivers/cpufreq/acpi-cpufreq.c
->> index 94a5a1d..a8dac7b 100644
->> --- a/drivers/cpufreq/acpi-cpufreq.c
->> +++ b/drivers/cpufreq/acpi-cpufreq.c
->> @@ -842,7 +842,6 @@ static int acpi_cpufreq_cpu_init(struct cpufreq_policy
->> *policy)
->>  		break;
->>  	case ACPI_ADR_SPACE_FIXED_HARDWARE:
->>  		acpi_cpufreq_driver.get = get_cur_freq_on_cpu;
->> -		policy->cur = get_cur_freq_on_cpu(cpu);
->>  		break;
->>  	default:
->>  		break;
->
-> I'm wondering what happens if space_id is ACPI_ADR_SPACE_SYSTEM_IO?  I
-> suppose
-> that the core will set policy->cur first and then it will be overwritten
-> here?
++Rafael
 
-No. First ->init() is called and then core sets policy->cur. And it sets
-it only if there is a valid ->get() available.. Which wouldn't be available
-in case of ACPI_ADR_SPACE_SYSTEM_IO..
+On Thu, Oct 10, 2013 at 05:17:49PM +0300, Jarkko Nikula wrote:
+> There is a minor fault about ACPI enumerated I2C devices with their modalias
+> attribute. Now modalias is set by device instance not by hardware ID.
+> For example "i2c:INTABCD:00", "i2c:INTABCD:01" etc.
+
+I think that this is intentional. We don't want that the i2c modalias
+matches with the ACPI device (like with the i2c:INTABCD). Instead use ACPI
+IDs that are added to the driver to match with the ACPI device.
+
+> This means each device instance gets different modalias which does match
+> with generated modules.alias. Currently this is not problem as matching can
+> happen also with "acpi:INTABCD" modalias.
+> 
+> Fix this by using ACPI hardware ID.
+> 
+> Signed-off-by: Jarkko Nikula <jarkko.nikula-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
+> Cc: Mika Westerberg <mika.westerberg-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
+> ---
+> Generated on top of v3.12-rc4-29-g0e7a3ed.
+> ---
+>  drivers/i2c/i2c-core.c | 2 +-
+>  1 file changed, 1 insertion(+), 1 deletion(-)
+> 
+> diff --git a/drivers/i2c/i2c-core.c b/drivers/i2c/i2c-core.c
+> index 29d3f04..6dd0c53 100644
+> --- a/drivers/i2c/i2c-core.c
+> +++ b/drivers/i2c/i2c-core.c
+> @@ -1111,7 +1111,7 @@ static acpi_status acpi_i2c_add_device(acpi_handle handle, u32 level,
+>  	if (ret < 0 || !info.addr)
+>  		return AE_OK;
+>  
+> -	strlcpy(info.type, dev_name(&adev->dev), sizeof(info.type));
+> +	strlcpy(info.type, acpi_device_hid(adev), sizeof(info.type));
+>  	if (!i2c_new_device(adapter, &info)) {
+>  		dev_err(&adapter->dev,
+>  			"failed to add I2C device %s from ACPI\n",
+> -- 
+> 1.8.4.rc3
