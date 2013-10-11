@@ -1,53 +1,62 @@
-From: Igor Gnatenko <i.gnatenko.brain@gmail.com>
-Subject: Re: [PATCH v5 0/4] Fix Win8 backlight issue
-Date: Sat, 12 Oct 2013 01:01:36 +0400
-Message-ID: <1381525296.2373.1.camel@ThinkPad-X230.localdomain>
-References: <1381498066-16011-1-git-send-email-aaron.lu@intel.com>
-	<CA+5PVA5RfbJjLaZNDN81tvWYhm1pLuu9OpMTwMfUpC4ma4ac4A@mail.gmail.com>
+From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Subject: Re: [PATCH V2 Resend 37/92] cpufreq: acpi: don't initialize part of policy that is set by core too
+Date: Fri, 11 Oct 2013 23:16:45 +0200
+Message-ID: <81290019.MGQtGSb5X1@vostro.rjw.lan>
+References: <cover.1380783079.git.viresh.kumar@linaro.org> <1531860.snE8AY6g9s@vostro.rjw.lan> <CAKohpokjEZKhkFAWo7NPEaz-cK_zC3VCzdv8HT3Yk5kUWxa=Lg@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <intel-gfx-bounces+gcfxdi-intel-gfx=m.gmane.org@lists.freedesktop.org>
-In-Reply-To: <CA+5PVA5RfbJjLaZNDN81tvWYhm1pLuu9OpMTwMfUpC4ma4ac4A@mail.gmail.com>
-List-Unsubscribe: <http://lists.freedesktop.org/mailman/options/intel-gfx>,
-	<mailto:intel-gfx-request@lists.freedesktop.org?subject=unsubscribe>
-List-Archive: <http://lists.freedesktop.org/archives/intel-gfx>
-List-Post: <mailto:intel-gfx@lists.freedesktop.org>
-List-Help: <mailto:intel-gfx-request@lists.freedesktop.org?subject=help>
-List-Subscribe: <http://lists.freedesktop.org/mailman/listinfo/intel-gfx>,
-	<mailto:intel-gfx-request@lists.freedesktop.org?subject=subscribe>
-Sender: intel-gfx-bounces+gcfxdi-intel-gfx=m.gmane.org@lists.freedesktop.org
-Errors-To: intel-gfx-bounces+gcfxdi-intel-gfx=m.gmane.org@lists.freedesktop.org
-To: Josh Boyer <jwboyer@fedoraproject.org>
-Cc: James Hogan <james@albanarts.com>, Martin Steigerwald <Martin@lichtvoll.de>, Felipe Contreras <felipe.contreras@gmail.com>, DRI mailing list <dri-devel@lists.freedesktop.org>, platform-driver-x86@vger.kernel.org, Henrique de Moraes Holschuh <hmh@hmh.eng.br>, Matthew Garrett <matthew.garrett@nebula.com>, Mike Galbraith <bitbucket@online.de>, Kalle Valo <kvalo@adurom.com>, Yves-Alexis Perez <corsac@debian.org>, linux-acpi@vger.kernel.org, Lee Chun-Yi <joeyli.kernel@gmail.com>, Ben Jencks <ben@bjencks.net>, =?ISO-8859-1?Q?J=F6rg?= Otte <jrg.otte@gmail.com>, intel-gfx@lists.freedesktop.org, Joerg Platte <jplatte@naasa.net>, Seth Forshee <seth.forshee@canonical.com>, Mika Westerberg <mika.westerberg@linux.intel.com>, Aaron Lu <aaron.lu@intel.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, "Linux-Kernel@Vger. Kernel. Org" <linux-kernel@vger.kernel.org>, Richard Purdie <rpurdi>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7Bit
+Return-path: <cpufreq-owner@vger.kernel.org>
+In-Reply-To: <CAKohpokjEZKhkFAWo7NPEaz-cK_zC3VCzdv8HT3Yk5kUWxa=Lg@mail.gmail.com>
+Sender: cpufreq-owner@vger.kernel.org
+To: Viresh Kumar <viresh.kumar@linaro.org>
+Cc: cpufreq@vger.kernel.org, linux-pm@vger.kernel.org, ACPI Devel Maling List <linux-acpi@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On Fri, 2013-10-11 at 12:42 -0400, Josh Boyer wrote:
-> On Fri, Oct 11, 2013 at 9:27 AM, Aaron Lu <aaron.lu@intel.com> wrote:
-> > v5:
-> > 1 Introduce video.use_native_backlight module parameter and set its
-> >   value to false by default as suggested by Rafael. For Win8 systems
-> >   which have broken ACPI video backlight control, the parameter can be
-> >   set to 1 in kernel cmdline to skip registering ACPI video's backlight
-> >   interface. Due to this change, the acpi_video_verify_backlight_support
-> >   is moved from video_detect.c to video.c - patch 3/4;
+On Friday, October 11, 2013 08:07:37 PM Viresh Kumar wrote:
+> On 11/10/2013, Rafael J. Wysocki <rjw@rjwysocki.net> wrote:
+> > On Thursday, October 03, 2013 08:28:31 PM Viresh Kumar wrote:
+> >> Many common initializations of struct policy are moved to core now and
+> >> hence
+> >> this driver doesn't need to do it. This patch removes such code.
+> >>
+> >> Most recent of those changes is to call ->get() in the core after calling
+> >> ->init().
+> >>
+> >> Signed-off-by: Viresh Kumar <viresh.kumar@linaro.org>
+> >> ---
+> >>  drivers/cpufreq/acpi-cpufreq.c | 1 -
+> >>  1 file changed, 1 deletion(-)
+> >>
+> >> diff --git a/drivers/cpufreq/acpi-cpufreq.c
+> >> b/drivers/cpufreq/acpi-cpufreq.c
+> >> index 94a5a1d..a8dac7b 100644
+> >> --- a/drivers/cpufreq/acpi-cpufreq.c
+> >> +++ b/drivers/cpufreq/acpi-cpufreq.c
+> >> @@ -842,7 +842,6 @@ static int acpi_cpufreq_cpu_init(struct cpufreq_policy
+> >> *policy)
+> >>  		break;
+> >>  	case ACPI_ADR_SPACE_FIXED_HARDWARE:
+> >>  		acpi_cpufreq_driver.get = get_cur_freq_on_cpu;
+> >> -		policy->cur = get_cur_freq_on_cpu(cpu);
+> >>  		break;
+> >>  	default:
+> >>  		break;
+> >
+> > I'm wondering what happens if space_id is ACPI_ADR_SPACE_SYSTEM_IO?  I
+> > suppose
+> > that the core will set policy->cur first and then it will be overwritten
+> > here?
 > 
-> That's a fairly untenable position for distro kernels to be in.  They
-> now have to ask every user that reports an issue with the backlight to
-> try setting that option on the command line.  While I appreciate the
-> setting breaks things for some people, doesn't the Win8 issue impact
-> far more people?  Shouldn't it be defaulted to true?
-> 
-> If nothing else, can you add a config option for the default so
-> distros can use that to decide which way to default it and then work
-> on fixing the remaining users that have troubles?
-> 
-> josh
+> No. First ->init() is called and then core sets policy->cur. And it sets
+> it only if there is a valid ->get() available.. Which wouldn't be available
+> in case of ACPI_ADR_SPACE_SYSTEM_IO..
 
-I think more better to use this unregister as default and give option to
-disable it.
+OK
+
+Care to send a patch adding a comment under the ACPI_ADR_SPACE_SYSTEM_IO case
+explaining that policy->cur it sets won't be clobbered by the core because etc.?
 
 -- 
-Igor Gnatenko
-Fedora release 20 (Heisenbug)
-Linux 3.11.4-301.fc20.x86_64
+I speak only for myself.
+Rafael J. Wysocki, Intel Open Source Technology Center.
