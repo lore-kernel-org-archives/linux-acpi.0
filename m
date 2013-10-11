@@ -1,62 +1,76 @@
 From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [PATCH V2 Resend 37/92] cpufreq: acpi: don't initialize part of policy that is set by core too
-Date: Fri, 11 Oct 2013 23:16:45 +0200
-Message-ID: <81290019.MGQtGSb5X1@vostro.rjw.lan>
-References: <cover.1380783079.git.viresh.kumar@linaro.org> <1531860.snE8AY6g9s@vostro.rjw.lan> <CAKohpokjEZKhkFAWo7NPEaz-cK_zC3VCzdv8HT3Yk5kUWxa=Lg@mail.gmail.com>
+Subject: Re: [BUG] WARN_ON(!context) in drivers/pci/hotplug/acpiphp_glue.c
+Date: Fri, 11 Oct 2013 23:58:48 +0200
+Message-ID: <4905498.aEGIofg2fM@vostro.rjw.lan>
+References: <20131010165905.7815defa@gandalf.local.home> <2096980.ZtIelfoX39@vostro.rjw.lan> <CA+55aFyJL5gLGtg8-z1t1xSY1ih9MAzsDzMZaxrEYZOFZ7rRBw@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7Bit
-Return-path: <cpufreq-owner@vger.kernel.org>
-In-Reply-To: <CAKohpokjEZKhkFAWo7NPEaz-cK_zC3VCzdv8HT3Yk5kUWxa=Lg@mail.gmail.com>
-Sender: cpufreq-owner@vger.kernel.org
-To: Viresh Kumar <viresh.kumar@linaro.org>
-Cc: cpufreq@vger.kernel.org, linux-pm@vger.kernel.org, ACPI Devel Maling List <linux-acpi@vger.kernel.org>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <CA+55aFyJL5gLGtg8-z1t1xSY1ih9MAzsDzMZaxrEYZOFZ7rRBw@mail.gmail.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: Bjorn Helgaas <bhelgaas@google.com>, Steven Rostedt <rostedt@goodmis.org>, LKML <linux-kernel@vger.kernel.org>, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Mika Westerberg <mika.westerberg@linux.intel.com>, Andrew Morton <akpm@linux-foundation.org>, Linux PCI <linux-pci@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On Friday, October 11, 2013 08:07:37 PM Viresh Kumar wrote:
-> On 11/10/2013, Rafael J. Wysocki <rjw@rjwysocki.net> wrote:
-> > On Thursday, October 03, 2013 08:28:31 PM Viresh Kumar wrote:
-> >> Many common initializations of struct policy are moved to core now and
-> >> hence
-> >> this driver doesn't need to do it. This patch removes such code.
-> >>
-> >> Most recent of those changes is to call ->get() in the core after calling
-> >> ->init().
-> >>
-> >> Signed-off-by: Viresh Kumar <viresh.kumar@linaro.org>
-> >> ---
-> >>  drivers/cpufreq/acpi-cpufreq.c | 1 -
-> >>  1 file changed, 1 deletion(-)
-> >>
-> >> diff --git a/drivers/cpufreq/acpi-cpufreq.c
-> >> b/drivers/cpufreq/acpi-cpufreq.c
-> >> index 94a5a1d..a8dac7b 100644
-> >> --- a/drivers/cpufreq/acpi-cpufreq.c
-> >> +++ b/drivers/cpufreq/acpi-cpufreq.c
-> >> @@ -842,7 +842,6 @@ static int acpi_cpufreq_cpu_init(struct cpufreq_policy
-> >> *policy)
-> >>  		break;
-> >>  	case ACPI_ADR_SPACE_FIXED_HARDWARE:
-> >>  		acpi_cpufreq_driver.get = get_cur_freq_on_cpu;
-> >> -		policy->cur = get_cur_freq_on_cpu(cpu);
-> >>  		break;
-> >>  	default:
-> >>  		break;
-> >
-> > I'm wondering what happens if space_id is ACPI_ADR_SPACE_SYSTEM_IO?  I
-> > suppose
-> > that the core will set policy->cur first and then it will be overwritten
-> > here?
+On Friday, October 11, 2013 10:21:35 AM Linus Torvalds wrote:
+> On Fri, Oct 11, 2013 at 4:13 AM, Rafael J. Wysocki <rjw@rjwysocki.net> wrote:
+> > +/**
+> > + * slot_should_be_exposed - Check whether or not to expose a slot to userland.
+> > + * @bridge: ACPIPHP bridge the slot belongs to.
+> > + * @handle: ACPI handle of a device in the slot.
+> > + */
+> > +static inline bool slot_should_be_exposed(struct acpiphp_bridge *bridge,
+> > +                                         acpi_handle handle)
 > 
-> No. First ->init() is called and then core sets policy->cur. And it sets
-> it only if there is a valid ->get() available.. Which wouldn't be available
-> in case of ACPI_ADR_SPACE_SYSTEM_IO..
+> Thanks, that looks much better.
+> 
+> I do worry that we now seem to add the slot to all the acpiphp lists
+> even if it is managed by pciehp. That gets rid of the warning Steven
+> saw (because now it always has that context), but I'm left wondering
+> how much pcihp and aciphp will fight over the slot.
+>
+> Yes, the acpiphp_register_hotplug_slot() doesn't get called, but we
+> still do register_hotplug_dock_device(), for example. How does that
+> interact with pcihp that thinks it owns the slot?
 
-OK
+Well, owning the slot doesn't really mean much here, because the "rescan"
+and "remove" things may always be triggered by user space via sysfs from
+under the PCI device in question (regardless of whether or not pciehp
+thinks that it "owns" that device).  So if they are triggered by an ACPI
+notify instead, that should still be fine.
 
-Care to send a patch adding a comment under the ACPI_ADR_SPACE_SYSTEM_IO case
-explaining that policy->cur it sets won't be clobbered by the core because etc.?
+Ejects are more of a gray area, but they do the "remove" first and only
+then they go for an actual "eject".  Question is if we should execute
+_EJ0 provided that it's actually present for the pciehp slots (which we will
+do with the patch applied).  It might be safer to trigger the native eject
+then, but again I'd be surprised if _EJ0 didn't work anyway (if there is a
+system in which _EJ0 is available for a device handled by pciehp in the first
+place).
 
--- 
-I speak only for myself.
-Rafael J. Wysocki, Intel Open Source Technology Center.
+As far as docking stations go, the undock is done by ACPI anyway and it will
+carry out "remove" for all devices under the dock, so the patch doesn't change
+this particular case as far as I can say.
+
+> Or am I misreading the code? It's more readable, and no longer makes
+> me homicidal, but I don't actually know the code itself.
+
+I think you're reading it correctly, it really makes acpiphp see all slots
+even if pciehp sees them too.  So the change is somewhat risky.
+
+That said the risk doesn't seem to be huge and there seem to be cases in
+which it actually would be useful to have both acpiphp and pciehp signaling
+available for the same device.  For example, even if the BIOS told us that
+we could use the native mechanism (pciehp), it may not actually work.  That is,
+we may not get any hotplug interrupts from PCIe ports due to platform bugs of
+some sort and we may get ACPI notifications instead (because the platform
+designer knew about those bugs and thought it would be smart to use ACPI to
+work around them).
+
+There are bug reports indicating thinks like that, so we were going to allow
+acpiphp and pciehp to handle the same devices anyway at one point.  I thought
+we might as well try to do it now and see how it goes.  Still, if you think
+it's too risky for this stage of the cycle, I'll just send a patch removing
+the WARN_ON() and we'll revisit that thing in 3.13.
+
+Rafael
