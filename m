@@ -1,12 +1,14 @@
 From: tianyu.lan@intel.com
-Subject: [PATCH 1/5] ACPI/AC: Remove AC's proc directory.
-Date: Fri, 11 Oct 2013 09:54:07 +0800
-Message-ID: <1381456451-22877-1-git-send-email-tianyu.lan@intel.com>
+Subject: [PATCH 3/5] ACPI/SBS: Remove SBS's proc directory
+Date: Fri, 11 Oct 2013 09:54:09 +0800
+Message-ID: <1381456451-22877-3-git-send-email-tianyu.lan@intel.com>
+References: <1381456451-22877-1-git-send-email-tianyu.lan@intel.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga11.intel.com ([192.55.52.93]:51499 "EHLO mga11.intel.com"
+Received: from mga01.intel.com ([192.55.52.88]:15399 "EHLO mga01.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752146Ab3JKBx6 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 10 Oct 2013 21:53:58 -0400
+	id S1755992Ab3JKByF (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 10 Oct 2013 21:54:05 -0400
+In-Reply-To: <1381456451-22877-1-git-send-email-tianyu.lan@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: lenb@kernel.org, rjw@sisk.pl
@@ -14,209 +16,425 @@ Cc: Lan Tianyu <tianyu.lan@intel.com>, linux-acpi@vger.kernel.org, linux-kernel@
 
 From: Lan Tianyu <tianyu.lan@intel.com>
 
-AC's proc directory is not used and so remove it. Prepare for removing
+SBS's proc directory isn't useded and so remove it. Prepare for removing
 /proc/acpi directory.
 
 Signed-off-by: Lan Tianyu <tianyu.lan@intel.com>
 ---
- drivers/acpi/ac.c | 128 +-----------------------------------------------------
- 1 file changed, 2 insertions(+), 126 deletions(-)
+ drivers/acpi/sbs.c | 325 +----------------------------------------------------
+ 1 file changed, 4 insertions(+), 321 deletions(-)
 
-diff --git a/drivers/acpi/ac.c b/drivers/acpi/ac.c
-index f37beaa3..7d28e1a 100644
---- a/drivers/acpi/ac.c
-+++ b/drivers/acpi/ac.c
-@@ -30,10 +30,6 @@
- #include <linux/types.h>
- #include <linux/dmi.h>
- #include <linux/delay.h>
+diff --git a/drivers/acpi/sbs.c b/drivers/acpi/sbs.c
+index aef7e1c..d465ae6 100644
+--- a/drivers/acpi/sbs.c
++++ b/drivers/acpi/sbs.c
+@@ -30,12 +30,6 @@
+ #include <linux/moduleparam.h>
+ #include <linux/kernel.h>
+ 
 -#ifdef CONFIG_ACPI_PROCFS_POWER
 -#include <linux/proc_fs.h>
 -#include <linux/seq_file.h>
--#endif
- #include <linux/power_supply.h>
- #include <acpi/acpi_bus.h>
- #include <acpi/acpi_drivers.h>
-@@ -55,12 +51,6 @@ MODULE_AUTHOR("Paul Diefenbaugh");
- MODULE_DESCRIPTION("ACPI AC Adapter Driver");
- MODULE_LICENSE("GPL");
- 
--#ifdef CONFIG_ACPI_PROCFS_POWER
--extern struct proc_dir_entry *acpi_lock_ac_dir(void);
--extern void *acpi_unlock_ac_dir(struct proc_dir_entry *acpi_ac_dir);
--static int acpi_ac_open_fs(struct inode *inode, struct file *file);
+-#include <asm/uaccess.h>
 -#endif
 -
- static int acpi_ac_add(struct acpi_device *device);
- static int acpi_ac_remove(struct acpi_device *device);
- static void acpi_ac_notify(struct acpi_device *device, u32 event);
-@@ -99,16 +89,6 @@ struct acpi_ac {
+ #include <linux/acpi.h>
+ #include <linux/timer.h>
+ #include <linux/jiffies.h>
+@@ -67,11 +61,6 @@ static unsigned int cache_time = 1000;
+ module_param(cache_time, uint, 0644);
+ MODULE_PARM_DESC(cache_time, "cache time in milliseconds");
  
- #define to_acpi_ac(x) container_of(x, struct acpi_ac, charger)
+-extern struct proc_dir_entry *acpi_lock_ac_dir(void);
+-extern struct proc_dir_entry *acpi_lock_battery_dir(void);
+-extern void acpi_unlock_ac_dir(struct proc_dir_entry *acpi_ac_dir);
+-extern void acpi_unlock_battery_dir(struct proc_dir_entry *acpi_battery_dir);
+-
+ #define MAX_SBS_BAT			4
+ #define ACPI_SBS_BLOCK_MAX		32
  
+@@ -84,9 +73,6 @@ MODULE_DEVICE_TABLE(acpi, sbs_device_ids);
+ struct acpi_battery {
+ 	struct power_supply bat;
+ 	struct acpi_sbs *sbs;
 -#ifdef CONFIG_ACPI_PROCFS_POWER
--static const struct file_operations acpi_ac_fops = {
--	.owner = THIS_MODULE,
--	.open = acpi_ac_open_fs,
+-	struct proc_dir_entry *proc_entry;
+-#endif
+ 	unsigned long update_time;
+ 	char name[8];
+ 	char manufacturer_name[ACPI_SBS_BLOCK_MAX];
+@@ -119,9 +105,6 @@ struct acpi_sbs {
+ 	struct acpi_device *device;
+ 	struct acpi_smb_hc *hc;
+ 	struct mutex lock;
+-#ifdef CONFIG_ACPI_PROCFS_POWER
+-	struct proc_dir_entry *charger_entry;
+-#endif
+ 	struct acpi_battery battery[MAX_SBS_BAT];
+ 	u8 batteries_supported:4;
+ 	u8 manager_present:1;
+@@ -482,261 +465,6 @@ static struct device_attribute alarm_attr = {
+ };
+ 
+ /* --------------------------------------------------------------------------
+-                              FS Interface (/proc/acpi)
+-   -------------------------------------------------------------------------- */
+-
+-#ifdef CONFIG_ACPI_PROCFS_POWER
+-/* Generic Routines */
+-static int
+-acpi_sbs_add_fs(struct proc_dir_entry **dir,
+-		struct proc_dir_entry *parent_dir,
+-		char *dir_name,
+-		const struct file_operations *info_fops,
+-		const struct file_operations *state_fops,
+-		const struct file_operations *alarm_fops, void *data)
+-{
+-	printk(KERN_WARNING PREFIX "Deprecated procfs I/F for SBS is loaded,"
+-			" please retry with CONFIG_ACPI_PROCFS_POWER cleared\n");
+-	if (!*dir) {
+-		*dir = proc_mkdir(dir_name, parent_dir);
+-		if (!*dir) {
+-			return -ENODEV;
+-		}
+-	}
+-
+-	/* 'info' [R] */
+-	if (info_fops)
+-		proc_create_data(ACPI_SBS_FILE_INFO, S_IRUGO, *dir,
+-				 info_fops, data);
+-
+-	/* 'state' [R] */
+-	if (state_fops)
+-		proc_create_data(ACPI_SBS_FILE_STATE, S_IRUGO, *dir,
+-				 state_fops, data);
+-
+-	/* 'alarm' [R/W] */
+-	if (alarm_fops)
+-		proc_create_data(ACPI_SBS_FILE_ALARM, S_IRUGO, *dir,
+-				 alarm_fops, data);
+-	return 0;
+-}
+-
+-/* Smart Battery Interface */
+-static struct proc_dir_entry *acpi_battery_dir = NULL;
+-
+-static inline char *acpi_battery_units(struct acpi_battery *battery)
+-{
+-	return acpi_battery_mode(battery) ? " mW" : " mA";
+-}
+-
+-
+-static int acpi_battery_read_info(struct seq_file *seq, void *offset)
+-{
+-	struct acpi_battery *battery = seq->private;
+-	struct acpi_sbs *sbs = battery->sbs;
+-	int result = 0;
+-
+-	mutex_lock(&sbs->lock);
+-
+-	seq_printf(seq, "present:                 %s\n",
+-		   (battery->present) ? "yes" : "no");
+-	if (!battery->present)
+-		goto end;
+-
+-	seq_printf(seq, "design capacity:         %i%sh\n",
+-		   battery->design_capacity * acpi_battery_scale(battery),
+-		   acpi_battery_units(battery));
+-	seq_printf(seq, "last full capacity:      %i%sh\n",
+-		   battery->full_charge_capacity * acpi_battery_scale(battery),
+-		   acpi_battery_units(battery));
+-	seq_printf(seq, "battery technology:      rechargeable\n");
+-	seq_printf(seq, "design voltage:          %i mV\n",
+-		   battery->design_voltage * acpi_battery_vscale(battery));
+-	seq_printf(seq, "design capacity warning: unknown\n");
+-	seq_printf(seq, "design capacity low:     unknown\n");
+-	seq_printf(seq, "cycle count:		  %i\n", battery->cycle_count);
+-	seq_printf(seq, "capacity granularity 1:  unknown\n");
+-	seq_printf(seq, "capacity granularity 2:  unknown\n");
+-	seq_printf(seq, "model number:            %s\n", battery->device_name);
+-	seq_printf(seq, "serial number:           %i\n",
+-		   battery->serial_number);
+-	seq_printf(seq, "battery type:            %s\n",
+-		   battery->device_chemistry);
+-	seq_printf(seq, "OEM info:                %s\n",
+-		   battery->manufacturer_name);
+-      end:
+-	mutex_unlock(&sbs->lock);
+-	return result;
+-}
+-
+-static int acpi_battery_info_open_fs(struct inode *inode, struct file *file)
+-{
+-	return single_open(file, acpi_battery_read_info, PDE_DATA(inode));
+-}
+-
+-static int acpi_battery_read_state(struct seq_file *seq, void *offset)
+-{
+-	struct acpi_battery *battery = seq->private;
+-	struct acpi_sbs *sbs = battery->sbs;
+-	int rate;
+-
+-	mutex_lock(&sbs->lock);
+-	seq_printf(seq, "present:                 %s\n",
+-		   (battery->present) ? "yes" : "no");
+-	if (!battery->present)
+-		goto end;
+-
+-	acpi_battery_get_state(battery);
+-	seq_printf(seq, "capacity state:          %s\n",
+-		   (battery->state & 0x0010) ? "critical" : "ok");
+-	seq_printf(seq, "charging state:          %s\n",
+-		   (battery->rate_now < 0) ? "discharging" :
+-		   ((battery->rate_now > 0) ? "charging" : "charged"));
+-	rate = abs(battery->rate_now) * acpi_battery_ipscale(battery);
+-	rate *= (acpi_battery_mode(battery))?(battery->voltage_now *
+-			acpi_battery_vscale(battery)/1000):1;
+-	seq_printf(seq, "present rate:            %d%s\n", rate,
+-		   acpi_battery_units(battery));
+-	seq_printf(seq, "remaining capacity:      %i%sh\n",
+-		   battery->capacity_now * acpi_battery_scale(battery),
+-		   acpi_battery_units(battery));
+-	seq_printf(seq, "present voltage:         %i mV\n",
+-		   battery->voltage_now * acpi_battery_vscale(battery));
+-
+-      end:
+-	mutex_unlock(&sbs->lock);
+-	return 0;
+-}
+-
+-static int acpi_battery_state_open_fs(struct inode *inode, struct file *file)
+-{
+-	return single_open(file, acpi_battery_read_state, PDE_DATA(inode));
+-}
+-
+-static int acpi_battery_read_alarm(struct seq_file *seq, void *offset)
+-{
+-	struct acpi_battery *battery = seq->private;
+-	struct acpi_sbs *sbs = battery->sbs;
+-	int result = 0;
+-
+-	mutex_lock(&sbs->lock);
+-
+-	if (!battery->present) {
+-		seq_printf(seq, "present:                 no\n");
+-		goto end;
+-	}
+-
+-	acpi_battery_get_alarm(battery);
+-	seq_printf(seq, "alarm:                   ");
+-	if (battery->alarm_capacity)
+-		seq_printf(seq, "%i%sh\n",
+-			   battery->alarm_capacity *
+-			   acpi_battery_scale(battery),
+-			   acpi_battery_units(battery));
+-	else
+-		seq_printf(seq, "disabled\n");
+-      end:
+-	mutex_unlock(&sbs->lock);
+-	return result;
+-}
+-
+-static ssize_t
+-acpi_battery_write_alarm(struct file *file, const char __user * buffer,
+-			 size_t count, loff_t * ppos)
+-{
+-	struct seq_file *seq = file->private_data;
+-	struct acpi_battery *battery = seq->private;
+-	struct acpi_sbs *sbs = battery->sbs;
+-	char alarm_string[12] = { '\0' };
+-	int result = 0;
+-	mutex_lock(&sbs->lock);
+-	if (!battery->present) {
+-		result = -ENODEV;
+-		goto end;
+-	}
+-	if (count > sizeof(alarm_string) - 1) {
+-		result = -EINVAL;
+-		goto end;
+-	}
+-	if (copy_from_user(alarm_string, buffer, count)) {
+-		result = -EFAULT;
+-		goto end;
+-	}
+-	alarm_string[count] = 0;
+-	battery->alarm_capacity = simple_strtoul(alarm_string, NULL, 0) /
+-					acpi_battery_scale(battery);
+-	acpi_battery_set_alarm(battery);
+-      end:
+-	mutex_unlock(&sbs->lock);
+-	if (result)
+-		return result;
+-	return count;
+-}
+-
+-static int acpi_battery_alarm_open_fs(struct inode *inode, struct file *file)
+-{
+-	return single_open(file, acpi_battery_read_alarm, PDE_DATA(inode));
+-}
+-
+-static const struct file_operations acpi_battery_info_fops = {
+-	.open = acpi_battery_info_open_fs,
 -	.read = seq_read,
 -	.llseek = seq_lseek,
 -	.release = single_release,
+-	.owner = THIS_MODULE,
 -};
+-
+-static const struct file_operations acpi_battery_state_fops = {
+-	.open = acpi_battery_state_open_fs,
+-	.read = seq_read,
+-	.llseek = seq_lseek,
+-	.release = single_release,
+-	.owner = THIS_MODULE,
+-};
+-
+-static const struct file_operations acpi_battery_alarm_fops = {
+-	.open = acpi_battery_alarm_open_fs,
+-	.read = seq_read,
+-	.write = acpi_battery_write_alarm,
+-	.llseek = seq_lseek,
+-	.release = single_release,
+-	.owner = THIS_MODULE,
+-};
+-
+-/* Legacy AC Adapter Interface */
+-
+-static struct proc_dir_entry *acpi_ac_dir = NULL;
+-
+-static int acpi_ac_read_state(struct seq_file *seq, void *offset)
+-{
+-
+-	struct acpi_sbs *sbs = seq->private;
+-
+-	mutex_lock(&sbs->lock);
+-
+-	seq_printf(seq, "state:                   %s\n",
+-		   sbs->charger_present ? "on-line" : "off-line");
+-
+-	mutex_unlock(&sbs->lock);
+-	return 0;
+-}
+-
+-static int acpi_ac_state_open_fs(struct inode *inode, struct file *file)
+-{
+-	return single_open(file, acpi_ac_read_state, PDE_DATA(inode));
+-}
+-
+-static const struct file_operations acpi_ac_state_fops = {
+-	.open = acpi_ac_state_open_fs,
+-	.read = seq_read,
+-	.llseek = seq_lseek,
+-	.release = single_release,
+-	.owner = THIS_MODULE,
+-};
+-
 -#endif
 -
- /* --------------------------------------------------------------------------
-                                AC Adapter Management
-    -------------------------------------------------------------------------- */
-@@ -160,83 +140,6 @@ static enum power_supply_property ac_props[] = {
- 	POWER_SUPPLY_PROP_ONLINE,
- };
- 
--#ifdef CONFIG_ACPI_PROCFS_POWER
 -/* --------------------------------------------------------------------------
--                              FS Interface (/proc)
--   -------------------------------------------------------------------------- */
--
--static struct proc_dir_entry *acpi_ac_dir;
--
--static int acpi_ac_seq_show(struct seq_file *seq, void *offset)
--{
--	struct acpi_ac *ac = seq->private;
--
--
--	if (!ac)
--		return 0;
--
--	if (acpi_ac_get_state(ac)) {
--		seq_puts(seq, "ERROR: Unable to read AC Adapter state\n");
--		return 0;
--	}
--
--	seq_puts(seq, "state:                   ");
--	switch (ac->state) {
--	case ACPI_AC_STATUS_OFFLINE:
--		seq_puts(seq, "off-line\n");
--		break;
--	case ACPI_AC_STATUS_ONLINE:
--		seq_puts(seq, "on-line\n");
--		break;
--	default:
--		seq_puts(seq, "unknown\n");
--		break;
--	}
--
--	return 0;
--}
--
--static int acpi_ac_open_fs(struct inode *inode, struct file *file)
--{
--	return single_open(file, acpi_ac_seq_show, PDE_DATA(inode));
--}
--
--static int acpi_ac_add_fs(struct acpi_device *device)
--{
--	struct proc_dir_entry *entry = NULL;
--
--	printk(KERN_WARNING PREFIX "Deprecated procfs I/F for AC is loaded,"
--			" please retry with CONFIG_ACPI_PROCFS_POWER cleared\n");
--	if (!acpi_device_dir(device)) {
--		acpi_device_dir(device) = proc_mkdir(acpi_device_bid(device),
--						     acpi_ac_dir);
--		if (!acpi_device_dir(device))
--			return -ENODEV;
--	}
--
--	/* 'state' [R] */
--	entry = proc_create_data(ACPI_AC_FILE_STATE,
--				 S_IRUGO, acpi_device_dir(device),
--				 &acpi_ac_fops, acpi_driver_data(device));
--	if (!entry)
--		return -ENODEV;
--	return 0;
--}
--
--static int acpi_ac_remove_fs(struct acpi_device *device)
--{
--
--	if (acpi_device_dir(device)) {
--		remove_proc_entry(ACPI_AC_FILE_STATE, acpi_device_dir(device));
--
--		remove_proc_entry(acpi_device_bid(device), acpi_ac_dir);
--		acpi_device_dir(device) = NULL;
--	}
--
--	return 0;
--}
--#endif
--
- /* --------------------------------------------------------------------------
-                                    Driver Model
+                                  Driver Interface
     -------------------------------------------------------------------------- */
-@@ -317,11 +220,6 @@ static int acpi_ac_add(struct acpi_device *device)
+ static int acpi_battery_read(struct acpi_battery *battery)
+@@ -781,12 +509,6 @@ static int acpi_battery_add(struct acpi_sbs *sbs, int id)
+ 		return result;
+ 
+ 	sprintf(battery->name, ACPI_BATTERY_DIR_NAME, id);
+-#ifdef CONFIG_ACPI_PROCFS_POWER
+-	acpi_sbs_add_fs(&battery->proc_entry, acpi_battery_dir,
+-			battery->name, &acpi_battery_info_fops,
+-			&acpi_battery_state_fops, &acpi_battery_alarm_fops,
+-			battery);
+-#endif
+ 	battery->bat.name = battery->name;
+ 	battery->bat.type = POWER_SUPPLY_TYPE_BATTERY;
+ 	if (!acpi_battery_mode(battery)) {
+@@ -822,10 +544,6 @@ static void acpi_battery_remove(struct acpi_sbs *sbs, int id)
+ 			device_remove_file(battery->bat.dev, &alarm_attr);
+ 		power_supply_unregister(&battery->bat);
+ 	}
+-#ifdef CONFIG_ACPI_PROCFS_POWER
+-	proc_remove(battery->proc_entry);
+-	battery->proc_entry = NULL;
+-#endif
+ }
+ 
+ static int acpi_charger_add(struct acpi_sbs *sbs)
+@@ -835,13 +553,7 @@ static int acpi_charger_add(struct acpi_sbs *sbs)
+ 	result = acpi_ac_get_present(sbs);
  	if (result)
  		goto end;
- 
 -#ifdef CONFIG_ACPI_PROCFS_POWER
--	result = acpi_ac_add_fs(device);
--#endif
+-	result = acpi_sbs_add_fs(&sbs->charger_entry, acpi_ac_dir,
+-				 ACPI_AC_DIR_NAME, NULL,
+-				 &acpi_ac_state_fops, NULL, sbs);
 -	if (result)
 -		goto end;
- 	ac->charger.name = acpi_device_bid(device);
- 	ac->charger.type = POWER_SUPPLY_TYPE_MAINS;
- 	ac->charger.properties = ac_props;
-@@ -336,12 +234,8 @@ static int acpi_ac_add(struct acpi_device *device)
- 	       ac->state ? "on-line" : "off-line");
- 
-       end:
--	if (result) {
--#ifdef CONFIG_ACPI_PROCFS_POWER
--		acpi_ac_remove_fs(device);
 -#endif
-+	if (result)
- 		kfree(ac);
++
+ 	sbs->charger.name = "sbs-charger";
+ 	sbs->charger.type = POWER_SUPPLY_TYPE_MAINS;
+ 	sbs->charger.properties = sbs_ac_props;
+@@ -859,10 +571,6 @@ static void acpi_charger_remove(struct acpi_sbs *sbs)
+ {
+ 	if (sbs->charger.dev)
+ 		power_supply_unregister(&sbs->charger);
+-#ifdef CONFIG_ACPI_PROCFS_POWER
+-	proc_remove(sbs->charger_entry);
+-	sbs->charger_entry = NULL;
+-#endif
+ }
+ 
+ static void acpi_sbs_callback(void *context)
+@@ -950,20 +658,6 @@ static int acpi_sbs_remove(struct acpi_device *device)
+ 	return 0;
+ }
+ 
+-static void acpi_sbs_rmdirs(void)
+-{
+-#ifdef CONFIG_ACPI_PROCFS_POWER
+-	if (acpi_ac_dir) {
+-		acpi_unlock_ac_dir(acpi_ac_dir);
+-		acpi_ac_dir = NULL;
 -	}
- 
- 	dmi_check_system(ac_dmi_table);
- 	return result;
-@@ -381,9 +275,6 @@ static int acpi_ac_remove(struct acpi_device *device)
- 
- 	if (ac->charger.dev)
- 		power_supply_unregister(&ac->charger);
--#ifdef CONFIG_ACPI_PROCFS_POWER
--	acpi_ac_remove_fs(device);
+-	if (acpi_battery_dir) {
+-		acpi_unlock_battery_dir(acpi_battery_dir);
+-		acpi_battery_dir = NULL;
+-	}
 -#endif
+-}
+-
+ #ifdef CONFIG_PM_SLEEP
+ static int acpi_sbs_resume(struct device *dev)
+ {
+@@ -995,28 +689,17 @@ static int __init acpi_sbs_init(void)
  
- 	kfree(ac);
- 
-@@ -397,19 +288,9 @@ static int __init acpi_ac_init(void)
  	if (acpi_disabled)
  		return -ENODEV;
- 
 -#ifdef CONFIG_ACPI_PROCFS_POWER
 -	acpi_ac_dir = acpi_lock_ac_dir();
 -	if (!acpi_ac_dir)
 -		return -ENODEV;
+-	acpi_battery_dir = acpi_lock_battery_dir();
+-	if (!acpi_battery_dir) {
+-		acpi_sbs_rmdirs();
+-		return -ENODEV;
+-	}
 -#endif
--
- 	result = acpi_bus_register_driver(&acpi_ac_driver);
++
+ 	result = acpi_bus_register_driver(&acpi_sbs_driver);
 -	if (result < 0) {
--#ifdef CONFIG_ACPI_PROCFS_POWER
--		acpi_unlock_ac_dir(acpi_ac_dir);
--#endif
+-		acpi_sbs_rmdirs();
 +	if (result < 0)
  		return -ENODEV;
 -	}
- 
++
  	return 0;
  }
-@@ -418,11 +299,6 @@ static void __exit acpi_ac_exit(void)
- {
  
- 	acpi_bus_unregister_driver(&acpi_ac_driver);
--
--#ifdef CONFIG_ACPI_PROCFS_POWER
--	acpi_unlock_ac_dir(acpi_ac_dir);
--#endif
--
+ static void __exit acpi_sbs_exit(void)
+ {
+ 	acpi_bus_unregister_driver(&acpi_sbs_driver);
+-	acpi_sbs_rmdirs();
  	return;
  }
  
