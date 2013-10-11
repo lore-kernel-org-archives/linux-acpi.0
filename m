@@ -1,31 +1,72 @@
 From: Borislav Petkov <bp@alien8.de>
-Subject: Re: [PATCH 2/8] ACPI, CPER: Update cper info
-Date: Fri, 11 Oct 2013 17:47:59 +0200
-Message-ID: <20131011154759.GJ5925@pd.tnic>
+Subject: Re: [PATCH 6/8] ACPI, APEI, CPER: Enhance memory reporting capability
+Date: Fri, 11 Oct 2013 17:49:38 +0200
+Message-ID: <20131011154938.GK5925@pd.tnic>
 References: <1381473166-29303-1-git-send-email-gong.chen@linux.intel.com>
- <1381473166-29303-3-git-send-email-gong.chen@linux.intel.com>
- <20131011090630.GB5925@pd.tnic>
+ <1381473166-29303-7-git-send-email-gong.chen@linux.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=utf-8
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail.skyhub.de ([78.46.96.112]:55060 "EHLO mail.skyhub.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754926Ab3JKPtp (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 11 Oct 2013 11:49:45 -0400
 Content-Disposition: inline
-In-Reply-To: <20131011090630.GB5925@pd.tnic>
-Sender: linux-kernel-owner@vger.kernel.org
+In-Reply-To: <1381473166-29303-7-git-send-email-gong.chen@linux.intel.com>
+Sender: linux-acpi-owner@vger.kernel.org
+List-Id: linux-acpi@vger.kernel.org
 To: "Chen, Gong" <gong.chen@linux.intel.com>
 Cc: tony.luck@intel.com, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
-List-Id: linux-acpi@vger.kernel.org
 
-On Fri, Oct 11, 2013 at 11:06:30AM +0200, Borislav Petkov wrote:
-> > -	printk("%s""APEI generic hardware error status\n", pfx);
-> > +	printk("%s""Generic Hardware Error Status\n", pfx);
+On Fri, Oct 11, 2013 at 02:32:44AM -0400, Chen, Gong wrote:
+> After H/W error happens under FFM enabled mode, lots of information
+> are shown but some important parts like DIMM location missed. This
+> patch is used to show these extra fileds.
 > 
-> Btw, what's the story with printk not using KERN_x levels in this file?
-> Why are we falling back to default printk levels for all printks here
-> and shouldn't we rather prioritize them by urgency into, say, KERN_ERR,
-> KERN_INFO, etc?
+> Original-author: Tony Luck <tony.luck@intel.com>
+> Signed-off-by: Chen, Gong <gong.chen@linux.intel.com>
+> ---
+>  drivers/acpi/apei/cper.c | 12 ++++++++++++
+>  1 file changed, 12 insertions(+)
+> 
+> diff --git a/drivers/acpi/apei/cper.c b/drivers/acpi/apei/cper.c
+> index 680230c..2a4389f 100644
+> --- a/drivers/acpi/apei/cper.c
+> +++ b/drivers/acpi/apei/cper.c
+> @@ -28,6 +28,7 @@
+>  #include <linux/module.h>
+>  #include <linux/time.h>
+>  #include <linux/cper.h>
+> +#include <linux/dmi.h>
+>  #include <linux/acpi.h>
+>  #include <linux/pci.h>
+>  #include <linux/aer.h>
+> @@ -210,6 +211,8 @@ static void cper_print_mem(const char *pfx, const struct cper_sec_mem_err *mem)
+>  		printk("%s""card: %d\n", pfx, mem->card);
+>  	if (mem->validation_bits & CPER_MEM_VALID_MODULE)
+>  		printk("%s""module: %d\n", pfx, mem->module);
+> +	if (mem->validation_bits & CPER_MEM_VALID_RANK_NUMBER)
+> +		printk("%s""rank: %d\n", pfx, mem->rank);
+>  	if (mem->validation_bits & CPER_MEM_VALID_BANK)
+>  		printk("%s""bank: %d\n", pfx, mem->bank);
+>  	if (mem->validation_bits & CPER_MEM_VALID_DEVICE)
+> @@ -232,6 +235,15 @@ static void cper_print_mem(const char *pfx, const struct cper_sec_mem_err *mem)
+>  		       etype < ARRAY_SIZE(cper_mem_err_type_strs) ?
+>  		       cper_mem_err_type_strs[etype] : "unknown");
+>  	}
+> +	if (mem->validation_bits & CPER_MEM_VALID_MODULE_HANDLE) {
+> +		const char *bank = NULL, *device = NULL;
+> +		dmi_memdev_name(mem->mem_dev_handle, &bank, &device);
+> +		if (bank != NULL && device != NULL)
+> +			printk("%s""DIMM location: %s %s", pfx, bank, device);
+> +		else
+> +			printk("%s""DIMM DMI handle: 0x%.4x", pfx,
+> +					mem->mem_dev_handle);
 
-Ignore that - checkpatch complained about it but I kinda missed that
-we're handing down the prefix.
+Just a nitpick: maybe better arg alignment:
+
+			printk("%s""DIMM DMI handle: 0x%.4x",
+			       pfx, mem->mem_dev_handle);
 
 -- 
 Regards/Gruss,
