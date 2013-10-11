@@ -1,60 +1,61 @@
-From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [PATCH v5 0/4] Fix Win8 backlight issue
-Date: Sat, 12 Oct 2013 00:10:53 +0200
-Message-ID: <1712683.D4Gy4SDE7p@vostro.rjw.lan>
-References: <1381498066-16011-1-git-send-email-aaron.lu@intel.com>
-	<CA+5PVA5RfbJjLaZNDN81tvWYhm1pLuu9OpMTwMfUpC4ma4ac4A@mail.gmail.com>
+From: "Rafael J. Wysocki" <rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org>
+Subject: Re: [PATCH] i2c: Fix modalias for ACPI enumerated I2C devices
+Date: Sat, 12 Oct 2013 00:16:02 +0200
+Message-ID: <2393462.4JRAMNeigd@vostro.rjw.lan>
+References: <1381414669-26115-1-git-send-email-jarkko.nikula@linux.intel.com> <20131011144946.GS3521@intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <intel-gfx-bounces+gcfxdi-intel-gfx=m.gmane.org@lists.freedesktop.org>
-In-Reply-To: <CA+5PVA5RfbJjLaZNDN81tvWYhm1pLuu9OpMTwMfUpC4ma4ac4A@mail.gmail.com>
-List-Unsubscribe: <http://lists.freedesktop.org/mailman/options/intel-gfx>,
-	<mailto:intel-gfx-request@lists.freedesktop.org?subject=unsubscribe>
-List-Archive: <http://lists.freedesktop.org/archives/intel-gfx>
-List-Post: <mailto:intel-gfx@lists.freedesktop.org>
-List-Help: <mailto:intel-gfx-request@lists.freedesktop.org?subject=help>
-List-Subscribe: <http://lists.freedesktop.org/mailman/listinfo/intel-gfx>,
-	<mailto:intel-gfx-request@lists.freedesktop.org?subject=subscribe>
-Sender: intel-gfx-bounces+gcfxdi-intel-gfx=m.gmane.org@lists.freedesktop.org
-Errors-To: intel-gfx-bounces+gcfxdi-intel-gfx=m.gmane.org@lists.freedesktop.org
-To: Josh Boyer <jwboyer@fedoraproject.org>
-Cc: James Hogan <james@albanarts.com>, Martin Steigerwald <Martin@lichtvoll.de>, Felipe Contreras <felipe.contreras@gmail.com>, DRI mailing list <dri-devel@lists.freedesktop.org>, platform-driver-x86@vger.kernel.org, Henrique de Moraes Holschuh <hmh@hmh.eng.br>, Matthew Garrett <matthew.garrett@nebula.com>, Mike Galbraith <bitbucket@online.de>, Kalle Valo <kvalo@adurom.com>, Yves-Alexis Perez <corsac@debian.org>, linux-acpi@vger.kernel.org, Lee Chun-Yi <joeyli.kernel@gmail.com>, Ben Jencks <ben@bjencks.net>, =?ISO-8859-1?Q?J=F6rg?= Otte <jrg.otte@gmail.com>, Joerg Platte <jplatte@naasa.net>, intel-gfx@lists.freedesktop.org, Seth Forshee <seth.forshee@canonical.com>, Igor Gnatenko <i.gnatenko.brain@gmail.com>, Mika Westerberg <mika.westerberg@linux.intel.com>, Aaron Lu <aaron.lu@intel.com>, "Linux-Kernel@Vger. Kernel. Org" <linux-kernel@vger.kernel.org>, Richard Purdie <rp>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7Bit
+Return-path: <linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20131011144946.GS3521-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Sender: linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Mika Westerberg <mika.westerberg-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
+Cc: Jarkko Nikula <jarkko.nikula-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>, linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Wolfram Sang <wsa-z923LK4zBo2bacvFa/9K2g@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On Friday, October 11, 2013 12:42:43 PM Josh Boyer wrote:
-> On Fri, Oct 11, 2013 at 9:27 AM, Aaron Lu <aaron.lu@intel.com> wrote:
-> > v5:
-> > 1 Introduce video.use_native_backlight module parameter and set its
-> >   value to false by default as suggested by Rafael. For Win8 systems
-> >   which have broken ACPI video backlight control, the parameter can be
-> >   set to 1 in kernel cmdline to skip registering ACPI video's backlight
-> >   interface. Due to this change, the acpi_video_verify_backlight_support
-> >   is moved from video_detect.c to video.c - patch 3/4;
+On Friday, October 11, 2013 05:49:46 PM Mika Westerberg wrote:
+> +Rafael
 > 
-> That's a fairly untenable position for distro kernels to be in.  They
-> now have to ask every user that reports an issue with the backlight to
-> try setting that option on the command line.  While I appreciate the
-> setting breaks things for some people, doesn't the Win8 issue impact
-> far more people?  Shouldn't it be defaulted to true?
+> On Thu, Oct 10, 2013 at 05:17:49PM +0300, Jarkko Nikula wrote:
+> > There is a minor fault about ACPI enumerated I2C devices with their modalias
+> > attribute. Now modalias is set by device instance not by hardware ID.
+> > For example "i2c:INTABCD:00", "i2c:INTABCD:01" etc.
+> 
+> I think that this is intentional. We don't want that the i2c modalias
+> matches with the ACPI device (like with the i2c:INTABCD). Instead use ACPI
+> IDs that are added to the driver to match with the ACPI device.
 
-Well, we have a rule in the kernel not to introduce regressions for users even
-if they are minority.
+Well, I'm not really sure this was intentional, but I wonder how other bus
+types work in that respect?
 
-> If nothing else, can you add a config option for the default so
-> distros can use that to decide which way to default it and then work
-> on fixing the remaining users that have troubles?
-
-The current plan is to create a blacklist of systems where that option should
-be set.  We actually already have one, but it is at the _OSI() level, which
-is overkill in my view and may affect things beyond backlight.  Along with that
-we will debug systems where setting that option (to true) causes problems to
-happen, so that we'll be able to drop it going forward (hopefully).
-
-Of course, distro kernels may always change the default to true if they want.
-
-Thanks!
-
+> > This means each device instance gets different modalias which does match
+> > with generated modules.alias. Currently this is not problem as matching can
+> > happen also with "acpi:INTABCD" modalias.
+> > 
+> > Fix this by using ACPI hardware ID.
+> > 
+> > Signed-off-by: Jarkko Nikula <jarkko.nikula-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
+> > Cc: Mika Westerberg <mika.westerberg-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
+> > ---
+> > Generated on top of v3.12-rc4-29-g0e7a3ed.
+> > ---
+> >  drivers/i2c/i2c-core.c | 2 +-
+> >  1 file changed, 1 insertion(+), 1 deletion(-)
+> > 
+> > diff --git a/drivers/i2c/i2c-core.c b/drivers/i2c/i2c-core.c
+> > index 29d3f04..6dd0c53 100644
+> > --- a/drivers/i2c/i2c-core.c
+> > +++ b/drivers/i2c/i2c-core.c
+> > @@ -1111,7 +1111,7 @@ static acpi_status acpi_i2c_add_device(acpi_handle handle, u32 level,
+> >  	if (ret < 0 || !info.addr)
+> >  		return AE_OK;
+> >  
+> > -	strlcpy(info.type, dev_name(&adev->dev), sizeof(info.type));
+> > +	strlcpy(info.type, acpi_device_hid(adev), sizeof(info.type));
+> >  	if (!i2c_new_device(adapter, &info)) {
+> >  		dev_err(&adapter->dev,
+> >  			"failed to add I2C device %s from ACPI\n",
+> 
 -- 
 I speak only for myself.
 Rafael J. Wysocki, Intel Open Source Technology Center.
