@@ -1,198 +1,173 @@
-From: Zhang Yanfei <zhangyanfei.yes@gmail.com>
-Subject: Re: [PATCH part1 v7 0/6] x86, memblock: Allocate memory near kernel
- image before SRAT parsed
-Date: Fri, 11 Oct 2013 08:00:53 +0800
-Message-ID: <52573FB5.5020100@gmail.com>
-References: <52570A6E.2010806@gmail.com>
+From: Aaron Lu <aaron.lu@intel.com>
+Subject: Re: [PATCH v4 3/4] ACPI / video: Do not register
+ backlight if win8 and native interface exists
+Date: Fri, 11 Oct 2013 09:09:46 +0800
+Message-ID: <52574FDA.20201@intel.com>
+References: <1381214401-24672-1-git-send-email-aaron.lu@intel.com>
+	<9897358.0Z0t2PgJOe@vostro.rjw.lan> <5255FCBF.6090708@intel.com>
+	<2800253.nfx2dehBQN@vostro.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-doc-owner@vger.kernel.org>
-In-Reply-To: <52570A6E.2010806@gmail.com>
-Sender: linux-doc-owner@vger.kernel.org
-To: Andrew Morton <akpm@linux-foundation.org>, mingo@elte.hu, "H. Peter Anvin" <hpa@zytor.com>, Tejun Heo <tj@kernel.org>
-Cc: "Rafael J . Wysocki" <rjw@sisk.pl>, lenb@kernel.org, Thomas Gleixner <tglx@linutronix.de>, Toshi Kani <toshi.kani@hp.com>, Wanpeng Li <liwanp@linux.vnet.ibm.com>, Thomas Renninger <trenn@suse.de>, Yinghai Lu <yinghai@kernel.org>, Jiang Liu <jiang.liu@huawei.com>, Wen Congyang <wency@cn.fujitsu.com>, Lai Jiangshan <laijs@cn.fujitsu.com>, isimatu.yasuaki@jp.fujitsu.com, izumi.taku@jp.fujitsu.com, Mel Gorman <mgorman@suse.de>, mina86@mina86.com, Minchan Kim <minchan@kernel.org>, gong.chen@linux.intel.com, vasilis.liaskovitis@profitbricks.com, lwoodman@redhat.com, Rik van Riel <riel@redhat.com>, jweiner@redhat.com, prarit@redhat.com, "x86@kernel.org" <x86@kernel.org>, linux-doc@vger.kernel.org, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Linux MM <linux-mm@kvack.org>, linux-acpi@vger.kernel.org, imtangchen@gmail.com, Zhang Yanfei <zhangyanfei@cn.fujit>
+Return-path: <intel-gfx-bounces+gcfxdi-intel-gfx=m.gmane.org@lists.freedesktop.org>
+In-Reply-To: <2800253.nfx2dehBQN@vostro.rjw.lan>
+List-Unsubscribe: <http://lists.freedesktop.org/mailman/options/intel-gfx>,
+	<mailto:intel-gfx-request@lists.freedesktop.org?subject=unsubscribe>
+List-Archive: <http://lists.freedesktop.org/archives/intel-gfx>
+List-Post: <mailto:intel-gfx@lists.freedesktop.org>
+List-Help: <mailto:intel-gfx-request@lists.freedesktop.org?subject=help>
+List-Subscribe: <http://lists.freedesktop.org/mailman/listinfo/intel-gfx>,
+	<mailto:intel-gfx-request@lists.freedesktop.org?subject=subscribe>
+Sender: intel-gfx-bounces+gcfxdi-intel-gfx=m.gmane.org@lists.freedesktop.org
+Errors-To: intel-gfx-bounces+gcfxdi-intel-gfx=m.gmane.org@lists.freedesktop.org
+To: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: James Hogan <james@albanarts.com>, Martin Steigerwald <Martin@lichtvoll.de>, Felipe Contreras <felipe.contreras@gmail.com>, dri-devel@lists.freedesktop.org, platform-driver-x86@vger.kernel.org, Henrique de Moraes Holschuh <hmh@hmh.eng.br>, Matthew Garrett <matthew.garrett@nebula.com>, linux-acpi@vger.kernel.org, Kalle Valo <kvalo@adurom.com>, Yves-Alexis Perez <corsac@debian.org>, Mike Galbraith <bitbucket@online.de>, Lee Chun-Yi <joeyli.kernel@gmail.com>, Ben Jencks <ben@bjencks.net>, =?UTF-8?B?SsO2cmcgT3R0ZQ==?= <jrg.otte@gmail.com>, intel-gfx@lists.freedesktop.org, Joerg Platte <jplatte@naasa.net>, Seth Forshee <seth.forshee@canonical.com>, Igor Gnatenko <i.gnatenko.brain@gmail.com>, Mika Westerberg <mika.westerberg@linux.intel.com>, linux-kernel@vger.kernel.org, Richard Purdie <rpurdie@rpsys.net>
 List-Id: linux-acpi@vger.kernel.org
 
-Hello Andrew,
+On 10/10/2013 08:59 PM, Rafael J. Wysocki wrote:
+> On Thursday, October 10, 2013 09:02:55 AM Aaron Lu wrote:
+>> On 10/10/2013 08:29 AM, Rafael J. Wysocki wrote:
+>>> On Tuesday, October 08, 2013 02:40:00 PM Aaron Lu wrote:
+>>>> According to Matthew Garrett, "Windows 8 leaves backlight control up
+>>>> to individual graphics drivers rather than making ACPI calls itself.
+>>>> There's plenty of evidence to suggest that the Intel driver for
+>>>> Windows [8] doesn't use the ACPI interface, including the fact that
+>>>> it's broken on a bunch of machines when the OS claims to support
+>>>> Windows 8.  The simplest thing to do appears to be to disable the
+>>>> ACPI backlight interface on these systems".
+>>>>
+>>>> So for Win8 systems, if there is native backlight control interface
+>>>> registered by GPU driver, ACPI video will not register its own. For
+>>>> users who prefer to keep ACPI video's backlight interface, the existing
+>>>> kernel cmdline option acpi_backlight=video can be used.
+>>>>
+>>>> Signed-off-by: Aaron Lu <aaron.lu@intel.com>
+>>>> Tested-by: Igor Gnatenko <i.gnatenko.brain@gmail.com>
+>>>> Tested-by: Yves-Alexis Perez <corsac@debian.org>
+>>>> Tested-by: Mika Westerberg <mika.westerberg@linux.intel.com>
+>>>> ---
+>>>>  drivers/acpi/internal.h     |  5 ++---
+>>>>  drivers/acpi/video.c        | 10 +++++-----
+>>>>  drivers/acpi/video_detect.c | 14 ++++++++++++--
+>>>>  3 files changed, 19 insertions(+), 10 deletions(-)
+>>>>
+>>>> diff --git a/drivers/acpi/internal.h b/drivers/acpi/internal.h
+>>>> index 20f4233..453ae8d 100644
+>>>> --- a/drivers/acpi/internal.h
+>>>> +++ b/drivers/acpi/internal.h
+>>>> @@ -169,9 +169,8 @@ int acpi_create_platform_device(struct acpi_device *adev,
+>>>>  					Video
+>>>>    -------------------------------------------------------------------------- */
+>>>>  #if defined(CONFIG_ACPI_VIDEO) || defined(CONFIG_ACPI_VIDEO_MODULE)
+>>>> -bool acpi_video_backlight_quirks(void);
+>>>> -#else
+>>>> -static inline bool acpi_video_backlight_quirks(void) { return false; }
+>>>> +bool acpi_osi_is_win8(void);
+>>>> +bool acpi_video_verify_backlight_support(void);
+>>>>  #endif
+>>>>  
+>>>>  #endif /* _ACPI_INTERNAL_H_ */
+>>>> diff --git a/drivers/acpi/video.c b/drivers/acpi/video.c
+>>>> index 3bd1eaa..343db59 100644
+>>>> --- a/drivers/acpi/video.c
+>>>> +++ b/drivers/acpi/video.c
+>>>> @@ -1256,8 +1256,8 @@ acpi_video_switch_brightness(struct acpi_video_device *device, int event)
+>>>>  	unsigned long long level_current, level_next;
+>>>>  	int result = -EINVAL;
+>>>>  
+>>>> -	/* no warning message if acpi_backlight=vendor is used */
+>>>> -	if (!acpi_video_backlight_support())
+>>>> +	/* no warning message if acpi_backlight=vendor or a quirk is used */
+>>>> +	if (!acpi_video_verify_backlight_support())
+>>>>  		return 0;
+>>>>  
+>>>>  	if (!device->brightness)
+>>>> @@ -1386,13 +1386,13 @@ acpi_video_bus_get_devices(struct acpi_video_bus *video,
+>>>>  static int acpi_video_bus_start_devices(struct acpi_video_bus *video)
+>>>>  {
+>>>>  	return acpi_video_bus_DOS(video, 0,
+>>>> -				  acpi_video_backlight_quirks() ? 1 : 0);
+>>>> +				  acpi_osi_is_win8() ? 1 : 0);
+>>>>  }
+>>>>  
+>>>>  static int acpi_video_bus_stop_devices(struct acpi_video_bus *video)
+>>>>  {
+>>>>  	return acpi_video_bus_DOS(video, 0,
+>>>> -				  acpi_video_backlight_quirks() ? 0 : 1);
+>>>> +				  acpi_osi_is_win8() ? 0 : 1);
+>>>>  }
+>>>>  
+>>>>  static void acpi_video_bus_notify(struct acpi_device *device, u32 event)
+>>>> @@ -1558,7 +1558,7 @@ acpi_video_bus_match(acpi_handle handle, u32 level, void *context,
+>>>>  
+>>>>  static void acpi_video_dev_register_backlight(struct acpi_video_device *device)
+>>>>  {
+>>>> -	if (acpi_video_backlight_support()) {
+>>>> +	if (acpi_video_verify_backlight_support()) {
+>>>>  		struct backlight_properties props;
+>>>>  		struct pci_dev *pdev;
+>>>>  		acpi_handle acpi_parent;
+>>>> diff --git a/drivers/acpi/video_detect.c b/drivers/acpi/video_detect.c
+>>>> index 940edbf..23d7d26 100644
+>>>> --- a/drivers/acpi/video_detect.c
+>>>> +++ b/drivers/acpi/video_detect.c
+>>>> @@ -37,6 +37,7 @@
+>>>>  #include <linux/acpi.h>
+>>>>  #include <linux/dmi.h>
+>>>>  #include <linux/pci.h>
+>>>> +#include <linux/backlight.h>
+>>>>  
+>>>>  #include "internal.h"
+>>>>  
+>>>> @@ -233,11 +234,11 @@ static void acpi_video_caps_check(void)
+>>>>  		acpi_video_get_capabilities(NULL);
+>>>>  }
+>>>>  
+>>>> -bool acpi_video_backlight_quirks(void)
+>>>> +bool acpi_osi_is_win8(void)
+>>>>  {
+>>>>  	return acpi_gbl_osi_data >= ACPI_OSI_WIN_8;
+>>>>  }
+>>>> -EXPORT_SYMBOL(acpi_video_backlight_quirks);
+>>>> +EXPORT_SYMBOL(acpi_osi_is_win8);
+>>>>  
+>>>>  /* Promote the vendor interface instead of the generic video module.
+>>>>   * This function allow DMI blacklists to be implemented by externals
+>>>> @@ -283,6 +284,15 @@ int acpi_video_backlight_support(void)
+>>>>  }
+>>>>  EXPORT_SYMBOL(acpi_video_backlight_support);
+>>>>  
+>>>> +bool acpi_video_verify_backlight_support(void)
+>>>> +{
+>>>> +	if (!(acpi_video_support & ACPI_VIDEO_BACKLIGHT_FORCE_VIDEO) &&
+>>>> +	    acpi_osi_is_win8() && backlight_device_registered(BACKLIGHT_RAW))
+>>>> +		return false;
+>>>
+>>> If I'm not mistaken, this will introduce a regression for the people who have
+>>> problems with the native i915 backlight on Win8-compatible systems.  I'd prefer
+>>> to avoid that at this point.
+>>>
+>>
+>> OK, I see.
+>>
+>> Then I'm afraid a new kernel command line option is needed, something
+>> like video.use_native_backlight and set it to false by default, then
+>> for people who need to avoid the ACPI video backlight interface, they
+>> can add video.use_native_backlight=true to kernel cmdline.
+>>
+>> One thing I need to mention is, with the new cmdline option, users will
+>> need to manually add a kernel cmdline option to make backlight work on
+>> their systems, while they can already make backlight work by modifying
+>> xorg.conf to specify using intel_backlight interface, so it doesn't seem
+>> this patchset will be very useful then...
+> 
+> Except if we add a (black)list of systems where that option will be 'true'
+> by default instead of the _OSI blacklist we have today.
+> 
+> Also we can switch the default during development cycles to get an idea
+> about how many systems are affected and maybe we can find a way to fix them,
+> in which case we can simply drop the option.
 
-Could you take this version now? Since the approach of
-this patchset is suggested by tejun, and thanks him for
-helping us explaining a lot to guys that have the concern
-about the page table location. I've added some note in
-the patch4 description to explain why we could be not worrisome
-about the approach.
+Sounds good, I'll update in next revision, thanks for the suggestion!
 
-Thanks.
-
-On 10/11/2013 04:13 AM, Zhang Yanfei wrote:
-> Hello, here is the v7 version. Any comments are welcome!
-> 
-> The v7 version is based on linus's tree (3.12-rc4)
-> HEAD is:
-> commit d0e639c9e06d44e713170031fe05fb60ebe680af
-> Author: Linus Torvalds <torvalds@linux-foundation.org>
-> Date:   Sun Oct 6 14:00:20 2013 -0700
-> 
->     Linux 3.12-rc4
-> 
-> 
-> [Problem]
-> 
-> The current Linux cannot migrate pages used by the kerenl because
-> of the kernel direct mapping. In Linux kernel space, va = pa + PAGE_OFFSET.
-> When the pa is changed, we cannot simply update the pagetable and
-> keep the va unmodified. So the kernel pages are not migratable.
-> 
-> There are also some other issues will cause the kernel pages not migratable.
-> For example, the physical address may be cached somewhere and will be used.
-> It is not to update all the caches.
-> 
-> When doing memory hotplug in Linux, we first migrate all the pages in one
-> memory device somewhere else, and then remove the device. But if pages are
-> used by the kernel, they are not migratable. As a result, memory used by
-> the kernel cannot be hot-removed.
-> 
-> Modifying the kernel direct mapping mechanism is too difficult to do. And
-> it may cause the kernel performance down and unstable. So we use the following
-> way to do memory hotplug.
-> 
-> 
-> [What we are doing]
-> 
-> In Linux, memory in one numa node is divided into several zones. One of the
-> zones is ZONE_MOVABLE, which the kernel won't use.
-> 
-> In order to implement memory hotplug in Linux, we are going to arrange all
-> hotpluggable memory in ZONE_MOVABLE so that the kernel won't use these memory.
-> To do this, we need ACPI's help.
-> 
-> In ACPI, SRAT(System Resource Affinity Table) contains NUMA info. The memory
-> affinities in SRAT record every memory range in the system, and also, flags
-> specifying if the memory range is hotpluggable.
-> (Please refer to ACPI spec 5.0 5.2.16)
-> 
-> With the help of SRAT, we have to do the following two things to achieve our
-> goal:
-> 
-> 1. When doing memory hot-add, allow the users arranging hotpluggable as
->    ZONE_MOVABLE.
->    (This has been done by the MOVABLE_NODE functionality in Linux.)
-> 
-> 2. when the system is booting, prevent bootmem allocator from allocating
->    hotpluggable memory for the kernel before the memory initialization
->    finishes.
-> 
-> The problem 2 is the key problem we are going to solve. But before solving it,
-> we need some preparation. Please see below.
-> 
-> 
-> [Preparation]
-> 
-> Bootloader has to load the kernel image into memory. And this memory must be 
-> unhotpluggable. We cannot prevent this anyway. So in a memory hotplug system, 
-> we can assume any node the kernel resides in is not hotpluggable.
-> 
-> Before SRAT is parsed, we don't know which memory ranges are hotpluggable. But
-> memblock has already started to work. In the current kernel, memblock allocates 
-> the following memory before SRAT is parsed:
-> 
-> setup_arch()
->  |->memblock_x86_fill()            /* memblock is ready */
->  |......
->  |->early_reserve_e820_mpc_new()   /* allocate memory under 1MB */
->  |->reserve_real_mode()            /* allocate memory under 1MB */
->  |->init_mem_mapping()             /* allocate page tables, about 2MB to map 1GB memory */
->  |->dma_contiguous_reserve()       /* specified by user, should be low */
->  |->setup_log_buf()                /* specified by user, several mega bytes */
->  |->relocate_initrd()              /* could be large, but will be freed after boot, should reorder */
->  |->acpi_initrd_override()         /* several mega bytes */
->  |->reserve_crashkernel()          /* could be large, should reorder */
->  |......
->  |->initmem_init()                 /* Parse SRAT */
-> 
-> According to Tejun's advice, before SRAT is parsed, we should try our best to
-> allocate memory near the kernel image. Since the whole node the kernel resides 
-> in won't be hotpluggable, and for a modern server, a node may have at least 16GB
-> memory, allocating several mega bytes memory around the kernel image won't cross
-> to hotpluggable memory.
-> 
-> 
-> [About this patch-set]
-> 
-> So this patch-set is the preparation for the problem 2 that we want to solve. It
-> does the following:
-> 
-> 1. Make memblock be able to allocate memory bottom up.
->    1) Keep all the memblock APIs' prototype unmodified.
->    2) When the direction is bottom up, keep the start address greater than the 
->       end of kernel image.
-> 
-> 2. Improve init_mem_mapping() to support allocate page tables in bottom up direction.
-> 
-> 3. Introduce "movable_node" boot option to enable and disable this functionality.
-> 
-> Change log v6 -> v7:
-> 1. Add toshi's ack in several patches.
-> 2. Make __pa_symbol() available everywhere by putting a pesudo __pa_symbol define
->    in include/linux/mm.h. Thanks HPA.
-> 3. Add notes about the page table allocation in bottom-up.
-> 
-> Change log v5 -> v6:
-> 1. Add tejun and toshi's ack in several patches.
-> 2. Change movablenode to movable_node boot option and update the description
->    for movable_node and CONFIG_MOVABLE_NODE. Thanks Ingo!
-> 3. Fix the __pa_symbol() issue pointed by Andrew Morton.
-> 4. Update some functions' comments and names.
-> 
-> Change log v4 -> v5:
-> 1. Change memblock.current_direction to a boolean memblock.bottom_up. And remove 
->    the direction enum.
-> 2. Update and add some comments to explain things clearer.
-> 3. Misc fixes, such as removing unnecessary #ifdef
-> 
-> Change log v3 -> v4:
-> 1. Use bottom-up/top-down to unify things. Thanks tj.
-> 2. Factor out of current top-down implementation and then introduce bottom-up mode,
->    not mixing them in one patch. Thanks tj.
-> 3. Changes function naming: memblock_direction_bottom_up -> memblock_bottom_up
-> 4. Use memblock_set_bottom_up to replace memblock_set_current_direction, which makes
->    the code simpler. Thanks tj.
-> 5. Define two implementions of function memblock_bottom_up and memblock_set_bottom_up
->    in order not to use #ifdef in the boot code. Thanks tj.
-> 6. Add comments to explain why retry top-down allocation when bottom_up allocation
->    failed. Thanks tj and toshi!
-> 
-> Change log v2 -> v3:
-> 1. According to Toshi's suggestion, move the direction checking logic into memblock.
->    And simply the code more.
-> 
-> Change log v1 -> v2:
-> 1. According to tj's suggestion, implemented a new function memblock_alloc_bottom_up() 
->    to allocate memory from bottom upwards, whihc can simplify the code.
-> 
-> Tang Chen (6):
->   memblock: Factor out of top-down allocation
->   memblock: Introduce bottom-up allocation mode
->   x86/mm: Factor out of top-down direct mapping setup
->   x86/mem-hotplug: Support initialize page tables in bottom-up
->   x86, acpi, crash, kdump: Do reserve_crashkernel() after SRAT is
->     parsed.
->   mem-hotplug: Introduce movable_node boot option
-> 
->  Documentation/kernel-parameters.txt |    3 +
->  arch/x86/kernel/setup.c             |    9 ++-
->  arch/x86/mm/init.c                  |  122 ++++++++++++++++++++++++++++------
->  arch/x86/mm/numa.c                  |   11 +++
->  include/linux/memblock.h            |   24 +++++++
->  include/linux/mm.h                  |    4 +
->  mm/Kconfig                          |   17 +++--
->  mm/memblock.c                       |  126 +++++++++++++++++++++++++++++++----
->  mm/memory_hotplug.c                 |   31 +++++++++
->  9 files changed, 306 insertions(+), 41 deletions(-)
-> 
-
-
--- 
-Thanks.
-Zhang Yanfei
+-Aaron
