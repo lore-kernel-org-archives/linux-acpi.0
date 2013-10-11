@@ -1,239 +1,79 @@
-From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [PATCH 1/5] ACPI/AC: Remove AC's proc directory.
-Date: Sat, 12 Oct 2013 01:01:22 +0200
-Message-ID: <1715316.EdxkDM8pIb@vostro.rjw.lan>
-References: <1381456451-22877-1-git-send-email-tianyu.lan@intel.com>
+From: Igor Gnatenko <i.gnatenko.brain@gmail.com>
+Subject: Re: [PATCH v5 0/4] Fix Win8 backlight issue
+Date: Sat, 12 Oct 2013 02:53:38 +0400
+Message-ID: <1381532018.2373.6.camel@ThinkPad-X230.localdomain>
+References: <1381498066-16011-1-git-send-email-aaron.lu@intel.com>
+	<1712683.D4Gy4SDE7p@vostro.rjw.lan>
+	<CA+5PVA4xFQ82FdQ3RfcV4aAzZZ6onfOUWb9Z+ZFBP-Ay7sEsKQ@mail.gmail.com>
+	<15722993.1Nyx8jY7vd@vostro.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7Bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from v094114.home.net.pl ([79.96.170.134]:51725 "HELO
-	v094114.home.net.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1752557Ab3JKWti (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 11 Oct 2013 18:49:38 -0400
-In-Reply-To: <1381456451-22877-1-git-send-email-tianyu.lan@intel.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <intel-gfx-bounces+gcfxdi-intel-gfx=m.gmane.org@lists.freedesktop.org>
+In-Reply-To: <15722993.1Nyx8jY7vd@vostro.rjw.lan>
+List-Unsubscribe: <http://lists.freedesktop.org/mailman/options/intel-gfx>,
+	<mailto:intel-gfx-request@lists.freedesktop.org?subject=unsubscribe>
+List-Archive: <http://lists.freedesktop.org/archives/intel-gfx>
+List-Post: <mailto:intel-gfx@lists.freedesktop.org>
+List-Help: <mailto:intel-gfx-request@lists.freedesktop.org?subject=help>
+List-Subscribe: <http://lists.freedesktop.org/mailman/listinfo/intel-gfx>,
+	<mailto:intel-gfx-request@lists.freedesktop.org?subject=subscribe>
+Sender: intel-gfx-bounces+gcfxdi-intel-gfx=m.gmane.org@lists.freedesktop.org
+Errors-To: intel-gfx-bounces+gcfxdi-intel-gfx=m.gmane.org@lists.freedesktop.org
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: James Hogan <james@albanarts.com>, Martin Steigerwald <Martin@lichtvoll.de>, Felipe Contreras <felipe.contreras@gmail.com>, DRI mailing list <dri-devel@lists.freedesktop.org>, platform-driver-x86@vger.kernel.org, Henrique de Moraes Holschuh <hmh@hmh.eng.br>, Matthew Garrett <matthew.garrett@nebula.com>, Mike Galbraith <bitbucket@online.de>, Josh Boyer <jwboyer@fedoraproject.org>, Kalle Valo <kvalo@adurom.com>, Yves-Alexis Perez <corsac@debian.org>, linux-acpi@vger.kernel.org, Lee Chun-Yi <joeyli.kernel@gmail.com>, Ben Jencks <ben@bjencks.net>, =?ISO-8859-1?Q?J=F6rg?= Otte <jrg.otte@gmail.com>, intel-gfx@lists.freedesktop.org, Joerg Platte <jplatte@naasa.net>, Seth Forshee <seth.forshee@canonical.com>, Mika Westerberg <mika.westerberg@linux.intel.com>, Aaron Lu <aaron.lu@intel.com>, "Linux-Kernel@Vger. Kernel. Org" <linux-kernel@vger.kernel.org>, Richard Purdie <rpurdi>
 List-Id: linux-acpi@vger.kernel.org
-To: tianyu.lan@intel.com
-Cc: lenb@kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 
-On Friday, October 11, 2013 09:54:07 AM tianyu.lan@intel.com wrote:
-> From: Lan Tianyu <tianyu.lan@intel.com>
+On Sat, 2013-10-12 at 00:45 +0200, Rafael J. Wysocki wrote:
+> On Friday, October 11, 2013 06:01:43 PM Josh Boyer wrote:
+> > On Fri, Oct 11, 2013 at 6:10 PM, Rafael J. Wysocki <rjw@rjwysocki.net> wrote:
+> > > On Friday, October 11, 2013 12:42:43 PM Josh Boyer wrote:
+> > >> On Fri, Oct 11, 2013 at 9:27 AM, Aaron Lu <aaron.lu@intel.com> wrote:
+> > >> > v5:
+> > >> > 1 Introduce video.use_native_backlight module parameter and set its
+> > >> >   value to false by default as suggested by Rafael. For Win8 systems
+> > >> >   which have broken ACPI video backlight control, the parameter can be
+> > >> >   set to 1 in kernel cmdline to skip registering ACPI video's backlight
+> > >> >   interface. Due to this change, the acpi_video_verify_backlight_support
+> > >> >   is moved from video_detect.c to video.c - patch 3/4;
+> > >>
+> > >> That's a fairly untenable position for distro kernels to be in.  They
+> > >> now have to ask every user that reports an issue with the backlight to
+> > >> try setting that option on the command line.  While I appreciate the
+> > >> setting breaks things for some people, doesn't the Win8 issue impact
+> > >> far more people?  Shouldn't it be defaulted to true?
+> > >
+> > > Well, we have a rule in the kernel not to introduce regressions for users even
+> > > if they are minority.
+> > >
+> > >> If nothing else, can you add a config option for the default so
+> > >> distros can use that to decide which way to default it and then work
+> > >> on fixing the remaining users that have troubles?
+> > >
+> > > The current plan is to create a blacklist of systems where that option should
+> > > be set.  We actually already have one, but it is at the _OSI() level, which
+> > > is overkill in my view and may affect things beyond backlight.  Along with that
+> > > we will debug systems where setting that option (to true) causes problems to
+> > > happen, so that we'll be able to drop it going forward (hopefully).
+> > >
+> > > Of course, distro kernels may always change the default to true if they want.
+> > 
+> > They can, but they'd need to either patch the kernel to do so, or code
+> > it in userspace bootloader configs.  Having a config option they can
+> > set to change the default makes it reasonable and contained within the
+> > kernel.
 > 
-> AC's proc directory is not used and so remove it. Prepare for removing
-> /proc/acpi directory.
+> Well, adding a Kconfig option should be simple enough, but I'm not sure
+> I understand the point.  You'll still need to rebuild the kernel after changing
+> that option.
 > 
-> Signed-off-by: Lan Tianyu <tianyu.lan@intel.com>
 
-Can you please rebase this patch on top of current linux-pm.git/linux-next
-and resend?  It introduced some build problems in bleeding-edge, so I had
-to drop it.
+I think he meant that we should have Kconfig option alike
+CONFIG_I915_BACKLIGHT_UNREGISTER which have true or false.
+If it true - unregister acpi backlight as default.
+I think so.
 
-Thanks!
-
-> ---
->  drivers/acpi/ac.c | 128 +-----------------------------------------------------
->  1 file changed, 2 insertions(+), 126 deletions(-)
-> 
-> diff --git a/drivers/acpi/ac.c b/drivers/acpi/ac.c
-> index f37beaa3..7d28e1a 100644
-> --- a/drivers/acpi/ac.c
-> +++ b/drivers/acpi/ac.c
-> @@ -30,10 +30,6 @@
->  #include <linux/types.h>
->  #include <linux/dmi.h>
->  #include <linux/delay.h>
-> -#ifdef CONFIG_ACPI_PROCFS_POWER
-> -#include <linux/proc_fs.h>
-> -#include <linux/seq_file.h>
-> -#endif
->  #include <linux/power_supply.h>
->  #include <acpi/acpi_bus.h>
->  #include <acpi/acpi_drivers.h>
-> @@ -55,12 +51,6 @@ MODULE_AUTHOR("Paul Diefenbaugh");
->  MODULE_DESCRIPTION("ACPI AC Adapter Driver");
->  MODULE_LICENSE("GPL");
->  
-> -#ifdef CONFIG_ACPI_PROCFS_POWER
-> -extern struct proc_dir_entry *acpi_lock_ac_dir(void);
-> -extern void *acpi_unlock_ac_dir(struct proc_dir_entry *acpi_ac_dir);
-> -static int acpi_ac_open_fs(struct inode *inode, struct file *file);
-> -#endif
-> -
->  static int acpi_ac_add(struct acpi_device *device);
->  static int acpi_ac_remove(struct acpi_device *device);
->  static void acpi_ac_notify(struct acpi_device *device, u32 event);
-> @@ -99,16 +89,6 @@ struct acpi_ac {
->  
->  #define to_acpi_ac(x) container_of(x, struct acpi_ac, charger)
->  
-> -#ifdef CONFIG_ACPI_PROCFS_POWER
-> -static const struct file_operations acpi_ac_fops = {
-> -	.owner = THIS_MODULE,
-> -	.open = acpi_ac_open_fs,
-> -	.read = seq_read,
-> -	.llseek = seq_lseek,
-> -	.release = single_release,
-> -};
-> -#endif
-> -
->  /* --------------------------------------------------------------------------
->                                 AC Adapter Management
->     -------------------------------------------------------------------------- */
-> @@ -160,83 +140,6 @@ static enum power_supply_property ac_props[] = {
->  	POWER_SUPPLY_PROP_ONLINE,
->  };
->  
-> -#ifdef CONFIG_ACPI_PROCFS_POWER
-> -/* --------------------------------------------------------------------------
-> -                              FS Interface (/proc)
-> -   -------------------------------------------------------------------------- */
-> -
-> -static struct proc_dir_entry *acpi_ac_dir;
-> -
-> -static int acpi_ac_seq_show(struct seq_file *seq, void *offset)
-> -{
-> -	struct acpi_ac *ac = seq->private;
-> -
-> -
-> -	if (!ac)
-> -		return 0;
-> -
-> -	if (acpi_ac_get_state(ac)) {
-> -		seq_puts(seq, "ERROR: Unable to read AC Adapter state\n");
-> -		return 0;
-> -	}
-> -
-> -	seq_puts(seq, "state:                   ");
-> -	switch (ac->state) {
-> -	case ACPI_AC_STATUS_OFFLINE:
-> -		seq_puts(seq, "off-line\n");
-> -		break;
-> -	case ACPI_AC_STATUS_ONLINE:
-> -		seq_puts(seq, "on-line\n");
-> -		break;
-> -	default:
-> -		seq_puts(seq, "unknown\n");
-> -		break;
-> -	}
-> -
-> -	return 0;
-> -}
-> -
-> -static int acpi_ac_open_fs(struct inode *inode, struct file *file)
-> -{
-> -	return single_open(file, acpi_ac_seq_show, PDE_DATA(inode));
-> -}
-> -
-> -static int acpi_ac_add_fs(struct acpi_device *device)
-> -{
-> -	struct proc_dir_entry *entry = NULL;
-> -
-> -	printk(KERN_WARNING PREFIX "Deprecated procfs I/F for AC is loaded,"
-> -			" please retry with CONFIG_ACPI_PROCFS_POWER cleared\n");
-> -	if (!acpi_device_dir(device)) {
-> -		acpi_device_dir(device) = proc_mkdir(acpi_device_bid(device),
-> -						     acpi_ac_dir);
-> -		if (!acpi_device_dir(device))
-> -			return -ENODEV;
-> -	}
-> -
-> -	/* 'state' [R] */
-> -	entry = proc_create_data(ACPI_AC_FILE_STATE,
-> -				 S_IRUGO, acpi_device_dir(device),
-> -				 &acpi_ac_fops, acpi_driver_data(device));
-> -	if (!entry)
-> -		return -ENODEV;
-> -	return 0;
-> -}
-> -
-> -static int acpi_ac_remove_fs(struct acpi_device *device)
-> -{
-> -
-> -	if (acpi_device_dir(device)) {
-> -		remove_proc_entry(ACPI_AC_FILE_STATE, acpi_device_dir(device));
-> -
-> -		remove_proc_entry(acpi_device_bid(device), acpi_ac_dir);
-> -		acpi_device_dir(device) = NULL;
-> -	}
-> -
-> -	return 0;
-> -}
-> -#endif
-> -
->  /* --------------------------------------------------------------------------
->                                     Driver Model
->     -------------------------------------------------------------------------- */
-> @@ -317,11 +220,6 @@ static int acpi_ac_add(struct acpi_device *device)
->  	if (result)
->  		goto end;
->  
-> -#ifdef CONFIG_ACPI_PROCFS_POWER
-> -	result = acpi_ac_add_fs(device);
-> -#endif
-> -	if (result)
-> -		goto end;
->  	ac->charger.name = acpi_device_bid(device);
->  	ac->charger.type = POWER_SUPPLY_TYPE_MAINS;
->  	ac->charger.properties = ac_props;
-> @@ -336,12 +234,8 @@ static int acpi_ac_add(struct acpi_device *device)
->  	       ac->state ? "on-line" : "off-line");
->  
->        end:
-> -	if (result) {
-> -#ifdef CONFIG_ACPI_PROCFS_POWER
-> -		acpi_ac_remove_fs(device);
-> -#endif
-> +	if (result)
->  		kfree(ac);
-> -	}
->  
->  	dmi_check_system(ac_dmi_table);
->  	return result;
-> @@ -381,9 +275,6 @@ static int acpi_ac_remove(struct acpi_device *device)
->  
->  	if (ac->charger.dev)
->  		power_supply_unregister(&ac->charger);
-> -#ifdef CONFIG_ACPI_PROCFS_POWER
-> -	acpi_ac_remove_fs(device);
-> -#endif
->  
->  	kfree(ac);
->  
-> @@ -397,19 +288,9 @@ static int __init acpi_ac_init(void)
->  	if (acpi_disabled)
->  		return -ENODEV;
->  
-> -#ifdef CONFIG_ACPI_PROCFS_POWER
-> -	acpi_ac_dir = acpi_lock_ac_dir();
-> -	if (!acpi_ac_dir)
-> -		return -ENODEV;
-> -#endif
-> -
->  	result = acpi_bus_register_driver(&acpi_ac_driver);
-> -	if (result < 0) {
-> -#ifdef CONFIG_ACPI_PROCFS_POWER
-> -		acpi_unlock_ac_dir(acpi_ac_dir);
-> -#endif
-> +	if (result < 0)
->  		return -ENODEV;
-> -	}
->  
->  	return 0;
->  }
-> @@ -418,11 +299,6 @@ static void __exit acpi_ac_exit(void)
->  {
->  
->  	acpi_bus_unregister_driver(&acpi_ac_driver);
-> -
-> -#ifdef CONFIG_ACPI_PROCFS_POWER
-> -	acpi_unlock_ac_dir(acpi_ac_dir);
-> -#endif
-> -
->  	return;
->  }
->  
-> 
 -- 
-I speak only for myself.
-Rafael J. Wysocki, Intel Open Source Technology Center.
+Igor Gnatenko
+Fedora release 20 (Heisenbug)
+Linux 3.11.4-301.fc20.x86_64
