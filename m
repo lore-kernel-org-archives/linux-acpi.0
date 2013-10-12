@@ -1,34 +1,29 @@
-From: Mika Westerberg <mika.westerberg@linux.intel.com>
-Subject: Re: [PATCH] i2c: Fix modalias for ACPI enumerated I2C devices
-Date: Sat, 12 Oct 2013 08:04:13 +0300
-Message-ID: <20131012050413.GY3521@intel.com>
-References: <1381414669-26115-1-git-send-email-jarkko.nikula@linux.intel.com>
- <20131011144946.GS3521@intel.com>
- <2393462.4JRAMNeigd@vostro.rjw.lan>
+From: "Dr. Mack Nellie" <info@notiffication590.onmicrosoft.com>
+Subject: I am expecting your urgent response
+Date: Sat, 12 Oct 2013 11:22:58 +0530
+Message-ID: <a38916f5-f22c-4eb5-94a2-e6e341fffe91@SINPR06MB009.apcprd06.prod.outlook.com>
+Reply-To: <dr.macknellie@barid.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga03.intel.com ([143.182.124.21]:9241 "EHLO mga03.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750727Ab3JLE6q (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Sat, 12 Oct 2013 00:58:46 -0400
-Content-Disposition: inline
-In-Reply-To: <2393462.4JRAMNeigd@vostro.rjw.lan>
+Received: from emea01-db3-ndr.ptr.protection.outlook.com ([157.56.120.100]:52031
+	"EHLO emea01-db3-obe.outbound.protection.outlook.com"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1751751Ab3JLFxR convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sat, 12 Oct 2013 01:53:17 -0400
+Content-Description: Mail message body
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: Jarkko Nikula <jarkko.nikula@linux.intel.com>, linux-i2c@vger.kernel.org, linux-acpi@vger.kernel.org, Wolfram Sang <wsa@the-dreams.de>
+To: Recipients <info@notiffication590.onmicrosoft.com>
 
-On Sat, Oct 12, 2013 at 12:16:02AM +0200, Rafael J. Wysocki wrote:
-> > I think that this is intentional. We don't want that the i2c modalias
-> > matches with the ACPI device (like with the i2c:INTABCD). Instead use ACPI
-> > IDs that are added to the driver to match with the ACPI device.
-> 
-> Well, I'm not really sure this was intentional, but I wonder how other bus
-> types work in that respect?
+Compliment of the day.
+ 
+I am Dr. Mack Nellie. I am looking for a reliable Indian partner that understands the India local language and English as well; I have a business proposal that will benefit both of us outside our individual professions.
+Kindly contact me for the supply details on my personal email address;  dr.macknellie@barid.com  I will furnish you with more details as soon as I receive your mail.
+I am expecting your urgent response   
 
-We have the same for platform bus, if that's what you are asking.
-
-It probably doesn't hurt to have this patch applied but it might cause
-inadvertent match if for some reason there is an I2C client driver that
-happens to have INTABCD I2C id in its list.
+Regards 
+Dr. Mack Nellie
+Tel: +447014245023 
+E-Mail(dr.macknellie@barid.com)
