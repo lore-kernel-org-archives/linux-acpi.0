@@ -1,228 +1,37 @@
-From: tianyu.lan@intel.com
-Subject: [Resend PATCH] ACPI/AC: Remove AC's proc directory.
-Date: Sat, 12 Oct 2013 21:04:48 +0800
-Message-ID: <1381583088-6305-1-git-send-email-tianyu.lan@intel.com>
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga02.intel.com ([134.134.136.20]:44446 "EHLO mga02.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750716Ab3JLNGp (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Sat, 12 Oct 2013 09:06:45 -0400
-Sender: linux-acpi-owner@vger.kernel.org
+From: "Rafael J. Wysocki" <rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org>
+Subject: Re: [PATCH] i2c: Fix modalias for ACPI enumerated I2C devices
+Date: Sat, 12 Oct 2013 15:45:15 +0200
+Message-ID: <2878883.SYGmCkS5Bt@vostro.rjw.lan>
+References: <1381414669-26115-1-git-send-email-jarkko.nikula@linux.intel.com> <2393462.4JRAMNeigd@vostro.rjw.lan> <20131012050413.GY3521@intel.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7Bit
+Return-path: <linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20131012050413.GY3521-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Sender: linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Mika Westerberg <mika.westerberg-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
+Cc: Jarkko Nikula <jarkko.nikula-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>, linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Wolfram Sang <wsa-z923LK4zBo2bacvFa/9K2g@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
-To: lenb@kernel.org, rjw@rjwysocki.net
-Cc: Lan Tianyu <tianyu.lan@intel.com>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 
-From: Lan Tianyu <tianyu.lan@intel.com>
+On Saturday, October 12, 2013 08:04:13 AM Mika Westerberg wrote:
+> On Sat, Oct 12, 2013 at 12:16:02AM +0200, Rafael J. Wysocki wrote:
+> > > I think that this is intentional. We don't want that the i2c modalias
+> > > matches with the ACPI device (like with the i2c:INTABCD). Instead use ACPI
+> > > IDs that are added to the driver to match with the ACPI device.
+> > 
+> > Well, I'm not really sure this was intentional, but I wonder how other bus
+> > types work in that respect?
+> 
+> We have the same for platform bus, if that's what you are asking.
+> 
+> It probably doesn't hurt to have this patch applied but it might cause
+> inadvertent match if for some reason there is an I2C client driver that
+> happens to have INTABCD I2C id in its list.
 
-AC's proc directory is not used and so remove it. Prepare for removing
-/proc/acpi directory.
+Well, if they have that id in their lists, they are supposed to be able to
+handle this device, aren't they?  What other reason may be there for them
+to put that id into their lists?
 
-Signed-off-by: Lan Tianyu <tianyu.lan@intel.com>
----
-Rebase on the latest linux-pm tree linux-next branch.
-
- drivers/acpi/ac.c | 129 ++----------------------------------------------------
- 1 file changed, 3 insertions(+), 126 deletions(-)
-
-diff --git a/drivers/acpi/ac.c b/drivers/acpi/ac.c
-index 324b5a0..b9f0d5f 100644
---- a/drivers/acpi/ac.c
-+++ b/drivers/acpi/ac.c
-@@ -30,10 +30,6 @@
- #include <linux/types.h>
- #include <linux/dmi.h>
- #include <linux/delay.h>
--#ifdef CONFIG_ACPI_PROCFS_POWER
--#include <linux/proc_fs.h>
--#include <linux/seq_file.h>
--#endif
- #include <linux/platform_device.h>
- #include <linux/power_supply.h>
- #include <acpi/acpi_bus.h>
-@@ -56,12 +52,6 @@ MODULE_AUTHOR("Paul Diefenbaugh");
- MODULE_DESCRIPTION("ACPI AC Adapter Driver");
- MODULE_LICENSE("GPL");
- 
--#ifdef CONFIG_ACPI_PROCFS_POWER
--extern struct proc_dir_entry *acpi_lock_ac_dir(void);
--extern void *acpi_unlock_ac_dir(struct proc_dir_entry *acpi_ac_dir);
--static int acpi_ac_open_fs(struct inode *inode, struct file *file);
--#endif
--
- static int ac_sleep_before_get_state_ms;
- 
- struct acpi_ac {
-@@ -73,16 +63,6 @@ struct acpi_ac {
- 
- #define to_acpi_ac(x) container_of(x, struct acpi_ac, charger)
- 
--#ifdef CONFIG_ACPI_PROCFS_POWER
--static const struct file_operations acpi_ac_fops = {
--	.owner = THIS_MODULE,
--	.open = acpi_ac_open_fs,
--	.read = seq_read,
--	.llseek = seq_lseek,
--	.release = single_release,
--};
--#endif
--
- /* --------------------------------------------------------------------------
-                                AC Adapter Management
-    -------------------------------------------------------------------------- */
-@@ -132,83 +112,6 @@ static enum power_supply_property ac_props[] = {
- 	POWER_SUPPLY_PROP_ONLINE,
- };
- 
--#ifdef CONFIG_ACPI_PROCFS_POWER
--/* --------------------------------------------------------------------------
--                              FS Interface (/proc)
--   -------------------------------------------------------------------------- */
--
--static struct proc_dir_entry *acpi_ac_dir;
--
--static int acpi_ac_seq_show(struct seq_file *seq, void *offset)
--{
--	struct acpi_ac *ac = seq->private;
--
--
--	if (!ac)
--		return 0;
--
--	if (acpi_ac_get_state(ac)) {
--		seq_puts(seq, "ERROR: Unable to read AC Adapter state\n");
--		return 0;
--	}
--
--	seq_puts(seq, "state:                   ");
--	switch (ac->state) {
--	case ACPI_AC_STATUS_OFFLINE:
--		seq_puts(seq, "off-line\n");
--		break;
--	case ACPI_AC_STATUS_ONLINE:
--		seq_puts(seq, "on-line\n");
--		break;
--	default:
--		seq_puts(seq, "unknown\n");
--		break;
--	}
--
--	return 0;
--}
--
--static int acpi_ac_open_fs(struct inode *inode, struct file *file)
--{
--	return single_open(file, acpi_ac_seq_show, PDE_DATA(inode));
--}
--
--static int acpi_ac_add_fs(struct acpi_ac *ac)
--{
--	struct proc_dir_entry *entry = NULL;
--
--	printk(KERN_WARNING PREFIX "Deprecated procfs I/F for AC is loaded,"
--			" please retry with CONFIG_ACPI_PROCFS_POWER cleared\n");
--	if (!acpi_device_dir(ac->adev)) {
--		acpi_device_dir(ac->adev) =
--			proc_mkdir(acpi_device_bid(ac->adev), acpi_ac_dir);
--		if (!acpi_device_dir(ac->adev))
--			return -ENODEV;
--	}
--
--	/* 'state' [R] */
--	entry = proc_create_data(ACPI_AC_FILE_STATE,
--				 S_IRUGO, acpi_device_dir(ac->adev),
--				 &acpi_ac_fops, ac);
--	if (!entry)
--		return -ENODEV;
--	return 0;
--}
--
--static int acpi_ac_remove_fs(struct acpi_ac *ac)
--{
--
--	if (acpi_device_dir(ac->adev)) {
--		remove_proc_entry(ACPI_AC_FILE_STATE,
--				  acpi_device_dir(ac->adev));
--		remove_proc_entry(acpi_device_bid(ac->adev), acpi_ac_dir);
--		acpi_device_dir(ac->adev) = NULL;
--	}
--
--	return 0;
--}
--#endif
--
- /* --------------------------------------------------------------------------
-                                    Driver Model
-    -------------------------------------------------------------------------- */
-@@ -293,11 +196,6 @@ static int acpi_ac_probe(struct platform_device *pdev)
- 	if (result)
- 		goto end;
- 
--#ifdef CONFIG_ACPI_PROCFS_POWER
--	result = acpi_ac_add_fs(ac);
--	if (result)
--		goto end;
--#endif
- 	ac->charger.name = acpi_device_bid(adev);
- 	ac->charger.type = POWER_SUPPLY_TYPE_MAINS;
- 	ac->charger.properties = ac_props;
-@@ -317,13 +215,9 @@ static int acpi_ac_probe(struct platform_device *pdev)
- 	       acpi_device_name(adev), acpi_device_bid(adev),
- 	       ac->state ? "on-line" : "off-line");
- 
--      end:
--	if (result) {
--#ifdef CONFIG_ACPI_PROCFS_POWER
--		acpi_ac_remove_fs(ac);
--#endif
-+end:
-+	if (result)
- 		kfree(ac);
--	}
- 
- 	dmi_check_system(ac_dmi_table);
- 	return result;
-@@ -366,10 +260,6 @@ static int acpi_ac_remove(struct platform_device *pdev)
- 	if (ac->charger.dev)
- 		power_supply_unregister(&ac->charger);
- 
--#ifdef CONFIG_ACPI_PROCFS_POWER
--	acpi_ac_remove_fs(ac);
--#endif
--
- 	kfree(ac);
- 
- 	return 0;
-@@ -399,19 +289,9 @@ static int __init acpi_ac_init(void)
- 	if (acpi_disabled)
- 		return -ENODEV;
- 
--#ifdef CONFIG_ACPI_PROCFS_POWER
--	acpi_ac_dir = acpi_lock_ac_dir();
--	if (!acpi_ac_dir)
--		return -ENODEV;
--#endif
--
- 	result = platform_driver_register(&acpi_ac_driver);
--	if (result < 0) {
--#ifdef CONFIG_ACPI_PROCFS_POWER
--		acpi_unlock_ac_dir(acpi_ac_dir);
--#endif
-+	if (result < 0)
- 		return -ENODEV;
--	}
- 
- 	return 0;
- }
-@@ -419,9 +299,6 @@ static int __init acpi_ac_init(void)
- static void __exit acpi_ac_exit(void)
- {
- 	platform_driver_unregister(&acpi_ac_driver);
--#ifdef CONFIG_ACPI_PROCFS_POWER
--	acpi_unlock_ac_dir(acpi_ac_dir);
--#endif
- }
- module_init(acpi_ac_init);
- module_exit(acpi_ac_exit);
 -- 
-1.8.2.1
-
+I speak only for myself.
+Rafael J. Wysocki, Intel Open Source Technology Center.
