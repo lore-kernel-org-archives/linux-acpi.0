@@ -1,23 +1,73 @@
-From: Innocent Eleazu <ieleazv@rcc.mass.edu>
-Subject: (unknown)
-Date: Sat, 12 Oct 2013 20:31:58 +0000
-Message-ID: <EE26B29BF6A26D4BB714A67644CB9D8C639458EE@RCC-EX-MB1.rcc.mass.edu>
+From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Subject: [GIT PULL] ACPI and power management fixes for v3.12-rc5
+Date: Sat, 12 Oct 2013 23:09:03 +0200
+Message-ID: <2749952.3MjEW76cA8@vostro.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from exprod6og127.obsmtp.com ([64.18.1.78]:57102 "EHLO
-	exprod6og127.obsmtp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753096Ab3JLUpJ convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sat, 12 Oct 2013 16:45:09 -0400
-Subject: 
-Content-Language: en-US
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7Bit
+Return-path: <linux-pm-owner@vger.kernel.org>
+Sender: linux-pm-owner@vger.kernel.org
+To: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux PCI <linux-pci@vger.kernel.org>, Linux PM list <linux-pm@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
 
-Loan offer at 3% interest rate,contact:  beverlyloanservices@outlook.com
-Note: Reply to this Email Only:  beverlyloanservices@outlook.com
-==========================================================================
+Hi Linus,
 
-Darlehen Angebot bei 3% Zins, Kontakt: beverlyloanservices@outlook.com
-Hinweis: Antworten Sie auf diese E-Mail nur: beverlyloanservices@outlook.com
+Please pull from the git repository at
+
+  git://git.kernel.org/pub/scm/linux/kernel/git/rafael/linux-pm.git pm+acpi-3.12-rc5
+
+to receive ACPI and power management fixes for v3.12-rc5 with
+top-most commit 2c5bfce855ead529e2ea6f33757aa26a651d4460
+
+  Merge branch 'acpi-pci-hotplug'
+
+on top of commit d0e639c9e06d44e713170031fe05fb60ebe680af
+
+  Linux 3.12-rc4
+
+These fix two recent bugs in ACPIPHP (ACPI-based PCI hotplug) and
+update a bunch of web links and e-mail addresses in MAINTAINERS, docs
+and Kconfig that either are stale or will expire soon.
+
+Specifics:
+
+ - The WARN_ON() in acpiphp_enumerate_slots() triggers as a false
+   positive in some cases, so drop it.
+
+ - Add a missing pci_dev_put() to an error code path in
+   acpiphp_enumerate_slots().
+
+ - Replace my old e-mail address that's going to expire with a new one.
+
+ - Update ACPI web links and git tree information in MAINTAINERS.
+
+ - Update links to the Linux-ACPI project's page in MAINTAINERS.
+
+ - Update some stale links and e-mail addresses under Documentation
+   and in the ACPI Kconfig file.
+
+Thanks!
+
+
+---------------
+
+Rafael J. Wysocki (6):
+      MAINTAINERS / Documentation: Update Rafael's e-mail address
+      MAINTAINERS / ACPI: Update links and git tree information
+      MAINTAINERS / ACPI: Update links to the Linux-ACPI project web page
+      ACPI / PM / Documentation: Replace outdated project links and addresses
+      ACPI / hotplug / PCI: Fix error code path in acpiphp_enumerate_slots()
+      ACPI / hotplug / PCI: Drop WARN_ON() from acpiphp_enumerate_slots()
+
+---------------
+
+ Documentation/ABI/stable/sysfs-bus-usb        |    8 +++----
+ Documentation/ABI/testing/sysfs-devices-power |   32 ++++++++++++-------------
+ Documentation/ABI/testing/sysfs-power         |   22 ++++++++---------
+ Documentation/acpi/dsdt-override.txt          |    2 +-
+ MAINTAINERS                                   |   26 ++++++++++----------
+ drivers/acpi/Kconfig                          |    2 +-
+ drivers/pci/hotplug/acpiphp_glue.c            |    8 ++++---
+ 7 files changed, 51 insertions(+), 49 deletions(-)
+
