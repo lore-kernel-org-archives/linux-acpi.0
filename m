@@ -1,73 +1,39 @@
-From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: [GIT PULL] ACPI and power management fixes for v3.12-rc5
-Date: Sat, 12 Oct 2013 23:09:03 +0200
-Message-ID: <2749952.3MjEW76cA8@vostro.rjw.lan>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7Bit
-Return-path: <linux-pm-owner@vger.kernel.org>
-Sender: linux-pm-owner@vger.kernel.org
-To: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux PCI <linux-pci@vger.kernel.org>, Linux PM list <linux-pm@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>
+From: Krzysztof Mazur <krzysiek@podlesie.net>
+Subject: [PATCH] ACPI: remove /proc/acpi/event from ACPI_BUTTON help
+Date: Sun, 13 Oct 2013 00:11:00 +0200
+Message-ID: <1381615860-1882-1-git-send-email-krzysiek@podlesie.net>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: linux-acpi@vger.kernel.org
+Cc: linux-kernel@vger.kernel.org, lenb@kernel.org, rjw@rjwysocki.net, Krzysztof Mazur <krzysiek@podlesie.net>
 List-Id: linux-acpi@vger.kernel.org
 
-Hi Linus,
+The commit 1696d9dc57e062ce5200f6a42a6aaada15b434bb
+("ACPI: Remove the old /proc/acpi/event interface")
+removed the old /proc/acpi/event interface but did not remove
+/proc/acpi/event from ACPI_BUTTON help.
 
-Please pull from the git repository at
+Signed-off-by: Krzysztof Mazur <krzysiek@podlesie.net>
+---
+ drivers/acpi/Kconfig | 6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-  git://git.kernel.org/pub/scm/linux/kernel/git/rafael/linux-pm.git pm+acpi-3.12-rc5
-
-to receive ACPI and power management fixes for v3.12-rc5 with
-top-most commit 2c5bfce855ead529e2ea6f33757aa26a651d4460
-
-  Merge branch 'acpi-pci-hotplug'
-
-on top of commit d0e639c9e06d44e713170031fe05fb60ebe680af
-
-  Linux 3.12-rc4
-
-These fix two recent bugs in ACPIPHP (ACPI-based PCI hotplug) and
-update a bunch of web links and e-mail addresses in MAINTAINERS, docs
-and Kconfig that either are stale or will expire soon.
-
-Specifics:
-
- - The WARN_ON() in acpiphp_enumerate_slots() triggers as a false
-   positive in some cases, so drop it.
-
- - Add a missing pci_dev_put() to an error code path in
-   acpiphp_enumerate_slots().
-
- - Replace my old e-mail address that's going to expire with a new one.
-
- - Update ACPI web links and git tree information in MAINTAINERS.
-
- - Update links to the Linux-ACPI project's page in MAINTAINERS.
-
- - Update some stale links and e-mail addresses under Documentation
-   and in the ACPI Kconfig file.
-
-Thanks!
-
-
----------------
-
-Rafael J. Wysocki (6):
-      MAINTAINERS / Documentation: Update Rafael's e-mail address
-      MAINTAINERS / ACPI: Update links and git tree information
-      MAINTAINERS / ACPI: Update links to the Linux-ACPI project web page
-      ACPI / PM / Documentation: Replace outdated project links and addresses
-      ACPI / hotplug / PCI: Fix error code path in acpiphp_enumerate_slots()
-      ACPI / hotplug / PCI: Drop WARN_ON() from acpiphp_enumerate_slots()
-
----------------
-
- Documentation/ABI/stable/sysfs-bus-usb        |    8 +++----
- Documentation/ABI/testing/sysfs-devices-power |   32 ++++++++++++-------------
- Documentation/ABI/testing/sysfs-power         |   22 ++++++++---------
- Documentation/acpi/dsdt-override.txt          |    2 +-
- MAINTAINERS                                   |   26 ++++++++++----------
- drivers/acpi/Kconfig                          |    2 +-
- drivers/pci/hotplug/acpiphp_glue.c            |    8 ++++---
- 7 files changed, 51 insertions(+), 49 deletions(-)
-
+diff --git a/drivers/acpi/Kconfig b/drivers/acpi/Kconfig
+index 22327e6..4e9e98b 100644
+--- a/drivers/acpi/Kconfig
++++ b/drivers/acpi/Kconfig
+@@ -123,9 +123,9 @@ config ACPI_BUTTON
+ 	default y
+ 	help
+ 	  This driver handles events on the power, sleep, and lid buttons.
+-	  A daemon reads /proc/acpi/event and perform user-defined actions
+-	  such as shutting down the system.  This is necessary for
+-	  software-controlled poweroff.
++	  A daemon reads events from input devices or via netlink and
++	  perform user-defined actions such as shutting down the system.
++	  This is necessary for software-controlled poweroff.
+ 
+ 	  To compile this driver as a module, choose M here:
+ 	  the module will be called button.
+-- 
+1.8.4.652.g0d6e0ce
