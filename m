@@ -1,29 +1,56 @@
-From: "Dr. Mack Nellie" <info@notiffication590.onmicrosoft.com>
-Subject: I am expecting your urgent response
-Date: Sat, 12 Oct 2013 11:22:58 +0530
-Message-ID: <a38916f5-f22c-4eb5-94a2-e6e341fffe91@SINPR06MB009.apcprd06.prod.outlook.com>
-Reply-To: <dr.macknellie@barid.com>
+From: Yves-Alexis Perez <corsac@debian.org>
+Subject: Re: [PATCH v5 0/4] Fix Win8 backlight issue
+Date: Sat, 12 Oct 2013 07:54:06 +0200
+Message-ID: <1381557246.3261.67.camel@scapa>
+References: <1381498066-16011-1-git-send-email-aaron.lu@intel.com>
+	 <1712683.D4Gy4SDE7p@vostro.rjw.lan>
+	 <CA+5PVA4xFQ82FdQ3RfcV4aAzZZ6onfOUWb9Z+ZFBP-Ay7sEsKQ@mail.gmail.com>
+	 <3899323.lQYrFPeQhE@vostro.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from emea01-db3-ndr.ptr.protection.outlook.com ([157.56.120.100]:52031
-	"EHLO emea01-db3-obe.outbound.protection.outlook.com"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1751751Ab3JLFxR convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sat, 12 Oct 2013 01:53:17 -0400
-Content-Description: Mail message body
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: multipart/signed; micalg="pgp-sha256";
+	protocol="application/pgp-signature"; boundary="=-6TKtBSrc+l1kgjxrG52D"
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <3899323.lQYrFPeQhE@vostro.rjw.lan>
+Sender: linux-kernel-owner@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: Josh Boyer <jwboyer@fedoraproject.org>, Aaron Lu <aaron.lu@intel.com>, linux-acpi@vger.kernel.org, intel-gfx@lists.freedesktop.org, DRI mailing list <dri-devel@lists.freedesktop.org>, "Linux-Kernel@Vger. Kernel. Org" <linux-kernel@vger.kernel.org>, Daniel Vetter <daniel@ffwll.ch>, Matthew Garrett <matthew.garrett@nebula.com>, Seth Forshee <seth.forshee@canonical.com>, Lee Chun-Yi <joeyli.kernel@gmail.com>, Richard Purdie <rpurdie@rpsys.net>, Igor Gnatenko <i.gnatenko.brain@gmail.com>, Felipe Contreras <felipe.contreras@gmail.com>, Jani Nikula <jani.nikula@linux.intel.com>, Ben Jencks <ben@bjencks.net>, Steven Newbury <steve@snewbury.org.uk>, James Hogan <james@albanarts.com>, Kamal Mostafa <kamal@canonical.com>, Joerg Platte <jplatte@naasa.net>, Kalle Valo <kvalo@adurom.com>, Martin Steigerwald <Martin@lichtvoll.de>, =?ISO-8859-1?Q?J=F6rg?= Otte <jrg.otte@gmail.co>
 List-Id: linux-acpi@vger.kernel.org
-To: Recipients <info@notiffication590.onmicrosoft.com>
 
-Compliment of the day.
- 
-I am Dr. Mack Nellie. I am looking for a reliable Indian partner that understands the India local language and English as well; I have a business proposal that will benefit both of us outside our individual professions.
-Kindly contact me for the supply details on my personal email address;  dr.macknellie@barid.com  I will furnish you with more details as soon as I receive your mail.
-I am expecting your urgent response   
 
-Regards 
-Dr. Mack Nellie
-Tel: +447014245023 
-E-Mail(dr.macknellie@barid.com)
+--=-6TKtBSrc+l1kgjxrG52D
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
+
+On sam., 2013-10-12 at 01:27 +0200, Rafael J. Wysocki wrote:
+> If we are to use a Kconfig option, why don't we use one instead of rather=
+ than
+> in addition to a command line option?  Say, we have
+> CONFIG_ACPI_VIDEO_WIN8_WORKAROUND and if that is set, the code will work =
+like
+> the previous version of the Aaron's patchset (the one without
+> video.use_native_backlight)?
+
+Doesn't this mean user will have to rebuild distro kernel in order to
+test behavior?
+
+Regards,
+--=20
+Yves-Alexis
+
+--=-6TKtBSrc+l1kgjxrG52D
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: This is a digitally signed message part
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.15 (GNU/Linux)
+
+iQEcBAABCAAGBQJSWOP+AAoJEG3bU/KmdcClKIgH/3ITxskPtsfFd2IeRadOYRB2
+QX9aI3QYL8OxyHVXEmPH4W1cEbmlLBau2Sm122bkCVrAV7TOnC2vDegJwhrZLqLP
+xrPEWU3OW7EajvDEIH3OgJ7SgkudnJE1z31jPY9UzlDyBBFaa3G8S9e32rcNTI9N
+ToQxO3+/2pPTkm7DwissFPgOk1Te3Ipj1mFsNwV93d9tpw4k/qOkMOpmJtHxaBeL
+0RLEOkrizZ9WbXsyKzIhUz03nhrMgYQn8QkNA1CWqN4zItL+Ptonv0byqtF+gN+K
+Yx2OyvVKxNhJCBkeVJi9+rYwlQMxQ5piLCd7BKHdPnWuHv1BF7TNmrMXsEU+Tz8=
+=DXHw
+-----END PGP SIGNATURE-----
+
+--=-6TKtBSrc+l1kgjxrG52D--
