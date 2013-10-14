@@ -1,70 +1,63 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: [PATCH] acpi: update win8 OSI blacklist
-Date: Mon, 14 Oct 2013 16:16:37 +0200
-Message-ID: <2968661.r8dg85ocZF@vostro.rjw.lan>
-References: <1380820383-23336-1-git-send-email-felipe.contreras@gmail.com> <1905683.dBVjOILnXT@vostro.rjw.lan> <CAMP44s1hVCk=vkAmYoQA85U1sTQ-JCLmWi0kDejfY8m=sXQdpQ@mail.gmail.com>
+From: Lennart Poettering <mzxreary@0pointer.de>
+Subject: Re: [PATCH] acpi/video: Add Lenovo IdeaPad Yoga 13 to acpi video
+  detect blacklist
+Date: Mon, 14 Oct 2013 17:36:21 +0200
+Message-ID: <20131014153621.GA7758@tango.0pointer.de>
+References: <20131014005505.GA30503@tango.0pointer.de>
+ <525B44C0.3010204@intel.com>
+ <20131014022325.GA2248@tango.0pointer.de>
+ <525B58BE.5050009@intel.com>
+ <20131014034927.GA3638@tango.0pointer.de>
+ <525B703E.7080102@intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from hydra.sisk.pl ([212.160.235.94]:51166 "EHLO hydra.sisk.pl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756084Ab3JNOEu (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 14 Oct 2013 10:04:50 -0400
-In-Reply-To: <CAMP44s1hVCk=vkAmYoQA85U1sTQ-JCLmWi0kDejfY8m=sXQdpQ@mail.gmail.com>
+Received: from tango.0pointer.de ([85.214.72.216]:48186 "EHLO
+	tango.0pointer.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754052Ab3JNPgX (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 14 Oct 2013 11:36:23 -0400
+Content-Disposition: inline
+In-Reply-To: <525B703E.7080102@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Felipe Contreras <felipe.contreras@gmail.com>
-Cc: Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Matthew Garrett <mjg59@srcf.ucam.org>
+To: Aaron Lu <aaron.lu@intel.com>
+Cc: Len Brown <lenb@kernel.org>, "Rafael J. Wysocki" <rjw@sisk.pl>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Matthew Garrett <matthew.garrett@nebula.com>, platform-driver-x86@vger.kernel.org
 
-On Monday, October 14, 2013 08:14:28 AM Felipe Contreras wrote:
-> On Mon, Oct 14, 2013 at 6:58 AM, Rafael J. Wysocki <rjw@sisk.pl> wrote:
-> > On Sunday, October 13, 2013 10:30:50 PM Felipe Contreras wrote:
-> >> On Thu, Oct 3, 2013 at 12:13 PM, Felipe Contreras
-> >> <felipe.contreras@gmail.com> wrote:
-> >> > More people have reported they need this for their machines to work
-> >> > correctly.
-> >> >
-> >> > https://bugzilla.kernel.org/show_bug.cgi?id=60682
-> >>
-> >> I see this was merged to the linux-next branch. Is there any reason
-> >> why it's not proposed for v3.12?
-> >
-> > It is not a fix for a recent breakage, it doesn't fix an outright crash or
-> > security issue and there is a chance, albeit arguably very small, that
-> > something will not function on one of the affected systems for someone
-> > as a result of the blacklisting.
-> 
-> So? That chance is already there because the blacklist is already
-> there, but we cannot know until v3.12 is released, because that's when
-> most people would be testing that code.
-> 
-> It seems to me your worry is that somebody would report a regression
-> that happened v3.12-rc6 (if it has this patch applied), while it
-> worked correctly in v3.12-rc5, in which case you would get a complaint
-> from Linus.
-> 
-> But we all know that's not going to happen. The complaints (if any)
-> would arrive in v3.12, and that would happen regardless of this patch.
-> 
-> Besides, our goal is to make v3.12 as stable as possible, and it seems
-> to me you are blindly following the letter of a rule, instead if
-> interpreting what is the intent of rule. If I had sent the patch the
-> 29th of June, it would have been aplied by now and be part of the
-> current blacklist, and the result would be the same; we cannot really
-> know until v3.12 is released.
+On Mon, 14.10.13 12:17, Aaron Lu (aaron.lu@intel.com) wrote:
 
-Oh, please give me a break.
+> > Hmm, regarding your patch series, do you plan to skip the registration
+> > of the acpi backlight device if the "raw" device is supported? I mean,
+> 
+> Yes, that's right.
+> 
+> > the intel driver could be compiled as a module (and generally is on the
+> > popular distros), so at the time the ACPI subsystem wants to register
+> > the backlight device and know if a raw backlight device is around it
+> > never will be, so what is the point of that? Or am I missing something?
+> 
+> For systems with Intel i915 GPU, ACPI video will wait for GPU driver to
+> run first, see drivers/acpi/video.c acpi_video_init, the actual
+> acpi_video_register function is called by i915 driver in
+> i915_driver_load due to operation region related stuff. Since all
+> problematic systems reported so far has an Intel GPU, I'm doing it this
+> way now. If things change, we can enhance it then.
 
-I've applied your patch even though I really should have waited for an ACK from
-Matthew before doing that, but that only made you *more* demanding.
+Sorry, still not getting this. How should this ever work if the intel
+video driver is compiled as kmod? That means that it isn't clear at all
+when the kmod is going to be loaded or if it is loaded at all, you
+cannot delay the registration of the acpi backlight that long, since the
+time you'd have to wait is basically unbounded...
 
-I generally tend to be nice to people, but you evidently take that as a sign of
-weakness, so trying to be nice to you doesn't really make sense to me.  On the
-other hand, I'm not too good at throwing flames at people and it distracts me
-so much that I can't really afford it.  Please find yourself someone else to
-fight with.
+So, how could this ever work?
+
+AFAICS all popular distros ship the video drivers as kernel modules,
+hence trying to avoid registration of the ACPI backlight if the intel
+driver is compiled will be an entirely pointless excercise on all
+distros?
+
+What am I missing?
+
+Lennart
 
 -- 
-I speak only for myself.
-Rafael J. Wysocki, Intel Open Source Technology Center.
+Lennart Poettering - Red Hat, Inc.
