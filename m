@@ -1,141 +1,46 @@
-From: Chen Gong <gong.chen@linux.intel.com>
-Subject: Re: [PATCH 7/8] ACPI, APEI, CPER: Cleanup CPER memory error output
- format
-Date: Mon, 14 Oct 2013 00:55:00 -0400
-Message-ID: <20131014045500.GC12189@gchen.bj.intel.com>
-References: <1381473166-29303-1-git-send-email-gong.chen@linux.intel.com>
- <1381473166-29303-8-git-send-email-gong.chen@linux.intel.com>
- <20131011160208.GL5925@pd.tnic>
+From: Jarkko Nikula <jarkko.nikula@linux.intel.com>
+Subject: Re: [PATCH] i2c: Fix modalias for ACPI enumerated I2C devices
+Date: Mon, 14 Oct 2013 09:34:39 +0300
+Message-ID: <525B907F.1020203@linux.intel.com>
+References: <1381414669-26115-1-git-send-email-jarkko.nikula@linux.intel.com> <20131011144946.GS3521@intel.com> <2393462.4JRAMNeigd@vostro.rjw.lan> <20131012050413.GY3521@intel.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="p2kqVDKq5asng8Dg"
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga03.intel.com ([143.182.124.21]:16086 "EHLO mga03.intel.com"
+Received: from mga01.intel.com ([192.55.52.88]:56716 "EHLO mga01.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750752Ab3JNFJm (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 14 Oct 2013 01:09:42 -0400
-Content-Disposition: inline
-In-Reply-To: <20131011160208.GL5925@pd.tnic>
+	id S1750917Ab3JNGfC (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 14 Oct 2013 02:35:02 -0400
+In-Reply-To: <20131012050413.GY3521@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Borislav Petkov <bp@alien8.de>
-Cc: tony.luck@intel.com, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
+To: Mika Westerberg <mika.westerberg@linux.intel.com>
+Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, linux-i2c@vger.kernel.org, linux-acpi@vger.kernel.org, Wolfram Sang <wsa@the-dreams.de>
 
+On 10/12/2013 08:04 AM, Mika Westerberg wrote:
+> On Sat, Oct 12, 2013 at 12:16:02AM +0200, Rafael J. Wysocki wrote:
+>>> I think that this is intentional. We don't want that the i2c modalias
+>>> matches with the ACPI device (like with the i2c:INTABCD). Instead use ACPI
+>>> IDs that are added to the driver to match with the ACPI device.
+>> Well, I'm not really sure this was intentional, but I wonder how other bus
+>> types work in that respect?
+> We have the same for platform bus, if that's what you are asking.
+>
+Do we? I don't recall seeing per device modaliases on other platforms on 
+their platform buses.
 
---p2kqVDKq5asng8Dg
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+And actually I don't see that happening in drivers/base/platform.c: 
+platform_uevent() either where just pdev->name is used but not pdev->id 
+(which is used with pdev->name for dev_set_name()).
 
-On Fri, Oct 11, 2013 at 06:02:08PM +0200, Borislav Petkov wrote:
-> Date: Fri, 11 Oct 2013 18:02:08 +0200
-> From: Borislav Petkov <bp@alien8.de>
-> To: "Chen, Gong" <gong.chen@linux.intel.com>
-> Cc: tony.luck@intel.com, linux-kernel@vger.kernel.org,
->  linux-acpi@vger.kernel.org
-> Subject: Re: [PATCH 7/8] ACPI, APEI, CPER: Cleanup CPER memory error outp=
-ut
->  format
-> User-Agent: Mutt/1.5.21 (2010-09-15)
->=20
-> On Fri, Oct 11, 2013 at 02:32:45AM -0400, Chen, Gong wrote:
-> > Keep up only the most important fields for memory error
-> > reporting. The detail information will be moved to perf/trace
-> > interface.
-> >=20
-> > Suggested-by: Tony Luck <tony.luck@intel.com>
-> > Signed-off-by: Chen, Gong <gong.chen@linux.intel.com>
-> > ---
-> >  drivers/acpi/apei/cper.c | 42 ++++++++++++++--------------------------=
---
-> >  1 file changed, 14 insertions(+), 28 deletions(-)
-> >=20
-> > diff --git a/drivers/acpi/apei/cper.c b/drivers/acpi/apei/cper.c
-> > index 2a4389f..567410e 100644
-> > --- a/drivers/acpi/apei/cper.c
-> > +++ b/drivers/acpi/apei/cper.c
-> > @@ -206,29 +206,29 @@ static void cper_print_mem(const char *pfx, const=
- struct cper_sec_mem_err *mem)
-> >  		printk("%s""physical_address_mask: 0x%016llx\n",
-> >  		       pfx, mem->physical_addr_mask);
-> >  	if (mem->validation_bits & CPER_MEM_VALID_NODE)
-> > -		printk("%s""node: %d\n", pfx, mem->node);
-> > +		pr_debug("node: %d\n", mem->node);
-> >  	if (mem->validation_bits & CPER_MEM_VALID_CARD)
-> > -		printk("%s""card: %d\n", pfx, mem->card);
-> > +		pr_debug("card: %d\n", mem->card);
-> >  	if (mem->validation_bits & CPER_MEM_VALID_MODULE)
-> > -		printk("%s""module: %d\n", pfx, mem->module);
-> > +		pr_debug("module: %d\n", mem->module);
-> >  	if (mem->validation_bits & CPER_MEM_VALID_RANK_NUMBER)
-> > -		printk("%s""rank: %d\n", pfx, mem->rank);
-> > +		pr_debug("rank: %d\n", mem->rank);
-> >  	if (mem->validation_bits & CPER_MEM_VALID_BANK)
-> > -		printk("%s""bank: %d\n", pfx, mem->bank);
-> > +		pr_debug("bank: %d\n", mem->bank);
-> >  	if (mem->validation_bits & CPER_MEM_VALID_DEVICE)
-> > -		printk("%s""device: %d\n", pfx, mem->device);
-> > +		pr_debug("device: %d\n", mem->device);
-> >  	if (mem->validation_bits & CPER_MEM_VALID_ROW)
-> > -		printk("%s""row: %d\n", pfx, mem->row);
-> > +		pr_debug("row: %d\n", mem->row);
-> >  	if (mem->validation_bits & CPER_MEM_VALID_COLUMN)
-> > -		printk("%s""column: %d\n", pfx, mem->column);
-> > +		pr_debug("column: %d\n", mem->column);
-> >  	if (mem->validation_bits & CPER_MEM_VALID_BIT_POSITION)
-> > -		printk("%s""bit_position: %d\n", pfx, mem->bit_pos);
-> > +		pr_debug("bit_position: %d\n", mem->bit_pos);
-> >  	if (mem->validation_bits & CPER_MEM_VALID_REQUESTOR_ID)
-> > -		printk("%s""requestor_id: 0x%016llx\n", pfx, mem->requestor_id);
-> > +		pr_debug("requestor_id: 0x%016llx\n", mem->requestor_id);
-> >  	if (mem->validation_bits & CPER_MEM_VALID_RESPONDER_ID)
-> > -		printk("%s""responder_id: 0x%016llx\n", pfx, mem->responder_id);
-> > +		pr_debug("responder_id: 0x%016llx\n", mem->responder_id);
-> >  	if (mem->validation_bits & CPER_MEM_VALID_TARGET_ID)
-> > -		printk("%s""target_id: 0x%016llx\n", pfx, mem->target_id);
-> > +		pr_debug("target_id: 0x%016llx\n", mem->target_id);
-> >  	if (mem->validation_bits & CPER_MEM_VALID_ERROR_TYPE) {
-> >  		u8 etype =3D mem->error_type;
-> >  		printk("%s""error_type: %d, %s\n", pfx, etype,
->=20
-> Hmm, so this cper_print_mem is called for CPER_SEC_PLATFORM_MEM section
-> type.
->=20
-> With the change above, the other caller __ghes_print_estatus() won't see
-> the error messages if they're debug. Do we want that?
->=20
+This makes me thinking that perhaps "pdevinfo.name = 
+dev_name(&adev->dev);" in drivers/acpi/acpi_platform.c: 
+acpi_create_platform_device() should be fixed too as now modalias for 
+ACPI registered platform devices differ from platform devices that are 
+registered in other subsystems (e.g. regulatory, pcspkr, alarmtimer, etc 
+devices)?
 
-Because most of data in CPER are empty or unimportant. To avoid too much
-disturbance to end users, it is worthy to do that. Moreover, I reserve
-another way via trace to show these data.
+I can send a patch for that.
 
-> --=20
-> Regards/Gruss,
->     Boris.
->=20
-> Sent from a fat crate under my desk. Formatting is fine.
-> --
-
---p2kqVDKq5asng8Dg
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.14 (GNU/Linux)
-
-iQIcBAEBAgAGBQJSW3kkAAoJEI01n1+kOSLHnUoP/1CprkDqHmPTcT7chsDp+HfN
-To4cURQXPv0egNuXWqkQCZ9Af/AEwpv1ERI4iTVaC5riQMyOLdnT8hW+5MmFT1h9
-gkaQ0Ss8BMx42Z3E0NoCV/Z+qCrmtyk4XTBCnAssX8+35UMeCncZXSNk0w/fMmhi
-a6rEUreR7kxumSSmOcNuml4OdCZWwMuy0MiagOPiw4Snnsdn2NEzhtE+jTCWVxpH
-3t8ZApLL95Yn/8Abmjr3KasGDf8ladm0z+0VAOEb5kCEVFAvxGoKR9bxffyGfrHL
-NYlfRSd8RdczBTSwaNUyoy383KHasBTTRSGJ22LovjOq8NlaMvh5Qr1ArdAsEyIV
-2r2yFdo3RmPguSsj5fw4YFfVC/iq176Q0WY4XKmC8s9zD/KDUHJ+Cv9t+iFpEGad
-NGvB90AEpdOlHFJk85bxkqAeUMVvQpi2K70eFCSNXBd7yHF2qFq+gM2QaJGz/RJs
-BFDxoVH0WDDlKmPrU5Sg9m00yUVrbA3sFPfuNKOFKayWh9qgmdbtDsLs8nZCUJYe
-H9r0a9QWba6pxbXCOiaD/JXHBP4RPR2e4DfsGF/5o/Qq7y7U4MZtbpcW/0X3KUH/
-5wNe+Nt/i0R0R5WUClT+M3luLaq9JDEidzhc1xbdY5mY1oXAaKnajIlKy71Dj2ew
-/ae8jnI1i0iAkirFS+e3
-=11rt
------END PGP SIGNATURE-----
-
---p2kqVDKq5asng8Dg--
+-- 
+Jarkko
