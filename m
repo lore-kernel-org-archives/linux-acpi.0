@@ -1,53 +1,58 @@
-From: Zhang Rui <rui.zhang@intel.com>
-Subject: Re: [PATCH] i2c: Fix modalias for ACPI enumerated I2C devices
-Date: Mon, 14 Oct 2013 20:47:36 +0800
-Message-ID: <1381754856.2034.34.camel@rzhang1-mobl4>
-References: <1381414669-26115-1-git-send-email-jarkko.nikula@linux.intel.com>
-	 <1381742625.2034.25.camel@rzhang1-mobl4> <525BD314.5010802@linux.intel.com>
+From: Felipe Contreras <felipe.contreras@gmail.com>
+Subject: Re: [PATCH] acpi: update win8 OSI blacklist
+Date: Mon, 14 Oct 2013 08:14:28 -0500
+Message-ID: <CAMP44s1hVCk=vkAmYoQA85U1sTQ-JCLmWi0kDejfY8m=sXQdpQ@mail.gmail.com>
+References: <1380820383-23336-1-git-send-email-felipe.contreras@gmail.com>
+	<CAMP44s0sGCDKj86awEqUK27LB=TL62-w9F=e99J3gRGmmfGMWg@mail.gmail.com>
+	<1905683.dBVjOILnXT@vostro.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga09.intel.com ([134.134.136.24]:4263 "EHLO mga09.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756312Ab3JNMrm (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 14 Oct 2013 08:47:42 -0400
-In-Reply-To: <525BD314.5010802@linux.intel.com>
+Received: from mail-lb0-f171.google.com ([209.85.217.171]:55857 "EHLO
+	mail-lb0-f171.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756505Ab3JNNO3 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 14 Oct 2013 09:14:29 -0400
+In-Reply-To: <1905683.dBVjOILnXT@vostro.rjw.lan>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Jarkko Nikula <jarkko.nikula@linux.intel.com>
-Cc: linux-i2c@vger.kernel.org, linux-acpi@vger.kernel.org, Wolfram Sang <wsa@the-dreams.de>, Mika Westerberg <mika.westerberg@linux.intel.com>
+To: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>
 
-On Mon, 2013-10-14 at 14:18 +0300, Jarkko Nikula wrote:
-> On 10/14/2013 12:23 PM, Zhang Rui wrote:
-> > Hi,
-> >
-> > On Thu, 2013-10-10 at 17:17 +0300, Jarkko Nikula wrote:
-> >> There is a minor fault about ACPI enumerated I2C devices with their modalias
-> >> attribute. Now modalias is set by device instance not by hardware ID.
-> >> For example "i2c:INTABCD:00", "i2c:INTABCD:01" etc.
-> >>
-> >> This means each device instance gets different modalias which does match
-> >> with generated modules.alias. Currently this is not problem as matching can
-> >> happen also with "acpi:INTABCD" modalias.
-> >>
-> > IMO, this is not the proper fix for the modalias problem because ACPI
-> > enumerated I2C device may have compatible ids.
-> > Instead, we should export all the compatible ids as the modules alias of
-> > the ACPI enumerated I2C device.
-> >
-> > can you please take a look at the patch I sent out earlier?
-> > https://patchwork.kernel.org/patch/3034991/
-> > https://patchwork.kernel.org/patch/3035041/
-> > https://patchwork.kernel.org/patch/3035021/
-> I see. This makes sense as it avoids that same device has two different 
-> modaliases from both acpi and other subsystem.
-> 
-> How about modalias nodes in sysfs, should they also reflect what is 
-> matching uvent?
-> 
-good catch, will fix "modalias" as well in next version.
+On Mon, Oct 14, 2013 at 6:58 AM, Rafael J. Wysocki <rjw@sisk.pl> wrote:
+> On Sunday, October 13, 2013 10:30:50 PM Felipe Contreras wrote:
+>> On Thu, Oct 3, 2013 at 12:13 PM, Felipe Contreras
+>> <felipe.contreras@gmail.com> wrote:
+>> > More people have reported they need this for their machines to work
+>> > correctly.
+>> >
+>> > https://bugzilla.kernel.org/show_bug.cgi?id=60682
+>>
+>> I see this was merged to the linux-next branch. Is there any reason
+>> why it's not proposed for v3.12?
+>
+> It is not a fix for a recent breakage, it doesn't fix an outright crash or
+> security issue and there is a chance, albeit arguably very small, that
+> something will not function on one of the affected systems for someone
+> as a result of the blacklisting.
 
-thanks,
-rui
+So? That chance is already there because the blacklist is already
+there, but we cannot know until v3.12 is released, because that's when
+most people would be testing that code.
 
+It seems to me your worry is that somebody would report a regression
+that happened v3.12-rc6 (if it has this patch applied), while it
+worked correctly in v3.12-rc5, in which case you would get a complaint
+from Linus.
+
+But we all know that's not going to happen. The complaints (if any)
+would arrive in v3.12, and that would happen regardless of this patch.
+
+Besides, our goal is to make v3.12 as stable as possible, and it seems
+to me you are blindly following the letter of a rule, instead if
+interpreting what is the intent of rule. If I had sent the patch the
+29th of June, it would have been aplied by now and be part of the
+current blacklist, and the result would be the same; we cannot really
+know until v3.12 is released.
+
+-- 
+Felipe Contreras
