@@ -1,82 +1,141 @@
-From: Aaron Lu <aaron.lu@intel.com>
-Subject: Re: [PATCH] acpi/video: Add Lenovo IdeaPad Yoga 13 to acpi video
- detect blacklist
-Date: Mon, 14 Oct 2013 12:17:02 +0800
-Message-ID: <525B703E.7080102@intel.com>
-References: <20131014005505.GA30503@tango.0pointer.de> <525B44C0.3010204@intel.com> <20131014022325.GA2248@tango.0pointer.de> <525B58BE.5050009@intel.com> <20131014034927.GA3638@tango.0pointer.de>
+From: Chen Gong <gong.chen@linux.intel.com>
+Subject: Re: [PATCH 7/8] ACPI, APEI, CPER: Cleanup CPER memory error output
+ format
+Date: Mon, 14 Oct 2013 00:55:00 -0400
+Message-ID: <20131014045500.GC12189@gchen.bj.intel.com>
+References: <1381473166-29303-1-git-send-email-gong.chen@linux.intel.com>
+ <1381473166-29303-8-git-send-email-gong.chen@linux.intel.com>
+ <20131011160208.GL5925@pd.tnic>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20131014034927.GA3638@tango.0pointer.de>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Lennart Poettering <mzxreary@0pointer.de>
-Cc: Len Brown <lenb@kernel.org>, "Rafael J. Wysocki" <rjw@sisk.pl>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Matthew Garrett <matthew.garrett@nebula.com>, platform-driver-x86@vger.kernel.org
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="p2kqVDKq5asng8Dg"
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mga03.intel.com ([143.182.124.21]:16086 "EHLO mga03.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750752Ab3JNFJm (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 14 Oct 2013 01:09:42 -0400
+Content-Disposition: inline
+In-Reply-To: <20131011160208.GL5925@pd.tnic>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Borislav Petkov <bp@alien8.de>
+Cc: tony.luck@intel.com, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
 
-On 10/14/2013 11:49 AM, Lennart Poettering wrote:
-> On Mon, 14.10.13 10:36, Aaron Lu (aaron.lu@intel.com) wrote:
-> 
->>> - Backlight control doesn't work via ACPI without acpi_osi="!Windows 2012"
->>> - Backlight control doesn't work via ACPI with acpi_osi="!Windows 2012"
->>> - Backlight control doesn't work via EC commands from ideapad-laptop.c
->>>
->>> The only way backlight handling is supported on the Yoga 13 is via the
->>> intel video driver.
->>
->> Since I don't have access to the acpidump of this system, my only
->> question is, does the firmware has a _OSI("Windows 2012") query in DSDT
->> table?
-> 
-> Yes, it appears to do that as part of _OSC.
-> 
-> The disassembled DSDT table is here:
-> 
-> http://0pointer.de/public/yoga13-dsdt.dsl
 
-Thanks for the info. The firmware has a _OSI("Windows 2012") query so
-should be covered by my patch.
+--p2kqVDKq5asng8Dg
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-> 
->>> Or in other words: the situation for the Yoga 13 is *unrelated* to the
->>> Windows 8 issues, and your patch.
->>
->> I think they are related...
->> If the firmware is compatible to Windows 8, then my patch will disable
->> ACPI video backlight interface to prefer GPU's interface.
-> 
-> OK, that might indeed work.
-> 
->>> I'll soon send another patch which also blacklists the thing in the
->>> ideapad driver, so that only the intel backlight driver is enabled on
->>> Yoga 13 systems, at which point everything will work fine.
->>
->> Right, that is needed. And if going with my patch, the ideapad driver
->> will need to be patched similarly like thinkpad_acpi to add a check of
->> acpi_video_backlight_support before it decides to register its own
->> backlight interface.
-> 
-> The ideapad driver currently skips registration of the backlight device
-> if acpi_video_backlight_support() returns true. is that all you need?
+On Fri, Oct 11, 2013 at 06:02:08PM +0200, Borislav Petkov wrote:
+> Date: Fri, 11 Oct 2013 18:02:08 +0200
+> From: Borislav Petkov <bp@alien8.de>
+> To: "Chen, Gong" <gong.chen@linux.intel.com>
+> Cc: tony.luck@intel.com, linux-kernel@vger.kernel.org,
+>  linux-acpi@vger.kernel.org
+> Subject: Re: [PATCH 7/8] ACPI, APEI, CPER: Cleanup CPER memory error outp=
+ut
+>  format
+> User-Agent: Mutt/1.5.21 (2010-09-15)
+>=20
+> On Fri, Oct 11, 2013 at 02:32:45AM -0400, Chen, Gong wrote:
+> > Keep up only the most important fields for memory error
+> > reporting. The detail information will be moved to perf/trace
+> > interface.
+> >=20
+> > Suggested-by: Tony Luck <tony.luck@intel.com>
+> > Signed-off-by: Chen, Gong <gong.chen@linux.intel.com>
+> > ---
+> >  drivers/acpi/apei/cper.c | 42 ++++++++++++++--------------------------=
+--
+> >  1 file changed, 14 insertions(+), 28 deletions(-)
+> >=20
+> > diff --git a/drivers/acpi/apei/cper.c b/drivers/acpi/apei/cper.c
+> > index 2a4389f..567410e 100644
+> > --- a/drivers/acpi/apei/cper.c
+> > +++ b/drivers/acpi/apei/cper.c
+> > @@ -206,29 +206,29 @@ static void cper_print_mem(const char *pfx, const=
+ struct cper_sec_mem_err *mem)
+> >  		printk("%s""physical_address_mask: 0x%016llx\n",
+> >  		       pfx, mem->physical_addr_mask);
+> >  	if (mem->validation_bits & CPER_MEM_VALID_NODE)
+> > -		printk("%s""node: %d\n", pfx, mem->node);
+> > +		pr_debug("node: %d\n", mem->node);
+> >  	if (mem->validation_bits & CPER_MEM_VALID_CARD)
+> > -		printk("%s""card: %d\n", pfx, mem->card);
+> > +		pr_debug("card: %d\n", mem->card);
+> >  	if (mem->validation_bits & CPER_MEM_VALID_MODULE)
+> > -		printk("%s""module: %d\n", pfx, mem->module);
+> > +		pr_debug("module: %d\n", mem->module);
+> >  	if (mem->validation_bits & CPER_MEM_VALID_RANK_NUMBER)
+> > -		printk("%s""rank: %d\n", pfx, mem->rank);
+> > +		pr_debug("rank: %d\n", mem->rank);
+> >  	if (mem->validation_bits & CPER_MEM_VALID_BANK)
+> > -		printk("%s""bank: %d\n", pfx, mem->bank);
+> > +		pr_debug("bank: %d\n", mem->bank);
+> >  	if (mem->validation_bits & CPER_MEM_VALID_DEVICE)
+> > -		printk("%s""device: %d\n", pfx, mem->device);
+> > +		pr_debug("device: %d\n", mem->device);
+> >  	if (mem->validation_bits & CPER_MEM_VALID_ROW)
+> > -		printk("%s""row: %d\n", pfx, mem->row);
+> > +		pr_debug("row: %d\n", mem->row);
+> >  	if (mem->validation_bits & CPER_MEM_VALID_COLUMN)
+> > -		printk("%s""column: %d\n", pfx, mem->column);
+> > +		pr_debug("column: %d\n", mem->column);
+> >  	if (mem->validation_bits & CPER_MEM_VALID_BIT_POSITION)
+> > -		printk("%s""bit_position: %d\n", pfx, mem->bit_pos);
+> > +		pr_debug("bit_position: %d\n", mem->bit_pos);
+> >  	if (mem->validation_bits & CPER_MEM_VALID_REQUESTOR_ID)
+> > -		printk("%s""requestor_id: 0x%016llx\n", pfx, mem->requestor_id);
+> > +		pr_debug("requestor_id: 0x%016llx\n", mem->requestor_id);
+> >  	if (mem->validation_bits & CPER_MEM_VALID_RESPONDER_ID)
+> > -		printk("%s""responder_id: 0x%016llx\n", pfx, mem->responder_id);
+> > +		pr_debug("responder_id: 0x%016llx\n", mem->responder_id);
+> >  	if (mem->validation_bits & CPER_MEM_VALID_TARGET_ID)
+> > -		printk("%s""target_id: 0x%016llx\n", pfx, mem->target_id);
+> > +		pr_debug("target_id: 0x%016llx\n", mem->target_id);
+> >  	if (mem->validation_bits & CPER_MEM_VALID_ERROR_TYPE) {
+> >  		u8 etype =3D mem->error_type;
+> >  		printk("%s""error_type: %d, %s\n", pfx, etype,
+>=20
+> Hmm, so this cper_print_mem is called for CPER_SEC_PLATFORM_MEM section
+> type.
+>=20
+> With the change above, the other caller __ghes_print_estatus() won't see
+> the error messages if they're debug. Do we want that?
+>=20
 
-Yes, that's all.
+Because most of data in CPER are empty or unimportant. To avoid too much
+disturbance to end users, it is worthy to do that. Moreover, I reserve
+another way via trace to show these data.
 
-> 
-> Hmm, regarding your patch series, do you plan to skip the registration
-> of the acpi backlight device if the "raw" device is supported? I mean,
+> --=20
+> Regards/Gruss,
+>     Boris.
+>=20
+> Sent from a fat crate under my desk. Formatting is fine.
+> --
 
-Yes, that's right.
+--p2kqVDKq5asng8Dg
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
 
-> the intel driver could be compiled as a module (and generally is on the
-> popular distros), so at the time the ACPI subsystem wants to register
-> the backlight device and know if a raw backlight device is around it
-> never will be, so what is the point of that? Or am I missing something?
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.14 (GNU/Linux)
 
-For systems with Intel i915 GPU, ACPI video will wait for GPU driver to
-run first, see drivers/acpi/video.c acpi_video_init, the actual
-acpi_video_register function is called by i915 driver in
-i915_driver_load due to operation region related stuff. Since all
-problematic systems reported so far has an Intel GPU, I'm doing it this
-way now. If things change, we can enhance it then.
+iQIcBAEBAgAGBQJSW3kkAAoJEI01n1+kOSLHnUoP/1CprkDqHmPTcT7chsDp+HfN
+To4cURQXPv0egNuXWqkQCZ9Af/AEwpv1ERI4iTVaC5riQMyOLdnT8hW+5MmFT1h9
+gkaQ0Ss8BMx42Z3E0NoCV/Z+qCrmtyk4XTBCnAssX8+35UMeCncZXSNk0w/fMmhi
+a6rEUreR7kxumSSmOcNuml4OdCZWwMuy0MiagOPiw4Snnsdn2NEzhtE+jTCWVxpH
+3t8ZApLL95Yn/8Abmjr3KasGDf8ladm0z+0VAOEb5kCEVFAvxGoKR9bxffyGfrHL
+NYlfRSd8RdczBTSwaNUyoy383KHasBTTRSGJ22LovjOq8NlaMvh5Qr1ArdAsEyIV
+2r2yFdo3RmPguSsj5fw4YFfVC/iq176Q0WY4XKmC8s9zD/KDUHJ+Cv9t+iFpEGad
+NGvB90AEpdOlHFJk85bxkqAeUMVvQpi2K70eFCSNXBd7yHF2qFq+gM2QaJGz/RJs
+BFDxoVH0WDDlKmPrU5Sg9m00yUVrbA3sFPfuNKOFKayWh9qgmdbtDsLs8nZCUJYe
+H9r0a9QWba6pxbXCOiaD/JXHBP4RPR2e4DfsGF/5o/Qq7y7U4MZtbpcW/0X3KUH/
+5wNe+Nt/i0R0R5WUClT+M3luLaq9JDEidzhc1xbdY5mY1oXAaKnajIlKy71Dj2ew
+/ae8jnI1i0iAkirFS+e3
+=11rt
+-----END PGP SIGNATURE-----
 
--Aaron
+--p2kqVDKq5asng8Dg--
