@@ -1,80 +1,51 @@
-From: Chen Gong <gong.chen@linux.intel.com>
-Subject: Re: [PATCH 8/8] ACPI / trace: Add trace interface for eMCA driver
-Date: Mon, 14 Oct 2013 03:07:27 -0400
-Message-ID: <20131014070727.GE12189@gchen.bj.intel.com>
-References: <1381473166-29303-1-git-send-email-gong.chen@linux.intel.com>
- <1381473166-29303-9-git-send-email-gong.chen@linux.intel.com>
- <20131011161436.GM5925@pd.tnic>
+From: Mika Westerberg <mika.westerberg@linux.intel.com>
+Subject: Re: [PATCH] i2c: Fix modalias for ACPI enumerated I2C devices
+Date: Mon, 14 Oct 2013 11:13:17 +0300
+Message-ID: <20131014081317.GC3521@intel.com>
+References: <1381414669-26115-1-git-send-email-jarkko.nikula@linux.intel.com>
+ <20131011144946.GS3521@intel.com>
+ <2393462.4JRAMNeigd@vostro.rjw.lan>
+ <20131012050413.GY3521@intel.com>
+ <525B907F.1020203@linux.intel.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="4Epv4kl9IRBfg3rk"
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga01.intel.com ([192.55.52.88]:26241 "EHLO mga01.intel.com"
+Received: from mga11.intel.com ([192.55.52.93]:63047 "EHLO mga11.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751308Ab3JNHWJ (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 14 Oct 2013 03:22:09 -0400
+	id S1751405Ab3JNIHu (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 14 Oct 2013 04:07:50 -0400
 Content-Disposition: inline
-In-Reply-To: <20131011161436.GM5925@pd.tnic>
+In-Reply-To: <525B907F.1020203@linux.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Borislav Petkov <bp@alien8.de>
-Cc: tony.luck@intel.com, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
+To: Jarkko Nikula <jarkko.nikula@linux.intel.com>
+Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, linux-i2c@vger.kernel.org, linux-acpi@vger.kernel.org, Wolfram Sang <wsa@the-dreams.de>
 
+On Mon, Oct 14, 2013 at 09:34:39AM +0300, Jarkko Nikula wrote:
+> On 10/12/2013 08:04 AM, Mika Westerberg wrote:
+> >On Sat, Oct 12, 2013 at 12:16:02AM +0200, Rafael J. Wysocki wrote:
+> >>>I think that this is intentional. We don't want that the i2c modalias
+> >>>matches with the ACPI device (like with the i2c:INTABCD). Instead use ACPI
+> >>>IDs that are added to the driver to match with the ACPI device.
+> >>Well, I'm not really sure this was intentional, but I wonder how other bus
+> >>types work in that respect?
+> >We have the same for platform bus, if that's what you are asking.
+> >
+> Do we? I don't recall seeing per device modaliases on other
+> platforms on their platform buses.
 
---4Epv4kl9IRBfg3rk
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+I mean for platform devices enumerated from ACPI.
 
-On Fri, Oct 11, 2013 at 06:14:36PM +0200, Borislav Petkov wrote:
-> Date: Fri, 11 Oct 2013 18:14:36 +0200
-> From: Borislav Petkov <bp@alien8.de>
-> To: "Chen, Gong" <gong.chen@linux.intel.com>
-> Cc: tony.luck@intel.com, linux-kernel@vger.kernel.org,
->  linux-acpi@vger.kernel.org
-> Subject: Re: [PATCH 8/8] ACPI / trace: Add trace interface for eMCA driver
-> User-Agent: Mutt/1.5.21 (2010-09-15)
->=20
-=2E..
-> > +static void dimm_err_location(struct cper_sec_mem_err *mem)
-> > +{
-> > +	memset(dimm_location, 0, LOC_LEN);
-> > +	if (mem->validation_bits & CPER_MEM_VALID_MODULE_HANDLE) {
->=20
-> By reversing this test you can save yourself an indentation level and a
-> superfluous memset:
->=20
-> 	if (!(mem->validation_bits & CPER_MEM_VALID_MODULE_HANDLE))
-> 		return;
->=20
-> 	memset(dimm_location, 0, LOC_LEN);
-> 	dmi_memdev_name...
-> 	...
->=20
->=20
-memset should be called before return, otherwise the values from last time
-will happen again in this time.
+> And actually I don't see that happening in drivers/base/platform.c:
+> platform_uevent() either where just pdev->name is used but not
+> pdev->id (which is used with pdev->name for dev_set_name()).
+> 
+> This makes me thinking that perhaps "pdevinfo.name =
+> dev_name(&adev->dev);" in drivers/acpi/acpi_platform.c:
+> acpi_create_platform_device() should be fixed too as now modalias
+> for ACPI registered platform devices differ from platform devices
+> that are registered in other subsystems (e.g. regulatory, pcspkr,
+> alarmtimer, etc devices)?
 
---4Epv4kl9IRBfg3rk
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.14 (GNU/Linux)
-
-iQIcBAEBAgAGBQJSW5gvAAoJEI01n1+kOSLHA7cP/00H7j62IM+atC6sY6HnzYUl
-OWy/uj0cIl8zX+A8E4nIx/mHNqgZQgxpHAL/ome8nqHOsJlVCs0ncynfWbVhvlm+
-qkKJ+OMZfTSnZNn8SsIkIk6xHTyFadLF8NZBxl695nHrplW8UCWqA2zoqmlJ4T8G
-Q9WWg59/SljI4eFq6SPU+0mjmn50HAmAFbq05qqXP0AITYRcAGeZn18k1N+/n37t
-4r0Ga+A1HdJnqKjE8N8i/4BaFGmw2NNcalZZbZ4qe+x7jQWOCjcr7UKXAh8c/+N/
-mR+KX+MQVwx9l9zNw0crDi5TnOcizdxWetpkc8x2xpbAiH0mc8xlr2eQaVt1Nuhc
-VMnqspVv12KzcNvCf3Rajed01qDDUE2kVOP2S5TH0S8tSjaEyldbodTsJhLqiCnw
-DCBKxsmclnXFeG7Lf3nQGpNCoLmW85ENSo/+NfVMzb55UkTLusVFfXLe1ONlvP/d
-91pJ4F82itbEFRsZGaoG0bHcj7R5yXIW5i1KMu0rjKl+rmwE8ewQIkFLu3a3N5d+
-1X2avRbkTkjuyb3n/MqpCEvmaWlkb+fyU6vkBQ2ZV9aT47pWJPBkkdf4/61PQRX/
-oXPnj4KRlFbBfoG5qTJs0NPC7PjDmxiBjAI+r3Md8/4zx/zVi0luFvnBB2Oa5ub8
-1Y+CbFtqyHQXTFQ8H8HF
-=vYVT
------END PGP SIGNATURE-----
-
---4Epv4kl9IRBfg3rk--
+Well, if you think that it doesn't hit us back later if we get a match that
+isn't supposed to happen.
