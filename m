@@ -1,52 +1,47 @@
-From: Jarkko Nikula <jarkko.nikula@linux.intel.com>
-Subject: Re: [PATCH] i2c: Fix modalias for ACPI enumerated I2C devices
-Date: Mon, 14 Oct 2013 09:45:53 +0300
-Message-ID: <525B9321.5000906@linux.intel.com>
-References: <1381414669-26115-1-git-send-email-jarkko.nikula@linux.intel.com> <2393462.4JRAMNeigd@vostro.rjw.lan> <20131012050413.GY3521@intel.com> <2878883.SYGmCkS5Bt@vostro.rjw.lan> <20131012161805.GB3521@intel.com>
+From: Linus Walleij <linus.walleij@linaro.org>
+Subject: Re: [PATCH v2 1/5] gpiolib / ACPI: move acpi_gpiochip_free_interrupts
+ next to the request function
+Date: Mon, 14 Oct 2013 08:58:05 +0200
+Message-ID: <CACRpkdaVyLwOC-b2mKDRAfCQPzFZKEAm8OZxvHtbpc1koeUz-w@mail.gmail.com>
+References: <1381392071-21407-1-git-send-email-mika.westerberg@linux.intel.com>
+	<1381392071-21407-2-git-send-email-mika.westerberg@linux.intel.com>
+	<CACRpkdZgP9VnVSpBN2Wg4ihL4ryZXeP=ASwr6BCP=u79eg6s6g@mail.gmail.com>
+	<CAAVeFu+K6HvQTMOQqMbZPUD_C3nQ1MvYju1BGUOWPYJjQEpTjg@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga03.intel.com ([143.182.124.21]:58957 "EHLO mga03.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750854Ab3JNGp6 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 14 Oct 2013 02:45:58 -0400
-In-Reply-To: <20131012161805.GB3521@intel.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Return-path: <linux-gpio-owner@vger.kernel.org>
+In-Reply-To: <CAAVeFu+K6HvQTMOQqMbZPUD_C3nQ1MvYju1BGUOWPYJjQEpTjg@mail.gmail.com>
+Sender: linux-gpio-owner@vger.kernel.org
+To: Alexandre Courbot <gnurou@gmail.com>
+Cc: Mika Westerberg <mika.westerberg@linux.intel.com>, "linux-gpio@vger.kernel.org" <linux-gpio@vger.kernel.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Grant Likely <grant.likely@secretlab.ca>, Mathias Nyman <mathias.nyman@linux.intel.com>, Alexandre Courbot <acourbot@nvidia.com>, Rob Landley <rob@landley.net>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
-To: Mika Westerberg <mika.westerberg@linux.intel.com>
-Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, linux-i2c@vger.kernel.org, linux-acpi@vger.kernel.org, Wolfram Sang <wsa@the-dreams.de>
 
-On 10/12/2013 07:18 PM, Mika Westerberg wrote:
-> If we have two ACPI enumerated devices, they have following modalias:
+On Fri, Oct 11, 2013 at 6:42 PM, Alexandre Courbot <gnurou@gmail.com> wrote:
+> On Fri, Oct 11, 2013 at 4:00 AM, Linus Walleij <linus.walleij@linaro.org> wrote:
+>> On Thu, Oct 10, 2013 at 10:01 AM, Mika Westerberg
+>> <mika.westerberg@linux.intel.com> wrote:
+>>
+>>> It makes more sense to have these functions close to each other. No
+>>> functional changes.
+>>>
+>>> Signed-off-by: Mika Westerberg <mika.westerberg@linux.intel.com>
+>>> Acked-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+>>
+>> So I've applied this first patch, and I'm just waiting for Alexandre's
+>> ACK on the remaining patches concerning gpiod so we get this
+>> 100% right.
 >
->    i2c-device0:	i2c:INTABCD:00
-> 		acpi:INTABCD
->
->    i2c-device1:	i2c:INTABCD:01
->    		acpi:INTABCD
->
-> Likelihood that some random I2C driver has INTABCD:00 or INTABCD:01 ids in
-> their list is minimal. However, when you turn it to this:
->
->
->    i2c-device0:	i2c:INTABCD
-> 		acpi:INTABCD
->
->    i2c-device1:	i2c:INTABCD
->    		acpi:INTABCD
->
-> It might be possible that we get a match that isn't supposed to happen.
-> Well, OK it is pretty remote but anyway :-)
-Well, name conflicts could occur of course but still I don't think we 
-should generate illegal or wrong modaliases. I'm not an udev expert but 
-I suppose trying to load nonexisting drivers (i2c_INTABCD:xy) could slow 
-booting a little and perhaps pollute needlessly error log compared to if 
-it can see that driver is already loaded or tries to load the same 
-driver again.
+> I think I'm ok with Mika's patches, however I need to send you a new
+> version of gpiod. I wanted to finish documentation first, but maybe
+> that can come slightly after so you can at least go ahead with both
+> series?
 
-I don't think name conflicts can pose too big risk as they are trivial 
-to fix in sources and can be queued to stable too.
+The important thing right now is to get it in a testable form I think?
+So that I can throw it at the autobuilder and it gets included into
+linux-next as that comes back online.
 
--- 
-Jarkko
+So give me whatever you have ... BTW is this series dependent on
+yours to go in first? Sorry for not seeing the details here...
+
+Yours,
+Linus Walleij
