@@ -1,109 +1,64 @@
-From: Mika Westerberg <mika.westerberg-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
-Subject: Re: [PATCH 1/3] ACPI: add module autoloading support for ACPI
- enumerated devices
-Date: Mon, 14 Oct 2013 13:14:23 +0300
-Message-ID: <20131014101423.GE3521@intel.com>
-References: <1381741834-7334-1-git-send-email-rui.zhang@intel.com>
+From: Borislav Petkov <bp@alien8.de>
+Subject: Re: [PATCH 3/8] ACPI, x86: Extended error log driver for x86 platform
+Date: Mon, 14 Oct 2013 12:26:35 +0200
+Message-ID: <20131014102635.GC4009@pd.tnic>
+References: <1381473166-29303-1-git-send-email-gong.chen@linux.intel.com>
+ <1381473166-29303-4-git-send-email-gong.chen@linux.intel.com>
+ <20131011152451.GF5925@pd.tnic>
+ <20131014031633.GA12189@gchen.bj.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Type: text/plain; charset=utf-8
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail.skyhub.de ([78.46.96.112]:53272 "EHLO mail.skyhub.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753874Ab3JNK0q (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 14 Oct 2013 06:26:46 -0400
 Content-Disposition: inline
-In-Reply-To: <1381741834-7334-1-git-send-email-rui.zhang-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Sender: linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Zhang Rui <rui.zhang-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: rjw-KKrjLPT3xs0@public.gmane.org, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, jarkko.nikula-VuQAYsv1563Yd54FQh9/CA@public.gmane.org
+In-Reply-To: <20131014031633.GA12189@gchen.bj.intel.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Chen Gong <gong.chen@linux.intel.com>
+Cc: tony.luck@intel.com, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
 
-On Mon, Oct 14, 2013 at 05:10:32PM +0800, Zhang Rui wrote:
-> An ACPI enumerated device may have its compatible id strings.
-> 
-> To support the compatible ACPI ids (acpi_device->pnp.ids),
-> we introduced acpi_driver_match_device() to match
-> the driver->acpi_match_table and acpi_device->pnp.ids.
-> 
-> For those drivers, MODULE_DEVICE_TABLE(acpi, xxx) is used to
-> exports the driver module alias in the format of
-> "acpi:device_compatible_ids".
-> But in the mean time, the current code does not export the
-> ACPI compatible strings as part of the module_alias for the
-> ACPI enumerated devices, which will break the module autoloading.
-> 
-> Take the following piece of code for example,
-> static const struct acpi_device_id xxx_acpi_match[] = {
->         { "INTABCD", 0 },
->         { }
-> };
-> MODULE_DEVICE_TABLE(acpi, xxx_acpi_match);
-> 
-> If this piece of code is used in a platform driver for
-> an ACPI enumerated platform device, the platform driver module_alias
-> is "acpi:INTABCD", but the uevent attribute of its platform device node
-> is "platform:INTABCD:00" (PREFIX:pdev->name).
-> If this piece of code is used in an i2c driver for an ACPI enumerated
-> i2c device, the i2c driver module_alias is "acpi:INTABCD", but
-> the uevent of its i2c device node is "i2c:INTABCD:00" (PREFIX:client->name).
-> 
-> The reason why the module autoloading is not broken for now is that
-> the uevent file of the ACPI device node is "acpi:INTABCD".
-> Thus it is the ACPI device node creation that loads the platform/i2c driver.
-> 
-> So this is a problem that will affect us the day when the ACPI bus
-> is removed from device model.
-> 
-> This patch introduces a new function to exporting ACPI ids as the
-> module_alias, for the ACPI enumerate devices.
-> 
-> For any drivers using MODULE_DEVICE_TALBE(acpi, blabla), the uevent file
-                                        ^ TABLE?
+On Sun, Oct 13, 2013 at 11:16:33PM -0400, Chen Gong wrote:
+> But this driver can be loaded as a module. If this module is unloaded,
+> extlog_print is gone. I can't keep such a pointer internally.
 
-> of its associated device must be fixed by invoking this function.
-> 
-> Signed-off-by: Zhang Rui <rui.zhang-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Sure you can - you define a weak extlog_print() function in a
+compilation unit which is always builtin. Maybe mce.c or so.
 
-Makes sense. There is one comment below but other than that, you can add
-my,
+> This macro is great and I'd loved to use it. But it looks like a
+> litttle bit weird to let eMCA depends on a header file like edac.h.
+> Meanwhile, I found in drivers/video/sis/init.c:3323 we have a very
+> similar macro for this purpose. So how about writing a separate patch
+> to clean it up first?
 
-Reviewed-by: Mika Westerberg <mika.westerberg-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
+Actually, you're right. Those macros are much more generic and
+could be exposed to the general public by putting them, say into
+include/include/bitops.h, for example?
 
-For the three patches.
+Btw, the sis one generates unsigneds (4 byte on x86) while the edac one
+8 byte ULLs. So you could call them
 
-I wonder if we should do the same for SPI bus as well?
+GENMASK
+and
+GENMASK_ULL
 
-> ---
->  drivers/acpi/scan.c  |   24 ++++++++++++++++++++++++
->  include/linux/acpi.h |    8 ++++++++
->  2 files changed, 32 insertions(+)
-> 
-> diff --git a/drivers/acpi/scan.c b/drivers/acpi/scan.c
-> index 407ad13..db6f879 100644
-> --- a/drivers/acpi/scan.c
-> +++ b/drivers/acpi/scan.c
-> @@ -111,6 +111,30 @@ static int create_modalias(struct acpi_device *acpi_dev, char *modalias,
->  	return len;
->  }
->  
-> +int acpi_device_uevent_modalias(struct device *dev, struct kobj_uevent_env *env)
-> +{
-> +	struct acpi_device *acpi_dev;
-> +	int result;
-> +	int len;
-> +
-> +	result = acpi_bus_get_device(ACPI_HANDLE(dev), &acpi_dev);
-> +	if (result)
-> +		return result;
-> +
-> +	if (list_empty(&acpi_dev->pnp.ids))
-> +		return 0;
-> +
-> +	if (add_uevent_var(env, "MODALIAS="))
-> +		return -ENOMEM;
-> +	len = create_modalias(acpi_dev, &env->buf[env->buflen - 1],
-> +				sizeof(env->buf) - env->buflen);
-> +	if (len >= (sizeof(env->buf) - env->buflen))
-> +		return -ENOMEM;
-> +	env->buflen += len;
-> +	return 0;
-> +}
-> +EXPORT_SYMBOL(acpi_device_uevent_modalias);
+How does that sound?
 
-_GPL?
+> Because I think in theory "CPU < 0" is impossible. When it hits such
+> situation, it should be a very serious H/W or firmware bug. At least,
+> It think it should be a WARN_ON.
+
+Yes, I think a WARN_ON is much better than the heavy hammer. We can
+always turn it into a FW_BUG later if it really starts to trigger
+anywhere...
+
+Thanks.
+
+-- 
+Regards/Gruss,
+    Boris.
+
+Sent from a fat crate under my desk. Formatting is fine.
+--
