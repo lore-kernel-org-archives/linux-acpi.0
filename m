@@ -1,63 +1,93 @@
-From: Borislav Petkov <bp@alien8.de>
-Subject: Re: [PATCH 7/8] ACPI, APEI, CPER: Cleanup CPER memory error output
- format
-Date: Mon, 14 Oct 2013 23:50:47 +0200
-Message-ID: <20131014215047.GL4009@pd.tnic>
-References: <1381473166-29303-1-git-send-email-gong.chen@linux.intel.com>
- <1381473166-29303-8-git-send-email-gong.chen@linux.intel.com>
- <20131011160208.GL5925@pd.tnic>
- <20131014045500.GC12189@gchen.bj.intel.com>
- <20131014103616.GE4009@pd.tnic>
- <CA+8MBbJ9P1GVf3SCh7LMY_LH+pxQg3GWkxKMzni1b1Wyx1o8NQ@mail.gmail.com>
- <20131014184717.GK4009@pd.tnic>
- <CA+8MBbKDhFvRmJv1csMp5At8WfvHvSsDBbCKvOfQhVdgmnwBWg@mail.gmail.com>
+From: Felipe Contreras <felipe.contreras@gmail.com>
+Subject: Re: [PATCH] acpi: update win8 OSI blacklist
+Date: Mon, 14 Oct 2013 18:04:46 -0500
+Message-ID: <CAMP44s1JG2gOxkP+Yh6FBtce6Oj4Swcv+RjX55g8rHhtUr6Y_A@mail.gmail.com>
+References: <1380820383-23336-1-git-send-email-felipe.contreras@gmail.com>
+	<1905683.dBVjOILnXT@vostro.rjw.lan>
+	<CAMP44s1hVCk=vkAmYoQA85U1sTQ-JCLmWi0kDejfY8m=sXQdpQ@mail.gmail.com>
+	<2968661.r8dg85ocZF@vostro.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
+Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail.skyhub.de ([78.46.96.112]:37165 "EHLO mail.skyhub.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1757175Ab3JNVu7 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 14 Oct 2013 17:50:59 -0400
-Content-Disposition: inline
-In-Reply-To: <CA+8MBbKDhFvRmJv1csMp5At8WfvHvSsDBbCKvOfQhVdgmnwBWg@mail.gmail.com>
+Received: from mail-la0-f53.google.com ([209.85.215.53]:47873 "EHLO
+	mail-la0-f53.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932393Ab3JNXEs (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 14 Oct 2013 19:04:48 -0400
+In-Reply-To: <2968661.r8dg85ocZF@vostro.rjw.lan>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Tony Luck <tony.luck@gmail.com>
-Cc: Chen Gong <gong.chen@linux.intel.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-acpi <linux-acpi@vger.kernel.org>, Lance Ortiz <lance.ortiz@hp.com>, "Naveen N. Rao" <naveen.n.rao@linux.vnet.ibm.com>
+To: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Matthew Garrett <mjg59@srcf.ucam.org>
 
-On Mon, Oct 14, 2013 at 02:03:16PM -0700, Tony Luck wrote:
-> Do you have a suggested mechanism for this disabling of dmesg?
+On Mon, Oct 14, 2013 at 9:16 AM, Rafael J. Wysocki <rjw@sisk.pl> wrote:
+> On Monday, October 14, 2013 08:14:28 AM Felipe Contreras wrote:
+>> On Mon, Oct 14, 2013 at 6:58 AM, Rafael J. Wysocki <rjw@sisk.pl> wrote:
+>> > On Sunday, October 13, 2013 10:30:50 PM Felipe Contreras wrote:
+>> >> On Thu, Oct 3, 2013 at 12:13 PM, Felipe Contreras
+>> >> <felipe.contreras@gmail.com> wrote:
+>> >> > More people have reported they need this for their machines to work
+>> >> > correctly.
+>> >> >
+>> >> > https://bugzilla.kernel.org/show_bug.cgi?id=60682
+>> >>
+>> >> I see this was merged to the linux-next branch. Is there any reason
+>> >> why it's not proposed for v3.12?
+>> >
+>> > It is not a fix for a recent breakage, it doesn't fix an outright crash or
+>> > security issue and there is a chance, albeit arguably very small, that
+>> > something will not function on one of the affected systems for someone
+>> > as a result of the blacklisting.
+>>
+>> So? That chance is already there because the blacklist is already
+>> there, but we cannot know until v3.12 is released, because that's when
+>> most people would be testing that code.
+>>
+>> It seems to me your worry is that somebody would report a regression
+>> that happened v3.12-rc6 (if it has this patch applied), while it
+>> worked correctly in v3.12-rc5, in which case you would get a complaint
+>> from Linus.
+>>
+>> But we all know that's not going to happen. The complaints (if any)
+>> would arrive in v3.12, and that would happen regardless of this patch.
+>>
+>> Besides, our goal is to make v3.12 as stable as possible, and it seems
+>> to me you are blindly following the letter of a rule, instead if
+>> interpreting what is the intent of rule. If I had sent the patch the
+>> 29th of June, it would have been aplied by now and be part of the
+>> current blacklist, and the result would be the same; we cannot really
+>> know until v3.12 is released.
+>
+> Oh, please give me a break.
+>
+> I've applied your patch even though I really should have waited for an ACK from
+> Matthew before doing that, but that only made you *more* demanding.
 
-Hmm, how about a 64-bit flag variable (we can use the remaining bits
-for other stuff later) called x86_ras_flags which is private to
-arch/x86/ras/core.c (a new file)...
+I'm not demanding anything, I'm making a case.
 
- [ btw, I'm thinking of something similar to efi's x86_efi_facility which we
- nicely query with test_bit and set with set_bit and clear_bit, etc, etc ]
+> I generally tend to be nice to people, but you evidently take that as a sign of
+> weakness, so trying to be nice to you doesn't really make sense to me.  On the
+> other hand, I'm not too good at throwing flames at people and it distracts me
+> so much that I can't really afford it.  Please find yourself someone else to
+> fight with.
 
-Also, look at arch/x86/platform/efi/efi.c::efi_enabled() how it hides
-the actual variable and we can do something similar so that eMCA and
-other users like cper.c can do
+I don't care if you are nice to me, be nice, be aggressive, I do not care.
 
-apei_estatus_print_section:
+All I care is that we do what is best here, and since many people's
+back-light has been broken for so many releases and we have a very
+simple fix that we know it works, because v3.6 worked on these laptops
+(and all the previous releases), we *know* this patch cannot make
+things worst than v3.6, and we *know* we broke things since v3.7.
 
-	if (!ras_tracepoint_enabled())
-		cper_print_mem(...)
+If you don't want to fix the backlight in these laptops for v3.12,
+fine, but don't blame it on my attitude, your users don't care about
+my attitude, your users only care that Linux works correctly, and as
+things stand v3.12 will *not* work correctly for these laptops, even
+though we know how to fix it, and the fix is simple, and cannot make
+things worst than v3.6.
 
-We set the bit in x86_ras_flags from, say, debugfs, i.e., a userspace
-tool sets it and from that moment on all RAS output is rerouted to the
-trace event. I.e., the output for which there is a trace event...
-
-How does that look like?
-
-Purely hypothetical, of course, I might me missing something but it
-looks ok from here. As always, the devil is in the detail, of course.
-
-HTH.
+We are going to fix this regression only on certain laptops, but not
+others, even though we already know the fix works for those too. I
+don't see how that makes sense to you, but it's your call.
 
 -- 
-Regards/Gruss,
-    Boris.
-
-Sent from a fat crate under my desk. Formatting is fine.
---
+Felipe Contreras
