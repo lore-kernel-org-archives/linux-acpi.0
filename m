@@ -1,110 +1,34 @@
-From: Lan Tianyu <tianyu.lan@intel.com>
-Subject: Re: [RFC PATCH 3/3] ACPI/POWER: Call acpi_power_resume_dependent()
- directly in the acpi_power_on_unlocked()
-Date: Tue, 15 Oct 2013 23:12:36 +0800
-Message-ID: <525D5B64.3090206@intel.com>
-References: <1381849493-7977-1-git-send-email-tianyu.lan@intel.com> <1381849493-7977-4-git-send-email-tianyu.lan@intel.com>
+From: Tony Luck <tony.luck@gmail.com>
+Subject: Re: Extended H/W error log driver
+Date: Tue, 15 Oct 2013 09:15:21 -0700
+Message-ID: <CA+8MBbJeSJBDPcomupOuVBrnZNkMTNTXsoZY9yUbXPe9YrTFXg@mail.gmail.com>
+References: <1381473166-29303-1-git-send-email-gong.chen@linux.intel.com>
+	<20131011080427.GC18719@pd.tnic>
+	<20131014064940.GD12189@gchen.bj.intel.com>
+	<20131014105533.GF4009@pd.tnic>
+	<20131015040731.GA887@gchen.bj.intel.com>
+	<20131015092851.GA7908@pd.tnic>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga14.intel.com ([143.182.124.37]:38478 "EHLO mga14.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932283Ab3JOPMp (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 15 Oct 2013 11:12:45 -0400
-In-Reply-To: <1381849493-7977-4-git-send-email-tianyu.lan@intel.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20131015092851.GA7908@pd.tnic>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Borislav Petkov <bp@alien8.de>
+Cc: Chen Gong <gong.chen@linux.intel.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-acpi <linux-acpi@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
-To: lenb@kernel.org, rjw@rjwysocki.net
-Cc: Lan Tianyu <tianyu.lan@intel.com>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 
-On 10/15/2013 11:04 PM, Lan Tianyu wrote:
-> acpi_power_resume_dependent() purposes to resume power resource's dependent
-> physical devices after turning on the related power resource. But current
-> it runs in the workqueue, pm_request_resume() can't check the right
-> runtime pm state just after turning on power resource. This will cause
-> infinite loop between resume and suspend in some cases that turn on power
-> resource in the pm runtime resume callback(e,g usb port). This patch is to
-> fix the issue via calling acpi_power_resume_dependent() directly instead
-> of running it in a workqueue.
+On Tue, Oct 15, 2013 at 2:28 AM, Borislav Petkov <bp@alien8.de> wrote:
+> We can even add a hint for the user like:
 >
-> Signed-off-by: Lan Tianyu <tianyu.lan@intel.com>
-> ---
->   drivers/acpi/power.c | 15 ++-------------
->   1 file changed, 2 insertions(+), 13 deletions(-)
+>         "Above errors have been corrected by the hardware and require no further action."
 >
-> diff --git a/drivers/acpi/power.c b/drivers/acpi/power.c
-> index 3fc2873..5e4991b 100644
-> --- a/drivers/acpi/power.c
-> +++ b/drivers/acpi/power.c
-> @@ -62,7 +62,6 @@ ACPI_MODULE_NAME("power");
->   struct acpi_power_dependent_device {
->   	struct list_head node;
->   	struct acpi_device *adev;
-> -	struct work_struct work;
->   };
+> Btw, this is valid for both dmesg and trace event output.
 >
->   struct acpi_power_resource {
-> @@ -235,14 +234,12 @@ static int acpi_power_get_list_state(struct list_head *list, int *state)
->   	return 0;
->   }
->
-> -static void acpi_power_resume_dependent(struct work_struct *work)
-> +static void acpi_power_resume_dependent(struct acpi_power_dependent_device *dep)
->   {
-> -	struct acpi_power_dependent_device *dep;
->   	struct acpi_device_physical_node *pn;
->   	struct acpi_device *adev;
->   	int state;
->
-> -	dep = container_of(work, struct acpi_power_dependent_device, work);
->   	adev = dep->adev;
->   	if (acpi_power_get_inferred_state(adev, &state))
->   		return;
-> @@ -294,7 +291,7 @@ static int acpi_power_on_unlocked(struct acpi_power_resource *resource)
->   			struct acpi_power_dependent_device *dep;
->
->   			list_for_each_entry(dep, &resource->dependent, node)
-> -				schedule_work(&dep->work);
-> +				acpi_power_resume_dependent(dep);
->   		}
->   	}
->   	return result;
-> @@ -414,7 +411,6 @@ static void acpi_power_add_dependent(struct acpi_power_resource *resource,
->   		goto out;
->
->   	dep->adev = adev;
-> -	INIT_WORK(&dep->work, acpi_power_resume_dependent);
->   	list_add_tail(&dep->node, &resource->dependent);
->
->    out:
-> @@ -425,23 +421,16 @@ static void acpi_power_remove_dependent(struct acpi_power_resource *resource,
->   					struct acpi_device *adev)
->   {
->   	struct acpi_power_dependent_device *dep;
-> -	struct work_struct *work = NULL;
->
->   	mutex_lock(&resource->resource_lock);
->
->   	list_for_each_entry(dep, &resource->dependent, node)
->   		if (dep->adev == adev) {
->   			list_del(&dep->node);
-> -			work = &dep->work;
+> Because from my experience so far people just scream: "Look, I just had
+> an MCE" withot even reading what it says. And this just upsets support
+> people for no valid reason at all.
 
-Sorry, Just find forget to free dep Here. Will update if this patchset 
-is acceptable.
+"Like", "+1", "metoo" ... or whatever it is we do on LKML to indicate
+we approve.
 
->   			break;
->   		}
->
->   	mutex_unlock(&resource->resource_lock);
-> -
-> -	if (work) {
-> -		cancel_work_sync(work);
-> -		kfree(dep);
-> -	}
->   }
->
->   static struct attribute *attrs[] = {
->
-
+-Tony
