@@ -1,8 +1,8 @@
-From: Chen Gong <gong.chen@linux.intel.com>
+From: Borislav Petkov <bp@alien8.de>
 Subject: Re: [PATCH 7/8] ACPI, APEI, CPER: Cleanup CPER memory error output
  format
-Date: Tue, 15 Oct 2013 05:18:35 -0400
-Message-ID: <20131015091835.GA21097@gchen.bj.intel.com>
+Date: Tue, 15 Oct 2013 12:13:49 +0200
+Message-ID: <20131015101349.GB7908@pd.tnic>
 References: <1381473166-29303-1-git-send-email-gong.chen@linux.intel.com>
  <1381473166-29303-8-git-send-email-gong.chen@linux.intel.com>
  <20131011160208.GL5925@pd.tnic>
@@ -12,95 +12,43 @@ References: <1381473166-29303-1-git-send-email-gong.chen@linux.intel.com>
  <20131014184717.GK4009@pd.tnic>
  <CA+8MBbKDhFvRmJv1csMp5At8WfvHvSsDBbCKvOfQhVdgmnwBWg@mail.gmail.com>
  <20131014215047.GL4009@pd.tnic>
+ <20131015091835.GA21097@gchen.bj.intel.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="2fHTh5uZTiUOsy+g"
+Content-Type: text/plain; charset=utf-8
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga02.intel.com ([134.134.136.20]:34599 "EHLO mga02.intel.com"
+Received: from mail.skyhub.de ([78.46.96.112]:51108 "EHLO mail.skyhub.de"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753669Ab3JOJdX (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 15 Oct 2013 05:33:23 -0400
+	id S1753362Ab3JOKOD (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 15 Oct 2013 06:14:03 -0400
 Content-Disposition: inline
-In-Reply-To: <20131014215047.GL4009@pd.tnic>
+In-Reply-To: <20131015091835.GA21097@gchen.bj.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Borislav Petkov <bp@alien8.de>
+To: Chen Gong <gong.chen@linux.intel.com>
 Cc: Tony Luck <tony.luck@gmail.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-acpi <linux-acpi@vger.kernel.org>, Lance Ortiz <lance.ortiz@hp.com>, "Naveen N. Rao" <naveen.n.rao@linux.vnet.ibm.com>
 
+On Tue, Oct 15, 2013 at 05:18:35AM -0400, Chen Gong wrote:
+> Looks fine to me. But a little bit out of current patch series. How
+> about adding such interfaces after this patch series is merged?
 
---2fHTh5uZTiUOsy+g
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+Ok.
 
-On Mon, Oct 14, 2013 at 11:50:47PM +0200, Borislav Petkov wrote:
-> Date: Mon, 14 Oct 2013 23:50:47 +0200
-> From: Borislav Petkov <bp@alien8.de>
-> To: Tony Luck <tony.luck@gmail.com>
-> Cc: Chen Gong <gong.chen@linux.intel.com>, Linux Kernel Mailing List
->  <linux-kernel@vger.kernel.org>, linux-acpi <linux-acpi@vger.kernel.org>,
->  Lance Ortiz <lance.ortiz@hp.com>, "Naveen N. Rao"
->  <naveen.n.rao@linux.vnet.ibm.com>
-> Subject: Re: [PATCH 7/8] ACPI, APEI, CPER: Cleanup CPER memory error outp=
-ut
->  format
-> User-Agent: Mutt/1.5.21 (2010-09-15)
->=20
-> On Mon, Oct 14, 2013 at 02:03:16PM -0700, Tony Luck wrote:
-> > Do you have a suggested mechanism for this disabling of dmesg?
->=20
-> Hmm, how about a 64-bit flag variable (we can use the remaining bits
-> for other stuff later) called x86_ras_flags which is private to
-> arch/x86/ras/core.c (a new file)...
->=20
->  [ btw, I'm thinking of something similar to efi's x86_efi_facility which=
- we
->  nicely query with test_bit and set with set_bit and clear_bit, etc, etc ]
->=20
-> Also, look at arch/x86/platform/efi/efi.c::efi_enabled() how it hides
-> the actual variable and we can do something similar so that eMCA and
-> other users like cper.c can do
->=20
-> apei_estatus_print_section:
->=20
-> 	if (!ras_tracepoint_enabled())
-> 		cper_print_mem(...)
->=20
-> We set the bit in x86_ras_flags from, say, debugfs, i.e., a userspace
-> tool sets it and from that moment on all RAS output is rerouted to the
-> trace event. I.e., the output for which there is a trace event...
->=20
-> How does that look like?
->=20
+> And from your words, it looks like you prefer to reserve all current
+> fields to avoid breaking user space things. IOW, drop patch [7/8]
 
-Looks fine to me. But a little bit out of current patch series. How
-about adding such interfaces after this patch series is merged?
-And from your words, it looks like you prefer to reserve all current
-fields to avoid breaking user space things. IOW, drop patch [7/8]
-and use another patch with above idea to get the same purpose. This
-is what you want, Boris?
+Well, I was simply wondering whether something is using those. And since
+we don't know, apparently, we probably should keep them for now.
 
+> and use another patch with above idea to get the same purpose. This
+> is what you want, Boris?
 
---2fHTh5uZTiUOsy+g
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
+Yeah, let's not break userspace. :-)
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.14 (GNU/Linux)
+Thanks.
 
-iQIcBAEBAgAGBQJSXQhrAAoJEI01n1+kOSLHtE8P/AgitrlX7c1sU0u2cK+oSQA2
-1HCrfx7ZGoqev4kuFQGmmgX+KZDpU89/906n9v8cubH6SaioPlQlVeFFD9BSHuvT
-NVkDaq41DYLToB+HJbDIPSu6YHuf+J6ptUNSKlTwjK3Fe9HxklLkZ5aHw3Kc/Lkc
-g2m5KHOHgig4bMxko5Yv5J19p04knarL9byyPOa985/XzFWrp8X8IRp9L4PyZCSS
-+40byeZAAwNXOabokZJiwLQvEa5UpNSQ8tOaD8tJ7H7T9gZYFfcPw1tVBJZ1Asaq
-VKaCPv+Fzoo6YxMqIF/O2J9Lqgc/PK0JnBlXyFaIb6oO+VxtLiece55BcmXwZQu3
-C5bJQpsCuphsa2GTsvboeXFX9lvxt1ULdQrnrnAtMVj5bu5Ur+iX29edsZH31JTd
-0wvt1GtqgkTyuNPd6jCMl6OVC/MJzmvkMD8Q72Ye1j6OC7ursrUA0w5wpFMO8HVs
-3AueD09nU9l9GeJcCiQ1ePrER/meVl3MWGgRh1xwS3k4JWACBNoSSopvT2PRxB25
-SOfysKypLT0pb5qhfF6RWMNsq4sG7DEt5GJ+dkFzg9lcWdo+5aH+McsofNkFiYj5
-Hh21T0w5YsbUkblhcHpbaa9dOOZKhTZu1aFGnlP2PBGSgbWfU0Nm4k8bRn2ht2Km
-7TD9m3EIE5q2NFTOLLN3
-=EKgU
------END PGP SIGNATURE-----
+-- 
+Regards/Gruss,
+    Boris.
 
---2fHTh5uZTiUOsy+g--
+Sent from a fat crate under my desk. Formatting is fine.
+--
