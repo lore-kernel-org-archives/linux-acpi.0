@@ -1,46 +1,94 @@
-From: "Naveen N. Rao" <naveen.n.rao@linux.vnet.ibm.com>
-Subject: Re: [PATCH 7/8] ACPI, APEI, CPER: Cleanup CPER memory error output
- format
-Date: Tue, 15 Oct 2013 17:11:59 +0530
-Message-ID: <525D2A07.6080201@linux.vnet.ibm.com>
-References: <1381473166-29303-1-git-send-email-gong.chen@linux.intel.com> <1381473166-29303-8-git-send-email-gong.chen@linux.intel.com> <20131011160208.GL5925@pd.tnic>	<20131014045500.GC12189@gchen.bj.intel.com> <20131014103616.GE4009@pd.tnic> <CA+8MBbJ9P1GVf3SCh7LMY_LH+pxQg3GWkxKMzni1b1Wyx1o8NQ@mail.gmail.com>
+From: Zhang Rui <rui.zhang@intel.com>
+Subject: Re: [PATCH] i2c: Fix modalias for ACPI enumerated I2C devices
+Date: Tue, 15 Oct 2013 19:44:44 +0800
+Message-ID: <1381837484.2080.66.camel@rzhang1-mobl4>
+References: <1381414669-26115-1-git-send-email-jarkko.nikula@linux.intel.com>
+	 <1381742625.2034.25.camel@rzhang1-mobl4> <525BD314.5010802@linux.intel.com>
+	 <1381754856.2034.34.camel@rzhang1-mobl4>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from e28smtp06.in.ibm.com ([122.248.162.6]:37872 "EHLO
-	e28smtp06.in.ibm.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753088Ab3JOLmR (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 15 Oct 2013 07:42:17 -0400
-Received: from /spool/local
-	by e28smtp06.in.ibm.com with IBM ESMTP SMTP Gateway: Authorized Use Only! Violators will be prosecuted
-	for <linux-acpi@vger.kernel.org> from <naveen.n.rao@linux.vnet.ibm.com>;
-	Tue, 15 Oct 2013 17:12:14 +0530
-In-Reply-To: <CA+8MBbJ9P1GVf3SCh7LMY_LH+pxQg3GWkxKMzni1b1Wyx1o8NQ@mail.gmail.com>
+Received: from mga09.intel.com ([134.134.136.24]:25541 "EHLO mga09.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1757696Ab3JOLov (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 15 Oct 2013 07:44:51 -0400
+In-Reply-To: <1381754856.2034.34.camel@rzhang1-mobl4>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Tony Luck <tony.luck@gmail.com>, Borislav Petkov <bp@alien8.de>
-Cc: Chen Gong <gong.chen@linux.intel.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-acpi <linux-acpi@vger.kernel.org>, Lance Ortiz <lance.ortiz@hp.com>
+To: Jarkko Nikula <jarkko.nikula@linux.intel.com>, "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: linux-i2c@vger.kernel.org, linux-acpi@vger.kernel.org, Wolfram Sang <wsa@the-dreams.de>, Mika Westerberg <mika.westerberg@linux.intel.com>
 
-On 10/14/2013 10:42 PM, Tony Luck wrote:
-> On Mon, Oct 14, 2013 at 3:36 AM, Borislav Petkov <bp@alien8.de> wrote:
->> On Mon, Oct 14, 2013 at 12:55:00AM -0400, Chen Gong wrote:
->>> Because most of data in CPER are empty or unimportant.
->>
->> It is not about whether it is important or not - the question is whether
->> changing existing functionality which someone might rely upon is a
->> problem here? Someone might be expecting exactly those messages to
->> appear in dmesg.
+On Mon, 2013-10-14 at 20:47 +0800, Zhang Rui wrote:
+> On Mon, 2013-10-14 at 14:18 +0300, Jarkko Nikula wrote:
+> > On 10/14/2013 12:23 PM, Zhang Rui wrote:
+> > > Hi,
+> > >
+> > > On Thu, 2013-10-10 at 17:17 +0300, Jarkko Nikula wrote:
+> > >> There is a minor fault about ACPI enumerated I2C devices with their modalias
+> > >> attribute. Now modalias is set by device instance not by hardware ID.
+> > >> For example "i2c:INTABCD:00", "i2c:INTABCD:01" etc.
+> > >>
+> > >> This means each device instance gets different modalias which does match
+> > >> with generated modules.alias. Currently this is not problem as matching can
+> > >> happen also with "acpi:INTABCD" modalias.
+> > >>
+> > > IMO, this is not the proper fix for the modalias problem because ACPI
+> > > enumerated I2C device may have compatible ids.
+> > > Instead, we should export all the compatible ids as the modules alias of
+> > > the ACPI enumerated I2C device.
+> > >
+> > > can you please take a look at the patch I sent out earlier?
+> > > https://patchwork.kernel.org/patch/3034991/
+> > > https://patchwork.kernel.org/patch/3035041/
+> > > https://patchwork.kernel.org/patch/3035021/
+> > I see. This makes sense as it avoids that same device has two different 
+> > modaliases from both acpi and other subsystem.
+> > 
+> > How about modalias nodes in sysfs, should they also reflect what is 
+> > matching uvent?
+> > 
+> good catch, will fix "modalias" as well in next version.
 
-If so, how will disabling dmesg output and switching to a trace event 
-help? The user-space program will still break unless they add support 
-for that trace event, right?
+Hi,
 
-I'm not sure if we actually provide guarantees w.r.t kernel log 
-messages. The issue in this specific scenario is the sheer verbosity of 
-the log messages. I personally feel that it will be good if we can 
-simplify the log output.
+I have a question about the device "uevent" and "modalias" sysfs
+attributes.
+what is the relationship between these two?
+Am I right to say that, if there is the "MODALIAS" field in uevent file,
+this field must be consistent with the content in "modalias" attribute?
 
-Thanks,
-Naveen
+I checked the code in drivers/base/platform.c,
+static ssize_t modalias_show(struct device *dev, struct device_attribute
+*a,
+                             char *buf)
+{
+        struct platform_device  *pdev = to_platform_device(dev);
+        int len = snprintf(buf, PAGE_SIZE, "platform:%s\n", pdev->name);
+
+        return (len >= PAGE_SIZE) ? (PAGE_SIZE - 1) : len;
+}
+
+static int platform_uevent(struct device *dev, struct kobj_uevent_env
+*env)
+{
+        struct platform_device  *pdev = to_platform_device(dev);
+        int rc;
+
+        /* Some devices have extra OF data and an OF-style MODALIAS */
+        rc = of_device_uevent_modalias(dev, env);
+        if (rc != -ENODEV)
+                return rc;
+
+        add_uevent_var(env, "MODALIAS=%s%s", PLATFORM_MODULE_PREFIX,
+                        pdev->name);
+        return 0;
+}
+
+This means that the OF-style MODALIAS is not shown in "modalias" sysfs
+attribute.
+is this a bug?
+
+thanks,
+rui
 
