@@ -1,54 +1,56 @@
-From: Borislav Petkov <bp@alien8.de>
+From: "Naveen N. Rao" <naveen.n.rao@linux.vnet.ibm.com>
 Subject: Re: [PATCH 7/8] ACPI, APEI, CPER: Cleanup CPER memory error output
  format
-Date: Tue, 15 Oct 2013 12:13:49 +0200
-Message-ID: <20131015101349.GB7908@pd.tnic>
-References: <1381473166-29303-1-git-send-email-gong.chen@linux.intel.com>
- <1381473166-29303-8-git-send-email-gong.chen@linux.intel.com>
- <20131011160208.GL5925@pd.tnic>
- <20131014045500.GC12189@gchen.bj.intel.com>
- <20131014103616.GE4009@pd.tnic>
- <CA+8MBbJ9P1GVf3SCh7LMY_LH+pxQg3GWkxKMzni1b1Wyx1o8NQ@mail.gmail.com>
- <20131014184717.GK4009@pd.tnic>
- <CA+8MBbKDhFvRmJv1csMp5At8WfvHvSsDBbCKvOfQhVdgmnwBWg@mail.gmail.com>
- <20131014215047.GL4009@pd.tnic>
- <20131015091835.GA21097@gchen.bj.intel.com>
+Date: Tue, 15 Oct 2013 16:58:45 +0530
+Message-ID: <525D26ED.9040602@linux.vnet.ibm.com>
+References: <1381473166-29303-1-git-send-email-gong.chen@linux.intel.com> <1381473166-29303-8-git-send-email-gong.chen@linux.intel.com> <20131011160208.GL5925@pd.tnic>	<20131014045500.GC12189@gchen.bj.intel.com> <20131014103616.GE4009@pd.tnic> <CA+8MBbJ9P1GVf3SCh7LMY_LH+pxQg3GWkxKMzni1b1Wyx1o8NQ@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail.skyhub.de ([78.46.96.112]:51108 "EHLO mail.skyhub.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753362Ab3JOKOD (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 15 Oct 2013 06:14:03 -0400
-Content-Disposition: inline
-In-Reply-To: <20131015091835.GA21097@gchen.bj.intel.com>
+Received: from e28smtp08.in.ibm.com ([122.248.162.8]:48939 "EHLO
+	e28smtp08.in.ibm.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757558Ab3JOL3C (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 15 Oct 2013 07:29:02 -0400
+Received: from /spool/local
+	by e28smtp08.in.ibm.com with IBM ESMTP SMTP Gateway: Authorized Use Only! Violators will be prosecuted
+	for <linux-acpi@vger.kernel.org> from <naveen.n.rao@linux.vnet.ibm.com>;
+	Tue, 15 Oct 2013 16:59:00 +0530
+In-Reply-To: <CA+8MBbJ9P1GVf3SCh7LMY_LH+pxQg3GWkxKMzni1b1Wyx1o8NQ@mail.gmail.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Chen Gong <gong.chen@linux.intel.com>
-Cc: Tony Luck <tony.luck@gmail.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-acpi <linux-acpi@vger.kernel.org>, Lance Ortiz <lance.ortiz@hp.com>, "Naveen N. Rao" <naveen.n.rao@linux.vnet.ibm.com>
+To: Tony Luck <tony.luck@gmail.com>, Borislav Petkov <bp@alien8.de>
+Cc: Chen Gong <gong.chen@linux.intel.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-acpi <linux-acpi@vger.kernel.org>, Lance Ortiz <lance.ortiz@hp.com>
 
-On Tue, Oct 15, 2013 at 05:18:35AM -0400, Chen Gong wrote:
-> Looks fine to me. But a little bit out of current patch series. How
-> about adding such interfaces after this patch series is merged?
+On 10/14/2013 10:42 PM, Tony Luck wrote:
+> On Mon, Oct 14, 2013 at 3:36 AM, Borislav Petkov <bp@alien8.de> wrote:
+>> On Mon, Oct 14, 2013 at 12:55:00AM -0400, Chen Gong wrote:
+>>> Because most of data in CPER are empty or unimportant.
+>>
+>> It is not about whether it is important or not - the question is whether
+>> changing existing functionality which someone might rely upon is a
+>> problem here? Someone might be expecting exactly those messages to
+>> appear in dmesg.
+>
+> Pulling in a couple more people who have been touching error reporting
+> code in the last year or so (Hi Lance, Naveen ... feel free to drag more
+> people to look at this thread).
+>
+> I prodded Chen Gong in to make this change because our console messages
+> are way to verbose (and scary) for simple corrected errors.  There are 18
+> fields in the memory error section (as of UEFI 2.4 ... more are likely to be
+> added because there are issues that some of the 16-bit wide fields are too
+> small to handle increased internal values in modern DIMMs).  Whether you
+> print that one item per line, or a few very long lines - it is way
+> more information
+> than the average user will ever want or need to see.
 
-Ok.
+I completely agree and I am all for bringing down the verbosity of GHES 
+logs. In my testing, a corrected error event reported through GHES takes 
+upwards of 10 lines, which is far too much. Perhaps a single line per 
+GHES event with only a few important fields would be better?
 
-> And from your words, it looks like you prefer to reserve all current
-> fields to avoid breaking user space things. IOW, drop patch [7/8]
 
-Well, I was simply wondering whether something is using those. And since
-we don't know, apparently, we probably should keep them for now.
+Thanks,
+Naveen
 
-> and use another patch with above idea to get the same purpose. This
-> is what you want, Boris?
-
-Yeah, let's not break userspace. :-)
-
-Thanks.
-
--- 
-Regards/Gruss,
-    Boris.
-
-Sent from a fat crate under my desk. Formatting is fine.
---
