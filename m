@@ -1,69 +1,106 @@
-From: Borislav Petkov <bp@alien8.de>
-Subject: Re: Extended H/W error log driver
-Date: Tue, 15 Oct 2013 11:28:51 +0200
-Message-ID: <20131015092851.GA7908@pd.tnic>
+From: Chen Gong <gong.chen@linux.intel.com>
+Subject: Re: [PATCH 7/8] ACPI, APEI, CPER: Cleanup CPER memory error output
+ format
+Date: Tue, 15 Oct 2013 05:18:35 -0400
+Message-ID: <20131015091835.GA21097@gchen.bj.intel.com>
 References: <1381473166-29303-1-git-send-email-gong.chen@linux.intel.com>
- <20131011080427.GC18719@pd.tnic>
- <20131014064940.GD12189@gchen.bj.intel.com>
- <20131014105533.GF4009@pd.tnic>
- <20131015040731.GA887@gchen.bj.intel.com>
+ <1381473166-29303-8-git-send-email-gong.chen@linux.intel.com>
+ <20131011160208.GL5925@pd.tnic>
+ <20131014045500.GC12189@gchen.bj.intel.com>
+ <20131014103616.GE4009@pd.tnic>
+ <CA+8MBbJ9P1GVf3SCh7LMY_LH+pxQg3GWkxKMzni1b1Wyx1o8NQ@mail.gmail.com>
+ <20131014184717.GK4009@pd.tnic>
+ <CA+8MBbKDhFvRmJv1csMp5At8WfvHvSsDBbCKvOfQhVdgmnwBWg@mail.gmail.com>
+ <20131014215047.GL4009@pd.tnic>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="2fHTh5uZTiUOsy+g"
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail.skyhub.de ([78.46.96.112]:47036 "EHLO mail.skyhub.de"
+Received: from mga02.intel.com ([134.134.136.20]:34599 "EHLO mga02.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752589Ab3JOJ3F (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 15 Oct 2013 05:29:05 -0400
+	id S1753669Ab3JOJdX (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 15 Oct 2013 05:33:23 -0400
 Content-Disposition: inline
-In-Reply-To: <20131015040731.GA887@gchen.bj.intel.com>
+In-Reply-To: <20131014215047.GL4009@pd.tnic>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Chen Gong <gong.chen@linux.intel.com>
-Cc: tony.luck@intel.com, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
-
-On Tue, Oct 15, 2013 at 12:07:31AM -0400, Chen Gong wrote:
-> Some errors have multiple sub sections like below:
-> 
-> [ 1442.070522] {2}[Hardware Error]: Hardware error from APEI Generic Hardware Error Source: 0
-> [ 1442.070528] {2}[Hardware Error]: event severity: corrected
-> [ 1442.070531] {2}[Hardware Error]: sub_event[0], severity: corrected
-> [ 1442.070534] {2}[Hardware Error]: section_type: memory error
-> [ 1442.070537] {2}[Hardware Error]: error_status: 0x0000000000000000
-> [ 1442.070539] {2}[Hardware Error]: sub_event[1], severity: corrected
-> [ 1442.070541] {2}[Hardware Error]: section_type: memory error
-> [ 1442.070543] {2}[Hardware Error]: error_status: 0x0000000000000000
-
-Right, and what do those sub sections mean to the user? Did we have
-multiple errors?
-
-It looks like this because we have memory errors section type but it is
-not very telling. How about:
+To: Borislav Petkov <bp@alien8.de>
+Cc: Tony Luck <tony.luck@gmail.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-acpi <linux-acpi@vger.kernel.org>, Lance Ortiz <lance.ortiz@hp.com>, "Naveen N. Rao" <naveen.n.rao@linux.vnet.ibm.com>
 
 
-[ 1442.070522] {2}[Hardware Error]: APEI GHES id 0: Hardware errors logged
-[ 1442.070528] {2}[Hardware Error]: event severity: corrected
-[ 1442.070534] {2}[Hardware Error]:  Error 0, type: corrected memory error.
-[ 1442.070537] {2}[Hardware Error]:   error_status: 0x0000000000000000
-[ 1442.070539] {2}[Hardware Error]:  Error 1, type: corrected memory error.
-[ 1442.070543] {2}[Hardware Error]:   error_status: 0x0000000000000000
+--2fHTh5uZTiUOsy+g
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-I think this is much more human readable and understandable :-)
+On Mon, Oct 14, 2013 at 11:50:47PM +0200, Borislav Petkov wrote:
+> Date: Mon, 14 Oct 2013 23:50:47 +0200
+> From: Borislav Petkov <bp@alien8.de>
+> To: Tony Luck <tony.luck@gmail.com>
+> Cc: Chen Gong <gong.chen@linux.intel.com>, Linux Kernel Mailing List
+>  <linux-kernel@vger.kernel.org>, linux-acpi <linux-acpi@vger.kernel.org>,
+>  Lance Ortiz <lance.ortiz@hp.com>, "Naveen N. Rao"
+>  <naveen.n.rao@linux.vnet.ibm.com>
+> Subject: Re: [PATCH 7/8] ACPI, APEI, CPER: Cleanup CPER memory error outp=
+ut
+>  format
+> User-Agent: Mutt/1.5.21 (2010-09-15)
+>=20
+> On Mon, Oct 14, 2013 at 02:03:16PM -0700, Tony Luck wrote:
+> > Do you have a suggested mechanism for this disabling of dmesg?
+>=20
+> Hmm, how about a 64-bit flag variable (we can use the remaining bits
+> for other stuff later) called x86_ras_flags which is private to
+> arch/x86/ras/core.c (a new file)...
+>=20
+>  [ btw, I'm thinking of something similar to efi's x86_efi_facility which=
+ we
+>  nicely query with test_bit and set with set_bit and clear_bit, etc, etc ]
+>=20
+> Also, look at arch/x86/platform/efi/efi.c::efi_enabled() how it hides
+> the actual variable and we can do something similar so that eMCA and
+> other users like cper.c can do
+>=20
+> apei_estatus_print_section:
+>=20
+> 	if (!ras_tracepoint_enabled())
+> 		cper_print_mem(...)
+>=20
+> We set the bit in x86_ras_flags from, say, debugfs, i.e., a userspace
+> tool sets it and from that moment on all RAS output is rerouted to the
+> trace event. I.e., the output for which there is a trace event...
+>=20
+> How does that look like?
+>=20
 
-We can even add a hint for the user like:
+Looks fine to me. But a little bit out of current patch series. How
+about adding such interfaces after this patch series is merged?
+And from your words, it looks like you prefer to reserve all current
+fields to avoid breaking user space things. IOW, drop patch [7/8]
+and use another patch with above idea to get the same purpose. This
+is what you want, Boris?
 
-	"Above errors have been corrected by the hardware and require no further action."
 
-Btw, this is valid for both dmesg and trace event output.
+--2fHTh5uZTiUOsy+g
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
 
-Because from my experience so far people just scream: "Look, I just had
-an MCE" withot even reading what it says. And this just upsets support
-people for no valid reason at all.
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.14 (GNU/Linux)
 
-Thanks.
+iQIcBAEBAgAGBQJSXQhrAAoJEI01n1+kOSLHtE8P/AgitrlX7c1sU0u2cK+oSQA2
+1HCrfx7ZGoqev4kuFQGmmgX+KZDpU89/906n9v8cubH6SaioPlQlVeFFD9BSHuvT
+NVkDaq41DYLToB+HJbDIPSu6YHuf+J6ptUNSKlTwjK3Fe9HxklLkZ5aHw3Kc/Lkc
+g2m5KHOHgig4bMxko5Yv5J19p04knarL9byyPOa985/XzFWrp8X8IRp9L4PyZCSS
++40byeZAAwNXOabokZJiwLQvEa5UpNSQ8tOaD8tJ7H7T9gZYFfcPw1tVBJZ1Asaq
+VKaCPv+Fzoo6YxMqIF/O2J9Lqgc/PK0JnBlXyFaIb6oO+VxtLiece55BcmXwZQu3
+C5bJQpsCuphsa2GTsvboeXFX9lvxt1ULdQrnrnAtMVj5bu5Ur+iX29edsZH31JTd
+0wvt1GtqgkTyuNPd6jCMl6OVC/MJzmvkMD8Q72Ye1j6OC7ursrUA0w5wpFMO8HVs
+3AueD09nU9l9GeJcCiQ1ePrER/meVl3MWGgRh1xwS3k4JWACBNoSSopvT2PRxB25
+SOfysKypLT0pb5qhfF6RWMNsq4sG7DEt5GJ+dkFzg9lcWdo+5aH+McsofNkFiYj5
+Hh21T0w5YsbUkblhcHpbaa9dOOZKhTZu1aFGnlP2PBGSgbWfU0Nm4k8bRn2ht2Km
+7TD9m3EIE5q2NFTOLLN3
+=EKgU
+-----END PGP SIGNATURE-----
 
--- 
-Regards/Gruss,
-    Boris.
-
-Sent from a fat crate under my desk. Formatting is fine.
---
+--2fHTh5uZTiUOsy+g--
