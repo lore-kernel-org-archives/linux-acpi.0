@@ -1,102 +1,69 @@
-From: Lan Tianyu <tianyu.lan@intel.com>
-Subject: Re: [PATCH] ACPI/Power: Check physical device's runtime pm status
- before requesting to resume it
-Date: Tue, 15 Oct 2013 16:58:28 +0800
-Message-ID: <525D03B4.8050709@intel.com>
-References: <1381479385-1614-1-git-send-email-tianyu.lan@intel.com> <1761658.DWcBvZSdOl@vostro.rjw.lan>
+From: Borislav Petkov <bp@alien8.de>
+Subject: Re: Extended H/W error log driver
+Date: Tue, 15 Oct 2013 11:28:51 +0200
+Message-ID: <20131015092851.GA7908@pd.tnic>
+References: <1381473166-29303-1-git-send-email-gong.chen@linux.intel.com>
+ <20131011080427.GC18719@pd.tnic>
+ <20131014064940.GD12189@gchen.bj.intel.com>
+ <20131014105533.GF4009@pd.tnic>
+ <20131015040731.GA887@gchen.bj.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8;
-	format=flowed
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=utf-8
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga09.intel.com ([134.134.136.24]:24018 "EHLO mga09.intel.com"
+Received: from mail.skyhub.de ([78.46.96.112]:47036 "EHLO mail.skyhub.de"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751151Ab3JOI6I (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 15 Oct 2013 04:58:08 -0400
-In-Reply-To: <1761658.DWcBvZSdOl@vostro.rjw.lan>
+	id S1752589Ab3JOJ3F (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 15 Oct 2013 05:29:05 -0400
+Content-Disposition: inline
+In-Reply-To: <20131015040731.GA887@gchen.bj.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: lenb@kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+To: Chen Gong <gong.chen@linux.intel.com>
+Cc: tony.luck@intel.com, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
 
-On 2013=E5=B9=B410=E6=9C=8811=E6=97=A5 19:19, Rafael J. Wysocki wrote:
-> On Friday, October 11, 2013 04:16:25 PM tianyu.lan@intel.com wrote:
->> From: Lan Tianyu <tianyu.lan@intel.com>
->>
->> Currently, when one power resource is turned on, devices owning it
->> will be requested to resume regardless of their runtime pm status.
->> ACPI power resource maybe turn on in some devices' runtime pm
->> resume callback(E.G, usb port) while turning on the power resource
->> will trigger one new resume request of the device. It causes
->> infinite loop between resume and suspend. This has happened on
->> clearing usb port's PM Qos NO_POWER_OFF flag twice. This patch is
->> to add check of physical device's runtime pm status and request resu=
-me
->> if the device is suspended.
->>
->> Signed-off-by: Lan Tianyu <tianyu.lan@intel.com>
->> ---
->>  drivers/acpi/power.c | 6 ++++--
->>  1 file changed, 4 insertions(+), 2 deletions(-)
->>
->> diff --git a/drivers/acpi/power.c b/drivers/acpi/power.c
->> index 0dbe5cd..228c138 100644
->> --- a/drivers/acpi/power.c
->> +++ b/drivers/acpi/power.c
->> @@ -250,8 +250,10 @@ static void acpi_power_resume_dependent(struct =
-work_struct *work)
->>
->>  	mutex_lock(&adev->physical_node_lock);
->>
->> -	list_for_each_entry(pn, &adev->physical_node_list, node)
->> -		pm_request_resume(pn->dev);
->> +	list_for_each_entry(pn, &adev->physical_node_list, node) {
->> +		if (pm_runtime_suspended(pn->dev))
->> +			pm_request_resume(pn->dev);
->> +	}
->
-> This is racy, because the status may change right after you check it =
-and before
-> you call pm_request_resume().
+On Tue, Oct 15, 2013 at 12:07:31AM -0400, Chen Gong wrote:
+> Some errors have multiple sub sections like below:
+> 
+> [ 1442.070522] {2}[Hardware Error]: Hardware error from APEI Generic Hardware Error Source: 0
+> [ 1442.070528] {2}[Hardware Error]: event severity: corrected
+> [ 1442.070531] {2}[Hardware Error]: sub_event[0], severity: corrected
+> [ 1442.070534] {2}[Hardware Error]: section_type: memory error
+> [ 1442.070537] {2}[Hardware Error]: error_status: 0x0000000000000000
+> [ 1442.070539] {2}[Hardware Error]: sub_event[1], severity: corrected
+> [ 1442.070541] {2}[Hardware Error]: section_type: memory error
+> [ 1442.070543] {2}[Hardware Error]: error_status: 0x0000000000000000
 
-Yes, the runtime status may be changed just after the check.
+Right, and what do those sub sections mean to the user? Did we have
+multiple errors?
 
->
-> Besides, pm_request_resume() checks the status of the device and won'=
-t
-> try to resume it if it is not suspended.
->
-
-=46or this issue, usb port is in the RPM_SUSPENDING state when
-pm_request_resume() is called. The deferred_resume will be set to true
-during this procedure and trigger resume after finishing suspend. USB
-port runtime resume callback will turn on its power resource again and
-the work of acpi_power_resume_dependent() is scheduled. Because the usb
-port's usage count remains zero, it's to be suspended soon. When
-pm_request_resume() of acpi_power_resume_dependent() is called, the usb
-port is always in the PRM_SUSPENDING. Fall in the loop of suspend and
-resume.
-
-How about running acpi_power_dependent when turning on power resource=20
-rather than scheduling a work to run it?  After this,=20
-pm_request_resume() can check device's right status just after turning=20
-on power resource. Furthermore, pm_request_resume() is async resume and=
-=20
-this change will not consume much time.
-
->>
->>  	list_for_each_entry(pn, &adev->power_dependent, node)
->>  		pm_request_resume(pn->dev);
->
-> Thanks!
->
+It looks like this because we have memory errors section type but it is
+not very telling. How about:
 
 
---=20
-Best regards
-Tianyu Lan
+[ 1442.070522] {2}[Hardware Error]: APEI GHES id 0: Hardware errors logged
+[ 1442.070528] {2}[Hardware Error]: event severity: corrected
+[ 1442.070534] {2}[Hardware Error]:  Error 0, type: corrected memory error.
+[ 1442.070537] {2}[Hardware Error]:   error_status: 0x0000000000000000
+[ 1442.070539] {2}[Hardware Error]:  Error 1, type: corrected memory error.
+[ 1442.070543] {2}[Hardware Error]:   error_status: 0x0000000000000000
+
+I think this is much more human readable and understandable :-)
+
+We can even add a hint for the user like:
+
+	"Above errors have been corrected by the hardware and require no further action."
+
+Btw, this is valid for both dmesg and trace event output.
+
+Because from my experience so far people just scream: "Look, I just had
+an MCE" withot even reading what it says. And this just upsets support
+people for no valid reason at all.
+
+Thanks.
+
+-- 
+Regards/Gruss,
+    Boris.
+
+Sent from a fat crate under my desk. Formatting is fine.
 --
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
