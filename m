@@ -1,123 +1,108 @@
-From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [PATCH] ACPI/Power: Check physical device's runtime pm status before requesting to resume it
-Date: Tue, 15 Oct 2013 23:22:28 +0200
-Message-ID: <16284735.7LFgSiThhv@vostro.rjw.lan>
-References: <1381479385-1614-1-git-send-email-tianyu.lan@intel.com> <1761658.DWcBvZSdOl@vostro.rjw.lan> <525D03B4.8050709@intel.com>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: Re: [PATCH] i2c: Fix modalias for ACPI enumerated I2C devices
+Date: Tue, 15 Oct 2013 23:24:01 +0200
+Message-ID: <3125784.Lc8ATpWH6J@vostro.rjw.lan>
+References: <1381414669-26115-1-git-send-email-jarkko.nikula@linux.intel.com> <12043671.FjbAvIiH5B@vostro.rjw.lan> <20131015204829.GA5212@kroah.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7Bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from v094114.home.net.pl ([79.96.170.134]:60415 "HELO
-	v094114.home.net.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S933854Ab3JOVKj convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 15 Oct 2013 17:10:39 -0400
-In-Reply-To: <525D03B4.8050709@intel.com>
+Received: from hydra.sisk.pl ([212.160.235.94]:51285 "EHLO hydra.sisk.pl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S933769Ab3JOVMN (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 15 Oct 2013 17:12:13 -0400
+In-Reply-To: <20131015204829.GA5212@kroah.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Lan Tianyu <tianyu.lan@intel.com>
-Cc: lenb@kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+To: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: Zhang Rui <rui.zhang@intel.com>, Jarkko Nikula <jarkko.nikula@linux.intel.com>, linux-i2c@vger.kernel.org, linux-acpi@vger.kernel.org, Wolfram Sang <wsa@the-dreams.de>, Mika Westerberg <mika.westerberg@linux.intel.com>
 
-On Tuesday, October 15, 2013 04:58:28 PM Lan Tianyu wrote:
-> On 2013=E5=B9=B410=E6=9C=8811=E6=97=A5 19:19, Rafael J. Wysocki wrote=
-:
-> > On Friday, October 11, 2013 04:16:25 PM tianyu.lan@intel.com wrote:
-> >> From: Lan Tianyu <tianyu.lan@intel.com>
-> >>
-> >> Currently, when one power resource is turned on, devices owning it
-> >> will be requested to resume regardless of their runtime pm status.
-> >> ACPI power resource maybe turn on in some devices' runtime pm
-> >> resume callback(E.G, usb port) while turning on the power resource
-> >> will trigger one new resume request of the device. It causes
-> >> infinite loop between resume and suspend. This has happened on
-> >> clearing usb port's PM Qos NO_POWER_OFF flag twice. This patch is
-> >> to add check of physical device's runtime pm status and request re=
-sume
-> >> if the device is suspended.
-> >>
-> >> Signed-off-by: Lan Tianyu <tianyu.lan@intel.com>
-> >> ---
-> >>  drivers/acpi/power.c | 6 ++++--
-> >>  1 file changed, 4 insertions(+), 2 deletions(-)
-> >>
-> >> diff --git a/drivers/acpi/power.c b/drivers/acpi/power.c
-> >> index 0dbe5cd..228c138 100644
-> >> --- a/drivers/acpi/power.c
-> >> +++ b/drivers/acpi/power.c
-> >> @@ -250,8 +250,10 @@ static void acpi_power_resume_dependent(struc=
-t work_struct *work)
-> >>
-> >>  	mutex_lock(&adev->physical_node_lock);
-> >>
-> >> -	list_for_each_entry(pn, &adev->physical_node_list, node)
-> >> -		pm_request_resume(pn->dev);
-> >> +	list_for_each_entry(pn, &adev->physical_node_list, node) {
-> >> +		if (pm_runtime_suspended(pn->dev))
-> >> +			pm_request_resume(pn->dev);
-> >> +	}
-> >
-> > This is racy, because the status may change right after you check i=
-t and before
-> > you call pm_request_resume().
->=20
-> Yes, the runtime status may be changed just after the check.
->=20
-> >
-> > Besides, pm_request_resume() checks the status of the device and wo=
-n't
-> > try to resume it if it is not suspended.
-> >
->=20
-> For this issue, usb port is in the RPM_SUSPENDING state when
-> pm_request_resume() is called.
+On Tuesday, October 15, 2013 01:48:29 PM Greg Kroah-Hartman wrote:
+> On Tue, Oct 15, 2013 at 10:37:02PM +0200, Rafael J. Wysocki wrote:
+> > On Tuesday, October 15, 2013 07:44:44 PM Zhang Rui wrote:
+> > > On Mon, 2013-10-14 at 20:47 +0800, Zhang Rui wrote:
+> > > > On Mon, 2013-10-14 at 14:18 +0300, Jarkko Nikula wrote:
+> > > > > On 10/14/2013 12:23 PM, Zhang Rui wrote:
+> > > > > > Hi,
+> > > > > >
+> > > > > > On Thu, 2013-10-10 at 17:17 +0300, Jarkko Nikula wrote:
+> > > > > >> There is a minor fault about ACPI enumerated I2C devices with their modalias
+> > > > > >> attribute. Now modalias is set by device instance not by hardware ID.
+> > > > > >> For example "i2c:INTABCD:00", "i2c:INTABCD:01" etc.
+> > > > > >>
+> > > > > >> This means each device instance gets different modalias which does match
+> > > > > >> with generated modules.alias. Currently this is not problem as matching can
+> > > > > >> happen also with "acpi:INTABCD" modalias.
+> > > > > >>
+> > > > > > IMO, this is not the proper fix for the modalias problem because ACPI
+> > > > > > enumerated I2C device may have compatible ids.
+> > > > > > Instead, we should export all the compatible ids as the modules alias of
+> > > > > > the ACPI enumerated I2C device.
+> > > > > >
+> > > > > > can you please take a look at the patch I sent out earlier?
+> > > > > > https://patchwork.kernel.org/patch/3034991/
+> > > > > > https://patchwork.kernel.org/patch/3035041/
+> > > > > > https://patchwork.kernel.org/patch/3035021/
+> > > > > I see. This makes sense as it avoids that same device has two different 
+> > > > > modaliases from both acpi and other subsystem.
+> > > > > 
+> > > > > How about modalias nodes in sysfs, should they also reflect what is 
+> > > > > matching uvent?
+> > > > > 
+> > > > good catch, will fix "modalias" as well in next version.
+> > > 
+> > > Hi,
+> > > 
+> > > I have a question about the device "uevent" and "modalias" sysfs
+> > > attributes.
+> > > what is the relationship between these two?
+> > > Am I right to say that, if there is the "MODALIAS" field in uevent file,
+> > > this field must be consistent with the content in "modalias" attribute?
+> 
+> Well, if it isn't, it's pretty pointless, right?
+> 
+> > > I checked the code in drivers/base/platform.c,
+> > > static ssize_t modalias_show(struct device *dev, struct device_attribute
+> > > *a,
+> > >                              char *buf)
+> > > {
+> > >         struct platform_device  *pdev = to_platform_device(dev);
+> > >         int len = snprintf(buf, PAGE_SIZE, "platform:%s\n", pdev->name);
+> > > 
+> > >         return (len >= PAGE_SIZE) ? (PAGE_SIZE - 1) : len;
+> > > }
+> > > 
+> > > static int platform_uevent(struct device *dev, struct kobj_uevent_env
+> > > *env)
+> > > {
+> > >         struct platform_device  *pdev = to_platform_device(dev);
+> > >         int rc;
+> > > 
+> > >         /* Some devices have extra OF data and an OF-style MODALIAS */
+> > >         rc = of_device_uevent_modalias(dev, env);
+> > >         if (rc != -ENODEV)
+> > >                 return rc;
+> > > 
+> > >         add_uevent_var(env, "MODALIAS=%s%s", PLATFORM_MODULE_PREFIX,
+> > >                         pdev->name);
+> > >         return 0;
+> > > }
+> > > 
+> > > This means that the OF-style MODALIAS is not shown in "modalias" sysfs
+> > > attribute.
+> > > is this a bug?
+> > 
+> > I would consider that as a bug, but I'm not sure what the recommended practice
+> > is.  Greg?
+> 
+> I have no idea how the OF stuff is working, and honestly, I really have
+> no wish to ever know anything about it.  Especially when it comes to
+> platform devices/drivers, something that I personally hate and wish
+> would be deleted.
+> 
+> So go ask the OF maintainers/developers, this is their domain :)
 
-Why exactly does that happen?
+Well, OK.  Whom in particular?
 
-> The deferred_resume will be set to true
-> during this procedure and trigger resume after finishing suspend. USB
-> port runtime resume callback will turn on its power resource again an=
-d
-> the work of acpi_power_resume_dependent() is scheduled. Because the u=
-sb
-> port's usage count remains zero, it's to be suspended soon. When
-> pm_request_resume() of acpi_power_resume_dependent() is called, the u=
-sb
-> port is always in the PRM_SUSPENDING. Fall in the loop of suspend and
-> resume.
->=20
-> How about running acpi_power_dependent when turning on power resource=
-=20
-> rather than scheduling a work to run it?
+Rafael
 
-Is this actually going to help?  Even if acpi_power_resume_dependent() =
-is
-run synchronously from within the resume callback, it will still see
-RPM_SUSPENDING as the device's status, won't it?
-
-> After this, pm_request_resume() can check device's right status just =
-after
-> turning on power resource.
-
-The status doesn't change until the .runtime_suspend() callback returns=
- and
-running pm_request_resume() syncrhonously from that callback for the de=
-vice
-being suspended just plain doesn't make sense.
-
-> Furthermore, pm_request_resume() is async resume and=20
-> this change will not consume much time.
-
-acpi_power_resume_dependent() is run from a work item to avoid locking
-problems.
-
-Can you please explain to me how this is possible that the USB port's p=
-ower
-resource is turned "on" while the port is RPM_SUSPENDING?
-
---=20
-I speak only for myself.
-Rafael J. Wysocki, Intel Open Source Technology Center.
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
