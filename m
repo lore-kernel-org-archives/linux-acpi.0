@@ -1,99 +1,102 @@
-From: Chen Gong <gong.chen@linux.intel.com>
-Subject: Re: Extended H/W error log driver
-Date: Tue, 15 Oct 2013 00:07:31 -0400
-Message-ID: <20131015040731.GA887@gchen.bj.intel.com>
-References: <1381473166-29303-1-git-send-email-gong.chen@linux.intel.com>
- <20131011080427.GC18719@pd.tnic>
- <20131014064940.GD12189@gchen.bj.intel.com>
- <20131014105533.GF4009@pd.tnic>
+From: Lan Tianyu <tianyu.lan@intel.com>
+Subject: Re: [PATCH] ACPI/Power: Check physical device's runtime pm status
+ before requesting to resume it
+Date: Tue, 15 Oct 2013 16:58:28 +0800
+Message-ID: <525D03B4.8050709@intel.com>
+References: <1381479385-1614-1-git-send-email-tianyu.lan@intel.com> <1761658.DWcBvZSdOl@vostro.rjw.lan>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="IJpNTDwzlM2Ie8A6"
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20131014105533.GF4009@pd.tnic>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Borislav Petkov <bp@alien8.de>
-Cc: tony.luck@intel.com, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8;
+	format=flowed
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mga09.intel.com ([134.134.136.24]:24018 "EHLO mga09.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751151Ab3JOI6I (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 15 Oct 2013 04:58:08 -0400
+In-Reply-To: <1761658.DWcBvZSdOl@vostro.rjw.lan>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: lenb@kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+
+On 2013=E5=B9=B410=E6=9C=8811=E6=97=A5 19:19, Rafael J. Wysocki wrote:
+> On Friday, October 11, 2013 04:16:25 PM tianyu.lan@intel.com wrote:
+>> From: Lan Tianyu <tianyu.lan@intel.com>
+>>
+>> Currently, when one power resource is turned on, devices owning it
+>> will be requested to resume regardless of their runtime pm status.
+>> ACPI power resource maybe turn on in some devices' runtime pm
+>> resume callback(E.G, usb port) while turning on the power resource
+>> will trigger one new resume request of the device. It causes
+>> infinite loop between resume and suspend. This has happened on
+>> clearing usb port's PM Qos NO_POWER_OFF flag twice. This patch is
+>> to add check of physical device's runtime pm status and request resu=
+me
+>> if the device is suspended.
+>>
+>> Signed-off-by: Lan Tianyu <tianyu.lan@intel.com>
+>> ---
+>>  drivers/acpi/power.c | 6 ++++--
+>>  1 file changed, 4 insertions(+), 2 deletions(-)
+>>
+>> diff --git a/drivers/acpi/power.c b/drivers/acpi/power.c
+>> index 0dbe5cd..228c138 100644
+>> --- a/drivers/acpi/power.c
+>> +++ b/drivers/acpi/power.c
+>> @@ -250,8 +250,10 @@ static void acpi_power_resume_dependent(struct =
+work_struct *work)
+>>
+>>  	mutex_lock(&adev->physical_node_lock);
+>>
+>> -	list_for_each_entry(pn, &adev->physical_node_list, node)
+>> -		pm_request_resume(pn->dev);
+>> +	list_for_each_entry(pn, &adev->physical_node_list, node) {
+>> +		if (pm_runtime_suspended(pn->dev))
+>> +			pm_request_resume(pn->dev);
+>> +	}
+>
+> This is racy, because the status may change right after you check it =
+and before
+> you call pm_request_resume().
+
+Yes, the runtime status may be changed just after the check.
+
+>
+> Besides, pm_request_resume() checks the status of the device and won'=
+t
+> try to resume it if it is not suspended.
+>
+
+=46or this issue, usb port is in the RPM_SUSPENDING state when
+pm_request_resume() is called. The deferred_resume will be set to true
+during this procedure and trigger resume after finishing suspend. USB
+port runtime resume callback will turn on its power resource again and
+the work of acpi_power_resume_dependent() is scheduled. Because the usb
+port's usage count remains zero, it's to be suspended soon. When
+pm_request_resume() of acpi_power_resume_dependent() is called, the usb
+port is always in the PRM_SUSPENDING. Fall in the loop of suspend and
+resume.
+
+How about running acpi_power_dependent when turning on power resource=20
+rather than scheduling a work to run it?  After this,=20
+pm_request_resume() can check device's right status just after turning=20
+on power resource. Furthermore, pm_request_resume() is async resume and=
+=20
+this change will not consume much time.
+
+>>
+>>  	list_for_each_entry(pn, &adev->power_dependent, node)
+>>  		pm_request_resume(pn->dev);
+>
+> Thanks!
+>
 
 
---IJpNTDwzlM2Ie8A6
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
-
-On Mon, Oct 14, 2013 at 12:55:33PM +0200, Borislav Petkov wrote:
-> Date: Mon, 14 Oct 2013 12:55:33 +0200
-> From: Borislav Petkov <bp@alien8.de>
-> To: Chen Gong <gong.chen@linux.intel.com>
-> Cc: tony.luck@intel.com, linux-kernel@vger.kernel.org,
->  linux-acpi@vger.kernel.org
-> Subject: Re: Extended H/W error log driver
-> User-Agent: Mutt/1.5.21 (2010-09-15)
->=20
-> On Mon, Oct 14, 2013 at 02:49:40AM -0400, Chen Gong wrote:
-> > On Fri, Oct 11, 2013 at 10:04:27AM +0200, Borislav Petkov wrote:
-> > > > [56005.786154] {4}Hardware error detected on CPU0
-> > > > [56005.786159] {4}event severity: corrected
-> > > > [56005.786162] {4}sub_event[0], severity: corrected
-> > >=20
-> > > This sub_event[0] could use better decoding though.
-> > >=20
-> > What's your suggestion?
->=20
-> Well, if this only enumerates the sections in CPER, then we can simply
-> drop it.
->=20
-Some errors have multiple sub sections like below:
-
-[ 1442.070522] {2}[Hardware Error]: Hardware error from APEI Generic Hardwa=
-re Error Source: 0
-[ 1442.070528] {2}[Hardware Error]: event severity: corrected
-[ 1442.070531] {2}[Hardware Error]: sub_event[0], severity: corrected
-[ 1442.070534] {2}[Hardware Error]: section_type: memory error
-[ 1442.070537] {2}[Hardware Error]: error_status: 0x0000000000000000
-[ 1442.070539] {2}[Hardware Error]: sub_event[1], severity: corrected
-[ 1442.070541] {2}[Hardware Error]: section_type: memory error
-[ 1442.070543] {2}[Hardware Error]: error_status: 0x0000000000000000
-
-> Btw, I was wondering, why are we dropping
-> cper_estatus_section_flag_strs? This is again the same issue with
-> changing output which people might already rely upon.
->=20
-
-This depends on how we shrink the output information. Your reply in
-another patch looks a good idea. Let me try it first.
-
-> Thanks.
->=20
-> --=20
-> Regards/Gruss,
->     Boris.
->=20
-> Sent from a fat crate under my desk. Formatting is fine.
-> --
-
---IJpNTDwzlM2Ie8A6
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.14 (GNU/Linux)
-
-iQIcBAEBAgAGBQJSXL+DAAoJEI01n1+kOSLHc6UP/2QHsuOL+FECirW/RYShCyhD
-dktXi4MadGdPyUES1dhcKb+OhvtIkb2JThvfL/Q/Dl/G0jPjlNz+bPUtdHzi3RWn
-5Mhr0BzNetjdMFADG0DmWHGYT3O0lyvUwAmG1+xCfRr7u38ecC0X1lJtnVr5KwWr
-IWci1IU+HpDpdr/D+GK7bi5YkECyZPTdJjRumL6ibglKCBm6FmtgLfEQ4lTk/WQb
-sVNyF3a77vp4i8MW5/TfR1j9a5mVdnxZGhU/1HY59BgFi0ksE1Sy7Y2MYuot1u4m
-YmgtbucSPBYp5KWqgrH2P3WelnG83lZqG/hbpJUhLkciJeFqwonydXpixawS6LFk
-gJMXlxPAQ1h2glIIUDVnrE8OY6VtFmAY45jG+h3c1TlCFPeW77sGzEIiqU6edEzn
-TMh72/WncLRe/r6mxpZLswwZsMludGp0pJ1mWaEOMH6Hmre5K3w6KMJjufAERQRJ
-STTl3jtR6ks4xLVcweOpIL6W/OMWlgjW0S2WNMz2UTbPncgODrBHWp0RXQqdV9Yn
-TcAimHqWVeYCRJgQuTI/iRQDMi91YIqf/pKL0hJ7J+LKKvM9PZbo0Xq55PpEq19l
-ASsRs44o3kodx2Y1WbaP8yp/MNWTtt0KzvD/j7m0aZQjJna6MDBx5/CTgk9DVyv+
-4Y2vhz0JuxhTsIYRj6QS
-=CZtd
------END PGP SIGNATURE-----
-
---IJpNTDwzlM2Ie8A6--
+--=20
+Best regards
+Tianyu Lan
+--
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
