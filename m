@@ -1,88 +1,70 @@
-From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [PATCH v5 0/4] Fix Win8 backlight issue
-Date: Wed, 16 Oct 2013 01:33:44 +0200
-Message-ID: <2140073.U60XyxRqVZ@vostro.rjw.lan>
-References: <1381498066-16011-1-git-send-email-aaron.lu@intel.com>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: Re: [PATCH] acpi/video: Add Lenovo IdeaPad Yoga 13 to acpi video detect blacklist
+Date: Wed, 16 Oct 2013 01:42:42 +0200
+Message-ID: <2179447.s8536zuTL5@vostro.rjw.lan>
+References: <20131014005505.GA30503@tango.0pointer.de>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7Bit
-Return-path: <platform-driver-x86-owner@vger.kernel.org>
-In-Reply-To: <1381498066-16011-1-git-send-email-aaron.lu@intel.com>
-Sender: platform-driver-x86-owner@vger.kernel.org
-To: Aaron Lu <aaron.lu@intel.com>
-Cc: linux-acpi@vger.kernel.org, intel-gfx@lists.freedesktop.org, dri-devel@lists.freedesktop.org, linux-kernel@vger.kernel.org, Daniel Vetter <daniel@ffwll.ch>, Matthew Garrett <matthew.garrett@nebula.com>, Seth Forshee <seth.forshee@canonical.com>, Lee Chun-Yi <joeyli.kernel@gmail.com>, Richard Purdie <rpurdie@rpsys.net>, Igor Gnatenko <i.gnatenko.brain@gmail.com>, Yves-Alexis Perez <corsac@debian.org>, Felipe Contreras <felipe.contreras@gmail.com>, Jani Nikula <jani.nikula@linux.intel.com>, Ben Jencks <ben@bjencks.net>, Steven Newbury <steve@snewbury.org.uk>, James Hogan <james@albanarts.com>, Kamal Mostafa <kamal@canonical.com>, Joerg Platte <jplatte@naasa.net>, Kalle Valo <kvalo@adurom.com>, Martin Steigerwald <Martin@lichtvoll.de>, =?ISO-8859-1?Q?J=F6rg?= Otte <jrg.otte@gmail.com>, Mike Galbraith <bitbucket@online.de>, platform-driver-x86@vger.kernel.org, Mika
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from hydra.sisk.pl ([212.160.235.94]:51305 "EHLO hydra.sisk.pl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S933597Ab3JOXax (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 15 Oct 2013 19:30:53 -0400
+In-Reply-To: <20131014005505.GA30503@tango.0pointer.de>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Lennart Poettering <lennart@poettering.net>
+Cc: Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 
-On Friday, October 11, 2013 09:27:42 PM Aaron Lu wrote:
-> v5:
-> 1 Introduce video.use_native_backlight module parameter and set its
->   value to false by default as suggested by Rafael. For Win8 systems
->   which have broken ACPI video backlight control, the parameter can be
->   set to 1 in kernel cmdline to skip registering ACPI video's backlight
->   interface. Due to this change, the acpi_video_verify_backlight_support
->   is moved from video_detect.c to video.c - patch 3/4;
-> 2 Rename bd_list_head and bd_list_mutex in backlight.c to
->   backlight_dev_list and backlight_dev_list_mutex as suggested by Rafael
->   - patch 1/4.
+On Monday, October 14, 2013 02:55:05 AM Lennart Poettering wrote:
+> On the Yoga 13 the backlight control doesn't work via ACPI. (And doesn't
+> work either with the low-level platform driver ideapad_laptop; but
+> works correctly via the intel video driver).  This patch hence adds the
+> Yoga 13 to the ACPI video detect blacklist, to make sure the broken ACPI
+> backlight device is never exposed to userspace.
 > 
-> v4:
-> Remove decleration and stub for acpi_video_unregister_backlight in
-> video.h of patch 2/4 since that function doesn't exist anymore in v3.
+> Note that this appears unrelated to the Windows 8 backlight issues tracked
+> here:
 > 
-> v3:
-> 1 Add a new patch 4/4 to fix some problems in thinkpad-acpi module;
-> 2 Remove unnecessary function acpi_video_unregister_backlight introduced
->   in patch 2/4 as pointed out by Jani Nikula.
+> https://bugzilla.kernel.org/show_bug.cgi?id=51231
+> https://bugzilla.kernel.org/show_bug.cgi?id=60682
 > 
-> v2:
-> v1 has the subject of "Rework ACPI video driver" and is posted here:
-> http://lkml.org/lkml/2013/9/9/74
-> Since the objective is really to fix Win8 backlight issues, I changed
-> the subject in this version, sorry about that.
+> The Yoga's ACPI backlight controls work neither with nor without
+> acpi_osi="!Windows 2012" on the kernel command line. It appears that
+> backlight control via the EC simply is not available at all, regardless
+> whether done via ACPI or via the vendor driver.
 > 
-> This patchset has four patches, the first introduced a new API named
-> backlight_device_registered in backlight layer that can be used for
-> backlight interface provider module to check if a specific type backlight
-> interface has been registered, see changelog for patch 1/4 for details.
-> Then patch 2/4 does the cleanup to sepeate the backlight control and
-> event delivery functionality in the ACPI video module and patch 3/4
-> solves some Win8 backlight control problems by avoiding register ACPI
-> video's backlight interface if:
-> 1 Kernel cmdline option acpi_backlight=video is not given;
-> 2 This is a Win8 system;
-> 3 Native backlight control interface exists.
-> Patch 4/4 fixes some problems in thinkpad-acpi module.
-> 
-> Technically, patch 2/4 is not required to fix the issue here. So if you
-> think it is not necessary, I can remove it from the series.
-> 
-> Aaron Lu (4):
->   backlight: introduce backlight_device_registered
->   ACPI / video: seperate backlight control and event interface
->   ACPI / video: Do not register backlight if win8 and native interface
->     exists
->   thinkpad-acpi: fix handle locate for video and query of _BCL
-> 
->  drivers/acpi/internal.h              |   4 +-
->  drivers/acpi/video.c                 | 457 ++++++++++++++++++++---------------
->  drivers/acpi/video_detect.c          |   4 +-
->  drivers/platform/x86/thinkpad_acpi.c |  31 ++-
->  drivers/video/backlight/backlight.c  |  31 +++
->  include/linux/backlight.h            |   4 +
->  6 files changed, 326 insertions(+), 205 deletions(-)
+> Signed-off-by: Lennart Poettering <lennart@poettering.net>
 
-I've added this series to my queue for 3.13.
-
-Since the next step will be to introduce a list of systems that need
-video.use_native_backlight=1 *and* don't break in that configuration, I don't
-see much point adding another Kconfig option for the default.
-
-Hopefully, in the future we'll be able to fix the problems causing
-video.use_native_backlight=1 to fail of the systems where it fails and then
-we'll be able to make that the default behavior and drop the option altogether.
+I've added this to my queue for 3.13.
 
 Thanks!
 
+> ---
+>  drivers/acpi/video_detect.c | 8 ++++++++
+>  1 file changed, 8 insertions(+)
+> 
+> diff --git a/drivers/acpi/video_detect.c b/drivers/acpi/video_detect.c
+> index 940edbf..a88e8f7 100644
+> --- a/drivers/acpi/video_detect.c
+> +++ b/drivers/acpi/video_detect.c
+> @@ -168,6 +168,14 @@ static struct dmi_system_id video_detect_dmi_table[] = {
+>  		DMI_MATCH(DMI_PRODUCT_NAME, "UL30A"),
+>  		},
+>  	},
+> +	{
+> +	.callback = video_detect_force_vendor,
+> +	.ident = "Lenovo Yoga 13",
+> +	.matches = {
+> +		DMI_MATCH(DMI_SYS_VENDOR, "LENOVO"),
+> +		DMI_MATCH(DMI_PRODUCT_VERSION, "Lenovo IdeaPad Yoga 13"),
+> +		},
+> +	},
+>  	{ },
+>  };
+>  
+> 
 -- 
 I speak only for myself.
 Rafael J. Wysocki, Intel Open Source Technology Center.
