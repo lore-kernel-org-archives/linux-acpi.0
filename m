@@ -1,45 +1,60 @@
 From: Borislav Petkov <bp@alien8.de>
-Subject: Re: [PATCH 7/8] ACPI, APEI, CPER: Cleanup CPER memory error output
- format
-Date: Tue, 15 Oct 2013 18:56:05 +0200
-Message-ID: <20131015165605.GE7908@pd.tnic>
+Subject: Re: [PATCH 8/8] ACPI / trace: Add trace interface for eMCA driver
+Date: Tue, 15 Oct 2013 19:00:39 +0200
+Message-ID: <20131015170039.GF7908@pd.tnic>
 References: <1381473166-29303-1-git-send-email-gong.chen@linux.intel.com>
- <1381473166-29303-8-git-send-email-gong.chen@linux.intel.com>
- <20131011160208.GL5925@pd.tnic>
- <20131014045500.GC12189@gchen.bj.intel.com>
- <20131014103616.GE4009@pd.tnic>
- <CA+8MBbJ9P1GVf3SCh7LMY_LH+pxQg3GWkxKMzni1b1Wyx1o8NQ@mail.gmail.com>
- <525D2A07.6080201@linux.vnet.ibm.com>
- <20131015122958.GD7908@pd.tnic>
- <1381855341.22110.21.camel@joe-AO722>
- <CA+8MBb+jbsTupiDL-kKQDwwnpck0wDk8Y-ZnLRuBeZWrvM-LAg@mail.gmail.com>
+ <1381473166-29303-9-git-send-email-gong.chen@linux.intel.com>
+ <20131015165435.GA2777@naverao1-tp.ibm.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=utf-8
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail.skyhub.de ([78.46.96.112]:46161 "EHLO mail.skyhub.de"
+Received: from mail.skyhub.de ([78.46.96.112]:33446 "EHLO mail.skyhub.de"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S933200Ab3JOQ4T (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 15 Oct 2013 12:56:19 -0400
+	id S933198Ab3JORAw (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 15 Oct 2013 13:00:52 -0400
 Content-Disposition: inline
-In-Reply-To: <CA+8MBb+jbsTupiDL-kKQDwwnpck0wDk8Y-ZnLRuBeZWrvM-LAg@mail.gmail.com>
+In-Reply-To: <20131015165435.GA2777@naverao1-tp.ibm.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Tony Luck <tony.luck@gmail.com>
-Cc: Joe Perches <joe@perches.com>, "Naveen N. Rao" <naveen.n.rao@linux.vnet.ibm.com>, Chen Gong <gong.chen@linux.intel.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-acpi <linux-acpi@vger.kernel.org>, Lance Ortiz <lance.ortiz@hp.com>
+To: "Naveen N. Rao" <naveen.n.rao@linux.vnet.ibm.com>
+Cc: "Chen, Gong" <gong.chen@linux.intel.com>, tony.luck@intel.com, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, m.chehab@samsung.com
 
-On Tue, Oct 15, 2013 at 09:49:06AM -0700, Tony Luck wrote:
-> On Tue, Oct 15, 2013 at 9:42 AM, Joe Perches <joe@perches.com> wrote:
-> > No guarantees are made about dmesg output.
+On Tue, Oct 15, 2013 at 10:24:35PM +0530, Naveen N. Rao wrote:
+> On 2013/10/11 02:32AM, Chen Gong wrote:
+> > Use trace interface to elaborate all H/W error related
+> > information.
+> > 
+> > Signed-off-by: Chen, Gong <gong.chen@linux.intel.com>
+> > ---
+> <snip>
+> > +TRACE_EVENT(extlog_mem_event,
+> > +	TP_PROTO(u32 etype,
+> > +		char *dimm_loc,
+> > +		const uuid_le *fru_id,
+> > +		char *fru_text,
+> > +		u64 error_count,
+> > +		u32 severity,
+> > +		u64 phy_addr,
+> > +		char *mem_loc),
 > 
-> I'm with Joe here.  Current users that parse dmesg have grumbled a bit
-> that format changes - but they know that's the way life is.  Perhaps they'll
-> be too busy cheering about the TRACE formats that we are going to give
-> them that they won't whine too much about this.
+> [Adding Mauro...]
+> 
+> This looks very similar to the trace event I wrote a while back,
+> which was similar to the one provided by ghes_edac:
+> http://thread.gmane.org/gmane.linux.kernel.pci/24616
+> 
+> Seems to me this has the same issues we previously discussed w.r.t
+> EDAC conflicts...
 
-Ok, I'll make sure to forward all complaints to you and Joe then. :)
+Right, I'm inclined to leave this trace_mc_event in ras_event.h to edac
+use alone because of all those layers which don't mean whit for GHES and
+eMCA error sources.
 
-In any case, we talked about it, you think it is not worth preserving
-it, we can drop the printks and see who cries out.
+And maybe define a trace_mem_event which is shared by GHES and eMCA and
+not use the edac tracepoint there not load ghes_edac on such systems
+which have sufficient decoding capability in firmware.
+
+Thoughts?
 
 -- 
 Regards/Gruss,
