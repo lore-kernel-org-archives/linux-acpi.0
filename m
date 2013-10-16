@@ -1,95 +1,109 @@
-From: Heikki Krogerus <heikki.krogerus-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
-Subject: [PATCH 5/5] net: rfkill: gpio: add ACPI support
-Date: Wed, 16 Oct 2013 13:53:43 +0300
-Message-ID: <1381920823-15403-6-git-send-email-heikki.krogerus@linux.intel.com>
+From: Heikki Krogerus <heikki.krogerus@linux.intel.com>
+Subject: [PATCH 2/5] net: rfkill: gpio: clean up clock handling
+Date: Wed, 16 Oct 2013 13:53:40 +0300
+Message-ID: <1381920823-15403-3-git-send-email-heikki.krogerus@linux.intel.com>
 References: <1381920823-15403-1-git-send-email-heikki.krogerus@linux.intel.com>
-Return-path: <linux-wireless-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1381920823-15403-1-git-send-email-heikki.krogerus-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
-Sender: linux-wireless-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "John W. Linville" <linville-2XuSBdqkA4R54TAoqtyWWQ@public.gmane.org>
-Cc: Johannes Berg <johannes-cdvu00un1VgdHxzADdlk8Q@public.gmane.org>, Rhyland Klein <rklein-DDmLM1+adcrQT0dZR+AlfA@public.gmane.org>, "Rafael J. Wysocki" <rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org>, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-wireless-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <1381920823-15403-1-git-send-email-heikki.krogerus@linux.intel.com>
+Sender: netdev-owner@vger.kernel.org
+To: "John W. Linville" <linville@tuxdriver.com>
+Cc: Johannes Berg <johannes@sipsolutions.net>, Rhyland Klein <rklein@nvidia.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, linux-acpi@vger.kernel.org, linux-wireless@vger.kernel.org, netdev@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-Including ACPI ID for Broadcom GPS receiver BCM4752.
+Use a simple flag to see the state of the clock, and make
+the clock available even without a name. Also, get rid of
+HAVE_CLK dependency.
 
-Signed-off-by: Heikki Krogerus <heikki.krogerus-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
+Signed-off-by: Heikki Krogerus <heikki.krogerus@linux.intel.com>
 ---
- net/rfkill/rfkill-gpio.c | 31 ++++++++++++++++++++++++++++++-
- 1 file changed, 30 insertions(+), 1 deletion(-)
+ net/rfkill/Kconfig       |  2 +-
+ net/rfkill/rfkill-gpio.c | 35 ++++++++---------------------------
+ 2 files changed, 9 insertions(+), 28 deletions(-)
 
+diff --git a/net/rfkill/Kconfig b/net/rfkill/Kconfig
+index 78efe89..4c10e7e 100644
+--- a/net/rfkill/Kconfig
++++ b/net/rfkill/Kconfig
+@@ -36,7 +36,7 @@ config RFKILL_REGULATOR
+ 
+ config RFKILL_GPIO
+ 	tristate "GPIO RFKILL driver"
+-	depends on RFKILL && GPIOLIB && HAVE_CLK
++	depends on RFKILL && GPIOLIB
+ 	default n
+ 	help
+ 	  If you say yes here you get support of a generic gpio RFKILL
 diff --git a/net/rfkill/rfkill-gpio.c b/net/rfkill/rfkill-gpio.c
-index 2dd78c6..5620d3c 100644
+index 0705806..1d104e7 100644
 --- a/net/rfkill/rfkill-gpio.c
 +++ b/net/rfkill/rfkill-gpio.c
-@@ -24,6 +24,8 @@
- #include <linux/platform_device.h>
- #include <linux/clk.h>
- #include <linux/slab.h>
-+#include <linux/acpi.h>
-+#include <linux/acpi_gpio.h>
+@@ -27,24 +27,13 @@
  
  #include <linux/rfkill-gpio.h>
  
-@@ -70,6 +72,23 @@ static const struct rfkill_ops rfkill_gpio_ops = {
- 	.set_block = rfkill_gpio_set_power,
+-enum rfkill_gpio_clk_state {
+-	UNSPECIFIED = 0,
+-	PWR_ENABLED,
+-	PWR_DISABLED
+-};
+-
+-#define PWR_CLK_SET(_RF, _EN) \
+-	((_RF)->pwr_clk_enabled = (!(_EN) ? PWR_ENABLED : PWR_DISABLED))
+-#define PWR_CLK_ENABLED(_RF) ((_RF)->pwr_clk_enabled == PWR_ENABLED)
+-#define PWR_CLK_DISABLED(_RF) ((_RF)->pwr_clk_enabled != PWR_ENABLED)
+-
+ struct rfkill_gpio_data {
+ 	struct rfkill_gpio_platform_data	*pdata;
+ 	struct rfkill				*rfkill_dev;
+ 	char					*reset_name;
+ 	char					*shutdown_name;
+-	enum rfkill_gpio_clk_state		pwr_clk_enabled;
+-	struct clk				*pwr_clk;
++	struct clk				*clk;
++	bool					clk_enabled;
  };
  
-+static int rfkill_gpio_acpi_probe(struct device *dev,
-+				  struct rfkill_gpio_data *rfkill)
-+{
-+	const struct acpi_device_id *id;
-+
-+	id = acpi_match_device(dev->driver->acpi_match_table, dev);
-+	if (!id)
-+		return -ENODEV;
-+
-+	rfkill->name = dev_name(dev);
-+	rfkill->type = (unsigned)id->driver_data;
-+	rfkill->reset_gpio = acpi_get_gpio_by_index(dev, 0, NULL);
-+	rfkill->shutdown_gpio = acpi_get_gpio_by_index(dev, 1, NULL);
-+
-+	return 0;
-+}
-+
- static int rfkill_gpio_probe(struct platform_device *pdev)
- {
- 	struct rfkill_gpio_platform_data *pdata = pdev->dev.platform_data;
-@@ -82,7 +101,11 @@ static int rfkill_gpio_probe(struct platform_device *pdev)
- 	if (!rfkill)
- 		return -ENOMEM;
+ static int rfkill_gpio_set_power(void *data, bool blocked)
+@@ -56,19 +45,18 @@ static int rfkill_gpio_set_power(void *data, bool blocked)
+ 			gpio_direction_output(rfkill->pdata->shutdown_gpio, 0);
+ 		if (gpio_is_valid(rfkill->pdata->reset_gpio))
+ 			gpio_direction_output(rfkill->pdata->reset_gpio, 0);
+-		if (rfkill->pwr_clk && PWR_CLK_ENABLED(rfkill))
+-			clk_disable(rfkill->pwr_clk);
++		if (!IS_ERR(rfkill->clk) && rfkill->clk_enabled)
++			clk_disable(rfkill->clk);
+ 	} else {
+-		if (rfkill->pwr_clk && PWR_CLK_DISABLED(rfkill))
+-			clk_enable(rfkill->pwr_clk);
++		if (!IS_ERR(rfkill->clk) && !rfkill->clk_enabled)
++			clk_enable(rfkill->clk);
+ 		if (gpio_is_valid(rfkill->pdata->reset_gpio))
+ 			gpio_direction_output(rfkill->pdata->reset_gpio, 1);
+ 		if (gpio_is_valid(rfkill->pdata->shutdown_gpio))
+ 			gpio_direction_output(rfkill->pdata->shutdown_gpio, 1);
+ 	}
  
--	if (pdata) {
-+	if (ACPI_HANDLE(&pdev->dev)) {
-+		ret = rfkill_gpio_acpi_probe(&pdev->dev, rfkill);
-+		if (ret)
-+			return ret;
-+	} else if (pdata) {
- 		clk_name = pdata->power_clk_name;
- 		rfkill->name = pdata->name;
- 		rfkill->type = pdata->type;
-@@ -170,12 +193,18 @@ static int rfkill_gpio_remove(struct platform_device *pdev)
+-	if (rfkill->pwr_clk)
+-		PWR_CLK_SET(rfkill, blocked);
++	rfkill->clk_enabled = blocked;
+ 
  	return 0;
  }
+@@ -123,14 +111,7 @@ static int rfkill_gpio_probe(struct platform_device *pdev)
+ 	snprintf(rfkill->reset_name, len + 6 , "%s_reset", pdata->name);
+ 	snprintf(rfkill->shutdown_name, len + 9, "%s_shutdown", pdata->name);
  
-+static const struct acpi_device_id rfkill_acpi_match[] = {
-+	{ "BCM4752", RFKILL_TYPE_GPS },
-+	{ },
-+};
-+
- static struct platform_driver rfkill_gpio_driver = {
- 	.probe = rfkill_gpio_probe,
- 	.remove = rfkill_gpio_remove,
- 	.driver = {
- 		.name = "rfkill_gpio",
- 		.owner = THIS_MODULE,
-+		.acpi_match_table = ACPI_PTR(rfkill_acpi_match),
- 	},
- };
+-	if (pdata->power_clk_name) {
+-		rfkill->pwr_clk = devm_clk_get(&pdev->dev,
+-						pdata->power_clk_name);
+-		if (IS_ERR(rfkill->pwr_clk)) {
+-			pr_warn("%s: can't find pwr_clk.\n", __func__);
+-			return PTR_ERR(rfkill->pwr_clk);
+-		}
+-	}
++	rfkill->clk = devm_clk_get(&pdev->dev, pdata->power_clk_name);
  
+ 	if (gpio_is_valid(pdata->reset_gpio)) {
+ 		ret = devm_gpio_request(&pdev->dev, pdata->reset_gpio,
 -- 
 1.8.4.rc3
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-wireless" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
