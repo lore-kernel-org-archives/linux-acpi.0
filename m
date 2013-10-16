@@ -1,189 +1,156 @@
 From: Bjorn Helgaas <bhelgaas@google.com>
-Subject: Re: [Resend PATCH 3/5] ACPI: Add new
- acpi_dev_resource_address_space_full() function
-Date: Wed, 16 Oct 2013 17:18:36 -0600
-Message-ID: <20131016231836.GC17866@google.com>
+Subject: Re: [Resend PATCH 5/5] IA64/PCI/ACPI: Rework PCI root bridge ACPI
+ resource conversion
+Date: Wed, 16 Oct 2013 17:55:41 -0600
+Message-ID: <20131016235541.GD17866@google.com>
 References: <1381493941-4650-1-git-send-email-tianyu.lan@intel.com>
- <1381493941-4650-4-git-send-email-tianyu.lan@intel.com>
+ <1381493941-4650-6-git-send-email-tianyu.lan@intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-ie0-f176.google.com ([209.85.223.176]:46285 "EHLO
-	mail-ie0-f176.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1760702Ab3JPXSj (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 16 Oct 2013 19:18:39 -0400
-Received: by mail-ie0-f176.google.com with SMTP id u16so2561955iet.21
-        for <linux-acpi@vger.kernel.org>; Wed, 16 Oct 2013 16:18:39 -0700 (PDT)
+Received: from mail-ie0-f172.google.com ([209.85.223.172]:38609 "EHLO
+	mail-ie0-f172.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1760544Ab3JPXzo (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 16 Oct 2013 19:55:44 -0400
+Received: by mail-ie0-f172.google.com with SMTP id tp5so2680677ieb.31
+        for <linux-acpi@vger.kernel.org>; Wed, 16 Oct 2013 16:55:44 -0700 (PDT)
 Content-Disposition: inline
-In-Reply-To: <1381493941-4650-4-git-send-email-tianyu.lan@intel.com>
+In-Reply-To: <1381493941-4650-6-git-send-email-tianyu.lan@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: tianyu.lan@intel.com
-Cc: lenb@kernel.org, rjw@sisk.pl, yinghai@kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+Cc: tony.luck@intel.com, lenb@kernel.org, rjw@sisk.pl, yinghai@kernel.org, linux-ia64@vger.kernel.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
 
-On Fri, Oct 11, 2013 at 08:18:59PM +0800, tianyu.lan@intel.com wrote:
+On Fri, Oct 11, 2013 at 08:19:01PM +0800, tianyu.lan@intel.com wrote:
 > From: Lan Tianyu <tianyu.lan@intel.com>
 > 
-> Make acpi_dev_resource_address_space() to accept struct
-> acpi_resource_address64 as param and rename it to *_full.
-> 
-> This is for some cases that acpi address info is also needed
-> after convert from acpi resouce to generic resource.
-
-s/resouce/resource/
-
-> Add acpi_dev_resource_addres_space() again as a wrapper of new
-
-acpi_dev_resource_address_space() (spelled wrong above).
-
-> function for original users.
+> Using ACPI resource functions to convert ACPI resource to generic resource
 > 
 > Signed-off-by: Lan Tianyu <tianyu.lan@intel.com>
 > ---
->  drivers/acpi/resource.c | 53 ++++++++++++++++++++++++++++++++++---------------
->  include/linux/acpi.h    |  3 +++
->  2 files changed, 40 insertions(+), 16 deletions(-)
+> This patch just passes through compilation test due to no ia64 machine on hand.
 > 
-> diff --git a/drivers/acpi/resource.c b/drivers/acpi/resource.c
-> index 84bc3db..2e395ba 100644
-> --- a/drivers/acpi/resource.c
-> +++ b/drivers/acpi/resource.c
-> @@ -162,19 +162,21 @@ bool acpi_dev_resource_io(struct acpi_resource *ares, struct resource *res)
->  EXPORT_SYMBOL_GPL(acpi_dev_resource_io);
+>  arch/ia64/pci/pci.c | 38 +++++++++++++++++++++-----------------
+>  1 file changed, 21 insertions(+), 17 deletions(-)
+> 
+> diff --git a/arch/ia64/pci/pci.c b/arch/ia64/pci/pci.c
+> index 2326790..14fa175 100644
+> --- a/arch/ia64/pci/pci.c
+> +++ b/arch/ia64/pci/pci.c
+> @@ -232,8 +232,9 @@ out:
+>  	return ~0;
+>  }
 >  
->  /**
-> - * acpi_dev_resource_address_space - Extract ACPI address space information.
-> + * acpi_dev_resource_address_space_full - Extract ACPI address space information.
->   * @ares: Input ACPI resource object.
-> + * @addr: Output ACPI resource address64 space object.
->   * @res: Output generic resource object.
->   *
->   * Check if the given ACPI resource object represents an address space resource
-> - * and if that's the case, use the information in it to populate the generic
-> - * resource object pointed to by @res.
-> + * and if that's the case, convert it to ACPI resource address64 space object
-> + * pointed to by @addr and use the information to populate the generic resource
-> + * object pointed to by @re.
-
-s/@re/@res/ or maybe even just use this:
-
-"If @ares is an address space resource, convert it to an
-acpi_resource_address64 and use that to populate the generic @res."
-
->   */
-> -bool acpi_dev_resource_address_space(struct acpi_resource *ares,
-> +bool acpi_dev_resource_address_space_full(struct acpi_resource *ares,
-> +				     struct acpi_resource_address64 *addr,
->  				     struct resource *res)
+> -static acpi_status resource_to_window(struct acpi_resource *resource,
+> -				      struct acpi_resource_address64 *addr)
+> +static acpi_status resource_to_window(struct acpi_resource *ares,
+> +				      struct acpi_resource_address64 *addr,
+> +				      struct resource *res)
 >  {
 >  	acpi_status status;
-> -	struct acpi_resource_address64 addr;
->  	bool window;
->  	u64 len;
->  	u8 io_decode;
-> @@ -188,29 +190,29 @@ bool acpi_dev_resource_address_space(struct acpi_resource *ares,
->  		return false;
->  	}
 >  
-> -	status = acpi_resource_to_address64(ares, &addr);
-> +	status = acpi_resource_to_address64(ares, addr);
->  	if (ACPI_FAILURE(status))
->  		return true;
-
-You didn't actually change this, but it looks wrong to return "true"
-here, because we haven't filled in "res".  Returning "true" will cause
-acpi_dev_process_resource() to call acpi_dev_new_resource_entry() with
-a struct resource that's full of zeroes.
-
-I think the best fix would be to remove this code just above:
-
-        switch (ares->type) {
-        case ACPI_RESOURCE_TYPE_ADDRESS16:
-        case ACPI_RESOURCE_TYPE_ADDRESS32:
-        case ACPI_RESOURCE_TYPE_ADDRESS64:
-                break;
-        default:
-                return false;
-        }
-
-and return "false" if acpi_resource_to_address64() fails.
-
->  
-> -	res->start = addr.minimum + addr.translation_offset;
-> -	res->end = addr.maximum + addr.translation_offset;
-> -	window = addr.producer_consumer == ACPI_PRODUCER;
-> +	res->start = addr->minimum + addr->translation_offset;
-> +	res->end = addr->maximum + addr->translation_offset;
-> +	window = addr->producer_consumer == ACPI_PRODUCER;
->  
-> -	switch(addr.resource_type) {
-> +	switch (addr->resource_type) {
->  	case ACPI_MEMORY_RANGE:
-> -		len = addr.maximum - addr.minimum + 1;
-> +		len = addr->maximum - addr->minimum + 1;
->  		res->flags = acpi_dev_memresource_flags(len,
-> -						addr.info.mem.write_protect,
-> +						addr->info.mem.write_protect,
->  						window);
->  
-> -		if (addr.info.mem.caching == ACPI_PREFETCHABLE_MEMORY)
-> +		if (addr->info.mem.caching == ACPI_PREFETCHABLE_MEMORY)
->  			res->flags |= IORESOURCE_PREFETCH;
->  		break;
->  	case ACPI_IO_RANGE:
-> -		io_decode = addr.granularity == 0xfff ?
-> +		io_decode = addr->granularity == 0xfff ?
->  				ACPI_DECODE_10 : ACPI_DECODE_16;
-> -		res->flags = acpi_dev_ioresource_flags(addr.minimum,
-> -						       addr.maximum,
-> +		res->flags = acpi_dev_ioresource_flags(addr->minimum,
-> +						       addr->maximum,
->  						       io_decode, window);
->  		break;
->  	case ACPI_BUS_NUMBER_RANGE:
-> @@ -222,6 +224,25 @@ bool acpi_dev_resource_address_space(struct acpi_resource *ares,
->  
->  	return true;
+> @@ -244,7 +245,7 @@ static acpi_status resource_to_window(struct acpi_resource *resource,
+>  	 *	- producers, i.e., the address space is routed downstream,
+>  	 *	  not consumed by the bridge itself
+>  	 */
+> -	status = acpi_resource_to_address64(resource, addr);
+> +	status = acpi_dev_resource_address_space_full(ares, addr, res);
+>  	if (ACPI_SUCCESS(status) &&
+>  	    (addr->resource_type == ACPI_MEMORY_RANGE ||
+>  	     addr->resource_type == ACPI_IO_RANGE) &&
+> @@ -255,51 +256,54 @@ static acpi_status resource_to_window(struct acpi_resource *resource,
+>  	return AE_ERROR;
 >  }
-> +EXPORT_SYMBOL_GPL(acpi_dev_resource_address_space_full);
-> +
-> +/**
-> + * acpi_dev_resource_address_space - Extract ACPI address space information.
-> + * @ares: Input ACPI resource object.
-> + * @res: Output generic resource object.
-> + *
-> + * Check if the given ACPI resource object represents an address space resource
-> + * and if that's the case, use the information in it to populate the generic
-> + * resource object pointed to by @res.
-
-"If @ares is an address space resource, use it to populate the generic @res."
-
-> + */
-> +bool acpi_dev_resource_address_space(struct acpi_resource *ares,
-> +				     struct resource *res)
-> +{
-> +	struct acpi_resource_address64 addr;
-> +
-> +	return acpi_dev_resource_address_space_full(ares, &addr,
-> +							 res);
-> +}
->  EXPORT_SYMBOL_GPL(acpi_dev_resource_address_space);
 >  
->  /**
-> diff --git a/include/linux/acpi.h b/include/linux/acpi.h
-> index a5db4ae..1f6701e 100644
-> --- a/include/linux/acpi.h
-> +++ b/include/linux/acpi.h
-> @@ -260,6 +260,9 @@ bool acpi_dev_resource_memory(struct acpi_resource *ares, struct resource *res);
->  bool acpi_dev_resource_io(struct acpi_resource *ares, struct resource *res);
->  bool acpi_dev_resource_address_space(struct acpi_resource *ares,
->  				     struct resource *res);
-> +bool acpi_dev_resource_address_space_full(struct acpi_resource *ares,
-> +				struct acpi_resource_address64 *addr,
-> +				struct resource *res);
->  bool acpi_dev_resource_ext_address_space(struct acpi_resource *ares,
->  					 struct resource *res);
->  unsigned long acpi_dev_irq_flags(u8 triggering, u8 polarity, u8 shareable);
+> -static acpi_status count_window(struct acpi_resource *resource, void *data)
+> +static acpi_status count_window(struct acpi_resource *ares, void *data)
+>  {
+>  	unsigned int *windows = (unsigned int *) data;
+>  	struct acpi_resource_address64 addr;
+> +	struct resource res;
+>  	acpi_status status;
+>  
+> -	status = resource_to_window(resource, &addr);
+> +	status = resource_to_window(ares, &addr, &res);
+>  	if (ACPI_SUCCESS(status))
+>  		(*windows)++;
+>  
+>  	return AE_OK;
+>  }
+>  
+> -static acpi_status add_window(struct acpi_resource *res, void *data)
+> +static acpi_status add_window(struct acpi_resource *ares, void *data)
+>  {
+>  	struct pci_root_info *info = data;
+> -	struct resource *resource;
+> +	struct resource *resource = &info->res[info->res_num];
+>  	struct acpi_resource_address64 addr;
+>  	acpi_status status;
+> -	unsigned long flags, offset = 0;
+> +	unsigned long offset = 0;
+>  	struct resource *root;
+>  
+>  	/* Return AE_OK for non-window resources to keep scanning for more */
+> -	status = resource_to_window(res, &addr);
+> +	status = resource_to_window(ares, &addr, resource);
+>  	if (!ACPI_SUCCESS(status))
+>  		return AE_OK;
+>  
+> -	if (addr.resource_type == ACPI_MEMORY_RANGE) {
+> -		flags = IORESOURCE_MEM;
+> +	if (resource->flags & IORESOURCE_MEM) {
+>  		root = &iomem_resource;
+>  		offset = addr.translation_offset;
+> -	} else if (addr.resource_type == ACPI_IO_RANGE) {
+> -		flags = IORESOURCE_IO;
+> +	} else if (resource->flags & IORESOURCE_IO) {
+>  		root = &ioport_resource;
+>  		offset = add_io_space(info, &addr);
+>  		if (offset == ~0)
+>  			return AE_OK;
+> +
+> +		/*
+> +		 * io space address translation offset depends
+> +		 * on the return value of add_io_space(). So
+> +		 * Repopulate resource->start and end here.
+
+"Repopulate" makes it sound like "resource->start" got clobbered
+somewhere.  But it didn't.  I think it's just that each bridge can
+support its own I/O port range, and the PCI port numbers reported
+in the acpi_resource may not be distinct, and add_io_space() adds
+an offset so all the I/O port ranges fit into one global I/O port
+space.
+
+For example, I think these two bridges have the same port numbers
+(0x0-0xfff) in their acpi_resource, but the second has an offset
+of 0x1000000 in the system I/O port space, and I think this offset
+is what add_io_space() returns:
+
+  HWP0002:00: host bridge window [io  0x0000-0x0fff]	   (PCI [0x0-0xfff])
+  HWP0002:09: host bridge window [io  0x1000000-0x1000fff] (PCI [0x0-0xfff])
+
+> +		 */
+> +		resource->start = addr.minimum + offset;
+> +		resource->end = resource->start + addr.address_length - 1;
+
+Can't we use this:
+
+		resource->start += offset;
+		resource->end += offset;
+
+to avoid breaking the encapsulation of struct acpi_resource_address64?
+
+>  	} else
+>  		return AE_OK;
+>  
+> -	resource = &info->res[info->res_num];
+>  	resource->name = info->name;
+> -	resource->flags = flags;
+> -	resource->start = addr.minimum + offset;
+> -	resource->end = resource->start + addr.address_length - 1;
+>  	info->res_offset[info->res_num] = offset;
+>  
+>  	if (insert_resource(root, resource)) {
 > -- 
 > 1.8.2.1
 > 
