@@ -1,52 +1,48 @@
-From: Mauro Carvalho Chehab <m.chehab@samsung.com>
-Subject: Re: [PATCH v2 1/9] ACPI, APEI,
- CPER: Fix status check during error printing
-Date: Wed, 16 Oct 2013 13:53:32 -0300
-Message-ID: <20131016135332.0884f535@samsung.com>
+From: Steven Rostedt <rostedt@goodmis.org>
+Subject: Re: [PATCH v2 0/9] Extended H/W error log driver
+Date: Wed, 16 Oct 2013 12:56:46 -0400
+Message-ID: <20131016125646.7141b580@gandalf.local.home>
 References: <1381935366-11731-1-git-send-email-gong.chen@linux.intel.com>
- <1381935366-11731-2-git-send-email-gong.chen@linux.intel.com>
+	<20131016160550.GG13608@pd.tnic>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-reply-to: <1381935366-11731-2-git-send-email-gong.chen@linux.intel.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: "Chen, Gong" <gong.chen@linux.intel.com>
-Cc: tony.luck@intel.com, bp@alien8.de, joe@perches.com, naveen.n.rao@linux.vnet.ibm.com, arozansk@redhat.com, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from cdptpa-outbound-snat.email.rr.com ([107.14.166.226]:52749 "EHLO
+	cdptpa-oedge-vip.email.rr.com" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S932550Ab3JPQ4t (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 16 Oct 2013 12:56:49 -0400
+In-Reply-To: <20131016160550.GG13608@pd.tnic>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Borislav Petkov <bp@alien8.de>
+Cc: "Chen, Gong" <gong.chen@linux.intel.com>, tony.luck@intel.com, joe@perches.com, naveen.n.rao@linux.vnet.ibm.com, arozansk@redhat.com, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 
-Em Wed, 16 Oct 2013 10:55:58 -0400
-"Chen, Gong" <gong.chen@linux.intel.com> escreveu:
+On Wed, 16 Oct 2013 18:05:50 +0200
+Borislav Petkov <bp@alien8.de> wrote:
 
-> Commit aaf9d93 only catches condition check before print,
-> but the similar check is needed during printing CPER error
-> sections.
+ 
+> > For trace output format we still need further discussion. In the last
+> > patch(support trace interface) I have to reserve previous Kconfig
+> > format because I find once I put trace_event interface in the module,
+> > it will not work. I will paste another trace patch(it only works when
+
+What did not work?
+
+> > acpi_extlog is builtin) for your answer.
 > 
-> Signed-off-by: Chen, Gong <gong.chen@linux.intel.com>
-> Reviewed-by: Borislav Petkov <bp@suse.de>
-
-Reviewed-by: Mauro Carvalho Chehab <m.chehab@samsung.com>
-
-> ---
->  drivers/acpi/apei/cper.c | 2 +-
->  1 file changed, 1 insertion(+), 1 deletion(-)
+> I think to be able to define TRACE_EVENTs in modules, you need
+> https://lwn.net/Articles/383362/
 > 
-> diff --git a/drivers/acpi/apei/cper.c b/drivers/acpi/apei/cper.c
-> index 33dc6a0..f827f02 100644
-> --- a/drivers/acpi/apei/cper.c
-> +++ b/drivers/acpi/apei/cper.c
-> @@ -353,7 +353,7 @@ void apei_estatus_print(const char *pfx,
->  	       cper_severity_str(severity));
->  	data_len = estatus->data_length;
->  	gdata = (struct acpi_hest_generic_data *)(estatus + 1);
-> -	while (data_len > sizeof(*gdata)) {
-> +	while (data_len >= sizeof(*gdata)) {
->  		gedata_len = gdata->error_data_length;
->  		apei_estatus_print_section(pfx, gdata, sec_no);
->  		data_len -= gedata_len + sizeof(*gdata);
+> Steve, that still true?
+> 
+
+Take a look at samples/trace_events/
+
+That's a module that uses TRACE_EVENTs.
+
+What exactly is the problem here?
 
 
--- 
-
-Cheers,
-Mauro
+-- Steve
