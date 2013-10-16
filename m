@@ -1,34 +1,99 @@
-From: "Luck, Tony" <tony.luck@intel.com>
-Subject: RE: [PATCH 8/8] ACPI / trace: Add trace interface for eMCA driver
-Date: Wed, 16 Oct 2013 20:35:32 +0000
-Message-ID: <3908561D78D1C84285E8C5FCA982C28F31D31C28@ORSMSX106.amr.corp.intel.com>
-References: <1381473166-29303-1-git-send-email-gong.chen@linux.intel.com>
- <1381473166-29303-9-git-send-email-gong.chen@linux.intel.com>
- <20131015165435.GA2777@naverao1-tp.ibm.com> <20131015170039.GF7908@pd.tnic>
- <525D7BCD.7080303@linux.vnet.ibm.com>
- <20131015214346.68718bcd.m.chehab@samsung.com>
- <20131016091640.GA13608@pd.tnic>
- <20131016073539.5a48f65e.m.chehab@samsung.com>
+From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Subject: Re: [PATCH 5/5] net: rfkill: gpio: add ACPI support
+Date: Wed, 16 Oct 2013 22:55:01 +0200
+Message-ID: <2878506.7lf24R85t6@vostro.rjw.lan>
+References: <1381920823-15403-1-git-send-email-heikki.krogerus@linux.intel.com> <1381920823-15403-6-git-send-email-heikki.krogerus@linux.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20131016073539.5a48f65e.m.chehab@samsung.com>
-Content-Language: en-US
-Sender: linux-kernel-owner@vger.kernel.org
-To: Mauro Carvalho Chehab <m.chehab@samsung.com>, Borislav Petkov <bp@alien8.de>
-Cc: "Naveen N. Rao" <naveen.n.rao@linux.vnet.ibm.com>, "Chen, Gong" <gong.chen@linux.intel.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, Aristeu Rozanski Filho <arozansk@redhat.com>, Steven Rostedt <srostedt@redhat.com>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7Bit
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <1381920823-15403-6-git-send-email-heikki.krogerus@linux.intel.com>
+Sender: netdev-owner@vger.kernel.org
+To: Heikki Krogerus <heikki.krogerus@linux.intel.com>
+Cc: "John W. Linville" <linville@tuxdriver.com>, Johannes Berg <johannes@sipsolutions.net>, Rhyland Klein <rklein@nvidia.com>, linux-acpi@vger.kernel.org, linux-wireless@vger.kernel.org, netdev@vger.kernel.org, Mika Westerberg <mika.westerberg@linux.intel.com>
 List-Id: linux-acpi@vger.kernel.org
 
-> Are there any changes with regards to that, like some enforcement policy
-> for BIOS manufacturers to make it right?
+On Wednesday, October 16, 2013 01:53:43 PM Heikki Krogerus wrote:
+> Including ACPI ID for Broadcom GPS receiver BCM4752.
+> 
+> Signed-off-by: Heikki Krogerus <heikki.krogerus@linux.intel.com>
+> ---
+>  net/rfkill/rfkill-gpio.c | 31 ++++++++++++++++++++++++++++++-
+>  1 file changed, 30 insertions(+), 1 deletion(-)
+> 
+> diff --git a/net/rfkill/rfkill-gpio.c b/net/rfkill/rfkill-gpio.c
+> index 2dd78c6..5620d3c 100644
+> --- a/net/rfkill/rfkill-gpio.c
+> +++ b/net/rfkill/rfkill-gpio.c
+> @@ -24,6 +24,8 @@
+>  #include <linux/platform_device.h>
+>  #include <linux/clk.h>
+>  #include <linux/slab.h>
+> +#include <linux/acpi.h>
+> +#include <linux/acpi_gpio.h>
+>  
+>  #include <linux/rfkill-gpio.h>
+>  
+> @@ -70,6 +72,23 @@ static const struct rfkill_ops rfkill_gpio_ops = {
+>  	.set_block = rfkill_gpio_set_power,
+>  };
+>  
+> +static int rfkill_gpio_acpi_probe(struct device *dev,
+> +				  struct rfkill_gpio_data *rfkill)
+> +{
+> +	const struct acpi_device_id *id;
+> +
+> +	id = acpi_match_device(dev->driver->acpi_match_table, dev);
+> +	if (!id)
+> +		return -ENODEV;
+> +
+> +	rfkill->name = dev_name(dev);
+> +	rfkill->type = (unsigned)id->driver_data;
+> +	rfkill->reset_gpio = acpi_get_gpio_by_index(dev, 0, NULL);
+> +	rfkill->shutdown_gpio = acpi_get_gpio_by_index(dev, 1, NULL);
+> +
+> +	return 0;
+> +}
+> +
+>  static int rfkill_gpio_probe(struct platform_device *pdev)
+>  {
+>  	struct rfkill_gpio_platform_data *pdata = pdev->dev.platform_data;
+> @@ -82,7 +101,11 @@ static int rfkill_gpio_probe(struct platform_device *pdev)
+>  	if (!rfkill)
+>  		return -ENOMEM;
+>  
+> -	if (pdata) {
+> +	if (ACPI_HANDLE(&pdev->dev)) {
+> +		ret = rfkill_gpio_acpi_probe(&pdev->dev, rfkill);
+> +		if (ret)
+> +			return ret;
+> +	} else if (pdata) {
+>  		clk_name = pdata->power_clk_name;
+>  		rfkill->name = pdata->name;
+>  		rfkill->type = pdata->type;
+> @@ -170,12 +193,18 @@ static int rfkill_gpio_remove(struct platform_device *pdev)
+>  	return 0;
+>  }
+>  
+> +static const struct acpi_device_id rfkill_acpi_match[] = {
+> +	{ "BCM4752", RFKILL_TYPE_GPS },
+> +	{ },
+> +};
+> +
+>  static struct platform_driver rfkill_gpio_driver = {
+>  	.probe = rfkill_gpio_probe,
+>  	.remove = rfkill_gpio_remove,
+>  	.driver = {
+>  		.name = "rfkill_gpio",
+>  		.owner = THIS_MODULE,
+> +		.acpi_match_table = ACPI_PTR(rfkill_acpi_match),
+>  	},
+>  };
 
-I am using a cricket bat to beat BIOS teams that implement eMCA to make
-sure they get the labels in SMBIOS right. :-)
+Looks good to me.
 
-It's a non-trivial implementation effort to get all the decoding done for
-the eMCA log.  It's typically a simple string change to fix the SMBIOS
-table ... there has been some resistance - but so far I have been victorious.
-Wish me luck as I'm about to engage with another team.
+Has Mika seen this?
 
--Tony
+-- 
+I speak only for myself.
+Rafael J. Wysocki, Intel Open Source Technology Center.
