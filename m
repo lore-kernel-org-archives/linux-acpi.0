@@ -1,148 +1,149 @@
 From: Chen Gong <gong.chen@linux.intel.com>
-Subject: Re: [PATCH 5/8] ACPI, APEI, CPER: Add UEFI 2.4 support for memory
- error
-Date: Tue, 15 Oct 2013 21:35:19 -0400
-Message-ID: <20131016013519.GA6898@gchen.bj.intel.com>
+Subject: Re: [PATCH 2/8] ACPI, CPER: Update cper info
+Date: Tue, 15 Oct 2013 21:39:02 -0400
+Message-ID: <20131016013902.GB6898@gchen.bj.intel.com>
 References: <1381473166-29303-1-git-send-email-gong.chen@linux.intel.com>
- <1381473166-29303-6-git-send-email-gong.chen@linux.intel.com>
- <20131015172625.GB2777@naverao1-tp.ibm.com>
+ <1381473166-29303-3-git-send-email-gong.chen@linux.intel.com>
+ <20131015181723.GC2777@naverao1-tp.ibm.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="MGYHOYXEY6WxJCY8"
+	protocol="application/pgp-signature"; boundary="hHWLQfXTYDoKhP50"
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga11.intel.com ([192.55.52.93]:2807 "EHLO mga11.intel.com"
+Received: from mga02.intel.com ([134.134.136.20]:33559 "EHLO mga02.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750824Ab3JPBuc (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 15 Oct 2013 21:50:32 -0400
+	id S1758190Ab3JPBxu (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 15 Oct 2013 21:53:50 -0400
 Content-Disposition: inline
-In-Reply-To: <20131015172625.GB2777@naverao1-tp.ibm.com>
+In-Reply-To: <20131015181723.GC2777@naverao1-tp.ibm.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: "Naveen N. Rao" <naveen.n.rao@linux.vnet.ibm.com>
 Cc: tony.luck@intel.com, bp@alien8.de, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
 
 
---MGYHOYXEY6WxJCY8
+--hHWLQfXTYDoKhP50
 Content-Type: text/plain; charset=utf-8
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
-On Tue, Oct 15, 2013 at 10:56:25PM +0530, Naveen N. Rao wrote:
-> Date: Tue, 15 Oct 2013 22:56:25 +0530
+On Tue, Oct 15, 2013 at 11:47:23PM +0530, Naveen N. Rao wrote:
+> Date: Tue, 15 Oct 2013 23:47:23 +0530
 > From: "Naveen N. Rao" <naveen.n.rao@linux.vnet.ibm.com>
 > To: "Chen, Gong" <gong.chen@linux.intel.com>
 > Cc: tony.luck@intel.com, bp@alien8.de, linux-kernel@vger.kernel.org,
 >  linux-acpi@vger.kernel.org
-> Subject: Re: [PATCH 5/8] ACPI, APEI, CPER: Add UEFI 2.4 support for memory
->  error
+> Subject: Re: [PATCH 2/8] ACPI, CPER: Update cper info
 > User-Agent: Mutt/1.5.21 (2010-09-15)
 >=20
 > On 2013/10/11 02:32AM, Chen Gong wrote:
-> > In latest UEFI spec(by now it is 2.4) memory error definition
-> > for CPER (UEFI 2.4 Appendix N Common Platform Error Record)
-> > adds some new fields. These fields help people to locate
-> > memory error on actual DIMM location.
+> > To satisfy the necessary of following patches and make related definiti=
+on
+> > more clear, update some definitions about CPER. No functional changes.
 > >=20
-> > Original-author: Tony Luck <tony.luck@intel.com>
 > > Signed-off-by: Chen, Gong <gong.chen@linux.intel.com>
 > > ---
-> >  drivers/acpi/apei/cper.c | 3 ++-
-> >  include/linux/cper.h     | 7 +++++++
-> >  2 files changed, 9 insertions(+), 1 deletion(-)
+> >  drivers/acpi/apei/apei-internal.h | 12 ++++-----
+> >  drivers/acpi/apei/cper.c          | 46 ++++++++++++++++---------------=
+--
+> >  drivers/acpi/apei/ghes.c          | 54 +++++++++++++++++++------------=
+--------
+> >  include/acpi/actbl1.h             | 14 +++++-----
+> >  include/acpi/ghes.h               |  2 +-
+> >  5 files changed, 64 insertions(+), 64 deletions(-)
 > >=20
-> > diff --git a/drivers/acpi/apei/cper.c b/drivers/acpi/apei/cper.c
-> > index b2e4134..680230c 100644
-> > --- a/drivers/acpi/apei/cper.c
-> > +++ b/drivers/acpi/apei/cper.c
-> > @@ -8,7 +8,7 @@
-> >   * various tables, such as ERST, BERT and HEST etc.
-> >   *
-> >   * For more information about CPER, please refer to Appendix N of UEFI
-> > - * Specification version 2.3.
-> > + * Specification version 2.4.
-> >   *
-> >   * This program is free software; you can redistribute it and/or
-> >   * modify it under the terms of the GNU General Public License version
-> > @@ -191,6 +191,7 @@ static const char *cper_mem_err_type_strs[] =3D {
-> >  	"memory sparing",
-> >  	"scrub corrected error",
-> >  	"scrub uncorrected error",
-> > +	"Physical Memory Map-out event",
->=20
-> All small letters to match the rest of the items:
-> "physical memory map-out event"
->=20
-
-sure, of course.
-
-> >  };
+> > diff --git a/drivers/acpi/apei/apei-internal.h b/drivers/acpi/apei/apei=
+-internal.h
+> > index f220d64..21ba34a 100644
+> > --- a/drivers/acpi/apei/apei-internal.h
+> > +++ b/drivers/acpi/apei/apei-internal.h
+> > @@ -122,11 +122,11 @@ struct dentry;
+> >  struct dentry *apei_get_debugfs_dir(void);
 > > =20
-> >  static void cper_print_mem(const char *pfx, const struct cper_sec_mem_=
-err *mem)
-> > diff --git a/include/linux/cper.h b/include/linux/cper.h
-> > index c230494..bd01c9a 100644
-> > --- a/include/linux/cper.h
-> > +++ b/include/linux/cper.h
-> > @@ -232,6 +232,9 @@ enum {
-> >  #define CPER_MEM_VALID_RESPONDER_ID		0x1000
-> >  #define CPER_MEM_VALID_TARGET_ID		0x2000
-> >  #define CPER_MEM_VALID_ERROR_TYPE		0x4000
-> > +#define CPER_MEM_VALID_RANK_NUMBER		0x8000
-> > +#define CPER_MEM_VALID_CARD_HANDLE		0x10000
-> > +#define CPER_MEM_VALID_MODULE_HANDLE		0x20000
+> >  #define apei_estatus_for_each_section(estatus, section)			\
+> > -	for (section =3D (struct acpi_hest_generic_data *)(estatus + 1);	\
+> > +	for (section =3D (struct acpi_generic_data *)(estatus + 1);	\
+>=20
+> This is a good one to rename, though I wonder if acpi_generic_error_data
+> is more appropriate?
+>=20
+> >  	     (void *)section - (void *)estatus < estatus->data_length;	\
+> >  	     section =3D (void *)(section+1) + section->error_data_length)
 > > =20
-> >  #define CPER_PCIE_VALID_PORT_TYPE		0x0001
-> >  #define CPER_PCIE_VALID_VERSION			0x0002
-> > @@ -347,6 +350,10 @@ struct cper_sec_mem_err {
-> >  	__u64	responder_id;
-> >  	__u64	target_id;
-> >  	__u8	error_type;
-> > +	__u8	reserved;
-> > +	__u16	rank;
-> > +	__u16	mem_array_handle;
-> > +	__u16	mem_dev_handle;
+> > -static inline u32 apei_estatus_len(struct acpi_hest_generic_status *es=
+tatus)
+> > +static inline u32 cper_estatus_len(struct acpi_generic_status *estatus)
 >=20
-> Nit: could you name those fields similar to what the spec has:
-> card_handle and module_handle, with perhaps a comment to indicate
-> relationship to SMBIOS type 16/17 tables?
+> Not sure I understand the rationale for these changes - we are still
+> dealing with ACPI/APEI generic error status/data structures. So, why
+> the cper_ prefix?
 >=20
->=20
-On the contrary, what I'm thinking is reserve these names but
-adding comments for what it is in the spec. I consider a
-reasonable name is more meaningful than just following the
-spec strictly.
 
-> Regards,
+Because CPER is not APEI specific, beside APEI, some others like eMCA
+needs this.
+
+> >  {
+> >  	if (estatus->raw_data_length)
+> >  		return estatus->raw_data_offset + \
+> > @@ -135,10 +135,10 @@ static inline u32 apei_estatus_len(struct acpi_he=
+st_generic_status *estatus)
+> >  		return sizeof(*estatus) + estatus->data_length;
+> >  }
+> > =20
+> > -void apei_estatus_print(const char *pfx,
+> > -			const struct acpi_hest_generic_status *estatus);
+> > -int apei_estatus_check_header(const struct acpi_hest_generic_status *e=
+status);
+> > -int apei_estatus_check(const struct acpi_hest_generic_status *estatus);
+> > +void cper_estatus_print(const char *pfx,
+> > +			const struct acpi_generic_status *estatus);
+> > +int cper_estatus_check_header(const struct acpi_generic_status *estatu=
+s);
+> > +int cper_estatus_check(const struct acpi_generic_status *estatus);
+>=20
+> Same here. All the above functions work on ACPI structures...
+>=20
+> >  /* Values for block_status flags above */
+> > =20
+> > -#define ACPI_HEST_UNCORRECTABLE             (1)
+> > -#define ACPI_HEST_CORRECTABLE               (1<<1)
+> > -#define ACPI_HEST_MULTIPLE_UNCORRECTABLE    (1<<2)
+> > -#define ACPI_HEST_MULTIPLE_CORRECTABLE      (1<<3)
+> > -#define ACPI_HEST_ERROR_ENTRY_COUNT         (0xFF<<4)	/* 8 bits, error=
+ count */
+> > +#define ACPI_GEN_ERR_UC			(1)
+> > +#define ACPI_GEN_ERR_CE			(1<<1)
+> > +#define ACPI_GEN_ERR_MULTI_UC		(1<<2)
+> > +#define ACPI_GEN_ERR_MULTI_CE		(1<<3)
+> > +#define ACPI_GEN_ERR_COUNT_SHIFT	(0xFF<<4) /* 8 bits, error count */
+>=20
+> I'd prefer ACPI_GENERIC_ERR_ since ACPI_GEN_ERR sounds far too much like
+> ACPI "Generated" :)
+>=20
+>=20
+> Thanks,
 > Naveen
 >=20
-> >  };
-> > =20
-> >  struct cper_sec_pcie {
-> > --=20
-> > 1.8.4.rc3
-> >=20
->=20
 
---MGYHOYXEY6WxJCY8
+--hHWLQfXTYDoKhP50
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: Digital signature
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1.4.14 (GNU/Linux)
 
-iQIcBAEBAgAGBQJSXe1XAAoJEI01n1+kOSLHdUsQAJRRfsA7yoxnJyd1rqZLwLtM
-6FfGGFPpfIXlKKc9MOnGJ8oR3dma0/gdFVOy/Khg63/Jwd3gO1HQPOJvWNRKV8MF
-unJSr3zyyUOpf5a2V7scSPo6aRSWItD5uwkV4kUSaZECSG2X18BxnK9VJpKjnMSV
-7RjfyaNhIw3hLXOmt6o1aNwx6xwQAMfBG3PPAmOUYFr+tG8z0oscI9uHSykksDKu
-gLHa6CKDBt8ySPWRs/0cj6h7bVNAOk8cYkgUpeTgJjCqKkShYddCCncOlOcZ/uLB
-I6bNzVIDTG5ImpAAZ+YcG8xJLWJ77pSDCMOu2j3UC7YD3vhQICsz4HVLKdhGJVaf
-2oy39g+DpsVAIVkCzBgY5qK8IFA6PL86K3ZycM8StILUOR+7n8nK50FAxyJuiKDG
-g23gd0GFPo6QEYNW/Fuj2PwNlVU7RnczVGXhCLiIfNK4zIPJFMbXjxn149G32sBc
-ZibxsFADAILtjIBpVyIQBlyZYu52jQvQtDpj1xk3boRTePrPQNOGUNOmyeuMyrXK
-jb3HyvJIyHe+ZYbduzRjo6LSF0PytoFiJ+rjPCqHh3yceL9ym0Y1vc9xpnXN2+rF
-tqtVq96KpMVJi8JFGw2jDfJ2EZGjFzKWSjW9e2zuIm7Q8GhTeUYcESE2Xf8TUx+6
-0B5yiFB1zrzbW0+Yh5KA
-=Cq3t
+iQIcBAEBAgAGBQJSXe42AAoJEI01n1+kOSLHPp4P/0yMk8q7VLwisQwQPlbn/j4h
+ch1DkCGcpOQCuqWZ4S5W3xJcHgXGQ8mJbHoPnZFAP0NoevWHFkfbI2NG1vFSOv3e
+nvgeJE6eHWcppujuNL231qSSB8j0XqCG230mxUlEvex48/R6AWapbTfh0b9d4s28
+bA6WqYUemYD5OkQttHDyYjeF8npwZ3brpslZmEI5DD1pA9oTKB4u97iLpU/dEafP
+5jHwYpCNdVSC9lR3vGG7Ry8e6hgr6DlUZLE8TvovVYlivBZ3y7vDELZSunVfHsUT
+jSLmYnXnECWZvk1xO8rPaJmpCnBETMfqiWTYlGEkmaSWL/PPlclOrAm27zXVZBa3
+QiIZLIBZ0EWtoHOZtRCEjoMdwnzS2OEt6ZgAn60TvIe92EiRfZwj9u15l0JuJ/uA
+UOgZqBPo2sYpsSjXEh14J70c2rK//NZK+9ZobTE8jQTcDFIzz3piHvWzapY6G1x6
+crlHXsG58djk/InfjMSO6+kw0JeXWrhclvyhDCaLnCqpxk4EgM/5M66aSNltKJSf
+9K9zhWOEryTAahl3lvZmoW4/1ElPcKvAExkOkMLJv1fO181s0gnpgSIDKsbskOFX
+GWAraoiuxlaSIir4L6mNzRQqfCDKjrCHE7xvdvcBuQ0yknRXINIOkJVjjBewpbjP
+VKSRkLSBScl1OYXvkLbi
+=dfTg
 -----END PGP SIGNATURE-----
 
---MGYHOYXEY6WxJCY8--
+--hHWLQfXTYDoKhP50--
