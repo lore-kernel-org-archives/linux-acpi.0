@@ -1,65 +1,34 @@
-From: Borislav Petkov <bp@alien8.de>
-Subject: Re: [PATCH v2 0/9] Extended H/W error log driver
-Date: Wed, 16 Oct 2013 20:11:17 +0200
-Message-ID: <20131016181117.GP13608@pd.tnic>
-References: <1381935366-11731-1-git-send-email-gong.chen@linux.intel.com>
- <20131016160550.GG13608@pd.tnic>
- <20131016125646.7141b580@gandalf.local.home>
- <20131016180038.GO13608@pd.tnic>
+From: "Luck, Tony" <tony.luck@intel.com>
+Subject: RE: [PATCH 8/8] ACPI / trace: Add trace interface for eMCA driver
+Date: Wed, 16 Oct 2013 20:35:32 +0000
+Message-ID: <3908561D78D1C84285E8C5FCA982C28F31D31C28@ORSMSX106.amr.corp.intel.com>
+References: <1381473166-29303-1-git-send-email-gong.chen@linux.intel.com>
+ <1381473166-29303-9-git-send-email-gong.chen@linux.intel.com>
+ <20131015165435.GA2777@naverao1-tp.ibm.com> <20131015170039.GF7908@pd.tnic>
+ <525D7BCD.7080303@linux.vnet.ibm.com>
+ <20131015214346.68718bcd.m.chehab@samsung.com>
+ <20131016091640.GA13608@pd.tnic>
+ <20131016073539.5a48f65e.m.chehab@samsung.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20131016180038.GO13608@pd.tnic>
+In-Reply-To: <20131016073539.5a48f65e.m.chehab@samsung.com>
+Content-Language: en-US
 Sender: linux-kernel-owner@vger.kernel.org
-To: Steven Rostedt <rostedt@goodmis.org>, "Chen, Gong" <gong.chen@linux.intel.com>
-Cc: tony.luck@intel.com, joe@perches.com, naveen.n.rao@linux.vnet.ibm.com, arozansk@redhat.com, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+To: Mauro Carvalho Chehab <m.chehab@samsung.com>, Borislav Petkov <bp@alien8.de>
+Cc: "Naveen N. Rao" <naveen.n.rao@linux.vnet.ibm.com>, "Chen, Gong" <gong.chen@linux.intel.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, Aristeu Rozanski Filho <arozansk@redhat.com>, Steven Rostedt <srostedt@redhat.com>
 List-Id: linux-acpi@vger.kernel.org
 
-On Wed, Oct 16, 2013 at 08:00:38PM +0200, Borislav Petkov wrote:
-> Right, the only difference I can see is that include/ras/ras_event.h
-> doesn't have those below:
-> 
-> #undef TRACE_INCLUDE_PATH
-> #undef TRACE_INCLUDE_FILE
-> #define TRACE_INCLUDE_PATH .
-> 
-> Perhaps that is the problem?
-> 
-> Gong, what is exactly the issue you're observing?
+> Are there any changes with regards to that, like some enforcement policy
+> for BIOS manufacturers to make it right?
 
-Ok, I think I know what the issue is:
+I am using a cricket bat to beat BIOS teams that implement eMCA to make
+sure they get the labels in SMBIOS right. :-)
 
-Gong has
+It's a non-trivial implementation effort to get all the decoding done for
+the eMCA log.  It's typically a simple string change to fix the SMBIOS
+table ... there has been some resistance - but so far I have been victorious.
+Wish me luck as I'm about to engage with another team.
 
-diff --git a/drivers/acpi/extlog_trace.c b/drivers/acpi/extlog_trace.c
-new file mode 100644
-index 000000000000..28640807fb09
---- /dev/null
-+++ b/drivers/acpi/extlog_trace.c
-@@ -0,0 +1,107 @@
-+#include <linux/export.h>
-+#include <linux/dmi.h>
-+#include "extlog_trace.h"
-+
-+#define CREATE_TRACE_POINTS
-+#define TRACE_INCLUDE_PATH ../../include/ras
-+#include <ras/ras_event.h>
-
-for the ras tracepoint although this is done already in
-drivers/edac/edac_mc.c
-
-Gong, can you try moving the CREATE_TRACE_POINTS line to a new file -
-arch/x86/ras/ras.c and define it there and not anywhere else, i.e. move
-it away from edac_mc.c. Does that help?
-
-Also, see Documentation/trace/tracepoints.txt for more info.
-
-HTH.
-
--- 
-Regards/Gruss,
-    Boris.
-
-Sent from a fat crate under my desk. Formatting is fine.
---
+-Tony
