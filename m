@@ -1,49 +1,35 @@
-From: Borislav Petkov <bp@alien8.de>
-Subject: Re: [PATCH 8/8] ACPI / trace: Add trace interface for eMCA driver
-Date: Wed, 16 Oct 2013 12:49:04 +0200
-Message-ID: <20131016104904.GD13608@pd.tnic>
-References: <1381473166-29303-1-git-send-email-gong.chen@linux.intel.com>
- <1381473166-29303-9-git-send-email-gong.chen@linux.intel.com>
- <20131015165435.GA2777@naverao1-tp.ibm.com>
- <20131016095030.GA8954@gchen.bj.intel.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
+From: Heikki Krogerus <heikki.krogerus@linux.intel.com>
+Subject: [PATCH 0/5] rfkill-gpio: ACPI support
+Date: Wed, 16 Oct 2013 13:53:38 +0300
+Message-ID: <1381920823-15403-1-git-send-email-heikki.krogerus@linux.intel.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail.skyhub.de ([78.46.96.112]:49290 "EHLO mail.skyhub.de"
+Received: from mga02.intel.com ([134.134.136.20]:35004 "EHLO mga02.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1760583Ab3JPKtT (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 16 Oct 2013 06:49:19 -0400
-Content-Disposition: inline
-In-Reply-To: <20131016095030.GA8954@gchen.bj.intel.com>
+	id S1760342Ab3JPKxx (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 16 Oct 2013 06:53:53 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Chen Gong <gong.chen@linux.intel.com>
-Cc: "Naveen N. Rao" <naveen.n.rao@linux.vnet.ibm.com>, tony.luck@intel.com, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, m.chehab@samsung.com
+To: "John W. Linville" <linville@tuxdriver.com>
+Cc: Johannes Berg <johannes@sipsolutions.net>, Rhyland Klein <rklein@nvidia.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, linux-acpi@vger.kernel.org, linux-wireless@vger.kernel.org, netdev@vger.kernel.org
 
-Btw, I don't know what's the problem but when I hit reply-to-all to your
-emails, mutt drops your email address from the To: and makes the CC:
-list become the To: list. Strange.
+Hi,
 
-On Wed, Oct 16, 2013 at 05:50:30AM -0400, Chen Gong wrote:
-> This thread is so long. I have to say I'm lost ... Anyway, it looks
-> like there are many different opnions on this last patch.
+The first patches prepare the driver for the support. The last patch
+can then add the support quite easily. With these patches, adding DT
+support later will be quite straight forward if someone needs it.
 
-Why, I think it is fine.
 
-The only compatibility issue I see is if we're going to share the
-tracepoint with Naveen's GHES reporting stuff we were discussing a
-couple of weeks ago. But AFAIR, we still needed EDAC assistance there
-while here there's no need for that.
+Heikki Krogerus (5):
+  net: rfkill: gpio: convert to resource managed allocation
+  net: rfkill: gpio: clean up clock handling
+  net: rfkill: gpio: spinlock-safe GPIO access
+  net: rfkill: gpio: prepare for DT and ACPI support
+  net: rfkill: gpio: add ACPI support
 
-> I will send the 2nd version for further discussion soon.
-
-Yes please. :)
-
-Thanks.
+ net/rfkill/Kconfig       |   2 +-
+ net/rfkill/rfkill-gpio.c | 211 ++++++++++++++++++++++-------------------------
+ 2 files changed, 99 insertions(+), 114 deletions(-)
 
 -- 
-Regards/Gruss,
-    Boris.
+1.8.4.rc3
 
-Sent from a fat crate under my desk. Formatting is fine.
---
