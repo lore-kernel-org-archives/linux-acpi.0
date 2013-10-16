@@ -1,115 +1,148 @@
-From: Mauro Carvalho Chehab <m.chehab@samsung.com>
-Subject: Re: [PATCH 8/8] ACPI / trace: Add trace interface for eMCA driver
-Date: Tue, 15 Oct 2013 21:43:46 -0300
-Message-ID: <20131015214346.68718bcd.m.chehab@samsung.com>
+From: Chen Gong <gong.chen@linux.intel.com>
+Subject: Re: [PATCH 5/8] ACPI, APEI, CPER: Add UEFI 2.4 support for memory
+ error
+Date: Tue, 15 Oct 2013 21:35:19 -0400
+Message-ID: <20131016013519.GA6898@gchen.bj.intel.com>
 References: <1381473166-29303-1-git-send-email-gong.chen@linux.intel.com>
- <1381473166-29303-9-git-send-email-gong.chen@linux.intel.com>
- <20131015165435.GA2777@naverao1-tp.ibm.com> <20131015170039.GF7908@pd.tnic>
- <525D7BCD.7080303@linux.vnet.ibm.com>
+ <1381473166-29303-6-git-send-email-gong.chen@linux.intel.com>
+ <20131015172625.GB2777@naverao1-tp.ibm.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-reply-to: <525D7BCD.7080303@linux.vnet.ibm.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: "Naveen N. Rao" <naveen.n.rao@linux.vnet.ibm.com>
-Cc: Borislav Petkov <bp@alien8.de>, "Chen, Gong" <gong.chen@linux.intel.com>, tony.luck@intel.com, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Aristeu Rozanski Filho <arozansk@redhat.com>
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="MGYHOYXEY6WxJCY8"
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mga11.intel.com ([192.55.52.93]:2807 "EHLO mga11.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750824Ab3JPBuc (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 15 Oct 2013 21:50:32 -0400
+Content-Disposition: inline
+In-Reply-To: <20131015172625.GB2777@naverao1-tp.ibm.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: "Naveen N. Rao" <naveen.n.rao@linux.vnet.ibm.com>
+Cc: tony.luck@intel.com, bp@alien8.de, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
 
-I see a few problems on this patchset:
 
-Em Tue, 15 Oct 2013 23:00:53 +0530
-"Naveen N. Rao" <naveen.n.rao@linux.vnet.ibm.com> escreveu:
+--MGYHOYXEY6WxJCY8
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-> On 10/15/2013 10:30 PM, Borislav Petkov wrote:
-> > On Tue, Oct 15, 2013 at 10:24:35PM +0530, Naveen N. Rao wrote:
-> >> On 2013/10/11 02:32AM, Chen Gong wrote:
-> >>> Use trace interface to elaborate all H/W error related
-> >>> information.
-> >>>
-> >>> Signed-off-by: Chen, Gong <gong.chen@linux.intel.com>
-> >>> ---
-> >> <snip>
-> >>> +TRACE_EVENT(extlog_mem_event,
-> >>> +	TP_PROTO(u32 etype,
-> >>> +		char *dimm_loc,
-> >>> +		const uuid_le *fru_id,
+On Tue, Oct 15, 2013 at 10:56:25PM +0530, Naveen N. Rao wrote:
+> Date: Tue, 15 Oct 2013 22:56:25 +0530
+> From: "Naveen N. Rao" <naveen.n.rao@linux.vnet.ibm.com>
+> To: "Chen, Gong" <gong.chen@linux.intel.com>
+> Cc: tony.luck@intel.com, bp@alien8.de, linux-kernel@vger.kernel.org,
+>  linux-acpi@vger.kernel.org
+> Subject: Re: [PATCH 5/8] ACPI, APEI, CPER: Add UEFI 2.4 support for memory
+>  error
+> User-Agent: Mutt/1.5.21 (2010-09-15)
+>=20
+> On 2013/10/11 02:32AM, Chen Gong wrote:
+> > In latest UEFI spec(by now it is 2.4) memory error definition
+> > for CPER (UEFI 2.4 Appendix N Common Platform Error Record)
+> > adds some new fields. These fields help people to locate
+> > memory error on actual DIMM location.
+> >=20
+> > Original-author: Tony Luck <tony.luck@intel.com>
+> > Signed-off-by: Chen, Gong <gong.chen@linux.intel.com>
+> > ---
+> >  drivers/acpi/apei/cper.c | 3 ++-
+> >  include/linux/cper.h     | 7 +++++++
+> >  2 files changed, 9 insertions(+), 1 deletion(-)
+> >=20
+> > diff --git a/drivers/acpi/apei/cper.c b/drivers/acpi/apei/cper.c
+> > index b2e4134..680230c 100644
+> > --- a/drivers/acpi/apei/cper.c
+> > +++ b/drivers/acpi/apei/cper.c
+> > @@ -8,7 +8,7 @@
+> >   * various tables, such as ERST, BERT and HEST etc.
+> >   *
+> >   * For more information about CPER, please refer to Appendix N of UEFI
+> > - * Specification version 2.3.
+> > + * Specification version 2.4.
+> >   *
+> >   * This program is free software; you can redistribute it and/or
+> >   * modify it under the terms of the GNU General Public License version
+> > @@ -191,6 +191,7 @@ static const char *cper_mem_err_type_strs[] =3D {
+> >  	"memory sparing",
+> >  	"scrub corrected error",
+> >  	"scrub uncorrected error",
+> > +	"Physical Memory Map-out event",
+>=20
+> All small letters to match the rest of the items:
+> "physical memory map-out event"
+>=20
 
-Using a custom typedef here seems problematic, as that can make userspace
-interface more complicated.
+sure, of course.
 
-> >>> +		char *fru_text,
-> >>> +		u64 error_count,
-> >>> +		u32 severity,
-> >>> +		u64 phy_addr,
-> >>> +		char *mem_loc),
+> >  };
+> > =20
+> >  static void cper_print_mem(const char *pfx, const struct cper_sec_mem_=
+err *mem)
+> > diff --git a/include/linux/cper.h b/include/linux/cper.h
+> > index c230494..bd01c9a 100644
+> > --- a/include/linux/cper.h
+> > +++ b/include/linux/cper.h
+> > @@ -232,6 +232,9 @@ enum {
+> >  #define CPER_MEM_VALID_RESPONDER_ID		0x1000
+> >  #define CPER_MEM_VALID_TARGET_ID		0x2000
+> >  #define CPER_MEM_VALID_ERROR_TYPE		0x4000
+> > +#define CPER_MEM_VALID_RANK_NUMBER		0x8000
+> > +#define CPER_MEM_VALID_CARD_HANDLE		0x10000
+> > +#define CPER_MEM_VALID_MODULE_HANDLE		0x20000
+> > =20
+> >  #define CPER_PCIE_VALID_PORT_TYPE		0x0001
+> >  #define CPER_PCIE_VALID_VERSION			0x0002
+> > @@ -347,6 +350,10 @@ struct cper_sec_mem_err {
+> >  	__u64	responder_id;
+> >  	__u64	target_id;
+> >  	__u8	error_type;
+> > +	__u8	reserved;
+> > +	__u16	rank;
+> > +	__u16	mem_array_handle;
+> > +	__u16	mem_dev_handle;
+>=20
+> Nit: could you name those fields similar to what the spec has:
+> card_handle and module_handle, with perhaps a comment to indicate
+> relationship to SMBIOS type 16/17 tables?
+>=20
+>=20
+On the contrary, what I'm thinking is reserve these names but
+adding comments for what it is in the spec. I consider a
+reasonable name is more meaningful than just following the
+spec strictly.
 
-By looking on the rest of the changes, the mem_loc can now contain the 
-right location of the memory error, including on what DIMM the error
-happened. It can also (optionally) contain the DIMM label. 
+> Regards,
+> Naveen
+>=20
+> >  };
+> > =20
+> >  struct cper_sec_pcie {
+> > --=20
+> > 1.8.4.rc3
+> >=20
+>=20
 
-Mangling those information on just one string field seems to be a very
-bad idea to me, as it prevents to write a generic logic, on userspace,
-that would apply a per-DIMM threshold policy.
+--MGYHOYXEY6WxJCY8
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
 
-Also, userspace needs to know what's the granularity for the error
-that an eMCA driver will give, in order to adjust its policies.
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.14 (GNU/Linux)
 
-> >>
-> >> [Adding Mauro...]
-> >>
-> >> This looks very similar to the trace event I wrote a while back,
-> >> which was similar to the one provided by ghes_edac:
-> >> http://thread.gmane.org/gmane.linux.kernel.pci/24616
-> >>
-> >> Seems to me this has the same issues we previously discussed w.r.t
-> >> EDAC conflicts...
+iQIcBAEBAgAGBQJSXe1XAAoJEI01n1+kOSLHdUsQAJRRfsA7yoxnJyd1rqZLwLtM
+6FfGGFPpfIXlKKc9MOnGJ8oR3dma0/gdFVOy/Khg63/Jwd3gO1HQPOJvWNRKV8MF
+unJSr3zyyUOpf5a2V7scSPo6aRSWItD5uwkV4kUSaZECSG2X18BxnK9VJpKjnMSV
+7RjfyaNhIw3hLXOmt6o1aNwx6xwQAMfBG3PPAmOUYFr+tG8z0oscI9uHSykksDKu
+gLHa6CKDBt8ySPWRs/0cj6h7bVNAOk8cYkgUpeTgJjCqKkShYddCCncOlOcZ/uLB
+I6bNzVIDTG5ImpAAZ+YcG8xJLWJ77pSDCMOu2j3UC7YD3vhQICsz4HVLKdhGJVaf
+2oy39g+DpsVAIVkCzBgY5qK8IFA6PL86K3ZycM8StILUOR+7n8nK50FAxyJuiKDG
+g23gd0GFPo6QEYNW/Fuj2PwNlVU7RnczVGXhCLiIfNK4zIPJFMbXjxn149G32sBc
+ZibxsFADAILtjIBpVyIQBlyZYu52jQvQtDpj1xk3boRTePrPQNOGUNOmyeuMyrXK
+jb3HyvJIyHe+ZYbduzRjo6LSF0PytoFiJ+rjPCqHh3yceL9ym0Y1vc9xpnXN2+rF
+tqtVq96KpMVJi8JFGw2jDfJ2EZGjFzKWSjW9e2zuIm7Q8GhTeUYcESE2Xf8TUx+6
+0B5yiFB1zrzbW0+Yh5KA
+=Cq3t
+-----END PGP SIGNATURE-----
 
-Agreed.
-
-> >
-> > Right, I'm inclined to leave this trace_mc_event in ras_event.h to edac
-> > use alone because of all those layers which don't mean whit for GHES and
-> > eMCA error sources.
-
-If you don't create the EDAC nodes, it means that userspace doesn't have any
-glue about what error information will be provided.
-
-The right thing to do is, IMHO, add some additional EDAC sysfs nodes that
-shows what kind of error information will be provided by the device, e. g.:
-
-	- a complete hardware-based type of information directly obtained from
-	  the hardware;
-
-	- a very poor BIOS-based type of error information, where the provided
-	  data is not sufficient to pinpoint to the DIMM where the error actually
-	  occurred (what's currently there at ghes_edac);
-
-	- an eMCA-based type of error information, where the BIOS and ACPI will
-	  provide the complete error path, allowing userspace to properly parse
-	  the errors as if they come from the hardware-based approach.
-
-In any case, this is provided by the EDAC core functions that describe the
-memory in details. So, IMHO, get rid of EDAC is a big mistake.
-
-> > And maybe define a trace_mem_event which is shared by GHES and eMCA and
-> > not use the edac tracepoint there not load ghes_edac on such systems
-> > which have sufficient decoding capability in firmware.
-> >
-> > Thoughts?
-> 
-> I thought the primary problem was the conflict with edac core itself. 
-> So, if I'm not mistaken, we would have to prevent all edac drivers from 
-> loading.
-
-Yes, this is another aspect of this approach: whatever provided mechanism,
-the Kernel should assure that one error path won't conflict with the other
-ones. We know by experience that enabling both BIOS-based and hardware-based
-mechanisms cause race conditions, with affects both ways.
-It is also nice to allow the user to choose his preferred mechanism, when
-more than one is properly supported on a given system.
-
-Regards,
-Mauro
-
-(c/c Aristeu, as he might also being working with similar stuff)
+--MGYHOYXEY6WxJCY8--
