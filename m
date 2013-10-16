@@ -1,50 +1,80 @@
-From: "Luck, Tony" <tony.luck@intel.com>
-Subject: RE: [PATCH 8/8] ACPI / trace: Add trace interface for eMCA driver
-Date: Wed, 16 Oct 2013 20:47:05 +0000
-Message-ID: <3908561D78D1C84285E8C5FCA982C28F31D31C65@ORSMSX106.amr.corp.intel.com>
-References: <1381473166-29303-1-git-send-email-gong.chen@linux.intel.com>
- <1381473166-29303-9-git-send-email-gong.chen@linux.intel.com>
- <20131015165435.GA2777@naverao1-tp.ibm.com> <20131015170039.GF7908@pd.tnic>
- <525D7BCD.7080303@linux.vnet.ibm.com>
- <20131015214346.68718bcd.m.chehab@samsung.com>
- <20131016091640.GA13608@pd.tnic>
- <20131016073539.5a48f65e.m.chehab@samsung.com>
- <20131016104221.GC13608@pd.tnic> <20131016085558.19fe143a@samsung.com>
+From: Bjorn Helgaas <bhelgaas@google.com>
+Subject: Re: [Resend PATCH 2/5] ACPI/Resource: Add address translation support
+Date: Wed, 16 Oct 2013 17:05:15 -0600
+Message-ID: <20131016230515.GB17866@google.com>
+References: <1381493941-4650-1-git-send-email-tianyu.lan@intel.com>
+ <1381493941-4650-3-git-send-email-tianyu.lan@intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20131016085558.19fe143a@samsung.com>
-Content-Language: en-US
-Sender: linux-kernel-owner@vger.kernel.org
-To: Mauro Carvalho Chehab <m.chehab@samsung.com>, Borislav Petkov <bp@alien8.de>
-Cc: "Naveen N. Rao" <naveen.n.rao@linux.vnet.ibm.com>, "Chen, Gong" <gong.chen@linux.intel.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, Aristeu Rozanski Filho <arozansk@redhat.com>, Steven Rostedt <srostedt@redhat.com>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-ie0-f172.google.com ([209.85.223.172]:38483 "EHLO
+	mail-ie0-f172.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752234Ab3JPXFT (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 16 Oct 2013 19:05:19 -0400
+Received: by mail-ie0-f172.google.com with SMTP id tp5so2647769ieb.3
+        for <linux-acpi@vger.kernel.org>; Wed, 16 Oct 2013 16:05:19 -0700 (PDT)
+Content-Disposition: inline
+In-Reply-To: <1381493941-4650-3-git-send-email-tianyu.lan@intel.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: tianyu.lan@intel.com
+Cc: lenb@kernel.org, rjw@sisk.pl, yinghai@kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 
-> Also, I suspect that, if an error happens to affect more than one DIMM
-> (e. g. part of the location is not available for a given error),
-> that the DIMM label will also not be properly shown.
+On Fri, Oct 11, 2013 at 08:18:58PM +0800, tianyu.lan@intel.com wrote:
+> From: Lan Tianyu <tianyu.lan@intel.com>
+> 
+> According ACPI 5.0 spec Section 19.1.8
 
-There are a couple of cases here:
+This section reference is wrong.  Table 5-133 (on page 243) does
+point to Section 19.1.8, but that section is only the ASL grammar
+description and doesn't have any useful information about what
+_TRA means.
 
-1) There are a number of DIMMs behind some flaky h/w that introduces errors
-that are apparently blamed onto each of those DIMMs.
+A more useful reference (and the source of the quote below) is
+Section 6.4.3.5.1.
 
-  All we can do here is statistical correlations ... each error is reported independently,
-  it is up to some entity to notice the higher level topology connection. There is enough
-  information in the UEFI error record to do that (assuming that BIOS filled out the
-  necessary fields).
+> "For bridges, translate addresses across the bridge, this is the
+> offset that must be added to the address on the secondary side
+> to obtain the address on the primary side. Non-bridge devices
+> must list 0."
 
-2) There is a single reported error that spans more than one DIMM.
+You didn't quote this correctly.  Here's a copy/paste from the spec:
 
-  This can happen with a UC error in a pair of lock-step DIMMs.  Since the error is UC
-  we know that two (or more) bits are bad.  But we have no way to tell whether the
-  bad bits came from the same DIMM, or one bit from each (because we don't know
-  which bits are bad - if we knew that, we could fix them :-)   The eMCA case should
-  log two subsections in this case - one for each of the lockstep DIMMs involved. A user
-  seeing this will should probably just replace both DIMMs to be safe.  If they wanted to
-  diagnose further they should swap DIMMs around so this pair are no longer lockstepped
-  and see if they start seeing correctable errors from each of the split pair - or if the UC
-  errors move with one or the other of the DIMMs
+    For bridges that translate addresses across the bridge, this is
+    the offset that must be added to the address on the secondary side
+    to obtain the address on the primary side. Non-bridge devices must
+    list 0 for all Address Translation offset bits.
 
--Tony
+> This patch is to add address translation offset to the start/end
+> of struct resource in the acpi_dev_resource_address_space().
+> Further more, non-bridge device's translation_offset should 0.
+> So this change will affect other devices.
+> 
+> Signed-off-by: Lan Tianyu <tianyu.lan@intel.com>
+
+I like the patch, though :)  With the above corrections,
+
+Acked-by: Bjorn Helgaas <bhelgaas@google.com>
+
+> ---
+>  drivers/acpi/resource.c | 4 ++--
+>  1 file changed, 2 insertions(+), 2 deletions(-)
+> 
+> diff --git a/drivers/acpi/resource.c b/drivers/acpi/resource.c
+> index 929f416..84bc3db 100644
+> --- a/drivers/acpi/resource.c
+> +++ b/drivers/acpi/resource.c
+> @@ -192,8 +192,8 @@ bool acpi_dev_resource_address_space(struct acpi_resource *ares,
+>  	if (ACPI_FAILURE(status))
+>  		return true;
+>  
+> -	res->start = addr.minimum;
+> -	res->end = addr.maximum;
+> +	res->start = addr.minimum + addr.translation_offset;
+> +	res->end = addr.maximum + addr.translation_offset;
+>  	window = addr.producer_consumer == ACPI_PRODUCER;
+>  
+>  	switch(addr.resource_type) {
+> -- 
+> 1.8.2.1
+> 
