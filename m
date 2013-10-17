@@ -1,108 +1,102 @@
-From: Mika Westerberg <mika.westerberg@linux.intel.com>
-Subject: Re: [PATCH 5/5] net: rfkill: gpio: add ACPI support
-Date: Thu, 17 Oct 2013 10:44:26 +0300
-Message-ID: <20131017074426.GG3521@intel.com>
-References: <1381920823-15403-1-git-send-email-heikki.krogerus@linux.intel.com>
- <1381920823-15403-6-git-send-email-heikki.krogerus@linux.intel.com>
- <2878506.7lf24R85t6@vostro.rjw.lan>
+From: Chen Gong <gong.chen@linux.intel.com>
+Subject: Re: [PATCH v2 3/9] bitops: Introduce a more generic BITMASK macro
+Date: Thu, 17 Oct 2013 03:38:24 -0400
+Message-ID: <20131017073824.GC14946@gchen.bj.intel.com>
+References: <1381935366-11731-1-git-send-email-gong.chen@linux.intel.com>
+ <1381935366-11731-4-git-send-email-gong.chen@linux.intel.com>
+ <1381978749.22110.76.camel@joe-AO722>
+ <20131017063059.GB14946@gchen.bj.intel.com>
+ <1381993136.22110.95.camel@joe-AO722>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="3siQDZowHQqNOShm"
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga14.intel.com ([143.182.124.37]:27597 "EHLO mga14.intel.com"
+Received: from mga09.intel.com ([134.134.136.24]:3236 "EHLO mga09.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751056Ab3JQHjB (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 17 Oct 2013 03:39:01 -0400
+	id S1752646Ab3JQHxW (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 17 Oct 2013 03:53:22 -0400
 Content-Disposition: inline
-In-Reply-To: <2878506.7lf24R85t6@vostro.rjw.lan>
+In-Reply-To: <1381993136.22110.95.camel@joe-AO722>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: Heikki Krogerus <heikki.krogerus@linux.intel.com>, "John W. Linville" <linville@tuxdriver.com>, Johannes Berg <johannes@sipsolutions.net>, Rhyland Klein <rklein@nvidia.com>, linux-acpi@vger.kernel.org, linux-wireless@vger.kernel.org, netdev@vger.kernel.org
+To: Joe Perches <joe@perches.com>
+Cc: tony.luck@intel.com, bp@alien8.de, naveen.n.rao@linux.vnet.ibm.com, m.chehab@samsung.com, arozansk@redhat.com, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Thomas Winischhofer <thomas@winischhofer.net>, Jean-Christophe Plagniol-Villard <plagnioj@jcrosoft.com>, Tomi Valkeinen <tomi.valkeinen@ti.com>
 
-On Wed, Oct 16, 2013 at 10:55:01PM +0200, Rafael J. Wysocki wrote:
-> On Wednesday, October 16, 2013 01:53:43 PM Heikki Krogerus wrote:
-> > Including ACPI ID for Broadcom GPS receiver BCM4752.
-> > 
-> > Signed-off-by: Heikki Krogerus <heikki.krogerus@linux.intel.com>
-> > ---
-> >  net/rfkill/rfkill-gpio.c | 31 ++++++++++++++++++++++++++++++-
-> >  1 file changed, 30 insertions(+), 1 deletion(-)
-> > 
-> > diff --git a/net/rfkill/rfkill-gpio.c b/net/rfkill/rfkill-gpio.c
-> > index 2dd78c6..5620d3c 100644
-> > --- a/net/rfkill/rfkill-gpio.c
-> > +++ b/net/rfkill/rfkill-gpio.c
-> > @@ -24,6 +24,8 @@
-> >  #include <linux/platform_device.h>
-> >  #include <linux/clk.h>
-> >  #include <linux/slab.h>
-> > +#include <linux/acpi.h>
-> > +#include <linux/acpi_gpio.h>
-> >  
-> >  #include <linux/rfkill-gpio.h>
-> >  
-> > @@ -70,6 +72,23 @@ static const struct rfkill_ops rfkill_gpio_ops = {
-> >  	.set_block = rfkill_gpio_set_power,
-> >  };
-> >  
-> > +static int rfkill_gpio_acpi_probe(struct device *dev,
-> > +				  struct rfkill_gpio_data *rfkill)
-> > +{
-> > +	const struct acpi_device_id *id;
-> > +
-> > +	id = acpi_match_device(dev->driver->acpi_match_table, dev);
-> > +	if (!id)
-> > +		return -ENODEV;
-> > +
-> > +	rfkill->name = dev_name(dev);
-> > +	rfkill->type = (unsigned)id->driver_data;
-> > +	rfkill->reset_gpio = acpi_get_gpio_by_index(dev, 0, NULL);
-> > +	rfkill->shutdown_gpio = acpi_get_gpio_by_index(dev, 1, NULL);
-> > +
-> > +	return 0;
-> > +}
-> > +
-> >  static int rfkill_gpio_probe(struct platform_device *pdev)
-> >  {
-> >  	struct rfkill_gpio_platform_data *pdata = pdev->dev.platform_data;
-> > @@ -82,7 +101,11 @@ static int rfkill_gpio_probe(struct platform_device *pdev)
-> >  	if (!rfkill)
-> >  		return -ENOMEM;
-> >  
-> > -	if (pdata) {
-> > +	if (ACPI_HANDLE(&pdev->dev)) {
-> > +		ret = rfkill_gpio_acpi_probe(&pdev->dev, rfkill);
-> > +		if (ret)
-> > +			return ret;
-> > +	} else if (pdata) {
-> >  		clk_name = pdata->power_clk_name;
-> >  		rfkill->name = pdata->name;
-> >  		rfkill->type = pdata->type;
-> > @@ -170,12 +193,18 @@ static int rfkill_gpio_remove(struct platform_device *pdev)
-> >  	return 0;
-> >  }
-> >  
-> > +static const struct acpi_device_id rfkill_acpi_match[] = {
-> > +	{ "BCM4752", RFKILL_TYPE_GPS },
-> > +	{ },
-> > +};
-> > +
-> >  static struct platform_driver rfkill_gpio_driver = {
-> >  	.probe = rfkill_gpio_probe,
-> >  	.remove = rfkill_gpio_remove,
-> >  	.driver = {
-> >  		.name = "rfkill_gpio",
-> >  		.owner = THIS_MODULE,
-> > +		.acpi_match_table = ACPI_PTR(rfkill_acpi_match),
-> >  	},
-> >  };
-> 
-> Looks good to me.
-> 
-> Has Mika seen this?
 
-Yes, saw it now and looks good to me as well.
+--3siQDZowHQqNOShm
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-Reviewed-by: Mika Westerberg <mika.westerberg@linux.intel.com>
+On Wed, Oct 16, 2013 at 11:58:56PM -0700, Joe Perches wrote:
+> Date: Wed, 16 Oct 2013 23:58:56 -0700
+> From: Joe Perches <joe@perches.com>
+> To: Chen Gong <gong.chen@linux.intel.com>
+> Cc: tony.luck@intel.com, bp@alien8.de, naveen.n.rao@linux.vnet.ibm.com,
+>  m.chehab@samsung.com, arozansk@redhat.com, linux-acpi@vger.kernel.org,
+>  linux-kernel@vger.kernel.org, Thomas Winischhofer
+>  <thomas@winischhofer.net>, Jean-Christophe Plagniol-Villard
+>  <plagnioj@jcrosoft.com>, Tomi Valkeinen <tomi.valkeinen@ti.com>
+> Subject: Re: [PATCH v2 3/9] bitops: Introduce a more generic BITMASK macro
+> X-Mailer: Evolution 3.6.4-0ubuntu1=20
+>=20
+> On Thu, 2013-10-17 at 02:30 -0400, Chen Gong wrote:
+> > On Wed, Oct 16, 2013 at 07:59:09PM -0700, Joe Perches wrote:
+> []
+> > > Maybe add a
+> > >=20
+> > > BUILD_BUG_ON(__builtin_constant_p(l) && __builtin_constant_p(h) && \
+> > > 	     (h) < (l))
+> > >=20
+> > No, if so, users can't use variables for this macro.
+>=20
+> __builtin_constant_p checks for constants
+>=20
+> Built-in Function: int __builtin_constant_p (exp)
+>         You can use the built-in function __builtin_constant_p to
+>         determine if a value is known to be constant at compile-time and
+>         hence that GCC can perform constant-folding on expressions
+>         involving that value. The argument of the function is the value
+>         to test. The function returns the integer 1 if the argument is
+>         known to be a compile-time constant and 0 if it is not known to
+>         be a compile-time constant. A return of 0 does not indicate that
+>         the value is not a constant, but merely that GCC cannot prove it
+>         is a constant with the specified value of the -O option.=20
+>        =20
 
-for the whole series, for what it's worth.
+Yes, even we have following codes __builtin_constant_p still can return 1,
+so long as the value of variable can be identified.
+
+int len =3D sizeof(int);
+if (__builtin_constant_p(len)) {
+        do_1;
+} else {
+        do_0;
+}
+
+but the point is we can use GENMASK like GENMASK(end_bit, start_bit) but
+we don't know the value of end_bit/start_bit at compile-time.
+
+--3siQDZowHQqNOShm
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.14 (GNU/Linux)
+
+iQIcBAEBAgAGBQJSX5PwAAoJEI01n1+kOSLHJTwP/1j0AyXAQJLTx0wyh6l5jEEg
+beG4MkqKr3iBEUc6ivjUw2rQWNrQ1BQeFPgMC46CYLlkH0q6RdKNEb0m7IkOTZjt
+k1eGGXrvGoYQGmddns2O5s2KuOWQSVV4sgBIlGF4I5wvfgHPGoSpb19Sw9w3hpx2
+wAm80hMvAF9W+W2lRt3dDLmeTlFFSa+twLMSKtMPlqUJasCC7kZDnZs14xxU+ZIY
+ISnRrC2KSQr99/2W2YfRytg9Ke2QmPfqyI2+dTN6njEKBKGkE8qmKboVSwZEdPX+
+H5WV5KXsh3LpI2t3c4fbehlKLE2tEDgyfwez+ojJBFIJt0wviz5TxO60hciPXAqO
+lLm6cOIU5REwNtw3RYfBGVuT2Dj0AIMT74+MpW6L6+8YdqFBh06dKIVgiWt3GcoM
+Fe8o9cBNZBusm0+ykNW2RoO3mICBLKhzenmYjCPuiyh4aefkMAWZjLgd9IGGnWQh
+Uh5FNOdV3MKLQJdC4FHBGMDeXPnr+g0aFsB0qvSxAZtkP4aO2s1XtCbbUDwc9bZ8
+bpLuQJ7ahZELfImMkK1oEG8Cj/LL1buDJ7ylHJsfy2FGJ5gCS2HH0mOEDRgxU+mb
+v1DVTjLPB8FgLlUam61pN++9K+dk5gJpFloIq7OALuWAoGAcOKPQapeGVOV2NEnx
+wyQG4BQilfb7hdOWCAWl
+=Sc/M
+-----END PGP SIGNATURE-----
+
+--3siQDZowHQqNOShm--
