@@ -1,185 +1,177 @@
 From: Mauro Carvalho Chehab <m.chehab@samsung.com>
-Subject: Re: [PATCH v2 5/9] DMI: Parse memory device (type 17) in SMBIOS
-Date: Thu, 17 Oct 2013 07:14:45 -0300
-Message-ID: <20131017071445.1716ed3b@samsung.com>
+Subject: Re: [PATCH v2 6/9] ACPI, APEI,
+ CPER: Add UEFI 2.4 support for memory error
+Date: Thu, 17 Oct 2013 07:23:06 -0300
+Message-ID: <20131017072306.5839d500@samsung.com>
 References: <1381935366-11731-1-git-send-email-gong.chen@linux.intel.com>
- <1381935366-11731-6-git-send-email-gong.chen@linux.intel.com>
+ <1381935366-11731-7-git-send-email-gong.chen@linux.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mailout4.w2.samsung.com ([211.189.100.14]:59086 "EHLO
+Received: from mailout4.w2.samsung.com ([211.189.100.14]:59150 "EHLO
 	usmailout4.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753899Ab3JQKOw (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 17 Oct 2013 06:14:52 -0400
-In-reply-to: <1381935366-11731-6-git-send-email-gong.chen@linux.intel.com>
+	with ESMTP id S1753802Ab3JQKXN (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 17 Oct 2013 06:23:13 -0400
+In-reply-to: <1381935366-11731-7-git-send-email-gong.chen@linux.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: "Chen, Gong" <gong.chen@linux.intel.com>
 Cc: tony.luck@intel.com, bp@alien8.de, joe@perches.com, naveen.n.rao@linux.vnet.ibm.com, arozansk@redhat.com, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 
-Em Wed, 16 Oct 2013 10:56:02 -0400
+Em Wed, 16 Oct 2013 10:56:03 -0400
 "Chen, Gong" <gong.chen@linux.intel.com> escreveu:
 
-> This patch adds a new interface to decode memory device (type 17)
-> to help error reporting on DIMMs.
+> In latest UEFI spec(by now it is 2.4) memory error definition
+> for CPER (UEFI 2.4 Appendix N Common Platform Error Record)
+> adds some new fields. These fields help people to locate
+> memory error on actual DIMM location.
 > 
 > Original-author: Tony Luck <tony.luck@intel.com>
 > Signed-off-by: Chen, Gong <gong.chen@linux.intel.com>
-> Acked-by: Naveen N. Rao <naveen.n.rao@linux.vnet.ibm.com>
-
-Reviewed-by: Mauro Carvalho Chehab <m.chehab@samsung.com>
-
+> Reviewed-by: Borislav Petkov <bp@suse.de>
 > ---
->  arch/ia64/kernel/setup.c    |  1 +
->  arch/x86/kernel/setup.c     |  1 +
->  drivers/firmware/dmi_scan.c | 60 +++++++++++++++++++++++++++++++++++++++++++++
->  include/linux/dmi.h         |  5 ++++
->  4 files changed, 67 insertions(+)
+>  arch/x86/kernel/cpu/mcheck/mce-apei.c |  3 +--
+>  drivers/acpi/apei/cper.c              |  7 ++++---
+>  drivers/acpi/apei/ghes.c              |  4 ++--
+>  drivers/edac/ghes_edac.c              |  5 ++---
+>  include/linux/cper.h                  | 11 +++++++++--
+>  5 files changed, 18 insertions(+), 12 deletions(-)
 > 
-> diff --git a/arch/ia64/kernel/setup.c b/arch/ia64/kernel/setup.c
-> index 4fc2e95..d86669b 100644
-> --- a/arch/ia64/kernel/setup.c
-> +++ b/arch/ia64/kernel/setup.c
-> @@ -1063,6 +1063,7 @@ check_bugs (void)
->  static int __init run_dmi_scan(void)
+> diff --git a/arch/x86/kernel/cpu/mcheck/mce-apei.c b/arch/x86/kernel/cpu/mcheck/mce-apei.c
+> index cd8b166..de8b60a 100644
+> --- a/arch/x86/kernel/cpu/mcheck/mce-apei.c
+> +++ b/arch/x86/kernel/cpu/mcheck/mce-apei.c
+> @@ -42,8 +42,7 @@ void apei_mce_report_mem_error(int corrected, struct cper_sec_mem_err *mem_err)
+>  	struct mce m;
+>  
+>  	/* Only corrected MC is reported */
+> -	if (!corrected || !(mem_err->validation_bits &
+> -				CPER_MEM_VALID_PHYSICAL_ADDRESS))
+> +	if (!corrected || !(mem_err->validation_bits & CPER_MEM_VALID_PA))
+>  		return;
+>  
+>  	mce_setup(&m);
+> diff --git a/drivers/acpi/apei/cper.c b/drivers/acpi/apei/cper.c
+> index eb5f6d6..946ef52 100644
+> --- a/drivers/acpi/apei/cper.c
+> +++ b/drivers/acpi/apei/cper.c
+> @@ -8,7 +8,7 @@
+>   * various tables, such as ERST, BERT and HEST etc.
+>   *
+>   * For more information about CPER, please refer to Appendix N of UEFI
+> - * Specification version 2.3.
+> + * Specification version 2.4.
+>   *
+>   * This program is free software; you can redistribute it and/or
+>   * modify it under the terms of the GNU General Public License version
+> @@ -191,16 +191,17 @@ static const char *cper_mem_err_type_strs[] = {
+>  	"memory sparing",
+>  	"scrub corrected error",
+>  	"scrub uncorrected error",
+> +	"physical memory map-out event",
+>  };
+>  
+>  static void cper_print_mem(const char *pfx, const struct cper_sec_mem_err *mem)
 >  {
->  	dmi_scan_machine();
-> +	dmi_memdev_walk();
->  	dmi_set_dump_stack_arch_desc();
->  	return 0;
->  }
-> diff --git a/arch/x86/kernel/setup.c b/arch/x86/kernel/setup.c
-> index f0de629..918d489 100644
-> --- a/arch/x86/kernel/setup.c
-> +++ b/arch/x86/kernel/setup.c
-> @@ -993,6 +993,7 @@ void __init setup_arch(char **cmdline_p)
->  		efi_init();
+>  	if (mem->validation_bits & CPER_MEM_VALID_ERROR_STATUS)
+>  		printk("%s""error_status: 0x%016llx\n", pfx, mem->error_status);
+> -	if (mem->validation_bits & CPER_MEM_VALID_PHYSICAL_ADDRESS)
+> +	if (mem->validation_bits & CPER_MEM_VALID_PA)
+>  		printk("%s""physical_address: 0x%016llx\n",
+>  		       pfx, mem->physical_addr);
+> -	if (mem->validation_bits & CPER_MEM_VALID_PHYSICAL_ADDRESS_MASK)
+> +	if (mem->validation_bits & CPER_MEM_VALID_PA_MASK)
+>  		printk("%s""physical_address_mask: 0x%016llx\n",
+>  		       pfx, mem->physical_addr_mask);
+>  	if (mem->validation_bits & CPER_MEM_VALID_NODE)
+> diff --git a/drivers/acpi/apei/ghes.c b/drivers/acpi/apei/ghes.c
+> index 0db6e4f..a30bc31 100644
+> --- a/drivers/acpi/apei/ghes.c
+> +++ b/drivers/acpi/apei/ghes.c
+> @@ -419,7 +419,7 @@ static void ghes_handle_memory_failure(struct acpi_generic_data *gdata, int sev)
 >  
->  	dmi_scan_machine();
-> +	dmi_memdev_walk();
->  	dmi_set_dump_stack_arch_desc();
+>  	if (sec_sev == GHES_SEV_CORRECTED &&
+>  	    (gdata->flags & CPER_SEC_ERROR_THRESHOLD_EXCEEDED) &&
+> -	    (mem_err->validation_bits & CPER_MEM_VALID_PHYSICAL_ADDRESS)) {
+> +	    (mem_err->validation_bits & CPER_MEM_VALID_PA)) {
+>  		pfn = mem_err->physical_addr >> PAGE_SHIFT;
+>  		if (pfn_valid(pfn))
+>  			memory_failure_queue(pfn, 0, MF_SOFT_OFFLINE);
+> @@ -430,7 +430,7 @@ static void ghes_handle_memory_failure(struct acpi_generic_data *gdata, int sev)
+>  	}
+>  	if (sev == GHES_SEV_RECOVERABLE &&
+>  	    sec_sev == GHES_SEV_RECOVERABLE &&
+> -	    mem_err->validation_bits & CPER_MEM_VALID_PHYSICAL_ADDRESS) {
+> +	    mem_err->validation_bits & CPER_MEM_VALID_PA) {
+>  		pfn = mem_err->physical_addr >> PAGE_SHIFT;
+>  		memory_failure_queue(pfn, 0, 0);
+>  	}
+> diff --git a/drivers/edac/ghes_edac.c b/drivers/edac/ghes_edac.c
+> index bb53467..0ad797b 100644
+> --- a/drivers/edac/ghes_edac.c
+> +++ b/drivers/edac/ghes_edac.c
+> @@ -297,15 +297,14 @@ void ghes_edac_report_mem_error(struct ghes *ghes, int sev,
+>  	}
 >  
->  	/*
-> diff --git a/drivers/firmware/dmi_scan.c b/drivers/firmware/dmi_scan.c
-> index fa0affb..59579a7 100644
-> --- a/drivers/firmware/dmi_scan.c
-> +++ b/drivers/firmware/dmi_scan.c
-> @@ -25,6 +25,13 @@ static int dmi_initialized;
->  /* DMI system identification string used during boot */
->  static char dmi_ids_string[128] __initdata;
+>  	/* Error address */
+> -	if (mem_err->validation_bits & CPER_MEM_VALID_PHYSICAL_ADDRESS) {
+> +	if (mem_err->validation_bits & CPER_MEM_VALID_PA) {
+>  		e->page_frame_number = mem_err->physical_addr >> PAGE_SHIFT;
+>  		e->offset_in_page = mem_err->physical_addr & ~PAGE_MASK;
+>  	}
 >  
-> +static struct dmi_memdev_info {
-> +	const char *device;
-> +	const char *bank;
-> +	u16 handle;
-> +} *dmi_memdev;
-> +static int dmi_memdev_nr;
-> +
->  static const char * __init dmi_string_nosave(const struct dmi_header *dm, u8 s)
->  {
->  	const u8 *bp = ((u8 *) dm) + dm->length;
-> @@ -322,6 +329,42 @@ static void __init dmi_save_extended_devices(const struct dmi_header *dm)
->  	dmi_save_one_device(*d & 0x7f, dmi_string_nosave(dm, *(d - 1)));
->  }
+>  	/* Error grain */
+> -	if (mem_err->validation_bits & CPER_MEM_VALID_PHYSICAL_ADDRESS_MASK) {
+> +	if (mem_err->validation_bits & CPER_MEM_VALID_PA_MASK)
+>  		e->grain = ~(mem_err->physical_addr_mask & ~PAGE_MASK);
+> -	}
 >  
-> +static void __init count_mem_devices(const struct dmi_header *dm, void *v)
-> +{
-> +	if (dm->type != DMI_ENTRY_MEM_DEVICE)
-> +		return;
-> +	dmi_memdev_nr++;
-> +}
-> +
-> +static void __init save_mem_devices(const struct dmi_header *dm, void *v)
-> +{
-> +	const char *d = (const char *)dm;
-> +	static int nr;
-> +
-> +	if (dm->type != DMI_ENTRY_MEM_DEVICE)
-> +		return;
-> +	if (nr >= dmi_memdev_nr) {
-> +		pr_warn(FW_BUG "Too many DIMM entries in SMBIOS table\n");
-> +		return;
-> +	}
-> +	dmi_memdev[nr].handle = dm->handle;
-> +	dmi_memdev[nr].device = dmi_string(dm, d[0x10]);
-> +	dmi_memdev[nr].bank = dmi_string(dm, d[0x11]);
-> +	nr++;
-> +}
-> +
-> +void __init dmi_memdev_walk(void)
-> +{
-> +	if (!dmi_available)
-> +		return;
-> +
-> +	if (dmi_walk_early(count_mem_devices) == 0 && dmi_memdev_nr) {
-> +		dmi_memdev = dmi_alloc(sizeof(*dmi_memdev) * dmi_memdev_nr);
-> +		if (dmi_memdev)
-> +			dmi_walk_early(save_mem_devices);
-> +	}
-> +}
-> +
->  /*
->   *	Process a DMI table entry. Right now all we care about are the BIOS
->   *	and machine entries. For 2.5 we should pull the smbus controller info
-> @@ -815,3 +858,20 @@ bool dmi_match(enum dmi_field f, const char *str)
->  	return !strcmp(info, str);
->  }
->  EXPORT_SYMBOL_GPL(dmi_match);
-> +
-> +void dmi_memdev_name(u16 handle, const char **bank, const char **device)
-> +{
-> +	int n;
-> +
-> +	if (dmi_memdev == NULL)
-> +		return;
-> +
-> +	for (n = 0; n < dmi_memdev_nr; n++) {
-> +		if (handle == dmi_memdev[n].handle) {
-> +			*bank = dmi_memdev[n].bank;
-> +			*device = dmi_memdev[n].device;
-> +			break;
-> +		}
-> +	}
-> +}
-> +EXPORT_SYMBOL_GPL(dmi_memdev_name);
-> diff --git a/include/linux/dmi.h b/include/linux/dmi.h
-> index b6eb7a0..f820f0a 100644
-> --- a/include/linux/dmi.h
-> +++ b/include/linux/dmi.h
-> @@ -99,6 +99,7 @@ extern const char * dmi_get_system_info(int field);
->  extern const struct dmi_device * dmi_find_device(int type, const char *name,
->  	const struct dmi_device *from);
->  extern void dmi_scan_machine(void);
-> +extern void dmi_memdev_walk(void);
->  extern void dmi_set_dump_stack_arch_desc(void);
->  extern bool dmi_get_date(int field, int *yearp, int *monthp, int *dayp);
->  extern int dmi_name_in_vendors(const char *str);
-> @@ -107,6 +108,7 @@ extern int dmi_available;
->  extern int dmi_walk(void (*decode)(const struct dmi_header *, void *),
->  	void *private_data);
->  extern bool dmi_match(enum dmi_field f, const char *str);
-> +extern void dmi_memdev_name(u16 handle, const char **bank, const char **device);
+>  	/* Memory error location, mapped on e->location */
+>  	p = e->location;
+> diff --git a/include/linux/cper.h b/include/linux/cper.h
+> index 09ebe21..2fc0ec3 100644
+> --- a/include/linux/cper.h
+> +++ b/include/linux/cper.h
+> @@ -218,8 +218,8 @@ enum {
+>  #define CPER_PROC_VALID_IP			0x1000
 >  
->  #else
+>  #define CPER_MEM_VALID_ERROR_STATUS		0x0001
+> -#define CPER_MEM_VALID_PHYSICAL_ADDRESS		0x0002
+> -#define CPER_MEM_VALID_PHYSICAL_ADDRESS_MASK	0x0004
+> +#define CPER_MEM_VALID_PA			0x0002
+> +#define CPER_MEM_VALID_PA_MASK			0x0004
+>  #define CPER_MEM_VALID_NODE			0x0008
+>  #define CPER_MEM_VALID_CARD			0x0010
+>  #define CPER_MEM_VALID_MODULE			0x0020
+> @@ -232,6 +232,9 @@ enum {
+>  #define CPER_MEM_VALID_RESPONDER_ID		0x1000
+>  #define CPER_MEM_VALID_TARGET_ID		0x2000
+>  #define CPER_MEM_VALID_ERROR_TYPE		0x4000
+> +#define CPER_MEM_VALID_RANK_NUMBER		0x8000
+> +#define CPER_MEM_VALID_CARD_HANDLE		0x10000
+> +#define CPER_MEM_VALID_MODULE_HANDLE		0x20000
 >  
-> @@ -115,6 +117,7 @@ static inline const char * dmi_get_system_info(int field) { return NULL; }
->  static inline const struct dmi_device * dmi_find_device(int type, const char *name,
->  	const struct dmi_device *from) { return NULL; }
->  static inline void dmi_scan_machine(void) { return; }
-> +static inline void dmi_memdev_walk(void) { }
->  static inline void dmi_set_dump_stack_arch_desc(void) { }
->  static inline bool dmi_get_date(int field, int *yearp, int *monthp, int *dayp)
->  {
-> @@ -133,6 +136,8 @@ static inline int dmi_walk(void (*decode)(const struct dmi_header *, void *),
->  	void *private_data) { return -1; }
->  static inline bool dmi_match(enum dmi_field f, const char *str)
->  	{ return false; }
-> +static inline void dmi_memdev_name(u16 handle, const char **bank,
-> +		const char **device) { }
->  static inline const struct dmi_system_id *
->  	dmi_first_match(const struct dmi_system_id *list) { return NULL; }
+>  #define CPER_PCIE_VALID_PORT_TYPE		0x0001
+>  #define CPER_PCIE_VALID_VERSION			0x0002
+> @@ -347,6 +350,10 @@ struct cper_sec_mem_err {
+>  	__u64	responder_id;
+>  	__u64	target_id;
+>  	__u8	error_type;
+> +	__u8	reserved;
+> +	__u16	rank;
+> +	__u16	mem_array_handle;	/* card handle in UEFI 2.4 */
+> +	__u16	mem_dev_handle;		/* module handle in UEFI 2.4 */
+
+Hmm... you're adding 3 new types here and the corresponding space inside the
+structure (rank, card_handle and module_handle), but the code that parses and
+prints it is missing, at apei_mce_report_mem_error(), cper_print_mem(),
+ghes_handle_memory_failure() and ghes_edac_report_mem_error().
+
+
+>  };
 >  
+>  struct cper_sec_pcie {
 
 
 -- 
