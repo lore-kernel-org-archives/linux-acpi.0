@@ -1,62 +1,32 @@
-From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [PATCH] ACPI / power: Drop automaitc resume of power resource dependent devices
-Date: Thu, 17 Oct 2013 15:47 +0200
-Message-ID: <2220996.Balj6KfZAP@vostro.rjw.lan>
-References: <4814451.BPLed2xxbP@vostro.rjw.lan> <525F8A48.9020007@intel.com> <3517410.N1Ot4TpM2j@vostro.rjw.lan>
+From: Johannes Berg <johannes@sipsolutions.net>
+Subject: Re: [PATCH 0/5] rfkill-gpio: ACPI support
+Date: Thu, 17 Oct 2013 16:26:30 +0200
+Message-ID: <1382019990.14410.5.camel@jlt4.sipsolutions.net>
+References: <1381920823-15403-1-git-send-email-heikki.krogerus@linux.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7Bit
-Return-path: <linux-pm-owner@vger.kernel.org>
-In-Reply-To: <3517410.N1Ot4TpM2j@vostro.rjw.lan>
-Sender: linux-pm-owner@vger.kernel.org
-To: Aaron Lu <aaron.lu@intel.com>
-Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux PM list <linux-pm@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>, Lan Tianyu <tianyu.lan@intel.com>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from s3.sipsolutions.net ([144.76.43.152]:43997 "EHLO
+	sipsolutions.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755754Ab3JQO0r (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 17 Oct 2013 10:26:47 -0400
+In-Reply-To: <1381920823-15403-1-git-send-email-heikki.krogerus@linux.intel.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Heikki Krogerus <heikki.krogerus@linux.intel.com>
+Cc: "John W. Linville" <linville@tuxdriver.com>, Rhyland Klein <rklein@nvidia.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, linux-acpi@vger.kernel.org, linux-wireless@vger.kernel.org, netdev@vger.kernel.org
 
-On Thursday, October 17, 2013 01:56:23 PM Rafael J. Wysocki wrote:
-> On Thursday, October 17, 2013 02:57:12 PM Aaron Lu wrote:
-> > On 10/16/2013 09:25 PM, Rafael J. Wysocki wrote:
-> > > From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
-> > > 
-> > > The mechanism causing devices depending on a given power resource
-> > > (that is, devices that can be in D0 only if that power resource is
-> > > on) to be resumed automatically when the power resource is turned
-> > > on (and their "inferred" power state becomes D0 as a result) is
-> > > inherently racy and in fact unnecessary.
-> > > 
-> > > It is racy, because if the power resources is turned on and then
-> > > immediately off, the device resume triggered by the first transition
-> > > to "on" may still happen, causing the power resource to be turned
-> > > on again.  That again will trigger the "resume of dependent devices"
-> > > mechanism, but if the devices in question are not in use, they will
-> > > be suspended in the meantime causing the power resource to be turned
-> > > off.  However, the "resume of dependent devices" will next resume
-> > > them again and so on.  In some cases (USB port PM in particular) that
-> > > leads to an endless busy loop of flipping the resource on and off
-> > > continuously.
-> > > 
-> > > It is needless, because whoever turns a power resource on will most
-> > > likely turn it off at some point and the devices that go into "D0"
-> > > as a result of turning it on will then go back into D3cold.
-> > > Moreover, turning all power resources a device needs to go into
-> > > D0 is not sufficient for a full transition into D0 in general.
-> > > Namely, _PS0 may need to be executed in addition to that in some
-> > > cases.  This means that the whole rationale of the "resume of
-> > > dependent devices" mechanism was incorrect to begin with and it's
-> > > best to remove it entirely.
-> > 
-> > With this patch, your previous patch could also be applied now:
-> > https://lkml.org/lkml/2013/6/14/173
-> > [PATCH 4/4] ACPI / PM: Drop two functions that are not used any more
+On Wed, 2013-10-16 at 13:53 +0300, Heikki Krogerus wrote:
+> Hi,
 > 
-> Good catch and that code is dead anyway AFAICS, because power_dependent is only
-> used in device_pm.c (in those two functions) and in scan.c (where it is
-> initialized).
+> The first patches prepare the driver for the support. The last patch
+> can then add the support quite easily. With these patches, adding DT
+> support later will be quite straight forward if someone needs it.
 
-That obviously is with the $subject patch applied.
+Applied. I'm totally relying on all the reviewers though, since I have
+very little idea of what's going on. If anyone else wants to maintain
+the rfkill-gpio driver I'd welcome that :-)
 
-Thanks!
+johannes
 
--- 
-I speak only for myself.
-Rafael J. Wysocki, Intel Open Source Technology Center.
