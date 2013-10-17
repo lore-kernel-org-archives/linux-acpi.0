@@ -1,221 +1,36 @@
-From: Bjorn Helgaas <bhelgaas@google.com>
-Subject: Re: [Resend PATCH 5/5] IA64/PCI/ACPI: Rework PCI root bridge ACPI
- resource conversion
-Date: Thu, 17 Oct 2013 14:33:43 -0600
-Message-ID: <CAErSpo7P+n5c2uUoodT=LOjE3UH3LBcjifbj8reXzAeWydsoLA@mail.gmail.com>
-References: <1381493941-4650-1-git-send-email-tianyu.lan@intel.com>
- <1381493941-4650-6-git-send-email-tianyu.lan@intel.com> <20131016235541.GD17866@google.com>
- <525F7F0F.5010306@intel.com>
+From: "Luck, Tony" <tony.luck@intel.com>
+Subject: RE: [PATCH 8/8] ACPI / trace: Add trace interface for eMCA driver
+Date: Thu, 17 Oct 2013 21:35:02 +0000
+Message-ID: <3908561D78D1C84285E8C5FCA982C28F31D33F77@ORSMSX106.amr.corp.intel.com>
+References: <1381473166-29303-1-git-send-email-gong.chen@linux.intel.com>
+ <1381473166-29303-9-git-send-email-gong.chen@linux.intel.com>
+ <20131015165435.GA2777@naverao1-tp.ibm.com> <20131015170039.GF7908@pd.tnic>
+ <525D7BCD.7080303@linux.vnet.ibm.com>
+ <20131015214346.68718bcd.m.chehab@samsung.com>
+ <20131016091640.GA13608@pd.tnic>
+ <20131016073539.5a48f65e.m.chehab@samsung.com>
+ <20131016104221.GC13608@pd.tnic> <20131016085558.19fe143a@samsung.com>
+ <3908561D78D1C84285E8C5FCA982C28F31D31C65@ORSMSX106.amr.corp.intel.com>
+ <20131017073443.675e97f2@samsung.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-ia64-owner@vger.kernel.org>
-In-Reply-To: <525F7F0F.5010306@intel.com>
-Sender: linux-ia64-owner@vger.kernel.org
-To: Lan Tianyu <tianyu.lan@intel.com>
-Cc: Tony Luck <tony.luck@intel.com>, Len Brown <lenb@kernel.org>, "Rafael J. Wysocki" <rjw@sisk.pl>, Yinghai Lu <yinghai@kernel.org>, "linux-ia64@vger.kernel.org" <linux-ia64@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "Yoknis, Mike" <mike.yoknis@hp.com>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mga01.intel.com ([192.55.52.88]:62021 "EHLO mga01.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1762379Ab3JQVfF convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 17 Oct 2013 17:35:05 -0400
+In-Reply-To: <20131017073443.675e97f2@samsung.com>
+Content-Language: en-US
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Mauro Carvalho Chehab <m.chehab@samsung.com>
+Cc: Borislav Petkov <bp@alien8.de>, "Naveen N. Rao" <naveen.n.rao@linux.vnet.ibm.com>, "Chen, Gong" <gong.chen@linux.intel.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, Aristeu Rozanski Filho <arozansk@redhat.com>, Steven Rostedt <srostedt@redhat.com>
 
-[+cc Mike]
+> There's also a third case: mirrored memories.
 
-On Thu, Oct 17, 2013 at 12:09 AM, Lan Tianyu <tianyu.lan@intel.com> wro=
-te:
-> On 2013=E5=B9=B410=E6=9C=8817=E6=97=A5 07:55, Bjorn Helgaas wrote:
->> On Fri, Oct 11, 2013 at 08:19:01PM +0800, tianyu.lan@intel.com wrote=
-:
->>> From: Lan Tianyu <tianyu.lan@intel.com>
->>>
->>> Using ACPI resource functions to convert ACPI resource to generic r=
-esource
->>>
->>> Signed-off-by: Lan Tianyu <tianyu.lan@intel.com>
->>> ---
->>> This patch just passes through compilation test due to no ia64 mach=
-ine on hand.
->>>
->>>  arch/ia64/pci/pci.c | 38 +++++++++++++++++++++-----------------
->>>  1 file changed, 21 insertions(+), 17 deletions(-)
->>>
->>> diff --git a/arch/ia64/pci/pci.c b/arch/ia64/pci/pci.c
->>> index 2326790..14fa175 100644
->>> --- a/arch/ia64/pci/pci.c
->>> +++ b/arch/ia64/pci/pci.c
->>> @@ -232,8 +232,9 @@ out:
->>>      return ~0;
->>>  }
->>>
->>> -static acpi_status resource_to_window(struct acpi_resource *resour=
-ce,
->>> -                                  struct acpi_resource_address64 *=
-addr)
->>> +static acpi_status resource_to_window(struct acpi_resource *ares,
->>> +                                  struct acpi_resource_address64 *=
-addr,
->>> +                                  struct resource *res)
->>>  {
->>>      acpi_status status;
->>>
->>> @@ -244,7 +245,7 @@ static acpi_status resource_to_window(struct ac=
-pi_resource *resource,
->>>       *      - producers, i.e., the address space is routed downstr=
-eam,
->>>       *        not consumed by the bridge itself
->>>       */
->>> -    status =3D acpi_resource_to_address64(resource, addr);
->>> +    status =3D acpi_dev_resource_address_space_full(ares, addr, re=
-s);
->>>      if (ACPI_SUCCESS(status) &&
->>>          (addr->resource_type =3D=3D ACPI_MEMORY_RANGE ||
->>>           addr->resource_type =3D=3D ACPI_IO_RANGE) &&
->>> @@ -255,51 +256,54 @@ static acpi_status resource_to_window(struct =
-acpi_resource *resource,
->>>      return AE_ERROR;
->>>  }
->>>
->>> -static acpi_status count_window(struct acpi_resource *resource, vo=
-id *data)
->>> +static acpi_status count_window(struct acpi_resource *ares, void *=
-data)
->>>  {
->>>      unsigned int *windows =3D (unsigned int *) data;
->>>      struct acpi_resource_address64 addr;
->>> +    struct resource res;
->>>      acpi_status status;
->>>
->>> -    status =3D resource_to_window(resource, &addr);
->>> +    status =3D resource_to_window(ares, &addr, &res);
->>>      if (ACPI_SUCCESS(status))
->>>              (*windows)++;
->>>
->>>      return AE_OK;
->>>  }
->>>
->>> -static acpi_status add_window(struct acpi_resource *res, void *dat=
-a)
->>> +static acpi_status add_window(struct acpi_resource *ares, void *da=
-ta)
->>>  {
->>>      struct pci_root_info *info =3D data;
->>> -    struct resource *resource;
->>> +    struct resource *resource =3D &info->res[info->res_num];
->>>      struct acpi_resource_address64 addr;
->>>      acpi_status status;
->>> -    unsigned long flags, offset =3D 0;
->>> +    unsigned long offset =3D 0;
->>>      struct resource *root;
->>>
->>>      /* Return AE_OK for non-window resources to keep scanning for =
-more */
->>> -    status =3D resource_to_window(res, &addr);
->>> +    status =3D resource_to_window(ares, &addr, resource);
->>>      if (!ACPI_SUCCESS(status))
->>>              return AE_OK;
->>>
->>> -    if (addr.resource_type =3D=3D ACPI_MEMORY_RANGE) {
->>> -            flags =3D IORESOURCE_MEM;
->>> +    if (resource->flags & IORESOURCE_MEM) {
->>>              root =3D &iomem_resource;
->>>              offset =3D addr.translation_offset;
->>> -    } else if (addr.resource_type =3D=3D ACPI_IO_RANGE) {
->>> -            flags =3D IORESOURCE_IO;
->>> +    } else if (resource->flags & IORESOURCE_IO) {
->>>              root =3D &ioport_resource;
->>>              offset =3D add_io_space(info, &addr);
->>>              if (offset =3D=3D ~0)
->>>                      return AE_OK;
->>> +
->>> +            /*
->>> +             * io space address translation offset depends
->>> +             * on the return value of add_io_space(). So
->>> +             * Repopulate resource->start and end here.
->>
->> "Repopulate" makes it sound like "resource->start" got clobbered
->> somewhere.  But it didn't.  I think it's just that each bridge can
->> support its own I/O port range, and the PCI port numbers reported
->> in the acpi_resource may not be distinct, and add_io_space() adds
->> an offset so all the I/O port ranges fit into one global I/O port
->> space.
->>
->> For example, I think these two bridges have the same port numbers
->> (0x0-0xfff) in their acpi_resource, but the second has an offset
->> of 0x1000000 in the system I/O port space, and I think this offset
->> is what add_io_space() returns:
->>
->>   HWP0002:00: host bridge window [io  0x0000-0x0fff]     (PCI [0x0-0=
-xfff])
->>   HWP0002:09: host bridge window [io  0x1000000-0x1000fff] (PCI [0x0=
--0xfff])
->>
->>> +             */
->>> +            resource->start =3D addr.minimum + offset;
->>> +            resource->end =3D resource->start + addr.address_lengt=
-h - 1;
->>
->> Can't we use this:
->>
->>               resource->start +=3D offset;
->>               resource->end +=3D offset;
->>
->> to avoid breaking the encapsulation of struct acpi_resource_address6=
-4?
->
-> resource->start has been populated with "addr.minimum +
-> addr.translation_offset" in the acpi_dev_resource_address_space().
+Mirrors are currently something of a mess - we don't get any useful notification when one breaks.
+We do need to fix this - and make sure reporting is properly integrated with everything else - I'm
+just not sure how to do this.
 
-That's true, but this is a change from previous behavior.  Previously,
-x86 applied addr.translation_offset to both MEM and IO resources (in
-setup_resource()), but ia64 applied it only to MEM resources (in
-add_window()).  With your patch, we apply it to both types in
-acpi_dev_resource_address_space(), which is a change for ia64.
-
-I know translation_offset is used on some HP ia64 boxes, but I'm not
-aware of it being used for IO resources on any x86 boxes.  On those
-ia64 boxes, the bridge also does type translation (the resource is MEM
-on the primary side but IO on the secondary side).  In that case, I'm
-not sure it makes sense to add the translation_offset to an IO address
-and expect the result to be a MEM address.
-
-On these HP ia64 boxes, the firmware puts the CPU physical address of
-the MEM resource in the translation_offset (see the call to
-new_space()).  The bridge then translates that MEM resource to IO on
-the secondary side.  It's awfully hard for me to extract this usage
-from the ACPI spec, so possibly this is just a quirk of the way HP
-encoded these IO resources.  But it *is* a precedent, and I'm not
-aware of anybody doing anything that conflicts with it.
-
-I wonder if it would make sense to make
-acpi_dev_resource_address_space() ignore addr.translation_offset for
-IO resources.  Or maybe ignore it if the _TTP (type translation) bit
-is set?
-
-I think the main intent of translation_offset (_TRA) is to map a
-smaller address space into part of a larger space of the same type,
-e.g., a 32-bit PCI memory space into a 40+ bit CPU memory space.  That
-doesn't apply directly to IO ports, because I don't think any CPU has
-a native IO port address space larger than 16 bits, so there's no
-extra space to map into.
-
-Mike, is there any chance you could collect an acpidump from an rx7620
-or similar ia64 system?  In particular, I want to see a multi-node
-system where we have several PCI domains, and whether it sets the _TTP
-bits.
-
-> continuing to add the offset to resource->start seems not right.
->
-> The add_io_space() accepts translation_offset and then ioremap it to
-> mmio address. Add the result to io_space array and assign a space
-> number. Left shift the space number 24 bits as the return offset of
-> add_io_space().
->
-> When one io port address is accessed, __ia64_mk_io_addr() will do
-> reverse operations and find associated mmio address.
-
-Yep, got it.  I wrote all that code originally :)  Obviously it hasn't
-turned out to be particularly easy to understand.
-
-Bjorn
---
-To unsubscribe from this list: send the line "unsubscribe linux-ia64" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+-Tony
