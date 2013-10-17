@@ -1,50 +1,62 @@
-From: Borislav Petkov <bp@alien8.de>
-Subject: Re: Extended H/W error log driver
-Date: Thu, 17 Oct 2013 15:04:51 +0200
-Message-ID: <20131017130451.GG5036@pd.tnic>
-References: <1381473166-29303-1-git-send-email-gong.chen@linux.intel.com>
- <20131011080427.GC18719@pd.tnic>
- <20131014064940.GD12189@gchen.bj.intel.com>
- <20131014105533.GF4009@pd.tnic>
- <20131015040731.GA887@gchen.bj.intel.com>
- <20131015092851.GA7908@pd.tnic>
- <CA+8MBbJeSJBDPcomupOuVBrnZNkMTNTXsoZY9yUbXPe9YrTFXg@mail.gmail.com>
- <20131015191040.GA4347@naverao1-tp.ibm.com>
- <20131015192353.GI7908@pd.tnic>
- <525FD2FA.8010403@linux.vnet.ibm.com>
+From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Subject: Re: [PATCH] ACPI / power: Drop automaitc resume of power resource dependent devices
+Date: Thu, 17 Oct 2013 15:47 +0200
+Message-ID: <2220996.Balj6KfZAP@vostro.rjw.lan>
+References: <4814451.BPLed2xxbP@vostro.rjw.lan> <525F8A48.9020007@intel.com> <3517410.N1Ot4TpM2j@vostro.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <525FD2FA.8010403@linux.vnet.ibm.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: "Naveen N. Rao" <naveen.n.rao@linux.vnet.ibm.com>
-Cc: Tony Luck <tony.luck@gmail.com>, Chen Gong <gong.chen@linux.intel.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-acpi <linux-acpi@vger.kernel.org>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7Bit
+Return-path: <linux-pm-owner@vger.kernel.org>
+In-Reply-To: <3517410.N1Ot4TpM2j@vostro.rjw.lan>
+Sender: linux-pm-owner@vger.kernel.org
+To: Aaron Lu <aaron.lu@intel.com>
+Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux PM list <linux-pm@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>, Lan Tianyu <tianyu.lan@intel.com>
 List-Id: linux-acpi@vger.kernel.org
 
-On Thu, Oct 17, 2013 at 05:37:22PM +0530, Naveen N. Rao wrote:
-> That's me raising both my hands :)
+On Thursday, October 17, 2013 01:56:23 PM Rafael J. Wysocki wrote:
+> On Thursday, October 17, 2013 02:57:12 PM Aaron Lu wrote:
+> > On 10/16/2013 09:25 PM, Rafael J. Wysocki wrote:
+> > > From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+> > > 
+> > > The mechanism causing devices depending on a given power resource
+> > > (that is, devices that can be in D0 only if that power resource is
+> > > on) to be resumed automatically when the power resource is turned
+> > > on (and their "inferred" power state becomes D0 as a result) is
+> > > inherently racy and in fact unnecessary.
+> > > 
+> > > It is racy, because if the power resources is turned on and then
+> > > immediately off, the device resume triggered by the first transition
+> > > to "on" may still happen, causing the power resource to be turned
+> > > on again.  That again will trigger the "resume of dependent devices"
+> > > mechanism, but if the devices in question are not in use, they will
+> > > be suspended in the meantime causing the power resource to be turned
+> > > off.  However, the "resume of dependent devices" will next resume
+> > > them again and so on.  In some cases (USB port PM in particular) that
+> > > leads to an endless busy loop of flipping the resource on and off
+> > > continuously.
+> > > 
+> > > It is needless, because whoever turns a power resource on will most
+> > > likely turn it off at some point and the devices that go into "D0"
+> > > as a result of turning it on will then go back into D3cold.
+> > > Moreover, turning all power resources a device needs to go into
+> > > D0 is not sufficient for a full transition into D0 in general.
+> > > Namely, _PS0 may need to be executed in addition to that in some
+> > > cases.  This means that the whole rationale of the "resume of
+> > > dependent devices" mechanism was incorrect to begin with and it's
+> > > best to remove it entirely.
+> > 
+> > With this patch, your previous patch could also be applied now:
+> > https://lkml.org/lkml/2013/6/14/173
+> > [PATCH 4/4] ACPI / PM: Drop two functions that are not used any more
+> 
+> Good catch and that code is dead anyway AFAICS, because power_dependent is only
+> used in device_pm.c (in those two functions) and in scan.c (where it is
+> initialized).
 
-:-)
+That obviously is with the $subject patch applied.
 
-> If you feel so strongly about it. "Corrected Error" is an oxymoron.
-> It's really just the hardware notifying us.
-
-Yeah, but we can't write
-
-"We just corrected a single-bit flip in DIMM array <foo> - it was
-supposed to be X but now it is Y. Don't worry, this bit flip had no
-effect on current architectural machine state."
-
-either.
-
-I just don't want to call a "Hardware Error" a "Hardware Event".
-Besides, an IRQ is a hardware event too, for example. You can see where
-I'm getting with this...
+Thanks!
 
 -- 
-Regards/Gruss,
-    Boris.
-
-Sent from a fat crate under my desk. Formatting is fine.
---
+I speak only for myself.
+Rafael J. Wysocki, Intel Open Source Technology Center.
