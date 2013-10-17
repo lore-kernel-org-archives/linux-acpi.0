@@ -1,234 +1,119 @@
 From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [PATCH] ACPI/Power: Check physical device's runtime pm status before requesting to resume it
-Date: Thu, 17 Oct 2013 13:38:27 +0200
-Message-ID: <4249062.PmvqKh0Nrz@vostro.rjw.lan>
-References: <1381479385-1614-1-git-send-email-tianyu.lan@intel.com> <525F372A.5070807@intel.com> <525F4E03.2050606@intel.com>
+Subject: Re: [PATCH 5/5] net: rfkill: gpio: add ACPI support
+Date: Thu, 17 Oct 2013 13:48:34 +0200
+Message-ID: <1525130.mPhAo5k18y@vostro.rjw.lan>
+References: <1381920823-15403-1-git-send-email-heikki.krogerus@linux.intel.com> <2878506.7lf24R85t6@vostro.rjw.lan> <20131017074426.GG3521@intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7Bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from v094114.home.net.pl ([79.96.170.134]:56240 "HELO
+Received: from v094114.home.net.pl ([79.96.170.134]:50853 "HELO
 	v094114.home.net.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1752539Ab3JQL0h convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 17 Oct 2013 07:26:37 -0400
-In-Reply-To: <525F4E03.2050606@intel.com>
+	with SMTP id S1752539Ab3JQLgn (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 17 Oct 2013 07:36:43 -0400
+In-Reply-To: <20131017074426.GG3521@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Lan Tianyu <tianyu.lan@intel.com>
-Cc: lenb@kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Lan Tianyu <lantianyu1986@gmail.com>, Aaron Lu <aaron.lu@intel.com>
+To: Mika Westerberg <mika.westerberg@linux.intel.com>
+Cc: Heikki Krogerus <heikki.krogerus@linux.intel.com>, "John W. Linville" <linville@tuxdriver.com>, Johannes Berg <johannes@sipsolutions.net>, Rhyland Klein <rklein@nvidia.com>, linux-acpi@vger.kernel.org, linux-wireless@vger.kernel.org, netdev@vger.kernel.org
 
-On Thursday, October 17, 2013 10:40:03 AM Lan Tianyu wrote:
-> On 2013=E5=B9=B410=E6=9C=8817=E6=97=A5 09:02, Lan Tianyu wrote:
-> > On 2013=E5=B9=B410=E6=9C=8816=E6=97=A5 20:42, Rafael J. Wysocki wro=
-te:
-> >> On Wednesday, October 16, 2013 05:26:21 PM Lan Tianyu wrote:
-> >>> This is a multi-part message in MIME format.
-> >>> --------------090400010209000300030201
-> >>> Content-Type: text/plain; charset=3DUTF-8
-> >>> Content-Transfer-Encoding: 8bit
-> >>>
-> >>> On 10/16/2013 05:22 AM, Rafael J. Wysocki wrote:
-> >>>> On Tuesday, October 15, 2013 04:58:28 PM Lan Tianyu wrote:
-> >>>>> On 2013=C3=A5=C2=B9=C2=B410=C3=A6=C2=9C=C2=8811=C3=A6=C2=97=C2=A5=
- 19:19, Rafael J. Wysocki wrote:
-> >>>>>> On Friday, October 11, 2013 04:16:25 PM tianyu.lan@intel.com
-> >>>>>> wrote:
-> >>>>>>> From: Lan Tianyu <tianyu.lan@intel.com>
-> >>>>>>>
-> >>>>>>> Currently, when one power resource is turned on, devices owni=
-ng
-> >>>>>>> it will be requested to resume regardless of their runtime pm
-> >>>>>>> status. ACPI power resource maybe turn on in some devices'
-> >>>>>>> runtime pm resume callback(E.G, usb port) while turning on th=
-e
-> >>>>>>> power resource will trigger one new resume request of the
-> >>>>>>> device. It causes infinite loop between resume and suspend.
-> >>>>>>> This has happened on clearing usb port's PM Qos NO_POWER_OFF
-> >>>>>>> flag twice. This patch is to add check of physical device's
-> >>>>>>> runtime pm status and request resume if the device is
-> >>>>>>> suspended.
-> >>>>>>>
-> >>>>>>> Signed-off-by: Lan Tianyu <tianyu.lan@intel.com> ---
-> >>>>>>> drivers/acpi/power.c | 6 ++++-- 1 file changed, 4
-> >>>>>>> insertions(+), 2 deletions(-)
-> >>>>>>>
-> >>>>>>> diff --git a/drivers/acpi/power.c b/drivers/acpi/power.c inde=
-x
-> >>>>>>>  0dbe5cd..228c138 100644 --- a/drivers/acpi/power.c +++
-> >>>>>>> b/drivers/acpi/power.c @@ -250,8 +250,10 @@ static void
-> >>>>>>> acpi_power_resume_dependent(struct work_struct *work)
-> >>>>>>>
-> >>>>>>> mutex_lock(&adev->physical_node_lock);
-> >>>>>>>
-> >>>>>>> -	list_for_each_entry(pn, &adev->physical_node_list, node) -
-> >>>>>>> pm_request_resume(pn->dev); +	list_for_each_entry(pn,
-> >>>>>>> &adev->physical_node_list, node) { +		if
-> >>>>>>> (pm_runtime_suspended(pn->dev)) + pm_request_resume(pn->dev);
-> >>>>>>> + }
-> >>>>>>
-> >>>>>> This is racy, because the status may change right after you ch=
-eck
-> >>>>>> it and before you call pm_request_resume().
-> >>>>>
-> >>>>> Yes, the runtime status may be changed just after the check.
-> >>>>>
-> >>>>>>
-> >>>>>> Besides, pm_request_resume() checks the status of the device a=
-nd
-> >>>>>>  won't try to resume it if it is not suspended.
-> >>>>>>
-> >>>>>
-> >>>>> For this issue, usb port is in the RPM_SUSPENDING state when
-> >>>>> pm_request_resume() is called.
-> >>>>
-> >>>> Why exactly does that happen?
-> >>>>
-> >>>>> The deferred_resume will be set to true during this procedure a=
-nd
-> >>>>> trigger resume after finishing suspend. USB port runtime resume
-> >>>>> callback will turn on its power resource again and the work of
-> >>>>> acpi_power_resume_dependent() is scheduled. Because the usb por=
-t's
-> >>>>>  usage count remains zero, it's to be suspended soon. When
-> >>>>> pm_request_resume() of acpi_power_resume_dependent() is called,=
- the
-> >>>>> usb port is always in the PRM_SUSPENDING. Fall in the loop of
-> >>>>> suspend and resume.
-> >>>>>
-> >>>>> How about running acpi_power_dependent when turning on power
-> >>>>> resource rather than scheduling a work to run it?
-> >>>>
-> >>>> Is this actually going to help?  Even if
-> >>>> acpi_power_resume_dependent() is run synchronously from within t=
-he
-> >>>> resume callback, it will still see RPM_SUSPENDING as the device'=
-s
-> >>>> status, won't it?
-> >>>>
-> >>>>> After this, pm_request_resume() can check device's right status
-> >>>>> just after turning on power resource.
-> >>>>
-> >>>> The status doesn't change until the .runtime_suspend() callback
-> >>>> returns and running pm_request_resume() syncrhonously from that
-> >>>> callback for the device being suspended just plain doesn't make
-> >>>> sense.
-> >>>>
-> >>>>
-> >>>> Can you please explain to me how this is possible that the USB p=
-ort's
-> >>>> power resource is turned "on" while the port is RPM_SUSPENDING?
-> >>>>
-> >>> [This mail seems not to be sent to maillist. So resend. Try again
-> >>> Sorry for noise]
-> >>>
-> >>>
-> >>> Hi Rafael:
-> >>>
-> >>> No, I mean the acpi_power_resume_dependent() is running while the=
- port's
-> >>> status is RPM_SUSPENDING. It runs from a work item and turning on=
- power
-> >>> resource adds the work to workqueue. There is a timeslot between =
-running
-> >>> acpi_power_resume_dependent() and turning on power resource. In t=
-he
-> >>> timeslot, the device runtime pm status maybe change.
-> >>>
-> >>> In this case, changing PM Qos flag will do pm_runtime_get_sync an=
-d
-> >>> pm_runtime_put usb port. The usb port is without device attached =
-and so
-> >>> it will be resumed and suspended soon during changing PM Qos flag=
-=2E
-> >>>
-> >>> Resume callback turns on power resource if NO_POWER_OFF flag has =
-been
-> >>> cleared and add the work of acpi_power_resume_dependent() to
-> >>> workqueue. After resume, the usb port will be suspended while the
-> >>> acpi_power_resume_dependent() is running. pm_request_resume() get=
-s
-> >>> RPM_SUSPENDING as the usb port's runtime status and set the
-> >>> deferred_resume of usb port.
-> >>>
-> >>> After suspend, usb port will be resumed again and turn on power
-> >>> resource. The work of acpi_power_resume_dependent() is also added=
- to
-> >>> workqueue. Because the usb port's usage count remains 0 during th=
-is
-> >>> procedure. it will be suspended soon after resume. While suspendi=
-ng,
-> >>> acpi_power_resume_dependent() is running and pm_request_resume()
-> >>> sets deferred_resume again. The infinite look starts.
-> >>
-> >> So the problem is that the whole thing is racy.  There is no guara=
-ntee
-> >> that the power resource will not be turned off after the
-> >> acpi_power_get_inferred_state() check in acpi_power_resume_depende=
-nt()
-> >> and before rpm_resume() queued by the pm_request_resume() called f=
-rom
-> >> there runs.  Playing with the time windows doesn't make that race =
-go away.
-> >>
-> >> If we did what you suggested, the race still would be there, becau=
-se the
-> >> queued up resume may still run after the power resource has been t=
-urned off.
-> >=20
-> > Yes, the queued up resume will run after the power resource has bee=
-n
-> > turned off but normally the resume should try to turn on the power
-> > resource before doing some hardware related operations. If so, ther=
-e
-> > will not be problem, right?
-> >=20
->=20
-> Sorry. I think I misunderstood your word. Please ignore the previous
-> comment.
->=20
-> Yes, there is still a racy. I think of one case that there are multi
-> devices that share one power resource. One device turns on power
-> resource during resuming and queue resumes for other devices. The dev=
-ice
-> enter into suspend and power resource turns off soon. When one other
-> device do resume, the power resource will turn on again and queue res=
-ume
-> for the previous device. Just like a Ping-pong.
->=20
-> >>
-> >> Unfortunately, I don't see how we can fix this race in a satisfact=
-ory way
-> >> and I'm starting to think that the whole resuming of dependent dev=
-ices may
-> >> be a bad idea.
-> >>
-> >> IIRC, the original concern was that devices may end up in D0-unini=
-tialized
-> >> if we don't do that, but then whoever turned the power resource on=
- will
-> >> probably turn if off at one point anyway, so they will be in that =
-state
-> >> temporarily.  In other words, in addition to the fact that this is=
- racy,
-> >> there even is no reason to do it.
-> >>
-> >> I'll send a patch to rip off that stuff later today.
->=20
-> Currently, dropping it should be the better choice but I think we sti=
-ll
-> need to resolve the D0-uninitialized problem, right?
+On Thursday, October 17, 2013 10:44:26 AM Mika Westerberg wrote:
+> On Wed, Oct 16, 2013 at 10:55:01PM +0200, Rafael J. Wysocki wrote:
+> > On Wednesday, October 16, 2013 01:53:43 PM Heikki Krogerus wrote:
+> > > Including ACPI ID for Broadcom GPS receiver BCM4752.
+> > > 
+> > > Signed-off-by: Heikki Krogerus <heikki.krogerus@linux.intel.com>
+> > > ---
+> > >  net/rfkill/rfkill-gpio.c | 31 ++++++++++++++++++++++++++++++-
+> > >  1 file changed, 30 insertions(+), 1 deletion(-)
+> > > 
+> > > diff --git a/net/rfkill/rfkill-gpio.c b/net/rfkill/rfkill-gpio.c
+> > > index 2dd78c6..5620d3c 100644
+> > > --- a/net/rfkill/rfkill-gpio.c
+> > > +++ b/net/rfkill/rfkill-gpio.c
+> > > @@ -24,6 +24,8 @@
+> > >  #include <linux/platform_device.h>
+> > >  #include <linux/clk.h>
+> > >  #include <linux/slab.h>
+> > > +#include <linux/acpi.h>
+> > > +#include <linux/acpi_gpio.h>
+> > >  
+> > >  #include <linux/rfkill-gpio.h>
+> > >  
+> > > @@ -70,6 +72,23 @@ static const struct rfkill_ops rfkill_gpio_ops = {
+> > >  	.set_block = rfkill_gpio_set_power,
+> > >  };
+> > >  
+> > > +static int rfkill_gpio_acpi_probe(struct device *dev,
+> > > +				  struct rfkill_gpio_data *rfkill)
+> > > +{
+> > > +	const struct acpi_device_id *id;
+> > > +
+> > > +	id = acpi_match_device(dev->driver->acpi_match_table, dev);
+> > > +	if (!id)
+> > > +		return -ENODEV;
+> > > +
+> > > +	rfkill->name = dev_name(dev);
+> > > +	rfkill->type = (unsigned)id->driver_data;
+> > > +	rfkill->reset_gpio = acpi_get_gpio_by_index(dev, 0, NULL);
+> > > +	rfkill->shutdown_gpio = acpi_get_gpio_by_index(dev, 1, NULL);
+> > > +
+> > > +	return 0;
+> > > +}
+> > > +
+> > >  static int rfkill_gpio_probe(struct platform_device *pdev)
+> > >  {
+> > >  	struct rfkill_gpio_platform_data *pdata = pdev->dev.platform_data;
+> > > @@ -82,7 +101,11 @@ static int rfkill_gpio_probe(struct platform_device *pdev)
+> > >  	if (!rfkill)
+> > >  		return -ENOMEM;
+> > >  
+> > > -	if (pdata) {
+> > > +	if (ACPI_HANDLE(&pdev->dev)) {
+> > > +		ret = rfkill_gpio_acpi_probe(&pdev->dev, rfkill);
+> > > +		if (ret)
+> > > +			return ret;
+> > > +	} else if (pdata) {
+> > >  		clk_name = pdata->power_clk_name;
+> > >  		rfkill->name = pdata->name;
+> > >  		rfkill->type = pdata->type;
+> > > @@ -170,12 +193,18 @@ static int rfkill_gpio_remove(struct platform_device *pdev)
+> > >  	return 0;
+> > >  }
+> > >  
+> > > +static const struct acpi_device_id rfkill_acpi_match[] = {
+> > > +	{ "BCM4752", RFKILL_TYPE_GPS },
+> > > +	{ },
+> > > +};
+> > > +
+> > >  static struct platform_driver rfkill_gpio_driver = {
+> > >  	.probe = rfkill_gpio_probe,
+> > >  	.remove = rfkill_gpio_remove,
+> > >  	.driver = {
+> > >  		.name = "rfkill_gpio",
+> > >  		.owner = THIS_MODULE,
+> > > +		.acpi_match_table = ACPI_PTR(rfkill_acpi_match),
+> > >  	},
+> > >  };
+> > 
+> > Looks good to me.
+> > 
+> > Has Mika seen this?
+> 
+> Yes, saw it now and looks good to me as well.
+> 
+> Reviewed-by: Mika Westerberg <mika.westerberg@linux.intel.com>
+> 
+> for the whole series, for what it's worth.
 
-Why do you think it is a problem in the first place?  Those devices wil=
-l not
-be accessed while in that state (unless there's a bug somewhere).
+OK, so
+
+Acked-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+
+for the ACPI-related changes.
 
 Thanks!
 
---=20
+-- 
 I speak only for myself.
 Rafael J. Wysocki, Intel Open Source Technology Center.
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
