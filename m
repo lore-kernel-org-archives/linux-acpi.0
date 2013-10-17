@@ -1,46 +1,238 @@
-From: Joe Perches <joe@perches.com>
-Subject: Re: [PATCH v2 3/9] bitops: Introduce a more generic BITMASK macro
-Date: Thu, 17 Oct 2013 01:55:12 -0700
-Message-ID: <1382000112.22110.103.camel@joe-AO722>
-References: <1381935366-11731-1-git-send-email-gong.chen@linux.intel.com>
-	 <1381935366-11731-4-git-send-email-gong.chen@linux.intel.com>
-	 <1381978749.22110.76.camel@joe-AO722>
-	 <20131017063059.GB14946@gchen.bj.intel.com>
-	 <1381993136.22110.95.camel@joe-AO722>
-	 <20131017073824.GC14946@gchen.bj.intel.com>
-	 <1381998750.22110.101.camel@joe-AO722> <20131017084014.GD5036@pd.tnic>
+From: Lan Tianyu <tianyu.lan@intel.com>
+Subject: Re: [PATCH] ACPI/Power: Check physical device's runtime pm status
+ before requesting to resume it
+Date: Thu, 17 Oct 2013 16:50:59 +0800
+Message-ID: <525FA4F3.1030206@intel.com>
+References: <1381479385-1614-1-git-send-email-tianyu.lan@intel.com> <16284735.7LFgSiThhv@vostro.rjw.lan> <525E5BBD.5030108@intel.com> <4608605.e0aa4PbnhL@vostro.rjw.lan> <525F372A.5070807@intel.com> <525F4E03.2050606@intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtprelay0057.hostedemail.com ([216.40.44.57]:40103 "EHLO
-	smtprelay.hostedemail.com" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1751099Ab3JQIzQ (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 17 Oct 2013 04:55:16 -0400
-In-Reply-To: <20131017084014.GD5036@pd.tnic>
+Received: from mga02.intel.com ([134.134.136.20]:25550 "EHLO mga02.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753137Ab3JQJBm (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 17 Oct 2013 05:01:42 -0400
+In-Reply-To: <525F4E03.2050606@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Borislav Petkov <bp@alien8.de>
-Cc: Chen Gong <gong.chen@linux.intel.com>, tony.luck@intel.com, naveen.n.rao@linux.vnet.ibm.com, m.chehab@samsung.com, arozansk@redhat.com, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Thomas Winischhofer <thomas@winischhofer.net>, Jean-Christophe Plagniol-Villard <plagnioj@jcrosoft.com>, Tomi Valkeinen <tomi.valkeinen@ti.com>
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: lenb@kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Lan Tianyu <lantianyu1986@gmail.com>, Aaron Lu <aaron.lu@intel.com>
 
-On Thu, 2013-10-17 at 10:40 +0200, Borislav Petkov wrote:
-> On Thu, Oct 17, 2013 at 01:32:30AM -0700, Joe Perches wrote:
-> > On Thu, 2013-10-17 at 03:38 -0400, Chen Gong wrote:
-> > > the point is we can use GENMASK like GENMASK(end_bit, start_bit) but
-> > > we don't know the value of end_bit/start_bit at compile-time.
-> > 
-> > True.
-> > 
-> > The BUILD_BUG_ON idea is just to avoid people using
-> > 	GENMASK(1, 2)
-> 
-> They'll notice the 0 pretty quickly when they test their code.
-> 
-> Let's add those checks only when it is really necessary and people have
-> actually made that mistake repeatedly.
+On 2013=E5=B9=B410=E6=9C=8817=E6=97=A5 10:40, Lan Tianyu wrote:
+> On 2013=E5=B9=B410=E6=9C=8817=E6=97=A5 09:02, Lan Tianyu wrote:
+>> On 2013=E5=B9=B410=E6=9C=8816=E6=97=A5 20:42, Rafael J. Wysocki wrot=
+e:
+>>> On Wednesday, October 16, 2013 05:26:21 PM Lan Tianyu wrote:
+>>>> This is a multi-part message in MIME format.
+>>>> --------------090400010209000300030201
+>>>> Content-Type: text/plain; charset=3DUTF-8
+>>>> Content-Transfer-Encoding: 8bit
+>>>>
+>>>> On 10/16/2013 05:22 AM, Rafael J. Wysocki wrote:
+>>>>> On Tuesday, October 15, 2013 04:58:28 PM Lan Tianyu wrote:
+>>>>>> On 2013=C3=A5=C2=B9=C2=B410=C3=A6=C2=9C=C2=8811=C3=A6=C2=97=C2=A5=
+ 19:19, Rafael J. Wysocki wrote:
+>>>>>>> On Friday, October 11, 2013 04:16:25 PM tianyu.lan@intel.com
+>>>>>>> wrote:
+>>>>>>>> From: Lan Tianyu <tianyu.lan@intel.com>
+>>>>>>>>
+>>>>>>>> Currently, when one power resource is turned on, devices ownin=
+g
+>>>>>>>> it will be requested to resume regardless of their runtime pm
+>>>>>>>> status. ACPI power resource maybe turn on in some devices'
+>>>>>>>> runtime pm resume callback(E.G, usb port) while turning on the
+>>>>>>>> power resource will trigger one new resume request of the
+>>>>>>>> device. It causes infinite loop between resume and suspend.
+>>>>>>>> This has happened on clearing usb port's PM Qos NO_POWER_OFF
+>>>>>>>> flag twice. This patch is to add check of physical device's
+>>>>>>>> runtime pm status and request resume if the device is
+>>>>>>>> suspended.
+>>>>>>>>
+>>>>>>>> Signed-off-by: Lan Tianyu <tianyu.lan@intel.com> ---
+>>>>>>>> drivers/acpi/power.c | 6 ++++-- 1 file changed, 4
+>>>>>>>> insertions(+), 2 deletions(-)
+>>>>>>>>
+>>>>>>>> diff --git a/drivers/acpi/power.c b/drivers/acpi/power.c index
+>>>>>>>>  0dbe5cd..228c138 100644 --- a/drivers/acpi/power.c +++
+>>>>>>>> b/drivers/acpi/power.c @@ -250,8 +250,10 @@ static void
+>>>>>>>> acpi_power_resume_dependent(struct work_struct *work)
+>>>>>>>>
+>>>>>>>> mutex_lock(&adev->physical_node_lock);
+>>>>>>>>
+>>>>>>>> -	list_for_each_entry(pn, &adev->physical_node_list, node) -
+>>>>>>>> pm_request_resume(pn->dev); +	list_for_each_entry(pn,
+>>>>>>>> &adev->physical_node_list, node) { +		if
+>>>>>>>> (pm_runtime_suspended(pn->dev)) + pm_request_resume(pn->dev);
+>>>>>>>> + }
+>>>>>>>
+>>>>>>> This is racy, because the status may change right after you che=
+ck
+>>>>>>> it and before you call pm_request_resume().
+>>>>>>
+>>>>>> Yes, the runtime status may be changed just after the check.
+>>>>>>
+>>>>>>>
+>>>>>>> Besides, pm_request_resume() checks the status of the device an=
+d
+>>>>>>>  won't try to resume it if it is not suspended.
+>>>>>>>
+>>>>>>
+>>>>>> For this issue, usb port is in the RPM_SUSPENDING state when
+>>>>>> pm_request_resume() is called.
+>>>>>
+>>>>> Why exactly does that happen?
+>>>>>
+>>>>>> The deferred_resume will be set to true during this procedure an=
+d
+>>>>>> trigger resume after finishing suspend. USB port runtime resume
+>>>>>> callback will turn on its power resource again and the work of
+>>>>>> acpi_power_resume_dependent() is scheduled. Because the usb port=
+'s
+>>>>>>  usage count remains zero, it's to be suspended soon. When
+>>>>>> pm_request_resume() of acpi_power_resume_dependent() is called, =
+the
+>>>>>> usb port is always in the PRM_SUSPENDING. Fall in the loop of
+>>>>>> suspend and resume.
+>>>>>>
+>>>>>> How about running acpi_power_dependent when turning on power
+>>>>>> resource rather than scheduling a work to run it?
+>>>>>
+>>>>> Is this actually going to help?  Even if
+>>>>> acpi_power_resume_dependent() is run synchronously from within th=
+e
+>>>>> resume callback, it will still see RPM_SUSPENDING as the device's
+>>>>> status, won't it?
+>>>>>
+>>>>>> After this, pm_request_resume() can check device's right status
+>>>>>> just after turning on power resource.
+>>>>>
+>>>>> The status doesn't change until the .runtime_suspend() callback
+>>>>> returns and running pm_request_resume() syncrhonously from that
+>>>>> callback for the device being suspended just plain doesn't make
+>>>>> sense.
+>>>>>
+>>>>>
+>>>>> Can you please explain to me how this is possible that the USB po=
+rt's
+>>>>> power resource is turned "on" while the port is RPM_SUSPENDING?
+>>>>>
+>>>> [This mail seems not to be sent to maillist. So resend. Try again
+>>>> Sorry for noise]
+>>>>
+>>>>
+>>>> Hi Rafael:
+>>>>
+>>>> No, I mean the acpi_power_resume_dependent() is running while the =
+port's
+>>>> status is RPM_SUSPENDING. It runs from a work item and turning on =
+power
+>>>> resource adds the work to workqueue. There is a timeslot between r=
+unning
+>>>> acpi_power_resume_dependent() and turning on power resource. In th=
+e
+>>>> timeslot, the device runtime pm status maybe change.
+>>>>
+>>>> In this case, changing PM Qos flag will do pm_runtime_get_sync and
+>>>> pm_runtime_put usb port. The usb port is without device attached a=
+nd so
+>>>> it will be resumed and suspended soon during changing PM Qos flag.
+>>>>
+>>>> Resume callback turns on power resource if NO_POWER_OFF flag has b=
+een
+>>>> cleared and add the work of acpi_power_resume_dependent() to
+>>>> workqueue. After resume, the usb port will be suspended while the
+>>>> acpi_power_resume_dependent() is running. pm_request_resume() gets
+>>>> RPM_SUSPENDING as the usb port's runtime status and set the
+>>>> deferred_resume of usb port.
+>>>>
+>>>> After suspend, usb port will be resumed again and turn on power
+>>>> resource. The work of acpi_power_resume_dependent() is also added =
+to
+>>>> workqueue. Because the usb port's usage count remains 0 during thi=
+s
+>>>> procedure. it will be suspended soon after resume. While suspendin=
+g,
+>>>> acpi_power_resume_dependent() is running and pm_request_resume()
+>>>> sets deferred_resume again. The infinite look starts.
+>>>
+>>> So the problem is that the whole thing is racy.  There is no guaran=
+tee
+>>> that the power resource will not be turned off after the
+>>> acpi_power_get_inferred_state() check in acpi_power_resume_dependen=
+t()
+>>> and before rpm_resume() queued by the pm_request_resume() called fr=
+om
+>>> there runs.  Playing with the time windows doesn't make that race g=
+o away.
+>>>
+>>> If we did what you suggested, the race still would be there, becaus=
+e the
+>>> queued up resume may still run after the power resource has been tu=
+rned off.
+>>
+>> Yes, the queued up resume will run after the power resource has been
+>> turned off but normally the resume should try to turn on the power
+>> resource before doing some hardware related operations. If so, there
+>> will not be problem, right?
+>>
+>=20
+> Sorry. I think I misunderstood your word. Please ignore the previous
+> comment.
+>=20
+> Yes, there is still a racy. I think of one case that there are multi
+> devices that share one power resource. One device turns on power
+> resource during resuming and queue resumes for other devices. The dev=
+ice
+> enter into suspend and power resource turns off soon. When one other
+> device do resume, the power resource will turn on again and queue res=
+ume
+> for the previous device. Just like a Ping-pong.
+>=20
+>>>
+>>> Unfortunately, I don't see how we can fix this race in a satisfacto=
+ry way
+>>> and I'm starting to think that the whole resuming of dependent devi=
+ces may
+>>> be a bad idea.
+>>>
+>>> IIRC, the original concern was that devices may end up in D0-uninit=
+ialized
+>>> if we don't do that, but then whoever turned the power resource on =
+will
+>>> probably turn if off at one point anyway, so they will be in that s=
+tate
+>>> temporarily.  In other words, in addition to the fact that this is =
+racy,
+>>> there even is no reason to do it.
+>>>
+>>> I'll send a patch to rip off that stuff later today.
+>=20
+> Currently, dropping it should be the better choice but I think we sti=
+ll
+> need to resolve the D0-uninitialized problem, right? I will try to
+> resolve it by other way.
+>=20
 
-It's cost free to add the BUILD_BUG_ON
-and perhaps you underestimate the runtime
-bug checking effort,
+How about create generic power domain for power resource and adding
+physical devices and dependent devices to the domain? When the domain
+powers on, resume all the devices.
 
+
+>>>
+>>> Thanks,
+>>> Rafael
+>>>
+>>
+>>
+>=20
+>=20
+
+
+--=20
+Best regards
+Tianyu Lan
+--
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
