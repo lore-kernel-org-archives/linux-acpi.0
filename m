@@ -1,187 +1,96 @@
-From: Lan Tianyu <tianyu.lan@intel.com>
-Subject: Re: [Resend PATCH 5/5] IA64/PCI/ACPI: Rework PCI root bridge ACPI
- resource conversion
-Date: Thu, 17 Oct 2013 14:09:19 +0800
-Message-ID: <525F7F0F.5010306@intel.com>
-References: <1381493941-4650-1-git-send-email-tianyu.lan@intel.com> <1381493941-4650-6-git-send-email-tianyu.lan@intel.com> <20131016235541.GD17866@google.com>
+From: Chen Gong <gong.chen@linux.intel.com>
+Subject: Re: [PATCH v2 3/9] bitops: Introduce a more generic BITMASK macro
+Date: Thu, 17 Oct 2013 02:30:59 -0400
+Message-ID: <20131017063059.GB14946@gchen.bj.intel.com>
+References: <1381935366-11731-1-git-send-email-gong.chen@linux.intel.com>
+ <1381935366-11731-4-git-send-email-gong.chen@linux.intel.com>
+ <1381978749.22110.76.camel@joe-AO722>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-ia64-owner@vger.kernel.org>
-In-Reply-To: <20131016235541.GD17866@google.com>
-Sender: linux-ia64-owner@vger.kernel.org
-To: Bjorn Helgaas <bhelgaas@google.com>
-Cc: tony.luck@intel.com, lenb@kernel.org, rjw@sisk.pl, yinghai@kernel.org, linux-ia64@vger.kernel.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="/NkBOFFp2J2Af1nK"
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mga02.intel.com ([134.134.136.20]:1832 "EHLO mga02.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750817Ab3JQGp5 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 17 Oct 2013 02:45:57 -0400
+Content-Disposition: inline
+In-Reply-To: <1381978749.22110.76.camel@joe-AO722>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-
-On 2013=E5=B9=B410=E6=9C=8817=E6=97=A5 07:55, Bjorn Helgaas wrote:
-> On Fri, Oct 11, 2013 at 08:19:01PM +0800, tianyu.lan@intel.com wrote:
->> From: Lan Tianyu <tianyu.lan@intel.com>
->>
->> Using ACPI resource functions to convert ACPI resource to generic re=
-source
->>
->> Signed-off-by: Lan Tianyu <tianyu.lan@intel.com>
->> ---
->> This patch just passes through compilation test due to no ia64 machi=
-ne on hand.
->>
->>  arch/ia64/pci/pci.c | 38 +++++++++++++++++++++-----------------
->>  1 file changed, 21 insertions(+), 17 deletions(-)
->>
->> diff --git a/arch/ia64/pci/pci.c b/arch/ia64/pci/pci.c
->> index 2326790..14fa175 100644
->> --- a/arch/ia64/pci/pci.c
->> +++ b/arch/ia64/pci/pci.c
->> @@ -232,8 +232,9 @@ out:
->>  	return ~0;
->>  }
->> =20
->> -static acpi_status resource_to_window(struct acpi_resource *resourc=
-e,
->> -				      struct acpi_resource_address64 *addr)
->> +static acpi_status resource_to_window(struct acpi_resource *ares,
->> +				      struct acpi_resource_address64 *addr,
->> +				      struct resource *res)
->>  {
->>  	acpi_status status;
->> =20
->> @@ -244,7 +245,7 @@ static acpi_status resource_to_window(struct acp=
-i_resource *resource,
->>  	 *	- producers, i.e., the address space is routed downstream,
->>  	 *	  not consumed by the bridge itself
->>  	 */
->> -	status =3D acpi_resource_to_address64(resource, addr);
->> +	status =3D acpi_dev_resource_address_space_full(ares, addr, res);
->>  	if (ACPI_SUCCESS(status) &&
->>  	    (addr->resource_type =3D=3D ACPI_MEMORY_RANGE ||
->>  	     addr->resource_type =3D=3D ACPI_IO_RANGE) &&
->> @@ -255,51 +256,54 @@ static acpi_status resource_to_window(struct a=
-cpi_resource *resource,
->>  	return AE_ERROR;
->>  }
->> =20
->> -static acpi_status count_window(struct acpi_resource *resource, voi=
-d *data)
->> +static acpi_status count_window(struct acpi_resource *ares, void *d=
-ata)
->>  {
->>  	unsigned int *windows =3D (unsigned int *) data;
->>  	struct acpi_resource_address64 addr;
->> +	struct resource res;
->>  	acpi_status status;
->> =20
->> -	status =3D resource_to_window(resource, &addr);
->> +	status =3D resource_to_window(ares, &addr, &res);
->>  	if (ACPI_SUCCESS(status))
->>  		(*windows)++;
->> =20
->>  	return AE_OK;
->>  }
->> =20
->> -static acpi_status add_window(struct acpi_resource *res, void *data=
-)
->> +static acpi_status add_window(struct acpi_resource *ares, void *dat=
-a)
->>  {
->>  	struct pci_root_info *info =3D data;
->> -	struct resource *resource;
->> +	struct resource *resource =3D &info->res[info->res_num];
->>  	struct acpi_resource_address64 addr;
->>  	acpi_status status;
->> -	unsigned long flags, offset =3D 0;
->> +	unsigned long offset =3D 0;
->>  	struct resource *root;
->> =20
->>  	/* Return AE_OK for non-window resources to keep scanning for more=
- */
->> -	status =3D resource_to_window(res, &addr);
->> +	status =3D resource_to_window(ares, &addr, resource);
->>  	if (!ACPI_SUCCESS(status))
->>  		return AE_OK;
->> =20
->> -	if (addr.resource_type =3D=3D ACPI_MEMORY_RANGE) {
->> -		flags =3D IORESOURCE_MEM;
->> +	if (resource->flags & IORESOURCE_MEM) {
->>  		root =3D &iomem_resource;
->>  		offset =3D addr.translation_offset;
->> -	} else if (addr.resource_type =3D=3D ACPI_IO_RANGE) {
->> -		flags =3D IORESOURCE_IO;
->> +	} else if (resource->flags & IORESOURCE_IO) {
->>  		root =3D &ioport_resource;
->>  		offset =3D add_io_space(info, &addr);
->>  		if (offset =3D=3D ~0)
->>  			return AE_OK;
->> +
->> +		/*
->> +		 * io space address translation offset depends
->> +		 * on the return value of add_io_space(). So
->> +		 * Repopulate resource->start and end here.
->=20
-> "Repopulate" makes it sound like "resource->start" got clobbered
-> somewhere.  But it didn't.  I think it's just that each bridge can
-> support its own I/O port range, and the PCI port numbers reported
-> in the acpi_resource may not be distinct, and add_io_space() adds
-> an offset so all the I/O port ranges fit into one global I/O port
-> space.
->=20
-> For example, I think these two bridges have the same port numbers
-> (0x0-0xfff) in their acpi_resource, but the second has an offset
-> of 0x1000000 in the system I/O port space, and I think this offset
-> is what add_io_space() returns:
->=20
->   HWP0002:00: host bridge window [io  0x0000-0x0fff]	   (PCI [0x0-0xf=
-ff])
->   HWP0002:09: host bridge window [io  0x1000000-0x1000fff] (PCI [0x0-=
-0xfff])
->=20
->> +		 */
->> +		resource->start =3D addr.minimum + offset;
->> +		resource->end =3D resource->start + addr.address_length - 1;
->=20
-> Can't we use this:
->=20
-> 		resource->start +=3D offset;
-> 		resource->end +=3D offset;
->=20
-> to avoid breaking the encapsulation of struct acpi_resource_address64=
-?
-
-resource->start has been populated with "addr.minimum +
-addr.translation_offset" in the acpi_dev_resource_address_space().
-continuing to add the offset to resource->start seems not right.
-
-The add_io_space() accepts translation_offset and then ioremap it to
-mmio address. Add the result to io_space array and assign a space
-number. Left shift the space number 24 bits as the return offset of
-add_io_space().
-
-When one io port address is accessed, __ia64_mk_io_addr() will do
-reverse operations and find associated mmio address.
+To: Joe Perches <joe@perches.com>
+Cc: tony.luck@intel.com, bp@alien8.de, naveen.n.rao@linux.vnet.ibm.com, m.chehab@samsung.com, arozansk@redhat.com, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Thomas Winischhofer <thomas@winischhofer.net>, Jean-Christophe Plagniol-Villard <plagnioj@jcrosoft.com>, Tomi Valkeinen <tomi.valkeinen@ti.com>
 
 
+--/NkBOFFp2J2Af1nK
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
+
+On Wed, Oct 16, 2013 at 07:59:09PM -0700, Joe Perches wrote:
+> Date: Wed, 16 Oct 2013 19:59:09 -0700
+> From: Joe Perches <joe@perches.com>
+> To: "Chen, Gong" <gong.chen@linux.intel.com>
+> Cc: tony.luck@intel.com, bp@alien8.de, naveen.n.rao@linux.vnet.ibm.com,
+>  m.chehab@samsung.com, arozansk@redhat.com, linux-acpi@vger.kernel.org,
+>  linux-kernel@vger.kernel.org, Thomas Winischhofer
+>  <thomas@winischhofer.net>, Jean-Christophe Plagniol-Villard
+>  <plagnioj@jcrosoft.com>, Tomi Valkeinen <tomi.valkeinen@ti.com>
+> Subject: Re: [PATCH v2 3/9] bitops: Introduce a more generic BITMASK macro
+> X-Mailer: Evolution 3.6.4-0ubuntu1=20
 >=20
->>  	} else
->>  		return AE_OK;
->> =20
->> -	resource =3D &info->res[info->res_num];
->>  	resource->name =3D info->name;
->> -	resource->flags =3D flags;
->> -	resource->start =3D addr.minimum + offset;
->> -	resource->end =3D resource->start + addr.address_length - 1;
->>  	info->res_offset[info->res_num] =3D offset;
->> =20
->>  	if (insert_resource(root, resource)) {
->> --=20
->> 1.8.2.1
->>
+> On Wed, 2013-10-16 at 10:56 -0400, Chen, Gong wrote:
+> > GENMASK is used to create a contiguous bitmask([hi:lo]). It is
+> > implemented twice in current kernel. One is in EDAC driver, the other
+> > is in SiS/XGI FB driver. Move it to a more generic place for other
+> > usage.
+> []
+> > diff --git a/include/linux/bitops.h b/include/linux/bitops.h
+> []
+> > @@ -10,6 +10,14 @@
+> >  #define BITS_TO_LONGS(nr)	DIV_ROUND_UP(nr, BITS_PER_BYTE * sizeof(long=
+))
+> >  #endif
+> > =20
+> > +/*
+> > + * Create a contiguous bitmask starting at bit position @l and ending =
+at
+> > + * position @h. For example
+> > + * GENMASK_ULL(39, 21) gives us the 64bit vector 0x000000ffffe00000.
+>=20
+> ull
+>=20
+> > + */
+> > +#define GENMASK(h, l)		(((U32_C(1) << ((h) - (l) + 1)) - 1) << (l))
+> > +#define GENMASK_ULL(h, l)	(((U64_C(1) << ((h) - (l) + 1)) - 1) << (l))
+>=20
+>=20
+> Maybe add a
+>=20
+> BUILD_BUG_ON(__builtin_constant_p(l) && __builtin_constant_p(h) && \
+> 	     (h) < (l))
+>=20
+No, if so, users can't use variables for this macro.
 
+--/NkBOFFp2J2Af1nK
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
 
---=20
-Best regards
-Tianyu Lan
---
-To unsubscribe from this list: send the line "unsubscribe linux-ia64" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.14 (GNU/Linux)
+
+iQIcBAEBAgAGBQJSX4QiAAoJEI01n1+kOSLHLhoQAInW+q5yvH1dYUdhudDzdgpl
+K6edVgyywW24vD39XyXJ/xZhgw/bnlv+bKtxbucu9Ma0Wx/IIP3L2Y5lPMgEkWhx
+f3JlL3GEVh/HuEFId7UxpC0EzvPLZ0fEYXDUbIiasgc2McsPSTSbsiT4o8Gagz0W
+SIcyblIKMX8oc+EAv2L1a9jH69awuVGY1Jh9iCi820LH3JPomfF8YULUZwR/p2wu
+cn0+XpoVN6kZwFJuHsE3K8apZAWPYHwjXrUfpfxlOlZU72mlyjND7RSSlwKD91xJ
+rByvlxnLymCkedJarGM7cTV/o602yrS3XDnvmpQE07gkVe09HjPhlgkJPqJTpxCb
+FSG/8WPNP2pwwQ5s45C6pkdhtWloHpegKkyEQocLXjY3qp201tZVDnJUBl/u9N6c
+ZqL/t/IOdD4O4VGIa2wbv/l00O1KoHaKPyQjGXPec4L2lm690958rWTRB5QQM4DT
+MNtPrRBKOpJqGezjZ62HU2Dy6V3yqBn/t5IYz9MXlSV9z/8meRYMdjPa/PFdd4FX
+2/v7wORkfvbI39Rvepkfg1kCkQn9aMwDFHh49Bly9Jy/09KTsBE79JnLA+FLtzK/
+1SzNgJSt/0ndLz495rZ52QNvUwDhM6gyWeW1JbPABFkuFtZSS6n/2wNuCjq8NoJq
+ppOdB9HKvYDoz+nIZPUF
+=eRZD
+-----END PGP SIGNATURE-----
+
+--/NkBOFFp2J2Af1nK--
