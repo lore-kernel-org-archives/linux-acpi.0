@@ -1,57 +1,50 @@
-From: Dan Carpenter <dan.carpenter@oracle.com>
-Subject: Re: ACPICA: Tables: Cleanup RSDP signature codes.
-Date: Thu, 17 Oct 2013 15:39:42 +0300
-Message-ID: <20131017123942.GG5550@mwanda>
-References: <20130926223520.GA25642@elgon.mountain>
+From: Borislav Petkov <bp@alien8.de>
+Subject: Re: Extended H/W error log driver
+Date: Thu, 17 Oct 2013 15:04:51 +0200
+Message-ID: <20131017130451.GG5036@pd.tnic>
+References: <1381473166-29303-1-git-send-email-gong.chen@linux.intel.com>
+ <20131011080427.GC18719@pd.tnic>
+ <20131014064940.GD12189@gchen.bj.intel.com>
+ <20131014105533.GF4009@pd.tnic>
+ <20131015040731.GA887@gchen.bj.intel.com>
+ <20131015092851.GA7908@pd.tnic>
+ <CA+8MBbJeSJBDPcomupOuVBrnZNkMTNTXsoZY9yUbXPe9YrTFXg@mail.gmail.com>
+ <20131015191040.GA4347@naverao1-tp.ibm.com>
+ <20131015192353.GI7908@pd.tnic>
+ <525FD2FA.8010403@linux.vnet.ibm.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from aserp1040.oracle.com ([141.146.126.69]:25574 "EHLO
-	aserp1040.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755782Ab3JQMjz (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 17 Oct 2013 08:39:55 -0400
+Content-Type: text/plain; charset=utf-8
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20130926223520.GA25642@elgon.mountain>
-Sender: linux-acpi-owner@vger.kernel.org
+In-Reply-To: <525FD2FA.8010403@linux.vnet.ibm.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: "Naveen N. Rao" <naveen.n.rao@linux.vnet.ibm.com>
+Cc: Tony Luck <tony.luck@gmail.com>, Chen Gong <gong.chen@linux.intel.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-acpi <linux-acpi@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
-To: lv.zheng@intel.com
-Cc: linux-acpi@vger.kernel.org
 
-Does anyone have an idea about this?  The code is obviously wrong but
-the fix is unclear.  Perhaps we should just note the bug in a comment?
+On Thu, Oct 17, 2013 at 05:37:22PM +0530, Naveen N. Rao wrote:
+> That's me raising both my hands :)
 
-regards,
-dan carpenter
+:-)
 
-On Fri, Sep 27, 2013 at 01:35:20AM +0300, Dan Carpenter wrote:
-> Hello Lv Zheng,
-> 
-> I'm sorry to bother you about this.  This code has been this way for
-> years, but your recent formatting cleanups made it into something Smatch
-> could understand and complain about.  Hopefully, you could take a look?
-> 
-> The patch cacba8657351: "ACPICA: Tables: Cleanup RSDP signature
-> codes." from Sep 23, 2013, leads to the following
-> static checker warning: "drivers/acpi/acpica/tbprint.c:141
-> acpi_tb_print_table_header()
-> 	 error: strncmp() '((((header->signature))))' too small (4 vs 8)"
-> 
-> drivers/acpi/acpica/tbprint.c
->    138                  ACPI_INFO((AE_INFO, "%4.4s %p %05X",
->    139                             header->signature, ACPI_CAST_PTR(void, address),
->    140                             header->length));
->    141          } else if (ACPI_VALIDATE_RSDP_SIG(header->signature)) {
->                            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-> The RSDP_SIG is an 8 character signature but the header->signature
-> buffer only has 4 characters so the signatures never match.  What's the
-> deal with that?
-> 
->    142  
->    143                  /* RSDP has no common fields */
->    144  
->    145                  ACPI_MEMCPY(local_header.oem_id,
->    146                              ACPI_CAST_PTR(struct acpi_table_rsdp,
->    147                                            header)->oem_id, ACPI_OEM_ID_SIZE);
-> 
-> regards,
-> dan carpenter
+> If you feel so strongly about it. "Corrected Error" is an oxymoron.
+> It's really just the hardware notifying us.
+
+Yeah, but we can't write
+
+"We just corrected a single-bit flip in DIMM array <foo> - it was
+supposed to be X but now it is Y. Don't worry, this bit flip had no
+effect on current architectural machine state."
+
+either.
+
+I just don't want to call a "Hardware Error" a "Hardware Event".
+Besides, an IRQ is a hardware event too, for example. You can see where
+I'm getting with this...
+
+-- 
+Regards/Gruss,
+    Boris.
+
+Sent from a fat crate under my desk. Formatting is fine.
+--
