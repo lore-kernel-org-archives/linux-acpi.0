@@ -1,59 +1,53 @@
-From: Dan Carpenter <dan.carpenter@oracle.com>
-Subject: re: ACPICA: Resource Mgr: Prevent infinite loops in resource walks
-Date: Thu, 17 Oct 2013 15:28:50 +0300
-Message-ID: <20131017122850.GA24755@longonot.mountain>
+From: "Naveen N. Rao" <naveen.n.rao@linux.vnet.ibm.com>
+Subject: Re: Extended H/W error log driver
+Date: Thu, 17 Oct 2013 17:37:22 +0530
+Message-ID: <525FD2FA.8010403@linux.vnet.ibm.com>
+References: <1381473166-29303-1-git-send-email-gong.chen@linux.intel.com> <20131011080427.GC18719@pd.tnic> <20131014064940.GD12189@gchen.bj.intel.com> <20131014105533.GF4009@pd.tnic> <20131015040731.GA887@gchen.bj.intel.com> <20131015092851.GA7908@pd.tnic> <CA+8MBbJeSJBDPcomupOuVBrnZNkMTNTXsoZY9yUbXPe9YrTFXg@mail.gmail.com> <20131015191040.GA4347@naverao1-tp.ibm.com> <20131015192353.GI7908@pd.tnic>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from userp1040.oracle.com ([156.151.31.81]:33990 "EHLO
-	userp1040.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755342Ab3JQMbx (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 17 Oct 2013 08:31:53 -0400
-Content-Disposition: inline
+Received: from e23smtp01.au.ibm.com ([202.81.31.143]:58376 "EHLO
+	e23smtp01.au.ibm.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753574Ab3JQMew (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 17 Oct 2013 08:34:52 -0400
+Received: from /spool/local
+	by e23smtp01.au.ibm.com with IBM ESMTP SMTP Gateway: Authorized Use Only! Violators will be prosecuted
+	for <linux-acpi@vger.kernel.org> from <naveen.n.rao@linux.vnet.ibm.com>;
+	Thu, 17 Oct 2013 22:34:50 +1000
+In-Reply-To: <20131015192353.GI7908@pd.tnic>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: robert.moore@intel.com
-Cc: linux-acpi@vger.kernel.org, devel@acpica.org
+To: Borislav Petkov <bp@alien8.de>
+Cc: Tony Luck <tony.luck@gmail.com>, Chen Gong <gong.chen@linux.intel.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-acpi <linux-acpi@vger.kernel.org>
 
-Hello Bob Moore,
+On 10/16/2013 12:53 AM, Borislav Petkov wrote:
+> On Wed, Oct 16, 2013 at 12:40:40AM +0530, Naveen N. Rao wrote:
+>> +2 ;)
+>
+> You're counting for 2 people, huh?
 
-The patch c13085e519e8: "ACPICA: Resource Mgr: Prevent infinite loops 
-in resource walks" from Mar 8, 2013 is not beautiful.  My static checker
-complains about the loop because:
-"drivers/acpi/acpica/rscalc.c:197 acpi_rs_get_aml_length()
-	 warn: 'resource' can't be NULL."
+That's me raising both my hands :)
 
-drivers/acpi/acpica/rscalc.c
-   195          /* Traverse entire list of internal resource descriptors */
-   196  
-   197          while (resource) {
-                       ^^^^^^^^
+>
+> :-)
+>
+>> While at it, I wonder if we're better off calling these "Hardware
+>> events" rather than "Hardware errors".
+>
+> Oh, please no. That's that euphemistic lying which serves no one. And
+> here's what I mean by "euphemistic lying":
+>
+> https://www.youtube.com/watch?v=vuEQixrBKCc
+>
+> Let's call it what it really is but, at the same time, make sure it is
+> understandable to users what action they need to undertake (or none)
+> when they encounter it.
 
-My static checker is wrong because we use the -fno-strict-overflow to
-prevent GCC from optimizing this check away.  But we are looping over
-a list of pointers until our pointer wraps to NULL.  In other words we
-loop over all the 2**64 - 1 addresses until we wrap to NULL or we find
-something with an invalid type or something with ->length zero.
+If you feel so strongly about it. "Corrected Error" is an oxymoron. It's 
+really just the hardware notifying us.
 
-I assume the last element in the list always has length zero?  If so
-then we could replace "while (resource)" with "while (resource->length)"
 
-   198  
-   199                  /* Validate the descriptor type */
-   200  
-   201                  if (resource->type > ACPI_RESOURCE_TYPE_MAX) {
-   202                          return_ACPI_STATUS(AE_AML_INVALID_RESOURCE_TYPE);
-   203                  }
-   204  
-   205                  /* Sanity check the length. It must not be zero, or we loop forever */
-   206  
-   207                  if (!resource->length) {
-   208                          return_ACPI_STATUS(AE_AML_BAD_RESOURCE_LENGTH);
-   209                  }
-   210  
-   211                  /* Get the base size of the (external stream) resource descriptor */
-   212  
-
-regards,
-dan carpenter
+Thanks,
+Naveen
 
