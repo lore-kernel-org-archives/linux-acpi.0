@@ -1,64 +1,234 @@
-From: Mauro Carvalho Chehab <m.chehab@samsung.com>
-Subject: Re: [PATCH 8/8] ACPI / trace: Add trace interface for eMCA driver
-Date: Thu, 17 Oct 2013 07:34:43 -0300
-Message-ID: <20131017073443.675e97f2@samsung.com>
-References: <1381473166-29303-1-git-send-email-gong.chen@linux.intel.com>
- <1381473166-29303-9-git-send-email-gong.chen@linux.intel.com>
- <20131015165435.GA2777@naverao1-tp.ibm.com> <20131015170039.GF7908@pd.tnic>
- <525D7BCD.7080303@linux.vnet.ibm.com>
- <20131015214346.68718bcd.m.chehab@samsung.com>
- <20131016091640.GA13608@pd.tnic>
- <20131016073539.5a48f65e.m.chehab@samsung.com>
- <20131016104221.GC13608@pd.tnic> <20131016085558.19fe143a@samsung.com>
- <3908561D78D1C84285E8C5FCA982C28F31D31C65@ORSMSX106.amr.corp.intel.com>
+From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Subject: Re: [PATCH] ACPI/Power: Check physical device's runtime pm status before requesting to resume it
+Date: Thu, 17 Oct 2013 13:38:27 +0200
+Message-ID: <4249062.PmvqKh0Nrz@vostro.rjw.lan>
+References: <1381479385-1614-1-git-send-email-tianyu.lan@intel.com> <525F372A.5070807@intel.com> <525F4E03.2050606@intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mailout3.w2.samsung.com ([211.189.100.13]:36342 "EHLO
-	usmailout3.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751311Ab3JQKet (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 17 Oct 2013 06:34:49 -0400
-In-reply-to: <3908561D78D1C84285E8C5FCA982C28F31D31C65@ORSMSX106.amr.corp.intel.com>
+Received: from v094114.home.net.pl ([79.96.170.134]:56240 "HELO
+	v094114.home.net.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S1752539Ab3JQL0h convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 17 Oct 2013 07:26:37 -0400
+In-Reply-To: <525F4E03.2050606@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Luck, Tony" <tony.luck@intel.com>
-Cc: Borislav Petkov <bp@alien8.de>, "Naveen N. Rao" <naveen.n.rao@linux.vnet.ibm.com>, "Chen, Gong" <gong.chen@linux.intel.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, Aristeu Rozanski Filho <arozansk@redhat.com>, Steven Rostedt <srostedt@redhat.com>
+To: Lan Tianyu <tianyu.lan@intel.com>
+Cc: lenb@kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Lan Tianyu <lantianyu1986@gmail.com>, Aaron Lu <aaron.lu@intel.com>
 
-Em Wed, 16 Oct 2013 20:47:05 +0000
-"Luck, Tony" <tony.luck@intel.com> escreveu:
+On Thursday, October 17, 2013 10:40:03 AM Lan Tianyu wrote:
+> On 2013=E5=B9=B410=E6=9C=8817=E6=97=A5 09:02, Lan Tianyu wrote:
+> > On 2013=E5=B9=B410=E6=9C=8816=E6=97=A5 20:42, Rafael J. Wysocki wro=
+te:
+> >> On Wednesday, October 16, 2013 05:26:21 PM Lan Tianyu wrote:
+> >>> This is a multi-part message in MIME format.
+> >>> --------------090400010209000300030201
+> >>> Content-Type: text/plain; charset=3DUTF-8
+> >>> Content-Transfer-Encoding: 8bit
+> >>>
+> >>> On 10/16/2013 05:22 AM, Rafael J. Wysocki wrote:
+> >>>> On Tuesday, October 15, 2013 04:58:28 PM Lan Tianyu wrote:
+> >>>>> On 2013=C3=A5=C2=B9=C2=B410=C3=A6=C2=9C=C2=8811=C3=A6=C2=97=C2=A5=
+ 19:19, Rafael J. Wysocki wrote:
+> >>>>>> On Friday, October 11, 2013 04:16:25 PM tianyu.lan@intel.com
+> >>>>>> wrote:
+> >>>>>>> From: Lan Tianyu <tianyu.lan@intel.com>
+> >>>>>>>
+> >>>>>>> Currently, when one power resource is turned on, devices owni=
+ng
+> >>>>>>> it will be requested to resume regardless of their runtime pm
+> >>>>>>> status. ACPI power resource maybe turn on in some devices'
+> >>>>>>> runtime pm resume callback(E.G, usb port) while turning on th=
+e
+> >>>>>>> power resource will trigger one new resume request of the
+> >>>>>>> device. It causes infinite loop between resume and suspend.
+> >>>>>>> This has happened on clearing usb port's PM Qos NO_POWER_OFF
+> >>>>>>> flag twice. This patch is to add check of physical device's
+> >>>>>>> runtime pm status and request resume if the device is
+> >>>>>>> suspended.
+> >>>>>>>
+> >>>>>>> Signed-off-by: Lan Tianyu <tianyu.lan@intel.com> ---
+> >>>>>>> drivers/acpi/power.c | 6 ++++-- 1 file changed, 4
+> >>>>>>> insertions(+), 2 deletions(-)
+> >>>>>>>
+> >>>>>>> diff --git a/drivers/acpi/power.c b/drivers/acpi/power.c inde=
+x
+> >>>>>>>  0dbe5cd..228c138 100644 --- a/drivers/acpi/power.c +++
+> >>>>>>> b/drivers/acpi/power.c @@ -250,8 +250,10 @@ static void
+> >>>>>>> acpi_power_resume_dependent(struct work_struct *work)
+> >>>>>>>
+> >>>>>>> mutex_lock(&adev->physical_node_lock);
+> >>>>>>>
+> >>>>>>> -	list_for_each_entry(pn, &adev->physical_node_list, node) -
+> >>>>>>> pm_request_resume(pn->dev); +	list_for_each_entry(pn,
+> >>>>>>> &adev->physical_node_list, node) { +		if
+> >>>>>>> (pm_runtime_suspended(pn->dev)) + pm_request_resume(pn->dev);
+> >>>>>>> + }
+> >>>>>>
+> >>>>>> This is racy, because the status may change right after you ch=
+eck
+> >>>>>> it and before you call pm_request_resume().
+> >>>>>
+> >>>>> Yes, the runtime status may be changed just after the check.
+> >>>>>
+> >>>>>>
+> >>>>>> Besides, pm_request_resume() checks the status of the device a=
+nd
+> >>>>>>  won't try to resume it if it is not suspended.
+> >>>>>>
+> >>>>>
+> >>>>> For this issue, usb port is in the RPM_SUSPENDING state when
+> >>>>> pm_request_resume() is called.
+> >>>>
+> >>>> Why exactly does that happen?
+> >>>>
+> >>>>> The deferred_resume will be set to true during this procedure a=
+nd
+> >>>>> trigger resume after finishing suspend. USB port runtime resume
+> >>>>> callback will turn on its power resource again and the work of
+> >>>>> acpi_power_resume_dependent() is scheduled. Because the usb por=
+t's
+> >>>>>  usage count remains zero, it's to be suspended soon. When
+> >>>>> pm_request_resume() of acpi_power_resume_dependent() is called,=
+ the
+> >>>>> usb port is always in the PRM_SUSPENDING. Fall in the loop of
+> >>>>> suspend and resume.
+> >>>>>
+> >>>>> How about running acpi_power_dependent when turning on power
+> >>>>> resource rather than scheduling a work to run it?
+> >>>>
+> >>>> Is this actually going to help?  Even if
+> >>>> acpi_power_resume_dependent() is run synchronously from within t=
+he
+> >>>> resume callback, it will still see RPM_SUSPENDING as the device'=
+s
+> >>>> status, won't it?
+> >>>>
+> >>>>> After this, pm_request_resume() can check device's right status
+> >>>>> just after turning on power resource.
+> >>>>
+> >>>> The status doesn't change until the .runtime_suspend() callback
+> >>>> returns and running pm_request_resume() syncrhonously from that
+> >>>> callback for the device being suspended just plain doesn't make
+> >>>> sense.
+> >>>>
+> >>>>
+> >>>> Can you please explain to me how this is possible that the USB p=
+ort's
+> >>>> power resource is turned "on" while the port is RPM_SUSPENDING?
+> >>>>
+> >>> [This mail seems not to be sent to maillist. So resend. Try again
+> >>> Sorry for noise]
+> >>>
+> >>>
+> >>> Hi Rafael:
+> >>>
+> >>> No, I mean the acpi_power_resume_dependent() is running while the=
+ port's
+> >>> status is RPM_SUSPENDING. It runs from a work item and turning on=
+ power
+> >>> resource adds the work to workqueue. There is a timeslot between =
+running
+> >>> acpi_power_resume_dependent() and turning on power resource. In t=
+he
+> >>> timeslot, the device runtime pm status maybe change.
+> >>>
+> >>> In this case, changing PM Qos flag will do pm_runtime_get_sync an=
+d
+> >>> pm_runtime_put usb port. The usb port is without device attached =
+and so
+> >>> it will be resumed and suspended soon during changing PM Qos flag=
+=2E
+> >>>
+> >>> Resume callback turns on power resource if NO_POWER_OFF flag has =
+been
+> >>> cleared and add the work of acpi_power_resume_dependent() to
+> >>> workqueue. After resume, the usb port will be suspended while the
+> >>> acpi_power_resume_dependent() is running. pm_request_resume() get=
+s
+> >>> RPM_SUSPENDING as the usb port's runtime status and set the
+> >>> deferred_resume of usb port.
+> >>>
+> >>> After suspend, usb port will be resumed again and turn on power
+> >>> resource. The work of acpi_power_resume_dependent() is also added=
+ to
+> >>> workqueue. Because the usb port's usage count remains 0 during th=
+is
+> >>> procedure. it will be suspended soon after resume. While suspendi=
+ng,
+> >>> acpi_power_resume_dependent() is running and pm_request_resume()
+> >>> sets deferred_resume again. The infinite look starts.
+> >>
+> >> So the problem is that the whole thing is racy.  There is no guara=
+ntee
+> >> that the power resource will not be turned off after the
+> >> acpi_power_get_inferred_state() check in acpi_power_resume_depende=
+nt()
+> >> and before rpm_resume() queued by the pm_request_resume() called f=
+rom
+> >> there runs.  Playing with the time windows doesn't make that race =
+go away.
+> >>
+> >> If we did what you suggested, the race still would be there, becau=
+se the
+> >> queued up resume may still run after the power resource has been t=
+urned off.
+> >=20
+> > Yes, the queued up resume will run after the power resource has bee=
+n
+> > turned off but normally the resume should try to turn on the power
+> > resource before doing some hardware related operations. If so, ther=
+e
+> > will not be problem, right?
+> >=20
+>=20
+> Sorry. I think I misunderstood your word. Please ignore the previous
+> comment.
+>=20
+> Yes, there is still a racy. I think of one case that there are multi
+> devices that share one power resource. One device turns on power
+> resource during resuming and queue resumes for other devices. The dev=
+ice
+> enter into suspend and power resource turns off soon. When one other
+> device do resume, the power resource will turn on again and queue res=
+ume
+> for the previous device. Just like a Ping-pong.
+>=20
+> >>
+> >> Unfortunately, I don't see how we can fix this race in a satisfact=
+ory way
+> >> and I'm starting to think that the whole resuming of dependent dev=
+ices may
+> >> be a bad idea.
+> >>
+> >> IIRC, the original concern was that devices may end up in D0-unini=
+tialized
+> >> if we don't do that, but then whoever turned the power resource on=
+ will
+> >> probably turn if off at one point anyway, so they will be in that =
+state
+> >> temporarily.  In other words, in addition to the fact that this is=
+ racy,
+> >> there even is no reason to do it.
+> >>
+> >> I'll send a patch to rip off that stuff later today.
+>=20
+> Currently, dropping it should be the better choice but I think we sti=
+ll
+> need to resolve the D0-uninitialized problem, right?
 
-> > Also, I suspect that, if an error happens to affect more than one DIMM
-> > (e. g. part of the location is not available for a given error),
-> > that the DIMM label will also not be properly shown.
-> 
-> There are a couple of cases here:
-> 
-> 1) There are a number of DIMMs behind some flaky h/w that introduces errors
-> that are apparently blamed onto each of those DIMMs.
-> 
->   All we can do here is statistical correlations ... each error is reported independently,
->   it is up to some entity to notice the higher level topology connection. There is enough
->   information in the UEFI error record to do that (assuming that BIOS filled out the
->   necessary fields).
-> 
-> 2) There is a single reported error that spans more than one DIMM.
-> 
->   This can happen with a UC error in a pair of lock-step DIMMs.  Since the error is UC
->   we know that two (or more) bits are bad.  But we have no way to tell whether the
->   bad bits came from the same DIMM, or one bit from each (because we don't know
->   which bits are bad - if we knew that, we could fix them :-)   The eMCA case should
->   log two subsections in this case - one for each of the lockstep DIMMs involved. A user
->   seeing this will should probably just replace both DIMMs to be safe.  If they wanted to
->   diagnose further they should swap DIMMs around so this pair are no longer lockstepped
->   and see if they start seeing correctable errors from each of the split pair - or if the UC
->   errors move with one or the other of the DIMMs
+Why do you think it is a problem in the first place?  Those devices wil=
+l not
+be accessed while in that state (unless there's a bug somewhere).
 
-There's also a third case: mirrored memories.
+Thanks!
 
-As a matter of coherency with hw-based reports, for cases (2) and (3),
-the error tracing should be displaying both memories that are affected
-by a UC error (or a CE error on a mirrored address space).
-
-Regards,
-Mauro
+--=20
+I speak only for myself.
+Rafael J. Wysocki, Intel Open Source Technology Center.
+--
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
