@@ -1,156 +1,195 @@
-From: Bjorn Helgaas <bhelgaas@google.com>
-Subject: Re: [Resend PATCH 5/5] IA64/PCI/ACPI: Rework PCI root bridge ACPI
- resource conversion
-Date: Wed, 16 Oct 2013 17:55:41 -0600
-Message-ID: <20131016235541.GD17866@google.com>
-References: <1381493941-4650-1-git-send-email-tianyu.lan@intel.com>
- <1381493941-4650-6-git-send-email-tianyu.lan@intel.com>
+From: Lan Tianyu <tianyu.lan@intel.com>
+Subject: Re: [PATCH] ACPI/Power: Check physical device's runtime pm status
+ before requesting to resume it
+Date: Thu, 17 Oct 2013 09:02:34 +0800
+Message-ID: <525F372A.5070807@intel.com>
+References: <1381479385-1614-1-git-send-email-tianyu.lan@intel.com> <16284735.7LFgSiThhv@vostro.rjw.lan> <525E5BBD.5030108@intel.com> <4608605.e0aa4PbnhL@vostro.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-ie0-f172.google.com ([209.85.223.172]:38609 "EHLO
-	mail-ie0-f172.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1760544Ab3JPXzo (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 16 Oct 2013 19:55:44 -0400
-Received: by mail-ie0-f172.google.com with SMTP id tp5so2680677ieb.31
-        for <linux-acpi@vger.kernel.org>; Wed, 16 Oct 2013 16:55:44 -0700 (PDT)
-Content-Disposition: inline
-In-Reply-To: <1381493941-4650-6-git-send-email-tianyu.lan@intel.com>
+Received: from mga09.intel.com ([134.134.136.24]:22026 "EHLO mga09.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1760887Ab3JQBM5 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 16 Oct 2013 21:12:57 -0400
+In-Reply-To: <4608605.e0aa4PbnhL@vostro.rjw.lan>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: tianyu.lan@intel.com
-Cc: tony.luck@intel.com, lenb@kernel.org, rjw@sisk.pl, yinghai@kernel.org, linux-ia64@vger.kernel.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: lenb@kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Lan Tianyu <lantianyu1986@gmail.com>, Aaron Lu <aaron.lu@intel.com>
 
-On Fri, Oct 11, 2013 at 08:19:01PM +0800, tianyu.lan@intel.com wrote:
-> From: Lan Tianyu <tianyu.lan@intel.com>
-> 
-> Using ACPI resource functions to convert ACPI resource to generic resource
-> 
-> Signed-off-by: Lan Tianyu <tianyu.lan@intel.com>
-> ---
-> This patch just passes through compilation test due to no ia64 machine on hand.
-> 
->  arch/ia64/pci/pci.c | 38 +++++++++++++++++++++-----------------
->  1 file changed, 21 insertions(+), 17 deletions(-)
-> 
-> diff --git a/arch/ia64/pci/pci.c b/arch/ia64/pci/pci.c
-> index 2326790..14fa175 100644
-> --- a/arch/ia64/pci/pci.c
-> +++ b/arch/ia64/pci/pci.c
-> @@ -232,8 +232,9 @@ out:
->  	return ~0;
->  }
->  
-> -static acpi_status resource_to_window(struct acpi_resource *resource,
-> -				      struct acpi_resource_address64 *addr)
-> +static acpi_status resource_to_window(struct acpi_resource *ares,
-> +				      struct acpi_resource_address64 *addr,
-> +				      struct resource *res)
->  {
->  	acpi_status status;
->  
-> @@ -244,7 +245,7 @@ static acpi_status resource_to_window(struct acpi_resource *resource,
->  	 *	- producers, i.e., the address space is routed downstream,
->  	 *	  not consumed by the bridge itself
->  	 */
-> -	status = acpi_resource_to_address64(resource, addr);
-> +	status = acpi_dev_resource_address_space_full(ares, addr, res);
->  	if (ACPI_SUCCESS(status) &&
->  	    (addr->resource_type == ACPI_MEMORY_RANGE ||
->  	     addr->resource_type == ACPI_IO_RANGE) &&
-> @@ -255,51 +256,54 @@ static acpi_status resource_to_window(struct acpi_resource *resource,
->  	return AE_ERROR;
->  }
->  
-> -static acpi_status count_window(struct acpi_resource *resource, void *data)
-> +static acpi_status count_window(struct acpi_resource *ares, void *data)
->  {
->  	unsigned int *windows = (unsigned int *) data;
->  	struct acpi_resource_address64 addr;
-> +	struct resource res;
->  	acpi_status status;
->  
-> -	status = resource_to_window(resource, &addr);
-> +	status = resource_to_window(ares, &addr, &res);
->  	if (ACPI_SUCCESS(status))
->  		(*windows)++;
->  
->  	return AE_OK;
->  }
->  
-> -static acpi_status add_window(struct acpi_resource *res, void *data)
-> +static acpi_status add_window(struct acpi_resource *ares, void *data)
->  {
->  	struct pci_root_info *info = data;
-> -	struct resource *resource;
-> +	struct resource *resource = &info->res[info->res_num];
->  	struct acpi_resource_address64 addr;
->  	acpi_status status;
-> -	unsigned long flags, offset = 0;
-> +	unsigned long offset = 0;
->  	struct resource *root;
->  
->  	/* Return AE_OK for non-window resources to keep scanning for more */
-> -	status = resource_to_window(res, &addr);
-> +	status = resource_to_window(ares, &addr, resource);
->  	if (!ACPI_SUCCESS(status))
->  		return AE_OK;
->  
-> -	if (addr.resource_type == ACPI_MEMORY_RANGE) {
-> -		flags = IORESOURCE_MEM;
-> +	if (resource->flags & IORESOURCE_MEM) {
->  		root = &iomem_resource;
->  		offset = addr.translation_offset;
-> -	} else if (addr.resource_type == ACPI_IO_RANGE) {
-> -		flags = IORESOURCE_IO;
-> +	} else if (resource->flags & IORESOURCE_IO) {
->  		root = &ioport_resource;
->  		offset = add_io_space(info, &addr);
->  		if (offset == ~0)
->  			return AE_OK;
-> +
-> +		/*
-> +		 * io space address translation offset depends
-> +		 * on the return value of add_io_space(). So
-> +		 * Repopulate resource->start and end here.
+On 2013=E5=B9=B410=E6=9C=8816=E6=97=A5 20:42, Rafael J. Wysocki wrote:
+> On Wednesday, October 16, 2013 05:26:21 PM Lan Tianyu wrote:
+>> This is a multi-part message in MIME format.
+>> --------------090400010209000300030201
+>> Content-Type: text/plain; charset=3DUTF-8
+>> Content-Transfer-Encoding: 8bit
+>>
+>> On 10/16/2013 05:22 AM, Rafael J. Wysocki wrote:
+>>> On Tuesday, October 15, 2013 04:58:28 PM Lan Tianyu wrote:
+>>>> On 2013=C3=A5=C2=B9=C2=B410=C3=A6=C2=9C=C2=8811=C3=A6=C2=97=C2=A5 =
+19:19, Rafael J. Wysocki wrote:
+>>>>> On Friday, October 11, 2013 04:16:25 PM tianyu.lan@intel.com
+>>>>> wrote:
+>>>>>> From: Lan Tianyu <tianyu.lan@intel.com>
+>>>>>>
+>>>>>> Currently, when one power resource is turned on, devices owning
+>>>>>> it will be requested to resume regardless of their runtime pm
+>>>>>> status. ACPI power resource maybe turn on in some devices'
+>>>>>> runtime pm resume callback(E.G, usb port) while turning on the
+>>>>>> power resource will trigger one new resume request of the
+>>>>>> device. It causes infinite loop between resume and suspend.
+>>>>>> This has happened on clearing usb port's PM Qos NO_POWER_OFF
+>>>>>> flag twice. This patch is to add check of physical device's
+>>>>>> runtime pm status and request resume if the device is
+>>>>>> suspended.
+>>>>>>
+>>>>>> Signed-off-by: Lan Tianyu <tianyu.lan@intel.com> ---
+>>>>>> drivers/acpi/power.c | 6 ++++-- 1 file changed, 4
+>>>>>> insertions(+), 2 deletions(-)
+>>>>>>
+>>>>>> diff --git a/drivers/acpi/power.c b/drivers/acpi/power.c index
+>>>>>>  0dbe5cd..228c138 100644 --- a/drivers/acpi/power.c +++
+>>>>>> b/drivers/acpi/power.c @@ -250,8 +250,10 @@ static void
+>>>>>> acpi_power_resume_dependent(struct work_struct *work)
+>>>>>>
+>>>>>> mutex_lock(&adev->physical_node_lock);
+>>>>>>
+>>>>>> -	list_for_each_entry(pn, &adev->physical_node_list, node) -
+>>>>>> pm_request_resume(pn->dev); +	list_for_each_entry(pn,
+>>>>>> &adev->physical_node_list, node) { +		if
+>>>>>> (pm_runtime_suspended(pn->dev)) + pm_request_resume(pn->dev);
+>>>>>> + }
+>>>>>
+>>>>> This is racy, because the status may change right after you check
+>>>>> it and before you call pm_request_resume().
+>>>>
+>>>> Yes, the runtime status may be changed just after the check.
+>>>>
+>>>>>
+>>>>> Besides, pm_request_resume() checks the status of the device and
+>>>>>  won't try to resume it if it is not suspended.
+>>>>>
+>>>>
+>>>> For this issue, usb port is in the RPM_SUSPENDING state when
+>>>> pm_request_resume() is called.
+>>>
+>>> Why exactly does that happen?
+>>>
+>>>> The deferred_resume will be set to true during this procedure and
+>>>> trigger resume after finishing suspend. USB port runtime resume
+>>>> callback will turn on its power resource again and the work of
+>>>> acpi_power_resume_dependent() is scheduled. Because the usb port's
+>>>>  usage count remains zero, it's to be suspended soon. When
+>>>> pm_request_resume() of acpi_power_resume_dependent() is called, th=
+e
+>>>> usb port is always in the PRM_SUSPENDING. Fall in the loop of
+>>>> suspend and resume.
+>>>>
+>>>> How about running acpi_power_dependent when turning on power
+>>>> resource rather than scheduling a work to run it?
+>>>
+>>> Is this actually going to help?  Even if
+>>> acpi_power_resume_dependent() is run synchronously from within the
+>>> resume callback, it will still see RPM_SUSPENDING as the device's
+>>> status, won't it?
+>>>
+>>>> After this, pm_request_resume() can check device's right status
+>>>> just after turning on power resource.
+>>>
+>>> The status doesn't change until the .runtime_suspend() callback
+>>> returns and running pm_request_resume() syncrhonously from that
+>>> callback for the device being suspended just plain doesn't make
+>>> sense.
+>>>
+>>>
+>>> Can you please explain to me how this is possible that the USB port=
+'s
+>>> power resource is turned "on" while the port is RPM_SUSPENDING?
+>>>
+>> [This mail seems not to be sent to maillist. So resend. Try again
+>> Sorry for noise]
+>>
+>>
+>> Hi Rafael:
+>>
+>> No, I mean the acpi_power_resume_dependent() is running while the po=
+rt's
+>> status is RPM_SUSPENDING. It runs from a work item and turning on po=
+wer
+>> resource adds the work to workqueue. There is a timeslot between run=
+ning
+>> acpi_power_resume_dependent() and turning on power resource. In the
+>> timeslot, the device runtime pm status maybe change.
+>>
+>> In this case, changing PM Qos flag will do pm_runtime_get_sync and
+>> pm_runtime_put usb port. The usb port is without device attached and=
+ so
+>> it will be resumed and suspended soon during changing PM Qos flag.
+>>
+>> Resume callback turns on power resource if NO_POWER_OFF flag has bee=
+n
+>> cleared and add the work of acpi_power_resume_dependent() to
+>> workqueue. After resume, the usb port will be suspended while the
+>> acpi_power_resume_dependent() is running. pm_request_resume() gets
+>> RPM_SUSPENDING as the usb port's runtime status and set the
+>> deferred_resume of usb port.
+>>
+>> After suspend, usb port will be resumed again and turn on power
+>> resource. The work of acpi_power_resume_dependent() is also added to
+>> workqueue. Because the usb port's usage count remains 0 during this
+>> procedure. it will be suspended soon after resume. While suspending,
+>> acpi_power_resume_dependent() is running and pm_request_resume()
+>> sets deferred_resume again. The infinite look starts.
+>=20
+> So the problem is that the whole thing is racy.  There is no guarante=
+e
+> that the power resource will not be turned off after the
+> acpi_power_get_inferred_state() check in acpi_power_resume_dependent(=
+)
+> and before rpm_resume() queued by the pm_request_resume() called from
+> there runs.  Playing with the time windows doesn't make that race go =
+away.
+>=20
+> If we did what you suggested, the race still would be there, because =
+the
+> queued up resume may still run after the power resource has been turn=
+ed off.
 
-"Repopulate" makes it sound like "resource->start" got clobbered
-somewhere.  But it didn't.  I think it's just that each bridge can
-support its own I/O port range, and the PCI port numbers reported
-in the acpi_resource may not be distinct, and add_io_space() adds
-an offset so all the I/O port ranges fit into one global I/O port
-space.
+Yes, the queued up resume will run after the power resource has been
+turned off but normally the resume should try to turn on the power
+resource before doing some hardware related operations. If so, there
+will not be problem, right?
 
-For example, I think these two bridges have the same port numbers
-(0x0-0xfff) in their acpi_resource, but the second has an offset
-of 0x1000000 in the system I/O port space, and I think this offset
-is what add_io_space() returns:
+>=20
+> Unfortunately, I don't see how we can fix this race in a satisfactory=
+ way
+> and I'm starting to think that the whole resuming of dependent device=
+s may
+> be a bad idea.
+>=20
+> IIRC, the original concern was that devices may end up in D0-uninitia=
+lized
+> if we don't do that, but then whoever turned the power resource on wi=
+ll
+> probably turn if off at one point anyway, so they will be in that sta=
+te
+> temporarily.  In other words, in addition to the fact that this is ra=
+cy,
+> there even is no reason to do it.
+>=20
+> I'll send a patch to rip off that stuff later today.
+>=20
+> Thanks,
+> Rafael
+>=20
 
-  HWP0002:00: host bridge window [io  0x0000-0x0fff]	   (PCI [0x0-0xfff])
-  HWP0002:09: host bridge window [io  0x1000000-0x1000fff] (PCI [0x0-0xfff])
 
-> +		 */
-> +		resource->start = addr.minimum + offset;
-> +		resource->end = resource->start + addr.address_length - 1;
-
-Can't we use this:
-
-		resource->start += offset;
-		resource->end += offset;
-
-to avoid breaking the encapsulation of struct acpi_resource_address64?
-
->  	} else
->  		return AE_OK;
->  
-> -	resource = &info->res[info->res_num];
->  	resource->name = info->name;
-> -	resource->flags = flags;
-> -	resource->start = addr.minimum + offset;
-> -	resource->end = resource->start + addr.address_length - 1;
->  	info->res_offset[info->res_num] = offset;
->  
->  	if (insert_resource(root, resource)) {
-> -- 
-> 1.8.2.1
-> 
+--=20
+Best regards
+Tianyu Lan
+--
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
