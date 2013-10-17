@@ -1,67 +1,35 @@
-From: Borislav Petkov <bp@alien8.de>
-Subject: Re: [PATCH v2 0/9] Extended H/W error log driver
-Date: Thu, 17 Oct 2013 17:35:29 +0200
-Message-ID: <20131017153529.GJ5036@pd.tnic>
+From: Tony Luck <tony.luck@gmail.com>
+Subject: Re: [PATCH v2 3/9] bitops: Introduce a more generic BITMASK macro
+Date: Thu, 17 Oct 2013 09:10:40 -0700
+Message-ID: <CA+8MBbLDVJgY9WWTY6vPeY7+L04-xDPofJ9eLwh7dJipBBh51w@mail.gmail.com>
 References: <1381935366-11731-1-git-send-email-gong.chen@linux.intel.com>
- <20131016160550.GG13608@pd.tnic>
- <20131016125646.7141b580@gandalf.local.home>
- <20131016180038.GO13608@pd.tnic>
- <20131016181117.GP13608@pd.tnic>
- <20131017143348.GA3891@gchen.bj.intel.com>
- <20131017112541.166a44fb@gandalf.local.home>
+	<1381935366-11731-4-git-send-email-gong.chen@linux.intel.com>
+	<1381978749.22110.76.camel@joe-AO722>
+	<20131017063059.GB14946@gchen.bj.intel.com>
+	<1381993136.22110.95.camel@joe-AO722>
+	<20131017073824.GC14946@gchen.bj.intel.com>
+	<1381998750.22110.101.camel@joe-AO722>
+	<20131017084014.GD5036@pd.tnic>
+	<1382000112.22110.103.camel@joe-AO722>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
+Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail.skyhub.de ([78.46.96.112]:44286 "EHLO mail.skyhub.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756580Ab3JQPfq (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 17 Oct 2013 11:35:46 -0400
-Content-Disposition: inline
-In-Reply-To: <20131017112541.166a44fb@gandalf.local.home>
+Received: from mail-wi0-f175.google.com ([209.85.212.175]:40104 "EHLO
+	mail-wi0-f175.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757579Ab3JQQKn (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 17 Oct 2013 12:10:43 -0400
+In-Reply-To: <1382000112.22110.103.camel@joe-AO722>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Steven Rostedt <rostedt@goodmis.org>
-Cc: Chen Gong <gong.chen@linux.intel.com>, tony.luck@intel.com, joe@perches.com, naveen.n.rao@linux.vnet.ibm.com, arozansk@redhat.com, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+To: Joe Perches <joe@perches.com>
+Cc: Borislav Petkov <bp@alien8.de>, Chen Gong <gong.chen@linux.intel.com>, "Naveen N. Rao" <naveen.n.rao@linux.vnet.ibm.com>, m.chehab@samsung.com, arozansk@redhat.com, linux-acpi <linux-acpi@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Thomas Winischhofer <thomas@winischhofer.net>, Jean-Christophe Plagniol-Villard <plagnioj@jcrosoft.com>, Tomi Valkeinen <tomi.valkeinen@ti.com>
 
-On Thu, Oct 17, 2013 at 11:25:41AM -0400, Steven Rostedt wrote:
-> On Thu, 17 Oct 2013 10:33:48 -0400
-> Chen Gong <gong.chen@linux.intel.com> wrote:
-> 
-> 
-> > > Gong, can you try moving the CREATE_TRACE_POINTS line to a new file -
-> > > arch/x86/ras/ras.c and define it there and not anywhere else, i.e. move
-> > > it away from edac_mc.c. Does that help?
-> > 
-> > In current kernel we haven't arch/x86/ras/ras.c. You mean I create
-> > a new one there and just add some trace macro definition?
-> 
-> The CREATE_TRACE_POINTS will cause the TRACE_EVENT() macro to define
-> the functions used for tracing. If you have it defined more than once,
-> it will either cause a kernel compile error (variables declared more
-> than once), or if used in modules, will cause confusion (as well as
-> bloat) because different functions and variables will be defined for
-> the same tracepoint.
-> 
-> If you need to create a separate file that you can have it defined in a
-> single place, then please do so!
+On Thu, Oct 17, 2013 at 1:55 AM, Joe Perches <joe@perches.com> wrote:
+> It's cost free to add the BUILD_BUG_ON
+> and perhaps you underestimate the runtime
+> bug checking effort,
 
-Yes, the plan was this all along to have arch/x86/ras/ras.c or
-arch/x86/ras/core.c where CREATE_TRACE_POINTS is done, among other
-things.
+This looks OK to me.  Gong: This doesn't stop people from using variables
+as arguments ... they just won't get a check for (h) < (l).
 
-Btw, Gong, there's an easier way to test this, if you wanna:
-
-simply make sure EDAC is disabled in the kernel with your patches -
-i.e., CONFIG_EDAC is not set in your config. It should work then.
-
-But, the final solution should be what Steve says with the file I'm
-suggesting :)
-
-Thanks.
-
--- 
-Regards/Gruss,
-    Boris.
-
-Sent from a fat crate under my desk. Formatting is fine.
---
+-Tony
