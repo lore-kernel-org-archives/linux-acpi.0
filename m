@@ -1,56 +1,111 @@
-From: "Luck, Tony" <tony.luck@intel.com>
-Subject: RE: [PATCH v3 4/9] ACPI, x86: Extended error log driver for x86
+From: Borislav Petkov <bp@alien8.de>
+Subject: Re: [PATCH v3 4/9] ACPI, x86: Extended error log driver for x86
  platform
-Date: Fri, 18 Oct 2013 20:57:22 +0000
-Message-ID: <3908561D78D1C84285E8C5FCA982C28F31D41E37@ORSMSX106.amr.corp.intel.com>
+Date: Fri, 18 Oct 2013 23:27:41 +0200
+Message-ID: <20131018212741.GA26049@pd.tnic>
 References: <1382084624-10857-1-git-send-email-gong.chen@linux.intel.com>
  <1382084624-10857-5-git-send-email-gong.chen@linux.intel.com>
- <52612BA4.2060906@linux.vnet.ibm.com> <20131018125326.GC1007@pd.tnic>
+ <52612BA4.2060906@linux.vnet.ibm.com>
+ <20131018125326.GC1007@pd.tnic>
+ <3908561D78D1C84285E8C5FCA982C28F31D41E37@ORSMSX106.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset=utf-8
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga09.intel.com ([134.134.136.24]:40424 "EHLO mga09.intel.com"
+Received: from mail.skyhub.de ([78.46.96.112]:34997 "EHLO mail.skyhub.de"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752543Ab3JRU52 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 18 Oct 2013 16:57:28 -0400
-In-Reply-To: <20131018125326.GC1007@pd.tnic>
-Content-Language: en-US
+	id S1755651Ab3JRV1o (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 18 Oct 2013 17:27:44 -0400
+Content-Disposition: inline
+In-Reply-To: <3908561D78D1C84285E8C5FCA982C28F31D41E37@ORSMSX106.amr.corp.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Borislav Petkov <bp@alien8.de>, "Naveen N. Rao" <naveen.n.rao@linux.vnet.ibm.com>
-Cc: "Chen, Gong" <gong.chen@linux.intel.com>, "joe@perches.com" <joe@perches.com>, "m.chehab@samsung.com" <m.chehab@samsung.com>, "arozansk@redhat.com" <arozansk@redhat.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
+To: "Luck, Tony" <tony.luck@intel.com>
+Cc: "Naveen N. Rao" <naveen.n.rao@linux.vnet.ibm.com>, "Chen, Gong" <gong.chen@linux.intel.com>, "joe@perches.com" <joe@perches.com>, "m.chehab@samsung.com" <m.chehab@samsung.com>, "arozansk@redhat.com" <arozansk@redhat.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
 
-PiBIbW0sIHRoYXQncyBhIGdvb2QgcXVlc3Rpb24geW91IHJhaXNlOiBidXQgdGhlIG1vcmUgaW1w
-b3J0YW50IHF1ZXN0aW9uDQo+IGlzLCBkbyB5b3UgZ3V5cyAtIEdvbmcgYW5kIFRvbnkgLSB3YW50
-IHRvIHJlcGxhY2UgdGhlIGxvZ2dpbmcgd2UncmUNCj4gYWxyZWFkeSBkb2luZywgaS5lLiBtY2Vf
-bG9nKCkgd2l0aCBleHRsb2cgb3Igbm90Lg0KDQpMb25nIHRlcm0gLi4uIEknZCBiZSBoYXBweSB0
-byBzZWUgbWNlX2xvZygpIGdvIGF3YXkuICBCdXQgd2UgbmVlZCB0byBoYXZlDQphIHJvYnVzdCwg
-d2VsbCB0ZXN0ZWQgcmVwbGFjZW1lbnQgaW4gcGxhY2UgZm9yIHNvbWUgdGltZSBiZWZvcmUgc3Vj
-aCBhDQptb3ZlIGlzIHVwIGZvciBkaXNjdXNzaW9uLg0KDQo+IEJlY2F1c2UgaWYgeW91IHdhbnQg
-dG8gcmVwbGFjZSB0aGUgY3VycmVudCBsb2dnaW5nIHlvdSBhY3R1YWxseSBoYXZlIHRvDQo+IGV4
-aXQgbWFjaGluZV9jaGVja19wb2xsKCkgYWZ0ZXIgaGF2aW5nIGRvbmUgbWNlX2V4dF9lcnJfcHJp
-bnQoKSBzbyB0aGF0DQo+IHRoZSByZXN0IG9mIHRoZSBjaGFpbiBkb2Vzbid0IHNlZSB0aGUgZXJy
-b3IuDQoNClllcyAtIGRvdWJsZSBlcnJvciByZXBvcnRpbmcgc2hvdWxkIGJlIGF2b2lkZWQuDQoN
-Cj4gQW5kLCBkb2VzIG1jZV9leHRfZXJyX3ByaW50IG9ubHkgcmVwb3J0IERSQU0gRUNDIGVycm9y
-cyBvciBvdGhlciBlcnJvcg0KPiB0eXBlcyB0b28/DQoNCk91ciBmaXJzdCBwbGF0Zm9ybXMgdG8g
-aW1wbGVtZW50IHRoaXMgb25seSBkbyBzbyBmb3IgbWVtb3J5IGVycm9ycy4gIFRoaXMNCmNvdWxk
-IGNoYW5nZSBpbiB0aGUgZnV0dXJlICh0aGUgVUVGSSBhcHBlbmRpeCBOIGVycm9yIHJlY29yZCBo
-YXMgZGVmaW5lZA0Kc3ViLXNlY3Rpb25zIGZvciBsb3RzIG9mIHR5cGVzIG9mIGVycm9ycykuDQoN
-CkN1cnJlbnRseSBFREFDIGhvb2tlZCBpbnRvIHRoZSBtY2UgZXZlbiBub3RpZmljYXRpb24gY2hh
-aW4gcHJvdmlkZXMgYQ0KcmV0dXJuIGNvZGUgdG8gaW5kaWNhdGUgd2hldGhlciBpdCBjb21wbGV0
-ZWx5IHByb2Nlc3NlZCB0aGUgZXJyb3IsIG9yDQp3aGV0aGVyIHRvIGZhbGwgdGhyb3VnaCB0byB0
-aGUgcmVzdCBvZiBtY2VfbG9nKCk6DQoNCglpZiAocmV0ID09IE5PVElGWV9TVE9QKQ0KCQlyZXR1
-cm47DQoNCkhhdmluZyBib3RoIEVEQUMgYW5kIHRoaXMgbmV3IGV4dGVuZGVkIGVycm9yIGxvZyBi
-b3RoIHJlZ2lzdGVyZWQgb24gdGhpcw0KY2hhaW4gd291bGQgcHJvYmFibHkgbm90IGJlIGhlbHBm
-dWwgaW4gbW9zdCBjYXNlcy4gIE5vdCBzdXJlIGlmIHdlIHNob3VsZA0KaGFuZGxlIHRoYXQgd2l0
-aCB1c2VyIGVkdWNhdGlvbiB0byBub3QgbG9hZCBib3RoIGFuIEVEQUMgYW5kIGV4dF9sb2cgZHJp
-dmVyDQpvciBpZiB0aGVyZSBzaG91bGQgYmUgc29tZSBlbmZvcmNlbWVudC4NCg0KPiBCdHcsIGlm
-IHdlIGtlZXAgYm90aCwgdGhlbiB3ZSdyZSBnb2luZyB0byBoYXZlIHR3byB0cmFjZXBvaW50cyAt
-DQo+IHRyYWNlX21jZV9yZWNvcmQoKSBpbiBtY2VfbG9nKCkgYW5kIHRoaXMgb25lIC0gaXNzdWlu
-ZyBlYWNoIGEgcmVjb3JkIGZvcg0KPiB0aGUgc2FtZSBldmVudC4gV2hpY2ggaXMgbm90IHJlYWxs
-eSB3aGF0IHdlIHdhbnQgSSdkIHNheS4uLg0KDQp0cmFjZV9tY2VfcmVjb3JkKCkgZHVtcHMgdGhl
-IHJhdyBkYXRhIGZyb20gdGhlIG1hY2hpbmUgY2hlY2sgYmFua3MuDQpJIHRoaW5rIHRoZXJlIG1h
-eSBzdGlsbCBiZSBhIGNhc2UgZm9yIGhhdmluZyB0aGlzLiAgQW5hbHlzaXMgdG9vbHMgdGhhdCBs
-b29rIGF0DQp0aGlzIHRyYWNlIGFzIHdlbGwgc2hvdWxkIGJlIHNtYXJ0IGVub3VnaCB0byBjb25u
-ZWN0IHRoZSBkb3RzLg0KDQotVG9ueQ0K
+On Fri, Oct 18, 2013 at 08:57:22PM +0000, Luck, Tony wrote:
+> Long term ... I'd be happy to see mce_log() go away. But we need to
+> have a robust, well tested replacement in place for some time before
+> such a move is up for discussion.
+
+Basically a userspace daemon consuming the tracepoint or plural,
+tracepoints.
+
+> Yes - double error reporting should be avoided.
+
+Right.
+
+> Our first platforms to implement this only do so for memory errors.
+> This could change in the future (the UEFI appendix N error record has
+> defined sub-sections for lots of types of errors).
+
+Ok.
+
+> Currently EDAC hooked into the mce even notification chain provides a
+> return code to indicate whether it completely processed the error, or
+> whether to fall through to the rest of mce_log():
+> 
+> 	if (ret == NOTIFY_STOP)
+> 		return;
+> 
+> Having both EDAC and this new extended error log both registered on this
+> chain would probably not be helpful in most cases.
+
+Not only that - you don't need EDAC because all the information is in
+the MCA registers and the eMCA supplement, if there is one.
+
+EDAC would be used on older systems which don't sport eMCA.
+
+Now, concerning the current situation, we probably want to do something
+like this:
+
+diff --git a/arch/x86/kernel/cpu/mcheck/mce.c b/arch/x86/kernel/cpu/mcheck/mce.c
+index b1b04123f3d9..382c78eaf474 100644
+--- a/arch/x86/kernel/cpu/mcheck/mce.c
++++ b/arch/x86/kernel/cpu/mcheck/mce.c
+@@ -154,6 +154,10 @@ void mce_log(struct mce *mce)
+ 	/* Emit the trace record: */
+ 	trace_mce_record(mce);
+ 
++	if (mce_ext_err_print)
++		if (mce_ext_err_print(NULL, m.extcpu, i))
++			return;
++
+ 	ret = atomic_notifier_call_chain(&x86_mce_decoder_chain, 0, mce);
+ 	if (ret == NOTIFY_STOP)
+ 		return;
+--
+
+Right, we've moved the eMCA print thingie to mce_log so that we get a
+chance to run the first TP issuing the raw MCA registers and then run
+the eMCA TP as a follow-up.
+
+We've taught mce_ext_err_print() to return a true/false retval to denote:
+
+* true: it has collected data successfully, no need to go down the reporting
+  chain
+
+* false: eMCA failed somehow, log the error down and trigger mcelog in
+  userspace.
+
+How does that sound?
+
+> Not sure if we should handle that with user education to not load both
+> an EDAC and ext_log driver or if there should be some enforcement.
+
+Definitely enforcement. The flags thing I was telling you about recently
+could be one way to do it.
+
+> trace_mce_record() dumps the raw data from the machine check banks. I
+> think there may still be a case for having this. Analysis tools that
+> look at this trace as well should be smart enough to connect the dots.
+
+Yes, sure. The more non-overlaping data we get, the better.
+
+Thanks.
+
+-- 
+Regards/Gruss,
+    Boris.
+
+Sent from a fat crate under my desk. Formatting is fine.
+--
