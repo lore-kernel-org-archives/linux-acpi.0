@@ -1,55 +1,59 @@
-From: Borislav Petkov <bp@alien8.de>
-Subject: Re: [PATCH v3 4/9] ACPI, x86: Extended error log driver for x86
- platform
-Date: Fri, 18 Oct 2013 14:53:26 +0200
-Message-ID: <20131018125326.GC1007@pd.tnic>
-References: <1382084624-10857-1-git-send-email-gong.chen@linux.intel.com>
- <1382084624-10857-5-git-send-email-gong.chen@linux.intel.com>
- <52612BA4.2060906@linux.vnet.ibm.com>
+From: Lan Tianyu <tianyu.lan@intel.com>
+Subject: Re: [PATCH] ACPI/Power: Check physical device's runtime pm status
+ before requesting to resume it
+Date: Fri, 18 Oct 2013 21:05:13 +0800
+Message-ID: <52613209.3000104@intel.com>
+References: <1381479385-1614-1-git-send-email-tianyu.lan@intel.com> <525F372A.5070807@intel.com> <525F4E03.2050606@intel.com> <4249062.PmvqKh0Nrz@vostro.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <52612BA4.2060906@linux.vnet.ibm.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: "Naveen N. Rao" <naveen.n.rao@linux.vnet.ibm.com>
-Cc: "Chen, Gong" <gong.chen@linux.intel.com>, tony.luck@intel.com, joe@perches.com, m.chehab@samsung.com, arozansk@redhat.com, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mga14.intel.com ([143.182.124.37]:5509 "EHLO mga14.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753871Ab3JRNFf (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 18 Oct 2013 09:05:35 -0400
+In-Reply-To: <4249062.PmvqKh0Nrz@vostro.rjw.lan>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: lenb@kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Lan Tianyu <lantianyu1986@gmail.com>, Aaron Lu <aaron.lu@intel.com>
 
-On Fri, Oct 18, 2013 at 06:07:56PM +0530, Naveen N. Rao wrote:
-> >@@ -624,6 +641,9 @@ void machine_check_poll(enum mcp_flags flags, mce_banks_t *b)
-> >  		    (m.status & (mca_cfg.ser ? MCI_STATUS_S : MCI_STATUS_UC)))
-> >  			continue;
-> >
-> >+		if (mce_ext_err_print)
-> >+			mce_ext_err_print(NULL, m.extcpu, i);
-> >+
-> 
-> Can we use the notifier chain we already have:
-> mce_register_decode_chain()? EDAC uses this and I'm wondering if it
-> is a good fit here. As an added bonus, it seems to honor dont_log_ce
-> option as well.
+On 10/17/2013 07:38 PM, Rafael J. Wysocki wrote:
+>>>>>>> Unfortunately, I don't see how we can fix this race in a
+>>>>>>> satisfactory way and I'm starting to think that the whole
+>>>>>>> resuming of dependent devices may be a bad idea.
+>>>>>>>
+>>>>>>> IIRC, the original concern was that devices may end up in
+>>>>>>> D0-uninitialized if we don't do that, but then whoever
+>>>>>>> turned the power resource on will probably turn if off at
+>>>>>>> one point anyway, so they will be in that state
+>>>>>>> temporarily.  In other words, in addition to the fact
+>>>>>>> that this is racy, there even is no reason to do it.
+>>>>>>>
+>>>>>>> I'll send a patch to rip off that stuff later today.
+>>>
+>>> Currently, dropping it should be the better choice but I think we
+>>> still need to resolve the D0-uninitialized problem, right?
+> Why do you think it is a problem in the first place?  Those devices
+> will not be accessed while in that state (unless there's a bug
+> somewhere).
+>
 
-Hmm, that's a good question you raise: but the more important question
-is, do you guys - Gong and Tony - want to replace the logging we're
-already doing, i.e. mce_log() with extlog or not.
+Yes, those devices will not be accessed but they will continue to stay
+D0-uninitiallized without any users before next resume and suspend. PM
+core and device driver still think they are in the lower power state.
 
-Because if you want to replace the current logging you actually have to
-exit machine_check_poll() after having done mce_ext_err_print() so that
-the rest of the chain doesn't see the error.
+At this point, it seems these devices should be put into lower power
+state(E.G D3hot) than D0-uninitiallized.
 
-And, does mce_ext_err_print only report DRAM ECC errors or other error
-types too?
+E.G, two devices share one power resource. After they are suspended and
+power resource turns off, one device is resumed and power resource turns
+on. The other device will remain D0-uninitallized until there are resume
+and suspend for it. It may consume more power than lowest power state it
+can reach at that point.
 
-Btw, if we keep both, then we're going to have two tracepoints -
-trace_mce_record() in mce_log() and this one - issuing each a record for
-the same event. Which is not really what we want I'd say...
+> Thanks!
+>
+> -- I speak only for myself. Rafael J. Wysocki, Intel Open Source
+> Technology Center.
 
-Thanks.
-
--- 
-Regards/Gruss,
-    Boris.
-
-Sent from a fat crate under my desk. Formatting is fine.
---
