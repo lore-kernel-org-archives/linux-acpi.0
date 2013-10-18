@@ -1,36 +1,48 @@
-From: "Luck, Tony" <tony.luck@intel.com>
-Subject: RE: [PATCH 8/8] ACPI / trace: Add trace interface for eMCA driver
-Date: Thu, 17 Oct 2013 21:35:02 +0000
-Message-ID: <3908561D78D1C84285E8C5FCA982C28F31D33F77@ORSMSX106.amr.corp.intel.com>
-References: <1381473166-29303-1-git-send-email-gong.chen@linux.intel.com>
- <1381473166-29303-9-git-send-email-gong.chen@linux.intel.com>
- <20131015165435.GA2777@naverao1-tp.ibm.com> <20131015170039.GF7908@pd.tnic>
- <525D7BCD.7080303@linux.vnet.ibm.com>
- <20131015214346.68718bcd.m.chehab@samsung.com>
- <20131016091640.GA13608@pd.tnic>
- <20131016073539.5a48f65e.m.chehab@samsung.com>
- <20131016104221.GC13608@pd.tnic> <20131016085558.19fe143a@samsung.com>
- <3908561D78D1C84285E8C5FCA982C28F31D31C65@ORSMSX106.amr.corp.intel.com>
- <20131017073443.675e97f2@samsung.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+From: "Chen, Gong" <gong.chen@linux.intel.com>
+Subject: [PATCH v3 0/9] Extended H/W error log driver
+Date: Fri, 18 Oct 2013 04:23:35 -0400
+Message-ID: <1382084624-10857-1-git-send-email-gong.chen@linux.intel.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga01.intel.com ([192.55.52.88]:62021 "EHLO mga01.intel.com"
+Received: from mga09.intel.com ([134.134.136.24]:52104 "EHLO mga09.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1762379Ab3JQVfF convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 17 Oct 2013 17:35:05 -0400
-In-Reply-To: <20131017073443.675e97f2@samsung.com>
-Content-Language: en-US
+	id S1752096Ab3JRIil (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 18 Oct 2013 04:38:41 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Mauro Carvalho Chehab <m.chehab@samsung.com>
-Cc: Borislav Petkov <bp@alien8.de>, "Naveen N. Rao" <naveen.n.rao@linux.vnet.ibm.com>, "Chen, Gong" <gong.chen@linux.intel.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, Aristeu Rozanski Filho <arozansk@redhat.com>, Steven Rostedt <srostedt@redhat.com>
+To: tony.luck@intel.com, bp@alien8.de, joe@perches.com, naveen.n.rao@linux.vnet.ibm.com, m.chehab@samsung.com
+Cc: arozansk@redhat.com, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 
-> There's also a third case: mirrored memories.
+[PATCH v3 1/9] ACPI, APEI, CPER: Fix status check during error printing
+[PATCH v3 2/9] ACPI, CPER: Update cper info
+[PATCH v3 3/9] bitops: Introduce a more generic BITMASK macro
+[PATCH v3 4/9] ACPI, x86: Extended error log driver for x86 platform
+[PATCH v3 5/9] DMI: Parse memory device (type 17) in SMBIOS
+[PATCH v3 6/9] ACPI, APEI, CPER: Add UEFI 2.4 support for memory error
+[PATCH v3 7/9] ACPI, APEI, CPER: Enhance memory reporting capability
+[PATCH v3 8/9] ACPI, APEI, CPER: Cleanup CPER memory error output format
+[PATCH v3 9/9] EDAC, GHES: Update ghes error record info
 
-Mirrors are currently something of a mess - we don't get any useful notification when one breaks.
-We do need to fix this - and make sure reporting is properly integrated with everything else - I'm
-just not sure how to do this.
+OK, this is the 3rd version. Hope it is the last one :-).
 
--Tony
+this version just updates some minors places and apply some Ack/Review
+information. In this version I remove the last patch for trace interface.
+Maybe it is time to build a new RAS trace interface to integrate all
+RAS related error report interfaces now.
+
+new output format as below:
+
+dmesg output:
+
+[  498.485536] {1}Hardware error detected on CPU45
+[  498.485616] {1}It has been corrected by h/w and requires no further action
+[  498.485655] {1}event severity: corrected
+[  498.485660] {1} Error 0, type: corrected
+[  498.485681] {1}  section_type: memory error
+[  498.485686] {1}  physical_address: 0x000000207ff1a000
+[  498.485697] {1}  DIMM location: Memriser7 CHANNEL A DIMM 0
+[  498.485720] {2}Hardware error detected on CPU45
+[  498.485728] {2}It has been corrected by h/w and requires no further action
+[  498.485735] {2}event severity: corrected
+[  498.485740] {2} Error 0, type: corrected
+[  498.485748] {2}  section_type: memory error
+
