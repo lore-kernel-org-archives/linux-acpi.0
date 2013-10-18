@@ -1,79 +1,56 @@
-From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [PATCH] ACPI/Power: Check physical device's runtime pm status before requesting to resume it
-Date: Fri, 18 Oct 2013 19:54:02 +0200
-Message-ID: <3170486.zy96d8TsUF@vostro.rjw.lan>
-References: <1381479385-1614-1-git-send-email-tianyu.lan@intel.com> <4249062.PmvqKh0Nrz@vostro.rjw.lan> <52613209.3000104@intel.com>
+From: "Luck, Tony" <tony.luck@intel.com>
+Subject: RE: [PATCH v3 4/9] ACPI, x86: Extended error log driver for x86
+ platform
+Date: Fri, 18 Oct 2013 20:57:22 +0000
+Message-ID: <3908561D78D1C84285E8C5FCA982C28F31D41E37@ORSMSX106.amr.corp.intel.com>
+References: <1382084624-10857-1-git-send-email-gong.chen@linux.intel.com>
+ <1382084624-10857-5-git-send-email-gong.chen@linux.intel.com>
+ <52612BA4.2060906@linux.vnet.ibm.com> <20131018125326.GC1007@pd.tnic>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7Bit
+Content-Transfer-Encoding: base64
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from v094114.home.net.pl ([79.96.170.134]:53913 "HELO
-	v094114.home.net.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1756270Ab3JRRmK (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 18 Oct 2013 13:42:10 -0400
-In-Reply-To: <52613209.3000104@intel.com>
+Received: from mga09.intel.com ([134.134.136.24]:40424 "EHLO mga09.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752543Ab3JRU52 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 18 Oct 2013 16:57:28 -0400
+In-Reply-To: <20131018125326.GC1007@pd.tnic>
+Content-Language: en-US
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Lan Tianyu <tianyu.lan@intel.com>
-Cc: lenb@kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Lan Tianyu <lantianyu1986@gmail.com>, Aaron Lu <aaron.lu@intel.com>
+To: Borislav Petkov <bp@alien8.de>, "Naveen N. Rao" <naveen.n.rao@linux.vnet.ibm.com>
+Cc: "Chen, Gong" <gong.chen@linux.intel.com>, "joe@perches.com" <joe@perches.com>, "m.chehab@samsung.com" <m.chehab@samsung.com>, "arozansk@redhat.com" <arozansk@redhat.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
 
-On Friday, October 18, 2013 09:05:13 PM Lan Tianyu wrote:
-> On 10/17/2013 07:38 PM, Rafael J. Wysocki wrote:
-> >>>>>>> Unfortunately, I don't see how we can fix this race in a
-> >>>>>>> satisfactory way and I'm starting to think that the whole
-> >>>>>>> resuming of dependent devices may be a bad idea.
-> >>>>>>>
-> >>>>>>> IIRC, the original concern was that devices may end up in
-> >>>>>>> D0-uninitialized if we don't do that, but then whoever
-> >>>>>>> turned the power resource on will probably turn if off at
-> >>>>>>> one point anyway, so they will be in that state
-> >>>>>>> temporarily.  In other words, in addition to the fact
-> >>>>>>> that this is racy, there even is no reason to do it.
-> >>>>>>>
-> >>>>>>> I'll send a patch to rip off that stuff later today.
-> >>>
-> >>> Currently, dropping it should be the better choice but I think we
-> >>> still need to resolve the D0-uninitialized problem, right?
-> > Why do you think it is a problem in the first place?  Those devices
-> > will not be accessed while in that state (unless there's a bug
-> > somewhere).
-> >
-> 
-> Yes, those devices will not be accessed but they will continue to stay
-> D0-uninitiallized without any users before next resume and suspend. PM
-> core and device driver still think they are in the lower power state.
-> 
-> At this point, it seems these devices should be put into lower power
-> state(E.G D3hot) than D0-uninitiallized.
-> 
-> E.G, two devices share one power resource. After they are suspended and
-> power resource turns off, one device is resumed and power resource turns
-> on. The other device will remain D0-uninitallized until there are resume
-> and suspend for it.
-
-That's not correct.  If the device that has been resumed is now suspended
-again, that will cause the power resource to go off again and the other
-device will not stay in D0-uninitialized.
-
-> It may consume more power than lowest power state it can reach at that point.
-
-I don't see a compelling case for that.  The only situation of interest is
-if A and B share a power resource, they both are suspended to start with, so
-the power resource is off, and then A is resumed and not suspended again for
-a relatively long time.  In that case B *may* be in D0-uninitialized although
-it could go into D3hot if it were resumed and suspended.  Now there's a
-question of timing, because the resume and suspend of B is only beneficial
-if it would stay in D0-uninitialized long enough and we can't say in advance
-when A is going to be suspended again.  Moreover, we don't really know what
-state B is in, because "power restored" need not automatically mean "clock
-enabled" etc. for various kinds of devices.
-
-I think the whole problem is highly theoretical and really only affects PCI
-where "power restored" pretty much means "reset".  And I am yet to see a system
-where it actually matters.
-
-Thanks!
-
--- 
-I speak only for myself.
-Rafael J. Wysocki, Intel Open Source Technology Center.
+PiBIbW0sIHRoYXQncyBhIGdvb2QgcXVlc3Rpb24geW91IHJhaXNlOiBidXQgdGhlIG1vcmUgaW1w
+b3J0YW50IHF1ZXN0aW9uDQo+IGlzLCBkbyB5b3UgZ3V5cyAtIEdvbmcgYW5kIFRvbnkgLSB3YW50
+IHRvIHJlcGxhY2UgdGhlIGxvZ2dpbmcgd2UncmUNCj4gYWxyZWFkeSBkb2luZywgaS5lLiBtY2Vf
+bG9nKCkgd2l0aCBleHRsb2cgb3Igbm90Lg0KDQpMb25nIHRlcm0gLi4uIEknZCBiZSBoYXBweSB0
+byBzZWUgbWNlX2xvZygpIGdvIGF3YXkuICBCdXQgd2UgbmVlZCB0byBoYXZlDQphIHJvYnVzdCwg
+d2VsbCB0ZXN0ZWQgcmVwbGFjZW1lbnQgaW4gcGxhY2UgZm9yIHNvbWUgdGltZSBiZWZvcmUgc3Vj
+aCBhDQptb3ZlIGlzIHVwIGZvciBkaXNjdXNzaW9uLg0KDQo+IEJlY2F1c2UgaWYgeW91IHdhbnQg
+dG8gcmVwbGFjZSB0aGUgY3VycmVudCBsb2dnaW5nIHlvdSBhY3R1YWxseSBoYXZlIHRvDQo+IGV4
+aXQgbWFjaGluZV9jaGVja19wb2xsKCkgYWZ0ZXIgaGF2aW5nIGRvbmUgbWNlX2V4dF9lcnJfcHJp
+bnQoKSBzbyB0aGF0DQo+IHRoZSByZXN0IG9mIHRoZSBjaGFpbiBkb2Vzbid0IHNlZSB0aGUgZXJy
+b3IuDQoNClllcyAtIGRvdWJsZSBlcnJvciByZXBvcnRpbmcgc2hvdWxkIGJlIGF2b2lkZWQuDQoN
+Cj4gQW5kLCBkb2VzIG1jZV9leHRfZXJyX3ByaW50IG9ubHkgcmVwb3J0IERSQU0gRUNDIGVycm9y
+cyBvciBvdGhlciBlcnJvcg0KPiB0eXBlcyB0b28/DQoNCk91ciBmaXJzdCBwbGF0Zm9ybXMgdG8g
+aW1wbGVtZW50IHRoaXMgb25seSBkbyBzbyBmb3IgbWVtb3J5IGVycm9ycy4gIFRoaXMNCmNvdWxk
+IGNoYW5nZSBpbiB0aGUgZnV0dXJlICh0aGUgVUVGSSBhcHBlbmRpeCBOIGVycm9yIHJlY29yZCBo
+YXMgZGVmaW5lZA0Kc3ViLXNlY3Rpb25zIGZvciBsb3RzIG9mIHR5cGVzIG9mIGVycm9ycykuDQoN
+CkN1cnJlbnRseSBFREFDIGhvb2tlZCBpbnRvIHRoZSBtY2UgZXZlbiBub3RpZmljYXRpb24gY2hh
+aW4gcHJvdmlkZXMgYQ0KcmV0dXJuIGNvZGUgdG8gaW5kaWNhdGUgd2hldGhlciBpdCBjb21wbGV0
+ZWx5IHByb2Nlc3NlZCB0aGUgZXJyb3IsIG9yDQp3aGV0aGVyIHRvIGZhbGwgdGhyb3VnaCB0byB0
+aGUgcmVzdCBvZiBtY2VfbG9nKCk6DQoNCglpZiAocmV0ID09IE5PVElGWV9TVE9QKQ0KCQlyZXR1
+cm47DQoNCkhhdmluZyBib3RoIEVEQUMgYW5kIHRoaXMgbmV3IGV4dGVuZGVkIGVycm9yIGxvZyBi
+b3RoIHJlZ2lzdGVyZWQgb24gdGhpcw0KY2hhaW4gd291bGQgcHJvYmFibHkgbm90IGJlIGhlbHBm
+dWwgaW4gbW9zdCBjYXNlcy4gIE5vdCBzdXJlIGlmIHdlIHNob3VsZA0KaGFuZGxlIHRoYXQgd2l0
+aCB1c2VyIGVkdWNhdGlvbiB0byBub3QgbG9hZCBib3RoIGFuIEVEQUMgYW5kIGV4dF9sb2cgZHJp
+dmVyDQpvciBpZiB0aGVyZSBzaG91bGQgYmUgc29tZSBlbmZvcmNlbWVudC4NCg0KPiBCdHcsIGlm
+IHdlIGtlZXAgYm90aCwgdGhlbiB3ZSdyZSBnb2luZyB0byBoYXZlIHR3byB0cmFjZXBvaW50cyAt
+DQo+IHRyYWNlX21jZV9yZWNvcmQoKSBpbiBtY2VfbG9nKCkgYW5kIHRoaXMgb25lIC0gaXNzdWlu
+ZyBlYWNoIGEgcmVjb3JkIGZvcg0KPiB0aGUgc2FtZSBldmVudC4gV2hpY2ggaXMgbm90IHJlYWxs
+eSB3aGF0IHdlIHdhbnQgSSdkIHNheS4uLg0KDQp0cmFjZV9tY2VfcmVjb3JkKCkgZHVtcHMgdGhl
+IHJhdyBkYXRhIGZyb20gdGhlIG1hY2hpbmUgY2hlY2sgYmFua3MuDQpJIHRoaW5rIHRoZXJlIG1h
+eSBzdGlsbCBiZSBhIGNhc2UgZm9yIGhhdmluZyB0aGlzLiAgQW5hbHlzaXMgdG9vbHMgdGhhdCBs
+b29rIGF0DQp0aGlzIHRyYWNlIGFzIHdlbGwgc2hvdWxkIGJlIHNtYXJ0IGVub3VnaCB0byBjb25u
+ZWN0IHRoZSBkb3RzLg0KDQotVG9ueQ0K
