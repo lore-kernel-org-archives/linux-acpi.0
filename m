@@ -1,32 +1,38 @@
-From: Dan Carpenter <dan.carpenter@oracle.com>
-Subject: [patch] ACPI / osl: remove an unneeded NULL check
-Date: Fri, 18 Oct 2013 12:01:43 +0300
-Message-ID: <20131018090143.GB14256@longonot.mountain>
+From: Borislav Petkov <bp@alien8.de>
+Subject: Re: [PATCH v3 0/9] Extended H/W error log driver
+Date: Fri, 18 Oct 2013 11:20:54 +0200
+Message-ID: <20131018092054.GB1007@pd.tnic>
+References: <1382084624-10857-1-git-send-email-gong.chen@linux.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <kernel-janitors-owner@vger.kernel.org>
+Content-Type: text/plain; charset=utf-8
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-Sender: kernel-janitors-owner@vger.kernel.org
-To: Len Brown <lenb@kernel.org>
-Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, linux-acpi@vger.kernel.org, kernel-janitors@vger.kernel.org
+In-Reply-To: <1382084624-10857-1-git-send-email-gong.chen@linux.intel.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: "Chen, Gong" <gong.chen@linux.intel.com>, tony.luck@intel.com
+Cc: joe@perches.com, naveen.n.rao@linux.vnet.ibm.com, m.chehab@samsung.com, arozansk@redhat.com, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-"str" is never NULL here so I have removed the check.  There are static
-checkers which complain about superfluous NULL checks because it may
-indicate confusion or a bug.
+On Fri, Oct 18, 2013 at 04:23:35AM -0400, Chen, Gong wrote:
+> OK, this is the 3rd version. Hope it is the last one :-).
 
-Signed-off-by: Dan Carpenter <dan.carpenter@oracle.com>
+It looks ok to me so far, I'm guessing Tony you're picking this up or
+should I?
 
-diff --git a/drivers/acpi/osl.c b/drivers/acpi/osl.c
-index 50d40e5..a0c09ad 100644
---- a/drivers/acpi/osl.c
-+++ b/drivers/acpi/osl.c
-@@ -1355,7 +1355,7 @@ static int __init acpi_os_name_setup(char *str)
- 	if (!str || !*str)
- 		return 0;
- 
--	for (; count-- && str && *str; str++) {
-+	for (; count-- && *str; str++) {
- 		if (isalnum(*str) || *str == ' ' || *str == ':')
- 			*p++ = *str;
- 		else if (*str == '\'' || *str == '"')
+> this version just updates some minors places and apply some Ack/Review
+> information. In this version I remove the last patch for trace
+> interface. Maybe it is time to build a new RAS trace interface to
+> integrate all RAS related error report interfaces now.
+
+Yeah, let's start small here by moving the CREATE_TRACE_POINTS macro
+definition to something like arch/x86/ras/core.c and work slowly up from
+there. We have ras_event.h for tracepoints already.
+
+Thanks.
+
+-- 
+Regards/Gruss,
+    Boris.
+
+Sent from a fat crate under my desk. Formatting is fine.
+--
