@@ -1,59 +1,26 @@
-From: Lan Tianyu <tianyu.lan@intel.com>
-Subject: Re: [PATCH] ACPI/Power: Check physical device's runtime pm status
- before requesting to resume it
-Date: Fri, 18 Oct 2013 21:05:13 +0800
-Message-ID: <52613209.3000104@intel.com>
-References: <1381479385-1614-1-git-send-email-tianyu.lan@intel.com> <525F372A.5070807@intel.com> <525F4E03.2050606@intel.com> <4249062.PmvqKh0Nrz@vostro.rjw.lan>
+From: Tony Luck <tony.luck@gmail.com>
+Subject: Re: [PATCH v3 0/9] Extended H/W error log driver
+Date: Fri, 18 Oct 2013 09:17:16 -0700
+Message-ID: <CA+8MBb+JkmD-5Lgpm=EgRDFFN5jJXmaU3f0sy7rdQq0K5ENCpA@mail.gmail.com>
+References: <1382084624-10857-1-git-send-email-gong.chen@linux.intel.com>
+	<20131018092054.GB1007@pd.tnic>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga14.intel.com ([143.182.124.37]:5509 "EHLO mga14.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753871Ab3JRNFf (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 18 Oct 2013 09:05:35 -0400
-In-Reply-To: <4249062.PmvqKh0Nrz@vostro.rjw.lan>
+Received: from mail-we0-f177.google.com ([74.125.82.177]:59131 "EHLO
+	mail-we0-f177.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751905Ab3JRQRR (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 18 Oct 2013 12:17:17 -0400
+In-Reply-To: <20131018092054.GB1007@pd.tnic>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: lenb@kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Lan Tianyu <lantianyu1986@gmail.com>, Aaron Lu <aaron.lu@intel.com>
+To: Borislav Petkov <bp@alien8.de>
+Cc: "Chen, Gong" <gong.chen@linux.intel.com>, Joe Perches <joe@perches.com>, "Naveen N. Rao" <naveen.n.rao@linux.vnet.ibm.com>, m.chehab@samsung.com, arozansk@redhat.com, linux-acpi <linux-acpi@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
 
-On 10/17/2013 07:38 PM, Rafael J. Wysocki wrote:
->>>>>>> Unfortunately, I don't see how we can fix this race in a
->>>>>>> satisfactory way and I'm starting to think that the whole
->>>>>>> resuming of dependent devices may be a bad idea.
->>>>>>>
->>>>>>> IIRC, the original concern was that devices may end up in
->>>>>>> D0-uninitialized if we don't do that, but then whoever
->>>>>>> turned the power resource on will probably turn if off at
->>>>>>> one point anyway, so they will be in that state
->>>>>>> temporarily.  In other words, in addition to the fact
->>>>>>> that this is racy, there even is no reason to do it.
->>>>>>>
->>>>>>> I'll send a patch to rip off that stuff later today.
->>>
->>> Currently, dropping it should be the better choice but I think we
->>> still need to resolve the D0-uninitialized problem, right?
-> Why do you think it is a problem in the first place?  Those devices
-> will not be accessed while in that state (unless there's a bug
-> somewhere).
->
+On Fri, Oct 18, 2013 at 2:20 AM, Borislav Petkov <bp@alien8.de> wrote:
+> It looks ok to me so far, I'm guessing Tony you're picking this up or
+> should I?
 
-Yes, those devices will not be accessed but they will continue to stay
-D0-uninitiallized without any users before next resume and suspend. PM
-core and device driver still think they are in the lower power state.
+I'll pick it up.  Thanks for all the Acks & Reviews.
 
-At this point, it seems these devices should be put into lower power
-state(E.G D3hot) than D0-uninitiallized.
-
-E.G, two devices share one power resource. After they are suspended and
-power resource turns off, one device is resumed and power resource turns
-on. The other device will remain D0-uninitallized until there are resume
-and suspend for it. It may consume more power than lowest power state it
-can reach at that point.
-
-> Thanks!
->
-> -- I speak only for myself. Rafael J. Wysocki, Intel Open Source
-> Technology Center.
-
+-Tony
