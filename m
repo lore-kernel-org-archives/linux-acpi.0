@@ -1,45 +1,55 @@
-From: Felipe Contreras <felipe.contreras@gmail.com>
-Subject: Re: [PATCH] acpi: update win8 OSI blacklist
-Date: Fri, 18 Oct 2013 21:30:08 -0500
-Message-ID: <CAMP44s3WowFAGMGDwEGGC6CiOsUpdwi7EP9=ZSMi6uv3edTpZA@mail.gmail.com>
-References: <1380820383-23336-1-git-send-email-felipe.contreras@gmail.com>
-	<CAMP44s1_2VHf+FWkuQxLyYvhSRwnUwhDQTxi5YrOt-ON1OCNTQ@mail.gmail.com>
-	<CAANYUdCUg4GM5YX8KkokgqBGaUJjrtcHrkWaQEyhxUcivYnqMQ@mail.gmail.com>
+From: Borislav Petkov <bp@alien8.de>
+Subject: Re: [PATCH v3 4/9] ACPI, x86: Extended error log driver for x86
+ platform
+Date: Sat, 19 Oct 2013 11:57:53 +0200
+Message-ID: <20131019095753.GA26338@pd.tnic>
+References: <1382084624-10857-1-git-send-email-gong.chen@linux.intel.com>
+ <1382084624-10857-5-git-send-email-gong.chen@linux.intel.com>
+ <52612BA4.2060906@linux.vnet.ibm.com>
+ <20131018125326.GC1007@pd.tnic>
+ <3908561D78D1C84285E8C5FCA982C28F31D41E37@ORSMSX106.amr.corp.intel.com>
+ <20131018212741.GA26049@pd.tnic>
+ <3908561D78D1C84285E8C5FCA982C28F31D41FD3@ORSMSX106.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset=utf-8
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-wi0-f169.google.com ([209.85.212.169]:40669 "EHLO
-	mail-wi0-f169.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754801Ab3JSCaK (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 18 Oct 2013 22:30:10 -0400
-In-Reply-To: <CAANYUdCUg4GM5YX8KkokgqBGaUJjrtcHrkWaQEyhxUcivYnqMQ@mail.gmail.com>
+Received: from mail.skyhub.de ([78.46.96.112]:57312 "EHLO mail.skyhub.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750843Ab3JSJ55 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Sat, 19 Oct 2013 05:57:57 -0400
+Content-Disposition: inline
+In-Reply-To: <3908561D78D1C84285E8C5FCA982C28F31D41FD3@ORSMSX106.amr.corp.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Stefan Hellermann <stefan@the2masters.de>
-Cc: Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, "Rafael J. Wysocki" <rjw@sisk.pl>
+To: "Luck, Tony" <tony.luck@intel.com>
+Cc: "Naveen N. Rao" <naveen.n.rao@linux.vnet.ibm.com>, "Chen, Gong" <gong.chen@linux.intel.com>, "joe@perches.com" <joe@perches.com>, "m.chehab@samsung.com" <m.chehab@samsung.com>, "arozansk@redhat.com" <arozansk@redhat.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
 
-On Fri, Oct 18, 2013 at 5:43 AM, Stefan Hellermann
-<stefan@the2masters.de> wrote:
-> 2013/10/3 Felipe Contreras <felipe.contreras@gmail.com>
->>
->> On Thu, Oct 3, 2013 at 12:13 PM, Felipe Contreras
->> <felipe.contreras@gmail.com> wrote:
->> > More people have reported they need this for their machines to work
->> > correctly.
->> >
->> > https://bugzilla.kernel.org/show_bug.cgi?id=60682
->>
->> Reported-by: Stefan Hellermann <bugzilla.kernel.org@the2masters.de>
->
->
-> That's not entirely correct! I reported bios version 2.52 is affected, but
-> 2.54 is fixed. I think we should match all Lenovo 3259*, but only bios
-> version < 2.54
+On Fri, Oct 18, 2013 at 10:22:26PM +0000, Luck, Tony wrote:
+> @@ -154,6 +154,10 @@ void mce_log(struct mce *mce)
+>  	/* Emit the trace record: */
+>  	trace_mce_record(mce);
+>  
+> +	if (mce_ext_err_print)
+> +		if (mce_ext_err_print(NULL, m.extcpu, i))
+> +			return;
+> +
+>  	ret = atomic_notifier_call_chain(&x86_mce_decoder_chain, 0, mce);
+>  	if (ret == NOTIFY_STOP)
+>  		return;
+> 
+> If we move mce_ext_err_print() this far ... then it's only one line further down
+> to have it be part of the x86_mce_decoder_chain as suggested by Naveen.
 
-As far as I know there's no way to do a match like that. So we have to
-choose, either we apply the blacklist for all, or for none. Since
-removing the win8 OSI doesn't cause any negative effects in 2.54, I
-say we would do the former.
+Right, if you want mce_ext_err_print() to be the first and the only one
+called on the chain, then you'd have to play with the priority.
+
+But yes, this is possible and it would make it all even cleaner
+and simpler by simply not needing the reg/dereg interfaces for
+mce_ext_err_print but adding it to the chain.
 
 -- 
-Felipe Contreras
+Regards/Gruss,
+    Boris.
+
+Sent from a fat crate under my desk. Formatting is fine.
+--
