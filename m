@@ -1,55 +1,88 @@
-From: Borislav Petkov <bp@alien8.de>
-Subject: Re: [PATCH v3 4/9] ACPI, x86: Extended error log driver for x86
- platform
-Date: Sat, 19 Oct 2013 11:57:53 +0200
-Message-ID: <20131019095753.GA26338@pd.tnic>
+From: Chen Gong <gong.chen@linux.intel.com>
+Subject: Re: [PATCH v3 8/9] ACPI, APEI, CPER: Cleanup CPER memory error
+ output format
+Date: Sat, 19 Oct 2013 07:26:58 -0400
+Message-ID: <20131019112658.GB16597@gchen.bj.intel.com>
 References: <1382084624-10857-1-git-send-email-gong.chen@linux.intel.com>
- <1382084624-10857-5-git-send-email-gong.chen@linux.intel.com>
- <52612BA4.2060906@linux.vnet.ibm.com>
- <20131018125326.GC1007@pd.tnic>
- <3908561D78D1C84285E8C5FCA982C28F31D41E37@ORSMSX106.amr.corp.intel.com>
- <20131018212741.GA26049@pd.tnic>
- <3908561D78D1C84285E8C5FCA982C28F31D41FD3@ORSMSX106.amr.corp.intel.com>
+ <1382084624-10857-9-git-send-email-gong.chen@linux.intel.com>
+ <52612311.2000303@linux.vnet.ibm.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="jq0ap7NbKX2Kqbes"
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail.skyhub.de ([78.46.96.112]:57312 "EHLO mail.skyhub.de"
+Received: from mga03.intel.com ([143.182.124.21]:22139 "EHLO mga03.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750843Ab3JSJ55 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Sat, 19 Oct 2013 05:57:57 -0400
+	id S1751281Ab3JSLl5 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Sat, 19 Oct 2013 07:41:57 -0400
 Content-Disposition: inline
-In-Reply-To: <3908561D78D1C84285E8C5FCA982C28F31D41FD3@ORSMSX106.amr.corp.intel.com>
+In-Reply-To: <52612311.2000303@linux.vnet.ibm.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Luck, Tony" <tony.luck@intel.com>
-Cc: "Naveen N. Rao" <naveen.n.rao@linux.vnet.ibm.com>, "Chen, Gong" <gong.chen@linux.intel.com>, "joe@perches.com" <joe@perches.com>, "m.chehab@samsung.com" <m.chehab@samsung.com>, "arozansk@redhat.com" <arozansk@redhat.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
+To: "Naveen N. Rao" <naveen.n.rao@linux.vnet.ibm.com>
+Cc: tony.luck@intel.com, bp@alien8.de, joe@perches.com, m.chehab@samsung.com, arozansk@redhat.com, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 
-On Fri, Oct 18, 2013 at 10:22:26PM +0000, Luck, Tony wrote:
-> @@ -154,6 +154,10 @@ void mce_log(struct mce *mce)
->  	/* Emit the trace record: */
->  	trace_mce_record(mce);
->  
-> +	if (mce_ext_err_print)
-> +		if (mce_ext_err_print(NULL, m.extcpu, i))
-> +			return;
-> +
->  	ret = atomic_notifier_call_chain(&x86_mce_decoder_chain, 0, mce);
->  	if (ret == NOTIFY_STOP)
->  		return;
-> 
-> If we move mce_ext_err_print() this far ... then it's only one line further down
-> to have it be part of the x86_mce_decoder_chain as suggested by Naveen.
 
-Right, if you want mce_ext_err_print() to be the first and the only one
-called on the chain, then you'd have to play with the priority.
+--jq0ap7NbKX2Kqbes
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-But yes, this is possible and it would make it all even cleaner
-and simpler by simply not needing the reg/dereg interfaces for
-mce_ext_err_print but adding it to the chain.
+On Fri, Oct 18, 2013 at 05:31:21PM +0530, Naveen N. Rao wrote:
+> Date: Fri, 18 Oct 2013 17:31:21 +0530
+> From: "Naveen N. Rao" <naveen.n.rao@linux.vnet.ibm.com>
+> To: "Chen, Gong" <gong.chen@linux.intel.com>, tony.luck@intel.com,
+>  bp@alien8.de, joe@perches.com, m.chehab@samsung.com
+> CC: arozansk@redhat.com, linux-acpi@vger.kernel.org,
+>  linux-kernel@vger.kernel.org
+> Subject: Re: [PATCH v3 8/9] ACPI, APEI, CPER: Cleanup CPER memory error
+>  output format
+> User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:24.0) Gecko/20100101
+>  Thunderbird/24.0
+>=20
+[...]
+> >
+> >@@ -358,17 +349,21 @@ void cper_estatus_print(const char *pfx,
+> >  	struct acpi_generic_data *gdata;
+> >  	unsigned int data_len, gedata_len;
+> >  	int sec_no =3D 0;
+> >+	char newpfx[64];
+> >  	__u16 severity;
+> >
+> >-	printk("%s""Generic Hardware Error Status\n", pfx);
+> >  	severity =3D estatus->error_severity;
+> >-	printk("%s""severity: %d, %s\n", pfx, severity,
+> >-	       cper_severity_str(severity));
+> >+	if (severity !=3D CPER_SEV_FATAL)
+>=20
+> Shouldn't this just be (severity =3D=3D CPER_SEV_CORRECTED)?
+>=20
+> Thanks,
+> Naveen
+>=20
+IMO, only fatal error can't be handlered gracefully in current
+kernel plus H/W. Once it can be recovered by H/W and OS, we
+can call it recovered.
 
--- 
-Regards/Gruss,
-    Boris.
+--jq0ap7NbKX2Kqbes
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
 
-Sent from a fat crate under my desk. Formatting is fine.
---
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.14 (GNU/Linux)
+
+iQIcBAEBAgAGBQJSYmyBAAoJEI01n1+kOSLHKbwQAJdMyxObPFUOv4LyuLwtgygS
+DJbTklev4xdNjP7Vg7LNQ6R4d7zCjAJ9stziGfH8/EYxqFHit9LYDZ1xi8khCmpc
+wYUMEg3SO3yOLUMBzX6FRrsqVz8bkym+IR1HqskcxrdzPNV+WTlT0VI0Ih1avQLu
+hzA0WpE5dO0Q3m/K2peE+4nQAqmnUcFfiDVfGum14CzJABmhKNtSXTh9ozb1ZdXw
+ifM4C45HxcqnNn6UGMlpv0mKvfB9ASzH3/jdRlPLqhntmS+vXo1JOcisAGuWBE/2
+CgtY+D/0fK2qdS4ZmOknXsDit5Gh+TCqJV4j8MJNZ9PbA7+Kaoj1oKoXFkDiHgH2
+t4oFCVmCTYkhU1m+e+RYeUOt6tzaNYpB6P5mFTZYKCQznJ3dQ6xYO0ORlITTwrUq
+m1P0L3yRtBrX/F07KLWZjYkJgNBGYjOcsA6SQqYipUTfvXOqhxzF48bFkQ2JXeF8
+veit/lDej3yTbPrlmW+CPJZO7ZMjSR2O7PGKM8W3AMTxrUTsqF4iabhwaFaizLSQ
+Jszanx+raJE2mnIh2Nh+wGPhGZfuOUttu0M13r+hNX8ZpR2lmqSe+AqwAULnttAP
+vc3kWyvOlIIWExB233P31cNTKP24hbG86gojPJzia2R/VhWnlgN5c+e05dTOmz/Z
+hffIVt6mpgKsygsc8feM
+=8gID
+-----END PGP SIGNATURE-----
+
+--jq0ap7NbKX2Kqbes--
