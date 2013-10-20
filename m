@@ -1,33 +1,90 @@
-From: Linus Walleij <linus.walleij@linaro.org>
-Subject: Re: [PATCH v2 5/5] gpiolib / ACPI: document the GPIO descriptor based interface
-Date: Sat, 19 Oct 2013 23:35:39 +0200
-Message-ID: <CACRpkdaAgsoO=w6=LDqE4-JZaOY7Ooofa_L2tRL2Hnt6SNh70g@mail.gmail.com>
-References: <1381392071-21407-1-git-send-email-mika.westerberg@linux.intel.com>
-	<1381392071-21407-6-git-send-email-mika.westerberg@linux.intel.com>
+From: Chen Gong <gong.chen@linux.intel.com>
+Subject: Re: [PATCH v3 4/9] ACPI, x86: Extended error log driver for x86
+ platform
+Date: Sun, 20 Oct 2013 03:06:15 -0400
+Message-ID: <20131020070615.GA30565@gchen.bj.intel.com>
+References: <1382084624-10857-1-git-send-email-gong.chen@linux.intel.com>
+ <1382084624-10857-5-git-send-email-gong.chen@linux.intel.com>
+ <52612BA4.2060906@linux.vnet.ibm.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <linux-gpio-owner@vger.kernel.org>
-In-Reply-To: <1381392071-21407-6-git-send-email-mika.westerberg@linux.intel.com>
-Sender: linux-gpio-owner@vger.kernel.org
-To: Mika Westerberg <mika.westerberg@linux.intel.com>
-Cc: "linux-gpio@vger.kernel.org" <linux-gpio@vger.kernel.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Grant Likely <grant.likely@secretlab.ca>, Mathias Nyman <mathias.nyman@linux.intel.com>, Alexandre Courbot <acourbot@nvidia.com>, Rob Landley <rob@landley.net>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="9jxsPFA5p3P2qPhR"
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mga11.intel.com ([192.55.52.93]:37473 "EHLO mga11.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750916Ab3JTHV2 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Sun, 20 Oct 2013 03:21:28 -0400
+Content-Disposition: inline
+In-Reply-To: <52612BA4.2060906@linux.vnet.ibm.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: "Naveen N. Rao" <naveen.n.rao@linux.vnet.ibm.com>
+Cc: tony.luck@intel.com, bp@alien8.de, joe@perches.com, m.chehab@samsung.com, arozansk@redhat.com, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 
-On Thu, Oct 10, 2013 at 10:01 AM, Mika Westerberg
-<mika.westerberg@linux.intel.com> wrote:
 
-> In addition to the existing ACPI specific GPIO interface, document the new
-> descriptor based GPIO interface in Documentation/acpi/enumeration.txt, so
-> it is clear that this new interface is preferred over the ACPI specific
-> version.
->
-> Signed-off-by: Mika Westerberg <mika.westerberg@linux.intel.com>
-> Acked-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
-> Reviewed-by: Alexandre Courbot <acourbot@nvidia.com>
+--9jxsPFA5p3P2qPhR
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-I've applied the last 4 of these patches now as well, on top of
-Alexandre's gpiod interface. If you can, please test the result
-on my "devel" branch and let's see if the autobuilder likes it too...
+[...]
 
-Yours,
-Linus Walleij
+> >diff --git a/drivers/acpi/Kconfig b/drivers/acpi/Kconfig
+> >index 22327e6..c67ec61 100644
+> >--- a/drivers/acpi/Kconfig
+> >+++ b/drivers/acpi/Kconfig
+> >@@ -372,4 +372,24 @@ config ACPI_BGRT
+> >
+> >  source "drivers/acpi/apei/Kconfig"
+> >
+> >+config ACPI_EXTLOG
+> >+	tristate "Extended Error Log support"
+> >+	depends on X86_MCE
+>=20
+> I think you also have a dependancy on ACPI_APEI for apei_estatus_print()
+>=20
+Oh, yes it is. Furthermore, it reminds me where is the best place to put
+cper.c from I write this patch series. CPER really doesn't dpend on APEI
+even ACPI. Maybe lib/ ia an option. I can update this patch and if it is
+OK, I can add another separate patch to change this dependency. Make
+sense?
+
+> >+	default n
+> >+	help
+> >+	  Certain usages such as Predictive Failure Analysis (PFA) require
+> >+	  more information about the error than what can be described in
+> >+	  processor machine check banks. Most server processors log
+> >+	  additional information about the error in processor uncore
+> >+	  registers. Since the addresses and layout of these registers vary
+> >+	  widely from one processor to another, system software cannot
+> >+	  readily make use of them. To complicate matters further, some of
+> >+	  the additional error information cannot be constructed space
+> >+	  between "additional" and "error" without detailed knowledge
+>=20
+> Oops... looks like copy+paste went wrong ;)
+>=20
+Sigh, it looks like I have m a little bit hurry.=20
+
+--9jxsPFA5p3P2qPhR
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.14 (GNU/Linux)
+
+iQIcBAEBAgAGBQJSY4DnAAoJEI01n1+kOSLHMRYP/inpl4REe4W/y83VhaOzz7nH
+9v7Mcd1y/DTVOPP/Apf4t1sw6ejiQMSHukrtgyJAd1Fdl56AHoc37VJhG3rGBxpH
+0W9VW7RURlc52kseKrVObQgPxR3N6lgJ4kPHeyRChCBdChAmF6KTIiGyrNk03DOI
+BiLnXbgy2z3ns6reHXOqHwGqvhqW+xxjxpVPDCOJizLeAsScQIKJkfF3w+y0EwJm
+kgCkh1WeiXlLVfNzbomXTnCxiHUyEBXGI9/G/NGq54BrhVTLBCQ2ADBnWhvPYTpR
+4fKn1Do/2YyiYQMcy866lVjzYQKrEl21QtS7Kd6yzsHWIyjVv3vCwLH0T83y+OAU
+rmJQ6xAqJAFWDxoGpWzqZcGGa3H6+cXOjPXUicp1iZsW6mOYOg+PZnQ8/Vm2DjRi
+u7ipIKvXr9hWP32Bl6Iqium67DAe0dMvSdKTZFXdyRqP9YmGjOtvWlviRP2OFKGJ
+yYsTAZwPUkd/4hEHuhgqbffj+F589g/y5X7ohh0Mi1yI4O+pZlBKaxwl3JAeKB3Y
+d2on9YpCqcWyYMay9aduts7kGfUFKbzaGt9V4AfKafJcn904gQBuf5X+XpmW5ozS
+RiBEBJNUjETRVQYfWcm96GvadAmowth2qvSJeHJ9/RS67sIZgF5FaXVmZtwnq1E3
+Hq1OL7PyZOyLY80Ow70n
+=gR75
+-----END PGP SIGNATURE-----
+
+--9jxsPFA5p3P2qPhR--
